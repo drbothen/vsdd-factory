@@ -273,7 +273,7 @@ fn test_BC_2_02_011_ec008_registry_accepts_write_file_capability_block() {
     use factory_dispatcher::registry::Registry;
 
     let toml = r#"
-schema_version = 1
+schema_version = 2
 
 [[hooks]]
 name = "state-writer"

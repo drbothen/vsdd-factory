@@ -1,8 +1,255 @@
 # Changelog
 
-## 1.0.0-rc.11 — Single-commit burst protocol + TD-020 sweep (2026-05-04)
+## Unreleased
 
-Two unrelated improvements bundled:
+## 1.0.0-rc.15 — Marketplace source-sync fix (main backfill) (2026-05-10)
+
+The headline of rc.15 is operational: it restores the rc.X release-branch
+pattern (release/v1.0.0-rc.X → main) that was the canonical sync mechanism
+through rc.11 but was inadvertently abandoned starting rc.13 (PR #111
+targeted develop instead of main). The drift accumulated for 3 release
+cycles produced a catastrophic mismatch in rc.14: the marketplace tarball
+shipped with `hooks-registry.toml schema_version = 1` against a dispatcher
+binary built from develop expecting `schema_version = 2`. Every operator
+who ran `/plugin update vsdd-factory@claude-mp` to rc.14 hit `E-REG-001`
+fail-closed on every tool call until manually patching the cache.
+
+rc.15 ships:
+
+- **main backfilled with 92 files of develop source** (3954 insertions /
+  880 deletions) — every fix from rc.12, rc.13, rc.14 that was in develop
+  but never reached main, and therefore never reached the marketplace
+  tarball. Notably:
+  - `hooks-registry.toml` `schema_version = 2` (S-15.01 T-3a)
+  - `scripts/generate-registry-from-hooks-json.sh` schema-bump (PR #112)
+  - 3 bats test files with portable path resolution (PR #112)
+  - `ci.yml` develop trigger (PR #112)
+  - `release.yml` TD #68 binary auto-resolve (PR #114)
+  - `regression-v1.0.bats` trace_id field tolerance (PR #113)
+  - All S-15.01 plugin async semantics work (rc.13)
+  - F5 convergence work (rc.13)
+  - HOST_ABI documentation expansion (rc.13)
+  - 33 new integration tests (rc.13)
+  - Crashed/timed-out gate fail-closed (PR #110)
+
+- **Identical dispatcher binaries to rc.14** — the binary build was
+  correct in rc.14; only the source-file portion of the tarball was
+  stale. rc.15 rebuilds them anyway to ensure all platforms are
+  reproducible at the rc.15 tag.
+
+### Operational
+
+- rc.14 stays as a tagged release but is functionally **broken on the
+  marketplace** (E-REG-001 on every tool call). Operators should update
+  to rc.15.
+- The rc.X release-branch convention is restored: future releases must
+  target `main`, not `develop`. Documented in this entry as the canonical
+  pattern.
+- The release branch was merged with `--merge` (not `--squash`) to
+  preserve develop's commits as ancestors of main, which means future
+  rc.X releases see `develop ⊇ main` correctly (TD #68 auto-resolve in
+  sync-develop becomes a no-op when nothing has diverged).
+
+### Deferred
+
+- TD #69 — guardrail enforcing release branches target main (lint hook
+  or branch-protection rule). Defer to S-15.02.
+- TD #66 — `trace_id` / `dispatcher_trace_id` field-name canonicalization.
+- TD #67 — 4 timing-flaky e2e tests in `full_stack_plugin_invocation.rs`.
+
+## 1.0.0-rc.14 — Release CI unblocker (supersedes rc.11–rc.13) (2026-05-09)
+
+The headline of rc.14 is operational: it is the first release tag in 5 days
+to flow cleanly through `validate` → `build-binaries` → `commit-binaries` →
+`release` → `bump-marketplace`. Every tag from `v1.0.0-rc.11` (2026-05-05)
+through `v1.0.0-rc.13` (2026-05-09) was tagged but never reached the
+`drbothen/claude-mp` marketplace because four bats suites were silently
+broken in `release.yml`'s `validate` job — and `ci.yml` only ran on `main`,
+so the regression was never caught at PR time.
+
+rc.14 carries **all the rc.12 and rc.13 deliverables forward** plus the
+release-CI fixes. Operators on `/plugin update vsdd-factory@claude-mp`
+will jump from rc.10 directly to rc.14.
+
+### Fixed
+
+- **Release CI validate-job unblock** (PR #112):
+  - `scripts/generate-registry-from-hooks-json.sh` now emits
+    `schema_version = 2` (matches `REGISTRY_SCHEMA_VERSION` bump landed by
+    T-3a / S-15.01 on 2026-05-07). Pre-fix the dispatcher rejected
+    generator output with `E-REG-001 SchemaVersion { got: 1, expected: 2 }`.
+  - `tests/resolver-host-abi-context-injection.bats` and
+    `tests/per-story-adversary-workflow.bats` no longer hardcode developer-
+    machine worktree paths (`/Users/jmagady/.../worktrees/S-12.06` etc).
+    They now resolve `REPO_ROOT` portably from `BATS_TEST_DIRNAME`.
+  - `tests/perf-baseline.bats` now correctly canonicalizes the
+    `git --git-common-dir` output (which is relative to the `-C` target,
+    not CWD) by `cd`'ing into `BATS_TEST_DIRNAME` first and `pwd`'ing.
+
+- **`ci.yml` now triggers on `develop`** (PR #112): adds `develop` to push
+  and pull_request branch lists. Closes the gap that let release-CI-blocking
+  bugs land for 4 days without surfacing on PR.
+
+### Carried forward from rc.12 (Slice 3 canonical reason codes)
+
+- Tier A canonical block-message migrations (slice 3): wave-gate-prerequisite,
+  pr-merge-prerequisites, factory-path-root, factory-branch-guard,
+  destructive-command-guard, verify-git-push, validate-finding-format,
+  validate-vp-consistency, validate-subsystem-names, validate-bc-title,
+  validate-story-bc-sync. All use canonical Why/Fix/Code block-message
+  pattern with HOST_ABI Tier A reason codes.
+- `tests/release-ci-bats.bats` aligned to Slice 3 canonical reason codes.
+- `lib/block.sh` source robustness for hook-side helpers.
+
+### Carried forward from rc.13 (Plugin async semantics)
+
+- **Plugin async semantics** (S-15.01, ADR-019): registry-layer partition
+  splits matched-event hooks into `sync_group` / `async_group` based on each
+  hook's `async = true|false` declaration in `hooks-registry.toml`. Async
+  hooks fire-and-forget via `executor.rs::spawn_async_plugin`; the dispatcher
+  returns to Claude Code after sync-group completion plus an
+  `ASYNC_DRAIN_WINDOW_MS` (DI-019, 100 ms) drain window. Pre-fix, `async: true`
+  in `hooks.json` silenced every plugin's exit code for a given event.
+- **10 telemetry hooks marked `async = true`**: `session-start-telemetry`,
+  `session-end-telemetry`, `capture-commit-activity`, `capture-pr-activity`,
+  `tool-failure-hooks`, `convergence-tracker`, `track-agent-start`,
+  `track-agent-stop`, `session-learning`, `update-wave-state-on-merge`.
+- **HOST_ABI documentation expanded** (+1,549 words / +331 lines): five new
+  sections covering Async Hook Semantics, Registry `async` field schema,
+  plugin-author async guidance, async failure modes, and the
+  `dispatcher.registry_invalid` wire-format split.
+- **Type-safe `registry-invalid` emitters** (B-3): two dedicated functions
+  replace the prior single emitter. E-REG-002 (intra-entry) and E-REG-003
+  (inter-entry) distinction is now enforced by the type system.
+- **Crashed/timed-out sync gate hooks fail-closed** (PR #110, ADR-019
+  Decision 2): `executor.rs::plugin_fail_closed()` returns true when
+  `result.kind ∈ {Crashed, Timeout}` AND `on_error == OnError::Block`.
+  Pre-fix these failed open silently.
+- **Hook silent-bypass on absolute paths** (PR #108):
+  `validate-stable-anchors::is_spec_target` and
+  `validate-artifact-path::matches_canonical` + `hook_logic` now accept both
+  relative and absolute path forms.
+- **VP-070 Kani harness assumption hardened** to remain sound against
+  absolute-path matching introduced by `validate-artifact-path`.
+
+### Refactored
+
+- `cargo fmt --all` sweep across 11 files (PR #112). Pre-existing fmt drift
+  caught by ci.yml's new develop coverage. No behavioral changes — only
+  whitespace/wrapping. Restores PR-time fmt enforcement.
+
+### Operational notes
+
+- `v1.0.0-rc.11`, `v1.0.0-rc.12`, `v1.0.0-rc.13` remain as git tags but
+  never reached `drbothen/claude-mp`. They are functionally superseded by
+  rc.14.
+- Filed TD #66: `regression-v1.0` test 7 expects field `dispatcher_trace_id`
+  but S-15.01 emits `trace_id`. CI skips this test (preflight artifacts
+  missing in `validate` job which doesn't `cargo build` before bats), so
+  it doesn't gate release. Defer to S-15.02.
+
+### F5 Cycle Convergence (carried from rc.13)
+
+Cycle `v1.0-feature-plugin-async-semantics-pass-1` reached ADR-013
+convergence at pass-57 (3 consecutive NITPICK_ONLY: 55, 56, 57).
+- 40 adversary passes (P18–P57); 49 fix-bursts
+- 19 L-P28-001 META-self-application failure instances codified
+- 14+ lessons codified (L-P18-001 through L-P28-001)
+
+### Deferred
+
+- S-15.02: dispatcher cold-start optimization (P2)
+- S-15.03: mechanical hook enforcement WASM hooks (P2)
+- TD #66: trace_id / dispatcher_trace_id field-name canonicalization
+
+## 1.0.0-rc.13 — Plugin async semantics (S-15.01) + absolute-path bypass fix + F5 convergence (2026-05-09)
+
+The headline delivery for rc.13 is the S-15.01 registry-layer async partition —
+the fix that makes `on_error = "block"` validators actually block.
+Telemetry hooks are classified `async = true` so they never gate the user.
+Two silent-bypass bugs in absolute-path matching are closed. The F5
+adversarial cycle converged at pass-57 (ADR-013 protocol satisfied).
+
+### Added
+
+- **Plugin async semantics** (S-15.01, ADR-019): the registry-layer partition
+  splits matched-event hooks into `sync_group` / `async_group` based on each
+  hook's `async = true|false` declaration in `hooks-registry.toml`. Async hooks
+  fire-and-forget via `executor.rs::spawn_async_plugin`; the dispatcher returns
+  to Claude Code after the sync group completes plus an `ASYNC_DRAIN_WINDOW_MS`
+  (DI-019, 100 ms) drain window. Prior to this change, `async: true` in
+  `hooks.json` silenced every plugin's exit code for a given event, causing all
+  55 block decisions recorded in the 2026-05-07 prism audit to be discarded
+  silently.
+
+- **10 telemetry hooks marked `async = true`** (`feat/async-flag-telemetry-hooks`,
+  commit `31c30a75`): `session-start-telemetry`, `session-end-telemetry`,
+  `capture-commit-activity`, `capture-pr-activity`, `tool-failure-hooks`,
+  `convergence-tracker`, `track-agent-start`, `track-agent-stop`,
+  `session-learning`, `update-wave-state-on-merge`. These hooks emit
+  telemetry / audit / tracking output and no longer block Claude Code's tool
+  flow.
+
+- **HOST_ABI documentation expanded** (`crates/hook-sdk/HOST_ABI.md`, +1,549
+  words / +331 lines, commit `3e034a37` on `docs/host-abi-async-semantics`):
+  five new sections covering Async Hook Semantics, Registry `async` field
+  schema, plugin-author async guidance, async failure modes, and the
+  `dispatcher.registry_invalid` wire-format split (B-3).
+
+- **Type-safe `registry-invalid` emitters** (B-3, PR #109): two dedicated
+  functions replace the prior single emitter. `emit_registry_invalid_e_reg002`
+  takes 3 params (context, plugin name, violation) for intra-entry violations
+  (E-REG-002); `emit_registry_invalid_e_reg003` takes 5 params (context, plugin
+  name, violation, offending event, `offending_tool: Option<&str>`) for
+  inter-entry violations (E-REG-003). Wire format is unchanged; the distinction
+  is now enforced by the type system rather than a documentation-only invariant.
+
+### Fixed
+
+- **Hook silent-bypass on absolute paths** (PR #108): `validate-stable-anchors::is_spec_target`
+  and `validate-artifact-path::matches_canonical` + `hook_logic` now accept
+  both relative (`.factory/...`) and absolute (`/path/to/.factory/...`) forms
+  via leading-slash discipline. Pre-fix, both hooks returned `Continue` for
+  Claude Code's absolute-path envelopes — a silent bypass. Verified by 10/10
+  integration tests in `tests/absolute_path_hook_engagement.rs`
+  (`validation/absolute-path-hook-engagement`, commit `264fa2ee`).
+
+- **VP-070 Kani harness assumption hardened** (commit `cc5a016b`): tightened
+  `kani::assume(!path.starts_with(".factory/") && !path.contains("/.factory/"))`
+  to remain sound against the absolute-path matching introduced by the
+  `validate-artifact-path` fix above.
+
+### Refactored
+
+- `emit_dispatcher_registry_invalid` split into two type-safe variants
+  `emit_registry_invalid_e_reg002` / `emit_registry_invalid_e_reg003` (B-3,
+  PR #109). The documentation-only invariant requiring `(None, None)` for
+  E-REG-002 callers is now enforced by the type system.
+
+### F5 Cycle Convergence
+
+Cycle `v1.0-feature-plugin-async-semantics-pass-1` reached ADR-013 convergence
+criteria at pass-57 (3 consecutive NITPICK_ONLY passes: 55, 56, 57).
+
+- 40 adversary passes (P18–P57); 49 fix-bursts
+- 19 L-P28-001 META-self-application failure instances codified
+- 14+ lessons codified (L-P18-001 through L-P28-001)
+- Spec corpus repairs: 1,000+ edits across BC-INDEX, VP-INDEX, STORY-INDEX,
+  ARCH-INDEX, BC bodies, and lessons.md
+- Final index versions: BC-INDEX v1.63, VP-INDEX v1.40, STORY-INDEX v2.64,
+  ARCH-INDEX v1.44
+
+### Deferred
+
+- S-15.02: dispatcher cold-start optimization (P2)
+- S-15.03: mechanical hook enforcement — `validate-symbol-cite`,
+  `validate-index-cite-refresh`, `validate-lesson-retroactive-sweep` WASM
+  hooks; structurally-convergent path codified by L-P28-001 series (P2)
+
+## 1.0.0-rc.11 — Single-commit burst protocol + TD-020 sweep + retag-round-2 (2026-05-04)
+
+Three improvements bundled (rc.11 required two retag rounds to ship; root
+causes documented as TD-VSDD-054 + TD-VSDD-055 in the engine register).
 
 ### Single-commit burst protocol (TD-VSDD-053)
 
@@ -44,6 +291,26 @@ and cycle manifests remain valid (immutable past burst SHAs).
 - Historical SHA references throughout (changelog/decisions-log/cycle-
   manifest/TL;DR History/BC/story/spec IDs)
 - `verify-sha-currency.sh` wave-state ↔ STATE cross-record check
+
+### Retag-round-2 fixes (TD-VSDD-054 + TD-VSDD-055)
+
+The first rc.11 release attempt failed at pre-release validation — TD-020
+sweep had un-skipped 4 bats suites with "passes locally" claims that hit
+two CI-environment regressions:
+
+- **TD-VSDD-054** (PR #85+#86): `generate-registry.bats` invoked the
+  generator script which read `git show 7b4b774^:plugins/vsdd-factory/hooks/hooks.json`.
+  CI uses shallow clone (default `actions/checkout` fetch-depth: 1) so
+  the historical SHA wasn't available. Fixed by vendoring the historical
+  hooks.json as `scripts/legacy/hooks-json-pre-templating.json` (94 lines,
+  exact byte-for-byte copy) and updating the generator to read the
+  static file. No more git-history dependency.
+- **TD-VSDD-055** (PR #87): `state-health.bats` setup ran `git commit`
+  which exits status 128 in CI because user.email/name aren't globally
+  configured on GitHub-hosted runners. Fixed by adding three
+  `git config --local` calls in the test's setup() (user.email,
+  user.name, commit.gpgsign false). Local config doesn't pollute
+  operator's global config.
 
 ### TD-020 sweep — bats SKIP_SUITES cleanup
 

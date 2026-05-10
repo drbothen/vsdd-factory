@@ -13,6 +13,13 @@
 
 set -euo pipefail
 
+# Source canonical block-message helper (provides _emit, block_pre).
+_SELF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+_BLOCK_SH="${CLAUDE_PLUGIN_ROOT:+${CLAUDE_PLUGIN_ROOT}/hooks/lib/block.sh}"
+_BLOCK_SH="${_BLOCK_SH:-${_SELF_DIR}/lib/block.sh}"
+# shellcheck source=lib/block.sh disable=SC1091
+if [ -f "$_BLOCK_SH" ]; then source "$_BLOCK_SH"; fi
+
 if ! command -v jq &>/dev/null; then
   echo "purity-check.sh: jq is required but not found" >&2
   exit 0
@@ -20,13 +27,6 @@ fi
 
 INPUT=$(cat)
 FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty')
-
-_emit() {
-  if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -x "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" ]; then
-    "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" "$@" 2>/dev/null || true
-  fi
-  return 0
-}
 
 if [[ -z "$FILE_PATH" ]] || [[ ! -f "$FILE_PATH" ]]; then
   exit 0
@@ -67,14 +67,14 @@ for p in "${PATTERNS[@]}"; do
 done
 
 if (( ${#HITS[@]} > 0 )); then
-  _emit type=hook.block hook=purity-check matcher=PostToolUse \
+  _emit type=hook.warn hook=purity-check matcher=PostToolUse \
         reason=pure_core_boundary_violation file_path="$FILE_PATH" severity=warn \
         patterns="${HITS[*]}"
-  echo "purity-check: $FILE_PATH is in a pure-core path but contains side-effect patterns:" >&2
+  echo "purity-check [ADVISORY]: $FILE_PATH is in a pure-core path but contains side-effect patterns:" >&2
   for h in "${HITS[@]}"; do
     echo "  - $h" >&2
   done
-  echo "Consider moving side effects to an adapter layer. See SOUL.md (pure-core boundary)." >&2
+  echo "Fix: Move the side effect to an adapter at crates/<crate>/src/adapters/ and call it from the pure-core function via dependency injection or an explicit interface. See SOUL.md section pure-core boundary." >&2
 fi
 
 exit 0

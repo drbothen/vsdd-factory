@@ -6,6 +6,15 @@ argument-hint: "--title <text> --subsystems <SS-NN[,...]> [--supersedes <ADR-NNN
 allowed-tools: Read, Write, Edit, Bash
 ---
 
+## Path Resolution (Mandatory)
+
+Before writing any artifact, resolve the canonical path via
+`plugins/vsdd-factory/config/artifact-path-registry.yaml`. Do not invent paths.
+
+Read the registry at the start of this skill's procedure and verify the target path
+matches a registered pattern before calling `Write`. If the artifact type is not in
+the registry, use `/vsdd-factory:register-artifact` to add it first.
+
 ## Hard Gate
 
 Do NOT ghost-write ADR section prose. Template placeholder text is preserved verbatim. The skill scaffolds structure only — the architect agent fills content. Every write is atomic: if any step fails, all prior writes in that invocation are reverted.

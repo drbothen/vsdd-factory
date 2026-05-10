@@ -7,12 +7,17 @@
 //! v0.79.x hooks.json.
 
 use serde::{Deserialize, Serialize};
+use std::collections::HashSet;
 use std::path::{Path, PathBuf};
 use thiserror::Error;
 
 /// Current registry schema version. The loader refuses anything else
 /// so an unreleased schema change can't silently mis-parse.
-pub const REGISTRY_SCHEMA_VERSION: u32 = 1;
+///
+/// S-15.01 (AC-001, BC-7.06.001 postcondition 1): bumped to 2 for per-plugin
+/// `async` field support and partition semantics (ADR-019). A registry with
+/// `schema_version != 2` produces E-REG-001 at load time (fail-closed).
+pub const REGISTRY_SCHEMA_VERSION: u32 = 2;
 
 #[derive(Debug, Error)]
 pub enum RegistryError {
@@ -24,7 +29,8 @@ pub enum RegistryError {
     Toml(#[from] toml::de::Error),
     #[error(
         "registry schema_version = {got}, dispatcher expects {expected}. \
-         Regenerate hooks-registry.toml or upgrade the dispatcher."
+         Regenerate hooks-registry.toml or upgrade the dispatcher. \
+         [E-REG-001]"
     )]
     SchemaVersion { got: u32, expected: u32 },
     #[error("registry entry '{name}': invalid tool regex `{pattern}`: {source}")]
@@ -33,6 +39,28 @@ pub enum RegistryError {
         pattern: String,
         #[source]
         source: regex::Error,
+    },
+    /// E-REG-002: entry has `on_error = "block"` AND `async = true`.
+    /// Enforced at registry-load time; dispatcher refuses to start.
+    /// (BC-1.14.001 Invariant 4, BC-7.06.001 Invariant 1)
+    #[error(
+        "registry entry '{name}': on_error = \"block\" combined with async = true is forbidden \
+         (BC-7.06.001 Invariant 1). Classify this plugin async = false or remove on_error = \"block\". \
+         [E-REG-002]"
+    )]
+    AsyncBlockConflict { name: String },
+    /// E-REG-003: duplicate (name, event, tool) tuple across [[hooks]] entries.
+    /// Enforced at registry-load time; dispatcher refuses to start.
+    /// (BC-7.06.001 Invariant 7, F-P8-001)
+    #[error(
+        "[E-REG-003] Duplicate hook entry: name={name}, event={event}, tool={tool:?} \
+         (BC-7.06.001 Invariant 7). Each (name, event, tool) tuple must be unique \
+         across all [[hooks]] entries."
+    )]
+    DuplicateEntry {
+        name: String,
+        event: String,
+        tool: Option<String>,
     },
 }
 
@@ -196,6 +224,25 @@ pub struct RegistryEntry {
     /// [`HookPayload`]: vsdd_hook_sdk::HookPayload
     #[serde(default = "default_config")]
     pub config: toml::Value,
+
+    /// Per-plugin async classification (S-15.01, BC-7.06.001 postcondition 2).
+    ///
+    /// - `async = true`: plugin is fire-and-forget (async_group). Its verdict
+    ///   never affects the dispatcher exit code. Suitable for telemetry-only
+    ///   plugins. MUST NOT be combined with `on_error = "block"` (E-REG-002).
+    /// - `async = false` (default, including absent field): plugin is in the
+    ///   sync_group. The dispatcher awaits its completion; a block verdict gates
+    ///   Claude Code. The serde-default semantics (absent = false) ensure all
+    ///   existing registry entries are treated as sync-group plugins without
+    ///   any TOML file migration (BC-7.06.001 postcondition 3).
+    ///
+    /// Renamed to `async_flag` in Rust source because `async` is a reserved
+    /// keyword. The TOML key remains `async`.
+    ///
+    /// ASYNC_DRAIN_WINDOW_MS for async group tasks is defined in DI-019 —
+    /// cite by reference, do NOT hardcode the value (Decision 4).
+    #[serde(default, rename = "async")]
+    pub async_flag: bool,
 }
 
 fn default_enabled() -> bool {
@@ -323,6 +370,55 @@ impl Registry {
                 })?;
             }
         }
+        // S-15.01 T-3f: check BC-7.06.001 Invariant 1 — on_error=block implies async=false.
+        // Any entry with on_error=block AND async=true is E-REG-002 (fail-closed).
+        self.validate_async_block_invariant()?;
+        // F-P2-011: BC-7.06.001 Invariant 7 — (name, event, tool) tuple must be unique.
+        // Two entries MAY share name+event if they bind different tool regex values.
+        self.validate_name_event_tool_uniqueness()?;
+        Ok(())
+    }
+
+    /// Lint invariant (S-15.01 T-3f, BC-7.06.001 Invariant 1, BC-1.14.001 Invariant 4):
+    /// No entry may combine `on_error = "block"` with `async = true`.
+    ///
+    /// This is a hard load-time error (E-REG-002). The dispatcher refuses to start
+    /// if any entry violates this invariant. Emits `dispatcher.registry_invalid`.
+    ///
+    /// ASYNC_DRAIN_WINDOW_MS is defined in DI-019 — cite by reference only.
+    fn validate_async_block_invariant(&self) -> Result<(), RegistryError> {
+        for entry in &self.hooks {
+            let on_error_is_block = entry.on_error == Some(OnError::Block);
+            if on_error_is_block && entry.async_flag {
+                return Err(RegistryError::AsyncBlockConflict {
+                    name: entry.name.clone(),
+                });
+            }
+        }
+        Ok(())
+    }
+
+    /// Uniqueness invariant (F-P2-011, BC-7.06.001 Invariant 7):
+    /// The (name, event, tool) tuple must be unique across all [[hooks]] entries.
+    ///
+    /// Two entries MAY share `name` and `event` if they bind to different `tool`
+    /// regex values — this permits a single named plugin to enforce against multiple
+    /// tool surfaces (e.g. `protect-secrets` on `Bash` and `Read` PreToolUse events).
+    /// Two entries with `tool = None` and the same `name`+`event` are duplicates.
+    ///
+    /// Hard load-time error; dispatcher refuses to start on violation.
+    fn validate_name_event_tool_uniqueness(&self) -> Result<(), RegistryError> {
+        let mut seen: HashSet<(String, String, Option<String>)> = HashSet::new();
+        for entry in &self.hooks {
+            let key = (entry.name.clone(), entry.event.clone(), entry.tool.clone());
+            if !seen.insert(key) {
+                return Err(RegistryError::DuplicateEntry {
+                    name: entry.name.clone(),
+                    event: entry.event.clone(),
+                    tool: entry.tool.clone(),
+                });
+            }
+        }
         Ok(())
     }
 }
@@ -333,7 +429,7 @@ mod tests {
 
     fn minimal_toml() -> &'static str {
         r#"
-schema_version = 1
+schema_version = 2
 
 [[hooks]]
 name = "commit"
@@ -346,7 +442,7 @@ plugin = "plugins/commit.wasm"
     #[test]
     fn parses_minimal_registry() {
         let reg = Registry::parse_str(minimal_toml()).unwrap();
-        assert_eq!(reg.schema_version, 1);
+        assert_eq!(reg.schema_version, 2);
         assert_eq!(reg.hooks.len(), 1);
         assert_eq!(reg.hooks[0].name, "commit");
         assert_eq!(reg.hooks[0].event, "PostToolUse");
@@ -369,7 +465,7 @@ plugin = "plugins/commit.wasm"
         // Real-shape registry as the legacy-bash-adapter operator
         // would write — string + nested table.
         let toml = r#"
-schema_version = 1
+schema_version = 2
 
 [[hooks]]
 name = "validate-template"
@@ -407,8 +503,9 @@ extra = { key = "value" }
 
     #[test]
     fn rejects_unknown_schema_version() {
+        // schema_version=3 is unknown — dispatcher expects 2 (REGISTRY_SCHEMA_VERSION).
         let toml = r#"
-schema_version = 2
+schema_version = 3
 
 [[hooks]]
 name = "x"
@@ -418,8 +515,8 @@ plugin = "x.wasm"
         let err = Registry::parse_str(toml).unwrap_err();
         match err {
             RegistryError::SchemaVersion { got, expected } => {
-                assert_eq!(got, 2);
-                assert_eq!(expected, 1);
+                assert_eq!(got, 3);
+                assert_eq!(expected, 2);
             }
             other => panic!("expected SchemaVersion, got {other:?}"),
         }
@@ -428,7 +525,7 @@ plugin = "x.wasm"
     #[test]
     fn rejects_invalid_tool_regex() {
         let toml = r#"
-schema_version = 1
+schema_version = 2
 
 [[hooks]]
 name = "bad"
@@ -446,7 +543,7 @@ plugin = "x.wasm"
     #[test]
     fn rejects_unknown_entry_field() {
         let toml = r#"
-schema_version = 1
+schema_version = 2
 
 [[hooks]]
 name = "typo"
@@ -460,7 +557,7 @@ priorty = 100
     #[test]
     fn rejects_unknown_on_error_value() {
         let toml = r#"
-schema_version = 1
+schema_version = 2
 
 [[hooks]]
 name = "x"
@@ -474,7 +571,7 @@ on_error = "shout"
     #[test]
     fn accepts_capabilities_block() {
         let toml = r#"
-schema_version = 1
+schema_version = 2
 
 [[hooks]]
 name = "git"
@@ -502,7 +599,7 @@ path_allow = [".factory/STATE.md"]
     #[test]
     fn overrides_priority_per_entry() {
         let toml = r#"
-schema_version = 1
+schema_version = 2
 
 [[hooks]]
 name = "fast"
@@ -546,7 +643,7 @@ priority = 900
             &reg_path,
             format!(
                 r#"
-schema_version = 1
+schema_version = 2
 
 [[hooks]]
 name = "rel"
@@ -575,7 +672,7 @@ plugin = "{abs_str}"
         let abs_str = abs_plugin.to_str().unwrap().replace('\\', "/");
         let mut reg = Registry::parse_str(&format!(
             r#"
-schema_version = 1
+schema_version = 2
 
 [[hooks]]
 name = "x"
@@ -590,5 +687,453 @@ plugin = "{abs_str}"
         assert_eq!(reg.hooks[0].plugin, expected);
         reg.resolve_plugin_paths(dir.path());
         assert_eq!(reg.hooks[0].plugin, expected);
+    }
+}
+
+// ---------------------------------------------------------------------------
+// S-15.01 F4 test additions — VP-078 Harnesses 1 + 4 (registry-side tests)
+//
+// Harness 1 — lint_invariant: schema_version=2 required; v1 rejected; block+async rejected.
+// Harness 4 — serde_default: absent `async` field → false; string `async` → parse error.
+//
+// These tests exercise Registry::parse_str() directly (no I/O).
+// All tests must fail until T-3f is implemented (validate_async_block_invariant is todo!()).
+// The schema_version tests fail immediately because REGISTRY_SCHEMA_VERSION = 2 and
+// the existing tests use schema_version = 1 — the stub already enforces the version check.
+// ---------------------------------------------------------------------------
+
+#[cfg(test)]
+mod s15_01_vp078_harness_1_lint_invariant {
+    use super::*;
+
+    // -----------------------------------------------------------------------
+    // Harness 1a — schema_version = 2 required
+    // AC-001: BC-7.06.001 postcondition 1
+    // -----------------------------------------------------------------------
+
+    /// VP-078 H1: v1 registry rejected with E-REG-001 (SchemaVersion error).
+    ///
+    /// RED: validate() returns Err(SchemaVersion{got:1,expected:2}).
+    /// Already enforced by REGISTRY_SCHEMA_VERSION = 2 constant in the stub.
+    #[test]
+    fn test_BC_7_06_001_schema_v1_rejected_with_e_reg_001() {
+        let toml = r#"
+schema_version = 1
+
+[[hooks]]
+name = "some-validator"
+event = "PreToolUse"
+plugin = "hook-plugins/some-validator.wasm"
+"#;
+        let err = Registry::parse_str(toml).unwrap_err();
+        match err {
+            RegistryError::SchemaVersion { got, expected } => {
+                assert_eq!(got, 1, "got must be the found version (1)");
+                assert_eq!(expected, 2, "expected must be REGISTRY_SCHEMA_VERSION (2)");
+            }
+            other => panic!(
+                "test_BC_7_06_001_schema_v1_rejected: expected SchemaVersion error, got {:?}",
+                other
+            ),
+        }
+    }
+
+    /// VP-078 H1: missing schema_version field rejected (E-REG-001 boundary).
+    ///
+    /// RED: TOML without schema_version key — parse fails or schema_version defaults to 0,
+    /// which != 2; either way the registry is rejected.
+    #[test]
+    fn test_BC_7_06_001_missing_schema_version_rejected() {
+        let toml = r#"
+[[hooks]]
+name = "some-validator"
+event = "PreToolUse"
+plugin = "hook-plugins/some-validator.wasm"
+"#;
+        // Missing schema_version is either a TOML parse error (deny_unknown_fields) or
+        // defaults to 0 then fails version check. Both produce Err.
+        let result = Registry::parse_str(toml);
+        assert!(
+            result.is_err(),
+            "test_BC_7_06_001_missing_schema_version_rejected: registry without schema_version must be rejected"
+        );
+    }
+
+    /// VP-078 H1: schema_version = 2 with valid entries passes.
+    ///
+    /// RED until T-3f: validate_async_block_invariant() is todo!() — will panic.
+    /// After T-3f, this should return Ok.
+    #[test]
+    fn test_BC_7_06_001_schema_v2_with_valid_entries_passes() {
+        let toml = r#"
+schema_version = 2
+
+[[hooks]]
+name = "capture-commit-activity"
+event = "PostToolUse"
+plugin = "hook-plugins/capture-commit-activity.wasm"
+async = true
+"#;
+        // RED: todo!() in validate_async_block_invariant panics before we get Ok.
+        let result = Registry::parse_str(toml);
+        assert!(
+            result.is_ok(),
+            "test_BC_7_06_001_schema_v2_with_valid_entries_passes: schema_version=2 with valid entry must pass: {:?}",
+            result
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // Harness 1b — on_error=block + async=true is E-REG-002
+    // AC-006: BC-7.06.001 invariant 1, BC-1.14.001 invariant 4
+    // -----------------------------------------------------------------------
+
+    /// VP-078 H1 / VP-078 Rust unit test: on_error=block AND async=true → E-REG-002.
+    ///
+    /// RED: validate_async_block_invariant() is todo!() — panics.
+    #[test]
+    fn test_BC_7_06_001_block_plus_async_true_rejected_e_reg_002() {
+        let toml = r#"
+schema_version = 2
+
+[[hooks]]
+name = "bad-plugin"
+plugin = "hook-plugins/legacy-bash-adapter.wasm"
+on_error = "block"
+async = true
+event = "PostToolUse"
+priority = 400
+
+[hooks.config]
+script_path = "bad.sh"
+"#;
+        // RED: todo!() in validate_async_block_invariant — panics with "not yet implemented".
+        let result = Registry::parse_str(toml);
+        assert!(
+            result.is_err(),
+            "test_BC_7_06_001_block_plus_async_true_rejected_e_reg_002: block+async entry must be rejected (E-REG-002)"
+        );
+        let err_str = result.unwrap_err().to_string();
+        assert!(
+            err_str.contains("on_error")
+                || err_str.contains("async")
+                || err_str.contains("E-REG-002"),
+            "error must name the violating fields or error code: {}",
+            err_str
+        );
+    }
+
+    /// VP-078 H1: on_error=block with async absent (defaults false) → accepted.
+    ///
+    /// RED: validate_async_block_invariant() is todo!() — panics before returning Ok.
+    #[test]
+    fn test_BC_7_06_001_block_without_async_accepted() {
+        let toml = r#"
+schema_version = 2
+
+[[hooks]]
+name = "valid-blocking-plugin"
+plugin = "hook-plugins/legacy-bash-adapter.wasm"
+on_error = "block"
+event = "PostToolUse"
+priority = 400
+
+[hooks.config]
+script_path = "valid.sh"
+"#;
+        // async absent → default false → invariant satisfied → Ok.
+        // RED: todo!() in validate_async_block_invariant panics.
+        let result = Registry::parse_str(toml);
+        assert!(
+            result.is_ok(),
+            "test_BC_7_06_001_block_without_async_accepted: block without async must be accepted: {:?}",
+            result
+        );
+    }
+
+    /// VP-078 H1: async=true with on_error=continue (not block) → accepted.
+    ///
+    /// RED: validate_async_block_invariant() is todo!() — panics.
+    #[test]
+    fn test_BC_7_06_001_async_true_with_continue_accepted() {
+        let toml = r#"
+schema_version = 2
+
+[[hooks]]
+name = "telemetry-plugin"
+plugin = "hook-plugins/legacy-bash-adapter.wasm"
+on_error = "continue"
+async = true
+event = "PostToolUse"
+priority = 100
+
+[hooks.config]
+script_path = "telemetry.sh"
+"#;
+        // RED: todo!() in validate_async_block_invariant panics.
+        let result = Registry::parse_str(toml);
+        assert!(
+            result.is_ok(),
+            "test_BC_7_06_001_async_true_with_continue_accepted: async=true with on_error=continue must be accepted: {:?}",
+            result
+        );
+    }
+}
+
+#[cfg(test)]
+mod s15_01_vp078_harness_4_serde_default {
+    use super::*;
+
+    // -----------------------------------------------------------------------
+    // Harness 4 — serde-default semantics (VP-078 H4, AC-002)
+    // BC-7.06.001 postconditions 2 + 3
+    // VP-077 Property #2 delegates field-absence testing to VP-078 H4.
+    // -----------------------------------------------------------------------
+
+    /// VP-078 H4a: explicit async=true → async_flag = true.
+    ///
+    /// RED: validate_async_block_invariant() is todo!() — panics before we can assert.
+    #[test]
+    fn test_BC_7_06_001_async_explicit_true_parsed_as_true() {
+        let toml = r#"
+schema_version = 2
+
+[[hooks]]
+name = "telemetry-plugin"
+plugin = "hook-plugins/legacy-bash-adapter.wasm"
+on_error = "continue"
+async = true
+event = "PostToolUse"
+priority = 100
+
+[hooks.config]
+script_path = "telemetry.sh"
+"#;
+        // RED: todo!() in validate_async_block_invariant panics.
+        let registry = Registry::parse_str(toml).expect("valid toml must parse");
+        let entry = &registry.hooks[0];
+        assert!(
+            entry.async_flag,
+            "test_BC_7_06_001_async_explicit_true_parsed_as_true: explicit async=true must parse as true"
+        );
+    }
+
+    /// VP-078 H4b: explicit async=false → async_flag = false.
+    ///
+    /// RED: validate_async_block_invariant() is todo!() — panics.
+    #[test]
+    fn test_BC_7_06_001_async_explicit_false_parsed_as_false() {
+        let toml = r#"
+schema_version = 2
+
+[[hooks]]
+name = "blocking-plugin"
+plugin = "hook-plugins/legacy-bash-adapter.wasm"
+on_error = "block"
+async = false
+event = "PreToolUse"
+priority = 100
+
+[hooks.config]
+script_path = "blocking.sh"
+"#;
+        // RED: todo!() in validate_async_block_invariant panics.
+        let registry = Registry::parse_str(toml).expect("valid toml must parse");
+        let entry = &registry.hooks[0];
+        assert!(
+            !entry.async_flag,
+            "test_BC_7_06_001_async_explicit_false_parsed_as_false: explicit async=false must parse as false"
+        );
+    }
+
+    /// VP-078 H4c: async field absent → async_flag = false (serde-default).
+    ///
+    /// RED: validate_async_block_invariant() is todo!() — panics.
+    #[test]
+    fn test_BC_7_06_001_async_absent_defaults_to_false() {
+        let toml = r#"
+schema_version = 2
+
+[[hooks]]
+name = "blocking-plugin"
+plugin = "hook-plugins/legacy-bash-adapter.wasm"
+on_error = "block"
+event = "PreToolUse"
+priority = 100
+
+[hooks.config]
+script_path = "blocking.sh"
+"#;
+        // RED: todo!() in validate_async_block_invariant panics.
+        let registry = Registry::parse_str(toml).expect("valid toml must parse");
+        let entry = &registry.hooks[0];
+        assert!(
+            !entry.async_flag,
+            "test_BC_7_06_001_async_absent_defaults_to_false: absent async field must default to false (serde default — AC-002, DI-019 cite-by-reference)"
+        );
+    }
+
+    /// VP-078 H4d: async = "true" (string, not bool) → parse error.
+    ///
+    /// TOML does not allow string where bool is expected.
+    /// RED: this may fail at toml parse before reaching validate_async_block_invariant.
+    #[test]
+    fn test_BC_7_06_001_async_string_value_is_parse_error() {
+        let toml = r#"
+schema_version = 2
+
+[[hooks]]
+name = "bad-plugin"
+plugin = "hook-plugins/legacy-bash-adapter.wasm"
+on_error = "continue"
+async = "true"
+event = "PostToolUse"
+priority = 100
+
+[hooks.config]
+script_path = "bad.sh"
+"#;
+        // String where bool expected → TOML type mismatch → parse error.
+        let result = Registry::parse_str(toml);
+        assert!(
+            result.is_err(),
+            "test_BC_7_06_001_async_string_value_is_parse_error: async field with string value must produce a parse error (AC-002, BC-7.06.001 PC3)"
+        );
+    }
+}
+
+// ---------------------------------------------------------------------------
+// F-P2-011 — BC-7.06.001 Invariant 7: (name, event, tool) tuple uniqueness
+// ---------------------------------------------------------------------------
+
+#[cfg(test)]
+mod f_p2_011_name_event_tool_uniqueness {
+    use super::*;
+
+    /// Identical (name, event, tool) tuples must be rejected with DuplicateEntry.
+    #[test]
+    fn test_validate_rejects_duplicate_name_event_tool_tuple() {
+        let toml = r#"
+schema_version = 2
+
+[[hooks]]
+name = "protect-secrets"
+event = "PreToolUse"
+tool = "Bash"
+plugin = "hook-plugins/protect-secrets.wasm"
+on_error = "block"
+
+[[hooks]]
+name = "protect-secrets"
+event = "PreToolUse"
+tool = "Bash"
+plugin = "hook-plugins/protect-secrets.wasm"
+on_error = "block"
+"#;
+        let err = Registry::parse_str(toml).unwrap_err();
+        match err {
+            RegistryError::DuplicateEntry { name, event, tool } => {
+                assert_eq!(name, "protect-secrets");
+                assert_eq!(event, "PreToolUse");
+                assert_eq!(tool.as_deref(), Some("Bash"));
+            }
+            other => panic!(
+                "test_validate_rejects_duplicate_name_event_tool_tuple: expected DuplicateEntry, got {:?}",
+                other
+            ),
+        }
+    }
+
+    /// Same name+event but different tool values must be accepted (BC-7.06.001 Invariant 7).
+    /// This is the protect-secrets pattern: two tool surfaces for one named plugin.
+    #[test]
+    fn test_validate_accepts_same_name_event_different_tool() {
+        let toml = r#"
+schema_version = 2
+
+[[hooks]]
+name = "protect-secrets"
+event = "PreToolUse"
+tool = "Bash"
+plugin = "hook-plugins/protect-secrets.wasm"
+on_error = "block"
+
+[[hooks]]
+name = "protect-secrets"
+event = "PreToolUse"
+tool = "Read"
+plugin = "hook-plugins/protect-secrets.wasm"
+on_error = "block"
+"#;
+        let result = Registry::parse_str(toml);
+        assert!(
+            result.is_ok(),
+            "test_validate_accepts_same_name_event_different_tool: same name+event with different tool must be accepted: {:?}",
+            result
+        );
+    }
+
+    /// F-P6-002 / BC-7.06.001 v1.7 Invariant 7 (F-P3-003 amendment):
+    /// String equality, not regex equivalence — `tool='^Bash$'` and `tool='Bash'` are
+    /// DISTINCT entries because the uniqueness key is the raw string value, not the set of
+    /// tool surfaces the pattern matches. Two entries that happen to match the same tool
+    /// surface via different regex strings are NOT duplicates.
+    #[test]
+    fn test_validate_treats_regex_variants_as_distinct_per_v1_5_amendment() {
+        let toml = r#"
+schema_version = 2
+
+[[hooks]]
+name = "regex-test"
+event = "PreToolUse"
+tool = "^Bash$"
+on_error = "continue"
+plugin = "hook-plugins/regex-test.wasm"
+
+[[hooks]]
+name = "regex-test"
+event = "PreToolUse"
+tool = "Bash"
+on_error = "continue"
+plugin = "hook-plugins/regex-test.wasm"
+"#;
+
+        let result = Registry::parse_str(toml);
+        assert!(
+            result.is_ok(),
+            "BC-7.06.001 v1.7 Invariant 7: tool='^Bash$' and tool='Bash' MUST be DISTINCT entries \
+(raw-string equality, not regex equivalence). Got: {:?}",
+            result.err()
+        );
+    }
+
+    /// Two entries with tool = None (absent) and matching name+event must be rejected.
+    #[test]
+    fn test_validate_treats_two_none_tools_as_duplicate() {
+        let toml = r#"
+schema_version = 2
+
+[[hooks]]
+name = "x"
+event = "PreToolUse"
+plugin = "hook-plugins/x.wasm"
+
+[[hooks]]
+name = "x"
+event = "PreToolUse"
+plugin = "hook-plugins/x.wasm"
+"#;
+        let err = Registry::parse_str(toml).unwrap_err();
+        match err {
+            RegistryError::DuplicateEntry { name, event, tool } => {
+                assert_eq!(name, "x");
+                assert_eq!(event, "PreToolUse");
+                assert!(tool.is_none(), "tool must be None for absent tool field");
+            }
+            other => panic!(
+                "test_validate_treats_two_none_tools_as_duplicate: expected DuplicateEntry, got {:?}",
+                other
+            ),
+        }
     }
 }

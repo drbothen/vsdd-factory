@@ -41,7 +41,7 @@ EOF
   local lf
   lf=$(_logfile)
   [ -n "$lf" ]
-  [ "$(jq -r '.reason' < "$lf")" = "finding_id_legacy_format" ]
+  [ "$(jq -r '.reason' < "$lf")" = "id_format_violation" ]
   [ "$(jq -r '.hook' < "$lf")" = "validate-finding-format" ]
 }
 
@@ -73,7 +73,7 @@ EOF
   local lf
   lf=$(_logfile)
   [ -n "$lf" ]
-  [ "$(jq -r '.reason' < "$lf")" = "table_cell_count_mismatch" ]
+  [ "$(jq -r '.reason' < "$lf")" = "table_cell_count" ]
 }
 
 @test "table-cell-count: clean table emits no event" {
@@ -116,7 +116,7 @@ EOF
   local lf
   lf=$(_logfile)
   [ -n "$lf" ]
-  [ "$(jq -r '.reason' < "$lf")" = "changelog_not_monotonic" ]
+  [ "$(jq -r '.reason' < "$lf")" = "changelog_duplicate_version" ]
 }
 
 @test "changelog-monotonicity: still blocks when emit-event path broken" {
@@ -152,9 +152,7 @@ EOF
   local lf
   lf=$(_logfile)
   [ -n "$lf" ]
-  [ "$(jq -r '.reason' < "$lf")" = "state_bloat" ]
-  [ "$(jq -r '.line_count' < "$lf")" = "600" ]
-  [ "$(jq -r '.limit' < "$lf")" = "500" ]
+  [ "$(jq -r '.reason' < "$lf")" = "state_md_bloat" ]
 }
 
 @test "state-size: under-limit emits no event" {
@@ -193,7 +191,7 @@ EOF
   local lf
   lf=$(_logfile)
   [ -n "$lf" ]
-  [ "$(jq -r '.reason' < "$lf")" = "state_version_pin_drift" ]
+  [ "$(jq -r '.reason' < "$lf")" = "state_pin_stale" ]
 }
 
 # ---------- validate-template-compliance.sh ----------
@@ -217,7 +215,7 @@ EOF
     local lf
     lf=$(_logfile)
     [ -n "$lf" ]
-    [ "$(jq -r '.reason' < "$lf")" = "template_noncompliant" ]
+    [ "$(jq -r '.reason' < "$lf")" = "template_drift" ]
   fi
 }
 

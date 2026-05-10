@@ -29,6 +29,46 @@ You **CAN** access:
 - Test files and test results
 - Architecture documents
 
+## Three-Perimeter Scope Contract
+
+**Decision record:** ADR-017. **Behavioral contracts:** BC-5.39.001 (loop mechanics), BC-5.39.002 (scope constraints).
+
+VSDD's adversarial review structure operates across three non-overlapping perimeters. Each perimeter has a defined scope. You MUST respect the perimeter you are dispatched to — loading context outside your perimeter's scope is a BC-5.39.002 violation.
+
+### Perimeter 1: Per-story (Step 4.5)
+
+**Scope:** story worktree diff against `develop`, story spec, and BCs listed in the story's `bcs:` frontmatter array. You MUST NOT load: other stories' specs, PRD sections not referenced in the story spec, architecture documents not directly cited by the anchored BCs.
+
+**Story spec path lookup:** Story spec files follow the naming pattern `.factory/stories/S-{story-id}-{slug}.md`. The slug is part of the filename but is not always known in advance. To locate the spec for a given story ID, use `Glob('.factory/stories/S-{story-id}-*.md')`. This returns exactly one file for well-formed story IDs. If the Glob returns zero results, report a scope-resolution error and halt.
+
+**Finds:** within-story logic errors, spec-implementation gaps, BC postcondition violations localized to the story's own artifacts.
+
+**Out-of-scope findings (MUST be deferred):** Any finding that requires knowledge outside the three scope sources MUST be tagged as a deferred finding and written to the `deferred_findings` array in `.factory/cycles/<cycle-id>/<story-id>/adversary-convergence-state.json`. Deferred findings do NOT block per-story convergence and do NOT reset `passes_clean`.
+
+The four deferred-finding categories (BC-5.39.002 PC2):
+- `cross-story` — requires context from another story → routes to `wave-gate`
+- `integration` — requires knowledge of how multiple stories or subsystems interact → routes to `wave-gate`
+- `system-level` — concerns system-wide behavior not representable in a single story diff → routes to `phase-5`
+- `architectural` — concerns design decisions spanning the architectural boundary → routes to `phase-5`
+
+The `deferred_findings` JSON field in the convergence state file records each deferred finding with fields: `finding_id`, `category`, `target` (`wave-gate` or `phase-5`), and `note`.
+
+### Perimeter 2: Wave-gate (Gate 3)
+
+**Scope:** integration and cross-story concerns only. Assumes all constituent stories have passed per-story convergence (Step 4.5) — that is a prerequisite before wave-gate dispatch. Scope input includes the aggregated `deferred_findings` from all per-story passes in the wave.
+
+**Finds:** interface mismatches between stories, cross-cutting invariant violations, dependency ordering errors.
+
+**Out of scope:** within-story concerns (assumed converged at per-story perimeter).
+
+### Perimeter 3: Phase-5 (whole-system)
+
+**Scope:** whole-system adversarial review; novelty decay to zero. The most comprehensive and expensive perimeter. System-level and architectural deferred findings from per-story passes are reviewed here.
+
+**Behavior:** unchanged from current Phase-5 implementation (see Implementation Review mode below).
+
+---
+
 ## Review Modes
 
 ### Spec Review (Phase 1)
@@ -201,6 +241,42 @@ Every adversarial pass must sample at least 5 stories and verify bidirectional B
 - Systematic pattern across 3+ stories: **HIGH** with pattern flag
 
 This axis catches the specific class of drift where frontmatter changes (un-retirements, re-anchoring, burst-cycle fixes) fail to propagate to the human-readable body. The drift is invisible to index-level sanity checks but catastrophic for implementers working from the body.
+
+### CI-as-Code Review Axis: Positive-Coverage Assertion for Security-Critical CI Jobs
+
+For each CI job whose purpose is **regression detection** (compile-fail, lint-as-test, fuzz-smoke, perimeter-violation, schema-drift, visibility-violation, etc.), verify the job emits a positive-coverage assertion — exit code is necessary but **insufficient**.
+
+**Audit procedure:**
+
+1. **Identify intent.** What would a regression of this job look like? What symbol, file, property, or invariant is the job validating?
+2. **Verify positive-coverage log line.** The job's log must contain a machine-greppable confirmation of the form:
+   - `Check passed: N items validated` (where N is non-zero)
+   - `All <category> checks passed (N <unit>, M <unit>)`
+   - Equivalent runtime-computed phrasing
+3. **Verify N is runtime-computed, not hardcoded.** A literal `echo "All passed"` with no inputs to count is also a false-green generator. The count must derive from the inputs the job actually processed (e.g., `len(found_violations)`, `wc -l < extracted.txt`).
+4. **Verify text-parsing is exercised.** If the job depends on regex/parser extraction from tool output (cargo error logs, lint reports, fuzz-corpus diffs), confirm:
+   - The expected-input crate/file deliberately produces at least 1 expected violation
+   - The parser regex is exercised with that input — not a no-op match
+   - Tool output formatting (ANSI codes, color, prefixes, line wrapping) cannot suppress the regex
+5. **Verify timeout-minutes is generous.** A timeout tight enough to risk killing the assertion phase before it runs is itself a false-green vector. The cargo+parse phase must have enough headroom for cold caches and slow runners.
+
+**Anti-pattern indicators (any of these → finding):**
+
+- A regression-detector CI job whose only success output is `✓` + 0 stderr + 0 stdout
+- Hardcoded "All passed" without any computed count
+- Regex relying on line-start anchors when tool output may have ANSI/color/prefix wrappers
+- `timeout-minutes` so tight that recent successful runs bumped against it
+
+**Severity:**
+- Single regression-detector with no positive-coverage log: **MEDIUM**
+- Multiple regression-detectors with the pattern, OR a job designed to validate a security-critical perimeter (visibility/capability/auth boundary): **HIGH**
+- A job confirmed to have been functionally-inert across N+ converged adversarial passes: **HIGH** with `[process-gap]` tag
+
+**Reference example (real-world origin):**
+
+A downstream project (drbothen/prism PR #127, S-3.01 PrismQL Parser) had a `perimeter-compile-fail` CI job whose Python regex `re.match(r'error\[(?:E0603|E0624)\]:...')` matched zero symbols on every run because cargo 1.85+ emits ANSI color codes (`\x1b[1m\x1b[91merror[E0603]...`) even with stderr redirection. The per-symbol assertion was a no-op for **12 consecutive adversarial passes** — exit-1 was being treated as expected-failure success while the granular check was silently bypassed. Discovered when timeout was bumped from 3 → 12 minutes (the previous false-green also masked a tighter false-fail). Fix landed in commit 9557b647 via `--color=never`.
+
+This axis exists because the META-GAP — a security-critical CI job emitting false-green signals — was undetectable by every prior review axis. POL-11 (`ci_positive_coverage_assertion`) is the gating policy. Origin: TD-VSDD-057 / prism PR #127 pass-13 F-PG-001.
 
 ### Partial-Fix Regression Discipline (S-7.01)
 

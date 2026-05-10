@@ -21,6 +21,20 @@
 #                                   # Baseline policies (1-9) have steps baked into agent
 #                                   # prompts. Custom policies (10+) MUST include steps
 #                                   # here so the adversary knows HOW to verify them.
+#
+# CHANGELOG
+# ---------
+# 1.1 (2026-05-06): POL-11 ci_positive_coverage_assertion added — origin
+#                   drbothen/prism#127 pass-13 F-PG-001 / TD-VSDD-057.
+#                   12-pass false-green CI on prism `perimeter-compile-fail`
+#                   driven by ANSI-color regex non-match was undetectable
+#                   by exit-code semantics alone. Codified as MEDIUM gate
+#                   for security-critical regression-detector CI jobs.
+# 1.0 (baseline):   Initial 10 baseline policies (POL-1..POL-10).
+
+metadata:
+  version: "1.1"
+  last_updated: "2026-05-06"
 
 policies:
   - id: 1
@@ -158,3 +172,20 @@ policies:
       - "For each story's feature branch, verify docs/demo-evidence/<STORY-ID>/ exists"
       - "Verify NO files exist at docs/demo-evidence/*.md — only subfolders"
       - "Cross-check: subfolder name matches the story's frontmatter story_id"
+
+  - id: 11
+    name: ci_positive_coverage_assertion
+    description: "Security-critical CI jobs (regression detectors) MUST emit a positive-coverage assertion in their log on every successful run, not just an exit code. Exit-0-without-log is a false-green signal."
+    adopted: 2026-05-06
+    severity: MEDIUM
+    enforced_by: [adversary-prompt, ci-author-review]
+    scope: [ci-workflow]
+    lint_hook: null
+    verification_steps:
+      - "Identify CI jobs whose value is regression detection (compile-fail, lint-as-test, fuzz-smoke, perimeter-violation, schema-drift)"
+      - "For each, verify the job's log contains a positive-coverage assertion of the form 'Check passed: N items validated'"
+      - "Verify the count N is computed at runtime, not hardcoded"
+      - "If the job uses text-parsing (regex extraction), verify the parsing is exercised by non-empty inputs"
+      - "Verify the job's timeout-minutes is generous enough to not kill the assertion phase before it runs"
+      - "Reject CI jobs whose only success indicator is exit-0 + green checkmark"
+      - "Origin: drbothen/prism#127 pass-13 F-PG-001 / TD-VSDD-057 (12-pass false-green from ANSI-color regex non-match)"

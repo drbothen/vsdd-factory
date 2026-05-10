@@ -13,19 +13,19 @@
 
 set -euo pipefail
 
+# Source canonical block-message helper (provides block_pre).
+_SELF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+_BLOCK_SH="${CLAUDE_PLUGIN_ROOT:+${CLAUDE_PLUGIN_ROOT}/hooks/lib/block.sh}"
+_BLOCK_SH="${_BLOCK_SH:-${_SELF_DIR}/lib/block.sh}"
+# shellcheck source=lib/block.sh disable=SC1091
+if [ -f "$_BLOCK_SH" ]; then source "$_BLOCK_SH"; fi
+
 if ! command -v jq &>/dev/null; then
   exit 0
 fi
 
 INPUT=$(cat)
 FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty')
-
-_emit() {
-  if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -x "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" ]; then
-    "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" "$@" 2>/dev/null || true
-  fi
-  return 0
-}
 
 if [[ -z "$FILE_PATH" ]] || [[ ! -f "$FILE_PATH" ]]; then
   exit 0
@@ -44,12 +44,10 @@ RELATIVE="${FILE_PATH##*/docs/demo-evidence/}"
 # Valid: S-0.02/evidence-report.md (has a /)
 # Invalid: evidence-report.md (no /)
 if [[ "$RELATIVE" != */* ]]; then
-  _emit type=hook.block hook=validate-demo-evidence-story-scoped matcher=PostToolUse \
-        reason=demo_evidence_not_story_scoped file_path="$FILE_PATH"
-  echo "POL-010 VIOLATION: demo evidence must live under docs/demo-evidence/<STORY-ID>/ — got $FILE_PATH" >&2
-  echo "  Move to docs/demo-evidence/<STORY-ID>/$(basename "$FILE_PATH") where <STORY-ID> matches the story's frontmatter story_id field." >&2
-  echo "  See policies.yaml POL-010." >&2
-  exit 2
+  block_pre "validate-demo-evidence-story-scoped" \
+    "Demo evidence not under <STORY-ID>/ (POL-010): $FILE_PATH is at the top level of docs/demo-evidence/" \
+    "Move to docs/demo-evidence/<STORY-ID>/$(basename "$FILE_PATH") where <STORY-ID> matches the story's frontmatter story_id field" \
+    "pol_010_violation"
 fi
 
 exit 0

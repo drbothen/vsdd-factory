@@ -5,6 +5,15 @@ description: Create a product brief through guided discovery. Asks questions to 
 allowed-tools: Read, Write, Edit, Bash, AskUserQuestion
 ---
 
+## Path Resolution (Mandatory)
+
+Before writing any artifact, resolve the canonical path via
+`plugins/vsdd-factory/config/artifact-path-registry.yaml`. Do not invent paths.
+
+Read the registry at the start of this skill's procedure and verify the target path
+matches a registered pattern before calling `Write`. If the artifact type is not in
+the registry, use `/vsdd-factory:register-artifact` to add it first.
+
 ## Hard Gate
 
 Do NOT skip to PRD creation or architecture design. Every discovery section MUST be explored with the human. Do not auto-fill sections from assumptions.

@@ -12,19 +12,19 @@
 
 set -euo pipefail
 
+# Source canonical block-message helper (provides block_pre).
+_SELF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+_BLOCK_SH="${CLAUDE_PLUGIN_ROOT:+${CLAUDE_PLUGIN_ROOT}/hooks/lib/block.sh}"
+_BLOCK_SH="${_BLOCK_SH:-${_SELF_DIR}/lib/block.sh}"
+# shellcheck source=lib/block.sh disable=SC1091
+if [ -f "$_BLOCK_SH" ]; then source "$_BLOCK_SH"; fi
+
 if ! command -v jq &>/dev/null; then
   exit 0
 fi
 
 INPUT=$(cat)
 FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty')
-
-_emit() {
-  if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -x "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" ]; then
-    "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" "$@" 2>/dev/null || true
-  fi
-  return 0
-}
 
 if [[ -z "$FILE_PATH" ]] || [[ ! -f "$FILE_PATH" ]]; then
   exit 0
@@ -68,17 +68,6 @@ CANONICAL_IDS=$(awk '
   }
 ' "$ARCH_INDEX")
 
-# Also build an ID→Name map for error messages
-CANONICAL_MAP=$(awk '
-  /[Ss]ubsystem.*[Rr]egistry/ { found=1; next }
-  found && /^#[^|]/ { exit }
-  found && /^\|/ && !/---/ && !/SS.*ID/ {
-    split($0, cols, "|")
-    gsub(/^[ \t]+|[ \t]+$/, "", cols[2])
-    gsub(/^[ \t]+|[ \t]+$/, "", cols[3])
-    if (cols[2] ~ /^SS-[0-9]+$/) print cols[2] " (" cols[3] ")"
-  }
-' "$ARCH_INDEX")
 
 # If no canonical IDs found, skip (ARCH-INDEX may not have registry yet)
 if [[ -z "$CANONICAL_IDS" ]]; then
@@ -143,17 +132,12 @@ if [[ "$FILE_PATH" == *"STORY-"* ]]; then
 fi
 
 if [[ -n "$ERRORS" ]]; then
-  _emit type=hook.block hook=validate-subsystem-names matcher=PostToolUse \
-        reason=policy6_subsystem_name_mismatch file_path="$FILE_PATH"
-  echo "POLICY 6 VIOLATION (architecture_is_subsystem_name_source_of_truth):" >&2
-  echo -e "$ERRORS" | while IFS= read -r line; do
-    echo "  - $line" >&2
-  done
-  echo "Fix: use SS-NN IDs from ARCH-INDEX.md Subsystem Registry. Available:" >&2
-  echo "$CANONICAL_MAP" | while IFS= read -r entry; do
-    echo "    - $entry" >&2
-  done
-  exit 2
+  _VALID_IDS=$(echo "$CANONICAL_IDS" | tr '\n' ',' | sed 's/,$//')
+  _ERRORS_SUMMARY=$(echo -e "$ERRORS" | tr '\n' '; ' | sed 's/; $//')
+  block_pre "validate-subsystem-names" \
+    "Subsystem name not in ARCH-INDEX Subsystem Registry (POLICY 6): $_ERRORS_SUMMARY" \
+    "Use one of: $_VALID_IDS (from ARCH-INDEX.md Subsystem Registry)" \
+    "policy_6_violation"
 fi
 
 exit 0

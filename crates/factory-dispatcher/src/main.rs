@@ -15,8 +15,12 @@
 //! first so any dispatcher error — including registry load failures —
 //! is durably recorded. Plugin lifecycle events (`plugin.invoked`,
 //! `plugin.completed`, `plugin.timeout`, `plugin.crashed`) are emitted
-//! by the executor; only `dispatcher.*` and `internal.dispatcher_error`
-//! are emitted here.
+//! by the executor; `dispatcher.*` structured events (schema_mismatch,
+//! registry_invalid) and `internal.dispatcher_error` are emitted here.
+//!
+//! S-15.01 T-3e: four BC-3.08.001 structured events are now emitted from
+//! the dispatch path: `dispatcher.schema_mismatch`, `dispatcher.registry_invalid`,
+//! `plugin.async_block_discarded`, `plugin.timeout` (async path).
 //!
 //! ## VSDD_SINK_FILE (test/development hook)
 //!
@@ -33,18 +37,27 @@ use std::sync::Arc;
 use std::sync::Mutex;
 
 use factory_dispatcher::engine::{EpochTicker, build_engine};
-use factory_dispatcher::executor::{ExecutorInputs, execute_tiers};
+use factory_dispatcher::executor::{
+    ExecutorInputs, PluginOutcome, execute_tiers, spawn_async_plugin,
+};
 use factory_dispatcher::host::HostContext;
+use factory_dispatcher::host::emit_event::{
+    emit_dispatcher_schema_mismatch, emit_plugin_async_block_discarded, emit_plugin_timeout_async,
+    emit_registry_invalid_e_reg002, emit_registry_invalid_e_reg003,
+};
 use factory_dispatcher::internal_log::{
     DEFAULT_RETENTION_DAYS, DISPATCHER_STARTED, INTERNAL_DISPATCHER_ERROR, InternalEvent,
     InternalLog,
 };
 use factory_dispatcher::invoke::PluginResult;
+use factory_dispatcher::partition::partition_plugins;
 use factory_dispatcher::payload::HookPayload;
 use factory_dispatcher::plugin_loader::PluginCache;
-use factory_dispatcher::registry::Registry;
+use factory_dispatcher::registry::{Registry, RegistryError};
 use factory_dispatcher::routing::{group_by_priority, match_plugins};
-use factory_dispatcher::{HOST_ABI_VERSION, new_trace_id};
+use factory_dispatcher::{ASYNC_DRAIN_WINDOW_MS, HOST_ABI_VERSION, new_trace_id};
+use factory_dispatcher::{AggregatorPluginResult, aggregate_exit_code};
+use tokio::sync::mpsc;
 
 const ENV_PLUGIN_ROOT: &str = "CLAUDE_PLUGIN_ROOT";
 const ENV_PROJECT_DIR: &str = "CLAUDE_PROJECT_DIR";
@@ -53,6 +66,14 @@ const ENV_PROJECT_DIR: &str = "CLAUDE_PROJECT_DIR";
 // so the env var name does not appear in release binaries.
 #[cfg(debug_assertions)]
 const ENV_SINK_FILE: &str = "VSDD_SINK_FILE";
+
+// VSDD_ASYNC_DRAIN_WINDOW_MS: debug-only override for the async drain window.
+// Used by bats integration tests (VP-079 S1/S4) to account for WASM cold-start
+// time in debug builds. Release builds always use ASYNC_DRAIN_WINDOW_MS (DI-019).
+// SEC-003: compiled out in release builds so the env var name does not appear in
+// production binaries.
+#[cfg(debug_assertions)]
+const ENV_ASYNC_DRAIN_WINDOW_MS: &str = "VSDD_ASYNC_DRAIN_WINDOW_MS";
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() {
@@ -77,13 +98,91 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
     let registry = match Registry::load(&registry_path) {
         Ok(r) => r,
         Err(e) => {
+            // S-15.01 T-3e/T-3f: fail-closed registry errors must exit 2 and emit structured
+            // events per BC-1.14.001 EC-006 (schema mismatch) and EC-008 (async+block conflict).
+            // These are the explicit exceptions to BC-1.08.001 fail-open policy (ADR-019 §Decision 2).
+            //
+            // Build a minimal HostContext so we can use the structured emit fns.
+            // Events accumulate in the context's event queue and are flushed to
+            // VSDD_SINK_FILE below (debug builds only, SEC-003).
+            let err_ctx = {
+                let mut ctx = HostContext::new(
+                    "dispatcher",
+                    env!("CARGO_PKG_VERSION"),
+                    payload.session_id.clone(),
+                    trace_id.clone(),
+                );
+                ctx.internal_log = Some(internal_log.clone());
+                ctx
+            };
+            // Always emit generic error to internal log for durability.
             emit_dispatcher_error(
                 &internal_log,
                 Some(trace_id.clone()),
                 Some(payload.session_id.clone()),
                 &format!("registry load: {e}"),
             );
-            return Ok(0);
+            // Emit structured event + fail-closed (exit 2) for schema/invariant errors.
+            // Other registry errors (file not found, parse error) remain fail-open (exit 0)
+            // per BC-1.08.001 (only schema-version mismatch and invariant violation are
+            // the named fail-closed exceptions per ADR-019 §Decision 2 and BC-1.14.001 EC-006/EC-008).
+            let exit_code = match &e {
+                RegistryError::SchemaVersion { got, expected } => {
+                    // BC-1.14.001 EC-006 + BC-3.08.001 Event 2.
+                    // Emit dispatcher.schema_mismatch with found_version/expected_version/error_code.
+                    emit_dispatcher_schema_mismatch(&err_ctx, *got, *expected);
+                    eprintln!(
+                        "factory-dispatcher: E-REG-001 schema_version={got} expected={expected}; exiting 2 (fail-closed per ADR-019 §Decision 2)"
+                    );
+                    2
+                }
+                RegistryError::AsyncBlockConflict { name } => {
+                    // BC-1.14.001 EC-008 + BC-3.08.001 Event 3.
+                    // Emit dispatcher.registry_invalid with offending_plugin/violation/error_code.
+                    // E-REG-002 is intra-entry; offending_event/tool absence is enforced by type system.
+                    emit_registry_invalid_e_reg002(&err_ctx, name, "async_block_conflict");
+                    eprintln!(
+                        "factory-dispatcher: E-REG-002 on_error=block AND async=true for '{name}'; exiting 2 (fail-closed per ADR-019 §Decision 2)"
+                    );
+                    2
+                }
+                RegistryError::DuplicateEntry { name, event, tool } => {
+                    // BC-7.06.001 Invariant 7 + BC-3.08.001 Event 3 (E-REG-003).
+                    // Emit dispatcher.registry_invalid with full wire payload per BC-7.06.001 v1.8:
+                    // offending_plugin, violation, error_code, offending_event, offending_tool.
+                    // F-P8-001 / F-P14-001 Path B: fail-closed; dispatcher refuses to start on
+                    // duplicate (name, event, tool) tuple.
+                    eprintln!(
+                        "[E-REG-003] Duplicate hook registration: name={name}, event={event}, tool={tool:?} \
+                         (BC-7.06.001 v1.8 Invariant 7). Each (name, event, tool) tuple must be unique \
+                         across all [[hooks]] entries; dispatcher refuses to start."
+                    );
+                    emit_registry_invalid_e_reg003(
+                        &err_ctx,
+                        name.as_str(),
+                        "duplicate_hook_registration",
+                        event.as_str(),  // offending_event — required for E-REG-003
+                        tool.as_deref(), // offending_tool — None means wildcard/"all tools"
+                    );
+                    2
+                }
+                // Other errors: file not found, parse failures, regex errors.
+                // These are operational errors (misconfiguration / missing file), not
+                // semantic invariant violations. Fail-open per BC-1.08.001.
+                _ => 0,
+            };
+            // Flush structured events to VSDD_SINK_FILE (debug builds / bats harness only).
+            // VP-079 S2/S3 verify these events appear in the sink.
+            // SEC-003: VSDD_SINK_FILE is debug-only; only reject path traversal sequences.
+            // Absolute paths are allowed — bats tests use mktemp which produces absolute paths.
+            #[cfg(debug_assertions)]
+            if let Ok(sink_path) = std::env::var(ENV_SINK_FILE)
+                && !sink_path.is_empty()
+                && !sink_path.contains("..")
+            {
+                flush_sink_file(&sink_path, &err_ctx.events);
+            }
+            return Ok(exit_code);
         }
     };
 
@@ -103,18 +202,25 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
     );
 
     let matched = match_plugins(&registry, &payload);
-    let tiers = group_by_priority(&registry, matched);
+
+    // S-15.01 T-3c: partition matched plugins into sync_group (gates user)
+    // and async_group (fire-and-forget, verdict never reaches Claude Code).
+    // BC-1.14.001 postconditions 1, 5, 6 — partition then await sync, spawn async.
+    let matched_owned: Vec<_> = matched.into_iter().cloned().collect();
+    let partition = partition_plugins(&matched_owned);
+    let sync_tiers = group_by_priority(&registry, partition.sync_group.iter().collect());
 
     eprintln!(
-        "factory-dispatcher trace={} event={} tool={} host_abi={} matched_tiers={}",
+        "factory-dispatcher trace={} event={} tool={} host_abi={} sync_plugins={} async_plugins={}",
         trace_id,
         payload.event_name,
         payload.tool_name,
         HOST_ABI_VERSION,
-        tiers.len(),
+        partition.sync_group.len(),
+        partition.async_group.len(),
     );
 
-    if tiers.is_empty() {
+    if sync_tiers.is_empty() && partition.async_group.is_empty() {
         return Ok(0);
     }
 
@@ -136,7 +242,7 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
         }
     };
     let _ticker = EpochTicker::start(engine.clone());
-    let cache = PluginCache::new(engine.clone());
+    let cache = Arc::new(PluginCache::new(engine.clone()));
 
     let mut base_host_ctx = HostContext::new(
         "", // executor overrides per plugin
@@ -192,22 +298,150 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
     #[allow(unused_variables)]
     let event_queue = Arc::clone(&base_host_ctx.events);
 
+    // S-15.01 T-3c: build executor inputs and run sync_group first.
+    // Sync group awaits all completions; verdict gates Claude Code.
+    // BC-1.14.001 postconditions 2-3.
     let inputs = ExecutorInputs {
         engine: &engine,
         cache: &cache,
         registry: &registry,
-        payload_value,
-        base_host_ctx,
+        payload_value: payload_value.clone(),
+        base_host_ctx: base_host_ctx.clone(),
         internal_log: internal_log.clone(),
     };
 
-    let summary = execute_tiers(inputs, tiers).await;
+    let summary = execute_tiers(inputs, sync_tiers).await;
+
+    // S-15.01 F5-T-A: async_group dispatch via tokio::spawn per-plugin + tokio::select! drain.
+    //
+    // BC-1.14.001 v1.9 PC4 + Invariant 3 (F-P1-006 + F-P1-010):
+    //   - Each async plugin is spawned as an INDEPENDENT tokio task (NOT via execute_tiers).
+    //   - group_by_priority MUST NOT be called on async-group plugins (Invariant 3).
+    //   - Results are collected via an unbounded channel + tokio::select! drain timer.
+    //   - Completed plugins' terminal events MUST emit (EC-012).
+    //   - In-flight plugins when drain timer fires are abandoned (EC-011).
+    //
+    // In debug builds, VSDD_ASYNC_DRAIN_WINDOW_MS env var can override the window
+    // to account for WASM cold-start time in bats integration tests (VP-079 S1/S4).
+    // Release builds always use ASYNC_DRAIN_WINDOW_MS (DI-019). SEC-003.
+    if !partition.async_group.is_empty() {
+        #[cfg(debug_assertions)]
+        let effective_drain_window = std::env::var(ENV_ASYNC_DRAIN_WINDOW_MS)
+            .ok()
+            .and_then(|s| s.parse::<u64>().ok())
+            .map(std::time::Duration::from_millis)
+            .unwrap_or(ASYNC_DRAIN_WINDOW_MS);
+        #[cfg(not(debug_assertions))]
+        let effective_drain_window = ASYNC_DRAIN_WINDOW_MS;
+
+        // Spawn each async plugin as an independent task with a results channel.
+        // BC-1.14.001 v1.9 PC4: tokio::spawn per-plugin, NOT execute_tiers.
+        // Invariant 3: MUST NOT call group_by_priority on async-group plugins.
+        let (tx, mut rx) = mpsc::unbounded_channel::<PluginOutcome>();
+        // For each async plugin: spawn an independent task and wire its result to the channel.
+        // Each spawn_async_plugin call returns a JoinHandle; we wrap it in a forwarding task
+        // so the channel gets the PluginOutcome once the plugin completes.
+        let _async_handles: Vec<_> = partition
+            .async_group
+            .into_iter()
+            .map(|entry| {
+                let tx_for_task = tx.clone();
+                let handle = spawn_async_plugin(
+                    engine.clone(),
+                    cache.clone(),
+                    registry.defaults.clone(),
+                    entry,
+                    payload_value.clone(),
+                    base_host_ctx.clone(),
+                    internal_log.clone(),
+                );
+                // Forward the JoinHandle result to the drain channel.
+                // EC-012: completed results MUST reach the channel so they can be emitted.
+                tokio::spawn(async move {
+                    match handle.await {
+                        Ok(outcome) => {
+                            let _ = tx_for_task.send(outcome);
+                        }
+                        Err(_join_err) => {} // spawn_blocking panic — lifecycle event already emitted
+                    }
+                })
+            })
+            .collect();
+        // Drop the original sender so rx terminates when all forwarding tasks finish.
+        drop(tx);
+
+        // Drain timer: bound the wait at effective_drain_window (DI-019).
+        let drain_timer = tokio::time::sleep(effective_drain_window);
+        tokio::pin!(drain_timer);
+
+        // Collect partial results until timer fires OR all tasks complete.
+        // EC-012: events for plugins that completed before the timer MUST emit;
+        // in-flight plugins (still running when timer fires) are abandoned.
+        let mut partial_outcomes: Vec<PluginOutcome> = Vec::new();
+        loop {
+            tokio::select! {
+                // Bias toward draining the channel before checking the timer.
+                biased;
+                maybe_outcome = rx.recv() => {
+                    match maybe_outcome {
+                        Some(outcome) => partial_outcomes.push(outcome),
+                        None => break, // all senders dropped: all tasks finished
+                    }
+                }
+                _ = &mut drain_timer => {
+                    // EC-011: in-flight tasks are abandoned. Drain timer fired.
+                    break;
+                }
+            }
+        }
+
+        // T-3e: emit diagnostic events for async plugin results that completed
+        // within the drain window. These are observability-only; they NEVER change
+        // the dispatcher exit code (BC-1.14.001 PC5 + Invariant 3).
+        //
+        // Block detection: plugins express block intent via stdout JSON
+        // `{"outcome":"block","reason":"..."}` (HOST_ABI.md) or WASI exit code 2.
+        // Invariant 4 (BC-1.14.001) guarantees no async plugin has on_error=block,
+        // so block_intent is structurally false — event emitted for diagnostic visibility only.
+        for outcome in &partial_outcomes {
+            match &outcome.result {
+                PluginResult::Ok {
+                    exit_code, stdout, ..
+                } => {
+                    let has_block_json = stdout.contains(r#""outcome":"block""#);
+                    let has_exit_2 = *exit_code == 2;
+                    if has_block_json || has_exit_2 {
+                        // BC-3.08.001 Event 1: async plugin returned block verdict (discarded).
+                        emit_plugin_async_block_discarded(&base_host_ctx, &outcome.plugin_name, 2);
+                    }
+                }
+                PluginResult::Timeout { .. } => {
+                    // BC-3.08.001 Event 4: async plugin timed out.
+                    let timeout_ms = registry
+                        .hooks
+                        .iter()
+                        .find(|e| e.name == outcome.plugin_name)
+                        .and_then(|e| e.timeout_ms)
+                        .unwrap_or(registry.defaults.timeout_ms);
+                    emit_plugin_timeout_async(&base_host_ctx, &outcome.plugin_name, timeout_ms);
+                }
+                _ => {} // Crash or non-block result — no structured event emitted
+            }
+        }
+    }
 
     // Relay any non-empty plugin stderr to the dispatcher's process stderr so
     // user-visible hook messages (e.g. WAVE GATE REMINDER from
     // warn-pending-wave-gate) reach the terminal. The WASI sandbox captures
     // plugin stderr into MemoryOutputPipe; without this relay the output
     // would only appear in the internal log, invisible to the user.
+    //
+    // NOTE: stderr-relay is deliberately scoped to sync_group only.
+    // Per BC-1.14.001 v1.9 Invariant 4, async-group plugins are telemetry — their stderr is
+    // captured in InternalLog/HostContext events but is NOT relayed to the dispatcher's
+    // stderr. This is intentional: async plugins should never produce user-facing output.
+    // `partial_outcomes` (collected from async tasks via the channel) is iterated for
+    // diagnostic event emission only, not stderr propagation.
     for outcome in &summary.per_plugin_results {
         if let PluginResult::Ok { stderr, .. } = &outcome.result
             && !stderr.is_empty()
@@ -216,12 +450,40 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
         }
     }
 
+    // Compute the dispatcher exit code from sync_group results only.
+    // VP-077 H5/H6: aggregate_exit_code is the pure, Kani-provable computation.
+    // It checks exit_code==2 && on_error==Block (WASI-exit-code path).
+    // The existing summary.exit_code also handles advisory blocks (stdout JSON path).
+    // Final exit code is the OR of both: either signal triggers exit 2.
+    // Async group results are structurally excluded (not passed to aggregate_exit_code).
+    let sync_agg_results: Vec<AggregatorPluginResult> = summary
+        .per_plugin_results
+        .iter()
+        .map(|o| {
+            let exit_code = match &o.result {
+                PluginResult::Ok { exit_code, .. } => *exit_code as u8,
+                _ => 0u8,
+            };
+            AggregatorPluginResult {
+                exit_code,
+                on_error: o.on_error,
+            }
+        })
+        .collect();
+    let aggregate_code = aggregate_exit_code(&sync_agg_results) as i32;
+    // Combine: advisory-block (stdout JSON, summary.exit_code) OR WASI-block (exit_code==2+Block).
+    let final_exit_code = if summary.exit_code == 2 || aggregate_code == 2 {
+        2
+    } else {
+        0
+    };
+
     eprintln!(
         "  plugins_run={} total_ms={} block_intent={} exit_code={}",
         summary.per_plugin_results.len(),
         summary.total_elapsed_ms,
         summary.block_intent,
-        summary.exit_code,
+        final_exit_code,
     );
 
     // SECURITY: VSDD_SINK_FILE is debug-only; see SEC-003 (W-15 wave gate fix).
@@ -233,15 +495,17 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
     if let Ok(sink_path) = std::env::var(ENV_SINK_FILE)
         && !sink_path.is_empty()
     {
-        // Reject path traversal and absolute paths (SEC-003).
-        if sink_path.contains("..") || std::path::Path::new(&sink_path).is_absolute() {
-            eprintln!("VSDD_SINK_FILE: rejected unsafe path: {sink_path}");
+        // Reject path traversal sequences (SEC-003). Absolute paths are allowed —
+        // bats integration tests use mktemp which produces absolute paths.
+        // VSDD_SINK_FILE is debug-only (compiled out in release builds per SEC-003).
+        if sink_path.contains("..") {
+            eprintln!("VSDD_SINK_FILE: rejected path traversal in: {sink_path}");
         } else {
             flush_sink_file(&sink_path, &event_queue);
         }
     }
 
-    Ok(summary.exit_code)
+    Ok(final_exit_code)
 }
 
 fn resolve_registry_path() -> anyhow::Result<PathBuf> {
@@ -268,15 +532,22 @@ fn resolve_log_dir() -> PathBuf {
 /// Write plugin-emitted events as JSONL to the `VSDD_SINK_FILE` path.
 ///
 /// Only called when `VSDD_SINK_FILE` is set (bats test harness). Best-
-/// effort: any I/O or serialization error is silently swallowed. The
-/// function filters out dispatcher-internal events (`dispatcher.*`,
-/// `internal.*`, `plugin.*`) — only plugin-domain events (those whose
-/// `type_` does not start with `"dispatcher."`, `"internal."`, or
-/// `"plugin."`) are written to the sink. This matches what the bats
-/// tests expect: they assert on `agent.start` events, not on lifecycle
-/// noise.
+/// effort: any I/O or serialization error is silently swallowed.
 ///
-/// Used by S-8.08 AC-005 bats integration tests.
+/// ## Event filtering (S-15.01 T-3e update)
+///
+/// All events EXCEPT `internal.*` are written to the sink. This allows:
+/// - `dispatcher.schema_mismatch` (BC-3.08.001 Event 2, VP-079 S2)
+/// - `dispatcher.registry_invalid` (BC-3.08.001 Event 3, VP-079 S3)
+/// - `plugin.async_block_discarded` (BC-3.08.001 Event 1, VP-079 S1)
+/// - `plugin.timeout` with execution_group=async (BC-3.08.001 Event 4, VP-079 S4)
+/// - All other plugin-domain events (e.g. `agent.start`, VP-028 fan-out)
+///
+/// `internal.*` events (dispatcher lifecycle diagnostics: `internal.dispatcher_error`,
+/// `internal.capability_denied`, etc.) are excluded — these are internal log
+/// events and should not appear in the observable events-*.jsonl stream.
+///
+/// Used by S-8.08 AC-005 + VP-079 bats integration tests.
 /// SECURITY: debug-only; see SEC-003 (W-15 wave gate fix).
 #[cfg(debug_assertions)]
 fn flush_sink_file(sink_path: &str, event_queue: &Arc<Mutex<Vec<InternalEvent>>>) {
@@ -289,14 +560,14 @@ fn flush_sink_file(sink_path: &str, event_queue: &Arc<Mutex<Vec<InternalEvent>>>
         }
     };
 
-    // Filter to plugin-domain events only (exclude dispatcher/internal/plugin lifecycle).
+    // Exclude only internal.* lifecycle noise — all observable events pass through.
+    // internal.* events are dispatcher-private diagnostics (dispatcher_error,
+    // capability_denied, plugin_invoked, plugin_completed, plugin_timeout lifecycle
+    // events emitted by the executor's internal log path). Everything else —
+    // including dispatcher.* and plugin.* domain events per BC-3.08.001 — is observable.
     let domain_events: Vec<_> = events
         .iter()
-        .filter(|ev| {
-            !ev.type_.starts_with("dispatcher.")
-                && !ev.type_.starts_with("internal.")
-                && !ev.type_.starts_with("plugin.")
-        })
+        .filter(|ev| !ev.type_.starts_with("internal."))
         .collect();
 
     if domain_events.is_empty() {

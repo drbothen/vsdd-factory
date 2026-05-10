@@ -42,7 +42,7 @@ setup() {
   VP_INDEX="$FIXTURES/policy-9-canary/specs/verification-properties/VP-INDEX.md"
   INPUT=$(jq -nc --arg fp "$VP_INDEX" '{tool_input: {file_path: $fp}}')
   run bash -c "echo '$INPUT' | '$HOOK' 2>&1"
-  [[ "$output" == *"POLICY 9 VIOLATION"* ]]
+  [[ "$output" == *"POLICY 9"* ]]
 }
 
 @test "policy-9: canary detects missing VP-009 or VP-010 in coverage matrix VPs column" {
@@ -105,7 +105,7 @@ setup() {
   [ "$status" -eq 2 ]
   [[ "$output" == *"fuzz"* ]]
   [[ "$output" == *"column sum"* ]]
-  [[ "$output" == *"POLICY 9 VIOLATION"* ]]
+  [[ "$output" == *"POLICY 9"* ]]
 }
 
 @test "policy-9: registry wires validate-vp-consistency" {

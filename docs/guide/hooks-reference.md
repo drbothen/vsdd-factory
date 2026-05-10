@@ -1,8 +1,8 @@
 # Hooks Reference
 
-The vsdd-factory plugin ships hook scripts wired through `hooks.json`. Hooks fire automatically on tool use events, subagent completion, and session end. They enforce pipeline discipline without requiring manual intervention.
+The vsdd-factory plugin ships hook scripts wired through `hooks-registry.toml` (the dispatcher's canonical routing table). `hooks.json` is a per-platform generated artifact produced by the activate skill — operators do not edit it directly. Hooks fire automatically on tool use events, subagent completion, and session end. They enforce pipeline discipline without requiring manual intervention.
 
-The **Instrumented** column indicates whether the hook emits structured block events to `.factory/logs/events-YYYY-MM-DD.jsonl` via `bin/emit-event`. See the [observability guide](observability.md) for the event schema, reason-code registry, and query recipes.
+The **Instrumented** column indicates whether the hook emits structured block events to `.factory/logs/events-YYYY-MM-DD.jsonl`. Native WASM plugins use the `host::emit_event` SDK call; bash hooks invoke `bin/emit-event`. Migration of bash hooks to native is tracked in epic E-8 (S-8.01..S-8.09 merged) and the ADR-015 wave 4 series (S-10.08, S-10.09). See the [observability guide](observability.md) for the event schema, reason-code registry, and query recipes.
 
 > **Note:** This reference table currently undercounts. A doc audit reconciling every hook script in `plugins/vsdd-factory/hooks/` with this page is tracked in the observability roadmap (end-of-Phase-2 cleanup release).
 
@@ -288,13 +288,74 @@ At session end, appends a timestamped learning stub to `.factory/sidecar-learnin
 
 ## Hook Wiring
 
-All hooks are configured in `plugins/vsdd-factory/hooks/hooks.json`. The wiring uses four event types:
+All hooks are configured in `plugins/vsdd-factory/hooks-registry.toml` — the canonical, human-edited source of truth. Each entry is a `[[hooks]]` TOML stanza that the dispatcher reads at startup to build its routing table. `hooks.json` is regenerated from this file on every `/vsdd-factory:activate` run; operators never edit `hooks.json` directly.
+
+The wiring uses these event types:
 
 | Event | When It Fires |
 |-------|--------------|
-| `PreToolUse` | Before a tool call executes. Can block (exit 2) or inject context (exit 0 with JSON). |
+| `PreToolUse` | Before a tool call executes. Can block (`{"outcome":"block"}`) or inject context. |
 | `PostToolUse` | After a tool call completes. Cannot block -- advisory only. |
-| `SubagentStop` | When a subagent finishes and returns its result. |
+| `PostToolUseFailure` | After a tool call fails. |
+| `SubagentStop` | When a subagent finishes and returns its result. Some hooks use advisory-block-mode here. |
 | `Stop` | When the session ends. |
+| `SessionStart` / `SessionEnd` | Session lifecycle. |
+| `WorktreeCreate` / `WorktreeRemove` | Git worktree lifecycle. |
 
-Each hook has a 5-second timeout (10 seconds for `verify-git-push.sh`). All hooks require `jq` for JSON parsing of the tool input envelope.
+### Stanza format: legacy bash adapter
+
+Most hooks today are bash scripts adapted via `legacy-bash-adapter.wasm`. The adapter reads `[hooks.config] script_path` and execs the underlying script:
+
+```toml
+[[hooks]]
+name = "validate-bc-title"
+event = "PostToolUse"
+tool = "Edit|Write"
+plugin = "hook-plugins/legacy-bash-adapter.wasm"
+priority = 250
+timeout_ms = 5000
+on_error = "continue"
+
+[hooks.config]
+script_path = "hooks/validate-bc-title.sh"
+
+[hooks.capabilities]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
+
+[hooks.capabilities.exec_subprocess]
+binary_allow = ["bash", "jq"]
+shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
+```
+
+### Stanza format: native WASM
+
+Native ports (S-2.5 onward) point `plugin` at the hook's own `.wasm` module and drop `[hooks.config] script_path` entirely:
+
+```toml
+[[hooks]]
+name = "capture-commit-activity"
+event = "PostToolUse"
+plugin = "hook-plugins/capture-commit-activity.wasm"
+priority = 110
+timeout_ms = 5000
+on_error = "continue"
+
+[hooks.capabilities]
+env_allow = []
+
+[hooks.capabilities.exec_subprocess]
+binary_allow = ["git"]
+```
+
+Native and legacy entries coexist in the same registry. Capabilities (env, files, subprocesses) are declared per stanza and enforced by the dispatcher's WASI sandbox.
+
+Each hook has a 5-second default timeout (10 seconds for several validators and `verify-git-push.sh`). Bash hooks require `jq` declared in `binary_allow` for JSON parsing of the tool input envelope.
+
+## The factory-dispatcher runtime
+
+`factory-dispatcher` is the WASM hook runtime that Claude Code invokes for every event in `hooks-registry.toml`. It is the single entrypoint shipped in `plugins/vsdd-factory/bin/` (rc.10/rc.11) — every routed hook runs inside the dispatcher's wasmtime host, never as a direct subprocess of Claude Code.
+
+On startup the dispatcher reads `hooks-registry.toml`, validates each stanza's schema, and builds an event → ordered-plugin-list routing table keyed by `event` (and optional `tool` matcher) and sorted by `priority`. When an event fires, the dispatcher loads each matching `.wasm` plugin into the sandbox, hands it the Claude Code event envelope on stdin, and enforces the declared capabilities (`env_allow`, `read_file.path_allow`, `write_file.path_allow`, `exec_subprocess.binary_allow`).
+
+Native plugins are first-class wasm modules built from `crates/hook-plugins/<name>` and link directly against the host SDK (`host::emit_event`, `host::read_file`, etc.). Legacy bash hooks route through `hook-plugins/legacy-bash-adapter.wasm`, which reads `[hooks.config] script_path` from its own stanza, execs the referenced bash script with the granted subprocess capabilities, and forwards the script's stdout/exit code back as a dispatcher decision. This keeps the wiring uniform: every hook — native or bash — is discoverable via the same `hooks-registry.toml` and runs through the same dispatcher pipeline.

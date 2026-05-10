@@ -18,6 +18,13 @@
 
 set -euo pipefail
 
+# Source canonical block-message helper if available (provides block_pre).
+_SELF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+_BLOCK_SH="${CLAUDE_PLUGIN_ROOT:+${CLAUDE_PLUGIN_ROOT}/hooks/lib/block.sh}"
+_BLOCK_SH="${_BLOCK_SH:-${_SELF_DIR}/lib/block.sh}"
+# shellcheck source=lib/block.sh disable=SC1091
+if [ -f "$_BLOCK_SH" ]; then source "$_BLOCK_SH"; fi
+
 if ! command -v jq &>/dev/null; then
   exit 0
 fi
@@ -150,10 +157,21 @@ for keyword in "${!SOURCE_COUNTS[@]}"; do
 done
 
 if [[ "$DRIFT_DETECTED" -eq 1 ]]; then
-  for msg in "${DRIFT_MESSAGES[@]}"; do
-    echo "$msg" >&2
-  done
-  exit 2
+  # S2 fix: join ALL drift messages so every violation is visible at once, not just the first.
+  _ALL_DRIFT=$(printf '%s; ' "${DRIFT_MESSAGES[@]}" | sed 's/; $//')
+  _REASON="Count propagation drift detected in $(basename "$FILE_PATH"): $_ALL_DRIFT"
+  _REC="Update the lagging index to match the source-of-truth count: BC-INDEX total_bcs, ARCH-INDEX subsystem counts, or STORY-INDEX bcs count — see the specific drift cited above"
+
+  if declare -f block_pre >/dev/null 2>&1; then
+    block_pre "validate-count-propagation" \
+      "$_REASON" \
+      "$_REC" \
+      "count_propagation_drift"
+    # block_pre exits 2; unreachable
+  else
+    echo "BLOCKED by validate-count-propagation: ${_REASON}. Fix: ${_REC}. Code: count_propagation_drift." >&2
+    exit 2
+  fi
 fi
 
 exit 0

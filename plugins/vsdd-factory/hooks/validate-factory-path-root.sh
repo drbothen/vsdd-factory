@@ -19,19 +19,19 @@
 
 set -euo pipefail
 
+# Source canonical block-message helper (provides block_pre).
+_SELF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+_BLOCK_SH="${CLAUDE_PLUGIN_ROOT:+${CLAUDE_PLUGIN_ROOT}/hooks/lib/block.sh}"
+_BLOCK_SH="${_BLOCK_SH:-${_SELF_DIR}/lib/block.sh}"
+# shellcheck source=lib/block.sh disable=SC1091
+if [ -f "$_BLOCK_SH" ]; then source "$_BLOCK_SH"; fi
+
 if ! command -v jq &>/dev/null; then
   exit 0
 fi
 
 INPUT=$(cat)
 FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty')
-
-_emit() {
-  if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -x "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" ]; then
-    "${CLAUDE_PLUGIN_ROOT}/bin/emit-event" "$@" 2>/dev/null || true
-  fi
-  return 0
-}
 
 if [[ -z "$FILE_PATH" ]]; then
   exit 0
@@ -50,19 +50,10 @@ if [[ "$FILE_PATH" == *".worktrees/"*"/.factory/"* ]]; then
   WORKTREE=$(echo "$FILE_PATH" | grep -oE '\.worktrees/[^/]+' | head -1 || true)
   RELATIVE="${FILE_PATH##*/.factory/}"
 
-  _emit type=hook.block hook=validate-factory-path-root matcher=PostToolUse \
-        reason=factory_path_worktree_relative file_path="$FILE_PATH" worktree="$WORKTREE"
-  echo "FACTORY PATH ERROR — writing to worktree instead of project root:" >&2
-  echo "  Got:      $FILE_PATH" >&2
-  echo "  Expected: <project-root>/.factory/$RELATIVE" >&2
-  echo "" >&2
-  echo "  You are inside $WORKTREE/ and used a relative .factory/ path." >&2
-  echo "  .factory/ artifacts MUST use the absolute project root path," >&2
-  echo "  not a path relative to the worktree working directory." >&2
-  echo "" >&2
-  echo "  Fix: use the resolved project path from your dispatch prompt" >&2
-  echo "  (e.g., /Users/.../project/.factory/$RELATIVE)." >&2
-  exit 2
+  block_pre "validate-factory-path-root" \
+    "Worktree-relative .factory/ path used: $FILE_PATH (inside $WORKTREE). .factory/ artifacts MUST use absolute project root path" \
+    "Use absolute <project-root>/.factory/$RELATIVE from your dispatch prompt" \
+    "factory_path_relative"
 fi
 
 exit 0

@@ -2,13 +2,13 @@
 # The v0.79.x→v1.0 migration generator has been retired; edit this file
 # directly to add or modify hook registrations.
 #
-# Every entry routes through hook-plugins/legacy-bash-adapter.wasm,
+# Most entries route through hook-plugins/legacy-bash-adapter.wasm,
 # which reads `[hooks.config] script_path` and execs the underlying
 # bash script. Native-WASM ports (S-2.5 onward) replace individual
-# entries one-by-one; legacy entries can coexist with native ones in
-# this same file.
+# entries one-by-one; 21 native-WASM ports (S-2.5+) coexist with
+# 35 legacy-bash-adapter entries in this same file.
 
-schema_version = 1
+schema_version = 2
 
 # ---------- SessionStart ----------
 
@@ -17,6 +17,7 @@ name = "session-start-telemetry"
 event = "SessionStart"
 plugin = "hook-plugins/session-start-telemetry.wasm"
 timeout_ms = 8000
+async = true
 
 [hooks.capabilities.read_file]
 path_allow = [".claude/settings.local.json"]
@@ -31,6 +32,7 @@ name = "session-end-telemetry"
 event = "SessionEnd"
 plugin = "hook-plugins/session-end-telemetry.wasm"
 timeout_ms = 5000
+async = true
 
 # ---------- WorktreeCreate ----------
 
@@ -39,6 +41,7 @@ name = "worktree-hooks"
 event = "WorktreeCreate"
 plugin = "hook-plugins/worktree-hooks.wasm"
 timeout_ms = 5000
+async = true
 
 # ---------- WorktreeRemove ----------
 
@@ -47,6 +50,7 @@ name = "worktree-hooks"
 event = "WorktreeRemove"
 plugin = "hook-plugins/worktree-hooks.wasm"
 timeout_ms = 5000
+async = true
 
 # ---------- PostToolUseFailure ----------
 
@@ -55,6 +59,7 @@ name = "tool-failure-hooks"
 event = "PostToolUseFailure"
 plugin = "hook-plugins/tool-failure-hooks.wasm"
 timeout_ms = 5000
+async = true
 
 # ---------- PostToolUse ----------
 
@@ -65,6 +70,7 @@ plugin = "hook-plugins/capture-commit-activity.wasm"
 priority = 110
 timeout_ms = 5000
 on_error = "continue"
+async = true
 
 [hooks.capabilities]
 env_allow = []
@@ -79,6 +85,7 @@ plugin = "hook-plugins/capture-pr-activity.wasm"
 priority = 120
 timeout_ms = 5000
 on_error = "continue"
+async = true
 
 [hooks.capabilities]
 env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
@@ -95,6 +102,7 @@ plugin = "hook-plugins/legacy-bash-adapter.wasm"
 priority = 210
 timeout_ms = 10000
 on_error = "continue"
+async = true
 
 [hooks.config]
 script_path = "hooks/convergence-tracker.sh"
@@ -763,6 +771,7 @@ plugin = "hook-plugins/track-agent-start.wasm"
 priority = 110
 timeout_ms = 5000
 on_error = "continue"
+async = true
 
 [[hooks]]
 name = "validate-pr-merge-prerequisites"
@@ -824,6 +833,23 @@ binary_allow = ["bash", "git", "gh", "jq"]
 shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
 env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
+# ---------- validate-artifact-path (PreToolUse, Write|Edit) ----------
+# Registered AFTER relocate-artifact --dry-run confirmed 0 violations on .factory/
+# (BC-4.11.001 precondition 5; BC-6.22.001 invariant 7; S-13.01 T-5 gate).
+# Preflight result: "0 violations found. Registry is clean." (S-13.01 Chunk 6)
+
+[[hooks]]
+name = "validate-artifact-path"
+event = "PreToolUse"
+tool = "Write|Edit"
+plugin = "hook-plugins/validate-artifact-path.wasm"
+priority = 150
+timeout_ms = 5000
+on_error = "continue"
+
+[hooks.capabilities.read_file]
+path_allow = ["plugins/vsdd-factory/config/artifact-path-registry.yaml"]
+
 # ---------- Stop ----------
 
 [[hooks]]
@@ -833,6 +859,7 @@ plugin = "hook-plugins/session-learning.wasm"
 priority = 910
 timeout_ms = 5000
 on_error = "continue"
+async = true
 
 [[hooks]]
 name = "warn-pending-wave-gate"
@@ -876,6 +903,7 @@ plugin = "hook-plugins/track-agent-stop.wasm"
 priority = 930
 timeout_ms = 5000
 on_error = "continue"
+async = true
 
 [[hooks]]
 name = "update-wave-state-on-merge"
@@ -884,6 +912,7 @@ plugin = "hook-plugins/update-wave-state-on-merge.wasm"
 priority = 940
 timeout_ms = 10000
 on_error = "continue"
+async = true
 
 [hooks.capabilities.read_file]
 path_allow = [".factory/wave-state.yaml"]
@@ -900,3 +929,65 @@ priority = 950
 timeout_ms = 5000
 on_error = "continue"
 
+[[hooks]]
+# BC-4.10.001: blocks wave-gate dispatch when any story lacks convergence clearance.
+# BC-4.10.002: gracefully degrades (Continue) when not in wave-gate dispatch context.
+# Scoped to wave-gate dispatch via payload.agent_type == "wave-gate-dispatch" check
+# (enforced inside the hook itself — BC-4.10.001 invariant 1).
+# HOST_ABI_VERSION = 1; no new host functions (AC-011).
+name = "validate-per-story-adversary-convergence"
+event = "SubagentStop"
+plugin = "hook-plugins/validate-per-story-adversary-convergence.wasm"
+priority = 960
+timeout_ms = 10000
+# Canonical-form WASM hook (HOST_ABI block_with_fix). Block signal:
+# HookResult::Block via dispatcher exit code 2 (BC-4.10.001 PC8). D-349
+# retired advisory-block-mode for new hooks; canonical form applies here.
+# on_error = "continue" means a hook CRASH does NOT block — graceful-degrade
+# on hook failure per BC-4.10.002 PC3. This is orthogonal to the block signal.
+on_error = "continue"
+
+[hooks.capabilities.read_file]
+path_allow = [".factory/cycles"]
+
+# ---------- validate-stable-anchors (PreToolUse, Write|Edit) ----------
+# TD-VSDD-091 stable-anchor convention enforcement for .factory/specs/**/*.md.
+# Initial driver: TD-031 (P1 escalated O-P16-001).
+# Blocks spec body text containing `*.<ext>:NNN` volatile line citations where
+# ext is in the source-code/config/test allowlist: rs, toml, sh, bash, py, ts,
+# tsx, js, jsx, go, bats, yaml, yml, json, lock, lobster, wasm, c, cpp, h, hpp, rb.
+# Markdown cross-document references (.md:NNN) are a DISTINCT concern handled by
+# heading-anchor conventions — they are NOT in scope for this hook.
+# Exempt zones: Amendment/Changelog sections; VP-079 Scenario 6 SITES arrays.
+# F-P16-001 / F-P16-002 / F-P17-001: recurrence-breaking mechanical enforcement.
+# NOT via legacy-bash-adapter (Decision 5 WASM-migration rule).
+
+[[hooks]]
+name = "validate-stable-anchors"
+event = "PreToolUse"
+tool = "Write|Edit"
+plugin = "hook-plugins/validate-stable-anchors.wasm"
+priority = 155
+timeout_ms = 5000
+on_error = "block"
+
+[hooks.capabilities.read_file]
+path_allow = [".factory/specs"]
+
+# ---------- lint-registry-async-invariant (PostToolUse, Edit|Write) ----------
+# S-15.01 T-3i: native WASM CI lint plugin (BC-7.06.001 Invariant 5 Layer 1).
+# Enforces: schema_version=2 required + on_error=block implies async=false.
+# Fires on any Edit|Write to hooks-registry.toml; no-ops for other paths.
+# NOT via legacy-bash-adapter (Decision 5 WASM-migration rule).
+
+[[hooks]]
+name = "lint-registry-async-invariant"
+event = "PostToolUse"
+tool = "Edit|Write"
+plugin = "hook-plugins/lint-registry-async-invariant.wasm"
+priority = 160
+timeout_ms = 5000
+on_error = "block"
+
+[hooks.capabilities.read_file]
+path_allow = ["plugins/vsdd-factory/hooks-registry.toml"]

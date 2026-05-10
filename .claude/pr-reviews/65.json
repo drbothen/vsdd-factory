@@ -1,0 +1,30 @@
+{
+  "pr_number": 65,
+  "reviews": [
+    {
+      "timestamp": "2026-05-03T00:00:00Z",
+      "commit_sha": "a75e41d77395829f6caa6d89d36a8b0f17117ef5",
+      "verdict": "APPROVE",
+      "findings": [
+        {
+          "severity": "suggestion",
+          "category": "edge-case handling",
+          "agent": "code-reviewer",
+          "title": "nullglob empty-dir edge case in run-all.sh",
+          "file": "plugins/vsdd-factory/tests/run-all.sh",
+          "line": "30-52",
+          "hash": "nullglob-no-bats-files-silent-pass"
+        },
+        {
+          "severity": "tech_debt",
+          "category": "documentation",
+          "agent": "comment-analyzer",
+          "title": "_run_hook exclusion comment example is synthetic",
+          "file": "plugins/vsdd-factory/tests/check-bats-orphans.sh",
+          "line": "43-45",
+          "hash": "run-hook-exclusion-comment"
+        }
+      ]
+    }
+  ]
+}
