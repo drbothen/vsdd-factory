@@ -4,15 +4,15 @@ level: ops
 version: "2.0"
 status: draft
 producer: state-manager
-timestamp: 2026-05-10T00:26:00Z
-phase: post-rc14-shipped
+timestamp: 2026-05-10T18:00:00Z
+phase: post-rc16-shipped
 inputs: []
 input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "v1.0.0-rc.14 SHIPPED to drbothen/claude-mp marketplace 2026-05-09 at c6df5c13. Marketplace publish flow restored after 5-day rc.10 stall. PR #114 sync main→develop + TD #68 auto-resolve fix in flight (CI running). Ready for engine-discipline F4 platform delivery (S-12.06 first per dependency)."
-current_cycle: v1.0-feature-plugin-async-semantics-pass-1
+current_step: "v1.0.0-rc.16 SHIPPED to drbothen/claude-mp marketplace 2026-05-10 at feb894a2. RELEASING.md canonical; TD #69 guardrail live-tested by PR #118. Engine-discipline F4 paused — worktrees prunable, S-12.03@7f37f5a3 + S-12.05@bbc936ee branches survive. Next: git worktree prune + recreate, rebase onto current develop, Step 4.5."
+current_cycle: v1.0-feature-engine-discipline-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
 dtu_clones_built: "n/a"
@@ -38,9 +38,9 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-09 — v1.0.0-rc.14 SHIPPED at c6df5c13. Marketplace publish chain unblocked after rc.10 (broken by 4 bats suites since rc.11). PR #112 fixed release-CI; PR #113 fixed TD #66 (regression-v1.0 trace_id field name); PR #114 (in flight) restores develop ⊇ main + auto-resolves TD #68 binary conflicts on future releases. Release ladder: rc.10 (last marketplace-shipped) → rc.14 (next marketplace-shipped). rc.11/rc.12/rc.13 tagged but never reached marketplace. |
-| **Current Phase** | v1.0.0-rc.14 SHIPPED to marketplace — engine-discipline F4 platform delivery next (S-12.06 first per dependency). PR #114 awaiting CI completion + merge. |
-| **Current Cycle** | v1.0-feature-plugin-async-semantics-pass-1 |
+| **Last Updated** | 2026-05-10 — rc.15 + rc.16 SHIPPED. RELEASING.md canonical. TD #68 RESOLVED (PR #114). TD #69 RESOLVED (PRs #116/#117, live-tested PR #118). TD #70 FILED (cargo cache reuse). Plugin v1.0.0-rc.16 activated darwin-arm64. |
+| **Current Phase** | v1.0.0-rc.16 SHIPPED — engine-discipline F4 platform delivery paused (worktrees prunable; rebase + recreate required before Step 4.5). |
+| **Current Cycle** | v1.0-feature-engine-discipline-pass-1 |
 
 ## Phase Progress
 
@@ -48,15 +48,28 @@ dtu_services: []
 |-------|--------|----------|
 | Phases 0–B, Waves 1–11, S-7.03, beta.5–7, W-14, W-15 | **COMPLETE** | See `cycles/v1.0-brownfield-backfill/phase-progress-archive.md` |
 | Phase D-1..D-4, Waves 12–16, E-9 v1.7 sweep | **COMPLETE** | See `cycles/v1.0-brownfield-backfill/` and `cycles/v1.0-feature-plugin-async-semantics-pass-1/` |
-| Release v1.0.0-rc.11 | **SHIPPED** 2026-05-04 (PRs #89/#90/#91) | tag fb3e297; develop @ 5706f27; prerelease=true |
-| Release v1.0.0-rc.12 | **SHIPPED** 2026-05-06 | tag 4cf59bc; prerelease=true |
-| Release v1.0.0-rc.13 | **SHIPPED** 2026-05-09 | tag e3af1a16; prerelease=true; PRs #106-#111 |
-| Phase A — release CI unblock (PR #112) | **MERGED** 2026-05-09 c587a1dd | 4 bats suites fixed (schema_version, hardcoded paths x2, perf-baseline path resolution); ci.yml triggers added on develop; cargo fmt + clippy drift cleared; WASI fallback for absolute_path_hook_engagement. |
-| Release v1.0.0-rc.14 | **SHIPPED** 2026-05-09 (PRs #112/#113) | tag c6df5c13; develop @ e7855824 + sync merge; prerelease=true; claude-mp PR #6 merged. Supersedes rc.11–rc.13 (never reached marketplace due to release-CI break). |
-| PR #114 — sync main→develop + TD #68 auto-resolve | **CI running** at session end | Restores develop ⊇ main invariant after rc.14 binary-bundle commit; auto-resolves binary-only conflicts in BOTH inline (commit-binaries) and standalone (sync-develop) jobs for future releases. |
-| v1.0-feature-plugin-async-semantics-pass-1 | **CYCLE CLOSED** — PR #108 MERGED f08e313e 2026-05-09 | S-15.01 MERGED PR #106; fix-burst PR #107 merged; F5 convergence bundle PR #108 squash-merged. ADR-013 3_of_3 CONVERGED pass-57. Total: 40 adversary passes, 49 fix-bursts, 19 L-P28-001 META. |
-| v1.0-feature-engine-discipline-pass-1 | **PAUSED** F3-COMPLETE | F3-amendment done (D-366); 6 new stories under E-12 (S-12.03..S-12.08); next F4-platform delivery (S-12.06 first per dependency). |
+| Release v1.0.0-rc.11..rc.13 | **SHIPPED** (tagged; never reached marketplace due to release-CI break) | tags fb3e297 / 4cf59bc / e3af1a16 |
+| Release v1.0.0-rc.14 | **SHIPPED** 2026-05-09 (PRs #112/#113) | tag c6df5c13; develop @ e7855824; claude-mp PR #6 merged. |
+| PR #114 — sync main→develop + TD #68 auto-resolve | **MERGED** 2026-05-09 | develop ⊇ main invariant restored; binary-only conflict auto-resolve active for future releases. |
+| Release v1.0.0-rc.15 | **SHIPPED** 2026-05-09 (PR #115 → main via `--merge`) | Restored canonical `release/* → main` convention. Backfilled 92-file drift (3954 ins/880 del). claude-mp PR #7 merged. |
+| PR #116 — RELEASING.md + release skill defer + TD #69 guardrail | **MERGED** on develop | RELEASING.md now canonical release procedure; release skill defers to it. |
+| PR #117 — release-branch-guardrail YAML fix + injection hardening | **MERGED** on develop | Guardrail mechanically enforces `release/* → main`. |
+| Release v1.0.0-rc.16 | **SHIPPED** 2026-05-10 (PR #118 → main via `--merge`) at `feb894a2` | First live exercise of RELEASING.md. TD #69 guardrail accepted. claude-mp PR #8 (auto-bump) awaiting human merge. rc.16 installed + activated darwin-arm64. |
+| v1.0-feature-plugin-async-semantics-pass-1 | **CYCLE CLOSED** — PR #108 MERGED 2026-05-09 | ADR-013 3_of_3 CONVERGED pass-57. 40 adversary passes, 49 fix-bursts. |
+| v1.0-feature-engine-discipline-pass-1 | **PAUSED** F3-COMPLETE | F3-amendment done (D-366); 6 stories S-12.03..S-12.08 under E-12; next: F4-platform delivery. |
 | Phase D-4 Burst 2 — E-10 + E-9 v1.7 | **PENDING** | E-10 paused (D-343); adversary pass-9 queued; unblocked after engine-discipline F4 or user directive. |
+
+## Current Phase Steps
+
+<!-- Keep last 5 rows only. Archive older rows to cycles/<cycle>/burst-log.md. -->
+
+| Step | Agent | Status | Output |
+|------|-------|--------|--------|
+| rc.15 release (PR #115 → main) | devops-engineer | DONE 2026-05-09 | Canonical release convention restored; develop backfilled. |
+| rc.16 release (PR #118 → main) | devops-engineer | DONE 2026-05-10 | First RELEASING.md live exercise; TD #69 guardrail accepted. |
+| TD #69 guardrail (PRs #116/#117) | devops-engineer | DONE 2026-05-10 | RELEASING.md canonical; release-branch-guardrail CI enforces release/* → main. |
+| Plugin activation rc.16 darwin-arm64 | operator | DONE 2026-05-10 | settings.local.json updated; hooks-registry schema_version=2 confirmed. |
+| Engine-discipline F4 — worktree prep | devops-engineer | PENDING | `git worktree prune` + recreate S-12.03/S-12.05; rebase onto develop@9465b5b9; then Step 4.5. |
 
 ## Identifier Conventions
 
@@ -86,21 +99,22 @@ dtu_services: []
 
 | Branch / Tag | SHA | Notes |
 |--------------|-----|-------|
-| main | c6df5c13 | rc.14 bot bundle commit; latest release |
-| develop | e7855824 | PR #113 rc.14 trace_id fix; PR #114 sync in flight |
-| factory-artifacts | (see git log) | STATE.md updated for rc.14 ship |
-| v1.0.0-rc.14 (tag) | c6df5c13 | SHIPPED 2026-05-09; GH prerelease=true; claude-mp PR #6 merged |
-| v1.0.0-rc.13 (tag) | e3af1a16 | SHIPPED 2026-05-09; never reached marketplace |
-| v1.0.0-rc.12 (tag) | 4cf59bc | SHIPPED 2026-05-06 |
-| v1.0.0-rc.11 (tag) | fb3e297 | SHIPPED 2026-05-04; GH prerelease=true; PRs #89/#90/#91 |
+| main | feb894a2 | rc.16 merge; latest release |
+| develop | 9465b5b9 | PR #117 release-branch-guardrail hardening |
+| factory-artifacts | (see git log) | this STATE.md commit |
+| feature/S-12.03-context-resolver-trait | 7f37f5a3 | NOT pushed; Step 4 done; Step 4.5 PENDING; worktree prunable → recreate before 4.5 |
+| feature/S-12.05-hook-sdk-resolver | bbc936ee | NOT pushed; Step 4 done; Step 4.5 PENDING; worktree prunable → recreate before 4.5 |
+| v1.0.0-rc.16 (tag) | feb894a2 | SHIPPED 2026-05-10; claude-mp PR #8 awaiting human merge |
+| v1.0.0-rc.15 (tag) | e68bb436 | SHIPPED 2026-05-09; claude-mp PR #7 merged |
+| v1.0.0-rc.14 (tag) | c6df5c13 | SHIPPED 2026-05-09 |
 
 ## Concurrent Cycles
 
 | Cycle | Type | Status | Notes |
 |-------|------|--------|-------|
 | v1.0-brownfield-backfill | brownfield | PAUSED | E-10 pass-9 pending; paused at D-343 |
-| v1.0-feature-engine-discipline-pass-1 | feature | F3-COMPLETE | Next: F4-platform delivery (S-12.06 first) |
-| v1.0-feature-plugin-async-semantics-pass-1 | feature | **CLOSED** | All PRs merged; RC.14 shipped |
+| v1.0-feature-engine-discipline-pass-1 | feature | F3-COMPLETE / PAUSED | Next: F4-platform delivery — recreate worktrees + rebase first |
+| v1.0-feature-plugin-async-semantics-pass-1 | feature | **CLOSED** | All PRs merged; rc.14 shipped |
 
 ## Decisions Log
 
@@ -126,26 +140,31 @@ dtu_services: []
 
 | Item | Source | Status | Resolution |
 |------|--------|--------|------------|
-| B-3 | PR #108 code-reviewer finding — `emit_dispatcher_registry_invalid` type-unsafety | **RESOLVED** 2026-05-09 | PR #109 c69b34e9 — split into typed variants; compile-time enforcement. |
-| **TD #66** | `regression-v1.0` test 7 trace_id field-name canonicalization | **DEFERRED** to S-15.02 | PR #113 relaxed bats grep to accept either `dispatcher_trace_id` or `trace_id`. Canonical name decision deferred. |
-| **TD #67** | 4 timing-flaky e2e tests in `crates/factory-dispatcher/tests/full_stack_plugin_invocation.rs` | **DEFERRED** to S-15.02 | TC-4/TC-5/TC-7/TC-9 assert wall-clock bounds too tight for shared CI. All `#[ignore]`'d. |
-| **TD #68** | sync-develop binary-conflict auto-resolve | **FIX IN FLIGHT** (PR #114) | Every release with new WASM source produces add/add binary conflicts when commit-binaries' rebuilt artifacts merge to develop. PR #114 detects binary-only conflicts under known bundle paths and takes main's version automatically. |
+| **TD #66** | `regression-v1.0` test 7 trace_id field-name canonicalization | **DEFERRED** to S-15.02 | PR #113 relaxed bats grep; canonical name decision deferred. |
+| **TD #67** | 4 timing-flaky e2e tests in `full_stack_plugin_invocation.rs` | **DEFERRED** to S-15.02 | TC-4/TC-5/TC-7/TC-9 `#[ignore]`'d; bounds too tight for shared CI. |
+| **TD #68** | sync-develop binary-conflict auto-resolve | **RESOLVED** PR #114 2026-05-09 | develop ⊇ main restored; binary-only conflicts auto-resolved on future releases. |
+| **TD #69** | release-branch guardrail enforcing `release/* → main` | **RESOLVED** PRs #116/#117 2026-05-10 | RELEASING.md canonical; guardrail CI live-tested by PR #118. |
+| **TD #70** | cargo cache reuse (Swatinem/rust-cache@v2 across PR + release.yml) | **FILED** 2026-05-10; BLOCKED | Blocked by E-10 resume (v1.0-brownfield-backfill). |
+| Ghost BCs | BC-3.07.003, BC-3.07.004, BC-1.06.011 cited in story frontmatter but missing from BC-INDEX/ss-03/ | **DEFERRED** | Investigate in future fix-burst. |
 
 ## Historical Content
 
 Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and lessons extracted to:
 - `cycles/v1.0-brownfield-backfill/burst-log.md` | `session-checkpoints.md` | `lessons.md`
 - `cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` | `session-checkpoints.md` | `lessons.md`
+- `cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md` (rc.14 checkpoint archived 2026-05-10)
 
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-09 — v1.0.0-rc.14 SHIPPED to drbothen/claude-mp marketplace at c6df5c13. claude-mp PR #6 merged. Marketplace publish flow restored after 5-day rc.10 stall (broken by 4 bats suites since rc.11; fixed by PR #112). PR #113 merged e7855824 (TD #66 trace_id fix). PR #114 (sync main→develop + TD #68 binary auto-resolve) was CI-running at session end.
+**Last update:** 2026-05-10 — v1.0.0-rc.16 SHIPPED at `feb894a2`. RELEASING.md is now the canonical release procedure; release skill defers to it. TD #68 RESOLVED (PR #114); TD #69 RESOLVED (PRs #116/#117); TD #70 FILED. Plugin v1.0.0-rc.16 activated darwin-arm64; `hooks-registry.toml schema_version=2` confirmed at operator install. claude-mp PR #8 (auto-bump) awaiting human merge to flip operator `/plugin update` resolution.
 
-**Next session start:** Verify PR #114 CI result and merge if green. Then begin F4 platform delivery — S-12.06 first per engine-discipline cycle dependency order.
+**Next session start:** Engine-discipline F4 platform delivery — run `git worktree prune` then recreate S-12.03 (`feature/S-12.03-context-resolver-trait`) and S-12.05 (`feature/S-12.05-hook-sdk-resolver`) worktrees under `.worktrees/`. Rebase both onto current `develop` (currently `9465b5b9` — ~14 PRs ahead). Push. Dispatch Step 4.5 per-story adversarial convergence in parallel. SESSION-CHECKPOINT.md Section 9 has the full recipe.
 
 **Branches:**
-- main @ c6df5c13 (rc.14 bot bundle)
-- develop @ e7855824 (PR #113 trace_id fix; PR #114 sync pending)
+- main @ feb894a2 (rc.16 merge)
+- develop @ 9465b5b9 (PR #117 guardrail hardening)
+- feature/S-12.03 @ 7f37f5a3 (local only; worktree prunable)
+- feature/S-12.05 @ bbc936ee (local only; worktree prunable)
 - factory-artifacts @ (see git log)
 
 **Index versions:** BC-INDEX v1.63 | VP-INDEX v1.40 | STORY-INDEX v2.64 | ARCH-INDEX v1.44
@@ -153,6 +172,5 @@ Historical burst logs (passes 13–63 + D-310..D-336), session checkpoints, and 
 **E-9:** v1.53 CONVERGENCE_REACHED (D-308)
 **E-10:** paused (D-343); adversary pass-9 queued
 **5 user-locked decisions:** (1) envelope sync, (2) no backwards compat, (3) no phased rollout, (4) ASYNC_DRAIN_WINDOW_MS=100ms, (5) WASM-only. Full text in `cycles/v1.0-feature-plugin-async-semantics-pass-1/F4-handoff.md` §3.
-**Ghost BCs flagged:** BC-3.07.003, BC-3.07.004, BC-1.06.011 — cited in story frontmatter but missing from BC-INDEX and ss-03/. Investigate in future fix-burst.
 
-> Previous checkpoint archived to: `cycles/v1.0-feature-plugin-async-semantics-pass-1/session-checkpoints.md`
+> Previous checkpoint archived to: `cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md` (2026-05-10)
