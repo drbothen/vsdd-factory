@@ -19,7 +19,7 @@
 //! Story: S-12.03
 //! VP: VP-075
 
-use factory_dispatcher::resolver::{ResolverOutput, merge_resolver_outputs};
+use factory_dispatcher::resolver::{ResolvedContext, ResolverOutput, merge_resolver_outputs};
 use proptest::prelude::*;
 use serde_json::{Map, Value};
 
@@ -59,27 +59,37 @@ fn arb_non_null_json_value() -> impl Strategy<Value = Value> {
     ]
 }
 
-/// Strategy: a `(resolver_name, ResolverOutput)` pair with `Some` value.
-/// The key (and resolver_name) carry a `"resolver_"` prefix so they cannot
-/// collide with base config keys (which use `[a-z]{1,16}` without prefix).
-fn arb_resolver_output_with_value() -> impl Strategy<Value = (String, ResolverOutput)> {
-    ("resolver_[a-z]{1,16}", arb_non_null_json_value()).prop_map(|(key, value)| {
-        let resolver_name = format!("{}_r", key); // distinct from key
-        (
+/// Strategy: a `ResolvedContext` with `Some` value.
+/// The context_key carries a `"resolver_"` prefix so it cannot collide with
+/// base config keys (which use `[a-z]{1,16}` without prefix).
+/// F-P3-001: resolver_name is a distinct string from context_key.
+fn arb_resolver_output_with_value() -> impl Strategy<Value = ResolvedContext> {
+    ("resolver_[a-z]{1,16}", arb_non_null_json_value()).prop_map(|(context_key, value)| {
+        let resolver_name = format!("{}_resolver", context_key); // distinct from context_key
+        ResolvedContext {
+            context_key: context_key.clone(),
             resolver_name,
-            ResolverOutput {
-                key,
+            output: ResolverOutput {
+                key: context_key, // informational only
                 value: Some(value),
             },
-        )
+        }
     })
 }
 
-/// Strategy: a `(resolver_name, ResolverOutput)` pair with `None` value.
-fn arb_resolver_output_none() -> impl Strategy<Value = (String, ResolverOutput)> {
-    "resolver_[a-z]{1,16}".prop_map(|key| {
-        let resolver_name = format!("{}_r", key);
-        (resolver_name, ResolverOutput { key, value: None })
+/// Strategy: a `ResolvedContext` with `None` value.
+/// F-P3-001: resolver_name is a distinct string from context_key.
+fn arb_resolver_output_none() -> impl Strategy<Value = ResolvedContext> {
+    "resolver_[a-z]{1,16}".prop_map(|context_key| {
+        let resolver_name = format!("{}_resolver", context_key);
+        ResolvedContext {
+            context_key: context_key.clone(),
+            resolver_name,
+            output: ResolverOutput {
+                key: context_key,
+                value: None,
+            },
+        }
     })
 }
 
@@ -159,8 +169,9 @@ proptest! {
         ).prop_map(|m| m.into_iter().collect::<Map<_, _>>()),
         output in arb_resolver_output_with_value(),
     ) {
-        // F-P5-003: output is (resolver_name, ResolverOutput)
-        let output_key = output.1.key.clone();
+        // F-P2-002 / F-P3-001: ResolvedContext.context_key is the merge key;
+        // resolver_name is the registry name (distinct from context_key).
+        let merge_key = output.context_key.clone(); // context_key = the actual merge key (F-P2-002)
         let outputs = vec![output];
 
         let merged = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
@@ -182,12 +193,13 @@ proptest! {
             );
         }
 
-        // The resolver's output key must be present.
+        // The registry-declared context_key (merge_key) must be present in the merged result.
+        // F-P2-002: the merge key is the tuple's first String, not output.key.
         prop_assert!(
-            merged_obj.contains_key(output_key.as_str()),
-            "resolver output key '{}' must be present in merged result \
-             (VP-075-C / BC-4.12.005 PC3)",
-            output_key
+            merged_obj.contains_key(merge_key.as_str()),
+            "context_key '{}' must be present in merged result \
+             (VP-075-C / BC-4.12.005 PC3 / F-P2-002 — context_key is the merge key)",
+            merge_key
         );
     }
 }
@@ -213,8 +225,9 @@ proptest! {
         base_config in arb_json_object(),
         output in arb_resolver_output_none(),
     ) {
-        // F-P5-003: output is (resolver_name, ResolverOutput)
-        let output_key = output.1.key.clone();
+        // F-P2-002 / F-P3-001: ResolvedContext.context_key is the merge key.
+        // With value: None, nothing is inserted — context_key is absent from result.
+        let context_key = output.context_key.clone(); // F-P2-002: this would be the merge key if value were Some
         let outputs = vec![output];
 
         let merged_a = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
@@ -240,12 +253,13 @@ proptest! {
             "merge is deterministic for None-value outputs (VP-075-D)"
         );
 
-        // None value: key must be absent from merged result.
+        // None value: context_key must be absent from merged result (nothing inserted).
+        // F-P2-002: with value: None, neither context_key nor output.key is inserted.
         prop_assert!(
-            !result_a.contains_key(output_key.as_str()),
-            "key '{}' must be ABSENT when resolver returns value: None \
-             (VP-075-D / AC-004 / BC-4.12.005 PC2)",
-            output_key
+            !result_a.contains_key(context_key.as_str()),
+            "context_key '{}' must be ABSENT when resolver returns value: None \
+             (VP-075-D / AC-004 / BC-4.12.005 PC2 / F-P2-002)",
+            context_key
         );
     }
 }

@@ -393,6 +393,25 @@ async fn ac005_resolver_not_found_event_appears_in_internal_log() {
         "F-P3-003: 'resolver.not_found' event must carry the correct hook_name. \
          Log content: {all_log_content:?}"
     );
+
+    // F-S12.04-P7-003: positive-coverage for trace_id + session_id provenance triplet.
+    // Catches silent regression of with_trace_id() / with_session_id() in the resolver.not_found
+    // event constructor. Mirrors the f_p2_007_resolver_error_test pattern (POL-11).
+    // make_executor_inputs sets: session_id = "sess-resolver-test", trace_id = "trace-resolver-test"
+    assert!(
+        all_log_content.contains("resolver-test-trace")
+            || all_log_content.contains("trace-resolver-test"),
+        "F-P7-003: resolver.not_found event must include trace_id literal. Log content: {all_log_content:?}"
+    );
+    assert!(
+        all_log_content.contains("sess-resolver-test"),
+        "F-P7-003: resolver.not_found event must include session_id literal. Log content: {all_log_content:?}"
+    );
+    // plugin_name positive-coverage (entry.name)
+    assert!(
+        all_log_content.contains("not-found-hook"),
+        "F-P7-003: resolver.not_found event must include hook plugin_name (entry.name). Log content: {all_log_content:?}"
+    );
 }
 
 // ---------------------------------------------------------------------------
@@ -505,6 +524,40 @@ async fn f_p2_007_erroring_resolver_causes_resolver_error_event_in_internal_log(
          envelope event type, e.g. 'PreToolUse') per HOST_ABI.md line 1097. \
          Log content: {all_log_content:?}"
     );
+    // F-P4-005: trace_id positive-coverage assertion. The dispatch context in
+    // make_executor_inputs sets dispatcher_trace_id = "resolver-test-trace" (line 119).
+    // The resolver.error event MUST include this value — if with_trace_id() is ever
+    // accidentally removed, this assertion catches the regression (POL-11 tautology gap).
+    assert!(
+        all_log_content.contains("resolver-test-trace"),
+        "F-P4-005: resolver.error event must include the dispatch trace_id \
+         ('resolver-test-trace'). Positive coverage check — ensures with_trace_id() \
+         wiring isn't dropped silently in a regression. \
+         Log content: {all_log_content:?}"
+    );
+    // F-S12.04-P5-002: session_id positive-coverage assertion. The base_host_ctx in
+    // make_executor_inputs is constructed via HostContext::new("", "0.0.1",
+    // "sess-resolver-test", "trace-resolver-test") (line 119). executor.rs:487
+    // captures base_host_ctx.session_id as session_id_err and wires it into the
+    // resolver.error event via with_session_id(). This assertion ensures that wiring
+    // isn't dropped silently in a regression (positive coverage check).
+    assert!(
+        all_log_content.contains("sess-resolver-test"),
+        "F-S12.04-P5-002: resolver.error event must include the dispatch session_id \
+         ('sess-resolver-test', from base_host_ctx). Positive coverage check — ensures \
+         with_session_id() wiring isn't dropped silently in a regression. \
+         Log content: {all_log_content:?}"
+    );
+    // F-S12.04-P6-002: plugin_name positive-coverage assertion. The hook entry name
+    // (set from entry.name and emitted via with_plugin_name()) MUST appear in the
+    // resolver.error event. Catches silent regression of .with_plugin_name() being
+    // dropped (POL-11 tautology gap).
+    let expected_hook_name = "boom-hook";
+    assert!(
+        all_log_content.contains(expected_hook_name),
+        "F-S12.04-P6-002: resolver.error event must include the hook plugin_name (from entry.name). \
+         Log content: {all_log_content:?}"
+    );
 }
 
 // ---------------------------------------------------------------------------
@@ -512,19 +565,30 @@ async fn f_p2_007_erroring_resolver_causes_resolver_error_event_in_internal_log(
 // ---------------------------------------------------------------------------
 
 /// A resolver whose registry name is distinct from the output key it produces.
-/// Used by F-P4-001B / F-P5-003 to verify that `resolver_name` in the
-/// `resolver.merge_collision` event reflects the registry identity, not just
-/// the output key.
+/// Used by F-P4-001B / F-P5-003 / F-P2-002 to verify that `resolver_name` in the
+/// `resolver.merge_collision` event reflects the declared context_key (merge key).
+///
+/// F-P2-002: merge uses context_key(), not output.key. This struct overrides
+/// context_key() to enable testing a resolver whose declared merge key ("collision-key")
+/// differs from its registry name ("test_resolver_alpha") — proving that output.key
+/// is informational only.
 struct NamedKeyResolver {
     /// Registry name of this resolver (what `name()` returns).
     registry_name: String,
-    /// The output key this resolver produces (may differ from registry_name).
+    /// The registry-declared context_key (what `context_key()` returns — the MERGE key).
+    /// F-P2-002: this is what determines where output is stored in plugin_config.
+    declared_context_key: String,
+    /// The output key this resolver produces (informational only per F-P2-002).
     output_key: String,
 }
 
 impl ContextResolver for NamedKeyResolver {
     fn name(&self) -> &str {
         &self.registry_name
+    }
+
+    fn context_key(&self) -> &str {
+        &self.declared_context_key
     }
 
     fn resolve(&self, _input: &ResolverInput) -> Result<Option<ResolverOutput>, ResolverError> {
@@ -535,20 +599,21 @@ impl ContextResolver for NamedKeyResolver {
     }
 }
 
-/// F-P4-001B / F-P5-003 (integration test):
+/// F-P4-001B / F-P5-003 / F-P3-001 (integration test):
 /// When a resolver output key collides with a static config key,
 /// `execute_tiers` must emit a `resolver.merge_collision` event that
 /// carries the `resolver_name` field reflecting the REGISTRY NAME of the
-/// resolver (not the output key) — proving F-P5-003 resolver identity
-/// threading works end-to-end (BC-4.12.004 wire format).
+/// resolver — proving F-P3-001 resolver name threading works end-to-end
+/// (BC-4.12.004 wire format).
 ///
-/// Setup (de-masked per F-P5-003):
-/// - Resolver registry name: "test_resolver_alpha"
-/// - Resolver output key:    "collision-key"  (distinct from registry name)
-/// - Static config key:      "collision-key"  (causes collision)
+/// Setup:
+/// - Resolver registry name:          "test_resolver_alpha"
+/// - Resolver declared context_key:   "collision-key" (the merge key per F-P2-002)
+/// - Resolver output.key:             "collision-key-output" (informational only)
+/// - Static config key:               "collision-key" (causes collision with context_key)
 ///
-/// The assertion checks `resolver_name == "test_resolver_alpha"` (field value),
-/// not just that "collision-key" appears somewhere in the log.
+/// F-P3-001: resolver_name in collision event = registry NAME ("test_resolver_alpha"),
+/// NOT context_key ("collision-key"). The collision key field carries the context_key.
 #[tokio::test(flavor = "current_thread")]
 async fn f_p4_001b_merge_collision_event_carries_resolver_name() {
     let dir = tempfile::tempdir().unwrap();
@@ -585,11 +650,13 @@ async fn f_p4_001b_merge_collision_event_carries_resolver_name() {
         registry.hooks.iter().collect();
     let tiers = factory_dispatcher::routing::group_by_priority(&registry, matched);
 
-    // F-P5-003: resolver registry name "test_resolver_alpha" produces output key
-    // "collision-key" — DISTINCT registry name and output key.
+    // F-P5-003 / F-P2-002: resolver registry name "test_resolver_alpha", declared
+    // context_key "collision-key" (the merge key), output_key "collision-key" (informational).
+    // The declared context_key determines the merge key; output.key is informational.
     let resolver = NamedKeyResolver {
         registry_name: "test_resolver_alpha".to_string(),
-        output_key: "collision-key".to_string(),
+        declared_context_key: "collision-key".to_string(), // merge key = context_key (F-P2-002)
+        output_key: "collision-key-output".to_string(),    // informational only (F-P2-002)
     };
     let mut resolver_registry = ResolverRegistry::new();
     resolver_registry
@@ -625,14 +692,43 @@ async fn f_p4_001b_merge_collision_event_carries_resolver_name() {
         "F-P4-001B: 'resolver.merge_collision' event must carry 'resolver_name' field \
          (BC-4.12.004 wire format). Log content: {all_log_content:?}"
     );
-    // F-P5-003: assert resolver_name VALUE is "test_resolver_alpha" (not just "collision-key").
-    // This proves resolver identity is threaded from the registry name, not derived from
-    // the output key.
+    // F-P3-001: assert resolver_name VALUE is "test_resolver_alpha" (the registry NAME).
+    // With F-P3-001, resolver_name in the collision event = registry name (ContextResolver::name()),
+    // NOT the context_key. The context_key is "collision-key" (the merge key);
+    // the registry name is "test_resolver_alpha" — these are distinct.
     assert!(
         all_log_content.contains("\"resolver_name\":\"test_resolver_alpha\""),
-        "F-P5-003: 'resolver_name' in merge_collision event must equal \
-         'test_resolver_alpha' (the registry name), NOT 'collision-key' (the output key). \
+        "F-P3-001: 'resolver_name' in merge_collision event must equal \
+         'test_resolver_alpha' (the registry NAME, not the context_key 'collision-key'). \
          Log content: {all_log_content:?}"
+    );
+    // The collision key itself must be "collision-key" (the context_key used for merge).
+    assert!(
+        all_log_content.contains("\"key\":\"collision-key\""),
+        "F-P3-001: 'key' in merge_collision event must equal 'collision-key' \
+         (the context_key = merge key). Log content: {all_log_content:?}"
+    );
+    // F-P8-002: provenance-triplet positive-coverage for resolver.merge_collision.
+    // make_executor_inputs sets trace_id = "trace-resolver-test", session_id = "sess-resolver-test".
+    // entry.name = "collision-hook" (plugin_name in the event).
+    // Matches the pattern established by F-P7-003 for resolver.not_found.
+    assert!(
+        all_log_content.contains("trace-resolver-test"),
+        "F-P8-002: resolver.merge_collision event must include trace_id literal \
+         ('trace-resolver-test'). Positive coverage check — ensures with_trace_id() \
+         wiring is not silently dropped. Log content: {all_log_content:?}"
+    );
+    assert!(
+        all_log_content.contains("sess-resolver-test"),
+        "F-P8-002: resolver.merge_collision event must include session_id literal \
+         ('sess-resolver-test'). Positive coverage check — ensures with_session_id() \
+         wiring is not silently dropped. Log content: {all_log_content:?}"
+    );
+    assert!(
+        all_log_content.contains("collision-hook"),
+        "F-P8-002: resolver.merge_collision event must include plugin_name ('collision-hook', \
+         from entry.name). Positive coverage check — ensures with_plugin_name() \
+         wiring is not silently dropped. Log content: {all_log_content:?}"
     );
 }
 

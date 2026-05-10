@@ -1,0 +1,32 @@
+AC-006: Failed-module compilation fail-loud (CompileError)
+Traces to: BC-4.12.004 postconditions 1-2 (using trapping_resolver.wasm fixture)
+Test: test_BC_4_12_001_failed_compile_returns_compile_error + test_F_P1_001_invoke_resolver_wasm_real_wasm_fixture_surfaces_trap
+
+COMMAND
+  cargo test -p factory-dispatcher --test resolver_load_test \
+    test_BC_4_12_001_failed_compile_returns_compile_error -- --nocapture
+
+OUTPUT
+  Finished `test` profile [unoptimized + debuginfo] target(s) in 0.25s
+   Running tests/resolver_load_test.rs (target/debug/deps/resolver_load_test-547c6ef571c1a2f4)
+
+  running 1 test
+  test test_BC_4_12_001_failed_compile_returns_compile_error ... ok
+
+  test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 17 filtered out; finished in 0.00s
+
+COMMAND (real WASM fixture trap surfaces as error, not process abort)
+  cargo test -p factory-dispatcher --test resolver_error_isolation_test \
+    test_F_P1_001_invoke_resolver_wasm_real_wasm_fixture_surfaces_trap -- --nocapture
+
+OUTPUT
+  Finished `test` profile [unoptimized + debuginfo] target(s) in 0.26s
+   Running tests/resolver_error_isolation_test.rs (...)
+
+  running 1 test
+  factory-dispatcher: Compiled 1 resolver modules from /var/folders/.../resolvers-registry.toml
+  test test_F_P1_001_invoke_resolver_wasm_real_wasm_fixture_surfaces_trap ... ok
+
+  test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 3 filtered out; finished in 0.01s
+
+RESULT: PASS

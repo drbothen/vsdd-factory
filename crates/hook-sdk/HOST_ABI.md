@@ -896,6 +896,58 @@ via `#[serde(default)]`).
   a `resolver.not_found` event and dispatch proceeds without context injection for that
   entry. The hook receives a `plugin_config` that lacks the expected key. (BC-1.13.001 PC6)
 
+**`resolver.not_found` event fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `resolver_name` | string | The name of the resolver that was requested but not found in the registry. |
+| `trace_id` | string | Dispatcher trace ID for the dispatch event. |
+| `session_id` | string | Claude Code session identifier. |
+| `plugin_name` | string | The hook plugin name that declared this resolver in `needs_context`. |
+
+Emitted when a hook entry's `needs_context` list references a resolver name not registered
+in `resolvers-registry.toml`. The dispatcher continues dispatch (the missing resolver
+contributes no key to `plugin_config`); see BC-1.13.001 PC6.
+
+**`resolver.registry_loaded` event fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `resolver_count` | integer | Number of resolver modules successfully compiled at startup. |
+| `registry_path` | string | Path to the `resolvers-registry.toml` file that was loaded. |
+| `trace_id` | string | Dispatcher trace ID for the startup event. |
+| `session_id` | string | Claude Code session identifier. |
+
+Emitted at dispatcher startup after `ResolverLoader::load_registry` succeeds and at least
+one resolver compiled successfully. Not emitted when the registry is absent (zero-resolver
+case is not an error — see BC-1.13.001 PC1).
+
+**`resolver.load_warning` event fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `resolver_name` | string | Name of the resolver entry that was skipped (`fail_closed = false`). |
+| `error_detail` | string | Reason the resolver was skipped (compile error, missing file, etc.). |
+| `trace_id` | string | Dispatcher trace ID for the startup event. |
+| `session_id` | string | Claude Code session identifier. |
+
+Emitted at registry-load time when a resolver entry has `fail_closed = false` and fails to
+compile or load. The dispatcher continues startup with the remaining resolvers (fail-open
+semantics). One event is emitted per skipped resolver entry. (BC-4.12.001 PC6)
+
+**`resolver.load_error` event fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `error_detail` | string | Description of the registry-load failure (TOML parse error, fail-closed compile failure, duplicate name, schema violation). |
+| `trace_id` | string | Dispatcher trace ID for the startup event. |
+| `session_id` | string | Claude Code session identifier. |
+
+Emitted when `ResolverLoader::load_registry` returns `Err` — i.e. when a fail-closed
+resolver fails to compile, the registry TOML is malformed, or a duplicate `name` entry is
+detected. The dispatcher does NOT start with a partial resolver set; startup is aborted
+after emitting this event. (BC-4.12.001 PC6, BC-4.12.005 PC6)
+
 ---
 
 ### Resolver Lifecycle (BC-4.12.001)
@@ -972,8 +1024,23 @@ The `i64` return value encodes a packed `(ptr: i32, len: i32)` pair:
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `key` | `String` | The context key under which the value is merged into `plugin_config`. |
+| `key` | `String` | Informational self-documentation for the resolver author. **Does NOT determine where the value is merged into `plugin_config`.** |
 | `value` | `Option<Value>` | The context payload; `null` means the key is absent (not written to `plugin_config`). |
+
+**Merge key convention (F-P2-002):** The merge key — i.e. the key under which this resolver's
+`value` is stored in `plugin_config` — is determined by the **registry-declared `context_key`**
+in `resolvers-registry.toml`, NOT by `ResolverOutput.key`. Resolvers MAY include `key` in their
+output for self-documentation (e.g., for logging or debugging), but it does not affect merging.
+This decouples the resolver's internal naming from the registry schema.
+
+#### Zero-Length Result Convention
+
+A packed return value of `(0, 0)` — i.e. the `i64` result equals `0` — indicates the resolver
+intends `Ok(None)`: it has no context to contribute for this dispatch. Resolvers SHOULD return
+`ResolverOutput { value: None }` explicitly when a structured return is desired (allows the
+dispatcher to log the output key for diagnostics). The `(0, 0)` shortcut is for resolvers that
+have no allocation to return and wish to signal absence without writing any bytes. The dispatcher
+treats both forms identically: neither writes to `plugin_config`. (F-P2-008)
 
 Resolvers do NOT return block/continue decisions. They return data only. A resolver cannot
 block a hook dispatch.
@@ -1095,6 +1162,9 @@ fields:
 | `error_kind` | One of: `"trap"`, `"timeout"`, `"abi_violation"`, `"capability_denied"`, `"not_found"`, `"load_error"`. |
 | `error_detail` | Human-readable description of the specific error. |
 | `event_type` | The Claude Code envelope event type (e.g., `'PreToolUse'`, `'PostToolUse'`) that triggered this resolver dispatch. |
+| `trace_id`     | Dispatcher trace ID for the dispatch event. |
+| `session_id`   | Claude Code session identifier. |
+| `plugin_name`  | The hook plugin name that declared this resolver in `needs_context`. |
 
 In addition to the telemetry event, the dispatcher writes an error-level log entry at the configured log path with the same fields (BC-4.12.004 PC7).
 
@@ -1150,6 +1220,7 @@ This is not an error; it is an expected enrichment pattern.
 | `resolver_name` | string | The registry name of the resolver whose output produced the collision. |
 | `plugin_name` | string | The hook plugin name being dispatched. |
 | `trace_id` | string | Dispatch trace ID. |
+| `session_id` | string | Claude Code session identifier. |
 
 **`needs_context` is the merge scope:** Only resolvers named in the `needs_context` field
 of the hooks-registry entry contribute to the merge for that dispatch. Other registered

@@ -1,0 +1,31 @@
+AC-012: Startup log "Compiled N resolver modules"
+Traces to: BC-1.13.001 postcondition 1
+Test: test_resolver_path_allow_is_project_dir_relative (startup log captured via --nocapture)
+
+COMMAND (shows startup log line on successful registry load with 1 resolver)
+  cargo test -p factory-dispatcher --test resolver_load_test \
+    test_resolver_path_allow_is_project_dir_relative -- --nocapture
+
+OUTPUT
+  Finished `test` profile [unoptimized + debuginfo] target(s) in 0.26s
+   Running tests/resolver_load_test.rs (...)
+
+  running 1 test
+  factory-dispatcher: Compiled 1 resolver modules from /var/folders/.../resolvers-registry.toml
+  test test_resolver_path_allow_is_project_dir_relative ... ok
+
+  test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 17 filtered out; finished in 0.01s
+
+COMMAND (error isolation tests show same startup log with trapping resolver)
+  cargo test -p factory-dispatcher --test resolver_error_isolation_test -- --nocapture
+
+STARTUP LOG LINES CAPTURED (4 tests, each with 1 resolver module):
+  factory-dispatcher: Compiled 1 resolver modules from .../trapping-resolvers-registry.toml
+  factory-dispatcher: Compiled 1 resolver modules from .../trapping-resolvers-registry.toml
+  factory-dispatcher: Compiled 1 resolver modules from .../combined-resolvers-registry.toml
+  factory-dispatcher: Compiled 1 resolver modules from .../resolvers-registry.toml
+
+EVIDENCE: Log format matches "Compiled N resolver modules from <path>" per AC-012 spec.
+  N=1 in each case because each test sets up a registry with exactly 1 resolver entry.
+
+RESULT: PASS

@@ -1,0 +1,25 @@
+AC-010: Trapping resolver emits resolver.error event with structured fields
+Traces to: BC-4.12.004 postconditions 1-2
+Test: test_BC_4_12_004_trapping_resolver_emits_resolver_error_event
+
+COMMAND
+  cargo test -p factory-dispatcher --test resolver_error_isolation_test \
+    test_BC_4_12_004_trapping_resolver_emits_resolver_error_event -- --nocapture
+
+OUTPUT
+  Finished `test` profile [unoptimized + debuginfo] target(s) in 0.26s
+   Running tests/resolver_error_isolation_test.rs (...)
+
+  running 1 test
+  factory-dispatcher: Compiled 1 resolver modules from /var/folders/.../trapping-resolvers-registry.toml
+  test test_BC_4_12_004_trapping_resolver_emits_resolver_error_event ... ok
+
+  test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 3 filtered out; finished in 0.01s
+
+EVIDENCE:
+  - Test asserts resolver.error event captured in mock telemetry sink
+  - event fields verified: event_name == "resolver.error", error_kind == "trap"
+  - resolver_name field present and matches the trapping resolver's registry name
+  - Startup log shows module compiled before the trap test executes
+
+RESULT: PASS

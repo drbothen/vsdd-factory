@@ -1,0 +1,18 @@
+AC-003: Module compiled once; mtime cache hit on second call
+Traces to: BC-4.12.001 postcondition 1 (VP-073-A)
+Test: test_BC_4_12_001_load_is_deterministic
+
+COMMAND
+  cargo test -p factory-dispatcher --test resolver_load_test \
+    test_BC_4_12_001_load_is_deterministic -- --nocapture
+
+OUTPUT
+  Finished `test` profile [unoptimized + debuginfo] target(s) in 0.27s
+   Running tests/resolver_load_test.rs (target/debug/deps/resolver_load_test-547c6ef571c1a2f4)
+
+  running 1 test
+  test test_BC_4_12_001_load_is_deterministic ... ok
+
+  test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 17 filtered out; finished in 0.01s
+
+RESULT: PASS

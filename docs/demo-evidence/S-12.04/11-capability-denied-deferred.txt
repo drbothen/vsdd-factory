@@ -1,0 +1,36 @@
+AC-011: capability_denied path test
+Traces to: BC-4.12.003 postconditions 2 + VP-076
+Status: PARTIALLY IMPLEMENTED — deferred to S-12.07 per F-P2-005
+
+STORY SPEC NOTE (S-12.04, AC-011):
+  "Falsifiable test (VP-076): Rust integration test using
+  tests/fixtures/path_escaping_resolver.wasm (attempts to read /etc/passwd);
+  dispatch; assert resolver.capability_denied event emitted"
+
+FIXTURE STATUS:
+  tests/fixtures/path_escaping_resolver.wasm  EXISTS (committed in S-12.04)
+
+CAPABILITY_DENIED COVERED IN S-12.04:
+  test_capability_denied_when_resolver_attempts_disallowed_read (resolver_load_test.rs)
+  -- tests the path_allow enforcement mechanism in ResolverLoader
+  -- asserts CapabilityDenied returned when resolver tries path outside path_allow
+
+COMMAND
+  cargo test -p factory-dispatcher --test resolver_load_test \
+    test_capability_denied_when_resolver_attempts_disallowed_read -- --nocapture
+
+OUTPUT
+  Finished `test` profile [unoptimized + debuginfo] target(s) in 0.24s
+   Running tests/resolver_load_test.rs (...)
+
+  running 1 test
+  test test_capability_denied_when_resolver_attempts_disallowed_read ... ok
+
+  test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 17 filtered out; finished in 0.00s
+
+FULL VP-076 INTEGRATION TEST (path_escaping_resolver.wasm fixture + /etc/passwd probe):
+  Deferred to S-12.07 per F-P2-005. The path_escaping_resolver.wasm fixture is
+  committed; the full integration test using live WASM dispatch is scoped to S-12.07
+  where the concrete WASM resolver plugin is developed.
+
+RESULT: PARTIAL PASS — path_allow enforcement unit test PASS; VP-076 full integration DEFERRED to S-12.07

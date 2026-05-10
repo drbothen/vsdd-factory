@@ -415,6 +415,31 @@ enum JoinWrap {
 ///
 /// The returned `Value` is always a JSON Object ready to be inserted at
 /// the `"plugin_config"` key of the per-plugin envelope.
+// CONVENTION (P-005 / S-7.01 Sibling-Coverage):
+//
+// When adding a new resolver-tier event type to the dispatcher
+// (whether emitted from executor.rs::build_plugin_config OR from
+// main.rs startup OR from any other dispatcher code path):
+//
+// 1. Add a field table to HOST_ABI.md listing ALL emitted fields,
+//    INCLUDING the provenance triplet (trace_id, session_id, plugin_name)
+//    when applicable.
+// 2. Update the BC that owns the event with the corresponding PC field
+//    list (BC-1.13.001 / BC-4.12.004 / etc).
+// 3. Add positive-coverage assertions in the integration test for EVERY
+//    provenance field (POL-11).
+// 4. Audit ALL sibling resolver-tier events for the same gaps. The current
+//    enumerated list (NOT exhaustive — verify by `grep -rn 'InternalEvent::now("resolver\.'`):
+//      - resolver.not_found      (executor.rs)
+//      - resolver.error          (executor.rs)
+//      - resolver.merge_collision (executor.rs)
+//      - resolver.registry_loaded (main.rs)
+//      - resolver.load_warning   (main.rs)
+//      - resolver.load_error     (main.rs)
+//
+// This pattern was hard-learned across 4+ adversarial passes; codified
+// to prevent recurrence. The S-7.01 sibling-blast-radius rule applies
+// across SOURCE FILES not just within a single function.
 fn build_plugin_config(
     entry: &RegistryEntry,
     payload_value: &serde_json::Value,
@@ -480,6 +505,11 @@ fn build_plugin_config(
     let hook_name_err = hook_name.clone();
     let trace_id_nf = trace_id.to_string();
     let trace_id_err = trace_id.to_string();
+    // F-P4-001: carry session_id into resolver event closures for parity with
+    // emit_invoked (line 617) and emit_lifecycle (line 704) which both include
+    // with_session_id(&base_ctx.session_id).
+    let session_id_nf = base_host_ctx.session_id.clone();
+    let session_id_err = base_host_ctx.session_id.clone();
     // event_type is the Claude Code envelope event (e.g. "PreToolUse") emitted as
     // the event_type field in resolver.error events (HOST_ABI.md line 1097).
     let event_type_for_log = event_type.clone();
@@ -487,16 +517,15 @@ fn build_plugin_config(
     // AC-005: emit resolver.not_found when a named resolver is absent.
     // Clone InternalLog (PathBuf wrapper) so the closure captures by value — no unsafe needed.
     //
-    // Note: resolver.not_found event field table not yet documented in HOST_ABI.
-    // Wire format (per implementation): { "resolver_name": String, "trace_id": String,
-    // "plugin_name": String }. Documentation symmetry with resolver.error and
-    // resolver.merge_collision field tables is deferred to a S-12.06 follow-up
-    // HOST_ABI maintenance burst (per-story F-P7-002 deferral).
+    // Note: resolver.not_found event field table now documented in HOST_ABI
+    // (F-P7-002 burst). Wire format (per implementation): { resolver_name, trace_id,
+    // session_id, plugin_name }. F-P7-002 closes the prior deferral.
     let emit_not_found = {
         let log = internal_log.clone();
         move |missing_name: &str| {
             let ev = InternalEvent::now("resolver.not_found")
                 .with_trace_id(&trace_id_nf)
+                .with_session_id(&session_id_nf)
                 .with_plugin_name(&hook_name_nf)
                 .with_field(
                     "resolver_name",
@@ -523,6 +552,7 @@ fn build_plugin_config(
                 .to_string();
             let ev = InternalEvent::now("resolver.error")
                 .with_trace_id(&trace_id_err)
+                .with_session_id(&session_id_err)
                 .with_plugin_name(&hook_name_err)
                 .with_field(
                     "resolver_name",
@@ -538,8 +568,10 @@ fn build_plugin_config(
         }
     };
 
-    // resolve_context_for_entry returns Vec<(resolver_name, ResolverOutput)> in
-    // declaration order (BC-1.13.001 PC7 / F-P5-003 Option A).
+    // resolve_context_for_entry returns Vec<ResolvedContext> in declaration order
+    // (BC-1.13.001 PC7 / F-P5-003 Option A / F-P2-002 / F-P3-001).
+    // Each ResolvedContext carries context_key (merge key), resolver_name
+    // (registry name for telemetry), and output.
     let resolver_outputs = resolver_registry.resolve_context_for_entry(
         &entry.needs_context,
         &resolver_input,
@@ -549,14 +581,17 @@ fn build_plugin_config(
 
     // AC-007: merge_resolver_outputs is pure (BC-4.12.005 INV1, architect Path B).
     // Collisions are returned as Vec<CollisionInfo>; caller emits telemetry for each.
-    // F-P5-003: (resolver_name, ResolverOutput) pairs thread resolver identity through.
+    // F-P5-003 / F-P2-002 / F-P3-001: ResolvedContext carries both context_key (merge key)
+    // and resolver_name (registry name) so CollisionInfo.resolver_name is the registry NAME,
+    // not the context_key.
     let (merged_map, collisions) = merge_resolver_outputs(static_map, &resolver_outputs);
 
-    // F-P4-001B: emit resolver_name in each merge_collision event for per-resolver
-    // traceability (BC-4.12.004 wire format).
+    // F-P4-001B / F-P2-002 / F-P3-001: emit resolver_name (registry NAME, not context_key)
+    // in each merge_collision event for per-resolver traceability (BC-4.12.004 wire format).
     for collision in collisions {
         let ev = InternalEvent::now("resolver.merge_collision")
             .with_trace_id(trace_id)
+            .with_session_id(&base_host_ctx.session_id)
             .with_plugin_name(&hook_name)
             .with_field("key", serde_json::Value::String(collision.key))
             .with_field(
