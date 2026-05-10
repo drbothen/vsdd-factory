@@ -262,13 +262,14 @@ impl ResolverRegistry {
                     // Dispatch continues; this key contributes nothing.
                     emit_resolver_error(name, &err);
                 }
-                Some(Ok(output)) => {
-                    if output.value.is_some() {
-                        // F-P5-003: thread resolver identity (name) with the output.
-                        // Declaration order preserved (BC-1.13.001 PC7).
-                        outputs.push((name.clone(), output));
-                    }
-                    // value: None → key absent (BC-4.12.005 PC2)
+                Some(Ok(output)) if output.value.is_some() => {
+                    // F-P5-003: thread resolver identity (name) with the output.
+                    // Declaration order preserved (BC-1.13.001 PC7).
+                    // value: None branch handled by non-matching arm → key absent (BC-4.12.005 PC2).
+                    outputs.push((name.clone(), output));
+                }
+                Some(Ok(_)) => {
+                    // value: None → key absent (BC-4.12.005 PC2); do nothing.
                 }
             }
         }

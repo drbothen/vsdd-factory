@@ -633,3 +633,197 @@ async fn f_p4_001b_merge_collision_event_carries_resolver_name() {
          Log content: {all_log_content:?}"
     );
 }
+
+// ---------------------------------------------------------------------------
+// F-P5-005: ResolverInput shape test (spy resolver captures ResolverInput)
+// ---------------------------------------------------------------------------
+
+/// Spy resolver: captures the `ResolverInput` it receives for inspection.
+struct SpyResolver {
+    captured: Arc<Mutex<Option<ResolverInput>>>,
+}
+
+impl ContextResolver for SpyResolver {
+    fn name(&self) -> &str {
+        "spy"
+    }
+
+    fn resolve(&self, input: &ResolverInput) -> Result<Option<ResolverOutput>, ResolverError> {
+        *self.captured.lock().unwrap() = Some(input.clone());
+        Ok(Some(ResolverOutput {
+            key: "spy_data".into(),
+            value: Some(serde_json::json!({"ok": true})),
+        }))
+    }
+}
+
+/// F-P5-005: Verify the shape of `ResolverInput` received by a resolver.
+///
+/// The test confirms:
+/// - `event_type` is the Claude Code event type from the payload (e.g. "PreToolUse").
+/// - `hook_event_name` is the registry entry name (executor.rs convention: entry.name).
+/// - `agent_type` is None when absent from the payload.
+/// - `project_dir` is derived from base_host_ctx.cwd.
+///
+/// F-P5-005 resolution: `hook_event_name == entry.name` (registry entry name).
+/// This is documented in executor.rs `build_plugin_config` and here as the
+/// canonical convention: the hook_event_name in ResolverInput carries the
+/// hooks-registry entry name, NOT the Claude Code envelope event type.
+/// (The Claude Code envelope event type is in `event_type`.)
+#[tokio::test(flavor = "current_thread")]
+async fn f_p5_005_resolver_receives_correct_resolverinput_shape() {
+    let dir = tempfile::tempdir().unwrap();
+    let engine = build_engine().unwrap();
+    let cache = PluginCache::new(engine.clone());
+    let internal_log = Arc::new(InternalLog::new(dir.path().join("logs")));
+
+    let wasm = compile_wasm(dir.path(), "ok_spy");
+    let entry = make_entry(&wasm, "my-hook-entry", vec!["spy".to_string()]);
+    let registry = make_registry(vec![entry]);
+    let matched: Vec<&RegistryEntry> = registry.hooks.iter().collect();
+    let tiers = group_by_priority(&registry, matched);
+
+    let captured = Arc::new(Mutex::new(None::<ResolverInput>));
+    let spy = SpyResolver {
+        captured: captured.clone(),
+    };
+    let mut resolver_registry = ResolverRegistry::new();
+    resolver_registry
+        .register(Box::new(spy))
+        .expect("spy registration must succeed");
+    let resolver_registry = Arc::new(resolver_registry);
+
+    // Payload uses "hook_event_name" (canonical Claude Code envelope field).
+    let mut base_ctx = HostContext::new("/test/project", "0.0.1", "sess-spy", "trace-spy");
+    base_ctx.internal_log = Some(internal_log.clone());
+    let inputs = ExecutorInputs {
+        engine: &engine,
+        cache: &cache,
+        registry: &registry,
+        payload_value: serde_json::json!({
+            "hook_event_name": "PreToolUse",
+            "tool_name": "Write",
+            "session_id": "spy-session",
+            "dispatcher_trace_id": "spy-trace"
+        }),
+        base_host_ctx: base_ctx.clone(),
+        internal_log: internal_log.clone(),
+        resolver_registry,
+    };
+    execute_tiers(inputs, tiers).await;
+
+    let captured_input = captured.lock().unwrap().clone();
+    let input = captured_input.expect("SpyResolver must have been invoked");
+
+    // F-P5-005: event_type comes from hook_event_name fallback (no event_name in payload).
+    assert_eq!(
+        input.event_type, "PreToolUse",
+        "F-P5-005: ResolverInput.event_type must be the Claude Code event type \
+         from the payload (extracted from 'hook_event_name' when 'event_name' is absent)"
+    );
+
+    // F-P5-005 convention: hook_event_name in ResolverInput == registry entry name.
+    assert_eq!(
+        input.hook_event_name, "my-hook-entry",
+        "F-P5-005: ResolverInput.hook_event_name must be the registry entry name \
+         (entry.name == 'my-hook-entry'), NOT the Claude Code event type. \
+         This is the executor.rs convention documented in build_plugin_config."
+    );
+
+    // agent_type absent from payload → None.
+    assert_eq!(
+        input.agent_type, None,
+        "F-P5-005: ResolverInput.agent_type must be None when absent from payload"
+    );
+
+    // project_dir from base_host_ctx.cwd.
+    assert_eq!(
+        input.project_dir,
+        base_ctx.cwd.to_str().unwrap_or(""),
+        "F-P5-005: ResolverInput.project_dir must equal base_host_ctx.cwd"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// F-P5-006: payload field extraction order (hook_event_name fallback)
+// ---------------------------------------------------------------------------
+
+/// F-P5-006: Verify executor.rs extracts event_type correctly when only
+/// `hook_event_name` is present in the payload (no `event_name`).
+///
+/// This exercises the fallback path in executor.rs lines 432-437.
+/// The current extraction order is: `event_name` OR `hook_event_name`.
+/// When only `hook_event_name` is set (canonical Claude Code envelope),
+/// the fallback must produce the correct value.
+///
+/// If this test passes, the fallback works for real Claude Code envelopes.
+/// If it fails, it reveals a bug in the extraction order — which must then
+/// be fixed in executor.rs.
+#[tokio::test(flavor = "current_thread")]
+async fn f_p5_006_payload_field_extraction_falls_back_to_hook_event_name() {
+    let dir = tempfile::tempdir().unwrap();
+    let engine = build_engine().unwrap();
+    let cache = PluginCache::new(engine.clone());
+    let internal_log = Arc::new(InternalLog::new(dir.path().join("logs")));
+
+    let wasm = compile_wasm(dir.path(), "ok_spy2");
+    let entry = make_entry(&wasm, "extract-hook", vec!["spy2".to_string()]);
+    let registry = make_registry(vec![entry]);
+    let matched: Vec<&RegistryEntry> = registry.hooks.iter().collect();
+    let tiers = group_by_priority(&registry, matched);
+
+    let captured = Arc::new(Mutex::new(None::<ResolverInput>));
+    struct SpyResolver2 {
+        captured: Arc<Mutex<Option<ResolverInput>>>,
+    }
+    impl ContextResolver for SpyResolver2 {
+        fn name(&self) -> &str {
+            "spy2"
+        }
+        fn resolve(&self, input: &ResolverInput) -> Result<Option<ResolverOutput>, ResolverError> {
+            *self.captured.lock().unwrap() = Some(input.clone());
+            Ok(Some(ResolverOutput {
+                key: "spy2_data".into(),
+                value: Some(serde_json::json!({"ok": true})),
+            }))
+        }
+    }
+    let spy2 = SpyResolver2 {
+        captured: captured.clone(),
+    };
+    let mut resolver_registry = ResolverRegistry::new();
+    resolver_registry
+        .register(Box::new(spy2))
+        .expect("spy2 registration");
+    let resolver_registry = Arc::new(resolver_registry);
+
+    // Payload with ONLY hook_event_name (no event_name) — real Claude Code envelope.
+    let mut base_ctx = HostContext::new("", "0.0.1", "sess-extract", "trace-extract");
+    base_ctx.internal_log = Some(internal_log.clone());
+    let inputs = ExecutorInputs {
+        engine: &engine,
+        cache: &cache,
+        registry: &registry,
+        payload_value: serde_json::json!({
+            "hook_event_name": "PostToolUse",
+            "tool_name": "Read",
+            "session_id": "extract-session",
+            "dispatcher_trace_id": "extract-trace"
+        }),
+        base_host_ctx: base_ctx,
+        internal_log: internal_log.clone(),
+        resolver_registry,
+    };
+    execute_tiers(inputs, tiers).await;
+
+    let captured_input = captured.lock().unwrap().clone();
+    let input = captured_input.expect("SpyResolver2 must have been invoked");
+
+    // F-P5-006: fallback extraction from hook_event_name works correctly.
+    assert_eq!(
+        input.event_type, "PostToolUse",
+        "F-P5-006: executor.rs event_type extraction must fall back to \
+         'hook_event_name' when 'event_name' is absent in the payload. \
+         Proves the fallback path works for real Claude Code envelopes."
+    );
+}
