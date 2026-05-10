@@ -446,7 +446,7 @@ fn build_plugin_config(
     let project_dir = base_host_ctx.cwd.to_str().unwrap_or("").to_string();
 
     let resolver_input = ResolverInput {
-        event_type,
+        event_type: event_type.clone(),
         hook_event_name: entry.name.clone(),
         agent_type,
         project_dir,
@@ -478,6 +478,9 @@ fn build_plugin_config(
     let hook_name_err = hook_name.clone();
     let trace_id_nf = trace_id.to_string();
     let trace_id_err = trace_id.to_string();
+    // event_type is the Claude Code envelope event (e.g. "PreToolUse") used as
+    // hook_event_name in resolver.error events (HOST_ABI.md line 1097).
+    let event_type_for_log = event_type.clone();
 
     // AC-005: emit resolver.not_found when a named resolver is absent.
     // Clone InternalLog (PathBuf wrapper) so the closure captures by value — no unsafe needed.
@@ -496,10 +499,9 @@ fn build_plugin_config(
     };
 
     // AC-007 / SOUL #4: emit resolver.error when a resolver returns Err.
-    // F-P4-001A: use serde_json::to_value to produce structured wire format.
-    // ResolverError carries #[serde(tag = "kind")] so to_value yields
-    // {"kind": "Crashed", "name": "...", "detail": "..."} — forward-compatible
-    // with BC-4.12.004 wire format (S-12.04 WASM boundary).
+    // F-P4-001A / F-P5-001: error_kind uses snake_case serde tag (HOST_ABI line 1095).
+    // F-P5-002: error_detail (singular) is the Display string (HOST_ABI line 1096).
+    //           hook_event_name carries the Claude Code event type (HOST_ABI line 1097).
     let emit_resolver_error = {
         let log = internal_log.clone();
         move |err_name: &str, err: &crate::resolver::ResolverError| {
@@ -518,29 +520,30 @@ fn build_plugin_config(
                     serde_json::Value::String(err_name.to_string()),
                 )
                 .with_field("error_kind", serde_json::Value::String(error_kind))
-                .with_field("error_details", err_json);
+                .with_field(
+                    "error_detail",
+                    serde_json::Value::String(format!("{err}")),
+                )
+                .with_field(
+                    "hook_event_name",
+                    serde_json::Value::String(event_type_for_log.clone()),
+                );
             log.write(&ev);
         }
     };
 
-    // resolve_context_for_entry returns Vec<(String, Value)> in declaration order
-    // (BC-1.13.001 PC7). Convert directly to Vec<ResolverOutput> preserving order.
-    let resolver_outputs: Vec<crate::resolver::ResolverOutput> = resolver_registry
-        .resolve_context_for_entry(
-            &entry.needs_context,
-            &resolver_input,
-            emit_not_found,
-            emit_resolver_error,
-        )
-        .into_iter()
-        .map(|(k, v)| crate::resolver::ResolverOutput {
-            key: k,
-            value: Some(v),
-        })
-        .collect();
+    // resolve_context_for_entry returns Vec<(resolver_name, ResolverOutput)> in
+    // declaration order (BC-1.13.001 PC7 / F-P5-003 Option A).
+    let resolver_outputs = resolver_registry.resolve_context_for_entry(
+        &entry.needs_context,
+        &resolver_input,
+        emit_not_found,
+        emit_resolver_error,
+    );
 
     // AC-007: merge_resolver_outputs is pure (BC-4.12.005 INV1, architect Path B).
     // Collisions are returned as Vec<CollisionInfo>; caller emits telemetry for each.
+    // F-P5-003: (resolver_name, ResolverOutput) pairs thread resolver identity through.
     let (merged_map, collisions) = merge_resolver_outputs(static_map, &resolver_outputs);
 
     // F-P4-001B: emit resolver_name in each merge_collision event for per-resolver

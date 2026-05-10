@@ -70,45 +70,53 @@ pub struct ResolverOutput {
 /// `#[non_exhaustive]` allows adding fields to existing variants and new
 /// variants in S-12.04+ without a breaking ABI change (F-P2-006).
 ///
-/// `#[serde(tag = "kind")]` emits `{"kind": "NotFound", "name": "..."}` —
-/// forward-compatible wire format for the WASM boundary S-12.04 introduces
-/// (F-P2-003). `Io` variant dropped: resolver.rs is in-memory only per
-/// Forbidden Dependencies; I/O errors land in `ResolverLoadError` (S-12.04).
+/// `#[serde(tag = "kind", rename_all = "snake_case")]` emits
+/// `{"kind": "not_found", "name": "..."}` — matching the HOST_ABI.md wire
+/// format (line 1095). Forward-compatible with the WASM boundary S-12.04
+/// introduces (F-P2-003). `Io` variant dropped: resolver.rs is in-memory only
+/// per Forbidden Dependencies; I/O errors land in `ResolverLoadError` (S-12.04).
 #[non_exhaustive]
 #[derive(Debug, Error, Serialize, Deserialize, Clone, PartialEq)]
-#[serde(tag = "kind")]
+#[serde(tag = "kind", rename_all = "snake_case")]
 pub enum ResolverError {
     /// Resolver named `name` is not registered in the registry.
     /// Emits `resolver.not_found` event (BC-1.13.001 PC6).
+    /// Wire format: `"kind": "not_found"`.
     #[error("resolver not found: {name}")]
     NotFound { name: String },
 
-    /// Resolver panicked or trapped during WASM execution.
+    /// Resolver panicked or trapped during WASM execution (HOST_ABI `"trap"`).
     /// S-12.04 populates this for WASM-backed resolvers.
-    #[error("resolver '{name}' crashed: {detail}")]
-    Crashed { name: String, detail: String },
+    /// Wire format: `"kind": "trap"`.
+    #[error("resolver '{name}' trapped: {detail}")]
+    Trap { name: String, detail: String },
 
     /// Resolver returned an ABI-violating response (type mismatch,
     /// missing required field, undeserializable output).
+    /// Wire format: `"kind": "abi_violation"`.
     #[error("resolver '{name}' ABI violation: {detail}")]
     AbiViolation { name: String, detail: String },
 
     /// Resolver invocation exceeded the configured wall-clock budget.
+    /// Wire format: `"kind": "timeout"`.
     #[error("resolver '{name}' timed out")]
     Timeout { name: String },
 
     /// Resolver attempted to access a path outside its `path_allow` list.
     /// Enforced by the host linker; S-12.04 wires this.
+    /// Wire format: `"kind": "capability_denied"`.
     #[error("resolver '{name}' capability denied: {path}")]
     CapabilityDenied { name: String, path: String },
 
     /// Malformed source data discovered during resolver invocation.
-    #[error("malformed source data for resolver '{resolver}': {detail}")]
-    Malformed { resolver: String, detail: String },
+    /// Wire format: `"kind": "malformed"`.
+    #[error("malformed source data for resolver '{name}': {detail}")]
+    Malformed { name: String, detail: String },
 
     /// A resolver with the same `name()` has already been registered.
     /// Emits `resolver.load_error` event (BC-4.12.005 PC6 / EC-005 —
     /// fail-loud at registry-load time). The first registration is preserved.
+    /// Wire format: `"kind": "duplicate_name"`.
     #[error(
         "duplicate resolver name '{name}' — each resolver name must be unique \
              (BC-4.12.005 PC6 / EC-005); first registration preserved"
@@ -221,9 +229,15 @@ impl ResolverRegistry {
     ///   caller can emit the `resolver.error` telemetry event non-blockingly
     ///   (BC-1.13.001 PC2 / BC-4.12.005 INV3 — failed resolver is observable).
     ///
-    /// Returns a `Vec<(String, Value)>` of successfully-resolved outputs
-    /// in **declaration order** (BC-1.13.001 PC7 — the order of `requested_names`
-    /// is preserved so `merge_resolver_outputs` applies them deterministically).
+    /// # Return type (F-P5-003 — Option A)
+    ///
+    /// Returns `Vec<(String, ResolverOutput)>` where the first `String` is the
+    /// **registry name** of the resolver (`ContextResolver::name()`).  This
+    /// threads resolver identity through to `merge_resolver_outputs` so
+    /// `CollisionInfo.resolver_name` is populated from the actual registry name,
+    /// not derived from `output.key`.
+    ///
+    /// Entries are in **declaration order** (BC-1.13.001 PC7).
     /// Resolvers returning `Ok(None)` contribute no entry (BC-4.12.005 PC2).
     /// Failed resolvers contribute no entry.
     ///
@@ -235,7 +249,7 @@ impl ResolverRegistry {
         input: &ResolverInput,
         emit_not_found: impl Fn(&str),
         emit_resolver_error: impl Fn(&str, &ResolverError),
-    ) -> Vec<(String, Value)> {
+    ) -> Vec<(String, ResolverOutput)> {
         let mut outputs = Vec::new();
         for name in requested_names {
             match self.invoke_resolver(name, input, &emit_not_found) {
@@ -249,9 +263,10 @@ impl ResolverRegistry {
                     emit_resolver_error(name, &err);
                 }
                 Some(Ok(output)) => {
-                    if let Some(value) = output.value {
-                        // Preserve declaration order (BC-1.13.001 PC7).
-                        outputs.push((output.key, value));
+                    if output.value.is_some() {
+                        // F-P5-003: thread resolver identity (name) with the output.
+                        // Declaration order preserved (BC-1.13.001 PC7).
+                        outputs.push((name.clone(), output));
                     }
                     // value: None → key absent (BC-4.12.005 PC2)
                 }
@@ -288,15 +303,17 @@ impl Default for ResolverRegistry {
 /// for each — keeping the pure merge function free of I/O side effects
 /// (BC-4.12.005 INV1; architect Path B decision, ADR pass-2).
 ///
-/// F-P4-001B: `resolver_name` added to enable per-resolver traceability in
-/// `resolver.merge_collision` telemetry events (BC-4.12.004 wire format).
+/// F-P4-001B / F-P5-003: `resolver_name` is the registry name of the resolver
+/// that produced the colliding output, threaded explicitly through the
+/// `(resolver_name, ResolverOutput)` pair in `merge_resolver_outputs`.
 #[derive(Debug, Clone, PartialEq)]
 pub struct CollisionInfo {
     /// The config key that collided.
     pub key: String,
-    /// The resolver whose output caused the collision.
-    /// Populated from `ResolverOutput::key` (which equals `ContextResolver::name()`
-    /// by the convention that each resolver writes under its own name).
+    /// The registry name of the resolver whose output caused the collision.
+    /// F-P5-003: threaded from the `(resolver_name, output)` pair — NOT
+    /// derived from `output.key` so distinct resolver names and output keys
+    /// are handled correctly.
     pub resolver_name: String,
     /// The value that was in `static_config` before the merge.
     pub old_value: Value,
@@ -316,6 +333,14 @@ pub struct CollisionInfo {
 /// The production invariant that `plugin_config` is always a JSON Object is
 /// enforced at the call-site coercion step (see `executor.rs`).
 ///
+/// # Signature (F-P5-003 — Option A)
+///
+/// `resolver_outputs` is a slice of `(resolver_name, ResolverOutput)` pairs.
+/// The `resolver_name` is the `ContextResolver::name()` of the resolver that
+/// produced the output — threaded through from `resolve_context_for_entry` so
+/// `CollisionInfo.resolver_name` carries the actual registry identity, not a
+/// derived copy of the output key.
+///
 /// Merge semantics (BC-4.12.005):
 /// - `static_config` fields are preserved.
 /// - Each `ResolverOutput` with `value: Some(v)` sets `plugin_config[key] = v`
@@ -329,23 +354,22 @@ pub struct CollisionInfo {
 /// the collision observable (BC-4.12.005 INV1; architect Path B).
 pub fn merge_resolver_outputs(
     static_config: serde_json::Map<String, Value>,
-    resolver_outputs: &[ResolverOutput],
+    resolver_outputs: &[(String, ResolverOutput)],
 ) -> (serde_json::Map<String, Value>, Vec<CollisionInfo>) {
     let mut map = static_config;
     let mut collisions = Vec::new();
 
     // Apply resolver outputs in order (BC-4.12.005 PC4).
-    for output in resolver_outputs {
+    for (resolver_name, output) in resolver_outputs {
         // value: None → do not write the key (BC-4.12.005 PC2).
         if let Some(new_val) = &output.value {
             if let Some(old_val) = map.get(&output.key) {
                 // Key collision: record for caller to emit telemetry.
                 // Resolver wins (BC-4.12.005 PC5 — whole-value replacement).
-                // F-P4-001B: resolver_name from output.key (equals ContextResolver::name()
-                // by convention — each resolver writes under its own name).
+                // F-P5-003: resolver_name threaded from the (name, output) pair.
                 collisions.push(CollisionInfo {
                     key: output.key.clone(),
-                    resolver_name: output.key.clone(),
+                    resolver_name: resolver_name.clone(),
                     old_value: old_val.clone(),
                     new_value: new_val.clone(),
                 });

@@ -107,15 +107,18 @@ fn noop_emit(_name: &str) {}
 /// Noop `resolver_error` callback — used when tests don't need to capture resolver errors.
 fn noop_error(_name: &str, _err: &factory_dispatcher::resolver::ResolverError) {}
 
-/// Helper: check if a `Vec<(String, Value)>` from `resolve_context_for_entry` contains a key.
-fn vec_contains_key(v: &[(String, Value)], key: &str) -> bool {
-    v.iter().any(|(k, _)| k == key)
+/// Helper: check if a `Vec<(String, ResolverOutput)>` from `resolve_context_for_entry`
+/// contains an entry whose `ResolverOutput.key` equals `key`.
+fn vec_contains_key(v: &[(String, ResolverOutput)], key: &str) -> bool {
+    v.iter().any(|(_, output)| output.key == key)
 }
 
-/// Helper: look up a value by key in the `Vec<(String, Value)>` returned by
+/// Helper: look up the value by output key in the `Vec<(String, ResolverOutput)>` returned by
 /// `resolve_context_for_entry`. Returns `None` when absent.
-fn vec_get<'a>(v: &'a [(String, Value)], key: &str) -> Option<&'a Value> {
-    v.iter().find(|(k, _)| k == key).map(|(_, val)| val)
+fn vec_get<'a>(v: &'a [(String, ResolverOutput)], key: &str) -> Option<&'a Value> {
+    v.iter()
+        .find(|(_, output)| output.key == key)
+        .and_then(|(_, output)| output.value.as_ref())
 }
 
 // ===========================================================================
@@ -345,10 +348,10 @@ fn test_BC_4_12_005_ac004_none_value_leaves_key_absent_from_resolved_map() {
 #[test]
 fn test_BC_4_12_005_ac004_merge_none_value_leaves_key_absent_in_plugin_config() {
     let static_config = json!({"existing": "value"}).as_object().unwrap().clone();
-    let outputs = vec![ResolverOutput {
+    let outputs = vec![("foo_resolver".to_string(), ResolverOutput {
         key: "foo".to_string(),
         value: None,
-    }];
+    })];
 
     let merged = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
         merge_resolver_outputs(static_config.clone(), &outputs)
@@ -455,10 +458,10 @@ fn test_BC_1_13_001_ac005_invoke_resolver_returns_none_for_missing_resolver() {
 #[test]
 fn test_BC_4_12_005_ac006_additive_overlay_preserves_static_config_fields() {
     let static_config = json!({"existing": "value"}).as_object().unwrap().clone();
-    let outputs = vec![ResolverOutput {
+    let outputs = vec![("extra_resolver".to_string(), ResolverOutput {
         key: "extra".to_string(),
         value: Some(json!({"data": 1})),
-    }];
+    })];
 
     let merged = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
         merge_resolver_outputs(static_config.clone(), &outputs)
@@ -491,10 +494,11 @@ fn test_BC_4_12_005_ac007_resolver_wins_on_static_key_collision() {
     use factory_dispatcher::resolver::CollisionInfo;
 
     let static_config = json!({"foo": "old"}).as_object().unwrap().clone();
-    let outputs = vec![ResolverOutput {
+    // F-P5-003: resolver_name ("foo_resolver") is distinct from the output key ("foo").
+    let outputs = vec![("foo_resolver".to_string(), ResolverOutput {
         key: "foo".to_string(),
         value: Some(json!("new")),
-    }];
+    })];
 
     let merged = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
         merge_resolver_outputs(static_config.clone(), &outputs)
@@ -523,13 +527,13 @@ fn test_BC_4_12_005_ac007_resolver_wins_on_static_key_collision() {
         collisions[0],
         CollisionInfo {
             key: "foo".to_string(),
-            // F-P4-001B: resolver_name equals the output key (ContextResolver::name() convention).
-            resolver_name: "foo".to_string(),
+            // F-P5-003: resolver_name is the registry name threaded from (name, output) pair.
+            resolver_name: "foo_resolver".to_string(),
             old_value: json!("old"),
             new_value: json!("new"),
         },
-        "CollisionInfo must contain key='foo', resolver_name='foo', old='old', new='new' \
-         (AC-007 / BC-4.12.005 PC5 + F-P4-001B resolver_name wire format)"
+        "CollisionInfo must contain key='foo', resolver_name='foo_resolver', old='old', new='new' \
+         (AC-007 / BC-4.12.005 PC5 + F-P5-003 resolver identity threaded through merge)"
     );
 }
 
@@ -542,10 +546,10 @@ fn test_BC_4_12_005_ac007_resolver_wins_with_whole_value_replacement_no_deep_mer
         .as_object()
         .unwrap()
         .clone();
-    let outputs = vec![ResolverOutput {
+    let outputs = vec![("wave_resolver".to_string(), ResolverOutput {
         key: "wave_context".to_string(),
         value: Some(json!({"new": 2})),
-    }];
+    })];
 
     let merged = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
         merge_resolver_outputs(static_config.clone(), &outputs)
@@ -715,19 +719,13 @@ fn test_BC_1_13_001_ac010_resolved_context_is_fully_populated_before_return() {
         "key_b must be present in returned vec (AC-010 / BC-1.13.001 INV5)"
     );
     // Simulate what executor.rs will do: apply vec to static config before invoke_plugin.
+    // F-P5-003: vec is already Vec<(resolver_name, ResolverOutput)> — pass directly.
     let static_config = json!({"static_key": "static_val"})
         .as_object()
         .unwrap()
         .clone();
-    let outputs: Vec<ResolverOutput> = vec
-        .into_iter()
-        .map(|(k, v)| ResolverOutput {
-            key: k,
-            value: Some(v),
-        })
-        .collect();
     let merge_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-        merge_resolver_outputs(static_config.clone(), &outputs)
+        merge_resolver_outputs(static_config.clone(), &vec)
     }));
     assert!(
         merge_result.is_ok(),
@@ -943,10 +941,10 @@ fn test_BC_4_12_005_ac012_first_registration_preserved_after_duplicate_fails() {
 #[test]
 fn test_BC_4_12_005_merge_canonical_vector_1_additive_no_collision() {
     let static_config = json!({"foo": "bar"}).as_object().unwrap().clone();
-    let outputs = vec![ResolverOutput {
+    let outputs = vec![("wave_resolver".to_string(), ResolverOutput {
         key: "wave_context".to_string(),
         value: Some(json!({"stories": ["S-1"]})),
-    }];
+    })];
 
     let merged = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
         merge_resolver_outputs(static_config.clone(), &outputs)
@@ -967,14 +965,14 @@ fn test_BC_4_12_005_merge_canonical_vector_1_additive_no_collision() {
 fn test_BC_4_12_005_merge_canonical_vector_4_two_resolvers_different_keys() {
     let static_config = json!({}).as_object().unwrap().clone();
     let outputs = vec![
-        ResolverOutput {
+        ("resolver_a".to_string(), ResolverOutput {
             key: "a".to_string(),
             value: Some(json!(1)),
-        },
-        ResolverOutput {
+        }),
+        ("resolver_b".to_string(), ResolverOutput {
             key: "b".to_string(),
             value: Some(json!(2)),
-        },
+        }),
     ];
 
     let merged = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
@@ -1000,10 +998,10 @@ fn test_BC_4_12_005_merge_canonical_vector_4_two_resolvers_different_keys() {
 #[test]
 fn test_BC_4_12_005_ec002_empty_object_value_produces_present_key_with_empty_object() {
     let static_config = json!({}).as_object().unwrap().clone();
-    let outputs = vec![ResolverOutput {
+    let outputs = vec![("key_resolver".to_string(), ResolverOutput {
         key: "resolver_key".to_string(),
         value: Some(json!({})),
-    }];
+    })];
 
     let merged = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
         merge_resolver_outputs(static_config.clone(), &outputs)
@@ -1047,7 +1045,7 @@ impl ContextResolver for ErroringResolver {
     }
 
     fn resolve(&self, _input: &ResolverInput) -> Result<Option<ResolverOutput>, ResolverError> {
-        Err(ResolverError::Crashed {
+        Err(ResolverError::Trap {
             name: self.resolver_name.clone(),
             detail: self.detail.clone(),
         })
@@ -1111,7 +1109,7 @@ fn test_resolver_error_callback_fires_on_resolver_returning_err() {
     );
     assert_eq!(
         errors[0].1,
-        ResolverError::Crashed {
+        ResolverError::Trap {
             name: "foo".to_string(),
             detail: "test".to_string()
         },

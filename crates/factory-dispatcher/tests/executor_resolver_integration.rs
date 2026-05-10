@@ -310,7 +310,7 @@ async fn ac002_spawn_async_plugin_zero_overhead_when_needs_context_empty() {
 // F-P2-007 (test 3): ErroringResolver causes resolver.error event in InternalLog
 // ---------------------------------------------------------------------------
 
-/// An in-process resolver that always returns `Err(ResolverError::Crashed)`.
+/// An in-process resolver that always returns `Err(ResolverError::Trap)`.
 struct ErroringResolver {
     key: String,
 }
@@ -321,7 +321,7 @@ impl ContextResolver for ErroringResolver {
     }
 
     fn resolve(&self, _input: &ResolverInput) -> Result<Option<ResolverOutput>, ResolverError> {
-        Err(ResolverError::Crashed {
+        Err(ResolverError::Trap {
             name: self.key.clone(),
             detail: "injected test failure".to_string(),
         })
@@ -478,31 +478,75 @@ async fn f_p2_007_erroring_resolver_causes_resolver_error_event_in_internal_log(
          when a registered resolver returns Err — no silent failures. \
          Log content: {all_log_content:?}"
     );
-    // F-P4-001A: structured error_kind field must be present with the variant tag.
+    // F-P4-001A / F-P5-001: structured error_kind field must be present with
+    // the snake_case variant tag matching HOST_ABI.md line 1095.
     assert!(
         all_log_content.contains("error_kind"),
         "F-P4-001A: 'resolver.error' event must contain structured 'error_kind' field \
          (serde tag from ResolverError). Log content: {all_log_content:?}"
     );
     assert!(
-        all_log_content.contains("Crashed"),
-        "F-P4-001A: 'resolver.error' event 'error_kind' must equal 'Crashed' \
-         for a ResolverError::Crashed variant. Log content: {all_log_content:?}"
+        all_log_content.contains("\"error_kind\":\"trap\""),
+        "F-P5-001: 'resolver.error' event 'error_kind' must equal 'trap' (snake_case) \
+         for a ResolverError::Trap variant — matches HOST_ABI.md line 1095. \
+         Log content: {all_log_content:?}"
+    );
+    // F-P5-002: error_detail (singular) must be present as a Display string.
+    assert!(
+        all_log_content.contains("error_detail"),
+        "F-P5-002: 'resolver.error' event must contain 'error_detail' field (singular). \
+         Log content: {all_log_content:?}"
+    );
+    // F-P5-002: hook_event_name must be present per HOST_ABI.md line 1097.
+    assert!(
+        all_log_content.contains("hook_event_name"),
+        "F-P5-002: 'resolver.error' event must contain 'hook_event_name' field \
+         per HOST_ABI.md line 1097. Log content: {all_log_content:?}"
     );
 }
 
 // ---------------------------------------------------------------------------
-// F-P4-001B: resolver.merge_collision event carries resolver_name
+// F-P4-001B / F-P5-003: resolver.merge_collision event carries resolver_name
 // ---------------------------------------------------------------------------
 
-/// F-P4-001B (integration test):
+/// A resolver whose registry name is distinct from the output key it produces.
+/// Used by F-P4-001B / F-P5-003 to verify that `resolver_name` in the
+/// `resolver.merge_collision` event reflects the registry identity, not just
+/// the output key.
+struct NamedKeyResolver {
+    /// Registry name of this resolver (what `name()` returns).
+    registry_name: String,
+    /// The output key this resolver produces (may differ from registry_name).
+    output_key: String,
+}
+
+impl ContextResolver for NamedKeyResolver {
+    fn name(&self) -> &str {
+        &self.registry_name
+    }
+
+    fn resolve(&self, _input: &ResolverInput) -> Result<Option<ResolverOutput>, ResolverError> {
+        Ok(Some(ResolverOutput {
+            key: self.output_key.clone(),
+            value: Some(serde_json::json!({ "resolved": true })),
+        }))
+    }
+}
+
+/// F-P4-001B / F-P5-003 (integration test):
 /// When a resolver output key collides with a static config key,
 /// `execute_tiers` must emit a `resolver.merge_collision` event that
-/// carries the `resolver_name` field so each collision is traceable
-/// (BC-4.12.004 wire format).
+/// carries the `resolver_name` field reflecting the REGISTRY NAME of the
+/// resolver (not the output key) — proving F-P5-003 resolver identity
+/// threading works end-to-end (BC-4.12.004 wire format).
 ///
-/// Setup: static config has `{"collision-key": "static"}` and a
-/// `CountingResolver` named "collision-key" returns `{"collision-key": "resolved"}`.
+/// Setup (de-masked per F-P5-003):
+/// - Resolver registry name: "test_resolver_alpha"
+/// - Resolver output key:    "collision-key"  (distinct from registry name)
+/// - Static config key:      "collision-key"  (causes collision)
+///
+/// The assertion checks `resolver_name == "test_resolver_alpha"` (field value),
+/// not just that "collision-key" appears somewhere in the log.
 #[tokio::test(flavor = "current_thread")]
 async fn f_p4_001b_merge_collision_event_carries_resolver_name() {
     let dir = tempfile::tempdir().unwrap();
@@ -531,15 +575,20 @@ async fn f_p4_001b_merge_collision_event_carries_resolver_name() {
         capabilities: Some(Capabilities::default()),
         config: toml::Value::Table(toml_map),
         async_flag: false,
-        needs_context: vec!["collision-key".to_string()],
+        // Declare "test_resolver_alpha" in needs_context — matches the registry name below.
+        needs_context: vec!["test_resolver_alpha".to_string()],
     };
     let registry = make_registry(vec![entry]);
     let matched: Vec<&factory_dispatcher::registry::RegistryEntry> =
         registry.hooks.iter().collect();
     let tiers = factory_dispatcher::routing::group_by_priority(&registry, matched);
 
-    // Resolver "collision-key" returns a value for key "collision-key" — causes collision.
-    let (resolver, _call_count) = CountingResolver::new("collision-key");
+    // F-P5-003: resolver registry name "test_resolver_alpha" produces output key
+    // "collision-key" — DISTINCT registry name and output key.
+    let resolver = NamedKeyResolver {
+        registry_name: "test_resolver_alpha".to_string(),
+        output_key: "collision-key".to_string(),
+    };
     let mut resolver_registry = ResolverRegistry::new();
     resolver_registry
         .register(Box::new(resolver))
@@ -574,9 +623,13 @@ async fn f_p4_001b_merge_collision_event_carries_resolver_name() {
         "F-P4-001B: 'resolver.merge_collision' event must carry 'resolver_name' field \
          (BC-4.12.004 wire format). Log content: {all_log_content:?}"
     );
+    // F-P5-003: assert resolver_name VALUE is "test_resolver_alpha" (not just "collision-key").
+    // This proves resolver identity is threaded from the registry name, not derived from
+    // the output key.
     assert!(
-        all_log_content.contains("collision-key"),
-        "F-P4-001B: 'resolver_name' in merge_collision event must equal 'collision-key'. \
+        all_log_content.contains("\"resolver_name\":\"test_resolver_alpha\""),
+        "F-P5-003: 'resolver_name' in merge_collision event must equal \
+         'test_resolver_alpha' (the registry name), NOT 'collision-key' (the output key). \
          Log content: {all_log_content:?}"
     );
 }

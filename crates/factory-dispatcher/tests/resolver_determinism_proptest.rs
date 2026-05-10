@@ -59,18 +59,22 @@ fn arb_non_null_json_value() -> impl Strategy<Value = Value> {
     ]
 }
 
-/// Strategy: a `ResolverOutput` with `Some` value (key must not collide with
-/// base config by using a distinct prefix).
-fn arb_resolver_output_with_value() -> impl Strategy<Value = ResolverOutput> {
-    ("resolver_[a-z]{1,16}", arb_non_null_json_value()).prop_map(|(key, value)| ResolverOutput {
-        key,
-        value: Some(value),
+/// Strategy: a `(resolver_name, ResolverOutput)` pair with `Some` value.
+/// The key (and resolver_name) carry a `"resolver_"` prefix so they cannot
+/// collide with base config keys (which use `[a-z]{1,16}` without prefix).
+fn arb_resolver_output_with_value() -> impl Strategy<Value = (String, ResolverOutput)> {
+    ("resolver_[a-z]{1,16}", arb_non_null_json_value()).prop_map(|(key, value)| {
+        let resolver_name = format!("{}_r", key); // distinct from key
+        (resolver_name, ResolverOutput { key, value: Some(value) })
     })
 }
 
-/// Strategy: a `ResolverOutput` with `None` value.
-fn arb_resolver_output_none() -> impl Strategy<Value = ResolverOutput> {
-    "resolver_[a-z]{1,16}".prop_map(|key| ResolverOutput { key, value: None })
+/// Strategy: a `(resolver_name, ResolverOutput)` pair with `None` value.
+fn arb_resolver_output_none() -> impl Strategy<Value = (String, ResolverOutput)> {
+    "resolver_[a-z]{1,16}".prop_map(|key| {
+        let resolver_name = format!("{}_r", key);
+        (resolver_name, ResolverOutput { key, value: None })
+    })
 }
 
 // ---------------------------------------------------------------------------
@@ -149,7 +153,9 @@ proptest! {
         ).prop_map(|m| m.into_iter().collect::<Map<_, _>>()),
         output in arb_resolver_output_with_value(),
     ) {
-        let outputs = vec![output.clone()];
+        // F-P5-003: output is (resolver_name, ResolverOutput)
+        let output_key = output.1.key.clone();
+        let outputs = vec![output];
 
         let merged = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             merge_resolver_outputs(base_config.clone(), &outputs)
@@ -172,10 +178,10 @@ proptest! {
 
         // The resolver's output key must be present.
         prop_assert!(
-            merged_obj.contains_key(output.key.as_str()),
+            merged_obj.contains_key(output_key.as_str()),
             "resolver output key '{}' must be present in merged result \
              (VP-075-C / BC-4.12.005 PC3)",
-            output.key
+            output_key
         );
     }
 }
@@ -201,7 +207,9 @@ proptest! {
         base_config in arb_json_object(),
         output in arb_resolver_output_none(),
     ) {
-        let outputs = vec![output.clone()];
+        // F-P5-003: output is (resolver_name, ResolverOutput)
+        let output_key = output.1.key.clone();
+        let outputs = vec![output];
 
         let merged_a = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             merge_resolver_outputs(base_config.clone(), &outputs)
@@ -228,10 +236,10 @@ proptest! {
 
         // None value: key must be absent from merged result.
         prop_assert!(
-            !result_a.contains_key(output.key.as_str()),
+            !result_a.contains_key(output_key.as_str()),
             "key '{}' must be ABSENT when resolver returns value: None \
              (VP-075-D / AC-004 / BC-4.12.005 PC2)",
-            output.key
+            output_key
         );
     }
 }
