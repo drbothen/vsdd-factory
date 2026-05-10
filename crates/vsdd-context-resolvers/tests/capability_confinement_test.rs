@@ -44,7 +44,7 @@ fn test_BC_4_12_003_capability_denied_for_etc_passwd() {
 ///
 /// Integration test: same setup as AC-005 VP-076-A/B; additionally assert that
 /// the dispatcher emits a `resolver.capability_denied` structured event with
-/// fields: `resolver = "wave-context"`, `denied_path = "/etc/passwd"`.
+/// fields: `resolver = "wave_context"`, `denied_path = "/etc/passwd"`.
 ///
 /// VP-076-C: audit trail is written for all capability denials.
 #[test]

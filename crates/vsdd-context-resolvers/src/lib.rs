@@ -13,8 +13,7 @@
 //!
 //! # Key naming: `wave_context` (underscore)
 //! The canonical key is `"wave_context"` (underscore), per BC-4.12.005 PC7,
-//! ADR-018 §Context Key, and S-12.08 AC-001. All earlier references to
-//! `"wave-context"` (hyphen) were corrected in pass-1 fix burst (F-002).
+//! ADR-018 §Context Key, and S-12.08 AC-001.
 //!
 //! # Panic-free guarantee
 //! AC-010 / BC-4.12.004 INV1: No fallible unwrap or panic-on-error calls anywhere
@@ -27,7 +26,7 @@
 
 pub mod wave_context;
 
-pub use wave_context::{WaveContext, WaveEntry, WaveState};
+pub use wave_context::{WaveEntry, WaveState};
 
 /// Maximum bytes read from `.factory/wave-state.yaml` or `.factory/STATE.md`.
 ///

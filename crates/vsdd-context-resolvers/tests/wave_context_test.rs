@@ -1,17 +1,9 @@
 // Test files use .expect()/.unwrap()/.panic!() for failure reporting.
 // The workspace-level deny is for production code; these are the test carve-outs.
 #![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
-// Step 2: test-writer RED gate.
 // Covers: AC-001, AC-002a, AC-002b, AC-003, AC-004, AC-007, AC-008, AC-009, AC-010.
 //
 // Naming convention: test_BC_4_12_NNN_<assertion>() per DF-037 test-writer rules.
-//
-// Pass-1 fix burst (F-002): key renamed "wave-context" → "wave_context" (underscore)
-//   per BC-4.12.005 PC7, ADR-018, and S-12.08 AC-001.
-// Pass-1 fix burst (F-003): WaveState redesigned to canonical schema (waves: Vec<WaveEntry>).
-//   resolve_wave_context_pure now accepts (input, wave_state, cycle_id) — cycle_id is
-//   read from STATE.md by resolve_impl; tests supply it directly.
-// Pass-1 fix burst (F-004): AC-007 corrected — project_dir is top-level field (not plugin_config).
 
 use serde_json::Value;
 use vsdd_context_resolvers::resolve_wave_context_pure;
@@ -60,9 +52,6 @@ fn populated_wave_state() -> WaveState {
 ///   - output.key == "wave_context"
 ///   - output.value is Some(_)
 ///   - value JSON has "stories" (array), "wave_id" (string), "cycle_id" (string)
-///
-/// Pass-1 fix (F-002): key is now "wave_context" (underscore) per canonical spec.
-/// Pass-1 fix (F-003): resolve_wave_context_pure takes explicit cycle_id parameter.
 #[test]
 fn test_BC_4_12_002_wave_context_output_shape() {
     let input = make_input("/tmp/test");
@@ -133,6 +122,24 @@ fn test_BC_4_12_004_malformed_yaml_yields_parse_error() {
     );
 }
 
+/// AC-004 (LOW-004): parse_wave_state fails on YAML missing the required `wave` field.
+///
+/// `WaveEntry.wave` is a required `String` field (no `#[serde(default)]`).
+/// YAML that provides stories but no `wave:` key must fail deserialization — the
+/// schema is fail-loud for required fields, which prevents silent empty-wave injection.
+#[test]
+fn test_parse_wave_state_rejects_missing_required_wave_field() {
+    // YAML has a waves entry with stories but no `wave:` key.
+    // serde_yaml must return Err because `wave` is a required String field.
+    let yaml = "waves:\n  - stories: [\"S-12.07\"]";
+
+    let result = parse_wave_state(yaml);
+    assert!(
+        result.is_err(),
+        "AC-004: parse_wave_state must return Err when required `wave` field is absent; got Ok"
+    );
+}
+
 // ─── AC-002b ─────────────────────────────────────────────────────────────────
 
 /// BC-4.12.004 PC3 + BC-4.12.002 PC3: resolve_wave_context_pure with a default
@@ -141,9 +148,6 @@ fn test_BC_4_12_004_malformed_yaml_yields_parse_error() {
 /// This models the post-parse-failure path: resolve_impl catches the parse
 /// error and calls resolve_wave_context_pure with `WaveState::default()`.
 /// The output must NOT be Some; it must be None.
-///
-/// Pass-1 fix (F-003): WaveState::default() now yields `waves: vec![]` which
-/// causes find_active_wave to return None → value: None. Same semantics, new schema.
 #[test]
 fn test_BC_4_12_004_resolve_pure_with_default_wavestate_yields_none() {
     let input = make_input("/tmp/test");
@@ -157,7 +161,7 @@ fn test_BC_4_12_004_resolve_pure_with_default_wavestate_yields_none() {
     );
     assert!(
         output.value.is_none(),
-        "AC-002b: value must be None when WaveState is all-None (post-error path); got: {:?}",
+        "AC-002b: value must be None when WaveState is empty waves (post-error path); got: {:?}",
         output.value
     );
 }
@@ -313,11 +317,11 @@ fn test_BC_4_12_002_last_non_completed_wave_is_active() {
 /// BC-4.12.002 PC2: `ResolverInput.project_dir` is the top-level field used for
 /// path construction.
 ///
-/// Pass-1 fix (F-004): AC-007 in the story spec was corrected — the resolver uses
-/// `input.project_dir` (top-level String field), NOT `plugin_config["project_dir"]`.
-/// This test verifies the actual struct layout.
+/// The resolver uses `input.project_dir` (top-level String field on `ResolverInput`,
+/// per BC-4.12.002 PC2), NOT `plugin_config["project_dir"]`. This test verifies
+/// the actual struct layout.
 ///
-/// /// data-shape pin: verifies ABI struct shape, not behavior (POL-11 opt-out)
+/// data-shape pin: verifies ABI struct shape, not behavior (POL-11 opt-out)
 #[test]
 fn test_BC_4_12_002_project_dir_is_top_level_field() {
     let input = make_input("/tmp/test-project");
@@ -451,7 +455,7 @@ proptest! {
     }
 }
 
-// ─── MED-003: gate_status four-case YAML truth table (pass-2 addition) ──────
+// ─── gate_status four-case YAML truth table ──────────────────────────────────
 
 /// MED-003a: YAML `gate_status: ~` (null) parses to `None`; wave is treated as active.
 ///
@@ -532,8 +536,8 @@ waves:
     );
 }
 
-/// MED-003e: `gate_status: "passed"` is terminal (deferred to S-12.08 producer; new
-/// in pass-2 TERMINAL_STATES). All-passed waves → no active wave.
+/// `gate_status: "passed"` is a canonical terminal value per BC-8.14.009.
+/// All-passed waves → no active wave.
 #[test]
 fn test_gate_status_yaml_passed_is_terminal() {
     let yaml = r#"
@@ -550,7 +554,7 @@ waves:
     );
 }
 
-/// MED-003f: `gate_status: "deferred"` is terminal (new in pass-2 TERMINAL_STATES).
+/// `gate_status: "deferred"` is a canonical terminal value per BC-8.14.009.
 #[test]
 fn test_gate_status_yaml_deferred_is_terminal() {
     let yaml = r#"
@@ -563,11 +567,29 @@ waves:
     let active = find_active_wave(&state);
     assert!(
         active.is_none(),
-        "gate_status: deferred must be terminal → no active wave (MED-001 TERMINAL_STATES)"
+        "gate_status: deferred must be terminal → no active wave (BC-8.14.009)"
     );
 }
 
-// ─── MED-004: CRLF line ending support ──────────────────────────────────────
+/// `gate_status: "failed"` is a canonical terminal value per BC-8.14.009.
+/// A wave with gate_status: failed must NOT be returned as active.
+#[test]
+fn test_gate_status_yaml_failed_is_terminal() {
+    let yaml = r#"
+waves:
+  - wave: "F3"
+    stories: ["S-12.05"]
+    gate_status: "failed"
+"#;
+    let state = parse_wave_state(yaml).expect("valid YAML must parse");
+    let active = find_active_wave(&state);
+    assert!(
+        active.is_none(),
+        "gate_status: failed must be terminal → no active wave (BC-8.14.009)"
+    );
+}
+
+// ─── CRLF line ending support ────────────────────────────────────────────────
 
 /// MED-004: parse_cycle_id_from_state_md normalizes CRLF line endings.
 ///
@@ -589,11 +611,8 @@ fn test_parse_cycle_id_handles_crlf_line_endings() {
 // ─── AC-009 ──────────────────────────────────────────────────────────────────
 
 /// BC-4.12.001: WaveContextResolver is registered in resolvers-registry.toml
-/// under the canonical key "wave_context" (underscore).
-///
-/// Pass-1 fix (F-002): key updated from "wave-context" (hyphen) to "wave_context"
-/// (underscore) per BC-4.12.005 PC7.
-/// Pass-1 fix (F-013): sentinel-based workspace root resolution.
+/// under the canonical key "wave_context" (underscore, per BC-4.12.005 PC7).
+/// Uses sentinel-based workspace root resolution.
 #[test]
 fn test_BC_4_12_001_wasm_artifact_registered_in_registry() {
     // Walk up from CARGO_MANIFEST_DIR to find workspace root by locating a

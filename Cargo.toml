@@ -93,13 +93,17 @@ wasmparser = "0.248"
 non_snake_case = "allow"
 
 [workspace.lints.clippy]
+# Workspace-wide lints are "warn" so individual crates can override to
+# "deny" without conflict. CI runs `cargo clippy --workspace --all-targets
+# -- -D warnings`, which elevates all warnings to errors — so workspace
+# "warn" effectively becomes "deny" at CI time. Crates that need stricter
+# enforcement (e.g., hook plugins, resolvers) declare [lints.clippy]
+# overrides with explicit "deny" for documentation purposes.
+#
 # AC-010 / BC-4.12.004 INV1: panic-free guarantee for WASM resolver production
-# code. Set to WARN workspace-wide so violations are visible in CI without
-# breaking the build (pre-existing crates have intentional expect/unwrap usages
-# such as static-regex compilation, mutex poison guards, and test helpers).
-# vsdd-context-resolvers (the first resolver crate) enforces DENY at the crate
-# level via [lints.clippy] in its Cargo.toml.
-# Future work: migrate pre-existing crates to match resolver-grade discipline.
+# code. Pre-existing crates have intentional expect/unwrap usages
+# (static-regex compilation, mutex poison guards, test helpers) that are
+# suppressed at the crate level.
 unwrap_used = "warn"
 expect_used = "warn"
 panic = "warn"

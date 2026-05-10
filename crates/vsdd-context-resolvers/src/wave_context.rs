@@ -1,24 +1,18 @@
 //! Wave-context YAML parsing types.
 //!
-//! # Design note (Pass-1 fix F-003)
-//! `WaveState` now mirrors the canonical schema from `update-wave-state-on-merge`
-//! (the SHIPPED producer of `.factory/wave-state.yaml`). The canonical schema uses
-//! `waves: Vec<WaveEntry>` rather than flat top-level fields. The `cycle_id` comes
-//! from `.factory/STATE.md` frontmatter, read separately by `resolve_impl`.
-//!
 //! # Schema alignment
 //! `WaveEntry` fields match `update-wave-state-on-merge/src/lib.rs` exactly:
 //!   - `wave: String` — wave identifier (e.g., "F4")
 //!   - `stories: Vec<String>` — stories planned for this wave
 //!   - `stories_merged: Vec<String>` — stories already merged
-//!   - `gate_status: Option<String>` — None / "not_started" / "pending" / "completed"
+//!   - `gate_status: Option<String>` — None / "not_started" / "pending" / "passed" / "deferred" / "failed"
 //!   - `current_wave: Option<serde_yaml::Value>` — optional extra field (preserved)
 //!   - `next_gate_required: Option<serde_yaml::Value>` — optional extra field (preserved)
 //!
 //! # Active wave determination
-//! An active wave is the LAST entry in `waves` whose `gate_status !=
-//! Some("completed")`. This matches the producer's semantics: once a wave is
-//! gate-approved it transitions to "completed"; the next wave becomes active.
+//! An active wave is the LAST entry in `waves` whose `gate_status` is not a
+//! terminal value (see `TERMINAL_STATES`). See `find_active_wave` for the full
+//! terminal-state enumeration per BC-8.14.009.
 //!
 //! # No panic guarantee
 //! AC-010 / BC-4.12.004 INV1: no fallible unwrap or panic-on-error calls anywhere
@@ -69,47 +63,48 @@ pub struct WaveState {
     pub waves: Vec<WaveEntry>,
 }
 
-/// Pure output type for the `wave_context` JSON payload injected into `plugin_config`.
-///
-/// Constructed by `resolve_wave_context_pure`. Serialized to JSON for
-/// `ResolverOutput.value`. (BC-4.12.002 PC3, AC-001)
-#[derive(Debug, Clone)]
-pub struct WaveContext {
-    /// Cycle identifier from STATE.md frontmatter `current_cycle:` field.
-    pub cycle_id: String,
-    /// Wave identifier from the active `WaveEntry.wave` field.
-    pub wave_id: String,
-    /// Story list from the active `WaveEntry.stories` field.
-    pub stories: Vec<String>,
-}
-
 /// Parse a YAML string into a `WaveState`.
 ///
 /// Returns `Err(serde_yaml::Error)` on malformed YAML; callers map errors to
 /// `ResolverOutput { value: None }` (AC-002, EC-003). Does NOT panic.
 /// BC-4.12.004 INV1: no fallible unwrap or panic-on-error calls.
+///
+/// Note: serde_yaml handles CRLF line endings natively per YAML 1.2 spec,
+/// so no explicit normalization is needed here. (Contrast with
+/// `parse_cycle_id_from_state_md`, which does manual frontmatter parsing
+/// and therefore must normalize CRLF before splitting on `\n---`.)
 pub fn parse_wave_state(yaml: &str) -> Result<WaveState, serde_yaml::Error> {
     serde_yaml::from_str(yaml)
 }
 
 /// Terminal gate-status values that mark a wave as no longer active.
 ///
-/// - `"completed"` — gate approved; wave is done.
-/// - `"passed"` — alias used in some producer versions (same semantic as completed).
-/// - `"deferred"` — wave explicitly skipped; not the active wave.
+/// Per BC-8.14.009 canonical `gate_status` enum:
+///
+/// - `"passed"` — canonical terminal value; gate approved.
+/// - `"deferred"` — canonical "skip" value; wave intentionally not run.
+/// - `"failed"` — canonical failed-gate value; wave will not proceed.
+/// - `"completed"` — non-canonical legacy alias. Retained for defensive parsing
+///   of pre-BC-8.14.009 test fixtures from `update-wave-state-on-merge`.
 ///
 /// Any other value (including `None`, `"not_started"`, `"pending"`, `"in_progress"`)
 /// means the wave is still active.
-const TERMINAL_STATES: &[&str] = &["completed", "passed", "deferred"];
+const TERMINAL_STATES: &[&str] = &["passed", "deferred", "failed", "completed"];
 
-/// Determine the active wave from a `WaveState`.
+/// Determine the active wave from a list of `WaveEntry`.
 ///
-/// The active wave is the LAST entry in `waves` whose `gate_status` is NOT
-/// one of the terminal states (`"completed"`, `"passed"`, `"deferred"`).
-/// Returns `None` if `waves` is empty or all waves are in terminal states.
+/// A wave is "terminal" if `gate_status` matches one of the canonical
+/// values per BC-8.14.009:
 ///
-/// Terminal states are defined in `TERMINAL_STATES`. A `None` gate_status
-/// (key absent or YAML null) is treated as non-terminal (wave is active).
+///   - `"passed"` — canonical terminal value; gate approved.
+///   - `"deferred"` — canonical "skip" value; wave intentionally not run.
+///   - `"failed"` — canonical failed-gate value.
+///   - `"completed"` — non-canonical legacy alias. Retained for defensive parsing
+///     of pre-BC-8.14.009 test fixtures from `update-wave-state-on-merge`.
+///
+/// Returns the FIRST wave in the list (from the end, i.e., `.rev()`) whose
+/// status is NOT terminal, or `None` if all waves are terminal or the list
+/// is empty. A `None` gate_status (key absent or YAML null) is non-terminal.
 pub fn find_active_wave(wave_state: &WaveState) -> Option<&WaveEntry> {
     wave_state.waves.iter().rev().find(|w| {
         let status = w.gate_status.as_deref().unwrap_or("");
