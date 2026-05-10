@@ -109,9 +109,8 @@ mod wasm_export_tests {
     fn test_BC_4_12_002_resolver_macro_generates_wasm_export() {
         let wasm_path = build_wasm_cdylib().unwrap_or_else(|e| panic!("{e}"));
 
-        let wasm_bytes = std::fs::read(&wasm_path).unwrap_or_else(|e| {
-            panic!("failed to read {}: {e}", wasm_path.display())
-        });
+        let wasm_bytes = std::fs::read(&wasm_path)
+            .unwrap_or_else(|e| panic!("failed to read {}: {e}", wasm_path.display()));
 
         let exports = wasm_function_exports(&wasm_bytes);
 

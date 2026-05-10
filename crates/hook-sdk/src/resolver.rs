@@ -36,4 +36,3 @@ pub struct ResolverOutput {
     /// The context payload; `None` means no context for this dispatch (key not written).
     pub value: Option<Value>,
 }
-

@@ -10,16 +10,20 @@
 //!
 //! The resulting `.wasm` file is inspected by the integration test to confirm
 //! `resolve` appears in the export section.
+//!
+//! Note: `resolve_impl` appears as dead code on non-wasm32 host builds because
+//! the macro-generated `extern "C" fn resolve(...)` is gated to wasm32 targets.
+//! The `dead_code` warning is suppressed here — the function IS used on target.
 
-use vsdd_hook_sdk::resolver::{ResolverInput, ResolverOutput};
-// resolver is re-exported from vsdd_hook_sdk under the resolver-authoring feature (F-P2-008)
 use vsdd_hook_sdk::resolver as resolver_macro;
+use vsdd_hook_sdk::resolver::{ResolverInput, ResolverOutput};
 
 /// Trivial resolver: returns the project dir as context.
 ///
 /// BC-4.12.002 PC5: the `#[resolver]` macro generates a
 /// `pub extern "C" fn resolve(input_ptr: i32, input_len: i32) -> i64` WASM
 /// export that wraps this function.
+#[allow(dead_code)]
 #[resolver_macro]
 fn resolve_impl(input: ResolverInput) -> ResolverOutput {
     ResolverOutput {
