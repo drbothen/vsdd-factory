@@ -79,15 +79,17 @@ fn load_real_trapping_resolver_registry(
         fixture
     );
 
+    // Windows: PathBuf::display() produces backslashes which TOML parses as escape sequences.
+    // Forward-slash the path so it is valid TOML on all platforms (F-WIN-001).
+    let fixture_toml = fixture.to_string_lossy().replace('\\', "/");
     let toml_content = format!(
         r#"schema_version = 1
 
 [[resolvers]]
 name = "trap-resolver"
-plugin = "{}"
+plugin = "{fixture_toml}"
 context_key = "trap-output"
-"#,
-        fixture.display()
+"#
     );
     let registry_path = tempdir.join("trapping-resolvers-registry.toml");
     std::fs::write(&registry_path, &toml_content).expect("write trapping resolver registry TOML");
@@ -409,15 +411,17 @@ async fn test_BC_4_12_004_failed_resolver_key_absent_from_plugin_config() {
     // Build a combined registry: real trapping resolver + in-process good-resolver.
     // We can't mutate Arc<ResolverRegistry>, so re-build from the loaded resolvers.
     let fixture = trapping_resolver_wasm();
+    // Windows: PathBuf::display() produces backslashes which TOML parses as escape sequences.
+    // Forward-slash the path so it is valid TOML on all platforms (F-WIN-001).
+    let fixture_toml = fixture.to_string_lossy().replace('\\', "/");
     let toml_content = format!(
         r#"schema_version = 1
 
 [[resolvers]]
 name = "trap-resolver"
-plugin = "{}"
+plugin = "{fixture_toml}"
 context_key = "trap-output"
-"#,
-        fixture.display()
+"#
     );
     let registry_path = dir.path().join("combined-resolvers-registry.toml");
     std::fs::write(&registry_path, &toml_content).expect("write registry TOML");
@@ -525,15 +529,17 @@ fn test_F_P1_001_invoke_resolver_wasm_real_wasm_fixture_surfaces_trap() {
 
     // Write a minimal resolvers-registry.toml pointing at the fixture.
     let dir = tempfile::tempdir().expect("tempdir");
+    // Windows: PathBuf::display() produces backslashes which TOML parses as escape sequences.
+    // Forward-slash the path so it is valid TOML on all platforms (F-WIN-001).
+    let fixture_toml = fixture.to_string_lossy().replace('\\', "/");
     let toml_content = format!(
         r#"schema_version = 1
 
 [[resolvers]]
 name = "trap-wasm-resolver"
-plugin = "{}"
+plugin = "{fixture_toml}"
 context_key = "trap_context"
-"#,
-        fixture.display()
+"#
     );
     let registry_path = dir.path().join("resolvers-registry.toml");
     std::fs::write(&registry_path, toml_content).expect("write registry TOML");
