@@ -275,10 +275,27 @@ impl Default for ResolverRegistry {
 // Pure merge function (BC-4.12.005 INV1, VP-075)
 // ---------------------------------------------------------------------------
 
+/// Records one key collision detected during `merge_resolver_outputs`.
+///
+/// The caller (executor.rs `build_plugin_config`) iterates the returned
+/// `Vec<CollisionInfo>` and emits `resolver.merge_collision` telemetry events
+/// for each — keeping the pure merge function free of I/O side effects
+/// (BC-4.12.005 INV1; architect Path B decision, ADR pass-2).
+#[derive(Debug, Clone, PartialEq)]
+pub struct CollisionInfo {
+    /// The config key that collided.
+    pub key: String,
+    /// The value that was in `static_config` before the merge.
+    pub old_value: Value,
+    /// The resolver value that replaced it.
+    pub new_value: Value,
+}
+
 /// Merge resolver outputs additively onto `static_config`.
 ///
 /// This is a **pure function**: given identical inputs it produces identical
-/// output. No I/O, no side effects, no global state. VP-075 proptest target.
+/// output. No I/O, no side effects, no global state, no callbacks. VP-075
+/// proptest target.
 ///
 /// The `static_config` parameter is typed as `serde_json::Map<String, Value>`
 /// (not the broader `Value` enum) so that non-object inputs are unrepresentable
@@ -291,34 +308,35 @@ impl Default for ResolverRegistry {
 /// - Each `ResolverOutput` with `value: Some(v)` sets `plugin_config[key] = v`
 ///   (whole-value replacement — no deep merge).
 /// - Each `ResolverOutput` with `value: None` writes nothing (key absent).
-/// - Resolver output wins on collision with static config (PC5); a
-///   `resolver.merge_collision` event SHOULD be emitted by the caller when
-///   a collision is detected (the pure function does not emit events — it
-///   returns data only; the caller decides whether to emit).
+/// - Resolver output wins on collision with static config (PC5).
 /// - Outputs are applied in the order they appear in `resolver_outputs` (PC4).
 ///
-/// The `on_collision` callback is called for each key that collides with an
-/// existing entry in `static_config`, allowing the caller to emit the
-/// `resolver.merge_collision` telemetry event non-blockingly.
+/// Returns `(merged_map, collisions)`. The caller emits `resolver.merge_collision`
+/// telemetry for each `CollisionInfo` entry — preserving purity here while keeping
+/// the collision observable (BC-4.12.005 INV1; architect Path B).
 pub fn merge_resolver_outputs(
     static_config: serde_json::Map<String, Value>,
     resolver_outputs: &[ResolverOutput],
-    on_collision: impl Fn(&str, &Value, &Value),
-) -> serde_json::Map<String, Value> {
+) -> (serde_json::Map<String, Value>, Vec<CollisionInfo>) {
     let mut map = static_config;
+    let mut collisions = Vec::new();
 
     // Apply resolver outputs in order (BC-4.12.005 PC4).
     for output in resolver_outputs {
         // value: None → do not write the key (BC-4.12.005 PC2).
         if let Some(new_val) = &output.value {
             if let Some(old_val) = map.get(&output.key) {
-                // Key collision: call callback so caller can emit telemetry,
-                // then resolver wins (BC-4.12.005 PC5 — whole-value replacement).
-                on_collision(&output.key, old_val, new_val);
+                // Key collision: record for caller to emit telemetry.
+                // Resolver wins (BC-4.12.005 PC5 — whole-value replacement).
+                collisions.push(CollisionInfo {
+                    key: output.key.clone(),
+                    old_value: old_val.clone(),
+                    new_value: new_val.clone(),
+                });
             }
             map.insert(output.key.clone(), new_val.clone());
         }
     }
 
-    map
+    (map, collisions)
 }

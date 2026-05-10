@@ -94,19 +94,21 @@ proptest! {
         let outputs = vec![output];
 
         let merged_a = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            merge_resolver_outputs(base_config.clone(), &outputs, |_k, _o, _n| {})
+            merge_resolver_outputs(base_config.clone(), &outputs)
         }));
         let merged_b = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            merge_resolver_outputs(base_config.clone(), &outputs, |_k, _o, _n| {})
+            merge_resolver_outputs(base_config.clone(), &outputs)
         }));
 
         // If both calls succeed, assert structural equality (VP-075-B).
         // If either call panics (todo!()), that's the expected Red Gate failure —
         // the panic propagates and proptest reports the trial as failed.
         if merged_a.is_ok() && merged_b.is_ok() {
+            let (map_a, _) = merged_a.unwrap();
+            let (map_b, _) = merged_b.unwrap();
             prop_assert_eq!(
-                Value::Object(merged_a.unwrap()),
-                Value::Object(merged_b.unwrap()),
+                Value::Object(map_a),
+                Value::Object(map_b),
                 "merge_resolver_outputs must return identical output for identical inputs \
                  (VP-075-B / AC-008 / BC-4.12.005 INV1)"
             );
@@ -147,10 +149,10 @@ proptest! {
         let outputs = vec![output.clone()];
 
         let merged = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            merge_resolver_outputs(base_config.clone(), &outputs, |_k, _o, _n| {})
+            merge_resolver_outputs(base_config.clone(), &outputs)
         }));
 
-        let merged_obj = merged.expect(
+        let (merged_obj, _collisions) = merged.expect(
             "merge_resolver_outputs panicked — Red Gate: todo!() not yet implemented \
              (VP-075-C / AC-006 / BC-4.12.005 PC1)"
         );
@@ -199,17 +201,17 @@ proptest! {
         let outputs = vec![output.clone()];
 
         let merged_a = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            merge_resolver_outputs(base_config.clone(), &outputs, |_k, _o, _n| {})
+            merge_resolver_outputs(base_config.clone(), &outputs)
         }));
         let merged_b = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            merge_resolver_outputs(base_config.clone(), &outputs, |_k, _o, _n| {})
+            merge_resolver_outputs(base_config.clone(), &outputs)
         }));
 
-        let result_a = merged_a.expect(
+        let (result_a, _) = merged_a.expect(
             "merge_resolver_outputs panicked — Red Gate: todo!() not yet implemented \
              (VP-075-D / AC-004 / BC-4.12.005 PC2)"
         );
-        let result_b = merged_b.expect(
+        let (result_b, _) = merged_b.expect(
             "merge_resolver_outputs (second call) panicked — \
              Red Gate: todo!() not yet implemented (VP-075-D)"
         );

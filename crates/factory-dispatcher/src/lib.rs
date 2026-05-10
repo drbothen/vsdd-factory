@@ -18,6 +18,7 @@ pub mod payload;
 pub mod plugin_loader;
 pub mod registry;
 pub mod resolver;
+pub use resolver::CollisionInfo;
 pub mod routing;
 pub mod sinks;
 

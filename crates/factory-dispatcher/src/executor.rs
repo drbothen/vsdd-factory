@@ -525,21 +525,21 @@ fn build_plugin_config(
         })
         .collect();
 
-    let hook_name_coll = hook_name.clone();
-    let trace_id_coll = trace_id.to_string();
-    let internal_log_ref: *const InternalLog = internal_log;
+    // AC-007: merge_resolver_outputs is pure (BC-4.12.005 INV1, architect Path B).
+    // Collisions are returned as Vec<CollisionInfo>; caller emits telemetry for each.
+    let (merged_map, collisions) = merge_resolver_outputs(static_map, &resolver_outputs);
 
-    // AC-007: emit resolver.merge_collision on key collision.
-    let on_collision = move |key: &str, _old: &serde_json::Value, _new: &serde_json::Value| {
+    for collision in collisions {
         let ev = InternalEvent::now("resolver.merge_collision")
-            .with_trace_id(&trace_id_coll)
-            .with_plugin_name(&hook_name_coll)
-            .with_field("key", serde_json::Value::String(key.to_string()));
-        // SAFETY: same as emit_not_found above.
-        unsafe { &*internal_log_ref }.write(&ev);
-    };
+            .with_trace_id(trace_id)
+            .with_plugin_name(&hook_name)
+            .with_field(
+                "key",
+                serde_json::Value::String(collision.key),
+            );
+        internal_log.write(&ev);
+    }
 
-    let merged_map = merge_resolver_outputs(static_map, &resolver_outputs, on_collision);
     serde_json::Value::Object(merged_map)
 }
 

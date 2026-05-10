@@ -345,7 +345,7 @@ fn test_BC_4_12_005_ac004_merge_none_value_leaves_key_absent_in_plugin_config() 
     }];
 
     let merged = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-        merge_resolver_outputs(static_config.clone(), &outputs, |_key, _old, _new| {})
+        merge_resolver_outputs(static_config.clone(), &outputs)
     }));
     assert!(
         merged.is_ok(),
@@ -353,7 +353,7 @@ fn test_BC_4_12_005_ac004_merge_none_value_leaves_key_absent_in_plugin_config() 
          (AC-004 / BC-4.12.005 PC2)"
     );
 
-    let obj = merged.unwrap();
+    let (obj, _collisions) = merged.unwrap();
     assert!(
         !obj.contains_key("foo"),
         "key 'foo' must be absent (not null) in merged plugin_config \
@@ -455,7 +455,7 @@ fn test_BC_4_12_005_ac006_additive_overlay_preserves_static_config_fields() {
     }];
 
     let merged = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-        merge_resolver_outputs(static_config.clone(), &outputs, |_k, _o, _n| {})
+        merge_resolver_outputs(static_config.clone(), &outputs)
     }));
     assert!(
         merged.is_ok(),
@@ -463,7 +463,7 @@ fn test_BC_4_12_005_ac006_additive_overlay_preserves_static_config_fields() {
          (AC-006 / BC-4.12.005 PC1)"
     );
 
-    let obj = merged.unwrap();
+    let (obj, _collisions) = merged.unwrap();
     assert_eq!(
         Value::Object(obj),
         json!({"existing": "value", "extra": {"data": 1}}),
@@ -477,31 +477,21 @@ fn test_BC_4_12_005_ac006_additive_overlay_preserves_static_config_fields() {
 // ===========================================================================
 
 /// AC-007 / BC-4.12.005 PC5: when a resolver output key collides with a static
-/// config key, the resolver output wins (whole-value replacement), and the
-/// on_collision callback is called.
+/// config key, the resolver output wins (whole-value replacement), and a
+/// `CollisionInfo` entry is returned by `merge_resolver_outputs` (architect
+/// Path B — pure function returns collision data; caller emits telemetry).
 #[test]
 fn test_BC_4_12_005_ac007_resolver_wins_on_static_key_collision() {
+    use factory_dispatcher::resolver::CollisionInfo;
+
     let static_config = json!({"foo": "old"}).as_object().unwrap().clone();
     let outputs = vec![ResolverOutput {
         key: "foo".to_string(),
         value: Some(json!("new")),
     }];
 
-    let collisions: Arc<Mutex<Vec<(String, Value, Value)>>> = Arc::new(Mutex::new(Vec::new()));
-    let collisions_clone = collisions.clone();
-
     let merged = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-        merge_resolver_outputs(
-            static_config.clone(),
-            &outputs,
-            move |key: &str, old: &Value, new_val: &Value| {
-                collisions_clone.lock().unwrap().push((
-                    key.to_string(),
-                    old.clone(),
-                    new_val.clone(),
-                ));
-            },
-        )
+        merge_resolver_outputs(static_config.clone(), &outputs)
     }));
     assert!(
         merged.is_ok(),
@@ -509,7 +499,7 @@ fn test_BC_4_12_005_ac007_resolver_wins_on_static_key_collision() {
          (AC-007 / BC-4.12.005 PC5)"
     );
 
-    let obj = merged.unwrap();
+    let (obj, collisions) = merged.unwrap();
     assert_eq!(
         obj["foo"],
         json!("new"),
@@ -517,16 +507,20 @@ fn test_BC_4_12_005_ac007_resolver_wins_on_static_key_collision() {
          (AC-007 / BC-4.12.005 PC5 — resolver output wins; whole-value replacement)"
     );
 
-    let captured_collisions = collisions.lock().unwrap().clone();
     assert_eq!(
-        captured_collisions.len(),
+        collisions.len(),
         1,
-        "on_collision callback must be called exactly once for one colliding key \
-         (AC-007 / BC-4.12.005 PC5 — resolver.merge_collision event)"
+        "merge_resolver_outputs must return exactly one CollisionInfo for one colliding key \
+         (AC-007 / BC-4.12.005 PC5 — architect Path B: pure function returns collision data)"
     );
     assert_eq!(
-        captured_collisions[0].0, "foo",
-        "collision callback must be called with key 'foo' \
+        collisions[0],
+        CollisionInfo {
+            key: "foo".to_string(),
+            old_value: json!("old"),
+            new_value: json!("new"),
+        },
+        "CollisionInfo must contain key='foo', old='old', new='new' \
          (AC-007 / BC-4.12.005 PC5)"
     );
 }
@@ -546,7 +540,7 @@ fn test_BC_4_12_005_ac007_resolver_wins_with_whole_value_replacement_no_deep_mer
     }];
 
     let merged = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-        merge_resolver_outputs(static_config.clone(), &outputs, |_k, _o, _n| {})
+        merge_resolver_outputs(static_config.clone(), &outputs)
     }));
     assert!(
         merged.is_ok(),
@@ -554,7 +548,7 @@ fn test_BC_4_12_005_ac007_resolver_wins_with_whole_value_replacement_no_deep_mer
          (AC-007 / BC-4.12.005 PC7)"
     );
 
-    let obj = merged.unwrap();
+    let (obj, _collisions) = merged.unwrap();
     assert_eq!(
         obj["wave_context"],
         json!({"new": 2}),
@@ -725,13 +719,13 @@ fn test_BC_1_13_001_ac010_resolved_context_is_fully_populated_before_return() {
         })
         .collect();
     let merge_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-        merge_resolver_outputs(static_config.clone(), &outputs, |_k, _o, _n| {})
+        merge_resolver_outputs(static_config.clone(), &outputs)
     }));
     assert!(
         merge_result.is_ok(),
         "merge_resolver_outputs must not panic (AC-010 / BC-1.13.001 INV5)"
     );
-    let final_config = merge_result.unwrap();
+    let (final_config, _collisions) = merge_result.unwrap();
     assert!(
         final_config.contains_key("static_key"),
         "static_key preserved after merge (AC-010 / BC-1.13.001 INV5 — injection before invoke_plugin)"
@@ -944,12 +938,13 @@ fn test_BC_4_12_005_merge_canonical_vector_1_additive_no_collision() {
     }];
 
     let merged = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-        merge_resolver_outputs(static_config.clone(), &outputs, |_k, _o, _n| {})
+        merge_resolver_outputs(static_config.clone(), &outputs)
     }));
     assert!(merged.is_ok(), "canonical vector 1 merge must not panic");
 
+    let (map, _collisions) = merged.unwrap();
     assert_eq!(
-        Value::Object(merged.unwrap()),
+        Value::Object(map),
         json!({"foo": "bar", "wave_context": {"stories": ["S-1"]}}),
         "BC-4.12.005 canonical vector 1: additive merge must produce union"
     );
@@ -972,11 +967,11 @@ fn test_BC_4_12_005_merge_canonical_vector_4_two_resolvers_different_keys() {
     ];
 
     let merged = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-        merge_resolver_outputs(static_config.clone(), &outputs, |_k, _o, _n| {})
+        merge_resolver_outputs(static_config.clone(), &outputs)
     }));
     assert!(merged.is_ok(), "canonical vector 4 merge must not panic");
 
-    let obj = merged.unwrap();
+    let (obj, _collisions) = merged.unwrap();
     assert_eq!(
         obj.get("a").and_then(|v| v.as_i64()),
         Some(1),
@@ -1000,11 +995,11 @@ fn test_BC_4_12_005_ec002_empty_object_value_produces_present_key_with_empty_obj
     }];
 
     let merged = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-        merge_resolver_outputs(static_config.clone(), &outputs, |_k, _o, _n| {})
+        merge_resolver_outputs(static_config.clone(), &outputs)
     }));
     assert!(merged.is_ok(), "EC-002 empty object value must not panic");
 
-    let obj = merged.unwrap();
+    let (obj, _collisions) = merged.unwrap();
     assert!(
         obj.contains_key("resolver_key"),
         "key must be present when resolver returns Some({{}}) — EC-002"
