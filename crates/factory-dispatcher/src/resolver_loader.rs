@@ -289,6 +289,29 @@ impl ResolverLoader {
 
         // EC-009: zero [[resolvers]] entries ≡ absent file — valid, no error.
         for entry in parsed.resolvers {
+            // F-P4-003: reject empty name / context_key — both are required non-empty identifiers.
+            // An empty name would produce an unresolvable needs_context key; an empty context_key
+            // would write to an anonymous plugin_config key which is never readable.
+            if entry.name.trim().is_empty() {
+                return Err(ResolverLoadError::ParseError {
+                    detail: format!(
+                        "resolver entry in {} has an empty 'name' field; \
+                         name must be a non-empty string (BC-4.12.001 PC2)",
+                        path.display()
+                    ),
+                });
+            }
+            if entry.context_key.trim().is_empty() {
+                return Err(ResolverLoadError::ParseError {
+                    detail: format!(
+                        "resolver entry '{}' in {} has an empty 'context_key' field; \
+                         context_key must be a non-empty string (BC-4.12.005 PC6)",
+                        entry.name,
+                        path.display()
+                    ),
+                });
+            }
+
             // BC-4.12.005 PC6: validate context_key uniqueness across all entries.
             if !seen_context_keys.insert(entry.context_key.clone()) {
                 return Err(ResolverLoadError::ParseError {
@@ -456,11 +479,19 @@ impl ContextResolver for CompiledWasmResolver {
         // path_allow entries are resolved relative to CLAUDE_PROJECT_DIR (F-P1-008).
         use crate::registry::ReadFileCaps;
 
+        // TODO(F-P4-002): plumb session_id and trace_id into HostContext here.
+        // Deferral: ResolverInput does not carry session_id/trace_id fields today.
+        // The full plumbing path is: executor.rs::build_plugin_config → ResolverInput →
+        // ResolverRegistry::resolve_context_for_entry → CompiledWasmResolver::resolve.
+        // Options: (A) extend ResolverInput with session_id + trace_id fields, or
+        // (B) add explicit parameters to the resolve() call chain.
+        // For now empty strings are safe — resolver WASM does not observe them.
+        // Tracking: follow-up story S-12.06 (HOST_ABI maintenance burst, F-P7-002).
         let mut host_ctx = HostContext::new(
             self.name.clone(),
             "0.0.0", // resolver version — not versioned separately from dispatcher
-            "",      // session_id: available in ResolverInput.project_dir context
-            "",      // trace_id: not available at this layer; propagated via InternalLog
+            "",      // session_id: deferred — see TODO(F-P4-002) above
+            "",      // trace_id: deferred — see TODO(F-P4-002) above
         );
         host_ctx.cwd = std::path::PathBuf::from(&input.project_dir);
         host_ctx.capabilities = Capabilities {
