@@ -12,6 +12,25 @@
 //! 3. Run this test without `--ignored`:
 //!    `cargo test --features resolver-authoring -p vsdd-hook-sdk --test wasm32_resolver_export_integration`
 //!
+//! ## Running this test
+//!
+//! This test is `#[ignore]`d by default. To run it manually:
+//!
+//! 1. **REQUIRED:** Prebuild the example crate at the top level FIRST so the
+//!    recursive `cargo build` invocation inside the test becomes a cache hit:
+//!    ```bash
+//!    cargo build --target wasm32-wasip1 -p wasm-resolver-export --release
+//!    ```
+//!    Otherwise cargo's per-target lockfile may block on "waiting for file lock
+//!    on build directory" when this test spawns `cargo build` while another
+//!    `cargo test` invocation holds the lock.
+//!
+//! 2. Run the test:
+//!    ```bash
+//!    cargo test -p vsdd-hook-sdk --features resolver-authoring \
+//!      --test wasm32_resolver_export_integration -- --ignored
+//!    ```
+//!
 //! # What this test verifies
 //!
 //! The `#[resolver]` macro generates `#[cfg(target_arch = "wasm32")] pub extern "C" fn resolve(...)`.
