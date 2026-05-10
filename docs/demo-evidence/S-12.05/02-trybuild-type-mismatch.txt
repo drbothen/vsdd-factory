@@ -1,0 +1,55 @@
+## Demo: AC-002, AC-003, AC-004 — ResolverInput/ResolverOutput types and type distinctness
+
+### AC-002/AC-003: Serde round-trip tests
+
+Command:
+  cargo test --features resolver-authoring -p vsdd-hook-sdk \
+    tests::test_BC_4_12_002_resolver_input_serde_roundtrip -- --nocapture
+
+Output:
+     Running tests/resolver_types_test.rs
+running 1 test
+test tests::test_BC_4_12_002_resolver_input_serde_roundtrip ... ok
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 15 filtered out; finished in 0.00s
+
+Command:
+  cargo test --features resolver-authoring -p vsdd-hook-sdk \
+    tests::test_BC_4_12_002_resolver_output_value_none_is_null -- --nocapture
+
+Output:
+     Running tests/resolver_types_test.rs
+running 1 test
+test tests::test_BC_4_12_002_resolver_output_value_none_is_null ... ok
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 15 filtered out; finished in 0.00s
+
+Command:
+  cargo test --features resolver-authoring -p vsdd-hook-sdk \
+    tests::test_BC_4_12_002_resolver_output_value_some_serializes_correctly -- --nocapture
+
+Output:
+     Running tests/resolver_types_test.rs
+running 1 test
+test tests::test_BC_4_12_002_resolver_output_value_some_serializes_correctly ... ok
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 15 filtered out; finished in 0.00s
+
+### AC-004: Type distinctness — trybuild negative compile test
+
+Command:
+  cargo test --features resolver-authoring -p vsdd-hook-sdk \
+    tests::test_BC_4_12_002_resolver_input_is_not_hook_payload -- --nocapture
+
+Output:
+     Running tests/resolver_types_test.rs
+running 1 test
+test tests::test_BC_4_12_002_resolver_input_is_not_hook_payload ... ok
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 15 filtered out; finished in 0.00s
+
+NOTE: AC-004 trybuild test (type_mismatch.rs) was also verified in the full suite run.
+Expected compile error is in: crates/hook-sdk/tests/ui/type_mismatch.stderr
+The trybuild framework asserts the Rust compiler rejects a ResolverInput
+passed where HookPayload is expected.
+
+RESULT: PASS — All AC-002/003/004 tests pass.
+AC-002: ResolverInput has fields: event_type, hook_event_name, agent_type, project_dir, plugin_config
+AC-003: ResolverOutput.value=None serializes as {"value":null}; Some(json!({"x":1})) as {"value":{"x":1}}
+AC-004: ResolverInput and HookPayload are distinct types with no From/Into/Deref relationships

@@ -1,0 +1,56 @@
+## Demo: AC-009 — Full test suite green, no regression
+
+### Regression check: validate-per-story-adversary-convergence builds cleanly
+
+Command:
+  cargo build -p validate-per-story-adversary-convergence
+
+Output:
+   Compiling serde_core v1.0.228
+   Compiling serde v1.0.228
+   Compiling serde_json v1.0.149
+   Compiling vsdd-hook-sdk v0.3.0 (/Users/jmagady/Dev/vsdd-factory/.worktrees/S-12.05/crates/hook-sdk)
+   Compiling validate-per-story-adversary-convergence v0.0.1 (/Users/jmagady/Dev/vsdd-factory/.worktrees/S-12.05/crates/hook-plugins/validate-per-story-adversary-convergence)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 3.03s
+
+RESULT: Zero errors, zero new warnings. Existing hook plugin compiles against hook-sdk 0.3.0
+without modification to its Cargo.toml.
+
+### Full workspace test run summary
+
+Command:
+  cargo test --workspace --features resolver-authoring
+
+Summary of non-zero passing test result lines (all zeros are empty test binaries):
+  test result: ok. 11 passed; 0 failed
+  test result: ok. 5 passed; 0 failed
+  test result: ok. 14 passed; 0 failed
+  test result: ok. 13 passed; 0 failed
+  test result: ok. 7 passed; 0 failed
+  test result: ok. 3 passed; 0 failed
+  test result: ok. 11 passed; 0 failed
+  test result: ok. 6 passed; 0 failed
+  test result: ok. 9 passed; 0 failed
+  test result: ok. 24 passed; 0 failed
+  test result: ok. 6 passed; 0 failed
+  test result: ok. 13 passed; 0 failed
+  test result: ok. 11 passed; 0 failed
+  test result: ok. 17 passed; 0 failed
+  test result: ok. 3 passed; 0 failed
+  test result: ok. 23 passed; 0 failed
+  test result: ok. 7 passed; 0 failed
+  test result: ok. 11 passed; 0 failed
+  test result: ok. 23 passed; 0 failed
+  test result: ok. 14 passed; 0 failed
+  [additional passing crates with 0 tests filtered]
+  test result: ok. 43 passed; 0 failed  (hook-sdk lib unit tests)
+  test result: ok. 5 passed; 0 failed   (host_write_file_sdk_test)
+  test result: ok. 16 passed; 0 failed  (resolver_types_test — all 16 resolver AC tests)
+  test result: ok. 1 passed; 0 failed   (wasm32_resolver_export_integration — ignored by default)
+  test result: ok. 4 passed; 0 failed   (doc-tests vsdd_hook_sdk)
+
+Total FAILED across all test binaries: 0
+Grep for "FAILED" or "error[" in full output: 0 matches
+
+RESULT: PASS — zero failures across full workspace. AC-009 confirmed.
+Existing #[hook] macro, HookPayload, HookResult, HOST_ABI_VERSION all unchanged and passing.
