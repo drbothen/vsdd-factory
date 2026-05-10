@@ -2840,3 +2840,23 @@ NITPICK_ONLY (0H/0M/0L). Pass-56 closure VERIFIED (STATE.md ADR-013 = 2_of_3; sp
 **Files touched:** F5-adversary-pass-57.md (created), CONVERGENCE.md (created), STATE.md (frontmatter current_step, Last Updated, Current Phase, Phase Progress pass-57 DONE + CONVERGED row, Concurrent Cycles, Convergence Summary F5, Session Resume Checkpoint, ADR-013 clock 3_of_3), tech-debt-register.md (TD-031 RESOLVED), burst-log.md (this entry).
 
 Pass-57 next. ADR-013 2_of_3.
+
+---
+
+## Burst: rc.14 ship + STATE.md compact (2026-05-09)
+
+**Agent:** state-manager
+**Date:** 2026-05-09
+
+**Summary:**
+Post-convergence release bursts. After F5 CONVERGENCE_REACHED (pass-57), the following PRs shipped:
+
+- PR #111 (rc.13 release-prep squash-merge e3af1a16): HOST_ABI + async flips + CHANGELOG + 33 integration tests. v1.0.0-rc.13 tagged + GitHub prerelease created. rc.13 never reached marketplace due to release-CI break.
+- PR #112 (release CI unblock, squash SHA c587a1dd): 4 bats suites fixed (schema_version, hardcoded paths x2, perf-baseline path resolution). ci.yml triggers added on develop. cargo fmt + clippy drift cleared. WASI fallback for absolute_path_hook_engagement. MERGED 2026-05-09.
+- PR #113 (TD #66 trace_id fix, squash SHA e7855824): relaxed bats grep in regression-v1.0 test 7 to accept either `dispatcher_trace_id` or `trace_id`. Canonical name decision deferred to S-15.02. MERGED 2026-05-09.
+- v1.0.0-rc.14 tagged at c6df5c13 (main after commit-binaries job). claude-mp PR #6 merged → SHIPPED to drbothen/claude-mp marketplace 2026-05-09. Marketplace publish flow RESTORED after 5-day rc.10 stall.
+- PR #114 (sync main→develop + TD #68 binary auto-resolve): detect binary-only conflicts under known bundle paths and take main's canonical version automatically. CI running at session end.
+
+**New TDs recorded:** #66 (trace_id naming defer), #67 (4 timing-flaky e2e ignored), #68 (sync-develop binary auto-resolve).
+
+**Files touched:** STATE.md (rc.14 frontmatter, phase progress, drift items, session checkpoint, compact); session-checkpoints.md (rc.13-era checkpoint archived); burst-log.md (this entry).
