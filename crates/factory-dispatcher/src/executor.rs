@@ -454,23 +454,20 @@ fn build_plugin_config(
     };
 
     // Coerce the static config into a Map for merge_resolver_outputs (F-006).
+    //
+    // After Registry::parse_str + config_as_json(), plugin_config is guaranteed to be
+    // Value::Object by TOML structure semantics: TOML tables always deserialize to JSON
+    // objects, and Registry::parse_str rejects non-object plugin_config at load time.
+    // The non-Object arm is therefore unreachable in production. The debug_assert
+    // documents this invariant; any violation is a programming error, not a runtime fault.
+    debug_assert!(
+        matches!(entry.config_as_json(), serde_json::Value::Object(_)),
+        "plugin_config must be a JSON object after Registry::parse_str — TOML table \
+         semantics guarantee this; a non-Object value indicates a bypass of parse_str"
+    );
     let static_map = match entry.config_as_json() {
         serde_json::Value::Object(m) => m,
-        _ => {
-            // Non-object plugin_config is a misconfiguration; log and fall through
-            // with an empty map so resolver outputs still apply.
-            let ev = InternalEvent::now("plugin_config.non_object")
-                .with_trace_id(trace_id)
-                .with_plugin_name(&entry.name)
-                .with_field(
-                    "warning",
-                    serde_json::Value::String(
-                        "plugin_config is not a JSON object; using empty map".to_string(),
-                    ),
-                );
-            internal_log.write(&ev);
-            serde_json::Map::new()
-        }
+        _ => serde_json::Map::new(),
     };
 
     let hook_name = entry.name.clone();
