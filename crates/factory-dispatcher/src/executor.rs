@@ -480,6 +480,11 @@ fn build_plugin_config(
     let hook_name_err = hook_name.clone();
     let trace_id_nf = trace_id.to_string();
     let trace_id_err = trace_id.to_string();
+    // F-P4-001: carry session_id into resolver event closures for parity with
+    // emit_invoked (line 617) and emit_lifecycle (line 704) which both include
+    // with_session_id(&base_ctx.session_id).
+    let session_id_nf = base_host_ctx.session_id.clone();
+    let session_id_err = base_host_ctx.session_id.clone();
     // event_type is the Claude Code envelope event (e.g. "PreToolUse") emitted as
     // the event_type field in resolver.error events (HOST_ABI.md line 1097).
     let event_type_for_log = event_type.clone();
@@ -497,6 +502,7 @@ fn build_plugin_config(
         move |missing_name: &str| {
             let ev = InternalEvent::now("resolver.not_found")
                 .with_trace_id(&trace_id_nf)
+                .with_session_id(&session_id_nf)
                 .with_plugin_name(&hook_name_nf)
                 .with_field(
                     "resolver_name",
@@ -523,6 +529,7 @@ fn build_plugin_config(
                 .to_string();
             let ev = InternalEvent::now("resolver.error")
                 .with_trace_id(&trace_id_err)
+                .with_session_id(&session_id_err)
                 .with_plugin_name(&hook_name_err)
                 .with_field(
                     "resolver_name",
@@ -561,6 +568,7 @@ fn build_plugin_config(
     for collision in collisions {
         let ev = InternalEvent::now("resolver.merge_collision")
             .with_trace_id(trace_id)
+            .with_session_id(&base_host_ctx.session_id)
             .with_plugin_name(&hook_name)
             .with_field("key", serde_json::Value::String(collision.key))
             .with_field(
