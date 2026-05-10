@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! AC-2, AC-3, AC-4: Config load validation tests.
 //!
 //! BC-3.06.005 — disabled config: no events accepted, no HTTP calls.

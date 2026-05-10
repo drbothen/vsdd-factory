@@ -1,4 +1,7 @@
 //! Honeycomb Events API sink driver (S-4.03).
+// Allow: api_key .expect() is guarded by validation at construction time
+// (field is checked present before this point). Pre-existing code.
+#![allow(clippy::expect_used)]
 //!
 //! [`HoneycombSink`] implements [`Sink`] (from sink-core) by wrapping
 //! [`HttpSink`] (from sink-http). It targets the Honeycomb Events API:

@@ -1,3 +1,5 @@
+// Allow: pre-existing code. Not covered by S-12.07 scope.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! `legacy-bash-adapter` — runs unported v0.79.x bash hooks under v1.0.
 //!
 //! The dispatcher loads this WASI command once per registry entry that

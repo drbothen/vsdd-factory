@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! End-to-end integration for S-1.8: construct a
 //! `SinkRegistry` from a real `observability-config.toml`, push
 //! multiple events through it, and verify the file-on-disk shape

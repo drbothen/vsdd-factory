@@ -25,6 +25,7 @@ members = [
     "crates/hook-plugins/validate-artifact-path",
     "crates/hook-plugins/lint-registry-async-invariant",
     "crates/hook-plugins/validate-per-story-adversary-convergence",
+    "crates/vsdd-context-resolvers",
     "crates/hook-plugins/validate-stable-anchors",
     "crates/sink-core",
     "crates/sink-file",
@@ -90,6 +91,22 @@ wasmparser = "0.248"
 # spec-traceability mapping; suppressing the lint workspace-wide avoids
 # having to scatter #![allow(non_snake_case)] across 50+ test files.
 non_snake_case = "allow"
+
+[workspace.lints.clippy]
+# Workspace-wide lints are "warn" so individual crates can override to
+# "deny" without conflict. CI runs `cargo clippy --workspace --all-targets
+# -- -D warnings`, which elevates all warnings to errors — so workspace
+# "warn" effectively becomes "deny" at CI time. Crates that need stricter
+# enforcement (e.g., hook plugins, resolvers) declare [lints.clippy]
+# overrides with explicit "deny" for documentation purposes.
+#
+# AC-010 / BC-4.12.004 INV1: panic-free guarantee for WASM resolver production
+# code. Pre-existing crates have intentional expect/unwrap usages
+# (static-regex compilation, mutex poison guards, test helpers) that are
+# suppressed at the crate level.
+unwrap_used = "warn"
+expect_used = "warn"
+panic = "warn"
 
 [workspace.lints.rust.unexpected_cfgs]
 # S-15.01 T-3b/AC-015: Kani proof harnesses use `#[cfg(kani)]` for the

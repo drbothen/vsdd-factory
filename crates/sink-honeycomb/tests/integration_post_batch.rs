@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! Integration test — events POSTed as JSON array to mock Honeycomb endpoint
 //! with correct path + auth header + `time` field.
 //!

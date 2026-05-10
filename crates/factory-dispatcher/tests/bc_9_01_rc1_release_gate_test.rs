@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! S-4.08: 1.0.0-rc.1 release gate — RED gate tests.
 //!
 //! Tests for the testable-now ACs of the rc.1 release gate story.
@@ -209,7 +211,12 @@ fn test_BC_9_01_001_bump_version_accepts_rc_prerelease_format() {
     let changelog = tmp.path().join("CHANGELOG.md");
     fs::write(
         &changelog,
-        "# Changelog\n\n## 1.0.0-beta.4 — previous entry (2026-04-25)\n\nSome content.\n",
+        "# Changelog
+
+## 1.0.0-beta.4 — previous entry (2026-04-25)
+
+Some content.
+",
     )
     .expect("write temp CHANGELOG.md");
 
@@ -261,7 +268,8 @@ fn test_BC_9_01_001_bump_version_accepts_rc_prerelease_format() {
         Some(0),
         "FAIL AC-14 (BC-9.01.001 PC1): bump-version.sh must exit 0 for '1.0.0-rc.1' \
          prerelease format. \
-         stdout: {}\nstderr: {}",
+         stdout: {}
+stderr: {}",
         String::from_utf8_lossy(&output.stdout),
         String::from_utf8_lossy(&output.stderr)
     );
@@ -371,7 +379,8 @@ fn test_BC_9_01_006_shakedown_window_exits_0_when_satisfied() {
         "FAIL AC-9 (BC-9.01.006 PC1): check-shakedown-window.sh must exit 0 when \
          VSDD_SHAKEDOWN_MOCK_SATISFIED=1 (window satisfied). \
          Implementer: honour this env var in test mode. \
-         Current exit code: {:?}\nstderr: {}",
+         Current exit code: {:?}
+stderr: {}",
         output.status.code(),
         String::from_utf8_lossy(&output.stderr)
     );
@@ -439,7 +448,8 @@ fn test_BC_9_01_006_shakedown_window_exits_2_for_missing_tag() {
         Some(2),
         "FAIL AC-9 (BC-9.01.006 PC3): check-shakedown-window.sh must exit 2 when \
          the given tag does not exist in git. \
-         Current exit code: {:?}\nstderr: {}",
+         Current exit code: {:?}
+stderr: {}",
         output.status.code(),
         String::from_utf8_lossy(&output.stderr)
     );
@@ -477,7 +487,8 @@ fn test_BC_9_01_006_shakedown_window_stories_flag_exits_0_when_satisfied() {
         Some(0),
         "FAIL AC-10 (BC-9.01.006 PC4): check-shakedown-window.sh --stories must exit 0 \
          when VSDD_SHAKEDOWN_MOCK_SATISFIED=1 (WASM port exposure satisfied). \
-         Current exit code: {:?}\nstderr: {}",
+         Current exit code: {:?}
+stderr: {}",
         output.status.code(),
         String::from_utf8_lossy(&output.stderr)
     );
@@ -516,9 +527,18 @@ fn test_BC_9_01_changelog_monotonicity_exits_0_for_monotonic_changelog() {
     // Monotonic: newer date first (2026-04-28 > 2026-04-25)
     fs::write(
         &changelog,
-        "# Changelog\n\n\
-         ## 1.0.0-rc.1 — Release Candidate 1 (2026-04-28)\n\nSome content.\n\n\
-         ## 1.0.0-beta.4 — previous (2026-04-25)\n\nOlder content.\n",
+        "# Changelog
+
+\
+         ## 1.0.0-rc.1 — Release Candidate 1 (2026-04-28)
+
+Some content.
+
+\
+         ## 1.0.0-beta.4 — previous (2026-04-25)
+
+Older content.
+",
     )
     .expect("write temp CHANGELOG.md");
 
@@ -533,7 +553,8 @@ fn test_BC_9_01_changelog_monotonicity_exits_0_for_monotonic_changelog() {
         Some(0),
         "FAIL AC-13: check-changelog-monotonicity.sh must exit 0 for a monotonic \
          CHANGELOG. \
-         Current exit code: {:?}\nstderr: {}",
+         Current exit code: {:?}
+stderr: {}",
         output.status.code(),
         String::from_utf8_lossy(&output.stderr)
     );
@@ -554,9 +575,18 @@ fn test_BC_9_01_changelog_monotonicity_exits_1_for_non_monotonic_changelog() {
     // Non-monotonic: older date first (2026-04-20 < 2026-04-25 but listed earlier)
     fs::write(
         &changelog,
-        "# Changelog\n\n\
-         ## 1.0.0-rc.1 — Release Candidate 1 (2026-04-20)\n\nSome content.\n\n\
-         ## 1.0.0-beta.4 — previous (2026-04-25)\n\nOlder content.\n",
+        "# Changelog
+
+\
+         ## 1.0.0-rc.1 — Release Candidate 1 (2026-04-20)
+
+Some content.
+
+\
+         ## 1.0.0-beta.4 — previous (2026-04-25)
+
+Older content.
+",
     )
     .expect("write temp CHANGELOG.md");
 

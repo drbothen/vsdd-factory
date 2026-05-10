@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! Integration tests: ResolverRegistry wired into executor.rs dispatch (F-001 / AC-002 / AC-003).
 //!
 //! Verifies that `execute_tiers` and `spawn_async_plugin` both:
@@ -375,7 +377,10 @@ async fn ac005_resolver_not_found_event_appears_in_internal_log() {
         .filter_map(|e| e.ok())
         .filter_map(|e| std::fs::read_to_string(e.path()).ok())
         .collect::<Vec<_>>()
-        .join("\n");
+        .join(
+            "
+",
+        );
 
     assert!(
         all_log_content.contains("resolver.not_found"),
@@ -488,7 +493,10 @@ async fn f_p2_007_erroring_resolver_causes_resolver_error_event_in_internal_log(
         .filter_map(|e| e.ok())
         .filter_map(|e| std::fs::read_to_string(e.path()).ok())
         .collect::<Vec<_>>()
-        .join("\n");
+        .join(
+            "
+",
+        );
 
     let _ = log_entries; // checked via all_log_content below
     assert!(
@@ -680,7 +688,10 @@ async fn f_p4_001b_merge_collision_event_carries_resolver_name() {
         .filter_map(|e| e.ok())
         .filter_map(|e| std::fs::read_to_string(e.path()).ok())
         .collect::<Vec<_>>()
-        .join("\n");
+        .join(
+            "
+",
+        );
 
     assert!(
         all_log_content.contains("resolver.merge_collision"),

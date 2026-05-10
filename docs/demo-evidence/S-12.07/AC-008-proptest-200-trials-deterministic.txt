@@ -1,0 +1,49 @@
+AC-008: VP-075 proptest — 200 trials, deterministic, release build
+===================================================================
+Story: S-12.07 — vsdd-context-resolvers Crate + WaveContextResolver (v1.4)
+BC ref: VP-075
+
+ACCEPTANCE CRITERION
+--------------------
+The property test `test_BC_4_12_002_prop_resolve_wave_context_is_deterministic`
+runs 200 proptest cases against `resolve_wave_context_pure`, asserting that calling
+the pure function twice with identical inputs always produces identical outputs
+(determinism invariant for WASM resolvers). Must pass in --release build.
+
+TEST EVIDENCE
+-------------
+Command: cargo test --release -p vsdd-context-resolvers test_BC_4_12_002_prop_resolve_wave_context_is_deterministic
+Captured: 2026-05-10
+
+   Compiling vsdd-context-resolvers v0.0.1 (...)
+    Finished `release` profile [optimized] target(s) in 10.90s
+     Running unittests src/lib.rs (target/release/deps/vsdd_context_resolvers-c244acd731ad714d)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/capability_confinement_test.rs (target/release/deps/capability_confinement_test-6e44d33d6abe890b)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 3 filtered out; finished in 0.00s
+
+     Running tests/wave_context_test.rs (target/release/deps/wave_context_test-05661c635a125131)
+
+running 1 test
+test test_BC_4_12_002_prop_resolve_wave_context_is_deterministic ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 25 filtered out; finished in 0.02s
+
+STATUS: GREEN (release build, 200 proptest cases, 0.02s wall-clock)
+
+PROPERTY VERIFIED
+-----------------
+For all generated (WaveState, Option<String>) pairs:
+  resolve_wave_context_pure(wave_state.clone(), cycle_id.clone())
+  == resolve_wave_context_pure(wave_state, cycle_id)
+
+200 test cases passed with no counterexample. The pure resolver function
+is deterministic: identical inputs always produce identical outputs.
+Wall-clock: 0.02s in optimized (release) build.

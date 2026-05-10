@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! `ResolverLoader` loading-lifecycle tests (S-12.04 AC-001 through AC-004, AC-007, AC-012,
 //! AC-013).
 //!
@@ -107,7 +109,8 @@ fn test_BC_1_13_001_malformed_toml_returns_parse_error() {
     let path = write_file(
         dir.path(),
         "resolvers-registry.toml",
-        b"[[resolvers]\nname = 1",
+        b"[[resolvers]
+name = 1",
     );
 
     let engine =
@@ -1133,7 +1136,10 @@ fail_closed = false
         .filter_map(|e| e.ok())
         .filter_map(|e| std::fs::read_to_string(e.path()).ok())
         .collect::<Vec<_>>()
-        .join("\n");
+        .join(
+            "
+",
+        );
 
     assert!(
         all_log_content.contains("resolver.load_warning"),
@@ -1150,4 +1156,79 @@ fail_closed = false
         "F-P4-004: resolver.load_warning event must include the 'error_detail' field. \
          Log content: {all_log_content:?}"
     );
+}
+
+// ---------------------------------------------------------------------------
+// F-017 — shipped resolvers-registry.toml parses against production API
+//
+// CI guard: the shipped registry must be parseable by ResolverLoader::load_registry.
+// This catches schema drift between the TOML file and the ResolverEntryToml struct
+// at CI time, before runtime failure.
+// ---------------------------------------------------------------------------
+
+/// test_shipped_resolvers_registry_parses
+///
+/// Parses the shipped `plugins/vsdd-factory/resolvers-registry.toml` against the
+/// production `ResolverLoader::load_registry` API. The .wasm artifact does NOT need
+/// to exist — we only test TOML parse + schema validation, not WASM compilation.
+///
+/// A ParseError here means the shipped TOML no longer matches the schema (e.g.,
+/// a required field like `context_key` is missing). This is the F-017 CI guard.
+///
+/// Note: the test expects the load to produce a CompileError (or IoError) — NOT a
+/// ParseError — because the TOML is valid but the .wasm path may not exist in CI.
+/// A ParseError would indicate schema drift and must fail the test.
+#[test]
+fn test_shipped_resolvers_registry_parses() {
+    // Find workspace root by sentinel (Cargo.toml with [workspace]).
+    let manifest = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
+    let workspace_root = {
+        let mut current = manifest;
+        loop {
+            let candidate = current.join("Cargo.toml");
+            if candidate.exists()
+                && let Ok(contents) = std::fs::read_to_string(&candidate)
+                && contents.contains("[workspace]")
+            {
+                break current.to_path_buf();
+            }
+            current = current
+                .parent()
+                .expect("F-017: reached filesystem root without finding workspace Cargo.toml");
+        }
+    };
+
+    let registry_path = workspace_root.join("plugins/vsdd-factory/resolvers-registry.toml");
+
+    // If the file does not exist, this is a CI setup error — not a schema failure.
+    assert!(
+        registry_path.exists(),
+        "F-017: shipped resolvers-registry.toml must exist at {}",
+        registry_path.display()
+    );
+
+    let engine =
+        factory_dispatcher::engine::build_engine().expect("F-017: build_engine must succeed");
+    let loader = ResolverLoader::new(engine);
+    let result = loader.load_registry(&registry_path);
+
+    match result {
+        Err(ResolverLoadError::ParseError { detail }) => {
+            panic!(
+                "F-017: shipped resolvers-registry.toml failed to parse against production schema. \
+                 This indicates schema drift (e.g., missing required field). Detail: {detail}"
+            );
+        }
+        // CompileError / IoError are acceptable: the .wasm may not be built in this test run.
+        // The key assertion is that the TOML parsed correctly (no ParseError).
+        Err(ResolverLoadError::CompileError { .. }) | Err(ResolverLoadError::IoError { .. }) => {
+            // Good: TOML parsed, .wasm compilation/load failed (expected in unit test context).
+        }
+        Ok(_) => {
+            // Even better: TOML parsed AND .wasm loaded. Both are fine.
+        }
+        Err(other) => {
+            panic!("F-017: unexpected error variant: {other:?}");
+        }
+    }
 }

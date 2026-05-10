@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! Resolver error-isolation tests (S-12.04 AC-010, AC-011).
 //!
 //! Verifies that a trapping WASM resolver does not abort the dispatch
@@ -270,7 +272,10 @@ async fn test_BC_4_12_004_trapping_resolver_emits_resolver_error_event() {
         .filter_map(|e| e.ok())
         .filter_map(|e| std::fs::read_to_string(e.path()).ok())
         .collect::<Vec<_>>()
-        .join("\n");
+        .join(
+            "
+",
+        );
 
     // AC-011 assertion 1: resolver.error event present.
     assert!(

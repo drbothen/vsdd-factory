@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! VP-011: submit() must not block the dispatcher even when the internal queue is full.
 //!
 //! Verifies AC-6 overflow path: excess events are dropped (or overflow-recorded)

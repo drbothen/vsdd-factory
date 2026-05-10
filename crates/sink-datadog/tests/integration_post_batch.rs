@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! AC-2 (send to /api/v2/logs), AC-5 (Datadog schema mapping), AC-7 (integration test).
 //!
 //! BC-3.01.001 postcondition 1: Sink integrates with registry machinery end-to-end.

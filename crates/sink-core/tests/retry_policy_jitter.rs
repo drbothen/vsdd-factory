@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! Tests for RetryPolicy jitter behaviour (S-4.04).
 //!
 //! AC: "Exponential backoff with jitter: delay = min(base * 2^n + jitter, max)"

@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! Edge case tests per spec EC table and common attribution bypass attempts.
 //!
 //! EC-002: `git commit --allow-empty` with attribution → Block.

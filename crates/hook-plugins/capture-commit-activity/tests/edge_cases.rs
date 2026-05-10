@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! Edge cases from the story spec:
 //!   EC-001: git commit fails (empty repo) → no-op, do not emit commit.made
 //!   EC-002: non-git bash command → Continue (no-op, no subprocess call)

@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! AC-2, VP-011, VP-012: DatadogSink inherits HttpSink retry + non-blocking semantics.
 //!
 //! BC-3.01.001 postcondition 1: Sink integrates with registry machinery.

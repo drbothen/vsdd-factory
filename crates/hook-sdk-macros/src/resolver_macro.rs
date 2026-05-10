@@ -71,6 +71,13 @@ pub fn resolver_impl(args: TokenStream, input: TokenStream) -> TokenStream {
         /// Per BC-4.12.002 PC1/PC5: signature is `resolve(input_ptr: i32, input_len: i32) -> i64`.
         /// Return value is packed as `((output_ptr as i64) << 32) | (output_len as i64)`.
         ///
+        /// Error semantics: on deserialization or serialization failure the function
+        /// returns `0i64` — which the dispatcher decodes as `(ptr=0, len=0)`. Per
+        /// F-P2-008, `output_len == 0` is treated as `Ok(None)` by the dispatcher
+        /// (no context key is merged into plugin_config). This is the safest failure
+        /// mode: the resolver is silently skipped rather than trapping or corrupting
+        /// the output.
+        ///
         /// Memory layout:
         /// - Input: byte slice in WASM linear memory at [input_ptr, input_ptr + input_len).
         /// - Output: JSON bytes allocated via `Vec<u8>` leaked into WASM linear memory;
@@ -84,14 +91,20 @@ pub fn resolver_impl(args: TokenStream, input: TokenStream) -> TokenStream {
                 ::std::slice::from_raw_parts(input_ptr as *const u8, input_len as usize)
             };
 
+            // On deserialize failure return (0, 0) → dispatcher treats as Ok(None).
             let resolver_input: ::vsdd_hook_sdk::resolver::ResolverInput =
-                ::serde_json::from_slice(input_bytes)
-                    .expect("resolver: failed to deserialize ResolverInput from dispatcher");
+                match ::serde_json::from_slice(input_bytes) {
+                    Ok(v) => v,
+                    Err(_) => return 0i64,
+                };
 
             let resolver_output = #user_ident(resolver_input);
 
-            let output_bytes: Vec<u8> = ::serde_json::to_vec(&resolver_output)
-                .expect("resolver: failed to serialize ResolverOutput");
+            // On serialize failure return (0, 0) → dispatcher treats as Ok(None).
+            let output_bytes: Vec<u8> = match ::serde_json::to_vec(&resolver_output) {
+                Ok(v) => v,
+                Err(_) => return 0i64,
+            };
 
             let output_len = output_bytes.len();
             // Leak the Vec so it stays alive after this function returns.

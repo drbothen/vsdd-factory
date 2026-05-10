@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! AC-006b: Integration test — sink-http retry exhaustion → DLQ.
 //!
 //! Traces to: BC-3.07.003 (event schema correctness) + BC-3.07.004 (failure path).

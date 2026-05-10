@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! Integration tests for tool-failure-hooks — VP-068 harness (RED gate).
 //!
 //! # Scope

@@ -1,4 +1,6 @@
 //! `internal.sink_error` event schema and fire-and-forget emission helper (S-4.10).
+// Allow: test helpers in this file use .expect()/.unwrap(). Pre-existing code.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //!
 //! This module is **pure-core**: it defines `SinkErrorEvent` (the structured event
 //! emitted by every sink driver when a `SinkFailure` is recorded) and the

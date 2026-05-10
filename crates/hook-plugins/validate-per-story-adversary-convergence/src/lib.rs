@@ -1,4 +1,8 @@
 //! validate-per-story-adversary-convergence — SubagentStop WASM hook plugin.
+// Allow: complex file-parsing logic uses .expect() on operations that are
+// validated before the call site, and regex compilation on static patterns.
+// Pre-existing production code (not covered by S-12.07 AC-010 scope).
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //!
 //! Blocks wave-gate dispatch when any story in the current wave lacks a
 //! cleared adversary convergence state file

@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! VP-075 proptest harness — Context-Injection Determinism.
 //!
 //! Verifies that `merge_resolver_outputs` is a pure function: identical
@@ -47,7 +49,7 @@ fn arb_non_null_json_value() -> impl Strategy<Value = Value> {
         Just(Value::Bool(true)),
         Just(Value::Bool(false)),
         any::<i64>().prop_map(|n| Value::Number(n.into())),
-        "[a-zA-Z0-9_\\-]{0,32}".prop_map(Value::String),
+        "[a-zA-Z0-9_-]{0,32}".prop_map(Value::String),
         prop::collection::vec(any::<i64>().prop_map(|n| Value::Number(n.into())), 0..4)
             .prop_map(Value::Array),
         prop::collection::hash_map(

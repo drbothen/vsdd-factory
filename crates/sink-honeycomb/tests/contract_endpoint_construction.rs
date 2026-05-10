@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! BC-3.NN.NNN-honeycomb-dataset-url-routing — Endpoint URL is built from
 //! base + dataset name embedded in the path.
 //!

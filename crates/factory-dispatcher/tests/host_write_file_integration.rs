@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! E2E integration tests for `vsdd::write_file` host function.
 //!
 //! Exercises the full wasmtime linker → host fn → filesystem path that the

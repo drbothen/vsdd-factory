@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! End-to-end routing integration test: construct a realistic registry
 //! in a temp dir, parse it from disk (not a string), match against a
 //! payload, group into tiers, and verify the output order.

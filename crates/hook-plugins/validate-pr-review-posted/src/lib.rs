@@ -1,4 +1,7 @@
 //! validate-pr-review-posted — SubagentStop WASM hook plugin.
+// Allow: static regex compilation and legacy validation helpers use .expect()
+// on infallible patterns. Pre-existing code (not covered by S-12.07 AC-010).
+#![allow(clippy::expect_used)]
 //!
 //! Scoped to `pr-reviewer` and `pr-review-triage` subagents only.
 //! Runs three independent validation checks against the result text:

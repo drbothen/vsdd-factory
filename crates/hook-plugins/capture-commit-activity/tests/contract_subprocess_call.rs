@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! AC-3: Invokes `git log -1 --format=%H` via `exec_subprocess()` to get
 //! commit SHA.
 //!

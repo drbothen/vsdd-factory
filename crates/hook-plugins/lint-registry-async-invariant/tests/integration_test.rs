@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! Integration tests for lint-registry-async-invariant.
 //!
 //! VP-078 v1.8 — CI lint harnesses (4 harnesses). All tests MUST be RED

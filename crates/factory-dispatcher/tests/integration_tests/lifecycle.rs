@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! AC-6, AC-7, AC-8: Tag enrichment, disabled sink, shutdown drain.
 //!
 //! Traces to:

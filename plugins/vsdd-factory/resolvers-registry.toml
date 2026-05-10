@@ -2,4 +2,16 @@
 # Schema: each [[resolvers]] entry declares one WASM-backed context resolver.
 # Absent file = zero resolvers (BC-1.13.001 INV2 — not an error).
 schema_version = 1
-# [[resolvers]]  # placeholder — entries added in S-12.07
+
+# WaveContextResolver: injects wave_context into plugin_config for hooks that
+# declare `needs_context = ["wave_context"]`. Reads .factory/wave-state.yaml
+# and .factory/STATE.md (both within path_allow). (BC-4.12.003 INV1, AC-005, AC-009)
+#
+# Canonical key "wave_context" (underscore) per BC-4.12.005 PC7.
+# Both 'name' and 'context_key' use the same form to keep needs_context entries
+# (in hooks-registry.toml) and the merged plugin_config key aligned.
+[[resolvers]]
+name = "wave_context"
+plugin = "hook-plugins/vsdd-context-resolvers.wasm"
+context_key = "wave_context"
+path_allow = [".factory/"]

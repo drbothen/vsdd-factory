@@ -1,0 +1,42 @@
+[package]
+name = "vsdd-context-resolvers"
+version = "0.0.1"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+description = "WASM context resolver crate for vsdd-factory: reads .factory/wave-state.yaml and .factory/STATE.md to inject wave_context (cycle_id, wave_id, stories) into plugin_config at dispatch time."
+publish = false
+
+# Resolver plugins ship as cdylib (WASM) for runtime dispatch, plus rlib for
+# unit-testing the pure logic layer on the host. The `#[resolver]` macro
+# generates a `fn main(){}` no-op (required for some WASM toolchain paths) and
+# the `resolve()` WASM export gated to `#[cfg(target_arch = "wasm32")]`.
+# The extra `fn main(){}` is harmless in a lib crate — it is not an entry point.
+[lib]
+crate-type = ["cdylib", "rlib"]
+path = "src/lib.rs"
+
+[dependencies]
+vsdd-hook-sdk = { path = "../hook-sdk", features = ["resolver-authoring"] }
+serde = { workspace = true }
+serde_json = { workspace = true }
+serde_yaml = { workspace = true }
+
+[dev-dependencies]
+proptest = { workspace = true }
+
+# vsdd-context-resolvers enforces DENY for panic-inducing patterns at the crate level.
+# AC-010 / BC-4.12.004 INV1: WASM resolver panics are traps — there is no recovery path.
+# Crate-level strictness overrides: panic-class lints elevated from workspace 'warn' to 'deny'
+# per BC-4.12.004 INV1 (no unwrap/expect/panic in production resolver code). Other workspace
+# lints apply at their default level.
+[lints.rust]
+non_snake_case = "allow"
+# cfg(kani) is declared at the workspace level — no crate-level override needed here.
+
+[lints.clippy]
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"

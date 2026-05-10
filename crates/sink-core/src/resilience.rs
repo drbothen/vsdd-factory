@@ -1,4 +1,9 @@
 //! Shared resilience primitives for all sink drivers (S-4.04).
+// Allow: Mutex::lock().expect() is the standard pattern for mutex poison guards
+// (a poisoned mutex indicates a prior panic in another thread — aborting is
+// correct behavior). The last-error .expect() on RetryOutcome is documented
+// to only be called after at least one attempt. Pre-existing code.
+#![allow(clippy::expect_used)]
 //!
 //! Provides [`RetryPolicy`], [`CircuitBreaker`], and [`CircuitState`] so
 //! every HTTP-based sink (`sink-http`, `sink-datadog`, `sink-honeycomb`,

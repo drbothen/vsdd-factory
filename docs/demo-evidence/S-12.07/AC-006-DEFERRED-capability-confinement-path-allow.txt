@@ -1,0 +1,47 @@
+AC-006: DEFERRED — capability confinement path_allow positive grant (VP-076-D)
+===============================================================================
+Story: S-12.07 — vsdd-context-resolvers Crate + WaveContextResolver (v1.4)
+BC ref: BC-4.12.003 / VP-076
+
+STATUS: DEFERRED TO S-12.08
+
+DEFERRAL REASON
+---------------
+AC-006 (VP-076-D) requires:
+  1. The built WASM artifact loaded into the factory-dispatcher runtime (wasmtime)
+  2. A temp project with .factory/wave-state.yaml + .factory/STATE.md
+  3. The ResolverLoader integration harness — which lives in factory-dispatcher
+
+Same architectural constraint as AC-005: BC-1.13.001 INV1 prohibits
+factory-dispatcher from having a compile-time dependency on vsdd-context-resolvers.
+
+VP-076 §Proof Harness Locations (pass-2 amendment, 2026-05-10): this test is
+deferred to the S-12.08 bats harness which exercises the full dispatcher-with-resolver
+end-to-end path. The stub remains in capability_confinement_test.rs for discoverability.
+
+STUB LOCATION
+-------------
+File: crates/vsdd-context-resolvers/tests/capability_confinement_test.rs
+
+  test_BC_4_12_003_can_read_within_path_allow  (VP-076-D)
+    — Will create temp dir with .factory/wave-state.yaml (valid fixture)
+    — Will run WASM resolver via dispatcher harness with project_dir = <temp>
+    — Will assert ResolverOutput.value is Some with wave_id, cycle_id, stories keys
+
+CARGO TEST OUTPUT (showing ignored stub)
+-----------------------------------------
+     Running tests/capability_confinement_test.rs (...)
+
+running 3 tests
+test test_BC_4_12_003_can_read_within_path_allow ... ignored, Requires built WASM artifact + factory-dispatcher integration harness [...]
+...
+test result: ok. 0 passed; 0 failed; 3 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+S-12.08 ACTION
+--------------
+Author bats integration test that:
+  1. Build the WASM: cargo build -p vsdd-context-resolvers --target wasm32-wasip1 --release
+  2. Create temp project with valid .factory/wave-state.yaml fixture
+  3. Run via factory-dispatcher ResolverLoader
+  4. Assert plugin_config["wave_context"] contains wave_id, cycle_id, stories
+  5. Corresponds to VP-076-D

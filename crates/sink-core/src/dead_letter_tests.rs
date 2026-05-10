@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! RED-gate tests for S-4.05 (Dead Letter Queue) — AC-001 through AC-010.
 //!
 //! Every test in this file MUST FAIL before implementation begins.

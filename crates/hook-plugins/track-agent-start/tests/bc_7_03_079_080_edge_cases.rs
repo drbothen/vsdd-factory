@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! BC-7.03.079 / BC-7.03.080 edge-case tests for track-agent-start (S-8.08).
 //!
 //! **Red Gate scope:** these tests cover payload edge cases NOT exercised by the

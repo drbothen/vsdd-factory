@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! Unit tests for `ContextResolver` trait surface, `ResolverRegistry` register /
 //! resolve_requested behavior, merge semantics, and failure-loud invariants.
 //!

@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! Tests for circuit state event emission (S-4.04).
 //!
 //! AC: "Circuit state emitted as `internal.sink_circuit_opened` /

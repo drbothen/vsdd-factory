@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! Integration validation: absolute-path hook engagement for
 //! `validate-stable-anchors` and `validate-artifact-path` WASM plugins.
 //!
@@ -175,7 +177,10 @@ fn make_write_payload(file_path: &str) -> Vec<u8> {
         "tool_name": "Write",
         "tool_input": {
             "file_path": file_path,
-            "content": "# Test content\n\nNo volatile cites here.\n",
+            "content": "# Test content
+
+No volatile cites here.
+",
         },
     });
     serde_json::to_vec(&envelope).expect("payload must serialize")

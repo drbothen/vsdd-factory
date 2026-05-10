@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! Integration coverage for the tokio executor (S-1.6).
 //!
 //! Exercises the full `execute_tiers` path against real wasmtime

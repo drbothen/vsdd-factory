@@ -384,6 +384,7 @@ fn read_owned_bytes(_ptr: u32, _len: u32) -> Vec<u8> {
 }
 
 #[cfg(test)]
+#[allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 mod tests {
     use super::*;
 

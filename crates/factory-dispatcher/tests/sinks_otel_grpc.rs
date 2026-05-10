@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! Integration test for the OTLP/gRPC sink (S-1.9).
 //!
 //! Runs a real `tonic`-based mock `LogsService` server bound on a

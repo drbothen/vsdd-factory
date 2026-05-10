@@ -1,4 +1,9 @@
 //! pr-manager-completion-guard — SubagentStop WASM hook plugin.
+// Allow: static regex compilation (.expect on infallible patterns), test
+// fixture parsing (.expect on known-good JSON strings), and serialization of
+// string-typed data (.unwrap on serde_json::to_string for String values which
+// cannot fail). Pre-existing code; scope for future cleanup.
+#![allow(clippy::expect_used, clippy::unwrap_used)]
 //!
 //! Ports `plugins/vsdd-factory/hooks/pr-manager-completion-guard.sh` to
 //! native WASM (wasm32-wasip1). Implements FM4 detection: blocks a

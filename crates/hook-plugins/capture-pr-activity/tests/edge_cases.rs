@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! Edge case tests per the S-3.02 EC table and bats corpus.
 //!
 //! EC-001: `gh pr create` fails → emit `pr.create_failed`; return Continue.
