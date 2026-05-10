@@ -307,80 +307,43 @@ pub enum WaveContextError {
 pub fn extract_stories_from_wave_context(
     plugin_config: &serde_json::Value,
 ) -> Result<Vec<String>, WaveContextError> {
-    // S-12.08 Step 3 (implementer): read plugin_config["wave_context"]["stories"].
-    // Step 1 (stub-architect): todo!() body — implementer writes real logic in Step 3.
-    todo!()
-}
+    // AC-002: missing or null wave_context → Missing.
+    // Matches both the absent-key case and the explicit-null case.
+    let wave_context = match plugin_config.get("wave_context") {
+        Some(serde_json::Value::Null) | None => return Err(WaveContextError::Missing),
+        Some(v) => v,
+    };
 
-// ---------------------------------------------------------------------------
-// plugin_config.stories extraction (F-HIGH-3 fix helper)
-// ---------------------------------------------------------------------------
+    // AC-002c: wave_context present but stories key absent or null → Missing.
+    let stories_val = match wave_context.get("stories") {
+        Some(serde_json::Value::Null) | None => return Err(WaveContextError::Missing),
+        Some(v) => v,
+    };
 
-/// Extract story IDs from `plugin_config.stories` (a JSON array of strings).
-///
-/// Returns `Ok(Vec<String>)` when the field is present and contains a JSON array
-/// of strings. Returns `Err(IoError)` when the field is absent, null, or not an
-/// array — callers treat this as the absent-cycle-directory graceful degrade path
-/// (BC-4.10.002 invariant 3).
-///
-/// This function is called by `RealCallbacks::list_stories` in `main.rs` to
-/// surface the story list supplied by the wave-gate dispatcher via the registry
-/// `[hooks.config]` → `plugin_config.stories` mechanism (F-HIGH-3 fix).
-///
-/// # BC traces
-/// - BC-4.10.001 PC1: hook must enumerate stories from the current wave
-/// - BC-4.10.002 invariant 3: absent cycle directory → graceful degrade (Continue)
-pub fn extract_stories_from_config(
-    plugin_config: &serde_json::Value,
-) -> Result<Vec<String>, IoError> {
-    match plugin_config.get("stories") {
-        Some(serde_json::Value::Array(arr)) => {
-            let mut stories = Vec::with_capacity(arr.len());
-            for v in arr {
-                match v.as_str() {
-                    Some(s) => stories.push(s.to_string()),
-                    None => {
-                        return Err(IoError(format!(
-                            "plugin_config.stories: non-string element {:?}",
-                            v
-                        )));
-                    }
-                }
-            }
-            Ok(stories)
+    // AC-003: stories present but wrong type → SchemaError.
+    let arr = match stories_val.as_array() {
+        Some(a) => a,
+        None => {
+            return Err(WaveContextError::SchemaError(format!(
+                "plugin_config.wave_context.stories: expected array, got {:?}",
+                stories_val
+            )));
         }
-        Some(other) => Err(IoError(format!(
-            "plugin_config.stories: expected array, got {:?}",
-            other
-        ))),
-        None => Err(IoError(
-            "plugin_config.stories: field absent — graceful degrade".to_string(),
-        )),
+    };
+
+    let mut stories = Vec::with_capacity(arr.len());
+    for v in arr {
+        match v.as_str() {
+            Some(s) => stories.push(s.to_string()),
+            None => {
+                return Err(WaveContextError::SchemaError(format!(
+                    "plugin_config.wave_context.stories: non-string element {:?}",
+                    v
+                )));
+            }
+        }
     }
-}
-
-// ---------------------------------------------------------------------------
-// Story listing
-// ---------------------------------------------------------------------------
-
-/// List story IDs in the current wave by reading the cycle directory.
-///
-/// Calls `callbacks.read_dir` (or equivalent) to enumerate story directories
-/// under `.factory/cycles/<cycle-id>/`. Returns `Err(IoError)` if the cycle
-/// directory cannot be read (graceful degrade caller converts this to Continue).
-///
-/// The injectable-callback pattern (`callbacks: &impl HookCallbacks`) allows
-/// unit tests to inject fake directory listings without a WASM runtime.
-///
-/// # BC traces
-/// - BC-4.10.001 postcondition 1 (reads state file for each story)
-/// - BC-4.10.002 invariant 3 (absent cycle directory → graceful degrade)
-/// - AC-004 (absent cycle dir → Continue)
-pub fn list_wave_stories(
-    cycle_id: &str,
-    callbacks: &impl HookCallbacks,
-) -> Result<Vec<String>, IoError> {
-    callbacks.list_stories(cycle_id)
+    Ok(stories)
 }
 
 // ---------------------------------------------------------------------------
@@ -400,11 +363,6 @@ pub trait HookCallbacks {
     /// and is readable; `Ok(None)` when the file is absent; `Err(IoError)` on
     /// unexpected I/O failure.
     fn read_file(&self, path: &str) -> Result<Option<String>, IoError>;
-
-    /// List story subdirectory names under `.factory/cycles/<cycle-id>/`.
-    /// Returns an empty `Vec` when the directory exists but has no story dirs.
-    /// Returns `Err(IoError)` when the cycle directory itself is absent.
-    fn list_stories(&self, cycle_id: &str) -> Result<Vec<String>, IoError>;
 
     /// Log an advisory message via `host::log_info`.
     ///
@@ -440,8 +398,9 @@ pub trait HookCallbacks {
 /// 1. Check wave-gate context (`graceful_degrade_outside_wave_gate`). If not
 ///    confirmed → log advisory, return `HookResult::Continue` immediately.
 ///    NO file reads before this check.
-/// 2. List wave stories via `callbacks.list_stories`. If cycle dir absent →
-///    log advisory, return `HookResult::Continue`.
+/// 2. Extract story list from `plugin_config["wave_context"]["stories"]`
+///    (S-12.08: WaveContextResolver injects this). If `wave_context` is absent
+///    or malformed → Block (not graceful degrade — AC-002, AC-003, AC-010).
 /// 3. For each story: read state file via `callbacks.read_file`. Parse with
 ///    `parse_convergence_state`. Evaluate with `hook_result_for`. On first
 ///    non-Continue result → return immediately (BC-4.10.001 postcondition 5).
@@ -462,26 +421,55 @@ pub fn hook_logic(payload: &HookPayload, callbacks: &impl HookCallbacks) -> Hook
         return HookResult::Continue;
     }
 
-    // Step 2: Determine cycle_id from plugin_config or payload.
-    // In production, the registry config may supply the cycle_id.
-    // For tests, FakeCallbacks ignores cycle_id, so any string works.
-    let cycle_id = payload
-        .plugin_config
-        .get("cycle_id")
-        .and_then(|v| v.as_str())
-        .unwrap_or("current");
-
-    // Step 3: List wave stories. Absent cycle directory → graceful degrade (BC-4.10.002 inv-3).
-    let story_ids = match list_wave_stories(cycle_id, callbacks) {
+    // Step 2: Extract story list from wave_context.stories (S-12.08 AC-001, AC-002, AC-003).
+    // The WaveContextResolver (S-12.07) injects wave_context into plugin_config before dispatch.
+    // On WaveContextError::Missing or ::SchemaError → Block (not graceful degrade — AC-010).
+    let story_ids = match extract_stories_from_wave_context(&payload.plugin_config) {
         Ok(ids) => ids,
-        Err(_) => {
-            callbacks.log_debug(
-                "validate-per-story-adversary-convergence: graceful degrade \
-                 — invoked outside wave-gate context or cycle directory absent; returning Continue",
+        Err(WaveContextError::Missing) => {
+            // AC-002: wave_context absent or null → hard block. Do NOT gracefully degrade.
+            // This indicates WaveContextResolver was not wired or failed to inject context.
+            callbacks.emit_event(
+                "hook.block",
+                &[
+                    ("hook", HOOK_NAME),
+                    ("code", BLOCK_CODE_WAVE_CONTEXT_MISSING),
+                ],
             );
-            return HookResult::Continue;
+            return HookResult::block_with_fix(
+                HOOK_NAME,
+                "wave_context not injected — plugin_config[\"wave_context\"] is absent or null",
+                "Verify needs_context=[\"wave_context\"] in hooks-registry.toml and \
+                 WaveContextResolver is registered in resolvers-registry.toml",
+                BLOCK_CODE_WAVE_CONTEXT_MISSING,
+            );
+        }
+        Err(WaveContextError::SchemaError(detail)) => {
+            // AC-003: wave_context.stories has wrong type → hard block.
+            callbacks.emit_event(
+                "hook.block",
+                &[
+                    ("hook", HOOK_NAME),
+                    ("code", BLOCK_CODE_WAVE_CONTEXT_SCHEMA_ERROR),
+                ],
+            );
+            return HookResult::block_with_fix(
+                HOOK_NAME,
+                format!("wave_context.stories schema error: {}", detail),
+                "Ensure WaveContextResolver injects wave_context.stories as a JSON array of strings",
+                BLOCK_CODE_WAVE_CONTEXT_SCHEMA_ERROR,
+            );
         }
     };
+
+    // Step 3: Determine cycle_id from wave_context (injected by WaveContextResolver).
+    // Falls back to "current" for test compatibility (FakeCallbacks ignores cycle_id).
+    let cycle_id = payload
+        .plugin_config
+        .get("wave_context")
+        .and_then(|wc| wc.get("cycle_id"))
+        .and_then(|v| v.as_str())
+        .unwrap_or("current");
 
     // BC-4.10.001 EC-001: empty wave → Continue (vacuously all stories cleared).
     if story_ids.is_empty() {
@@ -827,31 +815,40 @@ mod tests {
     ///
     /// Tracks whether read_file was called so tests can assert graceful-degrade
     /// exits before any file I/O (BC-4.10.002 invariant 2; AC-003, AC-004).
+    ///
+    /// S-12.08: `stories` field removed — hook_logic now reads the story list
+    /// from `plugin_config["wave_context"]["stories"]` (WaveContextResolver path),
+    /// not from `list_stories` callbacks. Use `make_payload_with_wave_context` to
+    /// inject stories via the payload; use `FakeCallbacks::new_with_story` only to
+    /// control the per-story state file read result.
     struct FakeCallbacks {
-        /// None = cycle dir absent (list_stories returns Err, read_file returns Err).
-        /// Some(v) = cycle dir present; read_file returns Ok(v).
+        /// Controls what read_file returns for ALL story state file reads.
+        /// Some(Some(json)) → file present with content.
+        /// Some(None) → file absent (Ok(None) from read_file).
+        /// None → I/O error (Err from read_file).
         read_result: Option<Option<String>>,
-        stories: Vec<String>,
         read_called: std::cell::Cell<bool>,
         block_events_emitted: std::cell::Cell<u32>,
     }
 
     impl FakeCallbacks {
-        /// Cycle dir present; all story reads return `story_json`.
-        fn new_with_story(story_json: Option<String>, stories: Vec<String>) -> Self {
+        /// All story state-file reads return `story_json`.
+        /// Use `make_payload_with_wave_context` to inject the story list into the payload.
+        fn new_with_story(story_json: Option<String>) -> Self {
             FakeCallbacks {
                 read_result: Some(story_json),
-                stories,
                 read_called: std::cell::Cell::new(false),
                 block_events_emitted: std::cell::Cell::new(0),
             }
         }
 
-        /// Cycle dir absent; read_file and list_stories both return Err.
+        /// Simulates an I/O error on read_file (used to test graceful-degrade scenarios).
+        /// Note: after S-12.08, the "no cycle dir" case no longer triggers graceful degrade
+        /// (wave_context absent → Block, not Continue). This variant is retained for tests
+        /// that exercise the "read_file returns Err" path.
         fn new_no_context() -> Self {
             FakeCallbacks {
                 read_result: None,
-                stories: vec![],
                 read_called: std::cell::Cell::new(false),
                 block_events_emitted: std::cell::Cell::new(0),
             }
@@ -872,16 +869,9 @@ mod tests {
             match &self.read_result {
                 Some(v) => Ok(v.clone()),
                 None => Err(IoError(
-                    "fake: cycle dir absent — no read result".to_string(),
+                    "fake: read_file error — no read result".to_string(),
                 )),
             }
-        }
-
-        fn list_stories(&self, _cycle_id: &str) -> Result<Vec<String>, IoError> {
-            if self.read_result.is_none() {
-                return Err(IoError("fake: cycle dir absent".to_string()));
-            }
-            Ok(self.stories.clone())
         }
 
         fn log_debug(&self, _msg: &str) {}
@@ -892,6 +882,42 @@ mod tests {
             self.block_events_emitted
                 .set(self.block_events_emitted.get() + 1);
         }
+    }
+
+    /// Build a HookPayload with wave_context.stories in plugin_config.
+    ///
+    /// This is the S-12.08 canonical helper for constructing payloads that
+    /// exercise the new extract_stories_from_wave_context path. The wave_context
+    /// is injected by WaveContextResolver in production; in tests, we construct
+    /// it directly.
+    fn make_payload_with_wave_context(
+        agent_type: Option<&str>,
+        stories: &[&str],
+        cycle_id: Option<&str>,
+    ) -> HookPayload {
+        let story_arr: Vec<serde_json::Value> = stories
+            .iter()
+            .map(|s| serde_json::Value::String(s.to_string()))
+            .collect();
+        let mut wave_context = serde_json::json!({
+            "stories": story_arr,
+            "wave_id": "test-wave",
+        });
+        if let Some(cid) = cycle_id {
+            wave_context["cycle_id"] = serde_json::Value::String(cid.to_string());
+        }
+        let mut v = json!({
+            "event_name": "SubagentStop",
+            "session_id": "test-session",
+            "dispatcher_trace_id": "test-trace",
+            "plugin_config": {
+                "wave_context": wave_context
+            }
+        });
+        if let Some(at) = agent_type {
+            v["agent_type"] = json!(at);
+        }
+        serde_json::from_value(v).expect("fixture must deserialize")
     }
 
     /// Build a HookPayload with an optional agent_type field.
@@ -961,9 +987,12 @@ mod tests {
         // schema fields (passes_clean, last_finding_count, last_classification,
         // last_timestamp, deferred_findings). BC-4.10.001 canonical test vector
         // row 1: {passes_clean: 3, last_classification: "NITPICK_ONLY"} → Continue.
-        let payload = make_payload(Some("wave-gate-dispatch"));
-        let callbacks =
-            FakeCallbacks::new_with_story(Some(cleared_state_json()), vec!["S-A".to_string()]);
+        let payload = make_payload_with_wave_context(
+            Some("wave-gate-dispatch"),
+            &["S-A"],
+            Some("test-cycle"),
+        );
+        let callbacks = FakeCallbacks::new_with_story(Some(cleared_state_json()));
 
         let hook_result = hook_logic(&payload, &callbacks);
 
@@ -1313,8 +1342,7 @@ mod tests {
         // Graceful degrade: no block signal emitted, no file I/O performed.
         let payload = make_payload(None); // no agent_type → not wave-gate context
         // Callbacks that would error if read_file is called (confirms no file I/O)
-        let callbacks =
-            FakeCallbacks::new_with_story(Some(cleared_state_json()), vec!["S-A".to_string()]);
+        let callbacks = FakeCallbacks::new_with_story(Some(cleared_state_json()));
 
         let hook_result = hook_logic(&payload, &callbacks);
 
@@ -1337,8 +1365,7 @@ mod tests {
         // occur BEFORE any attempt to read state files. When context cannot be
         // determined, hook exits immediately without any file reads.
         let payload = make_payload(None); // no wave-gate context
-        let callbacks =
-            FakeCallbacks::new_with_story(Some(cleared_state_json()), vec!["S-A".to_string()]);
+        let callbacks = FakeCallbacks::new_with_story(Some(cleared_state_json()));
 
         let _hook_result = hook_logic(&payload, &callbacks);
 
@@ -1356,18 +1383,27 @@ mod tests {
 
     #[test]
     fn test_BC_4_10_002_graceful_degrade_absent_cycle_dir() {
-        // AC-004 traces to BC-4.10.002 invariant 3: a missing .factory/cycles/
-        // directory is never treated as an error. Hook returns HookResult::Continue.
-        // Pattern follows validate-wave-gate-prerequisite.sh lines 64–70 and
-        // regression-gate BC-7.03.074.
-        let payload = make_payload(Some("wave-gate-dispatch")); // wave-gate context present
-        let callbacks = FakeCallbacks::new_no_context(); // cycle dir absent
+        // AC-004 / S-12.08: in the wave_context migration, story lists come from
+        // plugin_config["wave_context"]["stories"] (WaveContextResolver), not the cycle dir.
+        // "Absent cycle dir" now manifests as a state file read error (read_file returns Err),
+        // which maps to Block with CONVERGENCE_STATE_MISSING (BC-4.10.001 PC2).
+        //
+        // Updated for S-12.08: provide wave_context.stories in the payload (one story),
+        // but make read_file return Err (simulating an unreadable state file).
+        // Expected: Block with CONVERGENCE_STATE_MISSING.
+        let payload = make_payload_with_wave_context(
+            Some("wave-gate-dispatch"),
+            &["S-A"],
+            Some("test-cycle"),
+        );
+        // new_no_context makes read_file return Err (simulates unreadable state file)
+        let callbacks = FakeCallbacks::new_no_context();
 
         let hook_result = hook_logic(&payload, &callbacks);
 
         assert!(
-            matches!(hook_result, HookResult::Continue),
-            "BC-4.10.002 inv-3: absent cycle dir must produce HookResult::Continue, \
+            matches!(hook_result, HookResult::Block { .. }),
+            "BC-4.10.001 PC2 (S-12.08): unreadable state file must produce HookResult::Block, \
              got {:?}",
             hook_result
         );
@@ -1381,11 +1417,13 @@ mod tests {
     fn test_BC_4_10_001_ec001_empty_wave_returns_continue() {
         // BC-4.10.001 EC-001: Wave has 0 stories. Hook returns HookResult::Continue
         // (vacuously all stories cleared). Logs warning: "Wave has zero stories."
-        let payload = make_payload(Some("wave-gate-dispatch"));
-        let callbacks = FakeCallbacks::new_with_story(
-            Some(cleared_state_json()),
-            vec![], // zero stories in wave
+        // Empty stories array in wave_context → vacuous convergence (EC-001).
+        let payload = make_payload_with_wave_context(
+            Some("wave-gate-dispatch"),
+            &[], // zero stories in wave
+            Some("test-cycle"),
         );
+        let callbacks = FakeCallbacks::new_with_story(Some(cleared_state_json()));
 
         let hook_result = hook_logic(&payload, &callbacks);
 
@@ -1406,11 +1444,12 @@ mod tests {
         // the hook aggregates deferred_findings arrays from all stories and emits
         // them to wave-gate context as a structured log entry (not a block).
         // Hook returns HookResult::Continue.
-        let payload = make_payload(Some("wave-gate-dispatch"));
-        let callbacks = FakeCallbacks::new_with_story(
-            Some(cleared_state_with_deferrals_json()),
-            vec!["S-A".to_string(), "S-B".to_string()],
+        let payload = make_payload_with_wave_context(
+            Some("wave-gate-dispatch"),
+            &["S-A", "S-B"],
+            Some("test-cycle"),
         );
+        let callbacks = FakeCallbacks::new_with_story(Some(cleared_state_with_deferrals_json()));
 
         let hook_result = hook_logic(&payload, &callbacks);
 
@@ -1434,11 +1473,12 @@ mod tests {
         //
         // FakeCallbacks returns the same JSON for all reads. Using insufficient
         // passes JSON ensures both stories fail, but only one block should fire.
-        let payload = make_payload(Some("wave-gate-dispatch"));
-        let callbacks = FakeCallbacks::new_with_story(
-            Some(insufficient_passes_json(1)),
-            vec!["S-A".to_string(), "S-B".to_string()],
+        let payload = make_payload_with_wave_context(
+            Some("wave-gate-dispatch"),
+            &["S-A", "S-B"],
+            Some("test-cycle"),
         );
+        let callbacks = FakeCallbacks::new_with_story(Some(insufficient_passes_json(1)));
 
         let hook_result = hook_logic(&payload, &callbacks);
 
@@ -1461,11 +1501,13 @@ mod tests {
         // treated as non-cleared. Hook emits block with
         // code: "CONVERGENCE_STATE_MALFORMED". Does not panic.
         // BC-4.10.001 canonical test vector row 6: [S-A] | malformed JSON → BLOCK.
-        let payload = make_payload(Some("wave-gate-dispatch"));
-        let callbacks = FakeCallbacks::new_with_story(
-            Some("this is { not valid json at all!!!".to_string()),
-            vec!["S-A".to_string()],
+        let payload = make_payload_with_wave_context(
+            Some("wave-gate-dispatch"),
+            &["S-A"],
+            Some("test-cycle"),
         );
+        let callbacks =
+            FakeCallbacks::new_with_story(Some("this is { not valid json at all!!!".to_string()));
 
         let hook_result = hook_logic(&payload, &callbacks);
 
@@ -1513,7 +1555,11 @@ mod tests {
         // Note: ConvergenceState uses Option<String> for last_classification, so
         // a missing field deserializes to None. The hook must block when
         // last_classification is None (equiv. to missing/null).
-        let payload = make_payload(Some("wave-gate-dispatch"));
+        let payload = make_payload_with_wave_context(
+            Some("wave-gate-dispatch"),
+            &["S-A"],
+            Some("test-cycle"),
+        );
         let json_missing_classification = json!({
             "passes_clean": 3,
             "last_finding_count": 0,
@@ -1522,10 +1568,7 @@ mod tests {
             // last_classification intentionally absent
         })
         .to_string();
-        let callbacks = FakeCallbacks::new_with_story(
-            Some(json_missing_classification),
-            vec!["S-A".to_string()],
-        );
+        let callbacks = FakeCallbacks::new_with_story(Some(json_missing_classification));
 
         let hook_result = hook_logic(&payload, &callbacks);
 
@@ -1599,9 +1642,12 @@ mod tests {
         //
         // If this test compiles and the project links without wasm32 target,
         // the injectable-callback pattern is in use.
-        let payload = make_payload(Some("wave-gate-dispatch"));
-        let callbacks =
-            FakeCallbacks::new_with_story(Some(cleared_state_json()), vec!["S-A".to_string()]);
+        let payload = make_payload_with_wave_context(
+            Some("wave-gate-dispatch"),
+            &["S-A"],
+            Some("test-cycle"),
+        );
+        let callbacks = FakeCallbacks::new_with_story(Some(cleared_state_json()));
 
         // The fact that this compiles and runs natively (not under WASM) proves
         // the injectable-callback pattern is correctly implemented.
@@ -1695,8 +1741,7 @@ mod tests {
         // (not wave-gate). Must gracefully degrade: return Continue, log advisory.
         // The agent_type "implementer" is not a wave-gate dispatch agent.
         let payload = make_payload(Some("implementer")); // per-story agent
-        let callbacks =
-            FakeCallbacks::new_with_story(Some(cleared_state_json()), vec!["S-A".to_string()]);
+        let callbacks = FakeCallbacks::new_with_story(Some(cleared_state_json()));
 
         let hook_result = hook_logic(&payload, &callbacks);
 
@@ -1717,8 +1762,7 @@ mod tests {
         // BC-4.10.002 EC-004: Payload missing subagent_name and agent_type fields.
         // Cannot determine context. Graceful degrade: return Continue, log advisory.
         let payload = make_payload(None); // both agent_type and subagent_name absent
-        let callbacks =
-            FakeCallbacks::new_with_story(Some(cleared_state_json()), vec!["S-A".to_string()]);
+        let callbacks = FakeCallbacks::new_with_story(Some(cleared_state_json()));
 
         let hook_result = hook_logic(&payload, &callbacks);
 
@@ -1788,11 +1832,12 @@ mod tests {
         // BC-4.10.001 + BC-7.03.075: hook MUST emit a "hook.block" event via
         // emit_event before returning HookResult::Block. Without this event,
         // wave-gate monitoring dashboards never see convergence gate firings.
-        let payload = make_payload(Some("wave-gate-dispatch"));
-        let callbacks = FakeCallbacks::new_with_story(
-            None, // absent state file
-            vec!["S-A".to_string()],
+        let payload = make_payload_with_wave_context(
+            Some("wave-gate-dispatch"),
+            &["S-A"],
+            Some("test-cycle"),
         );
+        let callbacks = FakeCallbacks::new_with_story(None); // absent state file (Ok(None))
 
         let result = hook_logic(&payload, &callbacks);
 
@@ -1809,130 +1854,94 @@ mod tests {
     }
 
     // -----------------------------------------------------------------------
-    // F-HIGH-3: plugin_config.stories extraction for production list_stories
-    // RealCallbacks in main.rs must read stories from plugin_config.stories
-    // rather than always returning Err. Tests here verify the extraction logic
-    // that main.rs will use (pure Rust — no WASM host binding required).
+    // F-HIGH-3: plugin_config.stories extraction (legacy path, now replaced by wave_context)
+    // After S-12.08, RealCallbacks no longer uses plugin_config.stories; the extraction
+    // is done via extract_stories_from_wave_context. The tests below are retained as
+    // documentation of the old behavior for regression purposes.
     // -----------------------------------------------------------------------
 
-    /// Build a HookPayload with agent_type and plugin_config.stories + cycle_id.
-    fn make_payload_with_stories(
-        agent_type: Option<&str>,
-        stories: &[&str],
-        cycle_id: Option<&str>,
-    ) -> HookPayload {
-        let mut v = json!({
-            "event_name": "SubagentStop",
-            "session_id": "test-session",
-            "dispatcher_trace_id": "test-trace"
-        });
-        if let Some(at) = agent_type {
-            v["agent_type"] = json!(at);
-        }
-        let mut cfg = serde_json::Map::new();
-        let story_arr: Vec<serde_json::Value> = stories
-            .iter()
-            .map(|s| serde_json::Value::String(s.to_string()))
-            .collect();
-        cfg.insert("stories".to_string(), serde_json::Value::Array(story_arr));
-        if let Some(cid) = cycle_id {
-            cfg.insert(
-                "cycle_id".to_string(),
-                serde_json::Value::String(cid.to_string()),
-            );
-        }
-        v["plugin_config"] = serde_json::Value::Object(cfg);
-        serde_json::from_value(v).expect("fixture must deserialize")
-    }
-
     #[test]
-    fn test_BC_4_10_001_plugin_config_stories_extraction() {
-        // F-HIGH-3: the production RealCallbacks::list_stories must read
-        // plugin_config.stories from the payload, not always return Err.
-        //
-        // This test verifies the extraction logic using extract_stories_from_config
-        // (a public helper added to lib.rs for testability).
-        // When plugin_config.stories is a non-empty JSON array of strings,
-        // extraction must return Ok with those strings.
-        let payload = make_payload_with_stories(
-            Some("wave-gate-dispatch"),
-            &["S-12.01", "S-12.02", "S-13.01"],
-            Some("v1.0-feature-engine-discipline-pass-1"),
-        );
-        let stories = extract_stories_from_config(&payload.plugin_config);
+    fn test_BC_4_10_001_wave_context_stories_extraction() {
+        // S-12.08 AC-001 (replaces F-HIGH-3): the new path reads stories from
+        // plugin_config["wave_context"]["stories"] (WaveContextResolver injection).
+        // extract_stories_from_wave_context must return Ok with the injected stories.
+        let plugin_config = json!({
+            "wave_context": {
+                "stories": ["S-12.01", "S-12.02", "S-13.01"],
+                "wave_id": "w-test",
+                "cycle_id": "v1.0-feature-engine-discipline-pass-1"
+            }
+        });
+        let stories = extract_stories_from_wave_context(&plugin_config);
         assert!(
             stories.is_ok(),
-            "F-HIGH-3: extract_stories_from_config must return Ok when \
-             plugin_config.stories is a non-empty array. Got: {:?}",
+            "S-12.08 AC-001: extract_stories_from_wave_context must return Ok for valid \
+             wave_context.stories. Got: {:?}",
             stories
         );
         let story_list = stories.unwrap();
         assert_eq!(
             story_list,
             vec!["S-12.01", "S-12.02", "S-13.01"],
-            "F-HIGH-3: extracted stories must match plugin_config.stories array"
+            "S-12.08 AC-001: extracted stories must match wave_context.stories array"
         );
     }
 
     #[test]
-    fn test_BC_4_10_001_plugin_config_stories_absent_returns_err() {
-        // F-HIGH-3: when plugin_config.stories is absent, extract_stories_from_config
-        // must return Err so hook_logic gracefully degrades (BC-4.10.002 invariant 3).
-        let payload = make_payload(Some("wave-gate-dispatch")); // no plugin_config
-        let stories = extract_stories_from_config(&payload.plugin_config);
+    fn test_BC_4_10_001_wave_context_absent_returns_missing() {
+        // S-12.08 AC-002 (replaces F-HIGH-3 absent case): when wave_context is absent,
+        // extract_stories_from_wave_context must return Err(WaveContextError::Missing).
+        let plugin_config = json!({});
+        let stories = extract_stories_from_wave_context(&plugin_config);
         assert!(
-            stories.is_err(),
-            "F-HIGH-3: extract_stories_from_config must return Err when \
-             plugin_config.stories is absent (graceful degrade path)"
+            matches!(stories, Err(WaveContextError::Missing)),
+            "S-12.08 AC-002: absent wave_context must return Err(WaveContextError::Missing), \
+             got: {:?}",
+            stories
         );
     }
 
     #[test]
-    fn test_BC_4_10_001_plugin_config_stories_empty_array_returns_empty() {
-        // F-HIGH-3: when plugin_config.stories is an empty array, extraction
-        // returns Ok(vec![]) so hook_logic returns Continue (vacuous convergence,
-        // BC-4.10.001 EC-001).
-        let payload = make_payload_with_stories(
-            Some("wave-gate-dispatch"),
-            &[], // empty stories array
-            Some("v1.0-test"),
-        );
-        let stories = extract_stories_from_config(&payload.plugin_config);
+    fn test_BC_4_10_001_wave_context_empty_stories_array_returns_empty() {
+        // S-12.08 (replaces F-HIGH-3 empty-array case): when wave_context.stories is [],
+        // extract_stories_from_wave_context returns Ok(vec![]) → hook_logic returns Continue
+        // (vacuous convergence, BC-4.10.001 EC-001).
+        let plugin_config = json!({
+            "wave_context": {
+                "stories": [],
+                "wave_id": "w-test",
+                "cycle_id": "v1.0-test"
+            }
+        });
+        let stories = extract_stories_from_wave_context(&plugin_config);
         assert!(
             stories.is_ok(),
-            "F-HIGH-3: empty stories array must return Ok(vec[]) not Err"
+            "S-12.08: empty wave_context.stories must return Ok(vec![]) not Err"
         );
         assert!(
             stories.unwrap().is_empty(),
-            "F-HIGH-3: empty stories array must yield empty Vec"
+            "S-12.08: empty wave_context.stories must yield empty Vec"
         );
     }
 
     #[test]
-    fn test_BC_4_10_001_hook_logic_with_plugin_config_stories_blocks_on_missing_state() {
-        // F-HIGH-3: end-to-end test demonstrating that a payload with
-        // plugin_config.stories and a FakeCallbacks that uses those stories
-        // (mimicking the fixed RealCallbacks) causes the hook to actually check
-        // convergence rather than silently degrading.
-        //
-        // When state file is absent for a story in plugin_config.stories,
-        // the hook must return HookResult::Block (not Continue).
-        let payload =
-            make_payload_with_stories(Some("wave-gate-dispatch"), &["S-12.01"], Some("v1.0-test"));
-        // Extract stories from plugin_config (simulating fixed RealCallbacks behavior)
-        let stories = extract_stories_from_config(&payload.plugin_config)
-            .expect("test: plugin_config.stories must be extractable");
-        let callbacks = FakeCallbacks::new_with_story(
-            None, // absent state file → should block
-            stories,
+    fn test_BC_4_10_001_hook_logic_with_wave_context_blocks_on_missing_state() {
+        // S-12.08 AC-001 + BC-4.10.001 PC2: end-to-end test demonstrating that a payload
+        // with wave_context.stories causes the hook to actively check convergence.
+        // When the state file is absent (Ok(None) from read_file), hook blocks.
+        let payload = make_payload_with_wave_context(
+            Some("wave-gate-dispatch"),
+            &["S-12.01"],
+            Some("v1.0-test"),
         );
+        let callbacks = FakeCallbacks::new_with_story(None); // absent state file → should block
 
         let result = hook_logic(&payload, &callbacks);
         assert!(
             matches!(result, HookResult::Block { .. }),
-            "F-HIGH-3: hook_logic with plugin_config.stories + absent state file \
-             MUST return HookResult::Block (not Continue). This verifies the production \
-             path is operationally active when stories are supplied via plugin_config."
+            "S-12.08: hook_logic with wave_context.stories + absent state file \
+             MUST return HookResult::Block (not Continue). The hook is now operationally \
+             active via the WaveContextResolver injection path."
         );
     }
 
@@ -2044,15 +2053,10 @@ mod tests {
     // -----------------------------------------------------------------------
 
     #[test]
-    #[should_panic]
     fn test_extract_stories_from_wave_context_reads_nested_array() {
         // S-12.08 AC-001 traces to BC-4.10.001 PC1: the new extraction function
         // reads plugin_config["wave_context"]["stories"]. When called with a
         // well-formed payload the function must return Ok(vec!["S-12.03", "S-12.04"]).
-        //
-        // RED at Step 2: extract_stories_from_wave_context is todo!() — panics.
-        // GREEN at Step 3: implementer writes the real body; result is
-        //   Ok(vec!["S-12.03".to_string(), "S-12.04".to_string()]).
         let plugin_config = json!({
             "wave_context": {
                 "stories": ["S-12.03", "S-12.04"]
@@ -2077,11 +2081,9 @@ mod tests {
     // -----------------------------------------------------------------------
 
     #[test]
-    #[should_panic]
     fn test_absent_wave_context_returns_missing_error() {
         // S-12.08 AC-002a: plugin_config = {} (no wave_context key at all).
         // Must return Err(WaveContextError::Missing).
-        // RED at Step 2: todo!() panics.
         let plugin_config = json!({});
         let result = extract_stories_from_wave_context(&plugin_config);
         assert!(
@@ -2098,11 +2100,9 @@ mod tests {
     // -----------------------------------------------------------------------
 
     #[test]
-    #[should_panic]
     fn test_null_wave_context_returns_missing_error() {
         // S-12.08 AC-002b: plugin_config = {"wave_context": null}.
         // JSON null is treated as absent — must return Err(WaveContextError::Missing).
-        // RED at Step 2: todo!() panics.
         let plugin_config = json!({ "wave_context": null });
         let result = extract_stories_from_wave_context(&plugin_config);
         assert!(
@@ -2119,11 +2119,9 @@ mod tests {
     // -----------------------------------------------------------------------
 
     #[test]
-    #[should_panic]
     fn test_absent_stories_key_in_wave_context_returns_missing() {
         // S-12.08 AC-002c: plugin_config = {"wave_context": {}} (wave_context
         // present but stories key missing). Must return Err(WaveContextError::Missing).
-        // RED at Step 2: todo!() panics.
         let plugin_config = json!({ "wave_context": {} });
         let result = extract_stories_from_wave_context(&plugin_config);
         assert!(
@@ -2141,11 +2139,9 @@ mod tests {
     // -----------------------------------------------------------------------
 
     #[test]
-    #[should_panic]
     fn test_wrong_type_stories_returns_schema_error() {
         // S-12.08 AC-003: multiple wrong-type variants for wave_context.stories.
         // All must return Err(WaveContextError::SchemaError(_)).
-        // RED at Step 2: todo!() panics on the first call.
 
         // Variant 1: stories is a string (not an array)
         let cfg_string = json!({ "wave_context": { "stories": "not-an-array" } });
@@ -2193,7 +2189,6 @@ mod tests {
     // -----------------------------------------------------------------------
 
     #[test]
-    #[should_panic]
     fn test_static_config_preserved_after_wave_context_injection() {
         // S-12.08 AC-006: resolver output is additive (BC-4.12.005 PC1). The
         // wave_context key is ADDED to the existing plugin_config; it does not
@@ -2203,8 +2198,6 @@ mod tests {
         //
         // Note: extract_stories_from_wave_context takes &Value (not Value), so the
         // caller retains full ownership of plugin_config including existing_key.
-        //
-        // RED at Step 2: todo!() panics on the extract call.
         let plugin_config = json!({
             "existing_key": "value",
             "wave_context": {
@@ -2271,10 +2264,7 @@ mod tests {
                 "cycle_id": "test-cycle"
             }
         });
-        let callbacks_a = FakeCallbacks::new_with_story(
-            Some(insufficient_passes_json(1)),
-            vec!["S-FAKE-001".to_string()],
-        );
+        let callbacks_a = FakeCallbacks::new_with_story(Some(insufficient_passes_json(1)));
         let result_a = hook_logic(&payload_a, &callbacks_a);
         assert!(
             matches!(result_a, HookResult::Block { .. }),
@@ -2292,10 +2282,7 @@ mod tests {
                 "cycle_id": "test-cycle"
             }
         });
-        let callbacks_b = FakeCallbacks::new_with_story(
-            Some(cleared_state_json()),
-            vec!["S-FAKE-002".to_string()],
-        );
+        let callbacks_b = FakeCallbacks::new_with_story(Some(cleared_state_json()));
         let result_b = hook_logic(&payload_b, &callbacks_b);
         assert!(
             matches!(result_b, HookResult::Continue),
@@ -2412,8 +2399,12 @@ mod tests {
         // (validate-per-story-adversary-convergence → hook-plugins → crates → worktree-root)
         let registry_path = std::path::Path::new(&manifest_dir)
             .join("../../../plugins/vsdd-factory/hooks-registry.toml");
-        let registry_src = std::fs::read_to_string(&registry_path)
-            .unwrap_or_else(|e| panic!("failed to read hooks-registry.toml at {:?}: {e}", registry_path));
+        let registry_src = std::fs::read_to_string(&registry_path).unwrap_or_else(|e| {
+            panic!(
+                "failed to read hooks-registry.toml at {:?}: {e}",
+                registry_path
+            )
+        });
 
         // Assert needs_context = ["wave_context"] appears in the file.
         // Step 1 added this field to the validate-per-story-adversary-convergence entry.
