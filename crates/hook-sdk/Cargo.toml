@@ -33,6 +33,7 @@ vsdd-hook-sdk-macros = { path = "../hook-sdk-macros", version = "0.2.0" }
 serde_json.workspace = true
 proptest = "1.6"
 trybuild.workspace = true
+wasmparser = "0.248"
 
 [[example]]
 name = "hello-hook"
