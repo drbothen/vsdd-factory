@@ -143,6 +143,7 @@ dtu_services: []
 | **TD #70** cargo cache reuse (Swatinem/rust-cache@v2) | FILED; BLOCKED by E-10 resume | — |
 | **TD #71** dispatcher stderr omits blocking_plugins + block_reason | FILED 2026-05-10 | Surgical executor.rs::execute_tiers fix needed |
 | **TD #72** serde_yaml 0.9.34 deprecated | FILED 2026-05-10 | Migrate to serde_yml or yaml-rust2; affects update-wave-state-on-merge, warn-pending-wave-gate, vsdd-context-resolvers |
+| **TD #73** wave-state.yaml schema disagreement | FILED 2026-05-10 | warn-pending-wave-gate uses YAML MAPPING; update-wave-state-on-merge (producer) + vsdd-context-resolvers use YAML SEQUENCE. Pick canonical (recommend SEQUENCE per producer authority). Migrate warn-pending-wave-gate. Surfaced by S-12.07 pass-2 adversary HIGH-006. Migration deferred — requires rewriting 1000+ lines of integration test fixtures. |
 | Ghost BCs: BC-3.07.003/004, BC-1.06.011 | DEFERRED | Missing from BC-INDEX; investigate in future fix-burst |
 
 ## Historical Content

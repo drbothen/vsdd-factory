@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.2"
+version: "1.3"
 status: draft
 producer: product-owner
 timestamp: 2026-05-07T00:00:00Z
@@ -73,7 +73,7 @@ independently from `HOST_ABI_VERSION`.
    struct as JSON and returns it via the `resolve()` export:
    ```
    ResolverOutput {
-     key: String,           // the resolver's registry name (e.g., "wave-context")
+     key: String,           // the resolver's registry name (e.g., "wave_context")
      value: Option<Value>,  // the context payload, or null if no output for this dispatch
    }
    ```
@@ -139,9 +139,9 @@ independently from `HOST_ABI_VERSION`.
 
 | Input | Expected ResolverOutput |
 |-------|------------------------|
-| `ResolverInput { event_type: "SubagentStop", hook_event_name: "validate-...", agent_type: Some("wave-gate"), project_dir: "/repo", plugin_config: {} }` | `ResolverOutput { key: "wave-context", value: Some({"stories": ["S-12.03", "S-12.04"], "wave_id": "wave-1", "cycle_id": "v1.0-..."}) }` |
-| Same input but `.factory/wave-state.yaml` absent | `ResolverOutput { key: "wave-context", value: None }` |
-| `ResolverInput { event_type: "PreToolUse", ... }` | `ResolverOutput { key: "wave-context", value: None }` (resolver returns None for irrelevant events) |
+| `ResolverInput { event_type: "SubagentStop", hook_event_name: "validate-...", agent_type: Some("wave-gate"), project_dir: "/repo", plugin_config: {} }` | `ResolverOutput { key: "wave_context", value: Some({"stories": ["S-12.03", "S-12.04"], "wave_id": "wave-1", "cycle_id": "v1.0-..."}) }` |
+| Same input but `.factory/wave-state.yaml` absent | `ResolverOutput { key: "wave_context", value: None }` |
+| `ResolverInput { event_type: "PreToolUse", ... }` | `ResolverOutput { key: "wave_context", value: None }` (resolver returns None for irrelevant events) |
 | Serde round-trip: serialize ResolverInput, deserialize, serialize ResolverOutput, deserialize | Identical structs (VP-075 determinism test vector) |
 
 ## Verification Properties
@@ -193,6 +193,7 @@ S-12.05 (hook-sdk resolver-authoring extensions) and S-12.06 (HOST_ABI.md contex
 
 | Version | Date | Description |
 |---------|------|-------------|
+| 1.3 | 2026-05-10 | Pass-2 fix-burst: canonical key changed wave-context → wave_context in PC2 comment + canonical test vectors (3 rows). Aligns with BC-4.12.005 v1.2 already-converged form. |
 | 1.2 | 2026-05-10 | F-P3-004 burst: Architecture Anchors updated — removed `Resolver` trait from hook-sdk/src/resolver.rs anchor (trait deleted in S-12.05 pass-2 per architect Path B; authoring primitive is the `#[resolver]` proc-macro on a free fn `resolve_impl`). Propagates pass-2 implementation decision to BC body. |
 | 1.1 | 2026-05-09 | F-P45-001 — Traceability Stories row propagated from BC-INDEX v1.57: S-12.05, S-12.06 → S-12.05, S-12.06, S-12.07. BC-INDEX was updated in fix-burst-39 (v1.55) to add S-12.07; body was not updated in that burst. Refs: F-P45-001, fix-burst-42. |
 | 1.0 | 2026-05-07 | Initial authoring (product-owner; F2-amendment phase of v1.0-feature-engine-discipline-pass-1). Encodes OD-3 (distinct ResolverInput/ResolverOutput types, versioned independently as Resolver ABI v1). Resolver ABI explicitly does NOT reuse HookPayload/HookResult per user-authorized architectural decision D-361. |

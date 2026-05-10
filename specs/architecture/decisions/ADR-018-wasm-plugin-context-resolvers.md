@@ -194,7 +194,7 @@ The layering is strict:
 
 - **`crates/vsdd-context-resolvers/`** — per-factory resolver crate for vsdd-factory.
   Contains `WaveContextResolver`: reads `.factory/wave-state.yaml`, parses the active
-  wave's story list, returns `ResolverOutput { key: "wave-context", value: Some(...) }`.
+  wave's story list, returns `ResolverOutput { key: "wave_context", value: Some(...) }`.
   Compiles to `plugins/vsdd-factory/hook-plugins/vsdd-context-resolvers.wasm`.
   Registered in `plugins/vsdd-factory/resolvers-registry.toml` with
   `path_allow = [".factory/"]`.
@@ -213,7 +213,7 @@ semantically equivalent to `needs_context = []` and incurs zero resolver invocat
 The convergence hook entry in `plugins/vsdd-factory/hooks-registry.toml` gains:
 
 ```toml
-needs_context = ["wave-context"]
+needs_context = ["wave_context"]
 ```
 
 This is the only modification to `hooks-registry.toml` for the initial deployment.
@@ -398,3 +398,17 @@ full VP definitions.
 - ADR-017: Per-story adversary phasing — the convergence hook (S-12.02, anchored
   by ADR-017) is the primary consumer of the resolver platform. ADR-018 provides
   the infrastructure that makes ADR-017's hook operationally effective.
+
+## Source / Origin
+
+Originated from F-P2-001 adversarial review pass 2 (2026-05-07): `validate-per-story-adversary-convergence`
+hook found inert in production — nothing writes `plugin_config.wave_context.stories` at dispatch time.
+Decision authored by architect in F2-amendment burst alongside BC-4.12.001–005.
+
+**Pass-2 amendment (2026-05-10):** Canonical context key corrected from `wave-context` (hyphen) to
+`wave_context` (underscore) throughout this ADR. The two affected locations were:
+- §Decision: `crates/vsdd-context-resolvers/` description — `key: "wave_context"` (was `"wave-context"`)
+- §Hook opt-in mechanism: `needs_context = ["wave_context"]` (was `["wave-context"]`)
+
+These corrections align ADR-018 with BC-4.12.005 PC7 (canonical key uses underscore),
+`resolvers-registry.toml` (delivered in S-12.07), and `lib.rs` implementation.
