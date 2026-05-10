@@ -516,6 +516,19 @@ async fn f_p2_007_erroring_resolver_causes_resolver_error_event_in_internal_log(
          wiring isn't dropped silently in a regression. \
          Log content: {all_log_content:?}"
     );
+    // F-S12.04-P5-002: session_id positive-coverage assertion. The base_host_ctx in
+    // make_executor_inputs is constructed via HostContext::new("", "0.0.1",
+    // "sess-resolver-test", "trace-resolver-test") (line 119). executor.rs:487
+    // captures base_host_ctx.session_id as session_id_err and wires it into the
+    // resolver.error event via with_session_id(). This assertion ensures that wiring
+    // isn't dropped silently in a regression (positive coverage check).
+    assert!(
+        all_log_content.contains("sess-resolver-test"),
+        "F-S12.04-P5-002: resolver.error event must include the dispatch session_id \
+         ('sess-resolver-test', from base_host_ctx). Positive coverage check — ensures \
+         with_session_id() wiring isn't dropped silently in a regression. \
+         Log content: {all_log_content:?}"
+    );
 }
 
 // ---------------------------------------------------------------------------
