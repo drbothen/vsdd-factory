@@ -5,12 +5,16 @@
 //
 // Expected: compiles without error (no .stderr file = must pass).
 //
-// RED GATE: FAILS because the macro body is `todo!()` — the macro panics
-// during compilation instead of generating the `resolve()` export.
-// Will pass GREEN after the Step 4 implementer completes the macro.
+// GREEN: macro implemented. This trybuild case asserts that #[resolver]
+// applied to the canonical signature compiles cleanly and emits a
+// #[cfg(target_arch="wasm32")] resolve() body. (Host build elides body;
+// wasm32 export verified by tests/wasm32_resolver_export_integration.rs.)
 //
 // Traces: AC-005, BC-4.12.002 postcondition 5.
 
+// Note: this fixture relies on `vsdd-hook-sdk`'s [dependencies] serde_json
+// (regular, not dev-only). If serde_json is ever demoted to dev-dependencies,
+// this trybuild fixture would silently break AC-005.
 use vsdd_hook_sdk::{ResolverInput, ResolverOutput, resolver};
 
 // Note: trybuild compiles this on the HOST target. The macro's #[cfg(target_arch="wasm32")]
