@@ -25,7 +25,10 @@ use serde::Deserialize;
 /// The implementer (Step 3) must align this struct with the actual YAML schema
 /// discovered in T-1. Fields may be promoted to non-Optional once the schema is
 /// confirmed stable.
-#[derive(Debug, Clone, Deserialize)]
+// `Default` is GREEN-BY-DESIGN: it is a pure derive with no logic. It is needed
+// by AC-002b test (`WaveState::default()` models the post-parse-failure path where
+// resolve_impl substitutes an all-None WaveState). No implementer work required.
+#[derive(Debug, Clone, Default, Deserialize)]
 pub struct WaveState {
     /// Current pipeline cycle identifier (e.g. `"v1.0-feature-engine-discipline-pass-1"`).
     pub current_cycle: Option<String>,
