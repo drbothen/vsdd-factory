@@ -1094,7 +1094,7 @@ fields:
 | `resolver_name` | The registry name of the failed resolver. |
 | `error_kind` | One of: `"trap"`, `"timeout"`, `"abi_violation"`, `"capability_denied"`, `"not_found"`, `"load_error"`. |
 | `error_detail` | Human-readable description of the specific error. |
-| `hook_event_name` | The hook dispatch context that triggered this resolver. |
+| `event_type` | The Claude Code envelope event type (e.g., `'PreToolUse'`, `'PostToolUse'`) that triggered this resolver dispatch. |
 
 In addition to the telemetry event, the dispatcher writes an error-level log entry at the configured log path with the same fields (BC-4.12.004 PC7).
 
@@ -1139,6 +1139,17 @@ key, not a null value. This is distinct from `value: Some(null)` — a resolver 
 the static `plugin_config`, the dispatcher emits a `resolver.merge_collision` telemetry
 event with the key name, static value, and resolver value. The resolver's output wins.
 This is not an error; it is an expected enrichment pattern.
+
+**`resolver.merge_collision` event fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `key` | string | The colliding output key. |
+| `static_value` | any (JSON) | The static-config value being overwritten. |
+| `resolver_value` | any (JSON) | The resolver-output value overwriting the static. |
+| `resolver_name` | string | The registry name of the resolver whose output produced the collision. |
+| `plugin_name` | string | The hook plugin name being dispatched. |
+| `trace_id` | string | Dispatch trace ID. |
 
 **`needs_context` is the merge scope:** Only resolvers named in the `needs_context` field
 of the hooks-registry entry contribute to the merge for that dispatch. Other registered

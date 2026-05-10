@@ -943,6 +943,7 @@ dependencies = [
  "filetime",
  "httpmock",
  "opentelemetry-proto",
+ "proptest",
  "regex",
  "serde",
  "serde_json",

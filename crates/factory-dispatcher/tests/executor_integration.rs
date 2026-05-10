@@ -15,6 +15,7 @@ use factory_dispatcher::host::HostContext;
 use factory_dispatcher::internal_log::InternalLog;
 use factory_dispatcher::plugin_loader::PluginCache;
 use factory_dispatcher::registry::{Capabilities, Registry, RegistryEntry};
+use factory_dispatcher::resolver::ResolverRegistry;
 use factory_dispatcher::routing::group_by_priority;
 
 /// Minimal WASI command: returns cleanly.
@@ -62,6 +63,7 @@ fn entry_at(path: &std::path::Path, name: &str, priority: u32) -> RegistryEntry 
         // postcondition 3 (serde-default semantics). Test fixture updated for
         // compilation; the implementer updates schema_version to 2 in T-3a.
         async_flag: false,
+        needs_context: vec![],
     }
 }
 
@@ -89,6 +91,8 @@ fn inputs<'a>(
         payload_value: serde_json::json!({}),
         base_host_ctx: base,
         internal_log: internal_log.clone(),
+        // S-12.03: empty registry — tests don't exercise resolver path
+        resolver_registry: Arc::new(ResolverRegistry::new()),
     }
 }
 

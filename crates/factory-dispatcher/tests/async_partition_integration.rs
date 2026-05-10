@@ -40,6 +40,7 @@ use factory_dispatcher::internal_log::InternalLog;
 use factory_dispatcher::partition::partition_plugins;
 use factory_dispatcher::plugin_loader::PluginCache;
 use factory_dispatcher::registry::{OnError, Registry, RegistryDefaults, RegistryEntry};
+use factory_dispatcher::resolver::ResolverRegistry;
 use factory_dispatcher::routing::group_by_priority;
 
 // ---------------------------------------------------------------------------
@@ -61,6 +62,7 @@ fn make_entry(name: &str, async_flag: bool) -> RegistryEntry {
         capabilities: None,
         config: toml::Value::Table(toml::Table::new()),
         async_flag,
+        needs_context: vec![],
     }
 }
 
@@ -79,6 +81,7 @@ fn make_entry_with_on_error(name: &str, async_flag: bool, on_error: OnError) -> 
         capabilities: None,
         config: toml::Value::Table(toml::Table::new()),
         async_flag,
+        needs_context: vec![],
     }
 }
 
@@ -119,6 +122,8 @@ fn make_executor_inputs<'a>(
         payload_value: serde_json::json!({}),
         base_host_ctx: base,
         internal_log: internal_log.clone(),
+        // S-12.03: empty registry — tests don't exercise resolver path
+        resolver_registry: Arc::new(ResolverRegistry::new()),
     }
 }
 

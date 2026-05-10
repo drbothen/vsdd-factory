@@ -7,6 +7,11 @@
 //! decisions. Execution (wasmtime instantiation, tokio scheduling,
 //! fuel enforcement) is filled in by S-1.4–S-1.6.
 
+// F-P2-002: deny unsafe code in factory-dispatcher — regression guard.
+// The crate operates in a security-critical dispatch path; unsafe is
+// never warranted here (InternalLog is Clone; closures use by-value capture).
+#![deny(unsafe_code)]
+
 pub mod aggregator;
 pub mod engine;
 pub mod executor;
@@ -17,6 +22,8 @@ pub mod partition;
 pub mod payload;
 pub mod plugin_loader;
 pub mod registry;
+pub mod resolver;
+pub use resolver::CollisionInfo;
 pub mod routing;
 pub mod sinks;
 

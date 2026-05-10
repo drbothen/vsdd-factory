@@ -134,6 +134,7 @@ mod kani_proofs {
             capabilities: None,
             config: toml::Value::Table(toml::Table::new()),
             async_flag,
+            needs_context: vec![],
         }
     }
 

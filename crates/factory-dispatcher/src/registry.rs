@@ -243,6 +243,20 @@ pub struct RegistryEntry {
     /// cite by reference, do NOT hardcode the value (Decision 4).
     #[serde(default, rename = "async")]
     pub async_flag: bool,
+
+    /// Resolver names this hook requires for context injection.
+    ///
+    /// Each name must match a `name` entry in `resolvers-registry.toml`.
+    /// Defaults to `[]` (empty) so existing hooks-registry.toml entries that
+    /// omit this field parse correctly (BC-1.13.001 INV3). An empty list
+    /// means the dispatcher skips resolver invocation entirely — zero overhead
+    /// on the dispatch hot path (BC-1.13.001 PC3).
+    ///
+    /// `#[serde(default)]` is mandatory here per BC-1.13.001 invariant 3.
+    /// Do NOT use `Option<Vec<String>>` — use `Vec<String>` with `default` so
+    /// the absent field deserializes to `[]`, not `None`.
+    #[serde(default)]
+    pub needs_context: Vec<String>,
 }
 
 fn default_enabled() -> bool {

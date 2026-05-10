@@ -1,0 +1,35 @@
+## Full cargo test --package factory-dispatcher — all green
+
+Command:
+  cargo test -p factory-dispatcher
+
+Summary of results (all integration and unit test harnesses):
+
+  unittests src/lib.rs                      140 passed;  0 failed; 0 ignored
+  unittests src/main.rs                       0 passed;  0 failed; 0 ignored
+  absolute_path_hook_engagement.rs           10 passed;  0 failed; 0 ignored
+  ac017_demo_evidence.rs                      3 passed;  0 failed; 0 ignored
+  async_partition_integration.rs             23 passed;  0 failed; 0 ignored
+  bc_2_02_011_parity.rs                       7 passed;  0 failed; 0 ignored
+  bc_7_03_079_080_parity.rs                  11 passed;  0 failed; 0 ignored
+  bc_9_01_rc1_release_gate_test.rs           23 passed;  0 failed; 0 ignored
+  event_emission_fault_injection.rs          14 passed;  0 failed; 0 ignored
+  executor_integration.rs                     5 passed;  0 failed; 0 ignored
+  executor_resolver_integration.rs            8 passed;  0 failed; 0 ignored
+  full_stack_plugin_invocation.rs             8 passed;  0 failed; 4 ignored (TD #67 timing)
+  host_functions.rs                           2 passed;  0 failed; 0 ignored
+  host_write_file_integration.rs             10 passed;  0 failed; 0 ignored
+  internal_log_integration.rs                 2 passed;  0 failed; 0 ignored
+  latency_canary.rs                           2 passed;  0 failed; 1 ignored (--release only)
+  loads_legacy_registry.rs                    1 passed;  0 failed; 0 ignored
+  resolver_determinism_proptest.rs            3 passed;  0 failed; 0 ignored
+  resolver_registry_test.rs                 22 passed;  0 failed; 0 ignored
+  router_integration.rs                       3 passed;  0 failed; 0 ignored
+  routing_integration.rs                      4 passed;  0 failed; 0 ignored
+  s4_07_integration.rs                       40 passed;  0 failed; 0 ignored
+  sinks_file_integration.rs                   1 passed;  0 failed; 0 ignored
+  sinks_otel_grpc.rs                          4 passed;  0 failed; 0 ignored
+  vp078_harness3_telemetry_classification.rs  1 passed;  0 failed; 0 ignored
+  Doc-tests factory_dispatcher                0 passed;  0 failed; 0 ignored
+
+TOTAL: all tests passed; no regressions. Ignored tests are pre-existing and unrelated to S-12.03.

@@ -1,0 +1,23 @@
+## AC-011: Empty registry handled gracefully — no error or panic
+
+Traces to: BC-1.13.001 invariant 2
+Tests: test_BC_1_13_001_ac011_empty_registry_construction_does_not_error
+       test_BC_1_13_001_ac011_empty_registry_emits_not_found_and_does_not_panic
+
+Command:
+  cargo test -p factory-dispatcher --test resolver_registry_test -- test_BC_1_13_001_ac011 --nocapture
+
+Output:
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.25s
+     Running tests/resolver_registry_test.rs (target/debug/deps/resolver_registry_test-3494f675c90c589c)
+
+running 2 tests
+test test_BC_1_13_001_ac011_empty_registry_construction_does_not_error ... ok
+test test_BC_1_13_001_ac011_empty_registry_emits_not_found_and_does_not_panic ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 20 filtered out; finished in 0.00s
+
+RESULT: PASS
+Assertions verified: ResolverRegistry::empty() construction succeeds; dispatch with
+needs_context: ["any"] against empty registry emits resolver.not_found; invoke_plugin
+called normally; process does not panic.
