@@ -14,7 +14,6 @@
 
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use std::collections::HashMap;
 use thiserror::Error;
 
 // ---------------------------------------------------------------------------
@@ -216,9 +215,11 @@ impl ResolverRegistry {
     ///   caller can emit the `resolver.error` telemetry event non-blockingly
     ///   (BC-1.13.001 PC2 / BC-4.12.005 INV3 — failed resolver is observable).
     ///
-    /// Returns a `HashMap<String, Value>` of successfully-resolved outputs
-    /// (key → value). Resolvers returning `Ok(None)` contribute no entry
-    /// (BC-4.12.005 PC2). Failed resolvers contribute no entry.
+    /// Returns a `Vec<(String, Value)>` of successfully-resolved outputs
+    /// in **declaration order** (BC-1.13.001 PC7 — the order of `requested_names`
+    /// is preserved so `merge_resolver_outputs` applies them deterministically).
+    /// Resolvers returning `Ok(None)` contribute no entry (BC-4.12.005 PC2).
+    /// Failed resolvers contribute no entry.
     ///
     /// Per BC-4.12.002 INV4: each resolver receives only the static
     /// `plugin_config`; resolver outputs are merged after all invocations.
@@ -228,8 +229,8 @@ impl ResolverRegistry {
         input: &ResolverInput,
         emit_not_found: impl Fn(&str),
         emit_resolver_error: impl Fn(&str, &ResolverError),
-    ) -> HashMap<String, Value> {
-        let mut map = HashMap::new();
+    ) -> Vec<(String, Value)> {
+        let mut outputs = Vec::new();
         for name in requested_names {
             match self.invoke_resolver(name, input, &emit_not_found) {
                 None => {
@@ -243,13 +244,14 @@ impl ResolverRegistry {
                 }
                 Some(Ok(output)) => {
                     if let Some(value) = output.value {
-                        map.insert(output.key, value);
+                        // Preserve declaration order (BC-1.13.001 PC7).
+                        outputs.push((output.key, value));
                     }
                     // value: None → key absent (BC-4.12.005 PC2)
                 }
             }
         }
-        map
+        outputs
     }
 
     /// Number of registered resolvers (for startup log: "Loaded N context resolvers").

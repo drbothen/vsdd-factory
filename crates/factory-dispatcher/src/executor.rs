@@ -509,16 +509,15 @@ fn build_plugin_config(
         }
     };
 
-    let resolver_outputs_map = resolver_registry.resolve_context_for_entry(
-        &entry.needs_context,
-        &resolver_input,
-        emit_not_found,
-        emit_resolver_error,
-    );
-
-    // Convert the HashMap<String, Value> from resolve_context_for_entry
-    // into a Vec<ResolverOutput> for merge_resolver_outputs.
-    let resolver_outputs: Vec<crate::resolver::ResolverOutput> = resolver_outputs_map
+    // resolve_context_for_entry returns Vec<(String, Value)> in declaration order
+    // (BC-1.13.001 PC7). Convert directly to Vec<ResolverOutput> preserving order.
+    let resolver_outputs: Vec<crate::resolver::ResolverOutput> = resolver_registry
+        .resolve_context_for_entry(
+            &entry.needs_context,
+            &resolver_input,
+            emit_not_found,
+            emit_resolver_error,
+        )
         .into_iter()
         .map(|(k, v)| crate::resolver::ResolverOutput {
             key: k,

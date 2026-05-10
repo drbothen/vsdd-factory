@@ -101,6 +101,17 @@ fn noop_emit(_name: &str) {}
 /// Noop `resolver_error` callback — used when tests don't need to capture resolver errors.
 fn noop_error(_name: &str, _err: &factory_dispatcher::resolver::ResolverError) {}
 
+/// Helper: check if a `Vec<(String, Value)>` from `resolve_context_for_entry` contains a key.
+fn vec_contains_key(v: &[(String, Value)], key: &str) -> bool {
+    v.iter().any(|(k, _)| k == key)
+}
+
+/// Helper: look up a value by key in the `Vec<(String, Value)>` returned by
+/// `resolve_context_for_entry`. Returns `None` when absent.
+fn vec_get<'a>(v: &'a [(String, Value)], key: &str) -> Option<&'a Value> {
+    v.iter().find(|(k, _)| k == key).map(|(_, val)| val)
+}
+
 // ===========================================================================
 // AC-001 — traces to BC-1.13.001 INV3
 // `RegistryEntry.needs_context` defaults to [] when absent from TOML.
@@ -256,7 +267,7 @@ fn test_BC_1_13_001_ac003_declared_resolver_is_invoked_and_output_returned() {
          (AC-003 / BC-1.13.001 PC4)"
     );
 
-    let map = resolved.unwrap();
+    let vec = resolved.unwrap();
     assert_eq!(
         *call_count.lock().unwrap(),
         1,
@@ -264,13 +275,13 @@ fn test_BC_1_13_001_ac003_declared_resolver_is_invoked_and_output_returned() {
          (AC-003 / BC-1.13.001 PC4)"
     );
     assert!(
-        map.contains_key("foo"),
-        "resolved map must contain key 'foo' after resolver invocation \
+        vec_contains_key(&vec, "foo"),
+        "resolved vec must contain key 'foo' after resolver invocation \
          (AC-003 / BC-1.13.001 PC4)"
     );
     assert_eq!(
-        map["foo"],
-        json!({"answer": 42}),
+        vec_get(&vec, "foo"),
+        Some(&json!({"answer": 42})),
         "resolved value must equal the resolver's output value \
          (AC-003 / BC-1.13.001 PC4)"
     );
@@ -315,9 +326,9 @@ fn test_BC_4_12_005_ac004_none_value_leaves_key_absent_from_resolved_map() {
          (AC-004 / BC-4.12.005 PC2)"
     );
 
-    let map = resolved.unwrap();
+    let vec = resolved.unwrap();
     assert!(
-        !map.contains_key("foo"),
+        !vec_contains_key(&vec, "foo"),
         "key 'foo' must be ABSENT (not null) when resolver returns value: None \
          (AC-004 / BC-4.12.005 PC2)"
     );
@@ -385,7 +396,7 @@ fn test_BC_1_13_001_ac005_unknown_resolver_triggers_not_found_callback() {
          (AC-005 / BC-1.13.001 PC6 — dispatch proceeds without context)"
     );
 
-    let map = resolved.unwrap();
+    let vec = resolved.unwrap();
     let captured = not_found_names.lock().unwrap().clone();
     assert_eq!(
         captured,
@@ -394,8 +405,8 @@ fn test_BC_1_13_001_ac005_unknown_resolver_triggers_not_found_callback() {
          (AC-005 / BC-1.13.001 PC6 — resolver.not_found event)"
     );
     assert!(
-        !map.contains_key("unknown"),
-        "resolved map must NOT contain 'unknown' when resolver is not registered \
+        !vec_contains_key(&vec, "unknown"),
+        "resolved vec must NOT contain 'unknown' when resolver is not registered \
          (AC-005 / BC-1.13.001 PC6)"
     );
 }
@@ -615,9 +626,24 @@ fn test_BC_1_13_001_ac009_declaration_order_is_invocation_order() {
          (AC-009 / BC-1.13.001 PC7)"
     );
 
-    let map = resolved.unwrap();
-    assert!(map.contains_key("a"), "key 'a' must be present (AC-009)");
-    assert!(map.contains_key("b"), "key 'b' must be present (AC-009)");
+    let vec = resolved.unwrap();
+    assert!(
+        vec_contains_key(&vec, "a"),
+        "key 'a' must be present (AC-009)"
+    );
+    assert!(
+        vec_contains_key(&vec, "b"),
+        "key 'b' must be present (AC-009)"
+    );
+
+    // Verify declaration order is preserved in the output Vec (BC-1.13.001 PC7).
+    let output_order: Vec<&str> = vec.iter().map(|(k, _)| k.as_str()).collect();
+    assert_eq!(
+        output_order,
+        vec!["a", "b"],
+        "resolve_context_for_entry must return entries in declaration order: 'a' before 'b' \
+         (AC-009 / BC-1.13.001 PC7 — Vec preserves insertion order, unlike HashMap)"
+    );
 
     let invocation_order = order_log.lock().unwrap().clone();
     assert_eq!(
@@ -677,21 +703,21 @@ fn test_BC_1_13_001_ac010_resolved_context_is_fully_populated_before_return() {
          (AC-010 / BC-1.13.001 INV5)"
     );
 
-    let map = resolved.unwrap();
+    let vec = resolved.unwrap();
     assert!(
-        map.contains_key("key_a"),
-        "key_a must be present in returned map (AC-010 / BC-1.13.001 INV5)"
+        vec_contains_key(&vec, "key_a"),
+        "key_a must be present in returned vec (AC-010 / BC-1.13.001 INV5)"
     );
     assert!(
-        map.contains_key("key_b"),
-        "key_b must be present in returned map (AC-010 / BC-1.13.001 INV5)"
+        vec_contains_key(&vec, "key_b"),
+        "key_b must be present in returned vec (AC-010 / BC-1.13.001 INV5)"
     );
-    // Simulate what executor.rs will do: apply map to static config before invoke_plugin.
+    // Simulate what executor.rs will do: apply vec to static config before invoke_plugin.
     let static_config = json!({"static_key": "static_val"})
         .as_object()
         .unwrap()
         .clone();
-    let outputs: Vec<ResolverOutput> = map
+    let outputs: Vec<ResolverOutput> = vec
         .into_iter()
         .map(|(k, v)| ResolverOutput {
             key: k,
@@ -750,10 +776,10 @@ fn test_BC_1_13_001_ac011_empty_registry_emits_not_found_and_does_not_panic() {
         "empty registry dispatch must not panic (AC-011 / BC-1.13.001 INV2)"
     );
 
-    let map = resolved.unwrap();
+    let vec = resolved.unwrap();
     assert!(
-        map.is_empty(),
-        "empty registry must yield empty resolved map (AC-011 / BC-1.13.001 INV2)"
+        vec.is_empty(),
+        "empty registry must yield empty resolved vec (AC-011 / BC-1.13.001 INV2)"
     );
     let captured = not_found_names.lock().unwrap().clone();
     assert_eq!(
@@ -884,8 +910,8 @@ fn test_BC_4_12_005_ac012_first_registration_preserved_after_duplicate_fails() {
          (AC-012 / BC-4.12.005 EC-005)"
     );
 
-    let map = resolved.unwrap();
-    if let Some(val) = map.get("bar") {
+    let vec = resolved.unwrap();
+    if let Some(val) = vec_get(&vec, "bar") {
         assert_eq!(
             val.get("source").and_then(|v| v.as_str()),
             Some("first"),
