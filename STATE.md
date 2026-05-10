@@ -11,7 +11,7 @@ input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "Engine-discipline F4 — S-12.07 next (vsdd-context-resolvers crate + WaveContextResolver). Depends on S-12.04 ✓ + S-12.05 ✓ — all clear."
+current_step: "Engine-discipline F4 — S-12.07 Step 5 (demo recording) → Step 6 (PR creation)"
 current_cycle: v1.0-feature-engine-discipline-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,8 +38,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-10 — S-12.04 MERGED (PR #121 10fe412e), worktree + branch cleaned up. S-12.03/S-12.04/S-12.05 all merged. F4 platform 4/6 done. |
-| **Current Phase** | Engine-discipline F4 — S-12.07 next |
+| **Last Updated** | 2026-05-10 — S-12.07 Step 4.5 CONVERGED via 8-pass adversary streak; advancing to Step 5 demo recording |
+| **Current Phase** | Engine-discipline F4 — S-12.07 Step 5 (demo recording) → Step 6 (PR creation) |
 | **Current Cycle** | v1.0-feature-engine-discipline-pass-1 |
 
 ## Phase Progress
@@ -57,7 +57,7 @@ dtu_services: []
 | S-12.05 hook-sdk Resolver-Authoring Extensions | **MERGED** PR #119 2026-05-10 | 7 adversary passes; CRITICAL->HIGH->LOW->MEDIUM->NITPICK x3; convergence_reached=true |
 | S-12.03 ContextResolver trait + ResolverRegistry | **MERGED** PR #120 2026-05-10 | 9 adversary passes; CRITICAL x2->MEDIUM->LOW->HIGH->MEDIUM->NITPICK x3; v1.1 |
 | S-12.04 WASM Resolver Loading + Lifecycle | **MERGED** PR #121 2026-05-10 10fe412e | 11 passes; CRITICAL->HIGH->HIGH->NITPICK->MED->HIGH->MED->MED->NITPICK x3 |
-| S-12.07 HOST_ABI context injection consumer side | **READY** — all deps merged | Depends S-12.03 ✓ + S-12.04 ✓ + S-12.05 ✓ |
+| S-12.07 HOST_ABI context injection consumer side | **STEP 4.5 CONVERGED 2026-05-11 — 8-pass adversary streak (CRIT→HIGH→MED→LOW→LOW→N→N→N); ready for Step 5 (demo) + Step 6 (PR)** | Depends S-12.03 ✓ + S-12.04 ✓ + S-12.05 ✓ |
 | S-12.08 convergence hook (CRITICAL PATH TERMINUS) | **BLOCKED** | Depends S-12.07; closes F-P2-001 |
 | F5 pass-2 fix burst | **BLOCKED** | 15 CRITICAL findings; unblocked when S-12.08 merges |
 | Phase D-4 Burst 2 — E-10 + E-9 v1.7 | **PENDING** | E-10 paused D-343; adversary pass-9 queued |
@@ -154,12 +154,12 @@ dtu_services: []
 
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-10 — S-12.04 MERGED PR #121 at 10fe412e. async pr-manager agent ad6eff6bba4fc7a33 completed successfully. .worktrees/S-12.04 cleaned up; feature/S-12.04-wasm-resolver-loading branch deleted. F4 platform delivery: S-12.03 + S-12.04 + S-12.05 + S-12.06 all MERGED (4/6). Remaining: S-12.07 + S-12.08.
+**Last update:** 2026-05-10 — S-12.07 Step 4.5 CONVERGED. 8-pass adversary streak: CRIT→HIGH→MED→LOW→LOW(held)→NITPICK_ONLY x3. Single non-blocking NITPICK on auto-managed proptest-regressions shrink-comment. All DoD items satisfied except Step 5 (demo recording) + Step 6 (PR creation). F4 platform delivery: S-12.03 + S-12.04 + S-12.05 + S-12.06 all MERGED (4/6). S-12.07 pending demo+PR; S-12.08 pending S-12.07 merge.
 
 **Next session start — ordered checklist:**
 
-1. **Dispatch S-12.07** — vsdd-context-resolvers crate + WaveContextResolver. All deps cleared (S-12.03 ✓ + S-12.04 ✓ + S-12.05 ✓).
-2. S-12.07 Step 4 implementation + Step 4.5 adversary convergence (NITPICK x3 target).
+1. **S-12.07 Step 5** — demo recording (post-convergence). Run per-story-delivery.md Step 5 procedure.
+2. **S-12.07 Step 6** — PR creation via `/vsdd-factory:pr-create`. Target develop. Attach adversary convergence evidence (8-pass, adversary-pass-8.md).
 3. S-12.08 — dispatch after S-12.07 merges. CRITICAL PATH TERMINUS; closes F-P2-001.
 4. After S-12.08 merges: F5 pass-2 fix burst (15 CRITICAL findings from F5-pass-2-architect-decisions.md).
 5. Then F6 formal hardening -> F7 convergence.
