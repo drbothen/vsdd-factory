@@ -34,8 +34,7 @@ proptest = { workspace = true }
 # lints apply at their default level.
 [lints.rust]
 non_snake_case = "allow"
-# unexpected_cfgs for cfg(kani) is declared at workspace level (root Cargo.toml lines 107-112).
-# Workspace-level cfg(kani) declaration in root Cargo.toml is sufficient; no crate-level override needed here.
+# cfg(kani) is declared at the workspace level — no crate-level override needed here.
 
 [lints.clippy]
 unwrap_used = "deny"
