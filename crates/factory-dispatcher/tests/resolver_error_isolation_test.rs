@@ -29,6 +29,7 @@ use factory_dispatcher::registry::{Capabilities, Registry, RegistryEntry};
 use factory_dispatcher::resolver::{
     ContextResolver, ResolverError, ResolverInput, ResolverOutput, ResolverRegistry,
 };
+use factory_dispatcher::resolver_loader::ResolverLoader;
 use factory_dispatcher::routing::group_by_priority;
 
 // ---------------------------------------------------------------------------
@@ -52,73 +53,51 @@ fn trapping_resolver_wasm() -> std::path::PathBuf {
     std::path::Path::new(manifest).join("tests/fixtures/trapping_resolver.wasm")
 }
 
-// ---------------------------------------------------------------------------
-// TrappingWasmResolver: in-process resolver that simulates a WASM trap by
-// returning ResolverError::Trap. Used until the real WASM invocation path
-// is wired in Step 3.
-//
-// In Step 3 the implementer replaces this with a resolver that actually
-// instantiates trapping_resolver.wasm via wasmtime. Until then, this
-// proxy lets the integration tests verify the *dispatch plumbing* (the
-// executor.rs wiring) independently of the wasmtime instantiation path.
-//
-// AC-010: the trapping resolver must not abort dispatch — verified by the
-// dispatcher completing normally even when this resolver returns Err.
-// AC-011: the executor must emit resolver.error for every Err — verified
-// by checking InternalLog.
-// ---------------------------------------------------------------------------
-
-/// In-process proxy for the trapping WASM resolver.
-///
-/// Returns `ResolverError::Trap` on every `resolve()` call. The wasm fixture
-/// path is captured so tests can assert it exists (ensuring Step 3 has a real
-/// target to wire up).
-struct TrappingWasmResolver {
-    name: String,
-    /// Path to the real WASM fixture (existence asserted in test setup).
-    _wasm_fixture: std::path::PathBuf,
-}
-
-impl ContextResolver for TrappingWasmResolver {
-    fn name(&self) -> &str {
-        &self.name
-    }
-
-    fn resolve(&self, _input: &ResolverInput) -> Result<Option<ResolverOutput>, ResolverError> {
-        // Simulate the trap that trapping_resolver.wasm produces at runtime.
-        // In Step 3 this proxy is replaced by real wasmtime invocation.
-        Err(ResolverError::Trap {
-            name: self.name.clone(),
-            detail: "unreachable executed (simulated trap from trapping_resolver.wasm)".to_string(),
-        })
-    }
-}
-
-/// A resolver that always succeeds and returns a known output value.
-/// Used in AC-008/AC-009 tests (two resolvers — one trapping, one good).
-#[allow(dead_code)]
-struct GoodResolver {
-    name: String,
-    output_key: String,
-    output_value: serde_json::Value,
-}
-
-impl ContextResolver for GoodResolver {
-    fn name(&self) -> &str {
-        &self.name
-    }
-
-    fn resolve(&self, _input: &ResolverInput) -> Result<Option<ResolverOutput>, ResolverError> {
-        Ok(Some(ResolverOutput {
-            key: self.output_key.clone(),
-            value: Some(self.output_value.clone()),
-        }))
-    }
-}
+// F-P2-004: TrappingWasmResolver (in-process proxy) and GoodResolver were removed.
+// The AC-006/008/009 integration tests now use real wasmtime invocation via
+// ResolverLoader::load_registry + execute_tiers end-to-end. The proxy was only
+// needed before the real WASM invocation path was wired in Step 3.
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
+
+/// Build a `ResolverRegistry` by loading `trapping_resolver.wasm` via the real
+/// `ResolverLoader::load_registry` path. The registry name is "trap-resolver" and
+/// the context_key is "trap-output" — matching the `needs_context` declaration.
+///
+/// F-P2-004: AC-006/008/009 integration tests must use the real wasmtime trap path,
+/// not the in-process TrappingWasmResolver proxy.
+fn load_real_trapping_resolver_registry(
+    engine: &wasmtime::Engine,
+    tempdir: &std::path::Path,
+) -> Arc<ResolverRegistry> {
+    let fixture = trapping_resolver_wasm();
+    assert!(
+        fixture.exists(),
+        "F-P2-004: trapping_resolver.wasm must exist at {:?}",
+        fixture
+    );
+
+    let toml_content = format!(
+        r#"schema_version = 1
+
+[[resolvers]]
+name = "trap-resolver"
+plugin = "{}"
+context_key = "trap-output"
+"#,
+        fixture.display()
+    );
+    let registry_path = tempdir.join("trapping-resolvers-registry.toml");
+    std::fs::write(&registry_path, &toml_content).expect("write trapping resolver registry TOML");
+
+    let loader = ResolverLoader::new(engine.clone());
+    let registry = loader
+        .load_registry(&registry_path)
+        .expect("F-P2-004: load_registry must succeed (loading does not invoke resolve)");
+    Arc::new(registry)
+}
 
 fn compile_ok_plugin(dir: &std::path::Path, name: &str) -> std::path::PathBuf {
     let bytes = wat::parse_str(WAT_OK_PLUGIN).expect("WAT parse");
@@ -193,35 +172,22 @@ fn make_executor_inputs<'a>(
 
 /// test_BC_4_12_004_trapping_resolver_does_not_abort_dispatch
 ///
-/// Registers the trapping WASM resolver proxy, dispatches a hook that
-/// declares `needs_context: ["trap-resolver"]`, and asserts:
+/// F-P2-004: Loads `trapping_resolver.wasm` via `ResolverLoader::load_registry`,
+/// dispatches a hook that declares `needs_context: ["trap-resolver"]`, and asserts:
 /// 1. `execute_tiers` returns without panicking (dispatch completes).
 /// 2. The plugin runs (per_plugin_results has one entry).
-/// 3. No resolver.load_error or panic events abort the dispatch.
+/// 3. The real wasmtime trap path (not the in-process proxy) is exercised.
 ///
-/// The test also asserts the fixture exists on disk — so Step 3 implementers
-/// have a concrete target to wire up the real wasmtime invocation.
-///
-/// Red Gate: the test fails at the executor plumbing level because the
-/// resolver error path (producing resolver.error + absent plugin_config key)
-/// is verified in the *next* test (AC-011). This test will PASS once the
-/// dispatcher correctly catches the Trap and continues (Step 3 work).
-/// Until then it fails if the dispatcher panics or the plugin fails to run.
+/// This test uses the real WASM invocation path (BC-4.12.004 crash isolation).
 #[tokio::test(flavor = "current_thread")]
 async fn test_BC_4_12_004_trapping_resolver_does_not_abort_dispatch() {
-    // Ensure the WASM fixture exists — Step 3 implementer verification.
-    let fixture = trapping_resolver_wasm();
-    assert!(
-        fixture.exists(),
-        "VP-074 fixture trapping_resolver.wasm must exist at {:?} before Step 3 \
-         wires real wasmtime invocation. Compile from trapping_resolver.wat.",
-        fixture
-    );
-
     let dir = tempfile::tempdir().expect("tempdir");
     let engine = build_engine().expect("build_engine");
     let cache = PluginCache::new(engine.clone());
     let internal_log = Arc::new(InternalLog::new(dir.path().join("logs")));
+
+    // F-P2-004: load via real ResolverLoader::load_registry (not in-process proxy).
+    let resolver_registry = load_real_trapping_resolver_registry(&engine, dir.path());
 
     let plugin = compile_ok_plugin(dir.path(), "trap_dispatch_plugin");
     let entry = make_hook_entry(
@@ -233,32 +199,18 @@ async fn test_BC_4_12_004_trapping_resolver_does_not_abort_dispatch() {
     let matched: Vec<&RegistryEntry> = registry.hooks.iter().collect();
     let tiers = group_by_priority(&registry, matched);
 
-    let trapping = TrappingWasmResolver {
-        name: "trap-resolver".to_string(),
-        _wasm_fixture: fixture.clone(),
-    };
-    let mut resolver_registry = ResolverRegistry::new();
-    resolver_registry
-        .register(Box::new(trapping))
-        .expect("registration must succeed");
-    let resolver_registry = Arc::new(resolver_registry);
-
     let inputs = make_executor_inputs(&engine, &cache, &registry, &internal_log, resolver_registry);
 
     // execute_tiers must NOT panic — BC-4.12.004 crash isolation contract.
+    // The real wasmtime trap from unreachable must be caught, not propagated.
     let summary = execute_tiers(inputs, tiers).await;
 
     assert_eq!(
         summary.per_plugin_results.len(),
         1,
-        "AC-010 / BC-4.12.004 PC1: exactly one hook plugin must have run — \
-         a trapping resolver must not prevent hook dispatch from completing"
+        "AC-010 / BC-4.12.004 PC1 / F-P2-004: exactly one hook plugin must have run — \
+         a real wasmtime trap must not prevent hook dispatch from completing"
     );
-
-    // Dispatch must not surface a fatal error even when the resolver trapped.
-    // The exit_code may be non-zero if the hook plugin itself fails, but
-    // the summary must exist (not panic/unwind) — the outer assert above
-    // would not have been reached if the process panicked.
 }
 
 // ---------------------------------------------------------------------------
@@ -271,19 +223,15 @@ async fn test_BC_4_12_004_trapping_resolver_does_not_abort_dispatch() {
 
 /// test_BC_4_12_004_trapping_resolver_emits_resolver_error_event
 ///
-/// Dispatches a hook with a trapping resolver and asserts the InternalLog
+/// F-P2-004: Loads `trapping_resolver.wasm` via `ResolverLoader::load_registry`,
+/// dispatches a hook with the real trapping resolver, and asserts the InternalLog
 /// contains a `resolver.error` event with:
 /// - `error_kind == "trap"`
 /// - `resolver_name` matching the registered resolver name
 /// - `error_detail` non-empty (carries trap context)
 ///
 /// This test verifies the executor.rs `emit_resolver_error` callback wiring
-/// (the callback that writes to InternalLog for every resolver error).
-///
-/// Red Gate: the test fails because the assertions on InternalLog content
-/// require the full Step 3 error-path wiring to be present. The current
-/// stub `todo!()` in `get_or_compile` / `invoke_resolver_wasm` means the
-/// error emission path has not been exercised yet.
+/// through the real wasmtime trap path (not the in-process proxy).
 #[tokio::test(flavor = "current_thread")]
 async fn test_BC_4_12_004_trapping_resolver_emits_resolver_error_event() {
     let dir = tempfile::tempdir().expect("tempdir");
@@ -291,6 +239,9 @@ async fn test_BC_4_12_004_trapping_resolver_emits_resolver_error_event() {
     let cache = PluginCache::new(engine.clone());
     let log_dir = dir.path().join("logs");
     let internal_log = Arc::new(InternalLog::new(log_dir.clone()));
+
+    // F-P2-004: load via real ResolverLoader::load_registry.
+    let resolver_registry = load_real_trapping_resolver_registry(&engine, dir.path());
 
     let plugin = compile_ok_plugin(dir.path(), "trap_event_plugin");
     let entry = make_hook_entry(
@@ -301,16 +252,6 @@ async fn test_BC_4_12_004_trapping_resolver_emits_resolver_error_event() {
     let registry = make_registry_with_hooks(vec![entry]);
     let matched: Vec<&RegistryEntry> = registry.hooks.iter().collect();
     let tiers = group_by_priority(&registry, matched);
-
-    let trapping = TrappingWasmResolver {
-        name: "trap-resolver".to_string(),
-        _wasm_fixture: trapping_resolver_wasm(),
-    };
-    let mut resolver_registry = ResolverRegistry::new();
-    resolver_registry
-        .register(Box::new(trapping))
-        .expect("registration");
-    let resolver_registry = Arc::new(resolver_registry);
 
     let inputs = make_executor_inputs(&engine, &cache, &registry, &internal_log, resolver_registry);
     let _summary = execute_tiers(inputs, tiers).await;
@@ -382,6 +323,16 @@ async fn test_BC_4_12_004_trapping_resolver_emits_resolver_error_event() {
 ///
 /// Red Gate: fails because the resolver error path (key-absent contract) is
 /// not yet wired in the stub implementation.
+/// test_BC_4_12_004_failed_resolver_key_absent_from_plugin_config
+///
+/// F-P2-004: Loads `trapping_resolver.wasm` via `ResolverLoader::load_registry`,
+/// dispatches a hook with BOTH the real trapping resolver and an in-process
+/// good-resolver. Asserts:
+/// 1. "trap-output" key (the context_key of the trapping resolver) is ABSENT.
+/// 2. The good-resolver was invoked (resolver B after A failed — AC-009).
+/// 3. The hook plugin ran (dispatch not aborted — AC-008).
+///
+/// Uses real wasmtime trap path per F-P2-004 requirement.
 #[tokio::test(flavor = "current_thread")]
 async fn test_BC_4_12_004_failed_resolver_key_absent_from_plugin_config() {
     let dir = tempfile::tempdir().expect("tempdir");
@@ -390,8 +341,8 @@ async fn test_BC_4_12_004_failed_resolver_key_absent_from_plugin_config() {
     let internal_log = Arc::new(InternalLog::new(dir.path().join("logs")));
 
     let plugin = compile_ok_plugin(dir.path(), "absent_key_plugin");
-    // Hook requests both "trap-resolver" (will fail) and "good-resolver" (will succeed).
-    // This also doubles as AC-009 (resolver B executes after resolver A fails).
+    // Hook requests both "trap-resolver" (will fail via real wasmtime trap) and
+    // "good-resolver" (in-process, will succeed). AC-009: B executes after A fails.
     let entry = make_hook_entry(
         &plugin,
         "absent-key-hook",
@@ -402,7 +353,8 @@ async fn test_BC_4_12_004_failed_resolver_key_absent_from_plugin_config() {
     let tiers = group_by_priority(&registry, matched);
 
     // Track what plugin_config the good resolver sees — it will NOT include
-    // "trap-resolver" key (that resolver hasn't produced output).
+    // "trap-output" key (the trapping resolver's context_key is "trap-output",
+    // and it trapped so no output was produced).
     let captured_plugin_config: Arc<Mutex<Option<serde_json::Value>>> = Arc::new(Mutex::new(None));
     let config_capture = captured_plugin_config.clone();
 
@@ -414,7 +366,7 @@ async fn test_BC_4_12_004_failed_resolver_key_absent_from_plugin_config() {
             "good-resolver"
         }
         fn resolve(&self, input: &ResolverInput) -> Result<Option<ResolverOutput>, ResolverError> {
-            // Capture what plugin_config the executor passed in.
+            // Capture what plugin_config the executor passed in (pre-merge static config).
             *self.captured.lock().unwrap() = Some(input.plugin_config.clone());
             Ok(Some(ResolverOutput {
                 key: "good-key".to_string(),
@@ -423,18 +375,29 @@ async fn test_BC_4_12_004_failed_resolver_key_absent_from_plugin_config() {
         }
     }
 
-    let trapping = TrappingWasmResolver {
-        name: "trap-resolver".to_string(),
-        _wasm_fixture: trapping_resolver_wasm(),
-    };
     let good = CapturingGoodResolver {
         captured: config_capture,
     };
 
-    let mut resolver_registry = ResolverRegistry::new();
-    resolver_registry
-        .register(Box::new(trapping))
-        .expect("trap-resolver registration");
+    // Build a combined registry: real trapping resolver + in-process good-resolver.
+    // We can't mutate Arc<ResolverRegistry>, so re-build from the loaded resolvers.
+    let fixture = trapping_resolver_wasm();
+    let toml_content = format!(
+        r#"schema_version = 1
+
+[[resolvers]]
+name = "trap-resolver"
+plugin = "{}"
+context_key = "trap-output"
+"#,
+        fixture.display()
+    );
+    let registry_path = dir.path().join("combined-resolvers-registry.toml");
+    std::fs::write(&registry_path, &toml_content).expect("write registry TOML");
+    let loader = ResolverLoader::new(engine.clone());
+    let mut resolver_registry = loader
+        .load_registry(&registry_path)
+        .expect("F-P2-004: load_registry must succeed");
     resolver_registry
         .register(Box::new(good))
         .expect("good-resolver registration");
@@ -462,12 +425,15 @@ async fn test_BC_4_12_004_failed_resolver_key_absent_from_plugin_config() {
         .as_object()
         .expect("plugin_config must be a JSON object");
 
+    // AC-008: "trap-output" (the context_key declared in resolvers-registry.toml) must
+    // NOT appear in plugin_config — the trapping resolver produced no output (it trapped).
+    // F-P2-002: merge key = context_key = "trap-output", not the resolver name "trap-resolver".
     assert!(
-        config_obj.get("trap-resolver").is_none(),
-        "AC-008 / BC-4.12.004 PC3: 'trap-resolver' key must be ABSENT from \
-         plugin_config after the resolver traps — not null, not {{}}, not any \
-         default value. Found: {:?}",
-        config_obj.get("trap-resolver")
+        config_obj.get("trap-output").is_none(),
+        "AC-008 / BC-4.12.004 PC3 / F-P2-004: 'trap-output' (the resolver's context_key) \
+         must be ABSENT from plugin_config after the real wasmtime trap — not null, not {{}}, \
+         not any default value. Found: {:?}",
+        config_obj.get("trap-output")
     );
 
     // AC-009: good-resolver was invoked (resolver B executed after resolver A failed).
