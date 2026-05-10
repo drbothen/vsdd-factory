@@ -1,0 +1,18 @@
+AC-001: Absent resolvers-registry.toml = empty registry, no error
+Traces to: BC-1.13.001 postcondition 1 + invariant 2
+Test: test_BC_1_13_001_absent_registry_yields_empty_no_error
+
+COMMAND
+  cargo test -p factory-dispatcher --test resolver_load_test \
+    test_BC_1_13_001_absent_registry_yields_empty_no_error -- --nocapture
+
+OUTPUT
+  Finished `test` profile [unoptimized + debuginfo] target(s) in 0.26s
+   Running tests/resolver_load_test.rs (target/debug/deps/resolver_load_test-547c6ef571c1a2f4)
+
+  running 1 test
+  test test_BC_1_13_001_absent_registry_yields_empty_no_error ... ok
+
+  test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 17 filtered out; finished in 0.00s
+
+RESULT: PASS

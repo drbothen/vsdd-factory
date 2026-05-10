@@ -1,0 +1,18 @@
+AC-004: mtime change triggers cache eviction and recompile
+Traces to: BC-4.12.001 postcondition 3 (VP-073-C)
+Test: test_BC_4_12_001_mtime_change_triggers_recompilation
+
+COMMAND
+  cargo test -p factory-dispatcher --test resolver_load_test \
+    test_BC_4_12_001_mtime_change_triggers_recompilation -- --nocapture
+
+OUTPUT
+  Finished `test` profile [unoptimized + debuginfo] target(s) in 0.24s
+   Running tests/resolver_load_test.rs (target/debug/deps/resolver_load_test-547c6ef571c1a2f4)
+
+  running 1 test
+  test test_BC_4_12_001_mtime_change_triggers_recompilation ... ok
+
+  test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 17 filtered out; finished in 0.01s
+
+RESULT: PASS
