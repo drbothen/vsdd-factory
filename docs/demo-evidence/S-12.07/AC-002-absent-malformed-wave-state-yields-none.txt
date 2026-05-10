@@ -1,0 +1,50 @@
+AC-002: value: None on absent or malformed wave-state
+=======================================================
+Story: S-12.07 — vsdd-context-resolvers Crate + WaveContextResolver (v1.4)
+BC ref: BC-4.12.004
+
+ACCEPTANCE CRITERION
+--------------------
+When wave-state.yaml is absent or contains malformed YAML the resolver
+returns ResolverOutput { key: "wave_context", value: None } — no panic, no trap.
+
+TEST EVIDENCE
+-------------
+Command: cargo test -p vsdd-context-resolvers test_BC_4_12_004
+Captured: 2026-05-10
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.14s
+     Running unittests src/lib.rs (target/debug/deps/vsdd_context_resolvers-3b9ec7d63470538c)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/capability_confinement_test.rs (target/debug/deps/capability_confinement_test-01a2af4d8d708dc5)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 3 filtered out; finished in 0.00s
+
+     Running tests/wave_context_test.rs (target/debug/deps/wave_context_test-c007ee67e5c3f774)
+
+running 4 tests
+test test_BC_4_12_004_resolve_pure_with_none_cycle_id_yields_none ... ok
+test test_BC_4_12_004_resolve_pure_with_default_wavestate_yields_none ... ok
+test test_BC_4_12_004_malformed_yaml_yields_parse_error ... ok
+test test_BC_4_12_004_no_unwrap_or_expect_in_lib ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 22 filtered out; finished in 0.00s
+
+STATUS: GREEN (4/4 tests pass)
+
+TESTS COVERED
+-------------
+  test_BC_4_12_004_resolve_pure_with_default_wavestate_yields_none
+    — absent wave-state: default WaveState{} → value: None
+  test_BC_4_12_004_resolve_pure_with_none_cycle_id_yields_none
+    — absent STATE.md / cycle_id = None → value: None
+  test_BC_4_12_004_malformed_yaml_yields_parse_error
+    — malformed YAML returns Err, which resolve_impl converts to value: None
+  test_BC_4_12_004_no_unwrap_or_expect_in_lib
+    — source-level assertion: grep confirms zero .unwrap()/.expect() in production src

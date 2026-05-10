@@ -1,0 +1,44 @@
+AC-003: empty waves list → value: None
+=======================================
+Story: S-12.07 — vsdd-context-resolvers Crate + WaveContextResolver (v1.4)
+BC ref: BC-4.12.002
+
+ACCEPTANCE CRITERION
+--------------------
+When wave-state.yaml is present but contains no waves (empty list) or all
+waves are completed, the resolver returns value: None (no active wave).
+
+TEST EVIDENCE
+-------------
+Command (empty waves):
+  cargo test -p vsdd-context-resolvers test_BC_4_12_002_empty_stories_yields_none
+Captured: 2026-05-10
+
+     Running tests/wave_context_test.rs (...)
+
+running 1 test
+test test_BC_4_12_002_empty_stories_yields_none ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 25 filtered out; finished in 0.00s
+
+---
+
+Command (all completed waves):
+  cargo test -p vsdd-context-resolvers test_BC_4_12_002_all_completed_waves_yields_none
+Captured: 2026-05-10
+
+     Running tests/wave_context_test.rs (...)
+
+running 1 test
+test test_BC_4_12_002_all_completed_waves_yields_none ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 25 filtered out; finished in 0.00s
+
+STATUS: GREEN (both cases confirmed)
+
+TESTS COVERED
+-------------
+  test_BC_4_12_002_empty_stories_yields_none
+    — waves: [] → no active wave → value: None
+  test_BC_4_12_002_all_completed_waves_yields_none
+    — all waves have gate_status: "completed" → no active wave → value: None

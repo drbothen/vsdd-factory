@@ -1,0 +1,36 @@
+AC-007: project_dir is top-level field (not nested in plugin_config)
+======================================================================
+Story: S-12.07 — vsdd-context-resolvers Crate + WaveContextResolver (v1.4)
+BC ref: BC-4.12.002
+
+ACCEPTANCE CRITERION
+--------------------
+The resolver reads project_dir from ResolverInput.project_dir (the top-level
+field on the input struct), NOT from plugin_config. This matches the ResolverInput
+schema defined in BC-4.12.002 PC3.
+
+TEST EVIDENCE
+-------------
+Command: cargo test -p vsdd-context-resolvers test_BC_4_12_002_project_dir_is_top_level_field
+Captured: 2026-05-10
+
+     Running tests/wave_context_test.rs (...)
+
+running 1 test
+test test_BC_4_12_002_project_dir_is_top_level_field ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 25 filtered out; finished in 0.00s
+
+STATUS: GREEN
+
+SOURCE CONFIRMATION
+-------------------
+File: crates/vsdd-context-resolvers/src/lib.rs, line 76
+
+    // AC-007: use top-level `input.project_dir` (NOT `plugin_config`) per spec.
+    let wave_state_path = format!("{}/.factory/wave-state.yaml", input.project_dir);
+    let state_md_path = format!("{}/.factory/STATE.md", input.project_dir);
+
+The field is accessed as `input.project_dir` — a direct field on `ResolverInput`,
+not extracted from `input.plugin_config`. The comment on the line explicitly
+names AC-007 and "NOT plugin_config" for future reviewers.
