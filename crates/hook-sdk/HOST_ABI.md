@@ -896,6 +896,19 @@ via `#[serde(default)]`).
   a `resolver.not_found` event and dispatch proceeds without context injection for that
   entry. The hook receives a `plugin_config` that lacks the expected key. (BC-1.13.001 PC6)
 
+**`resolver.not_found` event fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `resolver_name` | string | The name of the resolver that was requested but not found in the registry. |
+| `trace_id` | string | Dispatcher trace ID for the dispatch event. |
+| `session_id` | string | Claude Code session identifier. |
+| `plugin_name` | string | The hook plugin name that declared this resolver in `needs_context`. |
+
+Emitted when a hook entry's `needs_context` list references a resolver name not registered
+in `resolvers-registry.toml`. The dispatcher continues dispatch (the missing resolver
+contributes no key to `plugin_config`); see BC-1.13.001 PC6.
+
 ---
 
 ### Resolver Lifecycle (BC-4.12.001)
