@@ -1,0 +1,62 @@
+name: release-branch-guardrail
+
+# Enforce the canonical rc.X release-branch convention: branches matching
+# `release/*` MUST target `main`, never `develop`.
+#
+# History: PR #111 (rc.13 release-prep) accidentally targeted `develop`
+# instead of `main`. That single PR broke the develop → main sync chain
+# that was working through rc.11. Source-file drift accumulated for 3
+# release cycles (92 files, 3954 ins / 880 del) until rc.14 shipped a
+# marketplace tarball with `hooks-registry.toml schema_version = 1`
+# against a dispatcher binary built from develop expecting `schema_version
+# = 2` — every operator on `/plugin update vsdd-factory@claude-mp` hit
+# `E-REG-001` fail-closed on every tool call until manually patching the
+# cache. PR #115 (rc.15) restored the convention by backfilling main with
+# the missing develop content.
+#
+# This workflow makes that drift impossible to re-introduce: any PR with
+# a `release/*` head branch that targets anything other than `main` fails
+# the gate and cannot be merged.
+#
+# See CHANGELOG.md `1.0.0-rc.15` and TD #69.
+
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize]
+
+permissions:
+  contents: read
+
+jobs:
+  enforce-release-branch-target:
+    name: Reject release/* PRs not targeting main
+    runs-on: ubuntu-latest
+    if: startsWith(github.head_ref, 'release/')
+    steps:
+      - name: Reject when base_ref != main
+        if: github.base_ref != 'main'
+        run: |
+          echo "::error title=Release branch must target main::"\
+"PR head '${{ github.head_ref }}' targets '${{ github.base_ref }}', "\
+"but release/* branches MUST target 'main'. Re-target this PR to main "\
+"or rename the branch if it isn't actually a release-prep PR."
+          echo ""
+          echo "Why this matters:"
+          echo "  release/v1.0.0-rc.X → main is the canonical sync point that"
+          echo "  brings develop's source content onto main. PRs landed on"
+          echo "  develop instead leave main behind, and release.yml's"
+          echo "  commit-binaries job (which checks out main) ships the"
+          echo "  marketplace tarball with stale source against fresh binaries."
+          echo ""
+          echo "  This is exactly what produced the rc.14 marketplace E-REG-001"
+          echo "  fail-closed bug. See CHANGELOG.md v1.0.0-rc.15 + TD #69 for the"
+          echo "  full root-cause writeup."
+          echo ""
+          echo "Fix: re-target this PR to main:"
+          echo "  gh pr edit ${{ github.event.pull_request.number }} --base main"
+          exit 1
+
+      - name: Acknowledge correct target
+        if: github.base_ref == 'main'
+        run: |
+          echo "::notice::release/* branch correctly targets main. ✓"
