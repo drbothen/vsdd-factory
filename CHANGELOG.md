@@ -2,6 +2,61 @@
 
 ## Unreleased
 
+## 1.0.0-rc.15 — Marketplace source-sync fix (main backfill) (2026-05-10)
+
+The headline of rc.15 is operational: it restores the rc.X release-branch
+pattern (release/v1.0.0-rc.X → main) that was the canonical sync mechanism
+through rc.11 but was inadvertently abandoned starting rc.13 (PR #111
+targeted develop instead of main). The drift accumulated for 3 release
+cycles produced a catastrophic mismatch in rc.14: the marketplace tarball
+shipped with `hooks-registry.toml schema_version = 1` against a dispatcher
+binary built from develop expecting `schema_version = 2`. Every operator
+who ran `/plugin update vsdd-factory@claude-mp` to rc.14 hit `E-REG-001`
+fail-closed on every tool call until manually patching the cache.
+
+rc.15 ships:
+
+- **main backfilled with 92 files of develop source** (3954 insertions /
+  880 deletions) — every fix from rc.12, rc.13, rc.14 that was in develop
+  but never reached main, and therefore never reached the marketplace
+  tarball. Notably:
+  - `hooks-registry.toml` `schema_version = 2` (S-15.01 T-3a)
+  - `scripts/generate-registry-from-hooks-json.sh` schema-bump (PR #112)
+  - 3 bats test files with portable path resolution (PR #112)
+  - `ci.yml` develop trigger (PR #112)
+  - `release.yml` TD #68 binary auto-resolve (PR #114)
+  - `regression-v1.0.bats` trace_id field tolerance (PR #113)
+  - All S-15.01 plugin async semantics work (rc.13)
+  - F5 convergence work (rc.13)
+  - HOST_ABI documentation expansion (rc.13)
+  - 33 new integration tests (rc.13)
+  - Crashed/timed-out gate fail-closed (PR #110)
+
+- **Identical dispatcher binaries to rc.14** — the binary build was
+  correct in rc.14; only the source-file portion of the tarball was
+  stale. rc.15 rebuilds them anyway to ensure all platforms are
+  reproducible at the rc.15 tag.
+
+### Operational
+
+- rc.14 stays as a tagged release but is functionally **broken on the
+  marketplace** (E-REG-001 on every tool call). Operators should update
+  to rc.15.
+- The rc.X release-branch convention is restored: future releases must
+  target `main`, not `develop`. Documented in this entry as the canonical
+  pattern.
+- The release branch was merged with `--merge` (not `--squash`) to
+  preserve develop's commits as ancestors of main, which means future
+  rc.X releases see `develop ⊇ main` correctly (TD #68 auto-resolve in
+  sync-develop becomes a no-op when nothing has diverged).
+
+### Deferred
+
+- TD #69 — guardrail enforcing release branches target main (lint hook
+  or branch-protection rule). Defer to S-15.02.
+- TD #66 — `trace_id` / `dispatcher_trace_id` field-name canonicalization.
+- TD #67 — 4 timing-flaky e2e tests in `full_stack_plugin_invocation.rs`.
+
 ## 1.0.0-rc.14 — Release CI unblocker (supersedes rc.11–rc.13) (2026-05-09)
 
 The headline of rc.14 is operational: it is the first release tag in 5 days
