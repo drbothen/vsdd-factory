@@ -556,15 +556,21 @@ RESOLVER_TOML
         false
     }
 
-    # Assertion 1: total dispatch completes in <3000ms.
-    [ "${elapsed_ms}" -lt 3000 ] || {
-        echo "TIMEOUT EXCEEDED: dispatch took ${elapsed_ms}ms (threshold 3000ms)" >&2
+    # Assertion 1: total dispatch completes in <8000ms.
+    # Upper bound rationale: the resolver timeout is 1500ms; total wall-clock includes
+    # WASM engine startup, bats subprocess overhead, and process launch on potentially
+    # loaded CI runners. macOS CI runners under load have been observed taking 5000ms+
+    # for this test (5382ms observed on macos-latest 2026-05-10). 8000ms catches hangs
+    # (the resolver spins forever without the timeout) while tolerating runner variance.
+    # Prior bound of 3000ms was too tight for loaded macOS runners (F-P6-001 follow-up).
+    [ "${elapsed_ms}" -lt 8000 ] || {
+        echo "TIMEOUT EXCEEDED: dispatch took ${elapsed_ms}ms (threshold 8000ms)" >&2
         false
     }
 
     # Assertion 2: long_running resolver timed out — observable as elapsed time.
     # The long_running resolver spins forever; epoch interruption fires at ~1500ms.
-    # Total dispatch should take between 1100ms and 3000ms:
+    # Total dispatch should take between 1300ms and 8000ms:
     #
     # Timeout bound rationale (F-P4-005):
     #   RESOLVER_TIMEOUT_MS = 1500ms (resolver_loader.rs:568); epoch tick = 10ms.
@@ -575,7 +581,8 @@ RESOLVER_TOML
     #   fires at 800ms or earlier, while tolerating the ~200-400ms measurement
     #   variance observed in practice. A bound of 1000ms (prior) was too loose —
     #   firing at 1100ms or 800ms would still pass.
-    #   Upper bound 3000ms covers worst case: timeout fires + epoch tick + bats overhead.
+    #   Upper bound 8000ms covers worst case: timeout fires + epoch tick + bats overhead
+    #   + process launch latency on loaded macOS CI runners (observed 5382ms on macos-latest).
     #
     # Architecture note: resolver.error events are written to InternalLog (not to
     # base_host_ctx.events), so they do NOT appear in VSDD_SINK_FILE. The timeout
