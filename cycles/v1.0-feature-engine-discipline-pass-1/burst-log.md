@@ -136,7 +136,7 @@ Archived from STATE.md Session Resume Checkpoint (2026-05-09 snapshot):
 
 **D-385 initial application — phrase-specific attestations per D-384 sub-rule 3 + D-385 sub-rule 3:**
 - Frontmatter schema pre (pass-12): 11-field truncated schema with scalar findings_count, underscore keys, missing 16 canonical fields
-- Frontmatter schema post (pass-12): 25-field canonical schema matching passes 3-11; findings_count mapping; hyphen keys
+- Frontmatter schema post (pass-12): 25-field canonical schema matching passes 5-13 (passes 3-4 use a distinct earlier schema; see F-P14-002); findings_count mapping; hyphen keys
 - H1 pre (pass-12): "# F5 Pass-12 Adversarial Review — v1.0-feature-engine-discipline-pass-1"
 - H1 post (pass-12): "# Adversarial Review — Pass 12"
 - Trajectory pre: "29→15→11→9→8→7→5→6→6→6→4→6" (P12=6 mixed basis)

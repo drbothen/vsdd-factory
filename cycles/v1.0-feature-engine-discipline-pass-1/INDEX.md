@@ -26,20 +26,20 @@ changes are WASM-only (no new Bash hook debt per D-2).
 
 **F1 architect output:** `.factory/cycles/v1.0-feature-engine-discipline-pass-1/F1-delta-analysis.md` (28KB)
 
-## Stories Proposed (F2 to confirm)
+## Stories Delivered (F2-confirmed via D-345/D-346)
 
 | ID | Title | Cluster |
 |----|-------|---------|
-| S-A | Per-story adversary workflow: orchestrator docs + agent prompt updates | Engine Governance |
-| S-B | Per-story adversary convergence WASM hook | Engine Governance |
-| S-C | Artifact path governance: path registry + WASM hook + relocation skill | Artifact Integrity |
+| S-12.01 | Per-story adversary workflow: orchestrator docs + agent prompt updates | Engine Governance (E-12) |
+| S-12.02 | Per-story adversary convergence WASM hook | Engine Governance (E-12) |
+| S-13.01 | Artifact path governance: path registry + WASM hook + relocation skill | Artifact Integrity (E-13) |
 
-## Epics Proposed (F2 to confirm)
+## Epics (F2-confirmed via D-345)
 
 | ID | Title | Stories |
 |----|-------|---------|
-| E-? | Engine Governance | S-A, S-B |
-| E-? | Artifact Integrity | S-C |
+| E-12 | Engine Governance (Resolver Platform) | S-12.01, S-12.02, S-12.03..S-12.08 |
+| E-13 | Artifact Integrity (Path Governance) | S-13.01 |
 
 ## Adversarial Reviews
 
@@ -53,7 +53,7 @@ changes are WASM-only (no new Bash hook debt per D-2).
 | 6 | 2026-05-11 | 7 (2C+3H+2M) | CRITICAL | adv-cycle-pass-6.md |
 | 7 | 2026-05-11 | 5 (2M+3L) | LOW | adv-cycle-pass-7.md |
 | 8 | 2026-05-11 | 6 (3M+2L+1NIT) | MEDIUM | adv-cycle-pass-8.md |
-| 9 | 2026-05-11 | 6 (1H+1M+2L+2NIT) | MEDIUM-HIGH | adv-cycle-pass-9.md |
+| 9 | 2026-05-11 | 6 (1H+1M+2L+2NIT) | HIGH | adv-cycle-pass-9.md |
 | 10 | 2026-05-11 | 6 (2M+2L+2NIT) | MEDIUM | adv-cycle-pass-10.md |
 | 11 | 2026-05-11 | 4 (2M+2L) | MEDIUM | adv-cycle-pass-11.md |
 | 12 | 2026-05-11 | 3 (2M+1L) +3PG | MEDIUM | adv-cycle-pass-12.md |
