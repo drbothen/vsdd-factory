@@ -287,3 +287,21 @@ Each new rule closes the prior pass's defect class but the fix burst that codifi
 - (b) Define a "human-acceptance" convergence criterion that is laxer than 3-NITPICK_ONLY (e.g., 3 consecutive passes with LOW/NITPICK verdict and no CRITICAL/HIGH/MEDIUM findings on content)
 
 **Status:** Open for orchestrator + human decision.
+
+**Corrigendum (pass-15 fix burst — D-387):** Status RESOLVED. D-386 selected Option C (continue F5; accept asymptotic L-EDP1-003 limit; S-15.03 deferred to next cycle). See L-EDP1-008.
+
+---
+
+## L-EDP1-008 — D-386 closes L-EDP1-007 with Option C selection
+
+**Burst:** F5 pass-14 fix burst (codified) + F5 pass-15 fix burst (this lesson)
+**Date codified:** 2026-05-11
+**Source:** F-P15-009 (L-EDP1-007 Status stale after D-386)
+
+**Pattern:** L-EDP1-007 Status field was "Open for orchestrator + human decision" pending Options A/B/C (S-15.03 prioritization vs human-acceptance convergence criterion vs continue F5 asymptotically). D-386 (codified in pass-14 fix burst) authoritatively selected Option C: accept asymptotic L-EDP1-003 limit; defer S-15.03 elevation to next cycle. This lesson closes L-EDP1-007's open Status without mutating its body (per D-385/D-387).
+
+**Resolution:** L-EDP1-007 Status is RESOLVED via L-EDP1-008. See decision-log D-386 for the authoritative selection. L-EDP1-007's body remains historically immutable. The corrigendum appended to L-EDP1-007 (per D-387 permitted format) makes the resolution visible at the entry's location.
+
+**Codified rule:** When a prior lesson's Status field becomes stale due to a subsequent decision, author a new L-EDP1-NNN lesson explicitly closing the prior one by reference to the decision. Do NOT edit the prior lesson's Status field directly. Append a corrigendum line (D-387 format: "**Corrigendum**:" prefix, new line before `---` separator) to the prior lesson to point readers to the new closing lesson.
+
+**Status:** Closed (this lesson IS the closure record).
