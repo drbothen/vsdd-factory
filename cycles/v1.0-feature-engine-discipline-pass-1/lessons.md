@@ -534,7 +534,7 @@ The 13-layer history:
 | 10 (pass-19) | D-395+D-396 | "file-state grep-back verification of Action claims + story-frontmatter↔STORY-INDEX sweep" | F-P20-001 dim-4 intent-mismatch (stale pass-18 narrative written; false-green Verification grep; see corrigendum in L-EDP1-011) |
 | 11 (pass-20) | D-397+D-398 | "intent-match sub-clause for D-395 Verification grep + Layer-N awaiting-audit convention" | F-P21-001: STATE.md:42 Current Phase cell still read "pass-19" after pass-20 fix burst updated only the adjacent Last Updated cell — sibling-cell sweep extent missed Current Phase cell (D-400 inline-replace) |
 | 12 (pass-21) | D-399+D-400 | "canonical pass-N marker + Layer-N row update protocol" | F-P22-001 ARCH-INDEX cite-refresh silence (HIGH); F-P22-002 VP/STORY-INDEX cycle-sync silence; F-P22-003 BC-INDEX range/enumeration mismatch; F-P22-004 D-383 attestation gap; F-P22-005 counting-basis drift; F-P22-006 D-394 recurrence |
-| 13 (this, pass-22) | D-401+D-402 | "cross-index sync convention + exact-count Verification + counting-basis + D-394 ownership" | (awaiting pass-23 adversary fresh-context audit) |
+| 13 (this, pass-22) | D-401+D-402 | "cross-index sync convention + exact-count Verification + counting-basis + D-394 ownership" | F-P23-001 D-401(a) self-application failure (HIGH); F-P23-002 D-402 regex precision; F-P23-003 BC-INDEX inline-edit trail; F-P23-004 BC enum gap; F-P23-005 per-position P21 attestation; F-P23-006 D-394 dispatch recurrence |
 
 **Resolution:** Per D-386 Option C (asymptotic convergence accepted), no further structural escalation this cycle. D-401 + D-402 close six adjacent defect dimensions. S-15.03 automation remains the structural remedy for v1.0-feature-engine-discipline-pass-2.
 
@@ -545,3 +545,50 @@ The 13-layer history:
 - D-402: Verification grep cardinality = EXACT integer from `-c`. Lower-bound/upper-bound/range forms non-conformant.
 
 **Status:** Codified. D-401 + D-402 close adjacent defect classes. L-EDP1-003 pattern continues at asymptotic boundary per D-386 Option C.
+
+**Corrigendum (pass-23 fix burst — D-387 / D-400):** Layer-13 row "Same-burst Violation" inline-updated per D-400. See L-EDP1-015 for layer-14.
+
+---
+
+### L-EDP1-015 — 14th-layer L-EDP1-003 recurrence at index-acknowledgment partial-coverage + regex-precision dimensions
+
+**Burst:** F5 pass-23 fix burst (codifies the lesson; recurrences were in pass-22 D-401+D-402 codification).
+
+**Pattern:** D-401+D-402 were codified by the pass-22 fix burst. Pass-23 adversary found six dimensions of same-burst violation (F-P23-001 through F-P23-006):
+
+- **Dim (a) D-401(a) self-application failure** (F-P23-001, HIGH): BC-INDEX v1.65 and ARCH-INDEX v1.46 are silent on D-401+D-402 while VP-INDEX v1.42 and STORY-INDEX v2.67 explicitly acknowledge them. The pass-22 burst that codified D-401(a) did not apply D-401(a) to BC-INDEX and ARCH-INDEX for the decisions codified in that same burst. BC-INDEX was only inline-edited (v1.65 row extended), not bumped to v1.66. ARCH-INDEX was bumped to v1.46 as a cite-refresh but the entry does not acknowledge D-401+D-402. The 14th-layer L-EDP1-003 dimension: index-acknowledgment partial-coverage at codification boundary — the two indexes that received partial treatment (inline-edit and cite-refresh) did not get the same decision-acknowledgment as the two indexes newly created in that burst.
+- **Dim (b) D-402 regex precision gap** (F-P23-002, MEDIUM): The burst that codified D-402 (exact-count requirement) used `grep -c 'v1.42'` in the dim-3 Verification for VP-INDEX. The actual frontmatter stores `version: "1.42"` (quoted YAML) which does not match the bare `v1.42` pattern. The correct count is 1 (from changelog body row referencing "v1.42"), not 2 as reported. D-402 addresses cardinality exactness but did not specify that the regex must match the actual file string form.
+- **Dim (c) BC-INDEX inline-edit audit trail gap** (F-P23-003, MEDIUM): BC-INDEX v1.65 was inline-edited in pass-22 with no corrigendum note in the entry itself (only in burst-log per D-387(a)). A reader examining v1.65 in isolation cannot determine which items were original vs retroactively added.
+- **Dim (d) BC-INDEX enum D-401+D-402 gap** (F-P23-004, MEDIUM): BC-INDEX v1.65 inline-edit correctly added D-392+D-394 but did not add D-401+D-402 (which were codified in that same burst). The inline edit addressed only the previously-missing range items, not the newly-codified items.
+- **Dim (e) Per-position P21 not corrected** (F-P23-005, MEDIUM): The line 484 per-position cell "P21=11✓" was not corrected when the line 501 corrigendum corrected the trajectory post value. Partial corrigendum: trajectory corrected but the per-position attestation row not updated.
+- **Dim (f) D-394 dispatch recurrence** (F-P23-006, MEDIUM): Same pattern as passes 21 and 22. D-401(b) ownership boundary clarified but orchestrator workflow not amended. Acknowledged asymptotic per D-403(c).
+
+**Evidence:** F-P23-001 (HIGH) is the most severe: the same burst that codified D-401(a) created a D-401(a) violation by not applying D-401(a) to all 4 indexes for D-401+D-402 themselves. Cited in F-P23-004, F-P23-008, F-P23-009 as correlated evidence.
+
+The 14-layer history:
+
+| Layer | Burst | Rule Codified | Same-burst Violation |
+|-------|-------|---------------|---------------------|
+| 1 (pass-8) | D-381 | "fix burst MUST update STATE.md" | missed burst-log + INDEX |
+| 2 (pass-9) | D-382 | "fix burst MUST update all 5 sibling files" | introduced intra-file content defects |
+| 3 (pass-10) | D-383 | "intra-file content audit + sibling-pattern sweep" | trajectory cardinality + self-ref N missed |
+| 4 (pass-11) | D-384 | "3 clarifications to D-383" | sub-trajectories stale; retroactive annotations |
+| 5 (pass-12) | D-385 | "3 clarifications to D-383+D-384" | frontmatter schema drift; counting-basis change |
+| 6 (pass-15) | D-387 | "structural-correction exception + sibling sweep" | sweep dimensions not enumerated; adjacent sibling-chain dimensions not covered |
+| 7 (pass-16) | D-389+D-390 | "input-hash convention + CHANGELOG→last_amended rule" | enumerated in L-EDP1-009 |
+| 8 (pass-17) | D-391+D-392 | "enumeration source mandatory + VP Lifecycle ≡ CHANGELOG" | second-source query absent; inlined BC list wrong (3 gaps); inlined VP list wrong (4 gaps) |
+| 9 (pass-18) | D-393+D-394 | "independent re-derivation Grep query required + D-391 severity explicit + dispatch-side phase update" | F-P19-001 false-true attestation re VP-INDEX last_amended (corrigendum in L-EDP1-010) |
+| 10 (pass-19) | D-395+D-396 | "file-state grep-back verification of Action claims + story-frontmatter↔STORY-INDEX sweep" | F-P20-001 dim-4 intent-mismatch (stale pass-18 narrative written; false-green Verification grep; corrigendum in L-EDP1-011) |
+| 11 (pass-20) | D-397+D-398 | "intent-match sub-clause for D-395 Verification grep + Layer-N awaiting-audit convention" | F-P21-001: STATE.md:42 Current Phase cell still read "pass-19" after pass-20 fix burst updated only the adjacent Last Updated cell — sibling-cell sweep extent missed Current Phase cell (D-400 inline-replace) |
+| 12 (pass-21) | D-399+D-400 | "canonical pass-N marker + Layer-N row update protocol" | F-P22-001 ARCH-INDEX cite-refresh silence (HIGH); F-P22-002 VP/STORY-INDEX cycle-sync silence; F-P22-003 BC-INDEX range/enumeration mismatch; F-P22-004 D-383 attestation gap; F-P22-005 counting-basis drift; F-P22-006 D-394 recurrence |
+| 13 (pass-22) | D-401+D-402 | "cross-index sync convention + exact-count Verification + counting-basis + D-394 ownership" | F-P23-001 D-401(a) self-application failure (HIGH); F-P23-002 D-402 regex precision; F-P23-003 BC-INDEX inline-edit trail; F-P23-004 BC enum gap; F-P23-005 per-position P21 attestation; F-P23-006 D-394 dispatch recurrence |
+| 14 (this, pass-23) | D-403 | "D-401(a) self-application enforcement + D-402 regex precision + D-394 asymptotic acknowledgment" | (awaiting pass-24 adversary fresh-context audit) |
+
+**Resolution:** Per D-386 Option C (asymptotic convergence accepted), no further structural escalation this cycle. D-403 closes six adjacent defect dimensions. S-15.03 automation remains the structural remedy for v1.0-feature-engine-discipline-pass-2.
+
+**Codified rules:**
+- D-403(a): When a fix burst codifies cycle-governance decisions, ALL 4 indexes MUST acknowledge those decisions IN THE SAME BURST — including decisions codified that very burst. Inline-editing an existing index row does NOT satisfy the acknowledgment obligation for new decisions; a NEW changelog row must be appended.
+- D-403(b): Verification grep patterns SHOULD match the actual file string form. Quoted YAML frontmatter (`version: "1.42"`) is NOT matched by bare pattern `v1.42`; correct pattern is `"1\.42"` or `version:.*1\.42`. The exact-integer obligation per D-402 stands.
+- D-403(c): D-394+D-401(b) dispatch-side phase update continues to recur at each pass boundary per L-EDP1-007 Option C asymptotic. Tactical fix-burst remedy is acceptable; structural remedy requires orchestrator workflow amendment.
+
+**Status:** Codified. D-403 closes the adjacent defect classes. L-EDP1-003 pattern continues at asymptotic boundary per D-386 Option C.
