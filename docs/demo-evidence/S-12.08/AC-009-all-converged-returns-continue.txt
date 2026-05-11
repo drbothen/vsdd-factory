@@ -1,0 +1,40 @@
+AC-009: All converged → Continue (bats end-to-end integration test)
+====================================================================
+Traces to: BC-4.10.001 postcondition 2
+
+BATS TEST COMMAND:
+-------------------
+$ bats plugins/vsdd-factory/tests/resolver-integration.bats
+
+BATS OUTPUT (3/3 PASS):
+------------------------
+1..3
+ok 1 F-P2-001 closure: unconverged story → dispatcher exits 2 (Block)
+ok 2 F-P2-001 closure: all converged → dispatcher exits 0 (Continue)
+ok 3 F-P2-001 closure: active wave with zero stories → dispatcher exits 0 (Continue, vacuous convergence)
+
+EXIT CODE: 0 (all tests pass)
+
+TEST 2 SCENARIO (This AC — all converged → Continue):
+-----------------------------------------------------
+Setup:
+  - .factory/STATE.md seeded with current_cycle = "test-cycle-001"
+  - .factory/wave-state.yaml seeded with active wave, stories: ["S-FAKE-001", "S-FAKE-002"]
+  - .factory/cycles/test-cycle-001/S-FAKE-001/adversary-convergence-state.json:
+      passes_clean: 3, last_classification: "NITPICK_ONLY" (converged)
+  - .factory/cycles/test-cycle-001/S-FAKE-002/adversary-convergence-state.json:
+      passes_clean: 3, last_classification: "NITPICK_ONLY" (converged)
+
+Invocation:
+  - Dispatcher spawned with synthetic SubagentStop event
+  - WaveContextResolver injects wave_context.stories = ["S-FAKE-001", "S-FAKE-002"]
+  - Hook checks all stories: all pass convergence threshold
+  - Hook returns Continue
+
+Assertion:
+  - Dispatcher exit code: 0 (Continue)
+  - No CONVERGENCE_PASSES_INSUFFICIENT in stderr
+
+RESULT: ok 2 — Continue path confirmed
+
+VERDICT: GREEN — bats test 2 confirms all-converged wave returns Continue with exit code 0.

@@ -1,0 +1,36 @@
+AC-005: needs_context = ["wave_context"] wired in hooks-registry.toml
+======================================================================
+Traces to: BC-1.13.001 postcondition 4
+
+EVIDENCE 1 — grep output:
+---------------------------
+$ grep -A10 'validate-per-story-adversary-convergence' plugins/vsdd-factory/hooks-registry.toml | grep "needs_context"
+
+Line 951: needs_context = ["wave_context"]
+
+EVIDENCE 2 — Full registry entry showing context annotation:
+--------------------------------------------------------------
+name = "validate-per-story-adversary-convergence"
+event = "SubagentStop"
+plugin = "hook-plugins/validate-per-story-adversary-convergence.wasm"
+priority = 960
+timeout_ms = 10000
+on_error = "continue"
+# S-12.08 AC-005: WaveContextResolver injects wave_context before dispatch
+# (BC-1.13.001 postcondition 4). The hook reads plugin_config["wave_context"]["stories"].
+needs_context = ["wave_context"]
+
+EVIDENCE 3 — cargo test:
+--------------------------
+$ cargo test -p validate-per-story-adversary-convergence test_hooks_registry_has_needs_context_for_convergence_hook
+
+test tests::test_hooks_registry_has_needs_context_for_convergence_hook ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 51 filtered out; finished in 0.00s
+
+BACKWARD COMPATIBILITY:
+------------------------
+All other hooks in hooks-registry.toml that do NOT declare needs_context continue
+to function without modification (BC-1.13.001 invariant 3 preserved).
+
+VERDICT: GREEN — needs_context = ["wave_context"] confirmed in registry at line 951.
