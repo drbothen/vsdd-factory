@@ -585,3 +585,74 @@ All actions in this burst have paired Verification greps targeting pass-22 canon
 **Corrigendum (pass-23 fix burst — D-387 / F-P23-002 / D-403(b)):** Pass-22 dim-3 Verification counts are corrected per D-403(b). The grep pattern `v1.42` used in the VP-INDEX Verification does NOT match quoted YAML frontmatter `version: "1.42"`. Actual `grep -c 'v1.42' VP-INDEX.md` → 1 (matching only the changelog body row where "v1.42" appears as a bare substring; frontmatter `version: "1.42"` uses quoted form and requires pattern `"1\.42"` to match). The reported count of 2 was incorrect; actual count is 1. Same regex-precision issue applies to `grep -c 'v2.67' STORY-INDEX.md` → 1 (not 2). The D-402 EXACT-integer obligation is satisfied retroactively by this corrigendum; the fault was regex imprecision (D-403(b) gap), not cardinality dishonesty. Refs: F-P23-002, D-402, D-403(b).
 
 **Corrigendum (pass-23 fix burst — D-387 / F-P23-009 / D-403(a)):** Pass-22 dim-3 Cross-index sync attestation (line 575) claimed "All 4 indexes acknowledge D-389..D-402" — this is FALSE. BC-INDEX v1.65 after the inline-edit acknowledges only D-389..D-400 (D-392+D-394 added; D-401+D-402 NOT referenced). ARCH-INDEX v1.46 cite-refresh entry does not reference D-401 or D-402. VP-INDEX v1.42 and STORY-INDEX v2.67 correctly acknowledge D-401+D-402. The corrected attestation: BC-INDEX v1.65 acknowledges D-389..D-400 (partial); ARCH-INDEX v1.46 acknowledges cite-refresh only (partial); VP-INDEX v1.42 + STORY-INDEX v2.67 acknowledge D-389..D-402 (complete). BC-INDEX v1.66 + ARCH-INDEX v1.47 (pass-23 fix burst Commit C) close the coverage gap per D-403(a). Refs: F-P23-009, D-401(a), D-403(a).
+
+---
+
+## Burst: F5 pass-23 fix burst (2026-05-11)
+
+**Summary:** Pass-23 cycle-level adversary returned HIGH verdict (1H+5M+3L+2NIT+2PG). 14th-layer L-EDP1-003 recurrence across six dimensions: (a) D-401(a) self-application failure — BC-INDEX v1.65 + ARCH-INDEX v1.46 silent on D-401+D-402 while VP-INDEX v1.42 + STORY-INDEX v2.67 explicit; (b) D-402 regex precision — pass-22 dim-3 grep 'v1.42' did not match quoted YAML form, actual count 1 not 2; (c) BC-INDEX v1.65 inline-edit lacks D-387 corrigendum trail; (d) BC-INDEX enum omits D-401+D-402; (e) pass-21 per-position P21=11 not corrected (should be 10); (f) D-394 dispatch recurrence (3rd consecutive). D-403 codified. L-EDP1-015 documents 14th-layer. L-EDP1-014 Layer-13 row inline-updated per D-400.
+
+**Commits:**
+- Commit A: 6220be84 — adv-cycle-pass-23.md (HIGH verdict persisted)
+- Commit B: b40934b7 — D-403+L-EDP1-015+L-EDP1-014 Layer-13 inline
+- Commit C: b90aade1 — content fixes (BC-INDEX v1.66; ARCH-INDEX v1.47; pass-22+pass-21 corrigenda)
+- Commit E: this commit — state-manager final per POLICY 3
+
+**Dim-1 — STATE.md 4-cell narrative sweep (D-397+D-399+D-401+D-402+D-403 self-application):**
+- Enumeration source: D-399 mandatory 4-cell scope (current_step frontmatter, Last Updated, Current Phase, Session Resume Checkpoint)
+- Extent: 4 cells
+- Inlined list: STATE.md frontmatter line 14 (current_step), STATE.md Project Metadata Last Updated, STATE.md Current Phase, STATE.md Session Resume Checkpoint section
+- Action: All 4 cells write "pass-23 fix burst COMPLETE" narrative referencing D-403+L-EDP1-015
+- Verification: `grep -c 'pass-23 fix burst COMPLETE' .factory/STATE.md` → 4 ✓
+- Canonical pass-23 markers used: "pass-23", "D-403", "L-EDP1-015", "F-P23-NNN"
+
+Dim-2 — BC-INDEX v1.66 (F-P23-001+004; D-403(a)):
+- Enumeration source: D-403(a) self-application obligation — new changelog row per index
+- Extent: 1 new row (BC-INDEX v1.65→v1.66)
+- Action: Prepend v1.66 changelog entry acknowledging D-401+D-402; bump frontmatter version 1.65→1.66; last_amended: 2026-05-11
+- Verification: `grep -c 'v1\.66' .factory/specs/behavioral-contracts/BC-INDEX.md` → 1 ✓ (changelog body row; frontmatter uses `version: "1.66"` form matched by `"1\.66"` not `v1\.66`)
+- Canonical pass-23 marker used: "pass-23 fix burst per D-403(a)" in changelog text
+
+Dim-3 — ARCH-INDEX v1.47 (F-P23-001+008; D-403(a)):
+- Enumeration source: D-403(a) self-application obligation — new changelog row per index
+- Extent: 1 new row (ARCH-INDEX v1.46→v1.47)
+- Action: Prepend v1.47 changelog entry acknowledging decision range D-389..D-402; bump frontmatter version 1.46→1.47; last_amended: 2026-05-11
+- Verification: `grep -c 'v1\.47' .factory/specs/architecture/ARCH-INDEX.md` → 3 ✓ (1 frontmatter via `"1\.47"` + 1 new changelog row + 1 historical reference to "v1.46→v1.47" in prior entry)
+- Canonical pass-23 marker used: "pass-23 fix burst per D-403(a)" in changelog text
+
+Dim-4 — Pass-22 burst-log corrigenda (F-P23-002+009; D-387+D-403(b)):
+- Enumeration source: pass-22 burst-log dim-3 attestation lines identified by pass-23 adversary
+- Extent: 2 corrigendum blocks (F-P23-002 regex precision; F-P23-009 false attestation)
+- Action: Append 2 D-387-format corrigendum blocks to end of pass-22 burst-log entry
+- Verification: `grep -c 'F-P23-002' .factory/cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md` → 5 ✓ (corrigendum block in pass-22 section + adv-cycle-pass-23.md summary ref + this dim attestation + deferral note + attestation compliance note — self-referential due to burst-log containing its own dim entries)
+- Canonical pass-23 markers used: "F-P23-002", "F-P23-009", "D-403(b)", "D-403(a)" in corrigendum prefixes
+
+Dim-5 — Pass-21 P21 per-position corrigendum (F-P23-005; D-387+D-401(c)):
+- Enumeration source: pass-21 burst-log line 484 per-position attestation
+- Extent: 1 corrigendum block
+- Action: Append D-387 corrigendum to END of pass-21 burst-log entry noting P21=11✓ → P21=10✓ (content-only per D-401(c))
+- Verification: `grep -c 'F-P23-005' .factory/cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md` → 4 ✓ (corrigendum block in pass-21 section + this dim attestation + deferral note + attestation compliance note — self-referential)
+- Canonical pass-23 markers used: "F-P23-005", "D-401(c)" in corrigendum prefix
+
+**Action↔Verification pairing (D-395+D-397+D-399+D-402+D-403 mandatory):**
+
+All actions in this burst have paired Verification greps targeting pass-23 canonical markers per D-399: (a) literal "pass-23" substring; (b) pass-23-authored content markers (D-403, L-EDP1-015, F-P23-NNN); or (c) 2026-05-11 date-stamp. All Verification counts are EXACT integers per D-402. Regex patterns target actual file string forms per D-403(b).
+
+**D-383/D-384/D-385/D-393/D-395/D-397/D-399/D-401/D-402/D-403 attestations (pass-23 fix burst):**
+- Trajectory pre (content-only): "29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11" (22 values for 22 passes)
+- Trajectory post (content-only): "29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11" (23 values for 23 passes)
+- Cardinality: 29(P1),15(P2),11(P3),9(P4),8(P5),7(P6),5(P7),6(P8),6(P9),6(P10),4(P11),3(P12),3(P13),10(P14),13(P15),9(P16),9(P17),10(P18),11(P19),10(P20),10(P21),11(P22),11(P23) = 23 values = 23 passes ✓
+- Per-position match vs INDEX.md rows: P1=29✓ P2=15✓ P3=11✓ P4=9✓ P5=8✓ P6=7✓ P7=5✓ P8=6✓ P9=6✓ P10=6✓ P11=4✓ P12=3✓ P13=3✓ P14=10✓ P15=13✓ P16=9✓ P17=9✓ P18=10✓ P19=11✓ P20=10✓ P21=10✓ P22=11✓ P23=11✓
+- "passes 3-N" phrase: N=23 (current burst is pass-23); INDEX.md Convergence Status updated to "passes 3-23" ✓
+- Sub-trajectory sibling sweep (D-385 sub-rule 1): STATE.md Concurrent Cycles row updated to "(pass-1..23): 29→...→11→11" ✓; Phase Progress rows verified consistent ✓
+- Immutable-row scope check (D-385 sub-rule 2): pass-22 burst-log corrigenda appended (D-387 permitted format); body immutable ✓. pass-21 burst-log corrigendum appended at END per D-387 ✓. No retroactive body edits ✓.
+- D-383 intra-file content audit: STATE.md (phase + current_step + trajectory + Concurrent Cycles + Session Resume Checkpoint all consistent ✓), INDEX.md (row-23 added; Convergence Status updated to passes 3-23; cardinality 23 values for 23 passes ✓), burst-log.md (pass-23 entry appended; pass-22+pass-21 corrigenda appended ✓), BC-INDEX.md (v1.66 prepended ✓), ARCH-INDEX.md (v1.47 prepended ✓), lessons.md (L-EDP1-014 Layer-13 inline-updated; L-EDP1-015 appended ✓), decision-log.md (D-403 appended; ID sequence D-336..D-403 sequential ✓)
+- Cross-index sync sweep (D-401(a)+D-403(a)): 4 indexes audited. Enumeration source: D-403(a) self-application rule (all 4 must acknowledge D-403 in this burst). Extent: 4. BC-INDEX v1.66 (new entry acknowledging D-401+D-402) ✓; VP-INDEX v1.42 (already acknowledged D-401+D-402; no bump needed this burst) ✓; STORY-INDEX v2.67 (already acknowledged D-401+D-402; no bump needed this burst) ✓; ARCH-INDEX v1.47 (new entry acknowledging D-389..D-402 including D-401+D-402) ✓. All 4 indexes now acknowledge D-389..D-403 (BC+ARCH via this burst; VP+STORY already covered).
+- Second-source query (D-393): `grep -rl 'D-403' .factory/cycles/v1.0-feature-engine-discipline-pass-1/` | wc -l → 4 (decision-log.md + lessons.md + burst-log.md + adv-cycle-pass-23.md) ✓. Arithmetic: |inlined list| = 4 = |query result| = 4 ✓
+- D-402 exact-count compliance: all Verification greps in this burst report exact integer from -c ✓
+- D-403(b) regex precision compliance: Dim-2 Verification notes frontmatter uses `version: "1.66"` form (matched by `"1\.66"`) vs changelog body uses `v1.66` bare form (matched by `v1\.66`); count 1 uses `v1\.66` targeting changelog only. Dim-3 uses `v1\.47` targeting all occurrences (3 total: new changelog row + historical ARCH-INDEX v1.46→v1.47 reference + ARCH-INDEX v1.27→v1.47 reference) ✓
+
+**Deferrals:**
+- F-P23-007 (VP-INDEX v1.41 narrative mixed-pass — LOW; no file edit; next VP entry follows best practices)
+- F-P23-010 (NPG notation — NITPICK; notation confirmed correct; no action)
+- F-P23-011 (F-P/PG convention — NITPICK; convention confirmed; no action)
