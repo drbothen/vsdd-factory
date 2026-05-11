@@ -1,6 +1,6 @@
 # Demo Evidence Report — S-12.07
 
-**Story:** S-12.07 — `vsdd-context-resolvers` Crate + WaveContextResolver (v1.4)
+**Story:** S-12.07 — `vsdd-context-resolvers` Crate + WaveContextResolver (v1.5)
 **Branch:** `feature/S-12.07-vsdd-context-resolvers`
 **Evidence captured:** 2026-05-10
 **Adversary convergence:** 8 passes, 3/3 NITPICK_ONLY streak (BC-5.39.001)
@@ -13,7 +13,7 @@
 |----|-------------|--------|---------------|
 | AC-001 | wave_context output shape (wave_id, cycle_id, stories) | GREEN | AC-001-wave-context-output-shape.txt |
 | AC-002 | value: None on absent/malformed wave-state | GREEN | AC-002-absent-malformed-wave-state-yields-none.txt |
-| AC-003 | empty waves / all-completed → value: None | GREEN | AC-003-empty-waves-yields-none.txt |
+| AC-003 | empty waves / all-completed → value: None (or Some({stories:[]}) for active empty wave) | GREEN | AC-003-empty-waves-or-no-active-wave.txt |
 | AC-004 | optional fields no-panic + missing required field rejected | GREEN | AC-004-optional-fields-no-panic-missing-wave-field-rejected.txt |
 | AC-005 | capability confinement — path_allow deny (VP-076-A/B/C) | DEFERRED → S-12.08 | AC-005-DEFERRED-capability-confinement-path-deny.txt |
 | AC-006 | capability confinement — path_allow positive grant (VP-076-D) | DEFERRED → S-12.08 | AC-006-DEFERRED-capability-confinement-path-allow.txt |
@@ -40,8 +40,9 @@ Evidence files contain the exact command, captured output, and status.
 - Asserts: value: None on all absent/malformed inputs; never panics
 
 ### AC-003
-- Tests: `test_BC_4_12_002_empty_stories_yields_none`, `test_BC_4_12_002_all_completed_waves_yields_none`
-- Asserts: value: None when waves list is empty or all entries are completed
+- Tests: `test_resolve_pure_with_empty_stories_emits_some_with_empty_array`, `test_BC_4_12_002_all_completed_waves_yields_none`
+- Asserts: active wave with empty stories → Some({stories:[],...}) (S-12.08 pass-1 HIGH-002 fix); no active wave → value: None
+- Note: test name updated from `test_BC_4_12_002_empty_stories_yields_none` — the semantic changed per DEFER-P02-001; empty active wave now emits Some not None to preserve BC-4.10.001 EC-001 Continue path in consumer hook.
 
 ### AC-004
 - Tests: `test_BC_4_12_002_missing_wave_id_no_panic`, `test_parse_wave_state_rejects_missing_required_wave_field`

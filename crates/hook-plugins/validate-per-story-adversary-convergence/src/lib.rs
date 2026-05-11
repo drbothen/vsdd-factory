@@ -12,6 +12,9 @@
 //!
 //! - BC-4.10.001: MUST block wave-gate dispatch when any story lacks convergence
 //!   clearance. Block form: `HookResult::block_with_fix(hook, reason, recommendation, code)`.
+//!   EC-001: if the active wave has zero stories, return Continue immediately
+//!   (vacuous convergence — S-12.08 pass-1 HIGH-002 fix; resolver emits
+//!   `Some({stories: [], ...})` for empty active waves so the hook can honor EC-001).
 //! - BC-4.10.002: MUST gracefully degrade (return Continue, no block) when
 //!   invoked outside wave-gate context or when cycle directory is absent.
 //!
@@ -280,12 +283,10 @@ pub enum WaveContextError {
 // wave_context.stories extraction (S-12.08 — successor to extract_stories_from_config)
 // ---------------------------------------------------------------------------
 
-/// Extract story IDs from `plugin_config["wave_context"]["stories"]`.
-///
-/// This function is the S-12.08 replacement path for the old
-/// `extract_stories_from_config` (which read from the top-level `stories` key).
-/// After S-12.08 implementation (Step 3), `RealCallbacks::list_stories` in
-/// `main.rs` will call this function instead of `extract_stories_from_config`.
+/// Extract story IDs from `plugin_config["wave_context"]["stories"]` — the
+/// canonical injection path established by S-12.08. Called directly by `hook_logic`;
+/// replaced the removed `extract_stories_from_config` path (read top-level `stories`
+/// key) that was the root cause of F-P2-001.
 ///
 /// Returns `Ok(Vec<String>)` when `wave_context.stories` is a non-null JSON array
 /// of strings. Returns `Err(WaveContextError::Missing)` when the `wave_context`
@@ -409,10 +410,14 @@ pub trait HookCallbacks {
 /// 2. Extract story list from `plugin_config["wave_context"]["stories"]`
 ///    (S-12.08: WaveContextResolver injects this). If `wave_context` is absent
 ///    or malformed → Block (not graceful degrade — AC-002, AC-003, AC-010).
-/// 3. For each story: read state file via `callbacks.read_file`. Parse with
+/// 3. If extracted stories list is empty → return Continue (BC-4.10.001 EC-001
+///    vacuous convergence). The S-12.08 pass-1 HIGH-002 fix ensures resolver
+///    emits `Some({stories: [], ...})` for active waves with no stories yet;
+///    the hook honors EC-001 directly on the empty list.
+/// 4. For each story: read state file via `callbacks.read_file`. Parse with
 ///    `parse_convergence_state`. Evaluate with `hook_result_for`. On first
 ///    non-Continue result → return immediately (BC-4.10.001 postcondition 5).
-/// 4. If all stories converged: aggregate deferred_findings, log summary,
+/// 5. If all stories converged: aggregate deferred_findings, log summary,
 ///    return `HookResult::Continue`.
 ///
 /// # BC traces
@@ -2343,6 +2348,7 @@ mod tests {
         // will FAIL because Continue != Block.
         // GREEN at Step 3: hook_logic uses extract_stories_from_wave_context
         // which returns WaveContextError::Missing → Block with WAVE_CONTEXT_MISSING.
+        // Status: GREEN as of S-12.08 Step 3 — refactor complete.
         let mut payload = make_payload(Some("wave-gate-dispatch"));
         payload.plugin_config = json!({});
         // FakeCallbacks cycle-dir-absent path: list_stories returns Err.
@@ -2387,6 +2393,7 @@ mod tests {
         // Continue. Test will FAIL because Continue != Block.
         // GREEN at Step 3: hook_logic uses extract_stories_from_wave_context
         // which returns WaveContextError::SchemaError → Block with WAVE_CONTEXT_SCHEMA_ERROR.
+        // Status: GREEN as of S-12.08 Step 3 — refactor complete.
         let mut payload = make_payload(Some("wave-gate-dispatch"));
         payload.plugin_config = json!({ "wave_context": { "stories": "bogus" } });
         let callbacks = FakeCallbacks::new_no_context();
@@ -2528,6 +2535,92 @@ mod tests {
                 cfg,
                 result
             );
+        }
+
+        // P02-MED-002 boundary check: null wave_context → Missing (not SchemaError).
+        // The two paths must remain distinct so resolver-bug-vs-not-wired
+        // diagnostics don't collapse. is_object() guard fires AFTER null check.
+        let null_cfg = json!({"wave_context": null});
+        let null_result = extract_stories_from_wave_context(&null_cfg);
+        assert!(
+            matches!(null_result, Err(WaveContextError::Missing)),
+            "P02-MED-002: null wave_context must return Missing (not SchemaError); got {:?}",
+            null_result
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // P02-HIGH-001: Tests for MED-001's cycle_id-absent Block branch
+    // These tests verify the branch added at lib.rs:473-499 in pass-1.
+    // Without coverage, the branch was untested dead code.
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_hook_logic_blocks_when_cycle_id_absent() {
+        // P02-HIGH-001: MED-001's cycle_id-absent Block branch needs test coverage.
+        // Build a wave_context payload with stories present but cycle_id absent.
+        let mut payload = make_payload(Some("wave-gate-dispatch"));
+        payload.plugin_config = json!({
+            "wave_context": {
+                "stories": ["S-A"],
+                "wave_id": "test-wave"
+                // cycle_id intentionally absent
+            }
+        });
+        let callbacks = FakeCallbacks::new_with_story(Some(cleared_state_json()));
+        let result = hook_logic(&payload, &callbacks);
+        match result {
+            HookResult::Block { reason } => {
+                assert!(
+                    reason.contains(BLOCK_CODE_WAVE_CONTEXT_SCHEMA_ERROR),
+                    "P02-HIGH-001: Expected SCHEMA_ERROR in reason, got: {}",
+                    reason
+                );
+                assert!(
+                    reason.to_lowercase().contains("cycle_id"),
+                    "P02-HIGH-001: Expected 'cycle_id' in reason, got: {}",
+                    reason
+                );
+            }
+            other => panic!(
+                "P02-HIGH-001: Expected Block for absent cycle_id, got: {:?}",
+                other
+            ),
+        }
+    }
+
+    #[test]
+    fn test_hook_logic_blocks_when_cycle_id_empty_string() {
+        // P02-HIGH-001: empty cycle_id is the other failure mode of MED-001's
+        // !c.is_empty() check. Both absent and empty string must produce Block
+        // with BLOCK_CODE_WAVE_CONTEXT_SCHEMA_ERROR.
+        let mut payload = make_payload(Some("wave-gate-dispatch"));
+        payload.plugin_config = json!({
+            "wave_context": {
+                "stories": ["S-A"],
+                "wave_id": "test-wave",
+                "cycle_id": ""  // empty string
+            }
+        });
+        let callbacks = FakeCallbacks::new_with_story(Some(cleared_state_json()));
+        let result = hook_logic(&payload, &callbacks);
+        match result {
+            HookResult::Block { reason } => {
+                assert!(
+                    reason.contains(BLOCK_CODE_WAVE_CONTEXT_SCHEMA_ERROR),
+                    "P02-HIGH-001: Expected SCHEMA_ERROR for empty cycle_id, got: {}",
+                    reason
+                );
+                assert!(
+                    reason.to_lowercase().contains("cycle_id"),
+                    "P02-HIGH-001: Expected 'cycle_id' in reason for empty string case, got: {}",
+                    reason
+                );
+            }
+            other => panic!(
+                "P02-HIGH-001: Expected Block for empty cycle_id, got: {:?}",
+                other
+            ),
         }
     }
 }

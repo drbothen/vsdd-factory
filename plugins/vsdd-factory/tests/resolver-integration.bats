@@ -210,3 +210,57 @@ EOF
 
     rm -f "${sink_file}"
 }
+
+# ---------------------------------------------------------------------------
+# F-P2-001 closure: active wave with zero stories → Continue (vacuous convergence)
+# BC-4.10.001 EC-001: empty stories list → hook returns Continue immediately.
+# S-12.08 pass-1 HIGH-002 fix: resolver emits Some({stories:[],...}) for active
+# waves with no stories yet, so the hook can honor EC-001 (not fall through to
+# WAVE_CONTEXT_MISSING).
+# ---------------------------------------------------------------------------
+
+@test "F-P2-001 closure: active wave with zero stories → dispatcher exits 0 (Continue, vacuous convergence)" {
+    # Seed .factory/STATE.md
+    mkdir -p "${FACTORY_TMP}/.factory"
+    cat > "${FACTORY_TMP}/.factory/STATE.md" <<'EOF'
+---
+document_type: pipeline-state
+current_cycle: test-cycle-empty
+input-hash: "[live-state]"
+---
+EOF
+
+    # Seed wave-state.yaml with EMPTY stories list (active wave but no stories yet).
+    # gate_status: not_started → non-terminal → wave IS active per BC-8.14.009.
+    cat > "${FACTORY_TMP}/.factory/wave-state.yaml" <<'EOF'
+waves:
+  - wave: W-EMPTY
+    stories: []
+    stories_merged: []
+    gate_status: not_started
+EOF
+
+    # No cycle directory needed — no stories to check.
+
+    local sink_file
+    sink_file="$(mktemp "${BATS_TMPDIR}/resolver-sink-XXXXXX.jsonl")"
+
+    # Synthetic SubagentStop event with agent_type = wave-gate-dispatch and a
+    # valid last_assistant_message so the handoff-validator does not block first.
+    local payload='{"event_name":"SubagentStop","session_id":"bats-test-empty-001","dispatcher_trace_id":"bats-test-trace","agent_type":"wave-gate-dispatch","last_assistant_message":"Wave gate adversary pass completed for this iteration of the story review cycle."}'
+    run bash -c "cd '${PLUGIN_ROOT}' && printf '%s' '${payload}' | VSDD_SINK_FILE='${sink_file}' CLAUDE_PLUGIN_ROOT='${PLUGIN_ROOT}' CLAUDE_PROJECT_DIR='${FACTORY_TMP}' '${DISPATCHER}'"
+
+    # P02-MED-003: assert HIGH-002 fix flows end-to-end.
+    # Empty active wave → resolver emits Some({stories:[],...}) → hook EC-001 → Continue (exit 0)
+    [ "${status}" -eq 0 ]
+
+    # MUST NOT contain WAVE_CONTEXT_MISSING — the fix path is "resolver Some + hook Continue",
+    # not "resolver None". If this fires, the resolver is incorrectly returning None for
+    # active waves with empty story lists.
+    ! grep -q "WAVE_CONTEXT_MISSING" "${sink_file}" 2>/dev/null || {
+        echo "UNEXPECTED WAVE_CONTEXT_MISSING in sink (resolver HIGH-002 fix may be missing): $(grep 'WAVE_CONTEXT_MISSING' "${sink_file}")"
+        false
+    }
+
+    rm -f "${sink_file}"
+}
