@@ -304,3 +304,56 @@ Sweep dimensions for this burst — enumeration source and extent per D-391:
 **F-P18-003/006 closed by D-393/D-394:** No content fix needed in decision-log D-391 row (immutable per D-385 sub-rule 2); D-393 carries the enumeration-source operationalization; D-394 carries the explicit severity classification.
 
 **Factory-artifacts commits:** (Commit A: 2f38e239), (Commit B: fedd99b7), (Commit C: 658c6b14), (Commit D: 82d7575a), (Commit E: this commit — state-manager final per POLICY 3)
+
+---
+
+## Burst: F5 pass-19 fix burst (2026-05-11)
+
+**Summary:** Addressed 2H+5M+3L+1NIT content findings + 2 process-gaps from pass-19 HIGH verdict (10th-layer L-EDP1-003 recurrence at D-393 self-application file-state-post-fix dimension; sustained HIGH from pass-18). adv-cycle-pass-19.md persisted (Commit A: 3289b7d5). D-395 (file-state grep-back verification: every "Action ✓" claim MUST have paired "Verification: grep ... → result ✓"; MEDIUM severity) + D-396 (story-frontmatter↔STORY-INDEX body-table sibling sweep same-burst; MEDIUM severity) codified; L-EDP1-010 corrigendum (Layer-9 "Same-burst Violation: —" was incorrect; F-P19-001 demonstrates Layer-9 DID have a same-burst violation); L-EDP1-011 (10th-layer L-EDP1-003 recurrence documented) authored (Commit B: a8c065a6). F-P19-001 HIGH: VP-INDEX last_amended: 2026-05-11 added to frontmatter. F-P19-002 HIGH: STORY-INDEX body-table 5 cells draft→merged (S-12.03/04/05/07/08; PRs #119-123 2026-05-10). STORY-INDEX v2.65→v2.66, last_amended updated citing D-396+F-P15-004 propagation. F-P19-007 LOW: pass-17 burst-log dim-1 corrigendum (N=12 per D-393; forward-reference to pass-18). F-P19-009 LOW: VP-INDEX changelog v1.41 entry added (Commit C: 698824a1). F-P19-003 MEDIUM: Z-suffix added to timestamp on VP-069/070/071/072/073/074/075/076 (8 VPs). F-P19-004 MEDIUM: STATE.md Last Updated narrative updated (was stale at pass-17; corrected to pass-18 narrative). F-P19-006 MEDIUM: STATE.md Concurrent Cycles row cardinality disambiguated — "F5 passes 3-18 complete (16 F5 passes); full-cycle trajectory (pass-1..18)" (Commit D: bef3552f). F-P19-005 MEDIUM: L-EDP1-010 Layer-9 corrigendum appended (in Commit B). F-P19-010 LOW: acknowledged in burst-log (STATE.md mode:brownfield is intentional project-level mode; cycle-level mode:feature applies at cycle scope — no file edit). F-P19-011 NITPICK: no action. D-395+D-396 self-application: this burst-log entry applies D-395 paired Verification lines for every Action claim.
+
+**D-393+D-395 self-application attestation (MANDATORY per D-393+D-395 own text):**
+
+Sweep dimensions for this burst — enumeration source and extent per D-391+D-393+D-395:
+
+- Sweep dim 1 (F-P19-001): VP-INDEX last_amended field presence — index file housekeeping.
+  - Enumeration source: explicit per-file check of VP-INDEX.md (1 file; singleton sweep).
+  - Extent: 1. Inlined list: VP-INDEX.md.
+  - Action: VP-INDEX.md `last_amended: 2026-05-11` added to frontmatter (line 8).
+  - Verification: `grep -c '^last_amended:' .factory/specs/verification-properties/VP-INDEX.md` → **1** ✓
+  - |list 1| == |verification 1| ✓
+
+- Sweep dim 2 (F-P19-002 per D-396): STORY-INDEX body-table status sync — story-frontmatter propagation.
+  - Enumeration source: `grep -l 'status: merged' .factory/cycles/v1.0-feature-engine-discipline-pass-1/S-12.*/` cross-ref `grep -E '\| S-12\.\|.*\| draft \|' STORY-INDEX.md`. Set-difference: S-12.03/04/05/07/08.
+  - Inlined list: S-12.03 (PR #120), S-12.04 (PR #121), S-12.05 (PR #119), S-12.07 (PR #122), S-12.08 (PR #123). Count: 5.
+  - Action: 5 body-table Status cells changed `draft` → `merged`; PR # and merge date added to Notes column.
+  - Verification: `grep -cE '\| S-12\.0[34578]\s*\|.*\| merged \|' .factory/stories/STORY-INDEX.md` → **5** ✓
+  - |list 5| == |verification 5| ✓
+
+- Sweep dim 3 (F-P19-003): VP timestamp Z-suffix — in-cycle VP source files.
+  - Enumeration source: `grep -rl '^introduced: v1.0-feature-engine-discipline-pass-1' .factory/specs/verification-properties/` → VP-069..VP-076 (8 VPs). Same set as D-393 sweep dim 2.
+  - Inlined list: VP-069, VP-070, VP-071, VP-072, VP-073, VP-074, VP-075, VP-076. Count: 8.
+  - Action: `timestamp: YYYY-MM-DDTHH:MM:SS` → `timestamp: YYYY-MM-DDTHH:MM:SSZ` on all 8 files.
+  - Verification: `grep -rL 'T[0-9][0-9]:[0-9][0-9]:[0-9][0-9]Z' .factory/specs/verification-properties/VP-{069..076}.md` → **0 files** (all 8 have Z) ✓
+  - |list 8| == |fixed 8| ✓
+
+- Sweep dim 4 (F-P19-004+F-P19-006): STATE.md narrative and cardinality — live-state update.
+  - Enumeration source: explicit per-field check of STATE.md "Last Updated" cell (line 41) and Concurrent Cycles row (line 132).
+  - Extent: 2 fields. Inlined list: STATE.md:41 Last Updated, STATE.md:132 Concurrent Cycles Notes.
+  - Action: Last Updated updated to pass-18 narrative. Concurrent Cycles Notes: "16 F5 passes" + "full-cycle trajectory (pass-1..18)" disambiguation added.
+  - Verification: `grep -c 'pass-18 fix burst COMPLETE' .factory/STATE.md` → **1** (Last Updated cell) ✓; `grep -c '16 F5 passes' .factory/STATE.md` → **1** (Concurrent Cycles) ✓
+
+**D-383/D-384/D-385/D-393/D-395 attestations (pass-19 fix burst):**
+- Trajectory pre: "29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10" (18 values for 18 passes)
+- Trajectory post: "29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11" (19 values for 19 passes)
+- Cardinality: 29(P1),15(P2),11(P3),9(P4),8(P5),7(P6),5(P7),6(P8),6(P9),6(P10),4(P11),3(P12),3(P13),10(P14),13(P15),9(P16),9(P17),10(P18),11(P19) = 19 values = 19 passes ✓
+- Per-position match vs INDEX.md rows: P1=29✓ P2=15✓ P3=11✓ P4=9✓ P5=8✓ P6=7✓ P7=5✓ P8=6✓ P9=6✓ P10=6✓ P11=4✓ P12=3✓ P13=3✓ P14=10✓ P15=13✓ P16=9✓ P17=9✓ P18=10✓ P19=11✓
+- "passes 3-N" phrase: N=19 (current burst is pass-19); INDEX.md Convergence Status updated to "passes 3-19" ✓
+- Sub-trajectory sibling sweep (D-385 sub-rule 1): STATE.md Phase Progress rows verified consistent with canonical 19-value trajectory ✓
+- Immutable-row scope check (D-385 sub-rule 2): pass-17 burst-log dim-1 corrigendum is an appended line (D-387 permitted format); body immutable ✓. L-EDP1-010 corrigendum appended at END of entry per D-387 ✓. No retroactive body edits ✓.
+- D-383 intra-file content audit: STATE.md (phase + current_step + trajectory + Concurrent Cycles + Session Resume Checkpoint all consistent), INDEX.md (row-19 added; Convergence Status updated to passes 3-19; cardinality 19 values for 19 passes), burst-log.md (pass-19 entry appended), decision-log.md (D-395+D-396 appended; ID sequence D-336..D-396 sequential ✓), lessons.md (L-EDP1-010 corrigendum + L-EDP1-011 appended)
+
+**F-P19-010 acknowledgment:** STATE.md `mode: brownfield` is intentional — it reflects the project-level pipeline mode (vsdd-factory underwent brownfield onboarding). The current cycle `v1.0-feature-engine-discipline-pass-1` is `mode: feature` at cycle scope. These two `mode:` fields apply at different levels (project-level vs. cycle-level). The asymmetry is expected and documented here per F-P19-010 resolution. No file edit required.
+
+**F-P19-011 acknowledgment:** INDEX.md "D-387..D-394 codified" shorthand is acceptable for practitioners. D-388 separateness acknowledged; no action per NITPICK policy.
+
+**Factory-artifacts commits:** (Commit A: 3289b7d5), (Commit B: a8c065a6), (Commit C: 698824a1), (Commit D: bef3552f), (Commit E: this commit — state-manager final per POLICY 3)
