@@ -206,4 +206,29 @@ Archived from STATE.md Session Resume Checkpoint (2026-05-09 snapshot):
 - F-P15-PG1: D-387 codified (closes the D-385 vs F-P14-004 conflict) ✓
 - F-P15-PG2: DEFERRED (user override via D-386; stopping criterion user-delegated) ✓
 
-**Factory-artifacts commits:** (Commit A: 7b268e34), (Commit B: 8b55a6a4), (Commit C: 56cc9253), (Commit D: 85614a6a), (Commit E: this commit)
+**Factory-artifacts commits:** (Commit A: 7b268e34), (Commit B: 8b55a6a4), (Commit C: 56cc9253), (Commit D: 85614a6a), (Commit E: 9e45d209 — state-manager final per POLICY 3)
+
+---
+
+## Burst: F5 pass-16 fix burst (2026-05-11)
+
+**Summary:** Addressed 4M+3L+2NIT content findings + 2 process-gaps from pass-16 MEDIUM verdict (improvement from pass-15 HIGH regression). adv-cycle-pass-16.md persisted (Commit A: 2fc4bb49). D-389 (input-hash placeholder convention — "[pending-recompute]" canonical; closes F-LOW-4/F-P14-009/F-P16-004) + D-390 (CHANGELOG→last_amended propagation rule) codified; L-EDP1-009 (7th-layer L-EDP1-003; sweep dimension enumeration required) authored (Commit B: c85653a2). F-P16-001 MEDIUM: STATE.md rows 60-61 merge-date corrected 2026-05-11→2026-05-10 for S-12.07 (PR #122) and S-12.08 (PR #123) per git author timestamps; INDEX.md (2026-05-10) and story frontmatter (merged_at: 2026-05-10) already correct. F-P16-002 MEDIUM: BC last_amended frontmatter corrected on 5 BCs per D-390 (BC-4.12.001: →2026-05-09; BC-4.12.003: →2026-05-09; BC-4.12.005: →2026-05-10; BC-1.13.001: →2026-05-10; BC-5.39.001: →2026-05-09). F-P16-005 LOW: adv-cycle-pass-12.md current_step quoting removed per D-387. F-P16-006 LOW: STATE.md factory-artifacts SHA updated 04930af9→9e45d209. F-P16-008/009 NITPICKs DEFERRED per adversary recommendation. F-P16-PG1 closed by L-EDP1-009. F-P16-PG2 closed by D-390 (Commit C: 3c998fee). STATE.md + INDEX.md + burst-log + decision-log + lessons per D-382 (Commit D: this commit). F-P16-004 MEDIUM: closed by D-389 convention (not a content fix). F-P16-003 MEDIUM: documented in L-EDP1-009 (7th-layer; no escalation per D-386 Option C).
+
+**D-383/D-384/D-385 attestations (pass-16 fix burst):**
+- Trajectory pre: "29→15→11→9→8→7→5→6→6→6→4→3→3→10→13" (15 values for 15 passes)
+- Trajectory post: "29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9" (16 values for 16 passes)
+- Cardinality: 29(P1),15(P2),11(P3),9(P4),8(P5),7(P6),5(P7),6(P8),6(P9),6(P10),4(P11),3(P12),3(P13),10(P14),13(P15),9(P16) = 16 values = 16 passes ✓
+- Per-position match vs INDEX.md rows: P1=29✓ P2=15✓ P3=11✓ P4=9✓ P5=8✓ P6=7✓ P7=5✓ P8=6✓ P9=6✓ P10=6✓ P11=4✓ P12=3✓ P13=3✓ P14=10✓ P15=13✓ P16=9✓
+- "passes 3-N" phrase: N=16 (current burst is pass-16); INDEX.md Convergence Status updated to "passes 3-16" ✓
+- Sub-trajectory sibling sweep (D-385 sub-rule 1 + L-EDP1-009 dimension enumeration):
+  (1) STATE.md merge-date sibling chain: story frontmatter (2026-05-10) ↔ INDEX.md (2026-05-10) ↔ STATE.md (corrected →2026-05-10) — now unanimous ✓
+  (2) BC last_amended ↔ CHANGELOG most-recent row: 7 in-cycle BCs audited; 5 corrected; BC-4.12.002/004 already correct ✓
+  (3) adv-cycle-pass-12.md current_step quoting: corrected to unquoted per D-387 ✓
+  (4) STATE.md factory-artifacts SHA: updated 04930af9→9e45d209 (pass-15 final) ✓
+  (5) F-P16-008/009 timestamp Z: deferred per adversary recommendation; no action ✓
+- Immutable-row scope check (D-385 sub-rule 2): decision-log D-NNN rows (immutable body); burst-log pass-N entries (immutable body); adv-cycle-pass-*.md body (immutable); lessons L-EDP1-NNN body (immutable). No retroactive annotations introduced. D-389/D-390 appended to decision-log (new rows, not retroactive amendments) ✓
+- D-383 intra-file content audit: STATE.md (phase + current_step + rows 60-61 merge-date + trajectory + Concurrent Cycles + Session Resume Checkpoint all consistent), INDEX.md (row-16 added; Convergence Status 16 passes; trajectory updated), burst-log.md (pass-16 entry appended; pass-15 Commit E SHA backfilled per POLICY 3), decision-log.md (D-389+D-390 appended; ID sequence D-336..D-390 sequential), lessons.md (L-EDP1-009 appended)
+
+**F-P16-008/009 DEFERRED:** adv-cycle-pass-8.md and adv-cycle-pass-9.md timestamp Z suffix missing. Per adversary recommendation, not worth a burst fix. Will surface again if pass-17 reviews these files.
+
+**Factory-artifacts commits:** (Commit A: 2fc4bb49), (Commit B: c85653a2), (Commit C: 3c998fee), (Commit D: this commit), (Commit E: TBD — state-manager final per POLICY 3)

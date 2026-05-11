@@ -5,13 +5,13 @@ version: "2.0"
 status: draft
 producer: state-manager
 timestamp: 2026-05-11T00:00:00Z
-phase: engine-discipline-F5-pass-15
+phase: engine-discipline-F5-pass-16
 inputs: []
 input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "F5 pass-15 fix burst COMPLETE (HIGH verdict; 2H+5M+4L+2NIT+2PG; D-387+D-388 codified; sibling-pattern sweep COMPLETE per D-387 mandate)"
+current_step: "F5 pass-16 fix burst COMPLETE (MEDIUM verdict; 4M+3L+2NIT+2PG; D-389+D-390 codified; L-EDP1-009 authored; F-P16-001/002/005/006 fixed; F-P16-008/009 deferred)"
 current_cycle: v1.0-feature-engine-discipline-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,8 +38,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-11 — F5 pass-15 fix burst COMPLETE. Pass-15 HIGH verdict (2H+5M+4L+2NIT+2PG). D-387 (structural-correction exception) + D-388 (forward-reference convention) codified. Trajectory (content-only): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13. Pass-7 verdict corrected MEDIUM; pass-13 verdict corrected HIGH per D-387. 5 stories status:merged retrofitted (S-12.03/04/05/07/08). |
-| **Current Phase** | Engine-discipline F5 — pass-15 fix burst COMPLETE (pending pass-16 dispatch) |
+| **Last Updated** | 2026-05-11 — F5 pass-16 fix burst COMPLETE. Pass-16 MEDIUM verdict (4M+3L+2NIT+2PG). D-389 (input-hash placeholder convention) + D-390 (CHANGELOG→last_amended propagation rule) codified. L-EDP1-009 authored (7th-layer L-EDP1-003). F-P16-001 merge-date sibling-chain fixed (STATE.md rows 60-61 corrected to 2026-05-10). F-P16-002 BC last_amended corrected (5 BCs). F-P16-004 closed by D-389. F-P16-008/009 deferred. Trajectory: 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9. |
+| **Current Phase** | Engine-discipline F5 — pass-16 fix burst COMPLETE (pending pass-17 dispatch) |
 | **Current Cycle** | v1.0-feature-engine-discipline-pass-1 |
 
 ## Phase Progress
@@ -76,21 +76,20 @@ dtu_services: []
 | F5 pass-14 fix burst (schema-content + verdict-ladder + stale-tables + D-386) | **COMPLETE** | F-P14-001..010 + 3PG addressed; sibling files updated; D-387 retroactively legalizes F-P14-004 |
 | F5 pass-15 cycle-level adversary | **COMPLETE** | HIGH (2H+5M+4L+2NIT+2PG); regression from MEDIUM; D-387+D-388 codified; trajectory →13 |
 | F5 pass-15 fix burst (D-387 sweep + stories status:merged + corrigenda) | **COMPLETE** | All F-P15 fixes applied; 5 stories retrofitted; INDEX.md expanded; sibling-pattern sweep done |
+| F5 pass-16 cycle-level adversary | **COMPLETE** | MEDIUM (4M+3L+2NIT+2PG); improvement from pass-15 HIGH; trajectory →9; D-389+D-390 codified |
+| F5 pass-16 fix burst (merge-date + BC last_amended + input-hash convention) | **COMPLETE** | F-P16-001/002/004/005/006 fixed; D-389+D-390+L-EDP1-009; F-P16-008/009 deferred; sweep dimensions enumerated |
 | Phase D-4 Burst 2 — E-10 + E-9 v1.7 | **PENDING** | E-10 paused D-343; adversary pass-9 queued |
 
 ## Current Phase Steps
 
 | Step | Agent | Status | Output |
 |------|-------|--------|--------|
-| F5 passes 3-9 cycle adversary + fix bursts | adversary/state-mgr | DONE 2026-05-11 | Trajectory 11→9→8→7→5→6→6 (passes 3-9); D-381+D-382 codified; full details: burst-log.md |
-| F5 pass-10 cycle-level adversary + fix burst | adversary/state-mgr | DONE 2026-05-11 | MEDIUM: 2M+2L+2NIT; D-383 codified; F-P10-001..006 resolved |
-| F5 pass-11 cycle-level adversary + fix burst | adversary/state-mgr | DONE 2026-05-11 | MEDIUM: 2M+2L; D-384 codified; F-P11-001..007 resolved |
-| F5 pass-12 cycle-level adversary + fix burst | adversary/state-mgr | DONE 2026-05-11 | MEDIUM: 2M+1L+3PG (content=3); D-385 codified; F-P12-001..003 resolved |
-| F5 pass-13 fix burst (schema + counting-basis + L-EDP1-007) | state-manager | DONE 2026-05-11 | F-P13-001..003 resolved; L-EDP1-007; all sibling files updated per D-382+D-383+D-384+D-385 |
 | F5 pass-14 cycle-level adversary | adversary | DONE 2026-05-11 | MEDIUM (4M+4L+2NIT+3PG); D-386 Option C; trajectory →10 |
 | F5 pass-14 fix burst (schema-content + verdict-ladder + stale-tables) | state-manager | DONE 2026-05-11 | F-P14-001..010; D-386; all sibling files updated |
 | F5 pass-15 cycle-level adversary | adversary | DONE 2026-05-11 | HIGH (2H+5M+4L+2NIT+2PG); regression; D-387+D-388 codified; trajectory →13 |
 | F5 pass-15 fix burst (D-387 sibling-sweep + stories retrofit + corrigenda) | state-manager | DONE 2026-05-11 | All F-P15-001..013 fixed or deferred; sibling-pattern sweep COMPLETE |
+| F5 pass-16 cycle-level adversary | adversary | DONE 2026-05-11 | MEDIUM (4M+3L+2NIT+2PG); improvement from HIGH; trajectory →9; D-389+D-390 codified |
+| F5 pass-16 fix burst (merge-date + BC last_amended + D-389+D-390) | state-manager | DONE 2026-05-11 | F-P16-001/002/004/005/006 fixed; L-EDP1-009; sweep dimensions enumerated |
 
 ## Identifier Conventions
 
@@ -130,7 +129,7 @@ dtu_services: []
 | Cycle | Type | Status | Notes |
 |-------|------|--------|-------|
 | v1.0-brownfield-backfill | brownfield | PAUSED | E-10 pass-9 pending; paused at D-343 |
-| v1.0-feature-engine-discipline-pass-1 | feature | F5-IN-PROGRESS | All 6 E-12-platform stories merged; F5 passes 3-15 complete (trajectory 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13; content-only; P7=MEDIUM/P9=HIGH/P13=HIGH per D-387); pass-15 HIGH verdict (2H+5M+4L+2NIT+2PG; regression); D-387+D-388 codified; D-386 Option C: continue F5, accept asymptotic L-EDP1-003 limit; S-15.03 deferred |
+| v1.0-feature-engine-discipline-pass-1 | feature | F5-IN-PROGRESS | All 6 E-12-platform stories merged; F5 passes 3-16 complete (trajectory 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9; content-only; P7=MEDIUM/P9=HIGH/P13=HIGH per D-387); pass-16 MEDIUM verdict (4M+3L+2NIT+2PG; improvement); D-389+D-390+L-EDP1-009 codified; D-386 Option C: continue F5, accept asymptotic L-EDP1-003 limit; S-15.03 deferred |
 | v1.0-feature-plugin-async-semantics-pass-1 | feature | CLOSED | All PRs merged; rc.14 shipped |
 
 ## Decisions Log
@@ -179,22 +178,23 @@ dtu_services: []
 
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-11 — F5 pass-15 fix burst COMPLETE. Pass-15 HIGH verdict (2H+5M+4L+2NIT+2PG; regression from pass-14 MEDIUM). D-387 (structural-correction exception for adversary-review frontmatter) + D-388 (forward-reference cycle: convention) codified. Key fixes: pass-7 verdict corrected MEDIUM (was LOW); pass-13 verdict corrected HIGH (was MEDIUM); pass-9 canonical verdict HIGH confirmed; 5 stories S-12.03/04/05/07/08 status:merged retrofitted (PRs #120/#121/#119/#122/#123); INDEX.md Stories Delivered expanded to 9 rows; L-EDP1-008 authored (closes L-EDP1-007). Trajectory (content-only): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13. Streak 0/3.
+**Last update:** 2026-05-11 — F5 pass-16 fix burst COMPLETE. Pass-16 MEDIUM verdict (4M+3L+2NIT+2PG; improvement from pass-15 HIGH regression). D-389 (input-hash placeholder convention — "[pending-recompute]" is canonical; closes F-LOW-4/F-P14-009/F-P16-004) + D-390 (CHANGELOG→last_amended propagation rule — MEDIUM severity for violations) codified. L-EDP1-009 authored (7th-layer L-EDP1-003; D-387 self-application partial; sweep dimension enumeration codified as required). Key fixes: F-P16-001 merge-date sibling-chain corrected (STATE.md rows 60-61 → 2026-05-10); F-P16-002 BC last_amended corrected on 5 BCs (BC-4.12.001/003 →2026-05-09; BC-4.12.005/BC-1.13.001 →2026-05-10; BC-5.39.001 →2026-05-09); F-P16-005 adv-cycle-pass-12 current_step quoting removed; F-P16-006 factory-artifacts SHA updated (04930af9→9e45d209); F-P16-008/009 deferred (NITPICK per adversary). Trajectory (content-only): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9. Streak 0/3.
 
-**STATE:** F4 platform COMPLETE; F5 at pass-15 fix burst complete. Next: dispatch pass-16 adversary.
+**STATE:** F4 platform COMPLETE; F5 at pass-16 fix burst complete. Next: dispatch pass-17 adversary.
 
 **Next session start — ordered checklist:**
 
-1. ✓ D-387 structural-correction exception codified (retroactively legalizes F-P14-004 + F-P14-003).
-2. ✓ D-388 forward-reference cycle: convention codified.
-3. Dispatch pass-16 adversary (fresh context, full cycle-level review).
-4. Apply pass-16 fix burst per D-382..D-387+D-388 discipline if MEDIUM or above.
-5. Iterate until 3 consecutive NITPICK_ONLY passes achieved OR human declares convergence.
-6. F6 targeted hardening after convergence criterion met.
-7. F7 delta convergence + human gate (cycle CLOSE).
-8. E-10 brownfield pass-9 resume (PAUSED at D-343).
+1. ✓ D-389 input-hash placeholder convention codified (closes F-LOW-4/F-P14-009/F-P16-004 retroactively).
+2. ✓ D-390 CHANGELOG→last_amended propagation rule codified (closes F-P16-PG2).
+3. ✓ L-EDP1-009 authored (7th-layer L-EDP1-003 documented; sweep dimension enumeration required).
+4. Dispatch pass-17 adversary (fresh context, full cycle-level review).
+5. Apply pass-17 fix burst per D-382..D-390 discipline if MEDIUM or above.
+6. Iterate until 3 consecutive NITPICK_ONLY passes achieved OR human declares convergence.
+7. F6 targeted hardening after convergence criterion met.
+8. F7 delta convergence + human gate (cycle CLOSE).
+9. E-10 brownfield pass-9 resume (PAUSED at D-343).
 
-**D-382..D-388 discipline applies to ALL future fix bursts.** Full protocol: `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md` (D-382 STATE.md+burst-log+INDEX+lessons+decision-log; D-383 intra-file audit+sibling sweep; D-384 N self-ref+trajectory cardinality+attestation specificity; D-385 sub-trajectory enumeration+immutable scope+per-position P1-Pn; D-386 Option C convergence acceptance; D-387 structural-correction exception for adv-review frontmatter; D-388 forward-reference cycle: convention).
+**D-382..D-390 discipline applies to ALL future fix bursts.** Full protocol: `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md` (D-382..D-385 sibling-file+content-audit+sweep; D-386 Option C convergence acceptance; D-387 structural-correction exception; D-388 forward-reference cycle:; D-389 input-hash placeholder convention; D-390 CHANGELOG→last_amended propagation rule). Sweep attestations MUST enumerate dimensions per L-EDP1-009.
 
 **Index versions:** BC-INDEX v1.64 | VP-INDEX v1.40 | STORY-INDEX v2.65 | ARCH-INDEX v1.45
 **ADR-013:** 3_of_3 CONVERGED (pass-57) | **E-9:** v1.53 CONVERGENCE_REACHED | **E-10:** paused D-343
