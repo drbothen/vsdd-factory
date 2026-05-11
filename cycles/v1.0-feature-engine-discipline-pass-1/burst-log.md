@@ -504,6 +504,8 @@ All actions in this burst have paired Verification greps targeting pass-21 canon
 
 **Corrigendum (pass-23 fix burst — D-387 / F-P23-005 / D-401(c)):** Pass-21 per-position attestation (line 484) read "P21=11✓". Per D-401(c) trajectory counting-basis (codified pass-22, retroactively applies) + F-P22-005 closure (pass-21 trajectory corrected 11→10), the per-position value for P21 is 10 (content-only: 1H+5M+3L+1NIT=10; 1PG excluded). Corrected: "P21=10✓". Aligns with line 501 trajectory-post corrigendum which already recorded the corrected content-only trajectory. Refs: F-P23-005, D-401(c), D-387.
 
+**Corrigendum (pass-24 fix burst — D-387 / F-P24-002):** Pass-21 burst-log cardinality cell (line 483) read "10(P20),11(P21) = 21 values". Per D-401(c) trajectory counting-basis + F-P22-005 / F-P23-005 sibling-cell sweep: P21=10 (content-only: 1H+5M+3L+1NIT=10; 1PG excluded). Corrected cardinality: "10(P20),10(P21) = 21 values". Sibling-cell coverage now complete across lines 482, 483, 484. Refs: F-P24-002, D-387, D-401(c).
+
 ---
 
 ## Burst: F5 pass-22 fix burst (2026-05-11)
@@ -656,3 +658,5 @@ All actions in this burst have paired Verification greps targeting pass-23 canon
 - F-P23-007 (VP-INDEX v1.41 narrative mixed-pass — LOW; no file edit; next VP entry follows best practices)
 - F-P23-010 (NPG notation — NITPICK; notation confirmed correct; no action)
 - F-P23-011 (F-P/PG convention — NITPICK; convention confirmed; no action)
+
+**Corrigendum (pass-24 fix burst — D-387 / F-P24-009 / D-403(b)):** Pass-23 dim-3 `grep -c 'v1\.47'` count=3 is correct, but the rationale narrative incorrectly cited frontmatter `"1.47"` as one of the 3 matches. Regex `v1\.47` does NOT match `"1.47"` (no leading `v`). The 3 actual matches are: (a) v1.47 changelog entry header ("v1.47 (2026-05-11..."); (b) historical reference "ARCH-INDEX v1.46→v1.47" in the v1.47 entry body; (c) historical reference "ARCH-INDEX v1.27→v1.47" from prior changelog context. D-403(b) regex precision applies to rationale narratives as well as count claims. Refs: F-P24-009, D-387, D-403(b).

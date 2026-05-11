@@ -183,7 +183,7 @@ dtu_services: []
 
 **Last update:** 2026-05-11 — F5 pass-23 fix burst COMPLETE. Pass-23 HIGH verdict (1H+5M+3L+2NIT+2PG; sustained; 14th-layer L-EDP1-003 at index-acknowledgment partial-coverage + regex-precision). D-403 codified. L-EDP1-015 documents 14th-layer. Key fixes: F-P23-001+004 BC-INDEX v1.66 + ARCH-INDEX v1.47 acknowledge D-401+D-402 (D-403(a)); F-P23-002 pass-22 burst-log dim-3 regex corrigendum (grep v1.42 → actual count 1; D-403(b)); F-P23-003 BC-INDEX v1.65 inline-edit trail; F-P23-005 P21 per-position corrigendum (P21=11→10); F-P23-006 STATE.md phase→pass-23. Trajectory (content-only): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11. Streak 0/3.
 
-**STATE:** F4 platform COMPLETE; F5 at pass-23 fix burst complete. Next: dispatch pass-24 adversary (per D-394+D-403(c), update STATE.md phase BEFORE adversary returns).
+**STATE:** F4 platform COMPLETE; F5 at pass-24 fix burst complete. Pass-24 fix burst COMPLETE; next: dispatch pass-25 adversary (per D-394+D-403(c), update STATE.md phase BEFORE adversary returns).
 
 **Next session start — ordered checklist:**
 
