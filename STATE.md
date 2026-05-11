@@ -38,7 +38,7 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-11 — F5 pass-17 fix burst COMPLETE. Pass-17 MEDIUM verdict (5M+3L+1NIT+1PG; lateral from pass-16). D-391 (sweep-extent enumeration source mandatory) + D-392 (VP Lifecycle ≡ BC CHANGELOG for D-390) codified. L-EDP1-009 corrigendum (layer-7 enumeration). F-P17-001 last_amended added to BC-5.39.002/7.03.091/7.03.092. F-P17-002 input-hash [live-state]→[pending-recompute] on BC-7.03.091/092. F-P17-004 Z-suffix sweep: 12 sites (9 adv-pass + BC-INDEX + ARCH-INDEX + BC-INDEX). F-P17-005 burst-log corrigendum (pass-13 MEDIUM→HIGH). F-P17-006 STORY/ARCH-INDEX timestamp →2026-05-11. F-P17-008 VP-076 last_amended. Trajectory: 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9. |
+| **Last Updated** | 2026-05-11 — F5 pass-18 fix burst COMPLETE. Pass-18 HIGH verdict (1H+5M+3L+1NIT+1PG; regression from pass-17 MEDIUM). D-393 (independent re-derivation Grep query required; violations MEDIUM) + D-394 (dispatch-side STATE.md update mandatory) codified. L-EDP1-010 documents 9th-layer L-EDP1-003 recurrence. Key fixes: F-P18-001 last_amended added to BC-4.10.002/4.11.001/6.22.001. F-P18-002 last_amended added to VP-069/072/073/075. F-P18-005 N=12 in-cycle BCs (Grep-derived). Trajectory: 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10. |
 | **Current Phase** | Engine-discipline F5 — pass-18 fix burst COMPLETE (pending pass-19 dispatch) |
 | **Current Cycle** | v1.0-feature-engine-discipline-pass-1 |
 
@@ -130,7 +130,7 @@ dtu_services: []
 | Cycle | Type | Status | Notes |
 |-------|------|--------|-------|
 | v1.0-brownfield-backfill | brownfield | PAUSED | E-10 pass-9 pending; paused at D-343 |
-| v1.0-feature-engine-discipline-pass-1 | feature | F5-IN-PROGRESS | All 6 E-12-platform stories merged; F5 passes 3-18 complete (trajectory 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10); pass-18 HIGH verdict (1H+5M+3L+1NIT+1PG; regression); D-393+D-394 codified; D-386 Option C: continue F5, accept asymptotic L-EDP1-003 limit; S-15.03 deferred |
+| v1.0-feature-engine-discipline-pass-1 | feature | F5-IN-PROGRESS | All 6 E-12-platform stories merged; F5 passes 3-18 complete (16 F5 passes); full-cycle trajectory (pass-1..18): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10; pass-18 HIGH verdict (1H+5M+3L+1NIT+1PG; regression); D-393+D-394 codified; D-386 Option C: continue F5, accept asymptotic L-EDP1-003 limit; S-15.03 deferred |
 | v1.0-feature-plugin-async-semantics-pass-1 | feature | CLOSED | All PRs merged; rc.14 shipped |
 
 ## Decisions Log
