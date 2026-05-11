@@ -231,4 +231,4 @@ Archived from STATE.md Session Resume Checkpoint (2026-05-09 snapshot):
 
 **F-P16-008/009 DEFERRED:** adv-cycle-pass-8.md and adv-cycle-pass-9.md timestamp Z suffix missing. Per adversary recommendation, not worth a burst fix. Will surface again if pass-17 reviews these files.
 
-**Factory-artifacts commits:** (Commit A: 2fc4bb49), (Commit B: c85653a2), (Commit C: 3c998fee), (Commit D: this commit), (Commit E: TBD — state-manager final per POLICY 3)
+**Factory-artifacts commits:** (Commit A: 2fc4bb49), (Commit B: c85653a2), (Commit C: 3c998fee), (Commit D: 10fc0161), (Commit E: this commit — state-manager final per POLICY 3)
