@@ -209,3 +209,41 @@ row breakdown sums, requiring a separate check that was not performed.
 **Status:** Codified as prose rule (D-384). S-15.03 automation scope expanded.
 Recurrence risk: LOW (three consecutive layers now codified; D-384 is explicit about
 cardinality and self-referential N).
+
+---
+
+## L-EDP1-006 — 4-layer recursion: D-384 initial application violated D-384's own sub-rules
+
+**Source:** F-P12-001 (MEDIUM), F-P12-002 (MEDIUM)
+**Date codified:** 2026-05-11
+
+**Pattern:** The pass-11 fix burst codified D-384 (extending D-383 with cardinality cross-check,
+self-referential N, attestation specificity). In its own initial application, the burst applied
+D-384's sub-rules to the canonical 11-value trajectory but did not apply D-385 (being codified
+now) because D-385 didn't yet exist. The specific violations:
+
+1. Sub-trajectory sibling enumeration (D-385 sub-rule 1, PG-12-001): corrected the canonical
+   "29→15→11→9→8→7→5→6→6→6→4" trajectory in STATE.md Concurrent Cycles + Session Resume
+   Checkpoint, but missed the two `9→9→8→7→5` sub-trajectories at STATE.md:63,78 (Phase
+   Progress row + Current Phase Steps row). D-384's cardinality check applies to trajectory
+   shorthands but did not explicitly require enumerating ALL sub-trajectories in the same file.
+
+2. Immutable-row scope (D-385 sub-rule 2, PG-12-002): added two retroactive NOTE annotations
+   to the pass-10 burst-log entry to document corrections. D-383 rule 2(c) forbids "retroactive
+   annotations added to immutable rows" but the D-383 text did not enumerate which document types
+   have immutable rows, leaving an ambiguity that the pass-11 burst resolved incorrectly.
+
+**Root cause:** L-EDP1-003 pattern (recursive discipline violation) recurred for the 4th consecutive
+layer (D-381→D-382→D-383→D-384). Each layer's fix burst has applied the newly codified rule to
+the most-prominent defect but missed one sub-class of obligation that the next layer captures.
+The common thread: prose rules describe the class of obligation but cannot enumerate every possible
+instantiation; each pass finds the next un-enumerated instantiation.
+
+**Codification:** D-385 extends D-383+D-384 with three sub-rules closing the ambiguities:
+(1) sub-trajectory sibling enumeration, (2) immutable-row scope explicit enumeration,
+(3) per-position attestation completeness (P1-Pn required, not just Pk-Pn).
+
+**Status:** Codified as prose rule (D-385). S-15.03 automation scope expanded.
+Recurrence risk: MEDIUM (4 consecutive prose-only layers; prose codification is demonstrably
+insufficient; only S-15.03 automation breaks the cycle). Until S-15.03 ships, the risk of a
+5th layer remains.
