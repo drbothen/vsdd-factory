@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.4"
+version: "1.5"
 status: draft
 producer: "PHASE_1_4_B_BCS_AGENT_9"
 timestamp: 2026-04-25T00:00:00
@@ -74,7 +74,7 @@ warn-pending-wave-gate: identity & registry binding. Session-end safety net for 
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|--------------|
-| VP-TBD | Identity and registry binding — hook name, event, plugin path, priority, on_error in hooks-registry.toml match BC-7.03.091 specification | manual/bats |
+| (no formal VP — covered by bats test warn-pending-wave-gate.bats AC-001: verifies hook fires on Stop, hook name resolves, registry binding confirmed via hooks-registry.toml inspection) | Identity and registry binding — hook name, event, plugin path, priority, on_error in hooks-registry.toml match BC-7.03.091 specification | manual/bats |
 
 ## Traceability
 
@@ -91,7 +91,7 @@ warn-pending-wave-gate: identity & registry binding. Session-end safety net for 
 
 ## Architecture Anchors (Recommended)
 
-- `architecture/ss-07-hook-bash.md` — SS-07 module definition.
+- `architecture/SS-07-hook-bash.md` — SS-07 module definition.
 - `hooks-registry.toml::warn-pending-wave-gate` — authoritative runtime binding.
 
 ## Story Anchor (Recommended)
@@ -141,6 +141,7 @@ Native WASM port (S-8.07) replaced the original bash hook. Pure parse/decision l
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| 1.5 | 2026-05-10 | implementer | F-P6-005: VP-TBD entry replaced with explicit no-formal-VP declaration citing covering bats test (warn-pending-wave-gate.bats AC-001). F-P6-006: architecture anchor path corrected ss-07-hook-bash.md → SS-07-hook-bash.md (uppercase prefix matches actual file). |
 | 1.4 | 2026-05-10 | implementer | F-P5-002: TBD fields resolved — capability TBD→CAP-008, hook path updated to native WASM lib.rs (S-8.07 port), EC-001/EC-002 populated (absent/malformed YAML), INV-3 added (SEQUENCE schema invariant, closes TD-073 root cause governance gap), traceability L2 Capability populated, Source Evidence path updated. Changelog reordered newest-first. |
 | 1.3 | 2026-05-09 | state-manager | F-P47-001 fix-burst-43: Traceability Stories TBD→S-8.07 (S-8.07 behavioral_contracts frontmatter cites this BC; bidirectional L-P28-001 propagation). |
 | 1.2 | 2026-05-08 | implementer | TD-VSDD-091 Chunk 5 — migrated `hooks-registry.toml:799-816` → `hooks-registry.toml::warn-pending-wave-gate`. |

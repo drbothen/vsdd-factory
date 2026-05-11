@@ -1,7 +1,7 @@
 ---
 document_type: story-index
 level: ops
-version: "2.64"
+version: "2.65"
 status: current
 producer: state-manager
 timestamp: 2026-05-09T00:00:00Z
@@ -183,7 +183,7 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 > **ADR-015 housekeeping follow-up burst (2026-05-04): STORY-INDEX v1.41 → v1.42.** Q2/Q3/Q4/Q5 cleanup follow-ups from prior audit. **Q2 multi-sink ecosystem annotated `deprecated_by: ADR-015`:** 6 stories tagged — S-4.01 (sink-http), S-4.02 (sink-datadog), S-4.03 (sink-honeycomb), S-4.04 (per-sink retry+CB), S-4.10 (cross-sink internal.sink_error events), S-4.09 (sink-http retry backoff — sink-coupled per investigation); S-4.05 (DLQ) SKIPPED per "skip drafts" rule (status: draft). S-4.08 (rc1 release gate) SKIPPED — release-process story, not sink-mechanism-coupled. **Q4 status-taxonomy normalized:** S-3.04 frontmatter `status: partially_shipped` → `status: partial` to align with documented status set (draft, ready, in-progress, merged, partial, blocked); STORY-INDEX row updated likewise. **Q5 ADR-015 path/anchor added:** all 6 prior-burst stories (S-3.04, S-1.04, S-1.08, S-1.09, S-4.06, S-4.07) gained a `supersession_ref: ".factory/specs/architecture/decisions/ADR-015-single-stream-otel-schema.md"` frontmatter field; the 6 multi-sink stories newly annotated above also carry the same `supersession_ref`. **Q3 TD-020 logged** in `.factory/tech-debt-register.md` (line 23 + detail at line 557; P3) capturing pre-existing frontmatter↔STORY-INDEX status drift (sample: S-4.06/S-4.07 frontmatter `status: ready` while index shows merged). Status row counts: `partially_shipped` retired from taxonomy (count 1 → 0); `partial` 1 → 2.
 
 > This index is the authoritative source for story count and status.
-> 93 stories across 16 epics (E-0 through E-15). E-10 added 2026-05-04 (ADR-015 migration; 9 stories, 42 pts). E-11 added 2026-05-06 (Tier 3 WASM; 8 stories). E-12 + E-13 added 2026-05-07 (F3 engine-discipline-pass-1; 3 stories: S-12.01, S-12.02, S-13.01). E-14 added 2026-05-07 (Engine Discipline Pass-2; 5 process-gap follow-up stories: S-14.01..S-14.05). E-12 F3-amendment added 2026-05-07 (D-366; 6 platform stories: S-12.03..S-12.08). E-15 added 2026-05-07 (F3 plugin-async-semantics-pass-1; 1 story: S-15.01). S-15.02 added 2026-05-08 (F5 pass-1 path-A follow-up; E-15 now 2 stories). S-15.03 added 2026-05-08 (F5 fix-burst-19; re-anchored to E-12 in fix-burst-20 per F-P21-003; E-12 now 9 stories).
+> 97 stories across 16 epics (E-0 through E-15). E-10 added 2026-05-04 (ADR-015 migration; 9 stories, 42 pts). E-11 added 2026-05-06 (Tier 3 WASM; 8 stories). E-12 + E-13 added 2026-05-07 (F3 engine-discipline-pass-1; 3 stories: S-12.01, S-12.02, S-13.01). E-14 added 2026-05-07 (Engine Discipline Pass-2; 5 process-gap follow-up stories: S-14.01..S-14.05). E-14 expanded 2026-05-10 (F-P6-002/F-P6-004 burst; 4 additional stories: S-14.06..S-14.09; total E-14 now 9 stories). E-12 F3-amendment added 2026-05-07 (D-366; 6 platform stories: S-12.03..S-12.08). E-15 added 2026-05-07 (F3 plugin-async-semantics-pass-1; 1 story: S-15.01). S-15.02 added 2026-05-08 (F5 pass-1 path-A follow-up; E-15 now 2 stories). S-15.03 added 2026-05-08 (F5 fix-burst-19; re-anchored to E-12 in fix-burst-20 per F-P21-003; E-12 now 9 stories).
 
 > **Filename convention:** Stories live at `.factory/stories/S-N.MM-<short-description>.md`. Example: S-1.05 lives at `S-1.05-wasmtime-integration.md`.
 
@@ -550,12 +550,15 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 | S-14.03 | Pre-F5 artifact lint for placeholder frontmatter (PG-3) | E-14 | TBD | P2 | [] | [] | draft | [] |
 | S-14.04 | Policy-rubric auto-injection for adversary dispatch (PG-4) | E-14 | TBD | P1 | [S-14.02] | [] | draft | [] |
 | S-14.05 | pr-manager early-exit codification (PG-6, orchestrator-added) | E-14 | TBD | P1 | [] | [] | draft | [] |
+| S-14.06 | BC-4.12.001 invariant numbering gap cleanup (INV2→INV4) (F-P2-009) | E-14 | 1 | P2 | [] | [] | draft | [BC-4.12.001] |
+| S-14.07 | HOST_ABI resolver-input schema: add error-response field (F-P2-010) | E-14 | 2 | P1 | [] | [] | draft | [BC-4.12.002] |
+| S-14.08 | Resolver load-event observability: plugin.log resolver.loaded events (F-P3-011) | E-14 | 2 | P1 | [] | [] | draft | [BC-4.12.001] |
+| S-14.09 | Forensic marker namespace cleanup: remove F-PN-NNN from production source (F-P6-004) | E-14 | 2 | P2 | [] | [] | draft | [] |
 
-> **E-14 delivery:** All 5 stories are process improvements. Delivery order: S-14.01 → S-14.02 → S-14.04
-> (S-14.02 depends on S-14.01; S-14.04 depends on S-14.02). S-14.03 and S-14.05 are independent
-> (no blocking dependencies). S-14.01 is P0 (inline backfill already executed in D-359; formal story
-> codifies the bootstrap exception protocol for future cycles). S-14.02/S-14.04/S-14.05 are P1.
-> S-14.03 is P2.
+> **E-14 delivery:** All 9 stories are process improvements. S-14.01..S-14.05 were authored 2026-05-07 (D-359).
+> S-14.06..S-14.09 authored 2026-05-10 (F-P6-002/F-P6-004 disposition, D-379 burst).
+> Delivery order: S-14.01 → S-14.02 → S-14.04 (chain); S-14.03, S-14.05, S-14.06..S-14.09 are independent.
+> S-14.01 is P0. S-14.02/S-14.04/S-14.05/S-14.07/S-14.08 are P1. S-14.03/S-14.06/S-14.09 are P2.
 
 ---
 

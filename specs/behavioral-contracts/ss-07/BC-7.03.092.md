@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.3"
+version: "1.4"
 status: draft
 producer: "PHASE_1_4_B_BCS_AGENT_9"
 timestamp: 2026-04-25T00:00:00
@@ -76,8 +76,8 @@ warn-pending-wave-gate: stderr warning when any wave has gate_status: pending. R
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|--------------|
-| VP-TBD | Pending wave detection — any wave with gate_status=pending triggers WAVE GATE REMINDER on stderr | manual/bats |
-| VP-TBD | Advisory-only — exit code is always 0 regardless of pending wave count | manual/bats |
+| (no formal VP — covered by bats test warn-pending-wave-gate.bats AC-002/AC-003: pending wave detection exercised by integration tests in tests/integration/E-8-hook-plugins/) | Pending wave detection — any wave with gate_status=pending triggers WAVE GATE REMINDER on stderr | manual/bats |
+| (no formal VP — covered by bats test warn-pending-wave-gate.bats AC-004: exit code 0 asserted in all test vectors including multi-pending-wave case) | Advisory-only — exit code is always 0 regardless of pending wave count | manual/bats |
 
 ## Traceability
 
@@ -94,7 +94,7 @@ warn-pending-wave-gate: stderr warning when any wave has gate_status: pending. R
 
 ## Architecture Anchors (Recommended)
 
-- `architecture/ss-07-hook-bash.md` — SS-07 module definition.
+- `architecture/SS-07-hook-bash.md` — SS-07 module definition.
 - `hooks-registry.toml::warn-pending-wave-gate` — authoritative runtime binding.
 
 ## Story Anchor (Recommended)
@@ -144,6 +144,7 @@ Native WASM port (S-8.07) replaced the original bash hook. The hook reads wave-s
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| 1.4 | 2026-05-10 | implementer | F-P6-005: VP-TBD entries replaced with explicit no-formal-VP declarations citing covering bats tests (AC-002/003/004). F-P6-006: architecture anchor path corrected ss-07-hook-bash.md → SS-07-hook-bash.md (uppercase prefix matches actual file). |
 | 1.3 | 2026-05-10 | implementer | F-P5-002: TBD fields resolved — capability TBD→CAP-008, hook path updated to native WASM lib.rs (S-8.07 port), EC-001 through EC-004 populated, INV-3/INV-4 added (SEQUENCE schema + advisory-only + stderr requirement), traceability L2 Capability populated, VP table expanded, Source Evidence path updated. Changelog reordered newest-first. |
 | 1.2 | 2026-05-09 | state-manager | F-P47-001 fix-burst-43: Traceability Stories TBD→S-8.07 (S-8.07 behavioral_contracts frontmatter cites this BC; bidirectional L-P28-001 propagation). |
 | 1.1 | 2026-04-25 | PHASE_1_4_B_BCS_AGENT_9 | Initial authoring. |
