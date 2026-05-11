@@ -5,13 +5,13 @@ version: "2.0"
 status: draft
 producer: state-manager
 timestamp: 2026-05-11T00:00:00Z
-phase: engine-discipline-F5-pass-20
+phase: engine-discipline-F5-pass-21
 inputs: []
 input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "F5 pass-20 fix burst COMPLETE (HIGH verdict→PENDING_NEXT_PASS; 1H+5M+3L+1NIT+2PG; D-397+D-398 codified; L-EDP1-012 documented 11th-layer; F-P20-001 STATE Last Updated→pass-20; F-P20-002 VP-INDEX timestamp; F-P20-005 STORY-INDEX D-395; F-P20-006 F-P18-009 FULLY RESOLVED; F-P20-007 VP-INDEX Refs)"
+current_step: "F5 pass-21 fix burst COMPLETE (HIGH→PENDING_NEXT_PASS; 1H+5M+3L+1NIT+1PG; D-399+D-400 codified; L-EDP1-013 documented 12th-layer L-EDP1-003 recurrence at adjacent-cell sibling-sweep gap)"
 current_cycle: v1.0-feature-engine-discipline-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,8 +38,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-11 — F5 pass-20 fix burst COMPLETE. Pass-20 HIGH verdict (1H+5M+3L+1NIT+2PG; D-397+D-398 codified; L-EDP1-012 documented 11th-layer L-EDP1-003 recurrence). D-397 closes intent-match gap (canonical exemplar: pass-19 dim-4 wrote pass-18 narrative with false-green grep). D-398 closes Layer-N same-burst-violation structural-premature claim. Key fixes: F-P20-001 STATE Last Updated→pass-20 (D-397 self-applied). F-P20-002 VP-INDEX timestamp→2026-05-11. F-P20-005 STORY-INDEX D-395 citation added. F-P20-006 F-P18-009 FULLY RESOLVED. F-P20-007 VP-INDEX v1.41 Refs→D-390+D-392 direct. Trajectory: 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10. |
-| **Current Phase** | Engine-discipline F5 — pass-19 fix burst COMPLETE (pending pass-20 dispatch) |
+| **Last Updated** | 2026-05-11 — F5 pass-21 fix burst COMPLETE. Pass-21 HIGH verdict (1H+5M+3L+1NIT+1PG; D-399+D-400 codified; L-EDP1-013 documents 12th-layer L-EDP1-003 recurrence at adjacent-cell sibling-sweep gap). D-397+D-399 self-applied via 4-cell STATE narrative sweep. Trajectory: 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→11. |
+| **Current Phase** | Engine-discipline F5 — pass-21 fix burst COMPLETE (pending pass-22 dispatch) |
 | **Current Cycle** | v1.0-feature-engine-discipline-pass-1 |
 
 ## Phase Progress
@@ -91,6 +91,8 @@ dtu_services: []
 | F5 pass-19 fix burst (D-395+D-396+content fixes) | state-manager | DONE 2026-05-11 | F-P19-001..009 fixed; D-395+D-396 codified; L-EDP1-011; STORY-INDEX v2.66; VP-INDEX v1.41 |
 | F5 pass-20 cycle-level adversary | adversary | DONE 2026-05-11 | HIGH (1H+5M+3L+1NIT+2PG); sustained; trajectory →10; 11th-layer L-EDP1-003 (intent-match gap); D-397+D-398 required |
 | F5 pass-20 fix burst (D-397+D-398+content fixes) | state-manager | DONE 2026-05-11 | F-P20-001..009 fixed; D-397+D-398 codified; L-EDP1-012; VP-INDEX timestamp; STORY-INDEX D-395; F-P18-009 FULLY RESOLVED |
+| F5 pass-21 cycle-level adversary | adversary | DONE 2026-05-11 | HIGH (1H+5M+3L+1NIT+1PG); trajectory →11; 12th-layer L-EDP1-003 (adjacent-cell sibling-sweep gap); D-399+D-400 required |
+| F5 pass-21 fix burst (D-399+D-400+content fixes) | state-manager | DONE 2026-05-11 | F-P21-001..009 fixed; D-399+D-400 codified; L-EDP1-013; BC-INDEX v1.65; pass-20 burst-log corrigenda |
 
 ## Identifier Conventions
 
@@ -120,7 +122,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | feb894a2 | rc.16 merge; latest release |
 | develop | 99d24315 | S-12.08 squash-merge (PR #123); F4 COMPLETE |
-| factory-artifacts | db63d855 | F5 pass-20 fix burst Commit C — Commit E (state-manager final) pending this update |
+| factory-artifacts | (Commit E SHA — see git log) | F5 pass-21 fix burst Commit E — state-manager final |
 | feature/F5-pass-3-cycle-hardening | 2e6b4372 | PR #124 OPEN (DRAFT); CI run 25651192161 GREEN (11/11 checks) |
 | v1.0.0-rc.16 (tag) | feb894a2 | SHIPPED; claude-mp PR #8 awaiting human merge |
 | v1.0.0-rc.15 (tag) | e68bb436 | SHIPPED |
@@ -130,7 +132,7 @@ dtu_services: []
 | Cycle | Type | Status | Notes |
 |-------|------|--------|-------|
 | v1.0-brownfield-backfill | brownfield | PAUSED | E-10 pass-9 pending; paused at D-343 |
-| v1.0-feature-engine-discipline-pass-1 | feature | F5-IN-PROGRESS | All 6 E-12-platform stories merged; F5 passes 3-20 complete (18 F5 passes); full-cycle trajectory (pass-1..20): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10; pass-20 HIGH verdict (1H+5M+3L+1NIT+2PG); D-397+D-398 codified; L-EDP1-012 documented; D-386 Option C: continue F5, accept asymptotic L-EDP1-003 limit; S-15.03 deferred |
+| v1.0-feature-engine-discipline-pass-1 | feature | F5-IN-PROGRESS | All 6 E-12-platform stories merged; F5 passes 3-21 complete (19 F5 passes); full-cycle trajectory (pass-1..21): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→11; pass-21 HIGH verdict (1H+5M+3L+1NIT+1PG); D-399+D-400 codified; L-EDP1-013 documented; D-386 Option C: continue F5, accept asymptotic L-EDP1-003 limit; S-15.03 deferred |
 | v1.0-feature-plugin-async-semantics-pass-1 | feature | CLOSED | All PRs merged; rc.14 shipped |
 
 ## Decisions Log
@@ -179,26 +181,26 @@ dtu_services: []
 
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-11 — F5 pass-20 fix burst COMPLETE. Pass-20 HIGH verdict (1H+5M+3L+1NIT+2PG; sustained; 11th-layer L-EDP1-003 at D-395 intent-match dimension). D-397 (intent-match sub-clause: Verification grep MUST target pass-N marker, not prior-pass substring; violations MEDIUM) + D-398 (Layer-N "Same-burst Violation" MUST read "(awaiting pass-(N+1) audit)" until next pass runs) codified. L-EDP1-012 documents 11th-layer L-EDP1-003 recurrence (pass-19 dim-4 wrote pass-18 narrative; D-395 Verification grep false-green). Key fixes: F-P20-001 STATE Last Updated→pass-20 (D-397 self-applied). F-P20-002 VP-INDEX timestamp→2026-05-11. F-P20-004 L-EDP1-011 Layer-10 corrigendum (same-burst violation confirmed). F-P20-005 STORY-INDEX D-395 citation added. F-P20-006 F-P18-009 FULLY RESOLVED. F-P20-007 VP-INDEX Refs→D-390+D-392 direct. Trajectory: 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10. Streak 0/3.
+**Last update:** 2026-05-11 — F5 pass-21 fix burst COMPLETE. Pass-21 HIGH verdict (1H+5M+3L+1NIT+1PG; sustained; 12th-layer L-EDP1-003 at adjacent-cell sibling-sweep gap). D-399 (canonical pass-N marker definition for D-397 intent-match) + D-400 (D-385/D-398 reconciliation for next-pass Layer-N row inline updates) codified. L-EDP1-013 documents 12th-layer L-EDP1-003 recurrence. Key fixes: F-P21-001 STATE Current Phase→pass-21 (D-397+D-399 self-applied 4-cell sweep). F-P21-005 BC-INDEX v1.65 cycle-decision sync D-389..D-400. F-P21-002/003/004 pass-20 burst-log corrigenda. F-P21-006 L-EDP1-011 D-400 corrigendum. Trajectory: 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→11. Streak 0/3.
 
-**STATE:** F4 platform COMPLETE; F5 at pass-20 fix burst complete. Next: dispatch pass-21 adversary (per D-394, update STATE.md phase BEFORE adversary returns).
+**STATE:** F4 platform COMPLETE; F5 at pass-21 fix burst complete. Next: dispatch pass-22 adversary (per D-394, update STATE.md phase BEFORE adversary returns).
 
 **Next session start — ordered checklist:**
 
 1. ✓ D-395+D-396 codified (pass-19 fix burst complete).
 2. ✓ D-397+D-398 codified (pass-20 fix burst complete; L-EDP1-012).
-3. ✓ Pass-20 adversary dispatched and fix burst complete.
-4. Dispatch pass-21 adversary — update STATE.md phase: engine-discipline-F5-pass-21 BEFORE dispatch (per D-394).
-5. Apply pass-21 fix burst per D-382..D-398 discipline if MEDIUM or above.
+3. ✓ D-399+D-400 codified (pass-21 fix burst complete; L-EDP1-013).
+4. Dispatch pass-22 adversary — update STATE.md phase: engine-discipline-F5-pass-22 BEFORE dispatch (per D-394).
+5. Apply pass-22 fix burst per D-382..D-400 discipline if MEDIUM or above.
 6. Iterate until 3 consecutive NITPICK_ONLY passes achieved OR human declares convergence.
 7. F6 targeted hardening after convergence criterion met.
 8. F7 delta convergence + human gate (cycle CLOSE).
 9. E-10 brownfield pass-9 resume (PAUSED at D-343).
 
-**D-382..D-398 discipline applies to ALL future fix bursts.** Key additions pass-20: D-397 (intent-match sub-clause for D-395: Verification grep MUST target pass-N substring); D-398 (Layer-N same-burst-violation column MUST be "awaiting pass-(N+1) audit" until next adversary runs). Sweep attestations MUST record: (a) inlined list, (b) second-source Grep query, (c) arithmetic |list|==|result|, (d) per-action grep-back Verification with pass-N marker.
+**D-382..D-400 discipline applies to ALL future fix bursts.** Key additions pass-21: D-399 (canonical pass-N marker definition: (a) literal pass-N substring, (b) content marker authored in pass-N, (c) current-burst date-stamp); D-400 (Layer-N "awaiting pass-(N+1) audit" placeholder is inline-replaced by next-pass fix burst — NOT a D-385 sub-rule 2 violation). Sweep attestations MUST record: (a) inlined list, (b) second-source Grep query, (c) arithmetic |list|==|result|, (d) per-action grep-back Verification with pass-N canonical marker per D-399.
 
-**Index versions:** BC-INDEX v1.64 | VP-INDEX v1.41 | STORY-INDEX v2.66 | ARCH-INDEX v1.45
-**Pass-20 fixes:** D-397+D-398 codified | L-EDP1-012 | F-P20-001..009 RESOLVED (F-P20-003 false-positive; F-P20-008..010 deferred/NIT)
+**Index versions:** BC-INDEX v1.65 | VP-INDEX v1.41 | STORY-INDEX v2.66 | ARCH-INDEX v1.45
+**Pass-21 fixes:** D-399+D-400 codified | L-EDP1-013 | F-P21-001..009 RESOLVED (F-P21-010 NITPICK no-action)
 **ADR-013:** 3_of_3 CONVERGED (pass-57) | **E-9:** v1.53 CONVERGENCE_REACHED | **E-10:** paused D-343
 **5 user-locked decisions:** `cycles/v1.0-feature-plugin-async-semantics-pass-1/F4-handoff.md` §3
 
