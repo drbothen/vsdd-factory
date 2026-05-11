@@ -458,7 +458,7 @@ EOF
 # F-P3-008: Concurrent resolver timeout integration test
 #
 # With long_running_resolver + wave_context resolver registered, asserts:
-# 1. Total dispatch completes in <3000ms (well under 1500ms timeout × 2 resolvers)
+# 1. Total dispatch completes in <8000ms (raised from 3000ms in pass-6 to accommodate slow CI runners; see lines 562-565 rationale)
 # 2. resolver.error (timeout) event appears in sink for long_running resolver
 # 3. wave_context resolver output IS still in plugin_config (not blocked by peer timeout)
 #    — verified via absence of WAVE_CONTEXT_MISSING with vacuous-convergence Continue.
@@ -468,7 +468,7 @@ EOF
 # from fixtures/ into a temp hook-plugins/ dir at test setup time.
 # ---------------------------------------------------------------------------
 
-@test "F-P3-008: concurrent resolver timeout — dispatch under 3000ms, timeout event in sink, wave_context succeeds" {
+@test "F-P3-008: concurrent resolver timeout — dispatch under 8000ms, timeout event in sink, wave_context succeeds" {
     # Seed minimal .factory/ with active wave and empty stories (vacuous convergence).
     mkdir -p "${FACTORY_TMP}/.factory"
     cat > "${FACTORY_TMP}/.factory/STATE.md" <<'EOF'
@@ -591,8 +591,8 @@ RESOLVER_TOML
     # Rationale: 1100ms was machine-specific (calibrated on a fast macOS dev box).
     # CI runners (ubuntu-latest, macos-14) can be slower under load, causing the
     # timeout to fire at 1500ms + overhead that exceeds the old lower bound.
-    # 1300ms gives a 200ms buffer beyond the old bound while still catching a 25%+
-    # deadline reduction (1500ms * 0.75 = 1125ms, still < 1300ms guard — catch fires). Trade-off:
+    # Catches any deadline reduction >13.3% (1300/1500 = 86.67% threshold);
+    # the 25% example (1500ms × 0.75 = 1125ms) is well within the guard. Trade-off:
     # accepted risk of rare flake on severely loaded CI runners.
     [ "${elapsed_ms}" -ge 1300 ] || {
         echo "UNEXPECTED: dispatch took only ${elapsed_ms}ms — long_running timeout may not have fired at expected 1500ms" >&2
