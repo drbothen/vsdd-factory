@@ -6,9 +6,17 @@ status: complete
 producer: adversary
 timestamp: 2026-05-11T00:00:00Z
 phase: F5
-inputs: []
+inputs:
+  - .factory/STATE.md
+  - .factory/cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md
+  - .factory/cycles/v1.0-feature-engine-discipline-pass-1/lessons.md
+  - .factory/cycles/v1.0-feature-engine-discipline-pass-1/INDEX.md
+  - .factory/cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md
+  - .factory/cycles/v1.0-feature-engine-discipline-pass-1/adv-cycle-pass-11.md
+  - .factory/specs/behavioral-contracts/ss-04/BC-4.12.001.md
+  - .factory/specs/behavioral-contracts/ss-04/BC-4.12.005.md
 input-hash: "[pending-recompute]"
-traces_to: ""
+traces_to: prd.md
 project: vsdd-factory
 mode: feature
 current_step: "F5-adversarial-pass-12"

@@ -23,7 +23,7 @@ current_step: F5-adversarial-pass-14
 current_cycle: v1.0-feature-engine-discipline-pass-1
 pass: 14
 previous_review: adv-cycle-pass-13.md
-prior-pass-classification: MEDIUM
+prior-pass-classification: HIGH
 prior-findings-count: 3
 verdict: MEDIUM
 findings_count: { critical: 0, high: 0, medium: 4, low: 4, nitpick: 2 }

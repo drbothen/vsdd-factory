@@ -21,7 +21,7 @@ current_step: F5-adversarial-pass-10
 current_cycle: v1.0-feature-engine-discipline-pass-1
 pass: 10
 previous_review: adv-cycle-pass-9.md
-prior-pass-classification: MEDIUM-HIGH
+prior-pass-classification: HIGH
 prior-findings-count: 6
 verdict: MEDIUM
 findings_count: { critical: 0, high: 0, medium: 2, low: 2, nitpick: 2 }
@@ -356,3 +356,5 @@ defect" or "fix applied narrowly within file." Six findings remain:
 D-383 codification in this fix burst closes the intra-file-content-audit gap.
 
 Streak: 0/3. Three consecutive NITPICK_ONLY passes required for convergence.
+
+**Corrigendum (pass-15 fix burst — D-387):** This file's frontmatter `prior-pass-classification` has been corrected from "MEDIUM-HIGH" to "HIGH" (structural correction per D-387; pass-9 verdict was MEDIUM-HIGH in original body but the canonical label is HIGH — see adv-cycle-pass-9.md corrigendum). Body references to "MEDIUM-HIGH" in this file pre-date the correction and are preserved as historical authorship per D-385 sub-rule 2. The canonical pass-9 verdict is HIGH; see INDEX.md row-9.

@@ -325,3 +325,5 @@ additional sub-rules: self-referential N clause, cardinality cross-check, and
 attestation specificity.
 
 Streak: 0/3. Three consecutive NITPICK_ONLY passes required for convergence.
+
+**Corrigendum (pass-15 fix burst — D-387):** Body references to pass-9 verdict "MEDIUM-HIGH" in this file pre-date the pass-14/pass-15 correction and are preserved as historical authorship per D-385 sub-rule 2. The canonical pass-9 verdict is HIGH; see adv-cycle-pass-9.md corrigendum and INDEX.md row-9. Additionally, pass-7 verdict is corrected from LOW to MEDIUM (highest-severity wins: findings_count has medium:2) and pass-13 verdict is corrected from MEDIUM to HIGH (findings_count has high:1) per D-387 structural-correction exception and F-P15-003.

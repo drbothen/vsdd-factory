@@ -22,7 +22,7 @@ current_step: F5-adversarial-pass-8
 current_cycle: v1.0-feature-engine-discipline-pass-1
 pass: 8
 previous_review: adv-cycle-pass-7.md
-prior-pass-classification: LOW
+prior-pass-classification: MEDIUM
 prior-findings-count: 5
 verdict: MEDIUM
 findings_count: { critical: 0, high: 0, medium: 3, low: 2, nitpick: 1 }

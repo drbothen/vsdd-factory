@@ -26,13 +26,19 @@ changes are WASM-only (no new Bash hook debt per D-2).
 
 **F1 architect output:** `.factory/cycles/v1.0-feature-engine-discipline-pass-1/F1-delta-analysis.md` (28KB)
 
-## Stories Delivered (F2-confirmed via D-345/D-346)
+## Stories Delivered (F2-confirmed via D-345/D-346; F3-amendment via D-366)
 
-| ID | Title | Cluster |
-|----|-------|---------|
-| S-12.01 | Per-story adversary workflow: orchestrator docs + agent prompt updates | Engine Governance (E-12) |
-| S-12.02 | Per-story adversary convergence WASM hook | Engine Governance (E-12) |
-| S-13.01 | Artifact path governance: path registry + WASM hook + relocation skill | Artifact Integrity (E-13) |
+| ID | Title | Phase | Cluster | PR | Merged |
+|----|-------|-------|---------|-----|--------|
+| S-12.01 | Per-story adversary workflow: orchestrator docs + agent prompt updates | F4 | Engine Governance (E-12) | #98 | 2026-05-07 |
+| S-12.02 | Per-story adversary convergence WASM hook | F4 | Engine Governance (E-12) | #99 | 2026-05-07 |
+| S-12.03 | ContextResolver Trait + ResolverRegistry (in-memory) | F4-platform | Engine Governance (E-12) | #120 | 2026-05-10 |
+| S-12.04 | WASM Resolver Loading, Lifecycle, and Error Isolation | F4-platform | Engine Governance (E-12) | #121 | 2026-05-10 |
+| S-12.05 | hook-sdk Resolver-Authoring Extensions | F4-platform | Engine Governance (E-12) | #119 | 2026-05-10 |
+| S-12.06 | HOST_ABI Context Injection Contract (factory-agnostic docs) | F4-platform | Engine Governance (E-12) | #105 | 2026-05-07 |
+| S-12.07 | `vsdd-context-resolvers` Crate + WaveContextResolver | F4-platform | Engine Governance (E-12) | #122 | 2026-05-10 |
+| S-12.08 | Migrate convergence hook to consume plugin_config.wave_context.stories | F4-platform | Engine Governance (E-12) | #123 | 2026-05-10 |
+| S-13.01 | Artifact path governance: path registry + WASM hook + relocation skill | F4 | Artifact Integrity (E-13) | #97 | 2026-05-07 |
 
 ## Epics (F2-confirmed via D-345)
 
@@ -51,14 +57,15 @@ changes are WASM-only (no new Bash hook debt per D-2).
 | 4 | 2026-05-11 | 9 (2C+4H+3M) | CRITICAL | adv-cycle-pass-4.md |
 | 5 | 2026-05-11 | 8 (1C+3H+3M+1L) | CRITICAL | adv-cycle-pass-5.md |
 | 6 | 2026-05-11 | 7 (2C+3H+2M) | CRITICAL | adv-cycle-pass-6.md |
-| 7 | 2026-05-11 | 5 (2M+3L) | LOW | adv-cycle-pass-7.md |
+| 7 | 2026-05-11 | 5 (2M+3L) | MEDIUM | adv-cycle-pass-7.md |
 | 8 | 2026-05-11 | 6 (3M+2L+1NIT) | MEDIUM | adv-cycle-pass-8.md |
 | 9 | 2026-05-11 | 6 (1H+1M+2L+2NIT) | HIGH | adv-cycle-pass-9.md |
 | 10 | 2026-05-11 | 6 (2M+2L+2NIT) | MEDIUM | adv-cycle-pass-10.md |
 | 11 | 2026-05-11 | 4 (2M+2L) | MEDIUM | adv-cycle-pass-11.md |
 | 12 | 2026-05-11 | 3 (2M+1L) +3PG | MEDIUM | adv-cycle-pass-12.md |
-| 13 | 2026-05-11 | 3 (1H+1M+1L) +3PG | MEDIUM | adv-cycle-pass-13.md |
+| 13 | 2026-05-11 | 3 (1H+1M+1L) +3PG | HIGH | adv-cycle-pass-13.md |
 | 14 | 2026-05-11 | 10 (4M+4L+2NIT) +3PG | MEDIUM | adv-cycle-pass-14.md |
+| 15 | 2026-05-11 | 13 (2H+5M+4L+2NIT) +2PG | HIGH | adv-cycle-pass-15.md |
 
 ## Convergence Status
 
@@ -66,7 +73,7 @@ changes are WASM-only (no new Bash hook debt per D-2).
 - F2 (spec evolution / story decomposition): **COMPLETE** — F2-amendment D-362; 6 BCs + ADR-018 + 4 VPs + PRD FR-048
 - F3 (incremental stories): **COMPLETE** — F3-amendment D-366; 6 stories S-12.03..S-12.08 under E-12
 - F4 (implementation): **COMPLETE** — all 6 E-12 stories merged (PRs #105, #119, #120, #121, #122, #123); F-P2-001 closed via S-12.08
-- F5 (scoped adversarial review): **IN PROGRESS** — 14 passes; trajectory 29→15→11→9→8→7→5→6→6→6→4→3→3→10 (content-only; P12 restated per F-P13-002; P9 verdict HIGH per F-P14-004); pass-14 MEDIUM; streak 0/3; passes 3-14 fix bursts applied to factory-artifacts (feature branch feature/F5-pass-3-cycle-hardening @ 2e6b4372); D-386 Option C: accept asymptotic L-EDP1-003 limit, S-15.03 deferred
+- F5 (scoped adversarial review): **IN PROGRESS** — 15 passes; trajectory 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13 (content-only; P7 verdict MEDIUM per D-387/F-P15-003; P9 verdict HIGH per F-P14-004/D-387; P12 restated per F-P13-002; P13 verdict HIGH per D-387/F-P15-003); pass-15 HIGH (regression); streak 0/3; passes 3-15 fix bursts applied to factory-artifacts; D-386 Option C: accept asymptotic L-EDP1-003 limit, S-15.03 deferred; D-387+D-388 codified
 - F6 (targeted hardening): PENDING
 - F7 (delta convergence): PENDING
 

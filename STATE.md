@@ -60,9 +60,9 @@ dtu_services: []
 | S-12.07 HOST_ABI context injection consumer side | **MERGED** PR #122 2026-05-11 | 8-pass adversary streak CRIT→HIGH→MED→LOW→LOW→N→N→N; convergence_reached=true |
 | S-12.08 convergence hook context migration | **MERGED** PR #123 2026-05-11 99d24315 | 6 passes MED→MED→LOW→N→N→N; closes F-P2-001 + F-P2-008; CRITICAL PATH TERMINUS reached |
 | F4 E-12 resolver-platform sub-batch | **COMPLETE** all 6 stories merged (S-12.03 #120 + S-12.04 #121 + S-12.05 #119 + S-12.06 #105 + S-12.07 #122 + S-12.08 #123) | — |
-| F5 passes 3-7 cycle-level adversary | **COMPLETE** | Trajectory 11→9→8→7→5; verdict LOW at pass-7; fixes on feature/F5-pass-3-cycle-hardening branch |
+| F5 passes 3-7 cycle-level adversary | **COMPLETE** | Trajectory 11→9→8→7→5; verdict MEDIUM at pass-7 (corrected from LOW per D-387/F-P15-003); fixes on feature/F5-pass-3-cycle-hardening branch |
 | F5 pass-8 fix burst (sibling-file gaps) | **COMPLETE** | ARCH-INDEX v1.45, E-14 v1.2, STORY-INDEX last_amended, burst-log passes 3-7, D-381; verdict MEDIUM (regression) |
-| F5 pass-9 cycle-level adversary | **COMPLETE** | MEDIUM-HIGH (1H+1M+2L+2NIT); F-P9-001 burst-log+INDEX.md; F-P9-002 D-382; F-P9-003 arithmetic; F-P9-004 lessons.md; streak 0/3 |
+| F5 pass-9 cycle-level adversary | **COMPLETE** | HIGH (1H+1M+2L+2NIT); corrected from MEDIUM-HIGH per F-P14-004/D-387; F-P9-001 burst-log+INDEX.md; F-P9-002 D-382; F-P9-003 arithmetic; F-P9-004 lessons.md; streak 0/3 |
 | F5 pass-9 fix burst (comprehensive sibling-file sweep) | **COMPLETE** | adv-cycle-pass-9.md; burst-log pass-8+9 entries; INDEX.md passes 3-9; D-382; lessons.md; STATE.md arithmetic; D-382 initial application verified |
 | F5 pass-10 cycle-level adversary | **COMPLETE** | MEDIUM (2M+2L+2NIT); intra-file content defects in pass-9 touched files; L-EDP1-003 migrated one layer up |
 | F5 pass-10 fix burst (intra-file content audit) | **COMPLETE** | F-P10-001..006 resolved; D-383 codified; burst-log pass-10 entry; all D-382+D-383 sibling files updated |
@@ -70,10 +70,10 @@ dtu_services: []
 | F5 pass-11 fix burst (trajectory + cardinality + D-384) | **COMPLETE** | F-P11-001..007 resolved; D-384 codified; all sibling files updated per D-382+D-383+D-384 |
 | F5 pass-12 cycle-level adversary | **COMPLETE** | MEDIUM (2M+1L+3PG; 4th lateral); sub-trajectory STATE.md:63,78 stale; retroactive annotations; attestation gap; D-385 codified |
 | F5 pass-12 fix burst (sub-trajectories + D-385) | **COMPLETE** | F-P12-001..003 resolved; D-385 codified; all sibling files updated per D-382+D-383+D-384+D-385 |
-| F5 pass-13 cycle-level adversary | **COMPLETE** | MEDIUM (1H+1M+1L+3PG; 5th L-EDP1-003 layer); F-P13-001 schema drift; F-P13-002 counting-basis; F-P13-003 H1 title |
+| F5 pass-13 cycle-level adversary | **COMPLETE** | HIGH (1H+1M+1L+3PG; corrected from MEDIUM per D-387/F-P15-003); F-P13-001 schema drift; F-P13-002 counting-basis; F-P13-003 H1 title |
 | F5 pass-13 fix burst (schema + trajectory + L-EDP1-007) | **COMPLETE** | F-P13-001..003 resolved; L-EDP1-007 codified; all sibling files updated per D-382+D-383+D-384+D-385 |
 | F5 pass-14 cycle-level adversary | **COMPLETE** | MEDIUM (4M+4L+2NIT+3PG); 10 content findings; trajectory →3→3→10; D-386 Option C selected |
-| F5 pass-14 fix burst (schema-content + verdict-ladder + stale-tables + D-386) | **IN PROGRESS** | F-P14-001..010 + 3PG addressed; sibling files updating |
+| F5 pass-14 fix burst (schema-content + verdict-ladder + stale-tables + D-386) | **COMPLETE** | F-P14-001..010 + 3PG addressed; sibling files updated; D-387 retroactively legalizes F-P14-004 |
 | Phase D-4 Burst 2 — E-10 + E-9 v1.7 | **PENDING** | E-10 paused D-343; adversary pass-9 queued |
 
 ## Current Phase Steps

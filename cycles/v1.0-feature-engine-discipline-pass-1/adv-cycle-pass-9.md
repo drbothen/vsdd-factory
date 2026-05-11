@@ -201,3 +201,5 @@ Continue F5. Pass-10 target: NITPICK_ONLY or LOW (begin working toward streak re
 ## Process-Gap Findings (2)
 
 F-P9-009 (D-381 scope omission — full sibling-file surface not enumerated; addressed by D-382 in this fix burst), F-P9-010 (observation; not a gap).
+
+**Corrigendum (pass-15 fix burst — D-387):** Pass-9 verdict has been corrected from "MEDIUM-HIGH" (non-canonical label) to "HIGH" per F-P14-004 frontmatter correction (retroactively legalized by D-387). Body references to "MEDIUM-HIGH" in this file pre-date the correction and are preserved as historical authorship per D-385 sub-rule 2. The canonical verdict is HIGH; see INDEX.md row-9 and adv-cycle-pass-15.md F-P15-001/F-P15-002 for full context.

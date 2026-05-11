@@ -23,7 +23,7 @@ pass: 13
 previous_review: adv-cycle-pass-12.md
 prior-pass-classification: MEDIUM
 prior-findings-count: 3
-verdict: MEDIUM
+verdict: HIGH
 findings_count: { critical: 0, high: 1, medium: 1, low: 1, nitpick: 0 }
 observations: 0
 deferred: 0

@@ -25,7 +25,7 @@ pass: 7
 previous_review: adv-cycle-pass-6.md
 prior-pass-classification: CRITICAL
 prior-findings-count: 7
-verdict: LOW
+verdict: MEDIUM
 findings_count: { critical: 0, high: 0, medium: 2, low: 3, nitpick: 0 }
 observations: 5
 deferred: 0
