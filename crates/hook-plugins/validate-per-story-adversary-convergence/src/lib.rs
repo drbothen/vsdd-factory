@@ -2197,7 +2197,7 @@ mod tests {
         );
 
         // Variant 4: stories array contains a non-string element
-        // (matches existing extract_stories_from_config behavior pattern)
+        // (matches the wave_context schema-error pattern)
         let cfg_non_string_elem = json!({ "wave_context": { "stories": ["S-1", 99, "S-3"] } });
         let r4 = extract_stories_from_wave_context(&cfg_non_string_elem);
         assert!(
@@ -2251,35 +2251,10 @@ mod tests {
         );
     }
 
-    // -----------------------------------------------------------------------
-    // AC-007 — FakeCallbacks with wave_context payload drives hook_logic correctly
-    // S-12.08 AC-007 (traces to BC-4.12.005 PC5)
-    //
-    // This test constructs a plugin_config in the new wave_context form and
-    // calls hook_logic end-to-end using FakeCallbacks. The FakeCallbacks
-    // directly provides the story list (bypassing list_stories / RealCallbacks).
-    // The test verifies that the FakeCallbacks construction with a wave_context-
-    // shaped payload still drives the correct block-decision logic.
-    //
-    // This test is GREEN-BY-DESIGN at Step 2 because:
-    //   - FakeCallbacks.list_stories() ignores plugin_config entirely — it uses
-    //     self.stories directly. The wave_context payload shape is irrelevant
-    //     to FakeCallbacks.
-    //   - hook_logic's block-decision path (hook_result_for) is already implemented.
-    //   - The test does NOT call extract_stories_from_wave_context.
-    // It will verify that after Step 3's refactor, FakeCallbacks payloads using
-    // wave_context form continue to drive correct decisions.
-    // -----------------------------------------------------------------------
-
+    // AC-007: FakeCallbacks with wave_context-shaped plugin_config drives
+    // hook_logic block/continue decisions per BC-4.12.005 PC5.
     #[test]
     fn test_fake_callbacks_inject_wave_context_payload() {
-        // S-12.08 AC-007: FakeCallbacks with wave_context-shaped payload drives
-        // hook_logic correctly. This test is GREEN-BY-DESIGN at Step 2 because
-        // FakeCallbacks ignores plugin_config and uses self.stories directly.
-        // After Step 3, RealCallbacks will read wave_context.stories from
-        // plugin_config — but FakeCallbacks in tests will still construct
-        // plugin_config in the new wave_context form.
-
         // Case A: FakeCallbacks returns unconverged state → hook_logic must Block.
         let mut payload_a = make_payload(Some("wave-gate-dispatch"));
         payload_a.plugin_config = json!({
@@ -2329,9 +2304,8 @@ mod tests {
         // BLOCK_CODE_WAVE_CONTEXT_MISSING in the reason.
         let mut payload = make_payload(Some("wave-gate-dispatch"));
         payload.plugin_config = json!({});
-        // FakeCallbacks cycle-dir-absent path: list_stories returns Err.
-        // After Step 3, hook_logic checks wave_context BEFORE calling list_stories,
-        // so FakeCallbacks will not even be asked for stories.
+        // FakeCallbacks cycle-dir-absent path: hook_logic checks wave_context
+        // before reading stories, so FakeCallbacks is not asked for stories.
         let callbacks = FakeCallbacks::new_no_context();
 
         let result = hook_logic(&payload, &callbacks);
