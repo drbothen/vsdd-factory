@@ -9,9 +9,10 @@ phase: 1a
 inputs:
   - .factory/cycles/v1.0-feature-engine-discipline-pass-1/F1-delta-analysis.md
   - .factory/cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md
-input-hash: "40a6fb6"
+input-hash: "[pending-recompute]"
 traces_to: .factory/cycles/v1.0-feature-engine-discipline-pass-1/F1-delta-analysis.md
 origin: greenfield
+extracted_from: null
 subsystem: "SS-05"
 capability: "CAP-005"
 lifecycle_status: active
@@ -25,6 +26,7 @@ removed: null
 removal_reason: null
 bc_id: BC-5.39.002
 section: "5.39"
+last_amended: 2026-05-09
 ---
 
 # BC-5.39.002: Per-story adversary scope MUST be limited to story diff, spec, and anchored BCs; out-of-scope findings MUST be deferred
@@ -150,5 +152,5 @@ Story A — v1.0-feature-engine-discipline-pass-1 (F3 story decomposition)
 
 | Version | Date | Description |
 |---------|------|-------------|
-| 1.0 | 2026-05-06 | Initial authoring (product-owner; F2 phase of v1.0-feature-engine-discipline-pass-1). OQ6 resolution applied: adversary agent owns convergence assessment. |
 | 1.1 | 2026-05-09 | F-P45-001 — Traceability Stories row propagated from BC-INDEX v1.57: "Story A" placeholder → S-12.01. BC-INDEX was updated in fix-burst-39 (v1.55) to replace TBD; body was not updated in that burst. Refs: F-P45-001, fix-burst-42. |
+| 1.0 | 2026-05-06 | Initial authoring (product-owner; F2 phase of v1.0-feature-engine-discipline-pass-1). OQ6 resolution applied: adversary agent owns convergence assessment. |
