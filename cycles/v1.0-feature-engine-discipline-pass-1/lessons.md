@@ -447,7 +447,7 @@ The 9-layer history:
 | 8 (pass-17) | D-391+D-392 | "enumeration source mandatory + VP Lifecycle ≡ CHANGELOG" | second-source query absent; inlined BC list wrong (3 gaps); inlined VP list wrong (4 gaps) |
 | 9 (pass-18) | D-393+D-394 | "independent re-derivation Grep query required + D-391 severity explicit + dispatch-side phase update" | F-P19-001 false-true attestation re VP-INDEX last_amended (corrigendum in L-EDP1-010) |
 | 10 (pass-19) | D-395+D-396 | "file-state grep-back verification of Action claims + story-frontmatter↔STORY-INDEX sweep" | F-P20-001 dim-4 intent-mismatch (stale pass-18 narrative written; false-green Verification grep; corrigendum in L-EDP1-011) |
-| 11 (this, pass-20) | D-397+D-398 | "intent-match sub-clause for D-395 Verification grep + Layer-N awaiting-audit convention" | (awaiting pass-21 adversary fresh-context audit) |
+| 11 (this, pass-20) | D-397+D-398 | "intent-match sub-clause for D-395 Verification grep + Layer-N awaiting-audit convention" | F-P21-001: STATE.md:42 Current Phase cell still read "pass-19" after pass-20 fix burst updated only the adjacent Last Updated cell (line 41) — sibling-cell sweep extent missed Current Phase cell. Confirmed F-P21-001 as the Layer-11 same-burst violation via pass-21 adversary fresh-context audit (D-400 inline-replace). |
 
 **Pattern-extension note (predict layer-12 candidates):**
 - (a) Action verbs that nominally do nothing (e.g., "noted in burst-log" / "acknowledged without file edit") — Verification difficulty: how to grep-verify a no-op action's correctness
@@ -457,3 +457,44 @@ The 9-layer history:
 - (e) timestamp-vs-last_amended date alignment (F-P20-002: VP-INDEX timestamp 2026-05-09 while last_amended 2026-05-11 — D-390 propagation scope narrower than D-392 scope)
 
 The L-EDP1-003 pattern at this layer is increasingly meta: each codification rule addresses prior-rule's blind spot but introduces a new blind spot at a finer granularity. Per D-386 Option C, no structural escalation; acknowledged asymptotic limit.
+
+**Corrigendum (pass-21 fix burst — D-387 / F-P21-006 / D-400):** D-400 (codified pass-21) retroactively legalizes the pass-20 inline edit of Layer-10 "Same-burst Violation" cell. The protocol is: awaiting-text placeholder set by codifying burst; inline replacement by next pass's fix burst. Future Layer-N rows: pass-21 sets Layer-12 row with `(awaiting pass-22 audit)`; pass-22 fix burst inline-replaces with actual violation text per D-400.
+
+---
+
+### L-EDP1-013 — 12th-layer L-EDP1-003 recurrence at adjacent-cell sibling-sweep gap
+
+**Burst:** F5 pass-21 fix burst (codifies the lesson; recurrence was in pass-20 D-397 self-application).
+
+**Pattern:** D-397 was codified by the pass-20 fix burst to require intent-match: Action verb writes pass-N content; Verification grep targets pass-N marker. Pass-20 dim-1 applied D-397 correctly to the Last Updated cell (STATE.md:41) — Action wrote "pass-20 fix burst COMPLETE" narrative; Verification grep `grep -c 'pass-20 fix burst COMPLETE' STATE.md` → 1 ✓. But the sibling-pattern sweep extent was narrow: STATE.md has 4 narrative cells that reference current pipeline state (Last Updated, Current Phase, current_step frontmatter, Session Resume Checkpoint). The pass-20 burst updated 3 of them but missed the adjacent Current Phase cell (line 42). The Verification grep cardinality (→1) was correct for the narrow scope but missed the broader scope.
+
+**Predicted by:** L-EDP1-012's pattern-extension note enumerated Layer-12 candidate dimension "Adjacent-cell sibling-sweep gap" implicitly via candidate (b) "Cross-file consistency checks". The specific manifestation here is intra-file adjacent-cell coherence within STATE.md.
+
+**Resolution:** D-399 codified "canonical pass-N marker" definition closing the strict-vs-broad-reading gap. D-400 codified the D-385/D-398 interplay for next-pass Layer-N row updates. F-P21-001 fixed STATE.md:42 to pass-20 (then pass-21 in this burst's final state update).
+
+**Codified rule:** When sibling-pattern sweep extent involves narrative cells in STATE.md (or similar live-state files), the enumeration MUST list ALL semantically-equivalent cells, not just the most-recently-edited one. Minimum 4 STATE.md narrative cells: Last Updated, Current Phase, current_step frontmatter, Session Resume Checkpoint.
+
+**Layer history at 12-layer boundary:**
+
+| Layer | Burst | Rule Codified | Same-burst Violation |
+|-------|-------|---------------|---------------------|
+| 1 (pass-8) | D-381 | "fix burst MUST update STATE.md" | missed burst-log + INDEX |
+| 2 (pass-9) | D-382 | "fix burst MUST update all 5 sibling files" | introduced intra-file content defects |
+| 3 (pass-10) | D-383 | "intra-file content audit + sibling-pattern sweep" | trajectory cardinality + self-ref N missed |
+| 4 (pass-11) | D-384 | "3 clarifications to D-383" | sub-trajectories stale; retroactive annotations |
+| 5 (pass-12) | D-385 | "3 clarifications to D-383+D-384" | frontmatter schema drift; counting-basis change |
+| 6 (pass-15) | D-387 | "structural-correction exception + sibling sweep" | sweep dimensions not enumerated; adjacent sibling-chain dimensions not covered |
+| 7 (pass-16) | D-389+D-390 | "input-hash convention + CHANGELOG→last_amended rule" | enumerated in L-EDP1-009 |
+| 8 (pass-17) | D-391+D-392 | "enumeration source mandatory + VP Lifecycle ≡ CHANGELOG" | second-source query absent; inlined BC list wrong (3 gaps); inlined VP list wrong (4 gaps) |
+| 9 (pass-18) | D-393+D-394 | "independent re-derivation Grep query required + D-391 severity explicit + dispatch-side phase update" | F-P19-001 false-true attestation re VP-INDEX last_amended (see corrigendum in L-EDP1-010) |
+| 10 (pass-19) | D-395+D-396 | "file-state grep-back verification of Action claims + story-frontmatter↔STORY-INDEX sweep" | F-P20-001 dim-4 intent-mismatch (stale pass-18 narrative written; false-green Verification grep; see corrigendum in L-EDP1-011) |
+| 11 (pass-20) | D-397+D-398 | "intent-match sub-clause for D-395 Verification grep + Layer-N awaiting-audit convention" | F-P21-001: STATE.md:42 Current Phase cell still read "pass-19" after pass-20 fix burst updated only the adjacent Last Updated cell — sibling-cell sweep extent missed Current Phase cell (D-400 inline-replace) |
+| 12 (this, pass-21) | D-399+D-400 | "canonical pass-N marker + Layer-N row update protocol" | (awaiting pass-22 adversary fresh-context audit) |
+
+**Pattern-extension note (predict layer-13 candidates):**
+- (a) Frontmatter ↔ body content coherence within the same file (e.g., frontmatter version: N vs body H1 title or CHANGELOG row count)
+- (b) Cross-cycle artifact references (e.g., cycle pass-1 referencing v1.0-feature-engine-discipline-pass-2 stories with no validation)
+- (c) Index-file changelog content silence on same-burst codifications across non-adjacent index files
+- (d) Verification grep targets that yield expected count but on wrong files (file-scoped grep with no path-validation)
+
+Per D-386 Option C: continue F5 with asymptotic acceptance. S-15.03 automation remains structural remedy for v1.0-feature-engine-discipline-pass-2.
