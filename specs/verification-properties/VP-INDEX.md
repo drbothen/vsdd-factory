@@ -1,7 +1,7 @@
 ---
 document_type: vp-index
 level: L4
-version: "1.42"
+version: "1.43"
 status: draft
 producer: state-manager
 timestamp: 2026-05-11T00:00:00Z
@@ -10,6 +10,8 @@ phase: F5
 traces_to: ARCH-INDEX.md
 total_vps: 79
 changelog:
+  - date: 2026-05-11
+    change: "v1.43 (2026-05-11; pass-24 fix burst per D-404 + TD-031 normalization): Acknowledges D-403 cycle-governance decision (codified pass-23) per D-404 literal-acknowledgment enforcement; VP-INDEX v1.42 was silent on D-403. ALSO: normalized 3 historical changelog entries (the v1.21/v1.28/v1.31-era entries containing filename:NNN inline citations) to the filename line NNN form per TD-031 stable-anchor validator hook authority (user-authorized normalization; line numbers and filenames preserved exactly; only citation syntax normalized). Closes F-P24-001 (VP-INDEX instance). Refs: F-P24-001, D-404, TD-031, TD #72."
   - date: 2026-05-11
     change: "v1.42 (2026-05-11; pass-22 fix burst per D-401 cross-index sync): cycle-decision sync — VP-INDEX acknowledges D-389..D-402. No VP content changes. Per D-401(a): when ≥3 governance decisions codified same-burst, all 4 indexes MUST acknowledge the decision range. Refs: F-P22-002, D-401. VP-INDEX v1.41→v1.42."
   - date: 2026-05-11
@@ -37,7 +39,7 @@ changelog:
   - date: 2026-05-08
     change: "v1.30 (2026-05-08): L-P21-001 retroactive sweep — VP-016 v1.0→v1.1 (fabricated symbol fix); VP-043 v1.0→v1.1 (fabricated symbol fix). No VP count change. VP-INDEX v1.29→v1.30. Ref: L-P21-001, fix-burst-21 sub-burst 2 (2ea5ee5a)."
   - date: 2026-05-08
-    change: "F5 fix-burst-18 indexes (2026-05-08) — VP-070 v1.1→v1.2 (F-P19-002: Kani Proof 2 assumption tightened to exclude both relative and absolute .factory/ paths in 3 locations — lib.rs:593, kani_path_matching.rs:271, VP-070.md:103). No VP count change. VP-INDEX v1.28→v1.29. Ref: F-P19-002, fix-burst-18 sub-burst 1. last_amended: 2026-05-08 (F5 fix-burst-18: VP-070 v1.2; F-P19-002 closed)."
+    change: "F5 fix-burst-18 indexes (2026-05-08) — VP-070 v1.1→v1.2 (F-P19-002: Kani Proof 2 assumption tightened to exclude both relative and absolute .factory/ paths in 3 locations — lib.rs line 593, kani_path_matching.rs line 271, VP-070.md line 103). No VP count change. VP-INDEX v1.28→v1.29. Ref: F-P19-002, fix-burst-18 sub-burst 1. last_amended: 2026-05-08 (F5 fix-burst-18: VP-070 v1.2; F-P19-002 closed)."
   - date: 2026-05-08
     change: "F5 fix-burst-17 indexes (2026-05-08) — TD-VSDD-091 stable-anchor sweep — VP-065 → v1.3, VP-066 → v1.2, VP-067 → v1.4, VP-068 → v1.5, VP-077 → v1.11 (commit 5248c4c1). No VP count change. VP-INDEX v1.27→v1.28. last_amended: 2026-05-08 (F5 fix-burst-17: TD-VSDD-091 Chunk 3 sweep VP version bumps)."
   - date: 2026-05-08
@@ -51,9 +53,9 @@ changelog:
   - date: 2026-05-08
     change: "F5 fix-burst-12 (2026-05-08) — VP-079 v1.11→v1.12 (F-P13-001: §Proof Harness Skeleton rewritten — broken sed replaced with stable fn-name mutation approach; all 5 SITES enumerated; mirrors fix-burst-11 bats helper). No VP count change. VP-INDEX v1.22→v1.23. last_amended: 2026-05-08 (F5 fix-burst-12: VP-079 v1.12; F-P13-001 closed)."
   - date: 2026-05-08
-    change: "F5 fix-burst-9 (2026-05-08) — VP-079 v1.10→v1.11 (F-P10-002: SITE_3 main.rs:394→416 + SITE_4 main.rs:405→427 line cite refresh post-EC-012 refactor; O-P10-002: frontmatter timestamp UTC Z suffix added). No VP count change. VP-INDEX v1.21→v1.22. last_amended: 2026-05-08 (F5 fix-burst-9: VP-079 v1.11; F-P10-002 + O-P10-002 closed)."
+    change: "F5 fix-burst-9 (2026-05-08) — VP-079 v1.10→v1.11 (F-P10-002: SITE_3 main.rs lines 394→416 + SITE_4 main.rs lines 405→427 line cite refresh post-EC-012 refactor; O-P10-002: frontmatter timestamp UTC Z suffix added). No VP count change. VP-INDEX v1.21→v1.22. last_amended: 2026-05-08 (F5 fix-burst-9: VP-079 v1.11; F-P10-002 + O-P10-002 closed)."
   - date: 2026-05-08
-    change: "F5 fix-burst-8 (2026-05-08) — VP-079 v1.9→v1.10 (F-P9-004: Property 6 updated from 'four production caller sites' to 'five production caller sites'; SITE_5 main.rs:162 DuplicateEntry/E-REG-003 added to Scenario 6 SITES comment + cargo-mutants filter note). No VP count change. VP-INDEX v1.20→v1.21. last_amended: 2026-05-08 (F5 fix-burst-8: VP-079 v1.10; F-P9-004 closed)."
+    change: "F5 fix-burst-8 (2026-05-08) — VP-079 v1.9→v1.10 (F-P9-004: Property 6 updated from 'four production caller sites' to 'five production caller sites'; SITE_5 main.rs line 162 DuplicateEntry/E-REG-003 added to Scenario 6 SITES comment + cargo-mutants filter note). No VP count change. VP-INDEX v1.20→v1.21. last_amended: 2026-05-08 (F5 fix-burst-8: VP-079 v1.10; F-P9-004 closed)."
   - date: 2026-05-08
     change: "F5 fix-burst-4 Stage 1 (2026-05-08) — VP-077 v1.9→v1.10 (F-P4-001: 5 stale BC-7.06.001 v1.4 cites updated to v1.5 across all cite sites; propagation gap from F-P3-003 BC v1.5 bump now closed). No VP count change. VP-INDEX v1.19→v1.20. last_amended: 2026-05-08 (F5 fix-burst-4 Stage 1: VP-077 v1.10; F-P4-001 closed)."
   - date: 2026-05-08
