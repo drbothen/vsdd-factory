@@ -5,6 +5,7 @@ version: "1.64"
 status: draft
 producer: state-manager
 timestamp: 2026-05-11T00:00:00Z
+last_amended: 2026-05-11
 phase: F5
 inputs:
   - .factory/specs/behavioral-contracts/bc-id-mapping.md

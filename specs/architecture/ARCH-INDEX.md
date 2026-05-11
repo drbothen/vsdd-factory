@@ -5,6 +5,7 @@ version: "1.45"
 status: accepted
 producer: architect
 timestamp: 2026-05-11T00:00:00Z
+last_amended: 2026-05-11
 phase: F5
 inputs:
   - .factory/phase-0-ingestion/pass-8-final-synthesis.md
