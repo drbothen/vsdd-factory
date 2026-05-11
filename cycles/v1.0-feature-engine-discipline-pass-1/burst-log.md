@@ -233,4 +233,32 @@ Archived from STATE.md Session Resume Checkpoint (2026-05-09 snapshot):
 
 **F-P16-008/009 DEFERRED:** adv-cycle-pass-8.md and adv-cycle-pass-9.md timestamp Z suffix missing. Per adversary recommendation, not worth a burst fix. Will surface again if pass-17 reviews these files.
 
-**Factory-artifacts commits:** (Commit A: 2fc4bb49), (Commit B: c85653a2), (Commit C: 3c998fee), (Commit D: 10fc0161), (Commit E: this commit — state-manager final per POLICY 3)
+**Factory-artifacts commits:** (Commit A: 2fc4bb49), (Commit B: c85653a2), (Commit C: 3c998fee), (Commit D: 10fc0161), (Commit E: 9e45d209 — state-manager final per POLICY 3)
+
+---
+
+## Burst: F5 pass-17 fix burst (2026-05-11)
+
+**Summary:** Addressed 5M+3L+1NIT content findings + 1 process-gap from pass-17 MEDIUM verdict (8th-layer L-EDP1-003; lateral from pass-16). adv-cycle-pass-17.md persisted (Commit A: 944f852f). D-391 (sweep-extent enumeration source mandatory) + D-392 (VP Lifecycle table ≡ BC CHANGELOG for D-390 purposes) codified in decision-log; L-EDP1-009 corrigendum appended to lessons.md (layer-7 enumeration: 5 dimensions + narrower-than-rubric note) (Commit B: de4d051f). F-P17-001 MEDIUM: last_amended added to BC-5.39.002 (→2026-05-09) + BC-7.03.091 (→2026-05-10) + BC-7.03.092 (→2026-05-10). F-P17-002 MEDIUM: input-hash [live-state]→[pending-recompute] on BC-7.03.091/092 per D-389. F-P17-008 LOW: VP-076 last_amended: 2026-05-10 added per D-392 (Commit C: 77d134a7). F-P17-004 MEDIUM: Z-suffix sweep on 12 sites — 9 adv-cycle-pass files (passes 3-11) + BC-INDEX + ARCH-INDEX; VP-INDEX already had Z (no action). F-P17-005 MEDIUM: burst-log pass-13 corrigendum appended (MEDIUM→HIGH reclassification per F-P15-005). F-P17-006 LOW: STORY-INDEX timestamp →2026-05-11T00:00:00Z; ARCH-INDEX timestamp →2026-05-11T00:00:00Z (also adds Z). Pre-existing STORY-INDEX table cell defect (S-7.04/S-7.05 extra pipe) fixed opportunistically (Commit D: ec59f9fa). F-P17-003 MEDIUM: L-EDP1-009 corrigendum (in Commit B). F-P17-007 LOW: CLOSED BY D-391 retroactively (no content fix needed). F-P17-009 NITPICK: positive verification — no action. PG1: CLOSED by D-391.
+
+**D-391 self-application attestation (MANDATORY per D-391 own text):**
+
+Sweep dimensions for this burst — enumeration source and extent per D-391:
+
+- Sweep dim 1 (F-P17-001): BC last_amended field presence — enumeration source: project policy rubric (in-cycle BCs: BC-4.10.001/002, BC-4.11.001, BC-4.12.001-005, BC-1.13.001, BC-5.39.001/002, BC-6.22.001, BC-7.03.091/092 = 13 BCs). Extent: 13. Audited: 13. Action: BC-5.39.002 added last_amended:2026-05-09; BC-7.03.091 added last_amended:2026-05-10; BC-7.03.092 added last_amended:2026-05-10. Remaining 10 already had last_amended field ✓.
+- Sweep dim 2 (F-P17-002): BC input-hash [live-state] on in-cycle BCs — enumeration source: file glob `.factory/specs/behavioral-contracts/**/*.md` filtered to in-cycle BCs receiving substantive amendments. Extent: BC-7.03.091 + BC-7.03.092 (the 2 flagged by adversary + sibling check). Audited: 2. Action: both changed [live-state]→[pending-recompute] ✓. NOTE: broad grep of all BC files for [live-state] shows many other ss-07 BCs carry this value; per D-389 those are brownfield-origin pre-cycle BCs without substantive in-cycle amendments — they are conformant under D-389.
+- Sweep dim 3 (F-P17-004): adv-cycle-pass-*.md timestamp Z suffix — enumeration source: file glob `.factory/cycles/v1.0-feature-engine-discipline-pass-1/adv-cycle-pass-*.md`. Extent: 17 files (passes 1-17). Audited: 17. Passes 1-2 already had Z (pass-1: no timestamp field; pass-2: has Z). Passes 12-17 already had Z (confirmed in prior bursts). Passes 3-11: 9 files corrected ✓. BC-INDEX, ARCH-INDEX also corrected (no Z); VP-INDEX already had Z. Total corrected: 11 sites (9 adv-pass + BC-INDEX + ARCH-INDEX).
+- Sweep dim 4 (F-P17-006): index-file timestamp staleness — enumeration source: explicit per-file check of 4 index files (BC-INDEX, VP-INDEX, ARCH-INDEX, STORY-INDEX). Extent: 4. Audited: 4. Action: STORY-INDEX updated 2026-05-09→2026-05-11; ARCH-INDEX updated 2026-05-09→2026-05-11 (both dates AND Z suffix). BC-INDEX: 2026-05-11 (already current, Z suffix added under dim 3). VP-INDEX: 2026-05-09T18:00:00Z — last amendment genuinely 2026-05-09; no update needed ✓.
+- Sweep dim 5 (F-P17-008): VP last_amended field — enumeration source: explicit per-file check of in-cycle VPs (VP-069..VP-076 = 8 VPs). Extent: 8. Audited: 8. Action: VP-076 added last_amended:2026-05-10; VP-069..VP-075 checked — all have last_amended or Lifecycle event consistent with current version ✓.
+
+**D-383/D-384/D-385/D-391 attestations (pass-17 fix burst):**
+- Trajectory pre: "29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9" (16 values for 16 passes)
+- Trajectory post: "29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9" (17 values for 17 passes)
+- Cardinality: 29(P1),15(P2),11(P3),9(P4),8(P5),7(P6),5(P7),6(P8),6(P9),6(P10),4(P11),3(P12),3(P13),10(P14),13(P15),9(P16),9(P17) = 17 values = 17 passes ✓
+- Per-position match vs INDEX.md rows: P1=29✓ P2=15✓ P3=11✓ P4=9✓ P5=8✓ P6=7✓ P7=5✓ P8=6✓ P9=6✓ P10=6✓ P11=4✓ P12=3✓ P13=3✓ P14=10✓ P15=13✓ P16=9✓ P17=9✓
+- "passes 3-N" phrase: N=17 (current burst is pass-17); INDEX.md Convergence Status updated to "passes 3-17" ✓
+- Sub-trajectory sibling sweep (D-385 sub-rule 1 + D-391): all sub-trajectories in STATE.md verified consistent with canonical 17-value trajectory ✓
+- Immutable-row scope check (D-385 sub-rule 2): adv-cycle-pass-3..11 frontmatter timestamp field corrected under D-387 structural-correction exception (Z suffix is schema uniformity, not factual body content). Burst-log pass-13 entry corrigendum is an appended line (D-387 permitted format); body immutable ✓. No retroactive annotations introduced elsewhere ✓.
+- D-383 intra-file content audit: STATE.md (phase + current_step + trajectory + Concurrent Cycles + Session Resume Checkpoint all consistent), INDEX.md (row-17 added; Convergence Status updated to passes 3-17; cardinality 17 values for 17 passes), burst-log.md (pass-16 Commit E SHA backfilled: 9e45d209; pass-13 corrigendum; pass-17 entry appended), decision-log.md (D-391+D-392 appended; ID sequence D-336..D-392 sequential ✓), lessons.md (L-EDP1-009 corrigendum appended)
+
+**Factory-artifacts commits:** (Commit A: 944f852f), (Commit B: de4d051f), (Commit C: 77d134a7), (Commit D: ec59f9fa), (Commit E: this commit — state-manager final per POLICY 3)
