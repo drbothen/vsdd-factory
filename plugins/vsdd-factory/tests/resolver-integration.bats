@@ -585,7 +585,7 @@ RESOLVER_TOML
     # CI runners (ubuntu-latest, macos-14) can be slower under load, causing the
     # timeout to fire at 1500ms + overhead that exceeds the old lower bound.
     # 1300ms gives a 200ms buffer beyond the old bound while still catching a 25%+
-    # deadline reduction (1500ms * 0.75 = 1125ms, still > 1300ms guard). Trade-off:
+    # deadline reduction (1500ms * 0.75 = 1125ms, still < 1300ms guard — catch fires). Trade-off:
     # accepted risk of rare flake on severely loaded CI runners.
     [ "${elapsed_ms}" -ge 1300 ] || {
         echo "UNEXPECTED: dispatch took only ${elapsed_ms}ms — long_running timeout may not have fired at expected 1500ms" >&2
