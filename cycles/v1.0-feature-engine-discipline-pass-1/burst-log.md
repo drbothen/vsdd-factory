@@ -660,3 +660,90 @@ All actions in this burst have paired Verification greps targeting pass-23 canon
 - F-P23-011 (F-P/PG convention — NITPICK; convention confirmed; no action)
 
 **Corrigendum (pass-24 fix burst — D-387 / F-P24-009 / D-403(b)):** Pass-23 dim-3 `grep -c 'v1\.47'` count=3 is correct, but the rationale narrative incorrectly cited frontmatter `"1.47"` as one of the 3 matches. Regex `v1\.47` does NOT match `"1.47"` (no leading `v`). The 3 actual matches are: (a) v1.47 changelog entry header ("v1.47 (2026-05-11..."); (b) historical reference "ARCH-INDEX v1.46→v1.47" in the v1.47 entry body; (c) historical reference "ARCH-INDEX v1.27→v1.47" from prior changelog context. D-403(b) regex precision applies to rationale narratives as well as count claims. Refs: F-P24-009, D-387, D-403(b).
+
+---
+
+## Burst: F5 pass-24 fix burst (2026-05-11)
+
+**Summary:** Pass-24 cycle-level adversary returned HIGH verdict (1H+4M+3L+2NIT+1PG). 15th-layer L-EDP1-003 recurrence across dimensions: (a) VP-INDEX + STORY-INDEX + BC-INDEX + ARCH-INDEX silent on D-403 per D-404 literal-acknowledgment obligation; (b) pass-21 cardinality cell line 483 still showed P21=11 (PG-inclusive); (c) pass-23 dim-3 rationale narrative incorrectly cited frontmatter as grep match; (d) STATE.md Session Resume Next: pointer stale. D-404 codified. L-EDP1-016 documents 15th-layer.
+
+**Commits:**
+- Commit A: 08a27636 — adv-cycle-pass-24.md (HIGH verdict persisted)
+- Commit B: 4fb50b00 — D-404 codified + L-EDP1-016 (15th-layer) + L-EDP1-015 Layer-14 inline-replace
+- Commit C-1: 342287ae — BC-INDEX v1.67; ARCH-INDEX v1.48; STORY-INDEX v2.68 (VP-INDEX blocked TD-031)
+- Commit C-2: 5fee9102 — burst-log corrigenda F-P24-002/009 + STATE.md Next: fix (F-P24-007)
+- Commit E: this commit — state-manager final per POLICY 3
+
+**Dim-1 — STATE.md 4-cell narrative sweep (D-397+D-399+D-401+D-402+D-403+D-404 self-application):**
+- Enumeration source: D-399 mandatory 4-cell scope (current_step frontmatter, Last Updated, Current Phase, Session Resume Checkpoint)
+- Extent: 4 cells
+- Inlined list: STATE.md frontmatter line 14 (current_step), STATE.md Project Metadata Last Updated, STATE.md Current Phase, STATE.md Session Resume Checkpoint section
+- Action: All 4 cells write "pass-24 fix burst COMPLETE" narrative referencing D-404+L-EDP1-016
+- Verification: `grep -c 'pass-24 fix burst COMPLETE' .factory/STATE.md` → 4 ✓
+- Canonical pass-24 markers used: "pass-24", "D-404", "L-EDP1-016", "F-P24-NNN"
+
+**Dim-2 — BC-INDEX v1.67 (F-P24-001+003+010; D-404 self-application):**
+- Enumeration source: D-403(a) self-application obligation — new changelog row per index acknowledging D-403
+- Extent: 1 new row (BC-INDEX v1.66→v1.67) + F-P24-010 corrigendum
+- Action: Prepend v1.67 changelog entry acknowledging D-403 by literal ID per D-404; bump frontmatter version 1.66→1.67; last_amended: 2026-05-11; F-P24-010 corrigendum appended inline
+- Verification: `grep -c '"1\.67"' .factory/specs/behavioral-contracts/BC-INDEX.md` → 1 ✓
+- Canonical pass-24 marker used: "pass-24 fix burst per D-404" in changelog text
+
+**Dim-3 — ARCH-INDEX v1.48 (F-P24-001+004; D-404 self-application):**
+- Enumeration source: D-403(a)+D-404 self-application obligation — new changelog row acknowledging D-403
+- Extent: 1 new row (ARCH-INDEX v1.47→v1.48)
+- Action: Prepend v1.48 changelog entry extending decision range to D-389..D-403; bump frontmatter version 1.47→1.48; last_amended: 2026-05-11
+- Verification: `grep -c '"1\.48"' .factory/specs/architecture/ARCH-INDEX.md` → 1 ✓
+- Canonical pass-24 marker used: "pass-24 fix burst per D-404" in changelog text
+
+**Dim-4 — STORY-INDEX v2.68 (F-P24-001; D-404 self-application):**
+- Enumeration source: D-403(a)+D-404 self-application obligation — new last_amended entry acknowledging D-403
+- Extent: 1 prepended version entry (STORY-INDEX v2.67→v2.68)
+- Action: Prepend v2.68 entry to last_amended narrative; bump frontmatter version 2.67→2.68
+- Verification: `grep -c 'v2\.68' .factory/stories/STORY-INDEX.md` → 1 ✓
+- Canonical pass-24 marker used: "pass-24 fix burst per D-404" in last_amended text
+
+**Dim-5 — VP-INDEX BLOCKED (F-P24-001; TD-031 pre-existing violations):**
+- Enumeration source: VP-INDEX.md lines 40, 54, 56 — YAML frontmatter changelog: block contains lib.rs:593, kani_path_matching.rs:271, main.rs:394→416, main.rs:405→427, main.rs:162
+- Hook validate-stable-anchors performs full-file scan on Edit to .factory/specs/**/*.md; YAML changelog: is NOT in exempt zone (only ## Amendment / ## Changelog Markdown headings are exempt); any Edit to VP-INDEX.md is blocked
+- Action: DEFERRED — VP-INDEX v1.43 bump cannot proceed without resolving TD-031 exemption gap for YAML frontmatter changelog: blocks. New TD filed for YAML-frontmatter exemption.
+- Verification: VP-INDEX still at v1.42 per `grep -c '"1\.42"' .factory/specs/verification-properties/VP-INDEX.md` → 1 ✓ (unchanged)
+- Canonical pass-24 marker: documented in STATE.md Session Resume + burst-log this entry
+
+**Dim-6 — Pass-21 burst-log corrigendum (F-P24-002; D-387+D-401(c)):**
+- Enumeration source: pass-21 burst-log line 483 cardinality cell
+- Extent: 1 corrigendum block appended at END of pass-21 burst-log entry
+- Action: Append D-387-format corrigendum noting P21=10 (content-only: 1H+5M+3L+1NIT=10; 1PG excluded)
+- Verification: `grep -c 'F-P24-002' .factory/cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md` → 4 ✓ (corrigendum block in pass-21 section + Commit C-2 list + this dim header + this Verification line — self-referential due to burst-log containing its own dim entries)
+- Canonical pass-24 marker used: "pass-24 fix burst" in corrigendum prefix
+
+**Dim-7 — Pass-23 burst-log corrigendum (F-P24-009; D-387+D-403(b)):**
+- Enumeration source: pass-23 burst-log dim-3 attestation rationale
+- Extent: 1 corrigendum block appended at END of pass-23 burst-log entry
+- Action: Append D-387-format corrigendum noting grep v1\.47 does NOT match "1.47" (no leading v)
+- Verification: `grep -c 'F-P24-009' .factory/cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md` → 3 ✓ (corrigendum block in pass-23 section + this dim header + this Verification line — self-referential)
+- Canonical pass-24 marker used: "pass-24 fix burst" in corrigendum prefix
+
+**Action↔Verification pairing (D-395+D-397+D-399+D-402+D-403+D-404 mandatory):**
+
+All actions in this burst have paired Verification greps targeting pass-24 canonical markers per D-399: (a) literal "pass-24" substring; (b) pass-24-authored content markers (D-404, L-EDP1-016, F-P24-NNN); or (c) 2026-05-11 date-stamp. All Verification counts are EXACT integers per D-402. Regex patterns target actual file string forms per D-403(b).
+
+**D-383/D-384/D-385/D-393/D-395/D-397/D-399/D-401/D-402/D-403/D-404 attestations (pass-24 fix burst):**
+- Trajectory pre (content-only): "29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11" (23 values for 23 passes)
+- Trajectory post (content-only): "29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10" (24 values for 24 passes)
+- Cardinality: 29(P1),15(P2),11(P3),9(P4),8(P5),7(P6),5(P7),6(P8),6(P9),6(P10),4(P11),3(P12),3(P13),10(P14),13(P15),9(P16),9(P17),10(P18),11(P19),10(P20),10(P21),11(P22),11(P23),10(P24) = 24 values = 24 passes ✓
+- Per-position match vs INDEX.md rows: P1=29✓ P2=15✓ P3=11✓ P4=9✓ P5=8✓ P6=7✓ P7=5✓ P8=6✓ P9=6✓ P10=6✓ P11=4✓ P12=3✓ P13=3✓ P14=10✓ P15=13✓ P16=9✓ P17=9✓ P18=10✓ P19=11✓ P20=10✓ P21=10✓ P22=11✓ P23=11✓ P24=10✓
+- "passes 3-N" phrase: N=24 (current burst is pass-24); INDEX.md Convergence Status updated to "passes 3-24" ✓
+- Sub-trajectory sibling sweep (D-385 sub-rule 1): STATE.md Concurrent Cycles row updated to "(pass-1..24): 29→...→11→11→10" ✓; Phase Progress rows verified consistent ✓
+- Immutable-row scope check (D-385 sub-rule 2): pass-23 burst-log corrigendum appended (D-387 permitted format); body immutable ✓. pass-21 burst-log corrigendum appended at END per D-387 ✓. No retroactive body edits ✓.
+- D-383 intra-file content audit: STATE.md (phase + current_step + trajectory + Concurrent Cycles + Session Resume Checkpoint all consistent ✓), INDEX.md (row-24 added; Convergence Status updated to passes 3-24; cardinality 24 values for 24 passes ✓), burst-log.md (pass-24 entry appended; pass-23+pass-21 corrigenda appended ✓), BC-INDEX.md (v1.67 prepended ✓), ARCH-INDEX.md (v1.48 prepended ✓), STORY-INDEX.md (v2.68 prepended ✓), VP-INDEX.md (BLOCKED — TD-031 pre-existing violations ✗ OPEN)
+- Cross-index sync sweep (D-401(a)+D-403(a)+D-404): 4 indexes audited. BC-INDEX v1.67 ✓; ARCH-INDEX v1.48 ✓; STORY-INDEX v2.68 ✓; VP-INDEX BLOCKED (TD-031) ✗ OPEN.
+- Second-source query (D-393): `grep -rl 'D-404' .factory/cycles/v1.0-feature-engine-discipline-pass-1/` | wc -l → (decision-log.md + lessons.md + burst-log.md + adv-cycle-pass-24.md + decision-log context from Commit B) ≥4 expected
+- D-402 exact-count compliance: all Verification greps in this burst report exact integer from -c ✓
+- D-403(b) regex precision compliance: all greps use quoted YAML form for frontmatter (`"1\.47"`, `"1\.48"`, `"1\.67"`) vs bare `v1\.NNN` for changelog body ✓
+
+**Deferrals:**
+- F-P24-005 (per adv-cycle-pass-24.md — see HIGH finding details)
+- F-P24-006 (per adv-cycle-pass-24.md — see MEDIUM finding details)
+- F-P24-008 (per adv-cycle-pass-24.md — see finding details)
+- VP-INDEX v1.43 bump — OPEN: TD filed for validate-stable-anchors YAML-frontmatter exemption gap
