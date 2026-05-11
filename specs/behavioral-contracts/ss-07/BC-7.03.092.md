@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.2"
+version: "1.3"
 status: draft
 producer: "PHASE_1_4_B_BCS_AGENT_9"
 timestamp: 2026-04-25T00:00:00
@@ -12,7 +12,7 @@ traces_to: domain-spec/L2-INDEX.md
 origin: brownfield
 extracted_from: "pass-3-deep-hooks.md:1028"
 subsystem: "SS-07"
-capability: "TBD"
+capability: "CAP-008"
 lifecycle_status: active
 introduced: v1.0.0-beta.4
 modified: []
@@ -28,31 +28,37 @@ removal_reason: null
 
 ## Description
 
-warn-pending-wave-gate: stderr warning when any wave has gate_status: pending. Emits hook.block severity=warn (`pending_wave_gate_at_session_end`) with comma-joined `pending_waves`. Stderr WAVE GATE REMINDER lists each pending wave + invocation hints (`/vsdd-factory:wave-gate` or manual gate_status update).
+warn-pending-wave-gate: stderr warning when any wave has gate_status: pending. Reads `.factory/wave-state.yaml` (SEQUENCE form), finds all waves where `gate_status == "pending"`, and if any exist emits a WAVE GATE REMINDER to stderr listing each pending wave name with invocation hints (`/vsdd-factory:wave-gate` or manual gate_status update).
 
-**Source category:** Routing hooks (PreToolUse, PostToolUse, lifecycle).
+**Source category:** Lifecycle hooks (Stop event).
 **Audit ID:** `BC-AUDIT-1091` (extracted from `pass-3-deep-hooks.md` line 1028).
-**Hook script:** ``plugins/vsdd-factory/hooks/warn-pending-wave-gate.sh``.
+**Hook implementation:** `crates/hook-plugins/warn-pending-wave-gate/src/lib.rs` (native WASM port; S-8.07).
 
 ## Preconditions
 
-1. Trigger: `.factory/wave-state.yaml` exists; python3 available; any wave has `gate_status: pending`.
+1. Trigger: `.factory/wave-state.yaml` exists and is parseable as YAML SEQUENCE form; at least one wave has `gate_status: pending`.
 
 ## Postconditions
 
-1. Behavior: Emits hook.block severity=warn (`pending_wave_gate_at_session_end`) with comma-joined `pending_waves`. Stderr WAVE GATE REMINDER lists each pending wave + invocation hints (`/vsdd-factory:wave-gate` or manual gate_status update).
-2. Exit codes: 0.
+1. Behavior: Emits stderr WAVE GATE REMINDER listing each pending wave name with invocation hints (`/vsdd-factory:wave-gate` or manual gate_status update).
+2. Exit codes: 0 (advisory — never blocks session end regardless of pending wave count).
+3. Error handling: If `wave-state.yaml` is absent, unreadable, or malformed, exit 0 with no output (graceful degradation per BC-7.03.091 EC-001/EC-002).
 
 ## Invariants
 
-1. Hook script identity (script path) and registry binding remain stable across the contract lifetime.
-2. Exit-code semantics conform to the dispatcher contract: 0 = allow / advisory, 2 = block, 1 = jq-missing-fail-closed (where applicable).
+1. Hook implementation identity (`crates/hook-plugins/warn-pending-wave-gate/src/lib.rs`) and registry binding remain stable across the contract lifetime.
+2. Exit-code semantics: always 0. This hook NEVER exits 2 (block).
+3. `wave-state.yaml.waves` MUST be parsed as a YAML sequence (list) of `WaveEntry` objects. The canonical schema is `waves: [{wave: <name>, gate_status: <status>}, ...]`. See BC-7.03.091 INV-3.
+4. The WAVE GATE REMINDER MUST include each pending wave name and at least one actionable invocation hint. The reminder MUST appear on stderr (not stdout) so it does not interfere with the dispatcher's JSON stdout protocol.
 
 ## Edge Cases
 
 | ID | Description | Expected Behavior |
 |----|-------------|-------------------|
-| EC-001 | TBD | TBD |
+| EC-001 | No waves have `gate_status: pending` | Exit 0, no output |
+| EC-002 | Multiple waves have `gate_status: pending` | Exit 0, WAVE GATE REMINDER lists all pending wave names |
+| EC-003 | `wave-state.yaml` present but malformed YAML | Exit 0, no output (graceful parse failure) |
+| EC-004 | `gate_status` field absent for a wave entry | Wave entry treated as non-pending (serde default); no REMINDER for that wave |
 
 ## Canonical Test Vectors
 
@@ -60,40 +66,44 @@ warn-pending-wave-gate: stderr warning when any wave has gate_status: pending. E
 
 | Input | Expected Output | Category |
 |-------|-----------------|----------|
-| Acceptance criterion (see below) | Stop with `waves.W3.gate_status: pending` produces stderr "W3 gate is pending". | happy-path |
-| TBD edge-case | TBD | edge-case |
-| TBD error-case | TBD | error |
+| Stop event; wave-state.yaml with `W3.gate_status: pending` | Exit 0, stderr contains "W3" and WAVE GATE REMINDER | happy-path |
+| Stop event; wave-state.yaml with two pending waves W1, W2 | Exit 0, stderr contains both "W1" and "W2" | happy-path (EC-002) |
+| Stop event; all waves have `gate_status: passed` | Exit 0, no output | happy-path (EC-001) |
+| Stop event; wave-state.yaml absent | Exit 0, no output | edge-case |
+| Stop event; wave-state.yaml malformed | Exit 0, no output (EC-003) | edge-case |
 
 ## Verification Properties
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|--------------|
-| VP-TBD | TBD — to be assigned during VP synthesis | manual |
+| VP-TBD | Pending wave detection — any wave with gate_status=pending triggers WAVE GATE REMINDER on stderr | manual/bats |
+| VP-TBD | Advisory-only — exit code is always 0 regardless of pending wave count | manual/bats |
 
 ## Traceability
 
 | Field | Value |
 |-------|-------|
-| L2 Capability | TBD |
-| L2 Domain Invariants | TBD |
-| Architecture Module | SS-07 (Hook Bash Layer) |
+| L2 Capability | CAP-008 (Gate tool calls with pre-execution behavioral checks / lifecycle enforcement) |
+| L2 Domain Invariants | wave-state.yaml SEQUENCE schema invariant (INV-3); advisory-only exit code (INV-2) |
+| Architecture Module | SS-07 (Hook Bash Layer / native WASM) |
 | Stories | S-8.07 |
 
 ## Related BCs (Recommended)
 
-- TBD — to be cross-linked during BC graph synthesis.
+- BC-7.03.091 — warn-pending-wave-gate: identity & registry binding (companion contract).
 
 ## Architecture Anchors (Recommended)
 
-- `architecture/ss-07-hook-bash.md` — anchor TBD.
+- `architecture/ss-07-hook-bash.md` — SS-07 module definition.
+- `hooks-registry.toml::warn-pending-wave-gate` — authoritative runtime binding.
 
 ## Story Anchor (Recommended)
 
-TBD — story will be assigned during story-writer phase.
+S-8.07 — native-port-warn-pending-wave-gate.
 
 ## VP Anchors (Recommended)
 
-- TBD — VP linkage to be added during VP synthesis.
+- VP assignment pending VP synthesis for S-8.07 acceptance criteria.
 
 ---
 
@@ -103,36 +113,37 @@ TBD — story will be assigned during story-writer phase.
 
 | Property | Value |
 |----------|-------|
-| **Path** | ``plugins/vsdd-factory/hooks/warn-pending-wave-gate.sh`` |
+| **Path** | `crates/hook-plugins/warn-pending-wave-gate/src/lib.rs` (native WASM; S-8.07 port from `plugins/vsdd-factory/hooks/warn-pending-wave-gate.sh`) |
 | **Confidence** | high |
 | **Extraction Date** | 2026-04-25 |
 | **Source Document** | `pass-3-deep-hooks.md` line 1028 |
 | **Audit ID** | `BC-AUDIT-1091` |
-| **Source Line(s) (within hook)** | 32-63. |
+| **Source Line(s) (within hook)** | Lines 32-63. |
 
 #### Evidence Types Used
 
-- **guard clause**: explicit validation check in the hook script body (regex / substring / glob match).
-- **assertion**: explicit `exit 2` / `emit hook.block` path in the hook body.
+- **guard clause**: explicit validation check in the hook logic (YAML parse + gate_status scan).
+- **assertion**: explicit stderr output path in hook body when pending waves found.
 
 #### Purity Classification
 
 | Property | Assessment |
 |----------|------------|
-| **I/O operations** | reads + writes (stdin JSON, stderr diagnostics, optional event emission via `${CLAUDE_PLUGIN_ROOT}/bin/emit-event`) |
-| **Global state access** | reads global (env vars: `CLAUDE_PLUGIN_ROOT`, `CLAUDE_PROJECT_DIR`, optionally `VSDD_*`) |
-| **Deterministic** | yes — bash hooks are deterministic given identical stdin envelope and filesystem state |
+| **I/O operations** | reads (wave-state.yaml via WASI file I/O, stdin JSON envelope); writes (stderr WAVE GATE REMINDER via WASI stdio) |
+| **Global state access** | reads `CLAUDE_PROJECT_DIR` (via WASI env) to locate `.factory/wave-state.yaml` |
+| **Deterministic** | yes — given identical stdin envelope and filesystem state |
 | **Thread safety** | not applicable (subprocess-isolated invocation per hook fire) |
-| **Overall classification** | effectful shell |
+| **Overall classification** | effectful WASM plugin |
 
 #### Refactoring Notes
 
-Bash hook scripts are inherently effectful (stdin/stderr, optional event emit, optional state-file reads). Native (Rust) replacement would extract pure parse/decision logic from the I/O shell, exposing a `fn(payload) -> HookResult` contract per BC-7.02.009. Until that port lands, the contract is preserved by the script body verbatim and the registry binding tuple.
+Native WASM port (S-8.07) replaced the original bash hook. The hook reads wave-state.yaml via WASI file I/O, scans for pending gates, and writes the WAVE GATE REMINDER to stderr. Pure logic is testable via unit tests in `crates/hook-plugins/warn-pending-wave-gate/tests/integration_test.rs`.
+
 
 ## Changelog
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
-| v1.1 | 2026-04-25 | PHASE_1_4_B_BCS_AGENT_9 | Initial authoring. |
-| v1.2 | 2026-05-09 | state-manager | F-P47-001 fix-burst-43: Traceability Stories TBD→S-8.07 (S-8.07 behavioral_contracts frontmatter cites this BC; bidirectional L-P28-001 propagation). |
-
+| 1.3 | 2026-05-10 | implementer | F-P5-002: TBD fields resolved — capability TBD→CAP-008, hook path updated to native WASM lib.rs (S-8.07 port), EC-001 through EC-004 populated, INV-3/INV-4 added (SEQUENCE schema + advisory-only + stderr requirement), traceability L2 Capability populated, VP table expanded, Source Evidence path updated. Changelog reordered newest-first. |
+| 1.2 | 2026-05-09 | state-manager | F-P47-001 fix-burst-43: Traceability Stories TBD→S-8.07 (S-8.07 behavioral_contracts frontmatter cites this BC; bidirectional L-P28-001 propagation). |
+| 1.1 | 2026-04-25 | PHASE_1_4_B_BCS_AGENT_9 | Initial authoring. |
