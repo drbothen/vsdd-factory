@@ -11,7 +11,7 @@ input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "Engine-discipline F4 — S-12.07 Step 5 (demo recording) → Step 6 (PR creation)"
+current_step: "Engine-discipline F4 — S-12.08 Step 5 (demo recording) → Step 6 (PR creation) → CRITICAL PATH TERMINUS"
 current_cycle: v1.0-feature-engine-discipline-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,8 +38,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-10 — S-12.07 Step 4.5 CONVERGED via 8-pass adversary streak; advancing to Step 5 demo recording |
-| **Current Phase** | Engine-discipline F4 — S-12.07 Step 5 (demo recording) → Step 6 (PR creation) |
+| **Last Updated** | 2026-05-11 — S-12.08 Step 4.5 CONVERGED via 6-pass adversary streak (MED→MED→LOW→N→N→N); advancing to Step 5 demo recording |
+| **Current Phase** | Engine-discipline F4 — S-12.08 Step 5 (demo recording) → Step 6 (PR creation) → CRITICAL PATH TERMINUS |
 | **Current Cycle** | v1.0-feature-engine-discipline-pass-1 |
 
 ## Phase Progress
@@ -58,7 +58,7 @@ dtu_services: []
 | S-12.03 ContextResolver trait + ResolverRegistry | **MERGED** PR #120 2026-05-10 | 9 adversary passes; CRITICAL x2->MEDIUM->LOW->HIGH->MEDIUM->NITPICK x3; v1.1 |
 | S-12.04 WASM Resolver Loading + Lifecycle | **MERGED** PR #121 2026-05-10 10fe412e | 11 passes; CRITICAL->HIGH->HIGH->NITPICK->MED->HIGH->MED->MED->NITPICK x3 |
 | S-12.07 HOST_ABI context injection consumer side | **STEP 4.5 CONVERGED 2026-05-11 — 8-pass adversary streak (CRIT→HIGH→MED→LOW→LOW→N→N→N); ready for Step 5 (demo) + Step 6 (PR)** | Depends S-12.03 ✓ + S-12.04 ✓ + S-12.05 ✓ |
-| S-12.08 convergence hook (CRITICAL PATH TERMINUS) | **BLOCKED** | Depends S-12.07; closes F-P2-001 |
+| S-12.08 convergence hook context migration | **STEP 4.5 CONVERGED 2026-05-11 — 6-pass adversary streak (MED→MED→LOW→N→N→N); closes F-P2-001 + F-P2-008; ready for Step 5 (demo) + Step 6 (PR)** | bats 3/3 PASS; CRITICAL PATH TERMINUS |
 | F5 pass-2 fix burst | **BLOCKED** | 15 CRITICAL findings; unblocked when S-12.08 merges |
 | Phase D-4 Burst 2 — E-10 + E-9 v1.7 | **PENDING** | E-10 paused D-343; adversary pass-9 queued |
 
@@ -154,16 +154,17 @@ dtu_services: []
 
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-10 — S-12.07 Step 4.5 CONVERGED. 8-pass adversary streak: CRIT→HIGH→MED→LOW→LOW(held)→NITPICK_ONLY x3. Single non-blocking NITPICK on auto-managed proptest-regressions shrink-comment. All DoD items satisfied except Step 5 (demo recording) + Step 6 (PR creation). F4 platform delivery: S-12.03 + S-12.04 + S-12.05 + S-12.06 all MERGED (4/6). S-12.07 pending demo+PR; S-12.08 pending S-12.07 merge.
+**Last update:** 2026-05-11 — S-12.08 Step 4.5 CONVERGED. 6-pass adversary streak: MED→MED→LOW→NITPICK_ONLY x3. Two non-blocking NITs (spec function-name + callback-name) resolved in story v1.2. F-P2-001 + F-P2-008 formally CLOSED. All DoD items satisfied except Step 5 (demo recording) + Step 6 (PR creation). F4 platform delivery: S-12.03 + S-12.04 + S-12.05 + S-12.06 all MERGED (4/6); S-12.07 still pending demo+PR; S-12.08 now converged, pending demo+PR.
 
 **Next session start — ordered checklist:**
 
 1. **S-12.07 Step 5** — demo recording (post-convergence). Run per-story-delivery.md Step 5 procedure.
 2. **S-12.07 Step 6** — PR creation via `/vsdd-factory:pr-create`. Target develop. Attach adversary convergence evidence (8-pass, adversary-pass-8.md).
-3. S-12.08 — dispatch after S-12.07 merges. CRITICAL PATH TERMINUS; closes F-P2-001.
-4. After S-12.08 merges: F5 pass-2 fix burst (15 CRITICAL findings from F5-pass-2-architect-decisions.md).
-5. Then F6 formal hardening -> F7 convergence.
-6. E-10 brownfield pass-9 paused; resume when user directs.
+3. **S-12.08 Step 5** — demo recording (post-convergence). Note: S-12.08 depends on S-12.07 merge; dispatch S-12.08 PR only after S-12.07 merges.
+4. **S-12.08 Step 6** — PR creation via `/vsdd-factory:pr-create`. CRITICAL PATH TERMINUS; attach bats 3/3 integration test output + adversary convergence evidence (6-pass, adversary-pass-6.md). Closes F-P2-001.
+5. After S-12.08 merges: F5 pass-2 fix burst (15 CRITICAL findings from F5-pass-2-architect-decisions.md).
+6. Then F6 formal hardening → F7 convergence.
+7. E-10 brownfield pass-9 paused; resume when user directs.
 
 **Branches:**
 - main @ feb894a2 | develop @ 10fe412e | factory-artifacts @ (see git log)
