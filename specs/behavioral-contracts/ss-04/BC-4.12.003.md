@@ -25,7 +25,7 @@ removed: null
 removal_reason: null
 bc_id: BC-4.12.003
 section: "4.12"
-last_amended: 2026-05-07
+last_amended: 2026-05-09
 ---
 
 # BC-4.12.003: Resolver plugins MUST operate within explicitly declared `path_allow` capabilities; capability violations MUST return `CapabilityDenied` and MUST NOT silently succeed

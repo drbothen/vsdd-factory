@@ -19,7 +19,7 @@ input-hash: "[pending-recompute]"
 traces_to: prd.md
 project: vsdd-factory
 mode: feature
-current_step: "F5-adversarial-pass-12"
+current_step: F5-adversarial-pass-12
 current_cycle: v1.0-feature-engine-discipline-pass-1
 pass: 12
 previous_review: adv-cycle-pass-11.md

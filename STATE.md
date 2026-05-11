@@ -57,8 +57,8 @@ dtu_services: []
 | S-12.05 hook-sdk Resolver-Authoring Extensions | **MERGED** PR #119 2026-05-10 | 7 adversary passes; CRITICAL->HIGH->LOW->MEDIUM->NITPICK x3; convergence_reached=true |
 | S-12.03 ContextResolver trait + ResolverRegistry | **MERGED** PR #120 2026-05-10 | 9 adversary passes; CRITICAL x2->MEDIUM->LOW->HIGH->MEDIUM->NITPICK x3; v1.1 |
 | S-12.04 WASM Resolver Loading + Lifecycle | **MERGED** PR #121 2026-05-10 10fe412e | 11 passes; CRITICAL->HIGH->HIGH->NITPICK->MED->HIGH->MED->MED->NITPICK x3 |
-| S-12.07 HOST_ABI context injection consumer side | **MERGED** PR #122 2026-05-11 | 8-pass adversary streak CRIT→HIGH→MED→LOW→LOW→N→N→N; convergence_reached=true |
-| S-12.08 convergence hook context migration | **MERGED** PR #123 2026-05-11 99d24315 | 6 passes MED→MED→LOW→N→N→N; closes F-P2-001 + F-P2-008; CRITICAL PATH TERMINUS reached |
+| S-12.07 HOST_ABI context injection consumer side | **MERGED** PR #122 2026-05-10 | 8-pass adversary streak CRIT→HIGH→MED→LOW→LOW→N→N→N; convergence_reached=true |
+| S-12.08 convergence hook context migration | **MERGED** PR #123 2026-05-10 99d24315 | 6 passes MED→MED→LOW→N→N→N; closes F-P2-001 + F-P2-008; CRITICAL PATH TERMINUS reached |
 | F4 E-12 resolver-platform sub-batch | **COMPLETE** all 6 stories merged (S-12.03 #120 + S-12.04 #121 + S-12.05 #119 + S-12.06 #105 + S-12.07 #122 + S-12.08 #123) | — |
 | F5 passes 3-7 cycle-level adversary | **COMPLETE** | Trajectory 11→9→8→7→5; verdict MEDIUM at pass-7 (corrected from LOW per D-387/F-P15-003); fixes on feature/F5-pass-3-cycle-hardening branch |
 | F5 pass-8 fix burst (sibling-file gaps) | **COMPLETE** | ARCH-INDEX v1.45, E-14 v1.2, STORY-INDEX last_amended, burst-log passes 3-7, D-381; verdict MEDIUM (regression) |
@@ -120,7 +120,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | feb894a2 | rc.16 merge; latest release |
 | develop | 99d24315 | S-12.08 squash-merge (PR #123); F4 COMPLETE |
-| factory-artifacts | 04930af9 | this STATE.md commit (F5 pass-14 fix burst) |
+| factory-artifacts | 9e45d209 | F5 pass-15 fix burst final (Commit E) |
 | feature/F5-pass-3-cycle-hardening | 2e6b4372 | PR #124 OPEN (DRAFT); CI run 25651192161 GREEN (11/11 checks) |
 | v1.0.0-rc.16 (tag) | feb894a2 | SHIPPED; claude-mp PR #8 awaiting human merge |
 | v1.0.0-rc.15 (tag) | e68bb436 | SHIPPED |

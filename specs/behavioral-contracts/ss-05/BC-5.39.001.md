@@ -25,7 +25,7 @@ removed: null
 removal_reason: null
 bc_id: BC-5.39.001
 section: "5.39"
-last_amended: 2026-05-07
+last_amended: 2026-05-09
 ---
 
 # BC-5.39.001: Per-story adversarial convergence loop MUST achieve minimum 3 clean passes (NITPICK_ONLY) before demo recording

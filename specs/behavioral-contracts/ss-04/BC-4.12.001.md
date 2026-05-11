@@ -25,7 +25,7 @@ removed: null
 removal_reason: null
 bc_id: BC-4.12.001
 section: "4.12"
-last_amended: 2026-05-07
+last_amended: 2026-05-09
 ---
 
 # BC-4.12.001: Resolver WASM modules MUST be loaded once at dispatcher startup and held in-process for the lifetime of the dispatcher session with mtime-based cache invalidation

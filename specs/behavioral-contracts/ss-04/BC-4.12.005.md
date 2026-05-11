@@ -25,7 +25,7 @@ removed: null
 removal_reason: null
 bc_id: BC-4.12.005
 section: "4.12"
-last_amended: 2026-05-07
+last_amended: 2026-05-10
 ---
 
 # BC-4.12.005: Context-injection merging MUST be additive (resolver output overlays `plugin_config` under its key); two resolvers with the same `context_key` is a registry-load error
