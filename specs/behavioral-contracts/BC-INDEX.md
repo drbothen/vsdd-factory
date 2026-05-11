@@ -1,7 +1,7 @@
 ---
 document_type: bc-index
 level: L3
-version: "1.66"
+version: "1.67"
 status: draft
 producer: state-manager
 timestamp: 2026-05-11T00:00:00Z
@@ -13,7 +13,9 @@ total_bcs: 1947
 traces_to: bc-id-mapping.md
 changelog:
   - date: 2026-05-11
-    change: "v1.66 (2026-05-11; pass-23 fix burst per D-403(a)): Acknowledges D-401+D-402 cycle-governance decisions codified in pass-22 fix burst. v1.65 entry inline-edited in pass-22 (per F-P22-003 closure) added D-392+D-394 to enum; this v1.66 separately acknowledges D-401+D-402. Closes F-P23-001 + F-P23-004 + F-P23-009 partial coverage. Refs: F-P23-001, D-403(a)."
+    change: "v1.67 (2026-05-11; pass-24 fix burst per D-404): Acknowledges D-403 cycle-governance decision codified in pass-23 fix burst. v1.66 referenced D-403(a) as procedural authority; v1.67 explicitly acknowledges D-403 by literal ID per D-404 (literal acknowledgment enforcement). Closes F-P24-001 + F-P24-003. Refs: F-P24-001, F-P24-003, D-404. **Corrigendum (pass-24 fix burst — D-387 / F-P24-010):** BC-INDEX v1.66 closure narrative read 'Closes F-P23-001 + F-P23-004 + F-P23-009 partial coverage.' Decision-log D-403 includes F-P23-008 in the closure list. Complete v1.66 closure: F-P23-001 + F-P23-004 + F-P23-008 + F-P23-009. Refs: F-P24-010, D-387."
+  - date: 2026-05-11
+    change: "v1.66 (2026-05-11; pass-23 fix burst per D-403(a)): Acknowledges D-401+D-402 cycle-governance decisions codified in pass-22 fix burst. v1.65 entry inline-edited in pass-22 (per F-P22-003 closure) added D-392+D-394 to enum; this v1.66 separately acknowledges D-401+D-402. Closes F-P23-001 + F-P23-004 + F-P23-008 + F-P23-009 (F-P23-008 originally omitted from narrative; corrected per F-P24-010). Refs: F-P23-001, D-403(a)."
   - date: 2026-05-11
     change: "v1.65 (2026-05-11): Index synchronized with cycle-governance decisions D-389..D-400. No BC content changes; this version-bump reflects cross-index acknowledgment of cycle pass-1 codifications (D-389 input-hash convention, D-390 CHANGELOG↔last_amended, D-391 enumeration source, D-392 VP Lifecycle ≡ CHANGELOG, D-393 independent re-derivation, D-394 D-391 severity + dispatch-side phase update, D-395 file-state grep-back, D-396 story-frontmatter↔STORY-INDEX, D-397+D-399 intent-match + canonical pass-N marker, D-398 Layer-N awaiting-audit, D-400 D-385/D-398 reconciliation). Refs: F-P21-005. last_amended: 2026-05-11 (F5 pass-21 fix burst: cycle-decision sync D-389..D-400; F-P21-005 closed). **Corrigendum (pass-22 fix burst — D-387 / F-P22-003):** D-392 + D-394 entries added inline to v1.65 enumeration in pass-22 fix burst (F-P22-003 closure). Original pass-21 entry omitted them. Pass-23 documents this trail per F-P23-003."
   - date: 2026-05-11
