@@ -248,6 +248,8 @@ Recurrence risk: MEDIUM (4 consecutive prose-only layers; prose codification is 
 insufficient; only S-15.03 automation breaks the cycle). Until S-15.03 ships, the risk of a
 5th layer remains.
 
+**Corrigendum (pass-14 update):** L-EDP1-007 extends this pattern to a 5th consecutive layer (D-385). See L-EDP1-007 table for the updated chronology. The "4 consecutive layers" count above refers to layers 1-4 (passes 8-11); L-EDP1-007 documents layer 5 (pass-12). The two lessons are complementary, not contradictory.
+
 ---
 
 ## L-EDP1-007 — Prose-only codification is structurally insufficient for L-EDP1-003 pattern; S-15.03 automation is the only remedy
