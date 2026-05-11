@@ -1,29 +1,50 @@
 ---
 document_type: adversarial-review
+level: ops
+version: "1.0"
+status: complete
 producer: adversary
-cycle: v1.0-feature-engine-discipline-pass-1
+timestamp: 2026-05-11T00:00:00Z
+phase: F5
+inputs: []
+input-hash: "[pending-recompute]"
+traces_to: ""
+project: vsdd-factory
+mode: feature
+current_step: "F5-adversarial-pass-12"
+current_cycle: v1.0-feature-engine-discipline-pass-1
 pass: 12
-date: 2026-05-11
+previous_review: adv-cycle-pass-11.md
+prior-pass-classification: MEDIUM
+prior-findings-count: 3
 verdict: MEDIUM
-prior_findings_count: 4
-findings_count: 6
-findings_breakdown: "2M+1L+3PG"
-streak_clean_passes: 0
+findings_count: { critical: 0, high: 0, medium: 2, low: 1, nitpick: 0 }
+observations: 0
+deferred: 0
+process_gap_count: 3
 convergence_reached: false
 ---
 
-# F5 Pass-12 Adversarial Review — v1.0-feature-engine-discipline-pass-1
+# Adversarial Review — Pass 12
 
 **Pass:** 12
 **Date:** 2026-05-11
-**Verdict:** MEDIUM (4th consecutive lateral — 2M+1L+3PG)
-**Prior pass findings:** 4 (pass-11 MEDIUM)
-**This pass findings:** 6 (2M+1L+3PG)
+**Verdict:** MEDIUM (4th consecutive lateral — 2M+1L+3PG; content-only: 2M+1L = 3)
+**Prior pass findings (content-only):** 3 (pass-11: 2M+2L)
+**This pass findings (content-only):** 3 (2M+1L); 3 PGs counted separately
 **Streak:** 0/3 (no NITPICK_ONLY passes; MEDIUM is above streak threshold)
 
 ---
 
-## Prior Pass Closure Verification
+## Finding ID Convention
+
+Finding IDs use the format `F-P12-NNN` (cycle-level shorthand) mapping to
+`ADV-EDP1-P12-<SEV>-<SEQ>` in the canonical schema. Cycle prefix: `EDP1`
+(engine-discipline-pass-1). Pass: 12.
+
+---
+
+## Part A — Fix Verification (Pass-11 Closure Summary)
 
 | Finding | Status | Notes |
 |---------|--------|-------|
@@ -35,7 +56,7 @@ convergence_reached: false
 
 ---
 
-## Findings
+## Part B — New Findings
 
 ### F-P12-001 [MEDIUM] — STATE.md sub-trajectory `9→9→8→7→5` stale at lines 63 + 78
 
