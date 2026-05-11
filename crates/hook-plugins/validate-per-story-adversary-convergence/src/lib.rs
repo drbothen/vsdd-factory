@@ -2051,12 +2051,7 @@ mod tests {
     }
 
     // =======================================================================
-    // S-12.08 TESTS — RED GATE (Step 2)
-    //
-    // All tests below exercise extract_stories_from_wave_context (which is
-    // todo!() until Step 3) or assert the absence of the old function (which
-    // still exists at Step 2). They MUST FAIL at Step 2 and turn GREEN when
-    // Step 3 implements the production code.
+    // S-12.08 wave_context migration tests (GREEN)
     // =======================================================================
 
     // -----------------------------------------------------------------------
