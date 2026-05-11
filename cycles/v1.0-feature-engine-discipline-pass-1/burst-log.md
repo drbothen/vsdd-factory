@@ -356,4 +356,6 @@ Sweep dimensions for this burst — enumeration source and extent per D-391+D-39
 
 **F-P19-011 acknowledgment:** INDEX.md "D-387..D-394 codified" shorthand is acceptable for practitioners. D-388 separateness acknowledged; no action per NITPICK policy.
 
-**Factory-artifacts commits:** (Commit A: 3289b7d5), (Commit B: a8c065a6), (Commit C: 698824a1), (Commit D: bef3552f), (Commit E: this commit — state-manager final per POLICY 3)
+**Factory-artifacts commits:** (Commit A: 3289b7d5), (Commit B: a8c065a6), (Commit C: 698824a1), (Commit D: bef3552f), (Commit E: bef3552f — state-manager final per POLICY 3)
+
+**Corrigendum (pass-20 fix burst — D-387 / F-P20-006):** F-P18-009 (BC/ARCH/VP-INDEX last_amended schema) was marked PARTIALLY RESOLVED in the pass-19 adversarial review (BC-INDEX ✓, ARCH-INDEX ✓; VP-INDEX last_amended NOT PRESENT). F-P19-001 closure (VP-INDEX last_amended: 2026-05-11 added in this pass-19 burst) transitively closes the residual F-P18-009 gap. F-P18-009 is now FULLY RESOLVED.
