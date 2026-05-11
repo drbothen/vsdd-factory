@@ -2085,7 +2085,6 @@ mod tests {
     // -----------------------------------------------------------------------
     // AC-001 — extract_stories_from_wave_context reads nested array
     // S-12.08 AC-001 (traces to BC-4.10.001 PC1)
-    // RED at Step 2: todo!() body panics.
     // -----------------------------------------------------------------------
 
     #[test]
@@ -2113,7 +2112,6 @@ mod tests {
 
     // -----------------------------------------------------------------------
     // AC-002a — absent wave_context key → WaveContextError::Missing
-    // RED at Step 2: todo!() panics.
     // -----------------------------------------------------------------------
 
     #[test]
@@ -2132,7 +2130,6 @@ mod tests {
 
     // -----------------------------------------------------------------------
     // AC-002b — null wave_context value → WaveContextError::Missing
-    // RED at Step 2: todo!() panics.
     // -----------------------------------------------------------------------
 
     #[test]
@@ -2151,7 +2148,6 @@ mod tests {
 
     // -----------------------------------------------------------------------
     // AC-002c — wave_context present but no stories key → WaveContextError::Missing
-    // RED at Step 2: todo!() panics.
     // -----------------------------------------------------------------------
 
     #[test]
@@ -2171,7 +2167,6 @@ mod tests {
     // -----------------------------------------------------------------------
     // AC-003 — wrong type for stories → WaveContextError::SchemaError
     // Four variants: string, number, object, array-with-non-string element.
-    // RED at Step 2: todo!() panics.
     // -----------------------------------------------------------------------
 
     #[test]
@@ -2221,7 +2216,6 @@ mod tests {
     // -----------------------------------------------------------------------
     // AC-006 — static plugin_config keys preserved alongside wave_context
     // S-12.08 AC-006 (traces to BC-1.13.001 PC3 + BC-4.12.005 PC1)
-    // RED at Step 2: todo!() panics.
     // -----------------------------------------------------------------------
 
     #[test]
@@ -2331,10 +2325,6 @@ mod tests {
     // -----------------------------------------------------------------------
     // AC-002-int — hook_logic blocks when wave_context absent
     // Integration test at hook_logic level for AC-002.
-    // RED at Step 2: hook_logic still uses the old extract_stories_from_config
-    // path which gracefully degrades (returns Continue) instead of blocking.
-    // GREEN at Step 3: implementer rewires hook_logic to call
-    // extract_stories_from_wave_context and block on WaveContextError::Missing.
     // -----------------------------------------------------------------------
 
     #[test]
@@ -2342,13 +2332,6 @@ mod tests {
         // S-12.08 AC-002 integration: hook_logic called with plugin_config = {}
         // (no wave_context key) must return HookResult::Block with
         // BLOCK_CODE_WAVE_CONTEXT_MISSING in the reason.
-        //
-        // RED at Step 2: current hook_logic uses extract_stories_from_config
-        // (old path) which returns Err → graceful degrade → Continue. This test
-        // will FAIL because Continue != Block.
-        // GREEN at Step 3: hook_logic uses extract_stories_from_wave_context
-        // which returns WaveContextError::Missing → Block with WAVE_CONTEXT_MISSING.
-        // Status: GREEN as of S-12.08 Step 3 — refactor complete.
         let mut payload = make_payload(Some("wave-gate-dispatch"));
         payload.plugin_config = json!({});
         // FakeCallbacks cycle-dir-absent path: list_stories returns Err.
@@ -2378,8 +2361,6 @@ mod tests {
     // -----------------------------------------------------------------------
     // AC-003-int — hook_logic blocks when stories has wrong type
     // Integration test at hook_logic level for AC-003.
-    // RED at Step 2: old path gracefully degrades instead of blocking.
-    // GREEN at Step 3: hook_logic uses extract_stories_from_wave_context.
     // -----------------------------------------------------------------------
 
     #[test]
@@ -2388,12 +2369,6 @@ mod tests {
         // plugin_config = {"wave_context": {"stories": "bogus"}} (stories is a
         // string, not an array) must return HookResult::Block with
         // BLOCK_CODE_WAVE_CONTEXT_SCHEMA_ERROR in the reason.
-        //
-        // RED at Step 2: current hook_logic uses old path → graceful degrade →
-        // Continue. Test will FAIL because Continue != Block.
-        // GREEN at Step 3: hook_logic uses extract_stories_from_wave_context
-        // which returns WaveContextError::SchemaError → Block with WAVE_CONTEXT_SCHEMA_ERROR.
-        // Status: GREEN as of S-12.08 Step 3 — refactor complete.
         let mut payload = make_payload(Some("wave-gate-dispatch"));
         payload.plugin_config = json!({ "wave_context": { "stories": "bogus" } });
         let callbacks = FakeCallbacks::new_no_context();
@@ -2458,11 +2433,6 @@ mod tests {
     // -----------------------------------------------------------------------
     // AC-010 — old extract_stories_from_config function removed
     // S-12.08 AC-010 (traces to BC-4.10.001 + F-P2-001 + F-P2-008)
-    //
-    // RED at Step 2: extract_stories_from_config still exists (Step 1 left
-    // it in place). The source grep will find "pub fn extract_stories_from_config"
-    // and the test will FAIL.
-    // GREEN at Step 3: implementer removes the function; grep returns no match.
     // -----------------------------------------------------------------------
 
     #[test]
@@ -2471,9 +2441,6 @@ mod tests {
         // from the top-level plugin_config.stories key (the root cause of F-P2-001)
         // must be REMOVED in Step 3. This test verifies removal by reading the
         // source file and asserting the function signature is absent.
-        //
-        // RED at Step 2: function still exists; grep finds it; test FAILS.
-        // GREEN at Step 3: function removed; grep returns empty; test PASSES.
         let manifest_dir = std::env::var("CARGO_MANIFEST_DIR")
             .expect("CARGO_MANIFEST_DIR must be set during cargo test");
         let lib_path = std::path::Path::new(&manifest_dir).join("src/lib.rs");

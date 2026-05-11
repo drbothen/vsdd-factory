@@ -254,6 +254,16 @@ EOF
     # Empty active wave → resolver emits Some({stories:[],...}) → hook EC-001 → Continue (exit 0)
     [ "${status}" -eq 0 ]
 
+    # P03-LOW-002: positive coverage — confirm dispatcher actually ran the convergence hook
+    # (not vacuously passing on empty sink). Continue path emits hook.dispatch / hook.complete
+    # but no hook.block; we assert at least one hook line for this plugin appears in the sink.
+    [ -s "${sink_file}" ] || { echo "FATAL: sink file empty — dispatcher may have skipped convergence hook" >&2; false; }
+    grep -q "validate-per-story-adversary-convergence" "${sink_file}" || {
+        echo "FATAL: no validate-per-story-adversary-convergence event in sink — hook did not fire" >&2
+        cat "${sink_file}" >&2
+        false
+    }
+
     # MUST NOT contain WAVE_CONTEXT_MISSING — the fix path is "resolver Some + hook Continue",
     # not "resolver None". If this fires, the resolver is incorrectly returning None for
     # active waves with empty story lists.
