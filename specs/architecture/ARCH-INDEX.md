@@ -1,7 +1,7 @@
 ---
 document_type: architecture-index
 level: L3
-version: "1.46"
+version: "1.47"
 status: accepted
 producer: architect
 timestamp: 2026-05-11T00:00:00Z
@@ -17,6 +17,8 @@ inputs:
 traces_to: phase-1-spec-crystallization
 deployment_topology: single-service
 changelog:
+  - date: 2026-05-11
+    change: "v1.47 (2026-05-11; pass-23 fix burst per D-403(a)): Acknowledges cycle-governance decision range D-389..D-402 codified in cycle v1.0-feature-engine-discipline-pass-1 fix bursts pass-19 through pass-22 (closing partial-coverage gap surfaced by F-P23-001, F-P23-008). Refs: F-P23-001, F-P23-008, D-403(a). ARCH-INDEX v1.46→v1.47."
   - date: 2026-05-11
     change: "v1.46 (2026-05-11; pass-22 fix burst cite-refresh): BC-INDEX body cite refreshed v1.64→v1.65 per F-P21-005 cycle-decision sync (BC-INDEX v1.65 bumped in pass-21 fix burst to acknowledge governance decisions D-389..D-400; ARCH-INDEX v1.46 cite-refresh was missed in the pass-21 burst — closed retroactively by F-P22-001). Refs: F-P21-005, L-P20-002, F-P22-001. ARCH-INDEX v1.45→v1.46."
   - date: 2026-05-11

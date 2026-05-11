@@ -502,6 +502,8 @@ All actions in this burst have paired Verification greps targeting pass-21 canon
 
 **Corrigendum (pass-22 fix burst — D-387 / F-P22-008 + F-P22-011 / D-402):** Pass-21 burst-log dim-1 Verification (line 452) used "≥3" lower-bound form; dim-3 Verification (line 466) also used "≥3" lower-bound form. Per D-402 (codified pass-22 fix burst, retroactively applies), Verification grep cardinality MUST report EXACT integer from -c. Dim-1 actual count: 4 (current_step frontmatter + Last Updated line 41 + Current Phase line 42 + Session Resume Checkpoint — all containing "pass-21 fix burst COMPLETE"). Dim-3 actual count: 4 ("pass-21 fix burst" occurrences in burst-log.md at time of write). Future Verifications use exact integer per D-402. Refs: F-P22-008, F-P22-011, D-402.
 
+**Corrigendum (pass-23 fix burst — D-387 / F-P23-005 / D-401(c)):** Pass-21 per-position attestation (line 484) read "P21=11✓". Per D-401(c) trajectory counting-basis (codified pass-22, retroactively applies) + F-P22-005 closure (pass-21 trajectory corrected 11→10), the per-position value for P21 is 10 (content-only: 1H+5M+3L+1NIT=10; 1PG excluded). Corrected: "P21=10✓". Aligns with line 501 trajectory-post corrigendum which already recorded the corrected content-only trajectory. Refs: F-P23-005, D-401(c), D-387.
+
 ---
 
 ## Burst: F5 pass-22 fix burst (2026-05-11)
@@ -579,3 +581,7 @@ All actions in this burst have paired Verification greps targeting pass-22 canon
 - F-P22-007 (VP-INDEX v1.41 narrative precision — LOW; no file edit required; addressed by v1.42 entry)
 - F-P22-009 (F-P21-008 framing — LOW; D-401 codification addresses ambiguity; adv-cycle-pass-22.md immutable)
 - F-P22-010 (ARCH-INDEX v1.45 changelog date — NITPICK; no action; v1.46 follows best practices)
+
+**Corrigendum (pass-23 fix burst — D-387 / F-P23-002 / D-403(b)):** Pass-22 dim-3 Verification counts are corrected per D-403(b). The grep pattern `v1.42` used in the VP-INDEX Verification does NOT match quoted YAML frontmatter `version: "1.42"`. Actual `grep -c 'v1.42' VP-INDEX.md` → 1 (matching only the changelog body row where "v1.42" appears as a bare substring; frontmatter `version: "1.42"` uses quoted form and requires pattern `"1\.42"` to match). The reported count of 2 was incorrect; actual count is 1. Same regex-precision issue applies to `grep -c 'v2.67' STORY-INDEX.md` → 1 (not 2). The D-402 EXACT-integer obligation is satisfied retroactively by this corrigendum; the fault was regex imprecision (D-403(b) gap), not cardinality dishonesty. Refs: F-P23-002, D-402, D-403(b).
+
+**Corrigendum (pass-23 fix burst — D-387 / F-P23-009 / D-403(a)):** Pass-22 dim-3 Cross-index sync attestation (line 575) claimed "All 4 indexes acknowledge D-389..D-402" — this is FALSE. BC-INDEX v1.65 after the inline-edit acknowledges only D-389..D-400 (D-392+D-394 added; D-401+D-402 NOT referenced). ARCH-INDEX v1.46 cite-refresh entry does not reference D-401 or D-402. VP-INDEX v1.42 and STORY-INDEX v2.67 correctly acknowledge D-401+D-402. The corrected attestation: BC-INDEX v1.65 acknowledges D-389..D-400 (partial); ARCH-INDEX v1.46 acknowledges cite-refresh only (partial); VP-INDEX v1.42 + STORY-INDEX v2.67 acknowledge D-389..D-402 (complete). BC-INDEX v1.66 + ARCH-INDEX v1.47 (pass-23 fix burst Commit C) close the coverage gap per D-403(a). Refs: F-P23-009, D-401(a), D-403(a).
