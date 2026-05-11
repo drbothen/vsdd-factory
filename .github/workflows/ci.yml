@@ -199,6 +199,19 @@ jobs:
           sudo apt-get install -y jq bats 2>/dev/null || brew install jq bats 2>/dev/null || true
           bats plugins/vsdd-factory/tests/perf-baseline.bats
 
+      - name: Run resolver integration tests (F-P4-002)
+        # F-P4-002: resolver-integration.bats and resolver-capability-confinement.bats
+        # were authored in F-P3 but were never invoked by CI on PRs (only by
+        # release.yml → run-all.sh). These tests require the dispatcher binary
+        # (cargo-host builds it above) and bats (installed in the perf-baseline step).
+        # E-8 integration tests (tests/integration/E-8-hook-plugins/) are also covered
+        # here — they live outside plugins/vsdd-factory/tests/ so run-all.sh misses them.
+        shell: bash
+        run: |
+          bats plugins/vsdd-factory/tests/resolver-integration.bats
+          bats plugins/vsdd-factory/tests/resolver-capability-confinement.bats
+          bats tests/integration/E-8-hook-plugins/warn-pending-wave-gate.bats
+
   platforms-drift:
     # Single source of truth: ci/platforms.yaml. The build-dispatcher
     # matrix below duplicates the same 5 (platform, os, target) tuples
