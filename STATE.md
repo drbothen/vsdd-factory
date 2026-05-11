@@ -4,14 +4,14 @@ level: ops
 version: "2.0"
 status: draft
 producer: state-manager
-timestamp: 2026-05-10T21:00:00Z
-phase: engine-discipline-F4-S-12.07-next
+timestamp: 2026-05-11T00:00:00Z
+phase: engine-discipline-F5-pass-3-adversary-rebaseline
 inputs: []
 input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "Engine-discipline F4 — S-12.08 Step 5 (demo recording) → Step 6 (PR creation) → CRITICAL PATH TERMINUS"
+current_step: "Engine-discipline F5 pass-3 — cycle-level adversary re-baseline (was BLOCKED on S-12.08 merge; now unblocked)"
 current_cycle: v1.0-feature-engine-discipline-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,8 +38,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-11 — S-12.08 Step 4.5 CONVERGED via 6-pass adversary streak (MED→MED→LOW→N→N→N); advancing to Step 5 demo recording |
-| **Current Phase** | Engine-discipline F4 — S-12.08 Step 5 (demo recording) → Step 6 (PR creation) → CRITICAL PATH TERMINUS |
+| **Last Updated** | 2026-05-11 — F4 platform delivery COMPLETE; S-12.08 MERGED PR #123 at 99d24315; E-12 all 6 stories merged; F-P2-001 + F-P2-008 CLOSED; F5 pass-3 adversary re-baseline now unblocked |
+| **Current Phase** | Engine-discipline F5 pass-3 — cycle-level adversary re-baseline (F4 COMPLETE; CRITICAL PATH TERMINUS reached) |
 | **Current Cycle** | v1.0-feature-engine-discipline-pass-1 |
 
 ## Phase Progress
@@ -57,20 +57,21 @@ dtu_services: []
 | S-12.05 hook-sdk Resolver-Authoring Extensions | **MERGED** PR #119 2026-05-10 | 7 adversary passes; CRITICAL->HIGH->LOW->MEDIUM->NITPICK x3; convergence_reached=true |
 | S-12.03 ContextResolver trait + ResolverRegistry | **MERGED** PR #120 2026-05-10 | 9 adversary passes; CRITICAL x2->MEDIUM->LOW->HIGH->MEDIUM->NITPICK x3; v1.1 |
 | S-12.04 WASM Resolver Loading + Lifecycle | **MERGED** PR #121 2026-05-10 10fe412e | 11 passes; CRITICAL->HIGH->HIGH->NITPICK->MED->HIGH->MED->MED->NITPICK x3 |
-| S-12.07 HOST_ABI context injection consumer side | **STEP 4.5 CONVERGED 2026-05-11 — 8-pass adversary streak (CRIT→HIGH→MED→LOW→LOW→N→N→N); ready for Step 5 (demo) + Step 6 (PR)** | Depends S-12.03 ✓ + S-12.04 ✓ + S-12.05 ✓ |
-| S-12.08 convergence hook context migration | **STEP 4.5 CONVERGED 2026-05-11 — 6-pass adversary streak (MED→MED→LOW→N→N→N); closes F-P2-001 + F-P2-008; ready for Step 5 (demo) + Step 6 (PR)** | bats 3/3 PASS; CRITICAL PATH TERMINUS |
-| F5 pass-2 fix burst | **BLOCKED** | 15 CRITICAL findings; unblocked when S-12.08 merges |
+| S-12.07 HOST_ABI context injection consumer side | **MERGED** PR #122 2026-05-11 | 8-pass adversary streak CRIT→HIGH→MED→LOW→LOW→N→N→N; convergence_reached=true |
+| S-12.08 convergence hook context migration | **MERGED** PR #123 2026-05-11 99d24315 | 6 passes MED→MED→LOW→N→N→N; closes F-P2-001 + F-P2-008; CRITICAL PATH TERMINUS reached |
+| F4 E-12 resolver-platform sub-batch | **COMPLETE** all 6 stories merged (S-12.03 #120 + S-12.04 #121 + S-12.05 #119 + S-12.06 #105 + S-12.07 #122 + S-12.08 #123) | — |
+| F5 pass-3 cycle-level adversary re-baseline | **NEXT** | Re-baseline 29 pass-1 + N pass-2 findings against 6-story cleanup; determine open vs closed |
 | Phase D-4 Burst 2 — E-10 + E-9 v1.7 | **PENDING** | E-10 paused D-343; adversary pass-9 queued |
 
 ## Current Phase Steps
 
 | Step | Agent | Status | Output |
 |------|-------|--------|--------|
-| S-12.03 adversary convergence + merge | adversary/devops | DONE 2026-05-10 | PR #120 squash-merged 4ac02a8e; 9 passes NITPICK x3 |
-| F5 pass-2 architect decisions | architect | DONE 2026-05-10 | D-1: BC-4.12.005 -> Path B; D-2: Resolver trait -> DELETE |
-| BC amendments BC-4.12.002/004/005 v1.2 | spec-writer | DONE 2026-05-10 | All bumped v1.1->v1.2 |
-| S-12.04 adversary convergence (11 passes) | adversary | DONE 2026-05-10 | CONVERGED; pr-manager async ad6eff6bba4fc7a33 |
-| S-12.04 PR #121 merge + cleanup | pr-manager/devops | DONE 2026-05-10 | Squash-merged 10fe412e; .worktrees/S-12.04 + branch deleted |
+| S-12.07 adversary convergence (8 passes) + PR | adversary/devops | DONE 2026-05-11 | PR #122 merged; CRIT→HIGH→MED→LOW→LOW→N→N→N |
+| S-12.08 adversary convergence (6 passes) | adversary | DONE 2026-05-11 | 6-pass streak MED→MED→LOW→N→N→N; CONVERGED; bats 3/3 PASS |
+| S-12.08 PR #123 merge | pr-manager/devops | DONE 2026-05-11 | Squash-merged 99d24315; CRITICAL PATH TERMINUS reached |
+| F4 E-12 platform delivery | all agents | COMPLETE 2026-05-11 | 6 stories across PRs #105/#119/#120/#121/#122/#123; F-P2-001 + F-P2-008 CLOSED |
+| F5 pass-3 adversary re-baseline | adversary | NEXT | Fresh-context review; re-baseline findings from pass-1 + pass-2 |
 
 ## Identifier Conventions
 
@@ -87,9 +88,9 @@ dtu_services: []
 
 88 file-resident + 15 unauthored stub IDs = 103 registered.
 
-- **Merged (66):** Includes all prior + S-12.06 (PR #105), S-12.05 (PR #119), S-12.03 (PR #120), S-12.04 (PR #121). Full ledger: `cycles/v1.0-brownfield-backfill/merged-stories-ledger.md`
+- **Merged (67):** Includes all prior + S-12.06 (PR #105), S-12.05 (PR #119), S-12.03 (PR #120), S-12.04 (PR #121), S-12.07 (PR #122), S-12.08 (PR #123). E-12 frontier fully merged. Full ledger: `cycles/v1.0-brownfield-backfill/merged-stories-ledger.md`
 - **In-Flight (0):** —
-- **Draft (20 file-resident):** S-5.07; S-11.00; S-12.07..S-12.08 (E-12); S-14.01..S-14.05 (E-14); S-15.02..S-15.03
+- **Draft (18 file-resident):** S-5.07; S-11.00; S-14.01..S-14.05 (E-14); S-15.02..S-15.03
 - **Unauthored stub IDs (15):** S-9.01..S-9.07 (W-16); S-11.01..S-11.08 (E-11 W-17 Tier 3)
 - **Withdrawn (1):** S-9.30
 
@@ -98,7 +99,7 @@ dtu_services: []
 | Branch / Tag | SHA | Notes |
 |--------------|-----|-------|
 | main | feb894a2 | rc.16 merge; latest release |
-| develop | 10fe412e | S-12.04 squash-merge (PR #121) |
+| develop | 99d24315 | S-12.08 squash-merge (PR #123); F4 COMPLETE |
 | factory-artifacts | (see git log) | this STATE.md commit |
 | v1.0.0-rc.16 (tag) | feb894a2 | SHIPPED; claude-mp PR #8 awaiting human merge |
 | v1.0.0-rc.15 (tag) | e68bb436 | SHIPPED |
@@ -108,7 +109,7 @@ dtu_services: []
 | Cycle | Type | Status | Notes |
 |-------|------|--------|-------|
 | v1.0-brownfield-backfill | brownfield | PAUSED | E-10 pass-9 pending; paused at D-343 |
-| v1.0-feature-engine-discipline-pass-1 | feature | F4-IN-PROGRESS | S-12.03/S-12.04/S-12.05/S-12.06 MERGED; remaining: S-12.07 + S-12.08 |
+| v1.0-feature-engine-discipline-pass-1 | feature | F4-COMPLETE; F5-pass-3-NEXT | All 6 E-12 stories merged; F5 pass-3 adversary re-baseline is next step |
 | v1.0-feature-plugin-async-semantics-pass-1 | feature | CLOSED | All PRs merged; rc.14 shipped |
 
 ## Decisions Log
@@ -120,6 +121,7 @@ dtu_services: []
 |----|----------|-------|------|
 | F-P2 D-1 | BC-4.12.005 INV1 drift -> Path B: (map, Vec<CollisionInfo>) return, no callback | F5 pass-2 | 2026-05-10 |
 | F-P2 D-2 | S-12.05 Resolver trait -> DELETE (trait was design artifact; registry owns dispatch) | F5 pass-2 | 2026-05-10 |
+| F-P2 D-3 | F4 platform delivery COMPLETE 2026-05-11; F-P2-001 + F-P2-008 CLOSED; E-12 resolver-platform sub-batch fully merged via 6 PRs | F4 close | 2026-05-11 |
 
 ## Skip Log
 
@@ -145,6 +147,7 @@ dtu_services: []
 | **TD #72** serde_yaml 0.9.34 deprecated | FILED 2026-05-10 | Migrate to serde_yml or yaml-rust2; affects update-wave-state-on-merge, warn-pending-wave-gate, vsdd-context-resolvers |
 | **TD #73** wave-state.yaml schema disagreement | FILED 2026-05-10 | warn-pending-wave-gate uses YAML MAPPING; update-wave-state-on-merge (producer) + vsdd-context-resolvers use YAML SEQUENCE. Pick canonical (recommend SEQUENCE per producer authority). Migrate warn-pending-wave-gate. Surfaced by S-12.07 pass-2 adversary HIGH-006. Migration deferred — requires rewriting 1000+ lines of integration test fixtures. |
 | Ghost BCs: BC-3.07.003/004, BC-1.06.011 | DEFERRED | Missing from BC-INDEX; investigate in future fix-burst |
+| **S-12.08 resolver-linker WASI gap** | FIXED 2026-05-11 db298c94 | HIDDEN gap surfaced in S-12.04; resolver-linker lacked WASI preview2 filesystem rights for context read paths. Fixed in S-12.08 Step 3b commit db298c94. No separate TD filed — closed in-story. |
 
 ## Historical Content
 
@@ -154,20 +157,20 @@ dtu_services: []
 
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-11 — S-12.08 Step 4.5 CONVERGED. 6-pass adversary streak: MED→MED→LOW→NITPICK_ONLY x3. Two non-blocking NITs (spec function-name + callback-name) resolved in story v1.2. F-P2-001 + F-P2-008 formally CLOSED. All DoD items satisfied except Step 5 (demo recording) + Step 6 (PR creation). F4 platform delivery: S-12.03 + S-12.04 + S-12.05 + S-12.06 all MERGED (4/6); S-12.07 still pending demo+PR; S-12.08 now converged, pending demo+PR.
+**Last update:** 2026-05-11 — S-12.07 + S-12.08 MERGED (E-12 resolver-platform sub-batch COMPLETE; F-P2-001 + F-P2-008 CLOSED). F4 platform delivery complete across all 6 E-12 stories (#105/#119/#120/#121/#122/#123). CRITICAL PATH TERMINUS reached.
 
 **Next session start — ordered checklist:**
 
-1. **S-12.07 Step 5** — demo recording (post-convergence). Run per-story-delivery.md Step 5 procedure.
-2. **S-12.07 Step 6** — PR creation via `/vsdd-factory:pr-create`. Target develop. Attach adversary convergence evidence (8-pass, adversary-pass-8.md).
-3. **S-12.08 Step 5** — demo recording (post-convergence). Note: S-12.08 depends on S-12.07 merge; dispatch S-12.08 PR only after S-12.07 merges.
-4. **S-12.08 Step 6** — PR creation via `/vsdd-factory:pr-create`. CRITICAL PATH TERMINUS; attach bats 3/3 integration test output + adversary convergence evidence (6-pass, adversary-pass-6.md). Closes F-P2-001.
-5. After S-12.08 merges: F5 pass-2 fix burst (15 CRITICAL findings from F5-pass-2-architect-decisions.md).
-6. Then F6 formal hardening → F7 convergence.
-7. E-10 brownfield pass-9 paused; resume when user directs.
+1. ✓ S-12.07 + S-12.08 MERGED (E-12 resolver-platform sub-batch COMPLETE; F-P2-001 + F-P2-008 CLOSED)
+2. **NEXT:** Dispatch F5 pass-3 cycle-level adversary fresh-context review. The 29 pass-1 + N pass-2 findings need re-baseline against current state (6 stories of work done since pass-2 was issued). Determine which remain open vs closed by per-story work.
+3. F5 pass-3 fix-plan (only what remains after re-baseline)
+4. F5 pass-3+ fix burst to 3 NITPICK_ONLY cycle-level convergence
+5. F6 targeted hardening (engine-discipline cycle)
+6. F7 delta convergence + human gate (cycle CLOSE)
+7. E-10 brownfield pass-9 resume (PAUSED at D-343)
 
 **Branches:**
-- main @ feb894a2 | develop @ 10fe412e | factory-artifacts @ (see git log)
+- main @ feb894a2 | develop @ 99d24315 | factory-artifacts @ (see git log)
 
 **Index versions:** BC-INDEX v1.63 | VP-INDEX v1.40 | STORY-INDEX v2.64 | ARCH-INDEX v1.44
 **ADR-013:** 3_of_3 CONVERGED (pass-57) | **E-9:** v1.53 CONVERGENCE_REACHED | **E-10:** paused D-343
