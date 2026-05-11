@@ -174,3 +174,38 @@ informally discussed but not codified.
 
 All four process gaps converge on S-15.03 scope: a tooling story authored as draft,
 awaiting prioritization by the human gate at F7 delta convergence.
+
+---
+
+## L-EDP1-005 — D-383 sub-rule partial application in initial codification burst (layer recursion at D-383)
+
+**Source:** F-P11-001 (MEDIUM), F-P11-002 (MEDIUM)
+**Date codified:** 2026-05-11
+
+**Pattern:** The pass-10 fix burst codified D-383 (intra-file content audit + sibling-pattern
+sweep) with three explicit sub-rules: (2a) arithmetic consistency, (2b) stale-phrase scan,
+(2c) cross-reference verification. In its own initial application, the burst applied:
+
+- 2(a) arithmetic: checked INDEX.md per-row counts (10 rows verified) but did NOT check
+  trajectory shorthand cardinality (value count == pass count). Result: stale duplicate "9"
+  introduced when inserting "15" at position 2 went undetected (F-P11-001).
+- 2(b) stale-phrase: scanned "passes 3-N" but with self-referential window — updated N to
+  prior pass (9) instead of current pass (10). Result: "passes 3-9" after the pass-10 burst
+  (F-P11-002).
+- 2(c) cross-reference: not directly violated this pass.
+
+**Root cause:** L-EDP1-003 pattern (recursive discipline violation — the rule is codified and
+partially violated in the same burst) recurred at the D-383 layer. Three consecutive layers:
+D-381 (pass-8 burst), D-382 (pass-9 burst), D-383 (pass-10 burst) all exhibited this pattern.
+The common thread: when authoring a new rule, the rule's sub-clauses are explicitly enumerated
+but the specific sub-clause that applies to the rule's own initial application data is not
+cross-checked against the authored rule. Sub-clause 2(a) reads "stated totals match breakdown
+sums" — the trajectory shorthand is a "stated total chain" that is arithmetically distinct from
+row breakdown sums, requiring a separate check that was not performed.
+
+**Codification:** D-384 extends D-383 with the three missing enforcement sub-rules:
+(1) self-referential N clause, (2) trajectory cardinality cross-check, (3) attestation specificity.
+
+**Status:** Codified as prose rule (D-384). S-15.03 automation scope expanded.
+Recurrence risk: LOW (three consecutive layers now codified; D-384 is explicit about
+cardinality and self-referential N).

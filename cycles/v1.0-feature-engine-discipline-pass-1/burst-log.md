@@ -88,3 +88,20 @@ Archived from STATE.md Session Resume Checkpoint (2026-05-09 snapshot):
 **D-383 initial application:** intra-file content audit performed on INDEX.md (row arithmetic — 10 rows verified, 1 corrected; Convergence Status stale-phrase scan), decision-log.md (full ID-sequence sweep D-336..D-383; retroactive-annotation scan), STATE.md (phase+current_step+trajectory consistency), lessons.md (Source line completeness for all 4 L-EDP1-NNN lessons).
 
 **Factory-artifacts commits:** 4ff79bbc, 3e1939f5, 6af8e4b1, 664a379e, (this commit)
+
+---
+
+## Burst: F5 pass-11 fix burst (2026-05-11)
+
+**Summary:** Addressed 4 findings + 3 process-gaps from pass-11 MEDIUM verdict (lateral move from pass-10 MEDIUM). adv-cycle-pass-11.md persisted (Commit A: f080cb71). F-P11-001 MED + F-P11-004 LOW: trajectory corrected across 4+ living files — stale duplicate "9" removed; cardinality cross-check performed (11 values for 11 passes confirmed). Files updated: STATE.md line 122 (Concurrent Cycles), STATE.md line 170 (Session Resume), INDEX.md line 66 (Convergence Status + pass-11 row added), adv-cycle-pass-10.md line 327 (Novelty Assessment errata), burst-log.md pass-10 entry (NOTE annotations). adv-cycle-pass-10.md lines 154+274 unchanged (evidence quotes within finding body, not factual assertions) (Commit B: c7c71c25). F-P11-003 LOW: adv-cycle-pass-3.md prior-findings-count 29→15 (pass-2 had 15 findings; 29 was pass-1 count; corroborated by adv-cycle-pass-4.md prior-findings-count: 11) (Commit C: 83e6b39f). F-P11-005/006/007 process-gaps: D-384 codified in decision-log extending D-383 with 3 sub-rules: self-referential N clause, external trajectory cardinality cross-check, audit attestation specificity (Commit D: da4414f1). L-EDP1-005 appended to lessons.md documenting D-383 layer recursion of L-EDP1-003 pattern. D-382+D-383+D-384 discipline applied: all 5 mandatory sibling files updated (Commit E: this commit).
+
+**D-384 initial application — phrase-specific attestations per D-384 sub-rule 3:**
+- Trajectory pre: "29→15→11→9→9→8→7→5→6→6→6" (11 values, stale — duplicate "9" at positions 4+5)
+- Trajectory post: "29→15→11→9→8→7→5→6→6→6→4" (11 values for 11 passes — correct)
+- Cardinality: 29(P1),15(P2),11(P3),9(P4),8(P5),7(P6),5(P7),6(P8),6(P9),6(P10),4(P11) = 11 values = 11 passes ✓
+- Per-position match vs INDEX.md rows: P4=9✓ P5=8✓ P6=7✓ P7=5✓ P8=6✓ P9=6✓ P10=6✓ P11=4✓
+- "passes 3-N" pre: "passes 3-9 fix bursts applied" / post: "passes 3-11 fix bursts applied" (pass-11 is current burst, N=11)
+- prior-findings-count pre: "29" (adv-cycle-pass-3.md line 23) / post: "15" (pass-2 authoritative count)
+- D-383 intra-file content audit: INDEX.md (trajectory cardinality checked), decision-log.md (ID sequence D-336..D-384 sequential), STATE.md (phase + current_step + trajectory all consistent), lessons.md (L-EDP1-005 appended, L-EDP1-002 source line unchanged — already correct from pass-10 burst)
+
+**Factory-artifacts commits:** f080cb71, c7c71c25, 83e6b39f, da4414f1, (this commit)
