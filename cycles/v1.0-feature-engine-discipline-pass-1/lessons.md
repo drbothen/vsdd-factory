@@ -385,3 +385,34 @@ The 9-layer history:
 **Codified rule:** Sibling-pattern sweep cardinality MUST be independently re-derivable via a citable Grep/glob/jq query that yields the same count as the inlined per-file list. The burst-log attestation MUST record: (a) inlined list, (b) second-source query, (c) arithmetic |list| == |query result|.
 
 **Status:** Codified. D-393 + D-394 close the adjacent defect classes. L-EDP1-003 pattern continues at asymptotic boundary per D-386 Option C.
+
+**Corrigendum (pass-19 fix burst — D-387 / F-P19-005):** Layer-9 row "Same-burst Violation: —" is incorrect. Pass-19 surfaced F-P19-001: pass-18 burst-log dim-3 falsely claimed "VP-INDEX last_amended added" while VP-INDEX had no such field. This IS a layer-9 same-burst violation of D-393. The 9-layer table should read: `| 9 (pass-18) | D-393+D-394 | "independent re-derivation Grep query required" | F-P19-001 false-true attestation re VP-INDEX last_amended |`. See decision-log D-395 (file-state grep-back verification, codified pass-19) for the structural remedy.
+
+---
+
+### L-EDP1-011 — 10th-layer L-EDP1-003 recurrence at D-393 self-application (file-state grep-back gap)
+
+**Burst:** F5 pass-19 fix burst (codifies the lesson; recurrence was in pass-18 D-393 codification).
+
+**Pattern:** D-393 was codified by the pass-18 fix burst to require sibling-pattern sweep cardinality re-derivation via Grep query (closing the L-EDP1-010 gap). Pass-18 dim-3 sweep attestation listed 4 "Action: \<file\> \<field\> added" claims; the agent applied 3 of them but failed to apply the 4th (VP-INDEX last_amended) — and the burst-log attestation finalized with "✓" marks for all 4. F-P19-001 surfaced this by re-grepping the target files post-burst. D-393's "second-source query" rule applies to the *enumeration cardinality* but NOT to the *per-action file-state verification* — that is a separate dimension.
+
+**Resolution:** D-395 codified file-state grep-back verification: every "Action: ✓" claim must be paired with a `Verification: grep ... → expected ✓` evidence line. Per D-386 Option C, no further structural escalation this cycle.
+
+**Codified rule:** Burst-log attestation "Action: ✓" without paired grep-back evidence is non-compliant under D-395 (MEDIUM severity).
+
+**Layer history at 10-layer boundary:**
+
+| Layer | Burst | Rule Codified | Same-burst Violation |
+|-------|-------|---------------|---------------------|
+| 1 (pass-8) | D-381 | "fix burst MUST update STATE.md" | missed burst-log + INDEX |
+| 2 (pass-9) | D-382 | "fix burst MUST update all 5 sibling files" | introduced intra-file content defects |
+| 3 (pass-10) | D-383 | "intra-file content audit + sibling-pattern sweep" | trajectory cardinality + self-ref N missed |
+| 4 (pass-11) | D-384 | "3 clarifications to D-383" | sub-trajectories stale; retroactive annotations |
+| 5 (pass-12) | D-385 | "3 clarifications to D-383+D-384" | frontmatter schema drift; counting-basis change |
+| 6 (pass-15) | D-387 | "structural-correction exception + sibling sweep" | sweep dimensions not enumerated; adjacent sibling-chain dimensions not covered |
+| 7 (pass-16) | D-389+D-390 | "input-hash convention + CHANGELOG→last_amended rule" | enumerated in L-EDP1-009 |
+| 8 (pass-17) | D-391+D-392 | "enumeration source mandatory + VP Lifecycle ≡ CHANGELOG" | second-source query absent; inlined BC list wrong (3 gaps); inlined VP list wrong (4 gaps) |
+| 9 (pass-18) | D-393+D-394 | "independent re-derivation Grep query required + D-391 severity explicit + dispatch-side phase update" | F-P19-001 false-true attestation re VP-INDEX last_amended (see corrigendum above) |
+| 10 (this, pass-19) | D-395+D-396 | "file-state grep-back verification of Action claims + story-frontmatter↔STORY-INDEX sweep" | — (D-395 self-application: see burst-log pass-19 sweep attestation) |
+
+**Pattern-extension note:** L-EDP1-007 prediction holds: each pass surfaces the NEXT un-enumerated defect dimension. Layer-10 dimension is file-state-post-fix; layer-11 candidate dimensions include: (a) per-policy-rubric coverage verification completeness, (b) STATE.md narrative vs cell coherence (F-P19-004 recurring class), (c) cross-file changelog entry propagation when VP source files are amended. Each layer narrows the failure mode without eliminating the pattern. D-386 Option C: asymptotic acceptance continues.
