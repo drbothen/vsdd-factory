@@ -946,6 +946,9 @@ timeout_ms = 10000
 # on_error = "continue" means a hook CRASH does NOT block — graceful-degrade
 # on hook failure per BC-4.10.002 PC3. This is orthogonal to the block signal.
 on_error = "continue"
+# S-12.08 AC-005: WaveContextResolver injects wave_context before dispatch
+# (BC-1.13.001 postcondition 4). The hook reads plugin_config["wave_context"]["stories"].
+needs_context = ["wave_context"]
 
 [hooks.capabilities.read_file]
 path_allow = [".factory/cycles"]

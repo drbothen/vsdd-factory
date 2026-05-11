@@ -1,0 +1,34 @@
+AC-002: Absent wave_context → Block(WAVE_CONTEXT_MISSING)
+==========================================================
+Traces to: BC-4.10.001 postcondition 2
+Tests: test_absent_wave_context_returns_missing_error, test_null_wave_context_returns_missing_error,
+       test_BC_4_10_001_wave_context_absent_returns_missing, test_hook_logic_blocks_when_wave_context_absent,
+       test_BC_4_10_001_hook_logic_with_wave_context_blocks_on_missing_state,
+       test_BC_4_10_001_hook_logic_runs_without_wasm_runtime,
+       test_hook_logic_blocks_when_cycle_id_absent, test_hook_logic_blocks_when_cycle_id_empty_string
+
+EVIDENCE — cargo test output (8 tests, all GREEN):
+----------------------------------------------------
+$ cargo test -p validate-per-story-adversary-convergence 2>&1 | grep "test tests::test.*absent\|test.*missing.*error\|test.*wave_context_absent\|test.*hook_logic_blocks_when_wave\|test.*hook_logic_with_wave_context\|test.*runs_without_wasm\|test.*cycle_id"
+
+test tests::test_BC_4_10_001_hook_logic_with_wave_context_blocks_on_missing_state ... ok
+test tests::test_BC_4_10_001_hook_logic_runs_without_wasm_runtime ... ok
+test tests::test_BC_4_10_001_wave_context_absent_returns_missing ... ok
+test tests::test_absent_wave_context_returns_missing_error ... ok
+test tests::test_hook_logic_blocks_when_cycle_id_absent ... ok
+test tests::test_hook_logic_blocks_when_cycle_id_empty_string ... ok
+test tests::test_hook_logic_blocks_when_wave_context_absent ... ok
+test tests::test_null_wave_context_returns_missing_error ... ok
+
+BLOCK CODE CONTRACT:
+---------------------
+Block code: "WAVE_CONTEXT_MISSING" (BLOCK_CODE_WAVE_CONTEXT_MISSING constant)
+Block message explains: needs_context = ["wave_context"] must be declared in
+hooks-registry.toml and WaveContextResolver must be registered.
+
+CRITICAL INVARIANT (AC-002):
+------------------------------
+Hook MUST NOT return HookResult::Continue when wave_context is absent.
+No silent degrade. Fail loud. This closes F-P2-001 root cause.
+
+VERDICT: GREEN — 8 tests confirm absent/null wave_context → Block(WAVE_CONTEXT_MISSING).

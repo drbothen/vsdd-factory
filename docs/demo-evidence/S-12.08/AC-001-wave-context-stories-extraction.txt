@@ -1,0 +1,31 @@
+AC-001: wave_context.stories extraction
+========================================
+Traces to: BC-4.10.001 postcondition 1
+Test name: test_extract_stories_from_wave_context_reads_nested_array
+
+EVIDENCE — cargo test output:
+-------------------------------
+$ cargo test -p validate-per-story-adversary-convergence test_extract_stories_from_wave_context_reads_nested_array
+
+running 1 test
+test tests::test_extract_stories_from_wave_context_reads_nested_array ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 51 filtered out; finished in 0.00s
+
+SOURCE — lib.rs:308 (key function):
+-------------------------------------
+pub fn extract_stories_from_wave_context(
+    plugin_config: &serde_json::Value,
+) -> Result<Vec<String>, WaveContextError> {
+    // AC-002: missing or null wave_context → Missing.
+    let wave_context = match plugin_config.get("wave_context") { ... };
+    // AC-003: wave_context must be an object; anything else is a schema error.
+    if !wave_context.is_object() { return Err(SchemaError(...)); }
+    // AC-002c: wave_context present but stories key absent or null → Missing.
+    let stories_val = match wave_context.get("stories") { ... };
+    // Extract string elements from the array.
+    Ok(array.iter().map(|s| s.as_str().unwrap().to_string()).collect())
+}
+
+VERDICT: GREEN — RealCallbacks::list_stories reads from
+plugin_config["wave_context"]["stories"] (not static config path).

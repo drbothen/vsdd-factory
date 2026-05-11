@@ -187,13 +187,18 @@ fn test_BC_4_12_004_resolve_pure_with_none_cycle_id_yields_none() {
 
 // ─── AC-003 ──────────────────────────────────────────────────────────────────
 
-/// BC-4.12.002 PC3: empty stories list yields `value: None`.
+/// HIGH-002: empty stories list yields `value: Some({stories: [], ...})`.
 ///
-/// When wave-state.yaml is present but the active wave has `stories: []`,
-/// the resolver must not produce a wave_context value — there is nothing
-/// meaningful to inject.
+/// When wave-state.yaml is present with an active wave that has `stories: []`,
+/// the resolver emits Some so the hook sees the empty wave and returns Continue
+/// per BC-4.10.001 EC-001 (vacuously all stories cleared). Returning None here
+/// would cause the hook to Block with WAVE_CONTEXT_MISSING — incorrect for an
+/// empty wave.
+///
+/// Note: previously asserted value: None (AC-003 old spec); updated for S-12.08
+/// HIGH-002 fix. Only returns value: None when there is NO active wave at all.
 #[test]
-fn test_BC_4_12_002_empty_stories_yields_none() {
+fn test_resolve_pure_with_empty_stories_emits_some_with_empty_array() {
     let input = make_input("/tmp/test");
     let wave_state = WaveState {
         waves: vec![WaveEntry {
@@ -209,10 +214,28 @@ fn test_BC_4_12_002_empty_stories_yields_none() {
     let output = resolve_wave_context_pure(&input, &wave_state, Some("v1.0-cycle"));
 
     assert_eq!(output.key, "wave_context");
+    let value = output.value.expect(
+        "HIGH-002: active wave with empty stories must yield value: Some (not None), \
+         so hook sees the empty wave and returns Continue per BC-4.10.001 EC-001",
+    );
+    let stories = value["stories"]
+        .as_array()
+        .expect("stories must be a JSON array");
     assert!(
-        output.value.is_none(),
-        "AC-003: empty stories must yield value: None; got: {:?}",
-        output.value
+        stories.is_empty(),
+        "HIGH-002: empty active wave must produce empty stories array in wave_context; \
+         got: {:?}",
+        stories
+    );
+    assert!(
+        value["wave_id"].is_string(),
+        "wave_id must be present in empty-wave output; got: {:?}",
+        value
+    );
+    assert!(
+        value["cycle_id"].is_string(),
+        "cycle_id must be present in empty-wave output; got: {:?}",
+        value
     );
 }
 

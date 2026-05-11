@@ -1,0 +1,42 @@
+AC-010: Old extract_stories_from_config graceful-degrade fallback REMOVED
+=========================================================================
+Traces to: BC-4.10.001 + F-P2-001 + F-P2-008
+
+EVIDENCE 1 — grep shows zero matches for old function name:
+------------------------------------------------------------
+$ grep "extract_stories_from_config\|graceful.*degrade\|static.*config.*stories" \
+    crates/hook-plugins/validate-per-story-adversary-convergence/src/lib.rs
+
+Lines found (context-appropriate only — no old fallback path):
+  18:  //! - BC-4.10.002: MUST gracefully degrade (return Continue, no block) when
+  205: /// immediately (graceful degrade).
+  214: /// - AC-003 (graceful degrade on missing wave-gate indicator)
+  215: pub fn graceful_degrade_outside_wave_gate(payload: &HookPayload) -> bool {
+  231: //  All other identities (including "unknown") trigger graceful degrade.
+  242: /// Hook MUST NOT gracefully degrade on this condition (AC-002, AC-010).
+  288: /// replaced the removed `extract_stories_from_config` path (read top-level `stories`
+  296: /// The hook MUST NOT gracefully degrade on `WaveContextError` — this is a
+  298: /// (`extract_stories_from_config` with graceful Err→Continue degrade) is removed
+
+NOTE: All "graceful degrade" references in source are:
+  (a) graceful_degrade_outside_wave_gate() — a DIFFERENT concept (degrade when not in
+      wave-gate context, e.g. a non-SubagentStop event). This function is CORRECT and KEPT.
+  (b) Documentation comments explicitly stating the old static-config fallback IS REMOVED.
+  The old `extract_stories_from_config` function (read top-level plugin_config.stories) is GONE.
+
+EVIDENCE 2 — cargo test confirms removal assertion:
+----------------------------------------------------
+$ cargo test -p validate-per-story-adversary-convergence test_old_extract_stories_from_config_removed
+
+test tests::test_old_extract_stories_from_config_removed ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 51 filtered out; finished in 0.00s
+
+HARD INVARIANT CONFIRMED:
+--------------------------
+There is NO code path in extract_stories_from_wave_context (or its successor) that
+returns Continue when wave_context.stories is absent or wrong type.
+The old "stories not configured → graceful Continue" path is completely removed.
+This directly resolves F-P2-001 and F-P2-008 (same root cause).
+
+VERDICT: GREEN — old fallback path confirmed removed. No silent degrade possible.
