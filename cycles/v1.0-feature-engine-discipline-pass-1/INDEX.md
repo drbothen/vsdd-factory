@@ -79,7 +79,7 @@ changes are WASM-only (no new Bash hook debt per D-2).
 - F2 (spec evolution / story decomposition): **COMPLETE** — F2-amendment D-362; 6 BCs + ADR-018 + 4 VPs + PRD FR-048
 - F3 (incremental stories): **COMPLETE** — F3-amendment D-366; 6 stories S-12.03..S-12.08 under E-12
 - F4 (implementation): **COMPLETE** — all 6 E-12 stories merged (PRs #105, #119, #120, #121, #122, #123); F-P2-001 closed via S-12.08
-- F5 (scoped adversarial review): **IN PROGRESS** — 21 passes; trajectory 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→11; pass-21 HIGH (sustained; 1H+5M+3L+1NIT+1PG); streak 0/3; passes 3-21 fix bursts applied to factory-artifacts; D-386 Option C accepted; D-387..D-400 codified; L-EDP1-009 second corrigendum + L-EDP1-010 + L-EDP1-011 + L-EDP1-012 + L-EDP1-013 authored
+- F5 (scoped adversarial review): **IN PROGRESS** — 21 passes; trajectory 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10; pass-21 HIGH (sustained; 1H+5M+3L+1NIT+1PG); streak 0/3; passes 3-21 fix bursts applied to factory-artifacts; D-386 Option C accepted; D-387..D-400 codified; L-EDP1-009 second corrigendum + L-EDP1-010 + L-EDP1-011 + L-EDP1-012 + L-EDP1-013 authored
 - F6 (targeted hardening): PENDING
 - F7 (delta convergence): PENDING
 

@@ -38,7 +38,7 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-11 — F5 pass-21 fix burst COMPLETE. Pass-21 HIGH verdict (1H+5M+3L+1NIT+1PG; D-399+D-400 codified; L-EDP1-013 documents 12th-layer L-EDP1-003 recurrence at adjacent-cell sibling-sweep gap). D-397+D-399 self-applied via 4-cell STATE narrative sweep. Trajectory: 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→11. |
+| **Last Updated** | 2026-05-11 — F5 pass-21 fix burst COMPLETE. Pass-21 HIGH verdict (1H+5M+3L+1NIT+1PG; D-399+D-400 codified; L-EDP1-013 documents 12th-layer L-EDP1-003 recurrence at adjacent-cell sibling-sweep gap). D-397+D-399 self-applied via 4-cell STATE narrative sweep. Trajectory: 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10. |
 | **Current Phase** | Engine-discipline F5 — pass-21 fix burst COMPLETE (pending pass-22 dispatch) |
 | **Current Cycle** | v1.0-feature-engine-discipline-pass-1 |
 
@@ -132,7 +132,7 @@ dtu_services: []
 | Cycle | Type | Status | Notes |
 |-------|------|--------|-------|
 | v1.0-brownfield-backfill | brownfield | PAUSED | E-10 pass-9 pending; paused at D-343 |
-| v1.0-feature-engine-discipline-pass-1 | feature | F5-IN-PROGRESS | All 6 E-12-platform stories merged; F5 passes 3-21 complete (19 F5 passes); full-cycle trajectory (pass-1..21): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→11; pass-21 HIGH verdict (1H+5M+3L+1NIT+1PG); D-399+D-400 codified; L-EDP1-013 documented; D-386 Option C: continue F5, accept asymptotic L-EDP1-003 limit; S-15.03 deferred |
+| v1.0-feature-engine-discipline-pass-1 | feature | F5-IN-PROGRESS | All 6 E-12-platform stories merged; F5 passes 3-21 complete (19 F5 passes); full-cycle trajectory (pass-1..21): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10; pass-21 HIGH verdict (1H+5M+3L+1NIT+1PG); D-399+D-400 codified; L-EDP1-013 documented; D-386 Option C: continue F5, accept asymptotic L-EDP1-003 limit; S-15.03 deferred |
 | v1.0-feature-plugin-async-semantics-pass-1 | feature | CLOSED | All PRs merged; rc.14 shipped |
 
 ## Decisions Log
@@ -181,7 +181,7 @@ dtu_services: []
 
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-11 — F5 pass-21 fix burst COMPLETE. Pass-21 HIGH verdict (1H+5M+3L+1NIT+1PG; sustained; 12th-layer L-EDP1-003 at adjacent-cell sibling-sweep gap). D-399 (canonical pass-N marker definition for D-397 intent-match) + D-400 (D-385/D-398 reconciliation for next-pass Layer-N row inline updates) codified. L-EDP1-013 documents 12th-layer L-EDP1-003 recurrence. Key fixes: F-P21-001 STATE Current Phase→pass-21 (D-397+D-399 self-applied 4-cell sweep). F-P21-005 BC-INDEX v1.65 cycle-decision sync D-389..D-400. F-P21-002/003/004 pass-20 burst-log corrigenda. F-P21-006 L-EDP1-011 D-400 corrigendum. Trajectory: 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→11. Streak 0/3.
+**Last update:** 2026-05-11 — F5 pass-21 fix burst COMPLETE. Pass-21 HIGH verdict (1H+5M+3L+1NIT+1PG; sustained; 12th-layer L-EDP1-003 at adjacent-cell sibling-sweep gap). D-399 (canonical pass-N marker definition for D-397 intent-match) + D-400 (D-385/D-398 reconciliation for next-pass Layer-N row inline updates) codified. L-EDP1-013 documents 12th-layer L-EDP1-003 recurrence. Key fixes: F-P21-001 STATE Current Phase→pass-21 (D-397+D-399 self-applied 4-cell sweep). F-P21-005 BC-INDEX v1.65 cycle-decision sync D-389..D-400. F-P21-002/003/004 pass-20 burst-log corrigenda. F-P21-006 L-EDP1-011 D-400 corrigendum. Trajectory: 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10. Streak 0/3.
 
 **STATE:** F4 platform COMPLETE; F5 at pass-21 fix burst complete. Next: dispatch pass-22 adversary (per D-394, update STATE.md phase BEFORE adversary returns).
 

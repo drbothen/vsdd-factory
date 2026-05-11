@@ -1,7 +1,7 @@
 ---
 document_type: vp-index
 level: L4
-version: "1.41"
+version: "1.42"
 status: draft
 producer: state-manager
 timestamp: 2026-05-11T00:00:00Z
@@ -10,6 +10,8 @@ phase: F5
 traces_to: ARCH-INDEX.md
 total_vps: 79
 changelog:
+  - date: 2026-05-11
+    change: "v1.42 (2026-05-11; pass-22 fix burst per D-401 cross-index sync): cycle-decision sync — VP-INDEX acknowledges D-389..D-402. No VP content changes. Per D-401(a): when ≥3 governance decisions codified same-burst, all 4 indexes MUST acknowledge the decision range. Refs: F-P22-002, D-401. VP-INDEX v1.41→v1.42."
   - date: 2026-05-11
     change: "v1.41 (2026-05-11): In-cycle VP frontmatter housekeeping sweep (D-390+D-392 application; F5 pass-19 fix burst): added last_amended: 2026-05-11 to VP-INDEX frontmatter (F-P19-001; pass-18 attestation was false-true); added Z-suffix to timestamp on VP-069..VP-076 (F-P19-003; 8 VPs swept, 0 remaining defects); VP-INDEX v1.40→v1.41. Also retroactively notes: last_amended added to VP-069 (→2026-05-06), VP-072 (→2026-05-06), VP-073 (→2026-05-07), VP-075 (→2026-05-07) per F-P18-002 (pass-18 fix burst). Refs: F-P19-001, F-P19-003, F-P18-002, D-390 (CHANGELOG→last_amended), D-392 (VP Lifecycle≡CHANGELOG); codified-same-burst-as: D-395, D-396."
   - date: 2026-05-09
