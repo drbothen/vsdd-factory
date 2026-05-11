@@ -12,3 +12,53 @@ Archived from STATE.md Session Resume Checkpoint (2026-05-09 snapshot):
 **Branches:** main @ c6df5c13 (rc.14 bot bundle) | develop @ e7855824 (PR #113 trace_id fix; PR #114 sync pending)
 
 **Index versions:** BC-INDEX v1.63 | VP-INDEX v1.40 | STORY-INDEX v2.64 | ARCH-INDEX v1.44
+
+---
+
+## Burst: F5 pass-3 fix burst (2026-05-11)
+
+**Summary:** Pass-3 cycle-level adversary re-baseline after F4 COMPLETE (6 E-12 stories merged). Addressed CI step ordering defect (F-P3-001 recurrence), test timeout calibration, and spec propagation gaps from passes 1-2.
+
+**Feature-branch commits:** c5b110ab, 63be1033, d1251864, 2e00637c (branch: feature/F5-pass-3-cycle-hardening)
+
+**Factory-artifacts commits:** 2bac730e, d850973d
+
+---
+
+## Burst: F5 pass-4 fix burst (2026-05-11)
+
+**Summary:** Addressed 9 findings from pass-3 CRITICAL verdict. CI step ordering confirmed green, spec alignment across BC/VP/story artifacts, additional sibling-file propagation gaps closed.
+
+**Feature-branch commits:** cec5ae31, 8776d391, fd27f818, b24e3125, 9bc06826, c7e0bf42 (branch: feature/F5-pass-3-cycle-hardening)
+
+**Factory-artifacts commits:** f5646dc2, fde954f1
+
+---
+
+## Burst: F5 pass-5 fix burst (2026-05-11)
+
+**Summary:** Addressed 8 findings from pass-4 CRITICAL verdict. BC/VP/story alignment continued; F-P5-008 CI-green advisory codified (precursor to D-379). Remaining CI-class findings flagged for mandatory CI evidence.
+
+**Feature-branch commits:** 38ca02f2 (branch: feature/F5-pass-3-cycle-hardening)
+
+**Factory-artifacts commits:** c6cbec15, e4541f3c
+
+---
+
+## Burst: F5 pass-6 fix burst (2026-05-11)
+
+**Summary:** Addressed 7 findings from pass-5 CRITICAL verdict. D-379 CI-green-signal rule codified (CRITICAL CI-class findings require CI run URL before closure). D-380 recorded CI run 25651192161 as F-P6-001 closure evidence. S-14.06/07/08/09 stories authored and registered in STORY-INDEX (F-P6-002 + F-P6-004). STORY-INDEX v2.64→v2.65.
+
+**Feature-branch commits:** 349c1d8e, ae4778c4 (branch: feature/F5-pass-3-cycle-hardening)
+
+**Factory-artifacts commits:** 219660d5, 1fa8efcd
+
+---
+
+## Burst: F5 pass-7 fix burst (2026-05-11)
+
+**Summary:** Addressed 5 findings from pass-6 CRITICAL verdict (first pass below CRITICAL after 6 consecutive CRITICAL passes). BC-INDEX v1.63→v1.64: Capability TBD→CAP-008 for BC-7.03.091/092 (F-P7-001). E-14 epic v1.0→v1.1: story_count 5→9; S-14.06/07/08/09 added to Stories Planned table; forward-ref note added for cycle v1.0-feature-engine-discipline-pass-2 (F-P7-002 + F-P7-004). Feature-branch cosmetic fixes: resolver-integration.bats comment + test name updated 3000ms→8000ms (F-P7-003); timeout rationale arithmetic corrected (F-P7-005). NOTE: ARCH-INDEX cite-refresh (L-P20-002) was missed — F-P8-001 remediation required.
+
+**Feature-branch commits:** 2e6b4372 (branch: feature/F5-pass-3-cycle-hardening)
+
+**Factory-artifacts commits:** 5f26d1b0, 71e22193
