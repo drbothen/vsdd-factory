@@ -199,6 +199,28 @@ jobs:
           sudo apt-get install -y jq bats 2>/dev/null || brew install jq bats 2>/dev/null || true
           bats plugins/vsdd-factory/tests/perf-baseline.bats
 
+      - name: Stage WASM plugins to hook-plugins directory (F-P5-001)
+        # plugins/vsdd-factory/hook-plugins/ is gitignored (.gitignore:58) —
+        # the committed directory holds machine-local builds and is never checked in.
+        # CI must populate it from the debug build artifacts before running any bats
+        # test that invokes the dispatcher (resolver-integration, capability-confinement,
+        # warn-pending-wave-gate). Without this step those tests fail with
+        # "plugin not found" because the dispatcher looks for *.wasm in hook-plugins/.
+        # The release.yml "Stage wasm plugins" step at lines 239-262 is the canonical
+        # staging pattern; this mirrors it for the CI (debug) path.
+        shell: bash
+        run: |
+          mkdir -p plugins/vsdd-factory/hook-plugins
+          cp target/wasm32-wasip1/debug/*.wasm plugins/vsdd-factory/hook-plugins/ 2>/dev/null || true
+          count=$(ls plugins/vsdd-factory/hook-plugins/*.wasm 2>/dev/null | wc -l)
+          if [ "$count" -lt 16 ]; then
+            echo "::error::Only $count WASM plugins staged; expected >= 16. Build output:"
+            ls target/wasm32-wasip1/debug/*.wasm 2>/dev/null || echo "  (no wasm files in debug target)"
+            exit 1
+          fi
+          echo "Staged $count WASM plugins to hook-plugins/."
+          ls plugins/vsdd-factory/hook-plugins/
+
       - name: Run resolver integration tests (F-P4-002)
         # F-P4-002: resolver-integration.bats and resolver-capability-confinement.bats
         # were authored in F-P3 but were never invoked by CI on PRs (only by
@@ -206,6 +228,7 @@ jobs:
         # (cargo-host builds it above) and bats (installed in the perf-baseline step).
         # E-8 integration tests (tests/integration/E-8-hook-plugins/) are also covered
         # here — they live outside plugins/vsdd-factory/tests/ so run-all.sh misses them.
+        # WASM plugins are staged by the preceding step (F-P5-001).
         shell: bash
         run: |
           bats plugins/vsdd-factory/tests/resolver-integration.bats

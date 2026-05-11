@@ -580,9 +580,16 @@ RESOLVER_TOML
     # Architecture note: resolver.error events are written to InternalLog (not to
     # base_host_ctx.events), so they do NOT appear in VSDD_SINK_FILE. The timeout
     # is verified structurally via elapsed time (timeout fired → dispatch took ~1500ms).
-    [ "${elapsed_ms}" -ge 1100 ] || {
+    # F-P5-007 (Option A): raised from 1100ms → 1300ms.
+    # Rationale: 1100ms was machine-specific (calibrated on a fast macOS dev box).
+    # CI runners (ubuntu-latest, macos-14) can be slower under load, causing the
+    # timeout to fire at 1500ms + overhead that exceeds the old lower bound.
+    # 1300ms gives a 200ms buffer beyond the old bound while still catching a 25%+
+    # deadline reduction (1500ms * 0.75 = 1125ms, still > 1300ms guard). Trade-off:
+    # accepted risk of rare flake on severely loaded CI runners.
+    [ "${elapsed_ms}" -ge 1300 ] || {
         echo "UNEXPECTED: dispatch took only ${elapsed_ms}ms — long_running timeout may not have fired at expected 1500ms" >&2
-        echo "Expected >= 1100ms (RESOLVER_TIMEOUT_MS=1500ms; ~400ms tolerance for bats/epoch overhead)" >&2
+        echo "Expected >= 1300ms (RESOLVER_TIMEOUT_MS=1500ms; ~200ms tolerance for bats/epoch overhead)" >&2
         false
     }
 
