@@ -20,7 +20,7 @@ pass: 3
 previous_review: adv-cycle-pass-2.md
 cycle: v1.0-feature-engine-discipline-pass-1
 prior-pass-classification: CRITICAL
-prior-findings-count: 29
+prior-findings-count: 15
 verdict: CRITICAL
 findings_count: { critical: 2, high: 6, medium: 3, low: 0, nitpick: 0 }
 observations: 3
