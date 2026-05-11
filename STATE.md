@@ -5,13 +5,13 @@ version: "2.0"
 status: draft
 producer: state-manager
 timestamp: 2026-05-11T00:00:00Z
-phase: engine-discipline-F5-pass-12-fix-burst-COMPLETE
+phase: engine-discipline-F5-pass-13-fix-burst-COMPLETE
 inputs: []
 input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "Engine-discipline F5 pass-12 fix burst COMPLETE — F-P12-001..003 resolved; D-385 codified; all D-382+D-383+D-384+D-385 sibling files updated; pass-13 adversary dispatch NEXT (target NITPICK_ONLY)"
+current_step: "Engine-discipline F5 pass-13 fix burst COMPLETE — F-P13-001..003 resolved; L-EDP1-007 codified (5-layer structural diagnosis); all D-382+D-383+D-384+D-385 sibling files updated; STRUCTURAL ESCALATION: human decision required — (a) prioritize S-15.03 OR (b) define laxer convergence criterion"
 current_cycle: v1.0-feature-engine-discipline-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,8 +38,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-11 — F5 pass-12 fix burst COMPLETE; adv-cycle-pass-12.md persisted (MEDIUM: 2M+1L+3PG; 4th lateral); all F-P12-001..003 resolved; D-385 codified; burst-log pass-12 entry added; all D-382+D-383+D-384+D-385 mandatory sibling files updated |
-| **Current Phase** | Engine-discipline F5 — pass-13 adversary dispatch NEXT (pass-12 verdict MEDIUM, streak 0/3, target NITPICK_ONLY) |
+| **Last Updated** | 2026-05-11 — F5 pass-13 fix burst COMPLETE; adv-cycle-pass-13.md persisted (MEDIUM: 1H+1M+1L+3PG; 5th L-EDP1-003 layer); F-P13-001..003 resolved; L-EDP1-007 codified; trajectory P12 restated as 3 (content-only); all D-382+D-383+D-384+D-385 sibling files updated; STRUCTURAL ESCALATION pending human decision |
+| **Current Phase** | Engine-discipline F5 — STRUCTURAL ESCALATION: L-EDP1-003 at 5th layer; human decision required before pass-14 (see L-EDP1-007) |
 | **Current Cycle** | v1.0-feature-engine-discipline-pass-1 |
 
 ## Phase Progress
@@ -70,25 +70,21 @@ dtu_services: []
 | F5 pass-11 fix burst (trajectory + cardinality + D-384) | **COMPLETE** | F-P11-001..007 resolved; D-384 codified; all sibling files updated per D-382+D-383+D-384 |
 | F5 pass-12 cycle-level adversary | **COMPLETE** | MEDIUM (2M+1L+3PG; 4th lateral); sub-trajectory STATE.md:63,78 stale; retroactive annotations; attestation gap; D-385 codified |
 | F5 pass-12 fix burst (sub-trajectories + D-385) | **COMPLETE** | F-P12-001..003 resolved; D-385 codified; all sibling files updated per D-382+D-383+D-384+D-385 |
-| F5 pass-13 cycle-level adversary | **NEXT** | Fresh-context; target NITPICK_ONLY; apply D-382+D-383+D-384+D-385 discipline |
+| F5 pass-13 cycle-level adversary | **COMPLETE** | MEDIUM (1H+1M+1L+3PG; 5th L-EDP1-003 layer); F-P13-001 schema drift; F-P13-002 counting-basis; F-P13-003 H1 title |
+| F5 pass-13 fix burst (schema + trajectory + L-EDP1-007) | **COMPLETE** | F-P13-001..003 resolved; L-EDP1-007 codified; all sibling files updated per D-382+D-383+D-384+D-385 |
+| STRUCTURAL ESCALATION — human decision | **PENDING** | (a) prioritize S-15.03 OR (b) define laxer convergence criterion OR (c) continue F5 pass-14+ accepting asymptotic limit |
 | Phase D-4 Burst 2 — E-10 + E-9 v1.7 | **PENDING** | E-10 paused D-343; adversary pass-9 queued |
 
 ## Current Phase Steps
 
 | Step | Agent | Status | Output |
 |------|-------|--------|--------|
-| F5 passes 3-7 cycle adversary + fix bursts | adversary/state-mgr | DONE 2026-05-11 | Trajectory 11→9→8→7→5; pass-7 LOW; feature branch feature/F5-pass-3-cycle-hardening |
-| F5 pass-8 fix burst (factory-artifacts only) | state-manager | DONE 2026-05-11 | ARCH-INDEX v1.45, E-14 v1.2, STORY-INDEX last_amended, burst-log passes 3-7, D-381 |
-| F5 pass-8 adversarial review | adversary | DONE 2026-05-11 | MEDIUM (regression): 3M+2L+1NIT; ARCH-INDEX cite-refresh miss, E-14 note error, STATE.md staleness |
-| F5 pass-9 adversarial review | adversary | DONE 2026-05-11 | MEDIUM-HIGH: 1H+1M+2L+2NIT; burst-log/INDEX.md miss, D-382 scope gap, story arithmetic, lessons.md absent |
-| F5 pass-9 fix burst (comprehensive sibling-file sweep) | state-manager | DONE 2026-05-11 | F-P9-001..006 all applied; D-382; lessons.md; STATE.md arithmetic; burst-log pass-9 entry |
-| F5 pass-10 cycle-level adversary | adversary | DONE 2026-05-11 | MEDIUM: 2M+2L+2NIT; intra-file content defects; L-EDP1-003 pattern migrated |
-| F5 pass-10 fix burst (intra-file content audit) | state-manager | DONE 2026-05-11 | F-P10-001..006 resolved; D-383; burst-log pass-10; all sibling files updated |
-| F5 pass-11 cycle-level adversary | adversary | DONE 2026-05-11 | MEDIUM: 2M+2L+0NIT; 3 process-gaps; trajectory cardinality error + self-ref N gap + frontmatter |
-| F5 pass-11 fix burst (trajectory + D-384) | state-manager | DONE 2026-05-11 | F-P11-001..007 resolved; D-384; all sibling files updated per D-382+D-383+D-384 |
-| F5 pass-12 cycle-level adversary | adversary | DONE 2026-05-11 | MEDIUM (2M+1L+3PG); sub-trajectory STATE.md:63,78 stale; retroactive annotation; attestation gap |
-| F5 pass-12 fix burst (sub-trajectories + D-385) | state-manager | DONE 2026-05-11 | F-P12-001..003 resolved; D-385 codified; all sibling files updated per D-382+D-383+D-384+D-385 |
-| F5 pass-13 cycle-level adversary | adversary | NEXT | Fresh-context; target NITPICK_ONLY; D-382+D-383+D-384+D-385 discipline applies |
+| F5 passes 3-9 cycle adversary + fix bursts | adversary/state-mgr | DONE 2026-05-11 | Trajectory 11→9→8→7→5→6→6 (passes 3-9); D-381+D-382 codified; full details: burst-log.md |
+| F5 pass-10 cycle-level adversary + fix burst | adversary/state-mgr | DONE 2026-05-11 | MEDIUM: 2M+2L+2NIT; D-383 codified; F-P10-001..006 resolved |
+| F5 pass-11 cycle-level adversary + fix burst | adversary/state-mgr | DONE 2026-05-11 | MEDIUM: 2M+2L; D-384 codified; F-P11-001..007 resolved |
+| F5 pass-12 cycle-level adversary + fix burst | adversary/state-mgr | DONE 2026-05-11 | MEDIUM: 2M+1L+3PG (content=3); D-385 codified; F-P12-001..003 resolved |
+| F5 pass-13 cycle-level adversary | adversary | DONE 2026-05-11 | MEDIUM (1H+1M+1L+3PG); pass-12 schema drift; counting-basis change; L-EDP1-003 5th layer |
+| F5 pass-13 fix burst (schema + counting-basis + L-EDP1-007) | state-manager | DONE 2026-05-11 | F-P13-001..003 resolved; L-EDP1-007; all sibling files updated per D-382+D-383+D-384+D-385 |
 
 ## Identifier Conventions
 
@@ -175,17 +171,21 @@ dtu_services: []
 
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-11 — F5 pass-12 fix burst COMPLETE (F-P12-001..003 resolved). adv-cycle-pass-12.md persisted (MEDIUM: 2M+1L+3PG; 4th lateral). F-P12-001 MED: STATE.md sub-trajectories at lines 63+78 corrected `9→9→8→7→5` → `11→9→8→7→5` (pass-3 = 11 per F-P10-001 correction). F-P12-002 MED: retroactive NOTE annotations removed from burst-log.md pass-10 entry (D-383 rule 2(c) immutable-row violation). F-P12-003 LOW: per-position attestation in burst-log:102 extended P4-P11 → P1-P11. D-385 codified (D-383/D-384 clarifications: sub-trajectory sibling enumeration, immutable-row scope enumeration, attestation completeness). Trajectory (content-only): 29→15→11→9→8→7→5→6→6→6→4→3→3. Streak 0/3. (P12 restated as 3 per F-P13-002: content-only counting basis; P13=3: 1H+1M+1L)
+**Last update:** 2026-05-11 — F5 pass-13 fix burst COMPLETE. adv-cycle-pass-13.md persisted (MEDIUM: 1H+1M+1L+3PG; 5th L-EDP1-003 layer). F-P13-001 HIGH: pass-12 frontmatter restored to canonical schema (16 missing fields added; findings_count scalar→mapping; underscore→hyphen keys; cycle:→current_cycle:). F-P13-002 MED: P12 trajectory restated as 3 (content-only: 2M+1L) across 4 citation sites — STATE.md Concurrent Cycles, Session Resume, INDEX.md row-12 + Convergence Status, burst-log attestation. F-P13-003 LOW: pass-12 H1 corrected to "Adversarial Review — Pass 12". L-EDP1-007 codified: 5-layer structural diagnosis of L-EDP1-003 pattern; prose-only codification approaching marginal-value-zero; S-15.03 is the only structural remedy. Trajectory (content-only): 29→15→11→9→8→7→5→6→6→6→4→3→3. Streak 0/3.
+
+**STRUCTURAL ESCALATION:** L-EDP1-003 has recurred at 5 consecutive layers. Human decision required before pass-14 dispatch.
 
 **Next session start — ordered checklist:**
 
-1. ✓ F5 passes 3-12 complete. Factory-artifacts: all F-P12-001..003 fixes applied per D-382+D-383+D-384+D-385. Feature branch: feature/F5-pass-3-cycle-hardening @ 2e6b4372.
-2. **NEXT:** Dispatch F5 pass-13 cycle-level adversary fresh-context review. Verify all F-P12 fixes are present. Target: NITPICK_ONLY (begin 3-pass streak for convergence).
-3. If pass-13 NITPICK_ONLY: begin 3-pass streak (passes 14-15 for convergence).
-4. If pass-13 LOW or above: dispatch fix burst per D-382+D-383+D-384+D-385 (update ALL sibling files + intra-file content audit + sub-trajectory sibling enumeration + immutable-row scope check + per-position attestation P1-Pn), then pass-14.
-5. F6 targeted hardening (engine-discipline cycle) — after 3 consecutive NITPICK_ONLY cycle-level passes.
-6. F7 delta convergence + human gate (cycle CLOSE).
-7. E-10 brownfield pass-9 resume (PAUSED at D-343).
+1. ✓ F5 passes 3-13 complete. Factory-artifacts: all F-P13-001..003 fixes applied per D-382+D-383+D-384+D-385. Feature branch: feature/F5-pass-3-cycle-hardening @ 2e6b4372.
+2. **DECISION REQUIRED (human):** Choose ONE of:
+   - (a) Prioritize S-15.03 implementation; pause F5 adversary until S-15.03 ships and re-attempt convergence with automation
+   - (b) Define laxer convergence criterion: e.g., 3 consecutive passes with LOW/NITPICK verdict and no CRITICAL/HIGH/MEDIUM content findings (accepting that process-gap findings may persist without automation)
+   - (c) Continue F5 pass-14+ understanding that L-EDP1-003 pattern is asymptotic and accepting prose-only convergence limit
+3. After human decision: dispatch fix burst per D-382+D-383+D-384+D-385 (or route to S-15.03 story).
+4. F6 targeted hardening — after convergence criterion is met.
+5. F7 delta convergence + human gate (cycle CLOSE).
+6. E-10 brownfield pass-9 resume (PAUSED at D-343).
 
 **D-382+D-383+D-384+D-385 discipline applies to ALL future fix bursts:** D-382: STATE.md + burst-log.md + INDEX.md + lessons.md + decision-log.md. D-383: intra-file content audit (arithmetic + stale-phrase + cross-ref) + sibling-pattern sweep. D-384: (1) self-referential N in "passes 3-N" must be current burst; (2) trajectory cardinality cross-check (value count == pass count + per-position match P1-Pn); (3) attestation must cite specific phrases with pre/post values. D-385: (1) sub-trajectory sibling enumeration — ALL N-tuple sub-trajectories in touched files must be checked; (2) immutable-row scope: decision-log + burst-log + adv-review + lessons are immutable; STATE.md + INDEX.md are mutable; (3) per-position attestation MUST enumerate P1-Pn.
 

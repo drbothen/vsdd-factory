@@ -247,3 +247,41 @@ instantiation; each pass finds the next un-enumerated instantiation.
 Recurrence risk: MEDIUM (4 consecutive prose-only layers; prose codification is demonstrably
 insufficient; only S-15.03 automation breaks the cycle). Until S-15.03 ships, the risk of a
 5th layer remains.
+
+---
+
+## L-EDP1-007 — Prose-only codification is structurally insufficient for L-EDP1-003 pattern; S-15.03 automation is the only remedy
+
+**Date:** 2026-05-11 (pass-13 cycle-adversary structural diagnosis)
+**Source:** F-P13-001 + F-P13-002 + PG-13-003
+
+**Pattern observed across 5 consecutive cycle-level passes:**
+
+| Layer | Burst | Rule Codified | Same-burst Violation |
+|-------|-------|---------------|---------------------|
+| 1 (pass-8) | D-381 | "fix burst MUST update STATE.md" | missed burst-log + INDEX |
+| 2 (pass-9) | D-382 | "fix burst MUST update all 5 sibling files" | introduced intra-file content defects |
+| 3 (pass-10) | D-383 | "intra-file content audit + sibling-pattern sweep" | trajectory cardinality + self-ref N missed |
+| 4 (pass-11) | D-384 | "3 clarifications to D-383" | sub-trajectories stale; retroactive annotations |
+| 5 (pass-12) | D-385 | "3 clarifications to D-383+D-384" | frontmatter schema drift; counting-basis change |
+
+Each new rule closes the prior pass's defect class but the fix burst that codifies the rule introduces NEW defects in dimensions the rule does not govern.
+
+**Diagnosis:** The L-EDP1-003 pattern is structural, not rule-specific. Prose-only codification cannot enumerate ALL possible defect dimensions in advance. Each new rule narrows the failure mode but does not eliminate it; the next failure mode emerges at a new dimension.
+
+**Marginal value of further prose codification:** Approaching zero. After 5 layers + 9 codified rules (D-379, D-381..D-385, plus various sub-rules), each additional pass likely surfaces new defect dimensions.
+
+**Structural remedy:** S-15.03 (automated enforcement lint hook). Concrete scope:
+1. Frontmatter schema invariance check across pass-N adversary reviews in a cycle (closes F-P13-001 class)
+2. Trajectory cardinality cross-check between INDEX.md, STATE.md, burst-log, lessons.md (closes F-P11-001 class)
+3. Sub-trajectory sibling enumeration sweep across all mutable files (closes F-P12-001 class)
+4. Immutable-row retroactive-annotation detection (closes F-P12-002 class)
+5. Per-position attestation completeness (closes F-P12-003 class)
+6. CI-green-link presence on CI-class CRITICAL closures (closes F-P5-001 class)
+7. Counting convention enforcement (closes F-P13-002 class)
+
+**Recommendation:** Until S-15.03 ships, accept that prose-only cycle-level convergence is asymptotic. Cycle-level NITPICK_ONLY streak (3/3) may not be achievable without automation. Either:
+- (a) Prioritize S-15.03 implementation and re-attempt cycle convergence after it ships, OR
+- (b) Define a "human-acceptance" convergence criterion that is laxer than 3-NITPICK_ONLY (e.g., 3 consecutive passes with LOW/NITPICK verdict and no CRITICAL/HIGH/MEDIUM findings on content)
+
+**Status:** Open for orchestrator + human decision.

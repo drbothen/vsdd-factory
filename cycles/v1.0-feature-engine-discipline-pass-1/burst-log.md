@@ -125,3 +125,27 @@ Archived from STATE.md Session Resume Checkpoint (2026-05-09 snapshot):
 - D-383 intra-file content audit: STATE.md (phase + current_step + sub-trajectories + trajectory in Concurrent Cycles + Session Resume Checkpoint all consistent), burst-log.md (pass-10 entry clean; pass-11 attestation extended; pass-12 entry appended), INDEX.md (row-12 added; Convergence Status updated; cardinality 12 values for 12 passes), decision-log.md (ID sequence D-336..D-385 sequential; D-385 appended)
 
 **Factory-artifacts commits:** (Commit A: adv-cycle-pass-12.md), (Commit B: STATE.md sub-trajectories), (Commit C: burst-log annotation removal + attestation), (Commit D: D-385), (Commit E: this commit)
+
+---
+
+## Burst: F5 pass-13 fix burst (2026-05-11)
+
+**Summary:** Addressed 1H+1M+1L content findings + 3 process-gaps from pass-13 MEDIUM verdict (5th consecutive L-EDP1-003 layer). adv-cycle-pass-13.md persisted (Commit A: 65859621). F-P13-001 HIGH: adv-cycle-pass-12.md frontmatter restored to canonical schema matching passes 3-11 — added 16 missing fields; changed findings_count from scalar to severity mapping; changed underscore keys to hyphen keys; changed cycle: to current_cycle:; prior-findings-count restated as 3 (content-only per F-P13-002) (Commit B: a9a36627). F-P13-003 LOW: pass-12 H1 title corrected from "F5 Pass-12 Adversarial Review — v1.0-feature-engine-discipline-pass-1" to "Adversarial Review — Pass 12" (included in Commit B). F-P13-002 MED: trajectory value P12=6 restated as P12=3 (content-only: 2M+1L) across 4 citation sites — STATE.md Concurrent Cycles, STATE.md Session Resume Checkpoint, INDEX.md Convergence Status + row-12 cell, burst-log.md pass-12 attestation (Commit C: 7d950234). PG-13-001/002/003: L-EDP1-007 codified in lessons.md documenting 5-layer structural diagnosis + S-15.03 scope. No new D-NNN this burst (F-P13 fixes do not require new codification; D-385 already in place). All D-382+D-383+D-384+D-385 sibling files updated (Commit E: this commit).
+
+**Counting-basis transition disclosure (D-385 sub-rule 3):** Pass-12 trajectory value was 6 (2M+1L+3PG) under mixed counting basis. Restated as 3 (2M+1L, content-only) to match passes 3-11 convention. PGs are documented separately with "+3PG" annotation in INDEX row-12. Trajectory shorthand is now content-only throughout: 29→15→11→9→8→7→5→6→6→6→4→3→3.
+
+**D-385 initial application — phrase-specific attestations per D-384 sub-rule 3 + D-385 sub-rule 3:**
+- Frontmatter schema pre (pass-12): 11-field truncated schema with scalar findings_count, underscore keys, missing 16 canonical fields
+- Frontmatter schema post (pass-12): 25-field canonical schema matching passes 3-11; findings_count mapping; hyphen keys
+- H1 pre (pass-12): "# F5 Pass-12 Adversarial Review — v1.0-feature-engine-discipline-pass-1"
+- H1 post (pass-12): "# Adversarial Review — Pass 12"
+- Trajectory pre: "29→15→11→9→8→7→5→6→6→6→4→6" (P12=6 mixed basis)
+- Trajectory post: "29→15→11→9→8→7→5→6→6→6→4→3→3" (P12=3 content-only; P13=3 content-only)
+- Cardinality: 29(P1),15(P2),11(P3),9(P4),8(P5),7(P6),5(P7),6(P8),6(P9),6(P10),4(P11),3(P12),3(P13) = 13 values = 13 passes ✓
+- Per-position match vs INDEX.md rows: P1=29✓ P2=15✓ P3=11✓ P4=9✓ P5=8✓ P6=7✓ P7=5✓ P8=6✓ P9=6✓ P10=6✓ P11=4✓ P12=3✓ P13=3✓
+- "passes 3-N" phrase: N=13 (current burst is pass-13 fix burst); INDEX.md Convergence Status updated to "passes 3-13" ✓
+- Sub-trajectory sibling sweep (D-385 sub-rule 1): grepped STATE.md for all trajectory sub-strings — no stale sub-trajectories found; STATE.md:63 shows "11→9→8→7→5" ✓ STATE.md:78 shows "11→9→8→7→5" ✓
+- Immutable-row scope check (D-385 sub-rule 2): decision-log + burst-log pass-12 entry body + adv-cycle-pass-12.md are immutable; the NOTE annotation added to burst-log pass-12 attestation is within the attestation section (not a factual historical assertion); pass-12 frontmatter and section headings updated as part of F-P13-001 fix (structural correction, not retroactive annotation)
+- D-383 intra-file content audit: STATE.md (phase + current_step + Concurrent Cycles trajectory + Session Resume Checkpoint all consistent), burst-log.md (pass-12 attestation NOTE + per-position P12 corrected; pass-13 entry appended), INDEX.md (row-12 counting basis corrected; row-13 added; Convergence Status updated; cardinality 13 values for 13 passes), lessons.md (L-EDP1-007 appended), decision-log.md (no new D-NNN; ID sequence D-336..D-385 unchanged)
+
+**Factory-artifacts commits:** (Commit A: 65859621), (Commit B: a9a36627), (Commit C: 7d950234), (Commit E: this commit)
