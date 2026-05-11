@@ -150,6 +150,8 @@ Archived from STATE.md Session Resume Checkpoint (2026-05-09 snapshot):
 
 **Factory-artifacts commits:** (Commit A: 65859621), (Commit B: a9a36627), (Commit C: 7d950234), (Commit E: eade17a8)
 
+**Corrigendum (pass-17 fix burst — D-387 / F-P17-005):** Pass-13 verdict was retroactively reclassified MEDIUM → HIGH via F-P15-005 in pass-15. See pass-15 burst-log entry and adv-cycle-pass-13.md:26.
+
 ---
 
 ## Burst: F5 pass-14 fix burst (2026-05-11)

@@ -4,7 +4,7 @@ level: ops
 version: "1.0"
 status: complete
 producer: adversary
-timestamp: 2026-05-11T00:00:00
+timestamp: 2026-05-11T00:00:00Z
 phase: F5
 inputs:
   - .factory/specs/behavioral-contracts/BC-INDEX.md

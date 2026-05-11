@@ -4,7 +4,7 @@ level: ops
 version: "2.65"
 status: current
 producer: state-manager
-timestamp: 2026-05-09T00:00:00Z
+timestamp: 2026-05-11T00:00:00Z
 last_amended: "2026-05-11 (v2.65) — F-P6-002 + F-P6-004 (F-P6 fix burst): registered S-14.06 (BC-4.12.001 INV cleanup), S-14.07 (HOST_ABI resolver-input error-response field), S-14.08 (resolver.loaded plugin.log observability), and S-14.09 (forensic marker cleanup). Closes F-P6-002 and F-P6-004. STORY-INDEX v2.64→v2.65. Note: S-14.06/07/08/09 are tagged `cycle: v1.0-feature-engine-discipline-pass-2` (deferred — registered now, implemented in next engine-discipline cycle). [Prior: 2026-05-09 (v2.64) — F5 fix-burst-41 (F-P43-001/002/003 + O-P43-001): S-14.01 BCs []→[BC-5.39.001]; S-14.01 Points TBD→1; S-14.02 Depends-On []→[S-14.01]; S-14.04 Depends-On []→[S-14.02]; E-14 delivery prose corrected to reflect dependency chain. 11th L-P28-001-family META instance. STORY-INDEX v2.63→v2.64.]"
 phase: 1.8
 inputs:
@@ -294,8 +294,8 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 | S-7.01 | Agent prompt updates for spec/anchor/adversary discipline | E-7 | 5 | P1 | -- | merged | -- |
 | S-7.02 | State-manager defensive sweep + count-propagation hook + meta-rule | E-7 | 8 | P1 | -- | merged | -- |
 | S-7.03 | TDD Discipline Hardening — Stub-as-Implementation Anti-Pattern Prevention | E-7 | 8 | P1 | -- | merged | 2.2 |
-| S-7.04 | Add AC-test-link discipline to per-story-delivery flow | E-7 | 3 | P1 | -- | draft | -- | `discipline_scope: universal` |
-| S-7.05 | Add dashboard-emitter-contract lint hook | E-7 | 3 | P2 | -- | draft | -- | `discipline_scope: vsdd-factory-self` |
+| S-7.04 | Add AC-test-link discipline to per-story-delivery flow | E-7 | 3 | P1 | -- | draft | -- |
+| S-7.05 | Add dashboard-emitter-contract lint hook | E-7 | 3 | P2 | -- | draft | -- |
 
 > **S-7.03 delivery:** PR #13 merged to develop at 4db2340 on 2026-04-26. 18/18 bats tests GREEN. Worktree feat/tdd-discipline-hardening (9b1624b → 121d24c, 9 commits). Spec convergence: 17 adversarial passes.
 > **S-7.04 filed 2026-05-04:** Process-gap from research investigation (PR #78 context). Before marking a story shipped, every AC must be linked to a specific test name + test file path + test result; the implementer agent MUST refuse to mark complete without this artifact. Specifically targets integration ACs ("X is wired into Y") where unit tests pass but end-to-end path is unverified. Motivated by S-3.04 AC-001 false-shipped discovery (Router::submit unwired in main.rs since April 24, 2026). See LESSON-2026-05-04-001 in cycles/v1.0-brownfield-backfill/lessons.md. Target: v1.0.1. **discipline_scope: universal** — the AC-test-link discipline is part of the per-story-delivery flow that vsdd-factory provides to ALL managed projects; implementation lives in the vsdd-factory plugin's hooks/agents, not in project-specific config.

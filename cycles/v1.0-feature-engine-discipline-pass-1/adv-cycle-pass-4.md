@@ -4,7 +4,7 @@ level: ops
 version: "1.0"
 status: complete
 producer: adversary
-timestamp: 2026-05-10T00:00:00
+timestamp: 2026-05-10T00:00:00Z
 phase: F5
 inputs:
   - .factory/specs/behavioral-contracts/ss-04/BC-4.10.001.md
