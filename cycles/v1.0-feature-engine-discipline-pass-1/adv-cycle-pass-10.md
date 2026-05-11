@@ -324,7 +324,7 @@ through F-P10-006). D-383 addresses this next layer.
 | **Duplicate/variant findings** | 0 |
 | **Novelty score** | 1.0 (6 / (6 + 0)) — all findings are novel content defects within files touched by pass-9 burst |
 | **Median severity** | 2.5 (LOW) |
-| **Trajectory** | 29→15→11→9→9→8→7→5→6→6→6 |
+| **Trajectory** | 29→15→11→9→8→7→5→6→6→6 (pass-10; corrected per F-P11-001 — stale duplicate "9" removed) |
 | **Verdict** | FINDINGS_REMAIN |
 
 ---

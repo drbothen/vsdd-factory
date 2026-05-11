@@ -119,7 +119,7 @@ dtu_services: []
 | Cycle | Type | Status | Notes |
 |-------|------|--------|-------|
 | v1.0-brownfield-backfill | brownfield | PAUSED | E-10 pass-9 pending; paused at D-343 |
-| v1.0-feature-engine-discipline-pass-1 | feature | F5-pass-11-NEXT | All 6 E-12 stories merged; F5 passes 3-10 complete (trajectory 29→15→11→9→9→8→7→5→6→6→6); pass-10 MEDIUM verdict; pass-10 fix burst COMPLETE (F-P10-001..006 + D-383 + all sibling files); pass-11 dispatch is next step |
+| v1.0-feature-engine-discipline-pass-1 | feature | F5-pass-11-fix-burst | All 6 E-12 stories merged; F5 passes 3-11 complete (trajectory 29→15→11→9→8→7→5→6→6→6→4); pass-11 MEDIUM verdict; pass-11 fix burst IN PROGRESS (F-P11-001..007 + D-384) |
 | v1.0-feature-plugin-async-semantics-pass-1 | feature | CLOSED | All PRs merged; rc.14 shipped |
 
 ## Decisions Log
@@ -167,7 +167,7 @@ dtu_services: []
 
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-11 — F5 pass-10 fix burst COMPLETE (F-P10-001..006 resolved). adv-cycle-pass-10.md persisted (MEDIUM: 2M+2L+2NIT). INDEX.md row-3 arithmetic corrected (9→11); Convergence Status trajectory updated (29→15→11→9→9→8→7→5→6→6→6), pass count 9→10, phrase "passes 3-8"→"passes 3-9". decision-log D-377/D-378 row inversion corrected (full D-336..D-383 sweep clean); D-381 retroactive NOTE removed; D-383 codified (intra-file content audit + sibling-pattern sweep, extends D-382). lessons.md L-EDP1-002 Source updated (F-P8-003 added). STATE.md phase/current_step/Phase Progress/Concurrent Cycles/Session Resume updated. Pass-10 MEDIUM verdict. Trajectory: 29→15→11→9→9→8→7→5→6→6→6. Streak 0/3.
+**Last update:** 2026-05-11 — F5 pass-11 fix burst COMPLETE (F-P11-001..007 resolved). adv-cycle-pass-11.md persisted (MEDIUM: 2M+2L+0NIT; 3 process-gaps). F-P11-001 MED: trajectory corrected from 29→15→11→9→9→8→7→5→6→6→6 (stale duplicate "9", 11 values) to 29→15→11→9→8→7→5→6→6→6→4 (11 values for 11 passes including pass-11). F-P11-002 MED: INDEX.md "passes 3-9"→"passes 3-11". F-P11-003 LOW: adv-cycle-pass-3.md prior-findings-count 29→15. D-384 codified (D-383 enforcement clarifications: self-referential N, cardinality cross-check, attestation specificity). lessons.md L-EDP1-005 added. Trajectory: 29→15→11→9→8→7→5→6→6→6→4. Streak 0/3.
 
 **Next session start — ordered checklist:**
 
