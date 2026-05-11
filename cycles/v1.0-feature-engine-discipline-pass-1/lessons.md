@@ -413,6 +413,47 @@ The 9-layer history:
 | 7 (pass-16) | D-389+D-390 | "input-hash convention + CHANGELOG→last_amended rule" | enumerated in L-EDP1-009 |
 | 8 (pass-17) | D-391+D-392 | "enumeration source mandatory + VP Lifecycle ≡ CHANGELOG" | second-source query absent; inlined BC list wrong (3 gaps); inlined VP list wrong (4 gaps) |
 | 9 (pass-18) | D-393+D-394 | "independent re-derivation Grep query required + D-391 severity explicit + dispatch-side phase update" | F-P19-001 false-true attestation re VP-INDEX last_amended (see corrigendum above) |
-| 10 (this, pass-19) | D-395+D-396 | "file-state grep-back verification of Action claims + story-frontmatter↔STORY-INDEX sweep" | — (D-395 self-application: see burst-log pass-19 sweep attestation) |
+| 10 (pass-19) | D-395+D-396 | "file-state grep-back verification of Action claims + story-frontmatter↔STORY-INDEX sweep" | F-P20-001 dim-4 intent-mismatch (stale pass-18 narrative written; false-green Verification grep; see corrigendum below) |
 
 **Pattern-extension note:** L-EDP1-007 prediction holds: each pass surfaces the NEXT un-enumerated defect dimension. Layer-10 dimension is file-state-post-fix; layer-11 candidate dimensions include: (a) per-policy-rubric coverage verification completeness, (b) STATE.md narrative vs cell coherence (F-P19-004 recurring class), (c) cross-file changelog entry propagation when VP source files are amended. Each layer narrows the failure mode without eliminating the pattern. D-386 Option C: asymptotic acceptance continues.
+
+**Corrigendum (pass-20 fix burst — D-387 / F-P20-004 / D-398):** Layer-10 row "Same-burst Violation: —" is incorrect. Pass-20 surfaced F-P20-001: pass-19 burst-log dim-4 Action wrote "F5 pass-18 fix burst COMPLETE..." in STATE.md Last Updated when pass-19 was the current burst; Verification grep targeted `pass-18 fix burst COMPLETE` (false-green — confirmed wrong content, not correct content). This IS a Layer-10 same-burst violation of D-395 intent-match. The 10-layer table has been updated above to reflect: `| 10 (pass-19) | D-395+D-396 | "..." | F-P20-001 dim-4 intent-mismatch (stale pass-18 narrative written; false-green Verification grep) |`. See D-397 (codified pass-20) for the structural remedy (intent-match sub-clause). Per D-398, this corrigendum format is now the canonical convention for Layer-N "Same-burst Violation" corrections.
+
+---
+
+### L-EDP1-012 — 11th-layer L-EDP1-003 recurrence at D-395 self-application (intent-match gap)
+
+**Burst:** F5 pass-20 fix burst (codifies the lesson; the recurrence was in pass-19 D-395 self-application).
+
+**Pattern:** D-395 was codified by the pass-19 fix burst to require file-state grep-back verification: every "Action: ✓" must be paired with `Verification: grep ... → expected ✓`. Pass-19 dim-4 sweep applied D-395 verbatim — Action wrote "F5 pass-18 fix burst COMPLETE..." in STATE.md Last Updated; Verification grep targeted `pass-18 fix burst COMPLETE`; grep yielded 1; ✓ recorded. But the Action verb wrote the WRONG content (pass-18 narrative when pass-19 was the current burst). D-395 verified syntactic action-completion but not semantic intent-match. The burst-log attestation was finalized with a false-green ✓ because both the writing-action and the grep-verification confirmed the same wrong content.
+
+**Predicted by:** L-EDP1-011's pattern-extension note explicitly enumerated Layer-11 candidate dimension (b): "STATE.md narrative vs cell coherence (F-P19-004 recurring class)". F-P20-001 confirmed the prediction (STATE.md Last Updated cell narrating the wrong pass is a direct instance of this class).
+
+**Resolution:** D-397 codified intent-match sub-clause: when Action writes pass-N content, Verification grep MUST target pass-N substring (not a prior-pass substring). D-398 codified that lessons.md Layer-N "Same-burst Violation: —" claim is structurally premature (the codifying burst cannot self-diagnose) and MUST read `(awaiting pass-(N+1) adversary fresh-context audit)` until the next pass runs.
+
+**Codified rule:** D-395 file-state grep-back verification + D-397 intent-match enforcement: Action verb content and Verification grep target string MUST both reference the current pass-N (not pass-(N-1) or earlier).
+
+**Layer history at 11-layer boundary:**
+
+| Layer | Burst | Rule Codified | Same-burst Violation |
+|-------|-------|---------------|---------------------|
+| 1 (pass-8) | D-381 | "fix burst MUST update STATE.md" | missed burst-log + INDEX |
+| 2 (pass-9) | D-382 | "fix burst MUST update all 5 sibling files" | introduced intra-file content defects |
+| 3 (pass-10) | D-383 | "intra-file content audit + sibling-pattern sweep" | trajectory cardinality + self-ref N missed |
+| 4 (pass-11) | D-384 | "3 clarifications to D-383" | sub-trajectories stale; retroactive annotations |
+| 5 (pass-12) | D-385 | "3 clarifications to D-383+D-384" | frontmatter schema drift; counting-basis change |
+| 6 (pass-15) | D-387 | "structural-correction exception + sibling sweep" | sweep dimensions not enumerated; adjacent sibling-chain dimensions not covered |
+| 7 (pass-16) | D-389+D-390 | "input-hash convention + CHANGELOG→last_amended rule" | enumerated in L-EDP1-009 |
+| 8 (pass-17) | D-391+D-392 | "enumeration source mandatory + VP Lifecycle ≡ CHANGELOG" | second-source query absent; inlined BC list wrong (3 gaps); inlined VP list wrong (4 gaps) |
+| 9 (pass-18) | D-393+D-394 | "independent re-derivation Grep query required + D-391 severity explicit + dispatch-side phase update" | F-P19-001 false-true attestation re VP-INDEX last_amended (corrigendum in L-EDP1-010) |
+| 10 (pass-19) | D-395+D-396 | "file-state grep-back verification of Action claims + story-frontmatter↔STORY-INDEX sweep" | F-P20-001 dim-4 intent-mismatch (stale pass-18 narrative written; false-green Verification grep; corrigendum in L-EDP1-011) |
+| 11 (this, pass-20) | D-397+D-398 | "intent-match sub-clause for D-395 Verification grep + Layer-N awaiting-audit convention" | (awaiting pass-21 adversary fresh-context audit) |
+
+**Pattern-extension note (predict layer-12 candidates):**
+- (a) Action verbs that nominally do nothing (e.g., "noted in burst-log" / "acknowledged without file edit") — Verification difficulty: how to grep-verify a no-op action's correctness
+- (b) Cross-file consistency checks across non-adjacent files (e.g., decision-log D-NNN cited in burst-log but not yet propagated to INDEX.md)
+- (c) Index-file changelog entries when source-file CHANGELOG entries are added (cross-file changelog propagation)
+- (d) Per-policy POLICY-NNN coverage in adversary review (every policy in the rubric must have an explicit row in the verification table)
+- (e) timestamp-vs-last_amended date alignment (F-P20-002: VP-INDEX timestamp 2026-05-09 while last_amended 2026-05-11 — D-390 propagation scope narrower than D-392 scope)
+
+The L-EDP1-003 pattern at this layer is increasingly meta: each codification rule addresses prior-rule's blind spot but introduces a new blind spot at a finer granularity. Per D-386 Option C, no structural escalation; acknowledged asymptotic limit.
