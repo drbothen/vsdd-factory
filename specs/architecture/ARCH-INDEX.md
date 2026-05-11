@@ -1,7 +1,7 @@
 ---
 document_type: architecture-index
 level: L3
-version: "1.44"
+version: "1.45"
 status: accepted
 producer: architect
 timestamp: 2026-05-09T00:00:00
@@ -16,6 +16,8 @@ inputs:
 traces_to: phase-1-spec-crystallization
 deployment_topology: single-service
 changelog:
+  - date: 2026-05-11
+    change: "v1.45 (2026-05-11; F-P8-001 — L-P20-002 cite-refresh discipline): BC-INDEX body cite refreshed v1.63→v1.64 corresponding to BC-INDEX bumped v1.63→v1.64 in F-P7-001 fix burst (pass-7) for BC-7.03.091/092 Capability column TBD→CAP-008. ARCH-INDEX changelog entry was missed in the pass-7 fix burst (first L-P20-002 violation in 16 consecutive clean cite-refresh cycles: v1.48→v1.64 all correctly paired; v1.64 broke the streak). F-P8-001 closes this propagation gap retroactively. ARCH-INDEX v1.44→v1.45."
   - date: 2026-05-09
     change: "v1.44 (2026-05-09; fix-burst-49): BC-INDEX body cite refreshed v1.62→v1.63 (BC-INDEX bumped v1.62→v1.63 in same burst for F-P54-001 Title-cell corpus sweep — 6 drifts patched across BC-1.05.010/BC-2.02.011/BC-2.02.012/BC-4.05.002/BC-4.05.003/BC-5.30.001; 19th L-P28-001 META; L-P20-002 cite-refresh discipline). ARCH-INDEX v1.43→v1.44."
   - date: 2026-05-09
