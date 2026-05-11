@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.3"
+version: "1.4"
 status: draft
 producer: product-owner
 timestamp: 2026-05-06T00:00:00Z
@@ -26,7 +26,7 @@ removed: null
 removal_reason: null
 bc_id: BC-4.10.001
 section: "4.10"
-last_amended: 2026-05-10
+last_amended: 2026-05-11
 ---
 
 # BC-4.10.001: validate-per-story-adversary-convergence WASM hook MUST block wave-gate dispatch when any story lacks convergence clearance
@@ -93,6 +93,16 @@ with `HOST_ABI_VERSION = 1`.
     - The hook emits `HookResult::block_with_fix(...)` with `code: "WAVE_CONTEXT_SCHEMA_ERROR"`.
     - Also emitted when `wave_context.cycle_id` is absent or empty (resolver bug or stale context).
     - The wave-gate dispatch is BLOCKED.
+11. **PC11 (mandatory observability):** Before returning `HookResult::Block` for any block code
+    (PC2, PC3, PC4, PC9, PC10), the hook MUST emit a `hook.block` event via `host::emit_event`
+    with the following fields:
+    - `hook`: the hook name (e.g., `"validate-per-story-adversary-convergence"`)
+    - `code`: the block code (e.g., `"CONVERGENCE_PASSES_INSUFFICIENT"`, `"WAVE_CONTEXT_MISSING"`)
+    - `story`: the story_id being checked, or empty string if not applicable
+    - `reason`: the block reason text (same as `HookResult::Block.reason`)
+
+    This mandatory observability invariant ensures every block decision is auditable in the
+    dispatcher's event sink for operator diagnosis.
 
 ## Invariants
 
@@ -179,6 +189,7 @@ Story B — v1.0-feature-engine-discipline-pass-1 (F3 story decomposition)
 
 | Version | Date | Description |
 |---------|------|-------------|
+| 1.4 | 2026-05-11 | F-P3-005 fix-burst: add PC11 (mandatory observability) — before returning HookResult::Block for any block code (PC2, PC3, PC4, PC9, PC10), the hook MUST emit a hook.block event via host::emit_event with fields: hook, code, story, reason. Ensures every block decision is auditable in the dispatcher's event sink. |
 | 1.3 | 2026-05-10 | S-12.08 pass-1 fix-burst HIGH-001: enumerate WAVE_CONTEXT_MISSING + WAVE_CONTEXT_SCHEMA_ERROR block codes introduced by S-12.08 (convergence hook wave_context migration). Aligns BC text with consumer crate lib.rs constants. |
 | 1.2 | 2026-05-09 | F-P45-001 — Traceability Stories row propagated from BC-INDEX v1.57: "Story B" placeholder → S-12.02, S-12.08. BC-INDEX was updated in fix-burst-39 (v1.55) to replace TBD; body was not updated in that burst. Refs: F-P45-001, fix-burst-42. |
 | 1.1 | 2026-05-07 | VP-071 traceability row amended (product-owner; F-P2-002, F2-amendment): stale "advisory-block output always emitted on non-cleared gate" description replaced with canonical "Block Invariant — kani harness verifies HookResult::Block on non-converged input (canonical block_with_fix form per VP-071 v1.2)". Fixes bidirectional drift with VP-071 v1.2 ("Block Invariant" canonical form). Proof method column corrected to "kani" (was "kani (pure logic branch coverage)"). |

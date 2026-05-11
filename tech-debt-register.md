@@ -783,6 +783,104 @@ acceptable until async-semantics ships and we measure residual bleed.
 
 ---
 
+## TD-072 — serde_yaml ecosystem deprecation
+
+**Severity:** MEDIUM (deprecated but not broken; security advisories may surface)
+**Effort:** M (workspace-wide migration; ~2-3 days)
+**Target release:** v1.1 (TBD)
+**Status:** identified
+**Adopted:** 2026-05-11
+
+### Problem Statement
+
+26 files depend on `serde_yaml 0.9.34`, which is the last release of the `serde_yaml` crate
+(deprecated upstream by the maintainer). No security advisories have surfaced as of 2026-05-11,
+but the library is no longer maintained and future vulnerabilities may go unpatched.
+
+The affected files span multiple crates: `vsdd-context-resolvers`, `update-wave-state-on-merge`,
+`warn-pending-wave-gate`, and others that parse `.factory/*.yaml` files.
+
+### Scope
+
+Discovered during S-12.07 adversary pass-1 review (F-MED-11 / F-P3 cycle); recorded in
+workspace Cargo.toml comment lines 48-50.
+
+**Files affected (high-level):**
+- `crates/vsdd-context-resolvers/` — wave-state.yaml + STATE.md parsing
+- `crates/hook-plugins/update-wave-state-on-merge/` — wave-state.yaml writing
+- `crates/hook-plugins/warn-pending-wave-gate/` — wave-state.yaml reading (F-P3-001 fixed)
+- All other crates pulling `serde_yaml` via workspace dependency
+
+### Proposed Migration Targets
+
+1. **`saphyr`** — modern YAML 1.2 parser; active maintenance; API compatible
+2. **`serde_yaml_ng`** — active fork of serde_yaml 0.9 by community; drop-in API replacement
+
+### Decision Criteria
+
+- Prefer `saphyr` if YAML 1.2 compliance is required.
+- Prefer `serde_yaml_ng` for minimal migration effort (drop-in replacement).
+- Run full test suite after migration to verify parsing behavior is identical.
+
+### Risk if Deferred
+
+LOW for v1.0 (deprecated, not broken). Escalate to P1 if a CVE is filed against `serde_yaml`.
+
+### References
+
+- F-MED-11 (S-12.07 pass-1 adversary finding)
+- F-P3 cycle review finding (engine-discipline pass-3)
+- Workspace Cargo.toml serde_yaml dependency block
+
+---
+
+## TD-073 — warn-pending-wave-gate MAPPING vs SEQUENCE schema mismatch (RESOLVED)
+
+**Severity at filing:** CRITICAL (silent failure in production)
+**Status:** RESOLVED 2026-05-11
+**Adopted:** 2026-05-11 (historical record — TD was resolved in the same fix-burst)
+**Resolved in:** F5 pass-3+ fix-burst commit `c5b110ab` (feature/F5-pass-3-cycle-hardening)
+
+### Problem Statement (historical)
+
+The `warn-pending-wave-gate` hook read `.factory/wave-state.yaml` expecting a MAPPING form:
+
+```yaml
+waves:
+  W-15:
+    gate_status: pending
+```
+
+The canonical producer (`update-wave-state-on-merge`) writes SEQUENCE form:
+
+```yaml
+waves:
+  - wave: W-15
+    gate_status: pending
+```
+
+These schemas are incompatible. The hook used `state.get("waves").and_then(|v| v.as_mapping())`
+which returned `None` on sequence-form input, causing the hook to silently exit without warning
+even when pending waves existed. The hook was operationally inert in production.
+
+### Resolution
+
+Fixed via F-P3-001 in the F5 pass-3+ cycle hardening fix-burst:
+- Replaced mapping-based reading with `WaveEntry` / `WaveState` serde structs
+- Uses `Vec<WaveEntry>` deserialization matching canonical SEQUENCE form
+- Mirrors `vsdd-context-resolvers/src/wave_context.rs` struct layout
+- All 23 unit tests updated to SEQUENCE form fixtures and passing
+- TD attestation comment block removed from lib.rs (this TD register entry replaces it)
+
+### References
+
+- F-P3-001 (adversary finding — engine-discipline pass-3)
+- fix-burst commit: `c5b110ab` on `feature/F5-pass-3-cycle-hardening`
+- `crates/hook-plugins/warn-pending-wave-gate/src/lib.rs` (production fix)
+- `crates/hook-plugins/warn-pending-wave-gate/tests/integration_test.rs` (test updates)
+
+---
+
 ## Resolution History
 
 | ID | Resolved In | Story | Resolution |
