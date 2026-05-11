@@ -175,3 +175,35 @@ Archived from STATE.md Session Resume Checkpoint (2026-05-09 snapshot):
 - D-383 intra-file content audit: STATE.md (phase + current_step + Concurrent Cycles trajectory + Session Resume Checkpoint all consistent; pending-decision text removed per F-P14-005), burst-log.md (pass-14 entry appended; Commit E SHA named as eade17a8 for pass-13), INDEX.md (row-14 added; Convergence Status updated to passes 3-14; cardinality 14 values for 14 passes), lessons.md (L-EDP1-006 corrigendum appended), decision-log.md (D-386 appended; ID sequence D-336..D-386 ✓), STORY-INDEX.md (deferral note for S-14.06/07/08/09 appended to last_amended)
 
 **Factory-artifacts commits:** (Commit A: 2c767793), (Commit B: 77613e36), (Commit C: 6451cf62), (Commit D: 435d71a2), (Commit E: 04930af9 — state-manager final per POLICY 3)
+
+---
+
+## Burst: F5 pass-15 fix burst (2026-05-11)
+
+**Summary:** Addressed 2H+5M+4L+2NIT content findings + 2 process-gaps from pass-15 HIGH verdict (regression from pass-14 MEDIUM; 6th layer of L-EDP1-003 pattern). adv-cycle-pass-15.md persisted (Commit A: 7b268e34). D-387 + D-388 codified in decision-log; L-EDP1-008 + L-EDP1-007 corrigendum appended in lessons.md (Commit B: 8b55a6a4). F-P15-004: 5 stories status:draft → status:merged with merge metadata (S-12.03/04/05/07/08); S-12.04 pre-existing template gaps also fixed (level:, input-hash:, Purity Classification section, Library & heading) (Commit C: 56cc9253). F-P15-001/002/003/005/008/010: D-387 structural-correction sweep — adv-cycle-pass-7.md verdict LOW→MEDIUM; adv-cycle-pass-8.md prior-pass-classification LOW→MEDIUM; adv-cycle-pass-10.md prior-pass-classification MEDIUM-HIGH→HIGH; adv-cycle-pass-12.md inputs/traces_to populated; adv-cycle-pass-13.md verdict MEDIUM→HIGH; adv-cycle-pass-14.md prior-pass-classification MEDIUM→HIGH; body corrigenda appended to pass-9/10/11; INDEX.md rows 7+13 verdicts corrected + row-15 added + Stories Delivered expanded to 9 rows; STATE.md Phase Progress pass-7/9/13 rows corrected (Commit D: 85614a6a). STATE.md (phase/current_step/last_updated/Concurrent Cycles/Session Resume Checkpoint), burst-log pass-15 entry (this commit), sibling files per D-382 (Commit E: this commit).
+
+**D-387 sibling-pattern sweep attestation (F-P15-002 — COMPLETE):**
+- Sweep target: all instances of "MEDIUM-HIGH" in adversary-review frontmatter (prior-pass-classification + verdict fields)
+- adv-cycle-pass-9.md frontmatter verdict: pre="MEDIUM-HIGH" / post="HIGH" (corrected F-P14-004) ✓
+- adv-cycle-pass-10.md frontmatter prior-pass-classification: pre="MEDIUM-HIGH" / post="HIGH" ✓
+- adv-cycle-pass-8.md frontmatter prior-pass-classification: pre="LOW" / post="MEDIUM" (pass-7 back-ref corrected) ✓
+- adv-cycle-pass-14.md frontmatter prior-pass-classification: pre="MEDIUM" / post="HIGH" (pass-13 back-ref corrected) ✓
+- Remaining "MEDIUM-HIGH" in body text of pass-9/10/11: historical; immutable per D-385 sub-rule 2; corrigenda appended per D-387 ✓
+- Zero remaining frontmatter instances of MEDIUM-HIGH across all 15 adv-cycle-pass-*.md files ✓
+
+**D-383/D-384/D-385 attestations (pass-15 fix burst):**
+- Trajectory pre: "29→15→11→9→8→7→5→6→6→6→4→3→3→10" (14 values for 14 passes)
+- Trajectory post: "29→15→11→9→8→7→5→6→6→6→4→3→3→10→13" (15 values for 15 passes)
+- Cardinality: 29(P1),15(P2),11(P3),9(P4),8(P5),7(P6),5(P7),6(P8),6(P9),6(P10),4(P11),3(P12),3(P13),10(P14),13(P15) = 15 values = 15 passes ✓
+- Per-position match vs INDEX.md rows: P1=29✓ P2=15✓ P3=11✓ P4=9✓ P5=8✓ P6=7✓ P7=5✓ P8=6✓ P9=6✓ P10=6✓ P11=4✓ P12=3✓ P13=3✓ P14=10✓ P15=13✓
+- "passes 3-N" phrase: N=15 (current burst is pass-15); INDEX.md Convergence Status updated to "passes 3-15" ✓
+- Sub-trajectory sibling sweep (D-385 sub-rule 1): STATE.md Phase Progress pass-7 row shows "Trajectory 11→9→8→7→5; verdict MEDIUM at pass-7" ✓; no stale sub-trajectories found ✓
+- Immutable-row scope check (D-385 sub-rule 2): decision-log D-NNN rows + burst-log pass-N entries + adv-cycle-pass-*.md body + lessons.md L-EDP1-NNN entries are immutable; D-387 structural-correction exception applied to frontmatter fields only ✓
+- D-383 intra-file content audit: STATE.md (phase + current_step + trajectory + Concurrent Cycles + Session Resume Checkpoint all consistent), burst-log.md (pass-15 entry appended), INDEX.md (row-15 added; rows 7+13 verdict corrected; Convergence Status 15 passes; Stories Delivered 9 rows), decision-log.md (D-387+D-388 appended; ID sequence D-336..D-388 sequential), lessons.md (L-EDP1-008 appended; L-EDP1-007 corrigendum added)
+- F-P15-009: L-EDP1-007 Status stale → RESOLVED via L-EDP1-008 + corrigendum per D-387 format ✓
+- F-P15-011: D-388 forward-reference cycle: convention codified ✓
+- F-P15-012/013: DEFERRED as NITPICK per adv-cycle-pass-15.md recommendations ✓
+- F-P15-PG1: D-387 codified (closes the D-385 vs F-P14-004 conflict) ✓
+- F-P15-PG2: DEFERRED (user override via D-386; stopping criterion user-delegated) ✓
+
+**Factory-artifacts commits:** (Commit A: 7b268e34), (Commit B: 8b55a6a4), (Commit C: 56cc9253), (Commit D: 85614a6a), (Commit E: this commit)

@@ -73,7 +73,7 @@ changes are WASM-only (no new Bash hook debt per D-2).
 - F2 (spec evolution / story decomposition): **COMPLETE** — F2-amendment D-362; 6 BCs + ADR-018 + 4 VPs + PRD FR-048
 - F3 (incremental stories): **COMPLETE** — F3-amendment D-366; 6 stories S-12.03..S-12.08 under E-12
 - F4 (implementation): **COMPLETE** — all 6 E-12 stories merged (PRs #105, #119, #120, #121, #122, #123); F-P2-001 closed via S-12.08
-- F5 (scoped adversarial review): **IN PROGRESS** — 15 passes; trajectory 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13 (content-only; P7 verdict MEDIUM per D-387/F-P15-003; P9 verdict HIGH per F-P14-004/D-387; P12 restated per F-P13-002; P13 verdict HIGH per D-387/F-P15-003); pass-15 HIGH (regression); streak 0/3; passes 3-15 fix bursts applied to factory-artifacts; D-386 Option C: accept asymptotic L-EDP1-003 limit, S-15.03 deferred; D-387+D-388 codified
+- F5 (scoped adversarial review): **IN PROGRESS** — 15 passes; trajectory 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13 (content-only; P7=MEDIUM/P9=HIGH/P13=HIGH per D-387; P12 restated per F-P13-002); pass-15 HIGH (regression from MEDIUM); streak 0/3; passes 3-15 fix bursts applied to factory-artifacts (feature/F5-pass-3-cycle-hardening @ 2e6b4372); D-386 Option C accepted; D-387 structural-correction exception + D-388 forward-ref convention codified
 - F6 (targeted hardening): PENDING
 - F7 (delta convergence): PENDING
 
