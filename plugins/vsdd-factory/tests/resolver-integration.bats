@@ -44,10 +44,26 @@ setup() {
     # Path: plugins/vsdd-factory/tests/<file> → 3 levels up = worktree root.
     REPO_ROOT="$(cd "$(dirname "${BATS_TEST_FILENAME}")/../../.." && pwd)"
     PLUGIN_ROOT="${REPO_ROOT}/plugins/vsdd-factory"
+
+    # MED-004: binary-missing is FATAL (not a skip). Pre-build the dispatcher if needed.
+    # We prefer the debug build for fast iteration; fall back to release if available.
     DISPATCHER="${REPO_ROOT}/target/debug/factory-dispatcher"
     if [[ ! -x "${DISPATCHER}" ]]; then
         DISPATCHER="${REPO_ROOT}/target/release/factory-dispatcher"
     fi
+    if [[ ! -x "${DISPATCHER}" ]]; then
+        # Neither build exists — build now (debug). Fail hard if cargo fails.
+        cargo build -p factory-dispatcher >&2 || {
+            echo "FATAL: factory-dispatcher build failed" >&2
+            exit 1
+        }
+        DISPATCHER="${REPO_ROOT}/target/debug/factory-dispatcher"
+        if [[ ! -x "${DISPATCHER}" ]]; then
+            echo "FATAL: dispatcher binary not found at ${DISPATCHER} after build" >&2
+            exit 1
+        fi
+    fi
+
     export REPO_ROOT PLUGIN_ROOT DISPATCHER FACTORY_TMP
 }
 
@@ -80,13 +96,16 @@ EOF
 
     # .factory/wave-state.yaml — active wave with two stories.
     # Uses the canonical WaveState schema (waves: list with WaveEntry structs).
-    # gate_status absent → wave is non-terminal (active per BC-8.14.009).
+    # MED-005: gate_status: not_started explicitly seeded (non-terminal per BC-8.14.009)
+    # to avoid relying on serde default and make the active-wave state unambiguous.
     cat > "${FACTORY_TMP}/.factory/wave-state.yaml" <<'EOF'
 waves:
   - wave: test-wave-001
     stories:
       - S-FAKE-001
       - S-FAKE-002
+    stories_merged: []
+    gate_status: not_started
 EOF
 
     # .factory/cycles/test-cycle-001/S-FAKE-001/adversary-convergence-state.json
@@ -123,9 +142,6 @@ EOF
 @test "F-P2-001 closure: unconverged story → dispatcher exits 2 (Block)" {
     # Seed: S-FAKE-001 unconverged (passes_clean=1), S-FAKE-002 converged (passes_clean=3)
     seed_factory_root 1 3
-
-    # Assert dispatcher binary exists
-    [[ -x "${DISPATCHER}" ]] || skip "factory-dispatcher binary not found at ${DISPATCHER}"
 
     # VSDD_SINK_FILE: capture internal events to verify block code.
     # The dispatcher emits hook.block events (with the CONVERGENCE_PASSES_INSUFFICIENT code)
@@ -167,9 +183,6 @@ EOF
 @test "F-P2-001 closure: all converged → dispatcher exits 0 (Continue)" {
     # Seed: ALL stories converged (passes_clean=3)
     seed_factory_root 3 3
-
-    # Assert dispatcher binary exists
-    [[ -x "${DISPATCHER}" ]] || skip "factory-dispatcher binary not found at ${DISPATCHER}"
 
     # Run dispatcher with synthetic SubagentStop event via stdin.
     # last_assistant_message satisfies the handoff-validator (>= 40 non-whitespace chars).

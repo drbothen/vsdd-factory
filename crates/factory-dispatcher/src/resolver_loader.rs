@@ -542,12 +542,11 @@ impl ContextResolver for CompiledWasmResolver {
         //   2. wasi_snapshot_preview1 (p1::add_to_linker_sync) so std bootstrap resolves.
         //      The WasiP1Ctx is restricted: no preopens, no stdio — resolvers must use
         //      vsdd::read_file for all I/O (BC-4.12.003 INV2).
-        let linker = build_resolver_wasi_linker(&self.engine, &self.name).map_err(|e| {
-            ResolverError::AbiViolation {
+        let linker =
+            build_resolver_wasi_linker(&self.engine).map_err(|e| ResolverError::AbiViolation {
                 name: self.name.clone(),
                 detail: format!("resolver linker construction failed: {e}"),
-            }
-        })?;
+            })?;
 
         // Restricted WASI context: no preopens, no stdin, stdout/stderr sink.
         // Resolvers must not access the filesystem directly — vsdd::read_file is the
@@ -565,6 +564,7 @@ impl ContextResolver for CompiledWasmResolver {
         let mut store: Store<ResolverStoreData> = Store::new(&self.engine, store_data);
         // Epoch deadline: 25% of the 6000ms hook budget (1500ms per F1-amendment §S-12.04 sketch).
         // Enforced by the shared EpochTicker (same pattern as invoke.rs:174).
+        // TODO: derive from HOOK_TIMEOUT_MS * 0.25 once HOOK_TIMEOUT_MS is constant-exported.
         const RESOLVER_TIMEOUT_MS: u64 = 1500;
         store.set_epoch_deadline(timeout_ms_to_epochs(RESOLVER_TIMEOUT_MS));
         // Fuel cap: 1 billion instructions (same default as hook plugins).
@@ -739,16 +739,11 @@ impl ContextResolver for CompiledWasmResolver {
 /// The WasiCtx supplied to the store is restricted (no preopens, no stdio)
 /// so WASI calls succeed at the linker level but produce no side effects
 /// (BC-4.12.003 INV2: resolver must use vsdd::read_file for all I/O).
-fn build_resolver_wasi_linker(
-    engine: &Engine,
-    resolver_name: &str,
-) -> Result<Linker<ResolverStoreData>, String> {
+fn build_resolver_wasi_linker(engine: &Engine) -> Result<Linker<ResolverStoreData>, String> {
     use crate::host::codes;
     use crate::internal_log::InternalEvent;
     use serde_json::Value;
     use wasmtime::Caller;
-
-    let _ = resolver_name; // available for future diagnostic use
 
     let mut linker: Linker<ResolverStoreData> = Linker::new(engine);
 

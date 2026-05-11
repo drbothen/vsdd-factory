@@ -150,11 +150,12 @@ pub fn resolve_impl(input: ResolverInput) -> ResolverOutput {
 /// Returns `ResolverOutput { key: "wave_context", value: Some({...}) }` when:
 /// - An active wave exists (last wave with `gate_status` not in TERMINAL_STATES
 ///   per BC-8.14.009: "passed" | "deferred" | "failed" | "completed")
-/// - That wave has at least one story in its `stories` list
 /// - `cycle_id` is `Some`
 ///
-/// Returns `ResolverOutput { key: "wave_context", value: None }` in all other
-/// cases (AC-002b, AC-003, AC-004).
+/// An active wave with an empty stories list returns `value: Some({stories: [], ...})`
+/// so the hook sees an empty wave and returns Continue (BC-4.10.001 EC-001).
+/// Only returns `value: None` when there is genuinely no active wave (all terminal
+/// or wave-state.yaml missing/malformed) or cycle_id is absent (AC-002b, AC-004).
 ///
 /// Per VP-075: this function is deterministic — same `(input, wave_state,
 /// cycle_id)` triple always produces identical output. No I/O, no randomness,
@@ -189,14 +190,9 @@ pub fn resolve_wave_context_pure(
         }
     };
 
-    // AC-003: empty stories list → value: None.
-    if active.stories.is_empty() {
-        return ResolverOutput {
-            key: "wave_context".to_string(),
-            value: None,
-        };
-    }
-
+    // HIGH-002: emit Some({stories: [], ...}) for an empty active wave so the hook's
+    // EC-001 Continue path (BC-4.10.001 EC-001 "vacuously all stories cleared") is
+    // reachable. Only return value: None when there is NO active wave at all.
     ResolverOutput {
         key: "wave_context".to_string(),
         value: Some(serde_json::json!({

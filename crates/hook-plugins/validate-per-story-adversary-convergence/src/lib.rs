@@ -314,6 +314,14 @@ pub fn extract_stories_from_wave_context(
         Some(v) => v,
     };
 
+    // AC-003: wave_context must be an object; anything else is a schema error.
+    if !wave_context.is_object() {
+        return Err(WaveContextError::SchemaError(format!(
+            "plugin_config.wave_context: expected object, got {:?}",
+            wave_context
+        )));
+    }
+
     // AC-002c: wave_context present but stories key absent or null → Missing.
     let stories_val = match wave_context.get("stories") {
         Some(serde_json::Value::Null) | None => return Err(WaveContextError::Missing),
@@ -463,13 +471,32 @@ pub fn hook_logic(payload: &HookPayload, callbacks: &impl HookCallbacks) -> Hook
     };
 
     // Step 3: Determine cycle_id from wave_context (injected by WaveContextResolver).
-    // Falls back to "current" for test compatibility (FakeCallbacks ignores cycle_id).
-    let cycle_id = payload
+    // MED-001: absent or empty cycle_id → Block(SCHEMA_ERROR) instead of silent fallback.
+    // A missing cycle_id indicates a resolver bug or stale context — do not silently mask.
+    let cycle_id = match payload
         .plugin_config
         .get("wave_context")
         .and_then(|wc| wc.get("cycle_id"))
         .and_then(|v| v.as_str())
-        .unwrap_or("current");
+    {
+        Some(c) if !c.is_empty() => c,
+        _ => {
+            callbacks.emit_event(
+                "hook.block",
+                &[
+                    ("hook", HOOK_NAME),
+                    ("code", BLOCK_CODE_WAVE_CONTEXT_SCHEMA_ERROR),
+                ],
+            );
+            return HookResult::block_with_fix(
+                HOOK_NAME,
+                "wave_context.cycle_id missing or empty — resolver bug or stale context",
+                "Verify WaveContextResolver injects a non-empty cycle_id from STATE.md \
+                 into wave_context",
+                BLOCK_CODE_WAVE_CONTEXT_SCHEMA_ERROR,
+            );
+        }
+    };
 
     // BC-4.10.001 EC-001: empty wave → Continue (vacuously all stories cleared).
     if story_ids.is_empty() {
@@ -1378,11 +1405,13 @@ mod tests {
     }
 
     // -----------------------------------------------------------------------
-    // AC-004 traces to BC-4.10.002 inv-3: absent cycle directory → Continue
+    // AC-004 traces to BC-4.10.001 PC2: state file unreadable → Block
+    // (MED-006: renamed from test_BC_4_10_002_graceful_degrade_absent_cycle_dir
+    //  to reflect updated S-12.08 semantics — absent cycle dir now blocks, not degrades)
     // -----------------------------------------------------------------------
 
     #[test]
-    fn test_BC_4_10_002_graceful_degrade_absent_cycle_dir() {
+    fn test_BC_4_10_001_blocks_when_state_file_unreadable() {
         // AC-004 / S-12.08: in the wave_context migration, story lists come from
         // plugin_config["wave_context"]["stories"] (WaveContextResolver), not the cycle dir.
         // "Absent cycle dir" now manifests as a state file read error (read_file returns Err),
@@ -2030,6 +2059,8 @@ mod tests {
     // (S-12.08 AC-002 / AC-003 — constants added in Step 1)
     // -----------------------------------------------------------------------
 
+    /// data-shape pin: structural sanity check that block-code constants
+    /// are non-empty strings. Not a behavioral test — POL-11 opt-out.
     #[test]
     fn test_wave_context_block_codes_are_non_empty() {
         // S-12.08 Step 1 added BLOCK_CODE_WAVE_CONTEXT_MISSING and
@@ -2452,5 +2483,51 @@ mod tests {
              must be removed and replaced by extract_stories_from_wave_context.",
             old_fn_sig
         );
+    }
+
+    // -----------------------------------------------------------------------
+    // MED-003: extract_code_from_reason canonical format regression test
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_extract_code_from_reason_canonical_block_format() {
+        // MED-003: regression safety net — extract_code_from_reason must correctly
+        // parse the canonical SDK block_with_fix output format. If the format drifts,
+        // this test catches the regression before it silently corrupts telemetry.
+        let reason = "BLOCKED by validate-per-story-adversary-convergence: Story S-A has \
+                      passes_clean=2. Fix: Run another adversary pass. Code: CONVERGENCE_PASSES_INSUFFICIENT.";
+        let code = extract_code_from_reason(reason);
+        assert_eq!(
+            code,
+            Some("CONVERGENCE_PASSES_INSUFFICIENT"),
+            "MED-003: extract_code_from_reason must parse 'Code: <code>.' from canonical \
+             block_with_fix format, got: {:?}",
+            code
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // HIGH-003: non-object wave_context → SchemaError
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_non_object_wave_context_returns_schema_error() {
+        // HIGH-003: AC-003 guard — wave_context must be a JSON object. Non-object
+        // types (string, number, bool, array) must return WaveContextError::SchemaError.
+        let configs = [
+            json!({"wave_context": "string"}),
+            json!({"wave_context": 42}),
+            json!({"wave_context": true}),
+            json!({"wave_context": [1, 2, 3]}),
+        ];
+        for cfg in &configs {
+            let result = extract_stories_from_wave_context(cfg);
+            assert!(
+                matches!(result, Err(WaveContextError::SchemaError(_))),
+                "HIGH-003: expected SchemaError for non-object wave_context {:?}, got {:?}",
+                cfg,
+                result
+            );
+        }
     }
 }
