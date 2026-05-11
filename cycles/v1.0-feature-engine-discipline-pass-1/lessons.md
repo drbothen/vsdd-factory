@@ -346,3 +346,12 @@ but not auditable. The enumeration format: "Sweep dimensions checked: (1) X — 
 
 **Status:** Codified. D-389 + D-390 close the two adjacent defect classes. L-EDP1-003 pattern
 continues at asymptotic boundary per D-386 Option C.
+
+**Corrigendum (pass-17 fix burst — D-387):** Layer-7 enumeration (sweep dimensions checked in pass-16):
+- (1) STATE.md merge-date sibling chain — enumeration source: explicit per-file (STATE.md rows 60-61 + story frontmatter + INDEX.md rows 39-40). Extent: 3 files, 4 sites. Audited: 4/4. Corrected: 1 (STATE.md rows 60-61 → 2026-05-10).
+- (2) BC last_amended ↔ CHANGELOG — enumeration source: project policy rubric (7-BC subset: BC-4.12.001/002/003/004/005 + BC-1.13.001 + BC-5.39.001). Extent: 7. Audited: 7/7. Corrected: 5. NOTE: enumeration source was narrower than full project policy rubric (9 in-cycle BCs); F-P17-001 surfaced 3 missing-field gaps in BC-5.39.002 / BC-7.03.091 / BC-7.03.092 — closed in pass-17 burst.
+- (3) adv-cycle-pass-12.md current_step quoting — enumeration source: explicit per-file (1 file). Extent: 1. Audited: 1. Corrected: 1.
+- (4) STATE.md factory-artifacts SHA — enumeration source: explicit per-field (STATE.md:123). Extent: 1 line. Audited: 1. Corrected: 1.
+- (5) F-P16-008/009 timestamp Z — DEFERRED per adversary recommendation; F-P17-004 expands the dimension to 12 sites (9 adv-cycle-pass files + 3 index files). Closed in pass-17 burst.
+
+Layer-7 was thus partial; F-P17-001/002/003/004 in pass-17 are the residual. D-391 (codified in pass-17) closes F-P17-PG1 by making enumeration source citation mandatory going forward.
