@@ -63,7 +63,7 @@ dtu_services: []
 | F5 passes 3-7 cycle-level adversary | **COMPLETE** | Trajectory 9→9→8→7→5; verdict LOW at pass-7; fixes on feature/F5-pass-3-cycle-hardening branch |
 | F5 pass-8 fix burst (sibling-file gaps) | **COMPLETE** | ARCH-INDEX v1.45, E-14 v1.2, STORY-INDEX last_amended, burst-log passes 3-7, D-381; verdict MEDIUM (regression) |
 | F5 pass-9 cycle-level adversary | **COMPLETE** | MEDIUM-HIGH (1H+1M+2L+2NIT); F-P9-001 burst-log+INDEX.md; F-P9-002 D-382; F-P9-003 arithmetic; F-P9-004 lessons.md; streak 0/3 |
-| F5 pass-9 fix burst (comprehensive sibling-file sweep) | **IN PROGRESS** | adv-cycle-pass-9.md persisted; burst-log+INDEX.md (F-P9-001); D-382 (F-P9-002); lessons.md (F-P9-004); STATE.md arithmetic (F-P9-003) |
+| F5 pass-9 fix burst (comprehensive sibling-file sweep) | **COMPLETE** | adv-cycle-pass-9.md; burst-log pass-8+9 entries; INDEX.md passes 3-9; D-382; lessons.md; STATE.md arithmetic; D-382 initial application verified |
 | F5 pass-10 cycle-level adversary | **NEXT** | Fresh-context; target NITPICK_ONLY; all F-P9 factory-artifacts fixes applied; apply D-382 discipline |
 | Phase D-4 Burst 2 — E-10 + E-9 v1.7 | **PENDING** | E-10 paused D-343; adversary pass-9 queued |
 
@@ -75,7 +75,7 @@ dtu_services: []
 | F5 pass-8 fix burst (factory-artifacts only) | state-manager | DONE 2026-05-11 | ARCH-INDEX v1.45, E-14 v1.2, STORY-INDEX last_amended, burst-log passes 3-7, D-381 |
 | F5 pass-8 adversarial review | adversary | DONE 2026-05-11 | MEDIUM (regression): 3M+2L+1NIT; ARCH-INDEX cite-refresh miss, E-14 note error, STATE.md staleness |
 | F5 pass-9 adversarial review | adversary | DONE 2026-05-11 | MEDIUM-HIGH: 1H+1M+2L+2NIT; burst-log/INDEX.md miss, D-382 scope gap, story arithmetic, lessons.md absent |
-| F5 pass-9 fix burst (comprehensive sibling-file sweep) | state-manager | IN PROGRESS | F-P9-001..006 applying; D-382; lessons.md; STATE.md arithmetic |
+| F5 pass-9 fix burst (comprehensive sibling-file sweep) | state-manager | DONE 2026-05-11 | F-P9-001..006 all applied; D-382; lessons.md; STATE.md arithmetic; burst-log pass-9 entry |
 | F5 pass-10 cycle-level adversary | adversary | NEXT | Fresh-context; target NITPICK_ONLY; all F-P9 fixes applied |
 
 ## Identifier Conventions
@@ -115,7 +115,7 @@ dtu_services: []
 | Cycle | Type | Status | Notes |
 |-------|------|--------|-------|
 | v1.0-brownfield-backfill | brownfield | PAUSED | E-10 pass-9 pending; paused at D-343 |
-| v1.0-feature-engine-discipline-pass-1 | feature | F5-pass-9-fix-burst-IN-PROGRESS | All 6 E-12 stories merged; F5 passes 3-9 complete (trajectory 9→9→8→7→5→6→6); pass-9 MEDIUM-HIGH verdict; pass-9 fix burst applying (D-382, lessons.md, burst-log, INDEX.md, STATE.md arithmetic); pass-10 dispatch is next step |
+| v1.0-feature-engine-discipline-pass-1 | feature | F5-pass-10-NEXT | All 6 E-12 stories merged; F5 passes 3-9 complete (trajectory 9→9→8→7→5→6→6); pass-9 MEDIUM-HIGH verdict; pass-9 fix burst COMPLETE (D-382, lessons.md, burst-log pass-8+9, INDEX.md passes 3-9, STATE.md arithmetic); pass-10 dispatch is next step |
 | v1.0-feature-plugin-async-semantics-pass-1 | feature | CLOSED | All PRs merged; rc.14 shipped |
 
 ## Decisions Log
