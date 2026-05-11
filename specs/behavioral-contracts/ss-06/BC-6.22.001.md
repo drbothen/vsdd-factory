@@ -9,13 +9,15 @@ phase: 1a
 inputs:
   - .factory/cycles/v1.0-feature-engine-discipline-pass-1/F1-delta-analysis.md
   - .factory/cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md
-input-hash: "40a6fb6"
+input-hash: "b931799"
 traces_to: .factory/cycles/v1.0-feature-engine-discipline-pass-1/F1-delta-analysis.md
 origin: greenfield
+extracted_from: null
 subsystem: "SS-06"
 capability: "CAP-018"
 lifecycle_status: active
 introduced: v1.0-feature-engine-discipline-pass-1
+last_amended: 2026-05-09
 modified: []
 deprecated: null
 deprecated_by: null
@@ -177,5 +179,5 @@ Story C — v1.0-feature-engine-discipline-pass-1 (F3 story decomposition)
 
 | Version | Date | Description |
 |---------|------|-------------|
-| 1.0 | 2026-05-06 | Initial authoring (product-owner; F2 phase of v1.0-feature-engine-discipline-pass-1). OQ5 resolution applied: immediate block mode confirmed; relocate-artifact must run before hook registration (hard sequencing prerequisite). detect-then-apply mode specified. |
 | 1.1 | 2026-05-09 | F-P45-001 — Traceability Stories row propagated: "Story C" placeholder → S-13.01. S-13.01 merged PR #97 cites BC-6.22.001 in behavioral_contracts frontmatter; BC-INDEX carried TBD (fixed bidirectionally in this burst). Refs: F-P45-001, fix-burst-42. |
+| 1.0 | 2026-05-06 | Initial authoring (product-owner; F2 phase of v1.0-feature-engine-discipline-pass-1). OQ5 resolution applied: immediate block mode confirmed; relocate-artifact must run before hook registration (hard sequencing prerequisite). detect-then-apply mode specified. |

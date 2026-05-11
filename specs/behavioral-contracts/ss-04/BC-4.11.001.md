@@ -9,13 +9,15 @@ phase: 1a
 inputs:
   - .factory/cycles/v1.0-feature-engine-discipline-pass-1/F1-delta-analysis.md
   - .factory/cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md
-input-hash: "40a6fb6"
+input-hash: "b931799"
 traces_to: .factory/cycles/v1.0-feature-engine-discipline-pass-1/F1-delta-analysis.md
 origin: greenfield
+extracted_from: null
 subsystem: "SS-04"
 capability: "CAP-009"
 lifecycle_status: active
 introduced: v1.0-feature-engine-discipline-pass-1
+last_amended: 2026-05-09
 modified: []
 deprecated: null
 deprecated_by: null
@@ -207,7 +209,7 @@ Story C — v1.0-feature-engine-discipline-pass-1 (F3 story decomposition)
 
 | Version | Date | Description |
 |---------|------|-------------|
-| 1.0 | 2026-05-06 | Initial authoring (product-owner; F2 phase of v1.0-feature-engine-discipline-pass-1). OQ5 resolution applied: immediate `block` mode from registration — no phased warn-then-block rollout for the hook itself. Enforcement_level field in registry governs per-entry behavior (block/warn/advisory), not a global rollout phase. D-337 constraint applied: WASM-only. |
-| 1.1 | 2026-05-07 | Invariant 6 amendment (architect; NC-1, F5 pass-1 fix burst): `{placeholder}` semantics tightened from "any non-empty path segment or sequence of segments" to "single path segment (no `/`)". This is Option A per Appendix A of F5-pass-1-fix-plan.md and matches the implemented behavior in `validate-artifact-path/src/lib.rs`. Input-hash recomputed from `[pending-recompute]` to `40a6fb6`. |
-| 1.2 | 2026-05-08 | F-P19-003 — explicit absolute-path semantics + leading-slash discipline (8b4f697f introduced behavior; spec was silent). Added Invariant 8 (Path Form Invariance) with full leading-slash discipline sourced from `crates/hook-plugins/validate-artifact-path/src/lib.rs` (`matches_canonical` and `hook_logic`). Amended Postconditions 2 and 7 to cross-reference Invariant 8. A re-implementer reading v1.1 spec alone could produce a relative-only hook and re-introduce the F-P18-001 bug. Refs: F-P19-003, F-P18-001. |
 | 1.3 | 2026-05-09 | F-P45-001 — Traceability Stories row propagated: "Story C" placeholder → S-13.01. S-13.01 merged PR #97 cites BC-4.11.001 in behavioral_contracts frontmatter; BC-INDEX carried TBD (fixed bidirectionally in this burst). Refs: F-P45-001, fix-burst-42. |
+| 1.2 | 2026-05-08 | F-P19-003 — explicit absolute-path semantics + leading-slash discipline (8b4f697f introduced behavior; spec was silent). Added Invariant 8 (Path Form Invariance) with full leading-slash discipline sourced from `crates/hook-plugins/validate-artifact-path/src/lib.rs` (`matches_canonical` and `hook_logic`). Amended Postconditions 2 and 7 to cross-reference Invariant 8. A re-implementer reading v1.1 spec alone could produce a relative-only hook and re-introduce the F-P18-001 bug. Refs: F-P19-003, F-P18-001. |
+| 1.1 | 2026-05-07 | Invariant 6 amendment (architect; NC-1, F5 pass-1 fix burst): `{placeholder}` semantics tightened from "any non-empty path segment or sequence of segments" to "single path segment (no `/`)". This is Option A per Appendix A of F5-pass-1-fix-plan.md and matches the implemented behavior in `validate-artifact-path/src/lib.rs`. Input-hash recomputed from `[pending-recompute]` to `40a6fb6`. |
+| 1.0 | 2026-05-06 | Initial authoring (product-owner; F2 phase of v1.0-feature-engine-discipline-pass-1). OQ5 resolution applied: immediate `block` mode from registration — no phased warn-then-block rollout for the hook itself. Enforcement_level field in registry governs per-entry behavior (block/warn/advisory), not a global rollout phase. D-337 constraint applied: WASM-only. |

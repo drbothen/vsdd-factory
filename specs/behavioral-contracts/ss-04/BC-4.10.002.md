@@ -9,13 +9,15 @@ phase: 1a
 inputs:
   - .factory/cycles/v1.0-feature-engine-discipline-pass-1/F1-delta-analysis.md
   - .factory/cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md
-input-hash: "40a6fb6"
+input-hash: "b931799"
 traces_to: .factory/cycles/v1.0-feature-engine-discipline-pass-1/F1-delta-analysis.md
 origin: greenfield
+extracted_from: null
 subsystem: "SS-04"
 capability: "CAP-009"
 lifecycle_status: active
 introduced: v1.0-feature-engine-discipline-pass-1
+last_amended: 2026-05-09
 modified: []
 deprecated: null
 deprecated_by: null
@@ -143,6 +145,6 @@ Story B — v1.0-feature-engine-discipline-pass-1 (F3 story decomposition)
 
 | Version | Date | Description |
 |---------|------|-------------|
-| 1.0 | 2026-05-06 | Initial authoring (product-owner; F2 phase of v1.0-feature-engine-discipline-pass-1). Pattern follows validate-wave-gate-prerequisite.sh lines 64–70 and regression-gate BC-7.03.074 as specified in the F2 dispatch. |
-| 1.1 | 2026-05-07 | PC3 amendment (architect; F-HIGH-4, F5 pass-1 fix burst B2): `host::log_debug` changed to `host::log_info`. HOST_ABI v1 does not expose a `log_debug` endpoint; the implementation correctly maps `log_debug` → `host::log_info` (the lowest-severity level available). Spec amended to match implementation. |
 | 1.2 | 2026-05-09 | F-P45-001 — Traceability Stories row propagated from BC-INDEX v1.57: "Story B" placeholder → S-12.02. BC-INDEX was updated in fix-burst-39 (v1.55) to replace TBD; body was not updated in that burst. Refs: F-P45-001, fix-burst-42. |
+| 1.1 | 2026-05-07 | PC3 amendment (architect; F-HIGH-4, F5 pass-1 fix burst B2): `host::log_debug` changed to `host::log_info`. HOST_ABI v1 does not expose a `log_debug` endpoint; the implementation correctly maps `log_debug` → `host::log_info` (the lowest-severity level available). Spec amended to match implementation. |
+| 1.0 | 2026-05-06 | Initial authoring (product-owner; F2 phase of v1.0-feature-engine-discipline-pass-1). Pattern follows validate-wave-gate-prerequisite.sh lines 64–70 and regression-gate BC-7.03.074 as specified in the F2 dispatch. |
