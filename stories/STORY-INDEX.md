@@ -5,7 +5,7 @@ version: "2.65"
 status: current
 producer: state-manager
 timestamp: 2026-05-09T00:00:00Z
-last_amended: "2026-05-09 (v2.64) — F5 fix-burst-41 (F-P43-001/002/003 + O-P43-001): S-14.01 BCs []→[BC-5.39.001]; S-14.01 Points TBD→1; S-14.02 Depends-On []→[S-14.01]; S-14.04 Depends-On []→[S-14.02]; E-14 delivery prose corrected to reflect dependency chain. 11th L-P28-001-family META instance. STORY-INDEX v2.63→v2.64."
+last_amended: "2026-05-11 (v2.65) — F-P6-002 + F-P6-004 (F-P6 fix burst): registered S-14.06 (BC-4.12.001 INV cleanup), S-14.07 (HOST_ABI resolver-input error-response field), S-14.08 (resolver.loaded plugin.log observability), and S-14.09 (forensic marker cleanup). Closes F-P6-002 and F-P6-004. STORY-INDEX v2.64→v2.65. [Prior: 2026-05-09 (v2.64) — F5 fix-burst-41 (F-P43-001/002/003 + O-P43-001): S-14.01 BCs []→[BC-5.39.001]; S-14.01 Points TBD→1; S-14.02 Depends-On []→[S-14.01]; S-14.04 Depends-On []→[S-14.02]; E-14 delivery prose corrected to reflect dependency chain. 11th L-P28-001-family META instance. STORY-INDEX v2.63→v2.64.]"
 phase: 1.8
 inputs:
   - .factory/stories/v1.0/EPIC.md

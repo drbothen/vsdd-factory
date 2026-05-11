@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-14"
-version: "1.1"
+version: "1.2"
 title: "Engine Discipline Pass-2 — Process-Gap Remediation"
 status: draft
 prd_capabilities: [CAP-016, CAP-026]
@@ -16,7 +16,7 @@ timestamp: 2026-05-07T00:00:00Z
 phase: 2
 traces_to: .factory/cycles/v1.0-feature-engine-discipline-pass-1/adv-cycle-pass-1.md
 depends_on: ["E-12", "E-13"]
-last_amended: "2026-05-11 (v1.1 — F-P7-002 fix burst: story_count 5→9; S-14.06/07/08/09 registered; F-P7-004 forward-ref note added. F-P6-002 authored S-14.06/07/08; F-P6-004 authored S-14.09.)"
+last_amended: "2026-05-11 (v1.2 — F-P8-002 fix burst: forward-ref note corrected — S-14.01 carries cycle pass-1 not pass-2 per D-355-AMEND and D-359; CHANGELOG v1.2 row added.)"
 inputs:
   - .factory/cycles/v1.0-feature-engine-discipline-pass-1/adv-cycle-pass-1.md
   - .factory/cycles/v1.0-feature-engine-discipline-pass-1/F5-pass-1-fix-plan.md
@@ -94,7 +94,7 @@ is well-formed before reaching the gate.
 | S-14.08 | [F-P6-002 deferred MEDIUM #3 — filed in F-P6 fix burst] | S | TBD | P2 | Eighth |
 | S-14.09 | Forensic marker cleanup (F-P6-004) | M | SS-04, SS-07 | P2 | Ninth |
 
-> **Forward-reference note (F-P7-004):** All E-14 stories carry `cycle: v1.0-feature-engine-discipline-pass-2` in their frontmatter. No directory named `v1.0-feature-engine-discipline-pass-2` exists yet under `.factory/cycles/`. This is accepted planning-tier convention: stories are assigned to their delivery cycle at authoring time, before the cycle directory is opened. The state-manager will open the cycle directory when E-14 work begins. The forward reference is not a broken reference or a data-entry error.
+> **Forward-reference note (F-P7-004, amended F-P8-002):** All E-14 stories EXCEPT S-14.01 carry `cycle: v1.0-feature-engine-discipline-pass-2` in their frontmatter. S-14.01 carries `cycle: v1.0-feature-engine-discipline-pass-1` because it MUST close before F7 close-out of the current cycle (per D-355-AMEND and D-359). The forward-reference pattern applies to S-14.02 through S-14.09; the pass-2 cycle directory will be opened by the state-manager when E-14 work begins. This is accepted planning-tier convention: stories are assigned to their delivery cycle at authoring time, before the cycle directory is opened. The forward reference for S-14.02–S-14.09 is not a broken reference or a data-entry error.
 
 ## Dependency Topology
 
@@ -162,5 +162,6 @@ See Stories Planned table above (S-14.01..S-14.09).
 
 | Version | Date | Change |
 |---------|------|--------|
+| v1.2 | 2026-05-11 | F-P8-002 fix burst: forward-ref note corrected — S-14.01 carries `cycle: v1.0-feature-engine-discipline-pass-1` (not pass-2) per D-355-AMEND and D-359. The note now correctly identifies S-14.02–S-14.09 as the pass-2 forward references. |
 | v1.1 | 2026-05-11 | F-P7-002 fix burst: story_count 5→9 (S-14.06/07/08 filed in F-P6-002 fix burst; S-14.09 filed in F-P6-004 fix burst). Stories Planned table updated with all 9 stories. Forward-reference note added for `cycle: v1.0-feature-engine-discipline-pass-2` per F-P7-004. |
 | v1.0 | 2026-05-07 | Initial authoring (product-owner; B6 process-gap burst from F5 pass-1 adversarial review of v1.0-feature-engine-discipline-pass-1). Five stories authored: S-14.01 (P0 BLOCKING), S-14.02-05 (P1-P2 pass-2). Delivery order: S-14.01 before F7 close-out; S-14.02-05 in next cycle. |
