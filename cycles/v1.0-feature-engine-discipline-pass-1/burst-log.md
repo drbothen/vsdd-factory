@@ -501,3 +501,81 @@ All actions in this burst have paired Verification greps targeting pass-21 canon
 **Corrigendum (pass-22 fix burst — D-387 / F-P22-005 / D-401(c)):** Pass-21 trajectory post (line 482) recorded "→11" as the pass-21 value (PG-inclusive: 1H+5M+3L+1NIT+1PG = 11). Per D-401(c) (codified pass-22 fix burst, retroactively applies), trajectory convention is CONTENT-ONLY. Pass-21 content-only count: 1H+5M+3L+1NIT = 10. Corrected trajectory post: "29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10" (21 values for 21 passes, content-only). Cardinality unchanged: 21 values = 21 passes ✓. Refs: F-P22-005, D-401.
 
 **Corrigendum (pass-22 fix burst — D-387 / F-P22-008 + F-P22-011 / D-402):** Pass-21 burst-log dim-1 Verification (line 452) used "≥3" lower-bound form; dim-3 Verification (line 466) also used "≥3" lower-bound form. Per D-402 (codified pass-22 fix burst, retroactively applies), Verification grep cardinality MUST report EXACT integer from -c. Dim-1 actual count: 4 (current_step frontmatter + Last Updated line 41 + Current Phase line 42 + Session Resume Checkpoint — all containing "pass-21 fix burst COMPLETE"). Dim-3 actual count: 4 ("pass-21 fix burst" occurrences in burst-log.md at time of write). Future Verifications use exact integer per D-402. Refs: F-P22-008, F-P22-011, D-402.
+
+---
+
+## Burst: F5 pass-22 fix burst (2026-05-11)
+
+**Summary:** Pass-22 cycle-level adversary returned HIGH verdict (1H+5M+3L+2NIT+2PG). 13th-layer L-EDP1-003 recurrence across six dimensions: (a) ARCH-INDEX cite-refresh silence on BC-INDEX v1.64→v1.65 bump; (b) VP-INDEX/STORY-INDEX silent on D-393..D-400 cycle-governance decisions; (c) BC-INDEX v1.65 range "D-389..D-400" enumerated only 10 of 12 decisions; (d) D-383 attestation omitted decision-log.md; (e) trajectory pass-21 recorded PG-inclusive count (11) vs content-only convention (10); (f) D-394 dispatch-side phase recurrence. D-401+D-402 codified. L-EDP1-014 documents 13th-layer. All 4 indexes (ARCH v1.46, VP v1.42, STORY v2.67, BC v1.65 enum-fixed) acknowledge D-389..D-402.
+
+**Commits:**
+- Commit A: d98fea2a — adv-cycle-pass-22.md (HIGH verdict persisted)
+- Commit B: 5b6d3876 — D-401+D-402+L-EDP1-014+L-EDP1-013 inline
+- Commit C: 7e9d540a — content fixes (ARCH-INDEX v1.46; VP-INDEX v1.42; STORY-INDEX v2.67; BC-INDEX enum+D-392+D-394; trajectory pass-21 11→10; burst-log corrigenda)
+- Commit E: this commit — state-manager final per POLICY 3
+
+**Dim-1 — STATE.md 4-cell narrative sweep (D-397+D-399+D-401+D-402 self-application):**
+- Enumeration source: D-399 mandatory 4-cell scope (current_step frontmatter, Last Updated, Current Phase, Session Resume Checkpoint)
+- Extent: 4 cells
+- Inlined list: STATE.md line 14 (current_step), STATE.md line 41 (Last Updated), STATE.md line 42 (Current Phase), STATE.md Session Resume Checkpoint section
+- Action: All 4 cells write "pass-22 fix burst COMPLETE" narrative referencing D-401+D-402+L-EDP1-014
+- Verification: `grep -c 'pass-22 fix burst COMPLETE' .factory/STATE.md` → 4 ✓
+- Canonical pass-22 markers used: "pass-22", "D-401", "D-402", "L-EDP1-014", "F-P22-NNN"
+
+Dim-2 — ARCH-INDEX cite-refresh v1.45→v1.46 (F-P22-001; L-P20-002):
+- Enumeration source: ARCH-INDEX changelog version sequence (v1.45 → v1.46)
+- Extent: 1 (new v1.46 entry)
+- Action: Append v1.46 changelog entry citing BC-INDEX v1.64→v1.65 bump from pass-21 fix burst; bump frontmatter version 1.45→1.46; last_amended: 2026-05-11
+- Verification: `grep -c 'v1.46' .factory/specs/architecture/ARCH-INDEX.md` → 3 ✓
+- Canonical pass-22 marker used: "pass-22" in changelog text + "F-P22-001"
+
+Dim-3 — VP-INDEX v1.42 + STORY-INDEX v2.67 cycle-decision sync (F-P22-002; D-401(a)):
+- Enumeration source: D-401(a) mandatory cross-index sync when ≥3 governance decisions codified; 4 indexes required
+- Extent: 2 index files (VP-INDEX, STORY-INDEX; BC-INDEX already at v1.65; ARCH-INDEX covered in dim-2)
+- Action: VP-INDEX → v1.42 changelog entry + frontmatter version bump; STORY-INDEX → v2.67 last_amended prepended + frontmatter version bump
+- Verification (VP-INDEX): `grep -c 'v1.42' .factory/specs/verification-properties/VP-INDEX.md` → 2 ✓
+- Verification (STORY-INDEX): `grep -c 'v2.67' .factory/stories/STORY-INDEX.md` → 2 ✓
+- Canonical pass-22 markers used: "F-P22-002", "D-401" in changelog entries
+
+Dim-4 — BC-INDEX v1.65 enumeration inline-edit (F-P22-003):
+- Enumeration source: BC-INDEX v1.65 changelog entry inline text
+- Extent: 1 edit (add D-392 and D-394 to inline enumeration)
+- Action: Insert "D-392 VP Lifecycle ≡ CHANGELOG" and "D-394 D-391 severity + dispatch-side phase update" into v1.65 inline list
+- Verification: `grep -c 'D-392 VP Lifecycle' .factory/specs/behavioral-contracts/BC-INDEX.md` → 1 ✓
+- Canonical pass-22 marker used: "F-P22-003" (applied in this burst)
+
+Dim-5 — Trajectory counting-basis correction (F-P22-005; D-401(c)):
+- Enumeration source: all trajectory propagation sites with pass-21 value "11" (PG-inclusive)
+- Extent: 4 sites (STATE.md Last Updated, STATE.md Concurrent Cycles, STATE.md Session Resume Checkpoint, INDEX.md Convergence Status)
+- Action: Replace pass-21 trajectory value 11→10 at all 4 sites (burst-log corrigendum for immutable line 482)
+- Verification (STATE.md): `grep -c '→10→10→' .factory/STATE.md` → 3 ✓ (Last Updated line 41, Concurrent Cycles line 137, Session Resume Checkpoint line 186)
+- Verification (INDEX.md): `grep -c '→10→10→' .factory/cycles/v1.0-feature-engine-discipline-pass-1/INDEX.md` → 1 ✓
+- Canonical pass-22 markers used: "D-401" + "F-P22-005"
+
+Dim-6 — Burst-log corrigenda (F-P22-004+F-P22-008+F-P22-011; D-387):
+- Enumeration source: pass-21 burst-log entry corrigendum sites identified by pass-22 adversary
+- Extent: 3 corrigendum blocks (F-P22-004 attestation gap; F-P22-005 trajectory; F-P22-008+F-P22-011 exact-count)
+- Action: Append 3 D-387-format corrigendum blocks to end of pass-21 burst-log entry
+- Verification: `grep -c 'F-P22-004' .factory/cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md` → 5 ✓ (1 in pass-21 corrigendum; additional references in this pass-22 burst entry — self-referential; corrigendum presence confirmed)
+- Canonical pass-22 markers used: "F-P22-004", "F-P22-005", "F-P22-008", "F-P22-011" in corrigendum prefixes
+
+**Action↔Verification pairing (D-395+D-397+D-399+D-402 mandatory):**
+
+All actions in this burst have paired Verification greps targeting pass-22 canonical markers per D-399: (a) literal "pass-22" substring; (b) pass-22-authored content markers (D-401, D-402, L-EDP1-014, F-P22-NNN); or (c) 2026-05-11 date-stamp. All Verification counts are EXACT integers per D-402.
+
+**D-383/D-384/D-385/D-393/D-395/D-397/D-399/D-401/D-402 attestations (pass-22 fix burst):**
+- Trajectory pre (content-only): "29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10" (21 values for 21 passes; pass-21 corrected from 11→10 per D-401(c))
+- Trajectory post (content-only): "29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11" (22 values for 22 passes)
+- Cardinality: 29(P1),15(P2),11(P3),9(P4),8(P5),7(P6),5(P7),6(P8),6(P9),6(P10),4(P11),3(P12),3(P13),10(P14),13(P15),9(P16),9(P17),10(P18),11(P19),10(P20),10(P21),11(P22) = 22 values = 22 passes ✓
+- Per-position match vs INDEX.md rows: P1=29✓ P2=15✓ P3=11✓ P4=9✓ P5=8✓ P6=7✓ P7=5✓ P8=6✓ P9=6✓ P10=6✓ P11=4✓ P12=3✓ P13=3✓ P14=10✓ P15=13✓ P16=9✓ P17=9✓ P18=10✓ P19=11✓ P20=10✓ P21=10✓ P22=11✓
+- "passes 3-N" phrase: N=22 (current burst is pass-22); INDEX.md Convergence Status updated to "passes 3-22" ✓
+- Sub-trajectory sibling sweep (D-385 sub-rule 1): STATE.md Phase Progress rows verified consistent with canonical 22-value trajectory ✓; Concurrent Cycles row updated to "(pass-1..22): 29→...→11" ✓
+- Immutable-row scope check (D-385 sub-rule 2): pass-21 burst-log corrigenda are appended lines (D-387 permitted format); body immutable ✓. L-EDP1-013 corrigendum appended at END of entry per D-387 ✓. L-EDP1-014 is a new lesson (new entry, not a body edit) ✓.
+- D-383 intra-file content audit: STATE.md (phase + current_step + trajectory + Concurrent Cycles + Session Resume Checkpoint all consistent ✓), INDEX.md (row-22 added; Convergence Status updated to passes 3-22; cardinality 22 values for 22 passes ✓), burst-log.md (pass-22 entry appended; pass-21 corrigenda appended ✓), BC-INDEX.md (v1.65 enumeration inline-fixed ✓), VP-INDEX.md (v1.42 appended ✓), STORY-INDEX.md (v2.67 prepended ✓), ARCH-INDEX.md (v1.46 prepended ✓), lessons.md (L-EDP1-013 corrigendum appended; L-EDP1-014 appended ✓), decision-log.md (D-401+D-402 appended; ID sequence D-336..D-402 sequential ✓)
+- Cross-index sync sweep (D-401(a)): 4 indexes audited. Enumeration source: D-401(a) rule (all 4 required when ≥3 decisions same-burst). Extent: 4. Audited: BC-INDEX v1.65 (already acknowledged D-389..D-400; enum-fixed D-392+D-394 added) ✓; VP-INDEX v1.42 (new entry added) ✓; STORY-INDEX v2.67 (new entry added) ✓; ARCH-INDEX v1.46 (cite-refresh added) ✓. All 4 indexes acknowledge D-389..D-402.
+- D-402 exact-count compliance: all Verification greps in this burst report exact integer from -c ✓
+
+**Deferrals:**
+- F-P22-007 (VP-INDEX v1.41 narrative precision — LOW; no file edit required; addressed by v1.42 entry)
+- F-P22-009 (F-P21-008 framing — LOW; D-401 codification addresses ambiguity; adv-cycle-pass-22.md immutable)
+- F-P22-010 (ARCH-INDEX v1.45 changelog date — NITPICK; no action; v1.46 follows best practices)
