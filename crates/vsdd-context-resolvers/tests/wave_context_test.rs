@@ -663,10 +663,18 @@ fn test_BC_4_12_001_wasm_artifact_registered_in_registry() {
         "AC-009: resolvers-registry.toml must contain context_key = \"wave_context\"; \
          file contents:\n{contents}"
     );
+    // F-P3-007: path_allow narrowed from [".factory/"] to exact files the resolver reads.
+    // AC-009 updated: assert both required files are in path_allow (not directory prefix).
+    // The WaveContextResolver reads only wave-state.yaml + STATE.md (BC-4.12.003 INV1).
     assert!(
-        contents.contains(r#"path_allow = [".factory/"]"#),
-        "AC-009: resolvers-registry.toml wave_context entry must declare path_allow = [\".factory/\"]; \
-         file contents:\n{contents}"
+        contents.contains(r#"".factory/wave-state.yaml""#),
+        "AC-009: resolvers-registry.toml wave_context path_allow must include \
+         \".factory/wave-state.yaml\" (F-P3-007 narrowed grant); file contents:\n{contents}"
+    );
+    assert!(
+        contents.contains(r#"".factory/STATE.md""#),
+        "AC-009: resolvers-registry.toml wave_context path_allow must include \
+         \".factory/STATE.md\" (F-P3-007 narrowed grant); file contents:\n{contents}"
     );
 }
 
