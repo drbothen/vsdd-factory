@@ -1,11 +1,11 @@
 ---
 document_type: story-index
 level: ops
-version: "2.65"
+version: "2.66"
 status: current
 producer: state-manager
 timestamp: 2026-05-11T00:00:00Z
-last_amended: "2026-05-11 (v2.65) — F-P6-002 + F-P6-004 (F-P6 fix burst): registered S-14.06 (BC-4.12.001 INV cleanup), S-14.07 (HOST_ABI resolver-input error-response field), S-14.08 (resolver.loaded plugin.log observability), and S-14.09 (forensic marker cleanup). Closes F-P6-002 and F-P6-004. STORY-INDEX v2.64→v2.65. Note: S-14.06/07/08/09 are tagged `cycle: v1.0-feature-engine-discipline-pass-2` (deferred — registered now, implemented in next engine-discipline cycle). [Prior: 2026-05-09 (v2.64) — F5 fix-burst-41 (F-P43-001/002/003 + O-P43-001): S-14.01 BCs []→[BC-5.39.001]; S-14.01 Points TBD→1; S-14.02 Depends-On []→[S-14.01]; S-14.04 Depends-On []→[S-14.02]; E-14 delivery prose corrected to reflect dependency chain. 11th L-P28-001-family META instance. STORY-INDEX v2.63→v2.64.]"
+last_amended: "2026-05-11 (v2.66) — D-396 story-frontmatter↔STORY-INDEX sibling sweep (F-P19-002): S-12.03/04/05/07/08 body-table Status cells updated draft→merged; PR numbers and merge dates added (PRs #119/120/121/122/123 all 2026-05-10). Closes propagation gap from F-P15-004 (story frontmatter set merged in pass-15 fix burst; STORY-INDEX body table not updated same-burst — no D-396 equivalent existed). STORY-INDEX v2.65→v2.66. [Prior: 2026-05-11 (v2.65) — F-P6-002 + F-P6-004 (F-P6 fix burst): registered S-14.06 (BC-4.12.001 INV cleanup), S-14.07 (HOST_ABI resolver-input error-response field), S-14.08 (resolver.loaded plugin.log observability), and S-14.09 (forensic marker cleanup). Closes F-P6-002 and F-P6-004. STORY-INDEX v2.64→v2.65. Note: S-14.06/07/08/09 are tagged `cycle: v1.0-feature-engine-discipline-pass-2` (deferred — registered now, implemented in next engine-discipline cycle). [Prior: 2026-05-09 (v2.64) — F5 fix-burst-41 (F-P43-001/002/003 + O-P43-001): S-14.01 BCs []→[BC-5.39.001]; S-14.01 Points TBD→1; S-14.02 Depends-On []→[S-14.01]; S-14.04 Depends-On []→[S-14.02]; E-14 delivery prose corrected to reflect dependency chain. 11th L-P28-001-family META instance. STORY-INDEX v2.63→v2.64.]"
 phase: 1.8
 inputs:
   - .factory/stories/v1.0/EPIC.md
@@ -517,12 +517,12 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 |----------|-------|------|--------|----------|------------|--------|--------|-----|
 | S-12.01 | Per-story adversary workflow + agent doc updates (per-story-delivery.md + 3 agent docs) | E-12 | TBD | P1 | [S-13.01] | [S-12.02] | merged | [BC-5.39.001, BC-5.39.002] (9 ACs, 4-6 files, tdd_mode strict; merged 2e9b670 PR #98 2026-05-07) |
 | S-12.02 | validate-per-story-adversary-convergence WASM hook (convergence state machine + hook binary) | E-12 | TBD | P1 | [S-12.01, S-13.01] | [] | merged | [BC-4.10.001, BC-4.10.002] (14 ACs, 6 files, tdd_mode strict; merged e2fd3d4 PR #99 2026-05-07; conflict resolution at 7100431) |
-| S-12.03 | ContextResolver trait + ResolverRegistry generic dispatcher core | E-12 | TBD | P0 | [S-12.06] | [S-12.04, S-12.07] | draft | [BC-1.13.001, BC-4.12.005] (12 ACs, tdd_mode strict) |
-| S-12.04 | WASM resolver loading + lifecycle + error isolation | E-12 | TBD | P0 | [S-12.03] | [S-12.07] | draft | [BC-1.13.001, BC-4.12.001, BC-4.12.003, BC-4.12.004] (13 ACs, tdd_mode strict) |
-| S-12.05 | hook-sdk resolver-authoring extensions | E-12 | TBD | P0 | [S-12.06] | [S-12.07] | draft | [BC-4.12.002] (10 ACs, tdd_mode strict) |
+| S-12.03 | ContextResolver trait + ResolverRegistry generic dispatcher core | E-12 | TBD | P0 | [S-12.06] | [S-12.04, S-12.07] | merged | [BC-1.13.001, BC-4.12.005] (12 ACs, tdd_mode strict; merged 2026-05-10 PR #120; D-396 propagation fix F-P19-002) |
+| S-12.04 | WASM resolver loading + lifecycle + error isolation | E-12 | TBD | P0 | [S-12.03] | [S-12.07] | merged | [BC-1.13.001, BC-4.12.001, BC-4.12.003, BC-4.12.004] (13 ACs, tdd_mode strict; merged 2026-05-10 PR #121; D-396 propagation fix F-P19-002) |
+| S-12.05 | hook-sdk resolver-authoring extensions | E-12 | TBD | P0 | [S-12.06] | [S-12.07] | merged | [BC-4.12.002] (10 ACs, tdd_mode strict; merged 2026-05-10 PR #119; D-396 propagation fix F-P19-002) |
 | S-12.06 | HOST_ABI context-injection contract docs (factory-agnostic) | E-12 | TBD | P0 | [] | [S-12.03, S-12.04, S-12.05] | merged | [BC-1.13.001, BC-4.12.001, BC-4.12.002, BC-4.12.003, BC-4.12.004, BC-4.12.005] (10 ACs; merged 2026-05-07 at 15432c6; Step 4.5 converged D-375; decay 5→3→2→0→0→0) |
-| S-12.07 | vsdd-context-resolvers crate + WaveContextResolver (first concrete resolver) | E-12 | TBD | P0 | [S-12.04, S-12.05] | [S-12.08] | draft | [BC-4.12.001, BC-4.12.002, BC-4.12.003, BC-4.12.004, BC-4.12.005] (10 ACs, tdd_mode strict) |
-| S-12.08 | Migrate validate-per-story-adversary-convergence to consume plugin_config.wave_context.stories (closes F-P2-001) | E-12 | TBD | P0 | [S-12.07] | [] | draft | [BC-1.13.001, BC-4.10.001, BC-4.12.005] (10 ACs, tdd_mode strict) |
+| S-12.07 | vsdd-context-resolvers crate + WaveContextResolver (first concrete resolver) | E-12 | TBD | P0 | [S-12.04, S-12.05] | [S-12.08] | merged | [BC-4.12.001, BC-4.12.002, BC-4.12.003, BC-4.12.004, BC-4.12.005] (10 ACs, tdd_mode strict; merged 2026-05-10 PR #122; D-396 propagation fix F-P19-002) |
+| S-12.08 | Migrate validate-per-story-adversary-convergence to consume plugin_config.wave_context.stories (closes F-P2-001) | E-12 | TBD | P0 | [S-12.07] | [] | merged | [BC-1.13.001, BC-4.10.001, BC-4.12.005] (10 ACs, tdd_mode strict; merged 2026-05-10 PR #123; D-396 propagation fix F-P19-002) |
 | S-15.03 | ARCH-INDEX Cite-Refresh Hook + Lessons Retroactive-Sweep Verification | E-12 | TBD | P2 | [] | [] | draft | [] (F5 pass-20 process-gap; re-anchored E-15→E-12 per F-P21-003 fix-burst-20; SS-01+SS-04; codified-not-enforced recurrence; F-P20-002 + L-P20-002) |
 
 > **E-12 delivery chain:** S-12.01 → S-12.02 (original 2 stories, completed). F3-amendment adds 6 platform stories. S-15.03 re-anchored to E-12 from E-15 per F-P21-003 (fix-burst-20).

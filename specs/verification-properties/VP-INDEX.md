@@ -1,14 +1,17 @@
 ---
 document_type: vp-index
 level: L4
-version: "1.40"
+version: "1.41"
 status: draft
 producer: state-manager
 timestamp: 2026-05-09T00:00:00Z
+last_amended: 2026-05-11
 phase: F5
 traces_to: ARCH-INDEX.md
 total_vps: 79
 changelog:
+  - date: 2026-05-11
+    change: "v1.41 (2026-05-11): In-cycle VP frontmatter housekeeping sweep (D-390+D-392 application; F5 pass-19 fix burst): added last_amended: 2026-05-11 to VP-INDEX frontmatter (F-P19-001; pass-18 attestation was false-true); added Z-suffix to timestamp on VP-069..VP-076 (F-P19-003; 8 VPs swept, 0 remaining defects); VP-INDEX v1.40→v1.41. Also retroactively notes: last_amended added to VP-069 (→2026-05-06), VP-072 (→2026-05-06), VP-073 (→2026-05-07), VP-075 (→2026-05-07) per F-P18-002 (pass-18 fix burst). Refs: F-P19-001, F-P19-003, F-P18-002, D-395+D-396."
   - date: 2026-05-09
     change: "v1.40 (2026-05-09; fix-burst-32): F-P33-001 — VP-074 Full Index Domain Invariant cell — → DI-002 (matches VP-074.md:33-34 list-form source); VP-076 Full Index Domain Invariant cell — → DI-004 (matches VP-076.md:32-33 list-form source). Corpus-wide per-row sibling-cell audit on all 79 VP-INDEX rows: DI drift VP-074+VP-076 only; scope drift 0; all other rows clean. L-P28-001 META-META-META verification block added. No VP count change. VP-INDEX v1.39→v1.40. Refs: F-P33-001, L-P28-001, L-P26-001, fix-burst-32."
   - date: 2026-05-09
