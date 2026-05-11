@@ -262,3 +262,43 @@ Sweep dimensions for this burst — enumeration source and extent per D-391:
 - D-383 intra-file content audit: STATE.md (phase + current_step + trajectory + Concurrent Cycles + Session Resume Checkpoint all consistent), INDEX.md (row-17 added; Convergence Status updated to passes 3-17; cardinality 17 values for 17 passes), burst-log.md (pass-16 Commit E SHA backfilled: 9e45d209; pass-13 corrigendum; pass-17 entry appended), decision-log.md (D-391+D-392 appended; ID sequence D-336..D-392 sequential ✓), lessons.md (L-EDP1-009 corrigendum appended)
 
 **Factory-artifacts commits:** (Commit A: 944f852f), (Commit B: de4d051f), (Commit C: 77d134a7), (Commit D: ec59f9fa), (Commit E: this commit — state-manager final per POLICY 3)
+
+---
+
+## Burst: F5 pass-18 fix burst (2026-05-11)
+
+**Summary:** Addressed 1H+5M+3L+1NIT content findings + 1 process-gap from pass-18 HIGH verdict (regression from pass-17 MEDIUM; 9th-layer L-EDP1-003 recurrence at D-391 self-application). adv-cycle-pass-18.md persisted (Commit A: 2f38e239). D-393 (independent re-derivation Grep query required in sweep attestations; violations MEDIUM) + D-394 (D-391 violations explicitly MEDIUM; dispatch-side STATE.md update mandatory before adversary returns review) codified; L-EDP1-010 (9th-layer L-EDP1-003) + L-EDP1-009 second corrigendum authored (Commit B: fedd99b7). F-P18-001 HIGH: last_amended added to BC-4.10.002 (→2026-05-09), BC-4.11.001 (→2026-05-09), BC-6.22.001 (→2026-05-09). F-P18-002 MEDIUM: last_amended added to VP-069 (→2026-05-06), VP-072 (→2026-05-06), VP-073 (→2026-05-07), VP-075 (→2026-05-07). Pre-existing template conformance gaps surfaced by hooks and fixed opportunistically (extracted_from: null on 3 BCs; changelog reordered newest-first on 3 BCs; input-hash updated to b931799 on 3 BCs; source_bc/modified/deprecated_by/replacement/retired/withdrawn/withdrawal_reason/removed/removal_reason/input-hash added to 4 VPs; ## Source Contract section added to 4 VPs; ## Proof Harness Location renamed → ## Proof Harness Skeleton on VP-072/073/075) (Commit C: 658c6b14). F-P18-007 LOW: VP-INDEX timestamp T18→T00. F-P18-008 LOW: INDEX.md Convergence Status trajectory parentheticals removed. F-P18-009 LOW: BC-INDEX/ARCH-INDEX/VP-INDEX gain last_amended. Opportunistic: VP-INDEX VP-078 row Edit|Write pipe escaped. (Commit D: 82d7575a). F-P18-003/006: closed by D-393/D-394. F-P18-004: STATE.md phase updated. F-P18-005: arithmetic reconciled (see D-393 sweep dim 1). F-P18-010 NITPICK: no action.
+
+**D-393 self-application attestation (MANDATORY per D-393 own text):**
+
+- Sweep dim 1 (F-P18-001): BC `last_amended` field presence — in-cycle BCs.
+  - Enumeration source: `grep -rl '^introduced: v1.0-feature-engine-discipline-pass-1' .factory/specs/behavioral-contracts/`
+  - Query result: 12 BCs — BC-1.13.001, BC-4.10.001, BC-4.10.002, BC-4.11.001, BC-4.12.001, BC-4.12.002, BC-4.12.003, BC-4.12.004, BC-4.12.005, BC-5.39.001, BC-5.39.002, BC-6.22.001
+  - Inlined list count: 12. |query 12| == |list 12| ✓
+  - Pass-17 dim-1 cited 13 BCs (included BC-7.03.091/092 which are brownfield-origin, not introduced by this cycle). Corrected to N=12 per D-393.
+  - BCs missing `last_amended:` from 12-BC set: BC-4.10.002, BC-4.11.001, BC-6.22.001 (3). Fixed. Remaining 9 already had `last_amended:` ✓
+
+- Sweep dim 2 (F-P18-002): VP `last_amended` field presence — in-cycle VPs.
+  - Enumeration source: `grep -rl '^introduced: v1.0-feature-engine-discipline-pass-1' .factory/specs/verification-properties/`
+  - Query result: 8 VPs — VP-069, VP-070, VP-071, VP-072, VP-073, VP-074, VP-075, VP-076
+  - Inlined list count: 8. |query 8| == |list 8| ✓
+  - VPs missing `last_amended:` from 8-VP set: VP-069, VP-072, VP-073, VP-075 (4). Fixed. VP-070, VP-071, VP-074, VP-076 already had `last_amended:` ✓
+  - Pass-17 dim-5 claimed 0 gaps across VP-069..VP-076 — incorrect. 4 gaps existed. Non-compliant under D-391 (no independent Grep query cited). D-393 closes this class.
+
+- Sweep dim 3 (F-P18-007/009): index file schema — timestamp and last_amended.
+  - Enumeration source: explicit per-file check of 4 index files (BC-INDEX, VP-INDEX, ARCH-INDEX, STORY-INDEX).
+  - Extent: 4. Audited: 4. Action: VP-INDEX timestamp T18→T00; BC-INDEX/ARCH-INDEX last_amended added; VP-INDEX last_amended added. STORY-INDEX already has last_amended ✓
+
+**D-383/D-384/D-385/D-393 attestations (pass-18 fix burst):**
+- Trajectory pre: "29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9" (17 values for 17 passes)
+- Trajectory post: "29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10" (18 values for 18 passes)
+- Cardinality: 29(P1),15(P2),11(P3),9(P4),8(P5),7(P6),5(P7),6(P8),6(P9),6(P10),4(P11),3(P12),3(P13),10(P14),13(P15),9(P16),9(P17),10(P18) = 18 values = 18 passes ✓
+- Per-position match vs INDEX.md rows: P1=29✓ P2=15✓ P3=11✓ P4=9✓ P5=8✓ P6=7✓ P7=5✓ P8=6✓ P9=6✓ P10=6✓ P11=4✓ P12=3✓ P13=3✓ P14=10✓ P15=13✓ P16=9✓ P17=9✓ P18=10✓
+- "passes 3-N" phrase: N=18 (current burst is pass-18); INDEX.md Convergence Status updated to "passes 3-18" ✓
+- Sub-trajectory sibling sweep (D-385 sub-rule 1): STATE.md Phase Progress rows verified consistent with canonical 18-value trajectory ✓
+- Immutable-row scope check (D-385 sub-rule 2): no retroactive annotations introduced to decision-log, burst-log, adv-cycle files, or lessons.md entries ✓
+- D-383 intra-file content audit: STATE.md (phase + current_step + trajectory + Concurrent Cycles + Session Resume Checkpoint all consistent), INDEX.md (row-18 added; Convergence Status updated to passes 3-18 + trajectory →10; cardinality 18 values for 18 passes), burst-log.md (pass-18 entry appended), decision-log.md (D-393+D-394 appended; ID sequence D-336..D-394 sequential ✓), lessons.md (L-EDP1-009 second corrigendum + L-EDP1-010 appended)
+
+**F-P18-003/006 closed by D-393/D-394:** No content fix needed in decision-log D-391 row (immutable per D-385 sub-rule 2); D-393 carries the enumeration-source operationalization; D-394 carries the explicit severity classification.
+
+**Factory-artifacts commits:** (Commit A: 2f38e239), (Commit B: fedd99b7), (Commit C: 658c6b14), (Commit D: 82d7575a), (Commit E: this commit — state-manager final per POLICY 3)

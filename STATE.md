@@ -5,13 +5,13 @@ version: "2.0"
 status: draft
 producer: state-manager
 timestamp: 2026-05-11T00:00:00Z
-phase: engine-discipline-F5-pass-17
+phase: engine-discipline-F5-pass-18
 inputs: []
 input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "F5 pass-17 fix burst COMPLETE (MEDIUM verdict; 5M+3L+1NIT+1PG; D-391+D-392 codified; F-P17-001/002/004/005/006/008 fixed; F-P17-003 L-EDP1-009 corrigendum; F-P17-009 positive; PG1 closed by D-391)"
+current_step: "F5 pass-18 fix burst COMPLETE (HIGH verdict→PENDING_NEXT_PASS; 1H+5M+3L+1NIT+1PG; D-393+D-394 codified; L-EDP1-010 documented; F-P18-001 3 BCs fixed; F-P18-002 4 VPs fixed; F-P18-005 arithmetic reconciled N=12)"
 current_cycle: v1.0-feature-engine-discipline-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -39,7 +39,7 @@ dtu_services: []
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
 | **Last Updated** | 2026-05-11 — F5 pass-17 fix burst COMPLETE. Pass-17 MEDIUM verdict (5M+3L+1NIT+1PG; lateral from pass-16). D-391 (sweep-extent enumeration source mandatory) + D-392 (VP Lifecycle ≡ BC CHANGELOG for D-390) codified. L-EDP1-009 corrigendum (layer-7 enumeration). F-P17-001 last_amended added to BC-5.39.002/7.03.091/7.03.092. F-P17-002 input-hash [live-state]→[pending-recompute] on BC-7.03.091/092. F-P17-004 Z-suffix sweep: 12 sites (9 adv-pass + BC-INDEX + ARCH-INDEX + BC-INDEX). F-P17-005 burst-log corrigendum (pass-13 MEDIUM→HIGH). F-P17-006 STORY/ARCH-INDEX timestamp →2026-05-11. F-P17-008 VP-076 last_amended. Trajectory: 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9. |
-| **Current Phase** | Engine-discipline F5 — pass-17 fix burst COMPLETE (pending pass-18 dispatch) |
+| **Current Phase** | Engine-discipline F5 — pass-18 fix burst COMPLETE (pending pass-19 dispatch) |
 | **Current Cycle** | v1.0-feature-engine-discipline-pass-1 |
 
 ## Phase Progress
@@ -86,11 +86,11 @@ dtu_services: []
 
 | Step | Agent | Status | Output |
 |------|-------|--------|--------|
-| F5 pass-15 fix burst (D-387 sibling-sweep + stories retrofit + corrigenda) | state-manager | DONE 2026-05-11 | All F-P15-001..013 fixed or deferred; sibling-pattern sweep COMPLETE |
-| F5 pass-16 cycle-level adversary | adversary | DONE 2026-05-11 | MEDIUM (4M+3L+2NIT+2PG); improvement from HIGH; trajectory →9; D-389+D-390 codified |
 | F5 pass-16 fix burst (merge-date + BC last_amended + D-389+D-390) | state-manager | DONE 2026-05-11 | F-P16-001/002/004/005/006 fixed; L-EDP1-009; sweep dimensions enumerated |
 | F5 pass-17 cycle-level adversary | adversary | DONE 2026-05-11 | MEDIUM (5M+3L+1NIT+1PG); lateral; trajectory →9; D-391+D-392 required |
 | F5 pass-17 fix burst (last_amended sweep + Z-suffix + D-391+D-392) | state-manager | DONE 2026-05-11 | F-P17-001..008 fixed or deferred; PG1 closed; self-application |
+| F5 pass-18 cycle-level adversary | adversary | DONE 2026-05-11 | HIGH (1H+5M+3L+1NIT+1PG); regression from MEDIUM; trajectory →10; 9th-layer L-EDP1-003 |
+| F5 pass-18 fix burst (BC/VP last_amended + schema + D-393+D-394) | state-manager | DONE 2026-05-11 | F-P18-001/002/005/007/008/009 fixed; D-393+D-394 codified; L-EDP1-010 |
 
 ## Identifier Conventions
 
@@ -120,7 +120,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | feb894a2 | rc.16 merge; latest release |
 | develop | 99d24315 | S-12.08 squash-merge (PR #123); F4 COMPLETE |
-| factory-artifacts | ec59f9fa | F5 pass-17 fix burst (Commit D — Commit E is this SHA-update commit) |
+| factory-artifacts | 82d7575a | F5 pass-18 fix burst Commit D — Commit E is this SHA-update commit |
 | feature/F5-pass-3-cycle-hardening | 2e6b4372 | PR #124 OPEN (DRAFT); CI run 25651192161 GREEN (11/11 checks) |
 | v1.0.0-rc.16 (tag) | feb894a2 | SHIPPED; claude-mp PR #8 awaiting human merge |
 | v1.0.0-rc.15 (tag) | e68bb436 | SHIPPED |
@@ -130,14 +130,14 @@ dtu_services: []
 | Cycle | Type | Status | Notes |
 |-------|------|--------|-------|
 | v1.0-brownfield-backfill | brownfield | PAUSED | E-10 pass-9 pending; paused at D-343 |
-| v1.0-feature-engine-discipline-pass-1 | feature | F5-IN-PROGRESS | All 6 E-12-platform stories merged; F5 passes 3-17 complete (trajectory 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9; content-only; P7=MEDIUM/P9=HIGH/P13=HIGH per D-387); pass-17 MEDIUM verdict (5M+3L+1NIT+1PG; lateral); D-391+D-392 codified; D-386 Option C: continue F5, accept asymptotic L-EDP1-003 limit; S-15.03 deferred |
+| v1.0-feature-engine-discipline-pass-1 | feature | F5-IN-PROGRESS | All 6 E-12-platform stories merged; F5 passes 3-18 complete (trajectory 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10); pass-18 HIGH verdict (1H+5M+3L+1NIT+1PG; regression); D-393+D-394 codified; D-386 Option C: continue F5, accept asymptotic L-EDP1-003 limit; S-15.03 deferred |
 | v1.0-feature-plugin-async-semantics-pass-1 | feature | CLOSED | All PRs merged; rc.14 shipped |
 
 ## Decisions Log
 
 > D-001..D-312: `cycles/v1.0-brownfield-backfill/decision-log.md` + `decisions-log-archive.md`
 > F5 pass-2 architect decisions: `cycles/v1.0-feature-engine-discipline-pass-1/F5-pass-2-architect-decisions.md` (factory-artifacts 7b83ef58)
-> D-379..D-385 (this session): `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md`
+> D-379..D-394 (this session): `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md`
 
 | ID | Decision | Phase | Date |
 |----|----------|-------|------|
@@ -179,23 +179,23 @@ dtu_services: []
 
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-11 — F5 pass-17 fix burst COMPLETE. Pass-17 MEDIUM verdict (5M+3L+1NIT+1PG; lateral from pass-16). D-391 (sweep-extent enumeration source mandatory — format: "enumeration source: X. Extent: N. Audited: list. Action: result.") + D-392 (VP Lifecycle table ≡ BC CHANGELOG for D-390) codified. L-EDP1-009 corrigendum (layer-7 enumeration: 5 dimensions documented; pass-16 sweep was narrower than full rubric — 3 BCs missed). Key fixes: F-P17-001 last_amended added to BC-5.39.002 (2026-05-09) + BC-7.03.091 (2026-05-10) + BC-7.03.092 (2026-05-10). F-P17-002 input-hash [live-state]→[pending-recompute] on BC-7.03.091/092. F-P17-004 Z-suffix sweep: 12 sites — 9 adv-cycle-pass files (passes 3-11) + BC-INDEX + ARCH-INDEX (VP-INDEX already had Z). F-P17-005 burst-log pass-13 corrigendum (MEDIUM→HIGH per F-P15-005). F-P17-006 STORY-INDEX + ARCH-INDEX timestamp →2026-05-11T00:00:00Z. F-P17-007 closed by D-391 retroactively. F-P17-008 VP-076 last_amended: 2026-05-10 added (D-392). F-P17-009 positive verification. PG1 closed by D-391. Trajectory (content-only): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9. Streak 0/3.
+**Last update:** 2026-05-11 — F5 pass-18 fix burst COMPLETE. Pass-18 HIGH verdict (1H+5M+3L+1NIT+1PG; regression from pass-17 MEDIUM). D-393 (independent re-derivation Grep query required — burst-log MUST record inlined list + second-source query + arithmetic match; violations MEDIUM) + D-394 (D-391 violations explicitly MEDIUM; dispatch-side STATE.md update mandatory before adversary returns) codified. L-EDP1-010 documents 9th-layer L-EDP1-003 recurrence (D-391 self-application lacked Grep query; inlined BC list wrong: 3 gaps found; VP dim-5 attestation wrong: 4 VP gaps found). Key fixes: F-P18-001 last_amended added to BC-4.10.002/4.11.001/6.22.001 (all →2026-05-09). F-P18-002 last_amended added to VP-069 (2026-05-06), VP-072 (2026-05-06), VP-073 (2026-05-07), VP-075 (2026-05-07). F-P18-005 arithmetic reconciled: canonical Grep yields N=12 in-cycle BCs (supersedes "9" from lessons.md and "13" from burst-log dim-1). F-P18-007 VP-INDEX timestamp T18→T00. F-P18-008 INDEX.md Convergence Status simplified (parentheticals removed). F-P18-009 BC-INDEX/ARCH-INDEX/VP-INDEX gain last_amended. Trajectory: 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10. Streak 0/3.
 
-**STATE:** F4 platform COMPLETE; F5 at pass-17 fix burst complete. Next: dispatch pass-18 adversary.
+**STATE:** F4 platform COMPLETE; F5 at pass-18 fix burst complete. Next: dispatch pass-19 adversary (per D-394, update STATE.md phase BEFORE adversary returns).
 
 **Next session start — ordered checklist:**
 
-1. ✓ D-391 sweep-extent enumeration source codified (closes F-P17-PG1).
-2. ✓ D-392 VP Lifecycle table recognized as D-390 equivalent (closes F-P17-008).
-3. ✓ L-EDP1-009 corrigendum applied (layer-7 enumeration documented).
-4. Dispatch pass-18 adversary (fresh context, full cycle-level review).
-5. Apply pass-18 fix burst per D-382..D-391 discipline if MEDIUM or above.
+1. ✓ D-393 independent re-derivation Grep requirement codified (closes F-P18-PG1, F-P18-003).
+2. ✓ D-394 D-391 severity explicit + dispatch-side STATE.md update (closes F-P18-004, F-P18-006).
+3. ✓ L-EDP1-010 9th-layer L-EDP1-003 recurrence documented.
+4. Dispatch pass-19 adversary — update STATE.md phase: engine-discipline-F5-pass-19 BEFORE dispatch (per D-394).
+5. Apply pass-19 fix burst per D-382..D-394 discipline if MEDIUM or above.
 6. Iterate until 3 consecutive NITPICK_ONLY passes achieved OR human declares convergence.
 7. F6 targeted hardening after convergence criterion met.
 8. F7 delta convergence + human gate (cycle CLOSE).
 9. E-10 brownfield pass-9 resume (PAUSED at D-343).
 
-**D-382..D-391 discipline applies to ALL future fix bursts.** Full protocol: `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md` (D-382..D-385 sibling-file+content-audit+sweep; D-386 Option C convergence acceptance; D-387 structural-correction exception; D-388 forward-reference cycle:; D-389 input-hash placeholder convention; D-390 CHANGELOG→last_amended propagation rule; D-391 sweep enumeration source mandatory; D-392 VP Lifecycle ≡ BC CHANGELOG). Sweep attestations MUST enumerate source per D-391.
+**D-382..D-394 discipline applies to ALL future fix bursts.** Key additions this burst: D-393 (Grep query + arithmetic required in all sweep attestations); D-394 (dispatch-side STATE.md update mandatory). Sweep attestations MUST record: (a) inlined list, (b) second-source Grep query, (c) arithmetic |list|==|result|.
 
 **Index versions:** BC-INDEX v1.64 | VP-INDEX v1.40 | STORY-INDEX v2.65 | ARCH-INDEX v1.45
 **ADR-013:** 3_of_3 CONVERGED (pass-57) | **E-9:** v1.53 CONVERGENCE_REACHED | **E-10:** paused D-343
