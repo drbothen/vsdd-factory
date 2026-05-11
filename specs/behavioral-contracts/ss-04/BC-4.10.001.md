@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.2"
+version: "1.3"
 status: draft
 producer: product-owner
 timestamp: 2026-05-06T00:00:00Z
@@ -9,9 +9,10 @@ phase: 1a
 inputs:
   - .factory/cycles/v1.0-feature-engine-discipline-pass-1/F1-delta-analysis.md
   - .factory/cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md
-input-hash: "40a6fb6"
+input-hash: "b931799"
 traces_to: .factory/cycles/v1.0-feature-engine-discipline-pass-1/F1-delta-analysis.md
 origin: greenfield
+extracted_from: null
 subsystem: "SS-04"
 capability: "CAP-009"
 lifecycle_status: active
@@ -25,7 +26,7 @@ removed: null
 removal_reason: null
 bc_id: BC-4.10.001
 section: "4.10"
-last_amended: 2026-05-09
+last_amended: 2026-05-10
 ---
 
 # BC-4.10.001: validate-per-story-adversary-convergence WASM hook MUST block wave-gate dispatch when any story lacks convergence clearance
@@ -83,6 +84,15 @@ with `HOST_ABI_VERSION = 1`.
 7. The hook MUST NOT modify the `adversary-convergence-state.json` files — it is read-only.
 8. Block messages are emitted using `HookResult::block_with_fix(hook, reason, recommendation, code)`
    per the canonical Why/Fix/Code pattern. Bare `HookResult::block()` is prohibited.
+9. If `plugin_config["wave_context"]` is absent or JSON null:
+   - The hook emits `HookResult::block_with_fix(...)` with `code: "WAVE_CONTEXT_MISSING"`.
+   - This indicates `WaveContextResolver` was not wired or failed to inject context.
+   - The hook MUST NOT gracefully degrade on this condition (AC-002, AC-010).
+   - The wave-gate dispatch is BLOCKED.
+10. If `plugin_config["wave_context"]` is present but not a JSON object (e.g., string, number, array):
+    - The hook emits `HookResult::block_with_fix(...)` with `code: "WAVE_CONTEXT_SCHEMA_ERROR"`.
+    - Also emitted when `wave_context.cycle_id` is absent or empty (resolver bug or stale context).
+    - The wave-gate dispatch is BLOCKED.
 
 ## Invariants
 
@@ -169,6 +179,7 @@ Story B — v1.0-feature-engine-discipline-pass-1 (F3 story decomposition)
 
 | Version | Date | Description |
 |---------|------|-------------|
-| 1.0 | 2026-05-06 | Initial authoring (product-owner; F2 phase of v1.0-feature-engine-discipline-pass-1). D-337 constraint applied: WASM-only (no Bash hook). HOST_ABI_VERSION = 1 confirmed by F1 architect. |
-| 1.1 | 2026-05-07 | VP-071 traceability row amended (product-owner; F-P2-002, F2-amendment): stale "advisory-block output always emitted on non-cleared gate" description replaced with canonical "Block Invariant — kani harness verifies HookResult::Block on non-converged input (canonical block_with_fix form per VP-071 v1.2)". Fixes bidirectional drift with VP-071 v1.2 ("Block Invariant" canonical form). Proof method column corrected to "kani" (was "kani (pure logic branch coverage)"). |
+| 1.3 | 2026-05-10 | S-12.08 pass-1 fix-burst HIGH-001: enumerate WAVE_CONTEXT_MISSING + WAVE_CONTEXT_SCHEMA_ERROR block codes introduced by S-12.08 (convergence hook wave_context migration). Aligns BC text with consumer crate lib.rs constants. |
 | 1.2 | 2026-05-09 | F-P45-001 — Traceability Stories row propagated from BC-INDEX v1.57: "Story B" placeholder → S-12.02, S-12.08. BC-INDEX was updated in fix-burst-39 (v1.55) to replace TBD; body was not updated in that burst. Refs: F-P45-001, fix-burst-42. |
+| 1.1 | 2026-05-07 | VP-071 traceability row amended (product-owner; F-P2-002, F2-amendment): stale "advisory-block output always emitted on non-cleared gate" description replaced with canonical "Block Invariant — kani harness verifies HookResult::Block on non-converged input (canonical block_with_fix form per VP-071 v1.2)". Fixes bidirectional drift with VP-071 v1.2 ("Block Invariant" canonical form). Proof method column corrected to "kani" (was "kani (pure logic branch coverage)"). |
+| 1.0 | 2026-05-06 | Initial authoring (product-owner; F2 phase of v1.0-feature-engine-discipline-pass-1). D-337 constraint applied: WASM-only (no Bash hook). HOST_ABI_VERSION = 1 confirmed by F1 architect. |
