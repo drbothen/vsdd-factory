@@ -355,3 +355,33 @@ continues at asymptotic boundary per D-386 Option C.
 - (5) F-P16-008/009 timestamp Z — DEFERRED per adversary recommendation; F-P17-004 expands the dimension to 12 sites (9 adv-cycle-pass files + 3 index files). Closed in pass-17 burst.
 
 Layer-7 was thus partial; F-P17-001/002/003/004 in pass-17 are the residual. D-391 (codified in pass-17) closes F-P17-PG1 by making enumeration source citation mandatory going forward.
+
+**Second corrigendum (pass-18 fix burst — D-387 + D-393):** Layer-7 enumeration's "9 in-cycle BCs" claim (in this corrigendum) conflicted with pass-17 burst-log dim-1's "13 BCs" claim. Independent re-derivation via Grep `grep -rl '^introduced: v1.0-feature-engine-discipline-pass-1' .factory/specs/behavioral-contracts/` yields N=12. Both prior counts are superseded by N=12. The "9" in this corrigendum referred to the pass-16 rubric scope (7-BC subset + 2 additional = 9 audited in pass-16); the "13" in pass-17 dim-1 included BC-7.03.091/092 which are brownfield-origin files (not introduced by this cycle). Canonical in-cycle BC count: 12. Layer 9 (pass-18) codified D-393 to require independent re-derivation (Grep query + arithmetic match), closing the recurrence at this dimension.
+
+---
+
+### L-EDP1-010 — 9th-layer L-EDP1-003 recurrence at D-391 self-application
+
+**Burst:** F5 pass-18 fix burst (codifies the lesson; the recurrence was in pass-17 D-391 self-application).
+
+**Pattern:** D-391 was codified by the pass-17 fix burst with the explicit clause: "burst-log claims of the form 'N files audited' without an enumeration source are NON-COMPLIANT under L-EDP1-009". The pass-17 burst-log dim-1 cited an enumeration source ("project policy rubric: 13 BCs inlined") but the inlined list itself was authored by the same agent claiming sweep completeness — there was no second-source verification query. F-P18-001 surfaced 3 BCs (BC-4.10.002, BC-4.11.001, BC-6.22.001) that the inlined list omitted; F-P18-002 surfaced 3 VPs (VP-072, VP-073, VP-075) and 1 additional VP-069 in the dim-5 attestation missing `last_amended:`. The codified rule was violated within the same burst that codified it — exactly L-EDP1-003's pattern at layer 9.
+
+The 9-layer history:
+
+| Layer | Burst | Rule Codified | Same-burst Violation |
+|-------|-------|---------------|---------------------|
+| 1 (pass-8) | D-381 | "fix burst MUST update STATE.md" | missed burst-log + INDEX |
+| 2 (pass-9) | D-382 | "fix burst MUST update all 5 sibling files" | introduced intra-file content defects |
+| 3 (pass-10) | D-383 | "intra-file content audit + sibling-pattern sweep" | trajectory cardinality + self-ref N missed |
+| 4 (pass-11) | D-384 | "3 clarifications to D-383" | sub-trajectories stale; retroactive annotations |
+| 5 (pass-12) | D-385 | "3 clarifications to D-383+D-384" | frontmatter schema drift; counting-basis change |
+| 6 (pass-15) | D-387 | "structural-correction exception + sibling sweep" | sweep dimensions not enumerated; adjacent sibling-chain dimensions not covered |
+| 7 (pass-16) | D-389+D-390 | "input-hash convention + CHANGELOG→last_amended rule" | enumerated in L-EDP1-009 |
+| 8 (pass-17) | D-391+D-392 | "enumeration source mandatory + VP Lifecycle ≡ CHANGELOG" | second-source query absent; inlined BC list wrong (3 gaps); inlined VP list wrong (4 gaps) |
+| 9 (this, pass-18) | D-393+D-394 | "independent re-derivation Grep query required + D-391 severity explicit + dispatch-side phase update" | — (D-393 self-application: see burst-log pass-18 sweep attestation) |
+
+**Resolution:** Per D-386 Option C (asymptotic convergence accepted), no further structural escalation this cycle. S-15.03 elevation (automated sweep enforcement) deferred to v1.0-feature-engine-discipline-pass-2 remains the structural remedy.
+
+**Codified rule:** Sibling-pattern sweep cardinality MUST be independently re-derivable via a citable Grep/glob/jq query that yields the same count as the inlined per-file list. The burst-log attestation MUST record: (a) inlined list, (b) second-source query, (c) arithmetic |list| == |query result|.
+
+**Status:** Codified. D-393 + D-394 close the adjacent defect classes. L-EDP1-003 pattern continues at asymptotic boundary per D-386 Option C.
