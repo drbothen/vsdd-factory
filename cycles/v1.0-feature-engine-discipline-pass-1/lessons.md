@@ -305,3 +305,44 @@ Each new rule closes the prior pass's defect class but the fix burst that codifi
 **Codified rule:** When a prior lesson's Status field becomes stale due to a subsequent decision, author a new L-EDP1-NNN lesson explicitly closing the prior one by reference to the decision. Do NOT edit the prior lesson's Status field directly. Append a corrigendum line (D-387 format: "**Corrigendum**:" prefix, new line before `---` separator) to the prior lesson to point readers to the new closing lesson.
 
 **Status:** Closed (this lesson IS the closure record).
+
+---
+
+## L-EDP1-009 — D-387 self-application partial; 7th-layer L-EDP1-003 recurrence at BC frontmatter sibling-chain dimension
+
+**Burst:** F5 pass-16 fix burst (codifies the lesson; the recurrence itself was in pass-15)
+**Date codified:** 2026-05-11
+**Source:** F-P16-001, F-P16-002, F-P16-003, F-P16-PG1
+
+**Pattern:** D-387 was codified by the pass-15 fix burst with the explicit clause "(b) propagated
+to ALL sibling sites in the same burst (sibling-pattern sweep mandatory per D-383)". The pass-15
+burst executed the sweep on two defect classes (MEDIUM-HIGH verdict labels in adversary-review
+frontmatter; status:draft on merged stories) but the sweep did NOT extend to additional
+sibling-chain dimensions surfaced by pass-16:
+
+- Story `merged_at` ↔ STATE.md Phase Progress merge-date (F-P16-001)
+- BC `last_amended` ↔ CHANGELOG most-recent row (F-P16-002)
+- BC `input-hash` placeholder propagation (F-P16-004 — resolved by D-389 convention rather than fix)
+
+This is the 7th consecutive layer of the L-EDP1-003 pattern:
+
+| Layer | Burst | Rule Codified | Same-burst Violation |
+|-------|-------|---------------|---------------------|
+| 1 (pass-8) | D-381 | "fix burst MUST update STATE.md" | missed burst-log + INDEX |
+| 2 (pass-9) | D-382 | "fix burst MUST update all 5 sibling files" | introduced intra-file content defects |
+| 3 (pass-10) | D-383 | "intra-file content audit + sibling-pattern sweep" | trajectory cardinality + self-ref N missed |
+| 4 (pass-11) | D-384 | "3 clarifications to D-383" | sub-trajectories stale; retroactive annotations |
+| 5 (pass-12) | D-385 | "3 clarifications to D-383+D-384" | frontmatter schema drift; counting-basis change |
+| 6 (pass-15) | D-387 | "structural-correction exception + sibling sweep" | sweep dimensions not enumerated; adjacent sibling-chain dimensions not covered |
+| 7 (this) | D-389+D-390 | "input-hash convention + CHANGELOG→last_amended rule" | enumerated below |
+
+**Resolution:** Per D-386 Option C (asymptotic convergence accepted), no further structural
+escalation this cycle. Document the recurrence. Future cycles SHOULD prioritize S-15.03 to
+provide automated sweep enforcement.
+
+**Codified rule:** Sibling-pattern sweeps under D-383/D-387 SHOULD enumerate the dimensions
+explicitly in the fix-burst attestation. A sweep claim with no enumerated dimensions is asserted
+but not auditable. The enumeration format: "Sweep dimensions checked: (1) X — result; (2) Y — result."
+
+**Status:** Codified. D-389 + D-390 close the two adjacent defect classes. L-EDP1-003 pattern
+continues at asymptotic boundary per D-386 Option C.
