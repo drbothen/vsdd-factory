@@ -33,6 +33,12 @@ use vsdd_hook_sdk::{HookPayload, HookResult};
 ///
 /// Matches the canonical SEQUENCE schema produced by `update-wave-state-on-merge`
 /// (same struct layout as `vsdd-context-resolvers::wave_context::WaveEntry`).
+///
+/// TODO(TD-074): This struct is a sibling of `WaveEntry` in
+/// `vsdd-context-resolvers/src/wave_context.rs` and
+/// `update-wave-state-on-merge/src/lib.rs`. Three independent definitions can
+/// drift. Future work: hoist into a shared `vsdd-wave-state` crate.
+/// Tracked as TD-074 in `.factory/tech-debt-register.md`.
 #[derive(Debug, Clone, Deserialize)]
 struct WaveEntry {
     /// Wave identifier (e.g., "W-15", "F4").

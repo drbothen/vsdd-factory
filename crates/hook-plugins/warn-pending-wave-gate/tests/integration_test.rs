@@ -656,8 +656,9 @@ waves:
     // EC-005: waves is a list (wrong structure) → graceful degradation
     // -----------------------------------------------------------------------
 
-    /// EC-005: valid YAML but waves is a list (not a map) → as_mapping() returns
-    /// None → HookResult::Continue, no output.
+    /// EC-005: valid YAML but waves is a list where each item lacks the required
+    /// `wave` field → serde_yaml deserialization fails (missing field) → Err →
+    /// HookResult::Continue, no output.
     ///
     /// Maps to AC-004(b) graceful degradation path.
     #[test]
@@ -676,8 +677,9 @@ waves:
     // EC-007: waves key present but null or empty map → no pending waves
     // -----------------------------------------------------------------------
 
-    /// EC-007(null): waves key present but value is null → as_mapping() returns
-    /// None → HookResult::Continue, no output.
+    /// EC-007(null): waves key present but value is null → serde_yaml deserializes
+    /// `waves` as empty Vec via `#[serde(default)]` → no pending entries →
+    /// HookResult::Continue, no output.
     #[test]
     fn test_BC_7_03_091_ec007_waves_null_silent_exit() {
         let (events, stderr, result) = dispatch(Some(YAML_WAVES_NULL));
@@ -690,8 +692,9 @@ waves:
         assert!(stderr.is_empty(), "EC-007(null): no stderr for waves: null");
     }
 
-    /// EC-007(empty): waves key present but value is empty map → no pending waves
-    /// found → HookResult::Continue, no output.
+    /// EC-007(empty): waves key present but value is an empty sequence → serde_yaml
+    /// deserializes as empty Vec → no pending entries →
+    /// HookResult::Continue, no output.
     #[test]
     fn test_BC_7_03_091_ec007_waves_empty_map_silent_exit() {
         let (events, stderr, result) = dispatch(Some(YAML_WAVES_EMPTY_MAP));

@@ -52,18 +52,27 @@ fn test_BC_4_12_003_capability_denied_for_etc_passwd() {
 ///
 /// Bats test location: `plugins/vsdd-factory/tests/resolver-capability-confinement.bats`
 /// Test case: "VP-076 capability confinement: naughty resolver cannot read /etc/passwd"
-/// (same test case asserts both VP-076-B and VP-076-C by checking VSDD_SINK_FILE for
-/// resolver.capability_denied event with resolver="naughty_resolver" field).
 ///
-/// VP-076-C: audit trail is written for all capability denials (asserted in bats sink check).
+/// **Architectural limitation (F-P4-004 Option B):**
+/// The resolver HostContext is constructed with `internal_log: None` in
+/// `crates/factory-dispatcher/src/resolver_loader.rs` (see TODO(VP-076-C / F-P4-004)
+/// comment there). As a result, `capability_denied` events emitted inside the resolver
+/// via `HostContext::emit_internal()` do NOT flow to VSDD_SINK_FILE in the current
+/// architecture. VP-076-C is therefore verified STRUCTURALLY: `path_allowed()` returns
+/// false → CAPABILITY_DENIED code returned → resolver cannot receive file bytes → VP-076-B
+/// holds. Full sink-level audit verification is deferred pending InternalLog plumbing
+/// through the resolver dispatch call chain.
+///
+/// Previous claim "asserted in bats sink check" was incorrect; removed in F-P4-004 fix.
 #[test]
 #[ignore = "moved to bats: plugins/vsdd-factory/tests/resolver-capability-confinement.bats — \
             Option B per F-P3-002 (crate boundary: vsdd-context-resolvers has no compile-time \
-            dep on factory-dispatcher per BC-1.13.001 INV1 / ADR-018)"]
+            dep on factory-dispatcher per BC-1.13.001 INV1 / ADR-018). VP-076-C sink-level \
+            verification deferred per F-P4-004 (internal_log: None in resolver HostContext)."]
 fn test_BC_4_12_003_capability_denied_emits_audit_event() {
-    // This stub is retained for traceability. The actual verification is in:
-    //   plugins/vsdd-factory/tests/resolver-capability-confinement.bats
-    //   VSDD_SINK_FILE grep for "resolver.capability_denied" and "naughty_resolver".
+    // Stub retained for traceability. Structural verification: path_allowed() returns
+    // false → resolver WASM cannot receive the denied file bytes (VP-076-B).
+    // Full sink audit trail deferred — see TODO(VP-076-C / F-P4-004) in resolver_loader.rs.
 }
 
 /// AC-006 (VP-076-D): Reads within `path_allow` succeed.

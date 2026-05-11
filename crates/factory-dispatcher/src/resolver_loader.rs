@@ -520,6 +520,15 @@ impl ContextResolver for CompiledWasmResolver {
             "",      // session_id: deferred — see TODO(F-P4-002) above
             "",      // trace_id: deferred — see TODO(F-P4-002) above
         );
+        // TODO(VP-076-C / F-P4-004): host_ctx.internal_log is None here (default from
+        // HostContext::new). This means capability_denied events emitted by
+        // HostContext::emit_internal() inside the resolver WASM do NOT flow to
+        // VSDD_SINK_FILE. VP-076-C ("audit trail written for all capability denials")
+        // is therefore verified structurally (path_allowed() returns false → resolver
+        // cannot read the file → VP-076-B holds) rather than via sink event search.
+        // Full sink-level verification requires plumbing an InternalLog reference into
+        // this HostContext, which in turn requires threading it through the resolver
+        // dispatch call chain. Tracked as F-P4-004 Option B deferral (pass-4 cycle).
         host_ctx.cwd = std::path::PathBuf::from(&input.project_dir);
         host_ctx.capabilities = Capabilities {
             read_file: Some(ReadFileCaps {
