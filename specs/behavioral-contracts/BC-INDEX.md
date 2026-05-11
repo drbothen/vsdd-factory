@@ -1,7 +1,7 @@
 ---
 document_type: bc-index
 level: L3
-version: "1.64"
+version: "1.65"
 status: draft
 producer: state-manager
 timestamp: 2026-05-11T00:00:00Z
@@ -12,6 +12,8 @@ inputs:
 total_bcs: 1947
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-11
+    change: "v1.65 (2026-05-11): Index synchronized with cycle-governance decisions D-389..D-400. No BC content changes; this version-bump reflects cross-index acknowledgment of cycle pass-1 codifications (D-389 input-hash convention, D-390 CHANGELOG↔last_amended, D-391 enumeration source, D-393 independent re-derivation, D-395 file-state grep-back, D-396 story-frontmatter↔STORY-INDEX, D-397+D-399 intent-match + canonical pass-N marker, D-398 Layer-N awaiting-audit, D-400 D-385/D-398 reconciliation). Refs: F-P21-005. last_amended: 2026-05-11 (F5 pass-21 fix burst: cycle-decision sync D-389..D-400; F-P21-005 closed)."
   - date: 2026-05-11
     change: "v1.64 (2026-05-11; F-P7-001): BC-7.03.091 + BC-7.03.092 Capability column TBD→CAP-008 (warn-pending-wave-gate: identity & registry binding; warn-pending-wave-gate: stderr warning when any wave has gate_status: pending). Propagation of F-P5-002/F-P6-005 fix burst which updated BC body files but omitted BC-INDEX Capability column (S-7.01/L-P28-001 sibling-file gap). Line-number citation removed per F-P8-006 (BC IDs are stable; line numbers drift). No count change (total_bcs: 1947). Refs: F-P7-001, F-P5-002, F-P6-005, L-P28-001, F-P8-006. last_amended: 2026-05-11 (F5 fix-burst pass-7: BC-7.03.091/092 Capability TBD→CAP-008; F-P7-001 closed; F-P8-006 line-number cite removed)."
   - date: 2026-05-09

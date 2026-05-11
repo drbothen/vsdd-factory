@@ -419,6 +419,8 @@ The 9-layer history:
 
 **Corrigendum (pass-20 fix burst — D-387 / F-P20-004 / D-398):** Layer-10 row "Same-burst Violation: —" is incorrect. Pass-20 surfaced F-P20-001: pass-19 burst-log dim-4 Action wrote "F5 pass-18 fix burst COMPLETE..." in STATE.md Last Updated when pass-19 was the current burst; Verification grep targeted `pass-18 fix burst COMPLETE` (false-green — confirmed wrong content, not correct content). This IS a Layer-10 same-burst violation of D-395 intent-match. The 10-layer table has been updated above to reflect: `| 10 (pass-19) | D-395+D-396 | "..." | F-P20-001 dim-4 intent-mismatch (stale pass-18 narrative written; false-green Verification grep) |`. See D-397 (codified pass-20) for the structural remedy (intent-match sub-clause). Per D-398, this corrigendum format is now the canonical convention for Layer-N "Same-burst Violation" corrections.
 
+**Corrigendum (pass-21 fix burst — D-387 / F-P21-006 / D-400):** D-400 (codified pass-21) retroactively legalizes the pass-20 inline edit of Layer-10 "Same-burst Violation" cell that this lesson previously documented. Inline updates to "(awaiting pass-(N+1) audit)" placeholder cells are now the canonical D-398 closure mechanism (NOT D-385 sub-rule 2 violations). The placeholder is provisional by D-398 design; the next-pass fix burst inline-replaces it.
+
 ---
 
 ### L-EDP1-012 — 11th-layer L-EDP1-003 recurrence at D-395 self-application (intent-match gap)
