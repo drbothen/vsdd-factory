@@ -359,3 +359,68 @@ Sweep dimensions for this burst — enumeration source and extent per D-391+D-39
 **Factory-artifacts commits:** (Commit A: 3289b7d5), (Commit B: a8c065a6), (Commit C: 698824a1), (Commit D: bef3552f), (Commit E: bef3552f — state-manager final per POLICY 3)
 
 **Corrigendum (pass-20 fix burst — D-387 / F-P20-006):** F-P18-009 (BC/ARCH/VP-INDEX last_amended schema) was marked PARTIALLY RESOLVED in the pass-19 adversarial review (BC-INDEX ✓, ARCH-INDEX ✓; VP-INDEX last_amended NOT PRESENT). F-P19-001 closure (VP-INDEX last_amended: 2026-05-11 added in this pass-19 burst) transitively closes the residual F-P18-009 gap. F-P18-009 is now FULLY RESOLVED.
+
+---
+
+## Burst: F5 pass-20 fix burst (2026-05-11)
+
+**Summary:** Addressed 1H+5M+3L+1NIT content findings + 2 process-gaps from pass-20 HIGH verdict (11th-layer L-EDP1-003 recurrence at D-395 intent-match dimension; sustained HIGH from pass-19). adv-cycle-pass-20.md persisted (Commit A: d0997333). D-397 (intent-match sub-clause for D-395: Action writes pass-N content, Verification grep MUST target pass-N marker; violations MEDIUM; closes F-P20-PG1 + F-P20-001) + D-398 (Layer-N "Same-burst Violation" MUST read "(awaiting pass-(N+1) adversary fresh-context audit)"; retroactively closes F-P20-PG2) codified; L-EDP1-011 Layer-10 corrigendum (row updated from "—" to confirmed F-P20-001 violation; D-387 format); L-EDP1-012 (11th-layer L-EDP1-003 recurrence documented; Layer-11 row uses D-398 convention "(awaiting pass-21 adversary fresh-context audit)") authored (Commit B: 5b2f0829). F-P20-001 HIGH: STATE.md Last Updated narrative updated to "pass-20 fix burst COMPLETE" (D-397 self-applied). F-P20-002 MEDIUM: VP-INDEX timestamp 2026-05-09→2026-05-11. F-P20-003 MEDIUM: FALSE POSITIVE — BC-4.10.001 last_amended: 2026-05-11 correctly corroborated by CHANGELOG row v1.4 (2026-05-11); no file edit. F-P20-004 MEDIUM: L-EDP1-011 Layer-10 corrigendum appended (in Commit B). F-P20-005 MEDIUM: STORY-INDEX last_amended D-395+D-396 plural reference added (was D-396 only). F-P20-006 MEDIUM: pass-19 burst-log F-P18-009 closure corrigendum appended (D-387 format). F-P20-007 LOW: VP-INDEX changelog v1.41 Refs updated — D-390+D-392 added as direct refs; D-395+D-396 noted as "codified-same-burst-as". F-P20-008 LOW: DEFERRED — STATE.md Phase Progress row compression acknowledged; asymptotic D-386 Option C. F-P20-009 LOW: L-EDP1-012 pattern-extension note documents 4th candidate dimension (timestamp-vs-last_amended); no separate file edit to L-EDP1-011. F-P20-010 NITPICK: no action (Commit C: db63d855).
+
+**D-393+D-395+D-397 self-application attestation (MANDATORY per D-393+D-395+D-397 own text):**
+
+Sweep dimensions for this burst — enumeration source and extent per D-391+D-393+D-395+D-397:
+
+- Sweep dim 1 (F-P20-001): STATE.md Last Updated narrative — live-state update.
+  - Enumeration source: explicit per-field check of STATE.md "Last Updated" cell (singleton sweep).
+  - Extent: 1. Inlined list: STATE.md Last Updated cell (line 41).
+  - Action: Last Updated updated to "F5 pass-20 fix burst COMPLETE..." (pass-20 current burst narrative).
+  - Verification (D-397 intent-match): `grep -c 'pass-20 fix burst COMPLETE' .factory/STATE.md` → **1** ✓
+  - D-397 satisfied: grep target contains "pass-20" (current burst marker) ✓
+
+- Sweep dim 2 (F-P20-002): VP-INDEX.md timestamp date alignment — index file housekeeping.
+  - Enumeration source: explicit per-field check of VP-INDEX.md frontmatter `timestamp:` vs `last_amended:` (singleton sweep).
+  - Extent: 1. Inlined list: VP-INDEX.md.
+  - Action: `timestamp: 2026-05-09T00:00:00Z` → `timestamp: 2026-05-11T00:00:00Z` (matches last_amended: 2026-05-11).
+  - Verification (D-395 + D-397): `grep -c 'timestamp: 2026-05-11T00:00:00Z' .factory/specs/verification-properties/VP-INDEX.md` → **1** ✓
+  - D-397 satisfied: grep target confirms 2026-05-11 (current amendment date); no prior-date substring ✓
+
+- Sweep dim 3 (F-P20-003): BC-4.10.001 last_amended corroboration — false-positive resolution.
+  - Enumeration source: explicit per-field check of BC-4.10.001 CHANGELOG vs last_amended (singleton sweep).
+  - Extent: 1. Inlined list: BC-4.10.001.
+  - Action: NO FILE EDIT — CHANGELOG row v1.4 (2026-05-11) corroborates last_amended: 2026-05-11. False-positive confirmed.
+  - Verification: `grep '^| 1.4' .factory/specs/behavioral-contracts/ss-04/BC-4.10.001.md` → `| 1.4 | 2026-05-11 | F-P3-005 fix-burst...` ✓ (CHANGELOG date matches last_amended date)
+  - D-397 note: no grep-back needed for false-positive (no action taken) ✓
+
+- Sweep dim 4 (F-P20-005+F-P20-007): STORY-INDEX D-395 citation + VP-INDEX Refs precision.
+  - Enumeration source: explicit per-field check of STORY-INDEX.md last_amended and VP-INDEX changelog v1.41 Refs (2-file sweep).
+  - Extent: 2. Inlined list: STORY-INDEX.md, VP-INDEX.md.
+  - Action: STORY-INDEX: "D-395+D-396 co-codified" plural added. VP-INDEX v1.41 Refs: D-390+D-392 added as direct; "codified-same-burst-as: D-395, D-396" annotation added.
+  - Verification D-395 (STORY-INDEX): `grep -c 'D-395' .factory/stories/STORY-INDEX.md` → **1** ✓
+  - Verification D-397 (VP-INDEX Refs): `grep -c 'codified-same-burst-as: D-395, D-396' .factory/specs/verification-properties/VP-INDEX.md` → **1** ✓
+
+- Sweep dim 5 (F-P20-006): burst-log pass-19 F-P18-009 transitive closure corrigendum.
+  - Enumeration source: explicit check of burst-log pass-19 entry for F-P18-009 mention (singleton sweep).
+  - Extent: 1. Inlined list: burst-log.md pass-19 entry.
+  - Action: D-387-format corrigendum appended at END of pass-19 entry body: "F-P18-009 is now FULLY RESOLVED."
+  - Verification (D-395 + D-397): `grep -c 'F-P18-009 is now FULLY RESOLVED' .factory/cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md` → **1** ✓
+  - D-397 satisfied: grep target is content-specific (FULLY RESOLVED claim for F-P18-009); no prior-pass substring ambiguity ✓
+
+**F-P20-008 DEFERRED:** STATE.md Phase Progress row compression acknowledged. Per D-386 Option C asymptotic acceptance; no structural escalation this cycle.
+
+**F-P20-009 acknowledgment:** L-EDP1-012 pattern-extension note enumerates 5 layer-12 candidate dimensions including (e) timestamp-vs-last_amended alignment (the dimension F-P20-002 instantiated). L-EDP1-007 prediction confirmed holding.
+
+**F-P20-010 acknowledgment:** INDEX.md "D-387..D-396 codified" shorthand continues; D-397+D-398 will be added to the INDEX.md Convergence Status this burst. NITPICK; no action on the shorthand convention.
+
+**D-383/D-384/D-385/D-393/D-395/D-397 attestations (pass-20 fix burst):**
+- Trajectory pre: "29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11" (19 values for 19 passes)
+- Trajectory post: "29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10" (20 values for 20 passes)
+- Cardinality: 29(P1),15(P2),11(P3),9(P4),8(P5),7(P6),5(P7),6(P8),6(P9),6(P10),4(P11),3(P12),3(P13),10(P14),13(P15),9(P16),9(P17),10(P18),11(P19),10(P20) = 20 values = 20 passes ✓
+- Per-position match vs INDEX.md rows: P1=29✓ P2=15✓ P3=11✓ P4=9✓ P5=8✓ P6=7✓ P7=5✓ P8=6✓ P9=6✓ P10=6✓ P11=4✓ P12=3✓ P13=3✓ P14=10✓ P15=13✓ P16=9✓ P17=9✓ P18=10✓ P19=11✓ P20=10✓
+- "passes 3-N" phrase: N=20 (current burst is pass-20); INDEX.md Convergence Status updated to "passes 3-20" ✓
+- Sub-trajectory sibling sweep (D-385 sub-rule 1): STATE.md Phase Progress rows verified consistent with canonical 20-value trajectory ✓; Concurrent Cycles row updated to "(pass-1..20): 29→...→10" ✓
+- Immutable-row scope check (D-385 sub-rule 2): pass-19 burst-log F-P18-009 corrigendum is an appended line (D-387 permitted format); body immutable ✓. L-EDP1-011 corrigendum appended at END of entry per D-387 ✓. No retroactive body edits ✓.
+- D-383 intra-file content audit: STATE.md (phase + current_step + trajectory + Concurrent Cycles + Session Resume Checkpoint all consistent), INDEX.md (row-20 added; Convergence Status updated to passes 3-20; cardinality 20 values for 20 passes), burst-log.md (pass-20 entry appended; pass-19 F-P18-009 corrigendum), decision-log.md (D-397+D-398 appended; ID sequence D-336..D-398 sequential ✓), lessons.md (L-EDP1-011 Layer-10 corrigendum + L-EDP1-012 appended)
+
+**F-P20-003 false-positive documentation:** BC-4.10.001 last_amended: 2026-05-11 is correctly corroborated by CHANGELOG row v1.4 (2026-05-11; "F-P3-005 fix-burst: add PC11 mandatory observability"). The pass-19 fix burst did NOT modify BC-4.10.001; the last_amended date reflects the v1.4 row from the pass-3 fix burst. F-P20-003 is a false-positive finding; disposition documented here per D-383 (closure record specifies why no file edit was made).
+
+**Factory-artifacts commits:** (Commit A: d0997333), (Commit B: 5b2f0829), (Commit C: db63d855), (Commit E: this commit — state-manager final per POLICY 3)
