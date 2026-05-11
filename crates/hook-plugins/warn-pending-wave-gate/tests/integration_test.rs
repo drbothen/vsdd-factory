@@ -111,36 +111,38 @@ mod warn_pending_wave_gate_integration {
     // YAML fixtures
     // -----------------------------------------------------------------------
 
+    // F-P3-001: all fixtures updated to SEQUENCE form (canonical producer schema).
+    // The mapping form (waves: { W-15: { ... } }) was the pre-fix legacy schema.
     const YAML_ONE_PENDING: &str = r#"
 waves:
-  W-15:
+  - wave: W-15
     gate_status: pending
     started: 2026-04-01
 "#;
 
     const YAML_TWO_PENDING: &str = r#"
 waves:
-  W-15:
+  - wave: W-15
     gate_status: pending
-  W-16:
+  - wave: W-16
     gate_status: pending
 "#;
 
     const YAML_ALL_PASSED: &str = r#"
 waves:
-  W-14:
+  - wave: W-14
     gate_status: passed
-  W-15:
+  - wave: W-15
     gate_status: passed
 "#;
 
     const YAML_MIXED: &str = r#"
 waves:
-  W-14:
+  - wave: W-14
     gate_status: passed
-  W-15:
+  - wave: W-15
     gate_status: pending
-  W-16:
+  - wave: W-16
     gate_status: deferred
 "#;
 
@@ -159,16 +161,22 @@ waves: ~
 waves: {}
 "#;
 
+    // F-P3-001: sequence form with non-string gate_status values (scalar i64, bool, seq).
+    // serde_yaml will fail to deserialize Option<String> from integer/bool/list, so
+    // gate_status defaults to None (not "pending") → wave is skipped. No panic.
     const YAML_NON_STRING_GATE_STATUS: &str = r#"
 waves:
-  W-15:
+  - wave: W-15
     gate_status: 42
-  W-16:
+  - wave: W-16
     gate_status: true
-  W-17:
-    gate_status: [pending]
+  - wave: W-17
+    gate_status:
+      - pending
 "#;
 
+    // F-P3-001: waves is a list of plain strings (not WaveEntry structs) — serde
+    // will fail to deserialize (missing `wave` field) → parse error → Continue.
     const YAML_WAVES_KEY_IS_LIST: &str = r#"
 waves:
   - W-15
@@ -620,11 +628,12 @@ waves:
     /// Value::as_str on missing key returns None → not "pending" → skip.
     #[test]
     fn test_BC_7_03_091_ec003_wave_without_gate_status_skipped() {
+        // F-P3-001: sequence form fixture.
         let yaml = r#"
 waves:
-  W-15:
+  - wave: W-15
     started: 2026-04-01
-  W-16:
+  - wave: W-16
     gate_status: passed
 "#;
         let (events, stderr, result) = dispatch(Some(yaml));
