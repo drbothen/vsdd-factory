@@ -88,7 +88,12 @@ run_hook() {
         skip "AC-005: dispatcher binary not found at $DISPATCHER_BIN — build with 'cargo build -p factory-dispatcher' before running bats tests"
     fi
 
-    run bash -c "cd '$FIXTURE_DIR' && echo '$STOP_STDIN' | '$DISPATCHER_BIN' 2>&1"
+    # IMPORTANT: cd to CLAUDE_PLUGIN_ROOT (not FIXTURE_DIR) so that the resolver
+    # WASM path "hook-plugins/vsdd-context-resolvers.wasm" in resolvers-registry.toml
+    # resolves correctly (relative to plugin root, not the fixture temp dir).
+    # CLAUDE_PROJECT_DIR is set separately so the dispatcher reads .factory/ from
+    # the fixture dir. Pattern mirrors resolver-integration.bats (F-P4-001 fix).
+    run bash -c "cd '$CLAUDE_PLUGIN_ROOT' && echo '$STOP_STDIN' | '$DISPATCHER_BIN' 2>&1"
 }
 
 # ---------------------------------------------------------------------------
