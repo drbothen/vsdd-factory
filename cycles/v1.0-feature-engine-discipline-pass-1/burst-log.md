@@ -57,8 +57,16 @@ Archived from STATE.md Session Resume Checkpoint (2026-05-09 snapshot):
 
 ## Burst: F5 pass-7 fix burst (2026-05-11)
 
-**Summary:** Addressed 5 findings from pass-6 CRITICAL verdict (first pass below CRITICAL after 6 consecutive CRITICAL passes). BC-INDEX v1.63→v1.64: Capability TBD→CAP-008 for BC-7.03.091/092 (F-P7-001). E-14 epic v1.0→v1.1: story_count 5→9; S-14.06/07/08/09 added to Stories Planned table; forward-ref note added for cycle v1.0-feature-engine-discipline-pass-2 (F-P7-002 + F-P7-004). Feature-branch cosmetic fixes: resolver-integration.bats comment + test name updated 3000ms→8000ms (F-P7-003); timeout rationale arithmetic corrected (F-P7-005). NOTE: ARCH-INDEX cite-refresh (L-P20-002) was missed — F-P8-001 remediation required.
+**Summary:** Addressed 5 findings from pass-6 CRITICAL verdict (first pass below CRITICAL after 6 consecutive CRITICAL passes). BC-INDEX v1.63→v1.64: Capability TBD→CAP-008 for BC-7.03.091/092 (F-P7-001). E-14 epic v1.0→v1.1: story_count 5→9; S-14.06/07/08/09 added to Stories Planned table; forward-ref note added for cycle v1.0-feature-engine-discipline-pass-2 (F-P7-002 + F-P7-004). Feature-branch cosmetic fixes: resolver-integration.bats comment + test name updated 3000ms→8000ms (F-P7-003); timeout rationale arithmetic corrected (F-P7-005).
 
 **Feature-branch commits:** 2e6b4372 (branch: feature/F5-pass-3-cycle-hardening)
 
 **Factory-artifacts commits:** 5f26d1b0, 71e22193
+
+---
+
+## Burst: F5 pass-8 fix burst (2026-05-11)
+
+**Summary:** Addressed 6 findings from pass-8 MEDIUM verdict (regression from pass-7 LOW). ARCH-INDEX v1.44→v1.45: cite-refresh per L-P20-002 triggered by BC-INDEX v1.63→v1.64 bump in pass-7 burst (F-P8-001). E-14 v1.1→v1.2: forward-ref note corrected — S-14.01 explicitly identified as pass-1 cycle (not pass-2 as erroneously stated); S-14.02..S-14.09 forward-referenced as pass-2 (F-P8-002). STATE.md comprehensive update: phase, current_step, Phase Progress (rows for passes 3-8), Session Resume Checkpoint, Index versions updated per D-381 initial application (F-P8-003). STORY-INDEX last_amended field updated to document v2.65 bump event with S-14.06-09 registration (F-P8-004). burst-log.md: entries for passes 3-7 appended retroactively (F-P8-005). BC-INDEX v1.64 changelog citation updated from fragile line numbers to stable BC IDs (F-P8-006). D-381 (adversary fix-burst MUST update STATE.md) codified in decision-log. NOTE: ARCH-INDEX cite-refresh (L-P20-002) was missed in the pass-7 fix burst — this burst applied the retroactive fix.
+
+**Factory-artifacts commits:** d667cdc2, a86bbc9e, 3ebb7768, 656def81, ce44346f
