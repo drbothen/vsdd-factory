@@ -40,7 +40,7 @@ macos-latest and ubuntu-latest PASS). Broke the 5-pass chain.
 
 ## L-EDP1-002 — Sibling-file discipline gap recurrence under fix-burst pressure (cite-refresh + STATE.md + burst-log + INDEX.md)
 
-**Source:** F-P8-001 (MEDIUM), F-P9-001 (HIGH)
+**Source:** F-P8-001 (MEDIUM), F-P8-003 (MEDIUM), F-P9-001 (HIGH)
 **Date codified:** 2026-05-11
 
 **Pattern:** L-P20-002 (codified in plugin-async-semantics cycle) requires ARCH-INDEX

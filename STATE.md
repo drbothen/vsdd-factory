@@ -5,13 +5,13 @@ version: "2.0"
 status: draft
 producer: state-manager
 timestamp: 2026-05-11T00:00:00Z
-phase: engine-discipline-F5-pass-9-fix-burst
+phase: engine-discipline-F5-pass-10-fix-burst
 inputs: []
 input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "Engine-discipline F5 pass-9 — comprehensive sibling-file sweep (burst-log pass-8+pass-9 entries, INDEX.md passes 3-9, D-382 decision codification, lessons.md create, STATE.md arithmetic reconcile); cycle: pass-8 MEDIUM regression resolved; pass-9 MEDIUM-HIGH; streak 0/3"
+current_step: "Engine-discipline F5 pass-10 fix burst — F-P10-001..006 applying (INDEX.md arithmetic, decision-log row sweep, D-383 codification, STATE.md phase update, lessons.md Source fix); pass-10 MEDIUM; streak 0/3; pass-11 adversary dispatch NEXT"
 current_cycle: v1.0-feature-engine-discipline-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,8 +38,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-11 — F5 pass-9 fix burst IN PROGRESS; adv-cycle-pass-9.md persisted (MEDIUM-HIGH: 1H+1M+2L+2NIT); F-P9-001 burst-log+INDEX.md updated; D-382 codified (full sibling-file set); lessons.md created; STATE.md arithmetic reconciled |
-| **Current Phase** | Engine-discipline F5 — pass-9 fix burst applying; pass-10 adversary dispatch NEXT (pass-9 verdict MEDIUM-HIGH, streak 0/3) |
+| **Last Updated** | 2026-05-11 — F5 pass-10 fix burst IN PROGRESS; adv-cycle-pass-10.md persisted (MEDIUM: 2M+2L+2NIT); F-P10-001 INDEX.md arithmetic (row 3: 9→11); F-P10-002 decision-log D-377/D-378 swap; F-P10-003 Convergence Status trajectory corrected; F-P10-005 D-381 NOTE removed; D-383 codified (intra-file content audit + sibling-pattern sweep) |
+| **Current Phase** | Engine-discipline F5 — pass-10 fix burst applying; pass-11 adversary dispatch NEXT (pass-10 verdict MEDIUM, streak 0/3) |
 | **Current Cycle** | v1.0-feature-engine-discipline-pass-1 |
 
 ## Phase Progress
@@ -64,7 +64,9 @@ dtu_services: []
 | F5 pass-8 fix burst (sibling-file gaps) | **COMPLETE** | ARCH-INDEX v1.45, E-14 v1.2, STORY-INDEX last_amended, burst-log passes 3-7, D-381; verdict MEDIUM (regression) |
 | F5 pass-9 cycle-level adversary | **COMPLETE** | MEDIUM-HIGH (1H+1M+2L+2NIT); F-P9-001 burst-log+INDEX.md; F-P9-002 D-382; F-P9-003 arithmetic; F-P9-004 lessons.md; streak 0/3 |
 | F5 pass-9 fix burst (comprehensive sibling-file sweep) | **COMPLETE** | adv-cycle-pass-9.md; burst-log pass-8+9 entries; INDEX.md passes 3-9; D-382; lessons.md; STATE.md arithmetic; D-382 initial application verified |
-| F5 pass-10 cycle-level adversary | **NEXT** | Fresh-context; target NITPICK_ONLY; all F-P9 factory-artifacts fixes applied; apply D-382 discipline |
+| F5 pass-10 cycle-level adversary | **COMPLETE** | MEDIUM (2M+2L+2NIT); intra-file content defects in pass-9 touched files; L-EDP1-003 migrated one layer up |
+| F5 pass-10 fix burst (intra-file content audit) | **IN PROGRESS** | adv-cycle-pass-10.md; INDEX.md arithmetic+Convergence; decision-log D-377/D-378+D-381+D-383; STATE.md + lessons.md updating |
+| F5 pass-11 cycle-level adversary | **NEXT** | Fresh-context; target NITPICK_ONLY; all F-P10 fixes applied; apply D-382+D-383 discipline |
 | Phase D-4 Burst 2 — E-10 + E-9 v1.7 | **PENDING** | E-10 paused D-343; adversary pass-9 queued |
 
 ## Current Phase Steps
@@ -76,7 +78,9 @@ dtu_services: []
 | F5 pass-8 adversarial review | adversary | DONE 2026-05-11 | MEDIUM (regression): 3M+2L+1NIT; ARCH-INDEX cite-refresh miss, E-14 note error, STATE.md staleness |
 | F5 pass-9 adversarial review | adversary | DONE 2026-05-11 | MEDIUM-HIGH: 1H+1M+2L+2NIT; burst-log/INDEX.md miss, D-382 scope gap, story arithmetic, lessons.md absent |
 | F5 pass-9 fix burst (comprehensive sibling-file sweep) | state-manager | DONE 2026-05-11 | F-P9-001..006 all applied; D-382; lessons.md; STATE.md arithmetic; burst-log pass-9 entry |
-| F5 pass-10 cycle-level adversary | adversary | NEXT | Fresh-context; target NITPICK_ONLY; all F-P9 fixes applied |
+| F5 pass-10 cycle-level adversary | adversary | DONE 2026-05-11 | MEDIUM: 2M+2L+2NIT; intra-file content defects; L-EDP1-003 pattern migrated |
+| F5 pass-10 fix burst (intra-file content audit) | state-manager | IN PROGRESS | F-P10-001..006; D-383 codified; D-382+D-383 initial application |
+| F5 pass-11 cycle-level adversary | adversary | NEXT | Fresh-context; target NITPICK_ONLY; all F-P10 fixes applied |
 
 ## Identifier Conventions
 
@@ -115,7 +119,7 @@ dtu_services: []
 | Cycle | Type | Status | Notes |
 |-------|------|--------|-------|
 | v1.0-brownfield-backfill | brownfield | PAUSED | E-10 pass-9 pending; paused at D-343 |
-| v1.0-feature-engine-discipline-pass-1 | feature | F5-pass-10-NEXT | All 6 E-12 stories merged; F5 passes 3-9 complete (trajectory 9→9→8→7→5→6→6); pass-9 MEDIUM-HIGH verdict; pass-9 fix burst COMPLETE (D-382, lessons.md, burst-log pass-8+9, INDEX.md passes 3-9, STATE.md arithmetic); pass-10 dispatch is next step |
+| v1.0-feature-engine-discipline-pass-1 | feature | F5-pass-10-fix-burst-IN-PROGRESS | All 6 E-12 stories merged; F5 passes 3-10 complete (trajectory 29→15→11→9→9→8→7→5→6→6→6); pass-10 MEDIUM verdict; pass-10 fix burst applying (F-P10-001..006 + D-383); pass-11 dispatch is next step |
 | v1.0-feature-plugin-async-semantics-pass-1 | feature | CLOSED | All PRs merged; rc.14 shipped |
 
 ## Decisions Log
@@ -163,19 +167,19 @@ dtu_services: []
 
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-11 — F5 pass-9 fix burst COMPLETE (F-P9-001..006 resolved). burst-log pass-8 entry added; INDEX.md Adversarial Reviews table passes 3-9 populated; D-382 codified (full cycle-level sibling-file set: STATE.md + burst-log + INDEX.md + lessons.md + decision-log); decision-log reordered D-379→D-380→D-381→D-382; lessons.md created (4 L-EDP1-NNN + 4 PG-EDP1-NNN); STATE.md story arithmetic reconciled (92 file-resident, not 88/90). Pass-9 adversarial verdict: MEDIUM-HIGH (regression sustained). Trajectory: 29→11→9→9→8→7→5→6→6. Streak 0/3.
+**Last update:** 2026-05-11 — F5 pass-10 fix burst COMPLETE (F-P10-001..006 resolved). adv-cycle-pass-10.md persisted (MEDIUM: 2M+2L+2NIT). INDEX.md row-3 arithmetic corrected (9→11); Convergence Status trajectory updated (29→15→11→9→9→8→7→5→6→6→6), pass count 9→10, phrase "passes 3-8"→"passes 3-9". decision-log D-377/D-378 row inversion corrected (full D-336..D-383 sweep clean); D-381 retroactive NOTE removed; D-383 codified (intra-file content audit + sibling-pattern sweep, extends D-382). lessons.md L-EDP1-002 Source updated (F-P8-003 added). STATE.md phase/current_step/Phase Progress/Concurrent Cycles/Session Resume updated. Pass-10 MEDIUM verdict. Trajectory: 29→15→11→9→9→8→7→5→6→6→6. Streak 0/3.
 
 **Next session start — ordered checklist:**
 
-1. ✓ F5 passes 3-9 complete. Factory-artifacts: all F-P9-001..006 fixes applied per D-382. Feature branch: feature/F5-pass-3-cycle-hardening @ 2e6b4372.
-2. **NEXT:** Dispatch F5 pass-10 cycle-level adversary fresh-context review. Verify all F-P9 fixes are present. Target: NITPICK_ONLY (begin 3-pass streak for convergence).
-3. If pass-10 NITPICK_ONLY: begin 3-pass streak (passes 11-12 for convergence).
-4. If pass-10 LOW or above: dispatch fix burst per D-382 (update ALL sibling files), then pass-11.
+1. ✓ F5 passes 3-10 complete. Factory-artifacts: all F-P10-001..006 fixes applied per D-382+D-383. Feature branch: feature/F5-pass-3-cycle-hardening @ 2e6b4372.
+2. **NEXT:** Dispatch F5 pass-11 cycle-level adversary fresh-context review. Verify all F-P10 fixes are present. Target: NITPICK_ONLY (begin 3-pass streak for convergence).
+3. If pass-11 NITPICK_ONLY: begin 3-pass streak (passes 12-13 for convergence).
+4. If pass-11 LOW or above: dispatch fix burst per D-382+D-383 (update ALL sibling files + intra-file content audit), then pass-12.
 5. F6 targeted hardening (engine-discipline cycle) — after 3 consecutive NITPICK_ONLY cycle-level passes.
 6. F7 delta convergence + human gate (cycle CLOSE).
 7. E-10 brownfield pass-9 resume (PAUSED at D-343).
 
-**D-382 discipline applies to ALL future fix bursts:** STATE.md + burst-log.md + INDEX.md + lessons.md (when applicable) + decision-log.md (when decision authored). Closure record MUST list which files were updated.
+**D-382+D-383 discipline applies to ALL future fix bursts:** D-382: STATE.md + burst-log.md + INDEX.md + lessons.md + decision-log.md. D-383: intra-file content audit (arithmetic + stale-phrase + cross-ref) + sibling-pattern sweep on each touched file. Closure record MUST list which files were updated AND attest intra-file audit was performed.
 
 **Branches:**
 - main @ feb894a2 | develop @ 99d24315 | feature/F5-pass-3-cycle-hardening @ 2e6b4372 | factory-artifacts @ (see git log)
