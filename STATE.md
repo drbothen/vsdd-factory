@@ -5,13 +5,13 @@ version: "2.0"
 status: draft
 producer: state-manager
 timestamp: 2026-05-11T00:00:00Z
-phase: engine-discipline-F5-pass-3-adversary-rebaseline
+phase: engine-discipline-F5-pass-8-fix-burst
 inputs: []
 input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "Engine-discipline F5 pass-3 — cycle-level adversary re-baseline (was BLOCKED on S-12.08 merge; now unblocked)"
+current_step: "Engine-discipline F5 pass-8 — sibling-file gap fixes (ARCH-INDEX v1.44→v1.45 cite-refresh, E-14 v1.2 forward-ref correction, STORY-INDEX last_amended v2.65, burst-log passes 3-7, D-381 STATE.md discipline rule); cycle: pass-7 LOW → pass-8 MEDIUM regression (F-P8-001/002/003/004/005/006 resolved in this burst)"
 current_cycle: v1.0-feature-engine-discipline-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,8 +38,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-11 — F4 platform delivery COMPLETE; S-12.08 MERGED PR #123 at 99d24315; E-12 all 6 stories merged; F-P2-001 + F-P2-008 CLOSED; F5 pass-3 adversary re-baseline now unblocked |
-| **Current Phase** | Engine-discipline F5 pass-3 — cycle-level adversary re-baseline (F4 COMPLETE; CRITICAL PATH TERMINUS reached) |
+| **Last Updated** | 2026-05-11 — F5 pass-8 fix burst COMPLETE; ARCH-INDEX v1.45 (L-P20-002 cite-refresh); E-14 v1.2 (forward-ref note corrected); STORY-INDEX last_amended v2.65; burst-log passes 3-7 documented; D-381 STATE.md discipline rule codified |
+| **Current Phase** | Engine-discipline F5 — pass-8 fix burst complete; pass-9 adversary cycle NEXT (pass-8 verdict MEDIUM, regression from pass-7 LOW) |
 | **Current Cycle** | v1.0-feature-engine-discipline-pass-1 |
 
 ## Phase Progress
@@ -60,18 +60,19 @@ dtu_services: []
 | S-12.07 HOST_ABI context injection consumer side | **MERGED** PR #122 2026-05-11 | 8-pass adversary streak CRIT→HIGH→MED→LOW→LOW→N→N→N; convergence_reached=true |
 | S-12.08 convergence hook context migration | **MERGED** PR #123 2026-05-11 99d24315 | 6 passes MED→MED→LOW→N→N→N; closes F-P2-001 + F-P2-008; CRITICAL PATH TERMINUS reached |
 | F4 E-12 resolver-platform sub-batch | **COMPLETE** all 6 stories merged (S-12.03 #120 + S-12.04 #121 + S-12.05 #119 + S-12.06 #105 + S-12.07 #122 + S-12.08 #123) | — |
-| F5 pass-3 cycle-level adversary re-baseline | **NEXT** | Re-baseline 29 pass-1 + N pass-2 findings against 6-story cleanup; determine open vs closed |
+| F5 passes 3-7 cycle-level adversary | **COMPLETE** | Trajectory 9→9→8→7→5; verdict LOW at pass-7; fixes on feature/F5-pass-3-cycle-hardening branch |
+| F5 pass-8 fix burst (sibling-file gaps) | **COMPLETE** | ARCH-INDEX v1.45, E-14 v1.2, STORY-INDEX last_amended, burst-log, D-381; verdict MEDIUM (regression) |
+| F5 pass-9 cycle-level adversary | **NEXT** | Fresh-context; target LOW or NITPICK_ONLY; apply F-P8 fixes verified |
 | Phase D-4 Burst 2 — E-10 + E-9 v1.7 | **PENDING** | E-10 paused D-343; adversary pass-9 queued |
 
 ## Current Phase Steps
 
 | Step | Agent | Status | Output |
 |------|-------|--------|--------|
-| S-12.07 adversary convergence (8 passes) + PR | adversary/devops | DONE 2026-05-11 | PR #122 merged; CRIT→HIGH→MED→LOW→LOW→N→N→N |
-| S-12.08 adversary convergence (6 passes) | adversary | DONE 2026-05-11 | 6-pass streak MED→MED→LOW→N→N→N; CONVERGED; bats 3/3 PASS |
-| S-12.08 PR #123 merge | pr-manager/devops | DONE 2026-05-11 | Squash-merged 99d24315; CRITICAL PATH TERMINUS reached |
-| F4 E-12 platform delivery | all agents | COMPLETE 2026-05-11 | 6 stories across PRs #105/#119/#120/#121/#122/#123; F-P2-001 + F-P2-008 CLOSED |
-| F5 pass-3 adversary re-baseline | adversary | NEXT | Fresh-context review; re-baseline findings from pass-1 + pass-2 |
+| F5 passes 3-7 cycle adversary + fix bursts | adversary/state-mgr | DONE 2026-05-11 | Trajectory 9→9→8→7→5; pass-7 LOW; feature branch feature/F5-pass-3-cycle-hardening |
+| F5 pass-8 fix burst (factory-artifacts only) | state-manager | DONE 2026-05-11 | ARCH-INDEX v1.45, E-14 v1.2, STORY-INDEX last_amended, burst-log, D-381 |
+| F5 pass-8 adversarial review | adversary | DONE 2026-05-11 | MEDIUM (regression): 3M+2L+1NIT; ARCH-INDEX cite-refresh miss, E-14 note error, STATE.md staleness |
+| F5 pass-9 cycle-level adversary | adversary | NEXT | Fresh-context; target LOW or NITPICK_ONLY; all F-P8 factory-artifacts fixes applied |
 
 ## Identifier Conventions
 
@@ -90,7 +91,7 @@ dtu_services: []
 
 - **Merged (67):** Includes all prior + S-12.06 (PR #105), S-12.05 (PR #119), S-12.03 (PR #120), S-12.04 (PR #121), S-12.07 (PR #122), S-12.08 (PR #123). E-12 frontier fully merged. Full ledger: `cycles/v1.0-brownfield-backfill/merged-stories-ledger.md`
 - **In-Flight (0):** —
-- **Draft (18 file-resident):** S-5.07; S-11.00; S-14.01..S-14.05 (E-14); S-15.02..S-15.03
+- **Draft (22 file-resident):** S-5.07; S-11.00; S-14.01..S-14.09 (E-14); S-15.02..S-15.03
 - **Unauthored stub IDs (15):** S-9.01..S-9.07 (W-16); S-11.01..S-11.08 (E-11 W-17 Tier 3)
 - **Withdrawn (1):** S-9.30
 
@@ -109,7 +110,7 @@ dtu_services: []
 | Cycle | Type | Status | Notes |
 |-------|------|--------|-------|
 | v1.0-brownfield-backfill | brownfield | PAUSED | E-10 pass-9 pending; paused at D-343 |
-| v1.0-feature-engine-discipline-pass-1 | feature | F4-COMPLETE; F5-pass-3-NEXT | All 6 E-12 stories merged; F5 pass-3 adversary re-baseline is next step |
+| v1.0-feature-engine-discipline-pass-1 | feature | F5-pass-9-NEXT | All 6 E-12 stories merged; F5 passes 3-8 complete (trajectory 9→9→8→7→5→6); pass-8 MEDIUM verdict; pass-9 dispatch is next step |
 | v1.0-feature-plugin-async-semantics-pass-1 | feature | CLOSED | All PRs merged; rc.14 shipped |
 
 ## Decisions Log
@@ -157,22 +158,24 @@ dtu_services: []
 
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-11 — S-12.07 + S-12.08 MERGED (E-12 resolver-platform sub-batch COMPLETE; F-P2-001 + F-P2-008 CLOSED). F4 platform delivery complete across all 6 E-12 stories (#105/#119/#120/#121/#122/#123). CRITICAL PATH TERMINUS reached.
+**Last update:** 2026-05-11 — F5 pass-8 fix burst COMPLETE (F-P8-001..006 resolved). ARCH-INDEX v1.44→v1.45 (L-P20-002 cite-refresh retroactive); E-14 v1.1→v1.2 (forward-ref note corrected: S-14.01 is pass-1, not pass-2); STORY-INDEX last_amended documents v2.65 bump; burst-log passes 3-7 documented; D-381 codified (STATE.md update mandatory in fix bursts). Pass-8 adversarial verdict: MEDIUM (regression from pass-7 LOW). Trajectory: 29→11→9→9→8→7→5→6. Streak 0/3.
 
 **Next session start — ordered checklist:**
 
-1. ✓ S-12.07 + S-12.08 MERGED (E-12 resolver-platform sub-batch COMPLETE; F-P2-001 + F-P2-008 CLOSED)
-2. **NEXT:** Dispatch F5 pass-3 cycle-level adversary fresh-context review. The 29 pass-1 + N pass-2 findings need re-baseline against current state (6 stories of work done since pass-2 was issued). Determine which remain open vs closed by per-story work.
-3. F5 pass-3 fix-plan (only what remains after re-baseline)
-4. F5 pass-3+ fix burst to 3 NITPICK_ONLY cycle-level convergence
-5. F6 targeted hardening (engine-discipline cycle)
-6. F7 delta convergence + human gate (cycle CLOSE)
-7. E-10 brownfield pass-9 resume (PAUSED at D-343)
+1. ✓ F5 passes 3-8 complete. Factory-artifacts: ARCH-INDEX v1.45, E-14 v1.2, STORY-INDEX last_amended v2.65, burst-log, D-381. Feature branch: feature/F5-pass-3-cycle-hardening @ 2e6b4372.
+2. **NEXT:** Dispatch F5 pass-9 cycle-level adversary fresh-context review. Verify all F-P8 fixes are present. Target: LOW or NITPICK_ONLY (reset streak counter).
+3. If pass-9 NITPICK_ONLY: begin 3-pass streak (passes 10-11 for convergence).
+4. If pass-9 LOW or above: dispatch fix burst, then pass-10.
+5. F6 targeted hardening (engine-discipline cycle) — after 3 consecutive NITPICK_ONLY cycle-level passes.
+6. F7 delta convergence + human gate (cycle CLOSE).
+7. E-10 brownfield pass-9 resume (PAUSED at D-343).
+
+**STATE.md updated (D-381 initial application):** phase, current_step, Current Phase, Phase Progress (F5 rows), Current Phase Steps, Concurrent Cycles, Story Status draft count, Session Resume Checkpoint, Index versions.
 
 **Branches:**
-- main @ feb894a2 | develop @ 99d24315 | factory-artifacts @ (see git log)
+- main @ feb894a2 | develop @ 99d24315 | feature/F5-pass-3-cycle-hardening @ 2e6b4372 | factory-artifacts @ (see git log)
 
-**Index versions:** BC-INDEX v1.64 | VP-INDEX v1.40 | STORY-INDEX v2.64 | ARCH-INDEX v1.44
+**Index versions:** BC-INDEX v1.64 | VP-INDEX v1.40 | STORY-INDEX v2.65 | ARCH-INDEX v1.45
 **ADR-013:** 3_of_3 CONVERGED (pass-57) | **E-9:** v1.53 CONVERGENCE_REACHED | **E-10:** paused D-343
 **5 user-locked decisions:** `cycles/v1.0-feature-plugin-async-semantics-pass-1/F4-handoff.md` §3
 
