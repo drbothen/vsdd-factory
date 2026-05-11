@@ -127,7 +127,7 @@ dtu_services: []
 | Cycle | Type | Status | Notes |
 |-------|------|--------|-------|
 | v1.0-brownfield-backfill | brownfield | PAUSED | E-10 pass-9 pending; paused at D-343 |
-| v1.0-feature-engine-discipline-pass-1 | feature | F5-pass-13-NEXT | All 6 E-12 stories merged; F5 passes 3-12 complete (trajectory 29→15→11→9→8→7→5→6→6→6→4→6); pass-12 MEDIUM verdict (2M+1L+3PG; 4th lateral); pass-12 fix burst COMPLETE (F-P12-001..003 + D-385 + all sibling files); pass-13 dispatch is next step |
+| v1.0-feature-engine-discipline-pass-1 | feature | F5-pass-13-NEXT | All 6 E-12 stories merged; F5 passes 3-13 complete (trajectory 29→15→11→9→8→7→5→6→6→6→4→3→3; content-only); pass-13 MEDIUM verdict (1H+1M+1L; 5th L-EDP1-003 layer); pass-13 fix burst COMPLETE (F-P13-001..003 + L-EDP1-007 + all sibling files); structural escalation: human decision required on S-15.03 vs laxer convergence criterion |
 | v1.0-feature-plugin-async-semantics-pass-1 | feature | CLOSED | All PRs merged; rc.14 shipped |
 
 ## Decisions Log
@@ -175,7 +175,7 @@ dtu_services: []
 
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-11 — F5 pass-12 fix burst COMPLETE (F-P12-001..003 resolved). adv-cycle-pass-12.md persisted (MEDIUM: 2M+1L+3PG; 4th lateral). F-P12-001 MED: STATE.md sub-trajectories at lines 63+78 corrected `9→9→8→7→5` → `11→9→8→7→5` (pass-3 = 11 per F-P10-001 correction). F-P12-002 MED: retroactive NOTE annotations removed from burst-log.md pass-10 entry (D-383 rule 2(c) immutable-row violation). F-P12-003 LOW: per-position attestation in burst-log:102 extended P4-P11 → P1-P11. D-385 codified (D-383/D-384 clarifications: sub-trajectory sibling enumeration, immutable-row scope enumeration, attestation completeness). Trajectory: 29→15→11→9→8→7→5→6→6→6→4→6. Streak 0/3.
+**Last update:** 2026-05-11 — F5 pass-12 fix burst COMPLETE (F-P12-001..003 resolved). adv-cycle-pass-12.md persisted (MEDIUM: 2M+1L+3PG; 4th lateral). F-P12-001 MED: STATE.md sub-trajectories at lines 63+78 corrected `9→9→8→7→5` → `11→9→8→7→5` (pass-3 = 11 per F-P10-001 correction). F-P12-002 MED: retroactive NOTE annotations removed from burst-log.md pass-10 entry (D-383 rule 2(c) immutable-row violation). F-P12-003 LOW: per-position attestation in burst-log:102 extended P4-P11 → P1-P11. D-385 codified (D-383/D-384 clarifications: sub-trajectory sibling enumeration, immutable-row scope enumeration, attestation completeness). Trajectory (content-only): 29→15→11→9→8→7→5→6→6→6→4→3→3. Streak 0/3. (P12 restated as 3 per F-P13-002: content-only counting basis; P13=3: 1H+1M+1L)
 
 **Next session start — ordered checklist:**
 
