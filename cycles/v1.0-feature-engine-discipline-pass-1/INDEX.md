@@ -58,6 +58,7 @@ changes are WASM-only (no new Bash hook debt per D-2).
 | 11 | 2026-05-11 | 4 (2M+2L) | MEDIUM | adv-cycle-pass-11.md |
 | 12 | 2026-05-11 | 3 (2M+1L) +3PG | MEDIUM | adv-cycle-pass-12.md |
 | 13 | 2026-05-11 | 3 (1H+1M+1L) +3PG | MEDIUM | adv-cycle-pass-13.md |
+| 14 | 2026-05-11 | 10 (4M+4L+2NIT) +3PG | MEDIUM | adv-cycle-pass-14.md |
 
 ## Convergence Status
 
@@ -65,7 +66,7 @@ changes are WASM-only (no new Bash hook debt per D-2).
 - F2 (spec evolution / story decomposition): **COMPLETE** — F2-amendment D-362; 6 BCs + ADR-018 + 4 VPs + PRD FR-048
 - F3 (incremental stories): **COMPLETE** — F3-amendment D-366; 6 stories S-12.03..S-12.08 under E-12
 - F4 (implementation): **COMPLETE** — all 6 E-12 stories merged (PRs #105, #119, #120, #121, #122, #123); F-P2-001 closed via S-12.08
-- F5 (scoped adversarial review): **IN PROGRESS** — 13 passes; trajectory 29→15→11→9→8→7→5→6→6→6→4→3→3 (content-only; P12 restated per F-P13-002); pass-13 MEDIUM; streak 0/3; passes 3-13 fix bursts applied to factory-artifacts (feature branch feature/F5-pass-3-cycle-hardening @ 2e6b4372); structural escalation: L-EDP1-003 5th layer — human decision required
+- F5 (scoped adversarial review): **IN PROGRESS** — 14 passes; trajectory 29→15→11→9→8→7→5→6→6→6→4→3→3→10 (content-only; P12 restated per F-P13-002; P9 verdict HIGH per F-P14-004); pass-14 MEDIUM; streak 0/3; passes 3-14 fix bursts applied to factory-artifacts (feature branch feature/F5-pass-3-cycle-hardening @ 2e6b4372); D-386 Option C: accept asymptotic L-EDP1-003 limit, S-15.03 deferred
 - F6 (targeted hardening): PENDING
 - F7 (delta convergence): PENDING
 

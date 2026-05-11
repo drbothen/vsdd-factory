@@ -148,4 +148,30 @@ Archived from STATE.md Session Resume Checkpoint (2026-05-09 snapshot):
 - Immutable-row scope check (D-385 sub-rule 2): decision-log + burst-log pass-12 entry body + adv-cycle-pass-12.md are immutable; the NOTE annotation added to burst-log pass-12 attestation is within the attestation section (not a factual historical assertion); pass-12 frontmatter and section headings updated as part of F-P13-001 fix (structural correction, not retroactive annotation)
 - D-383 intra-file content audit: STATE.md (phase + current_step + Concurrent Cycles trajectory + Session Resume Checkpoint all consistent), burst-log.md (pass-12 attestation NOTE + per-position P12 corrected; pass-13 entry appended), INDEX.md (row-12 counting basis corrected; row-13 added; Convergence Status updated; cardinality 13 values for 13 passes), lessons.md (L-EDP1-007 appended), decision-log.md (no new D-NNN; ID sequence D-336..D-385 unchanged)
 
-**Factory-artifacts commits:** (Commit A: 65859621), (Commit B: a9a36627), (Commit C: 7d950234), (Commit E: this commit)
+**Factory-artifacts commits:** (Commit A: 65859621), (Commit B: a9a36627), (Commit C: 7d950234), (Commit E: eade17a8)
+
+---
+
+## Burst: F5 pass-14 fix burst (2026-05-11)
+
+**Summary:** Addressed 4M+4L+2NIT content findings + 3 process-gaps from pass-14 MEDIUM verdict (6th consecutive lateral; L-EDP1-003 at D-385 layer). adv-cycle-pass-14.md persisted (Commit A: 2c767793). F-P14-002: burst-log:138 "matching passes 3-11" → "matching passes 5-13 (passes 3-4 use a distinct earlier schema; see F-P14-002)". F-P14-004: pass-9 verdict MEDIUM-HIGH → HIGH in INDEX.md row-9 and adv-cycle-pass-9.md frontmatter (structural correction per D-385 immutable-row scope; verdict is not an append-only ID). F-P14-008: INDEX.md Stories table refreshed from placeholder S-A/B/C to confirmed S-12.01, S-12.02, S-13.01 with heading "Stories Delivered (F2-confirmed via D-345/D-346)"; Epics table updated E-?→E-12/E-13 (Commit B: 77613e36). D-386 appended to decision-log: Option C selected — continue F5, accept asymptotic L-EDP1-003 limit, S-15.03 deferred. L-EDP1-006 corrigendum appended to lessons.md per F-P14-003: non-amending note clarifying 4-layer vs 5-layer count; POLICY 1 honored (Commit C: 6451cf62). F-P14-005 (STATE.md pending-decision text removed; D-386 reflected). F-P14-006 (STORY-INDEX last_amended: S-14.06/07/08/09 deferral note added). burst-log + INDEX.md + STATE.md sibling files updated per D-382+D-383+D-384+D-385 (Commit D: this commit). F-P14-001 (pass-12 inputs:/traces_to: empty): NOTE — the pass-14 adversary review itself has been populated with canonical inputs; pass-12's empty fields pre-date this burst and are a historical schema-restoration gap. Deferred fix: pass-12 inputs would require retroactive population per D-385 sub-rule 2 review — a future burst can address this safely. F-P14-007 (Commit E SHA): resolved by this burst — Commit E SHA will be the state-manager final commit; recorded explicitly below. F-P14-009/010: NITPICK; deferred. F-P14-013: process-gap; deferred.
+
+**D-385/D-386 initial application — phrase-specific attestations per D-384 sub-rule 3 + D-385 sub-rule 3:**
+- burst-log schema phrase pre (burst-13 entry, line 138): "matching passes 3-11"
+- burst-log schema phrase post (burst-13 entry, line 138): "matching passes 5-13 (passes 3-4 use a distinct earlier schema; see F-P14-002)"
+- pass-9 verdict pre (INDEX.md row-9): "MEDIUM-HIGH"
+- pass-9 verdict post (INDEX.md row-9): "HIGH"
+- pass-9 verdict pre (adv-cycle-pass-9.md frontmatter): "verdict: MEDIUM-HIGH"
+- pass-9 verdict post (adv-cycle-pass-9.md frontmatter): "verdict: HIGH"
+- INDEX.md Stories table pre: "Stories Proposed (F2 to confirm)" with S-A/S-B/S-C
+- INDEX.md Stories table post: "Stories Delivered (F2-confirmed via D-345/D-346)" with S-12.01/S-12.02/S-13.01
+- Trajectory pre: "29→15→11→9→8→7→5→6→6→6→4→3→3" (13 values, pass-13 terminal)
+- Trajectory post: "29→15→11→9→8→7→5→6→6→6→4→3→3→10" (14 values, pass-14 appended)
+- Cardinality: 29(P1),15(P2),11(P3),9(P4),8(P5),7(P6),5(P7),6(P8),6(P9),6(P10),4(P11),3(P12),3(P13),10(P14) = 14 values = 14 passes ✓
+- Per-position match vs INDEX.md rows: P1=29✓ P2=15✓ P3=11✓ P4=9✓ P5=8✓ P6=7✓ P7=5✓ P8=6✓ P9=6✓ P10=6✓ P11=4✓ P12=3✓ P13=3✓ P14=10✓
+- "passes 3-N" phrase: N=14 (current burst is pass-14); INDEX.md Convergence Status updated to "passes 3-14" ✓
+- Sub-trajectory sibling sweep (D-385 sub-rule 1): grepped STATE.md for all trajectory sub-strings — no stale sub-trajectories found; STATE.md Phase Progress row shows passes 3-14 ✓; Current Phase Steps row shows pass-14 ✓
+- Immutable-row scope check (D-385 sub-rule 2): decision-log D-NNN entries, burst-log pass-13 entry body, adv-cycle-pass-N.md files, lessons.md L-EDP1-NNN entries are all immutable; corrigendum to L-EDP1-006 is an appended non-amending note (per F-P14-003 recommendation), not an amendment to the body
+- D-383 intra-file content audit: STATE.md (phase + current_step + Concurrent Cycles trajectory + Session Resume Checkpoint all consistent; pending-decision text removed per F-P14-005), burst-log.md (pass-14 entry appended; Commit E SHA named as eade17a8 for pass-13), INDEX.md (row-14 added; Convergence Status updated to passes 3-14; cardinality 14 values for 14 passes), lessons.md (L-EDP1-006 corrigendum appended), decision-log.md (D-386 appended; ID sequence D-336..D-386 ✓), STORY-INDEX.md (deferral note for S-14.06/07/08/09 appended to last_amended)
+
+**Factory-artifacts commits:** (Commit A: 2c767793), (Commit B: 77613e36), (Commit C: 6451cf62), (Commit D: this commit), (Commit E: state-manager final — SHA TBD pending push)

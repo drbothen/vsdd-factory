@@ -5,13 +5,13 @@ version: "2.0"
 status: draft
 producer: state-manager
 timestamp: 2026-05-11T00:00:00Z
-phase: engine-discipline-F5-pass-13-COMPLETE-pending-human-decision
+phase: engine-discipline-F5-pass-14
 inputs: []
 input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "Pre-compact state freeze; F5 pass-13 COMPLETE (MEDIUM); structural escalation per L-EDP1-007 — human decision required on S-15.03 priority vs laxer convergence criterion vs continue F5"
+current_step: "F5 pass-14 fix burst (MEDIUM verdict; 4M+4L+2NIT+3PG; D-386 Option C selected — continue F5, accept asymptotic L-EDP1-003 limit)"
 current_cycle: v1.0-feature-engine-discipline-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,8 +38,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-11 — Pre-compact STATE.md refresh. F5 pass-13 COMPLETE (MEDIUM: 1H+1M+1L+3PG; 5th L-EDP1-003 layer). Trajectory (content-only): 29→15→11→9→8→7→5→6→6→6→4→3→3. D-379..D-385 + L-EDP1-007 codified. STRUCTURAL ESCALATION: human decision required (A/B/C). |
-| **Current Phase** | Engine-discipline F5 — STRUCTURAL ESCALATION: L-EDP1-003 at 5th layer; human decision required before pass-14 (see L-EDP1-007) |
+| **Last Updated** | 2026-05-11 — F5 pass-14 dispatch + fix burst. D-386 selects Option C (continue F5; accept asymptotic L-EDP1-003 limit). Trajectory (content-only): 29→15→11→9→8→7→5→6→6→6→4→3→3→10. F-P14-001..010 + 3PG addressed. |
+| **Current Phase** | Engine-discipline F5 — pass-14 fix burst IN PROGRESS (D-386 Option C selected) |
 | **Current Cycle** | v1.0-feature-engine-discipline-pass-1 |
 
 ## Phase Progress
@@ -72,7 +72,8 @@ dtu_services: []
 | F5 pass-12 fix burst (sub-trajectories + D-385) | **COMPLETE** | F-P12-001..003 resolved; D-385 codified; all sibling files updated per D-382+D-383+D-384+D-385 |
 | F5 pass-13 cycle-level adversary | **COMPLETE** | MEDIUM (1H+1M+1L+3PG; 5th L-EDP1-003 layer); F-P13-001 schema drift; F-P13-002 counting-basis; F-P13-003 H1 title |
 | F5 pass-13 fix burst (schema + trajectory + L-EDP1-007) | **COMPLETE** | F-P13-001..003 resolved; L-EDP1-007 codified; all sibling files updated per D-382+D-383+D-384+D-385 |
-| STRUCTURAL ESCALATION — human decision | **PENDING** | (a) prioritize S-15.03 OR (b) define laxer convergence criterion OR (c) continue F5 pass-14+ accepting asymptotic limit |
+| F5 pass-14 cycle-level adversary | **COMPLETE** | MEDIUM (4M+4L+2NIT+3PG); 10 content findings; trajectory →3→3→10; D-386 Option C selected |
+| F5 pass-14 fix burst (schema-content + verdict-ladder + stale-tables + D-386) | **IN PROGRESS** | F-P14-001..010 + 3PG addressed; sibling files updating |
 | Phase D-4 Burst 2 — E-10 + E-9 v1.7 | **PENDING** | E-10 paused D-343; adversary pass-9 queued |
 
 ## Current Phase Steps
@@ -83,8 +84,9 @@ dtu_services: []
 | F5 pass-10 cycle-level adversary + fix burst | adversary/state-mgr | DONE 2026-05-11 | MEDIUM: 2M+2L+2NIT; D-383 codified; F-P10-001..006 resolved |
 | F5 pass-11 cycle-level adversary + fix burst | adversary/state-mgr | DONE 2026-05-11 | MEDIUM: 2M+2L; D-384 codified; F-P11-001..007 resolved |
 | F5 pass-12 cycle-level adversary + fix burst | adversary/state-mgr | DONE 2026-05-11 | MEDIUM: 2M+1L+3PG (content=3); D-385 codified; F-P12-001..003 resolved |
-| F5 pass-13 cycle-level adversary | adversary | DONE 2026-05-11 | MEDIUM (1H+1M+1L+3PG); pass-12 schema drift; counting-basis change; L-EDP1-003 5th layer |
 | F5 pass-13 fix burst (schema + counting-basis + L-EDP1-007) | state-manager | DONE 2026-05-11 | F-P13-001..003 resolved; L-EDP1-007; all sibling files updated per D-382+D-383+D-384+D-385 |
+| F5 pass-14 cycle-level adversary | adversary | DONE 2026-05-11 | MEDIUM (4M+4L+2NIT+3PG); D-386 Option C; trajectory →10 |
+| F5 pass-14 fix burst (schema-content + verdict-ladder + stale-tables) | state-manager | IN PROGRESS 2026-05-11 | F-P14-001..010; D-386; burst-log/INDEX/lessons/STORY-INDEX updating |
 
 ## Identifier Conventions
 
@@ -114,7 +116,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | feb894a2 | rc.16 merge; latest release |
 | develop | 99d24315 | S-12.08 squash-merge (PR #123); F4 COMPLETE |
-| factory-artifacts | eade17a8 | this STATE.md commit (F5 pass-13 fix burst) |
+| factory-artifacts | [pending-Commit-E] | this STATE.md commit (F5 pass-14 fix burst) |
 | feature/F5-pass-3-cycle-hardening | 2e6b4372 | PR #124 OPEN (DRAFT); CI run 25651192161 GREEN (11/11 checks) |
 | v1.0.0-rc.16 (tag) | feb894a2 | SHIPPED; claude-mp PR #8 awaiting human merge |
 | v1.0.0-rc.15 (tag) | e68bb436 | SHIPPED |
@@ -124,7 +126,7 @@ dtu_services: []
 | Cycle | Type | Status | Notes |
 |-------|------|--------|-------|
 | v1.0-brownfield-backfill | brownfield | PAUSED | E-10 pass-9 pending; paused at D-343 |
-| v1.0-feature-engine-discipline-pass-1 | feature | F5-pass-13-NEXT | All 6 E-12 stories merged; F5 passes 3-13 complete (trajectory 29→15→11→9→8→7→5→6→6→6→4→3→3; content-only); pass-13 MEDIUM verdict (1H+1M+1L; 5th L-EDP1-003 layer); pass-13 fix burst COMPLETE (F-P13-001..003 + L-EDP1-007 + all sibling files); structural escalation: human decision required on S-15.03 vs laxer convergence criterion |
+| v1.0-feature-engine-discipline-pass-1 | feature | F5-IN-PROGRESS | All 6 E-12-platform stories merged; F5 passes 3-14 complete (trajectory 29→15→11→9→8→7→5→6→6→6→4→3→3→10; content-only); pass-14 MEDIUM verdict (4M+4L+2NIT+3PG); D-386 Option C selected — continue F5, accept asymptotic L-EDP1-003 limit; S-15.03 deferred; pass-14 fix burst in progress |
 | v1.0-feature-plugin-async-semantics-pass-1 | feature | CLOSED | All PRs merged; rc.14 shipped |
 
 ## Decisions Log
@@ -173,25 +175,21 @@ dtu_services: []
 
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-11 — Pre-compact comprehensive STATE.md refresh. F5 pass-13 COMPLETE (MEDIUM: 1H+1M+1L+3PG). F-P13-001 HIGH: pass-12 frontmatter restored to canonical schema (16 missing fields; scalar→mapping; underscore→hyphen; cycle:→current_cycle:). F-P13-002 MED: P12 trajectory restated as 3 (content-only: 2M+1L) at 4 cite sites. F-P13-003 LOW: pass-12 H1 corrected. L-EDP1-007 codified: prose-only codification has failed 5 consecutive layers of L-EDP1-003; S-15.03 automation is the only structural remedy. Trajectory (content-only): 29→15→11→9→8→7→5→6→6→6→4→3→3. Streak 0/3.
+**Last update:** 2026-05-11 — F5 pass-14 dispatch + fix burst. D-386 selects Option C (continue F5; accept asymptotic L-EDP1-003 limit; S-15.03 deferred to next cycle). Pass-14 MEDIUM (4M+4L+2NIT+3PG). F-P14-002: burst-log schema provenance "3-11"→"5-13". F-P14-003: L-EDP1-006 corrigendum appended. F-P14-004: pass-9 verdict MEDIUM-HIGH→HIGH. F-P14-005: STATE.md decision-pending text removed. F-P14-006: STORY-INDEX S-14.06/07/08/09 deferral note added. F-P14-008: INDEX.md placeholder IDs S-A/B/C replaced with S-12.01/02/S-13.01. Trajectory (content-only): 29→15→11→9→8→7→5→6→6→6→4→3→3→10. Streak 0/3.
 
-**STATE:** F4 platform COMPLETE; F5 cycle-level discipline at pass-13 MEDIUM; awaiting human decision.
-
-**DECISION REQUIRED (A/B/C):** Choose ONE before pass-14 dispatch:
-- **(A) S-15.03 priority:** Create S-15.03 implementation worktree; run per-story-delivery cycle for the automation lint hook; re-attempt F5 adversary after S-15.03 ships.
-- **(B) Laxer convergence:** Record D-386 codifying human-acceptance convergence (e.g., 3 passes with no CRITICAL/HIGH/MEDIUM content findings, process-gap findings exempted); proceed to F6.
-- **(C) Continue F5:** Dispatch pass-14; accept asymptotic L-EDP1-003 limit; iterate.
+**STATE:** F4 platform COMPLETE; F5 cycle-level discipline at pass-14 fix burst complete (D-386 Option C). Next: dispatch pass-15 adversary.
 
 **Next session start — ordered checklist:**
 
-1. ✓ F5 passes 3-13 complete. Factory-artifacts: all F-P13-001..003 fixes applied per D-382..D-385. Feature branch: feature/F5-pass-3-cycle-hardening @ 2e6b4372 (PR #124 OPEN; CI run 25651192161 GREEN).
-2. Human declares (A), (B), or (C).
-3. Execute chosen path (S-15.03 story, D-386 record, or pass-14 dispatch).
-4. F6 targeted hardening after convergence criterion met.
-5. F7 delta convergence + human gate (cycle CLOSE).
-6. E-10 brownfield pass-9 resume (PAUSED at D-343).
+1. ✓ D-386 Option C: continue F5, accept asymptotic L-EDP1-003 limit, S-15.03 deferred.
+2. Dispatch pass-15 adversary (fresh context, full cycle-level review).
+3. Apply pass-15 fix burst per D-382..D-385 discipline if MEDIUM or above.
+4. Iterate until 3 consecutive NITPICK_ONLY passes achieved OR human declares convergence.
+5. F6 targeted hardening after convergence criterion met.
+6. F7 delta convergence + human gate (cycle CLOSE).
+7. E-10 brownfield pass-9 resume (PAUSED at D-343).
 
-**D-382..D-385 discipline applies to ALL future fix bursts.** Full protocol: `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md` (D-382 STATE.md+burst-log+INDEX+lessons+decision-log; D-383 intra-file audit+sibling sweep; D-384 N self-ref+trajectory cardinality+attestation specificity; D-385 sub-trajectory enumeration+immutable scope+per-position P1-Pn).
+**D-382..D-386 discipline applies to ALL future fix bursts.** Full protocol: `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md` (D-382 STATE.md+burst-log+INDEX+lessons+decision-log; D-383 intra-file audit+sibling sweep; D-384 N self-ref+trajectory cardinality+attestation specificity; D-385 sub-trajectory enumeration+immutable scope+per-position P1-Pn; D-386 Option C convergence acceptance).
 
 **Index versions:** BC-INDEX v1.64 | VP-INDEX v1.40 | STORY-INDEX v2.65 | ARCH-INDEX v1.45
 **ADR-013:** 3_of_3 CONVERGED (pass-57) | **E-9:** v1.53 CONVERGENCE_REACHED | **E-10:** paused D-343
