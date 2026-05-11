@@ -1,16 +1,18 @@
 ---
 document_type: bc-index
 level: L3
-version: "1.63"
+version: "1.64"
 status: draft
 producer: state-manager
-timestamp: 2026-05-09T00:00:00
+timestamp: 2026-05-11T00:00:00
 phase: F5
 inputs:
   - .factory/specs/behavioral-contracts/bc-id-mapping.md
 total_bcs: 1947
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-11
+    change: "v1.64 (2026-05-11; F-P7-001): BC-INDEX:1782-1783 Capability column TBD→CAP-008 for BC-7.03.091 (warn-pending-wave-gate: identity & registry binding) and BC-7.03.092 (warn-pending-wave-gate: stderr warning when any wave has gate_status: pending). Propagation of F-P5-002/F-P6-005 fix burst which updated BC body files but omitted BC-INDEX Capability column (S-7.01/L-P28-001 sibling-file gap). No count change (total_bcs: 1947). Refs: F-P7-001, F-P5-002, F-P6-005, L-P28-001. last_amended: 2026-05-11 (F5 fix-burst pass-7: BC-7.03.091/092 Capability TBD→CAP-008; F-P7-001 closed)."
   - date: 2026-05-09
     change: "v1.63 (2026-05-09; fix-burst-49): F-P54-001 + corpus-wide Title-cell axis sweep (19th L-P28-001 META). F-P54-001: BC-INDEX:404 Title cell propagated to authoritative H1 — 'idempotency enforced by Layer 1 once:true directive' → 'idempotency delegated to Layer 1 once:true'. Full corpus sweep (1944 rows, all H1 sources verified): 6 total drifts found and patched. BC-1.05.010: 'dispatcher_trace_id' → 'trace_id'. BC-2.02.011: long ABI narrative → 'host::write_file: bounded write capability with allowlist enforcement'. BC-2.02.012: long SubagentStop narrative → 'HookPayload SubagentStop fields: top-level envelope schema for agent_type, subagent_name, last_assistant_message, result'. BC-4.05.002: 'does not invoke any subprocess; fast-path completion with no exec_subprocess capability' → 'emits without subprocess invocation; fast-path completion'. BC-4.05.003: 'enforced by Layer 1 once:true directive' → 'delegated to Layer 1 once:true'. BC-5.30.001: 'feature-vsdd: identity' → 'feature.lobster declares 82 steps across 3 routing tracks (quick-dev, fix-pr, full-feature) with no DAG cycles'. Title-cell axis now codified as static axis in L-P28-001 axis-checklist. No count change (total_bcs: 1947). Refs: F-P54-001, L-P28-001, fix-burst-49. last_amended: 2026-05-09 (F5 fix-burst-49: Title-cell corpus sweep 6 drifts patched; F-P54-001 closed)."
   - date: 2026-05-09
@@ -1779,8 +1781,8 @@ changelog:
 | [BC-7.03.088](ss-07/BC-7.03.088.md) | verify-git-push: blocks --force / -f, allows --force-with-lease | draft | TBD | TBD |
 | [BC-7.03.089](ss-07/BC-7.03.089.md) | verify-git-push: blocks pushes to main\ | draft | TBD | TBD |
 | [BC-7.03.090](ss-07/BC-7.03.090.md) | verify-git-push: emits additionalContext on allowed pushes | draft | TBD | TBD |
-| [BC-7.03.091](ss-07/BC-7.03.091.md) | warn-pending-wave-gate: identity & registry binding | draft | TBD | S-8.07 |
-| [BC-7.03.092](ss-07/BC-7.03.092.md) | warn-pending-wave-gate: stderr warning when any wave has gate_status: pending | draft | TBD | S-8.07 |
+| [BC-7.03.091](ss-07/BC-7.03.091.md) | warn-pending-wave-gate: identity & registry binding | draft | CAP-008 | S-8.07 |
+| [BC-7.03.092](ss-07/BC-7.03.092.md) | warn-pending-wave-gate: stderr warning when any wave has gate_status: pending | draft | CAP-008 | S-8.07 |
 | [BC-7.03.093](ss-07/BC-7.03.093.md) | verify-git-push: identity confirmation (already covered in BC-1086 routing section) | draft | TBD | TBD |
 | [BC-7.04.001](ss-07/BC-7.04.001.md) | validate-anchor-capabilities-union: identity & registry binding | draft | TBD | TBD |
 | [BC-7.04.002](ss-07/BC-7.04.002.md) | validate-anchor-capabilities-union: scopes to .factory/stories/S-*.md or STORY-*.md | draft | TBD | TBD |

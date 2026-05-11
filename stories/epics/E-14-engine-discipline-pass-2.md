@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-14"
-version: "1.0"
+version: "1.1"
 title: "Engine Discipline Pass-2 — Process-Gap Remediation"
 status: draft
 prd_capabilities: [CAP-016, CAP-026]
@@ -9,20 +9,20 @@ prd_frs: []
 anchor_strategy: greenfield-discipline-gap-codification
 priority: P1
 target_release: "v1.0-feature-engine-discipline-pass-2"
-story_count: 5
+story_count: 9
 subsystems_affected: [SS-04, SS-05, SS-06]
 producer: product-owner
 timestamp: 2026-05-07T00:00:00Z
 phase: 2
 traces_to: .factory/cycles/v1.0-feature-engine-discipline-pass-1/adv-cycle-pass-1.md
 depends_on: ["E-12", "E-13"]
-last_amended: "2026-05-07 (v1.0 — initial authoring; B6 process-gap story burst from F5 pass-1 findings)"
+last_amended: "2026-05-11 (v1.1 — F-P7-002 fix burst: story_count 5→9; S-14.06/07/08/09 registered; F-P7-004 forward-ref note added. F-P6-002 authored S-14.06/07/08; F-P6-004 authored S-14.09.)"
 inputs:
   - .factory/cycles/v1.0-feature-engine-discipline-pass-1/adv-cycle-pass-1.md
   - .factory/cycles/v1.0-feature-engine-discipline-pass-1/F5-pass-1-fix-plan.md
   - .factory/stories/epics/E-12-engine-governance.md
   - .factory/stories/epics/E-13-artifact-integrity.md
-input-hash: "TBD"
+input-hash: "[pending-recompute]"
 ---
 <!-- [process-gap] Frontmatter fields anchor_strategy, depends_on extend the canonical epic-template baseline. Template update tracked separately. -->
 
@@ -89,6 +89,12 @@ is well-formed before reaching the gate.
 | S-14.03 | Pre-F5 artifact lint for placeholder frontmatter (PG-3) | S | SS-04 | P2 | Third |
 | S-14.04 | Policy-rubric auto-injection for adversary dispatch (PG-4) | S | SS-05 | P1 | Fourth |
 | S-14.05 | pr-manager Step-4/Step-5 early-exit codification (PG-6) | M | SS-05 | P1 | Fifth |
+| S-14.06 | [F-P6-002 deferred MEDIUM #1 — filed in F-P6 fix burst] | S | TBD | P2 | Sixth |
+| S-14.07 | [F-P6-002 deferred MEDIUM #2 — filed in F-P6 fix burst] | S | TBD | P2 | Seventh |
+| S-14.08 | [F-P6-002 deferred MEDIUM #3 — filed in F-P6 fix burst] | S | TBD | P2 | Eighth |
+| S-14.09 | Forensic marker cleanup (F-P6-004) | M | SS-04, SS-07 | P2 | Ninth |
+
+> **Forward-reference note (F-P7-004):** All E-14 stories carry `cycle: v1.0-feature-engine-discipline-pass-2` in their frontmatter. No directory named `v1.0-feature-engine-discipline-pass-2` exists yet under `.factory/cycles/`. This is accepted planning-tier convention: stories are assigned to their delivery cycle at authoring time, before the cycle directory is opened. The state-manager will open the cycle directory when E-14 work begins. The forward reference is not a broken reference or a data-entry error.
 
 ## Dependency Topology
 
@@ -129,6 +135,21 @@ impact on convergence evidence quality).
 | S-14.04 | F-MED-9 | Policy-rubric injection into adversary dispatch is manual |
 | S-14.05 | PG-6 (orchestrator-observed) | pr-manager exits mid-flow after Step 4 or Step 5 |
 
+## Acceptance Criteria
+
+> Acceptance criteria are defined per-story in each story file. See S-14.01 through S-14.09.
+
+## Stories
+
+See Stories Planned table above (S-14.01..S-14.09).
+
+## Dependencies (External)
+
+| Dependency | Type | Notes |
+|------------|------|-------|
+| E-12 (Engine Governance) | Predecessor | S-14.01 convergence-state backfill depends on E-12 stories merged |
+| E-13 (Artifact Integrity) | Predecessor | E-14 completes the governance triangle started by E-12/E-13 |
+
 ## Open Questions
 
 | OQ ID | Scope | Description |
@@ -141,4 +162,5 @@ impact on convergence evidence quality).
 
 | Version | Date | Change |
 |---------|------|--------|
+| v1.1 | 2026-05-11 | F-P7-002 fix burst: story_count 5→9 (S-14.06/07/08 filed in F-P6-002 fix burst; S-14.09 filed in F-P6-004 fix burst). Stories Planned table updated with all 9 stories. Forward-reference note added for `cycle: v1.0-feature-engine-discipline-pass-2` per F-P7-004. |
 | v1.0 | 2026-05-07 | Initial authoring (product-owner; B6 process-gap burst from F5 pass-1 adversarial review of v1.0-feature-engine-discipline-pass-1). Five stories authored: S-14.01 (P0 BLOCKING), S-14.02-05 (P1-P2 pass-2). Delivery order: S-14.01 before F7 close-out; S-14.02-05 in next cycle. |

@@ -172,7 +172,7 @@ dtu_services: []
 **Branches:**
 - main @ feb894a2 | develop @ 99d24315 | factory-artifacts @ (see git log)
 
-**Index versions:** BC-INDEX v1.63 | VP-INDEX v1.40 | STORY-INDEX v2.64 | ARCH-INDEX v1.44
+**Index versions:** BC-INDEX v1.64 | VP-INDEX v1.40 | STORY-INDEX v2.64 | ARCH-INDEX v1.44
 **ADR-013:** 3_of_3 CONVERGED (pass-57) | **E-9:** v1.53 CONVERGENCE_REACHED | **E-10:** paused D-343
 **5 user-locked decisions:** `cycles/v1.0-feature-plugin-async-semantics-pass-1/F4-handoff.md` §3
 
