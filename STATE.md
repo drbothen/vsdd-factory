@@ -5,13 +5,13 @@ version: "2.0"
 status: draft
 producer: state-manager
 timestamp: 2026-05-11T00:00:00Z
-phase: engine-discipline-F5-pass-27-adversary-in-progress
+phase: engine-discipline-F5-pass-27
 inputs: []
 input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "F5 pass-27 adversary dispatch IN-PROGRESS (D-394+D-401(b) orchestrator-owned; pass-26 COMPLETE at 0eb9ede9 — D-406 codified; L-EDP1-018 17th-layer; 4 indexes D-389..D-405 range)"
+current_step: "F5 pass-27 fix burst COMPLETE (HIGH→PENDING_NEXT_PASS; 2H+5M+3L+2NIT+1PG; D-407 codified; L-EDP1-019 18th-layer; 4 indexes v1.69/v1.45/v2.70/v1.50 acknowledge D-389..D-407)"
 current_cycle: v1.0-feature-engine-discipline-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,8 +38,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-11 — F5 pass-26 fix burst COMPLETE. Pass-26 HIGH verdict (1H+4M+3L+2NIT+1PG; 17th-layer L-EDP1-003 at attestation-accuracy boundary). D-406 codified. L-EDP1-018 documents 17th-layer. L-EDP1-017 Layer-16 inline-replaced. Corrigenda: F-P26-001 Dim-6 false-green (actual=2 historical Phase Progress rows per D-385); F-P26-002 Dim-7 partial-coverage corrected. STATE.md/INDEX.md range-form unified D-379..D-405. S-15.03 story annotated D-405(c). Trajectory (content-only): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10. |
-| **Current Phase** | Engine-discipline F5 — pass-26 fix burst COMPLETE (pending pass-27 dispatch) |
+| **Last Updated** | 2026-05-11 — F5 pass-27 fix burst COMPLETE. Pass-27 HIGH verdict (2H+5M+3L+2NIT+1PG; 18th-layer L-EDP1-003 at corrigendum-self-validation boundary). D-407 codified (4 sub-clauses). L-EDP1-019 documents 18th-layer. L-EDP1-018 Layer-17 inline-replaced. Corrigenda: F-P27-001 D-406 not in 4 indexes (D-407(a) unconditional clarification); F-P27-002 invalid regex in F-P26-002 corrigendum (D-407(b) self-validation); F-P27-006 pass-26 attestation false-claim corrected. 4 indexes: BC-INDEX v1.69 / VP-INDEX v1.45 / STORY-INDEX v2.70 / ARCH-INDEX v1.50 acknowledge D-389..D-407. Trajectory (content-only): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12. |
+| **Current Phase** | Engine-discipline F5 — pass-27 fix burst COMPLETE (pending pass-28 dispatch) |
 | **Current Cycle** | v1.0-feature-engine-discipline-pass-1 |
 
 ## Phase Progress
@@ -138,7 +138,7 @@ dtu_services: []
 | Cycle | Type | Status | Notes |
 |-------|------|--------|-------|
 | v1.0-brownfield-backfill | brownfield | PAUSED | E-10 pass-9 pending; paused at D-343 |
-| v1.0-feature-engine-discipline-pass-1 | feature | F5-IN-PROGRESS | All 6 E-12-platform stories merged; F5 passes 1-25 (25 F5 passes; cycle-level reviews; fix bursts at passes 3-26); full-cycle trajectory content-only (pass-1..26): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10; pass-26 HIGH verdict (1H+4M+3L+2NIT+1PG); D-406 codified; L-EDP1-018 17th-layer; D-386 Option C: continue F5, accept asymptotic L-EDP1-003 limit; VP-INDEX v1.44 TD-031 historical normalization complete in v1.43; S-15.03 PRIORITY-A in pass-2 cycle |
+| v1.0-feature-engine-discipline-pass-1 | feature | F5-IN-PROGRESS | All 6 E-12-platform stories merged; F5 passes 1-27 (27 F5 cycle-level reviews; 25 fix bursts at passes 3-27); full-cycle trajectory content-only (pass-1..27): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12; pass-27 HIGH verdict (2H+5M+3L+2NIT+1PG); D-407 codified; L-EDP1-019 18th-layer; D-386 Option C: continue F5, accept asymptotic L-EDP1-003 limit; VP-INDEX v1.45 / BC-INDEX v1.69 / ARCH-INDEX v1.50 / STORY-INDEX v2.70 acknowledge D-389..D-407; S-15.03 PRIORITY-A in pass-2 cycle |
 | v1.0-feature-plugin-async-semantics-pass-1 | feature | CLOSED | All PRs merged; rc.14 shipped |
 
 ## Decisions Log

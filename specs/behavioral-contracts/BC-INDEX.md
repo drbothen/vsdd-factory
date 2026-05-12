@@ -1,7 +1,7 @@
 ---
 document_type: bc-index
 level: L3
-version: "1.68"
+version: "1.69"
 status: draft
 producer: state-manager
 timestamp: 2026-05-11T00:00:00Z
@@ -12,6 +12,8 @@ inputs:
 total_bcs: 1947
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-11
+    change: "v1.69 (2026-05-11; pass-27 fix burst per D-407(a) + D-404 unconditional clarification): Acknowledges decision range D-389..D-407. Closes F-P27-001 BC-INDEX instance. Refs: F-P27-001, D-404, D-406, D-407."
   - date: 2026-05-11
     change: "v1.68 (2026-05-11; pass-25 fix burst per D-405 + D-404 self-correction): Acknowledges decision range D-389..D-405. Closes F-P25-001 BC-INDEX instance. Refs: F-P25-001, D-404, D-405."
   - date: 2026-05-11

@@ -846,6 +846,8 @@ All actions in this burst have paired Verification greps targeting pass-25 canon
 
 **Corrigendum (pass-26 fix burst — D-387 / F-P26-002 / D-395+D-397):** Pass-25 Dim-7 Verification `grep -c 'Corrigendum (pass-25 fix burst — D-387 / F-P25-005' burst-log.md → 1 ✓` only validated 1 of 4 Action items. Per D-395+D-397 full Action-extent coverage: `grep -cE 'Corrigendum \(pass-25 fix burst — D-387 / F-P25-(005|006|010|011)\)' burst-log.md → 4 ✓` (correctly bounded; excludes self-referential grep via the F-P25-NNN constraint).
 
+**Corrigendum (pass-27 fix burst — D-387 / F-P27-002 / D-403(b) + D-407(b)):** F-P26-002 corrigendum prescribed regex `Corrigendum \(pass-25 fix burst — D-387 / F-P25-(005|006|010|011)\)` requiring close-paren after digits — actual content has `/ F-P25-NNN):` suffix on 3 of 4 corrigenda. The trailing `\)` requires the literal `)` to immediately follow the alternation digits, but 3 of 4 matching lines have `):` or `) —` after the alternation match, not an immediate close-paren termination. Correct regex (no trailing `\)`): `Corrigendum \(pass-25 fix burst — D-387 / F-P25-(005|006|010|011)`. Self-validation per D-407(b): `grep -cE 'Corrigendum \(pass-25 fix burst — D-387 / F-P25-(005|006|010|011)' burst-log.md` → 4 ✓ (verified by independent execution). The prior regex would match → 1 (not 4). Closes F-P27-002.
+
 ---
 
 ## Burst: F5 pass-26 fix burst (2026-05-11)
@@ -918,6 +920,8 @@ All actions in this burst have paired Verification greps targeting pass-26 canon
 - Immutable-row scope check (D-385 sub-rule 2): pass-25 burst-log corrigenda are appended lines (D-387 permitted format); body immutable ✓. L-EDP1-017 Layer-16 awaiting-text inline-replaced per D-400 ✓. L-EDP1-018 is a new entry ✓.
 - D-383 intra-file content audit: STATE.md (phase + current_step + trajectory + Concurrent Cycles + Session Resume Checkpoint all consistent ✓), INDEX.md (row-26 added; Convergence Status updated to passes 3-26; cardinality 26 values for 26 passes ✓), burst-log.md (pass-26 entry appended; pass-25 corrigenda appended ✓), decision-log.md (D-406 appended; ID sequence D-336..D-406 sequential ✓), lessons.md (L-EDP1-017 Layer-16 inline-updated per D-400; L-EDP1-018 appended ✓)
 - Cross-index sync sweep (D-401(a)+D-406): No new index bumps this burst (no ≥3 governance decisions requiring ALL-4-index sync; D-406 is 1 decision). INDEX.md Convergence Status updated per D-382 ✓.
+
+**Corrigendum (pass-27 fix burst — D-387 / F-P27-006 / D-407(a)):** Pass-26 attestation (line above) "No new index bumps (no ≥3 governance decisions requiring ALL-4-index sync; D-406 is 1 decision). ✓" invoked D-401(a) ≥3-threshold to rationalize omitting D-406 from index acknowledgment. Per D-407(a) (codified pass-27): D-404 literal-acknowledgment is UNCONDITIONAL — applies per D-NNN regardless of count. D-401(a) ≥3-threshold governs cross-index sync when ≥3 decisions exist; D-404 governs literal-by-ID acknowledgment for EVERY new D-NNN. The two obligations are independent. The ✓ above should be ✗ for D-404 compliance; F-P27-001 18th-layer L-EDP1-003 recurrence resulted. Pass-27 fix burst remediates via 4-index bump to v1.69/v1.45/v2.70/v1.50 acknowledging D-389..D-407. Closes F-P27-006.
 - D-402 exact-count compliance: all Verification greps in this burst report exact integer from -c ✓
 - D-406(a) grep semantic scope: Dim-2 corrigendum Verification targets specific corrigendum prefix (excludes self-referential grep inflation) ✓
 
