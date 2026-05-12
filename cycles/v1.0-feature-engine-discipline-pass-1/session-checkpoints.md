@@ -10,6 +10,12 @@ Archived checkpoints from STATE.md as newer checkpoints replace them.
 
 ---
 
+## Archived: pass-52 checkpoint (superseded by pass-53 at Commit E)
+
+**Where we were:** pass-52 fix burst COMPLETE. Pass-52 = 50th adversary pass (passes 3..52). Cycle driven 52 adversary-level reviews + 50 fix bursts (passes 3-52). Trajectory (52 values), tail →8→7→7→7. META-LEVEL-7 CONFIRMED. D-432 codified (6 sub-clauses). 4 indexes BC v1.95/VP v1.71/STORY v2.96/ARCH v1.76 acknowledge D-389..D-432. factory-artifacts HEAD ca2bed61 (pass-52 Commit D parent).
+
+---
+
 ## Checkpoint: 2026-05-11 — F5 pass-34 fix burst COMPLETE (archived)
 
 **Last update:** 2026-05-11 — F5 pass-34 fix burst COMPLETE. Pass-34 HIGH verdict (1H+1M+1obs; 25th-layer L-EDP1-003 at D-413(a) N-source semantics self-application + D-387 placement gap + D-413(c) scope ambiguity). D-414 codified (3 sub-clauses: D-414(a) N-source semantics — N=count of bodies LITERALLY MATCHING pattern; D-414(b) D-387 forward-reference placement discipline; D-414(c) verbatim-vs-documentary scope for D-413(c)). L-EDP1-026 documents 25th-layer; Layer-25 awaiting-text per D-398. L-EDP1-025 Layer-24 inline-replaced per D-400 (F-P34-001/002+O-P34-001 enumeration); sibling-corrigendum appended per D-410. Pass-33 Dim-5 corrigendum (F-P34-001/D-414(a)). Pass-32 Dim-2+Dim-5 forward-references (F-P34-002/D-414(b)). 4 indexes bumped to v1.76/v1.52/v2.77/v1.57 acknowledging D-389..D-414. Trajectory (content-only): →2. Streak 0/3.
