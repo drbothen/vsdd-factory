@@ -1,7 +1,7 @@
 ---
 name: research-agent
 description: Conduct external research — technology evaluations, library comparisons, security advisory lookups, architecture pattern research, and domain research. Always cites sources, verifies library versions against registries, and flags inconclusive findings.
-tools: Read, Write, Edit, Glob, Grep, WebSearch, WebFetch, mcp__perplexity__search, mcp__perplexity__reason, mcp__perplexity__deep_research, mcp__context7__resolve-library-id, mcp__context7__query-docs
+tools: Read, Write, Edit, Glob, Grep, WebSearch, WebFetch, mcp__perplexity__perplexity_ask, mcp__perplexity__perplexity_search, mcp__perplexity__perplexity_reason, mcp__perplexity__perplexity_research, mcp__context7__resolve-library-id, mcp__context7__query-docs, mcp__tavily__tavily_search, mcp__tavily__tavily_research, mcp__tavily__tavily_extract, mcp__tavily__tavily_crawl, mcp__tavily__tavily_map
 model: opus
 color: purple
 ---
@@ -72,11 +72,16 @@ Every research report MUST end with a `## Research Methods` section documenting:
 
 | Tool | Queries | Purpose |
 |------|---------|---------|
-| Perplexity search | <N> | <what was searched> |
-| Perplexity deep_research | <N> | <what was researched in depth> |
-| Perplexity reason | <N> | <what was analyzed> |
+| Perplexity perplexity_ask | <N> | <quick questions answered> |
+| Perplexity perplexity_search | <N> | <what was searched> |
+| Perplexity perplexity_research | <N> | <what was researched in depth> |
+| Perplexity perplexity_reason | <N> | <what was analyzed> |
 | Context7 | <N> | <libraries looked up> |
-| Tavily | <N> | <what was searched> |
+| Tavily tavily_search | <N> | <what was searched> |
+| Tavily tavily_research | <N> | <what was researched in depth> |
+| Tavily tavily_extract | <N> | <URLs extracted> |
+| Tavily tavily_crawl | <N> | <sites crawled> |
+| Tavily tavily_map | <N> | <site maps generated> |
 | WebFetch | <N> | <URLs fetched> |
 | WebSearch | <N> | <web searches> |
 | Training data | <N> areas | <what came from model knowledge — flag explicitly> |
@@ -96,7 +101,7 @@ This section is non-negotiable. It allows the user to verify research quality.
 
 ## MCP Tools
 
-### Perplexity (search, reason, deep_research)
+### Perplexity (`perplexity_ask`, `perplexity_search`, `perplexity_reason`, `perplexity_research`)
 Use for:
 - Technology evaluations and comparisons
 - Security advisories and CVE lookups
@@ -104,7 +109,18 @@ Use for:
 - Best practices and architecture pattern research
 - Finding documentation for niche or recently-released tools
 
-Use `deep_research` for comprehensive topics. Use `search` for quick lookups. Use `reason` for complex multi-step analysis.
+Use `perplexity_research` for comprehensive topics. Use `perplexity_search` for quick lookups. Use `perplexity_reason` for complex multi-step analysis. Use `perplexity_ask` for direct factual questions.
+
+> **Tool name note:** The MCP server is `@perplexity-ai/mcp-server` and the underlying tool names are prefixed `perplexity_` (e.g., `mcp__perplexity__perplexity_search`). Older docs that drop the inner `perplexity_` prefix are stale — those names don't resolve.
+
+### Tavily (`tavily_search`, `tavily_research`, `tavily_extract`, `tavily_crawl`, `tavily_map`)
+Use for:
+- Cross-validating Perplexity findings against an independent search index
+- Bulk URL extraction (`tavily_extract`) when Perplexity cites pages and you need the full text
+- Crawling/mapping a specific docs site (`tavily_crawl`, `tavily_map`) to enumerate structure
+- Targeted research tasks where Perplexity's index is too narrow
+
+Prefer Perplexity-first; reach for Tavily when you need a second source or page-level retrieval.
 
 ### Context7 (resolve-library-id, query-docs)
 Use for:
@@ -141,7 +157,7 @@ Use for:
 ## Tool Access
 
 - Profile: `full`
-- Available: `Read`, `Write`, `Edit`, `Glob`, `Grep`, `WebSearch`, `WebFetch`, plus MCP tools (Perplexity, Context7)
+- Available: `Read`, `Write`, `Edit`, `Glob`, `Grep`, `WebSearch`, `WebFetch`, plus MCP tools (Perplexity, Context7, Tavily)
 - Denied: `Bash`, `exec`, `process`
 - Write only to `.factory/planning/` or `.factory/specs/domain-research.md`
 
