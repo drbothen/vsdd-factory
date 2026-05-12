@@ -666,7 +666,7 @@ The 16-layer history:
 | 13 (pass-22) | D-401+D-402 | "cross-index sync convention + exact-count Verification + counting-basis + D-394 ownership" | F-P23-001 D-401(a) self-application failure (HIGH); F-P23-002 D-402 regex precision; F-P23-003 BC-INDEX inline-edit trail; F-P23-004 BC enum gap; F-P23-005 per-position P21 attestation; F-P23-006 D-394 dispatch recurrence |
 | 14 (pass-23) | D-403 | "D-401(a) self-application enforcement + D-402 regex precision + D-394 asymptotic acknowledgment" | F-P24-001 D-403(a) self-application failure (HIGH); F-P24-002 pass-21 line 483 cardinality cell; F-P24-003 BC enum D-403 gap; F-P24-004 ARCH range excludes D-403 |
 | 15 (pass-24) | D-404 | "literal acknowledgment enforcement — D-NNN by ID in all 4 index enumerations" | F-P25-001 D-404 itself not literally acknowledged in 4 indexes (HIGH); F-P25-002 6-site stale "VP-INDEX blocked" narrative post-TD-031 fix (HIGH); F-P25-003 4-cell STATE narrative dispatch mismatch; F-P25-004 decision-log range stale; F-P25-005 D-402 lower-bound recurrence; F-P25-006 self-referential greps; F-P25-PG1 dominant L-EDP1-003 sub-pattern across layers 13-16 |
-| 16 (this, pass-25) | D-405 | "D-404 self-application correction + pattern-class recognition + S-15.03 PRIORITY-A elevation" | (awaiting pass-26 adversary fresh-context audit) |
+| 16 (this, pass-25) | D-405 | "D-404 self-application correction + pattern-class recognition + S-15.03 PRIORITY-A elevation" | F-P26-001 false-green Verification in pass-25 Dim-6 (HIGH); F-P26-002 Dim-7 partial-coverage; F-P26-003 range-form drift; F-P26-004 pass-count drift; F-P26-005 S-15.03 PRIORITY-A not propagated |
 
 **Resolution:** Per D-386 Option C (asymptotic convergence accepted), no further structural escalation this cycle. D-405 closes the D-404 self-application gap and codifies the PRIORITY-A elevation of S-15.03 for the next cycle. S-15.03 automation (automated cross-index sync check at commit time) is the structural remedy for v1.0-feature-engine-discipline-pass-2.
 
@@ -676,3 +676,46 @@ The 16-layer history:
 - D-405(c): S-15.03 cross-index-sync-at-commit-time check is PRIORITY-A in v1.0-feature-engine-discipline-pass-2 cycle planning.
 
 **Status:** Codified. D-405 closes the D-404 self-application gap. L-EDP1-003 pattern continues at asymptotic boundary per D-386 Option C.
+
+**Corrigendum (pass-26 fix burst — D-387):** Layer-16 row "Same-burst Violation" inline-updated per D-400. See L-EDP1-018 for layer-17.
+
+---
+
+### L-EDP1-018 — 17th-layer L-EDP1-003 recurrence at attestation-accuracy boundary (regex semantic scope)
+
+**Burst:** F5 pass-26 fix burst (codifies the lesson; recurrence was in pass-25 D-405 codification).
+
+**Pattern:** D-405 was codified by the pass-25 fix burst. Pass-26 adversary found the 17th-layer L-EDP1-003 recurrence (F-P26-001). Pass-25 Dim-6 Verification grep `grep -c 'VP-INDEX.*blocked\|blocked.*TD-031\|TD-031.*OPEN' STATE.md INDEX.md → 0 ✓` was false-green. The actual count is 2: STATE.md lines 96-97 (historical Phase Progress rows referencing pass-24 VP-INDEX BLOCKED state) match the regex. These 2 occurrences are preserved per D-385 immutability of completed phase records and are correctly out-of-scope for F-P25-002's stale-narrative sweep. The Verification grep was semantically scoped incorrectly — the regex matched historical immutable rows that should have been excluded from the live-narrative sweep scope.
+
+D-395+D-397+D-402 compliance was achieved syntactically (exact integer reported; intent-match form used; paired grep provided) but semantically the grep scope was wrong. Neither D-395 nor D-397 nor D-402 requires the agent to verify that the grep regex excludes historical immutable rows from live-narrative sweep counts.
+
+The 17-layer history:
+
+| Layer | Burst | Rule Codified | Same-burst Violation |
+|-------|-------|---------------|---------------------|
+| 1 (pass-8) | D-381 | "fix burst MUST update STATE.md" | missed burst-log + INDEX |
+| 2 (pass-9) | D-382 | "fix burst MUST update all 5 sibling files" | introduced intra-file content defects |
+| 3 (pass-10) | D-383 | "intra-file content audit + sibling-pattern sweep" | trajectory cardinality + self-ref N missed |
+| 4 (pass-11) | D-384 | "3 clarifications to D-383" | sub-trajectories stale; retroactive annotations |
+| 5 (pass-12) | D-385 | "3 clarifications to D-383+D-384" | frontmatter schema drift; counting-basis change |
+| 6 (pass-15) | D-387 | "structural-correction exception + sibling sweep" | sweep dimensions not enumerated; adjacent sibling-chain dimensions not covered |
+| 7 (pass-16) | D-389+D-390 | "input-hash convention + CHANGELOG→last_amended rule" | enumerated in L-EDP1-009 |
+| 8 (pass-17) | D-391+D-392 | "enumeration source mandatory + VP Lifecycle ≡ CHANGELOG" | second-source query absent; inlined BC list wrong (3 gaps); inlined VP list wrong (4 gaps) |
+| 9 (pass-18) | D-393+D-394 | "independent re-derivation Grep query required + D-391 severity explicit + dispatch-side phase update" | F-P19-001 false-true attestation re VP-INDEX last_amended (corrigendum in L-EDP1-010) |
+| 10 (pass-19) | D-395+D-396 | "file-state grep-back verification of Action claims + story-frontmatter↔STORY-INDEX sweep" | F-P20-001 dim-4 intent-mismatch (stale pass-18 narrative written; false-green Verification grep; corrigendum in L-EDP1-011) |
+| 11 (pass-20) | D-397+D-398 | "intent-match sub-clause for D-395 Verification grep + Layer-N awaiting-audit convention" | F-P21-001: STATE.md:42 Current Phase cell still read "pass-19" after pass-20 fix burst updated only the adjacent Last Updated cell — sibling-cell sweep extent missed Current Phase cell (D-400 inline-replace) |
+| 12 (pass-21) | D-399+D-400 | "canonical pass-N marker + Layer-N row update protocol" | F-P22-001 ARCH-INDEX cite-refresh silence (HIGH); F-P22-002 VP/STORY-INDEX cycle-sync silence; F-P22-003 BC-INDEX range/enumeration mismatch; F-P22-004 D-383 attestation gap; F-P22-005 counting-basis drift; F-P22-006 D-394 recurrence |
+| 13 (pass-22) | D-401+D-402 | "cross-index sync convention + exact-count Verification + counting-basis + D-394 ownership" | F-P23-001 D-401(a) self-application failure (HIGH); F-P23-002 D-402 regex precision; F-P23-003 BC-INDEX inline-edit trail; F-P23-004 BC enum gap; F-P23-005 per-position P21 attestation; F-P23-006 D-394 dispatch recurrence |
+| 14 (pass-23) | D-403 | "D-401(a) self-application enforcement + D-402 regex precision + D-394 asymptotic acknowledgment" | F-P24-001 D-403(a) self-application failure (HIGH); F-P24-002 pass-21 line 483 cardinality cell; F-P24-003 BC enum D-403 gap; F-P24-004 ARCH range excludes D-403 |
+| 15 (pass-24) | D-404 | "literal acknowledgment enforcement — D-NNN by ID in all 4 index enumerations" | F-P25-001 D-404 itself not literally acknowledged in 4 indexes (HIGH); F-P25-002 6-site stale "VP-INDEX blocked" narrative post-TD-031 fix (HIGH); F-P25-003 4-cell STATE narrative dispatch mismatch; F-P25-004 decision-log range stale; F-P25-005 D-402 lower-bound recurrence; F-P25-006 self-referential greps; F-P25-PG1 dominant L-EDP1-003 sub-pattern across layers 13-16 |
+| 16 (pass-25) | D-405 | "D-404 self-application correction + pattern-class recognition + S-15.03 PRIORITY-A elevation" | F-P26-001 false-green Verification in pass-25 Dim-6 (HIGH); F-P26-002 Dim-7 partial-coverage; F-P26-003 range-form drift; F-P26-004 pass-count drift; F-P26-005 S-15.03 PRIORITY-A not propagated |
+| 17 (this, pass-26) | D-406 | "attestation-accuracy acknowledgment + cross-document numeric coherence + forward-looking codification propagation" | (awaiting pass-27 adversary fresh-context audit) |
+
+**Resolution:** Per D-386 Option C (asymptotic convergence accepted), no further structural escalation this cycle. D-406 closes the tactical instance. S-15.03 PRIORITY-A automation remains the structural remedy for v1.0-feature-engine-discipline-pass-2.
+
+**Codified rules:**
+- D-406(a): Grep semantic scope must exclude historical immutable rows when the target sweep is live-narrative only. The Verification comment MUST note excluded categories (e.g., "→ 2 (2 historical Phase Progress records per D-385 sub-rule 2; excluded from live-narrative scope)").
+- D-406(b): Cross-document range citations (STATE.md ↔ INDEX.md ↔ burst-log) MUST use consistent range forms for sibling coherence.
+- D-406(c): Forward-looking codification propagation: when a cycle decision references a story for next-cycle planning, the same burst SHOULD annotate the story body with a back-reference note.
+
+**Status:** Codified. D-406 closes the attestation-scope gap. L-EDP1-003 pattern continues at asymptotic boundary per D-386 Option C.
