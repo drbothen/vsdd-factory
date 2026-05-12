@@ -1750,7 +1750,7 @@ Dim-2 — lessons.md L-EDP1-026 + L-EDP1-027 (D-382+D-398+D-400+D-410):
 Dim-3 — decision-log.md D-415 (D-382+D-409(b)):
 - Enumeration source: D-415 codified this burst; D-382 mandatory
 - Extent: D-415 row appended to decision-log.md
-- Action: D-415 appended with 5 sub-clauses; Closes column: F-P35-001, F-P35-002, F-P35-003, F-P35-004, F-P35-005 (5 items per D-413(b) mandate)
+- Action: D-415 appended with 5 sub-clauses; Closes column: F-P35-001, F-P35-002, F-P35-003, F-P35-004, F-P35-005 (per D-413(b) completeness mandate)
 - Verification: `grep -c "D-415" /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md` → 1 ✓
 - Canonical pass-35 marker: "D-415"
 
@@ -1831,7 +1831,7 @@ Dim-2 — lessons.md L-EDP1-027 Layer-26 inline-replace + sibling-corrigendum + 
 Dim-3 — decision-log.md D-416 (D-382+D-409(b)):
 - Enumeration source: D-416 codified this burst; D-382 mandatory
 - Extent: D-416 row appended to decision-log.md
-- Action: D-416 appended with 5 sub-clauses; Closes column: F-P36-001, F-P36-002, F-P36-003, F-P36-004, F-P36-005 (5 items per D-413(b) mandate)
+- Action: D-416 appended with 5 sub-clauses; Closes column: F-P36-001, F-P36-002, F-P36-003, F-P36-004, F-P36-005 (per D-413(b) completeness mandate)
 - Verification: `grep -c "D-416" /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md` → 1 ✓
 - Canonical pass-36 marker: "D-416"
 
@@ -1911,7 +1911,7 @@ Dim-2 — lessons.md L-EDP1-028 Layer-27 inline-replace + sibling-corrigendum + 
 Dim-3 — decision-log.md D-417 (D-382+D-409(b)):
 - Enumeration source: D-417 codified this burst; D-382 mandatory
 - Extent: D-417 row appended to decision-log.md
-- Action: D-417 appended with 4 sub-clauses; Closes column: F-P37-001, F-P37-002, F-P37-003, F-P37-004, F-P37-005 (5 items per D-413(b) mandate)
+- Action: D-417 appended with 4 sub-clauses; Closes column: F-P37-001, F-P37-002, F-P37-003, F-P37-004, F-P37-005 (per D-413(b) completeness mandate)
 - Verification: `grep -c "D-417" /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md` → 1 ✓
 - Canonical pass-37 marker: "D-417"
 
@@ -1991,7 +1991,7 @@ Dim-2 — lessons.md L-EDP1-029 Layer-28 inline-replace + sibling-corrigendum + 
 Dim-3 — decision-log.md D-418 (D-382+D-409(b)):
 - Enumeration source: D-418 codified this burst; D-382 mandatory
 - Extent: D-418 row appended to decision-log.md
-- Action: D-418 appended with 4 sub-clauses; Closes column: F-P38-001, F-P38-002, F-P38-003, F-P38-004, F-P38-005 (5 items per D-413(b) mandate)
+- Action: D-418 appended with 4 sub-clauses; Closes column: F-P38-001, F-P38-002, F-P38-003, F-P38-004, F-P38-005 (per D-413(b) completeness mandate)
 - Verification: `grep -c "D-418" /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md` → 1 ✓
 - Canonical pass-38 marker: "D-418"
 
@@ -2022,6 +2022,8 @@ Dim-7 — STATE.md pass-count + narrative + frontmatter update (D-407(c)+D-418(c
 - Action: Update STATE.md with pass-38 fix burst COMPLETE narrative per D-418(c) deterministic-tally form
 - Verification (D-412(c) form i annotation + D-417(b) + D-418(c)): `grep -c "pass-38 fix burst COMPLETE" STATE.md` → expected 4 (Last Updated + Current Phase + Phase Progress pass-38 row + Session Resume "Where we are" line) during fix burst → 3 (after pass-39 dispatch per D-394; phase: + current_step: advanced; Last Updated + Current Phase will cease containing the marker; Phase Progress row + Session Resume + burst-log canonical marker retain the string) per D-418(c) sibling-sweep model ✓
 - Canonical pass-38 marker: "pass-38 fix burst COMPLETE"
+- **Corrigendum (pass-39 fix burst — D-387 / F-P39-005 / D-415(d)):** Dim-7 post-dispatch prediction "→ 3" is FALSE per D-417(b) invariant-body-cells analysis. D-394 dispatch-advance-set is frontmatter-only (phase: + current_step:); Last Updated + Current Phase are body cells advanced by dispatch (lose "pass-38 fix burst COMPLETE" marker); Phase Progress pass-38 row + Session Resume "Where we are" + archive-pointer + burst-log canonical marker are NOT dispatch-advanced. Actual post-dispatch count ≥ 4. Per D-415(d), S-15.03 PRIORITY-A automation must compute post-dispatch count from D-417(b)-invariant body cells rather than relying on prose estimation. Closes F-P39-005 (Dim-7 7th recurrence corrigendum).
 
 **Factory-artifacts commits:**
-(Commit A: 2c4cc33b — adv-cycle-pass-38.md), (Commit B: 3c87b6a0 — D-418+L-EDP1-030+L-EDP1-029 Layer-28 inline-replace+corrigenda), (Commit C: 252f35bf — content fixes F-P38-001..005), (Commit D: 8514f38c — 4-index bumps D-389..D-418), (Commit E: this commit — state-manager final per POLICY 3)
+(Commit A: 2c4cc33b — adv-cycle-pass-38.md), (Commit B: 3c87b6a0 — D-418+L-EDP1-030+L-EDP1-029 Layer-28 inline-replace+corrigenda), (Commit C: 252f35bf — content fixes F-P38-001..005), (Commit D: 8514f38c — 4-index bumps D-389..D-418), (Commit E: fba13633 — state-manager final per POLICY 3; parent-commit SHA per D-419(b))
+- **Corrigendum (pass-39 fix burst — D-387 / F-P39-003):** D-418 burst-log Dim-3 Closes "F-P38-001, F-P38-002, F-P38-003, F-P38-004, F-P38-005 (per D-413(b) completeness mandate)" was incomplete. F-P38-007 (Session Resume checklist items 1a/1b/1c marked ✓) was closed by Commit E but omitted from the Closes enumeration. Complete closure per D-413(b) completeness mandate: F-P38-001, F-P38-002, F-P38-003, F-P38-004, F-P38-005, F-P38-007. Closes F-P39-003 (burst-log site).
