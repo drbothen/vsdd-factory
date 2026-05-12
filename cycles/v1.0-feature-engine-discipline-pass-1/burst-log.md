@@ -2958,4 +2958,64 @@ Closes F-P45-001.
 **Closes:** F-P48-001, F-P48-002, F-P48-003, F-P48-004, F-P48-005, F-P48-006, F-P48-007, F-P48-008 (per D-413(b) completeness mandate)
 
 **Factory-artifacts commits:**
-(Commit A: 04eca28d — adv-cycle-pass-48.md), (Commit B: 06b4f8ae — D-428+L-EDP1-040+L-EDP1-039 Layer-38 inline-replace+corrigendum), (Commit C: cf3f16f7 — content fixes F-P48-001..008), (Commit D: 278977fb — 4-index bumps D-389..D-428), (Commit E: this commit — state-manager final per POLICY 3; parent-commit 278977fb per D-419(b)+D-420(d)+D-421(a))
+(Commit A: 04eca28d — adv-cycle-pass-48.md), (Commit B: 06b4f8ae — D-428+L-EDP1-040+L-EDP1-039 Layer-38 inline-replace+corrigendum), (Commit C: cf3f16f7 — content fixes F-P48-001..008), (Commit D: 278977fb — 4-index bumps D-389..D-428), (Commit E: 71d2cc4d — state-manager final per POLICY 3; parent-commit 278977fb per D-419(b)+D-420(d)+D-421(a))
+
+## F5 pass-49 fix burst (2026-05-12)
+
+**Verdict:** HIGH (4H+3M+1L=8 findings + 1 observation). Trajectory: →7→7→8→8. 40th-layer L-EDP1-003 multi-axis (10th consecutive); META-LEVEL-4 self-replicating coverage-gap CONFIRMED.
+
+**Dim-1 — adv-cycle-pass-49.md persisted (Commit A: 9c0ff3ba):**
+- `grep -c "pass-49 fix burst — D-387" burst-log.md` → (this Commit E entry is the sole source; 0 prior corrigenda for pass-49 findings at Commit A time) ✓
+- Verification: `grep "adv-cycle-pass-49" cycles/v1.0-feature-engine-discipline-pass-1/INDEX.md` → 1 ✓
+
+**Dim-2 — D-429 + L-EDP1-041 codified + corrigenda (Commit B: bf42f4cf):**
+- D-429 appended to decision-log.md (row 110): `grep -c "D-429" cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md` → 1 ✓
+- L-EDP1-041 appended to lessons.md: `grep -c "L-EDP1-041" cycles/v1.0-feature-engine-discipline-pass-1/lessons.md` → 8 (body + trend-table + codified-rules + L-EDP1-040 corrigendum + INDEX refs) ✓
+- L-EDP1-040 row-39 inline-replaced "(this, pass-47)" → "(pass-47)" per D-400; corrigendum appended ✓
+- L-EDP1-040 body "7 simultaneous" → "8 simultaneous"; Plus→axis 8 per F-P49-004 ✓
+
+**Dim-3 — Archive-pointer (D-421(a) form):**
+- Pass-49 STATE.md Session Resume Checkpoint archived: previous checkpoint (pass-48 FIX BURST COMPLETE at parent-commit 278977fb; pass-49 ADVERSARY DISPATCHED) archived to session-checkpoints.md ✓
+
+**Dim-4 — Content fixes applied (F-P49-001..008):**
+- F-P49-001: burst-log:2911 D-428(a) ENFORCEMENT regex corrigendum — full 7-pattern regex applied: `grep -cE "[0-9]+\+|[0-9]+-[0-9]+|≥[0-9]+|approx|approximately|around|between" lessons.md decision-log.md STATE.md` → all hits documentary-historical per D-414(c); 0 active rule-body vague-range forms ✓
+- F-P49-002: decision-log.md rows 106/107 D-425/D-426 N+4→N+6; S-15.03 sub-items 138/142 updated ✓
+- F-P49-003: INDEX.md VP-INDEX v1.91→v1.67 (canonical per VP-INDEX.md frontmatter); now updated to v1.68 post-Commit D ✓
+- F-P49-004: L-EDP1-040 body 7→8 simultaneous; Plus→axis 8 (F-P48-008); trend-table row 39 axis 7→8 ✓
+- F-P49-005: PG-EDP1-002 "5 times (specific count)"→"at least 2 documented times" matching 2 citation sources ✓
+- F-P49-006: burst-log:2768 "→ TBD" retroactively replaced with actual `wc -l STATE.md` = 346 (git show 6ed2b99b:STATE.md | wc -l) ✓
+- F-P49-007: L-EDP1-040 Layer 39 framing clarified ("INTRODUCED"); Layer 40 entry added to pattern-class-evolution list ✓
+- F-P49-008: L-EDP1-040 row 39 "(this, pass-47)"→"(pass-47)" per D-400 — done in Commit B ✓
+
+**Dim-5 — D-425(a) preamble sweep + D-429(b) INDEX cross-cell verification:**
+- D-425(a) preamble sweep: `grep "D-379..D-429" STATE.md` → 4 matches ✓; `grep "D-379..D-428" STATE.md` → 0 matches ✓ (stale form absent)
+- D-429(b) INDEX cross-cell sweep: VP-INDEX canonical `grep "^version:" VP-INDEX.md` → "1.68"; STATE.md Concurrent Cycles VP → v1.68; INDEX.md Convergence Status VP → v1.68 ✓ (cross-cell drift corrected this Commit E)
+- D-429(a) full 7-pattern vague-range sweep: `grep -cE "[0-9]+\+|[0-9]+-[0-9]+|≥[0-9]+|approx|approximately|around|between" lessons.md decision-log.md STATE.md` → lessons.md: 869, decision-log.md: 96, STATE.md: 134; all remaining hits confirmed documentary-historical per D-414(c); 0 active rule-body vague-range forms ✓
+
+**Dim-6 — 4-index bumps D-389..D-429:**
+- BC-INDEX v1.91→v1.92; VP-INDEX v1.67→v1.68; STORY-INDEX v2.92→v2.93; ARCH-INDEX v1.72→v1.73
+- Verification: `grep "^version:" BC-INDEX.md` → "1.92" ✓; VP → "1.68" ✓; STORY → "2.93" ✓; ARCH → "1.73" ✓
+- D-429 literal ID present in all 4 changelog entries ✓
+
+**Dim-7 — STATE.md "pass-49 fix burst COMPLETE" marker cell-list (D-420(b)+D-422(b)+D-424(a)):**
+- During Commit E write time: 6 cells contain "pass-49 fix burst COMPLETE"
+  - Line 15 (frontmatter current_step): "F5 pass-49 fix burst COMPLETE (full-discipline-chain...)" ✓
+  - Line 44 (Last Updated body cell): "2026-05-12 — pass-49 fix burst COMPLETE (HIGH; 4H+3M+1L=8+1obs)..." ✓
+  - Line 45 (Current Phase body cell): "Engine-discipline F5 — pass-49 fix burst COMPLETE; D-429 + L-EDP1-041 codified..." ✓
+  - Line 275 (Session Resume checklist 3e): "3. ✓ pass-49 fix burst COMPLETE (Commits A/B/C/D/E per D-382..D-429 discipline)" ✓
+  - Line 303 (Critical anchors F5 phase): "F5 phase: IN PROGRESS at pass-49 fix burst COMPLETE" ✓
+  - Line 150 (Current Phase Steps pass-49 fix burst row): "F5 pass-49 fix burst (D-429+content fixes) | state-manager | DONE 2026-05-12..." ✓
+- D-417(b) advance-set = frontmatter `phase:` + `current_step:` ONLY
+- Post-dispatch: frontmatter current_step advances per D-417(b); 5 body cells are D-417(b)-INVARIANT and retain the marker
+- D-428(d) banner wc-l verification (re-executed at Commit E author-time): `wc -l STATE.md` → 310; banner soft target 310 + 15 = 325 ✓ (margin 15 ∈ [+10,+20] per D-424(b)) ✓
+- Canonical pass-49 marker: "pass-49 fix burst COMPLETE"
+
+**Codifications (per D-413(b) completeness mandate):**
+- D-429 codified (5 sub-clauses): (a) META-LEVEL-N regex anchoring — ALL named patterns MUST be in grep; (b) INDEX cross-cell sibling-sweep — STATE.md+INDEX.md version cells MUST match canonical frontmatter; (c) L-EDP1-NNN cardinality re-enforcement — Plus siblings FORBIDDEN, ALL findings as numbered axes; (d) cardinality-vs-citation alignment — fix-introduced specific count MUST match citation count; (e) 40th-layer 10th-consecutive multi-axis META-LEVEL-4 CONFIRMED
+- L-EDP1-041 authored (40th-layer 10th-consecutive multi-axis at D-428 codifying-burst boundary; META-LEVEL-4 self-replicating coverage-gap CONFIRMED)
+- L-EDP1-040 Layer-39 row inline-updated per D-400 ("(this, pass-47)" → "(pass-47)"); sibling-corrigendum appended; body cardinality 7→8 simultaneous; Plus→axis 8
+
+**Closes:** F-P49-001, F-P49-002, F-P49-003, F-P49-004, F-P49-005, F-P49-006, F-P49-007, F-P49-008 (per D-413(b) completeness mandate)
+
+**Factory-artifacts commits:**
+(Commit A: 9c0ff3ba — adv-cycle-pass-49.md), (Commit B: bf42f4cf — D-429+L-EDP1-041+L-EDP1-040 Layer-39 inline-replace+corrigendum+cardinality), (Commit C: 45f51f8b — content fixes F-P49-001..008), (Commit D: 079b1fe3 — 4-index bumps D-389..D-429), (Commit E: this commit — state-manager final per POLICY 3; parent-commit 079b1fe3 per D-419(b)+D-420(d)+D-421(a))
