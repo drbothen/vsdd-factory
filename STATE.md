@@ -5,13 +5,13 @@ version: "2.0"
 status: draft
 producer: state-manager
 timestamp: 2026-05-11T00:00:00Z
-phase: engine-discipline-F5-pass-30
+phase: engine-discipline-F5-pass-31-adversary-in-progress
 inputs: []
 input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "F5 pass-30 fix burst COMPLETE (HIGH→PENDING_NEXT_PASS; 1H+2M+2L+1NIT+1PG; D-410 codified; L-EDP1-022 21st-layer; 4 indexes v1.72/v1.48/v2.73/v1.53 acknowledge D-389..D-410)"
+current_step: "F5 pass-31 adversary dispatch IN-PROGRESS (D-394+D-401(b); pass-30 COMPLETE at f927fae8 — D-410 codified; L-EDP1-022 21st-layer; 4 indexes D-389..D-410; trajectory →6)"
 current_cycle: v1.0-feature-engine-discipline-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
