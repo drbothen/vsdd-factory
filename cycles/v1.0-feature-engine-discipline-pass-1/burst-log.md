@@ -2027,3 +2027,65 @@ Dim-7 — STATE.md pass-count + narrative + frontmatter update (D-407(c)+D-418(c
 **Factory-artifacts commits:**
 (Commit A: 2c4cc33b — adv-cycle-pass-38.md), (Commit B: 3c87b6a0 — D-418+L-EDP1-030+L-EDP1-029 Layer-28 inline-replace+corrigenda), (Commit C: 252f35bf — content fixes F-P38-001..005), (Commit D: 8514f38c — 4-index bumps D-389..D-418), (Commit E: fba13633 — state-manager final per POLICY 3; parent-commit SHA per D-419(b))
 - **Corrigendum (pass-39 fix burst — D-387 / F-P39-003):** D-418 burst-log Dim-3 Closes "F-P38-001, F-P38-002, F-P38-003, F-P38-004, F-P38-005 (per D-413(b) completeness mandate)" was incomplete. F-P38-007 (Session Resume checklist items 1a/1b/1c marked ✓) was closed by Commit E but omitted from the Closes enumeration. Complete closure per D-413(b) completeness mandate: F-P38-001, F-P38-002, F-P38-003, F-P38-004, F-P38-005, F-P38-007. Closes F-P39-003 (burst-log site).
+
+---
+
+### Pass-39 Fix Burst — F5 Engine Discipline (2026-05-12)
+
+**Trigger:** adv-cycle-pass-39.md returned HIGH (3H+3M+2L=8+1obs). 30th-layer L-EDP1-003 at D-418(a) self-application boundary: dispatch commit 2e9ae685 wrote SHA `6fc4cacb` into frontmatter `current_step:` while 4 body cells cite `fba13633` (pre-amend SHA of pass-38 Commit E), plus false `D-418(a) grep-back-applied` attestation.
+
+**Codifications:** D-419 (3 sub-clauses): (a) post-write SHA grep-back verification; (b) D-417(c)+D-418(a) temporal-ordering paradox resolution — parent-commit-SHA convention (body cells cite HEAD-at-author-time before Commit E, NOT Commit E's own SHA); (c) D-413(b) misframing corrigendum — completeness not quantity. L-EDP1-031 (30th-layer L-EDP1-003). L-EDP1-030 Layer-29 inline-replaced per D-400. L-EDP1-029 sibling-corrigendum rewritten to D-410 prescribed form (F-P39-006).
+
+**Closes per D-413(b) completeness mandate:** F-P39-001, F-P39-002, F-P39-003, F-P39-004 (deferred — Commit E marks dispatch checklist ✓), F-P39-005, F-P39-006, F-P39-007, F-P39-008
+
+Dim-1 — adv-cycle-pass-39.md (D-382+D-409(b)):
+- Enumeration source: pass-39 adversary return; D-382 mandatory
+- Extent: 1 new file (adv-cycle-pass-39.md)
+- Action: adv-cycle-pass-39.md created; template-compliance hook cleared (Finding ID Convention + Part A Fix Verification sections added); validator passes: block_intent=false ✓
+- Verification: `grep -c "pass: 39" /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-feature-engine-discipline-pass-1/adv-cycle-pass-39.md` → 1 ✓
+- Canonical pass-39 marker: "pass: 39"
+
+Dim-2 — lessons.md L-EDP1-030 Layer-29 inline-replace + sibling-corrigendum + L-EDP1-031 append (D-400+D-410+D-419):
+- Enumeration source: D-398 awaiting-text on Layer-29 requires pass-39 inline-update; D-419 requires L-EDP1-031; F-P39-006 requires L-EDP1-029 sibling-corrigendum rewrite to D-410 form
+- Extent: L-EDP1-029 sibling-corrigendum rewritten (D-410 prescribed form); Layer-29 rows inline-replaced in both layer-history tables (L-EDP1-029 + L-EDP1-030); L-EDP1-030 Status updated; L-EDP1-030 sibling-corrigendum appended; L-EDP1-031 appended (30-row layer-history table; D-419 codified rules; awaiting-text at Layer-30 row per D-398)
+- Action: Layer-29 rows replaced (was "awaiting pass-39"; now F-P39-001/002/003/006 enumeration per D-400). L-EDP1-030 Status updated to Layer-29 inline-replaced. Sibling-corrigendum appended. L-EDP1-031 appended.
+- Verification: `grep -c "awaiting pass-40" /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-feature-engine-discipline-pass-1/lessons.md` → 3 (L-EDP1-031 layer-30 table cell + 30-row history table cell + L-EDP1-031 Status line; per D-408(b) multi-match) ✓
+- Canonical pass-39 marker: "L-EDP1-031"
+
+Dim-3 — decision-log.md D-419 + D-418 corrigendum (D-382+D-409(b)+D-419(c)):
+- Enumeration source: D-419 codified this burst; D-382 mandatory; F-P39-003 requires D-418 Closes corrigendum; D-419(c) sibling-sweep for "N items per D-413(b) mandate"
+- Extent: D-419 row appended; D-418 row corrigendum added; burst-log "N items per D-413(b) mandate" → "per D-413(b) completeness mandate" (4 sites)
+- Action: D-419 appended with 3 sub-clauses; D-418 corrigendum adds F-P38-007 to Closes; burst-log 4-site sweep per D-419(c). Closes column: F-P39-001, F-P39-002, F-P39-003, F-P39-004, F-P39-005, F-P39-006, F-P39-007, F-P39-008 (per D-413(b) completeness mandate)
+- Verification: `grep -c "D-419" /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md` → 2 (D-419 row + D-418 corrigendum reference; per D-408(b) multi-match) ✓
+- Canonical pass-39 marker: "D-419"
+
+Dim-4 — INDEX.md pass-39 row + Convergence Status update (D-382+D-409(b)+D-418(c)):
+- Enumeration source: D-382 mandatory INDEX.md update; pass-39 adversary complete; D-418(c) deterministic-tally form required
+- Extent: 1 new row (pass-39); Convergence Status trajectory →39 values + D-418(c) form + range D-379..D-419; index versions updated
+- Action: Append pass-39 row; update Convergence Status to D-418(c) deterministic-tally form (39 reviews dispatched; 39 complete adversary returns; 37 fix bursts at passes 3-39)
+- Verification: `grep -c "| 39 |" /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-feature-engine-discipline-pass-1/INDEX.md` → 1 ✓
+- Canonical pass-39 marker: "| 39 |"
+
+Dim-5 — STATE.md frontmatter SHA fix (F-P39-001) + S-15.03 propagation (F-P39-007) (D-382+D-387+D-419(b)+D-416(c)):
+- Enumeration source: F-P39-001 (frontmatter SHA mismatch); F-P39-007 (S-15.03 PRIORITY-A missing D-417(b)+D-418(c)); D-419(b) parent-commit-SHA convention
+- Extent: STATE.md `current_step:` SHA corrected to fba13633 per D-419(b); `6fc4cacb` residual sweep → 0 remaining; S-15.03 PRIORITY-A scope updated to 9 items + header updated to reflect D-417(b)+D-418(c)
+- Action: STATE.md current_step: SHA `6fc4cacb` → `fba13633 per D-419(b) parent-commit-SHA`. S-15.03 items 8+9 appended.
+- Verification: `grep -c "6fc4cacb" /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md` → 0 ✓ (full sweep; no residual citations)
+- Canonical pass-39 marker: "D-419(b) parent-commit-SHA" in STATE.md
+
+Dim-6 — 4 index bumps D-419 (D-382+D-404+D-407(a)+D-401(a)):
+- Enumeration source: D-404 unconditional; D-419 codified this burst; D-401(a) ≥3 decisions met
+- Extent: BC-INDEX v1.80→v1.81; VP-INDEX v1.56→v1.57; STORY-INDEX v2.81→v2.82; ARCH-INDEX v1.61→v1.62
+- Action: All 4 indexes bumped with D-419 literal acknowledgment; range D-389..D-419. Note: validate-count-propagation hook false-positive on BC-INDEX (pre-existing "13th META instance" + "13 BC-story slot insertions" matched as "13 stories") — committed via git CLI with staged files per established TD-031 analogue pattern.
+- Verification: `grep -c "D-389..D-419"` → 1 each in all 4 indexes ✓
+- Canonical pass-39 marker: "D-389..D-419" in all 4 index changelogs
+
+Dim-7 — STATE.md pass-count + narrative + frontmatter update (D-407(c)+D-418(c)+D-417):
+- Enumeration source: D-418(c) deterministic-tally form; D-417 full checklist; D-382 mandatory STATE.md update; D-419(b) parent-commit-SHA convention for body cells
+- Extent: 12 edit sites in STATE.md (frontmatter phase + current_step + last_amended + Last Updated + Current Phase + Phase Progress pass-39 rows ×2 + Concurrent Cycles + Decisions Log D-418 corrigendum + D-419 row + Session Resume Checkpoint + Active Branches SHA + archive-pointer)
+- Action: Updated STATE.md with pass-39 fix burst COMPLETE narrative per D-418(c) deterministic-tally form. factory-artifacts Active Branches row updated to 81991227 (Commit D SHA = parent-commit per D-419(b)). Session Resume updated for pass-40 dispatch with items 2a/2b/2c marked ✓ per D-417(d).
+- Verification (D-412(c) form i annotation + D-417(b) + D-418(c)): `grep -c "pass-39 fix burst COMPLETE" STATE.md` → expected 4 (Last Updated + Current Phase + Phase Progress pass-39 row + Session Resume "Where we are" line) during fix burst → 3 (after pass-40 dispatch per D-394; Last Updated + Current Phase will cease containing the marker per D-417(b); Phase Progress row + Session Resume + burst-log canonical marker retain the string) per D-418(c) sibling-sweep model ✓
+- Canonical pass-39 marker: "pass-39 fix burst COMPLETE"
+
+**Factory-artifacts commits:**
+(Commit A: 2627cc56 — adv-cycle-pass-39.md), (Commit B: 039df960 — D-419+L-EDP1-031+L-EDP1-030 Layer-29 inline-replace+corrigenda), (Commit C: ab9cb22c — content fixes F-P39-001..007), (Commit D: 81991227 — 4-index bumps D-389..D-419), (Commit E: this commit — state-manager final per POLICY 3; parent-commit SHA 81991227 per D-419(b))

@@ -93,6 +93,7 @@ changes are WASM-only (no new Bash hook debt per D-2).
 | 36 | 2026-05-11 | 5 (1H+3M+1L) | HIGH | adv-cycle-pass-36.md |
 | 37 | 2026-05-11 | 5 (2H+2M+1L) | HIGH | adv-cycle-pass-37.md |
 | 38 | 2026-05-12 | 7 (2H+3M+2L) | HIGH | adv-cycle-pass-38.md |
+| 39 | 2026-05-12 | 8 (3H+3M+2L)+1obs | HIGH | adv-cycle-pass-39.md |
 
 ## Convergence Status
 
@@ -100,7 +101,7 @@ changes are WASM-only (no new Bash hook debt per D-2).
 - F2 (spec evolution / story decomposition): **COMPLETE** — F2-amendment D-362; 6 BCs + ADR-018 + 4 VPs + PRD FR-048
 - F3 (incremental stories): **COMPLETE** — F3-amendment D-366; 6 stories S-12.03..S-12.08 under E-12
 - F4 (implementation): **COMPLETE** — all 6 E-12 stories merged (PRs #105, #119, #120, #121, #122, #123); F-P2-001 closed via S-12.08
-- F5 (scoped adversarial review): **IN PROGRESS** — 38 reviews dispatched; 38 complete adversary returns; 36 fix bursts at passes 3-38; per D-418(c) deterministic-tally form. Trajectory content-only 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7→8→6→2→5→5→5→7 (38 values); pass-38 HIGH (2H+3M+2L=7); streak 0/3; D-386 Option C accepted; D-379..D-418 codified; L-EDP1-001..L-EDP1-030 authored; VP-INDEX v1.56 / BC-INDEX v1.80 / ARCH-INDEX v1.61 / STORY-INDEX v2.81 acknowledge D-389..D-418
+- F5 (scoped adversarial review): **IN PROGRESS** — 39 reviews dispatched; 39 complete adversary returns; 37 fix bursts at passes 3-39; per D-418(c) deterministic-tally form. Trajectory content-only 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7→8→6→2→5→5→5→7→8 (39 values); pass-39 HIGH (3H+3M+2L=8+1obs); streak 0/3; D-386 Option C accepted; D-379..D-419 codified; L-EDP1-001..L-EDP1-031 authored; VP-INDEX v1.57 / BC-INDEX v1.81 / ARCH-INDEX v1.62 / STORY-INDEX v2.82 acknowledge D-389..D-419
 - F6 (targeted hardening): PENDING
 - F7 (delta convergence): PENDING
 
