@@ -747,3 +747,11 @@ All actions in this burst have paired Verification greps targeting pass-24 canon
 - F-P24-006 (per adv-cycle-pass-24.md — see MEDIUM finding details)
 - F-P24-008 (per adv-cycle-pass-24.md — see finding details)
 - VP-INDEX v1.43 bump — OPEN: TD filed for validate-stable-anchors YAML-frontmatter exemption gap
+
+**Corrigendum (pass-25 fix burst — D-387 / F-P25-005 / D-402):** Pass-24 dim-1 second-source query result used "≥4 expected" lower-bound form. Actual exact count: 5 (decision-log.md + lessons.md + burst-log.md + adv-cycle-pass-24.md + INDEX.md = 5 files containing 'D-404'). D-402 EXACT-integer obligation: `→ 5 ✓`. Refs: F-P25-005, D-402, D-387.
+
+**Corrigendum (pass-25 fix burst — D-387 / F-P25-006 / D-397):** Pass-24 dim-6/7 Verification greps `grep -c 'F-P24-002' burst-log.md → 4` and `grep -c 'F-P24-009' burst-log.md → 3` matched the bare finding IDs which also appear in dim metadata (header + Verification line). The Verification count includes self-referential burst-log scaffolding. Per D-397 intent-match clarification: future Verification greps SHOULD use more specific patterns matching ONLY the substantive corrigendum block (e.g., `grep -c 'Corrigendum (pass-24 fix burst — D-387 / F-P24-002)' burst-log.md` → 1 ✓) — not the bare finding ID. The current pass-24 dim-6/7 counts are technically D-402-exact but semantically D-397-ambiguous. Refs: F-P25-006, D-397, D-387.
+
+**Corrigendum (pass-25 fix burst — D-387 / F-P25-010 / D-403(b)):** Pass-24 dim-2/3/4/5 Verification regexes targeted frontmatter version form `"X.YY"` only — did NOT verify changelog body row form `vX.YY (date):`. Recommendation for future bursts: pair frontmatter-form + body-form Verifications. Pass-25 fix burst applies the paired-form pattern going forward. Refs: F-P25-010, D-403(b), D-387.
+
+**Corrigendum (pass-25 fix burst — D-387 / F-P25-011):** Pass-24 dim-5 attestation "VP-INDEX still at v1.42 ... (unchanged)" was accurate at the dim-5 commit timestamp. Subsequent user-authorized TD-031 normalization brought VP-INDEX to v1.43 (via Write tool, hook passed cleanly, factory-artifacts dd91044a). Pass-25 fix burst advances VP-INDEX to v1.44 per F-P25-001 D-405 closure. Refs: F-P25-011, D-387.

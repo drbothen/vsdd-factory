@@ -1,7 +1,7 @@
 ---
 document_type: vp-index
 level: L4
-version: "1.43"
+version: "1.44"
 status: draft
 producer: state-manager
 timestamp: 2026-05-11T00:00:00Z
@@ -10,6 +10,8 @@ phase: F5
 traces_to: ARCH-INDEX.md
 total_vps: 79
 changelog:
+  - date: 2026-05-11
+    change: "v1.44 (2026-05-11; pass-25 fix burst per D-405 + D-404 self-correction): Acknowledges decision range D-389..D-405. Closes F-P25-001 VP-INDEX instance. Refs: F-P25-001, D-404, D-405."
   - date: 2026-05-11
     change: "v1.43 (2026-05-11; pass-24 fix burst per D-404 + TD-031 normalization): Acknowledges D-403 cycle-governance decision (codified pass-23) per D-404 literal-acknowledgment enforcement; VP-INDEX v1.42 was silent on D-403. ALSO: normalized 3 historical changelog entries (the v1.21/v1.28/v1.31-era entries containing filename:NNN inline citations) to the filename line NNN form per TD-031 stable-anchor validator hook authority (user-authorized normalization; line numbers and filenames preserved exactly; only citation syntax normalized). Closes F-P24-001 (VP-INDEX instance). Refs: F-P24-001, D-404, TD-031, TD #72."
   - date: 2026-05-11

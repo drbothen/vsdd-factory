@@ -5,13 +5,13 @@ version: "2.0"
 status: draft
 producer: state-manager
 timestamp: 2026-05-11T00:00:00Z
-phase: engine-discipline-F5-pass-25-adversary-in-progress
+phase: engine-discipline-F5-pass-25
 inputs: []
 input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "F5 pass-25 adversary dispatch IN-PROGRESS (pre-review STATE.md update per D-394+D-401(b)+D-403(c); orchestrator-owned dispatch-side phase update; pass-24 fully closed at HEAD dd91044a — 4/4 indexes acknowledge D-403 + VP-INDEX TD-031 normalization complete)"
+current_step: "F5 pass-25 fix burst COMPLETE (HIGH→PENDING_NEXT_PASS; 2H+4M+4L+2NIT+1PG; D-405 codified; L-EDP1-017 16th-layer; 4 indexes v1.68/v1.44/v2.69/v1.49 acknowledge D-389..D-405)"
 current_cycle: v1.0-feature-engine-discipline-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,8 +38,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-11 — F5 pass-24 fix burst COMPLETE. Pass-24 HIGH verdict (1H+4M+3L+2NIT+1PG; sustained; 15th-layer L-EDP1-003 at VP-INDEX hook-blocked + D-404 literal-acknowledgment). D-404 codified. L-EDP1-016 documents 15th-layer. BC-INDEX v1.67 + ARCH-INDEX v1.48 + STORY-INDEX v2.68 acknowledge D-403; VP-INDEX blocked by pre-existing TD-031. Trajectory (content-only): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10. |
-| **Current Phase** | Engine-discipline F5 — pass-24 fix burst COMPLETE (pending pass-25 dispatch) |
+| **Last Updated** | 2026-05-11 — F5 pass-25 fix burst COMPLETE. Pass-25 HIGH verdict (2H+4M+4L+2NIT+1PG; 16th-layer L-EDP1-003 at D-404 self-application boundary). D-405 codified. L-EDP1-017 documents 16th-layer. BC-INDEX v1.68 + ARCH-INDEX v1.49 + STORY-INDEX v2.69 + VP-INDEX v1.44 acknowledge decision range D-389..D-405. VP-INDEX v1.44 (TD-031 historical normalization complete in v1.43; D-405 acknowledgment in v1.44). Trajectory (content-only): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12. |
+| **Current Phase** | Engine-discipline F5 — pass-25 fix burst COMPLETE (pending pass-26 dispatch) |
 | **Current Cycle** | v1.0-feature-engine-discipline-pass-1 |
 
 ## Phase Progress
@@ -134,14 +134,14 @@ dtu_services: []
 | Cycle | Type | Status | Notes |
 |-------|------|--------|-------|
 | v1.0-brownfield-backfill | brownfield | PAUSED | E-10 pass-9 pending; paused at D-343 |
-| v1.0-feature-engine-discipline-pass-1 | feature | F5-IN-PROGRESS | All 6 E-12-platform stories merged; F5 passes 3-24 complete (22 F5 passes); full-cycle trajectory content-only (pass-1..24): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10; pass-24 HIGH verdict (1H+4M+3L+2NIT+1PG); D-404 codified; L-EDP1-016 documented; D-386 Option C: continue F5, accept asymptotic L-EDP1-003 limit; VP-INDEX TD-031 pre-existing violations block v1.43 bump; S-15.03 deferred |
+| v1.0-feature-engine-discipline-pass-1 | feature | F5-IN-PROGRESS | All 6 E-12-platform stories merged; F5 passes 3-25 complete (23 F5 passes); full-cycle trajectory content-only (pass-1..25): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12; pass-25 HIGH verdict (2H+4M+4L+2NIT+1PG); D-405 codified; L-EDP1-017 documented; D-386 Option C: continue F5, accept asymptotic L-EDP1-003 limit; VP-INDEX v1.44 TD-031 historical normalization complete in v1.43; S-15.03 PRIORITY-A in pass-2 cycle |
 | v1.0-feature-plugin-async-semantics-pass-1 | feature | CLOSED | All PRs merged; rc.14 shipped |
 
 ## Decisions Log
 
 > D-001..D-312: `cycles/v1.0-brownfield-backfill/decision-log.md` + `decisions-log-archive.md`
 > F5 pass-2 architect decisions: `cycles/v1.0-feature-engine-discipline-pass-1/F5-pass-2-architect-decisions.md` (factory-artifacts 7b83ef58)
-> D-379..D-402 (this session): `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md`
+> D-379..D-405 (this session): `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md`
 
 | ID | Decision | Phase | Date |
 |----|----------|-------|------|
@@ -183,9 +183,9 @@ dtu_services: []
 
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-11 — F5 pass-24 fix burst COMPLETE. Pass-24 HIGH verdict (1H+4M+3L+2NIT+1PG; sustained; 15th-layer L-EDP1-003 at VP-INDEX hook-blocked + D-404 literal-acknowledgment). D-404 codified. L-EDP1-016 documents 15th-layer. Key fixes: F-P24-001+003+004 BC-INDEX v1.67 + ARCH-INDEX v1.48 + STORY-INDEX v2.68 acknowledge D-403; VP-INDEX edit BLOCKED by pre-existing TD-031 violations (lib.rs:593, main.rs:394→416, main.rs:162 in YAML frontmatter changelog: block — hook exempts only ## Changelog Markdown headings); F-P24-002 pass-21 cardinality cell corrigendum; F-P24-007 STATE.md Next: pointer; F-P24-009 pass-23 dim-3 regex rationale corrigendum; L-EDP1-016 codified. Trajectory (content-only): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10. Streak 0/3.
+**Last update:** 2026-05-11 — F5 pass-25 fix burst COMPLETE. Pass-25 HIGH verdict (2H+4M+4L+2NIT+1PG; 16th-layer L-EDP1-003 at D-404 self-application boundary). D-405 codified. L-EDP1-017 documents 16th-layer. Key fixes: F-P25-001 4 indexes (BC v1.68, VP v1.44, STORY v2.69, ARCH v1.49) acknowledge decision range D-389..D-405; F-P25-002 6-site VP-INDEX stale narrative swept clean (VP-INDEX v1.44 — TD-031 historical normalization complete in v1.43); F-P25-003 STATE.md 4-cell pass-25 narrative; F-P25-004 decision-log range D-379..D-405; F-P25-005/006 pass-24 burst-log corrigenda; L-EDP1-016 Layer-15 inline-replaced per D-400; L-EDP1-017 documents 16th-layer. Trajectory (content-only): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12. Streak 0/3.
 
-**STATE:** F4 platform COMPLETE; F5 at pass-24 fix burst complete. Pass-24 fix burst COMPLETE; next: dispatch pass-25 adversary (per D-394+D-404, update STATE.md phase BEFORE adversary returns).
+**STATE:** F4 platform COMPLETE; F5 at pass-25 fix burst complete. Pass-25 fix burst COMPLETE; next: dispatch pass-26 adversary (per D-394+D-405, update STATE.md phase BEFORE adversary returns).
 
 **Next session start — ordered checklist:**
 
@@ -193,17 +193,17 @@ dtu_services: []
 2. ✓ D-401+D-402 codified (pass-22 fix burst complete; L-EDP1-014).
 3. ✓ D-403 codified (pass-23 fix burst complete; L-EDP1-015).
 4. ✓ D-404 codified (pass-24 fix burst complete; L-EDP1-016).
-5. Dispatch pass-25 adversary — update STATE.md phase: engine-discipline-F5-pass-25 BEFORE dispatch (per D-394).
-6. OPEN: VP-INDEX v1.43 bump blocked — TD-031 pre-existing violations in YAML frontmatter changelog. Requires fixing YAML changelog exempt zone in validate-stable-anchors hook source OR removing volatile line cites from VP-INDEX changelog entries (historical; D-387 prohibits retroactive edits). File TD for hook YAML-frontmatter exemption gap.
-7. Apply pass-25 fix burst per D-382..D-404 discipline if MEDIUM or above.
+5. ✓ Dispatch pass-25 adversary — STATE.md phase updated pre-dispatch per D-394.
+6. ✓ VP-INDEX v1.44 COMPLETE — TD-031 normalization done in v1.43 (user-authorized Write; hook passed cleanly at dd91044a); D-405 acknowledgment added in v1.44 (pass-25 fix burst).
+7. Apply pass-26 fix burst per D-382..D-405 discipline if MEDIUM or above.
 8. Iterate until 3 consecutive NITPICK_ONLY passes achieved OR human declares convergence.
 9. F6 targeted hardening after convergence criterion met. F7 delta convergence + human gate (cycle CLOSE).
 10. E-10 brownfield pass-9 resume (PAUSED at D-343).
 
-**D-382..D-404 discipline applies to ALL future fix bursts.** Key additions pass-24: D-404 (literal acknowledgment enforcement — all 4 indexes must cite new decisions by literal ID in a NEW changelog row per D-403(a) self-application; VP-INDEX blocked by TD-031 hook in this burst — OPEN TD).
+**D-382..D-405 discipline applies to ALL future fix bursts.** Key additions pass-25: D-405 (D-404 self-application correction + pattern-class recognition + S-15.03 PRIORITY-A elevation — all 4 indexes must use "decision range D-AAA..D-405" or "Acknowledges D-404, D-405" form; VP-INDEX v1.44 closes the TD-031 open item from prior bursts).
 
-**Index versions:** BC-INDEX v1.67 | VP-INDEX v1.42 (blocked TD-031) | STORY-INDEX v2.68 | ARCH-INDEX v1.48
-**Pass-24 fixes:** D-404 codified | L-EDP1-016 | F-P24-001..010 (F-P24-005/006/008 per adv-cycle-pass-24.md; VP-INDEX blocked)
+**Index versions:** BC-INDEX v1.68 | VP-INDEX v1.44 (TD-031 historical normalization complete in v1.43; D-405 acknowledged in v1.44) | STORY-INDEX v2.69 | ARCH-INDEX v1.49
+**Pass-25 fixes:** D-405 codified | L-EDP1-017 | F-P25-001..012 + F-P25-PG1
 **ADR-013:** 3_of_3 CONVERGED (pass-57) | **E-9:** v1.53 CONVERGENCE_REACHED | **E-10:** paused D-343
 **5 user-locked decisions:** `cycles/v1.0-feature-plugin-async-semantics-pass-1/F4-handoff.md` §3
 

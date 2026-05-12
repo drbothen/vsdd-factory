@@ -1,7 +1,7 @@
 ---
 document_type: bc-index
 level: L3
-version: "1.67"
+version: "1.68"
 status: draft
 producer: state-manager
 timestamp: 2026-05-11T00:00:00Z
@@ -12,6 +12,8 @@ inputs:
 total_bcs: 1947
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-11
+    change: "v1.68 (2026-05-11; pass-25 fix burst per D-405 + D-404 self-correction): Acknowledges decision range D-389..D-405. Closes F-P25-001 BC-INDEX instance. Refs: F-P25-001, D-404, D-405."
   - date: 2026-05-11
     change: "v1.67 (2026-05-11; pass-24 fix burst per D-404): Acknowledges D-403 cycle-governance decision codified in pass-23 fix burst. v1.66 referenced D-403(a) as procedural authority; v1.67 explicitly acknowledges D-403 by literal ID per D-404 (literal acknowledgment enforcement). Closes F-P24-001 + F-P24-003. Refs: F-P24-001, F-P24-003, D-404. **Corrigendum (pass-24 fix burst — D-387 / F-P24-010):** BC-INDEX v1.66 closure narrative read 'Closes F-P23-001 + F-P23-004 + F-P23-009 partial coverage.' Decision-log D-403 includes F-P23-008 in the closure list. Complete v1.66 closure: F-P23-001 + F-P23-004 + F-P23-008 + F-P23-009. Refs: F-P24-010, D-387."
   - date: 2026-05-11

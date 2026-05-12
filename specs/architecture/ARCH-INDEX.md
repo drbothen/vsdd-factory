@@ -1,7 +1,7 @@
 ---
 document_type: architecture-index
 level: L3
-version: "1.48"
+version: "1.49"
 status: accepted
 producer: architect
 timestamp: 2026-05-11T00:00:00Z
@@ -17,6 +17,8 @@ inputs:
 traces_to: phase-1-spec-crystallization
 deployment_topology: single-service
 changelog:
+  - date: 2026-05-11
+    change: "v1.49 (2026-05-11; pass-25 fix burst per D-405 + D-404 self-correction): Acknowledges decision range D-389..D-405. Closes F-P25-001 ARCH-INDEX instance. Refs: F-P25-001, D-404, D-405."
   - date: 2026-05-11
     change: "v1.48 (2026-05-11; pass-24 fix burst per D-404): Acknowledges decision range D-389..D-403 (extends v1.47 range from D-389..D-402; closes D-403 gap surfaced by F-P24-001 + F-P24-004). Literal acknowledgment per D-404. Closes F-P24-001 + F-P24-004. Refs: F-P24-001, F-P24-004, D-404."
   - date: 2026-05-11
