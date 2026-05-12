@@ -5,14 +5,14 @@ version: "2.0"
 status: draft
 producer: state-manager
 timestamp: 2026-05-12T00:00:00Z
-phase: engine-discipline-F5-pass-43
+phase: engine-discipline-F5-pass-44-adversary-in-progress
 last_amended: 2026-05-12
 inputs: []
 input-hash: "[live-state]"
 traces_to: prd.md
 project: vsdd-factory
 mode: brownfield
-current_step: "F5 pass-43 fix burst COMPLETE (HIGH→PENDING_NEXT_PASS; D-423 codified (4 sub-clauses); L-EDP1-035 34th-layer 4th consecutive multi-axis ALL D-422 sub-clauses violated; 4 indexes D-389..D-423; trajectory →8; parent-commit a52fad8d per D-419(b)+D-420(d)+D-421(a))"
+current_step: "F5 pass-44 adversary dispatch IN-PROGRESS (D-394+D-401(b)+D-418(a)+D-419(a)+D-419(b)+D-420(d)+D-421(a)+D-422(a)+D-423(a)+D-423(c) grep-back+verification-re-executed; pass-43 parent-commit a52fad8d per D-419(b)+D-420(d)+D-421(a); D-423 codified (4 sub-clauses); L-EDP1-035 34th-layer 4th-consecutive multi-axis ALL-D-422-violated; 4 indexes D-389..D-423; trajectory →8)"
 current_cycle: v1.0-feature-engine-discipline-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
