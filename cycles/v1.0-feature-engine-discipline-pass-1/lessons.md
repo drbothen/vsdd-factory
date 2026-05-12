@@ -2025,7 +2025,9 @@ S-15.03 PRIORITY-A automation remains the only known structural remedy.
 - D-429(d): Cardinality-vs-citation alignment — fix replacing vague-range with specific count MUST update citation list to match count. Closes F-P49-005.
 - D-429(e): 40th-layer 10th-consecutive multi-axis META-LEVEL-4 CONFIRMED acknowledgment — each codification level introduces a new ply; S-15.03 PRIORITY-A only structural remedy. Closes F-P49-002, F-P49-006, F-P49-007, F-P49-008.
 
-**Corrigendum (pass-50 fix burst — D-387 / F-P50-001 / D-400):** Layer-40 row "Same-burst Violation" inline-updated per D-400. L-EDP1-041 body opening updated: "7 simultaneous ... + 1 LOW" → "8 simultaneous same-burst self-application failures occurred (8 enumerated as numbered axes per D-429(c)+D-430(b) semantic class)". See L-EDP1-042 for layer-41.
+**Corrigendum (pass-50 fix burst — D-387 / F-P50-001 / D-400):** Layer-40 row "Axis count" inline-updated per D-400. L-EDP1-041 body opening updated: "7 simultaneous ... + 1 LOW" → "8 simultaneous same-burst self-application failures occurred (8 enumerated as numbered axes per D-429(c)+D-430(b) semantic class)". See L-EDP1-042 for layer-41.
+
+**Corrigendum (pass-51 fix burst — D-387 / F-P51-007 / D-400):** L-EDP1-041 corrigendum description at this location previously cited "Same-burst Violation" column — that column does not exist in the L-EDP1-041 trend table (columns are "Axis count" | "Multi-axis?"); corrected to "Axis count" per D-400 convention. "Same-burst Violation" column exists in earlier trend tables (L-EDP1-001..030 range) but not in L-EDP1-031+ tables which use the newer column structure.
 
 ### L-EDP1-042 — 41st-layer L-EDP1-003 recurrence: eleventh consecutive multi-axis simultaneous violation at D-429 codifying-burst boundary; META-LEVEL-5 self-replicating coverage-gap CANDIDATE
 
@@ -2160,3 +2162,64 @@ S-15.03 PRIORITY-A automation remains the only known structural remedy.
 - D-428(c): D-422(a) Verification placeholder elimination — TBD/to-be-computed FORBIDDEN at Commit E. All Dim-N Verification lines MUST resolve to actual numeric output before Commit E. Closes F-P48-002.
 - D-428(d): D-422(c) banner wc-l canonical count — banner "actual N lines" claim MUST equal `wc -l <file>` output at Commit E author-time. `wc -l` output is canonical. Off-by-one is HIGH per D-411(a). Closes F-P48-004.
 - D-428(e): 39th-layer L-EDP1-003 multi-axis acknowledgment (9th consecutive; NEW META-LEVEL-3 self-replicating coverage-gap class) — each level of codification introduces a new ply of coverage-gap recursion; prose codification structurally incapable; S-15.03 PRIORITY-A only structural remedy. Closes F-P48-005, F-P48-006, F-P48-007, F-P48-008.
+
+
+### L-EDP1-043 — 42nd-layer L-EDP1-003 recurrence: twelfth consecutive multi-axis simultaneous violation at D-430 codifying-burst boundary; META-LEVEL-6 CONFIRMED; NEW CRITICAL structural-coalescence class
+
+**Burst:** F5 pass-51 fix burst (codifies this lesson; recurrence was in pass-50 fix burst which codified D-430).
+
+**Pattern:** The 42nd layer documents the 12th consecutive multi-axis simultaneous recurrence at a codifying-burst boundary. Layer-42 introduces two new elements: (1) META-LEVEL-6 CONFIRMED — D-430(c) prescribed verification of cumulative header advancement, but the verification grep-target was anchored to the obsolete prior form, not the required new form; (2) NEW CRITICAL defect class — structural artifact corruption (table-row coalescence) at the codifying burst itself. At D-430's codifying burst (pass-50 fix burst), 7 simultaneous same-burst self-application failures occurred + 1 NEW CRITICAL class:
+
+1. **CRITICAL F-P51-001 — table-row coalescence (NEW defect class):** decision-log.md line 110 contained BOTH D-429 row terminus AND D-430 row inline without newline separator. Structural artifact corruption at the very burst that codified D-430. The Verification grep-c=1 attestation at pass-50 burst-log:3046 rubber-stamped the coalescence via coincidental arithmetic match (substring present, but not line-anchored). First CRITICAL-class finding in cycle history (51 passes).
+
+2. **F-P51-002:** D-430 row entirely absent from STATE.md Decisions Log table — D-420(a) closure-set multi-site failure at codifying burst.
+
+3. **F-P51-003 (META-LEVEL-6 CONFIRMED):** D-430(c) cumulative-header monotonic-advancement rule violated at its own codifying burst. S-15.03 header frozen at "D-411 through D-429" when D-430 was just codified. Verification grep target was the OLD form ("D-411 through D-429"), not the required NEW form ("D-411 through D-430"). META-LEVEL-6 grep-target-derivation gap: the act of verifying the advancement rule itself used the stale literal.
+
+4. **F-P51-004:** STATE.md banner D-430(a/b/c/d/e) sub-clause labels SCRAMBLED — 4 of 5 positionally mislabeled (a=full-semantic-class vs required compaction-authorization; b=cumulative-header vs required full-semantic-class; c=Dim-7-sed vs required cumulative-header; d=compaction-authorization vs required Dim-7-sed; e=META-LEVEL-5-CANDIDATE correct).
+
+5. **F-P51-005:** Archive-pointer stale — not advanced for pass-50 completion. D-421(a) SHA-inclusion mandate violated. Still citing "pass-49 FIX BURST COMPLETE" at Commit E of pass-50 fix burst.
+
+6. **F-P51-006:** "multiple" vague-range form in pass-50 burst-log Dim-2 verification (D-425(c)/D-428(c) violation). Actual count is 2.
+
+7. **F-P51-007:** L-EDP1-041 corrigendum description references non-existent "Same-burst Violation" column — column name in L-EDP1-041 trend table is "Axis count". Misdescription per D-411(a).
+
+**Trend (axis counts per multi-axis layer):**
+
+| Layer | Burst | Axis count | Multi-axis? |
+|-------|-------|-----------|-------------|
+| 31 (pass-40) | D-420 | 4 | YES (first multi-axis) |
+| 32 (pass-41) | D-421 | 4 | YES (second consecutive) |
+| 33 (pass-42) | D-422 | 3 | YES (third consecutive) |
+| 34 (pass-43) | D-423 | 7 | YES (fourth consecutive; ALL D-422 sub-clauses violated) |
+| 35 (pass-44) | D-424 | 5 | YES (fifth consecutive) |
+| 36 (pass-45) | D-425 | 7 | YES (sixth consecutive; NEW silent-slip axis) |
+| 37 (pass-46) | D-426 | 7 | YES (seventh consecutive; NEW rule-scope-vs-applied-scope coverage gap class) |
+| 38 (pass-47) | D-427 | 7 | YES (eighth consecutive; NEW self-replicating coverage-gap class) |
+| 39 (pass-48) | D-428 | 8 | YES (ninth consecutive; META-LEVEL-3 class confirmed) |
+| 40 (pass-49) | D-429 | 8 | YES (tenth consecutive; META-LEVEL-4 CONFIRMED) |
+| 41 (pass-50) | D-430 | 7 | YES (eleventh consecutive; META-LEVEL-5 CANDIDATE via lexical-vs-semantic gap) |
+| 42 (pass-51) | D-431 | 7 | YES (twelfth consecutive; META-LEVEL-6 CONFIRMED + NEW CRITICAL structural-coalescence class) |
+
+**Recursion ply mapping (6 confirmed plies):**
+- Level-1: rule applied to named findings only
+- Level-2: fix-extension applied to named forms only
+- Level-3: sweep regex coverage-gapped at semantic interpretation
+- Level-4: meta-rule prescribing regex-derivation itself coverage-gapped
+- Level-5: anti-pattern rewrite applied to lexical-token, not semantic class
+- **Level-6 (CONFIRMED):** verification grep-target anchored to obsolete prior form, not required new form (D-430(c) self-application gap confirmed by F-P51-003)
+
+**NEW pattern class:** Structural artifact corruption at codifying burst — CRITICAL severity. First instance in cycle (51 passes). The coalescence emerged from Bash heredoc/echo append pattern used by pass-50 Commit B authoring. Future codifying bursts MUST verify line-terminus discipline per D-431(a): `grep -c "^| D-<latest>" decision-log.md` ≥ 1.
+
+**Half-century+1 milestone observation:** Pass-51 = 49th adversary pass (passes 3..51). Asymptotic HIGH-floor sustained per L-EDP1-007/031..042 + D-386 Option C. S-15.03 PRIORITY-A automation remains only structural remedy.
+
+**Prediction for pass-52:** D-431(a/b/c/d/e) likely violated at pass-51 codifying burst. META-LEVEL-7 candidate ply: structural-artifact-corruption-prevention rule may itself coverage-gap at its codifying burst (verification of `^| D-431` anchored line check could itself use wrong pattern).
+
+**Resolution:** Per D-386 Option C (asymptotic convergence accepted), no further structural escalation this cycle. D-431 codifies 5 sub-clauses addressing the 42nd-layer violations. S-15.03 PRIORITY-A automation remains the structural remedy for v1.0-feature-engine-discipline-pass-2.
+
+**Codified rules:**
+- D-431(a): Table-row line-terminus discipline — Every D-NNN row in decision-log table MUST end with newline before next row begins. Coalescence FORBIDDEN. Burst Commit E MUST verify `grep -c "^| D-<latest>" decision-log.md` ≥ 1. Closes F-P51-001.
+- D-431(b): STATE.md Decisions Log monotonic-row enforcement — STATE.md MUST have D-NNN row at every fix-burst Commit E. `grep -c "^| D-<latest>" STATE.md` ≥ 1 required. Closes F-P51-002.
+- D-431(c): D-430(c) reinforcement + META-LEVEL-6 closure — S-15.03 cumulative header MUST advance to LATEST D-NNN; verification grep target MUST be the NEW form (not obsolete prior form). META-LEVEL-6 confirmed. Closes F-P51-003.
+- D-431(d): Banner sub-clause label-anchoring discipline — banner D-NNN sub-clause labels MUST match decision-log SoT in ORDER and SEMANTICS. Cross-doc label scrambling = HIGH per D-411(a). Closes F-P51-004.
+- D-431(e): Commit E sweep — archive-pointer advance (D-421(a)); banner labels per D-431(d); STATE.md row per D-431(b); decision-log line-terminus per D-431(a). Closes F-P51-005, F-P51-006, F-P51-007.
