@@ -153,6 +153,8 @@ F-P36-002 is listed in BOTH the HIGH row and the MEDIUM row. This is a cardinali
 | **Trajectory** | 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7→8→6→2→5→5 |
 | **Verdict** | FINDINGS_REMAIN |
 
+> **Sibling-corrigendum (D-385 sub-rule 2 + D-410 + D-418(d)):** Body trajectory above has 36 values; pass-37 self-value of 5 (per pass-37 frontmatter findings_count = 2H+2M+1L per D-401(c) content-only) was omitted. Corrected trajectory: 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7→8→6→2→5→5→5 (37 values). STATE.md and INDEX.md are canonical sources.
+
 ## Scope
 
 Reviewed: adv-cycle-pass-36.md (Summary table, frontmatter, trajectory), burst-log.md (pass-36 Dim-1 + Dim-7 attestations, lines 1792/1807/1817), STATE.md (frontmatter, line 41/120/161/214/216/223/236), INDEX.md (line 93, trajectory). Source code not reviewed (no changes in this burst).

@@ -12,7 +12,7 @@ input-hash: "[live-state]"
 traces_to: prd.md
 project: vsdd-factory
 mode: brownfield
-current_step: "F5 pass-38 adversary dispatch IN-PROGRESS (D-394+D-401(b); pass-37 COMPLETE at a4b260fe; D-417 codified (4 sub-clauses); L-EDP1-029 28th-layer; 4 indexes D-389..D-417; trajectory →5)"
+current_step: "F5 pass-38 adversary dispatch IN-PROGRESS (D-394+D-401(b); pass-37 COMPLETE at 383f1292; D-417 codified (4 sub-clauses); L-EDP1-029 28th-layer; 4 indexes D-389..D-417; trajectory →5)"
 current_cycle: v1.0-feature-engine-discipline-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -161,7 +161,7 @@ dtu_services: []
 | Cycle | Type | Status | Notes |
 |-------|------|--------|-------|
 | v1.0-brownfield-backfill | brownfield | PAUSED | E-10 pass-9 pending; paused at D-343 |
-| v1.0-feature-engine-discipline-pass-1 | feature | F5-IN-PROGRESS | All 6 E-12-platform stories merged; F5 passes 1-37 (37 reviews dispatched; 36 complete adversary returns at fix-burst-COMPLETE time; 35 fix bursts at passes 3-37) per D-415(c)+D-416(d)+D-417 dispatch-boundary annotation; full-cycle trajectory content-only (pass-1..37): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7→8→6→2→5→5→5; pass-37 HIGH verdict (2H+2M+1L); D-417 codified (4 sub-clauses); L-EDP1-029 28th-layer; D-386 Option C: continue F5, accept asymptotic L-EDP1-003 limit; VP-INDEX v1.55 / BC-INDEX v1.79 / ARCH-INDEX v1.60 / STORY-INDEX v2.80 acknowledge D-389..D-417; S-15.03 PRIORITY-A in pass-2 cycle |
+| v1.0-feature-engine-discipline-pass-1 | feature | F5-IN-PROGRESS | All 6 E-12-platform stories merged; F5 passes 1-38 (38 reviews dispatched; 38 complete adversary returns; 36 fix bursts at passes 3-38) per D-418(c) deterministic-tally form; full-cycle trajectory content-only (pass-1..38): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7→8→6→2→5→5→5→7; pass-38 HIGH verdict (2H+3M+2L); D-418 codified (4 sub-clauses); L-EDP1-030 29th-layer; D-386 Option C: continue F5, accept asymptotic L-EDP1-003 limit; VP-INDEX v1.56 / BC-INDEX v1.80 / ARCH-INDEX v1.61 / STORY-INDEX v2.81 acknowledge D-389..D-418; S-15.03 PRIORITY-A in pass-2 cycle |
 | v1.0-feature-plugin-async-semantics-pass-1 | feature | CLOSED | All PRs merged; rc.14 shipped |
 
 ## Decisions Log
@@ -263,4 +263,4 @@ Full scope: `.factory/stories/S-15.03-index-cite-refresh-hook.md`
 - ADR-013: 3_of_3 CONVERGED (pass-57) | E-9: v1.53 CONVERGENCE_REACHED | E-10: paused D-343
 - 5 user-locked decisions: `cycles/v1.0-feature-plugin-async-semantics-pass-1/F4-handoff.md` §3
 
-> Previous checkpoint (pass-37 FIX BURST COMPLETE at 383f1292) archived to: `cycles/v1.0-feature-engine-discipline-pass-1/session-checkpoints.md`
+> Previous checkpoint (pass-37 FIX BURST COMPLETE at 383f1292; pass-38 ADVERSARY DISPATCHED) archived to: `cycles/v1.0-feature-engine-discipline-pass-1/session-checkpoints.md`
