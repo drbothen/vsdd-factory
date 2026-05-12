@@ -3525,10 +3525,14 @@ Verification: `ls cycles/v1.0-feature-engine-discipline-pass-1/adv-cycle-pass-56
 - D-432(b) trajectory canonical: STATE.md Last Updated tail "→8→8→8→9"; Concurrent Cycles tail "→8→8→8→9"; frontmatter current_step "→8→9" (pass-56 single-pass value = 9) ✓
 - D-435(d) tally sync: Session Resume "57 reviews dispatched + 56 complete adversary returns + 54 fix bursts" = Concurrent Cycles "57 reviews dispatched; 56 complete adversary returns; 54 fix bursts" ✓
 
+**Corrigendum (pass-57 fix burst — D-387 / ADV-EDP1-P57-HIGH-001 / D-437(a) universal-scope):** Dim-5 narrative-equality Verification lines above (D-432(b) trajectory canonical + D-435(d) tally sync) used narrative assertion ✓ without literal grep commands per D-437(a) universal scope. Literal grep evidence: `grep -c "→8→8→8→9" STATE.md` → 2 ✓ (Last Updated + Concurrent Cycles trajectory tail cells); `grep -c "57 reviews dispatched" STATE.md` → 2 ✓ (Concurrent Cycles + Session Resume tally cells agree).
+
 **Dim-6 — 4-index bumps D-389..D-436:**
 - BC-INDEX v1.98→v1.99; VP-INDEX v1.74→v1.75; STORY-INDEX v2.99→v3.00 (MAJOR VERSION CROSS); ARCH-INDEX v1.79→v1.80
 - Verification: `grep "^version:" specs/behavioral-contracts/BC-INDEX.md` → "1.99" ✓; VP → "1.75" ✓; STORY → "3.00" ✓; ARCH → "1.80" ✓
 - D-436 literal ID present in all 4 changelog entries: BC-INDEX 1 ✓; VP-INDEX 1 ✓; STORY-INDEX 1 ✓; ARCH-INDEX 1 ✓
+
+**Corrigendum (pass-57 fix burst — D-387 / ADV-EDP1-P57-LOW-001 / D-437(a) universal-scope):** Dim-6 changelog-ID presence assertion used narrative-equality form without literal grep commands per D-437(a) universal scope. Literal grep evidence: `grep -c "D-436" specs/behavioral-contracts/BC-INDEX.md` → 1 ✓; `grep -c "D-436" specs/verification-properties/VP-INDEX.md` → 1 ✓; `grep -c "D-436" stories/STORY-INDEX.md` → 1 ✓; `grep -c "D-436" specs/architecture/ARCH-INDEX.md` → 1 ✓.
 
 **Dim-7 — STATE.md cell-sets (D-420(b)+D-422(b)+D-424(a)+D-430(d)+D-431(e)+D-432(c)+D-433(c) homogeneous-marker SEPARATE cell-sets):**
 
