@@ -92,6 +92,7 @@ changes are WASM-only (no new Bash hook debt per D-2).
 | 35 | 2026-05-11 | 5 (2H+3M) | HIGH | adv-cycle-pass-35.md |
 | 36 | 2026-05-11 | 5 (1H+3M+1L) | HIGH | adv-cycle-pass-36.md |
 | 37 | 2026-05-11 | 5 (2H+2M+1L) | HIGH | adv-cycle-pass-37.md |
+| 38 | 2026-05-12 | 7 (2H+3M+2L) | HIGH | adv-cycle-pass-38.md |
 
 ## Convergence Status
 
@@ -99,7 +100,7 @@ changes are WASM-only (no new Bash hook debt per D-2).
 - F2 (spec evolution / story decomposition): **COMPLETE** — F2-amendment D-362; 6 BCs + ADR-018 + 4 VPs + PRD FR-048
 - F3 (incremental stories): **COMPLETE** — F3-amendment D-366; 6 stories S-12.03..S-12.08 under E-12
 - F4 (implementation): **COMPLETE** — all 6 E-12 stories merged (PRs #105, #119, #120, #121, #122, #123); F-P2-001 closed via S-12.08
-- F5 (scoped adversarial review): **IN PROGRESS** — 38 reviews dispatched; 37 complete adversary returns; 36 fix bursts at passes 3-38; per D-415(c)+D-416(d)+D-417 dispatch-boundary annotation. Trajectory content-only 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7→8→6→2→5→5→5; pass-37 HIGH (2H+2M+1L); streak 0/3; passes 3-38 fix bursts applied to factory-artifacts; D-386 Option C accepted; D-379..D-417 codified (D-379..D-386 from earlier sessions; D-387..D-417 inline this engine-discipline-pass-1 cycle session); L-EDP1-009 second corrigendum + L-EDP1-010..L-EDP1-029 authored; VP-INDEX v1.55 / BC-INDEX v1.79 / ARCH-INDEX v1.60 / STORY-INDEX v2.80 acknowledge D-389..D-417
+- F5 (scoped adversarial review): **IN PROGRESS** — 38 reviews dispatched; 38 complete adversary returns; 36 fix bursts at passes 3-38; per D-418(c) deterministic-tally form. Trajectory content-only 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7→8→6→2→5→5→5→7 (38 values); pass-38 HIGH (2H+3M+2L=7); streak 0/3; D-386 Option C accepted; D-379..D-418 codified; L-EDP1-001..L-EDP1-030 authored; VP-INDEX v1.56 / BC-INDEX v1.80 / ARCH-INDEX v1.61 / STORY-INDEX v2.81 acknowledge D-389..D-418
 - F6 (targeted hardening): PENDING
 - F7 (delta convergence): PENDING
 

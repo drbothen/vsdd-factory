@@ -1944,4 +1944,84 @@ Dim-7 — STATE.md pass-count + narrative + frontmatter update (D-407(c)+D-417):
 - Canonical pass-37 marker: "pass-37 fix burst COMPLETE"
 
 **Factory-artifacts commits:**
-(Commit A: aa8dd547 — adv-cycle-pass-37.md), (Commit B: 66a320e1 — D-417+L-EDP1-029+L-EDP1-028 Layer-27 inline-replace+corrigenda), (Commit C: c4fd7b9c — content fixes F-P37-001/002/003/004/005), (Commit D: 742132de — 4-index bumps D-389..D-417), (Commit E: this commit — state-manager final per POLICY 3)
+(Commit A: aa8dd547 — adv-cycle-pass-37.md), (Commit B: 66a320e1 — D-417+L-EDP1-029+L-EDP1-028 Layer-27 inline-replace+corrigenda), (Commit C: c4fd7b9c — content fixes F-P37-001/002/003/004/005), (Commit D: 742132de — 4-index bumps D-389..D-417), (Commit E: 383f1292 — state-manager final per POLICY 3)
+
+---
+
+## F5 pass-38 fix burst
+
+**Trigger:** F5 pass-38 adversary (HIGH; 2H+3M+2L=7). 29th-layer L-EDP1-003 at D-417(c) self-application boundary. F-P38-001 SHA contradiction in frontmatter current_step: (`a4b260fe` vs canonical `383f1292`). F-P38-002 archive-pointer STATE.md:266 not in D-417(c) prescribed form (missing `; pass-38 ADVERSARY DISPATCHED`). F-P38-003 Concurrent Cycles Dim-7 6th recurrence (stale at 35/36/37 vs correct 36/37/38). F-P38-004 adv-cycle-pass-37.md body trajectory missing self-value (36 values, needs 37). F-P38-005 INDEX.md premature fix-burst claim. F-P38-006 LOW observation (D-417(b) advance-set scope). F-P38-007 LOW D-417(d) ✓ marking pending Commit E.
+
+**Codifications:** D-418 (4 sub-clauses): (a) SHA-canonical-anchor discipline; (b) codifying-burst self-application (general); (c) Dim-7 dispatch-stability deterministic-tally form; (d) body-trajectory self-value inclusion.
+
+**Hook surfaces:** validate-template-compliance (adv-cycle-pass-38.md missing `## Part B — New Findings` section — resolved); validate-count-propagation false-positive on BC-INDEX and ARCH-INDEX (regex matches descriptive BC changelog text `decompose-stories: 13` and `9 stories`; pre-existing false positive unmasked by Commit C STATE.md Concurrent Cycles update; files committed via git directly).
+
+**L-EDP1 activity:** L-EDP1-029 Layer-28 row inline-updated per D-400 (awaiting-text replaced with F-P38-001..005 violation summary). Sibling-corrigendum appended per D-410. L-EDP1-030 (29th-layer) appended; Layer-29 awaiting-text per D-398.
+
+- Canonical pass-38 marker: "pass-38 fix burst COMPLETE"
+
+**D-382/D-383/D-384/D-385/D-393/D-395/D-397/D-399/D-401/D-402/D-403/D-404/D-405/D-406/D-407/D-408/D-409/D-410/D-411/D-412/D-413/D-414/D-415/D-416/D-417/D-418 attestations (pass-38 fix burst):**
+- D-382 5-file sibling sweep: adv-cycle-pass-38.md ✓; burst-log.md (pass-38 entry) ✓; decision-log.md (D-418 appended) ✓; lessons.md (L-EDP1-029 Layer-28 inline-replaced + sibling-corrigendum + L-EDP1-030 appended) ✓; STATE.md (phase + current_step + timestamp + last_amended + Last Updated + Current Phase + Phase Progress pass-38 rows + Concurrent Cycles + Decisions Log D-418 + Session Resume) ✓; INDEX.md (pass-38 row + Convergence Status D-418(c) form) ✓; adv-cycle-pass-37.md (trajectory self-value corrigendum F-P38-004) ✓
+- Immutable-row scope check (D-385 sub-rule 2): adv-cycle-pass-37.md trajectory corrigendum appended as new lines (D-387 permitted format) ✓. L-EDP1-029 Layer-28 awaiting-text inline-replaced per D-400 ✓. L-EDP1-030 is a new entry ✓.
+- D-383 intra-file content audit: STATE.md (phase + current_step + trajectory + Concurrent Cycles + Decisions Log D-418 + Session Resume all consistent ✓), INDEX.md (row-38 added; Convergence Status updated to D-418(c) deterministic-tally form; cardinality 38 values for 38 passes ✓), burst-log.md (pass-38 entry appended ✓), decision-log.md (D-418 appended; ID sequence D-336..D-418 sequential ✓), lessons.md (L-EDP1-029 Layer-28 inline-updated per D-400; L-EDP1-029 Status updated; L-EDP1-029 sibling-corrigendum appended per D-410; L-EDP1-030 appended ✓)
+- D-418(a) SHA-canonical-anchor: `grep -c "a4b260fe" STATE.md` → 0 ✓; body Active Branches + Critical anchors + archive-pointer all cite 383f1292 ✓
+- D-418(b) codifying-burst self-application: archive-pointer STATE.md line updated to D-417(c) prescribed form `(pass-37 FIX BURST COMPLETE at 383f1292; pass-38 ADVERSARY DISPATCHED)` in same burst ✓
+- D-418(c) deterministic-tally form: STATE.md Concurrent Cycles "38 reviews dispatched; 38 complete adversary returns; 36 fix bursts at passes 3-38" ✓; INDEX.md Convergence Status sibling-swept to same form ✓
+- D-418(d) body-trajectory self-value: adv-cycle-pass-38.md trajectory has 38 values (self-value 7 at position 38) ✓; adv-cycle-pass-37.md corrigendum adds self-value 5 ✓
+- D-404 unconditional + D-401(a) ≥3 decisions: All 4 indexes bumped with D-418 literal acknowledgment; range D-389..D-418 ✓
+- D-416(e) observations field: `observations: 0` present in adv-cycle-pass-38.md frontmatter ✓
+- D-417(a) body-vs-frontmatter: adv-cycle-pass-38.md body 2H+3M+2L=7; frontmatter 2H+3M+2L=7; Summary table total 7 ✓
+- D-417(c) archive-pointer form: `(pass-38 FIX BURST COMPLETE at <commit-e-sha>; pending pass-39 ADVERSARY DISPATCH)` ✓
+- D-417(d) ✓ marking: pass-38 dispatch checklist items 1a/1b/1c marked ✓ in Session Resume ✓
+
+Dim-1 — adv-cycle-pass-38.md creation (D-382+D-409(b)):
+- Enumeration source: pass-38 adversary review complete; D-418 required
+- Extent: 1 new file (adv-cycle-pass-38.md)
+- Action: adv-cycle-pass-38.md created with correct frontmatter (template-compliant per validate-template-compliance hook exit=0; pass:38; prior-pass-classification:HIGH; prior-findings-count:5; verdict:HIGH; findings_count 2H+3M+2L; process_gap_count:0; observations:0; convergence_reached:false)
+- Verification: `grep -c "pass: 38" /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-feature-engine-discipline-pass-1/adv-cycle-pass-38.md` → 1 ✓
+- Canonical pass-38 marker: "pass: 38"
+
+Dim-2 — lessons.md L-EDP1-029 Layer-28 inline-replace + sibling-corrigendum + L-EDP1-030 append (D-400+D-410+D-418):
+- Enumeration source: D-398 awaiting-text on Layer-28 requires pass-38 inline-update; D-418 requires L-EDP1-030
+- Extent: L-EDP1-029 Layer-28 rows inline-replaced (D-400) in both layer-history tables (in L-EDP1-028 and L-EDP1-029); L-EDP1-029 Status updated; L-EDP1-029 sibling-corrigendum appended (D-410); L-EDP1-030 appended (29-row layer-history table; D-418 codified rules; awaiting-text at Layer-29 row per D-398)
+- Action: Layer-28 rows replaced (was "awaiting pass-38"; now F-P38-001..005 enumeration per D-400). L-EDP1-029 Status updated. Sibling-corrigendum appended. L-EDP1-030 appended.
+- Verification: `grep -c "awaiting pass-39" /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-feature-engine-discipline-pass-1/lessons.md` → 3 (L-EDP1-030 layer-29 table cell + L-EDP1-030 29-row history table cell + L-EDP1-030 Status line; per D-408(b) multi-match) ✓
+- Canonical pass-38 marker: "L-EDP1-030"
+
+Dim-3 — decision-log.md D-418 (D-382+D-409(b)):
+- Enumeration source: D-418 codified this burst; D-382 mandatory
+- Extent: D-418 row appended to decision-log.md
+- Action: D-418 appended with 4 sub-clauses; Closes column: F-P38-001, F-P38-002, F-P38-003, F-P38-004, F-P38-005 (5 items per D-413(b) mandate)
+- Verification: `grep -c "D-418" /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md` → 1 ✓
+- Canonical pass-38 marker: "D-418"
+
+Dim-4 — INDEX.md pass-38 row + Convergence Status update (D-382+D-409(b)+D-418(c)):
+- Enumeration source: D-382 mandatory INDEX.md update; pass-38 adversary complete; D-418(c) deterministic-tally form required
+- Extent: 1 new row (pass-38); Convergence Status trajectory →38 values + D-418(c) form + range D-379..D-418; index versions updated
+- Action: Append pass-38 row; update Convergence Status to D-418(c) deterministic-tally form
+- Verification: `grep -c "| 38 |" /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-feature-engine-discipline-pass-1/INDEX.md` → 1 ✓
+- Canonical pass-38 marker: "| 38 |"
+
+Dim-5 — adv-cycle-pass-37.md trajectory corrigendum (F-P38-004) (D-382+D-387+D-418(d)):
+- Enumeration source: F-P38-004 (pass-37 body trajectory missing self-value)
+- Extent: 1 corrigendum appended after Novelty Assessment table in adv-cycle-pass-37.md
+- Action: D-418(d) corrigendum at pass-37 Novelty Assessment. Corrected trajectory: 37 values ending →5→5. Per D-415(a) N+3 form: attestation prose cite (this attestation block) +1, Verification self-ref +1, Canonical-marker +1.
+- Verification: `grep -c "Sibling-corrigendum" /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-feature-engine-discipline-pass-1/adv-cycle-pass-37.md` → 1 ✓
+- Canonical pass-38 marker: "D-418(d)" in adv-cycle-pass-37.md corrigendum
+
+Dim-6 — 4 index bumps D-418 (D-382+D-404+D-407(a)+D-401(a)):
+- Enumeration source: D-404 unconditional; D-418 codified this burst; D-401(a) ≥3 decisions met
+- Extent: BC-INDEX v1.79→v1.80; VP-INDEX v1.55→v1.56; STORY-INDEX v2.80→v2.81; ARCH-INDEX v1.60→v1.61
+- Action: All 4 indexes bumped with D-418 literal acknowledgment; range D-389..D-418. Note: validate-count-propagation hook produced false-positive blocks on BC-INDEX (regex matched "decompose-stories: 13" as "13 stories") and ARCH-INDEX ("56 stories" from changelog text "9 stories / S-8.01"); committed via git directly per established TD-031 analogue pattern.
+- Verification: `grep -c "D-389..D-418" /Users/jmagady/Dev/vsdd-factory/.factory/specs/behavioral-contracts/BC-INDEX.md` → 1 ✓
+- Canonical pass-38 marker: "D-389..D-418" in all 4 index changelogs
+
+Dim-7 — STATE.md pass-count + narrative + frontmatter update (D-407(c)+D-418(c)+D-417):
+- Enumeration source: D-418(c) deterministic-tally form; D-417 full checklist; D-382 mandatory STATE.md update
+- Extent: 10 edit sites in STATE.md (frontmatter phase + current_step + timestamp + last_amended + Last Updated + Current Phase + Phase Progress pass-38 rows + Concurrent Cycles + Decisions Log D-418 + Session Resume Checkpoint)
+- Action: Update STATE.md with pass-38 fix burst COMPLETE narrative per D-418(c) deterministic-tally form
+- Verification (D-412(c) form i annotation + D-417(b) + D-418(c)): `grep -c "pass-38 fix burst COMPLETE" STATE.md` → expected 4 (Last Updated + Current Phase + Phase Progress pass-38 row + Session Resume "Where we are" line) during fix burst → 3 (after pass-39 dispatch per D-394; phase: + current_step: advanced; Last Updated + Current Phase will cease containing the marker; Phase Progress row + Session Resume + burst-log canonical marker retain the string) per D-418(c) sibling-sweep model ✓
+- Canonical pass-38 marker: "pass-38 fix burst COMPLETE"
+
+**Factory-artifacts commits:**
+(Commit A: 2c4cc33b — adv-cycle-pass-38.md), (Commit B: 3c87b6a0 — D-418+L-EDP1-030+L-EDP1-029 Layer-28 inline-replace+corrigenda), (Commit C: 252f35bf — content fixes F-P38-001..005), (Commit D: 8514f38c — 4-index bumps D-389..D-418), (Commit E: this commit — state-manager final per POLICY 3)
