@@ -5,13 +5,13 @@ version: "2.0"
 status: draft
 producer: state-manager
 timestamp: 2026-05-11T00:00:00Z
-phase: engine-discipline-F5-pass-31-adversary-in-progress
+phase: engine-discipline-F5-pass-31
 inputs: []
 input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "F5 pass-31 adversary dispatch IN-PROGRESS (D-394+D-401(b); pass-30 COMPLETE at f927fae8 — D-410 codified; L-EDP1-022 21st-layer; 4 indexes D-389..D-410; trajectory →6)"
+current_step: "F5 pass-31 fix burst COMPLETE (HIGH→PENDING_NEXT_PASS; 1H+3M+2L+1NIT+1PG; D-411 codified; L-EDP1-023 22nd-layer; 4 indexes v1.73/v1.49/v2.74/v1.54 acknowledge D-389..D-411)"
 current_cycle: v1.0-feature-engine-discipline-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,8 +38,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-11 — F5 pass-30 fix burst COMPLETE. Pass-30 HIGH verdict (1H+2M+2L+1NIT+1PG; 21st-layer L-EDP1-003 at sibling-corrigendum convention boundary). D-410 codified (sibling-corrigendum forward-reference MUST be appended per D-400 inline-replace). L-EDP1-022 documents 21st-layer. L-EDP1-021 Layer-20 inline-replaced; L-EDP1-020 retroactive sibling-corrigendum + Status D-408 corrigendum. 4 indexes: BC-INDEX v1.72 / VP-INDEX v1.48 / STORY-INDEX v2.73 / ARCH-INDEX v1.53 acknowledge D-389..D-410. Trajectory (content-only): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6. |
-| **Current Phase** | Engine-discipline F5 — pass-30 fix burst COMPLETE (pending pass-31 dispatch) |
+| **Last Updated** | 2026-05-11 — F5 pass-31 fix burst COMPLETE. Pass-31 HIGH verdict (1H+3M+2L+1NIT+1PG; 22nd-layer L-EDP1-003 at D-409(c) self-application boundary). D-411 codified (D-409(c) adjacent-pass closure-set violations HIGH; D-410 "14 instances" prose corrected to 5 well-formed + 1 partial = 6; S-15.03 closure-set lint scope). L-EDP1-023 documents 22nd-layer; Layer-22 awaiting-text per D-398. L-EDP1-022 Layer-21 inline-replaced per D-400; duplicate Status removed; trailing --- added. D-410 retroactive closure-set + "14 instances" corrigenda. Pass-30 burst-log corrigenda F-P31-005/006/007. 4 indexes: BC-INDEX v1.73 / VP-INDEX v1.49 / STORY-INDEX v2.74 / ARCH-INDEX v1.54 acknowledge D-389..D-411. Trajectory (content-only): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7. |
+| **Current Phase** | Engine-discipline F5 — pass-31 fix burst COMPLETE (pending pass-32 dispatch) |
 | **Current Cycle** | v1.0-feature-engine-discipline-pass-1 |
 
 ## Phase Progress
@@ -107,6 +107,8 @@ dtu_services: []
 | F5 pass-29 fix burst (D-409+content fixes) | state-manager | DONE 2026-05-11 | D-409 codified (3 sub-clauses); L-EDP1-021; L-EDP1-020 Layer-19 inline-replaced; corrigenda F-P29-001/002/005/007; INDEX.md frontmatter D-409(b); 4 indexes v1.71/v1.47/v2.72/v1.52 acknowledge D-389..D-409 |
 | F5 pass-30 cycle-level adversary | adversary | DONE 2026-05-11 | HIGH (1H+2M+2L+1NIT+1PG); trajectory →6 (significant drop); 21st-layer L-EDP1-003 (sibling-corrigendum convention gap); D-410 required |
 | F5 pass-30 fix burst (D-410+content fixes) | state-manager | DONE 2026-05-11 | D-410 codified; L-EDP1-022; L-EDP1-021 Layer-20 inline-replaced; L-EDP1-020 retroactive sibling-corrigendum + Status D-408 corrigendum; 4 indexes v1.72/v1.48/v2.73/v1.53 acknowledge D-389..D-410 |
+| F5 pass-31 cycle-level adversary | adversary | DONE 2026-05-11 | HIGH (1H+3M+2L+1NIT+1PG); trajectory →7; 22nd-layer L-EDP1-003 (D-409(c) self-app at D-410 codification boundary); D-411 required |
+| F5 pass-31 fix burst (D-411+content fixes) | state-manager | DONE 2026-05-11 | D-411 codified (3 sub-clauses); L-EDP1-023; L-EDP1-022 Layer-21 inline-replaced + structural fixes; D-410 retroactive corrigenda; pass-30 burst-log corrigenda F-P31-005/006/007; 4 indexes v1.73/v1.49/v2.74/v1.54 acknowledge D-389..D-411 |
 
 ## Identifier Conventions
 
@@ -136,7 +138,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | feb894a2 | rc.16 merge; latest release |
 | develop | 99d24315 | S-12.08 squash-merge (PR #123); F4 COMPLETE |
-| factory-artifacts | (see git log) | F5 pass-30 fix burst Commit E — state-manager final |
+| factory-artifacts | (see git log) | F5 pass-31 fix burst Commit E — state-manager final |
 | feature/F5-pass-3-cycle-hardening | 2e6b4372 | PR #124 OPEN (DRAFT); CI run 25651192161 GREEN (11/11 checks) |
 | v1.0.0-rc.16 (tag) | feb894a2 | SHIPPED; claude-mp PR #8 awaiting human merge |
 | v1.0.0-rc.15 (tag) | e68bb436 | SHIPPED |
@@ -146,14 +148,14 @@ dtu_services: []
 | Cycle | Type | Status | Notes |
 |-------|------|--------|-------|
 | v1.0-brownfield-backfill | brownfield | PAUSED | E-10 pass-9 pending; paused at D-343 |
-| v1.0-feature-engine-discipline-pass-1 | feature | F5-IN-PROGRESS | All 6 E-12-platform stories merged; F5 passes 1-30 (30 F5 cycle-level reviews; 28 fix bursts at passes 3-30); full-cycle trajectory content-only (pass-1..30): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6; pass-30 HIGH verdict (1H+2M+2L+1NIT+1PG); D-410 codified; L-EDP1-022 21st-layer; D-386 Option C: continue F5, accept asymptotic L-EDP1-003 limit; VP-INDEX v1.48 / BC-INDEX v1.72 / ARCH-INDEX v1.53 / STORY-INDEX v2.73 acknowledge D-389..D-410; S-15.03 PRIORITY-A in pass-2 cycle |
+| v1.0-feature-engine-discipline-pass-1 | feature | F5-IN-PROGRESS | All 6 E-12-platform stories merged; F5 passes 1-31 (31 F5 cycle-level reviews; 29 fix bursts at passes 3-31); full-cycle trajectory content-only (pass-1..31): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7; pass-31 HIGH verdict (1H+3M+2L+1NIT+1PG); D-411 codified; L-EDP1-023 22nd-layer; D-386 Option C: continue F5, accept asymptotic L-EDP1-003 limit; VP-INDEX v1.49 / BC-INDEX v1.73 / ARCH-INDEX v1.54 / STORY-INDEX v2.74 acknowledge D-389..D-411; S-15.03 PRIORITY-A in pass-2 cycle |
 | v1.0-feature-plugin-async-semantics-pass-1 | feature | CLOSED | All PRs merged; rc.14 shipped |
 
 ## Decisions Log
 
 > D-001..D-312: `cycles/v1.0-brownfield-backfill/decision-log.md` + `decisions-log-archive.md`
 > F5 pass-2 architect decisions: `cycles/v1.0-feature-engine-discipline-pass-1/F5-pass-2-architect-decisions.md` (factory-artifacts 7b83ef58)
-> D-379..D-410 (this session): `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md`
+> D-379..D-411 (this session): `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md`
 
 | ID | Decision | Phase | Date |
 |----|----------|-------|------|
@@ -195,24 +197,24 @@ dtu_services: []
 
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-11 — F5 pass-30 fix burst COMPLETE. Pass-30 HIGH verdict (1H+2M+2L+1NIT+1PG; 21st-layer L-EDP1-003 at sibling-corrigendum convention boundary). D-410 codified (sibling-corrigendum forward-reference MUST be appended when Layer-N inline-replace applied per D-400). L-EDP1-022 documents 21st-layer; Layer-21 awaiting-text per D-398. L-EDP1-021 Layer-20 inline-replaced per D-400. L-EDP1-020 retroactive sibling-corrigendum appended per D-410 (F-P30-001) + Status D-408 corrigendum (F-P30-002). Burst-log pass-29 Dim-7 corrigendum (F-P30-003: count=4 at Commit E time, drops to 3 post-dispatch per D-403(c) asymptotic). 4 indexes bumped to v1.72/v1.48/v2.73/v1.53 acknowledging D-389..D-410. Trajectory (content-only): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6. Streak 0/3.
+**Last update:** 2026-05-11 — F5 pass-31 fix burst COMPLETE. Pass-31 HIGH verdict (1H+3M+2L+1NIT+1PG; 22nd-layer L-EDP1-003 at D-409(c) self-application boundary). D-411 codified (3 sub-clauses: D-409(c) adjacent-pass closure-set violations HIGH; D-410 "14 instances" prose corrected to 5 well-formed + 1 partial = 6; S-15.03 closure-set lint scope). L-EDP1-023 documents 22nd-layer; Layer-22 awaiting-text per D-398. L-EDP1-022 Layer-21 inline-replaced per D-400 (full F-P31-001..007 enumeration). L-EDP1-022 structural fixes: duplicate Status removed (F-P31-003), trailing --- added (F-P31-004). D-410 retroactive corrigenda: closure-set F-P30-001/002/003/005/006/PG1 complete (F-P31-001) + "14 instances" corrected (F-P31-002). Pass-30 burst-log corrigenda F-P31-005/006/007. 4 indexes bumped to v1.73/v1.49/v2.74/v1.54 acknowledging D-389..D-411. Trajectory (content-only): →7. Streak 0/3.
 
-**STATE:** F4 platform COMPLETE; F5 at pass-30 fix burst complete. Next: dispatch pass-31 adversary (per D-394+D-409, update STATE.md phase BEFORE adversary returns).
+**STATE:** F4 platform COMPLETE; F5 at pass-31 fix burst complete. Next: dispatch pass-32 adversary (per D-394+D-409, update STATE.md phase BEFORE adversary returns).
 
 **Next session start — ordered checklist:**
 
-1. ✓ D-399..D-410 codified (passes 21-30 fix bursts complete; L-EDP1-013..L-EDP1-022).
-2. ✓ VP-INDEX v1.48 / BC-INDEX v1.72 / ARCH-INDEX v1.53 / STORY-INDEX v2.73 — D-389..D-410 acknowledged.
-3. ✓ Apply pass-30 fix burst per D-382..D-410 discipline — DONE.
-4. Dispatch pass-31 adversary — update STATE.md phase to pass-31-adversary-in-progress BEFORE adversary returns.
+1. ✓ D-399..D-411 codified (passes 21-31 fix bursts complete; L-EDP1-013..L-EDP1-023).
+2. ✓ VP-INDEX v1.49 / BC-INDEX v1.73 / ARCH-INDEX v1.54 / STORY-INDEX v2.74 — D-389..D-411 acknowledged.
+3. ✓ Apply pass-31 fix burst per D-382..D-411 discipline — DONE.
+4. Dispatch pass-32 adversary — update STATE.md phase to pass-32-adversary-in-progress BEFORE adversary returns.
 5. Iterate until 3 consecutive NITPICK_ONLY passes achieved OR human declares convergence.
 6. F6 targeted hardening after convergence criterion met. F7 delta convergence + human gate (cycle CLOSE).
 7. E-10 brownfield pass-9 resume (PAUSED at D-343).
 
-**D-382..D-410 discipline applies to ALL future fix bursts.** Key addition pass-30: D-410 (sibling-corrigendum forward-reference: when Layer-N inline-replace applied per D-400, MUST append corrigendum at END of L-EDP1-(NNN-1) pointing to L-EDP1-NNN; violations MEDIUM).
+**D-382..D-411 discipline applies to ALL future fix bursts.** Key addition pass-31: D-411 (D-409(c) adjacent-pass closure-set violations HIGH; D-410 "14 instances" factual correction; S-15.03 closure-set lint scope).
 
-**Index versions:** BC-INDEX v1.72 | VP-INDEX v1.48 | STORY-INDEX v2.73 | ARCH-INDEX v1.53
-**Pass-30 fixes:** D-410 codified | L-EDP1-022 | L-EDP1-021 Layer-20 inline-replaced | L-EDP1-020 retroactive sibling-corrigendum + Status corrigendum | F-P30-001/002/003/005/006 + F-P30-PG1
+**Index versions:** BC-INDEX v1.73 | VP-INDEX v1.49 | STORY-INDEX v2.74 | ARCH-INDEX v1.54
+**Pass-31 fixes:** D-411 codified | L-EDP1-023 | L-EDP1-022 Layer-21 inline-replaced + structural fixes | D-410 retroactive corrigenda | pass-30 burst-log corrigenda | F-P31-001/002/003/004/005/006/007 + F-P31-PG1
 **ADR-013:** 3_of_3 CONVERGED (pass-57) | **E-9:** v1.53 CONVERGENCE_REACHED | **E-10:** paused D-343
 **5 user-locked decisions:** `cycles/v1.0-feature-plugin-async-semantics-pass-1/F4-handoff.md` §3
 
