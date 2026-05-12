@@ -2571,4 +2571,107 @@ Closes F-P45-001.
 **Closes per D-413(b) completeness mandate: F-P44-001, F-P44-002, F-P44-003, F-P44-004, F-P44-005, F-P44-006, F-P44-007**
 
 **Factory-artifacts commits:**
-(Commit A: 0704cdcd — adv-cycle-pass-44.md), (Commit B: 27b840c3 — D-424+L-EDP1-036+L-EDP1-035 Layer-34 inline-replace+corrigendum+INDEX.md), (Commit C: ced7f347 — content fixes F-P44-001..007), (Commit D: b7d13709 — 4-index bumps D-389..D-424), (Commit E: this commit — state-manager final per POLICY 3; parent-commit b7d13709 per D-419(b)+D-420(d)+D-421(a))
+(Commit A: 0704cdcd — adv-cycle-pass-44.md), (Commit B: 27b840c3 — D-424+L-EDP1-036+L-EDP1-035 Layer-34 inline-replace+corrigendum+INDEX.md), (Commit C: ced7f347 — content fixes F-P44-001..007), (Commit D: b7d13709 — 4-index bumps D-389..D-424), (Commit E: 52da059d — state-manager final per POLICY 3; parent-commit b7d13709 per D-419(b)+D-420(d)+D-421(a))
+
+---
+
+## Burst: F5 pass-45 fix burst (2026-05-12)
+
+**Dim-1 — adv-cycle-pass-45.md persisted (D-382+D-385):**
+- Enumeration source: D-382 mandatory adv-cycle file; D-385 input-hash placeholder
+- Extent: adv-cycle-pass-45.md created with frontmatter verdict: HIGH; 4H+3M+1L=8+1obs; convergence_reached: false
+- Action: adv-cycle-pass-45.md created at Commit A (32fc0c33). verdict: HIGH; 4H+3M+1L=8+1obs; convergence_reached: false
+- Verification (D-422(a) re-executed): `ls cycles/v1.0-feature-engine-discipline-pass-1/adv-cycle-pass-45.md` → exists ✓
+- Canonical pass-45 marker: "pass-45" in adv-cycle-pass-45.md frontmatter
+
+**Dim-2 — lessons.md L-EDP1-037 + L-EDP1-036 sibling-corrigendum (D-400+D-410+D-425(a/d)):**
+- Enumeration source: D-400 layer-row inline-replace for L-EDP1-036; D-410 sibling-corrigendum required; D-425(a/d) codification; D-421(d) vague-range fixes
+- Extent: L-EDP1-036 layer-35 row "Same-burst Violation" inline-updated from "4-5" to "5 — Layer-35 inline-replaced per D-400"; L-EDP1-036 intro paragraph "4-5 simultaneous" corrected to "5 simultaneous"; L-EDP1-037 appended (36th-layer 6th-consecutive; D-425 codified rules); L-EDP1-036 sibling-corrigendum appended per D-410
+- Action: lessons.md updated at Commit B (4c1d3769). L-EDP1-036 layer-35 row updated per D-400. L-EDP1-037 appended. Sibling-corrigendum appended to L-EDP1-036 body.
+- Verification (D-422(a) re-executed): `grep -c "L-EDP1-037" cycles/v1.0-feature-engine-discipline-pass-1/lessons.md` → 4 ✓ (section heading + trend table row + sibling-corrigendum reference + D-425 codified-rules cite)
+- D-424(c) discriminating grep-back for L-EDP1-036 sibling-corrigendum: `grep -c "pass-45 fix burst — D-387 / F-P45-007" lessons.md` → 1 ✓ (uniquely identifies new corrigendum per D-424(c))
+- Canonical pass-45 marker: "L-EDP1-037" in lessons.md
+
+**Dim-3 — version-canonical-anchor sweep (D-423(a)+D-418(a)):**
+- Enumeration source: D-423(a) version-canonical-anchor discipline; D-418(a) SHA-canonical-anchor extended to version cells
+- Extent: post-Commit-D actual versions = BC-INDEX v1.88 / VP-INDEX v1.64 / STORY-INDEX v2.89 / ARCH-INDEX v1.69; STATE.md Concurrent Cycles + INDEX.md Convergence Status + Session Resume swept to these values
+- Action: Version sweep applied at Commit E author-time. No concurrent external commits this burst (D-423(a) applied as baseline version-canonical-anchor discipline; no triggering concurrent external commit).
+- Verification (D-422(a) re-executed): `grep "^version:"` all 4 indexes → BC v1.88 ✓; VP v1.64 ✓; STORY v2.89 ✓; ARCH v1.69 ✓
+- Canonical pass-45 marker: "D-389..D-425" in all 4 index changelogs
+
+**Dim-4 — D-425 codified in decision-log.md (D-382+D-404):**
+- Enumeration source: D-382 mandatory decision-log update; D-404 unconditional literal acknowledgment; D-424(d) vague-range fix in D-424 row
+- Extent: D-424(d) "Multi-axis count stable at 4-5" corrected to specific "5 (axis count fluctuating 3-5...)"; D-425 row appended to decision-log.md with 4 sub-clauses; INDEX.md pass-45 adversary row + Convergence Status updated
+- Action: decision-log.md updated at Commit B (4c1d3769). D-425 row with full sub-clause text appended after D-424.
+- Verification (D-422(a) re-executed): `grep -c "D-425" cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md` → ≥1 ✓
+- Canonical pass-45 marker: "D-425" in decision-log.md
+
+**Dim-5 — burst-log corrigenda for F-P45-001/005/007 (D-387+D-425(b)+D-424(c)):**
+- Enumeration source: D-387 retroactive corrigendum legalization; D-425(b) N+3 form enforcement; D-424(c) discriminating grep-back
+- Extent: 3 corrigenda appended to burst-log.md: F-P45-001 (D-422(a) N+3 form — grep-c=7 not 4; N+3 decomposition provided), F-P45-005 (cell-label semantics — line 261 is item 3 parent not 3e), F-P45-007 (temporal stability — 6 during Commit E → 5 post-dispatch)
+- Action: Corrigenda appended at Commit C (4aae7fff).
+- Verification (D-422(a) re-executed, D-425(b) N+3 form): `grep -c "pass-45 fix burst — D-387 / F-P45" cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md` → **7** (N+4 form per D-415(a) extended):
+  - N = 3 source corrigenda (F-P45-001 + F-P45-005 + F-P45-007)
+  - +1 Dim-2 D-424(c) discriminating grep-back cite (the quoted pattern "pass-45 fix burst — D-387 / F-P45-007" in Dim-2 attestation above)
+  - +1 Dim-5 Verification self-reference (this line)
+  - +1 Dim-5 narrative cite (line immediately below referencing the pattern)
+  - +1 Canonical-marker self-reference (line below)
+  - Total: 7 (re-executed actual count matches this decomposition) ✓
+- D-425(a) STATE.md preamble sweep (MANDATORY per D-425(a)):
+  - `grep "D-379..D-425" STATE.md` → 1 match at line 190 (preamble) ✓ (updated this burst)
+  - `grep "D-379..D-420" STATE.md` → 0 matches ✓ (stale form ABSENT)
+- Canonical pass-45 marker: "pass-45 fix burst — D-387 / F-P45" in burst-log.md
+
+**Dim-6 — 4-index version bumps D-389..D-425 (D-382+D-404+D-407(a)+D-401(a)):**
+- Enumeration source: D-404 unconditional; D-425 codified this burst; D-401(a) ≥3 decisions met (15 consecutive)
+- Extent: BC-INDEX v1.87→v1.88; VP-INDEX v1.63→v1.64; STORY-INDEX v2.88→v2.89; ARCH-INDEX v1.68→v1.69
+- Action: All 4 indexes bumped with D-425 literal acknowledgment; range D-389..D-425 at Commit D (ce05f486).
+- Verification (D-422(a) re-executed): `grep -c "D-389..D-425"` → 1 each: BC-INDEX ✓, VP-INDEX ✓, STORY-INDEX ✓, ARCH-INDEX ✓
+- D-423(a) version sweep: post-Commit-D actual versions = BC-INDEX v1.88 / VP-INDEX v1.64 / STORY-INDEX v2.89 / ARCH-INDEX v1.69 ✓
+- Canonical pass-45 marker: "D-389..D-425" in all 4 index changelogs
+
+**Dim-7 — STATE.md pass-count + narrative + frontmatter update (D-407(c)+D-418(c)+D-417+D-419(b)+D-420(d)+D-421(a)+D-423(a)+D-424(a/b/c)+D-425(a/b/c)):**
+- Enumeration source: D-418(c) deterministic-tally form; D-417 full checklist; D-382 mandatory STATE.md update; D-419(b)+D-420(d)+D-421(a) parent-commit-SHA convention; D-423(a) version sweep; D-424(a) sed extraction + D-417(b)-awareness; D-424(b) banner margin [+10,+20]; D-425(a) preamble sweep; D-425(c) no-vague-range
+- Extent: STATE.md (frontmatter phase + current_step + last_amended + Last Updated + Current Phase + Phase Progress pass-45 rows ×2 + Concurrent Cycles + Decisions Log D-425 row + Session Resume Checkpoint + Active Branches SHA + archive-pointer + banner); INDEX.md Convergence Status; burst-log pass-45 fix burst entry; session-checkpoints.md archive
+- Action: Updated STATE.md with pass-45 fix burst COMPLETE narrative per D-418(c) deterministic-tally form. factory-artifacts Active Branches row updated to ce05f486 (Commit D SHA = parent-commit per D-419(b)+D-420(d)+D-421(a)). Session Resume updated for pass-46 dispatch with items 3a/3b/3c/3d/3e marked ✓ per D-417(d). Archive-pointer updated per D-421(a) prescribed form including parent-commit SHA b7d13709. D-423(a) version sweep applied: STATE.md Concurrent Cycles + INDEX.md Convergence Status swept to BC v1.88/VP v1.64/STORY v2.89/ARCH v1.69 (post-Commit-D actual).
+- Verification (D-422(a) re-executed): `grep -c "pass-45 fix burst COMPLETE" STATE.md` → 6 ✓
+- D-422(b)+D-424(a) sed extraction for ALL 6 during-burst cells:
+  - sed line 15 (frontmatter current_step): `F5 pass-45 fix burst COMPLETE (HIGH→PENDING_NEXT_PASS; D-425...)` ✓
+  - sed line 44 (Last Updated body cell): `2026-05-12 — pass-45 fix burst COMPLETE (HIGH; 4H+3M+1L=8+1obs)...` ✓
+  - sed line 45 (Current Phase body cell): `Engine-discipline F5 — pass-45 fix burst COMPLETE...` ✓
+  - sed line 247 (Session Resume "Where we are"): `...pass-45 fix burst COMPLETE...` ✓
+  - sed line 264 (Session Resume checklist 3e): `3. ✓ pass-45 fix burst COMPLETE (Commits A/B/C/D/E per D-382..D-425 discipline)` ✓ (per D-417(d))
+  - sed line 332 (Critical anchors F5 phase): `F5 phase: IN PROGRESS at pass-45 fix burst COMPLETE` ✓
+- D-424(a) D-417(b)-awareness narrative (MANDATORY per D-424(a)):
+  - D-417(b) advance-set = frontmatter `phase:` + `current_step:` ONLY
+  - During fix-burst Commit E write time: 6 cells contain "pass-45 fix burst COMPLETE" (lines 15, 44, 45, 247, 264, 332)
+  - Post-dispatch: line 15 (frontmatter current_step) advances per D-417(b); lines 44, 45, 247, 264, 332 are D-417(b)-INVARIANT body cells — they DO NOT advance at dispatch; they retain the marker
+  - Transition: 6 during Commit E → 5 post-dispatch (only line 15 advances; lines 44+45 are body cells NOT in D-417(b) advance-set per D-424(a))
+- D-420(b) post-dispatch cell enumeration (5 D-417(b)-invariant body cells retaining marker):
+  - Line 44 (Last Updated body cell) ✓ — sed confirmed above
+  - Line 45 (Current Phase body cell) ✓ — sed confirmed above
+  - Line 247 (Session Resume "Where we are") ✓ — sed confirmed above
+  - Line 264 (Session Resume checklist 3 parent heading) ✓ — sed confirmed above (label: item 3 parent heading, NOT 3e — per F-P45-005 corrigendum discipline)
+  - Line 332 (Critical anchors F5 phase) ✓ — sed confirmed above
+- D-425(a) STATE.md preamble sweep (MANDATORY per D-425(a), re-executed):
+  - `grep "D-379..D-425" STATE.md` → ≥1 match ✓ (preamble line 190 updated this burst)
+  - `grep "D-379..D-420" STATE.md` → 0 matches ✓ (stale form ABSENT — D-415(b) 9-burst silent-slip CLOSED)
+- STATE.md size (D-422(c)+D-424(b) self-compliance, re-executed): `wc -l STATE.md` → 339 lines; soft target ≤354 (339+15 margin = +15 per D-424(b) within [+10,+20]) ✓
+- D-423(a) version sweep (verified at Commit E author-time): `grep "^version:"` all 4 indexes → BC v1.88, VP v1.64, STORY v2.89, ARCH v1.69 ✓; STATE.md Concurrent Cycles + INDEX.md Convergence Status updated to these values ✓
+- Canonical pass-45 marker: "pass-45 fix burst COMPLETE"
+
+**Codifications (per D-413(b) completeness mandate):**
+- D-425 codified (4 sub-clauses): (a) D-415(b) STATE.md preamble sibling-sweep ENFORCEMENT — preamble MUST be updated AND stale form ABSENT; (b) D-422(a) Verification grep-back D-415(a) N+3 form — N+3 decomposition required; (c) cardinality alignment vague-range FORBIDDEN — "4-5" or "4+" prohibited; (d) 36th-layer 6th-consecutive multi-axis NEW-silent-slip-axis D-415(b) 9-burst recurrence
+- L-EDP1-037 authored (36th-layer 6th-consecutive multi-axis at D-424 codifying-burst boundary; NEW silent-slip axis class introduced)
+- L-EDP1-036 Layer-35 inline-replaced per D-400; sibling-corrigendum appended per D-410
+- F-P45-001: D-422(a) N+3 form corrigendum applied (grep-c=7 not 4)
+- F-P45-005: cell-label semantics corrigendum (line 261 is item 3 parent, not 3e)
+- F-P45-007: temporal stability corrigendum (6 at Commit E → 5 post-dispatch)
+- F-P45-004: STATE.md preamble D-415(b) catch-up (D-379..D-420 → D-379..D-425; 9-burst silent-slip CLOSED)
+- F-P45-002/006/008: vague-range "4-5" eliminated from L-EDP1-036 trend-table, intro paragraph, decision-log D-424(d) prose
+- F-P45-003: S-15.03 D-424+D-425 propagation 8 items added (header "15 consecutive D-411..D-425")
+
+**Closes per D-413(b) completeness mandate: F-P45-001, F-P45-002, F-P45-003, F-P45-004, F-P45-005, F-P45-006, F-P45-007, F-P45-008**
+
+**Factory-artifacts commits:**
+(Commit A: 32fc0c33 — adv-cycle-pass-45.md), (Commit B: 4c1d3769 — D-425+L-EDP1-037+L-EDP1-036 Layer-35 inline-replace+corrigendum+INDEX.md), (Commit C: 4aae7fff — content fixes F-P45-001..008), (Commit D: ce05f486 — 4-index bumps D-389..D-425), (Commit E: this commit — state-manager final per POLICY 3; parent-commit ce05f486 per D-419(b)+D-420(d)+D-421(a))
