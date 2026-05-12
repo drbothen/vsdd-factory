@@ -17,7 +17,7 @@ prior-findings-count: 5
 verdict: HIGH
 findings_count:
   critical: 0
-  high: 2
+  high: 1
   medium: 3
   low: 1
   nitpick: 0
@@ -113,10 +113,12 @@ Per D-382+D-383+D-384+D-385+D-393+D-395+D-397+D-399+D-401+D-402+D-403+D-404+D-40
 | Severity | Count | Findings |
 |----------|-------|---------|
 | CRITICAL | 0 | — |
-| HIGH | 2 | F-P36-001, F-P36-002 |
+| HIGH | 1 | F-P36-001 |
 | MEDIUM | 3 | F-P36-002, F-P36-003, F-P36-004 |
 | LOW | 1 | F-P36-005 |
 | NITPICK | 0 | — |
+
+**Corrigendum (pass-37 fix burst — D-387 / F-P37-001 / D-417(a)):** Pass-36 Summary table originally listed F-P36-002 in BOTH the HIGH row (count=2: F-P36-001, F-P36-002) and the MEDIUM row (count=3: F-P36-002, F-P36-003, F-P36-004) — cardinality violation. F-P36-002 body severity tag is `[MED]`; it belongs only in the MEDIUM row. Corrected frontmatter `high: 2` → `high: 1`. Corrected Summary HIGH row: F-P36-001 only. Corrected trajectory last value `→6` → `→5` (content-only count is 1H+3M+1L=5, not 6). CASCADE: STATE.md (lines 41, 120, 161, 214), INDEX.md (line 93, trajectory), burst-log.md (lines 1792, 1817) all updated per D-387.
 
 **Overall Assessment:** block — findings require fix burst before pass-37 dispatch.
 **Convergence:** FINDINGS_REMAIN — streak 0/3; HIGH findings present.
@@ -131,7 +133,7 @@ Per D-382+D-383+D-384+D-385+D-393+D-395+D-397+D-399+D-401+D-402+D-403+D-404+D-40
 | **Duplicate/variant findings** | 0 |
 | **Novelty score** | 5/5 = 1.0 |
 | **Median severity** | MEDIUM |
-| **Trajectory** | 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7→8→6→2→5→6 |
+| **Trajectory** | 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7→8→6→2→5→5 |
 | **Verdict** | FINDINGS_REMAIN |
 
 ## Scope

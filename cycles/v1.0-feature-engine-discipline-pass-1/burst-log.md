@@ -1789,7 +1789,9 @@ Dim-7 — STATE.md pass-count + narrative + frontmatter update (D-407(c)+D-415):
 
 ## F5 pass-36 fix burst
 
-**Trigger:** F5 pass-36 adversary (HIGH; 2H+3M+1L). F-P36-001 pass-35 Dim-2 D-408(b) multi-match annotation enumerated semantic siblings not containing literal "L-EDP1-027" (27th-layer L-EDP1-003). F-P36-002 STATE.md:159 Concurrent Cycles not in D-415(c) prescribed form — codifying burst omitted same-burst self-application. F-P36-003 S-15.03 PRIORITY-A scope not propagated despite 5-decision cumulative chain D-411(c)/D-413(b)+(d)/D-414/D-415(d). F-P36-004 INDEX.md:100 D-415(c) sibling-cell sweep omitted. F-P36-005 adv-cycle-pass-35.md missing `observations: 0`.
+**Trigger:** F5 pass-36 adversary (HIGH; 1H+3M+1L). F-P36-001 pass-35 Dim-2 D-408(b) multi-match annotation enumerated semantic siblings not containing literal "L-EDP1-027" (27th-layer L-EDP1-003). F-P36-002 STATE.md:159 Concurrent Cycles not in D-415(c) prescribed form — codifying burst omitted same-burst self-application. F-P36-003 S-15.03 PRIORITY-A scope not propagated despite 5-decision cumulative chain D-411(c)/D-413(b)+(d)/D-414/D-415(d). F-P36-004 INDEX.md:100 D-415(c) sibling-cell sweep omitted. F-P36-005 adv-cycle-pass-35.md missing `observations: 0`.
+
+**Corrigendum (pass-37 fix burst — D-387 / F-P37-001 / D-417(a)):** Trigger line originally read "HIGH; 2H+3M+1L". Corrected to "1H+3M+1L" — pass-36 Summary table had F-P36-002 listed in BOTH HIGH and MEDIUM rows (cardinality violation); body `[MED]` tag is SOURCE-OF-TRUTH per D-417(a).
 
 **Codifications:** D-416 (5 sub-clauses): (a) D-408(b) literal-substring requirement; (b) D-415(c) same-burst self-application; (c) D-406(c) SHOULD→MUST at ≥3-decision threshold; (d) D-415(c) sibling-cell sweep; (e) observations field explicit presence.
 
@@ -1805,6 +1807,7 @@ Dim-7 — STATE.md pass-count + narrative + frontmatter update (D-407(c)+D-415):
 - D-409(a)+D-413(a)+D-414(a)+D-415(a) Verification-line + Canonical-marker + attestation-prose self-reference: N source = bodies LITERALLY MATCHING the pattern. Dim-5 F-P36-001 corrigendum body contains "pass-36 fix burst — D-387 / F-P36-001" → 1 source. Attestation prose cite (this attestation block) adds +1. Verification line adds +1. Canonical-marker line adds +1. Total: `→ N+3 (1 corrigendum body + 1 attestation prose cite + 1 Verification self-ref + 1 Canonical-marker) ✓`
 - D-410 sibling-corrigendum applied: L-EDP1-027 sibling-corrigendum appended (pass-36 fix burst applies Layer-26 inline-replace; sibling-corrigendum appended per D-410) ✓
 - D-412(c) Dim-7 annotation: "→ 5 (during fix burst) → 2 (after pass-37 dispatch; D-394 advances frontmatter current_step + Last Updated + Current Phase; Session Resume + STATE line retain the string; per D-415(d))" ✓
+- **Corrigendum (pass-37 fix burst — D-387 / F-P37-002 / D-417(b)):** Pass-36 Dim-7 predicted post-dispatch count `→ 2`. Actual: 4. Per D-417(b): D-394 advances ONLY `phase:` + `current_step:` frontmatter fields; Last Updated + Current Phase ARE advanced (they cease containing the fix-burst marker); BUT Phase Progress pass-36 row (immutable history row) is NOT a D-394 target and continues to hold "pass-36 fix burst COMPLETE". Session Resume "Last update" + Session Resume "STATE:" lines are also NOT D-394 targets. Corrected post-dispatch model: `→ 4 (Phase Progress pass-36 row + Session Resume Last update:214 + Session Resume STATE::216 + burst-log canonical marker) ✓`. 5th consecutive Dim-7 recurrence; structural remedy via S-15.03 PRIORITY-A.
 - D-416(a) literal-substring sweep: `grep -c "L-EDP1-027" lessons.md` → 3 (sibling-corrigendum line 1128 + heading line 1132 + L-EDP1-028 body description line 1201; all literally contain "L-EDP1-027") ✓. Pass-35 Dim-2 D-408(b) annotation errors corrected per corrigendum ✓.
 - D-416(b) STATE.md:159 D-415(c) form applied same-burst: "36 reviews dispatched; 35 complete adversary returns; 34 fix bursts at passes 3-36 per D-415(c)+D-416(b)+(d) dispatch-boundary annotation" ✓
 - D-416(c) S-15.03 cumulative propagation: 5-decision chain D-411(c)/D-413(b)+(d)/D-414/D-415(d) all extending S-15.03 PRIORITY-A scope — cumulative scope summary appended to S-15.03 story body ✓
@@ -1814,7 +1817,7 @@ Dim-7 — STATE.md pass-count + narrative + frontmatter update (D-407(c)+D-415):
 Dim-1 — adv-cycle-pass-36.md creation (D-382+D-409(b)):
 - Enumeration source: pass-36 adversary review complete; D-416 required
 - Extent: 1 new file (adv-cycle-pass-36.md)
-- Action: adv-cycle-pass-36.md created with correct frontmatter (template-compliant; pass:36; prior-pass-classification:HIGH; prior-findings-count:5; verdict:HIGH; findings_count 2H+3M+1L; process_gap_count:0; observations:0; convergence_reached:false)
+- Action: adv-cycle-pass-36.md created with correct frontmatter (template-compliant; pass:36; prior-pass-classification:HIGH; prior-findings-count:5; verdict:HIGH; findings_count 1H+3M+1L; process_gap_count:0; observations:0; convergence_reached:false) **[Corrigendum pass-37 — D-387/F-P37-001/D-417(a): original was "2H+3M+1L"; corrected to "1H+3M+1L" per body SOURCE-OF-TRUTH]**
 - Verification: `grep -c "pass: 36" /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-feature-engine-discipline-pass-1/adv-cycle-pass-36.md` → 1 ✓
 - Canonical pass-36 marker: "pass: 36"
 

@@ -90,7 +90,7 @@ changes are WASM-only (no new Bash hook debt per D-2).
 | 33 | 2026-05-11 | 6 (5H+1M) +1PG | HIGH | adv-cycle-pass-33.md |
 | 34 | 2026-05-11 | 2 (1H+1M) +1obs | HIGH | adv-cycle-pass-34.md |
 | 35 | 2026-05-11 | 5 (2H+3M) | HIGH | adv-cycle-pass-35.md |
-| 36 | 2026-05-11 | 6 (2H+3M+1L) | HIGH | adv-cycle-pass-36.md |
+| 36 | 2026-05-11 | 5 (1H+3M+1L) | HIGH | adv-cycle-pass-36.md |
 
 ## Convergence Status
 
@@ -98,7 +98,7 @@ changes are WASM-only (no new Bash hook debt per D-2).
 - F2 (spec evolution / story decomposition): **COMPLETE** — F2-amendment D-362; 6 BCs + ADR-018 + 4 VPs + PRD FR-048
 - F3 (incremental stories): **COMPLETE** — F3-amendment D-366; 6 stories S-12.03..S-12.08 under E-12
 - F4 (implementation): **COMPLETE** — all 6 E-12 stories merged (PRs #105, #119, #120, #121, #122, #123); F-P2-001 closed via S-12.08
-- F5 (scoped adversarial review): **IN PROGRESS** — 36 reviews dispatched; 35 complete adversary returns; 34 fix bursts at passes 3-36; per D-415(c)+D-416(d) dispatch-boundary annotation. Trajectory content-only 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7→8→6→2→5→6; pass-36 HIGH (2H+3M+1L); streak 0/3; passes 3-36 fix bursts applied to factory-artifacts; D-386 Option C accepted; D-379..D-416 codified (D-379..D-386 from earlier sessions; D-387..D-416 inline this engine-discipline-pass-1 cycle session); L-EDP1-009 second corrigendum + L-EDP1-010..L-EDP1-028 authored; VP-INDEX v1.54 / BC-INDEX v1.78 / ARCH-INDEX v1.59 / STORY-INDEX v2.79 acknowledge D-389..D-416
+- F5 (scoped adversarial review): **IN PROGRESS** — 37 reviews dispatched; 36 complete adversary returns; 35 fix bursts at passes 3-37; per D-415(c)+D-416(d)+D-417 dispatch-boundary annotation. Trajectory content-only 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7→8→6→2→5→5; pass-36 HIGH (1H+3M+1L); pass-37 HIGH (2H+2M+1L); streak 0/3; passes 3-37 fix bursts applied to factory-artifacts; D-386 Option C accepted; D-379..D-417 codified (D-379..D-386 from earlier sessions; D-387..D-417 inline this engine-discipline-pass-1 cycle session); L-EDP1-009 second corrigendum + L-EDP1-010..L-EDP1-029 authored; VP-INDEX v1.55 / BC-INDEX v1.79 / ARCH-INDEX v1.60 / STORY-INDEX v2.80 acknowledge D-389..D-417
 - F6 (targeted hardening): PENDING
 - F7 (delta convergence): PENDING
 
