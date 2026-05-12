@@ -32,3 +32,16 @@ Archived checkpoints from STATE.md as newer checkpoints replace them.
 **Pass-34 fixes:** D-414 codified | L-EDP1-026 | L-EDP1-025 Layer-24 inline-replaced + sibling-corrigendum | pass-33 Dim-5 corrigendum | pass-32 Dim-2/Dim-5 forward-references | F-P34-001/002 + O-P34-001
 **ADR-013:** 3_of_3 CONVERGED (pass-57) | **E-9:** v1.53 CONVERGENCE_REACHED | **E-10:** paused D-343
 **5 user-locked decisions:** `cycles/v1.0-feature-plugin-async-semantics-pass-1/F4-handoff.md` §3
+
+---
+
+## Checkpoint: 2026-05-11 — F5 pass-36 fix burst COMPLETE; pass-37 ADVERSARY DISPATCHED (archived)
+
+**Last update:** 2026-05-11 — F5 pass-36 fix burst COMPLETE. Pass-36 verdict HIGH (1H+3M+1L; 0 process gaps). D-416 codified (5 sub-clauses); L-EDP1-028 27th-layer; 4 indexes v1.78/v1.54/v2.79/v1.59 acknowledge D-389..D-416. Trajectory (content-only): →5. Streak 0/3.
+
+**STATE:** F4 platform COMPLETE; F5 pass-36 fix burst COMPLETE; pass-37 adversary dispatch IN-PROGRESS.
+
+**Index versions:** BC-INDEX v1.78 | VP-INDEX v1.54 | STORY-INDEX v2.79 | ARCH-INDEX v1.59
+**Pass-36 fixes:** D-416 codified | L-EDP1-028 | L-EDP1-027 Layer-26 inline-replaced + sibling-corrigendum | burst-log pass-35 Dim-2 corrigendum (F-P36-001) | adv-cycle-pass-35 observations:0 (F-P36-005) | INDEX.md D-415c dispatch-boundary form (F-P36-002+F-P36-004) | S-15.03 cumulative PRIORITY-A scope propagated (F-P36-003) | F-P36-001/002/003/004/005
+**ADR-013:** 3_of_3 CONVERGED (pass-57) | **E-9:** v1.53 CONVERGENCE_REACHED | **E-10:** paused D-343
+**5 user-locked decisions:** `cycles/v1.0-feature-plugin-async-semantics-pass-1/F4-handoff.md` §3
