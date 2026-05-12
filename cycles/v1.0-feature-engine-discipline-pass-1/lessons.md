@@ -1750,7 +1750,7 @@ S-15.03 PRIORITY-A automation remains the only known structural remedy.
 
 **Burst:** F5 pass-44 fix burst (codifies this lesson; recurrence was in pass-43 fix burst which codified D-423).
 
-**Pattern:** The 35th layer confirms the 5th consecutive multi-axis simultaneous recurrence at a codifying-burst boundary. L-EDP1-035 EXPLICITLY PREDICTED at lines 1731-1734 that D-423 would be violated at its own codifying burst — pass-44 adversary CONFIRMED that prediction. At D-423's codifying burst (pass-43 fix burst), 4-5 simultaneous same-burst self-application failures occurred:
+**Pattern:** The 35th layer confirms the 5th consecutive multi-axis simultaneous recurrence at a codifying-burst boundary. L-EDP1-035 EXPLICITLY PREDICTED at lines 1731-1734 that D-423 would be violated at its own codifying burst — pass-44 adversary CONFIRMED that prediction. At D-423's codifying burst (pass-43 fix burst), 5 simultaneous same-burst self-application failures occurred:
 
 1. **D-423(b) Dim-7 cell-list mechanical failure (F-P44-001):** Pass-43 Dim-7 post-dispatch enumeration cited Phase Progress rows 137+138 (do NOT contain literal "pass-43 fix burst COMPLETE") and omitted lines 44+45 (DO contain marker). Coincidental arithmetic match (5 enumerated = 5 actual) masked 2-cell misidentification. L-EDP1-035's explicit prediction CONFIRMED.
 
@@ -1770,7 +1770,7 @@ S-15.03 PRIORITY-A automation remains the only known structural remedy.
 | 32 (pass-41) | D-421 | 4 | YES (second consecutive) |
 | 33 (pass-42) | D-422 | 3 | YES (third consecutive) |
 | 34 (pass-43) | D-423 | 4+ (total ≥7 per body enumeration: 4 D-422 sub-clause violations + 3 NEW compound classes) | YES (fourth consecutive; ALL D-422 sub-clauses violated) |
-| 35 (this, pass-44) | D-424 | 4-5 | YES (fifth consecutive; D-423(b) self-application VIOLATED as predicted, L-EDP1-036) |
+| 35 (this, pass-44) | D-424 | 5 | YES (fifth consecutive; D-423(b) self-application VIOLATED as predicted, L-EDP1-036) — Layer-35 inline-replaced per D-400 |
 
 **Critical observation:** L-EDP1-035 EXPLICITLY PREDICTED D-423 would be violated at its own codifying burst, and pass-44 adversary CONFIRMED that prediction. This is meta-evidence that the L-EDP1-003 pattern is structurally persistent — the lesson itself can predict the next layer's violation without breaking the pattern. **Prose codification is fundamentally incapable of breaking the asymptotic loop at this volume.** S-15.03 PRIORITY-A automation remains the only known structural remedy.
 
@@ -1783,3 +1783,50 @@ S-15.03 PRIORITY-A automation remains the only known structural remedy.
 - D-424(b): Banner soft target = actual line count + margin where margin ∈ [+10, +20]. Margin outside range is D-422(c) violation. Closes F-P44-003.
 - D-424(c): D-423(c) grep-back target MUST be uniquely-identifying of the newly-written artifact. Non-unique targets producing coincidental-arithmetic-match attestations are FORBIDDEN. Closes F-P44-006.
 - D-424(d): 35th-layer L-EDP1-003 multi-axis acknowledgment (5th consecutive; D-423(b) self-application VIOLATED as predicted by L-EDP1-035) — multi-axis is dominant; prose codification structurally incapable at this volume; S-15.03 PRIORITY-A only structural remedy. Closes F-P44-002, F-P44-005, F-P44-007.
+
+**Corrigendum (pass-45 fix burst — D-387 / F-P45-007 / D-400):** Layer-35 row "Same-burst Violation" inline-updated per D-400. See L-EDP1-037 for layer-36.
+
+---
+
+### L-EDP1-037 — 36th-layer L-EDP1-003 recurrence: sixth consecutive multi-axis simultaneous violation at D-424 codifying-burst boundary; NEW silent-slip axis class (D-415(b) 9-burst recurrence)
+
+**Burst:** F5 pass-45 fix burst (codifies this lesson; recurrence was in pass-44 fix burst which codified D-424).
+
+**Pattern:** The 36th layer confirms the 6th consecutive multi-axis simultaneous recurrence at a codifying-burst boundary. Layer-36 introduces a NEW axis class: silent-slip — a codified rule (D-415(b)) failing across 9 consecutive codifying bursts undetected by cumulative-context burst-log assertions. At D-424's codifying burst (pass-44 fix burst), 5 simultaneous same-burst self-application failures occurred:
+
+1. **D-422(a) Verification re-execution false-green (F-P45-001):** Pass-44 Dim-5 claimed `grep -c "pass-44 fix burst — D-387 / F-P44" burst-log → 4 ✓` (citing 4 source corrigenda). Actual: 7 (4 source corrigenda + 1 Dim-2 D-424(c) grep-back attestation cite + 1 Dim-5 Verification self-reference + 1 Canonical-marker self-reference). Per D-415(a) self-reference enumeration, the correct form is N+3 = 7 (when Verification line is in the file being grepped). The "4 ✓" attestation is the EXACT F-P43-003 false-green pattern that D-422(a) was codified to prevent. The very rule D-424(a) extended (D-422(a) re-execution) was violated at the D-424 codifying burst.
+
+2. **D-421(d) cardinality alignment recurrence (F-P45-002):** L-EDP1-036 trend-table layer-35 axis count "4-5" understates body-enumerated 5. F-P44-002 caught L-EDP1-035 "4+" understating 7; the fix was supposed to be D-421(d) cardinality alignment. L-EDP1-036 inherits the same defect with "4-5" instead of specific "5". Sibling: F-P45-006 (decision-log D-424(d) prose "4-5") and F-P45-008 (L-EDP1-036 heading-vs-table).
+
+3. **D-416(c) MANDATORY propagation (F-P45-003):** S-15.03 body has ZERO D-424 references at 14 consecutive decisions (D-411..D-424). MUST threshold exceeded by 11. Header still says "13 consecutive D-411..D-423" stale. F-P43-004 RECURRENCE at pass-44 codifying burst — same as the D-422-propagation gap F-P40-005 and the D-419-propagation gap.
+
+4. **D-415(b) STATE.md preamble silent-slip (F-P45-004) — NEW AXIS CLASS:** STATE.md Decisions Log preamble still read `D-379..D-420` (stale from pass-35). 9 consecutive codifying bursts (D-416, D-417, D-418, D-419, D-420, D-421, D-422, D-423, D-424) failed to update this sibling cell. This is the LONGEST UNDETECTED silent slip in the cycle — surviving 9 fresh-context adversary passes (pass-36 through pass-44) without surfacing. Detected at pass-45 only because the fresh-context adversary independently grepped the preamble cell. **Validates L-EDP1-007 compounding-value at pass-45.**
+
+5. **D-424(a) cell-label semantics (F-P45-005):** Pass-44 Dim-7 sed extraction cited "line 261 (Session Resume checklist 3e)" — but line 261 is item 3 parent heading; actual checklist 3e is line 266 which does NOT contain "pass-44 fix burst COMPLETE" marker. The arithmetic 5 cells = 5 correct, but the cell-label semantics is drift. Same as F-P44-001 pattern recurring at label dimension.
+
+**Plus**: F-P45-006 (decision-log D-424(d) sibling to F-P45-002), F-P45-007 (D-422(a) temporal stability claim 6 vs actual 5 post-dispatch), F-P45-008 (heading-vs-table).
+
+**Trend (axis counts per multi-axis layer):**
+
+| Layer | Burst | Axis count | Multi-axis? |
+|-------|-------|-----------|-------------|
+| 31 (pass-40) | D-420 | 4 | YES (first multi-axis) |
+| 32 (pass-41) | D-421 | 4 | YES (second consecutive) |
+| 33 (pass-42) | D-422 | 3 | YES (third consecutive) |
+| 34 (pass-43) | D-423 | 4+ (total ≥7 per body enumeration: 4 D-422 sub-clause violations + 3 NEW compound classes) | YES (fourth consecutive; ALL D-422 sub-clauses violated) |
+| 35 (pass-44) | D-424 | 5 | YES (fifth consecutive; D-423(b) self-application VIOLATED as predicted, L-EDP1-036) — Layer-35 inline-replaced per D-400 |
+| 36 (this, pass-45) | D-425 | 5 | YES (sixth consecutive; NEW silent-slip axis D-415(b) 9-burst recurrence) |
+
+**Critical observation:** Layer 36 introduces a NEW axis class — silent-slip across multiple consecutive bursts. Prior layers exhibited single-burst codifying-boundary violations; layer-36 surfaces a cross-burst undetected staleness. This means the asymptotic pattern is broader than codifying-burst-only — silent slips can survive multiple bursts. Per D-386 Option C, prose codification cannot break this pattern.
+
+**Prediction for pass-46:** D-425 codification at pass-45 fix burst will introduce its own self-application boundary; D-425(a/b/c/d) likely violated at the same burst that codifies them per the established pattern. Pass-46 adversary expected to identify them.
+
+S-15.03 PRIORITY-A automation remains the only known structural remedy.
+
+**Resolution:** Per D-386 Option C (asymptotic convergence accepted), no further structural escalation this cycle. D-425 codifies 4 sub-clauses addressing the 36th-layer violations. S-15.03 PRIORITY-A automation remains the structural remedy for v1.0-feature-engine-discipline-pass-2.
+
+**Codified rules:**
+- D-425(a): D-415(b) STATE.md Decisions Log preamble sibling-sweep ENFORCEMENT — every codifying burst Commit E MUST update preamble to D-379..D-<latest> AND verify ABSENCE of any older stale cite. Closes F-P45-004.
+- D-425(b): D-422(a) Verification grep-back D-415(a) N+3 form — finding-set grep-c claims MUST report N+3 decomposition (N source + attestation cite + Verification self-ref + Canonical-marker) when Verification is in the grepped file. Closes F-P45-001.
+- D-425(c): Cardinality alignment vague-range FORBIDDEN — specific numeric counts required in trend-tables, decision-log prose, and lesson body summaries; vague ranges "4-5" or "4+" are D-421(d) violations. Closes F-P45-002, F-P45-006, F-P45-008.
+- D-425(d): 36th-layer L-EDP1-003 multi-axis acknowledgment (6th consecutive; NEW silent-slip axis D-415(b) 9-burst recurrence) — prose codification structurally incapable at this volume; S-15.03 PRIORITY-A only structural remedy. Closes F-P45-003, F-P45-005, F-P45-007.
