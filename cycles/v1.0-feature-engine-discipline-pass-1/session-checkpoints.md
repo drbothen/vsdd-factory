@@ -45,3 +45,16 @@ Archived checkpoints from STATE.md as newer checkpoints replace them.
 **Pass-36 fixes:** D-416 codified | L-EDP1-028 | L-EDP1-027 Layer-26 inline-replaced + sibling-corrigendum | burst-log pass-35 Dim-2 corrigendum (F-P36-001) | adv-cycle-pass-35 observations:0 (F-P36-005) | INDEX.md D-415c dispatch-boundary form (F-P36-002+F-P36-004) | S-15.03 cumulative PRIORITY-A scope propagated (F-P36-003) | F-P36-001/002/003/004/005
 **ADR-013:** 3_of_3 CONVERGED (pass-57) | **E-9:** v1.53 CONVERGENCE_REACHED | **E-10:** paused D-343
 **5 user-locked decisions:** `cycles/v1.0-feature-plugin-async-semantics-pass-1/F4-handoff.md` §3
+
+---
+
+## Checkpoint: 2026-05-12 — F5 pass-41 fix burst COMPLETE; pass-42 ADVERSARY DISPATCH PENDING (archived)
+
+**Last update:** 2026-05-12 — F5 pass-41 fix burst COMPLETE. Pass-41 HIGH verdict (3H+4M+1L=8+1obs; 32nd-layer L-EDP1-003 multi-axis; 2nd consecutive multi-axis at D-420 codification boundary). D-421 codified (5 sub-clauses: archive-pointer SHA-inclusion + 32nd-layer acknowledgment + STATE.md size-budget banner reconciliation + L-EDP1-032 cardinality alignment + burst-log heading-form normalization). L-EDP1-033 32nd-layer multi-axis. 4 indexes BC v1.83/VP v1.59/STORY v2.84/ARCH v1.64 acknowledge D-389..D-421. Trajectory (content-only) 41 values: 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7→8→6→2→5→5→5→7→8→7→8. Streak: 0/3 NITPICK_ONLY. Verdict HIGH sustained.
+
+**STATE:** F4 platform COMPLETE; F5 pass-41 fix burst COMPLETE; pass-42 adversary dispatch PENDING.
+
+**Index versions:** BC-INDEX v1.83 | VP-INDEX v1.59 | STORY-INDEX v2.84 | ARCH-INDEX v1.64
+**Pass-41 fixes:** D-421 codified (5 sub-clauses) | L-EDP1-033 32nd-layer multi-axis | L-EDP1-032 Layer-31 inline-replaced + sibling-corrigendum | F-P41-001 D-420 Closes 7-site sweep | F-P41-002 Dim-7 archive-pointer corrigendum | F-P41-003 Dim-2 line-number corrigendum | F-P41-004 dispatch-stable sibling-sweep | F-P41-005 archive-pointer SHA-inclusion | F-P41-006 L-EDP1-032 cardinality | F-P41-007 STATE banner | F-P41-008 heading form
+**ADR-013:** 3_of_3 CONVERGED (pass-57) | **E-9:** v1.53 CONVERGENCE_REACHED | **E-10:** paused D-343
+**5 user-locked decisions:** `cycles/v1.0-feature-plugin-async-semantics-pass-1/F4-handoff.md` §3
