@@ -13,7 +13,7 @@ cycle: v1.0-feature-engine-discipline-pass-1
 pass: 34
 previous_review: adv-cycle-pass-33.md
 prior-pass-classification: HIGH
-prior-findings-count: 7
+prior-findings-count: 6
 verdict: HIGH
 findings_count:
   critical: 0
