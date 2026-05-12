@@ -2249,23 +2249,23 @@ S-15.03 PRIORITY-A automation remains the only known structural remedy.
 
 7. **F-P52-007:** Pass-51 Dim-1 "12 files modified" counts burst-log.md twice (modified in Commits C and E but is 1 unique file); unique count = 11.
 
-**Trend (axis counts per multi-axis layer):**
+**Trend (axis counts per multi-axis layer; per D-433(d) normalized = content-only finding count per D-401(c)):**
 
 | Layer | Burst | Axis count | Multi-axis? |
 |-------|-------|-----------|-------------|
-| 31 (pass-40) | D-420 | 4 | YES (first multi-axis) |
-| 32 (pass-41) | D-421 | 4 | YES (second consecutive) |
-| 33 (pass-42) | D-422 | 3 | YES (third consecutive) |
-| 34 (pass-43) | D-423 | 7 | YES (fourth consecutive; ALL D-422 sub-clauses violated) |
-| 35 (pass-44) | D-424 | 5 | YES (fifth consecutive) |
-| 36 (pass-45) | D-425 | 7 | YES (sixth consecutive; NEW silent-slip axis) |
-| 37 (pass-46) | D-426 | 7 | YES (seventh consecutive; NEW rule-scope-vs-applied-scope coverage gap class) |
-| 38 (pass-47) | D-427 | 7 | YES (eighth consecutive; NEW self-replicating coverage-gap class) |
-| 39 (pass-48) | D-428 | 8 | YES (ninth consecutive; META-LEVEL-3 class confirmed) |
-| 40 (pass-49) | D-429 | 8 | YES (tenth consecutive; META-LEVEL-4 CONFIRMED) |
-| 41 (pass-50) | D-430 | 7 | YES (eleventh consecutive; META-LEVEL-5 CANDIDATE via lexical-vs-semantic gap) |
-| 42 (pass-51) | D-431 | 7 | YES (twelfth consecutive; META-LEVEL-6 CONFIRMED + NEW CRITICAL structural-coalescence class) |
-| 43 (pass-52) | D-432 | 7 | YES (thirteenth consecutive; META-LEVEL-7 CONFIRMED + NEW copy-paste-relabel banner corruption class) |
+| 31 (pass-40) | D-420 | 7 | YES (first multi-axis; 3H+3M+1L=7 content-only per D-401(c)) |
+| 32 (pass-41) | D-421 | 8 | YES (second consecutive; 3H+4M+1L=8 content-only per D-401(c)) |
+| 33 (pass-42) | D-422 | 7 | YES (third consecutive; 3H+3M+1L=7 content-only per D-401(c)) |
+| 34 (pass-43) | D-423 | 8 | YES (fourth consecutive; 4H+3M+1L=8 content-only per D-401(c)) |
+| 35 (pass-44) | D-424 | 7 | YES (fifth consecutive; 3H+3M+1L=7 content-only per D-401(c)) |
+| 36 (pass-45) | D-425 | 8 | YES (sixth consecutive; 4H+3M+1L=8 content-only per D-401(c); NEW silent-slip axis) |
+| 37 (pass-46) | D-426 | 7 | YES (seventh consecutive; 3H+3M+1L=7 content-only per D-401(c); NEW rule-scope-vs-applied-scope coverage gap class) |
+| 38 (pass-47) | D-427 | 7 | YES (eighth consecutive; 3H+3M+1L=7 content-only per D-401(c); NEW self-replicating coverage-gap class) |
+| 39 (pass-48) | D-428 | 8 | YES (ninth consecutive; 4H+3M+1L=8 content-only per D-401(c); META-LEVEL-3 class confirmed) |
+| 40 (pass-49) | D-429 | 8 | YES (tenth consecutive; 4H+3M+1L=8 content-only per D-401(c); META-LEVEL-4 CONFIRMED) |
+| 41 (pass-50) | D-430 | 7 | YES (eleventh consecutive; 4H+2M+1L=7 content-only per D-401(c); META-LEVEL-5 CANDIDATE via lexical-vs-semantic gap) |
+| 42 (pass-51) | D-431 | 7 | YES (twelfth consecutive; 1C+4H+2M=7 content-only per D-401(c); META-LEVEL-6 CONFIRMED + NEW CRITICAL structural-coalescence class) |
+| 43 (pass-52) | D-432 | 7 | YES (thirteenth consecutive; 1C+3H+2M+1L=7 content-only per D-401(c); META-LEVEL-7 CONFIRMED + NEW copy-paste-relabel banner corruption class) |
 
 **Recursion ply mapping (7 confirmed plies):**
 - Level-1: rule applied to named findings only

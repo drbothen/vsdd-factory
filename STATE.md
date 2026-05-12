@@ -22,7 +22,7 @@ dtu_services: []
 
 <!--
   STATE.md SIZE BUDGET (per D-421(c) + D-422(c) reconciliation):
-  Soft target: ≤331 lines (actual 316 lines at pass-51 Commit E + 15 margin = 331 per D-422(c)+D-424(b)+D-428(d) margin range [+10,+20]; D-431 codified (5 sub-clauses; line-terminus + STATE-row + cumulative-header advance + label-anchoring + Commit-E-sweep per decision-log.md:112 SoT).
+  Soft target: ≤339 lines (actual 322 lines at pass-53 Commit E + 17 margin = 339 per D-422(c)+D-424(b)+D-428(d) margin range [+10,+20]; D-433 codified (5 sub-clauses; banner-cite-advancement + wc-l-prose-anchor + homogeneous-marker + trend-table-axis-count-stable + trajectory-tail-LENGTH per decision-log.md:114 SoT)).
   Hard cap: 500 lines (validate-state-md-size hook enforcement).
   Historical content belongs in cycle files, NOT here.
   D-430(a) compaction authorization: Pass-49 Commit E surgical compaction (363→310 lines) authorized retroactively per D-430(a); removed content categories: stale Phase Progress rows (passes 1-38); pre-compaction state preserved at git show 278977fb:.factory/STATE.md.
@@ -41,8 +41,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-12 — pass-52 fix burst COMPLETE (HIGH; 1C+3H+2M+1L=7+1obs); 54 decisions D-379..D-432; 44 lessons L-EDP1-001..044; 4 indexes BC v1.95/VP v1.71/STORY v2.96/ARCH v1.76; 52-value trajectory →8→7→7→7; D-432 codified (6 sub-clauses); L-EDP1-044 43rd-layer multi-axis (13th consecutive; META-LEVEL-7 CONFIRMED; NEW copy-paste-relabel banner corruption class). |
-| **Current Phase** | Engine-discipline F5 — pass-52 fix burst COMPLETE; D-432 + L-EDP1-044 codified; next = pass-53 adversary dispatch |
+| **Last Updated** | 2026-05-12 — pass-53 fix burst COMPLETE (HIGH; 1C+4H+2M+1L=8+2obs); 55 decisions D-379..D-433; 45 lessons L-EDP1-001..045; 4 indexes BC v1.96/VP v1.72/STORY v2.97/ARCH v1.77; trajectory tail (last 4 of 53 values per D-433(e)) →7→7→7→8; D-433 codified (5 sub-clauses); L-EDP1-045 44th-layer multi-axis (14th consecutive; META-LEVEL-8 CONFIRMED; banner-cite-advancement scope gap). |
+| **Current Phase** | Engine-discipline F5 — pass-53 fix burst COMPLETE; D-433 + L-EDP1-045 codified; next = pass-54 adversary dispatch |
 | **Current Cycle** | v1.0-feature-engine-discipline-pass-1 |
 
 ## Phase Progress
@@ -194,14 +194,14 @@ dtu_services: []
 |-------|------|--------|-------|
 | F-block-ai-attribution-message-file-arm | feature | F3 COMPLETE — F4 READY | F1+F2+F3 done 2026-05-12; 2 stories ready (S-16.01 5pts PostToolUse HEAD verify, S-16.02 3pts PreToolUse -F arm); E-16 under SS-07/SS-04; milestone v1.0.0-rc.17; BC-7.03.094/095/001, VP-080, ARCH SS-07 v1.3/SS-04 v1.4 registered |
 | v1.0-brownfield-backfill | brownfield | PAUSED | E-10 pass-9 pending; paused at D-343 |
-| v1.0-feature-engine-discipline-pass-1 | feature | F5-IN-PROGRESS | All 6 E-12-platform stories merged; F5 passes 1-52 (53 reviews dispatched; 52 complete adversary returns; 50 fix bursts at passes 3-52) per D-418(c) deterministic-tally form; full-cycle trajectory content-only (pass-1..52): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7→8→6→2→5→5→5→7→8→7→8→7→8→7→8→7→7→8→8→7→7→7; pass-52 HIGH verdict (1C+3H+2M+1L=7+1obs); D-432 codified (6 sub-clauses); L-EDP1-044 43rd-layer multi-axis (13th consecutive; META-LEVEL-7 CONFIRMED); D-386 Option C: continue F5, accept asymptotic L-EDP1-003 limit; VP-INDEX v1.71 / BC-INDEX v1.95 / ARCH-INDEX v1.76 / STORY-INDEX v2.96 acknowledge D-389..D-432 (D-423(a) version sweep applied: post-Commit-D actual versions); S-15.03 PRIORITY-A in pass-2 cycle |
+| v1.0-feature-engine-discipline-pass-1 | feature | F5-IN-PROGRESS | All 6 E-12-platform stories merged; F5 passes 1-53 (54 reviews dispatched; 53 complete adversary returns; 51 fix bursts at passes 3-53) per D-418(c) deterministic-tally form; full-cycle trajectory content-only (pass-1..53): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7→8→6→2→5→5→5→7→8→7→8→7→8→7→8→7→7→8→8→7→7→7→8; trajectory tail (last 4 of 53 values per D-433(e)) →7→7→7→8; pass-53 HIGH verdict (1C+4H+2M+1L=8+2obs); D-433 codified (5 sub-clauses); L-EDP1-045 44th-layer multi-axis (14th consecutive; META-LEVEL-8 CONFIRMED); D-386 Option C: continue F5, accept asymptotic L-EDP1-003 limit; VP-INDEX v1.72 / BC-INDEX v1.96 / ARCH-INDEX v1.77 / STORY-INDEX v2.97 acknowledge D-389..D-433 (D-423(a) version sweep applied: post-Commit-D actual versions); S-15.03 PRIORITY-A in pass-2 cycle |
 | v1.0-feature-plugin-async-semantics-pass-1 | feature | CLOSED | All PRs merged; rc.14 shipped |
 
 ## Decisions Log
 
 > D-001..D-312: `cycles/v1.0-brownfield-backfill/decision-log.md` + `decisions-log-archive.md`
 > F5 pass-2 architect decisions: `cycles/v1.0-feature-engine-discipline-pass-1/F5-pass-2-architect-decisions.md` (factory-artifacts 7b83ef58)
-> D-379..D-432 (this session): `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md` <!-- D-416(c) MANDATORY propagation umbrella + D-415(b)+D-425(a)+D-427(b)+D-428(b)+D-429(b)+D-430(c) preamble sweep applied pass-50 per D-416(c)+D-427(b)+D-428(b)+D-429(b)+D-430(c) cross-doc propagation discipline -->
+> D-379..D-433 (this session): `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md` <!-- D-416(c) MANDATORY propagation umbrella + D-415(b)+D-425(a)+D-427(b)+D-428(b)+D-429(b)+D-430(c) preamble sweep applied pass-50 per D-416(c)+D-427(b)+D-428(b)+D-429(b)+D-430(c) cross-doc propagation discipline -->
 
 | ID | Decision | Phase | Date |
 |----|----------|-------|------|
@@ -228,6 +228,7 @@ dtu_services: []
 | D-430 | D-421(c) extension surgical compaction + D-429(c) "Plus sibling" SEMANTIC CLASS expansion + D-416(c) cumulative header monotonic advancement + D-424(a) Dim-7 sed extraction MANDATORY re-affirmation + 41st-layer 11th-consecutive multi-axis acknowledgment (META-LEVEL-5 CANDIDATE) (5 sub-clauses; see decision-log.md). Closes F-P50-001, F-P50-002, F-P50-003, F-P50-004, F-P50-005, F-P50-006, F-P50-007 (per D-413(b) completeness mandate) | F5 pass-50 | 2026-05-12 |
 | D-431 | Table-row line-terminus discipline + STATE.md Decisions Log monotonic-row enforcement + D-430(c) cumulative-header advancement to LATEST D-NNN + banner sub-clause label-anchoring discipline + Commit E archive-pointer + label sweep (5 sub-clauses; see decision-log.md). Closes F-P51-001, F-P51-002, F-P51-003, F-P51-004, F-P51-005, F-P51-006, F-P51-007 (per D-413(b) completeness mandate) | F5 pass-51 | 2026-05-12 |
 | D-432 | STATE.md↔INDEX.md↔Concurrent-Cycles tally-sync MANDATORY + trajectory-tail canonical form + Dim-7 banner-cell inclusion + banner sub-clause label-anchoring copy-paste-relabel FORBIDDEN + Dim-1 unique-file-count + 43rd-layer META-LEVEL-7 CONFIRMED (6 sub-clauses; see decision-log.md). Closes F-P52-001, F-P52-002, F-P52-003, F-P52-004, F-P52-005, F-P52-006, F-P52-007 (per D-413(b) completeness mandate) | F5 pass-52 | 2026-05-12 |
+| D-433 | Banner cumulative-cite advancement MANDATORY at every codifying-burst Commit E + banner wc-l prose anchor update + Dim-7 homogeneous-marker enumeration per cell-set + trend-table Axis-count semantic stability + trajectory-tail canonical LENGTH = 4 (5 sub-clauses; see decision-log.md:114 SoT). Closes ADV-EDP1-P53-CRIT-001, ADV-EDP1-P53-HIGH-001, ADV-EDP1-P53-HIGH-002, ADV-EDP1-P53-HIGH-003, ADV-EDP1-P53-HIGH-004, ADV-EDP1-P53-MED-001, ADV-EDP1-P53-MED-002, ADV-EDP1-P53-LOW-001 (per D-413(b) completeness mandate) | F5 pass-53 | 2026-05-12 |
 
 ## Skip Log
 
