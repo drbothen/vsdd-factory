@@ -1792,7 +1792,7 @@ S-15.03 PRIORITY-A automation remains the only known structural remedy.
 
 **Burst:** F5 pass-45 fix burst (codifies this lesson; recurrence was in pass-44 fix burst which codified D-424).
 
-**Pattern:** The 36th layer confirms the 6th consecutive multi-axis simultaneous recurrence at a codifying-burst boundary. Layer-36 introduces a NEW axis class: silent-slip — a codified rule (D-415(b)) failing across 9 consecutive codifying bursts undetected by cumulative-context burst-log assertions. At D-424's codifying burst (pass-44 fix burst), 5 simultaneous same-burst self-application failures occurred:
+**Pattern:** The 36th layer confirms the 6th consecutive multi-axis simultaneous recurrence at a codifying-burst boundary. Layer-36 introduces a NEW axis class: silent-slip — a codified rule (D-415(b)) failing across 9 consecutive codifying bursts undetected by cumulative-context burst-log assertions. At D-424's codifying burst (pass-44 fix burst), 7 simultaneous same-burst self-application failures occurred (per D-426(c) body-cardinality alignment: original "5 simultaneous" inline-updated to "7 simultaneous"; F-P45-006/007/008 reclassified as axes 6+7 per D-426(c)):
 
 1. **D-422(a) Verification re-execution false-green (F-P45-001):** Pass-44 Dim-5 claimed `grep -c "pass-44 fix burst — D-387 / F-P44" burst-log → 4 ✓` (citing 4 source corrigenda). Actual: 7 (4 source corrigenda + 1 Dim-2 D-424(c) grep-back attestation cite + 1 Dim-5 Verification self-reference + 1 Canonical-marker self-reference). Per D-415(a) self-reference enumeration, the correct form is N+3 = 7 (when Verification line is in the file being grepped). The "4 ✓" attestation is the EXACT F-P43-003 false-green pattern that D-422(a) was codified to prevent. The very rule D-424(a) extended (D-422(a) re-execution) was violated at the D-424 codifying burst.
 
@@ -1804,7 +1804,11 @@ S-15.03 PRIORITY-A automation remains the only known structural remedy.
 
 5. **D-424(a) cell-label semantics (F-P45-005):** Pass-44 Dim-7 sed extraction cited "line 261 (Session Resume checklist 3e)" — but line 261 is item 3 parent heading; actual checklist 3e is line 266 which does NOT contain "pass-44 fix burst COMPLETE" marker. The arithmetic 5 cells = 5 correct, but the cell-label semantics is drift. Same as F-P44-001 pattern recurring at label dimension.
 
-**Plus**: F-P45-006 (decision-log D-424(d) sibling to F-P45-002), F-P45-007 (D-422(a) temporal stability claim 6 vs actual 5 post-dispatch), F-P45-008 (heading-vs-table).
+6. **D-422(a) temporal-stability post-dispatch — NEW AXIS CLASS (F-P45-007):** D-422(a) temporal stability violation: pass-44 Dim-7 claimed 6 cells during fix burst. Post-dispatch count drops to 5 (frontmatter current_step advances per D-417(b)). The temporal-stability axis — verification count changing between fix-burst Commit E and post-dispatch state — is a DISTINCT class from cardinality (axes 2+7) and propagation (axis 3). Per D-426(c): temporal-stability post-dispatch is independent axis 6, not a "Plus" sibling.
+
+7. **D-421(d) sibling drift — cardinality decision-log + heading-vs-table (F-P45-006 + F-P45-008):** decision-log D-424(d) prose used "4-5" (F-P45-006); L-EDP1-036 heading-vs-table inconsistency (F-P45-008). Both are D-425(c) vague-range violations forming a compound axis. Per D-426(c): F-P45-006 + F-P45-008 constitute axis 7 (sibling-cardinality drift).
+
+**Plus**: F-P45-007 reclassified as axis 6 per D-426(c) — no remaining "Plus" at layer 36.
 
 **Trend (axis counts per multi-axis layer):**
 
@@ -1815,7 +1819,7 @@ S-15.03 PRIORITY-A automation remains the only known structural remedy.
 | 33 (pass-42) | D-422 | 3 | YES (third consecutive) |
 | 34 (pass-43) | D-423 | 4+ (total ≥7 per body enumeration: 4 D-422 sub-clause violations + 3 NEW compound classes) | YES (fourth consecutive; ALL D-422 sub-clauses violated) |
 | 35 (pass-44) | D-424 | 5 | YES (fifth consecutive; D-423(b) self-application VIOLATED as predicted, L-EDP1-036) — Layer-35 inline-replaced per D-400 |
-| 36 (this, pass-45) | D-425 | 5 | YES (sixth consecutive; NEW silent-slip axis D-415(b) 9-burst recurrence) |
+| 36 (pass-45) | D-425 | 7 | YES (sixth consecutive; NEW silent-slip axis D-415(b) 9-burst recurrence) — Layer-36 inline-replaced per D-400 |
 
 **Critical observation:** Layer 36 introduces a NEW axis class — silent-slip across multiple consecutive bursts. Prior layers exhibited single-burst codifying-boundary violations; layer-36 surfaces a cross-burst undetected staleness. This means the asymptotic pattern is broader than codifying-burst-only — silent slips can survive multiple bursts. Per D-386 Option C, prose codification cannot break this pattern.
 
@@ -1830,3 +1834,58 @@ S-15.03 PRIORITY-A automation remains the only known structural remedy.
 - D-425(b): D-422(a) Verification grep-back D-415(a) N+3 form — finding-set grep-c claims MUST report N+3 decomposition (N source + attestation cite + Verification self-ref + Canonical-marker) when Verification is in the grepped file. Closes F-P45-001.
 - D-425(c): Cardinality alignment vague-range FORBIDDEN — specific numeric counts required in trend-tables, decision-log prose, and lesson body summaries; vague ranges "4-5" or "4+" are D-421(d) violations. Closes F-P45-002, F-P45-006, F-P45-008.
 - D-425(d): 36th-layer L-EDP1-003 multi-axis acknowledgment (6th consecutive; NEW silent-slip axis D-415(b) 9-burst recurrence) — prose codification structurally incapable at this volume; S-15.03 PRIORITY-A only structural remedy. Closes F-P45-003, F-P45-005, F-P45-007.
+
+**Corrigendum (pass-46 fix burst — D-387 / F-P46-003 / D-400):** Layer-36 row "Same-burst Violation" inline-updated per D-400. See L-EDP1-038 for layer-37.
+
+---
+
+### L-EDP1-038 — 37th-layer L-EDP1-003 recurrence: seventh consecutive multi-axis simultaneous violation at D-425 codifying-burst boundary; NEW rule-scope-vs-applied-scope coverage gap pattern class
+
+**Burst:** F5 pass-46 fix burst (codifies this lesson; recurrence was in pass-45 fix burst which codified D-425).
+
+**Pattern:** The 37th layer confirms the 7th consecutive multi-axis simultaneous recurrence at a codifying-burst boundary. Layer-37 introduces a NEW pattern class: **rule-scope-vs-applied-scope coverage gap** — the codifying rule has broad scope but the codifying burst applies it only to F-PNN-named sites. At D-425's codifying burst (pass-45 fix burst), 6 simultaneous same-burst self-application failures occurred:
+
+1. **D-425(c) "4+" form rule-scope-vs-applied-scope coverage gap (F-P46-001):** D-425(c) forbade "4+" globally but pass-45 fix burst only applied it to 3 F-P45-named sites. 5 OTHER sites of "4+" survived: lessons.md:1689 (L-EDP1-035 trend-table), lessons.md:1691 (L-EDP1-035 prose), lessons.md:1772 (L-EDP1-036 history-table), lessons.md:1816 (L-EDP1-037 trend-table), decision-log.md:104 (D-423 row prose). NEW pattern class: rule applied to named findings, not rule's stated scope.
+
+2. **D-425(b) rule N+3 vs application N+4 contradiction (F-P46-002):** D-425(b) codified N+3 form (N source + 3 self-refs); pass-45 Dim-5 Verification application reports N+4 with explicit enumeration of 4 self-refs including new "Dim-N narrative cite" class. Rule text and first application contradict each other.
+
+3. **L-EDP1-037 body "5 simultaneous" understates 8 findings (F-P46-003):** Pass-45 had 8 findings (4H+3M+1L) but L-EDP1-037 enumerated only 5 numbered axes, classifying F-P45-006/007/008 as "Plus" siblings. F-P45-007 (D-422(a) temporal-stability post-dispatch) is structurally a NEW axis class distinct from cardinality and propagation issues. Same D-421(d) pattern recurring at L-EDP1-037 boundary.
+
+4. **Checklist 4a prescription drift (F-P46-004):** STATE.md:271 Session Resume checklist 4a prescribed minimal dispatch frontmatter (~3 D-NNN cites) but actual dispatch frontmatter at line 15 inflates to 11 D-NNN cites. Prescription-vs-actual drift undermines D-417(d).
+
+5. **D-415(a) 5th site class uncodified (F-P46-005):** Pass-45 introduced a 5th self-reference site class ("Dim-N narrative cite") not enumerated in D-415(a)'s original 4-class definition. Codification-vs-application gap.
+
+6. **INDEX.md per-row format ambiguity (F-P46-006):** "7 (3H+3M+1L)+1obs" cell form readable as "7+1=8" or "7 (with 1 observation alongside)" — D-415(e) prescribes content-only but the "+1obs" suffix conflates. Standardize per-row format needed.
+
+**Plus:** F-P46-007 (LOW; subordinate sibling to F-P46-001 at lessons.md:1691 specific site)
+
+**Trend (axis counts per multi-axis layer):**
+
+| Layer | Burst | Axis count | Multi-axis? |
+|-------|-------|-----------|-------------|
+| 31 (pass-40) | D-420 | 4 | YES (first multi-axis) |
+| 32 (pass-41) | D-421 | 4 | YES (second consecutive) |
+| 33 (pass-42) | D-422 | 3 | YES (third consecutive) |
+| 34 (pass-43) | D-423 | 7 (total per body enumeration: 4 D-422 sub-clause violations + 3 NEW compound classes) | YES (fourth consecutive; ALL D-422 sub-clauses violated) |
+| 35 (pass-44) | D-424 | 5 | YES (fifth consecutive; D-423(b) self-application VIOLATED as predicted, L-EDP1-036) — Layer-35 inline-replaced per D-400 |
+| 36 (pass-45) | D-425 | 7 | YES (sixth consecutive; NEW silent-slip axis D-415(b) 9-burst recurrence) — Layer-36 inline-replaced per D-400 |
+| 37 (this, pass-46) | D-425 at codifying burst | 6 | YES (seventh consecutive; NEW rule-scope-vs-applied-scope coverage gap class) |
+
+**Pattern class evolution:**
+- Layers 31-33: Single-burst codifying-boundary violations
+- Layer 34: Multi-axis at codifying boundary (4 simultaneous)
+- Layer 35: 5-axis sustained
+- Layer 36: NEW silent-slip class introduced (9-burst undetected staleness)
+- Layer 37: NEW rule-scope-vs-applied-scope coverage gap class introduced
+
+**Prediction for pass-47:** D-426 codification at pass-46 will introduce its own self-application boundary; D-426(a/b/c/d) likely violated at the same burst that codifies them per the established pattern. Pass-47 adversary expected to identify them.
+
+S-15.03 PRIORITY-A automation remains the only known structural remedy.
+
+**Resolution:** Per D-386 Option C (asymptotic convergence accepted), no further structural escalation this cycle. D-426 codifies 4 sub-clauses addressing the 37th-layer violations. S-15.03 PRIORITY-A automation remains the structural remedy for v1.0-feature-engine-discipline-pass-2.
+
+**Codified rules:**
+- D-426(a): Rule-scope-vs-applied-scope coverage discipline — scope-bearing rules MUST be verified by grepping the full named scope (not just F-PNN sites); ZERO matches required in scope-files post-codification. Closes F-P46-001, F-P46-007.
+- D-426(b): D-415(a) extended to 5 self-reference site classes (adding "Dim-N narrative cite"); N+4 form replaces N+3 form; D-425(b) rule text updated accordingly. Closes F-P46-002, F-P46-005.
+- D-426(c): Lesson body "N simultaneous" claim MUST match TOTAL finding count; F-P45-007 temporal-stability-post-dispatch is distinct axis class (axis 6); F-P45-006+F-P45-008 are axis 7; all prior L-EDP1-NNN cardinality swept per D-385. Closes F-P46-003.
+- D-426(d): 37th-layer L-EDP1-003 multi-axis acknowledgment (7th consecutive; NEW rule-scope-vs-applied-scope coverage gap class) — distinct from silent-slip; single-burst incomplete application; S-15.03 PRIORITY-A only structural remedy. Closes F-P46-004, F-P46-006.
