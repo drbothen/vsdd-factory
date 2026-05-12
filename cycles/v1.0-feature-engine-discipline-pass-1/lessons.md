@@ -2564,3 +2564,98 @@ S-15.03 PRIORITY-A automation remains the only known structural remedy.
 - D-435(c): D-434(d) self-retrofit at codifying burst — D-415(a) citation retrofits apply to ALL burst-log entries including codifying burst's own Dim-2; self-exemption FORBIDDEN. Closes ADV-EDP1-P55-HIGH-003.
 - D-435(d): D-394 dispatched-tally semantic resolution — dispatched count = completed returns + (1 if in-progress dispatch); in-progress dispatch IS counted toward dispatched total. Closes ADV-EDP1-P55-MED-001.
 - D-435(e): 46th-layer META-LEVEL-10 acknowledgment — L-EDP1-047 documents 46th-layer; enumeration-creep risk acknowledged; compaction recommended at next cycle. Closes ADV-EDP1-P55-HIGH-004, ADV-EDP1-P55-MED-002, ADV-EDP1-P55-LOW-001, ADV-EDP1-P55-LOW-002.
+
+**Status:** Layer-46 inline-replaced per D-400. See L-EDP1-048 for layer-47.
+
+**Corrigendum (pass-56 fix burst — D-387 / HIGH-001 / D-400):** Layer-46 row updated per D-400. See L-EDP1-048 for layer-47.
+
+---
+
+### L-EDP1-048 — 47th-layer L-EDP1-003 recurrence: seventeenth consecutive multi-axis simultaneous violation at D-435 codifying-burst boundary; META-LEVEL-11 CANDIDATE; form-name applied without semantic-precondition check
+
+**Burst:** F5 pass-56 fix burst (codifies this lesson; recurrence was in pass-55 fix burst which codified D-435).
+
+**Pattern:** The 47th layer documents the 17th consecutive multi-axis simultaneous recurrence at a codifying-burst boundary. Layer-47 is the META-LEVEL-11 CANDIDATE: the granularity-extension rule (N+6 form per D-427(c)) was applied at narrower scope than the rule's named semantic class — the N+6 form-label was cited for a lesson-ID grep in lessons.md without checking whether the grep target CONTEXT satisfies D-427(c)'s prescribed scope condition ("burst-log with full narrative+codification+closure structure"). At D-435's codifying burst (pass-55 fix burst), 9 simultaneous same-burst self-application failures occurred (5H+2M+2L per D-401(c)):
+
+1. **HIGH ADV-EDP1-P56-HIGH-001 — S-15.03 cumulative-scope 3-burst silent-slip (D-433/D-434/D-435 missing):** The S-15.03 cumulative-scope header remained frozen at "D-411 through D-432" across 3 consecutive codifying bursts (passes 53, 54, 55). 20 sub-items absent (D-433/D-434/D-435/D-436 × 5 each). Longest header-range silent-slip in the cycle.
+
+2. **HIGH ADV-EDP1-P56-HIGH-002 — Archive-pointer 2-pass stale (pass-53 reference; should be pass-55):** STATE.md archive-pointer frozen at pass-53/pass-54 across 2 consecutive non-advances (pass-55 Commit E + pass-56 dispatch both failed to advance).
+
+3. **HIGH ADV-EDP1-P56-HIGH-003 — Dim-2 rubber-stamp (L-EDP1-047 grep claimed 3, actual 5):** pass-55 burst-log Dim-2 Verification claimed `grep -c "L-EDP1-047" lessons.md → 3` but actual = 5. Pre-predicted count, not post-write re-execution per D-436(c).
+
+4. **HIGH ADV-EDP1-P56-HIGH-004 — Dim-5 rubber-stamp (D-435 codified grep claimed 2, actual 6):** pass-55 burst-log Dim-5 Verification claimed `grep -c "D-435 codified" STATE.md → 2` but actual = 6. Same rubber-stamp pattern as HIGH-003.
+
+5. **HIGH ADV-EDP1-P56-HIGH-005 — N+6 form semantic-precondition gap (form-name cited without context check):** pass-55 Dim-2 applied "N+6 per D-427(c)" to a lesson-ID grep in lessons.md — a context that does NOT satisfy D-427(c)'s "burst-log with full narrative+codification+closure structure" precondition. This is recursion ply L11: form-label applied lexically without verifying the target context matches the form's semantic scope.
+
+6. **MED ADV-EDP1-P56-MED-001 — L-EDP1-035 prose narrative stale axis values (deferred by D-436(e)):** Line 1691 prose list "4/4/3/7/5/5/6/7 for layers 31-38" uses pre-D-433(d) normalization values; canonical is "7/8/7/8/7/8/7/7 per L-EDP1-046/047". Deferred by D-436(e) — annotation added rather than silent value replacement.
+
+7. **MED ADV-EDP1-P56-MED-002 — META-LEVEL-11 aggregator:** 17th consecutive multi-axis; granularity-extension rule applied at narrower scope than rule's named semantic class. Recursion ply L11 confirmed as CANDIDATE.
+
+8. **LOW ADV-EDP1-P56-LOW-001 — Dim-7 temporal annotation gap:** wc-l output not cross-linked to Cell-set B in Dim-7 narrative. Deferred by D-436(e).
+
+9. **LOW ADV-EDP1-P56-LOW-002 — Banner line-growth tracker absent:** wc-l progression not recorded inline in banner. Deferred by D-436(e) — cumulative-growth tracker annotation added to banner.
+
+**Recursion ply 11 CANDIDATE mapping (L1..L11):**
+- Level-1: rule applied to named findings only
+- Level-2: fix-extension applied to named forms only
+- Level-3: sweep regex coverage-gapped at semantic interpretation
+- Level-4: meta-rule prescribing regex-derivation itself coverage-gapped
+- Level-5: anti-pattern rewrite applied to lexical-token, not semantic class
+- Level-6: verification grep-target anchored to obsolete prior form
+- Level-7: banner sub-clause labels copy-paste-relabeled from prior D-NNN
+- Level-8: cumulative-cite advancement scope NOT extended to all banner cells
+- Level-9: retroactive-sweep target-set completeness gap (header presence verified; member set not verified)
+- Level-10: retroactive-sweep target-VALUE completeness gap (header form verified; per-cell value correctness not extracted and compared to canonical)
+- **Level-11 (CANDIDATE):** form-name applied without precondition check (N+6 label cited for lesson-ID grep in lessons.md context, which does NOT satisfy D-427(c)'s "burst-log with full narrative+codification+closure structure" precondition)
+
+**Prediction for pass-57:** D-436(a/b/c/d/e) likely violated at pass-56 codifying burst. META-LEVEL-12 candidate.
+
+**Trend (axis counts per multi-axis layer; per D-433(d) normalized = content-only finding count per D-401(c)):**
+
+| Layer | Burst | Axis count | Multi-axis? |
+|-------|-------|-----------|-------------|
+| 31 (pass-40) | D-420 | 7 | YES (first multi-axis; 3H+3M+1L=7 content-only per D-401(c)) |
+| 32 (pass-41) | D-421 | 8 | YES (second consecutive; 3H+4M+1L=8 content-only per D-401(c)) |
+| 33 (pass-42) | D-422 | 7 | YES (third consecutive; 3H+3M+1L=7 content-only per D-401(c)) |
+| 34 (pass-43) | D-423 | 8 | YES (fourth consecutive; 4H+3M+1L=8 content-only per D-401(c)) |
+| 35 (pass-44) | D-424 | 7 | YES (fifth consecutive; 3H+3M+1L=7 content-only per D-401(c)) |
+| 36 (pass-45) | D-425 | 8 | YES (sixth consecutive; 4H+3M+1L=8 content-only per D-401(c); NEW silent-slip axis) |
+| 37 (pass-46) | D-426 | 7 | YES (seventh consecutive; 3H+3M+1L=7 content-only per D-401(c); NEW rule-scope-vs-applied-scope coverage gap class) |
+| 38 (pass-47) | D-427 | 7 | YES (eighth consecutive; 3H+3M+1L=7 content-only per D-401(c); NEW self-replicating coverage-gap class) |
+| 39 (pass-48) | D-428 | 8 | YES (ninth consecutive; 4H+3M+1L=8 content-only per D-401(c); META-LEVEL-3 class confirmed) |
+| 40 (pass-49) | D-429 | 8 | YES (tenth consecutive; 4H+3M+1L=8 content-only per D-401(c); META-LEVEL-4 CONFIRMED) |
+| 41 (pass-50) | D-430 | 7 | YES (eleventh consecutive; 4H+2M+1L=7 content-only per D-401(c); META-LEVEL-5 CANDIDATE via lexical-vs-semantic gap) |
+| 42 (pass-51) | D-431 | 7 | YES (twelfth consecutive; 1C+4H+2M=7 content-only per D-401(c); META-LEVEL-6 CONFIRMED + NEW CRITICAL structural-coalescence class) |
+| 43 (pass-52) | D-432 | 7 | YES (thirteenth consecutive; 1C+3H+2M+1L=7 content-only per D-401(c); META-LEVEL-7 CONFIRMED + NEW copy-paste-relabel banner corruption class) |
+| 44 (pass-53) | D-433 | 8 | YES (fourteenth consecutive; 1C+4H+2M+1L=8 content-only per D-401(c); META-LEVEL-8 CONFIRMED + banner-cite-advancement scope gap) |
+| 45 (pass-54) | D-434 | 8 | YES (fifteenth consecutive; 4H+3M+1L=8 content-only per D-401(c); META-LEVEL-9 CONFIRMED — retroactive-sweep target-set completeness gap) |
+| 46 (pass-55) | D-435 | 8 | YES (sixteenth consecutive; 4H+2M+2L=8 content-only per D-401(c); META-LEVEL-10 CONFIRMED — verification-granularity gap: header-form vs value-level) |
+| 47 (this, pass-56) | D-436 | 9 | YES (seventeenth consecutive; 5H+2M+2L=9 content-only per D-401(c); META-LEVEL-11 CANDIDATE — form-name applied without semantic-precondition check) — Layer-47 inline-replaced per D-400 |
+
+**Pattern class evolution:**
+- Layers 31-33: Single-burst codifying-boundary violations
+- Layer 34: Multi-axis at codifying boundary (8 simultaneous)
+- Layer 35: 7-axis sustained
+- Layer 36: NEW silent-slip class introduced (9-burst undetected staleness)
+- Layer 37: NEW rule-scope-vs-applied-scope coverage gap class introduced
+- Layer 38: NEW self-replicating coverage-gap class introduced
+- Layer 39: META-LEVEL-3 self-replicating coverage-gap class (introduces ply 3)
+- Layer 40: META-LEVEL-4 CONFIRMED (D-428(a) regex-derivation itself coverage-gapped)
+- Layer 41: META-LEVEL-5 CANDIDATE (D-429(c) applied to lexical token, not semantic class)
+- Layer 42: META-LEVEL-6 CONFIRMED (D-430(c) verification grep-target anchored to obsolete prior form) + NEW CRITICAL structural-coalescence class
+- Layer 43: META-LEVEL-7 CONFIRMED (D-431(d) copy-paste-relabel from prior D-NNN) + NEW copy-paste-relabel banner corruption class
+- Layer 44: META-LEVEL-8 CONFIRMED (D-431(c)/D-432(d) scope did not extend to banner cell advancement) + 14th consecutive multi-axis
+- Layer 45: META-LEVEL-9 CONFIRMED (D-433(d) retroactive-sweep applied to 1 of 10 required tables; target-set completeness not verified) + 15th consecutive multi-axis
+- Layer 46: META-LEVEL-10 CONFIRMED (D-434(a) verified header-form presence but not per-cell value correctness; verification-granularity gap) + 16th consecutive multi-axis
+- Layer 47: **META-LEVEL-11 CANDIDATE** (N+6 form applied to lesson-ID grep in lessons.md without checking D-427(c) context precondition; form-name cited without semantic-precondition verification) + 17th consecutive multi-axis (9 axes — highest since layer 31)
+
+S-15.03 PRIORITY-A automation remains the only known structural remedy.
+
+**Resolution:** Per D-386 Option C (asymptotic convergence accepted), no further structural escalation this cycle. D-436 codifies 5 sub-clauses addressing the 47th-layer violations. S-15.03 PRIORITY-A automation remains the structural remedy for v1.0-feature-engine-discipline-pass-2.
+
+**Codified rules:**
+- D-436(a): S-15.03 cumulative-scope propagation verification gate — Commit E MUST execute `grep "D-411 through D-<latest>" stories/S-15.03-*.md` and verify ≥1 match. Closes ADV-EDP1-P56-HIGH-001.
+- D-436(b): Archive-pointer mandatory advance — Commit E MUST grep archive-pointer line for current pass-N reference before declaring advance complete. Closes ADV-EDP1-P56-HIGH-002.
+- D-436(c): D-422(a) re-execution discipline ENFORCEMENT — actual grep output capture at Commit E author-time; rubber-stamped ✓ FORBIDDEN. Closes ADV-EDP1-P56-HIGH-003, ADV-EDP1-P56-HIGH-004.
+- D-436(d): D-415(a) form semantic-precondition check — N+6 per D-427(c) applies ONLY to finding-set greps in burst-log with full narrative+codification+closure structure; lesson-ID greps in lessons.md use different form. Closes ADV-EDP1-P56-HIGH-005.
+- D-436(e): 47th-layer META-LEVEL-11 CANDIDATE acknowledgment — L-EDP1-048 documents 47th-layer; MED-001 prose annotation deferred; LOW-001/002 asymptotic acceptance. Closes ADV-EDP1-P56-MED-001, ADV-EDP1-P56-MED-002, ADV-EDP1-P56-LOW-001, ADV-EDP1-P56-LOW-002.
