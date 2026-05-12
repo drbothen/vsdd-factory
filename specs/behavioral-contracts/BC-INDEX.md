@@ -1,7 +1,7 @@
 ---
 document_type: bc-index
 level: L3
-version: "1.90"
+version: "1.91"
 status: draft
 producer: state-manager
 timestamp: 2026-05-12T00:00:00Z
@@ -12,6 +12,8 @@ inputs:
 total_bcs: 1949
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-12
+    change: "v1.91 (2026-05-12; pass-48 fix burst per D-428 + D-404 unconditional): Acknowledges decision range D-389..D-428 (inclusive; literal acknowledgment per D-415(c)). Per D-404 unconditional: index acknowledges D-428 by literal ID (no spec content change in this changelog entry). Refs: F-P48-001/002/003/004/005/006/007/008, D-428. BC-INDEX v1.90→v1.91."
   - date: 2026-05-12
     change: "v1.90 (2026-05-12; pass-47 fix burst per D-427 + D-404 unconditional): Acknowledges decision range D-389..D-427 (inclusive; literal acknowledgment per D-415(c)). Per D-404 unconditional: index acknowledges D-427 by literal ID (no spec content change in this changelog entry). Refs: F-P47-001/002/003/004/005/006/007, D-427. BC-INDEX v1.89→v1.90."
   - date: 2026-05-12
