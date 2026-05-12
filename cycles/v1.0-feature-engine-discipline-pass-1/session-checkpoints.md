@@ -98,3 +98,15 @@ Archived checkpoints from STATE.md as newer checkpoints replace them.
 **Last update:** 2026-05-12 — F5 pass-53 fix burst COMPLETE. Pass-53 HIGH verdict (1C+4H+2M+1L=8+2obs; 44th-layer L-EDP1-003 multi-axis; 14th consecutive; META-LEVEL-8 CONFIRMED; CRITICAL ADV-EDP1-P53-CRIT-001 banner D-NNN cite frozen at D-431). D-433 codified (5 sub-clauses: banner-cite-advancement + wc-l-prose-anchor + homogeneous-marker + trend-table-axis-count-stable + trajectory-tail-LENGTH). L-EDP1-045 44th-layer multi-axis. 4 indexes BC v1.96/VP v1.72/STORY v2.97/ARCH v1.77 acknowledge D-389..D-433. Trajectory tail (last 4 of 53 values per D-433(e)) →7→7→7→8. Streak: 0/3 NITPICK_ONLY. Verdict HIGH sustained.
 
 **STATE:** F4 platform COMPLETE; F5 pass-53 fix burst COMPLETE; pass-54 adversary dispatch COMPLETE (2ccfae64). parent-commit 8d84aa3d per D-419(b)+D-420(d)+D-421(a).
+
+---
+
+## Archived: Session Resume Checkpoint (2026-05-12 — pass-55 fix burst COMPLETE / pass-56 adversary in-progress)
+
+*(Archived from STATE.md at pass-56 Commit E per D-421(a))*
+
+**Where we were:** Engine-discipline cycle v1.0-feature-engine-discipline-pass-1 in F5 phase, pass-55 fix burst COMPLETE. 56 reviews dispatched + 55 complete adversary returns + 53 fix bursts (passes 3-55) per D-432(a)+D-435(d). Trajectory content-only: 29→...→8→8→8 (55 values). Streak: 0/3 NITPICK_ONLY. META-LEVEL-10 CONFIRMED (46th-layer; verification-granularity gap).
+
+**Pass-55 fix burst Commits:** A: 8d9bd1d2 / B: e7b72cb2 / C: 3f62b640 / D: 638a0e8f / E: 3dbdeeda. Parent-commit: 638a0e8f.
+
+**Pass-56 adversary dispatch:** 6e2a29d1. Returned HIGH (5H+2M+2L=9+2obs; 47th-layer META-LEVEL-11 CANDIDATE).
