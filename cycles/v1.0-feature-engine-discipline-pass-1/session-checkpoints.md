@@ -110,3 +110,13 @@ Archived checkpoints from STATE.md as newer checkpoints replace them.
 **Pass-55 fix burst Commits:** A: 8d9bd1d2 / B: e7b72cb2 / C: 3f62b640 / D: 638a0e8f / E: 3dbdeeda. Parent-commit: 638a0e8f.
 
 **Pass-56 adversary dispatch:** 6e2a29d1. Returned HIGH (5H+2M+2L=9+2obs; 47th-layer META-LEVEL-11 CANDIDATE).
+
+---
+
+## Archived Checkpoint: pass-56 fix burst COMPLETE / pass-57 adversary dispatched
+
+**Archived at:** pass-57 fix burst Commit E (this replacement)
+
+> **POST-COMPACT RESUME CONTEXT — F5 ASYMPTOTIC LOOP**
+
+**Where we are (at time of archival):** pass-56 fix burst COMPLETE. 57 reviews dispatched + 56 complete adversary returns + 54 fix bursts (passes 3-56). Trajectory (56 values): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7→8→6→2→5→5→5→7→8→7→8→7→8→7→8→7→7→8→8→7→7→7→8→8→8→9. META-LEVEL-11 CANDIDATE (47th-layer L-EDP1-003). D-436 codified. 4 indexes BC v1.99/VP v1.75/STORY v3.00/ARCH v1.80 acknowledged D-389..D-436. factory-artifacts parent-commit 60eff381.
