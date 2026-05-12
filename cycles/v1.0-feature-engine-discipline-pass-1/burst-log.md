@@ -845,3 +845,87 @@ All actions in this burst have paired Verification greps targeting pass-25 canon
 **Corrigendum (pass-26 fix burst — D-387 / F-P26-001 / D-402+D-397):** Pass-25 Dim-6 Verification `grep -c 'VP-INDEX.*blocked\|blocked.*TD-031\|TD-031.*OPEN' STATE.md INDEX.md` was claimed `→ 0 ✓`; actual exact count is 2 (STATE.md lines 96-97 — historical Phase Progress rows referencing pass-24 outputs). The 2 historical records are preserved per D-385 immutability of completed phase records (out-of-scope for F-P25-002's 6-site stale-narrative sweep). Per D-402 EXACT-integer: `→ 2 (2 historical Phase Progress records preserved per D-385 sub-rule 2; not in scope for F-P25-002) ✓`.
 
 **Corrigendum (pass-26 fix burst — D-387 / F-P26-002 / D-395+D-397):** Pass-25 Dim-7 Verification `grep -c 'Corrigendum (pass-25 fix burst — D-387 / F-P25-005' burst-log.md → 1 ✓` only validated 1 of 4 Action items. Per D-395+D-397 full Action-extent coverage: `grep -cE 'Corrigendum \(pass-25 fix burst — D-387 / F-P25-(005|006|010|011)\)' burst-log.md → 4 ✓` (correctly bounded; excludes self-referential grep via the F-P25-NNN constraint).
+
+---
+
+## Burst: F5 pass-26 fix burst (2026-05-11)
+
+**Trigger:** Pass-26 adversary verdict HIGH (1H+4M+3L+2NIT+1PG); 17th-layer L-EDP1-003 at attestation-accuracy boundary (Dim-6 false-green Verification; Dim-7 partial-coverage).
+
+**Trajectory:** 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→**10**
+
+**Codifications:**
+- D-406 (attestation-accuracy grep scope + cross-document numeric coherence + forward-looking codification propagation) — closes F-P26-001..005 + F-P26-PG1
+- L-EDP1-018 (17th-layer L-EDP1-003 recurrence at attestation-accuracy boundary)
+- L-EDP1-017 Layer-16 inline-replaced per D-400
+
+**Sweep dimensions (per D-391+D-393+D-395+D-397+D-399+D-401+D-402+D-406):**
+
+Dim-1 — STATE.md 4-cell narrative sweep (D-397+D-399+D-401+D-402+D-406 self-application):
+- Enumeration source: D-399 mandatory 4-cell scope (current_step frontmatter, Last Updated, Current Phase, Session Resume Checkpoint)
+- Extent: 4 cells
+- Inlined list: STATE.md frontmatter line 8 (phase), STATE.md line 14 (current_step), STATE.md Project Metadata Last Updated, STATE.md Current Phase, STATE.md Session Resume Checkpoint section
+- Action: All 4 cells write "pass-26 fix burst COMPLETE" narrative referencing D-406+L-EDP1-018
+- Verification: `grep -c 'pass-26 fix burst COMPLETE' /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md` → 4 ✓
+- Canonical pass-26 markers used: "pass-26", "D-406", "L-EDP1-018", "F-P26-NNN"
+
+Dim-2 — burst-log pass-25 corrigenda (F-P26-001/002; D-387):
+- Enumeration source: F-P26-001/002 finding bodies (2 corrigendum blocks)
+- Extent: 2 corrigendum blocks appended at END of pass-25 burst-log entry
+- Action: Append F-P26-001 (Dim-6 false-green) + F-P26-002 (Dim-7 partial-coverage) corrigenda
+- Verification: `grep -c 'Corrigendum (pass-26 fix burst — D-387 / F-P26-001' /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md` → 1 ✓
+- Canonical pass-26 marker used: "pass-26" in corrigendum prefix
+
+Dim-3 — INDEX.md range-form unification (F-P26-003; D-406(b)):
+- Enumeration source: F-P26-003 finding body (1 INDEX.md Convergence Status line)
+- Extent: 1 edit (INDEX.md Convergence Status D-387..D-405 → D-379..D-405 with parenthetical)
+- Action: Edit INDEX.md Convergence Status to use consistent range form matching STATE.md
+- Verification: `grep -c 'D-379..D-405 codified' /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-feature-engine-discipline-pass-1/INDEX.md` → 1 ✓
+- Canonical pass-26 marker used: "D-379..D-405" (corrected range form)
+
+Dim-4 — STATE.md pass-count phrase correction (F-P26-004; D-383):
+- Enumeration source: F-P26-004 finding body (1 Concurrent Cycles Notes cell)
+- Extent: 1 edit (STATE.md Concurrent Cycles "23 F5 passes" → "25 F5 passes" with disambiguation)
+- Action: Edit STATE.md Concurrent Cycles to "F5 passes 1-25 (25 F5 passes; cycle-level reviews; fix bursts at passes 3-26)"
+- Verification: `grep -c '25 F5 passes' /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md` → 1 ✓
+- Canonical pass-26 marker used: "25 F5 passes" (corrected count)
+
+Dim-5 — S-15.03 story body annotation (F-P26-005; D-406(c)):
+- Enumeration source: F-P26-005 finding body (1 story file)
+- Extent: 1 edit (S-15.03-index-cite-refresh-hook.md; append D-405(c) PRIORITY-A section)
+- Action: Append "D-405(c) PRIORITY-A Elevation (Next Cycle)" section to S-15.03 story body
+- Verification: `grep -c 'D-405(c) PRIORITY-A elevation' /Users/jmagady/Dev/vsdd-factory/.factory/stories/S-15.03-index-cite-refresh-hook.md` → 1 ✓
+- Canonical pass-26 marker used: "D-405(c) PRIORITY-A elevation" content marker
+
+Dim-6 — INDEX.md pass-26 row + Convergence Status trajectory update:
+- Enumeration source: D-382 mandatory INDEX.md update; pass-26 adversary review complete
+- Extent: 1 new row (pass-26) + Convergence Status trajectory append
+- Action: Append pass-26 row; update trajectory 29→...→12→10; passes 3-26; L-EDP1-018
+- Verification: `grep -c '| 26 |' /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-feature-engine-discipline-pass-1/INDEX.md` → 1 ✓
+- Canonical pass-26 marker used: "| 26 |" in INDEX.md row
+
+**Action↔Verification pairing (D-395+D-397+D-399+D-402+D-406 mandatory):**
+
+All actions in this burst have paired Verification greps targeting pass-26 canonical markers per D-399: (a) literal "pass-26" substring; (b) pass-26-authored content markers (D-406, L-EDP1-018, F-P26-NNN); or (c) 2026-05-11 date-stamp. All Verification counts are EXACT integers per D-402. Per D-406(a): grep semantic scope noted where historical immutable rows are excluded.
+
+**D-383/D-384/D-385/D-393/D-395/D-397/D-399/D-401/D-402/D-403/D-404/D-405/D-406 attestations (pass-26 fix burst):**
+- Trajectory pre (content-only): "29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12" (25 values for 25 passes)
+- Trajectory post (content-only): "29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10" (26 values for 26 passes)
+- Cardinality: 29(P1),15(P2),11(P3),9(P4),8(P5),7(P6),5(P7),6(P8),6(P9),6(P10),4(P11),3(P12),3(P13),10(P14),13(P15),9(P16),9(P17),10(P18),11(P19),10(P20),10(P21),11(P22),11(P23),10(P24),12(P25),10(P26) = 26 values = 26 passes ✓
+- Per-position match vs INDEX.md rows: P1=29✓ P2=15✓ P3=11✓ P4=9✓ P5=8✓ P6=7✓ P7=5✓ P8=6✓ P9=6✓ P10=6✓ P11=4✓ P12=3✓ P13=3✓ P14=10✓ P15=13✓ P16=9✓ P17=9✓ P18=10✓ P19=11✓ P20=10✓ P21=10✓ P22=11✓ P23=11✓ P24=10✓ P25=12✓ P26=10✓
+- "passes 3-N" phrase: N=26 (current burst is pass-26); INDEX.md Convergence Status updated to "passes 3-26" ✓
+- Sub-trajectory sibling sweep (D-385 sub-rule 1): STATE.md Concurrent Cycles row updated to "(pass-1..26): 29→...→12→10" ✓; Phase Progress rows verified consistent ✓
+- Immutable-row scope check (D-385 sub-rule 2): pass-25 burst-log corrigenda are appended lines (D-387 permitted format); body immutable ✓. L-EDP1-017 Layer-16 awaiting-text inline-replaced per D-400 ✓. L-EDP1-018 is a new entry ✓.
+- D-383 intra-file content audit: STATE.md (phase + current_step + trajectory + Concurrent Cycles + Session Resume Checkpoint all consistent ✓), INDEX.md (row-26 added; Convergence Status updated to passes 3-26; cardinality 26 values for 26 passes ✓), burst-log.md (pass-26 entry appended; pass-25 corrigenda appended ✓), decision-log.md (D-406 appended; ID sequence D-336..D-406 sequential ✓), lessons.md (L-EDP1-017 Layer-16 inline-updated per D-400; L-EDP1-018 appended ✓)
+- Cross-index sync sweep (D-401(a)+D-406): No new index bumps this burst (no ≥3 governance decisions requiring ALL-4-index sync; D-406 is 1 decision). INDEX.md Convergence Status updated per D-382 ✓.
+- D-402 exact-count compliance: all Verification greps in this burst report exact integer from -c ✓
+- D-406(a) grep semantic scope: Dim-2 corrigendum Verification targets specific corrigendum prefix (excludes self-referential grep inflation) ✓
+
+**Deferrals:**
+- F-P26-006 (last_amended date-form schema inconsistency — LOW; cosmetic only; no file edit)
+- F-P26-007 (scope clarification — LOW; documentation only)
+- F-P26-008 (STATE.md density — NITPICK; no action)
+- F-P26-009 (L-EDP1-018 Layer-17 awaiting-audit — NITPICK; D-398 placeholder set by this burst; pass-27 inline-replaces)
+
+**Factory-artifacts commits:**
+(Commit A: e3be33f4 — adv-cycle-pass-26.md), (Commit B: 70a8f339 — D-406+L-EDP1-018+L-EDP1-017 Layer-16 inline), (Commit C: 4fdcfeac — content fixes; burst-log corrigenda; INDEX.md; STATE.md; S-15.03), (Commit E: this commit — state-manager final per POLICY 3)
