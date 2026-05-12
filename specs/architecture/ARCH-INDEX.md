@@ -1,7 +1,7 @@
 ---
 document_type: architecture-index
 level: L3
-version: "1.76"
+version: "1.77"
 status: accepted
 producer: architect
 timestamp: 2026-05-12T00:00:00Z
@@ -17,6 +17,8 @@ inputs:
 traces_to: phase-1-spec-crystallization
 deployment_topology: single-service
 changelog:
+  - date: 2026-05-12
+    change: "v1.77 (2026-05-12; pass-53 fix burst per D-433 + D-404 unconditional): Acknowledges decision range D-389..D-433 (inclusive; literal acknowledgment per D-415(c)). Per D-404 unconditional: index acknowledges D-433 by literal ID (no spec content change in this changelog entry). Refs: ADV-EDP1-P53-CRIT-001/HIGH-001/002/003/004/MED-001/002/LOW-001, D-433. ARCH-INDEX v1.76→v1.77."
   - date: 2026-05-12
     change: "v1.76 (2026-05-12; pass-52 fix burst per D-432 + D-404 unconditional): Acknowledges decision range D-389..D-432 (inclusive; literal acknowledgment per D-415(c)). Per D-404 unconditional: index acknowledges D-432 by literal ID (no spec content change in this changelog entry). Refs: F-P52-001/002/003/004/005/006/007, D-432. ARCH-INDEX v1.75→v1.76."
   - date: 2026-05-12
