@@ -1784,3 +1784,81 @@ Dim-7 — STATE.md pass-count + narrative + frontmatter update (D-407(c)+D-415):
 
 **Factory-artifacts commits:**
 (Commit A: 9e51ab7f — adv-cycle-pass-35.md), (Commit B: 234db7a2 — D-415+L-EDP1-027+L-EDP1-026 Layer-25 inline-replace+corrigenda), (Commit C: 3b7cd3cb — content fixes F-P35-001/002/004/005), (Commit D: cf429175 — 4-index bumps D-389..D-415), (Commit E: this commit — state-manager final per POLICY 3)
+
+---
+
+## F5 pass-36 fix burst
+
+**Trigger:** F5 pass-36 adversary (HIGH; 2H+3M+1L). F-P36-001 pass-35 Dim-2 D-408(b) multi-match annotation enumerated semantic siblings not containing literal "L-EDP1-027" (27th-layer L-EDP1-003). F-P36-002 STATE.md:159 Concurrent Cycles not in D-415(c) prescribed form — codifying burst omitted same-burst self-application. F-P36-003 S-15.03 PRIORITY-A scope not propagated despite 5-decision cumulative chain D-411(c)/D-413(b)+(d)/D-414/D-415(d). F-P36-004 INDEX.md:100 D-415(c) sibling-cell sweep omitted. F-P36-005 adv-cycle-pass-35.md missing `observations: 0`.
+
+**Codifications:** D-416 (5 sub-clauses): (a) D-408(b) literal-substring requirement; (b) D-415(c) same-burst self-application; (c) D-406(c) SHOULD→MUST at ≥3-decision threshold; (d) D-415(c) sibling-cell sweep; (e) observations field explicit presence.
+
+**L-EDP1 activity:** L-EDP1-027 Layer-26 row inline-updated per D-400 (awaiting-text replaced with F-P36-001..005 violation summary). Sibling-corrigendum appended per D-410. L-EDP1-028 (27th-layer) appended; Layer-27 awaiting-text per D-398.
+
+- Canonical pass-36 marker: "pass-36 fix burst COMPLETE"
+
+**D-383/D-384/D-385/D-393/D-395/D-397/D-399/D-401/D-402/D-403/D-404/D-405/D-406/D-407/D-408/D-409/D-410/D-411/D-412/D-413/D-414/D-415/D-416 attestations (pass-36 fix burst):**
+- D-382 5-file sibling sweep: adv-cycle-pass-36.md ✓; burst-log.md (pass-35 Dim-2 corrigendum + pass-36 entry) ✓; decision-log.md (D-416 appended) ✓; lessons.md (L-EDP1-027 Layer-26 inline-replaced + sibling-corrigendum + L-EDP1-028 appended) ✓; STATE.md (phase + current_step + Last Updated + Current Phase + Phase Progress + Concurrent Cycles + Decisions Log D-416 + Session Resume) ✓; INDEX.md (pass-36 row + Convergence Status D-415c form) ✓; adv-cycle-pass-35.md (observations:0 + missing template sections added) ✓; stories/S-15.03 (cumulative PRIORITY-A scope propagated) ✓
+- Immutable-row scope check (D-385 sub-rule 2): pass-35 burst-log Dim-2 corrigendum appended as new lines (D-387 permitted format) ✓. L-EDP1-027 Layer-26 awaiting-text inline-replaced per D-400 ✓. L-EDP1-028 is a new entry ✓.
+- D-383 intra-file content audit: STATE.md (phase + current_step + trajectory + Concurrent Cycles + Decisions Log D-416 + Session Resume all consistent ✓), INDEX.md (row-36 added; Convergence Status updated to 36 reviews/35 returns per D-415c+D-416d; cardinality 36 values for 36 passes ✓), burst-log.md (pass-36 entry appended; pass-35 Dim-2 corrigendum appended ✓), decision-log.md (D-416 appended; ID sequence D-336..D-416 sequential ✓), lessons.md (L-EDP1-027 Layer-26 inline-updated per D-400; L-EDP1-027 Status updated; L-EDP1-027 sibling-corrigendum appended per D-410; L-EDP1-028 appended ✓)
+- D-408(b) multi-match annotation: Dim-2 awaiting-pass-37 count=3 explicitly cited (L-EDP1-028 layer-27 table cell + L-EDP1-028 layer-27 table cell in 27-row history + L-EDP1-028 Status line; per D-408(b) multi-match); Dim-3 D-416 count=1 (D-416 row body only); D-416(a) literal-substring requirement applied ✓
+- D-409(a)+D-413(a)+D-414(a)+D-415(a) Verification-line + Canonical-marker + attestation-prose self-reference: N source = bodies LITERALLY MATCHING the pattern. Dim-5 F-P36-001 corrigendum body contains "pass-36 fix burst — D-387 / F-P36-001" → 1 source. Attestation prose cite (this attestation block) adds +1. Verification line adds +1. Canonical-marker line adds +1. Total: `→ N+3 (1 corrigendum body + 1 attestation prose cite + 1 Verification self-ref + 1 Canonical-marker) ✓`
+- D-410 sibling-corrigendum applied: L-EDP1-027 sibling-corrigendum appended (pass-36 fix burst applies Layer-26 inline-replace; sibling-corrigendum appended per D-410) ✓
+- D-412(c) Dim-7 annotation: "→ 5 (during fix burst) → 2 (after pass-37 dispatch; D-394 advances frontmatter current_step + Last Updated + Current Phase; Session Resume + STATE line retain the string; per D-415(d))" ✓
+- D-416(a) literal-substring sweep: `grep -c "L-EDP1-027" lessons.md` → 3 (sibling-corrigendum line 1128 + heading line 1132 + L-EDP1-028 body description line 1201; all literally contain "L-EDP1-027") ✓. Pass-35 Dim-2 D-408(b) annotation errors corrected per corrigendum ✓.
+- D-416(b) STATE.md:159 D-415(c) form applied same-burst: "36 reviews dispatched; 35 complete adversary returns; 34 fix bursts at passes 3-36 per D-415(c)+D-416(b)+(d) dispatch-boundary annotation" ✓
+- D-416(c) S-15.03 cumulative propagation: 5-decision chain D-411(c)/D-413(b)+(d)/D-414/D-415(d) all extending S-15.03 PRIORITY-A scope — cumulative scope summary appended to S-15.03 story body ✓
+- D-416(d) INDEX.md Convergence Status D-415(c) sibling-cell sweep: "36 reviews dispatched; 35 complete adversary returns; 34 fix bursts at passes 3-36" form applied ✓
+- D-416(e) adv-cycle-pass-35.md observations:0: present ✓; adv-cycle-pass-36.md observations:0: present ✓
+
+Dim-1 — adv-cycle-pass-36.md creation (D-382+D-409(b)):
+- Enumeration source: pass-36 adversary review complete; D-416 required
+- Extent: 1 new file (adv-cycle-pass-36.md)
+- Action: adv-cycle-pass-36.md created with correct frontmatter (template-compliant; pass:36; prior-pass-classification:HIGH; prior-findings-count:5; verdict:HIGH; findings_count 2H+3M+1L; process_gap_count:0; observations:0; convergence_reached:false)
+- Verification: `grep -c "pass: 36" /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-feature-engine-discipline-pass-1/adv-cycle-pass-36.md` → 1 ✓
+- Canonical pass-36 marker: "pass: 36"
+
+Dim-2 — lessons.md L-EDP1-027 Layer-26 inline-replace + sibling-corrigendum + L-EDP1-028 append (D-400+D-410+D-416):
+- Enumeration source: D-398 awaiting-text on Layer-26 requires pass-36 inline-update; D-416 requires L-EDP1-028
+- Extent: L-EDP1-027 Layer-26 row inline-replaced (D-400); L-EDP1-027 Status updated; L-EDP1-027 sibling-corrigendum appended (D-410); L-EDP1-028 appended (27-row layer-history table; D-416 codified rules; awaiting-text at Layer-27 row per D-398)
+- Action: Layer-26 row in L-EDP1-027 replaced (was "awaiting pass-36"; now F-P36-001..005 enumeration per D-400). L-EDP1-027 Status updated. Sibling-corrigendum appended to L-EDP1-027 per D-410: "Layer-26 row inline-updated per D-400. See L-EDP1-028 for layer-27." L-EDP1-028 appended (27-row layer-history table; D-416 codified rules; awaiting-text at layer-27 row).
+- Verification: `grep -c "awaiting pass-37" /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-feature-engine-discipline-pass-1/lessons.md` → 3 (L-EDP1-028 layer-27 table cell + L-EDP1-028 27-row history table cell + L-EDP1-028 Status line; per D-408(b) multi-match) ✓
+- Canonical pass-36 marker: "L-EDP1-028"
+
+Dim-3 — decision-log.md D-416 (D-382+D-409(b)):
+- Enumeration source: D-416 codified this burst; D-382 mandatory
+- Extent: D-416 row appended to decision-log.md
+- Action: D-416 appended with 5 sub-clauses; Closes column: F-P36-001, F-P36-002, F-P36-003, F-P36-004, F-P36-005 (5 items per D-413(b) mandate)
+- Verification: `grep -c "D-416" /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md` → 1 ✓
+- Canonical pass-36 marker: "D-416"
+
+Dim-4 — INDEX.md pass-36 row + Convergence Status update (D-382+D-409(b)+D-415c+D-416d):
+- Enumeration source: D-382 mandatory INDEX.md update; pass-36 adversary complete; D-415c+D-416d form required
+- Extent: 1 new row (pass-36); Convergence Status trajectory →36 values + 36-reviews-dispatched/35-returns form + range D-379..D-416; index versions updated
+- Action: Append pass-36 row; update Convergence Status to D-415c+D-416d dispatch-boundary form
+- Verification: `grep -c "| 36 |" /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-feature-engine-discipline-pass-1/INDEX.md` → 1 ✓
+- Canonical pass-36 marker: "| 36 |"
+
+Dim-5 — burst-log.md pass-35 Dim-2 corrigendum (F-P36-001) (D-382+D-387+D-416(a)):
+- Enumeration source: F-P36-001 (pass-35 Dim-2 D-408(b) literal-substring enumeration error)
+- Extent: 1 corrigendum appended after pass-35 Dim-2 Canonical-marker line
+- Action: D-416(a) corrigendum at pass-35 Dim-2. Corrected literal count: `grep -c "L-EDP1-027" lessons.md` → 2 at Commit B time (sibling-corrigendum + heading; D-416(a) literal-only). Note: after L-EDP1-028 appended in same burst, count increased to 3 (body at line 1201 added). Final state: → 3 ✓.
+- Verification: `grep -c "pass-36 fix burst — D-387 / F-P36-001" /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md` → 4 (1 corrigendum body + 1 attestation prose cite [this attestation block] + 1 Verification self-ref [this line] + 1 Canonical-marker self-ref [line below]; per D-408(b) multi-match + D-415(a) N+3 form) ✓
+- Canonical pass-36 marker: "pass-36 fix burst — D-387 / F-P36-001"
+
+Dim-6 — 4 index bumps D-416 (D-382+D-404+D-407(a)+D-401(a)):
+- Enumeration source: D-404 unconditional; D-416 codified this burst; D-401(a) ≥3 decisions met
+- Extent: BC-INDEX v1.77→v1.78; VP-INDEX v1.53→v1.54; STORY-INDEX v2.78→v2.79; ARCH-INDEX v1.58→v1.59
+- Action: All 4 indexes bumped with D-416 literal acknowledgment; range D-389..D-416
+- Verification: `grep -c "D-389..D-416" /Users/jmagady/Dev/vsdd-factory/.factory/specs/behavioral-contracts/BC-INDEX.md` → 1 ✓
+- Canonical pass-36 marker: "D-389..D-416" in all 4 index changelogs
+
+Dim-7 — STATE.md pass-count + narrative + frontmatter update (D-407(c)+D-416):
+- Enumeration source: D-416 codified; D-382 mandatory STATE.md update; D-415c+D-416b form applied
+- Extent: 8 edit sites in STATE.md (frontmatter phase + current_step + Last Updated + Current Phase + Phase Progress pass-36 rows + Concurrent Cycles + Decisions Log D-416 + Session Resume Checkpoint)
+- Action: Update STATE.md with pass-36 fix burst COMPLETE narrative; Concurrent Cycles to D-415c+D-416b prescribed form
+- Verification (D-412(c) form i annotation): `grep -c "pass-36 fix burst COMPLETE" /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md` → 5 (frontmatter current_step + Last Updated + Current Phase + Session Resume Checkpoint "Last update" line + Session Resume "STATE:" line; all source-content cells per D-408(b)) during this fix burst → 2 (after pass-37 dispatch per D-394; D-394 advances current_step + Last Updated + Current Phase; Session Resume "Last update" + "STATE:" lines retain the string; per D-415(d)) ✓
+- Canonical pass-36 marker: "pass-36 fix burst COMPLETE"
+
+**Factory-artifacts commits:**
+(Commit A: 6bb368dc — adv-cycle-pass-36.md), (Commit B: 5441b830 — D-416+L-EDP1-028+L-EDP1-027 Layer-26 inline-replace+corrigenda), (Commit C: 5b7df857 — content fixes F-P36-001/002/003/004/005), (Commit D: 22cc6b7b — 4-index bumps D-389..D-416), (Commit E: this commit — state-manager final per POLICY 3)
