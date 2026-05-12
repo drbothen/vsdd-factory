@@ -22,7 +22,7 @@ dtu_services: []
 
 <!--
   STATE.md SIZE BUDGET (per D-421(c) + D-422(c) reconciliation):
-  Soft target: ≤331 lines (actual 316 lines at pass-51 Commit E + 15 margin = 331 per D-422(c)+D-424(b)+D-428(d) margin range [+10,+20]; D-431(a/b/c/d/e) line-terminus + STATE row + header advance + label order + archive sweep applied; D-431(a) compaction-authorization correct + D-431(b) full-semantic-class + D-431(c) cumulative-header + D-431(d) Dim-7-sed + D-431(e) META-LEVEL-6-CONFIRMED applied).
+  Soft target: ≤331 lines (actual 316 lines at pass-51 Commit E + 15 margin = 331 per D-422(c)+D-424(b)+D-428(d) margin range [+10,+20]; D-431 codified (5 sub-clauses; line-terminus + STATE-row + cumulative-header advance + label-anchoring + Commit-E-sweep per decision-log.md:112 SoT).
   Hard cap: 500 lines (validate-state-md-size hook enforcement).
   Historical content belongs in cycle files, NOT here.
   D-430(a) compaction authorization: Pass-49 Commit E surgical compaction (363→310 lines) authorized retroactively per D-430(a); removed content categories: stale Phase Progress rows (passes 1-38); pre-compaction state preserved at git show 278977fb:.factory/STATE.md.
@@ -41,8 +41,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-12 — pass-51 fix burst COMPLETE (HIGH; 1C+4H+2M=7+1obs); 53 decisions D-379..D-431; 43 lessons L-EDP1-001..043; 4 indexes BC v1.94/VP v1.70/STORY v2.95/ARCH v1.75; 51-value trajectory →7→7→7; D-431 codified (5 sub-clauses); L-EDP1-043 42nd-layer multi-axis (12th consecutive; META-LEVEL-6 CONFIRMED; NEW CRITICAL structural-coalescence class). |
-| **Current Phase** | Engine-discipline F5 — pass-51 fix burst COMPLETE; D-431 + L-EDP1-043 codified; next = pass-52 adversary dispatch |
+| **Last Updated** | 2026-05-12 — pass-52 fix burst COMPLETE (HIGH; 1C+3H+2M+1L=7+1obs); 54 decisions D-379..D-432; 44 lessons L-EDP1-001..044; 4 indexes BC v1.94/VP v1.70/STORY v2.95/ARCH v1.75 (pre-Commit-D; bumped at Commit E); 52-value trajectory →8→7→7→7; D-432 codified (6 sub-clauses); L-EDP1-044 43rd-layer multi-axis (13th consecutive; META-LEVEL-7 CONFIRMED; NEW copy-paste-relabel banner corruption class). |
+| **Current Phase** | Engine-discipline F5 — pass-52 fix burst COMPLETE; D-432 + L-EDP1-044 codified; next = pass-53 adversary dispatch |
 | **Current Cycle** | v1.0-feature-engine-discipline-pass-1 |
 
 ## Phase Progress
@@ -192,7 +192,7 @@ dtu_services: []
 |-------|------|--------|-------|
 | F-block-ai-attribution-message-file-arm | feature | F3 COMPLETE — F4 READY | F1+F2+F3 done 2026-05-12; 2 stories ready (S-16.01 5pts PostToolUse HEAD verify, S-16.02 3pts PreToolUse -F arm); E-16 under SS-07/SS-04; milestone v1.0.0-rc.17; BC-7.03.094/095/001, VP-080, ARCH SS-07 v1.3/SS-04 v1.4 registered |
 | v1.0-brownfield-backfill | brownfield | PAUSED | E-10 pass-9 pending; paused at D-343 |
-| v1.0-feature-engine-discipline-pass-1 | feature | F5-IN-PROGRESS | All 6 E-12-platform stories merged; F5 passes 1-50 (51 reviews dispatched; 50 complete adversary returns; 48 fix bursts at passes 3-50) per D-418(c) deterministic-tally form; full-cycle trajectory content-only (pass-1..51): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7→8→6→2→5→5→5→7→8→7→8→7→8→7→8→7→7→8→8→7→7; pass-51 HIGH verdict (1C+4H+2M=7+1obs); D-431 codified (5 sub-clauses); L-EDP1-043 42nd-layer multi-axis (12th consecutive; META-LEVEL-6 CONFIRMED); D-386 Option C: continue F5, accept asymptotic L-EDP1-003 limit; VP-INDEX v1.70 / BC-INDEX v1.94 / ARCH-INDEX v1.75 / STORY-INDEX v2.95 acknowledge D-389..D-431 (D-423(a) version sweep applied: post-Commit-D actual versions); S-15.03 PRIORITY-A in pass-2 cycle |
+| v1.0-feature-engine-discipline-pass-1 | feature | F5-IN-PROGRESS | All 6 E-12-platform stories merged; F5 passes 1-52 (52 reviews dispatched; 51 complete adversary returns; 49 fix bursts at passes 3-51) per D-418(c) deterministic-tally form; full-cycle trajectory content-only (pass-1..52): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7→8→6→2→5→5→5→7→8→7→8→7→8→7→8→7→7→8→8→7→7→7; pass-52 HIGH verdict (1C+3H+2M+1L=7+1obs); D-432 codified (6 sub-clauses); L-EDP1-044 43rd-layer multi-axis (13th consecutive; META-LEVEL-7 CONFIRMED); D-386 Option C: continue F5, accept asymptotic L-EDP1-003 limit; VP-INDEX v1.70 / BC-INDEX v1.94 / ARCH-INDEX v1.75 / STORY-INDEX v2.95 acknowledge D-389..D-431 (D-423(a) version sweep applied: post-Commit-D actual versions to be updated at Commit E); S-15.03 PRIORITY-A in pass-2 cycle |
 | v1.0-feature-plugin-async-semantics-pass-1 | feature | CLOSED | All PRs merged; rc.14 shipped |
 
 ## Decisions Log

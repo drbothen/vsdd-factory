@@ -3104,13 +3104,12 @@ Verification: `ls cycles/v1.0-feature-engine-discipline-pass-1/adv-cycle-pass-50
 - `.factory/cycles/v1.0-feature-engine-discipline-pass-1/INDEX.md` (Commit B: pass-51 row + D-431 citation)
 - `.factory/STATE.md` (Commits C+E: F-P51-002/004/005 + full state-manager update)
 - `.factory/stories/S-15.03-index-cite-refresh-hook.md` (Commit C: F-P51-003 D-431 header + 10 sub-items)
-- `.factory/cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md` (Commit C: F-P51-006 vague-range fix + this entry)
+- `.factory/cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md` (Commits C+E: F-P51-006 vague-range fix + this entry)
 - `.factory/specs/behavioral-contracts/BC-INDEX.md` (Commit D: v1.93→v1.94)
 - `.factory/specs/verification-properties/VP-INDEX.md` (Commit D: v1.69→v1.70)
 - `.factory/stories/STORY-INDEX.md` (Commit D: v2.94→v2.95)
 - `.factory/specs/architecture/ARCH-INDEX.md` (Commit D: v1.74→v1.75)
-- `.factory/cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md` (Commit E: this entry)
-Verification: 12 files modified ✓
+Verification: 11 unique files modified across 5 commits (burst-log.md modified in Commits C and E but counts as 1 unique file per D-432(e)) **Corrigendum (pass-52 fix burst — D-387 / F-P52-007 / D-432(e)):** Original count "12 files modified" double-counted burst-log.md; unique file count = 11.
 
 **Dim-2 — D-431 codification (lessons.md + decision-log.md):**
 Action: Applied CRITICAL F-P51-001 line-split (decision-log.md:110 D-429+D-430 coalescence); appended D-431 (5 sub-clauses) to decision-log.md; authored L-EDP1-043 (42nd-layer 12th-consecutive multi-axis; META-LEVEL-6 CONFIRMED; NEW CRITICAL structural-coalescence class); fixed L-EDP1-042 corrigendum ("Same-burst Violation" → "Axis count" per F-P51-007).
