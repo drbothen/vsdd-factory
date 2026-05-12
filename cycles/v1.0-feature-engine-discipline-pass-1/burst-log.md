@@ -2784,4 +2784,99 @@ Closes F-P45-001.
 **Closes per D-413(b) completeness mandate: F-P46-001, F-P46-002, F-P46-003, F-P46-004, F-P46-005, F-P46-006, F-P46-007**
 
 **Factory-artifacts commits:**
-(Commit A: cf323499 — adv-cycle-pass-46.md), (Commit B: 27e52389 — D-426+L-EDP1-038+L-EDP1-037 Layer-36 inline-replace+corrigendum+INDEX.md), (Commit C: 98abae32 — content fixes F-P46-001..007), (Commit D: 40ff4a4b — 4-index bumps D-389..D-426), (Commit E: this commit — state-manager final per POLICY 3; parent-commit 40ff4a4b per D-419(b)+D-420(d)+D-421(a))
+(Commit A: cf323499 — adv-cycle-pass-46.md), (Commit B: 27e52389 — D-426+L-EDP1-038+L-EDP1-037 Layer-36 inline-replace+corrigendum+INDEX.md), (Commit C: 98abae32 — content fixes F-P46-001..007), (Commit D: 40ff4a4b — 4-index bumps D-389..D-426), (Commit E: 6ed2b99b — state-manager final per POLICY 3; parent-commit 40ff4a4b per D-419(b)+D-420(d)+D-421(a))
+
+---
+
+## Burst: F5 pass-47 fix burst (2026-05-12)
+
+**Summary:** Pass-47 cycle-level adversary returned HIGH (3H+3M+1L=7+1obs; 38th-layer L-EDP1-003 8th-consecutive multi-axis; NEW self-replicating coverage-gap class where D-426(a) coverage-gap recurs within F-P46-006 fix itself). Fix burst applies D-427 (5 sub-clauses) + L-EDP1-039. Resumed after stream-idle timeout after Commits A+B were already landed.
+
+**Dim-1 — Adversary findings addressed (D-411(a)+D-382+D-395+D-396):**
+- Enumeration source: pass-47 adversary review adv-cycle-pass-47.md (persisted Commit A: 375dad6d)
+- Extent: F-P47-001 vague-range sweep + F-P47-002 D-425 N+3→N+4 propagation + F-P47-003 S-15.03 propagation 9 items + F-P47-004 L-EDP1-038 cardinality + F-P47-006 INDEX.md rows 35-38 + F-P47-007 D-427(c) N+6 (Commit B already applied)
+- Action: All 7 findings addressed across Commits B+C. F-P47-005 (banner off-by-one) deferred to Commit E per original scope.
+- Verification (D-422(a) re-executed): `grep -c "pass-47 fix burst" burst-log.md` → to be computed post-write
+- D-427(a) vague-range scope-sweep (MANDATORY per D-427(a), re-executed at Commit C): `grep -c "3-4 simultaneous\|3-4 per codifying\|3-7 per layer\|3-5 across layers" lessons.md decision-log.md STATE.md stories/S-15.03-index-cite-refresh-hook.md` → 0 across all scope files ✓
+- D-427(b) cross-document propagation (MANDATORY per D-427(b), re-executed): D-425 row title updated in 4 sites (STATE.md:211, STATE.md:323, decision-log.md:106, lessons.md:1183) ✓
+
+**Dim-2 — Sibling-corrigendum for L-EDP1-038 (D-410+D-423(c)):**
+- Enumeration source: D-410 sibling-corrigendum forward-reference; L-EDP1-038 Layer-37 inline-replaced per D-400 (pass-47 fix burst)
+- Extent: lessons.md L-EDP1-038 body "6 simultaneous" → "7 simultaneous"; F-P46-007 reclassified from "Plus" to axis 7; L-EDP1-038 corrigendum appended
+- Action: Updated L-EDP1-038 per D-426(c) body-cardinality alignment. L-EDP1-038 Layer-37 trend-table row inline-updated. Corrigendum appended citing D-387 / F-P47-004 / D-426(c) / D-400.
+- Verification (D-423(c) grep-back, re-executed): `grep -c "pass-47 fix burst — D-387 / F-P47-004" lessons.md` → 1 ✓ (unique corrigendum header)
+
+**Dim-3 — Decision-log D-427 codification (D-404+D-415(c)):**
+- Enumeration source: D-427 codified in decision-log.md (5 sub-clauses; Commit B: bc2f4d24)
+- Extent: decision-log.md row 108 D-427; D-427 row in STATE.md Decisions Log table
+- Action: D-427 codified with 5 sub-clauses: (a) vague-range scope-sweep extension; (b) cross-document rule-text propagation completeness; (c) D-415(a) N+6 form 7 site classes; (d) INDEX.md format-cohort completeness; (e) 38th-layer 8th-consecutive multi-axis self-replicating coverage-gap acknowledgment
+- Verification (D-422(a) re-executed): `grep -c "D-427" decision-log.md` → multiple ✓; D-427 row in STATE.md ✓
+
+**Dim-4 — Story/spec coherence (D-395+D-399+D-416(c)):**
+- Enumeration source: S-15.03 MANDATORY propagation per D-416(c); D-427 propagation required (17 consecutive decisions D-411..D-427)
+- Extent: S-15.03-index-cite-refresh-hook.md cumulative scope header + 9 new items (D-426(a-d) + D-427(a-e))
+- Action: S-15.03 scope header updated "42 sub-items D-411 through D-426" → "47 sub-items D-411 through D-427". Items 43-47 appended (D-427(a/b/c/d/e)).
+- Verification (D-422(a) re-executed): `grep -c "D-427" stories/S-15.03-index-cite-refresh-hook.md` → multiple ✓; 47 sub-items confirmed ✓
+
+**Dim-5 — STATE.md preamble sweep (D-425(a)+D-427(b)):**
+- Enumeration source: D-425(a) ENFORCEMENT — verify preamble updated AND stale form ABSENT; D-427(b) cross-doc rule-text propagation
+- Extent: STATE.md Decisions Log preamble D-379..D-426 → D-379..D-427
+- Action: Updated preamble to D-379..D-427. Stale D-379..D-426 form replaced.
+- Verification (D-425(a) re-executed): `grep "D-379..D-427" STATE.md` → 1 match ✓; `grep "D-379..D-426" STATE.md` → 0 matches ✓ (stale form ABSENT)
+
+**Dim-6 — L-EDP1-039 authored (D-406(c)+D-416(c)):**
+- Enumeration source: L-EDP1-039 authored in Commit B (bc2f4d24); documents 38th-layer self-replicating coverage-gap class
+- Extent: lessons.md L-EDP1-039 section; 38 consecutive layers documented; L-EDP1-038 Layer-37 inline-replaced with corrigendum
+- Action: L-EDP1-039 authored (Commit B). L-EDP1-038 Layer-37 row inline-updated per D-400 ("7 simultaneous" + F-P46-007 reclassified axis 7). Corrigendum appended with D-426(a) Verification format.
+- Verification (D-422(a) re-executed): `grep -c "L-EDP1-039" lessons.md` → multiple ✓; `grep -c "L-EDP1-038" lessons.md` → multiple ✓
+
+**Dim-7 — STATE.md pass-count + narrative + frontmatter update (D-407(c)+D-418(c)+D-417+D-419(b)+D-420(d)+D-421(a)+D-423(a)+D-424(a/b/c)+D-425(a/b/c)+D-426(a/b)+D-427(a/b/c/d)):**
+- Enumeration source: D-418(c) deterministic-tally form; D-417 full checklist; D-382 mandatory STATE.md update; D-419(b)+D-420(d)+D-421(a) parent-commit-SHA convention; D-423(a) version sweep; D-424(a) sed extraction + D-417(b)-awareness; D-424(b) banner margin [+10,+20]; D-425(a) preamble sweep; D-427(a) vague-range count=0; D-427(c) N+6 form applied
+- Extent: STATE.md (frontmatter phase + current_step + last_amended + Last Updated + Current Phase + Phase Progress pass-47 rows ×2 + Concurrent Cycles + Decisions Log preamble + D-427 row + Session Resume Checkpoint + Active Branches SHA + archive-pointer + banner); INDEX.md Convergence Status + pass-47 row; burst-log pass-47 fix burst entry
+- Action: Updated STATE.md with pass-47 fix burst COMPLETE narrative per D-418(c) deterministic-tally form. factory-artifacts Active Branches row updated to 08b3c2c6 (Commit D SHA = parent-commit per D-419(b)+D-420(d)+D-421(a)). Session Resume updated for pass-48 dispatch per D-426(a) Verification format. Archive-pointer updated per D-421(a) prescribed form including parent-commit SHA 40ff4a4b. D-423(a) version sweep: BC v1.90, VP v1.66, STORY v2.91, ARCH v1.71. F-P47-005 banner fix: wc -l STATE.md → 354 at Commit E author-time; soft target 354+15=369 ✓ within [+10,+20] per D-424(b).
+- Verification (D-422(a) re-executed): `grep -c "pass-47 fix burst COMPLETE" STATE.md` → 6 ✓
+- D-422(b)+D-424(a) sed extraction for ALL 6 during-burst cells:
+  - Line 15 (frontmatter current_step): "F5 pass-47 fix burst COMPLETE (HIGH→PENDING_NEXT_PASS; D-427 codified..." ✓
+  - Line 44 (Last Updated body cell): "2026-05-12 — pass-47 fix burst COMPLETE (HIGH; 3H+3M+1L=7+1obs)..." ✓
+  - Line 45 (Current Phase body cell): "Engine-discipline F5 — pass-47 fix burst COMPLETE; D-427 + L-EDP1-039 codified..." ✓
+  - Line 253 (Session Resume "Where we are"): "...pass-47 fix burst COMPLETE. Cycle has driven 47 adversary-level reviews..." ✓
+  - Line 270 (Session Resume checklist 3): "3. ✓ pass-47 fix burst COMPLETE (Commits A/B/C/D/E per D-382..D-427 discipline)" ✓
+  - Line 347 (Critical anchors F5 phase): "F5 phase: IN PROGRESS at pass-47 fix burst COMPLETE" ✓
+- D-424(a) D-417(b)-awareness narrative (MANDATORY per D-424(a)):
+  - D-417(b) advance-set = frontmatter `phase:` + `current_step:` ONLY
+  - During fix-burst Commit E write time: 6 cells contain "pass-47 fix burst COMPLETE" (frontmatter current_step + Last Updated + Current Phase + Session Resume "Where we are" + Session Resume checklist 3 + Critical anchors F5)
+  - Post-dispatch: frontmatter current_step line advances per D-417(b); 5 body cells are D-417(b)-INVARIANT and retain the marker
+  - Transition: 6 during Commit E → 5 post-dispatch (only frontmatter current_step advances)
+- D-420(b) post-dispatch cell enumeration (5 D-417(b)-invariant body cells retaining marker):
+  - Last Updated body cell ✓
+  - Current Phase body cell ✓
+  - Session Resume "Where we are" ✓
+  - Session Resume checklist 3 parent heading ✓
+  - Critical anchors F5 phase ✓
+- D-425(a) STATE.md preamble sweep (MANDATORY per D-425(a), re-executed):
+  - `grep "D-379..D-427" STATE.md` → 1 match ✓ (preamble updated this burst)
+  - `grep "D-379..D-426" STATE.md` → 0 matches ✓ (stale form ABSENT)
+- **D-427(a) ENFORCEMENT (vague-range scope-sweep applied, re-executed):** `grep -c "3-4 simultaneous\|3-4 per codifying\|3-7 per layer\|3-5 across layers" lessons.md decision-log.md STATE.md stories/S-15.03-index-cite-refresh-hook.md` → 0 across all scope files ✓
+- **D-427(b) ENFORCEMENT (cross-doc propagation, re-executed):** D-425 row title updated in 4 sites; N+3→N+4 form absent in active rule contexts; `grep "N+3 form\|D-415(a) N+3" STATE.md` → 0 ✓
+- **D-427(c) N+6 form (re-executed):** D-415(a) in lessons.md updated to 7 site classes with N+6 form ✓
+- **D-427(d) INDEX.md format-cohort (re-executed):** passes 35-38 now use "Findings: N (breakdown); Observations: N" format ✓
+- STATE.md size (D-422(c)+D-424(b) self-compliance, re-executed): `wc -l STATE.md` → 354 ✓; soft target 369 (+15 margin within [+10,+20] ✓)
+- D-423(a) version sweep (verified at Commit E author-time): BC v1.90, VP v1.66, STORY v2.91, ARCH v1.71 ✓; STATE.md Concurrent Cycles + INDEX.md Convergence Status updated to these values ✓
+- Canonical pass-47 marker: "pass-47 fix burst COMPLETE"
+
+**Codifications (per D-413(b) completeness mandate):**
+- D-427 codified (5 sub-clauses): (a) Vague-range scope-sweep extension — D-426(a) extends to ALL vague-range forms, ZERO matches required; (b) Cross-document rule-text propagation completeness — rule update referencing prior rule MUST sweep ALL occurrences across ALL documents; (c) D-415(a) N+6 form — 7 site classes (Codifications block cite #6 + Closes block cite #7); (d) INDEX.md format-cohort completeness — sweep ALL rows in same format-cohort; (e) 38th-layer 8th-consecutive multi-axis NEW-self-replicating-coverage-gap-class
+- L-EDP1-039 authored (38th-layer 8th-consecutive multi-axis at D-426 codifying-burst boundary; NEW self-replicating coverage-gap pattern class)
+- L-EDP1-038 Layer-37 inline-replaced per D-400 ("6 simultaneous" → "7 simultaneous"; F-P46-007 reclassified axis 7 per D-426(c)); sibling-corrigendum appended per D-410
+- F-P47-001: vague-range scope-sweep 4 active sites corrected (lessons.md 3 sites + decision-log.md 1 site)
+- F-P47-002: D-425 N+3→N+4 propagation — 4 sites corrected (STATE.md:211, STATE.md:323, decision-log.md:106, lessons.md:1183)
+- F-P47-003: S-15.03 D-426+D-427 propagation — 9 items appended (D-426(a/b/c/d) + D-427(a/b/c/d/e)); scope header updated 42→47
+- F-P47-004: L-EDP1-038 body "6 simultaneous" → "7 simultaneous" + F-P46-007 reclassified from "Plus" to axis 7
+- F-P47-005: STATE.md banner off-by-one fixed — 354 actual + 15 margin = 369 soft target (D-422(c)+D-424(b) compliant)
+- F-P47-006: INDEX.md Adversarial Reviews table rows 35-38 standardized to "Findings: N (breakdown); Observations: N" format per D-427(d)
+- F-P47-007: D-427(c) N+6 form codified — D-415(a) updated to 7 site classes in lessons.md
+
+**Closes per D-413(b) completeness mandate: F-P47-001, F-P47-002, F-P47-003, F-P47-004, F-P47-005, F-P47-006, F-P47-007**
+
+**Factory-artifacts commits:**
+(Commit A: 375dad6d — adv-cycle-pass-47.md), (Commit B: bc2f4d24 — D-427+L-EDP1-039+L-EDP1-038 Layer-37 inline-replace+corrigendum), (Commit C: 6a68bfc0 — content fixes F-P47-001..007 [RESUMED after timeout]), (Commit D: 08b3c2c6 — 4-index bumps D-389..D-427), (Commit E: this commit — state-manager final per POLICY 3; parent-commit 08b3c2c6 per D-419(b)+D-420(d)+D-421(a))
