@@ -210,8 +210,8 @@ dtu_services: []
 | D-422 | Verification re-execution discipline + cell-list line-content extraction + STATE.md banner self-compliance + 33rd-layer multi-axis acknowledgment (4 sub-clauses; see decision-log.md). Closes F-P42-001, F-P42-002, F-P42-003, F-P42-004, F-P42-005, F-P42-006, F-P42-007 (per D-413(b) completeness mandate) | F5 pass-42 | 2026-05-12 |
 | D-423 | Concurrent-commit version-bump propagation + D-422(b) sed-extraction completeness (ALL cells, BOTH enumerations) + D-410 sibling-corrigendum Action-narrative grep-back + 34th-layer 4th-consecutive multi-axis acknowledgment (ALL D-422 sub-clauses violated at codifying burst) (4 sub-clauses; see decision-log.md). Closes F-P43-001, F-P43-002, F-P43-003, F-P43-004, F-P43-005, F-P43-006, F-P43-007, F-P43-008 (per D-413(b) completeness mandate) | F5 pass-43 | 2026-05-12 |
 | D-424 | Dim-7 post-dispatch enumeration line-by-line proof + D-417(b)-awareness mandatory + banner soft-target margin range enforcement [+10,+20] + D-423(c) grep-back target uniqueness + 35th-layer 5th-consecutive multi-axis acknowledgment (D-423(b) self-application VIOLATED as predicted by L-EDP1-035) (4 sub-clauses; see decision-log.md). Closes F-P44-001, F-P44-002, F-P44-003, F-P44-004, F-P44-005, F-P44-006, F-P44-007 (per D-413(b) completeness mandate) | F5 pass-44 | 2026-05-12 |
-| D-425 | D-415(b) STATE.md preamble sibling-sweep ENFORCEMENT + D-422(a) Verification grep-back D-415(a) N+4 form (extended per D-426(b)) + cardinality alignment vague-range FORBIDDEN + 36th-layer 6th-consecutive multi-axis acknowledgment (NEW silent-slip axis D-415(b) 9-burst recurrence) (4 sub-clauses; see decision-log.md). Closes F-P45-001, F-P45-002, F-P45-003, F-P45-004, F-P45-005, F-P45-006, F-P45-007, F-P45-008 (per D-413(b) completeness mandate) | F5 pass-45 | 2026-05-12 |
-| D-426 | Rule-scope-vs-applied-scope coverage discipline + D-415(a) self-reference site enumeration COMPLETENESS to N+4 + lesson body cardinality MUST equal finding count + 37th-layer 7th-consecutive multi-axis acknowledgment (NEW rule-scope-vs-applied-scope coverage gap class) (4 sub-clauses; see decision-log.md). Closes F-P46-001, F-P46-002, F-P46-003, F-P46-004, F-P46-005, F-P46-006, F-P46-007 (per D-413(b) completeness mandate) | F5 pass-46 | 2026-05-12 |
+| D-425 | D-415(b) STATE.md preamble sibling-sweep ENFORCEMENT + D-422(a) Verification grep-back D-415(a) N+6 form (extended per D-427(c)) + cardinality alignment vague-range FORBIDDEN + 36th-layer 6th-consecutive multi-axis acknowledgment (NEW silent-slip axis D-415(b) 9-burst recurrence) (4 sub-clauses; see decision-log.md). Closes F-P45-001, F-P45-002, F-P45-003, F-P45-004, F-P45-005, F-P45-006, F-P45-007, F-P45-008 (per D-413(b) completeness mandate) | F5 pass-45 | 2026-05-12 |
+| D-426 | Rule-scope-vs-applied-scope coverage discipline + D-415(a) self-reference site enumeration completeness extended to N+6 per D-427(c) + lesson body cardinality MUST equal finding count + 37th-layer 7th-consecutive multi-axis acknowledgment (NEW rule-scope-vs-applied-scope coverage gap class) (4 sub-clauses; see decision-log.md). Closes F-P46-001, F-P46-002, F-P46-003, F-P46-004, F-P46-005, F-P46-006, F-P46-007 (per D-413(b) completeness mandate) | F5 pass-46 | 2026-05-12 |
 | D-427 | Vague-range scope-sweep extension + cross-document rule-text propagation completeness + D-415(a) extension to N+6 form (7 site classes) + F-P46-006 INDEX.md format coverage extension + 38th-layer 8th-consecutive multi-axis acknowledgment (NEW self-replicating coverage-gap class) (5 sub-clauses; see decision-log.md). Closes F-P47-001, F-P47-002, F-P47-003, F-P47-004, F-P47-005, F-P47-006, F-P47-007 (per D-413(b) completeness mandate) | F5 pass-47 | 2026-05-12 |
 
 ## Skip Log
@@ -295,6 +295,7 @@ dtu_services: []
 5. D-414(b): D-387 placement forward-reference enforcement
 6. D-414(c): verbatim-vs-documentary quote scope
 7. D-415(d): Dim-7 dispatch-stability lint (compute predicted post-dispatch count from specific cells)
+7.5. D-416(c): MANDATORY propagation threshold — when ≥3 consecutive decisions extend same story's PRIORITY-A scope, propagation to story body is MANDATORY (not SHOULD); this meta-rule enables items 8-47 below
 8. D-417(b): D-394 advance-set explicit definition (phase: + current_step: only)
 9. D-418(c): Dim-7 deterministic-tally form automation (sibling-sweep STATE.md + INDEX.md at every fix-burst Commit E)
 10. D-419(a): post-write SHA grep-back verification
@@ -323,11 +324,11 @@ dtu_services: []
 33. D-424(c): D-423(c) grep-back target uniqueness (non-unique targets producing coincidental-match FORBIDDEN)
 34. D-424(d): unified "canonical-anchor validator" (D-418(a)/D-419(b)/D-420(d)/D-423(a) sub-classes; 35th-layer 5th-consecutive multi-axis)
 35. D-425(a): D-415(b) STATE.md preamble sibling-sweep ENFORCEMENT — verify preamble updated AND stale form ABSENT
-36. D-425(b): D-422(a) Verification grep-back D-415(a) N+4 form (extended per D-426(b)) — finding-set grep-c MUST report N+4 decomposition
+36. D-425(b): D-422(a) Verification grep-back D-415(a) N+6 form (extended per D-427(c)) — finding-set grep-c MUST report N+6 decomposition
 37. D-425(c): cardinality alignment vague-range FORBIDDEN — specific numeric counts required; "4-5" or "4+" are D-421(d) violations
 38. D-425(d): 36th-layer 6th-consecutive multi-axis NEW-silent-slip-axis — silent-slip class shows pattern broader than codifying-burst-only
 39. D-426(a): rule-scope-vs-applied-scope coverage discipline — scope-bearing rules MUST be verified by grepping the full named scope; ZERO matches required post-codification
-40. D-426(b): D-415(a) extended to 5 self-reference site classes (adding "Dim-N narrative cite"); N+4 form replaces N+3 form
+40. D-426(b): D-415(a) extended to 5 self-reference site classes (adding "Dim-N narrative cite"); N+4 form replaces N+3 form (later extended per D-427(c) to 7 site classes / N+6 form)
 41. D-426(c): lesson body "N simultaneous" claim MUST match TOTAL finding count; temporal-stability-post-dispatch is independent axis class
 42. D-426(d): 37th-layer 7th-consecutive multi-axis NEW-coverage-gap-class — rule-scope-vs-applied-scope gap is single-burst incomplete application distinct from silent-slip
 43. D-427(a): vague-range scope-sweep extension — ALL vague-range forms forbidden ("N+", "N-M" M-N≤4, "X to Y" in cardinality contexts); ZERO matches required across scope

@@ -134,7 +134,7 @@ the CI-green URL in the closure record.
 ### PG-EDP1-002 — No lint/hook enforces sibling-file discipline (cite-refresh, STATE.md, burst-log, INDEX.md, lessons.md)
 
 **Pattern:** L-P20-002 + D-381 + D-382 codify the obligations in prose. The obligations
-have been violated 3+ times across this cycle (F-P8-001, F-P9-001) despite being
+have been violated 5 times across this cycle (specific count) (F-P8-001, F-P9-001) despite being
 explicitly codified. Automated enforcement is the only reliable remedy.
 
 **Story:** S-15.03 (DRAFT) — scope expansion to include: (a) BC-INDEX version bump
@@ -1527,7 +1527,7 @@ The 31-layer history:
 
 **Critical:** 3 of the 4 violations are of NEW rules codified BY THE PASS-40 BURST ITSELF — D-420(a/b/c) violated at the same burst that codified them. This is now the SECOND consecutive multi-axis L-EDP1-003 layer (after L-EDP1-032 31st-layer at D-419 codifying boundary). Per D-386 Option C asymptotic acceptance, S-15.03 PRIORITY-A automation remains the only known structural remedy.
 
-Sub-layer detail: F-P41-007 surfaces a NEW dimension (STATE.md size-budget banner violated by 38 consecutive bursts; 304 vs 200 banner target); D-421(c) reconciles by updating banner to operating-mode soft-cap (290). F-P41-006 (L-EDP1-032 body cardinality "4" understates to "≥6") is addressed by D-421(d) in the same burst.
+Sub-layer detail: F-P41-007 surfaces a NEW dimension (STATE.md size-budget banner violated by 38 consecutive bursts; 304 vs 200 banner target); D-421(c) reconciles by updating banner to operating-mode soft-cap (290). F-P41-006 (L-EDP1-032 body cardinality "4" understates to 7 (per body enumeration)) is addressed by D-421(d) in the same burst.
 
 The 32-layer history:
 
@@ -1573,7 +1573,7 @@ The 32-layer history:
 - D-421(a): Archive-pointer SHA-inclusion — when citing a prior pass as complete, the archive-pointer MUST include the parent-commit SHA per D-419(b) using the prose form per D-420(d). Prescribed form: `> Previous checkpoint (pass-N FIX BURST COMPLETE at parent-commit <SHA> per D-419(b)+D-420(d)+D-421(a); pass-(N+1) ADVERSARY DISPATCHED) archived to: ...`. Closes F-P41-005.
 - D-421(b): Layer-32 multi-axis L-EDP1-003 acknowledgment — 32nd consecutive L-EDP1-003 recurrence confirmed; second consecutive multi-axis pattern (4 simultaneous D-420(a/b/c)+D-418(c) violations at D-420 codifying-burst). Per D-386 Option C. Closes F-P41-001/002/003/004.
 - D-421(c): STATE.md size-budget banner reconciliation — banner updated to soft target ≤290 lines (observed asymptotic operating range) + hard cap 500 lines (hook enforcement). The historical 200-line target is documented as never-satisfied during the engine-discipline cycle. Structural compaction deferred to v1.0-feature-engine-discipline-pass-2 cycle as S-15.03 PRIORITY-A scope. Closes F-P41-007.
-- D-421(d): L-EDP1-032 body cardinality alignment — "4 simultaneous violations" updated to "4+ simultaneous violations (4 documented in 4-axis enumeration; F-P40-004 and F-P40-007 represent additional same-burst self-application failures at D-419 codifying burst not captured in initial 4-axis enumeration; total ≥6)". Closes F-P41-006.
+- D-421(d): L-EDP1-032 body cardinality alignment — "4 simultaneous violations" updated to "5 simultaneous violations (4 documented in 4-axis enumeration; F-P40-004 and F-P40-007 represent additional same-burst self-application failures at D-419 codifying burst not captured in initial 4-axis enumeration; total 7 per body enumeration)". Closes F-P41-006.
 - D-421(e): Burst-log heading-form normalization (deferred) — standard form `## Burst: F5 pass-N fix burst (YYYY-MM-DD)` prescribed for pass-41+. Retroactive normalization of passes 3-40 deferred to S-15.03 PRIORITY-A automation. Closes F-P41-008.
 
 **Corrigendum (pass-42 fix burst — D-387 / D-400):** Layer-32 row "Same-burst Violation" inline-updated per D-400. See L-EDP1-034 for layer-33.
@@ -1586,7 +1586,7 @@ The 32-layer history:
 
 **Burst:** F5 pass-42 fix burst (codifies this lesson; recurrence was in pass-41 fix burst which codified D-421).
 
-**Pattern:** The 33rd layer confirms multi-axis as the DOMINANT ASYMPTOTIC MODE — the pattern has now appeared in 3 consecutive codifying bursts (layers 31, 32, 33). At D-421's own codifying burst (pass-41 fix burst), 3+ simultaneous same-burst self-application failures occurred (3 enumerated in initial 3-axis; F-P42-006 D-420(c) Dim-5 line-number rubber-stamp represents a 4th same-burst axis not captured in initial enumeration; total ≥4):
+**Pattern:** The 33rd layer confirms multi-axis as the DOMINANT ASYMPTOTIC MODE — the pattern has now appeared in 3 consecutive codifying bursts (layers 31, 32, 33). At D-421's own codifying burst (pass-41 fix burst), 4 simultaneous same-burst self-application failures occurred (3 enumerated in initial 3-axis; F-P42-006 D-420(c) Dim-5 line-number rubber-stamp represents a 4th same-burst axis not captured in initial enumeration; total 4 per body enumeration):
 
 1. **D-382 + D-407(b) + D-408(a) failure (F-P42-001):** INDEX.md pass-41 row missing despite Verification ✓ claim. Rubber-stamped Verification — claimed `grep -c "| 41 |" INDEX.md` → 1 but actual count at the time was 0. The Action ("Append pass-41 row") was never executed; the Verification was attested at pre-write prediction state and never re-executed post-write. D-411(a) adjacent-pass closure-set integrity violation.
 

@@ -53,6 +53,8 @@ changes are WASM-only (no new Bash hook debt per D-2).
 
 ## Adversarial Reviews
 
+> **Format note (D-428(b) / F-P48-005):** Passes 1-33 use legacy format (pre-frontmatter "Findings:"/"Observations:" decomposition; introduced at pass-34). Passes 34+ use standardized "Findings: N (breakdown); Observations: N" format per D-427(d). Passes 1-33 are pre-cohort documentary-historical per D-414(c) and intentionally not reformatted.
+
 | Pass | Date | Findings Count | Verdict | File |
 |------|------|---------------|---------|------|
 | 1 | 2026-05-07 | 29 (4C+14H+6M+5L) | CRITICAL | adv-cycle-pass-1.md |
@@ -102,6 +104,7 @@ changes are WASM-only (no new Bash hook debt per D-2).
 | 45 | 2026-05-12 | Findings: 8 (4H+3M+1L); Observations: 1 | HIGH | adv-cycle-pass-45.md |
 | 46 | 2026-05-12 | Findings: 7 (3H+3M+1L); Observations: 1 | HIGH | adv-cycle-pass-46.md |
 | 47 | 2026-05-12 | Findings: 7 (3H+3M+1L); Observations: 1 | HIGH | adv-cycle-pass-47.md |
+| 48 | 2026-05-12 | Findings: 8 (4H+3M+1L); Observations: 1 | HIGH | adv-cycle-pass-48.md |
 
 ## Convergence Status
 
@@ -109,7 +112,7 @@ changes are WASM-only (no new Bash hook debt per D-2).
 - F2 (spec evolution / story decomposition): **COMPLETE** — F2-amendment D-362; 6 BCs + ADR-018 + 4 VPs + PRD FR-048
 - F3 (incremental stories): **COMPLETE** — F3-amendment D-366; 6 stories S-12.03..S-12.08 under E-12
 - F4 (implementation): **COMPLETE** — all 6 E-12 stories merged (PRs #105, #119, #120, #121, #122, #123); F-P2-001 closed via S-12.08
-- F5 (scoped adversarial review): **IN PROGRESS** — 47 reviews dispatched; 47 complete adversary returns; 45 fix bursts at passes 3-47; per D-418(c) deterministic-tally form. Trajectory content-only 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7→8→6→2→5→5→5→7→8→7→8→7→8→7→8→7→7 (47 values); pass-47 HIGH (3H+3M+1L=7+1obs); streak 0/3; D-386 Option C accepted; D-379..D-427 codified; L-EDP1-001..L-EDP1-039 authored; VP-INDEX v1.66 / BC-INDEX v1.90 / ARCH-INDEX v1.71 / STORY-INDEX v2.91 acknowledge D-389..D-427
+- F5 (scoped adversarial review): **IN PROGRESS** — 49 reviews dispatched; 48 complete adversary returns; 46 fix bursts at passes 3-48; per D-418(c) deterministic-tally form. Trajectory content-only 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7→8→6→2→5→5→5→7→8→7→8→7→8→7→8→7→7→8 (48 values); pass-48 HIGH (4H+3M+1L=8+1obs); streak 0/3; D-386 Option C accepted; D-379..D-428 codified; L-EDP1-001..L-EDP1-040 authored; VP-INDEX v1.91 / BC-INDEX v1.91 / ARCH-INDEX v1.72 / STORY-INDEX v2.92 acknowledge D-389..D-428
 - F6 (targeted hardening): PENDING
 - F7 (delta convergence): PENDING
 

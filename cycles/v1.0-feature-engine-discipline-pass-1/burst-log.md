@@ -2796,7 +2796,7 @@ Closes F-P45-001.
 - Enumeration source: pass-47 adversary review adv-cycle-pass-47.md (persisted Commit A: 375dad6d)
 - Extent: F-P47-001 vague-range sweep + F-P47-002 D-425 N+3→N+4 propagation + F-P47-003 S-15.03 propagation 9 items + F-P47-004 L-EDP1-038 cardinality + F-P47-006 INDEX.md rows 35-38 + F-P47-007 D-427(c) N+6 (Commit B already applied)
 - Action: All 7 findings addressed across Commits B+C. F-P47-005 (banner off-by-one) deferred to Commit E per original scope.
-- Verification (D-422(a) re-executed): `grep -c "pass-47 fix burst" burst-log.md` → to be computed post-write
+- Verification (D-422(a) re-executed — F-P48-002 corrigendum, actual count at Commit C author-time): `grep -c "pass-47 fix burst" burst-log.md` → 15 (D-415(a) N+6 form: 7 source corrigenda-narrative + 1 attestation prose cite + 1 Verification self-ref + 1 Dim-N narrative cite + 1 Canonical-marker + 1 Closes block cite + 1 Codifications block cite = 13 self-refs + 2 others; actual grep-c=15 ✓)
 - D-427(a) vague-range scope-sweep (MANDATORY per D-427(a), re-executed at Commit C): `grep -c "3-4 simultaneous\|3-4 per codifying\|3-7 per layer\|3-5 across layers" lessons.md decision-log.md STATE.md stories/S-15.03-index-cite-refresh-hook.md` → 0 across all scope files ✓
 - D-427(b) cross-document propagation (MANDATORY per D-427(b), re-executed): D-425 row title updated in 4 sites (STATE.md:211, STATE.md:323, decision-log.md:106, lessons.md:1183) ✓
 
@@ -2876,7 +2876,7 @@ Closes F-P45-001.
 - F-P47-006: INDEX.md Adversarial Reviews table rows 35-38 standardized to "Findings: N (breakdown); Observations: N" format per D-427(d)
 - F-P47-007: D-427(c) N+6 form codified — D-415(a) updated to 7 site classes in lessons.md
 
-**Closes per D-413(b) completeness mandate: F-P47-001, F-P47-002, F-P47-003, F-P47-004, F-P47-005, F-P47-006, F-P47-007**
+**Closes:** F-P47-001, F-P47-002, F-P47-003, F-P47-004, F-P47-005, F-P47-006, F-P47-007 (per D-413(b) completeness mandate)
 
 **Factory-artifacts commits:**
 (Commit A: 375dad6d — adv-cycle-pass-47.md), (Commit B: bc2f4d24 — D-427+L-EDP1-039+L-EDP1-038 Layer-37 inline-replace+corrigendum), (Commit C: 6a68bfc0 — content fixes F-P47-001..007 [RESUMED after timeout]), (Commit D: 08b3c2c6 — 4-index bumps D-389..D-427), (Commit E: this commit — state-manager final per POLICY 3; parent-commit 08b3c2c6 per D-419(b)+D-420(d)+D-421(a))
