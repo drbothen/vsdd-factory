@@ -12,7 +12,7 @@ input-hash: "[live-state]"
 traces_to: prd.md
 project: vsdd-factory
 mode: brownfield
-current_step: "F5 pass-59 adversary dispatch IN-PROGRESS (full-discipline-chain D-382..D-438; pass-58 parent-commit e2218f5a per D-419(b)+D-420(d)+D-421(a); D-438 codified (5 sub-clauses); L-EDP1-050 49th-layer 19th-consecutive multi-axis META-LEVEL-13-CANDIDATE; 4 indexes D-389..D-438 (BC v2.01 + STORY v3.02); trajectory →8; streak 0/3)"
+current_step: "F5 pass-59 adversary dispatch IN-PROGRESS (D-382..D-438 discipline; pass-58 parent-commit e2218f5a per D-419(b)+D-420(d)+D-421(a); D-438 codified (5 sub-clauses); L-EDP1-050 49th-layer 19th-consecutive multi-axis META-LEVEL-13-CANDIDATE; 4 indexes D-389..D-438 (BC v2.01 / VP v1.77 / STORY v3.02 / ARCH v1.82); trajectory →8→8; streak 0/3)"
 current_cycle: v1.0-feature-engine-discipline-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -22,7 +22,7 @@ dtu_services: []
 
 <!--
   STATE.md SIZE BUDGET (per D-421(c) + D-422(c) reconciliation):
-  Soft target: ≤349 lines (actual 337 lines at pass-58 Commit E + 12 margin per D-422(c)+D-424(b)+D-428(d)+D-434(e)(ii)+D-437(d)+D-438(a) margin [+10,+20] mid-range +12; D-438 codified (5 sub-clauses; banner-wc-l-enforcement + S-15.03-Commit-C-timing + INDEX-auto-advance + burst-log-h2-mandatory + 49th-layer-L-EDP1-050 per decision-log.md SoT); HIGH-001 resolution: wc-l confirmed 334 at both 72fd51ee+c491cf64 — adversary 295 was measurement-methodology difference; no compaction per D-430(a); D-438(a) re-executed at Commit E: 337 lines ✓).
+  Soft target: ≤349 lines (actual 337 lines at pass-58 Commit E + 12 margin per D-422(c)+D-424(b)+D-428(d)+D-434(e)(ii)+D-437(d)+D-438(a) margin [+10,+20] mid-range +12; D-438 codified (5 sub-clauses; banner-wc-l-enforcement + S-15.03-Commit-C-timing + INDEX-auto-advance-at-Commit-D + burst-log-h2-Commit-A-mandatory + 49th-layer-L-EDP1-050 per decision-log.md SoT); HIGH-001 resolution: wc-l confirmed 334 at both 72fd51ee+c491cf64 — adversary 295 was measurement-methodology difference; no compaction per D-430(a); D-438(a) re-executed at Commit E: 337 lines ✓).
   Line-growth tracker (D-437(e) LOW-002 follow-up): pass-49 Commit E 310 lines; pass-54 Commit E 319 lines; pass-55 Commit E 328 lines; pass-56 Commit E 331 lines; growth rate ~+9/burst. At +9/burst, hard cap (500 lines) reached at ~18 more bursts. Compaction recommended at v1.0-feature-engine-discipline-pass-2 boundary per L-EDP1-047/048/049.
   Hard cap: 500 lines (validate-state-md-size hook enforcement).
   Historical content belongs in cycle files, NOT here.
@@ -42,7 +42,7 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-12 — pass-58 fix burst COMPLETE (HIGH; 4H+3M+1L=8+2obs; 49th-layer L-EDP1-003 META-LEVEL-13 CANDIDATE); 60 decisions D-379..D-438; 50 lessons L-EDP1-001..050; 4 indexes BC v2.01/VP v1.77/STORY v3.02/ARCH v1.82; trajectory tail (last 4 of 58 values per D-433(e)) →8→8→9→8→8; D-438 codified (5 sub-clauses); L-EDP1-050 49th-layer multi-axis (19th consecutive; META-LEVEL-13 CANDIDATE; universal-scope rule at named-document scope). |
+| **Last Updated** | 2026-05-12 — pass-58 fix burst COMPLETE (HIGH; 4H+3M+1L=8+2obs; 49th-layer L-EDP1-003 META-LEVEL-13 CANDIDATE); 60 decisions D-379..D-438; 50 lessons L-EDP1-001..050; 4 indexes BC v2.01/VP v1.77/STORY v3.02/ARCH v1.82; trajectory tail (last 4 of 58 values per D-433(e)) →8→9→8→8; D-438 codified (5 sub-clauses); L-EDP1-050 49th-layer multi-axis (19th consecutive; META-LEVEL-13 CANDIDATE; universal-scope rule at named-document scope). |
 | **Current Phase** | Engine-discipline F5 — pass-58 fix burst COMPLETE; D-438 + L-EDP1-050 codified; next = pass-59 adversary dispatch |
 | **Current Cycle** | v1.0-feature-engine-discipline-pass-1 |
 
@@ -207,7 +207,7 @@ dtu_services: []
 |-------|------|--------|-------|
 | F-block-ai-attribution-message-file-arm | feature | F3 COMPLETE — F4 READY | F1+F2+F3 done 2026-05-12; 2 stories ready (S-16.01 5pts PostToolUse HEAD verify, S-16.02 3pts PreToolUse -F arm); E-16 under SS-07/SS-04; milestone v1.0.0-rc.17; BC-7.03.094/095/001, VP-080, ARCH SS-07 v1.3/SS-04 v1.4 registered |
 | v1.0-brownfield-backfill | brownfield | PAUSED | E-10 pass-9 pending; paused at D-343 |
-| v1.0-feature-engine-discipline-pass-1 | feature | F5-IN-PROGRESS | All 6 E-12-platform stories merged; F5 passes 1-58 (59 reviews dispatched; 58 complete adversary returns; 56 fix bursts at passes 3-58) per D-418(c)+D-432(a)+D-435(d) deterministic-tally form; full-cycle trajectory content-only (pass-1..58): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7→8→6→2→5→5→5→7→8→7→8→7→8→7→8→7→7→8→8→7→7→7→8→8→8→9→8→8; trajectory tail (last 4 of 58 values per D-433(e)) →8→8→9→8→8; pass-58 HIGH verdict (4H+3M+1L=8+2obs); D-438 codified (5 sub-clauses); L-EDP1-050 49th-layer multi-axis (19th consecutive; META-LEVEL-13 CANDIDATE); D-386 Option C: continue F5, accept asymptotic L-EDP1-003 limit; VP-INDEX v1.77 / BC-INDEX v2.01 / ARCH-INDEX v1.82 / STORY-INDEX v3.02 acknowledge D-389..D-438 (D-423(a) version sweep applied: post-Commit-D actual versions); S-15.03 PRIORITY-A in pass-2 cycle |
+| v1.0-feature-engine-discipline-pass-1 | feature | F5-IN-PROGRESS | All 6 E-12-platform stories merged; F5 passes 1-58 (59 reviews dispatched; 58 complete adversary returns; 56 fix bursts at passes 3-58) per D-418(c)+D-432(a)+D-435(d) deterministic-tally form; full-cycle trajectory content-only (pass-1..58): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7→8→6→2→5→5→5→7→8→7→8→7→8→7→8→7→7→8→8→7→7→7→8→8→9→8→8; trajectory tail (last 4 of 58 values per D-433(e)) →8→9→8→8; pass-58 HIGH verdict (4H+3M+1L=8+2obs); D-438 codified (5 sub-clauses); L-EDP1-050 49th-layer multi-axis (19th consecutive; META-LEVEL-13 CANDIDATE); D-386 Option C: continue F5, accept asymptotic L-EDP1-003 limit; VP-INDEX v1.77 / BC-INDEX v2.01 / ARCH-INDEX v1.82 / STORY-INDEX v3.02 acknowledge D-389..D-438 (D-423(a) version sweep applied: post-Commit-D actual versions); S-15.03 PRIORITY-A in pass-2 cycle |
 | v1.0-feature-plugin-async-semantics-pass-1 | feature | CLOSED | All PRs merged; rc.14 shipped |
 
 ## Decisions Log
@@ -284,7 +284,7 @@ dtu_services: []
 
 > **POST-COMPACT RESUME CONTEXT — F5 ASYMPTOTIC LOOP**
 
-**Where we are:** Engine-discipline cycle v1.0-feature-engine-discipline-pass-1 in F5 phase, pass-58 fix burst COMPLETE. 59 reviews dispatched + 58 complete adversary returns + 56 fix bursts (passes 3-58) per D-432(a)+D-435(d). Trajectory content-only (per D-401(c)): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7→8→6→2→5→5→5→7→8→7→8→7→8→7→8→7→7→8→8→7→7→7→8→8→8→9→8→8 (58 values). Streak: 0/3 NITPICK_ONLY. Verdict HIGH sustained. META-LEVEL-13 CANDIDATE (49th-layer L-EDP1-003; universal-scope rule D-437(a) applied at named-document scope (burst-log) rather than truly universal scope (all ✓ attestation locations across all documents)).
+**Where we are:** Engine-discipline cycle v1.0-feature-engine-discipline-pass-1 in F5 phase, pass-58 fix burst COMPLETE. 59 reviews dispatched + 58 complete adversary returns + 56 fix bursts (passes 3-58) per D-432(a)+D-435(d). Trajectory content-only (per D-401(c)): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7→8→6→2→5→5→5→7→8→7→8→7→8→7→8→7→7→8→8→7→7→7→8→8→9→8→8 (58 values). Streak: 0/3 NITPICK_ONLY. Verdict HIGH sustained. META-LEVEL-13 CANDIDATE (49th-layer L-EDP1-003; universal-scope rule D-437(a) applied at named-document scope (burst-log) rather than truly universal scope (all ✓ attestation locations across all documents)).
 
 **Operating mode:** D-386 Option C — asymptotic convergence acceptance. L-EDP1-007 + L-EDP1-050 confirm prose-only codification cannot break L-EDP1-003 recurrence pattern at this asymptote. 49 consecutive layers (L-EDP1-001..050) documented; 19th consecutive multi-axis recurrence at layer 49 (META-LEVEL-13 CANDIDATE). Multi-axis is the dominant mode. Structural remedy = S-15.03 PRIORITY-A automation (deferred to v1.0-feature-engine-discipline-pass-2 cycle).
 
