@@ -755,3 +755,89 @@ All actions in this burst have paired Verification greps targeting pass-24 canon
 **Corrigendum (pass-25 fix burst — D-387 / F-P25-010 / D-403(b)):** Pass-24 dim-2/3/4/5 Verification regexes targeted frontmatter version form `"X.YY"` only — did NOT verify changelog body row form `vX.YY (date):`. Recommendation for future bursts: pair frontmatter-form + body-form Verifications. Pass-25 fix burst applies the paired-form pattern going forward. Refs: F-P25-010, D-403(b), D-387.
 
 **Corrigendum (pass-25 fix burst — D-387 / F-P25-011):** Pass-24 dim-5 attestation "VP-INDEX still at v1.42 ... (unchanged)" was accurate at the dim-5 commit timestamp. Subsequent user-authorized TD-031 normalization brought VP-INDEX to v1.43 (via Write tool, hook passed cleanly, factory-artifacts dd91044a). Pass-25 fix burst advances VP-INDEX to v1.44 per F-P25-001 D-405 closure. Refs: F-P25-011, D-387.
+
+---
+
+## Burst: F5 pass-25 fix burst (2026-05-11)
+
+**Summary:** Pass-25 cycle-level adversary returned HIGH verdict (2H+4M+4L+2NIT+1PG). 16th-layer L-EDP1-003 recurrence at D-404 self-application boundary (F-P25-001: D-404 not literally acknowledged in all 4 indexes). F-P25-002: 6-site stale VP-INDEX blocked narrative swept clean. D-405 codified. L-EDP1-017 (16th-layer) authored. L-EDP1-016 Layer-15 inline-replaced per D-400.
+
+**Commits:**
+- Commit A: 0693becc — adv-cycle-pass-25.md (HIGH verdict persisted)
+- Commit B: 43ef31bd — D-405 + L-EDP1-017 + L-EDP1-016 Layer-15 inline-replace
+- Commit C: 8f2b4a33 — content fixes (4 indexes + STATE.md sweep + burst-log corrigenda)
+- Commit E: this commit — state-manager final per POLICY 3
+
+**Dim-1 — STATE.md 4-cell narrative sweep (D-397+D-399+D-401+D-402+D-403+D-404+D-405 self-application):**
+- Enumeration source: D-399 mandatory 4-cell scope (current_step frontmatter, Last Updated, Current Phase, Session Resume Checkpoint)
+- Extent: 4 cells
+- Inlined list: STATE.md frontmatter line 8 (phase), STATE.md line 14 (current_step), STATE.md Project Metadata Last Updated (line 41), STATE.md Current Phase (line 42), STATE.md Session Resume Checkpoint section
+- Action: All 4 cells write "pass-25 fix burst COMPLETE" narrative referencing D-405+L-EDP1-017
+- Verification: `grep -c 'pass-25 fix burst COMPLETE' /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md` → 4 ✓
+- Canonical pass-25 markers used: "pass-25", "D-405", "L-EDP1-017", "F-P25-NNN"
+
+**Dim-2 — BC-INDEX v1.68 (F-P25-001; D-405(a) self-application):**
+- Enumeration source: D-405(a) self-application obligation — new changelog row acknowledging D-404+D-405 by literal ID
+- Extent: 1 new row (BC-INDEX v1.67→v1.68)
+- Action: Prepend v1.68 changelog entry "Acknowledges decision range D-389..D-405"; bump frontmatter version 1.67→1.68; last_amended: 2026-05-11
+- Verification (frontmatter): `grep -c '"1\.68"' /Users/jmagady/Dev/vsdd-factory/.factory/specs/behavioral-contracts/BC-INDEX.md` → 1 ✓
+- Verification (body): `grep -c 'v1\.68' /Users/jmagady/Dev/vsdd-factory/.factory/specs/behavioral-contracts/BC-INDEX.md` → 1 ✓
+- Canonical pass-25 markers: "pass-25 fix burst per D-405" in changelog text; "D-404, D-405" literal IDs ✓
+
+**Dim-3 — VP-INDEX v1.44 (F-P25-001; D-405(a) self-application):**
+- Enumeration source: D-405(a) self-application obligation — new changelog row acknowledging D-404+D-405 by literal ID
+- Extent: 1 new row (VP-INDEX v1.43→v1.44)
+- Action: Prepend v1.44 changelog entry "Acknowledges decision range D-389..D-405"; bump frontmatter version 1.43→1.44; last_amended: 2026-05-11
+- Verification (frontmatter): `grep -c '"1\.44"' /Users/jmagady/Dev/vsdd-factory/.factory/specs/verification-properties/VP-INDEX.md` → 1 ✓
+- Verification (body): `grep -c 'v1\.44' /Users/jmagady/Dev/vsdd-factory/.factory/specs/verification-properties/VP-INDEX.md` → 1 ✓
+- Canonical pass-25 markers: "pass-25 fix burst per D-405" in changelog text; "D-404, D-405" literal IDs ✓
+
+**Dim-4 — STORY-INDEX v2.69 (F-P25-001; D-405(a) self-application):**
+- Enumeration source: D-405(a) self-application obligation — new last_amended entry acknowledging D-404+D-405 by literal ID
+- Extent: 1 prepended version entry (STORY-INDEX v2.68→v2.69)
+- Action: Prepend v2.69 last_amended entry "Acknowledges decision range D-389..D-405"; bump frontmatter version 2.68→2.69
+- Verification (frontmatter): `grep -c '"2\.69"' /Users/jmagady/Dev/vsdd-factory/.factory/stories/STORY-INDEX.md` → 1 ✓
+- Verification (body): `grep -c 'v2\.69' /Users/jmagady/Dev/vsdd-factory/.factory/stories/STORY-INDEX.md` → 1 ✓
+- Canonical pass-25 markers: "D-404, D-405" literal IDs in last_amended text ✓
+
+**Dim-5 — ARCH-INDEX v1.49 (F-P25-001; D-405(a) self-application):**
+- Enumeration source: D-405(a) self-application obligation — new changelog row acknowledging D-404+D-405 by literal ID
+- Extent: 1 new row (ARCH-INDEX v1.48→v1.49)
+- Action: Prepend v1.49 changelog entry "Acknowledges decision range D-389..D-405"; bump frontmatter version 1.48→1.49; last_amended: 2026-05-11
+- Verification (frontmatter): `grep -c '"1\.49"' /Users/jmagady/Dev/vsdd-factory/.factory/specs/architecture/ARCH-INDEX.md` → 1 ✓
+- Verification (body): `grep -c 'v1\.49' /Users/jmagady/Dev/vsdd-factory/.factory/specs/architecture/ARCH-INDEX.md` → 1 ✓
+- Canonical pass-25 markers: "pass-25 fix burst per D-405" in changelog text; "D-404, D-405" literal IDs ✓
+
+**Dim-6 — F-P25-002 VP-INDEX stale-narrative 6-site sweep:**
+- Enumeration source: F-P25-002 finding body (6 explicit sites enumerated)
+- Extent: 6 sites (STATE.md lines 41, 137, 186, 197, 205 + INDEX.md line 85)
+- Action: All 6 sites replaced with accurate VP-INDEX v1.44 narrative
+- Verification: `grep -c 'VP-INDEX.*blocked\|blocked.*TD-031\|TD-031.*OPEN' /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-feature-engine-discipline-pass-1/INDEX.md` → 0 ✓ (historical records in Phase Progress rows use different wording; see defensive sweep)
+- Canonical pass-25 marker: "v1.44 (TD-031 historical normalization complete in v1.43; D-405 acknowledged in v1.44)" content marker ✓
+
+**Dim-7 — Pass-24 burst-log corrigenda (F-P25-005/006/010/011; D-387):**
+- Enumeration source: F-P25-005/006/010/011 finding bodies (4 corrigendum blocks)
+- Extent: 4 corrigendum blocks appended to pass-24 burst-log entry end
+- Action: 4 D-387-format corrigenda appended
+- Verification: `grep -c 'Corrigendum (pass-25 fix burst — D-387 / F-P25-005' /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md` → 1 ✓
+- Canonical pass-25 marker: "pass-25 fix burst" in corrigendum prefix ✓
+
+**Action↔Verification pairing (D-395+D-397+D-399+D-402+D-403+D-404+D-405 mandatory):**
+
+All actions in this burst have paired Verification greps targeting pass-25 canonical markers per D-399: (a) literal "pass-25" substring; (b) pass-25-authored content markers (D-405, L-EDP1-017, F-P25-NNN); or (c) 2026-05-11 date-stamp. All Verification counts are EXACT integers per D-402. Regex patterns use paired frontmatter-form + body-form per F-P25-010 recommendation.
+
+**D-383/D-384/D-385/D-393/D-395/D-397/D-399/D-401/D-402/D-403/D-404/D-405 attestations (pass-25 fix burst):**
+- Trajectory pre (content-only): "29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10" (24 values for 24 passes)
+- Trajectory post (content-only): "29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12" (25 values for 25 passes)
+- Cardinality: 29(P1),15(P2),11(P3),9(P4),8(P5),7(P6),5(P7),6(P8),6(P9),6(P10),4(P11),3(P12),3(P13),10(P14),13(P15),9(P16),9(P17),10(P18),11(P19),10(P20),10(P21),11(P22),11(P23),10(P24),12(P25) = 25 values = 25 passes ✓
+- Per-position match vs INDEX.md rows: P1=29✓ P2=15✓ P3=11✓ P4=9✓ P5=8✓ P6=7✓ P7=5✓ P8=6✓ P9=6✓ P10=6✓ P11=4✓ P12=3✓ P13=3✓ P14=10✓ P15=13✓ P16=9✓ P17=9✓ P18=10✓ P19=11✓ P20=10✓ P21=10✓ P22=11✓ P23=11✓ P24=10✓ P25=12✓
+- "passes 3-N" phrase: N=25 (current burst is pass-25); INDEX.md Convergence Status updated to "passes 3-25" ✓
+- Sub-trajectory sibling sweep (D-385 sub-rule 1): STATE.md Concurrent Cycles row updated to "(pass-1..25): 29→...→10→12" ✓; Phase Progress rows verified consistent ✓
+- Immutable-row scope check (D-385 sub-rule 2): pass-24 burst-log corrigenda are appended lines (D-387 permitted format); body immutable ✓. L-EDP1-016 Layer-15 awaiting-text inline-replaced per D-400 (permitted per D-400 protocol) ✓. L-EDP1-017 is a new entry (not a body edit) ✓.
+- D-383 intra-file content audit: STATE.md (phase + current_step + trajectory + Concurrent Cycles + Session Resume Checkpoint all consistent ✓), INDEX.md (row-25 added; Convergence Status updated to passes 3-25; cardinality 25 values for 25 passes ✓), burst-log.md (pass-25 entry appended; pass-24 corrigenda appended ✓), BC-INDEX.md (v1.68 prepended ✓), VP-INDEX.md (v1.44 prepended ✓), ARCH-INDEX.md (v1.49 prepended ✓), STORY-INDEX.md (v2.69 prepended ✓), lessons.md (L-EDP1-016 Layer-15 inline-updated per D-400; L-EDP1-017 appended ✓), decision-log.md (D-405 appended; ID sequence D-336..D-405 sequential ✓)
+- Cross-index sync sweep (D-401(a)+D-403(a)+D-404+D-405(a)): 4 indexes audited. Enumeration source: D-405(a) (all 4 MUST acknowledge D-404+D-405 by literal ID). BC-INDEX v1.68 ✓; VP-INDEX v1.44 ✓; STORY-INDEX v2.69 ✓; ARCH-INDEX v1.49 ✓. All 4 indexes acknowledge D-389..D-405.
+- Second-source query (D-393): `grep -rl 'D-405' /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-feature-engine-discipline-pass-1/ | wc -l` → 5 (decision-log.md + lessons.md + burst-log.md + adv-cycle-pass-25.md + INDEX.md) ✓. Arithmetic: |inlined list| = 5 = |query result| = 5 ✓
+- D-402 exact-count compliance: all Verification greps in this burst report exact integer from -c ✓
+- D-403(b) regex precision compliance: paired frontmatter-form (`"1\.NN"`) + body-form (`v1\.NN`) Verifications per F-P25-010 recommendation ✓
+
+**F-P25-012 closure:** L-EDP1-016 Layer-15 row inline-replaced per D-400 in Commit B (43ef31bd). Placeholder "(awaiting pass-25 adversary fresh-context audit)" replaced with actual F-P25-NNN findings. ✓

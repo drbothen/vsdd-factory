@@ -95,6 +95,8 @@ dtu_services: []
 | F5 pass-23 fix burst (D-403+content fixes) | state-manager | DONE 2026-05-11 | F-P23-001..009 fixed; D-403 codified; L-EDP1-015; BC-INDEX v1.66; ARCH-INDEX v1.47; pass-22+pass-21 corrigenda |
 | F5 pass-24 cycle-level adversary | adversary | DONE 2026-05-11 | HIGH (1H+4M+3L+2NIT+1PG); trajectory content-only →10; 15th-layer L-EDP1-003 (VP-INDEX hook-blocked + D-404 literal-acknowledgment); D-404 required |
 | F5 pass-24 fix burst (D-404+content fixes) | state-manager | DONE 2026-05-11 | D-404 codified; L-EDP1-016; BC-INDEX v1.67; ARCH-INDEX v1.48; STORY-INDEX v2.68; VP-INDEX blocked TD-031; burst-log corrigenda F-P24-002/009 |
+| F5 pass-25 cycle-level adversary | adversary | DONE 2026-05-11 | HIGH (2H+4M+4L+2NIT+1PG); trajectory content-only →12; 16th-layer L-EDP1-003 (D-404 self-application + VP stale-narrative 6-site sweep); D-405 required |
+| F5 pass-25 fix burst (D-405+content fixes) | state-manager | DONE 2026-05-11 | D-405 codified; L-EDP1-017; BC-INDEX v1.68; ARCH-INDEX v1.49; STORY-INDEX v2.69; VP-INDEX v1.44 (TD-031 normalization complete); 6-site stale-narrative swept; burst-log corrigenda F-P25-005/006/010/011 |
 
 ## Identifier Conventions
 
@@ -124,7 +126,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | feb894a2 | rc.16 merge; latest release |
 | develop | 99d24315 | S-12.08 squash-merge (PR #123); F4 COMPLETE |
-| factory-artifacts | d0f947fb | F5 pass-24 fix burst Commit E — state-manager final |
+| factory-artifacts | (see git log) | F5 pass-25 fix burst Commit E — state-manager final |
 | feature/F5-pass-3-cycle-hardening | 2e6b4372 | PR #124 OPEN (DRAFT); CI run 25651192161 GREEN (11/11 checks) |
 | v1.0.0-rc.16 (tag) | feb894a2 | SHIPPED; claude-mp PR #8 awaiting human merge |
 | v1.0.0-rc.15 (tag) | e68bb436 | SHIPPED |
