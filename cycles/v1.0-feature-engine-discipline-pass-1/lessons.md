@@ -1962,7 +1962,7 @@ S-15.03 PRIORITY-A automation remains the only known structural remedy.
 
 **Burst:** F5 pass-49 fix burst (codifies this lesson; recurrence was in pass-48 fix burst which codified D-428).
 
-**Pattern:** The 40th layer confirms the 10th consecutive multi-axis simultaneous recurrence at a codifying-burst boundary. Layer-40 CONFIRMS the META-LEVEL-4 self-replicating coverage-gap predicted by L-EDP1-040: D-428(a) was codified to fix the level-3 coverage-gap (F-P48-001: sweep regex semantically coverage-gapped), but D-428(a)'s ENFORCEMENT corrigendum at the codifying burst itself used a regex covering only 2 of 7 rule-text-named patterns. At D-428's codifying burst (pass-48 fix burst), 7 simultaneous same-burst self-application failures occurred + 1 LOW:
+**Pattern:** The 40th layer confirms the 10th consecutive multi-axis simultaneous recurrence at a codifying-burst boundary. Layer-40 CONFIRMS the META-LEVEL-4 self-replicating coverage-gap predicted by L-EDP1-040: D-428(a) was codified to fix the level-3 coverage-gap (F-P48-001: sweep regex semantically coverage-gapped), but D-428(a)'s ENFORCEMENT corrigendum at the codifying burst itself used a regex covering only 2 of 7 rule-text-named patterns. At D-428's codifying burst (pass-48 fix burst), 8 simultaneous same-burst self-application failures occurred (8 enumerated as numbered axes per D-429(c)+D-430(b) semantic class):
 
 1. **D-428(a) META-LEVEL-4 regex coverage-gap (F-P49-001):** Sweep regex `[0-9]+\+|≥[0-9]+` covered only 2 of 7 patterns named in D-428(a) rule text. Missing: `[0-9]+-[0-9]+`, `approx`, `approximately`, `around`, `between`. META-LEVEL-4 confirmed per L-EDP1-040 prediction.
 

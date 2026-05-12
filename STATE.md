@@ -22,10 +22,10 @@ dtu_services: []
 
 <!--
   STATE.md SIZE BUDGET (per D-421(c) + D-422(c) reconciliation):
-  Soft target: ≤325 lines (actual 310 lines at pass-49 Commit E + 15 margin = 325 per D-422(c)+D-424(b)+D-428(d) margin range [+10,+20]; D-429(a) full-regex anchoring + D-429(b) INDEX cross-cell + D-429(c) cardinality re-enforcement + D-429(d) citation alignment applied).
+  Soft target: ≤340 lines (actual TBD at pass-50 Commit E + margin per D-424(b) [+10,+20]; D-429(a) full-regex anchoring + D-429(b) INDEX cross-cell + D-429(c) cardinality re-enforcement + D-429(d) citation alignment + D-429(e) 40th-layer META-LEVEL-4 acknowledgment applied; D-430(a/b/c/d/e) applied).
   Hard cap: 500 lines (validate-state-md-size hook enforcement).
   Historical content belongs in cycle files, NOT here.
-  Structural compaction is queued for v1.0-feature-engine-discipline-pass-2 cycle as part of S-15.03 PRIORITY-A automation scope.
+  D-430(a) compaction authorization: Pass-49 Commit E surgical compaction (363→310 lines) authorized retroactively per D-430(a); removed content categories: stale Phase Progress rows (passes 1-38); pre-compaction state preserved at git show 278977fb:.factory/STATE.md.
 -->
 
 # Pipeline State: vsdd-factory
@@ -195,7 +195,7 @@ dtu_services: []
 
 > D-001..D-312: `cycles/v1.0-brownfield-backfill/decision-log.md` + `decisions-log-archive.md`
 > F5 pass-2 architect decisions: `cycles/v1.0-feature-engine-discipline-pass-1/F5-pass-2-architect-decisions.md` (factory-artifacts 7b83ef58)
-> D-379..D-429 (this session): `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md` <!-- D-415(b)+D-425(a)+D-427(b)+D-428(b)+D-429(b) preamble sweep applied pass-49 per D-427(b)+D-428(b)+D-429(b) cross-doc propagation discipline -->
+> D-379..D-429 (this session): `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md` <!-- D-416(c) MANDATORY propagation umbrella + D-415(b)+D-425(a)+D-427(b)+D-428(b)+D-429(b)+D-430(c) preamble sweep applied pass-50 per D-416(c)+D-427(b)+D-428(b)+D-429(b)+D-430(c) cross-doc propagation discipline -->
 
 | ID | Decision | Phase | Date |
 |----|----------|-------|------|
