@@ -3,8 +3,8 @@ document_type: cycle-index
 producer: state-manager
 cycle: v1.0-feature-engine-discipline-pass-1
 version: "1.0"
-timestamp: 2026-05-11T00:00:00Z
-last_amended: 2026-05-11
+timestamp: 2026-05-12T00:00:00Z
+last_amended: 2026-05-12
 status: in-progress
 phase: F5-cycle-level-review
 ---
@@ -95,6 +95,8 @@ changes are WASM-only (no new Bash hook debt per D-2).
 | 38 | 2026-05-12 | 7 (2H+3M+2L) | HIGH | adv-cycle-pass-38.md |
 | 39 | 2026-05-12 | 8 (3H+3M+2L)+1obs | HIGH | adv-cycle-pass-39.md |
 | 40 | 2026-05-12 | 7 (3H+3M+1L)+1obs | HIGH | adv-cycle-pass-40.md |
+| 41 | 2026-05-12 | 8 (3H+4M+1L)+1obs | HIGH | adv-cycle-pass-41.md |
+| 42 | 2026-05-12 | 7 (3H+3M+1L)+1obs | HIGH | adv-cycle-pass-42.md |
 
 ## Convergence Status
 
@@ -102,7 +104,7 @@ changes are WASM-only (no new Bash hook debt per D-2).
 - F2 (spec evolution / story decomposition): **COMPLETE** — F2-amendment D-362; 6 BCs + ADR-018 + 4 VPs + PRD FR-048
 - F3 (incremental stories): **COMPLETE** — F3-amendment D-366; 6 stories S-12.03..S-12.08 under E-12
 - F4 (implementation): **COMPLETE** — all 6 E-12 stories merged (PRs #105, #119, #120, #121, #122, #123); F-P2-001 closed via S-12.08
-- F5 (scoped adversarial review): **IN PROGRESS** — 41 reviews dispatched; 41 complete adversary returns; 39 fix bursts at passes 3-41; per D-418(c) deterministic-tally form. Trajectory content-only 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7→8→6→2→5→5→5→7→8→7→8 (41 values); pass-41 HIGH (3H+4M+1L=8+1obs); streak 0/3; D-386 Option C accepted; D-379..D-421 codified; L-EDP1-001..L-EDP1-033 authored; VP-INDEX v1.59 / BC-INDEX v1.83 / ARCH-INDEX v1.64 / STORY-INDEX v2.84 acknowledge D-389..D-421
+- F5 (scoped adversarial review): **IN PROGRESS** — 42 reviews dispatched; 42 complete adversary returns; 40 fix bursts at passes 3-42; per D-418(c) deterministic-tally form. Trajectory content-only 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7→8→6→2→5→5→5→7→8→7→8→7 (42 values); pass-42 HIGH (3H+3M+1L=7+1obs); streak 0/3; D-386 Option C accepted; D-379..D-422 codified; L-EDP1-001..L-EDP1-034 authored; VP-INDEX v1.60 / BC-INDEX v1.84 / ARCH-INDEX v1.65 / STORY-INDEX v2.85 acknowledge D-389..D-422
 - F6 (targeted hardening): PENDING
 - F7 (delta convergence): PENDING
 

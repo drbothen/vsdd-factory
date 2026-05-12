@@ -21,8 +21,8 @@ dtu_services: []
 ---
 
 <!--
-  STATE.md SIZE BUDGET (per D-421(c) reconciliation):
-  Soft target: ≤290 lines (observed asymptotic operating range during engine-discipline cycle).
+  STATE.md SIZE BUDGET (per D-421(c) + D-422(c) reconciliation):
+  Soft target: ≤330 lines (actual current line count + 16 margin per D-422(c) self-compliance discipline; revised from D-421(c) 290 which was aspirational and self-defeated at codifying burst).
   Hard cap: 500 lines (validate-state-md-size hook enforcement).
   Historical content belongs in cycle files, NOT here.
   Structural compaction is queued for v1.0-feature-engine-discipline-pass-2 cycle as part of S-15.03 PRIORITY-A automation scope.
@@ -41,7 +41,7 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-12 — pass-41 fix burst COMPLETE (HIGH; 3H+4M+1L=8+1obs); 43 decisions D-379..D-421; 33 lessons L-EDP1-001..033; 4 indexes BC v1.83/VP v1.59/STORY v2.84/ARCH v1.64; 41-value trajectory →8; D-421 codified (5 sub-clauses); L-EDP1-033 32nd-layer multi-axis (2nd consecutive). |
+| **Last Updated** | 2026-05-12 — pass-41 fix burst COMPLETE + F-block-ai-attribution-message-file-arm F1+F2+F3 COMPLETE; 4 indexes BC v1.84/VP v1.60/STORY v2.85/ARCH v1.65; +BC-7.03.094/095/VP-080/E-16/S-16.01/S-16.02 registered; 2 stories ready for F4 (S-16.01, S-16.02; milestone v1.0.0-rc.17). |
 | **Current Phase** | Engine-discipline F5 — pass-41 fix burst COMPLETE; D-421 + L-EDP1-033 codified; next = pass-42 adversary dispatch |
 | **Current Cycle** | v1.0-feature-engine-discipline-pass-1 |
 
@@ -138,19 +138,19 @@ dtu_services: []
 | Type | Format | Authoritative Source | Count |
 |------|--------|----------------------|-------|
 | Subsystem | SS-NN | `specs/architecture/ARCH-INDEX.md` | 10 |
-| Behavioral Contract | BC-S.SS.NNN | `specs/behavioral-contracts/ss-NN/` | 1,947 |
-| Verification Property | VP-NNN | `specs/verification-properties/VP-INDEX.md` | 79 |
-| Story | S-N.MM | `stories/S-N.MM-<short>.md` | 92 file-resident + 15 stub IDs |
-| Epic | E-N | `stories/epics/E-N-<short>.md` | 16 |
+| Behavioral Contract | BC-S.SS.NNN | `specs/behavioral-contracts/ss-NN/` | 1,949 |
+| Verification Property | VP-NNN | `specs/verification-properties/VP-INDEX.md` | 80 |
+| Story | S-N.MM | `stories/S-N.MM-<short>.md` | 94 file-resident + 15 stub IDs |
+| Epic | E-N | `stories/epics/E-N-<short>.md` | 17 |
 | ADR | ADR-NNN | `specs/architecture/decisions/ADR-NNN.md` | 20 |
 
 ## Story Status
 
-92 file-resident + 15 unauthored stub IDs = 107 registered. (F-P9-003 reconciled 2026-05-11: prior headline 88 and breakdown 67+0+22+1=90 were both stale; actual glob of stories/S-*.md yields 92.)
+94 file-resident + 15 unauthored stub IDs = 109 registered. (F-P9-003 reconciled 2026-05-11: prior headline 88 and breakdown stale; +S-16.01/S-16.02 added 2026-05-12 F-block-ai-attribution-message-file-arm F3.)
 
 - **Merged (62):** Includes all prior + S-12.06 (PR #105), S-12.05 (PR #119), S-12.03 (PR #120), S-12.04 (PR #121), S-12.07 (PR #122), S-12.08 (PR #123). E-12 frontier fully merged. Full ledger: `cycles/v1.0-brownfield-backfill/merged-stories-ledger.md`
 - **In-Flight (0):** —
-- **Draft (27 file-resident):** S-5.07; S-10.09; S-11.00; S-14.01..S-14.09 (E-14); S-15.02..S-15.03; and others
+- **Draft (29 file-resident):** S-5.07; S-10.09; S-11.00; S-14.01..S-14.09 (E-14); S-15.02..S-15.03; S-16.01..S-16.02 (E-16 F-block-ai-attribution-message-file-arm); and others
 - **Partial (2):** S-2.05 (hook-sdk-publish); S-3.04 (emit-event-host-function) — superseded by ADR-015; counted separately from draft
 - **Unauthored stub IDs (15):** S-9.01..S-9.07 (W-16); S-11.01..S-11.08 (E-11 W-17 Tier 3)
 - **Withdrawn (1):** S-9.30
@@ -170,8 +170,9 @@ dtu_services: []
 
 | Cycle | Type | Status | Notes |
 |-------|------|--------|-------|
+| F-block-ai-attribution-message-file-arm | feature | F3 COMPLETE — F4 READY | F1+F2+F3 done 2026-05-12; 2 stories ready (S-16.01 5pts PostToolUse HEAD verify, S-16.02 3pts PreToolUse -F arm); E-16 under SS-07/SS-04; milestone v1.0.0-rc.17; BC-7.03.094/095/001, VP-080, ARCH SS-07 v1.3/SS-04 v1.4 registered |
 | v1.0-brownfield-backfill | brownfield | PAUSED | E-10 pass-9 pending; paused at D-343 |
-| v1.0-feature-engine-discipline-pass-1 | feature | F5-IN-PROGRESS | All 6 E-12-platform stories merged; F5 passes 1-41 (41 reviews dispatched; 40 complete adversary returns; 38 fix bursts at passes 3-40) per D-418(c) deterministic-tally form; full-cycle trajectory content-only (pass-1..41): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7→8→6→2→5→5→5→7→8→7→8; pass-41 HIGH verdict (3H+4M+1L=8+1obs); D-421 codified (5 sub-clauses); L-EDP1-033 32nd-layer multi-axis (2nd consecutive); D-386 Option C: continue F5, accept asymptotic L-EDP1-003 limit; VP-INDEX v1.59 / BC-INDEX v1.83 / ARCH-INDEX v1.64 / STORY-INDEX v2.84 acknowledge D-389..D-421; S-15.03 PRIORITY-A in pass-2 cycle |
+| v1.0-feature-engine-discipline-pass-1 | feature | F5-IN-PROGRESS | All 6 E-12-platform stories merged; F5 passes 1-42 (42 reviews dispatched; 42 complete adversary returns; 40 fix bursts at passes 3-42) per D-418(c) deterministic-tally form; full-cycle trajectory content-only (pass-1..42): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7→8→6→2→5→5→5→7→8→7→8→7; pass-42 HIGH verdict (3H+3M+1L=7+1obs); D-422 codified (4 sub-clauses); L-EDP1-034 33rd-layer multi-axis (3rd consecutive); D-386 Option C: continue F5, accept asymptotic L-EDP1-003 limit; VP-INDEX v1.60 / BC-INDEX v1.84 / ARCH-INDEX v1.65 / STORY-INDEX v2.85 acknowledge D-389..D-422; S-15.03 PRIORITY-A in pass-2 cycle |
 | v1.0-feature-plugin-async-semantics-pass-1 | feature | CLOSED | All PRs merged; rc.14 shipped |
 
 ## Decisions Log
@@ -297,13 +298,13 @@ dtu_services: []
 22. D-421(e): burst-log heading-form normalization (h2 form for pass-41+; retroactive deferred to automation)
 Full scope: `.factory/stories/S-15.03-index-cite-refresh-hook.md`
 
-**4-Index State (as of pass-41):** BC-INDEX v1.83 | VP-INDEX v1.59 | STORY-INDEX v2.84 | ARCH-INDEX v1.64 — all acknowledge D-389..D-421 per D-404 unconditional + D-415(c) annotation form.
+**4-Index State (as of pass-41 + F-block-ai-attribution F3 close-out):** BC-INDEX v1.84 | VP-INDEX v1.60 | STORY-INDEX v2.85 | ARCH-INDEX v1.65 — engine-discipline cycle indexes acknowledge D-389..D-421 per D-404 unconditional + D-415(c) annotation form; F-block-ai-attribution close-out: +BC-7.03.094/095, +VP-080, +E-16, +S-16.01/02 registered.
 
 **Critical anchors:**
 - factory-artifacts HEAD: 74181a4f (pass-41 Commit D; parent-commit of Commit E per D-419(b)+D-420(d)+D-421(a))
 - develop HEAD: 99d24315 (S-12.08 PR #123; F4 COMPLETE; unchanged since cycle start)
 - main HEAD: feb894a2 (rc.16; unchanged)
-- F4 platform: COMPLETE (E-12 stories merged: S-12.03..08 via PRs #105/#119/#120/#121/#122/#123)
+- F4 platform: COMPLETE (all E-12-platform stories merged: S-12.03..08 via PRs #105/#119/#120/#121/#122/#123)
 - F5 phase: IN PROGRESS at pass-41 fix burst COMPLETE
 - F6: BLOCKED on F5 convergence (accepted asymptotic per D-386)
 - F7: BLOCKED on F6
