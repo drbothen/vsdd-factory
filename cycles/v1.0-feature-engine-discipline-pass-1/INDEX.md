@@ -4,7 +4,7 @@ producer: state-manager
 cycle: v1.0-feature-engine-discipline-pass-1
 version: "1.0"
 timestamp: 2026-05-11T00:00:00Z
-last_amended: "2026-05-11"
+last_amended: 2026-05-11
 status: in-progress
 phase: F5-cycle-level-review
 ---

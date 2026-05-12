@@ -804,7 +804,7 @@ The 19-layer history:
 | 17 (pass-26) | D-406 | "attestation-accuracy acknowledgment + cross-document numeric coherence + forward-looking codification propagation" | F-P27-001 D-406 not in 4 indexes (HIGH); F-P27-002 invalid regex in F-P26-002 corrigendum (HIGH); F-P27-003 STATE pass-count off-by-one; F-P27-004 INDEX range excludes D-406; F-P27-005/006/007 narrative + attestation false-claims |
 | 18 (pass-27) | D-407 | "D-404 unconditional clarification (independent of D-401(a) threshold) + corrigendum-regex self-validation" | F-P28-001 F-P27-002 corrigendum body count=4 actual=6 (HIGH); F-P28-002 pass-27 Dim-7 false-green count=1 actual=2 (HIGH); F-P28-003 pass-27 Dim-2/3 false-greens count=1 actual=2 each (HIGH); F-P28-004 Extent miscount; F-P28-005 L-EDP1-019 narrative scope gap |
 | 19 (pass-28) | D-408 | "ALL Dim Verifications must be independently re-executed + layer-history table multi-match bounding + corrigendum-body self-referential count" | F-P29-001 Dim-7 false-green count=2 actual=1 (HIGH); F-P29-002 Dim-5 self-referential count=1 actual=2 each x4 (HIGH); F-P29-003 line-vs-occurrence ambiguity; F-P29-004 sub-trajectory sweep scope; F-P29-005 Trigger narrative omission; F-P29-006 INDEX.md frontmatter sibling gap; F-P29-007 closure-set incomplete |
-| 20 (this, pass-29) | D-409 | "Verification-line self-reference resolution (form i: N+1 explicit annotation or form ii: bounded pattern) + INDEX.md frontmatter sibling-pattern + closure-set completeness" | (awaiting pass-30 adversary fresh-context audit) |
+| 20 (this, pass-29) | D-409 | "Verification-line self-reference resolution (form i: N+1 explicit annotation or form ii: bounded pattern) + INDEX.md frontmatter sibling-pattern + closure-set completeness" | F-P30-001 sibling-corrigendum missing on L-EDP1-020 (HIGH); F-P30-002 L-EDP1-020 Status D-407 typo; F-P30-003 Dim-7 Verification stale post-dispatch; F-P30-004 Dim-3 partial annotation; F-P30-005 L-EDP1-021 Status convention; F-P30-006 INDEX.md quoting style |
 
 **Resolution:** Per D-386 Option C (asymptotic convergence accepted), no further structural escalation this cycle. D-408 extends the inline-validation obligation to all Dim Verification lines (not just corrigendum-prescribed regexes), closes the layer-history table multi-match gap, and closes the corrigendum-body self-referential counting gap. S-15.03 PRIORITY-A automation remains the structural remedy for v1.0-feature-engine-discipline-pass-2.
 
@@ -813,7 +813,11 @@ The 19-layer history:
 - D-408(b): When a Verification grep target string appears in BOTH source content AND layer-history table cells (L-EDP1-NNN tables accumulate findings by ID), the Verification regex MUST bound the search to the original site OR cite the multi-match count explicitly (e.g., count=2: 1 source instance + 1 layer-history table cell).
 - D-408(c): D-407(b) corrigendum self-validation must count corrigenda-about-corrigenda when the regex would match their bodies. The corrected count for the F-P25-(005\|006\|010\|011) pattern in burst-log.md is 6, not 4.
 
-**Status:** Codified. D-407 closes the unconditional-acknowledgment conflation gap and corrigendum self-validation gap. L-EDP1-003 pattern continues at asymptotic boundary per D-386 Option C.
+**Status:** Codified. D-408 closes the Dim-Verification false-green gap and layer-history multi-match gap. L-EDP1-003 pattern continues at asymptotic boundary per D-386 Option C.
+
+**Corrigendum (pass-30 fix burst — D-387 / F-P30-002):** L-EDP1-020 Status line erroneously cited "D-407 closes ..." — D-407 was the violation-creating decision (codified by pass-27 fix burst, documented in L-EDP1-019); D-408 is the closing decision for L-EDP1-020 (per Burst attribution at line 774 "F5 pass-28 fix burst" and Resolution at line 809 "D-408 extends"). Corrected reading: "D-408 closes the Dim-Verification false-green gap and layer-history multi-match gap." Closes F-P30-002.
+
+**Corrigendum (pass-30 fix burst — D-387 / D-400 + D-410):** Layer-19 row "Same-burst Violation" inline-updated per D-400 (originally applied in pass-29 fix burst; sibling-corrigendum missing then; appended retroactively per D-410). See L-EDP1-021 for layer-20.
 
 ---
 
@@ -850,7 +854,7 @@ The 20-layer history:
 | 17 (pass-26) | D-406 | "attestation-accuracy acknowledgment + cross-document numeric coherence + forward-looking codification propagation" | F-P27-001 D-406 not in 4 indexes (HIGH); F-P27-002 invalid regex in F-P26-002 corrigendum (HIGH); F-P27-003 STATE pass-count off-by-one; F-P27-004 INDEX range excludes D-406; F-P27-005/006/007 narrative + attestation false-claims |
 | 18 (pass-27) | D-407 | "D-404 unconditional clarification (independent of D-401(a) threshold) + corrigendum-regex self-validation" | F-P28-001 F-P27-002 corrigendum body count=4 actual=6 (HIGH); F-P28-002 pass-27 Dim-7 false-green count=1 actual=2 (HIGH); F-P28-003 pass-27 Dim-2/3 false-greens count=1 actual=2 each (HIGH); F-P28-004 Extent miscount; F-P28-005 L-EDP1-019 narrative scope gap |
 | 19 (pass-28) | D-408 | "ALL Dim Verifications must be independently re-executed + layer-history table multi-match bounding + corrigendum-body self-referential count" | F-P29-001 Dim-7 false-green count=2 actual=1 (HIGH); F-P29-002 Dim-5 self-referential count=1 actual=2 each x4 (HIGH); F-P29-003 line-vs-occurrence ambiguity; F-P29-004 sub-trajectory sweep scope; F-P29-005 Trigger narrative omission; F-P29-006 INDEX.md frontmatter sibling gap; F-P29-007 closure-set incomplete |
-| 20 (this, pass-29) | D-409 | "Verification-line self-reference resolution (form i: N+1 explicit annotation or form ii: bounded pattern) + INDEX.md frontmatter sibling-pattern + closure-set completeness" | (awaiting pass-30 adversary fresh-context audit) |
+| 20 (this, pass-29) | D-409 | "Verification-line self-reference resolution (form i: N+1 explicit annotation or form ii: bounded pattern) + INDEX.md frontmatter sibling-pattern + closure-set completeness" | F-P30-001 sibling-corrigendum missing on L-EDP1-020 (HIGH); F-P30-002 L-EDP1-020 Status D-407 typo; F-P30-003 Dim-7 Verification stale post-dispatch; F-P30-004 Dim-3 partial annotation; F-P30-005 L-EDP1-021 Status convention; F-P30-006 INDEX.md quoting style |
 
 **Resolution:** Per D-386 Option C (asymptotic convergence accepted), no further structural escalation this cycle. D-409 closes the Verification-line self-reference variant (the third distinct sub-class of the D-408 false-green family), codifies INDEX.md frontmatter parity, and codifies complete closure-set enumeration. S-15.03 PRIORITY-A automation remains the structural remedy for v1.0-feature-engine-discipline-pass-2.
 
@@ -858,5 +862,52 @@ The 20-layer history:
 - D-409(a): When a Verification grep target string necessarily appears in the Verification line itself (because the Verification line quotes the pattern in backticks), the grep-c count includes a self-reference. Two valid forms: (i) count = N+1 with explicit annotation "→ N+1 (N source instances + 1 Verification line self-reference) ✓"; OR (ii) bounded pattern excluding the Verification line. Default: form (i). Distinct from D-408(b) (layer-history multi-match) and D-408(c) (corrigendum-body self-ref).
 - D-409(b): Cycle INDEX.md MUST carry frontmatter fields parallel to BC/VP/STORY/ARCH-INDEX: `timestamp` (Z-suffix ISO-8601), `last_amended`, `status`, `phase`. Sibling-pattern requirement: applies to all cycle-level index documents.
 - D-409(c): D-NNN closure-set (both in burst-log Trigger Codifications block and in decision-log D-NNN closing annotation) MUST enumerate ALL findings closed by the burst, not just the primary/HIGH-severity findings. Complete enumeration includes LOW and MEDIUM findings closed in the same burst.
+
+**Status:** Codified. D-409 closes the Verification-line self-reference variant, INDEX.md frontmatter parity, and closure-set completeness. L-EDP1-003 pattern continues at asymptotic boundary per D-386 Option C.
+
+**Corrigendum (pass-30 fix burst — D-387 / D-400):** Layer-20 row "Same-burst Violation" inline-updated per D-400. See L-EDP1-022 for layer-21.
+
+---
+
+### L-EDP1-022 — 21st-layer L-EDP1-003 recurrence at sibling-corrigendum convention boundary
+
+**Burst:** F5 pass-30 fix burst (codifies the lesson; recurrence was in pass-29 D-409 codification).
+
+**Pattern:** D-409 was codified by the pass-29 fix burst. Pass-30 adversary found the 21st-layer L-EDP1-003 recurrence (F-P30-001 + F-P30-PG1). One HIGH finding:
+
+(1) Sibling-corrigendum missing on L-EDP1-020 (F-P30-001, HIGH): The pass-29 fix burst correctly applied the Layer-19 inline-replace per D-400 (replacing `(awaiting pass-30 adversary fresh-context audit)` in L-EDP1-020's layer-history row 20 with actual findings). However, the same burst did NOT append the terminal forward-reference corrigendum to L-EDP1-020 of the form `**Corrigendum (pass-N fix burst — D-387 / D-400):** Layer-(N-1) row "Same-burst Violation" inline-updated per D-400. See L-EDP1-NNN for layer-N.` This corrigendum was present on L-EDP1-006 through L-EDP1-019 (14 consecutive instances), making the omission a break in the established traversal chain. D-400 codified the inline-replace protocol but did not explicitly require the sibling-corrigendum; D-410 closes this codification gap.
+
+The 21-layer history:
+
+| Layer | Burst | Rule Codified | Same-burst Violation |
+|-------|-------|---------------|---------------------|
+| 1 (pass-8) | D-381 | "fix burst MUST update STATE.md" | missed burst-log + INDEX |
+| 2 (pass-9) | D-382 | "fix burst MUST update all 5 sibling files" | introduced intra-file content defects |
+| 3 (pass-10) | D-383 | "intra-file content audit + sibling-pattern sweep" | trajectory cardinality + self-ref N missed |
+| 4 (pass-11) | D-384 | "3 clarifications to D-383" | sub-trajectories stale; retroactive annotations |
+| 5 (pass-12) | D-385 | "3 clarifications to D-383+D-384" | frontmatter schema drift; counting-basis change |
+| 6 (pass-15) | D-387 | "structural-correction exception + sibling sweep" | sweep dimensions not enumerated; adjacent sibling-chain dimensions not covered |
+| 7 (pass-16) | D-389+D-390 | "input-hash convention + CHANGELOG→last_amended rule" | enumerated in L-EDP1-009 |
+| 8 (pass-17) | D-391+D-392 | "enumeration source mandatory + VP Lifecycle ≡ CHANGELOG" | second-source query absent; inlined BC list wrong (3 gaps); inlined VP list wrong (4 gaps) |
+| 9 (pass-18) | D-393+D-394 | "independent re-derivation Grep query required + D-391 severity explicit + dispatch-side phase update" | F-P19-001 false-true attestation re VP-INDEX last_amended (corrigendum in L-EDP1-010) |
+| 10 (pass-19) | D-395+D-396 | "file-state grep-back verification of Action claims + story-frontmatter↔STORY-INDEX sweep" | F-P20-001 dim-4 intent-mismatch (stale pass-18 narrative written; false-green Verification grep; corrigendum in L-EDP1-011) |
+| 11 (pass-20) | D-397+D-398 | "intent-match sub-clause for D-395 Verification grep + Layer-N awaiting-audit convention" | F-P21-001: STATE.md:42 Current Phase cell still read "pass-19" after pass-20 fix burst updated only the adjacent Last Updated cell — sibling-cell sweep extent missed Current Phase cell (D-400 inline-replace) |
+| 12 (pass-21) | D-399+D-400 | "canonical pass-N marker + Layer-N row update protocol" | F-P22-001 ARCH-INDEX cite-refresh silence (HIGH); F-P22-002 VP/STORY-INDEX cycle-sync silence; F-P22-003 BC-INDEX range/enumeration mismatch; F-P22-004 D-383 attestation gap; F-P22-005 counting-basis drift; F-P22-006 D-394 recurrence |
+| 13 (pass-22) | D-401+D-402 | "cross-index sync convention + exact-count Verification + counting-basis + D-394 ownership" | F-P23-001 D-401(a) self-application failure (HIGH); F-P23-002 D-402 regex precision; F-P23-003 BC-INDEX inline-edit trail; F-P23-004 BC enum gap; F-P23-005 per-position P21 attestation; F-P23-006 D-394 dispatch recurrence |
+| 14 (pass-23) | D-403 | "D-401(a) self-application enforcement + D-402 regex precision + D-394 asymptotic acknowledgment" | F-P24-001 D-403(a) self-application failure (HIGH); F-P24-002 pass-21 line 483 cardinality cell; F-P24-003 BC enum D-403 gap; F-P24-004 ARCH range excludes D-403 |
+| 15 (pass-24) | D-404 | "literal acknowledgment enforcement — D-NNN by ID in all 4 index enumerations" | F-P25-001 D-404 itself not literally acknowledged in 4 indexes (HIGH); F-P25-002 6-site stale "VP-INDEX blocked" narrative post-TD-031 fix (HIGH); F-P25-003 4-cell STATE narrative dispatch mismatch; F-P25-004 decision-log range stale; F-P25-005 D-402 lower-bound recurrence; F-P25-006 self-referential greps; F-P25-PG1 dominant L-EDP1-003 sub-pattern across layers 13-16 |
+| 16 (pass-25) | D-405 | "D-404 self-application correction + pattern-class recognition + S-15.03 PRIORITY-A elevation" | F-P26-001 false-green Verification in pass-25 Dim-6 (HIGH); F-P26-002 Dim-7 partial-coverage; F-P26-003 range-form drift; F-P26-004 pass-count drift; F-P26-005 S-15.03 PRIORITY-A not propagated |
+| 17 (pass-26) | D-406 | "attestation-accuracy acknowledgment + cross-document numeric coherence + forward-looking codification propagation" | F-P27-001 D-406 not in 4 indexes (HIGH); F-P27-002 invalid regex in F-P26-002 corrigendum (HIGH); F-P27-003 STATE pass-count off-by-one; F-P27-004 INDEX range excludes D-406; F-P27-005/006/007 narrative + attestation false-claims |
+| 18 (pass-27) | D-407 | "D-404 unconditional clarification (independent of D-401(a) threshold) + corrigendum-regex self-validation" | F-P28-001 F-P27-002 corrigendum body count=4 actual=6 (HIGH); F-P28-002 pass-27 Dim-7 false-green count=1 actual=2 (HIGH); F-P28-003 pass-27 Dim-2/3 false-greens count=1 actual=2 each (HIGH); F-P28-004 Extent miscount; F-P28-005 L-EDP1-019 narrative scope gap |
+| 19 (pass-28) | D-408 | "ALL Dim Verifications must be independently re-executed + layer-history table multi-match bounding + corrigendum-body self-referential count" | F-P29-001 Dim-7 false-green count=2 actual=1 (HIGH); F-P29-002 Dim-5 self-referential count=1 actual=2 each x4 (HIGH); F-P29-003 line-vs-occurrence ambiguity; F-P29-004 sub-trajectory sweep scope; F-P29-005 Trigger narrative omission; F-P29-006 INDEX.md frontmatter sibling gap; F-P29-007 closure-set incomplete |
+| 20 (pass-29) | D-409 | "Verification-line self-reference resolution (form i: N+1 explicit annotation or form ii: bounded pattern) + INDEX.md frontmatter sibling-pattern + closure-set completeness" | F-P30-001 sibling-corrigendum missing on L-EDP1-020 (HIGH); F-P30-002 L-EDP1-020 Status D-407 typo; F-P30-003 Dim-7 Verification stale post-dispatch; F-P30-004 Dim-3 partial annotation; F-P30-005 L-EDP1-021 Status convention; F-P30-006 INDEX.md quoting style |
+| 21 (this, pass-30) | D-410 | "sibling-corrigendum forward-reference MUST be appended when Layer-N inline-replace applied per D-400" | (awaiting pass-31 adversary fresh-context audit) |
+
+**Resolution:** Per D-386 Option C (asymptotic convergence accepted), no further structural escalation this cycle. D-410 closes the sibling-corrigendum codification gap (convention-by-practice-only for 14 layers; now a formal rule). S-15.03 PRIORITY-A automation remains the structural remedy for v1.0-feature-engine-discipline-pass-2.
+
+**Codified rules:**
+- D-410: When pass-N fix burst applies the Layer-N inline-edit per D-400 (replacing awaiting-text in L-EDP1-(NNN-1) Layer-(N-1) row), the same burst MUST append a forward-reference corrigendum at the END of the L-EDP1-(NNN-1) entry body (before separator `---`) of the form: `**Corrigendum (pass-N fix burst — D-387 / D-400):** Layer-(N-1) row "Same-burst Violation" inline-updated per D-400. See L-EDP1-NNN for layer-N.` This forward-reference is the canonical traversal mechanism for layer-history readers. Violations MEDIUM severity. Closes F-P30-001, F-P30-PG1.
+
+**Status:** Codified. D-410 closes the sibling-corrigendum gap at layer 21. L-EDP1-003 pattern continues at asymptotic boundary per D-386 Option C.
 
 **Status:** Codified. L-EDP1-003 pattern continues at asymptotic boundary per D-386 Option C.
