@@ -12,7 +12,7 @@ input-hash: "[live-state]"
 traces_to: prd.md
 project: vsdd-factory
 mode: brownfield
-current_step: "F5 pass-40 adversary dispatch IN-PROGRESS (D-394+D-401(b)+D-418(a)+D-419(a)+D-419(b) parent-commit-SHA grep-back-applied; pass-39 COMPLETE at 81991227 per D-419(b); D-419 codified (3 sub-clauses); L-EDP1-031 30th-layer; 4 indexes D-389..D-419; trajectory →8)"
+current_step: "F5 pass-40 fix burst COMPLETE (HIGH→PENDING_NEXT_PASS; D-420 codified (5 sub-clauses); L-EDP1-032 31st-layer multi-axis; 4 indexes D-389..D-420; trajectory →7; pass-39 parent-commit 81991227 per D-419(b)+D-420(d))"
 current_cycle: v1.0-feature-engine-discipline-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
