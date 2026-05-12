@@ -22,10 +22,15 @@ findings_count:
   low: 0
   nitpick: 0
 process_gap_count: 0
+observations: 0
 convergence_reached: false
 ---
 
 # Adversarial Review — F5 Pass 35
+
+## Finding ID Convention
+
+This cycle uses `F-P<PASS>-<SEQ>` format (e.g., F-P35-001) per established cycle convention for engine-discipline F5 adversarial reviews. The template `ADV-<CYCLE>-P<PASS>-<SEV>-<SEQ>` format is noted; this cycle predates that convention and uses the established F-P form consistently through all 35 passes.
 
 ## Part A — Pass-34 Fix Burst Verification
 
@@ -47,7 +52,7 @@ each pass-34 finding:
   documentary quotes. D-414(c) codified the distinction explicitly. **CLOSED** per
   D-414(c).
 
-## Part B — Pass-35 Findings
+## Part B — New Findings
 
 ### F-P35-001 [HIGH]: Pass-34 burst-log Dim-5 internally contradictory site counts
 
@@ -158,6 +163,20 @@ D-415(e) required for prospective clarity and corrective fix).
 - D-409: Verification-line + Canonical-marker self-reference annotation
 - D-413(a): N+2 form (3 sites: corrigendum body + Verification self-ref + Canonical-marker)
 - D-414(a): N source = bodies LITERALLY MATCHING the grep pattern
+
+## Summary
+
+| Severity | Count | Findings |
+|----------|-------|---------|
+| CRITICAL | 0 | — |
+| HIGH | 2 | F-P35-001, F-P35-004 |
+| MEDIUM | 3 | F-P35-002, F-P35-003, F-P35-005 |
+| LOW | 0 | — |
+| NITPICK | 0 | — |
+
+**Overall Assessment:** block — findings require fix burst before pass-36 dispatch.
+**Convergence:** FINDINGS_REMAIN — streak 0/3; HIGH findings present.
+**Readiness:** requires revision.
 
 ## Novelty Assessment
 

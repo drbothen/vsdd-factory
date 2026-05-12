@@ -1745,6 +1745,8 @@ Dim-2 — lessons.md L-EDP1-026 + L-EDP1-027 (D-382+D-398+D-400+D-410):
 - Verification: `grep -c "awaiting pass-36" /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-feature-engine-discipline-pass-1/lessons.md` → 2 (L-EDP1-027 layer-26 table cell + L-EDP1-027 Status line; per D-408(b) multi-match) ✓
 - Canonical pass-35 marker: "L-EDP1-027"
 
+**Corrigendum (pass-36 fix burst — D-387 / F-P36-001 / D-408(b) + D-416(a)):** Pass-35 Dim-2 Verification claimed `→ 4` enumerating 4 sites (L-EDP1-026 sibling-corrigendum + L-EDP1-027 heading + Layer-26 row ID + L-EDP1-026 Status forward-ref). Per D-416(a) (codified pass-36) literal-substring requirement: only 2 sites contain the literal pattern "L-EDP1-027" — lessons.md:1128 (L-EDP1-026 sibling-corrigendum: "See L-EDP1-027 for layer-26") + lessons.md:1132 (L-EDP1-027 heading: "### L-EDP1-027 — 26th-layer..."). Sites 3 and 4 ("Layer-26 row ID" and "L-EDP1-026 Status forward-ref") reference Layer-26 / L-EDP1-026 semantically but do NOT literally contain the string "L-EDP1-027". The "awaiting pass-36" Verification at line 1745 had count=2 with sites described as "L-EDP1-027 layer-26 table cell + L-EDP1-027 Status line" — those sites contain "awaiting pass-36" (the grep target) but NOT "L-EDP1-027" (the Canonical-marker). Corrected literal count: `grep -c "L-EDP1-027" lessons.md` → 2 (1 sibling-corrigendum + 1 heading) ✓. Closes F-P36-001.
+
 Dim-3 — decision-log.md D-415 (D-382+D-409(b)):
 - Enumeration source: D-415 codified this burst; D-382 mandatory
 - Extent: D-415 row appended to decision-log.md
