@@ -89,10 +89,10 @@ changes are WASM-only (no new Bash hook debt per D-2).
 | 32 | 2026-05-11 | 8 (2H+3M+2L+1NIT) +1PG | HIGH | adv-cycle-pass-32.md |
 | 33 | 2026-05-11 | 6 (5H+1M) +1PG | HIGH | adv-cycle-pass-33.md |
 | 34 | 2026-05-11 | Findings: 2 (1H+1M); Observations: 1 | HIGH | adv-cycle-pass-34.md |
-| 35 | 2026-05-11 | 5 (2H+3M) | HIGH | adv-cycle-pass-35.md |
-| 36 | 2026-05-11 | 5 (1H+3M+1L) | HIGH | adv-cycle-pass-36.md |
-| 37 | 2026-05-11 | 5 (2H+2M+1L) | HIGH | adv-cycle-pass-37.md |
-| 38 | 2026-05-12 | 7 (2H+3M+2L) | HIGH | adv-cycle-pass-38.md |
+| 35 | 2026-05-11 | Findings: 5 (2H+3M); Observations: 0 | HIGH | adv-cycle-pass-35.md |
+| 36 | 2026-05-11 | Findings: 5 (1H+3M+1L); Observations: 0 | HIGH | adv-cycle-pass-36.md |
+| 37 | 2026-05-11 | Findings: 5 (2H+2M+1L); Observations: 0 | HIGH | adv-cycle-pass-37.md |
+| 38 | 2026-05-12 | Findings: 7 (2H+3M+2L); Observations: 1 | HIGH | adv-cycle-pass-38.md |
 | 39 | 2026-05-12 | Findings: 8 (3H+3M+2L); Observations: 1 | HIGH | adv-cycle-pass-39.md |
 | 40 | 2026-05-12 | Findings: 7 (3H+3M+1L); Observations: 1 | HIGH | adv-cycle-pass-40.md |
 | 41 | 2026-05-12 | Findings: 8 (3H+4M+1L); Observations: 1 | HIGH | adv-cycle-pass-41.md |
