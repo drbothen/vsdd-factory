@@ -2441,4 +2441,31 @@ Dim-7 — STATE.md pass-count + narrative + frontmatter update (D-407(c)+D-418(c
 **Closes per D-413(b) completeness mandate: F-P43-001, F-P43-002, F-P43-003, F-P43-004, F-P43-005, F-P43-006, F-P43-007, F-P43-008**
 
 **Factory-artifacts commits:**
-(Commit A: f8207066 — adv-cycle-pass-43.md), (Commit B: 6ef0a7f2 — D-423+L-EDP1-035+L-EDP1-034 Layer-33 inline-replace+corrigenda+L-EDP1-033 retroactive), (Commit C: 0941074b — content fixes F-P43-001..007), (Commit D: a52fad8d — 4-index bumps D-389..D-423), (Commit E: this commit — state-manager final per POLICY 3; parent-commit a52fad8d per D-419(b)+D-420(d)+D-421(a))
+(Commit A: f8207066 — adv-cycle-pass-43.md), (Commit B: 6ef0a7f2 — D-423+L-EDP1-035+L-EDP1-034 Layer-33 inline-replace+corrigenda+L-EDP1-033 retroactive), (Commit C: 0941074b — content fixes F-P43-001..007), (Commit D: a52fad8d — 4-index bumps D-389..D-423), (Commit E: 9cf1251e — state-manager final per POLICY 3; parent-commit a52fad8d per D-419(b)+D-420(d)+D-421(a))
+
+**Corrigendum (pass-44 fix burst — D-387 / F-P44-001 / D-424(a)):** Pass-43 Dim-7 post-dispatch enumeration was MECHANICALLY WRONG. The cited cells "Phase Progress pass-43 adversary row at line 137 + Phase Progress pass-43 fix-burst row at line 138" do NOT contain literal "pass-43 fix burst COMPLETE" — verified via sed extraction per D-424(a):
+- `sed -n '137p' STATE.md` → "F5 pass-43 cycle-level adversary | adversary | DONE 2026-05-12 | HIGH (4H+3M+1L=8+1obs); trajectory →8; 34th-layer L-EDP1-003..." (NO marker)
+- `sed -n '138p' STATE.md` → "F5 pass-43 fix burst (D-423+content fixes) | state-manager | DONE 2026-05-12 | D-423 codified..." (NO marker)
+
+Actual post-dispatch cells containing literal "pass-43 fix burst COMPLETE" per D-417(b) advance-set awareness (D-424(a) discipline):
+- Line 44 (Last Updated body cell — D-417(b)-invariant; retains marker; NOT advanced at dispatch)
+- Line 45 (Current Phase body cell — D-417(b)-invariant; retains marker; NOT advanced at dispatch)
+- Line 241 (Session Resume "Where we are" body cell)
+- Line 258 (Session Resume checklist 3e body cell)
+- Line 318 (Critical anchors F5 phase row body cell)
+
+Count: 5 cells (all D-417(b)-invariant body cells per advance-set definition). Coincidental match with original wrong enumeration (5 cited = 5 actual) masked the 2-cell misidentification. F-P43-002 pattern recurred at the D-423(b) codifying burst per L-EDP1-035 prediction. Closes F-P44-001.
+
+**Corrigendum (pass-44 fix burst — D-387 / F-P44-004 / D-424(a)):** Original Dim-7 narrative "lines 44, 45, 15 advance per D-417(b)" CONTRADICTS D-417(b) explicit advance-set per decision-log:98. D-417(b) defines advance-set as: frontmatter `phase:` + `current_step:` ONLY. Last Updated row + Current Phase row are NOT advanced by dispatch. Corrected narrative:
+
+"Transition: 6 cells during Commit E → 5 cells post-dispatch. Of the 6 during-Commit-E cells, ONE (line 15 frontmatter current_step) advances at dispatch per D-417(b) advance-set; the other 5 (lines 44, 45, 241, 258, 318 — all body cells) are D-417(b)-INVARIANT: they retain marker post-dispatch. Total post-dispatch: 5 cells retain marker."
+
+Closes F-P44-004.
+
+**Corrigendum (pass-44 fix burst — D-387 / F-P44-005):** D-423(a) was codified to mechanize the pass-42 concurrent-commit interaction (c27b229c) that pre-bumped indexes. Pass-43 fix burst had NO concurrent external commits; D-423(a)'s self-application narrative should clarify "no triggering event this burst; rule codified pre-emptively for future concurrent-commit interactions." The Dim-3 version-cell-currency check is ongoing baseline discipline regardless of triggering event. Closes F-P44-005.
+
+**Corrigendum (pass-44 fix burst — D-387 / F-P44-006 / D-424(c)):** Original D-423(c) attestation used non-unique grep target "Layer-32 row" (non-discriminating; matches pre-existing content + new corrigendum body). Per D-424(c), grep-back targets MUST be uniquely-identifying. Re-executed with discriminating target:
+
+`grep -c "pass-43 fix burst — D-387 / F-P43-007" lessons.md` → 1 ✓ (uniquely identifies the new F-P43-007 retroactive corrigendum)
+
+Closes F-P44-006.
