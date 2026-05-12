@@ -5,13 +5,13 @@ version: "2.0"
 status: draft
 producer: state-manager
 timestamp: 2026-05-11T00:00:00Z
-phase: engine-discipline-F5-pass-28-adversary-in-progress
+phase: engine-discipline-F5-pass-28
 inputs: []
 input-hash: "[live-state]"
 traces_to: ""
 project: vsdd-factory
 mode: brownfield
-current_step: "F5 pass-28 adversary dispatch IN-PROGRESS (D-394+D-401(b); pass-27 COMPLETE at accb75b1 — D-407 codified; L-EDP1-019 18th-layer; 4 indexes D-389..D-407 range)"
+current_step: "F5 pass-28 fix burst COMPLETE (HIGH→PENDING_NEXT_PASS; 3H+2M+4L+1NIT+1PG; D-408 codified 3 sub-clauses; L-EDP1-020 19th-layer; 4 indexes v1.70/v1.46/v2.71/v1.51 acknowledge D-389..D-408)"
 current_cycle: v1.0-feature-engine-discipline-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,8 +38,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-11 — F5 pass-27 fix burst COMPLETE. Pass-27 HIGH verdict (2H+5M+3L+2NIT+1PG; 18th-layer L-EDP1-003 at corrigendum-self-validation boundary). D-407 codified (4 sub-clauses). L-EDP1-019 documents 18th-layer. L-EDP1-018 Layer-17 inline-replaced. Corrigenda: F-P27-001 D-406 not in 4 indexes (D-407(a) unconditional clarification); F-P27-002 invalid regex in F-P26-002 corrigendum (D-407(b) self-validation); F-P27-006 pass-26 attestation false-claim corrected. 4 indexes: BC-INDEX v1.69 / VP-INDEX v1.45 / STORY-INDEX v2.70 / ARCH-INDEX v1.50 acknowledge D-389..D-407. Trajectory (content-only): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12. |
-| **Current Phase** | Engine-discipline F5 — pass-27 fix burst COMPLETE (pending pass-28 dispatch) |
+| **Last Updated** | 2026-05-11 — F5 pass-28 fix burst COMPLETE. Pass-28 HIGH verdict (3H+2M+4L+1NIT+1PG; 19th-layer L-EDP1-003 at Dim-Verification false-green boundary). D-408 codified (3 sub-clauses). L-EDP1-020 documents 19th-layer. L-EDP1-019 Layer-18 inline-replaced. Corrigenda: F-P28-001 F-P27-002 body count 4→6 (D-408(c)); F-P28-002 Dim-7 count 1→2; F-P28-003 Dim-2/3 counts 1→2 each (D-408(b)); F-P28-004 Extent corrected. 4 indexes: BC-INDEX v1.70 / VP-INDEX v1.46 / STORY-INDEX v2.71 / ARCH-INDEX v1.51 acknowledge D-389..D-408. Trajectory (content-only): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11. |
+| **Current Phase** | Engine-discipline F5 — pass-28 fix burst COMPLETE (pending pass-29 dispatch) |
 | **Current Cycle** | v1.0-feature-engine-discipline-pass-1 |
 
 ## Phase Progress
@@ -101,6 +101,8 @@ dtu_services: []
 | F5 pass-26 fix burst (D-406+content fixes) | state-manager | DONE 2026-05-11 | D-406 codified; L-EDP1-018; L-EDP1-017 Layer-16 inline-replaced; burst-log corrigenda F-P26-001/002; INDEX.md range unified; STATE.md pass-count corrected; S-15.03 story annotated |
 | F5 pass-27 cycle-level adversary | adversary | DONE 2026-05-11 | HIGH (2H+5M+3L+2NIT+1PG); trajectory →12; 18th-layer L-EDP1-003 (D-404 unconditional obligation conflated with D-401(a) threshold; corrigendum regex invalid); D-407+L-EDP1-019 required |
 | F5 pass-27 fix burst (D-407+content fixes) | state-manager | DONE 2026-05-11 | D-407 codified (4 sub-clauses); L-EDP1-019; L-EDP1-018 Layer-17 inline-replaced; burst-log corrigenda F-P27-002/006; 4 indexes v1.69/v1.45/v2.70/v1.50 acknowledge D-389..D-407 |
+| F5 pass-28 cycle-level adversary | adversary | DONE 2026-05-11 | HIGH (3H+2M+4L+1NIT+1PG); trajectory →11; 19th-layer L-EDP1-003 (Dim-Verification false-green at corrigendum-body boundary); D-408 required |
+| F5 pass-28 fix burst (D-408+content fixes) | state-manager | DONE 2026-05-11 | D-408 codified (3 sub-clauses); L-EDP1-020; L-EDP1-019 Layer-18 inline-replaced; 4 corrigenda (F-P28-001/002/003/004); 4 indexes v1.70/v1.46/v2.71/v1.51 acknowledge D-389..D-408 |
 
 ## Identifier Conventions
 
@@ -130,7 +132,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | feb894a2 | rc.16 merge; latest release |
 | develop | 99d24315 | S-12.08 squash-merge (PR #123); F4 COMPLETE |
-| factory-artifacts | (see git log) | F5 pass-27 fix burst Commit E — state-manager final |
+| factory-artifacts | (see git log) | F5 pass-28 fix burst Commit E — state-manager final |
 | feature/F5-pass-3-cycle-hardening | 2e6b4372 | PR #124 OPEN (DRAFT); CI run 25651192161 GREEN (11/11 checks) |
 | v1.0.0-rc.16 (tag) | feb894a2 | SHIPPED; claude-mp PR #8 awaiting human merge |
 | v1.0.0-rc.15 (tag) | e68bb436 | SHIPPED |
@@ -140,7 +142,7 @@ dtu_services: []
 | Cycle | Type | Status | Notes |
 |-------|------|--------|-------|
 | v1.0-brownfield-backfill | brownfield | PAUSED | E-10 pass-9 pending; paused at D-343 |
-| v1.0-feature-engine-discipline-pass-1 | feature | F5-IN-PROGRESS | All 6 E-12-platform stories merged; F5 passes 1-27 (27 F5 cycle-level reviews; 25 fix bursts at passes 3-27); full-cycle trajectory content-only (pass-1..27): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12; pass-27 HIGH verdict (2H+5M+3L+2NIT+1PG); D-407 codified; L-EDP1-019 18th-layer; D-386 Option C: continue F5, accept asymptotic L-EDP1-003 limit; VP-INDEX v1.45 / BC-INDEX v1.69 / ARCH-INDEX v1.50 / STORY-INDEX v2.70 acknowledge D-389..D-407; S-15.03 PRIORITY-A in pass-2 cycle |
+| v1.0-feature-engine-discipline-pass-1 | feature | F5-IN-PROGRESS | All 6 E-12-platform stories merged; F5 passes 1-28 (28 F5 cycle-level reviews; 26 fix bursts at passes 3-28); full-cycle trajectory content-only (pass-1..28): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11; pass-28 HIGH verdict (3H+2M+4L+1NIT+1PG); D-408 codified; L-EDP1-020 19th-layer; D-386 Option C: continue F5, accept asymptotic L-EDP1-003 limit; VP-INDEX v1.46 / BC-INDEX v1.70 / ARCH-INDEX v1.51 / STORY-INDEX v2.71 acknowledge D-389..D-408; S-15.03 PRIORITY-A in pass-2 cycle |
 | v1.0-feature-plugin-async-semantics-pass-1 | feature | CLOSED | All PRs merged; rc.14 shipped |
 
 ## Decisions Log
@@ -189,24 +191,24 @@ dtu_services: []
 
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-11 — F5 pass-27 fix burst COMPLETE. Pass-27 HIGH verdict (2H+5M+3L+2NIT+1PG; 18th-layer L-EDP1-003 at corrigendum-self-validation boundary). D-407 codified (4 sub-clauses). L-EDP1-019 documents 18th-layer. L-EDP1-018 Layer-17 inline-replaced per D-400. Key fixes: F-P27-001 D-406 not in 4 indexes (D-404 unconditional; D-407(a) closes D-401(a) threshold conflation permanently); F-P27-002 invalid regex in F-P26-002 corrigendum (D-407(b) corrigendum self-validation introduced); F-P27-003 pass-count corrected to 27 F5 cycle-level reviews; F-P27-004 INDEX range advanced to D-379..D-407; F-P27-006 pass-26 attestation corrigendum. 4 indexes bumped to v1.69/v1.45/v2.70/v1.50 acknowledging D-389..D-407. Trajectory (content-only): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12. Streak 0/3.
+**Last update:** 2026-05-11 — F5 pass-28 fix burst COMPLETE. Pass-28 HIGH verdict (3H+2M+4L+1NIT+1PG; 19th-layer L-EDP1-003 at Dim-Verification false-green boundary). D-408 codified (3 sub-clauses). L-EDP1-020 documents 19th-layer. L-EDP1-019 Layer-18 inline-replaced per D-400. Key fixes: F-P28-001 F-P27-002 corrigendum body count 4→6 (D-408(c) self-referential count); F-P28-002 Dim-7 false-green count 1→2 (D-408(a)); F-P28-003 Dim-2/3 false-greens count 1→2 each (D-408(b) layer-history table multi-match); F-P28-004 Dim-7 Extent corrected. 4 indexes bumped to v1.70/v1.46/v2.71/v1.51 acknowledging D-389..D-408. Trajectory (content-only): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11. Streak 0/3.
 
-**STATE:** F4 platform COMPLETE; F5 at pass-27 fix burst complete. Next: dispatch pass-28 adversary (per D-394+D-407, update STATE.md phase BEFORE adversary returns).
+**STATE:** F4 platform COMPLETE; F5 at pass-28 fix burst complete. Next: dispatch pass-29 adversary (per D-394+D-408, update STATE.md phase BEFORE adversary returns).
 
 **Next session start — ordered checklist:**
 
-1. ✓ D-399..D-407 codified (passes 21-27 fix bursts complete; L-EDP1-013..L-EDP1-019).
-2. ✓ VP-INDEX v1.45 / BC-INDEX v1.69 / ARCH-INDEX v1.50 / STORY-INDEX v2.70 — D-389..D-407 acknowledged.
-3. ✓ Apply pass-27 fix burst per D-382..D-407 discipline — DONE.
-4. Dispatch pass-28 adversary — update STATE.md phase to pass-28-adversary-in-progress BEFORE adversary returns.
+1. ✓ D-399..D-408 codified (passes 21-28 fix bursts complete; L-EDP1-013..L-EDP1-020).
+2. ✓ VP-INDEX v1.46 / BC-INDEX v1.70 / ARCH-INDEX v1.51 / STORY-INDEX v2.71 — D-389..D-408 acknowledged.
+3. ✓ Apply pass-28 fix burst per D-382..D-408 discipline — DONE.
+4. Dispatch pass-29 adversary — update STATE.md phase to pass-29-adversary-in-progress BEFORE adversary returns.
 5. Iterate until 3 consecutive NITPICK_ONLY passes achieved OR human declares convergence.
 6. F6 targeted hardening after convergence criterion met. F7 delta convergence + human gate (cycle CLOSE).
 7. E-10 brownfield pass-9 resume (PAUSED at D-343).
 
-**D-382..D-407 discipline applies to ALL future fix bursts.** Key additions pass-27: D-407 (D-404 unconditional independent of D-401(a) threshold; corrigendum-regex self-validation; STATE.md count advances to current pass-N; range citations include in-burst D-NNN).
+**D-382..D-408 discipline applies to ALL future fix bursts.** Key additions pass-28: D-408 (ALL Dim Verification greps must be independently re-executed; layer-history table multi-match must be bounded or cited; corrigendum-body self-referential counts include corrigenda-about-corrigenda).
 
-**Index versions:** BC-INDEX v1.69 | VP-INDEX v1.45 | STORY-INDEX v2.70 | ARCH-INDEX v1.50
-**Pass-27 fixes:** D-407 codified | L-EDP1-019 | L-EDP1-018 Layer-17 inline-replaced | F-P27-001..007 + F-P27-PG1
+**Index versions:** BC-INDEX v1.70 | VP-INDEX v1.46 | STORY-INDEX v2.71 | ARCH-INDEX v1.51
+**Pass-28 fixes:** D-408 codified | L-EDP1-020 | L-EDP1-019 Layer-18 inline-replaced | F-P28-001..004 + F-P28-PG1
 **ADR-013:** 3_of_3 CONVERGED (pass-57) | **E-9:** v1.53 CONVERGENCE_REACHED | **E-10:** paused D-343
 **5 user-locked decisions:** `cycles/v1.0-feature-plugin-async-semantics-pass-1/F4-handoff.md` §3
 

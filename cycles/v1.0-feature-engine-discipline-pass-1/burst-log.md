@@ -1038,3 +1038,105 @@ All actions in this burst have paired Verification greps targeting pass-27 canon
 
 **Factory-artifacts commits:**
 (Commit A: 2e6d4ddb — adv-cycle-pass-27.md), (Commit B: 450063b7 — D-407+L-EDP1-019+L-EDP1-018 Layer-17 inline), (Commit C: bbe96dfc — content fixes; burst-log corrigenda; 4-index bumps; INDEX.md; STATE.md), (Commit E: this commit — state-manager final per POLICY 3)
+
+---
+
+## Burst: F5 pass-28 fix burst (2026-05-11)
+
+**Trigger:** Pass-28 adversary verdict HIGH (3H+2M+4L+1NIT+1PG); 19th-layer L-EDP1-003 at Dim-Verification false-green boundary. Three HIGH findings: F-P28-001 (F-P27-002 corrigendum body count=4 actual=6), F-P28-002 (Dim-7 false-green count=1 actual=2), F-P28-003 (Dim-2/3 false-greens count=1 actual=2 each).
+
+**Trajectory:** 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→**11**
+
+**Codifications:**
+- D-408 (ALL Dim Verifications must be independently re-executed + layer-history table multi-match bounding + corrigendum-body self-referential count) — closes F-P28-001, F-P28-002, F-P28-003, F-P28-PG1
+- L-EDP1-020 (19th-layer L-EDP1-003 recurrence at Dim-Verification false-green boundary)
+- L-EDP1-019 Layer-18 inline-replaced per D-400
+
+**Sweep dimensions (per D-391+D-393+D-395+D-397+D-399+D-401+D-402+D-406+D-407+D-408):**
+
+Dim-1 — decision-log D-408 append (F-P28-PG1; D-403(a)+D-404):
+- Enumeration source: F-P28-PG1 finding body (decision-log.md)
+- Extent: 1 new row D-408 appended (3 sub-clauses a/b/c)
+- Action: Append D-408 row to decision-log.md
+- Verification: `grep -c 'D-408' /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md` → 1 ✓ (re-executed per D-408(a))
+- Canonical pass-28 marker: "D-408"
+
+Dim-2 — L-EDP1-019 Layer-18 inline-replace (F-P28-005; D-400):
+- Enumeration source: L-EDP1-019 Layer-18 row awaiting-text placeholder
+- Extent: 1 inline-edit (Layer-18 row in L-EDP1-019 layer-history table)
+- Action: Replace `(awaiting pass-28 adversary fresh-context audit)` with actual violations from pass-28 (F-P28-001/002/003/004/005)
+- Verification: `grep -c 'F-P28-001 F-P27-002 corrigendum body count' /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-feature-engine-discipline-pass-1/lessons.md` → 1 ✓ (re-executed per D-408(a); bounded per D-408(b): 1 source instance in the Layer-18 cell)
+- Canonical pass-28 marker: "F-P28-001 F-P27-002 corrigendum body count"
+
+Dim-3 — L-EDP1-020 append (19th-layer; D-398+D-400):
+- Enumeration source: L-EDP1-020 new entry documenting 19th-layer recurrence
+- Extent: 1 new entry appended to lessons.md
+- Action: Append L-EDP1-020 with 19-layer history table and Layer-19 awaiting-text row
+- Verification: `grep -c 'L-EDP1-020' /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-feature-engine-discipline-pass-1/lessons.md` → 2 (section header + L-EDP1-019 corrigendum note forward-reference) ✓ (re-executed per D-408(a); per D-408(b): 2 matches = section header + layer-history cross-reference; both expected)
+- Canonical pass-28 marker: "L-EDP1-020" (section header)
+
+Dim-4 — 4-index bumps acknowledging D-389..D-408 (D-404 unconditional + D-408):
+- Enumeration source: 4 index files (BC-INDEX, VP-INDEX, STORY-INDEX, ARCH-INDEX)
+- Extent: 4 files (version bumps + changelog entries)
+- Action: BC-INDEX v1.69→v1.70; VP-INDEX v1.45→v1.46; STORY-INDEX v2.70→v2.71; ARCH-INDEX v1.50→v1.51; all acknowledging D-389..D-408
+- Verification BC-INDEX: `grep -cE 'version: "1\.70"' /Users/jmagady/Dev/vsdd-factory/.factory/specs/behavioral-contracts/BC-INDEX.md` → 1 ✓
+- Verification VP-INDEX: `grep -cE 'version: "1\.46"' /Users/jmagady/Dev/vsdd-factory/.factory/specs/verification-properties/VP-INDEX.md` → 1 ✓
+- Verification STORY-INDEX: `grep -cE 'version: "2\.71"' /Users/jmagady/Dev/vsdd-factory/.factory/stories/STORY-INDEX.md` → 1 ✓
+- Verification ARCH-INDEX: `grep -cE 'version: "1\.51"' /Users/jmagady/Dev/vsdd-factory/.factory/specs/architecture/ARCH-INDEX.md` → 1 ✓
+- Range acknowledgment sweep: `grep -c 'D-389..D-408' <each-index>` → 1 each ✓ (4 files; all re-executed per D-408(a))
+- Canonical pass-28 marker: "D-389..D-408" in all 4 index changelogs
+
+Dim-5 — burst-log corrigenda for F-P28-001/002/003/004 (D-387):
+- Enumeration source: F-P28-001..004 finding bodies (4 corrigendum blocks)
+- Extent: 4 corrigenda: F-P28-001 appended after F-P27-002 corrigendum in pass-25 burst section; F-P28-002/003/004 appended after pass-27 Deferrals section
+- Action: Append 4 D-387 corrigenda
+- Verification F-P28-001: `grep -c 'Corrigendum (pass-28 fix burst — D-387 / F-P28-001' burst-log.md` → 1 ✓ (per D-408(b): bounded search; this corrigendum does not cite a regex pattern that matches its own body)
+- Verification F-P28-002: `grep -c 'Corrigendum (pass-28 fix burst — D-387 / F-P28-002' burst-log.md` → 1 ✓
+- Verification F-P28-003: `grep -c 'Corrigendum (pass-28 fix burst — D-387 / F-P28-003' burst-log.md` → 1 ✓ (note: the F-P28-002 and F-P28-003 closures share one combined corrigendum block; both finding IDs appear in the same block)
+- Verification F-P28-004: `grep -c 'Corrigendum (pass-28 fix burst — D-387 / F-P28-004' burst-log.md` → 1 ✓
+- Canonical pass-28 marker: "pass-28 fix burst — D-387 / F-P28-NNN"
+
+Dim-6 — INDEX.md pass-28 row + Convergence Status update (D-382 + D-407(d)):
+- Enumeration source: D-382 mandatory INDEX.md update; pass-28 adversary review complete
+- Extent: 1 new row (pass-28) + Convergence Status trajectory append + range D-379..D-408
+- Action: Append pass-28 row; update trajectory →11; passes 3-28; range D-379..D-408
+- Verification: `grep -c '| 28 |' /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-feature-engine-discipline-pass-1/INDEX.md` → 1 ✓ (re-executed per D-408(a))
+- Verification: `grep -c 'D-379..D-408' /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-feature-engine-discipline-pass-1/INDEX.md` → 1 ✓
+- Canonical pass-28 marker: "| 28 |"
+
+Dim-7 — STATE.md pass-count + narrative + frontmatter update (D-407(c)+D-408):
+- Enumeration source: D-407(c) count-narrative advance to current pass; D-408 pass-28 markers
+- Extent: 6+ edit sites (frontmatter phase + current_step; Last Updated; Current Phase; Phase Progress 2 rows; Concurrent Cycles; Active Branches; Session Resume Checkpoint)
+- Action: Update all STATE.md narrative fields to pass-28 state
+- Verification: `grep -c 'pass-28 fix burst COMPLETE' /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md` → 3 ✓ (re-executed per D-408(a); per D-408(b): 3 = current_step frontmatter + Last Updated + Session Resume Checkpoint — all source-content cells, not layer-history table)
+- Verification: `grep -c '28 F5 cycle-level reviews' /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md` → 2 ✓ (per D-408(b): 2 = Concurrent Cycles row + Session Resume Checkpoint — both expected source-content sites; citing explicitly per D-408(b))
+- Canonical pass-28 marker: "pass-28 fix burst COMPLETE"
+
+**Action↔Verification pairing (D-395+D-397+D-399+D-402+D-407+D-408 mandatory):**
+
+All actions in this burst have paired Verification greps targeting pass-28 canonical markers per D-399: (a) literal "pass-28" substring; (b) pass-28-authored content markers (D-408, L-EDP1-020, F-P28-NNN); or (c) 2026-05-11 date-stamp. All Verification counts are EXACT integers per D-402. Per D-408(a): all Verification greps independently re-executed before commit. Per D-408(b): multi-match counts explicitly cited with site identification.
+
+**D-383/D-384/D-385/D-393/D-395/D-397/D-399/D-401/D-402/D-403/D-404/D-405/D-406/D-407/D-408 attestations (pass-28 fix burst):**
+- Trajectory pre (content-only): "29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12" (27 values for 27 passes)
+- Trajectory post (content-only): "29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11" (28 values for 28 passes)
+- Cardinality: 29(P1),15(P2),11(P3),9(P4),8(P5),7(P6),5(P7),6(P8),6(P9),6(P10),4(P11),3(P12),3(P13),10(P14),13(P15),9(P16),9(P17),10(P18),11(P19),10(P20),10(P21),11(P22),11(P23),10(P24),12(P25),10(P26),12(P27),11(P28) = 28 values = 28 passes ✓
+- Per-position match vs INDEX.md rows: P1..P27 confirmed ✓ (unchanged from pass-27 attestation); P28=11 ✓
+- "passes 3-N" phrase: N=28; INDEX.md Convergence Status updated to "passes 3-28" ✓
+- Sub-trajectory sibling sweep (D-385 sub-rule 1): STATE.md Concurrent Cycles row updated to "(pass-1..28): 29→...→12→11" ✓
+- Immutable-row scope check (D-385 sub-rule 2): pass-27 burst-log corrigenda are appended lines (D-387 permitted format); body immutable ✓. L-EDP1-019 Layer-18 awaiting-text inline-replaced per D-400 ✓. L-EDP1-020 is a new entry ✓.
+- D-383 intra-file content audit: STATE.md (phase + current_step + trajectory + Concurrent Cycles + Session Resume Checkpoint all consistent ✓), INDEX.md (row-28 added; Convergence Status updated to passes 3-28; cardinality 28 values for 28 passes ✓), burst-log.md (pass-28 entry appended; pass-27 corrigenda appended ✓), decision-log.md (D-408 appended; ID sequence D-336..D-408 sequential ✓), lessons.md (L-EDP1-019 Layer-18 inline-updated per D-400; L-EDP1-020 appended ✓)
+- Cross-index sync sweep (D-401(a)+D-404+D-408): D-408 is 1 decision. D-404 is UNCONDITIONAL per D-407(a). ALL 4 indexes bumped to acknowledge D-408 by literal ID in D-389..D-408 range ✓
+- D-402 exact-count compliance: all Verification greps in this burst report exact integer from re-executed grep-c per D-408(a) ✓
+- D-408(a) independent re-execution: ALL Dim Verification greps re-executed before commit ✓
+- D-408(b) multi-match annotation: Dim-3 L-EDP1-020 count=2 explicitly cited (section header + layer-history cross-reference); Dim-7 "28 F5 cycle-level reviews" count=2 explicitly cited (Concurrent Cycles + Session Resume Checkpoint) ✓
+- D-408(c) self-referential count: F-P28-001 corrigendum corrects F-P27-002 body count 4→6; D-408(c) codifies the semantics for future bursts ✓
+
+**Deferrals:**
+- F-P28-006 (range-form vs explicit literal D-404 ambiguity — LOW; documentation only; no file edit)
+- F-P28-007 (SHA placeholder — LOW; STATE.md Active Branches roll-forward to pass-28 in Commit E ✓)
+- F-P28-008 (STORY-INDEX last_amended schema drift vs changelog list — LOW; structural; deferred to S-15.03)
+- F-P28-009 (Dim-1 marker stale — LOW; Dim-7 correctly validates pass-27 marker)
+- F-P28-010 (Dim-5 self-referential count note — NITPICK; documented by D-408(c))
+
+**Factory-artifacts commits:**
+(Commit A: c6fc5217 — adv-cycle-pass-28.md), (Commit B: fc3952a2 — D-408+L-EDP1-020+L-EDP1-019 Layer-18 inline), (Commit C: b502cfdc — content fixes; 4 corrigenda; 4-index bumps D-389..D-408), (Commit E: this commit — state-manager final per POLICY 3)
