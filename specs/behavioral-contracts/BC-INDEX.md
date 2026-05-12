@@ -1,7 +1,7 @@
 ---
 document_type: bc-index
 level: L3
-version: "1.94"
+version: "1.95"
 status: draft
 producer: state-manager
 timestamp: 2026-05-12T00:00:00Z
@@ -13,8 +13,9 @@ total_bcs: 1949
 traces_to: bc-id-mapping.md
 changelog:
   - date: 2026-05-12
+    change: "v1.95 (2026-05-12; pass-52 fix burst per D-432 + D-404 unconditional): Acknowledges decision range D-389..D-432 (inclusive; literal acknowledgment per D-415(c)). Per D-404 unconditional: index acknowledges D-432 by literal ID (no spec content change in this changelog entry). Refs: F-P52-001/002/003/004/005/006/007, D-432. BC-INDEX v1.94→v1.95."
   - date: 2026-05-12
-        change: "v1.94 (2026-05-12; pass-51 fix burst per D-431 + D-404 unconditional): Acknowledges decision range D-389..D-431 (inclusive; literal acknowledgment per D-415(c)). Per D-404 unconditional: index acknowledges D-431 by literal ID (no spec content change in this changelog entry). Refs: F-P51-001/002/003/004/005/006/007, D-431. BC-INDEX v1.93→v1.94."
+    change: "v1.94 (2026-05-12; pass-51 fix burst per D-431 + D-404 unconditional): Acknowledges decision range D-389..D-431 (inclusive; literal acknowledgment per D-415(c)). Per D-404 unconditional: index acknowledges D-431 by literal ID (no spec content change in this changelog entry). Refs: F-P51-001/002/003/004/005/006/007, D-431. BC-INDEX v1.93→v1.94."
     change: "v1.93 (2026-05-12; pass-50 fix burst per D-430 + D-404 unconditional): Acknowledges decision range D-389..D-430 (inclusive; literal acknowledgment per D-415(c)). Per D-404 unconditional: index acknowledges D-430 by literal ID (no spec content change in this changelog entry). Refs: F-P50-001/002/003/004/005/006/007, D-430. BC-INDEX v1.92→v1.93."
   - date: 2026-05-12
     change: "v1.92 (2026-05-12; pass-49 fix burst per D-429 + D-404 unconditional): Acknowledges decision range D-389..D-429 (inclusive; literal acknowledgment per D-415(c)). Per D-404 unconditional: index acknowledges D-429 by literal ID (no spec content change in this changelog entry). Refs: F-P49-001/002/003/004/005/006/007/008, D-429. BC-INDEX v1.91→v1.92."
