@@ -5,14 +5,14 @@ version: "2.0"
 status: draft
 producer: state-manager
 timestamp: 2026-05-12T00:00:00Z
-phase: engine-discipline-F5-pass-57
+phase: engine-discipline-F5-pass-58-adversary-in-progress
 last_amended: 2026-05-12
 inputs: []
 input-hash: "[live-state]"
 traces_to: prd.md
 project: vsdd-factory
 mode: brownfield
-current_step: "F5 pass-57 fix burst COMPLETE (full-discipline-chain D-382..D-437; pass-57 parent-commit 99b8d093 per D-419(b)+D-420(d)+D-421(a); D-437 codified (5 sub-clauses); L-EDP1-049 48th-layer 18th-consecutive multi-axis META-LEVEL-12-CANDIDATE; 4 indexes D-389..D-437 (BC v2.00 MAJOR VERSION CROSS); trajectory →8→8→9→8; streak 0/3 NITPICK_ONLY)"
+current_step: "F5 pass-58 adversary dispatch IN-PROGRESS (full-discipline-chain D-382..D-437; pass-57 parent-commit 99b8d093 per D-419(b)+D-420(d)+D-421(a); D-437 codified (5 sub-clauses); L-EDP1-049 48th-layer 18th-consecutive multi-axis META-LEVEL-12-CANDIDATE; 4 indexes D-389..D-437 (BC v2.00 + STORY v3.00 major crosses); trajectory →8; streak 0/3)"
 current_cycle: v1.0-feature-engine-discipline-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
