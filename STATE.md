@@ -5,13 +5,13 @@ version: "2.0"
 status: draft
 producer: state-manager
 timestamp: 2026-05-11T00:00:00Z
-phase: engine-discipline-F5-pass-35
+phase: engine-discipline-F5-pass-36-adversary-in-progress
 inputs: []
 input-hash: "[live-state]"
 traces_to: prd.md
 project: vsdd-factory
 mode: brownfield
-current_step: "F5 pass-35 fix burst COMPLETE (HIGH→PENDING_NEXT_PASS; 2H+3M; D-415 codified (5 sub-clauses); L-EDP1-027 26th-layer; 4 indexes v1.77/v1.53/v2.78/v1.58 acknowledge D-389..D-415)"
+current_step: "F5 pass-36 adversary dispatch IN-PROGRESS (D-394+D-401(b); pass-35 COMPLETE at 6e01e918 — D-415 codified (5 sub-clauses); L-EDP1-027 26th-layer; 4 indexes D-389..D-415; trajectory →5)"
 current_cycle: v1.0-feature-engine-discipline-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,8 +38,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-11 — F5 pass-35 fix burst COMPLETE (HIGH→PENDING_NEXT_PASS; 2H+3M; D-415 codified (5 sub-clauses); L-EDP1-027 26th-layer; 4 indexes v1.77/v1.53/v2.78/v1.58 acknowledge D-389..D-415; trajectory →5). |
-| **Current Phase** | Engine-discipline F5 — pass-35 fix burst COMPLETE (pending pass-36 dispatch) |
+| **Last Updated** | 2026-05-11 — F5 pass-36 adversary dispatch IN-PROGRESS (D-394+D-401(b); pass-35 COMPLETE at 6e01e918 — D-415 codified (5 sub-clauses); L-EDP1-027 26th-layer; 4 indexes D-389..D-415; trajectory →5). |
+| **Current Phase** | Engine-discipline F5 — pass-36 adversary IN-PROGRESS |
 | **Current Cycle** | v1.0-feature-engine-discipline-pass-1 |
 
 ## Phase Progress
@@ -208,17 +208,17 @@ dtu_services: []
 
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-11 — F5 pass-35 fix burst COMPLETE. Pass-35 verdict HIGH (2H+3M; 0 process gaps). D-415 codified (5 sub-clauses); L-EDP1-027 26th-layer; L-EDP1-026 Layer-25 inline-updated per D-400. Pass-34 Dim-5/Dim-7 corrigenda applied. STATE.md:165 range D-379..D-415. adv-cycle-pass-34 prior-findings-count corrected 7→6. 4 indexes v1.77/v1.53/v2.78/v1.58 acknowledge D-389..D-415. Trajectory (content-only): →5. Streak 0/3.
+**Last update:** 2026-05-11 — F5 pass-36 adversary dispatched (D-394+D-401(b)). Pass-35 verdict HIGH (2H+3M; 0 process gaps). D-415 codified (5 sub-clauses); L-EDP1-027 26th-layer; 4 indexes v1.77/v1.53/v2.78/v1.58 acknowledge D-389..D-415. Trajectory (content-only): →5. Streak 0/3. Pass-35 fix burst commit: 6e01e918.
 
-**STATE:** F4 platform COMPLETE; F5 pass-35 fix burst COMPLETE. Next: dispatch pass-36 adversary per D-394+D-401(b).
+**STATE:** F4 platform COMPLETE; F5 pass-35 fix burst COMPLETE; pass-36 adversary dispatch IN-PROGRESS per D-394+D-401(b).
 
 **Next session start — ordered checklist:**
 
 1. ✓ D-399..D-415 codified (passes 21-35 fix bursts complete; L-EDP1-013..L-EDP1-027).
 2. ✓ VP-INDEX v1.53 / BC-INDEX v1.77 / ARCH-INDEX v1.58 / STORY-INDEX v2.78 — D-389..D-415 acknowledged.
 3. ✓ Apply pass-35 fix burst per D-382..D-415 discipline — DONE.
-4. Dispatch pass-36 adversary — update STATE.md phase to pass-36-adversary-in-progress per D-394+D-401(b).
-5. If pass-36 NITPICK_ONLY: streak 1/3. If pass-36 has findings: fix burst, then pass-37.
+4. ✓ Dispatch pass-36 adversary — STATE.md phase updated to pass-36-adversary-in-progress per D-394+D-401(b).
+5. Await pass-36 adversary return. If NITPICK_ONLY: streak 1/3. If has findings: fix burst, then pass-37.
 6. Iterate until 3 consecutive NITPICK_ONLY passes achieved OR human declares convergence.
 7. F6 targeted hardening after convergence criterion met. F7 delta convergence + human gate (cycle CLOSE).
 8. E-10 brownfield pass-9 resume (PAUSED at D-343).
