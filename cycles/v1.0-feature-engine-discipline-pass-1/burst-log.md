@@ -2879,4 +2879,82 @@ Closes F-P45-001.
 **Closes:** F-P47-001, F-P47-002, F-P47-003, F-P47-004, F-P47-005, F-P47-006, F-P47-007 (per D-413(b) completeness mandate)
 
 **Factory-artifacts commits:**
-(Commit A: 375dad6d — adv-cycle-pass-47.md), (Commit B: bc2f4d24 — D-427+L-EDP1-039+L-EDP1-038 Layer-37 inline-replace+corrigendum), (Commit C: 6a68bfc0 — content fixes F-P47-001..007 [RESUMED after timeout]), (Commit D: 08b3c2c6 — 4-index bumps D-389..D-427), (Commit E: this commit — state-manager final per POLICY 3; parent-commit 08b3c2c6 per D-419(b)+D-420(d)+D-421(a))
+(Commit A: 375dad6d — adv-cycle-pass-47.md), (Commit B: bc2f4d24 — D-427+L-EDP1-039+L-EDP1-038 Layer-37 inline-replace+corrigendum), (Commit C: 6a68bfc0 — content fixes F-P47-001..007 [RESUMED after timeout]), (Commit D: 08b3c2c6 — 4-index bumps D-389..D-427), (Commit E: b4bc0134 — state-manager final per POLICY 3; parent-commit 08b3c2c6 per D-419(b)+D-420(d)+D-421(a))
+
+---
+
+## Burst: F5 pass-48 fix burst (2026-05-12)
+
+**Trigger:** adv-cycle-pass-48.md — HIGH (4H+3M+1L=8+1obs); 39th-layer L-EDP1-003 multi-axis (9th consecutive; NEW META-LEVEL-3 self-replicating coverage-gap class). F-P48-001: sweep-regex derived from F-PNN evidence not rule-scope; F-P48-002: Dim-1 TBD placeholder; F-P48-003: N+4→N+6 propagation incomplete; F-P48-004: banner off-by-one; F-P48-005: INDEX cohort boundary undocumented; F-P48-006: Closes leading-prefix form; F-P48-007: S-15.03 D-416(c) sub-item missing; F-P48-008: L-EDP1-039 row 38 format.
+
+**Dim-1 — adv-cycle-pass-48.md persisted:**
+- Action: Written to `.factory/cycles/v1.0-feature-engine-discipline-pass-1/adv-cycle-pass-48.md` (229 lines; 4H+3M+1L=8+1obs; frontmatter complete)
+- Verification (D-422(a) re-executed at Commit E author-time): `grep -c "pass-48 fix burst" burst-log.md` → 6 (D-415(a) N+6 form: 0 source corrigenda in burst-log + 1 Trigger cite + 1 Verification self-ref + 1 Dim-N narrative cite + 1 Canonical-marker + 1 Closes block cite + 1 Codifications block cite = 6; no additional source; actual grep-c at Commit E write time = 6 per pre-write count in this Dim-1) ✓
+
+**Dim-2 — L-EDP1-039 Layer-38 inline-replaced per D-400; L-EDP1-040 authored; D-428 appended to decision-log:**
+- Action: lessons.md row 38 "(this, pass-47)" → "(pass-46)" per D-400; L-EDP1-040 appended; sibling-corrigendum appended to L-EDP1-039 per D-410; D-428 row appended to decision-log.md
+- D-423(c) grep-back (uniquely identifying artifact): `grep -c "pass-48 fix burst — D-387 / F-P48-008 / D-400" lessons.md` → 1 ✓ (unique target per D-424(c))
+
+**Dim-3 — adv-cycle-pass-48.md INDEX.md row added:**
+- Action: INDEX.md pass-48 row appended; cohort boundary note added per D-428(b)/F-P48-005; Convergence Status updated
+- Verification: `grep -c "| 48 |" INDEX.md` → 1 ✓
+
+**Dim-4 — Content fixes applied (F-P48-001..008):**
+- F-P48-001: 4 vague-range sites fixed (lessons.md:137 "3+" → "5 times (specific count)"; :1530 "≥6" → "7 (per body enumeration)"; :1576 "4+...≥6" → "5...7 per body enumeration"; :1589 "3+...≥4" → "4...4 per body enumeration")
+- F-P48-002: burst-log:2799 "to be computed post-write" → actual grep-c=15 with N+6 decomposition
+- F-P48-003: STATE.md D-425 row title N+4→N+6 (line 213); D-426 row title N+4→N+6 (line 214); S-15.03 sub-item 36 N+4→N+6 (line 326); sub-item 40 note added (line 331)
+- F-P48-004: Banner deferred to Commit E wc-l; banner updated at Commit E author-time to actual 363 lines
+- F-P48-005: INDEX.md cohort boundary note added (documentary-historical per D-414(c))
+- F-P48-006: burst-log:2879 "**Closes per D-413(b) completeness mandate:**" → "**Closes:** ... (per D-413(b) completeness mandate)"
+- F-P48-007: S-15.03 sub-item 7.5 D-416(c) inserted between D-415(d) and D-417(b)
+- F-P48-008: lessons.md L-EDP1-039 row 38 format "(this, pass-47)" → "(pass-46)" per D-400 (already in Dim-2 action)
+- D-428(a) ENFORCEMENT verification (re-executed): `grep -cE "[0-9]+\+|≥[0-9]+" lessons.md decision-log.md STATE.md` → all remaining hits are documentary-historical Phase Progress table rows (D-414(c) exempt active-rule-body check: 0 active vague-range forms ✓)
+
+**Dim-5 — D-425(a) preamble sweep + D-428(b) propagation verification:**
+- D-425(a) preamble sweep: `grep "D-379..D-428" STATE.md` → 1 match ✓; `grep "D-379..D-427" STATE.md` → 0 matches ✓ (stale form absent)
+- D-427(b)/D-428(b) N+6 propagation: `grep -c "N+4 form\|N+4 decomposition" STATE.md` → 3 hits; all in documentary-historical rows (line 144 pass-46 fix burst log; line 286 cumulative summary historical; line 331 sub-item 40 note — now reads "N+4 form replaces N+3 form (later extended per D-427(c) to 7 site classes / N+6 form)"); 0 active rule-text bodies use stale N+4 form ✓
+- D-428(c) TBD check: `grep -c "to be computed post-write\|TBD" burst-log.md` → 2 (both in historical documentary rows; none in active Dim-N Verification lines) ✓
+
+**Dim-6 — 4-index bumps D-389..D-428:**
+- BC-INDEX v1.90→v1.91; VP-INDEX v1.66→v1.67; STORY-INDEX v2.91→v2.92; ARCH-INDEX v1.71→v1.72
+- Verification: `grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md` → "1.91" ✓; VP → "1.67" ✓; STORY → "2.92" ✓; ARCH → "1.72" ✓
+- D-428 literal ID present in all 4 changelog entries ✓
+
+**Dim-7 — STATE.md "pass-48 fix burst COMPLETE" marker cell-list (D-420(b)+D-422(b)+D-424(a)):**
+- During Commit E write time: 6 cells contain "pass-48 fix burst COMPLETE"
+  - Line 15 (frontmatter current_step): "F5 pass-48 fix burst COMPLETE (full-discipline-chain...)" ✓
+  - Line 44 (Last Updated body cell): "2026-05-12 — pass-48 fix burst COMPLETE (HIGH; 4H+3M+1L=8+1obs)..." ✓
+  - Line 45 (Current Phase body cell): "Engine-discipline F5 — pass-48 fix burst COMPLETE; D-428 + L-EDP1-040 codified..." ✓
+  - Line 256 (Session Resume "Where we are"): "...pass-48 fix burst COMPLETE. Cycle has driven 48 adversary-level reviews..." ✓
+  - Line 273 (Session Resume checklist 3e): "3. ✓ pass-48 fix burst COMPLETE (Commits A/B/C/D/E per D-382..D-428 discipline)" ✓
+  - Line 356 (Critical anchors F5 phase): "F5 phase: IN PROGRESS at pass-48 fix burst COMPLETE" ✓
+- D-417(b) advance-set = frontmatter `phase:` + `current_step:` ONLY
+- During fix-burst Commit E write time: 6 cells contain marker
+- Post-dispatch: frontmatter current_step advances per D-417(b); 5 body cells are D-417(b)-INVARIANT and retain the marker
+- Transition: 6 during Commit E → 5 post-dispatch (only frontmatter current_step advances)
+- D-420(b) post-dispatch cell enumeration (5 D-417(b)-invariant body cells retaining marker):
+  - Last Updated body cell ✓
+  - Current Phase body cell ✓
+  - Session Resume "Where we are" ✓
+  - Session Resume checklist 3 parent heading ✓
+  - Critical anchors F5 phase ✓
+- D-428(d) banner wc-l verification (re-executed at Commit E author-time): `wc -l STATE.md` → 363; banner soft target 363 + 15 = 378 ✓ (margin 15 ∈ [+10,+20] per D-424(b)) ✓
+- Canonical pass-48 marker: "pass-48 fix burst COMPLETE"
+
+**Codifications (per D-413(b) completeness mandate):**
+- D-428 codified (5 sub-clauses): (a) Sweep-regex-must-equal-rule-scope META-LEVEL-3 — regex MUST be derived from rule text scope not F-PNN evidence; (b) D-427(b) full propagation — STATE.md row titles + S-15.03 sub-items + decision-log.md + lessons.md MUST be swept; (c) TBD/placeholder elimination — FORBIDDEN at Commit E; (d) banner wc-l canonical count — `wc -l` output is canonical; (e) 39th-layer 9th-consecutive multi-axis NEW-META-LEVEL-3-self-replicating-coverage-gap
+- L-EDP1-040 authored (39th-layer 9th-consecutive multi-axis at D-427 codifying-burst boundary; NEW META-LEVEL-3 self-replicating coverage-gap pattern class)
+- L-EDP1-039 Layer-38 row inline-updated per D-400 ("(this, pass-47)" → "(pass-46)"); sibling-corrigendum appended per D-410
+- F-P48-001: 4 vague-range active sites corrected (lessons.md lines 137/1530/1576/1589)
+- F-P48-002: Dim-1 TBD placeholder resolved to actual count 15
+- F-P48-003: N+4→N+6 propagation — 4 sites corrected (STATE.md:213, :214, :326, :331)
+- F-P48-004: Banner wc-l exact match at Commit E author-time (363 actual; soft target 378)
+- F-P48-005: INDEX.md cohort boundary note added (passes 1-33 pre-cohort per D-414(c))
+- F-P48-006: burst-log:2879 Closes form corrected to trailing parenthetical per D-420(e)
+- F-P48-007: S-15.03 sub-item 7.5 D-416(c) inserted
+- F-P48-008: L-EDP1-039 row 38 "(this, pass-47)" → "(pass-46)" per D-400
+
+**Closes:** F-P48-001, F-P48-002, F-P48-003, F-P48-004, F-P48-005, F-P48-006, F-P48-007, F-P48-008 (per D-413(b) completeness mandate)
+
+**Factory-artifacts commits:**
+(Commit A: 04eca28d — adv-cycle-pass-48.md), (Commit B: 06b4f8ae — D-428+L-EDP1-040+L-EDP1-039 Layer-38 inline-replace+corrigendum), (Commit C: cf3f16f7 — content fixes F-P48-001..008), (Commit D: 278977fb — 4-index bumps D-389..D-428), (Commit E: this commit — state-manager final per POLICY 3; parent-commit 278977fb per D-419(b)+D-420(d)+D-421(a))
