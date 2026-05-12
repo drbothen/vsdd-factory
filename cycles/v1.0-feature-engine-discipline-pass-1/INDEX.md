@@ -76,6 +76,7 @@ changes are WASM-only (no new Bash hook debt per D-2).
 | 23 | 2026-05-11 | 11 (1H+5M+3L+2NIT) +2PG | HIGH | adv-cycle-pass-23.md |
 | 24 | 2026-05-11 | 10 (1H+4M+3L+2NIT) +1PG | HIGH | adv-cycle-pass-24.md |
 | 25 | 2026-05-11 | 12 (2H+4M+4L+2NIT) +1PG | HIGH | adv-cycle-pass-25.md |
+| 26 | 2026-05-11 | 10 (1H+4M+3L+2NIT) +1PG | HIGH | adv-cycle-pass-26.md |
 
 ## Convergence Status
 
@@ -83,7 +84,7 @@ changes are WASM-only (no new Bash hook debt per D-2).
 - F2 (spec evolution / story decomposition): **COMPLETE** — F2-amendment D-362; 6 BCs + ADR-018 + 4 VPs + PRD FR-048
 - F3 (incremental stories): **COMPLETE** — F3-amendment D-366; 6 stories S-12.03..S-12.08 under E-12
 - F4 (implementation): **COMPLETE** — all 6 E-12 stories merged (PRs #105, #119, #120, #121, #122, #123); F-P2-001 closed via S-12.08
-- F5 (scoped adversarial review): **IN PROGRESS** — 25 passes; trajectory content-only 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12; pass-25 HIGH (2H+4M+4L+2NIT+1PG); streak 0/3; passes 3-25 fix bursts applied to factory-artifacts; D-386 Option C accepted; D-387..D-405 codified; L-EDP1-009 second corrigendum + L-EDP1-010..L-EDP1-017 authored; VP-INDEX v1.44 TD-031 normalization COMPLETE; D-405 acknowledged
+- F5 (scoped adversarial review): **IN PROGRESS** — 26 passes; trajectory content-only 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10; pass-26 HIGH (1H+4M+3L+2NIT+1PG); streak 0/3; passes 3-26 fix bursts applied to factory-artifacts; D-386 Option C accepted; D-379..D-405 codified (D-379..D-386 from earlier sessions; D-387..D-406 inline this engine-discipline-pass-1 cycle session); L-EDP1-009 second corrigendum + L-EDP1-010..L-EDP1-018 authored; VP-INDEX v1.44 TD-031 normalization COMPLETE; D-405+D-406 acknowledged
 - F6 (targeted hardening): PENDING
 - F7 (delta convergence): PENDING
 

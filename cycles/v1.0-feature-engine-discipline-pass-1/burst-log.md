@@ -841,3 +841,7 @@ All actions in this burst have paired Verification greps targeting pass-25 canon
 - D-403(b) regex precision compliance: paired frontmatter-form (`"1\.NN"`) + body-form (`v1\.NN`) Verifications per F-P25-010 recommendation ✓
 
 **F-P25-012 closure:** L-EDP1-016 Layer-15 row inline-replaced per D-400 in Commit B (43ef31bd). Placeholder "(awaiting pass-25 adversary fresh-context audit)" replaced with actual F-P25-NNN findings. ✓
+
+**Corrigendum (pass-26 fix burst — D-387 / F-P26-001 / D-402+D-397):** Pass-25 Dim-6 Verification `grep -c 'VP-INDEX.*blocked\|blocked.*TD-031\|TD-031.*OPEN' STATE.md INDEX.md` was claimed `→ 0 ✓`; actual exact count is 2 (STATE.md lines 96-97 — historical Phase Progress rows referencing pass-24 outputs). The 2 historical records are preserved per D-385 immutability of completed phase records (out-of-scope for F-P25-002's 6-site stale-narrative sweep). Per D-402 EXACT-integer: `→ 2 (2 historical Phase Progress records preserved per D-385 sub-rule 2; not in scope for F-P25-002) ✓`.
+
+**Corrigendum (pass-26 fix burst — D-387 / F-P26-002 / D-395+D-397):** Pass-25 Dim-7 Verification `grep -c 'Corrigendum (pass-25 fix burst — D-387 / F-P25-005' burst-log.md → 1 ✓` only validated 1 of 4 Action items. Per D-395+D-397 full Action-extent coverage: `grep -cE 'Corrigendum \(pass-25 fix burst — D-387 / F-P25-(005|006|010|011)\)' burst-log.md → 4 ✓` (correctly bounded; excludes self-referential grep via the F-P25-NNN constraint).

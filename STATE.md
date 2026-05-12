@@ -136,7 +136,7 @@ dtu_services: []
 | Cycle | Type | Status | Notes |
 |-------|------|--------|-------|
 | v1.0-brownfield-backfill | brownfield | PAUSED | E-10 pass-9 pending; paused at D-343 |
-| v1.0-feature-engine-discipline-pass-1 | feature | F5-IN-PROGRESS | All 6 E-12-platform stories merged; F5 passes 3-25 complete (23 F5 passes); full-cycle trajectory content-only (pass-1..25): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12; pass-25 HIGH verdict (2H+4M+4L+2NIT+1PG); D-405 codified; L-EDP1-017 documented; D-386 Option C: continue F5, accept asymptotic L-EDP1-003 limit; VP-INDEX v1.44 TD-031 historical normalization complete in v1.43; S-15.03 PRIORITY-A in pass-2 cycle |
+| v1.0-feature-engine-discipline-pass-1 | feature | F5-IN-PROGRESS | All 6 E-12-platform stories merged; F5 passes 1-25 (25 F5 passes; cycle-level reviews; fix bursts at passes 3-26); full-cycle trajectory content-only (pass-1..26): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10; pass-26 HIGH verdict (1H+4M+3L+2NIT+1PG); D-406 codified; L-EDP1-018 17th-layer; D-386 Option C: continue F5, accept asymptotic L-EDP1-003 limit; VP-INDEX v1.44 TD-031 historical normalization complete in v1.43; S-15.03 PRIORITY-A in pass-2 cycle |
 | v1.0-feature-plugin-async-semantics-pass-1 | feature | CLOSED | All PRs merged; rc.14 shipped |
 
 ## Decisions Log
