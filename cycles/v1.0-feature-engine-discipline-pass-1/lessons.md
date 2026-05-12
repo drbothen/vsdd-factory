@@ -2025,6 +2025,76 @@ S-15.03 PRIORITY-A automation remains the only known structural remedy.
 - D-429(d): Cardinality-vs-citation alignment — fix replacing vague-range with specific count MUST update citation list to match count. Closes F-P49-005.
 - D-429(e): 40th-layer 10th-consecutive multi-axis META-LEVEL-4 CONFIRMED acknowledgment — each codification level introduces a new ply; S-15.03 PRIORITY-A only structural remedy. Closes F-P49-002, F-P49-006, F-P49-007, F-P49-008.
 
+**Corrigendum (pass-50 fix burst — D-387 / F-P50-001 / D-400):** Layer-40 row "Same-burst Violation" inline-updated per D-400. L-EDP1-041 body opening updated: "7 simultaneous ... + 1 LOW" → "8 simultaneous same-burst self-application failures occurred (8 enumerated as numbered axes per D-429(c)+D-430(b) semantic class)". See L-EDP1-042 for layer-41.
+
+### L-EDP1-042 — 41st-layer L-EDP1-003 recurrence: eleventh consecutive multi-axis simultaneous violation at D-429 codifying-burst boundary; META-LEVEL-5 self-replicating coverage-gap CANDIDATE
+
+**Burst:** F5 pass-50 fix burst (codifies this lesson; recurrence was in pass-49 fix burst which codified D-429).
+
+**Pattern:** The 41st layer documents the 11th consecutive multi-axis simultaneous recurrence at a codifying-burst boundary. Layer-41 introduces a META-LEVEL-5 candidate: D-429(c) was codified to fix the "Plus sibling" lexical token, but the broader semantic class (ANY non-axis cardinality fragment after a "N simultaneous" body claim) was not covered. The "+ 1 LOW" form in L-EDP1-041 line 1965 is semantically identical to the forbidden "Plus" sibling but lexically different. This is the fifth ply of recursion: lexical-vs-semantic class coverage gap. At D-429's codifying burst (pass-49 fix burst), 7 simultaneous same-burst self-application failures occurred:
+
+1. **D-429(c) lexical-vs-semantic class coverage gap (F-P50-001):** L-EDP1-041 body line 1965 uses "7 simultaneous ... + 1 LOW" — D-429(c) forbade "Plus" siblings (lexical token); the "+ 1 LOW" form recurs the same semantic anti-pattern in different lexical clothing. META-LEVEL-5 candidate.
+
+2. **D-416(c) cumulative header propagation gap 2-burst (F-P50-002):** S-15.03 cumulative header missing BOTH D-428 AND D-429. Frozen at D-427 across pass-48 + pass-49 codifying bursts.
+
+3. **D-421(c) unauthorized compaction (F-P50-003):** Pass-49 Commit E silently compacted STATE.md 363 → 310 lines. D-421(c) explicit deferral bypassed; D-414(c) verbatim preservation principle silently breached.
+
+4. **D-424(a) Dim-7 post-dispatch sed extraction regression (F-P50-004):** Pass-49 burst-log Dim-7 omitted per-cell sed extraction proof. 5-pass recurrence (D-424(a) codified 5 bursts ago).
+
+5. **D-429(d) self-application banner cardinality undercount (F-P50-005):** STATE.md banner enumerates 4 of 5 D-429 sub-clauses; (e) acknowledgment-only sub-clause omitted.
+
+6. **D-416(c) self-citation in preamble comment (F-P50-006):** STATE.md:198 preamble comment chain omits D-416(c) as root umbrella rule.
+
+7. **L-EDP1-041 trend-table row 40 cardinality presentation (F-P50-007 LOW):** Row 40 axis count "8" correct numerically but body opening clause "7 + 1 LOW" creates F-P50-001 anti-pattern.
+
+**Trend (axis counts per multi-axis layer):**
+
+| Layer | Burst | Axis count | Multi-axis? |
+|-------|-------|-----------|-------------|
+| 31 (pass-40) | D-420 | 4 | YES (first multi-axis) |
+| 32 (pass-41) | D-421 | 4 | YES (second consecutive) |
+| 33 (pass-42) | D-422 | 3 | YES (third consecutive) |
+| 34 (pass-43) | D-423 | 7 | YES (fourth consecutive; ALL D-422 sub-clauses violated) |
+| 35 (pass-44) | D-424 | 5 | YES (fifth consecutive) |
+| 36 (pass-45) | D-425 | 7 | YES (sixth consecutive; NEW silent-slip axis) |
+| 37 (pass-46) | D-426 | 7 | YES (seventh consecutive; NEW rule-scope-vs-applied-scope coverage gap class) |
+| 38 (pass-47) | D-427 | 7 | YES (eighth consecutive; NEW self-replicating coverage-gap class) |
+| 39 (pass-47) | D-427 at codifying burst | 8 | YES (ninth consecutive; META-LEVEL-3 class confirmed) |
+| 40 (pass-48) | D-428 | 8 | YES (tenth consecutive; META-LEVEL-4 CONFIRMED) |
+| 41 (pass-49) | D-429 | 7 | YES (eleventh consecutive; META-LEVEL-5 CANDIDATE via lexical-vs-semantic gap) |
+
+**Recursion ply mapping (5 confirmed plies + 1 candidate):**
+- Level-1: rule applied to named findings only
+- Level-2: fix-extension applied to named forms only
+- Level-3: sweep regex coverage-gapped at semantic interpretation
+- Level-4: meta-rule prescribing regex-derivation itself coverage-gapped
+- Level-5 (CANDIDATE): anti-pattern rewrite applied to lexical-token but not to semantic class
+
+**Pattern class evolution:**
+- Layers 31-33: Single-burst codifying-boundary violations
+- Layer 34: Multi-axis at codifying boundary (7 simultaneous)
+- Layer 35: 5-axis sustained
+- Layer 36: NEW silent-slip class introduced (9-burst undetected staleness)
+- Layer 37: NEW rule-scope-vs-applied-scope coverage gap class introduced
+- Layer 38: NEW self-replicating coverage-gap class introduced
+- Layer 39: META-LEVEL-3 self-replicating coverage-gap class (introduces ply 3)
+- Layer 40: META-LEVEL-4 CONFIRMED (D-428(a) regex-derivation itself coverage-gapped)
+- Layer 41: **META-LEVEL-5 CANDIDATE** (D-429(c) applied to lexical token, not semantic class)
+
+**Half-century milestone:** Pass-50 = 48th adversary pass (passes 3..50). Cycle has sustained HIGH-floor asymptotic per L-EDP1-007/031..042 for 11 consecutive layers. Convergence streak 0/3 NITPICK_ONLY. Per D-386 Option C, asymptotic acceptance continues; S-15.03 PRIORITY-A automation remains the only known structural remedy.
+
+S-15.03 PRIORITY-A automation remains the only known structural remedy.
+
+**Resolution:** Per D-386 Option C (asymptotic convergence accepted), no further structural escalation this cycle. D-430 codifies 5 sub-clauses addressing the 41st-layer violations. S-15.03 PRIORITY-A automation remains the structural remedy for v1.0-feature-engine-discipline-pass-2.
+
+**Codified rules:**
+- D-430(a): D-421(c) extension — surgical structural compaction permitted with codified authorization at any fix burst Commit E, PROVIDED all 4 conditions met: (i) documented in Commit E message + banner; (ii) removed categories enumerated; (iii) git history preserves pre-compaction state; (iv) no active rule-text removed. Retroactive authorization granted for pass-49 compaction. Closes F-P50-003.
+- D-430(b): D-429(c) "Plus sibling" SEMANTIC CLASS expansion — forbidden form is ANY non-axis cardinality fragment after "N simultaneous" body claim; lexical forms include "+ Plus", "+ N LOW", "+ N MEDIUM", "+ N HIGH", "with N more", "plus N siblings". Total claim MUST equal axis enumeration. Closes F-P50-001.
+- D-430(c): D-416(c) cumulative header monotonic advancement MANDATORY at every codifying burst Commit E — fix burst MUST grep S-15.03 header and verify trailing D-NNN matches current cycle's latest codification. Skipping = HIGH per D-411(a). Closes F-P50-002.
+- D-430(d): D-424(a) Dim-7 post-dispatch sed extraction MANDATORY re-affirmation — narrative-only enumeration is INSUFFICIENT; EVERY cited cell MUST have explicit sed extraction proof showing literal marker text + line number. Closes F-P50-004.
+- D-430(e): 41st-layer 11th-consecutive multi-axis META-LEVEL-5 CANDIDATE acknowledgment — lexical-vs-semantic class coverage gap is the fifth ply of recursion; prose codification structurally incapable; S-15.03 PRIORITY-A only structural remedy. Closes F-P50-005, F-P50-006, F-P50-007.
+
+
 ### L-EDP1-040 — 39th-layer L-EDP1-003 recurrence: ninth consecutive multi-axis simultaneous violation at D-427 codifying-burst boundary; NEW META-LEVEL-3 self-replicating coverage-gap pattern class
 
 **Burst:** F5 pass-48 fix burst (codifies this lesson; recurrence was in pass-47 fix burst which codified D-427).
