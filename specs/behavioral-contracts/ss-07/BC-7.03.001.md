@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.2"
+version: "v1.3"
 status: draft
 producer: "PHASE_1_4_B_BCS_AGENT_9"
 timestamp: 2026-04-25T00:00:00
@@ -80,7 +80,7 @@ block-ai-attribution: identity & registry binding. Hook exists, registered with 
 | L2 Capability | TBD |
 | L2 Domain Invariants | TBD |
 | Architecture Module | SS-07 (Hook Bash Layer) |
-| Stories | TBD (filled by story-writer) |
+| Stories | S-3.03 (original WASM port), S-16.01 (PostToolUse + exec_subprocess capability), S-16.02 (read_file capability) |
 
 ## Related BCs (Recommended)
 
@@ -137,6 +137,7 @@ Bash hook scripts are inherently effectful (stdin/stderr, optional event emit, o
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| v1.3 | 2026-05-12 | product-owner | F2 spec evolution (F-block-ai-attribution-message-file-arm): registry shape extended — +PostToolUse event (BC-7.03.094); +exec_subprocess capability for PostToolUse arm; +read_file capability with narrow path_allow for PreToolUse arm (BC-7.03.095). |
+| v1.2 | 2026-05-08 | implementer | TD-VSDD-091 Chunk 5 — hooks-registry.toml block-ai-attribution entry migrated from bash predecessor. |
 | v1.1 | 2026-04-25 | PHASE_1_4_B_BCS_AGENT_9 | Initial authoring. |
-| v1.2 | 2026-05-08 | implementer | TD-VSDD-091 Chunk 5 — migrated `hooks-registry.toml:498-516` → `hooks-registry.toml::block-ai-attribution`. |
 

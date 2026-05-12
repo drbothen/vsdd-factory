@@ -2,11 +2,11 @@
 document_type: domain-spec-section
 level: L2
 section: invariants
-version: "1.10"
+version: "1.11"
 status: accepted
 producer: business-analyst
 timestamp: 2026-04-25T00:00:00
-last_amended: 2026-05-08
+last_amended: 2026-05-12
 phase: 1.3
 inputs:
   - .factory/phase-0-ingestion/pass-2-domain-model.md
@@ -44,12 +44,12 @@ Justification: DI-003 is a business invariant because partial-tier execution wou
 
 **DI-004 — Capability denial always produces both a return code AND an audit event**
 Every capability-gated host function (exec_subprocess, read_file, env) atomically returns `codes::CAPABILITY_DENIED (-1)` to the WASM caller AND emits `internal.capability_denied` to the internal log. One without the other is a bug.
-Enforcement owner: SS-01 (host/*.rs). BC range: BC-1.
+Enforcement owner: SS-01 (host/*.rs). BC range: BC-1. Plugin-layer enforcement: BC-7.03.094 INV-1 (PostToolUse arm fail-open on CAPABILITY_DENIED), BC-7.03.095 INV-1 (PreToolUse arm fail-open on CAPABILITY_DENIED).
 Justification: DI-004 is a business invariant because the audit trail is the security property; the return code alone is insufficient for compliance. Source: pass-2 §BR-Capability-denial.
 
 **DI-005 — Shell interpreters require explicit `shell_bypass_acknowledged`**
 The set {bash, sh, zsh, pwsh, fish, csh, tcsh, ksh} is refused by exec_subprocess unless the capability entry provides a non-empty `shell_bypass_acknowledged` string. No default value bypasses this.
-Enforcement owner: SS-01 (host/exec_subprocess.rs::is_shell). BC range: BC-1.
+Enforcement owner: SS-01 (host/exec_subprocess.rs::is_shell). BC range: BC-1. Plugin-layer enforcement: BC-7.03.094 INV-3 (shell_bypass_acknowledged = false for git binary — git is not a shell interpreter, so capability gate correctly refuses if git were misconfigured as a shell binary).
 Justification: DI-005 is a business invariant because allowing arbitrary shell invocation without acknowledgment negates the WASM sandbox. Source: pass-2 §BR-shell_bypass.
 
 **DI-006 — Setuid/setgid binaries are refused unconditionally on Unix**
@@ -167,6 +167,7 @@ Justification: DI-019 is a domain invariant because the drain-window constant di
 
 | Version | Date | Change |
 |---------|------|--------|
+| v1.11 | 2026-05-12 | FIX-3 (F2 audit FINDING-004): extended DI-004 and DI-005 Enforcement owner entries with plugin-layer enforcers. DI-004 now cites BC-7.03.094 INV-1 and BC-7.03.095 INV-1 (PostToolUse/PreToolUse fail-open on CAPABILITY_DENIED). DI-005 now cites BC-7.03.094 INV-3 (shell_bypass_acknowledged = false for git binary). Bidirectionality requirement (criterion 74) satisfied. |
 | v1.0 | 2026-04-25 | Initial authoring from domain spec crystallization (Phase 1.3). 17 invariants (DI-001–DI-017). |
 | v1.1 | 2026-05-06 | D-314 F-4 fix: DI-007/008/011/012/013/014/017 amended/refined/superseded per ADR-015. DI-007 amended (debug stream is opt-in). DI-008 reaffirmed (filename pattern unchanged). DI-011 superseded (single-sink eliminates mpsc+try_send). DI-012 superseded (single-sink; per-sink isolation moot). DI-013 refined (warn-and-skip extended to v2 unknown keys per BC-3.05.004). DI-014 updated (schema_version=2 target; hard error on mismatch preserved). DI-017 renamed dispatcher_trace_id → trace_id per ADR-015 v1.7 canonicalization. BC-side L2 citation work (adding DI references to BC-1.12.002/003/004 and BC-3.05.004) deferred to D-315 (PO). |
 | v1.2 | 2026-05-07 | F2 pass-1 fix burst: DI-014 amended — `REGISTRY_SCHEMA_VERSION` updated from 1 to 2 (post-ADR-019); BC range extended to include BC-7 (BC-7.06.001 is the BC-7 enforcement arm). DI-014 prose now explicitly notes the fail-closed (exit 2) exception to BC-1.08.001 fail-open for registry schema mismatch. |

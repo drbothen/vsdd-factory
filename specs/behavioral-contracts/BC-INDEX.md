@@ -1,7 +1,7 @@
 ---
 document_type: bc-index
 level: L3
-version: "1.83"
+version: "1.85"
 status: draft
 producer: state-manager
 timestamp: 2026-05-12T00:00:00Z
@@ -9,9 +9,13 @@ last_amended: 2026-05-12
 phase: F5
 inputs:
   - .factory/specs/behavioral-contracts/bc-id-mapping.md
-total_bcs: 1947
+total_bcs: 1949
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-12
+    change: "v1.85 (2026-05-12; pass-42 fix burst per D-422 + D-404 unconditional): Acknowledges decision range D-389..D-422 (inclusive; literal acknowledgment per D-415(c)). Per D-404 unconditional: index acknowledges D-422 by literal ID (no spec content change in this changelog entry). Refs: F-P42-001/002/003/004/005/006/007, D-422."
+  - date: 2026-05-12
+    change: "v1.84 (2026-05-12; F-block-ai-attribution-message-file-arm F2+F3 close-out): +BC-7.03.094 (block-ai-attribution PostToolUse retroactive HEAD verify; CAP-008; S-16.01), +BC-7.03.095 (block-ai-attribution PreToolUse -F file-read arm; CAP-008; S-16.02). BC-7.03.001 BC-INDEX Stories cell TBD→S-3.03, S-16.01, S-16.02 (NIT-001 from F3 audit). SS-07 count 196→198; total_bcs 1947→1949."
   - date: 2026-05-12
     change: "v1.83 (2026-05-12; pass-41 fix burst per D-421 + D-404 unconditional): Acknowledges decision range D-389..D-421 (inclusive; literal acknowledgment per D-415(c)). Per D-404 unconditional: index acknowledges D-421 by literal ID (no spec content change in this changelog entry). Refs: F-P41-001/002/003/004/005/006/007/008, D-421."
   - date: 2026-05-12
@@ -184,7 +188,7 @@ changelog:
 
 # Behavioral Contract Index
 
-> Master index of all 1,947 behavioral contracts across 10 subsystems.
+> Master index of all 1,949 behavioral contracts across 10 subsystems.
 > Source of truth for BC count, status, and subsystem assignment.
 
 ## Summary
@@ -197,11 +201,11 @@ changelog:
 | SS-04 Plugin Ecosystem | BC-4 | 39 | ss-04/ |
 | SS-05 Pipeline Orchestration | BC-5 | 652 | ss-05/ |
 | SS-06 Skill Catalog | BC-6 | 586 | ss-06/ |
-| SS-07 Hook Bash Layer | BC-7 | 196 | ss-07/ |
+| SS-07 Hook Bash Layer | BC-7 | 198 | ss-07/ |
 | SS-08 Templates and Rules | BC-8 | 214 | ss-08/ |
 | SS-09 Configuration and Activation | BC-9 | 6 | ss-09/ |
 | SS-10 CLI Tools and Bin | BC-10 | 58 | ss-10/ |
-| **Total** | | **1947** | |
+| **Total** | | **1949** | |
 
 ## Index by subsystem
 
@@ -1710,7 +1714,7 @@ changelog:
 | [BC-6.21.002](ss-06/BC-6.21.002.md) | mutation kill rate floor is 80%; surviving mutants must be addressed via test, dead-code confirmation, or explicit waiver | draft | CAP-016 | S-7.03 |
 | [BC-6.22.001](ss-06/BC-6.22.001.md) | relocate-artifact skill MUST scan .factory/ for registry violations, propose canonical destinations, perform git mv, and update cross-references; MUST run to zero violations before validate-artifact-path hook is registered | draft | CAP-018 | S-13.01 |
 
-### SS-07 — Hook Bash Layer (BC-7)
+### SS-07 — Hook Bash Layer (BC-7) — 198 BCs
 
 | BC ID | Title | Status | Capability | Stories |
 |-------|-------|--------|-----------|---------|
@@ -1730,7 +1734,7 @@ changelog:
 | [BC-7.02.007](ss-07/BC-7.02.007.md) | Validator hooks at `tool = "Edit\ | draft | TBD | TBD |
 | [BC-7.02.008](ss-07/BC-7.02.008.md) | Hook capability model: every legacy-routed hook declares `[hooks.capabilities.exec_subprocess]` w... | draft | TBD | TBD |
 | [BC-7.02.009](ss-07/BC-7.02.009.md) | Native (non-legacy) hook plugins MUST link `vsdd-hook-sdk` and use the `#[hook]` macro (not curre... | draft | TBD | TBD |
-| [BC-7.03.001](ss-07/BC-7.03.001.md) | block-ai-attribution: identity & registry binding | draft | TBD | TBD |
+| [BC-7.03.001](ss-07/BC-7.03.001.md) | block-ai-attribution: identity & registry binding | draft | TBD | S-3.03, S-16.01, S-16.02 |
 | [BC-7.03.002](ss-07/BC-7.03.002.md) | block-ai-attribution: substring gate on `git commit` | draft | TBD | TBD |
 | [BC-7.03.003](ss-07/BC-7.03.003.md) | block-ai-attribution: blocks Co-Authored-By with AI tool name | draft | TBD | TBD |
 | [BC-7.03.004](ss-07/BC-7.03.004.md) | block-ai-attribution: blocks "Generated with Claude Code" / generated-by-AI / noreply email | draft | TBD | TBD |
@@ -1823,6 +1827,8 @@ changelog:
 | [BC-7.03.091](ss-07/BC-7.03.091.md) | warn-pending-wave-gate: identity & registry binding | draft | CAP-008 | S-8.07 |
 | [BC-7.03.092](ss-07/BC-7.03.092.md) | warn-pending-wave-gate: stderr warning when any wave has gate_status: pending | draft | CAP-008 | S-8.07 |
 | [BC-7.03.093](ss-07/BC-7.03.093.md) | verify-git-push: identity confirmation (already covered in BC-1086 routing section) | draft | TBD | TBD |
+| [BC-7.03.094](ss-07/BC-7.03.094.md) | block-ai-attribution: PostToolUse retroactive HEAD commit message verification | draft | CAP-008 | S-16.01 |
+| [BC-7.03.095](ss-07/BC-7.03.095.md) | block-ai-attribution: PreToolUse `-F <path>` file-read arm | draft | CAP-008 | S-16.02 |
 | [BC-7.04.001](ss-07/BC-7.04.001.md) | validate-anchor-capabilities-union: identity & registry binding | draft | TBD | TBD |
 | [BC-7.04.002](ss-07/BC-7.04.002.md) | validate-anchor-capabilities-union: scopes to .factory/stories/S-*.md or STORY-*.md | draft | TBD | TBD |
 | [BC-7.04.003](ss-07/BC-7.04.003.md) | validate-anchor-capabilities-union: blocks when frontmatter caps ≠ union over BC capability fields | draft | TBD | TBD |

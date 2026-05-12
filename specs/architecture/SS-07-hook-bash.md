@@ -2,16 +2,17 @@
 document_type: architecture-section
 level: L3
 section: "SS-07-hook-bash"
-version: "1.2"
+version: "1.3"
 status: accepted
 producer: architect
 timestamp: 2026-04-25T00:00:00
-amended: 2026-05-07
+amended: 2026-05-12
 phase: 1.2
 inputs:
   - .factory/specs/architecture/ARCH-INDEX.md
   - .factory/phase-0-ingestion/pass-1-architecture.md
   - .factory/phase-0-ingestion/pass-8-final-synthesis.md
+input-hash: "abdac50"
 traces_to: ARCH-INDEX.md
 ---
 
@@ -270,3 +271,126 @@ that no entry has both `on_error = "block"` and `async = true`.
 
 **All references to `schema_version = 1` in this document (original Modules table
 line 45 and Public Interface section line 69) are superseded by this amendment.**
+
+---
+
+## Amendment 2026-05-12 (v1.2 → v1.3 — F2 block-ai-attribution message-file arm)
+
+_Added in v1.3. Authoritative behavioral contracts: BC-7.03.094 (PostToolUse arm) and BC-7.03.095 (PreToolUse -F arm)._
+
+### block-ai-attribution: PostToolUse and PreToolUse -F Arms
+
+The `block-ai-attribution` WASM plugin (`crates/hook-plugins/block-ai-attribution/`)
+gains two new behavioral arms as of v1.0.0-rc.17. These arms close two commit-path
+bypass vectors that the existing command-string scan (BC-7.03.002) cannot cover:
+
+#### PostToolUse retroactive HEAD verification (Option C — BC-7.03.094)
+
+A second registry entry for `block-ai-attribution.wasm` registers on `PostToolUse`
+for the Bash tool. The arm fires only after a **successful** `git commit`
+(gate: `tool_response` exit_code == 0 and `tool_input.command` contains
+`git commit`; lookalike commands `git commit-tree` and `git commit-graph` must not
+trigger — BC-7.03.094 INV-2).
+
+When triggered, the arm calls `vsdd::exec_subprocess(["git", "log", "-1",
+"--format=%B", "HEAD"])` to read the HEAD commit message body from git, then passes
+the output through the existing pure-core `detect_attribution` function. Detection
+result determines the `HookResult`:
+
+- Attribution found → `HookResult::block_with_fix` with remediation message directing
+  the agent to run `git reset --soft HEAD~1` and recommit without attribution.
+- No attribution → `HookResult::Continue`.
+- Any subprocess failure (timeout, non-zero exit, empty stdout, capability denied,
+  git binary absent) → `HookResult::Continue` (never false-positive on I/O error;
+  BC-7.03.094 INV-1).
+
+**Corrective-signal pattern — important deviation from the typical PostToolUse mental
+model:** `HookResult::Block` on PostToolUse does not prevent an action from
+happening (the commit already landed). It surfaces a remediation message to the
+agent's next turn. This is a _corrective-signal_ pattern, not a prevention pattern.
+The agent must act on the remediation instruction (`git reset --soft HEAD~1` +
+recommit) to recover. Compare to PreToolUse blocking, which prevents the tool call
+from executing at all.
+
+**Subprocess timeout:** 1000 ms (Class A per ADR-020; `git log -1` on a local repo
+is typically <50 ms; worst-case stays within the Class A p95 ≤ 1500 ms bound).
+
+**Registry entry shape** (PostToolUse, `block-ai-attribution.wasm`):
+
+```toml
+[[hooks]]
+event = "PostToolUse"
+tool_match = "Bash"
+plugin = "block-ai-attribution.wasm"
+priority = 100
+on_error = "continue"
+async = false
+[hooks.capabilities.exec_subprocess]
+binary_allow = ["git"]
+shell_bypass_acknowledged = false
+timeout_ms = 1000
+```
+
+`on_error = "continue"` because a PostToolUse detection failure must not
+retroactively surface an error for a committed action. `shell_bypass_acknowledged =
+false` because `binary_allow = ["git"]` is a tight allowlist — the shell bypass
+is not needed.
+
+#### PreToolUse -F file-read arm (Option B — BC-7.03.095)
+
+The existing PreToolUse registry entry for `block-ai-attribution.wasm` gains a
+`read_file` capability block. When the command-string scan (BC-7.03.002) confirms
+`git commit` is present but does **not** find attribution in the inline `-m` /
+heredoc form, the plugin checks whether the command contains a `-F <path>`,
+`--file=<path>`, or `--file <path>` flag. If present:
+
+1. Path is extracted (all three flag forms handled; BC-7.03.095 INV-2).
+2. `vsdd::read_file(path)` is called with the capability-gated `path_allow`.
+3. File content is passed through `detect_attribution`.
+4. Attribution found → `HookResult::Block`. No attribution → `HookResult::Continue`.
+5. Any read failure (capability denied, file not found, oversize > 65 536 bytes)
+   → `HookResult::Continue` (BC-7.03.095 INV-1 — never false-positive on I/O error).
+
+Both new arms are short-circuited by the existing command-string scan: if the `-m`
+or heredoc form contains an attribution pattern, the PreToolUse scan blocks
+immediately and neither new arm activates.
+
+**`read_file` path_allow (narrow scope — OQ-F1-002 resolved):**
+
+```toml
+[hooks.capabilities.read_file]
+path_allow = [
+  "**/.git/COMMIT_EDITMSG",
+  "/tmp/**",
+  "/var/folders/**",
+  "<project-root>/**",
+]
+max_bytes = 65536
+```
+
+Narrow scope is chosen because `block-ai-attribution` has `on_error = "block"` on
+its PreToolUse entry — a security-relevant plugin must not have broad filesystem
+read access. The four allowlist entries cover all realistic commit message file
+locations: editor temp files, macOS temp directories, and project-tree message files.
+Reads outside the allowlist are denied by the capability gate and yield Continue
+(not Block, not Error) per BC-7.03.095 INV-1.
+
+#### Relationship between arms
+
+The three paths are additive and non-overlapping:
+
+| Bypass vector | Detection arm | BC |
+|---|---|---|
+| `-m "..."` / heredoc with attribution inline | Command-string scan (existing, BC-7.03.002) | BC-7.03.002 |
+| `-F <path>` with attribution in file | PreToolUse -F arm (new, BC-7.03.095) | BC-7.03.095 |
+| Commit already made with attribution (any path) | PostToolUse HEAD scan (new, BC-7.03.094) | BC-7.03.094 |
+
+The PostToolUse arm (Option C) is a path-agnostic safety net — it catches attribution
+that slipped through any PreToolUse path. Option B (-F arm) is a fast-feedback
+optimization that surfaces the block before the commit lands when the message file
+form is used.
+
+#### Stories
+
+- S-16.01 (E-16): PostToolUse retroactive HEAD verification (Option C). Target: v1.0.0-rc.17.
+- S-16.02 (E-16): PreToolUse -F file-read arm (Option B). Target: v1.0.0-rc.17. Depends on S-16.01.

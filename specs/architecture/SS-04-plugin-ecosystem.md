@@ -2,7 +2,7 @@
 document_type: architecture-section
 level: L3
 section: "SS-04-plugin-ecosystem"
-version: "1.3"
+version: "1.4"
 status: accepted
 producer: architect
 timestamp: 2026-04-25T00:00:00
@@ -11,6 +11,7 @@ inputs:
   - .factory/specs/architecture/ARCH-INDEX.md
   - .factory/phase-0-ingestion/pass-1-architecture.md
   - .factory/phase-0-ingestion/pass-8-final-synthesis.md
+input-hash: "abdac50"
 traces_to: ARCH-INDEX.md
 ---
 
@@ -243,7 +244,113 @@ per-story-delivery cycle: test-writer RED gate + implementer GREEN + demo-record
 
 | Version | Date | Change |
 |---------|------|--------|
+| 1.4 | 2026-05-12 | F2 block-ai-attribution message-file arm: added capability declaration pattern section for bounded I/O PostToolUse verification flows (BC-7.03.094, BC-7.03.095; E-16 stories S-16.01/S-16.02). |
 | 1.3 | 2026-05-08 | TD-VSDD-091 Chunk 6 — migrated 1 body cite: `hooks-registry.toml:470` → `plugins/vsdd-factory/hooks-registry.toml::[hooks.capabilities.read_file]`. |
 | 1.2 | 2026-05-03 | ADR-014: added E-9 epic positioning section — Tier 2 native WASM migration, ~9 stories, bundle ceiling, migration sequence, per-story delivery pattern. |
 | 1.1 | 2026-04-29 | ADV-S5.04-P06 HIGH-P06-001: crate name sync to canonical `tool-failure-hooks` (matches ARCH-INDEX line 77, S-5.04 target_module, BC-4.08.001/003, VP-068, PRD line 455). Three references updated: Purpose prose, Modules table row, Decision A comment. |
 | 1.0 | 2026-04-25 | Initial version |
+
+---
+
+## Amendment 2026-05-12 (v1.3 → v1.4 — F2 block-ai-attribution message-file arm)
+
+_Added in v1.4. Authoritative behavioral contracts: BC-7.03.094 (PostToolUse arm), BC-7.03.095 (PreToolUse -F arm). Architectural decisions: ADR-002 (WASM capability model), ADR-014 (Tier-2 native WASM migration)._
+
+### Capability Declaration Pattern: Bounded I/O for PostToolUse Verification Flows
+
+The `block-ai-attribution` plugin (`crates/hook-plugins/block-ai-attribution/`)
+is the first plugin in the ecosystem to combine:
+
+1. **PreToolUse blocking** with `on_error = "block"`, and
+2. **PostToolUse verification** with `on_error = "continue"`, and
+3. Both `read_file` and `exec_subprocess` capabilities declared in a single plugin's
+   registry entries.
+
+This combination establishes a reference pattern for future plugins that need bounded
+I/O to perform verification in a PostToolUse corrective-signal flow.
+
+#### exec_subprocess capability scope for git operations
+
+When a plugin needs to invoke `git` for a read-only query (e.g., `git log -1
+--format=%B HEAD` to read the HEAD commit message), the registry entry's capability
+block should follow the narrow pattern:
+
+```toml
+[hooks.capabilities.exec_subprocess]
+binary_allow = ["git"]
+shell_bypass_acknowledged = false
+timeout_ms = 1000
+```
+
+Rules:
+- `binary_allow` must be a tight allowlist — list only the specific binary required.
+  For trivial git reads, `["git"]` is the full allowlist.
+- `shell_bypass_acknowledged = false` is correct when `binary_allow` is narrow and
+  no shell metacharacter expansion is needed. Set `true` only when a bash script is
+  the subprocess (legacy-bash-adapter pattern).
+- `timeout_ms = 1000` for trivial read-only git operations (Class A per ADR-020).
+  Longer timeouts (2000–5000 ms) are appropriate for write operations or operations
+  on large repos with expected I/O latency.
+
+This pattern operationalizes ADR-002's capability gating model: deny-by-default with
+an explicit narrow allowlist, not a broad wildcard.
+
+#### read_file capability scope: prefer narrow path_allow
+
+For the PreToolUse -F arm, the `read_file` capability uses a narrow `path_allow`
+list rather than a broad glob. The principle (OQ-F1-002, resolved in F1 delta
+analysis): **security-relevant plugins with `on_error = "block"` must not have
+broad filesystem read access.**
+
+Recommended pattern for commit-message-file reading:
+
+```toml
+[hooks.capabilities.read_file]
+path_allow = [
+  "**/.git/COMMIT_EDITMSG",
+  "/tmp/**",
+  "/var/folders/**",
+  "<project-root>/**",
+]
+max_bytes = 65536
+```
+
+The four entries in `path_allow` cover all realistic commit message file locations:
+- `**/.git/COMMIT_EDITMSG` — git's own commit message temp file.
+- `/tmp/**` — POSIX temp directory (editors like Vim, Emacs, nano).
+- `/var/folders/**` — macOS-specific temp directories (`mktemp` output).
+- `<project-root>/**` — project-tree message files (e.g., `./msg.txt`).
+
+Reads outside the allowlist are denied by the dispatcher capability gate. Per
+BC-7.03.095 INV-1, a denied read yields `HookResult::Continue` — not Block, not
+Error. This invariant ensures that an operator running `git commit -F /etc/passwd`
+never receives a spurious block; the plugin cannot read that path and passes
+through cleanly.
+
+#### Contrast with broad-glob pattern (anti-pattern for security-relevant plugins)
+
+Using a wildcard `path_allow` (or omitting `path_allow`) grants the plugin read
+access to any file on the filesystem. This is appropriate for utility plugins with
+`on_error = "continue"` that need flexible file access. It is not appropriate for
+security-relevant gate plugins.
+
+| Plugin class | on_error | path_allow recommendation |
+|---|---|---|
+| Security gate (block-ai-attribution, protect-secrets, etc.) | `block` | Narrow — enumerate specific paths/globs |
+| Telemetry / capture | `continue` | Moderate — scope to project tree |
+| Utility validator | `continue` | Moderate to broad — depends on what files the plugin needs to read |
+
+#### Summary: block-ai-attribution capability surface after E-16
+
+After S-16.01 and S-16.02 ship, the `block-ai-attribution` plugin has two registry
+entries with the following capability surfaces:
+
+| Entry | Event | Capabilities | on_error |
+|---|---|---|---|
+| PreToolUse | PreToolUse / Bash | `read_file` (narrow path_allow, max_bytes=65536) | `block` |
+| PostToolUse | PostToolUse / Bash | `exec_subprocess` (binary_allow=["git"], shell_bypass=false, timeout=1000ms) | `continue` |
+
+Both entries cite ADR-002 (WASM plugin ABI and capability model) as the authoritative
+architectural decision. ADR-014 (Tier-2 native WASM migration) classifies
+`block-ai-attribution` as an already-shipped Tier-2 plugin; no migration
+considerations arise from adding capabilities to an existing entry.

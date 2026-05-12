@@ -1,15 +1,17 @@
 ---
 document_type: vp-index
 level: L4
-version: "1.59"
+version: "1.60"
 status: draft
 producer: state-manager
 timestamp: 2026-05-12T00:00:00Z
 last_amended: 2026-05-12
 phase: F5
 traces_to: ARCH-INDEX.md
-total_vps: 79
+total_vps: 80
 changelog:
+  - date: 2026-05-12
+    change: "v1.60 (2026-05-12; F-block-ai-attribution-message-file-arm F2+F3 close-out): +VP-080 (block-ai-attribution PostToolUse arm detect_attribution proptest; source_bc BC-7.03.094; anchor_story S-16.01; type proptest; status draft). total_vps 79→80."
   - date: 2026-05-12
     change: "v1.59 (2026-05-12; pass-41 fix burst per D-421 + D-404 unconditional): Acknowledges decision range D-389..D-421 (inclusive; literal acknowledgment per D-415(c)). Per D-404 unconditional: index acknowledges D-421 by literal ID (no spec content change in this changelog entry). Refs: F-P41-001/002/003/004/005/006/007/008, D-421."
   - date: 2026-05-12
@@ -151,7 +153,8 @@ changelog:
 | Context Resolver VPs | 4 | VP-073..VP-076 |
 | Async Semantics VPs | 2 | VP-077..VP-078 |
 | Async Semantics Event Schema VPs | 1 | VP-079 |
-| **Total** | **79** | **VP-001..VP-079** |
+| Hook Plugin Capability VPs | 1 | VP-080 |
+| **Total** | **80** | **VP-001..VP-080** |
 
 ## Proof Method Breakdown
 
@@ -162,7 +165,7 @@ changelog:
 | manual | 10 | VP-015, VP-046..048, VP-053..057, VP-064 |
 | static-check | 1 | VP-061 |
 | kani-proof | 4 | VP-070, VP-071, VP-074, VP-077 (upgrade candidates: VP-020, VP-023, VP-042) |
-| proptest | 3 | VP-059, VP-069, VP-075 (upgrade candidates: VP-019, VP-029, VP-032) |
+| proptest | 4 | VP-059, VP-069, VP-075, VP-080 (upgrade candidates: VP-019, VP-029, VP-032) |
 
 ## Full Index
 
@@ -247,6 +250,7 @@ changelog:
 | [VP-077](VP-077.md) | Dispatcher Partition Correctness — partition function totality, async-field respect, disjointness, union completeness, exit-code independence from async group, aggregation correctness (6 properties); precondition: (name, event, tool) tuple unique per BC-7.06.001 Invariant 7 (v1.13: F5 fix-burst-25 — F-P26-001 PluginEntry → RegistryEntry corpus sweep + F-P26-007 harness skeleton tuple → PluginPartition struct; v1.12: F5 fix-burst-24 — Kani harness assumptions updated to reflect merged partition.rs) | invariant | kani-proof | SS-01 | — | draft |
 | [VP-078](VP-078.md) | CI Lint Invariant — `on_error = "block"` implies `async = false` in hooks-registry.toml (v1.9: F5 fix-burst-25 — F-P26-001 PluginEntry → RegistryEntry corpus sweep across active-body sites; v1.8: WASM-rule audit — 'bash script or bats test' → 'native WASM plugin per BC-7.06.001 + S-15.01 AC-007'; pre-commit → PostToolUse Edit\|Write; test-fixture annotation added) | safety | integration | SS-07, SS-01 | — | draft |
 | [VP-079](VP-079.md) | Async-Semantics Event Types — Payload Schema Conformance — each of the four async-semantics event types (`plugin.async_block_discarded`, `dispatcher.schema_mismatch`, `dispatcher.registry_invalid`, `plugin.timeout`) conforms to BC-3.08.001 schema (v1.16: F5 fix-burst-16 — SITES array refreshed to reflect live main.rs symbol positions; bats vp079-scenario6 header anchors stabilized per TD-031 (test-writer); F-P17-001 CRIT + F-P17-004 closed) | postcondition | integration | SS-03 | DI-017, DI-019 | draft |
+| [VP-080](VP-080.md) | block-ai-attribution PostToolUse arm: detect_attribution correctly identifies all TV-001..011 patterns in git log HEAD output (v1.1: F2 fix — traces_to corrected to VP-INDEX.md from non-existent verification-architecture.md) | postcondition | proptest | SS-07 | — | draft |
 
 ## Kani Upgrade Candidates (P0 Priority)
 
@@ -294,10 +298,11 @@ changelog:
 | VP-077 | S-15.01 | v1.0-feature-plugin-async-semantics-pass-1 F3 | S-15.01 (plugin async semantics full implementation) is the anchor story; VP-077 Kani proof harness exercises partition function totality, async-field respect, disjointness, union completeness, exit-code independence from async group, and aggregation correctness (6 properties per BC-7.06.001 Invariant 7 uniqueness precondition) |
 | VP-078 | S-15.01 | v1.0-feature-plugin-async-semantics-pass-1 F3 | S-15.01 is the anchor story; VP-078 bats integration harness validates `on_error = "block"` implies `async = false` CI lint invariant across the production hooks-registry.toml |
 | VP-079 | S-15.01 | v1.0-feature-plugin-async-semantics-pass-1 F3 | S-15.01 is the anchor story; VP-079 integration harness verifies payload schema conformance for all four async-semantics event types (plugin.async_block_discarded, dispatcher.schema_mismatch, dispatcher.registry_invalid, plugin.timeout) per BC-3.08.001 |
+| VP-080 | S-16.01 | v1.0-feature-block-ai-attribution-message-file-arm F3 | S-16.01 is the anchor story; VP-080 proptest harness builds detect_attribution proptest at crates/hook-plugins/block-ai-attribution/tests/proptest_detect_attribution.rs verifying 4 properties across all TV-001..011 patterns (1024 cases/run; pure-core function) per BC-7.03.094 |
 
 ## Traceability
 
 - All 18 active domain invariants (DI-001..DI-017, DI-019; DI-018 deferred-not-authored) covered by the verification suite
-- BCs cross-referenced: 130 BC IDs across 79 VPs (net -2: BC-1.10.001/002 retired and dropped from VP-065 coverage in pass-4; +5 BC-4.05.001-005 added with VP-066; +4 BC-4.07.001-004 added with VP-067; +3 BC-4.08.001-003 added with VP-068; +8 D-340 F2 engine discipline: VP-069→BC-4.11.001; VP-070→BC-4.11.001; VP-071→BC-5.39.001/BC-4.10.001; VP-072→BC-4.11.001/BC-6.22.001/BC-4.10.001; +7 D-362 F2-amendment: VP-073→BC-4.12.001; VP-074→BC-4.12.004; VP-075→BC-4.12.002/BC-4.12.005; VP-076→BC-4.12.003; +2 F2-async-semantics: VP-077→BC-1.14.001; VP-078→BC-7.06.001; +1 F2 pass-1 fix burst: VP-079→BC-3.08.001)
+- BCs cross-referenced: 132 BC IDs across 80 VPs (net -2: BC-1.10.001/002 retired and dropped from VP-065 coverage in pass-4; +5 BC-4.05.001-005 added with VP-066; +4 BC-4.07.001-004 added with VP-067; +3 BC-4.08.001-003 added with VP-068; +8 D-340 F2 engine discipline: VP-069→BC-4.11.001; VP-070→BC-4.11.001; VP-071→BC-5.39.001/BC-4.10.001; VP-072→BC-4.11.001/BC-6.22.001/BC-4.10.001; +7 D-362 F2-amendment: VP-073→BC-4.12.001; VP-074→BC-4.12.004; VP-075→BC-4.12.002/BC-4.12.005; VP-076→BC-4.12.003; +2 F2-async-semantics: VP-077→BC-1.14.001; VP-078→BC-7.06.001; +1 F2 pass-1 fix burst: VP-079→BC-3.08.001; +2 F-block-ai-attribution-message-file-arm F2: VP-080→BC-7.03.094/BC-7.03.095)
 - Test evidence cited: 46 VPs have specific Rust test references (VP-063 changed from proptest to integration/bats in pass-1)
-- 26 VPs have TBD test evidence (manual or pending CI automation; +4 VP-073..076 feasible-pending-harness; +2 VP-077..078 feasible-pending-harness; +1 VP-079 feasible-pending-harness)
+- 27 VPs have TBD test evidence (manual or pending CI automation; +4 VP-073..076 feasible-pending-harness; +2 VP-077..078 feasible-pending-harness; +1 VP-079 feasible-pending-harness; +1 VP-080 feasible-pending-harness)
