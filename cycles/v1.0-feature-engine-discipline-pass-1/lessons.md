@@ -1686,9 +1686,9 @@ The 33-layer history table (extends L-EDP1-033 table):
 | 31 (pass-40) | D-420 | 4 | YES (first multi-axis) |
 | 32 (pass-41) | D-421 | 4 | YES (second consecutive) |
 | 33 (pass-42) | D-422 | 3 | YES (third consecutive) |
-| 34 (this, pass-43) | D-422 at codifying burst | 4+ | YES (fourth consecutive; ALL D-422 sub-clauses violated) |
+| 34 (this, pass-43) | D-422 at codifying burst | 7 | YES (fourth consecutive; ALL D-422 sub-clauses violated) |
 
-Multi-axis is the dominant asymptotic mode; axis count fluctuating 3-4+ per codifying burst. The "codifying-burst self-application failure" pattern is STRUCTURALLY PERSISTENT. **D-422 was the most aggressive mechanization discipline yet (re-execution + sed extraction), and it failed at its own application** — this is the strongest evidence to date that prose codification is structurally incapable of breaking L-EDP1-003 at this volume.
+Multi-axis is the dominant asymptotic mode; axis count fluctuating 3-7 per codifying burst. The "codifying-burst self-application failure" pattern is STRUCTURALLY PERSISTENT. **D-422 was the most aggressive mechanization discipline yet (re-execution + sed extraction), and it failed at its own application** — this is the strongest evidence to date that prose codification is structurally incapable of breaking L-EDP1-003 at this volume.
 
 The 34-layer history:
 
@@ -1769,7 +1769,7 @@ S-15.03 PRIORITY-A automation remains the only known structural remedy.
 | 31 (pass-40) | D-420 | 4 | YES (first multi-axis) |
 | 32 (pass-41) | D-421 | 4 | YES (second consecutive) |
 | 33 (pass-42) | D-422 | 3 | YES (third consecutive) |
-| 34 (pass-43) | D-423 | 4+ (total ≥7 per body enumeration: 4 D-422 sub-clause violations + 3 NEW compound classes) | YES (fourth consecutive; ALL D-422 sub-clauses violated) |
+| 34 (pass-43) | D-423 | 7 (total per body enumeration: 4 D-422 sub-clause violations + 3 NEW compound classes) | YES (fourth consecutive; ALL D-422 sub-clauses violated) |
 | 35 (this, pass-44) | D-424 | 5 | YES (fifth consecutive; D-423(b) self-application VIOLATED as predicted, L-EDP1-036) — Layer-35 inline-replaced per D-400 |
 
 **Critical observation:** L-EDP1-035 EXPLICITLY PREDICTED D-423 would be violated at its own codifying burst, and pass-44 adversary CONFIRMED that prediction. This is meta-evidence that the L-EDP1-003 pattern is structurally persistent — the lesson itself can predict the next layer's violation without breaking the pattern. **Prose codification is fundamentally incapable of breaking the asymptotic loop at this volume.** S-15.03 PRIORITY-A automation remains the only known structural remedy.
@@ -1817,7 +1817,7 @@ S-15.03 PRIORITY-A automation remains the only known structural remedy.
 | 31 (pass-40) | D-420 | 4 | YES (first multi-axis) |
 | 32 (pass-41) | D-421 | 4 | YES (second consecutive) |
 | 33 (pass-42) | D-422 | 3 | YES (third consecutive) |
-| 34 (pass-43) | D-423 | 4+ (total ≥7 per body enumeration: 4 D-422 sub-clause violations + 3 NEW compound classes) | YES (fourth consecutive; ALL D-422 sub-clauses violated) |
+| 34 (pass-43) | D-423 | 7 (total per body enumeration: 4 D-422 sub-clause violations + 3 NEW compound classes) | YES (fourth consecutive; ALL D-422 sub-clauses violated) |
 | 35 (pass-44) | D-424 | 5 | YES (fifth consecutive; D-423(b) self-application VIOLATED as predicted, L-EDP1-036) — Layer-35 inline-replaced per D-400 |
 | 36 (pass-45) | D-425 | 7 | YES (sixth consecutive; NEW silent-slip axis D-415(b) 9-burst recurrence) — Layer-36 inline-replaced per D-400 |
 
@@ -1831,7 +1831,7 @@ S-15.03 PRIORITY-A automation remains the only known structural remedy.
 
 **Codified rules:**
 - D-425(a): D-415(b) STATE.md Decisions Log preamble sibling-sweep ENFORCEMENT — every codifying burst Commit E MUST update preamble to D-379..D-<latest> AND verify ABSENCE of any older stale cite. Closes F-P45-004.
-- D-425(b): D-422(a) Verification grep-back D-415(a) N+3 form — finding-set grep-c claims MUST report N+3 decomposition (N source + attestation cite + Verification self-ref + Canonical-marker) when Verification is in the grepped file. Closes F-P45-001.
+- D-425(b): D-422(a) Verification grep-back D-415(a) N+4 form (extended per D-426(b)) — finding-set grep-c claims MUST report N+4 decomposition (N source + attestation cite + Verification self-ref + Dim-N narrative cite + Canonical-marker) when Verification is in the grepped file. Closes F-P45-001.
 - D-425(c): Cardinality alignment vague-range FORBIDDEN — specific numeric counts required in trend-tables, decision-log prose, and lesson body summaries; vague ranges "4-5" or "4+" are D-421(d) violations. Closes F-P45-002, F-P45-006, F-P45-008.
 - D-425(d): 36th-layer L-EDP1-003 multi-axis acknowledgment (6th consecutive; NEW silent-slip axis D-415(b) 9-burst recurrence) — prose codification structurally incapable at this volume; S-15.03 PRIORITY-A only structural remedy. Closes F-P45-003, F-P45-005, F-P45-007.
 
