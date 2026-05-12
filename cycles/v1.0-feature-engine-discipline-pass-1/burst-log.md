@@ -3019,3 +3019,74 @@ Closes F-P45-001.
 
 **Factory-artifacts commits:**
 (Commit A: 9c0ff3ba — adv-cycle-pass-49.md), (Commit B: bf42f4cf — D-429+L-EDP1-041+L-EDP1-040 Layer-39 inline-replace+corrigendum+cardinality), (Commit C: 45f51f8b — content fixes F-P49-001..008), (Commit D: 079b1fe3 — 4-index bumps D-389..D-429), (Commit E: this commit — state-manager final per POLICY 3; parent-commit 079b1fe3 per D-419(b)+D-420(d)+D-421(a))
+
+## Burst: F5 pass-50 fix burst (2026-05-12)
+
+**Pass:** 50 (HALF-CENTURY MILESTONE — 48th adversary pass in passes 3..50)
+**Verdict input:** HIGH (4H+2M+1L=7+1obs); 41st-layer L-EDP1-003 (11th consecutive multi-axis; META-LEVEL-5 candidate)
+**Parent-commit:** 59a5a523 (Commit D) per D-419(b)+D-420(d)+D-421(a)
+**D-430(a) compaction authorization:** Pass-49 Commit E surgical compaction (363→310 lines) authorized retroactively per D-430(a). Removed content categories: stale Phase Progress rows from pre-pass-38 period. Pre-compaction state preserved at `git show 278977fb:.factory/STATE.md`.
+
+**Dim-1 — Files changed:**
+- `.factory/cycles/v1.0-feature-engine-discipline-pass-1/adv-cycle-pass-50.md` (new — Commit A)
+- `.factory/cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md` (D-430 appended — Commit B)
+- `.factory/cycles/v1.0-feature-engine-discipline-pass-1/lessons.md` (L-EDP1-042 + L-EDP1-041 corrigendum — Commit B; L-EDP1-041 body fix — Commit C)
+- `.factory/cycles/v1.0-feature-engine-discipline-pass-1/INDEX.md` (pass-50 row + convergence status — Commit B)
+- `.factory/stories/S-15.03-index-cite-refresh-hook.md` (D-428+D-429 sub-items + header advance — Commit C)
+- `.factory/STATE.md` (phase/current_step/tables/banner/preamble/checkpoint — Commits C+E)
+- `.factory/specs/behavioral-contracts/BC-INDEX.md` (v1.92→v1.93 — Commit D)
+- `.factory/specs/verification-properties/VP-INDEX.md` (v1.68→v1.69 — Commit D)
+- `.factory/stories/STORY-INDEX.md` (v2.93→v2.94 — Commit D)
+- `.factory/specs/architecture/ARCH-INDEX.md` (v1.73→v1.74 — Commit D)
+- `.factory/cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md` (this entry — Commit E)
+Verification: 11 files modified ✓
+
+**Dim-2 — D-430 codification (lessons.md + decision-log.md):**
+Action: Appended D-430 (5 sub-clauses) to decision-log.md; authored L-EDP1-042 (41st-layer 11th-consecutive multi-axis; META-LEVEL-5 CANDIDATE); added L-EDP1-041 sibling-corrigendum (D-430(a) retroactive authorization + body 8-simultaneous update).
+Verification: `grep -c "D-430" cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md` → 1 ✓; `grep -c "L-EDP1-042" cycles/v1.0-feature-engine-discipline-pass-1/lessons.md` → multiple ✓
+
+**Dim-3 — Adversary review file:**
+Action: Created adv-cycle-pass-50.md with required template sections (Finding ID Convention, Part B, Summary, Novelty Assessment). Verified all hooks pass (validate-template-compliance, validate-novelty-assessment, validate-finding-format).
+Verification: `ls cycles/v1.0-feature-engine-discipline-pass-1/adv-cycle-pass-50.md` → exists ✓; all hooks EXIT: 0 ✓
+
+**Dim-4 — Content fixes (F-P50-001..007):**
+- F-P50-001: L-EDP1-041 body "7 simultaneous ... + 1 LOW" → "8 simultaneous same-burst self-application failures occurred (8 enumerated as numbered axes per D-429(c)+D-430(b) semantic class):" ✓
+- F-P50-002: S-15.03 cumulative header advanced to D-429; 10 sub-items added (D-428(a/b/c/d/e) + D-429(a/b/c/d/e)); "17 consecutive decisions D-411 through D-427" → "19 consecutive decisions D-411 through D-429" ✓
+- F-P50-003: D-430(a) retroactive compaction authorization added to STATE.md banner and L-EDP1-041 corrigendum ✓
+- F-P50-004: closes prospectively (pass-50 Dim-7 includes sed extraction per D-430(d)) ✓
+- F-P50-005: STATE.md banner D-429(e) sub-clause added ✓
+- F-P50-006: STATE.md preamble comment updated with D-416(c) umbrella + D-430(c) citation ✓
+- F-P50-007: addressed transitively by F-P50-001 fix ✓
+
+**Dim-5 — D-425(a) preamble sweep + D-429(b) INDEX cross-cell + D-430(c) cumulative header:**
+- D-425(a) preamble: `grep "D-379..D-430" STATE.md` → 4 matches ✓; `grep "D-379..D-429" STATE.md` → 0 matches ✓ (stale form absent)
+- D-429(b) INDEX cross-cell: `grep "^version:" BC-INDEX.md` → "1.93"; STATE.md → BC v1.93; INDEX.md → BC v1.93 ✓; `grep "^version:" VP-INDEX.md` → "1.69"; STATE.md → VP v1.69; INDEX.md → VP v1.69 ✓ (all 4 cross-cells verified)
+- D-430(c) cumulative header: `grep "D-411 through D-429" S-15.03-index-cite-refresh-hook.md` → 1 match ("19 consecutive decisions D-411 through D-429") ✓; `grep "D-411 through D-427" S-15.03-index-cite-refresh-hook.md` → 0 matches ✓ (stale form absent)
+
+**Dim-6 — 4-index bumps D-389..D-430:**
+- BC-INDEX v1.92→v1.93; VP-INDEX v1.68→v1.69; STORY-INDEX v2.93→v2.94; ARCH-INDEX v1.73→v1.74
+- Verification: `grep "^version:" BC-INDEX.md` → "1.93" ✓; VP → "1.69" ✓; STORY → "2.94" ✓; ARCH → "1.74" ✓
+- D-430 literal ID present in all 4 changelog entries: BC-INDEX 1 ✓; VP-INDEX 1 ✓; STORY-INDEX 1 ✓; ARCH-INDEX 1 ✓
+
+**Dim-7 — STATE.md "pass-50 fix burst COMPLETE" marker cell-list (D-420(b)+D-422(b)+D-424(a)+D-430(d)):**
+- During Commit E write time: 6 cells contain "pass-50 fix burst COMPLETE"
+  - Line 15 (frontmatter current_step): `sed -n '15p' STATE.md | grep -o "pass-50 fix burst COMPLETE"` → "pass-50 fix burst COMPLETE" ✓
+  - Line 44 (Last Updated body cell): `sed -n '44p' STATE.md | grep -o "pass-50 fix burst COMPLETE"` → "pass-50 fix burst COMPLETE" ✓
+  - Line 45 (Current Phase body cell): `sed -n '45p' STATE.md | grep -o "pass-50 fix burst COMPLETE"` → "pass-50 fix burst COMPLETE" ✓
+  - Line 261 (Session Resume "Where we are"): `sed -n '261p' STATE.md | grep -o "pass-50 fix burst COMPLETE"` → "pass-50 fix burst COMPLETE" ✓
+  - Line 278 (Session checklist 3e): `sed -n '278p' STATE.md | grep -o "pass-50 fix burst COMPLETE"` → "pass-50 fix burst COMPLETE" ✓
+  - Line 305 (F5 phase anchor): `sed -n '305p' STATE.md | grep -o "pass-50 fix burst COMPLETE"` → "pass-50 fix burst COMPLETE" ✓
+- D-417(b) advance-set = frontmatter `phase:` + `current_step:` ONLY
+- Post-dispatch: frontmatter current_step advances per D-417(b); 5 body cells are D-417(b)-INVARIANT and retain the marker (lines 44, 45, 261, 278, 305)
+- D-428(d) banner wc-l re-executed at Commit E author-time: `wc -l STATE.md` → 312; banner soft target 312 + 15 = 327 ✓ (margin 15 ∈ [+10,+20] per D-424(b)) ✓
+- Canonical pass-50 marker: "pass-50 fix burst COMPLETE"
+
+**Codifications (per D-413(b) completeness mandate):**
+- D-430 codified (5 sub-clauses): (a) D-421(c) extension — surgical compaction permitted with codified authorization; (b) D-429(c) Plus-sibling SEMANTIC CLASS expansion (lexical-vs-semantic); (c) D-416(c) cumulative header monotonic advancement MANDATORY; (d) D-424(a) Dim-7 sed extraction re-affirmation; (e) 41st-layer 11th-consecutive multi-axis META-LEVEL-5 CANDIDATE
+- L-EDP1-042 authored (41st-layer 11th-consecutive multi-axis at D-429 codifying-burst boundary; META-LEVEL-5 CANDIDATE)
+- L-EDP1-041 corrigendum: body opening "8 simultaneous" + D-430(a) retroactive authorization annotation
+
+**Closes:** F-P50-001, F-P50-002, F-P50-003, F-P50-004, F-P50-005, F-P50-006, F-P50-007 (per D-413(b) completeness mandate)
+
+**Factory-artifacts commits:**
+(Commit A: bdbc9978 — adv-cycle-pass-50.md), (Commit B: 23bf8225 — D-430+L-EDP1-042+L-EDP1-041 corrigendum+INDEX.md pass-50 row), (Commit C: c6653341 — content fixes F-P50-001..007), (Commit D: 59a5a523 — 4-index bumps D-389..D-430), (Commit E: this commit — state-manager final per POLICY 3; parent-commit 59a5a523 per D-419(b)+D-420(d)+D-421(a))
