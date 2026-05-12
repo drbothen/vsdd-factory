@@ -82,3 +82,11 @@ Archived checkpoints from STATE.md as newer checkpoints replace them.
 **Last update:** 2026-05-12 — F5 pass-43 fix burst COMPLETE. Pass-43 HIGH verdict (4H+3M+1L=8+1obs; 34th-layer L-EDP1-003 multi-axis; 4th consecutive multi-axis; ALL D-422 sub-clauses violated at D-422 codifying burst). D-423 codified (4 sub-clauses: concurrent-commit version-bump propagation + sed-extraction completeness ALL cells BOTH enumerations + Action-narrative grep-back + 34th-layer 4th-consecutive multi-axis acknowledgment). L-EDP1-035 34th-layer multi-axis. 4 indexes BC v1.86/VP v1.62/STORY v2.87/ARCH v1.67 acknowledge D-389..D-423. Trajectory (content-only) 43 values: 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7→8→6→2→5→5→5→7→8→7→8→7→8. Streak: 0/3 NITPICK_ONLY. Verdict HIGH sustained.
 
 **STATE:** F4 platform COMPLETE; F5 pass-43 fix burst COMPLETE; pass-44 adversary dispatch PENDING. parent-commit a52fad8d per D-419(b)+D-420(d)+D-421(a).
+
+---
+
+## Archived Checkpoint — pass-53 fix burst COMPLETE (replaced by pass-54 checkpoint)
+
+**Last update:** 2026-05-12 — F5 pass-53 fix burst COMPLETE. Pass-53 HIGH verdict (1C+4H+2M+1L=8+2obs; 44th-layer L-EDP1-003 multi-axis; 14th consecutive; META-LEVEL-8 CONFIRMED; CRITICAL ADV-EDP1-P53-CRIT-001 banner D-NNN cite frozen at D-431). D-433 codified (5 sub-clauses: banner-cite-advancement + wc-l-prose-anchor + homogeneous-marker + trend-table-axis-count-stable + trajectory-tail-LENGTH). L-EDP1-045 44th-layer multi-axis. 4 indexes BC v1.96/VP v1.72/STORY v2.97/ARCH v1.77 acknowledge D-389..D-433. Trajectory tail (last 4 of 53 values per D-433(e)) →7→7→7→8. Streak: 0/3 NITPICK_ONLY. Verdict HIGH sustained.
+
+**STATE:** F4 platform COMPLETE; F5 pass-53 fix burst COMPLETE; pass-54 adversary dispatch COMPLETE (2ccfae64). parent-commit 8d84aa3d per D-419(b)+D-420(d)+D-421(a).
