@@ -1678,15 +1678,15 @@ The 33-layer history table (extends L-EDP1-033 table):
 
 7. **D-418(a) extended to version-canonical-anchor (F-P43-001):** Concurrent commit c27b229c pre-bumped indexes v1.83→v1.84 BEFORE pass-42's Commit D bump v1.84→v1.85. STATE.md:177 + INDEX.md Convergence Status were swept to v1.84/v1.60/v2.85/v1.65 (pre-external-bump values) NOT v1.85/v1.61/v2.86/v1.66 (actual post-Commit-D values). New external-commit interaction failure mode — D-418(a) SHA-canonical-anchor extended to version-canonical-anchor.
 
-**Trend confirmation:**
+**Trend (axis counts per multi-axis layer; per D-433(d) normalized = content-only finding count per D-401(c)):**
 
 | Layer | Burst | Axis count | Multi-axis? |
 |-------|-------|-----------|-------------|
-| 30 (pass-39) | D-419 | 1 | No (single-axis) |
-| 31 (pass-40) | D-420 | 4 | YES (first multi-axis) |
-| 32 (pass-41) | D-421 | 4 | YES (second consecutive) |
-| 33 (pass-42) | D-422 | 3 | YES (third consecutive) |
-| 34 (this, pass-43) | D-422 at codifying burst | 7 | YES (fourth consecutive; ALL D-422 sub-clauses violated) |
+| 30 (pass-39) | D-419 | 8 | No (single-axis violation class; 3H+3M+2L=8 content-only per D-401(c)) |
+| 31 (pass-40) | D-420 | 7 | YES (first multi-axis; 3H+3M+1L=7 content-only per D-401(c)) |
+| 32 (pass-41) | D-421 | 8 | YES (second consecutive; 3H+4M+1L=8 content-only per D-401(c)) |
+| 33 (pass-42) | D-422 | 7 | YES (third consecutive; 3H+3M+1L=7 content-only per D-401(c)) |
+| 34 (this, pass-43) | D-423 | 8 | YES (fourth consecutive; 4H+3M+1L=8 content-only per D-401(c); ALL D-422 sub-clauses violated) |
 
 Multi-axis is the dominant asymptotic mode; axis count specific per layer: 4/4/3/7/5/5/6/7 for layers 31-38. The "codifying-burst self-application failure" pattern is STRUCTURALLY PERSISTENT. **D-422 was the most aggressive mechanization discipline yet (re-execution + sed extraction), and it failed at its own application** — this is the strongest evidence to date that prose codification is structurally incapable of breaking L-EDP1-003 at this volume.
 
@@ -1762,15 +1762,15 @@ S-15.03 PRIORITY-A automation remains the only known structural remedy.
 
 5. **D-423(c) non-discriminating grep-back (F-P44-006):** D-423(c) attestation "Layer-32 row" grep-c=3 is non-unique (3 matches all pre-existing); does not discriminate the newly-written F-P43-007 retroactive corrigendum. Coincidental-arithmetic-match anti-pattern at D-423(c) self-application.
 
-**Trend (axis counts per multi-axis layer):**
+**Trend (axis counts per multi-axis layer; per D-433(d) normalized = content-only finding count per D-401(c)):**
 
 | Layer | Burst | Axis count | Multi-axis? |
 |-------|-------|-----------|-------------|
-| 31 (pass-40) | D-420 | 4 | YES (first multi-axis) |
-| 32 (pass-41) | D-421 | 4 | YES (second consecutive) |
-| 33 (pass-42) | D-422 | 3 | YES (third consecutive) |
-| 34 (pass-43) | D-423 | 7 (total per body enumeration: 4 D-422 sub-clause violations + 3 NEW compound classes) | YES (fourth consecutive; ALL D-422 sub-clauses violated) |
-| 35 (this, pass-44) | D-424 | 5 | YES (fifth consecutive; D-423(b) self-application VIOLATED as predicted, L-EDP1-036) — Layer-35 inline-replaced per D-400 |
+| 31 (pass-40) | D-420 | 7 | YES (first multi-axis; 3H+3M+1L=7 content-only per D-401(c)) |
+| 32 (pass-41) | D-421 | 8 | YES (second consecutive; 3H+4M+1L=8 content-only per D-401(c)) |
+| 33 (pass-42) | D-422 | 7 | YES (third consecutive; 3H+3M+1L=7 content-only per D-401(c)) |
+| 34 (pass-43) | D-423 | 8 | YES (fourth consecutive; 4H+3M+1L=8 content-only per D-401(c); ALL D-422 sub-clauses violated) |
+| 35 (this, pass-44) | D-424 | 7 | YES (fifth consecutive; 3H+3M+1L=7 content-only per D-401(c); D-423(b) self-application VIOLATED as predicted, L-EDP1-036) — Layer-35 inline-replaced per D-400 |
 
 **Critical observation:** L-EDP1-035 EXPLICITLY PREDICTED D-423 would be violated at its own codifying burst, and pass-44 adversary CONFIRMED that prediction. This is meta-evidence that the L-EDP1-003 pattern is structurally persistent — the lesson itself can predict the next layer's violation without breaking the pattern. **Prose codification is fundamentally incapable of breaking the asymptotic loop at this volume.** S-15.03 PRIORITY-A automation remains the only known structural remedy.
 
@@ -1810,16 +1810,16 @@ S-15.03 PRIORITY-A automation remains the only known structural remedy.
 
 **Plus**: F-P45-007 reclassified as axis 6 per D-426(c) — no remaining "Plus" at layer 36.
 
-**Trend (axis counts per multi-axis layer):**
+**Trend (axis counts per multi-axis layer; per D-433(d) normalized = content-only finding count per D-401(c)):**
 
 | Layer | Burst | Axis count | Multi-axis? |
 |-------|-------|-----------|-------------|
-| 31 (pass-40) | D-420 | 4 | YES (first multi-axis) |
-| 32 (pass-41) | D-421 | 4 | YES (second consecutive) |
-| 33 (pass-42) | D-422 | 3 | YES (third consecutive) |
-| 34 (pass-43) | D-423 | 7 (total per body enumeration: 4 D-422 sub-clause violations + 3 NEW compound classes) | YES (fourth consecutive; ALL D-422 sub-clauses violated) |
-| 35 (pass-44) | D-424 | 5 | YES (fifth consecutive; D-423(b) self-application VIOLATED as predicted, L-EDP1-036) — Layer-35 inline-replaced per D-400 |
-| 36 (pass-45) | D-425 | 7 | YES (sixth consecutive; NEW silent-slip axis D-415(b) 9-burst recurrence) — Layer-36 inline-replaced per D-400 |
+| 31 (pass-40) | D-420 | 7 | YES (first multi-axis; 3H+3M+1L=7 content-only per D-401(c)) |
+| 32 (pass-41) | D-421 | 8 | YES (second consecutive; 3H+4M+1L=8 content-only per D-401(c)) |
+| 33 (pass-42) | D-422 | 7 | YES (third consecutive; 3H+3M+1L=7 content-only per D-401(c)) |
+| 34 (pass-43) | D-423 | 8 | YES (fourth consecutive; 4H+3M+1L=8 content-only per D-401(c); ALL D-422 sub-clauses violated) |
+| 35 (pass-44) | D-424 | 7 | YES (fifth consecutive; 3H+3M+1L=7 content-only per D-401(c); D-423(b) self-application VIOLATED as predicted, L-EDP1-036) — Layer-35 inline-replaced per D-400 |
+| 36 (pass-45) | D-425 | 8 | YES (sixth consecutive; 4H+3M+1L=8 content-only per D-401(c); NEW silent-slip axis D-415(b) 9-burst recurrence) — Layer-36 inline-replaced per D-400 |
 
 **Critical observation:** Layer 36 introduces a NEW axis class — silent-slip across multiple consecutive bursts. Prior layers exhibited single-burst codifying-boundary violations; layer-36 surfaces a cross-burst undetected staleness. This means the asymptotic pattern is broader than codifying-burst-only — silent slips can survive multiple bursts. Per D-386 Option C, prose codification cannot break this pattern.
 
@@ -1859,22 +1859,22 @@ S-15.03 PRIORITY-A automation remains the only known structural remedy.
 
 7. **F-P46-007 D-425(c) "4+" subordinate sibling coverage gap (LOW):** Subordinate to F-P46-001; specific site at lessons.md:1691 where "3-7" form (previously "3-4+") survived the D-425(c) pass-45 sweep. Per D-426(c), this is axis 7 (not a "Plus" sibling). Reclassified from "Plus" per D-426(c) body-cardinality alignment.
 
-**Trend (axis counts per multi-axis layer):**
+**Trend (axis counts per multi-axis layer; per D-433(d) normalized = content-only finding count per D-401(c)):**
 
 | Layer | Burst | Axis count | Multi-axis? |
 |-------|-------|-----------|-------------|
-| 31 (pass-40) | D-420 | 4 | YES (first multi-axis) |
-| 32 (pass-41) | D-421 | 4 | YES (second consecutive) |
-| 33 (pass-42) | D-422 | 3 | YES (third consecutive) |
-| 34 (pass-43) | D-423 | 7 (total per body enumeration: 4 D-422 sub-clause violations + 3 NEW compound classes) | YES (fourth consecutive; ALL D-422 sub-clauses violated) |
-| 35 (pass-44) | D-424 | 5 | YES (fifth consecutive; D-423(b) self-application VIOLATED as predicted, L-EDP1-036) — Layer-35 inline-replaced per D-400 |
-| 36 (pass-45) | D-425 | 7 | YES (sixth consecutive; NEW silent-slip axis D-415(b) 9-burst recurrence) — Layer-36 inline-replaced per D-400 |
-| 37 (pass-46) | D-426 at codifying burst | 7 | YES (seventh consecutive; NEW rule-scope-vs-applied-scope coverage gap class; F-P46-007 reclassified axis 7 per D-426(c)) — Layer-37 inline-replaced per D-400 |
+| 31 (pass-40) | D-420 | 7 | YES (first multi-axis; 3H+3M+1L=7 content-only per D-401(c)) |
+| 32 (pass-41) | D-421 | 8 | YES (second consecutive; 3H+4M+1L=8 content-only per D-401(c)) |
+| 33 (pass-42) | D-422 | 7 | YES (third consecutive; 3H+3M+1L=7 content-only per D-401(c)) |
+| 34 (pass-43) | D-423 | 8 | YES (fourth consecutive; 4H+3M+1L=8 content-only per D-401(c); ALL D-422 sub-clauses violated) |
+| 35 (pass-44) | D-424 | 7 | YES (fifth consecutive; 3H+3M+1L=7 content-only per D-401(c); D-423(b) self-application VIOLATED as predicted, L-EDP1-036) — Layer-35 inline-replaced per D-400 |
+| 36 (pass-45) | D-425 | 8 | YES (sixth consecutive; 4H+3M+1L=8 content-only per D-401(c); NEW silent-slip axis D-415(b) 9-burst recurrence) — Layer-36 inline-replaced per D-400 |
+| 37 (pass-46) | D-426 | 7 | YES (seventh consecutive; 3H+3M+1L=7 content-only per D-401(c); NEW rule-scope-vs-applied-scope coverage gap class; F-P46-007 reclassified axis 7 per D-426(c)) — Layer-37 inline-replaced per D-400 |
 
 **Pattern class evolution:**
 - Layers 31-33: Single-burst codifying-boundary violations
-- Layer 34: Multi-axis at codifying boundary (4 simultaneous)
-- Layer 35: 5-axis sustained
+- Layer 34: Multi-axis at codifying boundary (8 content-only findings)
+- Layer 35: 7 content-only findings
 - Layer 36: NEW silent-slip class introduced (9-burst undetected staleness)
 - Layer 37: NEW rule-scope-vs-applied-scope coverage gap class introduced
 
@@ -1916,24 +1916,24 @@ S-15.03 PRIORITY-A automation remains the only known structural remedy.
 
 7. **D-415(a) 6th+7th site class uncodified (F-P47-007):** Pass-46 Dim-5 application introduced "Codifications block cite" + "Closes block cite" as new self-reference sites beyond D-426(b)'s 5. D-427(c) extends to N+6 form.
 
-**Trend (axis counts per multi-axis layer):**
+**Trend (axis counts per multi-axis layer; per D-433(d) normalized = content-only finding count per D-401(c)):**
 
 | Layer | Burst | Axis count | Multi-axis? |
 |-------|-------|-----------|-------------|
-| 31 (pass-40) | D-420 | 4 | YES (first multi-axis) |
-| 32 (pass-41) | D-421 | 4 | YES (second consecutive) |
-| 33 (pass-42) | D-422 | 3 | YES (third consecutive) |
-| 34 (pass-43) | D-423 | 7 | YES (fourth consecutive; ALL D-422 sub-clauses violated) |
-| 35 (pass-44) | D-424 | 5 | YES (fifth consecutive) |
-| 36 (pass-45) | D-425 | 7 | YES (sixth consecutive; NEW silent-slip axis) |
-| 37 (pass-46) | D-426 | 7 | YES (seventh consecutive; NEW rule-scope-vs-applied-scope coverage gap class) — Layer-37 inline-replaced per D-400 |
-| 38 (pass-46) | D-426 | 7 | YES (eighth consecutive; NEW self-replicating coverage-gap class) — Layer-38 inline-replaced per D-400 |
+| 31 (pass-40) | D-420 | 7 | YES (first multi-axis; 3H+3M+1L=7 content-only per D-401(c)) |
+| 32 (pass-41) | D-421 | 8 | YES (second consecutive; 3H+4M+1L=8 content-only per D-401(c)) |
+| 33 (pass-42) | D-422 | 7 | YES (third consecutive; 3H+3M+1L=7 content-only per D-401(c)) |
+| 34 (pass-43) | D-423 | 8 | YES (fourth consecutive; 4H+3M+1L=8 content-only per D-401(c); ALL D-422 sub-clauses violated) |
+| 35 (pass-44) | D-424 | 7 | YES (fifth consecutive; 3H+3M+1L=7 content-only per D-401(c)) |
+| 36 (pass-45) | D-425 | 8 | YES (sixth consecutive; 4H+3M+1L=8 content-only per D-401(c); NEW silent-slip axis) |
+| 37 (pass-46) | D-426 | 7 | YES (seventh consecutive; 3H+3M+1L=7 content-only per D-401(c); NEW rule-scope-vs-applied-scope coverage gap class) — Layer-37 inline-replaced per D-400 |
+| 38 (pass-47) | D-427 | 7 | YES (eighth consecutive; 3H+3M+1L=7 content-only per D-401(c); NEW self-replicating coverage-gap class) — Layer-38 inline-replaced per D-400 |
 
 **NEW pattern class introduced:** Self-replicating coverage-gap — D-426(a) was codified to fix coverage-gap pattern, but the fix itself exhibited the coverage-gap pattern (F-P47-006). Pattern self-replicates within its own remediation.
 
 **Pattern class evolution:**
 - Layers 31-33: Single-burst codifying-boundary violations
-- Layer 34: Multi-axis at codifying boundary (4 simultaneous)
+- Layer 34: Multi-axis at codifying boundary (8 content-only findings)
 - Layer 35: 5-axis sustained
 - Layer 36: NEW silent-slip class introduced (9-burst undetected staleness)
 - Layer 37: NEW rule-scope-vs-applied-scope coverage gap class introduced
@@ -1980,20 +1980,20 @@ S-15.03 PRIORITY-A automation remains the only known structural remedy.
 
 8. **L-EDP1-040 trend-table row 39 placeholder (F-P49-008; LOW):** Row 39 "(this, pass-47)" inline-replaced to "(pass-47)" per D-400 convention.
 
-**Trend (axis counts per multi-axis layer):**
+**Trend (axis counts per multi-axis layer; per D-433(d) normalized = content-only finding count per D-401(c)):**
 
 | Layer | Burst | Axis count | Multi-axis? |
 |-------|-------|-----------|-------------|
-| 31 (pass-40) | D-420 | 4 | YES (first multi-axis) |
-| 32 (pass-41) | D-421 | 4 | YES (second consecutive) |
-| 33 (pass-42) | D-422 | 3 | YES (third consecutive) |
-| 34 (pass-43) | D-423 | 7 | YES (fourth consecutive; ALL D-422 sub-clauses violated) |
-| 35 (pass-44) | D-424 | 5 | YES (fifth consecutive) |
-| 36 (pass-45) | D-425 | 7 | YES (sixth consecutive; NEW silent-slip axis) |
-| 37 (pass-46) | D-426 | 7 | YES (seventh consecutive; NEW rule-scope-vs-applied-scope coverage gap class) — Layer-37 inline-replaced per D-400 |
-| 38 (pass-46) | D-426 | 7 | YES (eighth consecutive; NEW self-replicating coverage-gap class) — Layer-38 inline-replaced per D-400 |
-| 39 (pass-47) | D-427 | 7 | YES (ninth consecutive; META-LEVEL-3 class introduced) — Layer-39 inline-replaced per D-400 |
-| 40 (pass-48) | D-428 | 8 | YES (tenth consecutive; META-LEVEL-4 CONFIRMED) |
+| 31 (pass-40) | D-420 | 7 | YES (first multi-axis; 3H+3M+1L=7 content-only per D-401(c)) |
+| 32 (pass-41) | D-421 | 8 | YES (second consecutive; 3H+4M+1L=8 content-only per D-401(c)) |
+| 33 (pass-42) | D-422 | 7 | YES (third consecutive; 3H+3M+1L=7 content-only per D-401(c)) |
+| 34 (pass-43) | D-423 | 8 | YES (fourth consecutive; 4H+3M+1L=8 content-only per D-401(c); ALL D-422 sub-clauses violated) |
+| 35 (pass-44) | D-424 | 7 | YES (fifth consecutive; 3H+3M+1L=7 content-only per D-401(c)) |
+| 36 (pass-45) | D-425 | 8 | YES (sixth consecutive; 4H+3M+1L=8 content-only per D-401(c); NEW silent-slip axis) |
+| 37 (pass-46) | D-426 | 7 | YES (seventh consecutive; 3H+3M+1L=7 content-only per D-401(c); NEW rule-scope-vs-applied-scope coverage gap class) — Layer-37 inline-replaced per D-400 |
+| 38 (pass-47) | D-427 | 7 | YES (eighth consecutive; 3H+3M+1L=7 content-only per D-401(c); NEW self-replicating coverage-gap class) — Layer-38 inline-replaced per D-400 |
+| 39 (pass-48) | D-428 | 8 | YES (ninth consecutive; 4H+3M+1L=8 content-only per D-401(c); META-LEVEL-3 class introduced) — Layer-39 inline-replaced per D-400 |
+| 40 (pass-49) | D-429 | 8 | YES (tenth consecutive; 4H+3M+1L=8 content-only per D-401(c); META-LEVEL-4 CONFIRMED) |
 
 **Recursion ply mapping (4 confirmed plies, codified):**
 - Level-1: rule applied to named findings only (F-P46-001)
@@ -2049,21 +2049,21 @@ S-15.03 PRIORITY-A automation remains the only known structural remedy.
 
 7. **L-EDP1-041 trend-table row 40 cardinality presentation (F-P50-007 LOW):** Row 40 axis count "8" correct numerically but body opening clause "7 + 1 LOW" creates F-P50-001 anti-pattern.
 
-**Trend (axis counts per multi-axis layer):**
+**Trend (axis counts per multi-axis layer; per D-433(d) normalized = content-only finding count per D-401(c)):**
 
 | Layer | Burst | Axis count | Multi-axis? |
 |-------|-------|-----------|-------------|
-| 31 (pass-40) | D-420 | 4 | YES (first multi-axis) |
-| 32 (pass-41) | D-421 | 4 | YES (second consecutive) |
-| 33 (pass-42) | D-422 | 3 | YES (third consecutive) |
-| 34 (pass-43) | D-423 | 7 | YES (fourth consecutive; ALL D-422 sub-clauses violated) |
-| 35 (pass-44) | D-424 | 5 | YES (fifth consecutive) |
-| 36 (pass-45) | D-425 | 7 | YES (sixth consecutive; NEW silent-slip axis) |
-| 37 (pass-46) | D-426 | 7 | YES (seventh consecutive; NEW rule-scope-vs-applied-scope coverage gap class) |
-| 38 (pass-47) | D-427 | 7 | YES (eighth consecutive; NEW self-replicating coverage-gap class) |
-| 39 (pass-47) | D-427 at codifying burst | 8 | YES (ninth consecutive; META-LEVEL-3 class confirmed) |
-| 40 (pass-48) | D-428 | 8 | YES (tenth consecutive; META-LEVEL-4 CONFIRMED) |
-| 41 (pass-49) | D-429 | 7 | YES (eleventh consecutive; META-LEVEL-5 CANDIDATE via lexical-vs-semantic gap) |
+| 31 (pass-40) | D-420 | 7 | YES (first multi-axis; 3H+3M+1L=7 content-only per D-401(c)) |
+| 32 (pass-41) | D-421 | 8 | YES (second consecutive; 3H+4M+1L=8 content-only per D-401(c)) |
+| 33 (pass-42) | D-422 | 7 | YES (third consecutive; 3H+3M+1L=7 content-only per D-401(c)) |
+| 34 (pass-43) | D-423 | 8 | YES (fourth consecutive; 4H+3M+1L=8 content-only per D-401(c); ALL D-422 sub-clauses violated) |
+| 35 (pass-44) | D-424 | 7 | YES (fifth consecutive; 3H+3M+1L=7 content-only per D-401(c)) |
+| 36 (pass-45) | D-425 | 8 | YES (sixth consecutive; 4H+3M+1L=8 content-only per D-401(c); NEW silent-slip axis) |
+| 37 (pass-46) | D-426 | 7 | YES (seventh consecutive; 3H+3M+1L=7 content-only per D-401(c); NEW rule-scope-vs-applied-scope coverage gap class) |
+| 38 (pass-47) | D-427 | 7 | YES (eighth consecutive; 3H+3M+1L=7 content-only per D-401(c); NEW self-replicating coverage-gap class) |
+| 39 (pass-48) | D-428 | 8 | YES (ninth consecutive; 4H+3M+1L=8 content-only per D-401(c); META-LEVEL-3 class confirmed) |
+| 40 (pass-49) | D-429 | 8 | YES (tenth consecutive; 4H+3M+1L=8 content-only per D-401(c); META-LEVEL-4 CONFIRMED) |
+| 41 (pass-50) | D-430 | 7 | YES (eleventh consecutive; 4H+2M+1L=7 content-only per D-401(c); META-LEVEL-5 CANDIDATE via lexical-vs-semantic gap) |
 
 **Recursion ply mapping (5 confirmed plies + 1 candidate):**
 - Level-1: rule applied to named findings only
@@ -2119,19 +2119,19 @@ S-15.03 PRIORITY-A automation remains the only known structural remedy.
 
 8. **L-EDP1-039 row 38 format anomaly (F-P48-008; LOW):** Row 38 "(this, pass-47)" → "(pass-46)" inline correction per D-400 convention.
 
-**Trend (axis counts per multi-axis layer):**
+**Trend (axis counts per multi-axis layer; per D-433(d) normalized = content-only finding count per D-401(c)):**
 
 | Layer | Burst | Axis count | Multi-axis? |
 |-------|-------|-----------|-------------|
-| 31 (pass-40) | D-420 | 4 | YES (first multi-axis) |
-| 32 (pass-41) | D-421 | 4 | YES (second consecutive) |
-| 33 (pass-42) | D-422 | 3 | YES (third consecutive) |
-| 34 (pass-43) | D-423 | 7 | YES (fourth consecutive; ALL D-422 sub-clauses violated) |
-| 35 (pass-44) | D-424 | 5 | YES (fifth consecutive) |
-| 36 (pass-45) | D-425 | 7 | YES (sixth consecutive; NEW silent-slip axis) |
-| 37 (pass-46) | D-426 | 7 | YES (seventh consecutive; NEW rule-scope-vs-applied-scope coverage gap class) — Layer-37 inline-replaced per D-400 |
-| 38 (pass-46) | D-426 | 7 | YES (eighth consecutive; NEW self-replicating coverage-gap class) — Layer-38 inline-replaced per D-400 |
-| 39 (pass-47) | D-427 at codifying burst | 8 | YES (ninth consecutive; META-LEVEL-3 self-replicating coverage-gap class confirmed; 8 simultaneous failures per D-429(c) cardinality fix) |
+| 31 (pass-40) | D-420 | 7 | YES (first multi-axis; 3H+3M+1L=7 content-only per D-401(c)) |
+| 32 (pass-41) | D-421 | 8 | YES (second consecutive; 3H+4M+1L=8 content-only per D-401(c)) |
+| 33 (pass-42) | D-422 | 7 | YES (third consecutive; 3H+3M+1L=7 content-only per D-401(c)) |
+| 34 (pass-43) | D-423 | 8 | YES (fourth consecutive; 4H+3M+1L=8 content-only per D-401(c); ALL D-422 sub-clauses violated) |
+| 35 (pass-44) | D-424 | 7 | YES (fifth consecutive; 3H+3M+1L=7 content-only per D-401(c)) |
+| 36 (pass-45) | D-425 | 8 | YES (sixth consecutive; 4H+3M+1L=8 content-only per D-401(c); NEW silent-slip axis) |
+| 37 (pass-46) | D-426 | 7 | YES (seventh consecutive; 3H+3M+1L=7 content-only per D-401(c); NEW rule-scope-vs-applied-scope coverage gap class) — Layer-37 inline-replaced per D-400 |
+| 38 (pass-47) | D-427 | 7 | YES (eighth consecutive; 3H+3M+1L=7 content-only per D-401(c); NEW self-replicating coverage-gap class) — Layer-38 inline-replaced per D-400 |
+| 39 (pass-48) | D-428 | 8 | YES (ninth consecutive; 4H+3M+1L=8 content-only per D-401(c); META-LEVEL-3 self-replicating coverage-gap class confirmed) |
 
 **NEW pattern class introduced:** META-LEVEL-3 self-replicating coverage-gap. Pattern recursion depth:
 - Level 1 (F-P46-001): rule applied to named findings only
@@ -2142,8 +2142,8 @@ Each level of indirection adds a new ply of coverage-gap. Per L-EDP1-007, prose 
 
 **Pattern class evolution:**
 - Layers 31-33: Single-burst codifying-boundary violations
-- Layer 34: Multi-axis at codifying boundary (4 simultaneous)
-- Layer 35: 5-axis sustained
+- Layer 34: Multi-axis at codifying boundary (8 content-only findings)
+- Layer 35: 7 content-only findings
 - Layer 36: NEW silent-slip class introduced (9-burst undetected staleness)
 - Layer 37: NEW rule-scope-vs-applied-scope coverage gap class introduced
 - Layer 38: NEW self-replicating coverage-gap class introduced
@@ -2184,22 +2184,22 @@ S-15.03 PRIORITY-A automation remains the only known structural remedy.
 
 7. **F-P51-007:** L-EDP1-041 corrigendum description references non-existent "Same-burst Violation" column — column name in L-EDP1-041 trend table is "Axis count". Misdescription per D-411(a).
 
-**Trend (axis counts per multi-axis layer):**
+**Trend (axis counts per multi-axis layer; per D-433(d) normalized = content-only finding count per D-401(c)):**
 
 | Layer | Burst | Axis count | Multi-axis? |
 |-------|-------|-----------|-------------|
-| 31 (pass-40) | D-420 | 4 | YES (first multi-axis) |
-| 32 (pass-41) | D-421 | 4 | YES (second consecutive) |
-| 33 (pass-42) | D-422 | 3 | YES (third consecutive) |
-| 34 (pass-43) | D-423 | 7 | YES (fourth consecutive; ALL D-422 sub-clauses violated) |
-| 35 (pass-44) | D-424 | 5 | YES (fifth consecutive) |
-| 36 (pass-45) | D-425 | 7 | YES (sixth consecutive; NEW silent-slip axis) |
-| 37 (pass-46) | D-426 | 7 | YES (seventh consecutive; NEW rule-scope-vs-applied-scope coverage gap class) |
-| 38 (pass-47) | D-427 | 7 | YES (eighth consecutive; NEW self-replicating coverage-gap class) |
-| 39 (pass-48) | D-428 | 8 | YES (ninth consecutive; META-LEVEL-3 class confirmed) |
-| 40 (pass-49) | D-429 | 8 | YES (tenth consecutive; META-LEVEL-4 CONFIRMED) |
-| 41 (pass-50) | D-430 | 7 | YES (eleventh consecutive; META-LEVEL-5 CANDIDATE via lexical-vs-semantic gap) |
-| 42 (pass-51) | D-431 | 7 | YES (twelfth consecutive; META-LEVEL-6 CONFIRMED + NEW CRITICAL structural-coalescence class) |
+| 31 (pass-40) | D-420 | 7 | YES (first multi-axis; 3H+3M+1L=7 content-only per D-401(c)) |
+| 32 (pass-41) | D-421 | 8 | YES (second consecutive; 3H+4M+1L=8 content-only per D-401(c)) |
+| 33 (pass-42) | D-422 | 7 | YES (third consecutive; 3H+3M+1L=7 content-only per D-401(c)) |
+| 34 (pass-43) | D-423 | 8 | YES (fourth consecutive; 4H+3M+1L=8 content-only per D-401(c); ALL D-422 sub-clauses violated) |
+| 35 (pass-44) | D-424 | 7 | YES (fifth consecutive; 3H+3M+1L=7 content-only per D-401(c)) |
+| 36 (pass-45) | D-425 | 8 | YES (sixth consecutive; 4H+3M+1L=8 content-only per D-401(c); NEW silent-slip axis) |
+| 37 (pass-46) | D-426 | 7 | YES (seventh consecutive; 3H+3M+1L=7 content-only per D-401(c); NEW rule-scope-vs-applied-scope coverage gap class) |
+| 38 (pass-47) | D-427 | 7 | YES (eighth consecutive; 3H+3M+1L=7 content-only per D-401(c); NEW self-replicating coverage-gap class) |
+| 39 (pass-48) | D-428 | 8 | YES (ninth consecutive; 4H+3M+1L=8 content-only per D-401(c); META-LEVEL-3 class confirmed) |
+| 40 (pass-49) | D-429 | 8 | YES (tenth consecutive; 4H+3M+1L=8 content-only per D-401(c); META-LEVEL-4 CONFIRMED) |
+| 41 (pass-50) | D-430 | 7 | YES (eleventh consecutive; 4H+2M+1L=7 content-only per D-401(c); META-LEVEL-5 CANDIDATE via lexical-vs-semantic gap) |
+| 42 (pass-51) | D-431 | 7 | YES (twelfth consecutive; 1C+4H+2M=7 content-only per D-401(c); META-LEVEL-6 CONFIRMED + NEW CRITICAL structural-coalescence class) |
 
 **Recursion ply mapping (6 confirmed plies):**
 - Level-1: rule applied to named findings only

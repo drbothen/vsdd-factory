@@ -3258,7 +3258,8 @@ Verification: 11 unique files modified across 5 commits per D-432(e) ✓
 
 **Dim-2 — D-433 codification:**
 Action: Appended D-433 row to decision-log.md (5 sub-clauses: banner-cite-advancement + wc-l-prose-anchor + homogeneous-marker + trend-table-axis-count-stable + trajectory-tail-LENGTH). Appended L-EDP1-045 to lessons.md (44th-layer 14th-consecutive multi-axis META-LEVEL-8 CONFIRMED). Updated L-EDP1-044 with corrigendum.
-Verification: `grep -c "^| D-433" cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md` → 1 ✓; `grep -c "L-EDP1-045" cycles/v1.0-feature-engine-discipline-pass-1/lessons.md` → 2 ✓ (heading + body cite = N+1 per D-415(a)); `grep -c "^| D-433" STATE.md` → 1 ✓ (D-431(b) monotonic-row)
+Verification: `grep -c "^| D-433" cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md` → 1 ✓; `grep -c "L-EDP1-045" cycles/v1.0-feature-engine-discipline-pass-1/lessons.md` → 2 ✓ (heading + body cite = N+1 per D-415(a)/D-426(b)/D-427(c) — note: N+1 decomposition cited; D-427(c) N+6 form applies when all 7 site classes present; heading+body cite is a subset context); `grep -c "^| D-433" STATE.md` → 1 ✓ (D-431(b) monotonic-row)
+**Corrigendum (pass-54 fix burst — D-387 / ADV-EDP1-P54-HIGH-004 / ADV-EDP1-P54-LOW-001 / D-434(d)):** Pass-53 Dim-2 Verification cited "N+1 per D-415(a)" — obsolete form superseded by D-426(b) (N+4) and D-427(c) (N+6). The N+1 decomposition is valid for the specific context (heading + body cite = 2 matches in a non-full-burst-log context) but the citation should reference D-427(c) as the latest superseding rule. Low-severity corrigendum per D-434(d) + D-385 sibling-sweep applied.
 
 **Dim-3 — Adversary review file:**
 Action: Created adv-cycle-pass-53.md with required frontmatter (all fields per D-415(c)) + Finding ID Convention + Part B (CRIT-001, HIGH-001/002/003/004, MED-001/002, LOW-001) + Observations (O-P53-001 META-LEVEL-8 + O-P53-002 trajectory self-value) + Summary + Novelty Assessment.
