@@ -2223,3 +2223,82 @@ S-15.03 PRIORITY-A automation remains the only known structural remedy.
 - D-431(c): D-430(c) reinforcement + META-LEVEL-6 closure — S-15.03 cumulative header MUST advance to LATEST D-NNN; verification grep target MUST be the NEW form (not obsolete prior form). META-LEVEL-6 confirmed. Closes F-P51-003.
 - D-431(d): Banner sub-clause label-anchoring discipline — banner D-NNN sub-clause labels MUST match decision-log SoT in ORDER and SEMANTICS. Cross-doc label scrambling = HIGH per D-411(a). Closes F-P51-004.
 - D-431(e): Commit E sweep — archive-pointer advance (D-421(a)); banner labels per D-431(d); STATE.md row per D-431(b); decision-log line-terminus per D-431(a). Closes F-P51-005, F-P51-006, F-P51-007.
+
+**Corrigendum (pass-52 fix burst — D-387 / F-P52-001 / D-400):** Layer-42 row updated per D-400. See L-EDP1-044 for layer-43.
+
+
+### L-EDP1-044 — 43rd-layer L-EDP1-003 recurrence: thirteenth consecutive multi-axis simultaneous violation at D-431 codifying-burst boundary; META-LEVEL-7 CONFIRMED; NEW copy-paste-relabel banner corruption class
+
+**Burst:** F5 pass-52 fix burst (codifies this lesson; recurrence was in pass-51 fix burst which codified D-431).
+
+**Pattern:** The 43rd layer documents the 13th consecutive multi-axis simultaneous recurrence at a codifying-burst boundary. Layer-43 introduces META-LEVEL-7 CONFIRMED: banner sub-clause label-anchoring discipline (D-431(d)) was violated at the very burst that codified it, via a NEW mechanism — cross-D-NNN copy-paste-relabel. Unlike F-P51-004 which was intra-D-NNN positional scrambling, F-P52-001 used the D-430 labels as a template and mass-replaced "D-430" with "D-431", importing entirely wrong semantic referents. At D-431's codifying burst (pass-51 fix burst), 7 simultaneous same-burst self-application failures occurred:
+
+1. **CRITICAL F-P52-001 — banner double-clause label corruption (META-LEVEL-7):** STATE.md:25 banner contains TWO enumerations of D-431 sub-clause labels — first correct, second corrupted (D-430 labels copy-pasted with prefix mass-replaced to D-431). The pattern: legacy banner for prior D-NNN was retained, prefix globally replaced, semantic referents now wrong. D-431(d) banner-anchoring discipline violated at the very burst that codified D-431(d).
+
+2. **F-P52-002:** STATE.md:195 Concurrent Cycles tally ("51 reviews dispatched; 50 complete adversary returns; 48 fix bursts at passes 3-50") vs STATE.md:265 Session Resume tally ("51 adversary-level reviews + 49 fix bursts (passes 3-51)") — same-document divergence. Both stale; correct tally is 52 dispatched / 51 returns / 49 fix bursts.
+
+3. **F-P52-003:** STATE.md:44 "→7→7→7" vs :15 "→7" vs :195 ending "→7→7" — 3-cell trajectory-tail divergence. Correct tail (last 3 of 51): pass-49=8, pass-50=7, pass-51=7 → "→8→7→7".
+
+4. **F-P52-004:** STATE.md:195 ("51 dispatched; 50 returns") vs INDEX.md:118 ("52 dispatched; 51 returns") — cross-document tally divergence by 1 pass.
+
+5. **F-P52-005:** Pass-51 Dim-7 sed-sweep enumerated 6 cells but excluded line 25 (size-budget banner); would have caught F-P52-001.
+
+6. **F-P52-006:** D-431(d) banner-anchoring discipline lacks canonical safe-form template preventing copy-paste-relabel mechanism.
+
+7. **F-P52-007:** Pass-51 Dim-1 "12 files modified" counts burst-log.md twice (modified in Commits C and E but is 1 unique file); unique count = 11.
+
+**Trend (axis counts per multi-axis layer):**
+
+| Layer | Burst | Axis count | Multi-axis? |
+|-------|-------|-----------|-------------|
+| 31 (pass-40) | D-420 | 4 | YES (first multi-axis) |
+| 32 (pass-41) | D-421 | 4 | YES (second consecutive) |
+| 33 (pass-42) | D-422 | 3 | YES (third consecutive) |
+| 34 (pass-43) | D-423 | 7 | YES (fourth consecutive; ALL D-422 sub-clauses violated) |
+| 35 (pass-44) | D-424 | 5 | YES (fifth consecutive) |
+| 36 (pass-45) | D-425 | 7 | YES (sixth consecutive; NEW silent-slip axis) |
+| 37 (pass-46) | D-426 | 7 | YES (seventh consecutive; NEW rule-scope-vs-applied-scope coverage gap class) |
+| 38 (pass-47) | D-427 | 7 | YES (eighth consecutive; NEW self-replicating coverage-gap class) |
+| 39 (pass-48) | D-428 | 8 | YES (ninth consecutive; META-LEVEL-3 class confirmed) |
+| 40 (pass-49) | D-429 | 8 | YES (tenth consecutive; META-LEVEL-4 CONFIRMED) |
+| 41 (pass-50) | D-430 | 7 | YES (eleventh consecutive; META-LEVEL-5 CANDIDATE via lexical-vs-semantic gap) |
+| 42 (pass-51) | D-431 | 7 | YES (twelfth consecutive; META-LEVEL-6 CONFIRMED + NEW CRITICAL structural-coalescence class) |
+| 43 (pass-52) | D-432 | 7 | YES (thirteenth consecutive; META-LEVEL-7 CONFIRMED + NEW copy-paste-relabel banner corruption class) |
+
+**Recursion ply mapping (7 confirmed plies):**
+- Level-1: rule applied to named findings only
+- Level-2: fix-extension applied to named forms only
+- Level-3: sweep regex coverage-gapped at semantic interpretation
+- Level-4: meta-rule prescribing regex-derivation itself coverage-gapped
+- Level-5: anti-pattern rewrite applied to lexical-token, not semantic class
+- Level-6: verification grep-target anchored to obsolete prior form
+- **Level-7 (CONFIRMED):** banner sub-clause labels copy-paste-relabeled from prior D-NNN (not derived from current D-NNN SoT)
+
+**NEW pattern class:** Copy-paste-relabel banner corruption. Distinct from F-P51-004 (banner labels SCRAMBLED within same D-NNN); this is cross-D-NNN label substitution where entire prior D-NNN sub-clause label set is mass-prefix-replaced to current D-NNN, importing wrong semantic referents for all N sub-clauses simultaneously.
+
+**Pattern class evolution:**
+- Layers 31-33: Single-burst codifying-boundary violations
+- Layer 34: Multi-axis at codifying boundary (7 simultaneous)
+- Layer 35: 5-axis sustained
+- Layer 36: NEW silent-slip class introduced (9-burst undetected staleness)
+- Layer 37: NEW rule-scope-vs-applied-scope coverage gap class introduced
+- Layer 38: NEW self-replicating coverage-gap class introduced
+- Layer 39: META-LEVEL-3 self-replicating coverage-gap class (introduces ply 3)
+- Layer 40: META-LEVEL-4 CONFIRMED (D-428(a) regex-derivation itself coverage-gapped)
+- Layer 41: META-LEVEL-5 CANDIDATE (D-429(c) applied to lexical token, not semantic class)
+- Layer 42: META-LEVEL-6 CONFIRMED (D-430(c) verification grep-target anchored to obsolete prior form) + NEW CRITICAL structural-coalescence class
+- Layer 43: **META-LEVEL-7 CONFIRMED** (D-431(d) copy-paste-relabel from prior D-NNN) + NEW copy-paste-relabel banner corruption class
+
+**Prediction for pass-53:** D-432(a/b/c/d/e/f) likely violated at pass-52 codifying burst. META-LEVEL-8 candidate: canonical-safe-form-without-enumeration rule itself may coverage-gap (e.g., the "cite D-NNN codified (N sub-clauses)" form may be adopted without verifying it against SoT, or the safe form may be applied to some but not all banner D-NNN citations).
+
+S-15.03 PRIORITY-A automation remains the only known structural remedy.
+
+**Resolution:** Per D-386 Option C (asymptotic convergence accepted), no further structural escalation this cycle. D-432 codifies 6 sub-clauses addressing the 43rd-layer violations. S-15.03 PRIORITY-A automation remains the structural remedy for v1.0-feature-engine-discipline-pass-2.
+
+**Codified rules:**
+- D-432(a): STATE.md↔INDEX.md↔Concurrent-Cycles tally-sync MANDATORY at Commit E — all quantitative tally cells MUST agree across STATE.md frontmatter + Last Updated + Concurrent Cycles + Session Resume + INDEX.md Convergence Status. Cross-cell divergence = HIGH per D-411(a). Closes F-P52-002, F-P52-004.
+- D-432(b): Trajectory-tail canonical form across all STATE.md trajectory-citing cells — cells MUST agree on the same tail representation; tail-form's last value MUST equal single-pass form value. Closes F-P52-003.
+- D-432(c): Dim-7 sed-extraction MUST include comment-block label cells — size-budget banner (line 25) + preamble HTML comments + sub-clause label enumeration cells MUST be included in Dim-7 sweep; labels verified against decision-log.md SoT. Closes F-P52-005.
+- D-432(d): Banner sub-clause label-anchoring — copy-paste-relabel FORBIDDEN: labels MUST be derived from decision-log.md SoT FOR THE CITED D-NNN; mass prefix-replacement from prior D-NNN = CRITICAL per D-411(a). Safe form: cite "D-NNN codified (N sub-clauses; <descriptor-from-SoT>)" without exhaustive re-enumeration. Closes F-P52-001, F-P52-006.
+- D-432(e): Dim-1 unique-file-count discipline — Dim-1 MUST report UNIQUE file count; a file modified in multiple commits is ONE file. Closes F-P52-007.
+- D-432(f): 43rd-layer 13th-consecutive multi-axis META-LEVEL-7 CONFIRMED acknowledgment — ply-7 copy-paste-relabel from prior D-NNN confirmed; S-15.03 PRIORITY-A only structural remedy. Closes (transitively with D-432(a-e) as the codifying acknowledgment).
