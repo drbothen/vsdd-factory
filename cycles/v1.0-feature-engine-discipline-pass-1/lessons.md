@@ -626,7 +626,7 @@ The 15-layer history:
 | 12 (pass-21) | D-399+D-400 | "canonical pass-N marker + Layer-N row update protocol" | F-P22-001 ARCH-INDEX cite-refresh silence (HIGH); F-P22-002 VP/STORY-INDEX cycle-sync silence; F-P22-003 BC-INDEX range/enumeration mismatch; F-P22-004 D-383 attestation gap; F-P22-005 counting-basis drift; F-P22-006 D-394 recurrence |
 | 13 (pass-22) | D-401+D-402 | "cross-index sync convention + exact-count Verification + counting-basis + D-394 ownership" | F-P23-001 D-401(a) self-application failure (HIGH); F-P23-002 D-402 regex precision; F-P23-003 BC-INDEX inline-edit trail; F-P23-004 BC enum gap; F-P23-005 per-position P21 attestation; F-P23-006 D-394 dispatch recurrence |
 | 14 (pass-23) | D-403 | "D-401(a) self-application enforcement + D-402 regex precision + D-394 asymptotic acknowledgment" | F-P24-001 D-403(a) self-application failure (HIGH); F-P24-002 pass-21 line 483 cardinality cell; F-P24-003 BC enum D-403 gap; F-P24-004 ARCH range excludes D-403 |
-| 15 (this, pass-24) | D-404 | "literal acknowledgment enforcement — D-NNN by ID in all 4 index enumerations" | (awaiting pass-25 adversary fresh-context audit) |
+| 15 (pass-24) | D-404 | "literal acknowledgment enforcement — D-NNN by ID in all 4 index enumerations" | F-P25-001 D-404 itself not literally acknowledged in 4 indexes (HIGH); F-P25-002 6-site stale "VP-INDEX blocked" narrative post-TD-031 fix (HIGH); F-P25-003 4-cell STATE narrative dispatch mismatch; F-P25-004 decision-log range stale; F-P25-005 D-402 lower-bound recurrence; F-P25-006 self-referential greps; F-P25-PG1 dominant L-EDP1-003 sub-pattern across layers 13-16 |
 
 **Resolution:** Per D-386 Option C (asymptotic convergence accepted), no further structural escalation this cycle. D-404 closes the literal-vs-procedural acknowledgment gap. S-15.03 automation (automated cross-index sync check at commit time) remains the structural remedy for v1.0-feature-engine-discipline-pass-2.
 
@@ -634,3 +634,45 @@ The 15-layer history:
 - D-404: When a fix burst codifies D-NNN, ALL 4 indexes MUST acknowledge D-NNN BY LITERAL ID in their changelog enumeration within the same burst. "per D-NNN(x)" is procedural rationale, not literal acknowledgment. "Acknowledges D-NNN" or a range "D-AAA..D-NNN" containing D-NNN is literal acknowledgment. Version-bump may be no-content-change if the sole purpose is adding the literal acknowledgment.
 
 **Status:** Codified. D-404 closes the literal-acknowledgment gap. L-EDP1-003 pattern continues at asymptotic boundary per D-386 Option C.
+
+**Corrigendum (pass-25 fix burst — D-387 / D-400):** Layer-15 row "Same-burst Violation" inline-updated per D-400. See L-EDP1-017 for layer-16.
+
+---
+
+### L-EDP1-017 — 16th-layer L-EDP1-003 recurrence at D-404 self-application boundary
+
+**Burst:** F5 pass-25 fix burst (codifies the lesson; recurrence was in pass-24 D-404 codification).
+
+**Pattern:** D-404 was codified by the pass-24 fix burst. Pass-25 adversary found the 16th-layer L-EDP1-003 recurrence (F-P25-001). D-404 requires literal acknowledgment of D-NNN by ID in all 4 indexes within the same burst. The pass-24 fix burst that codified D-404 cited D-404 only as "per D-404" (procedural rationale) in the index changelog entries — the form that D-404 explicitly excludes from constituting literal acknowledgment. This is the same failure mode D-404 was authored to prevent.
+
+**Additional finding (F-P25-002, HIGH):** The pass-24 fix burst successfully normalized VP-INDEX from v1.42 to v1.43 (TD-031 historical violations resolved via Write tool; hook passed cleanly at dd91044a). However, 6 sites in STATE.md and INDEX.md still carry the stale "VP-INDEX blocked at v1.42 / TD-031 OPEN" narrative, actively misrepresenting the artifact state at session start.
+
+The 16-layer history:
+
+| Layer | Burst | Rule Codified | Same-burst Violation |
+|-------|-------|---------------|---------------------|
+| 1 (pass-8) | D-381 | "fix burst MUST update STATE.md" | missed burst-log + INDEX |
+| 2 (pass-9) | D-382 | "fix burst MUST update all 5 sibling files" | introduced intra-file content defects |
+| 3 (pass-10) | D-383 | "intra-file content audit + sibling-pattern sweep" | trajectory cardinality + self-ref N missed |
+| 4 (pass-11) | D-384 | "3 clarifications to D-383" | sub-trajectories stale; retroactive annotations |
+| 5 (pass-12) | D-385 | "3 clarifications to D-383+D-384" | frontmatter schema drift; counting-basis change |
+| 6 (pass-15) | D-387 | "structural-correction exception + sibling sweep" | sweep dimensions not enumerated; adjacent sibling-chain dimensions not covered |
+| 7 (pass-16) | D-389+D-390 | "input-hash convention + CHANGELOG→last_amended rule" | enumerated in L-EDP1-009 |
+| 8 (pass-17) | D-391+D-392 | "enumeration source mandatory + VP Lifecycle ≡ CHANGELOG" | second-source query absent; inlined BC list wrong (3 gaps); inlined VP list wrong (4 gaps) |
+| 9 (pass-18) | D-393+D-394 | "independent re-derivation Grep query required + D-391 severity explicit + dispatch-side phase update" | F-P19-001 false-true attestation re VP-INDEX last_amended (corrigendum in L-EDP1-010) |
+| 10 (pass-19) | D-395+D-396 | "file-state grep-back verification of Action claims + story-frontmatter↔STORY-INDEX sweep" | F-P20-001 dim-4 intent-mismatch (stale pass-18 narrative written; false-green Verification grep; corrigendum in L-EDP1-011) |
+| 11 (pass-20) | D-397+D-398 | "intent-match sub-clause for D-395 Verification grep + Layer-N awaiting-audit convention" | F-P21-001: STATE.md:42 Current Phase cell still read "pass-19" after pass-20 fix burst updated only the adjacent Last Updated cell — sibling-cell sweep extent missed Current Phase cell (D-400 inline-replace) |
+| 12 (pass-21) | D-399+D-400 | "canonical pass-N marker + Layer-N row update protocol" | F-P22-001 ARCH-INDEX cite-refresh silence (HIGH); F-P22-002 VP/STORY-INDEX cycle-sync silence; F-P22-003 BC-INDEX range/enumeration mismatch; F-P22-004 D-383 attestation gap; F-P22-005 counting-basis drift; F-P22-006 D-394 recurrence |
+| 13 (pass-22) | D-401+D-402 | "cross-index sync convention + exact-count Verification + counting-basis + D-394 ownership" | F-P23-001 D-401(a) self-application failure (HIGH); F-P23-002 D-402 regex precision; F-P23-003 BC-INDEX inline-edit trail; F-P23-004 BC enum gap; F-P23-005 per-position P21 attestation; F-P23-006 D-394 dispatch recurrence |
+| 14 (pass-23) | D-403 | "D-401(a) self-application enforcement + D-402 regex precision + D-394 asymptotic acknowledgment" | F-P24-001 D-403(a) self-application failure (HIGH); F-P24-002 pass-21 line 483 cardinality cell; F-P24-003 BC enum D-403 gap; F-P24-004 ARCH range excludes D-403 |
+| 15 (pass-24) | D-404 | "literal acknowledgment enforcement — D-NNN by ID in all 4 index enumerations" | F-P25-001 D-404 itself not literally acknowledged in 4 indexes (HIGH); F-P25-002 6-site stale "VP-INDEX blocked" narrative post-TD-031 fix (HIGH); F-P25-003 4-cell STATE narrative dispatch mismatch; F-P25-004 decision-log range stale; F-P25-005 D-402 lower-bound recurrence; F-P25-006 self-referential greps; F-P25-PG1 dominant L-EDP1-003 sub-pattern across layers 13-16 |
+| 16 (this, pass-25) | D-405 | "D-404 self-application correction + pattern-class recognition + S-15.03 PRIORITY-A elevation" | (awaiting pass-26 adversary fresh-context audit) |
+
+**Resolution:** Per D-386 Option C (asymptotic convergence accepted), no further structural escalation this cycle. D-405 closes the D-404 self-application gap and codifies the PRIORITY-A elevation of S-15.03 for the next cycle. S-15.03 automation (automated cross-index sync check at commit time) is the structural remedy for v1.0-feature-engine-discipline-pass-2.
+
+**Codified rules:**
+- D-405(a): The pass-25 fix burst MUST literally acknowledge D-404 AND D-405 by literal ID in all 4 index changelog enumerations. The "per D-404" form is procedural rationale (explicitly excluded per D-404 + D-405(a)). Compliant form: "decision range D-AAA..D-405" or "Acknowledges D-404, D-405".
+- D-405(b): The index-acknowledgment self-application defect class is the dominant L-EDP1-003 sub-pattern across layers 13-16. Prose codification has marginal value approaching zero for this class.
+- D-405(c): S-15.03 cross-index-sync-at-commit-time check is PRIORITY-A in v1.0-feature-engine-discipline-pass-2 cycle planning.
+
+**Status:** Codified. D-405 closes the D-404 self-application gap. L-EDP1-003 pattern continues at asymptotic boundary per D-386 Option C.
