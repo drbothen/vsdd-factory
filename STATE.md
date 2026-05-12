@@ -5,13 +5,13 @@ version: "2.0"
 status: draft
 producer: state-manager
 timestamp: 2026-05-11T00:00:00Z
-phase: engine-discipline-F5-pass-35-adversary-in-progress
+phase: engine-discipline-F5-pass-35
 inputs: []
 input-hash: "[live-state]"
 traces_to: prd.md
 project: vsdd-factory
 mode: brownfield
-current_step: "F5 pass-35 adversary dispatch IN-PROGRESS (D-394+D-401(b); pass-34 COMPLETE at d1704523 — D-414 codified (3 sub-clauses); L-EDP1-026 25th-layer; 4 indexes D-389..D-414; trajectory →2 — approaching convergence territory)"
+current_step: "F5 pass-35 fix burst COMPLETE (HIGH→PENDING_NEXT_PASS; 2H+3M; D-415 codified (5 sub-clauses); L-EDP1-027 26th-layer; 4 indexes v1.77/v1.53/v2.78/v1.58 acknowledge D-389..D-415)"
 current_cycle: v1.0-feature-engine-discipline-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -38,8 +38,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-11 — F5 pass-35 adversary IN-PROGRESS (D-394+D-401(b); pass-34 COMPLETE at d1704523 — D-414 codified (3 sub-clauses); L-EDP1-026 25th-layer; 4 indexes D-389..D-414; trajectory →2 — approaching convergence territory). |
-| **Current Phase** | Engine-discipline F5 — pass-35 adversary IN-PROGRESS |
+| **Last Updated** | 2026-05-11 — F5 pass-35 fix burst COMPLETE (HIGH→PENDING_NEXT_PASS; 2H+3M; D-415 codified (5 sub-clauses); L-EDP1-027 26th-layer; 4 indexes v1.77/v1.53/v2.78/v1.58 acknowledge D-389..D-415; trajectory →5). |
+| **Current Phase** | Engine-discipline F5 — pass-35 fix burst COMPLETE (pending pass-36 dispatch) |
 | **Current Cycle** | v1.0-feature-engine-discipline-pass-1 |
 
 ## Phase Progress
@@ -115,7 +115,8 @@ dtu_services: []
 | F5 pass-33 fix burst (D-413+content fixes) | state-manager | DONE 2026-05-11 | D-413 codified (4 sub-clauses); L-EDP1-025; L-EDP1-024 Layer-23 inline-replaced + sibling-corrigendum; L-EDP1-023 body corrigendum; D-411+D-412 retroactive Closes corrigenda; pass-32 burst-log Dim-2/Dim-5 corrigenda; 4 indexes v1.75/v1.51/v2.76/v1.56 acknowledge D-389..D-413 |
 | F5 pass-34 cycle-level adversary | adversary | DONE 2026-05-11 | HIGH (1H+1M+1obs); trajectory content-only →2; 25th-layer L-EDP1-003 (D-413(a) N-source semantics self-application + D-387 placement + D-413(c) scope); D-414 required |
 | F5 pass-34 fix burst (D-414+content fixes) | state-manager | DONE 2026-05-11 | D-414 codified (3 sub-clauses); L-EDP1-026; L-EDP1-025 Layer-24 inline-replaced + sibling-corrigendum; pass-33 Dim-5 corrigendum; pass-32 Dim-2/Dim-5 forward-refs; 4 indexes v1.76/v1.52/v2.77/v1.57 acknowledge D-389..D-414 |
-| F5 pass-35 cycle-level adversary | adversary | IN-PROGRESS | D-394+D-401(b) dispatch; pass-34 COMPLETE at d1704523; trajectory →2 — approaching convergence territory |
+| F5 pass-35 cycle-level adversary | adversary | DONE 2026-05-11 | HIGH (2H+3M); trajectory content-only →5; 26th-layer L-EDP1-003 (attestation-prose-cite 4th self-ref class + STATE.md range sibling-sweep + Dim-7 4th recurrence); D-415 required |
+| F5 pass-35 fix burst (D-415+content fixes) | state-manager | DONE 2026-05-11 | D-415 codified (5 sub-clauses); L-EDP1-027; L-EDP1-026 Layer-25 inline-replaced + sibling-corrigendum; pass-34 Dim-5/Dim-7 corrigenda; STATE.md range fix; adv-cycle-pass-34 prior-findings-count fix; 4 indexes v1.77/v1.53/v2.78/v1.58 acknowledge D-389..D-415 |
 
 ## Identifier Conventions
 
@@ -145,7 +146,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | feb894a2 | rc.16 merge; latest release |
 | develop | 99d24315 | S-12.08 squash-merge (PR #123); F4 COMPLETE |
-| factory-artifacts | (see git log) | F5 pass-34 fix burst Commit E — state-manager final |
+| factory-artifacts | (see git log) | F5 pass-35 fix burst Commit E — state-manager final |
 | feature/F5-pass-3-cycle-hardening | 2e6b4372 | PR #124 OPEN (DRAFT); CI run 25651192161 GREEN (11/11 checks) |
 | v1.0.0-rc.16 (tag) | feb894a2 | SHIPPED; claude-mp PR #8 awaiting human merge |
 | v1.0.0-rc.15 (tag) | e68bb436 | SHIPPED |
@@ -155,7 +156,7 @@ dtu_services: []
 | Cycle | Type | Status | Notes |
 |-------|------|--------|-------|
 | v1.0-brownfield-backfill | brownfield | PAUSED | E-10 pass-9 pending; paused at D-343 |
-| v1.0-feature-engine-discipline-pass-1 | feature | F5-IN-PROGRESS | All 6 E-12-platform stories merged; F5 passes 1-35 (35 F5 cycle-level reviews; 32 fix bursts at passes 3-34); full-cycle trajectory content-only (pass-1..34): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7→8→6→2; pass-35 IN-PROGRESS; pass-34 HIGH verdict (1H+1M+1obs); D-414 codified; L-EDP1-026 25th-layer; D-386 Option C: continue F5, accept asymptotic L-EDP1-003 limit; VP-INDEX v1.52 / BC-INDEX v1.76 / ARCH-INDEX v1.57 / STORY-INDEX v2.77 acknowledge D-389..D-414; S-15.03 PRIORITY-A in pass-2 cycle |
+| v1.0-feature-engine-discipline-pass-1 | feature | F5-IN-PROGRESS | All 6 E-12-platform stories merged; F5 passes 1-35 (35 complete adversary returns; 33 fix bursts at passes 3-35; pass-36 dispatch pending); full-cycle trajectory content-only (pass-1..35): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7→8→6→2→5; pass-35 HIGH verdict (2H+3M); D-415 codified (5 sub-clauses); L-EDP1-027 26th-layer; D-386 Option C: continue F5, accept asymptotic L-EDP1-003 limit; VP-INDEX v1.53 / BC-INDEX v1.77 / ARCH-INDEX v1.58 / STORY-INDEX v2.78 acknowledge D-389..D-415; S-15.03 PRIORITY-A in pass-2 cycle |
 | v1.0-feature-plugin-async-semantics-pass-1 | feature | CLOSED | All PRs merged; rc.14 shipped |
 
 ## Decisions Log
@@ -171,6 +172,7 @@ dtu_services: []
 | F-P2 D-3 | F4 platform delivery COMPLETE 2026-05-11; F-P2-001 + F-P2-008 CLOSED; E-12 resolver-platform sub-batch fully merged via 6 PRs | F4 close | 2026-05-11 |
 | D-413 | Canonical-marker self-reference codification + closure-set completeness escalation + D-412(b) scope extension + adversary-coverage acknowledgment (4 sub-clauses; see decision-log.md) | F5 pass-33 | 2026-05-11 |
 | D-414 | N-source semantics + D-387 corrigendum placement discipline + D-413(c) verbatim-vs-documentary scope (3 sub-clauses; see decision-log.md). Closes F-P34-001, F-P34-002, O-P34-001 | F5 pass-34 | 2026-05-11 |
+| D-415 | Attestation-prose-cite 4th self-ref class + STATE.md range sibling-sweep + pass-count dispatch stability + D-412(c) structural acknowledgment + prior-findings-count semantics (5 sub-clauses; see decision-log.md). Closes F-P35-001, F-P35-002, F-P35-003, F-P35-004, F-P35-005 | F5 pass-35 | 2026-05-11 |
 
 ## Skip Log
 
@@ -206,26 +208,26 @@ dtu_services: []
 
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-11 — F5 pass-35 adversary dispatched. Phase updated to pass-35-adversary-in-progress per D-394+D-401(b) protocol (STATE.md phase set BEFORE adversary returns). Pass-34 COMPLETE at d1704523 — D-414 codified (3 sub-clauses); L-EDP1-026 25th-layer; 4 indexes v1.76/v1.52/v2.77/v1.57 acknowledge D-389..D-414. Trajectory (content-only): →2 — approaching convergence territory. Streak 0/3.
+**Last update:** 2026-05-11 — F5 pass-35 fix burst COMPLETE. Pass-35 verdict HIGH (2H+3M; 0 process gaps). D-415 codified (5 sub-clauses); L-EDP1-027 26th-layer; L-EDP1-026 Layer-25 inline-updated per D-400. Pass-34 Dim-5/Dim-7 corrigenda applied. STATE.md:165 range D-379..D-415. adv-cycle-pass-34 prior-findings-count corrected 7→6. 4 indexes v1.77/v1.53/v2.78/v1.58 acknowledge D-389..D-415. Trajectory (content-only): →5. Streak 0/3.
 
-**STATE:** F4 platform COMPLETE; F5 pass-35 adversary IN-PROGRESS. Await pass-35 adversary verdict before next fix burst or convergence declaration.
+**STATE:** F4 platform COMPLETE; F5 pass-35 fix burst COMPLETE. Next: dispatch pass-36 adversary per D-394+D-401(b).
 
 **Next session start — ordered checklist:**
 
-1. ✓ D-399..D-414 codified (passes 21-34 fix bursts complete; L-EDP1-013..L-EDP1-026).
-2. ✓ VP-INDEX v1.52 / BC-INDEX v1.76 / ARCH-INDEX v1.57 / STORY-INDEX v2.77 — D-389..D-414 acknowledged.
-3. ✓ Apply pass-34 fix burst per D-382..D-414 discipline — DONE.
-4. ✓ Pass-35 adversary dispatched — STATE.md phase updated to pass-35-adversary-in-progress.
-5. If pass-35 NITPICK_ONLY: streak 1/3. If pass-35 has findings: fix burst, then pass-36.
+1. ✓ D-399..D-415 codified (passes 21-35 fix bursts complete; L-EDP1-013..L-EDP1-027).
+2. ✓ VP-INDEX v1.53 / BC-INDEX v1.77 / ARCH-INDEX v1.58 / STORY-INDEX v2.78 — D-389..D-415 acknowledged.
+3. ✓ Apply pass-35 fix burst per D-382..D-415 discipline — DONE.
+4. Dispatch pass-36 adversary — update STATE.md phase to pass-36-adversary-in-progress per D-394+D-401(b).
+5. If pass-36 NITPICK_ONLY: streak 1/3. If pass-36 has findings: fix burst, then pass-37.
 6. Iterate until 3 consecutive NITPICK_ONLY passes achieved OR human declares convergence.
 7. F6 targeted hardening after convergence criterion met. F7 delta convergence + human gate (cycle CLOSE).
 8. E-10 brownfield pass-9 resume (PAUSED at D-343).
 
-**D-382..D-414 discipline applies to ALL future fix bursts.** Key additions pass-34: D-414(a) (N source = corrigendum bodies LITERALLY MATCHING the grep pattern; not all corrigenda in burst); D-414(b) (non-adjacent corrigendum placement requires inline edit OR forward-reference at corrected Dim block); D-414(c) (D-413(c) propagation applies to VERBATIM ASSERTION quotes, not DOCUMENTARY quotes).
+**D-382..D-415 discipline applies to ALL future fix bursts.** Key additions pass-35: D-415(a) (N+3 form: 4th site = attestation prose cite in Dim body); D-415(b) (STATE.md Decisions Log preamble range swept same-burst); D-415(c) (pass-count dispatch-boundary annotation); D-415(d) (D-412(c) structurally insufficient — S-15.03 PRIORITY-A Dim-7 lint scope); D-415(e) (prior-findings-count = content-only per D-401(c)).
 
-**Index versions:** BC-INDEX v1.76 | VP-INDEX v1.52 | STORY-INDEX v2.77 | ARCH-INDEX v1.57
-**Pass-34 fixes (HEAD d1704523):** D-414 codified | L-EDP1-026 | L-EDP1-025 Layer-24 inline-replaced + sibling-corrigendum | pass-33 Dim-5 corrigendum | pass-32 Dim-2/Dim-5 forward-references | F-P34-001/002 + O-P34-001
+**Index versions:** BC-INDEX v1.77 | VP-INDEX v1.53 | STORY-INDEX v2.78 | ARCH-INDEX v1.58
+**Pass-35 fixes:** D-415 codified | L-EDP1-027 | L-EDP1-026 Layer-25 inline-replaced + sibling-corrigendum | pass-34 Dim-5+Dim-7 corrigenda | STATE.md:165 range D-379..D-415 | adv-cycle-pass-34 prior-findings-count 7→6 | F-P35-001/002/003/004/005
 **ADR-013:** 3_of_3 CONVERGED (pass-57) | **E-9:** v1.53 CONVERGENCE_REACHED | **E-10:** paused D-343
 **5 user-locked decisions:** `cycles/v1.0-feature-plugin-async-semantics-pass-1/F4-handoff.md` §3
 
-> Previous checkpoint (pass-34 fix burst COMPLETE) archived to: `cycles/v1.0-feature-engine-discipline-pass-1/session-checkpoints.md`
+> Previous checkpoint (pass-35 adversary dispatched) archived to: `cycles/v1.0-feature-engine-discipline-pass-1/session-checkpoints.md`
