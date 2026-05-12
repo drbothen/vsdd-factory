@@ -1,7 +1,7 @@
 ---
 document_type: architecture-index
 level: L3
-version: "1.66"
+version: "1.67"
 status: accepted
 producer: architect
 timestamp: 2026-05-12T00:00:00Z
@@ -17,6 +17,8 @@ inputs:
 traces_to: phase-1-spec-crystallization
 deployment_topology: single-service
 changelog:
+  - date: 2026-05-12
+    change: "v1.67 (2026-05-12; pass-43 fix burst per D-423 + D-404 unconditional): Acknowledges decision range D-389..D-423 (inclusive; literal acknowledgment per D-415(c)). Per D-404 unconditional: index acknowledges D-423 by literal ID (no spec content change in this changelog entry). Refs: F-P43-001/002/003/004/005/006/007/008, D-423."
   - date: 2026-05-12
     change: "v1.66 (2026-05-12; pass-42 fix burst per D-422 + D-404 unconditional): Acknowledges decision range D-389..D-422 (inclusive; literal acknowledgment per D-415(c)). Per D-404 unconditional: index acknowledges D-422 by literal ID (no spec content change in this changelog entry). Refs: F-P42-001/002/003/004/005/006/007, D-422."
   - date: 2026-05-12
