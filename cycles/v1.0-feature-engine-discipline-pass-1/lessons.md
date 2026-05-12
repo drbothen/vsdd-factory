@@ -1927,7 +1927,7 @@ S-15.03 PRIORITY-A automation remains the only known structural remedy.
 | 35 (pass-44) | D-424 | 5 | YES (fifth consecutive) |
 | 36 (pass-45) | D-425 | 7 | YES (sixth consecutive; NEW silent-slip axis) |
 | 37 (pass-46) | D-426 | 7 | YES (seventh consecutive; NEW rule-scope-vs-applied-scope coverage gap class) — Layer-37 inline-replaced per D-400 |
-| 38 (this, pass-47) | D-426 at codifying burst | 7 | YES (eighth consecutive; NEW self-replicating coverage-gap class) |
+| 38 (pass-46) | D-426 | 7 | YES (eighth consecutive; NEW self-replicating coverage-gap class) — Layer-38 inline-replaced per D-400 |
 
 **NEW pattern class introduced:** Self-replicating coverage-gap — D-426(a) was codified to fix coverage-gap pattern, but the fix itself exhibited the coverage-gap pattern (F-P47-006). Pattern self-replicates within its own remediation.
 
@@ -1951,3 +1951,72 @@ S-15.03 PRIORITY-A automation remains the only known structural remedy.
 - D-427(c): D-415(a) extension to 7 site classes (N+6 form) — Codifications block cite (6) + Closes block cite (7) added for full burst-log-narrative contexts; N+6 form for finding-set grep-c when Verification is in a burst-log with full narrative + codification + closure structure. Closes F-P47-007.
 - D-427(d): F-P46-006 INDEX.md format coverage extension — when standardizing a per-row format, sweep ALL rows in the same format-cohort; passes 35-38 standardized per same discipline as passes 34+39-46. Closes F-P47-006.
 - D-427(e): 38th-layer 8th-consecutive multi-axis self-replicating coverage-gap acknowledgment — D-426(a) coverage-gap is SELF-REPLICATING; prose codification cannot break this loop; S-15.03 PRIORITY-A automation is only structural remedy. Closes F-P47-003, F-P47-004, F-P47-005.
+
+**Corrigendum (pass-48 fix burst — D-387 / F-P48-008 / D-400):** Layer-38 row "Same-burst Violation" inline-updated per D-400: "(this, pass-47)" → "(pass-46)" matching established convention; "D-426 at codifying burst" → "D-426". See L-EDP1-040 for layer-39.
+
+---
+
+### L-EDP1-040 — 39th-layer L-EDP1-003 recurrence: ninth consecutive multi-axis simultaneous violation at D-427 codifying-burst boundary; NEW META-LEVEL-3 self-replicating coverage-gap pattern class
+
+**Burst:** F5 pass-48 fix burst (codifies this lesson; recurrence was in pass-47 fix burst which codified D-427).
+
+**Pattern:** The 39th layer confirms the 9th consecutive multi-axis simultaneous recurrence at a codifying-burst boundary. Layer-39 introduces a NEW pattern class: **META-LEVEL-3 self-replicating coverage-gap** — D-427(a) was codified to fix the level-2 coverage-gap (F-P47-001 sweep-extension itself coverage-gapped), but the sweep REGEX used to verify D-427(a) was itself semantically coverage-gapped (matched only compound forms named in F-P47-001 evidence, not ALL forms named in the rule text). At D-427's codifying burst (pass-47 fix burst, recovered from stream timeout), 7 simultaneous same-burst self-application failures occurred:
+
+1. **D-427(a) vague-range coverage gap META-LEVEL-3 (F-P48-001):** Sweep regex matched 4 specific compound forms but D-427(a) rule scope is "ALL vague-range forms". Residual forms at lessons.md:137 "3+", lessons.md:1530 "≥6", lessons.md:1576 "4+ ... ≥6", lessons.md:1589 "3+ ... ≥4". META-LEVEL-3 self-replicating: D-427(a) was authored to fix F-P47-001 level-2 coverage-gap, and F-P48-001 shows the FIX itself is level-3 coverage-gapped (regex semantics).
+
+2. **D-422(a) Dim-1 TBD placeholder persistence (F-P48-002):** burst-log:2799 literal text "→ to be computed post-write" never resolved. F-P47-005 (Dim-7 TBD) pattern recurring at Dim-1.
+
+3. **D-427(b) cross-document N+4→N+6 propagation incomplete (F-P48-003):** D-425/D-426 row titles + S-15.03 sub-items 36/40/138/142 still cite N+4 form despite D-427(c) extension to N+6. F-P47-002 pattern recurring at the very codification.
+
+4. **D-422(c) banner off-by-one (F-P48-004):** Banner claims actual=354 but `wc -l`=355. F-P47-005 pattern recurring with 1-line drift.
+
+5. **D-427(d) INDEX.md format-cohort selective (F-P48-005):** F-P47-006 fix swept rows 34+39-46 but rows 3-33 remain legacy. Self-replicating coverage-gap at format cohort.
+
+6. **D-420(e) Closes form drift (F-P48-006):** burst-log:2879 leading prefix form vs STATE.md:215 trailing parenthetical form — D-420(e) prescribes trailing form only.
+
+7. **D-416(c) self-citation meta-omission (F-P48-007):** S-15.03 cumulative header cites D-416(c) as enabler of MANDATORY propagation but no sub-item exists for D-416(c) itself. Meta-self-reference omission.
+
+**Plus:** F-P48-008 (LOW; L-EDP1-039 row 38 format anomaly) — "(this, pass-47)" → "(pass-46)" inline correction.
+
+**Trend (axis counts per multi-axis layer):**
+
+| Layer | Burst | Axis count | Multi-axis? |
+|-------|-------|-----------|-------------|
+| 31 (pass-40) | D-420 | 4 | YES (first multi-axis) |
+| 32 (pass-41) | D-421 | 4 | YES (second consecutive) |
+| 33 (pass-42) | D-422 | 3 | YES (third consecutive) |
+| 34 (pass-43) | D-423 | 7 | YES (fourth consecutive; ALL D-422 sub-clauses violated) |
+| 35 (pass-44) | D-424 | 5 | YES (fifth consecutive) |
+| 36 (pass-45) | D-425 | 7 | YES (sixth consecutive; NEW silent-slip axis) |
+| 37 (pass-46) | D-426 | 7 | YES (seventh consecutive; NEW rule-scope-vs-applied-scope coverage gap class) — Layer-37 inline-replaced per D-400 |
+| 38 (pass-46) | D-426 | 7 | YES (eighth consecutive; NEW self-replicating coverage-gap class) — Layer-38 inline-replaced per D-400 |
+| 39 (this, pass-47) | D-427 at codifying burst | 7 | YES (ninth consecutive; NEW META-LEVEL-3 self-replicating coverage-gap class) |
+
+**NEW pattern class introduced:** META-LEVEL-3 self-replicating coverage-gap. Pattern recursion depth:
+- Level 1 (F-P46-001): rule applied to named findings only
+- Level 2 (F-P47-001): fix-extension itself applied to named compound forms only
+- Level 3 (F-P48-001): sweep regex itself coverage-gapped at semantic interpretation of rule scope
+
+Each level of indirection adds a new ply of coverage-gap. Per L-EDP1-007, prose codification cannot break the recursion — every codification of "fix the coverage gap at level N" introduces a level N+1 coverage gap.
+
+**Pattern class evolution:**
+- Layers 31-33: Single-burst codifying-boundary violations
+- Layer 34: Multi-axis at codifying boundary (4 simultaneous)
+- Layer 35: 5-axis sustained
+- Layer 36: NEW silent-slip class introduced (9-burst undetected staleness)
+- Layer 37: NEW rule-scope-vs-applied-scope coverage gap class introduced
+- Layer 38: NEW self-replicating coverage-gap class introduced
+- Layer 39: NEW META-LEVEL-3 self-replicating coverage-gap class introduced
+
+**Prediction for pass-49:** D-428(a/b/c/d/e) likely violated at pass-48 codifying burst per established pattern. Specifically D-428(a) regex-derivation discipline may itself exhibit level-4 META coverage-gap.
+
+S-15.03 PRIORITY-A automation remains the only known structural remedy.
+
+**Resolution:** Per D-386 Option C (asymptotic convergence accepted), no further structural escalation this cycle. D-428 codifies 5 sub-clauses addressing the 39th-layer violations. S-15.03 PRIORITY-A automation remains the structural remedy for v1.0-feature-engine-discipline-pass-2.
+
+**Codified rules:**
+- D-428(a): Sweep-regex-must-equal-rule-scope (META-LEVEL-3 enforcement of D-427(a)) — when D-427(a) ENFORCEMENT executes `grep -c "<forbidden-form>" <scope>`, the regex MUST match ALL forms the rule names as forbidden, NOT just compound forms named in F-PNN evidence. Regex literal MUST be derived from rule text scope. Failure = META-LEVEL-3 coverage-gap = HIGH per D-411(a). Closes F-P48-001.
+- D-428(b): D-427(b) full propagation — STATE.md Decisions Log row titles + S-15.03 sub-item rule-text bodies MUST be swept when a rule form is superseded. When N+4 form is superseded by N+6 form, ALL sites referencing N+4 MUST be swept (or documented as documentary-historical per D-414(c)). Closes F-P48-003.
+- D-428(c): D-422(a) Verification placeholder elimination — TBD/to-be-computed FORBIDDEN at Commit E. All Dim-N Verification lines MUST resolve to actual numeric output before Commit E. Closes F-P48-002.
+- D-428(d): D-422(c) banner wc-l canonical count — banner "actual N lines" claim MUST equal `wc -l <file>` output at Commit E author-time. `wc -l` output is canonical. Off-by-one is HIGH per D-411(a). Closes F-P48-004.
+- D-428(e): 39th-layer L-EDP1-003 multi-axis acknowledgment (9th consecutive; NEW META-LEVEL-3 self-replicating coverage-gap class) — each level of codification introduces a new ply of coverage-gap recursion; prose codification structurally incapable; S-15.03 PRIORITY-A only structural remedy. Closes F-P48-005, F-P48-006, F-P48-007, F-P48-008.
