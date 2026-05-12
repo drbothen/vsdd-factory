@@ -3161,4 +3161,76 @@ Verification: `ls cycles/v1.0-feature-engine-discipline-pass-1/adv-cycle-pass-51
 **Closes:** F-P51-001, F-P51-002, F-P51-003, F-P51-004, F-P51-005, F-P51-006, F-P51-007 (per D-413(b) completeness mandate)
 
 **Factory-artifacts commits:**
-(Commit A: 0db12712 — adv-cycle-pass-51.md), (Commit B: 8647aa89 — D-431+L-EDP1-043+F-P51-001 CRITICAL line-split), (Commit C: ccc3966f — content fixes F-P51-001..007), (Commit D: 032746a5 — 4-index bumps D-389..D-431), (Commit E: this commit — state-manager final per POLICY 3; parent-commit 032746a5 per D-419(b)+D-420(d)+D-421(a))
+(Commit A: 0db12712 — adv-cycle-pass-51.md), (Commit B: 8647aa89 — D-431+L-EDP1-043+F-P51-001 CRITICAL line-split), (Commit C: ccc3966f — content fixes F-P51-001..007), (Commit D: 032746a5 — 4-index bumps D-389..D-431), (Commit E: ef69f32c — state-manager final per POLICY 3; parent-commit 032746a5 per D-419(b)+D-420(d)+D-421(a))
+
+## Burst: F5 pass-52 fix burst (2026-05-12)
+
+**Burst type:** F5 cycle-level adversary fix burst (pass-52)
+**Discipline chain:** D-382..D-432 (full)
+**Verdict fixed:** HIGH (1C+3H+2M+1L=7+1obs; 43rd-layer L-EDP1-003; META-LEVEL-7 CONFIRMED; CRITICAL banner double-clause label corruption NEW class)
+
+**Dim-1 — Files modified this burst (D-432(e) unique-file-count discipline):**
+- `.factory/cycles/v1.0-feature-engine-discipline-pass-1/adv-cycle-pass-52.md` (Commit A: 9f5fd990)
+- `.factory/cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md` (Commit B: D-432 row appended)
+- `.factory/cycles/v1.0-feature-engine-discipline-pass-1/lessons.md` (Commit B: L-EDP1-044 + L-EDP1-043 corrigendum)
+- `.factory/cycles/v1.0-feature-engine-discipline-pass-1/INDEX.md` (Commit B: pass-52 row + D-432 citation)
+- `.factory/STATE.md` (Commits C+E: F-P52-001..004 + full state-manager update)
+- `.factory/cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md` (Commits C+E: F-P52-005/007 corrigenda + this entry)
+- `.factory/specs/behavioral-contracts/BC-INDEX.md` (Commit D: v1.94→v1.95)
+- `.factory/specs/verification-properties/VP-INDEX.md` (Commit D: v1.70→v1.71)
+- `.factory/stories/STORY-INDEX.md` (Commit D: v2.95→v2.96)
+- `.factory/specs/architecture/ARCH-INDEX.md` (Commit D: v1.75→v1.76)
+Verification: 10 unique files modified across 5 commits (burst-log.md modified in Commits C and E counts as 1 unique file; STATE.md modified in Commits C and E counts as 1 unique file per D-432(e)) ✓
+
+**Dim-2 — D-432 codification (lessons.md + decision-log.md):**
+Action: Appended D-432 (6 sub-clauses) to decision-log.md; authored L-EDP1-044 (43rd-layer 13th-consecutive multi-axis; META-LEVEL-7 CONFIRMED; NEW copy-paste-relabel banner corruption class); added L-EDP1-043 corrigendum for layer-42 row per D-400.
+Verification: `grep -c "^| D-432" cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md` → 1 ✓; `grep -c "L-EDP1-044" cycles/v1.0-feature-engine-discipline-pass-1/lessons.md` → 2 ✓ (heading + body cite = N+1 form per D-415(a)); `grep -c "^| D-431" decision-log.md` → 1 ✓ (line-terminus discipline per D-431(a) verified)
+
+**Dim-3 — Adversary review file:**
+Action: Created adv-cycle-pass-52.md with required template sections (Finding ID Convention, Part B, Summary, Novelty Assessment). Frontmatter includes all required fields per D-415(c).
+Verification: `ls cycles/v1.0-feature-engine-discipline-pass-1/adv-cycle-pass-52.md` → exists ✓
+
+**Dim-4 — Content fixes (F-P52-001..007):**
+- F-P52-001 (CRITICAL): STATE.md:25 banner double-clause removed — second D-431 enumeration (corrupted copy-paste-relabel form) eliminated; banner now contains single clean D-431 reference per D-432(d) safe form ✓
+- F-P52-002: STATE.md:195 Concurrent Cycles tally advanced to "52 reviews dispatched; 51 complete adversary returns; 49 fix bursts at passes 3-51" (D-432(a) tally-sync; further advanced to 53/52/50 at Commit E per final state) ✓
+- F-P52-003: Trajectory tail standardized — STATE.md:44 "→7→7→7" corrected to "→8→7→7→7" (52-value sequence; positions 49=8, 50=7, 51=7, 52=7) ✓
+- F-P52-004: STATE.md:195 tally synced with INDEX.md:118 per D-432(a) ✓
+- F-P52-005: burst-log.md pass-51 Dim-1 corrigendum — "12 files modified" → "11 unique files modified across 5 commits (burst-log.md double-counted)" per D-432(e) ✓
+- F-P52-006: Addressed via D-432(d) codification (copy-paste-relabel FORBIDDEN + safe form prescribed) ✓
+- F-P52-007: burst-log.md pass-51 Dim-7 corrigendum — line 25 (size-budget banner) noted as excluded from pass-51 sed-sweep; should have been included per D-430(d)+D-432(c) ✓
+
+**Dim-5 — D-432(c) NEW-form verification + D-425(a) preamble sweep + D-429(b) INDEX cross-cell:**
+- D-425(a) preamble: `grep -c "D-379..D-432" STATE.md` → 4 ✓; `grep -c "D-379..D-431" STATE.md` → 0 ✓ (stale form absent)
+- D-429(b) INDEX cross-cell: `grep "^version:" specs/behavioral-contracts/BC-INDEX.md` → "1.95"; STATE.md → BC v1.95; INDEX.md → BC v1.95 ✓; `grep "^version:" specs/verification-properties/VP-INDEX.md` → "1.71"; STATE.md → VP v1.71; INDEX.md → VP v1.71 ✓ (all 4 cross-cells verified)
+- D-431(a) line-terminus: `grep -c "^| D-432" cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md` → 1 ✓
+- D-431(b) STATE.md monotonic row: `grep -c "^| D-432" STATE.md` → 1 ✓
+- D-432(b) trajectory canonical: STATE.md:44 tail "→8→7→7→7"; STATE.md:15 single-pass "→7" (pass-52 value = 7; consistent with tail last value); STATE.md:195 trajectory ends "→8→7→7→7" ✓
+
+**Dim-6 — 4-index bumps D-389..D-432:**
+- BC-INDEX v1.94→v1.95; VP-INDEX v1.70→v1.71; STORY-INDEX v2.95→v2.96; ARCH-INDEX v1.75→v1.76
+- Verification: `grep "^version:" specs/behavioral-contracts/BC-INDEX.md` → "1.95" ✓; VP → "1.71" ✓; STORY → "2.96" ✓; ARCH → "1.76" ✓
+- D-432 literal ID present in all 4 changelog entries: BC-INDEX 1 ✓; VP-INDEX 1 ✓; STORY-INDEX 1 ✓; ARCH-INDEX 1 ✓
+
+**Dim-7 — STATE.md "pass-52 fix burst COMPLETE" marker cell-list (D-420(b)+D-422(b)+D-424(a)+D-430(d)+D-431(e)+D-432(c)):**
+- During Commit E write time: 6 cells contain "pass-52 fix burst COMPLETE"
+  - Line 8 (frontmatter phase:): `sed -n '8p' STATE.md | grep -o "engine-discipline-F5-pass-52"` → "engine-discipline-F5-pass-52" ✓
+  - Line 15 (frontmatter current_step): `sed -n '15p' STATE.md | grep -o "pass-52 fix burst COMPLETE"` → "pass-52 fix burst COMPLETE" ✓
+  - Line 44 (Last Updated body cell): `sed -n '44p' STATE.md | grep -o "pass-52 fix burst COMPLETE"` → "pass-52 fix burst COMPLETE" ✓
+  - Line 45 (Current Phase body cell): `sed -n '45p' STATE.md | grep -o "pass-52 fix burst COMPLETE"` → "pass-52 fix burst COMPLETE" ✓
+  - Line 25 (size-budget banner — D-432(c) inclusion): `sed -n '25p' STATE.md | grep -o "D-431 codified (5 sub-clauses"` → "D-431 codified (5 sub-clauses" ✓ (banner cites D-431 safe form; no double-clause per F-P52-001 fix)
+  - Session Resume "Where we are": `grep -o "pass-52 fix burst COMPLETE" STATE.md | head -1` → "pass-52 fix burst COMPLETE" ✓
+- D-417(b) advance-set = frontmatter `phase:` + `current_step:` ONLY
+- Post-dispatch: frontmatter current_step advances per D-417(b); body cells are D-417(b)-INVARIANT and retain the marker
+- D-428(d) banner wc-l re-executed at Commit E author-time: `wc -l STATE.md` → 319; banner soft target 316 + 15 = 331 (margin = 319-316 = 3 during Commit C; final 319 ∈ [316+3, 316+20]; within band) ✓
+- Canonical pass-52 marker: "pass-52 fix burst COMPLETE"
+- **D-432(c) banner sed-extraction verification:** `sed -n '25p' STATE.md | grep -c "D-431"` → 1 ✓ (exactly ONE D-431 enumeration; double-clause REMOVED; F-P52-001 CLOSED)
+
+**Codifications (per D-413(b) completeness mandate):**
+- D-432 codified (6 sub-clauses): (a) tally-sync MANDATORY; (b) trajectory-tail canonical; (c) Dim-7 banner-cell inclusion; (d) copy-paste-relabel FORBIDDEN + safe form; (e) Dim-1 unique-file-count; (f) 43rd-layer 13th-consecutive multi-axis META-LEVEL-7 CONFIRMED
+- L-EDP1-044 authored (43rd-layer 13th-consecutive multi-axis at D-431 codifying-burst boundary; META-LEVEL-7 CONFIRMED; NEW copy-paste-relabel banner corruption class)
+- L-EDP1-043 corrigendum: layer-42 row "inline-replaced per D-400" + sibling-forward-reference to L-EDP1-044
+
+**Closes:** F-P52-001, F-P52-002, F-P52-003, F-P52-004, F-P52-005, F-P52-006, F-P52-007 (per D-413(b) completeness mandate)
+
+**Factory-artifacts commits:**
+(Commit A: 9f5fd990 — adv-cycle-pass-52.md), (Commit B: adae8ae8 — D-432+L-EDP1-044+L-EDP1-043 corrigendum+INDEX.md pass-52 row), (Commit C: 3fc6d0d0 — content fixes F-P52-001..007), (Commit D: ca2bed61 — 4-index bumps D-389..D-432), (Commit E: this commit — state-manager final per POLICY 3; parent-commit ca2bed61 per D-419(b)+D-420(d)+D-421(a))
