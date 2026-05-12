@@ -114,6 +114,7 @@ changes are WASM-only (no new Bash hook debt per D-2).
 | 55 | 2026-05-12 | Findings: 8 (4H+2M+2L); Observations: 2 | HIGH | adv-cycle-pass-55.md |
 | 56 | 2026-05-12 | Findings: 9 (5H+2M+2L); Observations: 2 | HIGH | adv-cycle-pass-56.md |
 | 57 | 2026-05-12 | Findings: 8 (3H+3M+2L); Observations: 2 | HIGH | adv-cycle-pass-57.md |
+| 58 | 2026-05-12 | Findings: 8 (4H+3M+1L); Observations: 2 | HIGH | adv-cycle-pass-58.md |
 
 ## Convergence Status
 
@@ -121,7 +122,7 @@ changes are WASM-only (no new Bash hook debt per D-2).
 - F2 (spec evolution / story decomposition): **COMPLETE** — F2-amendment D-362; 6 BCs + ADR-018 + 4 VPs + PRD FR-048
 - F3 (incremental stories): **COMPLETE** — F3-amendment D-366; 6 stories S-12.03..S-12.08 under E-12
 - F4 (implementation): **COMPLETE** — all 6 E-12 stories merged (PRs #105, #119, #120, #121, #122, #123); F-P2-001 closed via S-12.08
-- F5 (scoped adversarial review): **IN PROGRESS** — 58 reviews dispatched; 57 complete adversary returns; 54 fix bursts at passes 3-56; per D-418(c)+D-435(d) deterministic-tally form. Trajectory content-only 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7→8→6→2→5→5→5→7→8→7→8→7→8→7→8→7→7→8→8→7→7→7→8→8→8→9→8 (57 values); pass-57 HIGH (3H+3M+2L=8+2obs); streak 0/3; D-386 Option C accepted; D-379..D-437 codified; L-EDP1-001..L-EDP1-049 authored; VP-INDEX v1.75 / BC-INDEX v1.99 / ARCH-INDEX v1.80 / STORY-INDEX v3.00 acknowledge D-389..D-436 (D-437 pending Commit D)
+- F5 (scoped adversarial review): **IN PROGRESS** — 59 reviews dispatched; 58 complete adversary returns; 55 fix bursts at passes 3-57; per D-418(c)+D-435(d) deterministic-tally form. Trajectory content-only 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7→8→6→2→5→5→5→7→8→7→8→7→8→7→8→7→7→8→8→7→7→7→8→8→8→9→8→8 (58 values); pass-58 HIGH (4H+3M+1L=8+2obs); streak 0/3; D-386 Option C accepted; D-379..D-438 codified; L-EDP1-001..L-EDP1-050 authored; VP-INDEX v1.76 / BC-INDEX v2.00 / ARCH-INDEX v1.81 / STORY-INDEX v3.01 acknowledge D-389..D-437 (D-438 pending Commit D)
 - F6 (targeted hardening): PENDING
 - F7 (delta convergence): PENDING
 

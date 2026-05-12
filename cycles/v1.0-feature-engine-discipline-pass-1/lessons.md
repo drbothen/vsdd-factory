@@ -2755,3 +2755,102 @@ S-15.03 PRIORITY-A automation remains the only known structural remedy.
 - D-437(c): D-436(a) set-membership verification extension — range-string + body sub-item presence + consecutive-count arithmetic all required. Closes ADV-EDP1-P57-MED-001.
 - D-437(d): D-428(d) banner wc-l re-verification at Commit E — off-by-one from dispatch-side advance must be reconciled. Closes ADV-EDP1-P57-HIGH-002.
 - D-437(e): 48th-layer META-LEVEL-12 CANDIDATE acknowledgment — L-EDP1-049 documents 48th-layer; "highest since layer 31" → "max(axes 31..47) = 9 per trend-table"; streak metric added to current_step; "56 values" cardinality grep-verified. Closes ADV-EDP1-P57-MED-002, ADV-EDP1-P57-MED-003, ADV-EDP1-P57-LOW-002.
+
+**Status:** Layer-48 inline-replaced per D-400. See L-EDP1-050 for layer-49.
+
+**Corrigendum (pass-58 fix burst — D-387 / HIGH-001 / D-400):** Layer-48 row updated per D-400. See L-EDP1-050 for layer-49.
+
+---
+
+### L-EDP1-050 — 49th-layer L-EDP1-003 recurrence: nineteenth consecutive multi-axis simultaneous violation at D-437 codifying-burst boundary; META-LEVEL-13 CANDIDATE; universal-scope rule applied at named-document scope rather than truly universal scope
+
+**Burst:** F5 pass-58 fix burst (codifies this lesson; recurrence was in pass-57 fix burst which codified D-437).
+
+**Pattern:** The 49th layer documents the 19th consecutive multi-axis simultaneous recurrence at a codifying-burst boundary. Layer-49 is the META-LEVEL-13 CANDIDATE: the universal-scope rule D-437(a) (all ✓ attestation forms require literal grep output) was applied to burst-log grep-emitting Verifications and burst-log corrigenda ONLY, NOT extended to STATE.md Session Resume ✓ marks (narrative-equality Verifications in a different document). This is recursion ply L13 candidate: universal-scope rule applied at named-document-level scope rather than truly universal scope (all ✓ attestation locations across all documents). At D-437's codifying burst (pass-57 fix burst), 8 simultaneous same-burst self-application failures (4H+3M+1L per D-401(c)):
+
+1. **HIGH ADV-EDP1-P58-HIGH-001 — Banner wc-l 39-line discrepancy (META-LEVEL-13 investigation):** STATE.md banner claims "334 actual lines at pass-57 Commit E" and wc -l confirms 334 at both 72fd51ee and c491cf64. Adversary measured 295 — discrepancy is likely a measurement methodology difference (adversary may have counted non-blank or non-comment lines). D-438(a) requires re-execution at Commit E and explicit reconciliation documentation.
+
+2. **HIGH ADV-EDP1-P58-HIGH-002 — S-15.03 header still D-411 through D-436, not D-437:** S-15.03 cumulative PRIORITY-A scope header not advanced to D-437 at pass-57 codifying burst. D-438(b) mandates Commit C timing for propagation.
+
+3. **HIGH ADV-EDP1-P58-HIGH-003 — INDEX.md Convergence Status stale (54 bursts / D-436 / v1.99/v1.75/v3.00/v1.80):** INDEX.md not updated at pass-57 Commit D. D-438(c) mandates INDEX.md auto-advance at Commit D.
+
+4. **HIGH ADV-EDP1-P58-HIGH-004 — burst-log h2 heading MISSING for pass-57 fix burst:** No `## Burst: F5 pass-57 fix burst` h2 heading in burst-log. Pass-57 entries are corrigenda-only without the required h2. D-438(d) mandates h2 at Commit A.
+
+5. **MED ADV-EDP1-P58-MED-001 — current_step STORY version stale (v3.00 vs actual v3.01):** Dispatch-side advance cited STORY v3.00 pre-Commit-D version. D-438(e) / D-423(a) concurrent-commit version-bump propagation.
+
+6. **MED ADV-EDP1-P58-MED-002 — dispatch-side SHA ambiguity:** c491cf64 dispatch-side SHA referenced in Active Branches table but grep-back-verifiability from current_step body is ambiguous per D-419(a). D-438(e).
+
+7. **MED ADV-EDP1-P58-MED-003 — D-437(a) named-doc-only scope (burst-log only, not STATE.md Session Resume ✓ marks; META-LEVEL-13):** D-437(a) universal-scope applied to burst-log corrigenda but STATE.md Session Resume pass-57 checklist uses narrative ✓ marks without literal grep evidence. Recursion ply 13: universal-scope rule applied at named-document scope (burst-log) rather than truly universal scope (all ✓ attestation locations). D-438(e).
+
+8. **LOW ADV-EDP1-P58-LOW-001 — trend-table Layer 47 cross-instance verification omitted:** D-434(c) cross-instance reconciliation verification not documented in burst-log Commit E. Values appear consistent but verification step absent. D-438(e).
+
+**Recursion ply 13 CANDIDATE mapping (L1..L13):**
+- Level-1: rule applied to named findings only
+- Level-2: fix-extension applied to named forms only
+- Level-3: sweep regex coverage-gapped at semantic interpretation
+- Level-4: meta-rule prescribing regex-derivation itself coverage-gapped
+- Level-5: anti-pattern rewrite applied to lexical-token, not semantic class
+- Level-6: verification grep-target anchored to obsolete prior form
+- Level-7: banner sub-clause labels copy-paste-relabeled from prior D-NNN
+- Level-8: cumulative-cite advancement scope NOT extended to all banner cells
+- Level-9: retroactive-sweep target-set completeness gap (header presence verified; member set not verified)
+- Level-10: retroactive-sweep target-VALUE completeness gap (header form verified; per-cell value correctness not extracted and compared to canonical)
+- Level-11: form-name applied without precondition check (N+6 label cited for lesson-ID grep in lessons.md context, which does NOT satisfy D-427(c)'s burst-log precondition)
+- Level-12: format-discipline rule applied to named-form-only scope (grep-emitting Verifications) rather than universal scope (all ✓ attestation forms in Dim-N Verification blocks)
+- **Level-13 (CANDIDATE):** universal-scope rule applied at named-document-level scope (burst-log ✓ marks) rather than truly universal scope (all ✓ attestation locations across ALL documents including STATE.md Session Resume)
+
+**Prediction for pass-59:** D-438(a/b/c/d/e) violated at pass-58 codifying burst. META-LEVEL-14 candidate.
+
+**Trend (axis counts per multi-axis layer; per D-433(d) normalized = content-only finding count per D-401(c)):**
+
+| Layer | Burst | Axis count | Multi-axis? |
+|-------|-------|-----------|-------------|
+| 31 (pass-40) | D-420 | 7 | YES (first multi-axis; 3H+3M+1L=7 content-only per D-401(c)) |
+| 32 (pass-41) | D-421 | 8 | YES (second consecutive; 3H+4M+1L=8 content-only per D-401(c)) |
+| 33 (pass-42) | D-422 | 7 | YES (third consecutive; 3H+3M+1L=7 content-only per D-401(c)) |
+| 34 (pass-43) | D-423 | 8 | YES (fourth consecutive; 4H+3M+1L=8 content-only per D-401(c)) |
+| 35 (pass-44) | D-424 | 7 | YES (fifth consecutive; 3H+3M+1L=7 content-only per D-401(c)) |
+| 36 (pass-45) | D-425 | 8 | YES (sixth consecutive; 4H+3M+1L=8 content-only per D-401(c); NEW silent-slip axis) |
+| 37 (pass-46) | D-426 | 7 | YES (seventh consecutive; 3H+3M+1L=7 content-only per D-401(c); NEW rule-scope-vs-applied-scope coverage gap class) |
+| 38 (pass-47) | D-427 | 7 | YES (eighth consecutive; 3H+3M+1L=7 content-only per D-401(c); NEW self-replicating coverage-gap class) |
+| 39 (pass-48) | D-428 | 8 | YES (ninth consecutive; 4H+3M+1L=8 content-only per D-401(c); META-LEVEL-3 class confirmed) |
+| 40 (pass-49) | D-429 | 8 | YES (tenth consecutive; 4H+3M+1L=8 content-only per D-401(c); META-LEVEL-4 CONFIRMED) |
+| 41 (pass-50) | D-430 | 7 | YES (eleventh consecutive; 4H+2M+1L=7 content-only per D-401(c); META-LEVEL-5 CANDIDATE via lexical-vs-semantic gap) |
+| 42 (pass-51) | D-431 | 7 | YES (twelfth consecutive; 1C+4H+2M=7 content-only per D-401(c); META-LEVEL-6 CONFIRMED + NEW CRITICAL structural-coalescence class) |
+| 43 (pass-52) | D-432 | 7 | YES (thirteenth consecutive; 1C+3H+2M+1L=7 content-only per D-401(c); META-LEVEL-7 CONFIRMED + NEW copy-paste-relabel banner corruption class) |
+| 44 (pass-53) | D-433 | 8 | YES (fourteenth consecutive; 1C+4H+2M+1L=8 content-only per D-401(c); META-LEVEL-8 CONFIRMED + banner-cite-advancement scope gap) |
+| 45 (pass-54) | D-434 | 8 | YES (fifteenth consecutive; 4H+3M+1L=8 content-only per D-401(c); META-LEVEL-9 CONFIRMED — retroactive-sweep target-set completeness gap) |
+| 46 (pass-55) | D-435 | 8 | YES (sixteenth consecutive; 4H+2M+2L=8 content-only per D-401(c); META-LEVEL-10 CONFIRMED — verification-granularity gap: header-form vs value-level) |
+| 47 (pass-56) | D-436 | 9 | YES (seventeenth consecutive; 5H+2M+2L=9 content-only per D-401(c); META-LEVEL-11 CANDIDATE — form-name applied without semantic-precondition check) |
+| 48 (pass-57) | D-437 | 8 | YES (eighteenth consecutive; 3H+3M+2L=8 content-only per D-401(c); META-LEVEL-12 CANDIDATE — format-discipline rule applied to named-form-only scope rather than universal scope) |
+| 49 (this, pass-58) | D-438 | 8 | YES (nineteenth consecutive; 4H+3M+1L=8 content-only per D-401(c); META-LEVEL-13 CANDIDATE — universal-scope rule applied at named-document scope rather than truly universal scope) |
+
+**Pattern class evolution:**
+- Layers 31-33: Single-burst codifying-boundary violations
+- Layer 34: Multi-axis at codifying boundary (8 simultaneous)
+- Layer 35: 7-axis sustained
+- Layer 36: NEW silent-slip class introduced (9-burst undetected staleness)
+- Layer 37: NEW rule-scope-vs-applied-scope coverage gap class introduced
+- Layer 38: NEW self-replicating coverage-gap class introduced
+- Layer 39: META-LEVEL-3 self-replicating coverage-gap class (introduces ply 3)
+- Layer 40: META-LEVEL-4 CONFIRMED (D-428(a) regex-derivation itself coverage-gapped)
+- Layer 41: META-LEVEL-5 CANDIDATE (D-429(c) applied to lexical token, not semantic class)
+- Layer 42: META-LEVEL-6 CONFIRMED (D-430(c) verification grep-target anchored to obsolete prior form) + NEW CRITICAL structural-coalescence class
+- Layer 43: META-LEVEL-7 CONFIRMED (D-431(d) copy-paste-relabel from prior D-NNN) + NEW copy-paste-relabel banner corruption class
+- Layer 44: META-LEVEL-8 CONFIRMED (D-431(c)/D-432(d) scope did not extend to banner cell advancement) + 14th consecutive multi-axis
+- Layer 45: META-LEVEL-9 CONFIRMED (D-433(d) retroactive-sweep applied to 1 of 10 required tables; target-set completeness not verified) + 15th consecutive multi-axis
+- Layer 46: META-LEVEL-10 CONFIRMED (D-434(a) verified header-form presence but not per-cell value correctness; verification-granularity gap) + 16th consecutive multi-axis
+- Layer 47: META-LEVEL-11 CANDIDATE (N+6 form applied to lesson-ID grep in lessons.md without checking D-427(c) context precondition; form-name cited without semantic-precondition verification) + 17th consecutive multi-axis (9 axes — max(axes 31..47) = 9 per trend-table)
+- Layer 48: META-LEVEL-12 CANDIDATE (format-discipline rule D-436(c) applied to grep-emitting Verifications only, not extended to narrative-equality Verifications; scope narrower than universal ✓ attestation class) + 18th consecutive multi-axis
+- Layer 49: **META-LEVEL-13 CANDIDATE** (universal-scope rule D-437(a) applied at named-document scope (burst-log) rather than truly universal scope; ply-13 = universal-scope rule applied correctly within one document class but not extended across all document classes containing the same ✓ attestation pattern) + 19th consecutive multi-axis
+
+S-15.03 PRIORITY-A automation remains the only known structural remedy.
+
+**Resolution:** Per D-386 Option C (asymptotic convergence accepted), no further structural escalation this cycle. D-438 codifies 5 sub-clauses addressing the 49th-layer violations. S-15.03 PRIORITY-A automation remains the structural remedy for v1.0-feature-engine-discipline-pass-2.
+
+**Codified rules:**
+- D-438(a): D-437(d) banner wc-l ENFORCEMENT — Commit E MUST re-execute `wc -l STATE.md` and document any compaction per D-430(a). Closes ADV-EDP1-P58-HIGH-001.
+- D-438(b): D-437(c) S-15.03 propagation re-enforcement with Commit C timing — Commit C MUST update S-15.03 header AND append D-NNN sub-items in same commit. Closes ADV-EDP1-P58-HIGH-002.
+- D-438(c): INDEX.md Convergence Status auto-advance MANDATORY at Commit D — fix-burst count + 4-index versions + D-NNN range updated atomically with 4-index bumps. Closes ADV-EDP1-P58-HIGH-003.
+- D-438(d): Burst-log h2 heading MANDATORY at Commit A — `## Burst: F5 pass-N fix burst (YYYY-MM-DD)` added in same commit as adv-cycle-pass-N.md persist. Closes ADV-EDP1-P58-HIGH-004.
+- D-438(e): 49th-layer META-LEVEL-13 CANDIDATE acknowledgment — L-EDP1-050 documents 49th-layer; ply-13 = universal-scope rule applied at named-document scope; MED-001/002/003 + LOW-001 closed. Closes ADV-EDP1-P58-MED-001, ADV-EDP1-P58-MED-002, ADV-EDP1-P58-MED-003, ADV-EDP1-P58-LOW-001.
