@@ -1727,7 +1727,8 @@ The 34-layer history:
 | 31 (pass-40) | D-420 | "closure-set completeness lint multi-site + Dim-7 cell-list mechanical + Dim-N line-number citation + parent-commit-SHA prose form + Closes annotation format" | F-P41-001 D-420(a) Closes 5 vs 7 sites (HIGH); F-P41-002 D-420(b) Dim-7 during-burst cell-list omits archive-pointer 9th recurrence (HIGH); F-P41-003 D-420(c) approximate line numbers (MED); F-P41-004 D-418(c) dispatch-stable sibling-sweep 8th recurrence (HIGH); F-P41-007 STATE.md banner 200-line target violated 38 consecutive bursts (MED) |
 | 32 (pass-41) | D-421 | "archive-pointer SHA-inclusion + 32nd-layer multi-axis acknowledgment + STATE.md size-budget reconciliation + L-EDP1-032 cardinality alignment + burst-log heading-form normalization" | F-P42-001 INDEX.md rubber-stamp ✓ (D-382+D-407(b)+D-408(a)); F-P42-002 Dim-7 cell-list wrong cells (D-420(b)); F-P42-005 D-421(c) banner 290 self-defeated at 314 lines |
 | 33 (pass-42) | D-422 | "Verification re-execution discipline + cell-list line-content extraction + banner self-compliance + 3rd consecutive multi-axis acknowledgment" | F-P43-003 D-422(a) rubber-stamp (grep-c→2 actual=5); F-P43-002 D-422(b) zero sed proof; F-P43-006 D-422(c) +16 actual +32; F-P43-005 D-422(d) 3-axis undercount |
-| 34 (this, pass-43) | D-423 | "concurrent-commit version-bump propagation + D-422(b) sed completeness + D-410 sibling-corrigendum grep-back + 4th consecutive multi-axis acknowledgment" | (awaiting pass-44 adversary fresh-context audit) |
+| 34 (pass-43) | D-423 | "concurrent-commit version-bump propagation + D-422(b) sed completeness + D-410 sibling-corrigendum grep-back + 4th consecutive multi-axis acknowledgment" | F-P44-001 D-423(b) wrong post-dispatch cells (coincidental match masked); F-P44-003 D-422(c) +25 margin outside [+10,+20]; F-P44-002 D-421(d) "4+" understates 7; F-P44-004 D-417(b) advance-set misframing; F-P44-006 D-423(c) non-discriminating grep-back — Layer-34 inline-replaced per D-400 |
+| 35 (this, pass-44) | D-424 | "Dim-7 post-dispatch sed proof + D-417(b)-awareness mandatory + banner margin [+10,+20] range enforcement + D-423(c) uniqueness + 5th consecutive multi-axis acknowledgment" | (awaiting pass-45 adversary fresh-context audit) |
 
 **D-423 codified** (4 sub-clauses) to mechanize: concurrent-commit version-bump propagation (D-423(a)) + sed-extraction completeness ALL cells BOTH enumerations (D-423(b)) + Action-narrative grep-back (D-423(c)) + 4th-consecutive-multi-axis acknowledgment (D-423(d)). However, per the pattern, D-423 itself may be violated at this very burst — that will be pass-44's adversary review to determine.
 
@@ -1740,3 +1741,45 @@ S-15.03 PRIORITY-A automation remains the only known structural remedy.
 - D-423(b): D-422(b) sed-extraction completeness — extraction proof required for ALL cells in BOTH during-burst AND post-dispatch enumerations; zero proof for post-dispatch enumeration is HIGH. Closes F-P43-002.
 - D-423(c): D-410 sibling-corrigendum Action-narrative grep-back — "appended corrigendum" claims MUST be backed by grep-back verification; report grep-c output in Verification line. Closes F-P43-007.
 - D-423(d): 34th-layer L-EDP1-003 multi-axis acknowledgment (4th consecutive; ALL D-422 sub-clauses violated) — multi-axis is dominant; prose codification structurally incapable at this volume; S-15.03 PRIORITY-A only structural remedy. Closes F-P43-005, F-P43-008.
+
+**Corrigendum (pass-44 fix burst — D-387 / F-P44-007 / D-400):** Layer-34 row "Same-burst Violation" inline-updated per D-400. See L-EDP1-036 for layer-35.
+
+---
+
+### L-EDP1-036 — 35th-layer L-EDP1-003 recurrence: fifth consecutive multi-axis simultaneous violation at D-423 codifying-burst boundary; D-423(b) self-application VIOLATED as predicted by L-EDP1-035
+
+**Burst:** F5 pass-44 fix burst (codifies this lesson; recurrence was in pass-43 fix burst which codified D-423).
+
+**Pattern:** The 35th layer confirms the 5th consecutive multi-axis simultaneous recurrence at a codifying-burst boundary. L-EDP1-035 EXPLICITLY PREDICTED at lines 1731-1734 that D-423 would be violated at its own codifying burst — pass-44 adversary CONFIRMED that prediction. At D-423's codifying burst (pass-43 fix burst), 4-5 simultaneous same-burst self-application failures occurred:
+
+1. **D-423(b) Dim-7 cell-list mechanical failure (F-P44-001):** Pass-43 Dim-7 post-dispatch enumeration cited Phase Progress rows 137+138 (do NOT contain literal "pass-43 fix burst COMPLETE") and omitted lines 44+45 (DO contain marker). Coincidental arithmetic match (5 enumerated = 5 actual) masked 2-cell misidentification. L-EDP1-035's explicit prediction CONFIRMED.
+
+2. **D-422(c) banner margin range violation (F-P44-003):** STATE.md banner +25 margin OUTSIDE D-422(c) prescribed +10 to +20 range. F-P43-006's fix introduced a NEW violation of D-422(c)'s own range prescription.
+
+3. **D-421(d) cardinality alignment recurrence (F-P44-002):** L-EDP1-035 trend-table layer-34 axis count "4+" understates body-enumerated 7 (4 D-422 sub-clause violations + 3 NEW compound classes). D-421(d) recurrence at fresh document boundary.
+
+4. **D-417(b) advance-set misframing (F-P44-004):** Pass-43 Dim-7 narrative "lines 44, 45, 15 advance per D-417(b)" CONTRADICTS D-417(b)'s explicit advance-set (frontmatter-only `phase:` + `current_step:` per decision-log:98). New misframing pattern not previously observed.
+
+5. **D-423(c) non-discriminating grep-back (F-P44-006):** D-423(c) attestation "Layer-32 row" grep-c=3 is non-unique (3 matches all pre-existing); does not discriminate the newly-written F-P43-007 retroactive corrigendum. Coincidental-arithmetic-match anti-pattern at D-423(c) self-application.
+
+**Trend (axis counts per multi-axis layer):**
+
+| Layer | Burst | Axis count | Multi-axis? |
+|-------|-------|-----------|-------------|
+| 31 (pass-40) | D-420 | 4 | YES (first multi-axis) |
+| 32 (pass-41) | D-421 | 4 | YES (second consecutive) |
+| 33 (pass-42) | D-422 | 3 | YES (third consecutive) |
+| 34 (pass-43) | D-423 | 4+ (total ≥7 per body enumeration: 4 D-422 sub-clause violations + 3 NEW compound classes) | YES (fourth consecutive; ALL D-422 sub-clauses violated) |
+| 35 (this, pass-44) | D-424 | 4-5 | YES (fifth consecutive; D-423(b) self-application VIOLATED as predicted, L-EDP1-036) |
+
+**Critical observation:** L-EDP1-035 EXPLICITLY PREDICTED D-423 would be violated at its own codifying burst, and pass-44 adversary CONFIRMED that prediction. This is meta-evidence that the L-EDP1-003 pattern is structurally persistent — the lesson itself can predict the next layer's violation without breaking the pattern. **Prose codification is fundamentally incapable of breaking the asymptotic loop at this volume.** S-15.03 PRIORITY-A automation remains the only known structural remedy.
+
+**Observation O-P44-O1 (4th canonical-anchor-discipline class):** The cycle has now codified 4 anchor-identity disciplines (D-418(a) SHA / D-419(b) parent-commit-SHA / D-420(d) prose form / D-423(a) version-canonical-anchor). Per O-P44-O1, S-15.03 PRIORITY-A scope SHOULD include a unified "canonical-anchor validator" rather than per-class automation, otherwise per-class rules grow proportional to recurrence count.
+
+**Resolution:** Per D-386 Option C (asymptotic convergence accepted), no further structural escalation this cycle. D-424 codifies 4 sub-clauses addressing the 35th-layer violations. S-15.03 PRIORITY-A automation remains the structural remedy for v1.0-feature-engine-discipline-pass-2.
+
+**Codified rules:**
+- D-424(a): Dim-7 post-dispatch enumeration with sed extraction proof for EVERY cited cell + D-417(b)-awareness narrative mandatory. Closes F-P44-001, F-P44-004.
+- D-424(b): Banner soft target = actual line count + margin where margin ∈ [+10, +20]. Margin outside range is D-422(c) violation. Closes F-P44-003.
+- D-424(c): D-423(c) grep-back target MUST be uniquely-identifying of the newly-written artifact. Non-unique targets producing coincidental-arithmetic-match attestations are FORBIDDEN. Closes F-P44-006.
+- D-424(d): 35th-layer L-EDP1-003 multi-axis acknowledgment (5th consecutive; D-423(b) self-application VIOLATED as predicted by L-EDP1-035) — multi-axis is dominant; prose codification structurally incapable at this volume; S-15.03 PRIORITY-A only structural remedy. Closes F-P44-002, F-P44-005, F-P44-007.
