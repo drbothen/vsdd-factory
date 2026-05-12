@@ -2510,6 +2510,17 @@ Closes F-P44-006.
 - Verification (D-422(a) re-executed): `grep -c "pass-44 fix burst — D-387 / F-P44" cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md` → 4 ✓ (F-P44-001 + F-P44-004 + F-P44-005 + F-P44-006)
 - Canonical pass-44 marker: "pass-44 fix burst — D-387 / F-P44" in burst-log.md
 
+**Corrigendum (pass-45 fix burst — D-387 / F-P45-001 / D-422(a) / D-425(b)):** Original Verification claim "grep -c → 4 ✓ (F-P44-001..006)" was incomplete per D-415(a) self-reference enumeration. Actual:
+
+`grep -c "pass-44 fix burst — D-387 / F-P44" burst-log.md` → **7** (N+3 form per D-415(a)):
+- N = 4 source corrigenda (lines 2446, 2459, 2465, 2467 — F-P44-001/004/005/006)
+- +1 Dim-2 D-424(c) grep-back attestation cite (line 2489)
+- +1 Dim-5 Verification self-reference (line 2510)
+- +1 Canonical-marker self-reference (line 2511)
+- Total: 7 = N+3
+
+Closes F-P45-001.
+
 **Dim-6 — 4-index version bumps D-389..D-424 (D-382+D-404+D-407(a)+D-401(a)):**
 - Enumeration source: D-404 unconditional; D-424 codified this burst; D-401(a) ≥3 decisions met (14 consecutive)
 - Extent: BC-INDEX v1.86→v1.87; VP-INDEX v1.62→v1.63; STORY-INDEX v2.87→v2.88; ARCH-INDEX v1.67→v1.68
@@ -2523,12 +2534,17 @@ Closes F-P44-006.
 - Extent: STATE.md (frontmatter phase + current_step + last_amended + Last Updated + Current Phase + Phase Progress pass-44 rows ×2 + Concurrent Cycles + Decisions Log D-424 row + Session Resume Checkpoint + Active Branches SHA + archive-pointer); INDEX.md Convergence Status; burst-log pass-44 fix burst entry; session-checkpoints.md archive
 - Action: Updated STATE.md with pass-44 fix burst COMPLETE narrative per D-418(c) deterministic-tally form. factory-artifacts Active Branches row updated to b7d13709 (Commit D SHA = parent-commit per D-419(b)+D-420(d)+D-421(a)). Session Resume updated for pass-45 dispatch with items 3a/3b/3c/3d/3e marked ✓ per D-417(d). Archive-pointer updated per D-421(a) prescribed form including parent-commit SHA a52fad8d. D-423(a) version sweep applied: STATE.md Concurrent Cycles + INDEX.md Convergence Status swept to BC v1.87/VP v1.63/STORY v2.88/ARCH v1.68 (post-Commit-D actual).
 - Verification (D-422(a) re-executed): `grep -c "pass-44 fix burst COMPLETE" STATE.md` → 6 ✓
+
+**Corrigendum (pass-45 fix burst — D-387 / F-P45-007):** Verification grep-c at Commit E author-time = 6 (line 15 frontmatter + 5 body cells). Post-dispatch grep-c = 5 (line 15 advances per D-417(b); 5 body cells retain). Both states valid; fresh-context auditors post-dispatch will see 5. The "6 ✓" attestation is correct at Commit E author-time; post-dispatch temporal context documented here per D-415(c)/D-418(c) awareness. Closes F-P45-007.
+
 - D-422(b)+D-424(a) sed extraction for ALL 6 during-burst cells:
   - sed line 15 (frontmatter current_step): `F5 pass-44 fix burst COMPLETE (HIGH→PENDING_NEXT_PASS; D-424...)` ✓
   - sed line 44 (Last Updated body cell): `2026-05-12 — pass-44 fix burst COMPLETE (HIGH; 3H+3M+1L=7+1obs)...` ✓
   - sed line 45 (Current Phase body cell): `Engine-discipline F5 — pass-44 fix burst COMPLETE...` ✓
   - sed line 244 (Session Resume "Where we are"): `...pass-44 fix burst COMPLETE...` ✓
   - sed line 261 (Session Resume checklist 3e): `✓ state-manager final...pass-44 fix burst COMPLETE` ✓ (per D-417(d))
+
+**Corrigendum (pass-45 fix burst — D-387 / F-P45-005):** Cell label at line 261 above was misidentified as "checklist 3e". Correct identification: line 261 is "Session Resume checklist item 3 parent heading" (NOT sub-item 3e). Actual item 3e is at line 266 and does NOT contain "pass-44 fix burst COMPLETE" marker. Correct cell list = lines 44 (Last Updated), 45 (Current Phase), 244 (Where we are), 261 (item 3 parent heading), 325 (Critical anchors). Arithmetic (5 cells) is correct; only the cell-label semantic description was wrong. Closes F-P45-005.
   - sed line 325 (Critical anchors F5 phase): `F5 phase: IN PROGRESS at pass-44 fix burst COMPLETE` ✓
 - D-424(a) D-417(b)-awareness narrative (MANDATORY per D-424(a)):
   - D-417(b) advance-set = frontmatter `phase:` + `current_step:` ONLY
