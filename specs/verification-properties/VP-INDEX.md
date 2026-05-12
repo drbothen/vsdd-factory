@@ -1,7 +1,7 @@
 ---
 document_type: vp-index
 level: L4
-version: "1.49"
+version: "1.50"
 status: draft
 producer: state-manager
 timestamp: 2026-05-11T00:00:00Z
@@ -10,6 +10,8 @@ phase: F5
 traces_to: ARCH-INDEX.md
 total_vps: 79
 changelog:
+  - date: 2026-05-11
+    change: "v1.50 (2026-05-11; pass-32 fix burst per D-412 + D-404 unconditional): Acknowledges decision range D-389..D-412. Per D-404 unconditional: index acknowledges D-412 by literal ID (no spec content change in this changelog entry). Refs: F-P32-001/002/003, D-412."
   - date: 2026-05-11
     change: "v1.49 (2026-05-11; pass-31 fix burst per D-411 + D-404 unconditional): Acknowledges decision range D-389..D-411. Closes F-P31-001/002/PG1 VP-INDEX instance. Refs: F-P31-001, F-P31-002, F-P31-PG1, D-411."
   - date: 2026-05-11

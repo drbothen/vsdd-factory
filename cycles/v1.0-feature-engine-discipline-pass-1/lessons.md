@@ -960,7 +960,7 @@ The 22-layer history:
 - D-411(b): D-410 prose retroactive correction: the "14 instances" claim is factually incorrect. D-400 was codified at pass-21 fix burst; L-EDP1-006..L-EDP1-012 entries pre-date the D-400 protocol and cannot be instances of the convention. Direct enumeration: 5 well-formed prescribed-form sibling-corrigenda (L-EDP1-013, 014, 015, 016, 018) + 1 partial-form (L-EDP1-017 missing `/ D-400`) = 6 instances. Apply via corrigendum to D-410 per D-387.
 - D-411(c): S-15.03 PRIORITY-A scope addition: closure-set completeness lint — cross-reference Closes enumeration in D-NNN decision-log row + burst-log Codifications block against actual file-edits performed in the burst. Closes F-P31-001, F-P31-002, F-P31-PG1.
 
-**Status:** Codified. D-411 closes the D-409(c) self-application failure at layer 22. D-412 codified at layer 23. L-EDP1-003 pattern continues at asymptotic boundary per D-386 Option C.
+**Status:** Codified. D-411 closes the D-409(c) self-application failure at layer 22. D-412 codified at layer 23. L-EDP1-003 pattern continues at asymptotic boundary per D-386 Option C. Layer-23 awaiting pass-33 adversary fresh-context audit per D-398.
 
 **Corrigendum (pass-32 fix burst — D-387 / D-400):** Layer-22 row "Same-burst Violation" inline-updated per D-400. See L-EDP1-024 for layer-23.
 

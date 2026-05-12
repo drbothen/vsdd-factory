@@ -8,7 +8,7 @@ timestamp: 2026-05-11T00:00:00Z
 phase: engine-discipline-F5-pass-32-adversary-in-progress
 inputs: []
 input-hash: "[live-state]"
-traces_to: ""
+traces_to: prd.md
 project: vsdd-factory
 mode: brownfield
 current_step: "F5 pass-32 adversary dispatch IN-PROGRESS (D-394+D-401(b); pass-31 COMPLETE at 15f75040 — D-411 codified; L-EDP1-023 22nd-layer; 4 indexes D-389..D-411; trajectory →7)"
