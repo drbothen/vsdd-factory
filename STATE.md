@@ -21,9 +21,11 @@ dtu_services: []
 ---
 
 <!--
-  STATE.md SIZE BUDGET: Keep this file under 200 lines.
+  STATE.md SIZE BUDGET (per D-421(c) reconciliation):
+  Soft target: ≤290 lines (observed asymptotic operating range during engine-discipline cycle).
+  Hard cap: 500 lines (validate-state-md-size hook enforcement).
   Historical content belongs in cycle files, NOT here.
-  Run /vsdd-factory:compact-state if this file grows past 200 lines.
+  Structural compaction is queued for v1.0-feature-engine-discipline-pass-2 cycle as part of S-15.03 PRIORITY-A automation scope.
 -->
 
 # Pipeline State: vsdd-factory
@@ -167,7 +169,7 @@ dtu_services: []
 | Cycle | Type | Status | Notes |
 |-------|------|--------|-------|
 | v1.0-brownfield-backfill | brownfield | PAUSED | E-10 pass-9 pending; paused at D-343 |
-| v1.0-feature-engine-discipline-pass-1 | feature | F5-IN-PROGRESS | All 6 E-12-platform stories merged; F5 passes 1-40 (40 reviews dispatched; 40 complete adversary returns; 38 fix bursts at passes 3-40) per D-418(c) deterministic-tally form; full-cycle trajectory content-only (pass-1..40): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7→8→6→2→5→5→5→7→8→7; pass-40 HIGH verdict (3H+3M+1L=7+1obs); D-420 codified (5 sub-clauses); L-EDP1-032 31st-layer multi-axis; D-386 Option C: continue F5, accept asymptotic L-EDP1-003 limit; VP-INDEX v1.58 / BC-INDEX v1.82 / ARCH-INDEX v1.63 / STORY-INDEX v2.83 acknowledge D-389..D-420; S-15.03 PRIORITY-A in pass-2 cycle |
+| v1.0-feature-engine-discipline-pass-1 | feature | F5-IN-PROGRESS | All 6 E-12-platform stories merged; F5 passes 1-41 (41 reviews dispatched; 40 complete adversary returns; 38 fix bursts at passes 3-40) per D-418(c) deterministic-tally form; full-cycle trajectory content-only (pass-1..41): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7→8→6→2→5→5→5→7→8→7→8; pass-41 HIGH verdict (3H+4M+1L=8+1obs); D-421 codified (5 sub-clauses); L-EDP1-033 32nd-layer multi-axis (2nd consecutive); D-386 Option C: continue F5, accept asymptotic L-EDP1-003 limit; VP-INDEX v1.59 / BC-INDEX v1.83 / ARCH-INDEX v1.64 / STORY-INDEX v2.84 acknowledge D-389..D-421; S-15.03 PRIORITY-A in pass-2 cycle |
 | v1.0-feature-plugin-async-semantics-pass-1 | feature | CLOSED | All PRs merged; rc.14 shipped |
 
 ## Decisions Log
@@ -188,7 +190,7 @@ dtu_services: []
 | D-417 | Body-vs-frontmatter tally SOURCE-OF-TRUTH + D-394 dispatch-advance-set (phase:+current_step: only) + Session Resume archive-pointer self-describing form + checklist ✓ on completion (4 sub-clauses; see decision-log.md). Closes F-P37-001, F-P37-002, F-P37-003, F-P37-004, F-P37-005 | F5 pass-37 | 2026-05-11 |
 | D-418 | SHA-canonical-anchor discipline + codifying-burst self-application (general) + Dim-7 dispatch-stability deterministic-tally form + body-trajectory self-value inclusion (4 sub-clauses; see decision-log.md). Closes F-P38-001, F-P38-002, F-P38-003, F-P38-004, F-P38-005, F-P38-007 (per D-413(b) completeness mandate) | F5 pass-38 | 2026-05-12 |
 | D-419 | Post-write SHA grep-back verification + D-417(c)+D-418(a) temporal-ordering paradox resolution (parent-commit-SHA convention) + D-413(b) misframing corrigendum (completeness not quantity) (3 sub-clauses; see decision-log.md). Closes F-P39-001, F-P39-002, F-P39-003, F-P39-004, F-P39-005, F-P39-006, F-P39-007, F-P39-008 (per D-413(b) completeness mandate) | F5 pass-39 | 2026-05-12 |
-| D-420 | Closure-set completeness lint (multi-site) + Dim-7 cell-list mechanical + Dim-N multi-match line-number citation + parent-commit-SHA prose form + Closes annotation format (5 sub-clauses; see decision-log.md). Closes F-P40-001, F-P40-002, F-P40-003, F-P40-004, F-P40-007 (per D-413(b) completeness mandate) | F5 pass-40 | 2026-05-12 |
+| D-420 | Closure-set completeness lint (multi-site) + Dim-7 cell-list mechanical + Dim-N multi-match line-number citation + parent-commit-SHA prose form + Closes annotation format (5 sub-clauses; see decision-log.md). Closes F-P40-001, F-P40-002, F-P40-003, F-P40-004, F-P40-005, F-P40-006, F-P40-007 (per D-413(b) completeness mandate) **[Corrigendum pass-41: F-P40-005+006 added per D-420(a)+F-P41-001]** | F5 pass-40 | 2026-05-12 |
 
 ## Skip Log
 
@@ -301,4 +303,4 @@ Full scope: `.factory/stories/S-15.03-index-cite-refresh-hook.md`
 - ADR-013: 3_of_3 CONVERGED (pass-57) | E-9: v1.53 CONVERGENCE_REACHED | E-10: paused D-343
 - 5 user-locked decisions: `cycles/v1.0-feature-plugin-async-semantics-pass-1/F4-handoff.md` §3
 
-> Previous checkpoint (pass-40 FIX BURST COMPLETE; pass-40 ADVERSARY DISPATCHED) archived to: `cycles/v1.0-feature-engine-discipline-pass-1/session-checkpoints.md`
+> Previous checkpoint (pass-40 FIX BURST COMPLETE at parent-commit ab9dd5a2 per D-419(b)+D-420(d)+D-421(a); pass-41 ADVERSARY DISPATCHED) archived to: `cycles/v1.0-feature-engine-discipline-pass-1/session-checkpoints.md`
