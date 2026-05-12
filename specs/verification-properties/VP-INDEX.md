@@ -1,7 +1,7 @@
 ---
 document_type: vp-index
 level: L4
-version: "1.75"
+version: "1.76"
 status: draft
 producer: state-manager
 timestamp: 2026-05-12T00:00:00Z
@@ -10,6 +10,8 @@ phase: F5
 traces_to: ARCH-INDEX.md
 total_vps: 80
 changelog:
+  - date: 2026-05-12
+    change: "v1.76 (2026-05-12; pass-57 fix burst per D-437 + D-404 unconditional): Acknowledges decision range D-389..D-437 (inclusive; literal acknowledgment per D-415(c)). Per D-404 unconditional: index acknowledges D-437 by literal ID (no spec content change in this changelog entry). Refs: ADV-EDP1-P57-HIGH-001/002/003/MED-001/002/003/LOW-001/002, D-437. VP-INDEX v1.75→v1.76."
   - date: 2026-05-12
     change: "v1.75 (2026-05-12; pass-56 fix burst per D-436 + D-404 unconditional): Acknowledges decision range D-389..D-436 (inclusive; literal acknowledgment per D-415(c)). Per D-404 unconditional: index acknowledges D-436 by literal ID (no spec content change in this changelog entry). Refs: ADV-EDP1-P56-HIGH-001/002/003/004/005/MED-001/002/LOW-001/002, D-436. VP-INDEX v1.74→v1.75."
   - date: 2026-05-12

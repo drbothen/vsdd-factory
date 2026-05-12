@@ -1,7 +1,7 @@
 ---
 document_type: architecture-index
 level: L3
-version: "1.80"
+version: "1.81"
 status: accepted
 producer: architect
 timestamp: 2026-05-12T00:00:00Z
@@ -17,6 +17,8 @@ inputs:
 traces_to: phase-1-spec-crystallization
 deployment_topology: single-service
 changelog:
+  - date: 2026-05-12
+    change: "v1.81 (2026-05-12; pass-57 fix burst per D-437 + D-404 unconditional): Acknowledges decision range D-389..D-437 (inclusive; literal acknowledgment per D-415(c)). Per D-404 unconditional: index acknowledges D-437 by literal ID (no spec content change in this changelog entry). Refs: ADV-EDP1-P57-HIGH-001/002/003/MED-001/002/003/LOW-001/002, D-437. ARCH-INDEX v1.80→v1.81."
   - date: 2026-05-12
     change: "v1.80 (2026-05-12; pass-56 fix burst per D-436 + D-404 unconditional): Acknowledges decision range D-389..D-436 (inclusive; literal acknowledgment per D-415(c)). Per D-404 unconditional: index acknowledges D-436 by literal ID (no spec content change in this changelog entry). Refs: ADV-EDP1-P56-HIGH-001/002/003/004/005/MED-001/002/LOW-001/002, D-436. ARCH-INDEX v1.79→v1.80.
     change: v1.79 (2026-05-12; pass-55 fix burst per D-435 + D-404 unconditional): Acknowledges decision range D-389..D-435 (inclusive; literal acknowledgment per D-415(c)). Per D-404 unconditional: index acknowledges D-435 by literal ID (no spec content change in this changelog entry). Refs: ADV-EDP1-P55-HIGH-001/002/003/004/MED-001/002/LOW-001/002, D-435. ARCH-INDEX v1.78→v1.79."
