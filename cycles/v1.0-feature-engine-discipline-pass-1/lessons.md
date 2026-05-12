@@ -1954,7 +1954,76 @@ S-15.03 PRIORITY-A automation remains the only known structural remedy.
 
 **Corrigendum (pass-48 fix burst — D-387 / F-P48-008 / D-400):** Layer-38 row "Same-burst Violation" inline-updated per D-400: "(this, pass-47)" → "(pass-46)" matching established convention; "D-426 at codifying burst" → "D-426". See L-EDP1-040 for layer-39.
 
+**Corrigendum (pass-49 fix burst — D-387 / F-P49-008 / D-400):** Layer-39 row "(this, pass-47)" inline-replaced to "(pass-47)" per D-400 convention. See L-EDP1-041 for layer-40.
+
 ---
+
+### L-EDP1-041 — 40th-layer L-EDP1-003 recurrence: tenth consecutive multi-axis simultaneous violation at D-428 codifying-burst boundary; META-LEVEL-4 self-replicating coverage-gap CONFIRMED
+
+**Burst:** F5 pass-49 fix burst (codifies this lesson; recurrence was in pass-48 fix burst which codified D-428).
+
+**Pattern:** The 40th layer confirms the 10th consecutive multi-axis simultaneous recurrence at a codifying-burst boundary. Layer-40 CONFIRMS the META-LEVEL-4 self-replicating coverage-gap predicted by L-EDP1-040: D-428(a) was codified to fix the level-3 coverage-gap (F-P48-001: sweep regex semantically coverage-gapped), but D-428(a)'s ENFORCEMENT corrigendum at the codifying burst itself used a regex covering only 2 of 7 rule-text-named patterns. At D-428's codifying burst (pass-48 fix burst), 7 simultaneous same-burst self-application failures occurred + 1 LOW:
+
+1. **D-428(a) META-LEVEL-4 regex coverage-gap (F-P49-001):** Sweep regex `[0-9]+\+|≥[0-9]+` covered only 2 of 7 patterns named in D-428(a) rule text. Missing: `[0-9]+-[0-9]+`, `approx`, `approximately`, `around`, `between`. META-LEVEL-4 confirmed per L-EDP1-040 prediction.
+
+2. **D-428(b) N+4→N+6 cross-document propagation gap (F-P49-002):** decision-log.md:106-107 D-425/D-426 row titles + S-15.03:138/142 sub-items still cite N+4 form. F-P48-003 pattern recurring at codifying burst.
+
+3. **INDEX.md cross-cell version drift (F-P49-003):** INDEX.md:115 cites VP-INDEX as v1.91 instead of canonical v1.67. Sibling-cell copy-paste error. STATE.md cells correct; INDEX.md cell corrupted.
+
+4. **L-EDP1-040 D-426(c) "Plus" sibling form (F-P49-004):** L-EDP1-040 body "7 simultaneous + Plus: F-P48-008" is EXACTLY the form D-426(c) forbids. Self-application gap at L-EDP1-040 codification.
+
+5. **PG-EDP1-002 cardinality-citation mismatch (F-P49-005):** Pass-48 F-P48-001 fix changed "3+" → "5 times (specific count)" but kept citation "(F-P8-001, F-P9-001)" = 2 sources. Claim 5 vs evidence 2 = D-426(c) violation. META-LEVEL-4 self-replicating: fix introduces new violation at remediation site.
+
+6. **D-428(c) "documentary" exemption gap (F-P49-006):** Pass-46 burst-log:2768 "wc -l TBD" classified as documentary; classification debatable since line 2768 was a real Dim-7 Verification at pass-46 Commit E author-time.
+
+7. **L-EDP1-040 prediction framing ambiguity (F-P49-007):** Layer 39 labeled "META-LEVEL-3" but trend-table conventions create ambiguity about whether Layer 39 vs Layer 40 introduces the META-LEVEL-N class.
+
+8. **L-EDP1-040 trend-table row 39 placeholder (F-P49-008; LOW):** Row 39 "(this, pass-47)" inline-replaced to "(pass-47)" per D-400 convention.
+
+**Trend (axis counts per multi-axis layer):**
+
+| Layer | Burst | Axis count | Multi-axis? |
+|-------|-------|-----------|-------------|
+| 31 (pass-40) | D-420 | 4 | YES (first multi-axis) |
+| 32 (pass-41) | D-421 | 4 | YES (second consecutive) |
+| 33 (pass-42) | D-422 | 3 | YES (third consecutive) |
+| 34 (pass-43) | D-423 | 7 | YES (fourth consecutive; ALL D-422 sub-clauses violated) |
+| 35 (pass-44) | D-424 | 5 | YES (fifth consecutive) |
+| 36 (pass-45) | D-425 | 7 | YES (sixth consecutive; NEW silent-slip axis) |
+| 37 (pass-46) | D-426 | 7 | YES (seventh consecutive; NEW rule-scope-vs-applied-scope coverage gap class) — Layer-37 inline-replaced per D-400 |
+| 38 (pass-46) | D-426 | 7 | YES (eighth consecutive; NEW self-replicating coverage-gap class) — Layer-38 inline-replaced per D-400 |
+| 39 (pass-47) | D-427 | 7 | YES (ninth consecutive; META-LEVEL-3 class introduced) — Layer-39 inline-replaced per D-400 |
+| 40 (pass-48) | D-428 | 8 | YES (tenth consecutive; META-LEVEL-4 CONFIRMED) |
+
+**Recursion ply mapping (4 confirmed plies, codified):**
+- Level-1: rule applied to named findings only (F-P46-001)
+- Level-2: fix-extension applied to named forms only (F-P47-001)
+- Level-3: sweep regex coverage-gapped at semantic interpretation (F-P48-001)
+- Level-4 (CONFIRMED): meta-rule prescribing regex-derivation itself coverage-gapped (F-P49-001)
+- Level-5+ (predicted): each successive codification adds a ply
+
+**Pattern class evolution:**
+- Layers 31-33: Single-burst codifying-boundary violations
+- Layer 34: Multi-axis at codifying boundary (7 simultaneous)
+- Layer 35: 5-axis sustained
+- Layer 36: NEW silent-slip class introduced (9-burst undetected staleness)
+- Layer 37: NEW rule-scope-vs-applied-scope coverage gap class introduced
+- Layer 38: NEW self-replicating coverage-gap class introduced
+- Layer 39: META-LEVEL-3 self-replicating coverage-gap class (introduces ply 3)
+- Layer 40: **META-LEVEL-4 CONFIRMED** (D-428(a) regex-derivation discipline itself coverage-gapped)
+
+**Prediction for pass-50:** D-429(a/b/c/d/e) likely violated at pass-49 codifying burst. Specifically D-429(a) META-LEVEL-N regex anchoring discipline may itself exhibit level-5 coverage-gap (regex enumeration completeness at codifying burst). Convergence streak remains 0/3 NITPICK_ONLY per asymptotic acceptance.
+
+S-15.03 PRIORITY-A automation remains the only known structural remedy.
+
+**Resolution:** Per D-386 Option C (asymptotic convergence accepted), no further structural escalation this cycle. D-429 codifies 5 sub-clauses addressing the 40th-layer violations. S-15.03 PRIORITY-A automation remains the structural remedy for v1.0-feature-engine-discipline-pass-2.
+
+**Codified rules:**
+- D-429(a): META-LEVEL-N regex anchoring discipline — when a rule prescribes a regex sweep with named patterns, the `grep` command MUST execute against ALL named patterns from the rule text, NOT a subset. Closes F-P49-001.
+- D-429(b): INDEX.md cross-cell sibling-sweep verification — STATE.md and INDEX.md cells citing same 4-index versions MUST be cross-verified at Commit E; drift = HIGH per D-382. Closes F-P49-003.
+- D-429(c): L-EDP1-NNN body cardinality D-426(c) re-enforcement — "Plus" siblings FORBIDDEN; ALL findings MUST be numbered axes; total claim MUST equal content finding count. Closes F-P49-004.
+- D-429(d): Cardinality-vs-citation alignment — fix replacing vague-range with specific count MUST update citation list to match count. Closes F-P49-005.
+- D-429(e): 40th-layer 10th-consecutive multi-axis META-LEVEL-4 CONFIRMED acknowledgment — each codification level introduces a new ply; S-15.03 PRIORITY-A only structural remedy. Closes F-P49-002, F-P49-006, F-P49-007, F-P49-008.
 
 ### L-EDP1-040 — 39th-layer L-EDP1-003 recurrence: ninth consecutive multi-axis simultaneous violation at D-427 codifying-burst boundary; NEW META-LEVEL-3 self-replicating coverage-gap pattern class
 
@@ -1990,7 +2059,7 @@ S-15.03 PRIORITY-A automation remains the only known structural remedy.
 | 36 (pass-45) | D-425 | 7 | YES (sixth consecutive; NEW silent-slip axis) |
 | 37 (pass-46) | D-426 | 7 | YES (seventh consecutive; NEW rule-scope-vs-applied-scope coverage gap class) — Layer-37 inline-replaced per D-400 |
 | 38 (pass-46) | D-426 | 7 | YES (eighth consecutive; NEW self-replicating coverage-gap class) — Layer-38 inline-replaced per D-400 |
-| 39 (this, pass-47) | D-427 at codifying burst | 7 | YES (ninth consecutive; NEW META-LEVEL-3 self-replicating coverage-gap class) |
+| 39 (pass-47) | D-427 at codifying burst | 7 | YES (ninth consecutive; NEW META-LEVEL-3 self-replicating coverage-gap class) |
 
 **NEW pattern class introduced:** META-LEVEL-3 self-replicating coverage-gap. Pattern recursion depth:
 - Level 1 (F-P46-001): rule applied to named findings only
