@@ -58,3 +58,13 @@ Archived checkpoints from STATE.md as newer checkpoints replace them.
 **Pass-41 fixes:** D-421 codified (5 sub-clauses) | L-EDP1-033 32nd-layer multi-axis | L-EDP1-032 Layer-31 inline-replaced + sibling-corrigendum | F-P41-001 D-420 Closes 7-site sweep | F-P41-002 Dim-7 archive-pointer corrigendum | F-P41-003 Dim-2 line-number corrigendum | F-P41-004 dispatch-stable sibling-sweep | F-P41-005 archive-pointer SHA-inclusion | F-P41-006 L-EDP1-032 cardinality | F-P41-007 STATE banner | F-P41-008 heading form
 **ADR-013:** 3_of_3 CONVERGED (pass-57) | **E-9:** v1.53 CONVERGENCE_REACHED | **E-10:** paused D-343
 **5 user-locked decisions:** `cycles/v1.0-feature-plugin-async-semantics-pass-1/F4-handoff.md` §3
+
+---
+
+## Checkpoint: 2026-05-12 — F5 pass-42 fix burst COMPLETE; pass-43 ADVERSARY DISPATCH PENDING (archived)
+
+**Last update:** 2026-05-12 — F5 pass-42 fix burst COMPLETE. Pass-42 HIGH verdict (3H+3M+1L=7+1obs; 33rd-layer L-EDP1-003 multi-axis; 3rd consecutive multi-axis at D-421 codification boundary). D-422 codified (4 sub-clauses: Verification re-execution at Commit E author-time + cell-list line-content extraction + banner self-compliance + 33rd-layer multi-axis dominant-mode acknowledgment). L-EDP1-034 33rd-layer multi-axis. 4 indexes BC v1.85/VP v1.61/STORY v2.86/ARCH v1.66 acknowledge D-389..D-422. Trajectory (content-only) 42 values: 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7→8→6→2→5→5→5→7→8→7→8→7. Streak: 0/3 NITPICK_ONLY. Verdict HIGH sustained.
+
+**CRITICAL FINDING RESOLVED:** F-P42-001 — INDEX.md missing pass-41 row (rubber-stamped Verification; D-382+D-407(b)+D-408(a) violation). Both pass-41 + pass-42 rows appended; D-422(a) Verification re-execution discipline now codified.
+
+**STATE:** F4 platform COMPLETE; F5 pass-42 fix burst COMPLETE; pass-43 adversary dispatch PENDING.
