@@ -1,7 +1,7 @@
 ---
 document_type: architecture-index
 level: L3
-version: "1.68"
+version: "1.69"
 status: accepted
 producer: architect
 timestamp: 2026-05-12T00:00:00Z
@@ -17,6 +17,8 @@ inputs:
 traces_to: phase-1-spec-crystallization
 deployment_topology: single-service
 changelog:
+  - date: 2026-05-12
+    change: "v1.69 (2026-05-12; pass-45 fix burst per D-425 + D-404 unconditional): Acknowledges decision range D-389..D-425 (inclusive; literal acknowledgment per D-415(c)). Per D-404 unconditional: index acknowledges D-425 by literal ID (no spec content change in this changelog entry). Refs: F-P45-001/002/003/004/005/006/007/008, D-425. ARCH-INDEX v1.68→v1.69."
   - date: 2026-05-12
     change: "v1.68 (2026-05-12; pass-44 fix burst per D-424 + D-404 unconditional): Acknowledges decision range D-389..D-424 (inclusive; literal acknowledgment per D-415(c)). Per D-404 unconditional: index acknowledges D-424 by literal ID (no spec content change in this changelog entry). Refs: F-P44-001/002/003/004/005/006/007, D-424. ARCH-INDEX v1.67→v1.68."
   - date: 2026-05-12
