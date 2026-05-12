@@ -1,11 +1,11 @@
 ---
 document_type: architecture-index
 level: L3
-version: "1.60"
+version: "1.61"
 status: accepted
 producer: architect
-timestamp: 2026-05-11T00:00:00Z
-last_amended: 2026-05-11
+timestamp: 2026-05-12T00:00:00Z
+last_amended: 2026-05-12
 phase: F5
 inputs:
   - .factory/phase-0-ingestion/pass-8-final-synthesis.md
@@ -17,6 +17,8 @@ inputs:
 traces_to: phase-1-spec-crystallization
 deployment_topology: single-service
 changelog:
+  - date: 2026-05-12
+    change: "v1.61 (2026-05-12; pass-38 fix burst per D-418 + D-404 unconditional): Acknowledges decision range D-389..D-418 (inclusive; literal acknowledgment per D-415(c)). Per D-404 unconditional: index acknowledges D-418 by literal ID (no spec content change in this changelog entry). Refs: F-P38-001/002/003/004/005, D-418."
   - date: 2026-05-11
     change: "v1.60 (2026-05-11; pass-37 fix burst per D-417 + D-404 unconditional): Acknowledges decision range D-389..D-417. Per D-404 unconditional: index acknowledges D-417 by literal ID (no spec content change in this changelog entry). Refs: F-P37-001/002/003/004/005, D-417."
   - date: 2026-05-11

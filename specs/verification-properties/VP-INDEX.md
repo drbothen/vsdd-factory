@@ -1,15 +1,17 @@
 ---
 document_type: vp-index
 level: L4
-version: "1.55"
+version: "1.56"
 status: draft
 producer: state-manager
-timestamp: 2026-05-11T00:00:00Z
-last_amended: 2026-05-11
+timestamp: 2026-05-12T00:00:00Z
+last_amended: 2026-05-12
 phase: F5
 traces_to: ARCH-INDEX.md
 total_vps: 79
 changelog:
+  - date: 2026-05-12
+    change: "v1.56 (2026-05-12; pass-38 fix burst per D-418 + D-404 unconditional): Acknowledges decision range D-389..D-418 (inclusive; literal acknowledgment per D-415(c)). Per D-404 unconditional: index acknowledges D-418 by literal ID (no spec content change in this changelog entry). Refs: F-P38-001/002/003/004/005, D-418."
   - date: 2026-05-11
     change: "v1.55 (2026-05-11; pass-37 fix burst per D-417 + D-404 unconditional): Acknowledges decision range D-389..D-417. Per D-404 unconditional: index acknowledges D-417 by literal ID (no spec content change in this changelog entry). Refs: F-P37-001/002/003/004/005, D-417."
   - date: 2026-05-11
