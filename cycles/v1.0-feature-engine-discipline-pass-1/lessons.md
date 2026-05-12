@@ -134,7 +134,7 @@ the CI-green URL in the closure record.
 ### PG-EDP1-002 — No lint/hook enforces sibling-file discipline (cite-refresh, STATE.md, burst-log, INDEX.md, lessons.md)
 
 **Pattern:** L-P20-002 + D-381 + D-382 codify the obligations in prose. The obligations
-have been violated 5 times across this cycle (specific count) (F-P8-001, F-P9-001) despite being
+have been violated at least 2 documented times across this cycle (F-P8-001, F-P9-001) despite being
 explicitly codified. Automated enforcement is the only reliable remedy.
 
 **Story:** S-15.03 (DRAFT) — scope expansion to include: (a) BC-INDEX version bump
@@ -2029,7 +2029,7 @@ S-15.03 PRIORITY-A automation remains the only known structural remedy.
 
 **Burst:** F5 pass-48 fix burst (codifies this lesson; recurrence was in pass-47 fix burst which codified D-427).
 
-**Pattern:** The 39th layer confirms the 9th consecutive multi-axis simultaneous recurrence at a codifying-burst boundary. Layer-39 introduces a NEW pattern class: **META-LEVEL-3 self-replicating coverage-gap** — D-427(a) was codified to fix the level-2 coverage-gap (F-P47-001 sweep-extension itself coverage-gapped), but the sweep REGEX used to verify D-427(a) was itself semantically coverage-gapped (matched only compound forms named in F-P47-001 evidence, not ALL forms named in the rule text). At D-427's codifying burst (pass-47 fix burst, recovered from stream timeout), 7 simultaneous same-burst self-application failures occurred:
+**Pattern:** The 39th layer confirms the 9th consecutive multi-axis simultaneous recurrence at a codifying-burst boundary. Layer-39 introduces a NEW pattern class: **META-LEVEL-3 self-replicating coverage-gap** — D-427(a) was codified to fix the level-2 coverage-gap (F-P47-001 sweep-extension itself coverage-gapped), but the sweep REGEX used to verify D-427(a) was itself semantically coverage-gapped (matched only compound forms named in F-P47-001 evidence, not ALL forms named in the rule text). At D-427's codifying burst (pass-47 fix burst, recovered from stream timeout), 8 simultaneous same-burst self-application failures occurred:
 
 1. **D-427(a) vague-range coverage gap META-LEVEL-3 (F-P48-001):** Sweep regex matched 4 specific compound forms but D-427(a) rule scope is "ALL vague-range forms". Residual forms at lessons.md:137 "3+", lessons.md:1530 "≥6", lessons.md:1576 "4+ ... ≥6", lessons.md:1589 "3+ ... ≥4". META-LEVEL-3 self-replicating: D-427(a) was authored to fix F-P47-001 level-2 coverage-gap, and F-P48-001 shows the FIX itself is level-3 coverage-gapped (regex semantics).
 
@@ -2045,7 +2045,7 @@ S-15.03 PRIORITY-A automation remains the only known structural remedy.
 
 7. **D-416(c) self-citation meta-omission (F-P48-007):** S-15.03 cumulative header cites D-416(c) as enabler of MANDATORY propagation but no sub-item exists for D-416(c) itself. Meta-self-reference omission.
 
-**Plus:** F-P48-008 (LOW; L-EDP1-039 row 38 format anomaly) — "(this, pass-47)" → "(pass-46)" inline correction.
+8. **L-EDP1-039 row 38 format anomaly (F-P48-008; LOW):** Row 38 "(this, pass-47)" → "(pass-46)" inline correction per D-400 convention.
 
 **Trend (axis counts per multi-axis layer):**
 
@@ -2059,7 +2059,7 @@ S-15.03 PRIORITY-A automation remains the only known structural remedy.
 | 36 (pass-45) | D-425 | 7 | YES (sixth consecutive; NEW silent-slip axis) |
 | 37 (pass-46) | D-426 | 7 | YES (seventh consecutive; NEW rule-scope-vs-applied-scope coverage gap class) — Layer-37 inline-replaced per D-400 |
 | 38 (pass-46) | D-426 | 7 | YES (eighth consecutive; NEW self-replicating coverage-gap class) — Layer-38 inline-replaced per D-400 |
-| 39 (pass-47) | D-427 at codifying burst | 7 | YES (ninth consecutive; NEW META-LEVEL-3 self-replicating coverage-gap class) |
+| 39 (pass-47) | D-427 at codifying burst | 8 | YES (ninth consecutive; META-LEVEL-3 self-replicating coverage-gap class confirmed; 8 simultaneous failures per D-429(c) cardinality fix) |
 
 **NEW pattern class introduced:** META-LEVEL-3 self-replicating coverage-gap. Pattern recursion depth:
 - Level 1 (F-P46-001): rule applied to named findings only
@@ -2075,7 +2075,8 @@ Each level of indirection adds a new ply of coverage-gap. Per L-EDP1-007, prose 
 - Layer 36: NEW silent-slip class introduced (9-burst undetected staleness)
 - Layer 37: NEW rule-scope-vs-applied-scope coverage gap class introduced
 - Layer 38: NEW self-replicating coverage-gap class introduced
-- Layer 39: NEW META-LEVEL-3 self-replicating coverage-gap class introduced
+- Layer 39: META-LEVEL-3 self-replicating coverage-gap class INTRODUCED (first ply-3 instance; L-EDP1-040 scope)
+- Layer 40: META-LEVEL-4 self-replicating coverage-gap CONFIRMED (D-428(a) regex-derivation itself coverage-gapped; L-EDP1-041 scope) — see L-EDP1-041
 
 **Prediction for pass-49:** D-428(a/b/c/d/e) likely violated at pass-48 codifying burst per established pattern. Specifically D-428(a) regex-derivation discipline may itself exhibit level-4 META coverage-gap.
 

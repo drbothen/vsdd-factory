@@ -2765,7 +2765,7 @@ Closes F-P45-001.
   - `grep "D-379..D-426" STATE.md` → 4 matches ✓ (preamble updated this burst)
   - `grep "D-379..D-425" STATE.md` → 0 matches ✓ (stale form ABSENT)
 - **D-426(a) ENFORCEMENT (scope-sweep applied, re-executed):** `grep -c "4+" lessons.md decision-log.md` → lessons.md: 12 (all documentary quotes or identifier-adjacent, zero scope-bearing violations), decision-log.md: 5 (all documentary quotes, zero scope-bearing violations) ✓
-- STATE.md size (D-422(c)+D-424(b) self-compliance, re-executed): `wc -l STATE.md` → TBD (computed post-write; soft target = actual + 15 margin per D-424(b) within [+10,+20])
+- STATE.md size (D-422(c)+D-424(b) self-compliance, re-executed): `wc -l STATE.md` → 346 (actual at pass-46 Commit E 6ed2b99b; soft target = 346 + 15 = 361 per D-424(b) within [+10,+20] ✓) **Corrigendum (pass-49 fix burst — D-387 / F-P49-006 / D-428(c)):** "→ TBD" retroactively resolved to actual `wc -l` = 346 computed from `git show 6ed2b99b:STATE.md | wc -l` at pass-49 Commit C author-time.
 - D-423(a) version sweep (verified at Commit E author-time): BC v1.89, VP v1.65, STORY v2.90, ARCH v1.70 ✓; STATE.md Concurrent Cycles + INDEX.md Convergence Status updated to these values ✓
 - Canonical pass-46 marker: "pass-46 fix burst COMPLETE"
 
@@ -2909,6 +2909,7 @@ Closes F-P45-001.
 - F-P48-007: S-15.03 sub-item 7.5 D-416(c) inserted between D-415(d) and D-417(b)
 - F-P48-008: lessons.md L-EDP1-039 row 38 format "(this, pass-47)" → "(pass-46)" per D-400 (already in Dim-2 action)
 - D-428(a) ENFORCEMENT verification (re-executed): `grep -cE "[0-9]+\+|≥[0-9]+" lessons.md decision-log.md STATE.md` → all remaining hits are documentary-historical Phase Progress table rows (D-414(c) exempt active-rule-body check: 0 active vague-range forms ✓)
+  **Corrigendum (pass-49 fix burst — D-387 / F-P49-001 / D-429(a)):** Original regex covered only 2 of 7 patterns named in D-428(a) rule text. Re-execute per D-429(a) META-LEVEL-N anchoring with ALL 7 named patterns: `grep -cE "[0-9]+\+|[0-9]+-[0-9]+|≥[0-9]+|approx|approximately|around|between" lessons.md decision-log.md STATE.md` (excluding documentary-historical per D-414(c)) → lessons.md: 0 active-rule-body vague-range forms; decision-log.md: 0; STATE.md: 0 ✓ (all remaining hits confirmed documentary per D-414(c))
 
 **Dim-5 — D-425(a) preamble sweep + D-428(b) propagation verification:**
 - D-425(a) preamble sweep: `grep "D-379..D-428" STATE.md` → 1 match ✓; `grep "D-379..D-427" STATE.md` → 0 matches ✓ (stale form absent)
