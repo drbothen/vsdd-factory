@@ -1,7 +1,7 @@
 ---
 document_type: vp-index
 level: L4
-version: "1.56"
+version: "1.57"
 status: draft
 producer: state-manager
 timestamp: 2026-05-12T00:00:00Z
@@ -10,6 +10,8 @@ phase: F5
 traces_to: ARCH-INDEX.md
 total_vps: 79
 changelog:
+  - date: 2026-05-12
+    change: "v1.57 (2026-05-12; pass-39 fix burst per D-419 + D-404 unconditional): Acknowledges decision range D-389..D-419 (inclusive; literal acknowledgment per D-415(c)). Per D-404 unconditional: index acknowledges D-419 by literal ID (no spec content change in this changelog entry). Refs: F-P39-001/002/003/006/007/008, D-419."
   - date: 2026-05-12
     change: "v1.56 (2026-05-12; pass-38 fix burst per D-418 + D-404 unconditional): Acknowledges decision range D-389..D-418 (inclusive; literal acknowledgment per D-415(c)). Per D-404 unconditional: index acknowledges D-418 by literal ID (no spec content change in this changelog entry). Refs: F-P38-001/002/003/004/005, D-418."
   - date: 2026-05-11
@@ -91,7 +93,7 @@ changelog:
   - date: 2026-05-08
     change: "F5 fix-burst Stage 1 (2026-05-08) — VP-077 v1.5→v1.7 (F-P1-001: anchor partition.rs + aggregator.rs; 6 Kani harnesses fully specified; F-P1-004: aggregate_exit_code design added). VP-079 v1.6→v1.7 (F-P1-002: Property 6 production-path counter-proof added; Scenario 6 harness). Row descriptions updated. No VP count change. VP-INDEX v1.16→v1.17. last_amended: 2026-05-08 (F5 pass-1 fix burst Stage 1: VP-077 v1.7; VP-079 v1.7; F-P1-001/002/004 closed)."
   - date: 2026-05-07
-    change: "WASM-rule retroactive audit fix burst (2026-05-07) — VP-078 v1.7→v1.8 (3 wording fixes: line 50-51 'bash script or bats test' → 'native WASM plugin per BC-7.06.001 + S-15.01 AC-007'; lines 300+441 pre-commit → PostToolUse Edit\|Write; test-fixture annotation added explaining legacy-bash-adapter is transitional test infrastructure). VP-079 v1.5→v1.6 (test-fixture annotation at line 102; Trigger Points §2 PostToolUse alignment). ADR-019 verified clean. No VP count change. VP-INDEX v1.15→v1.16. last_amended: 2026-05-07 (WASM-rule audit: VP-078 v1.8 + VP-079 v1.6; PostToolUse Edit|Write wording; test-fixture annotations)."
+    change: "WASM-rule retroactive audit fix burst (2026-05-07) — VP-078 v1.7→v1.8 (3 wording fixes: line 50-51 'bash script or bats test' → 'native WASM plugin per BC-7.06.001 + S-15.01 AC-007'; lines 300+441 pre-commit → PostToolUse Edit|Write; test-fixture annotation added explaining legacy-bash-adapter is transitional test infrastructure). VP-079 v1.5→v1.6 (test-fixture annotation at line 102; Trigger Points §2 PostToolUse alignment). ADR-019 verified clean. No VP count change. VP-INDEX v1.15→v1.16. last_amended: 2026-05-07 (WASM-rule audit: VP-078 v1.8 + VP-079 v1.6; PostToolUse Edit|Write wording; test-fixture annotations)."
   - date: 2026-05-07
     change: "F3 story decomposition close (2026-05-07) — Story Anchors section updated: VP-077/078/079 anchored to S-15.01 (F3 plugin-async-semantics-pass-1 implementation story; cycle v1.0-feature-plugin-async-semantics-pass-1). No VP count change. VP-INDEX v1.14→v1.15. last_amended: 2026-05-07 (F3 story decomposition: VP-077/078/079 Story Anchors → S-15.01)."
   - date: 2026-05-07
