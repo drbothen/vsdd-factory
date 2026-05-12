@@ -97,6 +97,7 @@ changes are WASM-only (no new Bash hook debt per D-2).
 | 40 | 2026-05-12 | 7 (3H+3M+1L)+1obs | HIGH | adv-cycle-pass-40.md |
 | 41 | 2026-05-12 | 8 (3H+4M+1L)+1obs | HIGH | adv-cycle-pass-41.md |
 | 42 | 2026-05-12 | 7 (3H+3M+1L)+1obs | HIGH | adv-cycle-pass-42.md |
+| 43 | 2026-05-12 | 8 (4H+3M+1L)+1obs | HIGH | adv-cycle-pass-43.md |
 
 ## Convergence Status
 
@@ -104,7 +105,7 @@ changes are WASM-only (no new Bash hook debt per D-2).
 - F2 (spec evolution / story decomposition): **COMPLETE** — F2-amendment D-362; 6 BCs + ADR-018 + 4 VPs + PRD FR-048
 - F3 (incremental stories): **COMPLETE** — F3-amendment D-366; 6 stories S-12.03..S-12.08 under E-12
 - F4 (implementation): **COMPLETE** — all 6 E-12 stories merged (PRs #105, #119, #120, #121, #122, #123); F-P2-001 closed via S-12.08
-- F5 (scoped adversarial review): **IN PROGRESS** — 42 reviews dispatched; 42 complete adversary returns; 40 fix bursts at passes 3-42; per D-418(c) deterministic-tally form. Trajectory content-only 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7→8→6→2→5→5→5→7→8→7→8→7 (42 values); pass-42 HIGH (3H+3M+1L=7+1obs); streak 0/3; D-386 Option C accepted; D-379..D-422 codified; L-EDP1-001..L-EDP1-034 authored; VP-INDEX v1.61 / BC-INDEX v1.85 / ARCH-INDEX v1.66 / STORY-INDEX v2.86 acknowledge D-389..D-422 (corrected from v1.60/v1.84/v1.65/v2.85 per F-P43-001/D-423(a))
+- F5 (scoped adversarial review): **IN PROGRESS** — 43 reviews dispatched; 43 complete adversary returns; 41 fix bursts at passes 3-43; per D-418(c) deterministic-tally form. Trajectory content-only 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7→8→6→2→5→5→5→7→8→7→8→7→8 (43 values); pass-43 HIGH (4H+3M+1L=8+1obs); streak 0/3; D-386 Option C accepted; D-379..D-423 codified; L-EDP1-001..L-EDP1-035 authored; VP-INDEX v1.62 / BC-INDEX v1.86 / ARCH-INDEX v1.67 / STORY-INDEX v2.87 acknowledge D-389..D-423 (D-423(a) version sweep applied)
 - F6 (targeted hardening): PENDING
 - F7 (delta convergence): PENDING
 

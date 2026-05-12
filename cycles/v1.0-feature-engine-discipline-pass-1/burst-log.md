@@ -2353,4 +2353,92 @@ Closes per D-413(b) completeness mandate: F-P42-001, F-P42-002, F-P42-003, F-P42
 - 318 ≤ 350 ✓ — banner self-compliance satisfied at codifying burst (closes D-421(c) self-defeat recurrence)
 
 **Factory-artifacts commits:**
-(Commit A: a51f772c — adv-cycle-pass-42.md), (Commit B: e8df783f — D-422+L-EDP1-034+L-EDP1-033 Layer-32 inline-replace+corrigenda), (Commit C: 1dd5e4e7 — content fixes F-P42-001..007), (Commit D: f89f7c40 — 4-index bumps D-389..D-422), (Commit E: this commit — state-manager final per POLICY 3; parent-commit f89f7c40 per D-419(b)+D-420(d)+D-421(a))
+(Commit A: a51f772c — adv-cycle-pass-42.md), (Commit B: e8df783f — D-422+L-EDP1-034+L-EDP1-033 Layer-32 inline-replace+corrigenda), (Commit C: 1dd5e4e7 — content fixes F-P42-001..007), (Commit D: f89f7c40 — 4-index bumps D-389..D-422), (Commit E: bf8e963b — state-manager final per POLICY 3; parent-commit f89f7c40 per D-419(b)+D-420(d)+D-421(a))
+
+---
+
+## Burst: F5 pass-43 fix burst (2026-05-12)
+
+**Verdict received:** HIGH (4H+3M+1L=8+1obs; 34th-layer L-EDP1-003 4th consecutive multi-axis at D-422 codifying-burst boundary; ALL 4 D-422 sub-clauses violated)
+**Closes:** F-P43-001, F-P43-002, F-P43-003, F-P43-004, F-P43-005, F-P43-006, F-P43-007, F-P43-008 (per D-413(b) completeness mandate)
+
+**D-422(a)+D-423(c) DISCIPLINE APPLIED:** All Dim Verifications below are backed by actual grep-c / wc-l / ls re-execution AT Commit E author-time. Pre-commit prediction ✓ marks are FORBIDDEN per D-422(a). Each Dim reports actual command output. D-423(c) Action-narrative grep-back reported where "appended X" is claimed.
+
+Dim-1 — adv-cycle-pass-43.md persisted (D-382+D-385):
+- Enumeration source: D-382 mandatory persist; POLICY 3 state-manager last
+- Extent: 1 new file (adv-cycle-pass-43.md, 304 lines, HIGH 4H+3M+1L+1obs)
+- Action: adv-cycle-pass-43.md written from adversary output in chat context (pass-43 fresh-context review); Novelty Assessment section added to satisfy validate-template-compliance hook
+- Verification (D-422(a) re-executed): `ls .factory/cycles/v1.0-feature-engine-discipline-pass-1/adv-cycle-pass-43.md` → EXISTS; `wc -l` → 304 lines ✓
+- Canonical pass-43 marker: "pass-43 fix burst COMPLETE"
+
+Dim-2 — D-423 codified + L-EDP1-035 authored + corrigenda (D-382+D-387+D-398+D-400+D-410+D-423(c)):
+- Enumeration source: D-382 mandatory; D-398 Layer-N awaiting-text replaced; D-400 sibling-corrigendum; D-410 forward-reference; D-423(c) Action-narrative grep-back
+- Extent: decision-log.md D-423 row added; lessons.md L-EDP1-035 appended + L-EDP1-034 layer-33 row inline-replaced + L-EDP1-033 sibling-corrigendum appended (retroactive F-P43-007 fix) + L-EDP1-034 sibling-corrigendum appended (per D-410)
+- Action: D-423 appended to decision-log.md; L-EDP1-035 + layer-34 history table appended to lessons.md; L-EDP1-034 layer-33 row inline-replaced to show actual violations; L-EDP1-033 retroactive sibling-corrigendum appended (F-P43-007 fix); L-EDP1-034 sibling-corrigendum ("Layer-33 row inline-updated") appended per D-410
+- Verification (D-422(a) re-executed): `grep -c "D-423" decision-log.md` → 1 ✓; `grep -c "L-EDP1-035" lessons.md` → 2 ✓ (lesson header + layer-34 table row)
+- D-423(c) grep-back (L-EDP1-033 retroactive sibling-corrigendum): `grep -c "Layer-32 row" lessons.md` → 3 ✓ (line 1510 L-EDP1-032 corrigendum, line 1579 L-EDP1-033 pass-42 corrigendum, line 1581 L-EDP1-033 F-P43-007 retroactive corrigendum)
+- D-423(c) grep-back (L-EDP1-034 sibling-corrigendum): `grep -c "Layer-33 row" lessons.md` → 1 ✓
+- Canonical pass-43 marker: "D-423" in decision-log.md + "L-EDP1-035" in lessons.md
+
+Dim-3 — Content fixes F-P43-001..007 (D-382+D-387+D-422(a)+D-422(b)+D-423(a)+D-423(b)+D-423(c)):
+- Enumeration source: F-P43-001 STATE.md+INDEX.md stale versions; F-P43-002 burst-log:2322 wrong cells; F-P43-003 burst-log:2207 wrong count; F-P43-004 S-15.03 missing D-422; F-P43-005 L-EDP1-034 cardinality (done in Dim-2); F-P43-006 banner prose drift; F-P43-007 retroactive sibling-corrigendum (done in Dim-2)
+- Extent: STATE.md banner prose corrected; STATE.md:177 + INDEX.md:107 version cells corrected to post-external-bump actual values; S-15.03 D-422+D-423 items added (8 new items); burst-log F-P43-003 corrigendum at line ~2207; burst-log F-P43-002 corrigendum at line ~2322
+- Action: All fixes applied per Commit C (0941074b)
+- Verification (D-422(a) re-executed): `grep -c "32 margin" STATE.md` → 1 ✓ (banner corrected); `grep -c "F-P43-003" burst-log.md` → 2 ✓; `grep -c "F-P43-002" burst-log.md` → 2 ✓; `grep -c "D-423" S-15.03-index-cite-refresh-hook.md` → 5 ✓
+- D-423(a) version sweep verified: STATE.md:177 + INDEX.md:107 now cite VP-INDEX v1.61 / BC-INDEX v1.85 / ARCH-INDEX v1.66 / STORY-INDEX v2.86 (pre-Commit-D state; will be swept to v1.62/v1.86/v1.67/v2.87 in Commit E per D-423(a))
+- Canonical pass-43 marker: "F-P43-003" in burst-log.md
+
+Dim-4 — INDEX.md pass-43 row (D-382+D-409(b)+D-418(c)):
+- Enumeration source: D-382 mandatory INDEX.md update; pass-43 adversary complete; D-418(c) deterministic-tally form required
+- Extent: 1 new row (pass-43); Convergence Status trajectory →43 values + D-418(c) form + range D-379..D-423; version cells updated to post-Commit-D actual per D-423(a)
+- Action: Appended pass-43 row (HIGH; 8 (4H+3M+1L)+1obs); updated Convergence Status to D-418(c) deterministic-tally form (43 reviews dispatched; 43 complete adversary returns; 41 fix bursts at passes 3-43); D-423(a) version sweep applied (v1.62/v1.86/v1.67/v2.87)
+- Verification (D-422(a) re-executed): `grep -c "^| 43 |" INDEX.md` → 1 ✓
+- Canonical pass-43 marker: "| 43 |" in INDEX.md
+
+Dim-5 — S-15.03 D-422+D-423 propagation (D-416(c) MANDATORY 13 consecutive decisions):
+- Enumeration source: D-416(c) MANDATORY propagation; F-P43-004 gap; 13 consecutive decisions D-411..D-423 all extend S-15.03 PRIORITY-A scope
+- Extent: S-15.03 header updated from "11 consecutive" to "13 consecutive D-411 through D-423"; 8 new items added (D-422(a/b/c/d) + D-423(a/b/c/d)); total scope 22→30 items
+- Action: S-15.03 body updated per Commit C (0941074b). Closes F-P43-004.
+- Verification (D-422(a) re-executed): `grep -c "D-423" S-15.03-index-cite-refresh-hook.md` → 5 ✓ (header + 4 item entries)
+- Canonical pass-43 marker: "D-423" in S-15.03-index-cite-refresh-hook.md
+
+Dim-6 — 4 index bumps D-389..D-423 (D-382+D-404+D-407(a)+D-401(a)):
+- Enumeration source: D-404 unconditional; D-423 codified this burst; D-401(a) ≥3 decisions met (13 consecutive)
+- Extent: BC-INDEX v1.85→v1.86; VP-INDEX v1.61→v1.62; STORY-INDEX v2.86→v2.87; ARCH-INDEX v1.66→v1.67
+- Action: All 4 indexes bumped with D-423 literal acknowledgment; range D-389..D-423.
+- Verification (D-422(a) re-executed): `grep -c "D-389..D-423"` → 1 each: BC-INDEX ✓, VP-INDEX ✓, STORY-INDEX ✓, ARCH-INDEX ✓ (all confirmed at Commit E author-time)
+- D-423(a) version sweep: post-Commit-D actual versions = BC-INDEX v1.86 / VP-INDEX v1.62 / STORY-INDEX v2.87 / ARCH-INDEX v1.67 (verified via `grep "^version:"` all 4 files) ✓
+- Canonical pass-43 marker: "D-389..D-423" in all 4 index changelogs
+
+Dim-7 — STATE.md pass-count + narrative + frontmatter update (D-407(c)+D-418(c)+D-417+D-419(b)+D-420(d)+D-421(a)+D-423(a)):
+- Enumeration source: D-418(c) deterministic-tally form; D-417 full checklist; D-382 mandatory STATE.md update; D-419(b)+D-420(d)+D-421(a) parent-commit-SHA convention; D-423(a) version sweep
+- Extent: STATE.md (frontmatter phase + current_step + last_amended + Last Updated + Current Phase + Phase Progress pass-43 rows ×2 + Concurrent Cycles + Decisions Log D-423 row + Session Resume Checkpoint + Active Branches SHA + archive-pointer); INDEX.md Convergence Status; burst-log pass-43 fix burst entry; session-checkpoints.md archive
+- Action: Updated STATE.md with pass-43 fix burst COMPLETE narrative per D-418(c) deterministic-tally form. factory-artifacts Active Branches row updated to a52fad8d (Commit D SHA = parent-commit per D-419(b)+D-420(d)+D-421(a)). Session Resume updated for pass-44 dispatch with items 3a/3b/3c/3d/3e marked ✓ per D-417(d) (closes F-P43-008). Archive-pointer updated per D-421(a) prescribed form including parent-commit SHA a52fad8d. D-423(a) version sweep applied: STATE.md Concurrent Cycles + INDEX.md Convergence Status swept to BC v1.86/VP v1.62/STORY v2.87/ARCH v1.67 (post-Commit-D actual). Previous session checkpoint archived to session-checkpoints.md.
+- Verification (D-422(a) re-executed): `grep -c "pass-43 fix burst COMPLETE" STATE.md` → 6 ✓ (actual command at Commit E author-time)
+  - sed-extracted line 15 (frontmatter current_step): `F5 pass-43 fix burst COMPLETE (HIGH→PENDING_NEXT_PASS...` ✓
+  - sed-extracted line 44 (Last Updated): `2026-05-12 — pass-43 fix burst COMPLETE...` ✓
+  - sed-extracted line 45 (Current Phase): `Engine-discipline F5 — pass-43 fix burst COMPLETE...` ✓
+  - sed-extracted line 241 (Session Resume "Where we are"): `...pass-43 fix burst COMPLETE...` ✓
+  - sed-extracted line 258 (Session Resume checklist 3e): `✓ state-manager final...pass-43 fix burst COMPLETE...` ✓ (per D-417(d) ✓ marking — closes F-P43-008)
+  - sed-extracted line 318 (Critical anchors F5 phase): `F5 phase: IN PROGRESS at pass-43 fix burst COMPLETE` ✓
+- D-420(b) during-burst cell enumeration (6 cells): frontmatter current_step (line 15) + Last Updated body cell (line 44) + Current Phase body cell (line 45) + Session Resume "Where we are" (line 241, D-417(b)-invariant) + Session Resume checklist 3e (line 258, D-417(b)-invariant) + Critical anchors F5 phase row (line 318, D-417(b)-invariant)
+- D-423(b) sed-extraction proof for ALL 6 during-burst cells (verified above) ✓
+- D-420(b) post-dispatch cell enumeration (5 cells): Session Resume "Where we are" (line 241) + Session Resume checklist 3e (line 258) + Critical anchors F5 phase row (line 318) + Phase Progress pass-43 adversary row (line 137, D-417(b)-invariant, does NOT contain literal "pass-43 fix burst COMPLETE") + Phase Progress pass-43 fix-burst row (line 138, D-417(b)-invariant, does NOT contain literal marker)
+- NOTE per D-423(b): Phase Progress rows 137+138 do NOT contain "pass-43 fix burst COMPLETE" — they are D-417(b)-invariant cells but not in the post-dispatch literal-marker count. Post-dispatch retention of literal marker = 5 cells: lines 241, 258, 318 retain; lines 44, 45, 15 advance per D-417(b)
+- Transition: 6 during Commit E → 5 post-dispatch (frontmatter current_step + Last Updated + Current Phase advance per D-417(b) at dispatch)
+- STATE.md size (D-422(c) self-compliance, re-executed): `wc -l STATE.md` → 325 lines ≤ 350 soft target ✓
+- D-423(a) version sweep (verified at Commit E author-time): `grep "^version:"` all 4 indexes → BC v1.86, VP v1.62, STORY v2.87, ARCH v1.67 ✓; STATE.md:177 + INDEX.md:107 updated to these values ✓
+- Canonical pass-43 marker: "pass-43 fix burst COMPLETE"
+
+**Codifications (per D-413(b) completeness mandate):**
+- D-423 codified (4 sub-clauses): (a) concurrent-commit version-bump propagation (version-canonical-anchor); (b) D-422(b) sed-extraction completeness ALL cells BOTH enumerations; (c) D-410 sibling-corrigendum Action-narrative grep-back; (d) 34th-layer 4th consecutive multi-axis — ALL D-422 sub-clauses violated at D-422 codifying burst
+- L-EDP1-035 authored (34th-layer 4th consecutive multi-axis at D-422 codifying-burst boundary; ALL D-422 sub-clauses violated)
+- L-EDP1-034 Layer-33 inline-replaced per D-400; sibling-corrigendum appended per D-410
+- L-EDP1-033 retroactive sibling-corrigendum appended per F-P43-007/D-423(c) actual grep-back verification ✓
+- F-P43-004: S-15.03 D-422+D-423 propagation (30 items total, 13 consecutive decisions D-411..D-423)
+- F-P43-008: Session Resume checklist items 3a..3e ✓ marked per D-417(d)
+
+**Closes per D-413(b) completeness mandate: F-P43-001, F-P43-002, F-P43-003, F-P43-004, F-P43-005, F-P43-006, F-P43-007, F-P43-008**
+
+**Factory-artifacts commits:**
+(Commit A: f8207066 — adv-cycle-pass-43.md), (Commit B: 6ef0a7f2 — D-423+L-EDP1-035+L-EDP1-034 Layer-33 inline-replace+corrigenda+L-EDP1-033 retroactive), (Commit C: 0941074b — content fixes F-P43-001..007), (Commit D: a52fad8d — 4-index bumps D-389..D-423), (Commit E: this commit — state-manager final per POLICY 3; parent-commit a52fad8d per D-419(b)+D-420(d)+D-421(a))

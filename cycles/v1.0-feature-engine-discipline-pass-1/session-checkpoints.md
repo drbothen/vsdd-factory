@@ -68,3 +68,11 @@ Archived checkpoints from STATE.md as newer checkpoints replace them.
 **CRITICAL FINDING RESOLVED:** F-P42-001 — INDEX.md missing pass-41 row (rubber-stamped Verification; D-382+D-407(b)+D-408(a) violation). Both pass-41 + pass-42 rows appended; D-422(a) Verification re-execution discipline now codified.
 
 **STATE:** F4 platform COMPLETE; F5 pass-42 fix burst COMPLETE; pass-43 adversary dispatch PENDING.
+
+---
+
+## Checkpoint: 2026-05-12 — F5 pass-43 adversary COMPLETE; pass-43 fix burst COMPLETE (archived)
+
+**Last update:** 2026-05-12 — F5 pass-43 fix burst COMPLETE. Pass-43 HIGH verdict (4H+3M+1L=8+1obs; 34th-layer L-EDP1-003 multi-axis; 4th consecutive multi-axis; ALL D-422 sub-clauses violated at D-422 codifying burst). D-423 codified (4 sub-clauses: concurrent-commit version-bump propagation + sed-extraction completeness ALL cells BOTH enumerations + Action-narrative grep-back + 34th-layer 4th-consecutive multi-axis acknowledgment). L-EDP1-035 34th-layer multi-axis. 4 indexes BC v1.86/VP v1.62/STORY v2.87/ARCH v1.67 acknowledge D-389..D-423. Trajectory (content-only) 43 values: 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7→8→6→2→5→5→5→7→8→7→8→7→8. Streak: 0/3 NITPICK_ONLY. Verdict HIGH sustained.
+
+**STATE:** F4 platform COMPLETE; F5 pass-43 fix burst COMPLETE; pass-44 adversary dispatch PENDING. parent-commit a52fad8d per D-419(b)+D-420(d)+D-421(a).
