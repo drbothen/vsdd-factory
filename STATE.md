@@ -22,7 +22,7 @@ dtu_services: []
 
 <!--
   STATE.md SIZE BUDGET (per D-421(c) + D-422(c) reconciliation):
-  Soft target: ≤327 lines (actual 312 lines at pass-50 Commit E + 15 margin = 327 per D-422(c)+D-424(b)+D-428(d) margin range [+10,+20]; D-430(a) full-semantic-class + D-430(b) cumulative-header + D-430(c) Dim-7 sed + D-430(d) compaction-authorization + D-430(e) META-LEVEL-5-CANDIDATE applied).
+  Soft target: ≤327 lines (actual 312 lines at pass-50 Commit E + 15 margin = 327 per D-422(c)+D-424(b)+D-428(d) margin range [+10,+20]; D-430(a) compaction-authorization + D-430(b) full-semantic-class + D-430(c) cumulative-header + D-430(d) Dim-7-sed + D-430(e) META-LEVEL-5-CANDIDATE applied).
   Hard cap: 500 lines (validate-state-md-size hook enforcement).
   Historical content belongs in cycle files, NOT here.
   D-430(a) compaction authorization: Pass-49 Commit E surgical compaction (363→310 lines) authorized retroactively per D-430(a); removed content categories: stale Phase Progress rows (passes 1-38); pre-compaction state preserved at git show 278977fb:.factory/STATE.md.
@@ -221,6 +221,8 @@ dtu_services: []
 | D-427 | Vague-range scope-sweep extension + cross-document rule-text propagation completeness + D-415(a) extension to N+6 form (7 site classes) + F-P46-006 INDEX.md format coverage extension + 38th-layer 8th-consecutive multi-axis acknowledgment (NEW self-replicating coverage-gap class) (5 sub-clauses; see decision-log.md). Closes F-P47-001, F-P47-002, F-P47-003, F-P47-004, F-P47-005, F-P47-006, F-P47-007 (per D-413(b) completeness mandate) | F5 pass-47 | 2026-05-12 |
 | D-428 | Sweep-regex-must-equal-rule-scope (META-LEVEL-3 enforcement of D-427(a)) + D-427(b) full cross-doc propagation (STATE.md row titles + S-15.03 sub-items) + D-422(a) TBD-placeholder elimination at Commit E + D-422(c) banner wc-l canonical count + 39th-layer 9th-consecutive multi-axis acknowledgment (NEW META-LEVEL-3 self-replicating coverage-gap class) (5 sub-clauses; see decision-log.md). Closes F-P48-001, F-P48-002, F-P48-003, F-P48-004, F-P48-005, F-P48-006, F-P48-007, F-P48-008 (per D-413(b) completeness mandate) | F5 pass-48 | 2026-05-12 |
 | D-429 | META-LEVEL-N regex anchoring discipline + INDEX.md cross-cell sibling-sweep verification + L-EDP1-NNN body cardinality D-426(c) re-enforcement + cardinality-vs-citation alignment in fix-introduced text + 40th-layer 10th-consecutive multi-axis acknowledgment (META-LEVEL-4 self-replicating coverage-gap CONFIRMED) (5 sub-clauses; see decision-log.md). Closes F-P49-001, F-P49-002, F-P49-003, F-P49-004, F-P49-005, F-P49-006, F-P49-007, F-P49-008 (per D-413(b) completeness mandate) | F5 pass-49 | 2026-05-12 |
+| D-430 | D-421(c) extension surgical compaction + D-429(c) "Plus sibling" SEMANTIC CLASS expansion + D-416(c) cumulative header monotonic advancement + D-424(a) Dim-7 sed extraction MANDATORY re-affirmation + 41st-layer 11th-consecutive multi-axis acknowledgment (META-LEVEL-5 CANDIDATE) (5 sub-clauses; see decision-log.md). Closes F-P50-001, F-P50-002, F-P50-003, F-P50-004, F-P50-005, F-P50-006, F-P50-007 (per D-413(b) completeness mandate) | F5 pass-50 | 2026-05-12 |
+| D-431 | Table-row line-terminus discipline + STATE.md Decisions Log monotonic-row enforcement + D-430(c) cumulative-header advancement to LATEST D-NNN + banner sub-clause label-anchoring discipline + Commit E archive-pointer + label sweep (5 sub-clauses; see decision-log.md). Closes F-P51-001, F-P51-002, F-P51-003, F-P51-004, F-P51-005, F-P51-006, F-P51-007 (per D-413(b) completeness mandate) | F5 pass-51 | 2026-05-12 |
 
 ## Skip Log
 
@@ -309,4 +311,4 @@ dtu_services: []
 - ADR-013: 3_of_3 CONVERGED (pass-57) | E-9: v1.53 CONVERGENCE_REACHED | E-10: paused D-343
 - 5 user-locked decisions: `cycles/v1.0-feature-plugin-async-semantics-pass-1/F4-handoff.md` §3
 
-> Previous checkpoint (pass-49 FIX BURST COMPLETE at parent-commit 079b1fe3 per D-419(b)+D-420(d)+D-421(a); pass-50 ADVERSARY DISPATCHED) archived to: `cycles/v1.0-feature-engine-discipline-pass-1/session-checkpoints.md`
+> Previous checkpoint (pass-50 FIX BURST COMPLETE at parent-commit 59a5a523 per D-419(b)+D-420(d)+D-421(a); pass-51 ADVERSARY DISPATCHED) archived to: `cycles/v1.0-feature-engine-discipline-pass-1/session-checkpoints.md`

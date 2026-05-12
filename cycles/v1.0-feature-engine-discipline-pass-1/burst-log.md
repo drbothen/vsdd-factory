@@ -3043,7 +3043,7 @@ Verification: 11 files modified ✓
 
 **Dim-2 — D-430 codification (lessons.md + decision-log.md):**
 Action: Appended D-430 (5 sub-clauses) to decision-log.md; authored L-EDP1-042 (41st-layer 11th-consecutive multi-axis; META-LEVEL-5 CANDIDATE); added L-EDP1-041 sibling-corrigendum (D-430(a) retroactive authorization + body 8-simultaneous update).
-Verification: `grep -c "D-430" cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md` → 1 ✓; `grep -c "L-EDP1-042" cycles/v1.0-feature-engine-discipline-pass-1/lessons.md` → multiple ✓
+Verification: `grep -c "D-430" cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md` → 1 ✓; `grep -c "L-EDP1-042" cycles/v1.0-feature-engine-discipline-pass-1/lessons.md` → 2 ✓ (corrected from "multiple" per D-425(c)+D-428(c); D-387 corrigendum pass-51 fix burst — F-P51-006)
 
 **Dim-3 — Adversary review file:**
 Action: Created adv-cycle-pass-50.md with required template sections (Finding ID Convention, Part B, Summary, Novelty Assessment). Verified all hooks pass (validate-template-compliance, validate-novelty-assessment, validate-finding-format).
