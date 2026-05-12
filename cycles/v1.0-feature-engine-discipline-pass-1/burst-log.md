@@ -3090,3 +3090,76 @@ Verification: `ls cycles/v1.0-feature-engine-discipline-pass-1/adv-cycle-pass-50
 
 **Factory-artifacts commits:**
 (Commit A: bdbc9978 — adv-cycle-pass-50.md), (Commit B: 23bf8225 — D-430+L-EDP1-042+L-EDP1-041 corrigendum+INDEX.md pass-50 row), (Commit C: c6653341 — content fixes F-P50-001..007), (Commit D: 59a5a523 — 4-index bumps D-389..D-430), (Commit E: this commit — state-manager final per POLICY 3; parent-commit 59a5a523 per D-419(b)+D-420(d)+D-421(a))
+
+## Burst: F5 pass-51 fix burst (2026-05-12)
+
+**Burst type:** F5 cycle-level adversary fix burst (pass-51)
+**Discipline chain:** D-382..D-431 (full)
+**Verdict fixed:** HIGH (1C+4H+2M=7+1obs; 42nd-layer L-EDP1-003; META-LEVEL-6 CONFIRMED; CRITICAL table-row coalescence NEW class)
+
+**Dim-1 — Files modified this burst:**
+- `.factory/cycles/v1.0-feature-engine-discipline-pass-1/adv-cycle-pass-51.md` (Commit A: 0db12712)
+- `.factory/cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md` (Commits B+C: F-P51-001 line-split + D-431 row)
+- `.factory/cycles/v1.0-feature-engine-discipline-pass-1/lessons.md` (Commit B: L-EDP1-043 + L-EDP1-042 corrigendum fixes)
+- `.factory/cycles/v1.0-feature-engine-discipline-pass-1/INDEX.md` (Commit B: pass-51 row + D-431 citation)
+- `.factory/STATE.md` (Commits C+E: F-P51-002/004/005 + full state-manager update)
+- `.factory/stories/S-15.03-index-cite-refresh-hook.md` (Commit C: F-P51-003 D-431 header + 10 sub-items)
+- `.factory/cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md` (Commit C: F-P51-006 vague-range fix + this entry)
+- `.factory/specs/behavioral-contracts/BC-INDEX.md` (Commit D: v1.93→v1.94)
+- `.factory/specs/verification-properties/VP-INDEX.md` (Commit D: v1.69→v1.70)
+- `.factory/stories/STORY-INDEX.md` (Commit D: v2.94→v2.95)
+- `.factory/specs/architecture/ARCH-INDEX.md` (Commit D: v1.74→v1.75)
+- `.factory/cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md` (Commit E: this entry)
+Verification: 12 files modified ✓
+
+**Dim-2 — D-431 codification (lessons.md + decision-log.md):**
+Action: Applied CRITICAL F-P51-001 line-split (decision-log.md:110 D-429+D-430 coalescence); appended D-431 (5 sub-clauses) to decision-log.md; authored L-EDP1-043 (42nd-layer 12th-consecutive multi-axis; META-LEVEL-6 CONFIRMED; NEW CRITICAL structural-coalescence class); fixed L-EDP1-042 corrigendum ("Same-burst Violation" → "Axis count" per F-P51-007).
+Verification: `grep -c "^| D-431" cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md` → 1 ✓; `grep -c "L-EDP1-043" cycles/v1.0-feature-engine-discipline-pass-1/lessons.md` → 1 ✓; `grep -c "^| D-429" decision-log.md` → 1 ✓ (F-P51-001 CRITICAL split verified); `grep -c "^| D-430" decision-log.md` → 1 ✓
+
+**Dim-3 — Adversary review file:**
+Action: Created adv-cycle-pass-51.md with required template sections (Finding ID Convention, Part B, Summary, Novelty Assessment). Hook validate-template-compliance verified pass.
+Verification: `ls cycles/v1.0-feature-engine-discipline-pass-1/adv-cycle-pass-51.md` → exists ✓
+
+**Dim-4 — Content fixes (F-P51-001..007):**
+- F-P51-001 (CRITICAL): decision-log.md line 110 coalescence split — `grep -c "^| D-430" decision-log.md` → 1 ✓; `grep -c "^| D-429" decision-log.md` → 1 ✓
+- F-P51-002: D-430 row appended to STATE.md Decisions Log table — `grep -c "^| D-430" STATE.md` → 1 ✓; D-431 row also added: `grep -c "^| D-431" STATE.md` → 1 ✓
+- F-P51-003: S-15.03 cumulative header advanced "D-411 through D-429" → "D-411 through D-431" (19 → 21 consecutive); D-430+D-431 sub-items added — `grep -c "D-411 through D-431" S-15.03-index-cite-refresh-hook.md` → 1 ✓ (NEW form); `grep -c "D-411 through D-429" S-15.03-index-cite-refresh-hook.md` → 0 ✓ (stale form absent)
+- F-P51-004: STATE.md banner D-430 sub-clause labels corrected — D-430(a) compaction-authorization + D-430(b) full-semantic-class + D-430(c) cumulative-header + D-430(d) Dim-7-sed + D-430(e) META-LEVEL-5-CANDIDATE applied ✓
+- F-P51-005: Archive-pointer advanced — "pass-50 FIX BURST COMPLETE at parent-commit 59a5a523 per D-419(b)+D-420(d)+D-421(a); pass-51 ADVERSARY DISPATCHED" — `grep -c "59a5a523.*pass-51 ADVERSARY" STATE.md` → 1 ✓
+- F-P51-006: burst-log:3046 "multiple" → 2 (actual `grep -c "L-EDP1-042" lessons.md` at Commit C author-time = 2) per D-425(c)+D-428(c)+D-387 corrigendum ✓
+- F-P51-007: lessons.md:2028 corrigendum "Same-burst Violation" → "Axis count" per D-411(a)+D-423(c) — `grep -c "Layer-40 row .Axis count. inline-updated" lessons.md` → 1 ✓
+
+**Dim-5 — D-431(c) NEW-form verification + D-425(a) preamble sweep + D-429(b) INDEX cross-cell:**
+- D-431(c) NEW form: `grep -c "D-411 through D-431" S-15.03-index-cite-refresh-hook.md` → 1 ✓ (required NEW form); `grep -c "D-411 through D-429" S-15.03-index-cite-refresh-hook.md` → 0 ✓ (stale form absent per META-LEVEL-6 lesson)
+- D-425(a) preamble: `grep -c "D-379..D-431" STATE.md` → 4 ✓; `grep -c "D-379..D-430" STATE.md` → 0 ✓ (stale form absent)
+- D-429(b) INDEX cross-cell: `grep "^version:" BC-INDEX.md` → "1.94"; STATE.md → BC v1.94; INDEX.md → BC v1.94 ✓; `grep "^version:" VP-INDEX.md` → "1.70"; STATE.md → VP v1.70; INDEX.md → VP v1.70 ✓ (all 4 cross-cells verified)
+- D-431(a) line-terminus: `grep -c "^| D-431" decision-log.md` → 1 ✓
+- D-431(b) STATE.md monotonic row: `grep -c "^| D-431" STATE.md` → 1 ✓
+
+**Dim-6 — 4-index bumps D-389..D-431:**
+- BC-INDEX v1.93→v1.94; VP-INDEX v1.69→v1.70; STORY-INDEX v2.94→v2.95; ARCH-INDEX v1.74→v1.75
+- Verification: `grep "^version:" BC-INDEX.md` → "1.94" ✓; VP → "1.70" ✓; STORY → "2.95" ✓; ARCH → "1.75" ✓
+- D-431 literal ID present in all 4 changelog entries: BC-INDEX 1 ✓; VP-INDEX 1 ✓; ARCH-INDEX 1 ✓; STORY-INDEX 1 ✓
+
+**Dim-7 — STATE.md "pass-51 fix burst COMPLETE" marker cell-list (D-420(b)+D-422(b)+D-424(a)+D-430(d)+D-431(e)):**
+- During Commit E write time: 6 cells contain "pass-51 fix burst COMPLETE"
+  - Line 15 (frontmatter current_step): `sed -n '15p' STATE.md | grep -o "pass-51 fix burst COMPLETE"` → "pass-51 fix burst COMPLETE" ✓
+  - Line 44 (Last Updated body cell): `sed -n '44p' STATE.md | grep -o "pass-51 fix burst COMPLETE"` → "pass-51 fix burst COMPLETE" ✓
+  - Line 45 (Current Phase body cell): `sed -n '45p' STATE.md | grep -o "pass-51 fix burst COMPLETE"` → "pass-51 fix burst COMPLETE" ✓
+  - Line 265 (Session Resume "Where we are"): `sed -n '265p' STATE.md | grep -o "pass-51 fix burst COMPLETE"` → "pass-51 fix burst COMPLETE" ✓
+  - Line 282 (Session checklist 3e): `sed -n '282p' STATE.md | grep -o "pass-51 fix burst COMPLETE"` → "pass-51 fix burst COMPLETE" ✓
+  - Line 309 (F5 phase anchor): `sed -n '309p' STATE.md | grep -o "pass-51 fix burst COMPLETE"` → "pass-51 fix burst COMPLETE" ✓
+- D-417(b) advance-set = frontmatter `phase:` + `current_step:` ONLY
+- Post-dispatch: frontmatter current_step advances per D-417(b); 5 body cells are D-417(b)-INVARIANT and retain the marker (lines 44, 45, 265, 282, 309)
+- D-428(d) banner wc-l re-executed at Commit E author-time: `wc -l STATE.md` → 316; banner soft target 316 + 15 = 331 ✓ (margin 15 ∈ [+10,+20] per D-424(b)) ✓
+- Canonical pass-51 marker: "pass-51 fix burst COMPLETE"
+
+**Codifications (per D-413(b) completeness mandate):**
+- D-431 codified (5 sub-clauses): (a) table-row line-terminus discipline (CRITICAL F-P51-001 closure); (b) STATE.md Decisions Log monotonic-row enforcement; (c) D-430(c) reinforcement + META-LEVEL-6 closure; (d) banner sub-clause label-anchoring discipline; (e) Commit E archive-pointer + label sweep mandate
+- L-EDP1-043 authored (42nd-layer 12th-consecutive multi-axis at D-430 codifying-burst boundary; META-LEVEL-6 CONFIRMED; NEW CRITICAL structural-coalescence class)
+- L-EDP1-042 corrigendum: "Same-burst Violation" column reference corrected to "Axis count" per F-P51-007 + D-400
+
+**Closes:** F-P51-001, F-P51-002, F-P51-003, F-P51-004, F-P51-005, F-P51-006, F-P51-007 (per D-413(b) completeness mandate)
+
+**Factory-artifacts commits:**
+(Commit A: 0db12712 — adv-cycle-pass-51.md), (Commit B: 8647aa89 — D-431+L-EDP1-043+F-P51-001 CRITICAL line-split), (Commit C: ccc3966f — content fixes F-P51-001..007), (Commit D: 032746a5 — 4-index bumps D-389..D-431), (Commit E: this commit — state-manager final per POLICY 3; parent-commit 032746a5 per D-419(b)+D-420(d)+D-421(a))

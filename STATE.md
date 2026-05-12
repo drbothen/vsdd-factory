@@ -5,14 +5,14 @@ version: "2.0"
 status: draft
 producer: state-manager
 timestamp: 2026-05-12T00:00:00Z
-phase: engine-discipline-F5-pass-51-adversary-in-progress
+phase: engine-discipline-F5-pass-51
 last_amended: 2026-05-12
 inputs: []
 input-hash: "[live-state]"
 traces_to: prd.md
 project: vsdd-factory
 mode: brownfield
-current_step: "F5 pass-51 adversary dispatch IN-PROGRESS (full-discipline-chain D-394..D-430; pass-50 parent-commit 59a5a523 per D-419(b)+D-420(d)+D-421(a); D-430 codified (5 sub-clauses); L-EDP1-042 41st-layer 11th-consecutive multi-axis META-LEVEL-5-candidate; HALF-CENTURY milestone; 4 indexes D-389..D-430; trajectory →7)"
+current_step: "F5 pass-51 fix burst COMPLETE (full-discipline-chain D-394..D-431; pass-51 parent-commit 032746a5 per D-419(b)+D-420(d)+D-421(a); D-431 codified (5 sub-clauses); L-EDP1-043 42nd-layer 12th-consecutive multi-axis META-LEVEL-6 CONFIRMED; CRITICAL coalescence + pass-50 regressions fixed; 4 indexes D-389..D-431; trajectory →7→7)"
 current_cycle: v1.0-feature-engine-discipline-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -22,7 +22,7 @@ dtu_services: []
 
 <!--
   STATE.md SIZE BUDGET (per D-421(c) + D-422(c) reconciliation):
-  Soft target: ≤327 lines (actual 312 lines at pass-50 Commit E + 15 margin = 327 per D-422(c)+D-424(b)+D-428(d) margin range [+10,+20]; D-430(a) compaction-authorization + D-430(b) full-semantic-class + D-430(c) cumulative-header + D-430(d) Dim-7-sed + D-430(e) META-LEVEL-5-CANDIDATE applied).
+  Soft target: ≤331 lines (actual 316 lines at pass-51 Commit E + 15 margin = 331 per D-422(c)+D-424(b)+D-428(d) margin range [+10,+20]; D-431(a/b/c/d/e) line-terminus + STATE row + header advance + label order + archive sweep applied; D-431(a) compaction-authorization correct + D-431(b) full-semantic-class + D-431(c) cumulative-header + D-431(d) Dim-7-sed + D-431(e) META-LEVEL-6-CONFIRMED applied).
   Hard cap: 500 lines (validate-state-md-size hook enforcement).
   Historical content belongs in cycle files, NOT here.
   D-430(a) compaction authorization: Pass-49 Commit E surgical compaction (363→310 lines) authorized retroactively per D-430(a); removed content categories: stale Phase Progress rows (passes 1-38); pre-compaction state preserved at git show 278977fb:.factory/STATE.md.
@@ -41,8 +41,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-12 — pass-50 fix burst COMPLETE (HIGH; 4H+2M+1L=7+1obs); 52 decisions D-379..D-430; 42 lessons L-EDP1-001..042; 4 indexes BC v1.93/VP v1.69/STORY v2.94/ARCH v1.74; 50-value trajectory →7→7; D-430 codified (5 sub-clauses); L-EDP1-042 41st-layer multi-axis (11th consecutive; META-LEVEL-5 CANDIDATE lexical-vs-semantic gap). |
-| **Current Phase** | Engine-discipline F5 — pass-50 fix burst COMPLETE; D-430 + L-EDP1-042 codified; next = pass-51 adversary dispatch |
+| **Last Updated** | 2026-05-12 — pass-51 fix burst COMPLETE (HIGH; 1C+4H+2M=7+1obs); 53 decisions D-379..D-431; 43 lessons L-EDP1-001..043; 4 indexes BC v1.94/VP v1.70/STORY v2.95/ARCH v1.75; 51-value trajectory →7→7→7; D-431 codified (5 sub-clauses); L-EDP1-043 42nd-layer multi-axis (12th consecutive; META-LEVEL-6 CONFIRMED; NEW CRITICAL structural-coalescence class). |
+| **Current Phase** | Engine-discipline F5 — pass-51 fix burst COMPLETE; D-431 + L-EDP1-043 codified; next = pass-52 adversary dispatch |
 | **Current Cycle** | v1.0-feature-engine-discipline-pass-1 |
 
 ## Phase Progress
@@ -150,6 +150,8 @@ dtu_services: []
 | F5 pass-49 fix burst (D-429+content fixes) | state-manager | DONE 2026-05-12 | D-429 codified (5 sub-clauses); L-EDP1-041; L-EDP1-040 row-39 inline-replaced + corrigendum + cardinality 7→8 Plus→axis8; F-P49-001 burst-log full-regex 7-pattern; F-P49-002 decision-log N+4→N+6 + S-15.03; F-P49-003 INDEX VP v1.91→v1.67; F-P49-004 L-EDP1-040 8-axis body; F-P49-005 PG-EDP1-002 citation fix; F-P49-006 burst-log:2768 TBD→346; F-P49-007 Layer 39/40 framing; 4 indexes v1.92/v1.68/v2.93/v1.73 acknowledge D-389..D-429 |
 | F5 pass-50 cycle-level adversary | adversary | DONE 2026-05-12 | HIGH (4H+2M+1L=7+1obs); trajectory →7; 41st-layer L-EDP1-003 (11th consecutive multi-axis; META-LEVEL-5 candidate; HALF-CENTURY milestone; D-429(c) lexical-vs-semantic gap); D-430 required |
 | F5 pass-50 fix burst (D-430+content fixes) | state-manager | DONE 2026-05-12 | D-430 codified (5 sub-clauses); L-EDP1-042; L-EDP1-041 body 8-simultaneous + corrigendum; S-15.03 D-428+D-429 propagation 10 items; D-430(a) compaction authorization; banner D-429(e); STATE.md preamble D-416(c) umbrella; 4 indexes v1.93/v1.69/v2.94/v1.74 acknowledge D-389..D-430 |
+| F5 pass-51 cycle-level adversary | adversary | DONE 2026-05-12 | HIGH (1C+4H+2M=7+1obs); trajectory →7; 42nd-layer L-EDP1-003 (12th consecutive multi-axis; META-LEVEL-6 CONFIRMED; CRITICAL table-row coalescence NEW class; D-429(c)/D-430(c)/D-431(a-e) required) |
+| F5 pass-51 fix burst (D-431+content fixes) | state-manager | DONE 2026-05-12 | D-431 codified (5 sub-clauses); L-EDP1-043; F-P51-001 CRITICAL line-split; F-P51-002 STATE.md D-430 row; F-P51-003 S-15.03 header D-431; F-P51-004 banner labels reorder; F-P51-005 archive-pointer; F-P51-006 vague-range fix; F-P51-007 corrigendum column; 4 indexes v1.94/v1.70/v2.95/v1.75 acknowledge D-389..D-431 |
 
 ## Identifier Conventions
 
@@ -179,7 +181,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | feb894a2 | rc.16 merge; latest release |
 | develop | 99d24315 | S-12.08 squash-merge (PR #123); F4 COMPLETE |
-| factory-artifacts | 59a5a523 | F5 pass-50 fix burst Commit D — parent of Commit E per D-419(b)+D-420(d)+D-421(a) parent-commit-SHA convention |
+| factory-artifacts | 032746a5 | F5 pass-51 fix burst Commit D — parent of Commit E per D-419(b)+D-420(d)+D-421(a) parent-commit-SHA convention |
 | feature/F5-pass-3-cycle-hardening | 2e6b4372 | PR #124 OPEN (DRAFT); CI run 25651192161 GREEN (11/11 checks) |
 | v1.0.0-rc.16 (tag) | feb894a2 | SHIPPED; claude-mp PR #8 awaiting human merge |
 | v1.0.0-rc.15 (tag) | e68bb436 | SHIPPED |
@@ -190,14 +192,14 @@ dtu_services: []
 |-------|------|--------|-------|
 | F-block-ai-attribution-message-file-arm | feature | F3 COMPLETE — F4 READY | F1+F2+F3 done 2026-05-12; 2 stories ready (S-16.01 5pts PostToolUse HEAD verify, S-16.02 3pts PreToolUse -F arm); E-16 under SS-07/SS-04; milestone v1.0.0-rc.17; BC-7.03.094/095/001, VP-080, ARCH SS-07 v1.3/SS-04 v1.4 registered |
 | v1.0-brownfield-backfill | brownfield | PAUSED | E-10 pass-9 pending; paused at D-343 |
-| v1.0-feature-engine-discipline-pass-1 | feature | F5-IN-PROGRESS | All 6 E-12-platform stories merged; F5 passes 1-50 (51 reviews dispatched; 50 complete adversary returns; 48 fix bursts at passes 3-50) per D-418(c) deterministic-tally form; full-cycle trajectory content-only (pass-1..50): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7→8→6→2→5→5→5→7→8→7→8→7→8→7→8→7→7→8→8→7; pass-50 HIGH verdict (4H+2M+1L=7+1obs); D-430 codified (5 sub-clauses); L-EDP1-042 41st-layer multi-axis (11th consecutive; META-LEVEL-5 CANDIDATE); D-386 Option C: continue F5, accept asymptotic L-EDP1-003 limit; VP-INDEX v1.69 / BC-INDEX v1.93 / ARCH-INDEX v1.74 / STORY-INDEX v2.94 acknowledge D-389..D-430 (D-423(a) version sweep applied: post-Commit-D actual versions); S-15.03 PRIORITY-A in pass-2 cycle |
+| v1.0-feature-engine-discipline-pass-1 | feature | F5-IN-PROGRESS | All 6 E-12-platform stories merged; F5 passes 1-50 (51 reviews dispatched; 50 complete adversary returns; 48 fix bursts at passes 3-50) per D-418(c) deterministic-tally form; full-cycle trajectory content-only (pass-1..51): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7→8→6→2→5→5→5→7→8→7→8→7→8→7→8→7→7→8→8→7→7; pass-51 HIGH verdict (1C+4H+2M=7+1obs); D-431 codified (5 sub-clauses); L-EDP1-043 42nd-layer multi-axis (12th consecutive; META-LEVEL-6 CONFIRMED); D-386 Option C: continue F5, accept asymptotic L-EDP1-003 limit; VP-INDEX v1.70 / BC-INDEX v1.94 / ARCH-INDEX v1.75 / STORY-INDEX v2.95 acknowledge D-389..D-431 (D-423(a) version sweep applied: post-Commit-D actual versions); S-15.03 PRIORITY-A in pass-2 cycle |
 | v1.0-feature-plugin-async-semantics-pass-1 | feature | CLOSED | All PRs merged; rc.14 shipped |
 
 ## Decisions Log
 
 > D-001..D-312: `cycles/v1.0-brownfield-backfill/decision-log.md` + `decisions-log-archive.md`
 > F5 pass-2 architect decisions: `cycles/v1.0-feature-engine-discipline-pass-1/F5-pass-2-architect-decisions.md` (factory-artifacts 7b83ef58)
-> D-379..D-430 (this session): `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md` <!-- D-416(c) MANDATORY propagation umbrella + D-415(b)+D-425(a)+D-427(b)+D-428(b)+D-429(b)+D-430(c) preamble sweep applied pass-50 per D-416(c)+D-427(b)+D-428(b)+D-429(b)+D-430(c) cross-doc propagation discipline -->
+> D-379..D-431 (this session): `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md` <!-- D-416(c) MANDATORY propagation umbrella + D-415(b)+D-425(a)+D-427(b)+D-428(b)+D-429(b)+D-430(c) preamble sweep applied pass-50 per D-416(c)+D-427(b)+D-428(b)+D-429(b)+D-430(c) cross-doc propagation discipline -->
 
 | ID | Decision | Phase | Date |
 |----|----------|-------|------|
@@ -260,51 +262,51 @@ dtu_services: []
 
 > **POST-COMPACT RESUME CONTEXT — F5 ASYMPTOTIC LOOP**
 
-**Where we are:** Engine-discipline cycle v1.0-feature-engine-discipline-pass-1 in F5 phase, pass-50 fix burst COMPLETE. HALF-CENTURY MILESTONE: pass-50 = 48th adversary pass (passes 3..50). Cycle has driven 50 adversary-level reviews + 48 fix bursts (passes 3-50). Trajectory content-only (per D-401(c)): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7→8→6→2→5→5→5→7→8→7→8→7→8→7→8→7→7→8→8→7 (50 values). Streak: 0/3 NITPICK_ONLY. Verdict HIGH sustained.
+**Where we are:** Engine-discipline cycle v1.0-feature-engine-discipline-pass-1 in F5 phase, pass-51 fix burst COMPLETE. Pass-51 = 49th adversary pass (passes 3..51). Cycle has driven 51 adversary-level reviews + 49 fix bursts (passes 3-51). Trajectory content-only (per D-401(c)): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7→8→6→2→5→5→5→7→8→7→8→7→8→7→8→7→7→8→8→7→7 (51 values). Streak: 0/3 NITPICK_ONLY. Verdict HIGH sustained. CRITICAL F-P51-001 (table-row coalescence) fixed; META-LEVEL-6 CONFIRMED (F-P51-003).
 
-**Operating mode:** D-386 Option C — asymptotic convergence acceptance. L-EDP1-007 + L-EDP1-042 confirm prose-only codification cannot break L-EDP1-003 recurrence pattern at this asymptote. 41 consecutive layers (L-EDP1-001..042) documented; 11th consecutive multi-axis recurrence at layer 41 (META-LEVEL-5 CANDIDATE: lexical-vs-semantic class coverage gap). Multi-axis is the dominant mode. Structural remedy = S-15.03 PRIORITY-A automation (deferred to v1.0-feature-engine-discipline-pass-2 cycle).
+**Operating mode:** D-386 Option C — asymptotic convergence acceptance. L-EDP1-007 + L-EDP1-043 confirm prose-only codification cannot break L-EDP1-003 recurrence pattern at this asymptote. 42 consecutive layers (L-EDP1-001..043) documented; 12th consecutive multi-axis recurrence at layer 42 (META-LEVEL-6 CONFIRMED: verification grep-target anchored to obsolete prior form). Multi-axis is the dominant mode. Structural remedy = S-15.03 PRIORITY-A automation (deferred to v1.0-feature-engine-discipline-pass-2 cycle).
 
 **User directive (carry across compact):** "continue the convergence protocol until complete, OR I inject and personally tell you to stop." Per D-386 Option C, asymptotic limit is accepted but the loop continues; user has explicit opt-in to continuation.
 
 **Next action — ordered checklist:**
-1. ✓ pass-49 fix burst COMPLETE (Commits A/B/C/D/E per D-382..D-429 discipline)
-   a. ✓ adv-cycle-pass-49.md persisted (Commit A: 9c0ff3ba)
-   b. ✓ D-429 + L-EDP1-041 codified (Commit B: bf42f4cf)
-   c. ✓ content fixes F-P49-001..008 (Commit C: 45f51f8b)
-   d. ✓ 4-index bumps D-389..D-429 (Commit D: 079b1fe3)
-   e. ✓ state-manager final (Commit E: 77088404 — parent-commit 079b1fe3 per D-419(b)+D-420(d)+D-421(a))
-2. ✓ pass-50 adversary dispatched (dispatch-side advance at 51546f8e)
-   a. ✓ frontmatter advanced: `phase:` → `engine-discipline-F5-pass-50-adversary-in-progress`
-   b. ✓ committed + pushed dispatch-side update to factory-artifacts (51546f8e)
-   c. ✓ adversary subagent returned HIGH verdict (4H+2M+1L=7+1obs; 41st-layer L-EDP1-003; META-LEVEL-5 CANDIDATE; HALF-CENTURY milestone; D-429(c) lexical-vs-semantic gap; F-P50-003 unauthorized compaction)
-3. ✓ pass-50 fix burst COMPLETE (Commits A/B/C/D/E per D-382..D-430 discipline)
+1. ✓ pass-50 fix burst COMPLETE (Commits A/B/C/D/E per D-382..D-430 discipline)
    a. ✓ adv-cycle-pass-50.md persisted (Commit A: bdbc9978)
    b. ✓ D-430 + L-EDP1-042 codified (Commit B: 23bf8225)
    c. ✓ content fixes F-P50-001..007 (Commit C: c6653341)
    d. ✓ 4-index bumps D-389..D-430 (Commit D: 59a5a523)
-   e. ✓ state-manager final (Commit E: this commit — parent-commit 59a5a523 per D-419(b)+D-420(d)+D-421(a))
-4. Dispatch pass-51 adversary per D-394+D-401(b) — orchestrator-owned dispatch-side STATE.md advance:
-   a. Update frontmatter: `phase:` → `engine-discipline-F5-pass-51-adversary-in-progress`; `current_step:` → "F5 pass-51 adversary dispatch IN-PROGRESS (D-382..D-430 discipline; pass-50 parent-commit 59a5a523 per D-419(b)+D-420(d)+D-421(a); D-430 codified (5 sub-clauses); L-EDP1-042 41st-layer META-LEVEL-5-CANDIDATE; 4 indexes D-389..D-430; trajectory →7)"
+   e. ✓ state-manager final (Commit E: 7f09e2c9 — parent-commit 59a5a523 per D-419(b)+D-420(d)+D-421(a))
+2. ✓ pass-51 adversary dispatched (dispatch-side advance at 7f09e2c9)
+   a. ✓ frontmatter advanced: `phase:` → `engine-discipline-F5-pass-51-adversary-in-progress`
+   b. ✓ committed + pushed dispatch-side update to factory-artifacts (7f09e2c9)
+   c. ✓ adversary subagent returned HIGH verdict (1C+4H+2M=7+1obs; 42nd-layer L-EDP1-003; META-LEVEL-6 CONFIRMED; CRITICAL table-row coalescence; F-P51-001..007)
+3. ✓ pass-51 fix burst COMPLETE (Commits A/B/C/D/E per D-382..D-431 discipline)
+   a. ✓ adv-cycle-pass-51.md persisted (Commit A: 0db12712)
+   b. ✓ D-431 + L-EDP1-043 codified; F-P51-001 CRITICAL line-split applied (Commit B: 8647aa89)
+   c. ✓ content fixes F-P51-001..007 (Commit C: ccc3966f)
+   d. ✓ 4-index bumps D-389..D-431 (Commit D: 032746a5)
+   e. ✓ state-manager final (Commit E: this commit — parent-commit 032746a5 per D-419(b)+D-420(d)+D-421(a))
+4. Dispatch pass-52 adversary per D-394+D-401(b) — orchestrator-owned dispatch-side STATE.md advance:
+   a. Update frontmatter: `phase:` → `engine-discipline-F5-pass-52-adversary-in-progress`; `current_step:` → "F5 pass-52 adversary dispatch IN-PROGRESS (D-382..D-431 discipline; pass-51 parent-commit 032746a5 per D-419(b)+D-420(d)+D-421(a); D-431 codified (5 sub-clauses); L-EDP1-043 42nd-layer META-LEVEL-6-CONFIRMED; 4 indexes D-389..D-431; trajectory →7→7)"
    b. Commit + push single-commit dispatch-side update to factory-artifacts; verify SHA in frontmatter matches body per D-419(a) post-write grep-back
-   c. Dispatch adversary subagent fresh-context (read-only; scope = D-379..D-430 + L-EDP1-001..042 + INDEX.md + burst-log + STATE.md + 4 indexes; Iron Law = no pass-3..pass-50 review files)
-5. Receive adversary verdict + findings (likely HIGH per asymptotic pattern; D-430(a/b/c/d/e) likely violated at this codifying burst per L-EDP1-042 prediction)
-6. Dispatch pass-51 fix burst (state-manager Commits A/B/C/D/E per D-382..D-430 discipline)
+   c. Dispatch adversary subagent fresh-context (read-only; scope = D-379..D-431 + L-EDP1-001..043 + INDEX.md + burst-log + STATE.md + 4 indexes; Iron Law = no pass-3..pass-51 review files)
+5. Receive adversary verdict + findings (likely HIGH per asymptotic pattern; D-431(a/b/c/d/e) likely violated at this codifying burst per L-EDP1-043 prediction)
+6. Dispatch pass-52 fix burst (state-manager Commits A/B/C/D/E per D-382..D-431 discipline)
 7. Iterate until 3 consecutive NITPICK_ONLY passes OR human declares convergence
 8. F6 targeted hardening after convergence. F7 delta convergence + human gate. Cycle CLOSE.
 9. E-10 brownfield pass-9 resume (PAUSED at D-343)
 
-**Cumulative decisions (D-379..D-430, 52 cycle decisions):** See `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md` for full text. Key additions: D-421(c) surgical compaction (D-430(a)); Plus-sibling semantic class (D-430(b)); S-15.03 header advancement mandatory (D-430(c)); Dim-7 sed extraction re-affirmation (D-430(d)); 41st-layer META-LEVEL-5 CANDIDATE (D-430(e)).
+**Cumulative decisions (D-379..D-431, 53 cycle decisions):** See `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md` for full text. Key additions: line-terminus discipline (D-431(a)); STATE.md monotonic-row (D-431(b)); META-LEVEL-6 confirmed header grip-target fix (D-431(c)); banner label-anchoring (D-431(d)); Commit E sweep mandate (D-431(e)).
 
-**Cumulative lessons (L-EDP1-001..042, 41-layer recurrence; 11th consecutive multi-axis at layer 41):** Layer 41 CANDIDATE META-LEVEL-5 — D-429(c) was applied to lexical token "Plus" but not to semantic class (non-axis cardinality fragments). Recursion ply 5 is a candidate. Multi-axis is the dominant asymptotic mode. Structural remedy = S-15.03 PRIORITY-A automation. See `cycles/v1.0-feature-engine-discipline-pass-1/lessons.md`.
+**Cumulative lessons (L-EDP1-001..043, 42-layer recurrence; 12th consecutive multi-axis at layer 42):** Layer 42 META-LEVEL-6 CONFIRMED — D-430(c) verification grep-target anchored to obsolete prior form. NEW CRITICAL class: structural artifact corruption (table-row coalescence). Structural remedy = S-15.03 PRIORITY-A automation. See `cycles/v1.0-feature-engine-discipline-pass-1/lessons.md`.
 
-**4-Index State (as of pass-50):** BC-INDEX v1.93 | VP-INDEX v1.69 | STORY-INDEX v2.94 | ARCH-INDEX v1.74 — all acknowledge D-389..D-430 per D-404 unconditional + D-415(c) annotation form. D-423(a) version sweep applied: post-Commit-D actual versions confirmed.
+**4-Index State (as of pass-51):** BC-INDEX v1.94 | VP-INDEX v1.70 | STORY-INDEX v2.95 | ARCH-INDEX v1.75 — all acknowledge D-389..D-431 per D-404 unconditional + D-415(c) annotation form. D-423(a) version sweep applied: post-Commit-D actual versions confirmed.
 
 **Critical anchors:**
-- factory-artifacts HEAD: 59a5a523 (pass-50 Commit D; parent-commit of Commit E per D-419(b)+D-420(d)+D-421(a))
+- factory-artifacts HEAD: 032746a5 (pass-51 Commit D; parent-commit of Commit E per D-419(b)+D-420(d)+D-421(a))
 - develop HEAD: 99d24315 (S-12.08 PR #123; F4 COMPLETE; unchanged since cycle start)
 - main HEAD: feb894a2 (rc.16; unchanged)
 - F4 platform: COMPLETE (all E-12-platform stories merged: S-12.03..08 via PRs #105/#119/#120/#121/#122/#123)
-- F5 phase: IN PROGRESS at pass-50 fix burst COMPLETE
+- F5 phase: IN PROGRESS at pass-51 fix burst COMPLETE
 - F6: BLOCKED on F5 convergence (accepted asymptotic per D-386)
 - F7: BLOCKED on F6
 - Next cycle: v1.0-feature-engine-discipline-pass-2 (deferred stories S-14.06/07/08/09 + S-15.03 PRIORITY-A)
