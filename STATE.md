@@ -22,7 +22,7 @@ dtu_services: []
 
 <!--
   STATE.md SIZE BUDGET (per D-421(c) + D-422(c) reconciliation):
-  Soft target: ≤350 lines (post-Commit-E estimated line count + 16 margin per D-422(c) self-compliance discipline; revised from D-421(c) 290 which was aspirational and self-defeated at codifying burst).
+  Soft target: ≤350 lines (post-Commit-E estimated line count + 32 margin (computed from actual 318 + 32 = 350) per D-422(c) self-compliance discipline; revised from D-421(c) 290 which was aspirational and self-defeated at codifying burst; banner prose corrected from "+16 margin" per F-P43-006/D-423(c)).
   Hard cap: 500 lines (validate-state-md-size hook enforcement).
   Historical content belongs in cycle files, NOT here.
   Structural compaction is queued for v1.0-feature-engine-discipline-pass-2 cycle as part of S-15.03 PRIORITY-A automation scope.
@@ -174,7 +174,7 @@ dtu_services: []
 |-------|------|--------|-------|
 | F-block-ai-attribution-message-file-arm | feature | F3 COMPLETE — F4 READY | F1+F2+F3 done 2026-05-12; 2 stories ready (S-16.01 5pts PostToolUse HEAD verify, S-16.02 3pts PreToolUse -F arm); E-16 under SS-07/SS-04; milestone v1.0.0-rc.17; BC-7.03.094/095/001, VP-080, ARCH SS-07 v1.3/SS-04 v1.4 registered |
 | v1.0-brownfield-backfill | brownfield | PAUSED | E-10 pass-9 pending; paused at D-343 |
-| v1.0-feature-engine-discipline-pass-1 | feature | F5-IN-PROGRESS | All 6 E-12-platform stories merged; F5 passes 1-42 (42 reviews dispatched; 42 complete adversary returns; 40 fix bursts at passes 3-42) per D-418(c) deterministic-tally form; full-cycle trajectory content-only (pass-1..42): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7→8→6→2→5→5→5→7→8→7→8→7; pass-42 HIGH verdict (3H+3M+1L=7+1obs); D-422 codified (4 sub-clauses); L-EDP1-034 33rd-layer multi-axis (3rd consecutive); D-386 Option C: continue F5, accept asymptotic L-EDP1-003 limit; VP-INDEX v1.60 / BC-INDEX v1.84 / ARCH-INDEX v1.65 / STORY-INDEX v2.85 acknowledge D-389..D-422; S-15.03 PRIORITY-A in pass-2 cycle |
+| v1.0-feature-engine-discipline-pass-1 | feature | F5-IN-PROGRESS | All 6 E-12-platform stories merged; F5 passes 1-42 (42 reviews dispatched; 42 complete adversary returns; 40 fix bursts at passes 3-42) per D-418(c) deterministic-tally form; full-cycle trajectory content-only (pass-1..42): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7→8→6→2→5→5→5→7→8→7→8→7; pass-42 HIGH verdict (3H+3M+1L=7+1obs); D-422 codified (4 sub-clauses); L-EDP1-034 33rd-layer multi-axis (3rd consecutive); D-386 Option C: continue F5, accept asymptotic L-EDP1-003 limit; VP-INDEX v1.61 / BC-INDEX v1.85 / ARCH-INDEX v1.66 / STORY-INDEX v2.86 acknowledge D-389..D-422 (corrected from v1.60/v1.84/v1.65/v2.85 per F-P43-001/D-423(a): pre-external-bump values c27b229c+pass-42 swept to actual post-Commit-D values); S-15.03 PRIORITY-A in pass-2 cycle |
 | v1.0-feature-plugin-async-semantics-pass-1 | feature | CLOSED | All PRs merged; rc.14 shipped |
 
 ## Decisions Log
