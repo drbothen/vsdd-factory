@@ -85,6 +85,14 @@ Archived checkpoints from STATE.md as newer checkpoints replace them.
 
 ---
 
+## Archived Checkpoint — pass-54 fix burst COMPLETE (replaced by pass-55 checkpoint)
+
+**Last update:** 2026-05-12 — F5 pass-54 fix burst COMPLETE. Pass-54 HIGH verdict (4H+3M+1L=8+2obs; 45th-layer L-EDP1-003 multi-axis; 15th consecutive; META-LEVEL-9 CONFIRMED; retroactive-sweep target-set completeness gap). D-434 codified (5 sub-clauses: retroactive-sweep-completeness + Session-Resume-tally + trend-table-cross-instance + D-415(a)-latest-superseding + STATE-completeness-sweep). L-EDP1-046 45th-layer multi-axis. 4 indexes BC v1.97/VP v1.73/STORY v2.98/ARCH v1.78 acknowledge D-389..D-434. Trajectory tail (last 4 of 54 values per D-433(e)) →7→7→8→8. Streak: 0/3 NITPICK_ONLY. Verdict HIGH sustained.
+
+**STATE:** F4 platform COMPLETE; F5 pass-54 fix burst COMPLETE; pass-55 adversary dispatch COMPLETE (fd7f2340). parent-commit bc23bf41 per D-419(b)+D-420(d)+D-421(a).
+
+---
+
 ## Archived Checkpoint — pass-53 fix burst COMPLETE (replaced by pass-54 checkpoint)
 
 **Last update:** 2026-05-12 — F5 pass-53 fix burst COMPLETE. Pass-53 HIGH verdict (1C+4H+2M+1L=8+2obs; 44th-layer L-EDP1-003 multi-axis; 14th consecutive; META-LEVEL-8 CONFIRMED; CRITICAL ADV-EDP1-P53-CRIT-001 banner D-NNN cite frozen at D-431). D-433 codified (5 sub-clauses: banner-cite-advancement + wc-l-prose-anchor + homogeneous-marker + trend-table-axis-count-stable + trajectory-tail-LENGTH). L-EDP1-045 44th-layer multi-axis. 4 indexes BC v1.96/VP v1.72/STORY v2.97/ARCH v1.77 acknowledge D-389..D-433. Trajectory tail (last 4 of 53 values per D-433(e)) →7→7→7→8. Streak: 0/3 NITPICK_ONLY. Verdict HIGH sustained.

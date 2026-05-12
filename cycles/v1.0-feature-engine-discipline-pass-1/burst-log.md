@@ -3393,3 +3393,81 @@ D-428(d) banner wc-l re-executed at Commit E: `wc -l STATE.md` → 323; banner s
 
 **Factory-artifacts commits:**
 (Commit A: e44c4152 — adv-cycle-pass-54.md), (Commit B: 48c1354c — D-434+L-EDP1-046+L-EDP1-045 Status+INDEX.md pass-54 row), (Commit C: 2e84bb33 — content fixes HIGH-001..004+MED-001..003+LOW-001), (Commit D: bc23bf41 — 4-index bumps D-389..D-434), (Commit E: this commit — state-manager final per POLICY 3; parent-commit bc23bf41 per D-419(b)+D-420(d)+D-421(a))
+
+## Burst: F5 pass-55 fix burst (2026-05-12)
+
+**Adversary verdict:** HIGH (4H+2M+2L=8+2obs); 46th-layer L-EDP1-003; META-LEVEL-10 CONFIRMED; 16th consecutive multi-axis; verification-granularity gap (header-form vs value-level).
+
+**Dim-1 — Files modified (unique file count per D-432(e)):**
+- cycles/v1.0-feature-engine-discipline-pass-1/adv-cycle-pass-55.md (Commit A: new)
+- cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md (Commit B: D-435 row appended)
+- cycles/v1.0-feature-engine-discipline-pass-1/lessons.md (Commit B: L-EDP1-046 Status+corrigendum; L-EDP1-047; Commit C: L-EDP1-045 layers 31-36 value normalization)
+- cycles/v1.0-feature-engine-discipline-pass-1/INDEX.md (Commit B: pass-55 row + Convergence Status update)
+- STATE.md (Commit C: Phase Progress pass-54 rows; Commit E: frontmatter + banner + Last Updated + preamble + Decisions Log D-435 row + Concurrent Cycles + Active Branches + Session Resume full checkpoint)
+- cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md (Commit C: pass-54 Dim-2 N+6 retrofit; Commit E: this entry)
+- specs/behavioral-contracts/BC-INDEX.md (Commit D: v1.97→v1.98)
+- specs/verification-properties/VP-INDEX.md (Commit D: v1.73→v1.74)
+- stories/STORY-INDEX.md (Commit D: v2.98→v2.99)
+- specs/architecture/ARCH-INDEX.md (Commit D: v1.78→v1.79)
+- cycles/v1.0-feature-engine-discipline-pass-1/session-checkpoints.md (Commit E: pass-54 checkpoint archived)
+
+Verification: 11 unique files modified across 5 commits per D-432(e) ✓
+
+**Dim-2 — D-435 codification:**
+Action: Appended D-435 row to decision-log.md (5 sub-clauses: META-LEVEL-10-verification-granularity + codifying-pass-monotonic-row-inclusion + D-434(d)-self-retrofit + D-394-dispatched-tally + 46th-layer-L-EDP1-047). Appended L-EDP1-047 to lessons.md (46th-layer 16th-consecutive multi-axis META-LEVEL-10 CONFIRMED). Updated L-EDP1-046 with Status + corrigendum. Updated INDEX.md with pass-55 row.
+Verification: `grep -c "^| D-435" cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md` → 1 ✓; `grep -c "L-EDP1-047" cycles/v1.0-feature-engine-discipline-pass-1/lessons.md` → 3 ✓ (heading + body cite + Status/corrigendum = N+6 per D-427(c); 3-match context in lessons.md); `grep -c "^| D-435" STATE.md` → 1 ✓ (D-431(b) monotonic-row)
+
+**Dim-3 — Adversary review file:**
+Action: Created adv-cycle-pass-55.md with required frontmatter (all fields per D-415(c)) + Part B New Findings (HIGH-001/002/003/004, MED-001/002, LOW-001/002) + Observations (O-P55-001 META-LEVEL-10 + O-P55-002 asymptotic) + Summary + Novelty Assessment.
+Verification: `ls cycles/v1.0-feature-engine-discipline-pass-1/adv-cycle-pass-55.md` → exists ✓
+
+**Dim-4 — Content fixes:**
+- HIGH-001 fix (D-435(a) value-level normalization): L-EDP1-045 trend table rows 31-36 updated to canonical content-only values: 31→7, 32→8, 33→7, 34→8, 35→7, 36→8 per L-EDP1-044/L-EDP1-046 canonical ✓
+- HIGH-002 fix (D-435(b) Phase Progress codifying-pass rows): STATE.md Phase Progress — added pass-54 adversary row + pass-54 fix burst row ✓
+- HIGH-003 fix (D-435(c) self-retrofit): burst-log.md pass-54 Dim-2 Verification: replaced "N+1 per D-415(a)/D-426(b)/D-427(c)" with "N+6 per D-427(c)" ✓
+- HIGH-004 fix (D-435(e) aggregator): L-EDP1-047 codified ✓
+- MED-001 fix (D-435(d) dispatched-tally semantic): D-435(d) codified; current STATE.md tally 56 dispatched + 55 complete + 53 fix bursts ratified as correct ✓
+- MED-002 fix (D-435(e) layer-46 row): L-EDP1-047 trend table includes layer-46 row ✓
+- LOW-001 fix: Session Resume Step 4 updated for pass-56 dispatch with D-382..D-435 range ✓
+- LOW-002 fix: Enumeration-creep risk acknowledged in L-EDP1-047 body + compaction recommendation ✓
+
+**Dim-5 — D-435(a) banner advancement + D-425(a) preamble sweep + D-431(b) STATE row + D-429(b) INDEX cross-cell:**
+- D-433(a) banner: `grep -c "D-435 codified" STATE.md` → 2 ✓ (banner + current_step)
+- D-425(a) preamble: `grep -c "D-379..D-435" STATE.md` → 4 ✓; `grep -c "D-379..D-434" STATE.md` → 0 ✓ (stale form absent)
+- D-431(a) line-terminus: `grep -c "^| D-435" cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md` → 1 ✓
+- D-431(b) STATE row: `grep -c "^| D-435" STATE.md` → 1 ✓
+- D-429(b) INDEX cross-cell: `grep "^version:" specs/behavioral-contracts/BC-INDEX.md` → "1.98" ✓; STATE.md Concurrent Cycles → BC v1.98 ✓; INDEX.md → BC v1.98 ✓; VP v1.74 cross-verified ✓
+- D-432(b) trajectory canonical: STATE.md Last Updated tail "→7→8→8→8"; Concurrent Cycles tail "→7→8→8→8"; frontmatter current_step "→8" (pass-55 single-pass value = 8) ✓
+- D-435(d) tally sync: Session Resume "56 reviews dispatched + 55 complete adversary returns + 53 fix bursts" = Concurrent Cycles "56 reviews dispatched; 55 complete adversary returns; 53 fix bursts" ✓
+
+**Dim-6 — 4-index bumps D-389..D-435:**
+- BC-INDEX v1.97→v1.98; VP-INDEX v1.73→v1.74; STORY-INDEX v2.98→v2.99; ARCH-INDEX v1.78→v1.79
+- Verification: `grep "^version:" specs/behavioral-contracts/BC-INDEX.md` → "1.98" ✓; VP → "1.74" ✓; STORY → "2.99" ✓; ARCH → "1.79" ✓
+- D-435 literal ID present in all 4 changelog entries: BC-INDEX 1 ✓; VP-INDEX 1 ✓; STORY-INDEX 1 ✓; ARCH-INDEX 1 ✓
+
+**Dim-7 — STATE.md cell-sets (D-420(b)+D-422(b)+D-424(a)+D-430(d)+D-431(e)+D-432(c)+D-433(c) homogeneous-marker SEPARATE cell-sets):**
+
+Cell-set A: "pass-55 fix burst COMPLETE" marker cells (D-417(b) advance-set = frontmatter phase/current_step ONLY; body cells are invariant):
+- Line 8 (frontmatter phase:): `sed -n '8p' STATE.md | grep -o "engine-discipline-F5-pass-55"` → "engine-discipline-F5-pass-55" ✓
+- Line 15 (frontmatter current_step:): contains "pass-55 fix burst COMPLETE" ✓
+- Line 44 (Last Updated body cell): contains "pass-55 fix burst COMPLETE" ✓
+- Line 45 (Current Phase body cell): contains "pass-55 fix burst COMPLETE" ✓
+- Session Resume "Where we are": contains "pass-55 fix burst COMPLETE" ✓
+Cell-set A count: 5 cells with "pass-55 fix burst COMPLETE" marker ✓
+
+Cell-set B: banner D-NNN safe-form cite cell (D-432(c) inclusion + D-433(c) separate cell-set):
+- Line 25 (size-budget banner): contains "D-435 codified" ✓
+Cell-set B count: 1 cell with "D-435 codified" marker ✓
+
+D-417(b) advance-set = frontmatter `phase:` + `current_step:` ONLY; body cells retain marker.
+D-428(d) banner wc-l re-executed at Commit E: `wc -l STATE.md` → 328; banner soft target = 328 + 15 = 343 ✓ (margin +15 ∈ [+10,+20]) ✓
+
+**Codifications (per D-413(b) completeness mandate):**
+- D-435 codified (5 sub-clauses): (a) META-LEVEL-10 verification-granularity; (b) codifying-pass monotonic-row inclusion; (c) D-434(d) self-retrofit self-exemption FORBIDDEN; (d) D-394 dispatched-tally semantic resolution; (e) 46th-layer L-EDP1-047 acknowledgment + enumeration-creep
+- L-EDP1-047 authored (46th-layer 16th-consecutive multi-axis at D-434 codifying-burst boundary; META-LEVEL-10 CONFIRMED)
+- L-EDP1-046 Status updated: "Layer-45 inline-replaced" + corrigendum to pass-55 fix burst
+
+**Closes:** ADV-EDP1-P55-HIGH-001, ADV-EDP1-P55-HIGH-002, ADV-EDP1-P55-HIGH-003, ADV-EDP1-P55-HIGH-004, ADV-EDP1-P55-MED-001, ADV-EDP1-P55-MED-002, ADV-EDP1-P55-LOW-001, ADV-EDP1-P55-LOW-002 (per D-413(b) completeness mandate)
+
+**Factory-artifacts commits:**
+(Commit A: 8d9bd1d2 — adv-cycle-pass-55.md), (Commit B: e7b72cb2 — D-435+L-EDP1-047+L-EDP1-046 Status+INDEX.md pass-55 row), (Commit C: 3f62b640 — content fixes HIGH-001..004+MED-001/002+LOW-001/002), (Commit D: 638a0e8f — 4-index bumps D-389..D-435), (Commit E: this commit — state-manager final per POLICY 3; parent-commit 638a0e8f per D-419(b)+D-420(d)+D-421(a))
