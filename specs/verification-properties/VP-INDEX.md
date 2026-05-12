@@ -1,7 +1,7 @@
 ---
 document_type: vp-index
 level: L4
-version: "1.60"
+version: "1.61"
 status: draft
 producer: state-manager
 timestamp: 2026-05-12T00:00:00Z
@@ -10,6 +10,8 @@ phase: F5
 traces_to: ARCH-INDEX.md
 total_vps: 80
 changelog:
+  - date: 2026-05-12
+    change: "v1.61 (2026-05-12; pass-42 fix burst per D-422 + D-404 unconditional): Acknowledges decision range D-389..D-422 (inclusive; literal acknowledgment per D-415(c)). Per D-404 unconditional: index acknowledges D-422 by literal ID (no spec content change in this changelog entry). Refs: F-P42-001/002/003/004/005/006/007, D-422."
   - date: 2026-05-12
     change: "v1.60 (2026-05-12; F-block-ai-attribution-message-file-arm F2+F3 close-out): +VP-080 (block-ai-attribution PostToolUse arm detect_attribution proptest; source_bc BC-7.03.094; anchor_story S-16.01; type proptest; status draft). total_vps 79→80."
   - date: 2026-05-12

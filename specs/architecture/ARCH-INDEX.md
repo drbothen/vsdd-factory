@@ -1,7 +1,7 @@
 ---
 document_type: architecture-index
 level: L3
-version: "1.65"
+version: "1.66"
 status: accepted
 producer: architect
 timestamp: 2026-05-12T00:00:00Z
@@ -17,6 +17,8 @@ inputs:
 traces_to: phase-1-spec-crystallization
 deployment_topology: single-service
 changelog:
+  - date: 2026-05-12
+    change: "v1.66 (2026-05-12; pass-42 fix burst per D-422 + D-404 unconditional): Acknowledges decision range D-389..D-422 (inclusive; literal acknowledgment per D-415(c)). Per D-404 unconditional: index acknowledges D-422 by literal ID (no spec content change in this changelog entry). Refs: F-P42-001/002/003/004/005/006/007, D-422."
   - date: 2026-05-12
     change: "v1.65 (2026-05-12; F-block-ai-attribution-message-file-arm F2+F3 close-out): SS-07 BC count 196→198 (+BC-7.03.094 PostToolUse retroactive HEAD verify, +BC-7.03.095 PreToolUse -F file-read arm). SS-07-hook-bash.md amended to v1.3; SS-04-plugin-ecosystem.md amended to v1.4. Total BCs 1,947→1,949. BC-INDEX cite refreshed v1.83→v1.84 (L-P20-002 cite-refresh discipline)."
   - date: 2026-05-12
