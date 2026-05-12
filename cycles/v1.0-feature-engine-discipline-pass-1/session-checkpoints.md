@@ -120,3 +120,13 @@ Archived checkpoints from STATE.md as newer checkpoints replace them.
 > **POST-COMPACT RESUME CONTEXT — F5 ASYMPTOTIC LOOP**
 
 **Where we are (at time of archival):** pass-56 fix burst COMPLETE. 57 reviews dispatched + 56 complete adversary returns + 54 fix bursts (passes 3-56). Trajectory (56 values): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7→8→6→2→5→5→5→7→8→7→8→7→8→7→8→7→7→8→8→7→7→7→8→8→8→9. META-LEVEL-11 CANDIDATE (47th-layer L-EDP1-003). D-436 codified. 4 indexes BC v1.99/VP v1.75/STORY v3.00/ARCH v1.80 acknowledged D-389..D-436. factory-artifacts parent-commit 60eff381.
+
+---
+
+## Archived Checkpoint: pass-57 fix burst COMPLETE (2026-05-12)
+
+**Archived at:** pass-58 fix burst Commit E (this replacement)
+
+> **POST-COMPACT RESUME CONTEXT — F5 ASYMPTOTIC LOOP**
+
+**Where we are (at time of archival):** pass-57 fix burst COMPLETE + pass-58 adversary dispatched. 58 reviews dispatched + 57 complete adversary returns + 55 fix bursts (passes 3-57). Trajectory (57 values): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7→8→6→2→5→5→5→7→8→7→8→7→8→7→8→7→7→8→8→7→7→7→8→8→8→9→8. META-LEVEL-12 CANDIDATE (48th-layer L-EDP1-003). D-437 codified (5 sub-clauses). L-EDP1-049 authored. 4 indexes BC v2.00 (MAJOR VERSION CROSS)/VP v1.76/STORY v3.01/ARCH v1.81 acknowledged D-389..D-437. factory-artifacts parent-commit 99b8d093 (pass-57 Commit D). Pass-58 adversary dispatch-side SHA c491cf64.
