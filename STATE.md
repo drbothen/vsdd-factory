@@ -156,6 +156,8 @@ dtu_services: []
 | F5 pass-52 fix burst (D-432+content fixes) | state-manager | DONE 2026-05-12 | D-432 codified (6 sub-clauses); L-EDP1-044; F-P52-001 CRITICAL banner double-clause removed; F-P52-002/004 tally sync; F-P52-003 trajectory-tail →8→7→7→7; F-P52-005 Dim-7 line-25 corrigendum; F-P52-006 banner template; F-P52-007 unique file count; 4 indexes v1.95/v1.71/v2.96/v1.76 acknowledge D-389..D-432 |
 | F5 pass-53 cycle-level adversary | adversary | DONE 2026-05-12 | HIGH (1C+4H+2M+1L=8+2obs); trajectory →8; 44th-layer L-EDP1-003 (14th consecutive multi-axis; META-LEVEL-8 CONFIRMED; CRITICAL ADV-EDP1-P53-CRIT-001 banner D-NNN cite frozen at D-431; banner-cite-advancement scope gap); D-433 required |
 | F5 pass-53 fix burst (D-433+content fixes) | state-manager | DONE 2026-05-12 | D-433 codified (5 sub-clauses); L-EDP1-045; CRIT-001+HIGH-001/002/003/004+MED-001/002+LOW-001 fixed; banner advanced D-433; wc-l anchor 320; trajectory-tail →7→7→7→8; 4 indexes v1.96/v1.72/v2.97/v1.77 acknowledge D-389..D-433 |
+| F5 pass-54 cycle-level adversary | adversary | DONE 2026-05-12 | HIGH (4H+3M+1L=8+2obs); trajectory →8; 45th-layer L-EDP1-003 (15th consecutive multi-axis; META-LEVEL-9 CONFIRMED; retroactive-sweep target-set completeness gap; D-434 required) |
+| F5 pass-54 fix burst (D-434+content fixes) | state-manager | DONE 2026-05-12 | D-434 codified (5 sub-clauses); L-EDP1-046; HIGH-001..004+MED-001..003+LOW-001 fixed; L-EDP1-035..043 trend-table sweep; Session Resume tally sync; N+6 retrofit; 4 indexes v1.97/v1.73/v2.98/v1.78 acknowledge D-389..D-434 |
 
 ## Identifier Conventions
 

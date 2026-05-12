@@ -2332,12 +2332,12 @@ S-15.03 PRIORITY-A automation remains the only known structural remedy.
 
 | Layer | Burst | Axis count | Multi-axis? |
 |-------|-------|-----------|-------------|
-| 31 (pass-40) | D-420 | 4 | YES (first multi-axis) |
-| 32 (pass-41) | D-421 | 4 | YES (second consecutive) |
-| 33 (pass-42) | D-422 | 3 | YES (third consecutive) |
-| 34 (pass-43) | D-423 | 7 | YES (fourth consecutive; ALL D-422 sub-clauses violated) |
-| 35 (pass-44) | D-424 | 5 | YES (fifth consecutive) |
-| 36 (pass-45) | D-425 | 7 | YES (sixth consecutive; NEW silent-slip axis) |
+| 31 (pass-40) | D-420 | 7 | YES (first multi-axis; 3H+3M+1L=7 content-only per D-401(c)) |
+| 32 (pass-41) | D-421 | 8 | YES (second consecutive; 3H+4M+1L=8 content-only per D-401(c)) |
+| 33 (pass-42) | D-422 | 7 | YES (third consecutive; 3H+3M+1L=7 content-only per D-401(c)) |
+| 34 (pass-43) | D-423 | 8 | YES (fourth consecutive; 4H+3M+1L=8 content-only per D-401(c); ALL D-422 sub-clauses violated) |
+| 35 (pass-44) | D-424 | 7 | YES (fifth consecutive; 3H+3M+1L=7 content-only per D-401(c)) |
+| 36 (pass-45) | D-425 | 8 | YES (sixth consecutive; 4H+3M+1L=8 content-only per D-401(c); NEW silent-slip axis) |
 | 37 (pass-46) | D-426 | 7 | YES (seventh consecutive; NEW rule-scope-vs-applied-scope coverage gap class) |
 | 38 (pass-47) | D-427 | 7 | YES (eighth consecutive; NEW self-replicating coverage-gap class) |
 | 39 (pass-48) | D-428 | 8 | YES (ninth consecutive; META-LEVEL-3 class confirmed) |
