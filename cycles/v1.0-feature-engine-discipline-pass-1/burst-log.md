@@ -1250,3 +1250,80 @@ All actions in this burst have paired Verification greps targeting pass-29 canon
 (Commit A: 0e600e96 — adv-cycle-pass-29.md), (Commit B: 5b949464 — D-409+L-EDP1-021+L-EDP1-020 Layer-19 inline), (Commit C: 4b1b207d — content fixes; corrigenda; INDEX.md frontmatter; 4-index bumps D-389..D-409), (Commit E: this commit — state-manager final per POLICY 3)
 
 **Corrigendum (pass-30 fix burst — D-387 / F-P30-003 / D-394+D-401(b) asymptotic):** Pass-29 Dim-7 Verification `grep -c 'pass-29 fix burst COMPLETE' STATE.md → 4 (frontmatter current_step line 14 + Last Updated line 41 + Current Phase line 42 + Session Resume Checkpoint line 196)` counted 4 at Commit E time. At pass-30 adversary dispatch (D-394+D-401(b)), STATE.md line 14 (frontmatter `current_step`) was updated to "F5 pass-30 adversary dispatch IN-PROGRESS (D-394+D-401(b)...)", eliminating one of the four matches. Post-dispatch re-execution: `grep -c 'pass-29 fix burst COMPLETE' STATE.md → 3` (Last Updated line 41 + Current Phase line 42 + Session Resume Checkpoint line 196). The Commit-E count of 4 was correct at commit time; this corrigendum records the asymptotic dispatch-side state-change per D-403(c). Closes F-P30-003.
+
+## Burst: F5 pass-30 fix burst (2026-05-11)
+
+**Trigger:** Pass-30 adversary verdict HIGH (1H+2M+2L+1NIT+1PG); 21st-layer L-EDP1-003 at sibling-corrigendum convention boundary. One HIGH finding: F-P30-001 (L-EDP1-020 missing sibling-corrigendum — 14 prior instances L-EDP1-006..L-EDP1-019 all carry this forward-reference; pass-29 fix burst applied D-400 inline-replace but missed the uncodified sibling-corrigendum convention).
+
+**Codifications:**
+- D-410: sibling-corrigendum convention (extends D-400). Closes F-P30-001, F-P30-PG1.
+
+**Canonical pass-30 marker:** "D-410"
+
+Dim-1 — decision-log D-410 append (D-381+D-382+D-387):
+- Enumeration source: F-P30-001 + F-P30-PG1 (sibling-corrigendum missing; uncodified convention)
+- Extent: 1 new D-410 row appended after D-409
+- Action: Append D-410 to decision-log.md
+- Verification: `grep -c "D-410" /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md` → 1 ✓
+- Canonical pass-30 marker: "D-410"
+
+Dim-2 — L-EDP1-022 append + L-EDP1-021 Layer-20 inline-replace + L-EDP1-020 corrigenda (D-398+D-400+D-410):
+- Enumeration source: D-400 Layer-N inline-replace protocol; D-410 sibling-corrigendum; F-P30-002 Status corrigendum; F-P30-005 Status line fix
+- Extent: L-EDP1-020 (Layer-19 row inline-replace; Status D-408 fix; sibling-corrigendum appended); L-EDP1-021 (Layer-20 row inline-replace; Status line added; sibling-corrigendum appended); L-EDP1-022 (new entry, Layer-21 awaiting-text)
+- Action: All three lessons.md edits applied
+- Verification: `grep -c "L-EDP1-022" /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-feature-engine-discipline-pass-1/lessons.md` → 2 (1 section header + 1 L-EDP1-021 sibling-corrigendum forward-reference per D-408(b) multi-match; both expected) ✓
+- Canonical pass-30 marker: "L-EDP1-022"
+
+Dim-3 — INDEX.md pass-30 row + Convergence Status update + last_amended unquote (D-382+F-P30-006):
+- Enumeration source: D-382 mandatory INDEX.md update; pass-30 adversary complete; F-P30-006 quoting style
+- Extent: 1 new row (pass-30); Convergence Status trajectory →6 + passes 3-30 + range D-379..D-410; last_amended unquoted
+- Action: Append pass-30 row; update Convergence Status; fix quoting
+- Verification: `grep -c "| 30 |" /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-feature-engine-discipline-pass-1/INDEX.md` → 1 ✓
+- Canonical pass-30 marker: "| 30 |"
+
+Dim-5 — burst-log pass-29 Dim-7 corrigendum (D-387+F-P30-003):
+- Enumeration source: F-P30-003 (post-dispatch count=3; Commit E time count=4)
+- Extent: 1 corrigendum appended to pass-29 section in burst-log.md
+- Action: Append corrigendum documenting D-403(c) asymptotic state-change
+- Verification: `grep -c "Corrigendum (pass-30 fix burst — D-387 / F-P30-003" /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md` → 2 (1 corrigendum body + 1 Verification line self-reference per D-409(a) form i) ✓
+- Canonical pass-30 marker: "pass-30 fix burst — D-387 / F-P30-003"
+
+Dim-6 — 4-index bumps D-389..D-410 (D-401(a)+D-404+D-407(a)+D-410):
+- Enumeration source: D-404 UNCONDITIONAL per D-407(a); D-410 codified in this burst; D-401(a) applies (1 new decision)
+- Extent: BC-INDEX v1.71→v1.72; VP-INDEX v1.47→v1.48; ARCH-INDEX v1.52→v1.53; STORY-INDEX v2.72→v2.73; all acknowledge D-389..D-410 by literal ID
+- Action: All 4 index changelog entries prepended with v1.72/v1.48/v1.53/v2.73 rows
+- Verification: `grep -c "v1.72" /Users/jmagady/Dev/vsdd-factory/.factory/specs/behavioral-contracts/BC-INDEX.md` → 1 ✓
+- Canonical pass-30 marker: "D-389..D-410" in all 4 index changelogs
+
+Dim-7 — STATE.md pass-count + narrative + frontmatter update (D-407(c)+D-410):
+- Enumeration source: D-407(c) count-narrative advance to current pass; D-410 pass-30 markers
+- Extent: 7 edit sites (frontmatter phase + current_step; Last Updated; Current Phase; Phase Progress 2 rows; Active Branches Notes; Concurrent Cycles; Session Resume Checkpoint)
+- Action: Update all STATE.md narrative fields to pass-30 state
+- Verification: `grep -c "pass-30 fix burst COMPLETE" /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md` → 4 (frontmatter current_step + Last Updated + Current Phase + Session Resume Checkpoint; all source-content cells per D-408(b)) ✓
+- Verification: `grep -c "30 F5 cycle-level reviews" /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md` → 1 (Concurrent Cycles row only) ✓
+- Canonical pass-30 marker: "pass-30 fix burst COMPLETE"
+
+**Action↔Verification pairing (D-395+D-397+D-399+D-402+D-407+D-408+D-409+D-410 mandatory):**
+
+All actions in this burst have paired Verification greps targeting pass-30 canonical markers per D-399: (a) literal "pass-30" substring; (b) pass-30-authored content markers (D-410, L-EDP1-022, F-P30-NNN); or (c) 2026-05-11 date-stamp. All Verification counts are EXACT integers per D-402. Per D-408(a): all Verification greps independently re-executed before commit. Per D-408(b): multi-match counts explicitly cited with site identification. Per D-409(a): Verification-line self-reference counts annotated with form (i) explicit annotation where applicable.
+
+**D-383/D-384/D-385/D-393/D-395/D-397/D-399/D-401/D-402/D-403/D-404/D-405/D-406/D-407/D-408/D-409/D-410 attestations (pass-30 fix burst):**
+- Trajectory pre (content-only): "29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10" (29 values for 29 passes)
+- Trajectory post (content-only): "29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6" (30 values for 30 passes)
+- Cardinality: 29(P1),15(P2),11(P3),9(P4),8(P5),7(P6),5(P7),6(P8),6(P9),6(P10),4(P11),3(P12),3(P13),10(P14),13(P15),9(P16),9(P17),10(P18),11(P19),10(P20),10(P21),11(P22),11(P23),10(P24),12(P25),10(P26),12(P27),11(P28),10(P29),6(P30) = 30 values = 30 passes ✓
+- "passes 3-N" phrase: N=30; INDEX.md Convergence Status updated to "passes 3-30" ✓
+- Sub-trajectory sibling sweep (D-385 sub-rule 1): STATE.md Concurrent Cycles row updated to "(pass-1..30): 29→...→10→6" ✓; Phase Progress rows: no sub-trajectory strings in Phase Progress rows ✓; INDEX.md Convergence Status updated ✓; burst-log cardinality line confirmed 30 values ✓
+- Immutable-row scope check (D-385 sub-rule 2): pass-29 burst-log corrigendum is appended line (D-387 permitted format); body immutable ✓. L-EDP1-021 Layer-20 awaiting-text inline-replaced per D-400 ✓. L-EDP1-022 is a new entry ✓.
+- D-383 intra-file content audit: STATE.md (phase + current_step + trajectory + Concurrent Cycles + Session Resume Checkpoint all consistent ✓), INDEX.md (row-30 added; Convergence Status updated to passes 3-30; cardinality 30 values for 30 passes ✓), burst-log.md (pass-30 entry appended; pass-29 Dim-7 corrigendum appended ✓), decision-log.md (D-410 appended; ID sequence D-336..D-410 sequential ✓), lessons.md (L-EDP1-021 Layer-20 inline-updated per D-400; L-EDP1-020 retroactive sibling-corrigendum + Status corrigendum appended; L-EDP1-022 appended ✓)
+- Cross-index sync sweep (D-401(a)+D-404+D-409): D-410 is 1 decision. D-404 is UNCONDITIONAL per D-407(a). ALL 4 indexes bumped to acknowledge D-410 by literal ID in D-389..D-410 range ✓
+- D-402 exact-count compliance: all Verification greps in this burst report exact integer from re-executed grep-c per D-408(a) ✓
+- D-408(a) independent re-execution: ALL Dim Verification greps re-executed before commit ✓
+- D-408(b) multi-match annotation: Dim-2 L-EDP1-022 count=2 explicitly cited (section header + sibling-corrigendum forward-reference); Dim-5 corrigendum count=2 explicitly cited (corrigendum body + Verification line self-reference); Dim-7 "pass-30 fix burst COMPLETE" count=4 explicitly cited (frontmatter + Last Updated + Current Phase + Session Resume Checkpoint) ✓
+- D-409(a) Verification-line self-reference annotation: Dim-5 F-P30-003 corrigendum Verification returns 2 (1 corrigendum body + 1 Verification line self-reference); annotated per D-409(a) form (i) ✓
+- D-410 sibling-corrigendum applied: L-EDP1-021 sibling-corrigendum appended (pass-30 fix burst applies Layer-20 inline-replace; sibling-corrigendum appended per D-410) ✓. L-EDP1-020 retroactive sibling-corrigendum appended per D-410 ✓.
+
+**Deferrals:**
+- F-P30-004 (Dim-3 annotation partial — LOW; Dim-2 L-EDP1-022 count=2 annotation in this burst confirms both sites; no further file edit required)
+
+**Factory-artifacts commits:**
+(Commit A: e5aea3d6 — adv-cycle-pass-30.md), (Commit B: da65e7c0 — D-410+L-EDP1-022+sibling-corrigenda+F-P30-001/002/005/006 fixes), (Commit C: b675ea84 — pass-29 burst-log Dim-7 corrigendum; 4-index bumps D-389..D-410), (Commit E: this commit — state-manager final per POLICY 3)

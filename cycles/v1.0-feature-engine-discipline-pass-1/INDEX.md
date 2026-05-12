@@ -84,6 +84,7 @@ changes are WASM-only (no new Bash hook debt per D-2).
 | 27 | 2026-05-11 | 12 (2H+5M+3L+2NIT) +1PG | HIGH | adv-cycle-pass-27.md |
 | 28 | 2026-05-11 | 11 (3H+2M+4L+1NIT) +1PG | HIGH | adv-cycle-pass-28.md |
 | 29 | 2026-05-11 | 10 (2H+4M+3L+1NIT) +1PG | HIGH | adv-cycle-pass-29.md |
+| 30 | 2026-05-11 | 6 (1H+2M+2L+1NIT) +1PG | HIGH | adv-cycle-pass-30.md |
 
 ## Convergence Status
 
@@ -91,7 +92,7 @@ changes are WASM-only (no new Bash hook debt per D-2).
 - F2 (spec evolution / story decomposition): **COMPLETE** — F2-amendment D-362; 6 BCs + ADR-018 + 4 VPs + PRD FR-048
 - F3 (incremental stories): **COMPLETE** — F3-amendment D-366; 6 stories S-12.03..S-12.08 under E-12
 - F4 (implementation): **COMPLETE** — all 6 E-12 stories merged (PRs #105, #119, #120, #121, #122, #123); F-P2-001 closed via S-12.08
-- F5 (scoped adversarial review): **IN PROGRESS** — 29 passes; trajectory content-only 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10; pass-29 HIGH (2H+4M+3L+1NIT+1PG); streak 0/3; passes 3-29 fix bursts applied to factory-artifacts; D-386 Option C accepted; D-379..D-409 codified (D-379..D-386 from earlier sessions; D-387..D-409 inline this engine-discipline-pass-1 cycle session); L-EDP1-009 second corrigendum + L-EDP1-010..L-EDP1-021 authored; VP-INDEX v1.47 / BC-INDEX v1.71 / ARCH-INDEX v1.52 / STORY-INDEX v2.72 acknowledge D-389..D-409
+- F5 (scoped adversarial review): **IN PROGRESS** — 30 passes; trajectory content-only 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6; pass-30 HIGH (1H+2M+2L+1NIT+1PG); streak 0/3; passes 3-30 fix bursts applied to factory-artifacts; D-386 Option C accepted; D-379..D-410 codified (D-379..D-386 from earlier sessions; D-387..D-410 inline this engine-discipline-pass-1 cycle session); L-EDP1-009 second corrigendum + L-EDP1-010..L-EDP1-022 authored; VP-INDEX v1.48 / BC-INDEX v1.72 / ARCH-INDEX v1.53 / STORY-INDEX v2.73 acknowledge D-389..D-410
 - F6 (targeted hardening): PENDING
 - F7 (delta convergence): PENDING
 
