@@ -99,6 +99,8 @@ dtu_services: []
 | F5 pass-25 fix burst (D-405+content fixes) | state-manager | DONE 2026-05-11 | D-405 codified; L-EDP1-017; BC-INDEX v1.68; ARCH-INDEX v1.49; STORY-INDEX v2.69; VP-INDEX v1.44 (TD-031 normalization complete); 6-site stale-narrative swept; burst-log corrigenda F-P25-005/006/010/011 |
 | F5 pass-26 cycle-level adversary | adversary | DONE 2026-05-11 | HIGH (1H+4M+3L+2NIT+1PG); trajectory →10; 17th-layer L-EDP1-003 (Dim-6 false-green Verification; Dim-7 partial-coverage); D-406+L-EDP1-018 required |
 | F5 pass-26 fix burst (D-406+content fixes) | state-manager | DONE 2026-05-11 | D-406 codified; L-EDP1-018; L-EDP1-017 Layer-16 inline-replaced; burst-log corrigenda F-P26-001/002; INDEX.md range unified; STATE.md pass-count corrected; S-15.03 story annotated |
+| F5 pass-27 cycle-level adversary | adversary | DONE 2026-05-11 | HIGH (2H+5M+3L+2NIT+1PG); trajectory →12; 18th-layer L-EDP1-003 (D-404 unconditional obligation conflated with D-401(a) threshold; corrigendum regex invalid); D-407+L-EDP1-019 required |
+| F5 pass-27 fix burst (D-407+content fixes) | state-manager | DONE 2026-05-11 | D-407 codified (4 sub-clauses); L-EDP1-019; L-EDP1-018 Layer-17 inline-replaced; burst-log corrigenda F-P27-002/006; 4 indexes v1.69/v1.45/v2.70/v1.50 acknowledge D-389..D-407 |
 
 ## Identifier Conventions
 
@@ -128,7 +130,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | feb894a2 | rc.16 merge; latest release |
 | develop | 99d24315 | S-12.08 squash-merge (PR #123); F4 COMPLETE |
-| factory-artifacts | (see git log) | F5 pass-26 fix burst Commit E — state-manager final |
+| factory-artifacts | (see git log) | F5 pass-27 fix burst Commit E — state-manager final |
 | feature/F5-pass-3-cycle-hardening | 2e6b4372 | PR #124 OPEN (DRAFT); CI run 25651192161 GREEN (11/11 checks) |
 | v1.0.0-rc.16 (tag) | feb894a2 | SHIPPED; claude-mp PR #8 awaiting human merge |
 | v1.0.0-rc.15 (tag) | e68bb436 | SHIPPED |
@@ -145,7 +147,7 @@ dtu_services: []
 
 > D-001..D-312: `cycles/v1.0-brownfield-backfill/decision-log.md` + `decisions-log-archive.md`
 > F5 pass-2 architect decisions: `cycles/v1.0-feature-engine-discipline-pass-1/F5-pass-2-architect-decisions.md` (factory-artifacts 7b83ef58)
-> D-379..D-406 (this session): `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md`
+> D-379..D-407 (this session): `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md`
 
 | ID | Decision | Phase | Date |
 |----|----------|-------|------|
@@ -187,28 +189,27 @@ dtu_services: []
 
 ## Session Resume Checkpoint
 
-**Last update:** 2026-05-11 — F5 pass-26 fix burst COMPLETE. Pass-26 HIGH verdict (1H+4M+3L+2NIT+1PG; 17th-layer L-EDP1-003 at attestation-accuracy boundary). D-406 codified. L-EDP1-018 documents 17th-layer. L-EDP1-017 Layer-16 inline-replaced per D-400. Key fixes: F-P26-001 Dim-6 false-green corrigendum (actual=2 historical Phase Progress rows per D-385 sub-rule 2); F-P26-002 Dim-7 partial-coverage corrigendum (4-alternation grep confirms 4 corrigenda); F-P26-003 INDEX.md range-form unified to D-379..D-405; F-P26-004 STATE.md pass-count corrected to "25 F5 passes"; F-P26-005 S-15.03 story annotated D-405(c). Trajectory (content-only): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10. Streak 0/3.
+**Last update:** 2026-05-11 — F5 pass-27 fix burst COMPLETE. Pass-27 HIGH verdict (2H+5M+3L+2NIT+1PG; 18th-layer L-EDP1-003 at corrigendum-self-validation boundary). D-407 codified (4 sub-clauses). L-EDP1-019 documents 18th-layer. L-EDP1-018 Layer-17 inline-replaced per D-400. Key fixes: F-P27-001 D-406 not in 4 indexes (D-404 unconditional; D-407(a) closes D-401(a) threshold conflation permanently); F-P27-002 invalid regex in F-P26-002 corrigendum (D-407(b) corrigendum self-validation introduced); F-P27-003 pass-count corrected to 27 F5 cycle-level reviews; F-P27-004 INDEX range advanced to D-379..D-407; F-P27-006 pass-26 attestation corrigendum. 4 indexes bumped to v1.69/v1.45/v2.70/v1.50 acknowledging D-389..D-407. Trajectory (content-only): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12. Streak 0/3.
 
-**STATE:** F4 platform COMPLETE; F5 at pass-26 fix burst complete. Pass-26 fix burst COMPLETE; next: dispatch pass-27 adversary (per D-394+D-406, update STATE.md phase BEFORE adversary returns).
+**STATE:** F4 platform COMPLETE; F5 at pass-27 fix burst complete. Next: dispatch pass-28 adversary (per D-394+D-407, update STATE.md phase BEFORE adversary returns).
 
 **Next session start — ordered checklist:**
 
-1. ✓ D-399+D-400 codified (pass-21 fix burst complete; L-EDP1-013).
-2. ✓ D-401+D-402 codified (pass-22 fix burst complete; L-EDP1-014).
-3. ✓ D-403 codified (pass-23 fix burst complete; L-EDP1-015).
-4. ✓ D-404 codified (pass-24 fix burst complete; L-EDP1-016).
-5. ✓ Dispatch pass-25 adversary — STATE.md phase updated pre-dispatch per D-394.
-6. ✓ VP-INDEX v1.44 COMPLETE — TD-031 normalization done in v1.43 (user-authorized Write; hook passed cleanly at dd91044a); D-405 acknowledgment added in v1.44 (pass-25 fix burst).
-7. ✓ Apply pass-26 fix burst per D-382..D-406 discipline — DONE (D-406+L-EDP1-018 codified).
-8. Iterate until 3 consecutive NITPICK_ONLY passes achieved OR human declares convergence.
-9. F6 targeted hardening after convergence criterion met. F7 delta convergence + human gate (cycle CLOSE).
-10. E-10 brownfield pass-9 resume (PAUSED at D-343).
+1. ✓ D-399..D-407 codified (passes 21-27 fix bursts complete; L-EDP1-013..L-EDP1-019).
+2. ✓ VP-INDEX v1.45 / BC-INDEX v1.69 / ARCH-INDEX v1.50 / STORY-INDEX v2.70 — D-389..D-407 acknowledged.
+3. ✓ Apply pass-27 fix burst per D-382..D-407 discipline — DONE.
+4. Dispatch pass-28 adversary — update STATE.md phase to pass-28-adversary-in-progress BEFORE adversary returns.
+5. Iterate until 3 consecutive NITPICK_ONLY passes achieved OR human declares convergence.
+6. F6 targeted hardening after convergence criterion met. F7 delta convergence + human gate (cycle CLOSE).
+7. E-10 brownfield pass-9 resume (PAUSED at D-343).
 
-**D-382..D-406 discipline applies to ALL future fix bursts.** Key additions pass-26: D-406 (attestation-accuracy grep scope + cross-document numeric coherence + forward-looking codification propagation to story body; S-15.03 PRIORITY-A in pass-2 cycle).
+**D-382..D-407 discipline applies to ALL future fix bursts.** Key additions pass-27: D-407 (D-404 unconditional independent of D-401(a) threshold; corrigendum-regex self-validation; STATE.md count advances to current pass-N; range citations include in-burst D-NNN).
 
-**Index versions:** BC-INDEX v1.68 | VP-INDEX v1.44 (TD-031 historical normalization complete in v1.43; D-405 acknowledged in v1.44) | STORY-INDEX v2.69 | ARCH-INDEX v1.49
-**Pass-26 fixes:** D-406 codified | L-EDP1-018 | L-EDP1-017 Layer-16 inline-replaced | F-P26-001..007 + F-P26-PG1
+**Index versions:** BC-INDEX v1.69 | VP-INDEX v1.45 | STORY-INDEX v2.70 | ARCH-INDEX v1.50
+**Pass-27 fixes:** D-407 codified | L-EDP1-019 | L-EDP1-018 Layer-17 inline-replaced | F-P27-001..007 + F-P27-PG1
 **ADR-013:** 3_of_3 CONVERGED (pass-57) | **E-9:** v1.53 CONVERGENCE_REACHED | **E-10:** paused D-343
 **5 user-locked decisions:** `cycles/v1.0-feature-plugin-async-semantics-pass-1/F4-handoff.md` §3
+
+> Previous checkpoint archived to: `cycles/v1.0-feature-engine-discipline-pass-1/session-checkpoints.md`
 
 > Previous checkpoint archived to: `cycles/v1.0-feature-engine-discipline-pass-1/session-checkpoints.md`
