@@ -23,6 +23,7 @@ dtu_services: []
 <!--
   STATE.md SIZE BUDGET (per D-421(c) + D-422(c) reconciliation):
   Soft target: ≤343 lines (actual 328 lines at pass-55 Commit E + 15 margin = 343 per D-422(c)+D-424(b)+D-428(d)+D-434(e)(ii)+D-435(e) margin [+10,+20] mid-range +15; D-435 codified (5 sub-clauses; META-LEVEL-10-verification-granularity-discipline + codifying-pass-monotonic-row-inclusion + D-434(d)-self-retrofit + D-394-dispatched-tally-semantic + 46th-layer-L-EDP1-047 per decision-log.md:116 SoT)).
+  Line-growth tracker (D-436(e) LOW-002): pass-49 Commit E 310 lines; pass-54 Commit E 319 lines; pass-55 Commit E 328 lines; growth rate +9/burst. At +9/burst, hard cap (500 lines) reached at ~19 more bursts. Compaction recommended at v1.0-feature-engine-discipline-pass-2 boundary per L-EDP1-047/048.
   Hard cap: 500 lines (validate-state-md-size hook enforcement).
   Historical content belongs in cycle files, NOT here.
   D-430(a) compaction authorization: Pass-49 Commit E surgical compaction (363→310 lines) authorized retroactively per D-430(a); removed content categories: stale Phase Progress rows (passes 1-38); pre-compaction state preserved at git show 278977fb:.factory/STATE.md.
@@ -325,4 +326,4 @@ dtu_services: []
 - ADR-013: 3_of_3 CONVERGED (pass-57) | E-9: v1.53 CONVERGENCE_REACHED | E-10: paused D-343
 - 5 user-locked decisions: `cycles/v1.0-feature-plugin-async-semantics-pass-1/F4-handoff.md` §3
 
-> Previous checkpoint (pass-53 FIX BURST COMPLETE at parent-commit 8d84aa3d per D-419(b)+D-420(d)+D-421(a); pass-54 ADVERSARY DISPATCHED) archived to: `cycles/v1.0-feature-engine-discipline-pass-1/session-checkpoints.md`
+> Previous checkpoint (pass-55 FIX BURST COMPLETE at parent-commit 638a0e8f per D-419(b)+D-420(d)+D-421(a); pass-56 ADVERSARY DISPATCHED) archived to: `cycles/v1.0-feature-engine-discipline-pass-1/session-checkpoints.md`

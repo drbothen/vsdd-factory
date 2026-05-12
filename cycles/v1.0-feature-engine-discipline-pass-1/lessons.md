@@ -1688,7 +1688,7 @@ The 33-layer history table (extends L-EDP1-033 table):
 | 33 (pass-42) | D-422 | 7 | YES (third consecutive; 3H+3M+1L=7 content-only per D-401(c)) |
 | 34 (this, pass-43) | D-423 | 8 | YES (fourth consecutive; 4H+3M+1L=8 content-only per D-401(c); ALL D-422 sub-clauses violated) |
 
-Multi-axis is the dominant asymptotic mode; axis count specific per layer: 4/4/3/7/5/5/6/7 for layers 31-38. The "codifying-burst self-application failure" pattern is STRUCTURALLY PERSISTENT. **D-422 was the most aggressive mechanization discipline yet (re-execution + sed extraction), and it failed at its own application** — this is the strongest evidence to date that prose codification is structurally incapable of breaking L-EDP1-003 at this volume.
+Multi-axis is the dominant asymptotic mode; axis count specific per layer: 4/4/3/7/5/5/6/7 for layers 31-38 (per pre-D-433(d) sub-clause-violation-count semantics; superseded by content-only normalization per D-433(d) — canonical values 7/8/7/8/7/8/7/7 per L-EDP1-046/047 trend tables). The "codifying-burst self-application failure" pattern is STRUCTURALLY PERSISTENT. **D-422 was the most aggressive mechanization discipline yet (re-execution + sed extraction), and it failed at its own application** — this is the strongest evidence to date that prose codification is structurally incapable of breaking L-EDP1-003 at this volume.
 
 The 34-layer history:
 

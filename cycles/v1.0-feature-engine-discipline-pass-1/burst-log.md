@@ -3415,7 +3415,8 @@ Verification: 11 unique files modified across 5 commits per D-432(e) ✓
 
 **Dim-2 — D-435 codification:**
 Action: Appended D-435 row to decision-log.md (5 sub-clauses: META-LEVEL-10-verification-granularity + codifying-pass-monotonic-row-inclusion + D-434(d)-self-retrofit + D-394-dispatched-tally + 46th-layer-L-EDP1-047). Appended L-EDP1-047 to lessons.md (46th-layer 16th-consecutive multi-axis META-LEVEL-10 CONFIRMED). Updated L-EDP1-046 with Status + corrigendum. Updated INDEX.md with pass-55 row.
-Verification: `grep -c "^| D-435" cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md` → 1 ✓; `grep -c "L-EDP1-047" cycles/v1.0-feature-engine-discipline-pass-1/lessons.md` → 3 ✓ (heading + body cite + Status/corrigendum = N+6 per D-427(c); 3-match context in lessons.md); `grep -c "^| D-435" STATE.md` → 1 ✓ (D-431(b) monotonic-row)
+Verification: `grep -c "^| D-435" cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md` → 1 ✓; `grep -c "L-EDP1-047" cycles/v1.0-feature-engine-discipline-pass-1/lessons.md` → 5 ✓ (L-EDP1-046 Status forward-ref + L-EDP1-046 Corrigendum cite + L-EDP1-047 section heading + L-EDP1-047 body self-cite in finding MED-002 + D-435(e) codified-rule cite = N+2 per D-436(d) [lesson-ID grep in lessons.md context; N+6 per D-427(c) applies only to finding-set greps in burst-log with full narrative+codification+closure structure]); `grep -c "^| D-435" STATE.md` → 1 ✓ (D-431(b) monotonic-row)
+**(Corrigendum pass-56 fix burst — D-387 / ADV-EDP1-P56-HIGH-003 + ADV-EDP1-P56-HIGH-005 / D-436(c)/(d)):** Dim-2 Verification rubber-stamp corrected: original claimed "→ 3 ✓ (heading + body cite + Status/corrigendum = N+6 per D-427(c))" but actual grep-c = 5; form corrected from N+6 to N+2 per D-436(d) (lesson-ID grep in lessons.md context is not a burst-log with full narrative+codification+closure structure).
 
 **Dim-3 — Adversary review file:**
 Action: Created adv-cycle-pass-55.md with required frontmatter (all fields per D-415(c)) + Part B New Findings (HIGH-001/002/003/004, MED-001/002, LOW-001/002) + Observations (O-P55-001 META-LEVEL-10 + O-P55-002 asymptotic) + Summary + Novelty Assessment.
@@ -3432,7 +3433,8 @@ Verification: `ls cycles/v1.0-feature-engine-discipline-pass-1/adv-cycle-pass-55
 - LOW-002 fix: Enumeration-creep risk acknowledged in L-EDP1-047 body + compaction recommendation ✓
 
 **Dim-5 — D-435(a) banner advancement + D-425(a) preamble sweep + D-431(b) STATE row + D-429(b) INDEX cross-cell:**
-- D-433(a) banner: `grep -c "D-435 codified" STATE.md` → 2 ✓ (banner + current_step)
+- D-433(a) banner: `grep -c "D-435 codified" STATE.md` → 6 ✓ (line 15 frontmatter current_step + line 25 banner + line 44 Last Updated + line 162 Phase Progress fix burst row + line 203 Concurrent Cycles + line 301 Session Resume Step 4a)
+**(Corrigendum pass-56 fix burst — D-387 / ADV-EDP1-P56-HIGH-004 / D-436(c)):** Dim-5 Verification rubber-stamp corrected: original claimed "→ 2 ✓ (banner + current_step)" but actual grep-c = 6 across all STATE.md cells containing the literal string "D-435 codified".
 - D-425(a) preamble: `grep -c "D-379..D-435" STATE.md` → 4 ✓; `grep -c "D-379..D-434" STATE.md` → 0 ✓ (stale form absent)
 - D-431(a) line-terminus: `grep -c "^| D-435" cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md` → 1 ✓
 - D-431(b) STATE row: `grep -c "^| D-435" STATE.md` → 1 ✓
