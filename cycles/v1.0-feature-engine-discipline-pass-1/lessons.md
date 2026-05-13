@@ -3263,7 +3263,7 @@ Net: **3 REFUTED + 1 CONFIRMED-MUTATED + 1 CONFIRMED**.
 
 **Prediction pass-68 (future-tense per D-445(e)(i)):**
 - D-447(a) 4-index Refs completeness gate will be self-applied at pass-67 Commit A (already done — real-time self-application confirmed). Pass-68 adversary WILL verify 4-index Refs now enumerate F-P67-001..F-P67-008 + PG-P67-001..002 for the pass-67 changelog rows.
-- D-447(b) Session Resume L15..L21 enumeration: all 7 plies present at STATE.md:328. Pass-68 adversary will verify L22 definition is added for the new META-LEVEL-22 ply.
+- D-447(b) Session Resume L15..L22 per codifying-burst-Commit-E post-state (D-448(c) self-application; corrected at pass-68 per D-414(c) corrigendum): all 8 plies present at STATE.md:328 at codifying-burst Commit E. [D-448(c) corrigendum: original text cited "L15..L21" but L22 was already added at pass-67 fix burst Commit E; prediction body updated to reflect actual post-state.]
 - D-447(c) Commit-E SHA-canonicality: will be tested at pass-67 fix burst Commit E. If Active Branches factory-artifacts still cites a non-Commit-E SHA, F-P68 opens.
 - D-447(d) decision-log↔lessons.md parity: the D-447(d) sub-clause Closes in decision-log will be verified against L-EDP1-059 Closes annotation. If parity gap exists, F-P68 opens.
 - D-447(e)(i/ii/iii/iv) consolidation sub-issues: variants outside the 4 codified sub-issues may emerge at pass-68.
@@ -3271,3 +3271,44 @@ Net: **3 REFUTED + 1 CONFIRMED-MUTATED + 1 CONFIRMED**.
 **Sibling-corrigendum to L-EDP1-058:** L-EDP1-058 pass-67 prediction outcomes: 3 REFUTED + 1 CONFIRMED-MUTATED + 1 CONFIRMED (recorded above).
 
 **Convergence implication:** Asymptotic floor [7,9]; pass-67 axis-count DROPPED to 8 (4H+3M+1L=8+2PG+1obs) — first drop in 9 consecutive passes. Trajectory tail (LENGTH=4): →9→9→9→8. Two possible interpretations: (a) floor re-establishment at 8 within [7,9] band; (b) one-pass noise that reverts to 9 at pass-68. Streak 0/3 unchanged per D-386 Option C. META-LEVEL ply ascending to 22. PR #124 merge remains gated. Structural break requires S-15.03 PRIORITY-A automation with scope extended to 4-index Refs cells per D-447(a).
+
+## L-EDP1-060 — F5 pass-68 59th-layer L-EDP1-003 recurrence — META-LEVEL-23 CANDIDATE CONFIRMED (codifying-burst-OWN-newly-created-meta-artifact gap; 29th consecutive multi-axis)
+
+**Layer:** 59th
+**Consecutive multi-axis count:** 29
+**Burst codifying:** F5 pass-68 fix burst
+
+**Pattern:** META-LEVEL-23 = **rule-codification-without-self-application-in-codifying-burst-OWN-newly-created-meta-artifact**. Distinct from prior plies — refines META-22 (own-downstream-citation-cells) to META-23 (own-newly-created-meta-artifact). The codifying burst applies the rule to PRIMARY artifacts and DOWNSTREAM-citation cells but FAILS to apply it to the lesson that documents the rule itself. L-EDP1-059 codified D-447(d) decision-log↔lessons.md Closes parity at pass-67 fix burst, but L-EDP1-059's own body had no Closes block.
+
+**Recursion ply:** 23 (extends L1..L22; where L1..L22 includes both CONFIRMED and CANDIDATE plies per D-447(e)(iii) semantic clarification)
+
+**L-EDP1-059 5-prediction outcomes (verified at pass-68):**
+- (i) D-447(a) META-LEVEL-22 4-index Refs: **REFUTED (satisfied)** — 4-index Refs cells for pass-67 correctly enumerate F-P67-001..008 + PG-P67-001..002
+- (ii) D-447(b) Session Resume L15..L22 per codifying-burst-Commit-E post-state: **REFUTED (satisfied)** — L15..L22 present; prediction text corrected at pass-68 Commit B per D-448(c) self-application
+- (iii) D-447(c) Active Branches Commit E SHA: **REFUTED (satisfied)** — SHA-patch follow-up correctly advanced Active Branches to 789ad270
+- (iv) D-447(d) decision-log↔lessons.md Closes parity: **CONFIRMED-VIOLATED at L-EDP1-059 itself** — L-EDP1-059 had no Closes block, violating D-447(d); this is the META-23 pattern
+- (v) D-447(e) multi-issue consolidation: **CONFIRMED** — 5 new sub-issues emerged including CRIT-001 burst-log source-divergence (novel defect class)
+
+**Trend-table (LENGTH=4 per D-433(e)+D-439(c)):**
+
+| Layer | Burst | Axes | Multi-axis? |
+|---|---|---|---|
+| 56 (pass-65) | D-445 | 9 | YES (META-LEVEL-20) |
+| 57 (pass-66) | D-446 | 9 | YES (META-LEVEL-21) |
+| 58 (pass-67) | D-447 | 8 | YES (28th; META-LEVEL-22; first axis-count drop) |
+| 59 (pass-68) | D-448 | 9 | YES (29th; META-LEVEL-23; axis returns to 9 — one-pass noise at pass-67) |
+
+**D-445(b) self-application at L-EDP1-060 (per D-445(b) own-lesson requirement):**
+- Convergence implication tail: →9→9→8→9 (canonical LENGTH=4 per D-433(e)+D-439(c))
+- Passes-range: "8 consecutive passes at axis=9 (passes 59-66) + pass-67 at axis=8 + pass-68 returns to axis=9"
+
+**Convergence implication:** Asymptotic floor [7,9] confirmed at upper-bound 9 — pass-67 8-value was ONE-PASS NOISE. Trajectory tail (LENGTH=4): →9→9→8→9. 29th consecutive multi-axis. Streak 0/3 unchanged per D-386 Option C. META-LEVEL ply ascending monotonically to 23.
+
+**Prediction pass-69:**
+- D-448(a) source-attestation gate: verify pass-68 burst-log Adversary verdict matches adv-cycle-pass-68.md Part A source at Commit E author-time
+- D-448(b) L-EDP1-NNN Closes block: verify L-EDP1-060 (this lesson) has Closes block at codifying-burst's own Commit B (D-448(b) self-application — this lesson IS the own-newly-created-meta-artifact; it must have a Closes block)
+- D-448(c) prediction body internal consistency: verify L-EDP1-060 prediction text uses consistent post-state values (L15..L22 not L15..L21)
+- D-448(d) Burst-log Dim-1 cardinality + STATE.md umbrella sweep: verify headline count matches list and umbrella advances to D-448
+- D-448(e) Multi-issue may surface NEW sub-issues outside the 3 consolidated
+
+**Closes:** F-P68-CRIT-001 + F-P68-HIGH-001 + F-P68-HIGH-002 + F-P68-HIGH-003 + F-P68-HIGH-004 + F-P68-MED-001 + F-P68-MED-002 + F-P68-MED-003 + F-P68-LOW-001 + PG-P68-001 + PG-P68-002 + PG-P68-003 (D-413(b) completeness + D-447(d) parity + D-448(b) Closes block discipline — 9 findings + 3 PG = 12 closure items)
