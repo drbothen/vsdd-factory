@@ -4294,7 +4294,7 @@ D-448(a) source-attestation gate INVOKED via literal shell diff:
 
 **Closes (per D-413(b)+D-448(b)+D-449(a)+D-450(a) discipline):** ADV-EDP1-P70-CRIT-001 + ADV-EDP1-P70-HIGH-001 + ADV-EDP1-P70-HIGH-002 + ADV-EDP1-P70-HIGH-003 + ADV-EDP1-P70-HIGH-004 + ADV-EDP1-P70-MED-001 + ADV-EDP1-P70-MED-002 + ADV-EDP1-P70-MED-003 + ADV-EDP1-P70-LOW-001 + PG-P70-001 + PG-P70-002 + PG-P70-003 (12 closures)
 
-**Factory-artifacts commits:** A (retroactive sibling-sweep corrections at prior passes) / B (decision-log D-450 + L-EDP1-062 at Commit B) / C (S-15.03 cumulative-scope advance at Commit C) / D `69ba6640` (4-index bumps + INDEX.md Convergence Status at Commit D) / E TBD (STATE.md final advance + burst-log 8-block completion; SHA-patch follow-up updates factory-artifacts row to actual Commit E HEAD per D-447(c)+D-449(e))
+**Factory-artifacts commits:** A (retroactive sibling-sweep corrections at prior passes) / B (decision-log D-450 + L-EDP1-062 at Commit B) / C (S-15.03 cumulative-scope advance at Commit C) / D `69ba6640` (4-index bumps + INDEX.md Convergence Status at Commit D) / E `6104fdb7` (STATE.md final advance + burst-log 8-block completion) / SHA-patch `1f45f8d9` (factory-artifacts row advanced to Commit E HEAD per D-447(c)+D-449(e))
 
 ## Burst: F5 pass-71 fix burst (2026-05-13)
 
@@ -4383,4 +4383,4 @@ D-446(a) own-burst-log 8-block gate (invoked at Commit E):
 
 **Closes (per D-413(b)+D-448(b)+D-449(a)+D-451(a) discipline):** ADV-EDP1-P71-CRIT-001 + ADV-EDP1-P71-HIGH-001 + ADV-EDP1-P71-HIGH-002 + ADV-EDP1-P71-HIGH-003 + ADV-EDP1-P71-HIGH-004 + ADV-EDP1-P71-MED-001 + ADV-EDP1-P71-MED-002 + ADV-EDP1-P71-MED-003 + ADV-EDP1-P71-LOW-001 + PG-P71-001 + PG-P71-002 + PG-P71-003 (12 closures)
 
-**Factory-artifacts commits:** A `d3cd89c3` (adv-cycle-pass-71.md persist + INDEX.md row + CRIT-001 retroactive remediation + MED-002 duplicate-Closes + h2 heading) / B `3b7c5fe3` (D-451 codification + L-EDP1-063 + MED-001 prediction-outcome correction) / C `f4194799` (S-15.03 cumulative-scope advance D-451) / D `79c731c3` (4-index bumps BC v2.14/VP v1.90/STORY v3.15/ARCH v1.95 + INDEX.md Convergence Status) / E TBD (STATE.md final advance + burst-log 8-block completion; SHA-patch follow-up updates factory-artifacts row to actual Commit E HEAD per D-447(c)+D-449(e))
+**Factory-artifacts commits:** A `d3cd89c3` (adv-cycle-pass-71.md persist + INDEX.md row + CRIT-001 retroactive remediation + MED-002 duplicate-Closes + h2 heading) / B `3b7c5fe3` (D-451 codification + L-EDP1-063 + MED-001 prediction-outcome correction) / C `f4194799` (S-15.03 cumulative-scope advance D-451) / D `79c731c3` (4-index bumps BC v2.14/VP v1.90/STORY v3.15/ARCH v1.95 + INDEX.md Convergence Status) / E `62f13971` (STATE.md final advance + burst-log 8-block completion) / SHA-patch follow-up (this commit; factory-artifacts row advanced to Commit E HEAD `62f13971` per D-447(c)+D-449(e)+D-451(e))

@@ -213,7 +213,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | 666d689f | rc.18 merge (PR #135 2026-05-13); post-pass-69 catch-up; rc.17 (PR #132 193bf9b5) + rc.18 (PR #135 666d689f) both shipped 2026-05-13 |
 | develop | 27ccb701 | fix(tests): bump Context Injection Contract sanity ceiling 400→600 (PR #134) |
-| factory-artifacts | 1f45f8d9 | pass-70 SHA-patch HEAD; pass-71 Commit E SHA-patch follow-up will advance to actual pass-71 Commit E HEAD; pass-71 Commit D `79c731c3` cited for downstream-dispatch parent-commit convention per D-419(b)+D-420(d)+D-421(a) |
+| factory-artifacts | 62f13971 | pass-71 Commit E HEAD; D-447(c)+D-449(e) SHA-canonicality applied at SHA-patch follow-up; pass-71 Commit D `79c731c3` cited for downstream-dispatch parent-commit convention per D-419(b)+D-420(d)+D-421(a); pass-70 SHA-patch `1f45f8d9` superseded |
 | feature/F5-pass-3-cycle-hardening | 2e6b4372 | PR #124 OPEN (DRAFT); CI run 25651192161 GREEN (11/11 checks) |
 | v1.0.0-rc.16 (tag) | feb894a2 | SHIPPED; claude-mp PR #8 awaiting human merge |
 | v1.0.0-rc.15 (tag) | e68bb436 | SHIPPED |
@@ -324,7 +324,7 @@ dtu_services: []
 - Cycle: v1.0-feature-engine-discipline-pass-1 F5 phase
 - Pass-71 fix burst COMPLETE at Commit E (parent-commit `79c731c3` per D-419(b)+D-420(d)+D-421(a); pushed to origin/factory-artifacts)
 - factory-artifacts Commit D: `79c731c3` (canonical parent-commit per D-419(b) for pass-72 dispatch)
-- factory-artifacts Commit E HEAD: `1f45f8d9` (pass-70 SHA-patch; SHA-patch follow-up after this Commit E will advance to actual pass-71 Commit E HEAD per D-447(c)+D-449(e))
+- factory-artifacts Commit E HEAD: `62f13971` (pass-71 Commit E HEAD; D-447(c)+D-449(e) SHA-canonicality applied at SHA-patch follow-up; pass-70 SHA-patch `1f45f8d9` superseded)
 - **63 lessons reached:** L-EDP1-001..063; 32 consecutive multi-axis (layers 32-62)
 - **73 cycle decisions:** D-379..D-451 (73 total; see decision-log.md for full range)
 - **META-LEVEL-26 CANDIDATE CONFIRMED** at pass-71: rule-codification-prescribing-co-mechanical-application-of-literal-shell-to-N-sibling-gates-without-applying-literal-shell-to-meta-recursion-ack-self-reference ply
@@ -413,7 +413,7 @@ All per D-404 unconditional + D-415(c) annotation form + D-442(c) sample-vs-exha
 
 ### 9. Critical Anchors (Post Pass-71 Fix Burst)
 
-- factory-artifacts Commit E HEAD: `1f45f8d9` (pass-70 SHA-patch; SHA-patch follow-up after THIS Commit E will advance to actual pass-71 Commit E HEAD per D-447(c)+D-449(e))
+- factory-artifacts Commit E HEAD: `62f13971` (pass-71 Commit E HEAD; D-447(c)+D-449(e)+D-451(e) SHA-canonicality applied at SHA-patch follow-up; pass-70 SHA-patch `1f45f8d9` superseded)
 - factory-artifacts Commit D: `79c731c3` (canonical parent-commit per D-419(b) for pass-72 dispatch)
 - develop HEAD: `27ccb701` (fix(tests) PR #134; verified via `git rev-parse origin/develop` = `27ccb70162b66b79783b063a232104fbfb4fca7f`)
 - main HEAD: `666d689f` (rc.18 merge PR #135 2026-05-13; verified via `git rev-parse origin/main` = `666d689fc9a6791bf0fc241a6956b3eeb21b5633`)
