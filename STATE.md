@@ -5,15 +5,15 @@ version: "2.0"
 status: draft
 producer: state-manager
 timestamp: 2026-05-12T00:00:00Z
-phase: engine-discipline-F5-pass-74-fix-burst-complete
+phase: pivot-F5-paused-asymptotic-acceptance-resume-v1.0-brownfield-backfill-E-10-pass-9
 last_amended: 2026-05-13
 inputs: []
 input-hash: "[live-state]"
 traces_to: prd.md
 project: vsdd-factory
 mode: brownfield
-current_step: "F5 pass-74 fix burst COMPLETE (HIGH→PENDING_NEXT_PASS; D-454 codified (5 sub-clauses); L-EDP1-066 65th-layer META-LEVEL-29-CANDIDATE-CONFIRMED 35th-consecutive multi-axis; 4 indexes D-389..D-454 (BC v2.17 / VP v1.93 / STORY v3.18 / ARCH v1.98); trajectory →9→9→9→9; streak 0/3; parent-commit 487e0cc3)"
-current_cycle: v1.0-feature-engine-discipline-pass-1
+current_step: "v1.0-brownfield-backfill RESUMING — E-10 pass-9 adversary dispatch queued (paused at D-343; preceded by F5 cycle 5-pass session passes 70-74 complete with META-LEVEL-29 CANDIDATE CONFIRMED, paused at asymptotic floor per D-386 Option C + human direction 2026-05-13; PR #136 MERGED 845d0007 + PR #124 MERGED d3ae26a5)"
+current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
 dtu_clones_built: "n/a"
@@ -23,7 +23,7 @@ dtu_services: []
 <!--
   STATE.md SIZE BUDGET (per D-421(c) + D-422(c) reconciliation):
   Soft target: ≤415 lines (actual 399 lines at pass-67 Commit E (wc-l)); margin from soft-target = 500 - 415 = 85; margin from actual = 500 - 443 = 57 (D-446(c) dual-margin form); margin [+10,+20] upper-bound per D-422(c)+D-424(b)+D-428(d)+D-434(e)(ii)+D-437(d)+D-438(a)+D-441(e)+D-442(d)+D-443(d)+D-444(e)+D-445(b)+D-446(c); D-452 codified (5 sub-clauses; META-LEVEL-27-CANDIDATE-CONFIRMED + post-derivation-propagation-completeness + Layer-N-dual-direction-sweep + captured-stdout-snapshot-freshness + Layer-N-scope-extension-6-site-class + Decisions-Log-umbrella-range-auto-advance per decision-log.md SoT; L-EDP1-064 63rd-layer); D-446(c) self-application: dual-margin form applied THIS COMMIT E; D-445(c)+D-446(d)+D-447(c)+D-449(e) Active Branches advance to Commit E HEAD in SHA-patch follow-up.
-  Line-growth tracker (D-437(e)+D-441(e)+D-442(e)+D-443(d)+D-444(e)+D-445(b)+D-446(c)+D-447(d)+D-448(d)+D-449(d)+D-450(d)+D-451(d)+D-452(d)+D-453(d)+D-454(d) follow-up): pass-49 Commit E 310 lines; pass-54 Commit E 319 lines; pass-55 Commit E 328 lines; pass-56 Commit E 331 lines; pass-57 Commit E 334 lines; pass-58 Commit E 337 lines; pass-59 Commit E 340 lines; pass-60 Commit E 410 lines; pass-61 Commit E 417 lines; pass-62 Commit E 426 lines; pass-63 Commit E 440 lines; pass-64 Commit E 447 lines; pass-65 Commit E+SHA-patch 395 lines (wc-l; net -52 from pass-64); pass-66 Commit E 397 lines (wc-l; net +2 from pass-65 Commit E+SHA-patch at 395); pass-67 Commit E 399 lines (wc-l; net +2 from pass-66); pass-68 Commit E 402 lines (wc-l; net +3 from pass-67); pass-69 Commit E 405 lines (wc-l; net +3 from pass-68); pass-70 Commit E 435 lines (wc-l; net +30 from pass-69; pre-CLEAR task-snapshot block REMOVED per MED-002 closure but rc.17/rc.18 Phase Progress rows + D-450 Decisions Log row + refreshed Session Resume added net +30); pass-71 Commit E 439 lines (wc-l; net +4 from pass-70 Commit E at 435; pass-71 Phase Progress row + D-451 Decisions Log row + Session Resume refresh added net +4); pass-72 Commit E 443 lines (wc-l; net +4 from pass-71 Commit E at 439; pass-72 Phase Progress row + D-452 Decisions Log row + Session Resume refresh added net +4); pass-73 Commit E 447 lines (wc-l; net +4 from pass-72 Commit E at 443; pass-73 Phase Progress row + D-453 Decisions Log row + Session Resume refresh added net +4); pass-74 Commit E 451 lines (wc-l; net +4 from pass-73 Commit E at 447; pass-74 Phase Progress row + D-454 Decisions Log row + Session Resume refresh added net +4). Hard cap (500 lines) margin from soft-target = 500 - 415 = 85; margin from actual = 500 - 451 = 49 (D-446(c) dual-margin form self-applied at pass-74 Commit E; D-454(b) literal-stdout freshness re-execution INVOKED at push-time; D-453(c) snapshot-freshness gate applied at push-time).
+  Line-growth tracker (D-437(e)+D-441(e)+D-442(e)+D-443(d)+D-444(e)+D-445(b)+D-446(c)+D-447(d)+D-448(d)+D-449(d)+D-450(d)+D-451(d)+D-452(d)+D-453(d)+D-454(d) follow-up): pass-49 Commit E 310 lines; pass-54 Commit E 319 lines; pass-55 Commit E 328 lines; pass-56 Commit E 331 lines; pass-57 Commit E 334 lines; pass-58 Commit E 337 lines; pass-59 Commit E 340 lines; pass-60 Commit E 410 lines; pass-61 Commit E 417 lines; pass-62 Commit E 426 lines; pass-63 Commit E 440 lines; pass-64 Commit E 447 lines; pass-65 Commit E+SHA-patch 395 lines (wc-l; net -52 from pass-64); pass-66 Commit E 397 lines (wc-l; net +2 from pass-65 Commit E+SHA-patch at 395); pass-67 Commit E 399 lines (wc-l; net +2 from pass-66); pass-68 Commit E 402 lines (wc-l; net +3 from pass-67); pass-69 Commit E 405 lines (wc-l; net +3 from pass-68); pass-70 Commit E 435 lines (wc-l; net +30 from pass-69; pre-CLEAR task-snapshot block REMOVED per MED-002 closure but rc.17/rc.18 Phase Progress rows + D-450 Decisions Log row + refreshed Session Resume added net +30); pass-71 Commit E 439 lines (wc-l; net +4 from pass-70 Commit E at 435; pass-71 Phase Progress row + D-451 Decisions Log row + Session Resume refresh added net +4); pass-72 Commit E 443 lines (wc-l; net +4 from pass-71 Commit E at 439; pass-72 Phase Progress row + D-452 Decisions Log row + Session Resume refresh added net +4); pass-73 Commit E 447 lines (wc-l; net +4 from pass-72 Commit E at 443; pass-73 Phase Progress row + D-453 Decisions Log row + Session Resume refresh added net +4); pass-74 Commit E 451 lines (wc-l; net +4 from pass-73 Commit E at 447; pass-74 Phase Progress row + D-454 Decisions Log row + Session Resume refresh added net +4); pass-74-to-pivot transition 406 lines (wc-l; net -45 from pass-74 Commit E at 451; F5 5-pass pause row + Active Branches pivot + Concurrent Cycles pivot + Drift Items side-branch + Session Resume Checkpoint refresh net -45). Hard cap (500 lines) margin from soft-target = 500 - 415 = 85; margin from actual = 500 - 406 = 94 (D-446(c) dual-margin form self-applied at pass-74-to-pivot transition).
   Hard cap: 500 lines (validate-state-md-size hook enforcement).
   Historical content belongs in cycle files, NOT here.
   D-430(a) compaction authorization: Pass-49 Commit E surgical compaction (363→310 lines) authorized retroactively per D-430(a); removed content categories: stale Phase Progress rows (passes 1-38); pre-compaction state preserved at git show 278977fb:.factory/STATE.md.
@@ -42,9 +42,9 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-13 — pass-74 fix burst COMPLETE (HIGH; 1C+4H+3M+1L=9+3PG+3obs; META-LEVEL-29 CANDIDATE CONFIRMED); 76 decisions D-379..D-454 (sample; see decision-log.md for full range); 66 lessons L-EDP1-001..066; 4 indexes BC v2.17/VP v1.93/STORY v3.18/ARCH v1.98; trajectory tail (last 4 of 74 values per D-433(e)+D-439(c)) →9→9→9→9 (passes 71+72+73+74; axis sustained; 35th-consecutive multi-axis; [7,9] asymptotic band); D-454 codified (5 sub-clauses); L-EDP1-066 65th-layer multi-axis (35th consecutive; META-LEVEL-29 CANDIDATE CONFIRMED; meta-rule-codified-with-canonical-mapping-table-AND-PRESCRIBED_SITES-AND-freshness-gate-AND-canonical-bash-template-storage-path-BUT-mapping-table-cell-granularity-vs-gate-file-granularity-OR-mapping-table-self-incomplete-OR-storage-path-without-artifacts-OR-freshness-temporal-scope-excludes-dispatch-side-advance ply); D-454(a/b/c/d/e) ALL literal-shell-INVOKED at Dim-2; D-454(a) per-cell granularity gate INVOKED (line-anchor grep per prescribed_site vs file-level grep); D-454(b) literal-stdout freshness re-execution captures actual numbers (no forward-narrative); D-446(a) own-burst-log 9-block gate INVOKED at Commit E; parent-commit 487e0cc3 (pass-74 Commit D). |
-| **Current Phase** | Engine-discipline F5 — pass-74 fix burst COMPLETE; D-454 + L-EDP1-066 codified; META-LEVEL-29 CANDIDATE CONFIRMED; axis sustained at 9 (35th consecutive multi-axis); next = pass-75 adversary dispatch |
-| **Current Cycle** | v1.0-feature-engine-discipline-pass-1 |
+| **Last Updated** | 2026-05-13 — PIVOT: PR #136 MERGED 845d0007 (CLAUDE.md expansion 66→442 lines); PR #124 MERGED d3ae26a5 (F5-pass-3 cycle hardening: TD #73 SEQUENCE migration + WASM staging CI fix + VP-076 bats harness + 14 commits preserved); F5 5-pass session (passes 70-74) PAUSED at META-LEVEL-29 asymptotic acceptance per D-386 Option C + human direction 2026-05-13 (5 D-NNN codifications D-450..D-454; 5 META plies L25-L29 CANDIDATE CONFIRMED; 5 lessons L-EDP1-062..066; 60 findings closed; asymptotic floor [7,9] for 16 consecutive passes; 35th-consecutive multi-axis; 2 consecutive prediction-to-pass materializations); v1.0-brownfield-backfill RESUMING — E-10 pass-9 adversary dispatch next-step. |
+| **Current Phase** | v1.0-brownfield-backfill — E-10 pass-9 adversary dispatch queued (paused at D-343; F5 cycle paused at META-LEVEL-29 asymptotic floor per D-386 Option C) |
+| **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Phase Progress
 
@@ -102,6 +102,7 @@ dtu_services: []
 | F5 pass-72 fix burst | **COMPLETE** | adv-cycle-pass-72.md HIGH→PENDING_NEXT_PASS; D-452(a/b/c/d/e) + L-EDP1-064 codified; META-LEVEL-27 CANDIDATE CONFIRMED; D-452(a) post-derivation propagation-completeness gate INVOKED at Commit E (captured stdout); D-452(b) Layer-63 dual-direction sweep INVOKED (positive + negative form); D-452(c) captured-stdout snapshot-freshness gate INVOKED at push-time (re-executed gates; empty diff); D-452(d) Layer-63 6-site-class sweep INVOKED (heading + body + trend-tables + 4-index changelogs + burst-log + STATE.md); D-452(e) STATE.md Decisions Log umbrella range advanced D-379..D-452; 4 indexes BC v2.15/VP v1.91/STORY v3.16/ARCH v1.96; trajectory post-pass-72 tail →9→9→9→9 (passes 69+70+71+72); 33rd-consecutive multi-axis at META-LEVEL-27 |
 | F5 pass-73 fix burst | **COMPLETE** | adv-cycle-pass-73.md HIGH→PENDING_NEXT_PASS; D-453(a/b/c/d/e) + L-EDP1-065 codified; META-LEVEL-28 CANDIDATE CONFIRMED (predicted at L-EDP1-064:3527 with MEDIUM probability — first prediction-block forecast to materialize at next pass); D-453(a) PRESCRIBED_SITES enumeration-completeness gate INVOKED (all 7 site classes including INDEX.md row cells); D-453(b) freshness-scope=validated-scope INVOKED at push-time (re-executed ALL Dim-2 gates; empty diff); D-453(c) all 9 burst-log block types literally enumerated; D-453(d) canonical derived-value→PRESCRIBED_SITES mapping table created in decision-log.md appendix; D-453(e) bash-template registry stubbed for next-cycle automation; 4 indexes BC v2.16/VP v1.92/STORY v3.17/ARCH v1.97; trajectory post-pass-73 tail →9→9→9→9 (passes 70+71+72+73); 34th-consecutive multi-axis at META-LEVEL-28 |
 | F5 pass-74 fix burst | **COMPLETE** | adv-cycle-pass-74.md HIGH→PENDING_NEXT_PASS; D-454(a/b/c/d/e) + L-EDP1-066 codified; META-LEVEL-29 CANDIDATE CONFIRMED (predicted at L-EDP1-065:3593; 2nd consecutive prediction-to-pass materialization); D-454(a) per-cell granularity gate INVOKED (literal line-anchor grep per prescribed_site); D-454(b) freshness re-execution captures literal stdout (no forward-narrative); D-454(c) storage path `plugins/vsdd-factory/hooks/dim2-gates/` instantiated at Commit A with README + artifact-path-registry entry (production-grade source-to-deploy routing per CLAUDE.md self-referential constraint); D-454(d) tri-way canonical-form-alignment verified (codification + regex + document); D-454(e) freshness temporal scope extended to dispatch-side-advance + canonical mapping table audited; 4 indexes BC v2.17/VP v1.93/STORY v3.18/ARCH v1.98; trajectory post-pass-74 tail →9→9→9→9 (passes 71+72+73+74); 35th-consecutive multi-axis at META-LEVEL-29 CANDIDATE |
+| F5 5-pass session (passes 70-74) | **PAUSED** at META-LEVEL-29 asymptotic acceptance 2026-05-13 | 5 D-NNN codifications D-450..D-454 (25 sub-clauses); 5 META plies L25-L29 CANDIDATE CONFIRMED; 5 lessons L-EDP1-062..066 (61st-65th-layer); 60 findings closed; asymptotic floor [7,9] confirmed for 16 consecutive passes; 35th-consecutive multi-axis; 2 consecutive prediction-to-pass materializations (META-28→pass-73; META-29→pass-74); adversary flagged "prediction-confirmation theater" decay; human-authorized pause to pivot to v1.0-brownfield-backfill E-10 resume + PR cleanup (PR #136 + #124 merged); structural break requires S-15.03 PRIORITY-A automation per L-EDP1-007/051/061/062/063/064/065/066 |
 
 ## Current Phase Steps
 
@@ -214,10 +215,10 @@ dtu_services: []
 
 | Branch / Tag | SHA | Notes |
 |--------------|-----|-------|
-| main | 666d689f | rc.18 merge (PR #135 2026-05-13); post-pass-69 catch-up; rc.17 (PR #132 193bf9b5) + rc.18 (PR #135 666d689f) both shipped 2026-05-13; verified `git rev-parse origin/main` = 666d689fc9a6791bf0fc241a6956b3eeb21b5633 |
-| develop | 27ccb701 | fix(tests): bump Context Injection Contract sanity ceiling 400→600 (PR #134); verified `git rev-parse origin/develop` = 27ccb70162b66b79783b063a232104fbfb4fca7f |
-| factory-artifacts | 46133e27 | pass-74 Commit E HEAD; D-447(c)+D-449(e) SHA-canonicality at SHA-patch follow-up; pass-74 Commit D `487e0cc3` for downstream-dispatch parent-commit convention per D-419(b)+D-420(d)+D-421(a); pass-73 SHA-patch `e237d413` superseded |
-| feature/F5-pass-3-cycle-hardening | 2e6b4372 | PR #124 OPEN (DRAFT); CI run 25651192161 GREEN (11/11 checks) |
+| main | 70811f4a | verified `git rev-parse origin/main` = 70811f4a5d68d163021f46856c3de51bf8f4aab8 2026-05-13; includes CLAUDE.md expansion PR #136 (845d0007 squash-merge) + rc.18 merge PR #135 (666d689f) |
+| develop | d3ae26a5 | PR #124 MERGED 2026-05-13 — F5-pass-3 cycle hardening: TD #73 SEQUENCE migration + WASM staging CI fix + VP-076 bats harness + 14 commits preserved; verified `git rev-parse origin/develop` = d3ae26a59312f157c5103b4fe0128e55a1d2bcd0 |
+| factory-artifacts | 4b4b6819 | pass-74 SHA-patch HEAD; F5 cycle final-state; will advance to this transition commit SHA after push |
+| save/dim2-gates-path-register | 3df1bdda | Pass-74 ADV-EDP1-P74-HIGH-002 retroactive fix; artifact-path-registry entry + plugins/vsdd-factory/hooks/dim2-gates/README.md; UNMERGED; decision pending — open small PR OR defer to S-15.03 PRIORITY-A wave |
 | v1.0.0-rc.16 (tag) | feb894a2 | SHIPPED; claude-mp PR #8 awaiting human merge |
 | v1.0.0-rc.15 (tag) | e68bb436 | SHIPPED |
 
@@ -226,8 +227,8 @@ dtu_services: []
 | Cycle | Type | Status | Notes |
 |-------|------|--------|-------|
 | F-block-ai-attribution-message-file-arm | feature | F3 COMPLETE — F4 READY | F1+F2+F3 done 2026-05-12; 2 stories ready (S-16.01 5pts PostToolUse HEAD verify, S-16.02 3pts PreToolUse -F arm); E-16 under SS-07/SS-04; milestone v1.0.0-rc.17; BC-7.03.094/095/001, VP-080, ARCH SS-07 v1.3/SS-04 v1.4 registered |
-| v1.0-brownfield-backfill | brownfield | PAUSED | E-10 pass-9 pending; paused at D-343 |
-| v1.0-feature-engine-discipline-pass-1 | feature | F5-IN-PROGRESS | All 6 E-12-platform stories merged; F5 passes 1-74 (74 reviews dispatched; 74 complete adversary returns; 72 fix bursts at passes 3-74) per D-418(c)+D-432(a)+D-435(d) deterministic-tally form; full-cycle trajectory content-only (pass-1..74): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7→8→6→2→5→5→5→7→8→7→8→7→8→7→8→7→7→8→8→7→7→7→8→8→8→9→8→8→9→9→9→9→9→9→9→8→9→9→9→9→9→9→9→9 (74 values); trajectory tail (last 4 of 74 values per D-433(e)+D-439(c)) →9→9→9→9 (passes 71+72+73+74; axis sustained at 9; 35th-consecutive multi-axis; [7,9] asymptotic band confirmed; streak 0/3); pass-74 HIGH verdict (1C+4H+3M+1L=9+3PG+3obs); D-454 codified (5 sub-clauses); L-EDP1-066 65th-layer multi-axis (35th consecutive; META-LEVEL-29 CANDIDATE CONFIRMED; meta-rule-codified-with-canonical-mapping-table-AND-PRESCRIBED_SITES-AND-freshness-gate-AND-canonical-bash-template-storage-path-BUT-mapping-table-cell-granularity-vs-gate-file-granularity-OR-mapping-table-self-incomplete-OR-storage-path-without-artifacts-OR-freshness-temporal-scope-excludes-dispatch-side-advance ply); D-386 Option C: continue F5, accept asymptotic L-EDP1-003 limit; VP-INDEX v1.93 / BC-INDEX v2.17 / ARCH-INDEX v1.98 / STORY-INDEX v3.18 acknowledge D-389..D-454 (sample; see decision-log.md for full range D-389..D-454; post-Commit-D actual versions); S-15.03 PRIORITY-A in pass-2 cycle; pass-74 fix burst COMPLETE at parent-commit 487e0cc3 |
+| v1.0-brownfield-backfill | brownfield | **IN-PROGRESS** | Resumed 2026-05-13 after F5 cycle pause. E-10 pass-9 adversary dispatch is the next step. Paused at D-343 prior to F5 work. Phase D-4 Burst 2 — E-10 + E-9 v1.7 sweep — PENDING. |
+| v1.0-feature-engine-discipline-pass-1 | feature | **PAUSED** | F5 5-pass session (passes 70-74) complete with META-LEVEL-29 CANDIDATE CONFIRMED; paused at asymptotic floor [7,9] per D-386 Option C + human direction 2026-05-13; 5 D-NNN codifications D-450..D-454 + 5 lessons L-EDP1-062..066; resumes only when S-15.03 PRIORITY-A automation lands. pass-74 SHA-patch `4b4b6819` is the cycle's final-state HEAD. Full-cycle trajectory (74 values): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7→8→6→2→5→5→5→7→8→7→8→7→8→7→8→7→7→8→8→7→7→7→8→8→8→9→8→8→9→9→9→9→9→9→9→8→9→9→9→9→9→9→9→9 |
 | v1.0-feature-plugin-async-semantics-pass-1 | feature | CLOSED | All PRs merged; rc.14 shipped |
 
 ## Decisions Log
@@ -313,6 +314,7 @@ dtu_services: []
 | **TD #73** wave-state.yaml schema disagreement | FILED 2026-05-10 | warn-pending-wave-gate uses YAML MAPPING; update-wave-state-on-merge (producer) + vsdd-context-resolvers use YAML SEQUENCE. Pick canonical (recommend SEQUENCE per producer authority). Migrate warn-pending-wave-gate. Surfaced by S-12.07 pass-2 adversary HIGH-006. Migration deferred — requires rewriting 1000+ lines of integration test fixtures. |
 | Ghost BCs: BC-3.07.003/004, BC-1.06.011 | DEFERRED | Missing from BC-INDEX; investigate in future fix-burst |
 | **S-12.08 resolver-linker WASI gap** | FIXED 2026-05-11 db298c94 | HIDDEN gap surfaced in S-12.04; resolver-linker lacked WASI preview2 filesystem rights for context read paths. Fixed in S-12.08 Step 3b commit db298c94. No separate TD filed — closed in-story. |
+| **Side branch `save/dim2-gates-path-register`** | PENDING DECISION | Pass-74 ADV-EDP1-P74-HIGH-002 retroactive fix (artifact-path-registry entry + hooks/dim2-gates/README.md). Options: (a) open small PR to land on develop, (b) defer to S-15.03 PRIORITY-A automation wave (where it would naturally re-emerge). Branch at SHA `3df1bdda`. |
 
 ## Historical Content
 
@@ -320,99 +322,56 @@ dtu_services: []
 - `cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` | `session-checkpoints.md` | `lessons.md`
 - `cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md` (adversary reviews at `S-12.03/`, `S-12.04/`, `S-12.05/` subdirs)
 
-## Session Resume Checkpoint (2026-05-13 — POST-PASS-74 FIX BURST COMPLETE; PASS-75 READY)
+## Session Resume Checkpoint (2026-05-13 — PIVOT: F5 PAUSED; v1.0-brownfield-backfill RESUMING; E-10 PASS-9 NEXT)
 
-> **SELF-SUFFICIENT RESUME CONTEXT — F5 ASYMPTOTIC LOOP**
+> **SELF-SUFFICIENT RESUME CONTEXT — CYCLE PIVOT**
 > Read this section alone to resume the protocol after full conversation CLEAR (not compact).
 
 ### 1. Where We Are
 
-- Cycle: v1.0-feature-engine-discipline-pass-1 F5 phase
-- Pass-74 fix burst COMPLETE at Commit E (parent-commit `487e0cc3` per D-419(b)+D-420(d)+D-421(a); pushed to origin/factory-artifacts)
-- factory-artifacts Commit D: `487e0cc3` (canonical parent-commit per D-419(b) for pass-75 dispatch)
-- factory-artifacts Commit E HEAD: `46133e27` (pass-74 Commit E; SHA-patch applied per D-447(c)+D-449(e))
-- **66 lessons reached:** L-EDP1-001..066; 35 consecutive multi-axis (layers 31-65)
-- **76 cycle decisions:** D-379..D-454 (76 total; see decision-log.md for full range)
-- **META-LEVEL-29 CANDIDATE CONFIRMED** at pass-74: meta-rule-codified-with-canonical-mapping-table-AND-PRESCRIBED_SITES-AND-freshness-gate-AND-canonical-bash-template-storage-path-BUT-mapping-table-cell-granularity-vs-gate-file-granularity-OR-mapping-table-self-incomplete-OR-storage-path-without-artifacts-OR-freshness-temporal-scope-excludes-dispatch-side-advance ply (predicted at L-EDP1-065:3593 with MEDIUM-HIGH probability — 2nd consecutive prediction-to-pass materialization)
-- CRIT-001 closed: D-454(a) per-cell granularity gate; HIGH-001: D-454(b) literal-stdout freshness; HIGH-002: D-454(c) dim2-gates/ instantiated; HIGH-003: D-454(d) tri-way alignment; HIGH-004: D-454(e) temporal scope extended
-- Trajectory content-only (74 values per D-401(c)): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7→8→6→2→5→5→5→7→8→7→8→7→8→7→8→7→7→8→8→7→7→7→8→8→8→9→8→8→9→9→9→9→9→9→9→8→9→9→9→9→9→9→9→9
-- Trajectory tail (last 4 per D-433(e)+D-439(c)): →9→9→9→9 (passes 71+72+73+74; axis sustained at 9; 35th consecutive multi-axis; [7,9] asymptotic band)
-- Streak: 0/3 NITPICK_ONLY. Verdict HIGH sustained at asymptotic floor axis-count ∈ [7,9].
+- Active cycle: v1.0-brownfield-backfill (RESUMED 2026-05-13)
+- F5 cycle (v1.0-feature-engine-discipline-pass-1): PAUSED at META-LEVEL-29 asymptotic floor per D-386 Option C + human direction 2026-05-13
+- PR #136 MERGED at `845d0007` (squash-merge, CLAUDE.md expansion 66→442 lines) — develop now at `d3ae26a5`
+- PR #124 MERGED at `d3ae26a5` (merge commit, F5-pass-3 cycle hardening: TD #73 SEQUENCE migration + WASM staging CI fix + VP-076 bats harness + 14 commits preserved)
+- factory-artifacts HEAD: `4b4b6819` (pass-74 SHA-patch; F5 cycle final-state); transition commit TBD after this push
+- main HEAD: `70811f4a` (includes CLAUDE.md expansion PR #136 squash-merge + rc.18 merge)
+- Side branch `save/dim2-gates-path-register` at `3df1bdda` — UNMERGED, decision pending
 
 ### 2. Operating Mode
 
-- D-386 Option C: asymptotic convergence acceptance — loop continues, floor accepted.
-- 35 consecutive multi-axis recurrences (layers 31-65) empirically confirm asymptotic floor at axis-count ∈ [7,9].
-- 29 META-LEVEL plies acknowledged (L1..L19 fully CONFIRMED; L20..L29 CANDIDATE CONFIRMED per D-449(c)+D-450(a)+D-451(a)+D-452(a)+D-453(a)+D-454(a) ply-status tier discipline).
-- Structural remedy = S-15.03 PRIORITY-A automation deferred to v1.0-feature-engine-discipline-pass-2 cycle.
-- Recursion ply mapping (L15..L29 per D-446(e)(iii)+D-447(b)+D-448(a)+D-449(c)+D-450(a)+D-451(a)+D-452(a)+D-453(a)+D-454(a)):
-  - L15: temporal-scope-self-application-boundary (retroactive vs codifying-burst-OWN-real-time scope)
-  - L16: content-correct/form-divergent (rule applied semantically; form regresses)
-  - L17: rule-application-cross-channel (content in tested channel; sibling channel regresses)
-  - L18: rule-verification-grep co-evolution gap (verification doesn't co-evolve with rule semantic)
-  - L19: rule-codification-without-automation gap — CANDIDATE CONFIRMED pass-64; narrative-attested closure
-  - L20: rule-codification-applies-to-primary-but-not-downstream-citation — CANDIDATE CONFIRMED
-  - L21: rule-codification-without-self-application-in-codifying-burst-OWN-burst-log — CANDIDATE CONFIRMED
-  - L22: rule-codification-applies-to-codifying-burst-OWN-primary-artifact-but-not-codifying-burst-OWN-downstream-citation-cells — CANDIDATE CONFIRMED
-  - L23: rule-codification-without-self-application-in-codifying-burst-OWN-newly-created-meta-artifact — CANDIDATE CONFIRMED pass-68; narrative-attested closure
-  - L24: rule-codification-via-pseudocode-narrative-without-literal-shell-execution-evidence — GENUINELY-closed at pass-69 via literal shell execution (D-449(a))
-  - L25: rule-codification-with-literal-shell-execution-on-PRIMARY-rule-without-co-application-of-same-mechanical-rigor-to-SIBLING-rules-codified-in-same-burst — CANDIDATE CONFIRMED pass-70 (D-450(a))
-  - L26: rule-codification-prescribing-co-mechanical-application-of-literal-shell-to-N-sibling-gates-without-applying-literal-shell-to-meta-recursion-ack-self-reference — CANDIDATE CONFIRMED pass-71 (D-451(a))
-  - L27: literal-shell-derivation-gate-INVOKED-and-captured-stdout-correct-but-OUTPUT-NOT-PROPAGATED-to-all-prescribed-citation-sites-PLUS-snapshot-staleness-when-document-continues-to-be-edited-AND-gate-scope-narrower-than-rule-scope — CANDIDATE CONFIRMED pass-72 (D-452(a/b/c/d))
-  - L28: meta-rule-codified-with-mechanical-gate-AND-explicit-PRESCRIBED_SITES-enumeration-but-PRESCRIBED_SITES-list-itself-INCOMPLETE-OR-freshness-gate-scope-NARROWER-than-validated-gate-scope-OR-site-class-labels-INFORMAL — CANDIDATE CONFIRMED pass-73 (D-453(a/b/c))
-  - L29: meta-rule-codified-with-canonical-mapping-table-AND-PRESCRIBED_SITES-AND-freshness-gate-AND-canonical-bash-template-storage-path-BUT-mapping-table-cell-granularity-vs-gate-file-granularity-OR-mapping-table-self-incomplete-OR-storage-path-without-artifacts-OR-freshness-temporal-scope-excludes-dispatch-side-advance — CANDIDATE CONFIRMED pass-74 (D-454(a/b/c/d/e))
+- D-386 Option C asymptotic acceptance RATIFIED: F5 cycle paused per human direction 2026-05-13.
+- F5 5-pass session (passes 70-74) closed: 5 D-NNN codifications D-450..D-454 (25 sub-clauses); 5 META plies L25-L29 CANDIDATE CONFIRMED; 5 lessons L-EDP1-062..066; 60 findings closed; asymptotic floor [7,9] confirmed for 16 consecutive passes.
+- Structural remedy (S-15.03 PRIORITY-A) deferred; F5 cycle resumes only when automation lands.
+- v1.0-brownfield-backfill: standard brownfield-onboarding mode; E-10 pass-9 adversary is the immediate next action.
 
 ### 3. User Directive (Carry Across CLEAR)
 
-"continue the convergence protocol until complete, OR I personally tell you to stop" — explicit standing directive. PR #124 merges after convergence per separate user statement.
+Human directed 2026-05-13: "take care of PR 124 and 136, update our state, then we need to make sure our state is durable before we continue with the next item in our task list." Standing F5 convergence directive ("continue until convergence OR explicit stop") superseded by this newer direction. Next item in task list = E-10 pass-9 adversary dispatch in v1.0-brownfield-backfill cycle.
 
-### 4. Next Action — Ordered Checklist for Pass-75 Dispatch
+### 4. Next Action — E-10 Pass-9 Adversary Dispatch
 
-Note: D-441(a)+D-442(a)+D-443(a)+D-444(a)+D-449(a)+D-450(a)+D-451(a)+D-452(a)+D-453(a)+D-454(a) verbatim-strict chain — NO meta-commentary in current_step; NO clause-sequence reordering; NO suffix injection; ALL prescribed clauses present; diff gate INVOKED via literal shell at Commit E. Parent-commit for pass-75 dispatch = pass-74 Commit D SHA (`487e0cc3`) per D-419(b)+D-420(d)+D-421(a).
+v1.0-brownfield-backfill cycle; paused at D-343. Phase D-4 Burst 2 — E-10 + E-9 v1.7 sweep — PENDING.
 
-Checklist 4a — Prescribed current_step for pass-75 adversary dispatch:
-```
-"F5 pass-75 adversary dispatch IN-PROGRESS (full-discipline-chain D-382..D-454; pass-74 parent-commit 487e0cc3; D-454 codified (5 sub-clauses); L-EDP1-066 65th-layer META-LEVEL-29-CANDIDATE-CONFIRMED 35th-consecutive multi-axis; 4 indexes D-389..D-454 (BC v2.17 / VP v1.93 / STORY v3.18 / ARCH v1.98); trajectory →9→9→9→9; streak 0/3)"
-```
+1. Read `cycles/v1.0-brownfield-backfill/INDEX.md` for E-10 pass-8 verdict and paused context
+2. Read `cycles/v1.0-brownfield-backfill/decision-log.md` for D-001..D-343 brownfield decisions
+3. Dispatch E-10 pass-9 adversary (fresh-context per Iron Law)
+4. Receive verdict; dispatch fix burst per brownfield-backfill cycle protocol
 
-1. Update STATE.md frontmatter (dispatch-side advance per D-394+D-417(b)+D-441(a)+D-442(a)+D-443(a)+D-444(a)+D-440(a) chain-cite D-382..D-454)
-2. D-418(a)+D-440(a) pre-write grep-back: `grep -c "487e0cc3" STATE.md` (expect ≥2 after update)
-3. Commit dispatch-side advance; push; verify HEAD
-4. Dispatch pass-75 cycle-level adversary (fresh-context per Iron Law)
-5. Receive verdict; dispatch pass-75 fix burst (Commits A/B/C/D/E per D-382..D-454 discipline)
+### 5. Cumulative Codifications
 
-### 5. Cumulative Codifications (D-379..D-454; 76 cycle decisions; sample; see decision-log.md for full range)
+- F5 cycle: D-379..D-454 (76 cycle decisions). Full text: `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md`.
+- Brownfield-backfill cycle: D-001..D-343. Full text: `cycles/v1.0-brownfield-backfill/decision-log.md`.
 
-Full text: `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md`. Key additions at pass-74: D-454(a/b/c/d/e) — META-LEVEL-29 CANDIDATE CONFIRMED + per-cell-granularity-gate + literal-stdout-capture-in-freshness-re-execution + storage-path-instantiated-or-marked-aspirational + tri-way-canonical-form-alignment + freshness-temporal-scope-equals-full-edit-window. D-440(a) dispatch chain-cite updated to D-382..D-454.
+### 6. Cumulative Lessons
 
-### 6. Cumulative Lessons (L-EDP1-001..066; 66 LESSONS; 35 CONSECUTIVE MULTI-AXIS)
-
-- L-EDP1-001..029: pre-session; L-EDP1-030..066: this session (37 layers from pass-38 to pass-74; 35 lessons added this conversation)
-- 35 consecutive multi-axis recurrences (layers 31-65); META-LEVEL plies L1..L19 fully CONFIRMED; L20..L29 CANDIDATE CONFIRMED
-- Full text: `cycles/v1.0-feature-engine-discipline-pass-1/lessons.md`
-- NOTE: lessons.md size-budget flag per D-442(e); WASM fuel exhaustion risk at ~3600+ lines; compaction CRITICAL URGENCY deferred to S-15.03 PRIORITY-A
-- META-LEVEL ply taxonomy (L15..L29) with 1-sentence definitions (per D-447(b)+D-449(c)+D-450(a)+D-451(a)+D-452(a)+D-453(a)+D-454(a) verbatim discipline):
-  - L15: temporal-scope-self-application-boundary — rule distinguishes retroactive vs own-burst-real-time scope, boundary self-collapses
-  - L16: content-correct/form-divergent — rule applied semantically in content channel; typographic form of application diverges
-  - L17: rule-application-cross-channel — content in tested channel satisfies rule; untested sibling channel regresses simultaneously
-  - L18: rule-verification-grep co-evolution gap — verification regex doesn't co-evolve with rule semantic refinement; verifies stale form
-  - L19: rule-codification-without-automation gap — rule prescribes automation; automation never invoked; narrative substituted
-  - L20: rule-codification-applies-to-primary-but-not-downstream-citation — codifying burst updates primary artifact; downstream citation cells omitted
-  - L21: rule-codification-without-self-application-in-codifying-burst-OWN-burst-log — codified rule not applied to OWN burst-log in same burst
-  - L22: rule-codification-applies-to-codifying-burst-OWN-primary-artifact-but-not-codifying-burst-OWN-downstream-citation-cells — primary updated; OWN downstream cells missed
-  - L23: rule-codification-without-self-application-in-codifying-burst-OWN-newly-created-meta-artifact — codified rule not applied to OWN newly-created meta-artifact in same burst
-  - L24: rule-codification-via-pseudocode-narrative-without-literal-shell-execution-evidence — even when codification specifies a mechanical gate, the codifying-burst Dim-2 collapses to prose pseudocode; GENUINELY-closed at pass-69 via literal shell execution (D-449(a))
-  - L25: rule-codification-with-literal-shell-execution-on-PRIMARY-rule-without-co-application-of-same-mechanical-rigor-to-SIBLING-rules-codified-in-same-burst — closing one gate mechanically does not transitively close sibling gates in same D-NNN codification block (CANDIDATE CONFIRMED pass-70)
-  - L26: rule-codification-prescribing-co-mechanical-application-of-literal-shell-to-N-sibling-gates-without-applying-literal-shell-to-meta-recursion-ack-self-reference — prescribing co-application is itself a gate; the prescription itself requires literal-shell evidence in Dim-2, not narrative (CANDIDATE CONFIRMED pass-71)
-  - L27: literal-shell-derivation-gate-INVOKED-and-captured-stdout-correct-but-OUTPUT-NOT-PROPAGATED-to-all-prescribed-citation-sites-PLUS-snapshot-staleness-when-document-continues-to-be-edited-AND-gate-scope-narrower-than-rule-scope — even when derivation gate runs and stdout is correct, the derived value must be explicitly propagated to ALL prescribed citation sites; document editing after gate capture invalidates snapshot without re-execution (CANDIDATE CONFIRMED pass-72)
-  - L28: meta-rule-codified-with-mechanical-gate-AND-explicit-PRESCRIBED_SITES-enumeration-but-PRESCRIBED_SITES-list-itself-INCOMPLETE-OR-freshness-gate-scope-NARROWER-than-validated-gate-scope-OR-site-class-labels-INFORMAL — PRESCRIBED_SITES list itself can be incomplete, freshness-gate scope can be narrower, site-class labels can be informal; canonical mapping table is structural fix (CANDIDATE CONFIRMED pass-73)
-  - L29: meta-rule-codified-with-canonical-mapping-table-AND-PRESCRIBED_SITES-AND-freshness-gate-AND-canonical-bash-template-storage-path-BUT-mapping-table-cell-granularity-vs-gate-file-granularity-OR-mapping-table-self-incomplete-OR-storage-path-without-artifacts-OR-freshness-temporal-scope-excludes-dispatch-side-advance — even with canonical mapping table and storage path, gate granularity can be coarser than registry prescribes; CANDIDATE CONFIRMED pass-74 (D-454(a/b/c/d/e))
+- F5 cycle: L-EDP1-001..066 (66 lessons; 35 consecutive multi-axis recurrences layers 31-65). Full text: `cycles/v1.0-feature-engine-discipline-pass-1/lessons.md`. NOTE: WASM fuel exhaustion risk at ~3600+ lines per D-442(e); compaction deferred to S-15.03 PRIORITY-A.
+- Brownfield-backfill cycle: own lessons.md at `cycles/v1.0-brownfield-backfill/lessons.md`.
 
 ### 7. S-15.03 PRIORITY-A Scope (Cumulative)
 
-~108 sub-items per S-15.03 cumulative header "D-411 through D-454" (44 consecutive decisions; sample — see decision-log.md per D-441(c)+D-442(c)). Full enumeration: `stories/S-15.03-index-cite-refresh-hook.md`. Deferred to v1.0-feature-engine-discipline-pass-2.
+~108 sub-items per S-15.03 cumulative header "D-411 through D-454" (44 consecutive decisions; sample — see decision-log.md). Full enumeration: `stories/S-15.03-index-cite-refresh-hook.md`. Deferred to v1.0-feature-engine-discipline-pass-2 (post-pivot work; not active in brownfield-backfill cycle).
 
-### 8. 4-Index State (Post Pass-74)
+### 8. 4-Index State (Post Pass-74; Unchanged at Pivot)
 
 | Index | Version | Acknowledges |
 |-------|---------|-------------|
@@ -421,32 +380,28 @@ Full text: `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md`. Key a
 | STORY-INDEX | v3.18 | D-389..D-454 (sample; see decision-log.md for full range; crossed v3.00 at pass-56) |
 | ARCH-INDEX | v1.98 | D-389..D-454 (sample; see decision-log.md for full range) |
 
-All per D-404 unconditional + D-415(c) annotation form + D-442(c) sample-vs-exhaustive flag.
+### 9. Critical Anchors (Post-Pivot)
 
-### 9. Critical Anchors (Post Pass-74 Fix Burst)
+- factory-artifacts HEAD: `4b4b6819` (pass-74 SHA-patch; F5 cycle final-state; will advance to this transition commit after push)
+- F5 Commit D: `487e0cc3` (canonical parent-commit per D-419(b) for any future F5 pass-75 resumption)
+- develop HEAD: `d3ae26a5` (PR #124 merge commit 2026-05-13; verified `git rev-parse origin/develop`)
+- main HEAD: `70811f4a` (verified `git rev-parse origin/main` = 70811f4a5d68d163021f46856c3de51bf8f4aab8)
+- F5 cycle: PAUSED at `4b4b6819`; F6/F7: BLOCKED on F5 (not active)
+- Verify at resume: `git -C /Users/jmagady/Dev/vsdd-factory/.factory log --oneline -3`
 
-- factory-artifacts Commit E HEAD: `46133e27` (pass-74 Commit E; SHA-patch applied per D-447(c)+D-449(e)+D-451(e)+D-452(a)+D-453(a)+D-454(a); pass-73 SHA-patch e237d413 superseded)
-- factory-artifacts Commit D: `487e0cc3` (canonical parent-commit per D-419(b) for pass-75 dispatch)
-- develop HEAD: `27ccb701` (fix(tests) PR #134; verified via `git rev-parse origin/develop` = `27ccb70162b66b79783b063a232104fbfb4fca7f`)
-- main HEAD: `666d689f` (rc.18 merge PR #135 2026-05-13; verified via `git rev-parse origin/main` = `666d689fc9a6791bf0fc241a6956b3eeb21b5633`)
-- F5 phase: IN PROGRESS — pass-74 fix burst COMPLETE; pass-75 pending
-- F6: BLOCKED on F5 convergence; F7: BLOCKED on F6
-- Next cycle: v1.0-feature-engine-discipline-pass-2 (S-15.03 PRIORITY-A automation deferred)
-- Verify at resume: `git -C /Users/jmagady/Dev/vsdd-factory/.factory log --oneline -3` to confirm SHA-patch applied
+### 10. PR Status (Post-Pivot)
 
-### 10. PR #124 Status (Carry Across CLEAR)
-
-- State: OPEN, DRAFT, CI GREEN (11/11 checks), mergeable
-- Branch: feature/F5-pass-3-cycle-hardening at 2e6b4372
-- User-stated merge condition: convergence (3-consecutive NITPICK_ONLY) OR explicit human stop
-- NOTE: convergence to NITPICK_ONLY is structurally impossible under prose codification per L-EDP1-007/051 + L-EDP1-066; merge gates effectively on explicit user stop signal
+- PR #124: MERGED at `d3ae26a5` 2026-05-13 (F5-pass-3 cycle hardening). Branch `feature/F5-pass-3-cycle-hardening` deleted.
+- PR #136: MERGED at `845d0007` 2026-05-13 (CLAUDE.md expansion 66→442 lines).
+- No open PRs from F5 work remain.
+- Side branch `save/dim2-gates-path-register` at `3df1bdda`: UNMERGED, decision pending (TD register entry in Drift Items table).
 
 ### 11. Post-CLEAR Resume Checklist
 
-1. Verify factory-artifacts HEAD is at SHA-patch commit (post-pass-74 Commit E + SHA-patch); run `git -C /Users/jmagady/Dev/vsdd-factory/.factory log --oneline -5`
+1. Verify factory-artifacts HEAD is at this transition commit; run `git -C /Users/jmagady/Dev/vsdd-factory/.factory log --oneline -3`
 2. Read STATE.md Session Resume Checkpoint sections 1-10 above (this section is self-sufficient)
-3. Verify CLAUDE.md still cites vsdd-factory project conventions
-4. Resume per standing user directive — dispatch pass-75 adversary (Section 4 checklist) OR honor explicit stop signal if issued
-5. PR #124 status check: confirm OPEN DRAFT CI-GREEN; do not merge until convergence OR explicit user stop signal per Section 10
+3. Verify CLAUDE.md still cites vsdd-factory project conventions (PR #136 expanded it to 442 lines)
+4. Resume v1.0-brownfield-backfill: dispatch E-10 pass-9 adversary per Section 4 checklist
+5. F5 cycle is PAUSED — do NOT dispatch pass-75 without explicit human direction to resume F5
 
-> Previous checkpoint (pass-72 fix burst COMPLETE at pass-72 Commit E + SHA-patch `ffef6a7e`) archived to: `cycles/v1.0-feature-engine-discipline-pass-1/session-checkpoints.md`
+> Previous checkpoint (pass-74 fix burst COMPLETE at pass-74 Commit E + SHA-patch `46133e27`) archived to: `cycles/v1.0-feature-engine-discipline-pass-1/session-checkpoints.md`
