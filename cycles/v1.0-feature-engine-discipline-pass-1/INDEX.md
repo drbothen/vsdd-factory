@@ -117,6 +117,7 @@ changes are WASM-only (no new Bash hook debt per D-2).
 | 58 | 2026-05-12 | Findings: 8 (4H+3M+1L); Observations: 2 | HIGH | adv-cycle-pass-58.md |
 | 59 | 2026-05-12 | Findings: 9 (4H+3M+2L); Observations: 2 | HIGH | adv-cycle-pass-59.md |
 | 60 | 2026-05-12 | HIGH | 4H+3M+2L=9 (META-LEVEL-15 CANDIDATE CONFIRMED; 51st-layer recurrence prediction held) | adv-cycle-pass-60.md |
+| 61 | 2026-05-12 | HIGH | 4H+3M+2L=9 (META-LEVEL-16 CANDIDATE CONFIRMED; content-correct/form-divergent ply; 52nd-layer 22nd-consecutive multi-axis) | adv-cycle-pass-61.md |
 
 ## Convergence Status
 
@@ -124,7 +125,7 @@ changes are WASM-only (no new Bash hook debt per D-2).
 - F2 (spec evolution / story decomposition): **COMPLETE** — F2-amendment D-362; 6 BCs + ADR-018 + 4 VPs + PRD FR-048
 - F3 (incremental stories): **COMPLETE** — F3-amendment D-366; 6 stories S-12.03..S-12.08 under E-12
 - F4 (implementation): **COMPLETE** — all 6 E-12 stories merged (PRs #105, #119, #120, #121, #122, #123); F-P2-001 closed via S-12.08
-- F5 (scoped adversarial review): **IN PROGRESS** — 61 reviews dispatched; 60 complete adversary returns; 58 fix bursts at passes 3-60; per D-418(c)+D-435(d)+D-439(c) deterministic-tally form. Trajectory content-only 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7→8→6→2→5→5→5→7→8→7→8→7→8→7→8→7→7→8→8→7→7→7→8→8→8→9→8→8→9→9 (60 values); trajectory tail (last 4 of 60 values per D-433(e)) →8→8→9→9; pass-60 HIGH (4H+3M+2L=9+2obs); streak 0/3 (asymptotic per D-386 Option C; 60 passes; META-LEVEL-15 CANDIDATE CONFIRMED at pass-60); D-386 Option C accepted; D-379..D-440 codified; L-EDP1-001..L-EDP1-052 authored; VP-INDEX v1.79 / BC-INDEX v2.03 / ARCH-INDEX v1.84 / STORY-INDEX v3.04 acknowledge D-389..D-440 (D-423(a) version sweep applied: post-Commit-D actual versions)
+- F5 (scoped adversarial review): **IN PROGRESS** — 62 reviews dispatched; 61 complete adversary returns; 59 fix bursts at passes 3-61; per D-418(c)+D-435(d)+D-439(c) deterministic-tally form. Trajectory content-only 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7→8→6→2→5→5→5→7→8→7→8→7→8→7→8→7→7→8→8→7→7→7→8→8→8→9→8→8→9→9→9 (61 values); trajectory tail (last 4 of 61 values per D-433(e)+D-439(c)) →8→9→9→9; pass-61 HIGH (4H+3M+2L=9+2obs); streak 0/3 (asymptotic per D-386 Option C; 61 passes; META-LEVEL-16 CANDIDATE CONFIRMED at pass-61); D-386 Option C accepted; D-379..D-441 codified (target; lands at Commit B); L-EDP1-001..L-EDP1-053 authored (target; lands at Commit B); VP-INDEX v1.79 / BC-INDEX v2.03 / ARCH-INDEX v1.84 / STORY-INDEX v3.04 acknowledge D-389..D-440 (D-423(a) version sweep applied: post-Commit-D actual versions); META-LEVEL-16 CONFIRMED — content-correct/form-divergent ply (22nd consecutive multi-axis)
 - F6 (targeted hardening): PENDING
 - F7 (delta convergence): PENDING
 
