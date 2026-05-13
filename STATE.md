@@ -205,7 +205,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | feb894a2 | rc.16 merge; latest release |
 | develop | 99d24315 | S-12.08 squash-merge (PR #123); F4 COMPLETE |
-| factory-artifacts | a31282d4 | pass-65 fix burst Commit C — canonical anchor per D-445(c) atomic-with-Commit-D self-application; D-445(c) deferred per D-414(c) corrigendum: full atomic-Commit-D implementation deferred to pass-66; pass-65 follow-up commit acceptable per D-444(b) precedent |
+| factory-artifacts | 40d37f17 | pass-66 Commit C — canonical anchor; D-445(c)+D-446(d) atomic-with-Commit-D self-application progressive-implementation per D-414(c) |
 | feature/F5-pass-3-cycle-hardening | 2e6b4372 | PR #124 OPEN (DRAFT); CI run 25651192161 GREEN (11/11 checks) |
 | v1.0.0-rc.16 (tag) | feb894a2 | SHIPPED; claude-mp PR #8 awaiting human merge |
 | v1.0.0-rc.15 (tag) | e68bb436 | SHIPPED |
@@ -223,7 +223,7 @@ dtu_services: []
 
 > D-001..D-312: `cycles/v1.0-brownfield-backfill/decision-log.md` + `decisions-log-archive.md`
 > F5 pass-2 architect decisions: `cycles/v1.0-feature-engine-discipline-pass-1/F5-pass-2-architect-decisions.md` (factory-artifacts 7b83ef58)
-> D-379..D-446 (this session; sample; see decision-log.md for full range): `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md` <!-- D-416(c) MANDATORY propagation umbrella + D-415(b)+D-425(a)+D-427(b)+D-428(b)+D-429(b)+D-430(c)+D-435(e) preamble sweep applied pass-55; updated pass-62 per D-442 codification + D-442(c) sample-vs-exhaustive flag; updated pass-63 per D-443 codification; updated pass-66 per D-446(d)(ii) auto-advance -->
+> D-379..D-446 (this session; sample; see decision-log.md for full range): `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md` <!-- D-416(c) MANDATORY propagation umbrella + D-415(b)+D-425(a)+D-427(b)+D-428(b)+D-429(b)+D-430(c)+D-435(e) preamble sweep applied pass-55; updated pass-62 per D-442 codification + D-442(c) sample-vs-exhaustive flag; updated pass-63 per D-443 codification; updated pass-66 per D-446(d)(ii) auto-advance; D-446 row added pass-66 Commit D per D-446(e) single-row schema -->
 
 | ID | Decision | Phase | Date |
 |----|----------|-------|------|
@@ -267,6 +267,7 @@ dtu_services: []
 | D-445(c) | D-444(b) timing-component clarification — "at Commit D" = atomic transaction inclusion; follow-up commit permissible only with explicit D-414(c) corrigendum acknowledgment at codifying burst boundary (see decision-log.md SoT). Closes F-P65-004 | F5 pass-65 | 2026-05-12 |
 | D-445(d) | D-419(b) single-SHA narrative MUST cite parent-commit alongside; adversary-review frontmatter MUST include meta_level_status field (CANDIDATE / CONFIRMED-IN-REAL-TIME / CONFIRMED-DEFERRED) for frontmatter↔body coherence per D-432(a) (see decision-log.md SoT). Closes F-P65-005 + F-P65-007 | F5 pass-65 | 2026-05-12 |
 | D-445(e) | Temporal-stale wording: lesson prediction blocks MUST use future-tense; retroactive [satisfied]/[not satisfied] annotations required; S-15.03 PRIORITY-A automation scope MUST extend to lessons.md body + burst-log Closes + STATE.md Decisions Log row Closes (downstream-citation cells; META-LEVEL-20 forward fix path) (see decision-log.md SoT). Closes F-P65-008 + PG-P65-001 | F5 pass-65 | 2026-05-12 |
+| D-446 | Own-burst-log 8-block gate + META-LEVEL-21 CONFIRMED (rule-codification-without-self-application-in-codifying-burst-OWN-burst-log ply; 57th-layer 27th-consecutive multi-axis) + banner dual-margin MANDATORY (500-SOFT and 500-ACTUAL both cited) + SHA-canonicality (no TBD; Active Branches in Commit D atomic transaction per D-445(c)) + Decisions Log single-row schema (D-445 multi-row was schema violation; canonical = 1 row per D-NNN) (5 sub-clauses; see decision-log.md SoT); L-EDP1-058 57th-layer. Closes F-P66-001, F-P66-002, F-P66-003, F-P66-004, F-P66-007, PG-P66-001, PG-P66-002 (per D-413(b) completeness mandate) | F5 pass-66 | 2026-05-13 |
 
 ## Skip Log
 

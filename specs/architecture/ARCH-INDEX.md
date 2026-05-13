@@ -1,11 +1,11 @@
 ---
 document_type: architecture-index
 level: L3
-version: "1.89"
+version: "1.90"
 status: accepted
 producer: architect
 timestamp: 2026-05-12T00:00:00Z
-last_amended: 2026-05-12
+last_amended: 2026-05-13
 phase: F5
 inputs:
   - .factory/phase-0-ingestion/pass-8-final-synthesis.md
@@ -17,6 +17,8 @@ inputs:
 traces_to: phase-1-spec-crystallization
 deployment_topology: single-service
 changelog:
+  - date: 2026-05-13
+    change: "v1.90 (2026-05-13; pass-66 fix burst per D-446 + D-404 unconditional): Acknowledges decision range D-389..D-446 (inclusive; literal acknowledgment per D-415(c); sample; see decision-log.md for full range D-389..D-446 per D-441(c)+D-442(c) sample-vs-exhaustive citation policy). Per D-404 unconditional: index acknowledges D-446(a/b/c/d/e) by literal ID (no spec content change in this changelog entry). Refs: F-P66-001/002/003/004/007, PG-P66-001/002, D-446. META-LEVEL-21 CANDIDATE CONFIRMED; L-EDP1-058 57th-layer 27th-consecutive multi-axis; rule-codification-without-self-application-in-codifying-burst-OWN-burst-log ply (sample; see decision-log.md for full range D-389..D-446 per D-441(c)+D-442(c) sample-vs-exhaustive citation policy). ARCH-INDEX v1.89→v1.90."
   - date: 2026-05-13
     change: "v1.89 (2026-05-13; pass-65 fix burst per D-445 + D-404 unconditional): Acknowledges decision range D-389..D-445 (inclusive; literal acknowledgment per D-415(c); sample; see decision-log.md for full range D-389..D-445 per D-441(c)+D-442(c) sample-vs-exhaustive citation policy). Per D-404 unconditional: index acknowledges D-445(a/b/c/d/e) by literal ID (no spec content change in this changelog entry). Refs: F-P65-001/002/003/004/005/006/007/008, PG-P65-001, D-445. META-LEVEL-20 CANDIDATE CONFIRMED; L-EDP1-057 56th-layer 26th-consecutive multi-axis; rule-codification-applies-to-primary-but-not-downstream-citation ply (sample; see decision-log.md for full range D-389..D-445 per D-441(c)+D-442(c) sample-vs-exhaustive citation policy). ARCH-INDEX v1.88→v1.89."
   - date: 2026-05-12
