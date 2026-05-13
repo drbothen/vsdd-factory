@@ -3499,7 +3499,7 @@ Net: **4 CONFIRMED-VIOLATED + 2 REFUTED (satisfied) + 1 CONFIRMED**.
 - (ii) D-451(b) verification-regex inline-specification gate: **CONFIRMED-VIOLATED** (ADV-EDP1-P72-HIGH-002 — D-451(d) layer-consistency sweep excluded 4-index changelog entries; scope narrower than rule scope; false-green at pass-71 Commit E)
 - (iii) D-451(c) trajectory-tail derivation discipline: **CONFIRMED-VIOLATED** (ADV-EDP1-P72-CRIT-001 — tail `→9→9→9→9` derived correctly but NOT propagated to all prescribed sites; INDEX.md + STATE.md frontmatter retained `→8→9→9→9`)
 - (iv) D-451(d) layer-numbering consistency: **CONFIRMED-VIOLATED** (ADV-EDP1-P72-HIGH-003 — L-EDP1-062 heading declared "61st-layer" but 4-index changelogs + INDEX.md:130 cited "62nd-layer"; sweep missed changelog scope)
-- (v) D-451(e) production-grade-fix introduces-new-defects gate: **CONFIRMED-VIOLATED** (ADV-EDP1-P72-HIGH-004 — D-451(a) captured-stdout snapshot stale at push-time; `burst-log.md:2` at capture, `burst-log.md:6` at push)
+- (v) D-451(e) production-grade-fix introduces-new-defects gate: **CONFIRMED-VIOLATED** (ADV-EDP1-P72-HIGH-002 — D-451(a) captured-stdout snapshot stale at push-time; `burst-log.md:2` at capture, `burst-log.md:6` at push) [corrected at pass-73 Commit A per MED-002; original erroneous citation was HIGH-004; HIGH-002 = snapshot-staleness; HIGH-004 = 4-index changelog mis-anchor]
 
 Net: **4 CONFIRMED-VIOLATED + 1 CONFIRMED**.
 
