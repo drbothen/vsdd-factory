@@ -54,6 +54,11 @@ artifacts:
     description: Verification property specification
     enforcement_level: block
 
+  - artifact_type: verification-property-index
+    canonical_path_pattern: ".factory/specs/verification-properties/VP-INDEX.md"
+    description: Verification property master index
+    enforcement_level: block
+
   # ── Stories ─────────────────────────────────────────────────────────────
   - artifact_type: story-spec
     canonical_path_pattern: ".factory/stories/S-{story-id}-{slug}.md"
@@ -110,6 +115,11 @@ artifacts:
   - artifact_type: adversarial-review
     canonical_path_pattern: ".factory/cycles/{cycle-id}/adv-{slug}.md"
     description: Adversarial review document for a cycle
+    enforcement_level: block
+
+  - artifact_type: per-story-adversary-pass
+    canonical_path_pattern: ".factory/cycles/{cycle-id}/{story-id}/adversary-pass-{n}.md"
+    description: Per-story adversarial review pass file (BC-5.39.001)
     enforcement_level: block
 
   # ── Product Requirements / State ─────────────────────────────────────────
@@ -234,4 +244,16 @@ artifacts:
   - artifact_type: code-delivery-artifact
     canonical_path_pattern: ".factory/code-delivery/{filename}.md"
     description: Code delivery tracking document
+    enforcement_level: block
+
+  # ── Feature Delta Analysis ────────────────────────────────────────────────
+  - artifact_type: feature-delta-analysis
+    canonical_path_pattern: ".factory/feature-delta/{feature-id}/{filename}.md"
+    description: Feature Mode F1 delta analysis and supporting artifacts per feature
+    enforcement_level: block
+
+  # ── Dim-2 Gate Templates ─────────────────────────────────────────────────
+  - artifact_type: hooks-dim2-gate-template
+    canonical_path_pattern: ".factory/hooks/dim2-gates/{filename}"
+    description: Dim-2 mechanical gate bash template scripts and registry README (D-453(e))
     enforcement_level: block
