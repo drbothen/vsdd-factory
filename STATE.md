@@ -42,7 +42,7 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-12 — pass-61 fix burst COMPLETE (HIGH; 4H+3M+2L=9; META-LEVEL-16 CONFIRMED); 63 decisions D-379..D-441; 53 lessons L-EDP1-001..053; 4 indexes BC v2.04/VP v1.80/STORY v3.05/ARCH v1.85; trajectory tail (last 4 of 61 values per D-433(e)+D-439(c)) →8→9→9→9; D-441 codified (5 sub-clauses); L-EDP1-053 52nd-layer multi-axis (22nd consecutive; META-LEVEL-16 CONFIRMED; content-correct/form-divergent ply). |
+| **Last Updated** | 2026-05-12 — pass-61 fix burst COMPLETE (HIGH; 4H+3M+2L=9; META-LEVEL-16 CONFIRMED); 64 decisions D-379..D-442 (sample; see decision-log.md for full range); 54 lessons L-EDP1-001..054; 4 indexes BC v2.04/VP v1.80/STORY v3.05/ARCH v1.85; trajectory tail (last 4 of 61 values per D-433(e)+D-439(c)) →8→9→9→9; D-441 codified (5 sub-clauses); L-EDP1-053 52nd-layer multi-axis (22nd consecutive; META-LEVEL-16 CONFIRMED; content-correct/form-divergent ply). |
 | **Current Phase** | Engine-discipline F5 — pass-61 fix burst COMPLETE; D-441 + L-EDP1-053 codified; META-LEVEL-16 CONFIRMED; next = pass-62 adversary dispatch |
 | **Current Cycle** | v1.0-feature-engine-discipline-pass-1 |
 
@@ -212,14 +212,14 @@ dtu_services: []
 |-------|------|--------|-------|
 | F-block-ai-attribution-message-file-arm | feature | F3 COMPLETE — F4 READY | F1+F2+F3 done 2026-05-12; 2 stories ready (S-16.01 5pts PostToolUse HEAD verify, S-16.02 3pts PreToolUse -F arm); E-16 under SS-07/SS-04; milestone v1.0.0-rc.17; BC-7.03.094/095/001, VP-080, ARCH SS-07 v1.3/SS-04 v1.4 registered |
 | v1.0-brownfield-backfill | brownfield | PAUSED | E-10 pass-9 pending; paused at D-343 |
-| v1.0-feature-engine-discipline-pass-1 | feature | F5-IN-PROGRESS | All 6 E-12-platform stories merged; F5 passes 1-61 (62 reviews dispatched; 61 complete adversary returns; 59 fix bursts at passes 3-61) per D-418(c)+D-432(a)+D-435(d) deterministic-tally form; full-cycle trajectory content-only (pass-1..61): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7→8→6→2→5→5→5→7→8→7→8→7→8→7→8→7→7→8→8→7→7→7→8→8→8→9→8→8→9→9→9; trajectory tail (last 4 of 61 values per D-433(e)+D-439(c)) →8→9→9→9; pass-61 HIGH verdict (4H+3M+2L=9+2obs); D-441 codified (5 sub-clauses); L-EDP1-053 52nd-layer multi-axis (22nd consecutive; META-LEVEL-16 CONFIRMED; content-correct/form-divergent ply); D-386 Option C: continue F5, accept asymptotic L-EDP1-003 limit; VP-INDEX v1.80 / BC-INDEX v2.04 / ARCH-INDEX v1.85 / STORY-INDEX v3.05 acknowledge D-389..D-441 (D-423(a)+D-438(c) version sweep applied: post-Commit-D actual versions); S-15.03 PRIORITY-A in pass-2 cycle |
+| v1.0-feature-engine-discipline-pass-1 | feature | F5-IN-PROGRESS | All 6 E-12-platform stories merged; F5 passes 1-61 (62 reviews dispatched; 61 complete adversary returns; 59 fix bursts at passes 3-61) per D-418(c)+D-432(a)+D-435(d) deterministic-tally form; full-cycle trajectory content-only (pass-1..61): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7→8→6→2→5→5→5→7→8→7→8→7→8→7→8→7→7→8→8→7→7→7→8→8→8→9→8→8→9→9→9; trajectory tail (last 4 of 61 values per D-433(e)+D-439(c)) →8→9→9→9; pass-61 HIGH verdict (4H+3M+2L=9+2obs); D-441 codified (5 sub-clauses); L-EDP1-053 52nd-layer multi-axis (22nd consecutive; META-LEVEL-16 CONFIRMED; content-correct/form-divergent ply); D-386 Option C: continue F5, accept asymptotic L-EDP1-003 limit; VP-INDEX v1.80 / BC-INDEX v2.04 / ARCH-INDEX v1.85 / STORY-INDEX v3.05 acknowledge D-389..D-441 (sample; see decision-log.md for full range D-389..D-442; D-423(a)+D-438(c) version sweep applied: post-Commit-D actual versions); S-15.03 PRIORITY-A in pass-2 cycle |
 | v1.0-feature-plugin-async-semantics-pass-1 | feature | CLOSED | All PRs merged; rc.14 shipped |
 
 ## Decisions Log
 
 > D-001..D-312: `cycles/v1.0-brownfield-backfill/decision-log.md` + `decisions-log-archive.md`
 > F5 pass-2 architect decisions: `cycles/v1.0-feature-engine-discipline-pass-1/F5-pass-2-architect-decisions.md` (factory-artifacts 7b83ef58)
-> D-379..D-441 (this session): `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md` <!-- D-416(c) MANDATORY propagation umbrella + D-415(b)+D-425(a)+D-427(b)+D-428(b)+D-429(b)+D-430(c)+D-435(e) preamble sweep applied pass-55; updated pass-61 per D-441 codification -->
+> D-379..D-442 (this session; sample; see decision-log.md for full range): `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md` <!-- D-416(c) MANDATORY propagation umbrella + D-415(b)+D-425(a)+D-427(b)+D-428(b)+D-429(b)+D-430(c)+D-435(e) preamble sweep applied pass-55; updated pass-62 per D-442 codification + D-442(c) sample-vs-exhaustive flag -->
 
 | ID | Decision | Phase | Date |
 |----|----------|-------|------|
@@ -330,7 +330,7 @@ Note: D-441(a) verbatim-strict requirement — NO meta-commentary in current_ste
 6. Receive adversary verdict (expected HIGH per asymptotic floor; lessons.md at ~3018 lines may cause WASM fuel exhaustion in hooks — flag at pass-62)
 7. Dispatch pass-62 fix burst (state-manager Commits A/B/C/D/E per D-382..D-441 discipline)
 
-### 5. Cumulative Codifications (D-379..D-441; 63 cycle decisions this session)
+### 5. Cumulative Codifications (D-379..D-442; 64 cycle decisions this session; sample; see decision-log.md for full range)
 
 Full text: `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md`. Key D-NNN summaries (sample; see decision-log.md for full range D-379..D-441 per D-441(c)):
 
@@ -379,10 +379,10 @@ Full text: `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md`. Key D
 
 | Index | Version | Acknowledges |
 |-------|---------|-------------|
-| BC-INDEX | v2.04 | D-389..D-441 (crossed v2.00 at pass-57) |
-| VP-INDEX | v1.80 | D-389..D-441 |
-| STORY-INDEX | v3.05 | D-389..D-441 (crossed v3.00 at pass-56) |
-| ARCH-INDEX | v1.85 | D-389..D-441 |
+| BC-INDEX | v2.04 | D-389..D-441 (sample; see decision-log.md for full range D-389..D-442; crossed v2.00 at pass-57) |
+| VP-INDEX | v1.80 | D-389..D-441 (sample; see decision-log.md for full range D-389..D-442) |
+| STORY-INDEX | v3.05 | D-389..D-441 (sample; see decision-log.md for full range D-389..D-442; crossed v3.00 at pass-56) |
+| ARCH-INDEX | v1.85 | D-389..D-441 (sample; see decision-log.md for full range D-389..D-442) |
 
 All per D-404 unconditional + D-415(c) annotation form.
 
