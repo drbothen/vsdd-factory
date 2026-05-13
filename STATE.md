@@ -204,7 +204,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | feb894a2 | rc.16 merge; latest release |
 | develop | 99d24315 | S-12.08 squash-merge (PR #123); F4 COMPLETE |
-| factory-artifacts | 3b49afb6 | pass-64 fix burst Commit D — parent of Commit E per D-419(b)+D-420(d)+D-421(a) parent-commit-SHA convention; D-443(c)+D-444(b) forward symmetry self-application: Active Branches advanced to pass-64 Commit D SHA at Commit D timing |
+| factory-artifacts | a31282d4 | pass-65 fix burst Commit C — canonical anchor per D-445(c) atomic-with-Commit-D self-application; D-445(c) deferred per D-414(c) corrigendum: full atomic-Commit-D implementation deferred to pass-66; pass-65 follow-up commit acceptable per D-444(b) precedent |
 | feature/F5-pass-3-cycle-hardening | 2e6b4372 | PR #124 OPEN (DRAFT); CI run 25651192161 GREEN (11/11 checks) |
 | v1.0.0-rc.16 (tag) | feb894a2 | SHIPPED; claude-mp PR #8 awaiting human merge |
 | v1.0.0-rc.15 (tag) | e68bb436 | SHIPPED |

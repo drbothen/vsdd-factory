@@ -1,7 +1,7 @@
 ---
 document_type: bc-index
 level: L3
-version: "2.07"
+version: "2.08"
 status: draft
 producer: state-manager
 timestamp: 2026-05-12T00:00:00Z
@@ -12,6 +12,8 @@ inputs:
 total_bcs: 1949
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-13
+    change: "v2.08 (2026-05-13; pass-65 fix burst per D-445 + D-404 unconditional): Acknowledges decision range D-389..D-445 (inclusive; literal acknowledgment per D-415(c); sample; see decision-log.md for full range D-389..D-445 per D-441(c)+D-442(c) sample-vs-exhaustive citation policy). Per D-404 unconditional: index acknowledges D-445(a/b/c/d/e) by literal ID (no spec content change in this changelog entry). Refs: F-P65-001/002/003/004/005/006/007/008, PG-P65-001, D-445. META-LEVEL-20 CANDIDATE CONFIRMED; L-EDP1-057 56th-layer 26th-consecutive multi-axis; rule-codification-applies-to-primary-but-not-downstream-citation ply (sample; see decision-log.md for full range D-389..D-445 per D-441(c)+D-442(c) sample-vs-exhaustive citation policy). BC-INDEX v2.07→v2.08."
   - date: 2026-05-12
     change: "v2.07 (2026-05-12; pass-64 fix burst per D-444 + D-404 unconditional): Acknowledges decision range D-389..D-444 (inclusive; literal acknowledgment per D-415(c); sample; see decision-log.md for full range D-389..D-444 per D-441(c)+D-442(c) sample-vs-exhaustive citation policy). Per D-404 unconditional: index acknowledges D-444(a/b/c/d/e) by literal ID (no spec content change in this changelog entry). Refs: F-P64-001/002/003/004/005, D-444. META-LEVEL-19 CANDIDATE CONFIRMED; L-EDP1-056 55th-layer 25th-consecutive multi-axis; rule-codification-without-automation gap ply (sample; see decision-log.md for full range D-389..D-444 per D-441(c)+D-442(c) sample-vs-exhaustive citation policy). BC-INDEX v2.06→v2.07."
   - date: 2026-05-12
