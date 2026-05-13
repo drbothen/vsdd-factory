@@ -1,7 +1,7 @@
 ---
 document_type: architecture-index
 level: L3
-version: "1.83"
+version: "1.84"
 status: accepted
 producer: architect
 timestamp: 2026-05-12T00:00:00Z
@@ -17,6 +17,8 @@ inputs:
 traces_to: phase-1-spec-crystallization
 deployment_topology: single-service
 changelog:
+  - date: 2026-05-12
+    change: "v1.84 (2026-05-12; pass-60 fix burst per D-440 + D-404 unconditional): Acknowledges decision range D-389..D-440 (inclusive; literal acknowledgment per D-415(c)). Per D-404 unconditional: index acknowledges D-440(a/b/c/d/e) by literal ID (no spec content change in this changelog entry). Refs: ADV-EDP1-P60-HIGH-001/002/003/004/MED-001/002/003/LOW-001/002, D-440. META-LEVEL-15 CANDIDATE CONFIRMED; L-EDP1-052 51st-layer 21st-consecutive multi-axis. ARCH-INDEX v1.83→v1.84."
   - date: 2026-05-12
     change: "v1.83 (2026-05-12; pass-59 fix burst per D-439 + D-404 unconditional): Acknowledges decision range D-389..D-439 (inclusive; literal acknowledgment per D-415(c)). Per D-404 unconditional: index acknowledges D-439 by literal ID (no spec content change in this changelog entry). Refs: ADV-EDP1-P59-HIGH-001/002/003/004/MED-001/002/003/LOW-001/002, D-439. ARCH-INDEX v1.82→v1.83."
   - date: 2026-05-12
