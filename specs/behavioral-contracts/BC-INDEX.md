@@ -1,7 +1,7 @@
 ---
 document_type: bc-index
 level: L3
-version: "2.13"
+version: "2.14"
 status: draft
 producer: state-manager
 timestamp: 2026-05-13T00:00:00Z
@@ -12,6 +12,8 @@ inputs:
 total_bcs: 1949
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-13
+    change: "v2.14 (2026-05-13; pass-71 fix burst per D-451 + D-404 unconditional): Acknowledges decision range D-389..D-451 (inclusive; literal acknowledgment per D-415(c); sample; see decision-log.md for full range D-389..D-451 per D-441(c)+D-442(c) sample-vs-exhaustive citation policy). Per D-404 unconditional: index acknowledges D-451(a/b/c/d/e) by literal ID (no spec content change in this changelog entry). Refs: ADV-EDP1-P71-CRIT-001, ADV-EDP1-P71-HIGH-001/002/003/004, ADV-EDP1-P71-MED-001/002/003, ADV-EDP1-P71-LOW-001, PG-P71-001/002/003, D-451. [O-P71-001/002/003 trimmed per D-449(d)(i): observations are discovery-tier, not Refs-scope.] META-LEVEL-26 CANDIDATE CONFIRMED; L-EDP1-063 62nd-layer 32nd-consecutive multi-axis; rule-codification-prescribing-co-mechanical-application-of-literal-shell-to-N-sibling-gates-without-applying-literal-shell-to-meta-recursion-ack-self-reference ply (sample; see decision-log.md for full range D-389..D-451 per D-441(c)+D-442(c) sample-vs-exhaustive citation policy). BC-INDEX v2.13→v2.14."
   - date: 2026-05-13
     change: "v2.13 (2026-05-13; pass-70 fix burst per D-450 + D-404 unconditional): Acknowledges decision range D-389..D-450 (inclusive; literal acknowledgment per D-415(c); sample; see decision-log.md for full range D-389..D-450 per D-441(c)+D-442(c) sample-vs-exhaustive citation policy). Per D-404 unconditional: index acknowledges D-450(a/b/c/d/e) by literal ID (no spec content change in this changelog entry). Refs: ADV-EDP1-P70-CRIT-001, ADV-EDP1-P70-HIGH-001/002/003/004, ADV-EDP1-P70-MED-001/002/003, ADV-EDP1-P70-LOW-001, PG-P70-001/002/003, D-450. [O-P70-001/002/003 trimmed per D-449(d)(i): observations are discovery-tier, not Refs-scope.] META-LEVEL-25 CANDIDATE CONFIRMED; L-EDP1-062 62nd-layer 31st-consecutive multi-axis; rule-codification-with-literal-shell-execution-on-PRIMARY-rule-without-co-application-of-same-mechanical-rigor-to-SIBLING-rules-codified-in-same-burst ply (sample; see decision-log.md for full range D-389..D-450 per D-441(c)+D-442(c) sample-vs-exhaustive citation policy). BC-INDEX v2.12→v2.13."
   - date: 2026-05-13
