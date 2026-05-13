@@ -1,7 +1,7 @@
 ---
 document_type: architecture-index
 level: L3
-version: "1.96"
+version: "1.97"
 status: accepted
 producer: architect
 timestamp: 2026-05-13T00:00:00Z
@@ -17,6 +17,8 @@ inputs:
 traces_to: phase-1-spec-crystallization
 deployment_topology: single-service
 changelog:
+  - date: 2026-05-13
+    change: "v1.97 (2026-05-13; pass-73 fix burst per D-453 + D-404 unconditional): Acknowledges decision range D-389..D-453 (inclusive; literal acknowledgment per D-415(c); sample; see decision-log.md for full range D-389..D-453 per D-441(c)+D-442(c) sample-vs-exhaustive citation policy). Per D-404 unconditional: index acknowledges D-453(a/b/c/d/e) by literal ID (no spec content change in this changelog entry). Refs: ADV-EDP1-P73-CRIT-001, ADV-EDP1-P73-HIGH-001/002/003/004, ADV-EDP1-P73-MED-001/002/003, ADV-EDP1-P73-LOW-001, PG-P73-001/002/003, D-453. [O-P73-001/002/003 trimmed per D-449(d)(i): observations are discovery-tier, not Refs-scope.] META-LEVEL-28 CANDIDATE CONFIRMED; L-EDP1-065 64th-layer 34th-consecutive multi-axis; meta-rule-codified-with-mechanical-gate-AND-explicit-PRESCRIBED_SITES-enumeration-but-PRESCRIBED_SITES-list-itself-INCOMPLETE-OR-freshness-gate-scope-NARROWER-than-validated-gate-scope-OR-site-class-labels-INFORMAL ply (sample; see decision-log.md for full range D-389..D-453 per D-441(c)+D-442(c) sample-vs-exhaustive citation policy). ARCH-INDEX v1.96→v1.97."
   - date: 2026-05-13
     change: "v1.96 (2026-05-13; pass-72 fix burst per D-452 + D-404 unconditional): Acknowledges decision range D-389..D-452 (inclusive; literal acknowledgment per D-415(c); sample; see decision-log.md for full range D-389..D-452 per D-441(c)+D-442(c) sample-vs-exhaustive citation policy). Per D-404 unconditional: index acknowledges D-452(a/b/c/d/e) by literal ID (no spec content change in this changelog entry). Refs: ADV-EDP1-P72-CRIT-001, ADV-EDP1-P72-HIGH-001/002/003/004, ADV-EDP1-P72-MED-001/002/003, ADV-EDP1-P72-LOW-001, PG-P72-001/002/003, D-452. [O-P72-001/002/003 trimmed per D-449(d)(i): observations are discovery-tier, not Refs-scope.] META-LEVEL-27 CANDIDATE CONFIRMED; L-EDP1-064 63rd-layer 33rd-consecutive multi-axis; literal-shell-derivation-gate-INVOKED-and-captured-stdout-correct-but-OUTPUT-NOT-PROPAGATED-to-all-prescribed-citation-sites-PLUS-snapshot-staleness-when-document-continues-to-be-edited-AND-gate-scope-narrower-than-rule-scope ply (sample; see decision-log.md for full range D-389..D-452 per D-441(c)+D-442(c) sample-vs-exhaustive citation policy). ARCH-INDEX v1.95→v1.96."
   - date: 2026-05-13
