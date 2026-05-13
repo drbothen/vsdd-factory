@@ -4287,7 +4287,7 @@ D-448(a) source-attestation gate INVOKED via literal shell diff:
 **Dim-6 Attestation (D-444(c) burst-log h2 + D-446(a) 8-block gate + D-448(a) source-attestation + D-449(a)+D-450(a) literal-shell-execution SELF-APPLICATION):** D-444(c) burst-log h2 heading `## Burst: F5 pass-70 fix burst (2026-05-13)` added at Commit A real-time. D-446(a) own-burst-log 8-block gate INVOKED at Commit E — all 8 D-444(c) block headers present: Parent-commit ✓ / Adversary verdict ✓ / Files touched ✓ / Codifications ✓ / Dim-2 Attestation ✓ / Dim-5 Attestation ✓ / Dim-6 Attestation ✓ / Dim-7 Attestation ✓ / Closes ✓. D-448(a) source-attestation gate INVOKED at Commit E via literal shell diff (output empty, exit 0). D-449(a)+D-450(a) sibling-rule co-mechanical-application: ALL Dim-2 attestations above use actual bash commands with verbatim stdout captured — no pseudocode. D-450(a) CANDIDATE CONFIRMED CONFIRMED at Commit E: primary gate (D-449(a) Dim-2 literal-shell) was closed at pass-69; sibling gates (D-449(b) Dim-7 timing = CRIT-001; D-449(c) ply-cite = MED-001) lacked comparable literal-shell at pass-69. D-450(a) now prescribes all N sibling gates receive literal-shell at same Commit E.
 
 **Dim-7 Attestation (D-418(c)+D-432(a)+D-435(d)+D-449(b)+D-450(b) deterministic-tally form + Commit-E-author-time semantics):**
-- Trajectory tail (last 4 of 70 values per D-433(e)+D-439(c)): →9→9→9→9 (axis sustained at 9 at passes 68+69+70; 31st-consecutive multi-axis; [7,9] asymptotic band)
+- Trajectory tail (last 4 of 70 values per D-433(e)+D-439(c)): →8→9→9→9 (retroactively corrected at pass-71 Commit A per ADV-EDP1-P71-CRIT-001 + D-451(c) pre-prescription semantic gate; pass-67=8 confirmed by adv-cycle-pass-67.md finding_count=8; passes 67+68+69+70 = 8+9+9+9; prior citation →9→9→9→9 was erroneous — the erroneous narrative "axis sustained at 9 at passes 68+69+70; 31st-consecutive multi-axis" is also corrected: 3 of last 4 at axis=9; pass-67=8 is one-pass noise per L-EDP1-059/060; 31st-consecutive multi-axis count is correct because "multi-axis" threshold ≥7 and all passes 59-70 ≥8)
 - META-LEVEL ply L25 CANDIDATE CONFIRMED (L-EDP1-062 anchor): rule-codification-with-literal-shell-execution-on-PRIMARY-rule-without-co-application-of-same-mechanical-rigor-to-SIBLING-rules-codified-in-same-burst
 - Streak: 0/3 NITPICK_ONLY (asymptotic per D-386 Option C)
 - D-418(c) deterministic-tally: 70 reviews dispatched; 69 complete returns; 67 fix bursts passes 3-69; per D-435(d)+D-449(b) Commit-E-author-time: dispatched = completed returns + 1 if in-progress (70 = 69 + 1 pass-70 in-progress at Commit E author-time per D-449(b)+D-450(b) sibling-sweep applied). NOTE: pass-70 fix burst Commit E authored when pass-70 is still "in-progress" (not yet SHA-patch); count 70 dispatched is correct at Commit E author-time.
@@ -4295,3 +4295,45 @@ D-448(a) source-attestation gate INVOKED via literal shell diff:
 **Closes (per D-413(b)+D-448(b)+D-449(a)+D-450(a) discipline):** ADV-EDP1-P70-CRIT-001 + ADV-EDP1-P70-HIGH-001 + ADV-EDP1-P70-HIGH-002 + ADV-EDP1-P70-HIGH-003 + ADV-EDP1-P70-HIGH-004 + ADV-EDP1-P70-MED-001 + ADV-EDP1-P70-MED-002 + ADV-EDP1-P70-MED-003 + ADV-EDP1-P70-LOW-001 + PG-P70-001 + PG-P70-002 + PG-P70-003 (12 closures)
 
 **Factory-artifacts commits:** A (retroactive sibling-sweep corrections at prior passes) / B (decision-log D-450 + L-EDP1-062 at Commit B) / C (S-15.03 cumulative-scope advance at Commit C) / D `69ba6640` (4-index bumps + INDEX.md Convergence Status at Commit D) / E TBD (STATE.md final advance + burst-log 8-block completion; SHA-patch follow-up updates factory-artifacts row to actual Commit E HEAD per D-447(c)+D-449(e))
+
+## Burst: F5 pass-71 (adversary HIGH 9-axis; META-LEVEL-26 CANDIDATE CONFIRMED; D-451 forthcoming; codifying burst IN-PROGRESS at Commit A)
+
+**Parent-commit (D-419(b)+D-420(d)+D-421(a)):** pass-70 Commit D `69ba6640` (canonical parent for downstream dispatch)
+
+**Adversary verdict (D-448(a) source-attestation stub — full diff gate at Commit E):** adv-cycle-pass-71.md HIGH 9-axis (1C+4H+2M+1L+3PG+3obs); META-LEVEL-26 CANDIDATE CONFIRMED; CRIT-001 trajectory-tail →9→9→9→9 corrected to →8→9→9→9 retroactively at Commit A; MED-002 duplicate Closes block removed from L-EDP1-062; D-451 5-sub-clause codification forthcoming at Commit B.
+
+**Files touched (Dim-1 stub — headline updated at Commit E):** adv-cycle-pass-71.md (new), INDEX.md, burst-log.md, lessons.md, adv-cycle-pass-70.md
+
+**Codifications (Dim-4 stub — D-451 at Commit B):** D-451 forthcoming (5 sub-clauses); L-EDP1-063 forthcoming at Commit B.
+
+**Dim-2 Attestation (literal-shell verification stubs — invoked at Commit E per D-449(a)+D-451(a/b)):**
+
+CRIT-001 fix verification (invoked at Commit A):
+- Command: `grep -c "→9→9→9→9" /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-feature-engine-discipline-pass-1/INDEX.md`
+  Output: `2` (2 remaining are: (1) pass-71 row documentary reference "corrected to →8→9→9→9"; (2) inside 71-value trajectory string representing passes 59-64 axis=9 consecutive values — both are non-erroneous uses of the pattern)
+- Command: `grep -c "→8→9→9→9" /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-feature-engine-discipline-pass-1/INDEX.md`
+  Output: `2` (tail citation corrected; Convergence Status updated)
+- Command: `grep -n "→9→9→9→9" /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md | grep -c "Dim-7"`
+  Output: `0` (Dim-7 trajectory tail citation corrected to →8→9→9→9)
+- Command: `grep -c "retroactively corrected at pass-71 Commit A per ADV-EDP1-P71-CRIT-001" /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md`
+  Output: `1` (pass-70 Dim-7 corrected)
+- Command: `grep -c "retroactively corrected at pass-71 Commit A per ADV-EDP1-P71-CRIT-001" /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-feature-engine-discipline-pass-1/lessons.md`
+  Output: `2` (D-445(b) tail + Convergence implication corrected)
+- Command: `grep "trajectory_tail" /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-feature-engine-discipline-pass-1/adv-cycle-pass-70.md`
+  Output: `trajectory_tail: "→8→9→9→9"` (frontmatter corrected)
+
+MED-002 fix verification (invoked at Commit A):
+- Command: `awk '/^## L-EDP1-062/,/^## L-EDP1-063|^---$/' /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-feature-engine-discipline-pass-1/lessons.md | grep -c "^\*\*Closes:\*\*"`
+  Output: `1` (exactly 1 Closes block in L-EDP1-062 section; duplicate removed)
+
+STATE.md untouched verification (invoked at Commit A):
+- Command: `git -C /Users/jmagady/Dev/vsdd-factory/.factory diff STATE.md | wc -l`
+  Output: `0` (STATE.md not modified in Commit A scope)
+
+**Dim-5 Attestation:** stub — full closures at Commit E.
+
+**Dim-6 Attestation:** stub — D-446(a) 8-block gate + D-448(a) source-attestation at Commit E.
+
+**Dim-7 Attestation:** stub — deterministic-tally + trajectory tail at Commit E.
+
+**Closes:** stub — full closure list at Commit E.

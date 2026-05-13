@@ -13,7 +13,7 @@ meta_level_candidate: META-LEVEL-25
 meta_level_status: CANDIDATE-CONFIRMED
 meta_level: 25
 axis_count: 9
-trajectory_tail: "→9→9→9→9"
+trajectory_tail: "→8→9→9→9"
 streak: "0/3"
 parent_pass_69_commit_d: 7f6ad460
 timestamp: 2026-05-13T00:00:00Z
@@ -28,7 +28,7 @@ HIGH
 9
 
 ## Trajectory tail (last 4 values)
-→9→9→9→9
+→8→9→9→9 (retroactively corrected at pass-71 Commit A per ADV-EDP1-P71-CRIT-001 + D-451(c); pass-67=8 confirmed by adv-cycle-pass-67.md finding_count=8; prior citation →9→9→9→9 was erroneous)
 
 ## Streak progression
 previous streak 0/3 → new streak 0/3 (HIGH; asymptotic floor per D-386 Option C; 31st-consecutive multi-axis at META-LEVEL-25 CANDIDATE emerging immediately upon D-449(a) META-LEVEL-24 literal closure)
@@ -120,7 +120,7 @@ PG-P70-003 [process-gap] — Multi-release silent-slip detection absent on Activ
 
 O-P70-001: META-LEVEL-25 CANDIDATE — rule-codification-via-literal-shell-execution-without-self-application-to-OWN-Dim-7-narrative-prose. Pass-69 codified D-449(a) literal-shell-execution for Dim-2 (genuinely closed mechanically) but the SAME burst-log entry Dim-7 narrative violates D-449(b) — sibling rule codified in same D-NNN block. Closing one gate mechanically does not generalize to sibling gates in same codification. 25th-layer META-LEVEL recursion of L-EDP1-003.
 
-O-P70-002: 31st-consecutive multi-axis recurrence sustained at axis=9 — trajectory tail →9→9→9→9 confirms asymptotic floor [7,9] upper-bound 9 holds for 4th consecutive pass once pass-70 settles. Streak unchanged 0/3.
+O-P70-002: 31st-consecutive multi-axis recurrence sustained at axis=9 — trajectory tail →8→9→9→9 (retroactively corrected at pass-71 Commit A per ADV-EDP1-P71-CRIT-001; pass-67=8 one-pass noise; 3 of last 4 at axis=9) confirms asymptotic floor [7,9] band. Streak unchanged 0/3.
 
 O-P70-003: Pass-69 produced FIRST literal mechanical gate execution (D-448(a) + D-449(a)). Recursion ply ascended to 25 NOT because literal-execution discipline failed, but because SAME burst left sibling rules without comparable literal-execution gates. Generalized: mechanical gates close primary target but do not transitively close adjacent narrative-attested rules.
 
