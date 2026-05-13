@@ -214,7 +214,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | 666d689f | rc.18 merge (PR #135 2026-05-13); post-pass-69 catch-up; rc.17 (PR #132 193bf9b5) + rc.18 (PR #135 666d689f) both shipped 2026-05-13; verified `git rev-parse origin/main` = 666d689fc9a6791bf0fc241a6956b3eeb21b5633 |
 | develop | 27ccb701 | fix(tests): bump Context Injection Contract sanity ceiling 400→600 (PR #134); verified `git rev-parse origin/develop` = 27ccb70162b66b79783b063a232104fbfb4fca7f |
-| factory-artifacts | 10661c9b | pass-71 SHA-patch HEAD; D-447(c)+D-449(e) SHA-canonicality applied; pass-72 Commit D `c777d8a8` cited for downstream-dispatch parent-commit convention per D-419(b)+D-420(d)+D-421(a); Commit E HEAD advanced at SHA-patch follow-up per D-447(c)+D-449(e) |
+| factory-artifacts | ffef6a7e | pass-72 Commit E HEAD; D-447(c)+D-449(e) SHA-canonicality applied at SHA-patch follow-up; pass-72 Commit D `c777d8a8` cited for downstream-dispatch parent-commit convention per D-419(b)+D-420(d)+D-421(a); pass-71 SHA-patch `10661c9b` superseded |
 | feature/F5-pass-3-cycle-hardening | 2e6b4372 | PR #124 OPEN (DRAFT); CI run 25651192161 GREEN (11/11 checks) |
 | v1.0.0-rc.16 (tag) | feb894a2 | SHIPPED; claude-mp PR #8 awaiting human merge |
 | v1.0.0-rc.15 (tag) | e68bb436 | SHIPPED |
@@ -326,7 +326,7 @@ dtu_services: []
 - Cycle: v1.0-feature-engine-discipline-pass-1 F5 phase
 - Pass-72 fix burst COMPLETE at Commit E (parent-commit `c777d8a8` per D-419(b)+D-420(d)+D-421(a); pushed to origin/factory-artifacts)
 - factory-artifacts Commit D: `c777d8a8` (canonical parent-commit per D-419(b) for pass-73 dispatch)
-- factory-artifacts Commit E HEAD: `10661c9b` (pass-71 SHA-patch HEAD; pass-72 Commit E HEAD advanced at SHA-patch follow-up per D-447(c)+D-449(e))
+- factory-artifacts Commit E HEAD: `ffef6a7e` (pass-72 Commit E HEAD; D-447(c)+D-449(e)+D-451(e)+D-452(a) SHA-canonicality applied at SHA-patch follow-up; pass-71 SHA-patch `10661c9b` superseded)
 - **64 lessons reached:** L-EDP1-001..064; 33 consecutive multi-axis (layers 31-63)
 - **74 cycle decisions:** D-379..D-452 (74 total; see decision-log.md for full range)
 - **META-LEVEL-27 CANDIDATE CONFIRMED** at pass-72: literal-shell-derivation-gate-INVOKED-and-captured-stdout-correct-but-OUTPUT-NOT-PROPAGATED-to-all-prescribed-citation-sites-PLUS-snapshot-staleness-when-document-continues-to-be-edited-AND-gate-scope-narrower-than-rule-scope ply
@@ -417,11 +417,11 @@ All per D-404 unconditional + D-415(c) annotation form + D-442(c) sample-vs-exha
 
 ### 9. Critical Anchors (Post Pass-72 Fix Burst)
 
-- factory-artifacts Commit E HEAD: `10661c9b` (pass-71 SHA-patch HEAD; pass-72 Commit E HEAD advanced at SHA-patch follow-up per D-447(c)+D-449(e))
+- factory-artifacts Commit E HEAD: `ffef6a7e` (pass-72 Commit E HEAD; D-447(c)+D-449(e)+D-451(e)+D-452(a) SHA-canonicality applied at SHA-patch follow-up; pass-71 SHA-patch `10661c9b` superseded)
 - factory-artifacts Commit D: `c777d8a8` (canonical parent-commit per D-419(b) for pass-73 dispatch)
 - develop HEAD: `27ccb701` (fix(tests) PR #134; verified via `git rev-parse origin/develop` = `27ccb70162b66b79783b063a232104fbfb4fca7f`)
 - main HEAD: `666d689f` (rc.18 merge PR #135 2026-05-13; verified via `git rev-parse origin/main` = `666d689fc9a6791bf0fc241a6956b3eeb21b5633`)
-- F5 phase: IN PROGRESS — pass-72 fix burst COMPLETE; pass-73 pending
+- F5 phase: IN PROGRESS — pass-72 fix burst COMPLETE (SHA-patch applied); pass-73 pending
 - F6: BLOCKED on F5 convergence; F7: BLOCKED on F6
 - Next cycle: v1.0-feature-engine-discipline-pass-2 (S-15.03 PRIORITY-A automation deferred)
 - Verify at resume: `git -C /Users/jmagady/Dev/vsdd-factory/.factory log --oneline -3` to confirm SHA-patch applied
