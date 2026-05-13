@@ -4086,9 +4086,9 @@ Additional Dim-2 grep verifications:
 
 **Parent-commit:** `ce152d1c` (pass-67 Commit D; canonical parent-commit per D-419(b)+D-420(d)+D-421(a))
 
-**Adversary verdict:** HIGH (4H+3M+1L=8+2PG+1obs); META-LEVEL-22 CANDIDATE CONFIRMED. Pass-67 adversary found F-P67-001..F-P67-008 (8 findings) + PG-P67-001..002 (2 process gaps). Finding set: F-P67-001 own-downstream-citation-scope gap (D-445(b) rule body vs D-445(b) Closes cells diverged); F-P67-002 lesson-body Convergence-implication stale trajectory form; F-P67-003 META-LEVEL-22 ply identification; F-P67-004 Active Branches SHA not advanced at Commit E; F-P67-005 Active Branches SHA TBD at Commit D; F-P67-006 Phase Progress pass-67 fix burst row missing; F-P67-007 Decisions Log row D-447 missing at Commit E; F-P67-008 Concurrent Cycles trajectory tail not updated. PG-P67-001 trajectory axis-count drop narrative missing; PG-P67-002 S-15.03 header not advanced to D-447. 1obs: burst-log h2 heading present (D-438(d) satisfied at Commit A; noted at Commit B per D-444(c)).
+**Adversary verdict:** HIGH (4H+3M+1L=8 + 2 PG + 1 obs); META-LEVEL-22 CANDIDATE CONFIRMED — rule-codification-applies-to-codifying-burst-OWN-primary-artifact-but-not-codifying-burst-OWN-downstream-citation-cells (own-downstream-citation-scope-extension-gap); 58th-layer 28th-consecutive multi-axis. Findings: F-P67-001 (HIGH; META-LEVEL-20 RECURRENCE 4-index Refs gap missing F-P66-006/008/009); F-P67-002 (HIGH; Session Resume Section 6 missing L15 ply def; prefix stale "last 6 plies"); F-P67-003 (HIGH; Active Branches stale SHA Commit C not Commit E); F-P67-004 (HIGH; decision-log↔lessons.md L-EDP1-058 D-446(d) Closes parity gap); F-P67-005 (MED; D-444/D-445 multi-row schema lacks D-414(c) annotation); F-P67-006 (MED; D-446(e)(iii) "last 6 plies" prefix vs "L15..L21" verbatim); F-P67-007 (MED; INDEX.md last_amended + version stale); F-P67-008 (LOW; L-EDP1-058 "extends L1..L20" cardinality semantics); PG-P67-001 (4-index Refs gate undefined); PG-P67-002 (centralized META-LEVEL ply registry absent); O-P67-001 (axis-count dropped 9→8 first drop in 9 passes). Retroactively corrected at pass-68 Commit A per D-448(a) self-application + D-414(c) corrigendum (prior burst-log Adversary verdict was fabricated/divergent from adv-cycle-pass-67.md source). 1obs: O-P67-001 = axis-count dropped 9→8 (first drop in 9 passes per D-447(e)(iv); pass-67 axis-count=8 was one-pass noise per pass-68 verification).
 
-**Files touched (Dim-1):** 7 unique files — decision-log.md, lessons.md, STATE.md, S-15.03-index-cite-refresh-hook.md, BC-INDEX.md, VP-INDEX.md, STORY-INDEX.md, ARCH-INDEX.md, INDEX.md, burst-log.md. Actual unique file count: 10 (per D-432(e) unique-file-count discipline).
+**Files touched (Dim-1): 10 unique files** — decision-log.md, lessons.md, STATE.md, S-15.03-index-cite-refresh-hook.md, BC-INDEX.md, VP-INDEX.md, STORY-INDEX.md, ARCH-INDEX.md, INDEX.md, burst-log.md (D-448(d)(i) self-application; headline corrected from "7" to "10" at pass-68 Commit A per D-414(c) corrigendum).
 
 **Codifications:** D-447(a/b/c/d/e) — own-downstream-citation-scope-extension-enforcement + META-LEVEL-22-CONFIRMED + Active-Branches-SHA-advance-at-Commit-E + Phase-Progress-pass-N-fix-burst-row-MANDATORY + trajectory-axis-count-drop-narrative; L-EDP1-059 58th-layer 28th-consecutive multi-axis META-LEVEL-22 CANDIDATE CONFIRMED.
 
@@ -4114,3 +4114,9 @@ D-446(a) own-burst-log 8-block gate INVOKED at this Commit E. All 8 D-444(c) man
 **Closes:** F-P67-001, F-P67-002, F-P67-003, F-P67-004, F-P67-005, F-P67-006, F-P67-007, F-P67-008, PG-P67-001, PG-P67-002 (per D-413(b) completeness mandate)
 
 **Factory-artifacts commits:** A `73bd947c` / B `055c15b5` / C `0302ef71` / D `ce152d1c` / E `789ad270` (SHA-patch follow-up: Active Branches + Session Resume + burst-log Factory-artifacts updated to Commit E HEAD per D-447(c))
+
+---
+
+## Burst: F5 pass-68 fix burst (2026-05-13)
+
+(Pass-68 fix burst codifies D-448(a/b/c/d/e) closing F-P68-CRIT-001 + F-P68-HIGH-001..004 + F-P68-MED-001..003 + F-P68-LOW-001 + PG-P68-001..003; L-EDP1-060 59th-layer META-LEVEL-23 CANDIDATE CONFIRMED 29th-consecutive multi-axis rule-codification-without-self-application-in-codifying-burst-OWN-newly-created-meta-artifact ply.)
