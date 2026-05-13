@@ -3350,4 +3350,68 @@ Net: **3 REFUTED + 1 CONFIRMED-MUTATED + 1 CONFIRMED**.
 - D-449(d) 4-index Refs scope: verify pass-69 changelog Refs do NOT include O-P69-NNN observations
 - D-449(e) Active Branches scope clarification + codification-vs-invocation gate
 
+**L-EDP1-061 pass-70 prediction outcomes (verified at pass-70):**
+- (i) D-449(a) literal-shell-execution evidence: **CONFIRMED-VIOLATED-SIBLING** (pass-69 Commit E applied literal-shell to D-449(a) PRIMARY gate — genuine mechanical closure; SIBLING gates D-449(b/c/d) received no comparable shell verification — META-25 pattern)
+- (ii) D-449(b) Dim-7 tally timing: **CONFIRMED-VIOLATED** (ADV-EDP1-P70-HIGH-002 — sibling gate not mechanically verified at pass-69 Commit E; covered by D-450(b))
+- (iii) D-449(c) ply-cite anchoring: **CONFIRMED-VIOLATED** (ADV-EDP1-P70-HIGH-001 — sibling gate not mechanically verified; covered by D-450(a))
+- (iv) D-449(d) 4-index Refs scope: **CONFIRMED-VIOLATED** (ADV-EDP1-P70-HIGH-003 — sibling gate not mechanically verified; covered by D-450(c))
+- (v) D-449(e) Active Branches scope clarification: **CONFIRMED-VIOLATED** (ADV-EDP1-P70-HIGH-004 + ADV-EDP1-P70-MED-001 — sibling gate not mechanically verified; covered by D-450(d))
+
+---
+
+## L-EDP1-062 — F5 pass-70 61st-layer L-EDP1-003 recurrence — META-LEVEL-25 CANDIDATE CONFIRMED (rule-codification-with-literal-shell-execution-on-PRIMARY-rule-without-co-application-of-same-mechanical-rigor-to-SIBLING-rules-codified-in-same-burst ply; 31st consecutive multi-axis)
+
+**Layer:** 62nd
+**Consecutive multi-axis count:** 31
+**Burst codifying:** F5 pass-70 fix burst
+
+**Pattern:** META-LEVEL-25 = **rule-codification-with-literal-shell-execution-on-PRIMARY-rule-without-co-application-of-same-mechanical-rigor-to-SIBLING-rules-codified-in-same-burst**. At pass-69, D-449(a) used actual shell commands (grep -oE, diff, printf %s) with captured exit-0 stdout — this was GENUINE mechanical closure of META-LEVEL-24. The SIBLING rules in the same D-449 block — D-449(b) Dim-7 timing discipline, D-449(c) ply-cite anchoring, D-449(d)(i) cardinality discipline — did NOT receive comparable literal-shell verification at the same Commit E. Closing one gate mechanically does NOT inoculate sibling gates against L-EDP1-003 recurrence.
+
+**Recursion ply:** 25 (extends L1..L24; where L1..L24 includes both CONFIRMED and CANDIDATE plies per D-447(e)(iii) semantic clarification)
+
+**Differentiator from prior META-LEVEL plies:**
+- META-19: automation codified but not invoked (mechanism gap).
+- META-20: automation invoked for primary cells, downstream-citation cells uncovered by automation scope (scope gap).
+- META-21: primary artifact (burst-log OWN entry) left as empty stub (self-application gap at primary level).
+- META-22: primary artifacts comply; downstream-citation cells (4-index Refs) omit entries from the same finding set (sibling-cell-scope-extension gap within the same codifying burst).
+- META-23: primary artifacts and downstream-citation cells comply; the lesson that documents the rule (OWN newly-created meta-artifact) lacks a Closes block.
+- META-24: all mechanical gate codifications use pseudocode narrative instead of literal shell execution.
+- **META-25: primary gate receives literal-shell closure; sibling gates within the SAME multi-sub-clause D-NNN block regress to narrative attestation.** The differentiator: META-24 = "all gates pseudocode"; META-25 = "primary gate mechanical, sibling gates regress to narrative". Mechanical closure of one gate does not transitively close sibling gates.
+
+**L-EDP1-061 5-prediction outcomes (verified at pass-70):**
+- (i) D-449(a) literal-shell-execution: **CONFIRMED-VIOLATED-SIBLING** (pass-69 Commit E applied literal-shell to D-449(a) PRIMARY; SIBLING gates not mechanically verified — META-25)
+- (ii) D-449(b) Dim-7 tally timing: **CONFIRMED-VIOLATED** (ADV-EDP1-P70-HIGH-002 — sibling gate gap)
+- (iii) D-449(c) ply-cite anchoring: **CONFIRMED-VIOLATED** (ADV-EDP1-P70-HIGH-001 + CRIT-001 — sibling gate gap)
+- (iv) D-449(d) 4-index Refs scope: **CONFIRMED-VIOLATED** (ADV-EDP1-P70-HIGH-003 — sibling gate gap)
+- (v) D-449(e) Active Branches scope clarification: **CONFIRMED-VIOLATED** (ADV-EDP1-P70-HIGH-004 + MED-001 — sibling gate gap)
+
+Net: **5 CONFIRMED-VIOLATED** (all predictions confirmed as violations — full sibling-gate sweep missed at pass-69 Commit E).
+
+**Trend-table (LENGTH=4 per D-433(e)+D-439(c)):**
+
+| Layer | Burst | Axes | Multi-axis? |
+|---|---|---|---|
+| 58 (pass-67) | D-447 | 8 | YES (META-LEVEL-22; one-pass noise) |
+| 59 (pass-68) | D-448 | 9 | YES (META-LEVEL-23; axis returns to 9) |
+| 60 (pass-69) | D-449 | 9 | YES (META-LEVEL-24 CANDIDATE CONFIRMED; 30th consecutive) |
+| 62 (pass-70) | D-450 | 9 | YES (META-LEVEL-25 CANDIDATE CONFIRMED; 31st consecutive; layer 62) |
+
+**D-445(b) self-application at L-EDP1-062 (per D-445(b) own-lesson requirement):**
+- Convergence implication tail: →9→8→9→9 (canonical LENGTH=4 per D-433(e)+D-439(c))
+- Passes-range: "pass-67 at axis=8 (one-pass noise) + passes 68-70 at axis=9"
+
+**Convergence implication:** Asymptotic floor [7,9] confirmed at upper-bound 9. Pass-70 axis=9 (CRIT-001 + HIGH-001..004 + MED-001..003 + LOW-001 = 9 findings). Trajectory tail (LENGTH=4): →9→8→9→9. 31st consecutive multi-axis. Streak 0/3 unchanged per D-386 Option C. META-LEVEL ply ascending monotonically to 25. PR #124 merge remains gated. Structural break STILL requires S-15.03 PRIORITY-A automation execution — sibling-gate co-mechanical-application requires automation to enumerate ALL sub-clauses and verify each.
+
+**Prediction pass-71 (future-tense per D-445(e)(i); LENGTH=4 tail per D-433(e)+D-439(c)+D-445(b)):**
+- (i) D-450(a) META-25 CANDIDATE acknowledgment itself: **will D-450(a) trigger META-26 recursion at pass-71?** Prediction: YES, META-26 CANDIDATE likely. Pattern: if D-450 codifies "all sibling gates must receive literal-shell" but fails to apply literal-shell to ALL sub-clauses of D-450 itself at pass-70 Commit E, META-26 emerges. The codifying burst for D-450 is pass-70 — so pass-71 adversary will evaluate whether pass-70 Commit E actually invoked literal-shell for ALL D-450(a..e) sub-clauses with captured stdout. Probability HIGH given the structural difficulty.
+- (ii) D-450(b) sibling-sweep: **will it satisfy or refute at codifying burst time (pass-70 Commit E)?** Prediction: REFUTED (satisfied) if Commit E Dim-2 contains grep stdout for prior Dim-7 anachronism patterns. CONFIRMED-VIOLATED if Commit E Dim-2 is narrative only.
+- (iii) D-450(c) Dim-1 arithmetic gate: **will it satisfy or refute at codifying burst time?** Prediction: REFUTED (satisfied) if Commit E Dim-2 contains literal grep + comma-count stdout. CONFIRMED-VIOLATED if narrative only.
+- (iv) D-450(d) STATE.md multi-row SHA + banner wc-l gate: **will it satisfy or refute at codifying burst time?** Prediction: REFUTED (satisfied) if Commit E Dim-2 contains git rev-parse + wc-l captured stdout for all 4 checks. CONFIRMED-VIOLATED if any check is omitted or narrative.
+- (v) D-450(e) decision-log monotonic-row: **will it satisfy or refute at codifying burst time?** Prediction: REFUTED (satisfied) if D-450 row appears after D-449 row (ascending order confirmed by grep at Commit B). D-431(b) corrigendum for D-448↔D-449 swap already applied at this Commit B — the self-application is verifiable at Commit B author-time.
+- (vi) D-448(d)(i) Dim-1 cardinality on pass-70 OWN burst-log entry: **predict satisfaction.** Prediction: REFUTED (satisfied) — Dim-1 headline count will match file list cardinality if D-450(c) gate is invoked at Commit E.
+- (vii) Sibling-sweep target-set on prior burst-log entries: **predict coverage.** Prediction: if D-450(b) is mechanically applied at pass-70 Commit E, all prior Dim-7 cells will be swept. If coverage is narrative-only, META-26 opens.
+- **Size-budget flag (D-442(e)):** lessons.md approaching soft limit ≤3500 lines / hard limit ≤4000 lines. Post-L-EDP1-062 append will push file toward ~3400+ lines. Compact or split at next S-15.03 PRIORITY-A execution window.
+
+**Closes:** ADV-EDP1-P70-CRIT-001 + ADV-EDP1-P70-HIGH-001 + ADV-EDP1-P70-HIGH-002 + ADV-EDP1-P70-HIGH-003 + ADV-EDP1-P70-HIGH-004 + ADV-EDP1-P70-MED-001 + ADV-EDP1-P70-MED-002 + ADV-EDP1-P70-MED-003 + ADV-EDP1-P70-LOW-001 + PG-P70-001 + PG-P70-002 + PG-P70-003 (D-413(b) completeness mandate + D-447(d) parity + D-448(b) Closes block discipline — 9 findings + 3 PG = 12 closure items)
+
 **Closes:** F-P69-CRIT-001 + F-P69-HIGH-001 + F-P69-HIGH-002 + F-P69-HIGH-003 + F-P69-HIGH-004 + F-P69-MED-001 + F-P69-MED-002 + F-P69-MED-003 + F-P69-LOW-001 + PG-P69-001 + PG-P69-002 + PG-P69-003 (12 closures; D-413(b) completeness + D-447(d) parity + D-448(b) Closes block discipline)
