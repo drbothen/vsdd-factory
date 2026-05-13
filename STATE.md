@@ -23,7 +23,7 @@ dtu_services: []
 <!--
   STATE.md SIZE BUDGET (per D-421(c) + D-422(c) reconciliation):
   Soft target: ≤415 lines (actual 399 lines at pass-67 Commit E (wc-l)); margin from soft-target = 500 - 415 = 85; margin from actual = 500 - 399 = 101 (D-446(c) dual-margin form); margin [+10,+20] upper-bound per D-422(c)+D-424(b)+D-428(d)+D-434(e)(ii)+D-437(d)+D-438(a)+D-441(e)+D-442(d)+D-443(d)+D-444(e)+D-445(b)+D-446(c); D-448 codified (5 sub-clauses; burst-log-source-attestation-gate + L-EDP1-NNN-Closes-block-MANDATORY + prediction-body-internal-consistency + Dim-1-header-cardinality-MUST-match + banner-cumulative-cite-IN-PROGRESS-state per decision-log.md SoT); D-446(c) self-application: dual-margin form applied THIS COMMIT E; D-445(c)+D-446(d)+D-447(c)+D-448(a) Active Branches advance to Commit E HEAD in SHA-patch follow-up.
-  Line-growth tracker (D-437(e)+D-441(e)+D-442(e)+D-443(d)+D-444(e)+D-445(b)+D-446(c)+D-447(d)+D-448(d) follow-up): pass-49 Commit E 310 lines; pass-54 Commit E 319 lines; pass-55 Commit E 328 lines; pass-56 Commit E 331 lines; pass-57 Commit E 334 lines; pass-58 Commit E 337 lines; pass-59 Commit E 340 lines; pass-60 Commit E 410 lines; pass-61 Commit E 417 lines; pass-62 Commit E 426 lines; pass-63 Commit E 440 lines; pass-64 Commit E 447 lines; pass-65 Commit E+SHA-patch 395 lines (wc-l; net -52 from pass-64); pass-66 Commit E 397 lines (wc-l; net +2 from pass-66 Commit D at 396); pass-67 Commit E 399 lines (wc-l; net +2 from pass-66); pass-68 Commit E 402 lines (wc-l; net +3 from pass-67). Hard cap (500 lines) margin from soft-target = 500 - 415 = 85; margin from actual = 500 - 402 = 98 (D-446(c) dual-margin form self-applied).
+  Line-growth tracker (D-437(e)+D-441(e)+D-442(e)+D-443(d)+D-444(e)+D-445(b)+D-446(c)+D-447(d)+D-448(d) follow-up): pass-49 Commit E 310 lines; pass-54 Commit E 319 lines; pass-55 Commit E 328 lines; pass-56 Commit E 331 lines; pass-57 Commit E 334 lines; pass-58 Commit E 337 lines; pass-59 Commit E 340 lines; pass-60 Commit E 410 lines; pass-61 Commit E 417 lines; pass-62 Commit E 426 lines; pass-63 Commit E 440 lines; pass-64 Commit E 447 lines; pass-65 Commit E+SHA-patch 395 lines (wc-l; net -52 from pass-64); pass-66 Commit E 397 lines (wc-l; net +2 from pass-65 Commit E+SHA-patch at 395); pass-67 Commit E 399 lines (wc-l; net +2 from pass-66); pass-68 Commit E 402 lines (wc-l; net +3 from pass-67). Hard cap (500 lines) margin from soft-target = 500 - 415 = 85; margin from actual = 500 - 402 = 98 (D-446(c) dual-margin form self-applied).
   Hard cap: 500 lines (validate-state-md-size hook enforcement).
   Historical content belongs in cycle files, NOT here.
   D-430(a) compaction authorization: Pass-49 Commit E surgical compaction (363→310 lines) authorized retroactively per D-430(a); removed content categories: stale Phase Progress rows (passes 1-38); pre-compaction state preserved at git show 278977fb:.factory/STATE.md.
@@ -316,51 +316,51 @@ dtu_services: []
 - Cycle: v1.0-feature-engine-discipline-pass-1 F5 phase
 - Pass-68 fix burst COMPLETE at Commit E (parent-commit `5d825d44` per D-419(b)+D-420(d)+D-421(a); pushed to origin/factory-artifacts)
 - Pass-68 fix burst commit chain: A `7008f39c` / B `10e0cf9a` / C `25ef9abf` / D `5d825d44` / E `<Commit-E-SHA-post-push>`
-- 33 passes driven this session (pass-37 through pass-68; 69 reviews dispatched total since cycle start)
-- 59-LAYER COUNT reached at L-EDP1-060 (29th consecutive multi-axis recurrence; META-LEVEL-23 CANDIDATE CONFIRMED; rule-codification-without-self-application-in-codifying-burst-OWN-newly-created-meta-artifact ply)
-- Trajectory content-only (68 values per D-401(c)): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7→8→6→2→5→5→5→7→8→7→8→7→8→7→8→7→7→8→8→7→7→7→8→8→8→9→8→8→9→9→9→9→9→9→9→8→9
-- Trajectory tail (last 4 per D-433(e)+D-439(c)): →9→9→8→9 (axis returns to 9 at pass-68; pass-67 8-drop was ONE-PASS NOISE within [7,9] band per D-447(e)(iv))
+- 34 passes driven this session (pass-37 through pass-69; 70 reviews dispatched total since cycle start)
+- 60-LAYER COUNT reached at L-EDP1-061 (30th consecutive multi-axis recurrence; META-LEVEL-24 CANDIDATE CONFIRMED; rule-codification-via-pseudocode-narrative-without-literal-shell-execution-evidence ply)
+- Trajectory content-only (69 values per D-401(c)): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7→8→6→2→5→5→5→7→8→7→8→7→8→7→8→7→7→8→8→7→7→7→8→8→8→9→8→8→9→9→9→9→9→9→9→8→9→9
+- Trajectory tail (last 4 per D-433(e)+D-439(c)): →9→8→9→9 (axis sustained at 9 passes 68+69; pass-67 8-drop confirmed ONE-PASS NOISE within [7,9] band per D-447(e)(iv))
 - Streak: 0/3 NITPICK_ONLY. Verdict HIGH sustained at asymptotic floor axis-count ∈ [7,9].
-- META-LEVEL-23 CANDIDATE CONFIRMED at pass-68; D-448(a) source-attestation gate INVOKED (output empty); D-444(a) diff gate INVOKED (output empty); D-446(a) own-burst-log 8-block gate INVOKED at Commit E.
+- META-LEVEL-24 CANDIDATE CONFIRMED at pass-69; D-449(a) literal-shell-execution gate codified; D-449(c) ply-status-tier discipline; D-449(d) 4-index Refs scope.
 
 ### 2. Operating Mode
 
 - D-386 Option C: asymptotic convergence acceptance — loop continues, floor accepted.
-- 29 consecutive multi-axis recurrences (layers 31-59) empirically confirm asymptotic floor at axis-count ∈ [7,9].
-- 22 META-LEVEL plies confirmed (L1..L22 CONFIRMED); L23 CANDIDATE CONFIRMED at pass-68. Per L-EDP1-007 + L-EDP1-031..060 + D-386 Option C, prose-only codification cannot break L-EDP1-003 recurrence.
+- 30 consecutive multi-axis recurrences (layers 31-60) empirically confirm asymptotic floor at axis-count ∈ [7,9].
+- 22 META-LEVEL plies acknowledged (L1..L19 fully CONFIRMED; L20..L23 CANDIDATE CONFIRMED per D-447(e)(iii)+D-449(c) ply-status tier discipline); L24 CANDIDATE CONFIRMED at pass-69. Per L-EDP1-007 + L-EDP1-031..061 + D-386 Option C, prose-only codification cannot break L-EDP1-003 recurrence.
 - Structural remedy = S-15.03 PRIORITY-A automation deferred to v1.0-feature-engine-discipline-pass-2 cycle.
-- Recursion ply mapping (L15..L23 per D-446(e)(iii)+D-447(b)+D-448(b)): L15 temporal-scope-self-application-boundary; L16 content-correct/form-divergent; L17 rule-application-cross-channel; L18 rule-verification-grep co-evolution gap; L19 rule-codification-without-automation gap; L20 rule-codification-applies-to-primary-but-not-downstream-citation (CONFIRMED); L21 rule-codification-without-self-application-in-OWN-burst-log (CONFIRMED); L22 rule-codification-applies-to-codifying-burst-OWN-primary-artifact-but-not-codifying-burst-OWN-downstream-citation-cells (CONFIRMED); L23 rule-codification-without-self-application-in-codifying-burst-OWN-newly-created-meta-artifact (CANDIDATE CONFIRMED at pass-68).
+- Recursion ply mapping (L15..L24 per D-446(e)(iii)+D-447(b)+D-448(a)+D-449(c)): L15 temporal-scope-self-application-boundary; L16 content-correct/form-divergent; L17 rule-application-cross-channel; L18 rule-verification-grep co-evolution gap; L19 rule-codification-without-automation gap; L20 rule-codification-applies-to-primary-but-not-downstream-citation (CANDIDATE CONFIRMED); L21 rule-codification-without-self-application-in-OWN-burst-log (CANDIDATE CONFIRMED); L22 rule-codification-applies-to-codifying-burst-OWN-primary-artifact-but-not-codifying-burst-OWN-downstream-citation-cells (CANDIDATE CONFIRMED); L23 rule-codification-without-self-application-in-codifying-burst-OWN-newly-created-meta-artifact (CANDIDATE CONFIRMED at pass-68); L24 rule-codification-via-pseudocode-narrative-without-literal-shell-execution-evidence (CANDIDATE CONFIRMED at pass-69 per D-449(a)).
 
 ### 3. User Directive (Carry Across Compact)
 
 "continue the convergence protocol until complete, OR I personally tell you to stop" — explicit standing directive, reaffirmed multiple times this session. PR #124 merges after convergence per separate user statement.
 
-### 4. Next Action — Ordered Checklist for Pass-69 Dispatch
+### 4. Next Action — Ordered Checklist for Pass-70 Dispatch
 
-Note: D-441(a)+D-442(a)+D-443(a)+D-444(a) verbatim-strict EXTENSION with diff-gate — NO meta-commentary in current_step; NO clause-sequence reordering; NO suffix injection. D-443(a)+D-444(a) diff-based clause-completeness gate MANDATORY at Commit E. Parent-commit for pass-69 dispatch = `5d825d44` (pass-68 Commit D) per D-419(b)+D-420(d)+D-421(a).
+Note: D-441(a)+D-442(a)+D-443(a)+D-444(a) verbatim-strict EXTENSION with diff-gate — NO meta-commentary in current_step; NO clause-sequence reordering; NO suffix injection. D-443(a)+D-444(a) diff-based clause-completeness gate MANDATORY at Commit E. Parent-commit for pass-70 dispatch = pass-69 Commit D SHA (to be determined at Commit D) per D-419(b)+D-420(d)+D-421(a).
 
-Checklist 4a — Prescribed current_step for pass-69 adversary dispatch:
+Checklist 4a — Prescribed current_step for pass-70 adversary dispatch:
 ```
-"F5 pass-69 adversary dispatch IN-PROGRESS (full-discipline-chain D-382..D-448; pass-68 parent-commit 5d825d44; D-448 codified (5 sub-clauses); L-EDP1-060 59th-layer META-LEVEL-23-CANDIDATE-CONFIRMED 29th-consecutive multi-axis; 4 indexes D-389..D-448 (BC v2.11 / VP v1.87 / STORY v3.12 / ARCH v1.92); trajectory →9→9→8→9; streak 0/3)"
+"F5 pass-70 adversary dispatch IN-PROGRESS (full-discipline-chain D-382..D-449; pass-69 parent-commit <Commit-D-SHA>; D-449 codified (5 sub-clauses); L-EDP1-061 60th-layer META-LEVEL-24-CANDIDATE-CONFIRMED 30th-consecutive multi-axis; 4 indexes D-389..D-449 (BC v2.12 / VP v1.88 / STORY v3.13 / ARCH v1.93); trajectory →9→8→9→9; streak 0/3)"
 ```
 
-1. Update STATE.md frontmatter (dispatch-side advance per D-394+D-417(b)+D-441(a)+D-442(a)+D-443(a)+D-444(a)+D-440(a) chain-cite D-382..D-448)
-2. D-418(a)+D-440(a) pre-write grep-back: `grep -c "5d825d44" STATE.md` (expect ≥2 after update)
+1. Update STATE.md frontmatter (dispatch-side advance per D-394+D-417(b)+D-441(a)+D-442(a)+D-443(a)+D-444(a)+D-440(a) chain-cite D-382..D-449)
+2. D-418(a)+D-440(a) pre-write grep-back: `grep -c "<Commit-D-SHA>" STATE.md` (expect ≥2 after update)
 3. Commit dispatch-side advance; push; verify HEAD
-4. Dispatch pass-69 cycle-level adversary (fresh-context per Iron Law)
-5. Receive verdict; dispatch pass-69 fix burst (Commits A/B/C/D/E per D-382..D-448 discipline)
+4. Dispatch pass-70 cycle-level adversary (fresh-context per Iron Law)
+5. Receive verdict; dispatch pass-70 fix burst (Commits A/B/C/D/E per D-382..D-449 discipline)
 
-### 5. Cumulative Codifications (D-379..D-448; 70 cycle decisions; sample; see decision-log.md for full range)
+### 5. Cumulative Codifications (D-379..D-449; 71 cycle decisions; sample; see decision-log.md for full range)
 
-Full text: `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md`. Key additions at pass-68: D-448(a/b/c/d/e) — burst-log-source-attestation-gate + L-EDP1-NNN-Closes-block-MANDATORY + prediction-body-internal-consistency + Dim-1-header-cardinality-MUST-match + banner/obs/schema-migration disciplines. D-440(a) dispatch chain-cite updated to D-382..D-448.
+Full text: `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md`. Key additions at pass-69: D-449(a/b/c/d/e) — literal-shell-execution-evidence + Dim-7-tally-timing + ply-cite-anchoring+status-tier + 4-index-Refs-scope + Active-Branches-scope-clarification. D-440(a) dispatch chain-cite updated to D-382..D-449.
 
-### 6. Cumulative Lessons (L-EDP1-001..060; 59-LAYER COUNT)
+### 6. Cumulative Lessons (L-EDP1-001..061; 60-LAYER COUNT)
 
-- L-EDP1-001..029: pre-session; L-EDP1-030..060: this session (31 layers from pass-38 to pass-68)
-- 29 consecutive multi-axis recurrences (layers 31-59); META-LEVEL plies L1..L22 CONFIRMED; L23 CANDIDATE CONFIRMED
+- L-EDP1-001..029: pre-session; L-EDP1-030..061: this session (32 layers from pass-38 to pass-69)
+- 30 consecutive multi-axis recurrences (layers 31-60); META-LEVEL plies L1..L19 fully CONFIRMED; L20..L24 CANDIDATE CONFIRMED
 - Full text: `cycles/v1.0-feature-engine-discipline-pass-1/lessons.md`
 - NOTE: lessons.md size-budget flag per D-442(e); WASM fuel exhaustion risk; compaction deferred to pass-2 cycle
-- L23 ply definition: rule-codification-without-self-application-in-codifying-burst-OWN-newly-created-meta-artifact — the codifying burst creates a new meta-artifact (e.g. L-EDP1-NNN lesson) but fails to apply to that newly-created artifact the very rule being codified
+- L24 ply definition: rule-codification-via-pseudocode-narrative-without-literal-shell-execution-evidence — even when codification specifies a mechanical gate, the codifying-burst Dim-2 collapses to prose pseudocode + narrative attestation; gates cannot detect their own scope-degradation
 
 ### 7. S-15.03 PRIORITY-A Scope (Cumulative)
 
