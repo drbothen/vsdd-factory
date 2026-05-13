@@ -3394,7 +3394,7 @@ Net: **5 CONFIRMED-VIOLATED** (all predictions confirmed as violations — full 
 | 58 (pass-67) | D-447 | 8 | YES (META-LEVEL-22; one-pass noise) |
 | 59 (pass-68) | D-448 | 9 | YES (META-LEVEL-23; axis returns to 9) |
 | 60 (pass-69) | D-449 | 9 | YES (META-LEVEL-24 CANDIDATE CONFIRMED; 30th consecutive) |
-| 62 (pass-70) | D-450 | 9 | YES (META-LEVEL-25 CANDIDATE CONFIRMED; 31st consecutive; layer 62) |
+| 61 (pass-70) | D-450 | 9 | YES (META-LEVEL-25 CANDIDATE CONFIRMED; 31st consecutive; layer 61) | *(retroactive-correction per pass-72 ADV-EDP1-P72-HIGH-003 + D-452(d): prior "62 (pass-70)" was incorrect — L-EDP1-062 heading is "61st-layer"; body trend-table now matches heading)* |
 
 **D-445(b) self-application at L-EDP1-062 (per D-445(b) own-lesson requirement):**
 - Convergence implication tail: →8→9→9→9 (retroactively corrected at pass-71 Commit A per ADV-EDP1-P71-CRIT-001 + D-451(c); prior value →9→8→9→9 had wrong chronological ordering; canonical LENGTH=4 per D-433(e)+D-439(c); passes 67+68+69+70 = 8+9+9+9 in chronological order)
@@ -3451,7 +3451,7 @@ Net: **4 CONFIRMED-VIOLATED + 2 REFUTED (satisfied) + 1 CONFIRMED**.
 |---|---|---|---|
 | 59 (pass-68) | D-448 | 9 | YES (META-LEVEL-23; axis returns to 9) |
 | 60 (pass-69) | D-449 | 9 | YES (META-LEVEL-24 CANDIDATE CONFIRMED; 30th consecutive) |
-| 62 (pass-70) | D-450 | 9 | YES (META-LEVEL-25 CANDIDATE CONFIRMED; 31st consecutive) |
+| 61 (pass-70) | D-450 | 9 | YES (META-LEVEL-25 CANDIDATE CONFIRMED; 31st consecutive) | *(retroactive-correction per pass-72 ADV-EDP1-P72-HIGH-003 + D-452(d): prior "62 (pass-70)" was incorrect — L-EDP1-062 heading is "61st-layer"; body trend-table now matches heading)* |
 | 62 (pass-71) | D-451 | 9 | YES (META-LEVEL-26 CANDIDATE CONFIRMED; 32nd consecutive) |
 
 **D-445(b) self-application at L-EDP1-063 (per D-445(b) own-lesson requirement):**
