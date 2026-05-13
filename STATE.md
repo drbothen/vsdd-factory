@@ -206,7 +206,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | feb894a2 | rc.16 merge; latest release |
 | develop | 99d24315 | S-12.08 squash-merge (PR #123); F4 COMPLETE |
-| factory-artifacts | 17339d74 | pass-66 Commit E HEAD; D-447(c) SHA-canonicality at Commit E self-application; pass-66 Commit D `59873fbe` cited for downstream-dispatch parent-commit convention per D-419(b)+D-420(d)+D-421(a) |
+| factory-artifacts | 0302ef71 | pass-67 Commit C SHA — canonical anchor per D-445(c)+D-446(d)+D-447(c) atomic-with-Commit-D semantics; at Commit E MUST be updated to Commit E HEAD per D-447(c) self-application |
 | feature/F5-pass-3-cycle-hardening | 2e6b4372 | PR #124 OPEN (DRAFT); CI run 25651192161 GREEN (11/11 checks) |
 | v1.0.0-rc.16 (tag) | feb894a2 | SHIPPED; claude-mp PR #8 awaiting human merge |
 | v1.0.0-rc.15 (tag) | e68bb436 | SHIPPED |

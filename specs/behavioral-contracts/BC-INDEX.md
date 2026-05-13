@@ -1,17 +1,19 @@
 ---
 document_type: bc-index
 level: L3
-version: "2.09"
+version: "2.10"
 status: draft
 producer: state-manager
-timestamp: 2026-05-12T00:00:00Z
-last_amended: 2026-05-12
+timestamp: 2026-05-13T00:00:00Z
+last_amended: 2026-05-13
 phase: F5
 inputs:
   - .factory/specs/behavioral-contracts/bc-id-mapping.md
 total_bcs: 1949
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-13
+    change: "v2.10 (2026-05-13; pass-67 fix burst per D-447 + D-404 unconditional): Acknowledges decision range D-389..D-447 (inclusive; literal acknowledgment per D-415(c); sample; see decision-log.md for full range D-389..D-447 per D-441(c)+D-442(c) sample-vs-exhaustive citation policy). Per D-404 unconditional: index acknowledges D-447(a/b/c/d/e) by literal ID (no spec content change in this changelog entry). Refs: F-P67-001/002/003/004/005/006/007/008, PG-P67-001/002, D-447. META-LEVEL-22 CANDIDATE CONFIRMED; L-EDP1-059 58th-layer 28th-consecutive multi-axis; own-downstream-citation-scope-extension-gap ply (sample; see decision-log.md for full range D-389..D-447 per D-441(c)+D-442(c) sample-vs-exhaustive citation policy). BC-INDEX v2.09→v2.10."
   - date: 2026-05-13
     change: "v2.09 (2026-05-13; pass-66 fix burst per D-446 + D-404 unconditional): Acknowledges decision range D-389..D-446 (inclusive; literal acknowledgment per D-415(c); sample; see decision-log.md for full range D-389..D-446 per D-441(c)+D-442(c) sample-vs-exhaustive citation policy). Per D-404 unconditional: index acknowledges D-446(a/b/c/d/e) by literal ID (no spec content change in this changelog entry). Refs: F-P66-001/002/003/004/006/007/008/009, PG-P66-001/002, D-446. META-LEVEL-21 CANDIDATE CONFIRMED; L-EDP1-058 57th-layer 27th-consecutive multi-axis; rule-codification-without-self-application-in-codifying-burst-OWN-burst-log ply (sample; see decision-log.md for full range D-389..D-446 per D-441(c)+D-442(c) sample-vs-exhaustive citation policy). [F-P66-006/008/009 added to Refs per D-447(a) self-application at pass-67 Commit A — prior entry omitted these; D-414(c) corrigendum.] BC-INDEX v2.08→v2.09."
   - date: 2026-05-13
