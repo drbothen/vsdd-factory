@@ -1,7 +1,7 @@
 ---
 document_type: bc-index
 level: L3
-version: "2.16"
+version: "2.17"
 status: draft
 producer: state-manager
 timestamp: 2026-05-13T00:00:00Z
@@ -12,6 +12,8 @@ inputs:
 total_bcs: 1949
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-13
+    change: "v2.17 (2026-05-13; pass-74 fix burst per D-454 + D-404 unconditional): Acknowledges decision range D-389..D-454 (inclusive; literal acknowledgment per D-415(c); sample; see decision-log.md for full range D-389..D-454 per D-441(c)+D-442(c) sample-vs-exhaustive citation policy). Per D-404 unconditional: index acknowledges D-454(a/b/c/d/e) by literal ID (no spec content change in this changelog entry). Refs: ADV-EDP1-P74-CRIT-001, ADV-EDP1-P74-HIGH-001/002/003/004, ADV-EDP1-P74-MED-001/002/003, ADV-EDP1-P74-LOW-001, PG-P74-001/002/003, D-454. [O-P74-001/002/003 trimmed per D-449(d)(i): observations are discovery-tier, not Refs-scope.] META-LEVEL-29 CANDIDATE CONFIRMED; L-EDP1-066 65th-layer 35th-consecutive multi-axis; gate-against-canonical-registry-uses-coarser-granularity + freshness-scope-extension-codified-but-re-execution-evidence-narrative + codification-references-storage-that-doesn't-exist + tri-way-block-label-canonical-form-drift + freshness-temporal-scope-narrower-than-document-edit-window ply (sample; see decision-log.md for full range D-389..D-454 per D-441(c)+D-442(c) sample-vs-exhaustive citation policy). BC-INDEX v2.16→v2.17."
   - date: 2026-05-13
     change: "v2.16 (2026-05-13; pass-73 fix burst per D-453 + D-404 unconditional): Acknowledges decision range D-389..D-453 (inclusive; literal acknowledgment per D-415(c); sample; see decision-log.md for full range D-389..D-453 per D-441(c)+D-442(c) sample-vs-exhaustive citation policy). Per D-404 unconditional: index acknowledges D-453(a/b/c/d/e) by literal ID (no spec content change in this changelog entry). Refs: ADV-EDP1-P73-CRIT-001, ADV-EDP1-P73-HIGH-001/002/003/004, ADV-EDP1-P73-MED-001/002/003, ADV-EDP1-P73-LOW-001, PG-P73-001/002/003, D-453. [O-P73-001/002/003 trimmed per D-449(d)(i): observations are discovery-tier, not Refs-scope.] META-LEVEL-28 CANDIDATE CONFIRMED; L-EDP1-065 64th-layer 34th-consecutive multi-axis; meta-rule-codified-with-mechanical-gate-AND-explicit-PRESCRIBED_SITES-enumeration-but-PRESCRIBED_SITES-list-itself-INCOMPLETE-OR-freshness-gate-scope-NARROWER-than-validated-gate-scope-OR-site-class-labels-INFORMAL ply (sample; see decision-log.md for full range D-389..D-453 per D-441(c)+D-442(c) sample-vs-exhaustive citation policy). BC-INDEX v2.15→v2.16."
   - date: 2026-05-13
