@@ -130,3 +130,92 @@ Archived checkpoints from STATE.md as newer checkpoints replace them.
 > **POST-COMPACT RESUME CONTEXT — F5 ASYMPTOTIC LOOP**
 
 **Where we are (at time of archival):** pass-57 fix burst COMPLETE + pass-58 adversary dispatched. 58 reviews dispatched + 57 complete adversary returns + 55 fix bursts (passes 3-57). Trajectory (57 values): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7→8→6→2→5→5→5→7→8→7→8→7→8→7→8→7→7→8→8→7→7→7→8→8→8→9→8. META-LEVEL-12 CANDIDATE (48th-layer L-EDP1-003). D-437 codified (5 sub-clauses). L-EDP1-049 authored. 4 indexes BC v2.00 (MAJOR VERSION CROSS)/VP v1.76/STORY v3.01/ARCH v1.81 acknowledged D-389..D-437. factory-artifacts parent-commit 99b8d093 (pass-57 Commit D). Pass-58 adversary dispatch-side SHA c491cf64.
+
+---
+
+## Archived Checkpoint: F5 5-pass Session COMPLETE — Cycle PAUSED at Asymptotic Floor (2026-05-13)
+
+**Archived at:** STATE.md pivot commit `e7ad5c35` (post-pass-74 SHA-patch `4b4b6819`) per human direction to pivot cycle from `v1.0-feature-engine-discipline-pass-1` to `v1.0-brownfield-backfill` E-10 pass-9 resume.
+
+> **POST-PAUSE RESUME CONTEXT — F5 cycle paused at asymptotic floor; NOT compacting — preserving full 5-pass arc record**
+
+### Session Arc Summary
+
+Passes 70-74 driven in a single conversation 2026-05-13 against the F5 asymptotic L-EDP1-003 recurrence loop per D-386 Option C.
+
+| Pass | Cascade Final SHA | Verdict | New META Ply | D-NNN | Lesson (Layer) | Notable |
+|------|-------------------|---------|--------------|-------|----------------|---------|
+| 70 | SHA-patch `1f45f8d9` (Commit E `6104fdb7`; Commit D `69ba6640`) | HIGH 9-axis | META-25 CANDIDATE CONFIRMED | D-450 (5 sub-clauses) | L-EDP1-062 (61st-layer) | First literal-shell self-application to ALL sibling rules (D-450(b/c/d/e)); META-25 = "primary gate literal-shell; sibling gates regress to narrative" |
+| 71 | SHA-patch `10661c9b` (Commit E `62f13971`; Commit D `79c731c3`) | HIGH 9-axis | META-26 CANDIDATE CONFIRMED | D-451 (5 sub-clauses) | L-EDP1-063 (62nd-layer) | Trajectory tail propagation across 8 sites + 4-index L-EDP1-062 corrigenda; META-26 = "meta-recursion ack narrative + verification-regex narrower than rule scope" |
+| 72 | SHA-patch `a4460347` (Commit E `ffef6a7e`; Commit D `c777d8a8`) | HIGH 9-axis | META-27 CANDIDATE CONFIRMED | D-452 (5 sub-clauses) | L-EDP1-064 (63rd-layer) | Propagation-completeness gate + snapshot-freshness re-execution + 6-site-class sweep; META-27 = "literal-shell output captured but not propagated to all prescribed sites + snapshot staleness" |
+| 73 | SHA-patch `e237d413` (Commit E `507f5671`; Commit D `07113869`) | HIGH 9-axis | META-28 CANDIDATE CONFIRMED (predicted at L-EDP1-064:3527) | D-453 (5 sub-clauses) | L-EDP1-065 (64th-layer) | Canonical derived-value→PRESCRIBED_SITES mapping table + 7th INDEX.md row site class + hooks/dim2-gates/ source instantiated; META-28 = "PRESCRIBED_SITES incomplete OR freshness scope narrow OR labels informal"; **FIRST prediction-to-pass materialization** |
+| 74 | SHA-patch `4b4b6819` (Commit E `46133e27`; Commit D `487e0cc3`) | HIGH 9-axis | META-29 CANDIDATE CONFIRMED (predicted at L-EDP1-065:3593) | D-454 (5 sub-clauses) | L-EDP1-066 (65th-layer) | Per-cell granularity + literal-stdout-no-forward-narrative + tri-way canonical-form-alignment + freshness-temporal-scope-full-edit-window; META-29 = "mapping-table cell-vs-gate file granularity mismatch + registry self-incomplete + storage-path-without-artifacts + freshness scope narrow"; **SECOND consecutive prediction-to-pass materialization** |
+
+### Cumulative Session Deliverables
+
+- **5 D-NNN codifications** (25 sub-clauses total): D-450/451/452/453/454
+- **5 META-LEVEL plies** all CANDIDATE CONFIRMED: L25 → L26 → L27 → L28 → L29 (monotonically ascending)
+- **5 lessons** in cumulative lessons.md: L-EDP1-062 → L-EDP1-066 (layers 61st → 65th)
+- **60 findings closed** (12 per pass × 5 passes)
+- **Production-grade IN-SCOPE fixes (~15+)**:
+  - Banner wc-l progressive corrections: 480 → 435 → 439 → 443 → 447 → 451 → 406 (post-pivot compaction)
+  - Main SHA stale 4-release drift corrected (feb894a2 → tracking current per `git rev-parse`)
+  - rc.17 dead-tag narrative corrected per CHANGELOG.md:114
+  - Section 12 pre-CLEAR snapshot REMOVED (MED-002 closure at pass-70 Commit E)
+  - Trajectory tail propagation across 8-site PRESCRIBED_SITES (pass-72 CRIT-001)
+  - STATE.md Decisions Log umbrella range advances (D-451..D-454 each)
+  - 4-index L-EDP1-062 ordinal corrigenda (pass-72)
+  - 4-index L-EDP1-064 ordinal sweep (pass-74)
+  - INDEX.md adversarial-review row layer-ordinal drift (pass-73 CRIT-001)
+  - hooks/dim2-gates/ source instantiation through artifact-path-registry (pass-74 ADV-EDP1-P74-HIGH-002)
+- **Mechanical gates progressively added**: post-derivation propagation gate, dual-direction layer sweep, snapshot-freshness re-execution at push-time, 7-site PRESCRIBED_SITES, freshness scope = validated scope, literal-block 9-enumeration, canonical derived-value→PRESCRIBED_SITES mapping table, per-cell granularity grep, literal-stdout-no-forward-narrative, codification-path instantiate-or-aspirational, tri-way canonical-form-alignment, freshness temporal scope = full edit window
+- **New storage**: `plugins/vsdd-factory/hooks/dim2-gates/README.md` (source-of-truth for D-453(e) template registry; deploys on release per self-referential constraint; artifact-path-registry entry committed but UNMERGED on side branch `save/dim2-gates-path-register` SHA `3df1bdda`)
+
+### Convergence Trajectory
+
+- Axis-count: sustained at 9 across all 5 passes (passes 70/71/72/73/74)
+- Trajectory tail at pause: `→9→9→9→9` (passes 71-74)
+- Asymptotic floor [7,9] confirmed for **16 consecutive passes (59-74)**
+- 35th-consecutive multi-axis recurrence at pause-time
+- Pass-67 = 8 remains the only one-pass-noise drop in 16 passes
+- Streak: 0/3 NITPICK_ONLY unchanged across entire session
+
+### Pause Trigger — Adversary Self-Diagnosis
+
+Pass-74 adversary review explicitly observed:
+
+> *"Prediction-blocks now exhibiting self-fulfilling characteristics — adversarial-discovery quality decaying toward prediction-confirmation theater."*
+
+Pattern: pass-72 codified L-EDP1-064 with META-28 emergence prediction (MEDIUM probability via 3 routes); pass-73 adversary found exactly 3 matching variants. Pass-73 codified L-EDP1-065 with META-29 prediction (MEDIUM-HIGH via 3 routes); pass-74 adversary found exactly 3 matching variants. Two consecutive prediction-to-pass materializations confirm the loop has become structurally self-fulfilling under prose-only codification.
+
+Per L-EDP1-007/051/061/062/063/064/065/066 generalization: prose-only codification cannot break L-EDP1-003 recurrence. Structural break requires S-15.03 PRIORITY-A automation (deferred to future cycle).
+
+### Cycle State at Pause
+
+- **factory-artifacts HEAD**: `e7ad5c35` (post-pivot STATE.md transition)
+- **Pre-pivot HEAD**: `4b4b6819` (pass-74 SHA-patch — F5 cycle's final-state)
+- **F5 cycle status**: PAUSED per D-386 Option C asymptotic acceptance + human direction 2026-05-13
+- **F5 cycle resumes only when**: S-15.03 PRIORITY-A automation lands
+
+### PR Cleanup Trail
+
+After F5 pause, the user directed PR cleanup:
+
+- **PR #136 MERGED** at develop@`845d0007` (squash-merge 2026-05-13): "docs(claude-md): expand project operating instructions (66 → 442 lines)"
+- **PR #124 MERGED** at develop@`d3ae26a5` (merge commit 2026-05-13): "[F5-pass-3] cycle hardening: WASM staging order fix + follow-up stories" — 14 commits preserved including TD #73 fix (warn-pending-wave-gate MAPPING → SEQUENCE), CI WASM staging fix (F-P6-001 CRITICAL), VP-076 capability confinement bats harness (F-P3-002), F-P3/4/5/6/7 follow-on test stabilization
+- **Side branch `save/dim2-gates-path-register` (`3df1bdda`)**: UNMERGED; tracked in STATE.md Drift Items; decision deferred
+
+### Pivot Direction
+
+- **From cycle**: `v1.0-feature-engine-discipline-pass-1` (F5 PAUSED)
+- **To cycle**: `v1.0-brownfield-backfill` (RESUMING)
+- **Next action**: E-10 pass-9 adversary dispatch (paused at D-343; Phase D-4 Burst 2)
+
+### Resumption Notes for Future
+
+If returning to this F5 cycle for any reason:
+1. The asymptotic floor is structural — additional passes will produce META-30/31/etc. CANDIDATE plies with predictable structure (gate-vs-registry mismatches, scope drift, narrative substitution variants).
+2. Real engine improvements DO accumulate (banner discipline, mapping-table existence, hooks/dim2-gates/ scaffold) — the work is not pure theater. But the meta-framework elaboration outpaces the underlying defect rate.
+3. Structural break only via S-15.03 PRIORITY-A automation. Prose codification has been thoroughly tested at this point.
+4. parent-commit for any pass-75 dispatch (if resumed): pass-74 Commit D `487e0cc3` per D-419(b)+D-420(d)+D-421(a).
+5. Read this checkpoint + adv-cycle-pass-74.md + L-EDP1-066 prediction-pass-75 block (lessons.md) before re-engaging.
