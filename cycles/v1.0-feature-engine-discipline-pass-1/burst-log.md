@@ -4074,6 +4074,6 @@ Additional Dim-2 grep verifications:
 
 **Closes (per D-413(b) completeness):** F-P66-001 (CRITICAL) + F-P66-002 + F-P66-003 + F-P66-004 + F-P66-006 + F-P66-007 + F-P66-008 + F-P66-009 + PG-P66-001 + PG-P66-002 (10 closures total; F-P66-005 demoted to LOW pending intent verification)
 
-**Factory-artifacts commits:** A `b4d7082a` / B `e03e6720` / C `40d37f17` / D `59873fbe` / E `<Commit-E-SHA-post-push>`
+**Factory-artifacts commits:** A `b4d7082a` / B `e03e6720` / C `40d37f17` / D `59873fbe` / E `17339d74`
 
 **(D-446(a) self-application at Commit E: own-burst-log 8-block gate INVOKED — META-LEVEL-21 in-progress closure. All 8 D-444(c) blocks present before Commit E push. Acknowledged per D-414(c) corrigendum: original pass-66 entry at Commit A had only h2 + parenthetical.)**

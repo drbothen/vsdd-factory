@@ -310,8 +310,8 @@ dtu_services: []
 ### 1. Where We Are
 
 - Cycle: v1.0-feature-engine-discipline-pass-1 F5 phase
-- Pass-66 fix burst COMPLETE at `<Commit-E-SHA>` (state-manager Commit E; parent-commit `59873fbe` per D-419(b)+D-420(d)+D-421(a); pushed to origin/factory-artifacts)
-- Pass-66 fix burst commit chain: A `b4d7082a` / B `e03e6720` / C `40d37f17` / D `59873fbe` / E `<Commit-E-SHA>`
+- Pass-66 fix burst COMPLETE at `17339d74` (state-manager Commit E; parent-commit `59873fbe` per D-419(b)+D-420(d)+D-421(a); pushed to origin/factory-artifacts)
+- Pass-66 fix burst commit chain: A `b4d7082a` / B `e03e6720` / C `40d37f17` / D `59873fbe` / E `17339d74`
 - 31 passes driven this session (pass-37 through pass-66; 67 reviews dispatched total since cycle start)
 - 57-LAYER COUNT reached at L-EDP1-058 (27th consecutive multi-axis recurrence; META-LEVEL-21 CANDIDATE CONFIRMED; rule-codification-without-self-application-in-codifying-burst-OWN-burst-log ply)
 - Trajectory content-only (66 values per D-401(c)): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7→8→6→2→5→5→5→7→8→7→8→7→8→7→8→7→7→8→8→7→7→7→8→8→8→9→8→8→9→9→9→9→9→9→9→9
@@ -374,7 +374,7 @@ All per D-404 unconditional + D-415(c) annotation form + D-442(c) sample-vs-exha
 
 ### 9. Critical Anchors (Post Pass-66)
 
-- factory-artifacts HEAD: `<Commit-E-SHA>` (pass-66 Commit E; pushed to origin/factory-artifacts)
+- factory-artifacts HEAD: `17339d74` (pass-66 Commit E; pushed to origin/factory-artifacts)
 - factory-artifacts Commit D: `59873fbe` (canonical parent-commit per D-419(b) for pass-67 dispatch)
 - develop HEAD: `99d24315` (S-12.08 PR #123; F4 COMPLETE; unchanged since cycle start)
 - main HEAD: `feb894a2` (rc.16; unchanged)
