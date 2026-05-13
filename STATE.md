@@ -203,7 +203,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | feb894a2 | rc.16 merge; latest release |
 | develop | 99d24315 | S-12.08 squash-merge (PR #123); F4 COMPLETE |
-| factory-artifacts | ab522ebb | F5 pass-62 fix burst Commit D — parent of Commit E per D-419(b)+D-420(d)+D-421(a) parent-commit-SHA convention; updated at pass-63 Commit A per D-443(c) self-application (closes F-P63-002) |
+| factory-artifacts | 676f52ba | pass-63 fix burst Commit D — parent of Commit E per D-419(b)+D-420(d)+D-421(a) parent-commit-SHA convention; updated at pass-64 Commit A per D-443(c)+D-444(b) self-application (closes F-P64-002) |
 | feature/F5-pass-3-cycle-hardening | 2e6b4372 | PR #124 OPEN (DRAFT); CI run 25651192161 GREEN (11/11 checks) |
 | v1.0.0-rc.16 (tag) | feb894a2 | SHIPPED; claude-mp PR #8 awaiting human merge |
 | v1.0.0-rc.15 (tag) | e68bb436 | SHIPPED |
@@ -305,7 +305,7 @@ dtu_services: []
 - 28 passes driven this session (pass-37 through pass-63; 64 reviews dispatched total since cycle start)
 - 54-LAYER COUNT reached at L-EDP1-055 (24th consecutive multi-axis recurrence; META-LEVEL-18 CONFIRMED; rule-verification-grep co-evolution gap ply)
 - Trajectory content-only (63 values per D-401(c)): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7→8→6→2→5→5→5→7→8→7→8→7→8→7→8→7→7→8→8→7→7→7→8→8→8→9→8→8→9→9→9→9→9
-- Trajectory tail (last 4 per D-433(e)+D-439(c)): →9→9→9→9 (6-pass asymptotic stability at axis-count=9)
+- Trajectory tail (last 4 per D-433(e)+D-439(c)): →9→9→9→9 (5-pass asymptotic stability at axis-count=9)
 - Streak: 0/3 NITPICK_ONLY. Verdict HIGH sustained at asymptotic floor axis-count ∈ [7,9].
 - L-EDP1-054 pass-63 prediction outcomes 5/5 CONFIRMED. D-443(b)(i) documentary-historical exemption declared for pre-v2.05 4-index changelogs.
 
@@ -437,4 +437,4 @@ All per D-404 unconditional + D-415(c) annotation form + D-442(c) sample-vs-exha
 4. Continue per established protocol: dispatch advance → adversary (fresh-context Iron Law) → fix burst (Commits A/B/C/D/E) → repeat
 5. PR #124 merges only on: (a) 3-consecutive NITPICK_ONLY convergence, OR (b) explicit human stop directive
 
-> Previous checkpoint (pass-62 FIX BURST COMPLETE at d7a7e4df per D-419(b)+D-420(d)+D-421(a); pass-63 ADVERSARY DISPATCHED; pass-63 FIX BURST COMPLETE at 9b3a2517) archived to: `cycles/v1.0-feature-engine-discipline-pass-1/session-checkpoints.md`
+> Previous checkpoint (pass-63 FIX BURST COMPLETE at 9b3a2517 per D-419(b)+D-420(d)+D-421(a); pass-64 ADVERSARY DISPATCHED) archived to: `cycles/v1.0-feature-engine-discipline-pass-1/session-checkpoints.md`

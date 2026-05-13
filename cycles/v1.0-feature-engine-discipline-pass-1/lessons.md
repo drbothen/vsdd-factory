@@ -3086,7 +3086,7 @@ Dim-2 attestation (grep -E "META-LEVEL-18" lessons.md): executed at Commit B aut
 
 **Prediction pass-64:** D-443(a/b/c/d/e) variants observable:
 - D-443(a) verification-grep co-evolution applied but pass-64 dispatch may surface clause-completeness mechanism gap (e.g., diff-based check not yet automated; manual diff invocation may be skipped or omit clauses).
-- D-443(b) documentary-historical exemption applied to 4-index changelogs but NEW 4-index changelog entry at pass-63 fix burst (BC v2.05+/VP v1.81+/STORY v3.06+/ARCH v1.86+) MAY again lack flag or proper exemption.
+- D-443(b) documentary-historical exemption applied to 4-index changelogs but NEW 4-index changelog entry at pass-63 fix burst (BC v2.06+/VP v1.82+/STORY v3.07+/ARCH v1.87+) MAY again lack flag or proper exemption.
 - D-443(c) cross-cell advance applied at Commit A but Commit D may again miss a sibling cell (e.g., burst-log heading count, INDEX adversary-passes table count).
 - D-443(d) banner internal consistency applied but new banner additions at pass-63 fix burst MAY introduce new contradiction vectors.
 - D-443(e) trend-table column-name + burst-log h2 normalized but NEW trend-table at L-EDP1-055 MAY use different column-name; new burst-log h2 at pass-63 satisfies real-time but pass-64 dispatch may again miss.
