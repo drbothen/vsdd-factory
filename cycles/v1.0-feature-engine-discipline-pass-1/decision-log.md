@@ -421,6 +421,94 @@ grep -c "META-LEVEL-28 CANDIDATE CONFIRMED" \
 
 ---
 
+### D-454 (F5 pass-74 codification block; META-LEVEL-29 CANDIDATE CONFIRMED — meta-rule-codified-with-canonical-mapping-table-AND-PRESCRIBED_SITES-AND-freshness-gate-AND-canonical-bash-template-storage-path-BUT-mapping-table-granularity-mismatch-OR-mapping-table-self-incomplete-OR-storage-path-without-artifacts-OR-freshness-temporal-scope-narrow-OR-tri-way-form-misalignment ply)
+
+- **D-454(a)** META-LEVEL-29 CANDIDATE CONFIRMED ack + gate-granularity = canonical-registry-granularity. Pass-73 D-453(a) Dim-2 gate used FILE-level grep (`grep -c "X" file`) but D-453(d) canonical registry prescribes CELL-level sites — e.g., "STATE.md frontmatter current_step", "STATE.md Last Updated cell" as DISTINCT prescribed_sites. A whole-file count cannot distinguish per-cell presence: if the trajectory_tail value appears 13 times in STATE.md but one of the 5 prescribed STATE.md cells has silently dropped it, `grep -c` returns non-zero and the gate is false-green. **Discipline:** When a Dim-2 gate verifies coverage against a canonical mapping table that enumerates per-cell prescribed_sites, the gate MUST use cell-level verification (line-anchor grep) for each enumerated site:
+```bash
+# Example for trajectory_tail prescribed at "STATE.md frontmatter current_step":
+grep -nE "^current_step:.*→9→9→9→9" /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md
+# Not: grep -c "→9→9→9→9" STATE.md (file-level, granularity mismatch)
+# Each of the 9 prescribed_sites for trajectory_tail requires its own line-anchor grep.
+# Captured per-cell stdout MUST appear in Dim-2 attestation.
+```
+File-level whole-document grep against a cell-level registry = HIGH per D-411(a). Codified regex per D-451(b) for D-454(a) verification (literal-shell at Commit E):
+```bash
+# Verify D-454(a) codification block is present in decision-log.md:
+grep -c "D-454(a)" /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md
+# MUST be ≥2 (heading + row)
+# Verify cell-level grep example present in D-454 codification:
+grep -c "line-anchor grep" /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md
+# MUST be ≥1
+```
+
+- **D-454(b)** Freshness re-execution captures literal stdout (no forward-narrative inside Dim-2). Pass-73 D-453(b) re-execution at burst-log.md:4559-4563 read "captured after STATE.md edits" / "MUST be ≥13 (pre-edit count = 13)" — forward-narrative not literal output. D-449(a) explicitly forbids pseudocode narrative; D-453(b) recurrence INSIDE its own closure constitutes META-24 self-application within the supposedly-META-24-closed gate. **Discipline:** Every freshness re-execution at push-time MUST persist ALL of:
+  - (i) The literal command invoked (with full arguments and absolute paths)
+  - (ii) The captured stdout (literal output, not a forward-reference or "MUST be ≥N" claim)
+  - (iii) An explicit "diff vs initial = empty" or "diff vs initial = <delta>" assertion
+
+Forward-narrative references like "captured after edits" or "MUST be ≥N" = HIGH per D-411(a). Codified regex per D-451(b):
+```bash
+# Verify D-454(b) codification block is present in decision-log.md:
+grep -c "D-454(b)" /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md
+# MUST be ≥2 (heading + row)
+# Verify forward-narrative-forbidden discipline present:
+grep -c "forward-narrative not literal output" /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md
+# MUST be ≥1
+```
+
+- **D-454(c)** Codification-referenced storage paths: instantiate-in-burst or mark-aspirational. Pass-73 D-453(e) cited `.factory/hooks/dim2-gates/<gate-name>.sh` as a canonical storage path; the directory did not exist and no template files existed. The rule was structurally inert on creation. Pass-74 Commit A retroactively instantiated `plugins/vsdd-factory/hooks/dim2-gates/README.md` at SOURCE (production-grade routing through artifact-path-registry), with deployment to `.factory/hooks/dim2-gates/` following release per the self-referential engine constraint. **Discipline:** When a codification references a storage path (directory, file, registry entry), the codifying burst MUST EITHER:
+  - (a) Instantiate the referenced artifact at the canonical SOURCE location in the same burst (with appropriate artifact-path-registry entries per ADR-016 if needed)
+  - OR (b) Explicitly mark the rule as ASPIRATIONAL/DEFERRED with citation to a specific future story or wave anchor (per Canonical Principle Rule 3)
+
+Codifying a rule that references a non-existent storage path WITHOUT (a) or (b) = HIGH per D-411(a). Silent-failure via absent-file is forbidden. Codified regex per D-451(b):
+```bash
+# Verify D-454(c) codification block is present:
+grep -c "D-454(c)" /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md
+# MUST be ≥2 (heading + row)
+# Verify instantiate-or-mark-aspirational discipline present:
+grep -c "instantiate-in-burst or mark-aspirational" /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md
+# MUST be ≥1
+```
+
+- **D-454(d)** Tri-way canonical-form-alignment (codification text == regex == document headers). Pass-73 D-453(c) codified canonical block names as "Files-touched (Dim-1)" (with parenthetical, hyphen). The self-verification regex at decision-log.md:369 used "Files touched" (no parenthetical, space). Actual document headers also use "Files touched" (third divergent form — D-444(c) specifies this as canonical in burst-log entry structure). All three forms diverge: codification text ≠ regex ≠ document headers. **Discipline:** When a codification specifies canonical block names, all three sites MUST align verbatim:
+  - (i) The codification text declaration
+  - (ii) The verification regex
+  - (iii) The actual document headers
+
+Tri-way mismatch = HIGH per D-411(a). At each codifying-burst Commit B, a literal-shell tri-way alignment gate MUST execute:
+```bash
+# Extract codification declaration for canonical block name form:
+CODIFIED_FORM=$(grep -oE "Files.touched[^,\`\"]*" /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md | head -1)
+# Extract regex form from gate definition (D-454(d) self-verification):
+grep -oE "Files.touched[^,\`\"]*" /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md | sort -u
+# Extract document header form from burst-log:
+grep -oE "^\*\*Files touched[^\*]*\*\*" /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md | head -3
+# Non-empty diff between any two forms = HIGH
+```
+For D-454, the canonical form is **"Files touched"** (matching document headers per D-444(c)); the codification text and verification regex MUST both use this form. Codified regex per D-451(b):
+```bash
+grep -c "D-454(d)" /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md
+# MUST be ≥2 (heading + row)
+```
+
+- **D-454(e)** Freshness temporal scope = full edit window (including dispatch-side-advance writes); canonical mapping table audited-for-completeness at creation; bash-template stub creation timing extends to Commit A retroactive remediation; Dim-7 tally Commit-E-author-time semantics clarified. Composite close for ADV-EDP1-P74-HIGH-004 + MED-001 + MED-002 + LOW-001 + PG-P74-001 + PG-P74-002 + PG-P74-003:
+  - **(i) HIGH-004 + MED-003 freshness temporal scope:** D-453(b) push-time scope did not span dispatch-side-advance writes. STATE.md banner cited 447 lines but actual = 448 post-dispatch-side advance. **Discipline:** Freshness re-execution temporal scope MUST span: codifying-burst writes + ALL dispatch-side-advance writes that occur after Dim-2 capture within the same pass lifecycle. The re-execution MUST occur after the dispatch-side-advance commit completes — not before.
+  - **(ii) MED-002 mapping table audited at creation:** D-453(d) canonical mapping table omitted `decision-log.md trajectory-bearing rows` AND `adv-cycle-pass-*.md frontmatter trajectory_tail field` as prescribed_sites for the `trajectory_tail` class on its creation pass. **Discipline:** Canonical mapping table MUST be audited at every codifying-burst Commit B for omitted prescribed_sites — literal-shell grep for derived-value cite occurrences vs registry coverage. See Task 1b self-application in this burst.
+  - **(iii) HIGH-002 / PG-P74-002 bash-template creation timing:** Codification-referenced storage path MUST be instantiated in the codifying burst (Commit A retroactive remediation is acceptable per Canonical Principle Rule 4 "AI-built defects are the AI's responsibility to fix"). Pass-74 Commit A satisfied this via `plugins/vsdd-factory/hooks/dim2-gates/README.md` instantiation.
+  - **(iv) MED-001 Dim-7 tally Commit-E-author-time semantics:** At Commit E, pass-N is BEING completed (not "in-progress" and not "dispatched-for-N+1"). The Dim-7 tally of "reviews dispatched" should count: completed passes (1..N-1) + current-pass-being-completed (N) = N total. Pass-73 burst-log.md:4597 cited "75 reviews dispatched" at Commit E author-time — arithmetic counted N+1 (double-counted pass-73 as both in-progress and dispatched). **Discipline:** At Commit E, the reviews-dispatched tally = N (the pass being completed). Pass-N+1 has NOT been dispatched at Commit E author-time.
+  - **(v) LOW-001 verbatim-strict chain extension:** STATE.md current_step at dispatch-side advance does not require the full META-LEVEL-N-CANDIDATE-CONFIRMED token in the prescriptive sense — the D-441(a)+D-443(a)+D-449(a) verbatim-strict chain governs the CONTENT of current_step for Commit E, not for dispatch-side advance (which is D-417(b)-governed: only `phase:` + `current_step:`). D-417(b) is the controlling discipline for dispatch-side advance; verbatim-strict chain does not apply to dispatch-side advance current_step form.
+  - **(vi) PG-P74-001 registry-edit-cadence = gate-edit-cadence:** When the canonical mapping table (D-453(d)) is amended, all gates that reference it MUST be re-evaluated in the same burst. Registry edit = gate-edit trigger.
+  - **(vii) PG-P74-003 temporal-ordering:** Banner wc-l and propagation-count Dim-2 captures MUST occur AFTER own-document writes complete for the current burst. Pre-write capture produces a stale value that does not reflect the burst's own additions.
+
+META-LEVEL-29 CANDIDATE CONFIRMED: meta-rule-codified-with-canonical-mapping-table-AND-PRESCRIBED_SITES-AND-freshness-gate-AND-canonical-bash-template-storage-path-BUT-(a)-mapping-table-granularity-mismatch-OR-(b)-mapping-table-self-incomplete-OR-(c)-storage-path-without-artifacts-OR-(d)-freshness-temporal-scope-narrow-OR-(e)-tri-way-form-misalignment. Differentiator from META-28: META-28 = "PRESCRIBED_SITES list itself incomplete OR freshness-gate scope narrower than validated scope OR site-class labels informal"; META-29 = "canonical mapping table exists AND is enumerated AND site-class labels are formal BUT (a) gate granularity coarser than registry granularity OR (b) freshness re-execution uses forward-narrative not literal stdout OR (c) storage path referenced without artifact creation OR (d) freshness scope excludes dispatch-side-advance writes OR (e) tri-way text-regex-header alignment violated". Codified regex per D-451(b):
+```bash
+# Verify META-LEVEL-29 CANDIDATE CONFIRMED present in this codification:
+grep -c "META-LEVEL-29 CANDIDATE CONFIRMED" /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md
+# MUST be ≥2 (heading + D-454(e) body)
+```
+
+---
+
 ### Canonical Derived-Value → PRESCRIBED_SITES Mapping Table (D-453(d))
 
 _Canonical appendix; section-level SoT for PRESCRIBED_SITES completeness checks. Any new site class discovered during adversarial review triggers an append to the YAML block below._
@@ -439,6 +527,8 @@ derived_value_classes:
       - INDEX.md adversarial-review summary-table rows (latest pass)
       - burst-log latest-pass Dim-7 (Attestation)
       - lessons.md latest-lesson trend-table
+      - decision-log.md trajectory-bearing rows (D-NNN entries citing tail values)  # added per D-454(e)(ii)
+      - cycles/v1.0-feature-engine-discipline-pass-1/adv-cycle-pass-*.md frontmatter trajectory_tail field  # added per D-454(e)(ii)
   - class: layer_ordinal
     canonical_sot: lessons.md latest-lesson heading
     prescribed_sites:
@@ -449,6 +539,7 @@ derived_value_classes:
       - burst-log Parent-commit + Adversary-verdict + Files-touched (Dim-1) + Codifications + Dim-2 (Attestation) + Dim-5 (Attestation) + Dim-6 (Attestation) + Dim-7 (Attestation) + Closes
       - STATE.md narrative citations
       - INDEX.md adversarial-review summary-table row cells
+      - cycles/v1.0-feature-engine-discipline-pass-1/adv-cycle-pass-*.md frontmatter meta_level field (if applicable)  # added per D-454(e)(ii)
   - class: umbrella_d_range
     canonical_sot: decision-log.md highest-numbered D-NNN row
     prescribed_sites:
@@ -469,3 +560,5 @@ derived_value_classes:
 | D-452 | META-LEVEL-27 CANDIDATE CONFIRMED ack + post-derivation propagation-completeness gate + Layer-N consistency dual-direction sweep + captured-stdout-snapshot-freshness gate + Layer-N scope extension to lesson trend-tables + 4-index changelogs + burst-log cells + STATE.md narrative + STATE.md Decisions Log umbrella range auto-advance verification (5 sub-clauses: D-452(a) META-27 ack + propagation-completeness gate, D-452(b) Layer-N dual-direction sweep, D-452(c) captured-stdout-snapshot-freshness gate, D-452(d) Layer-N scope extension to trend-tables+4-index+burst-log+STATE.md, D-452(e) Decisions Log umbrella range auto-advance). L-EDP1-064 63rd-layer META-LEVEL-27 CANDIDATE CONFIRMED. Closes ADV-EDP1-P72-CRIT-001, ADV-EDP1-P72-HIGH-001, ADV-EDP1-P72-HIGH-002, ADV-EDP1-P72-HIGH-003, ADV-EDP1-P72-HIGH-004, ADV-EDP1-P72-MED-001, ADV-EDP1-P72-MED-002, ADV-EDP1-P72-MED-003, ADV-EDP1-P72-LOW-001, PG-P72-001, PG-P72-002, PG-P72-003 (per D-413(b) completeness mandate) | ed7c11dd / 79c731c3 (parent commits per D-419(b)+D-445(d) — pass-72 Commit A SHA / pass-71 Commit D canonical-parent SHA) | F5 pass-72 | 2026-05-13 | state-manager |
 
 | D-453 | META-LEVEL-28 CANDIDATE CONFIRMED ack + PRESCRIBED_SITES enumeration-completeness gate + freshness-gate scope = validated-gate scope + site-class labels MUST match actual document structure + canonical derived-value→PRESCRIBED_SITES mapping table + canonical bash-template-per-Dim-2-gate (5 sub-clauses; see decision-log.md SoT). L-EDP1-065 64th-layer META-LEVEL-28 CANDIDATE CONFIRMED. Closes ADV-EDP1-P73-CRIT-001, ADV-EDP1-P73-HIGH-001, ADV-EDP1-P73-HIGH-002, ADV-EDP1-P73-HIGH-003, ADV-EDP1-P73-HIGH-004, ADV-EDP1-P73-MED-001, ADV-EDP1-P73-MED-002, ADV-EDP1-P73-MED-003, ADV-EDP1-P73-LOW-001, PG-P73-001, PG-P73-002, PG-P73-003 (per D-413(b) completeness mandate) | 27e1ad0e / c777d8a8 (parent commits per D-419(b)+D-445(d) — pass-73 Commit A SHA / pass-72 Commit D canonical-parent SHA) | F5 pass-73 | 2026-05-13 | state-manager |
+
+| D-454 | META-LEVEL-29 CANDIDATE CONFIRMED ack + gate-granularity = canonical-registry-granularity + freshness re-execution captures literal stdout (no forward-narrative) + codification-referenced storage paths instantiate-or-mark-aspirational + tri-way canonical-form-alignment + freshness temporal scope = full edit window + canonical mapping table audited-at-creation (5 sub-clauses; see decision-log.md SoT). L-EDP1-066 65th-layer META-LEVEL-29 CANDIDATE CONFIRMED. Closes ADV-EDP1-P74-CRIT-001, ADV-EDP1-P74-HIGH-001, ADV-EDP1-P74-HIGH-002, ADV-EDP1-P74-HIGH-003, ADV-EDP1-P74-HIGH-004, ADV-EDP1-P74-MED-001, ADV-EDP1-P74-MED-002, ADV-EDP1-P74-MED-003, ADV-EDP1-P74-LOW-001, PG-P74-001, PG-P74-002, PG-P74-003 (per D-413(b) completeness mandate) | 58ac0282 / 07113869 (parent commits per D-419(b)+D-445(d) — pass-74 Commit A SHA / pass-73 Commit D canonical-parent SHA) | F5 pass-74 | 2026-05-13 | state-manager |
