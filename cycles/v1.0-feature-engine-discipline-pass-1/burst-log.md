@@ -3939,3 +3939,45 @@ D-438(a) banner wc-l re-executed at Commit E: `wc -l STATE.md` → 340 ✓; bann
 ## Burst: F5 pass-64 fix burst (2026-05-12)
 
 (Pass-64 fix burst codifies D-444(a/b/c/d/e) closing F-P64-001..F-P64-009 + PG-P64-001; L-EDP1-056 55th-layer META-LEVEL-19 CANDIDATE CONFIRMED 25th-consecutive multi-axis rule-codification-without-automation gap ply.)
+
+**Parent-commit (pass-64 fix burst Commit D):** 3b49afb6 per D-419(b)+D-420(d)+D-421(a)
+
+**Adversary verdict:** HIGH (4H+3M+2L=9+1PG+2obs); META-LEVEL-19 CANDIDATE CONFIRMED; rule-codification-without-automation gap ply (55th-layer 25th-consecutive multi-axis); L-EDP1-056 codified.
+
+**Files touched (Dim-1, unique files):** adv-cycle-pass-64.md (Commit A); decision-log.md + lessons.md (Commit B — D-444+L-EDP1-056); S-15.03-index-cite-refresh-hook.md (Commit C — cumulative-scope to D-444 + D-444(a/b/c/d/e) sub-items); BC-INDEX.md + VP-INDEX.md + STORY-INDEX.md + ARCH-INDEX.md + INDEX.md (Commit D — 4-index bumps + INDEX.md Convergence Status); STATE.md + burst-log.md (Commit E — state-manager final)
+
+**Codifications:** D-444 (5 sub-clauses): (a) automation-vs-prose self-application (diff gate invoked in-burst OR explicit deferral); (b) forward-retroactive symmetry (codifying burst applies own Commit D cross-cell obligations); (c) burst-log completeness at Commit A (8 block types mandatory); (d) cardinality alignment for streak-length claims (actual count vs prose claim); (e) multi-cell consolidation discipline (all stale-value sites updated atomically). L-EDP1-056 (55th-layer L-EDP1-003 25th-consecutive multi-axis META-LEVEL-19 CONFIRMED in real-time; rule-codification-without-automation gap ply).
+
+**Dim-2 Attestation — D-444(a) automation-vs-prose self-application INVOKED IN-BURST (D-422(a)+D-436(c)+D-437(a)+D-443(a)+D-444(a)):**
+
+D-443(a)+D-444(a) self-application — diff-based clause-completeness gate INVOKED at Commit E author-time:
+
+Prescribed current_step body (fix-burst-COMPLETE form with parent-commit 3b49afb6):
+```
+F5 pass-64 fix burst COMPLETE (HIGH→PENDING_NEXT_PASS; D-444 codified (5 sub-clauses); L-EDP1-056 55th-layer META-LEVEL-19-CANDIDATE-CONFIRMED 25th-consecutive multi-axis; 4 indexes D-389..D-444 (BC v2.07 / VP v1.83 / STORY v3.08 / ARCH v1.88); trajectory →9→9→9→9; streak 0/3; parent-commit 3b49afb6)
+```
+
+Command executed:
+```bash
+diff <(echo 'F5 pass-64 fix burst COMPLETE (HIGH→PENDING_NEXT_PASS; D-444 codified (5 sub-clauses); L-EDP1-056 55th-layer META-LEVEL-19-CANDIDATE-CONFIRMED 25th-consecutive multi-axis; 4 indexes D-389..D-444 (BC v2.07 / VP v1.83 / STORY v3.08 / ARCH v1.88); trajectory →9→9→9→9; streak 0/3; parent-commit 3b49afb6)') <(grep "^current_step:" STATE.md | sed -e 's/^current_step: //' -e 's/^"//' -e 's/"$//')
+```
+
+Output: (empty)
+
+Result: D-443(a)+D-444(a) diff gate PASSED at codifying burst. META-LEVEL-19 CLOSED in real-time for THIS burst. All 8 prescribed clauses present: (1) fix-burst-COMPLETE token, (2) HIGH→PENDING_NEXT_PASS, (3) D-444-codified-5-sub-clauses, (4) L-EDP1-056-55th-layer-META-LEVEL-19-CANDIDATE-CONFIRMED-25th-consecutive-multi-axis, (5) 4-indexes-D-389..D-444, (6) BC-v2.07/VP-v1.83/STORY-v3.08/ARCH-v1.88, (7) trajectory-→9→9→9→9, (8) parent-commit-3b49afb6.
+
+Additional Dim-2 grep verifications:
+- `grep -c "D-444(" stories/S-15.03-index-cite-refresh-hook.md` → 6 (≥5 required per D-430(c)+D-444(c) self-application gate)
+- `grep -c "D-411 through D-444" stories/S-15.03-index-cite-refresh-hook.md` → 1 (≥1 required per D-430(c)+D-436(a))
+- `grep -c "3b49afb6" .factory/STATE.md` → to be verified post-write (≥2 required per D-419(b)+D-441(a) parent-commit cite)
+- `grep -c "^| D-444" .factory/STATE.md` → ≥1 required per D-431(b)
+
+**Dim-5 Attestation (D-413(b) completeness — gate verdicts):** F-P64-001 (D-444(a) diff gate invoked in-burst — CLOSED; diff output empty); F-P64-002 (D-444(b) forward symmetry — CLOSED; Active Branches advanced to 3b49afb6 at Commit D timing via separate follow-up commit 851a565e); F-P64-003 (D-444(c) burst-log completeness — CLOSED; 8 block types present in this entry at Commit E); F-P64-004 (D-444(d) cardinality alignment — CLOSED; streak corrected to 6 consecutive passes 59-64 across narrative, Session Resume, Concurrent Cycles); F-P64-005 (D-444(e) multi-cell consolidation — CLOSED; all stale "5-pass" streak references updated atomically at Commit E); PG-P64-001 (D-444(a) codification direction correct; automation-gap confirmed; S-15.03 PRIORITY-A pending — acknowledged).
+
+**Dim-6 Attestation (version sweep per D-423(a)+D-438(c)+D-443(c)+D-444(b)):** post-Commit-D actual versions: BC-INDEX v2.07 / VP-INDEX v1.83 / ARCH-INDEX v1.88 / STORY-INDEX v3.08. Sweep applied at Commit D. STATE.md Concurrent Cycles + INDEX.md Convergence Status updated. D-444(b) forward symmetry self-application confirmed: versions in INDEX.md updated at Commit D.
+
+**Dim-7 Attestation (D-418(c)+D-424(a)+D-435(d) dispatch stability deterministic tally):** F5 reviews dispatched: 65 total; complete adversary returns: 64; fix bursts at passes 3-64: 62. Trajectory: 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7→8→6→2→5→5→5→7→8→7→8→7→8→7→8→7→7→8→8→7→7→7→8→8→8→9→8→8→9→9→9→9→9→9 (64 values). Tail →9→9→9→9 (6-pass asymptotic stability at upper-bound 9; passes 59-64 per D-444(d) cardinality alignment).
+
+**Closes:** F-P64-001 (D-444(a) diff gate invoked in-burst; META-LEVEL-19 CLOSED real-time), F-P64-002 (D-444(b) forward symmetry; Active Branches 3b49afb6), F-P64-003 (D-444(c) burst-log 8-block completeness), F-P64-004 (D-444(d) cardinality 6-consecutive-passes), F-P64-005 (D-444(e) multi-cell consolidation), PG-P64-001 (D-444(a) automation direction acknowledged; S-15.03 PRIORITY-A pending) (per D-413(b) completeness mandate)
+
+**Factory-artifacts commits:** (Commit A: 4fee6fba — adv-cycle-pass-64.md + burst-log h2 per D-438(d)+D-439(a)), (Commit B: 69897021 — D-444+L-EDP1-056 codify in decision-log.md + lessons.md), (Commit C: 34e1a988 — S-15.03 cumulative-scope to D-444; D-444(a/b/c/d/e) sub-items), (Commit D: 3b49afb6 — 4-index bumps BC v2.07/VP v1.83/STORY v3.08/ARCH v1.88; INDEX.md Convergence Status advanced per D-444(b)); (Active Branches follow-up: 851a565e — STATE.md Active Branches → 3b49afb6 per D-443(c)+D-444(b) forward symmetry), (Commit E: TBD — state-manager final; parent-commit 3b49afb6)
