@@ -5,14 +5,14 @@ version: "2.0"
 status: draft
 producer: state-manager
 timestamp: 2026-05-12T00:00:00Z
-phase: engine-discipline-F5-pass-60-COMPLETE
+phase: engine-discipline-F5-pass-61-adversary-in-progress
 last_amended: 2026-05-12
 inputs: []
 input-hash: "[live-state]"
 traces_to: prd.md
 project: vsdd-factory
 mode: brownfield
-current_step: "F5 pass-60 fix burst COMPLETE (HIGH→PENDING_NEXT_PASS; D-440 codified (5 sub-clauses); L-EDP1-052 51st-layer META-LEVEL-15 CANDIDATE CONFIRMED 21st-consecutive multi-axis; 4 indexes D-389..D-440 (BC v2.03 / VP v1.79 / STORY v3.04 / ARCH v1.84); trajectory tail →8→8→9→9; streak 0/3; parent-commit 4142bc24 per D-419(b)+D-420(d)+D-421(a))"
+current_step: "F5 pass-61 adversary dispatch IN-PROGRESS (full-discipline-chain D-382..D-440; pass-60 parent-commit 4142bc24 per D-419(b)+D-420(d)+D-421(a); META-LEVEL-16 CANDIDATE WATCH; D-440(a) self-application TEST — first dispatch after D-440(a) codification; 4 indexes D-389..D-440 (BC v2.03 / VP v1.79 / STORY v3.04 / ARCH v1.84) per D-439(b)+D-440(a) checklist 4a; trajectory tail →8→8→9→9 per D-433(e)+D-439(c); streak 0/3 per D-386 Option C; 51-LAYER held at L-EDP1-052; expected verdict HIGH per asymptotic floor [7,9]; banner-wc-l-reconciled at 410 per D-440(d) self-application)"
 current_cycle: v1.0-feature-engine-discipline-pass-1
 dtu_required: false
 dtu_assessment: 2026-04-25
