@@ -232,6 +232,8 @@ changelog:
 > Master index of all 1,949 behavioral contracts across 10 subsystems.
 > Source of truth for BC count, status, and subsystem assignment.
 
+> **D-443(b)(i) + D-444(e)(ii) documentary-historical exemption (per D-414(c)):** Pre-v2.06-cohort changelog entries (BC v1.78..v2.05) are documentary-historical-exempt per D-414(c); the sample-vs-exhaustive flag introduced at pass-62 fix burst (D-442(c)) applies forward-only from BC v2.06+. Do NOT retroactively annotate or rewrite pre-v2.06 changelog entries.
+
 ## Summary
 
 | Subsystem | BC Prefix | Count | Shard Directory |

@@ -169,6 +169,8 @@ changelog:
 
 # VP-INDEX: Verification Properties Master Index
 
+> **D-443(b)(i) + D-444(e)(ii) documentary-historical exemption (per D-414(c)):** Pre-v1.82-cohort changelog entries (VP v1.55..v1.81) are documentary-historical-exempt per D-414(c); the sample-vs-exhaustive flag introduced at pass-62 fix burst (D-442(c)) applies forward-only from VP v1.82+. Do NOT retroactively annotate or rewrite pre-v1.82 changelog entries.
+
 > **Source of truth** for all verification properties.
 > VP-INDEX is currently the authoritative source for the Provable Properties Catalog
 > and VP-to-Module coverage mapping.

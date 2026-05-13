@@ -16,6 +16,8 @@ traces_to: .factory/specs/domain-spec/capabilities.md
 
 # Story Index — vsdd-factory v1.0 (brownfield)
 
+> **D-443(b)(i) + D-444(e)(ii) documentary-historical exemption (per D-414(c)):** Pre-v3.07-cohort changelog entries (STORY v2.80..v3.06) are documentary-historical-exempt per D-414(c); the sample-vs-exhaustive flag introduced at pass-62 fix burst (D-442(c)) applies forward-only from STORY v3.07+. Do NOT retroactively annotate or rewrite pre-v3.07 changelog entries.
+
 > Auto-generated during Phase 1.8 migration from legacy S-N.M format to canonical
 > S-N.MM format. Updated in Phase 2 (story decomposition) with E-7 stories.
 > Updated in Wave 11 burst (2026-04-27): S-4.09 and S-4.10 added.

@@ -138,6 +138,11 @@ appended here per POLICY 1 (append-only, immutable IDs).
 | D-443(c) | Cross-cell advance scope extension at Commit D (Active Branches + INDEX Convergence + INDEX version) | F-P63-002 + F-P63-008 + F-P63-009 closed | F5 pass-63 | 2026-05-12 | state-manager |
 | D-443(d) | Banner self-canonical-source-of-truth (internal consistency within banner block) | F-P63-004 closed | F5 pass-63 | 2026-05-12 | state-manager |
 | D-443(e) | Trend-table column-name canonical form ("Axes") + burst-log h2 own-burst real-time discipline | F-P63-006 + F-P63-007 closed | F5 pass-63 | 2026-05-12 | state-manager |
+| D-444(a) | Automation-discipline-vs-prose-discipline distinction (invoke-or-defer) | META-LEVEL-19 CANDIDATE CONFIRMED ack; closes F-P64-001 + PG-P64-001 | F5 pass-64 | 2026-05-12 | state-manager |
+| D-444(b) | D-443(c) forward-and-retroactive symmetry at codifying burst Commit D | F-P64-002 closed | F5 pass-64 | 2026-05-12 | state-manager |
+| D-444(c) | Burst-log entry structural completeness (all blocks present at Commit E) | F-P64-003 closed | F5 pass-64 | 2026-05-12 | state-manager |
+| D-444(d) | Cardinality alignment self-application (trajectory + version-range) | F-P64-004 + F-P64-008 closed | F5 pass-64 | 2026-05-12 | state-manager |
+| D-444(e) | Multi-cell discipline consolidation (archive-pointer + in-place exemption + INDEX obs + older-trend-table exempt) | F-P64-005 + F-P64-006 + F-P64-007 + F-P64-009 closed | F5 pass-64 | 2026-05-12 | state-manager |
 
 ---
 
@@ -190,3 +195,15 @@ appended here per POLICY 1 (append-only, immutable IDs).
 - **D-443(d)** Banner self-canonical-source-of-truth: within a single banner block, ALL line-count claims MUST be internally consistent. The size-budget paragraph + line-growth tracker + content-extent annotations MUST all cite the same canonical-source value (per D-442(d)(i) semantics). If banner contains internal contradiction at codifying-burst Commit E, that is HIGH per D-411(a). Closes F-P63-004.
 
 - **D-443(e)** Trend-table column-name canonical-form + burst-log h2 heading own-burst real-time discipline. Sub-parts: (i) trend-table column-name canonical form = "Axes" (latest convention from L-EDP1-052/053/054); normalize all 20 trend-tables in lessons.md from "Axis count" to "Axes"; (ii) D-438(d)+D-439(a) burst-log h2 heading MUST be added at Commit A real-time scope; pass-62 violation retroactively corrected at pass-63 Commit A with explicit D-414(c) acknowledgment. Closes F-P63-006 + F-P63-007.
+
+### D-444 (F5 pass-64 codification block; META-LEVEL-19 CANDIDATE CONFIRMED — rule-codification-without-automation gap ply)
+
+- **D-444(a)** Automation-discipline-vs-prose-discipline distinction. When a rule codifies AUTOMATION (e.g., D-443(a) diff command), the codifying burst MUST EITHER (i) actually invoke the automation at same-burst Commit E with output captured in Dim-2, OR (ii) explicitly defer with `[DEFERRED TO S-15.03 PRIORITY-A]` literal-acknowledgment in the Dim-2 block. Codification-only without invocation is HIGH per D-411(a). Closes F-P64-001 + PG-P64-001.
+
+- **D-444(b)** D-443(c) cross-cell forward-and-retroactive symmetry. When D-443(c) is applied retroactively at Commit A (closing prior burst's miss), the codifying burst's OWN Commit D MUST ALSO advance the same cell. Forward-application is REQUIRED, not optional. Codifying-burst must re-advance Active Branches to its own Commit D SHA at Commit D time. Closes F-P64-002.
+
+- **D-444(c)** Burst-log entry structural completeness. Every burst-log entry MUST contain ALL required blocks at codifying-burst Commit E: h2 heading (D-438(d)) + Parent-commit (D-419(b)+D-420(d)+D-421(a)) + Adversary verdict + Files touched (Dim-1) + Codifications + Dim-2/5/6/7 attestations + Closes (D-413(b) completeness) + Factory-artifacts commits A/B/C/D/E enumeration with SHAs. Missing any block = HIGH per D-411(a). Closes F-P64-003.
+
+- **D-444(d)** Cardinality alignment self-application. STATE.md narrative claims about trajectory length, axis-count series, and version-range citations MUST match actual counted values. Examples: "5-pass asymptotic stability" must equal actual consecutive same-axis-count passes; "(BC v2.06+/VP v1.82+)" prediction citations must match actual current versions, not predicted-at-codification versions. D-421(d) extension. Closes F-P64-004 + F-P64-008.
+
+- **D-444(e)** Multi-cell discipline consolidation (4-sub-issue): (i) archive-pointer canonical form = ONE transition per pointer per D-417(c); three-transition layering FORBIDDEN; (ii) D-414(c) documentary-historical exemption literal-acknowledgment MUST appear IN the affected artifact (not decision-log-only declaration); (iii) INDEX.md adversary-row Observations field MANDATORY per D-427(d); rows missing Observations field = MEDIUM per D-411(a); (iv) older trend-tables L-EDP1-001..030 4-column "Rule Codified / Same-burst Violation" schema are documentary-historical-exempt per D-414(c) from D-443(e)(i) "Axes" normalization; exemption note MUST appear in lessons.md near L-EDP1-001 section. Closes F-P64-005 + F-P64-006 + F-P64-007 + F-P64-009.

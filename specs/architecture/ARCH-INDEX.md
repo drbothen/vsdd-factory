@@ -192,6 +192,8 @@ changelog:
 
 # Architecture Index: vsdd-factory
 
+> **D-443(b)(i) + D-444(e)(ii) documentary-historical exemption (per D-414(c)):** Pre-v1.87-cohort changelog entries (ARCH v1.60..v1.86) are documentary-historical-exempt per D-414(c); the sample-vs-exhaustive flag introduced at pass-62 fix burst (D-442(c)) applies forward-only from ARCH v1.87+. Do NOT retroactively annotate or rewrite pre-v1.87 changelog entries.
+
 > **Context Engineering:** This is a lightweight index (~350 tokens). Agents load
 > ONLY the section files they need. See the Document Map for per-section consumer
 > guidance.
