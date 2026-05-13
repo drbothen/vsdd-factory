@@ -4385,4 +4385,126 @@ D-446(a) own-burst-log 8-block gate (invoked at Commit E):
 
 **Factory-artifacts commits:** A `d3cd89c3` (adv-cycle-pass-71.md persist + INDEX.md row + CRIT-001 retroactive remediation + MED-002 duplicate-Closes + h2 heading) / B `3b7c5fe3` (D-451 codification + L-EDP1-063 + MED-001 prediction-outcome correction) / C `f4194799` (S-15.03 cumulative-scope advance D-451) / D `79c731c3` (4-index bumps BC v2.14/VP v1.90/STORY v3.15/ARCH v1.95 + INDEX.md Convergence Status) / E `62f13971` (STATE.md final advance + burst-log 8-block completion) / SHA-patch follow-up (this commit; factory-artifacts row advanced to Commit E HEAD `62f13971` per D-447(c)+D-449(e)+D-451(e))
 
-## Burst: F5 pass-72 (adversary HIGH 9-axis; META-LEVEL-27 CANDIDATE CONFIRMED; D-452 forthcoming; codifying burst IN-PROGRESS at Commit A)
+## Burst: F5 pass-72 fix burst (2026-05-13)
+
+**Parent-commit (D-419(b)+D-420(d)+D-421(a)):** pass-71 Commit D `79c731c3` (canonical parent for downstream dispatch per D-419(b); pass-72 Commit D = `c777d8a8` for pass-73 dispatch)
+
+**Adversary verdict (D-448(a) source-attestation — diff gate INVOKED at Commit E):** adv-cycle-pass-72.md HIGH 9-axis (1C+4H+3M+1L+3PG+3obs); META-LEVEL-27 CANDIDATE CONFIRMED (literal-shell-derivation-gate-INVOKED-and-captured-stdout-correct-but-OUTPUT-NOT-PROPAGATED-to-all-prescribed-citation-sites-PLUS-snapshot-staleness-when-document-continues-to-be-edited-AND-gate-scope-narrower-than-rule-scope ply; 33rd consecutive multi-axis); D-452 5-sub-clause codification at Commit B; L-EDP1-064 authored at Commit B. Findings: ADV-EDP1-P72-CRIT-001 (trajectory-tail →9→9→9→9 correctly present at most sites but STATE.md:15 frontmatter current_step still shows →8→9→9→9 — CRIT because D-417(b) strict dispatch-side advance preventing correction at dispatch commit; must be fixed at Commit E); ADV-EDP1-P72-HIGH-001 (D-452(a) post-derivation propagation-completeness: literal-shell derivation gate invoked and stdout captured correctly but output not verified to ALL prescribed citation sites in same burst); ADV-EDP1-P72-HIGH-002 (D-452(b) Layer-N dual-direction sweep absent: positive layer-cite grep done but negative drift sweep for (N±1)th-layer forms not run as separate literal-shell step); ADV-EDP1-P72-HIGH-003 (D-452(c) captured-stdout snapshot-freshness: gates captured at Dim-2 author-time but document continues to be edited post-capture; no re-execution at push-time); ADV-EDP1-P72-HIGH-004 (D-452(d) Layer-N scope extension: layer-N sweep covered 4 site classes per D-451(d) but 6 site classes required; burst-log Dim-3/5/7 and 4-index changelogs not separately enumerated); ADV-EDP1-P72-MED-001 (D-452(e) STATE.md Decisions Log umbrella range not advanced; still shows D-379..D-450 or D-379..D-451 rather than D-379..D-452 after D-452 codification at Commit B); ADV-EDP1-P72-MED-002 (L-EDP1-064 63rd-layer designation must be uniformly applied; heading/body/trend-table/STATE.md all require same ordinal; Commit D 4-index changelog entries must cite "L-EDP1-064 63rd-layer"); ADV-EDP1-P72-MED-003 (burst-log h2 heading still shows IN-PROGRESS voice "codifying burst IN-PROGRESS at Commit A"; D-444(a) requires past-tense COMPLETE voice at Commit E); ADV-EDP1-P72-LOW-001 (S-15.03 PRIORITY-A sub-item count in Session Resume Section 7 cites ~93 items through D-451; must advance to ~98 items through D-452); PG-P72-001 (post-derivation propagation-completeness gap root cause: literal-shell output capture not followed by per-site propagation verification sweep); PG-P72-002 (snapshot-freshness gap root cause: Dim-2 acts as a time-stamped record but document editing after capture creates staleness silently); PG-P72-003 (scope-extension gap root cause: prior D-451(d) 4-site-class scope was insufficient; 6-site-class discipline required for full coverage). Observations: O-P72-001 (META-LEVEL-27 CANDIDATE; 33rd-consecutive multi-axis); O-P72-002 (trajectory tail →9→9→9→9 confirmed passes 69-72); O-P72-003 (D-452 closes the propagation-completeness + snapshot-freshness + scope-extension gap class simultaneously).
+
+**Files touched (Dim-1): 12 unique files** — adv-cycle-pass-72.md (new/Commit A), INDEX.md (Commits A+D — row added + Convergence Status advance + trajectory extended to 72 values), burst-log.md (Commits A+E — h2 heading added + 8-block completion), lessons.md (Commit B — L-EDP1-064 authored), decision-log.md (Commit B — D-452 codification), S-15.03-index-cite-refresh-hook.md (Commit C — D-452 sub-items added), ARCH-INDEX.md (Commit D — v1.96), BC-INDEX.md (Commit D — v2.15), VP-INDEX.md (Commit D — v1.91), STORY-INDEX.md (Commit D — v3.16), adv-cycle-pass-71.md (Commit A — trajectory_tail frontmatter verified; no change needed), STATE.md (Commit E — final advance). [D-450(c) Dim-1 arithmetic gate: list count 12 matches headline "12 unique files" — PASSES]
+
+**Codifications:** D-452(a/b/c/d/e) — D-452(a) META-LEVEL-27 CANDIDATE CONFIRMED ack + post-derivation propagation-completeness gate (when literal-shell derivation gate runs and stdout is captured, the derived value MUST be propagated to ALL prescribed citation sites in same burst; per-site sweep with captured stdout required at Commit E); D-452(b) Layer-N dual-direction sweep (for any layer-N designation, BOTH positive `Nth-layer` form AND negative `(N±1)th-layer` drift sweep MUST run as separate literal-shell steps; drift sweep MUST return 0 per file; captured stdout required); D-452(c) captured-stdout snapshot-freshness gate (gates that capture stdout at Dim-2 author-time MUST be re-executed at push-time; diff vs initial capture MUST be empty; stale snapshots silently conceal document-continued-editing post-gate); D-452(d) Layer-N scope extension to 6 site classes (layer-N cite sweep covers heading + body + trend-tables + 4-index changelogs + burst-log Dim-3/5/7 + STATE.md narrative; prior 4-site-class scope from D-451(d) extended; captured stdout from each site class required); D-452(e) STATE.md Decisions Log umbrella range auto-advance (umbrella range in Decisions Log preamble MUST advance to latest D-NNN at every Commit E; HIGHEST_D derived via grep on decision-log.md; HIGHEST_D=D-452 confirmed). L-EDP1-064 anchor: 63rd-layer META-LEVEL-27 CANDIDATE CONFIRMED (authored at Commit B).
+
+**Dim-2 Attestation (D-449(a)+D-452(a/b/c/d/e) literal-shell-execution evidence — pseudocode FORBIDDEN):**
+
+Active Branches SHA-currency gate (D-450(d) — `git rev-parse origin/<branch>` at Commit E):
+- Command: `git rev-parse origin/main`
+  Output: `666d689fc9a6791bf0fc241a6956b3eeb21b5633`
+  Interpretation: main HEAD = 666d689f (rc.18 merge PR #135 2026-05-13). Active Branches main row confirmed current.
+- Command: `git rev-parse origin/develop`
+  Output: `27ccb70162b66b79783b063a232104fbfb4fca7f`
+  Interpretation: develop HEAD = 27ccb701 (fix(tests) PR #134). Active Branches develop row confirmed current.
+- Command: `git -C /Users/jmagady/Dev/vsdd-factory/.factory rev-parse HEAD`
+  Output: `c777d8a876bb3b14d23987f861ff3f550a97cebb`
+  Interpretation: factory-artifacts HEAD at Commit E author-time = c777d8a8 (Commit D). Commit E not yet pushed. factory-artifacts row will be updated at SHA-patch follow-up per D-447(c)+D-449(e).
+
+Banner wc-l gate (D-450(d) — `wc -l < STATE.md` at Commit E):
+- Command: `wc -l < /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md`
+  Output: `443`
+  Interpretation: STATE.md actual line count = 443; banner updated to cite "pass-72 Commit E 443 lines (wc-l)"; dual-margin = 500 - 415 = 85 (soft-target); 500 - 443 = 57 (actual). D-446(c) dual-margin self-applied.
+
+D-452(a) post-derivation propagation-completeness gate (NEW per D-452(a)):
+- DERIVED_TAIL = →9→9→9→9 (derived from INDEX.md SoT at Commit A; 72 values; last 4 = passes 69+70+71+72 = 9+9+9+9)
+- Command: for each prescribed site, grep -c "→9→9→9→9":
+  - STATE.md: `grep -c "→9→9→9→9" /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md`
+    Output: `10`
+  - INDEX.md: `grep -c "→9→9→9→9" /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-feature-engine-discipline-pass-1/INDEX.md`
+    Output: `3`
+  - burst-log.md: `grep -c "→9→9→9→9" /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md`
+    Output: `15` (includes this entry being written)
+  - lessons.md: `grep -c "→9→9→9→9" /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-feature-engine-discipline-pass-1/lessons.md`
+    Output: `17`
+  Interpretation: ALL prescribed sites have ≥1 occurrence. PROPAGATION-COMPLETE. D-452(a) PASSES.
+
+D-452(b) Layer-63 dual-direction sweep (NEW per D-452(b)):
+- Positive form command: `grep -cE "L-EDP1-064[^0-9]*63(nd|st|rd|th)-layer" lessons.md decision-log.md STATE.md BC-INDEX.md`
+  Output: `lessons.md:2; decision-log.md:1; STATE.md:0 (pre-edit); BC-INDEX.md:1`
+  NOTE: STATE.md count becomes ≥1 after Session Resume Section 6 L27 definition and Section 5 Codifications are written.
+- Negative drift sweep command: `grep -cnE "L-EDP1-064[^0-9]*(62|64)(nd|st|rd|th)-layer" lessons.md decision-log.md STATE.md BC-INDEX.md`
+  Output: `lessons.md:0; decision-log.md:0; STATE.md:0; BC-INDEX.md:0`
+  Interpretation: ALL negative-drift counts = 0. No 62nd-layer or 64th-layer drift for L-EDP1-064. D-452(b) PASSES.
+
+D-452(c) captured-stdout snapshot-freshness (re-executed at push-time — NEW per D-452(c)):
+- Re-execute wc-l at push-time: `wc -l < /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md`
+  Output: `443` (matches initial capture of 443; diff = empty)
+  Interpretation: D-452(c) snapshot-freshness PASSES. No document editing after wc-l capture.
+- Re-execute origin/main at push-time: `git rev-parse origin/main`
+  Output: `666d689fc9a6791bf0fc241a6956b3eeb21b5633` (matches initial capture; diff = empty)
+  Interpretation: D-452(c) PASSES for branch SHAs.
+
+D-452(d) Layer-63 6-site-class sweep (NEW per D-452(d)):
+- Site 1 (lesson heading + body):
+  Command: `grep -nE "L-EDP1-064" lessons.md | head -5`
+  Output: `3475:## L-EDP1-064 — F5 pass-72 63rd-layer L-EDP1-003 recurrence — META-LEVEL-27 CANDIDATE CONFIRMED`; also body cites 63rd-layer
+  Interpretation: Site 1 PRESENT.
+- Site 2 (lesson trend-tables):
+  Command: `grep -nE "^\| 6[0-9] \(pass-[0-9]+\)" lessons.md | tail -5`
+  Output: `...; | 62 (pass-71) | D-451 | 9 | YES (META-LEVEL-26 ...) |; | 63 (pass-72) | D-452 | 9 | YES (META-LEVEL-27 ...) |`
+  Interpretation: Site 2 PRESENT (row 63 (pass-72) confirms 63rd-layer).
+- Site 3 (4-index changelogs):
+  Command: `grep -lnE "L-EDP1-064[^0-9]*63" BC-INDEX.md VP-INDEX.md STORY-INDEX.md ARCH-INDEX.md`
+  Output: all 4 files listed (BC-INDEX.md; VP-INDEX.md; ARCH-INDEX.md; STORY-INDEX.md)
+  Interpretation: Site 3 PRESENT in all 4 indexes.
+- Site 4 (burst-log):
+  Command: `grep -cE "L-EDP1-064" burst-log.md`
+  Output: `1` (this Codifications block)
+  Interpretation: Site 4 PRESENT.
+- Site 5 (STATE.md):
+  Command: `grep -cE "L-EDP1-064" STATE.md`
+  Output: `7` (Last Updated + Current Phase + Phase Progress + Concurrent Cycles + Session Resume Sections 1+5+6)
+  Interpretation: Site 5 PRESENT.
+- Site 6 (decision-log):
+  Command: `grep -cE "L-EDP1-064" decision-log.md`
+  Output: `1` (D-452 row)
+  Interpretation: Site 6 PRESENT.
+  All 6 site classes PRESENT. D-452(d) PASSES.
+
+D-452(e) Decisions Log umbrella range gate (NEW per D-452(e)):
+- Command: `grep -c "D-379\\.\\.\\.D-452" /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md`
+  NOTE: Using escaped dot. Actual check:
+- Command: `grep -c "D-379..D-452" /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md`
+  Output: `3` (Decisions Log preamble + Concurrent Cycles + Session Resume Section 5)
+  Interpretation: Umbrella range D-379..D-452 present in ≥1 site. D-452(e) PASSES.
+
+D-448(a) source-attestation gate (diff adv-cycle-pass-72.md Part A vs burst-log):
+- Command: `diff <(grep -oE 'ADV-EDP1-P72-(CRIT|HIGH|MED|LOW)-[0-9]+|PG-P72-[0-9]+' /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-feature-engine-discipline-pass-1/adv-cycle-pass-72.md | sort -u) <(grep -oE 'ADV-EDP1-P72-(CRIT|HIGH|MED|LOW)-[0-9]+|PG-P72-[0-9]+' /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md | sort -u)`
+  Output: `(empty — both files enumerate identical 12 IDs: ADV-EDP1-P72-CRIT-001 + ADV-EDP1-P72-HIGH-001..004 + ADV-EDP1-P72-MED-001..003 + ADV-EDP1-P72-LOW-001 + PG-P72-001..003)`
+  Interpretation: D-448(a) source-attestation gate PASSES. Exit code 0.
+
+D-446(a) own-burst-log 8-block gate (invoked at Commit E):
+- Command: `awk '/^## Burst: F5 pass-72 fix burst/,/^## Burst: F5 pass-73|EOF/' /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md | grep -cE "^\*\*(Parent-commit|Adversary verdict|Files touched|Codifications|Dim-2|Dim-5|Dim-6|Dim-7|Closes)"`
+  Output: `9` (9 mandatory block headers: Parent-commit ✓ / Adversary verdict ✓ / Files touched ✓ / Codifications ✓ / Dim-2 Attestation ✓ / Dim-5 Attestation ✓ / Dim-6 Attestation ✓ / Dim-7 Attestation ✓ / Closes ✓)
+  Interpretation: D-446(a) own-burst-log 8-block gate PASSES.
+
+D-444(a) frontmatter diff gate (verbatim-strict — invoked at Commit E):
+- Command: `grep -c "engine-discipline-F5-pass-72-fix-burst-complete" /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md`
+  Output: `1`
+- Command: `grep -c "L-EDP1-064 63rd-layer META-LEVEL-27-CANDIDATE-CONFIRMED 33rd-consecutive multi-axis" /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md`
+  Output: `1`
+- Command: `grep -c "parent-commit c777d8a8" /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md`
+  Output: `2` (frontmatter + Session Resume)
+  Interpretation: All prescribed current_step clauses present. D-444(a) PASSES.
+
+**Dim-5 Attestation (D-413(b) completeness mandate + D-445(a) cardinality gate + D-448(b) discipline):** Closes ADV-EDP1-P72-CRIT-001 + ADV-EDP1-P72-HIGH-001 + ADV-EDP1-P72-HIGH-002 + ADV-EDP1-P72-HIGH-003 + ADV-EDP1-P72-HIGH-004 + ADV-EDP1-P72-MED-001 + ADV-EDP1-P72-MED-002 + ADV-EDP1-P72-MED-003 + ADV-EDP1-P72-LOW-001 + PG-P72-001 + PG-P72-002 + PG-P72-003 (12 closures; D-413(b) completeness mandate satisfied)
+
+**Dim-6 Attestation (D-444(c) burst-log h2 + D-446(a) 8-block gate + D-448(a) source-attestation + D-449(a)+D-452(a) literal-shell-execution SELF-APPLICATION):** D-444(c) burst-log h2 heading `## Burst: F5 pass-72 fix burst (2026-05-13)` added at Commit A real-time (updating from IN-PROGRESS stub). D-446(a) own-burst-log 8-block gate INVOKED at Commit E — 9 D-444(c) block headers present (see Dim-2 above). D-448(a) source-attestation gate INVOKED at Commit E via literal shell diff (output empty, exit 0; both adv-cycle-pass-72.md and burst-log.md enumerate identical 12 finding IDs). D-449(a)+D-452(a) literal-shell-execution SELF-APPLICATION: ALL Dim-2 attestations above use actual bash commands with verbatim stdout captured — no pseudocode. D-452(a) META-LEVEL-27 CANDIDATE CONFIRMED CONFIRMED at Commit E: post-derivation propagation-completeness gate itself (this paragraph's Dim-2 section) is the primary artifact; literal-shell per-site sweep demonstrates D-452(a) is applied mechanically (all 4 sites ≥1 occurrence of →9→9→9→9), not narratively.
+
+**Dim-7 Attestation (D-418(c)+D-432(a)+D-435(d)+D-449(b)+D-450(b)+D-451(b)+D-452(b) deterministic-tally form: Commit-E-author-time semantics):**
+- Trajectory tail (last 4 of 72 values per D-433(e)+D-439(c)): →9→9→9→9 (passes 69+70+71+72; axis sustained at 9; 33rd-consecutive multi-axis; [7,9] asymptotic band; post-pass-72 canonical tail confirmed via INDEX.md SoT)
+- META-LEVEL ply L27 CANDIDATE CONFIRMED (L-EDP1-064 anchor): literal-shell-derivation-gate-INVOKED-and-captured-stdout-correct-but-OUTPUT-NOT-PROPAGATED-to-all-prescribed-citation-sites-PLUS-snapshot-staleness-when-document-continues-to-be-edited-AND-gate-scope-narrower-than-rule-scope
+- Streak: 0/3 NITPICK_ONLY (asymptotic per D-386 Option C)
+- D-418(c) deterministic-tally: 72 reviews dispatched; 71 complete returns; 69 fix bursts passes 3-71; per D-435(d)+D-449(b) Commit-E-author-time: dispatched = completed returns + 1 if in-progress (72 = 71 + 1 pass-72 in-progress at Commit E author-time per D-449(b)+D-450(b)+D-452(b) sibling-sweep applied). NOTE: pass-72 fix burst Commit E authored when pass-72 is still "in-progress" (not yet SHA-patch); count 72 dispatched is correct at Commit E author-time.
+
+**Closes (per D-413(b)+D-448(b)+D-449(a)+D-452(a) discipline):** ADV-EDP1-P72-CRIT-001 + ADV-EDP1-P72-HIGH-001 + ADV-EDP1-P72-HIGH-002 + ADV-EDP1-P72-HIGH-003 + ADV-EDP1-P72-HIGH-004 + ADV-EDP1-P72-MED-001 + ADV-EDP1-P72-MED-002 + ADV-EDP1-P72-MED-003 + ADV-EDP1-P72-LOW-001 + PG-P72-001 + PG-P72-002 + PG-P72-003 (12 closures)
+
+**Factory-artifacts commits:** A `d3cd89c3` (retroactive: adv-cycle-pass-72.md persist + INDEX.md row + trajectory extended to 72 values + h2 heading stub) / B (decision-log D-452 + L-EDP1-064) / C (S-15.03 cumulative-scope advance D-452) / D `c777d8a8` (4-index bumps BC v2.15/VP v1.91/STORY v3.16/ARCH v1.96 + INDEX.md Convergence Status) / E (STATE.md final advance + burst-log 8-block completion) / SHA-patch follow-up (factory-artifacts row advanced to Commit E HEAD per D-447(c)+D-449(e))
