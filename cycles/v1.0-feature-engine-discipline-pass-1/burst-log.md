@@ -3908,3 +3908,10 @@ D-438(a) banner wc-l re-executed at Commit E: `wc -l STATE.md` → 340 ✓; bann
 ## Burst: F5 pass-63 fix burst (2026-05-12)
 
 (Pass-63 fix burst codifies D-443(a/b/c/d/e) closing F-P63-001..F-P63-009 + PG-P63-001; L-EDP1-055 54th-layer META-LEVEL-18 CONFIRMED 24th-consecutive multi-axis rule-verification-grep co-evolution gap ply.)
+
+**Dim-2 Attestation (D-422(a)+D-436(c)+D-437(a)+D-442(d)(ii)+D-442(d)(iii) re-execution at Commit E author-time):**
+- `grep -c "^| D-443(" decision-log.md` → 5 (D-443(a/b/c/d/e) canonical 6-column expansion; proper file scope: decision-log.md)
+- `grep -c "L-EDP1-055" lessons.md` → 2 (heading + body; proper file scope: lessons.md)
+- `grep -cE "Layer 51.*\| 9 \|" lessons.md` → 0 (D-442(d)(iii) cross-instance: no L-EDP1-052/053/054 in trend-table "Layer 51" row format; trend-tables use row per layer number not inline)
+- `grep -c "| Axes |" lessons.md` → 21 (D-443(e)(i) normalized; "Axes" column present across all trend-table rows including coincidental data row)
+- `grep -c "| Axis count |" lessons.md` → 0 (D-443(e)(i) complete; all instances normalized to "Axes")
