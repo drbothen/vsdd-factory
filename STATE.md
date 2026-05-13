@@ -308,35 +308,52 @@ dtu_services: []
 - `cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` | `session-checkpoints.md` | `lessons.md`
 - `cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md` (adversary reviews at `S-12.03/`, `S-12.04/`, `S-12.05/` subdirs)
 
-## Session Resume Checkpoint (2026-05-13 — POST-PASS-69 FIX BURST COMPLETE; META-LEVEL-24 CANDIDATE CONFIRMED; D-449(a) LITERAL SHELL INVOKED)
+## Session Resume Checkpoint (2026-05-13 — POST-PASS-69 FIX BURST COMPLETE; PRE-CLEAR DURABILITY REFRESH; PASS-70 READY)
 
-> **POST-COMPACT RESUME CONTEXT — F5 ASYMPTOTIC LOOP — SELF-SUFFICIENT RESUME CONTEXT**
-> Read this section alone to resume the protocol after context compaction.
+> **POST-CLEAR RESUME CONTEXT — F5 ASYMPTOTIC LOOP — SELF-SUFFICIENT RESUME CONTEXT**
+> Read this section alone to resume the protocol after full conversation CLEAR (not compact).
+> User issued CLEAR (not stop) — convergence continues at pass-70 post-clear.
 
 ### 1. Where We Are
 
 - Cycle: v1.0-feature-engine-discipline-pass-1 F5 phase
 - Pass-69 fix burst COMPLETE at Commit E (parent-commit `7f6ad460` per D-419(b)+D-420(d)+D-421(a); pushed to origin/factory-artifacts)
-- Pass-69 fix burst commit chain: A `e008458d` / B `e547152f` / C `231a4e78` / D `7f6ad460` / E `b57b6270`
-- 35 passes driven this session (pass-37 through pass-69; 70 reviews dispatched total since cycle start)
-- 60-LAYER COUNT reached at L-EDP1-061 (30th consecutive multi-axis recurrence; META-LEVEL-24 CANDIDATE CONFIRMED; rule-codification-via-pseudocode-narrative-without-literal-shell-execution-evidence ply)
-- D-449(a) SELF-APPLICATION: Dim-2 attestation at pass-69 Commit E used LITERAL shell commands (`grep -oE`, `diff`) with captured stdout — no pseudocode
+- Pass-69 fix burst commit chain: A `e008458d` / B `e547152f` / C `231a4e78` / D `7f6ad460` / E `b57b6270` / SHA-patch `48f9cbf1`
+- factory-artifacts HEAD at time of this CLEAR-durability refresh: `48f9cbf1`
+- **10 passes driven THIS conversation** (passes 60-69; 70 reviews dispatched total since cycle start)
+- **MILESTONE — FIRST GENUINE LITERAL MECHANICAL GATE EXECUTION at pass-69:** D-449(a) SELF-APPLICATION: Dim-2 attestation used LITERAL shell commands (`grep -oE`, `diff`, `printf %s`) with captured stdout — actual exit-0 evidence. This distinguishes pass-69 from narrative-attested closures at pass-64 (D-444(a) diff gate) and pass-68 (D-448(a) source-attestation gate) which were later revealed as pseudocode by pass-69 adversary.
+- **61 lessons reached:** L-EDP1-001..061; 30 consecutive multi-axis (layers 31-60)
+- **71 cycle decisions:** D-379..D-449 (45 new sub-decisions this conversation)
+- **META-LEVEL-24 CANDIDATE CONFIRMED** at pass-69 per D-449(a): rule-codification-via-pseudocode-narrative-without-literal-shell-execution-evidence ply — GENUINELY-closed at pass-69 via literal shell execution
 - Trajectory content-only (69 values per D-401(c)): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7→8→6→2→5→5→5→7→8→7→8→7→8→7→8→7→7→8→8→7→7→7→8→8→8→9→8→8→9→9→9→9→9→9→9→8→9→9
 - Trajectory tail (last 4 per D-433(e)+D-439(c)): →9→8→9→9 (axis sustained at 9 passes 68+69; pass-67 8-drop confirmed ONE-PASS NOISE within [7,9] band per D-447(e)(iv))
 - Streak: 0/3 NITPICK_ONLY. Verdict HIGH sustained at asymptotic floor axis-count ∈ [7,9].
-- META-LEVEL-24 CANDIDATE CONFIRMED at pass-69; D-449(a) literal-shell-execution gate codified; D-449(c) ply-status-tier discipline; D-449(d) 4-index Refs scope.
+- User issued CLEAR (not stop/compact) — convergence resumes post-clear at pass-70.
 
 ### 2. Operating Mode
 
 - D-386 Option C: asymptotic convergence acceptance — loop continues, floor accepted.
 - 30 consecutive multi-axis recurrences (layers 31-60) empirically confirm asymptotic floor at axis-count ∈ [7,9].
-- 22 META-LEVEL plies acknowledged (L1..L19 fully CONFIRMED; L20..L23 CANDIDATE CONFIRMED per D-447(e)(iii)+D-449(c) ply-status tier discipline); L24 CANDIDATE CONFIRMED at pass-69. Per L-EDP1-007 + L-EDP1-031..061 + D-386 Option C, prose-only codification cannot break L-EDP1-003 recurrence.
+- pass-67 axis-drop (8) was ONE-PASS NOISE; axis rebounded to 9 at passes 68+69 — [7,9] band confirmed; 30th consecutive multi-axis at pass-69.
+- 24 META-LEVEL plies acknowledged (L1..L19 fully CONFIRMED; L20..L24 CANDIDATE CONFIRMED per D-447(e)(iii)+D-449(c) ply-status tier discipline). Per L-EDP1-007 + L-EDP1-031..061 + D-386 Option C, prose-only codification cannot break L-EDP1-003 recurrence.
 - Structural remedy = S-15.03 PRIORITY-A automation deferred to v1.0-feature-engine-discipline-pass-2 cycle.
-- Recursion ply mapping (L15..L24 per D-446(e)(iii)+D-447(b)+D-448(a)+D-449(c)): L15 temporal-scope-self-application-boundary; L16 content-correct/form-divergent; L17 rule-application-cross-channel; L18 rule-verification-grep co-evolution gap; L19 rule-codification-without-automation gap; L20 rule-codification-applies-to-primary-but-not-downstream-citation (CANDIDATE CONFIRMED); L21 rule-codification-without-self-application-in-OWN-burst-log (CANDIDATE CONFIRMED); L22 rule-codification-applies-to-codifying-burst-OWN-primary-artifact-but-not-codifying-burst-OWN-downstream-citation-cells (CANDIDATE CONFIRMED); L23 rule-codification-without-self-application-in-codifying-burst-OWN-newly-created-meta-artifact (CANDIDATE CONFIRMED at pass-68); L24 rule-codification-via-pseudocode-narrative-without-literal-shell-execution-evidence (CANDIDATE CONFIRMED at pass-69 per D-449(a)).
+- Recursion ply mapping (L15..L24 per D-446(e)(iii)+D-447(b)+D-448(a)+D-449(c)):
+  - L15: temporal-scope-self-application-boundary (retroactive vs codifying-burst-OWN-real-time scope)
+  - L16: content-correct/form-divergent (rule applied semantically; form regresses)
+  - L17: rule-application-cross-channel (content in tested channel; sibling channel regresses)
+  - L18: rule-verification-grep co-evolution gap (verification doesn't co-evolve with rule semantic)
+  - L19: rule-codification-without-automation gap (rule prescribes automation; never invoked) — CANDIDATE CONFIRMED pass-64; narrative-closed
+  - L20: rule-codification-applies-to-primary-but-not-downstream-citation — CANDIDATE CONFIRMED
+  - L21: rule-codification-without-self-application-in-codifying-burst-OWN-burst-log — CANDIDATE CONFIRMED
+  - L22: rule-codification-applies-to-codifying-burst-OWN-primary-artifact-but-not-codifying-burst-OWN-downstream-citation-cells — CANDIDATE CONFIRMED
+  - L23: rule-codification-without-self-application-in-codifying-burst-OWN-newly-created-meta-artifact — CANDIDATE CONFIRMED at pass-68; narrative-closed
+  - L24: rule-codification-via-pseudocode-narrative-without-literal-shell-execution-evidence — CANDIDATE CONFIRMED at pass-69; GENUINELY-closed at pass-69 via literal shell execution (D-449(a))
 
-### 3. User Directive (Carry Across Compact)
+### 3. User Directive (Carry Across CLEAR)
 
 "continue the convergence protocol until complete, OR I personally tell you to stop" — explicit standing directive, reaffirmed multiple times this session. PR #124 merges after convergence per separate user statement.
+
+**CLEAR event (not stop, not compact):** User issued full conversation CLEAR immediately after this durability refresh. The standing directive survives the CLEAR. Convergence resumes at pass-70 dispatch post-clear. No stop signal received.
 
 ### 4. Next Action — Ordered Checklist for Pass-70 Dispatch
 
@@ -357,13 +374,23 @@ Checklist 4a — Prescribed current_step for pass-70 adversary dispatch:
 
 Full text: `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md`. Key additions at pass-69: D-449(a/b/c/d/e) — literal-shell-execution-evidence + Dim-7-tally-timing + ply-cite-anchoring+status-tier + 4-index-Refs-scope + Active-Branches-scope-clarification. D-440(a) dispatch chain-cite updated to D-382..D-449.
 
-### 6. Cumulative Lessons (L-EDP1-001..061; 60-LAYER COUNT)
+### 6. Cumulative Lessons (L-EDP1-001..061; 61 LESSONS; 30 CONSECUTIVE MULTI-AXIS)
 
-- L-EDP1-001..029: pre-session; L-EDP1-030..061: this session (32 layers from pass-38 to pass-69)
+- L-EDP1-001..029: pre-session; L-EDP1-030..061: this session (32 layers from pass-38 to pass-69; 30 lessons added this conversation)
 - 30 consecutive multi-axis recurrences (layers 31-60); META-LEVEL plies L1..L19 fully CONFIRMED; L20..L24 CANDIDATE CONFIRMED
 - Full text: `cycles/v1.0-feature-engine-discipline-pass-1/lessons.md`
 - NOTE: lessons.md size-budget flag per D-442(e); WASM fuel exhaustion risk; compaction deferred to pass-2 cycle
-- L24 ply definition: rule-codification-via-pseudocode-narrative-without-literal-shell-execution-evidence — even when codification specifies a mechanical gate, the codifying-burst Dim-2 collapses to prose pseudocode + narrative attestation; gates cannot detect their own scope-degradation
+- META-LEVEL ply taxonomy (L15..L24) with 1-sentence definitions (per D-447(b)+D-449(c) verbatim discipline):
+  - L15: temporal-scope-self-application-boundary — rule distinguishes retroactive vs own-burst-real-time scope, boundary self-collapses
+  - L16: content-correct/form-divergent — rule applied semantically in content channel; typographic form of application diverges
+  - L17: rule-application-cross-channel — content in tested channel satisfies rule; untested sibling channel regresses simultaneously
+  - L18: rule-verification-grep co-evolution gap — verification regex doesn't co-evolve with rule semantic refinement; verifies stale form
+  - L19: rule-codification-without-automation gap — rule prescribes automation; automation never invoked; narrative substituted (CANDIDATE CONFIRMED pass-64; narrative-attested closure)
+  - L20: rule-codification-applies-to-primary-but-not-downstream-citation — codifying burst updates primary artifact; downstream citation cells omitted (CANDIDATE CONFIRMED)
+  - L21: rule-codification-without-self-application-in-codifying-burst-OWN-burst-log — codified rule not applied to OWN burst-log in same burst (CANDIDATE CONFIRMED)
+  - L22: rule-codification-applies-to-codifying-burst-OWN-primary-artifact-but-not-codifying-burst-OWN-downstream-citation-cells — primary updated; OWN downstream cells missed (CANDIDATE CONFIRMED)
+  - L23: rule-codification-without-self-application-in-codifying-burst-OWN-newly-created-meta-artifact — codified rule not applied to OWN newly-created meta-artifact in same burst (CANDIDATE CONFIRMED pass-68; narrative-attested closure)
+  - L24: rule-codification-via-pseudocode-narrative-without-literal-shell-execution-evidence — even when codification specifies a mechanical gate, the codifying-burst Dim-2 collapses to prose pseudocode + narrative attestation; GENUINELY-closed at pass-69 via literal shell execution (D-449(a))
 
 ### 7. S-15.03 PRIORITY-A Scope (Cumulative)
 
@@ -380,27 +407,31 @@ Full text: `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md`. Key a
 
 All per D-404 unconditional + D-415(c) annotation form + D-442(c) sample-vs-exhaustive flag.
 
-### 9. Critical Anchors (Post Pass-68)
+### 9. Critical Anchors (Post Pass-69; Pre-CLEAR Durability Refresh)
 
-- factory-artifacts HEAD: `22315dc1` (pass-68 Commit E; pushed to origin/factory-artifacts; Active Branches updated by SHA-patch follow-up)
-- factory-artifacts Commit D: `5d825d44` (canonical parent-commit per D-419(b) for pass-69 dispatch)
-- develop HEAD: `99d24315` (S-12.08 PR #123; F4 COMPLETE; unchanged since cycle start)
-- main HEAD: `feb894a2` (rc.16; unchanged)
-- F5 phase: IN PROGRESS — pass-68 fix burst COMPLETE; pass-69 pending
+- factory-artifacts HEAD: `48f9cbf1` (pass-69 SHA-patch follow-up; pushed to origin/factory-artifacts)
+- factory-artifacts pass-69 Commit E: `b57b6270` (literal shell execution; D-449(a) GENUINELY-closed)
+- factory-artifacts pass-69 Commit D: `7f6ad460` (canonical parent-commit per D-419(b) for pass-70 dispatch)
+- develop HEAD: `27ccb701` (S-12.08 PR #123; F4 COMPLETE; unchanged since cycle start)
+- main HEAD: `193bf9b5` (rc.16; unchanged)
+- F5 phase: IN PROGRESS — pass-69 fix burst COMPLETE; pass-70 pending post-clear
 - F6: BLOCKED on F5 convergence; F7: BLOCKED on F6
 - Next cycle: v1.0-feature-engine-discipline-pass-2 (S-15.03 PRIORITY-A automation deferred)
+- Verify at resume: `git -C /Users/jmagady/Dev/vsdd-factory/.factory rev-parse HEAD` must return `48f9cbf1`
 
-### 10. PR #124 Status (Carry Across Compact)
+### 10. PR #124 Status (Carry Across CLEAR)
 
 - State: OPEN, DRAFT, CI GREEN (11/11 checks), mergeable
 - Branch: feature/F5-pass-3-cycle-hardening at 2e6b4372
 - User-stated merge condition: convergence (3-consecutive NITPICK_ONLY) OR explicit human stop
+- NOTE: convergence to NITPICK_ONLY is structurally impossible under prose codification per L-EDP1-007/051 + L-EDP1-061; merge gates effectively on explicit user stop signal
 
-### 11. Post-Compact Resume Checklist
+### 11. Post-CLEAR Resume Checklist
 
-1. Verify factory-artifacts HEAD via `git -C /Users/jmagady/Dev/vsdd-factory/.factory log -1 --oneline`
-2. Read Session Resume Checkpoint sections 1-10 above
-3. Execute section 4 checklist (pass-69 dispatch); use checklist 4a prescribed current_step VERBATIM
-4. Continue: dispatch advance → adversary (fresh-context Iron Law) → fix burst (Commits A/B/C/D/E) → repeat
+1. Verify factory-artifacts HEAD = `48f9cbf1` via: `git -C /Users/jmagady/Dev/vsdd-factory/.factory rev-parse HEAD`
+2. Read STATE.md Session Resume Checkpoint sections 1-10 above (this section is self-sufficient)
+3. Verify CLAUDE.md still cites vsdd-factory project conventions (note: user may have updated CLAUDE.md immediately before/after this refresh)
+4. Resume per standing user directive — continue pass-70 dispatch (Section 4 checklist) OR honor explicit stop signal if issued post-clear
+5. PR #124 status check: confirm OPEN DRAFT CI-GREEN; do not merge until convergence (3-consecutive NITPICK_ONLY) OR explicit user stop signal per Section 10
 
 > Previous checkpoint (pass-68 FIX BURST COMPLETE at 5d825d44 per D-419(b)+D-420(d)+D-421(a)) archived to: `cycles/v1.0-feature-engine-discipline-pass-1/session-checkpoints.md`
