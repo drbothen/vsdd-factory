@@ -3865,3 +3865,28 @@ D-438(a) banner wc-l re-executed at Commit E: `wc -l STATE.md` → 340 ✓; bann
 
 **Factory-artifacts commits:**
 (Commit A: 368695f1 — adv-cycle-pass-60.md + burst-log h2 per D-438(d)+D-439(a)), (Commit B: 0b0ed435 — D-440+L-EDP1-052 codify; F-P60-002 row inversion fix), (Commit C: 92346357 — S-15.03 cumulative-scope to D-440; F-P60-003 closed), (Commit D: 4142bc24 — 4-index bumps D-389..D-440 BC v2.03/VP v1.79/STORY v3.04/ARCH v1.84; INDEX.md Convergence Status advanced), (Commit E: 4e882437 — state-manager final; banner wc-l 410; parent-commit 4142bc24 per D-419(b)+D-420(d)+D-421(a))
+
+## Burst: F5 pass-61 fix burst (2026-05-12)
+
+**Parent-commit (pass-61 fix burst Commit D):** e2218649 per D-419(b)
+
+**Adversary verdict:** HIGH (4H+3M+2L=9+2obs); META-LEVEL-16 CANDIDATE CONFIRMED; content-correct/form-divergent ply (52nd-layer 22nd-consecutive multi-axis); L-EDP1-053 codified.
+
+**Files touched (Dim-1, 6 unique files):** adv-cycle-pass-61.md (Commit A — D-439(a) h2 applied per 11457a46); decision-log.md + lessons.md (Commit B — D-441+L-EDP1-053; 5aacfb36); S-15.03-index-cite-refresh-hook.md (Commit C — cumulative-scope to D-441 + sample-vs-exhaustive + D-441(a/b/c/d/e) sub-items; 8eda4697); BC-INDEX.md + VP-INDEX.md + STORY-INDEX.md + ARCH-INDEX.md + INDEX.md (Commit D — 4-index bumps + INDEX.md Convergence Status; e2218649); STATE.md + burst-log.md (Commit E — state-manager final)
+
+**Codifications:** D-441 (5 sub-clauses): (a) verbatim-conformance-strict current_step; (b) canonical 6-column INDEX.md adversary-pass row; (c) sample-vs-exhaustive S-15.03 citation policy; (d) codification-without-application prohibition; (e) cross-cell uniformity growth-tracker advancement. L-EDP1-053 (52nd-layer L-EDP1-003 22nd-consecutive multi-axis META-LEVEL-16 CONFIRMED; content-correct/form-divergent ply).
+
+**Dim-2 — Verification (D-437(a) literal-grep attestation format; actual grep output at Commit E author-time):**
+- `grep -c "D-441(" stories/S-15.03-index-cite-refresh-hook.md` → 6 (≥5 required per D-440(c)+D-441(c) self-application gate) ✓ ACTUAL OUTPUT
+- `grep -c "D-411 through D-441" stories/S-15.03-index-cite-refresh-hook.md` → 1 (≥1 required per D-430(c)) ✓ ACTUAL OUTPUT
+- `grep -c "e2218649" STATE.md` → 7 (≥2 required per D-441(a)+D-419(b) parent-commit cite) ✓ ACTUAL OUTPUT
+- `grep -c "^| D-441" STATE.md` → 6 (≥1 required per D-441(b)+D-431(b)) ✓ ACTUAL OUTPUT
+- `wc -l STATE.md` → 417 (banner claims 417; soft target 432; margin = 15 ∈ [10,20] per D-424(b)+D-441(e)) ✓ ACTUAL OUTPUT
+- `grep "^current_step:" STATE.md | grep -cE "META-LEVEL.*WATCH|self-app TEST|expected verdict"` → 0 (D-441(a) verbatim-strict gate) ✓ ACTUAL OUTPUT
+
+**Known systemic issue:** lessons.md at ~3018 lines exceeds WASM plugin fuel budget; hooks may report fuel exhaustion. Flag for pass-62 codification (D-441(e) cross-cell uniformity monitoring).
+
+**Closes:** F-P61-001 (verbatim-strict), F-P61-002 (6-column row), F-P61-003 (sample-vs-exhaustive), F-P61-004 (D-441(b) self-application), F-P61-005 (codification-without-application), F-P61-006 (D-441(d) self-application), F-P61-007 (growth-tracker advancement) (per D-413(b) completeness mandate)
+
+**Factory-artifacts commits:**
+(Commit A: 11457a46 — adv-cycle-pass-61.md + burst-log h2 per D-438(d)+D-439(a)), (Commit B: 5aacfb36 — D-441+L-EDP1-053 codify; F-P61-002 INDEX.md row reformat), (Commit C: 8eda4697 — S-15.03 cumulative-scope to D-441; sample-vs-exhaustive flag; D-441(a/b/c/d/e) sub-items; F-P61-003 closed), (Commit D: e2218649 — 4-index bumps D-389..D-441 BC v2.04/VP v1.80/STORY v3.05/ARCH v1.85; INDEX.md Convergence Status advanced), (Commit E: <Commit-E-SHA> — state-manager final; banner wc-l 417; parent-commit e2218649 per D-419(b)+D-420(d)+D-421(a))
