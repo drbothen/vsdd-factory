@@ -4149,4 +4149,4 @@ D-446(a) own-burst-log 8-block gate INVOKED at this Commit E. All 8 D-444(c) man
 
 **Closes (per D-413(b)+D-448(b) discipline):** F-P68-CRIT-001 + F-P68-HIGH-001 + F-P68-HIGH-002 + F-P68-HIGH-003 + F-P68-HIGH-004 + F-P68-MED-001 + F-P68-MED-002 + F-P68-MED-003 + F-P68-LOW-001 + PG-P68-001 + PG-P68-002 + PG-P68-003 (12 closures)
 
-**Factory-artifacts commits:** A `7008f39c` / B `10e0cf9a` / C `25ef9abf` / D `5d825d44` / E `<post-push>`
+**Factory-artifacts commits:** A `7008f39c` / B `10e0cf9a` / C `25ef9abf` / D `5d825d44` / E `22315dc1` (SHA-patch follow-up: Active Branches + Session Resume + burst-log Factory-artifacts updated to Commit E HEAD per D-447(c))

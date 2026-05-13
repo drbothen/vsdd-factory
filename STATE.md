@@ -208,7 +208,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | feb894a2 | rc.16 merge; latest release |
 | develop | 99d24315 | S-12.08 squash-merge (PR #123); F4 COMPLETE |
-| factory-artifacts | 25ef9abf | pass-68 Commit C HEAD; D-447(c) SHA-canonicality — updated to Commit C per D-445(c) atomic-transaction semantics at Commit D; pass-68 Commit D SHA to be updated to Commit E HEAD per D-447(c) SHA-patch follow-up |
+| factory-artifacts | 22315dc1 | pass-68 Commit E HEAD; D-447(c) SHA-canonicality applied at SHA-patch follow-up; pass-68 Commit D `5d825d44` cited for downstream-dispatch parent-commit convention per D-419(b)+D-420(d)+D-421(a) |
 | feature/F5-pass-3-cycle-hardening | 2e6b4372 | PR #124 OPEN (DRAFT); CI run 25651192161 GREEN (11/11 checks) |
 | v1.0.0-rc.16 (tag) | feb894a2 | SHIPPED; claude-mp PR #8 awaiting human merge |
 | v1.0.0-rc.15 (tag) | e68bb436 | SHIPPED |
@@ -379,7 +379,7 @@ All per D-404 unconditional + D-415(c) annotation form + D-442(c) sample-vs-exha
 
 ### 9. Critical Anchors (Post Pass-68)
 
-- factory-artifacts HEAD: `<Commit-E-SHA-post-push>` (pass-68 Commit E; pushed to origin/factory-artifacts; SHA-patch follow-up updates Active Branches)
+- factory-artifacts HEAD: `22315dc1` (pass-68 Commit E; pushed to origin/factory-artifacts; Active Branches updated by SHA-patch follow-up)
 - factory-artifacts Commit D: `5d825d44` (canonical parent-commit per D-419(b) for pass-69 dispatch)
 - develop HEAD: `99d24315` (S-12.08 PR #123; F4 COMPLETE; unchanged since cycle start)
 - main HEAD: `feb894a2` (rc.16; unchanged)
