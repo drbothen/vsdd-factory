@@ -1,7 +1,7 @@
 ---
 document_type: architecture-index
 level: L3
-version: "1.85"
+version: "1.86"
 status: accepted
 producer: architect
 timestamp: 2026-05-12T00:00:00Z
@@ -17,6 +17,8 @@ inputs:
 traces_to: phase-1-spec-crystallization
 deployment_topology: single-service
 changelog:
+  - date: 2026-05-12
+    change: "v1.86 (2026-05-12; pass-62 fix burst per D-442 + D-404 unconditional): Acknowledges decision range D-389..D-442 (inclusive; literal acknowledgment per D-415(c); sample; see decision-log.md for full range D-389..D-442 per D-441(c)+D-442(c) sample-vs-exhaustive citation policy). Per D-404 unconditional: index acknowledges D-442(a/b/c/d/e) by literal ID (no spec content change in this changelog entry). Refs: F-P62-001/002/003/004/005, D-442. META-LEVEL-17 CANDIDATE CONFIRMED; L-EDP1-054 53rd-layer 23rd-consecutive multi-axis; rule-application-cross-channel ply. ARCH-INDEX v1.85→v1.86."
   - date: 2026-05-12
     change: "v1.85 (2026-05-12; pass-61 fix burst per D-441 + D-404 unconditional): Acknowledges decision range D-389..D-441 (inclusive; literal acknowledgment per D-415(c)). Per D-404 unconditional: index acknowledges D-441(a/b/c/d/e) by literal ID (no spec content change in this changelog entry). Refs: F-P61-001/002/003/004/005/006/007, D-441. META-LEVEL-16 CONFIRMED; L-EDP1-053 52nd-layer 22nd-consecutive multi-axis; content-correct/form-divergent ply. ARCH-INDEX v1.84→v1.85."
   - date: 2026-05-12
