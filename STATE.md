@@ -212,7 +212,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | 666d689f | rc.18 merge (PR #135 2026-05-13); post-pass-69 catch-up; rc.17 (PR #132 193bf9b5) + rc.18 (PR #135 666d689f) both shipped 2026-05-13 |
 | develop | 27ccb701 | fix(tests): bump Context Injection Contract sanity ceiling 400→600 (PR #134) |
-| factory-artifacts | b57b6270 | pass-69 Commit E HEAD; to be updated at SHA-patch follow-up after Commit E per D-447(c)+D-449(e); pass-70 Commit D `69ba6640` cited for downstream-dispatch parent-commit convention per D-419(b)+D-420(d)+D-421(a) |
+| factory-artifacts | 6104fdb7 | pass-70 Commit E HEAD; D-447(c)+D-449(e) SHA-canonicality applied at SHA-patch follow-up; pass-70 Commit D `69ba6640` cited for downstream-dispatch parent-commit convention per D-419(b)+D-420(d)+D-421(a) |
 | feature/F5-pass-3-cycle-hardening | 2e6b4372 | PR #124 OPEN (DRAFT); CI run 25651192161 GREEN (11/11 checks) |
 | v1.0.0-rc.16 (tag) | feb894a2 | SHIPPED; claude-mp PR #8 awaiting human merge |
 | v1.0.0-rc.15 (tag) | e68bb436 | SHIPPED |
