@@ -2,9 +2,9 @@
 document_type: cycle-index
 producer: state-manager
 cycle: v1.0-feature-engine-discipline-pass-1
-version: "1.1"
-timestamp: 2026-05-12T00:00:00Z
-last_amended: 2026-05-12
+version: "1.2"
+timestamp: 2026-05-13T00:00:00Z
+last_amended: 2026-05-13
 status: in-progress
 phase: F5-cycle-level-review
 ---
@@ -123,6 +123,7 @@ changes are WASM-only (no new Bash hook debt per D-2).
 | 64 | 2026-05-12 | Findings: 9 (4H+3M+2L) + 1 PG; META-LEVEL-19 CANDIDATE CONFIRMED; rule-codification-without-automation gap ply; 55th-layer 25th-consecutive multi-axis; Observations: 2 | HIGH | adv-cycle-pass-64.md |
 | 65 | 2026-05-12 | Findings: 9 (4H+3M+2L) + 1 PG; META-LEVEL-20 CANDIDATE CONFIRMED; rule-codification-applies-to-primary-but-not-downstream-citation; 56th-layer 26th-consecutive multi-axis; Observations: 2 | HIGH | adv-cycle-pass-65.md |
 | 66 | 2026-05-13 | Findings: 9 (1C+4H+2M+2L) + 2 PG; META-LEVEL-21 CANDIDATE CONFIRMED; rule-codification-without-self-application-in-codifying-burst-OWN-burst-log; 57th-layer 27th-consecutive multi-axis; Observations: 2 | HIGH | adv-cycle-pass-66.md |
+| 67 | 2026-05-13 | Findings: 8 (4H+3M+1L) + 2 PG; META-LEVEL-22 CANDIDATE CONFIRMED; rule-codification-applies-to-codifying-burst-OWN-primary-artifact-but-not-codifying-burst-OWN-downstream-citation-cells; 58th-layer 28th-consecutive multi-axis; Observations: 1; axis-count dropped 9→8 (first drop in 9 passes) | HIGH | adv-cycle-pass-67.md |
 
 ## Convergence Status
 
@@ -130,7 +131,7 @@ changes are WASM-only (no new Bash hook debt per D-2).
 - F2 (spec evolution / story decomposition): **COMPLETE** — F2-amendment D-362; 6 BCs + ADR-018 + 4 VPs + PRD FR-048
 - F3 (incremental stories): **COMPLETE** — F3-amendment D-366; 6 stories S-12.03..S-12.08 under E-12
 - F4 (implementation): **COMPLETE** — all 6 E-12 stories merged (PRs #105, #119, #120, #121, #122, #123); F-P2-001 closed via S-12.08
-- F5 (scoped adversarial review): **IN PROGRESS** — 67 reviews dispatched; 66 complete adversary returns; 64 fix bursts at passes 3-66; per D-418(c)+D-435(d)+D-439(c) deterministic-tally form. Trajectory content-only 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7→8→6→2→5→5→5→7→8→7→8→7→8→7→8→7→7→8→8→7→7→7→8→8→8→9→8→8→9→9→9→9→9→9→9→9 (66 values); trajectory tail (last 4 of 66 values per D-433(e)+D-439(c)) →9→9→9→9 (8-pass asymptotic stability at upper-bound 9; passes 59-66 per D-444(d)+D-445(b) cardinality alignment); pass-66 HIGH with 1 CRITICAL (1C+4H+2M+2L=9+2PG+2obs); streak 0/3 (asymptotic per D-386 Option C; 66 passes; META-LEVEL-21 CANDIDATE CONFIRMED at pass-66); D-386 Option C accepted; D-379..D-446 codified (sample; see decision-log.md for full range); L-EDP1-001..L-EDP1-058 authored; VP-INDEX v1.85 / BC-INDEX v2.09 / ARCH-INDEX v1.90 / STORY-INDEX v3.10 acknowledge D-389..D-446 (D-423(a)+D-438(c)+D-443(c)+D-444(b) version sweep applied: post-Commit-D actual versions); META-LEVEL-21 CANDIDATE CONFIRMED — rule-codification-without-self-application-in-codifying-burst-OWN-burst-log ply (27th consecutive multi-axis)
+- F5 (scoped adversarial review): **IN PROGRESS** — 68 reviews dispatched; 67 complete adversary returns; 65 fix bursts at passes 3-67; per D-418(c)+D-435(d)+D-439(c) deterministic-tally form. Trajectory content-only 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7→8→6→2→5→5→5→7→8→7→8→7→8→7→8→7→7→8→8→7→7→7→8→8→8→9→8→8→9→9→9→9→9→9→9→8 (67 values); trajectory tail (last 4 of 67 values per D-433(e)+D-439(c)) →9→9→9→8 (9 passes 59-66 at axis=9 + pass-67 at axis=8; first axis-count drop in 9 passes; possible floor re-establishment at 8 OR one-pass noise within [7,9] band per D-447(e)(iv)); pass-67 HIGH (4H+3M+1L=8+2PG+1obs); streak 0/3 (asymptotic per D-386 Option C; 67 passes; META-LEVEL-22 CANDIDATE CONFIRMED at pass-67); D-386 Option C accepted; D-379..D-447 codified (sample; see decision-log.md for full range); L-EDP1-001..L-EDP1-059 authored; VP-INDEX v1.85 / BC-INDEX v2.09 / ARCH-INDEX v1.90 / STORY-INDEX v3.10 acknowledge D-389..D-446 (D-423(a)+D-438(c)+D-443(c)+D-444(b) version sweep applied: post-Commit-D actual versions); META-LEVEL-22 CANDIDATE CONFIRMED — rule-codification-applies-to-codifying-burst-OWN-primary-artifact-but-not-codifying-burst-OWN-downstream-citation-cells ply (28th consecutive multi-axis)
 - F6 (targeted hardening): PENDING
 - F7 (delta convergence): PENDING
 

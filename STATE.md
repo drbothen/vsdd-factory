@@ -206,7 +206,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | feb894a2 | rc.16 merge; latest release |
 | develop | 99d24315 | S-12.08 squash-merge (PR #123); F4 COMPLETE |
-| factory-artifacts | 40d37f17 | pass-66 Commit C — canonical anchor; D-445(c)+D-446(d) atomic-with-Commit-D self-application progressive-implementation per D-414(c) |
+| factory-artifacts | 17339d74 | pass-66 Commit E HEAD; D-447(c) SHA-canonicality at Commit E self-application; pass-66 Commit D `59873fbe` cited for downstream-dispatch parent-commit convention per D-419(b)+D-420(d)+D-421(a) |
 | feature/F5-pass-3-cycle-hardening | 2e6b4372 | PR #124 OPEN (DRAFT); CI run 25651192161 GREEN (11/11 checks) |
 | v1.0.0-rc.16 (tag) | feb894a2 | SHIPPED; claude-mp PR #8 awaiting human merge |
 | v1.0.0-rc.15 (tag) | e68bb436 | SHIPPED |
@@ -325,7 +325,7 @@ dtu_services: []
 - 27 consecutive multi-axis recurrences (layers 31-57) empirically confirm asymptotic floor at axis-count ∈ [7,9].
 - 20 META-LEVEL plies confirmed (L1..L20 CANDIDATE); L21 CANDIDATE at pass-66. Per L-EDP1-007 + L-EDP1-031..058 + D-386 Option C, prose-only codification cannot break L-EDP1-003 recurrence.
 - Structural remedy = S-15.03 PRIORITY-A automation deferred to v1.0-feature-engine-discipline-pass-2 cycle.
-- Recursion ply mapping (last 6 plies): L16 content-correct/form-divergent; L17 rule-application-cross-channel; L18 rule-verification-grep co-evolution gap; L19 rule-codification-without-automation gap; L20 rule-codification-applies-to-primary-but-not-downstream-citation (CANDIDATE); L21 rule-codification-without-self-application-in-OWN-burst-log (CANDIDATE).
+- Recursion ply mapping (L15..L21 per D-446(e)(iii)): L15 temporal-scope-self-application-boundary — retroactive vs codifying-burst-OWN-real-time application of newly-codified discipline (L-EDP1-052 originator); L16 content-correct/form-divergent; L17 rule-application-cross-channel; L18 rule-verification-grep co-evolution gap; L19 rule-codification-without-automation gap; L20 rule-codification-applies-to-primary-but-not-downstream-citation (CANDIDATE→CONFIRMED); L21 rule-codification-without-self-application-in-OWN-burst-log (CANDIDATE→CONFIRMED); L22 rule-codification-applies-to-codifying-burst-OWN-primary-artifact-but-not-codifying-burst-OWN-downstream-citation-cells (CANDIDATE CONFIRMED at pass-67).
 
 ### 3. User Directive (Carry Across Compact)
 
