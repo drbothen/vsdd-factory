@@ -12,7 +12,7 @@ input-hash: "[live-state]"
 traces_to: prd.md
 project: vsdd-factory
 mode: brownfield
-current_step: "v1.0-brownfield-backfill RESUMING — E-10 pass-9 adversary dispatch queued (paused at D-343; preceded by F5 cycle 5-pass session passes 70-74 complete with META-LEVEL-29 CANDIDATE CONFIRMED, paused at asymptotic floor per D-386 Option C + human direction 2026-05-13; PR #136 MERGED 845d0007 + PR #124 MERGED d3ae26a5)"
+current_step: "v1.0-brownfield-backfill — E-10 pass-9 DISPATCHED 2026-05-13: HIGH verdict (5 findings: 3H+1M+1L); trend 22→11→16→16→12→2→1→4→5; NITPICK_ONLY counter 0/3 (no advance); D-344 fix burst pending (F-1/F-2/F-3 closure proposals + F-4 cross-cycle scope question + F-5 intent verification); seal D-345 follows; engine baseline develop@d3ae26a5"
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -43,7 +43,7 @@ dtu_services: []
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
 | **Last Updated** | 2026-05-13 — PIVOT: PR #136 MERGED 845d0007 (CLAUDE.md expansion 66→442 lines); PR #124 MERGED d3ae26a5 (F5-pass-3 cycle hardening: TD #73 SEQUENCE migration + WASM staging CI fix + VP-076 bats harness + 14 commits preserved); F5 5-pass session (passes 70-74) PAUSED at META-LEVEL-29 asymptotic acceptance per D-386 Option C + human direction 2026-05-13 (5 D-NNN codifications D-450..D-454; 5 META plies L25-L29 CANDIDATE CONFIRMED; 5 lessons L-EDP1-062..066; 60 findings closed; asymptotic floor [7,9] for 16 consecutive passes; 35th-consecutive multi-axis; 2 consecutive prediction-to-pass materializations); v1.0-brownfield-backfill RESUMING — E-10 pass-9 adversary dispatch next-step. |
-| **Current Phase** | v1.0-brownfield-backfill — E-10 pass-9 adversary dispatch queued (paused at D-343; F5 cycle paused at META-LEVEL-29 asymptotic floor per D-386 Option C) |
+| **Current Phase** | v1.0-brownfield-backfill — E-10 pass-9 DISPATCHED 2026-05-13 — HIGH (5 findings: 3H+1M+1L); D-344 fix burst pending |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Phase Progress
@@ -87,6 +87,7 @@ dtu_services: []
 | F5 pass-17 cycle-level adversary | **COMPLETE** | MEDIUM (5M+3L+1NIT+1PG); lateral from pass-16; trajectory →9; D-391+D-392 codified |
 | F5 pass-17 fix burst (last_amended sweep + Z-suffix + D-391+D-392) | **COMPLETE** | F-P17-001/002/004/005/006/008 fixed; L-EDP1-009 corrigendum; PG1 closed; self-application attestation |
 | Phase D-4 Burst 2 — E-10 + E-9 v1.7 | **PENDING** | E-10 paused D-343; adversary pass-9 queued |
+| E-10 pass-9 adversary | **DISPATCHED** 2026-05-13 — HIGH (5 findings: 3H+1M+1L) | trend 22→11→16→16→12→2→1→4→5; partial-fix regression on FF/GG closure axes (DI-017 rename sweep incomplete + schema_version differentiation gap); cross-cycle propagation defect between F2 ADR-019 + E-10 ADR-015 surfaces in SS-01 + ADR-004; pass-9 demonstrates F5 META-LEVEL-24 literal-shell-execution-evidence lesson applies retroactively to E-10 pass-8 narrative-attested sweeps; D-344 fix burst pending |
 | F5 pass-60 fix burst | **COMPLETE** | adv-cycle-pass-60.md HIGH→PENDING_NEXT_PASS; D-440(a/b/c/d/e) + L-EDP1-052 codified; META-LEVEL-15 CANDIDATE CONFIRMED |
 | F5 pass-61 fix burst | **COMPLETE** | adv-cycle-pass-61.md HIGH→PENDING_NEXT_PASS; D-441(a/b/c/d/e) + L-EDP1-053 codified; META-LEVEL-16 CONFIRMED |
 | F5 pass-62 fix burst | **COMPLETE** | adv-cycle-pass-62.md HIGH→PENDING_NEXT_PASS; D-442(a/b/c/d/e) + L-EDP1-054 codified; META-LEVEL-17 CONFIRMED; D-442(c) retroactive sweep across umbrella citations |
@@ -227,7 +228,7 @@ dtu_services: []
 | Cycle | Type | Status | Notes |
 |-------|------|--------|-------|
 | F-block-ai-attribution-message-file-arm | feature | F3 COMPLETE — F4 READY | F1+F2+F3 done 2026-05-12; 2 stories ready (S-16.01 5pts PostToolUse HEAD verify, S-16.02 3pts PreToolUse -F arm); E-16 under SS-07/SS-04; milestone v1.0.0-rc.17; BC-7.03.094/095/001, VP-080, ARCH SS-07 v1.3/SS-04 v1.4 registered |
-| v1.0-brownfield-backfill | brownfield | **IN-PROGRESS** | Resumed 2026-05-13 after F5 cycle pause. E-10 pass-9 adversary dispatch is the next step. Paused at D-343 prior to F5 work. Phase D-4 Burst 2 — E-10 + E-9 v1.7 sweep — PENDING. |
+| v1.0-brownfield-backfill | brownfield | **IN-PROGRESS** | E-10 pass-9 DISPATCHED 2026-05-13 — HIGH verdict (5 findings: 3H+1M+1L); trend 22→11→16→16→12→2→1→4→5; NITPICK_ONLY counter 0/3; D-344 fix burst pending (F-1/F-2/F-3 + F-4 scope question + F-5 intent verification); seal D-345 follows. |
 | v1.0-feature-engine-discipline-pass-1 | feature | **PAUSED** | F5 5-pass session (passes 70-74) complete with META-LEVEL-29 CANDIDATE CONFIRMED; paused at asymptotic floor [7,9] per D-386 Option C + human direction 2026-05-13; 5 D-NNN codifications D-450..D-454 + 5 lessons L-EDP1-062..066; resumes only when S-15.03 PRIORITY-A automation lands. pass-74 SHA-patch `4b4b6819` is the cycle's final-state HEAD. Full-cycle trajectory (74 values): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7→8→6→2→5→5→5→7→8→7→8→7→8→7→8→7→7→8→8→7→7→7→8→8→8→9→8→8→9→9→9→9→9→9→9→8→9→9→9→9→9→9→9→9 |
 | v1.0-feature-plugin-async-semantics-pass-1 | feature | CLOSED | All PRs merged; rc.14 shipped |
 

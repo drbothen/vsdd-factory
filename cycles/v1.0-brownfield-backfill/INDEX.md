@@ -28,9 +28,28 @@ onboarding of vsdd-factory itself as a brownfield project to backfill the formal
 |-----------|--------|-----------|-------------|
 | s6.01-spec | 8 | 19 → 4 → 2 → 1 → 1 → 0 → 0 → 0 | CONVERGENCE_REACHED 2026-04-26 |
 
+## E-10 Spec-Package Adversarial Reviews
+
+| Pass | Date | Findings | Verdict | Status |
+|------|------|----------|---------|--------|
+| 1 | 2026-04-27 | 22 (5H+9M+6L+2N) | HIGH | fixes applied (D-300..D-308) |
+| 2 | 2026-04-28 | 11 (3H+4M+3L+1N) | HIGH | fixes applied (D-309..D-315) |
+| 3 | 2026-04-29 | 16 (4H+6M+4L+2N) | HIGH | fixes applied (D-316..D-321) |
+| 4 | 2026-04-30 | 16 (4H+5M+5L+2N) | HIGH | fixes applied (D-322..D-325) |
+| 5 | 2026-05-01 | 12 (3H+4M+4L+1N) | HIGH | fixes applied (D-326..D-329) |
+| 6 | 2026-05-03 | 2 (1H+1M) | HIGH | fixes applied (D-330..D-331) |
+| 7 | 2026-05-05 | 1 (1H) | HIGH | fixes applied (D-332..D-333); DI-013 trace_id rename axis opened |
+| 8 | 2026-05-07 | 4 (2H+1M+1L) | HIGH | fixes applied (D-334..D-343); DI-017 rename sweep + schema_version axes; paused at D-343 |
+| 9 | 2026-05-13 | 5 (3H+1M+1L) | **HIGH** | **DISPATCHED** — D-344 fix burst PENDING; partial-fix regression FF/GG axes |
+
+**Trend:** 22→11→16→16→12→2→1→4→5
+
+**Convergence Status (E-10 sub-cycle):** pass-9 dispatched 2026-05-13; verdict HIGH (5 findings: 3H+1M+1L); NITPICK_ONLY counter 0/3 (no advance); D-344 fix burst pending (F-1/F-2/F-3 closure proposals + F-4 cross-cycle scope question + F-5 intent verification); seal D-345 follows; engine baseline develop@d3ae26a5
+
 ## Convergence Status
 
 - Phase 0 (ingestion): COMPLETE
 - Phase 1 (spec backfill): COMPLETE
 - Phase 1d (adversarial spec review): **CONVERGED** (6 passes, 3 consecutive NITPICK)
 - Story re-anchoring: PENDING (TD-001..TD-005 wave-scale follow-up)
+- E-10 sub-cycle adversarial review: **IN-PROGRESS** (pass-9 dispatched 2026-05-13; 0/3 NITPICK_ONLY; D-344 fix burst pending)
