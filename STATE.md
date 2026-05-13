@@ -428,10 +428,10 @@ All per D-404 unconditional + D-415(c) annotation form + D-442(c) sample-vs-exha
 
 ### 11. Post-CLEAR Resume Checklist
 
-1. Verify factory-artifacts HEAD = `48f9cbf1` via: `git -C /Users/jmagady/Dev/vsdd-factory/.factory rev-parse HEAD`
+1. Verify factory-artifacts HEAD has advanced past `48f9cbf1` (pass-69 Commit-E SHA-patch) — expected HEAD at clear initiation is `87f0285a` (this durability-refresh commit). If HEAD differs, run `git -C /Users/jmagady/Dev/vsdd-factory/.factory log 48f9cbf1..HEAD --oneline` to see what was added post-pass-69; reconcile with Sections 1, 5, 9 narrative. <!-- [D-414(c) corrigendum: self-stale-anchor cleanup at pre-clear durability refresh] -->
 2. Read STATE.md Session Resume Checkpoint sections 1-10 above (this section is self-sufficient)
 3. Verify CLAUDE.md still cites vsdd-factory project conventions (note: user may have updated CLAUDE.md immediately before/after this refresh)
 4. Resume per standing user directive — continue pass-70 dispatch (Section 4 checklist) OR honor explicit stop signal if issued post-clear
 5. PR #124 status check: confirm OPEN DRAFT CI-GREEN; do not merge until convergence (3-consecutive NITPICK_ONLY) OR explicit user stop signal per Section 10
 
-> Previous checkpoint (pass-68 FIX BURST COMPLETE at 5d825d44 per D-419(b)+D-420(d)+D-421(a)) archived to: `cycles/v1.0-feature-engine-discipline-pass-1/session-checkpoints.md`
+> Previous checkpoint (pass-69 FIX BURST COMPLETE at parent-commit `7f6ad460` per D-419(b)+D-420(d)+D-421(a); CONTEXT CLEAR INITIATED at durability-refresh HEAD `87f0285a` pre-pass-70) archived to: `cycles/v1.0-feature-engine-discipline-pass-1/session-checkpoints.md` <!-- [D-414(c) corrigendum: self-stale-anchor cleanup at pre-clear durability refresh] -->
