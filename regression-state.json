@@ -1,1 +1,1 @@
-{"status":"pass","timestamp":"2026-05-09T01:58:10Z","command":"cargo test -p validate-artifact-path 2>&1"}
+{"status":"pass","timestamp":"2026-05-11T04:45:00Z","command":"cd /Users/jmagady/Dev/vsdd-factory/.worktrees/F5-pass-3 && cargo test --workspace --all-targets 2>&1 | tail -20"}

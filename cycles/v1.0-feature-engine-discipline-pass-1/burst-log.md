@@ -3985,3 +3985,51 @@ Additional Dim-2 grep verifications:
 ## Burst: F5 pass-65 fix burst (2026-05-12)
 
 (Pass-65 fix burst codifies D-445(a/b/c/d/e) closing F-P65-001..F-P65-008 + PG-P65-001; L-EDP1-057 56th-layer META-LEVEL-20 CANDIDATE CONFIRMED 26th-consecutive multi-axis rule-codification-applies-to-primary-but-not-downstream-citation ply.)
+
+**Parent-commit:** `5943c183` (state-manager Commit E; parent-commit `e5b0aff3` per D-419(b)+D-420(d)+D-421(a))
+
+**Adversary verdict:** HIGH (4H+3M+2L=9 + 1 PG + 2 obs); META-LEVEL-20 CANDIDATE CONFIRMED (rule-codification-applies-to-primary-but-not-downstream-citation ply); 56th-layer 26th-consecutive multi-axis
+
+**Files touched (Dim-1):**
+- adv-cycle-pass-65.md (persist; 192 lines)
+- burst-log.md (pass-65 h2 + retroactive pass-64 Dim-5/Closes completeness)
+- STATE.md (Active Branches advance; Decisions Log row D-444 Closes completeness; current_step; banner; Phase Progress; Concurrent Cycles tail; Session Resume Checkpoint; line-growth tracker)
+- INDEX.md (pass-65 row; Convergence Status)
+- decision-log.md (D-445(a/b/c/d/e) prose + 5 canonical 6-column rows)
+- lessons.md (L-EDP1-057 entry; L-EDP1-056 corrigendum)
+- 4 indexes: BC-INDEX/VP-INDEX/STORY-INDEX/ARCH-INDEX v2.07→v2.08 / v1.83→v1.84 / v3.08→v3.09 / v1.88→v1.89
+- S-15.03 (header D-411..D-445; D-445 sub-items appended)
+
+**Codifications:**
+- D-445(a) Cross-cell completeness for D-413(b) Closes annotations
+- D-445(b) Cardinality + tail-LENGTH=4 extension to lessons.md body downstream-citation
+- D-445(c) D-444(b) timing-component clarification (at Commit D = atomic transaction not follow-up)
+- D-445(d) Single-SHA narrative parent-commit cite + frontmatter↔body META-LEVEL coherence
+- D-445(e) Temporal-stale prediction wording + automation-scope-extension
+- L-EDP1-057 (56th layer; 26th consecutive multi-axis; META-LEVEL-20 CANDIDATE CONFIRMED — rule-codification-applies-to-primary-but-not-downstream-citation ply)
+
+**Dim-2 Attestation:**
+- D-443(a)+D-444(a)(i) diff gate INVOKED at pass-65 Commit E:
+  ```bash
+  diff <(echo 'F5 pass-65 fix burst COMPLETE (HIGH→PENDING_NEXT_PASS; D-445 codified (5 sub-clauses); L-EDP1-057 56th-layer META-LEVEL-20-CANDIDATE-CONFIRMED 26th-consecutive multi-axis; 4 indexes D-389..D-445 (BC v2.08 / VP v1.84 / STORY v3.09 / ARCH v1.89); trajectory →9→9→9→9; streak 0/3; parent-commit e5b0aff3)') <(grep "^current_step:" STATE.md | sed -e 's/^current_step: //' -e 's/^"//' -e 's/"$//')
+  ```
+  Output: empty (trailing-newline artifact only); content character-for-character identical. META-LEVEL-19 maintained CLOSED in real-time.
+- `grep -c "^| D-445(" decision-log.md → 5` (canonical 6-column expansion)
+- `grep -c "L-EDP1-057" lessons.md → 4` (heading + body citations)
+- `grep -cE "Layer 51.*\| 9 \|" lessons.md → 3` (cross-instance LENGTH=4 consistency)
+
+**Dim-5 Attestation (D-445(a) cross-cell completeness — all findings enumerated):** Closes F-P65-001, F-P65-002, F-P65-003, F-P65-004 (DEFERRED per D-414(c)), F-P65-005, F-P65-006, F-P65-007, F-P65-008 + PG-P65-001.
+
+**Dim-6 Attestation (D-444(c) burst-log h2 own-burst real-time):** Pass-65 h2 heading added at Commit A real-time; corrigendum completion at pass-66 Commit A per D-446(a) retroactive remediation.
+
+**Dim-7 Attestation (cardinality alignment per D-444(d)+D-445(b)):** Trajectory tail →9→9→9→9 (LENGTH=4); "7 consecutive passes at axis=9 (passes 59-65)" narrative; STATE.md L-EDP1-057 body cites passes 59-65 (canonical).
+
+**Closes (per D-413(b) completeness):** F-P65-001 + F-P65-002 + F-P65-003 + F-P65-004 (DEFERRED per D-414(c) corrigendum) + F-P65-005 + F-P65-006 + F-P65-007 + F-P65-008 + PG-P65-001 (PARTIAL — S-15.03 PRIORITY-A automation scope extended; mechanical automation deferred to v1.0-feature-engine-discipline-pass-2)
+
+**Factory-artifacts commits:** A `7f76a67e` / B `7f79b270` / C `a31282d4` / D `e5b0aff3` / E `5943c183` (banner self-canonical fix `abd1b713`)
+
+**(Retroactive completion at pass-66 Commit A per D-446(a) self-application; original pass-65 entry violated D-444(c) own-burst completeness — META-LEVEL-21 CANDIDATE evidence. Acknowledged per D-414(c) corrigendum.)**
+
+## Burst: F5 pass-66 fix burst (2026-05-13)
+
+(Pass-66 fix burst codifies D-446(a/b/c/d/e) closing F-P66-001..F-P66-009 + PG-P66-001..002; L-EDP1-058 57th-layer META-LEVEL-21 CANDIDATE CONFIRMED 27th-consecutive multi-axis rule-codification-without-self-application-in-codifying-burst-OWN-burst-log ply.)
