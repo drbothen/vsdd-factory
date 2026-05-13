@@ -308,7 +308,7 @@ dtu_services: []
 ### 1. Where We Are
 
 - Cycle: v1.0-feature-engine-discipline-pass-1 F5 phase
-- Pass-65 fix burst COMPLETE at `<pass-65-E-SHA>` (state-manager Commit E; parent-commit `e5b0aff3` per D-419(b)+D-420(d)+D-421(a); pushed to origin/factory-artifacts)
+- Pass-65 fix burst COMPLETE at `5943c183` (state-manager Commit E; parent-commit `e5b0aff3` per D-419(b)+D-420(d)+D-421(a); pushed to origin/factory-artifacts)
 - Pass-65 fix burst commit chain: A `7f76a67e` / B `7f79b270` / C `a31282d4` / D `e5b0aff3` / E TBD
 - 30 passes driven this session (pass-37 through pass-65; 66 reviews dispatched total since cycle start)
 - 56-LAYER COUNT reached at L-EDP1-057 (26th consecutive multi-axis recurrence; META-LEVEL-20 CANDIDATE CONFIRMED; rule-codification-applies-to-primary-but-not-downstream-citation ply)
@@ -372,7 +372,7 @@ All per D-404 unconditional + D-415(c) annotation form + D-442(c) sample-vs-exha
 
 ### 9. Critical Anchors (Post Pass-65)
 
-- factory-artifacts HEAD: `<pass-65-E-SHA>` (pass-65 Commit E; pushed to origin/factory-artifacts)
+- factory-artifacts HEAD: `5943c183` (pass-65 Commit E; pushed to origin/factory-artifacts)
 - factory-artifacts Commit D: `e5b0aff3` (canonical parent-commit per D-419(b) for pass-66 dispatch)
 - develop HEAD: `99d24315` (S-12.08 PR #123; F4 COMPLETE; unchanged since cycle start)
 - main HEAD: `feb894a2` (rc.16; unchanged)
