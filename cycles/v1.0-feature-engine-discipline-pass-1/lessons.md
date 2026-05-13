@@ -3469,3 +3469,62 @@ Net: **4 CONFIRMED-VIOLATED + 2 REFUTED (satisfied) + 1 CONFIRMED**.
 - **Size-budget flag (D-442(e)):** lessons.md post-L-EDP1-063 append is at ~3500+ lines (soft limit ≤3500 per D-442(e)). This entry intentionally crosses the soft limit. Hard limit ≤4000 lines. Compact or split REQUIRED at S-15.03 PRIORITY-A execution window — this is the triggering event for compaction urgency escalation.
 
 **Closes:** ADV-EDP1-P71-CRIT-001 + ADV-EDP1-P71-HIGH-001 + ADV-EDP1-P71-HIGH-002 + ADV-EDP1-P71-HIGH-003 + ADV-EDP1-P71-HIGH-004 + ADV-EDP1-P71-MED-001 + ADV-EDP1-P71-MED-002 + ADV-EDP1-P71-MED-003 + ADV-EDP1-P71-LOW-001 + PG-P71-001 + PG-P71-002 + PG-P71-003 (D-413(b) completeness mandate + D-447(d) parity + D-448(b) Closes block discipline — 9 findings + 3 PG = 12 closure items)
+
+---
+
+## L-EDP1-064 — F5 pass-72 63rd-layer L-EDP1-003 recurrence — META-LEVEL-27 CANDIDATE CONFIRMED (literal-shell-derivation-gate-INVOKED-and-captured-stdout-correct-but-OUTPUT-NOT-PROPAGATED-to-all-prescribed-citation-sites-PLUS-snapshot-staleness-when-document-continues-to-be-edited-AND-gate-scope-narrower-than-rule-scope ply; 33rd consecutive multi-axis)
+
+**Layer:** 63rd
+**Consecutive multi-axis count:** 33
+**Burst codifying:** F5 pass-72 fix burst
+
+**1-sentence definition:** literal-shell-derivation-gate-INVOKED-and-captured-stdout-correct-but-OUTPUT-NOT-PROPAGATED-to-all-prescribed-citation-sites-PLUS-snapshot-staleness-when-document-continues-to-be-edited-AND-gate-scope-narrower-than-rule-scope.
+
+**Pattern:** META-LEVEL-27 = **literal-shell-derivation-gate-INVOKED-and-captured-stdout-correct-but-OUTPUT-NOT-PROPAGATED-to-all-prescribed-citation-sites-PLUS-snapshot-staleness-when-document-continues-to-be-edited-AND-gate-scope-narrower-than-rule-scope**. At pass-71, D-451(c) trajectory-tail derivation gate FIRED correctly: literal `grep -oE "(→[0-9]+){4}$"` was invoked, captured stdout showed `→9→9→9→9`, and the value was written into STATE.md current_step. However, three structural defects escaped:
+
+(a) **Propagation-incompleteness:** The derived `→9→9→9→9` value was NOT propagated to INDEX.md Convergence Status row nor to STATE.md frontmatter trajectory field. Both still cited the pre-pass-71-corrected `→8→9→9→9`. The verbatim-strict chain at dispatch-side advance then perpetuated the stale value through the pass-72 dispatch commit. The gate INVOKED correctly; the output was CAPTURED correctly; but the output was NOT PERSISTED to all prescribed citation sites.
+
+(b) **Snapshot staleness:** D-451(a) at pass-71 Commit E captured `burst-log.md:2` occurrences of "META-LEVEL-26 CANDIDATE CONFIRMED" via literal shell. This count was correct at the moment of execution. But the Commit E session continued to write more content (Dim-6 narrative, Closes block, prediction block), each adding more occurrences. Final state at push showed `burst-log.md:6`. The Dim-2 evidence was mechanically correct at snapshot-time but stale at push-time — creating a form of false evidence not through fabrication but through temporal displacement.
+
+(c) **Gate scope narrower than rule scope:** D-451(d) Layer-N consistency gate at pass-71 swept the declared layer ordinal across heading + body + trend-table + STATE.md narrative + INDEX.md row. It did NOT sweep 4-index changelog entries (BC-INDEX, VP-INDEX, STORY-INDEX, ARCH-INDEX) that also cite the layer ordinal in their version-bump Refs cells. At pass-72, ADV found that 4-index changelog entries cited "L-EDP1-062 62nd-layer" while L-EDP1-062's own heading declared "61st-layer" — the drift was invisible to a sweep that excluded changelog entries.
+
+**META-LEVEL-27 differentiator from META-LEVEL-26:**
+- META-26: ALL sibling gates receive literal-shell closure; meta-recursion-ack gate regresses to narrative; verification-regexes narrower than rule scope.
+- **META-27: literal-shell gate INVOKED and output CAPTURED correctly for the primary gate; failure is at the PROPAGATION stage (captured value not written to all prescribed citation sites) COMBINED WITH snapshot-staleness (document continues to grow after capture, making evidence stale at push-time) AND gate-scope-narrower-than-rule-scope (sweep misses 4-index changelog entries and burst-log dim cells as citation sites).** Three simultaneous escape hatches: propagation-gap, snapshot-staleness, and scope-exclusion.
+
+**Recursion ply:** 27 (extends L1..L26; where L1..L26 includes both CONFIRMED and CANDIDATE plies per D-447(e)(iii) semantic clarification)
+
+**L-EDP1-063 5-prediction outcomes (verified at pass-72):**
+- (i) D-451(a) meta-recursion-ack-itself-literal-shell discipline self-application: **CONFIRMED** — ADV-EDP1-P72-CRIT-001: D-451(c) gate INVOKED correctly with literal-shell, captured `→9→9→9→9`, but output not propagated to INDEX.md + STATE.md frontmatter; META-27 CANDIDATE CONFIRMED at pass-72 (propagation-incompleteness variant)
+- (ii) D-451(b) verification-regex inline-specification gate: **CONFIRMED-VIOLATED** (ADV-EDP1-P72-HIGH-002 — D-451(d) layer-consistency sweep excluded 4-index changelog entries; scope narrower than rule scope; false-green at pass-71 Commit E)
+- (iii) D-451(c) trajectory-tail derivation discipline: **CONFIRMED-VIOLATED** (ADV-EDP1-P72-CRIT-001 — tail `→9→9→9→9` derived correctly but NOT propagated to all prescribed sites; INDEX.md + STATE.md frontmatter retained `→8→9→9→9`)
+- (iv) D-451(d) layer-numbering consistency: **CONFIRMED-VIOLATED** (ADV-EDP1-P72-HIGH-003 — L-EDP1-062 heading declared "61st-layer" but 4-index changelogs + INDEX.md:130 cited "62nd-layer"; sweep missed changelog scope)
+- (v) D-451(e) production-grade-fix introduces-new-defects gate: **CONFIRMED-VIOLATED** (ADV-EDP1-P72-HIGH-004 — D-451(a) captured-stdout snapshot stale at push-time; `burst-log.md:2` at capture, `burst-log.md:6` at push)
+
+Net: **4 CONFIRMED-VIOLATED + 1 CONFIRMED**.
+
+**Trend-table (LENGTH=4 per D-433(e)+D-439(c)):**
+
+| Layer | Burst | Axes | Multi-axis? |
+|---|---|---|---|
+| 60 (pass-69) | D-449 | 9 | YES (META-LEVEL-24 CANDIDATE CONFIRMED; 30th consecutive) |
+| 61 (pass-70) | D-450 | 9 | YES (META-LEVEL-25 CANDIDATE CONFIRMED; 31st consecutive) |
+| 62 (pass-71) | D-451 | 9 | YES (META-LEVEL-26 CANDIDATE CONFIRMED; 32nd consecutive) |
+| 63 (pass-72) | D-452 | 9 | YES (META-LEVEL-27 CANDIDATE CONFIRMED; 33rd consecutive) |
+
+**D-445(b) self-application at L-EDP1-064 (per D-445(b) own-lesson requirement):**
+- Convergence implication tail: →9→9→9→9 (passes 69+70+71+72 = 9+9+9+9; canonical LENGTH=4 per D-433(e)+D-439(c); D-452(a) self-application: DERIVED_VALUE=`→9→9→9→9`; propagation-completeness gate INVOKED at Commit E per D-452(a))
+- Passes-range: "passes 69-72 all at axis=9; asymptotic floor [7,9] confirmed at upper-bound 9"
+
+**Convergence implication:** Asymptotic floor [7,9] confirmed at upper-bound 9. Pass-72 axis=9 (CRIT-001 + HIGH-001..004 + MED-001..003 + LOW-001 = 9 findings). Trajectory tail (LENGTH=4): →9→9→9→9. 33rd consecutive multi-axis. Streak 0/3 unchanged per D-386 Option C. META-LEVEL ply ascending monotonically to 27. PR #124 merge remains gated. Structural break requires S-15.03 PRIORITY-A automation execution — propagation-completeness (L27a), snapshot-staleness (L27b), and gate-scope-narrowing (L27c) are ALL structural: automation must (i) propagate derived values to ALL prescribed citation sites post-gate-execution, (ii) re-execute snapshot gates immediately pre-push, AND (iii) expand Layer-N sweep to include 4-index changelog entries and burst-log dim cells.
+
+**Prediction pass-73 (future-tense per D-445(e)(i); LENGTH=4 tail per D-433(e)+D-439(c)+D-445(b)):**
+- Trajectory tail: →9→9→9→9 (passes 70-73 assuming pass-72 settles at 9; post-pass-72 canonical tail)
+- (i) D-452(a) post-derivation propagation-completeness gate self-application: **will D-452(a) gate be INVOKED with captured stdout AND output propagated to all prescribed sites at Commit E?** Prediction: REFUTED (satisfied) if Commit E Dim-2 shows literal shell loop across all PRESCRIBED_SITES with zero PROPAGATION_GAP lines. CONFIRMED-VIOLATED if propagation to any site is missed.
+- (ii) D-452(b) dual-direction Layer-N sweep: **will the N-1 and N+1 drift classes be swept for L-EDP1-064's 63rd-layer designation?** Prediction: REFUTED (satisfied) if `grep -nE "L-EDP1-064[^0-9]*(62|64)(nd|st|rd|th)-layer"` returns empty across all sibling sites. CONFIRMED-VIOLATED if any 62nd-layer or 64th-layer drift appears.
+- (iii) D-452(c) captured-stdout-snapshot-freshness: **will Dim-2 captured stdout be re-executed at push-time OR explicitly marked as pre-Dim-6 snapshot?** Prediction: REFUTED (satisfied) if Dim-2 attestation blocks are re-executed at push-time per D-452(c)(a), or explicitly annotated per D-452(c)(b). CONFIRMED-VIOLATED if stale snapshot propagates to push.
+- (iv) D-452(d) 4-index changelog scope: **will L-EDP1-064 63rd-layer cite be consistent across all 6 site classes including 4-index changelogs?** Prediction: REFUTED (satisfied) if Commit D 4-index changelog entries cite "L-EDP1-064 63rd-layer" consistently. CONFIRMED-VIOLATED if any changelog entry uses a different ordinal.
+- (v) META-28 emergence forecast: **will D-452 self-application trigger META-28 at pass-73?** Prediction: META-28 CANDIDATE likely if any of the three D-452 structural escape hatches (propagation-gap, snapshot-staleness, scope-exclusion) recurs at pass-73 Commit E even after D-452 codification. Probability: MEDIUM — D-452(a) propagation gate requires explicit loop across PRESCRIBED_SITES; if the list is incomplete, META-28 = "propagation gate invoked but PRESCRIBED_SITES list itself incomplete".
+- **Size-budget flag (D-442(e)):** lessons.md post-L-EDP1-064 append is approaching hard limit ≤4000 lines (current ~3600 lines). Compact or split REQUIRED at S-15.03 PRIORITY-A execution window — CRITICAL urgency.
+
+**Closes:** ADV-EDP1-P72-CRIT-001 + ADV-EDP1-P72-HIGH-001 + ADV-EDP1-P72-HIGH-002 + ADV-EDP1-P72-HIGH-003 + ADV-EDP1-P72-HIGH-004 + ADV-EDP1-P72-MED-001 + ADV-EDP1-P72-MED-002 + ADV-EDP1-P72-MED-003 + ADV-EDP1-P72-LOW-001 + PG-P72-001 + PG-P72-002 + PG-P72-003 (D-413(b) completeness mandate + D-447(d) parity + D-448(b) Closes block discipline — 9 findings + 3 PG = 12 closure items)

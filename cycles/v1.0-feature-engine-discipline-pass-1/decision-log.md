@@ -303,6 +303,46 @@ appended here per POLICY 1 (append-only, immutable IDs).
 
 - **D-451(e)** Production-grade-fix introduces-new-defects gate. When a fix-burst commit closes a HIGH finding by introducing new content (e.g., adding Phase Progress rows for new releases per HIGH-004; updating banner wc-l per HIGH-003; adding rc.17/rc.18 release narrative), the new content MUST be cross-validated against authoritative external source at Commit E: (i) release-date narrative cross-validated against CHANGELOG.md release header dates; (ii) release-SHA cross-validated against `git log <release-tag>` output; (iii) release-status (SHIPPED vs DEAD-TAG vs SUPERSEDED) cross-validated against CHANGELOG.md release-note prose; (iv) Section 9 SHA cross-validated against Active Branches row at Commit E (within-doc consistency); (v) new content that fails cross-validation = HIGH per D-411(a). Closes ADV-EDP1-P71-MED-003 + ADV-EDP1-P71-LOW-001 + PG-P71-003.
 
+### D-452 (F5 pass-72 codification block; META-LEVEL-27 CANDIDATE CONFIRMED — literal-shell-derivation-gate-INVOKED-and-captured-stdout-correct-but-OUTPUT-NOT-PROPAGATED-to-all-prescribed-citation-sites-PLUS-snapshot-staleness-when-document-continues-to-be-edited-AND-gate-scope-narrower-than-rule-scope ply)
+
+- **D-452(a)** META-LEVEL-27 CANDIDATE CONFIRMED ack + post-derivation propagation-completeness gate. Recursion ply L27 emerged at pass-72: literal-shell-derivation-gate-INVOKED-and-captured-stdout-correct-but-OUTPUT-NOT-PROPAGATED-to-all-prescribed-citation-sites. At pass-71, D-451(c) gate fired correctly and captured `→9→9→9→9` but the captured value never propagated to INDEX.md Convergence Status + STATE.md frontmatter — both still cited the pre-corrected pass-70-era `→8→9→9→9`. Verbatim-strict chain perpetuated the stale value through pass-72 dispatch-side advance. **Discipline:** When a mechanical gate produces an output value (e.g., trajectory tail via `tail -N`; SHA via `git rev-parse`; line count via `wc -l`), the codifying burst Commit E MUST persist a post-derivation propagation-completeness gate. Codified regex per D-451(b):
+```bash
+DERIVED_VALUE=$(<gate command>)
+PRESCRIBED_SITES=("STATE.md:current_step" "INDEX.md:Convergence_Status" "...")
+for site in "${PRESCRIBED_SITES[@]}"; do
+  grep -c "$DERIVED_VALUE" "$site" || echo "PROPAGATION_GAP: $site"
+done
+```
+Any PROPAGATION_GAP = HIGH per D-411(a). Captured stdout MUST appear in Dim-2 (not Dim-6 narrative). Closes ADV-EDP1-P72-CRIT-001 + ADV-EDP1-P72-HIGH-001.
+
+- **D-452(b)** Layer-N consistency gate dual-direction sweep. The D-451(d) Layer-N consistency gate at pass-71 searched ONLY positive-form `Nth-layer` and found confirmations; it never swept drift classes `(N-1)th-layer` or `(N+1)th-layer`. At pass-72, INDEX.md:130 + 4-index changelogs cited "L-EDP1-062 62nd-layer" while L-EDP1-062 heading said "61st-layer" — the drift was invisible to positive-form-only sweep. **Discipline:** Layer-N consistency gate MUST search for BOTH (a) positive form `Nth-layer` (confirmation) AND (b) NEGATIVE drift classes `(N-1)th-layer`, `(N+1)th-layer` (detection). Codified regex per D-451(b):
+```bash
+# For lesson with declared layer N:
+LAYER_N=<from lesson heading>
+N_MINUS_1=$((LAYER_N - 1))
+N_PLUS_1=$((LAYER_N + 1))
+grep -nE "L-EDP1-[0-9]+[^0-9]*(${N_MINUS_1}|${N_PLUS_1})(nd|st|rd|th)-layer" <all sibling sites>
+```
+Any drift match = HIGH per D-411(a). Captured stdout in Dim-2. Closes ADV-EDP1-P72-HIGH-002 + ADV-EDP1-P72-HIGH-003.
+
+- **D-452(c)** Captured-stdout-snapshot-freshness gate. At pass-71 Commit E, D-451(a) META-26-ack literal-shell captured `burst-log.md:2` for META-LEVEL-26 CANDIDATE CONFIRMED occurrences. After capture, more occurrences were written into the burst-log via Dim-6 narrative, Closes blocks, etc. Final state showed `burst-log.md:6`. The captured evidence was correct at snapshot-time but stale at push-time. Literal-shell evidence with stale snapshot = mechanically-FALSE-evidence. **Discipline:** Captured-stdout in Dim-2 MUST be one of: (a) Re-executed at push-time (post-content-final, pre-`git push`); OR (b) Explicitly marked as "snapshot at PRE-Dim-6 phase; final count subject to growth via continued same-Commit-E edits". Failure to mark snapshot timing OR re-execute = HIGH per D-411(a). Codified regex per D-451(b) — pre-push verification:
+```bash
+# At push-time, re-execute gates and compare to Dim-2 captured values:
+diff <(echo "$DIM2_CAPTURED_VALUE") <(<gate command>)
+# Empty diff = freshness verified; non-empty = stale
+```
+Closes ADV-EDP1-P72-HIGH-004 + ADV-EDP1-P72-MED-001.
+
+- **D-452(d)** Layer-N gate scope extends to lesson trend-tables AND 4-index changelogs. Pass-71 HIGH-003 + HIGH-004 evidenced that D-451(d) Layer-N consistency sweep MUST include: (i) The codifying lesson's heading + body (D-451(d) scope); (ii) The codifying lesson's TREND-TABLE rows (referencing prior layers by ordinal); (iii) Subsequent lessons' TREND-TABLE rows (carrying value forward); (iv) **4-index changelog entries** citing the lesson's layer-ordinal (NEW SCOPE per D-452(d)); (v) Burst-log Dim-3/Dim-5/Dim-7 cells citing the layer-ordinal; (vi) STATE.md narrative citations. All 6 site classes MUST be swept at codifying-burst Commit E. Closes ADV-EDP1-P72-MED-002 + ADV-EDP1-P72-MED-003.
+
+- **D-452(e)** STATE.md Decisions Log umbrella range auto-advance verification. Pass-71 LOW-001 evidenced that STATE.md Decisions Log preamble carried stale "D-379..D-450" umbrella range while D-451 row was added below — section-header vs section-content arithmetic mismatch. **Discipline:** At every codifying-burst Commit E, literal-shell verify. Codified regex per D-451(b):
+```bash
+HIGHEST_D=$(grep -nE "^\| D-[0-9]+[\( ]" decision-log.md | grep -oE "D-[0-9]+" | sort -t- -k2 -n | tail -1)
+grep -c "D-379\\.\\.${HIGHEST_D}" STATE.md
+# MUST be ≥1 per all umbrella citations
+```
+Stale umbrella range = MEDIUM per D-411(a). Closes ADV-EDP1-P72-LOW-001 + PG-P72-001 + PG-P72-002 + PG-P72-003.
+
 | D-448(a/b/c/d/e) | META-LEVEL-23 source-attestation + lessons Closes block + prediction body consistency + cardinality+umbrella sweep + multi-issue consolidation | META-LEVEL-23 CANDIDATE CONFIRMED ack; closes F-P68-CRIT-001 + F-P68-HIGH-001..004 + F-P68-MED-001..003 + F-P68-LOW-001 + PG-P68-001..003 | F5 pass-68 | 2026-05-13 | state-manager |
 
 | D-449(a/b/c/d/e) | META-LEVEL-24 literal-shell-execution + Dim-7 tally timing + ply-cite+status-tier discipline + 4-index Refs scope + Active Branches scope clarification | META-LEVEL-24 CANDIDATE CONFIRMED ack; closes F-P69-CRIT-001 + F-P69-HIGH-001..004 + F-P69-MED-001..003 + F-P69-LOW-001 + PG-P69-001..003 | F5 pass-69 | 2026-05-13 | state-manager |
@@ -310,3 +350,5 @@ appended here per POLICY 1 (append-only, immutable IDs).
 | D-450 | META-LEVEL-25 CANDIDATE CONFIRMED ack + sibling-rule co-mechanical-application discipline + D-449(b) Dim-7 sibling-sweep target-set extension + Dim-1 headline-vs-list arithmetic gate + Active Branches multi-row SHA-currency gate + Decisions Log monotonic-row enforcement extension to decision-log.md SoT (5 sub-clauses: D-450(a) META-25 ack, D-450(b) Dim-7 sweep, D-450(c) Dim-1 gate, D-450(d) SHA+wc-l gate, D-450(e) monotonic-row). L-EDP1-062 62nd-layer META-LEVEL-25 CANDIDATE CONFIRMED. | Closes ADV-EDP1-P70-CRIT-001 + ADV-EDP1-P70-HIGH-001 + ADV-EDP1-P70-HIGH-002 + ADV-EDP1-P70-HIGH-003 + ADV-EDP1-P70-HIGH-004 + ADV-EDP1-P70-MED-001 + ADV-EDP1-P70-MED-002 + ADV-EDP1-P70-MED-003 + ADV-EDP1-P70-LOW-001 + PG-P70-001 + PG-P70-002 + PG-P70-003 (per D-413(b) completeness mandate); parent commits b57b6270 / 7f6ad460 (pass-69 Commit E SHA / pass-69 Commit D SHA per D-419(b)+D-445(d)) | F5 pass-70 | 2026-05-13 | state-manager |
 
 | D-451 | META-LEVEL-26 CANDIDATE CONFIRMED ack + meta-recursion-ack-itself-literal-shell-attestation discipline + verification-regex-MUST-match-rule-scope (specified in codification text) + trajectory-tail derivation discipline (pre-prescription semantic gate) + layer-numbering semantic disambiguation (L-EDP1-003 recurrence count) + production-grade-fix introduces-new-defects gate (cross-validate new content against authoritative external source) (5 sub-clauses: D-451(a) META-26 ack + meta-recursion-ack-literal-shell, D-451(b) verification-regex-inline-scope, D-451(c) trajectory-tail derivation, D-451(d) layer-numbering disambiguation, D-451(e) production-grade-fix cross-validation). L-EDP1-063 62nd-layer META-LEVEL-26 CANDIDATE CONFIRMED. Closes ADV-EDP1-P71-CRIT-001, ADV-EDP1-P71-HIGH-001, ADV-EDP1-P71-HIGH-002, ADV-EDP1-P71-HIGH-003, ADV-EDP1-P71-HIGH-004, ADV-EDP1-P71-MED-001, ADV-EDP1-P71-MED-002, ADV-EDP1-P71-MED-003, ADV-EDP1-P71-LOW-001, PG-P71-001, PG-P71-002, PG-P71-003 (per D-413(b) completeness mandate) | d3cd89c3 / 69ba6640 (parent commits per D-419(b)+D-445(d) — pass-71 Commit A SHA / pass-70 Commit D canonical-parent SHA) | F5 pass-71 | 2026-05-13 | state-manager |
+
+| D-452 | META-LEVEL-27 CANDIDATE CONFIRMED ack + post-derivation propagation-completeness gate + Layer-N consistency dual-direction sweep + captured-stdout-snapshot-freshness gate + Layer-N scope extension to lesson trend-tables + 4-index changelogs + burst-log cells + STATE.md narrative + STATE.md Decisions Log umbrella range auto-advance verification (5 sub-clauses: D-452(a) META-27 ack + propagation-completeness gate, D-452(b) Layer-N dual-direction sweep, D-452(c) captured-stdout-snapshot-freshness gate, D-452(d) Layer-N scope extension to trend-tables+4-index+burst-log+STATE.md, D-452(e) Decisions Log umbrella range auto-advance). L-EDP1-064 63rd-layer META-LEVEL-27 CANDIDATE CONFIRMED. Closes ADV-EDP1-P72-CRIT-001, ADV-EDP1-P72-HIGH-001, ADV-EDP1-P72-HIGH-002, ADV-EDP1-P72-HIGH-003, ADV-EDP1-P72-HIGH-004, ADV-EDP1-P72-MED-001, ADV-EDP1-P72-MED-002, ADV-EDP1-P72-MED-003, ADV-EDP1-P72-LOW-001, PG-P72-001, PG-P72-002, PG-P72-003 (per D-413(b) completeness mandate) | ed7c11dd / 79c731c3 (parent commits per D-419(b)+D-445(d) — pass-72 Commit A SHA / pass-71 Commit D canonical-parent SHA) | F5 pass-72 | 2026-05-13 | state-manager |
