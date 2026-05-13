@@ -4083,3 +4083,34 @@ Additional Dim-2 grep verifications:
 ## Burst: F5 pass-67 fix burst (2026-05-13)
 
 (Pass-67 fix burst codifies D-447(a/b/c/d/e) closing F-P67-001..F-P67-008 + PG-P67-001..002; L-EDP1-059 58th-layer META-LEVEL-22 CANDIDATE CONFIRMED 28th-consecutive multi-axis own-downstream-citation-scope-extension-gap ply.)
+
+**Parent-commit:** `ce152d1c` (pass-67 Commit D; canonical parent-commit per D-419(b)+D-420(d)+D-421(a))
+
+**Adversary verdict:** HIGH (4H+3M+1L=8+2PG+1obs); META-LEVEL-22 CANDIDATE CONFIRMED. Pass-67 adversary found F-P67-001..F-P67-008 (8 findings) + PG-P67-001..002 (2 process gaps). Finding set: F-P67-001 own-downstream-citation-scope gap (D-445(b) rule body vs D-445(b) Closes cells diverged); F-P67-002 lesson-body Convergence-implication stale trajectory form; F-P67-003 META-LEVEL-22 ply identification; F-P67-004 Active Branches SHA not advanced at Commit E; F-P67-005 Active Branches SHA TBD at Commit D; F-P67-006 Phase Progress pass-67 fix burst row missing; F-P67-007 Decisions Log row D-447 missing at Commit E; F-P67-008 Concurrent Cycles trajectory tail not updated. PG-P67-001 trajectory axis-count drop narrative missing; PG-P67-002 S-15.03 header not advanced to D-447. 1obs: burst-log h2 heading present (D-438(d) satisfied at Commit A; noted at Commit B per D-444(c)).
+
+**Files touched (Dim-1):** 7 unique files — decision-log.md, lessons.md, STATE.md, S-15.03-index-cite-refresh-hook.md, BC-INDEX.md, VP-INDEX.md, STORY-INDEX.md, ARCH-INDEX.md, INDEX.md, burst-log.md. Actual unique file count: 10 (per D-432(e) unique-file-count discipline).
+
+**Codifications:** D-447(a/b/c/d/e) — own-downstream-citation-scope-extension-enforcement + META-LEVEL-22-CONFIRMED + Active-Branches-SHA-advance-at-Commit-E + Phase-Progress-pass-N-fix-burst-row-MANDATORY + trajectory-axis-count-drop-narrative; L-EDP1-059 58th-layer 28th-consecutive multi-axis META-LEVEL-22 CANDIDATE CONFIRMED.
+
+**Dim-2 Attestation (D-422(a)+D-436(c)+D-437(a) re-execution at Commit E author-time):**
+- `grep -c "D-447" cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md` → 9
+- `grep -c "D-447" STATE.md` → 1
+- `grep -c "D-447" stories/S-15.03-index-cite-refresh-hook.md` → 6
+- `grep -c "D-447" cycles/v1.0-feature-engine-discipline-pass-1/INDEX.md` → 1
+- D-415(a) N+6 form: finding-set grep on burst-log with full narrative+codification+closure structure per D-427(c); D-436(d) semantic-precondition applies (this is a burst-log entry with full narrative+codification+closure); N+6 self-reference sites: corrigendum body (0) + attestation prose cite + Verification self-ref + Dim-N narrative cite + Canonical-marker + Codifications block cite + Closes block cite
+- Verification: grep -cE "D-447" across named files executed at Commit E author-time as shown above.
+
+**Dim-5 Attestation (D-413(b) completeness mandate — ALL findings closed):**
+Closes F-P67-001, F-P67-002, F-P67-003, F-P67-004, F-P67-005, F-P67-006, F-P67-007, F-P67-008, PG-P67-001, PG-P67-002 (per D-413(b) completeness mandate; 10 items total: 8 findings + 2 process gaps).
+
+**Dim-6 Attestation (D-446(a) own-burst-log 8-block gate INVOKED at Commit E):**
+D-446(a) own-burst-log 8-block gate INVOKED at this Commit E. All 8 D-444(c) mandatory blocks present: Parent-commit ✓ / Adversary verdict ✓ / Files touched ✓ / Codifications ✓ / Dim-2 Attestation ✓ / Dim-5 Attestation ✓ / Dim-6 Attestation ✓ / Dim-7 Attestation ✓ / Closes ✓ / Factory-artifacts commits ✓. Blocks added at Commit E per D-414(c) corrigendum (h2 heading + parenthetical added at Commit A; full 8-block narrative completed at Commit E as prescribed by D-446(a) retroactive-completion protocol).
+
+**Dim-7 Attestation (D-418(c)+D-432(a)+D-435(d) deterministic-tally form):**
+- Trajectory tail (last 4 of 67 values per D-433(e)+D-439(c)): →9→9→9→8 (axis-count dropped from 9 to 8 at pass-67; first drop in 9 passes; possible floor re-establishment at 8 OR one-pass noise within [7,9] band per D-447(e)(iv))
+- Streak: 0/3 NITPICK_ONLY (asymptotic per D-386 Option C)
+- D-418(c) deterministic-tally (68 reviews dispatched; 67 complete returns; 65 fix bursts passes 3-67; per D-435(d) dispatched = completed returns + 1 if in-progress)
+
+**Closes:** F-P67-001, F-P67-002, F-P67-003, F-P67-004, F-P67-005, F-P67-006, F-P67-007, F-P67-008, PG-P67-001, PG-P67-002 (per D-413(b) completeness mandate)
+
+**Factory-artifacts commits:** A `73bd947c` / B `055c15b5` / C `0302ef71` / D `ce152d1c` / E `<SHA-patch-pending>` (Commit E SHA recorded in SHA-patch follow-up per D-447(c); Active Branches cell updated to Commit E HEAD at SHA-patch)
