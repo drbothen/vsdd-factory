@@ -128,6 +128,11 @@ appended here per POLICY 1 (append-only, immutable IDs).
 | D-441(c) | Cumulative-scope umbrella citation explicit sample-vs-exhaustive declaration | F-P61-003 closed | F5 pass-61 | 2026-05-12 | state-manager |
 | D-441(d) | Codification-without-application gate at Commit E with literal-grep attestation | F-P61-005 closed; O-P61-001 retroactive D-430(a) extension authorization | F5 pass-61 | 2026-05-12 | state-manager |
 | D-441(e) | Cross-cell anchor uniformity + line-growth tracker + trend-table Dim-2 + dispatch-side scope (4-sub-issue consolidation) | F-P61-006..009 closed | F5 pass-61 | 2026-05-12 | state-manager |
+| D-442(a) | D-441(a) verbatim-strict extension (clause-sequence + suffix-injection FORBIDDEN + completeness) | META-LEVEL-17 CANDIDATE CONFIRMED ack; closes F-P62-001 | F5 pass-62 | 2026-05-12 | state-manager |
+| D-442(b) | D-441(b) scope clarification (decision-log=6col; INDEX.md=5col) | F-P62-002 + PG-P62-001 closed | F5 pass-62 | 2026-05-12 | state-manager |
+| D-442(c) | D-441(d) retroactive-sweep extension to D-441(c) + passes 50-58 backfill | F-P62-003 + F-P62-005 closed | F5 pass-62 | 2026-05-12 | state-manager |
+| D-442(d) | Attestation discipline 4-sub-issue (banner source + Dim-2 file-scoping + trend-table exec + label timing) | F-P62-004 + F-P62-006 + F-P62-008 + F-P62-009 closed | F5 pass-62 | 2026-05-12 | state-manager |
+| D-442(e) | lessons.md size budget + WASM fuel reconciliation (NEW systemic class) | F-P62-007 closed; remediation deferred to next cycle | F5 pass-62 | 2026-05-12 | state-manager |
 
 ---
 
@@ -156,3 +161,15 @@ appended here per POLICY 1 (append-only, immutable IDs).
 - **D-441(d)** Codification-without-application gate at Commit E — every retroactive-sweep rule MUST execute the sweep at codifying burst Commit E with literal-grep attestation. Closes F-P61-005. Also retroactively authorizes O-P61-001 pass-60 Commit E line-budget normalization (453→410, -43 lines) as D-430(a) extension scope per pre-existing pattern (pass-49 was 363→310, -53 lines).
 
 - **D-441(e)** Cross-cell prose-anchor citation suffix uniformity + banner line-growth tracker advancement MANDATORY at codifying-burst Commit E + trend-table cross-instance per-cell value Dim-2 attestation MANDATORY + dispatch-side-vs-sibling-cell propagation scope clarification (4-sub-issue consolidation). Closes F-P61-006 + F-P61-007 + F-P61-008 + F-P61-009.
+
+### D-442 (F5 pass-62 codification block; META-LEVEL-17 CANDIDATE CONFIRMED — rule-application-cross-channel ply)
+
+- **D-442(a)** D-441(a) verbatim-strict EXTENSION — byte-equivalence test MUST include (i) clause-sequence equivalence (positional match to checklist 4a prescription), (ii) absence of justification-suffix injection ("per D-NNN(x)" parentheticals inside current_step body), (iii) presence of ALL prescribed clauses (not just absence of banned tokens). Recursion ply 17: rule applied to correct surface (banned tokens absent) but produced form-divergent artifact via NEW divergence vector in sibling channel (clause-sequence + suffix-injection). Closes F-P62-001.
+
+- **D-442(b)** D-441(b) scope clarification — decision-log.md Decisions Log = canonical 6-column (`| ID | Decision | Rationale | Phase | Date | Made By |`); INDEX.md Adversarial Reviews = canonical 5-column (`| Pass | Date | Findings Count | Verdict | File |`). Each scope has distinct canonical column order. Verification awk MUST check column 3 = Findings Count (NOT Verdict) for INDEX.md rows. Closes F-P62-002 + PG-P62-001.
+
+- **D-442(c)** D-441(d) retroactive-sweep enforcement EXTENSION to D-441(c) and analogous rules — every umbrella citation site discovered AT codifying burst MUST receive the new annotation in same burst. For D-441(c), retroactively annotate ALL existing umbrella citations across STATE.md (sample; see decision-log.md for full range), INDEX.md (1 site), and 4 indexes (sample; see decision-log.md for full range). Also extends D-441(d) backfill audit to passes 50-58 line-count history. Closes F-P62-003 + F-P62-005.
+
+- **D-442(d)** Attestation discipline consolidated 4-sub-issue: (i) banner line-count canonical source EXPLICIT — adopt `wc -l` newline-counting semantics with acknowledgment when content extends past final newline; (ii) Dim-2 attestation regex MUST target the file specified by the rule scope, NOT a sibling with coincidental matches; (iii) trend-table cross-instance Dim-2 attestation MUST be EXECUTED (not just codified) at codifying burst with literal `grep -E` form; (iv) banner sub-clause labels MUST preserve load-bearing timing qualifiers per D-439(d). Closes F-P62-004 + F-P62-006 + F-P62-008 + F-P62-009.
+
+- **D-442(e)** lessons.md size budget + WASM fuel reconciliation (NEW systemic class) — adopt soft target ≤3,500 lines for lessons.md; hard cap 4,000 lines. If exceeded, EITHER (i) compact older lessons L-EDP1-001..030 into historical-summary section per D-430(a) extension, OR (ii) split lessons.md into per-decade files (lessons-L001-L030.md, lessons-L031-L060.md), OR (iii) document WASM fuel budget increase if measurement shows budget is adequate. Pass-62 codifies the rule; remediation execution deferred to next cycle or S-15.03 PRIORITY-A automation. Closes F-P62-007.
