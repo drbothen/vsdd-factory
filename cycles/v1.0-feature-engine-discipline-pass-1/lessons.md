@@ -3194,7 +3194,7 @@ Dim-2 attestation (grep -E "META-LEVEL-20" lessons.md): executed at Commit B aut
 
 **Pattern:** META-LEVEL-21 = **rule-codification-without-self-application-in-codifying-burst-OWN-burst-log**. The codifying burst's OWN burst-log entry violates the rule the burst codifies, while OTHER artifacts in the same burst comply. Distinct from META-19 (automation-not-invoked) and META-20 (downstream-citation-gap). The acute self-application failure mode: rule applies to ALL prior burst-log entries (D-444(c) self-applied to pass-64 entry; D-445(a) extended to multi-cell completeness) but the codifying burst's OWN entry was left as empty stub (h2 + parenthetical only). Pass-65 codified D-445 cross-cell-completeness rule and pass-65's own burst-log entry violated it by having NO Dim-5/Closes/Dim-1/Dim-2 etc.
 
-**Recursion ply:** 21 (extends L1..L20)
+**Recursion ply:** 21 (extends L1..L20 (where L1..L20 set includes both CONFIRMED and CANDIDATE plies per D-447(e)(iii) semantic clarification))
 
 **L-EDP1-057 5-prediction outcomes (verified at pass-66):**
 - (i) D-445(a) cross-cell completeness at pass-65 Commit A: **CONFIRMED-VIOLATED** (F-P66-001 CRITICAL — empty stub)
@@ -3216,9 +3216,58 @@ Dim-2 attestation (grep -E "META-LEVEL-20" lessons.md): executed at Commit B aut
 - D-446(a) self-application: pass-66 fix burst's OWN burst-log entry MUST contain all 8 blocks at Commit E. If absent → F-P67 CRITICAL recurrence (META-LEVEL-22 candidate).
 - D-446(b) D-NNN row schema: cross-row closure-completeness gate may surface gap in D-446 row form itself.
 - D-446(c) Banner hard-margin dual-form: dual-form citation may surface inconsistency at pass-67.
-- D-446(d) SHA-canonicality: any "TBD" placeholder remaining at pass-66 Commit E artifacts → recurrence.
+- D-446(d) SHA-canonicality: any "TBD" placeholder remaining at pass-66 Commit E artifacts → recurrence. [D-446(d) Closes F-P66-004 + F-P66-006 per decision-log SoT; D-447(d) parity gate applied at pass-67 Commit B]
 - D-446(e) Multi-issue consolidation: new sub-issues outside the 4 consolidated may surface at pass-67.
 
 **Sibling-corrigendum to L-EDP1-057:** Pass-66 5-prediction outcomes documented above — 1 CONFIRMED-VIOLATED + 3 REFUTED + 1 DEFERRED-ACKNOWLEDGED.
 
 **Convergence implication:** Asymptotic floor [7,9] holds at axis-count=9; pass-66 elevated to **1C+4H+2M+2L=9** (CRITICAL severity escalation while axis-count unchanged). 8 consecutive passes at axis=9 (passes 59-66). Trajectory tail (LENGTH=4): →9→9→9→9. Streak 0/3 unchanged per D-386 Option C. META-LEVEL ply ascending monotonically to 21. PR #124 merge remains gated. Structural break requires S-15.03 PRIORITY-A automation execution.
+
+## L-EDP1-059 — F5 pass-67 58th-layer L-EDP1-003 recurrence — META-LEVEL-22 CANDIDATE CONFIRMED (rule-codification-applies-to-codifying-burst-OWN-primary-artifact-but-not-codifying-burst-OWN-downstream-citation-cells ply; 28th consecutive multi-axis)
+
+**Layer:** 58th
+**Consecutive multi-axis count:** 28
+**Burst codifying:** F5 pass-67 fix burst
+
+**Pattern:** META-LEVEL-22 = **rule-codification-applies-to-codifying-burst-OWN-primary-artifact-but-not-codifying-burst-OWN-downstream-citation-cells**. The sibling-cell-scope-extension subclass: the codifying burst at pass-66 correctly applied D-446 completeness discipline to its OWN burst-log entry (primary artifact — all 8 blocks present, D-446(a) gate INVOKED and PASSED) and to the decision-log (primary artifact — D-446 prose block complete). However, the 4-index changelog Refs cells — which also enumerate the pass-66 finding set as downstream-citation cells per META-LEVEL-20/D-445(a) scope — were left with truncated Refs (F-P66-001/002/003/004/007 only, omitting F-P66-006/008/009). The codifying burst extended the rule to its own primary artifacts but not to sibling downstream-citation cells that also enumerate the same finding set.
+
+Distinct from prior META-LEVEL plies:
+- META-19: automation codified but not invoked (mechanism gap).
+- META-20: automation invoked for primary cells, downstream-citation cells uncovered by automation scope (scope gap).
+- META-21: primary artifact (burst-log OWN entry) left as empty stub (self-application gap at primary level).
+- META-22: primary artifacts comply; downstream-citation cells (4-index Refs) omit entries from the same finding set (sibling-cell-scope-extension gap within the same codifying burst).
+
+**Recursion ply:** 22 (extends L1..L21 (where L1..L21 set includes both CONFIRMED and CANDIDATE plies per D-447(e)(iii) semantic clarification))
+
+**L-EDP1-058 5-prediction outcomes (verified at pass-67):**
+- (i) D-446(a) self-application gate: **REFUTED** (satisfied — pass-66 burst-log 8-block gate INVOKED and PASSED at Commit E; META-LEVEL-21 closed in real-time)
+- (ii) D-446(b) D-NNN row schema: **REFUTED** (satisfied — D-446 single-row in Decisions Log; completeness gate passed)
+- (iii) D-446(c) banner dual-margin: **REFUTED** (satisfied — dual-margin form applied at pass-66 Commit E)
+- (iv) D-446(d) SHA-canonicality: **CONFIRMED-MUTATED** [not as predicted — D-446(d) applied correctly at Commit D/E; the finding surfaces at Active Branches SHA stuck at Commit C not Commit E; timing variant, not TBD-placeholder variant]
+- (v) D-446(e) new sub-issues: **CONFIRMED** [not satisfied — META-LEVEL-22 surfaces: 4-index Refs cells truncated despite D-446 completeness discipline; scope-extension variant not covered by D-446(a/e)]
+
+Net: **3 REFUTED + 1 CONFIRMED-MUTATED + 1 CONFIRMED**.
+
+**Trend-table (last 4 layers):**
+
+| Layer | Burst | Axes | Multi-axis? |
+|---|---|---|---|
+| 55 (pass-64) | D-444 | 9 | YES (META-LEVEL-19 CONFIRMED real-time) |
+| 56 (pass-65) | D-445 | 9 | YES (META-LEVEL-20 CONFIRMED; twenty-sixth consecutive) |
+| 57 (pass-66) | D-446 | 9 | YES (META-LEVEL-21 CANDIDATE CONFIRMED; twenty-seventh consecutive) |
+| 58 (pass-67) | D-447 | 8 | YES (META-LEVEL-22 CANDIDATE CONFIRMED; twenty-eighth consecutive; first axis-count drop in 9 passes) |
+
+**D-445(b) self-application at L-EDP1-059 (per D-445(b) own-lesson requirement):**
+- Convergence implication tail: →9→9→9→8 (canonical LENGTH=4 per D-433(e)+D-439(c))
+- Passes-range: "8 consecutive passes at axis=9 (passes 59-66) + pass-67 at axis=8"
+
+**Prediction pass-68 (future-tense per D-445(e)(i)):**
+- D-447(a) 4-index Refs completeness gate will be self-applied at pass-67 Commit A (already done — real-time self-application confirmed). Pass-68 adversary WILL verify 4-index Refs now enumerate F-P67-001..F-P67-008 + PG-P67-001..002 for the pass-67 changelog rows.
+- D-447(b) Session Resume L15..L21 enumeration: all 7 plies present at STATE.md:328. Pass-68 adversary will verify L22 definition is added for the new META-LEVEL-22 ply.
+- D-447(c) Commit-E SHA-canonicality: will be tested at pass-67 fix burst Commit E. If Active Branches factory-artifacts still cites a non-Commit-E SHA, F-P68 opens.
+- D-447(d) decision-log↔lessons.md parity: the D-447(d) sub-clause Closes in decision-log will be verified against L-EDP1-059 Closes annotation. If parity gap exists, F-P68 opens.
+- D-447(e)(i/ii/iii/iv) consolidation sub-issues: variants outside the 4 codified sub-issues may emerge at pass-68.
+
+**Sibling-corrigendum to L-EDP1-058:** L-EDP1-058 pass-67 prediction outcomes: 3 REFUTED + 1 CONFIRMED-MUTATED + 1 CONFIRMED (recorded above).
+
+**Convergence implication:** Asymptotic floor [7,9]; pass-67 axis-count DROPPED to 8 (4H+3M+1L=8+2PG+1obs) — first drop in 9 consecutive passes. Trajectory tail (LENGTH=4): →9→9→9→8. Two possible interpretations: (a) floor re-establishment at 8 within [7,9] band; (b) one-pass noise that reverts to 9 at pass-68. Streak 0/3 unchanged per D-386 Option C. META-LEVEL ply ascending to 22. PR #124 merge remains gated. Structural break requires S-15.03 PRIORITY-A automation with scope extended to 4-index Refs cells per D-447(a).
