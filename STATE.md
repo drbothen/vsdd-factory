@@ -23,7 +23,7 @@ dtu_services: []
 <!--
   STATE.md SIZE BUDGET (per D-421(c) + D-422(c) reconciliation):
   Soft target: ≤415 lines (actual 399 lines at pass-67 Commit E (wc-l)); margin from soft-target = 500 - 415 = 85; margin from actual = 500 - 399 = 101 (D-446(c) dual-margin form); margin [+10,+20] upper-bound per D-422(c)+D-424(b)+D-428(d)+D-434(e)(ii)+D-437(d)+D-438(a)+D-441(e)+D-442(d)+D-443(d)+D-444(e)+D-445(b)+D-446(c); D-449 codified (5 sub-clauses; literal-shell-execution-evidence + Dim-7-tally-timing + ply-cite-anchoring+status-tier + 4-index-Refs-scope + Active-Branches-scope-clarification per decision-log.md SoT); D-446(c) self-application: dual-margin form applied THIS COMMIT E; D-445(c)+D-446(d)+D-447(c)+D-449(e) Active Branches advance to Commit E HEAD in SHA-patch follow-up.
-  Line-growth tracker (D-437(e)+D-441(e)+D-442(e)+D-443(d)+D-444(e)+D-445(b)+D-446(c)+D-447(d)+D-448(d)+D-449(d) follow-up): pass-49 Commit E 310 lines; pass-54 Commit E 319 lines; pass-55 Commit E 328 lines; pass-56 Commit E 331 lines; pass-57 Commit E 334 lines; pass-58 Commit E 337 lines; pass-59 Commit E 340 lines; pass-60 Commit E 410 lines; pass-61 Commit E 417 lines; pass-62 Commit E 426 lines; pass-63 Commit E 440 lines; pass-64 Commit E 447 lines; pass-65 Commit E+SHA-patch 395 lines (wc-l; net -52 from pass-64); pass-66 Commit E 397 lines (wc-l; net +2 from pass-65 Commit E+SHA-patch at 395); pass-67 Commit E 399 lines (wc-l; net +2 from pass-66); pass-68 Commit E 402 lines (wc-l; net +3 from pass-67); pass-69 Commit E 405 lines (wc-l; net +3 from pass-68). Hard cap (500 lines) margin from soft-target = 500 - 415 = 85; margin from actual = 500 - 405 = 95 (D-446(c) dual-margin form self-applied).
+  Line-growth tracker (D-437(e)+D-441(e)+D-442(e)+D-443(d)+D-444(e)+D-445(b)+D-446(c)+D-447(d)+D-448(d)+D-449(d) follow-up): pass-49 Commit E 310 lines; pass-54 Commit E 319 lines; pass-55 Commit E 328 lines; pass-56 Commit E 331 lines; pass-57 Commit E 334 lines; pass-58 Commit E 337 lines; pass-59 Commit E 340 lines; pass-60 Commit E 410 lines; pass-61 Commit E 417 lines; pass-62 Commit E 426 lines; pass-63 Commit E 440 lines; pass-64 Commit E 447 lines; pass-65 Commit E+SHA-patch 395 lines (wc-l; net -52 from pass-64); pass-66 Commit E 397 lines (wc-l; net +2 from pass-65 Commit E+SHA-patch at 395); pass-67 Commit E 399 lines (wc-l; net +2 from pass-66); pass-68 Commit E 402 lines (wc-l; net +3 from pass-67); pass-69 Commit E 405 lines (wc-l; net +3 from pass-68); Section-12-pre-CLEAR-snapshot 480 lines (wc-l; net +75 from pass-69 Commit E; D-414(c) non-standard addition). Hard cap (500 lines) margin from soft-target = 500 - 415 = 85; margin from actual = 500 - 480 = 20 (D-446(c) dual-margin form self-applied; WARNING: 20-line margin — next addition must compact or remove Section 12).
   Hard cap: 500 lines (validate-state-md-size hook enforcement).
   Historical content belongs in cycle files, NOT here.
   D-430(a) compaction authorization: Pass-49 Commit E surgical compaction (363→310 lines) authorized retroactively per D-430(a); removed content categories: stale Phase Progress rows (passes 1-38); pre-compaction state preserved at git show 278977fb:.factory/STATE.md.
@@ -433,5 +433,49 @@ All per D-404 unconditional + D-415(c) annotation form + D-442(c) sample-vs-exha
 3. Verify CLAUDE.md still cites vsdd-factory project conventions (note: user may have updated CLAUDE.md immediately before/after this refresh)
 4. Resume per standing user directive — continue pass-70 dispatch (Section 4 checklist) OR honor explicit stop signal if issued post-clear
 5. PR #124 status check: confirm OPEN DRAFT CI-GREEN; do not merge until convergence (3-consecutive NITPICK_ONLY) OR explicit user stop signal per Section 10
+
+### 12. Pre-CLEAR Session Task Snapshot (Claude Code TaskList state at clear-time)
+
+This section captures the Claude Code session task list at clear-time per user directive. The TaskList system stores tasks in session state and wipes on `/clear`; this snapshot preserves the index. Substantive content for pending TDs lives in `.factory/tech-debt-register.md`; F-cycle work lives in `.factory/STATE.md` Phase Progress + cycle docs.
+
+**Completed in this conversation (Tasks #157-#166):**
+
+| ID | Description | Durable record |
+|----|-------------|----------------|
+| #157 | F5 pass-60 adversary + fix burst | STATE.md decision-log + cycles/v1.0-feature-engine-discipline-pass-1/ |
+| #158 | F5 pass-61 adversary + fix burst | (same) |
+| #159 | F5 pass-62 adversary + fix burst | (same) |
+| #160 | F5 pass-63 adversary + fix burst | (same) |
+| #161 | F5 pass-64 adversary + fix burst | (same) — META-LEVEL-19 narrative closure attempt |
+| #162 | F5 pass-65 adversary + fix burst | (same) |
+| #163 | F5 pass-66 adversary + fix burst | (same) — first CRITICAL severity |
+| #164 | F5 pass-67 adversary + fix burst | (same) — axis-count drop 9→8 (one-pass noise) |
+| #165 | F5 pass-68 adversary + fix burst | (same) — META-LEVEL-23 narrative closure attempt |
+| #166 | F5 pass-69 adversary + fix burst | (same) — **FIRST LITERAL META-LEVEL-24 closure** via real shell execution |
+
+**Pending at clear-time (9 tasks):**
+
+| ID | Description | Durable record | Status |
+|----|-------------|----------------|--------|
+| #55 | Resume v1.0-brownfield-backfill (E-10 pass-9) | `.factory/cycles/v1.0-brownfield-backfill/` + STATE.md Phase Progress | Blocked by F5 convergence; standing |
+| #66 | TD: regression-v1.0 test 7 — dispatcher_trace_id field name drift | tech-debt-register.md (TD #66) | Pending |
+| #67 | TD #67: Stabilize 3 timing-flaky e2e tests in full_stack_plugin_invocation.rs | tech-debt-register.md (TD #67) | Pending |
+| #72 | TD #70: Cargo cache reuse across PR + release.yml runs (Option C — release pipeline build-time optimization) | tech-debt-register.md (TD #70) | Pending |
+| #80 | F5 pass-2+ fix burst to 3 NITPICK_ONLY convergence | STATE.md current_step | **SUPERSEDED** — now at pass-69; structurally impossible to converge to NITPICK_ONLY under prose-only codification per L-EDP1-007/051/061; operating per D-386 Option C asymptotic acceptance |
+| #81 | F6 targeted hardening (engine-discipline cycle) | STATE.md cycle docs | Blocked downstream of F5 convergence |
+| #82 | F7 delta convergence + human gate (engine-discipline cycle close) | STATE.md cycle docs | Blocked downstream of F6 |
+| #83 | TD #71: Dispatcher stderr summary omits blocking_plugins + block_reason | tech-debt-register.md (TD #71) | Pending |
+| #120 | TD #72: validate-stable-anchors YAML frontmatter exemption gap | tech-debt-register.md (TD #72) + 17 other files | Pending |
+
+**Pre-session pending tasks carried across (sample; pre-#157):**
+Various TDs and engine-discipline work-cycle markers documented in `.factory/tech-debt-register.md` and `.factory/STATE.md` Phase Progress. Post-CLEAR session can read tech-debt-register.md for the canonical TD index.
+
+**Post-CLEAR resume instruction for TaskList:** The new session will start with an empty TaskList. To rebuild a meaningful view of pending work, the orchestrator should read:
+1. `.factory/tech-debt-register.md` — canonical TD index (TD #66, #67, #70, #71, #72 active)
+2. `.factory/STATE.md` Phase Progress + Section 4 (this Session Resume Checkpoint) — current F-cycle work
+3. `.factory/STATE.md` Section 10 — PR #124 status (OPEN DRAFT CI-GREEN; gated)
+4. Optional: re-create TaskList entries for the user-relevant items above via `TaskCreate` if visual tracking is desired
+
+This snapshot is documentary — the substantive pending work lives in the cited durable files. The TaskList view is a transient index. [D-414(c) acknowledgment: Section 12 added at pre-CLEAR durability refresh per user directive; not part of standing Session Resume Checkpoint schema; may be removed at post-CLEAR session if not needed.]
 
 > Previous checkpoint (pass-69 FIX BURST COMPLETE at parent-commit `7f6ad460` per D-419(b)+D-420(d)+D-421(a); CONTEXT CLEAR INITIATED at durability-refresh HEAD `87f0285a` pre-pass-70) archived to: `cycles/v1.0-feature-engine-discipline-pass-1/session-checkpoints.md` <!-- [D-414(c) corrigendum: self-stale-anchor cleanup at pre-clear durability refresh] -->
