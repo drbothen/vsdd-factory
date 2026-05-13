@@ -4113,4 +4113,4 @@ D-446(a) own-burst-log 8-block gate INVOKED at this Commit E. All 8 D-444(c) man
 
 **Closes:** F-P67-001, F-P67-002, F-P67-003, F-P67-004, F-P67-005, F-P67-006, F-P67-007, F-P67-008, PG-P67-001, PG-P67-002 (per D-413(b) completeness mandate)
 
-**Factory-artifacts commits:** A `73bd947c` / B `055c15b5` / C `0302ef71` / D `ce152d1c` / E `<SHA-patch-pending>` (Commit E SHA recorded in SHA-patch follow-up per D-447(c); Active Branches cell updated to Commit E HEAD at SHA-patch)
+**Factory-artifacts commits:** A `73bd947c` / B `055c15b5` / C `0302ef71` / D `ce152d1c` / E `789ad270` (SHA-patch follow-up: Active Branches + Session Resume + burst-log Factory-artifacts updated to Commit E HEAD per D-447(c))

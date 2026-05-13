@@ -207,7 +207,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | feb894a2 | rc.16 merge; latest release |
 | develop | 99d24315 | S-12.08 squash-merge (PR #123); F4 COMPLETE |
-| factory-artifacts | 0302ef71 | pass-67 Commit C SHA — canonical anchor per D-445(c)+D-446(d)+D-447(c) atomic-with-Commit-D semantics; at Commit E MUST be updated to Commit E HEAD per D-447(c) self-application |
+| factory-artifacts | 789ad270 | pass-67 Commit E HEAD; D-447(c) SHA-canonicality at Commit E self-application; pass-67 Commit D `ce152d1c` cited for downstream-dispatch parent-commit convention per D-419(b)+D-420(d)+D-421(a) |
 | feature/F5-pass-3-cycle-hardening | 2e6b4372 | PR #124 OPEN (DRAFT); CI run 25651192161 GREEN (11/11 checks) |
 | v1.0.0-rc.16 (tag) | feb894a2 | SHIPPED; claude-mp PR #8 awaiting human merge |
 | v1.0.0-rc.15 (tag) | e68bb436 | SHIPPED |
@@ -313,7 +313,7 @@ dtu_services: []
 
 - Cycle: v1.0-feature-engine-discipline-pass-1 F5 phase
 - Pass-67 fix burst COMPLETE at Commit E (parent-commit `ce152d1c` per D-419(b)+D-420(d)+D-421(a); pushed to origin/factory-artifacts)
-- Pass-67 fix burst commit chain: A `73bd947c` / B `055c15b5` / C `0302ef71` / D `ce152d1c` / E `<E-SHA>` (SHA-patch follow-up to record Commit E HEAD per D-447(c))
+- Pass-67 fix burst commit chain: A `73bd947c` / B `055c15b5` / C `0302ef71` / D `ce152d1c` / E `789ad270`
 - 32 passes driven this session (pass-37 through pass-67; 68 reviews dispatched total since cycle start)
 - 58-LAYER COUNT reached at L-EDP1-059 (28th consecutive multi-axis recurrence; META-LEVEL-22 CANDIDATE CONFIRMED; own-downstream-citation-scope-extension-gap ply)
 - Trajectory content-only (67 values per D-401(c)): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7→8→6→2→5→5→5→7→8→7→8→7→8→7→8→7→7→8→8→7→7→7→8→8→8→9→8→8→9→9→9→9→9→9→9→8
@@ -376,7 +376,7 @@ All per D-404 unconditional + D-415(c) annotation form + D-442(c) sample-vs-exha
 
 ### 9. Critical Anchors (Post Pass-67)
 
-- factory-artifacts HEAD: `<E-SHA>` (pass-67 Commit E; SHA-patch follow-up pending per D-447(c))
+- factory-artifacts HEAD: `789ad270` (pass-67 Commit E; pushed to origin/factory-artifacts)
 - factory-artifacts Commit D: `ce152d1c` (canonical parent-commit per D-419(b) for pass-68 dispatch)
 - develop HEAD: `99d24315` (S-12.08 PR #123; F4 COMPLETE; unchanged since cycle start)
 - main HEAD: `feb894a2` (rc.16; unchanged)
