@@ -404,15 +404,21 @@ section_text() {
 }
 
 # =============================================================================
-# Section sanity: length is reasonable (100–400 lines).
+# Section sanity: length is reasonable (100–600 lines).
 # Catches absurd over/under (empty placeholder vs. runaway prose).
+#
+# Upper bound raised from 400 → 600 when the S-12.x ABI documentation
+# (resolver lifecycle, host fns, registry schema, error envelope, examples)
+# settled at ~475 lines on first ship to main (v1.0.0-rc.17). The original
+# 400-line ceiling was an early estimate, not a spec invariant — the
+# section's job is to fully document the contract, which it does.
 # =============================================================================
 
-@test "sanity: Context Injection Contract section is between 100 and 400 lines" {
+@test "sanity: Context Injection Contract section is between 100 and 600 lines" {
     local line_count
     line_count=$(section_text | wc -l | tr -d ' ')
     [ "$line_count" -ge 100 ]
-    [ "$line_count" -le 400 ]
+    [ "$line_count" -le 600 ]
 }
 
 # =============================================================================
