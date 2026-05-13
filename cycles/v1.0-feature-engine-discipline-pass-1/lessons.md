@@ -3353,8 +3353,8 @@ Net: **3 REFUTED + 1 CONFIRMED-MUTATED + 1 CONFIRMED**.
 **L-EDP1-061 pass-70 prediction outcomes (verified at pass-70):**
 - (i) D-449(a) literal-shell-execution evidence: **CONFIRMED-VIOLATED-SIBLING** (pass-69 Commit E applied literal-shell to D-449(a) PRIMARY gate — genuine mechanical closure; SIBLING gates D-449(b/c/d) received no comparable shell verification — META-25 pattern)
 - (ii) D-449(b) Dim-7 tally timing: **CONFIRMED-VIOLATED** (ADV-EDP1-P70-HIGH-002 — sibling gate not mechanically verified at pass-69 Commit E; covered by D-450(b))
-- (iii) D-449(c) ply-cite anchoring: **CONFIRMED-VIOLATED** (ADV-EDP1-P70-HIGH-001 — sibling gate not mechanically verified; covered by D-450(a))
-- (iv) D-449(d) 4-index Refs scope: **CONFIRMED-VIOLATED** (ADV-EDP1-P70-HIGH-003 — sibling gate not mechanically verified; covered by D-450(c))
+- (iii) D-448(d)(i) Dim-1 cardinality: **CONFIRMED-VIOLATED via ADV-EDP1-P70-HIGH-001** — Dim-1 cardinality mismatch in burst-log; covered by D-450(a) [retroactive-correction at pass-71 Commit B per ADV-EDP1-P71-MED-001 + D-451(b) verification-regex-discipline; prior text "(iii) D-449(c) ply-cite anchoring: CONFIRMED-VIOLATED (HIGH-001)" was wrong — HIGH-001 was D-448(d)(i) Dim-1 cardinality violation, not ply-cite anchoring]
+- (iv) D-446(c) banner self-canonical-source-of-truth: **CONFIRMED-VIOLATED via ADV-EDP1-P70-HIGH-003** — banner wc-l mismatch; covered by D-450(c) [retroactive-correction at pass-71 Commit B per ADV-EDP1-P71-MED-001 + D-451(b) verification-regex-discipline; prior text "(iv) D-449(d) 4-index Refs scope: CONFIRMED-VIOLATED (HIGH-003)" was wrong — HIGH-003 was D-446(c) banner self-canonical-source-of-truth violation, not 4-index Refs scope]
 - (v) D-449(e) Active Branches scope clarification: **CONFIRMED-VIOLATED** (ADV-EDP1-P70-HIGH-004 + ADV-EDP1-P70-MED-001 — sibling gate not mechanically verified; covered by D-450(d))
 
 ---
@@ -3381,8 +3381,8 @@ Net: **3 REFUTED + 1 CONFIRMED-MUTATED + 1 CONFIRMED**.
 **L-EDP1-061 5-prediction outcomes (verified at pass-70):**
 - (i) D-449(a) literal-shell-execution: **CONFIRMED-VIOLATED-SIBLING** (pass-69 Commit E applied literal-shell to D-449(a) PRIMARY; SIBLING gates not mechanically verified — META-25)
 - (ii) D-449(b) Dim-7 tally timing: **CONFIRMED-VIOLATED** (ADV-EDP1-P70-HIGH-002 — sibling gate gap)
-- (iii) D-449(c) ply-cite anchoring: **CONFIRMED-VIOLATED** (ADV-EDP1-P70-HIGH-001 + CRIT-001 — sibling gate gap)
-- (iv) D-449(d) 4-index Refs scope: **CONFIRMED-VIOLATED** (ADV-EDP1-P70-HIGH-003 — sibling gate gap)
+- (iii) D-448(d)(i) Dim-1 cardinality: **CONFIRMED-VIOLATED via ADV-EDP1-P70-HIGH-001 + CRIT-001** — Dim-1 cardinality mismatch + source-attestation gap; covered by D-450(a) [retroactive-correction at pass-71 Commit B per ADV-EDP1-P71-MED-001 + D-451(b) verification-regex-discipline; prior text "(iii) D-449(c) ply-cite anchoring: CONFIRMED-VIOLATED (HIGH-001 + CRIT-001)" was wrong — HIGH-001/CRIT-001 were D-448(d)(i) Dim-1 cardinality and source-attestation violations, not ply-cite anchoring]
+- (iv) D-446(c) banner self-canonical-source-of-truth: **CONFIRMED-VIOLATED via ADV-EDP1-P70-HIGH-003** — banner wc-l mismatch; covered by D-450(c) [retroactive-correction at pass-71 Commit B per ADV-EDP1-P71-MED-001 + D-451(b) verification-regex-discipline; prior text "(iv) D-449(d) 4-index Refs scope: CONFIRMED-VIOLATED (HIGH-003)" was wrong — HIGH-003 was D-446(c) banner self-canonical-source-of-truth violation, not 4-index Refs scope]
 - (v) D-449(e) Active Branches scope clarification: **CONFIRMED-VIOLATED** (ADV-EDP1-P70-HIGH-004 + MED-001 — sibling gate gap)
 
 Net: **5 CONFIRMED-VIOLATED** (all predictions confirmed as violations — full sibling-gate sweep missed at pass-69 Commit E).
@@ -3413,3 +3413,59 @@ Net: **5 CONFIRMED-VIOLATED** (all predictions confirmed as violations — full 
 - **Size-budget flag (D-442(e)):** lessons.md approaching soft limit ≤3500 lines / hard limit ≤4000 lines. Post-L-EDP1-062 append will push file toward ~3400+ lines. Compact or split at next S-15.03 PRIORITY-A execution window.
 
 **Closes:** ADV-EDP1-P70-CRIT-001 + ADV-EDP1-P70-HIGH-001 + ADV-EDP1-P70-HIGH-002 + ADV-EDP1-P70-HIGH-003 + ADV-EDP1-P70-HIGH-004 + ADV-EDP1-P70-MED-001 + ADV-EDP1-P70-MED-002 + ADV-EDP1-P70-MED-003 + ADV-EDP1-P70-LOW-001 + PG-P70-001 + PG-P70-002 + PG-P70-003 (D-413(b) completeness mandate + D-447(d) parity + D-448(b) Closes block discipline — 9 findings + 3 PG = 12 closure items; duplicate pass-69 Closes block removed at pass-71 Commit A per ADV-EDP1-P71-MED-002)
+
+---
+
+## L-EDP1-063 — F5 pass-71 62nd-layer L-EDP1-003 recurrence — META-LEVEL-26 CANDIDATE CONFIRMED (rule-codification-prescribing-co-mechanical-application-of-literal-shell-to-N-sibling-gates-with-meta-recursion-ack-itself-receiving-narrative-attestation-only-AND-verification-regexes-narrower-than-rule-scope-creating-false-green ply; 32nd consecutive multi-axis)
+
+**Layer:** 62nd
+**Consecutive multi-axis count:** 32
+**Burst codifying:** F5 pass-71 fix burst
+
+**Pattern:** META-LEVEL-26 = **rule-codification-prescribing-co-mechanical-application-of-literal-shell-to-N-sibling-gates-with-meta-recursion-ack-itself-receiving-narrative-attestation-only-AND-verification-regexes-narrower-than-rule-scope-creating-false-green**. At pass-70, D-450(a) correctly prescribed that ALL sibling gates within a multi-sub-clause D-NNN block MUST receive literal-shell verification. D-450(b/c/d/e) each received actual shell commands with captured stdout — GENUINE mechanical closure of META-LEVEL-25's sibling-gate gap. However, two structural defects escaped:
+
+(a) The D-450(a) META-LEVEL-25 acknowledgment itself — the meta-recursion ack — was articulated NARRATIVE only at burst-log Dim-6, while all sibling sub-clauses D-450(b/c/d/e) received literal-shell at Dim-2. The D-NNN(a) ack sub-clause that acknowledges the recursion ply is ITSELF a gate that regresses to narrative, because acknowledging recursion at level N requires level-(N+1) acknowledgment to verify mechanically — an infinite regress unless externalized to S-15.03 automation.
+
+(b) Two of the verification regexes were NARROWER than the rule scope they governed, creating false-green attestations: (i) D-450(b)'s Dim-7 sibling-sweep regex `^\- D-418\(c\) deterministic-tally \(` matched only paren-form entries (pass-67) but excluded colon-form entries (passes 68/69/70); (ii) D-450(e)'s monotonic-row regex `^\| D-[0-9]+ ` excluded sub-clause-expanded rows of the form `| D-NNN(a/b/c/d/e) `. The regexes were INVENTED at attestation-time rather than SPECIFIED in the codification text — so they could silently narrow scope without detection.
+
+**META-LEVEL-26 differentiator from META-LEVEL-25:**
+- META-25: primary gate receives literal-shell closure; sibling gates regress to narrative.
+- **META-26: ALL sibling gates (D-450(b/c/d/e)) receive literal-shell closure; the meta-recursion-ack gate (D-450(a)) regresses to narrative PLUS verification-regexes are narrower than rule scope at attestation time, creating false-green for sibling-sweep and monotonic-row gates.** Two simultaneous escape hatches: narrative-ack and regex-narrowing.
+
+**Recursion ply:** 26 (extends L1..L25; where L1..L25 includes both CONFIRMED and CANDIDATE plies per D-447(e)(iii) semantic clarification)
+
+**L-EDP1-062 7-prediction outcomes (verified at pass-71):**
+- (i) D-450(a) META-25 CANDIDATE acknowledgment triggers META-26: **CONFIRMED** — ADV-EDP1-P71-CRIT-001: D-450(a) ack articulated narrative-only at Dim-6; META-26 CANDIDATE CONFIRMED at pass-71
+- (ii) D-450(b) sibling-sweep: **CONFIRMED-VIOLATED** (ADV-EDP1-P71-HIGH-001 — Dim-7 sibling-sweep regex too narrow; paren-form only; colon-form passes 68-70 excluded; false-green at pass-70 Commit E)
+- (iii) D-450(c) Dim-1 arithmetic gate: **REFUTED (satisfied)** — Commit E Dim-2 contained literal grep + comma-count stdout; gate INVOKED
+- (iv) D-450(d) STATE.md multi-row SHA + banner wc-l gate: **CONFIRMED-VIOLATED** (ADV-EDP1-P71-HIGH-003 — banner wc-l correction at pass-70 Commit E introduced new incorrect value; cross-validation against D-451(e) discipline required)
+- (v) D-450(e) decision-log monotonic-row: **CONFIRMED-VIOLATED** (ADV-EDP1-P71-HIGH-002 — monotonic-row regex `^\| D-[0-9]+ ` excluded sub-clause-expanded `| D-NNN(a/b/c/d/e) ` rows; D-448/D-449 sub-clause rows missed)
+- (vi) D-448(d)(i) Dim-1 cardinality on pass-70 OWN burst-log entry: **REFUTED (satisfied)** — D-450(c) gate invoked at Commit E; cardinality match confirmed
+- (vii) Sibling-sweep on prior burst-log entries: **CONFIRMED-VIOLATED** (ADV-EDP1-P71-HIGH-001 — D-450(b) regex narrowing means prior colon-form Dim-7 entries were not swept; false-green)
+
+Net: **4 CONFIRMED-VIOLATED + 2 REFUTED (satisfied) + 1 CONFIRMED**.
+
+**Trend-table (LENGTH=4 per D-433(e)+D-439(c)):**
+
+| Layer | Burst | Axes | Multi-axis? |
+|---|---|---|---|
+| 59 (pass-68) | D-448 | 9 | YES (META-LEVEL-23; axis returns to 9) |
+| 60 (pass-69) | D-449 | 9 | YES (META-LEVEL-24 CANDIDATE CONFIRMED; 30th consecutive) |
+| 62 (pass-70) | D-450 | 9 | YES (META-LEVEL-25 CANDIDATE CONFIRMED; 31st consecutive) |
+| 62 (pass-71) | D-451 | 9 | YES (META-LEVEL-26 CANDIDATE CONFIRMED; 32nd consecutive) |
+
+**D-445(b) self-application at L-EDP1-063 (per D-445(b) own-lesson requirement):**
+- Convergence implication tail: →9→9→9→9 (passes 68+69+70+71 = 9+9+9+9; canonical LENGTH=4 per D-433(e)+D-439(c); D-451(c) self-application: TRAJECTORY_STRING derived from INDEX.md trajectory cell; tail computed by `echo "$TRAJECTORY_STRING" | grep -oE "(→[0-9]+){4}$"`)
+- Passes-range: "passes 68-71 all at axis=9; pass-67 8-drop confirmed as ONE-PASS NOISE in [7,9] band"
+
+**Convergence implication:** Asymptotic floor [7,9] confirmed at upper-bound 9. Pass-71 axis=9 (CRIT-001 + HIGH-001..004 + MED-001..003 + LOW-001 = 9 findings). Trajectory tail (LENGTH=4): →9→9→9→9. 32nd consecutive multi-axis. Streak 0/3 unchanged per D-386 Option C. META-LEVEL ply ascending monotonically to 26. PR #124 merge remains gated. Structural break requires S-15.03 PRIORITY-A automation execution — the meta-recursion-ack regression (ply class L26a) and regex-narrowing false-green (ply class L26b) are BOTH structural: automation must (i) mechanically verify the D-NNN(a) ack sub-clause itself using literal grep with cardinality check, AND (ii) mandate that the codification text SPECIFIES the regex inline so narrowing at attestation-time is detectable.
+
+**Prediction pass-72 (future-tense per D-445(e)(i); LENGTH=4 tail per D-433(e)+D-439(c)+D-445(b)):**
+- (i) D-451(a) meta-recursion-ack-itself-literal-shell discipline self-application: **will D-451(a) trigger META-27 recursion at pass-72?** Prediction: YES, META-27 CANDIDATE likely. The D-451(a) sub-clause itself prescribes that the meta-recursion ack MUST be verified with literal-shell grep-cardinality at Commit E. If pass-71 Commit E Dim-2 invokes `grep -c "META-LEVEL-26 CANDIDATE CONFIRMED"` with captured stdout, META-27 is inoculated at this level. If Dim-2 regresses to narrative for the D-451(a) ack, META-27 = "rule-codification-acknowledging-meta-recursion-prescribes-literal-shell-for-OWN-ack-but-OWN-codifying-burst-omits-it". Probability: MEDIUM (dependent on Commit E discipline).
+- (ii) D-451(b) verification-regex inline-specification gate: **will the CODIFIED regexes be used verbatim at Commit E, or re-invented?** Prediction: REFUTED (satisfied) if Commit E Dim-2 uses exactly `^- D-418\(c\) deterministic-tally[ :(]` and `^\| D-[0-9]+[\( ]` as specified inline in D-451(b). CONFIRMED-VIOLATED if a narrower variant is re-invented at attestation time.
+- (iii) D-451(c) trajectory-tail derivation discipline: **will the pre-prescription semantic gate be invoked before Commit E prescription is written?** Prediction: REFUTED (satisfied) if the tail `→9→9→9→9` is verified against INDEX.md canonical cell by literal grep-oE before being written into current_step and banner. CONFIRMED-VIOLATED if tail is carried forward from prior dispatch without re-derivation.
+- (iv) D-451(d) layer-numbering consistency: **will the 62nd-layer designation be consistent across all documents?** Prediction: REFUTED (satisfied) if grep-back at Commit E confirms heading + body + trend-table + STATE.md + INDEX.md all cite "62nd-layer". CONFIRMED-VIOLATED if any document uses a different ordinal.
+- (v) D-451(e) production-grade-fix introduces-new-defects gate: **will new content added at Commit E be cross-validated against CHANGELOG.md?** Prediction: REFUTED (satisfied) if release dates, SHAs, and status fields are validated by literal `git log <tag>` + `grep -A5 "v1.0.0-rc"` before commit. CONFIRMED-VIOLATED if new release narrative is added without external cross-validation.
+- **Size-budget flag (D-442(e)):** lessons.md post-L-EDP1-063 append is at ~3500+ lines (soft limit ≤3500 per D-442(e)). This entry intentionally crosses the soft limit. Hard limit ≤4000 lines. Compact or split REQUIRED at S-15.03 PRIORITY-A execution window — this is the triggering event for compaction urgency escalation.
+
+**Closes:** ADV-EDP1-P71-CRIT-001 + ADV-EDP1-P71-HIGH-001 + ADV-EDP1-P71-HIGH-002 + ADV-EDP1-P71-HIGH-003 + ADV-EDP1-P71-HIGH-004 + ADV-EDP1-P71-MED-001 + ADV-EDP1-P71-MED-002 + ADV-EDP1-P71-MED-003 + ADV-EDP1-P71-LOW-001 + PG-P71-001 + PG-P71-002 + PG-P71-003 (D-413(b) completeness mandate + D-447(d) parity + D-448(b) Closes block discipline — 9 findings + 3 PG = 12 closure items)
