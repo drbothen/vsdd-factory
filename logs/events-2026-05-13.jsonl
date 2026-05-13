@@ -1,1 +1,2 @@
 {"type":"hook.block","hook":"validate-template-compliance","reason":"template_drift","ts":"2026-05-13T02:41:46-0500","ts_epoch":1778658106,"schema_version":1}
+{"type":"hook.block","hook":"verify-git-push","reason":"git_push_protected","ts":"2026-05-13T08:46:00-0500","ts_epoch":1778679960,"schema_version":1}
