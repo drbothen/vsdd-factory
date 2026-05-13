@@ -31,6 +31,12 @@ use serde::Deserialize;
 ///   Case 3: key present, "not_started" / "pending" → Some("...") → NOT terminal
 ///   Case 4: key present, terminal value
 ///           ("passed" | "deferred" | "failed" | "completed") → wave is terminal
+///
+/// TODO(TD-074): This struct is a sibling of `WaveEntry` in
+/// `update-wave-state-on-merge/src/lib.rs` and
+/// `warn-pending-wave-gate/src/lib.rs`. Three independent definitions can
+/// drift. Future work: hoist into a shared `vsdd-wave-state` crate.
+/// Tracked as TD-074 in `.factory/tech-debt-register.md`.
 #[derive(Debug, Clone, Deserialize)]
 pub struct WaveEntry {
     /// Wave identifier (e.g., "F4", "wave-3").

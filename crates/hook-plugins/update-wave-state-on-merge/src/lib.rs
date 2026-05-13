@@ -159,6 +159,12 @@ pub enum WaveStateOutcome {
 ///   Case 2: key present, YAML null/~ → None (serde default + null handling)
 ///   Case 3: key present, "not_started" → Some("not_started") → triggers flip
 ///   Case 4: key present, any other string → Some("...") → no flip
+///
+/// TODO(TD-074): This struct is a sibling of `WaveEntry` in
+/// `vsdd-context-resolvers/src/wave_context.rs` and
+/// `warn-pending-wave-gate/src/lib.rs`. Three independent definitions can
+/// drift. Future work: hoist into a shared `vsdd-wave-state` crate.
+/// Tracked as TD-074 in `.factory/tech-debt-register.md`.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct WaveEntry {
     wave: String,

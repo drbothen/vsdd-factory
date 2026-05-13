@@ -189,15 +189,56 @@ jobs:
           git rev-parse origin/factory-artifacts || (echo "factory-artifacts ref missing" >&2; exit 1)
           git worktree add .factory origin/factory-artifacts
 
+      - name: Stage WASM plugins to hook-plugins directory
+        # plugins/vsdd-factory/hook-plugins/ is gitignored (.gitignore:58) —
+        # the committed directory holds machine-local builds and is never checked in.
+        # CI must populate it from the debug build artifacts before running ANY bats
+        # test that invokes the dispatcher — including perf-baseline.bats, which calls
+        # the dispatcher when measuring hook invocation latency and needs the WASM
+        # plugins staged in hook-plugins/ to avoid "plugin not found" failures.
+        # Positioned BEFORE perf-baseline.bats (F-P6-001 fix; prior pass-5 had this
+        # step after perf-baseline, causing perf-baseline false-greens when the
+        # dispatcher skipped hooks due to missing plugins).
+        # The release.yml "Stage wasm plugins" step is the canonical staging pattern;
+        # this mirrors it for the CI (debug) path.
+        shell: bash
+        run: |
+          mkdir -p plugins/vsdd-factory/hook-plugins
+          cp target/wasm32-wasip1/debug/*.wasm plugins/vsdd-factory/hook-plugins/ 2>/dev/null || true
+          count=$(ls plugins/vsdd-factory/hook-plugins/*.wasm 2>/dev/null | wc -l)
+          if [ "$count" -lt 16 ]; then
+            echo "::error::Only $count WASM plugins staged; expected >= 16. Build output:"
+            ls target/wasm32-wasip1/debug/*.wasm 2>/dev/null || echo "  (no wasm files in debug target)"
+            exit 1
+          fi
+          echo "Staged $count WASM plugins to hook-plugins/."
+          ls plugins/vsdd-factory/hook-plugins/
+
       - name: Run S-9.00 perf-baseline tests
         # Requires: Rust toolchain (for setup_file cargo build), jq, and .factory/
         # mounted above. hyperfine is not installed; cold-start test skips gracefully.
         # The factory-dispatcher binary was built in the cargo-host build steps above,
         # so setup_file() will skip the build and proceed directly to tests.
+        # WASM plugins are staged by the preceding step — perf-baseline.bats dispatcher
+        # invocations will find plugins in hook-plugins/ (F-P6-001 ordering fix).
         shell: bash
         run: |
           sudo apt-get install -y jq bats 2>/dev/null || brew install jq bats 2>/dev/null || true
           bats plugins/vsdd-factory/tests/perf-baseline.bats
+
+      - name: Run resolver integration tests (F-P4-002)
+        # F-P4-002: resolver-integration.bats and resolver-capability-confinement.bats
+        # were authored in F-P3 but were never invoked by CI on PRs (only by
+        # release.yml → run-all.sh). These tests require the dispatcher binary
+        # (cargo-host builds it above) and bats (installed in the perf-baseline step).
+        # E-8 integration tests (tests/integration/E-8-hook-plugins/) are also covered
+        # here — they live outside plugins/vsdd-factory/tests/ so run-all.sh misses them.
+        # WASM plugins are staged by the preceding step (F-P5-001).
+        shell: bash
+        run: |
+          bats plugins/vsdd-factory/tests/resolver-integration.bats
+          bats plugins/vsdd-factory/tests/resolver-capability-confinement.bats
+          bats tests/integration/E-8-hook-plugins/warn-pending-wave-gate.bats
 
   platforms-drift:
     # Single source of truth: ci/platforms.yaml. The build-dispatcher

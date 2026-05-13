@@ -1,10 +1,3 @@
-// TD #73: This crate reads wave-state.yaml as a YAML MAPPING (waves: { W-15: { ... } }),
-// but the canonical producer (update-wave-state-on-merge) writes a SEQUENCE
-// (waves: [{ wave: "W-15", ... }]). These schemas are incompatible. Migration to
-// the sequence form is tracked in TD #73 (STATE.md). For now, this crate operates
-// on legacy test fixtures that match the mapping form — production wave-state.yaml
-// may not exist yet (no .factory/wave-state.yaml in the repo as of pass-2).
-
 //! warn-pending-wave-gate — Stop lifecycle WASM hook plugin.
 //!
 //! At session end, reads `.factory/wave-state.yaml` via `host::read_file`,
@@ -14,10 +7,54 @@
 //!
 //! BCs: BC-7.03.091 (identity & registry binding), BC-7.03.092 (stderr warning).
 //!
+//! # Schema alignment (F-P3-001 fix)
+//!
+//! The canonical producer (`update-wave-state-on-merge`) writes wave-state.yaml
+//! in SEQUENCE form:
+//!
+//! ```yaml
+//! waves:
+//!   - wave: "W-15"
+//!     gate_status: pending
+//! ```
+//!
+//! This hook previously read the MAPPING form (waves: { W-15: { ... } }),
+//! making it operationally inert in production (TD-073 — now resolved).
+//! Fixed in F-P3-001 fix-burst: use `WaveEntry` / `WaveState` structs via
+//! serde_yaml to parse the canonical SEQUENCE form.
+//!
 //! Porting note: the bash source used python3 for YAML parsing. This crate
 //! uses serde_yaml 0.9.34 instead — no subprocess, no python3 dependency.
 
+use serde::Deserialize;
 use vsdd_hook_sdk::{HookPayload, HookResult};
+
+/// Represents a single wave entry in `.factory/wave-state.yaml`.
+///
+/// Matches the canonical SEQUENCE schema produced by `update-wave-state-on-merge`
+/// (same struct layout as `vsdd-context-resolvers::wave_context::WaveEntry`).
+///
+/// TODO(TD-074): This struct is a sibling of `WaveEntry` in
+/// `vsdd-context-resolvers/src/wave_context.rs` and
+/// `update-wave-state-on-merge/src/lib.rs`. Three independent definitions can
+/// drift. Future work: hoist into a shared `vsdd-wave-state` crate.
+/// Tracked as TD-074 in `.factory/tech-debt-register.md`.
+#[derive(Debug, Clone, Deserialize)]
+struct WaveEntry {
+    /// Wave identifier (e.g., "W-15", "F4").
+    pub wave: String,
+    /// Gate status — None means not yet set (wave is not in a terminal state).
+    #[serde(default)]
+    pub gate_status: Option<String>,
+}
+
+/// Top-level `.factory/wave-state.yaml` structure (canonical SEQUENCE form).
+#[derive(Debug, Clone, Default, Deserialize)]
+struct WaveState {
+    /// All waves in the pipeline, in order from earliest to latest.
+    #[serde(default)]
+    pub waves: Vec<WaveEntry>,
+}
 
 /// Top-level hook logic. Reads wave-state.yaml, finds pending waves, and
 /// emits the advisory warning if any are found.
@@ -41,24 +78,20 @@ pub fn warn_pending_wave_gate_logic(
     };
 
     // AC-004(b): YAML parse fails or `waves` key absent → exit 0, no output.
-    let state: serde_yaml::Value = match serde_yaml::from_str(&yaml_content) {
-        Ok(v) => v,
+    // Parse into WaveState (canonical SEQUENCE form per F-P3-001 fix).
+    // serde_yaml returns Err on malformed YAML, and WaveState::default() gives
+    // empty waves list for missing-key or null-waves cases via #[serde(default)].
+    let wave_state: WaveState = match serde_yaml::from_str(&yaml_content) {
+        Ok(ws) => ws,
         Err(_) => return HookResult::Continue,
     };
 
-    let waves_map = match state.get("waves").and_then(|v| v.as_mapping()) {
-        Some(m) => m,
-        None => return HookResult::Continue,
-    };
-
     // Scan for waves with gate_status == "pending".
-    // EC-008: use Value::as_str to avoid panics on non-string gate_status values.
+    // EC-008: gate_status is Option<String>; None means absent (not pending).
     let mut pending: Vec<String> = Vec::new();
-    for (name, data) in waves_map {
-        if data.get("gate_status").and_then(serde_yaml::Value::as_str) == Some("pending")
-            && let Some(name_str) = name.as_str()
-        {
-            pending.push(name_str.to_string());
+    for entry in &wave_state.waves {
+        if entry.gate_status.as_deref() == Some("pending") {
+            pending.push(entry.wave.clone());
         }
     }
 
