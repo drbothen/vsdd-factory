@@ -2946,3 +2946,36 @@ S-15.03 PRIORITY-A automation remains the only known structural remedy.
 - D-439(c): Trajectory-tail canonical LENGTH=4 ENFORCEMENT — "(last N of M values)" prose anchor cardinality MUST equal emitted arrow-separated value count; LENGTH≠4 prohibited. Closes ADV-EDP1-P59-HIGH-004.
 - D-439(d): Banner sub-clause label semantic-distinction preservation — kebab-case labels MUST preserve load-bearing timing qualifiers (e.g., "-at-Commit-D", "-Commit-A-mandatory"). Closes ADV-EDP1-P59-MED-003.
 - D-439(e): 50th-layer META-LEVEL-14 CANDIDATE + 50-LAYER MILESTONE acknowledgment — L-EDP1-051 documents 50th-layer; ply-14 = Commit-A-timing rule applied to retroactive scope but not own-burst real-time scope; LOW-001/002 + MED-001/002 closed. Closes ADV-EDP1-P59-MED-001, ADV-EDP1-P59-MED-002, ADV-EDP1-P59-LOW-001, ADV-EDP1-P59-LOW-002.
+
+
+## L-EDP1-052 — F5 pass-60 51st-layer L-EDP1-003 recurrence — META-LEVEL-15 CANDIDATE CONFIRMED (21st consecutive multi-axis)
+
+**Layer:** 51st (predicted by L-EDP1-051 pass-60 prediction)
+**Consecutive multi-axis count:** 21 (extends 20-consecutive streak from L-EDP1-051)
+**Burst codifying:** F5 pass-60 fix burst (codifies this lesson; recurrence is at pass-59 fix burst which codified D-439)
+
+**Pattern:** D-439(b) dispatch-conformance rule applied at retroactive scope (codification of pass-58/59 dispatch failures) but NOT applied at codifying-burst-OWN-dispatch-real-time scope. The pass-60 dispatch-side advance immediately following D-439 codification OMITTED the 4-index citation prescribed by checklist 4a — same temporal-scope-self-application failure mode as L-EDP1-051's META-LEVEL-14 ply (Commit-A-timing at retroactive vs codifying-burst-OWN-real-time), but applied to dispatch-side-advance scope rather than burst-log h2 scope.
+
+**Recursion ply:** 15 (extends L1..L14 chain documented in L-EDP1-051)
+
+**META-LEVEL-15 CANDIDATE CONFIRMED:** F-P60-001 is the direct evidence. Temporal-scope-self-application boundary now confirmed at ply 15. Same failure mode reproduces at every new D-NNN(b)-class codification when the very next dispatch following the codifying burst is examined.
+
+**Trend-table (per D-433(d) cross-instance consistency + D-435(a) per-cell verification + D-433(e) tail-LENGTH=4):**
+
+| Layer | Burst | D-NNN | Axes | Multi-axis? |
+|---|---|---|---|---|
+| 48 (pass-57) | D-437 | 8 | YES |
+| 49 (pass-58) | D-438 | 8 | YES (nineteenth consecutive; 4H+3M+1L=8 content-only per D-401(c)) |
+| 50 (pass-59) | D-439 | 9 | YES (twentieth consecutive; 4H+3M+2L=9 content-only per D-401(c); 50-LAYER MILESTONE; META-LEVEL-14 CANDIDATE) |
+| 51 (pass-60) | D-440 | 9 | YES (twenty-first consecutive; 4H+3M+2L=9 content-only per D-401(c); META-LEVEL-15 CANDIDATE CONFIRMED) |
+
+**Prediction pass-61:** D-440(a/b/c/d/e) violated. META-LEVEL-16 candidate. Specifically:
+- D-440(a) self-application failure at pass-61 dispatch (current_step omits 4-index citation prescribed by checklist 4a) — recursion ply 16.
+- D-440(b) decision-log row inversion at next codifying burst — possible repeat of F-P60-002 class.
+- D-440(c) S-15.03 cumulative-scope header stale at codifying burst Commit C — 5th-burst silent-slip extension.
+- D-440(d) Banner wc-l discrepancy at next dispatch-side advance.
+- D-440(e) Dim-2 D-437(a) retrofit incomplete; prediction CONFIRMED/REFUTED mechanism not yet applied universally.
+
+**Sibling-corrigendum to L-EDP1-051 (per D-440(e)(ii)):** L-EDP1-051's pass-60 prediction **CONFIRMED** by pass-60 F-P60-001 (D-439(b) violated at pass-60 dispatch-side advance — 4-index citation absent).
+
+**Convergence implication:** Asymptotic floor [7,9] holds; pass-60 at upper bound = 9. Streak 0/3 unchanged per D-386 Option C. META-LEVEL ply ascending monotonically (now ply 15). Per D-386 Option C asymptotic convergence acceptance, this is the predicted operating regime.
