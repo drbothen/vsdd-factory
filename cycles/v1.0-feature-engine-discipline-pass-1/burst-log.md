@@ -3890,3 +3890,21 @@ D-438(a) banner wc-l re-executed at Commit E: `wc -l STATE.md` → 340 ✓; bann
 
 **Factory-artifacts commits:**
 (Commit A: 11457a46 — adv-cycle-pass-61.md + burst-log h2 per D-438(d)+D-439(a)), (Commit B: 5aacfb36 — D-441+L-EDP1-053 codify; F-P61-002 INDEX.md row reformat), (Commit C: 8eda4697 — S-15.03 cumulative-scope to D-441; sample-vs-exhaustive flag; D-441(a/b/c/d/e) sub-items; F-P61-003 closed), (Commit D: e2218649 — 4-index bumps D-389..D-441 BC v2.04/VP v1.80/STORY v3.05/ARCH v1.85; INDEX.md Convergence Status advanced), (Commit E: 92f28527 — state-manager final; banner wc-l 417; parent-commit e2218649 per D-419(b)+D-420(d)+D-421(a))
+
+## Burst: F5 pass-62 fix burst (2026-05-12)
+
+(Retroactive h2 heading per D-443(e)(ii) — pass-62 Commit A violated D-438(d)+D-439(a) own-burst real-time discipline; burst-log h2 heading was absent at pass-62 Commit A. Restored at pass-63 Commit A with explicit D-414(c) corrigendum acknowledgment per D-443(e)(ii) self-application.)
+
+**Parent-commit (pass-62 fix burst Commit D):** ab522ebb per D-419(b)
+
+**Adversary verdict:** HIGH (4H+3M+2L=9+1PG+2obs); META-LEVEL-17 CANDIDATE CONFIRMED; rule-application-cross-channel ply (53rd-layer 23rd-consecutive multi-axis); L-EDP1-054 codified.
+
+**Files touched (Dim-1):** adv-cycle-pass-62.md (Commit A); decision-log.md + lessons.md (Commit B — D-442+L-EDP1-054); S-15.03-index-cite-refresh-hook.md + STATE.md + INDEX.md (Commit C — retroactive sweep); BC-INDEX.md + VP-INDEX.md + STORY-INDEX.md + ARCH-INDEX.md (Commit D — 4-index bumps); STATE.md + burst-log.md (Commit E — state-manager final)
+
+**Codifications:** D-442 (5 sub-clauses): (a) verbatim-strict extension clause-sequence+suffix+completeness; (b) scope split decision-log 6-col vs INDEX.md 5-col; (c) retroactive-sweep extension D-441(c)+D-441(d) backfill audit; (d) attestation discipline 4-sub-issue consolidated; (e) lessons.md size budget NEW systemic class. L-EDP1-054 (53rd-layer L-EDP1-003 23rd-consecutive multi-axis META-LEVEL-17 CONFIRMED).
+
+**Factory-artifacts commits:** (Commit A: — adv-cycle-pass-62.md; burst-log h2 ABSENT — F-P63-007 opened), (Commit B: — D-442+L-EDP1-054 codify), (Commit C: — retroactive sweep D-441(c) sites; sample-vs-exhaustive flags), (Commit D: ab522ebb — 4-index bumps D-389..D-442 BC v2.04/VP v1.80/STORY v3.05/ARCH v1.85; pass-62 Commit D parent per D-419(b)+D-420(d)+D-421(a)), (Commit E: d7a7e4df — state-manager final; SHA-patch 98c94760)
+
+## Burst: F5 pass-63 fix burst (2026-05-12)
+
+(Pass-63 fix burst codifies D-443(a/b/c/d/e) closing F-P63-001..F-P63-009 + PG-P63-001; L-EDP1-055 54th-layer META-LEVEL-18 CONFIRMED 24th-consecutive multi-axis rule-verification-grep co-evolution gap ply.)
