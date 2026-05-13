@@ -4109,7 +4109,7 @@ D-446(a) own-burst-log 8-block gate INVOKED at this Commit E. All 8 D-444(c) man
 **Dim-7 Attestation (D-418(c)+D-432(a)+D-435(d) deterministic-tally form):**
 - Trajectory tail (last 4 of 67 values per D-433(e)+D-439(c)): →9→9→9→8 (axis-count dropped from 9 to 8 at pass-67; first drop in 9 passes; possible floor re-establishment at 8 OR one-pass noise within [7,9] band per D-447(e)(iv))
 - Streak: 0/3 NITPICK_ONLY (asymptotic per D-386 Option C)
-- D-418(c) deterministic-tally (68 reviews dispatched; 67 complete returns; 65 fix bursts passes 3-67; per D-435(d) dispatched = completed returns + 1 if in-progress)
+- D-418(c) deterministic-tally (67 reviews dispatched; 66 complete returns; 64 fix bursts passes 3-67; per D-435(d) dispatched = completed returns + 1 if in-progress (67 = 66 + 1 pass-67 in-progress; Commit-E-author-time value per D-449(b)); retroactively corrected at pass-70 Commit A per D-450(b) sibling-sweep)
 
 **Closes:** F-P67-001, F-P67-002, F-P67-003, F-P67-004, F-P67-005, F-P67-006, F-P67-007, F-P67-008, PG-P67-001, PG-P67-002 (per D-413(b) completeness mandate)
 
@@ -4125,7 +4125,7 @@ D-446(a) own-burst-log 8-block gate INVOKED at this Commit E. All 8 D-444(c) man
 
 **Adversary verdict:** HIGH (1C+4H+3M+1L=9 + 3 PG + 3 obs); META-LEVEL-23 CANDIDATE CONFIRMED — rule-codification-without-self-application-in-codifying-burst-OWN-newly-created-meta-artifact; 59th-layer 29th-consecutive multi-axis. Findings: F-P68-CRIT-001 (burst-log Adversary verdict fabricated/divergent), F-P68-HIGH-001 (L-EDP1-059 missing Closes block — META-23), F-P68-HIGH-002 (L-EDP1-059:3266 prediction stale "L15..L21"), F-P68-HIGH-003 (burst-log Dim-1 cardinality 7 vs 10), F-P68-HIGH-004 (STATE.md:228 umbrella stale D-446 vs D-447), F-P68-MED-001 (banner pass-68 dispatch advance), F-P68-MED-002 (burst-log 1obs narrative fabricated), F-P68-MED-003 (STORY-INDEX changelog frontmatter schema migration), F-P68-LOW-001 (trajectory cardinality narrative borderline), PG-P68-001 (lessons.md Closes block discipline), PG-P68-002 (burst-log Adversary verdict source-attestation gate), PG-P68-003 (STORY-INDEX schema migration). Observations: O-P68-001 (META-LEVEL-23 ply confirmed), O-P68-002 (axis-count returns to 9 — pass-67 8-drop was one-pass noise), O-P68-003 (Streak 0/3 unchanged).
 
-**Files touched (Dim-1): 10 unique files** — adv-cycle-pass-68.md (new), burst-log.md, STATE.md, INDEX.md, decision-log.md, lessons.md, S-15.03-index-cite-refresh-hook.md, BC-INDEX.md, VP-INDEX.md, STORY-INDEX.md, ARCH-INDEX.md
+**Files touched (Dim-1): 11 unique files** — adv-cycle-pass-68.md (new), burst-log.md, STATE.md, INDEX.md, decision-log.md, lessons.md, S-15.03-index-cite-refresh-hook.md, BC-INDEX.md, VP-INDEX.md, STORY-INDEX.md, ARCH-INDEX.md (retroactively corrected at pass-70 Commit A per D-450(c) Dim-1 arithmetic gate; actual count 11 vs headline 10)
 
 **Codifications:** D-448(a/b/c/d/e) single-row + L-EDP1-060 WITH Closes block per D-448(b) self-application
 
@@ -4159,7 +4159,7 @@ D-446(a) own-burst-log 8-block gate INVOKED at this Commit E. All 8 D-444(c) man
 
 **Adversary verdict:** HIGH (1C+4H+3M+1L=9 + 3 PG + 3 obs); META-LEVEL-24 CANDIDATE CONFIRMED — rule-codification-via-pseudocode-narrative-without-literal-shell-execution-evidence; 60th-layer 30th-consecutive multi-axis. Findings: F-P69-CRIT-001 (burst-log Dim-2 Attestation uses pseudocode "extract ..." forms instead of literal shell commands with captured output — D-449(a) codified); F-P69-HIGH-001 (4-index changelog Refs include O-P68-001/002/003 observations — trimmed per D-449(d)(i)); F-P69-HIGH-002 (pass-68 burst-log Dim-7 tally anachronistic "69 dispatched" — corrected per D-449(b)); F-P69-HIGH-003 (META-LEVEL ply citations lack L-EDP1-NNN anchors and status tiers — D-449(c)); F-P69-HIGH-004 (Active Branches SHA-advance scope ambiguous — D-449(e)); F-P69-MED-001 (4-index Refs scope includes observations per D-449(d)); F-P69-MED-002 (STORY-INDEX frontmatter last_amended missing v3.12 entry for Refs scope); F-P69-MED-003 (Active Branches parent-commit vs Commit E SHA coexistence unclear); F-P69-LOW-001 (D-448(a) pseudocode self-application noted — not blocking); PG-P69-001 (D-449(a) literal-shell-execution gate discipline); PG-P69-002 (4-index Refs scope policy); PG-P69-003 (Active Branches SHA discipline extension). Observations: O-P69-001 (META-LEVEL-24 ply confirmed); O-P69-002 (axis count sustained at 9 — pass-67 noise reaffirmed; streak 0/3 unchanged); O-P69-003 (30th consecutive multi-axis recurrence milestone).
 
-**Files touched (Dim-1): 9 unique files** — adv-cycle-pass-69.md (new), burst-log.md, STATE.md, INDEX.md, decision-log.md, lessons.md, S-15.03-index-cite-refresh-hook.md, BC-INDEX.md, VP-INDEX.md, STORY-INDEX.md, ARCH-INDEX.md
+**Files touched (Dim-1): 11 unique files** — adv-cycle-pass-69.md (new), burst-log.md, STATE.md, INDEX.md, decision-log.md, lessons.md, S-15.03-index-cite-refresh-hook.md, BC-INDEX.md, VP-INDEX.md, STORY-INDEX.md, ARCH-INDEX.md (retroactively corrected at pass-70 Commit A per D-450(c) Dim-1 arithmetic gate; actual count 11 vs headline 9)
 
 **Codifications:** D-449(a/b/c/d/e) — literal-shell-execution-evidence + Dim-7-tally-timing + ply-cite-anchoring+status-tier + 4-index-Refs-scope + Active-Branches-scope-clarification; L-EDP1-061 WITH Closes block per D-448(b)+D-449(a) self-application
 
@@ -4205,8 +4205,14 @@ D-449(a) self-application: ALL attestations below use actual Bash commands with 
 - Trajectory tail (last 4 of 69 values per D-433(e)+D-439(c)): →9→8→9→9 (axis sustained at 9 at pass-69; pass-67 8-drop confirmed ONE-PASS NOISE per D-447(e)(iv); [7,9] asymptotic band reaffirmed; no new narrative required per D-447(e) — no new drop)
 - META-LEVEL ply L24 CANDIDATE CONFIRMED (L-EDP1-061 anchor): rule-codification-via-pseudocode-narrative-without-literal-shell-execution-evidence
 - Streak: 0/3 NITPICK_ONLY (asymptotic per D-386 Option C)
-- D-418(c) deterministic-tally: 70 reviews dispatched; 69 complete returns; 67 fix bursts passes 3-69; per D-435(d) dispatched = completed returns + 1 if in-progress (70 = 69 + 1 pass-70 in-progress; Commit-E-author-time value per D-449(b))
+- D-418(c) deterministic-tally: 69 reviews dispatched; 68 complete returns; 66 fix bursts passes 3-69; per D-435(d) dispatched = completed returns + 1 if in-progress (69 = 68 + 1 pass-69 in-progress; Commit-E-author-time value per D-449(b)); retroactively corrected at pass-70 Commit A per D-450(a) CRIT-001 closure — original anachronistically cited 70 dispatched anticipating pass-70
 
 **Closes (per D-413(b)+D-448(b)+D-449(a) discipline):** F-P69-CRIT-001 + F-P69-HIGH-001 + F-P69-HIGH-002 + F-P69-HIGH-003 + F-P69-HIGH-004 + F-P69-MED-001 + F-P69-MED-002 + F-P69-MED-003 + F-P69-LOW-001 + PG-P69-001 + PG-P69-002 + PG-P69-003 (12 closures)
 
 **Factory-artifacts commits:** A `e008458d` / B `e547152f` / C `231a4e78` / D `7f6ad460` / E `b57b6270` (SHA-patch follow-up: Active Branches + Session Resume + burst-log Factory-artifacts updated to Commit E HEAD per D-447(c)+D-449(e))
+
+---
+
+## Burst: F5 pass-70 fix burst (2026-05-13)
+
+(Pass-70 fix burst codifies D-450(a/b/c/d/e) closing ADV-EDP1-P70-CRIT-001 + ADV-EDP1-P70-HIGH-001..004 + ADV-EDP1-P70-MED-001..003 + ADV-EDP1-P70-LOW-001 + PG-P70-001..003; L-EDP1-062 61st-layer META-LEVEL-25 CANDIDATE CONFIRMED 31st-consecutive multi-axis rule-codification-with-literal-shell-execution-on-PRIMARY-rule-without-co-application-of-same-mechanical-rigor-to-SIBLING-rules-codified-in-same-burst ply; D-450 forthcoming at Commit B; codifying burst IN-PROGRESS at Commit A.)
