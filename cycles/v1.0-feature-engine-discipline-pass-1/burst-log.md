@@ -4209,4 +4209,4 @@ D-449(a) self-application: ALL attestations below use actual Bash commands with 
 
 **Closes (per D-413(b)+D-448(b)+D-449(a) discipline):** F-P69-CRIT-001 + F-P69-HIGH-001 + F-P69-HIGH-002 + F-P69-HIGH-003 + F-P69-HIGH-004 + F-P69-MED-001 + F-P69-MED-002 + F-P69-MED-003 + F-P69-LOW-001 + PG-P69-001 + PG-P69-002 + PG-P69-003 (12 closures)
 
-**Factory-artifacts commits:** A `e008458d` / B `e547152f` / C `231a4e78` / D `7f6ad460` / E `<Commit-E-SHA-pending>` (SHA-patch follow-up: Active Branches + Session Resume + burst-log Factory-artifacts updated to Commit E HEAD per D-447(c)+D-449(e))
+**Factory-artifacts commits:** A `e008458d` / B `e547152f` / C `231a4e78` / D `7f6ad460` / E `b57b6270` (SHA-patch follow-up: Active Branches + Session Resume + burst-log Factory-artifacts updated to Commit E HEAD per D-447(c)+D-449(e))

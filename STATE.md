@@ -209,7 +209,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | feb894a2 | rc.16 merge; latest release |
 | develop | 99d24315 | S-12.08 squash-merge (PR #123); F4 COMPLETE |
-| factory-artifacts | 231a4e78 | pass-69 Commit C HEAD; D-449(e) Active-Branches-scope; pass-69 Commit D SHA pending SHA-patch follow-up per D-447(c)+D-449(e) |
+| factory-artifacts | b57b6270 | pass-69 Commit E HEAD; D-447(c)+D-449(e) SHA-canonicality applied at SHA-patch follow-up; pass-69 Commit D `7f6ad460` cited for downstream-dispatch parent-commit convention per D-419(b)+D-420(d)+D-421(a) |
 | feature/F5-pass-3-cycle-hardening | 2e6b4372 | PR #124 OPEN (DRAFT); CI run 25651192161 GREEN (11/11 checks) |
 | v1.0.0-rc.16 (tag) | feb894a2 | SHIPPED; claude-mp PR #8 awaiting human merge |
 | v1.0.0-rc.15 (tag) | e68bb436 | SHIPPED |
@@ -317,7 +317,7 @@ dtu_services: []
 
 - Cycle: v1.0-feature-engine-discipline-pass-1 F5 phase
 - Pass-69 fix burst COMPLETE at Commit E (parent-commit `7f6ad460` per D-419(b)+D-420(d)+D-421(a); pushed to origin/factory-artifacts)
-- Pass-69 fix burst commit chain: A `e008458d` / B `e547152f` / C `231a4e78` / D `7f6ad460` / E `<Commit-E-SHA-post-push>` (SHA-patch follow-up pending per D-447(c)+D-449(e))
+- Pass-69 fix burst commit chain: A `e008458d` / B `e547152f` / C `231a4e78` / D `7f6ad460` / E `b57b6270`
 - 35 passes driven this session (pass-37 through pass-69; 70 reviews dispatched total since cycle start)
 - 60-LAYER COUNT reached at L-EDP1-061 (30th consecutive multi-axis recurrence; META-LEVEL-24 CANDIDATE CONFIRMED; rule-codification-via-pseudocode-narrative-without-literal-shell-execution-evidence ply)
 - D-449(a) SELF-APPLICATION: Dim-2 attestation at pass-69 Commit E used LITERAL shell commands (`grep -oE`, `diff`) with captured stdout — no pseudocode
