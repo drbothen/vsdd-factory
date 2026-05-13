@@ -1,0 +1,25 @@
+## AC-007: Resolver wins on static key collision; resolver.merge_collision emitted
+
+Traces to: BC-4.12.005 postcondition 5
+Tests: test_BC_4_12_005_ac007_resolver_wins_on_static_key_collision
+       test_BC_4_12_005_ac007_resolver_wins_with_whole_value_replacement_no_deep_merge
+
+Command:
+  cargo test -p factory-dispatcher --test resolver_registry_test -- test_BC_4_12_005_ac007 --nocapture
+
+Output:
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.27s
+     Running tests/resolver_registry_test.rs (target/debug/deps/resolver_registry_test-3494f675c90c589c)
+
+running 2 tests
+test test_BC_4_12_005_ac007_resolver_wins_on_static_key_collision ... ok
+test test_BC_4_12_005_ac007_resolver_wins_with_whole_value_replacement_no_deep_merge ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 20 filtered out; finished in 0.00s
+
+RESULT: PASS
+Assertions verified:
+  (a) static_config = {"foo": "old"}; resolver returns key: "foo", value: Some("new")
+  (b) merged config["foo"] == "new" (resolver wins)
+  (c) resolver.merge_collision event emitted with key "foo", static_value "old", resolver_value "new"
+  (d) whole-value replacement (no deep merge)

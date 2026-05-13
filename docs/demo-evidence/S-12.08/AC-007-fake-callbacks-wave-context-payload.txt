@@ -1,0 +1,35 @@
+AC-007: FakeCallbacks uses synthetic wave_context payload in all unit tests
+==========================================================================
+Traces to: BC-4.12.005 postcondition 5
+
+EVIDENCE — cargo test:
+-----------------------
+$ cargo test -p validate-per-story-adversary-convergence test_fake_callbacks_inject_wave_context_payload
+
+test tests::test_fake_callbacks_inject_wave_context_payload ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 51 filtered out; finished in 0.00s
+
+FULL UNIT TEST SUITE (52 tests, all GREEN):
+--------------------------------------------
+$ cargo test -p validate-per-story-adversary-convergence
+
+running 52 tests
+... [all 52 tests PASS — see AC-001 through AC-010 evidence files]
+test result: ok. 52 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+FAKE CALLBACKS CONTRACT:
+-------------------------
+FakeCallbacks in test module constructs wave_context payload directly:
+  plugin_config = {
+    "wave_context": {
+      "stories": ["S-FAKE-001"],
+      "wave_id": "w1",
+      "cycle_id": "test-cycle"
+    }
+  }
+
+No real filesystem reads in unit tests. Pure synthetic injection.
+All existing unit tests updated to use wave_context payload (not legacy static stories key).
+
+VERDICT: GREEN — FakeCallbacks confirmed to inject wave_context payload in all unit tests.

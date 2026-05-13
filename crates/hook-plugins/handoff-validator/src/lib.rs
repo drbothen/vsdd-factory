@@ -1,3 +1,5 @@
+// Allow: pre-existing code. Not covered by S-12.07 scope.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! handoff-validator — SubagentStop WASM hook plugin.
 //!
 //! Ports `plugins/vsdd-factory/hooks/handoff-validator.sh` to native WASM

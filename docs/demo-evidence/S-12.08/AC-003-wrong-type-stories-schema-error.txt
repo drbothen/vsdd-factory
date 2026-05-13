@@ -1,0 +1,28 @@
+AC-003: Wrong-type wave_context.stories → Block(WAVE_CONTEXT_SCHEMA_ERROR)
+===========================================================================
+Traces to: BC-4.10.001 postcondition 2
+Tests: test_wrong_type_stories_returns_schema_error, test_non_object_wave_context_returns_schema_error,
+       test_hook_logic_blocks_when_stories_wrong_type, test_BC_4_10_001_wave_context_empty_stories_array_returns_empty
+
+EVIDENCE — cargo test output (4 tests, all GREEN):
+----------------------------------------------------
+$ cargo test -p validate-per-story-adversary-convergence 2>&1 | grep "test tests::test.*wrong_type\|test.*non_object\|test.*stories_wrong\|test.*empty_stories"
+
+test tests::test_BC_4_10_001_wave_context_empty_stories_array_returns_empty ... ok
+test tests::test_hook_logic_blocks_when_stories_wrong_type ... ok
+test tests::test_non_object_wave_context_returns_schema_error ... ok
+test tests::test_wrong_type_stories_returns_schema_error ... ok
+
+BLOCK CODE CONTRACT:
+---------------------
+Block code: "WAVE_CONTEXT_SCHEMA_ERROR" (BLOCK_CODE_WAVE_CONTEXT_SCHEMA_ERROR constant)
+Triggered when:
+  - plugin_config["wave_context"] is not a JSON object (e.g. is a string, number, bool)
+  - plugin_config["wave_context"]["stories"] is present but not a JSON array
+
+NULL BOUNDARY:
+---------------
+JSON null for wave_context.stories → treated as WAVE_CONTEXT_MISSING (not SchemaError).
+This is the correct boundary: null is semantically "absent" not "wrong type".
+
+VERDICT: GREEN — 4 tests confirm wrong-type wave_context.stories → Block(WAVE_CONTEXT_SCHEMA_ERROR).

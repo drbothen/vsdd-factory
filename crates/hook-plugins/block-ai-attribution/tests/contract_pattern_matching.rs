@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! Tests verifying that every canonical AI attribution pattern triggers Block.
 //!
 //! BC-4.05.001 (v1.1 candidate): detect_attribution returns the matched pattern

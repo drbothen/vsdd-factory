@@ -1,0 +1,59 @@
+AC-005: DEFERRED — capability confinement path_allow enforcement (VP-076-A/B/C)
+================================================================================
+Story: S-12.07 — vsdd-context-resolvers Crate + WaveContextResolver (v1.4)
+BC ref: BC-4.12.003 / VP-076
+
+STATUS: DEFERRED TO S-12.08
+
+DEFERRAL REASON
+---------------
+AC-005 (VP-076-A, VP-076-B, VP-076-C) requires:
+  1. The built WASM artifact loaded into the factory-dispatcher runtime (wasmtime)
+  2. The ResolverLoader integration test harness — which lives in factory-dispatcher,
+     NOT in this crate
+
+BC-1.13.001 INV1: factory-dispatcher has ZERO compile-time dependency on
+vsdd-context-resolvers. The WASM artifact is loaded dynamically at runtime.
+This architectural invariant means these tests cannot be authored as Rust
+integration tests within the vsdd-context-resolvers crate.
+
+VP-076 §Proof Harness Locations (pass-2 amendment, 2026-05-10) explicitly
+moves AC-005/AC-006 capability confinement tests to the S-12.08 bats harness.
+
+STUB LOCATION
+-------------
+File: crates/vsdd-context-resolvers/tests/capability_confinement_test.rs
+
+The following tests exist as #[ignore] + unimplemented!() stubs:
+
+  test_BC_4_12_003_capability_denied_for_etc_passwd  (VP-076-A/B)
+    — Will assert CapabilityDenied for /etc/passwd read attempt
+    — Will assert no /etc/passwd bytes appear in plugin_config
+
+  test_BC_4_12_003_capability_denied_emits_audit_event  (VP-076-C)
+    — Will assert resolver.capability_denied audit event emitted
+    — Will assert fields: resolver="wave_context", denied_path="/etc/passwd"
+
+These stubs compile cleanly, appear in `cargo test --no-run`, and are listed
+as 3 ignored tests in `cargo test` output. They will not pass until un-ignored
+and implemented in S-12.08.
+
+CARGO TEST OUTPUT (showing ignored stubs)
+-----------------------------------------
+     Running tests/capability_confinement_test.rs (...)
+
+running 3 tests
+test test_BC_4_12_003_can_read_within_path_allow ... ignored, Requires built WASM artifact + factory-dispatcher integration harness [...]
+test test_BC_4_12_003_capability_denied_emits_audit_event ... ignored, Requires built WASM artifact + factory-dispatcher integration harness [...]
+test test_BC_4_12_003_capability_denied_for_etc_passwd ... ignored, Requires built WASM artifact + factory-dispatcher integration harness [...]
+
+test result: ok. 0 passed; 0 failed; 3 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+S-12.08 ACTION
+--------------
+Author bats integration tests that:
+  1. Build the WASM: cargo build -p vsdd-context-resolvers --target wasm32-wasip1 --release
+  2. Run via factory-dispatcher ResolverLoader with path_allow = [".factory/"]
+  3. Assert CapabilityDenied for reads outside prefix
+  4. Assert audit event resolver.capability_denied emitted
+  5. Corresponds to VP-076-A, VP-076-B, VP-076-C

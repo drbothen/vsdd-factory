@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! AC-1: DatadogSink implements the Sink trait; struct is pub-exported.
 //!
 //! BC-3.01.001 postcondition 1: Sink trait interface shared across all sink types.

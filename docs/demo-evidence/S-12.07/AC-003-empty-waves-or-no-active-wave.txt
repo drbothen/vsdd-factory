@@ -1,0 +1,59 @@
+AC-003: empty waves / no active wave → value: None; active wave with empty stories → Some({stories:[],...})
+=========================================================================================================
+Story: S-12.07 — vsdd-context-resolvers Crate + WaveContextResolver (v1.5)
+BC ref: BC-4.12.002
+Amendment: DEFER-P02-001 (S-12.08 pass-2 cross-story cleanup)
+
+ACCEPTANCE CRITERION
+--------------------
+When wave-state.yaml has no active wave (absent file, empty waves list, or all waves
+in terminal states), the resolver returns value: None.
+
+When an active wave IS found but its stories list is empty, the resolver returns
+value: Some({stories: [], wave_id, cycle_id}) — NOT None. This preserves the
+BC-4.10.001 EC-001 vacuous-convergence Continue path in the consumer hook
+(fixed in S-12.08 pass-1 HIGH-002).
+
+SEMANTIC CHANGE (DEFER-P02-001)
+---------------------------------
+Original AC-003 stated: "empty waves list → value: None"
+Corrected AC-003 states: "active wave with zero stories → Some({stories:[],...})"
+                          "no active wave at all → value: None"
+
+The distinction matters: the hook needs Some({stories:[]}) to reach EC-001
+Continue; returning None would cause WAVE_CONTEXT_MISSING Block instead.
+
+TEST EVIDENCE
+-------------
+Command (active wave with empty stories — emits Some):
+  cargo test -p vsdd-context-resolvers test_resolve_pure_with_empty_stories_emits_some_with_empty_array
+Captured: 2026-05-10 (renamed from test_BC_4_12_002_empty_stories_yields_none in pass-1 implementation)
+
+     Running tests/wave_context_test.rs (...)
+
+running 1 test
+test test_resolve_pure_with_empty_stories_emits_some_with_empty_array ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 25 filtered out; finished in 0.00s
+
+---
+
+Command (all completed waves — no active wave → emits None):
+  cargo test -p vsdd-context-resolvers test_BC_4_12_002_all_completed_waves_yields_none
+Captured: 2026-05-10
+
+     Running tests/wave_context_test.rs (...)
+
+running 1 test
+test test_BC_4_12_002_all_completed_waves_yields_none ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 25 filtered out; finished in 0.00s
+
+STATUS: GREEN (both cases confirmed; semantic clarified per DEFER-P02-001)
+
+TESTS COVERED
+-------------
+  test_resolve_pure_with_empty_stories_emits_some_with_empty_array
+    — active wave, stories: [] → Some({stories: [], wave_id, cycle_id})
+  test_BC_4_12_002_all_completed_waves_yields_none
+    — all waves have gate_status: "completed" → no active wave → value: None

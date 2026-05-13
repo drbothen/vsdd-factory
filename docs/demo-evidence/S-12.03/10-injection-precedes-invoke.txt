@@ -1,0 +1,20 @@
+## AC-010: Context injection precedes invoke_plugin
+
+Traces to: BC-1.13.001 postcondition 5 + invariant 5
+Test: test_BC_1_13_001_ac010_resolved_context_is_fully_populated_before_return
+
+Command:
+  cargo test -p factory-dispatcher --test resolver_registry_test -- test_BC_1_13_001_ac010 --nocapture
+
+Output:
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.29s
+     Running tests/resolver_registry_test.rs (target/debug/deps/resolver_registry_test-3494f675c90c589c)
+
+running 1 test
+test test_BC_1_13_001_ac010_resolved_context_is_fully_populated_before_return ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 21 filtered out; finished in 0.00s
+
+RESULT: PASS
+Assertions verified: resolver key is already present in plugin_config at the moment
+invoke_plugin is called — no partial injection. Full merged payload delivered before dispatch.

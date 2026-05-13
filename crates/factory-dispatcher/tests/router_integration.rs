@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! Integration test: per-sink routing filters — two FileSinks with
 //! different event-type filters. (S-4.06 AC#7, BC-3.04.004)
 //!

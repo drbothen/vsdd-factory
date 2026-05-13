@@ -1,4 +1,7 @@
 //! Datadog Logs Intake sink driver (S-4.02).
+// Allow: tokio runtime builder uses .expect() on an infallible build (the runtime
+// configuration is constant and cannot fail). Pre-existing code.
+#![allow(clippy::expect_used)]
 //!
 //! [`DatadogSink`] implements [`Sink`] (from sink-core) by wrapping
 //! [`HttpSink`] for transport and adding Datadog-specific configuration:

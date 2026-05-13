@@ -1,0 +1,44 @@
+AC-001: wave_context output shape
+==================================
+Story: S-12.07 — vsdd-context-resolvers Crate + WaveContextResolver (v1.4)
+BC ref: BC-4.12.002
+
+ACCEPTANCE CRITERION
+--------------------
+ResolverOutput for wave_context has the correct JSON structure:
+  { "key": "wave_context", "value": { "wave_id": ..., "cycle_id": ..., "stories": [...] } }
+
+TEST EVIDENCE
+-------------
+Command: cargo test -p vsdd-context-resolvers test_BC_4_12_002_wave_context_output_shape
+Captured: 2026-05-10
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.13s
+     Running unittests src/lib.rs (target/debug/deps/vsdd_context_resolvers-3b9ec7d63470538c)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/capability_confinement_test.rs (target/debug/deps/capability_confinement_test-01a2af4d8d708dc5)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 3 filtered out; finished in 0.00s
+
+     Running tests/wave_context_test.rs (target/debug/deps/wave_context_test-c007ee67e5c3f774)
+
+running 1 test
+test test_BC_4_12_002_wave_context_output_shape ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 25 filtered out; finished in 0.00s
+
+STATUS: GREEN
+
+EXPECTED OUTPUT SHAPE VERIFIED
+-------------------------------
+The test asserts ResolverOutput produces:
+  key:   "wave_context"
+  value: Some(JSON object with keys: wave_id, cycle_id, stories)
+
+where each story entry has: story_id, title, status, gate_status

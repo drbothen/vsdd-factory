@@ -1,6 +1,6 @@
 [package]
 name = "vsdd-hook-sdk"
-version = "0.2.0"
+version = "0.3.0"
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
@@ -17,13 +17,23 @@ publish = true
 [lib]
 path = "src/lib.rs"
 
+[features]
+## Opt-in feature for resolver plugin authoring.
+## Gates ResolverInput, ResolverOutput, and RESOLVER_ABI_VERSION.
+## ResolverError is host-side only (factory-dispatcher); it is NOT exported from hook-sdk.
+## Hook crates that are NOT resolvers MUST NOT enable this feature. (BC-4.12.002 PC8)
+resolver-authoring = []
+
 [dependencies]
 serde.workspace = true
 serde_json.workspace = true
-vsdd-hook-sdk-macros = { path = "../hook-sdk-macros", version = "0.1.0" }
+vsdd-hook-sdk-macros = { path = "../hook-sdk-macros", version = "0.2.0" }
 
 [dev-dependencies]
 serde_json.workspace = true
+proptest = { version = "1.6", default-features = false, features = ["std"] }
+trybuild.workspace = true
+wasmparser = "0.248"
 
 [[example]]
 name = "hello-hook"

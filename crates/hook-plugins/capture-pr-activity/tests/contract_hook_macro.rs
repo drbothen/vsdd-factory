@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! AC: "`capture-pr-activity.wasm` compiled and registered"
 //! AC: "Handles non-PR bash commands gracefully (no-op)"
 //!

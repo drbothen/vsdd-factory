@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! AC-13: DatadogSink mock HTTP integration.
 //!
 //! Traces to:

@@ -1,0 +1,24 @@
+AC-006: Static plugin_config preserved alongside wave_context injection
+=======================================================================
+Traces to: BC-1.13.001 postcondition 3 + BC-4.12.005 postcondition 1
+
+EVIDENCE — cargo test:
+-----------------------
+$ cargo test -p validate-per-story-adversary-convergence test_static_config_preserved_after_wave_context_injection
+
+test tests::test_static_config_preserved_after_wave_context_injection ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 51 filtered out; finished in 0.00s
+
+ADDITIVE MERGE CONTRACT (BC-4.12.005):
+----------------------------------------
+The WaveContextResolver output is ADDITIVE: it overlays wave_context into the
+merged plugin_config without replacing existing static fields.
+
+Test scenario:
+  - Static plugin_config = {"existing_key": "value"}
+  - WaveContextResolver injects wave_context = {"stories": ["S-12.03"], ...}
+  - Final merged config = {"existing_key": "value", "wave_context": {...}}
+  - Assertion: both "existing_key" and "wave_context" present in received config
+
+VERDICT: GREEN — static plugin_config fields preserved after wave_context injection.

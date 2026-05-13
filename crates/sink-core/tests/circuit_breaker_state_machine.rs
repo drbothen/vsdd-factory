@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! Tests for CircuitBreaker state machine (S-4.04).
 //!
 //! AC: "Circuit breaker: opens after N consecutive failures; half-open after cool-off period"

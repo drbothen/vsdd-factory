@@ -1,0 +1,45 @@
+AC-004: optional fields no-panic + missing required wave field rejected
+=======================================================================
+Story: S-12.07 — vsdd-context-resolvers Crate + WaveContextResolver (v1.4)
+BC ref: BC-4.12.002
+
+ACCEPTANCE CRITERION
+--------------------
+1. Optional WaveEntry fields (e.g., missing wave_id) do not cause a panic.
+2. A wave entry missing a required field (e.g., no wave_id key at all) is
+   rejected by the YAML parser — parse returns Err, not a silent default.
+
+TEST EVIDENCE
+-------------
+Command (optional fields no panic):
+  cargo test -p vsdd-context-resolvers test_BC_4_12_002_missing_wave_id_no_panic
+Captured: 2026-05-10
+
+     Running tests/wave_context_test.rs (...)
+
+running 1 test
+test test_BC_4_12_002_missing_wave_id_no_panic ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 25 filtered out; finished in 0.00s
+
+---
+
+Command (missing required field rejected):
+  cargo test -p vsdd-context-resolvers test_parse_wave_state_rejects_missing_required_wave_field
+Captured: 2026-05-10
+
+     Running tests/wave_context_test.rs (...)
+
+running 1 test
+test test_parse_wave_state_rejects_missing_required_wave_field ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 25 filtered out; finished in 0.00s
+
+STATUS: GREEN (both cases confirmed)
+
+TESTS COVERED
+-------------
+  test_BC_4_12_002_missing_wave_id_no_panic
+    — WaveEntry with wave_id = None parsed without panic; resolver handles gracefully
+  test_parse_wave_state_rejects_missing_required_wave_field
+    — YAML with mandatory field absent → serde_yaml parse returns Err (not silent default)

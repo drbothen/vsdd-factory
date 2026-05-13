@@ -1,0 +1,22 @@
+## AC-004: None ResolverOutput leaves key absent in plugin_config
+
+Traces to: BC-4.12.005 postcondition 2
+Tests: test_BC_4_12_005_ac004_merge_none_value_leaves_key_absent_in_plugin_config
+       test_BC_4_12_005_ac004_none_value_leaves_key_absent_from_resolved_map
+
+Command:
+  cargo test -p factory-dispatcher --test resolver_registry_test -- test_BC_4_12_005_ac004 --nocapture
+
+Output:
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.25s
+     Running tests/resolver_registry_test.rs (target/debug/deps/resolver_registry_test-3494f675c90c589c)
+
+running 2 tests
+test test_BC_4_12_005_ac004_merge_none_value_leaves_key_absent_in_plugin_config ... ok
+test test_BC_4_12_005_ac004_none_value_leaves_key_absent_from_resolved_map ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 20 filtered out; finished in 0.00s
+
+RESULT: PASS
+Assertion verified: resolver returning value: None; plugin_config.get("foo").is_none() == true.
+Key is absent (not {"foo": null}).

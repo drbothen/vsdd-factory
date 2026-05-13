@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! Tests for RetryPolicy success path and circuit breaker reset on success (S-4.04).
 //!
 //! AC: "successful op resets internal counter"

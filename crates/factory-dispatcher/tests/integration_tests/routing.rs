@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! AC-3: Multi-sink routing filter — allow-list routing with 3 events / 2 sinks.
 //!
 //! Traces to:

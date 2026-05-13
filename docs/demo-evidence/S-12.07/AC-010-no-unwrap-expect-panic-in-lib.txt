@@ -1,0 +1,45 @@
+AC-010: No unwrap/expect/panic in production lib source
+=========================================================
+Story: S-12.07 — vsdd-context-resolvers Crate + WaveContextResolver (v1.4)
+BC ref: BC-4.12.004 INV1
+
+ACCEPTANCE CRITERION
+--------------------
+Zero uses of .unwrap(), .expect(...), or panic!() in the crate's production
+source files (src/lib.rs, src/wave_context.rs). All error paths return
+ResolverOutput { key: "wave_context", value: None } — no traps.
+
+TEST EVIDENCE — CLIPPY
+-----------------------
+Command: cargo clippy -p vsdd-context-resolvers --all-targets -- -D warnings -D clippy::unwrap_used -D clippy::expect_used -D clippy::panic
+Captured: 2026-05-10
+
+   Compiling vsdd-hook-sdk-macros v0.2.0 (...)
+    Checking vsdd-hook-sdk v0.3.0 (...)
+    Checking vsdd-context-resolvers v0.0.1 (...)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.54s
+
+Exit code: 0 (clean — no warnings, no unwrap_used, no expect_used, no panic violations)
+
+TEST EVIDENCE — GREP
+---------------------
+Command: grep -rn ".unwrap()\|.expect(\|panic!" crates/vsdd-context-resolvers/src/
+Captured: 2026-05-10
+
+(no output — zero matches)
+
+TEST EVIDENCE — CARGO TEST
+---------------------------
+Command: cargo test -p vsdd-context-resolvers test_BC_4_12_004_no_unwrap_or_expect_in_lib
+Result:  test_BC_4_12_004_no_unwrap_or_expect_in_lib ... ok
+
+STATUS: GREEN (clippy clean + grep zero matches + test pass)
+
+INVARIANT CONFIRMED
+-------------------
+BC-4.12.004 INV1 satisfied:
+  - clippy::unwrap_used as -D error: 0 violations
+  - clippy::expect_used as -D error: 0 violations
+  - clippy::panic as -D error: 0 violations
+  - grep pattern: 0 matches in src/lib.rs + src/wave_context.rs
+  - Crate passes cargo clippy with -D warnings (all warnings as errors)

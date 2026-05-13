@@ -1,0 +1,48 @@
+EC-001: Empty active wave → Continue (vacuous convergence)
+==========================================================
+Traces to: BC-4.12.004 + AC-002 + S-12.08 edge case EC-004
+Fix origin: P02-MED-003 (added during adversarial pass 3)
+
+BATS TEST COMMAND:
+-------------------
+$ bats plugins/vsdd-factory/tests/resolver-integration.bats
+
+BATS OUTPUT (3/3 PASS):
+------------------------
+1..3
+ok 1 F-P2-001 closure: unconverged story → dispatcher exits 2 (Block)
+ok 2 F-P2-001 closure: all converged → dispatcher exits 0 (Continue)
+ok 3 F-P2-001 closure: active wave with zero stories → dispatcher exits 0 (Continue, vacuous convergence)
+
+TEST 3 SCENARIO (This EC — empty wave → Continue):
+---------------------------------------------------
+Setup:
+  - .factory/STATE.md seeded with current_cycle = "test-cycle-001"
+  - .factory/wave-state.yaml seeded with active wave, stories: [] (empty array)
+  - No adversary-convergence-state.json files seeded (none needed)
+
+Invocation:
+  - WaveContextResolver reads wave-state.yaml → injects wave_context.stories = []
+  - Hook receives empty story list
+  - Hook has no stories to check → vacuous convergence → Continue
+
+Assertion:
+  - Dispatcher exit code: 0 (Continue)
+  - No WAVE_CONTEXT_MISSING in stderr (empty array is valid, not missing)
+
+SEMANTIC DECISION (EC-004 resolution):
+----------------------------------------
+An empty wave is "already done" — vacuous convergence. Continue is correct.
+This differs from ABSENT wave_context (which still → Block with WAVE_CONTEXT_MISSING).
+The distinction: empty array = valid resolver output; absent key = resolver not wired.
+
+CARGO UNIT TEST:
+-----------------
+$ cargo test -p validate-per-story-adversary-convergence test_BC_4_10_001_ec001_empty_wave_returns_continue
+
+test tests::test_BC_4_10_001_ec001_empty_wave_returns_continue ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 51 filtered out; finished in 0.00s
+
+VERDICT: GREEN — bats test 3 + cargo unit test confirm empty wave → Continue (vacuous convergence).
+         No WAVE_CONTEXT_MISSING false alarm for valid empty array.

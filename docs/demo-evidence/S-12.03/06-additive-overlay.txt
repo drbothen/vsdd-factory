@@ -1,0 +1,20 @@
+## AC-006: Additive overlay — static config keys preserved
+
+Traces to: BC-4.12.005 postcondition 1
+Test: test_BC_4_12_005_ac006_additive_overlay_preserves_static_config_fields
+
+Command:
+  cargo test -p factory-dispatcher --test resolver_registry_test -- test_BC_4_12_005_ac006 --nocapture
+
+Output:
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.28s
+     Running tests/resolver_registry_test.rs (target/debug/deps/resolver_registry_test-3494f675c90c589c)
+
+running 1 test
+test test_BC_4_12_005_ac006_additive_overlay_preserves_static_config_fields ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 21 filtered out; finished in 0.00s
+
+RESULT: PASS
+Assertions verified: static_config = {"existing": "value"}; resolver returns key: "extra", value: Some({"data": 1})
+merged config == {"existing": "value", "extra": {"data": 1}} — static key not clobbered.

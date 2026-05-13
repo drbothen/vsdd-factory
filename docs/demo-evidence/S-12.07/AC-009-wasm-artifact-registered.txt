@@ -1,0 +1,48 @@
+AC-009: WASM artifact registered in resolvers-registry.toml
+=============================================================
+Story: S-12.07 — vsdd-context-resolvers Crate + WaveContextResolver (v1.4)
+BC ref: BC-4.12.001
+
+ACCEPTANCE CRITERION
+--------------------
+The WASM artifact exists at plugins/vsdd-factory/hook-plugins/vsdd-context-resolvers.wasm
+and a canonical entry is registered in plugins/vsdd-factory/resolvers-registry.toml
+with the correct name, plugin path, context_key, and path_allow.
+
+TEST EVIDENCE — WASM ARTIFACT
+------------------------------
+Command: ls -la plugins/vsdd-factory/hook-plugins/vsdd-context-resolvers.wasm
+Captured: 2026-05-10
+
+-rwxr-xr-x@ 1 jmagady  staff  282716 May 10 14:00 plugins/vsdd-factory/hook-plugins/vsdd-context-resolvers.wasm
+
+Artifact size: 282716 bytes (276 KiB)
+Timestamp: 2026-05-10 14:00
+
+TEST EVIDENCE — REGISTRY ENTRY
+-------------------------------
+Command: cat plugins/vsdd-factory/resolvers-registry.toml
+Captured: 2026-05-10
+
+    # resolvers-registry.toml — populated in S-12.07
+    schema_version = 1
+
+    [[resolvers]]
+    name = "wave_context"
+    plugin = "hook-plugins/vsdd-context-resolvers.wasm"
+    context_key = "wave_context"
+    path_allow = [".factory/"]
+
+KEY FIELDS VERIFIED
+-------------------
+  name:        "wave_context"  (underscore, per BC-4.12.005 PC7)
+  plugin:      "hook-plugins/vsdd-context-resolvers.wasm"
+  context_key: "wave_context"  (underscore, matches name — aligns needs_context + plugin_config key)
+  path_allow:  [".factory/"]   (capability confinement enforced, VP-076)
+
+CARGO TEST (registry test)
+--------------------------
+Command: cargo test -p vsdd-context-resolvers test_BC_4_12_001_wasm_artifact_registered_in_registry
+Result:  test_BC_4_12_001_wasm_artifact_registered_in_registry ... ok
+
+STATUS: GREEN

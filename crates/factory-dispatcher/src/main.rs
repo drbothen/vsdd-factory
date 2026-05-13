@@ -54,6 +54,7 @@ use factory_dispatcher::partition::partition_plugins;
 use factory_dispatcher::payload::HookPayload;
 use factory_dispatcher::plugin_loader::PluginCache;
 use factory_dispatcher::registry::{Registry, RegistryError};
+use factory_dispatcher::resolver_loader::ResolverLoader;
 use factory_dispatcher::routing::{group_by_priority, match_plugins};
 use factory_dispatcher::{ASYNC_DRAIN_WINDOW_MS, HOST_ABI_VERSION, new_trace_id};
 use factory_dispatcher::{AggregatorPluginResult, aggregate_exit_code};
@@ -298,6 +299,57 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
     #[allow(unused_variables)]
     let event_queue = Arc::clone(&base_host_ctx.events);
 
+    // S-12.04: Load the resolver registry from disk.
+    // BC-1.13.001 INV2: absent resolvers-registry.toml → empty registry, not an error.
+    // BC-4.12.001: modules are compiled once at startup and cached by mtime.
+    // F-P1-005/006: ResolverLoader holds the executor's engine (BC-4.12.001 INV3);
+    // load_registry is an instance method so the mtime cache survives.
+    let resolvers_registry_path = std::env::var(ENV_PLUGIN_ROOT)
+        .map(PathBuf::from)
+        .unwrap_or_default()
+        .join("resolvers-registry.toml");
+    let resolver_loader = ResolverLoader::new(engine.clone());
+    let resolver_registry = match resolver_loader.load_registry(&resolvers_registry_path) {
+        Ok((reg, warnings)) => {
+            // AC-012: log compiled module count at startup (BC-1.13.001 PC1).
+            if !reg.is_empty() {
+                internal_log.write(
+                    &InternalEvent::now("resolver.registry_loaded")
+                        .with_trace_id(trace_id.clone())
+                        .with_session_id(payload.session_id.clone())
+                        .with_field("resolver_count", reg.len() as i64)
+                        .with_field(
+                            "registry_path",
+                            resolvers_registry_path.display().to_string(),
+                        ),
+                );
+            }
+            // F-P3-003: emit structured resolver.load_warning event for each fail-open skip.
+            // Dual-emission: eprintln (startup visibility) already happened in load_registry;
+            // here we add the queryable InternalLog event for the observability stack.
+            for w in warnings {
+                let ev = InternalEvent::now("resolver.load_warning")
+                    .with_trace_id(trace_id.clone())
+                    .with_session_id(payload.session_id.clone())
+                    .with_field("resolver_name", serde_json::Value::String(w.resolver_name))
+                    .with_field("error_detail", serde_json::Value::String(w.detail));
+                internal_log.write(&ev);
+            }
+            Arc::new(reg)
+        }
+        Err(e) => {
+            // AC-002: emit resolver.load_error event for parse/compile failures.
+            // Fail-loud: dispatcher does NOT start with a partial resolver set.
+            internal_log.write(
+                &InternalEvent::now("resolver.load_error")
+                    .with_trace_id(trace_id.clone())
+                    .with_session_id(payload.session_id.clone())
+                    .with_field("error_detail", format!("{e:?}")),
+            );
+            return Err(e.into());
+        }
+    };
+
     // S-15.01 T-3c: build executor inputs and run sync_group first.
     // Sync group awaits all completions; verdict gates Claude Code.
     // BC-1.14.001 postconditions 2-3.
@@ -308,6 +360,7 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
         payload_value: payload_value.clone(),
         base_host_ctx: base_host_ctx.clone(),
         internal_log: internal_log.clone(),
+        resolver_registry: resolver_registry.clone(),
     };
 
     let summary = execute_tiers(inputs, sync_tiers).await;
@@ -354,6 +407,7 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
                     payload_value.clone(),
                     base_host_ctx.clone(),
                     internal_log.clone(),
+                    resolver_registry.clone(),
                 );
                 // Forward the JoinHandle result to the drain channel.
                 // EC-012: completed results MUST reach the channel so they can be emitted.

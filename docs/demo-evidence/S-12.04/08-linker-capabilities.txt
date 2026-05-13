@@ -1,0 +1,28 @@
+AC-008: resolver_linker excludes write_file/exec_subprocess/emit_event
+Traces to: BC-4.12.003 postconditions 1-3
+Test: test_BC_4_12_003_resolver_linker_excludes_write_file_exec_emit (host::linker_capability_tests)
+
+COMMAND
+  cargo test -p factory-dispatcher \
+    test_BC_4_12_003_resolver_linker_excludes_write_file_exec_emit -- --nocapture
+
+OUTPUT
+  Finished `test` profile [unoptimized + debuginfo] target(s) in 0.29s
+   Running unittests src/lib.rs (target/debug/deps/factory_dispatcher-cdf061c0a73efe1d)
+
+  running 1 test
+  test host::linker_capability_tests::test_BC_4_12_003_resolver_linker_excludes_write_file_exec_emit ... ok
+
+  test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 144 filtered out; finished in 0.00s
+
+  (remaining integration test binaries: 0 tests each -- all filtered)
+
+EVIDENCE: Resolver Linker asserts absence of:
+  - "vsdd::write_file"
+  - "vsdd::exec_subprocess"
+  - "vsdd::emit_event"
+  These are confirmed absent from the resolver-specific Linker<HostContext>.
+  host/mod.rs line 172 comment: "write_file, exec_subprocess, and emit_event are
+  intentionally excluded" from the resolver linker path.
+
+RESULT: PASS

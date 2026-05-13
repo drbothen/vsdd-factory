@@ -1,0 +1,25 @@
+## AC-005: Unknown resolver name triggers resolver.not_found callback
+
+Traces to: BC-1.13.001 postcondition 6
+Tests: test_BC_1_13_001_ac005_invoke_resolver_returns_none_for_missing_resolver
+       test_BC_1_13_001_ac005_unknown_resolver_triggers_not_found_callback
+
+Command:
+  cargo test -p factory-dispatcher --test resolver_registry_test -- test_BC_1_13_001_ac005 --nocapture
+
+Output:
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.26s
+     Running tests/resolver_registry_test.rs (target/debug/deps/resolver_registry_test-3494f675c90c589c)
+
+running 2 tests
+test test_BC_1_13_001_ac005_invoke_resolver_returns_none_for_missing_resolver ... ok
+test test_BC_1_13_001_ac005_unknown_resolver_triggers_not_found_callback ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 20 filtered out; finished in 0.00s
+
+RESULT: PASS
+Assertions verified:
+  (a) mock telemetry captures resolver.not_found event with resolver_name == "unknown"
+  (b) invoke_plugin is called normally
+  (c) plugin_config does not contain "unknown"
+  (d) no panic

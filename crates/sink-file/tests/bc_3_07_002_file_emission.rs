@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! BC-3.07.002 — sink-file emits `internal.sink_error` on each recorded failure.
 //!
 //! Traces to: BC-3.07.002 (AC-003, AC-004, AC-005, AC-007, AC-009).

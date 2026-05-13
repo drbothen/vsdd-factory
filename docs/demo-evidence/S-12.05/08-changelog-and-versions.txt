@@ -1,0 +1,75 @@
+## Demo: Version bumps and CHANGELOG — hook-sdk 0.3.0 / hook-sdk-macros 0.2.0
+
+### Git diff showing version bumps (develop...HEAD)
+
+diff --git a/crates/hook-sdk-macros/Cargo.toml b/crates/hook-sdk-macros/Cargo.toml
+index 0c93e7b4..50a3f90f 100644
+--- a/crates/hook-sdk-macros/Cargo.toml
++++ b/crates/hook-sdk-macros/Cargo.toml
+@@ -1,6 +1,6 @@
+ [package]
+ name = "vsdd-hook-sdk-macros"
+-version = "0.1.0"
++version = "0.2.0"
+ edition.workspace = true
+
+diff --git a/crates/hook-sdk/Cargo.toml b/crates/hook-sdk/Cargo.toml
+index 0d2b3ba6..16f7a0ff 100644
+--- a/crates/hook-sdk/Cargo.toml
++++ b/crates/hook-sdk/Cargo.toml
+@@ -1,6 +1,6 @@
+ [package]
+ name = "vsdd-hook-sdk"
+-version = "0.2.0"
++version = "0.3.0"
+
++[features]
++## Opt-in feature for resolver plugin authoring.
++## Gates ResolverInput, ResolverOutput, and RESOLVER_ABI_VERSION.
++## ResolverError is host-side only (factory-dispatcher); it is NOT exported from hook-sdk.
++## Hook crates that are NOT resolvers MUST NOT enable this feature. (BC-4.12.002 PC8)
++resolver-authoring = []
+
+ [dependencies]
+ serde.workspace = true
+ serde_json.workspace = true
+-vsdd-hook-sdk-macros = { path = "../hook-sdk-macros", version = "0.1.0" }
++vsdd-hook-sdk-macros = { path = "../hook-sdk-macros", version = "0.2.0" }
+
+ [dev-dependencies]
+ serde_json.workspace = true
++proptest = "1.6"
++trybuild.workspace = true
++wasmparser = "0.248"
+
+### hook-sdk CHANGELOG.md (head)
+
+# hook-sdk Changelog
+
+## 0.3.0 — 2026-05-10 (resolver-authoring feature)
+
+### Added (gated behind `resolver-authoring` feature)
+- `ResolverInput` and `ResolverOutput` types per BC-4.12.002
+- `RESOLVER_ABI_VERSION` constant (currently `1`)
+- `#[resolver]` proc-macro re-export from `hook-sdk-macros`
+
+### Changed
+- `vsdd-hook-sdk-macros` dependency bumped to `0.2.0` (adds `#[resolver]` macro)
+
+### Versioning Independence (BC-4.12.002 INV2)
+`RESOLVER_ABI_VERSION` is independently versioned from `HOST_ABI_VERSION`.
+Bumps to one do not require bumps to the other. The two constants are
+declared in separate source files (`resolver.rs` and `lib.rs` respectively)
+to make this independence structurally enforced and machine-verifiable.
+
+`ResolverError` is a host-side type (factory-dispatcher); it is NOT exported
+from hook-sdk. Hook plugin authors do not need to handle it directly.
+
+## 0.2.0 — earlier release
+
+(See git log for prior versions.)
+
+RESULT: CONFIRMED
+- hook-sdk bumped from 0.2.0 to 0.3.0 (minor bump for new resolver-authoring feature)
+- hook-sdk-macros bumped from 0.1.0 to 0.2.0 (minor bump for new #[resolver] macro)
+- CHANGELOG.md entry at 0.3.0 documents the resolver-authoring additions and ABI independence

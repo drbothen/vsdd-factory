@@ -15,6 +15,10 @@
 //! - No new host functions: only `host::read_file`, `host::log_*`,
 //!   `host::emit_event` (ABI v1 surfaces).
 //! - No host write operations — hook is read-only (AC-012).
+//! - S-12.08: RealCallbacks no longer holds a `stories` field; story list is
+//!   extracted from `plugin_config["wave_context"]["stories"]` inside `hook_logic`
+//!   via `extract_stories_from_wave_context`. The old `list_stories` callback
+//!   method and `extract_stories_from_config` helper have been removed (AC-010).
 
 use validate_per_story_adversary_convergence::hook_logic;
 use vsdd_hook_sdk::{HookPayload, HookResult};
@@ -29,26 +33,22 @@ pub const HOST_ABI_VERSION: u32 = vsdd_hook_sdk::HOST_ABI_VERSION;
 /// The `RealCallbacks` struct implements `HookCallbacks` using the real
 /// `vsdd_hook_sdk::host::*` bindings. All host I/O routes through
 /// `hook_logic`'s injectable callbacks, preserving testability (AC-010).
+///
+/// S-12.08: `RealCallbacks` no longer holds a `stories` field. The story list
+/// is read by `hook_logic` from `payload.plugin_config["wave_context"]["stories"]`
+/// (injected by WaveContextResolver before dispatch). `RealCallbacks` only wires
+/// `read_file`, `log_*`, and `emit_event`.
 fn on_hook(payload: HookPayload) -> HookResult {
     use validate_per_story_adversary_convergence::HookCallbacks;
     use validate_per_story_adversary_convergence::IoError;
-    use validate_per_story_adversary_convergence::extract_stories_from_config;
     use vsdd_hook_sdk::host;
 
     /// Production callback implementation.
     ///
-    /// `stories` holds the story list extracted from `plugin_config.stories`
-    /// (F-HIGH-3 fix). When the dispatcher populates `plugin_config.stories`
-    /// before the SubagentStop event, `list_stories` returns those IDs rather
-    /// than always returning Err (which previously made the hook operationally
-    /// inert in every wave-gate dispatch).
-    ///
-    /// When `plugin_config.stories` is absent or not a string array,
-    /// `list_stories` returns `Err(IoError(...))` and `hook_logic` gracefully
-    /// degrades to Continue (BC-4.10.002 invariant 3).
-    struct RealCallbacks {
-        stories: Result<Vec<String>, IoError>,
-    }
+    /// S-12.08: `stories` field removed. The story list comes from
+    /// `plugin_config["wave_context"]["stories"]` (WaveContextResolver path).
+    /// `read_file` is still used to read per-story adversary-convergence-state.json.
+    struct RealCallbacks;
 
     impl HookCallbacks for RealCallbacks {
         fn read_file(&self, path: &str) -> Result<Option<String>, IoError> {
@@ -72,17 +72,6 @@ fn on_hook(payload: HookPayload) -> HookResult {
             }
         }
 
-        fn list_stories(&self, _cycle_id: &str) -> Result<Vec<String>, IoError> {
-            // F-HIGH-3 fix: return the story list extracted from plugin_config.stories.
-            // The wave-gate dispatcher must populate plugin_config.stories in the
-            // registry [hooks.config] table before triggering SubagentStop.
-            // If absent, Err triggers graceful degrade in hook_logic (BC-4.10.002 inv-3).
-            match &self.stories {
-                Ok(v) => Ok(v.clone()),
-                Err(e) => Err(IoError(e.0.clone())),
-            }
-        }
-
         fn log_debug(&self, msg: &str) {
             // SDK exposes log_info as the closest equivalent to log_debug
             // (no separate log_debug in HOST_ABI v1; BC-4.10.002 PC3 amended v1.1).
@@ -101,10 +90,9 @@ fn on_hook(payload: HookPayload) -> HookResult {
         }
     }
 
-    // Extract story list from plugin_config.stories before constructing callbacks.
-    // If absent, RealCallbacks.stories holds Err → graceful degrade (F-HIGH-3 fix).
-    let stories = extract_stories_from_config(&payload.plugin_config);
-    hook_logic(&payload, &RealCallbacks { stories })
+    // S-12.08: hook_logic now extracts story list from payload.plugin_config["wave_context"]["stories"]
+    // via extract_stories_from_wave_context (called inside hook_logic). No pre-extraction here.
+    hook_logic(&payload, &RealCallbacks)
 }
 
 fn main() {

@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! BC-3.06.005 — Config loading: api_key + dataset required; missing either is hard error.
 //!
 //! AC: Auth via `X-Honeycomb-Team` header from config (api_key required).

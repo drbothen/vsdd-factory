@@ -1,4 +1,7 @@
 //! track-agent-stop — SubagentStop WASM hook plugin.
+// Allow: static regex compilation uses .expect() on an infallible pattern
+// validated at build time. Pre-existing code (not covered by S-12.07 AC-010).
+#![allow(clippy::expect_used)]
 //!
 //! Emits `agent.stop` telemetry on every SubagentStop event per BC-7.03.082.
 //!

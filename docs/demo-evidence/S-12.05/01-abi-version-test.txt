@@ -1,0 +1,36 @@
+## Demo: AC-001 — RESOLVER_ABI_VERSION = 1 constant defined and accessible
+
+Command:
+  cargo test --features resolver-authoring -p vsdd-hook-sdk \
+    tests::test_BC_4_12_002_resolver_abi_version_is_1 -- --nocapture
+
+Output:
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.15s
+     Running unittests src/lib.rs (target/debug/deps/vsdd_hook_sdk-7e5c67246e626144)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 43 filtered out; finished in 0.00s
+
+     Running tests/host_write_file_sdk_test.rs (target/debug/deps/host_write_file_sdk_test-ac2d53c2a99cc3a0)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 5 filtered out; finished in 0.00s
+
+     Running tests/resolver_types_test.rs (target/debug/deps/resolver_types_test-be50133badb33efb)
+
+running 1 test
+test tests::test_BC_4_12_002_resolver_abi_version_is_1 ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 15 filtered out; finished in 0.00s
+
+     Running tests/wasm32_resolver_export_integration.rs (target/debug/deps/wasm32_resolver_export_integration-717e14bb6b656f84)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s
+
+RESULT: PASS
+AC-001 covered: RESOLVER_ABI_VERSION constant exists, equals 1, accessible only with resolver-authoring feature.
+Definition site: crates/hook-sdk/src/resolver.rs:11 — pub const RESOLVER_ABI_VERSION: u32 = 1;

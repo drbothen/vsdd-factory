@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! AC-3: DD-API-KEY header present on every POST request.
 //!
 //! BC-3.06.005 postcondition 1: config api_key is used for auth header.

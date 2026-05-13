@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! Red Gate test suite for S-8.06: session-learning WASM hook port.
 //!
 //! Every test in this file MUST FAIL until `session_learning_logic` and

@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! Tests for RetryPolicy max_retries enforcement (S-4.04).
 //!
 //! AC: "Shared RetryPolicy struct: max_retries, base_delay_ms, max_delay_ms, jitter_factor"

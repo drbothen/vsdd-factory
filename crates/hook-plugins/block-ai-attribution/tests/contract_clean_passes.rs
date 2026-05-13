@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! Tests verifying that non-attributed payloads return HookResult::Continue.
 //!
 //! BC-4.05.002 (v1.1 candidate): non-git command or attribution-free commit

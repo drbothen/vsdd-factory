@@ -1,0 +1,13 @@
+error[E0308]: mismatched types
+  --> tests/ui/type_mismatch.rs:23:29
+   |
+23 |     requires_resolver_input(payload);
+   |     ----------------------- ^^^^^^^ expected `ResolverInput`, found `HookPayload`
+   |     |
+   |     arguments to this function are incorrect
+   |
+note: function defined here
+  --> tests/ui/type_mismatch.rs:14:4
+   |
+14 | fn requires_resolver_input(_: ResolverInput) {}
+   |    ^^^^^^^^^^^^^^^^^^^^^^^ ----------------

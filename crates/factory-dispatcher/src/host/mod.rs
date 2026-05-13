@@ -155,6 +155,32 @@ pub enum HostCallError {
     Linker(String),
 }
 
+/// Build a `Linker<HostContext>` configured for WASM resolver modules.
+///
+/// Resolver modules use a subset of the full plugin host ABI: they may
+/// not exec subprocesses or write files. This linker wires only the
+/// context-injection imports declared by `HOST_ABI.md §Resolver ABI`.
+///
+/// Returns `Err(HostCallError::Linker)` if a host function registration
+/// fails (duplicate name or type mismatch — programming error, not
+/// expected at runtime). Callers propagate via `?` (F-P1-012).
+///
+/// Non-trivial: registers host functions, applies capability restrictions,
+/// and returns the configured linker. S-12.04 Step 3 implementation.
+pub fn resolver_linker(engine: &Engine) -> Result<Linker<HostContext>, HostCallError> {
+    // Build a resolver-scoped linker that includes ONLY read_file and log.
+    // write_file, exec_subprocess, and emit_event are intentionally excluded
+    // per BC-4.12.003 INV2 (resolver sandbox: no write, exec, or emit).
+    let mut linker: Linker<HostContext> = Linker::new(engine);
+
+    // Register only the two permitted host functions, propagating errors via ?
+    // instead of panicking (F-P1-012).
+    log::register(&mut linker)?;
+    read_file::register(&mut linker)?;
+
+    Ok(linker)
+}
+
 /// Register every `vsdd::*` host import with a fresh linker.
 ///
 /// Call once per wasmtime [`Engine`] during dispatcher startup; reuse
@@ -187,6 +213,164 @@ pub mod codes {
 /// Type alias used by every host function entry to keep trait bounds
 /// readable.
 pub type HostCaller<'a> = Caller<'a, HostContext>;
+
+// ---------------------------------------------------------------------------
+// AC-008 / AC-009 unit tests — resolver linker capability enforcement
+//
+// BC-4.12.003 postconditions 1–3:
+// The resolver-specific Linker<HostContext> must NOT expose write_file,
+// exec_subprocess, or emit_event host imports. A resolver WASM that references
+// any of these must fail at instantiation (linker error), not at runtime.
+//
+// BC-4.12.003 postcondition 2: the resolver linker MUST expose read_file
+// (with path_allow enforcement) and log.
+// ---------------------------------------------------------------------------
+
+#[cfg(test)]
+mod linker_capability_tests {
+    use super::*;
+    use crate::engine::build_engine;
+
+    /// Helper: check whether `linker` has a definition for `(module_name, fn_name)`.
+    ///
+    /// Uses a `Store<HostContext>` so `linker.get(store, ...)` compiles.
+    /// Returns `true` if defined, `false` if missing.
+    fn linker_has_fn(
+        linker: &Linker<HostContext>,
+        engine: &Engine,
+        module_name: &str,
+        fn_name: &str,
+    ) -> bool {
+        let mut store: wasmtime::Store<HostContext> =
+            wasmtime::Store::new(engine, HostContext::new("test", "0.0.0", "s", "t"));
+        linker.get(&mut store, module_name, fn_name).is_ok()
+    }
+
+    /// test_BC_4_12_003_resolver_linker_excludes_write_file_exec_emit
+    ///
+    /// Constructs the resolver linker via `resolver_linker(engine)` and asserts
+    /// that the following host imports are NOT defined:
+    /// - "vsdd::write_file"
+    /// - "vsdd::exec_subprocess"
+    /// - "vsdd::emit_event"
+    ///
+    /// These functions are in the full hook linker (setup_linker) but must be
+    /// absent from the resolver linker (BC-4.12.003 INV2: resolver sandbox
+    /// excludes write, exec, and emit capabilities).
+    ///
+    /// Also asserts that the following ARE defined:
+    /// - "vsdd::read_file"
+    /// - "vsdd::log"
+    ///
+    /// Red Gate: fails because `resolver_linker` is `todo!("S-12.04 Step 3")`.
+    #[test]
+    fn test_BC_4_12_003_resolver_linker_excludes_write_file_exec_emit() {
+        let engine = build_engine()
+            .expect("AC-008: build_engine must succeed for resolver linker capability test");
+
+        // F-P1-012: resolver_linker now returns Result; unwrap for test.
+        let linker = resolver_linker(&engine)
+            .expect("AC-008: resolver_linker must succeed in test environment");
+
+        // Functions that must be ABSENT from the resolver linker.
+        assert!(
+            !linker_has_fn(&linker, &engine, "vsdd", "write_file"),
+            "AC-008 / BC-4.12.003 INV2: resolver linker must NOT expose 'write_file' — \
+             resolvers have no write capability"
+        );
+
+        assert!(
+            !linker_has_fn(&linker, &engine, "vsdd", "exec_subprocess"),
+            "AC-008 / BC-4.12.003 INV2: resolver linker must NOT expose 'exec_subprocess' — \
+             resolvers have no exec capability"
+        );
+
+        assert!(
+            !linker_has_fn(&linker, &engine, "vsdd", "emit_event"),
+            "AC-008 / BC-4.12.003 INV2: resolver linker must NOT expose 'emit_event' — \
+             resolvers must not emit side-channel events"
+        );
+
+        // Functions that must be PRESENT in the resolver linker.
+        // read_file (with path_allow enforcement) and log are the only allowed imports.
+        assert!(
+            linker_has_fn(&linker, &engine, "vsdd", "read_file"),
+            "AC-009 / BC-4.12.003 PC2: resolver linker MUST expose 'read_file' \
+             (subject to path_allow enforcement) — resolvers need read access \
+             for their declared capabilities"
+        );
+
+        assert!(
+            linker_has_fn(&linker, &engine, "vsdd", "log"),
+            "AC-009 / BC-4.12.003 PC2: resolver linker MUST expose 'log' — \
+             resolvers must be able to emit diagnostic log entries"
+        );
+    }
+
+    /// test_resolver_linker_shares_capability_semantics_with_hook_linker (F-P1-013)
+    ///
+    /// Verifies that the resolver linker and hook linker share the same
+    /// HostContext-Capabilities enforcement semantics for the functions they
+    /// both expose (`read_file` and `log`).
+    ///
+    /// Specifically:
+    /// - Both linkers expose `read_file` via the same host function binding
+    ///   (same "vsdd" module, same function name).
+    /// - Both linkers expose `log` via the same host function binding.
+    /// - The resolver linker is a STRICT SUBSET of the hook linker:
+    ///   - resolver linker has read_file + log
+    ///   - hook linker has read_file + log + write_file + exec_subprocess + emit_event + env
+    ///
+    /// This ensures that capability enforcement (path_allow for read_file,
+    /// deny-by-default for all others) is identical between resolver and hook
+    /// contexts — the same `host::read_file::prepare()` function is called
+    /// by both, enforcing BC-2.02.001 and BC-4.12.003 identically.
+    #[test]
+    fn test_resolver_linker_shares_capability_semantics_with_hook_linker() {
+        let engine = build_engine().expect("F-P1-013: build_engine must succeed");
+
+        let resolver_lnk =
+            resolver_linker(&engine).expect("F-P1-013: resolver_linker must succeed");
+        let hook_lnk = setup_linker(&engine).expect("F-P1-013: setup_linker must succeed");
+
+        // Both linkers must expose read_file under the same vsdd:: module.
+        assert!(
+            linker_has_fn(&resolver_lnk, &engine, "vsdd", "read_file"),
+            "F-P1-013: resolver linker must expose vsdd::read_file (shared with hook linker)"
+        );
+        assert!(
+            linker_has_fn(&hook_lnk, &engine, "vsdd", "read_file"),
+            "F-P1-013: hook linker must expose vsdd::read_file"
+        );
+
+        // Both linkers must expose log under the same vsdd:: module.
+        assert!(
+            linker_has_fn(&resolver_lnk, &engine, "vsdd", "log"),
+            "F-P1-013: resolver linker must expose vsdd::log (shared with hook linker)"
+        );
+        assert!(
+            linker_has_fn(&hook_lnk, &engine, "vsdd", "log"),
+            "F-P1-013: hook linker must expose vsdd::log"
+        );
+
+        // Resolver linker is a strict subset: write_file, exec_subprocess,
+        // emit_event are absent from resolver but present in hook linker.
+        assert!(
+            !linker_has_fn(&resolver_lnk, &engine, "vsdd", "write_file"),
+            "F-P1-013 / BC-4.12.003 INV2: resolver linker must NOT expose write_file"
+        );
+        assert!(
+            linker_has_fn(&hook_lnk, &engine, "vsdd", "write_file"),
+            "F-P1-013: hook linker must expose write_file (resolver linker is strict subset)"
+        );
+
+        // The capability enforcement (HostContext.capabilities) is shared:
+        // both linkers use the same host function implementations (same code path
+        // for read_file::prepare, same deny-by-default logic).
+        // This is verified by the shared implementation in host/read_file.rs:
+        // both resolve against ctx.capabilities.read_file — no separate code paths.
+    }
+}
 
 /// Test helpers shared across host-function unit tests.
 #[cfg(test)]

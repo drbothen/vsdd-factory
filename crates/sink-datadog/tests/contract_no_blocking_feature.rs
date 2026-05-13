@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! F-1 (PR #18 deferred): sink-http Cargo.toml must NOT include "blocking" in reqwest features.
 //!
 //! Verifies via cargo metadata that the reqwest dependency in sink-http does

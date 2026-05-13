@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! AC-4: Sink failure → DLQ — mock 5xx server; events appear in DLQ file.
 //!
 //! Traces to:

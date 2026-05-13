@@ -1,0 +1,21 @@
+## AC-009: Declaration order preservation — resolver invocation order matches needs_context order
+
+Traces to: BC-1.13.001 postcondition 7
+Test: test_BC_1_13_001_ac009_declaration_order_is_invocation_order
+
+Command:
+  cargo test -p factory-dispatcher --test resolver_registry_test -- test_BC_1_13_001_ac009 --nocapture
+
+Output:
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.26s
+     Running tests/resolver_registry_test.rs (target/debug/deps/resolver_registry_test-3494f675c90c589c)
+
+running 1 test
+test test_BC_1_13_001_ac009_declaration_order_is_invocation_order ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 21 filtered out; finished in 0.00s
+
+RESULT: PASS
+Assertions verified: needs_context: ["a", "b"]; resolver "a" invoked first, output merged first;
+resolver "b" invoked second, output merged second. Both keys present. Invocation order recorded
+by OrderRecordingResolver matches declaration order.

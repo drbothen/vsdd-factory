@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! AC: "Handles gh pr create, gh pr merge, gh pr close subcommands"
 //!     "Handles non-PR bash commands gracefully (no-op)"
 //!

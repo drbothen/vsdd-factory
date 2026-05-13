@@ -1,0 +1,24 @@
+## AC-012: Duplicate resolver registration returns DuplicateName error
+
+Traces to: BC-4.12.005 postcondition 6
+Tests: test_BC_4_12_005_ac012_duplicate_name_registration_returns_error
+       test_BC_4_12_005_ac012_first_registration_preserved_after_duplicate_fails
+
+Command:
+  cargo test -p factory-dispatcher --test resolver_registry_test -- test_BC_4_12_005_ac012 --nocapture
+
+Output:
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.27s
+     Running tests/resolver_registry_test.rs (target/debug/deps/resolver_registry_test-3494f675c90c589c)
+
+running 2 tests
+test test_BC_4_12_005_ac012_duplicate_name_registration_returns_error ... ok
+test test_BC_4_12_005_ac012_first_registration_preserved_after_duplicate_fails ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 20 filtered out; finished in 0.00s
+
+RESULT: PASS
+Assertions verified:
+  (a) register("foo") twice; second call returns Err (DuplicateName variant)
+  (b) registry after failed registration still contains exactly one "foo"
+  (c) first registration preserved; duplicate rejected

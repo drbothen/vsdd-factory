@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! AC-016: Sync-group p95 latency canary — must be ≤ 1500ms.
 //!
 //! This test measures the p95 latency of `sync_group` dispatch across N=100

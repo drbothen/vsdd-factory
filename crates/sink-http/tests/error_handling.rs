@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! AC-6: HTTP error handling — retry on 5xx, drop on 4xx.
 //!
 //! VP-012: Sink Failure Affects Only That Sink — failure isolation invariant.

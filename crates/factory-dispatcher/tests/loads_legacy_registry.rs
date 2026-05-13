@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! Validates that `plugins/vsdd-factory/hooks-registry.toml` parses cleanly
 //! through the production `Registry::load` codepath.
 //!

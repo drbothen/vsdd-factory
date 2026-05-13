@@ -1,7 +1,13 @@
 //! Integration tests for worktree-hooks — VP-067 harness (RED gate).
 // Allow .expect(&format!(...)) in test-only code — the lint prevents unnecessary
 // allocations in production paths; tests are excluded from that concern.
-#![allow(clippy::expect_fun_call)]
+// Also allow unwrap/expect/panic patterns standard in test helpers.
+#![allow(
+    clippy::expect_fun_call,
+    clippy::expect_used,
+    clippy::unwrap_used,
+    clippy::panic
+)]
 //!
 //! # Scope
 //!

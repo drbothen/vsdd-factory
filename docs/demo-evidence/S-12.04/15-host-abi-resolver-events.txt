@@ -1,0 +1,43 @@
+HOST_ABI.md resolver event tables
+Source: crates/hook-sdk/HOST_ABI.md (lines ~899-980)
+
+resolver.not_found event fields:
+  | resolver_name | string  | The name of the resolver that was requested but not found. |
+  | trace_id      | string  | Dispatcher trace ID for the dispatch event.               |
+  | session_id    | string  | Claude Code session identifier.                           |
+  | plugin_name   | string  | The hook plugin name that declared this resolver.         |
+
+resolver.registry_loaded event fields:
+  | resolver_count | integer | Number of resolver modules successfully compiled at startup. |
+  | registry_path  | string  | Path to the resolvers-registry.toml file that was loaded.  |
+  | trace_id       | string  | Dispatcher trace ID for the startup event.                 |
+  | session_id     | string  | Claude Code session identifier.                            |
+
+resolver.load_warning event fields (fail_closed=false, skipped entry):
+  | resolver_name | string | Name of the skipped resolver entry.                        |
+  | error_detail  | string | Reason the resolver was skipped.                           |
+  | trace_id      | string | Dispatcher trace ID for the startup event.                 |
+  | session_id    | string | Claude Code session identifier.                            |
+
+resolver.load_error event fields (fail_closed=true, startup abort):
+  | error_detail  | string | TOML parse error, fail-closed compile failure, duplicate name, etc. |
+  | trace_id      | string | Dispatcher trace ID for the startup event.                         |
+  | session_id    | string | Claude Code session identifier.                                     |
+
+resolver.error event fields (runtime trap/timeout/ABI violation):
+  See AC-010 evidence (10-resolver-error-event.txt):
+  - error_kind: "trap" | "timeout" | "abi_violation"
+  - resolver_name: registry name of the failing resolver
+  Documented in BC-4.12.004 and verified by test_BC_4_12_004_trapping_resolver_emits_resolver_error_event
+
+KEY LIFECYCLE INVARIANTS FROM HOST_ABI.md (lines 953-980):
+  - Compile-once at startup; Module cached by (canonical_path, mtime)
+  - Fresh Store<HostContext> per dispatch invocation (not stored as field)
+  - Mtime change on .wasm triggers eviction and recompile on next dispatch
+  - Absent resolvers-registry.toml = zero resolvers, NOT a startup error (BC-1.13.001 PC1)
+
+COMMAND
+  grep -n "resolver\." crates/hook-sdk/HOST_ABI.md | wc -l
+
+OUTPUT
+  (resolver event references throughout HOST_ABI.md: 80+ lines)

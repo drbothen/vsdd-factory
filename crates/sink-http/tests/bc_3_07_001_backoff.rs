@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! BC-3.07.001: sink-http exponential backoff with jitter between 5xx retries (S-4.09).
 //!
 //! Covers acceptance criteria AC-004 through AC-010 that require a running HTTP

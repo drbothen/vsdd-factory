@@ -1,3 +1,5 @@
+// Test files use .expect()/.unwrap()/.panic!() for failure reporting.
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 //! Integration tests: with_retry + CircuitBreaker together (S-4.04).
 //!
 //! AC: "Integration test: mock server returning 5xx; verify retry + circuit open sequence"

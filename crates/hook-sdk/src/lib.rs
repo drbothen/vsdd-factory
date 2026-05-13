@@ -39,12 +39,19 @@ pub mod host;
 mod payload;
 mod result;
 
+#[cfg(feature = "resolver-authoring")]
+pub mod resolver;
+#[cfg(feature = "resolver-authoring")]
+pub use resolver::*;
+
 #[doc(hidden)]
 pub mod __internal;
 
 pub use payload::HookPayload;
 pub use result::HookResult;
 pub use vsdd_hook_sdk_macros::hook;
+#[cfg(feature = "resolver-authoring")]
+pub use vsdd_hook_sdk_macros::resolver;
 
 /// SDK crate version. Distinct from [`HOST_ABI_VERSION`].
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");

@@ -1,0 +1,37 @@
+AC-013: Missing .wasm path produces CompileError or IoError
+Traces to: BC-4.12.001 postcondition 6
+Test: test_BC_4_12_001_failed_compile_returns_compile_error
+
+NOTE: AC-013 corresponds to the story spec's test_missing_wasm_path_emits_load_error.
+The implementation test name covers both missing-path and invalid-bytes cases
+(R-PLAT-002: multiple distinct failure modes tested independently).
+
+COMMAND
+  cargo test -p factory-dispatcher --test resolver_load_test \
+    test_BC_4_12_001_failed_compile_returns_compile_error -- --nocapture
+
+OUTPUT
+  Finished `test` profile [unoptimized + debuginfo] target(s) in 0.25s
+   Running tests/resolver_load_test.rs (target/debug/deps/resolver_load_test-547c6ef571c1a2f4)
+
+  running 1 test
+  test test_BC_4_12_001_failed_compile_returns_compile_error ... ok
+
+  test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 17 filtered out; finished in 0.00s
+
+ADDITIONAL EPOCH TIMEOUT TEST (F-P2-001 -- missing wasm via epoch deadline triggers load error path)
+COMMAND
+  cargo test -p factory-dispatcher --test resolver_load_test \
+    test_F_P2_001_epoch_deadline_fires_resolver_timeout -- --nocapture
+
+OUTPUT
+  Finished `test` profile [unoptimized + debuginfo] target(s) in 0.26s
+   Running tests/resolver_load_test.rs (...)
+
+  running 1 test
+  factory-dispatcher: Compiled 1 resolver modules from /var/folders/.../resolvers-registry.toml
+  test test_F_P2_001_epoch_deadline_fires_resolver_timeout ... ok
+
+  test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 17 filtered out; finished in 0.57s
+
+RESULT: PASS

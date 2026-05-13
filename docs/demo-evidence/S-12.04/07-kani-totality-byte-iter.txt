@@ -1,0 +1,38 @@
+AC-007: Kani proof_classify_trap_is_total + sibling proofs (VP-074)
+Traces to: BC-4.12.004 invariant 1 + VP-074
+Tests: proof_classify_trap_is_total (kani), test_classify_resolver_trap_total_byte_iter (unit)
+
+KANI HARNESS STATUS (cargo kani -p factory-dispatcher --harness proof_classify_trap_is_total)
+  Output: Kani Rust Verifier 0.67.0 (cargo plugin)
+  error: rustc 1.93.0-nightly is not supported by the following packages:
+    factory-dispatcher@0.0.1 requires rustc 1.95
+  BLOCKED: kani 0.67.0 requires rustc 1.93.0-nightly; workspace pins stable 1.95+.
+  This toolchain gap is documented in resolver_classify_trap.rs (lines 80-88).
+  TODO(VP-074): Re-run once kani supports rustc 1.95+.
+
+  Three harnesses are authored (all under #[cfg(kani)] gate, compile cleanly):
+    - proof_classify_trap_is_total        (VP-074 property 1)
+    - proof_classify_trap_never_returns_not_found  (VP-074 property 2)
+    - proof_classify_trap_timeout_traps_return_timeout  (VP-074 property 3, F-P3-002)
+
+UNIT TEST SUBSTITUTE (exhaustive byte-iter covering all wasmtime::Trap variants)
+COMMAND
+  cargo test -p factory-dispatcher test_classify_resolver_trap -- --nocapture
+
+OUTPUT
+  Finished `test` profile [unoptimized + debuginfo] target(s) in 0.28s
+   Running unittests src/lib.rs (target/debug/deps/factory_dispatcher-...)
+
+  running 1 test
+  test resolver_classify_trap::tests::test_classify_resolver_trap_total_byte_iter ... ok
+
+  test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 144 filtered out; finished in 0.00s
+
+TOTALITY EVIDENCE: test_classify_resolver_trap_total_byte_iter iterates u8 0..=255,
+exercises every wasmtime::Trap reachable via Trap::from_u8, asserts:
+  1. Never returns ResolverError::NotFound
+  2. Trap::Interrupt + Trap::OutOfFuel -> ResolverError::Timeout (F-P3-002)
+  3. All other TrapCodes -> ResolverError::Trap with non-empty detail
+  4. No panics for any input
+
+RESULT: UNIT TESTS PASS; KANI BLOCKED BY TOOLCHAIN GAP (known, documented)
