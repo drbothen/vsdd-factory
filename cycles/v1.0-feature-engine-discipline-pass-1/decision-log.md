@@ -421,7 +421,9 @@ grep -c "META-LEVEL-28 CANDIDATE CONFIRMED" \
 
 ---
 
-### Derived-Value Site Registry (D-453(d) canonical appendix)
+### Canonical Derived-Value → PRESCRIBED_SITES Mapping Table (D-453(d))
+
+_Canonical appendix; section-level SoT for PRESCRIBED_SITES completeness checks. Any new site class discovered during adversarial review triggers an append to the YAML block below._
 
 ```yaml
 derived_value_classes:
