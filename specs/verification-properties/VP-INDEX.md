@@ -1,7 +1,7 @@
 ---
 document_type: vp-index
 level: L4
-version: "1.82"
+version: "1.83"
 status: draft
 producer: state-manager
 timestamp: 2026-05-12T00:00:00Z
@@ -10,6 +10,8 @@ phase: F5
 traces_to: ARCH-INDEX.md
 total_vps: 80
 changelog:
+  - date: 2026-05-12
+    change: "v1.83 (2026-05-12; pass-64 fix burst per D-444 + D-404 unconditional): Acknowledges decision range D-389..D-444 (inclusive; literal acknowledgment per D-415(c); sample; see decision-log.md for full range D-389..D-444 per D-441(c)+D-442(c) sample-vs-exhaustive citation policy). Per D-404 unconditional: index acknowledges D-444(a/b/c/d/e) by literal ID (no spec content change in this changelog entry). Refs: F-P64-001/002/003/004/005, D-444. META-LEVEL-19 CANDIDATE CONFIRMED; L-EDP1-056 55th-layer 25th-consecutive multi-axis; rule-codification-without-automation gap ply (sample; see decision-log.md for full range D-389..D-444 per D-441(c)+D-442(c) sample-vs-exhaustive citation policy). VP-INDEX v1.82→v1.83."
   - date: 2026-05-12
     change: "v1.82 (2026-05-12; pass-63 fix burst per D-443 + D-404 unconditional): Acknowledges decision range D-389..D-443 (inclusive; literal acknowledgment per D-415(c); sample; see decision-log.md for full range D-389..D-443 per D-441(c)+D-442(c) sample-vs-exhaustive citation policy). Per D-404 unconditional: index acknowledges D-443(a/b/c/d/e) by literal ID (no spec content change in this changelog entry). Refs: F-P63-001/002/003/004/005/006/007/008/009, D-443. META-LEVEL-18 CANDIDATE CONFIRMED; L-EDP1-055 54th-layer 24th-consecutive multi-axis; rule-verification-grep co-evolution gap ply (sample; see decision-log.md for full range D-389..D-443 per D-441(c)+D-442(c) sample-vs-exhaustive citation policy). VP-INDEX v1.81→v1.82."
   - date: 2026-05-12
