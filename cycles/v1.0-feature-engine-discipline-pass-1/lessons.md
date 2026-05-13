@@ -3528,3 +3528,68 @@ Net: **4 CONFIRMED-VIOLATED + 1 CONFIRMED**.
 - **Size-budget flag (D-442(e)):** lessons.md post-L-EDP1-064 append is approaching hard limit ≤4000 lines (current ~3600 lines). Compact or split REQUIRED at S-15.03 PRIORITY-A execution window — CRITICAL urgency.
 
 **Closes:** ADV-EDP1-P72-CRIT-001 + ADV-EDP1-P72-HIGH-001 + ADV-EDP1-P72-HIGH-002 + ADV-EDP1-P72-HIGH-003 + ADV-EDP1-P72-HIGH-004 + ADV-EDP1-P72-MED-001 + ADV-EDP1-P72-MED-002 + ADV-EDP1-P72-MED-003 + ADV-EDP1-P72-LOW-001 + PG-P72-001 + PG-P72-002 + PG-P72-003 (D-413(b) completeness mandate + D-447(d) parity + D-448(b) Closes block discipline — 9 findings + 3 PG = 12 closure items)
+
+---
+
+## L-EDP1-065 — PRESCRIBED_SITES enumeration itself incomplete even when mechanical gate is applied correctly (64th-layer META-LEVEL-28 CANDIDATE CONFIRMED)
+
+**Source:** ADV-EDP1-P73-CRIT-001, ADV-EDP1-P73-HIGH-001, ADV-EDP1-P73-HIGH-002, ADV-EDP1-P73-HIGH-003, ADV-EDP1-P73-HIGH-004, ADV-EDP1-P73-MED-001, ADV-EDP1-P73-MED-002, ADV-EDP1-P73-MED-003, ADV-EDP1-P73-LOW-001, PG-P73-001, PG-P73-002, PG-P73-003
+**Date codified:** 2026-05-13
+
+**1-sentence definition:** meta-rule-codified-with-mechanical-gate-AND-explicit-PRESCRIBED_SITES-enumeration-but-PRESCRIBED_SITES-list-itself-INCOMPLETE-OR-freshness-gate-scope-NARROWER-than-validated-gate-scope-OR-site-class-labels-INFORMAL-not-matching-actual-document-structure.
+
+**Recursion ply tier:** META-LEVEL-28 CANDIDATE CONFIRMED
+
+**Layer:** 64th-layer (L-EDP1-003 recurrence; L-EDP1-061=60th; L-EDP1-062=61st; L-EDP1-063=62nd; L-EDP1-064=63rd; L-EDP1-065=64th)
+
+**Multi-axis streak:** 34th-consecutive multi-axis (passes 40–73 all at axis ≥7)
+
+**Cycle context:** F5 pass-73
+
+**Pattern:** META-LEVEL-28 = **meta-rule-codified-with-mechanical-gate-AND-explicit-PRESCRIBED_SITES-enumeration-but-PRESCRIBED_SITES-list-itself-INCOMPLETE-OR-freshness-gate-scope-NARROWER-than-validated-gate-scope-OR-site-class-labels-INFORMAL-not-matching-actual-document-structure**. At pass-72, D-452 introduced a PRESCRIBED_SITES loop structure — a genuine structural advance over META-27 propagation-gap. The loop itself was correctly implemented and correctly iterated over the enumerated 6 site classes. Three structural escape hatches remained:
+
+**(a) PRESCRIBED_SITES list incomplete:** D-452(d) enumerated 6 site classes for `layer_ordinal` propagation: (i) lesson heading + body, (ii) lesson trend-tables, (iii) subsequent lessons' trend-tables, (iv) 4-index changelog entries, (v) burst-log Dim-3/5/7 cells, (vi) STATE.md narrative. It OMITTED the 7th site class: **INDEX.md adversarial-review summary-table row cells**, which carry per-pass layer-ordinal labels in the "Ply" or description column. INDEX.md:130 (pass-71 row) + :131 (pass-72 row) were corrected by pass-73 Commit A (retroactive fix), but the omission demonstrates the core pattern: the gate ran cleanly against an incomplete list, producing a false-green.
+
+**(b) Freshness-gate scope narrower than validated-gate scope:** D-452(c) introduced snapshot-freshness re-execution at push-time. At pass-72 Commit E, this re-executed only 2 of the ~6 Dim-2 gates (wc-l + git rev-parse). The D-452(a) per-site propagation counts were NOT re-validated. Pass-73 fresh-context found STATE.md propagation count drifted from the Dim-2-cited 10 → actual 13 (3 new writes after Dim-2 capture), and burst-log from cited 15 → actual 24. The freshness gate was applied to a subset of gates; the subset was not declared or justified.
+
+**(c) Site-class labels informal (not matching actual document block type names):** D-452(d) labeled the burst-log sites as "Dim-3/5/7" — an informal dimensional shorthand. Actual burst-log entries contain 9 named block types: Parent-commit, Adversary-verdict, Files-touched (Dim-1), Codifications, Dim-2 (Attestation), Dim-5 (Attestation), Dim-6 (Attestation), Dim-7 (Attestation), Closes. The label "Dim-3/5/7" formally excludes the **Codifications block** — exactly where L-EDP1-NNN anchor with layer-ordinal lives. The sweep ran but missed the Codifications block sites due to informal labeling.
+
+**META-LEVEL-28 differentiator from META-LEVEL-27:**
+- META-27: literal-shell output CAPTURED correctly but not PROPAGATED to all prescribed citation sites; snapshot staleness; gate scope narrower than rule scope.
+- **META-28: PRESCRIBED_SITES enumeration is explicit and the mechanical loop correctly iterates over IT — but the list itself is INCOMPLETE (omits a valid site class), the freshness-gate scope is narrower than the set of gates it should cover, or site-class labels are informal (not matching actual document block type names, causing sites to be excluded via naming mismatch).** The failure is not in applying the gate but in the gate's own configuration being wrong.
+
+**Notable — first materialized prediction:** META-28 was EXPLICITLY PREDICTED at L-EDP1-064 prediction (v) (lessons.md:3527) with MEDIUM probability: *"META-28 CANDIDATE likely if any of the three D-452 structural escape hatches (propagation-gap, snapshot-staleness, scope-exclusion) recurs at pass-73 Commit E even after D-452 codification. Probability: MEDIUM — D-452(a) propagation gate requires explicit loop across PRESCRIBED_SITES; if the list is incomplete, META-28 = 'propagation gate invoked but PRESCRIBED_SITES list itself incomplete'."* This is the **first time in the engine-discipline cycle history** that a prediction-block forecast materialized in the immediately following pass. All prior META-level plies emerged without prior prediction of that specific ply class. The L-EDP1-064 prediction correctly identified the exact failure mode — incomplete PRESCRIBED_SITES list — that manifested at pass-73.
+
+**L-EDP1-064 5-prediction outcomes (verified at pass-73):**
+- (i) D-452(a) post-derivation propagation-completeness gate self-application: **CONFIRMED-VIOLATED** — ADV-EDP1-P73-CRIT-001: propagation count drifted from Dim-2-cited values; STATE.md propagation 10→13, burst-log 15→24 after Dim-2 capture by continued Commit E writes; and PRESCRIBED_SITES omitted INDEX.md summary-table row cells.
+- (ii) D-452(b) dual-direction Layer-N sweep: **CONFIRMED-VIOLATED** — ADV-EDP1-P73-HIGH-001: INDEX.md:130-131 had stale layer-ordinals (61st/62nd) that should have been 62nd/63rd; dual-direction sweep did not cover INDEX.md summary-table rows (7th omitted site class).
+- (iii) D-452(c) captured-stdout-snapshot-freshness: **CONFIRMED-VIOLATED** — ADV-EDP1-P73-HIGH-002: freshness re-execution covered only 2 of ~6 gates; propagation-count gates not re-run at push-time; stale snapshot propagated.
+- (iv) D-452(d) 4-index changelog scope: **CONFIRMED-SATISFIED** — 4-index changelog entries correctly cited L-EDP1-064 63rd-layer at Commit D.
+- (v) META-28 emergence forecast: **CONFIRMED** — META-28 CANDIDATE materialized at pass-73, exactly as predicted, via incomplete PRESCRIBED_SITES list. First prediction-block forecast to materialize in immediately following pass.
+
+Net: **4 CONFIRMED-VIOLATED + 1 CONFIRMED-SATISFIED**.
+
+**Trend-table (LENGTH=4 per D-433(e)+D-439(c)):**
+
+| Layer | Burst | Axes | Multi-axis? |
+|---|---|---|---|
+| 61 (pass-70) | D-450 | 9 | YES (META-LEVEL-25 CANDIDATE CONFIRMED; 31st consecutive) |
+| 62 (pass-71) | D-451 | 9 | YES (META-LEVEL-26 CANDIDATE CONFIRMED; 32nd consecutive) |
+| 63 (pass-72) | D-452 | 9 | YES (META-LEVEL-27 CANDIDATE CONFIRMED; 33rd consecutive) |
+| 64 (pass-73) | D-453 | 9 | YES (META-LEVEL-28 CANDIDATE CONFIRMED; 34th consecutive) |
+
+**D-445(b) self-application at L-EDP1-065 (per D-445(b) own-lesson requirement):**
+- Convergence implication tail: →9→9→9→9 (passes 70+71+72+73 = 9+9+9+9; canonical LENGTH=4 per D-433(e)+D-439(c))
+- Passes-range: "passes 70-73 all at axis=9; asymptotic floor [7,9] confirmed at upper-bound 9"
+
+**Convergence implication:** Asymptotic floor [7,9] confirmed at upper-bound 9. Pass-73 axis=9 (CRIT-001 + HIGH-001..004 + MED-001..003 + LOW-001 = 9 findings). Trajectory tail (LENGTH=4): →9→9→9→9. 34th consecutive multi-axis. Streak 0/3 unchanged per D-386 Option C. META-LEVEL ply ascending monotonically to 28. PR #124 merge remains gated. Structural break requires S-15.03 PRIORITY-A automation execution — PRESCRIBED_SITES registry automation (L28a), freshness-gate universal scope (L28b), canonical block-type labeling enforcement (L28c), and canonical bash-template-per-gate (L28d) are ALL structural: automation must (i) maintain a central derived-value→PRESCRIBED_SITES registry and validate completeness against it, (ii) re-execute ALL Dim-2 gates universally at push-time (not a subset), (iii) require site-class labels to match canonical block-type names, AND (iv) execute Dim-2 gates from stored templates, not hand-rolled commands.
+
+**Prediction pass-74 (future-tense per D-445(e)(i); LENGTH=4 tail per D-433(e)+D-439(c)+D-445(b)):**
+- Trajectory tail: →9→9→9→9 (passes 70-73; post-pass-73 canonical tail)
+- (i) D-453(a) PRESCRIBED_SITES enumeration-completeness gate self-application: **will D-453(a) gate be invoked with captured stdout AND the derived-value→PRESCRIBED_SITES registry at D-453(d) be used exhaustively?** Prediction: REFUTED (satisfied) if Commit E Dim-2 shows literal shell verifying PRESCRIBED_SITES against D-453(d) registry with zero gaps. CONFIRMED-VIOLATED if any site class in the registry is omitted from the pass-74 Commit E sweep.
+- (ii) D-453(b) freshness-gate universal scope: **will ALL Dim-2 captured-stdout gates be re-executed at push-time (not a subset)?** Prediction: REFUTED (satisfied) if Dim-2 attestation explicitly enumerates each gate re-executed at push-time and confirms empty-diff for each. CONFIRMED-VIOLATED if any gate is skipped or not explicitly accounted for.
+- (iii) D-453(c) canonical block-type labels: **will all PRESCRIBED_SITES enumerations in pass-74 burst-log use the canonical 9-block enumeration?** Prediction: REFUTED (satisfied) if "Dim-3/5/7" informal form does not appear and "Codifications" block is explicitly named. CONFIRMED-VIOLATED if informal Dim-N shorthand appears.
+- (iv) D-453(d) registry amendment: **will any new site class discovered at pass-74 trigger a D-NNN-bis appendix amendment?** Prediction: REFUTED (satisfied) if no new class emerges, or if any new class is immediately registered via amendment. CONFIRMED-VIOLATED if a new site class is identified as omitted and no amendment is filed.
+- (v) META-29 emergence forecast: **will D-453 self-application trigger META-29 at pass-74?** Prediction: META-29 CANDIDATE POSSIBLE if the canonical bash-template-per-gate (D-453(e)) approach is codified but template invocation at Dim-2 either (a) uses the template but the template itself has incorrect scope, (b) invokes templates for some gates but not all, or (c) the template storage path (`.factory/hooks/dim2-gates/`) is specified but the files are not yet created — resulting in "template referenced but not found" false-green via absent-file silent failure. Probability: MEDIUM-HIGH — absent-file silent failure is a known Bash anti-pattern (`[ -f <file> ] && bash <file> || echo "SKIP"` vs unconditional `bash <file>`).
+
+**Closes:** ADV-EDP1-P73-CRIT-001 + ADV-EDP1-P73-HIGH-001 + ADV-EDP1-P73-HIGH-002 + ADV-EDP1-P73-HIGH-003 + ADV-EDP1-P73-HIGH-004 + ADV-EDP1-P73-MED-001 + ADV-EDP1-P73-MED-002 + ADV-EDP1-P73-MED-003 + ADV-EDP1-P73-LOW-001 + PG-P73-001 + PG-P73-002 + PG-P73-003 (D-413(b) completeness mandate + D-447(d) parity + D-448(b) Closes block discipline — 9 findings + 3 PG = 12 closure items)

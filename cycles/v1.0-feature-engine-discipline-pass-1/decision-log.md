@@ -343,6 +343,119 @@ grep -c "D-379\\.\\.${HIGHEST_D}" STATE.md
 ```
 Stale umbrella range = MEDIUM per D-411(a). Closes ADV-EDP1-P72-LOW-001 + PG-P72-001 + PG-P72-002 + PG-P72-003.
 
+### D-453 (F5 pass-73 codification block; META-LEVEL-28 CANDIDATE CONFIRMED — meta-rule-codified-with-mechanical-gate-AND-explicit-PRESCRIBED_SITES-enumeration-but-PRESCRIBED_SITES-list-itself-INCOMPLETE-OR-freshness-gate-scope-NARROWER-than-validated-gate-scope-OR-site-class-labels-INFORMAL-not-matching-actual-document-structure ply)
+
+- **D-453(a)** META-LEVEL-28 CANDIDATE CONFIRMED ack + PRESCRIBED_SITES enumeration-completeness gate. Recursion ply L28 emerged at pass-73 — exactly as predicted by L-EDP1-064 prediction (v) at lessons.md:3527 with MEDIUM probability. Pass-72 D-452(d) enumerated 6 site classes (heading + body + trend-tables + 4-index changelogs + burst-log Dim-3/5/7 + STATE.md narrative) but OMITTED a critical 7th site class: **INDEX.md adversarial-review summary-table row cells** which carry per-pass layer-ordinal labels. INDEX.md:130 (pass-71 row) + :131 (pass-72 row) had stale layer-ordinals (61st/62nd respectively) that should have been 62nd/63rd. The mechanical PRESCRIBED_SITES loop ran correctly against the enumerated 6 classes but never touched the omitted 7th class. **Discipline:** For every Dim-2 derived-value gate, the PRESCRIBED_SITES enumeration MUST be exhaustively complete against a canonical derived-value→PRESCRIBED_SITES mapping table (codified at D-453(d)). NEW site classes discovered post-codification MUST trigger D-NNN-bis amendments. Mechanical gate that runs against an INCOMPLETE PRESCRIBED_SITES list = false-green per D-411(a). Codified regex per D-451(b) for D-453(a) verification (literal-shell at Commit E):
+```bash
+# Verify D-453 codification block is present in decision-log.md:
+grep -c "D-453(a)" /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md
+# MUST be ≥2 (heading + row)
+# Verify canonical derived-value→PRESCRIBED_SITES mapping table appended to decision-log.md appendix:
+grep -c "derived_value_classes" /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md
+# MUST be ≥1
+```
+
+- **D-453(b)** Freshness-gate scope = validated-gate scope. At pass-72 Commit E, D-452(c) freshness-revalidation gate re-executed only 2 of the ~6 Dim-2 gates (wc-l + git rev-parse). The D-452(a) per-site propagation counts were NOT re-validated; pass-73 fresh-context found STATE.md propagation count drifted from 10 → 13 and burst-log from 15 → 24 (content WRITTEN BY pass-72 Commit E itself AFTER the Dim-2 capture). **Discipline:** D-452(c) snapshot-freshness re-execution at push-time MUST cover EVERY Dim-2 gate that captured stdout, not a subset. Captured stdout snapshot freshness applies UNIVERSALLY. If 6 gates capture stdout at Dim-2 author-time, ALL 6 must be re-executed at push-time with empty-diff assertion. Codified regex per D-451(b):
+```bash
+# For each Dim-2 captured-stdout line, identify gate command + cited value.
+# Pattern: lines beginning with $ in code blocks within Dim-2 attestation section:
+grep -nE "^\\\$\s.*|^\\\$ " /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md | head -20
+# At push-time, re-run each identified gate; diff output against cited value.
+# Non-empty diff for any gate = FRESHNESS_GAP = HIGH per D-411(a).
+```
+
+- **D-453(c)** Site-class labels MUST match actual document structure. D-452(d) used informal labels like "burst-log Dim-3/5/7" but actual burst-log entries contain 9 distinct block types: Parent-commit + Adversary-verdict + Dim-1 (Files touched) + Codifications + Dim-2 + Dim-5 + Dim-6 + Dim-7 + Closes. The label "Dim-3/5/7" formally excludes Codifications block where L-EDP1-NNN anchor with layer-ordinal lives. **Discipline:** Site-class labels in PRESCRIBED_SITES enumerations MUST literally enumerate the actual document block types as they appear in the document, NOT abbreviated dimension-numbers. For burst-log, the canonical block enumeration is: `Parent-commit, Adversary-verdict, Files-touched (Dim-1), Codifications, Dim-2 (Attestation), Dim-5 (Attestation), Dim-6 (Attestation), Dim-7 (Attestation), Closes`. All 9 block types are valid site classes for layer-ordinal citations. Codified regex per D-451(b) — verify canonical block labels present in D-453 codification text:
+```bash
+grep -c "Parent-commit, Adversary-verdict, Files-touched (Dim-1), Codifications, Dim-2 (Attestation), Dim-5 (Attestation), Dim-6 (Attestation), Dim-7 (Attestation), Closes" \
+  /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md
+# MUST be ≥1 (the canonical enumeration is present in this codification)
+```
+
+- **D-453(d)** Canonical derived-value→PRESCRIBED_SITES mapping table. D-452 sub-clauses each defined ad-hoc PRESCRIBED_SITES lists with no central registry. Future derived values inherit the same omission risk. **Discipline:** Introduce a canonical registry as a markdown appendix in this decision-log.md (section "Derived-Value Site Registry"). One row per derived-value class; any new site class discovered during adversarial review triggers an append. The registry is the single source of truth for PRESCRIBED_SITES completeness checks. Template (to be instantiated in appendix section below this codification block):
+
+```yaml
+derived_value_classes:
+  - class: trajectory_tail
+    canonical_sot: cycles/v1.0-feature-engine-discipline-pass-1/INDEX.md Convergence Status row
+    prescribed_sites:
+      - STATE.md frontmatter current_step
+      - STATE.md Last Updated cell
+      - STATE.md Phase Progress rows (latest pass)
+      - STATE.md Concurrent Cycles row
+      - STATE.md Session Resume Section 1
+      - INDEX.md Convergence Status row
+      - INDEX.md adversarial-review summary-table rows (latest pass)  # added per D-453(a)
+      - burst-log latest-pass Dim-7 (Attestation)
+      - lessons.md latest-lesson trend-table
+  - class: layer_ordinal
+    canonical_sot: lessons.md latest-lesson heading
+    prescribed_sites:
+      - lessons.md latest-lesson heading + body
+      - lessons.md latest-lesson trend-tables
+      - lessons.md prior-lesson trend-tables (carrying value forward)
+      - 4-index (BC/VP/STORY/ARCH) changelog entries
+      - burst-log Parent-commit + Adversary-verdict + Files-touched (Dim-1) + Codifications + Dim-2 (Attestation) + Dim-5 (Attestation) + Dim-6 (Attestation) + Dim-7 (Attestation) + Closes
+      - STATE.md narrative citations
+      - INDEX.md adversarial-review summary-table row cells  # added per D-453(a)
+  - class: umbrella_d_range
+    canonical_sot: decision-log.md highest-numbered D-NNN row
+    prescribed_sites:
+      - STATE.md Decisions Log preamble umbrella cite
+      - cycle decision-log.md preamble (if cited)
+```
+
+Codified regex per D-451(b) — verify registry present in decision-log.md appendix:
+```bash
+grep -c "derived_value_classes" \
+  /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md
+# MUST be ≥1
+```
+
+- **D-453(e)** Canonical bash-template-per-Dim-2-gate (eliminate hand-rolled scope-narrowing) + META-LEVEL-28 acknowledgment. Pass-72 Dim-2 gates were hand-rolled grep commands invented at attestation time. Inevitable scope-narrowing with each hand-roll. **Discipline:** For every codified Dim-2 gate, store a canonical bash template in `.factory/hooks/dim2-gates/<gate-name>.sh` (or analogous fixture path). Burst-log Dim-2 attestation invokes the template by name + captures stdout. Hand-rolled gates that deviate from the stored template = HIGH per D-411(a). META-LEVEL-28 CANDIDATE CONFIRMED: meta-rule-codified-with-mechanical-gate-AND-explicit-PRESCRIBED_SITES-enumeration-but-PRESCRIBED_SITES-list-itself-INCOMPLETE-OR-freshness-gate-scope-NARROWER-than-validated-gate-scope-OR-site-class-labels-INFORMAL-not-matching-actual-document-structure. Differentiator from META-27: META-27 = "literal-shell output not propagated + snapshot staleness + scope exclusion"; META-28 = "PRESCRIBED_SITES enumeration mechanically applied but list itself incomplete OR freshness-gate scope narrower than validated-gate scope OR site-class labels informal (not matching actual document block type names)". Codified regex per D-451(b):
+```bash
+# Verify META-LEVEL-28 CANDIDATE CONFIRMED present in this codification:
+grep -c "META-LEVEL-28 CANDIDATE CONFIRMED" \
+  /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md
+# MUST be ≥2 (heading + D-453(e) body)
+```
+
+---
+
+### Derived-Value Site Registry (D-453(d) canonical appendix)
+
+```yaml
+derived_value_classes:
+  - class: trajectory_tail
+    canonical_sot: cycles/v1.0-feature-engine-discipline-pass-1/INDEX.md Convergence Status row
+    prescribed_sites:
+      - STATE.md frontmatter current_step
+      - STATE.md Last Updated cell
+      - STATE.md Phase Progress rows (latest pass)
+      - STATE.md Concurrent Cycles row
+      - STATE.md Session Resume Section 1
+      - INDEX.md Convergence Status row
+      - INDEX.md adversarial-review summary-table rows (latest pass)
+      - burst-log latest-pass Dim-7 (Attestation)
+      - lessons.md latest-lesson trend-table
+  - class: layer_ordinal
+    canonical_sot: lessons.md latest-lesson heading
+    prescribed_sites:
+      - lessons.md latest-lesson heading + body
+      - lessons.md latest-lesson trend-tables
+      - lessons.md prior-lesson trend-tables (carrying value forward)
+      - 4-index (BC/VP/STORY/ARCH) changelog entries
+      - burst-log Parent-commit + Adversary-verdict + Files-touched (Dim-1) + Codifications + Dim-2 (Attestation) + Dim-5 (Attestation) + Dim-6 (Attestation) + Dim-7 (Attestation) + Closes
+      - STATE.md narrative citations
+      - INDEX.md adversarial-review summary-table row cells
+  - class: umbrella_d_range
+    canonical_sot: decision-log.md highest-numbered D-NNN row
+    prescribed_sites:
+      - STATE.md Decisions Log preamble umbrella cite
+      - cycle decision-log.md preamble (if cited)
+```
+
+---
+
 | D-448(a/b/c/d/e) | META-LEVEL-23 source-attestation + lessons Closes block + prediction body consistency + cardinality+umbrella sweep + multi-issue consolidation | META-LEVEL-23 CANDIDATE CONFIRMED ack; closes F-P68-CRIT-001 + F-P68-HIGH-001..004 + F-P68-MED-001..003 + F-P68-LOW-001 + PG-P68-001..003 | F5 pass-68 | 2026-05-13 | state-manager |
 
 | D-449(a/b/c/d/e) | META-LEVEL-24 literal-shell-execution + Dim-7 tally timing + ply-cite+status-tier discipline + 4-index Refs scope + Active Branches scope clarification | META-LEVEL-24 CANDIDATE CONFIRMED ack; closes F-P69-CRIT-001 + F-P69-HIGH-001..004 + F-P69-MED-001..003 + F-P69-LOW-001 + PG-P69-001..003 | F5 pass-69 | 2026-05-13 | state-manager |
@@ -352,3 +465,5 @@ Stale umbrella range = MEDIUM per D-411(a). Closes ADV-EDP1-P72-LOW-001 + PG-P72
 | D-451 | META-LEVEL-26 CANDIDATE CONFIRMED ack + meta-recursion-ack-itself-literal-shell-attestation discipline + verification-regex-MUST-match-rule-scope (specified in codification text) + trajectory-tail derivation discipline (pre-prescription semantic gate) + layer-numbering semantic disambiguation (L-EDP1-003 recurrence count) + production-grade-fix introduces-new-defects gate (cross-validate new content against authoritative external source) (5 sub-clauses: D-451(a) META-26 ack + meta-recursion-ack-literal-shell, D-451(b) verification-regex-inline-scope, D-451(c) trajectory-tail derivation, D-451(d) layer-numbering disambiguation, D-451(e) production-grade-fix cross-validation). L-EDP1-063 62nd-layer META-LEVEL-26 CANDIDATE CONFIRMED. Closes ADV-EDP1-P71-CRIT-001, ADV-EDP1-P71-HIGH-001, ADV-EDP1-P71-HIGH-002, ADV-EDP1-P71-HIGH-003, ADV-EDP1-P71-HIGH-004, ADV-EDP1-P71-MED-001, ADV-EDP1-P71-MED-002, ADV-EDP1-P71-MED-003, ADV-EDP1-P71-LOW-001, PG-P71-001, PG-P71-002, PG-P71-003 (per D-413(b) completeness mandate) | d3cd89c3 / 69ba6640 (parent commits per D-419(b)+D-445(d) — pass-71 Commit A SHA / pass-70 Commit D canonical-parent SHA) | F5 pass-71 | 2026-05-13 | state-manager |
 
 | D-452 | META-LEVEL-27 CANDIDATE CONFIRMED ack + post-derivation propagation-completeness gate + Layer-N consistency dual-direction sweep + captured-stdout-snapshot-freshness gate + Layer-N scope extension to lesson trend-tables + 4-index changelogs + burst-log cells + STATE.md narrative + STATE.md Decisions Log umbrella range auto-advance verification (5 sub-clauses: D-452(a) META-27 ack + propagation-completeness gate, D-452(b) Layer-N dual-direction sweep, D-452(c) captured-stdout-snapshot-freshness gate, D-452(d) Layer-N scope extension to trend-tables+4-index+burst-log+STATE.md, D-452(e) Decisions Log umbrella range auto-advance). L-EDP1-064 63rd-layer META-LEVEL-27 CANDIDATE CONFIRMED. Closes ADV-EDP1-P72-CRIT-001, ADV-EDP1-P72-HIGH-001, ADV-EDP1-P72-HIGH-002, ADV-EDP1-P72-HIGH-003, ADV-EDP1-P72-HIGH-004, ADV-EDP1-P72-MED-001, ADV-EDP1-P72-MED-002, ADV-EDP1-P72-MED-003, ADV-EDP1-P72-LOW-001, PG-P72-001, PG-P72-002, PG-P72-003 (per D-413(b) completeness mandate) | ed7c11dd / 79c731c3 (parent commits per D-419(b)+D-445(d) — pass-72 Commit A SHA / pass-71 Commit D canonical-parent SHA) | F5 pass-72 | 2026-05-13 | state-manager |
+
+| D-453 | META-LEVEL-28 CANDIDATE CONFIRMED ack + PRESCRIBED_SITES enumeration-completeness gate + freshness-gate scope = validated-gate scope + site-class labels MUST match actual document structure + canonical derived-value→PRESCRIBED_SITES mapping table + canonical bash-template-per-Dim-2-gate (5 sub-clauses; see decision-log.md SoT). L-EDP1-065 64th-layer META-LEVEL-28 CANDIDATE CONFIRMED. Closes ADV-EDP1-P73-CRIT-001, ADV-EDP1-P73-HIGH-001, ADV-EDP1-P73-HIGH-002, ADV-EDP1-P73-HIGH-003, ADV-EDP1-P73-HIGH-004, ADV-EDP1-P73-MED-001, ADV-EDP1-P73-MED-002, ADV-EDP1-P73-MED-003, ADV-EDP1-P73-LOW-001, PG-P73-001, PG-P73-002, PG-P73-003 (per D-413(b) completeness mandate) | 27e1ad0e / c777d8a8 (parent commits per D-419(b)+D-445(d) — pass-73 Commit A SHA / pass-72 Commit D canonical-parent SHA) | F5 pass-73 | 2026-05-13 | state-manager |
