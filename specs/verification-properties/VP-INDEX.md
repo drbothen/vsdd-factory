@@ -1,7 +1,7 @@
 ---
 document_type: vp-index
 level: L4
-version: "1.87"
+version: "1.88"
 status: draft
 producer: state-manager
 timestamp: 2026-05-13T00:00:00Z
@@ -10,6 +10,8 @@ phase: F5
 traces_to: ARCH-INDEX.md
 total_vps: 80
 changelog:
+  - date: 2026-05-13
+    change: "v1.88 (2026-05-13; pass-69 fix burst per D-449 + D-404 unconditional): Acknowledges decision range D-389..D-449 (inclusive; literal acknowledgment per D-415(c); sample; see decision-log.md for full range D-389..D-449 per D-441(c)+D-442(c) sample-vs-exhaustive citation policy). Per D-404 unconditional: index acknowledges D-449(a/b/c/d/e) by literal ID (no spec content change in this changelog entry). Refs: F-P69-CRIT-001, F-P69-HIGH-001/002/003/004, F-P69-MED-001/002/003, F-P69-LOW-001, PG-P69-001/002/003, D-449. [O-P69-001/002/003 trimmed per D-449(d)(i): observations are discovery-tier, not Refs-scope.] META-LEVEL-24 CANDIDATE CONFIRMED; L-EDP1-061 60th-layer 30th-consecutive multi-axis; rule-codification-via-pseudocode-narrative-without-literal-shell-execution-evidence ply (sample; see decision-log.md for full range D-389..D-449 per D-441(c)+D-442(c) sample-vs-exhaustive citation policy). VP-INDEX v1.87→v1.88."
   - date: 2026-05-13
     change: "v1.87 (2026-05-13; pass-68 fix burst per D-448 + D-404 unconditional): Acknowledges decision range D-389..D-448 (inclusive; literal acknowledgment per D-415(c); sample; see decision-log.md for full range D-389..D-448 per D-441(c)+D-442(c) sample-vs-exhaustive citation policy). Per D-404 unconditional: index acknowledges D-448(a/b/c/d/e) by literal ID (no spec content change in this changelog entry). Refs: F-P68-CRIT-001, F-P68-HIGH-001/002/003/004, F-P68-MED-001/002/003, F-P68-LOW-001, PG-P68-001/002/003, D-448. [O-P68-001/002/003 trimmed per D-449(d)(i): observations are discovery-tier, not Refs-scope.] META-LEVEL-23 CANDIDATE CONFIRMED; L-EDP1-060 59th-layer 29th-consecutive multi-axis; rule-codification-without-self-application-in-codifying-burst-OWN-newly-created-meta-artifact ply (sample; see decision-log.md for full range D-389..D-448 per D-441(c)+D-442(c) sample-vs-exhaustive citation policy). VP-INDEX v1.86→v1.87."
   - date: 2026-05-13
