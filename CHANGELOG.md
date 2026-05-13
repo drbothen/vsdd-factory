@@ -1,5 +1,274 @@
 # Changelog
 
+## 1.0.0-rc.18 — research-agent MCP fix + S-12 convergence context migration (rc.17 retry) (2026-05-13)
+
+**rc.18 is a retry of rc.17.** Tag `v1.0.0-rc.17` was pushed on
+2026-05-13 but its `Pre-release Validation` job failed on a single
+sanity test in `resolver-host-abi-context-injection.bats` — the test
+capped HOST_ABI.md's `## Context Injection Contract` section at 400
+lines, but the section had legitimately settled at ~475 lines once
+the S-12.x ABI documentation shipped. No GitHub Release was created
+for rc.17; the source content (the research-agent MCP fix and the
+S-12.x resolver work) is on main but operators never received the
+binaries or marketplace bump.
+
+rc.18 carries the same content as rc.17 plus a one-line fix to the
+sanity test ceiling (400 → 600) so the release pipeline can complete.
+A latent CI gap was also noted: `ci.yml`'s `validate` job only runs
+three bats files, while `release.yml`'s `Pre-release Validation` runs
+the full `run-all.sh`. The S-12.06 sanity test belonged to the latter
+only, so develop CI was green through merge. A separate follow-up
+should mirror `run-all.sh` into `ci.yml` to close the gap.
+
+The substantive headline content (carried over from rc.17):
+
+- **research-agent MCP fix** — Perplexity tool names in the agent's
+  allowlist now match what `@perplexity-ai/mcp-server` publishes;
+  Tavily tools are now allowed for cross-validation.
+- **S-12.x convergence context migration** — closes F-P2-001
+  (critical-path terminus). The `validate-per-story-adversary-convergence`
+  hook now consumes wave context through `WaveContextResolver`
+  instead of a side-channel fallback. New `vsdd-context-resolvers`
+  crate ships as a first-class WASM plugin; `ContextResolver` trait,
+  `ResolverRegistry`, and hook-sdk resolver-authoring macros enter
+  the public SDK surface.
+
+### Fixed
+
+- **`plugins/vsdd-factory/tests/resolver-host-abi-context-injection.bats`**
+  (PR #134): `sanity: Context Injection Contract section is between
+  100 and 400 lines` raised to 100–600. The 400-line ceiling was an
+  early S-12.06 estimate, not a spec invariant; the section is
+  currently 475 lines (legitimate ABI documentation including
+  resolver lifecycle, host fns, registry schema, error envelope,
+  and worked examples). Caught by `release.yml`'s `Pre-release
+  Validation` during the rc.17 cut.
+
+- **`plugins/vsdd-factory/agents/research-agent.md`** (PR #127,
+  closes #126; carried over from rc.17): four Perplexity MCP tools
+  now resolve. The allowlist previously named
+  `mcp__perplexity__deep_research` (and three similarly-stale
+  names) but `@perplexity-ai/mcp-server` publishes
+  `mcp__perplexity__perplexity_research`. Every research-agent
+  dispatch silently lost Perplexity access; Context7 tools were
+  unaffected because their names already matched. The fix updates
+  the allowlist, the Perplexity section body docs, the new Tavily
+  section, the Research Methods table, and the Tool Access list,
+  with an inline note on the `perplexity_` prefix to prevent the
+  stale-name pattern from creeping back in.
+
+### Added
+
+- **Tavily MCP allowlist** (PR #127; carried over from rc.17): five
+  Tavily tools (`tavily_search`, `tavily_research`, `tavily_extract`,
+  `tavily_crawl`, `tavily_map`) are now permitted for the
+  research-agent, enabling cross-validation against a second
+  research backend when both `@perplexity-ai/mcp-server` and the
+  Tavily MCP server are configured in the operator's `.mcp.json`.
+
+- **`crates/vsdd-context-resolvers`** (PR #122, S-12.07; carried
+  over from rc.17): new workspace crate housing
+  `WaveContextResolver`, the first concrete resolver implementation.
+  Provides wave-context extraction (active wave, story list, schema
+  validation) used by the convergence hook to ground its decisions.
+
+- **`hook-sdk` resolver-authoring extensions** (PR #119, S-12.05;
+  carried over from rc.17): new types and macros in the public SDK
+  surface so hook authors can declare resolver dependencies, type
+  their needs, and receive schema-validated context payloads. Backs
+  the `needs_context` pattern adopted by
+  `validate-per-story-adversary-convergence`.
+
+- **`ContextResolver` trait + `ResolverRegistry`** (PR #120,
+  S-12.03; carried over from rc.17): trait abstraction and registry
+  that lets the dispatcher load resolver WASM plugins, route context
+  requests by name, and return strongly-typed payloads to consuming
+  hooks.
+
+- **WASM resolver loading + lifecycle + error isolation** (PR #121,
+  S-12.04; carried over from rc.17): dispatcher infrastructure to
+  load resolver plugins, manage their lifecycle (init, invoke,
+  teardown), and isolate errors so a bad resolver cannot poison the
+  dispatcher process. Includes determinism property tests and
+  load-time error tests.
+
+### Changed
+
+- **`validate-per-story-adversary-convergence` hook** (PR #123,
+  S-12.08; carried over from rc.17): now consumes wave context
+  through the resolver pipeline instead of the legacy side-channel
+  fallback. The hook's `needs_context` declaration wires it to
+  `WaveContextResolver` at registration time; convergence decisions
+  now use the schema-validated wave payload directly. The old
+  fallback path is removed — there is one path now, not two.
+
+- **`hooks-registry.toml`** (carried over from rc.17): registers the
+  new `vsdd-context-resolvers.wasm` plugin and updates the
+  convergence hook entry to declare its resolver dependency.
+
+### Operational
+
+- **rc.17 left as a dead tag**: `v1.0.0-rc.17` exists in the repo's
+  tag list but has no GitHub Release attached (the `release` job in
+  the workflow was skipped after `validate` failed). The tag's
+  commit on main (`193bf9b5`) carries the source content rc.17 was
+  trying to ship; rc.18 is the actual ship. Operators on
+  `claude-mp` resolve to rc.18 directly — there is no rc.17 to skip
+  over because no marketplace bump PR was opened.
+
+- **F-P2-001 (critical-path terminus) closed**: with rc.18, the
+  S-12.x resolver epic is functionally complete. Operators no
+  longer need to worry about the legacy fallback masking missing
+  wave context — the convergence hook fails closed if its resolver
+  cannot return a valid payload.
+
+- **Cache implications**: operators upgrading from rc.16 will see
+  one new plugin in their cache (`vsdd-context-resolvers.wasm`) and
+  an updated `validate-per-story-adversary-convergence.wasm`. The
+  dispatcher binary is unchanged in schema; no manual cache fix is
+  required (unlike rc.14).
+
+- **CI gap identified, not fixed in this rc**: `ci.yml`'s `validate`
+  job runs only `hooks.bats`, `block-helper.bats`, and `bin.bats`,
+  while `release.yml`'s `Pre-release Validation` runs the full
+  `run-all.sh`. Tests added under `run-all.sh` only (like the S-12.06
+  sanity test) are not exercised on develop PRs. A follow-up should
+  mirror `run-all.sh` into `ci.yml` so this class of failure is
+  caught before tag time.
+
+### Migration
+
+No breaking changes for end-users. Hook authors writing new plugins
+can now opt into resolver-based context via the `needs_context`
+declaration; existing plugins continue to work without modification.
+
+### Deferred
+
+- Additional resolver implementations beyond `WaveContextResolver`
+  (cycle, sprint, project context) remain on the S-12.x backlog and
+  will ship in subsequent rcs as they pass per-story delivery.
+
+- Mirror `bats run-all.sh` into `ci.yml`'s `validate` job (or split
+  it into a dedicated `run-all-bats` job) so develop CI catches
+  full-suite failures before release time. Tracked as a follow-up.
+
+## 1.0.0-rc.17 — research-agent MCP fix + S-12 convergence context migration (2026-05-12)
+
+The headline of rc.17 is a small but high-impact bug fix to the
+`research-agent` agent definition: the Perplexity MCP tool names in
+its allowlist did not match the names that `@perplexity-ai/mcp-server`
+actually publishes, so every research dispatch silently lost Perplexity
+access and fell back to `WebSearch`/`WebFetch` without surfacing an
+error. The four real tool names (`perplexity_ask`, `perplexity_search`,
+`perplexity_reason`, `perplexity_research`) are now wired correctly,
+and the five Tavily MCP tools (`tavily_search`, `tavily_research`,
+`tavily_extract`, `tavily_crawl`, `tavily_map`) join the allowlist so
+research-agent can use Tavily as a cross-validation source.
+
+Riding alongside the agent fix is the S-12.x **convergence context
+migration**, which closes F-P2-001 — the critical-path terminus of
+the resolver work. The convergence hook
+(`validate-per-story-adversary-convergence`) now consumes its wave
+context through the new `WaveContextResolver` rather than a fragile
+side-channel fallback, completing the contract-resolver architecture
+introduced over S-12.03 → S-12.08. The new `vsdd-context-resolvers`
+crate ships as a first-class WASM plugin, the `ContextResolver` trait
+and `ResolverRegistry` are now part of the public hook-sdk surface,
+WASM resolver loading/lifecycle/error-isolation is in place, and the
+hook-sdk macro extensions for authoring resolvers ship. The old
+fallback path is removed; all convergence decisions now flow through
+the resolver pipeline.
+
+### Fixed
+
+- **`plugins/vsdd-factory/agents/research-agent.md`** (PR #127,
+  closes #126): four Perplexity MCP tools now resolve. The allowlist
+  previously named `mcp__perplexity__deep_research` (and three
+  similarly-stale names) but `@perplexity-ai/mcp-server` publishes
+  `mcp__perplexity__perplexity_research`. Every research-agent
+  dispatch silently lost Perplexity access; Context7 tools were
+  unaffected because their names already matched. The fix updates
+  the allowlist, the Perplexity section body docs, the new Tavily
+  section, the Research Methods table, and the Tool Access list,
+  with an inline note on the `perplexity_` prefix to prevent the
+  stale-name pattern from creeping back in.
+
+### Added
+
+- **Tavily MCP allowlist** (PR #127): five Tavily tools
+  (`tavily_search`, `tavily_research`, `tavily_extract`,
+  `tavily_crawl`, `tavily_map`) are now permitted for the
+  research-agent, enabling cross-validation against a second
+  research backend when both `@perplexity-ai/mcp-server` and the
+  Tavily MCP server are configured in the operator's `.mcp.json`.
+
+- **`crates/vsdd-context-resolvers`** (PR #122, S-12.07): new
+  workspace crate housing `WaveContextResolver`, the first concrete
+  resolver implementation. Provides wave-context extraction
+  (active wave, story list, schema validation) used by the
+  convergence hook to ground its decisions.
+
+- **`hook-sdk` resolver-authoring extensions** (PR #119, S-12.05):
+  new types and macros in the public SDK surface so hook authors can
+  declare resolver dependencies, type their needs, and receive
+  schema-validated context payloads. Backs the `needs_context`
+  pattern adopted by `validate-per-story-adversary-convergence`.
+
+- **`ContextResolver` trait + `ResolverRegistry`** (PR #120,
+  S-12.03): trait abstraction and registry that lets the dispatcher
+  load resolver WASM plugins, route context requests by name, and
+  return strongly-typed payloads to consuming hooks.
+
+- **WASM resolver loading + lifecycle + error isolation** (PR #121,
+  S-12.04): dispatcher infrastructure to load resolver plugins,
+  manage their lifecycle (init, invoke, teardown), and isolate
+  errors so a bad resolver cannot poison the dispatcher process.
+  Includes determinism property tests and load-time error tests.
+
+### Changed
+
+- **`validate-per-story-adversary-convergence` hook** (PR #123,
+  S-12.08): now consumes wave context through the resolver pipeline
+  instead of the legacy side-channel fallback. The hook's
+  `needs_context` declaration wires it to `WaveContextResolver` at
+  registration time; convergence decisions now use the
+  schema-validated wave payload directly. The old fallback path is
+  removed — there is one path now, not two.
+
+- **`hooks-registry.toml`**: registers the new
+  `vsdd-context-resolvers.wasm` plugin and updates the convergence
+  hook entry to declare its resolver dependency.
+
+### Operational
+
+- **F-P2-001 (critical-path terminus) closed**: with rc.17, the S-12.x
+  resolver epic is functionally complete. Operators no longer need to
+  worry about the legacy fallback masking missing wave context — the
+  convergence hook fails closed if its resolver cannot return a valid
+  payload.
+
+- **Cache implications**: operators upgrading from rc.16 will see one
+  new plugin in their cache (`vsdd-context-resolvers.wasm`) and an
+  updated `validate-per-story-adversary-convergence.wasm`. The
+  dispatcher binary is unchanged in schema; no manual cache fix is
+  required (unlike rc.14).
+
+- **No procedural changes** to RELEASING.md — rc.17 is cut by
+  following rc.16's procedure verbatim. This is the second release
+  governed entirely by RELEASING.md and the release-branch guardrail.
+
+### Migration
+
+No breaking changes for end-users. Hook authors writing new plugins
+can now opt into resolver-based context via the `needs_context`
+declaration; existing plugins continue to work without modification.
+
+### Deferred
+
+- Additional resolver implementations beyond `WaveContextResolver`
+  (cycle, sprint, project context) remain on the S-12.x backlog and
+  will ship in subsequent rcs as they pass per-story delivery.
+
 ## Unreleased
 
 ## 1.0.0-rc.16 — RELEASING.md procedural infrastructure + TD #69 guardrail (2026-05-10)
