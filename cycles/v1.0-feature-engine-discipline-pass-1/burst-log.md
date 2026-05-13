@@ -4033,3 +4033,47 @@ Additional Dim-2 grep verifications:
 ## Burst: F5 pass-66 fix burst (2026-05-13)
 
 (Pass-66 fix burst codifies D-446(a/b/c/d/e) closing F-P66-001..F-P66-009 + PG-P66-001..002; L-EDP1-058 57th-layer META-LEVEL-21 CANDIDATE CONFIRMED 27th-consecutive multi-axis rule-codification-without-self-application-in-codifying-burst-OWN-burst-log ply.)
+
+**Parent-commit:** `59873fbe` (state-manager Commit D; parent-commit `59873fbe` per D-419(b)+D-420(d)+D-421(a))
+
+**Adversary verdict:** HIGH (1C+4H+2M+2L=9 + 2 PG + 2 obs); META-LEVEL-21 CANDIDATE CONFIRMED (rule-codification-without-self-application-in-codifying-burst-OWN-burst-log ply); 57th-layer 27th-consecutive multi-axis
+
+**Files touched (Dim-1):**
+- adv-cycle-pass-66.md (persist; prior commits)
+- burst-log.md (pass-65 retroactive completion at Commit A; pass-66 8-block completion at Commit E per D-446(a))
+- STATE.md (Active Branches advance; Decisions Log D-446 row; Phase Progress pass-66 row; Concurrent Cycles tail; Session Resume Checkpoint; banner dual-margin; line-growth tracker; current_step; Last Updated; Current Phase)
+- INDEX.md (pass-66 Convergence Status: BC v2.09/VP v1.85/STORY v3.10/ARCH v1.90)
+- decision-log.md (D-446(a/b/c/d/e) prose + canonical 6-column row)
+- lessons.md (L-EDP1-058 entry; L-EDP1-057 corrigendum META-LEVEL-21 ack)
+- 4 indexes: BC-INDEX v2.08→v2.09 / VP-INDEX v1.84→v1.85 / STORY-INDEX v3.09→v3.10 / ARCH-INDEX v1.89→v1.90
+- S-15.03 (header D-411..D-446; D-446(a/b/c/d/e) sub-items appended)
+
+**Codifications:**
+- D-446(a) Own-burst-log 8-block gate (codifying burst OWN burst-log entry MUST have all 8 D-444(c) blocks before Commit E push)
+- D-446(b) META-LEVEL-21 CONFIRMED (rule-codification-without-self-application-in-codifying-burst-OWN-burst-log ply; 57th-layer 27th-consecutive)
+- D-446(c) Banner dual-margin MANDATORY (500 - SOFT_TARGET AND 500 - ACTUAL_LINES both cited)
+- D-446(d) SHA-canonicality — no TBD placeholders; Active Branches in Commit D atomic transaction per D-445(c)
+- D-446(e) Decisions Log single-row schema (D-445 multi-row was schema violation; 1 row per D-NNN canonical)
+- L-EDP1-058 (57th layer; 27th consecutive multi-axis; META-LEVEL-21 CANDIDATE CONFIRMED — rule-codification-without-self-application-in-codifying-burst-OWN-burst-log ply)
+
+**Dim-2 Attestation:**
+- D-443(a)+D-444(a)(i) diff gate INVOKED at pass-66 Commit E (see STATE.md current_step prescribed body vs actual):
+  ```bash
+  diff <(echo 'F5 pass-66 fix burst COMPLETE (HIGH→PENDING_NEXT_PASS; D-446 codified (5 sub-clauses); L-EDP1-058 57th-layer META-LEVEL-21-CANDIDATE-CONFIRMED 27th-consecutive multi-axis; 4 indexes D-389..D-446 (BC v2.09 / VP v1.85 / STORY v3.10 / ARCH v1.90); trajectory →9→9→9→9; streak 0/3; parent-commit 59873fbe)') <(grep "^current_step:" /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md | sed -e 's/^current_step: //' -e 's/^"//' -e 's/"$//')
+  ```
+  Output: empty (character-for-character identical). META-LEVEL-19 maintained CLOSED.
+- `grep -c "^| D-446" /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md` → verified at Commit E author-time (D-446 row present)
+- `grep -c "L-EDP1-058" /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-feature-engine-discipline-pass-1/lessons.md` → verified at Commit E author-time (heading + body citations present)
+- `grep -c "D-411 through D-446" /Users/jmagady/Dev/vsdd-factory/.factory/stories/S-15.03-index-cite-refresh-hook.md` → 1
+
+**Dim-5 Attestation (D-445(a) cross-cell completeness — all findings enumerated):** Closes F-P66-001 (CRITICAL), F-P66-002, F-P66-003, F-P66-004, F-P66-006, F-P66-007, F-P66-008, F-P66-009, PG-P66-001, PG-P66-002 (10 closures; F-P66-005 demoted to LOW pending intent verification per adversary self-validation; per D-413(b) completeness mandate).
+
+**Dim-6 Attestation (D-444(c) burst-log h2 own-burst real-time + D-446(a) gate):** Pass-65 h2 heading retroactively completed at Commit A of pass-66 burst per D-446(a) prior-pass closure. Pass-66 own burst-log 8-block gate INVOKED at Commit E (this very block satisfies META-LEVEL-21 OWN-burst self-application — the codifying burst's burst-log entry receives all 8 blocks before Commit E push). D-446(a) self-application ACHIEVED IN REAL TIME.
+
+**Dim-7 Attestation (cardinality alignment per D-444(d)+D-445(b)):** Trajectory tail →9→9→9→9 (LENGTH=4 per D-433(e)+D-439(c)); "8 consecutive passes at axis=9 (passes 59-66)" narrative per D-444(d)+D-445(b) cardinality alignment; streak 0/3 NITPICK_ONLY.
+
+**Closes (per D-413(b) completeness):** F-P66-001 (CRITICAL) + F-P66-002 + F-P66-003 + F-P66-004 + F-P66-006 + F-P66-007 + F-P66-008 + F-P66-009 + PG-P66-001 + PG-P66-002 (10 closures total; F-P66-005 demoted to LOW pending intent verification)
+
+**Factory-artifacts commits:** A `b4d7082a` / B `e03e6720` / C `40d37f17` / D `59873fbe` / E `<Commit-E-SHA-post-push>`
+
+**(D-446(a) self-application at Commit E: own-burst-log 8-block gate INVOKED — META-LEVEL-21 in-progress closure. All 8 D-444(c) blocks present before Commit E push. Acknowledged per D-414(c) corrigendum: original pass-66 entry at Commit A had only h2 + parenthetical.)**
