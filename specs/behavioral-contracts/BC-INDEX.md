@@ -1,7 +1,7 @@
 ---
 document_type: bc-index
 level: L3
-version: "2.03"
+version: "2.04"
 status: draft
 producer: state-manager
 timestamp: 2026-05-12T00:00:00Z
@@ -12,6 +12,8 @@ inputs:
 total_bcs: 1949
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-12
+    change: "v2.04 (2026-05-12; pass-61 fix burst per D-441 + D-404 unconditional): Acknowledges decision range D-389..D-441 (inclusive; literal acknowledgment per D-415(c)). Per D-404 unconditional: index acknowledges D-441(a/b/c/d/e) by literal ID (no spec content change in this changelog entry). Refs: F-P61-001/002/003/004/005/006/007, D-441. META-LEVEL-16 CONFIRMED; L-EDP1-053 52nd-layer 22nd-consecutive multi-axis; content-correct/form-divergent ply. BC-INDEX v2.03→v2.04."
   - date: 2026-05-12
     change: "v2.03 (2026-05-12; pass-60 fix burst per D-440 + D-404 unconditional): Acknowledges decision range D-389..D-440 (inclusive; literal acknowledgment per D-415(c)). Per D-404 unconditional: index acknowledges D-440(a/b/c/d/e) by literal ID (no spec content change in this changelog entry). Refs: ADV-EDP1-P60-HIGH-001/002/003/004/MED-001/002/003/LOW-001/002, D-440. META-LEVEL-15 CANDIDATE CONFIRMED; L-EDP1-052 51st-layer 21st-consecutive multi-axis. BC-INDEX v2.02→v2.03."
   - date: 2026-05-12
