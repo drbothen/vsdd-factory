@@ -1,7 +1,7 @@
 ---
 document_type: architecture-index
 level: L3
-version: "1.93"
+version: "1.94"
 status: accepted
 producer: architect
 timestamp: 2026-05-13T00:00:00Z
@@ -17,6 +17,8 @@ inputs:
 traces_to: phase-1-spec-crystallization
 deployment_topology: single-service
 changelog:
+  - date: 2026-05-13
+    change: "v1.94 (2026-05-13; pass-70 fix burst per D-450 + D-404 unconditional): Acknowledges decision range D-389..D-450 (inclusive; literal acknowledgment per D-415(c); sample; see decision-log.md for full range D-389..D-450 per D-441(c)+D-442(c) sample-vs-exhaustive citation policy). Per D-404 unconditional: index acknowledges D-450(a/b/c/d/e) by literal ID (no spec content change in this changelog entry). Refs: ADV-EDP1-P70-CRIT-001, ADV-EDP1-P70-HIGH-001/002/003/004, ADV-EDP1-P70-MED-001/002/003, ADV-EDP1-P70-LOW-001, PG-P70-001/002/003, D-450. [O-P70-001/002/003 trimmed per D-449(d)(i): observations are discovery-tier, not Refs-scope.] META-LEVEL-25 CANDIDATE CONFIRMED; L-EDP1-062 62nd-layer 31st-consecutive multi-axis; rule-codification-with-literal-shell-execution-on-PRIMARY-rule-without-co-application-of-same-mechanical-rigor-to-SIBLING-rules-codified-in-same-burst ply (sample; see decision-log.md for full range D-389..D-450 per D-441(c)+D-442(c) sample-vs-exhaustive citation policy). ARCH-INDEX v1.93→v1.94."
   - date: 2026-05-13
     change: "v1.93 (2026-05-13; pass-69 fix burst per D-449 + D-404 unconditional): Acknowledges decision range D-389..D-449 (inclusive; literal acknowledgment per D-415(c); sample; see decision-log.md for full range D-389..D-449 per D-441(c)+D-442(c) sample-vs-exhaustive citation policy). Per D-404 unconditional: index acknowledges D-449(a/b/c/d/e) by literal ID (no spec content change in this changelog entry). Refs: F-P69-CRIT-001, F-P69-HIGH-001/002/003/004, F-P69-MED-001/002/003, F-P69-LOW-001, PG-P69-001/002/003, D-449. [O-P69-001/002/003 trimmed per D-449(d)(i): observations are discovery-tier, not Refs-scope.] META-LEVEL-24 CANDIDATE CONFIRMED; L-EDP1-061 60th-layer 30th-consecutive multi-axis; rule-codification-via-pseudocode-narrative-without-literal-shell-execution-evidence ply (sample; see decision-log.md for full range D-389..D-449 per D-441(c)+D-442(c) sample-vs-exhaustive citation policy). ARCH-INDEX v1.92→v1.93."
   - date: 2026-05-13
