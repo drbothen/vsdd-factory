@@ -186,3 +186,85 @@ policies:
       - "For each FLAGGED row in the Advisories section, treat as a blocking finding"
       - "Recognized opt-outs: BC frontmatter `tv_emitter_check: skip` or `tv_emitter_check: manual`, OR row notes column says 'field tolerated when present'"
       - "Reference fixtures: ${CLAUDE_PLUGIN_ROOT}/skills/validate-consistency/fixtures/bc-tv-consistency/"
+
+  - id: 13
+    name: hh_n_regex_alternation_predicates
+    description: "Pre-fix scope-determination grep predicates MUST use regex-alternation (-E flag with | alternation) covering all syntactic forms of canonical-violation pattern, not single literal strings. Each predicate covers all permutations (table-cell vs heading vs prose vs lowercase descriptive)."
+    adopted: "2026-05-14 (E-10 pass-13 fix burst D-468; codifies HH-4 structural resolution from pass-13 §7)"
+    severity: HIGH
+    enforced_by: [adversary-prompt, architect-prompt, state-manager-prompt]
+    scope: [bc, vp, story, epic, architecture, all-spec]
+    lint_hook: null
+    verification_steps:
+      - "Adversary: when surfacing a canonical-violation finding, predicate must use regex-alternation grep (-E flag with alternation), not single literal string"
+      - "Architect: pre-fix scope-determination grep at fix-burst time must use HH-N predicate with regex-alternation covering all syntactic forms"
+      - "State-manager: post-fix verification grep must use the same regex-alternation form; verbatim stdout captured per POLICY 15 (LL-N)"
+
+  - id: 14
+    name: kk_n_tripartite_parity_gate
+    description: "When a body changelog row is added with version v(N+1), the same burst MUST sync frontmatter last_amended: (today's date) AND append to modified: array. Body changelog, last_amended, and modified[] are TRIPARTITE-PARITY and must all match same-burst."
+    adopted: "2026-05-14 (D-468; codifies KK-2 tripartite-parity from E-10 pass-11/12 discipline)"
+    severity: HIGH
+    enforced_by: [state-manager-prompt, consistency-validator, pre-commit-hook]
+    scope: [bc, vp, story, epic]
+    lint_hook: null
+    verification_steps:
+      - "For each file with body Changelog section, verify latest row date matches frontmatter last_amended:"
+      - "Verify frontmatter modified: array's last entry corresponds to latest body Changelog row"
+      - "Verify frontmatter version: matches body Changelog row's version cell"
+      - "All three must be updated in the same burst — no deferred-frontmatter pattern"
+
+  - id: 15
+    name: ll_n_verbatim_stdout_discipline
+    description: "Literal-shell evidence at persistence layer (changelog rows, decision-log rows, commit bodies) MUST include both command verbatim AND captured file:line: stdout verbatim, OR sentinel '(zero output)' / '(EXIT:1; no matches)'. Narrative paraphrase of grep outcomes is NOT compliant."
+    adopted: "2026-05-14 (D-468; codifies LL-3 strict-form elevating LL-2 hybrid-command+narrative-output to full file:line: requirement)"
+    severity: HIGH
+    enforced_by: [adversary-prompt, state-manager-prompt, consistency-validator]
+    scope: [arch-index, bc-index, vp-index, story-index, cycle-decision-log, cycle-burst-log]
+    lint_hook: null
+    verification_steps:
+      - "Adversary: when verifying a closure claim, check the changelog/decision-log row for verbatim file:line: stdout content (not just command text)"
+      - "State-manager: when writing changelog/decision-log rows asserting grep verification, include verbatim stdout (file:line: matched-text) or sentinel (zero output) or (EXIT:1; no matches)"
+      - "Narrative paraphrase like 'all rows are legitimate exclusions' or 'zero live violations' is forbidden — must show verbatim file:line: evidence"
+      - "LL-2 hybrid form (verbatim command + narrative output) is NOT compliant; LL-3 requires both command AND verbatim output"
+
+  - id: 16
+    name: mm_n_cross_cycle_namespace_gate
+    description: "D-NNN identifiers are GLOBAL namespace across all cycles. State-manager MUST allocate next-D-NNN > max(all existing D-NNN across all cycle decision-logs). Any body content citing a D-NNN must be verifiable at citation-authoring time. Planning-stage placeholder D-NNNs must use sentinel form D-{TBD-pass-N-fix-burst} until allocated."
+    adopted: "2026-05-14 (D-468; codifies MM allocation gate + MM-2 citation-authoring scope extension from pass-13 §7)"
+    severity: HIGH
+    enforced_by: [state-manager-prompt, architect-prompt, pre-commit-hook]
+    scope: [all-cycles, decision-log, spec, story]
+    lint_hook: null
+    verification_steps:
+      - "State-manager: pre-burst, run grep across all cycle decision-logs to find global D-NNN max; assert next-allocation is global-max+1"
+      - "Architect: when authoring body changelog rows citing D-NNN, verify D-NNN exists in appropriate cycle's decision-log AT THAT TIME (citation-authoring scope)"
+      - "Planning-stage placeholders use sentinel form like D-{TBD-pass-N-fix-burst}; must NOT use bare D-NNN before allocation"
+      - "Cross-cycle: D-NNN from F5 cycle must not be reused in brownfield cycle and vice versa; global namespace is shared"
+
+  - id: 17
+    name: nn_n_frontmatter_parity_full_file_type_scope
+    description: "KK-N tripartite-parity discipline (POLICY 14) applies to all 4 file-type layers: BC, epic, story, VP. Each file type has the same body Changelog, frontmatter last_amended:, and frontmatter modified: requirement at fix-burst time."
+    adopted: "2026-05-14 (D-468; codifies NN-2 epic+story+VP scope extension from pass-13 §7 F-PASS13-002)"
+    severity: HIGH
+    enforced_by: [state-manager-prompt, architect-prompt, consistency-validator]
+    scope: [bc, epic, story, vp]
+    lint_hook: null
+    verification_steps:
+      - "For each spec/story/epic/VP file with a body Changelog section, verify NN-2 frontmatter parity (last_amended + modified[] + version) — same predicates as POLICY 14 (KK-N) but applied to all 4 file types"
+      - "Adversary: when a fix burst touches an epic or VP, verify NN-2 parity was applied (not just BC-level KK-N)"
+      - "State-manager: at seal-time, grep for last_amended and modified: in all files touched by architect in the burst"
+
+  - id: 18
+    name: oo_input_hash_mechanical_verification
+    description: "Any narrative claim of input-hash: change MUST be backed by literal bin/compute-input-hash invocation with captured stdout in burst evidence. inputs: array must include all files whose modifications would trigger the input-hash change."
+    adopted: "2026-05-14 (D-468; codifies OO discipline from pass-13 §9 F-PASS13-004 — narrative-vs-content drift class)"
+    severity: MEDIUM
+    enforced_by: [state-manager-prompt, architect-prompt, pre-commit-hook]
+    scope: [bc, vp, story, architecture]
+    lint_hook: null
+    verification_steps:
+      - "When a file's input-hash: field changes in a burst, verify the burst evidence contains literal bin/compute-input-hash invocation + captured stdout matching the new hash"
+      - "Verify the file's inputs: array lists every file whose modification triggered the hash change"
+      - "If bin/compute-input-hash is not available, document this explicitly and note hash was verified against prior burst narrative; flag for automation in S-15.03 PRIORITY-A"
+      - "Reject narrative-attestation-only input-hash drift claims without tool invocation evidence"
