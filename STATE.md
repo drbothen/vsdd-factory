@@ -222,7 +222,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | 70811f4a | verified `git rev-parse origin/main` = 70811f4a5d68d163021f46856c3de51bf8f4aab8 2026-05-13; includes CLAUDE.md expansion PR #136 (845d0007 squash-merge) + rc.18 merge PR #135 (666d689f) |
 | develop | d3ae26a5 | PR #124 MERGED 2026-05-13 — F5-pass-3 cycle hardening: TD #73 SEQUENCE migration + WASM staging CI fix + VP-076 bats harness + 14 commits preserved; verified `git rev-parse origin/develop` = d3ae26a59312f157c5103b4fe0128e55a1d2bcd0 |
-| factory-artifacts | THIS-COMMIT | E-10 pass-11 DISPATCHED 2026-05-13; D-348 fix burst pending human direction on structural-floor options (3 options per pass-11 §9) |
+| factory-artifacts | b30c204f | E-10 pass-11 DISPATCHED 2026-05-13; D-348 fix burst pending human direction on structural-floor options (3 options per pass-11 §9) |
 | save/dim2-gates-path-register | 3df1bdda | Pass-74 ADV-EDP1-P74-HIGH-002 retroactive fix; artifact-path-registry entry + plugins/vsdd-factory/hooks/dim2-gates/README.md; UNMERGED; decision pending — open small PR OR defer to S-15.03 PRIORITY-A wave |
 | v1.0.0-rc.16 (tag) | feb894a2 | SHIPPED; claude-mp PR #8 awaiting human merge |
 | v1.0.0-rc.15 (tag) | e68bb436 | SHIPPED |
@@ -338,7 +338,7 @@ dtu_services: []
 - E-10 pass-11 DISPATCHED 2026-05-13: HIGH verdict (6 findings: 1H+2M+2L); STRUCTURAL-FLOOR concern surfaced (three options pending human direction per pass-11 §9); D-348 fix burst pending
 - E-10 pass-10 SEALED 2026-05-13: D-346 fix burst (669cc906) + D-347 seal; prior canonical parent
 - F5 cycle (v1.0-feature-engine-discipline-pass-1): PAUSED at META-LEVEL-29 asymptotic floor per D-386 Option C + human direction 2026-05-13
-- factory-artifacts HEAD: THIS-COMMIT (E-10 pass-11 DISPATCHED; SHA to be confirmed with `git -C .factory log -1`)
+- factory-artifacts HEAD: b30c204f (E-10 pass-11 DISPATCHED; SHA to be confirmed with `git -C .factory log -1`)
 - develop HEAD: `d3ae26a5` (PR #124 merge commit 2026-05-13)
 - main HEAD: `70811f4a` (includes CLAUDE.md expansion PR #136 squash-merge + rc.18 merge)
 - Side branch `save/dim2-gates-path-register` at `3df1bdda` — UNMERGED, decision pending
@@ -388,7 +388,7 @@ Three structural-floor options per pass-11 §9. Human must direct before D-348 d
 
 ### 9. Critical Anchors (Post-Pivot)
 
-- factory-artifacts HEAD: THIS-COMMIT (E-10 pass-11 DISPATCHED; run `git -C /Users/jmagady/Dev/vsdd-factory/.factory log -1 --format='%h %s'` to confirm)
+- factory-artifacts HEAD: b30c204f (E-10 pass-11 DISPATCHED; run `git -C /Users/jmagady/Dev/vsdd-factory/.factory log -1 --format='%h %s'` to confirm)
 - D-347 seal Commit: `0b05ac49` (E-10 pass-10 sealed; canonical parent for pass-11 dispatch)
 - D-346 fix burst Commit: `669cc906` (E-10 pass-10 architect fixes — 11 spec files)
 - D-345 seal Commit: `2f0eb6f6` (E-10 pass-9 sealed; prior canonical parent)
