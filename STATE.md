@@ -220,7 +220,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | 70811f4a | verified `git rev-parse origin/main` = 70811f4a5d68d163021f46856c3de51bf8f4aab8 2026-05-13; includes CLAUDE.md expansion PR #136 (845d0007 squash-merge) + rc.18 merge PR #135 (666d689f) |
 | develop | d3ae26a5 | PR #124 MERGED 2026-05-13 — F5-pass-3 cycle hardening: TD #73 SEQUENCE migration + WASM staging CI fix + VP-076 bats harness + 14 commits preserved; verified `git rev-parse origin/develop` = d3ae26a59312f157c5103b4fe0128e55a1d2bcd0 |
-| factory-artifacts | 8e4b3ec | durability-refresh HEAD; E-10 pass-10 dispatch commit pending push (SHA-patch follow-up will update this row) |
+| factory-artifacts | 70f6c7a6 | E-10 pass-10 DISPATCHED 2026-05-13; D-346 fix burst pending |
 | save/dim2-gates-path-register | 3df1bdda | Pass-74 ADV-EDP1-P74-HIGH-002 retroactive fix; artifact-path-registry entry + plugins/vsdd-factory/hooks/dim2-gates/README.md; UNMERGED; decision pending — open small PR OR defer to S-15.03 PRIORITY-A wave |
 | v1.0.0-rc.16 (tag) | feb894a2 | SHIPPED; claude-mp PR #8 awaiting human merge |
 | v1.0.0-rc.15 (tag) | e68bb436 | SHIPPED |
@@ -386,7 +386,7 @@ v1.0-brownfield-backfill cycle; E-10 pass-10 DISPATCHED (HIGH, 4 findings). D-34
 
 ### 9. Critical Anchors (Post-Pivot)
 
-- factory-artifacts HEAD: will be updated to THIS dispatch commit SHA after push (see Section 11 step 1)
+- factory-artifacts HEAD: `70f6c7a6` (E-10 pass-10 DISPATCHED; this dispatch commit)
 - D-345 seal Commit: `2f0eb6f6` (E-10 pass-9 sealed; canonical parent for brownfield protocol)
 - F5 cycle final-state HEAD: `4b4b6819` (pass-74 SHA-patch; F5 cycle PAUSED; F5 Commit D `487e0cc3` is canonical parent for any future F5 pass-75 resumption per D-419(b))
 - develop HEAD: `d3ae26a5` (PR #124 merge commit 2026-05-13; verified `git rev-parse origin/develop`)
@@ -403,7 +403,7 @@ v1.0-brownfield-backfill cycle; E-10 pass-10 DISPATCHED (HIGH, 4 findings). D-34
 
 ### 11. Post-CLEAR Resume Checklist
 
-1. Verify factory-artifacts HEAD is at THIS dispatch commit; run `git -C /Users/jmagady/Dev/vsdd-factory/.factory log --oneline -3` (should show E-10 pass-10 DISPATCHED commit at HEAD)
+1. Verify factory-artifacts HEAD is at `70f6c7a6`; run `git -C /Users/jmagady/Dev/vsdd-factory/.factory log --oneline -3` (should show E-10 pass-10 DISPATCHED commit at HEAD)
 2. Read STATE.md Session Resume Checkpoint sections 1-10 above (this section is self-sufficient)
 3. Verify CLAUDE.md still cites vsdd-factory project conventions (PR #136 expanded it to 442 lines)
 4. Resume v1.0-brownfield-backfill: dispatch D-346 fix burst per Section 4 checklist (pass-10 DISPATCHED HIGH 4 findings; NITPICK_ONLY counter 0/3; convergence requires 3 consecutive NITPICK_ONLY per BC-5.39.001)
