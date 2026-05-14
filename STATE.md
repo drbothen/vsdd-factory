@@ -5,14 +5,14 @@ version: "2.0"
 status: draft
 producer: state-manager
 timestamp: 2026-05-12T00:00:00Z
-phase: pivot-F5-paused-asymptotic-acceptance-resume-v1.0-brownfield-backfill-E-10-pass-11-sealed
+phase: pivot-F5-paused-asymptotic-acceptance-resume-v1.0-brownfield-backfill-E-10-pass-12-dispatched-structural-floor-confirmed
 last_amended: 2026-05-13
 inputs: []
 input-hash: "[live-state]"
 traces_to: prd.md
 project: vsdd-factory
 mode: brownfield
-current_step: "v1.0-brownfield-backfill — E-10 pass-11 SEALED 2026-05-13: D-348 fix burst (bcb10b7b) closed F-1 frontmatter parity 5 BCs (KK discipline) + F-2 SS-03-observability-sinks dispatcher_trace_id + F-3 cross-spec SS-03 canonical-name sweep + F-4 VP-014 formal-proof-only intent + F-5 VP-014 bad_version harness; D-349 seal (this commit) with HH-3 multi-axis pre+post grep + KK frontmatter parity + LL inline literal-shell-stdout disciplines applied per pass-11 §7 pass-12 axes; ARCH-INDEX v2.01 + BC-INDEX v2.20 acknowledge D-348+D-349; NITPICK_ONLY counter 0/3 (HIGH resets); pass-12 dispatch is next — CRITICAL TEST: does asymptotic-floor concern (trend rebound 4→6 at pass-11) resolve under new discipline?"
+current_step: "v1.0-brownfield-backfill — E-10 pass-12 DISPATCHED 2026-05-13: HIGH verdict (7 findings: 1C+2H+2M+2L) — F-CRIT-001 D-NNN collision POLICY 1 (D-348/D-349 in BOTH F3 cycle + brownfield cycle) Tier-0 blocker; discipline efficacy PARTIAL; trend REBOUNDED 6→7; STRUCTURAL-FLOOR CONFIRMED analogous to F5 META-LEVEL-29; D-350 fix burst PENDING HUMAN DIRECTION on three-option framework (pause-as-F5/continue-with-HH-4-KK-2-LL-2/pivot-to-phase-5); D-NNN renumbering required regardless of pause/continue choice; NITPICK_ONLY counter 0/3 (HIGH resets)"
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -42,8 +42,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-13 — E-10 pass-11 SEALED: D-348 fix burst (bcb10b7b) + D-349 seal; 9 files updated; HH-3 multi-axis pre+post grep + KK frontmatter parity + LL inline literal-shell-stdout disciplines applied; ARCH-INDEX v2.01 + BC-INDEX v2.20; NITPICK_ONLY counter 0/3; pass-12 dispatch next (CRITICAL TEST of trend-rebound resolution). |
-| **Current Phase** | v1.0-brownfield-backfill — E-10 pass-11 SEALED 2026-05-13 — D-348+D-349 complete; NITPICK_ONLY counter 0/3; pass-12 adversary dispatch next |
+| **Last Updated** | 2026-05-13 — E-10 pass-12 DISPATCHED: HIGH (7 findings: 1C+2H+2M+2L); F-CRIT-001 D-NNN collision POLICY 1 (D-348/D-349 in both cycles) Tier-0 blocker; DISCIPLINE EFFICACY PARTIAL; STRUCTURAL-FLOOR CONFIRMED analogous to F5 META-LEVEL-29; D-350 fix burst PENDING HUMAN DIRECTION on three-option framework. |
+| **Current Phase** | v1.0-brownfield-backfill — E-10 pass-12 DISPATCHED 2026-05-13 — HIGH verdict (7 findings); STRUCTURAL-FLOOR CONFIRMED; D-350 PENDING HUMAN DIRECTION; D-NNN renumbering Tier-0 blocker |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Phase Progress
@@ -92,7 +92,8 @@ dtu_services: []
 | E-10 pass-10 adversary | **COMPLETE** 2026-05-13 — HIGH (4 findings: 1H+2M+1L) | trend 22→11→16→16→12→2→1→4→5→4; D-344 partial-fix regression at ADR-004 line 116 (axis HH grep disproves D-345 seal "5 zero-row gates" claim); 8 cross-cycle sibling files axis II; BC-3.04.001 sibling F-3; DI-017 scope statement F-4 intent-pending; D-346 fix burst pending |
 | E-10 pass-10 fix burst + seal | **COMPLETE** 2026-05-13 — D-346 (669cc906) + D-347 seal (this commit) | 4 findings closed (1H+2M+1L); architect modified 11 spec files per HH-2 pre-fix grep + II-2 post-fix zero-row predicate; F5 D-449(a) literal-shell-execution-evidence applied; ARCH-INDEX v2.00 + BC-INDEX v2.19; NITPICK_ONLY counter 0/3 (HIGH resets); pass-11 dispatch next |
 | E-10 pass-11 adversary | **COMPLETE** 2026-05-13 — HIGH (6 findings: 1H+2M+2L) | trend 22→11→16→16→12→2→1→4→5→4→6 REBOUNDED; F-1 NEW META-class frontmatter drift (5 BCs: BC-4.04.005/4.05.005/4.07.004/4.08.003 + BC-3.04.001 last_amended+modified: array); F-2 SS-03-observability-sinks.md dispatcher_trace_id sibling-axis miss (lines 72+148); F-3 4 cross-spec SS-03 stale cites (E-10 epic + S-4.05 3 sites); F-4 VP-014 bcs: frontmatter intent-pending; F-5 VP-014 harness bad-version contradiction (lines 56/62); STRUCTURAL-FLOOR comparable to F5 META-LEVEL-29 pause-or-pivot (3 options surfaced); D-348 fix burst pending |
-| E-10 pass-11 fix burst + seal | **COMPLETE** 2026-05-13 — D-348 (bcb10b7b) + D-349 seal (this commit) | 6 findings closed (1H+2M+2L); architect F-2/F-3/F-4/F-5 + state-manager F-1; HH-3 multi-axis pre+post grep (4 predicates) + KK frontmatter parity + LL inline literal-shell-stdout disciplines applied per pass-11 §7; ARCH-INDEX v2.01 + BC-INDEX v2.20 + VP-INDEX v1.94 + STORY-INDEX v3.19 cite-refresh; NITPICK_ONLY counter 0/3 (HIGH resets); pass-12 dispatch next (CRITICAL TEST: trend-rebound resolution) |
+| E-10 pass-11 fix burst + seal | **COMPLETE** 2026-05-13 — D-348 (bcb10b7b) + D-349 seal (54533b04) | 6 findings closed (1H+2M+2L); architect F-2/F-3/F-4/F-5 + state-manager F-1; HH-3 multi-axis pre+post grep (4 predicates) + KK frontmatter parity + LL inline literal-shell-stdout disciplines applied per pass-11 §7; ARCH-INDEX v2.01 + BC-INDEX v2.20 + VP-INDEX v1.94 + STORY-INDEX v3.19 cite-refresh; NITPICK_ONLY counter 0/3 (HIGH resets); pass-12 dispatch next (CRITICAL TEST: trend-rebound resolution) |
+| E-10 pass-12 adversary | **COMPLETE** 2026-05-13 — HIGH (7 findings: 1C+2H+2M+2L) | trend 22→11→16→16→12→2→1→4→5→4→6→7 REBOUNDED again; F-CRIT-001 D-NNN collision POLICY 1 violation (D-348/D-349 in 2 cycles); DISCIPLINE EFFICACY PARTIAL (HH-3/KK/LL each spawned deeper META-class); STRUCTURAL-FLOOR CONFIRMED analogous to F5 META-LEVEL-29; D-350 fix burst PENDING HUMAN DIRECTION on pause/continue/pivot; D-NNN renumbering required regardless |
 | F5 pass-60 fix burst | **COMPLETE** | adv-cycle-pass-60.md HIGH→PENDING_NEXT_PASS; D-440(a/b/c/d/e) + L-EDP1-052 codified; META-LEVEL-15 CANDIDATE CONFIRMED |
 | F5 pass-61 fix burst | **COMPLETE** | adv-cycle-pass-61.md HIGH→PENDING_NEXT_PASS; D-441(a/b/c/d/e) + L-EDP1-053 codified; META-LEVEL-16 CONFIRMED |
 | F5 pass-62 fix burst | **COMPLETE** | adv-cycle-pass-62.md HIGH→PENDING_NEXT_PASS; D-442(a/b/c/d/e) + L-EDP1-054 codified; META-LEVEL-17 CONFIRMED; D-442(c) retroactive sweep across umbrella citations |
@@ -223,7 +224,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | 70811f4a | verified `git rev-parse origin/main` = 70811f4a5d68d163021f46856c3de51bf8f4aab8 2026-05-13; includes CLAUDE.md expansion PR #136 (845d0007 squash-merge) + rc.18 merge PR #135 (666d689f) |
 | develop | d3ae26a5 | PR #124 MERGED 2026-05-13 — F5-pass-3 cycle hardening: TD #73 SEQUENCE migration + WASM staging CI fix + VP-076 bats harness + 14 commits preserved; verified `git rev-parse origin/develop` = d3ae26a59312f157c5103b4fe0128e55a1d2bcd0 |
-| factory-artifacts | 54533b04 | E-10 pass-11 SEALED 2026-05-13: D-348 (bcb10b7b) fix burst + D-349 (54533b04) seal |
+| factory-artifacts | PENDING | E-10 pass-12 DISPATCHED 2026-05-13: this commit (SHA updates in post-commit SHA-patch) |
 | save/dim2-gates-path-register | 3df1bdda | Pass-74 ADV-EDP1-P74-HIGH-002 retroactive fix; artifact-path-registry entry + plugins/vsdd-factory/hooks/dim2-gates/README.md; UNMERGED; decision pending — open small PR OR defer to S-15.03 PRIORITY-A wave |
 | v1.0.0-rc.16 (tag) | feb894a2 | SHIPPED; claude-mp PR #8 awaiting human merge |
 | v1.0.0-rc.15 (tag) | e68bb436 | SHIPPED |
@@ -233,7 +234,7 @@ dtu_services: []
 | Cycle | Type | Status | Notes |
 |-------|------|--------|-------|
 | F-block-ai-attribution-message-file-arm | feature | F3 COMPLETE — F4 READY | F1+F2+F3 done 2026-05-12; 2 stories ready (S-16.01 5pts PostToolUse HEAD verify, S-16.02 3pts PreToolUse -F arm); E-16 under SS-07/SS-04; milestone v1.0.0-rc.17; BC-7.03.094/095/001, VP-080, ARCH SS-07 v1.3/SS-04 v1.4 registered |
-| v1.0-brownfield-backfill | brownfield | **IN-PROGRESS** | E-10 pass-11 DISPATCHED 2026-05-13 — HIGH (6 findings: 1H+2M+2L); trend REBOUNDED 4→6; F-1 NEW META-class frontmatter drift (5 BCs); NITPICK_ONLY counter 0/3 (HIGH resets); D-348 fix burst pending human direction. |
+| v1.0-brownfield-backfill | brownfield | **IN-PROGRESS** | E-10 pass-12 DISPATCHED 2026-05-13 — HIGH (7 findings: 1C+2H+2M+2L); trend REBOUNDED 6→7; F-CRIT-001 D-NNN collision POLICY 1 Tier-0 blocker; DISCIPLINE EFFICACY PARTIAL; STRUCTURAL-FLOOR CONFIRMED analogous to F5 META-LEVEL-29; D-350 fix burst PENDING HUMAN DIRECTION on three-option framework (pause/continue/pivot) + Tier-0 D-NNN renumbering; NITPICK_ONLY counter 0/3 (HIGH resets). |
 | v1.0-feature-engine-discipline-pass-1 | feature | **PAUSED** | F5 5-pass session (passes 70-74) complete with META-LEVEL-29 CANDIDATE CONFIRMED; paused at asymptotic floor [7,9] per D-386 Option C + human direction 2026-05-13; 5 D-NNN codifications D-450..D-454 + 5 lessons L-EDP1-062..066; resumes only when S-15.03 PRIORITY-A automation lands. pass-74 SHA-patch `4b4b6819` is the cycle's final-state HEAD. Full-cycle trajectory (74 values): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7→8→6→2→5→5→5→7→8→7→8→7→8→7→8→7→7→8→8→7→7→7→8→8→8→9→8→8→9→9→9→9→9→9→9→8→9→9→9→9→9→9→9→9 |
 | v1.0-feature-plugin-async-semantics-pass-1 | feature | CLOSED | All PRs merged; rc.14 shipped |
 
@@ -328,7 +329,7 @@ dtu_services: []
 - `cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` | `session-checkpoints.md` | `lessons.md`
 - `cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md` (adversary reviews at `S-12.03/`, `S-12.04/`, `S-12.05/` subdirs)
 
-## Session Resume Checkpoint (2026-05-13 — E-10 PASS-11 SEALED; pass-12 adversary dispatch next)
+## Session Resume Checkpoint (2026-05-13 — E-10 PASS-12 DISPATCHED; STRUCTURAL-FLOOR CONFIRMED; D-350 PENDING HUMAN DIRECTION)
 
 > **SELF-SUFFICIENT RESUME CONTEXT — CYCLE PIVOT**
 > Read this section alone to resume the protocol after full conversation CLEAR (not compact).
@@ -336,10 +337,10 @@ dtu_services: []
 ### 1. Where We Are
 
 - Active cycle: v1.0-brownfield-backfill (RESUMED 2026-05-13)
-- E-10 pass-11 SEALED 2026-05-13 at D-349 seal (this commit); pass-12 adversary dispatch is next — CRITICAL TEST of HH-3/KK/LL discipline efficacy on trend-rebound resolution
-- E-10 pass-11 D-348 fix burst (bcb10b7b): 9 files updated; F-1/F-2/F-3/F-4/F-5 all closed; HH-3 4-predicate grep + KK frontmatter parity gate + LL inline literal-shell-stdout applied
+- E-10 pass-12 DISPATCHED 2026-05-13: HIGH verdict (7 findings; 1 CRITICAL); STRUCTURAL-FLOOR CONFIRMED analogous to F5 META-LEVEL-29; PENDING HUMAN DIRECTION on three options + F-CRIT-001 D-NNN renumbering
+- E-10 pass-11 SEALED at D-349 (54533b04); E-10 pass-12 report at `cycles/v1.0-brownfield-backfill/E-10-pass-12.md`
 - F5 cycle (v1.0-feature-engine-discipline-pass-1): PAUSED at META-LEVEL-29 asymptotic floor per D-386 Option C + human direction 2026-05-13
-- factory-artifacts HEAD: D-349 seal (this commit — run `git -C .factory log -1 --format='%h %s'` to confirm)
+- factory-artifacts HEAD: THIS dispatch commit (run `git -C .factory log -1 --format='%h %s'` to confirm)
 - develop HEAD: `d3ae26a5` (PR #124 merge commit 2026-05-13)
 - main HEAD: `70811f4a` (includes CLAUDE.md expansion PR #136 squash-merge + rc.18 merge)
 - Side branch `save/dim2-gates-path-register` at `3df1bdda` — UNMERGED, decision pending
@@ -355,11 +356,10 @@ dtu_services: []
 
 Human directed 2026-05-13: "take care of PR 124 and 136, update our state, then we need to make sure our state is durable before we continue with the next item in our task list." Standing F5 convergence directive ("continue until convergence OR explicit stop") superseded by this newer direction. E-10 pass-11 DISPATCHED; next = D-348 fix burst per human direction on structural-floor options in pass-11 §9.
 
-### 4. E-10 Pass-12 Adversary Dispatch
+### 4. E-10 Pass-12 D-350 Fix Burst — PENDING HUMAN DIRECTION ON STRUCTURAL-FLOOR + D-NNN RENUMBERING
 
-1. Dispatch pass-12 adversary (fresh-context) — primary axes per pass-11 §7: HH-3 multi-axis pre-fix grep (broaden to ALL canonical identifiers from finding set) + KK frontmatter parity (verify D-348 sync was complete; META-class F-1 absent) + LL literal-shell-evidence-at-persistence-layer (verify D-349 changelog contains inline stdout, not paraphrased narrative) + JJ broaden + CC/DD/EE/FF/GG re-verify
-2. Receive verdict. If NITPICK_ONLY: counter advances 0/3 → 1/3 (first of 3 consecutive needed per BC-5.39.001)
-3. If HIGH/MEDIUM with new META-axes: evaluate trend-rebound (asymptotic-floor concern); escalate to human per pass-11 §9 three-option framework
+1. **Tier-0 (mandatory regardless of pause/continue):** D-NNN renumbering. Brownfield D-344..D-349 collide with F3-cycle D-344..D-349. Re-number brownfield D-344→D-460, D-345→D-461, D-346→D-462, D-347→D-463, D-348→D-464, D-349→D-465 (or next-available globally past F3 cycle latest D-454). Update ARCH-INDEX/BC-INDEX/VP-INDEX/STORY-INDEX changelogs, brownfield decision-log, INDEX.md, STATE.md cross-references.
+2. **Tier-1 strategic decision:** Pause E-10 cycle (analog to F5 META-LEVEL-29 + D-386 Option C + human direction 2026-05-13) OR continue with HH-4/KK-2/LL-2 (which the pass-12 §7 analysis predicts will spawn further META-classes) OR pivot to phase-5 system-level review
 
 ### 5. Cumulative Codifications
 
@@ -386,7 +386,8 @@ Human directed 2026-05-13: "take care of PR 124 and 136, update our state, then 
 
 ### 9. Critical Anchors (Post-Pivot)
 
-- factory-artifacts HEAD: D-349 seal (this commit; run `git -C /Users/jmagady/Dev/vsdd-factory/.factory log -1 --format='%h %s'` to confirm)
+- factory-artifacts HEAD: THIS dispatch commit (run `git -C /Users/jmagady/Dev/vsdd-factory/.factory log -1 --format='%h %s'` to confirm)
+- E-10 pass-12 dispatch Commit: THIS commit SHA (see `git -C /Users/jmagady/Dev/vsdd-factory/.factory log -1 --format='%h'`)
 - D-349 seal Commit: `54533b04` (E-10 pass-11 sealed)
 - D-348 fix burst Commit: `bcb10b7b` (E-10 pass-11 fixes — 9 spec/story files; F-1 KK parity + F-2/F-3/F-4/F-5 architect)
 - D-347 seal Commit: `0b05ac49` (E-10 pass-10 sealed; prior canonical parent)
@@ -407,10 +408,10 @@ Human directed 2026-05-13: "take care of PR 124 and 136, update our state, then 
 
 ### 11. Post-CLEAR Resume Checklist
 
-1. Verify factory-artifacts HEAD is at the E-10 pass-11 SEALED (D-349) commit; run `git -C /Users/jmagady/Dev/vsdd-factory/.factory log --oneline -3`
+1. Verify factory-artifacts HEAD is at the E-10 pass-12 DISPATCH commit; run `git -C /Users/jmagady/Dev/vsdd-factory/.factory log --oneline -3` — should show THIS dispatch commit at HEAD
 2. Read STATE.md Session Resume Checkpoint sections 1-10 above (this section is self-sufficient)
 3. Verify CLAUDE.md still cites vsdd-factory project conventions (PR #136 expanded it to 442 lines)
-4. Resume v1.0-brownfield-backfill: dispatch E-10 pass-12 adversary (fresh-context) per Section 4 checklist; primary axes HH-3/KK/LL/JJ/CC/DD/EE/FF/GG per pass-11 §7; CRITICAL TEST of trend-rebound resolution
+4. Resume v1.0-brownfield-backfill: await HUMAN DIRECTION on three-option framework (pause/continue/pivot) + Tier-0 D-NNN renumbering per Section 4; pass-12 adversary report is at `cycles/v1.0-brownfield-backfill/E-10-pass-12.md`
 5. F5 cycle is PAUSED — do NOT dispatch pass-75 without explicit human direction to resume F5
 
 ### 12. Pending Work Items (Forward Backlog — Priority Order)
@@ -418,7 +419,7 @@ Human directed 2026-05-13: "take care of PR 124 and 136, update our state, then 
 This section enumerates all pending work surfaced as of 2026-05-13 for post-CLEAR resumption visibility.
 
 **Tier-A (Immediate next action):**
-1. **E-10 pass-12 adversary dispatch** — fresh-context; primary axes HH-3/KK/LL/JJ/CC/DD/EE/FF/GG per pass-11 §7; CRITICAL TEST of HH-3/KK/LL discipline efficacy on trend-rebound (4→6) resolution.
+1. **E-10 pass-12 D-350 fix burst PENDING HUMAN DIRECTION + Tier-0 D-NNN renumbering blocker** — pass-12 verdict HIGH (7 findings: 1 CRITICAL F-CRIT-001 D-NNN collision POLICY 1); STRUCTURAL-FLOOR CONFIRMED; three strategic options per §4: pause/continue/pivot; D-NNN renumbering is Tier-0 mandatory regardless; await human direction before dispatching D-350 fix burst.
 
 **Tier-B (Near-term decision points; surface to human when E-10 progresses):**
 2. **Side branch `save/dim2-gates-path-register`** (SHA `3df1bdda`) — pass-74 ADV-EDP1-P74-HIGH-002 retroactive fix; artifact-path-registry entry + `plugins/vsdd-factory/hooks/dim2-gates/README.md`. UNMERGED. Decision: (a) open small PR to land on develop, (b) defer to S-15.03 PRIORITY-A wave, (c) close as superseded if S-15.03 will handle. Tracked in Drift Items table.
@@ -441,4 +442,4 @@ This section enumerates all pending work surfaced as of 2026-05-13 for post-CLEA
 
 **[D-414(c) acknowledgment: Section 12 continued from durability-refresh per user direction 2026-05-13; standard Session Resume schema is 11 sections, this is a non-standard addition for forward-backlog durability.]**
 
-> Previous checkpoint (E-10 pass-10 SEALED 2026-05-13; factory-artifacts at `0b05ac49`) archived to: `cycles/v1.0-brownfield-backfill/session-checkpoints.md`
+> Previous checkpoint (E-10 pass-11 SEALED 2026-05-13; factory-artifacts at `54533b04`) archived to: `cycles/v1.0-brownfield-backfill/session-checkpoints.md`
