@@ -1,11 +1,11 @@
 ---
 document_type: architecture-index
 level: L3
-version: "2.03"
+version: "2.04"
 status: accepted
 producer: architect
-timestamp: 2026-05-13T00:00:00Z
-last_amended: 2026-05-13
+timestamp: 2026-05-14T00:00:00Z
+last_amended: 2026-05-14
 phase: F5
 inputs:
   - .factory/phase-0-ingestion/pass-8-final-synthesis.md
@@ -17,6 +17,8 @@ inputs:
 traces_to: phase-1-spec-crystallization
 deployment_topology: single-service
 changelog:
+  - date: 2026-05-14
+    change: "v2.04 (2026-05-14; E-10 pass-13 D-468 fix burst + D-469 seal — closures F-PASS13-001 CRITICAL (D-350→D-466 mechanical replacement 7 files; MM-2 citation-authoring scope), F-PASS13-002 HIGH (NN-2 frontmatter parity E-1 + VP-014), F-PASS13-003 HIGH (LL-3 strict-form retroactive in v2.03 row + D-466/D-467 decision-log rows), F-PASS13-004 MED (BC-3.04.001 input-hash audit), F-PASS13-005 LOW (STATE.md orphan-narrative cleanup). POLICY 13-18 registered (commit b8909832; codifies HH-N/KK-N/LL-N/MM-N/NN-N/OO disciplines from pass-13 §9 combined recommendation). MM gate re-run: global max D-468; D-469 confirmed next-available. LL-3 post-fix verbatim stdout at D-468 burst time preserved in ARCH-INDEX v2.03 row (retroactive annotation) + D-468 commit body. HH-4 STRUCTURAL RESOLUTION carried forward (zero live Observability Sinks production-content violations). NITPICK_ONLY counter 0/3 (CRITICAL resets). Pass-14 dispatch is next — CRITICAL TEST whether POLICY 13-18 gates achieve NITPICK_ONLY or spawn 5th-layer META-class. ARCH-INDEX v2.03→v2.04. Refs: D-468, D-469, POLICY 13-18."
   - date: 2026-05-13
     change: "v2.03 (2026-05-13; E-10 pass-12 D-466 fix burst + D-467 seal — closures F-2 (E-1 epic body Changelog), F-3+F-6 (7 corpus-wide subsystem-name sites HH-4 sweep), F-1 (5 BCs KK-2 body audit-trail rows for invisible D-464 touch), F-5 (KK-2 tripartite parity sync). MM cross-cycle namespace gate INVOKED (D-466 confirmed next-available globally past D-465); NN epic+story+VP frontmatter parity gate INVOKED. HH-4 post-fix verification (LL-3 strict-form; retroactively applied at D-468 fix burst 2026-05-14 per F-PASS13-003): $ grep -rnE 'SS-03[^A-Za-z0-9]*Observability Sinks|SS-03[^|]*Observability Sinks|Observability Sinks subsystem' .factory/specs/ .factory/stories/ | grep -v 'changelog|superseded|SUPERSEDED|adv-cycle|decision-log|burst-log|INDEX.md' → stdout: .factory/specs/dtu-assessment.md:205:| 1.1 | 2026-05-13 | architect | D-466 E-10 pass-12 fix burst F-3+F-6 closure (HH-4 regex-alternation discipline): SS-03 subsystem name `Observability Sinks` → ... (changelog audit-trail row — legitimate carve-out); .factory/specs/behavioral-contracts/ss-03/BC-3.04.001.md:136:| v1.2 | 2026-05-13 | architect | D-462 ... Architecture Module row corrected from stale `SS-03 (Observability Sinks)` ... (changelog audit-trail row — legitimate carve-out); .factory/specs/architecture/SS-03-observability-sinks.md:36:The Observability Sinks subsystem provides the multi-sink event fan-out pipeline (SUPERSEDED-file prose — legitimate carve-out); .factory/stories/epics/E-1-dispatcher-foundation.md:82:| 1.1 | 2026-05-13 | architect | D-464 ... `SS-03 (Observability Sinks)` → ... (changelog audit-trail row — legitimate carve-out). Zero live production-content violations. KK-2 tripartite: all 5 BCs version/last_amended/modified[]/top-changelog-row aligned 2026-05-13. NITPICK_ONLY counter 0/3 (HIGH verdict resets, no advance); pass-13 dispatch is next — CRITICAL TEST of HH-4/KK-2/LL-2/MM/NN discipline efficacy on trend-rebound resolution. ARCH-INDEX v2.02→v2.03. Refs: D-466, D-467."
   - date: 2026-05-13

@@ -5,14 +5,14 @@ version: "2.0"
 status: draft
 producer: state-manager
 timestamp: 2026-05-12T00:00:00Z
-phase: pivot-F5-paused-asymptotic-acceptance-resume-v1.0-brownfield-backfill-E-10-pass-13-dispatched-critical-test-prediction-confirmed
+phase: pivot-F5-paused-asymptotic-acceptance-resume-v1.0-brownfield-backfill-E-10-pass-13-sealed-policy-13-18-codified
 last_amended: 2026-05-14
 inputs: []
 input-hash: "[live-state]"
 traces_to: prd.md
 project: vsdd-factory
 mode: brownfield
-current_step: "v1.0-brownfield-backfill — E-10 pass-13 DISPATCHED 2026-05-14: CRITICAL verdict (5 findings: 1C+2H+1M+1L) — CRITICAL TEST OUTCOME PREDICTION_CONFIRMED per pass-12 §7; HH-4 STRUCTURAL RESOLUTION (first clean discipline among HH/KK/LL/MM/NN); trend DECREASED 7→5 (first downward since pass-9 — genuine convergence pressure); F-PASS13-001 CRITICAL POLICY 1 violation recurrence at citation-authoring layer (7 files cite F5-D-350 mis-attribution); F-PASS13-002 HIGH NN epic/VP parity gap; F-PASS13-003 HIGH LL-2 hybrid evasion form; F-PASS13-004 MED input-hash narrative-vs-content drift; F-PASS13-005 LOW orphan-narrative; D-468 fix burst PENDING HUMAN DIRECTION on three options (continue/codify-as-POLICY-13-18/pause-as-F5-D386-Option-C); 3 independent 4th-layer META-class spawnings (MM-citation+NN-frontmatter+LL-2-hybrid); NITPICK_ONLY counter 0/3 (CRITICAL resets)"
+current_step: "v1.0-brownfield-backfill — E-10 pass-13 SEALED 2026-05-14: D-468 fix burst (8f02ea1c) + POLICY 13-18 registration (b8909832) + D-469 seal closed all 5 findings; F-PASS13-001 CRITICAL D-350→D-466 mechanical replacement 7 files (MM-2 citation-authoring scope); F-PASS13-002 HIGH NN-2 frontmatter parity E-1 + VP-014; F-PASS13-003 HIGH LL-3 strict-form retroactive; F-PASS13-004 MED BC-3.04.001 input-hash + inputs: audit; F-PASS13-005 LOW STATE.md cleanup; POLICY 13-18 codify HH-N/KK-N/LL-N/MM-N/NN-N/OO disciplines per option (b) combined recommendation; ARCH-INDEX v2.04 + BC-INDEX v2.23 + VP-INDEX v1.96 + STORY-INDEX v3.22 acknowledge; HH-4 first STRUCTURAL RESOLUTION carried forward; trend DECREASED 7→5; NITPICK_ONLY counter 0/3 (CRITICAL resets); pass-14 dispatch is next — CRITICAL TEST whether policy-codified gates achieve NITPICK_ONLY or spawn 5th-layer META-class"
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -42,8 +42,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-14 — E-10 pass-13 DISPATCHED: CRITICAL verdict (5 findings: 1C+2H+1M+1L); CRITICAL TEST OUTCOME PREDICTION_CONFIRMED per pass-12 §7; HH-4 STRUCTURAL RESOLUTION (first clean discipline); trend DECREASED 7→5 first downward since pass-9; 3 independent 4th-layer META-class spawnings; D-468 fix burst PENDING HUMAN DIRECTION. |
-| **Current Phase** | v1.0-brownfield-backfill — E-10 pass-13 DISPATCHED 2026-05-14 — CRITICAL verdict; D-468 fix burst PENDING HUMAN DIRECTION on three options (continue/codify-as-POLICY-13-18/pause-as-F5-D386-Option-C) |
+| **Last Updated** | 2026-05-14 — E-10 pass-13 SEALED: D-468 fix burst (8f02ea1c) + POLICY 13-18 registration (b8909832) + D-469 seal; all 5 findings closed; POLICY 13-18 codified; ARCH-INDEX v2.04 + BC-INDEX v2.23 + VP-INDEX v1.96 + STORY-INDEX v3.22; pass-14 dispatch next. |
+| **Current Phase** | v1.0-brownfield-backfill — E-10 pass-13 SEALED 2026-05-14; POLICY 13-18 codified; pass-14 adversary dispatch is next — CRITICAL TEST of policy-codified gate efficacy |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Phase Progress
@@ -95,6 +95,7 @@ dtu_services: []
 | E-10 pass-11 fix burst + seal | **COMPLETE** 2026-05-13 — D-464 (bcb10b7b) + D-465 seal (54533b04) | 6 findings closed (1H+2M+2L); architect F-2/F-3/F-4/F-5 + state-manager F-1; HH-3 multi-axis pre+post grep (4 predicates) + KK frontmatter parity + LL inline literal-shell-stdout disciplines applied per pass-11 §7; ARCH-INDEX v2.01 + BC-INDEX v2.20 + VP-INDEX v1.94 + STORY-INDEX v3.19 cite-refresh; NITPICK_ONLY counter 0/3 (HIGH resets); pass-12 dispatch next (CRITICAL TEST: trend-rebound resolution) |
 | E-10 pass-12 adversary | **COMPLETE** 2026-05-13 — HIGH (7 findings: 1C+2H+2M+2L) | trend 22→11→16→16→12→2→1→4→5→4→6→7 REBOUNDED again; F-CRIT-001 D-NNN collision POLICY 1 violation (D-464/D-465 brownfield collided with F3-cycle D-348/D-349); DISCIPLINE EFFICACY PARTIAL (HH-3/KK/LL each spawned deeper META-class); STRUCTURAL-FLOOR CONFIRMED analogous to F5 META-LEVEL-29; Tier-0 renumbering D-460..D-465 COMPLETE this burst; D-466 fix burst applied (553e9f58) |
 | E-10 pass-13 adversary | **COMPLETE** 2026-05-14 — CRITICAL (5 findings: 1C+2H+1M+1L) | trend 22→11→16→16→12→2→1→4→5→4→6→7→5 DECREASED first downward since pass-9; CRITICAL TEST OUTCOME PREDICTION_CONFIRMED per pass-12 §7; HH-4 STRUCTURAL RESOLUTION first clean discipline; 3 independent 4th-layer META-class spawnings (MM-citation+NN-frontmatter+LL-2-hybrid); F-PASS13-001 CRITICAL POLICY 1 recurrence at citation-authoring layer (7 files D-350 mis-attribution); D-468 fix burst PENDING HUMAN DIRECTION |
+| E-10 pass-13 fix burst + seal | **COMPLETE** 2026-05-14 — D-468 fix burst (8f02ea1c) + POLICY 13-18 (b8909832) + D-469 seal | 5 findings closed (1C+2H+1M+1L); architect 7 files (D-350→D-466 cite correction + NN-2 parity E-1+VP-014) + state-manager (STATE.md + ARCH-INDEX LL-3 retroactive + decision-log D-466/D-467 annotated + D-468/D-469 rows); POLICY 13-18 codified HH-N/KK-N/LL-N/MM-N/NN-N/OO disciplines per pass-13 §9 option (b) combined; ARCH-INDEX v2.04 + BC-INDEX v2.23 + VP-INDEX v1.96 + STORY-INDEX v3.22 cite-refresh; NITPICK_ONLY counter 0/3 (CRITICAL resets); pass-14 dispatch next (CRITICAL TEST: policy-codified gate efficacy) |
 | **Tier-0 D-NNN renumbering (F-CRIT-001 closure)** | **COMPLETE** 2026-05-13 — brownfield D-344..D-349 → D-460..D-465; POLICY 1 violation resolved | ARCH-INDEX v2.02 + BC-INDEX v2.21 + VP-INDEX v1.95 + STORY-INDEX v3.20 corrigenda; ~25 files touched; pre+post grep stdout LL-2 strict-form; D-466 fix burst (HH-4/KK-2/LL-2/MM/NN) applied 553e9f58 |
 | E-10 pass-12 fix burst + seal | **COMPLETE** 2026-05-13 — D-466 fix burst (553e9f58) + D-467 seal (post-renumber from §8 nominal D-350/D-351) | 7 findings closed (1C closed pre-burst via Tier-0 + 2H+2M+2L closed via D-466); architect F-2/F-3/F-6 with HH-4 + state-manager F-1/F-5 with KK-2 tripartite + LL-2 verbatim stdout + MM cross-cycle namespace + NN parity disciplines applied; ARCH-INDEX v2.03 + BC-INDEX v2.22 + STORY-INDEX v3.21 cite-refresh; NITPICK_ONLY counter 0/3 (HIGH resets); pass-13 dispatch next (CRITICAL TEST per pass-12 §7) |
 | F5 pass-60 fix burst | **COMPLETE** | adv-cycle-pass-60.md HIGH→PENDING_NEXT_PASS; D-440(a/b/c/d/e) + L-EDP1-052 codified; META-LEVEL-15 CANDIDATE CONFIRMED |
@@ -357,17 +358,19 @@ dtu_services: []
 
 ### 3. User Directive (Carry Across CLEAR)
 
-Human directed 2026-05-13: continue with HH-4/KK-2/LL-2/MM/NN deeper-recursion disciplines per pass-12 §7 — CRITICAL TEST whether disciplines resolve structural asymptotic floor or spawn 4th META-class layer. Pass-13 result: PREDICTION_CONFIRMED — 3 independent 4th-layer META-class spawnings (MM-citation + NN-frontmatter + LL-2-hybrid). D-468 fix burst PENDING HUMAN DIRECTION on three strategic options (see §4).
+Human directed 2026-05-13: continue with HH-4/KK-2/LL-2/MM/NN deeper-recursion disciplines per pass-12 §7 — CRITICAL TEST whether disciplines resolve structural asymptotic floor or spawn 4th META-class layer. Pass-13 result: PREDICTION_CONFIRMED — 3 independent 4th-layer META-class spawnings (MM-citation + NN-frontmatter + LL-2-hybrid). Human directed 2026-05-14: option (b) combined — continue pass-14 AND codify as POLICY 13-18. POLICY 13-18 registered (b8909832). Pass-14 adversary dispatch is next.
 
-### 4. E-10 Pass-13 D-468 Fix Burst — PENDING HUMAN DIRECTION ON 3 OPTIONS
+### 4. E-10 Pass-13 D-468 Fix Burst — COMPLETE (SEALED 2026-05-14)
 
-1. **Tier-0 (mandatory regardless of strategic choice):** F-PASS13-001 CRITICAL closure — 7 files have D-350 mis-attribution; replace "D-350" → "D-466" mechanically across: L2-INDEX.md:103, dtu-assessment.md:204, prd.md:1585, BC-3.07.001.md:24+:147, BC-3.07.002.md:24+:162, E-1-dispatcher-foundation.md:73, STATE.md lines 96-97
-2. Strategic decision per pass-13 §9: **(a)** continue pass-14 with HH-5/KK-3/LL-3/MM-2/NN-2/OO disciplines, OR **(b)** codify HH-4/KK-2/LL-2/MM/NN as POLICY 13-18 (F5 D-444/D-446/D-448/D-449 analog), OR **(c) ADOPT BROWNFIELD D-386-OPTION-C ANALOG** (asymptotic-acceptance for E-10; adversary recommends (a)+(b) combined)
+- D-468 fix burst (8f02ea1c): 7 architect files (D-350→D-466 cite correction + NN-2 parity) + state-manager (STATE.md + ARCH-INDEX LL-3 + decision-log D-466/D-467 retroactive + D-468 row); all 5 findings closed.
+- POLICY 13-18 registration (b8909832): 6 policies codified covering HH-N/KK-N/LL-N/MM-N/NN-N/OO disciplines per pass-13 §9 option (b) combined recommendation.
+- D-469 seal (this commit): 4-index updates + INDEX.md SEALED + STATE.md advance + D-469 decision-log row.
+- Pass-14 adversary dispatch is next — CRITICAL TEST of policy-codified gate efficacy.
 
 ### 5. Cumulative Codifications
 
 - F5 cycle: D-379..D-454 (76 cycle decisions). Full text: `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md`.
-- Brownfield-backfill cycle: D-001..D-467 (D-460..D-465 renumbered from D-344..D-349 per F-CRIT-001 2026-05-13; D-466+D-467 added E-10 pass-12 fix burst + seal). Full text: `cycles/v1.0-brownfield-backfill/decision-log.md`.
+- Brownfield-backfill cycle: D-001..D-469 (D-460..D-465 renumbered from D-344..D-349 per F-CRIT-001 2026-05-13; D-466+D-467 E-10 pass-12; D-468+D-469 E-10 pass-13 fix burst + seal). POLICY 13-18 registered 2026-05-14 (b8909832; HH-N/KK-N/LL-N/MM-N/NN-N/OO disciplines). Full text: `cycles/v1.0-brownfield-backfill/decision-log.md`.
 
 ### 6. Cumulative Lessons
 
@@ -378,18 +381,21 @@ Human directed 2026-05-13: continue with HH-4/KK-2/LL-2/MM/NN deeper-recursion d
 
 ~108 sub-items per S-15.03 cumulative header "D-411 through D-454" (44 consecutive decisions; sample — see decision-log.md). Full enumeration: `stories/S-15.03-index-cite-refresh-hook.md`. Deferred to v1.0-feature-engine-discipline-pass-2 (post-pivot work; not active in brownfield-backfill cycle).
 
-### 8. 4-Index State (Post Pass-74 + D-466/D-467 brownfield E-10 pass-12 seal + F-CRIT-001 D-NNN renumbering)
+### 8. 4-Index State (Post Pass-74 + D-468/D-469 brownfield E-10 pass-13 seal + POLICY 13-18)
 
 | Index | Version | Acknowledges |
 |-------|---------|-------------|
-| BC-INDEX | v2.22 | D-389..D-454 (F5 sample; see decision-log.md) + D-466+D-467 brownfield E-10 pass-12 cite-refresh (7 BCs) + F-CRIT-001 D-NNN corrigendum |
-| VP-INDEX | v1.95 | D-389..D-454 (sample; see decision-log.md for full range) + D-464+D-465 VP-014 cite-refresh + F-CRIT-001 D-NNN corrigendum (no VP touched in D-466) |
-| STORY-INDEX | v3.21 | D-389..D-454 (sample; see decision-log.md for full range; crossed v3.00 at pass-56) + D-466+D-467 E-1 row refresh + F-CRIT-001 D-NNN corrigendum |
-| ARCH-INDEX | v2.03 | D-389..D-454 (F5 sample; see decision-log.md) + D-466+D-467 brownfield E-10 pass-12 changelog row with LL-2 verbatim stdout + F-CRIT-001 D-NNN corrigendum |
+| BC-INDEX | v2.23 | D-389..D-454 (F5 sample; see decision-log.md) + D-466+D-467 E-10 pass-12 + D-468+D-469 E-10 pass-13 cite-refresh (BC-3.07.001/002 v1.1.1 + BC-3.04.001 input-hash audit) + POLICY 13-18 |
+| VP-INDEX | v1.96 | D-389..D-454 (sample; see decision-log.md for full range) + D-464+D-465 VP-014 v1.2 + D-468+D-469 VP-014 v1.2.1 NN-2 parity cite-refresh |
+| STORY-INDEX | v3.22 | D-389..D-454 (sample; see decision-log.md for full range; crossed v3.00 at pass-56) + D-466+D-467 E-10 pass-12 + D-468+D-469 E-1 v1.1.2 row refresh |
+| ARCH-INDEX | v2.04 | D-389..D-454 (F5 sample; see decision-log.md) + D-466+D-467 E-10 pass-12 LL-2 row + D-468+D-469 E-10 pass-13 LL-3 retroactive row + POLICY 13-18 |
 
 ### 9. Critical Anchors (Post-Pivot)
 
-- factory-artifacts HEAD: `f0680882` (E-10 pass-13 dispatch; run `git -C /Users/jmagady/Dev/vsdd-factory/.factory log -1 --format='%h %s'` to confirm)
+- factory-artifacts HEAD: D-469 seal commit (run `git -C /Users/jmagady/Dev/vsdd-factory/.factory log -1 --format='%h %s'` to confirm)
+- E-10 pass-13 D-468 fix burst Commit: `8f02ea1c`
+- E-10 pass-13 POLICY 13-18 Commit: `b8909832`
+- E-10 pass-13 D-469 seal Commit: this commit (SHA-patch follow-up will update)
 - E-10 pass-12 D-466 fix burst Commit: `553e9f58`
 - D-465 seal Commit: `54533b04` (E-10 pass-11 sealed; formerly D-349)
 - D-464 fix burst Commit: `bcb10b7b` (E-10 pass-11 fixes — 9 spec/story files; F-1 KK parity + F-2/F-3/F-4/F-5 architect; formerly D-348)
@@ -411,10 +417,10 @@ Human directed 2026-05-13: continue with HH-4/KK-2/LL-2/MM/NN deeper-recursion d
 
 ### 11. Post-CLEAR Resume Checklist
 
-1. Verify factory-artifacts HEAD at `f0680882`; run `git -C /Users/jmagady/Dev/vsdd-factory/.factory log --oneline -3` — should show pass-13 DISPATCH at HEAD
+1. Verify factory-artifacts HEAD is D-469 seal commit; run `git -C /Users/jmagady/Dev/vsdd-factory/.factory log --oneline -5` — should show D-469 seal at HEAD
 2. Read STATE.md Session Resume Checkpoint sections 1-10 above (this section is self-sufficient)
 3. Verify CLAUDE.md still cites vsdd-factory project conventions (PR #136 expanded it to 442 lines)
-4. Resume v1.0-brownfield-backfill: D-468 fix burst PENDING HUMAN DIRECTION — Tier-0 D-350→D-466 replacement is mandatory; strategic choice on continue/codify/pause required from human; pass-13 report at `cycles/v1.0-brownfield-backfill/E-10-pass-13.md`
+4. Resume v1.0-brownfield-backfill: pass-14 adversary dispatch is next — CRITICAL TEST whether POLICY 13-18 codified gates achieve NITPICK_ONLY or spawn 5th-layer META-class
 5. F5 cycle is PAUSED — do NOT dispatch F5 pass-75 without explicit human direction to resume F5
 
 ### 12. Pending Work Items (Forward Backlog — Priority Order)
@@ -422,7 +428,7 @@ Human directed 2026-05-13: continue with HH-4/KK-2/LL-2/MM/NN deeper-recursion d
 This section enumerates all pending work surfaced as of 2026-05-13 for post-CLEAR resumption visibility.
 
 **Tier-A (Immediate next action):**
-1. **E-10 pass-13 D-468 fix burst — PENDING HUMAN DIRECTION + Tier-0 D-350→D-466 mechanical replacement blocker** — pass-13 verdict CRITICAL (5 findings: 1C+2H+1M+1L); CRITICAL TEST OUTCOME PREDICTION_CONFIRMED; three strategic options per pass-13 §9: (a) continue with HH-5/KK-3/LL-3/MM-2/NN-2/OO disciplines, (b) codify disciplines as POLICY 13-18, (c) adopt brownfield D-386-Option-C analog (asymptotic-acceptance); Tier-0 D-350→D-466 replacement across 7 files is mandatory regardless of strategic choice.
+1. **E-10 pass-14 adversary dispatch** — pass-13 SEALED 2026-05-14 via D-468+POLICY 13-18+D-469; POLICY 13-18 codified (HH-N/KK-N/LL-N/MM-N/NN-N/OO disciplines). Pass-14 is the CRITICAL TEST: will policy-codified gates achieve NITPICK_ONLY convergence or spawn a 5th-layer META-class? Adversary must read POLICY 13-18 (policies.yaml) and adv-cycle report for pass-13.
 
 **Tier-B (Near-term decision points; surface to human when E-10 progresses):**
 2. **Side branch `save/dim2-gates-path-register`** (SHA `3df1bdda`) — pass-74 ADV-EDP1-P74-HIGH-002 retroactive fix; artifact-path-registry entry + `plugins/vsdd-factory/hooks/dim2-gates/README.md`. UNMERGED. Decision: (a) open small PR to land on develop, (b) defer to S-15.03 PRIORITY-A wave, (c) close as superseded if S-15.03 will handle. Tracked in Drift Items table.

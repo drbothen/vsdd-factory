@@ -1,17 +1,19 @@
 ---
 document_type: bc-index
 level: L3
-version: "2.22"
+version: "2.23"
 status: draft
 producer: state-manager
-timestamp: 2026-05-13T00:00:00Z
-last_amended: 2026-05-13
+timestamp: 2026-05-14T00:00:00Z
+last_amended: 2026-05-14
 phase: F5
 inputs:
   - .factory/specs/behavioral-contracts/bc-id-mapping.md
 total_bcs: 1949
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-14
+    change: "v2.23 (2026-05-14; E-10 pass-13 D-468 fix burst + D-469 seal — cite-refresh for 3 BCs touched: BC-3.07.001 v1.1→v1.1.1 (architect F-PASS13-001 D-350→D-466 cite correction + NN-2 frontmatter parity), BC-3.07.002 v1.1→v1.1.1 (architect F-PASS13-001 D-350→D-466 cite correction + NN-2 frontmatter parity), BC-3.04.001 v1.2.1 (F-PASS13-004 input-hash audit — no change needed; hash 5d2b1b3 verified consistent). D-469 seal: ARCH-INDEX v2.04 acknowledges D-468+D-469. POLICY 13-18 registered same-burst (commit b8909832). BC-INDEX v2.22→v2.23. Refs: D-468, D-469, POLICY 13-18."
   - date: 2026-05-13
     change: "v2.22 (2026-05-13; E-10 pass-12 D-466 fix burst + D-467 seal — cite-refresh for 7 BCs touched: BC-3.07.001 (architect F-3+F-6 banner fix), BC-3.07.002 (architect F-3+F-6 banner fix), BC-4.04.005 (v1.3→v1.3.1 F-1 KK-2 body audit-trail row + F-5 tripartite sync), BC-4.05.005 (v1.3→v1.3.1), BC-4.07.004 (v1.2→v1.2.1), BC-4.08.003 (v1.3→v1.3.1), BC-3.04.001 (v1.2→v1.2.1). D-467 seal: ARCH-INDEX v2.03 acknowledges D-466+D-467. BC-INDEX v2.21→v2.22. Refs: D-466, D-467."
   - date: 2026-05-13

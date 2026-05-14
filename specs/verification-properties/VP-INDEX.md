@@ -1,15 +1,17 @@
 ---
 document_type: vp-index
 level: L4
-version: "1.95"
+version: "1.96"
 status: draft
 producer: state-manager
-timestamp: 2026-05-13T00:00:00Z
-last_amended: 2026-05-13
+timestamp: 2026-05-14T00:00:00Z
+last_amended: 2026-05-14
 phase: F5
 traces_to: ARCH-INDEX.md
 total_vps: 80
 changelog:
+  - date: 2026-05-14
+    change: "v1.96 (2026-05-14; E-10 pass-13 D-468 fix burst + D-469 seal — VP-014 v1.2→v1.2.1 cite-refresh (architect F-PASS13-002 NN-2 frontmatter parity: last_amended + modified[] added). ARCH-INDEX v2.04 acknowledges D-468+D-469. VP-INDEX v1.95→v1.96. Refs: D-468, D-469."
   - date: 2026-05-13
     change: "v1.95 (2026-05-13; F-CRIT-001 closure — D-NNN renumbering corrigendum): Brownfield D-348→D-464, D-349→D-465. Prior v1.94 changelog row cite-refreshed. VP-INDEX v1.94→v1.95. Refs: F-CRIT-001, D-464, D-465."
   - date: 2026-05-13
