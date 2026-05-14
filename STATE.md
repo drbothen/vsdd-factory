@@ -230,7 +230,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | 70811f4a | verified `git rev-parse origin/main` = 70811f4a5d68d163021f46856c3de51bf8f4aab8 2026-05-13; includes CLAUDE.md expansion PR #136 (845d0007 squash-merge) + rc.18 merge PR #135 (666d689f) |
 | develop | d3ae26a5 | PR #124 MERGED 2026-05-13 — F5-pass-3 cycle hardening: TD #73 SEQUENCE migration + WASM staging CI fix + VP-076 bats harness + 14 commits preserved; verified `git rev-parse origin/develop` = d3ae26a59312f157c5103b4fe0128e55a1d2bcd0 |
-| factory-artifacts | 6fefa10d | E-10 pass-14 PARTIAL-CLOSED (Asymptotic-Acceptance) 2026-05-14: D-470 mandatory HIGH closures (6fefa10d); D-471 asymptotic-acceptance seal = SHA-patch after Commit 2 |
+| factory-artifacts | 1e810021 | E-10 pass-14 PARTIAL-CLOSED (Asymptotic-Acceptance) 2026-05-14: D-470 mandatory HIGH closures (6fefa10d); D-471 asymptotic-acceptance seal (1e810021) |
 | save/dim2-gates-path-register | 3df1bdda | Pass-74 ADV-EDP1-P74-HIGH-002 retroactive fix; artifact-path-registry entry + plugins/vsdd-factory/hooks/dim2-gates/README.md; UNMERGED; decision pending — open small PR OR defer to S-15.03 PRIORITY-A wave |
 | v1.0.0-rc.16 (tag) | feb894a2 | SHIPPED; claude-mp PR #8 awaiting human merge |
 | v1.0.0-rc.15 (tag) | e68bb436 | SHIPPED |
@@ -347,7 +347,7 @@ dtu_services: []
 - D-470 mandatory HIGH closures COMPLETE: F-PASS14-001 (compute-input-hash mechanical; D-468 false claim corrected) + F-PASS14-002 (LL-3 strict-form inline stdout at D-466/D-467/D-469)
 - D-471 asymptotic-acceptance seal COMPLETE: 6 remaining findings DEFERRED to S-15.03 PRIORITY-A automation wave
 - F5 cycle (v1.0-feature-engine-discipline-pass-1): PAUSED at META-LEVEL-29 asymptotic floor per D-386 Option C + human direction 2026-05-13
-- factory-artifacts HEAD: D-471 seal commit (run `git -C .factory log -1 --format='%h %s'` to confirm)
+- factory-artifacts HEAD: `1e810021` (D-471 asymptotic-acceptance seal)
 - develop HEAD: `d3ae26a5` (PR #124 merge commit 2026-05-13)
 - main HEAD: `70811f4a` (includes CLAUDE.md expansion PR #136 squash-merge + rc.18 merge)
 - Side branch `save/dim2-gates-path-register` at `3df1bdda` — UNMERGED, decision pending
@@ -396,7 +396,7 @@ E-10 sub-cycle SEALED. Next actions (priority order per Section 12):
 
 ### 9. Critical Anchors (Post-D-471 Seal)
 
-- factory-artifacts HEAD: D-471 asymptotic-acceptance seal commit (run `git -C /Users/jmagady/Dev/vsdd-factory/.factory log -1 --format='%h %s'`)
+- factory-artifacts HEAD: `1e810021` (D-471 asymptotic-acceptance seal; SHA-patch applied)
 - D-470 mandatory HIGH closures Commit: `6fefa10d`
 - E-10 pass-13 D-469 seal Commit: `3bc6ef2c`
 - E-10 pass-13 D-468 fix burst Commit: `8f02ea1c`
