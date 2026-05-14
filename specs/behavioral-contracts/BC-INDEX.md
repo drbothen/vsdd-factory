@@ -1,7 +1,7 @@
 ---
 document_type: bc-index
 level: L3
-version: "2.21"
+version: "2.22"
 status: draft
 producer: state-manager
 timestamp: 2026-05-13T00:00:00Z
@@ -12,6 +12,8 @@ inputs:
 total_bcs: 1949
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-13
+    change: "v2.22 (2026-05-13; E-10 pass-12 D-466 fix burst + D-467 seal — cite-refresh for 7 BCs touched: BC-3.07.001 (architect F-3+F-6 banner fix), BC-3.07.002 (architect F-3+F-6 banner fix), BC-4.04.005 (v1.3→v1.3.1 F-1 KK-2 body audit-trail row + F-5 tripartite sync), BC-4.05.005 (v1.3→v1.3.1), BC-4.07.004 (v1.2→v1.2.1), BC-4.08.003 (v1.3→v1.3.1), BC-3.04.001 (v1.2→v1.2.1). D-467 seal: ARCH-INDEX v2.03 acknowledges D-466+D-467. BC-INDEX v2.21→v2.22. Refs: D-466, D-467."
   - date: 2026-05-13
     change: "v2.21 (2026-05-13; F-CRIT-001 closure — D-NNN renumbering corrigendum): Brownfield D-344→D-460, D-345→D-461, D-346→D-462, D-347→D-463, D-348→D-464, D-349→D-465. Prior changelog rows v2.18/v2.19/v2.20 cite-refreshed to new D-NNN. ARCH-INDEX v2.02 acknowledges D-460..D-465. BC-INDEX v2.20→v2.21. Refs: F-CRIT-001, D-460, D-461, D-462, D-463, D-464, D-465."
   - date: 2026-05-13

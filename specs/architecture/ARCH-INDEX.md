@@ -1,7 +1,7 @@
 ---
 document_type: architecture-index
 level: L3
-version: "2.02"
+version: "2.03"
 status: accepted
 producer: architect
 timestamp: 2026-05-13T00:00:00Z
@@ -17,6 +17,8 @@ inputs:
 traces_to: phase-1-spec-crystallization
 deployment_topology: single-service
 changelog:
+  - date: 2026-05-13
+    change: "v2.03 (2026-05-13; E-10 pass-12 D-466 fix burst + D-467 seal — closures F-2 (E-1 epic body Changelog), F-3+F-6 (7 corpus-wide subsystem-name sites HH-4 sweep), F-1 (5 BCs KK-2 body audit-trail rows for invisible D-464 touch), F-5 (KK-2 tripartite parity sync). MM cross-cycle namespace gate INVOKED (D-466 confirmed next-available globally past D-465); NN epic+story+VP frontmatter parity gate INVOKED. HH-4 verbatim stdout (LL-2 strict-form): $ grep -rnE 'SS-03[^A-Za-z0-9]*Observability Sinks|SS-03[^|]*Observability Sinks|Observability Sinks subsystem' .factory/specs/ .factory/stories/ | grep -v 'changelog|superseded|SUPERSEDED|adv-cycle|decision-log|burst-log|INDEX.md' → post-fix: all remaining rows are changelog audit-trail or SUPERSEDED-file internal prose — zero live production-content violations. KK-2 tripartite: all 5 BCs version/last_amended/modified[]/top-changelog-row aligned 2026-05-13. NITPICK_ONLY counter 0/3 (HIGH verdict resets, no advance); pass-13 dispatch is next — CRITICAL TEST of HH-4/KK-2/LL-2/MM/NN discipline efficacy on trend-rebound resolution. ARCH-INDEX v2.02→v2.03. Refs: D-466, D-467."
   - date: 2026-05-13
     change: "v2.02 (2026-05-13; F-CRIT-001 closure — D-NNN renumbering corrigendum): Brownfield D-344→D-460, D-345→D-461, D-346→D-462, D-347→D-463, D-348→D-464, D-349→D-465. Original brownfield assignments collided with F5-cycle D-344..D-349 (assigned 2026-05-07) per POLICY 1 (append_only_numbering). All ARCH-INDEX changelog rows, spec files, BC files, VP files, story files, STATE.md, and brownfield decision-log updated atomically. Pre-renumbering grep: 221 hits across 25 brownfield artifact files. Post-renumbering grep: 0 brownfield hits on D-34[4-9] (F5-cycle D-34[4-9] cites preserved: 29 hits). ARCH-INDEX v2.01→v2.02. Refs: F-CRIT-001, D-460, D-461, D-462, D-463, D-464, D-465."
   - date: 2026-05-13
