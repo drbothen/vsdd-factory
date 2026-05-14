@@ -46,11 +46,34 @@ onboarding of vsdd-factory itself as a brownfield project to backfill the formal
 
 | 12 | 2026-05-13 | 7 (1C+2H+2M+2L) | **HIGH** | **SEALED** — D-466 fix burst (553e9f58) + D-467 seal; 12 spec/story files touched (7 architect F-2/F-3+F-6 HH-4 sweep + 5 state-manager F-1/F-5 KK-2 tripartite parity); F-CRIT-001 D-NNN renumbering pre-burst (Tier-0 commit e223d48f); HH-4 regex-alternation + KK-2 tripartite-parity + LL-2 verbatim-stdout + MM cross-cycle namespace + NN epic/story/VP parity disciplines applied; NITPICK_ONLY counter 0/3 (HIGH resets); pass-13 dispatch next (CRITICAL TEST per pass-12 §7) |
 | 13 | 2026-05-14 | 5 (1C+2H+1M+1L) | **CRITICAL** | **SEALED** — D-468 fix burst (8f02ea1c) + POLICY 13-18 registration (b8909832) + D-469 seal (this commit); 7 architect files (D-350→D-466 mechanical 6 citation sites + NN-2 frontmatter parity E-1 + VP-014) + state-manager (STATE.md cleanup + ARCH-INDEX/decision-log LL-3 retroactive + BC-3.04.001 input-hash audit); POLICY 13-18 codify HH-N/KK-N/LL-N/MM-N/NN-N/OO disciplines (option b combined recommendation per pass-13 §9); HH-4 first STRUCTURAL RESOLUTION carried forward; trend DECREASED 7→5; NITPICK_ONLY counter 0/3 (CRITICAL resets); pass-14 dispatch next — CRITICAL TEST whether codified-policy gates achieve NITPICK_ONLY or spawn 5th-layer META-class |
-| 14 | 2026-05-14 | 8 (0C+3H+3M+2L) | **HIGH** | DISPATCHED — POLICY codification efficacy SPAWNED_5TH_LAYER; 4 of 6 new policies (POLICY 14/15/17/18) SELF-VIOLATED at codifying burst; F-PASS14-001 HIGH POLICY 18 false tool-unavailable claim (BC-3.04.001 schema gap falsely closed at D-469); F-PASS14-002 HIGH POLICY 15 LL-3-soft git-pointer-forwarding absent in INDEX.md rows pass-9..12; F-PASS14-003 HIGH POLICY 17 self-scope omission (policies.yaml + INDEX.md + decision-log excluded from MM-N scope at POLICY 13-18 codifying burst); CRITICAL TEST OUTCOME PREDICTION_CONFIRMED; trend REBOUNDED 5→8; ADVERSARY RECOMMENDS Option (b) asymptotic acceptance analogous to F5 D-386 Option C |
+| 14 | 2026-05-14 | 8 (0C+3H+3M+2L) | **HIGH** | **PARTIAL-CLOSED (Asymptotic-Acceptance analogous to F5 D-386 Option C)** — D-470 closed F-PASS14-001 (compute-input-hash mechanical execution against BC-3.04.001; D-468 false "No tool available" claim corrected; hash 5d2b1b3 confirmed consistent; POLICY 18 self-applied) + F-PASS14-002 (LL-3 strict-form inline stdout at D-466/D-467/D-469 attestation sites; replaced narrative + git-pointer-forwarding; 4-row carve-out list verified; POLICY 15 self-applied); remaining 6 findings (F-PASS14-003 HIGH POLICY 17 self-scope omission; F-PASS14-004 MED POLICY 15 git-pointer-forwarding step explicit prohibition; F-PASS14-005 MED POLICY 13-18 lint_hook null; F-PASS14-006 MED POLICY 18 escape-hatch tightening; F-PASS14-007 LOW INDEX.md table-row blank lines; F-PASS14-008 LOW self-disclosure on count interpretation) DEFERRED to S-15.03 PRIORITY-A automation wave per human direction 2026-05-14; E-10 sub-cycle reaches asymptotic acceptance at floor [5-9]; same pattern + same decision as F5 cycle paused 2026-05-13 per D-386 Option C |
 
 **Trend:** 22→11→16→16→12→2→1→4→5→4→6→7→5→8
 
-**Convergence Status (E-10 sub-cycle):** pass-14 DISPATCHED 2026-05-14 — verdict HIGH (8 findings: 0C+3H+3M+2L); POLICY CODIFICATION EFFICACY SPAWNED_5TH_LAYER (predicted at pass-13 §9 as one of two possible outcomes — PREDICTION_CONFIRMED); 4 of 6 new policies (POLICY 14/15/17/18) self-violated at codifying burst b8909832; POLICY 13 (HH-N) and POLICY 16 (KK-2) passed; trend REBOUNDED 5→8 confirming asymptotic-floor at [5-9] band analogous to F5 META-LEVEL-29; 5th-layer META-class: governance-artifact self-application failures (policies.yaml, decision-log D-NNN scope exclusion) = distinct host-document-class from layer-4 spec-file violations; Tier-0 mandatory closures: F-PASS14-001 (false-positive BC-3.04.001 closure) + F-PASS14-002 (POLICY 15 INDEX.md git-pointer-forwarding); D-470 fix burst PENDING HUMAN DIRECTION on three options: (a) continue codification, (b) Option-b asymptotic acceptance (adversary-recommended), (c) halt E-10 sub-cycle; 0/3 NITPICK_ONLY (HIGH resets)
+**Convergence Status (E-10 sub-cycle):** pass-14 PARTIAL-CLOSED (ASYMPTOTIC-ACCEPTANCE) 2026-05-14 — D-470 mandatory HIGH closures (F-PASS14-001 + F-PASS14-002); D-471 asymptotic-acceptance seal analogous to F5 D-386 Option C + human direction 2026-05-14; 6 remaining findings DEFERRED to S-15.03 PRIORITY-A automation wave; NITPICK_ONLY counter FROZEN at 0/3 (asymptotic-acceptance overrides 3-CLEAN per S-7.01 + F5 precedent); E-10 sub-cycle SEALED at floor [5-9] band; resumption gate = S-15.03 PRIORITY-A lint hooks land in v1.0-feature-engine-discipline-pass-2 cycle; ARCH-INDEX v2.05 + BC-INDEX v2.24 acknowledge D-470+D-471.
+
+## Convergence Decision — E-10 Sub-Cycle Asymptotic Acceptance (2026-05-14)
+
+Per human direction 2026-05-14, the E-10 sub-cycle adopts asymptotic-acceptance analogous to v1.0-feature-engine-discipline-pass-1 (F5) cycle's D-386 Option C + human direction 2026-05-13.
+
+**Evidence basis:**
+- 6 consecutive passes (9-14) at [4-9] findings band; no asymptotic convergence
+- Each new discipline (HH-N, KK-N, LL-N, MM-N, NN-N) spawned a deeper-recursion-level variant at the codifying burst
+- POLICY 13-18 codification (pass-13 §9 option b combined) demonstrated SPAWNED_5TH_LAYER outcome: 4 of 6 new policies SELF-VIOLATED at codifying burst (POLICY 14 policies.yaml frontmatter; POLICY 15 LL-3 hybrid/git-pointer-forwarding; POLICY 17 self-scope omission; POLICY 18 false tool-unavailable claim)
+- Adversary explicitly recommended pause analogous to F5 D-386 Option C
+- Structural break requires S-15.03 PRIORITY-A lint hook implementation; deferred to v1.0-feature-engine-discipline-pass-2 cycle
+
+**Deferred findings:**
+- F-PASS14-003 HIGH POLICY 17 self-scope omission (policies.yaml + INDEX + decision-log + 4-index files)
+- F-PASS14-004 MEDIUM POLICY 15 verification_steps git-pointer-forwarding explicit prohibition
+- F-PASS14-005 MEDIUM all 6 new policies lint_hook: null (codification-without-enforcement)
+- F-PASS14-006 MEDIUM POLICY 18 escape-hatch positive-proof tightening
+- F-PASS14-007 LOW INDEX.md table-row blank lines
+- F-PASS14-008 LOW self-disclosure on count interpretation
+
+**Resumption gate:** E-10 sub-cycle resumes ONLY when S-15.03 PRIORITY-A lint hooks land (validate-frontmatter-parity.sh + validate-d-nnn-namespace.sh + validate-input-hash-mechanical.sh + extensions).
+
+**ADR-013/BC-5.39.001 convergence counter:** Frozen at 0/3 (asymptotic-acceptance overrides 3-CLEAN protocol per S-7.01 + F5 precedent).
 
 ## Convergence Status
 
@@ -58,4 +81,4 @@ onboarding of vsdd-factory itself as a brownfield project to backfill the formal
 - Phase 1 (spec backfill): COMPLETE
 - Phase 1d (adversarial spec review): **CONVERGED** (6 passes, 3 consecutive NITPICK)
 - Story re-anchoring: PENDING (TD-001..TD-005 wave-scale follow-up)
-- E-10 sub-cycle adversarial review: **IN-PROGRESS** (pass-13 SEALED 2026-05-14; verdict CRITICAL 5 findings; all closed via D-468+POLICY 13-18+D-469; 0/3 NITPICK_ONLY (CRITICAL resets); trend 22→11→16→16→12→2→1→4→5→4→6→7→5; POLICY 13-18 codified; pass-14 dispatch next)
+- E-10 sub-cycle adversarial review: **PARTIAL-CLOSED (ASYMPTOTIC-ACCEPTANCE)** — pass-14 PARTIAL-CLOSED 2026-05-14; D-470 mandatory HIGH closures + D-471 seal; 6 findings DEFERRED to S-15.03 PRIORITY-A automation wave; trend 22→11→16→16→12→2→1→4→5→4→6→7→5→8; NITPICK_ONLY counter FROZEN at 0/3; resumption gate = S-15.03 PRIORITY-A lint hooks in v1.0-feature-engine-discipline-pass-2

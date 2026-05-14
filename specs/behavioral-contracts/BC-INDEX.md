@@ -1,7 +1,7 @@
 ---
 document_type: bc-index
 level: L3
-version: "2.23"
+version: "2.24"
 status: draft
 producer: state-manager
 timestamp: 2026-05-14T00:00:00Z
@@ -12,6 +12,8 @@ inputs:
 total_bcs: 1949
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-14
+    change: "v2.24 (2026-05-14; E-10 pass-14 D-470 mandatory HIGH closures + D-471 asymptotic-acceptance seal — cite-refresh for BC-3.04.001 (D-470 F-PASS14-001 confirmed input-hash 5d2b1b3 consistent; POLICY 18 compute-input-hash mechanical execution self-applied; D-468 false tool-unavailable narrative corrected). D-471 ratifies E-10 sub-cycle asymptotic-acceptance: 6 remaining findings DEFERRED to S-15.03 PRIORITY-A automation wave; NITPICK_ONLY counter frozen at 0/3. ARCH-INDEX v2.05 acknowledges D-470+D-471. BC-INDEX v2.23→v2.24. Refs: D-470, D-471, F-PASS14-001, F-PASS14-002."
   - date: 2026-05-14
     change: "v2.23 (2026-05-14; E-10 pass-13 D-468 fix burst + D-469 seal — cite-refresh for 3 BCs touched: BC-3.07.001 v1.1→v1.1.1 (architect F-PASS13-001 D-350→D-466 cite correction + NN-2 frontmatter parity), BC-3.07.002 v1.1→v1.1.1 (architect F-PASS13-001 D-350→D-466 cite correction + NN-2 frontmatter parity), BC-3.04.001 v1.2.1 (F-PASS13-004 input-hash audit — no change needed; hash 5d2b1b3 verified consistent). D-469 seal: ARCH-INDEX v2.04 acknowledges D-468+D-469. POLICY 13-18 registered same-burst (commit b8909832). BC-INDEX v2.22→v2.23. Refs: D-468, D-469, POLICY 13-18."
   - date: 2026-05-13

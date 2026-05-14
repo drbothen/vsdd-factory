@@ -1,7 +1,7 @@
 ---
 document_type: architecture-index
 level: L3
-version: "2.04"
+version: "2.05"
 status: accepted
 producer: architect
 timestamp: 2026-05-14T00:00:00Z
@@ -17,6 +17,8 @@ inputs:
 traces_to: phase-1-spec-crystallization
 deployment_topology: single-service
 changelog:
+  - date: 2026-05-14
+    change: "v2.05 (2026-05-14; E-10 pass-14 D-470 mandatory HIGH closures + D-471 asymptotic-acceptance seal — F-PASS14-001 closure (compute-input-hash mechanical execution against BC-3.04.001; D-468 false tool-unavailable claim corrected: tool present, hash 5d2b1b3 confirmed; POLICY 18 self-applied); F-PASS14-002 closure (LL-3 strict-form inline stdout at D-466/D-467/D-469 attestation sites; replaced narrative + git-pointer-forwarding; 4-row carve-out list verified; POLICY 15 self-applied). D-471 ratifies E-10 sub-cycle asymptotic-acceptance analogous to F5 D-386 Option C + human direction 2026-05-14: 6 consecutive passes (9-14) at [4-9] band; 5th META layer spawned; remaining 6 findings DEFERRED to S-15.03 PRIORITY-A automation wave; NITPICK_ONLY counter FROZEN at 0/3; resumption gate = S-15.03 PRIORITY-A lint hooks in v1.0-feature-engine-discipline-pass-2. MM gate: global max D-469; D-470+D-471 confirmed next-available. ARCH-INDEX v2.04→v2.05. Refs: D-470, D-471, F-PASS14-001, F-PASS14-002."
   - date: 2026-05-14
     change: "v2.04 (2026-05-14; E-10 pass-13 D-468 fix burst + D-469 seal — closures F-PASS13-001 CRITICAL (D-350→D-466 mechanical replacement 7 files; MM-2 citation-authoring scope), F-PASS13-002 HIGH (NN-2 frontmatter parity E-1 + VP-014), F-PASS13-003 HIGH (LL-3 strict-form retroactive in v2.03 row + D-466/D-467 decision-log rows), F-PASS13-004 MED (BC-3.04.001 input-hash audit), F-PASS13-005 LOW (STATE.md orphan-narrative cleanup). POLICY 13-18 registered (commit b8909832; codifies HH-N/KK-N/LL-N/MM-N/NN-N/OO disciplines from pass-13 §9 combined recommendation). MM gate re-run: global max D-468; D-469 confirmed next-available. LL-3 post-fix verbatim stdout at D-468 burst time preserved in ARCH-INDEX v2.03 row (retroactive annotation) + D-468 commit body. HH-4 STRUCTURAL RESOLUTION carried forward (zero live Observability Sinks production-content violations). NITPICK_ONLY counter 0/3 (CRITICAL resets). Pass-14 dispatch is next — CRITICAL TEST whether POLICY 13-18 gates achieve NITPICK_ONLY or spawn 5th-layer META-class. ARCH-INDEX v2.03→v2.04. Refs: D-468, D-469, POLICY 13-18."
   - date: 2026-05-13
