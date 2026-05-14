@@ -41,7 +41,7 @@ expected constant. New configuration surfaces added after v1.0 follow the same c
 **Amendment (ADR-015 D-15.1, 2026-05-06):** `observability-config.toml` was promoted
 to `schema_version = 2` by ADR-015 D-15.1 (v2 schema defines `events_file`,
 `retention_days`, `debug_log_enabled`, `sync_on_write`). `hooks-registry.toml`
-remains at `schema_version = 1` (`REGISTRY_SCHEMA_VERSION: u32 = 1` in `registry.rs`).
+bumped to `schema_version = 2` (`REGISTRY_SCHEMA_VERSION: u32 = 2` in `registry.rs`) by F2 ADR-019 (2026-05-07; cross-cycle sweep applied in D-344 brownfield E-10 pass-9 fix burst per user direction).
 A v1→v2 mismatch on `observability-config.toml` hard-errors with a migration hint
 per BC-3.05.004 PC4. The "mandatory `schema_version`" and "mismatch = hard error"
 principles are unchanged; only the target version differs per config file.
@@ -93,8 +93,8 @@ or upgrade the dispatcher.
 
 ### Status as of v1.0.0-beta.5
 
-IN-EFFECT. `hooks-registry.toml` ships as TOML with `schema_version = 1`
-(`REGISTRY_SCHEMA_VERSION: u32 = 1` enforced in `crates/factory-dispatcher/src/registry.rs::REGISTRY_SCHEMA_VERSION`).
+IN-EFFECT. `hooks-registry.toml` ships as TOML with `schema_version = 2` (post-ADR-019; bumped from 1 to 2 per F2 cycle 2026-05-07; cross-cycle sweep applied per D-344)
+(`REGISTRY_SCHEMA_VERSION: u32 = 2` enforced in `crates/factory-dispatcher/src/registry.rs::REGISTRY_SCHEMA_VERSION`).
 `observability-config.toml` ships as TOML with `schema_version = 2` (amended by ADR-015 D-15.1;
 v1 hard-errors with migration hint per BC-3.05.004 PC4).
 
@@ -119,5 +119,7 @@ v1 hard-errors with migration hint per BC-3.05.004 PC4).
   lines 225–284 (`hooks-registry.toml` example) and lines 288–359 (`observability-config.toml` example).
 
 ## Changelog
+
+- v1.2 (2026-05-13): D-344 E-10 pass-9 fix burst: F-4 cross-cycle schema_version sweep — hooks-registry.toml schema_version corrected to 2 at §Amendment (line 44) and §Status (line 96) per F2 ADR-019 (2026-05-07). ARCH-INDEX line 339 is canonical SoT.
 
 - v1.1 (2026-05-08): TD-VSDD-091 stable-anchor migration sweep (Chunk 3) — 4 cites migrated. `registry.rs:16` → `registry.rs::REGISTRY_SCHEMA_VERSION`; `registry.rs:26` → `registry.rs::RegistryError::Toml` (2 sites each in §Rationale and §Source / Origin).

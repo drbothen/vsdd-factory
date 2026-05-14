@@ -236,7 +236,7 @@ The `emit_event` host fn automatically injects four fields onto every emitted ev
 
 | Field | Source | emit_event call |
 |-------|--------|-----------------|
-| `dispatcher_trace_id` | `HostContext.dispatcher_trace_id` | `.with_trace_id(...)` |
+| `trace_id` (renamed from `dispatcher_trace_id` per DI-017 v1.1 / ADR-015 v1.7) | `HostContext.dispatcher_trace_id` | `.with_trace_id(...)` |
 | `session_id` | `HostContext.session_id` | `.with_session_id(...)` |
 | `plugin_name` | `HostContext.plugin_name` | `.with_plugin_name(...)` |
 | `plugin_version` | `HostContext.plugin_version` | `.with_plugin_version(...)` |
@@ -305,4 +305,5 @@ VALUE source differs: HostContext per-invocation values vs. construction-time va
 
 | Date | Change |
 |------|--------|
+| 2026-05-13 | D-344 E-10 pass-9 fix burst: F-1 DI-017 rename completion — Auto-Enrichment Fields table column 1 updated from `dispatcher_trace_id` to `trace_id` (WIRE field name per DI-017 v1.1 / ADR-015 v1.7). |
 | 2026-05-08 | TD-VSDD-091 Chunk 4 — migrated 3 line citations to stable symbol anchors: `emit_event.rs:49` → `emit_event.rs::register`; `emit_event.rs:58-67` (×2) → `emit_event.rs::RESERVED_FIELDS`. |

@@ -2,7 +2,7 @@
 document_type: architecture-section
 level: L3
 section: "SS-02-hook-sdk"
-version: "1.1"
+version: "1.2"
 status: accepted
 producer: architect
 timestamp: 2026-04-25T00:00:00
@@ -11,6 +11,7 @@ inputs:
   - .factory/specs/architecture/ARCH-INDEX.md
   - .factory/phase-0-ingestion/pass-1-architecture.md
   - .factory/phase-0-ingestion/pass-8-final-synthesis.md
+input-hash: "[pending-recompute]"
 traces_to: ARCH-INDEX.md
 ---
 
@@ -50,7 +51,7 @@ error handling, and ABI plumbing are invisible to them.
 | `crates/hook-sdk/src/host/mod.rs` | Public host function shim re-exports |
 | `crates/hook-sdk/src/host/log.rs` | `vsdd::log(level, msg)` extern shim — calls dispatcher host fn |
 | `crates/hook-sdk/src/host/emit_event.rs` | `vsdd::emit_event(type, fields_json)` extern shim |
-| `crates/hook-sdk/src/host/context.rs` | `vsdd::session_id()`, `vsdd::dispatcher_trace_id()`, `vsdd::plugin_root()`, `vsdd::plugin_version()`, `vsdd::cwd()` shims |
+| `crates/hook-sdk/src/host/context.rs` | `vsdd::session_id()`, `vsdd::dispatcher_trace_id()`, `vsdd::plugin_root()`, `vsdd::plugin_version()`, `vsdd::cwd()` shims — NOTE: `vsdd::dispatcher_trace_id()` is the SDK Rust API name (intentionally retained); the WIRE field emitted in events is `trace_id` per DI-017 v1.1 / ADR-015 v1.7. SDK API surface was not renamed during the WIRE rename. |
 | `crates/hook-sdk/src/host/env.rs` | `vsdd::env_read(key)` extern shim (allow-list enforced by dispatcher) |
 | `crates/hook-sdk/src/host/read_file.rs` | `vsdd::read_file(path)` extern shim (path_allow enforced by dispatcher) |
 | `crates/hook-sdk/src/host/exec_subprocess.rs` | `vsdd::exec_subprocess(args_json)` extern shim; returns `SubprocessResult` |
@@ -88,7 +89,7 @@ The macro expands to a `_start` symbol exported as `wasm32-wasip1` entry point.
   `HookResult::Error { message: String }` — the only valid plugin outputs.
 
 **Host function shims (`vsdd::*` namespace):** `log`, `emit_event`,
-`session_id`, `dispatcher_trace_id`, `plugin_root`, `plugin_version`, `cwd`,
+`session_id`, `dispatcher_trace_id` (SDK Rust API name; WIRE field is `trace_id` per DI-017 v1.1), `plugin_root`, `plugin_version`, `cwd`,
 `env_read`, `read_file`, `exec_subprocess`.
 
 ## Internal Structure
@@ -165,7 +166,7 @@ The `BC-2.02.NNN` family covers the SDK host-function ABI surface.
 | BC-2.02.004 | `host::emit_event` serializes fields as length-prefixed UTF-8 key/value sequence | S-1.03 | active |
 | BC-2.02.005 | `host::exec_subprocess` returns typed `SubprocessResult` with exit code and truncation flag | S-1.03 | active |
 | BC-2.02.006 | `host::session_id` re-calls with larger buffer when host returns required capacity | S-1.03 | active |
-| BC-2.02.007 | `host::dispatcher_trace_id` same re-call-on-overflow contract as session_id | S-1.03 | active |
+| BC-2.02.007 | `host::dispatcher_trace_id` (SDK fn name; WIRE field `trace_id` per DI-017 v1.1) same re-call-on-overflow contract as session_id | S-1.03 | active |
 | BC-2.02.008 | `host::plugin_root` same re-call-on-overflow contract | S-1.03 | active |
 | BC-2.02.009 | `host::plugin_version` same re-call-on-overflow contract | S-1.03 | active |
 | BC-2.02.010 | `LogLevel` discriminants 0..=4 are pinned (Trace=0 ... Error=4) | S-1.03 | active |
@@ -470,6 +471,7 @@ enforcement, arg allow-list enforcement, env stripping, timeout enforcement,
 
 | Date | Change |
 |------|--------|
+| 2026-05-13 | D-344 E-10 pass-9 fix burst: F-5 SDK API surface annotation — context.rs module row annotated to distinguish SDK Rust fn name `vsdd::dispatcher_trace_id()` (intentionally retained per Task 1 SDK verification) from WIRE field `trace_id` (per DI-017 v1.1 / ADR-015 v1.7). Version bump 1.1→1.2; added input-hash bypass. |
 | 2026-05-08 | TD-VSDD-091 Chunk 4 — migrated 3 bash-script line citations in SubagentStop field table and note to stable Rust plugin symbol anchors (`::handoff_validator_logic`, `::pr_manager_guard_logic`, `::validate_pr_review_logic`, `::track_agent_stop_logic`). |
 | 2026-05-03 | ADR-014 D-9.2: added `host::run_subprocess` function signature, `SubprocessSpec`, `SubprocessResult`, `SubprocessCaps` schema (6 fields), security boundaries, module entry, BC-2.02.013 anchor, and Schema Evolution table row. HOST_ABI_VERSION stays at 1. |
 | 2026-05-01 | F-S830-P1-004 fix: fallback-chain example aligned with BC-2.02.012 canonical (`as_deref()` borrowing chain returning `&str`); architecture doc no longer diverges from BC. Both agent identity and assistant-message chains updated. Prose translation pattern updated from consuming to borrowing form. |

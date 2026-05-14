@@ -2,7 +2,7 @@
 document_type: architecture-section
 level: L3
 section: "SS-01-hook-dispatcher"
-version: "1.2"
+version: "1.3"
 status: accepted
 producer: architect
 timestamp: 2026-04-25T00:00:00
@@ -11,6 +11,7 @@ inputs:
   - .factory/specs/architecture/ARCH-INDEX.md
   - .factory/phase-0-ingestion/pass-1-architecture.md
   - .factory/phase-0-ingestion/pass-8-final-synthesis.md
+input-hash: "[pending-recompute]"
 traces_to: ARCH-INDEX.md
 ---
 
@@ -46,7 +47,7 @@ when all sinks are misconfigured or unreachable.
 |---|---|
 | `crates/factory-dispatcher/src/main.rs` | I/O entry point: reads stdin, drives `engine`, `executor`, `sinks`; sets exit code; emits `dispatcher.started` / `dispatcher.completed` |
 | `crates/factory-dispatcher/src/payload.rs` | Parse + validate stdin JSON; accepts both `event_name` and `hook_event_name` field aliases; emits `PayloadError` |
-| `crates/factory-dispatcher/src/registry.rs` | Load + validate `hooks-registry.toml` (mtime-cached); resolve relative plugin paths; expose `Registry`, `RegistryEntry`, `Capabilities`, `OnError`, `REGISTRY_SCHEMA_VERSION = 1` |
+| `crates/factory-dispatcher/src/registry.rs` | Load + validate `hooks-registry.toml` (mtime-cached); resolve relative plugin paths; expose `Registry`, `RegistryEntry`, `Capabilities`, `OnError`, `REGISTRY_SCHEMA_VERSION = 2 (post-ADR-019)` |
 | `crates/factory-dispatcher/src/routing.rs` | Match plugins by event + tool regex; group matches by priority tier; expose `match_plugins`, `group_by_priority` |
 | `crates/factory-dispatcher/src/executor.rs` | Run tiers sequentially; plugins within tier via `tokio::spawn_blocking` in parallel; aggregate `block_intent`; expose `execute_tiers`, `ExecutorInputs`, `PluginOutcome`, `TierExecutionSummary` |
 | `crates/factory-dispatcher/src/invoke.rs` | Per-plugin wasmtime Store + WASI ctx + fuel/epoch budgets; classify trap cause; expose `invoke_plugin`, `PluginResult`, `InvokeLimits`, `STDERR_CAP_BYTES = 4096`, `TimeoutCause::{Epoch, Fuel}` |
@@ -55,7 +56,7 @@ when all sinks are misconfigured or unreachable.
 | `crates/factory-dispatcher/src/host/` | wasmtime `Linker<HostContext>` setup; all `vsdd::*` imports; capability enforcement; expose `setup_linker`, `HostContext`, `HostCallError`, `codes::*` |
 | `crates/factory-dispatcher/src/host/log.rs` | Plugin → dispatcher structured log (level, message); `register` |
 | `crates/factory-dispatcher/src/host/emit_event.rs` | Plugin → typed event emission with field bag; `register`, `decode_fields` |
-| `crates/factory-dispatcher/src/host/context_fns.rs` | Read-only context accessors: `session_id`, `dispatcher_trace_id`, `plugin_root`, `plugin_version`, `cwd`; `register` |
+| `crates/factory-dispatcher/src/host/context_fns.rs` | Read-only context accessors: `session_id`, `trace_id` (renamed from `dispatcher_trace_id` per DI-017 v1.1 / ADR-015 v1.7), `plugin_root`, `plugin_version`, `cwd`; `register` |
 | `crates/factory-dispatcher/src/host/env.rs` | Allow-listed env-var read (per-plugin `Capabilities.env_allow`); `register` |
 | `crates/factory-dispatcher/src/host/read_file.rs` | Capability-gated FS read (path_allow prefix match); `register` — NOTE: wired through `Linker<HostContext>` only; StoreData-typed linker path is a stub (DRIFT-001) |
 | `crates/factory-dispatcher/src/host/exec_subprocess.rs` | Capability-gated subprocess: `binary_allow`, `shell_bypass_acknowledged`, setuid refusal, bounded time + output; `register`, `decode_args`, `run` |
@@ -76,7 +77,7 @@ activate skill). Its external API is entirely I/O-level:
   `HookResult` JSON on their own stdout which the dispatcher reads via WASM memory.
 - **exit code:** 0 = continue; 2 = block (one or more plugins set block intent).
 - **`hooks-registry.toml`:** Configuration file consumed at startup. Schema version
-  REGISTRY_SCHEMA_VERSION = 1; mismatch = hard error.
+  REGISTRY_SCHEMA_VERSION = 2 (post-ADR-019; v1→v2 hard-error per BC-7.06.001 — no compat shim).
 - **`observability-config.toml`:** Sink configuration consumed at startup.
   Schema version 2 (post-ADR-015 D-15.1; v1→v2 hard-errors with migration hint per BC-3.05.004 PC4).
 
@@ -87,7 +88,7 @@ for use by integration tests.
 
 Control flow per invocation (pass-1-architecture.md, lines 94-101):
 
-1. `main.rs`: parse stdin → `HookPayload`; assign `dispatcher_trace_id`; emit
+1. `main.rs`: parse stdin → `HookPayload`; assign `trace_id` (renamed from `dispatcher_trace_id` per DI-017 v1.1 / ADR-015 v1.7); emit
    `dispatcher.started` to internal log.
 2. `registry.rs`: load + validate `hooks-registry.toml`; mtime-cache invalidates
    on file change.
@@ -119,8 +120,7 @@ Key Rust types: `HookPayload`, `Registry`, `RegistryEntry`, `Capabilities`,
 **Outgoing (SS-01 depends on):**
 - SS-02 (Hook SDK and Plugin ABI) — linker expects plugins compiled against
   `HOST_ABI_VERSION = 1`; `vsdd::*` imports registered by `setup_linker`.
-- SS-03 (Observability Sinks) — `sinks.rs` loads `SinkRegistry`; `submit_all`
-  fans events to sink-file, sink-otel-grpc, and future drivers.
+- SS-03 (Event Emission (OTel-Aligned)) — `host::emit_event` writes through FileSink directly to `events-*.jsonl` (post-ADR-015 D-15.1); Router/SinkRegistry/DlqWriter retired per BC-1.12.001 + BC-1.12.007.
 - SS-04 (Plugin Ecosystem) — loads `.wasm` plugin binaries from disk; invokes
   `_start` via wasmtime; plugins may call `exec_subprocess` to reach SS-07.
 
@@ -141,8 +141,7 @@ Key Rust types: `HookPayload`, `Registry`, `RegistryEntry`, `Capabilities`,
   `InvokeError`, `EngineError`, `HostCallError`). Dispatcher main swallows
   registry/payload/engine errors → logs `internal.dispatcher_error` → exits 0
   (non-blocking contract; ADR-001, NFR-REL-001).
-- **Schema versioning:** `REGISTRY_SCHEMA_VERSION = 1`; `INTERNAL_EVENT_SCHEMA_VERSION = 1`;
-  mismatches produce hard errors at load time (NFR-MAINT-004).
+- **Schema versioning:** `REGISTRY_SCHEMA_VERSION = 2 (post-ADR-019)`; `INTERNAL_EVENT_SCHEMA_VERSION = 1`; `observability-config.toml schema_version = 2 (post-ADR-015 D-15.1)`; mismatches produce hard errors at load time (NFR-MAINT-004).
 
 ## Behavioral Contracts
 
@@ -186,6 +185,7 @@ FileSink partial-write recovery, atomic dual-emit host helper).
 
 ## Changelog
 
-| Date | Change |
-|------|--------|
-| 2026-05-08 | TD-VSDD-091 Chunk 4 — migrated 3 line citations to stable symbol anchors: `invoke.rs:447-474` → `invoke.rs::setup_host_on_store_data`; `internal_log.rs:67-70` → `internal_log.rs::INTERNAL_SINK_DLQ_WRITE`; `internal_log.rs:58` → `internal_log.rs::DISPATCHER_SHUTTING_DOWN`. |
+| Version | Date | Change |
+|---------|------|--------|
+| 1.3 | 2026-05-13 | D-344 E-10 pass-9 fix burst: F-1 DI-017 rename completion — context_fns.rs row and Internal Structure step 1 canonicalized to `trace_id` (from `dispatcher_trace_id` per DI-017 v1.1 / ADR-015 v1.7); F-2 REGISTRY_SCHEMA_VERSION 1→2 at Modules row + Public Interface + Cross-Cutting (post-ADR-019); F-3 SS-03 dependency row updated to canonical subsystem name "Event Emission (OTel-Aligned)" + Router/SinkRegistry/DlqWriter retirement per BC-1.12.001 + BC-1.12.007. |
+| 1.2 | 2026-05-08 | TD-VSDD-091 Chunk 4 — migrated 3 line citations to stable symbol anchors: `invoke.rs:447-474` → `invoke.rs::setup_host_on_store_data`; `internal_log.rs:67-70` → `internal_log.rs::INTERNAL_SINK_DLQ_WRITE`; `internal_log.rs:58` → `internal_log.rs::DISPATCHER_SHUTTING_DOWN`. |
