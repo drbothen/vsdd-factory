@@ -23,7 +23,7 @@ dtu_services: []
 <!--
   STATE.md SIZE BUDGET (per D-421(c) + D-422(c) reconciliation):
   Soft target: ≤415 lines (actual 399 lines at pass-67 Commit E (wc-l)); margin from soft-target = 500 - 415 = 85; margin from actual = 500 - 443 = 57 (D-446(c) dual-margin form); margin [+10,+20] upper-bound per D-422(c)+D-424(b)+D-428(d)+D-434(e)(ii)+D-437(d)+D-438(a)+D-441(e)+D-442(d)+D-443(d)+D-444(e)+D-445(b)+D-446(c); D-452 codified (5 sub-clauses; META-LEVEL-27-CANDIDATE-CONFIRMED + post-derivation-propagation-completeness + Layer-N-dual-direction-sweep + captured-stdout-snapshot-freshness + Layer-N-scope-extension-6-site-class + Decisions-Log-umbrella-range-auto-advance per decision-log.md SoT; L-EDP1-064 63rd-layer); D-446(c) self-application: dual-margin form applied THIS COMMIT E; D-445(c)+D-446(d)+D-447(c)+D-449(e) Active Branches advance to Commit E HEAD in SHA-patch follow-up.
-  Line-growth tracker (D-437(e)+D-441(e)+D-442(e)+D-443(d)+D-444(e)+D-445(b)+D-446(c)+D-447(d)+D-448(d)+D-449(d)+D-450(d)+D-451(d)+D-452(d)+D-453(d)+D-454(d) follow-up): pass-49 Commit E 310 lines; pass-54 Commit E 319 lines; pass-55 Commit E 328 lines; pass-56 Commit E 331 lines; pass-57 Commit E 334 lines; pass-58 Commit E 337 lines; pass-59 Commit E 340 lines; pass-60 Commit E 410 lines; pass-61 Commit E 417 lines; pass-62 Commit E 426 lines; pass-63 Commit E 440 lines; pass-64 Commit E 447 lines; pass-65 Commit E+SHA-patch 395 lines (wc-l; net -52 from pass-64); pass-66 Commit E 397 lines (wc-l; net +2 from pass-65 Commit E+SHA-patch at 395); pass-67 Commit E 399 lines (wc-l; net +2 from pass-66); pass-68 Commit E 402 lines (wc-l; net +3 from pass-67); pass-69 Commit E 405 lines (wc-l; net +3 from pass-68); pass-70 Commit E 435 lines (wc-l; net +30 from pass-69; pre-CLEAR task-snapshot block REMOVED per MED-002 closure but rc.17/rc.18 Phase Progress rows + D-450 Decisions Log row + refreshed Session Resume added net +30); pass-71 Commit E 439 lines (wc-l; net +4 from pass-70 Commit E at 435; pass-71 Phase Progress row + D-451 Decisions Log row + Session Resume refresh added net +4); pass-72 Commit E 443 lines (wc-l; net +4 from pass-71 Commit E at 439; pass-72 Phase Progress row + D-452 Decisions Log row + Session Resume refresh added net +4); pass-73 Commit E 447 lines (wc-l; net +4 from pass-72 Commit E at 443; pass-73 Phase Progress row + D-453 Decisions Log row + Session Resume refresh added net +4); pass-74 Commit E 451 lines (wc-l; net +4 from pass-73 Commit E at 447; pass-74 Phase Progress row + D-454 Decisions Log row + Session Resume refresh added net +4); pass-74-to-pivot transition 406 lines (wc-l; net -45 from pass-74 Commit E at 451; F5 5-pass pause row + Active Branches pivot + Concurrent Cycles pivot + Drift Items side-branch + Session Resume Checkpoint refresh net -45). D-345 seal 408 lines (wc-l; net +2 from pass-74-to-pivot at 406; E-10 pass-9 Phase Progress row + current_step + Session Resume refresh net +2). Hard cap (500 lines) margin from soft-target = 500 - 415 = 85; margin from actual = 500 - 408 = 92 (D-446(c) dual-margin form self-applied at D-345 seal).
+  Line-growth tracker (D-437(e)+D-441(e)+D-442(e)+D-443(d)+D-444(e)+D-445(b)+D-446(c)+D-447(d)+D-448(d)+D-449(d)+D-450(d)+D-451(d)+D-452(d)+D-453(d)+D-454(d) follow-up): pass-49 Commit E 310 lines; pass-54 Commit E 319 lines; pass-55 Commit E 328 lines; pass-56 Commit E 331 lines; pass-57 Commit E 334 lines; pass-58 Commit E 337 lines; pass-59 Commit E 340 lines; pass-60 Commit E 410 lines; pass-61 Commit E 417 lines; pass-62 Commit E 426 lines; pass-63 Commit E 440 lines; pass-64 Commit E 447 lines; pass-65 Commit E+SHA-patch 395 lines (wc-l; net -52 from pass-64); pass-66 Commit E 397 lines (wc-l; net +2 from pass-65 Commit E+SHA-patch at 395); pass-67 Commit E 399 lines (wc-l; net +2 from pass-66); pass-68 Commit E 402 lines (wc-l; net +3 from pass-67); pass-69 Commit E 405 lines (wc-l; net +3 from pass-68); pass-70 Commit E 435 lines (wc-l; net +30 from pass-69; pre-CLEAR task-snapshot block REMOVED per MED-002 closure but rc.17/rc.18 Phase Progress rows + D-450 Decisions Log row + refreshed Session Resume added net +30); pass-71 Commit E 439 lines (wc-l; net +4 from pass-70 Commit E at 435; pass-71 Phase Progress row + D-451 Decisions Log row + Session Resume refresh added net +4); pass-72 Commit E 443 lines (wc-l; net +4 from pass-71 Commit E at 439; pass-72 Phase Progress row + D-452 Decisions Log row + Session Resume refresh added net +4); pass-73 Commit E 447 lines (wc-l; net +4 from pass-72 Commit E at 443; pass-73 Phase Progress row + D-453 Decisions Log row + Session Resume refresh added net +4); pass-74 Commit E 451 lines (wc-l; net +4 from pass-73 Commit E at 447; pass-74 Phase Progress row + D-454 Decisions Log row + Session Resume refresh added net +4); pass-74-to-pivot transition 406 lines (wc-l; net -45 from pass-74 Commit E at 451; F5 5-pass pause row + Active Branches pivot + Concurrent Cycles pivot + Drift Items side-branch + Session Resume Checkpoint refresh net -45). D-345 seal 408 lines (wc-l; net +2 from pass-74-to-pivot at 406; E-10 pass-9 Phase Progress row + current_step + Session Resume refresh net +2). D-345-seal-to-durability-refresh 441 lines (wc-l; net +33 from D-345 seal at 408; Section 12 forward-backlog added + Section 9 anchor fix + Section 11 step-4 fix + TD #73 RESOLVED). Hard cap (500 lines) margin from soft-target = 500 - 415 = 85; margin from actual = 500 - 441 = 59 (D-446(c) dual-margin form self-applied at durability-refresh).
   Hard cap: 500 lines (validate-state-md-size hook enforcement).
   Historical content belongs in cycle files, NOT here.
   D-430(a) compaction authorization: Pass-49 Commit E surgical compaction (363→310 lines) authorized retroactively per D-430(a); removed content categories: stale Phase Progress rows (passes 1-38); pre-compaction state preserved at git show 278977fb:.factory/STATE.md.
@@ -313,7 +313,7 @@ dtu_services: []
 | **TD #70** cargo cache reuse (Swatinem/rust-cache@v2) | FILED; BLOCKED by E-10 resume | — |
 | **TD #71** dispatcher stderr omits blocking_plugins + block_reason | FILED 2026-05-10 | Surgical executor.rs::execute_tiers fix needed |
 | **TD #72** serde_yaml 0.9.34 deprecated | FILED 2026-05-10 | Migrate to serde_yml or yaml-rust2; affects update-wave-state-on-merge, warn-pending-wave-gate, vsdd-context-resolvers |
-| **TD #73** wave-state.yaml schema disagreement | FILED 2026-05-10 | warn-pending-wave-gate uses YAML MAPPING; update-wave-state-on-merge (producer) + vsdd-context-resolvers use YAML SEQUENCE. Pick canonical (recommend SEQUENCE per producer authority). Migrate warn-pending-wave-gate. Surfaced by S-12.07 pass-2 adversary HIGH-006. Migration deferred — requires rewriting 1000+ lines of integration test fixtures. |
+| **TD #73** wave-state.yaml schema disagreement | RESOLVED 2026-05-13 PR #124 | warn-pending-wave-gate migrated to SEQUENCE schema per F-P3-001 in PR #124 merge. Closes the contradiction surfaced by S-12.07 pass-2 adversary HIGH-006. (Original filed: 2026-05-10.) |
 | Ghost BCs: BC-3.07.003/004, BC-1.06.011 | DEFERRED | Missing from BC-INDEX; investigate in future fix-burst |
 | **S-12.08 resolver-linker WASI gap** | FIXED 2026-05-11 db298c94 | HIDDEN gap surfaced in S-12.04; resolver-linker lacked WASI preview2 filesystem rights for context read paths. Fixed in S-12.08 Step 3b commit db298c94. No separate TD filed — closed in-story. |
 | **Side branch `save/dim2-gates-path-register`** | PENDING DECISION | Pass-74 ADV-EDP1-P74-HIGH-002 retroactive fix (artifact-path-registry entry + hooks/dim2-gates/README.md). Options: (a) open small PR to land on develop, (b) defer to S-15.03 PRIORITY-A automation wave (where it would naturally re-emerge). Branch at SHA `3df1bdda`. |
@@ -384,12 +384,13 @@ v1.0-brownfield-backfill cycle; E-10 pass-9 SEALED (D-344+D-345). Phase D-4 Burs
 
 ### 9. Critical Anchors (Post-Pivot)
 
-- factory-artifacts HEAD: `4b4b6819` (pass-74 SHA-patch; F5 cycle final-state; will advance to this transition commit after push)
-- F5 Commit D: `487e0cc3` (canonical parent-commit per D-419(b) for any future F5 pass-75 resumption)
+- factory-artifacts HEAD: `65804bb3` (D-345 seal SHA-patch; will advance to THIS durability-refresh commit after push)
+- D-345 seal Commit: `2f0eb6f6` (E-10 pass-9 sealed; canonical parent for any pass-10 dispatch per brownfield protocol)
+- F5 cycle final-state HEAD: `4b4b6819` (pass-74 SHA-patch; F5 cycle PAUSED; F5 Commit D `487e0cc3` is canonical parent for any future F5 pass-75 resumption per D-419(b))
 - develop HEAD: `d3ae26a5` (PR #124 merge commit 2026-05-13; verified `git rev-parse origin/develop`)
-- main HEAD: `70811f4a` (verified `git rev-parse origin/main` = 70811f4a5d68d163021f46856c3de51bf8f4aab8)
+- main HEAD: `70811f4a` (verified `git rev-parse origin/main`)
 - F5 cycle: PAUSED at `4b4b6819`; F6/F7: BLOCKED on F5 (not active)
-- Verify at resume: `git -C /Users/jmagady/Dev/vsdd-factory/.factory log --oneline -3`
+- Verify at resume: `git -C /Users/jmagady/Dev/vsdd-factory/.factory log --oneline -3` should show this durability-refresh commit at HEAD
 
 ### 10. PR Status (Post-Pivot)
 
@@ -403,7 +404,39 @@ v1.0-brownfield-backfill cycle; E-10 pass-9 SEALED (D-344+D-345). Phase D-4 Burs
 1. Verify factory-artifacts HEAD is at this transition commit; run `git -C /Users/jmagady/Dev/vsdd-factory/.factory log --oneline -3`
 2. Read STATE.md Session Resume Checkpoint sections 1-10 above (this section is self-sufficient)
 3. Verify CLAUDE.md still cites vsdd-factory project conventions (PR #136 expanded it to 442 lines)
-4. Resume v1.0-brownfield-backfill: dispatch E-10 pass-9 adversary per Section 4 checklist
+4. Resume v1.0-brownfield-backfill: dispatch E-10 pass-10 adversary per Section 4 checklist (pass-9 SEALED at D-344+D-345 commit `2f0eb6f6`; NITPICK_ONLY counter 0/3 — pass-9 HIGH resets; convergence requires 3 consecutive NITPICK_ONLY per BC-5.39.001)
 5. F5 cycle is PAUSED — do NOT dispatch pass-75 without explicit human direction to resume F5
+
+### 12. Pending Work Items (Forward Backlog — Priority Order)
+
+This section enumerates all pending work surfaced as of 2026-05-13 durability-refresh for post-CLEAR resumption visibility. Items are durable here; do NOT rely on session-transient TaskList for forward planning across CLEARs.
+
+**Tier-A (Immediate next action):**
+1. **E-10 pass-10 adversary dispatch** — see Section 4. v1.0-brownfield-backfill cycle. Primary axes per pass-9 verdict: HH (mechanical post-fix verification) + II (cross-cycle propagation audit) + FF/GG/CC/DD/EE re-verify.
+
+**Tier-B (Near-term decision points; surface to human when E-10 progresses):**
+2. **Side branch `save/dim2-gates-path-register`** (SHA `3df1bdda`) — pass-74 ADV-EDP1-P74-HIGH-002 retroactive fix; artifact-path-registry entry + `plugins/vsdd-factory/hooks/dim2-gates/README.md`. UNMERGED. Decision: (a) open small PR to land on develop, (b) defer to S-15.03 PRIORITY-A wave, (c) close as superseded if S-15.03 will handle. Tracked in Drift Items table.
+
+3. **TD #71 dispatcher stderr omits blocking_plugins + block_reason** — FILED 2026-05-10; surgical executor.rs::execute_tiers fix needed. Independent of E-10. Tracked in Drift Items.
+
+4. **TD #72 serde_yaml 0.9.34 deprecated** — FILED 2026-05-10; migrate to serde_yml or yaml-rust2; affects update-wave-state-on-merge + warn-pending-wave-gate + vsdd-context-resolvers. Tracked in Drift Items.
+
+5. **TD #73 warn-pending-wave-gate schema** — RESOLVED 2026-05-13 by PR #124 merge (SEQUENCE schema migration landed via F-P3-001). Marked RESOLVED in Drift Items this commit.
+
+**Tier-C (Blocked / deferred to wave-scale work):**
+6. **TD #66 trace_id field-name canonicalization** — DEFERRED to S-15.02 per PR #113 relaxation. Tracked in Drift Items.
+
+7. **TD #67 4 timing-flaky e2e tests** (TC-4/5/7/9) — DEFERRED to S-15.02 per `#[ignore]` annotations. Tracked in Drift Items.
+
+8. **TD #70 cargo cache reuse (Swatinem/rust-cache@v2)** — FILED; was BLOCKED by E-10 resume; **partially unblocked now** since E-10 has progressed (pass-9 sealed). Re-evaluate priority after E-10 reaches NITPICK_ONLY convergence.
+
+**Tier-D (Structural / long-horizon):**
+9. **S-15.03 PRIORITY-A automation** — the structural break to F5 cycle's L-EDP1-003 recurrence per L-EDP1-007/051/061/062/063/064/065/066. ~108 sub-items per cumulative header "D-411 through D-454". Deferred to v1.0-feature-engine-discipline-pass-2 cycle. F5 cycle resumes ONLY when this lands.
+
+10. **F5 cycle resumption** — currently PAUSED at META-LEVEL-29 asymptotic floor per D-386 Option C + human direction 2026-05-13. Resumes only when (a) S-15.03 PRIORITY-A automation lands, OR (b) explicit human direction. Parent-commit for any pass-75 dispatch: pass-74 Commit D `487e0cc3` per D-419(b).
+
+**This section's purpose:** post-CLEAR sessions should read this enumeration to understand the full forward task surface, not just the immediate next action in Section 4. Items checked off here should be removed; items added should be inserted in priority order.
+
+**[D-414(c) acknowledgment: Section 12 added at durability-refresh per user direction 2026-05-13; standard Session Resume schema is 11 sections, this is a non-standard addition for forward-backlog durability. May be removed at next clean state-manager touch if forward work fits in Section 4 alone.]**
 
 > Previous checkpoint (pass-74 fix burst COMPLETE at pass-74 Commit E + SHA-patch `46133e27`) archived to: `cycles/v1.0-feature-engine-discipline-pass-1/session-checkpoints.md`
