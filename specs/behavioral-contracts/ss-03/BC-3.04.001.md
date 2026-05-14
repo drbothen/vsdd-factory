@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "v1.2"
+version: "v1.2.1"
 last_amended: 2026-05-13
 status: draft
 producer: codebase-analyzer
@@ -10,7 +10,7 @@ phase: "1.4b"
 inputs:
   - .factory/specs/behavioral-contracts/bc-id-mapping.md
   - .factory/phase-0-ingestion/pass-3-behavioral-contracts-deep-r1.md
-input-hash: "b115391"
+input-hash: "5d2b1b3"
 traces_to: .factory/specs/behavioral-contracts/bc-id-mapping.md
 origin: brownfield
 extracted_from: "pass-3-behavioral-contracts-deep-r1.md:382"
@@ -18,7 +18,7 @@ subsystem: "SS-03"
 capability: "CAP-003"
 lifecycle_status: deprecated
 introduced: v1.0.0-beta.4
-modified: [v1.0.0-rc.1, v1.2-adv-E-10-pass-10]
+modified: [v1.0.0-rc.1, v1.2-adv-E-10-pass-10, v1.2.1-adv-E-10-pass-12]
 deprecated: v1.0.0-rc.1
 deprecated_by: BC-3.04.004
 replacement: BC-3.04.004
@@ -132,5 +132,6 @@ TBD — Phase 1.6b will produce refactoring guidance.
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| v1.2.1 | 2026-05-13 | state-manager | E-10 pass-11 D-464 (post-renumber from D-348) frontmatter metadata-sync — `last_amended:` advanced + `modified:` array appended; audit-trail row added in D-466 pass-12 fix burst per F-1 KK-2 tripartite-parity closure. Body content unchanged. |
 | v1.2 | 2026-05-13 | architect | D-462 E-10 pass-10 fix burst — F-3 closure: Architecture Module row corrected from stale `SS-03 (Observability Sinks)` to `SS-03 (Event Emission (OTel-Aligned))`; retired router.rs reference annotated per ADR-015 D-15.1. [D-NNN corrigendum 2026-05-13: originally D-346; renumbered to D-462 per F-CRIT-001.] |
 | v1.1 | 2026-05-08 | implementer | TD-VSDD-091 Chunk 6 — migrated 1 body cite: `sinks/router.rs:1-9` + `:33-47` + `sinks/mod.rs:11-21` → `sinks/router.rs § 'module doc'`, `sinks/router.rs::Router`, `sinks/mod.rs § 'Integration Status'`. |

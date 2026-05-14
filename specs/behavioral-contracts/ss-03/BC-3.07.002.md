@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 origin: greenfield
 producer: product-owner
@@ -10,13 +10,18 @@ phase: "1.8"
 inputs:
   - .factory/stories/S-4.01-sink-http-driver.md
   - .factory/specs/behavioral-contracts/ss-03/BC-3.01.008.md
-input-hash: "41088b0"
+input-hash: "10cc2e6"
 traces_to: .factory/specs/prd.md#FR-045
 subsystem: "SS-03"
 capability: "CAP-003"
 lifecycle_status: active
 introduced: v1.0.0-rc.1
-modified: []
+last_amended: 2026-05-13
+modified:
+  - version: "1.1"
+    date: "2026-05-13"
+    author: "architect"
+    summary: "D-350 F-3+F-6 closure: SS-03 banner canonical-name sweep"
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -28,7 +33,7 @@ extracted_from: null
 
 # BC-3.07.002: sink driver emits `internal.sink_error` event on each recorded failure
 
-> Section: SS-03 Observability Sinks — cross-sink failure event emission
+> Section: SS-03 Event Emission (OTel-Aligned) — cross-sink failure event emission
 > Promoted from implicit gap noted in S-4.04 backlog (`BC-3.NN.NNN-cross-sink-failure-recording`).
 > Scoped to all sink drivers that record into `Mutex<Vec<SinkFailure>>`: sink-http, sink-otel-grpc,
 > sink-file.
@@ -149,3 +154,10 @@ S-4.10 — internal.sink_error event emission, cross-sink (Wave 11)
 
 - VP-007 (Dispatcher Self-Telemetry Is Always-On and Never Panics)
 - VP-012 (Sink Failure Affects Only That Sink)
+
+## Changelog
+
+| Version | Date | Author | Notes |
+|---------|------|--------|-------|
+| 1.1 | 2026-05-13 | architect | D-350 E-10 pass-12 fix burst F-3+F-6 closure (HH-4 regex-alternation discipline): section banner `SS-03 Observability Sinks` → `SS-03 Event Emission (OTel-Aligned)` per POLICY 6 canonical-name SoT (ARCH-INDEX Subsystem Registry). KK-2 tripartite parity: frontmatter version + last_amended + modified[] + body changelog all synced same burst. |
+| 1.0 | 2026-04-27 | product-owner | Initial BC definition. |

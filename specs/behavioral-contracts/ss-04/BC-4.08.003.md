@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "v1.3"
+version: "v1.3.1"
 last_amended: 2026-05-13
 status: draft
 producer: product-owner
@@ -18,7 +18,7 @@ subsystem: "SS-04"
 capability: "CAP-002"
 lifecycle_status: draft
 introduced: v1.0.0-rc.1
-modified: [v1.1-adv-s5.04-p01, v1.2-adv-s5.04-p02, v1.3-adv-E-10-pass-10]
+modified: [v1.1-adv-s5.04-p01, v1.2-adv-s5.04-p02, v1.3-adv-E-10-pass-10, v1.3.1-adv-E-10-pass-12]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -133,6 +133,7 @@ VP-068
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| v1.3.1 | 2026-05-13 | state-manager | E-10 pass-11 D-464 (post-renumber from D-348) frontmatter metadata-sync — `last_amended:` advanced + `modified:` array appended; audit-trail row added in D-466 pass-12 fix burst per F-1 KK-2 tripartite-parity closure. Body content unchanged. |
 | v1.3 | 2026-05-13 | architect | D-462 E-10 pass-10 fix burst — F-2 cross-cycle propagation: Precondition 2 `schema_version = 1` corrected to `= 2 (post-ADR-019 F2 2026-05-07)`. Stale citation since F2 ADR-019 sibling-sweep. [D-NNN corrigendum 2026-05-13: originally D-346; renumbered to D-462 per F-CRIT-001.] |
 | v1.2 | 2026-04-28 | product-owner | ADV-S5.04-P02 fix burst: (HIGH-P02-006) status: active → draft (sibling consistency; promotion happens at merge time). |
 | v1.1 | 2026-04-28 | product-owner | ADV-S5.04-P01 fix burst: (HIGH-P01-001) CAP-013 → CAP-002; failure-path is part of the lifecycle hooks family per S-5.01 arch-decision; consistent with sibling BCs BC-4.07.001–004. + state-manager pre-commit cleanup: Capability Anchor Justification simplified to positive CAP-002 statement (CAP-013 contextual clause removed). |

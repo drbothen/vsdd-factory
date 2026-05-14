@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "v1.3"
+version: "v1.3.1"
 last_amended: 2026-05-13
 status: draft
 producer: product-owner
@@ -18,7 +18,7 @@ subsystem: "SS-04"
 capability: "CAP-002"
 lifecycle_status: active
 introduced: v1.0.0-rc.1
-modified: [v1.0-pass-1, v1.0-pass-2, v1.0-pass-3, v1.0-pass-4, v1.0-pass-5, v1.0-pass-6, v1.0-pass-7, v1.0-pass-8, v1.0-pass-9, v1.1-adv-s5.03-p01-sibling-sweep, v1.3-adv-E-10-pass-10]
+modified: [v1.0-pass-1, v1.0-pass-2, v1.0-pass-3, v1.0-pass-4, v1.0-pass-5, v1.0-pass-6, v1.0-pass-7, v1.0-pass-8, v1.0-pass-9, v1.1-adv-s5.03-p01-sibling-sweep, v1.3-adv-E-10-pass-10, v1.3.1-adv-E-10-pass-12]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -190,6 +190,7 @@ VP-065
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| v1.3.1 | 2026-05-13 | state-manager | E-10 pass-11 D-464 (post-renumber from D-348) frontmatter metadata-sync — `last_amended:` advanced + `modified:` array appended; audit-trail row added in D-466 pass-12 fix burst per F-1 KK-2 tripartite-parity closure. Body content unchanged. |
 | v1.3 | 2026-05-13 | architect | D-462 E-10 pass-10 fix burst — F-2 cross-cycle propagation: Precondition 2 `schema_version = 1` corrected to `= 2 (post-ADR-019 F2 2026-05-07)`. Stale citation since F2 ADR-019 sibling-sweep. [D-NNN corrigendum 2026-05-13: originally D-346; renumbered to D-462 per F-CRIT-001.] |
 | v1.2 | 2026-05-08 | state-manager | F-P23-002 cross-subsystem sweep: §F-13 Architectural Notes source-code line cites migrated to stable symbol anchors per TD-VSDD-091: `(line 149)` → `RegistryEntry::timeout_ms` field; `(line 120)` → `RegistryEntry` struct attribute. |
 | v1.1 | 2026-04-28 | product-owner | Retroactive sibling-sweep fix from S-5.03 ADV-S5.03-P01: (HIGH-004 sweep) DI-007 removed from Traceability — DI-007 is dispatcher self-telemetry (SS-03 internal_log.rs scope), not plugin-emitted event emission; replaced with "no current DI; v1.1 candidate" annotation; S-5.01 story body NOT bumped per bc_array_changes_propagate_to_body_and_acs policy. Sibling-sweep findings considered: HIGH-004 (DI-007 removal) — APPLIED; HIGH-003 (4+3+1 RESERVED_FIELDS split) — NOT APPLICABLE (BC-4.04.005 is registry routing, not field-grouping; HIGH-003 was reverted in S-5.03 P02). |

@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 origin: greenfield
 producer: product-owner
@@ -10,13 +10,18 @@ phase: "1.8"
 inputs:
   - .factory/stories/S-4.01-sink-http-driver.md
   - .factory/specs/behavioral-contracts/ss-03/BC-3.03.002.md
-input-hash: "41088b0"
+input-hash: "10cc2e6"
 traces_to: .factory/specs/prd.md#FR-044
 subsystem: "SS-03"
 capability: "CAP-024"
 lifecycle_status: active
 introduced: v1.0.0-rc.1
-modified: []
+last_amended: 2026-05-13
+modified:
+  - version: "1.1"
+    date: "2026-05-13"
+    author: "architect"
+    summary: "D-350 F-3+F-6 closure: SS-03 banner canonical-name sweep"
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -28,7 +33,7 @@ extracted_from: null
 
 # BC-3.07.001: sink-http exponential backoff with jitter between 5xx retries
 
-> Section: SS-03 Observability Sinks — sink-http resilience
+> Section: SS-03 Event Emission (OTel-Aligned) — sink-http resilience
 > Promoted from v1.1 BC candidate `BC-3.NN.NNN-retry-policy-exponential-backoff` in S-4.04 backlog.
 > Narrowly scoped to sink-http only; full cross-sink RetryPolicy struct is S-4.04 scope.
 
@@ -134,3 +139,10 @@ S-4.09 — sink-http retry backoff with jitter (Wave 11)
 
 - VP-011 (Sink submit Must Not Block the Dispatcher)
 - VP-012 (Sink Failure Affects Only That Sink)
+
+## Changelog
+
+| Version | Date | Author | Notes |
+|---------|------|--------|-------|
+| 1.1 | 2026-05-13 | architect | D-350 E-10 pass-12 fix burst F-3+F-6 closure (HH-4 regex-alternation discipline): section banner `SS-03 Observability Sinks` → `SS-03 Event Emission (OTel-Aligned)` per POLICY 6 canonical-name SoT (ARCH-INDEX Subsystem Registry). KK-2 tripartite parity: frontmatter version + last_amended + modified[] + body changelog all synced same burst. |
+| 1.0 | 2026-04-27 | product-owner | Initial BC definition. |

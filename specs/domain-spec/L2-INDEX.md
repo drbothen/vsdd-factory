@@ -1,7 +1,7 @@
 ---
 document_type: domain-spec-index
 level: L2
-version: "1.0.1"
+version: "1.0.2"
 status: accepted
 producer: business-analyst
 timestamp: 2026-04-27T00:00:00
@@ -79,7 +79,7 @@ workflow management driven by LLM agents.
 |-------|------|----------------|
 | SS-01 | Hook Dispatcher Core | CAP-001, CAP-002, CAP-008, CAP-010, CAP-011 |
 | SS-02 | Hook SDK and Plugin ABI | CAP-002, CAP-009 |
-| SS-03 | Observability Sinks | CAP-003, CAP-010 |
+| SS-03 | Event Emission (OTel-Aligned) | CAP-003, CAP-010 |
 | SS-04 | Plugin Ecosystem | CAP-002, CAP-008, CAP-013 |
 | SS-05 | Pipeline Orchestration | CAP-001, CAP-004, CAP-005, CAP-006, CAP-012, CAP-014, CAP-016, CAP-018 |
 | SS-06 | Skill Catalog | CAP-001, CAP-004, CAP-005, CAP-006, CAP-014, CAP-015, CAP-016, CAP-017, CAP-018, CAP-019, CAP-020, CAP-021, CAP-022, CAP-023, CAP-024, CAP-025, CAP-026, CAP-028 |
@@ -95,3 +95,11 @@ workflow management driven by LLM agents.
 | P0 (must-have) | 11 | CAP-001, CAP-002, CAP-003, CAP-007, CAP-008, CAP-009, CAP-010, CAP-013, CAP-014, CAP-016, CAP-028 |
 | P1 (should-have) | 11 | CAP-004, CAP-005, CAP-006, CAP-011, CAP-012, CAP-015, CAP-017, CAP-018, CAP-019, CAP-020, CAP-021 |
 | P2 (nice-to-have) | 6 | CAP-022, CAP-023, CAP-024, CAP-025, CAP-026, CAP-027 |
+
+## Changelog
+
+| Version | Date | Author | Notes |
+|---------|------|--------|-------|
+| 1.0.2 | 2026-05-13 | architect | D-350 E-10 pass-12 fix burst F-3+F-6 closure (HH-4 regex-alternation discipline): SS-03 subsystem name `Observability Sinks` → `Event Emission (OTel-Aligned)` per POLICY 6 canonical-name SoT (ARCH-INDEX Subsystem Registry). |
+| 1.0.1 | (prior) | business-analyst | Prior version. |
+| 1.0 | (initial) | business-analyst | Initial L2 domain spec index. |

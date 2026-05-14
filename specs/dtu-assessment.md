@@ -1,7 +1,7 @@
 ---
 document_type: dtu-assessment
 level: L3
-version: "1.0"
+version: "1.1"
 status: accepted
 producer: architect
 timestamp: 2026-04-25T00:00:00
@@ -12,6 +12,7 @@ inputs:
   - .factory/specs/architecture/ARCH-INDEX.md
 traces_to: architecture/ARCH-INDEX.md
 DTU_REQUIRED: false
+input-hash: "690c0fc"
 ---
 
 # DTU Assessment: vsdd-factory
@@ -110,7 +111,7 @@ Full audit against all 10 subsystems enumerated in ARCH-INDEX.md.
 |-------|------|----------------------------------|-------------|-----------|
 | SS-01 | Hook Dispatcher Core | Claude Code harness (stdin envelope consumer) | No | SS-01 is the implementation being onboarded — it IS vsdd-factory. Claude Code is the host process and trust boundary; vsdd-factory consumes its hook envelope as input data, not a third-party API to clone. |
 | SS-02 | Hook SDK and Plugin ABI | None | No | Pure first-party Rust crates (`hook-sdk`, `hook-sdk-macros`). No external service dependency. The WASM plugin ABI is an internal contract between SS-01 and SS-02. |
-| SS-03 | Observability Sinks | Optional OTel collector (local); optional Datadog + Honeycomb (not yet shipped) | No | sink-file and sink-otel-grpc ship against a local operator-controlled collector. Datadog/Honeycomb drivers are unimplemented (warn-and-skip). vsdd-factory is a producer, not an implementor of these services' ingestion behavior. |
+| SS-03 | Event Emission (OTel-Aligned) | Optional OTel collector (local); optional Datadog + Honeycomb (not yet shipped) | No | sink-file and sink-otel-grpc ship against a local operator-controlled collector. Datadog/Honeycomb drivers are unimplemented (warn-and-skip). vsdd-factory is a producer, not an implementor of these services' ingestion behavior. |
 | SS-04 | Plugin Ecosystem | None (WASM sandbox internal) | No | `legacy-bash-adapter.wasm` and `capture-commit-activity.wasm` are first-party WASM plugins. They shell out to OS subprocesses via `exec_subprocess` but do not integrate with any external SaaS. |
 | SS-05 | Pipeline Orchestration | LLM provider via Claude Code (consumer) | No | The orchestrator dispatches sub-agents using Claude Code's Agent tool. The LLM provider relationship is Claude Code's concern, not vsdd-factory's. The product does not ship behavior logic that wraps an LLM API directly. |
 | SS-06 | Skill Catalog | Optional Perplexity MCP server; optional Context7 MCP server | No (optional, soft-fail) | MCP servers are enrichment-only, entirely optional. Skills degrade gracefully without them. No behavioral clone is needed because vsdd-factory ships no behavior that depends on their specific response shapes. |
@@ -195,3 +196,10 @@ PHASE_1_6_A_DTU_ASSESSMENT: COMPLETE
   External integrations identified: 5 (all optional or consumer-side)
   Future re-assessment triggers: 5
 ```
+
+## Changelog
+
+| Version | Date | Author | Notes |
+|---------|------|--------|-------|
+| 1.1 | 2026-05-13 | architect | D-350 E-10 pass-12 fix burst F-3+F-6 closure (HH-4 regex-alternation discipline): SS-03 subsystem name `Observability Sinks` → `Event Emission (OTel-Aligned)` in DTU subsystem inventory table per POLICY 6 canonical-name SoT (ARCH-INDEX Subsystem Registry). |
+| 1.0 | 2026-04-25 | architect | Initial DTU assessment. DTU_REQUIRED: false. |

@@ -65,3 +65,10 @@ SS-03 (Event Emission (OTel-Aligned)).
 | wasmtime | WASM runtime with epoch + fuel | Available (workspace-pinned) |
 | tonic/prost | gRPC client for OTLP | Available (workspace-pinned) |
 | GitHub Actions | Rust CI matrix | Available |
+
+## Changelog
+
+| Version | Date | Author | Notes |
+|---------|------|--------|-------|
+| 1.1 | 2026-05-13 | architect | D-464 E-10 pass-11 fix burst (post-renumber from D-348) F-3 closure: `SS-03 (Observability Sinks)` → `SS-03 (Event Emission (OTel-Aligned))` per ADR-015 D-15.1 + POLICY 6 canonical-name SoT. Frontmatter bumped to v1.1 in D-464 fix burst; body Changelog added in D-350 pass-12 fix burst (F-2 closure per KK-2 tripartite parity discipline). |
+| 1.0 | (initial) | architect | Initial sharded epic definition. |

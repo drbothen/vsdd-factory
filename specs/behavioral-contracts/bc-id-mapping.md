@@ -37,7 +37,7 @@ The mapping is exhaustive: 1,851 source BCs → 1,851 unique target IDs.
 |-----------|------|------|-------|
 | SS-01 | Hook Dispatcher Core | BC-1 | 99 |
 | SS-02 | Hook SDK and Plugin ABI | BC-2 | 22 |
-| SS-03 | Observability Sinks | BC-3 | 49 |
+| SS-03 | Event Emission (OTel-Aligned) | BC-3 | 49 |
 | SS-04 | Plugin Ecosystem | BC-4 | 13 |
 | SS-05 | Pipeline Orchestration | BC-5 | 627 |
 | SS-06 | Skill Catalog | BC-6 | 571 |
@@ -76,7 +76,7 @@ room for future additions and to keep related sections clustered.
 | BC-2.04 | HookPayload SDK parsing | 5 |
 | BC-2.05 | SDK __internal helpers | 3 |
 
-### SS-03 — Observability Sinks (BC-3)
+### SS-03 — Event Emission (OTel-Aligned) (BC-3)
 
 | Section | Name | Count |
 |---------|------|-------|

@@ -1,7 +1,7 @@
 ---
 document_type: prd
 level: L3
-version: "1.3"
+version: "1.4"
 status: draft
 producer: product-owner
 timestamp: 2026-05-07T00:00:00Z
@@ -20,7 +20,7 @@ inputs:
   - .factory/phase-0-ingestion/pass-8-final-synthesis.md
   - .factory/legacy-design-docs/2026-04-24-v1.0-factory-plugin-kit-design.md
   - .factory/stories/ (48 stories, 9 epics)
-input-hash: "7412c05"
+input-hash: "a1cb697"
 traces_to: .factory/specs/domain-spec/L2-INDEX.md
 supplements: []
 # Supplements deferred — PRD body contains summary versions:
@@ -287,7 +287,7 @@ Enforces: CAP-009. Status: **shipped** (S-1.03); crates.io publish **partial** (
 
 ---
 
-### 2.3 Observability Sinks (SS-03)
+### 2.3 Event Emission (OTel-Aligned) (SS-03)
 
 #### FR-010 — Sink registry, routing filter, and config loading
 
@@ -848,7 +848,7 @@ Enforces: CAP-016. Status: **pending** (E-7 story S-7.03 not yet implemented).
 |----------|-------------|----------|
 | BC-7.01.001–NNN | protect-secrets.sh: pattern-based secret detection on Bash+Read; blocks with reason; emits block event | P0 |
 | BC-7.02.001–NNN | destructive-command-guard.sh: blocks dangerous bash patterns (rm -rf, git push --force on main) | P0 |
-| BC-7.03.001–NNN | protect-bc.sh / protect-vp.sh: PreToolUse Edit|Write gates preventing direct BC/VP modification | P0 |
+| BC-7.03.001–NNN | protect-bc.sh / protect-vp.sh: PreToolUse Edit or Write gates preventing direct BC/VP modification | P0 |
 | BC-7.04.001–NNN | factory-branch-guard.sh, brownfield-discipline.sh, red-gate.sh: factory state machine gates | P0 |
 
 Source BCs: `ss-07/BC-7.01.001.md` through (approx. 50 BCs in PreToolUse family).
@@ -1051,7 +1051,7 @@ A real downstream factory run (Prism project, Wave 2, parallel batch of 5 storie
 | BC-8.29.001 | RED_RATIO = RED_TESTS / TOTAL_NEW_TESTS must be ≥ 0.5 before Step 4 implementer dispatch (BLOCKING) | P0 |
 | BC-8.29.002 | each non-RED test must be documented in red-gate-log with rationale before threshold relaxation | P1 |
 | BC-8.29.003 | on RED_RATIO < 0.5 without GREEN-BY-DESIGN justification, orchestrator must choose remediation option A or B | P0 |
-| BC-8.30.001 | story template must include tdd_mode field with strict|facade enum and strict default | P1 |
+| BC-8.30.001 | story template must include tdd_mode field with strict or facade enum and strict default | P1 |
 | BC-8.30.002 | tdd_mode=facade modifies per-story-delivery semantics and mandates mutation testing at wave gate | P1 |
 | BC-6.21.001 | wave-gate skill must run cargo mutants for every story with tdd_mode=facade in the wave | P1 |
 | BC-6.21.002 | mutation kill rate floor is 80%; surviving mutants must be addressed via test, dead-code confirmation, or explicit waiver | P1 |
@@ -1582,7 +1582,7 @@ The following features must NOT appear in any story acceptance criteria or imple
 | FRs defined | 48 |
 | NFRs cataloged | 76 |
 | DTU status | DTU_REQUIRED: false |
-| PRD version | 1.3 (2026-05-08 — F-P19-001 corpus-wide L-P18-002 sweep: 1 prose-form line ref (`see line 768` in KL-006) replaced with stable section anchor (PRD §4 "Non-Functional Requirements"). No functional content changed.) |
+| PRD version | 1.4 (2026-05-13 — D-350 E-10 pass-12 fix burst F-3+F-6 closure (HH-4 regex-alternation discipline): §2.3 heading `Observability Sinks (SS-03)` → `Event Emission (OTel-Aligned) (SS-03)` per POLICY 6 canonical-name SoT. Also fixed 2 pre-existing unescaped pipe violations (line 851: `Edit\|Write` → `Edit or Write`; line 1054: `strict\|facade` → `strict or facade`) per validate-table-cell-count gate. Previous: 1.3 (2026-05-08 — F-P19-001 corpus-wide L-P18-002 sweep). |
 
 This PRD should be updated when:
 - A Tier E/F/G story ships and its FR status changes from `pending` to `shipped`
