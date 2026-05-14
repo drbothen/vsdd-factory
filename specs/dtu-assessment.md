@@ -1,7 +1,7 @@
 ---
 document_type: dtu-assessment
 level: L3
-version: "1.1"
+version: "1.2"
 status: accepted
 producer: architect
 timestamp: 2026-04-25T00:00:00
@@ -201,5 +201,6 @@ PHASE_1_6_A_DTU_ASSESSMENT: COMPLETE
 
 | Version | Date | Author | Notes |
 |---------|------|--------|-------|
-| 1.1 | 2026-05-13 | architect | D-350 E-10 pass-12 fix burst F-3+F-6 closure (HH-4 regex-alternation discipline): SS-03 subsystem name `Observability Sinks` → `Event Emission (OTel-Aligned)` in DTU subsystem inventory table per POLICY 6 canonical-name SoT (ARCH-INDEX Subsystem Registry). |
+| 1.2 | 2026-05-14 | architect | D-468 F-PASS13-001 closure: corrected citation D-350 → D-466 in v1.1 row (D-350 is F5-cycle S-13.01 merge decision; D-466 is brownfield E-10 pass-12 fix burst). |
+| 1.1 | 2026-05-13 | architect | D-466 E-10 pass-12 fix burst F-3+F-6 closure (HH-4 regex-alternation discipline): SS-03 subsystem name `Observability Sinks` → `Event Emission (OTel-Aligned)` in DTU subsystem inventory table per POLICY 6 canonical-name SoT (ARCH-INDEX Subsystem Registry). |
 | 1.0 | 2026-04-25 | architect | Initial DTU assessment. DTU_REQUIRED: false. |

@@ -20,7 +20,7 @@ inputs:
   - .factory/phase-0-ingestion/pass-8-final-synthesis.md
   - .factory/legacy-design-docs/2026-04-24-v1.0-factory-plugin-kit-design.md
   - .factory/stories/ (48 stories, 9 epics)
-input-hash: "a1cb697"
+input-hash: "c3a9f91"
 traces_to: .factory/specs/domain-spec/L2-INDEX.md
 supplements: []
 # Supplements deferred — PRD body contains summary versions:
@@ -1582,7 +1582,7 @@ The following features must NOT appear in any story acceptance criteria or imple
 | FRs defined | 48 |
 | NFRs cataloged | 76 |
 | DTU status | DTU_REQUIRED: false |
-| PRD version | 1.4 (2026-05-13 — D-350 E-10 pass-12 fix burst F-3+F-6 closure (HH-4 regex-alternation discipline): §2.3 heading `Observability Sinks (SS-03)` → `Event Emission (OTel-Aligned) (SS-03)` per POLICY 6 canonical-name SoT. Also fixed 2 pre-existing unescaped pipe violations (line 851: `Edit\|Write` → `Edit or Write`; line 1054: `strict\|facade` → `strict or facade`) per validate-table-cell-count gate. Previous: 1.3 (2026-05-08 — F-P19-001 corpus-wide L-P18-002 sweep). |
+| PRD version | 1.4 (2026-05-13 — D-466 E-10 pass-12 fix burst F-3+F-6 closure (HH-4 regex-alternation discipline): §2.3 heading `Observability Sinks (SS-03)` → `Event Emission (OTel-Aligned) (SS-03)` per POLICY 6 canonical-name SoT. Also fixed 2 pre-existing unescaped pipe violations (line 851: `Edit\|Write` → `Edit or Write`; line 1054: `strict\|facade` → `strict or facade`) per validate-table-cell-count gate. Previous: 1.3 (2026-05-08 — F-P19-001 corpus-wide L-P18-002 sweep). [D-468 F-PASS13-001: D-350 → D-466 citation correction applied 2026-05-14.] |
 
 This PRD should be updated when:
 - A Tier E/F/G story ships and its FR status changes from `pending` to `shipped`

@@ -1,10 +1,17 @@
 ---
 document_type: epic
 epic_id: "E-1"
-version: "1.1"
+version: "1.1.2"
 prd_capabilities: []
 status: closed
 story_count: 9
+last_amended: 2026-05-14
+producer: architect
+modified:
+  - v1.0-initial
+  - v1.1-adv-E-10-pass-11-D-464
+  - v1.1.1-adv-E-10-pass-12-D-466
+  - v1.1.2-adv-E-10-pass-13-D-468
 ---
 
 # Epic E-1: Dispatcher Foundation
@@ -70,5 +77,7 @@ SS-03 (Event Emission (OTel-Aligned)).
 
 | Version | Date | Author | Notes |
 |---------|------|--------|-------|
-| 1.1 | 2026-05-13 | architect | D-464 E-10 pass-11 fix burst (post-renumber from D-348) F-3 closure: `SS-03 (Observability Sinks)` → `SS-03 (Event Emission (OTel-Aligned))` per ADR-015 D-15.1 + POLICY 6 canonical-name SoT. Frontmatter bumped to v1.1 in D-464 fix burst; body Changelog added in D-350 pass-12 fix burst (F-2 closure per KK-2 tripartite parity discipline). |
+| 1.1.2 | 2026-05-14 | architect | D-468 F-PASS13-001 closure: corrected citation D-350 → D-466 in v1.1 row (D-350 is F5-cycle S-13.01 merge decision; D-466 is brownfield E-10 pass-12 fix burst). Set B NN-2 frontmatter parity: added last_amended, producer, modified[] array. |
+| 1.1.1 | 2026-05-13 | architect | D-466 E-10 pass-12 fix burst F-2 closure: body Changelog row added per KK-2 tripartite parity discipline. |
+| 1.1 | 2026-05-13 | architect | D-464 E-10 pass-11 fix burst (post-renumber from D-348) F-3 closure: `SS-03 (Observability Sinks)` → `SS-03 (Event Emission (OTel-Aligned))` per ADR-015 D-15.1 + POLICY 6 canonical-name SoT. Frontmatter bumped to v1.1 in D-464 fix burst; body Changelog added in D-466 pass-12 fix burst (F-2 closure per KK-2 tripartite parity discipline). |
 | 1.0 | (initial) | architect | Initial sharded epic definition. |

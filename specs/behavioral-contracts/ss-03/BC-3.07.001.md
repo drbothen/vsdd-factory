@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.1.1"
 status: draft
 origin: greenfield
 producer: product-owner
@@ -16,12 +16,16 @@ subsystem: "SS-03"
 capability: "CAP-024"
 lifecycle_status: active
 introduced: v1.0.0-rc.1
-last_amended: 2026-05-13
+last_amended: 2026-05-14
 modified:
+  - version: "1.1.1"
+    date: "2026-05-14"
+    author: "architect"
+    summary: "D-468 F-PASS13-001 closure: D-350 → D-466 citation correction in modified[] summary and body changelog"
   - version: "1.1"
     date: "2026-05-13"
     author: "architect"
-    summary: "D-350 F-3+F-6 closure: SS-03 banner canonical-name sweep"
+    summary: "D-466 F-3+F-6 closure: SS-03 banner canonical-name sweep"
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -144,5 +148,6 @@ S-4.09 — sink-http retry backoff with jitter (Wave 11)
 
 | Version | Date | Author | Notes |
 |---------|------|--------|-------|
-| 1.1 | 2026-05-13 | architect | D-350 E-10 pass-12 fix burst F-3+F-6 closure (HH-4 regex-alternation discipline): section banner `SS-03 Observability Sinks` → `SS-03 Event Emission (OTel-Aligned)` per POLICY 6 canonical-name SoT (ARCH-INDEX Subsystem Registry). KK-2 tripartite parity: frontmatter version + last_amended + modified[] + body changelog all synced same burst. |
+| 1.1.1 | 2026-05-14 | architect | D-468 F-PASS13-001 closure: corrected citation D-350 → D-466 in v1.1 row (D-350 is F5-cycle S-13.01 merge decision; D-466 is brownfield E-10 pass-12 fix burst). KK-2 tripartite parity: frontmatter version + last_amended + modified[] + body changelog all synced same burst. |
+| 1.1 | 2026-05-13 | architect | D-466 E-10 pass-12 fix burst F-3+F-6 closure (HH-4 regex-alternation discipline): section banner `SS-03 Observability Sinks` → `SS-03 Event Emission (OTel-Aligned)` per POLICY 6 canonical-name SoT (ARCH-INDEX Subsystem Registry). KK-2 tripartite parity: frontmatter version + last_amended + modified[] + body changelog all synced same burst. |
 | 1.0 | 2026-04-27 | product-owner | Initial BC definition. |

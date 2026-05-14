@@ -1,7 +1,7 @@
 ---
 document_type: domain-spec-index
 level: L2
-version: "1.0.2"
+version: "1.0.3"
 status: accepted
 producer: business-analyst
 timestamp: 2026-04-27T00:00:00
@@ -100,6 +100,7 @@ workflow management driven by LLM agents.
 
 | Version | Date | Author | Notes |
 |---------|------|--------|-------|
-| 1.0.2 | 2026-05-13 | architect | D-350 E-10 pass-12 fix burst F-3+F-6 closure (HH-4 regex-alternation discipline): SS-03 subsystem name `Observability Sinks` → `Event Emission (OTel-Aligned)` per POLICY 6 canonical-name SoT (ARCH-INDEX Subsystem Registry). |
+| 1.0.3 | 2026-05-14 | architect | D-468 F-PASS13-001 closure: corrected citation D-350 → D-466 in v1.0.2 row (D-350 is F5-cycle S-13.01 merge decision; D-466 is brownfield E-10 pass-12 fix burst). |
+| 1.0.2 | 2026-05-13 | architect | D-466 E-10 pass-12 fix burst F-3+F-6 closure (HH-4 regex-alternation discipline): SS-03 subsystem name `Observability Sinks` → `Event Emission (OTel-Aligned)` per POLICY 6 canonical-name SoT (ARCH-INDEX Subsystem Registry). |
 | 1.0.1 | (prior) | business-analyst | Prior version. |
 | 1.0 | (initial) | business-analyst | Initial L2 domain spec index. |
