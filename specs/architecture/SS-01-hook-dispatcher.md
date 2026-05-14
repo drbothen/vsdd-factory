@@ -11,7 +11,7 @@ inputs:
   - .factory/specs/architecture/ARCH-INDEX.md
   - .factory/phase-0-ingestion/pass-1-architecture.md
   - .factory/phase-0-ingestion/pass-8-final-synthesis.md
-input-hash: "39de903"
+input-hash: "94f90bb"
 traces_to: ARCH-INDEX.md
 ---
 
@@ -187,5 +187,5 @@ FileSink partial-write recovery, atomic dual-emit host helper).
 
 | Version | Date | Change |
 |---------|------|--------|
-| 1.3 | 2026-05-13 | D-344 E-10 pass-9 fix burst: F-1 DI-017 rename completion — context_fns.rs row and Internal Structure step 1 canonicalized to `trace_id` (from `dispatcher_trace_id` per DI-017 v1.1 / ADR-015 v1.7); F-2 REGISTRY_SCHEMA_VERSION 1→2 at Modules row + Public Interface + Cross-Cutting (post-ADR-019); F-3 SS-03 dependency row updated to canonical subsystem name "Event Emission (OTel-Aligned)" + Router/SinkRegistry/DlqWriter retirement per BC-1.12.001 + BC-1.12.007. |
+| 1.3 | 2026-05-13 | D-460 E-10 pass-9 fix burst: F-1 DI-017 rename completion — context_fns.rs row and Internal Structure step 1 canonicalized to `trace_id` (from `dispatcher_trace_id` per DI-017 v1.1 / ADR-015 v1.7); F-2 REGISTRY_SCHEMA_VERSION 1→2 at Modules row + Public Interface + Cross-Cutting (post-ADR-019); F-3 SS-03 dependency row updated to canonical subsystem name "Event Emission (OTel-Aligned)" + Router/SinkRegistry/DlqWriter retirement per BC-1.12.001 + BC-1.12.007. [D-NNN corrigendum 2026-05-13: originally D-344; renumbered to D-460 per F-CRIT-001.] |
 | 1.2 | 2026-05-08 | TD-VSDD-091 Chunk 4 — migrated 3 line citations to stable symbol anchors: `invoke.rs:447-474` → `invoke.rs::setup_host_on_store_data`; `internal_log.rs:67-70` → `internal_log.rs::INTERNAL_SINK_DLQ_WRITE`; `internal_log.rs:58` → `internal_log.rs::DISPATCHER_SHUTTING_DOWN`. |

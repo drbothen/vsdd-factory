@@ -39,8 +39,8 @@ findings_count:
   MEDIUM: 1
   LOW: 1
   NITPICK: 0
-fix_burst: D-344 (proposed)
-seal_dispatch: D-345 (proposed)
+fix_burst: D-460 (renumbered from D-344 per F-CRIT-001 resolution 2026-05-13)
+seal_dispatch: D-461 (renumbered from D-345 per F-CRIT-001 resolution 2026-05-13)
 engine_baseline: develop@d3ae26a5 (rc.18 + PR #124 + PR #136)
 nitpick_only_counter_before: 0
 nitpick_only_counter_after: 0

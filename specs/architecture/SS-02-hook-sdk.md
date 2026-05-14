@@ -11,7 +11,7 @@ inputs:
   - .factory/specs/architecture/ARCH-INDEX.md
   - .factory/phase-0-ingestion/pass-1-architecture.md
   - .factory/phase-0-ingestion/pass-8-final-synthesis.md
-input-hash: "39de903"
+input-hash: "94f90bb"
 traces_to: ARCH-INDEX.md
 ---
 
@@ -471,7 +471,7 @@ enforcement, arg allow-list enforcement, env stripping, timeout enforcement,
 
 | Date | Change |
 |------|--------|
-| 2026-05-13 | D-344 E-10 pass-9 fix burst: F-5 SDK API surface annotation — context.rs module row annotated to distinguish SDK Rust fn name `vsdd::dispatcher_trace_id()` (intentionally retained per Task 1 SDK verification) from WIRE field `trace_id` (per DI-017 v1.1 / ADR-015 v1.7). Version bump 1.1→1.2; added input-hash bypass. |
+| 2026-05-13 | D-460 E-10 pass-9 fix burst: F-5 SDK API surface annotation — context.rs module row annotated to distinguish SDK Rust fn name `vsdd::dispatcher_trace_id()` (intentionally retained per Task 1 SDK verification) from WIRE field `trace_id` (per DI-017 v1.1 / ADR-015 v1.7). Version bump 1.1→1.2; added input-hash bypass. [D-NNN corrigendum 2026-05-13: originally D-344; renumbered to D-460 per F-CRIT-001.] |
 | 2026-05-08 | TD-VSDD-091 Chunk 4 — migrated 3 bash-script line citations in SubagentStop field table and note to stable Rust plugin symbol anchors (`::handoff_validator_logic`, `::pr_manager_guard_logic`, `::validate_pr_review_logic`, `::track_agent_stop_logic`). |
 | 2026-05-03 | ADR-014 D-9.2: added `host::run_subprocess` function signature, `SubprocessSpec`, `SubprocessResult`, `SubprocessCaps` schema (6 fields), security boundaries, module entry, BC-2.02.013 anchor, and Schema Evolution table row. HOST_ABI_VERSION stays at 1. |
 | 2026-05-01 | F-S830-P1-004 fix: fallback-chain example aligned with BC-2.02.012 canonical (`as_deref()` borrowing chain returning `&str`); architecture doc no longer diverges from BC. Both agent identity and assistant-message chains updated. Prose translation pattern updated from consuming to borrowing form. |

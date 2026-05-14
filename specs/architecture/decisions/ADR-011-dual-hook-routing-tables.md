@@ -305,5 +305,5 @@ VALUE source differs: HostContext per-invocation values vs. construction-time va
 
 | Date | Change |
 |------|--------|
-| 2026-05-13 | D-344 E-10 pass-9 fix burst: F-1 DI-017 rename completion — Auto-Enrichment Fields table column 1 updated from `dispatcher_trace_id` to `trace_id` (WIRE field name per DI-017 v1.1 / ADR-015 v1.7). |
+| 2026-05-13 | D-460 E-10 pass-9 fix burst: F-1 DI-017 rename completion — Auto-Enrichment Fields table column 1 updated from `dispatcher_trace_id` to `trace_id` (WIRE field name per DI-017 v1.1 / ADR-015 v1.7). [D-NNN corrigendum 2026-05-13: originally D-344; renumbered to D-460 per F-CRIT-001.] |
 | 2026-05-08 | TD-VSDD-091 Chunk 4 — migrated 3 line citations to stable symbol anchors: `emit_event.rs:49` → `emit_event.rs::register`; `emit_event.rs:58-67` (×2) → `emit_event.rs::RESERVED_FIELDS`. |

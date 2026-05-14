@@ -14,7 +14,7 @@ inputs:
   - .factory/specs/architecture/ARCH-INDEX.md
   - .factory/phase-0-ingestion/pass-1-architecture.md
   - .factory/phase-0-ingestion/pass-8-final-synthesis.md
-input-hash: "7e2f1b7"
+input-hash: "94f90bb"
 traces_to: ARCH-INDEX.md
 ---
 
@@ -186,7 +186,7 @@ and graceful degradation (BC-3.021–BC-3.030), `sink-file` queue and rotation
 
 | Version | Date | Change |
 |---------|------|--------|
-| 1.3 | 2026-05-13 | D-348 E-10 pass-11 fix burst — F-2 closure: line 72 `dispatcher_trace_id: Uuid` annotated to clarify Rust struct field name vs WIRE field rename (trace_id per DI-017 v1.1 / ADR-015 v1.7; field name was correct at time of this pre-ADR-015 multi-sink architecture). Line 148 "events carry dispatcher_trace_id" updated to "events carry trace_id (renamed from dispatcher_trace_id per DI-017 v1.1)". HH-3 multi-axis pre-fix grep discipline applied — surfaced sites that D-346 schema_version-only HH-2 grep missed. |
-| 1.2 | 2026-05-13 | D-346 E-10 pass-10 fix burst — F-2 HH-2 scope expansion: §Schema example and §Schema versioning bullet corrected from `schema_version = 1` to `= 2 (post-ADR-015)`; heading updated to note superseded status. |
+| 1.3 | 2026-05-13 | D-464 E-10 pass-11 fix burst — F-2 closure: line 72 `dispatcher_trace_id: Uuid` annotated to clarify Rust struct field name vs WIRE field rename (trace_id per DI-017 v1.1 / ADR-015 v1.7; field name was correct at time of this pre-ADR-015 multi-sink architecture). Line 148 "events carry dispatcher_trace_id" updated to "events carry trace_id (renamed from dispatcher_trace_id per DI-017 v1.1)". HH-3 multi-axis pre-fix grep discipline applied — surfaced sites that D-462 schema_version-only HH-2 grep missed. [D-NNN corrigendum 2026-05-13: originally D-348+D-346; renumbered to D-464+D-462 per F-CRIT-001.] |
+| 1.2 | 2026-05-13 | D-462 E-10 pass-10 fix burst — F-2 HH-2 scope expansion: §Schema example and §Schema versioning bullet corrected from `schema_version = 1` to `= 2 (post-ADR-015)`; heading updated to note superseded status. [D-NNN corrigendum 2026-05-13: originally D-346; renumbered to D-462 per F-CRIT-001.] |
 | 1.1 | 2026-05-08 | TD-VSDD-091 Chunk 6 — migrated 1 body cite. |
 | 1.0 | 2026-04-25 | Initial version. |

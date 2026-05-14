@@ -1,7 +1,7 @@
 ---
 document_type: bc-index
 level: L3
-version: "2.20"
+version: "2.21"
 status: draft
 producer: state-manager
 timestamp: 2026-05-13T00:00:00Z
@@ -13,11 +13,13 @@ total_bcs: 1949
 traces_to: bc-id-mapping.md
 changelog:
   - date: 2026-05-13
-    change: "v2.20 (2026-05-13; E-10 pass-11 D-348 fix burst + D-349 seal — cite-refresh for 5 BCs touched by D-348 (BC-4.04.005 v1.3+last_amended, BC-4.05.005 v1.3+last_amended, BC-4.07.004 v1.2+last_amended, BC-4.08.003 v1.3+last_amended, BC-3.04.001 v1.2+last_amended). F-1 KK frontmatter parity gate applied same-burst as architect F-2/F-3/F-4/F-5. HH-3 multi-axis pre+post grep discipline applied (pass-12 axis). D-349 seal: ARCH-INDEX v2.01 acknowledges D-348+D-349. BC-INDEX v2.19→v2.20. Refs: D-348, D-349."
+    change: "v2.21 (2026-05-13; F-CRIT-001 closure — D-NNN renumbering corrigendum): Brownfield D-344→D-460, D-345→D-461, D-346→D-462, D-347→D-463, D-348→D-464, D-349→D-465. Prior changelog rows v2.18/v2.19/v2.20 cite-refreshed to new D-NNN. ARCH-INDEX v2.02 acknowledges D-460..D-465. BC-INDEX v2.20→v2.21. Refs: F-CRIT-001, D-460, D-461, D-462, D-463, D-464, D-465."
   - date: 2026-05-13
-    change: "v2.19 (2026-05-13; E-10 pass-10 D-346 + D-347 cite-refresh): Brownfield E-10 pass-10 D-346 architect fix burst (669cc906) touched BC-4.04.005 (v1.2→v1.3), BC-4.05.005 (v1.2→v1.3), BC-4.07.004 (v1.1→v1.2), BC-4.08.003 (v1.2→v1.3), BC-3.04.001 (1.1→1.2) — all updated schema_version=1 precondition rows to schema_version=2 (F-2) or canonical SS-03 event emission name (F-3). D-347 seal: ARCH-INDEX v2.00 acknowledges D-346+D-347. BC-INDEX v2.18→v2.19. Refs: D-346, D-347."
+    change: "v2.20 (2026-05-13; E-10 pass-11 D-464 fix burst + D-465 seal — cite-refresh for 5 BCs touched by D-464 (BC-4.04.005 v1.3+last_amended, BC-4.05.005 v1.3+last_amended, BC-4.07.004 v1.2+last_amended, BC-4.08.003 v1.3+last_amended, BC-3.04.001 v1.2+last_amended). F-1 KK frontmatter parity gate applied same-burst as architect F-2/F-3/F-4/F-5. HH-3 multi-axis pre+post grep discipline applied (pass-12 axis). D-465 seal: ARCH-INDEX v2.01 acknowledges D-464+D-465. BC-INDEX v2.19→v2.20. Refs: D-464, D-465. [D-NNN corrigendum 2026-05-13: originally cited D-348+D-349; renumbered to D-464+D-465 per F-CRIT-001 resolution.]"
   - date: 2026-05-13
-    change: "v2.18 (2026-05-13; E-10 pass-9 D-344 + D-345 cite-refresh): Brownfield E-10 pass-9 D-344 architect fix burst (4430483d) touched SS-01-hook-dispatcher.md + SS-02-hook-sdk.md + ADR-011 + ADR-004 (architecture artifacts only). No BC content changed. D-345 seal: ARCH-INDEX v1.99 acknowledges D-344+D-345. BC-INDEX v2.17→v2.18. Refs: D-344, D-345."
+    change: "v2.19 (2026-05-13; E-10 pass-10 D-462 + D-463 cite-refresh): Brownfield E-10 pass-10 D-462 architect fix burst (669cc906) touched BC-4.04.005 (v1.2→v1.3), BC-4.05.005 (v1.2→v1.3), BC-4.07.004 (v1.1→v1.2), BC-4.08.003 (v1.2→v1.3), BC-3.04.001 (1.1→1.2) — all updated schema_version=1 precondition rows to schema_version=2 (F-2) or canonical SS-03 event emission name (F-3). D-463 seal: ARCH-INDEX v2.00 acknowledges D-462+D-463. BC-INDEX v2.18→v2.19. Refs: D-462, D-463. [D-NNN corrigendum 2026-05-13: originally cited D-346+D-347; renumbered to D-462+D-463 per F-CRIT-001 resolution.]"
+  - date: 2026-05-13
+    change: "v2.18 (2026-05-13; E-10 pass-9 D-460 + D-461 cite-refresh): Brownfield E-10 pass-9 D-460 architect fix burst (4430483d) touched SS-01-hook-dispatcher.md + SS-02-hook-sdk.md + ADR-011 + ADR-004 (architecture artifacts only). No BC content changed. D-461 seal: ARCH-INDEX v1.99 acknowledges D-460+D-461. BC-INDEX v2.17→v2.18. Refs: D-460, D-461. [D-NNN corrigendum 2026-05-13: originally cited D-344+D-345; renumbered to D-460+D-461 per F-CRIT-001 resolution.]"
   - date: 2026-05-13
     change: "v2.17 (2026-05-13; pass-74 fix burst per D-454 + D-404 unconditional): Acknowledges decision range D-389..D-454 (inclusive; literal acknowledgment per D-415(c); sample; see decision-log.md for full range D-389..D-454 per D-441(c)+D-442(c) sample-vs-exhaustive citation policy). Per D-404 unconditional: index acknowledges D-454(a/b/c/d/e) by literal ID (no spec content change in this changelog entry). Refs: ADV-EDP1-P74-CRIT-001, ADV-EDP1-P74-HIGH-001/002/003/004, ADV-EDP1-P74-MED-001/002/003, ADV-EDP1-P74-LOW-001, PG-P74-001/002/003, D-454. [O-P74-001/002/003 trimmed per D-449(d)(i): observations are discovery-tier, not Refs-scope.] META-LEVEL-29 CANDIDATE CONFIRMED; L-EDP1-066 65th-layer 35th-consecutive multi-axis; gate-against-canonical-registry-uses-coarser-granularity + freshness-scope-extension-codified-but-re-execution-evidence-narrative + codification-references-storage-that-doesn't-exist + tri-way-block-label-canonical-form-drift + freshness-temporal-scope-narrower-than-document-edit-window ply (sample; see decision-log.md for full range D-389..D-454 per D-441(c)+D-442(c) sample-vs-exhaustive citation policy). BC-INDEX v2.16→v2.17."
   - date: 2026-05-13

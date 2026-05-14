@@ -133,7 +133,7 @@ VP-068
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
-| v1.3 | 2026-05-13 | architect | D-346 E-10 pass-10 fix burst — F-2 cross-cycle propagation: Precondition 2 `schema_version = 1` corrected to `= 2 (post-ADR-019 F2 2026-05-07)`. Stale citation since F2 ADR-019 sibling-sweep. |
+| v1.3 | 2026-05-13 | architect | D-462 E-10 pass-10 fix burst — F-2 cross-cycle propagation: Precondition 2 `schema_version = 1` corrected to `= 2 (post-ADR-019 F2 2026-05-07)`. Stale citation since F2 ADR-019 sibling-sweep. [D-NNN corrigendum 2026-05-13: originally D-346; renumbered to D-462 per F-CRIT-001.] |
 | v1.2 | 2026-04-28 | product-owner | ADV-S5.04-P02 fix burst: (HIGH-P02-006) status: active → draft (sibling consistency; promotion happens at merge time). |
 | v1.1 | 2026-04-28 | product-owner | ADV-S5.04-P01 fix burst: (HIGH-P01-001) CAP-013 → CAP-002; failure-path is part of the lifecycle hooks family per S-5.01 arch-decision; consistent with sibling BCs BC-4.07.001–004. + state-manager pre-commit cleanup: Capability Anchor Justification simplified to positive CAP-002 statement (CAP-013 contextual clause removed). |
 | v1.0 | 2026-04-28 | product-owner | Initial creation (S-5.04 foundation burst). Promoted from v1.1 BC candidate "BC-4.08.003-post-tool-use-failure-dispatcher-wiring" in legacy story. Production schema field names verified: `name` (NOT plugin_name), `event` (NOT event_name), `plugin` with `hook-plugins/` PREFIX, `timeout_ms` (NOT epoch_budget_ms). ZERO capability tables (Option A). NO `once` field (`deny_unknown_fields` rejects it). Single entry for single event. |

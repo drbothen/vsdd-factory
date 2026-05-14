@@ -132,5 +132,5 @@ TBD — Phase 1.6b will produce refactoring guidance.
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
-| v1.2 | 2026-05-13 | architect | D-346 E-10 pass-10 fix burst — F-3 closure: Architecture Module row corrected from stale `SS-03 (Observability Sinks)` to `SS-03 (Event Emission (OTel-Aligned))`; retired router.rs reference annotated per ADR-015 D-15.1. |
+| v1.2 | 2026-05-13 | architect | D-462 E-10 pass-10 fix burst — F-3 closure: Architecture Module row corrected from stale `SS-03 (Observability Sinks)` to `SS-03 (Event Emission (OTel-Aligned))`; retired router.rs reference annotated per ADR-015 D-15.1. [D-NNN corrigendum 2026-05-13: originally D-346; renumbered to D-462 per F-CRIT-001.] |
 | v1.1 | 2026-05-08 | implementer | TD-VSDD-091 Chunk 6 — migrated 1 body cite: `sinks/router.rs:1-9` + `:33-47` + `sinks/mod.rs:11-21` → `sinks/router.rs § 'module doc'`, `sinks/router.rs::Router`, `sinks/mod.rs § 'Integration Status'`. |

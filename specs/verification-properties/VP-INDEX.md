@@ -1,7 +1,7 @@
 ---
 document_type: vp-index
 level: L4
-version: "1.94"
+version: "1.95"
 status: draft
 producer: state-manager
 timestamp: 2026-05-13T00:00:00Z
@@ -11,7 +11,9 @@ traces_to: ARCH-INDEX.md
 total_vps: 80
 changelog:
   - date: 2026-05-13
-    change: "v1.94 (2026-05-13; E-10 pass-11 D-348 fix burst + D-349 seal — VP-014 version-column cite-refresh (v1.1→v1.2; F-4 formal-proof-only intent adjudication + §Test Evidence scope annotation + F-5 bad_version harness fix lines 56+62). ARCH-INDEX v2.01 acknowledges D-348+D-349. VP-INDEX v1.93→v1.94. Refs: D-348, D-349."
+    change: "v1.95 (2026-05-13; F-CRIT-001 closure — D-NNN renumbering corrigendum): Brownfield D-348→D-464, D-349→D-465. Prior v1.94 changelog row cite-refreshed. VP-INDEX v1.94→v1.95. Refs: F-CRIT-001, D-464, D-465."
+  - date: 2026-05-13
+    change: "v1.94 (2026-05-13; E-10 pass-11 D-464 fix burst + D-465 seal — VP-014 version-column cite-refresh (v1.1→v1.2; F-4 formal-proof-only intent adjudication + §Test Evidence scope annotation + F-5 bad_version harness fix lines 56+62). ARCH-INDEX v2.01 acknowledges D-464+D-465. VP-INDEX v1.93→v1.94. Refs: D-464, D-465. [D-NNN corrigendum 2026-05-13: originally cited D-348+D-349; renumbered to D-464+D-465 per F-CRIT-001 resolution.]"
   - date: 2026-05-13
     change: "v1.93 (2026-05-13; pass-74 fix burst per D-454 + D-404 unconditional): Acknowledges decision range D-389..D-454 (inclusive; literal acknowledgment per D-415(c); sample; see decision-log.md for full range D-389..D-454 per D-441(c)+D-442(c) sample-vs-exhaustive citation policy). Per D-404 unconditional: index acknowledges D-454(a/b/c/d/e) by literal ID (no spec content change in this changelog entry). Refs: ADV-EDP1-P74-CRIT-001, ADV-EDP1-P74-HIGH-001/002/003/004, ADV-EDP1-P74-MED-001/002/003, ADV-EDP1-P74-LOW-001, PG-P74-001/002/003, D-454. [O-P74-001/002/003 trimmed per D-449(d)(i): observations are discovery-tier, not Refs-scope.] META-LEVEL-29 CANDIDATE CONFIRMED; L-EDP1-066 65th-layer 35th-consecutive multi-axis; gate-against-canonical-registry-uses-coarser-granularity + freshness-scope-extension-codified-but-re-execution-evidence-narrative + codification-references-storage-that-doesn't-exist + tri-way-block-label-canonical-form-drift + freshness-temporal-scope-narrower-than-document-edit-window ply (sample; see decision-log.md for full range D-389..D-454 per D-441(c)+D-442(c) sample-vs-exhaustive citation policy). VP-INDEX v1.92→v1.93."
   - date: 2026-05-13
