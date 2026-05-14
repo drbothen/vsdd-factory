@@ -1,7 +1,7 @@
 ---
 document_type: architecture-index
 level: L3
-version: "2.00"
+version: "2.01"
 status: accepted
 producer: architect
 timestamp: 2026-05-13T00:00:00Z
@@ -17,6 +17,8 @@ inputs:
 traces_to: phase-1-spec-crystallization
 deployment_topology: single-service
 changelog:
+  - date: 2026-05-13
+    change: "v2.01 (2026-05-13; E-10 pass-11 D-348 fix burst + D-349 seal — closures F-1/F-2/F-3/F-4/F-5 (1H+2M+2L). F-1 frontmatter parity 5 BCs (KK discipline); F-2 SS-03-observability-sinks lines 72+148 dispatcher_trace_id annotation; F-3 cross-spec SS-03 canonical-name sweep (E-1 epic + S-4.05 3 sites); F-4 VP-014 formal-proof-only intent + §Test Evidence scope annotation; F-5 VP-014 bad_version harness fix lines 56+62. HH-3 multi-axis pre-fix grep INVOKED (4 predicates: dispatcher_trace_id + SS-03-Observability-Sinks + bad_version arrays + schema_version=1) — captured stdout inline in D-348 commit body per LL discipline (brownfield analog of F5 D-449(a)). HH-3 post-fix grep INVOKED — zero non-excluded rows for all 4 predicates. KK frontmatter parity gate INVOKED — 5 BCs synced same-burst. NITPICK_ONLY counter 0/3 (HIGH verdict resets, no advance); pass-12 dispatch is next."
   - date: 2026-05-13
     change: "v2.00 (2026-05-13; E-10 pass-10 D-346 fix burst + D-347 seal — 11 spec files updated for findings F-1/F-2/F-3/F-4 (ADR-004 v1.3 line 116 + VP-014 1.1 + business-rules BR-14 + prd.md 3 sites + BC-4.04.005/4.05.005/4.07.004/4.08.003 + BC-3.04.001 v1.2 + DI-017 v1.2 + SS-03-observability-sinks 1.2). Literal-shell-execution-evidence per F5 D-449(a) applied: pre-fix HH-2 grep surfaced 3 sites beyond pass-10 §8 enumeration; post-fix II-2 grep returns zero stale REGISTRY_SCHEMA_VERSION = 1 precondition rows (excluding intentional historical-quote and negative-test contexts). NITPICK_ONLY counter 0/3 (HIGH verdict resets, no advance); pass-11 dispatch is next. Refs: D-346, D-347."
   - date: 2026-05-13

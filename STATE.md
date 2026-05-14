@@ -5,14 +5,14 @@ version: "2.0"
 status: draft
 producer: state-manager
 timestamp: 2026-05-12T00:00:00Z
-phase: pivot-F5-paused-asymptotic-acceptance-resume-v1.0-brownfield-backfill-E-10-pass-11-dispatched
+phase: pivot-F5-paused-asymptotic-acceptance-resume-v1.0-brownfield-backfill-E-10-pass-11-sealed
 last_amended: 2026-05-13
 inputs: []
 input-hash: "[live-state]"
 traces_to: prd.md
 project: vsdd-factory
 mode: brownfield
-current_step: "v1.0-brownfield-backfill — E-10 pass-11 DISPATCHED 2026-05-13: HIGH verdict (6 findings: 1H+2M+2L) — F-1 frontmatter drift NEW META-class (5 BCs blast radius); F-2 SS-03-observability-sinks dispatcher_trace_id sibling-axis miss; F-3 4 cross-spec SS-03 stale cites; F-4 VP-014 frontmatter intent-pending; F-5 VP-014 harness bad-version contradiction; D-348 fix burst pending; trend REBOUNDED 22→11→16→16→12→2→1→4→5→4→6 NOT asymptotic; STRUCTURAL-FLOOR analogous to F5 META-LEVEL-29 — three options surfaced per pass-11 §9 for human direction; NITPICK_ONLY counter 0/3 (HIGH resets)"
+current_step: "v1.0-brownfield-backfill — E-10 pass-11 SEALED 2026-05-13: D-348 fix burst (bcb10b7b) closed F-1 frontmatter parity 5 BCs (KK discipline) + F-2 SS-03-observability-sinks dispatcher_trace_id + F-3 cross-spec SS-03 canonical-name sweep + F-4 VP-014 formal-proof-only intent + F-5 VP-014 bad_version harness; D-349 seal (this commit) with HH-3 multi-axis pre+post grep + KK frontmatter parity + LL inline literal-shell-stdout disciplines applied per pass-11 §7 pass-12 axes; ARCH-INDEX v2.01 + BC-INDEX v2.20 acknowledge D-348+D-349; NITPICK_ONLY counter 0/3 (HIGH resets); pass-12 dispatch is next — CRITICAL TEST: does asymptotic-floor concern (trend rebound 4→6 at pass-11) resolve under new discipline?"
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -42,8 +42,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-13 — E-10 pass-11 DISPATCHED: HIGH verdict (6 findings: 1H+2M+2L); trend REBOUNDED 4→6 NOT asymptotic; F-1 NEW META-class frontmatter drift (5 BCs); F-2/F-3 sibling-sweep scope-narrowness recurrences; F-4/F-5 D-346-introduced VP-014 defects; STRUCTURAL-FLOOR comparable to F5 META-LEVEL-29 (3 options surfaced); D-348 fix burst pending. |
-| **Current Phase** | v1.0-brownfield-backfill — E-10 pass-11 DISPATCHED 2026-05-13 — HIGH (6 findings: 1H+2M+2L); NITPICK_ONLY counter 0/3; D-348 fix burst pending human direction on structural-floor options |
+| **Last Updated** | 2026-05-13 — E-10 pass-11 SEALED: D-348 fix burst (bcb10b7b) + D-349 seal; 9 files updated; HH-3 multi-axis pre+post grep + KK frontmatter parity + LL inline literal-shell-stdout disciplines applied; ARCH-INDEX v2.01 + BC-INDEX v2.20; NITPICK_ONLY counter 0/3; pass-12 dispatch next (CRITICAL TEST of trend-rebound resolution). |
+| **Current Phase** | v1.0-brownfield-backfill — E-10 pass-11 SEALED 2026-05-13 — D-348+D-349 complete; NITPICK_ONLY counter 0/3; pass-12 adversary dispatch next |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Phase Progress
@@ -92,6 +92,7 @@ dtu_services: []
 | E-10 pass-10 adversary | **COMPLETE** 2026-05-13 — HIGH (4 findings: 1H+2M+1L) | trend 22→11→16→16→12→2→1→4→5→4; D-344 partial-fix regression at ADR-004 line 116 (axis HH grep disproves D-345 seal "5 zero-row gates" claim); 8 cross-cycle sibling files axis II; BC-3.04.001 sibling F-3; DI-017 scope statement F-4 intent-pending; D-346 fix burst pending |
 | E-10 pass-10 fix burst + seal | **COMPLETE** 2026-05-13 — D-346 (669cc906) + D-347 seal (this commit) | 4 findings closed (1H+2M+1L); architect modified 11 spec files per HH-2 pre-fix grep + II-2 post-fix zero-row predicate; F5 D-449(a) literal-shell-execution-evidence applied; ARCH-INDEX v2.00 + BC-INDEX v2.19; NITPICK_ONLY counter 0/3 (HIGH resets); pass-11 dispatch next |
 | E-10 pass-11 adversary | **COMPLETE** 2026-05-13 — HIGH (6 findings: 1H+2M+2L) | trend 22→11→16→16→12→2→1→4→5→4→6 REBOUNDED; F-1 NEW META-class frontmatter drift (5 BCs: BC-4.04.005/4.05.005/4.07.004/4.08.003 + BC-3.04.001 last_amended+modified: array); F-2 SS-03-observability-sinks.md dispatcher_trace_id sibling-axis miss (lines 72+148); F-3 4 cross-spec SS-03 stale cites (E-10 epic + S-4.05 3 sites); F-4 VP-014 bcs: frontmatter intent-pending; F-5 VP-014 harness bad-version contradiction (lines 56/62); STRUCTURAL-FLOOR comparable to F5 META-LEVEL-29 pause-or-pivot (3 options surfaced); D-348 fix burst pending |
+| E-10 pass-11 fix burst + seal | **COMPLETE** 2026-05-13 — D-348 (bcb10b7b) + D-349 seal (this commit) | 6 findings closed (1H+2M+2L); architect F-2/F-3/F-4/F-5 + state-manager F-1; HH-3 multi-axis pre+post grep (4 predicates) + KK frontmatter parity + LL inline literal-shell-stdout disciplines applied per pass-11 §7; ARCH-INDEX v2.01 + BC-INDEX v2.20 + VP-INDEX v1.94 + STORY-INDEX v3.19 cite-refresh; NITPICK_ONLY counter 0/3 (HIGH resets); pass-12 dispatch next (CRITICAL TEST: trend-rebound resolution) |
 | F5 pass-60 fix burst | **COMPLETE** | adv-cycle-pass-60.md HIGH→PENDING_NEXT_PASS; D-440(a/b/c/d/e) + L-EDP1-052 codified; META-LEVEL-15 CANDIDATE CONFIRMED |
 | F5 pass-61 fix burst | **COMPLETE** | adv-cycle-pass-61.md HIGH→PENDING_NEXT_PASS; D-441(a/b/c/d/e) + L-EDP1-053 codified; META-LEVEL-16 CONFIRMED |
 | F5 pass-62 fix burst | **COMPLETE** | adv-cycle-pass-62.md HIGH→PENDING_NEXT_PASS; D-442(a/b/c/d/e) + L-EDP1-054 codified; META-LEVEL-17 CONFIRMED; D-442(c) retroactive sweep across umbrella citations |
@@ -222,7 +223,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | 70811f4a | verified `git rev-parse origin/main` = 70811f4a5d68d163021f46856c3de51bf8f4aab8 2026-05-13; includes CLAUDE.md expansion PR #136 (845d0007 squash-merge) + rc.18 merge PR #135 (666d689f) |
 | develop | d3ae26a5 | PR #124 MERGED 2026-05-13 — F5-pass-3 cycle hardening: TD #73 SEQUENCE migration + WASM staging CI fix + VP-076 bats harness + 14 commits preserved; verified `git rev-parse origin/develop` = d3ae26a59312f157c5103b4fe0128e55a1d2bcd0 |
-| factory-artifacts | b30c204f | E-10 pass-11 DISPATCHED 2026-05-13; D-348 fix burst pending human direction on structural-floor options (3 options per pass-11 §9) |
+| factory-artifacts | bcb10b7b | E-10 pass-11 D-348 fix burst (9 files); D-349 seal (this commit — SHA-patch follow-up will update to seal SHA) |
 | save/dim2-gates-path-register | 3df1bdda | Pass-74 ADV-EDP1-P74-HIGH-002 retroactive fix; artifact-path-registry entry + plugins/vsdd-factory/hooks/dim2-gates/README.md; UNMERGED; decision pending — open small PR OR defer to S-15.03 PRIORITY-A wave |
 | v1.0.0-rc.16 (tag) | feb894a2 | SHIPPED; claude-mp PR #8 awaiting human merge |
 | v1.0.0-rc.15 (tag) | e68bb436 | SHIPPED |
@@ -327,7 +328,7 @@ dtu_services: []
 - `cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` | `session-checkpoints.md` | `lessons.md`
 - `cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md` (adversary reviews at `S-12.03/`, `S-12.04/`, `S-12.05/` subdirs)
 
-## Session Resume Checkpoint (2026-05-13 — E-10 PASS-11 DISPATCHED; D-348 fix burst pending human direction)
+## Session Resume Checkpoint (2026-05-13 — E-10 PASS-11 SEALED; pass-12 adversary dispatch next)
 
 > **SELF-SUFFICIENT RESUME CONTEXT — CYCLE PIVOT**
 > Read this section alone to resume the protocol after full conversation CLEAR (not compact).
@@ -335,10 +336,10 @@ dtu_services: []
 ### 1. Where We Are
 
 - Active cycle: v1.0-brownfield-backfill (RESUMED 2026-05-13)
-- E-10 pass-11 DISPATCHED 2026-05-13: HIGH verdict (6 findings: 1H+2M+2L); STRUCTURAL-FLOOR concern surfaced (three options pending human direction per pass-11 §9); D-348 fix burst pending
-- E-10 pass-10 SEALED 2026-05-13: D-346 fix burst (669cc906) + D-347 seal; prior canonical parent
+- E-10 pass-11 SEALED 2026-05-13 at D-349 seal (this commit); pass-12 adversary dispatch is next — CRITICAL TEST of HH-3/KK/LL discipline efficacy on trend-rebound resolution
+- E-10 pass-11 D-348 fix burst (bcb10b7b): 9 files updated; F-1/F-2/F-3/F-4/F-5 all closed; HH-3 4-predicate grep + KK frontmatter parity gate + LL inline literal-shell-stdout applied
 - F5 cycle (v1.0-feature-engine-discipline-pass-1): PAUSED at META-LEVEL-29 asymptotic floor per D-386 Option C + human direction 2026-05-13
-- factory-artifacts HEAD: b30c204f (E-10 pass-11 DISPATCHED; SHA to be confirmed with `git -C .factory log -1`)
+- factory-artifacts HEAD: D-349 seal (this commit — run `git -C .factory log -1 --format='%h %s'` to confirm)
 - develop HEAD: `d3ae26a5` (PR #124 merge commit 2026-05-13)
 - main HEAD: `70811f4a` (includes CLAUDE.md expansion PR #136 squash-merge + rc.18 merge)
 - Side branch `save/dim2-gates-path-register` at `3df1bdda` — UNMERGED, decision pending
@@ -354,14 +355,11 @@ dtu_services: []
 
 Human directed 2026-05-13: "take care of PR 124 and 136, update our state, then we need to make sure our state is durable before we continue with the next item in our task list." Standing F5 convergence directive ("continue until convergence OR explicit stop") superseded by this newer direction. E-10 pass-11 DISPATCHED; next = D-348 fix burst per human direction on structural-floor options in pass-11 §9.
 
-### 4. E-10 Pass-11 Fix Burst (D-348) Dispatch — PENDING HUMAN DIRECTION ON STRUCTURAL-FLOOR
+### 4. E-10 Pass-12 Adversary Dispatch
 
-Three structural-floor options per pass-11 §9. Human must direct before D-348 dispatch begins:
-
-1. **Human directs one of:** (a) continue pass-12 — path of least surprise per production-grade default; (b) pause to codify META-axes HH-3/KK/LL as `.factory/policies.yaml` POLICY 13/14/15 BEFORE D-348; (c) pivot to phase-5 system-level adversarial review of brownfield cycle as a whole.
-2. **If (a) — continue:** dispatch state-manager for F-1 frontmatter parity (5 BCs: BC-4.04.005, BC-4.05.005, BC-4.07.004, BC-4.08.003, BC-3.04.001) + architect for F-2 SS-03-observability-sinks dispatcher_trace_id annotation + F-3 story/epic SS-03 canonical-name sweep (E-10 epic + S-4.05 3 sites) + F-4 VP-014 bcs: intent adjudication + F-5 VP-014 harness lines 56/62 fix; then state-manager D-349 seal with inline literal-shell evidence per LL axis (HH-3 + KK + LL discipline applied).
-3. **If (b) — pause to codify:** pause E-10 dispatch; route to `/vsdd-factory:policy-add` for HH-3 (POLICY 13: multi-axis pre-fix grep mandatory), KK (POLICY 14: frontmatter parity gate at every BC/VP touch), LL (POLICY 15: literal-shell-execution-evidence at brownfield persistence layer); after registration, resume pass-12 with policies enforcing axes.
-4. **If (c) — pivot:** pause E-10 dispatch; route to phase-5 system-level adversarial review of full brownfield artifact corpus (not just E-10 spec package).
+1. Dispatch pass-12 adversary (fresh-context) — primary axes per pass-11 §7: HH-3 multi-axis pre-fix grep (broaden to ALL canonical identifiers from finding set) + KK frontmatter parity (verify D-348 sync was complete; META-class F-1 absent) + LL literal-shell-evidence-at-persistence-layer (verify D-349 changelog contains inline stdout, not paraphrased narrative) + JJ broaden + CC/DD/EE/FF/GG re-verify
+2. Receive verdict. If NITPICK_ONLY: counter advances 0/3 → 1/3 (first of 3 consecutive needed per BC-5.39.001)
+3. If HIGH/MEDIUM with new META-axes: evaluate trend-rebound (asymptotic-floor concern); escalate to human per pass-11 §9 three-option framework
 
 ### 5. Cumulative Codifications
 
@@ -377,19 +375,21 @@ Three structural-floor options per pass-11 §9. Human must direct before D-348 d
 
 ~108 sub-items per S-15.03 cumulative header "D-411 through D-454" (44 consecutive decisions; sample — see decision-log.md). Full enumeration: `stories/S-15.03-index-cite-refresh-hook.md`. Deferred to v1.0-feature-engine-discipline-pass-2 (post-pivot work; not active in brownfield-backfill cycle).
 
-### 8. 4-Index State (Post Pass-74 + D-346/D-347 brownfield seal)
+### 8. 4-Index State (Post Pass-74 + D-348/D-349 brownfield seal)
 
 | Index | Version | Acknowledges |
 |-------|---------|-------------|
-| BC-INDEX | v2.19 | D-389..D-454 (F5 sample; see decision-log.md) + D-346+D-347 brownfield E-10 pass-10 cite-refresh |
-| VP-INDEX | v1.93 | D-389..D-454 (sample; see decision-log.md for full range) |
-| STORY-INDEX | v3.18 | D-389..D-454 (sample; see decision-log.md for full range; crossed v3.00 at pass-56) |
-| ARCH-INDEX | v2.00 | D-389..D-454 (F5 sample; see decision-log.md) + D-346+D-347 brownfield E-10 pass-10 changelog row |
+| BC-INDEX | v2.20 | D-389..D-454 (F5 sample; see decision-log.md) + D-348+D-349 brownfield E-10 pass-11 cite-refresh |
+| VP-INDEX | v1.94 | D-389..D-454 (sample; see decision-log.md for full range) + D-348+D-349 VP-014 cite-refresh |
+| STORY-INDEX | v3.19 | D-389..D-454 (sample; see decision-log.md for full range; crossed v3.00 at pass-56) + D-348+D-349 S-4.05+E-1 cite-refresh |
+| ARCH-INDEX | v2.01 | D-389..D-454 (F5 sample; see decision-log.md) + D-348+D-349 brownfield E-10 pass-11 changelog row |
 
 ### 9. Critical Anchors (Post-Pivot)
 
-- factory-artifacts HEAD: b30c204f (E-10 pass-11 DISPATCHED; run `git -C /Users/jmagady/Dev/vsdd-factory/.factory log -1 --format='%h %s'` to confirm)
-- D-347 seal Commit: `0b05ac49` (E-10 pass-10 sealed; canonical parent for pass-11 dispatch)
+- factory-artifacts HEAD: D-349 seal (this commit; run `git -C /Users/jmagady/Dev/vsdd-factory/.factory log -1 --format='%h %s'` to confirm)
+- D-349 seal Commit: (this commit — SHA available after push)
+- D-348 fix burst Commit: `bcb10b7b` (E-10 pass-11 fixes — 9 spec/story files; F-1 KK parity + F-2/F-3/F-4/F-5 architect)
+- D-347 seal Commit: `0b05ac49` (E-10 pass-10 sealed; prior canonical parent)
 - D-346 fix burst Commit: `669cc906` (E-10 pass-10 architect fixes — 11 spec files)
 - D-345 seal Commit: `2f0eb6f6` (E-10 pass-9 sealed; prior canonical parent)
 - F5 cycle final-state HEAD: `4b4b6819` (pass-74 SHA-patch; F5 cycle PAUSED; F5 Commit D `487e0cc3` is canonical parent for any future F5 pass-75 resumption per D-419(b))
@@ -407,10 +407,10 @@ Three structural-floor options per pass-11 §9. Human must direct before D-348 d
 
 ### 11. Post-CLEAR Resume Checklist
 
-1. Verify factory-artifacts HEAD is at the E-10 pass-11 DISPATCHED commit; run `git -C /Users/jmagady/Dev/vsdd-factory/.factory log --oneline -3`
+1. Verify factory-artifacts HEAD is at the E-10 pass-11 SEALED (D-349) commit; run `git -C /Users/jmagady/Dev/vsdd-factory/.factory log --oneline -3`
 2. Read STATE.md Session Resume Checkpoint sections 1-10 above (this section is self-sufficient)
 3. Verify CLAUDE.md still cites vsdd-factory project conventions (PR #136 expanded it to 442 lines)
-4. Resume v1.0-brownfield-backfill: obtain human direction on structural-floor options per Section 4 checklist; then dispatch D-348 architect + state-manager bursts per pass-11 §8 proposal sketch with HH-3/KK/LL discipline applied
+4. Resume v1.0-brownfield-backfill: dispatch E-10 pass-12 adversary (fresh-context) per Section 4 checklist; primary axes HH-3/KK/LL/JJ/CC/DD/EE/FF/GG per pass-11 §7; CRITICAL TEST of trend-rebound resolution
 5. F5 cycle is PAUSED — do NOT dispatch pass-75 without explicit human direction to resume F5
 
 ### 12. Pending Work Items (Forward Backlog — Priority Order)
@@ -418,7 +418,7 @@ Three structural-floor options per pass-11 §9. Human must direct before D-348 d
 This section enumerates all pending work surfaced as of 2026-05-13 for post-CLEAR resumption visibility.
 
 **Tier-A (Immediate next action):**
-1. **E-10 pass-11 fix burst dispatch — PENDING HUMAN DIRECTION** on three structural-floor options per pass-11 §9; if (a) continue, dispatch D-348 architect + state-manager bursts per pass-11 §8 proposal sketch with HH-3/KK/LL discipline.
+1. **E-10 pass-12 adversary dispatch** — fresh-context; primary axes HH-3/KK/LL/JJ/CC/DD/EE/FF/GG per pass-11 §7; CRITICAL TEST of HH-3/KK/LL discipline efficacy on trend-rebound (4→6) resolution.
 
 **Tier-B (Near-term decision points; surface to human when E-10 progresses):**
 2. **Side branch `save/dim2-gates-path-register`** (SHA `3df1bdda`) — pass-74 ADV-EDP1-P74-HIGH-002 retroactive fix; artifact-path-registry entry + `plugins/vsdd-factory/hooks/dim2-gates/README.md`. UNMERGED. Decision: (a) open small PR to land on develop, (b) defer to S-15.03 PRIORITY-A wave, (c) close as superseded if S-15.03 will handle. Tracked in Drift Items table.

@@ -42,11 +42,11 @@ onboarding of vsdd-factory itself as a brownfield project to backfill the formal
 | 8 | 2026-05-07 | 4 (2H+1M+1L) | HIGH | fixes applied (D-334..D-343); DI-017 rename sweep + schema_version axes; paused at D-343 |
 | 9 | 2026-05-13 | 5 (3H+1M+1L) | **HIGH** | **SEALED** — D-344 fix burst (4430483d) + D-345 seal; all 5 closures verified literal-shell per F5 D-449(a); NITPICK_ONLY counter 0/3; pass-10 next |
 | 10 | 2026-05-13 | 4 (1H+2M+1L) | **HIGH** | **SEALED** — D-346 fix burst (669cc906) + D-347 seal; 11 spec files updated; HH-2 pre-fix grep surfaced 3 sites beyond pass-10 §8 enumeration; II-2 post-fix grep returns zero rows for F-1/F-2 axis predicate; F-3 sibling-sweep closed BC-3.04.001; F-4 DI-017 scope statement adjudicated SDK-envelope carve-out; NITPICK_ONLY counter 0/3 (HIGH resets); pass-11 next |
-| 11 | 2026-05-13 | 6 (1H+2M+2L) | **HIGH** | DISPATCHED — F-1 frontmatter `last_amended`+`modified:` array drift (5 BCs; NEW META-class primary-content-fix-without-metadata-propagation); F-2 SS-03-observability-sinks 2 dispatcher_trace_id sibling-axis miss; F-3 4 cross-spec stale `SS-03 (Observability Sinks)` cites (E-1 + S-4.05); F-4 VP-014 bcs: frontmatter intent-pending; F-5 VP-014 harness bad-version `[0,2,999]` contradicts post-ADR-019 GOOD=2; D-348 fix burst pending |
+| 11 | 2026-05-13 | 6 (1H+2M+2L) | **HIGH** | **SEALED** — D-348 fix burst (bcb10b7b) + D-349 seal; 9 spec/story files updated (4 architect F-2/F-3/F-4/F-5 + 5 state-manager F-1 frontmatter parity); HH-3 multi-axis pre+post grep discipline applied (pass-12 axis); KK frontmatter parity gate applied; LL inline literal-shell-stdout in D-348 commit body; NITPICK_ONLY counter 0/3 (HIGH resets); pass-12 next |
 
 **Trend:** 22→11→16→16→12→2→1→4→5→4→6
 
-**Convergence Status (E-10 sub-cycle):** pass-11 DISPATCHED 2026-05-13; verdict HIGH (6 findings: 1H+2M+2L); trend REBOUNDED 4→6 NOT asymptotic; NEW META-class F-1 (frontmatter↔body drift) + sibling-sweep scope-narrowness recurrences F-2/F-3 + D-346-introduced content defects F-4/F-5; NITPICK_ONLY counter 0/3 (HIGH resets); D-348 fix burst is next (with HH-3 multi-axis pre-fix grep + KK frontmatter parity + LL inline literal-shell evidence per pass-12 axes recommendation); engine baseline develop@d3ae26a5; STRUCTURAL-FLOOR ASSESSMENT pending human direction (three options surfaced in pass-11 §9)
+**Convergence Status (E-10 sub-cycle):** pass-11 SEALED 2026-05-13; D-348 fix burst (bcb10b7b) + D-349 seal; 9 spec/story files updated; HH-3 multi-axis pre+post grep discipline applied (4 predicates; zero non-excluded rows post-fix); KK frontmatter parity gate applied (5 BCs synced same-burst); LL inline literal-shell-stdout in D-348 commit body; ARCH-INDEX v2.01 + BC-INDEX v2.20 + VP-INDEX v1.94 + STORY-INDEX v3.19 cite D-348+D-349; NITPICK_ONLY counter 0/3 (HIGH resets); pass-12 adversary dispatch is next — CRITICAL TEST of HH-3/KK/LL discipline efficacy on trend-rebound resolution (asymptotic-floor concern: 4→6 rebound); engine baseline develop@d3ae26a5
 
 ## Convergence Status
 
@@ -54,4 +54,4 @@ onboarding of vsdd-factory itself as a brownfield project to backfill the formal
 - Phase 1 (spec backfill): COMPLETE
 - Phase 1d (adversarial spec review): **CONVERGED** (6 passes, 3 consecutive NITPICK)
 - Story re-anchoring: PENDING (TD-001..TD-005 wave-scale follow-up)
-- E-10 sub-cycle adversarial review: **IN-PROGRESS** (pass-10 SEALED 2026-05-13; 0/3 NITPICK_ONLY; D-346+D-347 applied; pass-11 dispatch next)
+- E-10 sub-cycle adversarial review: **IN-PROGRESS** (pass-11 SEALED 2026-05-13; 0/3 NITPICK_ONLY; D-348+D-349 applied; pass-12 dispatch next — CRITICAL TEST of trend-rebound resolution)

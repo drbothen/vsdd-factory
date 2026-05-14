@@ -1,7 +1,7 @@
 ---
 document_type: bc-index
 level: L3
-version: "2.19"
+version: "2.20"
 status: draft
 producer: state-manager
 timestamp: 2026-05-13T00:00:00Z
@@ -12,6 +12,8 @@ inputs:
 total_bcs: 1949
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-13
+    change: "v2.20 (2026-05-13; E-10 pass-11 D-348 fix burst + D-349 seal — cite-refresh for 5 BCs touched by D-348 (BC-4.04.005 v1.3+last_amended, BC-4.05.005 v1.3+last_amended, BC-4.07.004 v1.2+last_amended, BC-4.08.003 v1.3+last_amended, BC-3.04.001 v1.2+last_amended). F-1 KK frontmatter parity gate applied same-burst as architect F-2/F-3/F-4/F-5. HH-3 multi-axis pre+post grep discipline applied (pass-12 axis). D-349 seal: ARCH-INDEX v2.01 acknowledges D-348+D-349. BC-INDEX v2.19→v2.20. Refs: D-348, D-349."
   - date: 2026-05-13
     change: "v2.19 (2026-05-13; E-10 pass-10 D-346 + D-347 cite-refresh): Brownfield E-10 pass-10 D-346 architect fix burst (669cc906) touched BC-4.04.005 (v1.2→v1.3), BC-4.05.005 (v1.2→v1.3), BC-4.07.004 (v1.1→v1.2), BC-4.08.003 (v1.2→v1.3), BC-3.04.001 (1.1→1.2) — all updated schema_version=1 precondition rows to schema_version=2 (F-2) or canonical SS-03 event emission name (F-3). D-347 seal: ARCH-INDEX v2.00 acknowledges D-346+D-347. BC-INDEX v2.18→v2.19. Refs: D-346, D-347."
   - date: 2026-05-13
