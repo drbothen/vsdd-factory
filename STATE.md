@@ -223,7 +223,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | 70811f4a | verified `git rev-parse origin/main` = 70811f4a5d68d163021f46856c3de51bf8f4aab8 2026-05-13; includes CLAUDE.md expansion PR #136 (845d0007 squash-merge) + rc.18 merge PR #135 (666d689f) |
 | develop | d3ae26a5 | PR #124 MERGED 2026-05-13 — F5-pass-3 cycle hardening: TD #73 SEQUENCE migration + WASM staging CI fix + VP-076 bats harness + 14 commits preserved; verified `git rev-parse origin/develop` = d3ae26a59312f157c5103b4fe0128e55a1d2bcd0 |
-| factory-artifacts | bcb10b7b | E-10 pass-11 D-348 fix burst (9 files); D-349 seal (this commit — SHA-patch follow-up will update to seal SHA) |
+| factory-artifacts | 54533b04 | E-10 pass-11 SEALED 2026-05-13: D-348 (bcb10b7b) fix burst + D-349 (54533b04) seal |
 | save/dim2-gates-path-register | 3df1bdda | Pass-74 ADV-EDP1-P74-HIGH-002 retroactive fix; artifact-path-registry entry + plugins/vsdd-factory/hooks/dim2-gates/README.md; UNMERGED; decision pending — open small PR OR defer to S-15.03 PRIORITY-A wave |
 | v1.0.0-rc.16 (tag) | feb894a2 | SHIPPED; claude-mp PR #8 awaiting human merge |
 | v1.0.0-rc.15 (tag) | e68bb436 | SHIPPED |
@@ -387,7 +387,7 @@ Human directed 2026-05-13: "take care of PR 124 and 136, update our state, then 
 ### 9. Critical Anchors (Post-Pivot)
 
 - factory-artifacts HEAD: D-349 seal (this commit; run `git -C /Users/jmagady/Dev/vsdd-factory/.factory log -1 --format='%h %s'` to confirm)
-- D-349 seal Commit: (this commit — SHA available after push)
+- D-349 seal Commit: `54533b04` (E-10 pass-11 sealed)
 - D-348 fix burst Commit: `bcb10b7b` (E-10 pass-11 fixes — 9 spec/story files; F-1 KK parity + F-2/F-3/F-4/F-5 architect)
 - D-347 seal Commit: `0b05ac49` (E-10 pass-10 sealed; prior canonical parent)
 - D-346 fix burst Commit: `669cc906` (E-10 pass-10 architect fixes — 11 spec files)
