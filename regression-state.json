@@ -1,1 +1,1 @@
-{"status":"pass","timestamp":"2026-05-11T04:45:00Z","command":"cd /Users/jmagady/Dev/vsdd-factory/.worktrees/F5-pass-3 && cargo test --workspace --all-targets 2>&1 | tail -20"}
+{"status":"pass","timestamp":"2026-05-14T21:54:40Z","command":"gh run view --log --job=76081918224 2>&1 | grep -A 30 \"cargo test.*FAILED\\|test.*FAILED\\|error\\[\" | head -60"}
