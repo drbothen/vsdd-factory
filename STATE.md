@@ -389,7 +389,7 @@ Human directed 2026-05-13: continue with HH-4/KK-2/LL-2/MM/NN deeper-recursion d
 
 ### 9. Critical Anchors (Post-Pivot)
 
-- factory-artifacts HEAD: THIS dispatch commit (run `git -C /Users/jmagady/Dev/vsdd-factory/.factory log -1 --format='%h %s'` to confirm)
+- factory-artifacts HEAD: `f0680882` (E-10 pass-13 dispatch; run `git -C /Users/jmagady/Dev/vsdd-factory/.factory log -1 --format='%h %s'` to confirm)
 - E-10 pass-12 D-466 fix burst Commit: `553e9f58`
 - D-465 seal Commit: `54533b04` (E-10 pass-11 sealed; formerly D-349)
 - D-464 fix burst Commit: `bcb10b7b` (E-10 pass-11 fixes — 9 spec/story files; F-1 KK parity + F-2/F-3/F-4/F-5 architect; formerly D-348)
@@ -411,7 +411,7 @@ Human directed 2026-05-13: continue with HH-4/KK-2/LL-2/MM/NN deeper-recursion d
 
 ### 11. Post-CLEAR Resume Checklist
 
-1. Verify factory-artifacts HEAD at THIS dispatch commit; run `git -C /Users/jmagady/Dev/vsdd-factory/.factory log --oneline -3` — should show pass-13 DISPATCH at HEAD
+1. Verify factory-artifacts HEAD at `f0680882`; run `git -C /Users/jmagady/Dev/vsdd-factory/.factory log --oneline -3` — should show pass-13 DISPATCH at HEAD
 2. Read STATE.md Session Resume Checkpoint sections 1-10 above (this section is self-sufficient)
 3. Verify CLAUDE.md still cites vsdd-factory project conventions (PR #136 expanded it to 442 lines)
 4. Resume v1.0-brownfield-backfill: D-468 fix burst PENDING HUMAN DIRECTION — Tier-0 D-350→D-466 replacement is mandatory; strategic choice on continue/codify/pause required from human; pass-13 report at `cycles/v1.0-brownfield-backfill/E-10-pass-13.md`
