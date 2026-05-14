@@ -392,10 +392,10 @@ Human directed 2026-05-13: continue with HH-4/KK-2/LL-2/MM/NN deeper-recursion d
 
 ### 9. Critical Anchors (Post-Pivot)
 
-- factory-artifacts HEAD: D-469 seal commit (run `git -C /Users/jmagady/Dev/vsdd-factory/.factory log -1 --format='%h %s'` to confirm)
+- factory-artifacts HEAD: `3bc6ef2c` (D-469 seal; run `git -C /Users/jmagady/Dev/vsdd-factory/.factory log -1 --format='%h %s'` to confirm)
 - E-10 pass-13 D-468 fix burst Commit: `8f02ea1c`
 - E-10 pass-13 POLICY 13-18 Commit: `b8909832`
-- E-10 pass-13 D-469 seal Commit: this commit (SHA-patch follow-up will update)
+- E-10 pass-13 D-469 seal Commit: `3bc6ef2c`
 - E-10 pass-12 D-466 fix burst Commit: `553e9f58`
 - D-465 seal Commit: `54533b04` (E-10 pass-11 sealed; formerly D-349)
 - D-464 fix burst Commit: `bcb10b7b` (E-10 pass-11 fixes — 9 spec/story files; F-1 KK parity + F-2/F-3/F-4/F-5 architect; formerly D-348)
