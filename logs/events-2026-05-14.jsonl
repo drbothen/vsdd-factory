@@ -6,3 +6,5 @@
 {"type":"hook.block","hook":"validate-changelog-monotonicity","reason":"changelog_frontmatter_mismatch","ts":"2026-05-14T10:15:28-0500","ts_epoch":1778771728,"schema_version":1}
 {"type":"hook.block","hook":"validate-table-cell-count","reason":"table_cell_count","ts":"2026-05-14T10:23:38-0500","ts_epoch":1778772218,"schema_version":1}
 {"type":"hook.block","hook":"validate-table-cell-count","reason":"table_cell_count","ts":"2026-05-14T11:50:22-0500","ts_epoch":1778777422,"schema_version":1}
+{"type":"hook.block","hook":"validate-table-cell-count","reason":"table_cell_count","ts":"2026-05-14T18:41:10-0500","ts_epoch":1778802070,"schema_version":1}
+{"type":"hook.block","hook":"validate-state-size","reason":"state_md_bloat","ts":"2026-05-14T18:42:49-0500","ts_epoch":1778802169,"schema_version":1}
