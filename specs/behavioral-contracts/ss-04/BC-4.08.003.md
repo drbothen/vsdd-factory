@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "v1.2"
+version: "v1.3"
 status: draft
 producer: product-owner
 timestamp: 2026-04-28T00:00:00
@@ -9,7 +9,7 @@ phase: 1a
 inputs:
   - .factory/stories/S-5.04-post-tool-use-failure.md
   - .factory/specs/domain-spec/capabilities.md
-input-hash: "80444f0"
+input-hash: "c1b7dd4"
 traces_to: .factory/specs/prd.md#FR-046
 origin: greenfield
 extracted_from: null
@@ -35,7 +35,7 @@ The dispatcher reads `plugins/vsdd-factory/hooks-registry.toml` to map event nam
 ## Preconditions
 
 1. `plugins/vsdd-factory/hooks-registry.toml` is the dispatcher-side routing source of truth (per ADR-011 dual-hook-routing-tables, SS-07 ownership).
-2. The `hooks-registry.toml` file is syntactically valid TOML and passes dispatcher schema validation (`schema_version = 1`).
+2. The `hooks-registry.toml` file is syntactically valid TOML and passes dispatcher schema validation (`schema_version = 2` post-ADR-019).
 3. The `tool-failure-hooks.wasm` binary is compiled and present in the plugin directory at dispatch time.
 
 ## Postconditions
@@ -132,6 +132,7 @@ VP-068
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| v1.3 | 2026-05-13 | architect | D-346 E-10 pass-10 fix burst — F-2 cross-cycle propagation: Precondition 2 `schema_version = 1` corrected to `= 2 (post-ADR-019 F2 2026-05-07)`. Stale citation since F2 ADR-019 sibling-sweep. |
 | v1.2 | 2026-04-28 | product-owner | ADV-S5.04-P02 fix burst: (HIGH-P02-006) status: active → draft (sibling consistency; promotion happens at merge time). |
 | v1.1 | 2026-04-28 | product-owner | ADV-S5.04-P01 fix burst: (HIGH-P01-001) CAP-013 → CAP-002; failure-path is part of the lifecycle hooks family per S-5.01 arch-decision; consistent with sibling BCs BC-4.07.001–004. + state-manager pre-commit cleanup: Capability Anchor Justification simplified to positive CAP-002 statement (CAP-013 contextual clause removed). |
 | v1.0 | 2026-04-28 | product-owner | Initial creation (S-5.04 foundation burst). Promoted from v1.1 BC candidate "BC-4.08.003-post-tool-use-failure-dispatcher-wiring" in legacy story. Production schema field names verified: `name` (NOT plugin_name), `event` (NOT event_name), `plugin` with `hook-plugins/` PREFIX, `timeout_ms` (NOT epoch_budget_ms). ZERO capability tables (Option A). NO `once` field (`deny_unknown_fields` rejects it). Single entry for single event. |

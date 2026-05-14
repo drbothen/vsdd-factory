@@ -113,12 +113,14 @@ v1 hard-errors with migration hint per BC-3.05.004 PC4).
 - **Master design doc:** `.factory/legacy-design-docs/2026-04-24-v1.0-factory-plugin-kit-design.md`
   lines 448–456 (ADR-004: TOML for configuration) and lines 226–233
   (hooks-registry.toml schema_version declaration).
-- **Code as-built:** `crates/factory-dispatcher/src/registry.rs::REGISTRY_SCHEMA_VERSION` (`REGISTRY_SCHEMA_VERSION: u32 = 1`),
+- **Code as-built:** `crates/factory-dispatcher/src/registry.rs::REGISTRY_SCHEMA_VERSION` (`REGISTRY_SCHEMA_VERSION: u32 = 2 post-ADR-019 / F2 cycle 2026-05-07; was = 1 pre-ADR-019`),
   `crates/factory-dispatcher/src/registry.rs::RegistryError::Toml` (`RegistryError::Toml`).
 - **Config file examples:** `.factory/legacy-design-docs/2026-04-24-v1.0-factory-plugin-kit-design.md`
   lines 225–284 (`hooks-registry.toml` example) and lines 288–359 (`observability-config.toml` example).
 
 ## Changelog
+
+- v1.3 (2026-05-13): D-346 E-10 pass-10 fix burst — F-1 closure: §Source/Origin "Code as-built" reference `REGISTRY_SCHEMA_VERSION: u32 = 1` corrected to `= 2 (post-ADR-019 F2 2026-05-07; was = 1 pre-ADR-019)`. D-344 closure scope was narrow (§Amendment line 44 + §Status line 96 only); §Source/Origin line 116 missed. Per pass-10 axis HH-2 pre-fix `grep -n` discipline.
 
 - v1.2 (2026-05-13): D-344 E-10 pass-9 fix burst: F-4 cross-cycle schema_version sweep — hooks-registry.toml schema_version corrected to 2 at §Amendment (line 44) and §Status (line 96) per F2 ADR-019 (2026-05-07). ARCH-INDEX line 339 is canonical SoT.
 

@@ -1109,7 +1109,7 @@ Enforces: CAP-018. Status: **pending** (Story C not yet implemented).
 - Input: JSON envelope on stdin (Claude Code hook payload format)
 - Output: exit code (0 = continue, 2 = block), JSON summary on stdout
 - Config files: `hooks-registry.toml` (plugin routing), `observability-config.toml` (sinks)
-- Schema version: `schema_version = 1` on both config files; mismatch = hard error
+- Schema version: `schema_version = 2` on `hooks-registry.toml` (post-ADR-019) and `observability-config.toml` (post-ADR-015); mismatch = hard error
 
 **Plugin ABI (SS-02)**
 - Module target: `wasm32-wasip1`
@@ -1161,7 +1161,7 @@ text, exit code table, JSON schema, config schema, and flag interaction rules.
 | NFR-SEC-001 | Security | Capability deny-by-default | All host fns return CAPABILITY_DENIED (-1) when no cap block configured |
 | NFR-OBS-001 | Observability | Always-on dispatcher self-telemetry | `dispatcher-internal-*.jsonl` written on every invocation regardless of sink config |
 | NFR-REL-001 | Reliability | Non-blocking errors | Exit 0 on registry/payload/engine errors; misconfiguration never blocks user's tool call |
-| NFR-MAINT-004 | Maintainability | Schema versioning at every config boundary | REGISTRY_SCHEMA_VERSION = 1, INTERNAL_EVENT_SCHEMA_VERSION = 1, HOST_ABI_VERSION = 1; mismatch = hard error |
+| NFR-MAINT-004 | Maintainability | Schema versioning at every config boundary | REGISTRY_SCHEMA_VERSION = 2 (post-ADR-019), INTERNAL_EVENT_SCHEMA_VERSION = 1, HOST_ABI_VERSION = 1; mismatch = hard error |
 | NFR-COMPAT-002 | Compatibility | HOST_ABI_VERSION = 1 frozen at v1.0 | Breaking ABI change requires major version bump on both dispatcher AND SDK |
 
 See `.factory/specs/prd-supplements/nfr-catalog.md` for the complete 76-NFR catalog with numerical targets and validation methods.
@@ -1381,7 +1381,7 @@ See `.factory/specs/prd-supplements/test-vectors.md` for tables with explicit in
 - **Rust compiler:** Edition 2024, rust-version 1.95 minimum (enforced in `rust-toolchain.toml`)
 - **wasmtime:** pinned at 44.0; WASI preview-1 only for v1.0 (preview-2 deferred to v2.0 per ADR-003)
 - **opentelemetry-* crates:** pinned in lockstep at 0.31 (documented in Cargo.toml)
-- **Schema versioning:** all config/event schemas carry `schema_version = 1`; mismatch is a hard error
+- **Schema versioning:** `hooks-registry.toml` carries `schema_version = 2` (post-ADR-019; was 1 pre-2026-05-07); `observability-config.toml` carries `schema_version = 2` (post-ADR-015); `INTERNAL_EVENT_SCHEMA_VERSION = 1`; mismatch is a hard error
 - **HOST_ABI_VERSION = 1:** frozen at v1.0; breaking ABI change requires major version bump on dispatcher AND SDK simultaneously
 - **Claude Code harness:** The dispatcher runs as a Claude Code hook; the Claude Code harness itself is not owned by vsdd-factory; its hook envelope format and tool call lifecycle are external contracts
 

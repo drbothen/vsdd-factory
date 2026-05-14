@@ -10,7 +10,7 @@ phase: 1.3
 inputs:
   - .factory/phase-0-ingestion/pass-2-domain-model.md
   - .factory/phase-0-ingestion/pass-8-final-synthesis.md
-input-hash: "08db1f1"
+input-hash: "a6c6f62"
 traces_to: L2-INDEX.md
 ---
 
@@ -82,7 +82,7 @@ Source: `sinks::from_config`. Traces to: DI-013.
 ## Configuration Rules
 
 **BR-14 — Schema-version mismatch is a hard error**
-`hooks-registry.toml`, `observability-config.toml`, and `InternalEvent` all carry `schema_version = 1`. Any mismatch causes the dispatcher to refuse to load and emit `internal.dispatcher_error`.
+`hooks-registry.toml` carries `schema_version = 2` (post-ADR-019; was 1 pre-2026-05-07). `observability-config.toml` carries `schema_version = 2` (post-ADR-015 D-15.1). `InternalEvent` carries `INTERNAL_EVENT_SCHEMA_VERSION = 1`. Any mismatch causes the dispatcher to refuse to load and emit `internal.dispatcher_error`.
 Source: `registry.rs::validate`; `sinks::from_config`; `internal_log.rs`. Traces to: DI-014.
 
 **BR-15 — Activation is required after every fresh install**

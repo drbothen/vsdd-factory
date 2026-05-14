@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "v1.1"
+version: "v1.2"
 status: draft
 producer: product-owner
 timestamp: 2026-04-28T00:00:00
@@ -9,7 +9,7 @@ phase: 1a
 inputs:
   - .factory/stories/S-5.03-worktree-hooks.md
   - .factory/specs/domain-spec/capabilities.md
-input-hash: "4553104"
+input-hash: "68803af"
 traces_to: .factory/specs/prd.md#FR-046
 origin: greenfield
 extracted_from: null
@@ -45,7 +45,7 @@ The dispatcher reads `plugins/vsdd-factory/hooks-registry.toml` to map event nam
 ## Preconditions
 
 1. `plugins/vsdd-factory/hooks-registry.toml` is the dispatcher-side routing source of truth (per ADR-011 dual-hook-routing-tables, SS-07 ownership).
-2. The `hooks-registry.toml` file is syntactically valid TOML and passes dispatcher schema validation (`schema_version = 1`).
+2. The `hooks-registry.toml` file is syntactically valid TOML and passes dispatcher schema validation (`schema_version = 2` post-ADR-019).
 3. The `worktree-hooks.wasm` binary is compiled and present in the plugin directory at dispatch time.
 
 ## Postconditions
@@ -141,5 +141,6 @@ VP-067
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| v1.2 | 2026-05-13 | architect | D-346 E-10 pass-10 fix burst — F-2 cross-cycle propagation: Precondition 2 `schema_version = 1` corrected to `= 2 (post-ADR-019 F2 2026-05-07)`. Stale citation since F2 ADR-019 sibling-sweep. |
 | v1.1 | 2026-04-28 | product-owner | Pass-1 fix burst ADV-S5.03-P01: (CRIT-002) BC-1.05.022 deny-by-default re-anchored to correct pair BC-1.05.001+BC-1.05.021 in Postcondition 6; (CRIT-003) event_type → event_name in rationale and architecture notes (two occurrences) per HOST_ABI.md HookPayload envelope schema; (HIGH-004) DI-007 removed from Traceability — DI-007 is dispatcher self-telemetry (SS-03 scope), not plugin event emission; replaced with "no current DI; v1.1 candidate" annotation |
 | v1.0 | 2026-04-28 | product-owner | Initial creation (S-5.03 foundation burst) |

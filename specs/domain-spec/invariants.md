@@ -123,12 +123,13 @@ The executor splices the entry's `config` block as `plugin_config` into the payl
 Enforcement owner: SS-01 (executor.rs). BC range: BC-1.
 Justification: DI-016 is a business invariant because configuration leakage between plugin instances (e.g., two `legacy-bash-adapter` entries with different `script_path`) would cause incorrect behavior. Source: pass-2 §BR-per-plugin-config.
 
-**DI-017 — `trace_id` is present on every emitted event; wire-format exclusivity** _(v1.1 — amended 2026-05-08 per F-P1-007)_
+**DI-017 — `trace_id` is present on every emitted event; wire-format exclusivity** _(v1.2 — amended 2026-05-13 per D-346 F-4; v1.1 — amended 2026-05-08 per F-P1-007)_
 Every `InternalEvent` carries the UUID v4 generated from the stdin envelope. No event is emitted without it, enabling full causal reconstruction of a single hook invocation.
 Enforcement owner: SS-01 (main.rs, executor.rs, emit_event host fn). BC range: BC-1, BC-1.14.001, BC-3.08.001 (Invariant 5).
 Justification: DI-017 is a business invariant because the trace ID is the audit correlation key — an event without it cannot be attributed to its invoking tool call. Source: pass-2 §BR-trace_id.
 **Renamed by ADR-015 v1.7 changelog:** `dispatcher_trace_id` → `trace_id` (canonicalized in D-15.2.e). The invariant is identical; only the field name changed. All BCs and code must use `trace_id`. Any reference to `dispatcher_trace_id` in existing code or specs is a drift artifact to be corrected.
 **Wire-format exclusivity (amended per F-P1-007):** On the dispatcher's structured-event wire output (`events-*.jsonl`), the field name is exclusively `trace_id`. The legacy alias `dispatcher_trace_id` MUST NOT appear in serialized output. Host-side reserved-fields filters MUST strip `trace_id` from plugin-emitted fields and MUST also strip `dispatcher_trace_id` (defense-in-depth: even though dispatchers no longer emit it, plugins must not be permitted to spoof it).
+**Scope (D-346 F-4 intent-adjudication):** This wire-format-exclusivity rule governs `events-*.jsonl` emission (and equivalent OTel collector exports). The plugin stdin envelope (`HookPayload` JSON) retains `dispatcher_trace_id` as the SDK-facing payload field name, consistent with SS-02 SDK API surface (see SS-02 §SDK-API-surface §dual-name-rationale). References to `dispatcher_trace_id` in SS-02 BCs (BC-2.04.001, BC-2.04.003, BC-2.02.012, BC-4.01.006, BC-4.02.004) and HOST_ABI.md describe the inbound HookPayload envelope field — these are correct and are not drift artifacts.
 
 > **Note:** DI-018 was proposed in Phase 1d pass-1 to address the concurrent self-modification risk for vsdd-factory's dogfooding (engine and product are the same repo). Pass-2 review (F-018, F-021) flagged that the proposed enforcement claim was aspirational without an actual enforcing BC. The risk is now captured as a known limitation (KL-005) rather than a domain invariant.
 >

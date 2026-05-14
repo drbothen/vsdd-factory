@@ -2,7 +2,7 @@
 document_type: architecture-section
 level: L3
 section: "SS-03-observability-sinks"
-version: "1.1"
+version: "1.2"
 status: superseded
 superseded_by: SS-03-event-emission.md
 superseded_date: 2026-05-04
@@ -14,6 +14,7 @@ inputs:
   - .factory/specs/architecture/ARCH-INDEX.md
   - .factory/phase-0-ingestion/pass-1-architecture.md
   - .factory/phase-0-ingestion/pass-8-final-synthesis.md
+input-hash: "180cc40"
 traces_to: ARCH-INDEX.md
 ---
 
@@ -73,9 +74,9 @@ one does not block others (NFR-REL-001 extended to the sink layer).
 - `SinkConfigCommon`: shared fields across all driver config blocks (`enabled`,
   `routing_filter`, `tags`, `schema_version`).
 
-**`observability-config.toml` schema (version 1):**
+**`observability-config.toml` schema (version 2 post-ADR-015; was version 1 pre-ADR-015 — this doc is superseded):**
 ```toml
-schema_version = 1
+schema_version = 2
 [sinks.my_file]
 type = "file"
 enabled = true
@@ -139,7 +140,7 @@ but not yet emitted as event; DRIFT-002). `sink-otel-grpc` batches events up to
 - **Isolation:** Sink driver failures are caught per-sink; `submit_all` continues
   to remaining sinks. `SinkFailure` is accumulated in a `Mutex<Vec<SinkFailure>>`
   per sink but not yet surfaced as events (DRIFT-002 — must-fix before rc.1).
-- **Schema versioning:** `schema_version = 1` in `observability-config.toml`;
+- **Schema versioning:** `schema_version = 2` (post-ADR-015; was 1 pre-ADR-015) in `observability-config.toml`;
   mismatch = hard error at `from_config` (NFR-MAINT-004).
 - **`#[deny(missing_docs)]`:** Enforced on `sink-core`, `sink-file`,
   `sink-otel-grpc`. Not enforced on the dispatcher-resident `internal_log` and
@@ -185,5 +186,6 @@ and graceful degradation (BC-3.021–BC-3.030), `sink-file` queue and rotation
 
 | Version | Date | Change |
 |---------|------|--------|
+| 1.2 | 2026-05-13 | D-346 E-10 pass-10 fix burst — F-2 HH-2 scope expansion: §Schema example and §Schema versioning bullet corrected from `schema_version = 1` to `= 2 (post-ADR-015)`; heading updated to note superseded status. |
+| 1.1 | 2026-05-08 | TD-VSDD-091 Chunk 6 — migrated 1 body cite. |
 | 1.0 | 2026-04-25 | Initial version. |
-| 1.1 | 2026-05-08 | TD-VSDD-091 Chunk 6 — migrated 1 body cite: `internal_log.rs:67-70` → `internal_log.rs::INTERNAL_SINK_ERROR` / `INTERNAL_SINK_QUEUE_FULL` / `INTERNAL_SINK_CIRCUIT_OPENED` / `INTERNAL_SINK_CIRCUIT_CLOSED` in §Drift / Known Issues DRIFT-002 entry. |

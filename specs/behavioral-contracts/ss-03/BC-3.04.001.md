@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "v1.2"
 status: draft
 producer: codebase-analyzer
 timestamp: 2026-04-25T00:00:00
@@ -9,7 +9,7 @@ phase: "1.4b"
 inputs:
   - .factory/specs/behavioral-contracts/bc-id-mapping.md
   - .factory/phase-0-ingestion/pass-3-behavioral-contracts-deep-r1.md
-input-hash: "9f52ba2"
+input-hash: "b115391"
 traces_to: .factory/specs/behavioral-contracts/bc-id-mapping.md
 origin: brownfield
 extracted_from: "pass-3-behavioral-contracts-deep-r1.md:382"
@@ -75,7 +75,7 @@ removal_reason: null
 |-------|-------|
 | L2 Capability | TBD (subsystem L2 spec pending) |
 | L2 Domain Invariants | TBD |
-| Architecture Module | SS-03 (Observability Sinks) — crates/factory-dispatcher/src/sinks/router.rs |
+| Architecture Module | SS-03 (Event Emission (OTel-Aligned)) — historically referenced crates/factory-dispatcher/src/sinks/router.rs (retired per ADR-015 D-15.1; BC-3.04.001 deprecated, superseded by BC-3.04.004) |
 | Stories | TBD (Phase 2 story-writer pass) |
 
 ## Related BCs (Recommended)
@@ -131,5 +131,5 @@ TBD — Phase 1.6b will produce refactoring guidance.
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
-| v1.0 | 2026-04-25 | codebase-analyzer | Initial authoring. |
+| v1.2 | 2026-05-13 | architect | D-346 E-10 pass-10 fix burst — F-3 closure: Architecture Module row corrected from stale `SS-03 (Observability Sinks)` to `SS-03 (Event Emission (OTel-Aligned))`; retired router.rs reference annotated per ADR-015 D-15.1. |
 | v1.1 | 2026-05-08 | implementer | TD-VSDD-091 Chunk 6 — migrated 1 body cite: `sinks/router.rs:1-9` + `:33-47` + `sinks/mod.rs:11-21` → `sinks/router.rs § 'module doc'`, `sinks/router.rs::Router`, `sinks/mod.rs § 'Integration Status'`. |
