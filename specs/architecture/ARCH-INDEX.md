@@ -1,7 +1,7 @@
 ---
 document_type: architecture-index
 level: L3
-version: "1.98"
+version: "1.99"
 status: accepted
 producer: architect
 timestamp: 2026-05-13T00:00:00Z
@@ -17,6 +17,8 @@ inputs:
 traces_to: phase-1-spec-crystallization
 deployment_topology: single-service
 changelog:
+  - date: 2026-05-13
+    change: "v1.99 (2026-05-13; E-10 pass-9 D-344 fix burst + D-345 seal): Brownfield E-10 pass-9 closure — D-344 architect fix burst (4430483d) closed F-1/F-2/F-3 HIGH + F-4 MED + F-5 LOW. Arch modifications: SS-01-hook-dispatcher.md v1.2→v1.3 (dispatcher_trace_id annotation at lines 39/48/59/60/122/144 + REGISTRY_SCHEMA_VERSION=2 annotation + Observability Sinks annotation); SS-02-hook-sdk.md v1.1→v1.2 (SDK exports `dispatcher_trace_id()` only annotation at lines 53/91/168); ADR-011-dual-hook-routing-tables.md (wire-field correction at line 239 + changelog row); ADR-004-toml-config.md v1.1→v1.2 (lines 44/96 schema_version=2 annotation — cross-cycle F2 ADR-019 propagation per user direction). D-345 seal: input-hash recomputed for SS-01 + SS-02 (replaced [pending-recompute] markers → 39de903). SDK API surface verified via literal-shell read of crates/hook-sdk/src/{ffi,host}.rs — SDK exports `dispatcher_trace_id()` only; WIRE renamed to `trace_id` per DI-017 v1.1; SDK API intentionally unchanged. F5 D-449(a) literal-shell-execution-evidence discipline applied retroactively: all 5 closure gates returned zero rows post-fix. [Cross-cycle annotation F-4: ADR-019 schema_version=2 (F2 cycle) propagated to E-10 ADR-004 per user direction 2026-05-13.] ARCH-INDEX v1.98→v1.99. Refs: E-10-pass-9-F-1, E-10-pass-9-F-2, E-10-pass-9-F-3, E-10-pass-9-F-4, E-10-pass-9-F-5, D-344, D-345."
   - date: 2026-05-13
     change: "v1.98 (2026-05-13; pass-74 fix burst per D-454 + D-404 unconditional): Acknowledges decision range D-389..D-454 (inclusive; literal acknowledgment per D-415(c); sample; see decision-log.md for full range D-389..D-454 per D-441(c)+D-442(c) sample-vs-exhaustive citation policy). Per D-404 unconditional: index acknowledges D-454(a/b/c/d/e) by literal ID (no spec content change in this changelog entry). Refs: ADV-EDP1-P74-CRIT-001, ADV-EDP1-P74-HIGH-001/002/003/004, ADV-EDP1-P74-MED-001/002/003, ADV-EDP1-P74-LOW-001, PG-P74-001/002/003, D-454. [O-P74-001/002/003 trimmed per D-449(d)(i): observations are discovery-tier, not Refs-scope.] META-LEVEL-29 CANDIDATE CONFIRMED; L-EDP1-066 65th-layer 35th-consecutive multi-axis; gate-against-canonical-registry-uses-coarser-granularity + freshness-scope-extension-codified-but-re-execution-evidence-narrative + codification-references-storage-that-doesn't-exist + tri-way-block-label-canonical-form-drift + freshness-temporal-scope-narrower-than-document-edit-window ply (sample; see decision-log.md for full range D-389..D-454 per D-441(c)+D-442(c) sample-vs-exhaustive citation policy). ARCH-INDEX v1.97→v1.98."
   - date: 2026-05-13

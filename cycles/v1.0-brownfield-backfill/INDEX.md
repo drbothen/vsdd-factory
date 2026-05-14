@@ -40,11 +40,11 @@ onboarding of vsdd-factory itself as a brownfield project to backfill the formal
 | 6 | 2026-05-03 | 2 (1H+1M) | HIGH | fixes applied (D-330..D-331) |
 | 7 | 2026-05-05 | 1 (1H) | HIGH | fixes applied (D-332..D-333); DI-013 trace_id rename axis opened |
 | 8 | 2026-05-07 | 4 (2H+1M+1L) | HIGH | fixes applied (D-334..D-343); DI-017 rename sweep + schema_version axes; paused at D-343 |
-| 9 | 2026-05-13 | 5 (3H+1M+1L) | **HIGH** | **DISPATCHED** — D-344 fix burst PENDING; partial-fix regression FF/GG axes |
+| 9 | 2026-05-13 | 5 (3H+1M+1L) | **HIGH** | **SEALED** — D-344 fix burst (4430483d) + D-345 seal; all 5 closures verified literal-shell per F5 D-449(a); NITPICK_ONLY counter 0/3; pass-10 next |
 
 **Trend:** 22→11→16→16→12→2→1→4→5
 
-**Convergence Status (E-10 sub-cycle):** pass-9 dispatched 2026-05-13; verdict HIGH (5 findings: 3H+1M+1L); NITPICK_ONLY counter 0/3 (no advance); D-344 fix burst pending (F-1/F-2/F-3 closure proposals + F-4 cross-cycle scope question + F-5 intent verification); seal D-345 follows; engine baseline develop@d3ae26a5
+**Convergence Status (E-10 sub-cycle):** pass-9 SEALED 2026-05-13; verdict HIGH (5 findings: 3H+1M+1L); D-344 fix burst (4430483d) closed F-1/F-2/F-3 HIGH + F-4 MED + F-5 LOW; D-345 seal verified closures with literal-shell evidence per F5 D-449(a) retroactive discipline — all 5 closure gates returned zero rows post-fix; NITPICK_ONLY counter 0/3 (HIGH verdict resets, no advance); pass-10 dispatch is next; engine baseline develop@d3ae26a5
 
 ## Convergence Status
 

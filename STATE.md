@@ -12,7 +12,7 @@ input-hash: "[live-state]"
 traces_to: prd.md
 project: vsdd-factory
 mode: brownfield
-current_step: "v1.0-brownfield-backfill — E-10 pass-9 DISPATCHED 2026-05-13: HIGH verdict (5 findings: 3H+1M+1L); trend 22→11→16→16→12→2→1→4→5; NITPICK_ONLY counter 0/3 (no advance); D-344 fix burst pending (F-1/F-2/F-3 closure proposals + F-4 cross-cycle scope question + F-5 intent verification); seal D-345 follows; engine baseline develop@d3ae26a5"
+current_step: "v1.0-brownfield-backfill — E-10 pass-9 CLOSED 2026-05-13: D-344 fix burst (4430483d) closed 5 findings (F-1/F-2/F-3 HIGH + F-4 MED + F-5 LOW) per architect closures + cross-cycle sweep + SDK API verification; D-345 seal (this commit) verified closures with literal-shell evidence per F5 D-449(a) discipline retroactively applied; NITPICK_ONLY counter 0/3 (pass-9 HIGH resets); pass-10 dispatch is next; ARCH-INDEX v1.99 / BC-INDEX v2.18 acknowledge D-344+D-345"
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -23,7 +23,7 @@ dtu_services: []
 <!--
   STATE.md SIZE BUDGET (per D-421(c) + D-422(c) reconciliation):
   Soft target: ≤415 lines (actual 399 lines at pass-67 Commit E (wc-l)); margin from soft-target = 500 - 415 = 85; margin from actual = 500 - 443 = 57 (D-446(c) dual-margin form); margin [+10,+20] upper-bound per D-422(c)+D-424(b)+D-428(d)+D-434(e)(ii)+D-437(d)+D-438(a)+D-441(e)+D-442(d)+D-443(d)+D-444(e)+D-445(b)+D-446(c); D-452 codified (5 sub-clauses; META-LEVEL-27-CANDIDATE-CONFIRMED + post-derivation-propagation-completeness + Layer-N-dual-direction-sweep + captured-stdout-snapshot-freshness + Layer-N-scope-extension-6-site-class + Decisions-Log-umbrella-range-auto-advance per decision-log.md SoT; L-EDP1-064 63rd-layer); D-446(c) self-application: dual-margin form applied THIS COMMIT E; D-445(c)+D-446(d)+D-447(c)+D-449(e) Active Branches advance to Commit E HEAD in SHA-patch follow-up.
-  Line-growth tracker (D-437(e)+D-441(e)+D-442(e)+D-443(d)+D-444(e)+D-445(b)+D-446(c)+D-447(d)+D-448(d)+D-449(d)+D-450(d)+D-451(d)+D-452(d)+D-453(d)+D-454(d) follow-up): pass-49 Commit E 310 lines; pass-54 Commit E 319 lines; pass-55 Commit E 328 lines; pass-56 Commit E 331 lines; pass-57 Commit E 334 lines; pass-58 Commit E 337 lines; pass-59 Commit E 340 lines; pass-60 Commit E 410 lines; pass-61 Commit E 417 lines; pass-62 Commit E 426 lines; pass-63 Commit E 440 lines; pass-64 Commit E 447 lines; pass-65 Commit E+SHA-patch 395 lines (wc-l; net -52 from pass-64); pass-66 Commit E 397 lines (wc-l; net +2 from pass-65 Commit E+SHA-patch at 395); pass-67 Commit E 399 lines (wc-l; net +2 from pass-66); pass-68 Commit E 402 lines (wc-l; net +3 from pass-67); pass-69 Commit E 405 lines (wc-l; net +3 from pass-68); pass-70 Commit E 435 lines (wc-l; net +30 from pass-69; pre-CLEAR task-snapshot block REMOVED per MED-002 closure but rc.17/rc.18 Phase Progress rows + D-450 Decisions Log row + refreshed Session Resume added net +30); pass-71 Commit E 439 lines (wc-l; net +4 from pass-70 Commit E at 435; pass-71 Phase Progress row + D-451 Decisions Log row + Session Resume refresh added net +4); pass-72 Commit E 443 lines (wc-l; net +4 from pass-71 Commit E at 439; pass-72 Phase Progress row + D-452 Decisions Log row + Session Resume refresh added net +4); pass-73 Commit E 447 lines (wc-l; net +4 from pass-72 Commit E at 443; pass-73 Phase Progress row + D-453 Decisions Log row + Session Resume refresh added net +4); pass-74 Commit E 451 lines (wc-l; net +4 from pass-73 Commit E at 447; pass-74 Phase Progress row + D-454 Decisions Log row + Session Resume refresh added net +4); pass-74-to-pivot transition 406 lines (wc-l; net -45 from pass-74 Commit E at 451; F5 5-pass pause row + Active Branches pivot + Concurrent Cycles pivot + Drift Items side-branch + Session Resume Checkpoint refresh net -45). Hard cap (500 lines) margin from soft-target = 500 - 415 = 85; margin from actual = 500 - 406 = 94 (D-446(c) dual-margin form self-applied at pass-74-to-pivot transition).
+  Line-growth tracker (D-437(e)+D-441(e)+D-442(e)+D-443(d)+D-444(e)+D-445(b)+D-446(c)+D-447(d)+D-448(d)+D-449(d)+D-450(d)+D-451(d)+D-452(d)+D-453(d)+D-454(d) follow-up): pass-49 Commit E 310 lines; pass-54 Commit E 319 lines; pass-55 Commit E 328 lines; pass-56 Commit E 331 lines; pass-57 Commit E 334 lines; pass-58 Commit E 337 lines; pass-59 Commit E 340 lines; pass-60 Commit E 410 lines; pass-61 Commit E 417 lines; pass-62 Commit E 426 lines; pass-63 Commit E 440 lines; pass-64 Commit E 447 lines; pass-65 Commit E+SHA-patch 395 lines (wc-l; net -52 from pass-64); pass-66 Commit E 397 lines (wc-l; net +2 from pass-65 Commit E+SHA-patch at 395); pass-67 Commit E 399 lines (wc-l; net +2 from pass-66); pass-68 Commit E 402 lines (wc-l; net +3 from pass-67); pass-69 Commit E 405 lines (wc-l; net +3 from pass-68); pass-70 Commit E 435 lines (wc-l; net +30 from pass-69; pre-CLEAR task-snapshot block REMOVED per MED-002 closure but rc.17/rc.18 Phase Progress rows + D-450 Decisions Log row + refreshed Session Resume added net +30); pass-71 Commit E 439 lines (wc-l; net +4 from pass-70 Commit E at 435; pass-71 Phase Progress row + D-451 Decisions Log row + Session Resume refresh added net +4); pass-72 Commit E 443 lines (wc-l; net +4 from pass-71 Commit E at 439; pass-72 Phase Progress row + D-452 Decisions Log row + Session Resume refresh added net +4); pass-73 Commit E 447 lines (wc-l; net +4 from pass-72 Commit E at 443; pass-73 Phase Progress row + D-453 Decisions Log row + Session Resume refresh added net +4); pass-74 Commit E 451 lines (wc-l; net +4 from pass-73 Commit E at 447; pass-74 Phase Progress row + D-454 Decisions Log row + Session Resume refresh added net +4); pass-74-to-pivot transition 406 lines (wc-l; net -45 from pass-74 Commit E at 451; F5 5-pass pause row + Active Branches pivot + Concurrent Cycles pivot + Drift Items side-branch + Session Resume Checkpoint refresh net -45). D-345 seal 408 lines (wc-l; net +2 from pass-74-to-pivot at 406; E-10 pass-9 Phase Progress row + current_step + Session Resume refresh net +2). Hard cap (500 lines) margin from soft-target = 500 - 415 = 85; margin from actual = 500 - 408 = 92 (D-446(c) dual-margin form self-applied at D-345 seal).
   Hard cap: 500 lines (validate-state-md-size hook enforcement).
   Historical content belongs in cycle files, NOT here.
   D-430(a) compaction authorization: Pass-49 Commit E surgical compaction (363→310 lines) authorized retroactively per D-430(a); removed content categories: stale Phase Progress rows (passes 1-38); pre-compaction state preserved at git show 278977fb:.factory/STATE.md.
@@ -42,8 +42,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-13 — PIVOT: PR #136 MERGED 845d0007 (CLAUDE.md expansion 66→442 lines); PR #124 MERGED d3ae26a5 (F5-pass-3 cycle hardening: TD #73 SEQUENCE migration + WASM staging CI fix + VP-076 bats harness + 14 commits preserved); F5 5-pass session (passes 70-74) PAUSED at META-LEVEL-29 asymptotic acceptance per D-386 Option C + human direction 2026-05-13 (5 D-NNN codifications D-450..D-454; 5 META plies L25-L29 CANDIDATE CONFIRMED; 5 lessons L-EDP1-062..066; 60 findings closed; asymptotic floor [7,9] for 16 consecutive passes; 35th-consecutive multi-axis; 2 consecutive prediction-to-pass materializations); v1.0-brownfield-backfill RESUMING — E-10 pass-9 adversary dispatch next-step. |
-| **Current Phase** | v1.0-brownfield-backfill — E-10 pass-9 DISPATCHED 2026-05-13 — HIGH (5 findings: 3H+1M+1L); D-344 fix burst pending |
+| **Last Updated** | 2026-05-13 — E-10 pass-9 SEALED: D-344 fix burst (4430483d) + D-345 seal (this commit); 5 findings closed (3H+1M+1L); ARCH-INDEX v1.99 + BC-INDEX v2.18; input-hash recomputed SS-01+SS-02 → 39de903; brownfield decision-log D-344+D-345 added; NITPICK_ONLY counter 0/3 (HIGH resets); pass-10 dispatch next. |
+| **Current Phase** | v1.0-brownfield-backfill — E-10 pass-9 SEALED 2026-05-13 — D-344+D-345 complete; NITPICK_ONLY counter 0/3; pass-10 dispatch is next |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Phase Progress
@@ -87,7 +87,8 @@ dtu_services: []
 | F5 pass-17 cycle-level adversary | **COMPLETE** | MEDIUM (5M+3L+1NIT+1PG); lateral from pass-16; trajectory →9; D-391+D-392 codified |
 | F5 pass-17 fix burst (last_amended sweep + Z-suffix + D-391+D-392) | **COMPLETE** | F-P17-001/002/004/005/006/008 fixed; L-EDP1-009 corrigendum; PG1 closed; self-application attestation |
 | Phase D-4 Burst 2 — E-10 + E-9 v1.7 | **PENDING** | E-10 paused D-343; adversary pass-9 queued |
-| E-10 pass-9 adversary | **DISPATCHED** 2026-05-13 — HIGH (5 findings: 3H+1M+1L) | trend 22→11→16→16→12→2→1→4→5; partial-fix regression on FF/GG closure axes (DI-017 rename sweep incomplete + schema_version differentiation gap); cross-cycle propagation defect between F2 ADR-019 + E-10 ADR-015 surfaces in SS-01 + ADR-004; pass-9 demonstrates F5 META-LEVEL-24 literal-shell-execution-evidence lesson applies retroactively to E-10 pass-8 narrative-attested sweeps; D-344 fix burst pending |
+| E-10 pass-9 adversary | **COMPLETE** 2026-05-13 — HIGH (5 findings: 3H+1M+1L) | trend 22→11→16→16→12→2→1→4→5; partial-fix regression on FF/GG closure axes (DI-017 rename sweep incomplete + schema_version differentiation gap); cross-cycle propagation defect F2 ADR-019→ADR-004 + SS-01; D-344 fix burst applied (4430483d); D-345 seal verified |
+| E-10 pass-9 fix burst + seal | **COMPLETE** 2026-05-13 — D-344 (4430483d) + D-345 (this commit) | 5 findings closed (3H+1M+1L); architect modified SS-01/SS-02/ADR-011/ADR-004; SDK API surface verified via crates/hook-sdk/src/{ffi,host}.rs grep — exports `dispatcher_trace_id()` only; F5 D-449(a) literal-shell-execution-evidence applied retroactively (all 5 closure gates returned zero rows); cross-cycle F2 ADR-019 sweep applied to ADR-004 per user direction; ARCH-INDEX v1.99 / BC-INDEX v2.18; NITPICK_ONLY counter unchanged 0/3 (HIGH resets); pass-10 dispatch next |
 | F5 pass-60 fix burst | **COMPLETE** | adv-cycle-pass-60.md HIGH→PENDING_NEXT_PASS; D-440(a/b/c/d/e) + L-EDP1-052 codified; META-LEVEL-15 CANDIDATE CONFIRMED |
 | F5 pass-61 fix burst | **COMPLETE** | adv-cycle-pass-61.md HIGH→PENDING_NEXT_PASS; D-441(a/b/c/d/e) + L-EDP1-053 codified; META-LEVEL-16 CONFIRMED |
 | F5 pass-62 fix burst | **COMPLETE** | adv-cycle-pass-62.md HIGH→PENDING_NEXT_PASS; D-442(a/b/c/d/e) + L-EDP1-054 codified; META-LEVEL-17 CONFIRMED; D-442(c) retroactive sweep across umbrella citations |
@@ -228,7 +229,7 @@ dtu_services: []
 | Cycle | Type | Status | Notes |
 |-------|------|--------|-------|
 | F-block-ai-attribution-message-file-arm | feature | F3 COMPLETE — F4 READY | F1+F2+F3 done 2026-05-12; 2 stories ready (S-16.01 5pts PostToolUse HEAD verify, S-16.02 3pts PreToolUse -F arm); E-16 under SS-07/SS-04; milestone v1.0.0-rc.17; BC-7.03.094/095/001, VP-080, ARCH SS-07 v1.3/SS-04 v1.4 registered |
-| v1.0-brownfield-backfill | brownfield | **IN-PROGRESS** | E-10 pass-9 DISPATCHED 2026-05-13 — HIGH verdict (5 findings: 3H+1M+1L); trend 22→11→16→16→12→2→1→4→5; NITPICK_ONLY counter 0/3; D-344 fix burst pending (F-1/F-2/F-3 + F-4 scope question + F-5 intent verification); seal D-345 follows. |
+| v1.0-brownfield-backfill | brownfield | **IN-PROGRESS** | E-10 pass-9 SEALED 2026-05-13 — D-344 (4430483d) + D-345 seal complete; 5 findings closed (3H+1M+1L); NITPICK_ONLY counter 0/3 (HIGH resets); pass-10 dispatch next. |
 | v1.0-feature-engine-discipline-pass-1 | feature | **PAUSED** | F5 5-pass session (passes 70-74) complete with META-LEVEL-29 CANDIDATE CONFIRMED; paused at asymptotic floor [7,9] per D-386 Option C + human direction 2026-05-13; 5 D-NNN codifications D-450..D-454 + 5 lessons L-EDP1-062..066; resumes only when S-15.03 PRIORITY-A automation lands. pass-74 SHA-patch `4b4b6819` is the cycle's final-state HEAD. Full-cycle trajectory (74 values): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7→8→6→2→5→5→5→7→8→7→8→7→8→7→8→7→7→8→8→7→7→7→8→8→8→9→8→8→9→9→9→9→9→9→9→8→9→9→9→9→9→9→9→9 |
 | v1.0-feature-plugin-async-semantics-pass-1 | feature | CLOSED | All PRs merged; rc.14 shipped |
 
@@ -323,7 +324,7 @@ dtu_services: []
 - `cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` | `session-checkpoints.md` | `lessons.md`
 - `cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md` (adversary reviews at `S-12.03/`, `S-12.04/`, `S-12.05/` subdirs)
 
-## Session Resume Checkpoint (2026-05-13 — PIVOT: F5 PAUSED; v1.0-brownfield-backfill RESUMING; E-10 PASS-9 NEXT)
+## Session Resume Checkpoint (2026-05-13 — E-10 PASS-9 SEALED; pass-10 dispatch next)
 
 > **SELF-SUFFICIENT RESUME CONTEXT — CYCLE PIVOT**
 > Read this section alone to resume the protocol after full conversation CLEAR (not compact).
@@ -334,7 +335,7 @@ dtu_services: []
 - F5 cycle (v1.0-feature-engine-discipline-pass-1): PAUSED at META-LEVEL-29 asymptotic floor per D-386 Option C + human direction 2026-05-13
 - PR #136 MERGED at `845d0007` (squash-merge, CLAUDE.md expansion 66→442 lines) — develop now at `d3ae26a5`
 - PR #124 MERGED at `d3ae26a5` (merge commit, F5-pass-3 cycle hardening: TD #73 SEQUENCE migration + WASM staging CI fix + VP-076 bats harness + 14 commits preserved)
-- factory-artifacts HEAD: `4b4b6819` (pass-74 SHA-patch; F5 cycle final-state); transition commit TBD after this push
+- factory-artifacts HEAD: `4b4b6819` (pass-74 SHA-patch; F5 cycle final-state); D-345 seal commit advances this after push
 - main HEAD: `70811f4a` (includes CLAUDE.md expansion PR #136 squash-merge + rc.18 merge)
 - Side branch `save/dim2-gates-path-register` at `3df1bdda` — UNMERGED, decision pending
 
@@ -349,19 +350,19 @@ dtu_services: []
 
 Human directed 2026-05-13: "take care of PR 124 and 136, update our state, then we need to make sure our state is durable before we continue with the next item in our task list." Standing F5 convergence directive ("continue until convergence OR explicit stop") superseded by this newer direction. Next item in task list = E-10 pass-9 adversary dispatch in v1.0-brownfield-backfill cycle.
 
-### 4. Next Action — E-10 Pass-9 Adversary Dispatch
+### 4. Next Action — E-10 Pass-10 Adversary Dispatch
 
-v1.0-brownfield-backfill cycle; paused at D-343. Phase D-4 Burst 2 — E-10 + E-9 v1.7 sweep — PENDING.
+v1.0-brownfield-backfill cycle; E-10 pass-9 SEALED (D-344+D-345). Phase D-4 Burst 2 — E-10 — IN-PROGRESS; pass-10 is next.
 
-1. Read `cycles/v1.0-brownfield-backfill/INDEX.md` for E-10 pass-8 verdict and paused context
-2. Read `cycles/v1.0-brownfield-backfill/decision-log.md` for D-001..D-343 brownfield decisions
-3. Dispatch E-10 pass-9 adversary (fresh-context per Iron Law)
-4. Receive verdict; dispatch fix burst per brownfield-backfill cycle protocol
+1. Read `cycles/v1.0-brownfield-backfill/INDEX.md` for E-10 pass-9 sealed state
+2. Read `cycles/v1.0-brownfield-backfill/decision-log.md` for D-001..D-345 brownfield decisions
+3. Dispatch E-10 pass-10 adversary (fresh-context per Iron Law; primary axes: HH mechanical post-fix verification + II cross-cycle propagation audit + FF/GG/CC/DD/EE re-verify)
+4. Receive verdict; dispatch fix burst per brownfield-backfill cycle protocol if needed
 
 ### 5. Cumulative Codifications
 
 - F5 cycle: D-379..D-454 (76 cycle decisions). Full text: `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md`.
-- Brownfield-backfill cycle: D-001..D-343. Full text: `cycles/v1.0-brownfield-backfill/decision-log.md`.
+- Brownfield-backfill cycle: D-001..D-345. Full text: `cycles/v1.0-brownfield-backfill/decision-log.md`.
 
 ### 6. Cumulative Lessons
 
@@ -372,14 +373,14 @@ v1.0-brownfield-backfill cycle; paused at D-343. Phase D-4 Burst 2 — E-10 + E-
 
 ~108 sub-items per S-15.03 cumulative header "D-411 through D-454" (44 consecutive decisions; sample — see decision-log.md). Full enumeration: `stories/S-15.03-index-cite-refresh-hook.md`. Deferred to v1.0-feature-engine-discipline-pass-2 (post-pivot work; not active in brownfield-backfill cycle).
 
-### 8. 4-Index State (Post Pass-74; Unchanged at Pivot)
+### 8. 4-Index State (Post Pass-74 + D-344/D-345 brownfield seal)
 
 | Index | Version | Acknowledges |
 |-------|---------|-------------|
-| BC-INDEX | v2.17 | D-389..D-454 (sample; see decision-log.md for full range; crossed v2.00 at pass-57) |
+| BC-INDEX | v2.18 | D-389..D-454 (F5 sample; see decision-log.md) + D-344+D-345 brownfield E-10 pass-9 cite-refresh |
 | VP-INDEX | v1.93 | D-389..D-454 (sample; see decision-log.md for full range) |
 | STORY-INDEX | v3.18 | D-389..D-454 (sample; see decision-log.md for full range; crossed v3.00 at pass-56) |
-| ARCH-INDEX | v1.98 | D-389..D-454 (sample; see decision-log.md for full range) |
+| ARCH-INDEX | v1.99 | D-389..D-454 (F5 sample; see decision-log.md) + D-344+D-345 brownfield E-10 pass-9 changelog row |
 
 ### 9. Critical Anchors (Post-Pivot)
 
