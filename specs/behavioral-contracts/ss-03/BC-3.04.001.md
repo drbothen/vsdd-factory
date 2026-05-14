@@ -2,6 +2,7 @@
 document_type: behavioral-contract
 level: L3
 version: "v1.2"
+last_amended: 2026-05-13
 status: draft
 producer: codebase-analyzer
 timestamp: 2026-04-25T00:00:00
@@ -17,7 +18,7 @@ subsystem: "SS-03"
 capability: "CAP-003"
 lifecycle_status: deprecated
 introduced: v1.0.0-beta.4
-modified: [v1.0.0-rc.1]
+modified: [v1.0.0-rc.1, v1.2-adv-E-10-pass-10]
 deprecated: v1.0.0-rc.1
 deprecated_by: BC-3.04.004
 replacement: BC-3.04.004

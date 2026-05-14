@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-1"
-version: "1.0"
+version: "1.1"
 prd_capabilities: []
 status: closed
 story_count: 9
@@ -15,7 +15,7 @@ Nine stories (1 blocker + 8 parallel) that build the `factory-dispatcher` Rust b
 the `vsdd-hook-sdk` crate, and the first two sink drivers. S-1.01 (Cargo workspace
 scaffolding) is the single blocker; all others fan out behind it. Milestone:
 `1.0.0-beta.1`. Subsystems: SS-01 (Hook Dispatcher Core), SS-02 (Hook SDK),
-SS-03 (Observability Sinks).
+SS-03 (Event Emission (OTel-Aligned)).
 
 ## PRD Capabilities Covered
 

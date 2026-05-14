@@ -2,7 +2,7 @@
 document_type: behavioral-contract
 level: L3
 version: "v1.3"
-last_amended: 2026-05-08
+last_amended: 2026-05-13
 status: draft
 producer: product-owner
 timestamp: 2026-04-28T00:00:00
@@ -18,7 +18,7 @@ subsystem: "SS-04"
 capability: "CAP-002"
 lifecycle_status: active
 introduced: v1.0.0-rc.1
-modified: [v1.0-pass-1, v1.0-pass-2, v1.0-pass-3, v1.0-pass-4, v1.0-pass-5, v1.0-pass-6, v1.0-pass-7, v1.0-pass-8, v1.0-pass-9, v1.1-adv-s5.03-p01-sibling-sweep]
+modified: [v1.0-pass-1, v1.0-pass-2, v1.0-pass-3, v1.0-pass-4, v1.0-pass-5, v1.0-pass-6, v1.0-pass-7, v1.0-pass-8, v1.0-pass-9, v1.1-adv-s5.03-p01-sibling-sweep, v1.3-adv-E-10-pass-10]
 deprecated: null
 deprecated_by: null
 replacement: null

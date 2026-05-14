@@ -2,6 +2,7 @@
 document_type: behavioral-contract
 level: L3
 version: "v1.2"
+last_amended: 2026-05-13
 status: draft
 producer: product-owner
 timestamp: 2026-04-28T00:00:00
@@ -17,7 +18,7 @@ subsystem: "SS-04"
 capability: "CAP-002"
 lifecycle_status: active
 introduced: v1.0.0-rc.1
-modified: [v1.1-adv-s5.03-p01]
+modified: [v1.1-adv-s5.03-p01, v1.2-adv-E-10-pass-10]
 deprecated: null
 deprecated_by: null
 replacement: null

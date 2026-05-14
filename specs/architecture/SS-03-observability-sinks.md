@@ -2,7 +2,7 @@
 document_type: architecture-section
 level: L3
 section: "SS-03-observability-sinks"
-version: "1.2"
+version: "1.3"
 status: superseded
 superseded_by: SS-03-event-emission.md
 superseded_date: 2026-05-04
@@ -14,7 +14,7 @@ inputs:
   - .factory/specs/architecture/ARCH-INDEX.md
   - .factory/phase-0-ingestion/pass-1-architecture.md
   - .factory/phase-0-ingestion/pass-8-final-synthesis.md
-input-hash: "180cc40"
+input-hash: "7e2f1b7"
 traces_to: ARCH-INDEX.md
 ---
 
@@ -69,7 +69,7 @@ one does not block others (NFR-REL-001 extended to the sink layer).
 - `Sink` trait: `fn submit(&self, event: &SinkEvent) -> Result<(), SinkError>` +
   `fn flush(&self)` + `fn shutdown(self: Box<Self>)`.
 - `SinkEvent`: field-bag with `event_type: String`, `timestamp: DateTime<Utc>`,
-  `dispatcher_trace_id: Uuid`, `fields: HashMap<String, Value>`.
+  `dispatcher_trace_id: Uuid` (Rust struct field name; WIRE field is `trace_id` per DI-017 v1.1 / ADR-015 v1.7; this file describes the pre-ADR-015 multi-sink architecture where the field name was correct at the time), `fields: HashMap<String, Value>`.
 - `RoutingFilter`: allow-list + deny-list evaluated in order; empty allow = pass all.
 - `SinkConfigCommon`: shared fields across all driver config blocks (`enabled`,
   `routing_filter`, `tags`, `schema_version`).
@@ -145,7 +145,7 @@ but not yet emitted as event; DRIFT-002). `sink-otel-grpc` batches events up to
 - **`#[deny(missing_docs)]`:** Enforced on `sink-core`, `sink-file`,
   `sink-otel-grpc`. Not enforced on the dispatcher-resident `internal_log` and
   `sinks` modules (covered by SS-01's missing-docs gap, L-P1-002).
-- **Trace correlation:** All configurable-plane events carry `dispatcher_trace_id`
+- **Trace correlation:** All configurable-plane events carry `trace_id` (renamed from `dispatcher_trace_id` per DI-017 v1.1; this file describes pre-ADR-015 multi-sink architecture)
   from the parent invocation (passed through `SinkEvent`).
 
 ## Behavioral Contracts
@@ -186,6 +186,7 @@ and graceful degradation (BC-3.021–BC-3.030), `sink-file` queue and rotation
 
 | Version | Date | Change |
 |---------|------|--------|
+| 1.3 | 2026-05-13 | D-348 E-10 pass-11 fix burst — F-2 closure: line 72 `dispatcher_trace_id: Uuid` annotated to clarify Rust struct field name vs WIRE field rename (trace_id per DI-017 v1.1 / ADR-015 v1.7; field name was correct at time of this pre-ADR-015 multi-sink architecture). Line 148 "events carry dispatcher_trace_id" updated to "events carry trace_id (renamed from dispatcher_trace_id per DI-017 v1.1)". HH-3 multi-axis pre-fix grep discipline applied — surfaced sites that D-346 schema_version-only HH-2 grep missed. |
 | 1.2 | 2026-05-13 | D-346 E-10 pass-10 fix burst — F-2 HH-2 scope expansion: §Schema example and §Schema versioning bullet corrected from `schema_version = 1` to `= 2 (post-ADR-015)`; heading updated to note superseded status. |
 | 1.1 | 2026-05-08 | TD-VSDD-091 Chunk 6 — migrated 1 body cite. |
 | 1.0 | 2026-04-25 | Initial version. |
