@@ -226,7 +226,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | 70811f4a | verified `git rev-parse origin/main` = 70811f4a5d68d163021f46856c3de51bf8f4aab8 2026-05-13; includes CLAUDE.md expansion PR #136 (845d0007 squash-merge) + rc.18 merge PR #135 (666d689f) |
 | develop | d3ae26a5 | PR #124 MERGED 2026-05-13 — F5-pass-3 cycle hardening: TD #73 SEQUENCE migration + WASM staging CI fix + VP-076 bats harness + 14 commits preserved; verified `git rev-parse origin/develop` = d3ae26a59312f157c5103b4fe0128e55a1d2bcd0 |
-| factory-artifacts | 553e9f58 | E-10 pass-12 SEALED 2026-05-13: D-466 fix burst commit (553e9f58); D-467 seal SHA to follow |
+| factory-artifacts | 2ed5a01d | E-10 pass-12 SEALED 2026-05-13: D-467 seal commit (2ed5a01d) |
 | save/dim2-gates-path-register | 3df1bdda | Pass-74 ADV-EDP1-P74-HIGH-002 retroactive fix; artifact-path-registry entry + plugins/vsdd-factory/hooks/dim2-gates/README.md; UNMERGED; decision pending — open small PR OR defer to S-15.03 PRIORITY-A wave |
 | v1.0.0-rc.16 (tag) | feb894a2 | SHIPPED; claude-mp PR #8 awaiting human merge |
 | v1.0.0-rc.15 (tag) | e68bb436 | SHIPPED |
@@ -342,7 +342,7 @@ dtu_services: []
 - E-10 pass-12 SEALED 2026-05-13 at D-467 seal commit; D-466 fix burst (553e9f58) + D-467 seal closed F-1/F-2/F-3/F-5/F-6; ARCH-INDEX v2.03+BC-INDEX v2.22+STORY-INDEX v3.21; pass-13 dispatch is next — CRITICAL TEST of HH-4/KK-2/LL-2/MM/NN disciplines
 - E-10 pass-12 adversary report at `cycles/v1.0-brownfield-backfill/E-10-pass-12.md`; F-CRIT-001 CLOSED at Tier-0 e223d48f
 - F5 cycle (v1.0-feature-engine-discipline-pass-1): PAUSED at META-LEVEL-29 asymptotic floor per D-386 Option C + human direction 2026-05-13
-- factory-artifacts HEAD: `553e9f58` (D-466 fix burst; D-467 seal SHA to follow; run `git -C .factory log -1 --format='%h %s'` to confirm)
+- factory-artifacts HEAD: `2ed5a01d` (D-467 seal; run `git -C .factory log -1 --format='%h %s'` to confirm)
 - develop HEAD: `d3ae26a5` (PR #124 merge commit 2026-05-13)
 - main HEAD: `70811f4a` (includes CLAUDE.md expansion PR #136 squash-merge + rc.18 merge)
 - Side branch `save/dim2-gates-path-register` at `3df1bdda` — UNMERGED, decision pending
@@ -411,7 +411,7 @@ Human directed 2026-05-13: continue with HH-4/KK-2/LL-2/MM/NN deeper-recursion d
 
 ### 11. Post-CLEAR Resume Checklist
 
-1. Verify factory-artifacts HEAD at D-467 seal commit; run `git -C /Users/jmagady/Dev/vsdd-factory/.factory log --oneline -3` — should show D-467 seal at HEAD (SHA-patch will update this to actual seal SHA)
+1. Verify factory-artifacts HEAD at D-467 seal commit `2ed5a01d`; run `git -C /Users/jmagady/Dev/vsdd-factory/.factory log --oneline -3` — should show D-467 seal at HEAD
 2. Read STATE.md Session Resume Checkpoint sections 1-10 above (this section is self-sufficient)
 3. Verify CLAUDE.md still cites vsdd-factory project conventions (PR #136 expanded it to 442 lines)
 4. Resume v1.0-brownfield-backfill: dispatch pass-13 adversary (fresh-context) per Section 4 checklist — CRITICAL TEST of deeper-recursion disciplines; pass-12 report at `cycles/v1.0-brownfield-backfill/E-10-pass-12.md`
