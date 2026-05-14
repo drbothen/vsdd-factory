@@ -219,7 +219,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | 70811f4a | verified `git rev-parse origin/main` = 70811f4a5d68d163021f46856c3de51bf8f4aab8 2026-05-13; includes CLAUDE.md expansion PR #136 (845d0007 squash-merge) + rc.18 merge PR #135 (666d689f) |
 | develop | d3ae26a5 | PR #124 MERGED 2026-05-13 — F5-pass-3 cycle hardening: TD #73 SEQUENCE migration + WASM staging CI fix + VP-076 bats harness + 14 commits preserved; verified `git rev-parse origin/develop` = d3ae26a59312f157c5103b4fe0128e55a1d2bcd0 |
-| factory-artifacts | 4b4b6819 | pass-74 SHA-patch HEAD; F5 cycle final-state; will advance to this transition commit SHA after push |
+| factory-artifacts | 2f0eb6f6 | D-345 seal HEAD; E-10 pass-9 SEALED; pass-10 dispatch next |
 | save/dim2-gates-path-register | 3df1bdda | Pass-74 ADV-EDP1-P74-HIGH-002 retroactive fix; artifact-path-registry entry + plugins/vsdd-factory/hooks/dim2-gates/README.md; UNMERGED; decision pending — open small PR OR defer to S-15.03 PRIORITY-A wave |
 | v1.0.0-rc.16 (tag) | feb894a2 | SHIPPED; claude-mp PR #8 awaiting human merge |
 | v1.0.0-rc.15 (tag) | e68bb436 | SHIPPED |
@@ -335,7 +335,7 @@ dtu_services: []
 - F5 cycle (v1.0-feature-engine-discipline-pass-1): PAUSED at META-LEVEL-29 asymptotic floor per D-386 Option C + human direction 2026-05-13
 - PR #136 MERGED at `845d0007` (squash-merge, CLAUDE.md expansion 66→442 lines) — develop now at `d3ae26a5`
 - PR #124 MERGED at `d3ae26a5` (merge commit, F5-pass-3 cycle hardening: TD #73 SEQUENCE migration + WASM staging CI fix + VP-076 bats harness + 14 commits preserved)
-- factory-artifacts HEAD: `4b4b6819` (pass-74 SHA-patch; F5 cycle final-state); D-345 seal commit advances this after push
+- factory-artifacts HEAD: `2f0eb6f6` (D-345 seal; E-10 pass-9 SEALED 2026-05-13)
 - main HEAD: `70811f4a` (includes CLAUDE.md expansion PR #136 squash-merge + rc.18 merge)
 - Side branch `save/dim2-gates-path-register` at `3df1bdda` — UNMERGED, decision pending
 
