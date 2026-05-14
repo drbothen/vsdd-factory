@@ -41,11 +41,11 @@ onboarding of vsdd-factory itself as a brownfield project to backfill the formal
 | 7 | 2026-05-05 | 1 (1H) | HIGH | fixes applied (D-332..D-333); DI-013 trace_id rename axis opened |
 | 8 | 2026-05-07 | 4 (2H+1M+1L) | HIGH | fixes applied (D-334..D-343); DI-017 rename sweep + schema_version axes; paused at D-343 |
 | 9 | 2026-05-13 | 5 (3H+1M+1L) | **HIGH** | **SEALED** — D-344 fix burst (4430483d) + D-345 seal; all 5 closures verified literal-shell per F5 D-449(a); NITPICK_ONLY counter 0/3; pass-10 next |
-| 10 | 2026-05-13 | 4 (1H+2M+1L) | **HIGH** | DISPATCHED — D-344 partial-fix regression surfaced at axis HH (ADR-004 line 116); 3 sibling-sweep gaps F-2/F-3 + 1 intent-pending F-4; D-346 fix burst pending |
+| 10 | 2026-05-13 | 4 (1H+2M+1L) | **HIGH** | **SEALED** — D-346 fix burst (669cc906) + D-347 seal; 11 spec files updated; HH-2 pre-fix grep surfaced 3 sites beyond pass-10 §8 enumeration; II-2 post-fix grep returns zero rows for F-1/F-2 axis predicate; F-3 sibling-sweep closed BC-3.04.001; F-4 DI-017 scope statement adjudicated SDK-envelope carve-out; NITPICK_ONLY counter 0/3 (HIGH resets); pass-11 next |
 
 **Trend:** 22→11→16→16→12→2→1→4→5→4
 
-**Convergence Status (E-10 sub-cycle):** pass-10 DISPATCHED 2026-05-13; verdict HIGH (4 findings: 1H+2M+1L); pass-9 D-344 partial-fix regression on axis GG (ADR-004 line 116 missed) + axis II cross-cycle propagation gap (8 sibling files) + sibling-sweep gap on F-3 (BC-3.04.001); NITPICK_ONLY counter 0/3 (HIGH verdict resets, no advance); D-346 fix burst is next; engine baseline develop@d3ae26a5
+**Convergence Status (E-10 sub-cycle):** pass-10 SEALED 2026-05-13; verdict HIGH (4 findings: 1H+2M+1L) — D-346 fix burst (669cc906) closed F-1/F-2/F-3/F-4 with HH-2 pre-fix grep scope-expansion (3 additional sites beyond pass-10 §8) + II-2 post-fix zero-row predicate; D-347 seal (state-manager) verified with literal-shell-execution-evidence per F5 D-449(a); ARCH-INDEX v2.00 + BC-INDEX v2.19 acknowledge D-346+D-347; NITPICK_ONLY counter 0/3 (HIGH resets, no advance); pass-11 dispatch is next; engine baseline develop@d3ae26a5
 
 ## Convergence Status
 
@@ -53,4 +53,4 @@ onboarding of vsdd-factory itself as a brownfield project to backfill the formal
 - Phase 1 (spec backfill): COMPLETE
 - Phase 1d (adversarial spec review): **CONVERGED** (6 passes, 3 consecutive NITPICK)
 - Story re-anchoring: PENDING (TD-001..TD-005 wave-scale follow-up)
-- E-10 sub-cycle adversarial review: **IN-PROGRESS** (pass-9 dispatched 2026-05-13; 0/3 NITPICK_ONLY; D-344 fix burst pending)
+- E-10 sub-cycle adversarial review: **IN-PROGRESS** (pass-10 SEALED 2026-05-13; 0/3 NITPICK_ONLY; D-346+D-347 applied; pass-11 dispatch next)

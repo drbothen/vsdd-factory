@@ -1,7 +1,7 @@
 ---
 document_type: architecture-index
 level: L3
-version: "1.99"
+version: "2.00"
 status: accepted
 producer: architect
 timestamp: 2026-05-13T00:00:00Z
@@ -17,6 +17,8 @@ inputs:
 traces_to: phase-1-spec-crystallization
 deployment_topology: single-service
 changelog:
+  - date: 2026-05-13
+    change: "v2.00 (2026-05-13; E-10 pass-10 D-346 fix burst + D-347 seal — 11 spec files updated for findings F-1/F-2/F-3/F-4 (ADR-004 v1.3 line 116 + VP-014 1.1 + business-rules BR-14 + prd.md 3 sites + BC-4.04.005/4.05.005/4.07.004/4.08.003 + BC-3.04.001 v1.2 + DI-017 v1.2 + SS-03-observability-sinks 1.2). Literal-shell-execution-evidence per F5 D-449(a) applied: pre-fix HH-2 grep surfaced 3 sites beyond pass-10 §8 enumeration; post-fix II-2 grep returns zero stale REGISTRY_SCHEMA_VERSION = 1 precondition rows (excluding intentional historical-quote and negative-test contexts). NITPICK_ONLY counter 0/3 (HIGH verdict resets, no advance); pass-11 dispatch is next. Refs: D-346, D-347."
   - date: 2026-05-13
     change: "v1.99 (2026-05-13; E-10 pass-9 D-344 fix burst + D-345 seal): Brownfield E-10 pass-9 closure — D-344 architect fix burst (4430483d) closed F-1/F-2/F-3 HIGH + F-4 MED + F-5 LOW. Arch modifications: SS-01-hook-dispatcher.md v1.2→v1.3 (dispatcher_trace_id annotation at lines 39/48/59/60/122/144 + REGISTRY_SCHEMA_VERSION=2 annotation + Observability Sinks annotation); SS-02-hook-sdk.md v1.1→v1.2 (SDK exports `dispatcher_trace_id()` only annotation at lines 53/91/168); ADR-011-dual-hook-routing-tables.md (wire-field correction at line 239 + changelog row); ADR-004-toml-config.md v1.1→v1.2 (lines 44/96 schema_version=2 annotation — cross-cycle F2 ADR-019 propagation per user direction). D-345 seal: input-hash recomputed for SS-01 + SS-02 (replaced [pending-recompute] markers → 39de903). SDK API surface verified via literal-shell read of crates/hook-sdk/src/{ffi,host}.rs — SDK exports `dispatcher_trace_id()` only; WIRE renamed to `trace_id` per DI-017 v1.1; SDK API intentionally unchanged. F5 D-449(a) literal-shell-execution-evidence discipline applied retroactively: all 5 closure gates returned zero rows post-fix. [Cross-cycle annotation F-4: ADR-019 schema_version=2 (F2 cycle) propagated to E-10 ADR-004 per user direction 2026-05-13.] ARCH-INDEX v1.98→v1.99. Refs: E-10-pass-9-F-1, E-10-pass-9-F-2, E-10-pass-9-F-3, E-10-pass-9-F-4, E-10-pass-9-F-5, D-344, D-345."
   - date: 2026-05-13
