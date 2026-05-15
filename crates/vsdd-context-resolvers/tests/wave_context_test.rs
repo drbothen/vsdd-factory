@@ -108,7 +108,7 @@ fn test_BC_4_12_002_wave_context_stories_contents() {
 
 /// BC-4.12.004 PC3: malformed YAML produces a parse error (not a panic).
 ///
-/// `parse_wave_state` must return `Err(serde_yaml::Error)` on malformed input;
+/// `parse_wave_state` must return `Err(serde_yml::Error)` on malformed input;
 /// callers map the error to `value: None`.
 #[test]
 fn test_BC_4_12_004_malformed_yaml_yields_parse_error() {
@@ -130,7 +130,7 @@ fn test_BC_4_12_004_malformed_yaml_yields_parse_error() {
 #[test]
 fn test_parse_wave_state_rejects_missing_required_wave_field() {
     // YAML has a waves entry with stories but no `wave:` key.
-    // serde_yaml must return Err because `wave` is a required String field.
+    // serde_yml must return Err because `wave` is a required String field.
     let yaml = "waves:\n  - stories: [\"S-12.07\"]";
 
     let result = parse_wave_state(yaml);

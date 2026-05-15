@@ -6,8 +6,8 @@
 //!   - `stories: Vec<String>` — stories planned for this wave
 //!   - `stories_merged: Vec<String>` — stories already merged
 //!   - `gate_status: Option<String>` — None / "not_started" / "pending" / "passed" / "deferred" / "failed"
-//!   - `current_wave: Option<serde_yaml::Value>` — optional extra field (preserved)
-//!   - `next_gate_required: Option<serde_yaml::Value>` — optional extra field (preserved)
+//!   - `current_wave: Option<serde_yml::Value>` — optional extra field (preserved)
+//!   - `next_gate_required: Option<serde_yml::Value>` — optional extra field (preserved)
 //!
 //! # Active wave determination
 //! An active wave is the LAST entry in `waves` whose `gate_status` is not a
@@ -52,10 +52,10 @@ pub struct WaveEntry {
     pub gate_status: Option<String>,
     /// Optional extra field from producer (round-tripped to preserve unknown data).
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub current_wave: Option<serde_yaml::Value>,
+    pub current_wave: Option<serde_yml::Value>,
     /// Optional extra field from producer (round-tripped to preserve unknown data).
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub next_gate_required: Option<serde_yaml::Value>,
+    pub next_gate_required: Option<serde_yml::Value>,
 }
 
 /// Top-level `.factory/wave-state.yaml` structure.
@@ -72,16 +72,16 @@ pub struct WaveState {
 
 /// Parse a YAML string into a `WaveState`.
 ///
-/// Returns `Err(serde_yaml::Error)` on malformed YAML; callers map errors to
+/// Returns `Err(serde_yml::Error)` on malformed YAML; callers map errors to
 /// `ResolverOutput { value: None }` (AC-002, EC-003). Does NOT panic.
 /// BC-4.12.004 INV1: no fallible unwrap or panic-on-error calls.
 ///
-/// Note: serde_yaml handles CRLF line endings natively per YAML 1.2 spec,
+/// Note: serde_yml handles CRLF line endings natively per YAML 1.2 spec,
 /// so no explicit normalization is needed here. (Contrast with
 /// `parse_cycle_id_from_state_md`, which does manual frontmatter parsing
 /// and therefore must normalize CRLF before splitting on `\n---`.)
-pub fn parse_wave_state(yaml: &str) -> Result<WaveState, serde_yaml::Error> {
-    serde_yaml::from_str(yaml)
+pub fn parse_wave_state(yaml: &str) -> Result<WaveState, serde_yml::Error> {
+    serde_yml::from_str(yaml)
 }
 
 /// Terminal gate-status values that mark a wave as no longer active.
@@ -167,6 +167,6 @@ pub fn parse_cycle_id_from_state_md(state_md: &str) -> Option<String> {
         current_cycle: Option<String>,
     }
 
-    let fm: Frontmatter = serde_yaml::from_str(frontmatter).ok()?;
+    let fm: Frontmatter = serde_yml::from_str(frontmatter).ok()?;
     fm.current_cycle
 }

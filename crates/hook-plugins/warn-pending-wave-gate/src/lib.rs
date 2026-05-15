@@ -21,10 +21,10 @@
 //! This hook previously read the MAPPING form (waves: { W-15: { ... } }),
 //! making it operationally inert in production (TD-073 — now resolved).
 //! Fixed in F-P3-001 fix-burst: use `WaveEntry` / `WaveState` structs via
-//! serde_yaml to parse the canonical SEQUENCE form.
+//! serde_yml to parse the canonical SEQUENCE form.
 //!
 //! Porting note: the bash source used python3 for YAML parsing. This crate
-//! uses serde_yaml 0.9.34 instead — no subprocess, no python3 dependency.
+//! uses serde_yml 0.9.34 instead — no subprocess, no python3 dependency.
 
 use serde::Deserialize;
 use vsdd_hook_sdk::{HookPayload, HookResult};
@@ -79,9 +79,9 @@ pub fn warn_pending_wave_gate_logic(
 
     // AC-004(b): YAML parse fails or `waves` key absent → exit 0, no output.
     // Parse into WaveState (canonical SEQUENCE form per F-P3-001 fix).
-    // serde_yaml returns Err on malformed YAML, and WaveState::default() gives
+    // serde_yml returns Err on malformed YAML, and WaveState::default() gives
     // empty waves list for missing-key or null-waves cases via #[serde(default)].
-    let wave_state: WaveState = match serde_yaml::from_str(&yaml_content) {
+    let wave_state: WaveState = match serde_yml::from_str(&yaml_content) {
         Ok(ws) => ws,
         Err(_) => return HookResult::Continue,
     };

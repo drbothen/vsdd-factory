@@ -30,12 +30,12 @@
 //!   with `max_bytes=65536` and `timeout_ms=10000` (4-param form per S-8.10 v1.1
 //!   AC-1; capability block `[hooks.capabilities.write_file] path_allow =
 //!   [".factory/wave-state.yaml"]` required in hooks-registry.toml at T-9).
-//! - Use `serde_yaml::from_str` / `serde_yaml::to_string` for YAML
+//! - Use `serde_yml::from_str` / `serde_yml::to_string` for YAML
 //!   parse/serialize. The `gate_status` field MUST be typed as
 //!   `Option<String>` with `#[serde(default)]` to handle the 4-case truth table
 //!   (absent, YAML-null/~, "not_started", other) defined in AC-005 of S-8.04.
 //! - Preserve key ordering (`sort_keys=False` parity) by using
-//!   `serde_yaml::Mapping` which wraps `IndexMap` for insertion-order maps.
+//!   `serde_yml::Mapping` which wraps `IndexMap` for insertion-order maps.
 //! - Port the merge signal regex verbatim (port-as-is per OQ-001):
 //!   `STEP_COMPLETE: step=8.*status=ok|merged|squash.*merge` (case-insensitive).
 //!   ERE precedence quirk preserved intentionally; TD filed for v1.2 fix.
@@ -175,9 +175,9 @@ struct WaveEntry {
     #[serde(default)]
     gate_status: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    current_wave: Option<serde_yaml::Value>,
+    current_wave: Option<serde_yml::Value>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    next_gate_required: Option<serde_yaml::Value>,
+    next_gate_required: Option<serde_yml::Value>,
 }
 
 /// Top-level wave-state.yaml structure.
@@ -221,7 +221,7 @@ where
     };
 
     // Parse YAML; malformed → NoOp (graceful advisory degradation)
-    let mut state: WaveState = match serde_yaml::from_str(&yaml_str) {
+    let mut state: WaveState = match serde_yml::from_str(&yaml_str) {
         Ok(s) => s,
         Err(_) => return WaveStateOutcome::NoOp,
     };
@@ -265,14 +265,14 @@ where
     let gate_transitioned = if should_flip {
         state.waves[wave_index].gate_status = Some("pending".to_string());
         state.waves[wave_index].next_gate_required =
-            Some(serde_yaml::Value::String(wave_name.clone()));
+            Some(serde_yml::Value::String(wave_name.clone()));
         true
     } else {
         false
     };
 
-    // Serialize back to YAML (sort_keys=False parity via IndexMap-backed serde_yaml::Mapping)
-    let updated_yaml = match serde_yaml::to_string(&state) {
+    // Serialize back to YAML (sort_keys=False parity via IndexMap-backed serde_yml::Mapping)
+    let updated_yaml = match serde_yml::to_string(&state) {
         Ok(s) => s,
         Err(_) => return WaveStateOutcome::NoOp,
     };
