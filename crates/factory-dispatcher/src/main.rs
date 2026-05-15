@@ -535,8 +535,7 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
     // TD #71: when block_intent is true, surface blocking_plugins and block_reason
     // in the summary line so operators don't have to grep the internal log.
     if final_exit_code == 2 {
-        let (blocking_names, block_reason) =
-            extract_block_info(&summary.per_plugin_results);
+        let (blocking_names, block_reason) = extract_block_info(&summary.per_plugin_results);
         eprintln!(
             "  plugins_run={} total_ms={} block_intent={} exit_code={} blocking_plugins={} block_reason=\"{}\"",
             summary.per_plugin_results.len(),
@@ -600,7 +599,9 @@ fn extract_block_info(outcomes: &[PluginOutcome]) -> (String, String) {
     for outcome in outcomes {
         let is_blocking = match &outcome.result {
             // Advisory block: stdout carries {"outcome":"block","reason":"..."}.
-            PluginResult::Ok { stdout, exit_code, .. } => {
+            PluginResult::Ok {
+                stdout, exit_code, ..
+            } => {
                 let advisory = stdout.contains(r#""outcome":"block""#);
                 let wasi_block = *exit_code == 2 && outcome.on_error == OnError::Block;
                 advisory || wasi_block
@@ -646,12 +647,8 @@ fn extract_reason_from_outcome(result: &PluginResult) -> Option<String> {
                 .and_then(|v| v.get("reason").and_then(|r| r.as_str()).map(str::to_owned))
         }
         // Fail-closed crash/timeout: sentinel reason.
-        PluginResult::Crashed { .. } => {
-            Some("fail-closed: plugin crashed".to_owned())
-        }
-        PluginResult::Timeout { .. } => {
-            Some("fail-closed: plugin timed out".to_owned())
-        }
+        PluginResult::Crashed { .. } => Some("fail-closed: plugin crashed".to_owned()),
+        PluginResult::Timeout { .. } => Some("fail-closed: plugin timed out".to_owned()),
     }
 }
 
