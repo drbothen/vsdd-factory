@@ -120,6 +120,9 @@ setup() {
   [ "$total" -gt 0 ]
   [ "$with_trace" -eq "$total" ]
   [ "$with_session" -eq "$total" ]
+  # AC-2 (S-15.04): assert zero "dispatcher_trace_id" keys in the canonical wire format
+  # (S-15.01 T-3a rename complete; the per-event field is "trace_id" via serde rename)
+  ! grep -q '"dispatcher_trace_id"' "$log"
 }
 
 # ---------- adapter round-trip (post-fix end-state) --------------------
