@@ -121,7 +121,12 @@ jobs:
           targets: wasm32-wasip1
 
       - name: Cache cargo
-        uses: Swatinem/rust-cache@v2
+        # Pinned to commit SHA for security (TD #74); resolves to v2.9.1.
+        # SHA verified: no open GitHub Security Advisories; last 10 commits
+        # are routine dependabot bumps; tag v2.9.1 is GPG-signed by maintainer.
+        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4  # v2.9.1
+        with:
+          cache-on-failure: true
 
       - name: cargo fmt --check --all
         run: cargo fmt --check --all
@@ -344,9 +349,11 @@ jobs:
         # each other's cache. Swatinem/rust-cache@v2 already keys on
         # Cargo.lock + rust-toolchain.toml under the hood; we add the
         # matrix axes via shared-key.
-        uses: Swatinem/rust-cache@v2
+        # Pinned to commit SHA for security (TD #74); resolves to v2.9.1.
+        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4  # v2.9.1
         with:
           shared-key: build-dispatcher-${{ matrix.platform }}-${{ matrix.target }}
+          cache-on-failure: true
 
       - name: Install cross-rs/cross
         # Only the linux-arm64 entry sets use_cross=true. cross gives us
