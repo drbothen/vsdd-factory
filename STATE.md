@@ -5,14 +5,14 @@ version: "2.0"
 status: draft
 producer: state-manager
 timestamp: 2026-05-12T00:00:00Z
-phase: pivot-F5-paused-asymptotic-acceptance-resume-v1.0-brownfield-backfill-E-10-PARTIAL-CLOSED-pivot-to-TD-71-tier-A
+phase: pivot-F5-paused-asymptotic-acceptance-resume-v1.0-brownfield-backfill-E-10-PARTIAL-CLOSED-TD-71-SHIPPED-pivot-to-TD-72-tier-A
 last_amended: 2026-05-14
 inputs: []
 input-hash: "[live-state]"
 traces_to: prd.md
 project: vsdd-factory
 mode: brownfield
-current_step: "Pipeline READY for TD #71 dispatch (fresh-context entry point) 2026-05-14: E-10 sub-cycle PARTIAL-CLOSED at D-471 seal 1e810021 (asymptotic-acceptance analogous to F5 D-386 Option C); Tier-B priority-1 dim2-gates path-registry CLOSED via PR #137 (21d444d8 on develop); orchestrator pivots to Tier-A TD #71 dispatcher stderr blocking_plugins + block_reason surfacing — full self-contained dispatch package in Section 4; effort small (~1-2hr impl + standard 9-step PR cycle); independent of E-10/F5; target branch feature/td-71-stderr-block-reason → develop; spawn implementer agent post-CLEAR with Section 4 as task description"
+current_step: "TD #71 SHIPPED 2026-05-14 via PR #138 squash-merge at bcf494ff on develop; orchestrator pivots to Tier-A TD #72 serde_yaml 0.9.34 deprecated migration — migrate to serde_yml or yaml-rust2; affects crates update-wave-state-on-merge + warn-pending-wave-gate + vsdd-context-resolvers; effort small-medium (crate dependency swap + API migration + test verification); independent of E-10 (sealed) and F5 (paused); target branch feature/td-72-serde-yaml-migration → develop@bcf494ff; spawn implementer agent with TD #72 task description"
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -42,8 +42,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-14 — TD #71 dispatch package made durable for post-CLEAR fresh-context resumption; Section 4 self-contained payload (file surface verified against develop@21d444d8, decision tree option (b) recommended, 5 bats test cases, pre-flight gate enumerated, 9-step PR cycle target); Tier-B renumbered post-PR #137 closure. |
-| **Current Phase** | Pipeline READY for TD #71 dispatch (fresh-context entry point). E-10 sub-cycle SEALED at asymptotic-acceptance (D-471); F5 paused; Tier-B priority-1 closed via PR #137; orchestrator pivots to TD #71 per Section 4 self-contained dispatch package. |
+| **Last Updated** | 2026-05-14 — TD #71 SHIPPED via PR #138 squash-merge at bcf494ff on develop; 5 bats TC; 0 Critical/Important review findings; CI green; feature/td-71-stderr-block-reason deleted; orchestrator pivots to Tier-A TD #72 (serde_yaml 0.9.34 deprecated migration). |
+| **Current Phase** | TD #71 SHIPPED. E-10 sub-cycle SEALED at asymptotic-acceptance (D-471); F5 paused; orchestrator pivots to TD #72 serde_yaml migration as new Tier-A priority. |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Phase Progress
@@ -99,7 +99,8 @@ dtu_services: []
 | E-10 pass-14 adversary | **COMPLETE** 2026-05-14 — HIGH (8 findings: 3H+3M+2L) | trend 22→11→16→16→12→2→1→4→5→4→6→7→5→8 REBOUNDED; POLICY codification efficacy SPAWNED_5TH_LAYER (PREDICTION_CONFIRMED); 4 of 6 new policies SELF-VIOLATED at codifying burst; adversary recommends Option (b) asymptotic acceptance analogous to F5 D-386 Option C; D-470 fix burst PENDING HUMAN DIRECTION |
 | E-10 pass-14 PARTIAL-CLOSED (Asymptotic-Acceptance) | **COMPLETE** 2026-05-14 — Asymptotic-acceptance analogous to F5 D-386 Option C | D-470 mandatory HIGH closures F-PASS14-001 + F-PASS14-002; D-471 seal ratifies asymptotic-acceptance; 6 remaining findings DEFERRED to S-15.03 PRIORITY-A automation wave; E-10 sub-cycle SEALED at floor [5-9] band; ARCH-INDEX v2.05 + BC-INDEX v2.24; resumption gate = S-15.03 PRIORITY-A hook implementation |
 | PR #137 Tier-B priority-1 closure | **MERGED** 2026-05-14 — dim2-gates path-registry scaffolding | Cherry-picked 3df1bdda from save/dim2-gates-path-register; PR #137 squash-merged at 21d444d8; 4 new artifact-path-registry entries + dim2-gates README scaffolding; zero behavior change; enables S-15.03 PRIORITY-A future scripts |
-| TD #71 Dispatch Package Durable (Pre-CLEAR Session Checkpoint) | **READY** 2026-05-14 — Full self-contained dispatch payload in Section 4 | File surface verified against develop@21d444d8; decision tree option (b) recommended; 5 bats test cases; pre-flight gate enumerated; 9-step PR cycle target. Fresh-context Claude post-CLEAR can dispatch implementer immediately with Section 4 as task description; zero handover loss intended. |
+| TD #71 Dispatch Package Durable (Pre-CLEAR Session Checkpoint) | **COMPLETE** 2026-05-14 — Full self-contained dispatch payload in Section 4 | File surface verified against develop@21d444d8; decision tree option (b) recommended; 5 bats test cases; pre-flight gate enumerated; 9-step PR cycle target. Fresh-context Claude post-CLEAR dispatched implementer with Section 4 as task description; work SHIPPED via PR #138 at bcf494ff. |
+| TD #71 dispatcher stderr block_reason surfacing | **DONE 2026-05-14** — PR #138 squash-merge bcf494ff on develop | implementer + pr-manager; 5 bats TC; CLAUDE.md §Step 2 follow-up; CI green; 0 Critical/Important review findings; feature/td-71-stderr-block-reason deleted from remote |
 | **Tier-0 D-NNN renumbering (F-CRIT-001 closure)** | **COMPLETE** 2026-05-13 — brownfield D-344..D-349 → D-460..D-465; POLICY 1 violation resolved | ARCH-INDEX v2.02 + BC-INDEX v2.21 + VP-INDEX v1.95 + STORY-INDEX v3.20 corrigenda; ~25 files touched; pre+post grep stdout LL-2 strict-form; D-466 fix burst (HH-4/KK-2/LL-2/MM/NN) applied 553e9f58 |
 | E-10 pass-12 fix burst + seal | **COMPLETE** 2026-05-13 — D-466 fix burst (553e9f58) + D-467 seal (post-renumber from §8 nominal D-350/D-351) | 7 findings closed (1C closed pre-burst via Tier-0 + 2H+2M+2L closed via D-466); architect F-2/F-3/F-6 with HH-4 + state-manager F-1/F-5 with KK-2 tripartite + LL-2 verbatim stdout + MM cross-cycle namespace + NN parity disciplines applied; ARCH-INDEX v2.03 + BC-INDEX v2.22 + STORY-INDEX v3.21 cite-refresh; NITPICK_ONLY counter 0/3 (HIGH resets); pass-13 dispatch next (CRITICAL TEST per pass-12 §7) |
 | F5 pass-60 fix burst | **COMPLETE** | adv-cycle-pass-60.md HIGH→PENDING_NEXT_PASS; D-440(a/b/c/d/e) + L-EDP1-052 codified; META-LEVEL-15 CANDIDATE CONFIRMED |
@@ -231,7 +232,7 @@ dtu_services: []
 | Branch / Tag | SHA | Notes |
 |--------------|-----|-------|
 | main | 70811f4a | verified `git rev-parse origin/main` = 70811f4a5d68d163021f46856c3de51bf8f4aab8 2026-05-13; includes CLAUDE.md expansion PR #136 (845d0007 squash-merge) + rc.18 merge PR #135 (666d689f) |
-| develop | 21d444d8 | PR #137 MERGED 2026-05-14 — dim2-gates path-registry scaffolding (ADV-EDP1-P74-HIGH-002 retroactive fix; D-454(c) preview); cherry-picked from save/dim2-gates-path-register; squash-merge at 21d444d8b9cd87feb853d6ba4ed2322f81a8d655; verified `git rev-parse origin/develop` = 21d444d8b9cd87feb853d6ba4ed2322f81a8d655 |
+| develop | bcf494ff | PR #138 MERGED 2026-05-14 — TD #71 dispatcher stderr blocking_plugins + block_reason surfacing (squash-merge at bcf494fff469f0bd8cb062403a9817bba8803aeb); verified `git rev-parse origin/develop` = bcf494fff469f0bd8cb062403a9817bba8803aeb. Prior: PR #137 MERGED 21d444d8 — dim2-gates path-registry scaffolding |
 | factory-artifacts | 1e810021 | E-10 pass-14 PARTIAL-CLOSED (Asymptotic-Acceptance) 2026-05-14: D-470 mandatory HIGH closures (6fefa10d); D-471 asymptotic-acceptance seal (1e810021) |
 | v1.0.0-rc.16 (tag) | feb894a2 | SHIPPED; claude-mp PR #8 awaiting human merge |
 | v1.0.0-rc.15 (tag) | e68bb436 | SHIPPED |
@@ -322,8 +323,8 @@ dtu_services: []
 | **TD #67** 4 timing-flaky e2e tests | DEFERRED to S-15.02 | TC-4/5/7/9 `#[ignore]`'d |
 | **TD #68** sync-develop binary-conflict auto-resolve | RESOLVED PR #114 | develop includes main; auto-resolve active |
 | **TD #69** release-branch guardrail | RESOLVED PRs #116/#117 | Live-tested PR #118 |
-| **TD #70** cargo cache reuse (Swatinem/rust-cache@v2) | FILED; BLOCKED by E-10 resume | — |
-| **TD #71** dispatcher stderr omits blocking_plugins + block_reason | FILED 2026-05-10 | Surgical executor.rs::execute_tiers fix needed |
+| **TD #70** cargo cache reuse (Swatinem/rust-cache@v2) | FILED; UNBLOCKED (E-10 sealed at asymptotic-acceptance 2026-05-14; E-10 resume gate removed) | Tier-B; reassess priority after TD #72 |
+| **TD #71** dispatcher stderr omits blocking_plugins + block_reason | RESOLVED 2026-05-14 PR #138 bcf494ff | PR #138 squash-merge at bcf494ff on develop; 5 bats TC; CI green. Closes via Option (b) internal_log read at end of dispatch. |
 | **TD #72** serde_yaml 0.9.34 deprecated | FILED 2026-05-10 | Migrate to serde_yml or yaml-rust2; affects update-wave-state-on-merge, warn-pending-wave-gate, vsdd-context-resolvers |
 | **TD #73** wave-state.yaml schema disagreement | RESOLVED 2026-05-13 PR #124 | warn-pending-wave-gate migrated to SEQUENCE schema per F-P3-001 in PR #124 merge. Closes the contradiction surfaced by S-12.07 pass-2 adversary HIGH-006. (Original filed: 2026-05-10.) |
 | Ghost BCs: BC-3.07.003/004, BC-1.06.011 | DEFERRED | Missing from BC-INDEX; investigate in future fix-burst |
@@ -336,22 +337,25 @@ dtu_services: []
 - `cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` | `session-checkpoints.md` | `lessons.md`
 - `cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md` (adversary reviews at `S-12.03/`, `S-12.04/`, `S-12.05/` subdirs)
 
-## Session Resume Checkpoint (2026-05-14 — E-10 PARTIAL-CLOSED; TIER-B PRIORITY-1 CLOSED VIA PR #137; ORCHESTRATOR PIVOTS TO TIER-B PRIORITY-2 TD #71)
+## Session Resume Checkpoint (2026-05-14 — TD #71 SHIPPED VIA PR #138; ORCHESTRATOR PIVOTS TO TD #72 TIER-A)
 
 > **SELF-SUFFICIENT RESUME CONTEXT — CYCLE PIVOT**
 > Read this section alone to resume the protocol after full conversation CLEAR (not compact).
 
 ### 1. Where We Are
 
-- E-10 sub-cycle PARTIAL-CLOSED (asymptotic-acceptance) 2026-05-14 at D-471 seal (1e810021); Tier-B priority-1 backlog item CLOSED via PR #137 (21d444d8 on develop) 2026-05-14; orchestrator pivots to Tier-B priority-2 TD #71
+- TD #71 SHIPPED 2026-05-14 via PR #138 squash-merge at bcf494ff on develop; 5 bats TC; CI green; 0 Critical/Important review findings; feature/td-71-stderr-block-reason deleted from remote
+- E-10 sub-cycle PARTIAL-CLOSED (asymptotic-acceptance) 2026-05-14 at D-471 seal (1e810021); REMAINS SEALED
+- Tier-B priority-1 (dim2-gates path-registry) CLOSED via PR #137 (21d444d8 on develop) 2026-05-14; REMAINS CLOSED
 - Active cycle: v1.0-brownfield-backfill (PARTIAL-CLOSED E-10 sub-cycle; asymptotic-acceptance 2026-05-14)
 - D-470 mandatory HIGH closures COMPLETE: F-PASS14-001 (compute-input-hash mechanical; D-468 false claim corrected) + F-PASS14-002 (LL-3 strict-form inline stdout at D-466/D-467/D-469)
 - D-471 asymptotic-acceptance seal COMPLETE: 6 remaining findings DEFERRED to S-15.03 PRIORITY-A automation wave
 - F5 cycle (v1.0-feature-engine-discipline-pass-1): PAUSED at META-LEVEL-29 asymptotic floor per D-386 Option C + human direction 2026-05-13
-- factory-artifacts HEAD: `1e810021` (D-471 asymptotic-acceptance seal)
-- develop HEAD: `21d444d8` (PR #137 squash-merge 2026-05-14 — dim2-gates path-registry scaffolding)
+- factory-artifacts HEAD: see `git -C .factory log -1 --format='%h %s'` (post-burst commit from this state-manager burst)
+- develop HEAD: `bcf494ff` (PR #138 squash-merge 2026-05-14 — TD #71 dispatcher stderr surfacing)
 - main HEAD: `70811f4a` (includes CLAUDE.md expansion PR #136 squash-merge + rc.18 merge)
 - Side branch `save/dim2-gates-path-register`: MERGED via cherry-pick → PR #137 → develop@21d444d8; save-point branch preserved but content shipped
+- orchestrator pivots to Tier-A TD #72 (serde_yaml 0.9.34 deprecated migration)
 
 ### 2. Operating Mode
 
@@ -363,20 +367,18 @@ dtu_services: []
 
 Human directed 2026-05-14: asymptotic-acceptance for E-10 sub-cycle analogous to F5 D-386 Option C. Close only Tier-0 mandatory findings (F-PASS14-001 + F-PASS14-002); remaining 6 findings DEFERRED to S-15.03 PRIORITY-A automation wave. D-471 seals the decision.
 
-### 4. Tier-A: TD #71 — Dispatcher Stderr blocking_plugins + block_reason Surfacing
+### 4. Tier-A Completed Log + New Tier-A: TD #72 — serde_yaml 0.9.34 Deprecated Migration
 
-> **Full self-contained dispatch package:** `.factory/cycles/v1.0-brownfield-backfill/td-71-dispatch.md`
-> Read that file top-to-bottom to dispatch the implementer with zero prior context.
+**TD #71 COMPLETE (historical):** Dispatcher stderr blocking_plugins + block_reason surfacing SHIPPED 2026-05-14 via PR #138 at bcf494ff on develop. Full dispatch log: `.factory/cycles/v1.0-brownfield-backfill/td-71-dispatch.md` (preserved as historical reference).
 
-**Summary for post-CLEAR orchestrator:**
+**New Tier-A: TD #72 — serde_yaml 0.9.34 deprecated migration**
 
-- **What:** Extend `factory-dispatcher` stderr (when `block_intent=true`) to emit `blocking_plugins=<names> block_reason="<text>"` inline, eliminating the need to grep `.factory/logs/dispatcher-internal-YYYY-MM-DD.jsonl` for the trace UUID.
-- **Key files:** `crates/factory-dispatcher/src/main.rs` line 535-541 (stderr line 2 — extend this); `executor.rs` lines 42-58 (PluginOutcome + ExecutionSummary types); `aggregator.rs` lines 96-106 (block-intent filter); `internal_log.rs` (warn-level message source).
-- **Recommended approach:** Option (b) — read internal_log records for the current trace at end of dispatch (lowest blast radius). Full decision tree in td-71-dispatch.md.
-- **Test:** 5 bats test cases (single block, multi-block, no-block negative, PostToolUse, newline-escaping). Files: `plugins/vsdd-factory/tests/`. See td-71-dispatch.md for exact spec.
-- **Branch:** `feature/td-71-stderr-block-reason` → develop@21d444d8. Standard 9-step PR lifecycle.
-- **Effort:** Small (~1-2hr impl + PR cycle). Independent of E-10/F5. No spec/architecture changes.
-- **Dispatch:** Spawn implementer agent; hand off `td-71-dispatch.md` as task description.
+- **What:** Migrate crates that depend on `serde_yaml 0.9.34` (deprecated upstream) to `serde_yml` or `yaml-rust2`. The `serde_yaml` crate's 0.9.x series is in maintenance-only mode with deprecation warnings surfacing in cargo output.
+- **Affected crates (known):** `update-wave-state-on-merge`, `warn-pending-wave-gate`, `vsdd-context-resolvers` (grep `serde_yaml` in `Cargo.toml` files to confirm full surface before implementing).
+- **Approach:** (a) Audit full dependency surface via `grep -r "serde_yaml" . --include="Cargo.toml"`; (b) evaluate `serde_yml` vs `yaml-rust2` (serde_yml is the recommended fork by the original author; prefer it); (c) update `Cargo.toml` entries and fix any API call sites that differ; (d) run `cargo test --workspace --all-targets` to verify no regressions; (e) standard 9-step PR lifecycle targeting develop@bcf494ff.
+- **Branch:** `feature/td-72-serde-yaml-migration` → develop@bcf494ff.
+- **Effort:** Small-medium (dependency swap + API migration audit + test verification). Independent of E-10 (sealed) and F5 (paused).
+- **Dispatch:** Spawn implementer agent with this section as task description. No separate dispatch file required for this scope.
 
 ### 5. Cumulative Codifications
 
@@ -401,32 +403,35 @@ Human directed 2026-05-14: asymptotic-acceptance for E-10 sub-cycle analogous to
 | STORY-INDEX | v3.22 | D-389..D-454 (sample) + D-466+D-467 E-10 pass-12 + D-468+D-469 E-1 v1.1.2 row refresh |
 | ARCH-INDEX | v2.05 | D-389..D-454 (F5 sample) + D-466..D-471 E-10 pass-12/13/14 LL-2/LL-3/asymptotic-acceptance rows + POLICY 13-18 |
 
-### 9. Critical Anchors (Post-D-471 Seal)
+### 9. Critical Anchors (Post-TD-#71 Ship)
 
-- factory-artifacts HEAD: `1e810021` (D-471 asymptotic-acceptance seal; SHA-patch applied)
+- factory-artifacts HEAD: see `git -C .factory log -1 --format='%h %s'` (updated each burst; do not hard-cite current HEAD per TD-VSDD-053)
+- D-471 asymptotic-acceptance seal Commit: `1e810021`
 - D-470 mandatory HIGH closures Commit: `6fefa10d`
 - E-10 pass-13 D-469 seal Commit: `3bc6ef2c`
 - E-10 pass-13 D-468 fix burst Commit: `8f02ea1c`
 - E-10 pass-13 POLICY 13-18 Commit: `b8909832`
 - E-10 pass-12 D-466 fix burst Commit: `553e9f58`
 - F5 cycle final-state HEAD: `4b4b6819` (pass-74 SHA-patch; PAUSED; F5 Commit D `487e0cc3` is canonical parent for any future F5 pass-75)
-- develop HEAD: `21d444d8` (PR #137 squash-merge 2026-05-14 — dim2-gates path-registry scaffolding; verified `git rev-parse origin/develop` = 21d444d8b9cd87feb853d6ba4ed2322f81a8d655)
+- develop HEAD: `bcf494ff` (PR #138 squash-merge 2026-05-14 — TD #71 dispatcher stderr surfacing; verified `git rev-parse origin/develop` = bcf494fff469f0bd8cb062403a9817bba8803aeb)
+- Prior develop milestone: `21d444d8` (PR #137 squash-merge 2026-05-14 — dim2-gates path-registry scaffolding)
 - main HEAD: `70811f4a`
 - E-10 resumption gate: BLOCKED on S-15.03 PRIORITY-A lint hooks in v1.0-feature-engine-discipline-pass-2
 
-### 10. PR Status (Post-D-471 Seal; Post-PR #137 Merge)
+### 10. PR Status (Post-TD-#71 Ship; Post-PR #138 Merge)
 
 - PR #124: MERGED at `d3ae26a5` 2026-05-13 (F5-pass-3 cycle hardening).
 - PR #136: MERGED at `845d0007` 2026-05-13 (CLAUDE.md expansion).
 - PR #137: MERGED at `21d444d8` 2026-05-14 (dim2-gates path-registry scaffolding; Tier-B priority-1 closure). Branch `feature/dim2-gates-path-register` deleted post-merge.
-- No open PRs from F5, E-10, or Tier-B priority-1 work remain.
+- PR #138: MERGED at `bcf494ff` 2026-05-14 (TD #71 dispatcher stderr blocking_plugins + block_reason surfacing; Tier-A closure). Branch `feature/td-71-stderr-block-reason` deleted post-merge. 0 Critical/Important review findings; CI green; 5 bats TC.
+- No open PRs from F5, E-10, Tier-B priority-1, or TD #71 work remain.
 
 ### 11. Post-CLEAR Resume Checklist
 
-1. Verify factory-artifacts HEAD is D-471 seal commit; run `git -C /Users/jmagady/Dev/vsdd-factory/.factory log --oneline -3`
+1. Run `git -C /Users/jmagady/Dev/vsdd-factory/.factory log --oneline -3` to confirm factory-artifacts state
 2. Read STATE.md Session Resume Checkpoint sections 1-10 (this section is self-sufficient)
-3. Verify CLAUDE.md still cites vsdd-factory project conventions (PR #136 expanded it)
-4. Dispatch TD #71 per Section 4 self-contained dispatch package — read `.factory/cycles/v1.0-brownfield-backfill/td-71-dispatch.md` top-to-bottom and spawn implementer agent with it as the task description
+3. Verify CLAUDE.md still cites vsdd-factory project conventions (PR #136 expanded it; PR #138 added §Step 2 follow-up)
+4. Dispatch the new Tier-A priority per Section 4 — TD #72 serde_yaml migration; spawn implementer agent with Section 4 task description; target branch `feature/td-72-serde-yaml-migration` → develop@bcf494ff
 5. E-10 sub-cycle SEALED — do NOT dispatch E-10 pass-15 without S-15.03 PRIORITY-A lint hooks landing first
 6. F5 cycle is PAUSED — do NOT dispatch F5 pass-75 without explicit human direction to resume F5
 
@@ -434,26 +439,24 @@ Human directed 2026-05-14: asymptotic-acceptance for E-10 sub-cycle analogous to
 
 This section enumerates all pending work as of 2026-05-14 for post-CLEAR resumption visibility.
 
+~~**TD #71 — SHIPPED 2026-05-14 via PR #138 at bcf494ff.**~~ Closed. See Section 4 historical log.
+
 **Tier-A (Immediate next action):**
-1. **TD #71 — dispatcher stderr blocking_plugins + block_reason surfacing.** Full dispatch package in Section 4 + `.factory/cycles/v1.0-brownfield-backfill/td-71-dispatch.md` (self-contained for post-CLEAR resumption). Source surface: `crates/factory-dispatcher/src/main.rs` line 535 stderr eprintln + `executor.rs` PluginOutcome at line 42 + `aggregator.rs` block-intent filter at line 96. Recommended approach: option (b) read internal_log writes at end of dispatch (lowest blast radius). Bats test coverage at `plugins/vsdd-factory/tests/`; 5 test cases enumerated in td-71-dispatch.md. Effort: small (~1-2hr impl + standard 9-step PR cycle). Independent of E-10 (sealed) and F5 (paused). Target branch: `feature/td-71-stderr-block-reason` → develop.
+1. **TD #72 serde_yaml 0.9.34 deprecated** — migrate to serde_yml or yaml-rust2; affects update-wave-state-on-merge + warn-pending-wave-gate + vsdd-context-resolvers. Full task description in Section 4. Target branch: `feature/td-72-serde-yaml-migration` → develop@bcf494ff. Effort: small-medium. Independent of E-10 (sealed) and F5 (paused). Tracked in Drift Items.
 
 **Tier-B (Near-term):**
-2. **TD #72 serde_yaml 0.9.34 deprecated** — migrate to serde_yml or yaml-rust2; affects update-wave-state-on-merge + warn-pending-wave-gate + vsdd-context-resolvers. Independent of TD #71. Tracked in Drift Items.
-
-3. **TD #70 cargo cache reuse (Swatinem/rust-cache@v2)** — was BLOCKED by E-10 resume gate; now unblocked since E-10 sealed at asymptotic-acceptance; re-evaluate priority. Tracked in Drift Items.
+2. **TD #70 cargo cache reuse (Swatinem/rust-cache@v2)** — was BLOCKED by E-10 resume gate; E-10 now SEALED at asymptotic-acceptance 2026-05-14; E-10 resume gate removed; TD #70 is now unblocked. Reassess priority after TD #72. Tracked in Drift Items.
 
 **Tier-C (Deferred to wave-scale work):**
-4. **TD #66 trace_id field-name canonicalization** — DEFERRED to S-15.02 per PR #113 relaxation. Tracked in Drift Items.
+3. **TD #66 trace_id field-name canonicalization** — DEFERRED to S-15.02 per PR #113 relaxation. Tracked in Drift Items.
 
-5. **TD #67 4 timing-flaky e2e tests** (TC-4/5/7/9) — DEFERRED to S-15.02 per `#[ignore]` annotations. Tracked in Drift Items.
+4. **TD #67 4 timing-flaky e2e tests** (TC-4/5/7/9) — DEFERRED to S-15.02 per `#[ignore]` annotations. Tracked in Drift Items.
 
 **Tier-D (Structural / long-horizon):**
-6. **S-15.03 PRIORITY-A automation** — structural break for both F5 cycle AND E-10 sub-cycle. ~108 sub-items per cumulative header "D-411 through D-454" plus E-10 deferred findings (F-PASS14-003..008). Deferred to v1.0-feature-engine-discipline-pass-2. Both cycles resume ONLY when this lands.
+5. **S-15.03 PRIORITY-A automation** — structural break for both F5 cycle AND E-10 sub-cycle. ~108 sub-items per cumulative header "D-411 through D-454" plus E-10 deferred findings (F-PASS14-003..008). Deferred to v1.0-feature-engine-discipline-pass-2. Both cycles resume ONLY when this lands.
 
-7. **F5 cycle resumption** — gated by S-15.03 PRIORITY-A. Do NOT dispatch F5 pass-75 without explicit human direction.
-
-7. **F5 cycle resumption** — PAUSED at META-LEVEL-29 asymptotic floor per D-386 Option C + human direction 2026-05-13. Resumes only when S-15.03 PRIORITY-A automation lands. Parent-commit for any pass-75: pass-74 Commit D `487e0cc3` per D-419(b).
+6. **F5 cycle resumption** — PAUSED at META-LEVEL-29 asymptotic floor per D-386 Option C + human direction 2026-05-13. Resumes only when S-15.03 PRIORITY-A automation lands. Parent-commit for any pass-75: pass-74 Commit D `487e0cc3` per D-419(b). Do NOT dispatch F5 pass-75 without explicit human direction.
 
 **[D-414(c) acknowledgment: Section 12 continued from durability-refresh per user direction 2026-05-13; standard Session Resume schema is 11 sections, this is a non-standard addition for forward-backlog durability.]**
 
-> Previous checkpoint (E-10 pass-14 DISPATCHED 2026-05-14; HIGH verdict; POLICY CODIFICATION SPAWNED_5TH_LAYER; D-470 PENDING HUMAN DIRECTION) archived to: `cycles/v1.0-brownfield-backfill/session-checkpoints.md`
+> Previous checkpoint (E-10 PARTIAL-CLOSED; TIER-B PRIORITY-1 CLOSED VIA PR #137; ORCHESTRATOR PIVOTS TO TIER-B PRIORITY-2 TD #71 — 2026-05-14) archived to: `cycles/v1.0-brownfield-backfill/session-checkpoints.md`
