@@ -539,7 +539,6 @@ async fn test_e2e_BC_4_11_001_sync_hook_continues_non_factory_path() {
 /// until either the bound is loosened or assertions are rewritten to
 /// observe internal-log events rather than wall-clock thresholds.
 #[tokio::test(flavor = "current_thread")]
-#[ignore = "TD #67 — flaky 10s wall-clock bound on CI; run locally with --ignored"]
 async fn test_e2e_BC_1_14_001_async_hook_doesnt_block_dispatcher() {
     let wasm_path = require_wasm("session-start-telemetry.wasm");
 
@@ -630,7 +629,6 @@ async fn test_e2e_BC_1_14_001_async_hook_doesnt_block_dispatcher() {
 /// and round to 0. Marked `#[ignore]` until either the timing assertion is
 /// loosened or the suite is migrated to `serial_test` for predictable timing.
 #[tokio::test(flavor = "current_thread")]
-#[ignore = "TD #67 — flaky elapsed_ms timing on CI; run locally with --ignored"]
 async fn test_e2e_BC_1_14_001_async_hook_output_reaches_sink_when_fast() {
     let wasm_path = require_wasm("session-start-telemetry.wasm");
 
@@ -895,7 +893,6 @@ async fn test_e2e_BC_1_14_001_async_block_verdict_discarded() {
 /// TC-6); this one specifically pins the timing relationship which is too
 /// fragile for current CI infrastructure.
 #[tokio::test(flavor = "current_thread")]
-#[ignore = "TD #67 — flaky drain-window timing on CI; run locally with --ignored"]
 async fn test_e2e_BC_1_14_001_mixed_sync_async_partition_timing() {
     let sync_wasm = require_wasm("validate-artifact-path.wasm");
     let async_wasm = require_wasm("session-start-telemetry.wasm");
@@ -1208,7 +1205,6 @@ async fn test_e2e_BC_7_06_001_sync_hook_crash_fail_closed_on_error_block() {
 /// is rewritten to wait on the emitted `plugin.timeout` event in the
 /// internal log rather than on the JoinHandle resolution.
 #[tokio::test(flavor = "current_thread")]
-#[ignore = "TD #67 — flaky JoinHandle wait on CI; run locally with --ignored"]
 async fn test_e2e_BC_1_14_001_async_timeout_emits_plugin_timeout_event() {
     // Build an inline WAT hang module
     let dir = tempfile::tempdir().unwrap();
