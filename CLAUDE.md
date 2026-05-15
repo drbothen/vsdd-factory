@@ -421,6 +421,7 @@ To avoid the multi-commit-chain block:
 | `workflows/*.lobster` | YAML workflow definitions parsed by lobster-parse |
 | `bin/lobster-parse` | Workflow file parser CLI |
 | `RELEASING.md` | Canonical release procedure (consulted by `/vsdd-factory:release` skill) |
+| `docs/dispatch-package-authoring.md` | Dispatch package authoring requirements — mandatory dependency verification discipline (TD #74) |
 | `CHANGELOG.md` | Release history |
 | `.github/workflows/ci.yml` | PR + push CI: fmt + clippy + cargo test + bats |
 | `.github/workflows/release.yml` | Release automation (cross-platform binary builds + marketplace publish) |
