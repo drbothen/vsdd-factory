@@ -5,14 +5,14 @@ version: "2.0"
 status: draft
 producer: state-manager
 timestamp: 2026-05-12T00:00:00Z
-phase: pivot-F5-paused-asymptotic-acceptance-resume-v1.0-brownfield-backfill-E-10-PARTIAL-CLOSED-TD-71-SHIPPED-TD-72-SHIPPED-TD-70-SHIPPED-TD-74-SHIPPED-S-15.04-S-15.05-tier-A
+phase: pivot-F5-paused-asymptotic-acceptance-resume-v1.0-brownfield-backfill-E-10-PARTIAL-CLOSED-TD-71-SHIPPED-TD-72-SHIPPED-TD-70-SHIPPED-TD-74-SHIPPED-TD-66-SHIPPED-S-15.05-tier-A
 last_amended: 2026-05-15
 inputs: []
 input-hash: "[live-state]"
 traces_to: prd.md
 project: vsdd-factory
 mode: brownfield
-current_step: "POST-STORY-AUTHORING STATE BURST 2026-05-15: S-15.04 + S-15.05 registered (TD #66 + TD #67 split per architect 2026-05-15); STATE.md Section 12 cite-drift-fix applied (S-15.02 → S-15.04/S-15.05 across 7 sites + Drift Items rows); Step 2 of strict 5-step engine-discipline ordering ADVANCED to stories-in-flight; single factory-artifacts commit per TD-VSDD-053"
+current_step: "POST-MERGE STATE BURST 2026-05-15: S-15.04 SHIPPED PR #142 fdc7da16 on develop; TD #66 RESOLVED; orchestrator pivots to S-15.05 (TD #67 closure, multi-day) as remaining Step 2 work; Section 12 Step 2 sub-status: S-15.04 SHIPPED, S-15.05 pending; single factory-artifacts commit per TD-VSDD-053"
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -23,7 +23,7 @@ dtu_services: []
 <!--
   STATE.md SIZE BUDGET (per D-421(c) + D-422(c) reconciliation):
   Soft target: ≤415 lines (actual 399 lines at pass-67 Commit E (wc-l)); margin from soft-target = 500 - 415 = 85; margin from actual = 500 - 443 = 57 (D-446(c) dual-margin form); margin [+10,+20] upper-bound per D-422(c)+D-424(b)+D-428(d)+D-434(e)(ii)+D-437(d)+D-438(a)+D-441(e)+D-442(d)+D-443(d)+D-444(e)+D-445(b)+D-446(c); D-452 codified (5 sub-clauses; META-LEVEL-27-CANDIDATE-CONFIRMED + post-derivation-propagation-completeness + Layer-N-dual-direction-sweep + captured-stdout-snapshot-freshness + Layer-N-scope-extension-6-site-class + Decisions-Log-umbrella-range-auto-advance per decision-log.md SoT; L-EDP1-064 63rd-layer); D-446(c) self-application: dual-margin form applied THIS COMMIT E; D-445(c)+D-446(d)+D-447(c)+D-449(e) Active Branches advance to Commit E HEAD in SHA-patch follow-up.
-  Line-growth tracker (D-437(e)+D-441(e)+D-442(e)+D-443(d)+D-444(e)+D-445(b)+D-446(c)+D-447(d)+D-448(d)+D-449(d)+D-450(d)+D-451(d)+D-452(d)+D-453(d)+D-454(d) follow-up): pass-49 Commit E 310 lines; pass-54 Commit E 319 lines; pass-55 Commit E 328 lines; pass-56 Commit E 331 lines; pass-57 Commit E 334 lines; pass-58 Commit E 337 lines; pass-59 Commit E 340 lines; pass-60 Commit E 410 lines; pass-61 Commit E 417 lines; pass-62 Commit E 426 lines; pass-63 Commit E 440 lines; pass-64 Commit E 447 lines; pass-65 Commit E+SHA-patch 395 lines (wc-l; net -52 from pass-64); pass-66 Commit E 397 lines (wc-l; net +2 from pass-65 Commit E+SHA-patch at 395); pass-67 Commit E 399 lines (wc-l; net +2 from pass-66); pass-68 Commit E 402 lines (wc-l; net +3 from pass-67); pass-69 Commit E 405 lines (wc-l; net +3 from pass-68); pass-70 Commit E 435 lines (wc-l; net +30 from pass-69; pre-CLEAR task-snapshot block REMOVED per MED-002 closure but rc.17/rc.18 Phase Progress rows + D-450 Decisions Log row + refreshed Session Resume added net +30); pass-71 Commit E 439 lines (wc-l; net +4 from pass-70 Commit E at 435; pass-71 Phase Progress row + D-451 Decisions Log row + Session Resume refresh added net +4); pass-72 Commit E 443 lines (wc-l; net +4 from pass-71 Commit E at 439; pass-72 Phase Progress row + D-452 Decisions Log row + Session Resume refresh added net +4); pass-73 Commit E 447 lines (wc-l; net +4 from pass-72 Commit E at 443; pass-73 Phase Progress row + D-453 Decisions Log row + Session Resume refresh added net +4); pass-74 Commit E 451 lines (wc-l; net +4 from pass-73 Commit E at 447; pass-74 Phase Progress row + D-454 Decisions Log row + Session Resume refresh added net +4); pass-74-to-pivot transition 406 lines (wc-l; net -45 from pass-74 Commit E at 451; F5 5-pass pause row + Active Branches pivot + Concurrent Cycles pivot + Drift Items side-branch + Session Resume Checkpoint refresh net -45). D-345 seal 408 lines (wc-l; net +2 from pass-74-to-pivot at 406; E-10 pass-9 Phase Progress row + current_step + Session Resume refresh net +2). D-345-seal-to-durability-refresh 441 lines (wc-l; net +33 from D-345 seal at 408; Section 12 forward-backlog added + Section 9 anchor fix + Section 11 step-4 fix + TD #73 RESOLVED). TD-70-post-merge-burst 465 lines (wc-l; net +24 from durability-refresh at 441; TD #70 Phase Progress row + Active Branches develop SHA update + Drift Items TD #70 RESOLVED + TD #74 Tier-A + Session Resume Checkpoint refresh net +24). session-end-durability-burst 469 lines (wc-l; net +4 from TD-70-post-merge-burst at 465; td-74-dispatch.md authored; strict 5-step engine-discipline ordering committed to Section 12; Section 4 + Section 11 cross-reference td-74-dispatch.md net +4). TD-74-post-merge-burst 471 lines (wc-l; net +2 from session-end-durability-burst at 469; TD #74 Phase Progress row + Active Branches develop SHA update + Drift Items TD #74 RESOLVED + Section 4 new Tier-A + Section 9/10/11/12 updates + Session Resume Checkpoint refresh net +2). Hard cap (500 lines) margin from soft-target = 500 - 415 = 85; margin from actual = 500 - 471 = 29 (D-446(c) dual-margin form).
+  Line-growth tracker (D-437(e)+D-441(e)+D-442(e)+D-443(d)+D-444(e)+D-445(b)+D-446(c)+D-447(d)+D-448(d)+D-449(d)+D-450(d)+D-451(d)+D-452(d)+D-453(d)+D-454(d) follow-up): pass-49 Commit E 310 lines; pass-54 Commit E 319 lines; pass-55 Commit E 328 lines; pass-56 Commit E 331 lines; pass-57 Commit E 334 lines; pass-58 Commit E 337 lines; pass-59 Commit E 340 lines; pass-60 Commit E 410 lines; pass-61 Commit E 417 lines; pass-62 Commit E 426 lines; pass-63 Commit E 440 lines; pass-64 Commit E 447 lines; pass-65 Commit E+SHA-patch 395 lines (wc-l; net -52 from pass-64); pass-66 Commit E 397 lines (wc-l; net +2 from pass-65 Commit E+SHA-patch at 395); pass-67 Commit E 399 lines (wc-l; net +2 from pass-66); pass-68 Commit E 402 lines (wc-l; net +3 from pass-67); pass-69 Commit E 405 lines (wc-l; net +3 from pass-68); pass-70 Commit E 435 lines (wc-l; net +30 from pass-69; pre-CLEAR task-snapshot block REMOVED per MED-002 closure but rc.17/rc.18 Phase Progress rows + D-450 Decisions Log row + refreshed Session Resume added net +30); pass-71 Commit E 439 lines (wc-l; net +4 from pass-70 Commit E at 435; pass-71 Phase Progress row + D-451 Decisions Log row + Session Resume refresh added net +4); pass-72 Commit E 443 lines (wc-l; net +4 from pass-71 Commit E at 439; pass-72 Phase Progress row + D-452 Decisions Log row + Session Resume refresh added net +4); pass-73 Commit E 447 lines (wc-l; net +4 from pass-72 Commit E at 443; pass-73 Phase Progress row + D-453 Decisions Log row + Session Resume refresh added net +4); pass-74 Commit E 451 lines (wc-l; net +4 from pass-73 Commit E at 447; pass-74 Phase Progress row + D-454 Decisions Log row + Session Resume refresh added net +4); pass-74-to-pivot transition 406 lines (wc-l; net -45 from pass-74 Commit E at 451; F5 5-pass pause row + Active Branches pivot + Concurrent Cycles pivot + Drift Items side-branch + Session Resume Checkpoint refresh net -45). D-345 seal 408 lines (wc-l; net +2 from pass-74-to-pivot at 406; E-10 pass-9 Phase Progress row + current_step + Session Resume refresh net +2). D-345-seal-to-durability-refresh 441 lines (wc-l; net +33 from D-345 seal at 408; Section 12 forward-backlog added + Section 9 anchor fix + Section 11 step-4 fix + TD #73 RESOLVED). TD-70-post-merge-burst 465 lines (wc-l; net +24 from durability-refresh at 441; TD #70 Phase Progress row + Active Branches develop SHA update + Drift Items TD #70 RESOLVED + TD #74 Tier-A + Session Resume Checkpoint refresh net +24). session-end-durability-burst 469 lines (wc-l; net +4 from TD-70-post-merge-burst at 465; td-74-dispatch.md authored; strict 5-step engine-discipline ordering committed to Section 12; Section 4 + Section 11 cross-reference td-74-dispatch.md net +4). TD-74-post-merge-burst 471 lines (wc-l; net +2 from session-end-durability-burst at 469; TD #74 Phase Progress row + Active Branches develop SHA update + Drift Items TD #74 RESOLVED + Section 4 new Tier-A + Section 9/10/11/12 updates + Session Resume Checkpoint refresh net +2). S-15.04-post-merge-burst 480 lines (wc-l; net +9 from TD-74-post-merge-burst at 471; S-15.04 Phase Progress row + Active Branches develop SHA update + Drift Items TD #66 RESOLVED + Section 4 Tier-A archive/advance + Section 9/10/11/12 updates + Story Status 62→63 merged + Session Resume Checkpoint refresh net +9). Hard cap (500 lines) margin from soft-target = 500 - 415 = 85; margin from actual = 500 - 480 = 20 (D-446(c) dual-margin form).
   Hard cap: 500 lines (validate-state-md-size hook enforcement).
   Historical content belongs in cycle files, NOT here.
   D-430(a) compaction authorization: Pass-49 Commit E surgical compaction (363→310 lines) authorized retroactively per D-430(a); removed content categories: stale Phase Progress rows (passes 1-38); pre-compaction state preserved at git show 278977fb:.factory/STATE.md.
@@ -42,8 +42,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-15 — Step 2 of Section 12 strict 5-step engine-discipline ordering ADVANCED. Architect adjudicated TD #66 + TD #67 split into S-15.04 (TD #66 closure, sub-day) + S-15.05 (TD #67 closure, multi-day); both under E-15. Story-writer authored both spec files. State burst registers both stories + fixes S-15.02 cite drift across 7 STATE.md sites. Prior: TD #74 SHIPPED PR #141 5d1f8805. |
-| **Current Phase** | S-15.04 + S-15.05 registered (DRAFT) per architect adjudication 2026-05-15. Step 2 of Section 12 strict ordering: stories-in-flight (architect → story-writer → state-manager done; test-writer + implementer + pr-manager pending per per-story-delivery). |
+| **Last Updated** | 2026-05-15 — S-15.04 SHIPPED PR #142 fdc7da16 on develop; TD #66 RESOLVED; BC-3.08.001 auto-promoted draft→active (POL-14); STORY-INDEX v3.24. ubuntu CI F-P3-008 timing flake confirmed pre-existing during S-15.04 CI gating — strengthens urgency of S-15.05 (TD #67 timing-flaky test de-flake). Section 12 Step 2 sub-advance: S-15.04 SHIPPED; S-15.05 now current sub-target. Prior: TD #74 SHIPPED PR #141 5d1f8805. |
+| **Current Phase** | S-15.04 SHIPPED PR #142 fdc7da16. Section 12 Step 2 sub-status: S-15.04 (TD #66) SHIPPED; S-15.05 (TD #67) pending per-story-delivery. After S-15.05 SHIPS, Step 2 COMPLETE and pivots to Step 3 (S-15.03 PRIORITY-A lint-hook automation). |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Phase Progress
@@ -104,7 +104,7 @@ dtu_services: []
 | TD #72 serde_yaml → serde_norway 0.9 migration | **DONE 2026-05-15** — PR #139 squash-merge 83afaa3c on develop | implementer + pr-manager; 13 files modified; dead-dep removed from lint-registry-async-invariant; security pivot serde_yml → serde_norway 0.9 in 1 fix cycle (RUSTSEC-2025-0068+67 resolved); CI 10/10 green; feature/td-72-serde-yaml-migration deleted |
 | TD #70 Swatinem/rust-cache SHA-pin + cache-on-failure | **DONE 2026-05-15** — PR #140 squash-merge ddc11879 on develop | implementer + pr-manager; 3 SHA-pin sites in ci.yml + release.yml (Swatinem/rust-cache@c19371144); cache-on-failure=true tuning; TD #74 codification applied retroactively; 0 review findings; CI 10/10 green on 7 runners; feature/td-70-cargo-cache-reuse deleted |
 | TD #74 dispatch-package cargo-audit codification (doc-only) | **DONE 2026-05-15** — PR #141 squash-merge 5d1f8805 on develop | implementer + pr-manager; docs/dispatch-package-authoring.md (174 lines) + CLAUDE.md +1 row; 0 review findings; CI 10/10 green; feature/td-74-dispatch-cargo-audit-codification deleted |
-| S-15.04 TD #66 internal-log trace_id canonicalization | **DRAFT REGISTERED 2026-05-15** — story-writer authored | Single-file bats grep tightening + negative assertion; sub-day effort; depends on S-15.01 (merged); per-story-delivery pending |
+| S-15.04 internal-log trace_id canonicalization (TD #66 closure) | **DONE 2026-05-15** — PR #142 squash-merge fdc7da16 on develop | test-writer + implementer + pr-manager; bats single-file edit (regression-v1.0.bats:103-125); regex tightened `'"(dispatcher_)?trace_id":"'` → `'"trace_id":"'` + negative `dispatcher_trace_id` assertion added enforcing BC-3.08.001 v1.7 Invariant 5 + S-15.02→S-15.04 cite corrected; 0 review findings; CI green (one pre-existing ubuntu F-P3-008 timing flake confirmed unrelated → reinforces S-15.05 urgency); BC-3.08.001 auto-promoted draft→active (POL-14); STORY-INDEX v3.24; feature/S-15.04-... deleted |
 | S-15.05 TD #67 de-flake TC-4/5/7/9 | **DRAFT REGISTERED 2026-05-15** — story-writer authored | Internal-log event observation pattern; wait_for_log_event helper; multi-day effort; depends on S-15.01 (merged); per-story-delivery pending |
 | **Tier-0 D-NNN renumbering (F-CRIT-001 closure)** | **COMPLETE** 2026-05-13 — brownfield D-344..D-349 → D-460..D-465; POLICY 1 violation resolved | ARCH-INDEX v2.02 + BC-INDEX v2.21 + VP-INDEX v1.95 + STORY-INDEX v3.20 corrigenda; ~25 files touched; pre+post grep stdout LL-2 strict-form; D-466 fix burst (HH-4/KK-2/LL-2/MM/NN) applied 553e9f58 |
 | E-10 pass-12 fix burst + seal | **COMPLETE** 2026-05-13 — D-466 fix burst (553e9f58) + D-467 seal (post-renumber from §8 nominal D-350/D-351) | 7 findings closed (1C closed pre-burst via Tier-0 + 2H+2M+2L closed via D-466); architect F-2/F-3/F-6 with HH-4 + state-manager F-1/F-5 with KK-2 tripartite + LL-2 verbatim stdout + MM cross-cycle namespace + NN parity disciplines applied; ARCH-INDEX v2.03 + BC-INDEX v2.22 + STORY-INDEX v3.21 cite-refresh; NITPICK_ONLY counter 0/3 (HIGH resets); pass-13 dispatch next (CRITICAL TEST per pass-12 §7) |
@@ -225,9 +225,9 @@ dtu_services: []
 
 96 file-resident + 15 unauthored stub IDs = 111 registered. (F-P9-003 reconciled 2026-05-11: prior headline 88 and breakdown stale; +S-16.01/S-16.02 added 2026-05-12 F-block-ai-attribution-message-file-arm F3; +S-15.04/S-15.05 added 2026-05-15 per architect adjudication TD #66+TD #67 split.)
 
-- **Merged (62):** Includes all prior + S-12.06 (PR #105), S-12.05 (PR #119), S-12.03 (PR #120), S-12.04 (PR #121), S-12.07 (PR #122), S-12.08 (PR #123). E-12 frontier fully merged. Full ledger: `cycles/v1.0-brownfield-backfill/merged-stories-ledger.md`
+- **Merged (63):** Includes all prior + S-12.06 (PR #105), S-12.05 (PR #119), S-12.03 (PR #120), S-12.04 (PR #121), S-12.07 (PR #122), S-12.08 (PR #123), S-15.04 (PR #142 fdc7da16 2026-05-15). Full ledger: `cycles/v1.0-brownfield-backfill/merged-stories-ledger.md`
 - **In-Flight (0):** —
-- **Draft (31 file-resident):** S-5.07; S-10.09; S-11.00; S-14.01..S-14.09 (E-14); S-15.02..S-15.05; S-16.01..S-16.02 (E-16 F-block-ai-attribution-message-file-arm); and others
+- **Draft (30 file-resident):** S-5.07; S-10.09; S-11.00; S-14.01..S-14.09 (E-14); S-15.02; S-15.03; S-15.05; S-16.01..S-16.02 (E-16 F-block-ai-attribution-message-file-arm); and others
 - **Partial (2):** S-2.05 (hook-sdk-publish); S-3.04 (emit-event-host-function) — superseded by ADR-015; counted separately from draft
 - **Unauthored stub IDs (15):** S-9.01..S-9.07 (W-16); S-11.01..S-11.08 (E-11 W-17 Tier 3)
 - **Withdrawn (1):** S-9.30
@@ -237,7 +237,7 @@ dtu_services: []
 | Branch / Tag | SHA | Notes |
 |--------------|-----|-------|
 | main | 70811f4a | verified `git rev-parse origin/main` = 70811f4a5d68d163021f46856c3de51bf8f4aab8 2026-05-13; includes CLAUDE.md expansion PR #136 (845d0007 squash-merge) + rc.18 merge PR #135 (666d689f) |
-| develop | 5d1f8805 | PR #141 MERGED 2026-05-15 — TD #74 dispatch-package cargo-audit codification (squash-merge at 5d1f8805cc162bfc27eafee89eac2e300b4172fa); docs/dispatch-package-authoring.md (174 lines) + CLAUDE.md +1 row; CI 10/10 green; 0 review findings; feature/td-74-dispatch-cargo-audit-codification deleted. Prior: PR #140 MERGED ddc11879 — TD #70 rust-cache SHA-pin. 4-PR Tier-A sweep: TD #71 (bcf494ff) → TD #72 (83afaa3c) → TD #70 (ddc11879) → TD #74 (5d1f8805). |
+| develop | fdc7da16 | PR #142 MERGED 2026-05-15 — S-15.04 TD #66 closure (squash-merge at fdc7da16a3b5004bf3266158b2d651d3e62cf804); bats regression-v1.0.bats:103-125 regex tightened + negative assertion; 0 review findings; CI green (pre-existing ubuntu F-P3-008 flake confirmed unrelated). Prior: PR #141 MERGED 5d1f8805 — TD #74 dispatch-package cargo-audit. |
 | factory-artifacts | 1e810021 | E-10 pass-14 PARTIAL-CLOSED (Asymptotic-Acceptance) 2026-05-14: D-470 mandatory HIGH closures (6fefa10d); D-471 asymptotic-acceptance seal (1e810021) |
 | v1.0.0-rc.16 (tag) | feb894a2 | SHIPPED; claude-mp PR #8 awaiting human merge |
 | v1.0.0-rc.15 (tag) | e68bb436 | SHIPPED |
@@ -324,7 +324,7 @@ dtu_services: []
 
 | Item | Status | Notes |
 |------|--------|-------|
-| **TD #66** trace_id field-name canonicalization | DEFERRED to **S-15.04** (architect adjudicated 2026-05-15) | PR #113 relaxed bats grep; architect Verdict A: internal-log canonicalization only (not ABI-breaking); single-file bats edit + negative assertion |
+| **TD #66** trace_id field-name canonicalization | **RESOLVED 2026-05-15 PR #142 fdc7da16** | S-15.04 closure: bats regex tightened to canonical `'"trace_id":"'`; negative assertion added enforcing BC-3.08.001 v1.7 Invariant 5 zero-occurrence contract at integration test layer. Architect Verdict A confirmed: not host-ABI breaking (plugin stdin envelope `dispatcher_trace_id` intentionally distinct and stays). Pre-existing ubuntu F-P3-008 flake confirmed unrelated; falls under TD #67 scope. |
 | **TD #67** 4 timing-flaky e2e tests | DEFERRED to **S-15.05** (architect adjudicated 2026-05-15) | TC-4/5/7/9 `#[ignore]`'d in full_stack_plugin_invocation.rs; architect Strategy B: replace wall-clock with internal-log event observation |
 | **TD #68** sync-develop binary-conflict auto-resolve | RESOLVED PR #114 | develop includes main; auto-resolve active |
 | **TD #69** release-branch guardrail | RESOLVED PRs #116/#117 | Live-tested PR #118 |
@@ -343,14 +343,15 @@ dtu_services: []
 - `cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` | `session-checkpoints.md` | `lessons.md`
 - `cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md` (adversary reviews at `S-12.03/`, `S-12.04/`, `S-12.05/` subdirs)
 
-## Session Resume Checkpoint (2026-05-15 — S-15.04 + S-15.05 REGISTERED; STEP 2 OF SECTION 12 STRICT ENGINE-DISCIPLINE ORDERING ADVANCED TO STORIES-IN-FLIGHT)
+## Session Resume Checkpoint (2026-05-15 — S-15.04 SHIPPED PR #142 fdc7da16; TD #66 RESOLVED; S-15.05 CURRENT SUB-TARGET)
 
-> **SELF-SUFFICIENT RESUME CONTEXT — STEP 2 STORIES REGISTERED**
+> **SELF-SUFFICIENT RESUME CONTEXT — S-15.04 SHIPPED; STEP 2 SUB-ADVANCE**
 > Read this section alone to resume the protocol after full conversation CLEAR (not compact).
 
 ### 1. Where We Are
 
-- **S-15.04 + S-15.05 REGISTERED 2026-05-15** — architect adjudicated TD #66 + TD #67 split (decision at `cycles/v1.0-brownfield-backfill/architect-2026-05-15-td-66-67-split.md`); story-writer authored both spec files; state-manager registered both in STORY-INDEX v3.23; **Section 12 Step 2 ADVANCED to stories-in-flight**
+- **S-15.04 SHIPPED 2026-05-15** via PR #142 squash-merge at fdc7da16; **TD #66 RESOLVED**; BC-3.08.001 auto-promoted draft→active (POL-14); STORY-INDEX v3.24
+- **S-15.05 is now the current sub-target** for Section 12 Step 2 (TD #67 timing-flaky test de-flake; multi-day; Strategy B internal-log event observation). Story spec at `.factory/stories/S-15.05-deflake-async-timing-tests.md`. ubuntu F-P3-008 flake seen during S-15.04 CI gating reinforces urgency.
 - **TD #74 SHIPPED 2026-05-15** via PR #141 squash-merge at 5d1f8805; **Section 12 Step 1 COMPLETE** (historical)
 - **4-PR Tier-A sweep COMPLETE:** TD #71 (bcf494ff) → TD #72 (83afaa3c) → TD #70 (ddc11879) → TD #74 (5d1f8805)
 - TD #70 SHIPPED 2026-05-15 via PR #140 squash-merge at ddc11879; REMAINS SHIPPED
@@ -360,14 +361,14 @@ dtu_services: []
 - Tier-B priority-1 (dim2-gates path-registry) CLOSED via PR #137 (21d444d8) 2026-05-14; REMAINS CLOSED
 - F5 cycle (v1.0-feature-engine-discipline-pass-1): PAUSED at META-LEVEL-29 asymptotic floor per D-386 Option C + human direction 2026-05-13
 - factory-artifacts HEAD: see `git -C .factory log -1 --format='%h %s'` (updated each burst; do not hard-cite)
-- develop HEAD: `5d1f8805` (PR #141 squash-merge 2026-05-15 — TD #74 dispatch-package cargo-audit codification)
+- develop HEAD: `fdc7da16` (PR #142 squash-merge 2026-05-15 — S-15.04 TD #66 closure)
 - main HEAD: `70811f4a` (includes CLAUDE.md expansion PR #136 + rc.18 merge)
-- **Next action: per-story-delivery for S-15.04 first (sub-day; smaller), then S-15.05 (or parallel — human decides)**
+- **Next action: per-story-delivery for S-15.05 (multi-day; test-writer first)**
 
 ### 2. Operating Mode
 
 - Both E-10 sub-cycle AND F5 cycle at asymptotic-acceptance. Both resume ONLY when S-15.03 PRIORITY-A lint hooks land in v1.0-feature-engine-discipline-pass-2.
-- Section 12 Step 2 IN-FLIGHT: S-15.04 (TD #66 closure; bats grep tightening + negative assertion; sub-day) + S-15.05 (TD #67 closure; wait_for_log_event helper; multi-day). Both under E-15, both depend on S-15.01 (merged), no inter-dependency. Per-story-delivery dispatch pending.
+- Section 12 Step 2 IN-FLIGHT: S-15.04 (TD #66) SHIPPED 2026-05-15 PR #142 fdc7da16. S-15.05 (TD #67 closure; wait_for_log_event helper; multi-day) is current sub-target. Under E-15; depends on S-15.01 (merged). Per-story-delivery dispatch next (test-writer first).
 
 ### 3. User Directive (Carry Across CLEAR)
 
@@ -383,12 +384,14 @@ Human directed 2026-05-14: asymptotic-acceptance for E-10 sub-cycle analogous to
 
 **TD #74 COMPLETE (historical):** dispatch-package cargo-audit codification SHIPPED 2026-05-15 via PR #141 at 5d1f8805. Doc-only Option (a): `docs/dispatch-package-authoring.md` (174 lines new) + CLAUDE.md Project References cross-ref. Option (b) WASM lint hook deferred to S-15.03 PRIORITY-A. 4-PR Tier-A sweep (TD #71/72/70/74) COMPLETE. Full dispatch log: `.factory/cycles/v1.0-brownfield-backfill/td-74-dispatch.md`.
 
-**New Tier-A: Step 2 — TD #66 cleanup (S-15.04) + TD #67 cleanup (S-15.05)**
+**S-15.04 COMPLETE (historical):** TD #66 trace_id canonicalization SHIPPED 2026-05-15 via PR #142 at fdc7da16. bats regression-v1.0.bats:103-125 regex tightened to canonical `'"trace_id":"'` + negative `dispatcher_trace_id` assertion added; S-15.02→S-15.04 cite corrected; 0 review findings; CI green. ubuntu F-P3-008 timing flake confirmed pre-existing (unrelated to S-15.04; in-scope for S-15.05). BC-3.08.001 auto-promoted draft→active (POL-14).
 
-- **What:** Story-scale cleanup of two open TDs: TD #66 (trace_id field-name canonicalization; PR #113 relaxed bats grep as workaround) → **S-15.04** (sub-day; single-file bats edit + negative assertion). TD #67 (4 timing-flaky e2e tests `#[ignore]`'d: TC-4, TC-5, TC-7, TC-9) → **S-15.05** (multi-day; Strategy B internal-log event observation + wait_for_log_event helper). Both require proper implementation fixes, not workarounds.
-- **Effort:** Story-scale; architect adjudicated 2026-05-15 (decision at cycles/v1.0-brownfield-backfill/architect-2026-05-15-td-66-67-split.md). S-15.04 sub-day (Verdict A); S-15.05 multi-day (Strategy B). Both under E-15, both depend on S-15.01 (merged), no inter-dependency.
-- **Status:** S-15.04 + S-15.05 DRAFT REGISTERED 2026-05-15. Per-story-delivery pending. Independent of E-10 (sealed), F5 (paused).
-- **Gate:** Section 12 Step 1 COMPLETE (TD #74 SHIPPED). Step 2 is current Tier-A.
+**Active Tier-A: Step 2 sub-target — TD #67 cleanup (S-15.05)**
+
+- **What:** TD #67 (4 timing-flaky e2e tests `#[ignore]`'d: TC-4, TC-5, TC-7, TC-9) → **S-15.05** (multi-day; Strategy B internal-log event observation + wait_for_log_event helper). The ubuntu F-P3-008 flake observed during S-15.04 CI gating (concurrent resolver timeout 8728ms vs 8000ms threshold) is precisely the timing fragility S-15.05 is designed to eliminate — additional urgency.
+- **Effort:** Multi-day; architect Strategy B (replace wall-clock sleep with internal-log event observation). Spec at `.factory/stories/S-15.05-deflake-async-timing-tests.md`. Depends on S-15.01 (merged), no inter-dependency with other stories.
+- **Status:** S-15.05 DRAFT. Per-story-delivery pending (test-writer first). Independent of E-10 (sealed), F5 (paused).
+- **Gate:** Section 12 Step 2 sub-target. Step 2 COMPLETE only when both S-15.04 (SHIPPED) + S-15.05 (pending) are merged.
 
 ### 5. Cumulative Codifications
 
@@ -410,13 +413,14 @@ Human directed 2026-05-14: asymptotic-acceptance for E-10 sub-cycle analogous to
 |-------|---------|-------------|
 | BC-INDEX | v2.24 | D-389..D-454 (F5 sample; see decision-log.md) + D-466..D-471 E-10 pass-12/13/14 cite-refresh + POLICY 13-18 |
 | VP-INDEX | v1.96 | D-389..D-454 (sample) + D-464+D-465 VP-014 v1.2 + D-468+D-469 VP-014 v1.2.1 NN-2 parity cite-refresh |
-| STORY-INDEX | v3.23 | D-389..D-454 (sample) + D-466+D-467 E-10 pass-12 + D-468+D-469 E-1 v1.1.2 row refresh + S-15.04 + S-15.05 registration + S-15.02 cite-drift-fix 2026-05-15 |
+| STORY-INDEX | v3.24 | D-389..D-454 (sample) + D-466+D-467 E-10 pass-12 + D-468+D-469 E-1 v1.1.2 row refresh + S-15.04 + S-15.05 registration + S-15.02 cite-drift-fix 2026-05-15 + S-15.04 SHIPPED PR #142 fdc7da16 status draft→merged 2026-05-15 |
 | ARCH-INDEX | v2.05 | D-389..D-454 (F5 sample) + D-466..D-471 E-10 pass-12/13/14 LL-2/LL-3/asymptotic-acceptance rows + POLICY 13-18 |
 
-### 9. Critical Anchors (Post-S-15.04+S-15.05 Registration)
+### 9. Critical Anchors (Post-S-15.04 SHIPPED)
 
 - factory-artifacts HEAD: see `git -C .factory log -1 --format='%h %s'` (updated each burst; do not hard-cite per TD-VSDD-053)
 - Architect decision 2026-05-15 — TD #66 Verdict A + TD #67 Strategy B + cite-drift-fix plan: `cycles/v1.0-brownfield-backfill/architect-2026-05-15-td-66-67-split.md`
+- S-15.04 merge Commit: `fdc7da16a3b5004bf3266158b2d651d3e62cf804` (PR #142 squash-merge 2026-05-15 — TD #66 closure)
 - TD #74 merge Commit: `5d1f8805` (PR #141 squash-merge 2026-05-15 — dispatch-package cargo-audit codification)
 - TD #70 merge Commit: `ddc11879` (PR #140 squash-merge 2026-05-15 — Swatinem/rust-cache SHA-pin + cache-on-failure)
 - TD #72 merge Commit: `83afaa3c` (PR #139 squash-merge 2026-05-15 — serde_norway 0.9 migration)
@@ -424,8 +428,8 @@ Human directed 2026-05-14: asymptotic-acceptance for E-10 sub-cycle analogous to
 - D-471 asymptotic-acceptance seal Commit: `1e810021`
 - D-470 mandatory HIGH closures Commit: `6fefa10d`
 - F5 cycle final-state HEAD: `4b4b6819` (pass-74 SHA-patch; PAUSED; F5 Commit D `487e0cc3` is canonical parent for any future F5 pass-75)
-- develop HEAD: `5d1f8805` (PR #141 squash-merge 2026-05-15 — TD #74; verified `git rev-parse origin/develop` = 5d1f8805cc162bfc27eafee89eac2e300b4172fa)
-- Prior develop milestones: `ddc11879` (TD #70) → `83afaa3c` (TD #72) → `bcf494ff` (TD #71) → `21d444d8` (PR #137 dim2-gates)
+- develop HEAD: `fdc7da16` (PR #142 squash-merge 2026-05-15 — S-15.04 TD #66 closure; verified `git rev-parse origin/develop` = fdc7da16a3b5004bf3266158b2d651d3e62cf804)
+- Prior develop milestones: `5d1f8805` (TD #74) → `ddc11879` (TD #70) → `83afaa3c` (TD #72) → `bcf494ff` (TD #71)
 - main HEAD: `70811f4a`
 - E-10 resumption gate: BLOCKED on S-15.03 PRIORITY-A lint hooks in v1.0-feature-engine-discipline-pass-2
 
@@ -436,14 +440,15 @@ Human directed 2026-05-14: asymptotic-acceptance for E-10 sub-cycle analogous to
 - PR #139: MERGED `83afaa3c` 2026-05-15 (TD #72 serde_norway migration; Tier-A closure). 2 Critical security findings resolved; 0 diff review findings; CI 10/10 green.
 - PR #140: MERGED `ddc11879` 2026-05-15 (TD #70 rust-cache SHA-pin; Tier-A closure). 0 review findings; CI 10/10 green on 7 runners.
 - PR #141: MERGED `5d1f8805` 2026-05-15 (TD #74 dispatch-package cargo-audit codification; Tier-A closure). 0 review findings; CI 10/10 green; docs-only change.
-- No open PRs. 4-PR Tier-A sweep COMPLETE. Section 12 Step 1 COMPLETE.
+- PR #142: MERGED `fdc7da16` 2026-05-15 (S-15.04 TD #66 trace_id canonicalization; bats single-file). 0 Critical/Important/Minor findings; CI green; pre-existing ubuntu F-P3-008 flake confirmed unrelated.
+- No open PRs. S-15.04 SHIPPED. S-15.05 per-story-delivery next.
 
 ### 11. Post-CLEAR Resume Checklist
 
 1. Run `git -C /Users/jmagady/Dev/vsdd-factory/.factory log --oneline -3` to confirm factory-artifacts state
 2. Read STATE.md Session Resume Checkpoint sections 1-10 (this section is self-sufficient)
 3. Verify CLAUDE.md still cites vsdd-factory project conventions (PR #136 expanded it; PR #138 added §Step 2 follow-up; PR #141 added dispatch-package-authoring.md cross-ref)
-4. **Step 2 IN-FLIGHT.** S-15.04 + S-15.05 DRAFT REGISTERED (architect adjudicated 2026-05-15; story-writer authored; state-manager registered). Next: dispatch per-story-delivery for S-15.04 first (sub-day; smaller), then S-15.05 (or in parallel — human decides)
+4. **Step 2 IN-FLIGHT.** S-15.04 SHIPPED PR #142 fdc7da16 (TD #66 RESOLVED). S-15.05 DRAFT is current sub-target. Next: dispatch per-story-delivery for S-15.05 (test-writer first; multi-day Strategy B)
 5. E-10 sub-cycle SEALED — do NOT dispatch E-10 pass-15 without S-15.03 PRIORITY-A lint hooks landing first
 6. F5 cycle is PAUSED — do NOT dispatch F5 pass-75 without explicit human direction to resume F5
 
@@ -454,7 +459,7 @@ Human directed 2026-05-14: asymptotic-acceptance for E-10 sub-cycle analogous to
 | Step | Item | Tier | Gate | Scope / Effort |
 |------|------|------|------|----------------|
 | ~~1~~ | ~~**TD #74 — dispatch-package cargo-audit codification**~~ | ~~A~~ | ~~—~~ | **SHIPPED 2026-05-15 PR #141 5d1f8805** |
-| 2 | **TD #66 cleanup (S-15.04) + TD #67 cleanup (S-15.05)** | A **(current)** | (1) complete | TD #66 trace_id canonicalization → S-15.04 (sub-day; bats tightening + negative assertion); TD #67 4 timing-flaky tests TC-4/5/7/9 → S-15.05 (multi-day; event-observation Strategy B); **STORIES REGISTERED 2026-05-15; per-story-delivery pending** |
+| 2 | **TD #66 cleanup (S-15.04) + TD #67 cleanup (S-15.05)** | A **(current)** | (1) complete | ~~S-15.04 (TD #66) SHIPPED 2026-05-15 PR #142 fdc7da16~~; S-15.05 (TD #67) **pending per-story-delivery (current sub-target)**; TD #67 4 timing-flaky tests TC-4/5/7/9 → S-15.05 (multi-day; event-observation Strategy B) |
 | 3 | **S-15.03 PRIORITY-A — lint-hook automation** | D | (2) complete | ~108 cumulative sub-items spanning D-411..D-454 + 6 E-10 deferred findings (F-PASS14-003..008); wave-scale structural break; blocks E-10/F5 resumption |
 | 4 | **E-10 sub-cycle resumption (pass-15 forward)** | gated | (3) complete | Brownfield-backfill architect-discipline cycle continuation; currently SEALED at D-471 asymptotic-acceptance |
 | 5 | **F5 cycle resumption (pass-75 forward)** | gated | (3) complete + **explicit human direction** | feature-engine-discipline-pass-1 cycle continuation; currently PAUSED at META-LEVEL-29 per D-386 Option C; parent-commit for pass-75 is `487e0cc3` per D-419(b) |
@@ -473,4 +478,4 @@ Human directed 2026-05-14: asymptotic-acceptance for E-10 sub-cycle analogous to
 
 **[D-414(c) acknowledgment: Section 12 continued from durability-refresh per user direction 2026-05-13; standard Session Resume schema is 11 sections, this is a non-standard addition for forward-backlog durability.]**
 
-> Previous checkpoint (TD #74 POST-MERGE STATE BURST 2026-05-15; STEP 1 COMPLETE; ORCHESTRATOR PIVOTS TO STEP 2) archived to: `cycles/v1.0-brownfield-backfill/session-checkpoints.md`
+> Previous checkpoint (S-15.04+S-15.05 REGISTERED POST-STORY-AUTHORING 2026-05-15; STEP 2 STORIES-IN-FLIGHT) archived to: `cycles/v1.0-brownfield-backfill/session-checkpoints.md`
