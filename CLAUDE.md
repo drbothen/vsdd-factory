@@ -336,22 +336,22 @@ Internal logs live at:
 
 ### Step 2 — Find the block reason
 
-Search the day's log for the trace UUID:
+**As of TD #71 (v1.0.0-rc.17+), the block reason is surfaced directly in the dispatcher stderr summary line.** Look at the stderr output you already have from Step 1's context — blocking dispatches now include `blocking_plugins=<name(s)>` and `block_reason="<text>"` inline:
+
+```
+factory-dispatcher trace=<UUID> event=PreToolUse tool=Agent host_abi=1 sync_plugins=N async_plugins=N
+  plugins_run=N total_ms=N block_intent=true exit_code=2 blocking_plugins=plugin-a,plugin-b block_reason="FAIL: MULTI_COMMIT_CHAIN_NOT_ALLOWED — HEAD and HEAD^ both contain 'backfill'..."
+```
+
+The `blocking_plugins` field names the guard(s) that fired; `block_reason` is the plugin's block message with newlines escaped as `\n`. **For most blocking dispatches, no log grep is required.**
+
+The internal log grep is now needed only for advisory-level `plugin.log` records (non-blocking telemetry), or for debugging crash/timeout fail-closed blocks where the plugin couldn't emit a reason. In those cases, search the day's log for the trace UUID:
 
 ```bash
 grep '<TRACE-UUID>' .factory/logs/dispatcher-internal-$(date +%Y-%m-%d).jsonl
 ```
 
-Look for `plugin.log` entries with `level: warn` — those carry the human-readable block reason as an embedded multi-line `message` field. Example payload from a real block:
-
-```
-"FAIL: MULTI_COMMIT_CHAIN_NOT_ALLOWED — HEAD and HEAD^ both contain 'backfill'.
- The single-commit protocol (TD-VSDD-053) does not use backfill commits.
- ...
- Recover with: git -C .factory reset --soft HEAD~2 then re-author as a single commit"
-```
-
-The `plugin_name` field on the same record (e.g., `validate-wave-gate-prerequisite`, `validate-pr-merge-prerequisites`, `regression-gate`, `convergence-tracker`) tells you which guard fired.
+Look for `plugin.log` entries with `level: warn` for advisory context, or `plugin.crashed` / `plugin.timeout` records for fail-closed diagnostics. The `plugin_name` field on each record (e.g., `validate-wave-gate-prerequisite`, `validate-pr-merge-prerequisites`, `regression-gate`, `convergence-tracker`) tells you which guard fired.
 
 ### Step 3 — Common blockers and recovery procedures
 
