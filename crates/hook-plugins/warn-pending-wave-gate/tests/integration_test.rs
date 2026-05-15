@@ -162,7 +162,7 @@ waves: {}
 "#;
 
     // F-P3-001: sequence form with non-string gate_status values (scalar i64, bool, seq).
-    // serde_yaml will fail to deserialize Option<String> from integer/bool/list, so
+    // serde_norway will fail to deserialize Option<String> from integer/bool/list, so
     // gate_status defaults to None (not "pending") → wave is skipped. No panic.
     const YAML_NON_STRING_GATE_STATUS: &str = r#"
 waves:
@@ -657,7 +657,7 @@ waves:
     // -----------------------------------------------------------------------
 
     /// EC-005: valid YAML but waves is a list where each item lacks the required
-    /// `wave` field → serde_yaml deserialization fails (missing field) → Err →
+    /// `wave` field → serde_norway deserialization fails (missing field) → Err →
     /// HookResult::Continue, no output.
     ///
     /// Maps to AC-004(b) graceful degradation path.
@@ -677,7 +677,7 @@ waves:
     // EC-007: waves key present but null or empty map → no pending waves
     // -----------------------------------------------------------------------
 
-    /// EC-007(null): waves key present but value is null → serde_yaml deserializes
+    /// EC-007(null): waves key present but value is null → serde_norway deserializes
     /// `waves` as empty Vec via `#[serde(default)]` → no pending entries →
     /// HookResult::Continue, no output.
     #[test]
@@ -692,7 +692,7 @@ waves:
         assert!(stderr.is_empty(), "EC-007(null): no stderr for waves: null");
     }
 
-    /// EC-007(empty): waves key present but value is an empty sequence → serde_yaml
+    /// EC-007(empty): waves key present but value is an empty sequence → serde_norway
     /// deserializes as empty Vec → no pending entries →
     /// HookResult::Continue, no output.
     #[test]
@@ -960,7 +960,7 @@ waves:
         assert!(
             capabilities.get("exec_subprocess").is_none(),
             "AC-006: exec_subprocess capability block must be absent from WASM entry \
-             (python3 subprocess replaced by serde_yaml)"
+             (python3 subprocess replaced by serde_norway per TD #72)"
         );
     }
 
@@ -1049,12 +1049,13 @@ waves:
             );
         }
 
-        // Verify serde_yaml is the YAML parser (not a subprocess call)
-        // src/lib.rs must import serde_yaml for YAML parsing
+        // Verify a YAML library is the parser (not a subprocess call)
+        // src/lib.rs must import serde_norway for YAML parsing (migrated from
+        // serde_yaml 0.9.34 per TD #72; serde_norway is the maintained fork)
         assert!(
-            lib_rs.contains("serde_yaml"),
-            "AC-006: src/lib.rs must use serde_yaml for YAML parsing \
-             (python3 subprocess replaced per AC-006)"
+            lib_rs.contains("serde_norway"),
+            "AC-006: src/lib.rs must use serde_norway for YAML parsing \
+             (python3 subprocess replaced per AC-006; serde_yaml → serde_norway per TD #72)"
         );
     }
 

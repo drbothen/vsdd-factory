@@ -121,7 +121,7 @@ pub fn load_registry(yaml: &str) -> Result<PathRegistry, RegistryError> {
         return Err(RegistryError::ParseError("empty registry YAML".to_string()));
     }
     let registry: PathRegistry =
-        serde_yaml::from_str(yaml).map_err(|e| RegistryError::ParseError(e.to_string()))?;
+        serde_norway::from_str(yaml).map_err(|e| RegistryError::ParseError(e.to_string()))?;
     Ok(registry)
 }
 

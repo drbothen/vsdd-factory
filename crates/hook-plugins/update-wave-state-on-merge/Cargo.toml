@@ -33,10 +33,7 @@ standalone = []
 vsdd-hook-sdk = { path = "../../hook-sdk" }
 serde = { workspace = true }
 serde_json = { workspace = true }
-# serde_yaml 0.9.34 pinned via workspace — last release; dtolnay deprecated
-# the crate at this version per 2024 announcement. TD: migrate to maintained
-# alternative in v1.2+ (OQ-002 resolution).
-serde_yaml = { workspace = true }
+serde_norway = { workspace = true }
 regex = { workspace = true }
 
 [dev-dependencies]

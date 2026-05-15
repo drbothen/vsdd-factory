@@ -243,7 +243,12 @@ artifacts:
   # ── Code Delivery ────────────────────────────────────────────────────────
   - artifact_type: code-delivery-artifact
     canonical_path_pattern: ".factory/code-delivery/{filename}.md"
-    description: Code delivery tracking document
+    description: Code delivery tracking document (flat)
+    enforcement_level: block
+
+  - artifact_type: code-delivery-story-artifact
+    canonical_path_pattern: ".factory/code-delivery/{story-id}/{filename}.md"
+    description: Per-story/TD code delivery artifact (pr-description, review-findings, etc.)
     enforcement_level: block
 
   # ── Feature Delta Analysis ────────────────────────────────────────────────
