@@ -1,1 +1,1 @@
-{"status":"pass","timestamp":"2026-05-15T05:30:14Z","command":"cargo test --workspace --all-targets 2>&1 | grep -E \"FAILED$|^error: test failed\""}
+{"status":"pass","timestamp":"2026-05-15T16:22:02Z","command":"cd /Users/jmagady/Dev/vsdd-factory/.worktrees/td-74 && cargo test --workspace --all-targets 2>&1"}

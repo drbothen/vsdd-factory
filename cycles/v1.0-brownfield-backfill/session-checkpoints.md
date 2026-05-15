@@ -117,3 +117,13 @@ Three rename-propagation patterns reached N=3 trigger:
 **Where We Are:** TD #70 SHIPPED 2026-05-15 via PR #140 squash-merge at ddc11879 on develop; scope = SHA-pin (Swatinem/rust-cache@c19371144) + cache-on-failure=true; 3 SHA-pin sites in ci.yml + release.yml; CI 10/10 green on 7 runners; 0 review findings. TD #72 SHIPPED 2026-05-15 PR #139 at 83afaa3c. TD #71 SHIPPED 2026-05-14 PR #138 at bcf494ff. 3-PR Tier-A sweep COMPLETE. td-74-dispatch.md authored at `.factory/cycles/v1.0-brownfield-backfill/td-74-dispatch.md`; strict 5-step engine-discipline ordering committed to Section 12. Orchestrator pivots to TD #74 Tier-A dispatch.
 
 **Critical Anchors at archive time:** develop HEAD `ddc11879` (TD #70 PR #140); factory-artifacts HEAD `543338f1` (session-end durability burst); D-471 seal `1e810021`; F5 cycle final-state `4b4b6819`.
+
+---
+
+## Session Resume Checkpoint (2026-05-15 — TD #74 POST-MERGE STATE BURST; STEP 1 COMPLETE; ORCHESTRATOR PIVOTS TO STEP 2) [ARCHIVED]
+
+> Archived from STATE.md by S-15.04 + S-15.05 registration state burst on 2026-05-15.
+
+**Where We Are:** TD #74 SHIPPED 2026-05-15 via PR #141 squash-merge at 5d1f8805 on develop; `docs/dispatch-package-authoring.md` (174 lines new) + CLAUDE.md Project References +1 row; CI 10/10 green; 0 review findings; feature/td-74-dispatch-cargo-audit-codification deleted; Section 12 Step 1 COMPLETE. 4-PR Tier-A sweep COMPLETE: TD #71 (bcf494ff) → TD #72 (83afaa3c) → TD #70 (ddc11879) → TD #74 (5d1f8805). Orchestrator pivots Tier-A to Step 2: TD #66 + TD #67 cleanup wrapped in S-15.02 (at time of prior checkpoint — subsequently architect adjudicated split into S-15.04 + S-15.05).
+
+**Critical Anchors at archive time:** develop HEAD `5d1f8805`; factory-artifacts HEAD was `1e810021` (D-471 asymptotic-acceptance seal); D-471 seal `1e810021`; D-470 mandatory HIGH closures `6fefa10d`; F5 cycle final-state `4b4b6819`.
