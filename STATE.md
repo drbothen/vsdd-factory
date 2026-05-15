@@ -12,7 +12,7 @@ input-hash: "[live-state]"
 traces_to: prd.md
 project: vsdd-factory
 mode: brownfield
-current_step: "TD #70 SHIPPED 2026-05-15 via PR #140 squash-merge at ddc11879 on develop; scope reframe: delivered scope was security-hardening SHA-pin (3 call sites Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4) + cache-on-failure resilience tuning — NOT from-scratch cache introduction (floating @v2 was already present); CI 10/10 green on 7 runners; 0 review findings; feature/td-70-cargo-cache-reuse deleted; 3-PR Tier-A backlog sweep COMPLETE (TD #71/72/70 all shipped); orchestrator pivots to Tier-A TD #74 dispatch-package cargo-audit shift-left codification — codify the dispatch-package cargo-audit discipline in permanent authoring guidance (CLAUDE.md or docs/dispatch-package-authoring.md); TD #74 applied retroactively at TD #70 + TD #72 implementation; effort ~30 min doc-only or ~1-2hr with lint hook; target branch feature/td-74-dispatch-cargo-audit-codification → develop@ddc11879; independent of E-10 (sealed) and F5 (paused)"
+current_step: "SESSION-END DURABILITY BURST 2026-05-15: td-74-dispatch.md authored at .factory/cycles/v1.0-brownfield-backfill/td-74-dispatch.md (self-contained dispatch package mirroring TD #71 pattern); strict 5-step engine-discipline ordering committed to STATE.md Section 12 per human direction 2026-05-15; Section 4 + Section 11 cross-reference td-74-dispatch.md; single factory-artifacts commit per TD-VSDD-053; state durable for post-CLEAR resume; new session begins with TD #74 dispatch per Section 4 + td-74-dispatch.md"
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -23,7 +23,7 @@ dtu_services: []
 <!--
   STATE.md SIZE BUDGET (per D-421(c) + D-422(c) reconciliation):
   Soft target: ≤415 lines (actual 399 lines at pass-67 Commit E (wc-l)); margin from soft-target = 500 - 415 = 85; margin from actual = 500 - 443 = 57 (D-446(c) dual-margin form); margin [+10,+20] upper-bound per D-422(c)+D-424(b)+D-428(d)+D-434(e)(ii)+D-437(d)+D-438(a)+D-441(e)+D-442(d)+D-443(d)+D-444(e)+D-445(b)+D-446(c); D-452 codified (5 sub-clauses; META-LEVEL-27-CANDIDATE-CONFIRMED + post-derivation-propagation-completeness + Layer-N-dual-direction-sweep + captured-stdout-snapshot-freshness + Layer-N-scope-extension-6-site-class + Decisions-Log-umbrella-range-auto-advance per decision-log.md SoT; L-EDP1-064 63rd-layer); D-446(c) self-application: dual-margin form applied THIS COMMIT E; D-445(c)+D-446(d)+D-447(c)+D-449(e) Active Branches advance to Commit E HEAD in SHA-patch follow-up.
-  Line-growth tracker (D-437(e)+D-441(e)+D-442(e)+D-443(d)+D-444(e)+D-445(b)+D-446(c)+D-447(d)+D-448(d)+D-449(d)+D-450(d)+D-451(d)+D-452(d)+D-453(d)+D-454(d) follow-up): pass-49 Commit E 310 lines; pass-54 Commit E 319 lines; pass-55 Commit E 328 lines; pass-56 Commit E 331 lines; pass-57 Commit E 334 lines; pass-58 Commit E 337 lines; pass-59 Commit E 340 lines; pass-60 Commit E 410 lines; pass-61 Commit E 417 lines; pass-62 Commit E 426 lines; pass-63 Commit E 440 lines; pass-64 Commit E 447 lines; pass-65 Commit E+SHA-patch 395 lines (wc-l; net -52 from pass-64); pass-66 Commit E 397 lines (wc-l; net +2 from pass-65 Commit E+SHA-patch at 395); pass-67 Commit E 399 lines (wc-l; net +2 from pass-66); pass-68 Commit E 402 lines (wc-l; net +3 from pass-67); pass-69 Commit E 405 lines (wc-l; net +3 from pass-68); pass-70 Commit E 435 lines (wc-l; net +30 from pass-69; pre-CLEAR task-snapshot block REMOVED per MED-002 closure but rc.17/rc.18 Phase Progress rows + D-450 Decisions Log row + refreshed Session Resume added net +30); pass-71 Commit E 439 lines (wc-l; net +4 from pass-70 Commit E at 435; pass-71 Phase Progress row + D-451 Decisions Log row + Session Resume refresh added net +4); pass-72 Commit E 443 lines (wc-l; net +4 from pass-71 Commit E at 439; pass-72 Phase Progress row + D-452 Decisions Log row + Session Resume refresh added net +4); pass-73 Commit E 447 lines (wc-l; net +4 from pass-72 Commit E at 443; pass-73 Phase Progress row + D-453 Decisions Log row + Session Resume refresh added net +4); pass-74 Commit E 451 lines (wc-l; net +4 from pass-73 Commit E at 447; pass-74 Phase Progress row + D-454 Decisions Log row + Session Resume refresh added net +4); pass-74-to-pivot transition 406 lines (wc-l; net -45 from pass-74 Commit E at 451; F5 5-pass pause row + Active Branches pivot + Concurrent Cycles pivot + Drift Items side-branch + Session Resume Checkpoint refresh net -45). D-345 seal 408 lines (wc-l; net +2 from pass-74-to-pivot at 406; E-10 pass-9 Phase Progress row + current_step + Session Resume refresh net +2). D-345-seal-to-durability-refresh 441 lines (wc-l; net +33 from D-345 seal at 408; Section 12 forward-backlog added + Section 9 anchor fix + Section 11 step-4 fix + TD #73 RESOLVED). TD-70-post-merge-burst 465 lines (wc-l; net +24 from durability-refresh at 441; TD #70 Phase Progress row + Active Branches develop SHA update + Drift Items TD #70 RESOLVED + TD #74 Tier-A + Session Resume Checkpoint refresh net +24). Hard cap (500 lines) margin from soft-target = 500 - 415 = 85; margin from actual = 500 - 465 = 35 (D-446(c) dual-margin form).
+  Line-growth tracker (D-437(e)+D-441(e)+D-442(e)+D-443(d)+D-444(e)+D-445(b)+D-446(c)+D-447(d)+D-448(d)+D-449(d)+D-450(d)+D-451(d)+D-452(d)+D-453(d)+D-454(d) follow-up): pass-49 Commit E 310 lines; pass-54 Commit E 319 lines; pass-55 Commit E 328 lines; pass-56 Commit E 331 lines; pass-57 Commit E 334 lines; pass-58 Commit E 337 lines; pass-59 Commit E 340 lines; pass-60 Commit E 410 lines; pass-61 Commit E 417 lines; pass-62 Commit E 426 lines; pass-63 Commit E 440 lines; pass-64 Commit E 447 lines; pass-65 Commit E+SHA-patch 395 lines (wc-l; net -52 from pass-64); pass-66 Commit E 397 lines (wc-l; net +2 from pass-65 Commit E+SHA-patch at 395); pass-67 Commit E 399 lines (wc-l; net +2 from pass-66); pass-68 Commit E 402 lines (wc-l; net +3 from pass-67); pass-69 Commit E 405 lines (wc-l; net +3 from pass-68); pass-70 Commit E 435 lines (wc-l; net +30 from pass-69; pre-CLEAR task-snapshot block REMOVED per MED-002 closure but rc.17/rc.18 Phase Progress rows + D-450 Decisions Log row + refreshed Session Resume added net +30); pass-71 Commit E 439 lines (wc-l; net +4 from pass-70 Commit E at 435; pass-71 Phase Progress row + D-451 Decisions Log row + Session Resume refresh added net +4); pass-72 Commit E 443 lines (wc-l; net +4 from pass-71 Commit E at 439; pass-72 Phase Progress row + D-452 Decisions Log row + Session Resume refresh added net +4); pass-73 Commit E 447 lines (wc-l; net +4 from pass-72 Commit E at 443; pass-73 Phase Progress row + D-453 Decisions Log row + Session Resume refresh added net +4); pass-74 Commit E 451 lines (wc-l; net +4 from pass-73 Commit E at 447; pass-74 Phase Progress row + D-454 Decisions Log row + Session Resume refresh added net +4); pass-74-to-pivot transition 406 lines (wc-l; net -45 from pass-74 Commit E at 451; F5 5-pass pause row + Active Branches pivot + Concurrent Cycles pivot + Drift Items side-branch + Session Resume Checkpoint refresh net -45). D-345 seal 408 lines (wc-l; net +2 from pass-74-to-pivot at 406; E-10 pass-9 Phase Progress row + current_step + Session Resume refresh net +2). D-345-seal-to-durability-refresh 441 lines (wc-l; net +33 from D-345 seal at 408; Section 12 forward-backlog added + Section 9 anchor fix + Section 11 step-4 fix + TD #73 RESOLVED). TD-70-post-merge-burst 465 lines (wc-l; net +24 from durability-refresh at 441; TD #70 Phase Progress row + Active Branches develop SHA update + Drift Items TD #70 RESOLVED + TD #74 Tier-A + Session Resume Checkpoint refresh net +24). session-end-durability-burst 469 lines (wc-l; net +4 from TD-70-post-merge-burst at 465; td-74-dispatch.md authored; strict 5-step engine-discipline ordering committed to Section 12; Section 4 + Section 11 cross-reference td-74-dispatch.md net +4). Hard cap (500 lines) margin from soft-target = 500 - 415 = 85; margin from actual = 500 - 469 = 31 (D-446(c) dual-margin form).
   Hard cap: 500 lines (validate-state-md-size hook enforcement).
   Historical content belongs in cycle files, NOT here.
   D-430(a) compaction authorization: Pass-49 Commit E surgical compaction (363→310 lines) authorized retroactively per D-430(a); removed content categories: stale Phase Progress rows (passes 1-38); pre-compaction state preserved at git show 278977fb:.factory/STATE.md.
@@ -42,7 +42,7 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-15 — TD #70 SHIPPED via PR #140 squash-merge at ddc11879 on develop; scope: SHA-pin (Swatinem/rust-cache@c19371144) + cache-on-failure (NOT from-scratch cache — floating @v2 was already present); CI 10/10 green on 7 runners; feature/td-70-cargo-cache-reuse deleted; 3-PR Tier-A sweep COMPLETE (TD #71/72/70); orchestrator pivots to Tier-A TD #74 (dispatch-package cargo-audit codification). |
+| **Last Updated** | 2026-05-15 — SESSION-END DURABILITY BURST: td-74-dispatch.md authored (.factory/cycles/v1.0-brownfield-backfill/td-74-dispatch.md); strict 5-step engine-discipline ordering committed to STATE.md Section 12; Sections 4 + 11 cross-reference dispatch package; state durable for /clear. Prior: TD #70 SHIPPED PR #140 ddc11879; 3-PR Tier-A sweep COMPLETE (TD #71/72/70). |
 | **Current Phase** | TD #70 SHIPPED. 3-PR Tier-A sweep complete (TD #71/72/70). E-10 sub-cycle SEALED at asymptotic-acceptance (D-471); F5 paused; orchestrator pivots to TD #74 dispatch-package cargo-audit codification as new Tier-A priority. |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
@@ -340,7 +340,7 @@ dtu_services: []
 - `cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` | `session-checkpoints.md` | `lessons.md`
 - `cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md` (adversary reviews at `S-12.03/`, `S-12.04/`, `S-12.05/` subdirs)
 
-## Session Resume Checkpoint (2026-05-15 — TD #70 SHIPPED VIA PR #140; 3-PR TIER-A SWEEP COMPLETE; ORCHESTRATOR PIVOTS TO TD #74 TIER-A)
+## Session Resume Checkpoint (2026-05-15 — SESSION-END DURABILITY BURST; TD #74 DISPATCH PACKAGE AUTHORED; STRICT ENGINE-DISCIPLINE ORDERING COMMITTED)
 
 > **SELF-SUFFICIENT RESUME CONTEXT — CYCLE PIVOT**
 > Read this section alone to resume the protocol after full conversation CLEAR (not compact).
@@ -358,6 +358,7 @@ dtu_services: []
 - develop HEAD: `ddc11879` (PR #140 squash-merge 2026-05-15 — TD #70 rust-cache SHA-pin)
 - main HEAD: `70811f4a` (includes CLAUDE.md expansion PR #136 + rc.18 merge)
 - orchestrator pivots to Tier-A TD #74 (dispatch-package cargo-audit codification)
+- **SESSION-END DURABILITY BURST 2026-05-15:** td-74-dispatch.md authored at `.factory/cycles/v1.0-brownfield-backfill/td-74-dispatch.md`; strict 5-step engine-discipline ordering committed to Section 12; state durable for /clear
 
 ### 2. Operating Mode
 
@@ -384,6 +385,7 @@ Human directed 2026-05-14: asymptotic-acceptance for E-10 sub-cycle analogous to
 - **Effort:** Small (~30 min doc-only). Independent of E-10 (sealed), F5 (paused).
 - **Branch:** `feature/td-74-dispatch-cargo-audit-codification` → develop@ddc11879.
 - **Cross-link:** TD #74 was filed at TD #72 state burst (2026-05-15); applied retroactively at TD #72 + TD #70 implementation; codifying it now makes it operational.
+- **Dispatch package:** `.factory/cycles/v1.0-brownfield-backfill/td-74-dispatch.md`. Read top-to-bottom for fresh-context dispatch (mirrors TD #71 pattern).
 
 ### 5. Cumulative Codifications
 
@@ -435,31 +437,33 @@ Human directed 2026-05-14: asymptotic-acceptance for E-10 sub-cycle analogous to
 1. Run `git -C /Users/jmagady/Dev/vsdd-factory/.factory log --oneline -3` to confirm factory-artifacts state
 2. Read STATE.md Session Resume Checkpoint sections 1-10 (this section is self-sufficient)
 3. Verify CLAUDE.md still cites vsdd-factory project conventions (PR #136 expanded it; PR #138 added §Step 2 follow-up)
-4. Dispatch the new Tier-A priority per Section 4 — TD #74 dispatch-package cargo-audit codification; target branch `feature/td-74-dispatch-cargo-audit-codification` → develop@ddc11879
+4. Dispatch TD #74 per Section 4 + `td-74-dispatch.md` (mirror of TD #71 pattern; read `.factory/cycles/v1.0-brownfield-backfill/td-74-dispatch.md` top-to-bottom for fresh-context dispatch); after TD #74 closes, proceed per Section 12 strict engine-discipline ordering
 5. E-10 sub-cycle SEALED — do NOT dispatch E-10 pass-15 without S-15.03 PRIORITY-A lint hooks landing first
 6. F5 cycle is PAUSED — do NOT dispatch F5 pass-75 without explicit human direction to resume F5
 
-### 12. Pending Work Items (Forward Backlog — Priority Order)
+### 12. Pending Work Items — Strict Engine-Discipline Ordering (Committed 2026-05-15)
 
-This section enumerates all pending work as of 2026-05-15 for post-CLEAR resumption visibility.
+**Canonical 5-step engine-discipline chain. Execute in order. Each step gates the next.**
 
-~~**TD #71 — SHIPPED 2026-05-14 via PR #138 at bcf494ff.**~~ Closed. See Section 4 historical log.
-~~**TD #72 — SHIPPED 2026-05-15 via PR #139 at 83afaa3c.**~~ Closed. See Section 4 historical log.
-~~**TD #70 — SHIPPED 2026-05-15 via PR #140 at ddc11879.**~~ Closed. See Section 4 historical log.
+| Step | Item | Tier | Gate | Scope / Effort |
+|------|------|------|------|----------------|
+| 1 | **TD #74 — dispatch-package cargo-audit codification** | A (current) | — | ~30 min doc-only; see `.factory/cycles/v1.0-brownfield-backfill/td-74-dispatch.md` |
+| 2 | **TD #66 + TD #67 cleanup (wrapped in S-15.02)** | C | (1) complete | TD #66 trace_id field canonicalization + TD #67 4 timing-flaky e2e tests (TC-4/5/7/9); story-scale; deferred here at session start |
+| 3 | **S-15.03 PRIORITY-A — lint-hook automation** | D | (2) complete | ~108 cumulative sub-items spanning D-411..D-454 + 6 E-10 deferred findings (F-PASS14-003..008); wave-scale structural break; blocks E-10/F5 resumption |
+| 4 | **E-10 sub-cycle resumption (pass-15 forward)** | gated | (3) complete | Brownfield-backfill architect-discipline cycle continuation; currently SEALED at D-471 asymptotic-acceptance |
+| 5 | **F5 cycle resumption (pass-75 forward)** | gated | (3) complete + **explicit human direction** | feature-engine-discipline-pass-1 cycle continuation; currently PAUSED at META-LEVEL-29 per D-386 Option C; parent-commit for pass-75 is `487e0cc3` per D-419(b) |
 
-**Tier-A (Immediate next action):**
-1. **TD #74 dispatch-package cargo-audit shift-left codification** — codify the cargo-audit discipline in authoring docs. Full task description in Section 4. Target: `feature/td-74-dispatch-cargo-audit-codification` → develop@ddc11879. Effort: ~30 min (doc-only). Tracked in Drift Items.
+**Independent track — WASM migration (slot in any time after step 1):**
 
-**Tier-B (Near-term):**
-2. **TD #74 option (b) lint hook** — WASM lint scanning dispatch files for crate references + cargo-audit. Deferred to S-15.03 PRIORITY-A automation wave (requires WASM plugin work). Tracked as sub-item in Drift Items TD #74 entry.
+| Track item | Status | Scope |
+|------------|--------|-------|
+| E-9 W-16 — Tier 2 native WASM migration | Spec CONVERGED; **7 stories DRAFT (S-9.01..S-9.07)** pending PO authoring Bursts 2/3 | 23 `validate-*.sh` → WASM |
+| E-11 W-17 — Tier 3 native WASM migration | **8 stories stub-only (S-11.01..S-11.08)** | 10 non-validate hooks + legacy-bash-adapter retirement (S-11.08) |
+| `verify-git-push.sh` disposition | Unanchored | 1 stray bash hook not in E-9/E-11 |
+| S-10.08 ADR-015 Wave 4 — Bash hook parity | DRAFT pending PO authorship | Route-through-dispatcher via legacy-bash-adapter (precursor; not native rewrite) |
+| S-11.00 — verify-sha-currency Rust port | DRAFT | 1 hook port to Rust binary for cross-OS support |
 
-**Tier-C (Deferred to wave-scale work):**
-3. **TD #66 trace_id field-name canonicalization** — DEFERRED to S-15.02. Tracked in Drift Items.
-4. **TD #67 4 timing-flaky e2e tests** (TC-4/5/7/9) — DEFERRED to S-15.02. Tracked in Drift Items.
-
-**Tier-D (Structural / long-horizon):**
-5. **S-15.03 PRIORITY-A automation** — structural break for both F5 AND E-10. ~108 sub-items + E-10 deferred findings (F-PASS14-003..008) + TD #74 option (b). Both cycles resume ONLY when this lands.
-6. **F5 cycle resumption** — PAUSED at META-LEVEL-29. Parent-commit for pass-75: `487e0cc3`. Do NOT dispatch F5 pass-75 without explicit human direction.
+**[Human direction 2026-05-15: strict engine-discipline-first ordering committed. WASM migration parked as independent track for later decision. New session begins with TD #74 dispatch per Section 4 + td-74-dispatch.md.]**
 
 **[D-414(c) acknowledgment: Section 12 continued from durability-refresh per user direction 2026-05-13; standard Session Resume schema is 11 sections, this is a non-standard addition for forward-backlog durability.]**
 

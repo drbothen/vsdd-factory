@@ -1,1 +1,1 @@
-{"status":"pass","timestamp":"2026-05-14T21:54:40Z","command":"gh run view --log --job=76081918224 2>&1 | grep -A 30 \"cargo test.*FAILED\\|test.*FAILED\\|error\\[\" | head -60"}
+{"status":"pass","timestamp":"2026-05-15T05:30:14Z","command":"cargo test --workspace --all-targets 2>&1 | grep -E \"FAILED$|^error: test failed\""}
