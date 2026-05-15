@@ -532,13 +532,29 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
         0
     };
 
-    eprintln!(
-        "  plugins_run={} total_ms={} block_intent={} exit_code={}",
-        summary.per_plugin_results.len(),
-        summary.total_elapsed_ms,
-        summary.block_intent,
-        final_exit_code,
-    );
+    // TD #71: when block_intent is true, surface blocking_plugins and block_reason
+    // in the summary line so operators don't have to grep the internal log.
+    if final_exit_code == 2 {
+        let (blocking_names, block_reason) =
+            extract_block_info(&summary.per_plugin_results);
+        eprintln!(
+            "  plugins_run={} total_ms={} block_intent={} exit_code={} blocking_plugins={} block_reason=\"{}\"",
+            summary.per_plugin_results.len(),
+            summary.total_elapsed_ms,
+            summary.block_intent,
+            final_exit_code,
+            blocking_names,
+            block_reason,
+        );
+    } else {
+        eprintln!(
+            "  plugins_run={} total_ms={} block_intent={} exit_code={}",
+            summary.per_plugin_results.len(),
+            summary.total_elapsed_ms,
+            summary.block_intent,
+            final_exit_code,
+        );
+    }
 
     // SECURITY: VSDD_SINK_FILE is debug-only; see SEC-003 (W-15 wave gate fix).
     // VSDD_SINK_FILE: drain plugin events and append as JSONL for
@@ -560,6 +576,83 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
     }
 
     Ok(final_exit_code)
+}
+
+/// Extract blocking plugin names and the first available block reason from
+/// a slice of per-plugin outcomes. Used by the TD #71 stderr surfacing path.
+///
+/// **blocking_names**: comma-joined names of plugins that contributed to
+/// the block decision. Three trigger categories:
+///   1. Advisory block: `stdout.contains(r#""outcome":"block""#)` (any `on_error`).
+///   2. WASI-exit-code block: `exit_code == 2 && on_error == OnError::Block`.
+///   3. Fail-closed: `Crashed | Timeout && on_error == OnError::Block`.
+///
+/// **block_reason**: the `reason` field from the first blocking plugin's
+/// `{"outcome":"block","reason":"..."}` stdout JSON, or a generic sentinel
+/// for fail-closed crash/timeout outcomes.  Newlines are escaped to `\\n`
+/// so the dispatcher summary remains a single stderr line.
+fn extract_block_info(outcomes: &[PluginOutcome]) -> (String, String) {
+    use factory_dispatcher::registry::OnError;
+
+    let mut names: Vec<&str> = Vec::new();
+    let mut first_reason: Option<String> = None;
+
+    for outcome in outcomes {
+        let is_blocking = match &outcome.result {
+            // Advisory block: stdout carries {"outcome":"block","reason":"..."}.
+            PluginResult::Ok { stdout, exit_code, .. } => {
+                let advisory = stdout.contains(r#""outcome":"block""#);
+                let wasi_block = *exit_code == 2 && outcome.on_error == OnError::Block;
+                advisory || wasi_block
+            }
+            // Fail-closed: crash or timeout with on_error=Block.
+            PluginResult::Crashed { .. } | PluginResult::Timeout { .. } => {
+                outcome.on_error == OnError::Block
+            }
+        };
+
+        if is_blocking {
+            names.push(&outcome.plugin_name);
+
+            // Extract block reason from the first blocking plugin's stdout.
+            if first_reason.is_none() {
+                first_reason = extract_reason_from_outcome(&outcome.result);
+            }
+        }
+    }
+
+    let names_str = names.join(",");
+    let reason = first_reason.unwrap_or_default();
+    // Escape newlines so the summary remains a single stderr line (TC5).
+    let reason_escaped = reason.replace('\n', "\\n").replace('\r', "\\r");
+    (names_str, reason_escaped)
+}
+
+/// Parse the `reason` field from a `{"outcome":"block","reason":"..."}` stdout
+/// JSON produced by a blocking plugin. Returns `None` for non-OK results or
+/// when the JSON does not contain a `reason` field.
+fn extract_reason_from_outcome(result: &PluginResult) -> Option<String> {
+    match result {
+        PluginResult::Ok { stdout, .. } => {
+            // Fast-path: only attempt JSON parsing when the block marker is present.
+            if !stdout.contains(r#""outcome":"block""#) {
+                // WASI-exit-code block without advisory stdout JSON:
+                // no reason available from plugin stdout.
+                return None;
+            }
+            // Parse the reason field from the JSON payload.
+            serde_json::from_str::<serde_json::Value>(stdout)
+                .ok()
+                .and_then(|v| v.get("reason").and_then(|r| r.as_str()).map(str::to_owned))
+        }
+        // Fail-closed crash/timeout: sentinel reason.
+        PluginResult::Crashed { .. } => {
+            Some("fail-closed: plugin crashed".to_owned())
+        }
+        PluginResult::Timeout { .. } => {
+            Some("fail-closed: plugin timed out".to_owned())
+        }
+    }
 }
 
 fn resolve_registry_path() -> anyhow::Result<PathBuf> {
