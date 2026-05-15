@@ -5,14 +5,14 @@ version: "2.0"
 status: draft
 producer: state-manager
 timestamp: 2026-05-12T00:00:00Z
-phase: pivot-F5-paused-asymptotic-acceptance-resume-v1.0-brownfield-backfill-E-10-PARTIAL-CLOSED-TD-71-SHIPPED-pivot-to-TD-72-tier-A
-last_amended: 2026-05-14
+phase: pivot-F5-paused-asymptotic-acceptance-resume-v1.0-brownfield-backfill-E-10-PARTIAL-CLOSED-TD-71-SHIPPED-TD-72-SHIPPED-pivot-to-TD-70-tier-A
+last_amended: 2026-05-15
 inputs: []
 input-hash: "[live-state]"
 traces_to: prd.md
 project: vsdd-factory
 mode: brownfield
-current_step: "TD #71 SHIPPED 2026-05-14 via PR #138 squash-merge at bcf494ff on develop; orchestrator pivots to Tier-A TD #72 serde_yaml 0.9.34 deprecated migration — migrate to serde_yml or yaml-rust2; affects crates update-wave-state-on-merge + warn-pending-wave-gate + vsdd-context-resolvers; effort small-medium (crate dependency swap + API migration + test verification); independent of E-10 (sealed) and F5 (paused); target branch feature/td-72-serde-yaml-migration → develop@bcf494ff; spawn implementer agent with TD #72 task description"
+current_step: "TD #72 SHIPPED 2026-05-15 via PR #139 squash-merge at 83afaa3c on develop; final migration target serde_norway 0.9 (NOT serde_yml — RUSTSEC-2025-0068+0067 caught by cargo audit during security-review; pivoted in-scope); 13 files modified; dead-dep removed from lint-registry-async-invariant; CI 10/10 green; feature/td-72-serde-yaml-migration deleted; orchestrator pivots to Tier-A TD #70 cargo cache reuse — add Swatinem/rust-cache@v2 to .github/workflows/ci.yml + release.yml; effort small (workflow YAML edits only); independent of E-10 (sealed) and F5 (paused); target branch feature/td-70-cargo-cache-reuse → develop@83afaa3c; spawn implementer agent with TD #70 task description"
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -42,8 +42,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-14 — TD #71 SHIPPED via PR #138 squash-merge at bcf494ff on develop; 5 bats TC; 0 Critical/Important review findings; CI green; feature/td-71-stderr-block-reason deleted; orchestrator pivots to Tier-A TD #72 (serde_yaml 0.9.34 deprecated migration). |
-| **Current Phase** | TD #71 SHIPPED. E-10 sub-cycle SEALED at asymptotic-acceptance (D-471); F5 paused; orchestrator pivots to TD #72 serde_yaml migration as new Tier-A priority. |
+| **Last Updated** | 2026-05-15 — TD #72 SHIPPED via PR #139 squash-merge at 83afaa3c on develop; final target serde_norway 0.9 (serde_yml rejected — RUSTSEC-2025-0068+0067 resolved by pivot); 13 files modified; CI 10/10 green; feature/td-72-serde-yaml-migration deleted; orchestrator pivots to Tier-A TD #70 (cargo cache reuse). |
+| **Current Phase** | TD #72 SHIPPED. E-10 sub-cycle SEALED at asymptotic-acceptance (D-471); F5 paused; orchestrator pivots to TD #70 cargo cache reuse as new Tier-A priority. |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Phase Progress
@@ -101,6 +101,7 @@ dtu_services: []
 | PR #137 Tier-B priority-1 closure | **MERGED** 2026-05-14 — dim2-gates path-registry scaffolding | Cherry-picked 3df1bdda from save/dim2-gates-path-register; PR #137 squash-merged at 21d444d8; 4 new artifact-path-registry entries + dim2-gates README scaffolding; zero behavior change; enables S-15.03 PRIORITY-A future scripts |
 | TD #71 Dispatch Package Durable (Pre-CLEAR Session Checkpoint) | **COMPLETE** 2026-05-14 — Full self-contained dispatch payload in Section 4 | File surface verified against develop@21d444d8; decision tree option (b) recommended; 5 bats test cases; pre-flight gate enumerated; 9-step PR cycle target. Fresh-context Claude post-CLEAR dispatched implementer with Section 4 as task description; work SHIPPED via PR #138 at bcf494ff. |
 | TD #71 dispatcher stderr block_reason surfacing | **DONE 2026-05-14** — PR #138 squash-merge bcf494ff on develop | implementer + pr-manager; 5 bats TC; CLAUDE.md §Step 2 follow-up; CI green; 0 Critical/Important review findings; feature/td-71-stderr-block-reason deleted from remote |
+| TD #72 serde_yaml → serde_norway 0.9 migration | **DONE 2026-05-15** — PR #139 squash-merge 83afaa3c on develop | implementer + pr-manager; 13 files modified; dead-dep removed from lint-registry-async-invariant; security pivot serde_yml → serde_norway 0.9 in 1 fix cycle (RUSTSEC-2025-0068+67 resolved); CI 10/10 green; feature/td-72-serde-yaml-migration deleted |
 | **Tier-0 D-NNN renumbering (F-CRIT-001 closure)** | **COMPLETE** 2026-05-13 — brownfield D-344..D-349 → D-460..D-465; POLICY 1 violation resolved | ARCH-INDEX v2.02 + BC-INDEX v2.21 + VP-INDEX v1.95 + STORY-INDEX v3.20 corrigenda; ~25 files touched; pre+post grep stdout LL-2 strict-form; D-466 fix burst (HH-4/KK-2/LL-2/MM/NN) applied 553e9f58 |
 | E-10 pass-12 fix burst + seal | **COMPLETE** 2026-05-13 — D-466 fix burst (553e9f58) + D-467 seal (post-renumber from §8 nominal D-350/D-351) | 7 findings closed (1C closed pre-burst via Tier-0 + 2H+2M+2L closed via D-466); architect F-2/F-3/F-6 with HH-4 + state-manager F-1/F-5 with KK-2 tripartite + LL-2 verbatim stdout + MM cross-cycle namespace + NN parity disciplines applied; ARCH-INDEX v2.03 + BC-INDEX v2.22 + STORY-INDEX v3.21 cite-refresh; NITPICK_ONLY counter 0/3 (HIGH resets); pass-13 dispatch next (CRITICAL TEST per pass-12 §7) |
 | F5 pass-60 fix burst | **COMPLETE** | adv-cycle-pass-60.md HIGH→PENDING_NEXT_PASS; D-440(a/b/c/d/e) + L-EDP1-052 codified; META-LEVEL-15 CANDIDATE CONFIRMED |
@@ -232,7 +233,7 @@ dtu_services: []
 | Branch / Tag | SHA | Notes |
 |--------------|-----|-------|
 | main | 70811f4a | verified `git rev-parse origin/main` = 70811f4a5d68d163021f46856c3de51bf8f4aab8 2026-05-13; includes CLAUDE.md expansion PR #136 (845d0007 squash-merge) + rc.18 merge PR #135 (666d689f) |
-| develop | bcf494ff | PR #138 MERGED 2026-05-14 — TD #71 dispatcher stderr blocking_plugins + block_reason surfacing (squash-merge at bcf494fff469f0bd8cb062403a9817bba8803aeb); verified `git rev-parse origin/develop` = bcf494fff469f0bd8cb062403a9817bba8803aeb. Prior: PR #137 MERGED 21d444d8 — dim2-gates path-registry scaffolding |
+| develop | 83afaa3c | PR #139 MERGED 2026-05-15 — TD #72 serde_yaml → serde_norway 0.9 migration (squash-merge at 83afaa3cab62c1b96b2593ebfe7d72c77db585c5); verified `git rev-parse origin/develop` = 83afaa3cab62c1b96b2593ebfe7d72c77db585c5. Prior: PR #138 MERGED bcf494ff — TD #71 dispatcher stderr surfacing |
 | factory-artifacts | 1e810021 | E-10 pass-14 PARTIAL-CLOSED (Asymptotic-Acceptance) 2026-05-14: D-470 mandatory HIGH closures (6fefa10d); D-471 asymptotic-acceptance seal (1e810021) |
 | v1.0.0-rc.16 (tag) | feb894a2 | SHIPPED; claude-mp PR #8 awaiting human merge |
 | v1.0.0-rc.15 (tag) | e68bb436 | SHIPPED |
@@ -323,9 +324,10 @@ dtu_services: []
 | **TD #67** 4 timing-flaky e2e tests | DEFERRED to S-15.02 | TC-4/5/7/9 `#[ignore]`'d |
 | **TD #68** sync-develop binary-conflict auto-resolve | RESOLVED PR #114 | develop includes main; auto-resolve active |
 | **TD #69** release-branch guardrail | RESOLVED PRs #116/#117 | Live-tested PR #118 |
-| **TD #70** cargo cache reuse (Swatinem/rust-cache@v2) | FILED; UNBLOCKED (E-10 sealed at asymptotic-acceptance 2026-05-14; E-10 resume gate removed) | Tier-B; reassess priority after TD #72 |
+| **TD #70** cargo cache reuse (Swatinem/rust-cache@v2) | READY — Tier-A (next) | E-10 sealed 2026-05-14; TD #72 shipped 2026-05-15; TD #70 is next Tier-A. Add Swatinem/rust-cache@v2 to ci.yml + release.yml; key files: .github/workflows/ci.yml + release.yml; no Rust source changes; risk: cache poisoning (pin action to commit SHA); validates via CI run |
 | **TD #71** dispatcher stderr omits blocking_plugins + block_reason | RESOLVED 2026-05-14 PR #138 bcf494ff | PR #138 squash-merge at bcf494ff on develop; 5 bats TC; CI green. Closes via Option (b) internal_log read at end of dispatch. |
-| **TD #72** serde_yaml 0.9.34 deprecated | FILED 2026-05-10 | Migrate to serde_yml or yaml-rust2; affects update-wave-state-on-merge, warn-pending-wave-gate, vsdd-context-resolvers |
+| **TD #72** serde_yaml 0.9.34 deprecated | RESOLVED 2026-05-15 PR #139 83afaa3c | PR #139 squash-merge at 83afaa3c on develop; 13 files modified; final migration target: serde_norway 0.9 (NOT serde_yml — RUSTSEC-2025-0068 serde_yml unsoundness + RUSTSEC-2025-0067 libyml UB caught by cargo audit during security-review; pivoted in-scope to serde_norway 0.9); dead-dep removed from lint-registry-async-invariant; 2 Critical security findings resolved; CI 10/10 green. Note: dispatch package recommended serde_yml without cargo audit check — see TD #74 for shift-left codification. |
+| **TD #74** dispatch-package cargo-audit shift-left | FILED 2026-05-15 | Pattern: dispatch packages that recommend a specific dependency MUST include cargo audit check of the recommendation in the verification step (not delegate to PR security-review gate). Caught during TD #72: serde_yml had RUSTSEC-2025-0068+0067 at time of dispatch. Effort: ~30 min (one-line lint + dispatch-package authoring guideline update). Anchor: future S-15.03 PRIORITY-A automation wave or dispatch-authoring documentation. Priority: Tier-B. |
 | **TD #73** wave-state.yaml schema disagreement | RESOLVED 2026-05-13 PR #124 | warn-pending-wave-gate migrated to SEQUENCE schema per F-P3-001 in PR #124 merge. Closes the contradiction surfaced by S-12.07 pass-2 adversary HIGH-006. (Original filed: 2026-05-10.) |
 | Ghost BCs: BC-3.07.003/004, BC-1.06.011 | DEFERRED | Missing from BC-INDEX; investigate in future fix-burst |
 | **S-12.08 resolver-linker WASI gap** | FIXED 2026-05-11 db298c94 | HIDDEN gap surfaced in S-12.04; resolver-linker lacked WASI preview2 filesystem rights for context read paths. Fixed in S-12.08 Step 3b commit db298c94. No separate TD filed — closed in-story. |
@@ -337,25 +339,25 @@ dtu_services: []
 - `cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` | `session-checkpoints.md` | `lessons.md`
 - `cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md` (adversary reviews at `S-12.03/`, `S-12.04/`, `S-12.05/` subdirs)
 
-## Session Resume Checkpoint (2026-05-14 — TD #71 SHIPPED VIA PR #138; ORCHESTRATOR PIVOTS TO TD #72 TIER-A)
+## Session Resume Checkpoint (2026-05-15 — TD #72 SHIPPED VIA PR #139; ORCHESTRATOR PIVOTS TO TD #70 TIER-A)
 
 > **SELF-SUFFICIENT RESUME CONTEXT — CYCLE PIVOT**
 > Read this section alone to resume the protocol after full conversation CLEAR (not compact).
 
 ### 1. Where We Are
 
-- TD #71 SHIPPED 2026-05-14 via PR #138 squash-merge at bcf494ff on develop; 5 bats TC; CI green; 0 Critical/Important review findings; feature/td-71-stderr-block-reason deleted from remote
+- TD #72 SHIPPED 2026-05-15 via PR #139 squash-merge at 83afaa3c on develop; final target serde_norway 0.9 (serde_yml rejected — RUSTSEC-2025-0068+0067 caught by cargo audit; pivoted in-scope); 13 files modified; CI 10/10 green; feature/td-72-serde-yaml-migration deleted from remote
+- TD #71 SHIPPED 2026-05-14 via PR #138 squash-merge at bcf494ff on develop; REMAINS SHIPPED
 - E-10 sub-cycle PARTIAL-CLOSED (asymptotic-acceptance) 2026-05-14 at D-471 seal (1e810021); REMAINS SEALED
 - Tier-B priority-1 (dim2-gates path-registry) CLOSED via PR #137 (21d444d8 on develop) 2026-05-14; REMAINS CLOSED
 - Active cycle: v1.0-brownfield-backfill (PARTIAL-CLOSED E-10 sub-cycle; asymptotic-acceptance 2026-05-14)
-- D-470 mandatory HIGH closures COMPLETE: F-PASS14-001 (compute-input-hash mechanical; D-468 false claim corrected) + F-PASS14-002 (LL-3 strict-form inline stdout at D-466/D-467/D-469)
-- D-471 asymptotic-acceptance seal COMPLETE: 6 remaining findings DEFERRED to S-15.03 PRIORITY-A automation wave
+- D-470 mandatory HIGH closures COMPLETE: F-PASS14-001 + F-PASS14-002; D-471 asymptotic-acceptance seal COMPLETE; 6 findings DEFERRED to S-15.03 PRIORITY-A
 - F5 cycle (v1.0-feature-engine-discipline-pass-1): PAUSED at META-LEVEL-29 asymptotic floor per D-386 Option C + human direction 2026-05-13
 - factory-artifacts HEAD: see `git -C .factory log -1 --format='%h %s'` (post-burst commit from this state-manager burst)
-- develop HEAD: `bcf494ff` (PR #138 squash-merge 2026-05-14 — TD #71 dispatcher stderr surfacing)
+- develop HEAD: `83afaa3c` (PR #139 squash-merge 2026-05-15 — TD #72 serde_yaml → serde_norway 0.9 migration)
 - main HEAD: `70811f4a` (includes CLAUDE.md expansion PR #136 squash-merge + rc.18 merge)
-- Side branch `save/dim2-gates-path-register`: MERGED via cherry-pick → PR #137 → develop@21d444d8; save-point branch preserved but content shipped
-- orchestrator pivots to Tier-A TD #72 (serde_yaml 0.9.34 deprecated migration)
+- Side branch `save/dim2-gates-path-register`: MERGED via cherry-pick → PR #137 → develop@21d444d8; content shipped; REMAINS CLOSED
+- orchestrator pivots to Tier-A TD #70 (cargo cache reuse via Swatinem/rust-cache@v2)
 
 ### 2. Operating Mode
 
@@ -367,18 +369,21 @@ dtu_services: []
 
 Human directed 2026-05-14: asymptotic-acceptance for E-10 sub-cycle analogous to F5 D-386 Option C. Close only Tier-0 mandatory findings (F-PASS14-001 + F-PASS14-002); remaining 6 findings DEFERRED to S-15.03 PRIORITY-A automation wave. D-471 seals the decision.
 
-### 4. Tier-A Completed Log + New Tier-A: TD #72 — serde_yaml 0.9.34 Deprecated Migration
+### 4. Tier-A Completed Log + New Tier-A: TD #70 — Cargo Cache Reuse (Swatinem/rust-cache@v2)
 
 **TD #71 COMPLETE (historical):** Dispatcher stderr blocking_plugins + block_reason surfacing SHIPPED 2026-05-14 via PR #138 at bcf494ff on develop. Full dispatch log: `.factory/cycles/v1.0-brownfield-backfill/td-71-dispatch.md` (preserved as historical reference).
 
-**New Tier-A: TD #72 — serde_yaml 0.9.34 deprecated migration**
+**TD #72 COMPLETE (historical):** serde_yaml 0.9.34 deprecated migration SHIPPED 2026-05-15 via PR #139 at 83afaa3c on develop. Final migration target: `serde_norway 0.9` (NOT serde_yml — `cargo audit` during security-review caught RUSTSEC-2025-0068 serde_yml unsoundness + RUSTSEC-2025-0067 libyml UB; pr-manager pivoted in-scope to serde_norway 0.9). 13 files modified; dead-dep removed from lint-registry-async-invariant; 2 Critical security findings resolved; CI 10/10 green.
 
-- **What:** Migrate crates that depend on `serde_yaml 0.9.34` (deprecated upstream) to `serde_yml` or `yaml-rust2`. The `serde_yaml` crate's 0.9.x series is in maintenance-only mode with deprecation warnings surfacing in cargo output.
-- **Affected crates (known):** `update-wave-state-on-merge`, `warn-pending-wave-gate`, `vsdd-context-resolvers` (grep `serde_yaml` in `Cargo.toml` files to confirm full surface before implementing).
-- **Approach:** (a) Audit full dependency surface via `grep -r "serde_yaml" . --include="Cargo.toml"`; (b) evaluate `serde_yml` vs `yaml-rust2` (serde_yml is the recommended fork by the original author; prefer it); (c) update `Cargo.toml` entries and fix any API call sites that differ; (d) run `cargo test --workspace --all-targets` to verify no regressions; (e) standard 9-step PR lifecycle targeting develop@bcf494ff.
-- **Branch:** `feature/td-72-serde-yaml-migration` → develop@bcf494ff.
-- **Effort:** Small-medium (dependency swap + API migration audit + test verification). Independent of E-10 (sealed) and F5 (paused).
-- **Dispatch:** Spawn implementer agent with this section as task description. No separate dispatch file required for this scope.
+**New Tier-A: TD #70 — Cargo Cache Reuse (Swatinem/rust-cache@v2)**
+
+- **What:** Replace ad-hoc CI cargo caching with `Swatinem/rust-cache@v2` action in `.github/workflows/ci.yml` and `.github/workflows/release.yml`. Goal: reduce CI wall-clock for `cargo-host` jobs + cross-platform `build-dispatcher` jobs by reusing the `target/` cache across PR runs.
+- **Key files:** `.github/workflows/ci.yml`, `.github/workflows/release.yml`. No Rust source changes required.
+- **Approach:** (a) Add `uses: Swatinem/rust-cache@v2` step (pinned to a specific commit SHA per security best practice) to each job in ci.yml that runs cargo commands; (b) do the same in release.yml for cross-compile jobs; (c) validate via PR run (CI itself is the acceptance test — cache hit metrics visible in GitHub Actions logs); (d) standard 9-step PR lifecycle targeting develop@83afaa3c.
+- **Branch:** `feature/td-70-cargo-cache-reuse` → develop@83afaa3c.
+- **Effort:** Small (workflow YAML edits only). Independent of E-10 (sealed), F5 (paused), and upcoming Tier-D structural work.
+- **Risk:** Cache poisoning if action mis-configured; mitigate by pinning `Swatinem/rust-cache@v2` to a specific commit SHA per security best practice (check current SHA at https://github.com/Swatinem/rust-cache/releases).
+- **Dispatch:** Spawn implementer agent with this section as task description. Target branch: `feature/td-70-cargo-cache-reuse` → develop@83afaa3c.
 
 ### 5. Cumulative Codifications
 
@@ -403,9 +408,10 @@ Human directed 2026-05-14: asymptotic-acceptance for E-10 sub-cycle analogous to
 | STORY-INDEX | v3.22 | D-389..D-454 (sample) + D-466+D-467 E-10 pass-12 + D-468+D-469 E-1 v1.1.2 row refresh |
 | ARCH-INDEX | v2.05 | D-389..D-454 (F5 sample) + D-466..D-471 E-10 pass-12/13/14 LL-2/LL-3/asymptotic-acceptance rows + POLICY 13-18 |
 
-### 9. Critical Anchors (Post-TD-#71 Ship)
+### 9. Critical Anchors (Post-TD-#72 Ship)
 
 - factory-artifacts HEAD: see `git -C .factory log -1 --format='%h %s'` (updated each burst; do not hard-cite current HEAD per TD-VSDD-053)
+- TD #72 merge Commit: `83afaa3c` (PR #139 squash-merge 2026-05-15 — serde_yaml → serde_norway 0.9 migration; serde_yml rejected via RUSTSEC-2025-0068+0067)
 - D-471 asymptotic-acceptance seal Commit: `1e810021`
 - D-470 mandatory HIGH closures Commit: `6fefa10d`
 - E-10 pass-13 D-469 seal Commit: `3bc6ef2c`
@@ -413,39 +419,43 @@ Human directed 2026-05-14: asymptotic-acceptance for E-10 sub-cycle analogous to
 - E-10 pass-13 POLICY 13-18 Commit: `b8909832`
 - E-10 pass-12 D-466 fix burst Commit: `553e9f58`
 - F5 cycle final-state HEAD: `4b4b6819` (pass-74 SHA-patch; PAUSED; F5 Commit D `487e0cc3` is canonical parent for any future F5 pass-75)
-- develop HEAD: `bcf494ff` (PR #138 squash-merge 2026-05-14 — TD #71 dispatcher stderr surfacing; verified `git rev-parse origin/develop` = bcf494fff469f0bd8cb062403a9817bba8803aeb)
+- develop HEAD: `83afaa3c` (PR #139 squash-merge 2026-05-15 — TD #72 serde_yaml → serde_norway 0.9 migration; verified `git rev-parse origin/develop` = 83afaa3cab62c1b96b2593ebfe7d72c77db585c5)
+- Prior develop milestone: `bcf494ff` (PR #138 squash-merge 2026-05-14 — TD #71 dispatcher stderr surfacing)
 - Prior develop milestone: `21d444d8` (PR #137 squash-merge 2026-05-14 — dim2-gates path-registry scaffolding)
 - main HEAD: `70811f4a`
 - E-10 resumption gate: BLOCKED on S-15.03 PRIORITY-A lint hooks in v1.0-feature-engine-discipline-pass-2
 
-### 10. PR Status (Post-TD-#71 Ship; Post-PR #138 Merge)
+### 10. PR Status (Post-TD-#72 Ship; Post-PR #139 Merge)
 
 - PR #124: MERGED at `d3ae26a5` 2026-05-13 (F5-pass-3 cycle hardening).
 - PR #136: MERGED at `845d0007` 2026-05-13 (CLAUDE.md expansion).
 - PR #137: MERGED at `21d444d8` 2026-05-14 (dim2-gates path-registry scaffolding; Tier-B priority-1 closure). Branch `feature/dim2-gates-path-register` deleted post-merge.
 - PR #138: MERGED at `bcf494ff` 2026-05-14 (TD #71 dispatcher stderr blocking_plugins + block_reason surfacing; Tier-A closure). Branch `feature/td-71-stderr-block-reason` deleted post-merge. 0 Critical/Important review findings; CI green; 5 bats TC.
-- No open PRs from F5, E-10, Tier-B priority-1, or TD #71 work remain.
+- PR #139: MERGED at `83afaa3c` 2026-05-15 (TD #72 serde_yaml → serde_norway 0.9 migration; Tier-A closure). Branch `feature/td-72-serde-yaml-migration` deleted post-merge. 2 Critical security findings resolved (RUSTSEC-2025-0068+0067) by serde_norway pivot; 0 pr-review diff findings; CI 10/10 green.
+- No open PRs from F5, E-10, Tier-B priority-1, TD #71, or TD #72 work remain.
 
 ### 11. Post-CLEAR Resume Checklist
 
 1. Run `git -C /Users/jmagady/Dev/vsdd-factory/.factory log --oneline -3` to confirm factory-artifacts state
 2. Read STATE.md Session Resume Checkpoint sections 1-10 (this section is self-sufficient)
 3. Verify CLAUDE.md still cites vsdd-factory project conventions (PR #136 expanded it; PR #138 added §Step 2 follow-up)
-4. Dispatch the new Tier-A priority per Section 4 — TD #72 serde_yaml migration; spawn implementer agent with Section 4 task description; target branch `feature/td-72-serde-yaml-migration` → develop@bcf494ff
+4. Dispatch the new Tier-A priority per Section 4 — TD #70 cargo cache reuse; spawn implementer agent with Section 4 task description; target branch `feature/td-70-cargo-cache-reuse` → develop@83afaa3c
 5. E-10 sub-cycle SEALED — do NOT dispatch E-10 pass-15 without S-15.03 PRIORITY-A lint hooks landing first
 6. F5 cycle is PAUSED — do NOT dispatch F5 pass-75 without explicit human direction to resume F5
 
 ### 12. Pending Work Items (Forward Backlog — Priority Order)
 
-This section enumerates all pending work as of 2026-05-14 for post-CLEAR resumption visibility.
+This section enumerates all pending work as of 2026-05-15 for post-CLEAR resumption visibility.
 
 ~~**TD #71 — SHIPPED 2026-05-14 via PR #138 at bcf494ff.**~~ Closed. See Section 4 historical log.
 
+~~**TD #72 — SHIPPED 2026-05-15 via PR #139 at 83afaa3c.**~~ Closed. Final target: serde_norway 0.9. See Section 4 historical log.
+
 **Tier-A (Immediate next action):**
-1. **TD #72 serde_yaml 0.9.34 deprecated** — migrate to serde_yml or yaml-rust2; affects update-wave-state-on-merge + warn-pending-wave-gate + vsdd-context-resolvers. Full task description in Section 4. Target branch: `feature/td-72-serde-yaml-migration` → develop@bcf494ff. Effort: small-medium. Independent of E-10 (sealed) and F5 (paused). Tracked in Drift Items.
+1. **TD #70 cargo cache reuse (Swatinem/rust-cache@v2)** — add Swatinem/rust-cache@v2 to ci.yml + release.yml. Full task description in Section 4. Target branch: `feature/td-70-cargo-cache-reuse` → develop@83afaa3c. Effort: small (workflow YAML only). Independent of E-10 (sealed) and F5 (paused). Tracked in Drift Items.
 
 **Tier-B (Near-term):**
-2. **TD #70 cargo cache reuse (Swatinem/rust-cache@v2)** — was BLOCKED by E-10 resume gate; E-10 now SEALED at asymptotic-acceptance 2026-05-14; E-10 resume gate removed; TD #70 is now unblocked. Reassess priority after TD #72. Tracked in Drift Items.
+2. **TD #74 dispatch-package cargo-audit shift-left** — dispatch packages that recommend a specific dependency MUST include cargo audit check of the recommendation. Caught during TD #72: serde_yml had active RUSTSEC advisories at dispatch time. Effort: ~30 min (one-line lint + authoring guideline). Anchor: S-15.03 PRIORITY-A automation wave or dispatch-authoring docs. Tracked in Drift Items.
 
 **Tier-C (Deferred to wave-scale work):**
 3. **TD #66 trace_id field-name canonicalization** — DEFERRED to S-15.02 per PR #113 relaxation. Tracked in Drift Items.
@@ -459,4 +469,4 @@ This section enumerates all pending work as of 2026-05-14 for post-CLEAR resumpt
 
 **[D-414(c) acknowledgment: Section 12 continued from durability-refresh per user direction 2026-05-13; standard Session Resume schema is 11 sections, this is a non-standard addition for forward-backlog durability.]**
 
-> Previous checkpoint (E-10 PARTIAL-CLOSED; TIER-B PRIORITY-1 CLOSED VIA PR #137; ORCHESTRATOR PIVOTS TO TIER-B PRIORITY-2 TD #71 — 2026-05-14) archived to: `cycles/v1.0-brownfield-backfill/session-checkpoints.md`
+> Previous checkpoint (TD #71 SHIPPED VIA PR #138; ORCHESTRATOR PIVOTS TO TD #72 TIER-A — 2026-05-14) archived to: `cycles/v1.0-brownfield-backfill/session-checkpoints.md`
