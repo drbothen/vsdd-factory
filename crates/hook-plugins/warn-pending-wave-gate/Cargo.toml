@@ -21,7 +21,7 @@ path = "src/main.rs"
 
 [dependencies]
 vsdd-hook-sdk = { path = "../../hook-sdk" }
-serde_yml = { workspace = true }
+serde_norway = { workspace = true }
 serde = { workspace = true }
 
 [dev-dependencies]

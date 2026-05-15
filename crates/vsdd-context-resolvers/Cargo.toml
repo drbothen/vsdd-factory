@@ -22,7 +22,7 @@ path = "src/lib.rs"
 vsdd-hook-sdk = { path = "../hook-sdk", features = ["resolver-authoring"] }
 serde = { workspace = true }
 serde_json = { workspace = true }
-serde_yml = { workspace = true }
+serde_norway = { workspace = true }
 
 [dev-dependencies]
 proptest = { workspace = true }

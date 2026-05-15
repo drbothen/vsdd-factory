@@ -45,11 +45,14 @@ rust-version = "1.95"
 [workspace.dependencies]
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-# serde_yml 0.0.12: API-compatible community fork of serde_yaml (which was
-# deprecated by dtolnay in 2024). Migrated from serde_yaml 0.9.34 in 2026-05
-# (TD #72). Drop-in replacement — same serde integration surface; actively
-# maintained. See: https://crates.io/crates/serde_yml
-serde_yml = "0.0.12"
+# serde_norway 0.9: maintained fork of serde_yaml (dtolnay, deprecated 2024).
+# Migrated from serde_yaml 0.9.34 in 2026-05 (TD #72). serde_yml 0.0.12 was
+# the initial target but was found to carry RUSTSEC-2025-0068 (unsound, no
+# patched version). serde_norway uses unsafe-libyaml-norway (actively
+# maintained) and is advisory-clean per cargo audit. Drop-in API: from_str,
+# to_string, Value, Mapping all preserved.
+# See: https://crates.io/crates/serde_norway
+serde_norway = "0.9"
 toml = "0.8"
 anyhow = "1.0"
 thiserror = "2.0"
