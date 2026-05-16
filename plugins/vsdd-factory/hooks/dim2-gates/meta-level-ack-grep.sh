@@ -81,7 +81,6 @@ done
 
 echo "---"
 echo "total: ${TOTAL}"
-echo "exit code: 0"
 echo "---"
 
 if [[ "$TOTAL" -ge 1 ]]; then

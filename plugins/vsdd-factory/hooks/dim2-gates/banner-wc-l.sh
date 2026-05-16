@@ -62,7 +62,6 @@ echo "$ wc -l ${STATE_MD}"
 WC_OUTPUT=$(wc -l < "$STATE_MD")
 WC_COUNT=$(echo "$WC_OUTPUT" | tr -d ' ')
 echo "  ${WC_COUNT}"
-echo "exit code: 0"
 echo "---"
 
 # Extract banner line: pattern "> **Factory pipeline state — actual N lines**"

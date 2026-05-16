@@ -2,7 +2,7 @@
 # decision-log-monotonic-rows.bats — bats tests for decision-log-monotonic-rows.sh
 #
 # Traces to: AC-009 (S-15.08), D-450(e)
-# Gate: extracts all "| D-NNN" rows using regex "^\| D-[0-9]+[\( ]",
+# Gate: extracts all "| D-NNN" rows using regex "^\| D-[0-9]+[( ]",
 # checks that extracted D-NNN integers are strictly ascending,
 # reports any inversion.
 #
