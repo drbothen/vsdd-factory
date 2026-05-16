@@ -1,11 +1,11 @@
 ---
 document_type: architecture-index
 level: L3
-version: "2.05"
+version: "2.06"
 status: accepted
 producer: architect
-timestamp: 2026-05-14T00:00:00Z
-last_amended: 2026-05-14
+timestamp: 2026-05-15T00:00:00Z
+last_amended: 2026-05-15
 phase: F5
 inputs:
   - .factory/phase-0-ingestion/pass-8-final-synthesis.md
@@ -17,6 +17,8 @@ inputs:
 traces_to: phase-1-spec-crystallization
 deployment_topology: single-service
 changelog:
+  - date: 2026-05-15
+    change: "v2.06 (2026-05-15; ADR-021 + ADR-022 registered — S-15.03 wave Milestone 3 gating. ADR-021 = WASM Plugin Cargo-Audit Integration Sandboxing (Option b: bash cache script + WASM reader; no D-337 exemption required; data-provisioning bash is tooling not hook plugin; gates S-15.15 Part C — TD #74 Option b). ADR-022 = Hook Plugin Access to Current Adversary Pass Context (Option c: pointer file at .factory/current-adversary-pass.txt; state-manager writes single-line integer at every Commit A; hook reads via host::read_file; gates S-15.13 Phase 2 validate-closes-completeness). OQ-1 three-digit POLICY ID schema (F-PASS14-006) RESOLVED by human direction 2026-05-15 (three-digit canonical POLICY 001-018; override of adversary two-digit recommendation; migration deferred to S-15.15 Part B). ARCH-INDEX v2.05→v2.06. State-manager Commit A new forward-pending obligation: write .factory/current-adversary-pass.txt (activates at S-15.13 ship time)."
   - date: 2026-05-14
     change: "v2.05 (2026-05-14; E-10 pass-14 D-470 mandatory HIGH closures + D-471 asymptotic-acceptance seal — F-PASS14-001 closure (compute-input-hash mechanical execution against BC-3.04.001; D-468 false tool-unavailable claim corrected: tool present, hash 5d2b1b3 confirmed; POLICY 18 self-applied); F-PASS14-002 closure (LL-3 strict-form inline stdout at D-466/D-467/D-469 attestation sites; replaced narrative + git-pointer-forwarding; 4-row carve-out list verified; POLICY 15 self-applied). D-471 ratifies E-10 sub-cycle asymptotic-acceptance analogous to F5 D-386 Option C + human direction 2026-05-14: 6 consecutive passes (9-14) at [4-9] band; 5th META layer spawned; remaining 6 findings DEFERRED to S-15.03 PRIORITY-A automation wave; NITPICK_ONLY counter FROZEN at 0/3; resumption gate = S-15.03 PRIORITY-A lint hooks in v1.0-feature-engine-discipline-pass-2. MM gate: global max D-469; D-470+D-471 confirmed next-available. ARCH-INDEX v2.04→v2.05. Refs: D-470, D-471, F-PASS14-001, F-PASS14-002."
   - date: 2026-05-14
@@ -381,6 +383,8 @@ graph TD
 | ADR-018 | WASM-plugin Context Resolvers — design and layering for factory-agnostic runtime context injection via sandboxed WASM-plugin resolvers — **ACCEPTED 2026-05-07; D-362 F2-amendment** | SS-01, SS-04 | decisions/ADR-018-wasm-plugin-context-resolvers.md |
 | ADR-019 | Plugin Async Semantics Belong at the Registry Layer — hard cut to registry-layer `async: bool` per-plugin field; envelope uniformly synchronous; dispatcher partition (sync_group/async_group); CI lint `on_error=block ⇒ async=false` — **ACCEPTED 2026-05-07; F2 async-semantics; v1.8 (F2 pass-6 fix burst close: §Consequences inline 100ms parenthetical removed; cites DI-019 by reference; F-P6-005 closed)** | SS-01, SS-07, SS-09 | decisions/ADR-019-plugin-async-semantics-at-registry-layer.md |
 | ADR-020 | Dispatcher Latency Budget Classes — defines Class A (binary-spawn current model, p95 ≤ 1500ms) and Class B (daemon-mode target, TBD); AC-016 in S-15.01 is anchored to Class A; S-15.02 escalation path for Class B — **ACCEPTED 2026-05-08; F5 pass-1 path-A; v1.0; rationale clarification F-P3-006 last_amended 2026-05-08** | SS-01 | decisions/ADR-020-dispatcher-latency-budget-classes.md |
+| ADR-021 | WASM Plugin Cargo-Audit Integration Sandboxing — Option (b) bash pre-commit cache script + WASM reader hybrid; no D-337 exemption required (bash is data-provisioning tooling not a hook plugin); cache at `.factory/hooks/cargo-audit-cache.json`; WASM hook reads via `host::read_file`; cache-age warning + absent-file advisory (non-blocking) — **ACCEPTED 2026-05-15; S-15.03 wave M3 ADR batch; gates S-15.15 Part C (TD #74 Option b)** | SS-04, SS-07 | decisions/ADR-021-wasm-cargo-audit-sandboxing.md |
+| ADR-022 | Hook Plugin Access to Current Adversary Pass Context — Option (c) pointer file at `.factory/current-adversary-pass.txt`; state-manager writes single-line integer (pass N, no trailing newline) at every Commit A; `validate-closes-completeness` reads via `host::read_file`; absent-file = non-blocking advisory; invalid-content = hard block — **ACCEPTED 2026-05-15; S-15.03 wave M3 ADR batch; gates S-15.13 Phase 2** | SS-04, SS-05 | decisions/ADR-022-hook-current-pass-context-discovery.md |
 
 ## Phase 1.4 BC Renumbering Map
 

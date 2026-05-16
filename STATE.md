@@ -12,7 +12,7 @@ input-hash: "[live-state]"
 traces_to: prd.md
 project: vsdd-factory
 mode: brownfield
-current_step: "POST-MERGE STATE BURST 2026-05-15: S-15.05 SHIPPED PR #143 224fa184 on develop; TD #67 RESOLVED; Section 12 Step 2 COMPLETE (S-15.04 + S-15.05 both SHIPPED); orchestrator pivots Tier-A to Step 3 (S-15.03 PRIORITY-A lint-hook automation wave); single factory-artifacts commit per TD-VSDD-053; per-cycle 6-PR sweep COMPLETE (TD #71/72/70/74/S-15.04/S-15.05)"
+current_step: "STATE BURST 2026-05-15: ADR-021 + ADR-022 registered in ARCH-INDEX v2.06 (S-15.03 wave Milestone 3 gating); input-hashes computed (8ca8e03); OQ-2 (cargo-audit Option b) + OQ-3 (current-pass pointer Option c) RESOLVED; OQ-1 (POLICY ID three-digit) RESOLVED by human; architect wave plan 95 items across 8 categories 11 stories S-15.06..S-15.16; M1 dispatch ready (S-15.06+S-15.08+S-15.16 Part A); single factory-artifacts commit per TD-VSDD-053"
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -42,8 +42,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-15 — S-15.05 SHIPPED PR #143 224fa184 on develop; TD #67 RESOLVED; STORY-INDEX v3.25; BC-1.14.001 lifecycle_status already active (POL-14 satisfied); F-P3-008 ubuntu CI flake RESOLVED (TC-9 structurally fixed by S-15.05 event-observation; interim timeout expansion at 4baa2583 superseded). Section 12 Step 2 COMPLETE (S-15.04 PR #142 + S-15.05 PR #143; TD #66 + TD #67 RESOLVED). 6-PR Tier-A sweep COMPLETE (TD #71/72/70/74/S-15.04/S-15.05). Prior: S-15.04 SHIPPED PR #142 fdc7da16. |
-| **Current Phase** | Section 12 Step 2 COMPLETE (S-15.04 SHIPPED PR #142; S-15.05 SHIPPED PR #143). Tier-A pivots to Step 3 (S-15.03 PRIORITY-A lint-hook automation) — wave-scale; requires architect + PO + wave-planning before implementer can engage. After S-15.03 SHIPS, Step 4 (E-10 sub-cycle resumption) becomes unblocked. |
+| **Last Updated** | 2026-05-15 — ADR-021 + ADR-022 registered (ARCH-INDEX v2.06); input-hashes computed (8ca8e03); 3 OQ resolutions: OQ-1 three-digit POLICY ID (human direction), OQ-2 ADR-021 cargo-audit Option b, OQ-3 ADR-022 current-pass pointer Option c. Architect wave plan: 95 distinct items across 8 categories → 11 stories S-15.06..S-15.16. M1 (S-15.06+S-15.08+S-15.16 Part A) dispatch-ready. Prior: S-15.05 SHIPPED PR #143 224fa184 (TD #67). |
+| **Current Phase** | Section 12 Step 3 wave-plan COMPLETE 2026-05-15 (architect). 3 OQ resolutions: OQ-1 three-digit POLICY IDs (human override of adversary recommendation); OQ-2 ADR-021 cargo-audit Option b; OQ-3 ADR-022 current-pass Option c. Milestone 1 (S-15.06 + S-15.08 + S-15.16 Part A) is dispatch-ready — zero gates remaining. |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Phase Progress
@@ -128,81 +128,12 @@ dtu_services: []
 
 ## Current Phase Steps
 
+> **Rows before pass-57 archived to** `cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md` per STATE.md content-routing rules (keep last 5 only).
+
 | Step | Agent | Status | Output |
 |------|-------|--------|--------|
-| F5 passes 18-20 fix bursts (archived) | state-manager | DONE 2026-05-11 | D-393..D-398 codified; L-EDP1-010..012; see burst-log for details |
-| F5 pass-21 cycle-level adversary | adversary | DONE 2026-05-11 | HIGH (1H+5M+3L+1NIT+1PG); trajectory →11; 12th-layer L-EDP1-003 (adjacent-cell sibling-sweep gap); D-399+D-400 required |
-| F5 pass-21 fix burst (D-399+D-400+content fixes) | state-manager | DONE 2026-05-11 | F-P21-001..009 fixed; D-399+D-400 codified; L-EDP1-013; BC-INDEX v1.65; pass-20 burst-log corrigenda |
-| F5 pass-22 cycle-level adversary | adversary | DONE 2026-05-11 | HIGH (1H+5M+3L+2NIT+2PG); trajectory content-only →11; 13th-layer L-EDP1-003 (index-changelog silence + D-394 recurrence + counting-basis drift); D-401+D-402 required |
-| F5 pass-22 fix burst (D-401+D-402+content fixes) | state-manager | DONE 2026-05-11 | F-P22-001..011 fixed; D-401+D-402 codified; L-EDP1-014; ARCH-INDEX v1.46; VP-INDEX v1.42; STORY-INDEX v2.67; BC-INDEX enum fix; trajectory corrected pass-21→10 |
-| F5 pass-23 cycle-level adversary | adversary | DONE 2026-05-11 | HIGH (1H+5M+3L+2NIT+2PG); trajectory content-only →11; 14th-layer L-EDP1-003 (index partial-coverage at codification boundary + D-402 regex precision); D-403 required |
-| F5 pass-23 fix burst (D-403+content fixes) | state-manager | DONE 2026-05-11 | F-P23-001..009 fixed; D-403 codified; L-EDP1-015; BC-INDEX v1.66; ARCH-INDEX v1.47; pass-22+pass-21 corrigenda |
-| F5 pass-24 cycle-level adversary | adversary | DONE 2026-05-11 | HIGH (1H+4M+3L+2NIT+1PG); trajectory content-only →10; 15th-layer L-EDP1-003 (VP-INDEX hook-blocked + D-404 literal-acknowledgment); D-404 required |
-| F5 pass-24 fix burst (D-404+content fixes) | state-manager | DONE 2026-05-11 | D-404 codified; L-EDP1-016; BC-INDEX v1.67; ARCH-INDEX v1.48; STORY-INDEX v2.68; VP-INDEX blocked TD-031; burst-log corrigenda F-P24-002/009 |
-| F5 pass-25 cycle-level adversary | adversary | DONE 2026-05-11 | HIGH (2H+4M+4L+2NIT+1PG); trajectory content-only →12; 16th-layer L-EDP1-003 (D-404 self-application + VP stale-narrative 6-site sweep); D-405 required |
-| F5 pass-25 fix burst (D-405+content fixes) | state-manager | DONE 2026-05-11 | D-405 codified; L-EDP1-017; BC-INDEX v1.68; ARCH-INDEX v1.49; STORY-INDEX v2.69; VP-INDEX v1.44 (TD-031 normalization complete); 6-site stale-narrative swept; burst-log corrigenda F-P25-005/006/010/011 |
-| F5 pass-26 cycle-level adversary | adversary | DONE 2026-05-11 | HIGH (1H+4M+3L+2NIT+1PG); trajectory →10; 17th-layer L-EDP1-003 (Dim-6 false-green Verification; Dim-7 partial-coverage); D-406+L-EDP1-018 required |
-| F5 pass-26 fix burst (D-406+content fixes) | state-manager | DONE 2026-05-11 | D-406 codified; L-EDP1-018; L-EDP1-017 Layer-16 inline-replaced; burst-log corrigenda F-P26-001/002; INDEX.md range unified; STATE.md pass-count corrected; S-15.03 story annotated |
-| F5 pass-27 cycle-level adversary | adversary | DONE 2026-05-11 | HIGH (2H+5M+3L+2NIT+1PG); trajectory →12; 18th-layer L-EDP1-003 (D-404 unconditional obligation conflated with D-401(a) threshold; corrigendum regex invalid); D-407+L-EDP1-019 required |
-| F5 pass-27 fix burst (D-407+content fixes) | state-manager | DONE 2026-05-11 | D-407 codified (4 sub-clauses); L-EDP1-019; L-EDP1-018 Layer-17 inline-replaced; burst-log corrigenda F-P27-002/006; 4 indexes v1.69/v1.45/v2.70/v1.50 acknowledge D-389..D-407 |
-| F5 pass-28 cycle-level adversary | adversary | DONE 2026-05-11 | HIGH (3H+2M+4L+1NIT+1PG); trajectory →11; 19th-layer L-EDP1-003 (Dim-Verification false-green at corrigendum-body boundary); D-408 required |
-| F5 pass-28 fix burst (D-408+content fixes) | state-manager | DONE 2026-05-11 | D-408 codified (3 sub-clauses); L-EDP1-020; L-EDP1-019 Layer-18 inline-replaced; 4 corrigenda (F-P28-001/002/003/004); 4 indexes v1.70/v1.46/v2.71/v1.51 acknowledge D-389..D-408 |
-| F5 pass-29 cycle-level adversary | adversary | DONE 2026-05-11 | HIGH (2H+4M+3L+1NIT+1PG); trajectory →10; 20th-layer L-EDP1-003 (Verification-line self-reference via backtick quoting; D-409(a)); D-409 required |
-| F5 pass-29 fix burst (D-409+content fixes) | state-manager | DONE 2026-05-11 | D-409 codified (3 sub-clauses); L-EDP1-021; L-EDP1-020 Layer-19 inline-replaced; corrigenda F-P29-001/002/005/007; INDEX.md frontmatter D-409(b); 4 indexes v1.71/v1.47/v2.72/v1.52 acknowledge D-389..D-409 |
-| F5 pass-30 cycle-level adversary | adversary | DONE 2026-05-11 | HIGH (1H+2M+2L+1NIT+1PG); trajectory →6 (significant drop); 21st-layer L-EDP1-003 (sibling-corrigendum convention gap); D-410 required |
-| F5 pass-30 fix burst (D-410+content fixes) | state-manager | DONE 2026-05-11 | D-410 codified; L-EDP1-022; L-EDP1-021 Layer-20 inline-replaced; L-EDP1-020 retroactive sibling-corrigendum + Status D-408 corrigendum; 4 indexes v1.72/v1.48/v2.73/v1.53 acknowledge D-389..D-410 |
-| F5 pass-31 cycle-level adversary | adversary | DONE 2026-05-11 | HIGH (1H+3M+2L+1NIT+1PG); trajectory →7; 22nd-layer L-EDP1-003 (D-409(c) self-app at D-410 codification boundary); D-411 required |
-| F5 pass-31 fix burst (D-411+content fixes) | state-manager | DONE 2026-05-11 | D-411 codified (3 sub-clauses); L-EDP1-023; L-EDP1-022 Layer-21 inline-replaced + structural fixes; D-410 retroactive corrigenda; pass-30 burst-log corrigenda F-P31-005/006/007; 4 indexes v1.73/v1.49/v2.74/v1.54 acknowledge D-389..D-411 |
-| F5 pass-32 cycle-level adversary | adversary | DONE 2026-05-11 | HIGH (2H+3M+2L+1NIT+1PG); trajectory →8; 23rd-layer L-EDP1-003 at D-411(b) retroactive-enumeration + Dim-7 dispatch-stability boundaries; D-412 required |
-| F5 pass-32 fix burst (D-412+content fixes) | state-manager | DONE 2026-05-11 | D-412 codified (3 sub-clauses); L-EDP1-024; L-EDP1-023 Layer-22 inline-replaced + sibling-corrigendum; L-EDP1-022 body corrigendum; D-411 retroactive corrigendum; pass-31 burst-log corrigenda F-P32-002/004; 4 indexes v1.74/v1.50/v2.75/v1.55 acknowledge D-389..D-412 |
-| F5 pass-33 cycle-level adversary | adversary | DONE 2026-05-11 | HIGH (5H+1M+1PG); trajectory →6; 24th-layer L-EDP1-003 at D-412(b) self-application + Canonical-marker 3rd self-ref + closure-set completeness; D-413 required |
-| F5 pass-33 fix burst (D-413+content fixes) | state-manager | DONE 2026-05-11 | D-413 codified (4 sub-clauses); L-EDP1-025; L-EDP1-024 Layer-23 inline-replaced + sibling-corrigendum; L-EDP1-023 body corrigendum; D-411+D-412 retroactive Closes corrigenda; pass-32 burst-log Dim-2/Dim-5 corrigenda; 4 indexes v1.75/v1.51/v2.76/v1.56 acknowledge D-389..D-413 |
-| F5 pass-34 cycle-level adversary | adversary | DONE 2026-05-11 | HIGH (1H+1M+1obs); trajectory content-only →2; 25th-layer L-EDP1-003 (D-413(a) N-source semantics self-application + D-387 placement + D-413(c) scope); D-414 required |
-| F5 pass-34 fix burst (D-414+content fixes) | state-manager | DONE 2026-05-11 | D-414 codified (3 sub-clauses); L-EDP1-026; L-EDP1-025 Layer-24 inline-replaced + sibling-corrigendum; pass-33 Dim-5 corrigendum; pass-32 Dim-2/Dim-5 forward-refs; 4 indexes v1.76/v1.52/v2.77/v1.57 acknowledge D-389..D-414 |
-| F5 pass-35 cycle-level adversary | adversary | DONE 2026-05-11 | HIGH (2H+3M); trajectory content-only →5; 26th-layer L-EDP1-003 (attestation-prose-cite 4th self-ref class + STATE.md range sibling-sweep + Dim-7 4th recurrence); D-415 required |
-| F5 pass-35 fix burst (D-415+content fixes) | state-manager | DONE 2026-05-11 | D-415 codified (5 sub-clauses); L-EDP1-027; L-EDP1-026 Layer-25 inline-replaced + sibling-corrigendum; pass-34 Dim-5/Dim-7 corrigenda; STATE.md range fix; adv-cycle-pass-34 prior-findings-count fix; 4 indexes v1.77/v1.53/v2.78/v1.58 acknowledge D-389..D-415 |
-| F5 pass-36 cycle-level adversary | adversary | DONE 2026-05-11 | HIGH (1H+3M+1L); trajectory content-only →5; 27th-layer L-EDP1-003 (multi-match literal-substring + D-415(c) self-application + D-406(c) propagation-MUST + sibling-cell sweep + observations-field-presence); D-416 required |
-| F5 pass-36 fix burst (D-416+content fixes) | state-manager | DONE 2026-05-11 | D-416 codified (5 sub-clauses); L-EDP1-028; L-EDP1-027 Layer-26 inline-replaced + sibling-corrigendum; burst-log pass-35 Dim-2 corrigendum; adv-cycle-pass-35 obs:0; INDEX.md D-415c form; S-15.03 cumulative propagation; 4 indexes v1.78/v1.54/v2.79/v1.59 acknowledge D-389..D-416 |
-| F5 pass-37 cycle-level adversary | adversary | DONE 2026-05-11 | HIGH (2H+2M+1L); trajectory content-only →5; 28th-layer L-EDP1-003 (body-vs-frontmatter tally consistency + D-394 dispatch-advance-set semantics + Session Resume STATE: stale + archive-pointer 2-stale + checklist-convention); D-417 required |
-| F5 pass-37 fix burst (D-417+content fixes) | state-manager | DONE 2026-05-11 | D-417 codified (4 sub-clauses); L-EDP1-029; L-EDP1-028 Layer-27 inline-replaced + sibling-corrigendum; pass-36 tally cascade corrected 7 sites (1H+3M+1L=5); F-P37-002 Dim-7 prediction corrigendum; F-P37-003/004/005 STATE.md fixes; 4 indexes v1.79/v1.55/v2.80/v1.60 acknowledge D-389..D-417 |
-| F5 pass-38 cycle-level adversary | adversary | DONE 2026-05-12 | HIGH (2H+3M+2L=7); trajectory content-only →7; 29th-layer L-EDP1-003 (D-417(c) archive-pointer self-application failure + SHA contradiction + Dim-7 6th recurrence + pass-37 trajectory self-value missing); D-418 required |
-| F5 pass-38 fix burst (D-418+content fixes) | state-manager | DONE 2026-05-12 | D-418 codified (4 sub-clauses); L-EDP1-030; L-EDP1-029 Layer-28 inline-replaced + sibling-corrigendum; F-P38-001 SHA fix; F-P38-002 archive-pointer D-417(c) form; F-P38-003 Dim-7 deterministic-tally; F-P38-004 pass-37 trajectory corrigendum; 4 indexes v1.80/v1.56/v2.81/v1.61 acknowledge D-389..D-418 |
-| F5 pass-39 cycle-level adversary | adversary | DONE 2026-05-12 | HIGH (3H+3M+2L=8+1obs); trajectory →8; 30th-layer L-EDP1-003 (D-418(a) self-application failure; SHA grep-back false attestation; D-417(c)+D-418(a) temporal paradox; D-413(b) misframing); D-419 required |
-| F5 pass-39 fix burst (D-419+content fixes) | state-manager | DONE 2026-05-12 | D-419 codified (3 sub-clauses); L-EDP1-031; L-EDP1-030 Layer-29 inline-replaced + sibling-corrigendum; F-P39-001 SHA fix (fba13633 per D-419(b)); F-P39-002 temporal paradox resolved; F-P39-003 D-418 Closes corrigendum + D-413(b) misframing; F-P39-006 L-EDP1-029 sibling-corrigendum form fix; F-P39-007 S-15.03 D-417(b)+D-418(c) propagation; 4 indexes v1.81/v1.57/v2.82/v1.62 acknowledge D-389..D-419 |
-| F5 pass-40 cycle-level adversary | adversary | DONE 2026-05-12 | HIGH (3H+3M+1L=7+1obs); trajectory →7; 31st-layer L-EDP1-003 multi-axis (4 simultaneous at D-419 codification boundary: D-411(a) closure-set 6/8 sites + D-418(c) Dim-7 cell-list + D-416(a) multi-match count + D-416(c) S-15.03 MUST); D-420 required |
-| F5 pass-40 fix burst (D-420+content fixes) | state-manager | DONE 2026-05-12 | D-420 codified (5 sub-clauses); L-EDP1-032; L-EDP1-031 Layer-30 inline-replaced + sibling-corrigendum; F-P40-001 6-site closure-set sweep; F-P40-002 Dim-7 corrigendum; F-P40-003 Dim-2 corrigendum; F-P40-004 current_step: D-420(d) prose form; F-P40-005 S-15.03 D-419+D-420 propagation (17 items); F-P40-006 burst-log Action narrative corrigendum; F-P40-007 Closes annotation form; 4 indexes v1.82/v1.58/v2.83/v1.63 acknowledge D-389..D-420 |
-| F5 pass-41 cycle-level adversary | adversary | DONE 2026-05-12 | HIGH (3H+4M+1L=8+1obs); trajectory →8; 32nd-layer L-EDP1-003 multi-axis (2nd consecutive; D-420(a/b/c)+D-418(c) 4 simultaneous at D-420 codification boundary); D-421 required |
-| F5 pass-41 fix burst (D-421+content fixes) | state-manager | DONE 2026-05-12 | D-421 codified (5 sub-clauses); L-EDP1-033; L-EDP1-032 Layer-31 inline-replaced + sibling-corrigendum; F-P41-001 D-420 Closes 7-site sweep; F-P41-002 Dim-7 archive-pointer corrigendum; F-P41-003 Dim-2 line-number corrigendum; F-P41-004 dispatch-stable sibling-sweep; F-P41-005 archive-pointer SHA-inclusion; F-P41-006 L-EDP1-032 cardinality; F-P41-007 STATE banner; F-P41-008 heading form; 4 indexes v1.83/v1.59/v2.84/v1.64 acknowledge D-389..D-421 |
-| F5 pass-42 cycle-level adversary | adversary | DONE 2026-05-12 | HIGH (3H+3M+1L=7+1obs); trajectory →7; 33rd-layer L-EDP1-003 multi-axis (3rd consecutive; D-382+D-407(b)+D-408(a) rubber-stamp + D-420(b) wrong cells + D-421(c) banner self-defeated at D-421 codification boundary); D-422 required |
-| F5 pass-42 fix burst (D-422+content fixes) | state-manager | DONE 2026-05-12 | D-422 codified (4 sub-clauses); L-EDP1-034; L-EDP1-033 Layer-32 inline-replaced + sibling-corrigendum; F-P42-001 INDEX.md catch-up rows (pass-41+42); F-P42-002 Dim-7 cell-list corrigendum; F-P42-003 33rd-layer multi-axis; F-P42-005 STATE banner D-422(c); F-P42-006 Dim-5 line-numbers; F-P42-007 INDEX.md cardinality (transitive); 4 indexes v1.85/v1.61/v2.86/v1.66 acknowledge D-389..D-422 |
-| F5 pass-43 cycle-level adversary | adversary | DONE 2026-05-12 | HIGH (4H+3M+1L=8+1obs); trajectory →8; 34th-layer L-EDP1-003 multi-axis (4th consecutive; ALL D-422 sub-clauses violated at D-422 codifying burst); D-423 required |
-| F5 pass-43 fix burst (D-423+content fixes) | state-manager | DONE 2026-05-12 | D-423 codified (4 sub-clauses); L-EDP1-035; L-EDP1-034 Layer-33 inline-replaced + sibling-corrigendum; L-EDP1-033 retroactive sibling-corrigendum (F-P43-007); F-P43-001 version sweep; F-P43-002 post-dispatch sed proof; F-P43-003 D-422(a) re-execution actual; F-P43-004 S-15.03 D-422+D-423 propagation; F-P43-005 L-EDP1-034 cardinality; F-P43-006 banner +32; F-P43-008 checklist ✓; 4 indexes v1.86/v1.62/v2.87/v1.67 acknowledge D-389..D-423 |
-| F5 pass-44 cycle-level adversary | adversary | DONE 2026-05-12 | HIGH (3H+3M+1L=7+1obs); trajectory →7; 35th-layer L-EDP1-003 multi-axis (5th consecutive; D-423(b) self-application VIOLATED as predicted by L-EDP1-035); D-424 required |
-| F5 pass-44 fix burst (D-424+content fixes) | state-manager | DONE 2026-05-12 | D-424 codified (4 sub-clauses); L-EDP1-036; L-EDP1-035 Layer-34 inline-replaced + sibling-corrigendum; burst-log corrigenda F-P44-001/004/005/006; banner margin +13 per D-424(b); D-424(c) discriminating grep-back; 4 indexes v1.87/v1.63/v2.88/v1.68 acknowledge D-389..D-424 |
-| F5 pass-45 cycle-level adversary | adversary | DONE 2026-05-12 | HIGH (4H+3M+1L=8+1obs); trajectory →8; 36th-layer L-EDP1-003 multi-axis (6th consecutive; NEW D-415(b) silent-slip axis; 9-burst preamble staleness detected by fresh-context only; validates L-EDP1-007); D-425 required |
-| F5 pass-45 fix burst (D-425+content fixes) | state-manager | DONE 2026-05-12 | D-425 codified (4 sub-clauses); L-EDP1-037; L-EDP1-036 Layer-35 inline-replaced + sibling-corrigendum; burst-log corrigenda F-P45-001/005/007; STATE.md preamble D-415(b) catch-up; vague-range elimination; S-15.03 D-424+D-425 propagation 8 items; 4 indexes v1.88/v1.64/v2.89/v1.69 acknowledge D-389..D-425 |
-| F5 pass-46 cycle-level adversary | adversary | DONE 2026-05-12 | HIGH (3H+3M+1L=7+1obs); trajectory →7; 37th-layer L-EDP1-003 multi-axis (7th consecutive; NEW D-425(c) rule-scope-vs-applied-scope coverage gap + D-425(b) N+3 vs N+4 contradiction + L-EDP1-037 body cardinality + checklist-4a drift + D-415(a) 5th site class + INDEX.md format ambiguity); D-426 required |
-| F5 pass-46 fix burst (D-426+content fixes) | state-manager | DONE 2026-05-12 | D-426 codified (4 sub-clauses); L-EDP1-038; L-EDP1-037 Layer-36 inline-replaced + sibling-corrigendum; F-P46-001 "4+" scope-sweep 5 sites (→7 in trend-tables + 3-7 in prose); F-P46-002/005 N+4 form in D-415(a)+D-425(b)+S-15.03; F-P46-003 L-EDP1-037 body 7-axis enumeration; F-P46-006 INDEX.md format standardized passes 34,39-46; D-426(a) scope-sweep 4+ count=0; 4 indexes v1.89/v1.65/v2.90/v1.70 acknowledge D-389..D-426 |
-| F5 pass-47 cycle-level adversary | adversary | DONE 2026-05-12 | HIGH (3H+3M+1L=7+1obs); trajectory →7; 38th-layer L-EDP1-003 multi-axis (8th consecutive; NEW D-427(a) vague-range scope gap + D-427(b) cross-doc propagation + S-15.03 propagation gap + L-EDP1-038 cardinality + D-422(c) banner + D-427(d) INDEX.md cohort gap + D-427(c) N+6 site classes); D-427 required |
-| F5 pass-47 fix burst (D-427+content fixes) | state-manager | DONE 2026-05-12 | D-427 codified (5 sub-clauses); L-EDP1-039; L-EDP1-038 Layer-37 inline-replaced + sibling-corrigendum; F-P47-001 vague-range sweep 4 sites; F-P47-002 D-425 N+3→N+4 propagation 4 sites; F-P47-003 S-15.03 D-426+D-427 9 items; F-P47-004 L-EDP1-038 body 7-axis; F-P47-006 INDEX.md rows 35-38 standardized; D-427(a) vague-range count=0; 4 indexes v1.90/v1.66/v2.91/v1.71 acknowledge D-389..D-427 |
-| F5 pass-48 cycle-level adversary | adversary | DONE 2026-05-12 | HIGH (4H+3M+1L=8+1obs); trajectory →8; 39th-layer L-EDP1-003 multi-axis (9th consecutive; NEW META-LEVEL-3 self-replicating coverage-gap; sweep-regex semantic gap at level-3 recursion); D-428 required |
-| F5 pass-48 fix burst (D-428+content fixes) | state-manager | DONE 2026-05-12 | D-428 codified (5 sub-clauses); L-EDP1-040; L-EDP1-039 Layer-38 inline-replaced + sibling-corrigendum; F-P48-001 vague-range sweep regex-derived 4 sites; F-P48-002 Dim-1 TBD resolved to 15; F-P48-003 N+4→N+6 propagation 4 STATE.md sites; F-P48-004 banner wc-l; F-P48-005 INDEX.md cohort doc; F-P48-006 Closes trailing form; F-P48-007 S-15.03 D-416(c) sub-item; F-P48-008 L-EDP1-039 row 38 format; 4 indexes v1.91/v1.67/v2.92/v1.72 acknowledge D-389..D-428 |
-| F5 pass-49 cycle-level adversary | adversary | DONE 2026-05-12 | HIGH (4H+3M+1L=8+1obs); trajectory →8→8; 40th-layer L-EDP1-003 multi-axis (10th consecutive; META-LEVEL-4 CONFIRMED; D-428(a) regex-derivation discipline itself coverage-gapped at codifying burst); D-429 required |
-| F5 pass-49 fix burst (D-429+content fixes) | state-manager | DONE 2026-05-12 | D-429 codified (5 sub-clauses); L-EDP1-041; L-EDP1-040 row-39 inline-replaced + corrigendum + cardinality 7→8 Plus→axis8; F-P49-001 burst-log full-regex 7-pattern; F-P49-002 decision-log N+4→N+6 + S-15.03; F-P49-003 INDEX VP v1.91→v1.67; F-P49-004 L-EDP1-040 8-axis body; F-P49-005 PG-EDP1-002 citation fix; F-P49-006 burst-log:2768 TBD→346; F-P49-007 Layer 39/40 framing; 4 indexes v1.92/v1.68/v2.93/v1.73 acknowledge D-389..D-429 |
-| F5 pass-50 cycle-level adversary | adversary | DONE 2026-05-12 | HIGH (4H+2M+1L=7+1obs); trajectory →7; 41st-layer L-EDP1-003 (11th consecutive multi-axis; META-LEVEL-5 candidate; HALF-CENTURY milestone; D-429(c) lexical-vs-semantic gap); D-430 required |
-| F5 pass-50 fix burst (D-430+content fixes) | state-manager | DONE 2026-05-12 | D-430 codified (5 sub-clauses); L-EDP1-042; L-EDP1-041 body 8-simultaneous + corrigendum; S-15.03 D-428+D-429 propagation 10 items; D-430(a) compaction authorization; banner D-429(e); STATE.md preamble D-416(c) umbrella; 4 indexes v1.93/v1.69/v2.94/v1.74 acknowledge D-389..D-430 |
-| F5 pass-51 cycle-level adversary | adversary | DONE 2026-05-12 | HIGH (1C+4H+2M=7+1obs); trajectory →7; 42nd-layer L-EDP1-003 (12th consecutive multi-axis; META-LEVEL-6 CONFIRMED; CRITICAL table-row coalescence NEW class; D-429(c)/D-430(c)/D-431(a-e) required) |
-| F5 pass-51 fix burst (D-431+content fixes) | state-manager | DONE 2026-05-12 | D-431 codified (5 sub-clauses); L-EDP1-043; F-P51-001 CRITICAL line-split; F-P51-002 STATE.md D-430 row; F-P51-003 S-15.03 header D-431; F-P51-004 banner labels reorder; F-P51-005 archive-pointer; F-P51-006 vague-range fix; F-P51-007 corrigendum column; 4 indexes v1.94/v1.70/v2.95/v1.75 acknowledge D-389..D-431 |
-| F5 pass-52 cycle-level adversary | adversary | DONE 2026-05-12 | HIGH (1C+3H+2M+1L=7+1obs); trajectory →7; 43rd-layer L-EDP1-003 (13th consecutive multi-axis; META-LEVEL-7 CONFIRMED; CRITICAL banner double-clause label corruption NEW class; D-432(a-f) required) |
-| F5 pass-52 fix burst (D-432+content fixes) | state-manager | DONE 2026-05-12 | D-432 codified (6 sub-clauses); L-EDP1-044; F-P52-001 CRITICAL banner double-clause removed; F-P52-002/004 tally sync; F-P52-003 trajectory-tail →8→7→7→7; F-P52-005 Dim-7 line-25 corrigendum; F-P52-006 banner template; F-P52-007 unique file count; 4 indexes v1.95/v1.71/v2.96/v1.76 acknowledge D-389..D-432 |
-| F5 pass-53 cycle-level adversary | adversary | DONE 2026-05-12 | HIGH (1C+4H+2M+1L=8+2obs); trajectory →8; 44th-layer L-EDP1-003 (14th consecutive multi-axis; META-LEVEL-8 CONFIRMED; CRITICAL ADV-EDP1-P53-CRIT-001 banner D-NNN cite frozen at D-431; banner-cite-advancement scope gap); D-433 required |
-| F5 pass-53 fix burst (D-433+content fixes) | state-manager | DONE 2026-05-12 | D-433 codified (5 sub-clauses); L-EDP1-045; CRIT-001+HIGH-001/002/003/004+MED-001/002+LOW-001 fixed; banner advanced D-433; wc-l anchor 320; trajectory-tail →7→7→7→8; 4 indexes v1.96/v1.72/v2.97/v1.77 acknowledge D-389..D-433 |
-| F5 pass-54 cycle-level adversary | adversary | DONE 2026-05-12 | HIGH (4H+3M+1L=8+2obs); trajectory →8; 45th-layer L-EDP1-003 (15th consecutive multi-axis; META-LEVEL-9 CONFIRMED; retroactive-sweep target-set completeness gap; D-434 required) |
-| F5 pass-54 fix burst (D-434+content fixes) | state-manager | DONE 2026-05-12 | D-434 codified (5 sub-clauses); L-EDP1-046; HIGH-001..004+MED-001..003+LOW-001 fixed; L-EDP1-035..043 trend-table sweep; Session Resume tally sync; N+6 retrofit; 4 indexes v1.97/v1.73/v2.98/v1.78 acknowledge D-389..D-434 |
-| F5 pass-55 cycle-level adversary | adversary | DONE 2026-05-12 | HIGH (4H+2M+2L=8+2obs); trajectory →8; 46th-layer L-EDP1-003 (16th consecutive multi-axis; META-LEVEL-10 CONFIRMED; verification-granularity gap header-form vs value-level; D-435 required) |
-| F5 pass-55 fix burst (D-435+content fixes) | state-manager | DONE 2026-05-12 | D-435 codified (5 sub-clauses); L-EDP1-047; HIGH-001..004+MED-001/002+LOW-001/002 fixed; L-EDP1-045 value-level normalization 5+1 rows; Phase Progress pass-54 rows added; N+6 retrofit pass-54 Dim-2; 4 indexes v1.98/v1.74/v2.99/v1.79 acknowledge D-389..D-435 |
-| F5 pass-56 cycle-level adversary | adversary | DONE 2026-05-12 | HIGH (5H+2M+2L=9+2obs); trajectory →9; 47th-layer L-EDP1-003 (17th consecutive multi-axis; META-LEVEL-11 CANDIDATE; S-15.03 3-burst silent-slip + archive-pointer 2-pass stale + Dim-2/Dim-5 rubber-stamp + N+6 form precondition); D-436 required |
-| F5 pass-56 fix burst (D-436+content fixes) | state-manager | DONE 2026-05-12 | D-436 codified (5 sub-clauses); L-EDP1-048; HIGH-001..005+MED-001/002+LOW-001/002 fixed; S-15.03 D-433+D-434+D-435+D-436 20 sub-items + header advance; archive-pointer advanced; Dim-2/Dim-5 corrigenda; 4 indexes v1.99/v1.75/v3.00/v1.80 acknowledge D-389..D-436 |
+| F5 passes 18-56 fix bursts (archived) | state-manager | ARCHIVED | See `cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md` for passes 18-56 details |
+
 | F5 pass-57 cycle-level adversary | adversary | DONE 2026-05-12 | HIGH (3H+3M+2L=8+2obs); trajectory →8; 48th-layer L-EDP1-003 (18th consecutive multi-axis; META-LEVEL-12 CANDIDATE; D-436(c) format-discipline scope gap + banner wc-l + archive-pointer single-component + D-436(a) range-string-only); D-437 required |
 | F5 pass-57 fix burst (D-437+content fixes) | state-manager | DONE 2026-05-12 | D-437 codified (5 sub-clauses); L-EDP1-049; HIGH-001..003+MED-001..003+LOW-001/002 fixed; Dim-5+Dim-6 narrative corrigenda; L-EDP1-048 phrasing fixed; streak metric in current_step; 4 indexes v2.00/v1.76/v3.01/v1.81 acknowledge D-389..D-437 |
 | F5 pass-58 cycle-level adversary | adversary | DONE 2026-05-12 | HIGH (4H+3M+1L=8+2obs); trajectory →8; 49th-layer L-EDP1-003 (19th consecutive multi-axis; META-LEVEL-13 CANDIDATE; banner wc-l + S-15.03 D-437 propagation + INDEX.md stale + burst-log h2 missing + current_step STORY stale + SHA ambiguity + D-437(a) named-doc scope + trend-table gap); D-438 required |
@@ -220,7 +151,7 @@ dtu_services: []
 | Verification Property | VP-NNN | `specs/verification-properties/VP-INDEX.md` | 80 |
 | Story | S-N.MM | `stories/S-N.MM-<short>.md` | 96 file-resident + 15 stub IDs |
 | Epic | E-N | `stories/epics/E-N-<short>.md` | 17 |
-| ADR | ADR-NNN | `specs/architecture/decisions/ADR-NNN.md` | 20 |
+| ADR | ADR-NNN | `specs/architecture/decisions/ADR-NNN.md` | 22 |
 
 ## Story Status
 
@@ -335,6 +266,7 @@ dtu_services: []
 | **TD #74** dispatch-package cargo-audit shift-left | RESOLVED 2026-05-15 PR #141 5d1f8805 | Doc-only Option (a) codification at `docs/dispatch-package-authoring.md` (174 lines); CLAUDE.md cross-ref added. Option (b) WASM lint hook still deferred to S-15.03 PRIORITY-A automation wave. Pattern: dispatch-package authors must run cargo audit (or equivalent verification) and record the result in a Dependency Verification block before recommending a versioned dependency. |
 | **TD #73** wave-state.yaml schema disagreement | RESOLVED 2026-05-13 PR #124 | warn-pending-wave-gate migrated to SEQUENCE schema per F-P3-001 in PR #124 merge. Closes the contradiction surfaced by S-12.07 pass-2 adversary HIGH-006. (Original filed: 2026-05-10.) |
 | Ghost BCs: BC-3.07.003/004, BC-1.06.011 | DEFERRED | Missing from BC-INDEX; investigate in future fix-burst |
+| **F-PASS14-006** POLICY ID schema two-digit vs three-digit | **RESOLVED 2026-05-15 (human direction)** | Three-digit canonical POLICY 001-018 — override of adversary's two-digit recommendation. Migration deferred to S-15.15 Part B authorship per architect wave plan; ~15 cross-reference files to migrate. |
 | **S-12.08 resolver-linker WASI gap** | FIXED 2026-05-11 db298c94 | HIDDEN gap surfaced in S-12.04; resolver-linker lacked WASI preview2 filesystem rights for context read paths. Fixed in S-12.08 Step 3b commit db298c94. No separate TD filed — closed in-story. |
 | **Side branch `save/dim2-gates-path-register`** | RESOLVED PR #137 2026-05-14 | Pass-74 ADV-EDP1-P74-HIGH-002 retroactive fix shipped via PR #137 (squash-merge at 21d444d8); cherry-picked 3df1bdda to develop; save-point branch preserved but content fully shipped. Tier-B priority-1 CLOSED. |
 
@@ -344,17 +276,17 @@ dtu_services: []
 - `cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` | `session-checkpoints.md` | `lessons.md`
 - `cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md` (adversary reviews at `S-12.03/`, `S-12.04/`, `S-12.05/` subdirs)
 
-## Session Resume Checkpoint (2026-05-15 — S-15.05 SHIPPED PR #143 224fa184; TD #67 RESOLVED; Section 12 Step 2 COMPLETE; Step 3 Active)
+## Session Resume Checkpoint (2026-05-15 — ADR-021 + ADR-022 registered ARCH-INDEX v2.06; OQ-1/OQ-2/OQ-3 RESOLVED; Section 12 Step 3 wave plan COMPLETE; M1 dispatch-ready)
 
-> **SELF-SUFFICIENT RESUME CONTEXT — SECTION 12 STEP 2 COMPLETE; TIER-A PIVOTS TO STEP 3**
+> **SELF-SUFFICIENT RESUME CONTEXT — SECTION 12 STEP 3 WAVE PLAN COMPLETE; M1 DISPATCH-READY**
 > Read this section alone to resume the protocol after full conversation CLEAR (not compact).
 
 ### 1. Where We Are
 
 - **S-15.05 SHIPPED 2026-05-15** via PR #143 squash-merge at 224fa184; **TD #67 RESOLVED**; STORY-INDEX v3.25; F-P3-008 ubuntu flake RESOLVED
 - **Section 12 Step 2 COMPLETE** — S-15.04 (TD #66, PR #142 fdc7da16) + S-15.05 (TD #67, PR #143 224fa184) both SHIPPED
-- **6-PR Tier-A sweep COMPLETE:** TD #71 (bcf494ff) → TD #72 (83afaa3c) → TD #70 (ddc11879) → TD #74 (5d1f8805) → S-15.04 (fdc7da16) → S-15.05 (224fa184)
-- **Active Tier-A: Step 3 — S-15.03 PRIORITY-A lint-hook automation** — wave-scale; NOT micro-burst; requires architect + PO + wave-planning before implementer dispatch
+- **Section 12 Step 3 wave plan COMPLETE 2026-05-15 (architect):** 95 distinct items → 11 stories S-15.06..S-15.16; ADR-021 (OQ-2) + ADR-022 (OQ-3) registered ARCH-INDEX v2.06; OQ-1 RESOLVED; M1 dispatch-ready
+- **Active Tier-A: Step 3 — S-15.03 PRIORITY-A, M1 dispatch-ready** (S-15.06 + S-15.08 + S-15.16 Part A)
 - **TD #74 SHIPPED 2026-05-15** via PR #141 squash-merge at 5d1f8805; Section 12 Step 1 COMPLETE (historical)
 - E-10 sub-cycle PARTIAL-CLOSED (asymptotic-acceptance) 2026-05-14 at D-471 seal (1e810021); REMAINS SEALED
 - Tier-B priority-1 (dim2-gates path-registry) CLOSED via PR #137 (21d444d8) 2026-05-14; REMAINS CLOSED
@@ -373,7 +305,7 @@ dtu_services: []
 
 Human directed 2026-05-14: asymptotic-acceptance for E-10 sub-cycle analogous to F5 D-386 Option C. Close only Tier-0 mandatory findings (F-PASS14-001 + F-PASS14-002); remaining 6 findings DEFERRED to S-15.03 PRIORITY-A automation wave. D-471 seals the decision. Human directed 2026-05-15: architect adjudicated TD #66 → S-15.04 (Verdict A sub-day) + TD #67 → S-15.05 (Strategy B multi-day); proceed with per-story-delivery after state burst.
 
-### 4. Tier-A Completed Log + Current Tier-A: Step 2 — S-15.04 + S-15.05 (TD #66 + TD #67 split per architect 2026-05-15)
+### 4. Tier-A Completed Log + Current Tier-A: Step 3 — S-15.03 PRIORITY-A wave (M1: S-15.06+S-15.08+S-15.16 Part A)
 
 **TD #71 COMPLETE (historical):** Dispatcher stderr block_reason surfacing SHIPPED 2026-05-14 via PR #138 at bcf494ff. Full dispatch log: `.factory/cycles/v1.0-brownfield-backfill/td-71-dispatch.md`.
 
@@ -389,9 +321,8 @@ Human directed 2026-05-14: asymptotic-acceptance for E-10 sub-cycle analogous to
 
 **Active Tier-A: Step 3 — S-15.03 PRIORITY-A lint-hook automation (wave-scale)**
 
-- **What:** ~108 cumulative sub-items spanning D-411..D-454 + 6 E-10 deferred findings (F-PASS14-003..008) + TD #74 option (b) lint hook. F-P3-008 RESOLVED by S-15.05 — no new sub-items added in this burst.
-- **Effort:** Wave-scale (NOT micro-burst). Requires architect adjudication on subdivision strategy; PO authorship on per-hook stories; likely multi-PR delivery.
-- **Status:** Story spec draft at `.factory/stories/S-15.03-index-cite-refresh-hook.md`. Needs PO elaboration before implementer can engage.
+- **Wave plan COMPLETE 2026-05-15 (architect):** 95 distinct items across 8 categories → 11 stories S-15.06..S-15.16. ADR-021 (cargo-audit Option b) + ADR-022 (current-pass pointer Option c) registered as M3 gating ADRs. OQ-1 (three-digit POLICY IDs) RESOLVED by human direction.
+- **Milestone 1 (M1) dispatch-ready:** S-15.06 + S-15.08 + S-15.16 Part A — zero remaining gates; PO authoring next.
 - **Gate:** Step 4 (E-10 sub-cycle resumption) and Step 5 (F5 cycle resumption) both blocked until S-15.03 SHIPS.
 
 ### 5. Cumulative Codifications
@@ -406,7 +337,7 @@ Human directed 2026-05-14: asymptotic-acceptance for E-10 sub-cycle analogous to
 
 ### 7. S-15.03 PRIORITY-A Scope (Cumulative)
 
-~108 sub-items per S-15.03 cumulative header "D-411 through D-454" (44 consecutive decisions; sample — see decision-log.md). Also includes: E-10 deferred findings (F-PASS14-003..008). TD #74 option (b) lint hook also targets S-15.03 PRIORITY-A. Full enumeration: `stories/S-15.03-index-cite-refresh-hook.md`. **Status as of 2026-05-15: ACTIVE Tier-A (Step 3).** Zero new sub-items added during S-15.04 + S-15.05 burst cycle (no new D-NNN codified; F-P3-008 RESOLVED by S-15.05 so not added to backlog). Scope additions since last count: none.
+Wave plan COMPLETE 2026-05-15 (architect): **95 distinct items** across 8 categories decomposing into **11 stories S-15.06..S-15.16** (revised from ~108 sub-item pre-plan estimate). Categories: (1) index-cite-refresh hook, (2) burst-log 8-block gate, (3) source-attestation gate, (4) closes-completeness Phase 2, (5) cargo-audit lint hook (ADR-021 Option b), (6) POLICY ID migration (OQ-1 three-digit; S-15.15 Part B), (7) current-pass pointer (ADR-022 Option c; S-15.13 Phase 2), (8) dim2-gate bash templates (S-15.03 PRIORITY-A automation). Also includes: E-10 deferred findings (F-PASS14-003..008). Full enumeration: `stories/S-15.03-index-cite-refresh-hook.md`. **Status: ACTIVE Tier-A (Step 3), M1 dispatch-ready.**
 
 ### 8. 4-Index State (Post S-15.05 SHIPPED; Section 12 Step 2 COMPLETE)
 
@@ -415,7 +346,7 @@ Human directed 2026-05-14: asymptotic-acceptance for E-10 sub-cycle analogous to
 | BC-INDEX | v2.24 | D-389..D-454 (F5 sample; see decision-log.md) + D-466..D-471 E-10 pass-12/13/14 cite-refresh + POLICY 13-18 |
 | VP-INDEX | v1.96 | D-389..D-454 (sample) + D-464+D-465 VP-014 v1.2 + D-468+D-469 VP-014 v1.2.1 NN-2 parity cite-refresh |
 | STORY-INDEX | v3.25 | D-389..D-454 (sample) + D-466+D-467 E-10 pass-12 + D-468+D-469 E-1 v1.1.2 row refresh + S-15.04 + S-15.05 registration + S-15.02 cite-drift-fix + S-15.04 SHIPPED PR #142 fdc7da16 + S-15.05 SHIPPED PR #143 224fa184 status draft→merged 2026-05-15; Section 12 Step 2 COMPLETE |
-| ARCH-INDEX | v2.05 | D-389..D-454 (F5 sample) + D-466..D-471 E-10 pass-12/13/14 LL-2/LL-3/asymptotic-acceptance rows + POLICY 13-18 |
+| ARCH-INDEX | v2.06 | D-389..D-454 (F5 sample) + D-466..D-471 E-10 pass-12/13/14 rows + POLICY 13-18 + ADR-021+ADR-022 registration 2026-05-15 |
 
 ### 9. Critical Anchors (Post-S-15.05 SHIPPED; Section 12 Step 2 COMPLETE)
 
@@ -434,6 +365,9 @@ Human directed 2026-05-14: asymptotic-acceptance for E-10 sub-cycle analogous to
 - develop HEAD: `224fa184` (PR #143 squash-merge 2026-05-15 — S-15.05 TD #67 closure; Section 12 Step 2 COMPLETE)
 - Prior develop milestones: `fdc7da16` (S-15.04) → `5d1f8805` (TD #74) → `ddc11879` (TD #70) → `83afaa3c` (TD #72) → `bcf494ff` (TD #71)
 - main HEAD: `70811f4a`
+- ADR-021 cargo-audit sandboxing (Option b): `.factory/specs/architecture/decisions/ADR-021-wasm-cargo-audit-sandboxing.md` (input-hash 8ca8e03; gates S-15.15 Part C)
+- ADR-022 current-pass context-discovery (Option c): `.factory/specs/architecture/decisions/ADR-022-hook-current-pass-context-discovery.md` (input-hash 8ca8e03; gates S-15.13 Phase 2)
+- OQ-1 three-digit POLICY ID resolution (human 2026-05-15): recorded; migration deferred to S-15.15 Part B authorship (~15 cross-reference files; canonical form POLICY 001-018)
 - E-10 resumption gate: BLOCKED on S-15.03 PRIORITY-A lint hooks in v1.0-feature-engine-discipline-pass-2
 
 ### 10. PR Status (Post-TD-#74 Ship; Post-PR #141 Merge)
@@ -455,6 +389,7 @@ Human directed 2026-05-14: asymptotic-acceptance for E-10 sub-cycle analogous to
 4. **Step 2 COMPLETE.** S-15.04 SHIPPED PR #142 fdc7da16 (TD #66 RESOLVED). S-15.05 SHIPPED PR #143 224fa184 (TD #67 RESOLVED). Active Tier-A is Step 3 (S-15.03 PRIORITY-A wave). Wave-scale — needs architect + PO planning before dispatch. 6-PR sweep COMPLETE.
 5. E-10 sub-cycle SEALED — do NOT dispatch E-10 pass-15 without S-15.03 PRIORITY-A lint hooks landing first
 6. F5 cycle is PAUSED — do NOT dispatch F5 pass-75 without explicit human direction to resume F5
+7. **State-manager Commit A new obligation (ADR-022 Option c, activates at S-15.13 ship time):** At every Commit A for cycle-scoped adversarial reviews, write `.factory/current-adversary-pass.txt` (single line, integer pass N, no trailing newline). Until S-15.13 ships, this obligation is documented but NOT yet enforced. Do NOT create this file before S-15.13 lands.
 
 ### 12. Pending Work Items — Strict Engine-Discipline Ordering (Committed 2026-05-15)
 
@@ -464,7 +399,7 @@ Human directed 2026-05-14: asymptotic-acceptance for E-10 sub-cycle analogous to
 |------|------|------|------|----------------|
 | ~~1~~ | ~~**TD #74 — dispatch-package cargo-audit codification**~~ | ~~A~~ | ~~—~~ | **SHIPPED 2026-05-15 PR #141 5d1f8805** |
 | ~~2~~ | ~~**TD #66 cleanup (S-15.04) + TD #67 cleanup (S-15.05)**~~ | ~~A~~ | ~~(1) complete~~ | **COMPLETE 2026-05-15** (S-15.04 PR #142 fdc7da16 + S-15.05 PR #143 224fa184; TD #66 + TD #67 RESOLVED) |
-| 3 | **S-15.03 PRIORITY-A — lint-hook automation** | D | **(2) complete** | **Active Tier-A.** ~108 cumulative sub-items spanning D-411..D-454 + 6 E-10 deferred findings (F-PASS14-003..008); wave-scale; needs architect + PO planning before dispatch; blocks E-10/F5 resumption |
+| 3 | **S-15.03 PRIORITY-A — lint-hook automation** | D | **(2) complete** | **Active Tier-A — wave plan COMPLETE 2026-05-15.** 95 items → 11 stories S-15.06..S-15.16; ADR-021+ADR-022 registered (M3 gating); OQ-1 RESOLVED; M1 (S-15.06+S-15.08+S-15.16 Part A) dispatch-ready |
 | 4 | **E-10 sub-cycle resumption (pass-15 forward)** | gated | (3) complete | Brownfield-backfill architect-discipline cycle continuation; currently SEALED at D-471 asymptotic-acceptance |
 | 5 | **F5 cycle resumption (pass-75 forward)** | gated | (3) complete + **explicit human direction** | feature-engine-discipline-pass-1 cycle continuation; currently PAUSED at META-LEVEL-29 per D-386 Option C; parent-commit for pass-75 is `487e0cc3` per D-419(b) |
 
