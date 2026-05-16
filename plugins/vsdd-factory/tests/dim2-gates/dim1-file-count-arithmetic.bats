@@ -29,5 +29,5 @@ setup() {
 @test "FAIL: dim1-file-count-arithmetic exits 1 when headline count differs from comma-list length" {
   run "$SCRIPT" "$FIX_FAIL/burst-log.md"
   [ "$status" -eq 1 ]
-  [[ "$output" == *"FAIL"* ]] || [[ "$output" == *"expected"* ]] || [[ "$output" == *"found"* ]]
+  [[ "$output" == *"FAIL:"* ]]
 }

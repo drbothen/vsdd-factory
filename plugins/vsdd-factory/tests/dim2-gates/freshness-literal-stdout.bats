@@ -21,5 +21,5 @@ setup() {
 @test "FAIL: freshness-literal-stdout exits 1 when re-run command exits non-zero" {
   run "$SCRIPT" "false"
   [ "$status" -eq 1 ]
-  [[ "$output" == *"FAIL"* ]] || [[ "$output" == *"exit"* ]] || [ "$status" -ne 0 ]
+  [[ "$output" == *"FAIL:"* ]]
 }

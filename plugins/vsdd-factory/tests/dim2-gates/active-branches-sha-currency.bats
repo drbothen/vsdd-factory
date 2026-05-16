@@ -45,5 +45,5 @@ setup() {
     GIT_TEST_SHA_OVERRIDE_factory_artifacts="$SHA_FACTORY" \
     "$SCRIPT" "$FIX_FAIL" "$FIX_FAIL/STATE.md"
   [ "$status" -eq 1 ]
-  [[ "$output" == *"FAIL"* ]] || [[ "$output" == *"stale"* ]] || [[ "$output" == *"develop"* ]]
+  [[ "$output" == *"FAIL:"* ]]
 }

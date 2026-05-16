@@ -31,7 +31,7 @@ setup() {
 @test "FAIL: dim7-dispatched-count-sweep exits 1 when Dim-7 anachronism line detected" {
   run "$SCRIPT" "$FIX_FAIL/burst-log.md"
   [ "$status" -eq 1 ]
-  [[ "$output" == *"FAIL"* ]] || [[ "$output" == *"anachronism"* ]] || [[ "$output" == *"pass-74"* ]]
+  [[ "$output" == *"FAIL:"* ]]
 }
 
 # added in S-15.08 fix-burst-1 for F-S15.08-LOCAL-P1-001
@@ -48,5 +48,5 @@ setup() {
 @test "FAIL: dim7-dispatched-count-sweep exits 1 when 3rd burst Dim-7 has forward pass reference" {
   run "$SCRIPT" "$FIX_FAIL_3BURST/burst-log.md"
   [ "$status" -eq 1 ]
-  [[ "$output" == *"FAIL"* ]] || [[ "$output" == *"anachronism"* ]] || [[ "$output" == *"pass-76"* ]]
+  [[ "$output" == *"FAIL:"* ]]
 }

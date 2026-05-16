@@ -28,5 +28,5 @@ setup() {
 @test "FAIL: decision-log-monotonic-rows exits 1 when D-NNN rows contain an inversion" {
   run "$SCRIPT" "$FIX_FAIL/decision-log.md"
   [ "$status" -eq 1 ]
-  [[ "$output" == *"FAIL"* ]] || [[ "$output" == *"inversion"* ]] || [[ "$output" == *"D-453"* ]]
+  [[ "$output" == *"FAIL:"* ]]
 }

@@ -30,5 +30,5 @@ setup() {
 @test "FAIL: layer-ordinal-dual-direction exits 1 when N+1 drift layer ordinal detected" {
   run "$SCRIPT" 42 "$FIX_FAIL/lessons.md"
   [ "$status" -eq 1 ]
-  [[ "$output" == *"FAIL"* ]] || [[ "$output" == *"drift"* ]] || [[ "$output" == *"43rd-layer"* ]]
+  [[ "$output" == *"FAIL:"* ]]
 }

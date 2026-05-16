@@ -27,7 +27,7 @@ setup() {
 @test "FAIL: block-label-canonical-form exits 1 when a canonical block label is missing" {
   run "$SCRIPT" "$FIX_FAIL/burst-log.md"
   [ "$status" -eq 1 ]
-  [[ "$output" == *"FAIL"* ]] || [[ "$output" == *"missing"* ]] || [[ "$output" == *"Dim-7"* ]]
+  [[ "$output" == *"FAIL:"* ]]
 }
 
 # added in S-15.08 fix-burst-1 for F-S15.08-LOCAL-P1-006

@@ -30,5 +30,5 @@ setup() {
   run "$SCRIPT" "D-453" "$FIX_FAIL/sites.txt"
   popd >/dev/null
   [ "$status" -eq 1 ]
-  [[ "$output" == *"FAIL"* ]] || [[ "$output" == *"missing"* ]] || [[ "$output" == *"INDEX"* ]]
+  [[ "$output" == *"FAIL:"* ]]
 }

@@ -36,5 +36,5 @@ setup() {
     "$FIX_FAIL/decision-log.md" \
     "$FIX_FAIL/state.md"
   [ "$status" -eq 1 ]
-  [[ "$output" == *"FAIL"* ]] || [[ "$output" == *"total: 0"* ]] || [[ "$output" == *"absent"* ]]
+  [[ "$output" == *"FAIL:"* ]]
 }

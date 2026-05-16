@@ -17,6 +17,21 @@ setup() {
   SCRIPT="$PLUGIN_ROOT/hooks/dim2-gates/banner-wc-l.sh"
   FIX_PASS="${BATS_TEST_DIRNAME}/../fixtures/dim2-gates/banner-wc-l-pass"
   FIX_FAIL="${BATS_TEST_DIRNAME}/../fixtures/dim2-gates/banner-wc-l-fail"
+
+  # F-003 EOL fragility guard: assert fixture is exactly 23 lines before invoking the script.
+  # If an editor save / git autocrlf rule / .gitattributes misconfiguration inserts or strips a
+  # trailing newline, this assertion fires at fixture-prep time with a diagnostic message rather
+  # than producing a confusing banner-mismatch at gate time.
+  # The fixture is protected by tests/fixtures/dim2-gates/.gitattributes (banner-wc-l-pass/STATE.md -text).
+  # Closes: F-S15.08-LOCAL-P1-003
+  local actual_lines
+  actual_lines="$(wc -l < "${FIX_PASS}/STATE.md")"
+  if [[ "$actual_lines" -ne 23 ]]; then
+    echo "FIXTURE INTEGRITY ERROR: banner-wc-l-pass/STATE.md must be exactly 23 lines" \
+         "(wc -l returned ${actual_lines}). Check for trailing-newline regression or" \
+         "git autocrlf/eol normalization. See tests/fixtures/dim2-gates/.gitattributes." >&2
+    return 1
+  fi
 }
 
 @test "PASS: banner-wc-l exits 0 when banner line count matches wc -l and margin arithmetic correct" {
@@ -28,5 +43,5 @@ setup() {
 @test "FAIL: banner-wc-l exits 1 when banner line count does not match wc -l" {
   run "$SCRIPT" "$FIX_FAIL/STATE.md"
   [ "$status" -eq 1 ]
-  [[ "$output" == *"FAIL"* ]] || [[ "$output" == *"expected"* ]] || [[ "$output" == *"actual"* ]]
+  [[ "$output" == *"FAIL:"* ]]
 }
