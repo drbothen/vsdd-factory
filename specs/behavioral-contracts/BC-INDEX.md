@@ -1,11 +1,11 @@
 ---
 document_type: bc-index
 level: L3
-version: "2.24"
+version: "2.25"
 status: draft
 producer: state-manager
-timestamp: 2026-05-14T00:00:00Z
-last_amended: 2026-05-14
+timestamp: 2026-05-16T00:00:00Z
+last_amended: 2026-05-16
 phase: F5
 inputs:
   - .factory/specs/behavioral-contracts/bc-id-mapping.md
@@ -1195,6 +1195,7 @@ changelog:
 | [BC-5.38.006](ss-05/BC-5.38.006.md) | deliver-story SKILL.md and per-story-delivery.md Step 2 must contain anti-precedent guard text verbatim | draft | CAP-016 | S-7.03 |
 | [BC-5.39.001](ss-05/BC-5.39.001.md) | Per-story adversarial convergence loop MUST achieve minimum 3 clean passes (NITPICK_ONLY) before demo recording | draft | CAP-005 | S-12.01, S-14.01 |
 | [BC-5.39.002](ss-05/BC-5.39.002.md) | Per-story adversary scope MUST be limited to story diff, spec, and anchored BCs; out-of-scope findings MUST be deferred | draft | CAP-005 | S-12.01 |
+| [BC-5.39.003](ss-05/BC-5.39.003.md) | validate-index-cite-refresh hook MUST block on stale 4-index version citations in ARCH-INDEX, STATE.md, and INDEX.md | draft | E-12 | S-15.07 |
 | [BC-8.29.001](ss-08/BC-8.29.001.md) | RED_RATIO = RED_TESTS / TOTAL_NEW_TESTS must be ≥ 0.5 before Step 4 implementer dispatch (BLOCKING) | draft | CAP-016 | S-7.03 |
 | [BC-8.29.002](ss-08/BC-8.29.002.md) | each non-RED test must be documented in red-gate-log with rationale before threshold relaxation | draft | CAP-016 | S-7.03 |
 | [BC-8.29.003](ss-08/BC-8.29.003.md) | on RED_RATIO < 0.5 without GREEN-BY-DESIGN justification, orchestrator must choose remediation option A or B | draft | CAP-016 | S-7.03 |
