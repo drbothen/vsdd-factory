@@ -12,7 +12,7 @@
 # RED GATE PHASE: test skips because validate-index-cite-refresh.wasm is not yet compiled.
 
 setup() {
-  REPO_ROOT="$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)"
+  REPO_ROOT="$(cd "${BATS_TEST_DIRNAME}/../../../.." && pwd)"
   PLUGIN_ROOT="$REPO_ROOT/plugins/vsdd-factory"
   DISPATCHER="$REPO_ROOT/target/release/factory-dispatcher"
   WASM_PLUGIN="$PLUGIN_ROOT/hook-plugins/validate-index-cite-refresh.wasm"
@@ -27,7 +27,7 @@ teardown() {
 }
 
 _setup_fixture() {
-  cp -r "$FIXTURE_SRC/factory" "$WORK/.factory"
+  cp -r "$FIXTURE_SRC/factory/." "$WORK/.factory/"
 }
 
 _write_registry() {
@@ -38,7 +38,6 @@ schema_version = 2
 name = "validate-index-cite-refresh"
 event = "PostToolUse"
 tool = "Write|Edit"
-file_pattern = "ARCH-INDEX.md"
 plugin = "hook-plugins/validate-index-cite-refresh.wasm"
 timeout_ms = 5000
 on_error = "continue"
@@ -80,7 +79,7 @@ _arch_index_envelope() {
 
   local envelope
   envelope="$(_arch_index_envelope)"
-  run bash -c "printf '%s' \"$envelope\" | CLAUDE_PLUGIN_ROOT='$WORK' CLAUDE_PROJECT_DIR='$WORK' '$DISPATCHER' 2>&1 >/dev/null"
+  run bash -c "printf '%s' '$envelope' | CLAUDE_PLUGIN_ROOT='$WORK' CLAUDE_PROJECT_DIR='$WORK' '$DISPATCHER' 2>&1 >/dev/null"
 
   # Exit 2: block signal emitted for D-429(b) cross-cell violation
   [ "$status" -eq 2 ]
