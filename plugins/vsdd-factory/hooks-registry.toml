@@ -841,7 +841,7 @@ env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT
 [[hooks]]
 name = "validate-artifact-path"
 event = "PreToolUse"
-tool = "Write|Edit"
+tool = "Edit|Write"
 plugin = "hook-plugins/validate-artifact-path.wasm"
 priority = 150
 timeout_ms = 5000
@@ -850,7 +850,7 @@ on_error = "continue"
 [hooks.capabilities.read_file]
 path_allow = ["plugins/vsdd-factory/config/artifact-path-registry.yaml"]
 
-# ---------- validate-index-cite-refresh (PostToolUse, Write|Edit) ----------
+# ---------- validate-index-cite-refresh (PostToolUse, Edit|Write) ----------
 # BC-5.39.003: blocks stale 4-index version cites in ARCH-INDEX.md and
 # cross-cell mismatches in STATE.md / INDEX.md (D-405(c) + D-429(b)).
 # S-15.07 M2 Wave-1.
@@ -858,7 +858,7 @@ path_allow = ["plugins/vsdd-factory/config/artifact-path-registry.yaml"]
 [[hooks]]
 name = "validate-index-cite-refresh"
 event = "PostToolUse"
-tool = "Write|Edit"
+tool = "Edit|Write"
 plugin = "hook-plugins/validate-index-cite-refresh.wasm"
 priority = 151
 timeout_ms = 5000
@@ -992,7 +992,7 @@ path_allow = [".factory/cycles"]
 [[hooks]]
 name = "validate-stable-anchors"
 event = "PreToolUse"
-tool = "Write|Edit"
+tool = "Edit|Write"
 plugin = "hook-plugins/validate-stable-anchors.wasm"
 priority = 155
 timeout_ms = 5000
