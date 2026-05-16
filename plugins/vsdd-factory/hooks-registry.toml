@@ -850,6 +850,30 @@ on_error = "continue"
 [hooks.capabilities.read_file]
 path_allow = ["plugins/vsdd-factory/config/artifact-path-registry.yaml"]
 
+# ---------- validate-index-cite-refresh (PostToolUse, Write|Edit) ----------
+# BC-5.39.003: blocks stale 4-index version cites in ARCH-INDEX.md and
+# cross-cell mismatches in STATE.md / INDEX.md (D-405(c) + D-429(b)).
+# S-15.07 M2 Wave-1.
+
+[[hooks]]
+name = "validate-index-cite-refresh"
+event = "PostToolUse"
+tool = "Write|Edit"
+plugin = "hook-plugins/validate-index-cite-refresh.wasm"
+priority = 151
+timeout_ms = 5000
+on_error = "continue"
+
+[hooks.capabilities.read_file]
+path_allow = [
+  ".factory/specs/behavioral-contracts/BC-INDEX.md",
+  ".factory/specs/verification-properties/VP-INDEX.md",
+  ".factory/stories/STORY-INDEX.md",
+  ".factory/specs/architecture/ARCH-INDEX.md",
+  ".factory/STATE.md",
+  ".factory/cycles/v1.0-brownfield-backfill/INDEX.md",
+]
+
 # ---------- Stop ----------
 
 [[hooks]]
