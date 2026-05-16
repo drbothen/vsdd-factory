@@ -80,8 +80,9 @@ Per human direction 2026-05-14, the E-10 sub-cycle adopts asymptotic-acceptance 
 | Pass | Date | File | Verdict | Findings | Streak | Diff Base | Diff Head | Status |
 |------|------|------|---------|----------|--------|-----------|-----------|--------|
 | 1 | 2026-05-15 | `s-15.08-local-adversary-pass-1.md` | HIGH | 6 (1C+2H+2M+1L) | 0/3 | 224fa184 | 27ce5e29 | fix-burst pending (F-001→implementer; F-002→implementer; F-003→test-writer; F-004→test-writer; F-005→test-writer; F-006→implementer+test-writer) |
+| 2 | 2026-05-16 | `s-15.08-local-adversary-pass-2.md` | NITPICK | 0 (2 LOW obs: O-001 regex hygiene, O-002 stdout attestation) | 1/3 | 224fa184 | 3e78992b | pass-3 dispatch pending; fix-burst-2 in-stream cleanup of LOW observations |
 
-**Convergence Status (S-15.08 LOCAL cascade):** pass-1 SHIPPED 2026-05-15 — verdict HIGH (6 findings: 1 CRITICAL + 2 HIGH + 2 MEDIUM + 1 LOW); streak 0/3; fix-burst routed to implementer (F-001/F-002/F-006) + test-writer (F-003/F-004/F-005); pass-2 gated on fix-burst completion.
+**Convergence Status (S-15.08 LOCAL cascade):** pass-2 SHIPPED 2026-05-16 — verdict NITPICK (0 MEDIUM+; 2 LOW observations: O-001 `decision-log-monotonic-rows.sh` regex `[\( ]` cosmetic backslash, O-002 `block-label-canonical-form.sh` synthetic `$` echo vs loop implementation); streak advances 0/3 → 1/3; fix-burst-2 in-stream via implementer dispatch (parallel to pass-3); pass-3 gated on fix-burst-2 completion. Evidence: `s-15.08-local-adversary-pass-2.md` diff_base=224fa184 diff_head=3e78992b. Pass-1 (HIGH 2026-05-15): fix-burst routed to implementer (F-001/F-002/F-006) + test-writer (F-003/F-004/F-005); all 6 F-001..F-006 closures VERIFIED at pass-2.
 
 ## Convergence Status
 
@@ -90,4 +91,4 @@ Per human direction 2026-05-14, the E-10 sub-cycle adopts asymptotic-acceptance 
 - Phase 1d (adversarial spec review): **CONVERGED** (6 passes, 3 consecutive NITPICK)
 - Story re-anchoring: PENDING (TD-001..TD-005 wave-scale follow-up)
 - E-10 sub-cycle adversarial review: **PARTIAL-CLOSED (ASYMPTOTIC-ACCEPTANCE)** — pass-14 PARTIAL-CLOSED 2026-05-14; D-470 mandatory HIGH closures + D-471 seal; 6 findings DEFERRED to S-15.03 PRIORITY-A automation wave; trend 22→11→16→16→12→2→1→4→5→4→6→7→5→8; NITPICK_ONLY counter FROZEN at 0/3; resumption gate = S-15.03 PRIORITY-A lint hooks in v1.0-feature-engine-discipline-pass-2
-- S-15.08 LOCAL adversary cascade: **IN PROGRESS** — pass-1 SHIPPED 2026-05-15 (HIGH, 6 findings, streak 0/3); fix-burst pending
+- S-15.08 LOCAL adversary cascade: **IN PROGRESS** — pass-2 SHIPPED 2026-05-16 (NITPICK, 0 MEDIUM+, streak 1/3); fix-burst-2 in-stream; pass-3 gated on fix-burst-2 completion
