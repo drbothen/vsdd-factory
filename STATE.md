@@ -5,14 +5,14 @@ version: "2.0"
 status: draft
 producer: state-manager
 timestamp: 2026-05-12T00:00:00Z
-phase: pivot-F5-paused-asymptotic-acceptance-resume-v1.0-brownfield-backfill-E-10-PARTIAL-CLOSED-TD-71-SHIPPED-TD-72-SHIPPED-TD-70-SHIPPED-TD-74-SHIPPED-TD-66-SHIPPED-TD-67-SHIPPED-Section12-Step2-COMPLETE-Step3-S-15.03-active
-last_amended: 2026-05-15
+phase: pivot-F5-paused-asymptotic-acceptance-resume-v1.0-brownfield-backfill-E-10-PARTIAL-CLOSED-TD-71-SHIPPED-TD-72-SHIPPED-TD-70-SHIPPED-TD-74-SHIPPED-TD-66-SHIPPED-TD-67-SHIPPED-Section12-Step2-COMPLETE-Step3-S-15.03-active-M1-COMPLETE
+last_amended: 2026-05-16
 inputs: []
 input-hash: "[live-state]"
 traces_to: prd.md
 project: vsdd-factory
 mode: brownfield
-current_step: "SESSION-END DURABILITY BURST 2026-05-15: 3 durable artifacts authored at .factory/cycles/v1.0-brownfield-backfill/ (s-15.03-wave-plan-2026-05-15.md f461a5f + s-15.03-wave-m1-dispatch.md ad1c745 + orchestrator-task-snapshot-2026-05-15.md a0b9380) for post-CLEAR resume with zero conversation context; mirror of td-74-dispatch.md pattern from prior /clear; Section 12 Step 3 sub-status = M1 dispatch-ready; single factory-artifacts commit per TD-VSDD-053"
+current_step: "M1 (S-15.06 + S-15.16 Part A + S-15.08) COMPLETE 2026-05-16; develop@c62f952c; STORY-INDEX v3.31; M2 dispatch-ready pending architect adjudication"
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -23,7 +23,7 @@ dtu_services: []
 <!--
   STATE.md SIZE BUDGET (per D-421(c) + D-422(c) reconciliation):
   Soft target: ≤415 lines (actual 399 lines at pass-67 Commit E (wc-l)); margin from soft-target = 500 - 415 = 85; margin from actual = 500 - 443 = 57 (D-446(c) dual-margin form); margin [+10,+20] upper-bound per D-422(c)+D-424(b)+D-428(d)+D-434(e)(ii)+D-437(d)+D-438(a)+D-441(e)+D-442(d)+D-443(d)+D-444(e)+D-445(b)+D-446(c); D-452 codified (5 sub-clauses; META-LEVEL-27-CANDIDATE-CONFIRMED + post-derivation-propagation-completeness + Layer-N-dual-direction-sweep + captured-stdout-snapshot-freshness + Layer-N-scope-extension-6-site-class + Decisions-Log-umbrella-range-auto-advance per decision-log.md SoT; L-EDP1-064 63rd-layer); D-446(c) self-application: dual-margin form applied THIS COMMIT E; D-445(c)+D-446(d)+D-447(c)+D-449(e) Active Branches advance to Commit E HEAD in SHA-patch follow-up.
-  Line-growth tracker (D-437(e)+D-441(e)+D-442(e)+D-443(d)+D-444(e)+D-445(b)+D-446(c)+D-447(d)+D-448(d)+D-449(d)+D-450(d)+D-451(d)+D-452(d)+D-453(d)+D-454(d) follow-up): pass-49 Commit E 310 lines; pass-54 Commit E 319 lines; pass-55 Commit E 328 lines; pass-56 Commit E 331 lines; pass-57 Commit E 334 lines; pass-58 Commit E 337 lines; pass-59 Commit E 340 lines; pass-60 Commit E 410 lines; pass-61 Commit E 417 lines; pass-62 Commit E 426 lines; pass-63 Commit E 440 lines; pass-64 Commit E 447 lines; pass-65 Commit E+SHA-patch 395 lines (wc-l; net -52 from pass-64); pass-66 Commit E 397 lines (wc-l; net +2 from pass-65 Commit E+SHA-patch at 395); pass-67 Commit E 399 lines (wc-l; net +2 from pass-66); pass-68 Commit E 402 lines (wc-l; net +3 from pass-67); pass-69 Commit E 405 lines (wc-l; net +3 from pass-68); pass-70 Commit E 435 lines (wc-l; net +30 from pass-69; pre-CLEAR task-snapshot block REMOVED per MED-002 closure but rc.17/rc.18 Phase Progress rows + D-450 Decisions Log row + refreshed Session Resume added net +30); pass-71 Commit E 439 lines (wc-l; net +4 from pass-70 Commit E at 435; pass-71 Phase Progress row + D-451 Decisions Log row + Session Resume refresh added net +4); pass-72 Commit E 443 lines (wc-l; net +4 from pass-71 Commit E at 439; pass-72 Phase Progress row + D-452 Decisions Log row + Session Resume refresh added net +4); pass-73 Commit E 447 lines (wc-l; net +4 from pass-72 Commit E at 443; pass-73 Phase Progress row + D-453 Decisions Log row + Session Resume refresh added net +4); pass-74 Commit E 451 lines (wc-l; net +4 from pass-73 Commit E at 447; pass-74 Phase Progress row + D-454 Decisions Log row + Session Resume refresh added net +4); pass-74-to-pivot transition 406 lines (wc-l; net -45 from pass-74 Commit E at 451; F5 5-pass pause row + Active Branches pivot + Concurrent Cycles pivot + Drift Items side-branch + Session Resume Checkpoint refresh net -45). D-345 seal 408 lines (wc-l; net +2 from pass-74-to-pivot at 406; E-10 pass-9 Phase Progress row + current_step + Session Resume refresh net +2). D-345-seal-to-durability-refresh 441 lines (wc-l; net +33 from D-345 seal at 408; Section 12 forward-backlog added + Section 9 anchor fix + Section 11 step-4 fix + TD #73 RESOLVED). TD-70-post-merge-burst 465 lines (wc-l; net +24 from durability-refresh at 441; TD #70 Phase Progress row + Active Branches develop SHA update + Drift Items TD #70 RESOLVED + TD #74 Tier-A + Session Resume Checkpoint refresh net +24). session-end-durability-burst 469 lines (wc-l; net +4 from TD-70-post-merge-burst at 465; td-74-dispatch.md authored; strict 5-step engine-discipline ordering committed to Section 12; Section 4 + Section 11 cross-reference td-74-dispatch.md net +4). TD-74-post-merge-burst 471 lines (wc-l; net +2 from session-end-durability-burst at 469; TD #74 Phase Progress row + Active Branches develop SHA update + Drift Items TD #74 RESOLVED + Section 4 new Tier-A + Section 9/10/11/12 updates + Session Resume Checkpoint refresh net +2). S-15.04-post-merge-burst 480 lines (wc-l; net +9 from TD-74-post-merge-burst at 471; S-15.04 Phase Progress row + Active Branches develop SHA update + Drift Items TD #66 RESOLVED + Section 4 Tier-A archive/advance + Section 9/10/11/12 updates + Story Status 62→63 merged + Session Resume Checkpoint refresh net +9). S-15.05-post-merge-burst 486 lines (wc-l; net +6 from S-15.04-post-merge-burst at 480; S-15.05 Phase Progress row + Active Branches develop SHA update + Drift Items TD #67 RESOLVED + Section 4 S-15.05-completed-log + Active Tier-A Step 3 + Section 9/10/11/12 updates + Story Status 63→64 merged + Session Resume Checkpoint refresh net +6). Hard cap (500 lines) margin from soft-target = 500 - 415 = 85; margin from actual = 500 - 486 = 14 (D-446(c) dual-margin form).
+  Line-growth tracker (D-437(e)+D-441(e)+D-442(e)+D-443(d)+D-444(e)+D-445(b)+D-446(c)+D-447(d)+D-448(d)+D-449(d)+D-450(d)+D-451(d)+D-452(d)+D-453(d)+D-454(d) follow-up): pass-49 Commit E 310 lines; pass-54 Commit E 319 lines; pass-55 Commit E 328 lines; pass-56 Commit E 331 lines; pass-57 Commit E 334 lines; pass-58 Commit E 337 lines; pass-59 Commit E 340 lines; pass-60 Commit E 410 lines; pass-61 Commit E 417 lines; pass-62 Commit E 426 lines; pass-63 Commit E 440 lines; pass-64 Commit E 447 lines; pass-65 Commit E+SHA-patch 395 lines (wc-l; net -52 from pass-64); pass-66 Commit E 397 lines (wc-l; net +2 from pass-65 Commit E+SHA-patch at 395); pass-67 Commit E 399 lines (wc-l; net +2 from pass-66); pass-68 Commit E 402 lines (wc-l; net +3 from pass-67); pass-69 Commit E 405 lines (wc-l; net +3 from pass-68); pass-70 Commit E 435 lines (wc-l; net +30 from pass-69; pre-CLEAR task-snapshot block REMOVED per MED-002 closure but rc.17/rc.18 Phase Progress rows + D-450 Decisions Log row + refreshed Session Resume added net +30); pass-71 Commit E 439 lines (wc-l; net +4 from pass-70 Commit E at 435; pass-71 Phase Progress row + D-451 Decisions Log row + Session Resume refresh added net +4); pass-72 Commit E 443 lines (wc-l; net +4 from pass-71 Commit E at 439; pass-72 Phase Progress row + D-452 Decisions Log row + Session Resume refresh added net +4); pass-73 Commit E 447 lines (wc-l; net +4 from pass-72 Commit E at 443; pass-73 Phase Progress row + D-453 Decisions Log row + Session Resume refresh added net +4); pass-74 Commit E 451 lines (wc-l; net +4 from pass-73 Commit E at 447; pass-74 Phase Progress row + D-454 Decisions Log row + Session Resume refresh added net +4); pass-74-to-pivot transition 406 lines (wc-l; net -45 from pass-74 Commit E at 451; F5 5-pass pause row + Active Branches pivot + Concurrent Cycles pivot + Drift Items side-branch + Session Resume Checkpoint refresh net -45). D-345 seal 408 lines (wc-l; net +2 from pass-74-to-pivot at 406; E-10 pass-9 Phase Progress row + current_step + Session Resume refresh net +2). D-345-seal-to-durability-refresh 441 lines (wc-l; net +33 from D-345 seal at 408; Section 12 forward-backlog added + Section 9 anchor fix + Section 11 step-4 fix + TD #73 RESOLVED). TD-70-post-merge-burst 465 lines (wc-l; net +24 from durability-refresh at 441; TD #70 Phase Progress row + Active Branches develop SHA update + Drift Items TD #70 RESOLVED + TD #74 Tier-A + Session Resume Checkpoint refresh net +24). session-end-durability-burst 469 lines (wc-l; net +4 from TD-70-post-merge-burst at 465; td-74-dispatch.md authored; strict 5-step engine-discipline ordering committed to Section 12; Section 4 + Section 11 cross-reference td-74-dispatch.md net +4). TD-74-post-merge-burst 471 lines (wc-l; net +2 from session-end-durability-burst at 469; TD #74 Phase Progress row + Active Branches develop SHA update + Drift Items TD #74 RESOLVED + Section 4 new Tier-A + Section 9/10/11/12 updates + Session Resume Checkpoint refresh net +2). S-15.04-post-merge-burst 480 lines (wc-l; net +9 from TD-74-post-merge-burst at 471; S-15.04 Phase Progress row + Active Branches develop SHA update + Drift Items TD #66 RESOLVED + Section 4 Tier-A archive/advance + Section 9/10/11/12 updates + Story Status 62→63 merged + Session Resume Checkpoint refresh net +9). S-15.05-post-merge-burst 486 lines (wc-l; net +6 from S-15.04-post-merge-burst at 480; S-15.05 Phase Progress row + Active Branches develop SHA update + Drift Items TD #67 RESOLVED + Section 4 S-15.05-completed-log + Active Tier-A Step 3 + Section 9/10/11/12 updates + Story Status 63→64 merged + Session Resume Checkpoint refresh net +6). S-15.08-post-merge-burst 435 lines (wc-l; net -51 from S-15.05-post-merge-burst at 486; S-15.08 Phase Progress row + Active Branches develop SHA update + Concurrent Cycles M1-COMPLETE + Section 4 S-15.08-completed-log + Active Tier-A M2 + Section 8/9/10/11/12 updates + Story Status 64→65 merged + Session Resume Checkpoint refresh net -51; size reduction achieved by condensing Section 10 PR history to latest-first abbreviated form). Hard cap (500 lines) margin from soft-target = 500 - 415 = 85; margin from actual = 500 - 435 = 65 (D-446(c) dual-margin form).
   Hard cap: 500 lines (validate-state-md-size hook enforcement).
   Historical content belongs in cycle files, NOT here.
   D-430(a) compaction authorization: Pass-49 Commit E surgical compaction (363→310 lines) authorized retroactively per D-430(a); removed content categories: stale Phase Progress rows (passes 1-38); pre-compaction state preserved at git show 278977fb:.factory/STATE.md.
@@ -42,8 +42,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-15 — SESSION-END DURABILITY BURST: 3 durable artifacts authored for post-CLEAR resume (s-15.03-wave-plan-2026-05-15.md + s-15.03-wave-m1-dispatch.md + orchestrator-task-snapshot-2026-05-15.md); mirrors td-74-dispatch.md pattern from prior /clear. Prior: ADR-021 + ADR-022 registered (ARCH-INDEX v2.06); 3 OQ resolutions; architect wave plan 95 items → 11-story wave S-15.06..S-15.16 (S-15.06 SHIPPED 2026-05-15; 10 remaining: S-15.07..S-15.16); M1 dispatch-ready. |
-| **Current Phase** | Section 12 Step 3 wave-plan COMPLETE; M1 dispatch-ready; session-end durability burst authored 2026-05-15 (3 files: wave-plan + M1-dispatch + task-snapshot). Post-CLEAR orchestrator reads STATE.md §11 + s-15.03-wave-m1-dispatch.md to dispatch S-15.06 → S-15.08 → S-15.16 Part A with zero context. |
+| **Last Updated** | 2026-05-16 — S-15.08 MERGED PR #144 c62f952c; M1 (S-15.06+S-15.16 Part A+S-15.08) COMPLETE; STORY-INDEX v3.31; M2 (4 WASM hook stories: S-15.07/09/11/14) dispatch-ready pending architect adjudication. |
+| **Current Phase** | M1 COMPLETE 2026-05-16; M2 (4 WASM hooks) dispatch-ready; M3 (5 stories + 2 ADRs) gated on M2 SHIPS |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Phase Progress
@@ -116,6 +116,7 @@ dtu_services: []
 | S-15.08 LOCAL adversary pass-5 | **SHIPPED 2026-05-16** — LOW (1 finding F-S15.08-LOCAL-P5-001 partial-fix-regression line 283; prose "paren and colon" self-contradicts corrected regex); streak 1/3 → 2/3 (strict reading); spec v1.2 SHIPPED inline at f8892007; pass-6 in flight | diff base 224fa184 → head 51378cbf; input-hash d39ba52 |
 | S-15.08 spec v1.2 | **SHIPPED 2026-05-16** — factory-artifacts f8892007; line 283 "colon" → "space" prose fix; STORY-INDEX v3.29 → v3.30 | story-writer amendment; F-S15.08-LOCAL-P5-001 closure |
 | S-15.08 LOCAL adversary pass-6 — BC-5.39.001 CONVERGED 3/3 | **SHIPPED 2026-05-16** — CLEAN (0 findings; 0 obs; 0 POLICY violations); streak 2/3 → 3/3 CONVERGED; pr-manager 9-step PR lifecycle dispatch pending; cascade trajectory HIGH(6)→NITPICK→HIGH(1)→NITPICK→LOW→CLEAN in 6 passes + 4 fix-bursts | diff base 224fa184 → head 51378cbf; spec head f8892007 v1.2 |
+| S-15.08 dim2-gates bash template library (11 scripts + 12 bats + 25 fixtures + README) | **MERGED 2026-05-16** — PR #144 squash-merge `c62f952c` on develop | 0 PR review findings; security CLEAR (1 LOW eval by-design accepted); LOCAL adversary 6-pass CONVERGED 3/3; M1 (S-15.06+S-15.16 Part A+S-15.08) COMPLETE; M2 dispatch-ready pending architect adjudication |
 | **Tier-0 D-NNN renumbering (F-CRIT-001 closure)** | **COMPLETE** 2026-05-13 — brownfield D-344..D-349 → D-460..D-465; POLICY 1 violation resolved | ARCH-INDEX v2.02 + BC-INDEX v2.21 + VP-INDEX v1.95 + STORY-INDEX v3.20 corrigenda; ~25 files touched; pre+post grep stdout LL-2 strict-form; D-466 fix burst (HH-4/KK-2/LL-2/MM/NN) applied 553e9f58 |
 | E-10 pass-12 fix burst + seal | **COMPLETE** 2026-05-13 — D-466 fix burst (553e9f58) + D-467 seal (post-renumber from §8 nominal D-350/D-351) | 7 findings closed (1C closed pre-burst via Tier-0 + 2H+2M+2L closed via D-466); architect F-2/F-3/F-6 with HH-4 + state-manager F-1/F-5 with KK-2 tripartite + LL-2 verbatim stdout + MM cross-cycle namespace + NN parity disciplines applied; ARCH-INDEX v2.03 + BC-INDEX v2.22 + STORY-INDEX v3.21 cite-refresh; NITPICK_ONLY counter 0/3 (HIGH resets); pass-13 dispatch next (CRITICAL TEST per pass-12 §7) |
 | F5 pass-60 fix burst | **COMPLETE** | adv-cycle-pass-60.md HIGH→PENDING_NEXT_PASS; D-440(a/b/c/d/e) + L-EDP1-052 codified; META-LEVEL-15 CANDIDATE CONFIRMED |
@@ -166,7 +167,7 @@ dtu_services: []
 
 96 file-resident + 15 unauthored stub IDs = 111 registered. (F-P9-003 reconciled 2026-05-11: prior headline 88 and breakdown stale; +S-16.01/S-16.02 added 2026-05-12 F-block-ai-attribution-message-file-arm F3; +S-15.04/S-15.05 added 2026-05-15 per architect adjudication TD #66+TD #67 split.)
 
-- **Merged (64):** Includes all prior + S-12.06 (PR #105), S-12.05 (PR #119), S-12.03 (PR #120), S-12.04 (PR #121), S-12.07 (PR #122), S-12.08 (PR #123), S-15.04 (PR #142 fdc7da16 2026-05-15), S-15.05 (PR #143 224fa184 2026-05-15). Full ledger: `cycles/v1.0-brownfield-backfill/merged-stories-ledger.md`
+- **Merged (65):** Includes all prior + S-12.06 (PR #105), S-12.05 (PR #119), S-12.03 (PR #120), S-12.04 (PR #121), S-12.07 (PR #122), S-12.08 (PR #123), S-15.04 (PR #142 fdc7da16 2026-05-15), S-15.05 (PR #143 224fa184 2026-05-15), S-15.08 (PR #144 c62f952c 2026-05-16). Full ledger: `cycles/v1.0-brownfield-backfill/merged-stories-ledger.md`
 - **In-Flight (0):** —
 - **Draft (29 file-resident):** S-5.07; S-10.09; S-11.00; S-14.01..S-14.09 (E-14); S-15.02; S-15.03; S-16.01..S-16.02 (E-16 F-block-ai-attribution-message-file-arm); and others
 - **Partial (2):** S-2.05 (hook-sdk-publish); S-3.04 (emit-event-host-function) — superseded by ADR-015; counted separately from draft
@@ -178,7 +179,7 @@ dtu_services: []
 | Branch / Tag | SHA | Notes |
 |--------------|-----|-------|
 | main | 70811f4a | verified `git rev-parse origin/main` = 70811f4a5d68d163021f46856c3de51bf8f4aab8 2026-05-13; includes CLAUDE.md expansion PR #136 (845d0007 squash-merge) + rc.18 merge PR #135 (666d689f) |
-| develop | 224fa184 | PR #143 MERGED 2026-05-15 — S-15.05 TD #67 closure (squash-merge at 224fa18421214b30dacf1cdd606152294cd33bd6); wait_for_log_event helper + TC-4/5/7/9 event-observation rewrite; CI green; Section 12 Step 2 COMPLETE. Prior: PR #142 MERGED fdc7da16 — S-15.04 TD #66. |
+| develop | c62f952c | PR #144 MERGED 2026-05-16 — S-15.08 dim2-gates bash template library; M1 of S-15.03 PRIORITY-A wave COMPLETE. Prior: PR #143 224fa184 (S-15.05 TD #67). |
 | factory-artifacts | 1e810021 | E-10 pass-14 PARTIAL-CLOSED (Asymptotic-Acceptance) 2026-05-14: D-470 mandatory HIGH closures (6fefa10d); D-471 asymptotic-acceptance seal (1e810021) |
 | v1.0.0-rc.16 (tag) | feb894a2 | SHIPPED; claude-mp PR #8 awaiting human merge |
 | v1.0.0-rc.15 (tag) | e68bb436 | SHIPPED |
@@ -188,7 +189,7 @@ dtu_services: []
 | Cycle | Type | Status | Notes |
 |-------|------|--------|-------|
 | F-block-ai-attribution-message-file-arm | feature | F3 COMPLETE — F4 READY | F1+F2+F3 done 2026-05-12; 2 stories ready (S-16.01 5pts PostToolUse HEAD verify, S-16.02 3pts PreToolUse -F arm); E-16 under SS-07/SS-04; milestone v1.0.0-rc.17; BC-7.03.094/095/001, VP-080, ARCH SS-07 v1.3/SS-04 v1.4 registered |
-| v1.0-brownfield-backfill | brownfield | **PARTIAL-CLOSED E-10 sub-cycle asymptotic-acceptance; S-15.03 PRIORITY-A wave IN PROGRESS** | E-10 sub-cycle PARTIAL-CLOSED at pass-14 asymptotic-acceptance (D-470 + D-471 seal 2026-05-14); POLICY 13-18 registered (b8909832); POLICY codification efficacy: SPAWNED_5TH_LAYER (PREDICTION_CONFIRMED per pass-13 §9); trend 22→11→16→16→12→2→1→4→5→4→6→7→5→8; D-472 retroactive codify POLICY 13-18 registration (S-15.06 F-PASS14-003 closure 2026-05-15). S-15.03 PRIORITY-A automation wave ACTIVE: M1 Story 1 = S-15.06 SHIPPED (factory-artifacts commit 2026-05-15); 4 deferred findings (F-PASS14-003/005/007/008) CLOSED by S-15.06. E-10 resumption gate still requires S-15.03 PRIORITY-A lint hooks in v1.0-feature-engine-discipline-pass-2 cycle. |
+| v1.0-brownfield-backfill | brownfield | **PARTIAL-CLOSED E-10 sub-cycle 2026-05-14; S-15.03 PRIORITY-A M1 COMPLETE 2026-05-16** | E-10 sub-cycle PARTIAL-CLOSED at pass-14 asymptotic-acceptance (D-470 + D-471 seal 2026-05-14); POLICY 13-18 registered (b8909832); trend 22→11→16→16→12→2→1→4→5→4→6→7→5→8; D-472 retroactive codify POLICY 13-18 registration (S-15.06 F-PASS14-003 closure 2026-05-15). S-15.03 PRIORITY-A M1 COMPLETE 2026-05-16 (S-15.06+S-15.16 Part A+S-15.08); M2 (4 WASM hooks: S-15.07/09/11/14) + M3 (5 stories + ADR-021/022 gating) pending; resumption gates: E-10 + F5 remain blocked on S-15.03 SHIPS (all 11 stories merged). |
 | v1.0-feature-engine-discipline-pass-1 | feature | **PAUSED** | F5 5-pass session (passes 70-74) complete with META-LEVEL-29 CANDIDATE CONFIRMED; paused at asymptotic floor [7,9] per D-386 Option C + human direction 2026-05-13; 5 D-NNN codifications D-450..D-454 + 5 lessons L-EDP1-062..066; resumes only when S-15.03 PRIORITY-A automation lands. pass-74 SHA-patch `4b4b6819` is the cycle's final-state HEAD. Full-cycle trajectory (74 values): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7→8→6→2→5→5→5→7→8→7→8→7→8→7→8→7→7→8→8→7→7→7→8→8→8→9→8→8→9→9→9→9→9→9→9→8→9→9→9→9→9→9→9→9 |
 | v1.0-feature-plugin-async-semantics-pass-1 | feature | CLOSED | All PRs merged; rc.14 shipped |
 
@@ -285,37 +286,37 @@ dtu_services: []
 - `cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` | `session-checkpoints.md` | `lessons.md`
 - `cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md` (adversary reviews at `S-12.03/`, `S-12.04/`, `S-12.05/` subdirs)
 
-## Session Resume Checkpoint (2026-05-15 — SESSION-END DURABILITY BURST; S-15.03 wave M1 dispatch package authored; post-CLEAR resume ready)
+## Session Resume Checkpoint (2026-05-16 — S-15.08 MERGED PR #144; M1 COMPLETE; M2 dispatch-ready)
 
-> **SELF-SUFFICIENT RESUME CONTEXT — SECTION 12 STEP 3 WAVE PLAN COMPLETE; M1 DISPATCH-READY; DURABILITY BURST AUTHORED**
+> **SELF-SUFFICIENT RESUME CONTEXT — SECTION 12 STEP 3 M1 COMPLETE; M2 DISPATCH-READY PENDING ARCHITECT ADJUDICATION**
 > Read this section alone to resume the protocol after full conversation CLEAR (not compact).
 
 ### 1. Where We Are
 
-- **SESSION-END DURABILITY BURST COMPLETE 2026-05-15:** 3 durable artifacts authored at `.factory/cycles/v1.0-brownfield-backfill/` for post-CLEAR resume (mirrors td-74-dispatch.md pattern from prior /clear)
-- **S-15.05 SHIPPED 2026-05-15** via PR #143 squash-merge at 224fa184; **TD #67 RESOLVED**; STORY-INDEX v3.25; F-P3-008 ubuntu flake RESOLVED
-- **Section 12 Step 2 COMPLETE** — S-15.04 (TD #66, PR #142 fdc7da16) + S-15.05 (TD #67, PR #143 224fa184) both SHIPPED
-- **Section 12 Step 3 wave plan COMPLETE 2026-05-15 (architect):** 95 distinct items → 11-story wave S-15.06..S-15.16 (S-15.06 SHIPPED 2026-05-15); ADR-021 (OQ-2) + ADR-022 (OQ-3) registered ARCH-INDEX v2.06; OQ-1 RESOLVED; M1 dispatch-ready
-- **Active Tier-A: Step 3 — S-15.03 PRIORITY-A, M1 dispatch-ready** (S-15.06 + S-15.08 + S-15.16 Part A)
+- **S-15.08 MERGED 2026-05-16** via PR #144 squash-merge at c62f952c; dim2-gate template library (11 bash scripts); LOCAL adversary 6-pass CONVERGED 3/3; 0 PR review findings; CI green; STORY-INDEX v3.31
+- **M1 (S-15.06 + S-15.16 Part A + S-15.08) COMPLETE 2026-05-16** — all 3 M1 stories shipped; develop@c62f952c
+- **Active Tier-A: Step 3 — M2 dispatch-ready** (S-15.07 + S-15.09 + S-15.11 + S-15.14 — 4 WASM hook stories); pending architect adjudication
+- **Section 12 Step 2 COMPLETE** (historical) — S-15.04 (TD #66, PR #142 fdc7da16) + S-15.05 (TD #67, PR #143 224fa184) both SHIPPED 2026-05-15
+- **Section 12 Step 3 wave plan COMPLETE 2026-05-15 (architect):** 95 distinct items → 11-story wave S-15.06..S-15.16; ADR-021 (OQ-2) + ADR-022 (OQ-3) registered ARCH-INDEX v2.06; OQ-1 RESOLVED
 - **TD #74 SHIPPED 2026-05-15** via PR #141 squash-merge at 5d1f8805; Section 12 Step 1 COMPLETE (historical)
 - E-10 sub-cycle PARTIAL-CLOSED (asymptotic-acceptance) 2026-05-14 at D-471 seal (1e810021); REMAINS SEALED
 - Tier-B priority-1 (dim2-gates path-registry) CLOSED via PR #137 (21d444d8) 2026-05-14; REMAINS CLOSED
 - F5 cycle (v1.0-feature-engine-discipline-pass-1): PAUSED at META-LEVEL-29 asymptotic floor per D-386 Option C + human direction 2026-05-13
 - factory-artifacts HEAD: see `git -C .factory log -1 --format='%h %s'` (updated each burst; do not hard-cite)
-- develop HEAD: `224fa184` (PR #143 squash-merge 2026-05-15 — S-15.05 TD #67 closure; Section 12 Step 2 COMPLETE)
+- develop HEAD: `c62f952c` (PR #144 squash-merge 2026-05-16 — S-15.08 M1 COMPLETE)
 - main HEAD: `70811f4a` (includes CLAUDE.md expansion PR #136 + rc.18 merge)
-- **Next action (post-CLEAR): dispatch M1 per `s-15.03-wave-m1-dispatch.md`** — S-15.06 first (sub-day state-manager burst), then S-15.08 (multi-day per-story-delivery), then S-15.16 Part A (state-manager-led compaction)
+- **Next action (post-CLEAR): dispatch M2 per architect adjudication** — 4 WASM hook stories S-15.07/09/11/14; architect confirms story order before implementer dispatch
 
 ### 2. Operating Mode
 
 - Both E-10 sub-cycle AND F5 cycle at asymptotic-acceptance. Both resume ONLY when S-15.03 PRIORITY-A lint hooks land in v1.0-feature-engine-discipline-pass-2.
-- Section 12 Step 2 COMPLETE: S-15.04 (TD #66) + S-15.05 (TD #67) both SHIPPED. Active Tier-A is now Step 3 (S-15.03 wave). Wave-scale effort requires architect adjudication on subdivision + PO story authoring before implementer dispatch.
+- M1 COMPLETE 2026-05-16 (S-15.06+S-15.16 Part A+S-15.08). Active Tier-A is Step 3 M2 — 4 WASM hook stories (S-15.07/09/11/14). M2 dispatch-ready pending architect adjudication on story order and dependencies.
 
 ### 3. User Directive (Carry Across CLEAR)
 
 Human directed 2026-05-14: asymptotic-acceptance for E-10 sub-cycle analogous to F5 D-386 Option C. Close only Tier-0 mandatory findings (F-PASS14-001 + F-PASS14-002); remaining 6 findings DEFERRED to S-15.03 PRIORITY-A automation wave. D-471 seals the decision. Human directed 2026-05-15: architect adjudicated TD #66 → S-15.04 (Verdict A sub-day) + TD #67 → S-15.05 (Strategy B multi-day); proceed with per-story-delivery after state burst.
 
-### 4. Tier-A Completed Log + Current Tier-A: Step 3 — S-15.03 PRIORITY-A wave (M1: S-15.06+S-15.08+S-15.16 Part A)
+### 4. Tier-A Completed Log + Current Tier-A: Step 3 — S-15.03 PRIORITY-A wave (M1 COMPLETE; M2: S-15.07+S-15.09+S-15.11+S-15.14)
 
 **TD #71 COMPLETE (historical):** Dispatcher stderr block_reason surfacing SHIPPED 2026-05-14 via PR #138 at bcf494ff. Full dispatch log: `.factory/cycles/v1.0-brownfield-backfill/td-71-dispatch.md`.
 
@@ -329,11 +330,13 @@ Human directed 2026-05-14: asymptotic-acceptance for E-10 sub-cycle analogous to
 
 **S-15.05 COMPLETE (historical):** TD #67 timing-flaky test de-flake SHIPPED 2026-05-15 via PR #143 at 224fa184. TC-4/5/7/9 rewritten from wall-clock assertions to internal-log event observation (architect Strategy B). New `wait_for_log_event` async helper added (full_stack_plugin_invocation.rs:187-252). 0 review findings; CI green. F-P3-008 ubuntu flake RESOLVED — TC-9 structurally fixed by event-observation; 4baa2583 interim timeout expansion (5s→30s applied during PR review) superseded by final merge. BC-1.14.001 lifecycle_status already active (POL-14 satisfied). **Section 12 Step 2 COMPLETE (S-15.04 + S-15.05 both SHIPPED).**
 
-**Active Tier-A: Step 3 — S-15.03 PRIORITY-A lint-hook automation (wave-scale)**
+**S-15.08 COMPLETE (historical):** dim2-gate bash template library (11 scripts + 12 bats suites + 25 fixtures + README) MERGED 2026-05-16 via PR #144 at c62f952c. LOCAL adversary 6-pass cascade (HIGH(6)→NITPICK→HIGH(1)→NITPICK→LOW→CLEAN) CONVERGED 3/3 per BC-5.39.001. 4 fix-bursts applied. 0 PR review findings; security CLEAR. BC-5.39.001 had `behavioral_contracts: []` — no BCs to auto-promote (POL-14 satisfied, skip). Closes D-450(b/c/d/e)/D-451(a)/D-452(a/b)/D-453(e)/D-454(a/b/c/d). **M1 (S-15.06+S-15.16 Part A+S-15.08) COMPLETE 2026-05-16.**
 
-- **Wave plan COMPLETE 2026-05-15 (architect):** 95 distinct items across 8 categories → 11-story wave S-15.06..S-15.16 (S-15.06 SHIPPED 2026-05-15). ADR-021 (cargo-audit Option b) + ADR-022 (current-pass pointer Option c) registered as M3 gating ADRs. OQ-1 (three-digit POLICY IDs) RESOLVED by human direction.
-- **Milestone 1 (M1) dispatch-ready:** S-15.06 + S-15.08 + S-15.16 Part A — zero remaining gates; PO authoring next.
-- **Gate:** Step 4 (E-10 sub-cycle resumption) and Step 5 (F5 cycle resumption) both blocked until S-15.03 SHIPS.
+**Active Tier-A: Step 3 — S-15.03 PRIORITY-A M2 (4 WASM hook stories)**
+
+- **M2 dispatch-ready pending architect adjudication:** S-15.07 + S-15.09 + S-15.11 + S-15.14 (4 WASM hook stories). Architect must adjudicate story order and inter-story dependencies before dispatch.
+- **M3 gating ADRs:** ADR-021 (cargo-audit Option b) + ADR-022 (current-pass pointer Option c) registered. M3 (5 stories + ADR-021/022 gating) blocked on M2 SHIPS.
+- **Gate:** Step 4 (E-10 sub-cycle resumption) and Step 5 (F5 cycle resumption) both blocked until S-15.03 SHIPS (all 11 stories merged).
 
 ### 5. Cumulative Codifications
 
@@ -347,23 +350,23 @@ Human directed 2026-05-14: asymptotic-acceptance for E-10 sub-cycle analogous to
 
 ### 7. S-15.03 PRIORITY-A Scope (Cumulative)
 
-Wave plan COMPLETE 2026-05-15 (architect): **95 distinct items** across 8 categories decomposing into **11-story wave S-15.06..S-15.16** (S-15.06 SHIPPED 2026-05-15; 10 remaining) (revised from ~108 sub-item pre-plan estimate). Categories: (1) index-cite-refresh hook, (2) burst-log 8-block gate, (3) source-attestation gate, (4) closes-completeness Phase 2, (5) cargo-audit lint hook (ADR-021 Option b), (6) POLICY ID migration (OQ-1 three-digit; S-15.15 Part B), (7) current-pass pointer (ADR-022 Option c; S-15.13 Phase 2), (8) dim2-gate bash templates (S-15.03 PRIORITY-A automation). Also includes: E-10 deferred findings (F-PASS14-003..008). Full enumeration: `stories/S-15.03-index-cite-refresh-hook.md`. **Status: ACTIVE Tier-A (Step 3), M1 dispatch-ready.**
+Wave plan COMPLETE 2026-05-15 (architect): **95 distinct items** across 8 categories decomposing into **11-story wave S-15.06..S-15.16** (S-15.06 SHIPPED 2026-05-15; 10 remaining) (revised from ~108 sub-item pre-plan estimate). Categories: (1) index-cite-refresh hook, (2) burst-log 8-block gate, (3) source-attestation gate, (4) closes-completeness Phase 2, (5) cargo-audit lint hook (ADR-021 Option b), (6) POLICY ID migration (OQ-1 three-digit; S-15.15 Part B), (7) current-pass pointer (ADR-022 Option c; S-15.13 Phase 2), (8) dim2-gate bash templates (S-15.03 PRIORITY-A automation). Also includes: E-10 deferred findings (F-PASS14-003..008). Full enumeration: `stories/S-15.03-index-cite-refresh-hook.md`. **Status: ACTIVE Tier-A (Step 3), M1 COMPLETE 2026-05-16, M2 dispatch-ready pending architect adjudication.**
 
-### 8. 4-Index State (Post S-15.05 SHIPPED; Section 12 Step 2 COMPLETE)
+### 8. 4-Index State (Post S-15.08 MERGED; M1 COMPLETE 2026-05-16)
 
 | Index | Version | Acknowledges |
 |-------|---------|-------------|
 | BC-INDEX | v2.24 | D-389..D-454 (F5 sample; see decision-log.md) + D-466..D-471 E-10 pass-12/13/14 cite-refresh + POLICY 13-18 |
 | VP-INDEX | v1.96 | D-389..D-454 (sample) + D-464+D-465 VP-014 v1.2 + D-468+D-469 VP-014 v1.2.1 NN-2 parity cite-refresh |
-| STORY-INDEX | v3.25 | D-389..D-454 (sample) + D-466+D-467 E-10 pass-12 + D-468+D-469 E-1 v1.1.2 row refresh + S-15.04 + S-15.05 registration + S-15.02 cite-drift-fix + S-15.04 SHIPPED PR #142 fdc7da16 + S-15.05 SHIPPED PR #143 224fa184 status draft→merged 2026-05-15; Section 12 Step 2 COMPLETE |
+| STORY-INDEX | v3.31 | D-389..D-454 (sample) + D-466+D-467 E-10 pass-12 + D-468+D-469 E-1 v1.1.2 row refresh + S-15.04 + S-15.05 + S-15.06 + S-15.16 Part A + S-15.08 MERGED PR #144 c62f952c 2026-05-16; M1 COMPLETE |
 | ARCH-INDEX | v2.06 | D-389..D-454 (F5 sample) + D-466..D-471 E-10 pass-12/13/14 rows + POLICY 13-18 + ADR-021+ADR-022 registration 2026-05-15 |
 
-### 9. Critical Anchors (Post-S-15.05 SHIPPED; Section 12 Step 2 COMPLETE)
+### 9. Critical Anchors (Post-S-15.08 MERGED; M1 COMPLETE 2026-05-16)
 
 - factory-artifacts HEAD: see `git -C .factory log -1 --format='%h %s'` (updated each burst; do not hard-cite per TD-VSDD-053)
+- S-15.08 merge Commit: `c62f952c7307febcc65b6ab722ff02688dfe8c90` (PR #144 squash-merge 2026-05-16 — dim2-gate bash template library; M1 COMPLETE)
 - Architect decision 2026-05-15 — TD #66 Verdict A + TD #67 Strategy B + cite-drift-fix plan: `cycles/v1.0-brownfield-backfill/architect-2026-05-15-td-66-67-split.md`
 - S-15.05 merge Commit: `224fa18421214b30dacf1cdd606152294cd33bd6` (PR #143 squash-merge 2026-05-15 — TD #67 closure; Section 12 Step 2 COMPLETE)
-- 4baa2583 in-scope timeout fix: TC-4/7/9 wait bounds 5s/8s→30s during PR review; superseded by final event-observation rewrite at merge
 - S-15.04 merge Commit: `fdc7da16a3b5004bf3266158b2d651d3e62cf804` (PR #142 squash-merge 2026-05-15 — TD #66 closure)
 - TD #74 merge Commit: `5d1f8805` (PR #141 squash-merge 2026-05-15 — dispatch-package cargo-audit codification)
 - TD #70 merge Commit: `ddc11879` (PR #140 squash-merge 2026-05-15 — Swatinem/rust-cache SHA-pin + cache-on-failure)
@@ -372,31 +375,32 @@ Wave plan COMPLETE 2026-05-15 (architect): **95 distinct items** across 8 catego
 - D-471 asymptotic-acceptance seal Commit: `1e810021`
 - D-470 mandatory HIGH closures Commit: `6fefa10d`
 - F5 cycle final-state HEAD: `4b4b6819` (pass-74 SHA-patch; PAUSED; F5 Commit D `487e0cc3` is canonical parent for any future F5 pass-75)
-- develop HEAD: `224fa184` (PR #143 squash-merge 2026-05-15 — S-15.05 TD #67 closure; Section 12 Step 2 COMPLETE)
-- Prior develop milestones: `fdc7da16` (S-15.04) → `5d1f8805` (TD #74) → `ddc11879` (TD #70) → `83afaa3c` (TD #72) → `bcf494ff` (TD #71)
+- develop HEAD: `c62f952c` (PR #144 squash-merge 2026-05-16 — S-15.08 M1 COMPLETE; prior: `224fa184` S-15.05)
+- Prior develop milestones: `224fa184` (S-15.05) → `fdc7da16` (S-15.04) → `5d1f8805` (TD #74) → `ddc11879` (TD #70) → `83afaa3c` (TD #72) → `bcf494ff` (TD #71)
 - main HEAD: `70811f4a`
 - ADR-021 cargo-audit sandboxing (Option b): `.factory/specs/architecture/decisions/ADR-021-wasm-cargo-audit-sandboxing.md` (input-hash 8ca8e03; gates S-15.15 Part C)
 - ADR-022 current-pass context-discovery (Option c): `.factory/specs/architecture/decisions/ADR-022-hook-current-pass-context-discovery.md` (input-hash 8ca8e03; gates S-15.13 Phase 2)
 - OQ-1 three-digit POLICY ID resolution (human 2026-05-15): recorded; migration deferred to S-15.15 Part B authorship (~15 cross-reference files; canonical form POLICY 001-018)
 - E-10 resumption gate: BLOCKED on S-15.03 PRIORITY-A lint hooks in v1.0-feature-engine-discipline-pass-2
 
-### 10. PR Status (Post-TD-#74 Ship; Post-PR #141 Merge)
+### 10. PR Status (Post-PR #144 Merge; M1 COMPLETE)
 
-- PR #137: MERGED `21d444d8` 2026-05-14 (dim2-gates path-registry; Tier-B priority-1 closure).
+- PR #144: MERGED `c62f952c` 2026-05-16 (S-15.08 dim2-gate bash template library; M1 Story 2). 0 PR review findings; security CLEAR (1 LOW by-design accepted); LOCAL adversary 6-pass CONVERGED 3/3; CI green on all content-critical jobs. M1 COMPLETE.
+- PR #143: MERGED `224fa184` 2026-05-15 (S-15.05 TD #67 de-flake TC-4/5/7/9; Rust integration test). Section 12 Step 2 COMPLETE.
+- PR #142: MERGED `fdc7da16` 2026-05-15 (S-15.04 TD #66 trace_id canonicalization). 0 Critical/Important/Minor findings; CI green.
+- PR #141: MERGED `5d1f8805` 2026-05-15 (TD #74 dispatch-package cargo-audit codification). 0 review findings; CI 10/10 green.
+- PR #140: MERGED `ddc11879` 2026-05-15 (TD #70 rust-cache SHA-pin). 0 review findings; CI 10/10 green on 7 runners.
+- PR #139: MERGED `83afaa3c` 2026-05-15 (TD #72 serde_norway migration). 2 Critical security findings resolved; CI 10/10 green.
 - PR #138: MERGED `bcf494ff` 2026-05-14 (TD #71 dispatcher stderr; Tier-A closure). 0 Critical/Important findings; CI green.
-- PR #139: MERGED `83afaa3c` 2026-05-15 (TD #72 serde_norway migration; Tier-A closure). 2 Critical security findings resolved; 0 diff review findings; CI 10/10 green.
-- PR #140: MERGED `ddc11879` 2026-05-15 (TD #70 rust-cache SHA-pin; Tier-A closure). 0 review findings; CI 10/10 green on 7 runners.
-- PR #141: MERGED `5d1f8805` 2026-05-15 (TD #74 dispatch-package cargo-audit codification; Tier-A closure). 0 review findings; CI 10/10 green; docs-only change.
-- PR #142: MERGED `fdc7da16` 2026-05-15 (S-15.04 TD #66 trace_id canonicalization; bats single-file). 0 Critical/Important/Minor findings; CI green.
-- PR #143: MERGED `224fa184` 2026-05-15 (S-15.05 TD #67 de-flake TC-4/5/7/9; Rust integration test). 1 review cycle; AI review converged 0 Critical/Important; security review CLEAR; CI green (in-scope timeout fix at 4baa2583 during review; event-observation rewrite final). Section 12 Step 2 COMPLETE.
-- No open PRs. 6-PR Tier-A sweep COMPLETE. Step 3 (S-15.03 wave) is active Tier-A — wave-scale, needs architect + PO planning before dispatch.
+- PR #137: MERGED `21d444d8` 2026-05-14 (dim2-gates path-registry; Tier-B priority-1 closure).
+- No open PRs. M2 (S-15.07/09/11/14) dispatch-ready pending architect adjudication.
 
 ### 11. Post-CLEAR Resume Checklist
 
 1. Run `git -C /Users/jmagady/Dev/vsdd-factory/.factory log --oneline -3` to confirm factory-artifacts state
 2. Read STATE.md Session Resume Checkpoint sections 1-10 (this section is self-sufficient)
 3. Verify CLAUDE.md still cites vsdd-factory project conventions (PR #136 expanded it; PR #138 added §Step 2 follow-up; PR #141 added dispatch-package-authoring.md cross-ref)
-4. **Step 2 COMPLETE. Active Tier-A is Step 3 (S-15.03 PRIORITY-A wave). M1 is dispatch-ready.** Read `.factory/cycles/v1.0-brownfield-backfill/s-15.03-wave-m1-dispatch.md` for M1 dispatch with zero context. Optional deep-context: read `s-15.03-wave-plan-2026-05-15.md` (architect wave plan — 95 items, 11-story wave, 3 milestones) and `orchestrator-task-snapshot-2026-05-15.md` (task state at pause).
+4. **M1 COMPLETE 2026-05-16. Active Tier-A is Step 3 M2 (S-15.03 PRIORITY-A wave M2).** M2 dispatch-ready pending architect adjudication — 4 WASM hook stories: S-15.07/09/11/14. Architect must confirm story order and dependencies before implementer dispatch. Optional deep-context: read `s-15.03-wave-plan-2026-05-15.md` (architect wave plan — 95 items, 11-story wave, 3 milestones).
 5. E-10 sub-cycle SEALED — do NOT dispatch E-10 pass-15 without S-15.03 PRIORITY-A lint hooks landing first
 6. F5 cycle is PAUSED — do NOT dispatch F5 pass-75 without explicit human direction to resume F5
 7. **State-manager Commit A new obligation (ADR-022 Option c, activates at S-15.13 ship time):** At every Commit A for cycle-scoped adversarial reviews, write `.factory/current-adversary-pass.txt` (single line, integer pass N, no trailing newline). Until S-15.13 ships, this obligation is documented but NOT yet enforced. Do NOT create this file before S-15.13 lands.
@@ -409,7 +413,7 @@ Wave plan COMPLETE 2026-05-15 (architect): **95 distinct items** across 8 catego
 |------|------|------|------|----------------|
 | ~~1~~ | ~~**TD #74 — dispatch-package cargo-audit codification**~~ | ~~A~~ | ~~—~~ | **SHIPPED 2026-05-15 PR #141 5d1f8805** |
 | ~~2~~ | ~~**TD #66 cleanup (S-15.04) + TD #67 cleanup (S-15.05)**~~ | ~~A~~ | ~~(1) complete~~ | **COMPLETE 2026-05-15** (S-15.04 PR #142 fdc7da16 + S-15.05 PR #143 224fa184; TD #66 + TD #67 RESOLVED) |
-| 3 | **S-15.03 PRIORITY-A — lint-hook automation** | D | **(2) complete** | **Active Tier-A — wave plan persisted (s-15.03-wave-plan-2026-05-15.md) + 2 ADRs registered (ADR-021/022) + 3 OQ resolutions + M1 dispatch package authored (s-15.03-wave-m1-dispatch.md); fresh-session M1 dispatch-ready via durable resume payload** |
+| 3 | **S-15.03 PRIORITY-A — lint-hook automation** | D | **(2) complete** | **Active Tier-A — M1 COMPLETE 2026-05-16 (S-15.06+S-15.16 Part A+S-15.08 PR #144 c62f952c); M2 (4 WASM hooks: S-15.07/09/11/14) dispatch-ready pending architect adjudication; M3 (5 stories + ADR-021/022 gating) pending M2 SHIPS** |
 | 4 | **E-10 sub-cycle resumption (pass-15 forward)** | gated | (3) complete | Brownfield-backfill architect-discipline cycle continuation; currently SEALED at D-471 asymptotic-acceptance |
 | 5 | **F5 cycle resumption (pass-75 forward)** | gated | (3) complete + **explicit human direction** | feature-engine-discipline-pass-1 cycle continuation; currently PAUSED at META-LEVEL-29 per D-386 Option C; parent-commit for pass-75 is `487e0cc3` per D-419(b) |
 
@@ -429,4 +433,4 @@ Wave plan COMPLETE 2026-05-15 (architect): **95 distinct items** across 8 catego
 
 **[D-414(c) acknowledgment: Section 12 continued from durability-refresh per user direction 2026-05-13; standard Session Resume schema is 11 sections, this is a non-standard addition for forward-backlog durability.]**
 
-> Previous checkpoint (S-15.04 SHIPPED PR #142 fdc7da16; TD #66 RESOLVED; S-15.05 CURRENT SUB-TARGET 2026-05-15) archived to: `cycles/v1.0-brownfield-backfill/session-checkpoints.md`
+> Previous checkpoint (SESSION-END DURABILITY BURST 2026-05-15; M1 dispatch-ready; 3 durable artifacts authored) archived to: `cycles/v1.0-brownfield-backfill/session-checkpoints.md`
