@@ -1,15 +1,17 @@
 ---
 document_type: vp-index
 level: L4
-version: "1.96"
+version: "1.97"
 status: draft
 producer: state-manager
-timestamp: 2026-05-14T00:00:00Z
-last_amended: 2026-05-14
+timestamp: 2026-05-15T00:00:00Z
+last_amended: 2026-05-15
 phase: F5
 traces_to: ARCH-INDEX.md
 total_vps: 80
 changelog:
+  - date: 2026-05-15
+    change: "v1.97 (2026-05-15; S-15.06 F-PASS14-005 closure — POLICY 9 propagation acknowledgment for VP-014 v1.2.1 NN-2 parity update. verification-architecture.md and verification-coverage-matrix.md are DEFERRED per this document's own preamble note (see Source of truth block above): both files do not yet exist; VP-INDEX IS the authoritative Provable Properties Catalog and VP-to-Module coverage table. F-PASS14-005 required fix = confirming parity acknowledgment in VP-INDEX at the same burst as VP-014 v1.2.1 was recognized; D-472 is the retroactive codification decision. validate-vp-consistency hook (priority 410 in hooks-registry.toml) triggers only on VP-INDEX.md / verification-architecture.md / verification-coverage-matrix.md edits — it does NOT trigger on individual VP file edits (e.g., VP-014.md). Therefore it would NOT have caught the D-468 propagation omission going forward; S-15.11 will extend hook coverage to individual VP file edits per POLICY 9 unconditional obligation. VP-INDEX v1.96→v1.97. Refs: D-472, F-PASS14-005, S-15.06."
   - date: 2026-05-14
     change: "v1.96 (2026-05-14; E-10 pass-13 D-468 fix burst + D-469 seal — VP-014 v1.2→v1.2.1 cite-refresh (architect F-PASS13-002 NN-2 frontmatter parity: last_amended + modified[] added). ARCH-INDEX v2.04 acknowledges D-468+D-469. VP-INDEX v1.95→v1.96. Refs: D-468, D-469."
   - date: 2026-05-13

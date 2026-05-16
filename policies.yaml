@@ -21,6 +21,13 @@
 #                                   # Baseline policies (1-9) have steps baked into agent
 #                                   # prompts. Custom policies (10+) MUST include steps
 #                                   # here so the adversary knows HOW to verify them.
+#   codified_at: <D-NNN|null>  # Decision-log D-NNN at which this policy was formally
+#                              # registered as a D-NNN-class governance event. Baseline
+#                              # policies (1-12) predate the codified_at convention
+#                              # (established by D-472 / S-15.06 F-PASS14-003 closure
+#                              # 2026-05-15); their codified_at is null. POLICY 13-18
+#                              # were registered at commit b8909832 (2026-05-14) and
+#                              # retroactively assigned D-472 per S-15.06.
 
 policies:
   - id: 1
@@ -31,6 +38,7 @@ policies:
     enforced_by: [adversary-prompt, consistency-validator]
     scope: [bc, vp, di, cap, story, hs]
     lint_hook: null
+    codified_at: null
     verification_steps:
       - "Scan all index files for retired/removed IDs — verify no active artifact reuses a retired ID"
       - "Verify retired entries have replaced_by or removal justification"
@@ -44,6 +52,7 @@ policies:
     enforced_by: [adversary-prompt, consistency-validator]
     scope: [di, bc]
     lint_hook: null
+    codified_at: null
     verification_steps:
       - "Read domain-spec/invariants.md — extract all DI-NNN IDs"
       - "For each DI-NNN, search BC files for citations in Traceability/L2 Invariants fields"
@@ -58,6 +67,7 @@ policies:
     enforced_by: [orchestrator-rule]
     scope: [story, bc, vp, architecture]
     lint_hook: null
+    codified_at: null
     verification_steps:
       - "Review burst commit history — state-manager commits must come after all other agents"
       - "Check for citation staleness — STORY-INDEX/BC-INDEX versions must match latest story-writer/PO output"
@@ -70,6 +80,7 @@ policies:
     enforced_by: [adversary-prompt, consistency-validator]
     scope: [bc, vp, story, architecture]
     lint_hook: null
+    codified_at: null
     verification_steps:
       - "For each BC, verify declared capability actually describes the BC's purpose per capabilities.md"
       - "For each story, verify subsystems: field references subsystems that own the story's scope per ARCH-INDEX"
@@ -84,6 +95,7 @@ policies:
     enforced_by: [adversary-prompt]
     scope: [bc, vp, story, cap, architecture]
     lint_hook: null
+    codified_at: null
     verification_steps:
       - "Check that BC→CAP anchors include justification citing capabilities.md"
       - "Check that story→subsystem anchors include justification citing ARCH-INDEX"
@@ -98,6 +110,7 @@ policies:
     enforced_by: [adversary-prompt, consistency-validator]
     scope: [bc, story, prd, architecture]
     lint_hook: null
+    codified_at: null
     verification_steps:
       - "Read ARCH-INDEX Subsystem Registry for canonical subsystem names"
       - "For sampled BCs, verify subsystem: frontmatter matches registry exactly"
@@ -112,6 +125,7 @@ policies:
     enforced_by: [adversary-prompt, consistency-validator]
     scope: [bc, story, prd]
     lint_hook: null
+    codified_at: null
     verification_steps:
       - "Sample 10+ BCs — read H1 heading and compare to BC-INDEX title column"
       - "Check for downstream-only enrichment not present in H1"
@@ -125,6 +139,7 @@ policies:
     enforced_by: [adversary-prompt, consistency-validator]
     scope: [story, bc]
     lint_hook: null
+    codified_at: null
     verification_steps:
       - "Sample 5+ stories — for each BC in behavioral_contracts: frontmatter (canonical field; alias: bcs: for S-15.03 only), verify it appears in body BC table"
       - "For each BC in behavioral_contracts: frontmatter, verify at least one AC traces to it"
@@ -139,6 +154,7 @@ policies:
     enforced_by: [adversary-prompt, lint-hook, consistency-validator]
     scope: [vp, architecture]
     lint_hook: hooks/validate-vp-consistency.sh
+    codified_at: null
     verification_steps:
       - "Verify VP-INDEX arithmetic: total = sum of per-tool counts = row count"
       - "For each VP in VP-INDEX, verify it appears in verification-architecture.md Provable Properties Catalog"
@@ -154,6 +170,7 @@ policies:
     enforced_by: [adversary-prompt, consistency-validator, pr-reviewer, lint-hook]
     scope: [story, demo-evidence, pr]
     lint_hook: hooks/validate-demo-evidence-story-scoped.sh
+    codified_at: null
     verification_steps:
       - "For each story's feature branch, verify docs/demo-evidence/<STORY-ID>/ exists"
       - "Verify NO files exist at docs/demo-evidence/*.md — only subfolders"
@@ -167,6 +184,7 @@ policies:
     enforced_by: [validate-consistency, adversary-prompt]
     scope: [test, story]
     lint_hook: null
+    codified_at: null
     verification_steps:
       - "Run validate-consistency Check 8 (Test Tautology Detector)"
       - "For each FLAGGED row in the Advisories section, treat as a blocking finding"
@@ -181,6 +199,7 @@ policies:
     enforced_by: [validate-consistency, adversary-prompt]
     scope: [bc, code]
     lint_hook: null
+    codified_at: null
     verification_steps:
       - "Run validate-consistency Check 9 (BC Canonical TV ↔ Emitter Field Consistency)"
       - "For each FLAGGED row in the Advisories section, treat as a blocking finding"
@@ -195,6 +214,7 @@ policies:
     enforced_by: [adversary-prompt, architect-prompt, state-manager-prompt]
     scope: [bc, vp, story, epic, architecture, all-spec]
     lint_hook: null
+    codified_at: D-472
     verification_steps:
       - "Adversary: when surfacing a canonical-violation finding, predicate must use regex-alternation grep (-E flag with alternation), not single literal string"
       - "Architect: pre-fix scope-determination grep at fix-burst time must use HH-N predicate with regex-alternation covering all syntactic forms"
@@ -208,6 +228,7 @@ policies:
     enforced_by: [state-manager-prompt, consistency-validator, pre-commit-hook]
     scope: [bc, vp, story, epic]
     lint_hook: null
+    codified_at: D-472
     verification_steps:
       - "For each file with body Changelog section, verify latest row date matches frontmatter last_amended:"
       - "Verify frontmatter modified: array's last entry corresponds to latest body Changelog row"
@@ -222,6 +243,7 @@ policies:
     enforced_by: [adversary-prompt, state-manager-prompt, consistency-validator]
     scope: [arch-index, bc-index, vp-index, story-index, cycle-decision-log, cycle-burst-log]
     lint_hook: null
+    codified_at: D-472
     verification_steps:
       - "Adversary: when verifying a closure claim, check the changelog/decision-log row for verbatim file:line: stdout content (not just command text)"
       - "State-manager: when writing changelog/decision-log rows asserting grep verification, include verbatim stdout (file:line: matched-text) or sentinel (zero output) or (EXIT:1; no matches)"
@@ -236,6 +258,7 @@ policies:
     enforced_by: [state-manager-prompt, architect-prompt, pre-commit-hook]
     scope: [all-cycles, decision-log, spec, story]
     lint_hook: null
+    codified_at: D-472
     verification_steps:
       - "State-manager: pre-burst, run grep across all cycle decision-logs to find global D-NNN max; assert next-allocation is global-max+1"
       - "Architect: when authoring body changelog rows citing D-NNN, verify D-NNN exists in appropriate cycle's decision-log AT THAT TIME (citation-authoring scope)"
@@ -250,6 +273,7 @@ policies:
     enforced_by: [state-manager-prompt, architect-prompt, consistency-validator]
     scope: [bc, epic, story, vp]
     lint_hook: null
+    codified_at: D-472
     verification_steps:
       - "For each spec/story/epic/VP file with a body Changelog section, verify NN-2 frontmatter parity (last_amended + modified[] + version) — same predicates as POLICY 14 (KK-N) but applied to all 4 file types"
       - "Adversary: when a fix burst touches an epic or VP, verify NN-2 parity was applied (not just BC-level KK-N)"
@@ -263,6 +287,7 @@ policies:
     enforced_by: [state-manager-prompt, architect-prompt, pre-commit-hook]
     scope: [bc, vp, story, architecture]
     lint_hook: null
+    codified_at: D-472
     verification_steps:
       - "When a file's input-hash: field changes in a burst, verify the burst evidence contains literal bin/compute-input-hash invocation + captured stdout matching the new hash"
       - "Verify the file's inputs: array lists every file whose modification triggered the hash change"
