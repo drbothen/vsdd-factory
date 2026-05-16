@@ -12,7 +12,7 @@ input-hash: "[live-state]"
 traces_to: prd.md
 project: vsdd-factory
 mode: brownfield
-current_step: "STATE BURST 2026-05-15: ADR-021 + ADR-022 registered in ARCH-INDEX v2.06 (S-15.03 wave Milestone 3 gating); input-hashes computed (8ca8e03); OQ-2 (cargo-audit Option b) + OQ-3 (current-pass pointer Option c) RESOLVED; OQ-1 (POLICY ID three-digit) RESOLVED by human; architect wave plan 95 items across 8 categories 11 stories S-15.06..S-15.16; M1 dispatch ready (S-15.06+S-15.08+S-15.16 Part A); single factory-artifacts commit per TD-VSDD-053"
+current_step: "SESSION-END DURABILITY BURST 2026-05-15: 3 durable artifacts authored at .factory/cycles/v1.0-brownfield-backfill/ (s-15.03-wave-plan-2026-05-15.md f461a5f + s-15.03-wave-m1-dispatch.md ad1c745 + orchestrator-task-snapshot-2026-05-15.md a0b9380) for post-CLEAR resume with zero conversation context; mirror of td-74-dispatch.md pattern from prior /clear; Section 12 Step 3 sub-status = M1 dispatch-ready; single factory-artifacts commit per TD-VSDD-053"
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -42,8 +42,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-15 — ADR-021 + ADR-022 registered (ARCH-INDEX v2.06); input-hashes computed (8ca8e03); 3 OQ resolutions: OQ-1 three-digit POLICY ID (human direction), OQ-2 ADR-021 cargo-audit Option b, OQ-3 ADR-022 current-pass pointer Option c. Architect wave plan: 95 distinct items across 8 categories → 11 stories S-15.06..S-15.16. M1 (S-15.06+S-15.08+S-15.16 Part A) dispatch-ready. Prior: S-15.05 SHIPPED PR #143 224fa184 (TD #67). |
-| **Current Phase** | Section 12 Step 3 wave-plan COMPLETE 2026-05-15 (architect). 3 OQ resolutions: OQ-1 three-digit POLICY IDs (human override of adversary recommendation); OQ-2 ADR-021 cargo-audit Option b; OQ-3 ADR-022 current-pass Option c. Milestone 1 (S-15.06 + S-15.08 + S-15.16 Part A) is dispatch-ready — zero gates remaining. |
+| **Last Updated** | 2026-05-15 — SESSION-END DURABILITY BURST: 3 durable artifacts authored for post-CLEAR resume (s-15.03-wave-plan-2026-05-15.md + s-15.03-wave-m1-dispatch.md + orchestrator-task-snapshot-2026-05-15.md); mirrors td-74-dispatch.md pattern from prior /clear. Prior: ADR-021 + ADR-022 registered (ARCH-INDEX v2.06); 3 OQ resolutions; architect wave plan 95 items → 11 stories S-15.06..S-15.16; M1 dispatch-ready. |
+| **Current Phase** | Section 12 Step 3 wave-plan COMPLETE; M1 dispatch-ready; session-end durability burst authored 2026-05-15 (3 files: wave-plan + M1-dispatch + task-snapshot). Post-CLEAR orchestrator reads STATE.md §11 + s-15.03-wave-m1-dispatch.md to dispatch S-15.06 → S-15.08 → S-15.16 Part A with zero context. |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Phase Progress
@@ -276,13 +276,14 @@ dtu_services: []
 - `cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` | `session-checkpoints.md` | `lessons.md`
 - `cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md` (adversary reviews at `S-12.03/`, `S-12.04/`, `S-12.05/` subdirs)
 
-## Session Resume Checkpoint (2026-05-15 — ADR-021 + ADR-022 registered ARCH-INDEX v2.06; OQ-1/OQ-2/OQ-3 RESOLVED; Section 12 Step 3 wave plan COMPLETE; M1 dispatch-ready)
+## Session Resume Checkpoint (2026-05-15 — SESSION-END DURABILITY BURST; S-15.03 wave M1 dispatch package authored; post-CLEAR resume ready)
 
-> **SELF-SUFFICIENT RESUME CONTEXT — SECTION 12 STEP 3 WAVE PLAN COMPLETE; M1 DISPATCH-READY**
+> **SELF-SUFFICIENT RESUME CONTEXT — SECTION 12 STEP 3 WAVE PLAN COMPLETE; M1 DISPATCH-READY; DURABILITY BURST AUTHORED**
 > Read this section alone to resume the protocol after full conversation CLEAR (not compact).
 
 ### 1. Where We Are
 
+- **SESSION-END DURABILITY BURST COMPLETE 2026-05-15:** 3 durable artifacts authored at `.factory/cycles/v1.0-brownfield-backfill/` for post-CLEAR resume (mirrors td-74-dispatch.md pattern from prior /clear)
 - **S-15.05 SHIPPED 2026-05-15** via PR #143 squash-merge at 224fa184; **TD #67 RESOLVED**; STORY-INDEX v3.25; F-P3-008 ubuntu flake RESOLVED
 - **Section 12 Step 2 COMPLETE** — S-15.04 (TD #66, PR #142 fdc7da16) + S-15.05 (TD #67, PR #143 224fa184) both SHIPPED
 - **Section 12 Step 3 wave plan COMPLETE 2026-05-15 (architect):** 95 distinct items → 11 stories S-15.06..S-15.16; ADR-021 (OQ-2) + ADR-022 (OQ-3) registered ARCH-INDEX v2.06; OQ-1 RESOLVED; M1 dispatch-ready
@@ -294,7 +295,7 @@ dtu_services: []
 - factory-artifacts HEAD: see `git -C .factory log -1 --format='%h %s'` (updated each burst; do not hard-cite)
 - develop HEAD: `224fa184` (PR #143 squash-merge 2026-05-15 — S-15.05 TD #67 closure; Section 12 Step 2 COMPLETE)
 - main HEAD: `70811f4a` (includes CLAUDE.md expansion PR #136 + rc.18 merge)
-- **Next action: architect + PO wave-planning for S-15.03 PRIORITY-A (Step 3 wave)**
+- **Next action (post-CLEAR): dispatch M1 per `s-15.03-wave-m1-dispatch.md`** — S-15.06 first (sub-day state-manager burst), then S-15.08 (multi-day per-story-delivery), then S-15.16 Part A (state-manager-led compaction)
 
 ### 2. Operating Mode
 
@@ -386,7 +387,7 @@ Wave plan COMPLETE 2026-05-15 (architect): **95 distinct items** across 8 catego
 1. Run `git -C /Users/jmagady/Dev/vsdd-factory/.factory log --oneline -3` to confirm factory-artifacts state
 2. Read STATE.md Session Resume Checkpoint sections 1-10 (this section is self-sufficient)
 3. Verify CLAUDE.md still cites vsdd-factory project conventions (PR #136 expanded it; PR #138 added §Step 2 follow-up; PR #141 added dispatch-package-authoring.md cross-ref)
-4. **Step 2 COMPLETE.** S-15.04 SHIPPED PR #142 fdc7da16 (TD #66 RESOLVED). S-15.05 SHIPPED PR #143 224fa184 (TD #67 RESOLVED). Active Tier-A is Step 3 (S-15.03 PRIORITY-A wave). Wave-scale — needs architect + PO planning before dispatch. 6-PR sweep COMPLETE.
+4. **Step 2 COMPLETE. Active Tier-A is Step 3 (S-15.03 PRIORITY-A wave). M1 is dispatch-ready.** Read `.factory/cycles/v1.0-brownfield-backfill/s-15.03-wave-m1-dispatch.md` for M1 dispatch with zero context. Optional deep-context: read `s-15.03-wave-plan-2026-05-15.md` (architect wave plan — 95 items, 11 stories, 3 milestones) and `orchestrator-task-snapshot-2026-05-15.md` (task state at pause).
 5. E-10 sub-cycle SEALED — do NOT dispatch E-10 pass-15 without S-15.03 PRIORITY-A lint hooks landing first
 6. F5 cycle is PAUSED — do NOT dispatch F5 pass-75 without explicit human direction to resume F5
 7. **State-manager Commit A new obligation (ADR-022 Option c, activates at S-15.13 ship time):** At every Commit A for cycle-scoped adversarial reviews, write `.factory/current-adversary-pass.txt` (single line, integer pass N, no trailing newline). Until S-15.13 ships, this obligation is documented but NOT yet enforced. Do NOT create this file before S-15.13 lands.
@@ -399,7 +400,7 @@ Wave plan COMPLETE 2026-05-15 (architect): **95 distinct items** across 8 catego
 |------|------|------|------|----------------|
 | ~~1~~ | ~~**TD #74 — dispatch-package cargo-audit codification**~~ | ~~A~~ | ~~—~~ | **SHIPPED 2026-05-15 PR #141 5d1f8805** |
 | ~~2~~ | ~~**TD #66 cleanup (S-15.04) + TD #67 cleanup (S-15.05)**~~ | ~~A~~ | ~~(1) complete~~ | **COMPLETE 2026-05-15** (S-15.04 PR #142 fdc7da16 + S-15.05 PR #143 224fa184; TD #66 + TD #67 RESOLVED) |
-| 3 | **S-15.03 PRIORITY-A — lint-hook automation** | D | **(2) complete** | **Active Tier-A — wave plan COMPLETE 2026-05-15.** 95 items → 11 stories S-15.06..S-15.16; ADR-021+ADR-022 registered (M3 gating); OQ-1 RESOLVED; M1 (S-15.06+S-15.08+S-15.16 Part A) dispatch-ready |
+| 3 | **S-15.03 PRIORITY-A — lint-hook automation** | D | **(2) complete** | **Active Tier-A — wave plan persisted (s-15.03-wave-plan-2026-05-15.md) + 2 ADRs registered (ADR-021/022) + 3 OQ resolutions + M1 dispatch package authored (s-15.03-wave-m1-dispatch.md); fresh-session M1 dispatch-ready via durable resume payload** |
 | 4 | **E-10 sub-cycle resumption (pass-15 forward)** | gated | (3) complete | Brownfield-backfill architect-discipline cycle continuation; currently SEALED at D-471 asymptotic-acceptance |
 | 5 | **F5 cycle resumption (pass-75 forward)** | gated | (3) complete + **explicit human direction** | feature-engine-discipline-pass-1 cycle continuation; currently PAUSED at META-LEVEL-29 per D-386 Option C; parent-commit for pass-75 is `487e0cc3` per D-419(b) |
 
