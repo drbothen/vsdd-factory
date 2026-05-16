@@ -99,11 +99,11 @@ pub struct VersionCite {
     pub minor: u32,
     /// 1-based line number within the source document where this cite appears.
     pub line: u32,
-    /// The raw minor string as it appeared in the source document body
-    /// (e.g. "05" for "v1.05", "28" for "v3.28").  Preserved so the block
+    /// The raw major.minor literal as it appeared in the source document body
+    /// (e.g. "1.05" for "v1.05", "3.28" for "v3.28").  Preserved so the block
     /// message can reproduce the body-literal form byte-for-byte, satisfying
     /// BC-5.39.003 EC-005 Ctrl-F UX requirement.
-    pub minor_raw: String,
+    pub cite_raw: String,
 }
 
 /// A stale-cite violation found during validation.
@@ -193,9 +193,8 @@ pub fn extract_index_cites(content: &str) -> Vec<VersionCite> {
                             if let Some((minor, minor_len)) =
                                 parse_leading_digits(&content[after_dot..])
                             {
-                                // Capture raw minor slice (e.g. "05" from "v1.05").
-                                // The major_raw is just the digit text before the dot;
-                                // we reconstruct the full raw cite as "major_raw.minor_raw".
+                                // Capture raw cite slice (e.g. "1.05" from "v1.05") to
+                                // preserve body-literal form byte-for-byte.
                                 let major_raw = &content[after_v..after_major];
                                 let minor_raw = &content[after_dot..after_dot + minor_len];
                                 cites.push(VersionCite {
@@ -203,7 +202,7 @@ pub fn extract_index_cites(content: &str) -> Vec<VersionCite> {
                                     major,
                                     minor,
                                     line: current_line,
-                                    minor_raw: format!("{major_raw}.{minor_raw}"),
+                                    cite_raw: format!("{major_raw}.{minor_raw}"),
                                 });
                                 let end = after_dot + minor_len;
                                 // Count newlines in the consumed span to keep
@@ -388,7 +387,7 @@ pub fn cross_cell_check(live_versions: &HashMap<IndexName, (u32, u32)>) -> Vec<V
                                 index_name: cite.index_name,
                                 cited,
                                 live,
-                                cited_raw: cite.minor_raw.clone(),
+                                cited_raw: cite.cite_raw.clone(),
                             });
                         }
                     }
@@ -423,7 +422,7 @@ pub fn cross_cell_check(live_versions: &HashMap<IndexName, (u32, u32)>) -> Vec<V
                                 index_name: cite.index_name,
                                 cited,
                                 live,
-                                cited_raw: cite.minor_raw.clone(),
+                                cited_raw: cite.cite_raw.clone(),
                             });
                         }
                     }
@@ -555,7 +554,7 @@ pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
                         index_name: cite.index_name,
                         cited,
                         live,
-                        cited_raw: cite.minor_raw.clone(),
+                        cited_raw: cite.cite_raw.clone(),
                     });
                 }
             }
