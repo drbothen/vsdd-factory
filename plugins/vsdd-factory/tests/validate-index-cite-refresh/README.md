@@ -34,14 +34,15 @@ AC-8 (WASM compiles cleanly), AC-9 (hooks-registry.toml entry present), and AC-1
 Fixtures live at `plugins/vsdd-factory/tests/fixtures/validate-index-cite-refresh/<scenario>/factory/`.
 
 Each fixture uses `factory/` as a directory name (not `.factory/`) to avoid `factory-branch-guard`
-hook interference during test authoring. The bats `setup()` function copies the fixture to a tmpdir
-and renames `factory/` to `.factory/` before running the dispatcher+WASM invocation. This ensures
-the WASM hook sees the expected `.factory/...` path structure via `host::read_file`.
+hook interference during test authoring. The bats `setup()` function pre-creates `$WORK/.factory/`
+then copies the fixture's `factory/` directory contents into it via
+`cp -r $FIXTURE_SRC/factory/. $WORK/.factory/`. This ensures the WASM hook sees the expected
+`.factory/...` path structure via `host::read_file`.
 
 ## Dispatcher Invocation Pattern
 
 Each test:
-1. Copies fixture to `WORK=$(mktemp -d)` and renames `factory/` -> `.factory/`
+1. Copies fixture contents to `WORK=$(mktemp -d)` — pre-creates `$WORK/.factory/` and copies `factory/.` into it
 2. Writes a synthetic `hooks-registry.toml` with only the `validate-index-cite-refresh` entry
 3. Copies the WASM binary to `$WORK/hook-plugins/`
 4. Runs `CLAUDE_PLUGIN_ROOT=$WORK CLAUDE_PROJECT_DIR=$WORK factory-dispatcher <PostToolUse envelope>`
