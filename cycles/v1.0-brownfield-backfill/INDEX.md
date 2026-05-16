@@ -75,6 +75,14 @@ Per human direction 2026-05-14, the E-10 sub-cycle adopts asymptotic-acceptance 
 
 **ADR-013/BC-5.39.001 convergence counter:** Frozen at 0/3 (asymptotic-acceptance overrides 3-CLEAN protocol per S-7.01 + F5 precedent).
 
+## S-15.08 LOCAL Adversary Reviews (BC-5.39.001 cascade)
+
+| Pass | Date | File | Verdict | Findings | Streak | Diff Base | Diff Head | Status |
+|------|------|------|---------|----------|--------|-----------|-----------|--------|
+| 1 | 2026-05-15 | `s-15.08-local-adversary-pass-1.md` | HIGH | 6 (1C+2H+2M+1L) | 0/3 | 224fa184 | 27ce5e29 | fix-burst pending (F-001→implementer; F-002→implementer; F-003→test-writer; F-004→test-writer; F-005→test-writer; F-006→implementer+test-writer) |
+
+**Convergence Status (S-15.08 LOCAL cascade):** pass-1 SHIPPED 2026-05-15 — verdict HIGH (6 findings: 1 CRITICAL + 2 HIGH + 2 MEDIUM + 1 LOW); streak 0/3; fix-burst routed to implementer (F-001/F-002/F-006) + test-writer (F-003/F-004/F-005); pass-2 gated on fix-burst completion.
+
 ## Convergence Status
 
 - Phase 0 (ingestion): COMPLETE
@@ -82,3 +90,4 @@ Per human direction 2026-05-14, the E-10 sub-cycle adopts asymptotic-acceptance 
 - Phase 1d (adversarial spec review): **CONVERGED** (6 passes, 3 consecutive NITPICK)
 - Story re-anchoring: PENDING (TD-001..TD-005 wave-scale follow-up)
 - E-10 sub-cycle adversarial review: **PARTIAL-CLOSED (ASYMPTOTIC-ACCEPTANCE)** — pass-14 PARTIAL-CLOSED 2026-05-14; D-470 mandatory HIGH closures + D-471 seal; 6 findings DEFERRED to S-15.03 PRIORITY-A automation wave; trend 22→11→16→16→12→2→1→4→5→4→6→7→5→8; NITPICK_ONLY counter FROZEN at 0/3; resumption gate = S-15.03 PRIORITY-A lint hooks in v1.0-feature-engine-discipline-pass-2
+- S-15.08 LOCAL adversary cascade: **IN PROGRESS** — pass-1 SHIPPED 2026-05-15 (HIGH, 6 findings, streak 0/3); fix-burst pending
