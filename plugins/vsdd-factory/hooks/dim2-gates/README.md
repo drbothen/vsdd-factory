@@ -92,7 +92,7 @@ All entries are `ACTIVE` as of S-15.08 delivery.
 
 ### decision-log-monotonic-rows.sh
 - **Args:** `<decision-log-path>`
-- **Gate:** Extracts all `| D-NNN` rows via regex `^\| D-[0-9]+[\( ]`; checks strictly non-decreasing integer order
+- **Gate:** Extracts all `| D-NNN` rows via regex `^\| D-[0-9]+[( ]`; checks strictly non-decreasing integer order
 - **EC-003:** exits 0 with "no D-NNN rows found" if file has no matching rows (vacuously monotonic)
 - **D-NNN closed:** D-450(e)
 

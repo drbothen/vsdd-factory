@@ -2,7 +2,7 @@
 # decision-log-monotonic-rows.sh — D-450(e) decision-log D-NNN ascending-order enforcement
 #
 # Closes: D-450(e) — Decision-log D-NNN ascending-order enforcement; regex
-# "^\| D-[0-9]+[\( ]" covers both paren and colon variants per D-451(b).
+# "^\| D-[0-9]+[( ]" covers both paren and space variants per D-451(b).
 #
 # Usage: decision-log-monotonic-rows.sh <decision-log-path>
 # Exits 0 if all D-NNN rows are in strictly ascending (non-decreasing) order.
@@ -27,7 +27,7 @@ EXIT CODES:
   1 — inversion detected (D-M appears after D-N where M < N)
 
 REGEX:
-  Matches lines starting with "| D-NNN" (paren or space variant): ^\| D-[0-9]+[\( ]
+  Matches lines starting with "| D-NNN" (paren or space variant): ^\| D-[0-9]+[( ]
 
 EXAMPLES:
   decision-log-monotonic-rows.sh decision-log.md
@@ -55,10 +55,10 @@ if [[ ! -f "$DECISION_LOG" ]]; then
   exit 1
 fi
 
-echo "$ grep -E '^\| D-[0-9]+[\( ]' ${DECISION_LOG}"
+echo "$ grep -E '^\| D-[0-9]+[( ]' ${DECISION_LOG}"
 
 # Extract D-NNN rows and pull out the numeric part
-ROWS=$(grep -E '^\| D-[0-9]+[\( ]' "$DECISION_LOG" || true)
+ROWS=$(grep -E '^\| D-[0-9]+[( ]' "$DECISION_LOG" || true)
 
 if [[ -z "$ROWS" ]]; then
   echo "no D-NNN rows found — vacuously monotonic"

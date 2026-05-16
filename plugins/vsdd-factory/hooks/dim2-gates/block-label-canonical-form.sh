@@ -93,7 +93,12 @@ for LABEL in "${LABELS[@]}"; do
   fi
 done
 
-echo "$ grep -E '^\*\*(Parent-commit|Adversary verdict|Files touched|Codifications|Dim-2|Dim-5|Dim-6|Dim-7|Closes)[: ]' ${BURST_LOG}"
+# Per POLICY 15 (verbatim stdout discipline) and D-449(a): echo faithfully reflects
+# what executed — 9 individual grep -qE calls in a loop, not a synthetic alternation.
+echo "# Per-label grep loop over canonical D-444(c) labels (9 invocations)"
+echo "# Pattern per label: ^\\*\\*<LABEL>[: ] (matched via grep -qE)"
+echo "# File: ${BURST_LOG}"
+echo "# Labels: Parent-commit | Adversary verdict | Files touched | Codifications | Dim-2 | Dim-5 | Dim-6 | Dim-7 | Closes"
 echo "Found labels (${#FOUND[@]} of 9):"
 for L in "${FOUND[@]}"; do
   echo "  FOUND: $L"
