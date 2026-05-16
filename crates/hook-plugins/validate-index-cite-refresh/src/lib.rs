@@ -482,7 +482,7 @@ fn format_violation(v: &Violation) -> String {
 ///
 /// 1. Extracts `file_path` from `tool_input`; early-exit Continue for
 ///    non-ARCH-INDEX.md paths (belt-and-suspenders guard — the dispatcher
-///    routes by event+tool, so any PostToolUse Write|Edit reaches this hook).
+///    routes by event+tool, so any PostToolUse Edit|Write reaches this hook).
 /// 2. Reads the written ARCH-INDEX.md content from the host filesystem.
 /// 3. Extracts all 4-index version cites from ARCH-INDEX body.
 /// 4. Reads live versions from the four canonical index frontmatters.
@@ -507,7 +507,7 @@ pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
     };
 
     // Only act on writes to ARCH-INDEX.md.
-    // The dispatcher routes by event+tool (PostToolUse + Write|Edit) but not by
+    // The dispatcher routes by event+tool (PostToolUse + Edit|Write) but not by
     // file path — this guard applies the ARCH-INDEX.md file-path filter.
     if !file_path.ends_with("ARCH-INDEX.md") {
         return HookResult::Continue;
