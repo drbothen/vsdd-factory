@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: story-writer
 timestamp: 2026-05-16T00:00:00Z
@@ -17,9 +17,10 @@ extracted_from: .factory/stories/S-15.07-validate-index-cite-refresh.md
 origin: brownfield
 subsystem: "SS-05"
 capability: "E-12"
-lifecycle_status: draft
+lifecycle_status: active
 introduced: v1.0-brownfield-backfill
-modified: []
+modified:
+  - 2026-05-16
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -28,7 +29,7 @@ removed: null
 removal_reason: null
 bc_id: BC-5.39.003
 section: "5.39"
-last_amended: 2026-05-16
+last_amended: "2026-05-16 (v1.1) — POL-14 auto-promotion draft→active on S-15.07 merge PR #145 6fe7de4c; lifecycle_status draft→active; state-manager."
 ---
 
 # BC-5.39.003: validate-index-cite-refresh hook MUST block on stale 4-index version citations in ARCH-INDEX, STATE.md, and INDEX.md
@@ -175,4 +176,5 @@ S-15.07 — v1.0-brownfield-backfill (S-15.03 PRIORITY-A M2 Wave-1)
 
 | Version | Date | Description |
 |---------|------|-------------|
+| 1.1 | 2026-05-16 | POL-14 auto-promotion draft→active on S-15.07 merge (PR #145 6fe7de4c); story SHIPPED to develop 2026-05-16; lifecycle_status draft→active; state-manager. |
 | 1.0 | 2026-05-16 | Initial authoring (story-writer; brownfield-backfill S-15.03 M2 wave-1 story authoring). Anchors D-405(c) + D-429(b). BC-5.39.003 allocated as next monotonic ID after BC-5.39.002 in ss-05/. |
