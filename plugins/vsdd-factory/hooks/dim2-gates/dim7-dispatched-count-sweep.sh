@@ -104,18 +104,15 @@ while IFS= read -r HEADING_LINE; do
     continue
   fi
 
-  # Check for pass-M references in Dim-7 blocks within this section
-  # We look for lines referencing "pass-M" where M > BURST_PASS
+  # Check for pass-M references in Dim-7 blocks within this section.
+  # Extract ONLY the section's actual lines using sed, then iterate with
+  # correct absolute line numbers (SECTION_START + 0-based offset).
   IN_DIM7=0
-  CURRENT_LINE=0
+  LINE_OFFSET=0
 
   while IFS= read -r FILE_LINE; do
-    CURRENT_LINE=$(( CURRENT_LINE + 1 ))
-    ACTUAL_LINE_NUM=$(( SECTION_START + CURRENT_LINE - 1 ))
-
-    if [[ "$ACTUAL_LINE_NUM" -lt "$SECTION_START" ]] || [[ "$ACTUAL_LINE_NUM" -gt "$SECTION_END" ]]; then
-      continue
-    fi
+    ACTUAL_LINE_NUM=$(( SECTION_START + LINE_OFFSET ))
+    LINE_OFFSET=$(( LINE_OFFSET + 1 ))
 
     # Track if we're in a Dim-7 block
     if echo "$FILE_LINE" | grep -qE '^\*\*Dim-7'; then
@@ -138,7 +135,7 @@ while IFS= read -r HEADING_LINE; do
         fi
       done
     fi
-  done < "$BURST_LOG"
+  done < <(sed -n "${SECTION_START},${SECTION_END}p" "$BURST_LOG")
 
 done <<< "$BURST_HEADINGS"
 

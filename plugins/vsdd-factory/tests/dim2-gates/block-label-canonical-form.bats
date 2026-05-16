@@ -14,6 +14,8 @@ setup() {
   SCRIPT="$PLUGIN_ROOT/hooks/dim2-gates/block-label-canonical-form.sh"
   FIX_PASS="${BATS_TEST_DIRNAME}/../fixtures/dim2-gates/block-label-canonical-form-pass"
   FIX_FAIL="${BATS_TEST_DIRNAME}/../fixtures/dim2-gates/block-label-canonical-form-fail"
+  # added in S-15.08 fix-burst-1 for F-S15.08-LOCAL-P1-006
+  FIX_MALFORMED="${BATS_TEST_DIRNAME}/../fixtures/dim2-gates/block-label-canonical-form-malformed-suffix"
 }
 
 @test "PASS: block-label-canonical-form exits 0 when all 9 D-444(c) labels present" {
@@ -26,4 +28,15 @@ setup() {
   run "$SCRIPT" "$FIX_FAIL/burst-log.md"
   [ "$status" -eq 1 ]
   [[ "$output" == *"FAIL"* ]] || [[ "$output" == *"missing"* ]] || [[ "$output" == *"Dim-7"* ]]
+}
+
+# added in S-15.08 fix-burst-1 for F-S15.08-LOCAL-P1-006
+# Verifies the tightened regex rejects "**Dim-2something:**" and correctly reports Dim-2 as MISSING.
+# Old regex (^\*\*${LABEL}) would accept "**Dim-2something" as a Dim-2 match (false-positive).
+# New regex (^\*\*${LABEL}[: ]) requires ':' or ' ' immediately after the label name.
+
+@test "FAIL: block-label-canonical-form rejects malformed label suffix (Dim-2something is not Dim-2)" {
+  run "$SCRIPT" "$FIX_MALFORMED/burst-log.md"
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"MISSING: Dim-2"* ]] || ([[ "$output" == *"FAIL"* ]] && [[ "$output" == *"Dim-2"* ]])
 }

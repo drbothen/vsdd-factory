@@ -65,7 +65,7 @@ if [[ ! -f "$SITES_FILE" ]]; then
   exit 1
 fi
 
-echo "$ grep -F '${DERIVED_VALUE}' <prescribed-sites>"
+echo "$ grep -E '<per-site-pattern>' <prescribed-sites> (derived-value: '${DERIVED_VALUE}')"
 echo "---"
 
 FAIL=0
@@ -76,9 +76,10 @@ while IFS= read -r SITE_LINE; do
   # Skip blank lines
   [[ -z "${SITE_LINE// }" ]] && continue
 
-  # Parse "<file-path>:<grep-pattern>"
+  # Parse "<file-path>:<grep-pattern>" — only the FIRST colon delimits path from pattern;
+  # patterns may themselves contain colons (e.g., "Decision-Log.*D-453").
   FILE_PATH="${SITE_LINE%%:*}"
-  GREP_PATTERN="${SITE_LINE#*:}"
+  SITE_PATTERN="${SITE_LINE#*:}"
 
   if [[ ! -f "$FILE_PATH" ]]; then
     echo "FAIL: prescribed file not found: ${FILE_PATH} (EC-006)"
@@ -87,13 +88,15 @@ while IFS= read -r SITE_LINE; do
     continue
   fi
 
-  # Check for derived-value in the file
-  COUNT=$(grep -cF "${DERIVED_VALUE}" "$FILE_PATH" || true)
+  # Use the per-site pattern (regex, -E) to verify presence at this site.
+  # The per-site pattern encodes the site-specific anchor for the derived value
+  # (e.g., "Decision-Log.*D-453" vs the global derived value "D-453").
+  COUNT=$(grep -cE "${SITE_PATTERN}" "$FILE_PATH" || true)
   if [[ "$COUNT" -ge 1 ]]; then
-    echo "PASS: '${DERIVED_VALUE}' found (${COUNT} occurrence(s)) in ${FILE_PATH}"
+    echo "PASS: pattern '${SITE_PATTERN}' found (${COUNT} match(es)) in ${FILE_PATH}"
     PASS_COUNT=$(( PASS_COUNT + 1 ))
   else
-    echo "FAIL: '${DERIVED_VALUE}' NOT found in ${FILE_PATH} (pattern: ${GREP_PATTERN})"
+    echo "FAIL: pattern '${SITE_PATTERN}' NOT found in ${FILE_PATH} (derived-value: ${DERIVED_VALUE})"
     FAIL=1
     FAIL_COUNT=$(( FAIL_COUNT + 1 ))
   fi
@@ -103,9 +106,9 @@ echo "---"
 echo "Sites checked: $(( PASS_COUNT + FAIL_COUNT )) (${PASS_COUNT} PASS, ${FAIL_COUNT} FAIL)"
 
 if [[ "$FAIL" -eq 0 ]]; then
-  echo "PASS: derived value '${DERIVED_VALUE}' present at all $(( PASS_COUNT )) prescribed site(s)"
+  echo "PASS: derived value '${DERIVED_VALUE}' present at all ${PASS_COUNT} prescribed site(s) (per-site patterns matched)"
   exit 0
 else
-  echo "FAIL: derived value '${DERIVED_VALUE}' missing from ${FAIL_COUNT} prescribed site(s)"
+  echo "FAIL: derived value '${DERIVED_VALUE}' missing from ${FAIL_COUNT} prescribed site(s) (per-site pattern not matched)"
   exit 1
 fi

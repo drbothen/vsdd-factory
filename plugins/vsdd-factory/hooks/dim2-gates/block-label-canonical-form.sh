@@ -82,14 +82,18 @@ MISSING=()
 FOUND=()
 
 for LABEL in "${LABELS[@]}"; do
-  if grep -q "^\*\*${LABEL}" "$BURST_LOG"; then
+  # Require that the label is immediately followed by ':' (e.g., **Dim-7:**)
+  # or ' ' (e.g., **Dim-7 (Dim-7):** or **Files touched (Dim-1):**).
+  # This rejects false positives like **Dim-25:** or **Dim-7something:** while
+  # admitting both canonical D-444(c) forms per POLICY 13 (HH-N regex predicates).
+  if grep -qE "^\*\*${LABEL}[: ]" "$BURST_LOG"; then
     FOUND+=("$LABEL")
   else
     MISSING+=("$LABEL")
   fi
 done
 
-echo "$ grep -E '^\*\*(Parent-commit|Adversary verdict|Files touched|Codifications|Dim-2|Dim-5|Dim-6|Dim-7|Closes)' ${BURST_LOG}"
+echo "$ grep -E '^\*\*(Parent-commit|Adversary verdict|Files touched|Codifications|Dim-2|Dim-5|Dim-6|Dim-7|Closes)[: ]' ${BURST_LOG}"
 echo "Found labels (${#FOUND[@]} of 9):"
 for L in "${FOUND[@]}"; do
   echo "  FOUND: $L"

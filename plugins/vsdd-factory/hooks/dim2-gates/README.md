@@ -55,6 +55,7 @@ All entries are `ACTIVE` as of S-15.08 delivery.
 - **Args:** `<burst-log-path>`
 - **Gate:** Verifies all 9 D-444(c) canonical block labels present in the burst-log file
 - **Labels checked:** Parent-commit, Adversary verdict, Files touched, Codifications, Dim-2, Dim-5, Dim-6, Dim-7, Closes
+- **Regex:** `^\*\*LABEL[: ]` — requires `:` or ` ` immediately after label name to prevent false-positives like `**Dim-2something:**` (POLICY 13)
 - **D-NNN closed:** D-454(d)
 
 ### banner-wc-l.sh
@@ -66,7 +67,8 @@ All entries are `ACTIVE` as of S-15.08 delivery.
 ### propagation-completeness.sh
 - **Args:** `<derived-value> <prescribed-sites-file>`
 - **Gate:** Derived value must appear at ALL prescribed sites (not just the primary site)
-- **Sites file format:** `<file-path>:<grep-pattern>` (paths relative to CWD at invocation)
+- **Sites file format:** `<file-path>:<grep-pattern>` (paths relative to CWD at invocation; only the FIRST colon delimits path from pattern — patterns may contain colons)
+- **Per-site pattern:** each line's `<grep-pattern>` column is used as a regex (`-E`) for that specific site, allowing site-specific anchors (e.g., `Decisions Log.*D-453` vs the global derived value `D-453`)
 - **EC-006:** exits 1 with specific message if a referenced file does not exist
 - **D-NNN closed:** D-452(a)
 
