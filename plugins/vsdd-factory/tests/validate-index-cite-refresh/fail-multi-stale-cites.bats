@@ -113,11 +113,11 @@ _arch_index_envelope() {
   [[ "$output" == *"BC-INDEX"* ]]
   [[ "$output" == *"STORY-INDEX"* ]]
 
-  # Both cited (stale) minor versions must appear.
-  # BC-INDEX cite is "v1.05" in the fixture; hook renders minor without zero-pad => "1.5".
-  # STORY-INDEX cite is "v3.28" in the fixture; renders as "3.28".
-  [[ "$output" == *"1.5"* ]]
-  [[ "$output" == *"3.28"* ]]
+  # Both cited (stale) versions must appear in body-literal form.
+  # Post-F-P2-001: BC-INDEX cite is "v1.05" in the fixture; hook preserves body-literal form => "v1.05".
+  # Post-F-P2-001: STORY-INDEX cite is "v3.28" in the fixture; preserves body-literal form => "v3.28".
+  [[ "$output" == *"BC-INDEX v1.05"* ]]
+  [[ "$output" == *"v3.28"* ]]
 }
 
 # ---------------------------------------------------------------------------
