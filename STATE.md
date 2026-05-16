@@ -333,7 +333,7 @@ Human directed 2026-05-14: asymptotic-acceptance for E-10 sub-cycle analogous to
 
 ### 6. Cumulative Lessons
 
-- F5 cycle: L-EDP1-001..066 (66 lessons; 35 consecutive multi-axis recurrences layers 31-65). Full text: `cycles/v1.0-feature-engine-discipline-pass-1/lessons.md`. NOTE: WASM fuel exhaustion risk at ~3600+ lines per D-442(e); compaction deferred to S-15.03 PRIORITY-A.
+- F5 cycle: L-EDP1-001..066 (66 lessons; 35 consecutive multi-axis recurrences layers 31-65). Full text: `cycles/v1.0-feature-engine-discipline-pass-1/lessons.md` (active lessons L-EDP1-050..066; 925 lines post-S-15.16-Part-A compaction 2026-05-15). Archive L-EDP1-001..049: `cycles/v1.0-feature-engine-discipline-pass-1/lessons-archive-pass1-49.md` (2760 lines). D-442(e) WASM fuel exhaustion structural risk RESOLVED by S-15.16 Part A.
 - Brownfield-backfill cycle: own lessons.md at `cycles/v1.0-brownfield-backfill/lessons.md`.
 
 ### 7. S-15.03 PRIORITY-A Scope (Cumulative)
