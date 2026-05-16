@@ -99,6 +99,11 @@ pub struct VersionCite {
     pub minor: u32,
     /// 1-based line number within the source document where this cite appears.
     pub line: u32,
+    /// The raw minor string as it appeared in the source document body
+    /// (e.g. "05" for "v1.05", "28" for "v3.28").  Preserved so the block
+    /// message can reproduce the body-literal form byte-for-byte, satisfying
+    /// BC-5.39.003 EC-005 Ctrl-F UX requirement.
+    pub minor_raw: String,
 }
 
 /// A stale-cite violation found during validation.
@@ -117,6 +122,13 @@ pub struct Violation {
     pub cited: (u32, u32),
     /// The live version from the index file frontmatter.
     pub live: (u32, u32),
+    /// The raw body-literal version string as it appeared in the source
+    /// document (e.g. "1.05" for `BC-INDEX v1.05`, "3.28" for
+    /// `STORY-INDEX v3.28`).  Used in block message so the cited side
+    /// is byte-identical to the body literal — satisfying BC-5.39.003
+    /// EC-005 Ctrl-F UX requirement.  The live side is always
+    /// integer-rendered from `live: (u32, u32)`.
+    pub cited_raw: String,
 }
 
 // ---------------------------------------------------------------------------
@@ -181,11 +193,17 @@ pub fn extract_index_cites(content: &str) -> Vec<VersionCite> {
                             if let Some((minor, minor_len)) =
                                 parse_leading_digits(&content[after_dot..])
                             {
+                                // Capture raw minor slice (e.g. "05" from "v1.05").
+                                // The major_raw is just the digit text before the dot;
+                                // we reconstruct the full raw cite as "major_raw.minor_raw".
+                                let major_raw = &content[after_v..after_major];
+                                let minor_raw = &content[after_dot..after_dot + minor_len];
                                 cites.push(VersionCite {
                                     index_name,
                                     major,
                                     minor,
                                     line: current_line,
+                                    minor_raw: format!("{major_raw}.{minor_raw}"),
                                 });
                                 let end = after_dot + minor_len;
                                 // Count newlines in the consumed span to keep
@@ -370,6 +388,7 @@ pub fn cross_cell_check(live_versions: &HashMap<IndexName, (u32, u32)>) -> Vec<V
                                 index_name: cite.index_name,
                                 cited,
                                 live,
+                                cited_raw: cite.minor_raw.clone(),
                             });
                         }
                     }
@@ -404,6 +423,7 @@ pub fn cross_cell_check(live_versions: &HashMap<IndexName, (u32, u32)>) -> Vec<V
                                 index_name: cite.index_name,
                                 cited,
                                 live,
+                                cited_raw: cite.minor_raw.clone(),
                             });
                         }
                     }
@@ -434,14 +454,18 @@ pub fn cross_cell_check(live_versions: &HashMap<IndexName, (u32, u32)>) -> Vec<V
 ///   [source] location cites INDEX vM.N but live version is vM.N. Update cite to vM.N.
 /// `v.location` carries the 1-based line number (e.g. "line 47") so authors
 /// can jump directly to the stale cite in the edited file.
+///
+/// The cited side uses `v.cited_raw` (body-literal form, e.g. "v1.05") so the
+/// block message is byte-identical to what the author wrote.  The live side
+/// is always integer-rendered from `v.live` (canonical form, e.g. "v2.24").
+/// BC-5.39.003 EC-005 Ctrl-F UX requirement.
 fn format_violation(v: &Violation) -> String {
     format!(
-        "  [{}] {} cites {} v{}.{} but live version is v{}.{}. Update cite to v{}.{}.",
+        "  [{}] {} cites {} v{} but live version is v{}.{}. Update cite to v{}.{}.",
         v.source,
         v.location,
         v.index_name.as_str(),
-        v.cited.0,
-        v.cited.1,
+        v.cited_raw,
         v.live.0,
         v.live.1,
         v.live.0,
@@ -531,6 +555,7 @@ pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
                         index_name: cite.index_name,
                         cited,
                         live,
+                        cited_raw: cite.minor_raw.clone(),
                     });
                 }
             }
@@ -731,15 +756,20 @@ mod tests {
             index_name: IndexName::BcIndex,
             cited: (1, 5),
             live: (2, 24),
+            // Body-literal form: "1.05" — preserved via cited_raw so the block
+            // message is byte-identical to what the author wrote.
+            // BC-5.39.003 EC-005 Ctrl-F UX requirement.
+            cited_raw: "1.05".to_string(),
         }];
         let result = emit_block(&violations);
         match &result {
             HookResult::Block { reason } => {
                 assert!(reason.contains("BC-INDEX"), "reason must name BC-INDEX");
-                // Bare form: minor=5 rendered as "5", not "05" (F-002 fix: no zero-pad).
+                // Body-literal form: fixture cites "BC-INDEX v1.05"; block message
+                // must reproduce "v1.05" byte-for-byte (F-P2-001: cited_raw plumbing).
                 assert!(
-                    reason.contains("1.5"),
-                    "reason must name cited version as bare v1.5"
+                    reason.contains("1.05"),
+                    "reason must name cited version as body-literal v1.05 (not stripped v1.5)"
                 );
                 assert!(reason.contains("2.24"), "reason must name live version");
                 assert!(
@@ -759,6 +789,7 @@ mod tests {
             index_name: IndexName::BcIndex,
             cited: (1, 5),
             live: (2, 24),
+            cited_raw: "1.5".to_string(),
         }];
         let result = emit_block(&violations);
         assert_eq!(result.exit_code(), 2);
