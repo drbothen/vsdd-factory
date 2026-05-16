@@ -39,7 +39,7 @@ schema_version = 2
 [[hooks]]
 name = "validate-index-cite-refresh"
 event = "PostToolUse"
-tool = "Write|Edit"
+tool = "Edit|Write"
 plugin = "hook-plugins/validate-index-cite-refresh.wasm"
 timeout_ms = 5000
 on_error = "continue"
