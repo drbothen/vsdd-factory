@@ -97,6 +97,8 @@ pub struct VersionCite {
     pub index_name: IndexName,
     pub major: u32,
     pub minor: u32,
+    /// 1-based line number within the source document where this cite appears.
+    pub line: u32,
 }
 
 /// A stale-cite violation found during validation.
@@ -105,6 +107,10 @@ pub struct Violation {
     /// Source document where the stale cite was found (e.g. "ARCH-INDEX.md",
     /// "STATE.md", "INDEX.md").
     pub source: String,
+    /// Location within the source document where the stale cite appears.
+    /// Uses 1-based line number form (e.g. "line 47") so authors can jump
+    /// directly to the stale cite in the edited file.
+    pub location: String,
     /// Index file name whose version was cited stale.
     pub index_name: IndexName,
     /// The version that was cited in the source document.
@@ -145,11 +151,16 @@ fn parse_leading_digits(s: &str) -> Option<(u32, usize)> {
 /// digits, skip malformed tokens.  No regex crate — keeps WASM fuel
 /// consumption within the 10M default budget.
 ///
+/// Each returned `VersionCite` carries the 1-based line number where the
+/// cite appears, so callers can populate `Violation::location`.
+///
 /// # BC trace
 /// BC-5.39.003 invariant 3 — extraction restricted to 4 canonical names.
 pub fn extract_index_cites(content: &str) -> Vec<VersionCite> {
     let mut cites = Vec::new();
     let mut pos = 0usize;
+    // Track current 1-based line number: count newlines up to pos.
+    let mut current_line: u32 = 1;
 
     while pos < content.len() {
         // Try each canonical index prefix at the current position.
@@ -174,8 +185,17 @@ pub fn extract_index_cites(content: &str) -> Vec<VersionCite> {
                                     index_name,
                                     major,
                                     minor,
+                                    line: current_line,
                                 });
-                                pos = after_dot + minor_len;
+                                let end = after_dot + minor_len;
+                                // Count newlines in the consumed span to keep
+                                // current_line accurate.
+                                for b in content[pos..end].bytes() {
+                                    if b == b'\n' {
+                                        current_line += 1;
+                                    }
+                                }
+                                pos = end;
                                 found = true;
                                 break;
                             }
@@ -185,6 +205,11 @@ pub fn extract_index_cites(content: &str) -> Vec<VersionCite> {
                 // Partial match (prefix found but no valid " vN.N") — skip prefix length
                 // to avoid infinite loop, then continue scanning.
                 if !found {
+                    for b in content[pos..pos + prefix.len()].bytes() {
+                        if b == b'\n' {
+                            current_line += 1;
+                        }
+                    }
                     pos += prefix.len();
                     found = true;
                     break;
@@ -192,6 +217,10 @@ pub fn extract_index_cites(content: &str) -> Vec<VersionCite> {
             }
         }
         if !found {
+            // Count newlines at the current character before advancing.
+            if content.as_bytes()[pos] == b'\n' {
+                current_line += 1;
+            }
             // Advance to the next UTF-8 character boundary to avoid
             // panicking when content contains multi-byte characters (e.g.
             // em-dashes in headings like "ARCH-INDEX — Architecture Index").
@@ -337,6 +366,7 @@ pub fn cross_cell_check(live_versions: &HashMap<IndexName, (u32, u32)>) -> Vec<V
                         if is_stale(cited, live) {
                             violations.push(Violation {
                                 source: "STATE.md".to_string(),
+                                location: format!("line {}", cite.line),
                                 index_name: cite.index_name,
                                 cited,
                                 live,
@@ -370,6 +400,7 @@ pub fn cross_cell_check(live_versions: &HashMap<IndexName, (u32, u32)>) -> Vec<V
                         if is_stale(cited, live) {
                             violations.push(Violation {
                                 source: "INDEX.md".to_string(),
+                                location: format!("line {}", cite.line),
                                 index_name: cite.index_name,
                                 cited,
                                 live,
@@ -398,11 +429,16 @@ pub fn cross_cell_check(live_versions: &HashMap<IndexName, (u32, u32)>) -> Vec<V
 // ---------------------------------------------------------------------------
 
 /// Format a single violation into a human-readable line.
+///
+/// Format matches spec §Block message format exactly:
+///   [source] location cites INDEX vM.N but live version is vM.N. Update cite to vM.N.
+/// `v.location` carries the 1-based line number (e.g. "line 47") so authors
+/// can jump directly to the stale cite in the edited file.
 fn format_violation(v: &Violation) -> String {
     format!(
-        "  [{}] {} cites {} v{}.{:02} but live version is v{}.{:02}. Update cite to v{}.{:02}.",
+        "  [{}] {} cites {} v{}.{} but live version is v{}.{}. Update cite to v{}.{}.",
         v.source,
-        v.source,
+        v.location,
         v.index_name.as_str(),
         v.cited.0,
         v.cited.1,
@@ -491,6 +527,7 @@ pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
                 if is_stale(cited, live) {
                     violations.push(Violation {
                         source: "ARCH-INDEX.md".to_string(),
+                        location: format!("line {}", cite.line),
                         index_name: cite.index_name,
                         cited,
                         live,
@@ -690,6 +727,7 @@ mod tests {
     fn test_BC_5_39_003_emit_block_names_index_and_versions() {
         let violations = vec![Violation {
             source: "ARCH-INDEX.md".to_string(),
+            location: "line 47".to_string(),
             index_name: IndexName::BcIndex,
             cited: (1, 5),
             live: (2, 24),
@@ -698,8 +736,16 @@ mod tests {
         match &result {
             HookResult::Block { reason } => {
                 assert!(reason.contains("BC-INDEX"), "reason must name BC-INDEX");
-                assert!(reason.contains("1.05"), "reason must name cited version");
+                // Bare form: minor=5 rendered as "5", not "05" (F-002 fix: no zero-pad).
+                assert!(
+                    reason.contains("1.5"),
+                    "reason must name cited version as bare v1.5"
+                );
                 assert!(reason.contains("2.24"), "reason must name live version");
+                assert!(
+                    reason.contains("line 47"),
+                    "reason must include cite location"
+                );
             }
             _ => panic!("expected Block result, got {result:?}"),
         }
@@ -709,6 +755,7 @@ mod tests {
     fn test_BC_5_39_003_emit_block_exit_code_2() {
         let violations = vec![Violation {
             source: "ARCH-INDEX.md".to_string(),
+            location: "line 1".to_string(),
             index_name: IndexName::BcIndex,
             cited: (1, 5),
             live: (2, 24),

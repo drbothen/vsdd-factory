@@ -90,7 +90,7 @@ _arch_index_envelope() {
 # AC-10: block message names the stale cite, cited version, and live version
 # ---------------------------------------------------------------------------
 
-@test "AC-10 FAIL: block message names BC-INDEX, stale cite v1.05, and live version v2.24" {
+@test "AC-10 FAIL: block message names BC-INDEX, stale cite v1.5, and live version v2.24" {
   _require_artifacts
   _setup_fixture
   _write_registry
@@ -103,8 +103,9 @@ _arch_index_envelope() {
   # Exit 2: block signal
   [ "$status" -eq 2 ]
 
-  # block_reason must name BC-INDEX and the two versions (TD #71 actionable message requirement)
+  # block_reason must name BC-INDEX and the two versions (TD #71 actionable message requirement).
+  # Bare form: fixture cites BC-INDEX v1.05 (minor parsed as 5, rendered as "1.5" with no zero-pad).
   [[ "$output" == *"BC-INDEX"* ]]
-  [[ "$output" == *"1.05"* ]]
+  [[ "$output" == *"1.5"* ]]
   [[ "$output" == *"2.24"* ]]
 }
