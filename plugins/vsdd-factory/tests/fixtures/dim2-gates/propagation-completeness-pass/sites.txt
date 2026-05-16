@@ -1,0 +1,2 @@
+.factory/STATE.md:Decisions Log.*D-453
+.factory/INDEX.md:D-453 canonical
