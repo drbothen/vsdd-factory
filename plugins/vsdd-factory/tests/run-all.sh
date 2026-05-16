@@ -16,7 +16,9 @@ done
 
 echo "== Syntax checks =="
 fail=0
-for f in hooks/*.sh bin/*; do
+for f in hooks/*.sh hooks/dim2-gates/*.sh bin/*; do
+  # Skip glob patterns that matched nothing (nullglob not set for this loop)
+  [ -e "$f" ] || continue
   if ! bash -n "$f" 2>&1; then
     echo "FAIL: $f"
     fail=$((fail+1))
@@ -54,7 +56,7 @@ set +e   # allow individual bats suites to fail without aborting the loop
 fail_count=0
 failed_suites=()
 skipped_suites=()
-for f in tests/*.bats; do
+for f in tests/*.bats tests/dim2-gates/*.bats; do
   name=$(basename "$f" .bats)
   if is_skipped "$name"; then
     skipped_suites+=("$name")
