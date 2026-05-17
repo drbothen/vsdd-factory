@@ -602,11 +602,13 @@ mod tests {
         // how file content is read from disk), so only non-whitespace trailing content
         // constitutes an anchor violation.
         assert!(!validate_h2_heading("## Burst: foo (2026-05-12)abc"));
-        assert!(!validate_h2_heading("## Burst: foo (2026-05-12)xyz trailing"));
+        assert!(!validate_h2_heading(
+            "## Burst: foo (2026-05-12)xyz trailing"
+        ));
         // Trailing whitespace is normalized away (CR/LF trim) — not a violation.
         // Canonical positive case still passes.
         assert!(validate_h2_heading("## Burst: foo (2026-05-12)"));
-        assert!(validate_h2_heading("## Burst: foo (2026-05-12) "));  // trimmed = canonical
+        assert!(validate_h2_heading("## Burst: foo (2026-05-12) ")); // trimmed = canonical
     }
 
     // ── check_block_presence ─────────────────────────────────────────────────
