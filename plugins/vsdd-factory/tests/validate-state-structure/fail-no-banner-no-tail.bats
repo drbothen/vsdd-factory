@@ -97,4 +97,7 @@ _state_md_envelope() {
   # Must mention both banner absence and trajectory tail absence
   [[ "$output" == *"SIZE BUDGET"* ]] || [[ "$output" == *"no SIZE BUDGET"* ]]
   [[ "$output" == *"trajectory"* ]]
+
+  # Exact violation count: banner-wc absent + dual-margin absent + tail absent = 3
+  [[ "$output" == *"3 violation(s)"* ]] || fail "expected 3 violations (banner-wc absent + dual-margin absent + tail absent); got: $output"
 }

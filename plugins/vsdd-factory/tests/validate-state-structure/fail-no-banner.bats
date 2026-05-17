@@ -96,4 +96,7 @@ _state_md_envelope() {
 
   # Block reason must mention the absent banner
   [[ "$output" == *"SIZE BUDGET banner"* ]] || [[ "$output" == *"no SIZE BUDGET"* ]]
+
+  # Exact violation count: banner-wc absent + dual-margin absent = 2
+  [[ "$output" == *"2 violation(s)"* ]] || fail "expected 2 violations (banner-wc absent + dual-margin absent); got: $output"
 }
