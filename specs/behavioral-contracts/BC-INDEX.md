@@ -1,17 +1,19 @@
 ---
 document_type: bc-index
 level: L3
-version: "2.28"
+version: "2.29"
 status: draft
 producer: state-manager
-timestamp: 2026-05-16T00:00:00Z
-last_amended: "2026-05-16 (v2.28) — BC-5.39.004 precondition 1 path-language migrated from string-ends_with to path-component-strict (F-S15.11-LOCAL-P3-001 closure); BC-INDEX v2.27→v2.28."
+timestamp: 2026-05-17T00:00:00Z
+last_amended: "2026-05-17 (v2.29) — POL-14 auto-promotion BC-5.39.004 draft→active at S-15.11 merge `6e0d5407` (PR #146; D-475 codification); cascade CONVERGED 7 passes 3/3 per BC-5.39.001. BC-INDEX v2.28→v2.29."
 phase: F5
 inputs:
   - .factory/specs/behavioral-contracts/bc-id-mapping.md
 total_bcs: 1950
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-17
+    change: "v2.29 (2026-05-17; POL-14 auto-promotion BC-5.39.004 draft→active at S-15.11 merge `6e0d5407` (PR #146; D-475 codification); cascade CONVERGED 7 passes 3/3 per BC-5.39.001."
   - date: 2026-05-16
     change: "v2.28 (2026-05-16; F-S15.11-LOCAL-P3-001 closure — BC-5.39.004 precondition 1 path-language migrated from string-ends_with to path-component-strict (Path::file_name() == Some(\"burst-log.md\")); aligns BC body with implementation is_burst_log_target semantics and story spec v1.1 narrative. BC-5.39.004 last_amended: 2026-05-16 (v1.1). BC-INDEX v2.27→v2.28."
   - date: 2026-05-16
@@ -1202,7 +1204,7 @@ changelog:
 | [BC-5.39.001](ss-05/BC-5.39.001.md) | Per-story adversarial convergence loop MUST achieve minimum 3 clean passes (NITPICK_ONLY) before demo recording | draft | CAP-005 | S-12.01, S-14.01 |
 | [BC-5.39.002](ss-05/BC-5.39.002.md) | Per-story adversary scope MUST be limited to story diff, spec, and anchored BCs; out-of-scope findings MUST be deferred | draft | CAP-005 | S-12.01 |
 | [BC-5.39.003](ss-05/BC-5.39.003.md) | validate-index-cite-refresh hook MUST block on stale 4-index version citations in ARCH-INDEX, STATE.md, and INDEX.md | active | E-12 | S-15.07 |
-| [BC-5.39.004](ss-05/BC-5.39.004.md) | validate-burst-log hook MUST block on structurally incomplete burst-log entries | draft | E-12 | S-15.11 |
+| [BC-5.39.004](ss-05/BC-5.39.004.md) | validate-burst-log hook MUST block on structurally incomplete burst-log entries | active | E-12 | S-15.11 |
 | [BC-8.29.001](ss-08/BC-8.29.001.md) | RED_RATIO = RED_TESTS / TOTAL_NEW_TESTS must be ≥ 0.5 before Step 4 implementer dispatch (BLOCKING) | draft | CAP-016 | S-7.03 |
 | [BC-8.29.002](ss-08/BC-8.29.002.md) | each non-RED test must be documented in red-gate-log with rationale before threshold relaxation | draft | CAP-016 | S-7.03 |
 | [BC-8.29.003](ss-08/BC-8.29.003.md) | on RED_RATIO < 0.5 without GREEN-BY-DESIGN justification, orchestrator must choose remediation option A or B | draft | CAP-016 | S-7.03 |

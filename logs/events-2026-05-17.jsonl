@@ -1,0 +1,3 @@
+{"type":"hook.block","hook":"validate-pr-description-completeness","reason":"pr_description_incomplete","ts":"2026-05-17T00:28:13-0500","ts_epoch":1778995693,"schema_version":1}
+{"type":"hook.block","hook":"validate-changelog-monotonicity","reason":"changelog_frontmatter_mismatch","ts":"2026-05-17T00:54:17-0500","ts_epoch":1778997257,"schema_version":1}
+{"type":"hook.block","hook":"validate-changelog-monotonicity","reason":"changelog_frontmatter_mismatch","ts":"2026-05-17T00:54:30-0500","ts_epoch":1778997270,"schema_version":1}

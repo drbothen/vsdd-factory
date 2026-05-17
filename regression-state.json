@@ -1,1 +1,1 @@
-{"status":"pass","timestamp":"2026-05-15T21:16:45Z","command":"gh api \"repos/drbothen/vsdd-factory/actions/runs/25941687673/jobs\" --jq '.jobs[] | select(.name | test(\"cargo-host\")) | {name: .name, conclusion: .conclusion, cargo_test_conclusion: ([.steps[] | select(.name == \"cargo test (workspace, all targets)\") | .conclusion][0])}' 2>&1"}
+{"status":"pass","timestamp":"2026-05-17T05:04:31Z","command":"cargo test --workspace --all-targets 2>&1 | awk '/Running/{crate=$0} /test result: FAILED/{print crate, $0}' | head -10"}
