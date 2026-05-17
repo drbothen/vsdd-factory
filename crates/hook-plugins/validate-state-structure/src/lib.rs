@@ -142,6 +142,14 @@ pub fn extract_banner_line_count(content: &str) -> Option<usize> {
 ///
 /// Scans on raw bytes to avoid regex crate fuel exhaustion. All pattern bytes
 /// are ASCII, so no UTF-8 split risk.
+///
+/// Private inner-subroutine of [`extract_banner_line_count`]. Not exposed publicly
+/// because it is a low-level scanner specific to the banner-block-scoped extraction
+/// algorithm and would not be useful in isolation. The deliberate visibility asymmetry
+/// vs sibling extractor helpers (`extract_banner_block`, `has_adjacent_arrow_digit_run`)
+/// reflects the implementation-detail nature of this function: callers outside this
+/// module have no meaningful use-case for a raw wc-l scan without the surrounding
+/// banner-extraction context.
 fn scan_for_last_wc_l(text: &str) -> Option<usize> {
     let prefix = b" lines (wc-l";
     let prefix_len = prefix.len();
