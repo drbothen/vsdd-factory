@@ -1,17 +1,19 @@
 ---
 document_type: bc-index
 level: L3
-version: "2.30"
+version: "2.31"
 status: draft
 producer: state-manager
 timestamp: 2026-05-17T00:00:00Z
-last_amended: "2026-05-17 (v2.30) — S-15.09 M2 Wave-3 story authoring — BC-5.39.005 allocated; validate-state-structure Phase 1 hook anchors D-421(c)+D-422(c)+D-424(b)+D-428(d)+D-438(a)+D-440(d)+D-442(d)+D-446(c)+D-433(e)+D-439(c)+D-451(c)+D-432(b); SS-05 count 653→654; total_bcs 1950→1951; lifecycle_status: draft; POL-14 auto-promotion to active on S-15.09 merge. BC-INDEX v2.29→v2.30."
+last_amended: "2026-05-17 (v2.31) — POL-14 auto-promotion BC-5.39.005 draft→active at S-15.09 merge `6e2d7805` (PR #147; D-476 codification); LOCAL adversary 10-pass CONVERGED 3/3 (trajectory 10→7→4→0→5→6→2→0→0→0); M2 wave-3 COMPLETE. BC-INDEX v2.30→v2.31. [Prior: 2026-05-17 (v2.30) — S-15.09 M2 Wave-3 story authoring — BC-5.39.005 allocated; validate-state-structure Phase 1 hook anchors D-421(c)+D-422(c)+D-424(b)+D-428(d)+D-438(a)+D-440(d)+D-442(d)+D-446(c)+D-433(e)+D-439(c)+D-451(c)+D-432(b); SS-05 count 653→654; total_bcs 1950→1951; lifecycle_status: draft; POL-14 auto-promotion to active on S-15.09 merge. BC-INDEX v2.29→v2.30.]"
 phase: F5
 inputs:
   - .factory/specs/behavioral-contracts/bc-id-mapping.md
 total_bcs: 1951
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-17
+    change: "v2.31 (2026-05-17; POL-14 auto-promotion BC-5.39.005 draft→active at S-15.09 merge `6e2d7805` PR #147; D-476 codified; LOCAL adversary 10-pass CONVERGED 3/3 (trajectory 10→7→4→0→5→6→2→0→0→0); F-P5-002 silent-inert validator caught + structurally closed; TD-VSDD-061 cross-story Drift Item recorded; M2 wave-3 COMPLETE. BC-INDEX v2.30→v2.31."
   - date: 2026-05-17
     change: "v2.30 (2026-05-17; S-15.09 M2 Wave-3 story authoring — BC-5.39.005 allocated; validate-state-structure Phase 1 hook anchors D-421(c)+D-422(c)+D-424(b)+D-428(d)+D-438(a)+D-440(d)+D-442(d)+D-446(c)+D-433(e)+D-439(c)+D-451(c)+D-432(b); SS-05 count 653→654; total_bcs 1950→1951; lifecycle_status: draft; POL-14 auto-promotion to active on S-15.09 merge. Input-hash df9db17. BC-INDEX v2.29→v2.30."
   - date: 2026-05-17
@@ -1207,7 +1209,7 @@ changelog:
 | [BC-5.39.002](ss-05/BC-5.39.002.md) | Per-story adversary scope MUST be limited to story diff, spec, and anchored BCs; out-of-scope findings MUST be deferred | draft | CAP-005 | S-12.01 |
 | [BC-5.39.003](ss-05/BC-5.39.003.md) | validate-index-cite-refresh hook MUST block on stale 4-index version citations in ARCH-INDEX, STATE.md, and INDEX.md | active | E-12 | S-15.07 |
 | [BC-5.39.004](ss-05/BC-5.39.004.md) | validate-burst-log hook MUST block on structurally incomplete burst-log entries | active | E-12 | S-15.11 |
-| [BC-5.39.005](ss-05/BC-5.39.005.md) | validate-state-structure Phase 1 hook MUST block on banner line-count drift, dual-margin absence, and trajectory-tail cardinality violations in STATE.md | draft | E-12 | S-15.09 |
+| [BC-5.39.005](ss-05/BC-5.39.005.md) | validate-state-structure Phase 1 hook MUST block on banner line-count drift, dual-margin absence, and trajectory-tail cardinality violations in STATE.md | active | E-12 | S-15.09 |
 | [BC-8.29.001](ss-08/BC-8.29.001.md) | RED_RATIO = RED_TESTS / TOTAL_NEW_TESTS must be ≥ 0.5 before Step 4 implementer dispatch (BLOCKING) | draft | CAP-016 | S-7.03 |
 | [BC-8.29.002](ss-08/BC-8.29.002.md) | each non-RED test must be documented in red-gate-log with rationale before threshold relaxation | draft | CAP-016 | S-7.03 |
 | [BC-8.29.003](ss-08/BC-8.29.003.md) | on RED_RATIO < 0.5 without GREEN-BY-DESIGN justification, orchestrator must choose remediation option A or B | draft | CAP-016 | S-7.03 |

@@ -1,1 +1,1 @@
-{"status":"pass","timestamp":"2026-05-17T05:04:31Z","command":"cargo test --workspace --all-targets 2>&1 | awk '/Running/{crate=$0} /test result: FAILED/{print crate, $0}' | head -10"}
+{"status":"pass","timestamp":"2026-05-17T22:29:28Z","command":"gh api repos/drbothen/vsdd-factory/actions/jobs/76432841537/logs 2>/dev/null | grep -E \"cargo test|running.*test|test result.*ok\" | grep -v \"Compiling\\|Building\\|Finished\" | tail -20"}

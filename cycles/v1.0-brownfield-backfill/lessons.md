@@ -1544,3 +1544,79 @@ Future per-hook stories MUST include an integration test that extracts `path_all
 - **S-7.02 codification satisfied 2026-05-17** — O-P2-003 `[process-gap]` finding from S-15.11 LOCAL adversary pass-2 codified here per S-7.02 Cycle-Closing Checklist step 3.
 - **Drift Items entry:** `PG-S-15.11-bats-prod-registry-parity-gate` OPEN in STATE.md Drift Items table; target release: S-15.03 PRIORITY-A automation wave (CI lint or pre-commit gate; story TBD).
 - **S-15.11 cascade report reference:** `.factory/code-delivery/S-15.11/adv-local-pass-2.md` — O-P2-003 source document.
+
+---
+
+### Lesson — real-target file-size test discipline: bats tests for WASM validators MUST exercise the validator against the actual production target file, not a synthetic fixture [codified] [process-gap]
+
+**Discovered:** 2026-05-17 (S-15.09 LOCAL adversary pass-5 as F-P5-002 [LOW — ORCHESTRATOR-ELEVATED TO CRITICAL])
+**Category:** test-infrastructure-parity
+**Severity:** CRITICAL (orchestrator elevation from LOW) — hook was silently inert against STATE.md in production
+
+### Gap Description
+
+S-15.09 shipped validate-state-structure with `max_bytes = 65536` in its `host::read_file` call. The bats tests used small synthetic STATE.md fixtures that fit within the cap. Real STATE.md is 95,185 bytes (95 KB), well above the cap. When the hook was dispatched against real STATE.md on develop, `host::read_file` returned `Err(OutputTooLarge)` → hook silently fail-opened → `exit_code=0` with no block → validator was SILENTLY INERT for its entire intended purpose.
+
+The pass-4 bats suite returned green because the synthetic fixtures were small. No bats test ever loaded the real `.factory/STATE.md` and verified that the hook actually blocked on a deliberate structural violation of that file.
+
+### Root Cause
+
+bats integration tests for WASM validators use small synthetic fixtures authored per-story. There is no gate that verifies the hook can successfully read and process the ACTUAL production target file. The `host::read_file` fuel/size cap is a silent failure mode: the hook returns `exit_code=0` as if it checked the file and found nothing wrong, when in fact it never read the file at all.
+
+### Systemic Pattern
+
+Every WASM hook story in S-15.03 PRIORITY-A wave (S-15.07, S-15.11, S-15.09, S-15.14) is vulnerable to this class: if `max_bytes` is below the real production target file size, the hook is silently inert in production while appearing to pass all bats tests. This is the META-LEVEL-24 false-green pattern at the integration layer.
+
+### Lesson
+
+Future per-hook stories MUST include at least one bats test that (a) copies the actual production target file (`.factory/STATE.md`, `.factory/cycles/v1.0-brownfield-backfill/burst-log.md`, etc.) into the bats fixture directory, (b) deliberately introduces a structural violation into that copy, and (c) asserts that the hook blocks (`exit_code=2`). If the hook silently pass-opens against a 95 KB file, that is the FIRST finding to fix before shipping. A "test the test" verification step must be part of the per-story implementation checklist.
+
+Fix applied in S-15.09: `max_bytes` raised from 65,536 → 524,288 (512 KB); regression test added that loads real STATE.md size and verifies blocking behavior on deliberate banner-wc-l mutation.
+
+**Codification label:** PG-S-15.09-real-target-test-discipline
+
+### Disposition
+
+- **S-7.02 codification satisfied 2026-05-17** — F-P5-002 `[process-gap]` class from S-15.09 LOCAL adversary pass-5 codified here per S-7.02 Cycle-Closing Checklist step 3.
+- **Structural fix shipped in S-15.09:** `host::read_file` max_bytes 65536→524288; regression test on real-size STATE.md added.
+- **S-15.09 cascade report reference:** `.factory/code-delivery/S-15.09/adv-local-pass-5.md` — F-P5-002 source document.
+
+---
+
+### Lesson — same-burst self-cite sweep on version-bump: when a burst bumps a file's version, ALL intra-file citations of the previous version must be updated in the same burst [codified] [process-gap]
+
+**Discovered:** 2026-05-17 (S-15.09 LOCAL adversary pass-7 as F-P7-001 [MEDIUM])
+**Category:** sibling-site-sweep
+**Severity:** MEDIUM — stale version cite in Token Budget section after same-burst spec version bump
+
+### Gap Description
+
+S-15.09 pass-6 fix-burst promoted the story spec from v1.5 to v1.6 AND updated the Token Budget section to cite "v1.5" (the immediate predecessor). The Token Budget cite was stale the moment it was written: the burst that bumped the version should have cited the NEW version (v1.6), not the prior one.
+
+This is a recurrence of the TD-VSDD-060 sibling-site sweep discipline applied to intra-file self-references: a version-bump burst must grep for ALL occurrences of the old version string within the same file and update them before committing. The same-burst Token Budget cite is a prescribed site per D-421(c) / D-446(c) class.
+
+### Root Cause
+
+When a burst bumps a frontmatter `version:` field, the implementer updates the frontmatter but does not grep the file body for residual citations of the old version. Token Budget sections, AC tables, and body narrative sections that cite the current spec version are prescribed sibling sites that must be updated atomically with the version bump.
+
+### Systemic Pattern
+
+This pattern has recurred across multiple S-15.03 PRIORITY-A cascade stories. Every spec version bump creates a new stale-cite window if the same-burst sibling sweep is not applied to the entire file. The stale cite is always caught by the adversary in the following pass (never in the bumping burst itself), adding one wasted pass to every cascade.
+
+### Lesson
+
+When a burst bumps a spec file's version (frontmatter `version:` field or `spec_version:` field), the implementer MUST run a literal grep for the old version string across the entire file and update all occurrences before committing. The command pattern:
+
+```bash
+grep -n "v<OLD_VERSION>" <spec-file>
+```
+
+Any hit is a prescribed sibling site. Zero hits = sweep complete. This grep must appear in the burst-log Dim-2 Attestation for any burst that includes a version bump.
+
+**Codification label:** PG-S-15.09-self-cite-sweep-on-version-bump
+
+### Disposition
+
+- **S-7.02 codification satisfied 2026-05-17** — F-P7-001 `[process-gap]` class from S-15.09 LOCAL adversary pass-7 codified here per S-7.02 Cycle-Closing Checklist step 3.
+- **Fix applied in S-15.09 pass-7 fix-burst:** story-writer applied same-burst self-cite sweep; zero remaining live body cites of v1.6 or earlier verified.
+- **S-15.09 cascade report reference:** `.factory/code-delivery/S-15.09/adv-local-pass-7.md` — F-P7-001 source document.
