@@ -402,9 +402,7 @@ pub fn extract_trajectory_tail_line(content: &str) -> Option<String> {
         let trimmed = line.trim_end_matches('\r').trim();
         if is_trajectory_tail_line(trimmed) {
             // Check if this line has exactly 4 adjacent components (canonical cardinality).
-            if has_adjacent_arrow_digit_run(trimmed, 4)
-                && count_arrow_digit_matches(trimmed) == 4
-            {
+            if has_adjacent_arrow_digit_run(trimmed, 4) && count_arrow_digit_matches(trimmed) == 4 {
                 // First 4-component canonical tail found — return immediately.
                 return Some(trimmed.to_string());
             }
@@ -1407,7 +1405,8 @@ mod tests {
     fn test_BC_5_39_005_f_p3_001_high_count_narrative_not_trajectory() {
         // "trend 22→11→16→16→12→2→1→4→5" — digit 22 before first →
         // From real STATE.md E-10 pass-9 adversary row
-        let narrative_9 = "trend 22\u{2192}11\u{2192}16\u{2192}16\u{2192}12\u{2192}2\u{2192}1\u{2192}4\u{2192}5";
+        let narrative_9 =
+            "trend 22\u{2192}11\u{2192}16\u{2192}16\u{2192}12\u{2192}2\u{2192}1\u{2192}4\u{2192}5";
         assert!(
             !is_trajectory_tail_line(narrative_9),
             "high-count narrative with digit-before-first-arrow must NOT qualify; \
