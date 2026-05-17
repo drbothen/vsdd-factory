@@ -284,6 +284,7 @@ dtu_services: []
 | **F-PASS14-006** POLICY ID schema two-digit vs three-digit | **RESOLVED 2026-05-15 (human direction)** | Three-digit canonical POLICY 001-018 — override of adversary's two-digit recommendation. Migration deferred to S-15.15 Part B authorship per architect wave plan; ~15 cross-reference files to migrate. |
 | **S-12.08 resolver-linker WASI gap** | FIXED 2026-05-11 db298c94 | HIDDEN gap surfaced in S-12.04; resolver-linker lacked WASI preview2 filesystem rights for context read paths. Fixed in S-12.08 Step 3b commit db298c94. No separate TD filed — closed in-story. |
 | **Side branch `save/dim2-gates-path-register`** | RESOLVED PR #137 2026-05-14 | Pass-74 ADV-EDP1-P74-HIGH-002 retroactive fix shipped via PR #137 (squash-merge at 21d444d8); cherry-picked 3df1bdda to develop; save-point branch preserved but content fully shipped. Tier-B priority-1 CLOSED. |
+| **PG-S-15.11-bats-prod-registry-parity-gate** | OPEN 2026-05-17 | S-7.02 codification — O-P2-003 `[process-gap]` from S-15.11 LOCAL adversary pass-2. Bats inline `_write_registry()` `path_allow` arrays MUST be byte-identical to production `hooks-registry.toml` entry for same hook. Surfaced as O-P2-003/PG-1; MASKED F-S15.11-LOCAL-P2-001 HIGH (production `validate-burst-log` hook silently neutered via `canonicalize()` failure on unsupported glob `.factory/cycles/**`; bats inline fixture used `.factory/cycles/` with no glob so the code path was never exercised). Proven load-bearing: integration-production-registry.bats Scenario B caught the gap. Target release: S-15.03 PRIORITY-A automation wave (CI lint or pre-commit gate that diffs inline `path_allow` against production entry; story TBD). Cascade reports: `.factory/code-delivery/S-15.11/adv-local-pass-2.md`. Lesson codified in `cycles/v1.0-brownfield-backfill/lessons.md`. |
 
 ## Historical Content
 
@@ -397,6 +398,7 @@ Wave plan COMPLETE 2026-05-15 (architect): **95 distinct items** across 8 catego
 5. E-10 sub-cycle SEALED — do NOT dispatch E-10 pass-15 without S-15.03 PRIORITY-A lint hooks landing first
 6. F5 cycle is PAUSED — do NOT dispatch F5 pass-75 without explicit human direction to resume F5
 7. **State-manager Commit A new obligation (ADR-022 Option c, activates at S-15.13 ship time):** Write `.factory/current-adversary-pass.txt` at every cycle-scoped adversarial review Commit A. NOT yet enforced until S-15.13 lands.
+8. **PG-S-15.11-bats-prod-registry-parity-gate logged in Drift Items + `cycles/v1.0-brownfield-backfill/lessons.md`; resolution scoped to S-15.03 PRIORITY-A automation wave. S-15.11 cycle strictly CLOSED per S-7.02 step 3.**
 
 ### 12. Pending Work Items — Strict Engine-Discipline Ordering (Committed 2026-05-15)
 

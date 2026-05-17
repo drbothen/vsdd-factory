@@ -1510,3 +1510,37 @@ Orchestrator preparing for context compact. STATE.md updated with comprehensive 
 **Routing:** Open follow-up: TD-VSDD entry to enforce POLICY 11 retroactively on all `tests/*.bats` that gate validate. Specifically: every bats suite that touches the `.factory` mount must emit a positive-coverage assertion ("FACTORY_DIR resolved to: <abs path>; mount confirmed") so a missing assertion in the run log signals a path-resolution latent bug. Tag: `[codification-candidate]`.
 
 **Routing:** TD-VSDD entry post-cycle. Tag: `[codification-candidate]`. Already have N=2 trigger here (DI-013 D-15.4→D-15.1 was 4-occurrence; DI-017 dispatcher_trace_id is 2nd known propagation pattern in this cycle). Recommend codifying after the 3rd distinct rename-propagation event.
+
+---
+
+### Lesson — bats inline `_write_registry()` heredocs diverge from production registry shape with no automated parity check [codified] [process-gap]
+
+**Discovered:** 2026-05-17 (S-15.11 LOCAL adversary pass-2 as O-P2-003 / PG-1)
+**Category:** test-infrastructure-parity
+**Severity:** HIGH — masked a HIGH-severity production defect (F-S15.11-LOCAL-P2-001)
+
+### Gap Description
+
+bats integration tests for WASM hook stories inline a `_write_registry()` helper that writes a synthetic hooks-registry.toml fixture. In S-15.11, the inline `path_allow` array used `.factory/cycles/` (a literal directory path, no glob), while the production hooks-registry.toml entry for `validate-burst-log` used `path_allow = [".factory/cycles/**"]` (an unsupported glob pattern). The `canonicalize()` call inside the resolver-linker silently returned `CapabilityDenied` for the glob path → the hook fail-opened → production capability semantics were never exercised by the bats suite.
+
+This gap DIRECTLY CAUSED F-S15.11-LOCAL-P2-001 (HIGH severity): production hook `validate-burst-log` was silently neutered via `canonicalize()` failure on the unsupported glob, and the bats suite never detected it because the inline registry used a valid non-glob path. The HIGH finding was only caught by the LOCAL adversary pass-2 adversarial review — not by any automated test gate.
+
+### Root Cause
+
+bats inline `_write_registry()` heredocs are authored manually per-story without a gate verifying they are byte-identical to the production registry entry for the same hook. There is no CI lint or pre-commit check that diffs the inline `path_allow` arrays against the production `hooks-registry.toml` entry for the same hook and blocks on drift.
+
+### Systemic Pattern
+
+Any future per-hook story can introduce the same divergence: bats inline fixture passes locally (because the test uses simplified registry shape), production hook silently misbehaves (because the actual registry shape triggers a different code path). The recurrence risk is HIGH because every new WASM hook story in S-15.03 PRIORITY-A wave (S-15.09, S-15.14, etc.) authors its own `_write_registry()` inline fixture.
+
+### Lesson
+
+Future per-hook stories MUST include an integration test that extracts `path_allow` verbatim from production `hooks-registry.toml` and exercises the hook against that EXACT registry shape. This pattern is proven load-bearing: S-15.11 integration-production-registry.bats Scenario B demonstrated that the production-registry-shape test catches the `canonicalize()` / glob failure that the inline-fixture test misses.
+
+**Codification target:** S-15.03 PRIORITY-A automation wave should include a CI lint or pre-commit gate that diffs bats inline `_write_registry()` `path_allow` arrays against the production hooks-registry.toml entry for the same hook — block on any drift. This is out-of-scope for S-15.11; tracked as Drift Items entry `PG-S-15.11-bats-prod-registry-parity-gate` in STATE.md.
+
+### Disposition
+
+- **S-7.02 codification satisfied 2026-05-17** — O-P2-003 `[process-gap]` finding from S-15.11 LOCAL adversary pass-2 codified here per S-7.02 Cycle-Closing Checklist step 3.
+- **Drift Items entry:** `PG-S-15.11-bats-prod-registry-parity-gate` OPEN in STATE.md Drift Items table; target release: S-15.03 PRIORITY-A automation wave (CI lint or pre-commit gate; story TBD).
+- **S-15.11 cascade report reference:** `.factory/code-delivery/S-15.11/adv-local-pass-2.md` — O-P2-003 source document.
