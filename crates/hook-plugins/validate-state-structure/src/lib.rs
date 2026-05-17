@@ -329,43 +329,49 @@ fn extract_banner_block(content: &str) -> Option<&str> {
 /// Extract the trajectory-tail line from content.
 ///
 /// The canonical tail line contains `→` (U+2192, RIGHTWARDS ARROW) followed by digits,
-/// repeated N times (canonical form: `→N→N→N→N`).
+/// repeated N times in an ADJACENT run (canonical form: `→N→N→N→N`).
 ///
-/// # Anchoring rule (F-P1-007 fix)
+/// # Anchoring rule (F-P1-007 fix, tightened in F-P2-001)
 ///
 /// Real STATE.md prose may contain `→N` sequences in narrative tables, chart rows,
 /// and decision-log rows anywhere in the document. To avoid picking up a spurious
 /// narrative occurrence, this function first extracts the SIZE BUDGET banner block via
-/// `extract_banner_block` and searches ONLY within that block. If the banner block
-/// exists and contains a trajectory-tail line, that line is returned.
+/// `extract_banner_block` and searches ONLY within that block using the
+/// `is_trajectory_tail_line` predicate.
 ///
-/// If the banner block is absent (or contains no arrow-digit line), falls back to
-/// scanning the full document — this preserves compatibility with older fixtures that
-/// store the trajectory tail outside the banner comment.
+/// The trajectory tail is identified by a line containing ≥3 arrow-digit components
+/// as a TIGHT ADJACENT RUN — distinguishing canonical `→9→9→9→9` from narrative
+/// arrows like `(363→310 lines)` (1 component, non-adjacent) and table rows like
+/// `"Story Status 62→63 merged...65→66"` (multiple components spread across prose).
 ///
-/// Returns the first matching line (trimmed) within the banner block, or the first
-/// matching line in the full document if no banner block is found.
-/// Returns `None` if no arrow-digit sequence is found anywhere.
+/// If the banner block is absent (or contains no qualifying tail line), falls back to
+/// scanning the full document — preserving compatibility with fixtures that store the
+/// trajectory tail outside the banner comment (e.g., `## Convergence Status` body section).
+///
+/// Returns the first qualifying line (trimmed) within the banner block, or the first
+/// qualifying line in the full document if no banner block match found.
+/// Returns `None` if no qualifying trajectory tail is found anywhere.
 ///
 /// # BC trace
 /// BC-5.39.005 postcondition 4; invariant 5.
+/// F-P2-001: `is_trajectory_tail_line` replaces `contains_arrow_digit_sequence`
+///           to prevent false matches on banner narrative arrows.
 pub fn extract_trajectory_tail_line(content: &str) -> Option<String> {
-    // The arrow character is UTF-8: → = U+2192 = 0xE2 0x86 0x92 (3 bytes).
-
     // Prefer the banner-block-anchored scan (F-P1-007).
     if let Some(block) = extract_banner_block(content) {
         for line in block.split('\n') {
             let trimmed = line.trim_end_matches('\r').trim();
-            if contains_arrow_digit_sequence(trimmed) {
+            if is_trajectory_tail_line(trimmed) {
                 return Some(trimmed.to_string());
             }
         }
     }
 
-    // Fallback: scan full document (for fixtures without a SIZE BUDGET banner).
+    // Fallback: scan full document (for fixtures without a SIZE BUDGET banner,
+    // or when real STATE.md stores the trajectory tail in the body section).
     for line in content.split('\n') {
         let trimmed = line.trim_end_matches('\r').trim();
-        if contains_arrow_digit_sequence(trimmed) {
+        if is_trajectory_tail_line(trimmed) {
             return Some(trimmed.to_string());
         }
     }
@@ -376,6 +382,10 @@ pub fn extract_trajectory_tail_line(content: &str) -> Option<String> {
 ///
 /// Hand-rolled scan to stay within WASM fuel budget.
 /// The arrow → is U+2192 = 0xE2 0x86 0x92 in UTF-8 (3 bytes).
+///
+/// # Note
+/// This predicate is deliberately weak (≥1 match). Use `is_trajectory_tail_line` for
+/// trajectory-tail identification, which requires adjacent ≥3 components.
 fn contains_arrow_digit_sequence(s: &str) -> bool {
     let arrow = "\u{2192}"; // → U+2192
     let arrow_bytes = arrow.len(); // 3 bytes
@@ -394,6 +404,112 @@ fn contains_arrow_digit_sequence(s: &str) -> bool {
         i += 1;
     }
     false
+}
+
+/// Returns `true` if `s` qualifies as a canonical trajectory-tail line.
+///
+/// # Discriminator (F-P2-001 fix)
+///
+/// The canonical trajectory tail (`→N→N→N→N`) is identified by TWO criteria:
+///
+/// 1. **Component count ≥ 3**: the line contains at least 3 `→N` sequences.
+///    This rejects single-arrow narratives like `(363→310 lines)` (count=1).
+///
+/// 2. **Adjacent run ≥ 3**: at least 3 of the `→N` sequences appear as a tight
+///    consecutive run — each `→N` immediately followed by another `→M` with no
+///    intervening non-digit, non-arrow text. This rejects table rows where `→N`
+///    sequences are scattered across prose like `"Story Status 62→63 merged...
+///    Story Status 66→67"` (count=5 but separated by large amounts of prose text).
+///
+/// # Examples that qualify
+/// - `→9→9→9→9` — pure trajectory form, 4 adjacent
+/// - `Trajectory →9→9→9→9` — prefix + tail, 4 adjacent
+/// - `→9→9→9` — 3-component (count wrong for validity, but IS a tail structurally)
+///
+/// # Examples that do NOT qualify
+/// - `(363→310 lines)` — count=1, too few components
+/// - `"Story Status 62→63 merged...Story Status 66→67"` — count=5 but spread across prose
+pub fn is_trajectory_tail_line(s: &str) -> bool {
+    // Quick check: need at least 3 →N matches total.
+    if count_arrow_digit_matches(s) < 3 {
+        return false;
+    }
+    // Full check: at least 3 must be adjacent (no intervening non-digit, non-arrow text).
+    has_adjacent_arrow_digit_run(s, 3)
+}
+
+/// Returns `true` if `s` contains a run of at least `min_run` consecutive adjacent
+/// `→N` sequences — each directly followed by another `→M` with only digit characters
+/// (the trailing digits of the previous match) between them.
+///
+/// The canonical trajectory tail `→9→9→9→9` satisfies `min_run=3` (and 4).
+/// A prose table row `"...62→63 merged...65→66..."` does NOT: the arrows are separated
+/// by non-digit, non-arrow text.
+///
+/// # Algorithm
+///
+/// Walk the string looking for `→[digits]` tokens. Track the byte position after the
+/// last token ends. If the next `→[digits]` starts immediately (byte-adjacent, no gap
+/// chars), increment the current run length. A run is broken when any character that
+/// is not `→` appears between two `→` sequences (after the digits of the prior match
+/// are consumed).
+///
+/// # UTF-8 safety
+/// Arrow `→` is U+2192 = `[0xE2, 0x86, 0x92]`. ASCII digits (0x30–0x39) have the
+/// high bit clear and cannot be UTF-8 continuation bytes — safe to check via
+/// `bytes[pos].is_ascii_digit()`. The arrow byte-sequence check is identical to
+/// `count_arrow_digit_matches`.
+fn has_adjacent_arrow_digit_run(s: &str, min_run: usize) -> bool {
+    let arrow_utf8 = "\u{2192}".as_bytes(); // [0xE2, 0x86, 0x92]
+    let arrow_byte_len = arrow_utf8.len(); // 3
+    let bytes = s.as_bytes();
+    let len = bytes.len();
+
+    let mut best_run = 0usize;
+    let mut current_run = 0usize;
+    let mut i = 0usize;
+
+    while i + arrow_byte_len <= len {
+        if &bytes[i..i + arrow_byte_len] == arrow_utf8 {
+            // Arrow found at position i.
+            let after_arrow = i + arrow_byte_len;
+            // Must be followed by at least one ASCII digit.
+            if after_arrow < len && bytes[after_arrow].is_ascii_digit() {
+                // Consume all trailing digits.
+                let mut j = after_arrow;
+                while j < len && bytes[j].is_ascii_digit() {
+                    j += 1;
+                }
+                // This `→N` token runs from i to j.
+                // Check if the previous token ended exactly at i (adjacent run).
+                // `current_run` is non-zero only when we're in a run. We track the
+                // end position of the previous token via `expected_next_start`.
+                // We'll use a different bookkeeping style: after consuming a token,
+                // set `i = j` and check if the next character is `→`.
+                current_run += 1;
+                if current_run > best_run {
+                    best_run = current_run;
+                }
+                if best_run >= min_run {
+                    return true;
+                }
+                // The run continues only if the NEXT bytes immediately form another →N.
+                // Set i to j and loop — the next iteration checks for `→` at j.
+                i = j;
+                // Do NOT increment i again at the bottom of the loop.
+                continue;
+            } else {
+                // Arrow not followed by digit — not a trajectory component; break run.
+                current_run = 0;
+            }
+        } else {
+            // Non-arrow character — any character that breaks adjacency resets the run.
+            current_run = 0;
+        }
+        i += 1;
+    }
+
+    best_run >= min_run
 }
 
 /// Count the number of `→N` matches (arrow followed by digit sequence) in a string.
@@ -481,10 +597,29 @@ pub fn validate_trajectory_tail(content: &str) -> Option<Violation> {
 // ---------------------------------------------------------------------------
 
 /// Format a list of violations into a `HookResult::block_with_fix`.
+///
+/// Each violation is formatted as:
+/// ```text
+///   - {description}
+///       cited: "{cited_raw}"
+/// ```
+/// The `cited_raw` field is included when non-empty, making the block message
+/// actionable by quoting the exact offending text the author wrote.
+///
+/// # F-P2-003 Option A
+/// `cited_raw` is wired through `emit_block` rather than being a dead field.
+/// The `cited_raw` text appears in the block reason for every violation that
+/// populates it. This makes the field load-bearing (TD-VSDD-059 paper-fix avoidance).
 fn emit_block(violations: &[Violation]) -> HookResult {
     let lines: Vec<String> = violations
         .iter()
-        .map(|v| format!("  - {}", v.description))
+        .map(|v| {
+            if v.cited_raw.is_empty() {
+                format!("  - {}", v.description)
+            } else {
+                format!("  - {}\n      cited: \"{}\"", v.description, v.cited_raw)
+            }
+        })
         .collect();
     let reason = format!(
         "validate-state-structure: {} violation(s) in STATE.md:\n{}",
@@ -1012,6 +1147,152 @@ mod tests {
     // No behavioral test needed — F-P1-009 is a doc-comment addition.
     // The existing count_arrow_digit tests cover correctness.
 
+    // ── F-P2-001: tighter trajectory predicate (canonical-tail discriminator) ──
+
+    /// F-P2-001: a single-narrative arrow `(363→310 lines)` must NOT qualify as a
+    /// trajectory tail line. The canonical tail requires adjacent →N→N runs.
+    #[test]
+    fn test_BC_5_39_005_f_p2_001_narrative_arrow_single_not_trajectory() {
+        // Simulates the D-430(a) compaction line in the real STATE.md banner:
+        // "D-430(a) compaction authorization: Pass-49 Commit E surgical compaction
+        //  (363→310 lines) authorized retroactively per D-430(a)..."
+        // This has exactly 1 →N match — must NOT be identified as the trajectory tail.
+        let content = concat!(
+            "<!--\n",
+            "  STATE.md SIZE BUDGET (per D-421(c)):\n",
+            "  Hard cap (500 lines) margin from soft-target = 500 - 415 = 85; margin from actual = 500 - 29 = 471 (D-446(c) dual-margin form).\n",
+            "  D-430(a) compaction authorization: Pass-49 Commit E surgical compaction (363→310 lines) authorized retroactively.\n",
+            "-->\n",
+            "\n",
+            "# Pipeline State\n",
+            "\n",
+            "## Convergence Status\n",
+            "\n",
+            "Trajectory →9→9→9→9\n",
+            "\n",
+        );
+        // With the (363→310) line in banner, the banner scan must NOT pick it up as
+        // trajectory tail (only 1 non-adjacent component). Fallback must find the body tail.
+        let tail = extract_trajectory_tail_line(content);
+        assert!(
+            tail.is_some(),
+            "should find trajectory tail in body; got None"
+        );
+        let tail_line = tail.unwrap();
+        assert!(
+            !tail_line.contains("363"),
+            "must NOT return the D-430(a) compaction line as trajectory tail; got: {tail_line:?}"
+        );
+        // The correct tail has 4 components
+        assert_eq!(
+            count_arrow_digit_matches(&tail_line),
+            4,
+            "found tail should have 4 components; got: {tail_line:?}"
+        );
+    }
+
+    /// F-P2-001: table-row narrative with spread arrows (e.g. "Story Status 62→63 merged ...
+    /// Story Status 66→67") must NOT be identified as the trajectory tail even though
+    /// it has >=3 →N matches. The discriminator must require ADJACENT →N→N sequences.
+    #[test]
+    fn test_BC_5_39_005_f_p2_001_spread_table_arrows_not_trajectory() {
+        // Simulate the real STATE.md banner tracker line: multiple →N matches but
+        // separated by long prose text (not adjacent).
+        let spread_line = "Line-growth tracker: pass-49 310 lines; Story Status 62→63 merged + Session Resume Checkpoint refresh net +9). S-15.04-post-merge-burst 480 lines; Story Status 63→64 merged; Story Status 64→65 merged; Story Status 65→66; Story Status 66→67";
+        // Count: 5 →N matches, but they are spread far apart
+        assert!(
+            count_arrow_digit_matches(spread_line) >= 3,
+            "test precondition: spread_line must have >=3 →N matches"
+        );
+        // But is_trajectory_tail_line must reject it
+        assert!(
+            !is_trajectory_tail_line(spread_line),
+            "spread-arrow prose table row must NOT qualify as trajectory tail"
+        );
+    }
+
+    /// F-P2-001: canonical trajectory forms must qualify as trajectory tail lines.
+    #[test]
+    fn test_BC_5_39_005_f_p2_001_canonical_trajectory_forms_qualify() {
+        // Standard 4-component form
+        assert!(
+            is_trajectory_tail_line("→9→9→9→9"),
+            "→9→9→9→9 must qualify as trajectory tail"
+        );
+        // With "Trajectory " prefix
+        assert!(
+            is_trajectory_tail_line("Trajectory →9→9→9→9"),
+            "Trajectory →9→9→9→9 must qualify as trajectory tail"
+        );
+        // 3-component (invalid count but IS a tail line structurally)
+        assert!(
+            is_trajectory_tail_line("→9→9→9"),
+            "→9→9→9 must qualify as trajectory tail (count wrong but is a tail)"
+        );
+        // 5-component
+        assert!(
+            is_trajectory_tail_line("→9→9→9→9→9"),
+            "→9→9→9→9→9 must qualify as trajectory tail"
+        );
+        // Multi-digit numbers
+        assert!(
+            is_trajectory_tail_line("→12→34→56→78"),
+            "→12→34→56→78 must qualify as trajectory tail"
+        );
+    }
+
+    // ── F-P2-002: full-surface validation against real STATE.md ──────────────
+
+    /// F-P2-002: load the actual .factory/STATE.md and assert that ALL THREE
+    /// validators (validate_banner_wc, validate_dual_margin, validate_trajectory_tail)
+    /// return None. This is the LOAD-BEARING end-to-end proof that the implementation
+    /// correctly handles real-world STATE.md content without false-positive blocks.
+    ///
+    /// The test skips gracefully if STATE.md is not found (isolated build environments).
+    #[test]
+    fn test_BC_5_39_005_full_validation_against_real_state_md() {
+        let state_md_path =
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../../.factory/STATE.md");
+
+        let content = match std::fs::read_to_string(&state_md_path) {
+            Ok(c) => c,
+            Err(_) => {
+                eprintln!(
+                    "[skip] real STATE.md not found at {:?} — skipping full-surface test",
+                    state_md_path
+                );
+                return;
+            }
+        };
+
+        // Validator 1: banner wc-l
+        let banner_viol = validate_banner_wc(&content);
+        assert!(
+            banner_viol.is_none(),
+            "validate_banner_wc must return None for real STATE.md; got: {:?}",
+            banner_viol.as_ref().map(|v| &v.description)
+        );
+
+        // Validator 2: dual-margin
+        let margin_viol = validate_dual_margin(&content);
+        assert!(
+            margin_viol.is_none(),
+            "validate_dual_margin must return None for real STATE.md; got: {:?}",
+            margin_viol.as_ref().map(|v| &v.description)
+        );
+
+        // Validator 3: trajectory tail cardinality
+        let tail_viol = validate_trajectory_tail(&content);
+        assert!(
+            tail_viol.is_none(),
+            "validate_trajectory_tail must return None for real STATE.md; got: {:?} (found tail: {:?})",
+            tail_viol.as_ref().map(|v| &v.description),
+            extract_trajectory_tail_line(&content)
+        );
+    }
+
+    // ── F-P2-003: cited_raw wired into emit_block reason ─────────────────────
+
     // ── emit_block ───────────────────────────────────────────────────────────
 
     #[test]
@@ -1046,6 +1327,15 @@ mod tests {
                 assert!(reason.contains("D-421"), "must mention D-421");
                 assert!(reason.contains("D-446"), "must mention D-446");
                 assert!(reason.contains("D-433"), "must mention D-433");
+                // F-P2-003 Option A: cited_raw text must appear in the reason for violations that have it.
+                assert!(
+                    reason.contains("27 lines (wc-l)"),
+                    "cited_raw '27 lines (wc-l)' must appear in block reason; got:\n{reason}"
+                );
+                assert!(
+                    reason.contains("\u{2192}9\u{2192}9\u{2192}9"),
+                    "cited_raw arrow sequence must appear in block reason; got:\n{reason}"
+                );
             }
             _ => panic!("expected Block result, got {result:?}"),
         }
