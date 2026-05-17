@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: story-writer
 timestamp: 2026-05-17T00:00:00Z
@@ -30,7 +30,7 @@ removed: null
 removal_reason: null
 bc_id: BC-5.39.005
 section: "5.39"
-last_amended: "2026-05-17 (v1.0) — initial authoring (story-writer; brownfield-backfill S-15.03 M2 wave-3 story authoring). Anchors D-421(c)+D-422(c)+D-424(b)+D-428(d)+D-438(a)+D-440(d)+D-442(d)+D-446(c)+D-433(e)+D-439(c)+D-451(c)+D-432(b). BC-5.39.005 allocated as next monotonic ID after BC-5.39.004 in ss-05/. lifecycle_status: draft (POL-14 auto-promotion to active on S-15.09 merge)."
+last_amended: "2026-05-17 (v1.1) — pass-2 fix-burst: add EC-015 for SIZE BUDGET banner narrative-arrow class (F-P2-004 MEDIUM). Banner-narrative arrow-digit sequences (e.g., `(363→310 lines)` D-NNN compaction narratives) MUST NOT be misidentified as canonical trajectory tail. Discriminator: trajectory-tail predicate requires >=3 `→(\\d+)` matches AND canonical body-line location, not banner-block prose."
 ---
 
 # BC-5.39.005: validate-state-structure Phase 1 hook MUST block on banner line-count drift, dual-margin absence, and trajectory-tail cardinality violations in STATE.md
@@ -115,6 +115,12 @@ discovered by the adversary N bursts after the write, rather than at write time.
    guards where multi-byte UTF-8 input is possible (em-dash, en-dash, NBSP, typographic
    apostrophes are plausible in banner narrative text). Slice without boundary guard is a
    runtime panic risk per S-15.11 cascade lesson F-P4-001.
+9. The trajectory-tail predicate MUST discriminate canonical body-line tails from banner-block
+   narrative arrow-digit sequences. A line such as `(363→310 lines)` in the SIZE BUDGET banner
+   block is a D-NNN compaction authorization narrative, NOT a trajectory tail. The predicate
+   anchors on the trajectory-tail body line (not banner-block prose) and requires >=3 `→(\d+)`
+   matches to qualify as a candidate; banner-narrative sequences with fewer arrow-digit groups
+   (typically 1) MUST NOT satisfy the trajectory-tail LENGTH=4 check.
 
 ## Edge Cases
 
@@ -134,6 +140,7 @@ discovered by the adversary N bursts after the write, rather than at write time.
 | EC-012 | File path is `/some/dir/xSTATE.md` (ends with STATE.md but file_name component differs) | Continue (is_state_md_target returns false; path-component-strict guard) |
 | EC-013 | Banner narrative contains em-dash or other multi-byte UTF-8 characters | No panic; is_char_boundary() guard applied before any byte-index slice |
 | EC-014 | STATE.md is newly created with empty content (no banner, no trajectory-tail) | BlockWithFix: both line-count and trajectory-tail violations (no banner line found; no tail found) |
+| EC-015 | SIZE BUDGET banner contains narrative arrow-digit sequence (e.g., `(363→310 lines)` D-NNN compaction authorization narrative) AND body contains canonical `→N→N→N→N` trajectory tail | Continue for trajectory-tail; canonical tail in body satisfies LENGTH=4 invariant; banner-narrative arrow MUST NOT be misidentified as the canonical trajectory tail — predicate anchors on body-line location and requires >=3 `→(\d+)` matches, which banner-narrative sequences (typically 1 arrow-digit group) do not satisfy |
 
 ## Canonical Test Vectors
 
@@ -148,6 +155,7 @@ discovered by the adversary N bursts after the write, rather than at write time.
 | All 3 violations | Wrong line-count + no dual-margin + wrong tail length | Single `HookResult::BlockWithFix` enumerating all 3 violations | BLOCK |
 | Read failure | `host::read_file` returns HostError::CapabilityDenied | `HookResult::Continue` + `host::log_warn` | PASS (fail-open) |
 | xSTATE.md path | file_name is "xSTATE.md" | `HookResult::Continue` (is_state_md_target false) | PASS (not target) |
+| Banner narrative arrow + valid body tail | Banner contains `(363→310 lines)` compaction narrative; body contains `→9→9→9→9` tail | `HookResult::Continue` — banner-narrative arrow not misidentified as tail; canonical tail satisfies LENGTH=4 | PASS |
 
 ## Verification Properties
 
@@ -158,6 +166,7 @@ discovered by the adversary N bursts after the write, rather than at write time.
 | (pending) | Dual-Margin Block Invariant — hook emits BlockWithFix when dual-margin absent | bats integration test (fail-no-dual-margin fixture) |
 | (pending) | Trajectory-Tail Block Invariant — hook emits BlockWithFix when tail is not LENGTH=4 | bats integration test (fail-tail-3-components + fail-tail-5-components fixtures) |
 | (pending) | Fail-open Invariant — hook emits Continue when file is unreadable | bats integration test (fail-open-unreadable fixture) |
+| (pending) | Banner-Narrative Arrow Discrimination Invariant — hook emits Continue when banner contains narrative arrow-digit sequence but body has canonical LENGTH=4 tail (EC-015) | bats integration test (pass-banner-narrative-arrow fixture) |
 
 VP IDs are pending VP-INDEX allocation by state-manager at post-merge burst.
 
@@ -197,4 +206,5 @@ S-15.09 — v1.0-brownfield-backfill (S-15.03 PRIORITY-A M2 Wave-3)
 
 | Version | Date | Description |
 |---------|------|-------------|
+| 1.1 | 2026-05-17 | F-P2-004 fix-burst: add EC-015 for SIZE BUDGET banner narrative-arrow class (banner-block trajectory predicate discriminator codified). Banner-narrative arrow-digit sequences (e.g., `(363→310 lines)` D-NNN compaction authorization narratives) MUST NOT be misidentified as canonical trajectory tail. Discriminator: predicate requires >=3 `→(\d+)` matches AND body-line anchor. Added Invariant 9 (narrative-arrow discrimination). Added EC-015 edge case row. Added banner-narrative-arrow test vector. Added Banner-Narrative Arrow Discrimination VP row. |
 | 1.0 | 2026-05-17 | Initial authoring (story-writer; brownfield-backfill S-15.03 M2 wave-3 story authoring). Anchors D-421(c)+D-422(c)+D-424(b)+D-428(d)+D-438(a)+D-440(d)+D-442(d)+D-446(c)+D-433(e)+D-439(c)+D-451(c)+D-432(b). BC-5.39.005 allocated as next monotonic ID after BC-5.39.004 in ss-05/. lifecycle_status: draft (POL-14 auto-promotion to active on S-15.09 merge). Preemptive cascade lessons applied: path-component-strict precondition (is_state_md_target); is_char_boundary() invariant 8; fail-open invariant 7. |
