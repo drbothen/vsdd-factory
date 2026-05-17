@@ -47,6 +47,18 @@ use vsdd_hook_sdk::{HookPayload, HookResult};
 /// against. Must remain 1.
 pub const HOST_ABI_VERSION: u32 = 1;
 
+/// Maximum bytes to read from STATE.md via `host::read_file`.
+///
+/// Set to 512 KiB (524288 bytes) — comfortably above the BC-5.39.005 hard cap
+/// of 500 lines × ~250 bytes/line average = ~125 KiB, with 4x growth runway.
+/// Real STATE.md as of the F-P5-002 fix burst is 95185 bytes (95 KiB), which was
+/// 145% of the old 65536-byte cap. The old cap caused `host::read_file` to return
+/// `Err(HostError::OutputTooLarge)` (-3), which triggered the fail-open path and
+/// rendered the validator silently inert against the real production target.
+///
+/// F-P5-002: raise from 65536 to 524288.
+pub const MAX_BYTES_STATE_MD: u32 = 524_288;
+
 // ---------------------------------------------------------------------------
 // Violation type
 // ---------------------------------------------------------------------------
@@ -100,40 +112,58 @@ pub fn is_state_md_target(file_path: &str) -> bool {
 /// - `N lines (wc-l. rest)` — sentence-end form
 /// - `N lines (wc-l, ...)` — comma-separated form
 ///
-/// Returns the **last** matching occurrence. Real STATE.md has many interim
-/// `N lines (wc-l;` entries in the line-growth tracker; the last one is the
-/// most recent canonical claim (the trailing entry in the tracker sequence).
+/// Scans **only within the SIZE BUDGET banner block** (the `<!-- STATE.md SIZE BUDGET ...
+/// -->` HTML comment) to avoid false matches on body-prose mentions of line counts —
+/// e.g., Phase Progress rows or historical compaction notes that use the same
+/// `N lines (wc-l)` pattern. Within the banner, returns the **last** matching
+/// occurrence, since real STATE.md has many interim `N lines (wc-l;` entries in
+/// the line-growth tracker and the last one is the most recent canonical claim.
 ///
-/// Returns `None` if no such pattern is found (banner absent).
+/// Returns `None` if no banner block is found, or if no matching pattern is found
+/// within the banner block.
 ///
 /// # BC trace
 /// BC-5.39.005 invariant 3 — line-count comparison uses newline-character counting.
 /// F-P1-001 fix: tolerant terminator; last-occurrence anchor.
+/// F-P5-003 fix: banner-block-scoped scan (prevents body-prose false matches).
 pub fn extract_banner_line_count(content: &str) -> Option<usize> {
-    // Hand-rolled scan: look for "lines (wc-l" then verify a non-alphanum terminator.
-    // We stay on raw bytes to avoid regex crate fuel exhaustion. All pattern bytes
-    // are ASCII, so no UTF-8 split risk.
+    // Scope to the SIZE BUDGET banner block (F-P5-003). If no banner block is found,
+    // return None immediately — the caller (validate_banner_wc) will produce the
+    // appropriate "absent banner" violation.
+    let scan_target: &str = extract_banner_block(content).unwrap_or("");
+
+    scan_for_last_wc_l(scan_target)
+}
+
+/// Hand-rolled scan for the last `(\d+) lines (wc-l<terminator>` pattern within `text`.
+///
+/// Used by `extract_banner_line_count` to scan the banner block only.
+/// Separated into its own function for testability without the banner-extraction layer.
+///
+/// Scans on raw bytes to avoid regex crate fuel exhaustion. All pattern bytes
+/// are ASCII, so no UTF-8 split risk.
+fn scan_for_last_wc_l(text: &str) -> Option<usize> {
     let prefix = b" lines (wc-l";
     let prefix_len = prefix.len();
 
-    let bytes = content.as_bytes();
-    let content_len = bytes.len();
+    let bytes = text.as_bytes();
+    let text_len = bytes.len();
 
-    if content_len < prefix_len {
+    if text_len < prefix_len {
         return None;
     }
 
     let mut last_found: Option<usize> = None;
     let mut i = 0usize;
 
-    while i + prefix_len <= content_len {
+    while i + prefix_len <= text_len {
         if &bytes[i..i + prefix_len] == prefix {
             // Check that the byte immediately after the prefix is a valid terminator:
             // any byte that is NOT an ASCII letter or digit. This accepts `)`, `;`, `.`, `,`,
             // space, `\n`, etc. — but rejects mid-word matches like "lines (wc-lb..." which
             // could occur if terminology diverges.
             let after = i + prefix_len;
-            let valid_terminator = after >= content_len  // prefix at end of content
+            let valid_terminator = after >= text_len  // prefix at end of text
                 || {
                     let b = bytes[after];
                     !b.is_ascii_alphabetic() && !b.is_ascii_digit()
@@ -148,7 +178,7 @@ pub fn extract_banner_line_count(content: &str) -> Option<usize> {
                 }
                 if digit_start < digit_end {
                     // Safe: digit range is all ASCII, so byte boundary = char boundary.
-                    if let Ok(n) = content[digit_start..digit_end].parse::<usize>() {
+                    if let Ok(n) = text[digit_start..digit_end].parse::<usize>() {
                         last_found = Some(n);
                     }
                 }
@@ -296,7 +326,10 @@ pub fn validate_dual_margin(content: &str) -> Option<Violation> {
 ///
 /// # F-P1-010 fix
 /// Previously anchored on "first HTML comment" — now anchored on `STATE.md SIZE BUDGET`.
-fn extract_banner_block(content: &str) -> Option<&str> {
+/// # F-P5-005 fix
+/// Promoted from `fn` to `pub fn` — visibility consistent with sibling extractor helpers
+/// (`extract_banner_line_count`, `extract_trajectory_tail_line`, `count_arrow_digit_matches`).
+pub fn extract_banner_block(content: &str) -> Option<&str> {
     let budget_marker = "STATE.md SIZE BUDGET";
     let open_marker = "<!--";
     let close_marker = "-->";
@@ -483,6 +516,9 @@ pub fn is_trajectory_tail_line(s: &str) -> bool {
 /// that run is NOT immediately preceded by an ASCII digit (F-P3-001 first-arrow-precursor
 /// rule).
 ///
+/// # F-P5-005 fix
+/// Promoted from `fn` to `pub fn` — visibility consistent with sibling helpers.
+///
 /// The canonical trajectory tail `→9→9→9→9` satisfies `min_run=3` (and 4) and the
 /// first-arrow-precursor rule (no byte before the first `→`).
 ///
@@ -520,7 +556,7 @@ pub fn is_trajectory_tail_line(s: &str) -> bool {
 ///
 /// # BC trace
 /// F-P3-001: first-arrow-precursor discriminator; closes BODY-document narrative-arrow class.
-fn has_adjacent_arrow_digit_run(s: &str, min_run: usize) -> bool {
+pub fn has_adjacent_arrow_digit_run(s: &str, min_run: usize) -> bool {
     let arrow_utf8 = "\u{2192}".as_bytes(); // [0xE2, 0x86, 0x92]
     let arrow_byte_len = arrow_utf8.len(); // 3
     let bytes = s.as_bytes();
@@ -763,17 +799,32 @@ pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
     }
 
     // Read the STATE.md content that was just written.
+    // F-P5-002: max_bytes raised from 65536 to MAX_BYTES_STATE_MD (512 KiB).
+    // The old 64 KiB cap was below real STATE.md size (95 KiB as of F-P5-002 fix
+    // burst), causing host::read_file to return Err(OutputTooLarge) (-3) and
+    // the validator to fail-open silently — rendering it inert against production.
     // On read failure: fail-open (Continue + log_warn) per BC-5.39.005 postcondition 6.
-    let content = match host::read_file(&file_path, 65536, 2000) {
-        Ok(bytes) => match String::from_utf8(bytes) {
-            Ok(s) => s,
-            Err(e) => {
+    let content = match host::read_file(&file_path, MAX_BYTES_STATE_MD, 2000) {
+        Ok(bytes) => {
+            // Truncation sentinel: if the returned slice is exactly MAX_BYTES_STATE_MD bytes,
+            // the host may have truncated. Emit a warn so the truncation is auditable in logs.
+            if bytes.len() as u32 == MAX_BYTES_STATE_MD {
                 host::log_warn(&format!(
-                    "[validate-state-structure] UTF-8 decode failure reading {file_path}: {e}"
+                    "[validate-state-structure] read_file returned exactly {MAX_BYTES_STATE_MD} bytes \
+                     for {file_path} — possible truncation at byte budget; \
+                     consider raising MAX_BYTES_STATE_MD if STATE.md has grown beyond 512 KiB"
                 ));
-                return HookResult::Continue;
             }
-        },
+            match String::from_utf8(bytes) {
+                Ok(s) => s,
+                Err(e) => {
+                    host::log_warn(&format!(
+                        "[validate-state-structure] UTF-8 decode failure reading {file_path}: {e}"
+                    ));
+                    return HookResult::Continue;
+                }
+            }
+        }
         Err(e) => {
             host::log_warn(&format!(
                 "[validate-state-structure] read_file failed for {file_path}: {e:?}"
@@ -843,7 +894,8 @@ mod tests {
 
     #[test]
     fn test_BC_5_39_005_extract_banner_line_count_returns_integer() {
-        let content = "<!-- 28 lines (wc-l). Hard cap: 500 -->\nrest\n";
+        // F-P5-003: must include STATE.md SIZE BUDGET marker so extract_banner_block finds it.
+        let content = "<!--\n  STATE.md SIZE BUDGET (per D-421(c)):\n  28 lines (wc-l). Hard cap: 500\n-->\nrest\n";
         let result = extract_banner_line_count(content);
         assert_eq!(result, Some(28));
     }
@@ -880,35 +932,45 @@ mod tests {
 
     #[test]
     fn test_BC_5_39_005_banner_wc_match_returns_none() {
-        // EC-002: banner claims 3 and file has 3 newlines
-        let content = "<!--\n28 lines (wc-l).\n-->\n"; // 3 newlines, claim 28
-        // This should produce Some(Violation) because 28 != 3
+        // EC-002: banner claims 28 but file has 4 newlines — mismatch violation.
+        // F-P5-003: banner must include STATE.md SIZE BUDGET marker.
+        let content = "<!--\n  STATE.md SIZE BUDGET (per D-421(c)):\n  28 lines (wc-l).\n-->\n"; // 4 newlines, claim 28
+        // This should produce Some(Violation) because 28 != 4
         let v = validate_banner_wc(content);
         assert!(
             v.is_some(),
-            "mismatch (claimed 28, actual 3) should be Some"
+            "mismatch (claimed 28, actual 4) should be Some"
         );
     }
 
     #[test]
     fn test_BC_5_39_005_banner_wc_correct_returns_none() {
-        // 2 lines, banner claims 2
-        let content = "<!-- 2 lines (wc-l) -->\n\n";
+        // F-P5-003: banner must include STATE.md SIZE BUDGET marker.
+        // Build content where banner line count == actual newline count.
+        // The banner block itself has 3 newlines; add 1 more filler line = 4 total.
+        // But we need the claimed count to equal total newlines in the full content.
+        // Full content: "<!--\n  STATE.md SIZE BUDGET...\n  4 lines (wc-l).\n-->\n" = 4 newlines.
+        let content = "<!--\n  STATE.md SIZE BUDGET (per D-421(c)):\n  4 lines (wc-l).\n-->\n";
+        // Count newlines: 4 (one per line of the HTML comment block)
+        assert_eq!(count_newlines(content), 4);
         let v = validate_banner_wc(content);
         assert!(v.is_none(), "exact match should return None");
     }
 
     #[test]
     fn test_BC_5_39_005_banner_wc_off_by_one_names_both_counts() {
-        // EC-001: banner claims 27 but file has 28 newlines
-        // Build a 28-newline content with banner claiming 27
+        // EC-001: banner claims 27 but file has 28 newlines.
+        // F-P5-003: banner must include STATE.md SIZE BUDGET marker so extract_banner_block
+        // can locate the banner and extract the wc-l claim from it.
+        // Banner line: "<!--\n  STATE.md SIZE BUDGET (per D-421(c)):\n  27 lines (wc-l).\n-->\n"
+        // = 4 newlines. Add 24 more filler lines = 28 total newlines. Banner claims 27.
         let mut content = String::new();
-        content.push_str("<!-- 27 lines (wc-l) -->\n");
-        for _ in 0..27 {
+        content.push_str("<!--\n  STATE.md SIZE BUDGET (per D-421(c)):\n  27 lines (wc-l).\n-->\n");
+        for _ in 0..24 {
             content.push_str("line\n");
         }
-        // Total: 28 newlines (1 from banner + 27 from loop)
-        assert_eq!(count_newlines(&content), 28);
+        // Total: 4 (banner) + 24 (filler) = 28 newlines. Banner claims 27.
+        assert_eq!(count_newlines(&content), 28, "test precondition: must have 28 newlines");
         let v = validate_banner_wc(&content).expect("should produce violation");
         assert!(v.description.contains("27"), "must name claimed count 27");
         assert!(v.description.contains("28"), "must name actual count 28");
@@ -1053,37 +1115,41 @@ mod tests {
 
     /// F-P1-001: extract_banner_line_count must accept semicolon terminator
     /// Real STATE.md uses "N lines (wc-l; net +N ...)" throughout line-growth tracker.
+    /// F-P5-003: banner must include STATE.md SIZE BUDGET marker.
     #[test]
     fn test_BC_5_39_005_extract_banner_line_count_semicolon_terminator() {
-        let content = "<!--\n  395 lines (wc-l; net -52 from pass-64).\n-->\nrest\n";
+        let content = "<!--\n  STATE.md SIZE BUDGET (per D-421(c)):\n  395 lines (wc-l; net -52 from pass-64).\n-->\nrest\n";
         let result = extract_banner_line_count(content);
         assert_eq!(result, Some(395), "semicolon terminator must be accepted");
     }
 
     /// F-P1-001: extract_banner_line_count must accept comma terminator
+    /// F-P5-003: banner must include STATE.md SIZE BUDGET marker.
     #[test]
     fn test_BC_5_39_005_extract_banner_line_count_comma_terminator() {
-        let content = "<!-- 428 lines (wc-l, net +5) -->\nrest\n";
+        let content = "<!--\n  STATE.md SIZE BUDGET (per D-421(c)):\n  428 lines (wc-l, net +5)\n-->\nrest\n";
         let result = extract_banner_line_count(content);
         assert_eq!(result, Some(428), "comma terminator must be accepted");
     }
 
     /// F-P1-001: extract_banner_line_count must accept close-paren terminator (original form)
+    /// F-P5-003: banner must include STATE.md SIZE BUDGET marker.
     #[test]
     fn test_BC_5_39_005_extract_banner_line_count_paren_terminator() {
-        let content = "<!-- 2 lines (wc-l) -->\n\n";
+        let content = "<!--\n  STATE.md SIZE BUDGET (per D-421(c)):\n  2 lines (wc-l)\n-->\n";
         let result = extract_banner_line_count(content);
         assert_eq!(result, Some(2), "close-paren terminator must be accepted");
     }
 
-    /// F-P1-001: all four terminators accepted in a single-function test
+    /// F-P1-001: all four terminators accepted in a single-function test.
+    /// F-P5-003: banner must include STATE.md SIZE BUDGET marker for extract_banner_block.
     #[test]
     fn test_BC_5_39_005_extract_banner_line_count_all_terminators() {
         for (terminator, input, expected) in [
-            (")", "<!-- 10 lines (wc-l) -->", Some(10usize)),
-            (";", "<!-- 20 lines (wc-l; net +2) -->", Some(20)),
-            (".", "<!-- 30 lines (wc-l). rest -->", Some(30)),
-            (",", "<!-- 40 lines (wc-l, net +4) -->", Some(40)),
+            (")", "<!--\n  STATE.md SIZE BUDGET:\n  10 lines (wc-l)\n-->", Some(10usize)),
+            (";", "<!--\n  STATE.md SIZE BUDGET:\n  20 lines (wc-l; net +2)\n-->", Some(20)),
+            (".", "<!--\n  STATE.md SIZE BUDGET:\n  30 lines (wc-l). rest\n-->", Some(30)),
+            (",", "<!--\n  STATE.md SIZE BUDGET:\n  40 lines (wc-l, net +4)\n-->", Some(40)),
         ] {
             let result = extract_banner_line_count(input);
             assert_eq!(
@@ -1624,6 +1690,211 @@ mod tests {
             claimed, actual,
             "real STATE.md banner claims {claimed} lines but actual count is {actual} — \
              the banner wc-l is stale; update STATE.md banner before committing"
+        );
+    }
+
+    // ── F-P5-003: banner-scoped extract_banner_line_count ────────────────────
+
+    /// F-P5-003: `extract_banner_line_count` must NOT return a `lines (wc-l` value
+    /// from the document body — only from the SIZE BUDGET banner block.
+    ///
+    /// Regression: if a body row mentions "42 lines (wc-l)" (e.g., a Phase Progress
+    /// row or historical note) and that appears AFTER the banner's "28 lines (wc-l)",
+    /// the full-document last-occurrence scan would return 42 instead of 28.
+    /// Banner-scoped scanning must return 28.
+    #[test]
+    fn test_BC_5_39_005_f_p5_003_body_wc_l_does_not_displace_banner_wc_l() {
+        // Banner claims 28 lines (wc-l). Body contains 42 lines (wc-l) in prose.
+        let content = concat!(
+            "<!--\n",
+            "  STATE.md SIZE BUDGET (per D-421(c)):\n",
+            "  Hard cap (500 lines) margin from soft-target = 500 - 415 = 85;\n",
+            "  margin from actual = 500 - 28 = 472 (D-446(c) dual-margin form).\n",
+            "  28 lines (wc-l).\n",
+            "-->\n",
+            "\n",
+            "# Pipeline State\n",
+            "\n",
+            "## Phase Progress\n",
+            "\n",
+            "Historical note: compact from 42 lines (wc-l) at pass-15 was authorized.\n",
+            "\n",
+        );
+        let result = extract_banner_line_count(content);
+        assert_eq!(
+            result,
+            Some(28),
+            "extract_banner_line_count must return banner value (28), not body value (42); \
+             F-P5-003: banner-scoped scanning required"
+        );
+    }
+
+    // ── F-P5-002: oversize STATE.md load-bearing regression test ─────────────
+
+    /// F-P5-002: `on_post_tool_use` is NOT testable from unit tests because it requires
+    /// the WASM host SDK shim. This unit test exercises the VALIDATORS directly against
+    /// content larger than the OLD 64 KiB max_bytes cap (65536 bytes), verifying that:
+    ///   1. The validators correctly process content >= 75 KiB (OLD cap = 64 KiB).
+    ///   2. The byte budget constant is >= 524288 (the new required cap of 512 KiB).
+    ///
+    /// The load-bearing bats evidence that the HOST::read_file path is not truncated
+    /// is in `pass-real-state-md-snapshot.bats` (mutation-verified separately).
+    #[test]
+    fn test_BC_5_39_005_f_p5_002_oversize_state_md_full_validation() {
+        // Build synthetic STATE.md content of 75+ KiB (exceeds OLD 64 KiB cap of 65536).
+        // The content must have a valid banner + trajectory tail so validators return None.
+        let mut content = String::with_capacity(80_000);
+
+        // Valid SIZE BUDGET banner with correct structure
+        content.push_str("<!--\n");
+        content.push_str("  STATE.md SIZE BUDGET (per D-421(c)):\n");
+        content.push_str(
+            "  Hard cap (500 lines) margin from soft-target = 500 - 415 = 85; \
+             margin from actual = 500 - 100 = 400 (D-446(c) dual-margin form).\n",
+        );
+        // Trajectory tail in the banner
+        content.push_str("  Trajectory \u{2192}9\u{2192}9\u{2192}9\u{2192}9\n");
+        content.push_str("-->\n");
+
+        // Pad to exceed 75 KiB with filler lines — valid content.
+        // Each filler line is ~70 bytes; we need ~1100 lines to reach 75 KiB.
+        let filler = "This is a padding line for the oversize regression test with valid content.\n";
+        let filler_len = filler.len(); // 77 bytes
+        let header_len = content.len(); // ~200 bytes
+        let target = 77_000usize; // 75 KiB
+        let lines_needed = (target.saturating_sub(header_len)) / filler_len + 1;
+        for _ in 0..lines_needed {
+            content.push_str(filler);
+        }
+
+        // Verify the content is actually > 65536 (old cap)
+        assert!(
+            content.len() > 65536,
+            "test precondition: synthetic content must exceed OLD 65536-byte cap; \
+             actual: {} bytes",
+            content.len()
+        );
+
+        // Update banner wc-l claim to match actual newline count
+        let actual_newlines = count_newlines(&content);
+        // Replace the first occurrence of "100 lines (wc-l)" with the real count
+        let content = content.replace(
+            "margin from actual = 500 - 100 = 400",
+            &format!("margin from actual = 500 - {} = {}", actual_newlines,
+                     500usize.saturating_sub(actual_newlines)),
+        );
+        // Now add the wc-l suffix after the trajectory line, using actual_newlines
+        // We need to build the full banner correctly. Reconstruct the content.
+        let mut content2 = String::with_capacity(content.len() + 50);
+        content2.push_str("<!--\n");
+        content2.push_str("  STATE.md SIZE BUDGET (per D-421(c)):\n");
+        content2.push_str(&format!(
+            "  Hard cap (500 lines) margin from soft-target = 500 - 415 = 85; \
+             margin from actual = 500 - PLACEHOLDER (D-446(c) dual-margin form).\n",
+        ));
+        content2.push_str("  Trajectory \u{2192}9\u{2192}9\u{2192}9\u{2192}9\n");
+        content2.push_str("-->\n");
+        // Add filler lines
+        for _ in 0..lines_needed {
+            content2.push_str(filler);
+        }
+        let actual_newlines2 = count_newlines(&content2);
+        // Build final content with correct line count in banner
+        let final_content = format!(
+            "<!--\n\
+             STATE.md SIZE BUDGET (per D-421(c)):\n\
+             Hard cap (500 lines) margin from soft-target = 500 - 415 = 85; \
+             margin from actual = 500 - {actual_newlines2} = {} (D-446(c) dual-margin form).\n\
+             {actual_newlines2} lines (wc-l).\n\
+             Trajectory \u{2192}9\u{2192}9\u{2192}9\u{2192}9\n\
+             -->\n",
+            500usize.saturating_sub(actual_newlines2),
+        );
+        // Append the filler so total lines = actual_newlines2
+        // The final_content so far has a header. Count its newlines.
+        let header_newlines = count_newlines(&final_content);
+        let remaining_lines = actual_newlines2.saturating_sub(header_newlines);
+        let mut final_with_filler = final_content.clone();
+        for _ in 0..remaining_lines {
+            final_with_filler.push_str(filler);
+        }
+        // Adjust the count: count_newlines may differ because we added more lines.
+        // Use a simpler approach: build the content with correct count explicitly.
+        let _ = (content, content2, final_with_filler); // drop intermediates
+
+        // Simpler construction: 1025 lines of filler (exactly), then compute correct banner.
+        let line_count = 1025usize;
+        let mut base = String::with_capacity(line_count * 80 + 500);
+        // Placeholder first line (will be replaced)
+        base.push_str("BANNER_PLACEHOLDER\n");
+        for _ in 1..line_count {
+            base.push_str(filler);
+        }
+        assert_eq!(count_newlines(&base), line_count);
+        assert!(base.len() > 65536, "must exceed OLD 65536-byte cap");
+
+        // Now build the real content with the correct banner embedded.
+        let banner = format!(
+            "<!--\n\
+             STATE.md SIZE BUDGET (per D-421(c)):\n\
+             Hard cap (500 lines) margin from soft-target = 500 - 415 = 85; \
+             margin from actual = 500 - {line_count} = {} (D-446(c) dual-margin form).\n\
+             {line_count} lines (wc-l).\n\
+             Trajectory \u{2192}9\u{2192}9\u{2192}9\u{2192}9\n\
+             -->\n",
+            500usize.saturating_sub(line_count),
+        );
+        // Replace the placeholder line with the banner (same number of lines).
+        // Count banner newlines to ensure line count is preserved.
+        let banner_newlines = count_newlines(&banner);
+        let filler_lines_needed = line_count.saturating_sub(banner_newlines);
+        let mut final_content = banner.clone();
+        for _ in 0..filler_lines_needed {
+            final_content.push_str(filler);
+        }
+        let final_count = count_newlines(&final_content);
+        assert_eq!(
+            final_count, line_count,
+            "test construction: final content must have exactly {line_count} newlines; \
+             got {final_count}"
+        );
+        assert!(
+            final_content.len() > 65536,
+            "test construction: final content must exceed OLD 65536-byte cap; \
+             actual: {} bytes",
+            final_content.len()
+        );
+
+        // Verify the MAX_BYTES_STATE_MD constant is >= 524288 (512 KiB).
+        // This is the load-bearing assertion that closes F-P5-002: if someone
+        // lowers the cap below 512 KiB, this test fails and surfaces the regression.
+        assert!(
+            MAX_BYTES_STATE_MD >= 524_288,
+            "MAX_BYTES_STATE_MD must be >= 524288 (512 KiB) per F-P5-002; \
+             current value: {MAX_BYTES_STATE_MD}"
+        );
+
+        // Run all three validators against the 75+ KiB content.
+        let banner_viol = validate_banner_wc(&final_content);
+        assert!(
+            banner_viol.is_none(),
+            "validate_banner_wc must return None for oversize valid content; \
+             got: {:?}",
+            banner_viol.as_ref().map(|v| &v.description)
+        );
+        let margin_viol = validate_dual_margin(&final_content);
+        assert!(
+            margin_viol.is_none(),
+            "validate_dual_margin must return None for oversize valid content; \
+             got: {:?}",
+            margin_viol.as_ref().map(|v| &v.description)
+        );
+        let tail_viol = validate_trajectory_tail(&final_content);
+        assert!(
+            tail_viol.is_none(),
+            "validate_trajectory_tail must return None for oversize valid content; \
+             got: {:?}",
+            tail_viol.as_ref().map(|v| &v.description)
         );
     }
 }
