@@ -117,7 +117,15 @@ _state_md_envelope() {
 @test "PROD-REGISTRY: hook emits Continue for valid STATE.md using production path_allow entry" {
   _require_artifacts
   cp -r "$FIXTURE_VALID/factory/." "$WORK/.factory/"
-  _write_production_registry
+  _write_production_registry || {
+    echo "production registry extraction failed — test cannot proceed" >&2
+    return 1
+  }
+  # Verify the synthesized registry is well-formed: path_allow must be present.
+  grep -q 'path_allow = \[' "$WORK/hooks-registry.toml" || {
+    echo "FAIL: synthesized registry missing path_allow block" >&2
+    return 1
+  }
   cp "$WASM_PLUGIN" "$WORK/hook-plugins/"
 
   local envelope
@@ -148,7 +156,15 @@ _state_md_envelope() {
 @test "PROD-REGISTRY: hook blocks for invalid STATE.md using production path_allow entry (not fail-open)" {
   _require_artifacts
   cp -r "$FIXTURE_INVALID/factory/." "$WORK/.factory/"
-  _write_production_registry
+  _write_production_registry || {
+    echo "production registry extraction failed — test cannot proceed" >&2
+    return 1
+  }
+  # Verify the synthesized registry is well-formed: path_allow must be present.
+  grep -q 'path_allow = \[' "$WORK/hooks-registry.toml" || {
+    echo "FAIL: synthesized registry missing path_allow block" >&2
+    return 1
+  }
   cp "$WASM_PLUGIN" "$WORK/hook-plugins/"
 
   local envelope
