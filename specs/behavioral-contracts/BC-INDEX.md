@@ -1,17 +1,19 @@
 ---
 document_type: bc-index
 level: L3
-version: "2.26"
+version: "2.27"
 status: draft
 producer: state-manager
 timestamp: 2026-05-16T00:00:00Z
-last_amended: "2026-05-16 (v2.26) — POL-14 auto-promotion BC-5.39.003 draft→active on S-15.07 merge PR #145 6fe7de4c; BC-INDEX v2.25→v2.26."
+last_amended: "2026-05-16 (v2.27) — BC-5.39.004 authored (validate-burst-log hook; S-15.11 M2 Wave-2; anchors D-421(e)+D-438(d)+D-439(a)+D-444(c)+D-446(a)+D-432(e)+D-448(d)(i)+D-443(e)(ii)); BC-INDEX v2.26→v2.27."
 phase: F5
 inputs:
   - .factory/specs/behavioral-contracts/bc-id-mapping.md
-total_bcs: 1949
+total_bcs: 1950
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-16
+    change: "v2.27 (2026-05-16; S-15.11 M2 Wave-2 story authoring — BC-5.39.004 allocated; validate-burst-log hook anchors D-421(e)+D-438(d)+D-439(a)+D-444(c)+D-446(a)+D-432(e)+D-448(d)(i)+D-443(e)(ii); SS-05 count 652→653; total_bcs 1949→1950; lifecycle_status: draft; POL-14 auto-promotion to active on S-15.11 merge. Input-hash 5af355e. BC-INDEX v2.26→v2.27."
   - date: 2026-05-16
     change: "v2.26 (2026-05-16; POL-14 auto-promotion BC-5.39.003 draft→active on S-15.07 merge PR #145 6fe7de4c 2026-05-16): BC-5.39.003 lifecycle_status draft→active; BC-INDEX v2.25→v2.26. Refs: D-474, PR #145."
   - date: 2026-05-14
@@ -280,7 +282,7 @@ changelog:
 | SS-02 Hook SDK and Plugin ABI | BC-2 | 26 | ss-02/ |
 | SS-03 Event Emission (OTel-Aligned) | BC-3 | 53 | ss-03/ |
 | SS-04 Plugin Ecosystem | BC-4 | 39 | ss-04/ |
-| SS-05 Pipeline Orchestration | BC-5 | 652 | ss-05/ |
+| SS-05 Pipeline Orchestration | BC-5 | 653 | ss-05/ |
 | SS-06 Skill Catalog | BC-6 | 586 | ss-06/ |
 | SS-07 Hook Bash Layer | BC-7 | 198 | ss-07/ |
 | SS-08 Templates and Rules | BC-8 | 214 | ss-08/ |
@@ -1198,6 +1200,7 @@ changelog:
 | [BC-5.39.001](ss-05/BC-5.39.001.md) | Per-story adversarial convergence loop MUST achieve minimum 3 clean passes (NITPICK_ONLY) before demo recording | draft | CAP-005 | S-12.01, S-14.01 |
 | [BC-5.39.002](ss-05/BC-5.39.002.md) | Per-story adversary scope MUST be limited to story diff, spec, and anchored BCs; out-of-scope findings MUST be deferred | draft | CAP-005 | S-12.01 |
 | [BC-5.39.003](ss-05/BC-5.39.003.md) | validate-index-cite-refresh hook MUST block on stale 4-index version citations in ARCH-INDEX, STATE.md, and INDEX.md | active | E-12 | S-15.07 |
+| [BC-5.39.004](ss-05/BC-5.39.004.md) | validate-burst-log hook MUST block on structurally incomplete burst-log entries | draft | E-12 | S-15.11 |
 | [BC-8.29.001](ss-08/BC-8.29.001.md) | RED_RATIO = RED_TESTS / TOTAL_NEW_TESTS must be ≥ 0.5 before Step 4 implementer dispatch (BLOCKING) | draft | CAP-016 | S-7.03 |
 | [BC-8.29.002](ss-08/BC-8.29.002.md) | each non-RED test must be documented in red-gate-log with rationale before threshold relaxation | draft | CAP-016 | S-7.03 |
 | [BC-8.29.003](ss-08/BC-8.29.003.md) | on RED_RATIO < 0.5 without GREEN-BY-DESIGN justification, orchestrator must choose remediation option A or B | draft | CAP-016 | S-7.03 |
