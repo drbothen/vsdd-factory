@@ -47,7 +47,7 @@ on_error = "continue"
 
 [hooks.capabilities.read_file]
 path_allow = [
-  ".factory/cycles/**",
+  ".factory/cycles/",
 ]
 TOML
 }
