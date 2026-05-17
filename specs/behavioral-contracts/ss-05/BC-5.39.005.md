@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.2"
+version: "1.3"
 status: draft
 producer: story-writer
 timestamp: 2026-05-17T00:00:00Z
@@ -30,7 +30,7 @@ removed: null
 removal_reason: null
 bc_id: BC-5.39.005
 section: "5.39"
-last_amended: "2026-05-17 (v1.2) — pass-3 fix-burst: extend Invariant 9 to body-narrative class (whitespace-arrow vs digit-arrow discriminator codified at full-document scope); fix Precondition 3 payload-vs-read_file doc-narrative alignment (F-P3-001 + F-P3-004)."
+last_amended: "2026-05-17 (v1.3) — pass-6 fix-burst: PC4 max_bytes 65536→524288 sync to match F-P5-002 implementation + story v1.5 (atomic spec-triad propagation per POLICY 8; F-P6-001 HIGH)."
 ---
 
 # BC-5.39.005: validate-state-structure Phase 1 hook MUST block on banner line-count drift, dual-margin absence, and trajectory-tail cardinality violations in STATE.md
@@ -70,7 +70,7 @@ discovered by the adversary N bursts after the write, rather than at write time.
 3. The STATE.md file content is read via `host::read_file` (filesystem-authoritative). The hook
    does NOT inspect the payload's `tool_input.content` field; the file-system value is the source
    of truth for validation.
-4. `host::read_file` is available with `max_bytes = 65536` and `timeout_ms = 2000` per call.
+4. `host::read_file` is available with `max_bytes = 524288` (512 KiB; raised from 65536 in F-P5-002 fix-burst due to real STATE.md size exceeding the prior cap) and `timeout_ms = 2000` per call. The whole-hook registry-level timeout is `timeout_ms = 5000` (hooks-registry.toml; distinct from per-call file-read timeout).
 
 ## Postconditions
 
@@ -220,6 +220,7 @@ S-15.09 — v1.0-brownfield-backfill (S-15.03 PRIORITY-A M2 Wave-3)
 
 | Version | Date | Description |
 |---------|------|-------------|
+| 1.3 | 2026-05-17 | Pass-6 fix-burst: PC4 max_bytes 65536→524288 sync to match F-P5-002 implementation + story v1.5 (atomic spec-triad propagation per POLICY 8; F-P6-001 HIGH) |
 | 1.2 | 2026-05-17 | F-P3-001 fix-burst: extend Invariant 9 to body-narrative class — whitespace-arrow vs digit-arrow discriminator codified at full-document scope (banner block, body prose, table rows, narrative cells). Added EC-016 (body narrative >=4 groups + valid canonical tail → Continue) and EC-017 (body narrative >=4 groups + no canonical tail → BlockWithFix). Added two new VP rows for body-narrative discrimination. F-P3-004 fix: Precondition 3 rewritten to reflect implementation — hook reads via `host::read_file` (filesystem-authoritative); does NOT inspect payload `tool_input.content` field. |
 | 1.1 | 2026-05-17 | F-P2-004 fix-burst: add EC-015 for SIZE BUDGET banner narrative-arrow class (banner-block trajectory predicate discriminator codified). Banner-narrative arrow-digit sequences (e.g., `(363→310 lines)` D-NNN compaction authorization narratives) MUST NOT be misidentified as canonical trajectory tail. Discriminator: predicate requires >=3 `→(\d+)` matches AND body-line anchor. Added Invariant 9 (narrative-arrow discrimination). Added EC-015 edge case row. Added banner-narrative-arrow test vector. Added Banner-Narrative Arrow Discrimination VP row. |
 | 1.0 | 2026-05-17 | Initial authoring (story-writer; brownfield-backfill S-15.03 M2 wave-3 story authoring). Anchors D-421(c)+D-422(c)+D-424(b)+D-428(d)+D-438(a)+D-440(d)+D-442(d)+D-446(c)+D-433(e)+D-439(c)+D-451(c)+D-432(b). BC-5.39.005 allocated as next monotonic ID after BC-5.39.004 in ss-05/. lifecycle_status: draft (POL-14 auto-promotion to active on S-15.09 merge). Preemptive cascade lessons applied: path-component-strict precondition (is_state_md_target); is_char_boundary() invariant 8; fail-open invariant 7. |
