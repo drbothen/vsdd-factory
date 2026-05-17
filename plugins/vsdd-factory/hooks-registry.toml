@@ -907,7 +907,7 @@ name = "validate-state-structure"
 event = "PostToolUse"
 tool = "Edit|Write"
 plugin = "hook-plugins/validate-state-structure.wasm"
-priority = 150
+priority = 153
 timeout_ms = 5000
 on_error = "continue"
 

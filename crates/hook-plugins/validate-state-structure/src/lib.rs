@@ -91,48 +91,73 @@ pub fn is_state_md_target(file_path: &str) -> bool {
 
 /// Extract the declared line-count integer from the SIZE BUDGET banner comment.
 ///
-/// Scans the content for a line matching the canonical banner form:
-/// `(\d+) lines (wc-l)` — returns the first match.
+/// Scans for the tolerant pattern `(\d+) lines (wc-l` followed by any non-digit,
+/// non-letter terminator byte (`;`, `.`, `,`, `)`, space, etc.). This matches all
+/// real-world STATE.md forms:
+///
+/// - `N lines (wc-l)` — canonical fixture form
+/// - `N lines (wc-l; net +N ...)` — line-growth tracker form (real STATE.md)
+/// - `N lines (wc-l. rest)` — sentence-end form
+/// - `N lines (wc-l, ...)` — comma-separated form
+///
+/// Returns the **last** matching occurrence. Real STATE.md has many interim
+/// `N lines (wc-l;` entries in the line-growth tracker; the last one is the
+/// most recent canonical claim (the trailing entry in the tracker sequence).
 ///
 /// Returns `None` if no such pattern is found (banner absent).
 ///
 /// # BC trace
 /// BC-5.39.005 invariant 3 — line-count comparison uses newline-character counting.
+/// F-P1-001 fix: tolerant terminator; last-occurrence anchor.
 pub fn extract_banner_line_count(content: &str) -> Option<usize> {
-    // Hand-rolled scan: look for the pattern `(\d+) lines (wc-l)` on any line.
-    // We scan character-by-character to avoid `regex` crate fuel exhaustion.
-    let marker = " lines (wc-l)";
-    let marker_bytes = marker.as_bytes();
+    // Hand-rolled scan: look for "lines (wc-l" then verify a non-alphanum terminator.
+    // We stay on raw bytes to avoid regex crate fuel exhaustion. All pattern bytes
+    // are ASCII, so no UTF-8 split risk.
+    let prefix = b" lines (wc-l";
+    let prefix_len = prefix.len();
 
     let bytes = content.as_bytes();
     let content_len = bytes.len();
-    let marker_len = marker_bytes.len();
 
-    if content_len < marker_len {
+    if content_len < prefix_len {
         return None;
     }
 
+    let mut last_found: Option<usize> = None;
     let mut i = 0usize;
-    while i + marker_len <= content_len {
-        // Check if marker starts at position i.
-        if &bytes[i..i + marker_len] == marker_bytes {
-            // Walk backwards from i to collect preceding digits.
-            let digit_end = i;
-            let mut digit_start = digit_end;
-            while digit_start > 0 && bytes[digit_start - 1].is_ascii_digit() {
-                digit_start -= 1;
-            }
-            if digit_start < digit_end {
-                // Safe: digit range is all ASCII, so byte boundary = char boundary.
-                let digits = &content[digit_start..digit_end];
-                if let Ok(n) = digits.parse::<usize>() {
-                    return Some(n);
+
+    while i + prefix_len <= content_len {
+        if &bytes[i..i + prefix_len] == prefix {
+            // Check that the byte immediately after the prefix is a valid terminator:
+            // any byte that is NOT an ASCII letter or digit. This accepts `)`, `;`, `.`, `,`,
+            // space, `\n`, etc. — but rejects mid-word matches like "lines (wc-lb..." which
+            // could occur if terminology diverges.
+            let after = i + prefix_len;
+            let valid_terminator = after >= content_len  // prefix at end of content
+                || {
+                    let b = bytes[after];
+                    !b.is_ascii_alphabetic() && !b.is_ascii_digit()
+                };
+
+            if valid_terminator {
+                // Walk backwards from i to collect preceding digits.
+                let digit_end = i;
+                let mut digit_start = digit_end;
+                while digit_start > 0 && bytes[digit_start - 1].is_ascii_digit() {
+                    digit_start -= 1;
+                }
+                if digit_start < digit_end {
+                    // Safe: digit range is all ASCII, so byte boundary = char boundary.
+                    if let Ok(n) = content[digit_start..digit_end].parse::<usize>() {
+                        last_found = Some(n);
+                    }
                 }
             }
         }
         i += 1;
     }
-    None
+
+    last_found
 }
 
 /// Count actual newlines in `content`.
@@ -145,27 +170,47 @@ pub fn count_newlines(content: &str) -> usize {
 
 /// Validate that the banner line-count claim matches the actual newline count.
 ///
-/// Returns a `Violation` if the claimed count diverges from the actual count.
-/// Returns `None` if the banner is absent (caller decides how to handle this case;
-/// in the current spec, a missing banner means no banner wc-l violation, but other
-/// checks (e.g., dual-margin) will also fire if the banner structure is missing).
+/// Returns a `Violation` in two cases:
+///
+/// 1. **Banner absent** (no `N lines (wc-l...)` pattern found): returns a violation
+///    per BC-5.39.005 EC-014 — an absent SIZE BUDGET banner is itself a structural
+///    defect. Previously this was silently skipped, which allowed STATE.md files with
+///    no banner to pass this check; that was incorrect per the spec.
+///
+/// 2. **Claimed count diverges from actual count**: returns a count-mismatch violation.
+///
+/// Returns `None` if banner present and claimed == actual.
 ///
 /// # BC trace
-/// BC-5.39.005 postcondition 2.
+/// BC-5.39.005 postcondition 2; EC-014 (absent banner).
+/// F-P1-002 fix: fire violation on absent banner rather than silently returning None.
 pub fn validate_banner_wc(content: &str) -> Option<Violation> {
-    let claimed = extract_banner_line_count(content)?;
-    let actual = count_newlines(content);
-    if claimed != actual {
-        Some(Violation {
-            description: format!(
-                "banner claims {claimed} lines but actual line count is {actual} — \
-                 reconcile banner wc-l (D-421(c)+D-422(c)+D-424(b)+D-428(d)+D-438(a)+\
-                 D-440(d)+D-442(d))"
-            ),
-            cited_raw: format!("{claimed} lines (wc-l)"),
-        })
-    } else {
-        None
+    match extract_banner_line_count(content) {
+        None => {
+            // EC-014: absent SIZE BUDGET banner is a structural violation.
+            Some(Violation {
+                description: "no SIZE BUDGET banner found; STATE.md MUST include an HTML comment \
+                     banner with 'N lines (wc-l)' claim per \
+                     D-421(c)+D-422(c)+D-424(b)+D-428(d)+D-438(a)+D-440(d)+D-442(d)"
+                    .to_string(),
+                cited_raw: "(none)".to_string(),
+            })
+        }
+        Some(claimed) => {
+            let actual = count_newlines(content);
+            if claimed != actual {
+                Some(Violation {
+                    description: format!(
+                        "banner claims {claimed} lines but actual line count is {actual} — \
+                         reconcile banner wc-l (D-421(c)+D-422(c)+D-424(b)+D-428(d)+\
+                         D-438(a)+D-440(d)+D-442(d))"
+                    ),
+                    cited_raw: format!("{claimed} lines (wc-l)"),
+                })
+            } else {
+                None
+            }
+        }
     }
 }
 
@@ -229,29 +274,52 @@ pub fn validate_dual_margin(content: &str) -> Option<Violation> {
 
 /// Extract the content of the SIZE BUDGET banner HTML comment block (`<!-- ... -->`).
 ///
-/// Returns a string slice of the banner content (between `<!--` and `-->`) if found.
-/// Returns `None` if no such block exists.
+/// Anchors on the literal `STATE.md SIZE BUDGET` marker — the canonical heading that
+/// appears in real STATE.md (line 24 in the actual file). This prevents false matches
+/// against other HTML comments that may appear earlier in the document.
+///
+/// Algorithm:
+/// 1. Find `STATE.md SIZE BUDGET` in the content.
+/// 2. From that position, scan backwards to find the opening `<!--`.
+/// 3. From the opening `<!--`, scan forward to find the closing `-->`.
+/// 4. Return the slice between `<!--` and `-->` (exclusive of the delimiters).
+///
+/// Returns `None` if:
+/// - No `STATE.md SIZE BUDGET` marker exists (no size budget block).
+/// - No `<!--` is found before the marker.
+/// - No `-->` is found after the opening `<!--`.
+/// - The extracted slice does not land on valid UTF-8 char boundaries.
 ///
 /// No byte-index slicing on non-ASCII boundaries: `find()` returns byte positions of
-/// the ASCII delimiters, which are guaranteed ASCII-clean.
+/// ASCII delimiters, which are guaranteed ASCII-clean. The `is_char_boundary` guard
+/// handles the unlikely case where content bytes are unexpected.
+///
+/// # F-P1-010 fix
+/// Previously anchored on "first HTML comment" — now anchored on `STATE.md SIZE BUDGET`.
 fn extract_banner_block(content: &str) -> Option<&str> {
-    let start_marker = "<!--";
-    let end_marker = "-->";
+    let budget_marker = "STATE.md SIZE BUDGET";
+    let open_marker = "<!--";
+    let close_marker = "-->";
 
-    let start = content.find(start_marker)?;
-    let after_start = start + start_marker.len();
+    // Find the SIZE BUDGET marker.
+    let budget_pos = content.find(budget_marker)?;
 
-    // Find end marker after the opening.
-    let rel_end = content[after_start..].find(end_marker)?;
-    let end = after_start + rel_end;
+    // Scan backwards from budget_pos to find the opening `<!--`.
+    // We look in the substring content[0..budget_pos].
+    let before_marker = &content[..budget_pos];
+    let open_pos = before_marker.rfind(open_marker)?;
+    let after_open = open_pos + open_marker.len();
 
-    // end is a byte offset within content at an ASCII boundary (start of "-->" which is ASCII).
-    // Verify it's a char boundary before slicing — defensive guard per S-15.11 F-P4-001 lesson.
-    if !content.is_char_boundary(after_start) || !content.is_char_boundary(end) {
+    // Find the closing `-->` after the opening.
+    let rel_close = content[after_open..].find(close_marker)?;
+    let close_pos = after_open + rel_close;
+
+    // Verify char boundaries (ASCII delimiters, but be defensive).
+    if !content.is_char_boundary(after_open) || !content.is_char_boundary(close_pos) {
         return None;
     }
 
-    Some(&content[after_start..end])
+    Some(&content[after_open..close_pos])
 }
 
 // ---------------------------------------------------------------------------
@@ -261,18 +329,42 @@ fn extract_banner_block(content: &str) -> Option<&str> {
 /// Extract the trajectory-tail line from content.
 ///
 /// The canonical tail line contains `→` (U+2192, RIGHTWARDS ARROW) followed by digits,
-/// repeated N times. We look for a line containing `→` followed by at least one digit.
+/// repeated N times (canonical form: `→N→N→N→N`).
 ///
-/// Returns the first matching line (trimmed) or `None` if no such line exists.
+/// # Anchoring rule (F-P1-007 fix)
+///
+/// Real STATE.md prose may contain `→N` sequences in narrative tables, chart rows,
+/// and decision-log rows anywhere in the document. To avoid picking up a spurious
+/// narrative occurrence, this function first extracts the SIZE BUDGET banner block via
+/// `extract_banner_block` and searches ONLY within that block. If the banner block
+/// exists and contains a trajectory-tail line, that line is returned.
+///
+/// If the banner block is absent (or contains no arrow-digit line), falls back to
+/// scanning the full document — this preserves compatibility with older fixtures that
+/// store the trajectory tail outside the banner comment.
+///
+/// Returns the first matching line (trimmed) within the banner block, or the first
+/// matching line in the full document if no banner block is found.
+/// Returns `None` if no arrow-digit sequence is found anywhere.
 ///
 /// # BC trace
 /// BC-5.39.005 postcondition 4; invariant 5.
 pub fn extract_trajectory_tail_line(content: &str) -> Option<String> {
     // The arrow character is UTF-8: → = U+2192 = 0xE2 0x86 0x92 (3 bytes).
-    // We use str::contains to find lines with the pattern without byte-index arithmetic.
+
+    // Prefer the banner-block-anchored scan (F-P1-007).
+    if let Some(block) = extract_banner_block(content) {
+        for line in block.split('\n') {
+            let trimmed = line.trim_end_matches('\r').trim();
+            if contains_arrow_digit_sequence(trimmed) {
+                return Some(trimmed.to_string());
+            }
+        }
+    }
+
+    // Fallback: scan full document (for fixtures without a SIZE BUDGET banner).
     for line in content.split('\n') {
         let trimmed = line.trim_end_matches('\r').trim();
-        // A trajectory-tail line contains at least one `→` followed by a digit.
         if contains_arrow_digit_sequence(trimmed) {
             return Some(trimmed.to_string());
         }
@@ -306,37 +398,48 @@ fn contains_arrow_digit_sequence(s: &str) -> bool {
 
 /// Count the number of `→N` matches (arrow followed by digit sequence) in a string.
 ///
-/// Hand-rolled: scan for `→` (U+2192, 3 UTF-8 bytes) followed immediately by ASCII digits.
-/// Each occurrence (regardless of digit length) counts as one match.
+/// Uses `char_indices()` iteration to match on the Unicode scalar `'→'` (U+2192)
+/// directly, which is both correct and explicit about UTF-8 safety.
+///
+/// # UTF-8 safety (F-P1-009)
+///
+/// The previous implementation used raw byte scanning with `i += 1` stepping.
+/// That was technically safe because U+2192 encodes as `[0xE2, 0x86, 0x92]` in
+/// UTF-8 — `0xE2` is a leading byte (4-bit prefix `1110`), and `0x86`/`0x92` are
+/// continuation bytes (prefix `10`), so they are never confused with ASCII bytes.
+/// However, `char_indices()` is cleaner: it iterates decoded `char` values and
+/// their byte positions, explicitly handling all multi-byte sequences.
+///
+/// The ASCII digit check on `bytes[after]` remains valid: all ASCII bytes have the
+/// high bit 0, so they cannot be continuation bytes of any multi-byte sequence.
 ///
 /// # BC trace
-/// BC-5.39.005 invariant 5 — regex `→(\d+)` match count must equal 4.
+/// BC-5.39.005 invariant 5 — `→(\d+)` match count must equal 4.
 pub fn count_arrow_digit_matches(s: &str) -> usize {
-    let arrow = "\u{2192}"; // → U+2192
-    let arrow_bytes = arrow.len(); // 3 bytes
     let bytes = s.as_bytes();
     let len = bytes.len();
+    let arrow_byte_len = '\u{2192}'.len_utf8(); // 3 bytes
 
     let mut count = 0usize;
-    let mut i = 0usize;
+    let mut skip_until_byte: usize = 0;
 
-    while i + arrow_bytes <= len {
-        // Check if arrow starts at position i.
-        if &bytes[i..i + arrow_bytes] == arrow.as_bytes() {
-            let after = i + arrow_bytes;
+    for (byte_pos, ch) in s.char_indices() {
+        if byte_pos < skip_until_byte {
+            continue;
+        }
+        if ch == '\u{2192}' {
+            // The byte immediately after the arrow (byte_pos + 3) must be an ASCII digit.
+            let after = byte_pos + arrow_byte_len;
             if after < len && bytes[after].is_ascii_digit() {
                 count += 1;
-                // Skip past the arrow and all following digits to avoid double-counting
-                // on adjacent arrows (in practice the pattern is →N→N→N→N with numbers).
+                // Skip past the arrow and all following digits to avoid double-counting.
                 let mut j = after;
                 while j < len && bytes[j].is_ascii_digit() {
                     j += 1;
                 }
-                i = j;
-                continue;
+                skip_until_byte = j;
             }
         }
-        i += 1;
     }
     count
 }
@@ -593,8 +696,8 @@ mod tests {
 
     #[test]
     fn test_BC_5_39_005_dual_margin_both_present_returns_none() {
-        let content =
-            "<!--\n  margin from soft-target = 85; margin from actual = 472 (D-446(c))\n-->\n";
+        // Banner must include STATE.md SIZE BUDGET for extract_banner_block to find it (F-P1-010).
+        let content = "<!--\n  STATE.md SIZE BUDGET (per D-421(c)):\n  margin from soft-target = 85; margin from actual = 472 (D-446(c))\n-->\n";
         let v = validate_dual_margin(content);
         assert!(v.is_none(), "both margins present should return None");
     }
@@ -602,7 +705,8 @@ mod tests {
     #[test]
     fn test_BC_5_39_005_dual_margin_only_soft_target_returns_violation() {
         // EC-003: only soft-target margin present
-        let content = "<!--\n  margin from soft-target = 500 - 415 = 85. 28 lines (wc-l).\n-->\n";
+        // Banner must include STATE.md SIZE BUDGET marker (F-P1-010).
+        let content = "<!--\n  STATE.md SIZE BUDGET (per D-421(c)):\n  margin from soft-target = 500 - 415 = 85. 28 lines (wc-l).\n-->\n";
         let v = validate_dual_margin(content);
         assert!(
             v.is_some(),
@@ -707,8 +811,9 @@ mod tests {
 
     #[test]
     fn test_BC_5_39_005_banner_with_emdash_no_panic() {
-        // EC-013: banner narrative with em-dash should not panic (is_char_boundary guard)
-        let content = "<!--\n  margin from soft-target = 500\u{2014}415 = 85; margin from actual = 472 (D-446(c))\n-->\nline\n";
+        // EC-013: banner narrative with em-dash should not panic (is_char_boundary guard).
+        // Banner must include STATE.md SIZE BUDGET marker for extract_banner_block to find it (F-P1-010).
+        let content = "<!--\n  STATE.md SIZE BUDGET (per D-421(c)):\n  margin from soft-target = 500\u{2014}415 = 85; margin from actual = 472 (D-446(c))\n-->\nline\n";
         // Just confirm extract_banner_block doesn't panic
         let block = extract_banner_block(content);
         assert!(block.is_some(), "should extract banner block with em-dash");
@@ -721,6 +826,191 @@ mod tests {
         // A path like /dir/\u{00E9}STATE.md — file_name is "\u{00E9}STATE.md" ≠ "STATE.md"
         assert!(!is_state_md_target("/dir/\u{00E9}STATE.md"));
     }
+
+    // ── F-P1-001: tolerant wc-l terminators (;, ., ,, )) ────────────────────
+
+    /// F-P1-001: extract_banner_line_count must accept semicolon terminator
+    /// Real STATE.md uses "N lines (wc-l; net +N ...)" throughout line-growth tracker.
+    #[test]
+    fn test_BC_5_39_005_extract_banner_line_count_semicolon_terminator() {
+        let content = "<!--\n  395 lines (wc-l; net -52 from pass-64).\n-->\nrest\n";
+        let result = extract_banner_line_count(content);
+        assert_eq!(result, Some(395), "semicolon terminator must be accepted");
+    }
+
+    /// F-P1-001: extract_banner_line_count must accept comma terminator
+    #[test]
+    fn test_BC_5_39_005_extract_banner_line_count_comma_terminator() {
+        let content = "<!-- 428 lines (wc-l, net +5) -->\nrest\n";
+        let result = extract_banner_line_count(content);
+        assert_eq!(result, Some(428), "comma terminator must be accepted");
+    }
+
+    /// F-P1-001: extract_banner_line_count must accept close-paren terminator (original form)
+    #[test]
+    fn test_BC_5_39_005_extract_banner_line_count_paren_terminator() {
+        let content = "<!-- 2 lines (wc-l) -->\n\n";
+        let result = extract_banner_line_count(content);
+        assert_eq!(result, Some(2), "close-paren terminator must be accepted");
+    }
+
+    /// F-P1-001: all four terminators accepted in a single-function test
+    #[test]
+    fn test_BC_5_39_005_extract_banner_line_count_all_terminators() {
+        for (terminator, input, expected) in [
+            (")", "<!-- 10 lines (wc-l) -->", Some(10usize)),
+            (";", "<!-- 20 lines (wc-l; net +2) -->", Some(20)),
+            (".", "<!-- 30 lines (wc-l). rest -->", Some(30)),
+            (",", "<!-- 40 lines (wc-l, net +4) -->", Some(40)),
+        ] {
+            let result = extract_banner_line_count(input);
+            assert_eq!(
+                result, expected,
+                "terminator '{terminator}' must be accepted; input={input:?}"
+            );
+        }
+    }
+
+    /// F-P1-001: when multiple wc-l claims exist (line-growth tracker pattern),
+    /// extract_banner_line_count MUST return the LAST occurrence (canonical trailing claim).
+    #[test]
+    fn test_BC_5_39_005_extract_banner_line_count_returns_last_occurrence() {
+        // Simulates real STATE.md banner: many interim wc-l; claims, final canonical claim
+        let content = concat!(
+            "<!--\n",
+            "  STATE.md SIZE BUDGET (per D-421(c)):\n",
+            "  Line-growth tracker: pass-65 395 lines (wc-l; net -52); pass-66 397 lines (wc-l; net +2); pass-67 399 lines (wc-l; net +2).\n",
+            "  Hard cap (500 lines) margin from soft-target = 500 - 415 = 85; margin from actual = 500 - 428 = 72 (D-446(c) dual-margin form).\n",
+            "-->\n",
+        );
+        // The LAST numeric before "lines (wc-l" is 428 (in the margin sentence)
+        // But wait — the margin sentence has no `lines (wc-l` — only the tracker entries do.
+        // So last occurrence is 399. Verify that:
+        let result = extract_banner_line_count(content);
+        assert_eq!(result, Some(399), "last wc-l occurrence must be returned");
+    }
+
+    /// F-P1-001: real-prose banner (mirrors STATE.md) with semicolon-terminated
+    /// wc-l claims must extract the last occurrence correctly.
+    #[test]
+    fn test_BC_5_39_005_extract_banner_line_count_real_prose_pattern() {
+        // Mirror of actual STATE.md line 26 structure (abbreviated)
+        let content = concat!(
+            "<!--\n",
+            "  STATE.md SIZE BUDGET (per D-421(c)):\n",
+            "  Soft target: \u{2264}415 lines; margin from soft-target = 500 - 415 = 85; margin from actual = 500 - 428 = 72 (D-446(c) dual-margin form).\n",
+            "  Line-growth tracker: pass-49 310 lines; pass-70 435 lines (wc-l; net +30); pass-71 439 lines (wc-l; net +4); S-15.11-post-merge-burst 428 lines (wc-l; net +5 from pass-70).\n",
+            "  Hard cap: 500 lines.\n",
+            "-->\n",
+        );
+        let result = extract_banner_line_count(content);
+        assert_eq!(
+            result,
+            Some(428),
+            "last wc-l occurrence in real-prose banner must be extracted"
+        );
+    }
+
+    // ── F-P1-002: banner absent fires banner-wc violation (EC-014) ──────────
+
+    /// F-P1-002: absent banner must produce a banner-wc violation
+    /// (BC-5.39.005 EC-014: empty STATE.md => both banner AND tail violations).
+    #[test]
+    fn test_BC_5_39_005_validate_banner_wc_absent_banner_returns_violation() {
+        let content = "# no banner\n\nTrajectory \u{2192}9\u{2192}9\u{2192}9\u{2192}9\n";
+        let v = validate_banner_wc(content);
+        assert!(
+            v.is_some(),
+            "absent banner must produce a banner-wc violation"
+        );
+        let viol = v.unwrap();
+        assert!(
+            viol.description.contains("no SIZE BUDGET banner"),
+            "description must mention missing banner; got: {}",
+            viol.description
+        );
+        assert!(
+            viol.description.contains("D-421"),
+            "must cite D-421(c) per spec; got: {}",
+            viol.description
+        );
+    }
+
+    /// F-P1-002: truly empty STATE.md fires BOTH banner AND tail violations (EC-014)
+    #[test]
+    fn test_BC_5_39_005_ec014_empty_state_md_fires_both_violations() {
+        let content = "";
+        let banner_viol = validate_banner_wc(content);
+        let tail_viol = validate_trajectory_tail(content);
+        assert!(
+            banner_viol.is_some(),
+            "empty content must produce banner-wc violation (EC-014)"
+        );
+        assert!(
+            tail_viol.is_some(),
+            "empty content must produce trajectory-tail violation (EC-014)"
+        );
+    }
+
+    // ── F-P1-007+F-P1-010: banner-block anchored on STATE.md SIZE BUDGET ────
+
+    /// F-P1-010: extract_banner_block must anchor on "STATE.md SIZE BUDGET" marker.
+    /// If there is an HTML comment before the SIZE BUDGET comment, it must be skipped.
+    #[test]
+    fn test_BC_5_39_005_extract_banner_block_anchored_on_size_budget_marker() {
+        // Content with a leading HTML comment (not the SIZE BUDGET) followed by the real banner
+        let content = concat!(
+            "<!-- some other comment -->\n",
+            "<!--\n",
+            "  STATE.md SIZE BUDGET (per D-421(c)):\n",
+            "  Hard cap (500 lines) margin from soft-target = 85; margin from actual = 472 (D-446(c)).\n",
+            "-->\n",
+            "# heading\n",
+        );
+        let block = extract_banner_block(content);
+        assert!(block.is_some(), "should find the SIZE BUDGET banner block");
+        let block = block.unwrap();
+        assert!(
+            block.contains("STATE.md SIZE BUDGET"),
+            "extracted block must contain SIZE BUDGET marker; got: {block:?}"
+        );
+        assert!(
+            !block.contains("some other comment"),
+            "must not return the first unrelated comment; got: {block:?}"
+        );
+    }
+
+    /// F-P1-007: trajectory tail extraction must be anchored within the SIZE BUDGET banner block.
+    /// Narrative text containing →N outside the banner should NOT be picked up as the tail.
+    #[test]
+    fn test_BC_5_39_005_trajectory_tail_anchored_in_banner_block() {
+        // This content has an →N sequence in a narrative paragraph but the canonical
+        // tail is in the SIZE BUDGET block.
+        let content = concat!(
+            "<!--\n",
+            "  STATE.md SIZE BUDGET (per D-421(c)):\n",
+            "  Trajectory →9→9→9→9\n",
+            "  Hard cap (500 lines) margin from soft-target = 85; margin from actual = 472 (D-446(c)).\n",
+            "-->\n",
+            "\n",
+            "# Pipeline State\n",
+            "\n",
+            "Some narrative mentioning →5→6→7 axis counts in a table.\n",
+            "\n",
+        );
+        // The banner contains →9→9→9→9 (4 components) — valid.
+        // The narrative line has →5→6→7 (3 components) — would be invalid if picked up.
+        // With banner-anchored extraction, the banner's 4-component tail must win.
+        let v = validate_trajectory_tail(content);
+        assert!(
+            v.is_none(),
+            "banner-anchored →9→9→9→9 must return None; got: {v:?}"
+        );
+    }
+
+    // ── F-P1-009: count_arrow_digit_matches byte-safety doc ─────────────────
+    // No behavioral test needed — F-P1-009 is a doc-comment addition.
+    // The existing count_arrow_digit tests cover correctness.
 
     // ── emit_block ───────────────────────────────────────────────────────────
 
