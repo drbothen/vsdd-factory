@@ -1,17 +1,19 @@
 ---
 document_type: bc-index
 level: L3
-version: "2.27"
+version: "2.28"
 status: draft
 producer: state-manager
 timestamp: 2026-05-16T00:00:00Z
-last_amended: "2026-05-16 (v2.27) — BC-5.39.004 authored (validate-burst-log hook; S-15.11 M2 Wave-2; anchors D-421(e)+D-438(d)+D-439(a)+D-444(c)+D-446(a)+D-432(e)+D-448(d)(i)+D-443(e)(ii)); BC-INDEX v2.26→v2.27."
+last_amended: "2026-05-16 (v2.28) — BC-5.39.004 precondition 1 path-language migrated from string-ends_with to path-component-strict (F-S15.11-LOCAL-P3-001 closure); BC-INDEX v2.27→v2.28."
 phase: F5
 inputs:
   - .factory/specs/behavioral-contracts/bc-id-mapping.md
 total_bcs: 1950
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-16
+    change: "v2.28 (2026-05-16; F-S15.11-LOCAL-P3-001 closure — BC-5.39.004 precondition 1 path-language migrated from string-ends_with to path-component-strict (Path::file_name() == Some(\"burst-log.md\")); aligns BC body with implementation is_burst_log_target semantics and story spec v1.1 narrative. BC-5.39.004 last_amended: 2026-05-16 (v1.1). BC-INDEX v2.27→v2.28."
   - date: 2026-05-16
     change: "v2.27 (2026-05-16; S-15.11 M2 Wave-2 story authoring — BC-5.39.004 allocated; validate-burst-log hook anchors D-421(e)+D-438(d)+D-439(a)+D-444(c)+D-446(a)+D-432(e)+D-448(d)(i)+D-443(e)(ii); SS-05 count 652→653; total_bcs 1949→1950; lifecycle_status: draft; POL-14 auto-promotion to active on S-15.11 merge. Input-hash 5af355e. BC-INDEX v2.26→v2.27."
   - date: 2026-05-16

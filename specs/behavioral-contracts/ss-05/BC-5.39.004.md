@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: story-writer
 timestamp: 2026-05-16T00:00:00Z
@@ -22,6 +22,7 @@ lifecycle_status: draft
 introduced: v1.0-brownfield-backfill
 modified:
   - 2026-05-16
+  - 2026-05-16
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -30,7 +31,7 @@ removed: null
 removal_reason: null
 bc_id: BC-5.39.004
 section: "5.39"
-last_amended: "2026-05-16 (v1.0) — Initial authoring (story-writer; brownfield-backfill S-15.03 M2 wave-2 story authoring). Anchors D-421(e)+D-438(d)+D-439(a)+D-444(c)+D-446(a)+D-432(e)+D-448(d)(i)+D-443(e)(ii). BC-5.39.004 allocated as next monotonic ID after BC-5.39.003 in ss-05/."
+last_amended: "2026-05-16 (v1.1) — F-S15.11-LOCAL-P3-001 closure: BC precondition 1 path-language migrated from string-ends_with to path-component-strict (Path::file_name() == Some(\"burst-log.md\")); aligns BC body with implementation is_burst_log_target semantics and story spec v1.1 narrative."
 ---
 
 # BC-5.39.004: validate-burst-log hook MUST block on structurally incomplete burst-log entries
@@ -58,7 +59,11 @@ N bursts after the write rather than at write time.
 
 ## Preconditions
 
-1. A PostToolUse Edit/Write event has fired on a file whose path ends with `burst-log.md`.
+1. A PostToolUse Edit/Write event has fired on a file whose `file_name` path component is exactly
+   `burst-log.md` (path-component-strict matching via
+   `Path::new(file_path).file_name() == Some("burst-log.md")` — NOT suffix-`ends_with`. Paths
+   like `/some/dir/xburst-log.md` MUST NOT match per Q5/Q6 canonical lock +
+   `crates/hook-plugins/validate-burst-log/src/lib.rs`:`is_burst_log_target`).
 2. The dispatcher has invoked the `validate-burst-log` WASM plugin with the write payload.
 3. The burst-log file content is available — either from the write payload or via `host::read_file`.
 4. `host::read_file` is available with `max_bytes = 65536` and `timeout_ms = 2000` per call.
@@ -176,4 +181,5 @@ S-15.11 — v1.0-brownfield-backfill (S-15.03 PRIORITY-A M2 Wave-2)
 
 | Version | Date | Description |
 |---------|------|-------------|
+| 1.1 | 2026-05-16 | F-S15.11-LOCAL-P3-001 closure: BC precondition 1 path-language migrated from string-ends_with to path-component-strict (`Path::file_name() == Some("burst-log.md")`); aligns BC body with implementation `is_burst_log_target` semantics and story spec v1.1 narrative. |
 | 1.0 | 2026-05-16 | Initial authoring (story-writer; brownfield-backfill S-15.03 M2 wave-2 story authoring). Anchors D-421(e)+D-438(d)+D-439(a)+D-444(c)+D-446(a)+D-432(e)+D-448(d)(i)+D-443(e)(ii). BC-5.39.004 allocated as next monotonic ID after BC-5.39.003 in ss-05/. lifecycle_status: draft (POL-14 auto-promotion to active on S-15.11 merge). |
