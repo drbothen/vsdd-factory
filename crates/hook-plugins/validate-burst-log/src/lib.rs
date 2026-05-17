@@ -376,6 +376,28 @@ fn emit_block(violations: &[Violation]) -> HookResult {
 }
 
 // ---------------------------------------------------------------------------
+// File-path guard
+// ---------------------------------------------------------------------------
+
+/// Returns `true` if `file_path` names a file whose `file_name` component is
+/// exactly `burst-log.md`.
+///
+/// Uses path-component-strict matching (`Path::file_name`) rather than
+/// `ends_with`, preventing false-positive fires on paths like
+/// `/some/dir/xburst-log.md` where `.ends_with("burst-log.md")` is also true.
+///
+/// Returns `false` if the path has no file-name component (e.g. `/`).
+///
+/// # BC trace
+/// BC-5.39.004 invariant 1 — hook only activates on burst-log.md writes.
+pub fn is_burst_log_target(file_path: &str) -> bool {
+    std::path::Path::new(file_path)
+        .file_name()
+        .and_then(|n| n.to_str())
+        == Some("burst-log.md")
+}
+
+// ---------------------------------------------------------------------------
 // Hook entry point
 // ---------------------------------------------------------------------------
 
@@ -413,8 +435,10 @@ pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
     };
 
     // In-plugin file-path guard (Q5/Q6 canonical pattern):
-    // only act on writes to burst-log.md files.
-    if !file_path.ends_with("burst-log.md") {
+    // only act on writes to burst-log.md files. Uses path-component-strict
+    // matching to avoid false-positives from suffix-only ends_with (e.g. a
+    // path "xburst-log.md" would incorrectly trigger a bare ends_with guard).
+    if !is_burst_log_target(&file_path) {
         return HookResult::Continue;
     }
 
@@ -785,6 +809,27 @@ mod tests {
             }
             _ => panic!("expected Block result, got {result:?}"),
         }
+    }
+
+    // ── is_burst_log_target ──────────────────────────────────────────────────
+
+    #[test]
+    fn test_BC_5_39_004_file_path_xburst_log_md_does_not_match() {
+        // O-P1-002: suffix-only match is a false-positive — xburst-log.md
+        // must NOT trigger the hook.
+        assert!(!is_burst_log_target("/some/dir/xburst-log.md"));
+        assert!(!is_burst_log_target("not-burst-log.md"));
+        assert!(!is_burst_log_target("aburst-log.md"));
+    }
+
+    #[test]
+    fn test_BC_5_39_004_file_path_canonical_burst_log_md_matches() {
+        // Canonical path at any depth must match.
+        assert!(is_burst_log_target(
+            ".factory/cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md"
+        ));
+        assert!(is_burst_log_target("burst-log.md"));
+        assert!(is_burst_log_target("/absolute/path/to/burst-log.md"));
     }
 
     #[test]

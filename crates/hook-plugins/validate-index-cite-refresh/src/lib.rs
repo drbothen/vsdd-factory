@@ -473,6 +473,28 @@ fn format_violation(v: &Violation) -> String {
 }
 
 // ---------------------------------------------------------------------------
+// File-path guard
+// ---------------------------------------------------------------------------
+
+/// Returns `true` if `file_path` names a file whose `file_name` component is
+/// exactly `ARCH-INDEX.md`.
+///
+/// Uses path-component-strict matching (`Path::file_name`) rather than
+/// `ends_with`, preventing false-positive fires on paths whose suffix happens
+/// to match but whose file name is not `ARCH-INDEX.md`.
+///
+/// Returns `false` if the path has no file-name component (e.g. `/`).
+///
+/// # BC trace
+/// BC-5.39.003 invariant 1 — hook only activates on ARCH-INDEX.md writes.
+pub fn is_arch_index_target(file_path: &str) -> bool {
+    std::path::Path::new(file_path)
+        .file_name()
+        .and_then(|n| n.to_str())
+        == Some("ARCH-INDEX.md")
+}
+
+// ---------------------------------------------------------------------------
 // Hook entry point (wired to real host fns in main.rs)
 // ---------------------------------------------------------------------------
 
@@ -509,7 +531,9 @@ pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
     // Only act on writes to ARCH-INDEX.md.
     // The dispatcher routes by event+tool (PostToolUse + Edit|Write) but not by
     // file path — this guard applies the ARCH-INDEX.md file-path filter.
-    if !file_path.ends_with("ARCH-INDEX.md") {
+    // Uses path-component-strict matching to avoid false-positives from
+    // suffix-only ends_with checks.
+    if !is_arch_index_target(&file_path) {
         return HookResult::Continue;
     }
 
@@ -792,5 +816,25 @@ mod tests {
         }];
         let result = emit_block(&violations);
         assert_eq!(result.exit_code(), 2);
+    }
+
+    // ── is_arch_index_target ─────────────────────────────────────────────────
+
+    #[test]
+    fn test_BC_5_39_003_file_path_suffix_arch_index_md_does_not_match() {
+        // O-P1-002 (sibling): suffix-only match is a false-positive — any path
+        // whose file name component is not exactly ARCH-INDEX.md must be rejected.
+        assert!(!is_arch_index_target("/some/dir/XARCH-INDEX.md"));
+        assert!(!is_arch_index_target("not-ARCH-INDEX.md"));
+    }
+
+    #[test]
+    fn test_BC_5_39_003_file_path_canonical_arch_index_md_matches() {
+        // Canonical path at any directory depth must match.
+        assert!(is_arch_index_target(
+            ".factory/specs/architecture/ARCH-INDEX.md"
+        ));
+        assert!(is_arch_index_target("ARCH-INDEX.md"));
+        assert!(is_arch_index_target("/absolute/path/to/ARCH-INDEX.md"));
     }
 }
