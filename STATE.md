@@ -117,7 +117,8 @@ dtu_services: []
 | S-15.08 spec v1.2 | **SHIPPED 2026-05-16** — factory-artifacts f8892007; line 283 "colon" → "space" prose fix; STORY-INDEX v3.29 → v3.30 | story-writer amendment; F-S15.08-LOCAL-P5-001 closure |
 | S-15.08 LOCAL adversary pass-6 — BC-5.39.001 CONVERGED 3/3 | **SHIPPED 2026-05-16** — CLEAN (0 findings; 0 obs; 0 POLICY violations); streak 2/3 → 3/3 CONVERGED; pr-manager 9-step PR lifecycle dispatch pending; cascade trajectory HIGH(6)→NITPICK→HIGH(1)→NITPICK→LOW→CLEAN in 6 passes + 4 fix-bursts | diff base 224fa184 → head 51378cbf; spec head f8892007 v1.2 |
 | S-15.08 dim2-gates bash template library (11 scripts + 12 bats + 25 fixtures + README) | **MERGED 2026-05-16** — PR #144 squash-merge `c62f952c` on develop | 0 PR review findings; security CLEAR (1 LOW eval by-design accepted); LOCAL adversary 6-pass CONVERGED 3/3; M1 (S-15.06+S-15.16 Part A+S-15.08) COMPLETE; M2 dispatch-ready pending architect adjudication |
-| SESSION-END DURABILITY BURST 2026-05-16 | **SHIPPED 2026-05-16** — 2 durable artifacts for post-CLEAR resume | s-15.03-wave-m2-dispatch.md (365 lines, input-hash ad1c745) + orchestrator-task-snapshot-2026-05-16.md (input-hash 7012889); mirror of 2026-05-15 SESSION-END DURABILITY BURST pattern; M2 dispatch-ready |
+| SESSION-END DURABILITY BURST 2026-05-16 (pre-S-15.07) | **SHIPPED 2026-05-16** — 2 durable artifacts for post-CLEAR resume | s-15.03-wave-m2-dispatch.md (365 lines, input-hash ad1c745) + orchestrator-task-snapshot-2026-05-16.md (input-hash 7012889); M2 dispatch-ready |
+| SESSION-END DURABILITY BURST 2026-05-16 (post-S-15.07-ship) | **SHIPPED 2026-05-16** — 3 durable artifacts for post-CLEAR resume | s-15.03-wave-m2-wave-2-dispatch.md (input-hash 5af355e) + orchestrator-task-snapshot-2026-05-16-post-s-15.07-ship.md (input-hash 2756da2) + STATE.md Session Resume refresh; S-15.11 wave-2 dispatch-ready |
 | M2 dispatch order locked (architect-m2-2026-05-16.md) | **LOCKED 2026-05-16** — architect adjudication complete (624e9fab) | wave-1 S-15.07 → wave-2 S-15.11 → wave-3 S-15.09 → wave-4 S-15.14 fully serial; D-473 codified; wave-1 S-15.07 dispatch-ready |
 | S-15.07 validate-index-cite-refresh WASM hook (M2 wave-1; BC-5.39.003) | **MERGED 2026-05-16** — PR #145 squash-merge `6fe7de4c` on develop | 0 PR review findings; LOCAL adversary 6-pass CONVERGED 3/3 (4 fix-bursts; 0 HIGH/CRITICAL throughout); BC-5.39.003 POL-14 draft→active; STORY-INDEX v3.34; BC-INDEX v2.26; D-474 codified; M2 wave-2 (S-15.11) dispatch-ready |
 | **Tier-0 D-NNN renumbering (F-CRIT-001 closure)** | **COMPLETE** 2026-05-13 — brownfield D-344..D-349 → D-460..D-465; POLICY 1 violation resolved | ARCH-INDEX v2.02 + BC-INDEX v2.21 + VP-INDEX v1.95 + STORY-INDEX v3.20 corrigenda; ~25 files touched; pre+post grep stdout LL-2 strict-form; D-466 fix burst (HH-4/KK-2/LL-2/MM/NN) applied 553e9f58 |
@@ -289,13 +290,14 @@ dtu_services: []
 - `cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` | `session-checkpoints.md` | `lessons.md`
 - `cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md` (adversary reviews at `S-12.03/`, `S-12.04/`, `S-12.05/` subdirs)
 
-## Session Resume Checkpoint (2026-05-16 — M2 WAVE-1 SHIPPED; S-15.07 PR #145 6fe7de4c)
+## Session Resume Checkpoint (2026-05-16 — S-15.07 SHIPPED PR #145; M2 wave-1 of S-15.03 PRIORITY-A COMPLETE; SESSION-END DURABILITY BURST authored 3 durable artifacts; M2 wave-2 (S-15.11) dispatch-ready)
 
-> **SELF-SUFFICIENT RESUME CONTEXT — SECTION 12 STEP 3 M2 WAVE-1 SHIPPED 2026-05-16; M2 WAVE-2 (S-15.11) DISPATCH-READY**
+> **SELF-SUFFICIENT RESUME CONTEXT — SECTION 12 STEP 3 M2 WAVE-1 SHIPPED 2026-05-16; M2 WAVE-2 (S-15.11) DISPATCH-READY; 3-ARTIFACT DURABILITY BURST COMPLETE**
 > Read this section alone to resume the protocol after full conversation CLEAR (not compact).
 
 ### 1. Where We Are
 
+- **SESSION-END DURABILITY BURST 2026-05-16 COMPLETE** — 3 durable artifacts authored for post-CLEAR resume with zero conversation context: (1) s-15.03-wave-m2-wave-2-dispatch.md; (2) orchestrator-task-snapshot-2026-05-16-post-s-15.07-ship.md; (3) this Session Resume Checkpoint refresh
 - **S-15.07 SHIPPED 2026-05-16** — PR #145 squash-merge 6fe7de4c on develop; validate-index-cite-refresh WASM hook; LOCAL adversary 6-pass CONVERGED 3/3; 0 PR review findings; AI review APPROVE; M2 wave-1 COMPLETE
 - **BC-5.39.003 POL-14 auto-promoted draft→active 2026-05-16** — lifecycle_status updated in state-manager post-merge burst; D-474 codified
 - **M2 wave-1 COMPLETE 2026-05-16** — S-15.07 SHIPPED; M2 wave-2 dispatch-ready (S-15.11 per architect-m2-2026-05-16.md serial order)
@@ -309,7 +311,7 @@ dtu_services: []
 - factory-artifacts HEAD: see `git -C .factory log -1 --format='%h %s'` (updated each burst; do not hard-cite)
 - develop HEAD: `6fe7de4c` (PR #145 squash-merge 2026-05-16 — S-15.07 M2 wave-1 COMPLETE)
 - main HEAD: `70811f4a` (includes CLAUDE.md expansion PR #136 + rc.18 merge)
-- **Next action (post-CLEAR): dispatch story-writer for S-15.11** — M2 wave-2; per s-15.03-wave-m2-dispatch.md §Per-Story Dispatch Template; architect-m2-2026-05-16.md 624e9fab
+- **Next action (post-CLEAR): read s-15.03-wave-m2-wave-2-dispatch.md, then dispatch story-writer for S-15.11**
 
 ### 2. Operating Mode
 
@@ -361,11 +363,13 @@ Wave plan COMPLETE 2026-05-15 (architect): **95 distinct items** across 8 catego
 | STORY-INDEX | v3.34 | D-389..D-454 (sample) + D-466..D-469 E-10 passes + S-15.04 + S-15.05 + S-15.06 + S-15.16 Part A + S-15.08 + S-15.07 MERGED PR #145 6fe7de4c 2026-05-16; M2 wave-1 COMPLETE |
 | ARCH-INDEX | v2.06 | D-389..D-454 (F5 sample) + D-466..D-471 E-10 pass-12/13/14 rows + POLICY 13-18 + ADR-021+ADR-022 registration 2026-05-15 |
 
-### 9. Critical Anchors (Post-S-15.07 MERGED; M2 wave-1 COMPLETE 2026-05-16)
+### 9. Critical Anchors (Post-S-15.07 MERGED + SESSION-END DURABILITY BURST 2026-05-16)
 
 - factory-artifacts HEAD: see `git -C .factory log -1 --format='%h %s'` (updated each burst; do not hard-cite per TD-VSDD-053)
 - **S-15.07 merge Commit: `6fe7de4cbc619651834ffa88f9df095903200f6c`** (PR #145 squash-merge 2026-05-16 — validate-index-cite-refresh WASM hook; M2 wave-1 COMPLETE)
 - Architect M2 inter-story adjudication 2026-05-16 (factory-artifacts 624e9fab): `cycles/v1.0-brownfield-backfill/architect-m2-2026-05-16.md`; D-473; wave-1=S-15.07 fully serial
+- architect-m2-q5-tool-attribute-2026-05-16.md (factory-artifacts b11c0b2a): Q5 canonical `Edit&#124;Write` lock for all M2 bats + registry
+- architect-m2-q6-bats-registry-scope-2026-05-16.md (factory-artifacts e91b5965): Q6-A bats inline registries IN-SCOPE of Q5 lock
 - S-15.08 merge Commit: `c62f952c7307febcc65b6ab722ff02688dfe8c90` (PR #144 squash-merge 2026-05-16 — dim2-gate bash template library; M1 COMPLETE)
 - S-15.05 merge Commit: `224fa18421214b30dacf1cdd606152294cd33bd6` (PR #143 squash-merge 2026-05-15 — TD #67 closure)
 - S-15.04 merge Commit: `fdc7da16a3b5004bf3266158b2d651d3e62cf804` (PR #142 squash-merge 2026-05-15 — TD #66 closure)
@@ -373,11 +377,16 @@ Wave plan COMPLETE 2026-05-15 (architect): **95 distinct items** across 8 catego
 - F5 cycle final-state HEAD: `4b4b6819` (pass-74 SHA-patch; PAUSED; F5 Commit D `487e0cc3` canonical parent for pass-75)
 - develop HEAD: `6fe7de4c` (PR #145 squash-merge 2026-05-16 — S-15.07 M2 wave-1); prior: `c62f952c` (S-15.08 M1)
 - main HEAD: `70811f4a`; ADR-021: `ADR-021-wasm-cargo-audit-sandboxing.md` (8ca8e03); ADR-022: `ADR-022-hook-current-pass-context-discovery.md` (8ca8e03)
-- `s-15.03-wave-m2-dispatch.md` (input-hash ad1c745); `orchestrator-task-snapshot-2026-05-16.md` (input-hash 7012889)
+- `s-15.03-wave-m2-dispatch.md` (input-hash ad1c745) — M2 parent dispatch; still authoritative for wave-3/4
+- **`s-15.03-wave-m2-wave-2-dispatch.md` (THIS BURST, input-hash 5af355e)** — wave-2 (S-15.11) self-contained dispatch; read this for zero-context S-15.11 dispatch
+- **`orchestrator-task-snapshot-2026-05-16-post-s-15.07-ship.md` (THIS BURST, input-hash 2756da2)** — durable task list; supersedes orchestrator-task-snapshot-2026-05-16.md
+- BC-5.39.003 v1.1 active: `.factory/specs/behavioral-contracts/ss-05/BC-5.39.003.md` — CANONICAL BC TEMPLATE for M2
+- S-15.07 cascade reports: `.factory/code-delivery/S-15.07/adv-local-pass-{1..6}.md` — CANONICAL CASCADE TRAJECTORY REFERENCE
 
-### 10. PR Status (Post-PR #145 Merge; M2 wave-1 COMPLETE)
+### 10. PR Status (Post-PR #145 Merge; M2 wave-1 COMPLETE; no open PRs)
 
 - PR #145: MERGED `6fe7de4c` 2026-05-16 (S-15.07 validate-index-cite-refresh WASM hook; M2 wave-1). 0 PR review findings; AI review APPROVE 0 Critical/Important; LOCAL adversary 6-pass CONVERGED 3/3; CI green. BC-5.39.003 POL-14 draft→active. **M2 wave-1 COMPLETE.**
+- No open PRs. S-15.11 (M2 wave-2) next PR to author.
 - PR #144: MERGED `c62f952c` 2026-05-16 (S-15.08 dim2-gate bash template library; M1 Story 2). M1 COMPLETE.
 - PR #143: MERGED `224fa184` 2026-05-15 (S-15.05 TD #67). PR #142: MERGED `fdc7da16` 2026-05-15 (S-15.04 TD #66). Step 2 COMPLETE.
 - PR #141: MERGED `5d1f8805` (TD #74). PR #140: MERGED `ddc11879` (TD #70). PR #139: MERGED `83afaa3c` (TD #72). PR #138: MERGED `bcf494ff` (TD #71). PR #137: MERGED `21d444d8` (dim2-gates path-registry).
@@ -386,9 +395,9 @@ Wave plan COMPLETE 2026-05-15 (architect): **95 distinct items** across 8 catego
 ### 11. Post-CLEAR Resume Checklist
 
 1. Run `git -C /Users/jmagady/Dev/vsdd-factory/.factory log --oneline -3` to confirm factory-artifacts state
-2. Read STATE.md Session Resume Checkpoint sections 1-10 (this section is self-sufficient)
+2. Read STATE.md Session Resume Checkpoint sections 1-11 (this section is self-sufficient)
 3. Verify CLAUDE.md still cites vsdd-factory project conventions (PR #136 + PR #138 + PR #141 references)
-4. **M2 wave-2 = S-15.11. Dispatch story-writer immediately.** M2 dispatch order: wave-2 S-15.11 → wave-3 S-15.09 → wave-4 S-15.14 (architect-m2-2026-05-16.md 624e9fab; D-473). Per-story dispatch template: `s-15.03-wave-m2-dispatch.md` §Per-Story Dispatch Template.
+4. **M2 wave-2 dispatch-ready 2026-05-16. Read `.factory/cycles/v1.0-brownfield-backfill/s-15.03-wave-m2-wave-2-dispatch.md` for S-15.11 dispatch with zero context. Next action: dispatch story-writer for S-15.11 per that document §Per-Story Dispatch Template Step 1. Optional deep context: read `orchestrator-task-snapshot-2026-05-16-post-s-15.07-ship.md` for full task-list state (supersedes orchestrator-task-snapshot-2026-05-16.md).**
 5. E-10 sub-cycle SEALED — do NOT dispatch E-10 pass-15 without S-15.03 PRIORITY-A lint hooks landing first
 6. F5 cycle is PAUSED — do NOT dispatch F5 pass-75 without explicit human direction to resume F5
 7. **State-manager Commit A new obligation (ADR-022 Option c, activates at S-15.13 ship time):** Write `.factory/current-adversary-pass.txt` at every cycle-scoped adversarial review Commit A. NOT yet enforced until S-15.13 lands.
