@@ -106,10 +106,26 @@ _state_md_envelope() {
   # Exit 2: block signal
   [ "$status" -eq 2 ]
 
-  # block_reason must name all three violation classes (banner wc-l, dual-margin, trajectory-tail)
-  # Each of these must appear somewhere in the combined block message
-  [[ "$output" == *"D-446"* ]] || [[ "$output" == *"dual-margin"* ]] || [[ "$output" == *"margin"* ]]
-  [[ "$output" == *"D-433"* ]] || [[ "$output" == *"trajectory"* ]] || [[ "$output" == *"tail"* ]]
-  # Banner wc-l referenced by line count divergence
-  [[ "$output" == *"25"* ]] || [[ "$output" == *"28"* ]] || [[ "$output" == *"banner"* ]]
+  # ── Violation count ──────────────────────────────────────────────────────────
+  # emit_block formats: "validate-state-structure: N violation(s) in STATE.md:"
+  # All three checks fire => must cite exactly 3.
+  [[ "$output" == *"3 violation(s)"* ]]
+
+  # ── Banner wc-l class ───────────────────────────────────────────────────────
+  # Fixture banner claims 25 lines (wc-l); actual newline count is 28.
+  # lib.rs format: "banner claims {claimed} lines but actual line count is {actual}"
+  # D-421(c) is the canonical anchor for banner wc-l discipline.
+  [[ "$output" == *"25"* ]]
+  [[ "$output" == *"28"* ]]
+  [[ "$output" == *"D-421"* ]]
+
+  # ── Dual-margin class ───────────────────────────────────────────────────────
+  # lib.rs format: "banner MUST contain both margins per D-446(c)"
+  [[ "$output" == *"D-446"* ]]
+
+  # ── Trajectory-tail class ───────────────────────────────────────────────────
+  # Fixture tail is →9→9→9 (3 components); required is 4.
+  # lib.rs format: "trajectory-tail has {count} components; required LENGTH=4 per D-433(e)+D-439(c)"
+  [[ "$output" == *"D-433"* ]]
+  [[ "$output" == *"3 components"* ]]
 }
