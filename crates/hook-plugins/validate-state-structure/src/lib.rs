@@ -354,8 +354,8 @@ fn extract_banner_block(content: &str) -> Option<&str> {
 ///
 /// # BC trace
 /// BC-5.39.005 postcondition 4; invariant 5.
-/// F-P2-001: `is_trajectory_tail_line` replaces `contains_arrow_digit_sequence`
-///           to prevent false matches on banner narrative arrows.
+/// F-P2-001: `is_trajectory_tail_line` (adjacent-run discriminator) used instead of
+///           weak single-match predicate, preventing false matches on banner narrative arrows.
 pub fn extract_trajectory_tail_line(content: &str) -> Option<String> {
     // Prefer the banner-block-anchored scan (F-P1-007).
     if let Some(block) = extract_banner_block(content) {
@@ -376,34 +376,6 @@ pub fn extract_trajectory_tail_line(content: &str) -> Option<String> {
         }
     }
     None
-}
-
-/// Returns `true` if `s` contains at least one `→N` sequence (arrow + ASCII digit).
-///
-/// Hand-rolled scan to stay within WASM fuel budget.
-/// The arrow → is U+2192 = 0xE2 0x86 0x92 in UTF-8 (3 bytes).
-///
-/// # Note
-/// This predicate is deliberately weak (≥1 match). Use `is_trajectory_tail_line` for
-/// trajectory-tail identification, which requires adjacent ≥3 components.
-fn contains_arrow_digit_sequence(s: &str) -> bool {
-    let arrow = "\u{2192}"; // → U+2192
-    let arrow_bytes = arrow.len(); // 3 bytes
-    let bytes = s.as_bytes();
-
-    let mut i = 0usize;
-    while i + arrow_bytes <= bytes.len() {
-        // Check if the arrow (3-byte UTF-8 sequence) starts at position i.
-        if &bytes[i..i + arrow_bytes] == arrow.as_bytes() {
-            // The byte immediately after the arrow must be an ASCII digit.
-            let after = i + arrow_bytes;
-            if after < bytes.len() && bytes[after].is_ascii_digit() {
-                return true;
-            }
-        }
-        i += 1;
-    }
-    false
 }
 
 /// Returns `true` if `s` qualifies as a canonical trajectory-tail line.
@@ -1263,7 +1235,7 @@ mod tests {
     #[test]
     fn test_BC_5_39_005_full_validation_against_real_state_md() {
         let state_md_path =
-            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../../.factory/STATE.md");
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../.factory/STATE.md");
 
         let content = match std::fs::read_to_string(&state_md_path) {
             Ok(c) => c,
@@ -1370,7 +1342,7 @@ mod tests {
         // Path: from crate root (vsdd-factory/crates/hook-plugins/validate-state-structure/)
         // up four levels to workspace root, then into .factory/STATE.md.
         let state_md_path =
-            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../../.factory/STATE.md");
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../.factory/STATE.md");
 
         let content = match std::fs::read_to_string(&state_md_path) {
             Ok(c) => c,
