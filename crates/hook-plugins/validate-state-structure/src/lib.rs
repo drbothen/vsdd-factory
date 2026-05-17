@@ -970,7 +970,11 @@ mod tests {
             content.push_str("line\n");
         }
         // Total: 4 (banner) + 24 (filler) = 28 newlines. Banner claims 27.
-        assert_eq!(count_newlines(&content), 28, "test precondition: must have 28 newlines");
+        assert_eq!(
+            count_newlines(&content),
+            28,
+            "test precondition: must have 28 newlines"
+        );
         let v = validate_banner_wc(&content).expect("should produce violation");
         assert!(v.description.contains("27"), "must name claimed count 27");
         assert!(v.description.contains("28"), "must name actual count 28");
@@ -1127,7 +1131,8 @@ mod tests {
     /// F-P5-003: banner must include STATE.md SIZE BUDGET marker.
     #[test]
     fn test_BC_5_39_005_extract_banner_line_count_comma_terminator() {
-        let content = "<!--\n  STATE.md SIZE BUDGET (per D-421(c)):\n  428 lines (wc-l, net +5)\n-->\nrest\n";
+        let content =
+            "<!--\n  STATE.md SIZE BUDGET (per D-421(c)):\n  428 lines (wc-l, net +5)\n-->\nrest\n";
         let result = extract_banner_line_count(content);
         assert_eq!(result, Some(428), "comma terminator must be accepted");
     }
@@ -1146,10 +1151,26 @@ mod tests {
     #[test]
     fn test_BC_5_39_005_extract_banner_line_count_all_terminators() {
         for (terminator, input, expected) in [
-            (")", "<!--\n  STATE.md SIZE BUDGET:\n  10 lines (wc-l)\n-->", Some(10usize)),
-            (";", "<!--\n  STATE.md SIZE BUDGET:\n  20 lines (wc-l; net +2)\n-->", Some(20)),
-            (".", "<!--\n  STATE.md SIZE BUDGET:\n  30 lines (wc-l). rest\n-->", Some(30)),
-            (",", "<!--\n  STATE.md SIZE BUDGET:\n  40 lines (wc-l, net +4)\n-->", Some(40)),
+            (
+                ")",
+                "<!--\n  STATE.md SIZE BUDGET:\n  10 lines (wc-l)\n-->",
+                Some(10usize),
+            ),
+            (
+                ";",
+                "<!--\n  STATE.md SIZE BUDGET:\n  20 lines (wc-l; net +2)\n-->",
+                Some(20),
+            ),
+            (
+                ".",
+                "<!--\n  STATE.md SIZE BUDGET:\n  30 lines (wc-l). rest\n-->",
+                Some(30),
+            ),
+            (
+                ",",
+                "<!--\n  STATE.md SIZE BUDGET:\n  40 lines (wc-l, net +4)\n-->",
+                Some(40),
+            ),
         ] {
             let result = extract_banner_line_count(input);
             assert_eq!(
@@ -1731,131 +1752,80 @@ mod tests {
 
     // ── F-P5-002: oversize STATE.md load-bearing regression test ─────────────
 
-    /// F-P5-002: `on_post_tool_use` is NOT testable from unit tests because it requires
-    /// the WASM host SDK shim. This unit test exercises the VALIDATORS directly against
-    /// content larger than the OLD 64 KiB max_bytes cap (65536 bytes), verifying that:
-    ///   1. The validators correctly process content >= 75 KiB (OLD cap = 64 KiB).
-    ///   2. The byte budget constant is >= 524288 (the new required cap of 512 KiB).
+    /// F-P5-002: validates that all three validators correctly process content larger
+    /// than the OLD 64 KiB `max_bytes` cap (65536 bytes), AND that `MAX_BYTES_STATE_MD`
+    /// is set to at least 512 KiB.
     ///
-    /// The load-bearing bats evidence that the HOST::read_file path is not truncated
-    /// is in `pass-real-state-md-snapshot.bats` (mutation-verified separately).
+    /// `on_post_tool_use` is not directly testable from unit tests (requires the WASM
+    /// host SDK shim). This test:
+    ///   1. Builds valid synthetic STATE.md content > 65536 bytes.
+    ///   2. Verifies all three validators return None (no false-positive violation).
+    ///   3. Verifies `MAX_BYTES_STATE_MD >= 524288` via a compile-time const assert —
+    ///      this test would fail to compile if the constant were lowered below 512 KiB.
+    ///
+    /// The load-bearing bats evidence that the host::read_file path is exercised
+    /// (not silently fail-opened) is in `pass-real-state-md-snapshot.bats` (mutation
+    /// verified in the fix-burst test-the-test step).
     #[test]
     fn test_BC_5_39_005_f_p5_002_oversize_state_md_full_validation() {
-        // Build synthetic STATE.md content of 75+ KiB (exceeds OLD 64 KiB cap of 65536).
-        // The content must have a valid banner + trajectory tail so validators return None.
-        let mut content = String::with_capacity(80_000);
-
-        // Valid SIZE BUDGET banner with correct structure
-        content.push_str("<!--\n");
-        content.push_str("  STATE.md SIZE BUDGET (per D-421(c)):\n");
-        content.push_str(
-            "  Hard cap (500 lines) margin from soft-target = 500 - 415 = 85; \
-             margin from actual = 500 - 100 = 400 (D-446(c) dual-margin form).\n",
+        // Compile-time assertion: MAX_BYTES_STATE_MD must be >= 524288 (512 KiB).
+        // This is the load-bearing constant check that closes F-P5-002.
+        // If someone lowers the cap below 512 KiB, this line fails to compile.
+        const _: () = assert!(
+            MAX_BYTES_STATE_MD >= 524_288,
+            "MAX_BYTES_STATE_MD must be >= 524288 (512 KiB) per F-P5-002"
         );
-        // Trajectory tail in the banner
-        content.push_str("  Trajectory \u{2192}9\u{2192}9\u{2192}9\u{2192}9\n");
-        content.push_str("-->\n");
 
-        // Pad to exceed 75 KiB with filler lines — valid content.
-        // Each filler line is ~70 bytes; we need ~1100 lines to reach 75 KiB.
-        let filler = "This is a padding line for the oversize regression test with valid content.\n";
-        let filler_len = filler.len(); // 77 bytes
-        let header_len = content.len(); // ~200 bytes
-        let target = 77_000usize; // 75 KiB
-        let lines_needed = (target.saturating_sub(header_len)) / filler_len + 1;
-        for _ in 0..lines_needed {
-            content.push_str(filler);
-        }
+        // Build synthetic STATE.md content of 1025 lines (> 65536 bytes at ~77 bytes/line).
+        // Strategy: build banner first (7 lines), then fill remaining lines with a known filler.
+        // Banner wc-l claim is set equal to the total line count.
+        let filler =
+            "This is a padding line for the oversize regression test with valid content.\n";
+        // Banner lines:
+        // 1. <!--
+        // 2.   STATE.md SIZE BUDGET (per D-421(c)):
+        // 3.   Hard cap (500 lines) margin from soft-target = ... (D-446(c) dual-margin form).
+        // 4.   NNNN lines (wc-l).
+        // 5.   Trajectory →9→9→9→9
+        // 6. -->
+        // Total banner newlines = 6.
+        let banner_newlines: usize = 6;
+        let total_line_count: usize = 1025;
+        let filler_count = total_line_count - banner_newlines;
 
-        // Verify the content is actually > 65536 (old cap)
+        // Compute sizes: 1025 × 77 bytes/line ≈ 78925 bytes > 65536 (OLD cap).
+        let approx_bytes = total_line_count * filler.len();
         assert!(
-            content.len() > 65536,
-            "test precondition: synthetic content must exceed OLD 65536-byte cap; \
-             actual: {} bytes",
-            content.len()
+            approx_bytes > 65536,
+            "test precondition: approximate byte size {approx_bytes} must exceed \
+             OLD 65536-byte cap"
         );
 
-        // Update banner wc-l claim to match actual newline count
-        let actual_newlines = count_newlines(&content);
-        // Replace the first occurrence of "100 lines (wc-l)" with the real count
-        let content = content.replace(
-            "margin from actual = 500 - 100 = 400",
-            &format!("margin from actual = 500 - {} = {}", actual_newlines,
-                     500usize.saturating_sub(actual_newlines)),
-        );
-        // Now add the wc-l suffix after the trajectory line, using actual_newlines
-        // We need to build the full banner correctly. Reconstruct the content.
-        let mut content2 = String::with_capacity(content.len() + 50);
-        content2.push_str("<!--\n");
-        content2.push_str("  STATE.md SIZE BUDGET (per D-421(c)):\n");
-        content2.push_str(&format!(
-            "  Hard cap (500 lines) margin from soft-target = 500 - 415 = 85; \
-             margin from actual = 500 - PLACEHOLDER (D-446(c) dual-margin form).\n",
-        ));
-        content2.push_str("  Trajectory \u{2192}9\u{2192}9\u{2192}9\u{2192}9\n");
-        content2.push_str("-->\n");
-        // Add filler lines
-        for _ in 0..lines_needed {
-            content2.push_str(filler);
-        }
-        let actual_newlines2 = count_newlines(&content2);
-        // Build final content with correct line count in banner
-        let final_content = format!(
-            "<!--\n\
-             STATE.md SIZE BUDGET (per D-421(c)):\n\
-             Hard cap (500 lines) margin from soft-target = 500 - 415 = 85; \
-             margin from actual = 500 - {actual_newlines2} = {} (D-446(c) dual-margin form).\n\
-             {actual_newlines2} lines (wc-l).\n\
-             Trajectory \u{2192}9\u{2192}9\u{2192}9\u{2192}9\n\
-             -->\n",
-            500usize.saturating_sub(actual_newlines2),
-        );
-        // Append the filler so total lines = actual_newlines2
-        // The final_content so far has a header. Count its newlines.
-        let header_newlines = count_newlines(&final_content);
-        let remaining_lines = actual_newlines2.saturating_sub(header_newlines);
-        let mut final_with_filler = final_content.clone();
-        for _ in 0..remaining_lines {
-            final_with_filler.push_str(filler);
-        }
-        // Adjust the count: count_newlines may differ because we added more lines.
-        // Use a simpler approach: build the content with correct count explicitly.
-        let _ = (content, content2, final_with_filler); // drop intermediates
-
-        // Simpler construction: 1025 lines of filler (exactly), then compute correct banner.
-        let line_count = 1025usize;
-        let mut base = String::with_capacity(line_count * 80 + 500);
-        // Placeholder first line (will be replaced)
-        base.push_str("BANNER_PLACEHOLDER\n");
-        for _ in 1..line_count {
-            base.push_str(filler);
-        }
-        assert_eq!(count_newlines(&base), line_count);
-        assert!(base.len() > 65536, "must exceed OLD 65536-byte cap");
-
-        // Now build the real content with the correct banner embedded.
+        let margin = 500usize.saturating_sub(total_line_count);
         let banner = format!(
             "<!--\n\
              STATE.md SIZE BUDGET (per D-421(c)):\n\
              Hard cap (500 lines) margin from soft-target = 500 - 415 = 85; \
-             margin from actual = 500 - {line_count} = {} (D-446(c) dual-margin form).\n\
-             {line_count} lines (wc-l).\n\
+             margin from actual = 500 - {total_line_count} = {margin} \
+             (D-446(c) dual-margin form).\n\
+             {total_line_count} lines (wc-l).\n\
              Trajectory \u{2192}9\u{2192}9\u{2192}9\u{2192}9\n\
-             -->\n",
-            500usize.saturating_sub(line_count),
+             -->\n"
         );
-        // Replace the placeholder line with the banner (same number of lines).
-        // Count banner newlines to ensure line count is preserved.
-        let banner_newlines = count_newlines(&banner);
-        let filler_lines_needed = line_count.saturating_sub(banner_newlines);
-        let mut final_content = banner.clone();
-        for _ in 0..filler_lines_needed {
+        assert_eq!(
+            count_newlines(&banner),
+            banner_newlines,
+            "test construction: banner must have exactly {banner_newlines} newlines"
+        );
+
+        let mut final_content = banner;
+        for _ in 0..filler_count {
             final_content.push_str(filler);
         }
         let final_count = count_newlines(&final_content);
         assert_eq!(
-            final_count, line_count,
-            "test construction: final content must have exactly {line_count} newlines; \
+            final_count, total_line_count,
+            "test construction: final content must have {total_line_count} newlines; \
              got {final_count}"
         );
         assert!(
@@ -1865,16 +1835,7 @@ mod tests {
             final_content.len()
         );
 
-        // Verify the MAX_BYTES_STATE_MD constant is >= 524288 (512 KiB).
-        // This is the load-bearing assertion that closes F-P5-002: if someone
-        // lowers the cap below 512 KiB, this test fails and surfaces the regression.
-        assert!(
-            MAX_BYTES_STATE_MD >= 524_288,
-            "MAX_BYTES_STATE_MD must be >= 524288 (512 KiB) per F-P5-002; \
-             current value: {MAX_BYTES_STATE_MD}"
-        );
-
-        // Run all three validators against the 75+ KiB content.
+        // Run all three validators. They must return None (no violation).
         let banner_viol = validate_banner_wc(&final_content);
         assert!(
             banner_viol.is_none(),
