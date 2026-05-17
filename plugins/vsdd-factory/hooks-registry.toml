@@ -850,6 +850,27 @@ on_error = "continue"
 [hooks.capabilities.read_file]
 path_allow = ["plugins/vsdd-factory/config/artifact-path-registry.yaml"]
 
+# ---------- validate-burst-log (PostToolUse, Edit|Write) ----------
+# BC-5.39.004: blocks structurally incomplete burst-log entries —
+# validates h2 heading format, 9-block completeness (D-444(c)+D-446(a)),
+# and Dim-1 cardinality parity (D-432(e)+D-448(d)(i)).
+# File-pattern enforcement is in-plugin via path-component-strict Path::file_name guard (matches exactly "burst-log.md").
+# S-15.11 M2 Wave-2.
+
+[[hooks]]
+name = "validate-burst-log"
+event = "PostToolUse"
+tool = "Edit|Write"
+plugin = "hook-plugins/validate-burst-log.wasm"
+priority = 152
+timeout_ms = 5000
+on_error = "continue"
+
+[hooks.capabilities.read_file]
+path_allow = [
+  ".factory/cycles",
+]
+
 # ---------- validate-index-cite-refresh (PostToolUse, Edit|Write) ----------
 # BC-5.39.003: blocks stale 4-index version cites in ARCH-INDEX.md and
 # cross-cell mismatches in STATE.md / INDEX.md (D-405(c) + D-429(b)).

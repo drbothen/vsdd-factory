@@ -115,7 +115,7 @@ where
         .and_then(|v| v.as_str())
         .unwrap_or("");
 
-    if !changed_path.ends_with("hooks-registry.toml") {
+    if !is_registry_target(changed_path) {
         (callbacks.log)(
             0,
             "lint-registry-async-invariant: skipping — not hooks-registry.toml",
@@ -247,6 +247,29 @@ pub fn run_lint(toml_text: &str) -> LintResult {
 }
 
 // ---------------------------------------------------------------------------
+// File-path guard (path-component-strict)
+// ---------------------------------------------------------------------------
+
+/// Returns `true` if `file_path` names a file whose `file_name` component is
+/// exactly `hooks-registry.toml`.
+///
+/// Uses path-component-strict matching (`Path::file_name`) rather than
+/// `ends_with`, preventing false-positive fires on paths whose suffix happens
+/// to match but whose file name is not `hooks-registry.toml` (e.g.
+/// `/some/dir/xhooks-registry.toml`).
+///
+/// Returns `false` if the path has no file-name component (e.g. `/`).
+///
+/// # BC trace
+/// BC-7.06.001 invariant 1 — hook only activates on hooks-registry.toml writes.
+pub fn is_registry_target(file_path: &str) -> bool {
+    std::path::Path::new(file_path)
+        .file_name()
+        .and_then(|n| n.to_str())
+        == Some("hooks-registry.toml")
+}
+
+// ---------------------------------------------------------------------------
 // Top-level entry point (wired to real host fns in main.rs)
 // ---------------------------------------------------------------------------
 
@@ -274,4 +297,98 @@ pub fn on_pre_tool_use(payload: HookPayload) -> HookResult {
             },
         },
     )
+}
+
+// ---------------------------------------------------------------------------
+// Tests
+// ---------------------------------------------------------------------------
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // -----------------------------------------------------------------------
+    // is_registry_target — path-component-strict guard (TD-VSDD-060)
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_BC_7_06_001_file_path_xhooks_registry_toml_does_not_match() {
+        // O-P1-002 analogue: suffix-only match is a false-positive —
+        // xhooks-registry.toml should NOT trigger the lint.
+        assert!(!is_registry_target("/some/dir/xhooks-registry.toml"));
+    }
+
+    #[test]
+    fn test_BC_7_06_001_file_path_canonical_hooks_registry_toml_matches() {
+        // Canonical path used by the dispatcher must match.
+        assert!(is_registry_target(
+            "plugins/vsdd-factory/hooks-registry.toml"
+        ));
+    }
+
+    // -----------------------------------------------------------------------
+    // run_lint — schema_version and async invariant
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_BC_7_06_001_valid_registry_returns_pass() {
+        let toml = r#"
+schema_version = 2
+[[hooks]]
+name = "my-plugin"
+on_error = "block"
+async = false
+"#;
+        assert_eq!(run_lint(toml), LintResult::Pass);
+    }
+
+    #[test]
+    fn test_BC_7_06_001_missing_schema_version_returns_mismatch() {
+        let toml = r#"
+[[hooks]]
+name = "my-plugin"
+on_error = "block"
+"#;
+        assert_eq!(run_lint(toml), LintResult::SchemaMismatch { got: None });
+    }
+
+    #[test]
+    fn test_BC_7_06_001_schema_version_1_returns_mismatch() {
+        let toml = r#"
+schema_version = 1
+[[hooks]]
+name = "my-plugin"
+on_error = "continue"
+"#;
+        assert_eq!(run_lint(toml), LintResult::SchemaMismatch { got: Some(1) });
+    }
+
+    #[test]
+    fn test_BC_7_06_001_block_and_async_true_returns_violation() {
+        let toml = r#"
+schema_version = 2
+[[hooks]]
+name = "bad-plugin"
+on_error = "block"
+async = true
+"#;
+        assert_eq!(
+            run_lint(toml),
+            LintResult::InvariantViolation {
+                plugin_name: "bad-plugin".to_string()
+            }
+        );
+    }
+
+    #[test]
+    fn test_BC_7_06_001_continue_and_async_true_is_allowed() {
+        let toml = r#"
+schema_version = 2
+[[hooks]]
+name = "async-plugin"
+on_error = "continue"
+async = true
+"#;
+        assert_eq!(run_lint(toml), LintResult::Pass);
+    }
 }
