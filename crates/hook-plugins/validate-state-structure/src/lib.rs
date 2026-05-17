@@ -1050,4 +1050,54 @@ mod tests {
             _ => panic!("expected Block result, got {result:?}"),
         }
     }
+
+    // ── Real-STATE.md integration test (F-P1-001 structural closure) ─────────
+
+    /// F-P1-001 structural proof: read the actual .factory/STATE.md from the workspace
+    /// root (relative path `../../../../.factory/STATE.md` from the crate directory)
+    /// and verify that `extract_banner_line_count` successfully extracts the banner
+    /// line-count claim and that it matches the actual newline count.
+    ///
+    /// This test fails if:
+    /// - The real STATE.md has no `lines (wc-l...` pattern (banner absent or stale)
+    /// - The extracted count does not match the actual newline count
+    ///
+    /// The test skips gracefully if the file cannot be read (e.g., running tests from
+    /// a different working tree where `.factory/STATE.md` does not exist).
+    #[test]
+    fn test_BC_5_39_005_f_p1_001_real_state_md_banner_wc_passes() {
+        // Path: from crate root (vsdd-factory/crates/hook-plugins/validate-state-structure/)
+        // up four levels to workspace root, then into .factory/STATE.md.
+        let state_md_path =
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../../.factory/STATE.md");
+
+        let content = match std::fs::read_to_string(&state_md_path) {
+            Ok(c) => c,
+            Err(_) => {
+                // Skip gracefully — not all build environments have the factory worktree mounted.
+                eprintln!(
+                    "[skip] real STATE.md not found at {:?} — skipping integration test",
+                    state_md_path
+                );
+                return;
+            }
+        };
+
+        // F-P1-001: extract_banner_line_count must find a value (tolerant terminator).
+        let claimed = extract_banner_line_count(&content).unwrap_or_else(|| {
+            panic!(
+                "extract_banner_line_count returned None for real STATE.md — \
+                 F-P1-001 is NOT closed; banner has no 'N lines (wc-l...)' pattern. \
+                 Last 3 wc-l occurrences in file: check grep output."
+            )
+        });
+
+        let actual = count_newlines(&content);
+
+        assert_eq!(
+            claimed, actual,
+            "real STATE.md banner claims {claimed} lines but actual count is {actual} — \
+             the banner wc-l is stale; update STATE.md banner before committing"
+        );
+    }
 }
