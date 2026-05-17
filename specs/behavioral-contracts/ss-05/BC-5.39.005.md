@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: story-writer
 timestamp: 2026-05-17T00:00:00Z
@@ -30,7 +30,7 @@ removed: null
 removal_reason: null
 bc_id: BC-5.39.005
 section: "5.39"
-last_amended: "2026-05-17 (v1.1) — pass-2 fix-burst: add EC-015 for SIZE BUDGET banner narrative-arrow class (F-P2-004 MEDIUM). Banner-narrative arrow-digit sequences (e.g., `(363→310 lines)` D-NNN compaction narratives) MUST NOT be misidentified as canonical trajectory tail. Discriminator: trajectory-tail predicate requires >=3 `→(\\d+)` matches AND canonical body-line location, not banner-block prose."
+last_amended: "2026-05-17 (v1.2) — pass-3 fix-burst: extend Invariant 9 to body-narrative class (whitespace-arrow vs digit-arrow discriminator codified at full-document scope); fix Precondition 3 payload-vs-read_file doc-narrative alignment (F-P3-001 + F-P3-004)."
 ---
 
 # BC-5.39.005: validate-state-structure Phase 1 hook MUST block on banner line-count drift, dual-margin absence, and trajectory-tail cardinality violations in STATE.md
@@ -67,7 +67,9 @@ discovered by the adversary N bursts after the write, rather than at write time.
    like `/some/dir/xSTATE.md` MUST NOT match per Q5/Q6 canonical lock +
    `crates/hook-plugins/validate-state-structure/src/lib.rs`:`is_state_md_target`).
 2. The dispatcher has invoked the `validate-state-structure` WASM plugin with the write payload.
-3. The STATE.md file content is available — either from the write payload or via `host::read_file`.
+3. The STATE.md file content is read via `host::read_file` (filesystem-authoritative). The hook
+   does NOT inspect the payload's `tool_input.content` field; the file-system value is the source
+   of truth for validation.
 4. `host::read_file` is available with `max_bytes = 65536` and `timeout_ms = 2000` per call.
 
 ## Postconditions
@@ -115,12 +117,18 @@ discovered by the adversary N bursts after the write, rather than at write time.
    guards where multi-byte UTF-8 input is possible (em-dash, en-dash, NBSP, typographic
    apostrophes are plausible in banner narrative text). Slice without boundary guard is a
    runtime panic risk per S-15.11 cascade lesson F-P4-001.
-9. The trajectory-tail predicate MUST discriminate canonical body-line tails from banner-block
-   narrative arrow-digit sequences. A line such as `(363→310 lines)` in the SIZE BUDGET banner
-   block is a D-NNN compaction authorization narrative, NOT a trajectory tail. The predicate
-   anchors on the trajectory-tail body line (not banner-block prose) and requires >=3 `→(\d+)`
-   matches to qualify as a candidate; banner-narrative sequences with fewer arrow-digit groups
-   (typically 1) MUST NOT satisfy the trajectory-tail LENGTH=4 check.
+9. **Narrative-Arrow Discrimination — All Locations.** Narrative arrow-digit sequences ANYWHERE
+   in STATE.md content (SIZE BUDGET banner block, body prose, table rows, narrative cells) MUST
+   NOT be misidentified as the canonical trajectory tail. The discriminator: a canonical
+   trajectory tail begins with `→N` immediately following whitespace or start-of-line (canonical
+   form `Trajectory →9→9→9→9`), whereas narrative arrow bursts begin with a digit (canonical
+   narrative form `11→9→8→7→5`, `Trajectory 11→9→8→7→5`, `trend 22→11→16→16→12`). The
+   implementation MUST anchor trajectory-tail extraction on a structural marker that distinguishes
+   these two forms — specifically, the first `→` in the qualifying run MUST be preceded by
+   whitespace or start-of-line, NOT by a digit. The body-document fallback scan (post-banner-scan-
+   empty) MUST apply the same discriminator. Failure to do so causes false-positive blocks on
+   legitimate real-STATE.md edits whenever a narrative line happens to contain >=4 adjacent
+   arrow-digit components (e.g., line 69 `Trajectory 11→9→8→7→5`, `trend 22→11→16→16→12`).
 
 ## Edge Cases
 
@@ -140,7 +148,9 @@ discovered by the adversary N bursts after the write, rather than at write time.
 | EC-012 | File path is `/some/dir/xSTATE.md` (ends with STATE.md but file_name component differs) | Continue (is_state_md_target returns false; path-component-strict guard) |
 | EC-013 | Banner narrative contains em-dash or other multi-byte UTF-8 characters | No panic; is_char_boundary() guard applied before any byte-index slice |
 | EC-014 | STATE.md is newly created with empty content (no banner, no trajectory-tail) | BlockWithFix: both line-count and trajectory-tail violations (no banner line found; no tail found) |
-| EC-015 | SIZE BUDGET banner contains narrative arrow-digit sequence (e.g., `(363→310 lines)` D-NNN compaction authorization narrative) AND body contains canonical `→N→N→N→N` trajectory tail | Continue for trajectory-tail; canonical tail in body satisfies LENGTH=4 invariant; banner-narrative arrow MUST NOT be misidentified as the canonical trajectory tail — predicate anchors on body-line location and requires >=3 `→(\d+)` matches, which banner-narrative sequences (typically 1 arrow-digit group) do not satisfy |
+| EC-015 | SIZE BUDGET banner contains narrative arrow-digit sequence (e.g., `(363→310 lines)` D-NNN compaction authorization narrative) AND body contains canonical `→N→N→N→N` trajectory tail | Continue for trajectory-tail; canonical tail in body satisfies LENGTH=4 invariant; banner-narrative arrow MUST NOT be misidentified as the canonical trajectory tail — predicate anchors on whitespace-preceded `→` and requires >=3 `→(\d+)` matches; banner-narrative sequences (digit-preceded `→`, typically 1 arrow-digit group) do not satisfy either criterion |
+| EC-016 | Body prose contains digit-preceded narrative sequence of >=4 arrow-digit groups (e.g., `Trajectory 11→9→8→7→5` on line 69) AND canonical `→9→9→9→9` tail also present | Continue; narrative sequence rejected by digit-preceded-arrow discriminator; canonical tail accepted by whitespace-preceded-arrow discriminator |
+| EC-017 | Body prose contains digit-preceded narrative sequence of >=4 arrow-digit groups but NO canonical trajectory tail present | BlockWithFix: no canonical tail found (narrative sequence correctly rejected; missing tail is a genuine violation) |
 
 ## Canonical Test Vectors
 
@@ -156,6 +166,8 @@ discovered by the adversary N bursts after the write, rather than at write time.
 | Read failure | `host::read_file` returns HostError::CapabilityDenied | `HookResult::Continue` + `host::log_warn` | PASS (fail-open) |
 | xSTATE.md path | file_name is "xSTATE.md" | `HookResult::Continue` (is_state_md_target false) | PASS (not target) |
 | Banner narrative arrow + valid body tail | Banner contains `(363→310 lines)` compaction narrative; body contains `→9→9→9→9` tail | `HookResult::Continue` — banner-narrative arrow not misidentified as tail; canonical tail satisfies LENGTH=4 | PASS |
+| Body narrative >=4 groups + valid canonical tail | Body contains `Trajectory 11→9→8→7→5` (digit-preceded); body also contains `→9→9→9→9` (whitespace-preceded canonical tail) | `HookResult::Continue` — narrative sequence rejected by discriminator; canonical tail accepted | PASS |
+| Body narrative >=4 groups + no canonical tail | Body contains `trend 22→11→16→16→12` (digit-preceded) but no whitespace-preceded canonical tail | `HookResult::BlockWithFix` citing missing trajectory-tail | BLOCK |
 
 ## Verification Properties
 
@@ -167,6 +179,8 @@ discovered by the adversary N bursts after the write, rather than at write time.
 | (pending) | Trajectory-Tail Block Invariant — hook emits BlockWithFix when tail is not LENGTH=4 | bats integration test (fail-tail-3-components + fail-tail-5-components fixtures) |
 | (pending) | Fail-open Invariant — hook emits Continue when file is unreadable | bats integration test (fail-open-unreadable fixture) |
 | (pending) | Banner-Narrative Arrow Discrimination Invariant — hook emits Continue when banner contains narrative arrow-digit sequence but body has canonical LENGTH=4 tail (EC-015) | bats integration test (pass-banner-narrative-arrow fixture) |
+| (pending) | Body-Narrative Arrow Discrimination Invariant — hook emits Continue when body prose contains digit-preceded >=4-group narrative sequence alongside canonical whitespace-preceded tail (EC-016) | bats integration test (pass-body-narrative-arrow fixture) |
+| (pending) | Body-Narrative No-Tail Block Invariant — hook emits BlockWithFix when only digit-preceded narrative sequences present and no canonical tail exists (EC-017) | bats integration test (fail-body-narrative-no-canonical-tail fixture) |
 
 VP IDs are pending VP-INDEX allocation by state-manager at post-merge burst.
 
@@ -206,5 +220,6 @@ S-15.09 — v1.0-brownfield-backfill (S-15.03 PRIORITY-A M2 Wave-3)
 
 | Version | Date | Description |
 |---------|------|-------------|
+| 1.2 | 2026-05-17 | F-P3-001 fix-burst: extend Invariant 9 to body-narrative class — whitespace-arrow vs digit-arrow discriminator codified at full-document scope (banner block, body prose, table rows, narrative cells). Added EC-016 (body narrative >=4 groups + valid canonical tail → Continue) and EC-017 (body narrative >=4 groups + no canonical tail → BlockWithFix). Added two new VP rows for body-narrative discrimination. F-P3-004 fix: Precondition 3 rewritten to reflect implementation — hook reads via `host::read_file` (filesystem-authoritative); does NOT inspect payload `tool_input.content` field. |
 | 1.1 | 2026-05-17 | F-P2-004 fix-burst: add EC-015 for SIZE BUDGET banner narrative-arrow class (banner-block trajectory predicate discriminator codified). Banner-narrative arrow-digit sequences (e.g., `(363→310 lines)` D-NNN compaction authorization narratives) MUST NOT be misidentified as canonical trajectory tail. Discriminator: predicate requires >=3 `→(\d+)` matches AND body-line anchor. Added Invariant 9 (narrative-arrow discrimination). Added EC-015 edge case row. Added banner-narrative-arrow test vector. Added Banner-Narrative Arrow Discrimination VP row. |
 | 1.0 | 2026-05-17 | Initial authoring (story-writer; brownfield-backfill S-15.03 M2 wave-3 story authoring). Anchors D-421(c)+D-422(c)+D-424(b)+D-428(d)+D-438(a)+D-440(d)+D-442(d)+D-446(c)+D-433(e)+D-439(c)+D-451(c)+D-432(b). BC-5.39.005 allocated as next monotonic ID after BC-5.39.004 in ss-05/. lifecycle_status: draft (POL-14 auto-promotion to active on S-15.09 merge). Preemptive cascade lessons applied: path-component-strict precondition (is_state_md_target); is_char_boundary() invariant 8; fail-open invariant 7. |
