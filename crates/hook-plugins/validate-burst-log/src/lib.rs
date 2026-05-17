@@ -172,7 +172,15 @@ pub fn validate_h2_heading(h2_line: &str) -> bool {
     };
 
     // The character before '(' should be a space (or the start of content).
+    // Guard against multi-byte UTF-8 codepoints (em-dash, en-dash, NBSP, etc.)
+    // immediately preceding '(': last_paren - 1 may fall inside a multi-byte
+    // sequence, causing a panic at the slice boundary. If the byte before '('
+    // is not a char boundary, it cannot be an ASCII space — reject immediately.
     if last_paren > 0 {
+        if !after_prefix.is_char_boundary(last_paren - 1) {
+            // Non-ASCII byte immediately before '(' — not the canonical " " separator.
+            return false;
+        }
         let before = &after_prefix[last_paren - 1..last_paren];
         if before != " " {
             return false;
@@ -634,6 +642,32 @@ mod tests {
         // Canonical positive case still passes.
         assert!(validate_h2_heading("## Burst: foo (2026-05-12)"));
         assert!(validate_h2_heading("## Burst: foo (2026-05-12) ")); // trimmed = canonical
+    }
+
+    #[test]
+    fn test_BC_5_39_004_h2_with_emdash_before_paren_returns_false_no_panic() {
+        // Em-dash U+2014 (3 bytes UTF-8) immediately before '('
+        // BEFORE FIX: panicked at byte-index slice (last_paren - 1 inside multi-byte codepoint)
+        // AFTER FIX: is_char_boundary guard returns false cleanly without panic
+        assert!(!validate_h2_heading("## Burst: foo\u{2014}(2026-05-12)"));
+    }
+
+    #[test]
+    fn test_BC_5_39_004_h2_with_endash_before_paren_returns_false_no_panic() {
+        // En-dash U+2013 (3 bytes UTF-8) immediately before '('
+        assert!(!validate_h2_heading("## Burst: foo\u{2013}(2026-05-12)"));
+    }
+
+    #[test]
+    fn test_BC_5_39_004_h2_with_nbsp_before_paren_returns_false_no_panic() {
+        // Non-breaking space U+00A0 (2 bytes UTF-8) immediately before '('
+        assert!(!validate_h2_heading("## Burst: foo\u{00A0}(2026-05-12)"));
+    }
+
+    #[test]
+    fn test_BC_5_39_004_h2_with_canonical_ascii_space_before_paren_returns_true() {
+        // Control: canonical ASCII space before '(' must still PASS
+        assert!(validate_h2_heading("## Burst: foo (2026-05-12)"));
     }
 
     // ── check_block_presence ─────────────────────────────────────────────────
