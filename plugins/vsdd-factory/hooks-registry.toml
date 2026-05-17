@@ -895,6 +895,27 @@ path_allow = [
   ".factory/cycles/v1.0-brownfield-backfill/INDEX.md",
 ]
 
+# ---------- validate-state-structure (PostToolUse, Edit|Write) ----------
+# BC-5.39.005: blocks STATE.md writes with banner line-count drift, missing
+# dual-margin form, or trajectory-tail cardinality violations
+# (D-421(c)+D-422(c)+D-424(b)+D-428(d)+D-438(a)+D-440(d)+D-442(d)+D-446(c)+
+#  D-433(e)+D-439(c)+D-451(c)+D-432(b)).
+# S-15.09 M2 Wave-3.
+
+[[hooks]]
+name = "validate-state-structure"
+event = "PostToolUse"
+tool = "Edit|Write"
+plugin = "hook-plugins/validate-state-structure.wasm"
+priority = 153
+timeout_ms = 5000
+on_error = "continue"
+
+[hooks.capabilities.read_file]
+path_allow = [
+  ".factory",
+]
+
 # ---------- Stop ----------
 
 [[hooks]]
