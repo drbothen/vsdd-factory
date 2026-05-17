@@ -382,6 +382,10 @@ fn emit_block(violations: &[Violation]) -> HookResult {
 /// Core hook logic for validate-burst-log.
 ///
 /// Called from the WASI entry point in `main.rs` via the SDK trampoline.
+/// The dispatcher routes PostToolUse `Edit|Write` events to this hook (the
+/// registry entry does not filter by file path — this function applies the
+/// in-plugin `burst-log.md` file-name guard, routes by event+tool, so any
+/// PostToolUse `Edit|Write` reaches this hook).
 ///
 /// 1. Extracts `file_path` from `tool_input`; early-exit Continue for
 ///    non-burst-log.md paths (Q5/Q6 in-plugin guard).
