@@ -209,6 +209,11 @@ pub fn validate_h2_heading(h2_line: &str) -> bool {
     if bytes[10] != b')' {
         return false;
     }
+    // End-of-line anchor: nothing may follow the closing ')'.
+    // Spec pattern has '$' — `inside` must be exactly "YYYY-MM-DD)".
+    if inside.len() != 11 {
+        return false;
+    }
 
     // The description before '(' must be non-empty (at least 1 char + space).
     // `after_prefix[..last_paren]` = description + trailing space.
@@ -562,6 +567,21 @@ mod tests {
     fn test_BC_5_39_004_h2_empty_description_returns_false() {
         // No description between "## Burst: " and " (YYYY-MM-DD)"
         assert!(!validate_h2_heading("## Burst: (2026-05-12)"));
+    }
+
+    #[test]
+    fn test_BC_5_39_004_h2_trailing_content_after_close_paren_returns_false() {
+        // F-S15.11-LOCAL-P1-001: trailing content after closing ')' must be rejected.
+        // The canonical pattern has a '$' anchor — nothing may follow the ')'.
+        // Trailing spaces/CR are normalized by the function before validation (matching
+        // how file content is read from disk), so only non-whitespace trailing content
+        // constitutes an anchor violation.
+        assert!(!validate_h2_heading("## Burst: foo (2026-05-12)abc"));
+        assert!(!validate_h2_heading("## Burst: foo (2026-05-12)xyz trailing"));
+        // Trailing whitespace is normalized away (CR/LF trim) — not a violation.
+        // Canonical positive case still passes.
+        assert!(validate_h2_heading("## Burst: foo (2026-05-12)"));
+        assert!(validate_h2_heading("## Burst: foo (2026-05-12) "));  // trimmed = canonical
     }
 
     // ── check_block_presence ─────────────────────────────────────────────────
