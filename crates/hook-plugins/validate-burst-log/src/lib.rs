@@ -323,9 +323,6 @@ fn count_dim1_list_items(lines: &[&str], start_idx: usize) -> usize {
     for line in lines.iter().skip(start_idx) {
         let trimmed = line.trim_end_matches('\r').trim();
         // Next bold-header terminates the Dim-1 block.
-        if trimmed.starts_with("**") && trimmed.ends_with("**") {
-            break;
-        }
         if trimmed.starts_with("**") {
             break;
         }
