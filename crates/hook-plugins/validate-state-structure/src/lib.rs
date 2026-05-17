@@ -529,6 +529,17 @@ fn has_adjacent_arrow_digit_run(s: &str, min_run: usize) -> bool {
 /// The ASCII digit check on `bytes[after]` remains valid: all ASCII bytes have the
 /// high bit 0, so they cannot be continuation bytes of any multi-byte sequence.
 ///
+/// # Mixed-paradigm inner loop (F-P2-005)
+///
+/// The outer loop uses `char_indices()` (decoded `char` + byte position) for clarity.
+/// The inner digit-walk loop uses raw byte indexing: `bytes[j].is_ascii_digit()`.
+/// This is deliberate and safe: ASCII digit bytes (0x30–0x39) are single-byte UTF-8
+/// code points whose byte values are identical to their Unicode scalar values, so
+/// `bytes[j].is_ascii_digit()` is equivalent to `s[j..].chars().next() == Some(c if c.is_ascii_digit())`.
+/// Re-decoding UTF-8 in the inner loop would add unnecessary overhead without
+/// changing correctness — the digit walk only advances through 0x30–0x39 bytes which
+/// are never UTF-8 continuation bytes.
+///
 /// # BC trace
 /// BC-5.39.005 invariant 5 — `→(\d+)` match count must equal 4.
 pub fn count_arrow_digit_matches(s: &str) -> usize {
