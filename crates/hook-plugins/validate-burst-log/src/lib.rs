@@ -249,13 +249,26 @@ pub fn check_block_presence(burst_content: &str) -> Vec<&'static str> {
 
 /// Check Dim-1 headline integer against the count of list items in the Dim-1 block body.
 ///
-/// Returns `Some((headline_count, list_count, raw_dim1_line))` if they differ,
-/// `None` if equal or if the Dim-1 block is absent.
+/// Distinguishes three states:
+///
+/// 1. **Dim-1 block absent** → returns `None`. The `check_block_presence` gate handles
+///    this case upstream; no additional violation from this function.
+///
+/// 2. **Dim-1 block present but headline integer absent** → returns
+///    `Some((0, list_count, raw_dim1_line))`. A zero headline count against any positive
+///    list count is a structural violation — the author omitted the required integer.
+///    This distinguishes the "missing integer" case from the "block absent" case so it
+///    is never silently treated as a pass.
+///
+/// 3. **Dim-1 block present + headline integer present**:
+///    - Counts match → returns `None` (no violation).
+///    - Counts differ → returns `Some((headline_count, list_count, raw_dim1_line))`.
 ///
 /// Handles list prefixes: `- `, `* `, and `N. ` (numbered lists).
 ///
 /// # BC trace
 /// BC-5.39.004 postcondition 4 — Dim-1 mismatch emits BlockWithFix naming both counts.
+/// F-S15.11-LOCAL-P2-004 — block-present-with-unparseable-headline must not silently pass.
 pub fn check_dim1_cardinality(burst_content: &str) -> Option<(usize, usize, String)> {
     // Find the Dim-1 block: look for a line containing "**Files touched (Dim-1)"
     let dim1_token = "**Files touched (Dim-1)";
@@ -270,25 +283,37 @@ pub fn check_dim1_cardinality(burst_content: &str) -> Option<(usize, usize, Stri
         }
     }
 
+    // State 1: Dim-1 block absent — return None (upstream check_block_presence handles this).
     let dim1_idx = dim1_line_idx?;
     let dim1_line = lines[dim1_idx];
 
     // Extract the headline integer: find `(\d+) unique files` on the Dim-1 header line
     // or the immediately following line.
-    let headline_count = extract_dim1_headline_count(dim1_line).or_else(|| {
+    let headline_count_opt = extract_dim1_headline_count(dim1_line).or_else(|| {
         lines
             .get(dim1_idx + 1)
             .and_then(|l| extract_dim1_headline_count(l))
-    })?;
+    });
 
     // Count list items in the Dim-1 block body (lines between Dim-1 header and
     // the next bold-header or end-of-burst).
     let list_count = count_dim1_list_items(&lines, dim1_idx + 1);
 
-    if headline_count != list_count {
-        Some((headline_count, list_count, dim1_line.trim_end().to_string()))
-    } else {
-        None
+    match headline_count_opt {
+        // State 2: Dim-1 block present but headline integer is absent.
+        // Surface as violation: headline_count=0 vs actual list_count.
+        // This prevents silent pass-through of malformed Dim-1 headers.
+        None => Some((0, list_count, dim1_line.trim_end().to_string())),
+        // State 3: headline integer present.
+        Some(headline_count) => {
+            if headline_count != list_count {
+                // State 3b: mismatch violation.
+                Some((headline_count, list_count, dim1_line.trim_end().to_string()))
+            } else {
+                // State 3a: counts match — no violation.
+                None
+            }
+        }
     }
 }
 
@@ -829,6 +854,35 @@ mod tests {
         ));
         assert!(is_burst_log_target("burst-log.md"));
         assert!(is_burst_log_target("/absolute/path/to/burst-log.md"));
+    }
+
+    // ── check_dim1_cardinality: unparseable headline ─────────────────────────
+
+    #[test]
+    fn test_BC_5_39_004_dim1_block_present_without_integer_headline_emits_violation() {
+        // F-S15.11-LOCAL-P2-004: Dim-1 block present but no integer in headline
+        // must surface as a violation (not silently pass).
+        let content = concat!(
+            "## Burst: Pass-44 test (2026-05-16)\n",
+            "**Files touched (Dim-1):**\n",
+            "\n",
+            "- a.rs\n",
+            "- b.rs\n",
+            "**Codifications:** done\n",
+        );
+        // When Dim-1 block exists but headline has no integer, check_dim1_cardinality
+        // must return Some(...) to surface a violation (not None which silently passes).
+        let result = check_dim1_cardinality(content);
+        assert!(
+            result.is_some(),
+            "Dim-1 block present with no headline integer must surface as a violation, got None"
+        );
+        let (headline_count, list_count, _raw) = result.unwrap();
+        assert_eq!(
+            headline_count, 0,
+            "headline count must be 0 when integer is absent"
+        );
+        assert_eq!(list_count, 2, "list count must reflect actual items");
     }
 
     #[test]

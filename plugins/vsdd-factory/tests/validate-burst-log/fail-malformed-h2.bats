@@ -3,13 +3,20 @@
 #
 # Traces to:
 #   BC-5.39.004 postcondition 2 (malformed h2 => HookResult::BlockWithFix naming required format)
-#   BC-5.39.004 EC-002 (h2 is "## Fix Burst: description" — wrong prefix, no parenthesized date)
+#   BC-5.39.004 EC-002 (validate_h2_heading returns false for malformed date format)
 #   BC-5.39.004 Canonical Test Vectors: "Malformed h2" row
 # D-NNN closure: D-421(e) + D-438(d) + D-439(a)
 #
-# Fixture: burst-log.md with `## Fix Burst: Pass-44 description without parenthesized date`
-#          (wrong prefix AND no YYYY-MM-DD in parentheses); all 9 blocks otherwise present.
+# Fixture: burst-log.md with `## Burst: Pass-44 description with bad date (2026-5-12)`
+#          (correct "## Burst:" prefix but non-canonical date: single-digit month missing
+#          zero-pad). This exercises validate_h2_heading → false via the date-validation
+#          path, NOT the no-prefix path. All 9 blocks are present in the fixture.
 # Expected: hook exits 2 (block) and block_reason names the required format.
+#
+# F-S15.11-LOCAL-P2-003 fix: previously fixture used "## Fix Burst:" prefix which caused
+# extract_latest_burst to return None (no-h2 code path), silently degrading AC-4 to AC-6.
+# The updated fixture uses the correct "## Burst:" prefix with a malformed date to exercise
+# the validate_h2_heading → false integration path distinctly.
 #
 # RED GATE PHASE: test skips because validate-burst-log.wasm is not yet compiled.
 
@@ -69,7 +76,7 @@ _burst_log_envelope() {
 # Traces to BC-5.39.004 postcondition 2
 # ---------------------------------------------------------------------------
 
-@test "AC-4 FAIL: hook blocks when h2 heading uses wrong prefix and lacks parenthesized date" {
+@test "AC-4 FAIL: hook blocks when h2 heading has malformed date (non-canonical single-digit month)" {
   _require_artifacts
   _setup_fixture
   _write_registry

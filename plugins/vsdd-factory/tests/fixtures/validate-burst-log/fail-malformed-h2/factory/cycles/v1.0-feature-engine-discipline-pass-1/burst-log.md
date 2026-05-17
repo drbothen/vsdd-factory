@@ -1,8 +1,8 @@
-## Fix Burst: Pass-44 description without parenthesized date
+## Burst: Pass-44 description with bad date (2026-5-12)
 
 **Parent-commit:** 890abcdef1234567890abcdef1234567890abcd
 
-**Adversary verdict:** HIGH — h2 heading does not match canonical format. Missing parenthesized date.
+**Adversary verdict:** HIGH — h2 heading does not match canonical format. Missing zero-pad on month digit.
 
 **Files touched (Dim-1): 3 unique files**
 
