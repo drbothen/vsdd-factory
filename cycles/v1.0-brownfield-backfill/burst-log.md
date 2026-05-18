@@ -7,7 +7,7 @@ producer: state-manager
 timestamp: 2026-05-06T19:00:00Z
 cycle: "v1.0-brownfield-backfill"
 inputs: [STATE.md]
-input-hash: "18924b1"
+input-hash: "4c8a956"
 traces_to: STATE.md
 ---
 
@@ -1211,4 +1211,4 @@ $ awk '/^## S-15\.14 LOCAL adversary cascade ASYMPTOTIC-ACCEPTANCE SEAL/,0' /Use
 - L-S-15.14-asymptotic-acceptance codified (third asymptotic-acceptance precedent in factory history)
 
 ### Factory-artifacts commits
-- `<SEAL-BURST-SHA>` (state-manager asymptotic-acceptance-seal single atomic commit per TD-VSDD-053; SHA will be filled by SHA-patch follow-up per D-447(c)+D-449(e))
+- `2f7a775f` (state-manager asymptotic-acceptance-seal single atomic commit per TD-VSDD-053)
