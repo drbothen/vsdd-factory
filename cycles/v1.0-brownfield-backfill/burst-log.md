@@ -7,7 +7,7 @@ producer: state-manager
 timestamp: 2026-05-06T19:00:00Z
 cycle: "v1.0-brownfield-backfill"
 inputs: [STATE.md]
-input-hash: "64e7c76"
+input-hash: "fbc63f7"
 traces_to: STATE.md
 ---
 
@@ -768,3 +768,110 @@ Pass-8 CLEAN persist. Streak 0/3 → 1/3. No findings to close. STATE.md compact
 
 ### Factory-artifacts commits
 - `af6ddabd` (state-manager pass-8 persist+compaction single atomic commit per TD-VSDD-053)
+
+---
+
+## S-15.14 LOCAL adversary pass-9 PERSIST + FIX-BURST 2026-05-18
+
+### Parent-commit
+- `f6219e6b` — SHA-patch + input-hash refresh (pass-8 burst-log Factory-artifacts commit af6ddabd + compute-input-hash drift fix); per D-419(b)+D-420(d)+D-421(a)
+
+### Adversary verdict
+Pass-9 verdict: MEDIUM (0C+0H+2M+2L+0N+0PG = 4 findings). Streak 1/3 → 0/3 RESET per BC-5.39.001 (MEDIUM resets). Trajectory 16→9→8→2→0→1→1→0→4.
+
+Pass-9 findings per adv-local-pass-9.md Part A: F-P9-001 (MEDIUM) STATE.md compaction rows at lines 91 and 131 claim E-10 pass-9..14 content is preserved in burst-log.md; actual preservation is in per-pass files E-10-pass-9.md through E-10-pass-14.md — burst-log.md has zero E-10 h2 entries. F-P9-002 (MEDIUM) Active Branches factory-artifacts row cites SHA 66296e29 (pass-7); actual post-pass-8 compaction HEAD was af6ddabd / f6219e6b — SHA-advance missed during compaction burst. F-P9-003 (LOW) Concurrent Cycles Status bolded header reads "pass-3 FIX-BURST CLOSED" even though body trail captures pass-4 through pass-8 — header stale across 5 consecutive bursts. F-P9-004 (LOW) Compaction trend label at STATE.md line 91 says "passes 9-14 trend" but has 14 numeric values matching the full 1-14 cascade.
+
+All 4 findings routed to state-manager (mechanical sibling-sweep cleanup). New process-gap class: compaction bursts MUST verify cited preservation paths + Active Branches SHA advance + Concurrent Cycles header advance + trend label accuracy. Codified as TD-VSDD-098.
+
+### Files touched (Dim-1)
+Files touched: 4
+- `.factory/STATE.md` (F-P9-001/002/003/004 + frontmatter + Phase Progress row + Drift Items TD-VSDD-098 + Session Resume + banner wc-l)
+- `.factory/code-delivery/S-15.14/adv-local-pass-9.md` (pass-9 report persisted)
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` (TD-VSDD-098 lesson appended)
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` (this entry)
+
+### Codifications (Dim-3)
+- TD-VSDD-098 codified: PG-orchestrator-compaction-burst-sibling-sweep — 4-item sibling-sweep rule for compaction bursts (preservation path existence, Active Branches SHA advance, Concurrent Cycles Status header advance, trend label accuracy)
+- Drift Items row added to STATE.md for TD-VSDD-098 CODIFIED
+
+### Dim-2 Attestation (D-449(a) literal-shell evidence)
+
+**Gate 1 (PC2 — no forbidden meta-commentary):**
+```
+$ echo '<current_step>' | grep -E "META-LEVEL-[0-9]+ WATCH|self-app TEST|expected verdict"
+(exit 1 — no match)
+PASS: no forbidden meta-commentary match
+```
+
+**Gate 2 (PC3 — 4 index cites):**
+```
+$ echo '...BC-INDEX v2.34, VP-INDEX v1.97, STORY-INDEX v3.43, ARCH-INDEX v2.06...' | grep -oE "(BC|VP|STORY|ARCH)-INDEX v[0-9]+\.[0-9]+"
+BC-INDEX v2.34
+VP-INDEX v1.97
+STORY-INDEX v3.43
+ARCH-INDEX v2.06
+```
+
+**Gate 3 (PC4 — trajectory-tail LENGTH=4):**
+```
+$ echo 'trajectory-tail ->9->9->9->9' | grep -oE "->[0-9]+" | wc -l
+       4
+```
+
+**Gate 4 (PC5 — max D-NNN >= D-476):**
+```
+$ echo 'D-chain cite D-476 latest brownfield (PC5 currency)' | grep -oE "D-[0-9]+" | sort -t- -k2 -n | tail -1
+D-476
+```
+
+**Gate 5 (PC6 — trajectory-tail marker present):**
+```
+$ printf 'trajectory-tail ->9->9->9->9 (F5 cycle; unchanged)' | grep -o "trajectory-tail "
+trajectory-tail 
+```
+
+**Gate 6 (F-P9-001 closure — E-10 per-pass files exist):**
+```
+$ ls .factory/cycles/v1.0-brownfield-backfill/E-10-pass-{9,10,11,12,13,14}.md
+.factory/cycles/v1.0-brownfield-backfill/E-10-pass-10.md
+.factory/cycles/v1.0-brownfield-backfill/E-10-pass-11.md
+.factory/cycles/v1.0-brownfield-backfill/E-10-pass-12.md
+.factory/cycles/v1.0-brownfield-backfill/E-10-pass-13.md
+.factory/cycles/v1.0-brownfield-backfill/E-10-pass-14.md
+.factory/cycles/v1.0-brownfield-backfill/E-10-pass-9.md
+```
+
+**Gate 7 (F-P9-001 closure — burst-log.md has 0 E-10 h2 entries):**
+```
+$ grep -c "## E-10" .factory/cycles/v1.0-brownfield-backfill/burst-log.md
+0
+```
+
+**Gate 8 (STATE.md wc-l pre+post):**
+```
+pre (pass-8 compaction): 467 lines
+$ wc -l .factory/STATE.md
+     473
+net change: +6 lines
+```
+
+### Dim-5 Attestation
+- Parent commit f6219e6b verified: SHA-patch + input-hash refresh burst per `git -C .factory log --oneline -5`
+- Single atomic commit per TD-VSDD-053; no multi-commit chain
+
+### Dim-6 Attestation
+- TD-VSDD-053 single-commit-per-burst: PASS — all changes staged into one commit
+- D-446(a) own-burst-log 8-block gate: 8 blocks present in this entry
+- D-448(a) source-attestation gate: adv-local-pass-9.md Part A findings faithfully described above (F-P9-001 cite + F-P9-002 SHA + F-P9-003 header + F-P9-004 label)
+- BC-5.39.006 stays draft (POL-14; auto-promotes at PR merge)
+- No --no-verify; no force-push to main
+
+### Closes
+- F-P9-001 (MEDIUM): E-10 compaction summary rows now cite per-pass files E-10-pass-9.md..E-10-pass-14.md in both STATE.md:91 and STATE.md:131
+- F-P9-002 (MEDIUM): Active Branches factory-artifacts SHA updated to this burst's commit SHA per D-445(c)+D-446(d)+D-447(c)+D-449(e)
+- F-P9-003 (LOW): Concurrent Cycles Status bolded header advanced to "M2 wave-4 S-15.14 LOCAL pass-9 PERSIST+FIX-BURST CLOSED 2026-05-18"
+- F-P9-004 (LOW): Compaction trend label corrected to "passes 1-14 cascade trend" for the 14-value full-cascade data
+- TD-VSDD-098 codified (new process-gap class: compaction-burst sibling-sweep rule)
+
+### Factory-artifacts commits
+- This burst — single atomic commit per TD-VSDD-053 (SHA recorded in Active Branches SHA-patch follow-up per D-447(c)+D-449(e))

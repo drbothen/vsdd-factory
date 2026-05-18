@@ -1717,3 +1717,32 @@ Output must be captured and cited verbatim in the inline comment (or in the comm
 
 - **F-P7-001 [replacement-regression] CLOSED 2026-05-18** — state-manager fix burst restored D-chain cite to D-476 in STATE.md current_step per BC-5.39.006 v1.2 PC5; TD-VSDD-097 extended here; 5-PC dispatch rule recorded in §3 User Directive carry-forward.
 - **S-15.14 cascade report reference:** `.factory/code-delivery/S-15.14/adv-local-pass-7.md` — F-P7-001 source document.
+
+---
+
+### PG-orchestrator-compaction-burst-sibling-sweep (TD-VSDD-098)
+
+**Date:** 2026-05-18
+**Discovered:** S-15.14 LOCAL adversary pass-9 findings F-P9-001 + F-P9-002 + F-P9-003
+
+**Issue:** Pass-8 STATE.md compaction burst introduced 3 sibling-sweep defects:
+- Compaction summary rows mis-cited E-10 pass-9..14 preservation location (burst-log.md vs per-pass files)
+- Active Branches factory-artifacts SHA-advance missed (still pass-7 SHA after pass-8 compaction)
+- Concurrent Cycles Status header bold-summary stale at pass-3 (not advanced across 5 bursts)
+- Compaction trend label inaccurate (claimed "passes 9-14" but data was full 14-pass cascade)
+
+**Root cause:** Orchestrator's compaction-burst dispatch template did NOT instruct state-manager to:
+(a) verify cited preservation paths exist via literal shell BEFORE committing
+(b) advance Active Branches row SHA to compaction-burst HEAD per D-445(c)+D-446(d)+D-447(c)+D-449(e)
+(c) advance Concurrent Cycles Status bolded-summary header at every persist burst
+(d) verify compaction summary labels (trend, count, etc.) match source data exactly
+
+**Going-forward rule:** Compaction bursts MUST include sibling-sweep verification of:
+1. Every cited preservation path: `ls <cited-path> && grep <expected-content-marker> <cited-path>` to prove existence + faithfulness
+2. Active Branches factory-artifacts row SHA advance to current burst HEAD
+3. Concurrent Cycles Status bolded-summary header advance to current persist burst
+4. Trend labels match data (cardinality + range)
+
+**Cross-reference:** TD-VSDD-095/096/097 (TDD micro-commit + literal-evidence + dispatch-template canonical-marker) form a triplet of orchestrator-dispatch-template completeness gaps. TD-VSDD-098 extends to compaction-burst-specific scope.
+
+**Closes:** F-P9-001, F-P9-002, F-P9-003 (process-gap class)
