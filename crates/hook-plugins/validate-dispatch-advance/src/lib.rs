@@ -352,43 +352,54 @@ fn check_index_version_cites(current_step_value: &str) -> Option<Violation> {
 
 /// Check that trajectory-tail in `current_step:` contains exactly 4 `→(\d+)` matches.
 ///
-/// Scoping: when `current_step_value` contains the literal prefix
-/// `trajectory-tail `, counting is scoped to the substring that starts at that
-/// prefix and ends at the first `;` or end-of-string — isolating the canonical
-/// `→N→N→N→N` run from incidental `→NNN` patterns elsewhere in the value (e.g.,
-/// `TD-VSDD-064/065→095/096` TD-renumber references). This prevents false-positive
-/// fires on valid STATE.md content that uses `→NNN` TD-reference notation
-/// (F-P2-006 production false-positive fix).
+/// # BC-5.39.006 v1.2 PC 6 + invariant 6 — prefix-mandatory semantics
 ///
-/// When no `trajectory-tail ` prefix is found, falls back to global count (preserves
-/// compatibility with unit tests that use bare `→N→N→N→N` strings).
+/// The literal prefix `trajectory-tail ` (with trailing space) MUST be present
+/// in `current_step_value`. Absence is itself a HARD violation — the LENGTH
+/// count is skipped entirely when the prefix is absent (prefix-absent block fires
+/// first; no fallback to global count).
 ///
-/// Uses hand-rolled scanning for the `→` character (U+2192, 3 UTF-8 bytes)
-/// followed immediately by one or more ASCII digits.
+/// When the prefix IS present, counting is scoped to the substring that starts
+/// at the prefix and ends at the first `;` (segment separator) or end-of-string —
+/// isolating the canonical `→N→N→N→N` run from incidental `→NNN` patterns
+/// elsewhere in the value (e.g., `TD-VSDD-064/065→095/096` TD-renumber
+/// references). This prevents false-positive fires on valid STATE.md content
+/// that uses `→NNN` TD-reference notation (F-P2-006 production false-positive fix).
 ///
-/// If count != 4: returns `Some(Violation)` naming actual count and required
-/// count (4), citing D-451(c).
-///
-/// # UTF-8 note
-/// The arrow `→` is U+2192, encoded as `\xE2\x86\x92` in UTF-8. Hand-rolled
-/// scanning uses `char_indices()` iteration on `&str` chars to avoid byte-index
-/// boundary issues. No raw byte slicing performed here.
+/// # UTF-8 / slice-safety note
+/// `str::find` returns a byte index. `prefix.len()` is the UTF-8 byte length of
+/// the ASCII string `"trajectory-tail "` (all single-byte chars), so
+/// `idx + prefix.len()` is always a valid char boundary by construction — no
+/// additional `.get(..)` guard is required.
 ///
 /// # BC trace
-/// BC-5.39.006 postcondition 4; D-451(c); AC-5/AC-6; invariant 6.
+/// BC-5.39.006 v1.2 postcondition 6; D-451(c)/F-P3-006/EC-023; AC-22; invariant 6.
 fn check_trajectory_tail_length(current_step_value: &str) -> Option<Violation> {
-    // Scope counting to the trajectory-tail segment when the canonical prefix
-    // is present, avoiding false-positive fires on →NNN TD-renumber references.
-    let scan_target: &str = if let Some(tail_start) = current_step_value.find("trajectory-tail ") {
-        let after_prefix = &current_step_value[tail_start..];
-        // Extent ends at the first `;` (segment separator) or end-of-string.
-        match after_prefix.find(';') {
-            Some(semi_pos) => &after_prefix[..semi_pos],
-            None => after_prefix,
+    const PREFIX: &str = "trajectory-tail ";
+
+    // BC-5.39.006 v1.2 PC 6 + invariant 6: prefix MANDATORY.
+    // Absence is a HARD violation; LENGTH count does NOT run when prefix absent.
+    let idx = match current_step_value.find(PREFIX) {
+        Some(i) => i,
+        None => {
+            return Some(Violation {
+                description: "current_step missing 'trajectory-tail ' canonical marker; \
+                              D-451(c)/F-P3-006/EC-023"
+                    .to_string(),
+                cited_raw: current_step_value.chars().take(120).collect::<String>(),
+            });
         }
-    } else {
-        current_step_value
     };
+
+    // Slice safety: idx is from find(), PREFIX.len() is pure ASCII — idx + PREFIX.len()
+    // is a valid char boundary by construction.
+    let scoped_from_prefix = &current_step_value[idx + PREFIX.len()..];
+    // Extent ends at the first `;` (segment separator) or end-of-string.
+    let scan_target = match scoped_from_prefix.find(';') {
+        Some(semi_pos) => &scoped_from_prefix[..semi_pos],
+        None => scoped_from_prefix,
+    };
+
     let count = count_arrow_digit_matches(scan_target);
     if count == 4 {
         return None;
@@ -1055,13 +1066,17 @@ mod tests {
         );
     }
 
-    // -- Trajectory-tail length tests --
+    // -- Trajectory-tail length tests (BC-5.39.006 v1.2 PC 6 + invariant 6) --
+    //
+    // All LENGTH tests must include the `trajectory-tail ` prefix; prefix absence
+    // is now a separate hard violation (F-P3-006/EC-023). Tests that exercise the
+    // LENGTH path must supply a well-formed prefix so the scoped count runs.
 
     #[test]
     fn test_trajectory_tail_length_3() {
         let v = check_trajectory_tail_length(
             "BC-INDEX v1.14, VP-INDEX v1.8, STORY-INDEX v1.12, ARCH-INDEX v1.9 \
-             →9→9→9 D-382..D-477",
+             trajectory-tail →9→9→9 D-382..D-477",
         );
         assert!(v.is_some(), "tail has 3 components — should violate");
         let v = v.unwrap();
@@ -1079,7 +1094,7 @@ mod tests {
     fn test_trajectory_tail_length_5() {
         let v = check_trajectory_tail_length(
             "BC-INDEX v1.14, VP-INDEX v1.8, STORY-INDEX v1.12, ARCH-INDEX v1.9 \
-             →9→9→9→9→9 D-382..D-477",
+             trajectory-tail →9→9→9→9→9 D-382..D-477",
         );
         assert!(v.is_some(), "tail has 5 components — should violate");
         let v = v.unwrap();
@@ -1093,11 +1108,79 @@ mod tests {
     fn test_trajectory_tail_length_4() {
         let v = check_trajectory_tail_length(
             "BC-INDEX v1.14, VP-INDEX v1.8, STORY-INDEX v1.12, ARCH-INDEX v1.9 \
-             →9→9→9→9 D-382..D-477",
+             trajectory-tail →9→9→9→9 D-382..D-477",
         );
         assert!(
             v.is_none(),
             "tail has exactly 4 components — should not violate"
+        );
+    }
+
+    // -- Trajectory-tail prefix-absent tests (BC-5.39.006 v1.2 PC 6 / F-P3-006 / EC-023) --
+
+    #[test]
+    fn test_trajectory_tail_prefix_absent_is_hard_violation() {
+        // BC v1.2 PC 6: absence of `trajectory-tail ` prefix is itself a violation.
+        // LENGTH count must NOT run; the prefix-absent block fires instead.
+        let v = check_trajectory_tail_length(
+            "BC-INDEX v1.14, VP-INDEX v1.8, STORY-INDEX v1.12, ARCH-INDEX v1.9 \
+             →9→9→9→9 D-382..D-477",
+        );
+        assert!(
+            v.is_some(),
+            "prefix absent — should violate (EC-023 / F-P3-006)"
+        );
+        let v = v.unwrap();
+        assert!(
+            v.description.contains("trajectory-tail "),
+            "block message must name the missing canonical marker"
+        );
+        assert!(
+            v.description.contains("F-P3-006"),
+            "block message must cite F-P3-006"
+        );
+        assert!(
+            v.description.contains("EC-023"),
+            "block message must cite EC-023"
+        );
+    }
+
+    #[test]
+    fn test_trajectory_tail_prefix_absent_length_3_still_prefix_violation() {
+        // Even if LENGTH would also be wrong (3 arrows), the prefix-absent
+        // violation fires first — LENGTH count is skipped entirely.
+        let v = check_trajectory_tail_length(
+            "BC-INDEX v1.14, VP-INDEX v1.8, STORY-INDEX v1.12, ARCH-INDEX v1.9 \
+             →9→9→9 D-382..D-477",
+        );
+        assert!(
+            v.is_some(),
+            "prefix absent — hard violation regardless of arrow count"
+        );
+        let v = v.unwrap();
+        // The description should name the missing marker, not the arrow count.
+        assert!(
+            v.description.contains("trajectory-tail "),
+            "description must call out missing canonical marker, not arrow count"
+        );
+    }
+
+    #[test]
+    fn test_trajectory_tail_prefix_present_length_3_fires_length_violation() {
+        // Prefix present but LENGTH=3 → LENGTH violation (not prefix-absent).
+        let v = check_trajectory_tail_length("trajectory-tail →9→9→9 D-382..D-477");
+        assert!(
+            v.is_some(),
+            "prefix present, LENGTH=3 — LENGTH violation expected"
+        );
+        let v = v.unwrap();
+        assert!(
+            v.description.contains('3'),
+            "block message must name actual count 3"
+        );
+        assert!(
+            !v.description.contains("canonical marker"),
+            "should be LENGTH violation, not prefix-absent violation"
         );
     }
 
