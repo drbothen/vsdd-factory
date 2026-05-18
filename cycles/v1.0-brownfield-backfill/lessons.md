@@ -1620,3 +1620,55 @@ Any hit is a prescribed sibling site. Zero hits = sweep complete. This grep must
 - **S-7.02 codification satisfied 2026-05-17** — F-P7-001 `[process-gap]` class from S-15.09 LOCAL adversary pass-7 codified here per S-7.02 Cycle-Closing Checklist step 3.
 - **Fix applied in S-15.09 pass-7 fix-burst:** story-writer applied same-burst self-cite sweep; zero remaining live body cites of v1.6 or earlier verified.
 - **S-15.09 cascade report reference:** `.factory/code-delivery/S-15.09/adv-local-pass-7.md` — F-P7-001 source document.
+
+---
+
+## PG-S-15.14-tdd-micro-commit-discipline
+
+**Source:** S-15.14 LOCAL adversary pass-1 F-P1-007 [process-gap]
+**Date:** 2026-05-17
+**Cross-reference:** TD-VSDD-064
+
+S-15.14 LOCAL adversary pass-1 F-P1-007 finding: implementer chunked all 6 performance criteria (PCs) into a single commit instead of per-PC micro-commits as required. CLAUDE.md routing-table specifies implementer = "one failing test → minimum code → micro-commit". The expected pattern for a multi-PC hook story is 3-6 commits, each scoped to a logical AC or PC group.
+
+### Root Cause
+
+Hook-implementer dispatch packages did not include an explicit reminder of the micro-commit discipline. The implementer treated the entire story as one atomic unit rather than decomposing it per the TDD protocol.
+
+### Lesson
+
+Going-forward: hook-implementer dispatches MUST commit per logical scope (3-6 commits for multi-PC stories). The dispatch package MUST include the instruction: "Commit after each logical AC group or performance criterion; do not batch the entire story into a single commit." Verified in S-15.14 fix-burst (7 micro-commits e4427df4..f20bbdab applied post-adversary).
+
+### Disposition
+
+- **F-P1-007 [process-gap] CLOSED 2026-05-17** — codified here per S-7.02 Cycle-Closing Checklist step 3; no code-level fix required (structural fix applied in fix-burst micro-commits).
+- **S-15.14 cascade report reference:** `.factory/code-delivery/S-15.14/adv-local-pass-1.md` — F-P1-007 source document.
+
+---
+
+## PG-S-15.14-registry-priority-literal-evidence
+
+**Source:** S-15.14 LOCAL adversary pass-1 F-P1-013 [process-gap]
+**Date:** 2026-05-17
+**Cross-reference:** TD-VSDD-065
+
+S-15.14 LOCAL adversary pass-1 F-P1-013 finding: `hooks-registry.toml` priority allocation inline comment used narrative-attested grep verification ("priority range 100-199 confirmed") without citing literal `file:line:` grep stdout. This is a META-LEVEL-24 D-449(a) self-application class: the comment claims a mechanical grep was run but does not show captured stdout.
+
+### Root Cause
+
+Registry priority allocation comments are produced by implementers who follow the D-449(a) discipline for burst-log Dim-2 blocks but do not apply the same standard to inline code comments. The inline comment is treated as narrative documentation rather than a mechanical attestation site.
+
+### Lesson
+
+Going-forward: registry priority allocation inline comments MUST cite literal `file:line:` grep stdout showing the full priority range in use for all co-registered hooks. The command pattern:
+
+```bash
+grep -n "^priority" plugins/vsdd-factory/hooks-registry.toml | grep -E "^[0-9]+:priority = 1[0-9]{2}"
+```
+
+Output must be captured and cited verbatim in the inline comment (or in the commit's burst-log Dim-2 if the registry itself is not the right place for multi-line stdout). Zero ambiguity in the citation form — `file:line: priority = NNN` format.
+
+### Disposition
+
+- **F-P1-013 [process-gap] CLOSED 2026-05-17** — codified here per S-7.02 Cycle-Closing Checklist step 3; no code-level fix required (priority range is correct; only evidence form was deficient).
+- **S-15.14 cascade report reference:** `.factory/code-delivery/S-15.14/adv-local-pass-1.md` — F-P1-013 source document.

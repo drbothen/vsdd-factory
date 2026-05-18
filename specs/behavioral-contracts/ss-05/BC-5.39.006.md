@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: product-owner
 timestamp: 2026-05-17T00:00:00Z
@@ -31,10 +31,10 @@ removed: null
 removal_reason: null
 bc_id: BC-5.39.006
 section: "5.39"
-last_amended: "2026-05-17 (v1.0) — Initial authoring (product-owner; brownfield-backfill S-15.03 M2 wave-4 story authoring). Anchors D-440(a)+D-441(a)+D-442(a)+D-443(a)+D-439(b)+D-441(b)+D-451(c). BC-5.39.006 allocated as next monotonic ID after BC-5.39.005 in ss-05/. lifecycle_status: draft (POL-14 auto-promotion to active on S-15.14 merge)."
+last_amended: "2026-05-17 (v1.1) — Spec amendments closing F-P1-001 (invariant 7 D-chain pattern relaxed to D-(\\d+) max-extraction; literal D-382..D- prefix requirement dropped; production current_step uses prose cite D-476 not range prefix), F-P1-002 (invariant 8 scoped to rows under ## Adversarial Reviews h2 heading only; canonical schema corrected from 6-column to 5-column per D-442(b); historical pre-D-441(b) rows grandfathered; precondition added), F-P1-003 (pipe arithmetic corrected: 5-column row = 6 pipes total; erroneous '8 pipes / 7 internal' formula replaced), F-P1-008 (implementer paper-fix via test-comment overriding spec now has authoritative spec text to match). EC-013 and EC-014 pipe counts realigned. [Prior: 2026-05-17 (v1.0) — Initial authoring (product-owner; brownfield-backfill S-15.03 M2 wave-4 story authoring). Anchors D-440(a)+D-441(a)+D-442(a)+D-443(a)+D-439(b)+D-441(b)+D-451(c). BC-5.39.006 allocated as next monotonic ID after BC-5.39.005 in ss-05/. lifecycle_status: draft (POL-14 auto-promotion to active on S-15.14 merge).]"
 ---
 
-# BC-5.39.006: validate-dispatch-advance WASM hook MUST block on forbidden meta-commentary in current_step, missing 4-index version citations, trajectory-tail cardinality violations, stale D-chain cites in STATE.md, and non-6-column adversary-pass rows in INDEX.md
+# BC-5.39.006: validate-dispatch-advance WASM hook MUST block on forbidden meta-commentary in current_step, missing 4-index version citations, trajectory-tail cardinality violations, stale D-chain cites in STATE.md, and non-5-column adversary-pass rows in the INDEX.md ## Adversarial Reviews section
 
 ## Description
 
@@ -66,6 +66,11 @@ rather than at write time.
    `/some/dir/xSTATE.md` MUST NOT match), OR on a file whose `file_name` path component is
    exactly `INDEX.md` (same path-component-strict guard:
    `Path::new(file_path).file_name() == Some("INDEX.md")`).
+5. For the INDEX.md arm: column-count validation applies only to rows inside the
+   `## Adversarial Reviews` h2 section (exact heading text). Rows under any other h2 heading
+   (e.g., `## S-6.01 Sub-cycle Adversarial Reviews`, `## E-10 Spec-Package Adversarial Reviews`,
+   `## S-15.08 LOCAL Adversary Reviews`) are out of scope and MUST NOT be validated for column
+   count.
 2. The dispatcher has invoked the `validate-dispatch-advance` WASM plugin with the write payload.
 3. The file content is read via `host::read_file` (filesystem-authoritative). The hook does NOT
    inspect the payload's `tool_input.content` field; the filesystem value is the source of truth
@@ -107,11 +112,13 @@ rather than at write time.
 
 ### INDEX.md path (file_name == "INDEX.md")
 
-8. If every adversary-pass row in the INDEX.md content is a 6-column table row, the hook emits
-   `HookResult::Continue` (pass).
-9. If any adversary-pass row has a column count other than 6, the hook emits
-   `HookResult::BlockWithFix` naming the row (by h2 context or line position), the actual
-   column count, the required count (6), and citing D-441(b).
+8. If every in-scope adversary-pass row in the `## Adversarial Reviews` h2 section of INDEX.md
+   is a 5-column table row (6 pipe characters), OR if the section uses a 4-column header (grandfathered
+   historical schema), the hook emits `HookResult::Continue` (pass).
+9. If any in-scope adversary-pass row in a 5-column-header `## Adversarial Reviews` section has a
+   column count other than 5 (pipe count other than 6), the hook emits `HookResult::BlockWithFix`
+   naming the row (by h2 context or line position), the actual column count, the required count (5),
+   and citing D-441(b)/D-442(b).
 10. If `host::read_file` returns an error for INDEX.md (HostError of any kind), the hook emits
     `HookResult::Continue` and logs a warning via `host::log_warn` — fail-open.
 
@@ -136,20 +143,70 @@ rather than at write time.
 6. Trajectory-tail detection within `current_step:` uses regex `→(\d+)` applied globally to
    the `current_step:` value. The match count must equal exactly 4. A tail with 3 matches
    (LENGTH=3) or 5 matches (LENGTH=5) is a violation per D-451(c).
-7. D-chain currency validation: the `current_step:` value MUST contain a D-chain range citation
-   of the form `D-382..D-N` where N >= the latest D-NNN codified in the cycle. Since the hook
-   cannot load the full decision-log at WASM runtime, the staleness check is: if the `current_step:`
-   does NOT contain the pattern `D-382\.\.D-\d+`, the cite is absent and is a violation. If the
-   pattern is present, the hook records the terminal integer. Cross-burst staleness (terminal
-   integer below the latest known D-NNN) is detected by comparing against the highest D-NNN
-   observable in STATE.md itself (e.g., in the Decisions Log table rows). If no D-NNN appears
-   higher than the terminal integer in `current_step:`, the cite is treated as current. This
-   design is fail-open for staleness to avoid false-positive blocks on legitimate in-progress
-   writes; the adversary cycle catches genuine staleness at pass time.
-8. Adversary-pass row column detection in INDEX.md: row detection uses `|` pipe-count per line.
-   A line whose trimmed content begins and ends with `|` and whose `|` count is not 8 (i.e.,
-   7 internal pipes = 6 columns + 2 border pipes) is a violation row. Header rows (`| --- |`
-   pattern) and non-row lines are excluded from validation.
+7. D-chain currency validation: the `current_step:` value MUST contain at least one `D-\d+`
+   reference. The hook extracts ALL `D-(\d+)` integers from the `current_step:` value using
+   regex `D-(\d+)` applied globally, takes the maximum integer found (call it `max_cited`), and
+   compares it against the highest `D-(\d+)` integer observable anywhere in STATE.md (call it
+   `max_in_file`). If no `D-\d+` reference appears in `current_step:` at all, the cite is absent
+   and is a violation. If `max_cited` is present but `max_cited < max_in_file`, the cite is
+   stale and is a violation. If `max_cited >= max_in_file`, the cite is current. The literal
+   prefix `D-382..` is NOT required — production `current_step:` fields use prose forms such as
+   `D-chain cite D-476 latest brownfield` which are valid under this rule as long as the extracted
+   maximum integer is >= the maximum D-NNN visible in STATE.md. This design is fail-open for
+   staleness when no D-NNN appears in STATE.md body at a higher integer than `current_step:` cites,
+   to avoid false-positive blocks on legitimate in-progress writes; the adversary cycle catches
+   genuine staleness at pass time.
+
+   **Pre-fix verification (LL-3 verbatim stdout):**
+   ```
+   $ grep -n "current_step:" /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md | grep -oE 'D-[0-9]+'
+   D-419
+   D-420
+   D-421
+   D-476
+   D-417
+   D-394
+   ```
+   Maximum D-NNN in current_step: D-476. Amended invariant 7 matches this production form — `D-476`
+   is a bare cite (no `D-382..` prefix), correctly extracted by `D-(\d+)` regex. Zero false positives.
+
+8. Adversary-pass row column detection in INDEX.md: validation applies ONLY to rows that appear
+   under the `## Adversarial Reviews` h2 heading (exact heading text per production INDEX.md files).
+   A row is in scope if it appears after the line `## Adversarial Reviews` and before the next h2
+   heading (`^## `). Within that section, a line whose trimmed content begins and ends with `|` is
+   a candidate row. Separator rows (`| --- |` or `|---` pattern) are excluded. The canonical
+   column schema for NEW rows added after D-441(b)/D-442(b) codification is 5 columns
+   (`| Pass | Date | Findings Count | Verdict | File |`), which corresponds to 6 pipe characters
+   (`|` count = 6; i.e., 1 leading + 4 internal separators + 1 trailing = 6 pipes for 5 columns).
+   A candidate row whose pipe count is not 6 (i.e., not 5 columns) is a violation row.
+   Historical pre-D-441(b) rows that use 4-column schema (5 pipes; `| Pass | Date | Findings | Status |`)
+   are grandfathered: the validator skips any row in the `## Adversarial Reviews` section that
+   matches the 4-column separator pattern `|------|------|----------|--------|` or any data row
+   whose pipe count is 5 AND whose section predates D-441(b) codification. Since the hook cannot
+   determine row creation date at runtime, the practical rule is: if the section's header row
+   (first non-separator `|` row after `## Adversarial Reviews`) has pipe count 5 (4-column schema),
+   treat all rows in that section as grandfathered-historical and skip column validation for them.
+   If the header row has pipe count 6 (5-column schema), enforce 6-pipe (5-column) compliance on
+   all subsequent non-separator rows in that section.
+
+   **Pre-fix verification (LL-3 verbatim stdout):**
+   ```
+   $ python3 -c "
+   import re
+   for path, label in [
+       ('/Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-brownfield-backfill/INDEX.md', 'brownfield'),
+       ('/Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-feature-engine-discipline-pass-1/INDEX.md', 'EDP1'),
+   ]:
+       with open(path) as f: content = f.read()
+       m = re.search(r'^## Adversarial Reviews$.*?(?=^## |\Z)', content, re.MULTILINE|re.DOTALL)
+       if m:
+           rows = [l for l in m.group(0).split('\n') if l.startswith('|')]
+           print(f'{label}: first_header_row pipes={rows[0].count(\"|\")} -> schema={(rows[0].count(\"|\") - 1)}-col')
+   "
+   brownfield: first_header_row pipes=5 -> schema=4-col  (grandfathered; skip column validation)
+   EDP1:       first_header_row pipes=6 -> schema=5-col  (enforce 6-pipe compliance on data rows)
+   ```
+   Zero false positives on existing historical 4-col brownfield rows. EDP1 5-col rows comply (pipes=6).
 9. All `host::read_file` calls are fail-open: read errors produce Continue + log_warn, not Block.
    The total timeout budget is bounded by the registry `timeout_ms = 5000` limit.
 10. All byte-index slice expressions operating on content strings MUST use `is_char_boundary()`
@@ -168,15 +225,15 @@ rather than at write time.
 | EC-005 | `current_step:` has all 4 index cites | Continue for index-cite check; validate other conditions |
 | EC-006 | `current_step:` trajectory-tail has 3 `→N` groups (LENGTH=3) | BlockWithFix: "trajectory-tail has 3 components; required LENGTH=4 per D-451(c)" |
 | EC-007 | `current_step:` trajectory-tail has 5 `→N` groups (LENGTH=5) | BlockWithFix: "trajectory-tail has 5 components; required LENGTH=4 per D-451(c)" |
-| EC-008 | `current_step:` has no D-chain cite matching `D-382..D-N` | BlockWithFix citing absent D-chain cite; D-443(a) |
-| EC-009 | `current_step:` has `D-382..D-476` but STATE.md Decisions Log table shows row D-477 | BlockWithFix citing stale D-chain; D-443(a); terminal integer 476 < latest 477 |
-| EC-010 | `current_step:` has `D-382..D-477`; highest D-NNN in STATE.md body is 476 | Continue for D-chain cite (current per invariant 7 fail-open staleness check) |
+| EC-008 | `current_step:` contains no `D-\d+` reference at all | BlockWithFix citing absent D-chain cite; D-443(a) |
+| EC-009 | `current_step:` contains `D-476` (max extracted integer 476); STATE.md Decisions Log table shows row D-477 | BlockWithFix citing stale D-chain; D-443(a); max_cited=476 < max_in_file=477 |
+| EC-010 | `current_step:` contains `D-chain cite D-477`; highest D-NNN in STATE.md body is 476 | Continue for D-chain cite (max_cited=477 >= max_in_file=476; current per invariant 7) |
 | EC-011 | All `current_step:` validations pass | Continue |
 | EC-012 | All 4 STATE.md validations fail simultaneously | Single BlockWithFix enumerating all 4 violation classes |
-| EC-013 | INDEX.md adversary-pass row has 5 columns (7 pipe characters including borders) | BlockWithFix naming row, actual count=5, required=6; D-441(b) |
-| EC-014 | INDEX.md adversary-pass row has 7 columns (9 pipe characters including borders) | BlockWithFix naming row, actual count=7, required=6; D-441(b) |
-| EC-015 | INDEX.md adversary-pass row has exactly 6 columns | Continue |
-| EC-016 | INDEX.md contains multiple rows; 1 of 5 rows has 5 columns | BlockWithFix naming the non-conforming row |
+| EC-013 | INDEX.md adversary-pass row (in `## Adversarial Reviews` section with 5-col header) has 4 columns (5 pipe characters total) | BlockWithFix naming row, actual count=4, required=5; D-441(b)/D-442(b) |
+| EC-014 | INDEX.md adversary-pass row (in `## Adversarial Reviews` section with 5-col header) has 6 columns (7 pipe characters total) | BlockWithFix naming row, actual count=6, required=5; D-441(b)/D-442(b) |
+| EC-015 | INDEX.md adversary-pass row has exactly 5 columns (6 pipe characters total) in a 5-col-header section | Continue |
+| EC-016 | INDEX.md contains multiple rows in 5-col-header section; 1 of 5 rows has 4 columns | BlockWithFix naming the non-conforming row |
 | EC-017 | `host::read_file` returns HostError::CapabilityDenied for STATE.md | Continue + log_warn; fail-open |
 | EC-018 | `host::read_file` returns HostError::Timeout for INDEX.md | Continue + log_warn; fail-open |
 | EC-019 | File path is `/some/dir/xSTATE.md` (ends_with "STATE.md" but file_name differs) | Continue (is_state_md_target returns false; path-component-strict guard) |
@@ -188,15 +245,16 @@ rather than at write time.
 
 | Scenario | Input Condition | Expected Hook Output | Decision |
 |----------|----------------|---------------------|----------|
-| All STATE.md valid | `current_step:` — no forbidden patterns; all 4 index cites present; tail `→9→9→9→9`; D-382..D-477 with D-477 = max in STATE.md | `HookResult::Continue` | PASS |
+| All STATE.md valid | `current_step:` — no forbidden patterns; all 4 index cites present; tail `→9→9→9→9`; contains `D-476` (max extracted); D-476 = max D-NNN in STATE.md body | `HookResult::Continue` | PASS |
 | META-LEVEL WATCH in current_step | `current_step:` contains `META-LEVEL-5 WATCH: ...` | `HookResult::BlockWithFix` citing forbidden pattern | BLOCK |
 | Missing ARCH-INDEX cite | `current_step:` has 3 of 4 index cites (ARCH-INDEX absent) | `HookResult::BlockWithFix` naming missing ARCH-INDEX cite | BLOCK |
 | Tail LENGTH=3 in current_step | `current_step:` has tail `→9→9→9` (3 components) | `HookResult::BlockWithFix` citing 3 vs required 4 | BLOCK |
-| Stale D-chain | `current_step:` cites `D-382..D-476`; STATE.md Decisions Log shows D-477 | `HookResult::BlockWithFix` citing stale D-chain | BLOCK |
+| Stale D-chain | `current_step:` contains `D-476` (max extracted); STATE.md Decisions Log shows D-477 row | `HookResult::BlockWithFix` citing stale D-chain (max_cited=476 < max_in_file=477) | BLOCK |
 | All 4 STATE.md violations | Forbidden pattern + missing 2 index cites + tail LENGTH=5 + stale D-chain | Single `HookResult::BlockWithFix` enumerating all violations | BLOCK |
-| INDEX.md 5-column row | INDEX.md adversary-pass table row with 5 columns | `HookResult::BlockWithFix` naming row, citing D-441(b) | BLOCK |
-| INDEX.md 7-column row | INDEX.md adversary-pass table row with 7 columns | `HookResult::BlockWithFix` naming row, citing D-441(b) | BLOCK |
-| INDEX.md all rows 6 columns | INDEX.md adversary-pass rows all 6-column compliant | `HookResult::Continue` | PASS |
+| INDEX.md 4-column row in 5-col-header section | `## Adversarial Reviews` section has 5-col header; a data row has 4 columns (5 pipes) | `HookResult::BlockWithFix` naming row, actual=4, required=5; citing D-441(b)/D-442(b) | BLOCK |
+| INDEX.md 6-column row in 5-col-header section | `## Adversarial Reviews` section has 5-col header; a data row has 6 columns (7 pipes) | `HookResult::BlockWithFix` naming row, actual=6, required=5; citing D-441(b)/D-442(b) | BLOCK |
+| INDEX.md all rows 5 columns in 5-col-header section | `## Adversarial Reviews` section with 5-col header; all data rows 5-column compliant | `HookResult::Continue` | PASS |
+| INDEX.md 4-col-header section (grandfathered) | `## Adversarial Reviews` section has 4-col header; all rows 4-column | `HookResult::Continue` (grandfathered historical schema; no column validation) | PASS |
 | Read failure STATE.md | `host::read_file` returns HostError::CapabilityDenied | `HookResult::Continue` + `host::log_warn` | PASS (fail-open) |
 | Read failure INDEX.md | `host::read_file` returns HostError::Timeout | `HookResult::Continue` + `host::log_warn` | PASS (fail-open) |
 | xSTATE.md path | file_name is "xSTATE.md" | `HookResult::Continue` (is_state_md_target false) | PASS (not target) |
@@ -211,7 +269,8 @@ rather than at write time.
 | D-442(a) | Prescribed clause order / completeness — forbidden-pattern gate prevents rogue clause reordering markers | PC2 |
 | D-443(a) | D-chain cite currency gate — stale cite blocked | PC5 |
 | D-439(b) | All 4 index version patterns present in `current_step:` | PC3 |
-| D-441(b) | 6-column INDEX.md adversary-pass row schema strict | PC9 |
+| D-441(b) | 5-column INDEX.md adversary-pass row schema (per D-442(b) scope clarification) strict within `## Adversarial Reviews` h2 section | PC9 |
+| D-442(b) | INDEX.md `## Adversarial Reviews` = 5-column canonical schema; historical 4-col rows grandfathered | PC8/PC9 |
 | D-451(c) | Trajectory-tail LENGTH=4 derived from `current_step:` | PC4 |
 
 ## Verification Properties
@@ -237,7 +296,7 @@ VP IDs are pending VP-INDEX allocation by state-manager at post-merge burst.
 | L2 Capability | E-12 (Engine Governance — dispatch-advance structural validation automation sub-capability) |
 | Capability Anchor Justification | E-12 governs factory engine discipline automation. This BC formalizes the PostToolUse gate that mechanically prevents the `current_step:` meta-commentary, missing 4-index-cite, trajectory-tail cardinality, stale D-chain, and INDEX.md column-count violation classes codified in D-440(a), D-441(a), D-442(a), D-443(a), D-439(b), D-441(b), and D-451(c). The hook targets STATE.md frontmatter writes and INDEX.md adversary-pass table writes — both governance artifacts, not runtime subsystem artifacts. |
 | Architecture Module | `crates/hook-plugins/validate-dispatch-advance/` (Rust WASM plugin); `plugins/vsdd-factory/hooks-registry.toml` (registry entry); `plugins/vsdd-factory/hook-plugins/validate-dispatch-advance.wasm` (compiled binary) |
-| D-NNN Sub-Clauses Closed | D-440(a) (forbidden meta-commentary gate); D-441(a) (verbatim-strict `current_step:` — meta-commentary arm); D-442(a) (prescribed clause order — meta-commentary arm); D-443(a) (D-chain cite currency gate); D-439(b) (4-index version cite presence); D-441(b) (6-column INDEX.md adversary-pass row schema); D-451(c) (trajectory-tail LENGTH=4 in `current_step:`) |
+| D-NNN Sub-Clauses Closed | D-440(a) (forbidden meta-commentary gate); D-441(a) (verbatim-strict `current_step:` — meta-commentary arm); D-442(a) (prescribed clause order — meta-commentary arm); D-443(a) (D-chain cite currency gate — relaxed to D-(\d+) max-extraction per F-P1-001); D-439(b) (4-index version cite presence); D-441(b) (5-column INDEX.md adversary-pass row schema within `## Adversarial Reviews` h2 section); D-442(b) (INDEX.md `## Adversarial Reviews` canonical 5-column schema; historical 4-col grandfathered); D-451(c) (trajectory-tail LENGTH=4 in `current_step:`) |
 | Stories | S-15.14 |
 
 ## Related BCs
@@ -271,4 +330,5 @@ S-15.14 — v1.0-brownfield-backfill (S-15.03 PRIORITY-A M2 Wave-4)
 
 | Version | Date | Description |
 |---------|------|-------------|
+| 1.1 | 2026-05-17 | Spec amendments closing S-15.14 LOCAL adversary pass-1 findings routed to product-owner. F-P1-001: invariant 7 D-chain pattern relaxed — replaced literal `D-382..D-N` prefix requirement with `D-(\d+)` max-extraction; production `current_step:` uses prose form `D-chain cite D-476` not range prefix; zero false positives verified via grep stdout. F-P1-002: invariant 8 scoped to rows under `## Adversarial Reviews` h2 heading only (exact heading per production INDEX.md); canonical schema corrected from 6-column/8-pipe to 5-column/6-pipe per D-442(b) scope clarification; historical pre-D-441(b) 4-column rows grandfathered via header-row schema detection; verified via python3 stdout showing brownfield=4-col grandfathered, EDP1=5-col enforced. F-P1-003 + F-P1-008: pipe arithmetic corrected throughout — `1 leading + 4 internal separators + 1 trailing = 6 pipes for 5 columns`; erroneous `7 internal pipes = 6 columns + 2 border pipes` formula removed; EC-013 and EC-014 pipe counts realigned. |
 | 1.0 | 2026-05-17 | Initial authoring (product-owner; brownfield-backfill S-15.03 M2 wave-4 story authoring). Anchors D-440(a)+D-441(a)+D-442(a)+D-443(a)+D-439(b)+D-441(b)+D-451(c). BC-5.39.006 allocated as next monotonic ID after BC-5.39.005 in ss-05/. lifecycle_status: draft (POL-14 auto-promotion to active on S-15.14 merge). Preemptive cascade lessons applied: path-component-strict guard for both STATE.md + INDEX.md arms (is_state_md_target + is_index_md_target); is_char_boundary() invariant 10; fail-open invariant 9; 524288 max_bytes matching BC-5.39.005 cap; D-chain currency invariant 7 fail-open design to prevent false-positive blocks on in-progress writes. |
