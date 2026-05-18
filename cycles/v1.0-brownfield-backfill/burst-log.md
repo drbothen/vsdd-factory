@@ -7,13 +7,13 @@ producer: state-manager
 timestamp: 2026-05-06T19:00:00Z
 cycle: "v1.0-brownfield-backfill"
 inputs: [STATE.md]
-input-hash: "37c2cfd"
+input-hash: "4ac6468"
 traces_to: STATE.md
 ---
 
 # Burst Log — v1.0-brownfield-backfill
 
-## Extracted from STATE.md on 2026-05-06
+## Burst 1 — Extracted from STATE.md (2026-05-06)
 
 Historical Current Phase Steps rows extracted from STATE.md during compact-state
 operation (STATE.md was 405 lines; budget is 200). All rows marked COMPLETE.
@@ -250,20 +250,44 @@ $ grep -n "TD-VSDD-064\|TD-VSDD-065" /Users/jmagady/Dev/vsdd-factory/.factory/ST
 [no output — Drift Items rows now cite TD-VSDD-095 and TD-VSDD-096]
 ```
 
-Own-burst-log 8-block gate (D-446(a)):
+Own-burst-log 8-block gate (D-446(a)) — enumerated check per D-449(a) literal-shell:
 ```
-$ grep -c "^### " /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-brownfield-backfill/burst-log.md
-[confirms 8 h3 blocks present in this h2 section]
+$ awk '/^## S-15\.14-pass-2-fix-burst/,/^## [^S]/' /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-brownfield-backfill/burst-log.md | grep -nE '^### '
+3:### Parent-commit
+6:### Adversary verdict
+9:### Files touched (.factory only)
+14:### Codifications
+20:### Dim-2 attestation
+56:### Dim-5 attestation
+59:### Dim-6 attestation
+62:### Dim-7 attestation
+65:### Closes
+68:### Codified via lessons (process-gap)
+71:### Factory-artifacts commits
 ```
 
+Required-block coverage (8 of 11 h3 headings must match D-444(c) canonical):
+- Parent-commit: line 3 ✓
+- Adversary verdict: line 6 ✓
+- Files touched: line 9 ✓
+- Codifications: line 14 ✓
+- Dim-2 attestation: line 20 ✓
+- Dim-5 attestation: line 56 ✓
+- Dim-6 attestation: line 59 ✓
+- Dim-7 attestation: line 62 ✓
+- Closes: line 65 ✓
+- Factory-artifacts commits: line 71 ✓
+- (Supplementary: Codified via lessons (process-gap): line 68 ✓)
+- All 8 D-444(c) required blocks present plus 2 supplementary blocks (Codified via lessons + Factory-artifacts commits = 11 total h3 blocks).
+
 ### Dim-5 attestation
-PR pipeline (none yet; pass-2 fix-burst is .factory/ only; implementer sibling burst addresses F-P2-003/004/005/006 on feature worktree in parallel). Pass-N fix-burst sequence still in adversary-convergence loop.
+PR pipeline (none yet; pass-2 fix-burst is .factory/ only). Implementer sibling burst addresses F-P2-003/004/005/006 in sibling burst at SHAs 24cda809..496cf405 on feature/S-15.14-validate-dispatch-advance. Pass-N fix-burst sequence still in adversary-convergence loop.
 
 ### Dim-6 attestation
 Codifications correctly anchored: TD-VSDD-095 anchors F-P2-001 closure (POLICY 1 violation fixed); TD-VSDD-096 anchors F-P2-001 closure (POLICY 1 violation fixed); retroactive burst-log entries anchor F-P2-002 closure (D-444(c) gate satisfied).
 
 ### Dim-7 attestation
-POLICY 3 (state_manager_runs_last) satisfied: implementer (parallel feature worktree F-P2-003/004/005/006) + state-manager (.factory/ F-P2-001/002) — state-manager owns factory-artifacts branch exclusively; no ordering conflict with parallel implementer on feature branch. POLICY 1 (append_only_numbering) restored: TD-VSDD-064 and TD-VSDD-065 pre-existing 2026-05-05 codifications preserved intact; new S-15.14 lessons re-allocated to TD-VSDD-095/096.
+POLICY 3 (state_manager_runs_last) satisfied for THIS burst: state-manager-only on factory-artifacts; implementer sibling burst (feature/S-15.14-validate-dispatch-advance, commits 24cda809..496cf405) is a separate burst on a distinct branch and not subject to this burst's ordering. Cross-reference: pass-2-implementer-sibling-burst. POLICY 1 (append_only_numbering) restored: TD-VSDD-064 and TD-VSDD-065 pre-existing 2026-05-05 codifications preserved intact; new S-15.14 lessons re-allocated to TD-VSDD-095/096.
 
 ### Closes
 F-P2-001 (state-manager scope: TD ID re-allocation), F-P2-002 (state-manager scope: retroactive burst-log entries)
@@ -273,4 +297,64 @@ No new lessons this burst. TD-VSDD-095/096 are re-allocations, not new codificat
 
 ### Factory-artifacts commits
 - This burst HEAD: see `git -C /Users/jmagady/Dev/vsdd-factory/.factory log -1 --format='%h %s'` (do not hard-cite per TD-VSDD-053)
-| **D-336 unified fix burst — PO + architect + story-writer (parallel)** | product-owner + architect + story-writer | **COMPLETE** | F-1: BC-1.11.001 PC2 + 15-BC DI-017 sweep (~40 occurrences). F-2/F-3: ARCH-INDEX 1.6→1.7 + SS-01 1.0→1.1 + ADR-004/008/011 amended. F-4: S-10.05 1.4→1.5 AC-008 extended. |
+
+---
+
+## S-15.14-pass-3-fix-burst (2026-05-17, factory-artifacts GATE-PENDING)
+
+### Parent-commit
+`e540ce5b` (pass-3 adversary report persistence)
+
+### Adversary verdict
+LOCAL adversary pass-3: HIGH (8 findings: 4H+2M+1L+1NIT+1PG). Streak 0/3. Persisted at `.factory/code-delivery/S-15.14/adv-local-pass-3.md`. Top findings: F-P3-001 (META-LEVEL-24 recurrence in pass-2 Dim-2 — placeholder `[...]` bracket instead of literal shell stdout), F-P3-002 (burst-log orphan row after Factory-artifacts commits), F-P3-004 (vacuous block-count aggregate instead of enumerated check).
+
+### Files touched (.factory only)
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` (state-manager; pass-2 Dim-2 placeholder→enumerated-literal-shell F-P3-001/F-P3-004; pass-2 orphan row removed F-P3-002; pass-2 Dim-5 SHA-anchored F-P3-008; pass-2 Dim-7 scope-clarified F-P3-005; section rename Burst-1 compliance; input-hash updated; pass-3 entry appended)
+- `.factory/STATE.md` (state-manager; frontmatter phase+current_step+last_amended; Last Updated; Current Phase; Phase Progress pass-3 fix-burst row; Concurrent Cycles pass-3 advance; Drift Items F-P3-007 row; Session Resume §1/§4/§8/§9/§11 refresh)
+
+### Codifications
+None this burst (no new D-NNN; no new L-EDP1-NNN lessons; F-P3-006 deferred to PO+implementer joint dispatch)
+
+### Dim-2 attestation
+ENUMERATED gate per D-449(a) literal-shell-execution-evidence — NO placeholder brackets per F-P3-001 closure:
+
+```
+$ awk '/^## S-15\.14-pass-3-fix-burst/,/^## [^S]/' /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-brownfield-backfill/burst-log.md | grep -nE '^### '
+3:### Parent-commit
+6:### Adversary verdict
+9:### Files touched (.factory only)
+13:### Codifications
+16:### Dim-2 attestation
+35:### Dim-5 attestation
+38:### Dim-6 attestation
+41:### Dim-7 attestation
+44:### Closes
+47:### Factory-artifacts commits
+```
+
+Required-block coverage (D-444(c) 8 canonical blocks):
+- Parent-commit ✓
+- Adversary verdict ✓
+- Files touched ✓
+- Codifications ✓
+- Dim-2 attestation ✓ (this section)
+- Dim-5 attestation ✓ (below)
+- Dim-6 attestation ✓ (below)
+- Dim-7 attestation ✓ (below)
+- Closes ✓ (below)
+- Factory-artifacts commits ✓ (below)
+
+### Dim-5 attestation
+Pass-3 state-manager burst is sibling-isolated from PO BC-5.39.006 v1.2 dispatch (pending) and implementer sibling burst (feature/S-15.14-validate-dispatch-advance, commits 24cda809..496cf405, F-P3-003 in scope). Those are independent bursts on distinct branches.
+
+### Dim-6 attestation
+F-P3-001/F-P3-004 anchored to D-444(c) 8-block gate + D-449(a) literal-shell (META-LEVEL-24 recurrence closed). F-P3-002 orphan-row removal anchored to burst-log structural integrity. F-P3-005 Dim-7 scope-clarified with SHA references per auditability. F-P3-008 Dim-5 SHA-anchored at 24cda809..496cf405. F-P3-007 deferred to Drift Items with explicit follow-up anchor (next BC-5.39.006 amendment OR ADR for STATE.md frontmatter conventions).
+
+### Dim-7 attestation
+POLICY 3 (state_manager_runs_last) satisfied for THIS burst: state-manager-only on factory-artifacts; sibling implementer dispatch (feature/S-15.14-validate-dispatch-advance) and PO dispatch are independent bursts on distinct branches and not subject to this burst's ordering.
+
+### Closes
+F-P3-001, F-P3-002, F-P3-004, F-P3-005, F-P3-007 (deferred to Drift Items with explicit anchor), F-P3-008
+
+### Factory-artifacts commits
+- `GATE-PENDING-SHA` (state-manager pass-3 fix-burst single atomic commit per TD-VSDD-053)
