@@ -444,11 +444,10 @@ fn check_d_chain_currency(content: &str, current_step_value: &str) -> Option<Vio
     if max_cited == 0 {
         // No D-NNN reference at all in current_step — violation per invariant 7.
         return Some(Violation {
-            description:
-                "D-chain cite absent from current_step: no `D-\\d+` reference found; \
+            description: "D-chain cite absent from current_step: no `D-\\d+` reference found; \
                  current_step: must contain a D-NNN cite per D-443(a); \
                  production form: `D-chain cite D-NNN latest brownfield`"
-                    .to_string(),
+                .to_string(),
             cited_raw: String::new(),
         });
     }
@@ -498,9 +497,7 @@ fn scan_max_d_nnn(s: &str) -> u64 {
         // Extract digits after `D-`.
         let digit_str: String = after.chars().take_while(|c| c.is_ascii_digit()).collect();
         if let Ok(n) = digit_str.parse::<u64>() {
-            if n > max {
-                max = n;
-            }
+            max = max.max(n);
         }
         // Advance past pos + "D-" + digit_len.
         // `pos + 2 + digit_len` lands on an ASCII digit boundary or the byte
@@ -579,9 +576,10 @@ pub fn validate_state_md(content: &str) -> Vec<Violation> {
 /// Returns all accumulated violations (may be empty for a clean write).
 ///
 /// # Pipe arithmetic (BC-5.39.006 v1.1 invariant 8 corrected)
+///
 /// For N columns: 1 leading + (N-1) internal + 1 trailing = N+1 pipes.
 /// - 5 columns: 6 pipes. 4 columns: 5 pipes. 6 columns: 7 pipes.
-/// The canonical 5-column adversary-pass schema = 6 pipes per D-442(b).
+/// - The canonical 5-column adversary-pass schema = 6 pipes per D-442(b).
 ///
 /// # BC trace
 /// BC-5.39.006 v1.1 postcondition 8/9; D-441(b)/D-442(b); EC-013..EC-016; invariant 8.
@@ -907,22 +905,28 @@ mod tests {
         // Tests the `advance >= search.len()` break guard in scan_max_d_nnn.
         let result = std::panic::catch_unwind(|| {
             // Call check_d_chain_currency which calls scan_max_d_nnn internally.
-            let current_step = "BC-INDEX v1.14 VP-INDEX v1.8 STORY-INDEX v1.12 ARCH-INDEX v1.9 D-477";
+            let current_step =
+                "BC-INDEX v1.14 VP-INDEX v1.8 STORY-INDEX v1.12 ARCH-INDEX v1.9 D-477";
             let content = "---\ncurrent_step: 'x'\n---\nsuffix D-";
             check_d_chain_currency(content, current_step)
         });
-        assert!(result.is_ok(), "scan_max_d_nnn must not panic on 'D-' at end of string");
+        assert!(
+            result.is_ok(),
+            "scan_max_d_nnn must not panic on 'D-' at end of string"
+        );
     }
 
     #[test]
     fn test_scan_max_d_nnn_multiple_references() {
         // Multiple D-NNN in current_step; max is correctly extracted.
-        let current_step =
-            "BC-INDEX v1.14 VP-INDEX v1.8 STORY-INDEX v1.12 ARCH-INDEX v1.9 \
+        let current_step = "BC-INDEX v1.14 VP-INDEX v1.8 STORY-INDEX v1.12 ARCH-INDEX v1.9 \
              D-382 D-440 D-477 →9→9→9→9";
         let content = "---\ncurrent_step: 'x'\n---\n| D-477 |\n";
         let v = check_d_chain_currency(content, current_step);
-        assert!(v.is_none(), "max_cited=477 >= max_in_file=477 — should not violate");
+        assert!(
+            v.is_none(),
+            "max_cited=477 >= max_in_file=477 — should not violate"
+        );
     }
 
     // -- extract_current_step fail-open (F-P1-004 / BC-5.39.006 v1.1 invariant 7/9) --
@@ -1333,9 +1337,8 @@ mod tests {
     #[test]
     fn validate_production_state_md_no_false_positive() {
         let manifest_dir = env!("CARGO_MANIFEST_DIR");
-        let state_md_path = std::path::PathBuf::from(format!(
-            "{manifest_dir}/../../../.factory/STATE.md"
-        ));
+        let state_md_path =
+            std::path::PathBuf::from(format!("{manifest_dir}/../../../.factory/STATE.md"));
         let content = match std::fs::read_to_string(&state_md_path) {
             Ok(c) => c,
             Err(e) => {

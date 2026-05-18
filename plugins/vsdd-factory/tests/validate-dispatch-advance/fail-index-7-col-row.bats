@@ -1,11 +1,14 @@
 #!/usr/bin/env bats
-# fail-index-7-col-row.bats — AC-12: hook blocks when INDEX.md adversary-pass row has 7 columns
+# fail-index-7-col-row.bats — AC-12: hook blocks when INDEX.md ## Adversarial Reviews row has 6 columns
+#
+# BC-5.39.006 v1.1 update (F-P1-002): canonical schema is 5-col (6 pipes). A 6-col row (7 pipes)
+# in a 5-col-header ## Adversarial Reviews section violates EC-014.
 #
 # Traces to:
-#   BC-5.39.006 postcondition 9; D-441(b); EC-014
+#   BC-5.39.006 v1.1 postcondition 9; D-441(b)/D-442(b); EC-014
 #
-# Fixture: INDEX.md with one 7-column adversary-pass row (9 pipe chars).
-# Expected: hook exits 2; block message names actual count=7 and required=6.
+# Fixture: INDEX.md with ## Adversarial Reviews (5-col header) and one 6-column data row (7 pipe chars).
+# Expected: hook exits 2; block message names actual count=6 and required=5.
 #
 # RED GATE PHASE: test skips if validate-dispatch-advance.wasm is not yet compiled.
 
@@ -61,11 +64,11 @@ _index_md_envelope() {
 }
 
 # ---------------------------------------------------------------------------
-# AC-12: INDEX.md with 7-column adversary-pass row => hook blocks (exit 2)
-# Traces to BC-5.39.006 postcondition 9; D-441(b); EC-014
+# AC-12: INDEX.md ## Adversarial Reviews with 6-col row => hook blocks (exit 2)
+# Traces to BC-5.39.006 v1.1 postcondition 9; D-441(b)/D-442(b); EC-014
 # ---------------------------------------------------------------------------
 
-@test "AC-12 FAIL: hook blocks when INDEX.md adversary-pass row has 7 columns (9 pipe chars)" {
+@test "AC-12 FAIL: hook blocks when INDEX.md adversary-pass row has 6 columns (7 pipe chars)" {
   _require_artifacts
   _setup_fixture
   _write_registry
@@ -75,14 +78,14 @@ _index_md_envelope() {
   envelope="$(_index_md_envelope)"
   run bash -c "printf '%s' '$envelope' | CLAUDE_PLUGIN_ROOT='$WORK' CLAUDE_PROJECT_DIR='$WORK' '$DISPATCHER' 2>&1 >/dev/null"
 
-  # Exit 2: block signal emitted for 7-column row
+  # Exit 2: block signal emitted for 6-column row in 5-col-header section
   [ "$status" -eq 2 ]
 
   # blocking_plugins= names this hook
   [[ "$output" == *"blocking_plugins=validate-dispatch-advance"* ]]
 }
 
-@test "AC-12 FAIL: block message names actual=7 and required=6" {
+@test "AC-12 FAIL: block message names actual=6 and required=5" {
   _require_artifacts
   _setup_fixture
   _write_registry
@@ -93,7 +96,7 @@ _index_md_envelope() {
   run bash -c "printf '%s' '$envelope' | CLAUDE_PLUGIN_ROOT='$WORK' CLAUDE_PROJECT_DIR='$WORK' '$DISPATCHER' 2>&1 >/dev/null"
 
   [ "$status" -eq 2 ]
-  # Block message must name actual count 7 and required 6
-  [[ "$output" == *"7"* ]]
+  # Block message must name actual count 6 and required 5
   [[ "$output" == *"6"* ]]
+  [[ "$output" == *"5"* ]]
 }

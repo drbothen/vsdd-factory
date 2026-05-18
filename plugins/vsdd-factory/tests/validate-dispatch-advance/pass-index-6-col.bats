@@ -1,10 +1,12 @@
 #!/usr/bin/env bats
-# pass-index-6-col.bats — AC-13: hook emits Continue when all INDEX.md adversary-pass rows are 6 columns
+# pass-index-6-col.bats — AC-13: hook emits Continue when all ## Adversarial Reviews rows are 5 columns
+#
+# BC-5.39.006 v1.1 update (F-P1-002): canonical schema is 5-col (6 pipes per row).
 #
 # Traces to:
-#   BC-5.39.006 postcondition 8; EC-015
+#   BC-5.39.006 v1.1 postcondition 8; D-441(b)/D-442(b); EC-015
 #
-# Fixture: INDEX.md where all adversary-pass rows have exactly 6 columns (8 pipe chars per row).
+# Fixture: INDEX.md ## Adversarial Reviews section where all data rows have exactly 5 columns (6 pipes).
 # Expected: hook exits 0 (no block).
 #
 # RED GATE PHASE: test skips if validate-dispatch-advance.wasm is not yet compiled.

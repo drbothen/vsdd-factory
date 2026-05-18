@@ -1,11 +1,14 @@
 #!/usr/bin/env bats
-# fail-index-5-col-row.bats — AC-11: hook blocks when INDEX.md adversary-pass row has 5 columns
+# fail-index-5-col-row.bats — AC-11: hook blocks when INDEX.md ## Adversarial Reviews row has 4 columns
+#
+# BC-5.39.006 v1.1 update (F-P1-002): canonical schema is 5-col (6 pipes). A 4-col row (5 pipes)
+# in a 5-col-header ## Adversarial Reviews section violates EC-013.
 #
 # Traces to:
-#   BC-5.39.006 postcondition 9; D-441(b); EC-013
+#   BC-5.39.006 v1.1 postcondition 9; D-441(b)/D-442(b); EC-013
 #
-# Fixture: INDEX.md with one 5-column adversary-pass row (7 pipe chars: | col | col | col | col | col |).
-# Expected: hook exits 2; block message names row, actual=5, required=6, cites D-441(b).
+# Fixture: INDEX.md with ## Adversarial Reviews (5-col header) and one 4-column data row (5 pipe chars).
+# Expected: hook exits 2; block message names row, actual=4, required=5, cites D-441(b).
 #
 # RED GATE PHASE: test skips if validate-dispatch-advance.wasm is not yet compiled.
 
@@ -61,11 +64,11 @@ _index_md_envelope() {
 }
 
 # ---------------------------------------------------------------------------
-# AC-11: INDEX.md with 5-column adversary-pass row => hook blocks (exit 2)
-# Traces to BC-5.39.006 postcondition 9; D-441(b); EC-013
+# AC-11: INDEX.md ## Adversarial Reviews with 4-col row => hook blocks (exit 2)
+# Traces to BC-5.39.006 v1.1 postcondition 9; D-441(b)/D-442(b); EC-013
 # ---------------------------------------------------------------------------
 
-@test "AC-11 FAIL: hook blocks when INDEX.md adversary-pass row has 5 columns (7 pipe chars)" {
+@test "AC-11 FAIL: hook blocks when INDEX.md adversary-pass row has 4 columns (5 pipe chars)" {
   _require_artifacts
   _setup_fixture
   _write_registry
@@ -75,14 +78,14 @@ _index_md_envelope() {
   envelope="$(_index_md_envelope)"
   run bash -c "printf '%s' '$envelope' | CLAUDE_PLUGIN_ROOT='$WORK' CLAUDE_PROJECT_DIR='$WORK' '$DISPATCHER' 2>&1 >/dev/null"
 
-  # Exit 2: block signal emitted for non-6-column row
+  # Exit 2: block signal emitted for non-5-column row in 5-col-header section
   [ "$status" -eq 2 ]
 
   # blocking_plugins= names this hook
   [[ "$output" == *"blocking_plugins=validate-dispatch-advance"* ]]
 }
 
-@test "AC-11 FAIL: block message names actual=5 required=6 and cites D-441" {
+@test "AC-11 FAIL: block message names actual=4 required=5 and cites D-441" {
   _require_artifacts
   _setup_fixture
   _write_registry
@@ -93,9 +96,9 @@ _index_md_envelope() {
   run bash -c "printf '%s' '$envelope' | CLAUDE_PLUGIN_ROOT='$WORK' CLAUDE_PROJECT_DIR='$WORK' '$DISPATCHER' 2>&1 >/dev/null"
 
   [ "$status" -eq 2 ]
-  # Block message must name actual column count 5 and required 6
+  # Block message must name actual column count 4 and required 5
+  [[ "$output" == *"4"* ]]
   [[ "$output" == *"5"* ]]
-  [[ "$output" == *"6"* ]]
   # Must cite D-441(b)
   [[ "$output" == *"D-441"* ]]
 }

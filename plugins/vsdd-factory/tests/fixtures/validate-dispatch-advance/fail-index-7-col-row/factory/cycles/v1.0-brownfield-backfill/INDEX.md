@@ -4,12 +4,13 @@ document_type: cycle-index
 
 # Brownfield Backfill Cycle INDEX
 
-## Adversarial Review Passes
+## Adversarial Reviews
 
-| Pass | Date | Findings | D-NNN | Fix-burst | Convergence Status | Extra-col |
-|------|------|----------|-------|-----------|-------------------|----|
-| P-01 | 2026-05-01 | 9 HIGH | D-440 | B-01 | 9/3 streak reset | X |
+| Pass | Date | Findings Count | Verdict | File |
+|------|------|---------------|---------|------|
+| P-01 | 2026-05-01 | 9 HIGH | CRITICAL | adv-pass-1.md | extra-col |
 
 ## Convergence Status
 
-This INDEX.md has a 7-column adversary-pass row (9 pipe chars). Hook should block.
+This INDEX.md has a 6-column adversary-pass row (7 pipe chars) in a 5-col-header section.
+Hook should block per BC-5.39.006 v1.1 EC-014 (F-P1-002 fix).
