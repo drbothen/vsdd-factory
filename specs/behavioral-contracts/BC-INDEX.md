@@ -1,17 +1,19 @@
 ---
 document_type: bc-index
 level: L3
-version: "2.33"
+version: "2.34"
 status: draft
 producer: state-manager
 timestamp: 2026-05-17T00:00:00Z
-last_amended: "2026-05-17 (v2.33) — BC-5.39.006 amended v1.0→v1.1; S-15.14 LOCAL adversary pass-1 spec-level closures F-P1-001+F-P1-002+F-P1-003+F-P1-008: invariant 7 D-chain pattern relaxed to D-(\\d+) max-extraction; invariant 8 scoped to ## Adversarial Reviews h2 only + canonical schema corrected 6-col→5-col per D-442(b) + historical 4-col rows grandfathered; pipe arithmetic corrected throughout; H1 title updated; EC-013/EC-014 realigned; D-442(b) added to D-NNN Anchor Coverage and Traceability. BC-INDEX v2.32→v2.33. [Prior: 2026-05-17 (v2.32) — S-15.14 M2 Wave-4 story authoring — BC-5.39.006 allocated; validate-dispatch-advance hook anchors D-440(a)+D-441(a)+D-442(a)+D-443(a)+D-439(b)+D-441(b)+D-451(c); SS-05 count 654→655; total_bcs 1951→1952; lifecycle_status: draft; POL-14 auto-promotion to active on S-15.14 merge. Input-hash 5af355e. BC-INDEX v2.31→v2.32.]"
+last_amended: "2026-05-17 (v2.34) — BC-5.39.006 amended v1.1→v1.2; S-15.14 LOCAL adversary pass-3 spec closure F-P3-006: trajectory-tail canonical marker 'trajectory-tail ' (with trailing space) absence is now a HARD BlockWithFix violation; new PC 6 added; invariant 6 rewritten as two-step prefix-check + scoped LENGTH count; EC-023 added; precondition renumbering 1,5,2,3,4→1,2,3,4,5,6 fixed (F-P3-009/F-P2-009 nitpick). BC-INDEX v2.33→v2.34. [Prior: 2026-05-17 (v2.33) — BC-5.39.006 amended v1.0→v1.1; S-15.14 LOCAL adversary pass-1 spec-level closures F-P1-001+F-P1-002+F-P1-003+F-P1-008: invariant 7 D-chain pattern relaxed to D-(\\d+) max-extraction; invariant 8 scoped to ## Adversarial Reviews h2 only + canonical schema corrected 6-col→5-col per D-442(b) + historical 4-col rows grandfathered; pipe arithmetic corrected throughout; H1 title updated; EC-013/EC-014 realigned; D-442(b) added to D-NNN Anchor Coverage and Traceability. BC-INDEX v2.32→v2.33.]"
 phase: F5
 inputs:
   - .factory/specs/behavioral-contracts/bc-id-mapping.md
 total_bcs: 1952
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-17
+    change: "v2.34 (2026-05-17; BC-5.39.006 amended v1.1→v1.2; S-15.14 LOCAL adversary pass-3 closure F-P3-006: absent 'trajectory-tail ' marker = HARD BlockWithFix; new PC 6; invariant 6 two-step prefix+scoped-LENGTH; EC-023 added; PC renumbering fixed F-P3-009/F-P2-009. BC-INDEX v2.33→v2.34."
   - date: 2026-05-17
     change: "v2.33 (2026-05-17; BC-5.39.006 amended v1.0→v1.1; S-15.14 LOCAL adversary pass-1 spec closures F-P1-001+F-P1-002+F-P1-003+F-P1-008; invariant 7 relaxed to D-(\\d+) max-extraction; invariant 8 scoped to ## Adversarial Reviews h2 + schema 5-col per D-442(b) + historical 4-col grandfathered; pipe arithmetic corrected; H1 title updated; EC-013/EC-014 realigned; D-442(b) added. BC-INDEX v2.32→v2.33."
   - date: 2026-05-17

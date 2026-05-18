@@ -7,7 +7,7 @@ producer: state-manager
 timestamp: 2026-05-06T19:00:00Z
 cycle: "v1.0-brownfield-backfill"
 inputs: [STATE.md]
-input-hash: "cd6ca9a"
+input-hash: "e06f264"
 traces_to: STATE.md
 ---
 
@@ -358,3 +358,66 @@ F-P3-001, F-P3-002, F-P3-004, F-P3-005, F-P3-007 (deferred to Drift Items with e
 
 ### Factory-artifacts commits
 - `341b021f` (state-manager pass-3 fix-burst single atomic commit per TD-VSDD-053)
+
+## S-15.14-pass-3-closure-burst (2026-05-17, factory-artifacts pending-this-burst)
+
+### Parent-commit
+`33941f24` (pass-3 main state-manager fix-burst SHA-patch)
+
+### Adversary verdict
+N/A — closure burst (bundles PO BC v1.2 + story-writer story v1.2 + STORY-INDEX bump after pass-3 main state-manager burst at 341b021f). Same pass-3 adversary verdict applies upstream: HIGH (8 findings: 4H+2M+1L+1NIT+1PG). Persisted at `.factory/code-delivery/S-15.14/adv-local-pass-3.md`.
+
+### Files touched (.factory only)
+- `.factory/specs/behavioral-contracts/BC-INDEX.md` (PO; v2.33 → v2.34 — new PC 6 trajectory-tail prefix-mandatory BlockWithFix; EC-023; PC renumbering 1,5,2,3,4→1,2,3,4,5,6 fixed per F-P3-009)
+- `.factory/specs/behavioral-contracts/ss-05/BC-5.39.006.md` (PO; v1.1 → v1.2 — new PC 6 + EC-023 + PC renumbering)
+- `.factory/stories/S-15.14-validate-dispatch-advance.md` (story-writer; v1.1 → v1.2 — new AC-22 + PC 6 propagation)
+- `.factory/stories/STORY-INDEX.md` (state-manager; v3.42 → v3.43)
+- `.factory/STATE.md` (state-manager; Phase Progress + Concurrent Cycles + Active Branches + Drift Items + Session Resume Checkpoint refresh)
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` (state-manager; this entry)
+
+### Codifications
+BC-5.39.006 v1.2 amendment: new PC 6 (trajectory-tail canonical marker 'trajectory-tail ' with trailing space — absent = HARD BlockWithFix violation); new EC-023 (absent prefix returns BlockWithFix citing D-451(c)/F-P3-006/EC-023); PC renumbering corrected from non-sequential 1,5,2,3,4 to sequential 1,2,3,4,5,6 (F-P3-009/F-P2-009 NITPICK in-scope closure per Canonical Principle Rule 4).
+
+### Dim-2 attestation
+ENUMERATED gate per D-449(a) literal-shell-execution-evidence (NO placeholder brackets):
+
+```
+$ awk '/^## S-15\.14-pass-3-closure-burst/,/^## [^S]/' /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-brownfield-backfill/burst-log.md | grep -nE '^### '
+3:### Parent-commit
+6:### Adversary verdict
+9:### Files touched (.factory only)
+17:### Codifications
+20:### Dim-2 attestation
+39:### Dim-5 attestation
+42:### Dim-6 attestation
+45:### Dim-7 attestation
+48:### Closes
+51:### Factory-artifacts commits
+```
+
+Required-block coverage (D-444(c) 8 canonical blocks):
+- Parent-commit ✓
+- Adversary verdict ✓ (N/A — closure burst; pass-3 main adversary verdict cited)
+- Files touched ✓
+- Codifications ✓
+- Dim-2 attestation ✓ (this section)
+- Dim-5 attestation ✓ (below)
+- Dim-6 attestation ✓ (below)
+- Dim-7 attestation ✓ (below)
+- Closes ✓ (below)
+- Factory-artifacts commits ✓ (below)
+
+### Dim-5 attestation
+Implementer sibling burst on feature/S-15.14-validate-dispatch-advance: commits 03656260 (F-P3-006 trajectory-tail prefix-mandatory enforcement) + cd9fd273 (F-P3-003 position-agnostic stdout). Separate branch; separate burst. PO authored BC v1.2 first; story-writer propagated to story v1.2; implementer applied code per BC v1.2; state-manager (this burst) commits the factory bundle.
+
+### Dim-6 attestation
+BC-5.39.006 v1.2 anchors F-P3-006 closure (new PC 6 + EC-023) and F-P3-009 closure (PC renumbering fixed). Story v1.2 anchors POLICY 8 propagation (new AC-22 mirrors PC 6). PC renumbering closes F-P3-009/F-P2-009 NITPICK in-scope per Canonical Principle Rule 4 (2026-05-17; 45-min inline fix; not filed as TD).
+
+### Dim-7 attestation
+POLICY 3 satisfied for THIS burst (state-manager-only on factory-artifacts). PO + story-writer + implementer + state-manager order honored: PO authored BC v1.2 → story-writer propagated to story v1.2 → implementer applied code per BC v1.2 (commits 03656260+cd9fd273 on feature branch) → state-manager (this burst) commits factory bundle atomically per TD-VSDD-053.
+
+### Closes
+F-P3-003 (implementer sibling commit cd9fd273 on feature/S-15.14-validate-dispatch-advance); F-P3-006 (implementer sibling commit 03656260 + PO BC-5.39.006 v1.2 PC 6 + story-writer story v1.2 AC-22); F-P3-009 (PO PC renumbering in-scope — BC-5.39.006 v1.2 fixes 1,5,2,3,4→1,2,3,4,5,6).
+
+### Factory-artifacts commits
+- `pending-this-burst` (state-manager pass-3 closure burst single atomic commit per TD-VSDD-053)
