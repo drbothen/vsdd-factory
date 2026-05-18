@@ -7,7 +7,7 @@ producer: state-manager
 timestamp: 2026-05-06T19:00:00Z
 cycle: "v1.0-brownfield-backfill"
 inputs: [STATE.md]
-input-hash: "32c806e"
+input-hash: "3cd9f06"
 traces_to: STATE.md
 ---
 
@@ -1103,4 +1103,4 @@ $ awk '/^## S-15\.14 LOCAL adversary pass-11/,/^## [^S]/' /Users/jmagady/Dev/vsd
 - F-P11-003-deferred: story v1.2 body pre-v1.3 wording documented in Drift Items; routing story-writer
 
 ### Factory-artifacts commits
-- (SHA to be filled by SHA-patch follow-up per D-447(c)+D-449(e))
+- `5fada32c` (state-manager pass-11 persist+fix-burst single atomic commit per TD-VSDD-053)

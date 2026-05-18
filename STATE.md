@@ -177,7 +177,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | 70811f4a | verified `git rev-parse origin/main` = 70811f4a5d68d163021f46856c3de51bf8f4aab8 2026-05-13; includes CLAUDE.md expansion PR #136 (845d0007 squash-merge) + rc.18 merge PR #135 (666d689f) |
 | develop | 6e2d7805 | PR #147 MERGED 2026-05-17 — S-15.09 validate-state-structure Phase 1 WASM hook; M2 wave-3 COMPLETE. Prior: PR #146 6e0d5407 (S-15.11 M2 wave-2 COMPLETE). |
-| factory-artifacts | 21734dee | S-15.14 pass-10 PERSIST + FIX-BURST 2026-05-18 — F-P10-001 closed (pass-9 burst-log Dim-7 missing; 5th META-LEVEL); TD-VSDD-099 codified; streak 0/3 (HIGH reset); parent-commit 30c70d6a per D-419(b) |
+| factory-artifacts | 5fada32c | S-15.14 pass-11 PERSIST + FIX-BURST 2026-05-18 — F-P11-001 closed (BC v1.3 invariant 6(b) semicolon-segment scoping per PO; BC-INDEX v2.35) + F-P11-002 closed (pass-9/10 Gate 3 synthetic→production-read retrofit); TD-VSDD-100 codified; streak 0/3 (HIGH reset; 6th META-LEVEL); parent-commit b3c52dd7 per D-419(b) |
 | v1.0.0-rc.16 (tag) | feb894a2 | SHIPPED; claude-mp PR #8 awaiting human merge |
 | v1.0.0-rc.15 (tag) | e68bb436 | SHIPPED |
 
