@@ -7,7 +7,7 @@ producer: state-manager
 timestamp: 2026-05-06T19:00:00Z
 cycle: "v1.0-brownfield-backfill"
 inputs: [STATE.md]
-input-hash: "ba3f9eb"
+input-hash: "64e7c76"
 traces_to: STATE.md
 ---
 
@@ -767,4 +767,4 @@ POLICY 3 (state_manager_runs_last) satisfied: state-manager-only burst. Single-C
 Pass-8 CLEAN persist. Streak 0/3 → 1/3. No findings to close. STATE.md compaction D-430(a) authorized.
 
 ### Factory-artifacts commits
-- To be populated with HEAD SHA after `git push origin factory-artifacts`
+- `af6ddabd` (state-manager pass-8 persist+compaction single atomic commit per TD-VSDD-053)
