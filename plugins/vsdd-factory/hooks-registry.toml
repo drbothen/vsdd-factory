@@ -922,21 +922,20 @@ path_allow = [
 # (D-439(b)), trajectory-tail LENGTH != 4 (D-451(c)), stale D-chain cite
 # (D-443(a)), and INDEX.md writes with non-5-column adversary-pass rows
 # (D-441(b)/D-442(b)). S-15.14 M2 Wave-4.
-# Priority 154 = one above validate-state-structure's 153 (literal-grep
-# verification per PG-S-15.14-registry-priority-literal-evidence / TD-VSDD-096):
-# $ grep -nE '^priority = ' plugins/vsdd-factory/hooks-registry.toml | sort -t = -k2 -n | uniq -c -f1 | sort -rn | head
-#    2 960:priority = 920
-#    2 951:priority = 910
-#    2 781:priority = 120
-#    2 70:priority = 110
-#    2 691:priority = 80
-#    1 995:priority = 930
-#    1 936:priority = 154
-#    1 910:priority = 153
-#    1 884:priority = 151
-#    1 865:priority = 152
-# (154 appears once at line 936 → validate-dispatch-advance; 153 at line 910
-# → validate-state-structure; 155 next monotone slot at line 1065)
+# Priority 154 = one above validate-state-structure's 153. Position-agnostic
+# form per F-P3-003 (line numbers decay across edits; TD-VSDD-091 anti-volatile-pin).
+# Literal-grep verification per PG-S-15.14-registry-priority-literal-evidence /
+# TD-VSDD-096 (captured 2026-05-17, post-edit):
+# $ grep -E '^priority = ' plugins/vsdd-factory/hooks-registry.toml | grep -E 'priority = (15[0-9]|16[0-9])'
+# priority = 150
+# priority = 152
+# priority = 151
+# priority = 153
+# priority = 154
+# priority = 155
+# priority = 160
+# 154 appears exactly once (validate-dispatch-advance); 153 = validate-state-structure;
+# 155 = next monotone slot.
 # No file_pattern field: registry schema does not support it per architect
 # Q5/Q6 canonical lock. File-pattern enforcement is in-plugin via
 # path-component-strict is_state_md_target + is_index_md_target guards.
