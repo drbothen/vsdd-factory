@@ -1327,15 +1327,35 @@ mod tests {
     /// workspace root `.factory/STATE.md`.
     ///
     /// If STATE.md does not exist (e.g., CI environment without factory
-    /// worktree mounted), the test is silently skipped rather than failing.
+    /// worktree mounted), the test skips with a diagnostic message in worktree
+    /// mode. In CI (env var `CI=true`), STATE.md must be present or the test FAILS
+    /// — a missing STATE.md in CI indicates a broken worktree setup (F-P1-011 fix).
     #[test]
     fn validate_production_state_md_no_false_positive() {
         let manifest_dir = env!("CARGO_MANIFEST_DIR");
-        let state_md_path = format!("{manifest_dir}/../../../.factory/STATE.md");
+        let state_md_path = std::path::PathBuf::from(format!(
+            "{manifest_dir}/../../../.factory/STATE.md"
+        ));
         let content = match std::fs::read_to_string(&state_md_path) {
             Ok(c) => c,
-            Err(_) => {
-                // STATE.md not present in this build environment; skip silently.
+            Err(e) => {
+                // In CI: STATE.md must exist — a missing file is a setup failure.
+                if std::env::var("CI").as_deref() == Ok("true") {
+                    panic!(
+                        "validate_production_state_md_no_false_positive: STATE.md \
+                         missing at {} in CI environment: {}; \
+                         CI requires a mounted factory worktree",
+                        state_md_path.display(),
+                        e
+                    );
+                }
+                // In worktree mode (no CI env var): skip with diagnostic.
+                eprintln!(
+                    "validate_production_state_md_no_false_positive: STATE.md unreadable at {}: \
+                     {}; test skipped (worktree mode)",
+                    state_md_path.display(),
+                    e
+                );
                 return;
             }
         };
@@ -1344,6 +1364,43 @@ mod tests {
             violations.is_empty(),
             "validate_state_md must not produce false-positive violations \
              against production STATE.md; violations found: {violations:?}"
+        );
+    }
+
+    /// Validate production EDP1 INDEX.md against validate_index_md — no false positives.
+    /// Preemptive test matching the same pattern as validate_production_state_md.
+    #[test]
+    fn validate_production_edp1_index_md_no_false_positive() {
+        let manifest_dir = env!("CARGO_MANIFEST_DIR");
+        let index_md_path = std::path::PathBuf::from(format!(
+            "{manifest_dir}/../../../.factory/cycles/\
+             v1.0-feature-engine-discipline-pass-1/INDEX.md"
+        ));
+        let content = match std::fs::read_to_string(&index_md_path) {
+            Ok(c) => c,
+            Err(e) => {
+                if std::env::var("CI").as_deref() == Ok("true") {
+                    panic!(
+                        "validate_production_edp1_index_md_no_false_positive: INDEX.md \
+                         missing at {} in CI: {}",
+                        index_md_path.display(),
+                        e
+                    );
+                }
+                eprintln!(
+                    "validate_production_edp1_index_md_no_false_positive: INDEX.md unreadable \
+                     at {}: {}; test skipped (worktree mode)",
+                    index_md_path.display(),
+                    e
+                );
+                return;
+            }
+        };
+        let violations = validate_index_md(&content);
+        assert!(
+            violations.is_empty(),
+            "validate_index_md must not produce false-positive violations \
+             against production EDP1 INDEX.md; violations found: {violations:?}"
         );
     }
 }

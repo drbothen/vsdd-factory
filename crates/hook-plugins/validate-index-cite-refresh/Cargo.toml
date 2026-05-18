@@ -14,6 +14,7 @@ publish = false
 # logic; [[bin]] wraps the entry point that calls into the lib.
 [lib]
 path = "src/lib.rs"
+crate-type = ["cdylib", "rlib"]
 
 [[bin]]
 name = "validate-index-cite-refresh"
@@ -29,7 +30,6 @@ serde_json = { workspace = true }
 
 [dev-dependencies]
 serde_json = { workspace = true }
-vsdd-hook-sdk = { path = "../../hook-sdk" }
 
 [lints]
 workspace = true
