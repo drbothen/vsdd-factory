@@ -138,6 +138,19 @@ jobs:
         run: cargo check --workspace --all-targets
 
       - name: cargo test (workspace, all targets)
+        # VSDD_SKIP_PRODUCTION_STATE_MD_TEST=1: validate-dispatch-advance
+        # has load-bearing production-file tests (validate_production_state_md_no_false_positive,
+        # validate_production_edp1_index_md_no_false_positive) that read
+        # .factory/STATE.md and .factory/cycles/.../INDEX.md from the
+        # factory-artifacts orphan branch. The Mount factory artifacts step
+        # in this job runs AFTER cargo test (it needs the Rust toolchain
+        # that precedes it, and must precede the bats steps that follow).
+        # The tests support an explicit opt-out via this env var for exactly
+        # this scenario — ephemeral CI runners without a factory worktree
+        # mounted at test time. Local dev (where .factory/ is always mounted)
+        # continues to exercise these tests without the env var set.
+        env:
+          VSDD_SKIP_PRODUCTION_STATE_MD_TEST: "1"
         run: cargo test --workspace --all-targets
 
       - name: cargo publish --dry-run (hook-sdk crates) (S-2.5)
