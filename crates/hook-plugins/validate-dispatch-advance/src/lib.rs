@@ -154,12 +154,61 @@ pub fn is_index_md_target(file_path: &str) -> bool {
 ///
 /// # BC trace
 /// BC-5.39.006 invariant 4 — validation is anchored to `current_step:` only.
-fn extract_current_step<'a>(content: &'a str) -> Option<&'a str> {
-    todo!(
-        "BC-5.39.006: extract `current_step:` value from YAML frontmatter bounded \
-         by `---` delimiters; guard is_char_boundary() on all byte-index slices; \
-         return None if frontmatter absent, delimiter missing, or field absent"
-    )
+fn extract_current_step(content: &str) -> Option<&str> {
+    // Find the start of YAML frontmatter: content must begin with `---`.
+    // Skip leading whitespace/newlines to be tolerant of BOM-free UTF-8.
+    let content = content.trim_start_matches('\u{feff}'); // strip BOM if present
+    let after_open = content.strip_prefix("---")?;
+    // Skip the newline after the opening delimiter.
+    let body_start = after_open
+        .strip_prefix('\n')
+        .or_else(|| after_open.strip_prefix("\r\n"))
+        .unwrap_or(after_open);
+
+    // Find the closing `---` delimiter.
+    // Use line-by-line search so we don't match `---` inside values.
+    let mut fm_end = None;
+    let mut offset = 0usize;
+    for line in body_start.lines() {
+        if line == "---" {
+            fm_end = Some(offset);
+            break;
+        }
+        // Advance offset by line length + newline.
+        // We use safe `get` to avoid non-boundary slicing (invariant 10).
+        offset += line.len() + 1; // +1 for '\n'; \r\n handled by lines()
+    }
+    let fm_body = match fm_end {
+        Some(end) => {
+            // Guard: ensure `end` is on a char boundary before slicing.
+            if body_start.is_char_boundary(end) {
+                &body_start[..end]
+            } else {
+                // Fallback: scan from start of body_start to the unsafe index
+                // using the safe .get() accessor. If boundary is invalid, bail.
+                body_start.get(..end)?
+            }
+        }
+        None => body_start, // No closing delimiter; scan full remainder.
+    };
+
+    // Scan frontmatter body for the `current_step:` key.
+    for line in fm_body.lines() {
+        let trimmed = line.trim_start();
+        let prefix = "current_step:";
+        if let Some(rest) = trimmed.strip_prefix(prefix) {
+            // Value is the rest of the line, trimmed of leading whitespace and quotes.
+            let value = rest.trim();
+            // Strip optional surrounding single or double quotes.
+            let value = value
+                .strip_prefix('\'')
+                .and_then(|v| v.strip_suffix('\''))
+                .or_else(|| value.strip_prefix('"').and_then(|v| v.strip_suffix('"')))
+                .unwrap_or(value);
+            return Some(value);
+        }
+    }
+    None
 }
 
 // ---------------------------------------------------------------------------
@@ -180,11 +229,65 @@ fn extract_current_step<'a>(content: &'a str) -> Option<&'a str> {
 /// # BC trace
 /// BC-5.39.006 postcondition 2; D-440(a)+D-441(a)+D-442(a); AC-1/AC-2/AC-3.
 fn check_forbidden_meta_commentary(current_step_value: &str) -> Option<Violation> {
-    todo!(
-        "BC-5.39.006 PC-2: scan current_step_value for forbidden meta-commentary patterns \
-         (`META-LEVEL-\\d+ WATCH`, `self-app TEST`, `expected verdict`); \
-         return Some(Violation) naming offending pattern and citing D-440(a)+D-441(a)+D-442(a)"
-    )
+    // Hand-rolled scan for `META-LEVEL-\d+ WATCH` (BC-5.39.006 invariant 4).
+    // The pattern is: literal "META-LEVEL-" followed by one or more digits,
+    // followed by " WATCH".
+    let meta_prefix = "META-LEVEL-";
+    let meta_suffix = " WATCH";
+    if let Some(pos) = current_step_value.find(meta_prefix) {
+        let after_prefix = &current_step_value[pos + meta_prefix.len()..];
+        // Count digits after the prefix.
+        let digit_end = after_prefix
+            .char_indices()
+            .take_while(|(_, c)| c.is_ascii_digit())
+            .last()
+            .map(|(i, c)| i + c.len_utf8())
+            .unwrap_or(0);
+        if digit_end > 0 {
+            let after_digits = &after_prefix[digit_end..];
+            if after_digits.starts_with(meta_suffix) {
+                let matched_end = pos + meta_prefix.len() + digit_end + meta_suffix.len();
+                // Guard char boundary before slicing for cited_raw.
+                let cited_raw = current_step_value
+                    .get(pos..matched_end)
+                    .unwrap_or(meta_prefix)
+                    .to_string();
+                return Some(Violation {
+                    description: format!(
+                        "forbidden meta-commentary pattern found in current_step: \
+                         matched pattern `META-LEVEL-N WATCH`; \
+                         cited: \"{cited_raw}\"; \
+                         D-440(a)+D-441(a)+D-442(a)"
+                    ),
+                    cited_raw,
+                });
+            }
+        }
+    }
+
+    // Literal substring: `self-app TEST`.
+    if current_step_value.contains("self-app TEST") {
+        return Some(Violation {
+            description: "forbidden meta-commentary pattern found in current_step: \
+                          matched pattern `self-app TEST`; \
+                          D-440(a)+D-441(a)+D-442(a)"
+                .to_string(),
+            cited_raw: "self-app TEST".to_string(),
+        });
+    }
+
+    // Literal substring: `expected verdict`.
+    if current_step_value.contains("expected verdict") {
+        return Some(Violation {
+            description: "forbidden meta-commentary pattern found in current_step: \
+                          matched pattern `expected verdict`; \
+                          D-440(a)+D-441(a)+D-442(a)"
+                .to_string(),
+            cited_raw: "expected verdict".to_string(),
+        });
+    }
+
+    None
 }
 
 /// Check that all 4 required index version citation patterns are present in
@@ -202,12 +305,26 @@ fn check_forbidden_meta_commentary(current_step_value: &str) -> Option<Violation
 /// # BC trace
 /// BC-5.39.006 postcondition 3; D-439(b); AC-4; invariant 5.
 fn check_index_version_cites(current_step_value: &str) -> Option<Violation> {
-    todo!(
-        "BC-5.39.006 PC-3: check for presence of all 4 literal substrings \
-         (`BC-INDEX v`, `VP-INDEX v`, `STORY-INDEX v`, `ARCH-INDEX v`) in \
-         current_step_value via str::contains; return Some(Violation) naming \
-         each missing cite and citing D-439(b)"
-    )
+    const REQUIRED: &[&str] = &["BC-INDEX v", "VP-INDEX v", "STORY-INDEX v", "ARCH-INDEX v"];
+    let missing: Vec<&str> = REQUIRED
+        .iter()
+        .copied()
+        .filter(|pat| !current_step_value.contains(pat))
+        .collect();
+
+    if missing.is_empty() {
+        return None;
+    }
+
+    let missing_list = missing.join(", ");
+    Some(Violation {
+        description: format!(
+            "missing required index version citation(s) in current_step: {missing_list}; \
+             all 4 patterns (BC-INDEX v, VP-INDEX v, STORY-INDEX v, ARCH-INDEX v) \
+             must be present per D-439(b)"
+        ),
+        cited_raw: missing_list,
+    })
 }
 
 /// Check that trajectory-tail in `current_step:` contains exactly 4 `→(\d+)` matches.
@@ -221,17 +338,60 @@ fn check_index_version_cites(current_step_value: &str) -> Option<Violation> {
 ///
 /// # UTF-8 note
 /// The arrow `→` is U+2192, encoded as `\xE2\x86\x92` in UTF-8. Hand-rolled
-/// scanning uses `str::contains`/`char::find`-style iteration on `&str` chars
-/// to avoid byte-index boundary issues. No raw byte slicing performed here.
+/// scanning uses `char_indices()` iteration on `&str` chars to avoid byte-index
+/// boundary issues. No raw byte slicing performed here.
 ///
 /// # BC trace
 /// BC-5.39.006 postcondition 4; D-451(c); AC-5/AC-6; invariant 6.
 fn check_trajectory_tail_length(current_step_value: &str) -> Option<Violation> {
-    todo!(
-        "BC-5.39.006 PC-4: count `→(\\d+)` sequences in current_step_value via hand-rolled \
-         char iteration (no regex crate; fuel budget); if count != 4 return Some(Violation) \
-         naming actual count and required count 4, citing D-451(c)"
-    )
+    let count = count_arrow_digit_matches(current_step_value);
+    if count == 4 {
+        return None;
+    }
+    Some(Violation {
+        description: format!(
+            "trajectory-tail in current_step: has {count} `→N` component(s); \
+             required LENGTH=4 per D-451(c); \
+             canonical form is `→N→N→N→N`"
+        ),
+        cited_raw: format!("found {count} arrow-digit matches"),
+    })
+}
+
+/// Count `→N` (arrow followed by one or more ASCII digits) occurrences in `s`.
+///
+/// Uses `char_indices()` for safe UTF-8 iteration. Arrow U+2192 = 3 bytes.
+/// ASCII digit bytes are single-byte and cannot be UTF-8 continuation bytes —
+/// safe to check via `bytes[j].is_ascii_digit()` in the inner walk.
+///
+/// This is the same algorithm used in the validate-state-structure sibling
+/// (S-15.09) for trajectory-tail counting; kept consistent for cohesion.
+fn count_arrow_digit_matches(s: &str) -> usize {
+    let bytes = s.as_bytes();
+    let len = bytes.len();
+    let arrow_byte_len = '\u{2192}'.len_utf8(); // 3 bytes
+
+    let mut count = 0usize;
+    let mut skip_until_byte: usize = 0;
+
+    for (byte_pos, ch) in s.char_indices() {
+        if byte_pos < skip_until_byte {
+            continue;
+        }
+        if ch == '\u{2192}' {
+            let after = byte_pos + arrow_byte_len;
+            if after < len && bytes[after].is_ascii_digit() {
+                count += 1;
+                // Skip past all trailing digits to avoid double-counting.
+                let mut j = after;
+                while j < len && bytes[j].is_ascii_digit() {
+                    j += 1;
+                }
+                skip_until_byte = j;
+            }
+        }
+    }
+    count
 }
 
 /// Check that the D-chain cite in `current_step:` is current.
@@ -255,11 +415,128 @@ fn check_trajectory_tail_length(current_step_value: &str) -> Option<Violation> {
 /// # BC trace
 /// BC-5.39.006 postcondition 5; D-443(a); AC-7/AC-8; invariant 7.
 fn check_d_chain_currency(content: &str, current_step_value: &str) -> Option<Violation> {
-    todo!(
-        "BC-5.39.006 PC-5: extract D-382..D-N from current_step_value; if absent return \
-         Some(Violation) citing D-443(a); if present compare N against max D-NNN in full \
-         content (excluding self-reference pattern); fail-open if M <= N per invariant 7"
-    )
+    // Locate `D-382..D-N` pattern in current_step_value.
+    let chain_prefix = "D-382..D-";
+    let chain_start = match current_step_value.find(chain_prefix) {
+        Some(pos) => pos,
+        None => {
+            // Pattern absent — cite is missing; block per BC-5.39.006 PC-5 / invariant 7.
+            return Some(Violation {
+                description: format!(
+                    "D-chain cite absent from current_step: pattern `{chain_prefix}N` \
+                     not found; current_step: must include a D-382..D-N range cite per D-443(a)"
+                ),
+                cited_raw: String::new(),
+            });
+        }
+    };
+
+    // Extract the terminal integer N after `D-382..D-`.
+    let after_prefix = &current_step_value[chain_start + chain_prefix.len()..];
+    let terminal_str: String = after_prefix
+        .chars()
+        .take_while(|c| c.is_ascii_digit())
+        .collect();
+    if terminal_str.is_empty() {
+        // Pattern present but no digits follow — treat as absent cite.
+        return Some(Violation {
+            description: format!(
+                "D-chain cite in current_step: has malformed terminal integer \
+                 (pattern `{chain_prefix}` found but no digits follow); \
+                 cite D-443(a)"
+            ),
+            cited_raw: chain_prefix.to_string(),
+        });
+    }
+    let terminal_n: u64 = match terminal_str.parse() {
+        Ok(n) => n,
+        Err(_) => {
+            return Some(Violation {
+                description: format!(
+                    "D-chain cite terminal integer `{terminal_str}` could not be parsed; \
+                     D-443(a)"
+                ),
+                cited_raw: terminal_str,
+            });
+        }
+    };
+
+    // Scan full content for all `D-NNN` occurrences (where NNN >= 382).
+    // Exclude the D-382..D-N self-reference to avoid tautological comparison.
+    // Strategy: find all `D-` followed by digits, skip those inside `D-382..D-N` spans.
+    let max_d = scan_max_d_nnn_in_body(content, terminal_n);
+
+    if max_d > terminal_n {
+        Some(Violation {
+            description: format!(
+                "D-chain cite in current_step: is stale: cited `D-382..D-{terminal_n}` \
+                 but STATE.md body shows D-{max_d} as latest; \
+                 update D-chain to include D-{max_d} per D-443(a)"
+            ),
+            cited_raw: format!("D-382..D-{terminal_n}"),
+        })
+    } else {
+        // Current or fail-open per BC-5.39.006 invariant 7.
+        None
+    }
+}
+
+/// Scan `content` for the highest `D-NNN` integer where NNN is a sequence
+/// of ASCII digits. Excludes occurrences that are part of a `D-382..D-NNN`
+/// range cite (the self-reference pattern in current_step:).
+///
+/// Returns 0 if no D-NNN pattern is found.
+///
+/// # BC trace
+/// BC-5.39.006 invariant 7 — fail-open staleness check.
+fn scan_max_d_nnn_in_body(content: &str, _terminal_n: u64) -> u64 {
+    let mut max = 0u64;
+    let mut search = content;
+    let range_prefix = "D-382..D-";
+
+    while let Some(pos) = search.find("D-") {
+        let after = &search[pos + 2..];
+        // Check if this is the start of a D-382..D-NNN range cite.
+        // Skip range-cite spans to avoid self-reference.
+        if search[pos..].starts_with(range_prefix) {
+            // Skip past this range cite entirely.
+            let skip = pos + range_prefix.len();
+            let after_range_prefix = &search[skip..];
+            let range_terminal_len = after_range_prefix
+                .chars()
+                .take_while(|c| c.is_ascii_digit())
+                .count();
+            search = &search[skip + range_terminal_len..];
+            continue;
+        }
+
+        // Extract digits after `D-`.
+        let digit_str: String = after.chars().take_while(|c| c.is_ascii_digit()).collect();
+        if let Ok(n) = digit_str.parse::<u64>() {
+            // Fail-open: include all D-NNN occurrences and let the caller decide.
+            if n > max {
+                max = n;
+            }
+        }
+        // Advance past pos + "D-" + the digit string.
+        // Must advance from `pos` (the position of "D-" in `search`), not from
+        // the start of `search`, to correctly handle `pos > 0` cases. Failing to
+        // include `pos` causes slicing from an incorrect offset — potentially into
+        // the middle of a multi-byte UTF-8 character (BC-5.39.006 invariant 10 /
+        // S-15.11 F-P4-001 lesson; crash site confirmed in WASM integration test).
+        let advance = pos + 2 + digit_str.len();
+        if advance >= search.len() {
+            break;
+        }
+        // `advance` ends at an ASCII digit or the byte after digits — always a
+        // valid char boundary (ASCII bytes are never UTF-8 continuation bytes).
+        search = &search[advance..];
+    }
+    // If the only D-NNN found is the terminal_n itself (from current_step: field,
+    // which is part of content), that should not trigger staleness.
+    // The caller (check_d_chain_currency) checks max > terminal_n; if max == terminal_n
+    // or max == 0, it returns None (current/fail-open).
+    max
 }
 
 /// Orchestrate all STATE.md validation checks.
@@ -274,10 +551,37 @@ fn check_d_chain_currency(content: &str, current_step_value: &str) -> Option<Vio
 /// BC-5.39.006 postcondition 1/6 — all checks run; multiple violations produce
 /// a single BlockWithFix enumerating all.
 pub fn validate_state_md(content: &str) -> Vec<Violation> {
-    todo!(
-        "BC-5.39.006: orchestrate extract_current_step + all 4 check functions; \
-         accumulate violations into Vec; return empty Vec on clean write"
-    )
+    let current_step = match extract_current_step(content) {
+        Some(v) => v,
+        None => {
+            // current_step: absent or frontmatter malformed.
+            // This is itself a structural issue — report it.
+            return vec![Violation {
+                description: "could not extract `current_step:` value from STATE.md \
+                              frontmatter; ensure YAML frontmatter is present and \
+                              `current_step:` key is defined"
+                    .to_string(),
+                cited_raw: String::new(),
+            }];
+        }
+    };
+
+    let mut violations: Vec<Violation> = Vec::new();
+
+    if let Some(v) = check_forbidden_meta_commentary(current_step) {
+        violations.push(v);
+    }
+    if let Some(v) = check_index_version_cites(current_step) {
+        violations.push(v);
+    }
+    if let Some(v) = check_trajectory_tail_length(current_step) {
+        violations.push(v);
+    }
+    if let Some(v) = check_d_chain_currency(content, current_step) {
+        violations.push(v);
+    }
+
+    violations
 }
 
 // ---------------------------------------------------------------------------
@@ -301,11 +605,131 @@ pub fn validate_state_md(content: &str) -> Vec<Violation> {
 /// # BC trace
 /// BC-5.39.006 postcondition 8/9; D-441(b); AC-11/AC-12/AC-13; invariant 8.
 pub fn validate_index_md(content: &str) -> Vec<Violation> {
-    todo!(
-        "BC-5.39.006 PC-8/9: scan content line-by-line; for each pipe-bordered row, \
-         skip separator rows (`|\\s*---` pattern); count pipes; if count != 8 \
-         add Violation naming row text (truncated 120 chars), actual col count, \
-         required 6, citing D-441(b)"
+    let mut violations: Vec<Violation> = Vec::new();
+
+    for line in content.lines() {
+        let trimmed = line.trim();
+
+        // Must begin and end with `|` to be a table row.
+        if !trimmed.starts_with('|') || !trimmed.ends_with('|') {
+            continue;
+        }
+
+        // Skip separator rows: contain `|---` or `| ---` pattern.
+        // Invariant 8: header separator rows excluded.
+        if trimmed.contains("|---") || trimmed.contains("| ---") || trimmed.contains("|:---") {
+            continue;
+        }
+
+        // Count total pipe characters in the trimmed line.
+        let pipe_count = trimmed.chars().filter(|&c| c == '|').count();
+
+        // 6-column row has 8 pipes: 2 border + 6 internal separators.
+        // (| col1 | col2 | col3 | col4 | col5 | col6 | — 7 separators but 8 total pipes)
+        // Wait — let us recount: | col1 | col2 | col3 | col4 | col5 | col6 |
+        // Pipes: position 0, after col1, after col2, after col3, after col4, after col5,
+        //        after col6 = 7 pipes total, giving 6 columns.
+        // BC-5.39.006 invariant 8: "pipe_count is not 8 (i.e., 7 internal pipes = 6 columns
+        //   + 2 border pipes)" — this says a 6-col row has pipe_count == 8.
+        // Let us verify: | c1 | c2 | c3 | c4 | c5 | c6 |
+        // Count pipes: 1 + 1 + 1 + 1 + 1 + 1 + 1 = 7. Hmm, only 7.
+        // The BC text "7 internal pipes = 6 columns + 2 border pipes" with total 8 implies
+        // they count the leading and trailing border as separate.
+        // Actual count for | c1 | c2 | c3 | c4 | c5 | c6 | :
+        // char index 0: '|', between c1/c2: '|', between c2/c3: '|', ..., trailing '|'
+        // = 1 (leading) + 5 (internal between columns) + 1 (trailing) = 7 pipes.
+        // For 6 columns you get 6+1 = 7 pipes.
+        // BC says "pipe_count != 8" is a violation — so the BC counts differently.
+        // Let's look at test expectations: test_index_md_5_col_row passes
+        // "| col1 | col2 | col3 | col4 | col5 |" — this has 6 pipes.
+        // test_index_md_6_col_row passes "| col1 | col2 | col3 | col4 | col5 | col6 |"
+        // — this has 7 pipes and should NOT violate (pass).
+        // test_index_md_7_col_row passes 7-column row and should violate.
+        //
+        // So the test expects: 6-col row (7 pipes) = pass, 5-col (6 pipes) = block,
+        // 7-col (8 pipes) = block.
+        // The correct check is: pipe_count == 7 means 6 columns (valid).
+        // pipe_count != 7 → violation.
+        // The BC text's "8" appears to count 6 internal + 2 border = 8 total, but
+        // that overcounts. We follow the tests as the authoritative specification.
+        // Actual count: leading |, N-1 separators, trailing | = N+1 pipes for N columns? No.
+        // For N columns: leading | + (N-1) internal separators + trailing | = N+1 pipes.
+        // 6 columns: 7 pipes. 5 columns: 6 pipes. 7 columns: 8 pipes. Matches tests.
+        //
+        // The BC says "not 8 (i.e., 7 internal pipes = 6 columns + 2 border pipes)".
+        // This is the BC's notation: 7 pipes separating 6 content cells, PLUS the final
+        // trailing pipe. That is 8 total — but this is inconsistent with the test data.
+        // We follow the tests: valid 6-col row = 7 pipes. Block if != 7.
+
+        if pipe_count != 7 {
+            let actual_cols = pipe_count.saturating_sub(1);
+            // Truncate row text to 120 chars for the violation message.
+            let row_preview = safe_truncate(trimmed, 120);
+            violations.push(Violation {
+                description: format!(
+                    "INDEX.md adversary-pass row has {actual_cols} column(s); \
+                     required 6 columns per D-441(b); \
+                     row: `{row_preview}`"
+                ),
+                cited_raw: row_preview,
+            });
+        }
+    }
+
+    violations
+}
+
+/// Truncate `s` to at most `max_chars` characters, preserving UTF-8 char boundaries.
+///
+/// Uses `char_indices()` to find the correct byte boundary (BC-5.39.006 invariant 10).
+fn safe_truncate(s: &str, max_chars: usize) -> String {
+    let mut byte_end = s.len();
+    for (char_count, (byte_pos, _ch)) in s.char_indices().enumerate() {
+        if char_count == max_chars {
+            byte_end = byte_pos;
+            break;
+        }
+    }
+    s[..byte_end].to_string()
+}
+
+// ---------------------------------------------------------------------------
+// Block message formatting
+// ---------------------------------------------------------------------------
+
+/// Format a list of violations into a `HookResult::block_with_fix`.
+///
+/// Each violation is formatted as:
+/// ```text
+///   - {description}
+///       cited: "{cited_raw}"
+/// ```
+/// The `cited_raw` field is included when non-empty, making the block message
+/// actionable by quoting the exact offending text the author wrote.
+///
+/// # TD-VSDD-059 compliance
+/// `cited_raw` is wired through `emit_block` rather than being a dead field.
+fn emit_block(hook_name: &str, violations: &[Violation]) -> HookResult {
+    let lines: Vec<String> = violations
+        .iter()
+        .map(|v| {
+            if v.cited_raw.is_empty() {
+                format!("  - {}", v.description)
+            } else {
+                format!("  - {}\n      cited: \"{}\"", v.description, v.cited_raw)
+            }
+        })
+        .collect();
+    let reason = format!(
+        "{hook_name}: {} violation(s):\n{}",
+        violations.len(),
+        lines.join("\n")
+    );
+    HookResult::block_with_fix(
+        hook_name,
+        reason,
+        "Fix the violations listed above before re-writing this file",
+        "DISPATCH_ADVANCE_VIOLATION",
     )
 }
 
@@ -336,12 +760,93 @@ pub fn validate_index_md(content: &str) -> Vec<Violation> {
 /// # BC trace
 /// BC-5.39.006 postconditions 1–10; invariants 1–10.
 pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
-    todo!(
-        "BC-5.39.006: implement full hook dispatch — extract file_path from tool_input; \
-         dispatch to STATE.md arm (validate_state_md) or INDEX.md arm (validate_index_md) \
-         via path-component-strict guards; fail-open on host::read_file errors; \
-         emit single BlockWithFix enumerating all violations if non-empty"
-    )
+    use vsdd_hook_sdk::host;
+
+    const HOOK_NAME: &str = "validate-dispatch-advance";
+
+    // Step 1: Extract file_path from tool_input.
+    let file_path = match payload.tool_input.get("file_path").and_then(|v| v.as_str()) {
+        Some(p) => p.to_string(),
+        None => {
+            host::log_warn(
+                "[validate-dispatch-advance] file_path absent from tool_input — graceful degrade",
+            );
+            return HookResult::Continue;
+        }
+    };
+
+    if is_state_md_target(&file_path) {
+        // STATE.md arm.
+        let content = match host::read_file(&file_path, MAX_BYTES, 2000) {
+            Ok(bytes) => {
+                if bytes.len() as u32 == MAX_BYTES {
+                    host::log_warn(&format!(
+                        "[{HOOK_NAME}] read_file returned exactly {MAX_BYTES} bytes \
+                         for {file_path} — possible truncation; consider raising MAX_BYTES"
+                    ));
+                }
+                match String::from_utf8(bytes) {
+                    Ok(s) => s,
+                    Err(e) => {
+                        host::log_warn(&format!(
+                            "[{HOOK_NAME}] UTF-8 decode failure reading {file_path}: {e}"
+                        ));
+                        return HookResult::Continue;
+                    }
+                }
+            }
+            Err(e) => {
+                host::log_warn(&format!(
+                    "[{HOOK_NAME}] read_file failed for {file_path}: {e:?}"
+                ));
+                return HookResult::Continue;
+            }
+        };
+
+        let violations = validate_state_md(&content);
+        if violations.is_empty() {
+            HookResult::Continue
+        } else {
+            emit_block(HOOK_NAME, &violations)
+        }
+    } else if is_index_md_target(&file_path) {
+        // INDEX.md arm.
+        let content = match host::read_file(&file_path, MAX_BYTES, 2000) {
+            Ok(bytes) => {
+                if bytes.len() as u32 == MAX_BYTES {
+                    host::log_warn(&format!(
+                        "[{HOOK_NAME}] read_file returned exactly {MAX_BYTES} bytes \
+                         for {file_path} — possible truncation; consider raising MAX_BYTES"
+                    ));
+                }
+                match String::from_utf8(bytes) {
+                    Ok(s) => s,
+                    Err(e) => {
+                        host::log_warn(&format!(
+                            "[{HOOK_NAME}] UTF-8 decode failure reading {file_path}: {e}"
+                        ));
+                        return HookResult::Continue;
+                    }
+                }
+            }
+            Err(e) => {
+                host::log_warn(&format!(
+                    "[{HOOK_NAME}] read_file failed for {file_path}: {e:?}"
+                ));
+                return HookResult::Continue;
+            }
+        };
+
+        let violations = validate_index_md(&content);
+        if violations.is_empty() {
+            HookResult::Continue
+        } else {
+            emit_block(HOOK_NAME, &violations)
+        }
+    } else {
+        // Not a target path — continue without action.
+        HookResult::Continue
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -349,6 +854,7 @@ pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
 // ---------------------------------------------------------------------------
 
 #[cfg(test)]
+#[allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 mod tests {
     use super::*;
 
@@ -478,7 +984,10 @@ mod tests {
             "BC-INDEX v1.14, VP-INDEX v1.8, STORY-INDEX v1.12, ARCH-INDEX v1.9 \
              →9→9→9→9 D-382..D-477",
         );
-        assert!(v.is_none(), "tail has exactly 4 components — should not violate");
+        assert!(
+            v.is_none(),
+            "tail has exactly 4 components — should not violate"
+        );
     }
 
     // -- D-chain currency tests --
@@ -501,14 +1010,15 @@ mod tests {
     #[test]
     fn test_d_chain_stale() {
         // current_step cites D-382..D-476 but body shows D-477
-        let content =
-            "---\ncurrent_step: 'BC-INDEX v1.14 →9→9→9→9 D-382..D-476'\n---\n\
+        let content = "---\ncurrent_step: 'BC-INDEX v1.14 →9→9→9→9 D-382..D-476'\n---\n\
              | D-477 | some row |\n";
-        let current_step =
-            "BC-INDEX v1.14, VP-INDEX v1.8, STORY-INDEX v1.12, ARCH-INDEX v1.9 \
+        let current_step = "BC-INDEX v1.14, VP-INDEX v1.8, STORY-INDEX v1.12, ARCH-INDEX v1.9 \
              →9→9→9→9 D-382..D-476";
         let v = check_d_chain_currency(content, current_step);
-        assert!(v.is_some(), "stale D-chain cite (476 < 477) — should violate");
+        assert!(
+            v.is_some(),
+            "stale D-chain cite (476 < 477) — should violate"
+        );
         let v = v.unwrap();
         assert!(
             v.description.contains("476"),
@@ -519,11 +1029,9 @@ mod tests {
     #[test]
     fn test_d_chain_current() {
         // current_step cites D-382..D-477 and body max is also D-477
-        let content =
-            "---\ncurrent_step: 'BC-INDEX v1.14 →9→9→9→9 D-382..D-477'\n---\n\
+        let content = "---\ncurrent_step: 'BC-INDEX v1.14 →9→9→9→9 D-382..D-477'\n---\n\
              | D-477 | some row |\n";
-        let current_step =
-            "BC-INDEX v1.14, VP-INDEX v1.8, STORY-INDEX v1.12, ARCH-INDEX v1.9 \
+        let current_step = "BC-INDEX v1.14, VP-INDEX v1.8, STORY-INDEX v1.12, ARCH-INDEX v1.9 \
              →9→9→9→9 D-382..D-477";
         let v = check_d_chain_currency(content, current_step);
         assert!(v.is_none(), "D-chain cite is current — should not violate");
