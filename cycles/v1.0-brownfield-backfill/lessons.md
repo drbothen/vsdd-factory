@@ -1672,3 +1672,28 @@ Output must be captured and cited verbatim in the inline comment (or in the comm
 
 - **F-P1-013 [process-gap] CLOSED 2026-05-17** — codified here per S-7.02 Cycle-Closing Checklist step 3; no code-level fix required (priority range is correct; only evidence form was deficient).
 - **S-15.14 cascade report reference:** `.factory/code-delivery/S-15.14/adv-local-pass-1.md` — F-P1-013 source document.
+
+---
+
+### PG-orchestrator-dispatch-template-canonical-marker (TD-VSDD-097)
+
+**Date:** 2026-05-18
+**Discovered:** S-15.14 LOCAL adversary pass-6 finding F-P6-001
+**Source:** orchestrator dispatch template (pass-5 state-manager dispatch prompt)
+
+**Issue:** Orchestrator wrote state-manager dispatch template for pass-5 persistence containing `current_step:` pattern that omitted the canonical `trajectory-tail →N→N→N→N` marker. State-manager followed template verbatim. Result: STATE.md:15 current_step VIOLATED BC-5.39.006 v1.2 PC-6 — the very PC the S-15.14 cascade was building the validator to enforce. Pass-6 fresh-context review caught it.
+
+**Class:** META-LEVEL-class self-violation — codifying-burst violates its own codified rule. Same class as F-P2-001 (state-manager violated POLICY 1 in burst codifying POLICY 1 lesson) and F-P3-001 (state-manager violated D-449(a) in burst codifying D-449(a) lesson via TD-VSDD-096).
+
+**Going-forward rule:** ALL orchestrator dispatch templates for state-manager that produce STATE.md `current_step:` writes MUST include the canonical `trajectory-tail →N→N→N→N` marker per BC-5.39.006 v1.2 PC-6. The marker is non-optional regardless of narrative content.
+
+**Verification gate:** before state-manager dispatch, orchestrator must verify the dispatch prompt's current_step pattern contains `trajectory-tail ` (with trailing space). If absent, dispatch is INVALID and must be rewritten.
+
+**Cross-reference:** TD-VSDD-095 (TDD micro-commit) + TD-VSDD-096 (registry priority literal-evidence) + TD-VSDD-097 (orchestrator dispatch template marker) form a triplet of META-LEVEL-class codification-without-application failures discovered across S-15.14 passes 1-6.
+
+**Codification:** TD-VSDD-097 (verified next available: prior max was TD-VSDD-096 per grep -rohE "TD-VSDD-[0-9]+" .factory/ | sort -u | tail)
+
+### Disposition
+
+- **F-P6-001 [process-gap] CLOSED 2026-05-18** — state-manager fix burst restored canonical marker in STATE.md current_step; TD-VSDD-097 codified here; orchestrator dispatch-template going-forward rule recorded in §3 User Directive carry-forward.
+- **S-15.14 cascade report reference:** `.factory/code-delivery/S-15.14/adv-local-pass-6.md` — F-P6-001 source document.

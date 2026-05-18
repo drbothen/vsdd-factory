@@ -7,7 +7,7 @@ producer: state-manager
 timestamp: 2026-05-06T19:00:00Z
 cycle: "v1.0-brownfield-backfill"
 inputs: [STATE.md]
-input-hash: "8f6ce06"
+input-hash: "5bc6a90"
 traces_to: STATE.md
 ---
 
@@ -421,3 +421,156 @@ F-P3-003 (implementer sibling commit cd9fd273 on feature/S-15.14-validate-dispat
 
 ### Factory-artifacts commits
 - `ef1a81a8` (state-manager pass-3 closure burst single atomic commit per TD-VSDD-053)
+
+## S-15.14-pass-4-persist (2026-05-17, factory-artifacts 9f79593d)
+
+### Parent-commit
+`8807cbdb` (SHA-patch burst following pass-3 closure burst)
+
+### Adversary verdict
+Pass-4 adversary: NITPICK-only (0C+0H+0M+0L+2N+0PG). Verdict NITPICK-only; streak 0/3 → 1/3 per BC-5.39.001. Persisted at `.factory/code-delivery/S-15.14/adv-local-pass-4.md`. No fix-burst required.
+
+### Files touched (.factory only)
+- `.factory/STATE.md` (state-manager; Phase Progress pass-4 row + Concurrent Cycles pass-4 advance + Drift Items F-P4-001+F-P4-002 rows + Session Resume §1/§4/§7/§9/§11 refresh + frontmatter phase+current_step+Last-Updated+Current-Phase advances)
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` (state-manager; this entry)
+
+### Codifications
+None. Pass-4 persist only — no new decisions or lessons.
+
+### Dim-2 attestation
+Pass-4 was NITPICK-only. No fix-burst; state-manager persist-only burst. D-446(a) own-burst-log 8-block gate acknowledged; this entry is the retroactive completion per D-444(c).
+
+### Dim-5 attestation
+State-manager persist-only burst on factory-artifacts. No concurrent implementer or PO dispatches.
+
+### Dim-6 attestation
+F-P4-001 (story Postconditions summary unmigrated to v1.2 PC numbering) + F-P4-002 (BC v1.2 changelog phrasing) deferred to Drift Items per Canonical Principle Rule 3 (documentary-only; explicit follow-up anchors assigned).
+
+### Dim-7 attestation
+POLICY 3 satisfied: state-manager-only. No multi-agent ordering concern.
+
+### Closes
+F-P4-001 (deferred to Drift Items with explicit anchor), F-P4-002 (deferred to Drift Items with explicit anchor)
+
+### Factory-artifacts commits
+- `9f79593d` (state-manager pass-4 persist single atomic commit per TD-VSDD-053)
+
+## S-15.14-pass-5-persist (2026-05-17, factory-artifacts 16f691ec)
+
+### Parent-commit
+`9f79593d` (pass-4 persist)
+
+### Adversary verdict
+Pass-5 adversary: CLEAN (0C+0H+0M+0L+0N+0PG). Verdict CLEAN; streak 1/3 → 2/3 per BC-5.39.001. Persisted at `.factory/code-delivery/S-15.14/adv-local-pass-5.md`. No fix-burst required.
+
+### Files touched (.factory only)
+- `.factory/STATE.md` (state-manager; Phase Progress pass-5 row + Concurrent Cycles pass-5 advance + Session Resume §1/§4/§7/§9/§11 refresh + frontmatter phase+current_step+Last-Updated+Current-Phase advances)
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` (state-manager; this entry)
+
+### Codifications
+None. Pass-5 persist only — no new decisions or lessons.
+
+### Dim-2 attestation
+Pass-5 was CLEAN. No fix-burst; state-manager persist-only burst. Retroactive burst-log entry per D-444(c) 8-block gate. NOTE: pass-5 persistence omitted the `trajectory-tail ` canonical marker from current_step (regression caught by pass-6 adversary as F-P6-001; fixed in pass-6 fix-burst below).
+
+### Dim-5 attestation
+State-manager persist-only burst on factory-artifacts. No concurrent dispatches.
+
+### Dim-6 attestation
+No findings to close. Pass-5 CLEAN is first consecutive CLEAN after pass-4 NITPICK-only.
+
+### Dim-7 attestation
+POLICY 3 satisfied: state-manager-only.
+
+### Closes
+(none — CLEAN pass)
+
+### Factory-artifacts commits
+- `16f691ec` (state-manager pass-5 persist single atomic commit per TD-VSDD-053)
+
+## S-15.14-pass-6-combined-burst (2026-05-18, factory-artifacts — see git log -1)
+
+### Parent-commit
+`16f691ec` (pass-5 persist)
+
+### Adversary verdict
+Pass-6 adversary: HIGH (0C+1H+0M+0L+0N+0PG). Verdict HIGH; streak 2/3 → 0/3 RESET per BC-5.39.001. Persisted at `.factory/code-delivery/S-15.14/adv-local-pass-6.md`. Fix-burst required (F-P6-001).
+
+**Source-attestation (D-448(a) literal diff):**
+
+Pre-fix grep evidence (F-P6-001 existence):
+```
+$ grep "^current_step:" /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md
+```
+(before fix) current_step value contained `trajectory 16→9→8→2→0` without `trajectory-tail ` prefix — HARD BlockWithFix per BC-5.39.006 v1.2 PC-6.
+
+Post-fix grep evidence (F-P6-001 closed):
+```
+$ grep "^current_step:" /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md
+current_step: "S-15.14 LOCAL adversary pass-6 FIX-BURST 2026-05-18 — F-P6-001 closed: trajectory-tail canonical marker restored in current_step per BC-5.39.006 v1.2 PC-6; streak 0/3 (HIGH reset); trajectory-tail →9→9→9→9 (F5 cycle; unchanged); S-15.14 cascade trajectory 16→9→8→2→0→1; PG-orchestrator-dispatch-template-canonical-marker codified to lessons (TD-VSDD-097); parent-commit 16f691ec per D-419(b)+D-420(d)+D-421(a)+D-441(a)+D-442(a)+D-443(a)+D-444(a)+D-449(a); next: adversary pass-7 (streak 0/3 target 1/3); BC-INDEX v2.34, VP-INDEX v1.97, STORY-INDEX v3.43, ARCH-INDEX v2.06."
+
+$ grep -c "trajectory-tail " /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md
+11
+```
+Pre-fix count: 10. Post-fix count: 11. Net +1 (the new current_step occurrence). F-P6-001 structurally closed.
+
+### Files touched (.factory only)
+- `.factory/STATE.md` (state-manager; current_step canonical marker restored; last_amended 2026-05-18; phase+Last-Updated+Current-Phase+Session-Resume+Drift-Items+Phase-Progress-2-rows+Concurrent-Cycles+size-budget-banner advances)
+- `.factory/code-delivery/S-15.14/adv-local-pass-6.md` (state-manager; new pass-6 adversary report)
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` (state-manager; PG-orchestrator-dispatch-template-canonical-marker TD-VSDD-097 lesson appended)
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` (state-manager; retroactive pass-4 + pass-5 entries + this pass-6 combined entry)
+
+### Codifications
+- **TD-VSDD-097 (CODIFIED-LESSON):** Orchestrator dispatch templates for state-manager `current_step:` writes MUST include canonical `trajectory-tail →N→N→N→N` marker per BC-5.39.006 v1.2 PC-6. Missing marker = HARD BlockWithFix at deploy. Codified in `cycles/v1.0-brownfield-backfill/lessons.md` as PG-orchestrator-dispatch-template-canonical-marker.
+
+### Dim-2 attestation
+ENUMERATED gate per D-449(a) literal-shell-execution-evidence (NO placeholder brackets):
+
+**Pre-fix literal shell (D-449(a) evidence for F-P6-001 existence):**
+```
+$ grep "^current_step:" /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md
+current_step: "S-15.14 LOCAL adversary pass-5 PERSISTED 2026-05-17 — verdict CLEAN (0 findings); streak 1/3 → 2/3 per BC-5.39.001; trajectory 16→9→8→2→0; convergence on horizon (one more clean pass for 3/3); no fix-burst needed; parent-commit 9f79593d per D-419(b); next: adversary pass-6 (target 3/3 CONVERGENCE)."
+```
+Contains `trajectory 16→9→8→2→0` — NO `trajectory-tail ` prefix. F-P6-001 confirmed present.
+
+**Post-fix literal shell (D-449(a) evidence for F-P6-001 closure):**
+```
+$ grep "^current_step:" /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md
+current_step: "S-15.14 LOCAL adversary pass-6 FIX-BURST 2026-05-18 — F-P6-001 closed: trajectory-tail canonical marker restored in current_step per BC-5.39.006 v1.2 PC-6; streak 0/3 (HIGH reset); trajectory-tail →9→9→9→9 (F5 cycle; unchanged); ..."
+```
+Contains `trajectory-tail ` prefix. F-P6-001 closed.
+
+**Post-fix trajectory-tail count:**
+```
+$ grep -c "trajectory-tail " /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md
+11
+```
+Pre-fix was 10; post-fix is 11. Net +1 new occurrence in current_step.
+
+**D-446(a) own-burst-log 8-block gate (literal check):**
+This entry contains all D-444(c) required blocks:
+- Parent-commit ✓
+- Adversary verdict ✓
+- Files touched ✓
+- Codifications ✓
+- Dim-2 attestation ✓ (this section)
+- Dim-5 attestation ✓ (below)
+- Dim-6 attestation ✓ (below)
+- Dim-7 attestation ✓ (below)
+- Closes ✓ (below)
+- Factory-artifacts commits ✓ (below)
+
+### Dim-5 attestation
+This burst is state-manager-only on factory-artifacts (single atomic commit per TD-VSDD-053). No concurrent implementer dispatches — F-P6-001 is a STATE.md content fix only. Sibling feature/S-15.14-validate-dispatch-advance branch (implementer commits 03656260+cd9fd273) remains unchanged; this burst does not touch it.
+
+### Dim-6 attestation
+F-P6-001 closed by current_step content restoration (canonical marker `trajectory-tail ` now present per BC-5.39.006 v1.2 PC-6 + EC-023). TD-VSDD-097 codified in lessons.md. F-P4-001 + F-P4-002 remain OPEN in Drift Items (unchanged; documentary-only deferrals).
+
+### Dim-7 attestation
+POLICY 3 (state_manager_runs_last) satisfied: state-manager-only burst. No multi-role ordering concern. This combined burst (pass-6 persist + fix) follows the Single-Commit Burst Protocol per TD-VSDD-053 — one atomic factory-artifacts commit.
+
+### Closes
+F-P6-001 (current_step canonical marker restored; TD-VSDD-097 codified)
+
+### Factory-artifacts commits
+- Single atomic commit (state-manager pass-6 combined persist+fix per TD-VSDD-053; see `git -C .factory log -1 --format='%h %s'`)
