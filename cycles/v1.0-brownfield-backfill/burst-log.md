@@ -673,3 +673,98 @@ F-P7-001 (D-chain cite restored to D-476 per BC-5.39.006 v1.2 PC5; TD-VSDD-097 E
 
 ### Factory-artifacts commits
 - `66296e29` (state-manager pass-7 combined persist+fix single atomic commit per TD-VSDD-053)
+
+---
+
+## Burst: S-15.14 LOCAL adversary pass-8 PERSIST + STATE.md COMPACTION 2026-05-18
+
+### Parent-commit
+`df550a42` (S-15.14 pass-7 combined persist+fix-burst; factory-artifacts HEAD at burst start; per D-419(b)+D-420(d)+D-421(a))
+
+### Adversary verdict
+Pass-8 adversary verdict: **CLEAN** (0 findings; 0 observations; 0 POLICY violations). Streak advances 0/3 → 1/3 per BC-5.39.001. Cascade trajectory 16→9→8→2→0→1→1→0. Pass-7 fix successfully closed F-P7-001 (D-chain cite restored to D-476 per BC-5.39.006 v1.2 PC5); TD-VSDD-097 EXTENDED to ALL 5 BC PCs confirmed present in lessons.md. 5-PC E2E verification all PASS. No findings to suppress; no findings manufactured.
+
+Full report: `.factory/code-delivery/S-15.14/adv-local-pass-8.md`
+
+### Files touched (Dim-1)
+3 files modified in this burst:
+- `.factory/code-delivery/S-15.14/adv-local-pass-8.md` (new — pass-8 adversary report persist)
+- `.factory/STATE.md` (updated — compaction D-430(a) + pass-8 persist + frontmatter + Session Resume)
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` (this entry)
+
+### Codifications (Dim-3)
+No new D-NNN codification this burst. Pass-8 is a CLEAN persist + authorized compaction burst. D-430(a) authorization already exists (original compaction precedent from F5 pass-49). This burst invokes D-430(a) for F5 pass-60..74 + E-10 pass-9..14 Phase Progress rows, which were preserved in cycle files but duplicating historical content in STATE.md past the 500-line hard cap margin.
+
+Compacted categories:
+- F5 pass-60..74 fix burst Phase Progress rows (15 rows + pass-74-to-pivot transition)
+- E-10 pass-9..14 adversary + fix-burst Phase Progress rows (11 rows)
+Replaced with: 2 consolidated summary rows citing cycle files for full content.
+
+### Dim-2 Attestation
+
+**D-449(a) LITERAL-SHELL-EXECUTION-EVIDENCE — 5-PC verification (BC-5.39.006 v1.2):**
+
+**PC2 (forbidden meta patterns):**
+```
+$ echo "S-15.14 LOCAL adversary pass-8 PERSIST + STATE.md COMPACTION 2026-05-18 — pass-8 CLEAN (0 findings); streak 0/3 → 1/3 per BC-5.39.001; trajectory-tail →9→9→9→9 (F5 cycle; unchanged); S-15.14 cascade trajectory 16→9→8→2→0→1→1→0; D-chain cite D-476 latest brownfield (PC5 currency); BC-INDEX v2.34, VP-INDEX v1.97, STORY-INDEX v3.43, ARCH-INDEX v2.06; surgical compaction authorized per D-430(a) precedent (archived F5 pass-60..74 + Brownfield E-10 pass-9..14 Phase Progress rows; preserved in cycle files); parent-commit df550a42 per D-419(b); next: adversary pass-9 (target streak 2/3)." | grep -E "META-LEVEL-[0-9]+ WATCH|self-app TEST|expected verdict"
+(no output — PASS)
+```
+
+**PC3 (4 index version cites):**
+```
+$ echo "...BC-INDEX v2.34, VP-INDEX v1.97, STORY-INDEX v3.43, ARCH-INDEX v2.06..." | grep -oE "BC-INDEX v[0-9.]+|VP-INDEX v[0-9.]+|STORY-INDEX v[0-9.]+|ARCH-INDEX v[0-9.]+" | sort -u | wc -l
+       4
+```
+4 unique index cites: BC-INDEX v2.34, VP-INDEX v1.97, STORY-INDEX v3.43, ARCH-INDEX v2.06 — PASS
+
+**PC4 (trajectory-tail LENGTH=4):**
+```
+$ echo "...trajectory-tail →9→9→9→9 (F5 cycle; unchanged)..." | grep -oE "trajectory-tail [^;]*" | grep -oE "→[0-9]+" | wc -l
+       4
+```
+4 arrows confirmed (→9→9→9→9) — PASS
+
+**PC5 (D-chain currency):**
+```
+$ echo "...D-chain cite D-476 latest brownfield (PC5 currency)..." | grep -oE "D-[0-9]+" | sort -t- -k2 -n | tail -1
+D-476
+$ grep -oE "D-[0-9]+" .factory/STATE.md | sort -t- -k2 -n | tail -1
+D-476
+```
+max_cited=D-476 ≥ max_in_file=D-476 — PASS
+
+**PC6 (canonical trajectory-tail marker):**
+```
+$ echo "...trajectory-tail →9→9→9→9..." | grep -c "trajectory-tail "
+1
+```
+Canonical marker present — PASS
+
+**Pre/post compaction wc-l:**
+```
+Pre-compaction: 486 lines (at parent-commit df550a42)
+Post-compaction: 467 lines (wc -l .factory/STATE.md → 467)
+Net delta: -19 lines
+Margin: 500 - 467 = 33 (hard cap; D-446(c) dual-margin form)
+```
+
+**D-446(a) own-burst-log 8-block gate:**
+```
+Required blocks: Parent-commit / Adversary verdict / Files touched (Dim-1) / Codifications (Dim-3) / Dim-2 Attestation / Dim-5 Attestation / Dim-6 Attestation / Closes
+All 8 blocks present in this entry — PASS
+```
+
+### Dim-5 Attestation
+State-manager-only burst on factory-artifacts (single atomic commit per TD-VSDD-053). No concurrent implementer dispatches. Feature branch `feature/S-15.14-validate-dispatch-advance` (implementer commits 03656260+cd9fd273) remains unchanged.
+
+### Dim-6 Attestation
+Pass-8 adversary report persisted at `.factory/code-delivery/S-15.14/adv-local-pass-8.md`. STATE.md surgical compaction executed per D-430(a) precedent: F5 pass-60..74 Phase Progress rows (15 rows + pivot) + E-10 pass-9..14 rows (11 rows) replaced with 2 consolidated summary rows. Session Resume §1/§4/§8/§9/§11 refreshed. Frontmatter phase/current_step/last_amended/Last-Updated/Current-Phase advanced. Streak: 0/3 → 1/3 per BC-5.39.001.
+
+### Dim-7 Attestation
+POLICY 3 (state_manager_runs_last) satisfied: state-manager-only burst. Single-Commit Burst Protocol per TD-VSDD-053 — one atomic factory-artifacts commit. 3 files in burst: adv-local-pass-8.md (new persist) + STATE.md (compaction + updates) + burst-log.md (this entry).
+
+### Closes
+Pass-8 CLEAN persist. Streak 0/3 → 1/3. No findings to close. STATE.md compaction D-430(a) authorized.
+
+### Factory-artifacts commits
+- To be populated with HEAD SHA after `git push origin factory-artifacts`
