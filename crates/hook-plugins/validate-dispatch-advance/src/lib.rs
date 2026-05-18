@@ -17,8 +17,11 @@
 //! 3. **Trajectory-tail LENGTH=4** (D-451(c)): the global regex `→(\d+)` must
 //!    match exactly 4 times in the `current_step:` value.
 //!
-//! 4. **D-chain cite currency** (D-443(a)): `current_step:` must cite
-//!    `D-382..D-N` where N >= the highest D-NNN visible in STATE.md body.
+//! 4. **D-chain cite currency** (D-443(a)): `current_step:` must contain at
+//!    least one `D-\d+` reference. The maximum D-NNN integer found in
+//!    `current_step:` must be >= the maximum D-NNN integer visible anywhere
+//!    in STATE.md. The literal `D-382..D-` range prefix is NOT required;
+//!    prose forms like `D-chain cite D-476` are accepted (BC-5.39.006 v1.1).
 //!
 //! # Validation gate (INDEX.md arm)
 //!
@@ -396,146 +399,98 @@ fn count_arrow_digit_matches(s: &str) -> usize {
 
 /// Check that the D-chain cite in `current_step:` is current.
 ///
-/// Expected pattern in `current_step_value`: `D-382..D-N` where N is an
-/// integer. Compares N against the highest D-NNN visible in the full
-/// STATE.md `content` body. Fail-open design:
+/// BC-5.39.006 v1.1 invariant 7 — D-(\\d+) max-extraction semantics:
 ///
-/// - If pattern absent in `current_step_value`: return `Some(Violation)`
-///   naming absent cite, citing D-443(a).
-/// - If present: extract terminal integer N. Scan full STATE.md `content`
-///   for all `D-(\d+)` occurrences (excluding the `D-382..D-N` pattern
-///   itself to avoid self-reference). Find max M.
-///   - If M > N: return `Some(Violation)` naming `D-382..D-{N}` as stale,
-///     terminal {N} < latest {M}.
-///   - If M <= N: return `None` (current; fail-open per BC-5.39.006 invariant 7).
+/// 1. Extract ALL `D-(\d+)` integers from `current_step_value` globally;
+///    take the maximum integer found (call it `max_cited`).
+/// 2. Extract ALL `D-(\d+)` integers from the full STATE.md `content`;
+///    take the maximum integer found (call it `max_in_file`).
+/// 3. If `max_cited` is None (no D-NNN reference in current_step): violation.
+/// 4. If `max_cited < max_in_file`: stale cite violation.
+/// 5. If `max_cited >= max_in_file`: current (or fail-open; no violation).
 ///
-/// Fail-open on ambiguous cases prevents false-positive blocks on in-progress
-/// writes where the Decisions Log is mid-authorship.
+/// The literal prefix `D-382..` is NOT required — production `current_step:`
+/// uses prose forms like `D-chain cite D-476 latest brownfield`.
+///
+/// Fail-open design: when the body has no D-NNN at a higher integer than
+/// current_step cites, returns None to avoid blocking in-progress writes.
 ///
 /// # BC trace
-/// BC-5.39.006 postcondition 5; D-443(a); AC-7/AC-8; invariant 7.
+/// BC-5.39.006 v1.1 postcondition 5; D-443(a); EC-008/EC-009/EC-010; invariant 7.
 fn check_d_chain_currency(content: &str, current_step_value: &str) -> Option<Violation> {
-    // Locate `D-382..D-N` pattern in current_step_value.
-    let chain_prefix = "D-382..D-";
-    let chain_start = match current_step_value.find(chain_prefix) {
-        Some(pos) => pos,
-        None => {
-            // Pattern absent — cite is missing; block per BC-5.39.006 PC-5 / invariant 7.
-            return Some(Violation {
-                description: format!(
-                    "D-chain cite absent from current_step: pattern `{chain_prefix}N` \
-                     not found; current_step: must include a D-382..D-N range cite per D-443(a)"
-                ),
-                cited_raw: String::new(),
-            });
-        }
-    };
+    // Step 1: extract max D-NNN from current_step_value.
+    let max_cited = scan_max_d_nnn(current_step_value);
 
-    // Extract the terminal integer N after `D-382..D-`.
-    let after_prefix = &current_step_value[chain_start + chain_prefix.len()..];
-    let terminal_str: String = after_prefix
-        .chars()
-        .take_while(|c| c.is_ascii_digit())
-        .collect();
-    if terminal_str.is_empty() {
-        // Pattern present but no digits follow — treat as absent cite.
+    if max_cited == 0 {
+        // No D-NNN reference at all in current_step — violation per invariant 7.
         return Some(Violation {
-            description: format!(
-                "D-chain cite in current_step: has malformed terminal integer \
-                 (pattern `{chain_prefix}` found but no digits follow); \
-                 cite D-443(a)"
-            ),
-            cited_raw: chain_prefix.to_string(),
+            description:
+                "D-chain cite absent from current_step: no `D-\\d+` reference found; \
+                 current_step: must contain a D-NNN cite per D-443(a); \
+                 production form: `D-chain cite D-NNN latest brownfield`"
+                    .to_string(),
+            cited_raw: String::new(),
         });
     }
-    let terminal_n: u64 = match terminal_str.parse() {
-        Ok(n) => n,
-        Err(_) => {
-            return Some(Violation {
-                description: format!(
-                    "D-chain cite terminal integer `{terminal_str}` could not be parsed; \
-                     D-443(a)"
-                ),
-                cited_raw: terminal_str,
-            });
-        }
-    };
 
-    // Scan full content for all `D-NNN` occurrences (where NNN >= 382).
-    // Exclude the D-382..D-N self-reference to avoid tautological comparison.
-    // Strategy: find all `D-` followed by digits, skip those inside `D-382..D-N` spans.
-    let max_d = scan_max_d_nnn_in_body(content, terminal_n);
+    // Step 2: extract max D-NNN from full STATE.md content.
+    let max_in_file = scan_max_d_nnn(content);
 
-    if max_d > terminal_n {
+    if max_cited < max_in_file {
         Some(Violation {
             description: format!(
-                "D-chain cite in current_step: is stale: cited `D-382..D-{terminal_n}` \
-                 but STATE.md body shows D-{max_d} as latest; \
-                 update D-chain to include D-{max_d} per D-443(a)"
+                "D-chain cite in current_step: is stale: max_cited D-{max_cited} \
+                 but STATE.md body shows D-{max_in_file} as latest; \
+                 update D-chain cite to include D-{max_in_file} per D-443(a)"
             ),
-            cited_raw: format!("D-382..D-{terminal_n}"),
+            cited_raw: format!("D-{max_cited}"),
         })
     } else {
-        // Current or fail-open per BC-5.39.006 invariant 7.
+        // Current or fail-open per BC-5.39.006 v1.1 invariant 7.
         None
     }
 }
 
-/// Scan `content` for the highest `D-NNN` integer where NNN is a sequence
-/// of ASCII digits. Excludes occurrences that are part of a `D-382..D-NNN`
-/// range cite (the self-reference pattern in current_step:).
+/// Scan `s` for all `D-NNN` patterns (where NNN is one or more ASCII digits)
+/// and return the maximum integer found. Returns 0 if no match.
 ///
-/// Returns 0 if no D-NNN pattern is found.
+/// Uses the same hand-rolled scanning strategy as the sibling functions to
+/// avoid the regex crate (WASM fuel budget constraint).
+///
+/// The scan does NOT skip any D-NNN patterns — the caller (check_d_chain_currency)
+/// feeds current_step_value and full content separately, so self-reference
+/// exclusion is unnecessary: taking the max of current_step's own D-NNNs as
+/// `max_cited` is correct by construction.
+///
+/// # Slice safety (BC-5.39.006 invariant 10)
+/// Advances by `pos + 2 + digit_len` bytes, which always lands on an ASCII
+/// boundary (digits are single-byte; "D-" is ASCII). Guards `>= len` before
+/// slicing to prevent out-of-bounds access.
 ///
 /// # BC trace
-/// BC-5.39.006 invariant 7 — fail-open staleness check.
-fn scan_max_d_nnn_in_body(content: &str, _terminal_n: u64) -> u64 {
+/// BC-5.39.006 v1.1 invariant 7 — D-(\d+) max-extraction.
+fn scan_max_d_nnn(s: &str) -> u64 {
     let mut max = 0u64;
-    let mut search = content;
-    let range_prefix = "D-382..D-";
+    let mut search = s;
 
     while let Some(pos) = search.find("D-") {
         let after = &search[pos + 2..];
-        // Check if this is the start of a D-382..D-NNN range cite.
-        // Skip range-cite spans to avoid self-reference.
-        if search[pos..].starts_with(range_prefix) {
-            // Skip past this range cite entirely.
-            let skip = pos + range_prefix.len();
-            let after_range_prefix = &search[skip..];
-            let range_terminal_len = after_range_prefix
-                .chars()
-                .take_while(|c| c.is_ascii_digit())
-                .count();
-            search = &search[skip + range_terminal_len..];
-            continue;
-        }
-
         // Extract digits after `D-`.
         let digit_str: String = after.chars().take_while(|c| c.is_ascii_digit()).collect();
         if let Ok(n) = digit_str.parse::<u64>() {
-            // Fail-open: include all D-NNN occurrences and let the caller decide.
             if n > max {
                 max = n;
             }
         }
-        // Advance past pos + "D-" + the digit string.
-        // Must advance from `pos` (the position of "D-" in `search`), not from
-        // the start of `search`, to correctly handle `pos > 0` cases. Failing to
-        // include `pos` causes slicing from an incorrect offset — potentially into
-        // the middle of a multi-byte UTF-8 character (BC-5.39.006 invariant 10 /
-        // S-15.11 F-P4-001 lesson; crash site confirmed in WASM integration test).
+        // Advance past pos + "D-" + digit_len.
+        // `pos + 2 + digit_len` lands on an ASCII digit boundary or the byte
+        // after the last digit — always a valid UTF-8 char boundary.
         let advance = pos + 2 + digit_str.len();
         if advance >= search.len() {
             break;
         }
-        // `advance` ends at an ASCII digit or the byte after digits — always a
-        // valid char boundary (ASCII bytes are never UTF-8 continuation bytes).
         search = &search[advance..];
     }
-    // If the only D-NNN found is the terminal_n itself (from current_step: field,
-    // which is part of content), that should not trigger staleness.
-    // The caller (check_d_chain_currency) checks max > terminal_n; if max == terminal_n
-    // or max == 0, it returns None (current/fail-open).
     max
 }
 
@@ -990,10 +945,11 @@ mod tests {
         );
     }
 
-    // -- D-chain currency tests --
+    // -- D-chain currency tests (BC-5.39.006 v1.1 invariant 7: D-(\d+) max-extraction) --
 
     #[test]
     fn test_d_chain_absent() {
+        // No D-NNN at all in current_step — should violate.
         let content = "---\ncurrent_step: 'BC-INDEX v1.14 →9→9→9→9'\n---\n| D-477 |";
         let v = check_d_chain_currency(
             content,
@@ -1008,8 +964,8 @@ mod tests {
     }
 
     #[test]
-    fn test_d_chain_stale() {
-        // current_step cites D-382..D-476 but body shows D-477
+    fn test_d_chain_stale_range_form() {
+        // Prose range form D-382..D-476; body shows D-477 → stale.
         let content = "---\ncurrent_step: 'BC-INDEX v1.14 →9→9→9→9 D-382..D-476'\n---\n\
              | D-477 | some row |\n";
         let current_step = "BC-INDEX v1.14, VP-INDEX v1.8, STORY-INDEX v1.12, ARCH-INDEX v1.9 \
@@ -1017,24 +973,58 @@ mod tests {
         let v = check_d_chain_currency(content, current_step);
         assert!(
             v.is_some(),
-            "stale D-chain cite (476 < 477) — should violate"
+            "stale D-chain cite (max_cited=476 < max_in_file=477) — should violate"
         );
         let v = v.unwrap();
         assert!(
             v.description.contains("476"),
-            "block message must name stale terminal 476"
+            "block message must name stale max_cited 476"
         );
     }
 
     #[test]
-    fn test_d_chain_current() {
-        // current_step cites D-382..D-477 and body max is also D-477
+    fn test_d_chain_stale_prose_form() {
+        // Production prose form "D-chain cite D-476"; body shows D-477 → stale.
+        let content = "---\ncurrent_step: 'BC-INDEX v1.14 →9→9→9→9 D-chain cite D-476'\n---\n\
+             | D-477 | some row |\n";
+        let current_step = "BC-INDEX v1.14, VP-INDEX v1.8, STORY-INDEX v1.12, ARCH-INDEX v1.9 \
+             →9→9→9→9 D-chain cite D-476";
+        let v = check_d_chain_currency(content, current_step);
+        assert!(
+            v.is_some(),
+            "stale prose D-chain cite (max_cited=476 < max_in_file=477) — should violate"
+        );
+        let v = v.unwrap();
+        assert!(
+            v.description.contains("476"),
+            "block message must name stale max_cited 476"
+        );
+    }
+
+    #[test]
+    fn test_d_chain_current_range_form() {
+        // current_step cites D-382..D-477 and body max is also D-477 — current.
         let content = "---\ncurrent_step: 'BC-INDEX v1.14 →9→9→9→9 D-382..D-477'\n---\n\
              | D-477 | some row |\n";
         let current_step = "BC-INDEX v1.14, VP-INDEX v1.8, STORY-INDEX v1.12, ARCH-INDEX v1.9 \
              →9→9→9→9 D-382..D-477";
         let v = check_d_chain_currency(content, current_step);
         assert!(v.is_none(), "D-chain cite is current — should not violate");
+    }
+
+    #[test]
+    fn test_d_chain_current_prose_form() {
+        // Production prose form "D-chain cite D-476"; body max is also 476 — current.
+        // This matches the real production STATE.md current_step format.
+        let content = "---\ncurrent_step: 'BC-INDEX v1.14 →9→9→9→9 D-chain cite D-476'\n---\n\
+             | D-476 | some row |\n";
+        let current_step = "BC-INDEX v1.14, VP-INDEX v1.8, STORY-INDEX v1.12, ARCH-INDEX v1.9 \
+             →9→9→9→9 D-chain cite D-476 latest brownfield";
+        let v = check_d_chain_currency(content, current_step);
+        assert!(
+            v.is_none(),
+            "prose D-chain cite matches body max — should not violate"
+        );
     }
 
     // -- INDEX.md column tests --
