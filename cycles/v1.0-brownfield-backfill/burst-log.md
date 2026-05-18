@@ -7,7 +7,7 @@ producer: state-manager
 timestamp: 2026-05-06T19:00:00Z
 cycle: "v1.0-brownfield-backfill"
 inputs: [STATE.md]
-input-hash: "fbc63f7"
+input-hash: "791b0f2"
 traces_to: STATE.md
 ---
 
@@ -874,4 +874,4 @@ net change: +6 lines
 - TD-VSDD-098 codified (new process-gap class: compaction-burst sibling-sweep rule)
 
 ### Factory-artifacts commits
-- This burst — single atomic commit per TD-VSDD-053 (SHA recorded in Active Branches SHA-patch follow-up per D-447(c)+D-449(e))
+- `bb763f32` (state-manager pass-9 persist+fix-burst single atomic commit per TD-VSDD-053)
