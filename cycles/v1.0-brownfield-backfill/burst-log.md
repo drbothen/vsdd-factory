@@ -7,7 +7,7 @@ producer: state-manager
 timestamp: 2026-05-06T19:00:00Z
 cycle: "v1.0-brownfield-backfill"
 inputs: [STATE.md]
-input-hash: "3cd9f06"
+input-hash: "18924b1"
 traces_to: STATE.md
 ---
 
@@ -1104,3 +1104,111 @@ $ awk '/^## S-15\.14 LOCAL adversary pass-11/,/^## [^S]/' /Users/jmagady/Dev/vsd
 
 ### Factory-artifacts commits
 - `5fada32c` (state-manager pass-11 persist+fix-burst single atomic commit per TD-VSDD-053)
+
+## S-15.14 LOCAL adversary cascade ASYMPTOTIC-ACCEPTANCE SEAL 2026-05-18
+
+### Parent-commit
+- Pass-11 fix-burst HEAD: `93df5009` per `git -C .factory log --oneline -3` (verified pre-burst)
+- Seal burst parent: `93df5009` (SHA-patch follow-up for pass-11) per D-419(b)+D-420(d)+D-421(a)
+
+### Adversary verdict
+- S-15.14 LOCAL adversary cascade trajectory: 16→9→8→2→0→1→1→0→4→1→2 (11 passes)
+- Best streak achieved: 1/3 (pass-5 CLEAN and pass-8 CLEAN — both immediately followed by HIGH regression at pass-6 and pass-9)
+- Best finding floor: 0 (reached at pass-5 and pass-8; floor never sustained)
+- Recurrence floor band: [1,4] (passes 6-11 findings: 1,1,0,4,1,2 — oscillates within [0,4] with sustained non-zero recurrence)
+- 6 META-LEVEL classes codified (TD-VSDD-095..100) across 11 passes; each fix-burst codified one class and opened adjacent class — structural proof of prose-rule convergence failure
+- Per F5 D-386 Option C + E-10 D-471 precedent: asymptotic-acceptance authorized by human direction 2026-05-18
+- Cascade SEALED at recurrence floor [1,4]. D-477 codified.
+
+### Files touched (Dim-1)
+Files touched: 4
+- `.factory/STATE.md` (frontmatter phase+current_step; Phase Progress seal row; Concurrent Cycles seal advance; Decisions Log preamble D-477; Drift Items 6×CODIFIED-AND-FORWARDED-TO-SK-MCP-001; Section 4/9/11/12 advances; Section 5 D-range D-001..D-477; banner wc-l 491; Session Resume §1/§3/§4/§8/§9/§11 refresh; Last-Updated+Current-Phase advances)
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` (D-476 + D-477 rows appended)
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` (L-S-15.14-asymptotic-acceptance appended)
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` (this entry appended)
+
+### Codifications (Dim-3)
+- D-476 codified: S-15.09 SHIPPED 2026-05-17 (retroactive row — was missing from decision-log.md; had been annotated in STATE.md Decisions Log preamble only)
+- D-477 codified: S-15.14 LOCAL adversary cascade ASYMPTOTIC-ACCEPTANCE SEAL per F5 D-386 Option C + E-10 D-471 precedent; cascade SEALED at recurrence floor [1,4]; 6 META-LEVEL classes TD-VSDD-095..100 forwarded to SK-MCP-001 Appendix D as INV-NNN seed input; proposals SK-MCP-001 + UNI-PLUG-001 enhanced 2026-05-18
+- L-S-15.14-asymptotic-acceptance codified in lessons.md: third asymptotic-acceptance precedent; empirical confirmation of prose-rule convergence failure; structural resolution gated on SK-MCP-001 Tier 2
+
+### Dim-2 Attestation (D-449(a) literal-shell evidence; ALL production-read per TD-VSDD-100)
+
+**Gate 1 (PC2 — no forbidden meta-commentary):**
+```
+$ grep "^current_step:" /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md | grep -E "META-LEVEL-[0-9]+ WATCH|self-app TEST|expected verdict"
+(exit 1 — no match)
+PASS: no forbidden meta-commentary match
+```
+
+**Gate 2 (PC3 — 4 index cites present):**
+```
+$ grep "^current_step:" /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md | grep -oE "BC-INDEX v[0-9.]+|VP-INDEX v[0-9.]+|STORY-INDEX v[0-9.]+|ARCH-INDEX v[0-9.]+" | sort -u
+ARCH-INDEX v2.06
+BC-INDEX v2.35
+STORY-INDEX v3.43
+VP-INDEX v1.97
+```
+(4 lines — PASS)
+
+**Gate 3 (PC4 — trajectory-tail LENGTH=4 in first-semicolon segment per BC v1.3; production-read per TD-VSDD-100):**
+```
+$ grep "^current_step:" /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md | awk -F'trajectory-tail ' '{print $2}' | awk -F';' '{print $1}' | grep -oE "→[0-9]+" | wc -l
+       4
+```
+(PASS)
+
+**Gate 4 (PC5 — D-chain currency; max_cited >= max_in_file):**
+```
+$ echo "max_cited:" $(grep "^current_step:" /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md | grep -oE "D-[0-9]+" | sort -t- -k2 -n | tail -1)
+max_cited: D-477
+$ echo "max_in_file:" $(grep -oE "D-[0-9]+" /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md | sort -t- -k2 -n | tail -1)
+max_in_file: D-477
+```
+(max_cited D-477 == max_in_file D-477 — PASS)
+
+**Gate 5 (PC6 — canonical trajectory-tail marker present):**
+```
+$ grep "^current_step:" /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md | grep -c "trajectory-tail "
+1
+```
+(PASS)
+
+**Gate 6 (STATE.md wc-l):**
+```
+$ wc -l /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md
+     491
+net change from pass-11 at 486: +5 lines; margin from hard cap = 500-491 = 9
+```
+
+### Dim-5 Attestation
+- Parent commit 93df5009 verified: pass-11 SHA-patch HEAD per `git -C .factory log --oneline -3` pre-burst
+- Single atomic commit per TD-VSDD-053; no multi-commit chain; no Stage 1/Stage 2 backfill pattern
+
+### Dim-6 Attestation
+- TD-VSDD-053 single-commit-per-burst: PASS — all changes staged into one commit
+- D-446(a) own-burst-log 8-block gate INVOKED via literal shell (run after entry append):
+
+```
+$ awk '/^## S-15\.14 LOCAL adversary cascade ASYMPTOTIC-ACCEPTANCE SEAL/,0' /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-brownfield-backfill/burst-log.md | grep -cE '^### (Parent-commit|Adversary verdict|Files touched|Codifications|Dim-2|Dim-5|Dim-6|Dim-7|Closes|Factory-artifacts commits)'
+10
+```
+(10 canonical blocks present — PASS; minimum 8 required per D-444(c)+TD-VSDD-099)
+
+- D-448(a) source-attestation gate: adversary verdict paragraph above faithfully describes the 11-pass cascade trajectory (16→9→8→2→0→1→1→0→4→1→2), best streak 1/3, recurrence floor [1,4], and 6 META-LEVEL class codifications as established across adv-local-pass-{1..11}.md reports at `.factory/code-delivery/S-15.14/`
+- BC-5.39.006 stays draft (POL-14; auto-promotes at S-15.14 PR merge)
+- No --no-verify; no force-push to main
+
+### Dim-7 Attestation
+- Burst type: state-manager-only on factory-artifacts (no implementer source-code dispatch for this burst)
+- POLICY 3 compliance: state-manager wrote exclusively to `.factory/` paths (STATE.md, cycles/v1.0-brownfield-backfill/decision-log.md, cycles/v1.0-brownfield-backfill/lessons.md, cycles/v1.0-brownfield-backfill/burst-log.md)
+- No source code, no feature branch, no --no-verify
+- Sibling implementer dispatch: N/A this burst (state-artifacts only)
+
+### Closes
+- S-15.14 LOCAL adversary cascade per BC-5.39.001 — SEALED at asymptotic-acceptance floor; D-477 codified
+- F-P11-003 deferred per existing Drift Items (story v1.2 AC-5/AC-6 + invariant 6(b) body prose pre-v1.3 wording — routing story-writer at next S-15.14 story touch)
+- L-S-15.14-asymptotic-acceptance codified (third asymptotic-acceptance precedent in factory history)
+
+### Factory-artifacts commits
+- `<SEAL-BURST-SHA>` (state-manager asymptotic-acceptance-seal single atomic commit per TD-VSDD-053; SHA will be filled by SHA-patch follow-up per D-447(c)+D-449(e))

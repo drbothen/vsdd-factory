@@ -1804,3 +1804,25 @@ Synthetic `echo` form is FORBIDDEN regardless of how syntactically correct the s
 **Structural countermeasure (forward-looking, still not implemented):** `bin/preflight-state-manager-burst` script that runs all 5 PC checks against production STATE.md before state-manager commits. Until that lands, dispatch templates must enumerate every check explicitly with production-read pattern.
 
 **Closes:** F-P11-002 (Dim-2 PC attestation content-validity class)
+
+---
+
+### L-S-15.14-asymptotic-acceptance
+
+**Date:** 2026-05-18
+**Class:** asymptotic-acceptance precedent (cumulative third instance after F5 D-386 + E-10 D-471)
+
+**Cascade trajectory:** 16 → 9 → 8 → 2 → 0 → 1 → 1 → 0 → 4 → 1 → 2 (11 passes)
+**Best streak achieved:** 1/3 (passes 5 and 8 — both immediately followed by HIGH-finding regression)
+**META-LEVEL classes codified:** TD-VSDD-095..100 (6 classes — see Appendix D of SK-MCP-001 for INV-NNN mapping)
+
+**Empirical confirmation of prose-rule convergence failure:**
+S-15.14 confirms the prism POL-29 amendment chain pattern: each prose-rule codification closes one violation class and opens an adjacent class. Under prose-only governance, 3-CLEAN convergence per BC-5.39.001 is structurally impossible because the orchestrator dispatch templates accumulate complexity faster than they reach closure.
+
+**Resolution:** asymptotic-acceptance at recurrence floor. The S-15.14 cascade is SEALED. Per-story-delivery proceeds. Structural resolution gated on SK-MCP-001 Tier 2 implementation (typed graph invariants enforced by MCP mutations + dispatcher pre-commit hook).
+
+**Cross-reference:** F5 D-386 Option C (engine-discipline cycle paused 2026-05-13); E-10 D-471 (brownfield E-10 sub-cycle partial-closed 2026-05-14); D-477 (S-15.14 asymptotic-acceptance 2026-05-18). Three independent cycles reached the same conclusion: structural countermeasures (SK-MCP-001 typed invariants + dispatcher hook) are required for 3-CLEAN convergence; prose rules cannot.
+
+**Forward-looking:** When SK-MCP-001 Tier 2 ships, run a retrospective fresh-context adversary review of S-15.14 + E-10 + F5 cycle artifacts to verify INV-011/012/013/014 catch all 6 TD-VSDD-095..100 classes mechanically. If yes, the cascades can be marked CONVERGED retroactively under structural governance. If no, schema-version increments fill remaining gaps.
+
+**Closes:** D-477 ASYMPTOTIC-ACCEPTANCE authorization (S-15.14 cascade SEALED)
