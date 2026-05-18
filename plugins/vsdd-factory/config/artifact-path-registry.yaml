@@ -262,3 +262,16 @@ artifacts:
     canonical_path_pattern: ".factory/hooks/dim2-gates/{filename}"
     description: Dim-2 mechanical gate bash template scripts and registry README (D-453(e))
     enforcement_level: block
+
+  # ── Proposals ────────────────────────────────────────────────────────────
+  - artifact_type: proposal
+    canonical_path_pattern: ".factory/proposals/{filename}.md"
+    description: "Architectural design proposals (e.g., SK-MCP-001, PA-MOD-001, UNI-PLUG-001)"
+    required_frontmatter:
+      - "document_type: proposal"
+      - proposal_id
+      - title
+      - status
+      - author
+      - date
+    enforcement_level: block
