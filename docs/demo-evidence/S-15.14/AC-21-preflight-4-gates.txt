@@ -1,0 +1,79 @@
+# AC-21 Demo Evidence: Pre-flight 4-gate passes (fmt, clippy, cargo test, bats run-all.sh)
+# CLAUDE.md production-grade default
+#
+# All four gate commands exit 0. Captured at demo-evidence creation time (2026-05-18).
+#
+# Gate 1: cargo fmt --check --all
+$ cargo fmt --check --all
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.21s
+# Exit: 0
+
+# Gate 2: cargo clippy --workspace --all-targets -- -D warnings
+$ cargo clippy --workspace --all-targets -- -D warnings
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.21s
+# Exit: 0  (zero warnings, zero errors)
+
+# Gate 3: cargo test --workspace
+$ cargo test --workspace
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test result: ok. 24 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+# All test results: ok. 0 failed. Exit: 0
+
+# Gate 4: bats run-all.sh (partial output — validate-dispatch-advance section)
+# Full suite runs in plugins/vsdd-factory/tests/
+# validate-dispatch-advance suite: 31/31 tests pass (all ok; 0 not ok)
+$ cd plugins/vsdd-factory/tests/validate-dispatch-advance
+$ bats --tap fail-meta-commentary-watch.bats fail-meta-commentary-self-app.bats \
+    fail-meta-commentary-expected-verdict.bats fail-missing-arch-index-cite.bats \
+    fail-tail-3-components.bats fail-tail-5-components.bats \
+    fail-stale-d-chain-absent.bats fail-stale-d-chain-terminal.bats \
+    pass-all-valid-state.bats fail-all-four-violations.bats \
+    fail-index-5-col-row.bats fail-index-7-col-row.bats pass-index-6-col.bats \
+    fail-open-state-unreadable.bats fail-open-index-unreadable.bats \
+    pass-xstate-md-not-target.bats pass-xindex-md-not-target.bats \
+    fail-missing-trajectory-tail-marker.bats integration-production-registry.bats
+1..31
+ok 1 AC-1 FAIL: hook blocks when current_step: contains META-LEVEL-5 WATCH pattern
+ok 2 AC-1 FAIL: block message names META-LEVEL WATCH pattern and cites D-440
+ok 3 AC-2 FAIL: hook blocks when current_step: contains 'self-app TEST' substring
+ok 4 AC-3 FAIL: hook blocks when current_step: contains 'expected verdict' substring
+ok 5 AC-4 FAIL: hook blocks when current_step: is missing ARCH-INDEX v cite
+ok 6 AC-4 FAIL: block message names ARCH-INDEX as missing cite and cites D-439
+ok 7 AC-5 FAIL: hook blocks when trajectory-tail has 3 arrow-N groups (not 4)
+ok 8 AC-5 FAIL: block message names 3 components and required LENGTH=4 citing D-451
+ok 9 AC-6 FAIL: hook blocks when trajectory-tail has 5 arrow-N groups (not 4)
+ok 10 AC-6 FAIL: block message names actual count 5 and required 4
+ok 11 AC-7 FAIL: hook blocks when current_step: has no D-382..D-NNN pattern
+ok 12 AC-7 FAIL: block message for absent D-chain cites D-443
+ok 13 AC-8 FAIL: hook blocks when current_step: D-chain terminal D-476 is below latest D-477
+ok 14 AC-8 FAIL: block message names stale D-476 and latest D-477
+ok 15 AC-9 PASS: hook emits Continue when current_step: has no violations (all conditions satisfied)
+ok 16 AC-10 FAIL: hook blocks with single consolidated message when all 4 STATE.md violations present
+ok 17 AC-10 FAIL: single block message covers meta-commentary, missing index cite, tail, and D-chain violations
+ok 18 AC-11 FAIL: hook blocks when INDEX.md adversary-pass row has 4 columns (5 pipe chars)
+ok 19 AC-11 FAIL: block message names actual=4 required=5 and cites D-441
+ok 20 AC-12 FAIL: hook blocks when INDEX.md adversary-pass row has 6 columns (7 pipe chars)
+ok 21 AC-12 FAIL: block message names actual=6 and required=5
+ok 22 AC-13 PASS: hook emits Continue when all INDEX.md adversary-pass rows are exactly 6 columns
+ok 23 AC-14 PASS (fail-open): hook emits Continue when STATE.md is not readable via host::read_file
+ok 24 AC-15 PASS (fail-open): hook emits Continue when INDEX.md is not readable via host::read_file
+ok 25 AC-16 PASS: path-component-strict guard passes when file is xSTATE.md (not STATE.md)
+ok 26 AC-17 PASS: path-component-strict guard passes when file is xINDEX.md (not INDEX.md)
+ok 27 AC-22 FAIL: hook blocks when trajectory-tail prefix absent from current_step
+ok 28 AC-22 FAIL: block message names missing trajectory-tail canonical marker and cites F-P3-006/EC-023
+ok 29 AC-22 PASS: hook does not block when trajectory-tail prefix present with LENGTH=4
+ok 30 PROD-REGISTRY: hook emits Continue for valid STATE.md using production path_allow entry
+ok 31 PROD-REGISTRY: hook blocks for invalid STATE.md using production path_allow entry (not fail-open)
+# 31/31 passed. Exit: 0
