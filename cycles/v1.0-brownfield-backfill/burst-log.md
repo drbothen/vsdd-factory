@@ -7,7 +7,7 @@ producer: state-manager
 timestamp: 2026-05-06T19:00:00Z
 cycle: "v1.0-brownfield-backfill"
 inputs: [STATE.md]
-input-hash: "5bc6a90"
+input-hash: "f1a5576"
 traces_to: STATE.md
 ---
 
@@ -573,4 +573,4 @@ POLICY 3 (state_manager_runs_last) satisfied: state-manager-only burst. No multi
 F-P6-001 (current_step canonical marker restored; TD-VSDD-097 codified)
 
 ### Factory-artifacts commits
-- Single atomic commit (state-manager pass-6 combined persist+fix per TD-VSDD-053; see `git -C .factory log -1 --format='%h %s'`)
+- `14c32f31` (state-manager pass-6 combined persist+fix single atomic commit per TD-VSDD-053)
