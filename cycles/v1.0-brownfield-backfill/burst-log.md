@@ -1306,11 +1306,11 @@ PASS — 10 canonical blocks present (minimum 8 required per D-444(c)+TD-VSDD-09
 - POLICY 3 compliance: state-manager wrote exclusively to `.factory/` paths.
 - No source code, no feature branch, no --no-verify.
 - Sibling implementer dispatch: N/A (state-artifacts only).
-- Factory-artifacts before burst: `06127efe`. After burst: TBD (SHA-patch follow-up).
+- Factory-artifacts before burst: `06127efe`. After burst: `ea0d743e` (D-478 durability burst single commit).
 
 ### Closes
 - D-477 S-15.14 cascade SEAL durability codified; demo-recorder dispatch-ready per-story-delivery step 5 enabled.
 - Session context preserved for zero-context new-session resume.
 
 ### Factory-artifacts commits
-- TBD — single atomic commit pending (TD-VSDD-053 single-commit-per-burst); SHA-patch follow-up will update this block and Active Branches.
+- `ea0d743e` (state-manager D-478 SESSION-END DURABILITY BURST single atomic commit per TD-VSDD-053)
