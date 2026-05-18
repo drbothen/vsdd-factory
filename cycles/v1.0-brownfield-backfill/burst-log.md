@@ -7,7 +7,7 @@ producer: state-manager
 timestamp: 2026-05-06T19:00:00Z
 cycle: "v1.0-brownfield-backfill"
 inputs: [STATE.md]
-input-hash: "39c9fc1"
+input-hash: "ba3f9eb"
 traces_to: STATE.md
 ---
 
@@ -672,4 +672,4 @@ POLICY 3 (state_manager_runs_last) satisfied: state-manager-only burst. Single-C
 F-P7-001 (D-chain cite restored to D-476 per BC-5.39.006 v1.2 PC5; TD-VSDD-097 EXTENDED to ALL 5 BC PCs)
 
 ### Factory-artifacts commits
-- TBD — updated to actual SHA after push per D-419(b)+D-420(d)+D-421(a)
+- `66296e29` (state-manager pass-7 combined persist+fix single atomic commit per TD-VSDD-053)
