@@ -395,6 +395,14 @@ jobs:
         # cargo-host. We don't pass --target here for native runs because
         # the host triple equals matrix.target; passing it makes cargo
         # rebuild std-test infrastructure for no benefit.
+        # VSDD_SKIP_PRODUCTION_STATE_MD_TEST=1: validate-dispatch-advance
+        # has production-file tests that read .factory/STATE.md and
+        # .factory/cycles/.../INDEX.md from the factory-artifacts orphan
+        # branch, which is not mounted in this job. Tests skip gracefully
+        # when this env var is set — local dev (where .factory/ is always
+        # mounted) exercises these tests without the env var.
+        env:
+          VSDD_SKIP_PRODUCTION_STATE_MD_TEST: "1"
         run: cargo test --release --target ${{ matrix.target }} --workspace
 
       - name: Build all native WASM plugins (release)
