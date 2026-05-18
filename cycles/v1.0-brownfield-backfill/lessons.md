@@ -1746,3 +1746,33 @@ Output must be captured and cited verbatim in the inline comment (or in the comm
 **Cross-reference:** TD-VSDD-095/096/097 (TDD micro-commit + literal-evidence + dispatch-template canonical-marker) form a triplet of orchestrator-dispatch-template completeness gaps. TD-VSDD-098 extends to compaction-burst-specific scope.
 
 **Closes:** F-P9-001, F-P9-002, F-P9-003 (process-gap class)
+
+---
+
+### PG-orchestrator-own-burst-log-structural-integrity (TD-VSDD-099)
+
+**Date:** 2026-05-18
+**Discovered:** S-15.14 LOCAL adversary pass-10 finding F-P10-001
+
+**Issue:** Pass-9 fix-burst committed with own burst-log entry missing Dim-7 block; Dim-6 narratively attested "8 blocks present" without shell-verified count. Same META-LEVEL self-violation class as F-P6-001/F-P7-001/F-P9-001 (codifying-burst violates rule in its own attestation).
+
+**Root cause:** Orchestrator dispatch template for pass-9 fix-burst said "Standard 8-block D-444(c) entry" without specifying VERIFICATION via literal shell of all 4 Dim blocks. State-manager omitted Dim-7 inadvertently; Dim-6 narratively self-attested without grep proof.
+
+**Going-forward rule:** Every state-manager burst-log entry MUST include:
+1. All 4 Dim attestation blocks (Dim-2, Dim-5, Dim-6, Dim-7) — non-optional, even if narrative is brief
+2. Dim-6 attestation MUST contain literal `awk '/^## <h2-name>/,/^## [^S]/' burst-log.md | grep -cE '^### (Parent-commit|Adversary verdict|Files touched|Codifications|Dim-2|Dim-5|Dim-6|Dim-7|Closes|Factory-artifacts commits)'` with captured stdout, not narrative paraphrase
+3. Pre-commit gate: orchestrator dispatch template MUST instruct state-manager to verify all 4 Dim blocks via literal shell BEFORE staging the burst-log file
+
+**Cross-reference:** TD-VSDD-095/096/097/098/099 form an ever-expanding META-LEVEL orchestrator-dispatch-template completeness perimeter; F-P10-001 is the 5th class.
+
+**Structural countermeasure (forward-looking):** the `bin/preflight-current-step` script proposed in TD-VSDD-097 EXTENSION could be extended to a more general `bin/preflight-state-manager-burst` that runs:
+- All 5 BC PC checks on candidate current_step
+- D-444(c) 8-block structural check on candidate burst-log entry
+- D-446(a) own-burst-log gate (4 Dim blocks present)
+- Cited preservation path existence + content faithfulness for compaction bursts
+- Active Branches SHA-advance check
+- Concurrent Cycles Status header advance check
+
+Until that script lands, the orchestrator dispatch template must enumerate ALL these checks explicitly.
+
+**Closes:** F-P10-001 (own-burst-log structural-integrity false-green class)
