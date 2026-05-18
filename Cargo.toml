@@ -25,6 +25,7 @@ members = [
     "crates/hook-plugins/validate-artifact-path",
     "crates/hook-plugins/validate-burst-log",
     "crates/hook-plugins/validate-index-cite-refresh",
+    "crates/hook-plugins/validate-dispatch-advance",
     "crates/hook-plugins/validate-state-structure",
     "crates/hook-plugins/lint-registry-async-invariant",
     "crates/hook-plugins/validate-per-story-adversary-convergence",
