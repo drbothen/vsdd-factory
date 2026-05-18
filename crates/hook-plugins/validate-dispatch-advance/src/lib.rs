@@ -42,7 +42,8 @@
 //! - D-442(a): prescribed clause order — forbidden-pattern gate prevents markers.
 //! - D-443(a): D-chain cite currency gate.
 //! - D-439(b): all 4 index version cite patterns required.
-//! - D-441(b): 6-column INDEX.md adversary-pass row schema strict.
+//! - D-441(b)/D-442(b): 5-column INDEX.md adversary-pass row schema (6 pipes) within
+//!   `## Adversarial Reviews` h2 section; historical 4-col rows grandfathered.
 //! - D-451(c): trajectory-tail LENGTH=4.
 //!
 //! # Architecture compliance

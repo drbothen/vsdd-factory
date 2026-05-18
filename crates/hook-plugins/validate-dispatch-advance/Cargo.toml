@@ -6,7 +6,7 @@ license.workspace = true
 repository.workspace = true
 authors.workspace = true
 rust-version.workspace = true
-description = "WASM hook plugin: PostToolUse gate that blocks STATE.md writes with forbidden meta-commentary in current_step:, missing 4-index version cites, trajectory-tail cardinality violations, stale D-chain cites, and INDEX.md writes with non-6-column adversary-pass rows (BC-5.39.006)"
+description = "WASM hook plugin: PostToolUse gate that blocks STATE.md writes with forbidden meta-commentary in current_step:, missing 4-index version cites, trajectory-tail cardinality violations, stale D-chain cites, and INDEX.md ## Adversarial Reviews rows with non-5-column schema (BC-5.39.006)"
 publish = false
 
 # Hook plugins ship as WASI commands (_start entry point) built via
@@ -30,7 +30,6 @@ serde_json = { workspace = true }
 
 [dev-dependencies]
 serde_json = { workspace = true }
-vsdd-hook-sdk = { path = "../../hook-sdk" }
 
 [lints]
 workspace = true
