@@ -352,9 +352,19 @@ fn check_index_version_cites(current_step_value: &str) -> Option<Violation> {
 
 /// Check that trajectory-tail in `current_step:` contains exactly 4 `→(\d+)` matches.
 ///
+/// Scoping: when `current_step_value` contains the literal prefix
+/// `trajectory-tail `, counting is scoped to the substring that starts at that
+/// prefix and ends at the first `;` or end-of-string — isolating the canonical
+/// `→N→N→N→N` run from incidental `→NNN` patterns elsewhere in the value (e.g.,
+/// `TD-VSDD-064/065→095/096` TD-renumber references). This prevents false-positive
+/// fires on valid STATE.md content that uses `→NNN` TD-reference notation
+/// (F-P2-006 production false-positive fix).
+///
+/// When no `trajectory-tail ` prefix is found, falls back to global count (preserves
+/// compatibility with unit tests that use bare `→N→N→N→N` strings).
+///
 /// Uses hand-rolled scanning for the `→` character (U+2192, 3 UTF-8 bytes)
-/// followed immediately by one or more ASCII digits. Counts the number of
-/// such sequences globally in `current_step_value`.
+/// followed immediately by one or more ASCII digits.
 ///
 /// If count != 4: returns `Some(Violation)` naming actual count and required
 /// count (4), citing D-451(c).
@@ -367,7 +377,19 @@ fn check_index_version_cites(current_step_value: &str) -> Option<Violation> {
 /// # BC trace
 /// BC-5.39.006 postcondition 4; D-451(c); AC-5/AC-6; invariant 6.
 fn check_trajectory_tail_length(current_step_value: &str) -> Option<Violation> {
-    let count = count_arrow_digit_matches(current_step_value);
+    // Scope counting to the trajectory-tail segment when the canonical prefix
+    // is present, avoiding false-positive fires on →NNN TD-renumber references.
+    let scan_target: &str = if let Some(tail_start) = current_step_value.find("trajectory-tail ") {
+        let after_prefix = &current_step_value[tail_start..];
+        // Extent ends at the first `;` (segment separator) or end-of-string.
+        match after_prefix.find(';') {
+            Some(semi_pos) => &after_prefix[..semi_pos],
+            None => after_prefix,
+        }
+    } else {
+        current_step_value
+    };
+    let count = count_arrow_digit_matches(scan_target);
     if count == 4 {
         return None;
     }
@@ -1322,44 +1344,90 @@ mod tests {
 
     // -- Production false-positive regression (AC-21 preemptive; S-15.09 lesson) --
 
+    /// Resolve a `.factory/`-relative path to an absolute path, handling both
+    /// normal and worktree layouts.
+    ///
+    /// Resolution order:
+    /// 1. `CARGO_MANIFEST_DIR/../../../<relative>` (standard workspace layout)
+    /// 2. Main repo root via `git rev-parse --git-common-dir`, then `<root>/<relative>`
+    ///    (worktree layout where `CARGO_MANIFEST_DIR` is inside a linked worktree)
+    ///
+    /// Returns the first path that exists. If neither exists, returns the
+    /// manifest-dir-relative path so the caller can emit a meaningful error.
+    fn resolve_factory_path(relative: &str) -> std::path::PathBuf {
+        let manifest_dir = env!("CARGO_MANIFEST_DIR");
+        let direct = std::path::PathBuf::from(manifest_dir)
+            .join("../../../")
+            .join(relative);
+        if direct.exists() {
+            return direct;
+        }
+        // Worktree mode: git --git-common-dir points to main repo's .git.
+        // Its parent is the main repo root.
+        let common_dir = std::process::Command::new("git")
+            .args(["-C", manifest_dir, "rev-parse", "--git-common-dir"])
+            .output()
+            .ok()
+            .filter(|o| o.status.success())
+            .and_then(|o| String::from_utf8(o.stdout).ok())
+            .map(|s| s.trim().to_string());
+        if let Some(cd) = common_dir {
+            let git_common = std::path::PathBuf::from(&cd);
+            // --git-common-dir returns either ".git" (main repo) or an absolute path
+            // (/path/to/main/.git) for worktrees. Parent is the repo root.
+            let root = if git_common.is_absolute() {
+                git_common.parent().unwrap_or(&git_common).to_path_buf()
+            } else {
+                // Relative: anchor to manifest_dir and resolve
+                std::path::PathBuf::from(manifest_dir)
+                    .join(&git_common)
+                    .parent()
+                    .unwrap_or(std::path::Path::new(manifest_dir))
+                    .to_path_buf()
+            };
+            let via_common = root.join(relative);
+            if via_common.exists() {
+                return via_common;
+            }
+        }
+        // Return direct path even if missing — caller will emit a meaningful error.
+        direct
+    }
+
     /// Load-bearing preemptive test: reads the real `.factory/STATE.md` from
     /// disk and asserts `validate_state_md` emits no violations. This catches
     /// false-positive blocks that would fire against production content before
     /// any bats test runs. Added preemptively per S-15.09 AC-13 cascade lesson.
     ///
-    /// Path resolved via `CARGO_MANIFEST_DIR` relative traversal to the
-    /// workspace root `.factory/STATE.md`.
+    /// Path resolved via `resolve_factory_path` which handles both normal and
+    /// worktree layouts (F-P2-006 fix: no longer silently skips in worktree mode).
     ///
-    /// If STATE.md does not exist (e.g., CI environment without factory
-    /// worktree mounted), the test skips with a diagnostic message in worktree
-    /// mode. In CI (env var `CI=true`), STATE.md must be present or the test FAILS
-    /// — a missing STATE.md in CI indicates a broken worktree setup (F-P1-011 fix).
+    /// Fails loud if STATE.md cannot be found in any search path. The only
+    /// exception is an explicit opt-out via env var
+    /// `VSDD_SKIP_PRODUCTION_STATE_MD_TEST=1`, which is documented and
+    /// intentional (e.g., ephemeral CI runners without a factory worktree
+    /// mounted as a subtree).
     #[test]
     fn validate_production_state_md_no_false_positive() {
-        let manifest_dir = env!("CARGO_MANIFEST_DIR");
-        let state_md_path =
-            std::path::PathBuf::from(format!("{manifest_dir}/../../../.factory/STATE.md"));
+        if std::env::var("VSDD_SKIP_PRODUCTION_STATE_MD_TEST").as_deref() == Ok("1") {
+            eprintln!(
+                "validate_production_state_md_no_false_positive: \
+                 VSDD_SKIP_PRODUCTION_STATE_MD_TEST=1 — skipping (explicit opt-out)"
+            );
+            return;
+        }
+        let state_md_path = resolve_factory_path(".factory/STATE.md");
         let content = match std::fs::read_to_string(&state_md_path) {
             Ok(c) => c,
             Err(e) => {
-                // In CI: STATE.md must exist — a missing file is a setup failure.
-                if std::env::var("CI").as_deref() == Ok("true") {
-                    panic!(
-                        "validate_production_state_md_no_false_positive: STATE.md \
-                         missing at {} in CI environment: {}; \
-                         CI requires a mounted factory worktree",
-                        state_md_path.display(),
-                        e
-                    );
-                }
-                // In worktree mode (no CI env var): skip with diagnostic.
-                eprintln!(
-                    "validate_production_state_md_no_false_positive: STATE.md unreadable at {}: \
-                     {}; test skipped (worktree mode)",
+                panic!(
+                    "validate_production_state_md_no_false_positive: STATE.md \
+                     not found at {} (also tried git --git-common-dir resolution): {}; \
+                     set VSDD_SKIP_PRODUCTION_STATE_MD_TEST=1 to opt out explicitly \
+                     (F-P2-006)",
                     state_md_path.display(),
                     e
                 );
-                return;
             }
         };
         let violations = validate_state_md(&content);
@@ -1372,31 +1440,29 @@ mod tests {
 
     /// Validate production EDP1 INDEX.md against validate_index_md — no false positives.
     /// Preemptive test matching the same pattern as validate_production_state_md.
+    /// Uses `resolve_factory_path` for worktree-resilient path resolution (F-P2-006).
     #[test]
     fn validate_production_edp1_index_md_no_false_positive() {
-        let manifest_dir = env!("CARGO_MANIFEST_DIR");
-        let index_md_path = std::path::PathBuf::from(format!(
-            "{manifest_dir}/../../../.factory/cycles/\
-             v1.0-feature-engine-discipline-pass-1/INDEX.md"
-        ));
+        if std::env::var("VSDD_SKIP_PRODUCTION_STATE_MD_TEST").as_deref() == Ok("1") {
+            eprintln!(
+                "validate_production_edp1_index_md_no_false_positive: \
+                 VSDD_SKIP_PRODUCTION_STATE_MD_TEST=1 — skipping (explicit opt-out)"
+            );
+            return;
+        }
+        let index_md_path =
+            resolve_factory_path(".factory/cycles/v1.0-feature-engine-discipline-pass-1/INDEX.md");
         let content = match std::fs::read_to_string(&index_md_path) {
             Ok(c) => c,
             Err(e) => {
-                if std::env::var("CI").as_deref() == Ok("true") {
-                    panic!(
-                        "validate_production_edp1_index_md_no_false_positive: INDEX.md \
-                         missing at {} in CI: {}",
-                        index_md_path.display(),
-                        e
-                    );
-                }
-                eprintln!(
-                    "validate_production_edp1_index_md_no_false_positive: INDEX.md unreadable \
-                     at {}: {}; test skipped (worktree mode)",
+                panic!(
+                    "validate_production_edp1_index_md_no_false_positive: INDEX.md \
+                     not found at {} (also tried git --git-common-dir resolution): {}; \
+                     set VSDD_SKIP_PRODUCTION_STATE_MD_TEST=1 to opt out explicitly \
+                     (F-P2-006)",
                     index_md_path.display(),
                     e
                 );
-                return;
             }
         };
         let violations = validate_index_md(&content);
