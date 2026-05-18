@@ -1776,3 +1776,31 @@ Output must be captured and cited verbatim in the inline comment (or in the comm
 Until that script lands, the orchestrator dispatch template must enumerate ALL these checks explicitly.
 
 **Closes:** F-P10-001 (own-burst-log structural-integrity false-green class)
+
+---
+
+### PG-orchestrator-dim2-pc-attestations-must-read-production (TD-VSDD-100)
+
+**Date:** 2026-05-18
+**Discovered:** S-15.14 LOCAL adversary pass-11 finding F-P11-002
+
+**Issue:** Pass-9 + pass-10 burst-log Gate 3 (PC4 LENGTH=4) used `echo 'trajectory-tail ->9->9->9->9' | grep -oE "->[0-9]+" | wc -l` — synthetic ASCII string, not production STATE.md current_step (which uses Unicode →). Result is structurally a literal-shell invocation with captured stdout (satisfying TD-VSDD-096 / D-449(a)) BUT the input is hand-crafted, not the real artifact. Gates present-and-running but content-inert.
+
+**Class:** 6th META-LEVEL self-violation in S-15.14 cascade. TD-VSDD-099 closed structural completeness of Dim blocks; this class is content-validity of the attestation evidence.
+
+**Going-forward rule:** Every Dim-2 PC attestation in state-manager burst-log entries MUST read the actual production artifact, not synthetic / placeholder / hand-crafted input.
+
+Specifically for BC-5.39.006 v1.3 PC checks on STATE.md current_step:
+- PC2 (forbidden meta): `grep "^current_step:" .factory/STATE.md | grep -E "META-LEVEL-[0-9]+ WATCH|self-app TEST|expected verdict"`
+- PC3 (4 index cites): `grep "^current_step:" .factory/STATE.md | grep -oE "BC-INDEX v[0-9.]+|VP-INDEX v[0-9.]+|STORY-INDEX v[0-9.]+|ARCH-INDEX v[0-9.]+" | sort -u`
+- PC4 (LENGTH=4 in semicolon segment per v1.3): `grep "^current_step:" .factory/STATE.md | awk -F'trajectory-tail ' '{print $2}' | awk -F';' '{print $1}' | grep -oE "→[0-9]+" | wc -l`
+- PC5 (D-chain currency): `grep "^current_step:" .factory/STATE.md | grep -oE "D-[0-9]+" | sort -t- -k2 -n | tail -1` vs `grep -oE "D-[0-9]+" .factory/STATE.md | sort -t- -k2 -n | tail -1`
+- PC6 (marker present): `grep "^current_step:" .factory/STATE.md | grep -c "trajectory-tail "`
+
+Synthetic `echo` form is FORBIDDEN regardless of how syntactically correct the shell pattern is.
+
+**Cross-reference:** TD-VSDD-095/096/097/098/099/100 form 6-class orchestrator-dispatch-template completeness perimeter.
+
+**Structural countermeasure (forward-looking, still not implemented):** `bin/preflight-state-manager-burst` script that runs all 5 PC checks against production STATE.md before state-manager commits. Until that lands, dispatch templates must enumerate every check explicitly with production-read pattern.
+
+**Closes:** F-P11-002 (Dim-2 PC attestation content-validity class)

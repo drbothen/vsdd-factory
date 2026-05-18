@@ -1,17 +1,19 @@
 ---
 document_type: bc-index
 level: L3
-version: "2.34"
+version: "2.35"
 status: draft
 producer: state-manager
 timestamp: 2026-05-17T00:00:00Z
-last_amended: "2026-05-17 (v2.34) — BC-5.39.006 amended v1.1→v1.2; S-15.14 LOCAL adversary pass-3 spec closure F-P3-006: trajectory-tail canonical marker 'trajectory-tail ' (with trailing space) absence is now a HARD BlockWithFix violation; new PC 6 added; invariant 6 rewritten as two-step prefix-check + scoped LENGTH count; EC-023 added; precondition renumbering 1,5,2,3,4→1,2,3,4,5,6 fixed (F-P3-009/F-P2-009 nitpick). BC-INDEX v2.33→v2.34. [Prior: 2026-05-17 (v2.33) — BC-5.39.006 amended v1.0→v1.1; S-15.14 LOCAL adversary pass-1 spec-level closures F-P1-001+F-P1-002+F-P1-003+F-P1-008: invariant 7 D-chain pattern relaxed to D-(\\d+) max-extraction; invariant 8 scoped to ## Adversarial Reviews h2 only + canonical schema corrected 6-col→5-col per D-442(b) + historical 4-col rows grandfathered; pipe arithmetic corrected throughout; H1 title updated; EC-013/EC-014 realigned; D-442(b) added to D-NNN Anchor Coverage and Traceability. BC-INDEX v2.32→v2.33.]"
+last_amended: "2026-05-18 (v2.35) — BC-5.39.006 amended v1.2→v1.3; S-15.14 LOCAL adversary pass-11 spec closure F-P11-001: invariant 6(b) under-specifies trajectory-tail LENGTH count right boundary; v1.3 codifies first-semicolon-segment scoping matching production `check_trajectory_tail_length` behavior; EC-022 reworded; EC-006/EC-007/Canonical Test Vectors updated; Architecture Anchors stable-symbol cite per TD-VSDD-091. BC-INDEX v2.34→v2.35. [Prior: 2026-05-17 (v2.34) — BC-5.39.006 amended v1.1→v1.2; S-15.14 LOCAL adversary pass-3 spec closure F-P3-006: trajectory-tail canonical marker 'trajectory-tail ' (with trailing space) absence is now a HARD BlockWithFix violation; new PC 6 added; invariant 6 rewritten as two-step prefix-check + scoped LENGTH count; EC-023 added; precondition renumbering 1,5,2,3,4→1,2,3,4,5,6 fixed (F-P3-009/F-P2-009 nitpick). BC-INDEX v2.33→v2.34. [Prior: 2026-05-17 (v2.33) — BC-5.39.006 amended v1.0→v1.1; S-15.14 LOCAL adversary pass-1 spec-level closures F-P1-001+F-P1-002+F-P1-003+F-P1-008: invariant 7 D-chain pattern relaxed to D-(\\d+) max-extraction; invariant 8 scoped to ## Adversarial Reviews h2 only + canonical schema corrected 6-col→5-col per D-442(b) + historical 4-col rows grandfathered; pipe arithmetic corrected throughout; H1 title updated; EC-013/EC-014 realigned; D-442(b) added to D-NNN Anchor Coverage and Traceability. BC-INDEX v2.32→v2.33.]"
 phase: F5
 inputs:
   - .factory/specs/behavioral-contracts/bc-id-mapping.md
 total_bcs: 1952
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-18
+    change: "v2.35 (2026-05-18; BC-5.39.006 amended v1.2→v1.3; S-15.14 LOCAL adversary pass-11 closure F-P11-001: invariant 6(b) right-boundary under-specified; v1.3 codifies first-semicolon-segment scoping per `check_trajectory_tail_length` production behavior; EC-022 reworded; EC-006/EC-007 + Canonical Test Vectors updated; Architecture Anchors stable-symbol cite per TD-VSDD-091. BC-INDEX v2.34→v2.35."
   - date: 2026-05-17
     change: "v2.34 (2026-05-17; BC-5.39.006 amended v1.1→v1.2; S-15.14 LOCAL adversary pass-3 closure F-P3-006: absent 'trajectory-tail ' marker = HARD BlockWithFix; new PC 6; invariant 6 two-step prefix+scoped-LENGTH; EC-023 added; PC renumbering fixed F-P3-009/F-P2-009. BC-INDEX v2.33→v2.34."
   - date: 2026-05-17

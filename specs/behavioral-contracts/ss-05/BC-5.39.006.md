@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.2"
+version: "1.3"
 status: draft
 producer: product-owner
 timestamp: 2026-05-17T00:00:00Z
@@ -24,6 +24,7 @@ introduced: v1.0-brownfield-backfill
 modified:
   - 2026-05-17
   - 2026-05-17
+  - 2026-05-18
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -32,7 +33,7 @@ removed: null
 removal_reason: null
 bc_id: BC-5.39.006
 section: "5.39"
-last_amended: "2026-05-17 (v1.2) — Spec amendment closing S-15.14 LOCAL adversary pass-3 finding F-P3-006: trajectory-tail prefix-absent now a HARD violation. New PC 6: current_step MUST contain literal canonical marker 'trajectory-tail ' (with trailing space); absence is BlockWithFix citing D-451(c)/F-P3-006. Invariant 6 updated: LENGTH count scoped to substring AFTER 'trajectory-tail ' prefix; if prefix absent, LENGTH check does not run — prefix-absent BlockWithFix fires instead. New EC-023 added. Precondition renumbering fixed (was 1,5,2,3,4 → now 1,2,3,4,5,6; F-P3-009/F-P2-009 in-scope fix). Verbatim grep stdout for 'trajectory-tail ' in STATE.md confirmed canonical marker present in production current_step. [Prior: 2026-05-17 (v1.1) — Spec amendments closing F-P1-001 (invariant 7 D-chain pattern relaxed to D-(\\d+) max-extraction; literal D-382..D- prefix requirement dropped; production current_step uses prose cite D-476 not range prefix), F-P1-002 (invariant 8 scoped to rows under ## Adversarial Reviews h2 heading only; canonical schema corrected from 6-column to 5-column per D-442(b); historical pre-D-441(b) rows grandfathered; precondition added), F-P1-003 (pipe arithmetic corrected: 5-column row = 6 pipes total; erroneous '8 pipes / 7 internal' formula replaced), F-P1-008 (implementer paper-fix via test-comment overriding spec now has authoritative spec text to match). EC-013 and EC-014 pipe counts realigned. [Prior: 2026-05-17 (v1.0) — Initial authoring (product-owner; brownfield-backfill S-15.03 M2 wave-4 story authoring). Anchors D-440(a)+D-441(a)+D-442(a)+D-443(a)+D-439(b)+D-441(b)+D-451(c). BC-5.39.006 allocated as next monotonic ID after BC-5.39.005 in ss-05/. lifecycle_status: draft (POL-14 auto-promotion to active on S-15.14 merge).]"
+last_amended: "2026-05-18 (v1.3) — Spec amendment closing S-15.14 LOCAL adversary pass-11 finding F-P11-001: invariant 6(b) under-specifies the scoping boundary for the trajectory-tail LENGTH count. v1.2 prose said 'substring AFTER the trajectory-tail marker (not the whole current_step: value)' — but the production implementation in `check_trajectory_tail_length` (validate-dispatch-advance) further narrows to substring from marker-end TO the first semicolon segment-separator (or end-of-value if no semicolon follows). Full-substring-after-marker count yields 14 matches on production current_step (false-positive block); first-semicolon-segment count yields 4 (correct pass). v1.3 codifies the actual production behavior: invariant 6(b) now specifies 'from marker-end to first ; segment-separator (or end-of-value)'. EC-022 sweep: EC-022 row already describes the narrow scope correctly via 'LENGTH count scoped to substring after marker per invariant 6(b)' — row reworded to explicitly cite first-semicolon-segment scoping for clarity. This is a doc-clarification (spec aligns to code), not a behavior change. [Prior: 2026-05-17 (v1.2) — Spec amendment closing S-15.14 LOCAL adversary pass-3 finding F-P3-006: trajectory-tail prefix-absent now a HARD violation. New PC 6: current_step MUST contain literal canonical marker 'trajectory-tail ' (with trailing space); absence is BlockWithFix citing D-451(c)/F-P3-006. Invariant 6 updated: LENGTH count scoped to substring AFTER 'trajectory-tail ' prefix; if prefix absent, LENGTH check does not run — prefix-absent BlockWithFix fires instead. New EC-023 added. Precondition renumbering fixed (was 1,5,2,3,4 → now 1,2,3,4,5,6; F-P3-009/F-P2-009 in-scope fix). Verbatim grep stdout for 'trajectory-tail ' in STATE.md confirmed canonical marker present in production current_step. [Prior: 2026-05-17 (v1.1) — Spec amendments closing F-P1-001 (invariant 7 D-chain pattern relaxed to D-(\\d+) max-extraction; literal D-382..D- prefix requirement dropped; production current_step uses prose cite D-476 not range prefix), F-P1-002 (invariant 8 scoped to rows under ## Adversarial Reviews h2 heading only; canonical schema corrected from 6-column to 5-column per D-442(b); historical pre-D-441(b) rows grandfathered; precondition added), F-P1-003 (pipe arithmetic corrected: 5-column row = 6 pipes total; erroneous '8 pipes / 7 internal' formula replaced), F-P1-008 (implementer paper-fix via test-comment overriding spec now has authoritative spec text to match). EC-013 and EC-014 pipe counts realigned. [Prior: 2026-05-17 (v1.0) — Initial authoring (product-owner; brownfield-backfill S-15.03 M2 wave-4 story authoring). Anchors D-440(a)+D-441(a)+D-442(a)+D-443(a)+D-439(b)+D-441(b)+D-451(c). BC-5.39.006 allocated as next monotonic ID after BC-5.39.005 in ss-05/. lifecycle_status: draft (POL-14 auto-promotion to active on S-15.14 merge).]"
 ---
 
 # BC-5.39.006: validate-dispatch-advance WASM hook MUST block on forbidden meta-commentary in current_step, missing 4-index version citations, trajectory-tail cardinality violations, stale D-chain cites in STATE.md, and non-5-column adversary-pass rows in the INDEX.md ## Adversarial Reviews section
@@ -155,30 +156,36 @@ rather than at write time.
 5. The 4 index version patterns required in `current_step:` are: the literal strings
    `BC-INDEX v`, `VP-INDEX v`, `STORY-INDEX v`, `ARCH-INDEX v` (each followed by a version
    token). All 4 must be present. Missing any one is a violation per D-439(b).
-6. **(v1.2, F-P3-006)** Trajectory-tail detection within `current_step:` is a two-step operation:
+6. **(v1.3, F-P11-001)** Trajectory-tail detection within `current_step:` is a two-step operation:
    (a) **Prefix check (mandatory first step):** the hook searches for the literal substring
    `trajectory-tail ` (with trailing space) in the `current_step:` value. If this marker is
    absent, the hook emits `BlockWithFix` with description
    `"current_step missing 'trajectory-tail ' canonical marker; D-451(c)/F-P3-006"` and does NOT
    proceed to the LENGTH count. Absent-marker is fail-closed (block), not fail-open.
    (b) **LENGTH count (second step, runs only if prefix present):** apply regex `→(\d+)` globally
-   to the substring AFTER the `trajectory-tail ` marker (not the whole `current_step:` value).
-   The match count must equal exactly 4. A count of 3 (LENGTH=3) or 5 (LENGTH=5) or any other
-   value other than 4 is a violation per D-451(c).
-   This two-step design prevents false-positive LENGTH=N counts from unrelated arrow patterns
-   elsewhere in `current_step:` (e.g., TD-VSDD-064/065→095/096 reallocation notation).
+   to the substring between the `trajectory-tail ` marker (exclusive of marker) and the first `;`
+   segment-separator (or end-of-value if no `;` follows). This semicolon-segment scoping prevents
+   arrow-pattern false-positives from elsewhere in `current_step:` (e.g., cascade trajectory
+   narratives, TD-NNN renumber references). The match count must equal exactly 4. A count of 3
+   (LENGTH=3) or 5 (LENGTH=5) or any other value other than 4 is a violation per D-451(c).
 
-   **Pre-fix production verification (LL-3 verbatim stdout, F-P3-006 closure):**
+   **Rationale (v1.3 doc-clarification):** v1.2 prose specified "substring AFTER the
+   `trajectory-tail ` marker" without naming the right boundary. The production implementation
+   in `check_trajectory_tail_length` (validate-dispatch-advance hook) narrows to the
+   `[marker_end, first_semicolon)` segment (or end-of-value if no `;`). On the production
+   `current_step:` at the time of F-P11-001, the full-substring-after-marker count is 14
+   `→(\d+)` matches (false-positive block) while the first-semicolon-segment count is 4
+   (correct pass). v1.3 codifies the actual production behavior as the authoritative spec.
+   This is a doc-clarification, not a behavior change.
+
+   **Pre-amendment grep stdout (LL-3, F-P11-001 closure):**
    ```
-   $ grep -n "trajectory-tail " /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md
-   15:current_step: "S-15.14 LOCAL adversary pass-2 FIX-BURST 2026-05-17 — F-P2-001 TD ID re-allocation TD-VSDD-064/065→095/096 (POLICY 1 fix; lessons.md + STATE.md Drift Items swept); F-P2-002 retroactive burst-log entries for pass-1 fix-burst + pass-2 fix-burst (D-444(c) 8-block gate); PG-S-15.14-* re-anchored; F-P2-003/004/005/006 closed by implementer sibling burst (parallel dispatch); F-P2-007/009 deferred to Drift Items; parent-commit f26dadb6 per D-419(b)+D-420(d)+D-421(a); 4-index state BC-INDEX v2.33 / VP-INDEX v1.97 / STORY-INDEX v3.42 / ARCH-INDEX v2.06 (no index bumps this burst); trajectory-tail →9→9→9→9 (F5 cycle; unchanged); D-chain cite D-476 latest brownfield; next: LOCAL adversary pass-3 fresh-context."
-   142:| F5 pass-71 fix burst | ...trajectory-tail (post-pass-71) →9→9→9→9 ...
+   $ grep -n 'substring AFTER the.*trajectory-tail.*marker\|to the substring AFTER' \
+       /Users/jmagady/Dev/vsdd-factory/.factory/specs/behavioral-contracts/ss-05/BC-5.39.006.md
+   165:   to the substring AFTER the `trajectory-tail ` marker (not the whole `current_step:` value).
    ```
-   Production `current_step:` on line 15 contains `trajectory-tail →9→9→9→9` — the canonical
-   marker IS present in production. The new prefix-absent BlockWithFix correctly fires only when
-   state-manager drops the marker. Arrow pattern `TD-VSDD-064/065→095/096` would contribute 2
-   `→(\d+)` matches if counted against the full current_step; scoping to the substring after
-   `trajectory-tail ` eliminates this false-positive entirely. Zero false positives on production state.
+   Post-amendment: line 165 replaced with first-semicolon-segment scoping per production
+   `check_trajectory_tail_length` behavior. Zero false positives on production state confirmed.
 
 7. D-chain currency validation: the `current_step:` value MUST contain at least one `D-\d+`
    reference. The hook extracts ALL `D-(\d+)` integers from the `current_step:` value using
@@ -260,8 +267,8 @@ rather than at write time.
 | EC-003 | `current_step:` contains `expected verdict` substring | BlockWithFix citing forbidden pattern |
 | EC-004 | `current_step:` has BC-INDEX, VP-INDEX, STORY-INDEX v cites but omits ARCH-INDEX v | BlockWithFix naming ARCH-INDEX as missing cite; D-439(b) |
 | EC-005 | `current_step:` has all 4 index cites | Continue for index-cite check; validate other conditions |
-| EC-006 | `current_step:` contains `trajectory-tail ` marker and substring after has 3 `→N` groups (LENGTH=3) | BlockWithFix: "trajectory-tail has 3 components; required LENGTH=4 per D-451(c)" |
-| EC-007 | `current_step:` contains `trajectory-tail ` marker and substring after has 5 `→N` groups (LENGTH=5) | BlockWithFix: "trajectory-tail has 5 components; required LENGTH=4 per D-451(c)" |
+| EC-006 | `current_step:` contains `trajectory-tail ` marker and first-semicolon segment has 3 `→N` groups (LENGTH=3) | BlockWithFix: "trajectory-tail has 3 components; required LENGTH=4 per D-451(c)" |
+| EC-007 | `current_step:` contains `trajectory-tail ` marker and first-semicolon segment has 5 `→N` groups (LENGTH=5) | BlockWithFix: "trajectory-tail has 5 components; required LENGTH=4 per D-451(c)" |
 | EC-008 | `current_step:` contains no `D-\d+` reference at all | BlockWithFix citing absent D-chain cite; D-443(a) |
 | EC-009 | `current_step:` contains `D-476` (max extracted integer 476); STATE.md Decisions Log table shows row D-477 | BlockWithFix citing stale D-chain; D-443(a); max_cited=476 < max_in_file=477 |
 | EC-010 | `current_step:` contains `D-chain cite D-477`; highest D-NNN in STATE.md body is 476 | Continue for D-chain cite (max_cited=477 >= max_in_file=476; current per invariant 7) |
@@ -276,17 +283,17 @@ rather than at write time.
 | EC-019 | File path is `/some/dir/xSTATE.md` (ends_with "STATE.md" but file_name differs) | Continue (is_state_md_target returns false; path-component-strict guard) |
 | EC-020 | File path is `/some/dir/xINDEX.md` (ends_with "INDEX.md" but file_name differs) | Continue (is_index_md_target returns false; path-component-strict guard) |
 | EC-021 | STATE.md `current_step:` contains valid 4-arrow tail in prose body but `current_step:` itself has only 3-arrow tail | BlockWithFix on trajectory-tail (hook extracts tail from `current_step:` value only, not full body) |
-| EC-022 | Banner narrative in `current_step:` contains `→N→N→N→N` digit-preceded narrative arrow sequence alongside a valid 4-arrow canonical tail | Continue; disambiguation: canonical tail is whitespace-preceded after `trajectory-tail ` marker; LENGTH count scoped to substring after marker per invariant 6(b) |
+| EC-022 | `current_step:` contains additional `→N→N→N→N` arrow sequences beyond the canonical tail (e.g., cascade narratives or TD-NNN renumber references after the first `;` segment) | Continue; LENGTH count is scoped to the substring between `trajectory-tail ` marker and first `;` segment-separator per invariant 6(b); arrow patterns in subsequent semicolon-segments are excluded from the count |
 | EC-023 | `current_step:` value does not contain the literal substring `trajectory-tail ` (with trailing space) — e.g., state-manager wrote `tail →9→9→9→9` omitting the canonical marker | BlockWithFix: "current_step missing 'trajectory-tail ' canonical marker; D-451(c)/F-P3-006"; LENGTH count does NOT run |
 
 ## Canonical Test Vectors
 
 | Scenario | Input Condition | Expected Hook Output | Decision |
 |----------|----------------|---------------------|----------|
-| All STATE.md valid | `current_step:` — no forbidden patterns; all 4 index cites present; contains `trajectory-tail ` marker; substring after marker has tail `→9→9→9→9`; contains `D-476` (max extracted); D-476 = max D-NNN in STATE.md body | `HookResult::Continue` | PASS |
+| All STATE.md valid | `current_step:` — no forbidden patterns; all 4 index cites present; contains `trajectory-tail ` marker; first-semicolon segment after marker has tail `→9→9→9→9`; contains `D-476` (max extracted); D-476 = max D-NNN in STATE.md body | `HookResult::Continue` | PASS |
 | META-LEVEL WATCH in current_step | `current_step:` contains `META-LEVEL-5 WATCH: ...` | `HookResult::BlockWithFix` citing forbidden pattern | BLOCK |
 | Missing ARCH-INDEX cite | `current_step:` has 3 of 4 index cites (ARCH-INDEX absent) | `HookResult::BlockWithFix` naming missing ARCH-INDEX cite | BLOCK |
-| Tail LENGTH=3 in current_step | `current_step:` has `trajectory-tail ` marker; substring after has tail `→9→9→9` (3 components) | `HookResult::BlockWithFix` citing 3 vs required 4 | BLOCK |
+| Tail LENGTH=3 in current_step | `current_step:` has `trajectory-tail ` marker; first-semicolon segment has tail `→9→9→9` (3 components) | `HookResult::BlockWithFix` citing 3 vs required 4 | BLOCK |
 | Missing trajectory-tail marker | `current_step:` has no `trajectory-tail ` substring (e.g., `"tail →9→9→9→9"`) | `HookResult::BlockWithFix`: "current_step missing 'trajectory-tail ' canonical marker; D-451(c)/F-P3-006" | BLOCK |
 | Stale D-chain | `current_step:` contains `D-476` (max extracted); STATE.md Decisions Log shows D-477 row | `HookResult::BlockWithFix` citing stale D-chain (max_cited=476 < max_in_file=477) | BLOCK |
 | All 4 STATE.md violations | Forbidden pattern + missing 2 index cites + tail LENGTH=5 (marker present) + stale D-chain | Single `HookResult::BlockWithFix` enumerating all violations | BLOCK |
@@ -298,7 +305,7 @@ rather than at write time.
 | Read failure INDEX.md | `host::read_file` returns HostError::Timeout | `HookResult::Continue` + `host::log_warn` | PASS (fail-open) |
 | xSTATE.md path | file_name is "xSTATE.md" | `HookResult::Continue` (is_state_md_target false) | PASS (not target) |
 | xINDEX.md path | file_name is "xINDEX.md" | `HookResult::Continue` (is_index_md_target false) | PASS (not target) |
-| Arrow pattern false-positive scoped out | `current_step:` has `trajectory-tail →9→9→9→9` (marker present, 4-count after marker); also contains `TD-VSDD-064/065→095/096` (2 extra `→\d+` matches in full value) | `HookResult::Continue`; full-value count would be 6 (false-positive); marker-scoped count is 4 (correct) | PASS |
+| Arrow pattern false-positive scoped out | `current_step:` has `trajectory-tail →9→9→9→9; TD-VSDD-064/065→095/096 ...` (marker present; first-semicolon segment has 4 counts; subsequent segment has 2 extra `→\d+` matches) | `HookResult::Continue`; first-semicolon-segment count is 4 (correct); subsequent-segment arrows excluded | PASS |
 
 ## D-NNN Anchor Coverage
 
@@ -311,7 +318,7 @@ rather than at write time.
 | D-439(b) | All 4 index version patterns present in `current_step:` | PC3 |
 | D-441(b) | 5-column INDEX.md adversary-pass row schema (per D-442(b) scope clarification) strict within `## Adversarial Reviews` h2 section | PC10 |
 | D-442(b) | INDEX.md `## Adversarial Reviews` = 5-column canonical schema; historical 4-col rows grandfathered | PC9/PC10 |
-| D-451(c) | Trajectory-tail LENGTH=4 derived from substring after `trajectory-tail ` marker in `current_step:`; absent marker = BlockWithFix (PC6/invariant 6) | PC4/PC6 |
+| D-451(c) | Trajectory-tail LENGTH=4 derived from first-semicolon segment after `trajectory-tail ` marker in `current_step:`; absent marker = BlockWithFix (PC6/invariant 6) | PC4/PC6 |
 
 ## Verification Properties
 
@@ -320,14 +327,14 @@ rather than at write time.
 | (pending) | Meta-Commentary Block Invariant — hook emits BlockWithFix when `current_step:` matches forbidden pattern | bats integration test (fail-meta-commentary fixture) |
 | (pending) | Index-Cite Pass Invariant — hook emits Continue when all 4 index cites present | bats integration test (pass-all-valid fixture) |
 | (pending) | Missing-Index-Cite Block Invariant — hook emits BlockWithFix when any index cite absent | bats integration test (fail-missing-arch-index-cite fixture) |
-| (pending) | Trajectory-Tail Block Invariant — hook emits BlockWithFix when tail in `current_step:` is not LENGTH=4 (marker present) | bats integration test (fail-tail-3-components + fail-tail-5-components fixtures) |
+| (pending) | Trajectory-Tail Block Invariant — hook emits BlockWithFix when tail in first-semicolon segment of `current_step:` is not LENGTH=4 (marker present) | bats integration test (fail-tail-3-components + fail-tail-5-components fixtures) |
 | (pending) | Trajectory-Tail Marker Absent Block Invariant — hook emits BlockWithFix when `trajectory-tail ` marker absent from `current_step:` | bats integration test (fail-missing-trajectory-tail-marker fixture) |
 | (pending) | D-Chain Stale Block Invariant — hook emits BlockWithFix when D-chain terminal < latest D-NNN in STATE.md | bats integration test (fail-stale-d-chain fixture) |
 | (pending) | INDEX.md Column Block Invariant — hook emits BlockWithFix when adversary-pass row is not 6 columns | bats integration test (fail-5-col-row + fail-7-col-row fixtures) |
 | (pending) | INDEX.md Column Pass Invariant — hook emits Continue when all rows are 6 columns | bats integration test (pass-index-6-col fixture) |
 | (pending) | Fail-open Invariant STATE.md — hook emits Continue when file is unreadable | bats integration test (fail-open-state-unreadable fixture) |
 | (pending) | Fail-open Invariant INDEX.md — hook emits Continue when file is unreadable | bats integration test (fail-open-index-unreadable fixture) |
-| (pending) | Arrow-Pattern Scope Invariant — hook does NOT false-positive when non-tail arrow patterns appear in `current_step:` outside the `trajectory-tail ` substring | bats integration test (pass-arrow-pattern-scoped-out fixture) |
+| (pending) | Arrow-Pattern Scope Invariant — hook does NOT false-positive when non-tail arrow patterns appear in `current_step:` in segments after the first `;` separator | bats integration test (pass-arrow-pattern-scoped-out fixture) |
 
 VP IDs are pending VP-INDEX allocation by state-manager at post-merge burst.
 
@@ -360,7 +367,7 @@ VP IDs are pending VP-INDEX allocation by state-manager at post-merge burst.
 
 ## Architecture Anchors
 
-- `crates/hook-plugins/validate-dispatch-advance/src/lib.rs` — hook implementation (pure logic functions + effectful orchestration)
+- `crates/hook-plugins/validate-dispatch-advance/` — hook implementation (pure logic functions + effectful orchestration); trajectory-tail scoping in `check_trajectory_tail_length`
 - `crates/hook-sdk/src/host.rs` — `host::read_file(path, max_bytes, timeout_ms)` API consumed by this hook
 - `plugins/vsdd-factory/hooks-registry.toml` — PostToolUse registration with `tool = "Edit|Write"` and dual file targets `STATE.md` + `INDEX.md` (canonical Q5 form)
 
@@ -372,6 +379,7 @@ S-15.14 — v1.0-brownfield-backfill (S-15.03 PRIORITY-A M2 Wave-4)
 
 | Version | Date | Description |
 |---------|------|-------------|
+| 1.3 | 2026-05-18 | Spec amendment closing S-15.14 LOCAL adversary pass-11 finding F-P11-001 (invariant 6(b) under-specifies trajectory-tail LENGTH count boundary). v1.2 prose: "substring AFTER the `trajectory-tail ` marker (not the whole `current_step:` value)" — right boundary unspecified. Production `check_trajectory_tail_length` (validate-dispatch-advance) narrows to `[marker_end, first_semicolon)`. Full-substring-after-marker count on production `current_step:` = 14 `→(\d+)` matches (false-positive block); first-semicolon-segment count = 4 (correct pass). v1.3 invariant 6(b) replacement: "apply regex `→(\d+)` globally to the substring between the `trajectory-tail ` marker (exclusive of marker) and the first `;` segment-separator (or end-of-value if no `;` follows). This semicolon-segment scoping prevents arrow-pattern false-positives from elsewhere in `current_step:` (e.g., cascade trajectory narratives, TD-NNN renumber references). Count of matches MUST equal 4; otherwise emit BlockWithFix." EC-006, EC-007 row descriptions updated from "substring after" to "first-semicolon segment". EC-022 row reworded to explicitly cite first-semicolon-segment scoping. Canonical Test Vectors updated to match. Architecture Anchors stable-symbol cite updated: `check_trajectory_tail_length` replaces file-line cite per TD-VSDD-091. Pre-amendment grep stdout embedded in invariant 6 rationale block. This is a doc-clarification, not a behavior change. |
 | 1.2 | 2026-05-17 | Spec amendment closing S-15.14 LOCAL adversary pass-3 finding F-P3-006 (trajectory-tail global-count fallback risks false-positive). Disposition: Option A — absence of canonical marker `trajectory-tail ` is a HARD violation. New PC 6: current_step MUST contain literal `trajectory-tail ` (with trailing space); absence = BlockWithFix citing D-451(c)/F-P3-006. Invariant 6 rewritten as two-step: (a) prefix check (fail-closed on absent marker), (b) LENGTH count scoped to substring AFTER marker only (prevents false-positive from unrelated `→\d+` patterns e.g. TD-VSDD-064/065→095/096). New PC 6 added to Postconditions as PC6. EC-023 added (missing-marker case). New Canonical Test Vector row added (missing-trajectory-tail-marker + arrow-pattern-scoped-out). New VP row added (Trajectory-Tail Marker Absent Block Invariant + Arrow-Pattern Scope Invariant). D-NNN Anchor Coverage PC references updated. Production verification via grep: `trajectory-tail ` IS present in production current_step (line 15 of STATE.md); zero false positives on production state. Also fixed: Precondition renumbering 1,5,2,3,4 → 1,2,3,4,5,6 (F-P3-009 / F-P2-009 in-scope nitpick fix). |
 | 1.1 | 2026-05-17 | Spec amendments closing S-15.14 LOCAL adversary pass-1 findings routed to product-owner. F-P1-001: invariant 7 D-chain pattern relaxed — replaced literal `D-382..D-N` prefix requirement with `D-(\d+)` max-extraction; production `current_step:` uses prose form `D-chain cite D-476` not range prefix; zero false positives verified via grep stdout. F-P1-002: invariant 8 scoped to rows under `## Adversarial Reviews` h2 heading only (exact heading per production INDEX.md); canonical schema corrected from 6-column/8-pipe to 5-column/6-pipe per D-442(b) scope clarification; historical pre-D-441(b) 4-column rows grandfathered via header-row schema detection; verified via python3 stdout showing brownfield=4-col grandfathered, EDP1=5-col enforced. F-P1-003 + F-P1-008: pipe arithmetic corrected throughout — `1 leading + 4 internal separators + 1 trailing = 6 pipes for 5 columns`; erroneous `7 internal pipes = 6 columns + 2 border pipes` formula removed; EC-013 and EC-014 pipe counts realigned. |
 | 1.0 | 2026-05-17 | Initial authoring (product-owner; brownfield-backfill S-15.03 M2 wave-4 story authoring). Anchors D-440(a)+D-441(a)+D-442(a)+D-443(a)+D-439(b)+D-441(b)+D-451(c). BC-5.39.006 allocated as next monotonic ID after BC-5.39.005 in ss-05/. lifecycle_status: draft (POL-14 auto-promotion to active on S-15.14 merge). Preemptive cascade lessons applied: path-component-strict guard for both STATE.md + INDEX.md arms (is_state_md_target + is_index_md_target); is_char_boundary() invariant 10; fail-open invariant 9; 524288 max_bytes matching BC-5.39.005 cap; D-chain currency invariant 7 fail-open design to prevent false-positive blocks on in-progress writes. |

@@ -7,7 +7,7 @@ producer: state-manager
 timestamp: 2026-05-06T19:00:00Z
 cycle: "v1.0-brownfield-backfill"
 inputs: [STATE.md]
-input-hash: "3c80d18"
+input-hash: "32c806e"
 traces_to: STATE.md
 ---
 
@@ -812,9 +812,9 @@ STORY-INDEX v3.43
 ARCH-INDEX v2.06
 ```
 
-**Gate 3 (PC4 — trajectory-tail LENGTH=4):**
+**Gate 3 (PC4 — trajectory-tail LENGTH=4 in first-semicolon segment — F-P11-002 fix; reads production artifact per TD-VSDD-100; retroactively corrected at pass-11 fix-burst 2026-05-18; pass-9 STATE.md state verified via `git show bb763f32:STATE.md`):**
 ```
-$ echo 'trajectory-tail ->9->9->9->9' | grep -oE "->[0-9]+" | wc -l
+$ git -C /Users/jmagady/Dev/vsdd-factory/.factory show bb763f32:STATE.md | grep "^current_step:" | awk -F'trajectory-tail ' '{print $2}' | awk -F';' '{print $1}' | grep -oE "→[0-9]+" | wc -l
        4
 ```
 
@@ -932,9 +932,9 @@ STORY-INDEX v3.43
 ARCH-INDEX v2.06
 ```
 
-**Gate 3 (PC4 — trajectory-tail LENGTH=4):**
+**Gate 3 (PC4 — trajectory-tail LENGTH=4 in first-semicolon segment — F-P11-002 fix; reads production artifact per TD-VSDD-100; retroactively corrected at pass-11 fix-burst 2026-05-18; pass-10 STATE.md state verified via `git show 21734dee:STATE.md`):**
 ```
-$ echo 'trajectory-tail ->9->9->9->9' | grep -oE "->[0-9]+" | wc -l
+$ git -C /Users/jmagady/Dev/vsdd-factory/.factory show 21734dee:STATE.md | grep "^current_step:" | awk -F'trajectory-tail ' '{print $2}' | awk -F';' '{print $1}' | grep -oE "→[0-9]+" | wc -l
        4
 ```
 
@@ -994,3 +994,113 @@ $ awk '/^## S-15\.14 LOCAL adversary pass-10/,/^## [^S]/' .factory/cycles/v1.0-b
 
 ### Factory-artifacts commits
 - `21734dee` (state-manager pass-10 persist+fix-burst single atomic commit per TD-VSDD-053)
+
+---
+
+## S-15.14 LOCAL adversary pass-11 PERSIST + FIX-BURST 2026-05-18
+
+### Parent-commit
+- `b3c52dd7` — SHA-patch (Active Branches factory-artifacts → 21734dee; burst-log Factory-artifacts commit SHA + input-hash refresh); per D-419(b)+D-420(d)+D-421(a)
+
+### Adversary verdict
+Pass-11 verdict: HIGH (0C+2H+0M+0L+0N+0PG = 2 findings). Streak 0/3 RESET per BC-5.39.001 (HIGH). Trajectory 16→9→8→2→0→1→1→0→4→1→2.
+
+Pass-11 findings per adv-local-pass-11.md Part A: F-P11-001 (HIGH) BC v1.2 invariant 6(b) under-specifies LENGTH-count scope end-boundary — BC prose says "substring AFTER marker" but production code narrows to marker→first `;` segment; full-substring count on production current_step yields 14 →\d+ matches (false-positive block) vs first-semicolon-segment count of 4 (correct pass); SPEC-wins per CLAUDE.md rule 12; routed to product-owner — BC v1.3 DONE this burst (BC-INDEX v2.35). F-P11-002 (HIGH) 6th META-LEVEL class — pass-9+10 Gate 3 (PC4) used synthetic ASCII echo string (`echo 'trajectory-tail ->9->9->9->9'`) not production STATE.md read; ASCII `->` not Unicode `→`; gates structurally present-and-running but content-inert; TD-VSDD-099 closed structural completeness (Dim blocks present), F-P11-002 reveals content-validity failure; routed to state-manager — retroactive fix + TD-VSDD-100 codified.
+
+### Files touched (Dim-1)
+Files touched: 6
+- `.factory/STATE.md` (frontmatter phase+current_step+last_amended+BC-INDEX v2.35; Phase Progress pass-11 row; Drift Items TD-VSDD-100+F-P11-003-deferred rows; Concurrent Cycles pass-11 advance; Session Resume §1/§4/§6/§7/§8/§9/§11/§12 refresh; Last-Updated+Current-Phase+Section 12 Step 3 advances; banner wc-l update)
+- `.factory/code-delivery/S-15.14/adv-local-pass-11.md` (pass-11 report persisted)
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` (pass-9 Gate 3 retroactively fixed production-read; pass-10 Gate 3 retroactively fixed production-read; this entry appended)
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` (TD-VSDD-100 lesson appended as PG-orchestrator-dim2-pc-attestations-must-read-production)
+- `.factory/specs/behavioral-contracts/ss-05/BC-5.39.006.md` (PO-authored v1.2→v1.3; invariant 6(b) semicolon-segment-scoping; EC-022/EC-006/EC-007/Canonical Test Vectors updated)
+- `.factory/specs/behavioral-contracts/BC-INDEX.md` (PO-authored v2.34→v2.35; last_amended row for v1.3)
+
+### Codifications (Dim-3)
+- TD-VSDD-100 codified: PG-orchestrator-dim2-pc-attestations-must-read-production — Dim-2 PC attestations MUST read actual production artifact; synthetic echo/printf/hand-crafted strings FORBIDDEN; 6th META-LEVEL self-violation class
+- Drift Items row added to STATE.md for TD-VSDD-100 CODIFIED
+- F-P11-003-deferred Drift Item added: story v1.2 AC-5/AC-6 + invariant 6(b) body prose uses pre-v1.3 "substring AFTER marker" wording; routing story-writer at next S-15.14 story touch
+- Pass-9 burst-log Gate 3 retroactively corrected: `echo` synthetic form → `git show bb763f32:STATE.md | grep "^current_step:" | awk...` production-read form per TD-VSDD-100
+- Pass-10 burst-log Gate 3 retroactively corrected: `echo` synthetic form → `git show 21734dee:STATE.md | grep "^current_step:" | awk...` production-read form per TD-VSDD-100
+
+### Dim-2 Attestation (D-449(a) literal-shell evidence; ALL production-read per TD-VSDD-100)
+
+**Gate 1 (PC2 — no forbidden meta-commentary):**
+```
+$ grep "^current_step:" /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md | grep -E "META-LEVEL-[0-9]+ WATCH|self-app TEST|expected verdict"
+(exit 1 — no match)
+PASS: no forbidden meta-commentary match
+```
+
+**Gate 2 (PC3 — 4 index cites present):**
+```
+$ grep "^current_step:" /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md | grep -oE "BC-INDEX v[0-9.]+|VP-INDEX v[0-9.]+|STORY-INDEX v[0-9.]+|ARCH-INDEX v[0-9.]+" | sort -u
+ARCH-INDEX v2.06
+BC-INDEX v2.35
+STORY-INDEX v3.43
+VP-INDEX v1.97
+```
+(4 lines — PASS)
+
+**Gate 3 (PC4 — trajectory-tail LENGTH=4 in first-semicolon segment per BC v1.3; production-read per TD-VSDD-100):**
+```
+$ grep "^current_step:" /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md | awk -F'trajectory-tail ' '{print $2}' | awk -F';' '{print $1}' | grep -oE "→[0-9]+" | wc -l
+       4
+```
+(PASS)
+
+**Gate 4 (PC5 — D-chain currency; max_cited >= max_in_file):**
+```
+$ echo "max_cited:" $(grep "^current_step:" /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md | grep -oE "D-[0-9]+" | sort -t- -k2 -n | tail -1)
+max_cited: D-476
+$ echo "max_in_file:" $(grep -oE "D-[0-9]+" /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md | sort -t- -k2 -n | tail -1)
+max_in_file: D-476
+```
+(max_cited D-476 >= max_in_file D-476 — PASS)
+
+**Gate 5 (PC6 — canonical trajectory-tail marker present):**
+```
+$ grep "^current_step:" /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md | grep -c "trajectory-tail "
+1
+```
+(PASS)
+
+**Gate 6 (STATE.md wc-l pre+post):**
+```
+pre (pass-10 fix-burst): 479 lines
+$ wc -l /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md
+     486
+net change: +7 lines
+```
+
+### Dim-5 Attestation
+- Parent commit b3c52dd7 verified: SHA-patch + input-hash refresh burst per `git -C .factory log --oneline -3`
+- Single atomic commit per TD-VSDD-053; no multi-commit chain
+
+### Dim-6 Attestation
+- TD-VSDD-053 single-commit-per-burst: PASS — all changes staged into one commit
+- D-446(a) own-burst-log 8-block gate invoked via literal shell (run after this entry appended):
+
+```
+$ awk '/^## S-15\.14 LOCAL adversary pass-11/,/^## [^S]/' /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-brownfield-backfill/burst-log.md | grep -cE '^### (Parent-commit|Adversary verdict|Files touched \(Dim-1\)|Codifications \(Dim-3\)|Dim-2|Dim-5|Dim-6|Dim-7|Closes|Factory-artifacts commits)'
+10
+```
+
+- D-448(a) source-attestation gate: adv-local-pass-11.md Part A findings faithfully described above (F-P11-001 BC v1.2 invariant 6(b) + F-P11-002 Gate 3 synthetic echo both cited with file locations and evidence)
+- BC-5.39.006 stays draft (POL-14; auto-promotes at PR merge)
+- No --no-verify; no force-push to main
+
+### Dim-7 Attestation
+- Burst type: state-manager-only on factory-artifacts (no implementer source-code dispatch for this burst; BC v1.3 authored by PO outside this commit but bundled)
+- POLICY 3 compliance: state-manager wrote exclusively to `.factory/` paths (STATE.md, code-delivery/S-15.14/adv-local-pass-11.md, cycles/v1.0-brownfield-backfill/lessons.md, cycles/v1.0-brownfield-backfill/burst-log.md, specs/behavioral-contracts/ss-05/BC-5.39.006.md, specs/behavioral-contracts/BC-INDEX.md)
+- No source code, no feature branch, no --no-verify
+- Sibling implementer dispatch: N/A this burst (state-artifacts + PO spec amendment only)
+
+### Closes
+- F-P11-001 (HIGH): BC v1.3 invariant 6(b) semicolon-segment-scoping codified by PO; BC-INDEX v2.35; story body F-P11-003 carries forward as deferred drift item for next story touch
+- F-P11-002 (HIGH): pass-9+10 Gate 3 retroactively corrected to production-read form; TD-VSDD-100 codified
+- TD-VSDD-100 codified (6th META-LEVEL class: Dim-2 PC attestation content-validity)
+- F-P11-003-deferred: story v1.2 body pre-v1.3 wording documented in Drift Items; routing story-writer
+
+### Factory-artifacts commits
+- (SHA to be filled by SHA-patch follow-up per D-447(c)+D-449(e))
