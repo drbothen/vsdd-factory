@@ -25,9 +25,11 @@
 //!
 //! # Validation gate (INDEX.md arm)
 //!
-//! 5. **6-column adversary-pass rows** (D-441(b)): every table row (trimmed
-//!    content begins and ends with `|`) must have exactly 8 pipe characters
-//!    (7 internal pipes = 6 columns + 2 border pipes). Separator rows excluded.
+//! 5. **5-column adversary-pass rows** (D-441(b)/D-442(b)): within the
+//!    `## Adversarial Reviews` h2 section only, rows must have 6 pipe characters
+//!    (1 leading + 4 internal + 1 trailing = 5 columns). Rows under other h2
+//!    headings are not validated. Separator rows excluded. Historical 4-column
+//!    sections (5-pipe header) are grandfathered and skipped entirely.
 //!
 //! # Behavioral Contracts
 //!
@@ -545,89 +547,126 @@ pub fn validate_state_md(content: &str) -> Vec<Violation> {
 
 /// Validate adversary-pass table rows in INDEX.md content.
 ///
-/// Scans `content` line by line. For each line whose trimmed form begins and
-/// ends with a pipe character (`|`):
+/// BC-5.39.006 v1.1 invariant 8 — h2-section state machine:
 ///
-/// - Skip separator rows matching pattern `\|\s*---` (header separator lines).
-/// - Count pipe occurrences in the trimmed line.
-/// - If count != 8 (7 internal pipes = 6 columns + 2 border pipes):
-///   add a Violation naming the line text (truncated to 120 chars), actual
-///   column count (`pipe_count - 2`, subtracting 2 border pipes), required
-///   count 6, citing D-441(b).
+/// 1. Scan lines for h2 headings (`^## `). Enter `InAdversaryReviews` state
+///    when the exact heading `## Adversarial Reviews` is seen. Exit back to
+///    `Outside` when ANY next h2 heading appears.
+/// 2. Inside `InAdversaryReviews`, find the first non-separator `|`-delimited
+///    row — this is the header row. Count its pipes:
+///    - pipe_count == 5 (4-column schema): GRANDFATHERED. Skip all remaining
+///      rows in this section — no column validation.
+///    - pipe_count == 6 (5-column schema): ENFORCE. All subsequent non-separator
+///      `|`-rows in this section must have exactly 6 pipes (5 columns).
+///    - any other count: treat as 5-col schema enforcement (default to strict).
+/// 3. Separator rows (trimmed contains `|---` or `| ---` or `|:---`) are
+///    ALWAYS skipped, including when determining header schema.
+/// 4. Rows OUTSIDE `## Adversarial Reviews` are NEVER validated.
 ///
 /// Returns all accumulated violations (may be empty for a clean write).
 ///
+/// # Pipe arithmetic (BC-5.39.006 v1.1 invariant 8 corrected)
+/// For N columns: 1 leading + (N-1) internal + 1 trailing = N+1 pipes.
+/// - 5 columns: 6 pipes. 4 columns: 5 pipes. 6 columns: 7 pipes.
+/// The canonical 5-column adversary-pass schema = 6 pipes per D-442(b).
+///
 /// # BC trace
-/// BC-5.39.006 postcondition 8/9; D-441(b); AC-11/AC-12/AC-13; invariant 8.
+/// BC-5.39.006 v1.1 postcondition 8/9; D-441(b)/D-442(b); EC-013..EC-016; invariant 8.
 pub fn validate_index_md(content: &str) -> Vec<Violation> {
+    /// State machine for h2-section tracking.
+    #[derive(PartialEq)]
+    enum State {
+        /// Not inside `## Adversarial Reviews` section.
+        Outside,
+        /// Inside `## Adversarial Reviews`; header schema not yet detected.
+        InSectionNoHeader,
+        /// Inside section; header is 4-column (grandfathered; skip validation).
+        InSectionGrandfathered,
+        /// Inside section; header is 5-column; enforce 6-pipe compliance.
+        InSectionEnforce,
+    }
+
     let mut violations: Vec<Violation> = Vec::new();
+    let mut state = State::Outside;
 
     for line in content.lines() {
         let trimmed = line.trim();
 
-        // Must begin and end with `|` to be a table row.
+        // Detect h2 headings — update section state.
+        if trimmed.starts_with("## ") {
+            if trimmed == "## Adversarial Reviews" {
+                state = State::InSectionNoHeader;
+            } else {
+                // Any other h2 ends the current section.
+                state = State::Outside;
+            }
+            continue;
+        }
+
+        // Only process rows while inside the ## Adversarial Reviews section.
+        if state == State::Outside {
+            continue;
+        }
+
+        // Must be a table row: trimmed starts and ends with `|`.
         if !trimmed.starts_with('|') || !trimmed.ends_with('|') {
             continue;
         }
 
-        // Skip separator rows: contain `|---` or `| ---` pattern.
-        // Invariant 8: header separator rows excluded.
+        // Separator rows are always skipped.
         if trimmed.contains("|---") || trimmed.contains("| ---") || trimmed.contains("|:---") {
             continue;
         }
 
-        // Count total pipe characters in the trimmed line.
         let pipe_count = trimmed.chars().filter(|&c| c == '|').count();
 
-        // 6-column row has 8 pipes: 2 border + 6 internal separators.
-        // (| col1 | col2 | col3 | col4 | col5 | col6 | — 7 separators but 8 total pipes)
-        // Wait — let us recount: | col1 | col2 | col3 | col4 | col5 | col6 |
-        // Pipes: position 0, after col1, after col2, after col3, after col4, after col5,
-        //        after col6 = 7 pipes total, giving 6 columns.
-        // BC-5.39.006 invariant 8: "pipe_count is not 8 (i.e., 7 internal pipes = 6 columns
-        //   + 2 border pipes)" — this says a 6-col row has pipe_count == 8.
-        // Let us verify: | c1 | c2 | c3 | c4 | c5 | c6 |
-        // Count pipes: 1 + 1 + 1 + 1 + 1 + 1 + 1 = 7. Hmm, only 7.
-        // The BC text "7 internal pipes = 6 columns + 2 border pipes" with total 8 implies
-        // they count the leading and trailing border as separate.
-        // Actual count for | c1 | c2 | c3 | c4 | c5 | c6 | :
-        // char index 0: '|', between c1/c2: '|', between c2/c3: '|', ..., trailing '|'
-        // = 1 (leading) + 5 (internal between columns) + 1 (trailing) = 7 pipes.
-        // For 6 columns you get 6+1 = 7 pipes.
-        // BC says "pipe_count != 8" is a violation — so the BC counts differently.
-        // Let's look at test expectations: test_index_md_5_col_row passes
-        // "| col1 | col2 | col3 | col4 | col5 |" — this has 6 pipes.
-        // test_index_md_6_col_row passes "| col1 | col2 | col3 | col4 | col5 | col6 |"
-        // — this has 7 pipes and should NOT violate (pass).
-        // test_index_md_7_col_row passes 7-column row and should violate.
-        //
-        // So the test expects: 6-col row (7 pipes) = pass, 5-col (6 pipes) = block,
-        // 7-col (8 pipes) = block.
-        // The correct check is: pipe_count == 7 means 6 columns (valid).
-        // pipe_count != 7 → violation.
-        // The BC text's "8" appears to count 6 internal + 2 border = 8 total, but
-        // that overcounts. We follow the tests as the authoritative specification.
-        // Actual count: leading |, N-1 separators, trailing | = N+1 pipes for N columns? No.
-        // For N columns: leading | + (N-1) internal separators + trailing | = N+1 pipes.
-        // 6 columns: 7 pipes. 5 columns: 6 pipes. 7 columns: 8 pipes. Matches tests.
-        //
-        // The BC says "not 8 (i.e., 7 internal pipes = 6 columns + 2 border pipes)".
-        // This is the BC's notation: 7 pipes separating 6 content cells, PLUS the final
-        // trailing pipe. That is 8 total — but this is inconsistent with the test data.
-        // We follow the tests: valid 6-col row = 7 pipes. Block if != 7.
-
-        if pipe_count != 7 {
-            let actual_cols = pipe_count.saturating_sub(1);
-            // Truncate row text to 120 chars for the violation message.
-            let row_preview = safe_truncate(trimmed, 120);
-            violations.push(Violation {
-                description: format!(
-                    "INDEX.md adversary-pass row has {actual_cols} column(s); \
-                     required 6 columns per D-441(b); \
-                     row: `{row_preview}`"
-                ),
-                cited_raw: row_preview,
-            });
+        match state {
+            State::InSectionNoHeader => {
+                // First non-separator row: determine schema from header pipe count.
+                if pipe_count == 5 {
+                    // 4-column header (5 pipes) — grandfathered; skip validation.
+                    state = State::InSectionGrandfathered;
+                } else {
+                    // 5-column (6 pipes) or other — enforce 6-pipe compliance.
+                    state = State::InSectionEnforce;
+                    // Validate this header row too if not 6 pipes.
+                    // (Header should be 6 pipes for 5-col schema; if it's different
+                    // that is unusual but let enforcement below handle it.)
+                    if pipe_count != 6 {
+                        let actual_cols = pipe_count.saturating_sub(1);
+                        let row_preview = safe_truncate(trimmed, 120);
+                        violations.push(Violation {
+                            description: format!(
+                                "INDEX.md ## Adversarial Reviews header row has \
+                                 {actual_cols} column(s); required 5 columns per \
+                                 D-441(b)/D-442(b); row: `{row_preview}`"
+                            ),
+                            cited_raw: row_preview,
+                        });
+                    }
+                }
+            }
+            State::InSectionEnforce => {
+                // Enforce 6-pipe (5-column) compliance on all data rows.
+                if pipe_count != 6 {
+                    let actual_cols = pipe_count.saturating_sub(1);
+                    let row_preview = safe_truncate(trimmed, 120);
+                    violations.push(Violation {
+                        description: format!(
+                            "INDEX.md adversary-pass row has {actual_cols} column(s); \
+                             required 5 columns per D-441(b)/D-442(b); \
+                             row: `{row_preview}`"
+                        ),
+                        cited_raw: row_preview,
+                    });
+                }
+            }
+            State::InSectionGrandfathered => {
+                // Grandfathered 4-col section — skip column validation entirely.
+            }
+            State::Outside => {
+                // Unreachable here (handled above), but exhaustive match required.
+            }
         }
     }
 
@@ -1027,49 +1066,145 @@ mod tests {
         );
     }
 
-    // -- INDEX.md column tests --
+    // -- INDEX.md column tests (BC-5.39.006 v1.1: h2-section state machine + header-schema) --
+
+    // Helper: wrap rows in a canonical 5-col-header ## Adversarial Reviews section.
+    fn in_5col_section(rows: &str) -> String {
+        format!(
+            "## Adversarial Reviews\n\n\
+             | Pass | Date | Findings Count | Verdict | File |\n\
+             |------|------|---------------|---------|------|\n\
+             {rows}\n\
+             \n## Next Section\n"
+        )
+    }
+
+    // Helper: wrap rows in a grandfathered 4-col-header ## Adversarial Reviews section.
+    fn in_4col_section(rows: &str) -> String {
+        format!(
+            "## Adversarial Reviews\n\n\
+             | Pass | Date | Findings | Status |\n\
+             |------|------|----------|--------|\n\
+             {rows}\n\
+             \n## Next Section\n"
+        )
+    }
 
     #[test]
-    fn test_index_md_5_col_row() {
-        let content = "| col1 | col2 | col3 | col4 | col5 |\n";
-        let violations = validate_index_md(content);
-        assert!(!violations.is_empty(), "5-column row should violate");
+    fn test_index_md_4_col_row_in_5col_section() {
+        // EC-013: 4-col row (5 pipes) in 5-col-header section → violation.
+        let content = in_5col_section("| col1 | col2 | col3 | col4 |");
+        let violations = validate_index_md(&content);
+        assert!(
+            !violations.is_empty(),
+            "4-column row in 5-col section should violate"
+        );
         assert!(
             violations[0].description.contains("D-441(b)"),
             "violation must cite D-441(b)"
         );
         assert!(
-            violations[0].description.contains('5'),
-            "violation must name actual count 5"
+            violations[0].description.contains('4'),
+            "violation must name actual count 4"
         );
     }
 
     #[test]
-    fn test_index_md_7_col_row() {
-        let content = "| col1 | col2 | col3 | col4 | col5 | col6 | col7 |\n";
-        let violations = validate_index_md(content);
-        assert!(!violations.is_empty(), "7-column row should violate");
+    fn test_index_md_6_col_row_in_5col_section() {
+        // EC-014: 6-col row (7 pipes) in 5-col-header section → violation.
+        let content = in_5col_section("| col1 | col2 | col3 | col4 | col5 | col6 |");
+        let violations = validate_index_md(&content);
         assert!(
-            violations[0].description.contains('7'),
-            "violation must name actual count 7"
+            !violations.is_empty(),
+            "6-column row in 5-col section should violate"
+        );
+        assert!(
+            violations[0].description.contains('6'),
+            "violation must name actual count 6"
         );
     }
 
     #[test]
-    fn test_index_md_6_col_row() {
-        let content = "| col1 | col2 | col3 | col4 | col5 | col6 |\n";
+    fn test_index_md_5_col_row_in_5col_section() {
+        // EC-015: 5-col row (6 pipes) in 5-col-header section → pass.
+        let content = in_5col_section("| pass1 | 2026-05-17 | 3 | MEDIUM | adv-1.md |");
+        let violations = validate_index_md(&content);
+        assert!(
+            violations.is_empty(),
+            "5-column row in 5-col section — should not violate"
+        );
+    }
+
+    #[test]
+    fn test_index_md_4col_section_grandfathered() {
+        // 4-col-header section (5 pipes in header) → skip column validation.
+        let content = in_4col_section("| 1 | 2026-04-25 | 17 (1C) | substantive |");
+        let violations = validate_index_md(&content);
+        assert!(
+            violations.is_empty(),
+            "4-col-header section is grandfathered — no violations expected"
+        );
+    }
+
+    #[test]
+    fn test_index_md_rows_outside_section_skipped() {
+        // Rows outside ## Adversarial Reviews h2 must NOT be validated.
+        // 3-col row outside section: should not trigger violation.
+        let content = "## Story Listing\n\n| S-01 | desc | status |\n|------|------|--------|\n\
+             | S-1.01 | foo | done |\n\n## Adversarial Reviews\n\n\
+             | Pass | Date | Findings Count | Verdict | File |\n\
+             |------|------|---------------|---------|------|\n\
+             | 1 | 2026-05-17 | 3 | MEDIUM | adv-1.md |\n\n## More\n";
         let violations = validate_index_md(content);
-        assert!(violations.is_empty(), "6-column row — should not violate");
+        assert!(
+            violations.is_empty(),
+            "out-of-section rows must not be validated; 5-col row inside section passes"
+        );
     }
 
     #[test]
     fn test_index_md_header_row_skipped() {
-        // Separator row (|---|---|) must not be flagged regardless of pipe count.
-        let content = "| --- | --- | --- | --- |\n";
+        // Separator row (|---|---|) within 5-col section must not be flagged.
+        let content = in_5col_section(""); // only separator rows in the helpers
+        let violations = validate_index_md(&content);
+        assert!(
+            violations.is_empty(),
+            "separator rows must be skipped by validate_index_md"
+        );
+    }
+
+    #[test]
+    fn test_index_md_production_brownfield() {
+        // Simulate brownfield INDEX.md — 4-col-header section → grandfathered.
+        let content = "\
+## Adversarial Reviews\n\n\
+| Pass | Date | Findings | Status |\n\
+|------|------|----------|--------|\n\
+| 1 | 2026-04-25 | 17 (1 CRIT + 7 HIGH) | substantive — fixes applied |\n\
+| 2 | 2026-04-25 | 11 (1 CRIT + 4 HIGH) | substantive — fixes applied |\n\n\
+## S-6.01 Sub-cycle Adversarial Reviews\n";
         let violations = validate_index_md(content);
         assert!(
             violations.is_empty(),
-            "separator row must be skipped by validate_index_md"
+            "brownfield 4-col rows must be grandfathered; no violations"
+        );
+    }
+
+    #[test]
+    fn test_index_md_production_edp1() {
+        // Simulate EDP1 INDEX.md — 5-col-header section; all rows 5-col → pass.
+        let content = "\
+## Adversarial Reviews\n\n\
+> Format note.\n\n\
+| Pass | Date | Findings Count | Verdict | File |\n\
+|------|------|---------------|---------|------|\n\
+| 1 | 2026-05-07 | 29 (4C+14H+6M+5L) | CRITICAL | adv-cycle-pass-1.md |\n\
+| 2 | 2026-05-07 | 15 (2C+6H+4M+3L) | CRITICAL | adv-cycle-pass-2.md |\n\n\
+## Convergence Status\n";
+        let violations = validate_index_md(content);
+        assert!(
+            violations.is_empty(),
+            "EDP1 5-col rows must all pass; no violations"
         );
     }
 
