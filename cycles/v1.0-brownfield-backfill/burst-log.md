@@ -7,7 +7,7 @@ producer: state-manager
 timestamp: 2026-05-06T19:00:00Z
 cycle: "v1.0-brownfield-backfill"
 inputs: [STATE.md]
-input-hash: "a3d64c8"
+input-hash: "3c80d18"
 traces_to: STATE.md
 ---
 
@@ -993,4 +993,4 @@ $ awk '/^## S-15\.14 LOCAL adversary pass-10/,/^## [^S]/' .factory/cycles/v1.0-b
 - 5th META-LEVEL self-violation class (codifying-burst violates own structural rule) formally codified
 
 ### Factory-artifacts commits
-- `<this-burst-sha>` (state-manager pass-10 persist+fix-burst single atomic commit per TD-VSDD-053)
+- `21734dee` (state-manager pass-10 persist+fix-burst single atomic commit per TD-VSDD-053)
