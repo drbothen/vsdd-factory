@@ -7,7 +7,7 @@ producer: state-manager
 timestamp: 2026-05-06T19:00:00Z
 cycle: "v1.0-brownfield-backfill"
 inputs: [STATE.md]
-input-hash: "4ac6468"
+input-hash: "cd6ca9a"
 traces_to: STATE.md
 ---
 
@@ -300,7 +300,7 @@ No new lessons this burst. TD-VSDD-095/096 are re-allocations, not new codificat
 
 ---
 
-## S-15.14-pass-3-fix-burst (2026-05-17, factory-artifacts GATE-PENDING)
+## S-15.14-pass-3-fix-burst (2026-05-17, factory-artifacts 341b021f)
 
 ### Parent-commit
 `e540ce5b` (pass-3 adversary report persistence)
@@ -357,4 +357,4 @@ POLICY 3 (state_manager_runs_last) satisfied for THIS burst: state-manager-only 
 F-P3-001, F-P3-002, F-P3-004, F-P3-005, F-P3-007 (deferred to Drift Items with explicit anchor), F-P3-008
 
 ### Factory-artifacts commits
-- `GATE-PENDING-SHA` (state-manager pass-3 fix-burst single atomic commit per TD-VSDD-053)
+- `341b021f` (state-manager pass-3 fix-burst single atomic commit per TD-VSDD-053)
