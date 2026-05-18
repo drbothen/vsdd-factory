@@ -1697,3 +1697,23 @@ Output must be captured and cited verbatim in the inline comment (or in the comm
 
 - **F-P6-001 [process-gap] CLOSED 2026-05-18** — state-manager fix burst restored canonical marker in STATE.md current_step; TD-VSDD-097 codified here; orchestrator dispatch-template going-forward rule recorded in §3 User Directive carry-forward.
 - **S-15.14 cascade report reference:** `.factory/code-delivery/S-15.14/adv-local-pass-6.md` — F-P6-001 source document.
+
+---
+
+**EXTENSION 2026-05-18 (pass-7 F-P7-001 root cause):** TD-VSDD-097 initially scoped to PC6 marker only is INSUFFICIENT. Pass-6 fix-burst followed the narrow rule but DROPPED PC5 D-chain currency, introducing F-P7-001 stale-D-chain regression.
+
+**EXTENDED rule:** Orchestrator dispatch templates for state-manager STATE.md current_step writes MUST satisfy ALL 5 BC-5.39.006 v1.2 PCs simultaneously:
+- PC2: NO forbidden meta-commentary regex patterns (META-LEVEL-N WATCH, self-app TEST, expected verdict)
+- PC3: All 4 index version cites present (BC-INDEX vX, VP-INDEX vX, STORY-INDEX vX, ARCH-INDEX vX)
+- PC4: trajectory-tail LENGTH=4 (exactly 4 → arrow-separated values after the canonical marker)
+- PC5: D-chain currency (max D-(\d+) extracted from current_step ≥ max D-NNN in STATE.md body)
+- PC6: canonical `trajectory-tail ` marker present (with trailing space)
+
+**Verification gate (pre-dispatch):** orchestrator must mentally run all 5 PC checks against the candidate current_step template BEFORE dispatching state-manager. If ANY PC would fail, rewrite template. The dispatch template is the upstream defect site; state-manager merely executes.
+
+**Structural countermeasure (forward-looking, not yet implemented):** `bin/preflight-current-step <staged-STATE.md>` script that runs validate_state_md against staged content; if violations found, state-manager refuses to commit until orchestrator fixes template. This would prevent the next-class self-violation. Track as forward-backlog item.
+
+**Cross-reference:** PG-S-15.14-tdd-micro-commit-discipline (TD-VSDD-095) + PG-S-15.14-registry-priority-literal-evidence (TD-VSDD-096) + PG-orchestrator-dispatch-template-canonical-marker (TD-VSDD-097 EXTENDED) — triplet of META-LEVEL-class codification-without-application failures.
+
+- **F-P7-001 [replacement-regression] CLOSED 2026-05-18** — state-manager fix burst restored D-chain cite to D-476 in STATE.md current_step per BC-5.39.006 v1.2 PC5; TD-VSDD-097 extended here; 5-PC dispatch rule recorded in §3 User Directive carry-forward.
+- **S-15.14 cascade report reference:** `.factory/code-delivery/S-15.14/adv-local-pass-7.md` — F-P7-001 source document.

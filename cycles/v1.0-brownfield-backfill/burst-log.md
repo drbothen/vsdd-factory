@@ -7,7 +7,7 @@ producer: state-manager
 timestamp: 2026-05-06T19:00:00Z
 cycle: "v1.0-brownfield-backfill"
 inputs: [STATE.md]
-input-hash: "f1a5576"
+input-hash: "39c9fc1"
 traces_to: STATE.md
 ---
 
@@ -574,3 +574,102 @@ F-P6-001 (current_step canonical marker restored; TD-VSDD-097 codified)
 
 ### Factory-artifacts commits
 - `14c32f31` (state-manager pass-6 combined persist+fix single atomic commit per TD-VSDD-053)
+
+---
+
+## S-15.14 LOCAL adversary pass-7 PERSIST + FIX-BURST 2026-05-18
+
+### Parent-commit
+`dd7e0f02` (factory-artifacts HEAD prior to this burst — S-15.14 pass-6 combined persist+fix; per D-419(b)+D-420(d)+D-421(a))
+
+### Adversary verdict
+Pass-7 verdict: HIGH (0C+1H+0M+0L+0N+0PG = 1 finding). F-P7-001: STATE.md:15 current_step D-chain max_cited=D-449 < body max D-476 → stale-D-chain BlockWithFix per BC-5.39.006 v1.2 invariant-7. Root cause: pass-6 fix restored PC6 marker but dropped pre-existing D-476 cite, introducing PC5 violation while closing PC6 — same META-LEVEL self-violation class (3rd instance after F-P3-006 + F-P6-001). TD-VSDD-097 (codified at pass-6) scoped to PC6-only — INSUFFICIENT per F-P7-001 root cause. Streak 0/3 (HIGH reset; no advance). Trajectory 16→9→8→2→0→1→1. Source: `.factory/code-delivery/S-15.14/adv-local-pass-7.md` Part A (verified: F-P7-001 HIGH is the sole Part A finding; PC matrix: PC2 PASS, PC3 PASS, PC4 PASS, PC5 FAIL, PC6 PASS).
+
+### Files touched (Dim-1)
+3 files modified:
+- `.factory/STATE.md`
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md`
+- `.factory/code-delivery/S-15.14/adv-local-pass-7.md` (new file — pass-7 adversary report)
+
+### Codifications (Dim-3)
+- TD-VSDD-097 EXTENDED: rule scope expanded from PC6-marker-only to ALL 5 BC-5.39.006 v1.2 PCs (PC2+PC3+PC4+PC5+PC6); extension codified in `cycles/v1.0-brownfield-backfill/lessons.md` as EXTENSION 2026-05-18 addendum to PG-orchestrator-dispatch-template-canonical-marker
+- No new D-NNN decision-log entry (state-manager-only burst; brownfield cycle D-476 is already the latest)
+
+### Dim-2 Attestation (D-449(a) literal-shell-execution-evidence)
+
+All 5 PC checks executed against the actual STATE.md post-edit. Literal captured stdout:
+
+**PC2 (forbidden meta-commentary):**
+```
+$ STEP_VALUE=$(grep '^current_step:' .factory/STATE.md | sed 's/^current_step: "//' | sed 's/"$//') && echo "$STEP_VALUE" | grep -E "META-LEVEL-[0-9]+ WATCH|self-app TEST|expected verdict" || echo "(no matches — PC2 PASS)"
+(no matches — PC2 PASS)
+```
+
+**PC3 (4 index cites):**
+```
+$ echo "$STEP_VALUE" | grep -oE "BC-INDEX v[0-9.]+|VP-INDEX v[0-9.]+|STORY-INDEX v[0-9.]+|ARCH-INDEX v[0-9.]+" | sort -u
+ARCH-INDEX v2.06
+BC-INDEX v2.34
+STORY-INDEX v3.43
+VP-INDEX v1.97
+```
+
+**PC4 (trajectory-tail LENGTH=4):**
+```
+$ echo "$STEP_VALUE" | grep -oE "trajectory-tail →[0-9→]+"
+trajectory-tail →9→9→9→9
+```
+
+**PC5 (D-chain currency — max extracted vs body max):**
+```
+$ echo "$STEP_VALUE" | grep -oE "D-[0-9]+" | sort -t- -k2 -n | tail -3
+D-420
+D-421
+D-476
+$ grep -oE "D-[0-9]+" .factory/STATE.md | grep -v "^D-0" | sort -t- -k2 -n | tail -3
+D-476
+D-476
+D-476
+```
+current_step max=D-476; body max=D-476; PC5 PASS (currency maintained).
+
+**PC6 (canonical marker with trailing space):**
+```
+$ echo "$STEP_VALUE" | grep -c "trajectory-tail "
+1
+```
+
+**D-446(a) own-burst-log 8-block gate:** This entry contains all D-444(c) required blocks:
+- Parent-commit: present
+- Adversary verdict: present
+- Files touched (Dim-1): present
+- Codifications (Dim-3): present
+- Dim-2 Attestation: present (this section)
+- Dim-5 Attestation: present (below)
+- Dim-6 Attestation: present (below)
+- Dim-7 Attestation: present (below)
+- Closes: present (below)
+
+**D-448(a) source-attestation gate:** Adversary verdict paragraph above faithfully describes adv-local-pass-7.md Part A finding set. Verified by grep:
+```
+$ grep "F-P7-001" .factory/code-delivery/S-15.14/adv-local-pass-7.md | head -3
+### F-P7-001 — HIGH — Pass-6 fix-burst introduced new regression: current_step D-chain max=D-449 < body max=D-476 → at-deploy stale-D-chain BlockWithFix
+- **Severity:** HIGH
+- **Category:** spec-vs-artifact-reality drift / replacement-regression / META-LEVEL self-violation (3rd-of-class after F-P3-006 and F-P6-001)
+```
+Verdict paragraph accurately reflects: severity HIGH, location STATE.md:15, D-chain max D-449 < D-476, META-LEVEL-class 3rd instance, PC5 failure. Match confirmed.
+
+### Dim-5 attestation
+State-manager-only burst on factory-artifacts (single atomic commit per TD-VSDD-053). No concurrent implementer dispatches — F-P7-001 is a STATE.md content fix + lessons.md extension + adversary report persist. Sibling feature/S-15.14-validate-dispatch-advance branch (implementer commits 03656260+cd9fd273) remains unchanged.
+
+### Dim-6 attestation
+F-P7-001 closed by restoring D-476 D-chain cite in STATE.md current_step per BC-5.39.006 v1.2 PC5/invariant-7. TD-VSDD-097 EXTENDED in lessons.md — rule scope now covers ALL 5 BC PCs. Pass-7 adversary report persisted at `.factory/code-delivery/S-15.14/adv-local-pass-7.md`. F-P4-001 + F-P4-002 remain OPEN in Drift Items (unchanged; documentary-only deferrals per prior pass-4 disposition).
+
+### Dim-7 attestation
+POLICY 3 (state_manager_runs_last) satisfied: state-manager-only burst. Single-Commit Burst Protocol per TD-VSDD-053 — one atomic factory-artifacts commit. No multi-role ordering concern. 3 files in burst: adv-local-pass-7.md (new persist) + lessons.md (extension) + STATE.md (fix + updates).
+
+### Closes
+F-P7-001 (D-chain cite restored to D-476 per BC-5.39.006 v1.2 PC5; TD-VSDD-097 EXTENDED to ALL 5 BC PCs)
+
+### Factory-artifacts commits
+- TBD — updated to actual SHA after push per D-419(b)+D-420(d)+D-421(a)
