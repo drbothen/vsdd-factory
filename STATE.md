@@ -191,7 +191,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | 70811f4a | verified `git rev-parse origin/main` = 70811f4a5d68d163021f46856c3de51bf8f4aab8 2026-05-13; includes CLAUDE.md expansion PR #136 (845d0007 squash-merge) + rc.18 merge PR #135 (666d689f) |
 | develop | 6e2d7805 | PR #147 MERGED 2026-05-17 — S-15.09 validate-state-structure Phase 1 WASM hook; M2 wave-3 COMPLETE. Prior: PR #146 6e0d5407 (S-15.11 M2 wave-2 COMPLETE). |
-| factory-artifacts | pending-this-burst | S-15.14 pass-3 closure burst 2026-05-17 — BC-INDEX v2.34 + STORY-INDEX v3.43 + burst-log closure entry; parent-commit 33941f24 (pass-3 main fix-burst SHA-patch) |
+| factory-artifacts | ef1a81a8 | S-15.14 pass-3 closure burst 2026-05-17 — BC-INDEX v2.34 + STORY-INDEX v3.43 + burst-log closure entry; parent-commit 33941f24 (pass-3 main fix-burst SHA-patch) |
 | v1.0.0-rc.16 (tag) | feb894a2 | SHIPPED; claude-mp PR #8 awaiting human merge |
 | v1.0.0-rc.15 (tag) | e68bb436 | SHIPPED |
 
@@ -401,7 +401,7 @@ Wave plan COMPLETE 2026-05-15 (architect): **95 distinct items** → **11-story 
 - factory-artifacts HEAD: see `git -C .factory log -1 --format='%h %s'` (do not hard-cite per TD-VSDD-053)
 - **S-15.14 story file:** `.factory/stories/S-15.14-validate-dispatch-advance.md` (22 ACs; status draft; bcs: [BC-5.39.006]; spec v1.2 2026-05-17)
 - **BC-5.39.006:** `.factory/specs/behavioral-contracts/ss-05/BC-5.39.006.md` (draft; v1.2; PC 6 trajectory-tail prefix-mandatory added; 9 VP citations PENDING architect allocation at S-15.14 merge — TD-VSDD-063 carry-forward; do NOT allocate VPs before merge)
-- **S-15.14 LOCAL pass-3 closure burst:** factory-artifacts HEAD after this commit (BC-INDEX v2.34 + STORY-INDEX v3.43 + implementer sibling burst 03656260+cd9fd273 on feature branch)
+- **S-15.14 LOCAL pass-3 closure burst:** `ef1a81a8` factory-artifacts (BC-INDEX v2.34 + STORY-INDEX v3.43 + implementer sibling burst 03656260+cd9fd273 on feature branch)
 - **S-15.14 LOCAL adversary pass-1 report:** `.factory/code-delivery/S-15.14/adv-local-pass-1.md`
 - **S-15.14 implementer commits:** feature branch `feature/S-15.14-validate-dispatch-advance` SHA range e4427df4..f20bbdab (7 micro-commits)
 - **S-15.09 cascade reports:** `.factory/code-delivery/S-15.09/adv-local-pass-{1..10}.md` (10 files)

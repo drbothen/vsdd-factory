@@ -359,7 +359,7 @@ F-P3-001, F-P3-002, F-P3-004, F-P3-005, F-P3-007 (deferred to Drift Items with e
 ### Factory-artifacts commits
 - `341b021f` (state-manager pass-3 fix-burst single atomic commit per TD-VSDD-053)
 
-## S-15.14-pass-3-closure-burst (2026-05-17, factory-artifacts pending-this-burst)
+## S-15.14-pass-3-closure-burst (2026-05-17, factory-artifacts ef1a81a8)
 
 ### Parent-commit
 `33941f24` (pass-3 main state-manager fix-burst SHA-patch)
@@ -420,4 +420,4 @@ POLICY 3 satisfied for THIS burst (state-manager-only on factory-artifacts). PO 
 F-P3-003 (implementer sibling commit cd9fd273 on feature/S-15.14-validate-dispatch-advance); F-P3-006 (implementer sibling commit 03656260 + PO BC-5.39.006 v1.2 PC 6 + story-writer story v1.2 AC-22); F-P3-009 (PO PC renumbering in-scope — BC-5.39.006 v1.2 fixes 1,5,2,3,4→1,2,3,4,5,6).
 
 ### Factory-artifacts commits
-- `pending-this-burst` (state-manager pass-3 closure burst single atomic commit per TD-VSDD-053)
+- `ef1a81a8` (state-manager pass-3 closure burst single atomic commit per TD-VSDD-053)
