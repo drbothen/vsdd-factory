@@ -920,8 +920,8 @@ path_allow = [
 # BC-5.39.006: blocks STATE.md writes with forbidden meta-commentary in
 # current_step: (D-440(a)+D-441(a)+D-442(a)), missing 4-index version cites
 # (D-439(b)), trajectory-tail LENGTH != 4 (D-451(c)), stale D-chain cite
-# (D-443(a)), and INDEX.md writes with non-6-column adversary-pass rows
-# (D-441(b)). S-15.14 M2 Wave-4.
+# (D-443(a)), and INDEX.md writes with non-5-column adversary-pass rows
+# (D-441(b)/D-442(b)). S-15.14 M2 Wave-4.
 # Priority 154 = one above validate-state-structure's 153 (verified: 153
 # confirmed by grep; 154 is unoccupied — next used priority above is 155).
 # No file_pattern field: registry schema does not support it per architect
