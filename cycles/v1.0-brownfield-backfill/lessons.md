@@ -1627,7 +1627,7 @@ Any hit is a prescribed sibling site. Zero hits = sweep complete. This grep must
 
 **Source:** S-15.14 LOCAL adversary pass-1 F-P1-007 [process-gap]
 **Date:** 2026-05-17
-**Cross-reference:** TD-VSDD-064
+**Cross-reference:** TD-VSDD-095 (Re-allocated from TD-VSDD-064 — wrongly reused at S-15.14 pass-1 burst a3b133b8; corrected in pass-2 burst per F-P2-001)
 
 S-15.14 LOCAL adversary pass-1 F-P1-007 finding: implementer chunked all 6 performance criteria (PCs) into a single commit instead of per-PC micro-commits as required. CLAUDE.md routing-table specifies implementer = "one failing test → minimum code → micro-commit". The expected pattern for a multi-PC hook story is 3-6 commits, each scoped to a logical AC or PC group.
 
@@ -1650,7 +1650,7 @@ Going-forward: hook-implementer dispatches MUST commit per logical scope (3-6 co
 
 **Source:** S-15.14 LOCAL adversary pass-1 F-P1-013 [process-gap]
 **Date:** 2026-05-17
-**Cross-reference:** TD-VSDD-065
+**Cross-reference:** TD-VSDD-096 (Re-allocated from TD-VSDD-065 — wrongly reused at S-15.14 pass-1 burst a3b133b8; corrected in pass-2 burst per F-P2-001)
 
 S-15.14 LOCAL adversary pass-1 F-P1-013 finding: `hooks-registry.toml` priority allocation inline comment used narrative-attested grep verification ("priority range 100-199 confirmed") without citing literal `file:line:` grep stdout. This is a META-LEVEL-24 D-449(a) self-application class: the comment claims a mechanical grep was run but does not show captured stdout.
 

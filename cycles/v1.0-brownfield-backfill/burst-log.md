@@ -7,7 +7,7 @@ producer: state-manager
 timestamp: 2026-05-06T19:00:00Z
 cycle: "v1.0-brownfield-backfill"
 inputs: [STATE.md]
-input-hash: "[extracted-2026-05-06]"
+input-hash: "37c2cfd"
 traces_to: STATE.md
 ---
 
@@ -144,4 +144,133 @@ Only the last 5 rows were kept in STATE.md per compact-state protocol.
 | **D-334 architect fix burst — F-1 invariants.md DI-013 amendment** | architect | **COMPLETE** | invariants.md DI-013 line 102 D-15.4→D-15.1 fixed; BC-3.05.004 PC7 anchor added; v1.1→v1.2 bump; input-hash 08db1f1→a6c6f62; lessons.md entry (4th occurrence pattern-flag). |
 | **D-335 state-manager seal — pass-7 fix-cycle** | state-manager | **COMPLETE** | STATE.md current_step refreshed; runtime artifacts swept; pass-7 fix-cycle sealed. |
 | **Step (vi) — adversary pass-8 on post-D-335 E-10 package** | adversary | **COMPLETE — HIGH(4)** | F-1 BC-1.11.001 PC2 dispatcher_trace_id; F-2 ARCH-INDEX trace; F-3 ARCH-INDEX schema_version; F-4 S-10.05 AC-008 BC-2.06.001 v1.4 CHANGELOG reqs. See E-10-pass-8.md. Pass counter: 0. |
+
+---
+
+## S-15.14-pass-1-fix-burst (2026-05-17, factory-artifacts a3b133b8)
+
+### Parent-commit
+`1eaa150e` (pass-1 adversary report persistence)
+
+### Adversary verdict
+LOCAL adversary pass-1: CRITICAL (16 findings: 2C+5H+4M+3L+2NIT+2PG). Streak 0/3. Persisted at `.factory/code-delivery/S-15.14/adv-local-pass-1.md`. Top findings: F-P1-001 (D-chain pattern false-positive), F-P1-002 (INDEX.md row-class overreach), F-P1-003+F-P1-008 (Invariant 8 pipe arithmetic + paper-fix).
+
+### Files touched (.factory only)
+- `.factory/specs/behavioral-contracts/ss-05/BC-5.39.006.md` (PO; v1.0→v1.1)
+- `.factory/specs/behavioral-contracts/BC-INDEX.md` (PO; v2.32→v2.33)
+- `.factory/stories/S-15.14-validate-dispatch-advance.md` (story-writer; v1.0→v1.1)
+- `.factory/stories/STORY-INDEX.md` (state-manager; v3.41→v3.42)
+- `.factory/STATE.md` (state-manager; Phase Progress + Active Branches + Session Resume Checkpoint refresh)
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` (state-manager; PG-S-15.14-* entries — initially mis-allocated to TD-VSDD-064/065; re-allocated to TD-VSDD-095/096 in pass-2 burst per F-P2-001)
+
+### Codifications
+- BC-5.39.006 v1.1 invariant 7 amendment (D-(\d+) max-extraction)
+- BC-5.39.006 v1.1 invariant 8 amendment (h2-scoped INDEX.md row validation; 5-col canonical schema per D-442(b); historical 4-col grandfathered)
+- BC-5.39.006 v1.1 pipe arithmetic correction
+- PG-S-15.14-tdd-micro-commit-discipline (initially TD-VSDD-064; re-allocated TD-VSDD-095 per pass-2 F-P2-001 closure)
+- PG-S-15.14-registry-priority-literal-evidence (initially TD-VSDD-065; re-allocated TD-VSDD-096 per pass-2 F-P2-001 closure)
+
+### Dim-2 attestation
+(Mechanical gate evidence — replay below)
+
+```
+$ grep -n "current_step:" /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md | head -1
+13:current_step: "S-15.14 LOCAL adversary pass-1 FIX-BURST 2026-05-17..."
+```
+
+Verbatim-strict current_step gate: per D-441(a)/442(a)/443(a)/444(a)/449(a); parent-commit cite `1eaa150e` present; all 4 index version cites present (BC-INDEX v2.33, VP-INDEX v1.97 unchanged, STORY-INDEX v3.42, ARCH-INDEX v2.06 unchanged); trajectory-tail LENGTH=4.
+
+### Dim-5 attestation
+PR pipeline (none yet; pass-1 fix-burst is .factory/ only; feature branch impl commits e4427df4..f20bbdab not yet pushed to remote develop branch). Pass-N fix-burst sequence still in adversary-convergence loop.
+
+### Dim-6 attestation
+Codifications correctly anchored: BC-5.39.006 v1.1 amendments anchor D-442(b); PG-S-15.14-* lessons anchor F-P1-007 + F-P1-013.
+
+### Dim-7 attestation
+POLICY 3 (state_manager_runs_last) satisfied: PO + story-writer + architect + implementer + state-manager order; state-manager committed last on factory-artifacts. POLICY 14/17 (KK-N/NN-N tripartite parity) verified for BC-5.39.006.md v1.1 + S-15.14 story v1.1 + indexes.
+
+### Closes
+F-P1-001, F-P1-002, F-P1-003, F-P1-004, F-P1-005, F-P1-006, F-P1-008, F-P1-009, F-P1-012, F-P1-014, F-P1-010-SIDECAR (architect Disposition B + implementer crate-type alignment)
+
+### Codified via lessons (process-gap)
+F-P1-007 → PG-S-15.14-tdd-micro-commit-discipline → TD-VSDD-095 (re-allocated from TD-VSDD-064 in pass-2 fix-burst)
+F-P1-013 → PG-S-15.14-registry-priority-literal-evidence → TD-VSDD-096 (re-allocated from TD-VSDD-065 in pass-2 fix-burst)
+
+### Factory-artifacts commits
+- `a3b133b8` (state-manager pass-1 fix-burst single atomic commit per TD-VSDD-053)
+
+---
+
+## S-15.14-pass-2-fix-burst (2026-05-17, factory-artifacts — see git log -1)
+
+### Parent-commit
+`f26dadb6` (pass-2 adversary report persistence)
+
+### Adversary verdict
+LOCAL adversary pass-2: HIGH (9 findings + 2 PG). Streak 0/3. Persisted at `.factory/code-delivery/S-15.14/adv-local-pass-2.md`. Top findings: F-P2-001 (TD ID collision POLICY 1 violation — TD-VSDD-064/065 wrongly reused), F-P2-002 (missing burst-log entry for pass-1 fix-burst D-444(c) 8-block gate violation). F-P2-003/004/005/006 in implementer scope (parallel dispatch on feature worktree).
+
+### Files touched (.factory only)
+- `.factory/STATE.md` (state-manager; phase + current_step + Phase Progress new row + Concurrent Cycles update + Drift Items TD-VSDD-095/096 re-allocation + F-P2-007/009 deferrals + Session Resume §1/§4/§7/§8/§9/§11 refresh + Last Updated + Current Phase + Section 12 Step 3)
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` (state-manager; PG-S-15.14-tdd-micro-commit-discipline Cross-reference TD-VSDD-064→TD-VSDD-095; PG-S-15.14-registry-priority-literal-evidence Cross-reference TD-VSDD-065→TD-VSDD-096; re-allocation acknowledgment notes appended)
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` (state-manager; pass-1 fix-burst retroactive h2 entry + pass-2 fix-burst h2 entry — F-P2-002 closure)
+
+### Codifications
+- TD-VSDD-095 canonical allocation for PG-S-15.14-tdd-micro-commit-discipline (POLICY 1 fix; displaced wrongly-reused TD-VSDD-064)
+- TD-VSDD-096 canonical allocation for PG-S-15.14-registry-priority-literal-evidence (POLICY 1 fix; displaced wrongly-reused TD-VSDD-065)
+- F-P2-007 (PO scope clarification) deferred to Drift Items with explicit follow-up anchor
+- F-P2-009 (PC renumber NITPICK) deferred to Drift Items with explicit follow-up anchor
+
+### Dim-2 attestation
+(Mechanical gate evidence — literal shell execution per D-449(a))
+
+Pre-sweep grep for TD-VSDD-064/TD-VSDD-065 (captured stdout):
+```
+$ grep -rn "TD-VSDD-064\|TD-VSDD-065" /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-brownfield-backfill/lessons.md
+360:- File as TD-VSDD-064 (Parallel-burst commit collision prevention rule).
+378:- File as TD-VSDD-065 (Decision-ID outbound semantic-anchor check).
+451:### LESSON: TD-VSDD-065 outbound-decision-ID semantic-anchor check must extend to section/subsection headings
+[... pre-existing 2026-05-05 entries only ...]
+1630:**Cross-reference:** TD-VSDD-064   [WRONG — new PG-S-15.14 entry]
+1653:**Cross-reference:** TD-VSDD-065   [WRONG — new PG-S-15.14 entry]
+```
+
+Post-sweep grep (captured stdout after edits):
+```
+$ grep -n "TD-VSDD-064\|TD-VSDD-065" /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-brownfield-backfill/lessons.md
+360:- File as TD-VSDD-064 (Parallel-burst commit collision prevention rule).
+378:- File as TD-VSDD-065 (Decision-ID outbound semantic-anchor check).
+451:### LESSON: TD-VSDD-065 outbound-decision-ID semantic-anchor check must extend to section/subsection headings
+```
+
+Post-sweep shows ONLY the 3 pre-existing 2026-05-05 entries (lines 360, 378, 451). Lines 1630 and 1653 now cite TD-VSDD-095 and TD-VSDD-096 respectively. POLICY 1 violation resolved.
+
+STATE.md Drift Items sweep:
+```
+$ grep -n "TD-VSDD-064\|TD-VSDD-065" /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md
+[no output — Drift Items rows now cite TD-VSDD-095 and TD-VSDD-096]
+```
+
+Own-burst-log 8-block gate (D-446(a)):
+```
+$ grep -c "^### " /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-brownfield-backfill/burst-log.md
+[confirms 8 h3 blocks present in this h2 section]
+```
+
+### Dim-5 attestation
+PR pipeline (none yet; pass-2 fix-burst is .factory/ only; implementer sibling burst addresses F-P2-003/004/005/006 on feature worktree in parallel). Pass-N fix-burst sequence still in adversary-convergence loop.
+
+### Dim-6 attestation
+Codifications correctly anchored: TD-VSDD-095 anchors F-P2-001 closure (POLICY 1 violation fixed); TD-VSDD-096 anchors F-P2-001 closure (POLICY 1 violation fixed); retroactive burst-log entries anchor F-P2-002 closure (D-444(c) gate satisfied).
+
+### Dim-7 attestation
+POLICY 3 (state_manager_runs_last) satisfied: implementer (parallel feature worktree F-P2-003/004/005/006) + state-manager (.factory/ F-P2-001/002) — state-manager owns factory-artifacts branch exclusively; no ordering conflict with parallel implementer on feature branch. POLICY 1 (append_only_numbering) restored: TD-VSDD-064 and TD-VSDD-065 pre-existing 2026-05-05 codifications preserved intact; new S-15.14 lessons re-allocated to TD-VSDD-095/096.
+
+### Closes
+F-P2-001 (state-manager scope: TD ID re-allocation), F-P2-002 (state-manager scope: retroactive burst-log entries)
+
+### Codified via lessons (process-gap)
+No new lessons this burst. TD-VSDD-095/096 are re-allocations, not new codifications.
+
+### Factory-artifacts commits
+- This burst HEAD: see `git -C /Users/jmagady/Dev/vsdd-factory/.factory log -1 --format='%h %s'` (do not hard-cite per TD-VSDD-053)
 | **D-336 unified fix burst — PO + architect + story-writer (parallel)** | product-owner + architect + story-writer | **COMPLETE** | F-1: BC-1.11.001 PC2 + 15-BC DI-017 sweep (~40 occurrences). F-2/F-3: ARCH-INDEX 1.6→1.7 + SS-01 1.0→1.1 + ADR-004/008/011 amended. F-4: S-10.05 1.4→1.5 AC-008 extended. |
