@@ -223,26 +223,31 @@ fn extract_current_step(content: &str) -> Option<&str> {
 
 /// Check for forbidden meta-commentary patterns in `current_step:` value.
 ///
-/// Scans for any of:
+/// Scans for all occurrences of:
 /// - `META-LEVEL-\d+ WATCH` (hand-rolled: `META-LEVEL-` prefix + digit run + ` WATCH`)
 /// - `self-app TEST` (literal substring)
 /// - `expected verdict` (literal substring)
 ///
-/// If matched: returns `Some(Violation)` with `cited_raw` set to the matched
-/// substring and `decision_refs` embedded in the description citing
-/// D-440(a)+D-441(a)+D-442(a).
+/// Returns `Vec<Violation>` — all matched patterns are enumerated. Each
+/// violation has `cited_raw` set to the matched substring and description
+/// citing D-440(a)+D-441(a)+D-442(a).
+///
+/// Changed from `Option<Violation>` to `Vec<Violation>` to support multi-pattern
+/// enumeration per BC-5.39.006 PC-6 (F-P1-012 fix).
 ///
 /// # BC trace
-/// BC-5.39.006 postcondition 2; D-440(a)+D-441(a)+D-442(a); AC-1/AC-2/AC-3.
-fn check_forbidden_meta_commentary(current_step_value: &str) -> Option<Violation> {
+/// BC-5.39.006 v1.1 postcondition 2/6; D-440(a)+D-441(a)+D-442(a); AC-1/AC-2/AC-3.
+fn check_forbidden_meta_commentary(current_step_value: &str) -> Vec<Violation> {
+    let mut violations: Vec<Violation> = Vec::new();
+
     // Hand-rolled scan for `META-LEVEL-\d+ WATCH` (BC-5.39.006 invariant 4).
     // The pattern is: literal "META-LEVEL-" followed by one or more digits,
-    // followed by " WATCH".
+    // followed by " WATCH". Scan globally (there may be multiple such occurrences).
     let meta_prefix = "META-LEVEL-";
     let meta_suffix = " WATCH";
-    if let Some(pos) = current_step_value.find(meta_prefix) {
-        let after_prefix = &current_step_value[pos + meta_prefix.len()..];
-        // Count digits after the prefix.
+    let mut search = current_step_value;
+    while let Some(pos) = search.find(meta_prefix) {
+        let after_prefix = &search[pos + meta_prefix.len()..];
         let digit_end = after_prefix
             .char_indices()
             .take_while(|(_, c)| c.is_ascii_digit())
@@ -253,12 +258,11 @@ fn check_forbidden_meta_commentary(current_step_value: &str) -> Option<Violation
             let after_digits = &after_prefix[digit_end..];
             if after_digits.starts_with(meta_suffix) {
                 let matched_end = pos + meta_prefix.len() + digit_end + meta_suffix.len();
-                // Guard char boundary before slicing for cited_raw.
-                let cited_raw = current_step_value
+                let cited_raw = search
                     .get(pos..matched_end)
                     .unwrap_or(meta_prefix)
                     .to_string();
-                return Some(Violation {
+                violations.push(Violation {
                     description: format!(
                         "forbidden meta-commentary pattern found in current_step: \
                          matched pattern `META-LEVEL-N WATCH`; \
@@ -267,13 +271,26 @@ fn check_forbidden_meta_commentary(current_step_value: &str) -> Option<Violation
                     ),
                     cited_raw,
                 });
+                // Advance past this match to find further occurrences.
+                let advance = pos + meta_prefix.len() + digit_end + meta_suffix.len();
+                if advance >= search.len() {
+                    break;
+                }
+                search = &search[advance..];
+                continue;
             }
         }
+        // Advance past this `META-LEVEL-` occurrence (no match) to avoid infinite loop.
+        let advance = pos + meta_prefix.len();
+        if advance >= search.len() {
+            break;
+        }
+        search = &search[advance..];
     }
 
     // Literal substring: `self-app TEST`.
     if current_step_value.contains("self-app TEST") {
-        return Some(Violation {
+        violations.push(Violation {
             description: "forbidden meta-commentary pattern found in current_step: \
                           matched pattern `self-app TEST`; \
                           D-440(a)+D-441(a)+D-442(a)"
@@ -284,7 +301,7 @@ fn check_forbidden_meta_commentary(current_step_value: &str) -> Option<Violation
 
     // Literal substring: `expected verdict`.
     if current_step_value.contains("expected verdict") {
-        return Some(Violation {
+        violations.push(Violation {
             description: "forbidden meta-commentary pattern found in current_step: \
                           matched pattern `expected verdict`; \
                           D-440(a)+D-441(a)+D-442(a)"
@@ -293,7 +310,7 @@ fn check_forbidden_meta_commentary(current_step_value: &str) -> Option<Violation
         });
     }
 
-    None
+    violations
 }
 
 /// Check that all 4 required index version citation patterns are present in
@@ -522,9 +539,8 @@ pub fn validate_state_md(content: &str) -> Vec<Violation> {
 
     let mut violations: Vec<Violation> = Vec::new();
 
-    if let Some(v) = check_forbidden_meta_commentary(current_step) {
-        violations.push(v);
-    }
+    // check_forbidden_meta_commentary returns Vec — extend (F-P1-012 multi-pattern).
+    violations.extend(check_forbidden_meta_commentary(current_step));
     if let Some(v) = check_index_version_cites(current_step) {
         violations.push(v);
     }
@@ -937,38 +953,52 @@ mod tests {
         );
     }
 
-    // -- Forbidden meta-commentary tests --
+    // -- Forbidden meta-commentary tests (F-P1-012: Vec<Violation> return) --
 
     #[test]
     fn test_forbidden_meta_commentary_watch() {
-        let v = check_forbidden_meta_commentary(
+        let vs = check_forbidden_meta_commentary(
             "BC-INDEX v1.14, VP-INDEX v1.8, STORY-INDEX v1.12, ARCH-INDEX v1.9 \
              META-LEVEL-5 WATCH: self-application →9→9→9→9 D-382..D-477",
         );
-        assert!(v.is_some(), "should detect META-LEVEL-5 WATCH pattern");
-        let v = v.unwrap();
+        assert!(!vs.is_empty(), "should detect META-LEVEL-5 WATCH pattern");
         assert!(
-            v.description.contains("D-440(a)"),
+            vs[0].description.contains("D-440(a)"),
             "block message must cite D-440(a)"
         );
     }
 
     #[test]
     fn test_forbidden_meta_commentary_self_app() {
-        let v = check_forbidden_meta_commentary(
+        let vs = check_forbidden_meta_commentary(
             "BC-INDEX v1.14 VP-INDEX v1.8 STORY-INDEX v1.12 ARCH-INDEX v1.9 \
              self-app TEST example →9→9→9→9 D-382..D-477",
         );
-        assert!(v.is_some(), "should detect self-app TEST pattern");
+        assert!(!vs.is_empty(), "should detect self-app TEST pattern");
     }
 
     #[test]
     fn test_forbidden_meta_commentary_expected_verdict() {
-        let v = check_forbidden_meta_commentary(
+        let vs = check_forbidden_meta_commentary(
             "BC-INDEX v1.14 VP-INDEX v1.8 STORY-INDEX v1.12 ARCH-INDEX v1.9 \
              expected verdict: PASS →9→9→9→9 D-382..D-477",
         );
-        assert!(v.is_some(), "should detect expected verdict pattern");
+        assert!(!vs.is_empty(), "should detect expected verdict pattern");
+    }
+
+    #[test]
+    fn test_forbidden_meta_commentary_multiple_patterns() {
+        // BC-5.39.006 PC-6: multi-violation enumeration per check.
+        // current_step with both META-LEVEL WATCH and self-app TEST should produce 2 violations.
+        let vs = check_forbidden_meta_commentary(
+            "BC-INDEX v1.14 META-LEVEL-5 WATCH self-app TEST →9→9→9→9 D-477",
+        );
+        assert!(
+            vs.len() >= 2,
+            "both META-LEVEL-5 WATCH and self-app TEST must produce separate violations; \
+             got {} violations",
+            vs.len()
+        );
     }
 
     // -- Index version cite tests --
