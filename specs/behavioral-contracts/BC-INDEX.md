@@ -1,17 +1,19 @@
 ---
 document_type: bc-index
 level: L3
-version: "2.31"
+version: "2.32"
 status: draft
 producer: state-manager
 timestamp: 2026-05-17T00:00:00Z
-last_amended: "2026-05-17 (v2.31) — POL-14 auto-promotion BC-5.39.005 draft→active at S-15.09 merge `6e2d7805` (PR #147; D-476 codification); LOCAL adversary 10-pass CONVERGED 3/3 (trajectory 10→7→4→0→5→6→2→0→0→0); M2 wave-3 COMPLETE. BC-INDEX v2.30→v2.31. [Prior: 2026-05-17 (v2.30) — S-15.09 M2 Wave-3 story authoring — BC-5.39.005 allocated; validate-state-structure Phase 1 hook anchors D-421(c)+D-422(c)+D-424(b)+D-428(d)+D-438(a)+D-440(d)+D-442(d)+D-446(c)+D-433(e)+D-439(c)+D-451(c)+D-432(b); SS-05 count 653→654; total_bcs 1950→1951; lifecycle_status: draft; POL-14 auto-promotion to active on S-15.09 merge. BC-INDEX v2.29→v2.30.]"
+last_amended: "2026-05-17 (v2.32) — S-15.14 M2 Wave-4 story authoring — BC-5.39.006 allocated; validate-dispatch-advance hook anchors D-440(a)+D-441(a)+D-442(a)+D-443(a)+D-439(b)+D-441(b)+D-451(c); SS-05 count 654→655; total_bcs 1951→1952; lifecycle_status: draft; POL-14 auto-promotion to active on S-15.14 merge. Input-hash 5af355e. BC-INDEX v2.31→v2.32. [Prior: 2026-05-17 (v2.31) — POL-14 auto-promotion BC-5.39.005 draft→active at S-15.09 merge `6e2d7805` (PR #147; D-476 codification); LOCAL adversary 10-pass CONVERGED 3/3 (trajectory 10→7→4→0→5→6→2→0→0→0); M2 wave-3 COMPLETE. BC-INDEX v2.30→v2.31.]"
 phase: F5
 inputs:
   - .factory/specs/behavioral-contracts/bc-id-mapping.md
-total_bcs: 1951
+total_bcs: 1952
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-17
+    change: "v2.32 (2026-05-17; S-15.14 M2 Wave-4 story authoring — BC-5.39.006 allocated; validate-dispatch-advance hook anchors D-440(a)+D-441(a)+D-442(a)+D-443(a)+D-439(b)+D-441(b)+D-451(c); SS-05 count 654→655; total_bcs 1951→1952; lifecycle_status: draft; POL-14 auto-promotion to active on S-15.14 merge. Input-hash 5af355e. BC-INDEX v2.31→v2.32."
   - date: 2026-05-17
     change: "v2.31 (2026-05-17; POL-14 auto-promotion BC-5.39.005 draft→active at S-15.09 merge `6e2d7805` PR #147; D-476 codified; LOCAL adversary 10-pass CONVERGED 3/3 (trajectory 10→7→4→0→5→6→2→0→0→0); F-P5-002 silent-inert validator caught + structurally closed; TD-VSDD-061 cross-story Drift Item recorded; M2 wave-3 COMPLETE. BC-INDEX v2.30→v2.31."
   - date: 2026-05-17
@@ -290,7 +292,7 @@ changelog:
 | SS-02 Hook SDK and Plugin ABI | BC-2 | 26 | ss-02/ |
 | SS-03 Event Emission (OTel-Aligned) | BC-3 | 53 | ss-03/ |
 | SS-04 Plugin Ecosystem | BC-4 | 39 | ss-04/ |
-| SS-05 Pipeline Orchestration | BC-5 | 654 | ss-05/ |
+| SS-05 Pipeline Orchestration | BC-5 | 655 | ss-05/ |
 | SS-06 Skill Catalog | BC-6 | 586 | ss-06/ |
 | SS-07 Hook Bash Layer | BC-7 | 198 | ss-07/ |
 | SS-08 Templates and Rules | BC-8 | 214 | ss-08/ |
@@ -1210,6 +1212,7 @@ changelog:
 | [BC-5.39.003](ss-05/BC-5.39.003.md) | validate-index-cite-refresh hook MUST block on stale 4-index version citations in ARCH-INDEX, STATE.md, and INDEX.md | active | E-12 | S-15.07 |
 | [BC-5.39.004](ss-05/BC-5.39.004.md) | validate-burst-log hook MUST block on structurally incomplete burst-log entries | active | E-12 | S-15.11 |
 | [BC-5.39.005](ss-05/BC-5.39.005.md) | validate-state-structure Phase 1 hook MUST block on banner line-count drift, dual-margin absence, and trajectory-tail cardinality violations in STATE.md | active | E-12 | S-15.09 |
+| [BC-5.39.006](ss-05/BC-5.39.006.md) | validate-dispatch-advance WASM hook MUST block on forbidden meta-commentary in current_step, missing 4-index version citations, trajectory-tail cardinality violations, stale D-chain cites in STATE.md, and non-6-column adversary-pass rows in INDEX.md | draft | E-12 | S-15.14 |
 | [BC-8.29.001](ss-08/BC-8.29.001.md) | RED_RATIO = RED_TESTS / TOTAL_NEW_TESTS must be ≥ 0.5 before Step 4 implementer dispatch (BLOCKING) | draft | CAP-016 | S-7.03 |
 | [BC-8.29.002](ss-08/BC-8.29.002.md) | each non-RED test must be documented in red-gate-log with rationale before threshold relaxation | draft | CAP-016 | S-7.03 |
 | [BC-8.29.003](ss-08/BC-8.29.003.md) | on RED_RATIO < 0.5 without GREEN-BY-DESIGN justification, orchestrator must choose remediation option A or B | draft | CAP-016 | S-7.03 |
