@@ -502,25 +502,21 @@ fn scan_max_d_nnn(s: &str) -> u64 {
 /// Extracts `current_step:` value, runs all 4 checks, accumulates non-None
 /// results into a `Vec<Violation>`. Returns an empty Vec for a clean write.
 ///
-/// If `current_step:` cannot be extracted, returns a single Violation
-/// describing the extraction failure.
+/// If `current_step:` cannot be extracted (frontmatter absent, truncated, or
+/// malformed), returns an empty Vec — fail-open per BC-5.39.006 invariant 7/9.
+/// The caller (`on_post_tool_use`) logs a warning via `host::log_warn` so the
+/// skip is observable in dispatcher telemetry. This is consistent with the
+/// read-error path which also produces Continue + log_warn.
 ///
 /// # BC trace
-/// BC-5.39.006 postcondition 1/6 — all checks run; multiple violations produce
-/// a single BlockWithFix enumerating all.
+/// BC-5.39.006 v1.1 postcondition 1/6/7; invariant 7/9; F-P1-004.
 pub fn validate_state_md(content: &str) -> Vec<Violation> {
     let current_step = match extract_current_step(content) {
         Some(v) => v,
         None => {
-            // current_step: absent or frontmatter malformed.
-            // This is itself a structural issue — report it.
-            return vec![Violation {
-                description: "could not extract `current_step:` value from STATE.md \
-                              frontmatter; ensure YAML frontmatter is present and \
-                              `current_step:` key is defined"
-                    .to_string(),
-                cited_raw: String::new(),
-            }];
+            // current_step: absent or frontmatter malformed — fail-open per invariant 9.
+            // Caller (on_post_tool_use) emits log_warn for observability.
+            return vec![];
         }
     };
 
@@ -798,6 +794,16 @@ pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
             }
         };
 
+        // Fail-open: if current_step: cannot be extracted, skip validation and warn.
+        // Consistent with read-error path (invariant 9); aligns with F-P1-004 fix.
+        if extract_current_step(&content).is_none() {
+            host::log_warn(&format!(
+                "[{HOOK_NAME}] current_step: absent or frontmatter malformed in \
+                 {file_path} — skipping STATE.md validation (fail-open per invariant 9)"
+            ));
+            return HookResult::Continue;
+        }
+
         let violations = validate_state_md(&content);
         if violations.is_empty() {
             HookResult::Continue
@@ -875,6 +881,60 @@ mod tests {
     #[test]
     fn test_xindex_md_is_not_target() {
         assert!(!is_index_md_target("/some/dir/xINDEX.md"));
+    }
+
+    // -- scan_max_d_nnn slice-guard safety (F-P1-006; TD-VSDD-060 sibling-site sweep) --
+
+    #[test]
+    fn test_scan_max_d_nnn_d_at_end_of_string() {
+        // "D-" at the very end of string with no digits — must not panic.
+        // Tests the `advance >= search.len()` break guard in scan_max_d_nnn.
+        let result = std::panic::catch_unwind(|| {
+            // Call check_d_chain_currency which calls scan_max_d_nnn internally.
+            let current_step = "BC-INDEX v1.14 VP-INDEX v1.8 STORY-INDEX v1.12 ARCH-INDEX v1.9 D-477";
+            let content = "---\ncurrent_step: 'x'\n---\nsuffix D-";
+            check_d_chain_currency(content, current_step)
+        });
+        assert!(result.is_ok(), "scan_max_d_nnn must not panic on 'D-' at end of string");
+    }
+
+    #[test]
+    fn test_scan_max_d_nnn_multiple_references() {
+        // Multiple D-NNN in current_step; max is correctly extracted.
+        let current_step =
+            "BC-INDEX v1.14 VP-INDEX v1.8 STORY-INDEX v1.12 ARCH-INDEX v1.9 \
+             D-382 D-440 D-477 →9→9→9→9";
+        let content = "---\ncurrent_step: 'x'\n---\n| D-477 |\n";
+        let v = check_d_chain_currency(content, current_step);
+        assert!(v.is_none(), "max_cited=477 >= max_in_file=477 — should not violate");
+    }
+
+    // -- extract_current_step fail-open (F-P1-004 / BC-5.39.006 v1.1 invariant 7/9) --
+
+    #[test]
+    fn test_validate_state_md_fail_open_on_missing_frontmatter() {
+        // Content with no frontmatter — extract_current_step returns None.
+        // validate_state_md must return vec![] (no violations) — fail-open per invariant 9.
+        let content = "# No frontmatter\n\nsome body text D-477\n";
+        let violations = validate_state_md(content);
+        assert!(
+            violations.is_empty(),
+            "missing frontmatter must be fail-open (no violations); \
+             got: {violations:?}"
+        );
+    }
+
+    #[test]
+    fn test_validate_state_md_fail_open_on_unclosed_frontmatter() {
+        // Frontmatter opened but never closed — extract_current_step returns None
+        // (no closing `---` found, and current_step: is absent from the partial block).
+        let content = "---\nphase: test\n# body without closing ---\n";
+        let violations = validate_state_md(content);
+        assert!(
+            violations.is_empty(),
+            "truncated/malformed frontmatter must be fail-open (no violations); \
+             got: {violations:?}"
+        );
     }
 
     // -- Forbidden meta-commentary tests --
