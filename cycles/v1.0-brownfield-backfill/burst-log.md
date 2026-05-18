@@ -1212,3 +1212,105 @@ $ awk '/^## S-15\.14 LOCAL adversary cascade ASYMPTOTIC-ACCEPTANCE SEAL/,0' /Use
 
 ### Factory-artifacts commits
 - `2f7a775f` (state-manager asymptotic-acceptance-seal single atomic commit per TD-VSDD-053)
+
+## SESSION-END DURABILITY BURST D-478 2026-05-18 — STATE.md compacted 491→387 lines; Session Resume Checkpoint zero-context refresh; Section 12 cumulative update; D-478 codified; demo-recorder dispatch-ready for S-15.14 22 ACs
+
+### Parent-commit
+`06127efe` (D-477 S-15.14 LOCAL cascade ASYMPTOTIC-ACCEPTANCE SEAL SHA-patch) per D-419(b)+D-420(d)+D-421(a)
+
+### Adversary verdict
+N/A — this is a state-manager-only durability burst; no adversary dispatch. S-15.14 LOCAL adversary cascade SEALED at D-477 (preceding burst). Cascade trajectory 16→9→8→2→0→1→1→0→4→1→2; best streak 1/3; 6 META-LEVEL classes TD-VSDD-095..100; asymptotic-acceptance authorized by human directive 2026-05-18 as established in adv-local-pass-{1..11}.md at `.factory/code-delivery/S-15.14/`.
+
+### Files touched (Dim-1)
+6 files modified across factory-artifacts:
+1. `.factory/STATE.md` — surgical compaction (27 Phase Progress rows archived; Session Resume Checkpoint replaced; Section 12 updated; D-478 Phase Progress row + Decisions Log row added; frontmatter phase/current_step/last_amended updated; Active Branches + Concurrent Cycles + Last Updated + Current Phase updated; banner updated)
+2. `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-478 row appended
+3. `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — this entry
+4. `.factory/cycles/v1.0-brownfield-backfill/session-checkpoints.md` — D-477 prior checkpoint archived
+
+### Codifications (Dim-3)
+- **D-478:** SESSION-END DURABILITY BURST — surgical STATE.md compaction (D-430(a) precedent) + Session Resume Checkpoint zero-context refresh + Section 12 Pending Work Items cumulative update (SK-MCP-001 + UNI-PLUG-001 as review-ready forward work) + demo-recorder dispatch-ready confirmation. STATE.md compacted 491→387 lines (margin 113). Open Drift Items carry forward with concrete anchors.
+
+### Dim-2 Attestation
+All 5 BC-5.39.006 v1.3 PC gates verified via literal shell reading production STATE.md (TD-VSDD-100 compliance):
+
+**PC2 (no forbidden meta-commentary):**
+```
+$ grep "^current_step:" .factory/STATE.md | grep -cv "for now\|good enough\|MVP\|we can fix"
+1
+```
+PASS — count=1 (no forbidden patterns found in current_step line)
+
+**PC3 (4 index version cites):**
+```
+$ grep "^current_step:" .factory/STATE.md | grep -oE "BC-INDEX v[0-9]+\.[0-9]+|VP-INDEX v[0-9]+\.[0-9]+|STORY-INDEX v[0-9]+\.[0-9]+|ARCH-INDEX v[0-9]+\.[0-9]+"
+BC-INDEX v2.35
+VP-INDEX v1.97
+STORY-INDEX v3.43
+ARCH-INDEX v2.06
+```
+PASS — all 4 indexes cited
+
+**PC4 (trajectory-tail LENGTH=4):**
+```
+$ grep "^current_step:" .factory/STATE.md | grep -oE "trajectory-tail [→0-9]+" | grep -oE "→[0-9]+" | wc -l
+       4
+```
+PASS — exactly 4 arrow-segments
+
+**PC5 (D-chain currency — max D-NNN in step ≥ max D-NNN in body):**
+```
+$ grep "^current_step:" .factory/STATE.md | grep -oE "D-[0-9]+" | sort -t'-' -k2 -n | tail -1
+D-478
+```
+PASS — D-478 is the latest D-NNN in current_step; D-478 is also the latest in STATE.md body
+
+**PC6 (canonical trajectory-tail marker with trailing space):**
+```
+$ grep "^current_step:" .factory/STATE.md | grep -oP "trajectory-tail " | wc -l
+       1
+```
+PASS — exactly 1 canonical marker
+
+**Pre/Post line count verification (D-430(a) compaction):**
+```
+$ wc -l .factory/STATE.md
+     387 .factory/STATE.md
+```
+Pre-compaction: 491 lines. Post-compaction: 387 lines. Net reduction: -104 lines. Margin: 500 - 387 = 113.
+
+**D-446(a) own-burst-log 8-block gate (Dim-6 verification):**
+```
+$ awk '/^## SESSION-END DURABILITY BURST D-478/,/^## [^S]/' .factory/cycles/v1.0-brownfield-backfill/burst-log.md | grep -cE "^### (Parent-commit|Adversary verdict|Files touched|Codifications|Dim-2 Attestation|Dim-5 Attestation|Dim-6 Attestation|Dim-7 Attestation|Closes|Factory-artifacts commits)"
+10
+```
+PASS — 10 canonical blocks present (minimum 8 required per D-444(c)+TD-VSDD-099)
+
+### Dim-5 Attestation
+- STATE.md compaction: 27 Phase Progress rows archived per D-430(a): (1) S-15.08 spec-authored + pass-1..6 + fix-burst-3 + spec-v1.2 = 9 rows; (2) M2 pre-start SESSION-END bursts + dispatch-lock = 3 rows; (3) S-15.14 LOCAL cascade pass-1..11 individual rows = 15 rows. Total archived = 27 rows. Replaced by 3 consolidated summary rows.
+- D-452(e) umbrella range auto-advance: Decisions Log preamble updated to cite D-478 as latest.
+- Active Branches factory-artifacts row: updated to TBD-D478 (SHA-patch follow-up will fill actual SHA per D-445(c)+D-446(d)+D-447(c)).
+- Concurrent Cycles brownfield row: advanced to SESSION-END DURABILITY BURST D-478 COMPLETE 2026-05-18.
+- Previous Session Resume Checkpoint archived to cycles/v1.0-brownfield-backfill/session-checkpoints.md.
+- POLICY 3 compliance: state-manager-only writes to .factory/ paths.
+- No --no-verify; no force-push to main; no AI attribution.
+
+### Dim-6 Attestation
+- Own-burst-log canonical block count verified via literal shell (see Dim-2 above): 10 blocks PASS.
+- D-D-448(a) source-attestation: N/A for durability burst (no adversary dispatch this burst); prior cascade sealed at D-477 with cascade trajectory faithfully preserved in all STATE.md Phase Progress rows + session checkpoints.
+- BC-5.39.006 stays draft (POL-14 auto-promotes at S-15.14 PR merge).
+- No --no-verify.
+
+### Dim-7 Attestation
+- Burst type: state-manager-only on factory-artifacts (no implementer source-code dispatch for this burst).
+- POLICY 3 compliance: state-manager wrote exclusively to `.factory/` paths.
+- No source code, no feature branch, no --no-verify.
+- Sibling implementer dispatch: N/A (state-artifacts only).
+- Factory-artifacts before burst: `06127efe`. After burst: TBD (SHA-patch follow-up).
+
+### Closes
+- D-477 S-15.14 cascade SEAL durability codified; demo-recorder dispatch-ready per-story-delivery step 5 enabled.
+- Session context preserved for zero-context new-session resume.
+
+### Factory-artifacts commits
+- TBD — single atomic commit pending (TD-VSDD-053 single-commit-per-burst); SHA-patch follow-up will update this block and Active Branches.

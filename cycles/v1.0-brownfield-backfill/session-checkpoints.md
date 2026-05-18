@@ -127,3 +127,14 @@ Three rename-propagation patterns reached N=3 trigger:
 **Where We Are:** TD #74 SHIPPED 2026-05-15 via PR #141 squash-merge at 5d1f8805 on develop; `docs/dispatch-package-authoring.md` (174 lines new) + CLAUDE.md Project References +1 row; CI 10/10 green; 0 review findings; feature/td-74-dispatch-cargo-audit-codification deleted; Section 12 Step 1 COMPLETE. 4-PR Tier-A sweep COMPLETE: TD #71 (bcf494ff) → TD #72 (83afaa3c) → TD #70 (ddc11879) → TD #74 (5d1f8805). Orchestrator pivots Tier-A to Step 2: TD #66 + TD #67 cleanup wrapped in S-15.02 (at time of prior checkpoint — subsequently architect adjudicated split into S-15.04 + S-15.05).
 
 **Critical Anchors at archive time:** develop HEAD `5d1f8805`; factory-artifacts HEAD was `1e810021` (D-471 asymptotic-acceptance seal); D-471 seal `1e810021`; D-470 mandatory HIGH closures `6fefa10d`; F5 cycle final-state `4b4b6819`.
+
+---
+
+## Archived: S-15.14 LOCAL adversary cascade ASYMPTOTIC-ACCEPTANCE SEALED 2026-05-18 per D-477 (demo-recorder dispatch-ready)
+
+> Archived from STATE.md at SESSION-END DURABILITY BURST D-478 2026-05-18.
+
+**Where We Are:** S-15.14 LOCAL adversary cascade ASYMPTOTIC-ACCEPTANCE SEALED 2026-05-18 at D-477 per F5 D-386 Option C + E-10 D-471 precedent; 11 passes; trajectory 16→9→8→2→0→1→1→0→4→1→2; best streak 1/3 (twice); 6 META-LEVEL classes TD-VSDD-095..100 forwarded to SK-MCP-001 Appendix D INV-011..014; proposals SK-MCP-001 + UNI-PLUG-001 enhanced 2026-05-18; resumption gate SK-MCP-001 Tier 2; per-story-delivery proceeds to step 5 (demo-recorder per AC); 22 ACs per story v1.2.
+
+**Critical Anchors at archive time:** factory-artifacts HEAD `2f7a775f` (D-477 seal); develop HEAD `6e2d7805`; feature branch `feature/S-15.14-validate-dispatch-advance` HEAD `cd9fd273`; BC-INDEX v2.35; STORY-INDEX v3.43; VP-INDEX v1.97; ARCH-INDEX v2.06.
+
