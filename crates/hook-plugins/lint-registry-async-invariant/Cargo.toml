@@ -14,6 +14,7 @@ publish = false
 # logic; [[bin]] wraps the macro-generated entry point that calls into the lib.
 [lib]
 path = "src/lib.rs"
+crate-type = ["cdylib", "rlib"]
 
 [[bin]]
 name = "lint-registry-async-invariant"
@@ -28,7 +29,6 @@ toml = { workspace = true }
 [dev-dependencies]
 serde_json = { workspace = true }
 proptest = "1.6"
-vsdd-hook-sdk = { path = "../../hook-sdk" }
 
 [lints]
 workspace = true
