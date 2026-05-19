@@ -1540,3 +1540,116 @@ D-448(a) source-attestation: N/A (state-advance burst; no new adversary review f
 
 ### Factory-artifacts commits
 - afe1cb65 (state-manager M3 COMMISSIONING STATE ADVANCE BURST D-480 single atomic commit per TD-VSDD-053)
+
+---
+
+## 3M3a-BC-AUTHORING-BURST — 2026-05-18 (product-owner BC-5.39.007 + BC-5.39.008 v1.0 drafts)
+
+### Parent-commit
+afe1cb65 (M3 COMMISSIONING STATE ADVANCE BURST D-480; factory-artifacts HEAD at dispatch time per D-419(b))
+
+### Adversary verdict
+N/A — new BC authoring burst; no adversary review file for this burst. Upstream D-477 sealed S-15.14 LOCAL cascade; D-480 commissioned M3. This burst satisfies Section 12 Step 3M3a (product-owner BC authorship). Spec-reviewer + adversary 3-CLEAN cascade (Step 3M3a-r) dispatched next per D-481.
+
+### Files touched (Dim-1)
+Count: 3 files
+
+1. `.factory/specs/behavioral-contracts/ss-05/BC-5.39.007.md` — NEW: BC-5.39.007 v1.0 draft (validate-closes-completeness Phase 1)
+2. `.factory/specs/behavioral-contracts/ss-05/BC-5.39.008.md` — NEW: BC-5.39.008 v1.0 draft (validate-policies-schema + cargo-audit lint)
+3. `.factory/specs/behavioral-contracts/BC-INDEX.md` — AMENDED: v2.36→v2.37; 2 new rows; total_bcs 1952→1954; changelog entry added
+
+### Codifications (Dim-3)
+- **D-481**: BC-5.39.007 + BC-5.39.008 v1.0 drafts authored per M3 commissioning D-480. Anchors: BC-5.39.007 closes D-419(c)+D-420(e)+D-441(c)+D-442(c)+D-443(b)+D-448(b); BC-5.39.008 closes F-PASS14-004+F-PASS14-006+POLICY-13/16-D-472+ADR-021-Option-b. BC-INDEX v2.37. Pending spec-reviewer + adversary 3-CLEAN cascade (Step 3M3a-r) before story-writer dispatch (Step 3M3b).
+
+### Dim-2 Attestation
+Literal shell invocations per D-449(a) + TD-VSDD-100 (production-read):
+
+**BC-5.39.007 file exists with correct bc_id:**
+```
+$ grep "^bc_id:" .factory/specs/behavioral-contracts/ss-05/BC-5.39.007.md
+bc_id: BC-5.39.007
+```
+PASS
+
+**BC-5.39.008 file exists with correct bc_id:**
+```
+$ grep "^bc_id:" .factory/specs/behavioral-contracts/ss-05/BC-5.39.008.md
+bc_id: BC-5.39.008
+```
+PASS
+
+**BC-INDEX version v2.37:**
+```
+$ grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md
+version: "2.37"
+```
+PASS
+
+**BC-INDEX total_bcs 1954:**
+```
+$ grep "^total_bcs:" .factory/specs/behavioral-contracts/BC-INDEX.md
+total_bcs: 1954
+```
+PASS
+
+**BC-INDEX table rows present:**
+```
+$ grep "BC-5.39.007\|BC-5.39.008" .factory/specs/behavioral-contracts/BC-INDEX.md | grep "^\| \[BC"
+| [BC-5.39.007](ss-05/BC-5.39.007.md) | validate-closes-completeness Phase 1 ...
+| [BC-5.39.008](ss-05/BC-5.39.008.md) | validate-policies-schema WASM hook ...
+```
+PASS
+
+**Input hashes valid (non-pending):**
+```
+$ grep "^input-hash:" .factory/specs/behavioral-contracts/ss-05/BC-5.39.007.md
+input-hash: "ad1c745"
+$ grep "^input-hash:" .factory/specs/behavioral-contracts/ss-05/BC-5.39.008.md
+input-hash: "ad1c745"
+```
+PASS — both are lowercase hex (7 chars); no "pending" placeholder
+
+### Dim-5 Attestation
+- D-481 codified in `cycles/v1.0-brownfield-backfill/decision-log.md` (row added at next edit).
+- BC-5.39.007 draft authored at `.factory/specs/behavioral-contracts/ss-05/BC-5.39.007.md` (5 preconditions, 10 postconditions, 10 invariants, 20 edge cases, Phase 2 reserved with ADR-022 gate).
+- BC-5.39.008 draft authored at `.factory/specs/behavioral-contracts/ss-05/BC-5.39.008.md` (10 preconditions across 2 arms, 14 postconditions, 11 invariants, 20 edge cases, TD-VSDD-101 independence invariant explicit).
+- BC-INDEX v2.36→v2.37; total_bcs 1952→1954; SS-05 count 655→657; 2 new table rows; changelog entry added.
+- STATE.md updates: Section 12 Step 3M3a PENDING→COMPLETE; new Step 3M3a-r PENDING; Step 3M3b gate updated; frontmatter advance; Session Resume Checkpoint §1/§4/§5/§8/§9/§11 refresh (at STATE.md edit step).
+- POLICY 3 compliance: product-owner wrote exclusively to `.factory/specs/behavioral-contracts/` paths.
+- No --no-verify; no force-push to main; no AI attribution.
+
+### Dim-6 Attestation
+Own-burst-log structural-integrity check per D-444(c)+TD-VSDD-099:
+
+This entry contains:
+1. Parent-commit
+2. Adversary verdict
+3. Files touched (Dim-1)
+4. Codifications (Dim-3)
+5. Dim-2 Attestation
+6. Dim-5 Attestation
+7. Dim-6 Attestation
+8. Dim-7 Attestation
+9. Closes
+10. Factory-artifacts commits
+
+Count = 10 blocks ≥ 8 required. PASS.
+
+D-448(a) source-attestation: N/A for this burst (new BC authoring; no adversary review file; upstream verdict cited accurately above).
+
+### Dim-7 Attestation
+- Burst type: product-owner authoring on factory-artifacts (BC spec files + BC-INDEX update).
+- POLICY 3 compliance: product-owner wrote exclusively to `.factory/` paths.
+- No source code, no feature branch, no --no-verify.
+- Sibling implementer dispatch: N/A (spec-only authoring burst; no code changes).
+- Factory-artifacts before burst: afe1cb65 (D-480 commissioning burst HEAD). After burst: SHA pending (state-manager will record at commit time).
+
+### Closes
+- D-481 codified: BC-5.39.007 + BC-5.39.008 v1.0 drafts authored per M3 commissioning D-480; Step 3M3a COMPLETE.
+- BC-INDEX v2.37: 2 new rows + total_bcs advance + changelog entry.
+- Section 12 Step 3M3a: PENDING→COMPLETE.
+- New Step 3M3a-r added: spec-reviewer + adversary 3-CLEAN cascade PENDING.
+- Step 3M3b gate updated to require (3M3a-r) done.
+
+### Factory-artifacts commits
+- SHA pending (state-manager commits all .factory/ artifacts in single atomic commit per TD-VSDD-053 after this product-owner burst completes)
