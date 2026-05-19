@@ -138,3 +138,13 @@ Three rename-propagation patterns reached N=3 trigger:
 
 **Critical Anchors at archive time:** factory-artifacts HEAD `2f7a775f` (D-477 seal); develop HEAD `6e2d7805`; feature branch `feature/S-15.14-validate-dispatch-advance` HEAD `cd9fd273`; BC-INDEX v2.35; STORY-INDEX v3.43; VP-INDEX v1.97; ARCH-INDEX v2.06.
 
+
+---
+
+## Archived Checkpoint: 2026-05-19 — M3 3M3a-r PASS-3 CRITICAL: D-486 codified; STREAK 0/3 reset; PO fix-burst pass-3 PENDING with INV-018
+
+(Archived from STATE.md at D-487 codification burst — replaced by M3 3M3a-r PASS-3 PO FIX-BURST CLOSED checkpoint)
+
+**Where We Are:** D-486 codified 2026-05-19 — M3 BC cascade pass-3 CRITICAL. 8 findings; 1 verified CRITICAL F-BC006P3-001 (28 bare BlockWithFix residual in BC-5.39.006 v1.4); 2 verified HIGH F-BC007P3-001+F-BC008P3-001 (D-NNN Anchor Coverage mis-anchors). META-LEVEL INV-018-CANDIDATE codified. STREAK 0/3 reset. PO fix-burst pass-3 PENDING with INV-018 dual-grep discipline. factory-artifacts HEAD `6219ea9d`. BC-5.39.006 v1.4 ACTIVE. BC-5.39.007 v1.2. BC-5.39.008 v1.2. D-range D-001..D-486.
+
+**Critical Anchors at archive time:** factory-artifacts HEAD `6219ea9d` (D-486 pass-3 persist); develop HEAD `6d2ba5ad`; BC-INDEX v2.39; VP-INDEX v1.97; STORY-INDEX v3.44; ARCH-INDEX v2.06.

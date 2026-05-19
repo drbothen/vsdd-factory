@@ -1965,3 +1965,30 @@ The broader-semantic-class pattern captures all syntactic variants of the same s
 
 **Closes:** F-BC006P3-001 (CRITICAL — BC-5.39.006 v1.4 sibling-sweep incomplete; 28 bare BlockWithFix residual), F-BC006P3-002 (MEDIUM — BC-5.39.006 v1.4 changelog typo: replace-target = replacement), F-BC006P3-NIT (NITPICK — BC-5.39.006 v1.4 frontmatter modified: array observation), F-BC007P3-001 (HIGH — BC-5.39.007 v1.2 D-NNN Anchor Coverage retired PC2/PC8 anchors), F-BC007P3-002 (MEDIUM — D-448(b) row specifically mis-anchored to retired PC1/PC2), F-BC008P3-001 (HIGH — BC-5.39.008 v1.2 POLICY 13/16 D-NNN Anchor Coverage mis-anchors PC3), F-BC008P3-002 (LOW — BC-5.39.008 PC4 [1, 999] over-specified without rationale), F-BC008P3-003 (LOW — cross-BC closure citation inconsistency). D-486 codified.
 
+
+## L-M3-BC-cascade-pass-3-PO-fix-burst — M3 BC cascade pass-3 PO fix-burst: INV-018 dual-grep discipline applied; 8/8 closed in scope including BC-5.39.006 v1.4→v1.5 residual-class sweep
+
+**Date:** 2026-05-19
+**Context:** M3 COMMISSIONING 3M3a-r fix-burst pass-3; cycle v1.0-brownfield-backfill; BC-5.39.006 v1.5 + BC-5.39.007 v1.3 + BC-5.39.008 v1.3.
+
+**INV-018 dual-grep application (institutional discipline established):**
+
+The INV-018 discipline requires that every fix-burst changelog row for a "replace pattern X with pattern Y" closure MUST include BOTH a narrow-pattern grep AND a residual-class sweep grep, both with captured stdout:
+
+1. **Narrow-pattern grep (INV-017 satisfied):** `grep -cE 'HookResult::BlockWithFix' BC-5.39.006.md` → `0` (prefixed form absent since v1.4 sibling-sweep). INV-017 was applied correctly at pass-2; the narrow pattern was zero before and after the v1.5 fix.
+
+2. **Residual-class sweep (INV-018 required):** `grep -cE 'BlockWithFix' BC-5.39.006.md` → pre-fix `28`, post-fix `5`. The 5 post-fix residuals are all in POLICY-1-exempt historical changelog/evidence content (frontmatter v1.2 narrative + changelog rows v1.2/v1.3/v1.4 + v1.5 changelog row self-reference in evidence text). Spec body = 0 bare tokens.
+
+**Why 28→5 reduction constitutes full closure of F-BC006P3-001:**
+
+The 28 pre-fix bare `BlockWithFix` tokens in BC-5.39.006 v1.4 were distributed across: EC table Expected Behavior column (14 rows), VP table rows (6 rows), D-NNN Anchor Coverage row (1), postcondition 6 body text (1), invariant 6(a) body text (1), Traceability D-NNN Sub-Clauses Closed (1) = 24 non-historical tokens. All 24 were replaced with `HookResult::block_with_fix(...)` canonical associated-function form. The remaining 5 tokens reside in POLICY-1-exempt historical content that cannot be modified per POLICY 1 append-only changelog invariant. A TDD test author reading BC-5.39.006 v1.5 spec body will encounter zero bare `BlockWithFix` tokens — the SDK non-existent construct is fully absent from the normative sections.
+
+**Production-grade upheld (no deferrals, no new TDs):**
+
+All 8 pass-3 findings closed in scope: F-BC006P3-001 CRITICAL (28→5 residual with 5 POLICY-1-exempt); F-BC007P3-001 HIGH (D-NNN Anchor Coverage PC2/PC5 renumber propagated, retired PC1/PC2 corrected); F-BC008P3-001 HIGH (POLICY 13→postconditions 3/6; POLICY 16→postconditions 3/7); F-BC006P3-002 MEDIUM corrigendum (v1.4 self-referential changelog typo clarified in v1.5 without modifying v1.4 row); F-BC008P3-002 LOW ([1,999] range rationale anchored to three-digit display + max id=18 + governance budget); F-BC007P3-002 MEDIUM (subsumed by BC-5.39.007 v1.3 D-NNN Anchor Coverage fix); F-BC008P3-003 LOW (cross-BC closure relocation note for F-BC007P2-006 added); F-BC006P3-NIT (frontmatter array form confirmed as observation; no action required). No deferrals to TD register; no new TDs opened.
+
+**Cascade trajectory:** pass-1 ~41 → pass-2 14 → pass-3 8 → pass-4 dispatch-ready. CRITICAL count: 2 → 2 → 1 → 0. HIGH count: ~17 → 4 → 2 → 0. INV-018 dual-grep confirmed applied to all 3 BC changelog rows in PO commit `50e03f82`. STREAK 0/3 → pass-4 adversary dispatch-ready.
+
+**Forward routing:** INV-018-CANDIDATE confirmed as institutional discipline. Dispatch templates for "replace X with Y" fix-bursts must enumerate BOTH the narrow-pattern grep AND the residual-class grep and require BOTH results to be embedded as captured stdout in the changelog row evidence. Forward: SK-MCP-001 Appendix D INV-018 now CONFIRMED (discipline applied and verified).
+
+**Closes:** F-BC006P3-001, F-BC006P3-002, F-BC006P3-NIT, F-BC007P3-001, F-BC007P3-002, F-BC008P3-001, F-BC008P3-002, F-BC008P3-003. D-487 codified.

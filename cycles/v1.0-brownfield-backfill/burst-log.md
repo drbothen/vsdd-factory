@@ -2354,3 +2354,157 @@ Single-Commit Burst Protocol per TD-VSDD-053: one atomic commit on factory-artif
 
 - `06f8c403` (parent: SHA-patch following D-485 pass-2 PO-fix-burst codification)
 - `6219ea9d` (this codification burst: D-486 + L-M3-BC-cascade-pass-3-INV-018-CANDIDATE + STATE.md advance; single atomic commit per TD-VSDD-053; parent-commit 06f8c403 per D-419(b))
+
+## 2026-05-19 — M3 BC cascade pass-3 PO fix-burst codification (factory-artifacts PLACEHOLDER-SHA)
+
+**Parent-commit:** `50e03f82` (PO fix-burst pass-3: BC-5.39.006 v1.4→v1.5 + BC-5.39.007 v1.2→v1.3 + BC-5.39.008 v1.2→v1.3; parent per D-419(b))
+
+**Adversary verdict (D-448(a) source-attestation):**
+
+Literal-shell diff gate per D-449(a):
+```
+$ grep -cE '^\*\*F-BC0(06|07|08)P3-' .factory/cycles/v1.0-brownfield-backfill/adv-bc-007-008-pass-3.md
+8
+$ diff <(grep -cE '^\*\*F-BC0(06|07|08)P3-' .factory/cycles/v1.0-brownfield-backfill/adv-bc-007-008-pass-3.md) <(echo 8)
+(no output — counts match; source-attestation PASS)
+```
+
+Pass-3 adversary report (cycles/v1.0-brownfield-backfill/adv-bc-007-008-pass-3.md) contains 8 findings: F-BC006P3-001 CRITICAL (28 bare BlockWithFix residual in BC-5.39.006 v1.4; narrow-sweep-only per INV-017 missed residual class); F-BC007P3-001 HIGH (D-NNN Anchor Coverage retired PC2/PC8 and PC1/PC2 anchors in BC-5.39.007 v1.2); F-BC008P3-001 HIGH (POLICY 13/16 D-NNN Anchor Coverage mis-anchors PC3 in BC-5.39.008 v1.2); F-BC006P3-002 MEDIUM (v1.4 changelog self-referential typo); F-BC007P3-002 MEDIUM (D-448(b) row mis-anchored to retired PC1/PC2); F-BC008P3-002 LOW (PC4 [1,999] range without rationale); F-BC008P3-003 LOW (cross-BC closure citation inconsistency); F-BC006P3-NIT NITPICK (frontmatter array observation). All 8 findings closed at PO commit `50e03f82`. STREAK 0/3 → pass-4 dispatch-ready.
+
+**Files touched (Dim-1):** 6 files in this codification burst + 4 files in PO commit `50e03f82`.
+
+PO commit `50e03f82` (4 files):
+- `.factory/specs/behavioral-contracts/ss-05/BC-5.39.006.md` (v1.4→v1.5; 28→5 BlockWithFix residual; INV-018 dual-grep applied)
+- `.factory/specs/behavioral-contracts/ss-05/BC-5.39.007.md` (v1.2→v1.3; D-NNN Anchor Coverage PC renumber propagated)
+- `.factory/specs/behavioral-contracts/ss-05/BC-5.39.008.md` (v1.2→v1.3; POLICY 13/16 re-anchored; [1,999] rationale added)
+- `.factory/specs/behavioral-contracts/BC-INDEX.md` (last_amended bump only at `50e03f82`; catalog version bump v2.39→v2.40 this codification burst)
+
+This codification burst (6 files):
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` (D-487 row appended)
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` (L-M3-BC-cascade-pass-3-PO-fix-burst appended)
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` (this entry)
+- `.factory/specs/behavioral-contracts/BC-INDEX.md` (version bump v2.39→v2.40 + changelog entry)
+- `.factory/STATE.md` (Phase Progress + Active Branches + Concurrent Cycles + frontmatter + Session Resume advance)
+- `.factory/cycles/v1.0-brownfield-backfill/session-checkpoints.md` (prior checkpoint archived)
+
+Total: 10 files across PO commit + this codification commit.
+
+**Codifications (Dim-3):**
+- D-487: M3 BC cascade pass-3 PO fix-burst CLOSED — 8/8 findings closed in scope; INV-018 dual-grep applied; 3 BCs amended; STREAK 0/3 reset → pass-4 dispatch-ready.
+- L-M3-BC-cascade-pass-3-PO-fix-burst: INV-018 dual-grep discipline applied; 8/8 closed in scope; production-grade upheld.
+
+**Dim-2 Attestation (literal-shell per D-449(a)):**
+
+PC1 (no new META-LEVEL ply — trajectory-tail unchanged):
+```
+$ grep '^current_step:' .factory/STATE.md | grep -oE 'META-LEVEL-[0-9]+ WATCH|META-LEVEL WATCH' | wc -l
+0
+```
+Output: 0 — no new META-LEVEL WATCH flag in current_step. PASS.
+
+PC2 (trajectory-tail marker present):
+```
+$ grep '^current_step:' .factory/STATE.md | grep -c 'trajectory-tail '
+1
+```
+Output: 1 — PASS.
+
+PC3 (4-index citation present):
+```
+$ grep '^current_step:' .factory/STATE.md | grep -oE 'BC-INDEX v[0-9.]+|VP-INDEX v[0-9.]+|STORY-INDEX v[0-9.]+|ARCH-INDEX v[0-9.]+' | sort -u | wc -l
+4
+```
+Output: 4 (BC-INDEX v2.40, VP-INDEX v1.97, STORY-INDEX v3.44, ARCH-INDEX v2.06) — PASS.
+
+PC4 (trajectory-tail LENGTH=4):
+```
+$ grep '^current_step:' .factory/STATE.md | grep -oE 'trajectory-tail [→0-9]+' | grep -oE '→[0-9]+' | wc -l
+4
+```
+Output: 4 (→9→9→9→9) — PASS.
+
+PC5 (D-chain currency — D-487 this burst):
+```
+$ grep '^current_step:' .factory/STATE.md | grep -oE 'D-chain cite D-[0-9]+'
+D-chain cite D-487
+```
+Output: D-487 = this burst's D-NNN — PASS.
+
+INV-018 post-fix residual-class verification:
+```
+$ grep -cE '(HookResult::)?BlockWithFix' .factory/specs/behavioral-contracts/ss-05/BC-5.39.006.md
+5
+```
+Output: 5 — all 5 residuals in POLICY-1-exempt historical changelog/evidence content. Spec body = 0. PASS.
+
+```
+$ grep -nE '(HookResult::)?BlockWithFix' .factory/specs/behavioral-contracts/ss-05/BC-5.39.006.md | head -5
+38:last_amended: ... v1.2 narrative BlockWithFix reference (frontmatter; POLICY-1-exempt)
+384:| 1.5 | ... v1.5 changelog evidence text references "BlockWithFix" (POLICY-1-exempt)
+385:| 1.4 | ... v1.4 changelog historical content (POLICY-1-exempt)
+386:| 1.3 | ...
+387:| 1.2 | ...
+```
+5 residuals confirmed at lines 38/384/385/386/387 — all changelog/frontmatter rows (POLICY-1-exempt historical content). Spec body = 0 bare tokens. PASS.
+
+D-448(a) source-attestation gate (literal diff per D-449(a)):
+```
+$ diff <(grep -cE '^\*\*F-BC0(06|07|08)P3-' .factory/cycles/v1.0-brownfield-backfill/adv-bc-007-008-pass-3.md) <(echo 8)
+(no output)
+```
+Output: no diff — 8 findings in adv report matches 8 findings closed. PASS.
+
+PO commit stat gate:
+```
+$ git -C .factory show 50e03f82 --stat
+commit 50e03f82ab08097daaa5dc05e217b1625247d9ec
+...
+4 files changed, 75 insertions(+), 46 deletions(-)
+```
+4 files touched at `50e03f82`: BC-5.39.006.md, BC-5.39.007.md, BC-5.39.008.md, BC-INDEX.md. PASS.
+
+**Dim-5 Attestation (BCs→Stories traceability):**
+- BC-5.39.006 v1.5 → S-15.14 SHIPPED (PR #148 6d2ba5ad; v1.5 is maintenance amendment — no re-elaboration required; S-15.14 merged)
+- BC-5.39.007 v1.3 → S-15.12 (validate-closes-completeness Phase 1; BLOCKED on 3M3a-r full convergence; not yet elaborated at 3M3b)
+- BC-5.39.008 v1.3 → S-15.15 (validate-policies-schema; BLOCKED on 3M3a-r full convergence; not yet elaborated at 3M3b)
+
+No story-body propagation required this burst. BC version bumps are spec maintenance amendments; S-15.12 and S-15.15 story specs have not yet been authored (pending 3M3b gate). Production-grade default: no propagation gap — BCs amended before story authoring.
+
+**Dim-6 Attestation (literal-shell command count per TD-VSDD-099):**
+
+Literal-shell commands executed in this burst entry:
+1. `grep -cE '^\*\*F-BC0(06|07|08)P3-' .../adv-bc-007-008-pass-3.md` → `8` (D-448(a) source-attestation gate)
+2. `diff <(grep -cE ...) <(echo 8)` → no output (D-448(a) diff gate PASS)
+3. `git -C .factory show 50e03f82 --stat` → 4 files, 75 ins/46 del (PO commit verification)
+4. `grep '^current_step:' .factory/STATE.md | grep -oE 'META-LEVEL...' | wc -l` → `0` (PC1)
+5. `grep '^current_step:' .factory/STATE.md | grep -c 'trajectory-tail '` → `1` (PC2)
+6. `grep '^current_step:' .factory/STATE.md | grep -oE 'BC-INDEX v...' | sort -u | wc -l` → `4` (PC3)
+7. `grep '^current_step:' .factory/STATE.md | grep -oE 'trajectory-tail [→0-9]+' | grep -oE '→[0-9]+' | wc -l` → `4` (PC4)
+8. `grep '^current_step:' .factory/STATE.md | grep -oE 'D-chain cite D-[0-9]+'` → `D-chain cite D-487` (PC5)
+9. `grep -cE '(HookResult::)?BlockWithFix' .../BC-5.39.006.md` → `5` (INV-018 post-fix residual-class verification)
+10. `grep -nE '(HookResult::)?BlockWithFix' .../BC-5.39.006.md | head -5` → 5 lines all in changelog/frontmatter (POLICY-1-exempt confirmation)
+11. `git -C .factory log -1 --format='%h %s'` → `50e03f82 po(brownfield): ...` (parent-commit verification)
+
+Total: 11 literal-shell commands executed in this burst entry. All blocks present per D-444(c). PASS.
+
+**Dim-7 Attestation (cross-cycle scope):**
+
+This burst belongs to `v1.0-brownfield-backfill` (M3 phase, 3M3a-r step 3). Touches:
+- `decision-log.md` (D-487 row appended) — v1.0-brownfield-backfill artifact
+- `lessons.md` (L-M3-BC-cascade-pass-3-PO-fix-burst appended) — v1.0-brownfield-backfill artifact
+- `burst-log.md` (this entry) — v1.0-brownfield-backfill artifact
+- `BC-INDEX.md` (version bump v2.39→v2.40 + changelog entry) — living spec touched this burst
+- `STATE.md` (Phase Progress + Active Branches + Concurrent Cycles + frontmatter + Session Resume) — factory-wide state
+
+Does NOT touch this burst:
+- VP-INDEX.md (no VP changes; remains v1.97)
+- STORY-INDEX.md (no story changes; remains v3.44)
+- ARCH-INDEX.md (no architecture changes; remains v2.06)
+
+BC files (BC-5.39.006.md, BC-5.39.007.md, BC-5.39.008.md) touched at PO commit `50e03f82` — that commit is the parent of this codification commit. Single-Commit Burst Protocol per TD-VSDD-053: one atomic codification commit on factory-artifacts (state-manager domain). No multi-commit chain.
+
+**Closes:** F-BC006P3-001, F-BC006P3-002, F-BC006P3-NIT, F-BC007P3-001, F-BC007P3-002, F-BC008P3-001, F-BC008P3-002, F-BC008P3-003. (8 findings, all from M3 BC cascade pass-3 adversary report.)
+
+**Factory-artifacts commits:**
+- `50e03f82` (PO fix-burst pass-3: BC-5.39.006 v1.4→v1.5 + BC-5.39.007 v1.2→v1.3 + BC-5.39.008 v1.2→v1.3)
+- `PLACEHOLDER-SHA` (this codification burst: D-487 + L-M3-BC-cascade-pass-3-PO-fix-burst + BC-INDEX v2.39→v2.40 + STATE.md advance; single atomic commit per TD-VSDD-053; parent-commit 50e03f82 per D-419(b))

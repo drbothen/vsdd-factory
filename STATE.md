@@ -5,14 +5,14 @@ version: "2.0"
 status: draft
 producer: state-manager
 timestamp: 2026-05-12T00:00:00Z
-phase: M3-COMMISSIONING-3M3a-r-PASS-3-CRITICAL-STREAK-0-3-PO-FIX-BURST-PENDING-D-486-INV-018
+phase: M3-COMMISSIONING-3M3a-r-PASS-3-PO-FIX-BURST-CLOSED-STREAK-0-3-PASS-4-DISPATCH-READY-D-487
 last_amended: 2026-05-19
 inputs: []
 input-hash: "[live-state]"
 traces_to: prd.md
 project: vsdd-factory
 mode: brownfield
-current_step: "M3 COMMISSIONING 3M3a-r PASS-3 CRITICAL 2026-05-19 — D-486 codified (8 findings; 1 verified CRITICAL F-BC006P3-001 BC-5.39.006-v1.4-sibling-sweep-incomplete-28-bare-BlockWithFix-residual + 2 verified HIGH F-BC007P3-001+F-BC008P3-001 D-NNN-Anchor-Coverage-mis-anchors; META-LEVEL INV-018-CANDIDATE narrow-pattern-vs-residual-class-sweep; cascade trajectory 41→14→8 improving; STREAK 0/3 reset → pass-4 dispatch-ready; PO fix-burst pass-3 PENDING with INV-018 dual-grep discipline); trajectory-tail →9→9→9→9 (F5 cycle; unchanged); D-chain cite D-486 latest brownfield; BC-INDEX v2.39, VP-INDEX v1.97, STORY-INDEX v3.44, ARCH-INDEX v2.06; parent-commit 06f8c403 per D-419(b)."
+current_step: "M3 COMMISSIONING 3M3a-r PASS-3 PO FIX-BURST CLOSED 2026-05-19 — D-487 codified (8/8 findings closed in scope; F-BC006P3-001 CRITICAL closed BC-5.39.006 v1.4→v1.5 BlockWithFix residual sweep 28→5 with 5 POLICY-1-exempt historical residuals; F-BC007P3-001+F-BC008P3-001 HIGH closed D-NNN Anchor Coverage propagation; INV-018 dual-grep discipline applied to 3 changelog rows; no deferrals; no new TDs; STREAK 0/3 → pass-4 dispatch-ready); trajectory-tail →9→9→9→9 (F5 cycle; unchanged); D-chain cite D-487 latest brownfield; BC-INDEX v2.40, VP-INDEX v1.97, STORY-INDEX v3.44, ARCH-INDEX v2.06; parent-commit 50e03f82 per D-419(b)."
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -43,8 +43,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-19 — M3 BC CASCADE PASS-3 CRITICAL D-486. 8 findings; 1 verified CRITICAL F-BC006P3-001 (28 bare BlockWithFix residual); 2 verified HIGH F-BC007P3-001+F-BC008P3-001 D-NNN Anchor Coverage mis-anchors; META-LEVEL INV-018-CANDIDATE; STREAK 0/3 reset; PO fix-burst pass-3 PENDING with INV-018 dual-grep discipline. |
-| **Current Phase** | M3 COMMISSIONING — 3M3a-r pass-3 CRITICAL (D-486; 8 findings; STREAK 0/3 reset). Next: PO fix-burst pass-3 with INV-018 narrow+residual-class sweep discipline. |
+| **Last Updated** | 2026-05-19 — M3 BC CASCADE PASS-3 PO FIX-BURST CLOSED D-487. 8/8 findings closed in scope; BC-5.39.006 v1.4→v1.5 BlockWithFix 28→5 (5 POLICY-1-exempt); BC-5.39.007 v1.2→v1.3 + BC-5.39.008 v1.2→v1.3 D-NNN Anchor Coverage propagated; INV-018 dual-grep applied; no deferrals; STREAK 0/3 → pass-4 dispatch-ready. |
+| **Current Phase** | M3 COMMISSIONING — 3M3a-r STREAK 0/3; PO fix-burst pass-3 CLOSED (D-487). Next: dispatch adversary pass-4 (STREAK 0/3 → target 1/3). |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Phase Progress
@@ -113,6 +113,7 @@ dtu_services: []
 | M3 BC cascade pass-2 adversary (BC-5.39.007/008 + BC-5.39.006 sibling) | **CRITICAL 2026-05-18** | D-484 codified; 14 findings (2 CRITICAL + 4 HIGH + 5 MED + 3 LOW + 1 NIT); F-BC008P2-001 policies.yaml integer-id vs POLICY-d{3} + F-BC008P2-002 exec_subprocess SDK mis-claim; F-BC007P2-001 BC-5.39.006 v1.3 BlockWithFix sibling regression; META-LEVEL INV-017-CANDIDATE; STREAK 0/3 reset; PO fix-burst pass-2 PENDING |
 | M3 BC cascade pass-2 PO fix-burst | **CLOSED 2026-05-19** | D-485 codified; 14/14 findings closed in scope (no deferrals, no new TDs); BC-5.39.006 v1.3→v1.4 sibling-sweep applied (16× HookResult::BlockWithFix → block_with_fix); INV-017 discipline applied (6 literal-shell stdouts in changelog rows); F-BC008P2-001+002 CRITICAL closed; STREAK 0/3 → pass-3 dispatch-ready; factory-artifacts `8c9b1200` (PO) + a4b1d99b (this burst) |
 | M3 BC cascade pass-3 adversary | **CRITICAL 2026-05-19** | D-486 codified; 8 findings (1 CRITICAL + 2 HIGH + 2 MED + 2 LOW + 1 NIT); F-BC006P3-001 verified CRITICAL (28 bare BlockWithFix residual in BC-5.39.006 v1.4 — sibling-sweep incomplete, narrow-grep-only per INV-017 missed residual class); F-BC007P3-001+F-BC008P3-001 verified HIGH (D-NNN Anchor Coverage mis-anchors); META-LEVEL INV-018-CANDIDATE narrow-vs-residual-class-sweep; STREAK 0/3 → 0/3 reset; PO fix-burst pass-3 PENDING with INV-018 dual-grep discipline; factory-artifacts `6219ea9d` |
+| M3 BC cascade pass-3 PO fix-burst | **CLOSED 2026-05-19** | D-487 codified; 8/8 findings closed in scope (no deferrals); BC-5.39.006 v1.4→v1.5 + BC-5.39.007 v1.2→v1.3 + BC-5.39.008 v1.2→v1.3; INV-018 dual-grep applied to 3 changelog rows; BlockWithFix residual 28→5 (5 POLICY-1-exempt historical); STREAK 0/3 → pass-4 dispatch-ready; factory-artifacts `50e03f82` (PO) + this burst SHA |
 | **Tier-0 D-NNN renumbering (F-CRIT-001 closure)** | **COMPLETE** 2026-05-13 — brownfield D-344..D-349 → D-460..D-465; POLICY 1 violation resolved | ARCH-INDEX v2.02 + BC-INDEX v2.21 + VP-INDEX v1.95 + STORY-INDEX v3.20 corrigenda; ~25 files touched; pre+post grep stdout LL-2 strict-form; D-466 fix burst (HH-4/KK-2/LL-2/MM/NN) applied 553e9f58 |
 | E-10 pass-12 fix burst + seal | **COMPLETE** 2026-05-13 — D-466 fix burst (553e9f58) + D-467 seal (post-renumber from §8 nominal D-350/D-351) | 7 findings closed (1C closed pre-burst via Tier-0 + 2H+2M+2L closed via D-466); architect F-2/F-3/F-6 with HH-4 + state-manager F-1/F-5 with KK-2 tripartite + LL-2 verbatim stdout + MM cross-cycle namespace + NN parity disciplines applied; ARCH-INDEX v2.03 + BC-INDEX v2.22 + STORY-INDEX v3.21 cite-refresh; NITPICK_ONLY counter 0/3 (HIGH resets); pass-13 dispatch next (CRITICAL TEST per pass-12 §7) |
 | F5 pass-60..74 + pass-74-to-pivot + E-10 pass-9..14 fix bursts | **COMPACTED 2026-05-18** | All rows archived per D-430(a); F5 passes preserved in `cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md`; E-10 passes preserved in per-pass files `cycles/v1.0-brownfield-backfill/E-10-pass-9.md`..`E-10-pass-14.md`. Original content available via `git show df550a42:.factory/STATE.md`. Summary: F5 passes 60-74 D-440..D-454 codified; L-EDP1-052..066; META-LEVEL-15..29 CANDIDATE CONFIRMED; asymptotic floor [7,9]; paused at META-LEVEL-29 2026-05-13. |
@@ -161,7 +162,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | 70811f4a | verified `git rev-parse origin/main` = 70811f4a5d68d163021f46856c3de51bf8f4aab8 2026-05-13; includes CLAUDE.md expansion PR #136 (845d0007 squash-merge) + rc.18 merge PR #135 (666d689f) |
 | develop | 6d2ba5ad | PR #148 MERGED 2026-05-19 — S-15.14 validate-dispatch-advance WASM hook; M2 wave-4 SHIPPED. Prior: PR #147 6e2d7805 (S-15.09 M2 wave-3 COMPLETE). |
-| factory-artifacts | 6219ea9d | D-486 M3 BC cascade pass-3 persisted 2026-05-19 — 8 findings; 1 VC F-BC006P3-001 (28 bare BlockWithFix); 2 VH F-BC007P3-001+F-BC008P3-001 D-NNN Anchor Coverage mis-anchors; META-LEVEL INV-018-CANDIDATE; STREAK 0/3 reset; PO fix-burst pass-3 PENDING; SHA-patch follow-up per D-447(c) |
+| factory-artifacts | PLACEHOLDER-SHA | D-487 M3 BC cascade pass-3 PO fix-burst codified 2026-05-19 — 8/8 closed; BC-5.39.006 v1.5+BC-5.39.007 v1.3+BC-5.39.008 v1.3; INV-018 dual-grep applied; BlockWithFix 28→5 (5 POLICY-1-exempt); STREAK 0/3 → pass-4 dispatch-ready; BC-INDEX v2.40; SHA-patch follow-up per D-447(c) |
 | v1.0.0-rc.16 (tag) | feb894a2 | SHIPPED; claude-mp PR #8 awaiting human merge |
 | v1.0.0-rc.15 (tag) | e68bb436 | SHIPPED |
 
@@ -170,15 +171,15 @@ dtu_services: []
 | Cycle | Type | Status | Notes |
 |-------|------|--------|-------|
 | F-block-ai-attribution-message-file-arm | feature | F3 COMPLETE — F4 READY | F1+F2+F3 done 2026-05-12; 2 stories ready (S-16.01 5pts PostToolUse HEAD verify, S-16.02 3pts PreToolUse -F arm); E-16 under SS-07/SS-04; milestone v1.0.0-rc.17; BC-7.03.094/095/001, VP-080, ARCH SS-07 v1.3/SS-04 v1.4 registered |
-| v1.0-brownfield-backfill | brownfield | **PARTIAL-CLOSED E-10 sub-cycle 2026-05-14; S-15.03 PRIORITY-A M1 COMPLETE 2026-05-16; M2 wave-1/2/3/4 SHIPPED; S-15.14 PR #148 6d2ba5ad 2026-05-19; D-479 CODIFIED; M3 COMMISSIONING D-480 2026-05-18; TD-VSDD-101 anchored S-15.15; M3 3M3a-r pass-1 PO fix-burst CLOSED 2026-05-18 (D-483; 41/41; STREAK 0/3 → pass-2); M3 3M3a-r pass-2 CRITICAL CLOSED 2026-05-18 (D-484; 14 findings; STREAK 0/3 reset; META-LEVEL INV-017; PO fix-burst pass-2 dispatch-ready); M3 3M3a-r pass-2 PO fix-burst CLOSED 2026-05-19 (D-485; 14/14; BC-5.39.006 v1.4 sibling-sweep; INV-017 applied; STREAK 0/3 → pass-3 dispatch-ready); M3 3M3a-r pass-3 CRITICAL 2026-05-19 (D-486; 8 findings; META-LEVEL INV-018; STREAK reset; PO fix-burst pass-3 dispatch-ready with INV-018 narrow+residual-class sweep discipline)** | E-10 sub-cycle PARTIAL-CLOSED at pass-14 asymptotic-acceptance (D-470 + D-471 seal 2026-05-14); POLICY 13-18 registered (b8909832); trend 22→11→16→16→12→2→1→4→5→4→6→7→5→8; D-472 retroactive codify POLICY 13-18 registration (S-15.06 F-PASS14-003 closure 2026-05-15). S-15.03 PRIORITY-A M1 COMPLETE 2026-05-16 (S-15.06+S-15.16 Part A+S-15.08); M2 wave-1 SHIPPED 2026-05-16 (S-15.07 PR #145 6fe7de4c); M2 wave-2 SHIPPED 2026-05-17 (S-15.11 PR #146 6e0d5407); M2 wave-3 SHIPPED 2026-05-17 (S-15.09 PR #147 6e2d7805); D-473 + D-474 + D-475 + D-476 codified. M2 wave-4 S-15.14 LOCAL adversary pass-1 FIX-BURST CLOSED 2026-05-17 (BC-5.39.006 v1.1 + STORY-INDEX v3.42; 7 impl micro-commits e4427df4..f20bbdab; streak 0/3); pass-2 FIX-BURST CLOSED 2026-05-17 (TD ID re-allocation TD-VSDD-064/065→095/096 per F-P2-001; retroactive burst-log entries per F-P2-002; F-P2-003/004/005/006 implementer sibling burst; streak 0/3); pass-3 FIX-BURST CLOSED 2026-05-17 (META-LEVEL-24 recurrence F-P3-001 closed; orphan row F-P3-002 removed; F-P3-005/008 Dim-7/5 scope-clarified; F-P3-007 deferred; streak 0/3 → pass-4 dispatch-ready); pass-3 CLOSURE BURST 2026-05-17 (BC-5.39.006 v1.2 BC-INDEX v2.34; S-15.14 story v1.2 STORY-INDEX v3.43; implementer sibling 03656260+cd9fd273; F-P3-003+F-P3-006+F-P3-009 CLOSED); pass-4 PERSISTED 2026-05-17 (verdict NITPICK-only; streak 0/3 → 1/3; F-P4-001+F-P4-002 documentary deferred; trajectory 16→9→8→2; pass-5 dispatch-ready); pass-5 PERSISTED 2026-05-17 (verdict CLEAN; streak 1/3 → 2/3; trajectory 16→9→8→2→0; pass-6 dispatch-ready); pass-6 PERSISTED 2026-05-18 (verdict HIGH 1H; streak 2/3 → 0/3 RESET; F-P6-001 current_step marker absent); pass-6 FIX-BURST CLOSED 2026-05-18 (F-P6-001 canonical marker restored; TD-VSDD-097 codified; streak 0/3; pass-7 dispatch-ready); pass-7 PERSISTED 2026-05-18 (verdict HIGH 1H F-P7-001 D-chain PC5 stale; streak 0/3; 3rd META-LEVEL self-violation class); pass-7 FIX-BURST CLOSED 2026-05-18 (F-P7-001 D-chain cite restored to D-476; TD-VSDD-097 EXTENDED to ALL 5 BC PCs; streak 0/3; pass-8 dispatch-ready); pass-8 PERSISTED 2026-05-18 (verdict CLEAN 0 findings; streak 0/3 → 1/3; STATE.md surgical compaction D-430(a); pass-9 dispatch-ready); pass-9 PERSIST+FIX-BURST CLOSED 2026-05-18 (verdict MEDIUM 4 findings; streak 1/3 → 0/3 RESET; F-P9-001/002/003/004 compaction-burst sibling-sweep gaps closed; TD-VSDD-098 codified; pass-10 dispatch-ready); pass-10 PERSIST+FIX-BURST CLOSED 2026-05-18 (verdict HIGH 1 finding F-P10-001; pass-9 burst-log Dim-7 retroactively corrected; TD-VSDD-099 codified; 5th META-LEVEL self-violation class; streak 0/3 HIGH reset; pass-11 dispatch-ready); pass-11 PERSIST+FIX-BURST CLOSED 2026-05-18 (verdict HIGH 2 findings F-P11-001+F-P11-002; BC v1.3 invariant 6(b) semicolon-segment-scoping per PO; pass-9/10 Gate 3 synthetic→production-read retrofit; TD-VSDD-100 codified; BC-INDEX v2.35; 6th META-LEVEL self-violation class; streak 0/3 HIGH reset); S-15.14 LOCAL cascade ASYMPTOTIC-ACCEPTANCE SEALED 2026-05-18 (D-477; 11 passes; trajectory 16→9→8→2→0→1→1→0→4→1→2; 6 META-LEVEL classes TD-VSDD-095..100 forwarded to SK-MCP-001 Appendix D; proposals SK-MCP-001 + UNI-PLUG-001 enhanced 2026-05-18; per-story-delivery step 5 demo-recorder dispatch-ready; resumption gate SK-MCP-001 Tier 2). M3 (5 stories + ADR-021/022 gating) pending M2 SHIPS; resumption gates: E-10 + F5 remain blocked on S-15.03 SHIPS (all 11 stories merged). |
+| v1.0-brownfield-backfill | brownfield | **PARTIAL-CLOSED E-10 sub-cycle 2026-05-14; S-15.03 PRIORITY-A M1 COMPLETE 2026-05-16; M2 wave-1/2/3/4 SHIPPED; S-15.14 PR #148 6d2ba5ad 2026-05-19; D-479 CODIFIED; M3 COMMISSIONING D-480 2026-05-18; TD-VSDD-101 anchored S-15.15; M3 3M3a-r pass-1 PO fix-burst CLOSED 2026-05-18 (D-483; 41/41; STREAK 0/3 → pass-2); M3 3M3a-r pass-2 CRITICAL CLOSED 2026-05-18 (D-484; 14 findings; STREAK 0/3 reset; META-LEVEL INV-017; PO fix-burst pass-2 dispatch-ready); M3 3M3a-r pass-2 PO fix-burst CLOSED 2026-05-19 (D-485; 14/14; BC-5.39.006 v1.4 sibling-sweep; INV-017 applied; STREAK 0/3 → pass-3 dispatch-ready); M3 3M3a-r pass-3 CRITICAL 2026-05-19 (D-486; 8 findings; META-LEVEL INV-018; STREAK reset; PO fix-burst pass-3 dispatch-ready with INV-018 narrow+residual-class sweep discipline); M3 3M3a-r pass-3 PO fix-burst CLOSED 2026-05-19 (D-487; 8/8; INV-018 applied; STREAK 0/3 → pass-4 dispatch-ready)** | E-10 sub-cycle PARTIAL-CLOSED at pass-14 asymptotic-acceptance (D-470 + D-471 seal 2026-05-14); POLICY 13-18 registered (b8909832); trend 22→11→16→16→12→2→1→4→5→4→6→7→5→8; D-472 retroactive codify POLICY 13-18 registration (S-15.06 F-PASS14-003 closure 2026-05-15). S-15.03 PRIORITY-A M1 COMPLETE 2026-05-16 (S-15.06+S-15.16 Part A+S-15.08); M2 wave-1 SHIPPED 2026-05-16 (S-15.07 PR #145 6fe7de4c); M2 wave-2 SHIPPED 2026-05-17 (S-15.11 PR #146 6e0d5407); M2 wave-3 SHIPPED 2026-05-17 (S-15.09 PR #147 6e2d7805); D-473 + D-474 + D-475 + D-476 codified. M2 wave-4 S-15.14 LOCAL adversary pass-1 FIX-BURST CLOSED 2026-05-17 (BC-5.39.006 v1.1 + STORY-INDEX v3.42; 7 impl micro-commits e4427df4..f20bbdab; streak 0/3); pass-2 FIX-BURST CLOSED 2026-05-17 (TD ID re-allocation TD-VSDD-064/065→095/096 per F-P2-001; retroactive burst-log entries per F-P2-002; F-P2-003/004/005/006 implementer sibling burst; streak 0/3); pass-3 FIX-BURST CLOSED 2026-05-17 (META-LEVEL-24 recurrence F-P3-001 closed; orphan row F-P3-002 removed; F-P3-005/008 Dim-7/5 scope-clarified; F-P3-007 deferred; streak 0/3 → pass-4 dispatch-ready); pass-3 CLOSURE BURST 2026-05-17 (BC-5.39.006 v1.2 BC-INDEX v2.34; S-15.14 story v1.2 STORY-INDEX v3.43; implementer sibling 03656260+cd9fd273; F-P3-003+F-P3-006+F-P3-009 CLOSED); pass-4 PERSISTED 2026-05-17 (verdict NITPICK-only; streak 0/3 → 1/3; F-P4-001+F-P4-002 documentary deferred; trajectory 16→9→8→2; pass-5 dispatch-ready); pass-5 PERSISTED 2026-05-17 (verdict CLEAN; streak 1/3 → 2/3; trajectory 16→9→8→2→0; pass-6 dispatch-ready); pass-6 PERSISTED 2026-05-18 (verdict HIGH 1H; streak 2/3 → 0/3 RESET; F-P6-001 current_step marker absent); pass-6 FIX-BURST CLOSED 2026-05-18 (F-P6-001 canonical marker restored; TD-VSDD-097 codified; streak 0/3; pass-7 dispatch-ready); pass-7 PERSISTED 2026-05-18 (verdict HIGH 1H F-P7-001 D-chain PC5 stale; streak 0/3; 3rd META-LEVEL self-violation class); pass-7 FIX-BURST CLOSED 2026-05-18 (F-P7-001 D-chain cite restored to D-476; TD-VSDD-097 EXTENDED to ALL 5 BC PCs; streak 0/3; pass-8 dispatch-ready); pass-8 PERSISTED 2026-05-18 (verdict CLEAN 0 findings; streak 0/3 → 1/3; STATE.md surgical compaction D-430(a); pass-9 dispatch-ready); pass-9 PERSIST+FIX-BURST CLOSED 2026-05-18 (verdict MEDIUM 4 findings; streak 1/3 → 0/3 RESET; F-P9-001/002/003/004 compaction-burst sibling-sweep gaps closed; TD-VSDD-098 codified; pass-10 dispatch-ready); pass-10 PERSIST+FIX-BURST CLOSED 2026-05-18 (verdict HIGH 1 finding F-P10-001; pass-9 burst-log Dim-7 retroactively corrected; TD-VSDD-099 codified; 5th META-LEVEL self-violation class; streak 0/3 HIGH reset; pass-11 dispatch-ready); pass-11 PERSIST+FIX-BURST CLOSED 2026-05-18 (verdict HIGH 2 findings F-P11-001+F-P11-002; BC v1.3 invariant 6(b) semicolon-segment-scoping per PO; pass-9/10 Gate 3 synthetic→production-read retrofit; TD-VSDD-100 codified; BC-INDEX v2.35; 6th META-LEVEL self-violation class; streak 0/3 HIGH reset); S-15.14 LOCAL cascade ASYMPTOTIC-ACCEPTANCE SEALED 2026-05-18 (D-477; 11 passes; trajectory 16→9→8→2→0→1→1→0→4→1→2; 6 META-LEVEL classes TD-VSDD-095..100 forwarded to SK-MCP-001 Appendix D; proposals SK-MCP-001 + UNI-PLUG-001 enhanced 2026-05-18; per-story-delivery step 5 demo-recorder dispatch-ready; resumption gate SK-MCP-001 Tier 2). M3 (5 stories + ADR-021/022 gating) pending M2 SHIPS; resumption gates: E-10 + F5 remain blocked on S-15.03 SHIPS (all 11 stories merged). |
 | v1.0-feature-engine-discipline-pass-1 | feature | **PAUSED** | F5 5-pass session (passes 70-74) complete with META-LEVEL-29 CANDIDATE CONFIRMED; paused at asymptotic floor [7,9] per D-386 Option C + human direction 2026-05-13; 5 D-NNN codifications D-450..D-454 + 5 lessons L-EDP1-062..066; resumes only when S-15.03 PRIORITY-A automation lands. pass-74 SHA-patch `4b4b6819` is the cycle's final-state HEAD. Full-cycle trajectory (74 values): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7→8→6→2→5→5→5→7→8→7→8→7→8→7→8→7→7→8→8→7→7→7→8→8→8→9→8→8→9→9→9→9→9→9→9→8→9→9→9→9→9→9→9→9 |
 | v1.0-feature-plugin-async-semantics-pass-1 | feature | CLOSED | All PRs merged; rc.14 shipped |
 
 ## Decisions Log
 
-> D-001..D-486: `cycles/v1.0-brownfield-backfill/decision-log.md` + `decisions-log-archive.md`
+> D-001..D-487: `cycles/v1.0-brownfield-backfill/decision-log.md` + `decisions-log-archive.md`
 > F5 pass-2 architect decisions: `cycles/v1.0-feature-engine-discipline-pass-1/F5-pass-2-architect-decisions.md` (factory-artifacts 7b83ef58)
-> D-379..D-454 (this session; sample; see decision-log.md for full range): `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md` <!-- D-416(c) MANDATORY propagation umbrella + D-452(e) umbrella-range-auto-advance applied; D-480 M3 COMMISSIONING BURST — updated D-480 per D-452(e) umbrella-range-auto-advance; D-480 row added to decision-log.md per D-446(e) single-row schema; D-483 M3 BC cascade pass-1 PO fix-burst codification — D-range advanced to D-483; D-485 M3 BC cascade pass-2 PO fix-burst codification — D-range advanced to D-485; D-486 M3 BC cascade pass-3 persisted — D-range advanced to D-486 -->
+> D-379..D-454 (this session; sample; see decision-log.md for full range): `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md` <!-- D-416(c) MANDATORY propagation umbrella + D-452(e) umbrella-range-auto-advance applied; D-480 M3 COMMISSIONING BURST — updated D-480 per D-452(e) umbrella-range-auto-advance; D-480 row added to decision-log.md per D-446(e) single-row schema; D-483 M3 BC cascade pass-1 PO fix-burst codification — D-range advanced to D-483; D-485 M3 BC cascade pass-2 PO fix-burst codification — D-range advanced to D-485; D-486 M3 BC cascade pass-3 persisted — D-range advanced to D-486; D-487 M3 BC cascade pass-3 PO fix-burst codification — D-range advanced to D-487 -->
 
 | ID | Decision | Phase | Date |
 |----|----------|-------|------|
@@ -293,18 +294,18 @@ dtu_services: []
 - `cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md` (adversary reviews at `S-12.03/`, `S-12.04/`, `S-12.05/` subdirs)
 
 
-## Session Resume Checkpoint (2026-05-19 — M3 3M3a-r PASS-3 CRITICAL: D-486 codified; STREAK 0/3 reset; PO fix-burst pass-3 PENDING with INV-018)
+## Session Resume Checkpoint (2026-05-19 — M3 3M3a-r PASS-3 PO FIX-BURST CLOSED: D-487 codified; STREAK 0/3 → pass-4 dispatch-ready)
 
 > **SELF-SUFFICIENT RESUME CONTEXT FOR ZERO-CONTEXT NEW SESSION**
 > Read this section alone to resume the orchestrator after full CLEAR or new session. All context needed is here.
 
 ### 1. Where We Are
 - **S-15.14 SHIPPED 2026-05-19 PR #148 squash-merge `6d2ba5ad`** — validate-dispatch-advance WASM hook; M2 wave-4. D-479 CODIFIED.
-- **D-480..D-485 CODIFIED 2026-05-18/19** — M3 commissioning; BC authoring; pass-1 persist; PO fix-burst pass-1 CLOSED (41/41); pass-2 CRITICAL (14 findings); PO fix-burst pass-2 CLOSED (14/14; INV-017 applied).
-- **D-486 CODIFIED 2026-05-19** — M3 BC cascade pass-3 CRITICAL. 8 findings; 1 verified CRITICAL F-BC006P3-001 (28 bare BlockWithFix residual in BC-5.39.006 v1.4 — narrow-sweep-only per INV-017 missed residual class); 2 verified HIGH F-BC007P3-001+F-BC008P3-001 (D-NNN Anchor Coverage mis-anchors in BC-007/008). META-LEVEL INV-018-CANDIDATE codified. STREAK 0/3 reset.
+- **D-480..D-486 CODIFIED 2026-05-18/19** — M3 commissioning; BC authoring; pass-1 persist + PO fix-burst CLOSED (41/41); pass-2 CRITICAL (14 findings) + PO fix-burst CLOSED (14/14; INV-017); pass-3 CRITICAL (8 findings; INV-018-CANDIDATE).
+- **D-487 CODIFIED 2026-05-19** — M3 BC cascade pass-3 PO fix-burst CLOSED. 8/8 findings closed in scope. BC-5.39.006 v1.4→v1.5 (BlockWithFix 28→5; 5 POLICY-1-exempt historical). BC-5.39.007 v1.2→v1.3 (D-NNN Anchor Coverage propagated). BC-5.39.008 v1.2→v1.3 (POLICY 13/16 re-anchored). INV-018 dual-grep applied to 3 changelog rows. No deferrals; no new TDs. STREAK 0/3 → pass-4 dispatch-ready.
 - **factory-artifacts HEAD:** `git -C .factory log -1 --format='%h %s'` (SHA-patch will fill Active Branches).
 - **develop HEAD:** `6d2ba5ad`. **main HEAD:** `70811f4a`.
-- **BC-5.39.006 v1.4 ACTIVE. BC-5.39.007 v1.2. BC-5.39.008 v1.2.** D-range D-001..D-486.
+- **BC-5.39.006 v1.5 ACTIVE. BC-5.39.007 v1.3. BC-5.39.008 v1.3.** D-range D-001..D-487.
 
 ### 2. Operating Mode
 - vsdd-factory brownfield-onboarding; cycle `v1.0-brownfield-backfill`; self-referential.
@@ -313,7 +314,7 @@ dtu_services: []
 ### 3. User Directives (Carry Across CLEAR)
 - **2026-05-18:** M3 path chosen + TD-VSDD-101 anchored S-15.15. D-480 codified.
 - **2026-05-18:** META-LEVEL adversary-must-grep-canonical-source codified as L-EDP1-067-CANDIDATE forwarded SK-MCP-001 Appendix D INV-015. D-482.
-- **TD-VSDD-097 EXTENDED:** ALL orchestrator dispatch templates for `current_step:` writes MUST satisfy ALL 5 BC-5.39.006 v1.3 PCs.
+- **TD-VSDD-097 EXTENDED:** ALL orchestrator dispatch templates for `current_step:` writes MUST satisfy ALL 5 BC-5.39.006 v1.5 PCs.
 - **TD-VSDD-099:** every burst-log entry MUST include all 4 Dim blocks; Dim-6 literal-shell count.
 - **TD-VSDD-100:** Dim-2 PC attestations MUST read production artifact; synthetic echo FORBIDDEN.
 
@@ -325,15 +326,16 @@ dtu_services: []
 - Step 3M3a-r pass-2 PERSISTED 2026-05-18 — CRITICAL 14 findings; STREAK 0/3 RESET; D-484. INV-017-CANDIDATE.
 - Step 3M3a-r pass-2 PO fix-burst CLOSED 2026-05-19 — 14/14 findings; BC-5.39.006/007/008 v1.4/v1.2/v1.2; INV-017 applied; D-485.
 - Step 3M3a-r pass-3 PERSISTED 2026-05-19 — CRITICAL 8 findings; STREAK 0/3 RESET; D-486. INV-018-CANDIDATE.
-- **Current Active: Step 3M3a-r — STREAK 0/3; NEXT ACTION: dispatch product-owner fix-burst pass-3 — close F-BC006P3-001 (28-bare-BlockWithFix sibling-sweep using POLICY 13 HH-N regex-alternation; INV-018 dual-grep mandatory) + F-BC007P3-001 (BC-007 D-NNN Anchor Coverage retired PC anchors) + F-BC008P3-001 (BC-008 D-NNN Anchor Coverage re-anchor POLICY 13/16 to correct postconditions) + F-BC006P3-002 + 4 other M/L/NIT findings.**
+- Step 3M3a-r pass-3 PO fix-burst CLOSED 2026-05-19 — 8/8 findings; BC-5.39.006/007/008 v1.5/v1.3/v1.3; INV-018 applied; D-487.
+- **Current Active: Step 3M3a-r — STREAK 0/3; NEXT ACTION: dispatch adversary pass-4 (STREAK 0/3 → target 1/3). Adversary MUST apply L-EDP1-067 grep-canonical-source + INV-018 dual-grep verification on PO changelog rows + verify legitimacy of 5 POLICY-1-exempt BlockWithFix residuals in BC-5.39.006 v1.5 historical changelog content.**
 
 ### 5. Cumulative Codifications
 - F5 cycle: D-379..D-454 (76 decisions). `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md`.
-- Brownfield-backfill cycle: D-001..D-486 (D-480 M3 commissioning; D-481 BC authoring; D-482 BC cascade pass-1; D-483 PO fix-burst pass-1; D-484 BC cascade pass-2 CRITICAL; D-485 PO fix-burst pass-2 CLOSED; D-486 BC cascade pass-3 CRITICAL INV-018). `cycles/v1.0-brownfield-backfill/decision-log.md`.
+- Brownfield-backfill cycle: D-001..D-487 (D-487 PO fix-burst pass-3 CLOSED; D-486 BC cascade pass-3 CRITICAL INV-018; D-485 PO fix-burst pass-2 CLOSED; D-484 BC cascade pass-2 CRITICAL; D-483 PO fix-burst pass-1; D-482 BC cascade pass-1). `cycles/v1.0-brownfield-backfill/decision-log.md`.
 
 ### 6. Cumulative Lessons
 - F5 cycle: L-EDP1-001..066. `cycles/v1.0-feature-engine-discipline-pass-1/lessons.md`.
-- Brownfield-backfill cycle: TD-VSDD-095..100 + L-S-15.14-asymptotic-acceptance + L-S-15.14-SHIPPED + L-M3-commissioning + L-M3-BC-cascade-pass-1 + L-M3-BC-cascade-pass-1-PO-fix-burst + L-M3-BC-cascade-pass-2-INV-017-CANDIDATE + L-M3-BC-cascade-pass-2-PO-fix-burst + **L-M3-BC-cascade-pass-3-INV-018-CANDIDATE (NEW 2026-05-19)** + earlier PG entries. `cycles/v1.0-brownfield-backfill/lessons.md`.
+- Brownfield-backfill cycle: TD-VSDD-095..100 + L-S-15.14-asymptotic-acceptance + L-S-15.14-SHIPPED + L-M3-commissioning + L-M3-BC-cascade-pass-1 + L-M3-BC-cascade-pass-1-PO-fix-burst + L-M3-BC-cascade-pass-2-INV-017-CANDIDATE + L-M3-BC-cascade-pass-2-PO-fix-burst + L-M3-BC-cascade-pass-3-INV-018-CANDIDATE + **L-M3-BC-cascade-pass-3-PO-fix-burst (NEW 2026-05-19)** + earlier PG entries. `cycles/v1.0-brownfield-backfill/lessons.md`.
 
 ### 7. S-15.03 PRIORITY-A Scope (Cumulative)
 11-story wave S-15.06..S-15.16. SHIPPED: M1 + M2 waves 1/2/3/4. M3 (S-15.10/12/13/15/16-Part-B + ADR-021/022) COMMISSIONED D-480.
@@ -342,7 +344,7 @@ dtu_services: []
 
 | Index | Version |
 |-------|---------|
-| BC-INDEX | v2.39 (BC-5.39.006 v1.4 + BC-5.39.007 v1.2 + BC-5.39.008 v1.2; total_bcs 1954; D-485 PO fix-burst pass-2) |
+| BC-INDEX | v2.40 (BC-5.39.006 v1.5 + BC-5.39.007 v1.3 + BC-5.39.008 v1.3; total_bcs 1954; D-487 PO fix-burst pass-3) |
 | VP-INDEX | v1.97 |
 | STORY-INDEX | v3.44 (S-15.14 merged PR #148 6d2ba5ad 2026-05-19) |
 | ARCH-INDEX | v2.06 |
@@ -351,11 +353,11 @@ dtu_services: []
 - factory-artifacts HEAD: `git -C .factory log -1 --format='%h %s'` (SHA-patch will update Active Branches)
 - PO fix-burst (pass-1): factory-artifacts `865062b5`
 - PO fix-burst (pass-2): factory-artifacts `8c9b1200` (PO) + `a4b1d99b` (state-manager D-485) + `06f8c403` (SHA-patch)
-- Adversary pass-3 report: `cycles/v1.0-brownfield-backfill/adv-bc-007-008-pass-3.md` (CRITICAL; 8 findings; STREAK 0/3 RESET; INV-018-CANDIDATE)
-- Adversary pass-2 report: `cycles/v1.0-brownfield-backfill/adv-bc-007-008-pass-2.md` (CRITICAL; 14 findings; STREAK 0/3 RESET)
-- BC-5.39.006 v1.4: `.factory/specs/behavioral-contracts/ss-05/BC-5.39.006.md` (28 bare BlockWithFix residual — F-BC006P3-001 CRITICAL OPEN; narrow-sweep-only at v1.4; fix-burst pass-3 PENDING)
-- BC-5.39.007 v1.2: `.factory/specs/behavioral-contracts/ss-05/BC-5.39.007.md` (F-BC007P3-001 HIGH OPEN — D-NNN Anchor Coverage PC3/PC8+PC1/PC2 retired anchors)
-- BC-5.39.008 v1.2: `.factory/specs/behavioral-contracts/ss-05/BC-5.39.008.md` (F-BC008P3-001 HIGH OPEN — POLICY 13/16 mis-anchor PC3)
+- PO fix-burst (pass-3): factory-artifacts `50e03f82` (PO) + this codification burst SHA (state-manager D-487)
+- Adversary pass-3 report: `cycles/v1.0-brownfield-backfill/adv-bc-007-008-pass-3.md` (CRITICAL; 8 findings; CLOSED at `50e03f82`)
+- BC-5.39.006 v1.5: `.factory/specs/behavioral-contracts/ss-05/BC-5.39.006.md` (BlockWithFix 28→5; 5 POLICY-1-exempt historical; F-BC006P3-001 CLOSED)
+- BC-5.39.007 v1.3: `.factory/specs/behavioral-contracts/ss-05/BC-5.39.007.md` (D-NNN Anchor Coverage propagated; F-BC007P3-001 CLOSED)
+- BC-5.39.008 v1.3: `.factory/specs/behavioral-contracts/ss-05/BC-5.39.008.md` (POLICY 13/16 re-anchored; F-BC008P3-001 CLOSED)
 - ADR-021: `.factory/specs/architecture/decisions/ADR-021-wasm-cargo-audit-sandboxing.md` (ACCEPTED; Option (a) REJECTED line 251)
 - ADR-022: `.factory/specs/architecture/decisions/ADR-022-hook-current-pass-context-discovery.md` (ACCEPTED; BC-5.39.007 Phase 2 gate)
 
@@ -367,8 +369,8 @@ dtu_services: []
 1. **Verify worktree:** `git -C .factory log -1` + `git -C .factory status` (expect clean)
 2. **Read this checkpoint**
 3. **Verify PC4:** `grep "^current_step:" .factory/STATE.md | grep -oE "trajectory-tail [→0-9]+" | grep -oE "→[0-9]+" | wc -l` → expect `4`
-4. **NEXT ACTION:** dispatch product-owner fix-burst pass-3 — close F-BC006P3-001 (28-bare-BlockWithFix sibling-sweep using POLICY 13 HH-N regex-alternation `(HookResult::)?BlockWithFix`) + F-BC007P3-001 (BC-007 D-NNN Anchor Coverage table propagate PC2/PC5 renumber to all 4 consumer sites including D-NNN Anchor Coverage) + F-BC008P3-001 (BC-008 D-NNN Anchor Coverage table re-anchor POLICY 13 → postconditions 3/6, POLICY 16 → postconditions 3/7) + F-BC006P3-002 (changelog typo: replace-target = replacement) + 4 other M/L/NIT. Apply INV-018: include BOTH narrow-pattern stdout AND residual-class sweep `grep -cE '<broader-pattern>' <file>` showing zero output in changelog row evidence.
-5. **After PO fix-burst pass-3:** dispatch adversary pass-4; if CLEAN → streak 1/3; need 3 consecutive CLEAN for 3-CLEAN convergence
+4. **NEXT ACTION:** dispatch adversary pass-4 (STREAK 0/3 → target 1/3). Adversary MUST apply L-EDP1-067 grep-canonical-source + INV-018 dual-grep verification on PO changelog rows + verify legitimacy of 5 POLICY-1-exempt BlockWithFix residuals in BC-5.39.006 v1.5 historical changelog content.
+5. **After adversary pass-4:** if CLEAN → streak 1/3; if findings → dispatch PO fix-burst pass-4; need 3 consecutive CLEAN for 3-CLEAN convergence
 6. **M3 stories (5):** S-15.10/12/13/15/16-Part-B; BLOCKED on 3M3a-r full convergence
 7. **SK-MCP-001 + UNI-PLUG-001:** proposals review-ready; require human authorization
 8. **TD-VSDD-063:** VP allocation for BC-5.39.006 PENDING — architect-dispatch required
@@ -387,7 +389,7 @@ dtu_services: []
 | ~~3a/b/c~~ | ~~S-15.14 delivery chain~~ | ~~D~~ | ~~—~~ | **COMPLETE** |
 | 3M3 | S-15.03 M3 (5 stories + ADR-021/022) | D | (3c) done | **COMMISSIONING D-480** |
 | ~~3M3a~~ | ~~BC-5.39.007 + BC-5.39.008 authoring~~ | ~~D~~ | ~~(3M3) done~~ | **COMPLETE 2026-05-18 D-481** |
-| 3M3a-r | BC-5.39.007/008 spec-reviewer + adversary 3-CLEAN cascade | D | (3M3a) done | **PASS-3 CRITICAL D-486; 8 findings; 1 VC F-BC006P3-001 (28 bare BlockWithFix) + 2 VH F-BC007P3+F-BC008P3 D-NNN Anchor Coverage; META-LEVEL INV-018; STREAK 0/3; PO fix-burst pass-3 DISPATCH-READY with INV-018 dual-grep → pass-4 dispatch-ready → 3-CLEAN** |
+| 3M3a-r | BC-5.39.007/008 spec-reviewer + adversary 3-CLEAN cascade | D | (3M3a) done | **PASS-3 PO FIX-BURST CLOSED D-487; 8/8 findings closed in scope; INV-018 applied; BC-5.39.006 v1.5+BC-5.39.007 v1.3+BC-5.39.008 v1.3; STREAK 0/3 → pass-4 dispatch-ready → 3-CLEAN** |
 | 3M3b | Story-writer elaborate 5 M3 stories | D | (3M3a-r) done | **BLOCKED on 3M3a-r** |
 | 3M3c | M3 per-story-delivery (5 stories) | D | (3M3b) done | **BLOCKED on 3M3b** |
 | 4 | E-10 resumption (pass-15+) | gated | (3) complete | SEALED D-471 |
@@ -399,5 +401,5 @@ dtu_services: []
 
 **[D-414(c) acknowledgment: Section 12 is a non-standard addition for forward-backlog durability.]**
 
-> Previous checkpoint (M3 3M3a-r PASS-2 PO FIX-BURST CLOSED; D-485 codified; STREAK 0/3 → pass-3 dispatch-ready 2026-05-19) archived to: `cycles/v1.0-brownfield-backfill/session-checkpoints.md`
+> Previous checkpoint (M3 3M3a-r PASS-3 CRITICAL; D-486 codified; STREAK 0/3 reset; PO fix-burst pass-3 PENDING 2026-05-19) archived to: `cycles/v1.0-brownfield-backfill/session-checkpoints.md`
 
