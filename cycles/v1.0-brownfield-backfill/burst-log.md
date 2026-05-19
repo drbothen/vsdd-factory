@@ -1415,7 +1415,7 @@ No --no-verify used.
 - POLICY 3 compliance: state-manager wrote exclusively to `.factory/` paths.
 - No source code, no feature branch, no --no-verify.
 - Sibling implementer dispatch: N/A (state-artifacts only; S-15.14 already merged).
-- Factory-artifacts before burst: `ea0d743e` (D-478). After burst: TBD-D479 (this commit SHA, post-push).
+- Factory-artifacts before burst: `ea0d743e` (D-478). After burst: `93e3c2f3` (D-479 this commit).
 
 ### Closes
 - D-479 codified: S-15.14 SHIPPED; POL-14 BC-5.39.006 v1.3 draft→active; M2 ALL WAVES COMPLETE.
@@ -1423,4 +1423,4 @@ No --no-verify used.
 - TD-VSDD-063 gate satisfied — architect VP allocation unblocked.
 
 ### Factory-artifacts commits
-- TBD-D479 (state-manager S-15.14 POST-MERGE BURST D-479 single atomic commit per TD-VSDD-053)
+- `93e3c2f3` (state-manager S-15.14 POST-MERGE BURST D-479 single atomic commit per TD-VSDD-053)

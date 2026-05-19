@@ -157,7 +157,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | 70811f4a | verified `git rev-parse origin/main` = 70811f4a5d68d163021f46856c3de51bf8f4aab8 2026-05-13; includes CLAUDE.md expansion PR #136 (845d0007 squash-merge) + rc.18 merge PR #135 (666d689f) |
 | develop | 6d2ba5ad | PR #148 MERGED 2026-05-19 — S-15.14 validate-dispatch-advance WASM hook; M2 wave-4 SHIPPED. Prior: PR #147 6e2d7805 (S-15.09 M2 wave-3 COMPLETE). |
-| factory-artifacts | TBD-D479 | S-15.14 POST-MERGE STATE-MANAGER BURST 2026-05-18 — D-479 codified; BC-5.39.006 v1.3 POL-14 draft→active; STORY-INDEX v3.44; M2 wave-4 SHIPPED PR #148 6d2ba5ad; Session Resume Checkpoint refreshed; parent-commit ea0d743e per D-419(b) |
+| factory-artifacts | 93e3c2f3 | S-15.14 POST-MERGE STATE-MANAGER BURST 2026-05-18 — D-479 codified; BC-5.39.006 v1.3 POL-14 draft→active; STORY-INDEX v3.44; M2 wave-4 SHIPPED PR #148 6d2ba5ad; Session Resume Checkpoint refreshed; parent-commit ea0d743e per D-419(b) |
 | v1.0.0-rc.16 (tag) | feb894a2 | SHIPPED; claude-mp PR #8 awaiting human merge |
 | v1.0.0-rc.15 (tag) | e68bb436 | SHIPPED |
 
