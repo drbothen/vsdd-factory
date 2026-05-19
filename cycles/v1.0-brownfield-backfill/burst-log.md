@@ -4,7 +4,7 @@ level: ops
 version: "1.0"
 status: in-progress
 
-## 2026-05-18 — M3 BC cascade pass-2 persisted (factory-artifacts PENDING-SHA-PATCH)
+## 2026-05-18 — M3 BC cascade pass-2 persisted (factory-artifacts 09758b5c)
 
 ### Parent-commit
 
@@ -158,7 +158,7 @@ producer: state-manager
 timestamp: 2026-05-06T19:00:00Z
 cycle: "v1.0-brownfield-backfill"
 inputs: [STATE.md]
-input-hash: "3ab28d7"
+input-hash: "924afaf"
 traces_to: STATE.md
 ---
 
