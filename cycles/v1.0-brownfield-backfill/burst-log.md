@@ -2355,7 +2355,7 @@ Single-Commit Burst Protocol per TD-VSDD-053: one atomic commit on factory-artif
 - `06f8c403` (parent: SHA-patch following D-485 pass-2 PO-fix-burst codification)
 - `6219ea9d` (this codification burst: D-486 + L-M3-BC-cascade-pass-3-INV-018-CANDIDATE + STATE.md advance; single atomic commit per TD-VSDD-053; parent-commit 06f8c403 per D-419(b))
 
-## 2026-05-19 — M3 BC cascade pass-3 PO fix-burst codification (factory-artifacts PLACEHOLDER-SHA)
+## 2026-05-19 — M3 BC cascade pass-3 PO fix-burst codification (factory-artifacts 9f66b209)
 
 **Parent-commit:** `50e03f82` (PO fix-burst pass-3: BC-5.39.006 v1.4→v1.5 + BC-5.39.007 v1.2→v1.3 + BC-5.39.008 v1.2→v1.3; parent per D-419(b))
 
@@ -2507,4 +2507,4 @@ BC files (BC-5.39.006.md, BC-5.39.007.md, BC-5.39.008.md) touched at PO commit `
 
 **Factory-artifacts commits:**
 - `50e03f82` (PO fix-burst pass-3: BC-5.39.006 v1.4→v1.5 + BC-5.39.007 v1.2→v1.3 + BC-5.39.008 v1.2→v1.3)
-- `PLACEHOLDER-SHA` (this codification burst: D-487 + L-M3-BC-cascade-pass-3-PO-fix-burst + BC-INDEX v2.39→v2.40 + STATE.md advance; single atomic commit per TD-VSDD-053; parent-commit 50e03f82 per D-419(b))
+- `9f66b209` (this codification burst: D-487 + L-M3-BC-cascade-pass-3-PO-fix-burst + BC-INDEX v2.39→v2.40 + STATE.md advance; single atomic commit per TD-VSDD-053; parent-commit 50e03f82 per D-419(b))
