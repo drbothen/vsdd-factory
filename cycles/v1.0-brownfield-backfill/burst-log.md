@@ -1652,4 +1652,4 @@ D-448(a) source-attestation: N/A for this burst (new BC authoring; no adversary 
 - Step 3M3b gate updated to require (3M3a-r) done.
 
 ### Factory-artifacts commits
-- SHA pending (state-manager commits all .factory/ artifacts in single atomic commit per TD-VSDD-053 after this product-owner burst completes)
+- 21614952 (3M3a BC authoring burst D-481: BC-5.39.007 + BC-5.39.008 v1.0 drafts; BC-INDEX v2.37; STATE.md + decision-log + burst-log updates; single atomic commit per TD-VSDD-053)
