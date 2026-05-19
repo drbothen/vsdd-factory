@@ -1845,3 +1845,19 @@ M3 commissioning at S-15.14 SHIPPED exemplifies the engine-discipline natural-or
 
 **Closes:** D-480 M3 commissioning codified.
 
+---
+
+## L-M3-BC-cascade-pass-1 — BC spec format must be verified against actual artifact corpus; adversary fresh-context dispatch must grep canonical source
+
+**Date:** 2026-05-18
+**Source:** D-482 M3 BC cascade pass-1 state-manager persistence burst
+**Class:** Spec-authorship ground-truth discipline + adversary-process canonical-source discipline
+
+Spec-reviewer and adversary were dispatched in parallel for BC-5.39.007 + BC-5.39.008 (M3 BC cascade pass-1, 2026-05-18). The parallel-dispatch pattern produced valuable cognitive-diversity coverage: spec-reviewer found 0 P1 blockers (SUGGESTIONS_ONLY verdict), while adversary found 2 verified CRITICAL findings that spec-reviewer missed.
+
+**META-LEVEL finding 1: "BC spec format claims have NO load-bearing validation against actual artifact format."** BC-5.39.007 prescribes a format for the Closes section of lessons.md entries (`### Closes` h3). The actual artifact corpus uses `**Closes:**` bold-prefix-line form (verified at lessons.md lines 1748/1778/1806/1828/1846 via literal grep). This discrepancy was not caught by spec-reviewer because spec-reviewer read only the BC text, not the actual artifact corpus. The adversary's fresh-context artifact-corpus cross-check caught it. Root cause: BC authorship burst for BC-5.39.007 did not include a literal-shell grep of the actual lessons.md corpus to confirm the prescribed format matches reality. Normative discipline: when a BC specifies a format that must match an existing artifact convention, the BC authorship burst MUST include a literal-shell grep of actual artifacts before the BC is sealed. Forwarded to SK-MCP-001 Appendix D as INV-016-CANDIDATE: "BC-authorship-must-grep-actual-artifact-format."
+
+**META-LEVEL finding 2: "Adversary fresh-context dispatch must grep canonical source of truth."** The adversary produced a CRITICAL finding (F-BC008P1-001) claiming TD-VSDD-101 was absent and VSDD_SKIP_PRODUCTION_STATE_MD_TEST was absent from CI. Orchestrator verified via literal shell: TD-VSDD-101 EXISTS at `tech-debt-register.md:45`; the env-var EXISTS at `origin/develop:.github/workflows/ci.yml` lines 141/153/398/405. Root cause: the adversary grepped the stale local main checkout (`392b56d6`) instead of the canonical sources (factory-artifacts branch for `.factory/` files; `origin/develop` for source code). Local main was 5+ commits behind develop. Normative discipline: adversary fresh-context dispatches MUST explicitly cite and grep the canonical source for each TD/file/identifier check — factory-artifacts for spec/state files, `origin/develop` for source-code files, NOT local main. This false positive was recovered by orchestrator literal-shell verification before the false positive was persisted as a finding. Forwarded to SK-MCP-001 Appendix D as INV-015 process-gap: L-EDP1-067-CANDIDATE "adversary-fresh-context-must-grep-canonical-source."
+
+**Closes:** D-482 + F-BC007P1-001 (verified CRITICAL — `**Closes:**` vs `### Closes` format mismatch) + F-BC008P1-002 (verified CRITICAL — PC13 ADR-021 Option (a) contradiction) + L-EDP1-067-CANDIDATE-INV-015-forward (adversary-fresh-context-must-grep-canonical-source forwarded SK-MCP-001 Appendix D INV-015) + INV-016-CANDIDATE-forward (BC-authorship-must-grep-actual-artifact-format forwarded SK-MCP-001 Appendix D INV-016).
+

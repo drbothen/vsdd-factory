@@ -7,7 +7,7 @@ producer: state-manager
 timestamp: 2026-05-06T19:00:00Z
 cycle: "v1.0-brownfield-backfill"
 inputs: [STATE.md]
-input-hash: "0175bd3"
+input-hash: "e5e0cb8"
 traces_to: STATE.md
 ---
 
@@ -1653,3 +1653,128 @@ D-448(a) source-attestation: N/A for this burst (new BC authoring; no adversary 
 
 ### Factory-artifacts commits
 - 21614952 (3M3a BC authoring burst D-481: BC-5.39.007 + BC-5.39.008 v1.0 drafts; BC-INDEX v2.37; STATE.md + decision-log + burst-log updates; single atomic commit per TD-VSDD-053)
+- 9320c2eb (SHA-patch follow-up: Active Branches factory-artifacts → 21614952; burst-log Closes SHA filled)
+
+---
+
+## Burst: M3 BC Cascade Pass-1 Persistence — D-482 (2026-05-18)
+
+**Purpose:** Persist M3 BC cascade pass-1 findings (spec-reviewer + adversary pass-1 reports) for fresh-context resume. Codify D-482, L-M3-BC-cascade-pass-1. Update STATE.md.
+
+### Parent-commit
+9320c2eb (SHA-patch follow-up — factory-artifacts HEAD before this burst per D-419(b))
+
+### Adversary verdict
+**STREAK: 0/3 CLEAN.**
+
+Spec-reviewer returned SUGGESTIONS_ONLY verdict (0 P1 blockers; 8 P2/P3 items routed to product-owner + architect). Adversary pass-1 returned 41 total findings across BC-5.39.007 (21 findings) + BC-5.39.008 (20 findings). Orchestrator performed literal-shell verification of adversary claims before persistence.
+
+**2 verified CRITICAL (load-bearing, must fix before pass-2):**
+- F-BC007P1-001: lessons.md uses `**Closes:**` bold-prefix-line form; BC-5.39.007 PC13 prescribes `### Closes` h3. Verified via `grep -n "^\*\*Closes:\*\*\|^### Closes" .factory/cycles/v1.0-brownfield-backfill/lessons.md` — bold-prefix form confirmed at lines 1748/1778/1806/1828/1846.
+- F-BC008P1-002: BC-5.39.008 PC13 references ADR-021 Option (a) behavior; ADR-021 Option (a) is REJECTED at line 251. Verified via `grep -n "Rejected\." .factory/specs/architecture/decisions/ADR-021-wasm-cargo-audit-sandboxing.md`.
+
+**1 adversary finding reclassified FALSE POSITIVE:**
+- F-BC008P1-001: adversary claimed TD-VSDD-101 absent + VSDD_SKIP_PRODUCTION_STATE_MD_TEST absent. Orchestrator literal-shell confirmed TD-VSDD-101 EXISTS at `tech-debt-register.md:45` and env-var EXISTS at `origin/develop:.github/workflows/ci.yml` lines 141/153/398/405. Root cause: adversary grepped stale local main checkout `392b56d6` (5+ commits behind develop). Reclassified FALSE POSITIVE.
+
+**META-LEVEL process-gap codified:** adversary fresh-context dispatch MUST grep canonical source (factory-artifacts + origin/develop) not local main. Forwarded L-EDP1-067-CANDIDATE to SK-MCP-001 Appendix D INV-015.
+
+D-448(a) source-attestation: adversary verdict described above faithfully represents `adv-bc-007-008-pass-1.md` Part A finding set with orchestrator-verified overrides applied.
+
+### Files touched (Dim-1)
+
+5 files modified/created:
+
+1. `.factory/cycles/v1.0-brownfield-backfill/spec-review-bc-007-008.md` (CREATED — spec-reviewer report)
+2. `.factory/cycles/v1.0-brownfield-backfill/adv-bc-007-008-pass-1.md` (CREATED — adversary pass-1 report with orchestrator overrides)
+3. `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` (MODIFIED — D-482 row appended)
+4. `.factory/cycles/v1.0-brownfield-backfill/lessons.md` (MODIFIED — L-M3-BC-cascade-pass-1 appended)
+5. `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` (MODIFIED — this entry)
+6. `.factory/STATE.md` (MODIFIED — frontmatter + Decisions Log + Drift Items + Session Resume Checkpoint)
+
+Count = 6 files.
+
+### Codifications (Dim-3)
+
+- **D-482** codified: M3 BC cascade pass-1 results — spec-reviewer SUGGESTIONS_ONLY + adversary STREAK 0/3 CLEAN (2 VC + 1 FP-override); 2 META-LEVEL process-gaps forwarded SK-MCP-001 Appendix D INV-015 + INV-016-CANDIDATE.
+- **L-M3-BC-cascade-pass-1** codified in lessons.md: two META-LEVEL findings — (1) BC-authorship-must-grep-actual-artifact-format; (2) adversary-fresh-context-must-grep-canonical-source.
+- **L-EDP1-067-CANDIDATE** forwarded SK-MCP-001 Appendix D INV-015 (adversary stale-checkout process-gap).
+- **INV-016-CANDIDATE** forwarded SK-MCP-001 Appendix D (BC format without artifact corpus verification).
+- Drift Items table: L-EDP1-067-CANDIDATE-INV-015 row added.
+
+### Dim-2 Attestation (literal-shell per D-449(a))
+
+Gate 1 — TD-VSDD-101 EXISTS at tech-debt-register.md:
+```
+$ grep -n "TD-VSDD-101" .factory/tech-debt-register.md
+45:| TD-VSDD-101 | Process gap (S-15.14 PR #148 CI fix commits; 2026-05-18) | **VSDD_SKIP_PRODUCTION_STATE_MD_TEST CI env-var skip...
+```
+PASS — TD-VSDD-101 registered at line 45.
+
+Gate 2 — VSDD_SKIP_PRODUCTION_STATE_MD_TEST EXISTS in origin/develop ci.yml:
+```
+$ git show origin/develop:.github/workflows/ci.yml | grep -n VSDD_SKIP_PRODUCTION_STATE_MD_TEST
+141:        # VSDD_SKIP_PRODUCTION_STATE_MD_TEST=1: validate-dispatch-advance
+153:          VSDD_SKIP_PRODUCTION_STATE_MD_TEST: "1"
+398:        # VSDD_SKIP_PRODUCTION_STATE_MD_TEST=1: validate-dispatch-advance
+405:          VSDD_SKIP_PRODUCTION_STATE_MD_TEST: "1"
+```
+PASS — env-var present at lines 141/153/398/405. F-BC008P1-001 FALSE POSITIVE confirmed.
+
+Gate 3 — lessons.md uses bold-prefix `**Closes:**` form (F-BC007P1-001 verified CRITICAL):
+```
+$ grep -n "^\*\*Closes:\*\*\|^### Closes" .factory/cycles/v1.0-brownfield-backfill/lessons.md
+1748:**Closes:** F-P9-001, F-P9-002, F-P9-003 (process-gap class)
+1778:**Closes:** F-P10-001 (own-burst-log structural-integrity false-green class)
+1806:**Closes:** F-P11-002 (Dim-2 PC attestation content-validity class)
+1828:**Closes:** D-477 ASYMPTOTIC-ACCEPTANCE authorization (S-15.14 cascade SEALED)
+1846:**Closes:** D-480 M3 commissioning codified.
+1862:**Closes:** D-482 + F-BC007P1-001...
+```
+PASS — corpus uses `**Closes:**` form exclusively; zero `### Closes` h3 entries. F-BC007P1-001 VERIFIED CRITICAL.
+
+Gate 4 — ADR-021 Option (a) REJECTED at line 251 (F-BC008P1-002 verified CRITICAL):
+```
+$ grep -n "Rejected\." .factory/specs/architecture/decisions/ADR-021-wasm-cargo-audit-sandboxing.md
+251:Rejected. The structural false-negative risk for security-critical advisories is
+```
+PASS — Option (a) REJECTED confirmed at line 251. F-BC008P1-002 VERIFIED CRITICAL.
+
+All 4 Dim-2 gates PASS.
+
+### Dim-5 Attestation
+- POLICY 3 compliance: state-manager wrote exclusively to `.factory/` paths (cycle documents + STATE.md).
+- No source code writes, no feature branch, no --no-verify.
+- 4-index versions unchanged (BC-INDEX v2.37, VP-INDEX v1.97, STORY-INDEX v3.44, ARCH-INDEX v2.06) — no spec content changes this burst.
+- Artifact-path-registry compliance: spec-review and adversary reports placed at `cycles/{cycle-id}/{filename}.md` (registered `cycle-document` pattern). Note: orchestrator originally specified `m3-bc-cascade/` subdirectory but `validate-artifact-path` hook blocked unregistered subdirectory path — files correctly placed at top-level cycle directory instead.
+
+### Dim-6 Attestation
+Burst-log 8-block completeness check (D-444(c)):
+1. Parent-commit — PRESENT
+2. Adversary verdict — PRESENT
+3. Files touched (Dim-1) — PRESENT
+4. Codifications (Dim-3) — PRESENT
+5. Dim-2 Attestation — PRESENT
+6. Dim-5 Attestation — PRESENT
+7. Dim-6 Attestation — PRESENT (this block)
+8. Closes — PRESENT (below)
+
+Count = 8 blocks. Gate D-446(a): PASS.
+
+### Dim-7 Attestation
+- Burst type: state-manager persistence on factory-artifacts.
+- No story delivery, no wave-gate, no adversary dispatch (persisting prior-session adversary output).
+- BC-5.39.006 v1.3 current_step PCs: STATE.md update in this burst will satisfy all 5 PCs (D-441..D-449(a) chain; verified at STATE.md edit time).
+- Factory-artifacts before burst: 9320c2eb (D-481 SHA-patch). After burst: SHA assigned at commit time.
+
+### Closes
+- D-482 codified.
+- L-M3-BC-cascade-pass-1 codified in lessons.md.
+- L-EDP1-067-CANDIDATE forwarded SK-MCP-001 Appendix D INV-015.
+- INV-016-CANDIDATE forwarded SK-MCP-001 Appendix D.
+- spec-review-bc-007-008.md persisted.
+- adv-bc-007-008-pass-1.md persisted with orchestrator overrides.
+- STATE.md Session Resume Checkpoint refreshed for zero-context resume.
+- PO fix-burst PENDING: addresses 2 verified CRITICAL (F-BC007P1-001 + F-BC008P1-002) + ~17 HIGH/MEDIUM before pass-2.
+
+### Factory-artifacts commits
+- SHA pending — assigned at commit time after STATE.md update completes.

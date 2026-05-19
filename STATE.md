@@ -5,14 +5,14 @@ version: "2.0"
 status: draft
 producer: state-manager
 timestamp: 2026-05-12T00:00:00Z
-phase: M3-COMMISSIONING-3M3a-COMPLETE-BC-007-008-DRAFT
+phase: M3-COMMISSIONING-3M3a-r-PASS-1-COMPLETE-STREAK-0-3-2VC-2FP-D-482
 last_amended: 2026-05-18
 inputs: []
 input-hash: "[live-state]"
 traces_to: prd.md
 project: vsdd-factory
 mode: brownfield
-current_step: "M3 COMMISSIONING 3M3a COMPLETE 2026-05-18 — D-481 codified (BC-5.39.007 + BC-5.39.008 v1.0 drafts authored by product-owner; BC-INDEX v2.37; total_bcs 1954; SS-05 count 657; Section 12 Step 3M3a COMPLETE; new Step 3M3a-r PENDING: spec-reviewer + adversary 3-CLEAN cascade); trajectory-tail →9→9→9→9 (F5 cycle; unchanged); D-chain cite D-481 latest brownfield; BC-INDEX v2.37, VP-INDEX v1.97, STORY-INDEX v3.44, ARCH-INDEX v2.06; parent-commit afe1cb65 per D-419(b); next: spec-reviewer + adversary cascade for BC-5.39.007 + BC-5.39.008 (Step 3M3a-r)."
+current_step: "M3 COMMISSIONING 3M3a-r PASS-1-COMPLETE 2026-05-18 — D-482 codified (spec-reviewer SUGGESTIONS_ONLY; adversary STREAK 0/3 CLEAN; 2 verified CRITICAL: F-BC007P1-001 lessons.md Closes-format mismatch + F-BC008P1-002 PC13 ADR-021-Option-a contradiction; 1 FP-override: F-BC008P1-001 adversary-stale-main; META-LEVEL L-EDP1-067-CANDIDATE adversary-must-grep-canonical-source forwarded SK-MCP-001 Appendix D INV-015; PO fix-burst PENDING); trajectory-tail →9→9→9→9 (F5 cycle; unchanged); D-chain cite D-482 latest brownfield; BC-INDEX v2.37, VP-INDEX v1.97, STORY-INDEX v3.44, ARCH-INDEX v2.06; parent-commit 9320c2eb per D-419(b)."
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -43,8 +43,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-18 — BC-5.39.007 + BC-5.39.008 v1.0 drafts authored; BC-INDEX v2.36→v2.37; D-481 codified; Section 12 Step 3M3a COMPLETE; Step 3M3a-r (spec-reviewer + adversary cascade) PENDING. |
-| **Current Phase** | M3 COMMISSIONING — 3M3a COMPLETE (BC-5.39.007 + BC-5.39.008 v1.0 drafts); awaiting spec-reviewer + adversary cascade (3M3a-r) before story-writer dispatch (3M3b). |
+| **Last Updated** | 2026-05-18 — M3 BC CASCADE PASS-1 PERSISTED D-482 STREAK 0/3 CLEAN 2 VC + 2 FP-OVERRIDE. Spec-reviewer SUGGESTIONS_ONLY; 2 verified CRITICAL (F-BC007P1-001 Closes-format + F-BC008P1-002 ADR-021 contradiction); 1 FP-override (adversary stale-main); META-LEVEL L-EDP1-067-CANDIDATE INV-015 forwarded SK-MCP-001. PO fix-burst PENDING. |
+| **Current Phase** | M3 COMMISSIONING — 3M3a-r pass-1 COMPLETE; PO fix-burst PENDING for 2 verified CRITICAL findings (F-BC007P1-001 lessons.md Closes format + F-BC008P1-002 PC13 ADR-021 contradiction) + ~17 HIGH/MEDIUM before pass-2. |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Phase Progress
@@ -229,6 +229,7 @@ dtu_services: []
 | D-479 | S-15.14 SHIPPED — M2 wave-4 of S-15.03 PRIORITY-A merged via PR #148 squash-merge `6d2ba5ad` on develop 2026-05-19. POL-14 BC-5.39.006 v1.3 draft→active. STORY-INDEX v3.43→v3.44. BC-INDEX v2.35→v2.36. 22 ACs all PASS; 31/31 bats; 3 AI reviewers APPROVE Cycle 1 (zero CRITICAL/HIGH); security PASS; LOCAL cascade SEALED D-477 asymptotic-acceptance; TD-VSDD-095..100 CODIFIED-AND-FORWARDED SK-MCP-001 Appendix D INV-011..014. M3 gate (3c) now SATISFIED. Full prose in `cycles/v1.0-brownfield-backfill/decision-log.md`. | S-15.14 post-merge burst | 2026-05-18 |
 | D-480 | M3 commissioning chosen — human decision 2026-05-18 at Resume Checkpoint §11 step 8: forward path M3 (5 stories + ADR-021/022 already ACCEPTED 2026-05-15); CI env-var paper-fix dispositioned as TD-VSDD-101 (MEDIUM; anchored S-15.15); M3 scope per `cycles/v1.0-brownfield-backfill/s-15.03-wave-plan-2026-05-15.md` §4 Milestone 3: S-15.10/S-15.12/S-15.13/S-15.15/S-15.16-Part-B; product-owner BC-5.39.007+BC-5.39.008 first. Full prose in `cycles/v1.0-brownfield-backfill/decision-log.md`. | M3 commissioning | 2026-05-18 |
 | D-481 | BC-5.39.007 + BC-5.39.008 v1.0 drafts authored per M3 commissioning D-480; Section 12 Step 3M3a COMPLETE; Step 3M3a-r (spec-reviewer + adversary 3-CLEAN cascade) PENDING before story-writer dispatch (3M3b). BC-INDEX v2.37; total_bcs 1954. Full prose in `cycles/v1.0-brownfield-backfill/decision-log.md`. | M3 commissioning 3M3a | 2026-05-18 |
+| D-482 | M3 BC cascade pass-1 results — spec-reviewer SUGGESTIONS_ONLY verdict + adversary STREAK 0/3 CLEAN (2 verified CRITICAL: F-BC007P1-001 lessons.md format mismatch `**Closes:**` vs `### Closes`; F-BC008P1-002 PC13 references ADR-021 Option (a) REJECTED); 2 false-positive CRITICAL overridden by orchestrator literal-shell verification (TD-VSDD-101 EXISTS at tech-debt-register.md:45; CI env-var EXISTS at origin/develop ci.yml:141,153,398,405; adversary grepped stale local main 392b56d6); META-LEVEL process-gap codified — adversary fresh-context must grep canonical source (forward L-EDP1-067-CANDIDATE to SK-MCP-001 Appendix D INV-015); PO fix-burst PENDING (3M3a-r continues). Full prose in `cycles/v1.0-brownfield-backfill/decision-log.md`. | M3 commissioning 3M3a-r pass-1 | 2026-05-18 |
 | D-478 | SESSION-END DURABILITY BURST authorized by human directive 2026-05-18. Combined surgical STATE.md compaction (D-430(a) precedent) + comprehensive Session Resume Checkpoint zero-context refresh + Section 12 Pending Work Items cumulative update + SK-MCP-001 + UNI-PLUG-001 implementation commissioning placeholder as forward work. Purpose: enable zero-context new-session resume of remaining per-story-delivery chain (demo-recorder → push → pr-manager 9-step → squash-merge → post-merge burst). All open Drift Items carry forward with concrete anchors. STATE.md compacted 491→387 lines. | brownfield-backfill | 2026-05-18 |
 | D-454 | META-LEVEL-29 CANDIDATE CONFIRMED ack + per-cell granularity gate (D-454(a): Dim-2 derived-value gates MUST use line-anchor grep matching canonical registry cell-level granularity; file-level `grep -c` against multi-cell documents is false-green if any individual cell drops the value; each PRESCRIBED_SITE from D-453(d) registry requires its own per-cell grep command with captured stdout) + literal-stdout-capture in freshness re-execution (D-454(b): freshness re-execution blocks at push-time MUST capture literal stdout — actual numeric values, not forward-narrative like "captured after edits" or "MUST be ≥N"; D-449(a) META-LEVEL-24 closure applies to freshness-re-execution-evidence-prose too) + storage-path-existence-or-aspirational (D-454(c): when a D-NNN codification references a storage path, the path MUST either be instantiated in the same burst OR explicitly marked aspirational with deferral anchor; `.factory/hooks/dim2-gates/` instantiated at Commit A with README; artifact-path-registry.yaml entry added) + tri-way canonical-form-alignment (D-454(d): codification text, verification regex, and document heading MUST use identical canonical form; misalignment between "Files-touched (Dim-1)" in codification vs "Files touched" in regex vs `**Files touched (Dim-1):` in doc creates false-negative gate results; all three forms reconciled to match D-453(c) canonical enumeration) + freshness temporal scope = full edit window (D-454(e): freshness temporal scope spans the COMPLETE document edit window including dispatch-side advance commits; banner wc-l captured BEFORE own-burst STATE.md edits is stale; freshness re-execution MUST re-derive all values after ALL edits in the burst are applied; Dim-7 Commit-E-author-time semantics clarified: at Commit E, pass-N is BEING COMPLETED — tally shows N dispatched = (N-1) completed + 1 being-completed; pass-N+1 NOT dispatched) (5 sub-clauses; see decision-log.md SoT); L-EDP1-066 65th-layer META-LEVEL-29 CANDIDATE CONFIRMED. Closes ADV-EDP1-P74-CRIT-001, ADV-EDP1-P74-HIGH-001, ADV-EDP1-P74-HIGH-002, ADV-EDP1-P74-HIGH-003, ADV-EDP1-P74-HIGH-004, ADV-EDP1-P74-MED-001, ADV-EDP1-P74-MED-002, ADV-EDP1-P74-MED-003, ADV-EDP1-P74-LOW-001, PG-P74-001, PG-P74-002, PG-P74-003 (per D-413(b) completeness mandate) | F5 pass-74 | 2026-05-13 |
 
@@ -277,6 +278,7 @@ dtu_services: []
 | **TD-VSDD-099 (CODIFIED-LESSON)** | CODIFIED-AND-FORWARDED-TO-SK-MCP-001 2026-05-18 | F-P10-001 [process-gap] from S-15.14 LOCAL adversary pass-10. Own-burst-log structural-integrity false-green: pass-9 burst-log committed with Dim-7 block absent; Dim-6 narratively attested "8 blocks present" without shell-verified count. Going-forward rule: every burst-log entry MUST include all 4 Dim blocks (Dim-2+Dim-5+Dim-6+Dim-7); Dim-6 MUST contain literal-shell count with captured stdout; orchestrator dispatch templates MUST enumerate all 4 Dim checks explicitly. Codified in `cycles/v1.0-brownfield-backfill/lessons.md` as PG-orchestrator-own-burst-log-structural-integrity. 5th META-LEVEL self-violation class. Part of 6-class perimeter forwarded to SK-MCP-001 Appendix D (D-477). |
 | **TD-VSDD-100 (CODIFIED-LESSON)** | CODIFIED-AND-FORWARDED-TO-SK-MCP-001 2026-05-18 | F-P11-002 [process-gap] from S-15.14 LOCAL adversary pass-11. Dim-2 PC attestations must read production artifact: pass-9+10 Gate 3 (PC4) used synthetic ASCII echo string not production STATE.md; gates structurally present-and-running but content-inert. Going-forward rule: every Dim-2 PC attestation MUST read actual production artifact (grep ^current_step: .factory/STATE.md ...); synthetic echo/printf/hand-crafted strings FORBIDDEN. 6th META-LEVEL self-violation class. Codified in `cycles/v1.0-brownfield-backfill/lessons.md` as PG-orchestrator-dim2-pc-attestations-must-read-production. Part of 6-class perimeter forwarded to SK-MCP-001 Appendix D (D-477). |
 | **F-P11-003-deferred (story v1.2 AC-5/AC-6 + invariant 6(b) BC v1.3 wording mismatch)** | OPEN-DEFERRED 2026-05-18 | S-15.14 story v1.2 AC-5/AC-6 + Invariant 6 body prose still says "substring AFTER the trajectory-tail marker" (v1.2 wording); BC v1.3 codifies "first-semicolon-segment scoping". Documentary inconsistency (code is correct; BC v1.3 is correct; story body describes old wording). Severity: LOW. Routing: story-writer for next S-15.14 story touch. Deferral anchor: S-15.14 v1.3 POLICY 8 body propagation or post-merge sweep. |
+| **L-EDP1-067-CANDIDATE-INV-015 (adversary-fresh-context-must-grep-canonical-source)** | FORWARDED-TO-SK-MCP-001-APPENDIX-D 2026-05-18 | D-482 META-LEVEL process-gap: adversary grepped stale local main `392b56d6` instead of `factory-artifacts` / `origin/develop`. Produced false-positive CRITICAL F-BC008P1-001. Codified in L-M3-BC-cascade-pass-1. Forward: SK-MCP-001 Appendix D INV-015 seed input. Severity: MEDIUM (process-gap class). |
 | **TD-VSDD-101 (CI env-var paper-fix)** | OPEN 2026-05-18 — anchored S-15.15 | `VSDD_SKIP_PRODUCTION_STATE_MD_TEST=1` env-var in `.github/workflows/ci.yml` (cargo-host + build-dispatcher Test steps) skips bats test that reads production `.factory/STATE.md`. CI cannot mount factory worktree. Severity: MEDIUM (TD-VSDD-059 paper-fix class). Anchored S-15.15: that story already touches CI-test infrastructure; structural fix options: (a) mount factory worktree in CI; (b) capability-check skip; (c) local-only harness. Full entry in `tech-debt-register.md`. |
 
 ## Historical Content
@@ -286,110 +288,105 @@ dtu_services: []
 - `cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md` (adversary reviews at `S-12.03/`, `S-12.04/`, `S-12.05/` subdirs)
 
 
-## Session Resume Checkpoint (2026-05-18 — M3 3M3a COMPLETE: BC-5.39.007 + BC-5.39.008 v1.0 drafts; D-481 codified)
+## Session Resume Checkpoint (2026-05-18 — M3 3M3a-r PASS-1 COMPLETE: D-482 codified; STREAK 0/3; PO fix-burst PENDING)
 
 > **SELF-SUFFICIENT RESUME CONTEXT FOR ZERO-CONTEXT NEW SESSION**
 > Read this section alone to resume the orchestrator after full CLEAR or new session. All context needed is here.
 
 ### 1. Where We Are
-- **S-15.14 SHIPPED 2026-05-19 PR #148 squash-merge `6d2ba5ad`** — validate-dispatch-advance WASM hook; M2 wave-4; 22 ACs all PASS; 31/31 bats; 3 AI reviewers APPROVE; security PASS. D-479 CODIFIED.
-- **D-480 CODIFIED 2026-05-18** — M3 commissioning: human decision chose M3 (5 stories + ADR-021/022 already ACCEPTED 2026-05-15). TD-VSDD-101 anchored S-15.15.
-- **D-481 CODIFIED 2026-05-18** — BC-5.39.007 (validate-closes-completeness Phase 1) + BC-5.39.008 (validate-policies-schema) v1.0 drafts authored by product-owner. Section 12 Step 3M3a COMPLETE.
-- **M3 COMMISSIONING — Step 3M3a-r PENDING:** spec-reviewer + adversary 3-CLEAN cascade for BC-5.39.007 + BC-5.39.008 before story-writer dispatch (Step 3M3b).
-- **factory-artifacts HEAD:** see `git -C .factory log -1` (this burst SHA; pending commit).
-- **develop HEAD:** `6d2ba5ad` (S-15.14 PR #148 2026-05-19). **main HEAD:** `70811f4a`.
-- **BC-5.39.006 v1.3 ACTIVE:** lifecycle_status: active; BC-INDEX v2.37. D-range D-001..D-481.
-- **ADR-021/022 ACCEPTED 2026-05-15** — M3-gating; `.factory/specs/architecture/decisions/`.
+- **S-15.14 SHIPPED 2026-05-19 PR #148 squash-merge `6d2ba5ad`** — validate-dispatch-advance WASM hook; M2 wave-4. D-479 CODIFIED.
+- **D-480 CODIFIED 2026-05-18** — M3 commissioning chosen; TD-VSDD-101 anchored S-15.15.
+- **D-481 CODIFIED 2026-05-18** — BC-5.39.007 + BC-5.39.008 v1.0 drafts authored. Step 3M3a COMPLETE.
+- **D-482 CODIFIED 2026-05-18** — M3 BC cascade pass-1 COMPLETE. Spec-reviewer SUGGESTIONS_ONLY. Adversary STREAK 0/3 CLEAN. 2 verified CRITICAL: F-BC007P1-001 (lessons.md `**Closes:**` vs `### Closes` format mismatch) + F-BC008P1-002 (BC-5.39.008 PC13 references ADR-021 Option (a) REJECTED). 1 FP-override: F-BC008P1-001 (adversary grepped stale local main `392b56d6`; TD-VSDD-101 + CI env-var both confirmed present via literal shell). META-LEVEL L-EDP1-067-CANDIDATE forwarded SK-MCP-001 Appendix D INV-015.
+- **factory-artifacts HEAD:** `git -C .factory log -1 --format='%h %s'` (this burst SHA).
+- **develop HEAD:** `6d2ba5ad`. **main HEAD:** `70811f4a`.
+- **BC-5.39.006 v1.3 ACTIVE.** D-range D-001..D-482.
 
 ### 2. Operating Mode
-- vsdd-factory brownfield-onboarding mode; cycle `v1.0-brownfield-backfill`; self-referential engine-and-product.
-- E-10 sub-cycle SEALED at D-471. F5 cycle PAUSED at D-386 Option C. S-15.14 cascade SEALED at D-477. M3 COMMISSIONING at D-480.
+- vsdd-factory brownfield-onboarding; cycle `v1.0-brownfield-backfill`; self-referential.
+- E-10 SEALED D-471. F5 PAUSED D-386 Option C. S-15.14 SEALED D-477. M3 COMMISSIONED D-480.
 
 ### 3. User Directives (Carry Across CLEAR)
-- **2026-05-18:** asymptotic-acceptance for S-15.14 LOCAL cascade per F5 D-386 + E-10 D-471 precedent chain. D-477 sealed.
-- **2026-05-18:** M3 path chosen + TD-VSDD-101 anchored S-15.15 (CI env-var paper-fix). D-480 codified.
-- **TD-VSDD-097 EXTENDED:** ALL orchestrator dispatch templates for STATE.md `current_step:` writes MUST satisfy ALL 5 BC-5.39.006 v1.3 PCs. Verified via literal shell (TD-VSDD-100).
+- **2026-05-18:** M3 path chosen + TD-VSDD-101 anchored S-15.15. D-480 codified.
+- **2026-05-18:** META-LEVEL adversary-must-grep-canonical-source codified as L-EDP1-067-CANDIDATE forwarded SK-MCP-001 Appendix D INV-015. D-482.
+- **TD-VSDD-097 EXTENDED:** ALL orchestrator dispatch templates for `current_step:` writes MUST satisfy ALL 5 BC-5.39.006 v1.3 PCs.
 - **TD-VSDD-099:** every burst-log entry MUST include all 4 Dim blocks; Dim-6 literal-shell count.
-- **TD-VSDD-100:** Dim-2 PC attestations MUST read production artifact via `grep ^current_step: .factory/STATE.md`; synthetic echo FORBIDDEN.
+- **TD-VSDD-100:** Dim-2 PC attestations MUST read production artifact; synthetic echo FORBIDDEN.
 
 ### 4. Tier-A Completed Log + Current
-- TD #71/72/70/74 COMPLETE 2026-05-14/15 (PRs #138/139/140/141). S-15.04 (PR #142) + S-15.05 (PR #143) COMPLETE 2026-05-15. Step 2 COMPLETE.
-- S-15.08 (PR #144 c62f952c) COMPLETE 2026-05-16. M1 COMPLETE. S-15.07/11/09/14 M2 waves 1-4 COMPLETE.
-- Step 3M3a COMPLETE 2026-05-18 — BC-5.39.007 + BC-5.39.008 v1.0 drafts authored; D-481 codified.
-- **Current Active: Step 3M3a-r — spec-reviewer + adversary 3-CLEAN cascade for BC-5.39.007 + BC-5.39.008.**
+- TD #71/72/70/74 + S-15.04/05/08/07/11/09/14 ALL COMPLETE (PRs #138–148).
+- Step 3M3a COMPLETE 2026-05-18 — BC-5.39.007 + BC-5.39.008 v1.0 drafts; D-481.
+- Step 3M3a-r pass-1 COMPLETE 2026-05-18 — spec-review + adversary persisted; D-482.
+- **Current Active: Step 3M3a-r — PO fix-burst PENDING (2 verified CRITICAL + ~17 HIGH/MEDIUM before pass-2).**
 
 ### 5. Cumulative Codifications
 - F5 cycle: D-379..D-454 (76 decisions). `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md`.
-- Brownfield-backfill cycle: D-001..D-481 (D-477 S-15.14 asymptotic-acceptance; D-478 session-end durability; D-479 S-15.14 post-merge; D-480 M3 commissioning; D-481 BC-5.39.007+BC-5.39.008 authoring). `cycles/v1.0-brownfield-backfill/decision-log.md`.
+- Brownfield-backfill cycle: D-001..D-482 (D-480 M3 commissioning; D-481 BC authoring; D-482 BC cascade pass-1). `cycles/v1.0-brownfield-backfill/decision-log.md`.
 
 ### 6. Cumulative Lessons
 - F5 cycle: L-EDP1-001..066. `cycles/v1.0-feature-engine-discipline-pass-1/lessons.md`.
-- Brownfield-backfill cycle: TD-VSDD-095..100 + L-S-15.14-asymptotic-acceptance + L-S-15.14-SHIPPED + L-M3-commissioning + earlier PG entries. `cycles/v1.0-brownfield-backfill/lessons.md`.
+- Brownfield-backfill cycle: TD-VSDD-095..100 + L-S-15.14-asymptotic-acceptance + L-S-15.14-SHIPPED + L-M3-commissioning + **L-M3-BC-cascade-pass-1 (NEW 2026-05-18)** + earlier PG entries. `cycles/v1.0-brownfield-backfill/lessons.md`.
 
 ### 7. S-15.03 PRIORITY-A Scope (Cumulative)
-11-story wave S-15.06..S-15.16. SHIPPED: S-15.06/16-A/08 (M1) + S-15.07/11/09/14 (M2 waves 1/2/3/4). M3 (S-15.10/12/13/15/16-Part-B + ADR-021/022) COMMISSIONED D-480 2026-05-18.
+11-story wave S-15.06..S-15.16. SHIPPED: M1 + M2 waves 1/2/3/4. M3 (S-15.10/12/13/15/16-Part-B + ADR-021/022) COMMISSIONED D-480.
 
 ### 8. 4-Index State
 
 | Index | Version |
 |-------|---------|
-| BC-INDEX | v2.37 (BC-5.39.007+BC-5.39.008 v1.0 drafts authored; total_bcs 1954; D-481) |
+| BC-INDEX | v2.37 (BC-5.39.007+BC-5.39.008 v1.0 drafts; total_bcs 1954; D-481; unchanged D-482) |
 | VP-INDEX | v1.97 |
 | STORY-INDEX | v3.44 (S-15.14 merged PR #148 6d2ba5ad 2026-05-19) |
 | ARCH-INDEX | v2.06 |
 
 ### 9. Critical Anchors
-- factory-artifacts HEAD: `git -C .factory log -1 --format='%h %s'` (this burst SHA; pending commit)
-- S-15.14 cascade reports: `.factory/code-delivery/S-15.14/adv-local-pass-{1..11}.md` (11 files)
-- Burst-log: `cycles/v1.0-brownfield-backfill/burst-log.md` (3M3a-BC-authoring entry added)
-- BC v1.3 ACTIVE: `.factory/specs/behavioral-contracts/ss-05/BC-5.39.006.md` (9 VP PENDING architect; TD-VSDD-063 gate satisfied)
-- BC-5.39.007 v1.0 DRAFT: `.factory/specs/behavioral-contracts/ss-05/BC-5.39.007.md` (validate-closes-completeness Phase 1; Phase 2 reserved per ADR-022)
-- BC-5.39.008 v1.0 DRAFT: `.factory/specs/behavioral-contracts/ss-05/BC-5.39.008.md` (validate-policies-schema + cargo-audit; Parts B+C; ADR-021 gated)
-- ADR-021: `.factory/specs/architecture/decisions/ADR-021-wasm-cargo-audit-sandboxing.md` (ACCEPTED 2026-05-15; M3-gating S-15.15 Part C)
-- ADR-022: `.factory/specs/architecture/decisions/ADR-022-hook-current-pass-context-discovery.md` (ACCEPTED 2026-05-15; BC-5.39.007 Phase 2 gate)
-- Proposals: `.factory/proposals/spec-kit-mcp.md` + `.factory/proposals/unified-plugin-system.md` (review-ready)
+- factory-artifacts HEAD: `git -C .factory log -1 --format='%h %s'`
+- Spec-reviewer report: `cycles/v1.0-brownfield-backfill/spec-review-bc-007-008.md` (SUGGESTIONS_ONLY; 0 P1; 8 P2/P3)
+- Adversary pass-1 report: `cycles/v1.0-brownfield-backfill/adv-bc-007-008-pass-1.md` (STREAK 0/3; 2 VC + 1 FP-override)
+- BC-5.39.007 v1.0 DRAFT: `.factory/specs/behavioral-contracts/ss-05/BC-5.39.007.md` (needs PO fix-burst: F-BC007P1-001 Closes format)
+- BC-5.39.008 v1.0 DRAFT: `.factory/specs/behavioral-contracts/ss-05/BC-5.39.008.md` (needs PO fix-burst: F-BC008P1-002 ADR-021 contradiction)
+- ADR-021: `.factory/specs/architecture/decisions/ADR-021-wasm-cargo-audit-sandboxing.md` (ACCEPTED; Option (a) REJECTED line 251)
+- ADR-022: `.factory/specs/architecture/decisions/ADR-022-hook-current-pass-context-discovery.md` (ACCEPTED; BC-5.39.007 Phase 2 gate)
 
 ### 10. PR Status
-- **PR #148 MERGED** 2026-05-19 squash-merge `6d2ba5ad` — S-15.14 M2 wave-4 SHIPPED.
-- No M3 PRs open yet. Next: feature branch created when S-15.10 (first M3 story) enters per-story-delivery.
-- 4 Dependabot PRs OPEN on visual-companion (independent).
+- **PR #148 MERGED** 2026-05-19 — S-15.14 M2 wave-4 SHIPPED.
+- No M3 PRs open. Next: feature branch when first M3 story enters per-story-delivery (after 3M3b).
 
 ### 11. Post-CLEAR Resume Checklist (zero-context)
-1. **Verify worktree health:** `git -C .factory log -1` + `git -C .factory status` (expect clean)
-2. **Read this Session Resume Checkpoint (you are here)**
-3. **Verify PC4 (literal shell):** `grep "^current_step:" .factory/STATE.md | grep -oE "trajectory-tail [→0-9]+" | grep -oE "→[0-9]+" | wc -l` → expect `4`
-4. **NEXT ACTION:** dispatch spec-reviewer + adversary cascade for BC-5.39.007 + BC-5.39.008 — Step 3M3a-r (3-CLEAN before story-writer)
-5. **M3 stories (5):** S-15.10/12/13/15/16-Part-B; story-writer elaboration BLOCKED on 3M3a-r (cascade must complete first)
-6. **SK-MCP-001 + UNI-PLUG-001:** proposals review-ready; require human authorization (forward work, not M3 path)
-7. **TD-VSDD-063:** VP allocation for BC-5.39.006 PENDING — architect-dispatch required (gate satisfied)
-8. **TD-VSDD-101:** OPEN — CI env-var paper-fix; anchored S-15.15; see `tech-debt-register.md`
-9. E-10 SEALED — do NOT dispatch pass-15 without S-15.03 PRIORITY-A landing first
-10. F5 PAUSED — do NOT dispatch pass-75 without explicit human direction
-11. ALL dispatches must follow TD-VSDD-097-EXT + TD-VSDD-099 + TD-VSDD-100 disciplines.
+1. **Verify worktree:** `git -C .factory log -1` + `git -C .factory status` (expect clean)
+2. **Read this checkpoint**
+3. **Verify PC4:** `grep "^current_step:" .factory/STATE.md | grep -oE "trajectory-tail [→0-9]+" | grep -oE "→[0-9]+" | wc -l` → expect `4`
+4. **NEXT ACTION:** dispatch product-owner fix-burst addressing 2 verified CRITICAL (F-BC007P1-001 + F-BC008P1-002) + ~17 HIGH/MEDIUM from `adv-bc-007-008-pass-1.md` before pass-2
+5. **After PO fix-burst:** dispatch adversary pass-2 (STREAK resets; need 3 consecutive CLEAN for 3-CLEAN convergence)
+6. **M3 stories (5):** S-15.10/12/13/15/16-Part-B; BLOCKED on 3M3a-r full convergence
+7. **SK-MCP-001 + UNI-PLUG-001:** proposals review-ready; require human authorization
+8. **TD-VSDD-063:** VP allocation for BC-5.39.006 PENDING — architect-dispatch required
+9. **TD-VSDD-101:** OPEN — CI env-var paper-fix; anchored S-15.15
+10. E-10 SEALED — do NOT dispatch pass-15 without S-15.03 PRIORITY-A landing first
+11. F5 PAUSED — do NOT dispatch pass-75 without explicit human direction
+12. ALL dispatches: TD-VSDD-097-EXT + TD-VSDD-099 + TD-VSDD-100. Adversary MUST grep `factory-artifacts` + `origin/develop` (not local main) per L-EDP1-067-CANDIDATE.
 
 ### 12. Pending Work Items — Strict Engine-Discipline Ordering (2026-05-18 update)
 
 | Step | Item | Tier | Gate | Status / Scope |
 |------|------|------|------|---------------|
 | ~~1~~ | ~~TD #74 dispatch-package cargo-audit~~ | ~~A~~ | ~~—~~ | **SHIPPED 2026-05-15** |
-| ~~2~~ | ~~TD #66 (S-15.04) + TD #67 (S-15.05) cleanup~~ | ~~A~~ | ~~(1) done~~ | **COMPLETE 2026-05-15** |
-| 3 | S-15.03 PRIORITY-A lint-hook automation | D | **(2) done** | **M1+M2-wave-1/2/3/4 SHIPPED; S-15.14 PR #148 6d2ba5ad MERGED 2026-05-19** |
-| ~~3a~~ | ~~S-15.14 demo-recorder per-AC evidence~~ | ~~D~~ | ~~(3) SEALED~~ | **COMPLETE** |
-| ~~3b~~ | ~~S-15.14 push + pr-manager 9-step PR cycle~~ | ~~D~~ | ~~(3a) done~~ | **COMPLETE** — PR #148 squash-merged |
-| ~~3c~~ | ~~S-15.14 squash-merge + post-merge state-manager burst~~ | ~~D~~ | ~~(3b) done~~ | **COMPLETE 2026-05-18** — POL-14 BC-5.39.006 v1.3 draft→active; STORY-INDEX v3.44; D-479 |
-| 3M3 | S-15.03 M3 (5 stories + ADR-021/022) | D | (3c) done | **COMMISSIONING — M3 gate satisfied; D-480 codified 2026-05-18; ADR-021/022 ACCEPTED 2026-05-15; TD-VSDD-101 anchored S-15.15** |
-| 3M3a | Product-owner BC-5.39.007 (validate-closes-completeness) + BC-5.39.008 (validate-policies-schema) | D | (3M3) done | **COMPLETE 2026-05-18 — BC v1.0 drafts authored at factory-artifacts SHA pending commit; spec-reviewer + adversary cascade pending** |
-| 3M3a-r | BC-5.39.007/008 spec-reviewer + adversary 3-CLEAN cascade | D | (3M3a) done | **PENDING** |
-| 3M3b | Story-writer elaborate 5 M3 stories (S-15.10/12/13/15/16-Part-B) | D | (3M3a-r) done | **BLOCKED on 3M3a-r** |
-| 3M3c | M3 per-story-delivery (5 stories through per-story-delivery flow) | D | (3M3b) done | **BLOCKED on 3M3b** |
-| 4 | E-10 sub-cycle resumption (pass-15 forward) | gated | (3) complete | SEALED at D-471 asymptotic-acceptance |
-| 5 | F5 cycle resumption (pass-75 forward) | gated | (3) complete + human direction | PAUSED at D-386 Option C; parent-commit `487e0cc3` per D-419(b) |
-| **6** | **UNI-PLUG-001 implementation** | **forward** | human-authorize story commissioning | **PROPOSAL REVIEW-READY 2026-05-18** — `.factory/proposals/unified-plugin-system.md`; PREREQUISITE for SK-MCP-001 |
-| **7** | **SK-MCP-001 implementation** | **forward** | (6) UNI-PLUG-001 Tier 1 done | **PROPOSAL REVIEW-READY 2026-05-18** — `.factory/proposals/spec-kit-mcp.md`; closes META-LEVEL recurrence structurally |
+| ~~2~~ | ~~TD #66/67 cleanup~~ | ~~A~~ | ~~(1) done~~ | **COMPLETE 2026-05-15** |
+| 3 | S-15.03 PRIORITY-A lint-hook automation | D | **(2) done** | **M1+M2 SHIPPED; PR #148 6d2ba5ad MERGED 2026-05-19** |
+| ~~3a/b/c~~ | ~~S-15.14 delivery chain~~ | ~~D~~ | ~~—~~ | **COMPLETE** |
+| 3M3 | S-15.03 M3 (5 stories + ADR-021/022) | D | (3c) done | **COMMISSIONING D-480** |
+| ~~3M3a~~ | ~~BC-5.39.007 + BC-5.39.008 authoring~~ | ~~D~~ | ~~(3M3) done~~ | **COMPLETE 2026-05-18 D-481** |
+| 3M3a-r | BC-5.39.007/008 spec-reviewer + adversary 3-CLEAN cascade | D | (3M3a) done | **PASS-1-COMPLETE-STREAK-0-3; PO fix-burst PENDING → pass-2 → 3-CLEAN** |
+| 3M3b | Story-writer elaborate 5 M3 stories | D | (3M3a-r) done | **BLOCKED on 3M3a-r** |
+| 3M3c | M3 per-story-delivery (5 stories) | D | (3M3b) done | **BLOCKED on 3M3b** |
+| 4 | E-10 resumption (pass-15+) | gated | (3) complete | SEALED D-471 |
+| 5 | F5 resumption (pass-75+) | gated | (3) complete + human direction | PAUSED D-386 Option C |
+| **6** | **UNI-PLUG-001 implementation** | **forward** | human-authorize | **PROPOSAL REVIEW-READY** |
+| **7** | **SK-MCP-001 implementation** | **forward** | (6) Tier 1 done | **PROPOSAL REVIEW-READY** |
 
-**Track-independent — WASM migration (slot in any time):** E-9 W-16 Tier 2 (S-9.01..S-9.07 DRAFT) + E-11 W-17 Tier 3 (S-11.01..S-11.08 stub) + verify-git-push.sh + S-10.08 ADR-015 W4 + S-11.00.
+**Track-independent:** E-9 W-16 Tier 2 + E-11 W-17 Tier 3 + verify-git-push.sh + S-10.08 + S-11.00.
 
 **[D-414(c) acknowledgment: Section 12 is a non-standard addition for forward-backlog durability.]**
 
-> Previous checkpoint (S-15.14 POST-MERGE BURST D-479 2026-05-18; M2 wave-4 SHIPPED PR #148; M3 gate SATISFIED) archived to: `cycles/v1.0-brownfield-backfill/session-checkpoints.md`
+> Previous checkpoint (M3 3M3a COMPLETE; BC-5.39.007+008 drafts; D-481 2026-05-18) archived to: `cycles/v1.0-brownfield-backfill/session-checkpoints.md`
 
