@@ -158,7 +158,7 @@ producer: state-manager
 timestamp: 2026-05-06T19:00:00Z
 cycle: "v1.0-brownfield-backfill"
 inputs: [STATE.md]
-input-hash: "0699c89"
+input-hash: "41b021b"
 traces_to: STATE.md
 ---
 
@@ -2815,4 +2815,4 @@ Expected: 1 — confirms single commit only, no chain.
 
 - `77ebbabc` (D-488 M3 BC cascade pass-4 adversary persist + INV-019-CANDIDATE codification; parent eda3f2f5)
 - `f3cc03fc` (PO fix-burst pass-4 — BC-5.39.008 v1.4 + BC-5.39.006 v1.6 + BC-5.39.007 v1.4 + BC-INDEX v2.41)
-- `<this commit SHA>` (D-489 state-manager codification; SHA-patch follow-up will update Active Branches)
+- `daf1df60` (D-489 state-manager codification; SHA-patch follow-up will update Active Branches)
