@@ -1,11 +1,11 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.3"
+version: "1.4"
 status: draft
 producer: product-owner
 timestamp: 2026-05-18T00:00:00Z
-phase: section-12-step-3M3a-r-pass-3
+phase: section-12-step-3M3a-r-pass-4
 cycle: brownfield-backfill
 inputs:
   - .factory/cycles/v1.0-brownfield-backfill/s-15.03-wave-plan-2026-05-15.md
@@ -24,6 +24,7 @@ lifecycle_status: draft
 introduced: v1.0-brownfield-backfill
 modified:
   - 2026-05-18
+  - 2026-05-19
   - 2026-05-19
   - 2026-05-19
 deprecated: null
@@ -206,7 +207,7 @@ BC-5.39.001.
 
 2. If any h2 lesson entry in `lessons.md` lacks a `**Closes:**` bold-prefix line (or has
    a `**Closes:**` line with no content beyond the label itself), the hook emits
-   `HookResult::Block { reason: block_with_fix(...) }` naming the entry (by h2 heading
+   `HookResult::block_with_fix(...)` naming the entry (by h2 heading
    text) and citing D-448(b).
 
    **Closes format ground truth:** The canonical form is `**Closes:** <cite-list>` as a
@@ -215,7 +216,7 @@ BC-5.39.001.
 
 3. If a `**Closes:**` line exists in a lesson entry but contains forbidden per-mechanism
    annotations (pattern: `\(per D-413\(b\) mandate\)`) or the phrase
-   `N items per D-413(b)`, the hook emits `HookResult::Block { reason: block_with_fix(...) }`
+   `N items per D-413(b)`, the hook emits `HookResult::block_with_fix(...)`
    citing D-420(e) and naming the offending line.
 
 ### decision-log.md arm (file_name == "decision-log.md")
@@ -223,14 +224,14 @@ BC-5.39.001.
 4. If no bare umbrella citation `D-\d+\.\.D-\d+` is found without a sample-vs-exhaustive
    flag, the hook emits `HookResult::Continue` for the umbrella-flag check.
 5. If any bare umbrella citation `D-\d+\.\.D-\d+` exists in the file WITHOUT an adjacent
-   sample-vs-exhaustive flag marker, the hook emits `HookResult::Block { reason: block_with_fix(...) }`
+   sample-vs-exhaustive flag marker, the hook emits `HookResult::block_with_fix(...)`
    naming the offending range and citing D-441(c)+D-442(c).
 
 ### STATE.md arm (file_name == "STATE.md")
 
 6. Same umbrella-flag rule as postcondition 5, applied to STATE.md content. A bare
    `D-\d+\.\.D-\d+` cite without an adjacent sample-vs-exhaustive flag marker is a
-   `HookResult::Block { reason: block_with_fix(...) }` citing D-441(c)+D-442(c).
+   `HookResult::block_with_fix(...)` citing D-441(c)+D-442(c).
 
 ### INDEX.md arm (file_name == "INDEX.md")
 
@@ -241,7 +242,7 @@ BC-5.39.001.
 8. If any `**Closes:**` line entry contains a cite that does not match a recognized
    structured ID pattern (`D-\d+`, `F-P\d+-\d+`, `TD-VSDD-\d+`, `PG-[A-Za-z0-9-]+`,
    `L-EDP1-\d+`, `ADV-EDP1-P\d+-[A-Z]+-\d+`) — i.e., is freeform prose or an arbitrary
-   label — the hook emits `HookResult::Block { reason: block_with_fix(...) }` citing
+   label — the hook emits `HookResult::block_with_fix(...)` citing
    D-419(c) and naming the malformed entry.
 
 ### All arms — cascade and fail-open
@@ -466,6 +467,7 @@ VP IDs pending VP-INDEX allocation by state-manager at S-15.12 post-merge burst.
 
 | Version | Date | Description |
 |---------|------|-------------|
+| 1.4 | 2026-05-19 | Pass-4 adversary fix-burst (product-owner; brownfield-backfill M3 3M3a-r fix-burst pass-4). Closes F-BC007P4-NIT (cross-BC idiom alignment: standardize on assoc-fn `HookResult::block_with_fix(...)` per BC-5.39.006 precedent (~43 occurrences) and `block_with_fix` pub-fn constructor in hook-sdk result module). Specific changes: 5 occurrences of struct-pattern form in Postconditions 2, 3, 5, 6, 8 replaced with assoc-fn `HookResult::block_with_fix(...)`. INV-017 pre-fix narrow-pattern evidence (struct-pattern count, excluding Changelog section): `sed -n '1,465p' .factory/specs/behavioral-contracts/ss-05/BC-5.39.007.md \| grep -cE 'HookResult::Block \{ reason: block_with_fix'` → `5`. INV-017 post-fix narrow-pattern (same sed-bounded grep on committed file): `0` (all 5 replaced; only remaining occurrence is in this Changelog row — POLICY-1-exempt). INV-018 residual-class sweep (structurally broader — any `Block \{ reason` in spec body, excluding Changelog): `sed -n '1,465p' .factory/specs/behavioral-contracts/ss-05/BC-5.39.007.md \| grep -cE 'HookResult::Block \{ reason'` → `0` post-fix. INV-019 cure: cure (a) line-range-exclude — greps bounded to lines 1-465 (spec body, pre-Changelog), excluding this row's self-reference; line range documented here for reproducibility. |
 | 1.3 | 2026-05-19 | Pass-3 adversary fix-burst (product-owner; brownfield-backfill M3 3M3a-r fix-burst pass-3; INV-018 dual-grep applied). Closes F-BC007P3-001 (HIGH: D-NNN Anchor Coverage table mis-anchors — PC2 retired and PC8 non-existent). Specific corrections: (1) D-419(c) row "Postcondition" column: was `PC3/PC8`; PC8 does not exist in BC-5.39.007 (postconditions are 1–10; no PC8 label); the gate enforced by D-419(c) is postcondition 3 (forbidden annotation block) and postcondition 8 (cite ID validation) — corrected to bare ordinals `3/8`. (2) D-420(e) row "Postcondition" column: was `PC3`; corrected to `3` (postcondition 3). (3) D-441(c) and D-442(c) rows: were `PC5/PC6/PC7`; corrected to `5/6/7` (postcondition ordinals for decision-log.md / STATE.md / INDEX.md umbrella-flag arms). (4) D-443(b) row: retained as `invariant 7` (references invariant, not postcondition — unchanged). (5) D-448(b) row: was `PC1/PC2`; PC2 was retired at pass-1 (split into PC2a/PC2b); the D-448(b) gate enforces postcondition 2 (missing/empty `**Closes:**` line → block) — corrected to `2`. Added convention-clarity note above table: column uses bare postcondition ordinals (1–10) except precondition checks which use PC-label form. Subsumed F-BC007P3-002 (MEDIUM: D-448(b) row specifically mis-anchored to retired PC1/PC2 — same table, fixed in same correction). INV-018 pre-fix narrow-pattern: `grep -nE 'PC3.PC8.PC1.PC2' .factory/specs/behavioral-contracts/ss-05/BC-5.39.007.md` → lines 396 and 401 (2 mis-anchor rows confirmed). INV-018 post-fix narrow-pattern: `grep -nE 'PC3.PC8.PC1.PC2' .factory/specs/behavioral-contracts/ss-05/BC-5.39.007.md` → `(zero output)`. INV-018 residual-class sweep: `grep -nE 'PC[789].PC1[0-9]' .factory/specs/behavioral-contracts/ss-05/BC-5.39.007.md` → `(zero output)` (no non-existent PC labels in spec body). |
 | 1.2 | 2026-05-19 | Pass-2 adversary fix-burst (product-owner; brownfield-backfill M3 3M3a-r pass-2; INV-017 applied). Closes F-BC007P2-002 (HIGH: Phase-2-never-shipped false-negative window declared explicitly), F-BC007P2-003 (HIGH: PC2/PC5 renumber propagation — Phase-1 boundary table + Test Vectors updated), F-BC007P2-004 (MEDIUM: Dispatch Arm Routing section added), F-BC007P2-005 (MEDIUM: EC-016/EC-018 cascade order declared), F-BC007P2-007 (LOW: invariant 5 regex parenthetical aligned with EC-004). F-BC007P2-001 handled in BC-5.39.006 v1.4. F-BC007P2-006 handled in BC-5.39.008 v1.2. |
 | 1.1 | 2026-05-18 | Pass-1 adversary fix-burst. Closes all 21 F-BC007P1-NNN findings. CRITICAL: Postconditions rewritten to use `**Closes:**` bold-prefix line (not `### Closes` h3) per lessons.md corpus ground truth (F-BC007P1-001); PC2 split into PC2a (marker presence) + PC2b (LENGTH == 4) with explicit AND semantics (F-BC007P1-008); trajectory-tail regex `→(\d+)` first-semicolon-segment verbatim from BC-5.39.006 v1.3 (F-BC007P1-002); Phase 1/2 boundary table added explicitly enumerating all violation classes (F-BC007P1-003); PC4 file-read cap 512 KiB with META-LEVEL-24 false-green rationale (F-BC007P1-004); EC-018 clarified as input-validation/precondition-violation path for wrong-format detection (F-BC007P1-005); PC1 trivially-satisfied attestation added (F-BC007P1-006); EC-019 canonical regex noted (F-BC007P1-007); HookResult::Advisory references replaced with HookResult::Continue + host::log_warn — no Advisory variant exists in hook-sdk crates/hook-sdk/src/result.rs (F-BC007P1-009); Phase 2 ADR-022 gate trigger condition added inline (F-BC007P1-010); EC-021 empty/zero-byte STATE.md added (F-BC007P1-011); hook ordering with BC-5.39.005 specified (independent/parallel, no short-circuit) (F-BC007P1-012); sub-contracts none statement added (F-BC007P1-013); LENGTH==3 off-by-one test vector row added (F-BC007P1-014); EC-017 trimmed (F-BC007P1-015); PC identifier columns added to Test Vectors (F-BC007P1-018); adversary pass coverage note added (F-BC007P1-019); Phase 1 capitalization standardized throughout (F-BC007P1-020); SS-05 anchor confirmed (F-BC007P1-021). |
