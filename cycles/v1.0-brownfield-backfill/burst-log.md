@@ -153,12 +153,12 @@ Single-Commit Burst Protocol per TD-VSDD-053: one atomic commit on factory-artif
 ### Factory-artifacts Commits
 
 - `d34aa222` (parent: SHA-patch following D-483 pass-1 PO-fix-burst codification)
-- PENDING-SHA-PATCH (this burst; SHA-patch follow-up will fill Active Branches + this heading)
+- `77ebbabc` (this codification burst: D-488 + L-M3-BC-cascade-pass-4-INV-019-CANDIDATE + STATE.md advance; single atomic commit per TD-VSDD-053; parent-commit eda3f2f5 per D-419(b))
 producer: state-manager
 timestamp: 2026-05-06T19:00:00Z
 cycle: "v1.0-brownfield-backfill"
 inputs: [STATE.md]
-input-hash: "45717fe"
+input-hash: "ae90dca"
 traces_to: STATE.md
 ---
 
@@ -1754,9 +1754,9 @@ PASS
 **Input hashes valid (non-pending):**
 ```
 $ grep "^input-hash:" .factory/specs/behavioral-contracts/ss-05/BC-5.39.007.md
-input-hash: "45717fe"
+input-hash: "ae90dca"
 $ grep "^input-hash:" .factory/specs/behavioral-contracts/ss-05/BC-5.39.008.md
-input-hash: "45717fe"
+input-hash: "ae90dca"
 ```
 PASS — both are lowercase hex (7 chars); no "pending" placeholder
 
@@ -2511,7 +2511,7 @@ BC files (BC-5.39.006.md, BC-5.39.007.md, BC-5.39.008.md) touched at PO commit `
 
 ---
 
-## 2026-05-19 — M3 BC cascade pass-4 persisted (factory-artifacts PENDING-SHA)
+## 2026-05-19 — M3 BC cascade pass-4 persisted (factory-artifacts 77ebbabc)
 
 ### Parent-commit
 
@@ -2693,4 +2693,4 @@ Single-Commit Burst Protocol per TD-VSDD-053: one atomic commit on factory-artif
 ### Factory-artifacts Commits
 
 - `eda3f2f5` (parent: SHA-patch following D-487 pass-3 PO fix-burst codification)
-- PENDING-SHA-PATCH (this burst; SHA-patch follow-up will fill Active Branches + this heading)
+- `77ebbabc` (this codification burst: D-488 + L-M3-BC-cascade-pass-4-INV-019-CANDIDATE + STATE.md advance; single atomic commit per TD-VSDD-053; parent-commit eda3f2f5 per D-419(b))
