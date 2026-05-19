@@ -7,7 +7,7 @@ producer: state-manager
 timestamp: 2026-05-06T19:00:00Z
 cycle: "v1.0-brownfield-backfill"
 inputs: [STATE.md]
-input-hash: "2f6a18d"
+input-hash: "3ab28d7"
 traces_to: STATE.md
 ---
 
@@ -1923,4 +1923,4 @@ Single-Commit Burst Protocol per TD-VSDD-053: one atomic commit on factory-artif
 
 ### Factory-artifacts commits
 - `865062b5` (PO fix-burst: BC-5.39.007 v1.0→v1.1 + BC-5.39.008 v1.0→v1.1 + BC-INDEX v2.37→v2.38)
-- `<TO_BE_SHA_PATCHED>` (this codification burst: D-483 + L-M3-BC-cascade-pass-1-PO-fix-burst + STATE.md advance; SHA filled in SHA-patch follow-up per D-447(c)+D-449(e))
+- `aac1b834` (this codification burst: D-483 + L-M3-BC-cascade-pass-1-PO-fix-burst + STATE.md advance; single atomic commit per TD-VSDD-053)
