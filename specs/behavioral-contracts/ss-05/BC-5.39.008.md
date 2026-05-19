@@ -1,11 +1,11 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.2"
+version: "1.3"
 status: draft
 producer: product-owner
 timestamp: 2026-05-18T00:00:00Z
-phase: section-12-step-3M3a-r-pass-2
+phase: section-12-step-3M3a-r-pass-3
 cycle: brownfield-backfill
 inputs:
   - .factory/cycles/v1.0-brownfield-backfill/s-15.03-wave-plan-2026-05-15.md
@@ -23,6 +23,7 @@ lifecycle_status: draft
 introduced: v1.0-brownfield-backfill
 modified:
   - 2026-05-18
+  - 2026-05-19
   - 2026-05-19
 deprecated: null
 deprecated_by: null
@@ -182,6 +183,18 @@ an advisory log (not a block) per postcondition 8.
    the non-conforming ID value and citing the canonical integer format (bare YAML integer,
    range [1, 999]) per production policies.yaml. String values, negative integers, zero, and
    `POLICY NNN`-prefixed strings are all non-conforming.
+
+   **Range rationale (v1.3, F-BC008P3-002 fix):** The upper bound of 999 supports
+   future-proofing per the three-digit-ID canonical form (POLICY 15 / F-PASS14-006).
+   Current production ids are 1..18 (18 policies as of 2026-05-19). Expected growth is
+   well under 100 over the next 5 years. Hard cap of 999 enables consistent 3-digit-maximum
+   display formatting in tables and UI tooling without imposing an artificially low ceiling.
+   INV-018 evidence — current id range: `grep -nE '^  - id:' .factory/policies.yaml | head -5`
+   → `33: - id: 1` ... `47: - id: 2` (first 5; bare integer format confirmed).
+   `grep -nE '^  - id:' .factory/policies.yaml | tail -3` → `268: - id: 17`, `282: - id: 18`
+   (current max = 18; well within [1, 999]). Residual-class sweep for 4+ digit ids:
+   `grep -nE 'id: [0-9]{4,}' .factory/policies.yaml` → `(zero output)` (no id exceeds 999
+   in production; hard cap is forward-protection only).
 5. If any two policy entries share the same `id` value (duplicate POLICY ID), the hook
    emits `HookResult::Block { reason: block_with_fix(...) }` naming the duplicated ID
    and citing the no-duplicate-IDs invariant.
@@ -393,13 +406,19 @@ an advisory log (not a block) per postcondition 8.
 
 ## D-NNN Anchor Coverage
 
+The "Postcondition" column cites postcondition ordinals (1–14 for Part A/B/C) or "PC-label"
+for precondition-level gates. POLICY-row corrections per v1.3 (F-BC008P3-001): POLICY 13
+enforces postcondition 6 (lint_hook field existence check); POLICY 16 enforces postcondition 7
+(codified_at coupling validation). PC3 (tool_input.content is not source of truth) is
+semantically unrelated to POLICY 13/16 and is NOT cited in those rows.
+
 | D-NNN Sub-Clause | Gate Enforced | Postcondition |
 |-----------------|---------------|---------------|
-| F-PASS14-004 | policies.yaml frontmatter header required fields | PC2 |
-| F-PASS14-006 | Three-digit POLICY ID canonical format (human direction 2026-05-15) | PC4 |
-| ADR-021 Option b | cargo-audit cache file provisioning for Part C advisory checks (Option (a) REJECTED per ADR-021 §"Alternatives Considered — Option (a)" (lines 245-258)) | PC12/PC13 |
-| POLICY 13 | `lint_hook` field required per POLICY 13 codification at D-472 | PC3/PC6 |
-| POLICY 16 | `codified_at` field required per POLICY 16 codification at D-472 | PC3/PC7 |
+| F-PASS14-004 | policies.yaml frontmatter header required fields | 2 |
+| F-PASS14-006 | Three-digit POLICY ID canonical format (human direction 2026-05-15) | 4 |
+| ADR-021 Option b | cargo-audit cache file provisioning for Part C advisory checks (Option (a) REJECTED per ADR-021 §"Alternatives Considered — Option (a)" (lines 245-258)) | 12/13 |
+| POLICY 13 | `lint_hook` field required per POLICY 13 codification at D-472 | 6 |
+| POLICY 16 | `codified_at` field required per POLICY 16 codification at D-472 | 7 |
 
 ## Verification Properties
 
@@ -466,6 +485,7 @@ VP IDs pending VP-INDEX allocation by state-manager at S-15.15 post-merge burst.
 
 | Version | Date | Description |
 |---------|------|-------------|
+| 1.3 | 2026-05-19 | Pass-3 adversary fix-burst (product-owner; brownfield-backfill M3 3M3a-r fix-burst pass-3; INV-018 dual-grep applied). Closes F-BC008P3-001 (HIGH: D-NNN Anchor Coverage table semantic mis-anchor — POLICY 13 → PC3/PC6 and POLICY 16 → PC3/PC7; PC3 is "tool_input.content is not source of truth" — semantically unrelated to lint_hook/codified_at validation). Corrections: POLICY 13 row "Postcondition" column changed from `PC3/PC6` to `6` (postcondition 6 = lint_hook field existence check); POLICY 16 row changed from `PC3/PC7` to `7` (postcondition 7 = codified_at coupling validation). Convention-clarity note added above D-NNN Anchor Coverage table. INV-018 pre-fix narrow-pattern: `grep -nE 'POLICY 13.POLICY 16' .factory/specs/behavioral-contracts/ss-05/BC-5.39.008.md` → lines 401 (PC3/PC6) and 402 (PC3/PC7) confirmed. INV-018 post-fix narrow-pattern (POLICY 13 and 16 rows in table): `grep -nE 'POLICY 13.POLICY 16' .factory/specs/behavioral-contracts/ss-05/BC-5.39.008.md` → lines show `6` and `7` in Postcondition column. INV-018 residual-class sweep (PC3 mis-anchors in POLICY rows): `grep -nE 'PC3.*POLICY.POLICY.*PC3' .factory/specs/behavioral-contracts/ss-05/BC-5.39.008.md` → `(zero output)`. Closes F-BC008P3-002 (LOW: PC4 `[1, 999]` range over-specified without rationale). Fix: added range rationale in postcondition 4 body citing three-digit-ID canonical form (POLICY 15/F-PASS14-006), current production count (1..18), expected growth trajectory, and hard-cap purpose (3-digit display formatting). INV-018 pre-fix evidence: `grep -nE '^  - id:' .factory/policies.yaml` (first 5 results) → `33: - id: 1` through `90: - id: 5` (current format bare integer confirmed). INV-018 residual-class sweep: `grep -nE 'id: [0-9]{4,}' .factory/policies.yaml` → `(zero output)` (no 4+ digit IDs in production; hard cap 999 is forward-protection only). Closes F-BC008P3-003 (LOW: cross-BC closure citation inconsistency — BC-5.39.008 v1.2 frontmatter closes `F-BC007P2-006` which is a BC-007 namespace finding). Note appended: F-BC007P2-006 was a BC-007 namespace finding relocated to BC-008 PC13 by orchestrator at pass-2 because the fix lived at BC-008. This relocation is mechanically defensible. Future findings about cross-BC fixes will use the originating BC's namespace in the closing BC's changelog row with explicit relocation citation (e.g., "Closes F-BC007P2-006 (relocated from BC-007 namespace to BC-008 at pass-2 per orchestrator direction — fix lives at BC-008 PC13)"). This note is documentary; no spec content change required. |
 | 1.2 | 2026-05-19 | Pass-2 adversary fix-burst (product-owner; brownfield-backfill M3 3M3a-r pass-2; INV-017 applied). Closes F-BC008P2-001 (CRITICAL: id format), F-BC008P2-002 (CRITICAL: PC10 exec_subprocess), F-BC008P2-003 (HIGH: invariant 5 self-contradiction), F-BC008P2-004 (MEDIUM: PC2 orphan section), F-BC008P2-005 (MEDIUM: ADR-021 cite), F-BC007P2-006 (MEDIUM: ADR-021 Open Sub-Questions PC13 cite), F-BC008P2-007 (LOW: phase), F-BC008P2-009 (NITPICK: changelog format). See body changes for INV-017 evidence. |
 | 1.1 | 2026-05-18 | Pass-1 adversary fix-burst. F-BC008P1-001 DO NOT ACT (FALSE POSITIVE — TD-VSDD-101 registered; env-var present; adversary grepped stale local main). Closes F-BC008P1-002..020. CRITICAL: PC13 completely rewritten — ADR-021 Option (a) (embedded RUSTSEC lookup table) is REJECTED at line 251; PC13 now reflects Option (b): WASM hook reads cargo-audit-cache.json via host::read_file; bash script provisions cache; no embedded table in WASM binary (F-BC008P1-002). HIGH: WASM sandboxing constraint documented: host::exec_subprocess NOT available; WASM reads cache file only (F-BC008P1-003); Part C advisory escalation threshold: 1+ HIGH/CRITICAL → block; all MEDIUM/LOW → advisory-log + Continue (F-BC008P1-004); PC7 lint_hook+codified_at coupling rationale documented (F-BC008P1-005); Invariant 5 severity enum: HIGH and MEDIUM per policies.yaml corpus (line 16 comment) with P0/P1/P2/P3/P4 alternative accepted (F-BC008P1-006); policies.yaml file-size cap 512 KiB explicit with META-LEVEL-24 rationale (F-BC008P1-007). MEDIUM: PC2 scope clarified: required-mandatory keys only (F-BC008P1-008); EC-021 Part-C per-advisory emission specified (not batched) (F-BC008P1-009); HookResult::Advisory references replaced with HookResult::Continue + host::log_warn — no Advisory variant in hook-sdk (F-BC008P1-010); Part A/B/C invocation order documented: A→B→C, C last due to I/O cost (F-BC008P1-011); ADR-021 Option (b) WASM integration documented inline in PC10 (F-BC008P1-012); EC-021 YAML syntax error EC added; prior EC-021 renumbered EC-022 (F-BC008P1-013). LOW: lint_hook multi-segment slug regex `^[a-z0-9-]+:[a-z0-9-]+$` specified in postcondition 6 (F-BC008P1-015); invariant numbering verified contiguous 1-11 (F-BC008P1-016); YAML parse error test vector row added (F-BC008P1-017); PC identifier columns added to Test Vectors (F-BC008P1-018). NIT: Part A/B/C capitalization standardized (F-BC008P1-019); SS-05 anchor confirmed (F-BC008P1-020). |
 | 1.0 | 2026-05-18 | Initial authoring (product-owner; brownfield-backfill S-15.03 M3 wave 3M3a BC authoring). Anchors F-PASS14-004+F-PASS14-006+POLICY-13/16-D-472+ADR-021-Option-b. BC-5.39.008 allocated as next monotonic ID after BC-5.39.007 in ss-05/. lifecycle_status: draft (POL-14 auto-promotion to active on S-15.15 merge). Part C gated on ADR-021 (ACCEPTED 2026-05-15). TD-VSDD-101 CI env-var paper-fix does not affect this BC's invariants (invariant 10). Preemptive cascade lessons applied: path-component-strict guard for both policies.yaml and td-*-dispatch.md arms; is_char_boundary() invariant 11; fail-open invariant 9; 524288 max_bytes; cascade-all-violations invariant 8; advisory-not-block for Part C per ADR-021; advisory for extra fields (forward-compat). |

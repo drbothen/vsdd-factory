@@ -1,11 +1,11 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.2"
+version: "1.3"
 status: draft
 producer: product-owner
 timestamp: 2026-05-18T00:00:00Z
-phase: section-12-step-3M3a-r-pass-2
+phase: section-12-step-3M3a-r-pass-3
 cycle: brownfield-backfill
 inputs:
   - .factory/cycles/v1.0-brownfield-backfill/s-15.03-wave-plan-2026-05-15.md
@@ -25,6 +25,7 @@ introduced: v1.0-brownfield-backfill
 modified:
   - 2026-05-18
   - 2026-05-19
+  - 2026-05-19
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -33,7 +34,7 @@ removed: null
 removal_reason: null
 bc_id: BC-5.39.007
 section: "5.39"
-last_amended: "2026-05-18 (v1.1) — Pass-1 adversary fix-burst (product-owner; brownfield-backfill M3 3M3a-r fix-burst). Closes F-BC007P1-001 (CRITICAL Closes format: ### h3 → **Closes:** bold-prefix-line per lessons.md corpus ground truth), F-BC007P1-002 (HIGH PC2a marker regex verbatim), F-BC007P1-003 (HIGH Phase 1/2 boundary crisply enumerated), F-BC007P1-004 (HIGH STATE.md 512 KiB read cap explicit in Preconditions), F-BC007P1-005 (HIGH EC-018 path clarified as precondition-violation input-validation path), F-BC007P1-006 (MEDIUM PC1 trivially-satisfied attestation added), F-BC007P1-007 (MEDIUM EC-019 regex verbatim), F-BC007P1-008 (MEDIUM PC2 split into PC2a+PC2b with explicit AND), F-BC007P1-009 (MEDIUM HookResult rewritten to use actual SDK variants: HookResult::Block / HookResult::Continue — no Advisory variant in hook-sdk), F-BC007P1-010 (MEDIUM Phase 2 ADR-022 gate inline summary added), F-BC007P1-011 (MEDIUM EC-020 empty/zero-byte STATE.md added; renumbered from prior EC-020), F-BC007P1-012 (MEDIUM hook ordering with BC-5.39.005 specified), F-BC007P1-013 (LOW sub-contracts none statement added), F-BC007P1-014 (LOW LENGTH==3 off-by-one test vector row added), F-BC007P1-015 (LOW EC-017 formatting trimmed), F-BC007P1-016 (LOW changelog section authored), F-BC007P1-017 (LOW invariant numbering verified contiguous 1-10), F-BC007P1-018 (LOW PC identifiers substituted in Test Vectors), F-BC007P1-019 (LOW adversary pass coverage note added), F-BC007P1-020 (NIT Phase 1 capitalization standardized), F-BC007P1-021 (NIT SS-05 anchor confirmed). [Prior: 2026-05-18 (v1.0) — Initial authoring (product-owner; brownfield-backfill S-15.03 M3 wave 3M3a BC authoring). Anchors D-419(c)+D-420(e)+D-441(c)+D-442(c)+D-443(b)+D-448(b). BC-5.39.007 allocated as next monotonic ID after BC-5.39.006 in ss-05/. lifecycle_status: draft (POL-14 auto-promotion to active on S-15.12 merge). Phase 2 (cross-cell agreement) is reserved for v1.1 in S-15.13 scope per ADR-022.]"
+last_amended: "2026-05-18 (v1.1) — Pass-1 adversary fix-burst (product-owner; brownfield-backfill M3 3M3a-r fix-burst). Closes F-BC007P1-001 (CRITICAL Closes format: ### h3 → **Closes:** bold-prefix-line per lessons.md corpus ground truth), F-BC007P1-002 (HIGH PC2a marker regex verbatim), F-BC007P1-003 (HIGH Phase 1/2 boundary crisply enumerated), F-BC007P1-004 (HIGH STATE.md 512 KiB read cap explicit in Preconditions), F-BC007P1-005 (HIGH EC-018 path clarified as precondition-violation input-validation path), F-BC007P1-006 (MEDIUM PC1 trivially-satisfied attestation added), F-BC007P1-007 (MEDIUM EC-019 regex verbatim), F-BC007P1-008 (MEDIUM PC2 split into PC2a+PC2b with explicit AND), F-BC007P1-009 (MEDIUM HookResult rewritten to use actual SDK variants: HookResult::Block / HookResult::Continue — no Advisory variant in hook-sdk), f-BC007P1-010 (MEDIUM Phase 2 ADR-022 gate inline summary added), F-BC007P1-011 (MEDIUM EC-020 empty/zero-byte STATE.md added; renumbered from prior EC-020), F-BC007P1-012 (MEDIUM hook ordering with BC-5.39.005 specified), F-BC007P1-013 (LOW sub-contracts none statement added), F-BC007P1-014 (LOW LENGTH==3 off-by-one test vector row added), F-BC007P1-015 (LOW EC-017 formatting trimmed), F-BC007P1-016 (LOW changelog section authored), F-BC007P1-017 (LOW invariant numbering verified contiguous 1-10), F-BC007P1-018 (LOW PC identifiers substituted in Test Vectors), F-BC007P1-019 (LOW adversary pass coverage note added), F-BC007P1-020 (NIT Phase 1 capitalization standardized), F-BC007P1-021 (NIT SS-05 anchor confirmed). [Prior: 2026-05-18 (v1.0) — Initial authoring (product-owner; brownfield-backfill S-15.03 M3 wave 3M3a BC authoring). Anchors D-419(c)+D-420(e)+D-441(c)+D-442(c)+D-443(b)+D-448(b). BC-5.39.007 allocated as next monotonic ID after BC-5.39.006 in ss-05/. lifecycle_status: draft (POL-14 auto-promotion to active on S-15.12 merge). Phase 2 (cross-cell agreement) is reserved for v1.1 in S-15.13 scope per ADR-022.]"
 ---
 
 # BC-5.39.007: validate-closes-completeness Phase 1 WASM hook MUST block on missing Closes blocks in burst-log entries and lessons.md entries, malformed cite IDs in Closes blocks, forbidden per-mechanism annotations, and umbrella citation sites missing the sample-vs-exhaustive flag in decision-log.md, STATE.md, INDEX.md, and lessons.md
@@ -391,14 +392,19 @@ cross-document resolver.
 
 ## D-NNN Anchor Coverage
 
+The "Postcondition" column uses bare ordinal numbers (1–10) referencing the postcondition
+ordinals in the ## Postconditions section above. Preconditions are cited as PC-label (PC1,
+PC2a, PC2b, etc.) when the gate enforced is a precondition check rather than a postcondition
+assertion. This mixed convention is explicit per v1.3 (F-BC007P3-001 fix).
+
 | D-NNN Sub-Clause | Gate Enforced | Postcondition |
 |-----------------|---------------|---------------|
-| D-419(c) | `(per D-413(b) completeness mandate)` annotation form blocked in Closes cites | PC3/PC8 |
-| D-420(e) | Per-finding mechanism annotations in Closes blocks forbidden | PC3 |
-| D-441(c) | Umbrella citation sites in STATE.md, INDEX.md, decision-log.md MUST carry sample-vs-exhaustive flag | PC5/PC6/PC7 |
-| D-442(c) | Retroactive sweep for sample-vs-exhaustive flag across umbrella citation sites | PC5/PC6/PC7 |
+| D-419(c) | `(per D-413(b) completeness mandate)` annotation form blocked in Closes cites | 3/8 |
+| D-420(e) | Per-finding mechanism annotations in Closes blocks forbidden | 3 |
+| D-441(c) | Umbrella citation sites in STATE.md, INDEX.md, decision-log.md MUST carry sample-vs-exhaustive flag | 5/6/7 |
+| D-442(c) | Retroactive sweep for sample-vs-exhaustive flag across umbrella citation sites | 5/6/7 |
 | D-443(b) | Documentary-historical exemption must be explicit; silent omission forbidden | invariant 7 |
-| D-448(b) | Lesson entries in lessons.md MUST have `**Closes:**` bold-prefix line | PC1/PC2 |
+| D-448(b) | Lesson entries in lessons.md MUST have `**Closes:**` bold-prefix line | 2 |
 
 ## Verification Properties
 
@@ -460,6 +466,7 @@ VP IDs pending VP-INDEX allocation by state-manager at S-15.12 post-merge burst.
 
 | Version | Date | Description |
 |---------|------|-------------|
+| 1.3 | 2026-05-19 | Pass-3 adversary fix-burst (product-owner; brownfield-backfill M3 3M3a-r fix-burst pass-3; INV-018 dual-grep applied). Closes F-BC007P3-001 (HIGH: D-NNN Anchor Coverage table mis-anchors — PC2 retired and PC8 non-existent). Specific corrections: (1) D-419(c) row "Postcondition" column: was `PC3/PC8`; PC8 does not exist in BC-5.39.007 (postconditions are 1–10; no PC8 label); the gate enforced by D-419(c) is postcondition 3 (forbidden annotation block) and postcondition 8 (cite ID validation) — corrected to bare ordinals `3/8`. (2) D-420(e) row "Postcondition" column: was `PC3`; corrected to `3` (postcondition 3). (3) D-441(c) and D-442(c) rows: were `PC5/PC6/PC7`; corrected to `5/6/7` (postcondition ordinals for decision-log.md / STATE.md / INDEX.md umbrella-flag arms). (4) D-443(b) row: retained as `invariant 7` (references invariant, not postcondition — unchanged). (5) D-448(b) row: was `PC1/PC2`; PC2 was retired at pass-1 (split into PC2a/PC2b); the D-448(b) gate enforces postcondition 2 (missing/empty `**Closes:**` line → block) — corrected to `2`. Added convention-clarity note above table: column uses bare postcondition ordinals (1–10) except precondition checks which use PC-label form. Subsumed F-BC007P3-002 (MEDIUM: D-448(b) row specifically mis-anchored to retired PC1/PC2 — same table, fixed in same correction). INV-018 pre-fix narrow-pattern: `grep -nE 'PC3.PC8.PC1.PC2' .factory/specs/behavioral-contracts/ss-05/BC-5.39.007.md` → lines 396 and 401 (2 mis-anchor rows confirmed). INV-018 post-fix narrow-pattern: `grep -nE 'PC3.PC8.PC1.PC2' .factory/specs/behavioral-contracts/ss-05/BC-5.39.007.md` → `(zero output)`. INV-018 residual-class sweep: `grep -nE 'PC[789].PC1[0-9]' .factory/specs/behavioral-contracts/ss-05/BC-5.39.007.md` → `(zero output)` (no non-existent PC labels in spec body). |
 | 1.2 | 2026-05-19 | Pass-2 adversary fix-burst (product-owner; brownfield-backfill M3 3M3a-r pass-2; INV-017 applied). Closes F-BC007P2-002 (HIGH: Phase-2-never-shipped false-negative window declared explicitly), F-BC007P2-003 (HIGH: PC2/PC5 renumber propagation — Phase-1 boundary table + Test Vectors updated), F-BC007P2-004 (MEDIUM: Dispatch Arm Routing section added), F-BC007P2-005 (MEDIUM: EC-016/EC-018 cascade order declared), F-BC007P2-007 (LOW: invariant 5 regex parenthetical aligned with EC-004). F-BC007P2-001 handled in BC-5.39.006 v1.4. F-BC007P2-006 handled in BC-5.39.008 v1.2. |
 | 1.1 | 2026-05-18 | Pass-1 adversary fix-burst. Closes all 21 F-BC007P1-NNN findings. CRITICAL: Postconditions rewritten to use `**Closes:**` bold-prefix line (not `### Closes` h3) per lessons.md corpus ground truth (F-BC007P1-001); PC2 split into PC2a (marker presence) + PC2b (LENGTH == 4) with explicit AND semantics (F-BC007P1-008); trajectory-tail regex `→(\d+)` first-semicolon-segment verbatim from BC-5.39.006 v1.3 (F-BC007P1-002); Phase 1/2 boundary table added explicitly enumerating all violation classes (F-BC007P1-003); PC4 file-read cap 512 KiB with META-LEVEL-24 false-green rationale (F-BC007P1-004); EC-018 clarified as input-validation/precondition-violation path for wrong-format detection (F-BC007P1-005); PC1 trivially-satisfied attestation added (F-BC007P1-006); EC-019 canonical regex noted (F-BC007P1-007); HookResult::Advisory references replaced with HookResult::Continue + host::log_warn — no Advisory variant exists in hook-sdk crates/hook-sdk/src/result.rs (F-BC007P1-009); Phase 2 ADR-022 gate trigger condition added inline (F-BC007P1-010); EC-021 empty/zero-byte STATE.md added (F-BC007P1-011); hook ordering with BC-5.39.005 specified (independent/parallel, no short-circuit) (F-BC007P1-012); sub-contracts none statement added (F-BC007P1-013); LENGTH==3 off-by-one test vector row added (F-BC007P1-014); EC-017 trimmed (F-BC007P1-015); PC identifier columns added to Test Vectors (F-BC007P1-018); adversary pass coverage note added (F-BC007P1-019); Phase 1 capitalization standardized throughout (F-BC007P1-020); SS-05 anchor confirmed (F-BC007P1-021). |
 | 1.0 | 2026-05-18 | Initial authoring (product-owner; brownfield-backfill S-15.03 M3 wave 3M3a BC authoring). Anchors D-419(c)+D-420(e)+D-441(c)+D-442(c)+D-443(b)+D-448(b). BC-5.39.007 allocated as next monotonic ID after BC-5.39.006 in ss-05/. lifecycle_status: draft (POL-14 auto-promotion to active on S-15.12 merge). Phase 2 (cross-cell agreement) reserved for v1.1 in S-15.13 scope per ADR-022 Option c. Preemptive cascade lessons applied: path-component-strict guard; is_char_boundary() invariant 10; fail-open invariant 9; 524288 max_bytes; Phase-1-advisory for cross-site staleness (postcondition and EC-010). |
