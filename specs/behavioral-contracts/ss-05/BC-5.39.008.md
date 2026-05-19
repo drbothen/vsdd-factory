@@ -1,11 +1,11 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: product-owner
 timestamp: 2026-05-18T00:00:00Z
-phase: section-12-step-3M3a
+phase: section-12-step-3M3a-r-pass-2
 cycle: brownfield-backfill
 inputs:
   - .factory/cycles/v1.0-brownfield-backfill/s-15.03-wave-plan-2026-05-15.md
@@ -23,6 +23,7 @@ lifecycle_status: draft
 introduced: v1.0-brownfield-backfill
 modified:
   - 2026-05-18
+  - 2026-05-19
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -31,7 +32,7 @@ removed: null
 removal_reason: null
 bc_id: BC-5.39.008
 section: "5.39"
-last_amended: "2026-05-18 (v1.1) — Pass-1 adversary fix-burst (product-owner; brownfield-backfill M3 3M3a-r fix-burst). F-BC008P1-001 DO NOT ACT (FALSE POSITIVE — TD-VSDD-101 registered at tech-debt-register.md:45; env-var present in origin/develop ci.yml; adversary grepped stale local main). Closes: F-BC008P1-002 (CRITICAL PC13 rewritten: ADR-021 Option (a) REJECTED at line 251; PC13 now aligns with Option (b) cargo-audit-cache.json read-via-host::read_file), F-BC008P1-003 (HIGH WASM cargo-audit sandboxing: host::exec_subprocess NOT available in WASM; hook reads cache file only; bash script invokes cargo-audit per ADR-021 Option b layering), F-BC008P1-004 (HIGH Part C advisory escalation: 1+ CRITICAL advisory → block; 0 CRITICAL → advisory regardless of count), F-BC008P1-005 (HIGH PC7 rationale: both lint_hook+codified_at prove implementation backing AND auditable decision history), F-BC008P1-006 (HIGH Invariant 5 severity enum: HIGH and MEDIUM per policies.yaml corpus; P0/P1/P2/P3/P4 also accepted if policies.yaml evolves; canonical source policies.yaml line 16 comment), F-BC008P1-007 (HIGH policies.yaml file-size cap: 512 KiB explicit), F-BC008P1-008 (MEDIUM PC2 scope: required-mandatory keys only, not all top-level keys), F-BC008P1-009 (MEDIUM EC-021 batch: Part C emits per-advisory, not batched), F-BC008P1-010 (MEDIUM HookResult::Advisory replaced with HookResult::Continue + host::log_warn — no Advisory variant in hook-sdk), F-BC008P1-011 (MEDIUM Part A/B/C ordering: A first, B second, C last due to I/O cost), F-BC008P1-012 (MEDIUM ADR-021 Option (b) WASM integration: bash script provisions cache; WASM reads cache only via host::read_file), F-BC008P1-013 (MEDIUM EC-021 YAML syntax EC added; note EC renumbering: old EC-021 Part-C-multi-advisory → EC-022), F-BC008P1-014 (MEDIUM changelog authored), F-BC008P1-015 (LOW lint_hook multi-segment slug regex), F-BC008P1-016 (LOW invariant numbering verified contiguous 1-11), F-BC008P1-017 (LOW YAML parse error test vector added), F-BC008P1-018 (LOW PC identifiers in Test Vectors substituted), F-BC008P1-019 (NIT Part A/B/C capitalization standardized), F-BC008P1-020 (NIT SS-05 anchor confirmed). [Prior: 2026-05-18 (v1.0) — Initial authoring (product-owner; brownfield-backfill S-15.03 M3 wave story authoring 3M3a). Anchors F-PASS14-004+F-PASS14-006+TD-74-Option-b. BC-5.39.008 allocated as next monotonic ID after BC-5.39.007 in ss-05/. lifecycle_status: draft (POL-14 auto-promotion to active on S-15.15 merge). Part C gated on ADR-021 (ACCEPTED 2026-05-15). TD-VSDD-101 CI env-var paper-fix does not affect this BC's invariants (invariant 10).]"
+last_amended: "2026-05-19 (v1.2) — Pass-2 adversary fix-burst (product-owner; brownfield-backfill M3 3M3a-r fix-burst pass-2; INV-017 applied). Closes F-BC008P2-001 (CRITICAL: invariant 4 + PC4 + EC-003/004/005 + Test Vectors rewritten from POLICY \\d{3} to integer id: format per production policies.yaml), F-BC008P2-002 (CRITICAL: PC10 false exec_subprocess claim replaced with ADR-021 canonical sandboxing rationale), F-BC008P2-003 (HIGH: invariant 5 severity self-contradiction removed; HIGH+MEDIUM strict, P0/P4 future-amendment paragraph deleted), F-BC008P2-004 (MEDIUM: PC2 scope clarification orphan renamed to ### PC2 — Scope clarification with proper anchor), F-BC008P2-005 (MEDIUM: ADR-021 line 251 cite replaced with section-anchor cite), F-BC007P2-006 (MEDIUM: ADR-021 Open Sub-Questions §2 cited in PC13 as source of advisory-severity-threshold answer), F-BC008P2-007 (LOW: phase updated to section-12-step-3M3a-r-pass-2), F-BC008P2-008/009 (NITPICK: changelog v1.2 row structured per BC-5.39.006 convention). [Prior: 2026-05-18 (v1.1) — Pass-1 adversary fix-burst (product-owner; brownfield-backfill M3 3M3a-r fix-burst). F-BC008P1-001 DO NOT ACT (FALSE POSITIVE — TD-VSDD-101 registered at tech-debt-register.md:45; env-var present in origin/develop ci.yml; adversary grepped stale local main). Closes F-BC008P1-002..020. [Prior: 2026-05-18 (v1.0) — Initial authoring (product-owner; brownfield-backfill S-15.03 M3 wave story authoring 3M3a). Anchors F-PASS14-004+F-PASS14-006+TD-74-Option-b. BC-5.39.008 allocated as next monotonic ID after BC-5.39.007 in ss-05/. lifecycle_status: draft (POL-14 auto-promotion to active on S-15.15 merge).]"
 ---
 
 # BC-5.39.008: validate-policies-schema WASM hook MUST block on policies.yaml missing required header fields, non-canonical POLICY ID format, duplicate POLICY IDs, missing lint_hook or codified_at fields, and referenced lint-hook plugins absent from hooks-registry.toml; and MUST emit advisory on dispatch packages recommending crates with known RUSTSEC advisories
@@ -118,7 +119,7 @@ This v1.1 fix-burst closes all actionable findings (001 DO NOT ACT, 002-020 clos
    `plugins/vsdd-factory/hooks-registry.toml` for lint_hook reference validation. If this
    file is not accessible, the lint_hook-existence check fails-open per invariant 9(b).
 
-### Part B — PC2 scope clarification
+### PC2 — Scope clarification
 
 PC2 scope: schema validation applies to **declared-mandatory keys only** (the 7 required
 fields: `id`, `name`, `severity`, `scope`, `description`, `lint_hook`, `codified_at`).
@@ -137,17 +138,27 @@ an advisory log (not a block) per postcondition 8.
     absent-file advisory policy). If the file is present but invalid JSON, the hook emits
     `HookResult::Continue` and logs a parse-error warning — fail-open.
 
-    **ADR-021 Option (b) WASM integration:** The WASM sandbox CANNOT invoke subprocesses
-    (wasmtime sandbox model per ADR-002; `host::exec_subprocess` is NOT a registered host
-    import). cargo-audit runs OUTSIDE the WASM boundary: a bash script
-    (`plugins/vsdd-factory/hooks/update-cargo-audit-cache.sh`) invokes
-    `cargo audit --json` and writes `.factory/hooks/cargo-audit-cache.json`. The WASM hook
-    reads only this cache file via `host::read_file` with `path_allow =
-    [".factory/hooks/cargo-audit-cache.json"]`. This layering (bash data-provisioner +
-    WASM decision-maker) is the ADR-021 Option (b) accepted architecture. The hook MUST NOT
-    attempt subprocess execution — any such attempt would fail with a sandbox capability
-    error. ADR-021 Option (a) (embedded RUSTSEC lookup table) is REJECTED (ADR-021 line
-    251); this BC reflects Option (b) only.
+    **ADR-021 Option (b) WASM integration rationale:** The bash-data-provisioner +
+    WASM-decision-maker layering exists for three reasons per ADR-021
+    §"The sandboxing constraint" (lines 41-52) and §"D-337 scope clarification" (lines 81-97):
+
+    1. **Network access:** `cargo audit --json` fetches the RustSec advisory database
+       over the network. WASM plugins have no outbound network access under the
+       `path_allow` capability model (ADR-018, ADR-002).
+    2. **Binary allow-list:** The subprocess imports available to WASM are constrained
+       to the hook-sdk registered host imports. `cargo-audit` is an external binary
+       not on this allow-list.
+    3. **Cache-freshness model:** The bash script provisions the freshest advisory data
+       available on the developer's machine; the WASM hook reads the cache deterministically
+       via `host::read_file`.
+
+    Note: `host::exec_subprocess` IS a registered host import in `crates/hook-sdk/src/host.rs`
+    (INV-017 evidence: `grep -nE '^pub fn exec_subprocess' crates/hook-sdk/src/host.rs` →
+    `299:pub fn exec_subprocess(`). However, its use for cargo-audit would still require
+    network access and the external binary — constraints the bash+cache layering solves per
+    ADR-021 Option (b). ADR-021 Option (a) (embedded RUSTSEC lookup table) is REJECTED per
+    ADR-021 §"Alternatives Considered — Option (a)" (lines 245-258); this BC reflects
+    Option (b) only.
 
 ## Postconditions
 
@@ -166,11 +177,11 @@ an advisory log (not a block) per postcondition 8.
    `HookResult::Block { reason: block_with_fix(...) }` naming the missing field(s) and
    the policy ID (or index if `id` is itself absent) and citing the canonical policy
    schema.
-4. If any policy entry has an `id` field that does NOT match the canonical three-digit
-   format `POLICY \d{3}` (e.g., `POLICY 001` through `POLICY 999`), the hook emits
-   `HookResult::Block { reason: block_with_fix(...) }` naming the non-conforming ID and
-   citing F-PASS14-006 and the human-direction canonical form (three-digit POLICY 001-018
-   per 2026-05-15 human decision).
+4. If any policy entry has an `id` field that is not a YAML integer scalar in range [1, 999],
+   the hook emits `HookResult::block_with_fix(hook, reason, recommendation, code)` naming
+   the non-conforming ID value and citing the canonical integer format (bare YAML integer,
+   range [1, 999]) per production policies.yaml. String values, negative integers, zero, and
+   `POLICY NNN`-prefixed strings are all non-conforming.
 5. If any two policy entries share the same `id` value (duplicate POLICY ID), the hook
    emits `HookResult::Block { reason: block_with_fix(...) }` naming the duplicated ID
    and citing the no-duplicate-IDs invariant.
@@ -236,12 +247,16 @@ an advisory log (not a block) per postcondition 8.
 
     **Advisory escalation threshold:** If a matched advisory has severity `HIGH` or
     `CRITICAL` (as reported in the `cargo-audit-cache.json` `severity` field), the hook
-    emits `HookResult::Block { reason: block_with_fix(...) }` citing the RUSTSEC ID and
-    the crate name+version. If all matched advisories are `MEDIUM` or below, the hook logs
-    an advisory message via `host::log_warn` and emits `HookResult::Continue` (non-
-    blocking). Zero matched advisories: `HookResult::Continue`. This threshold aligns with
-    ADR-021 implementation notes §"Advisory severity threshold": HIGH and CRITICAL block;
-    MEDIUM/LOW emit warning only.
+    emits `HookResult::block_with_fix(hook, reason, recommendation, code)` citing the
+    RUSTSEC ID and the crate name+version. If all matched advisories are `MEDIUM` or below,
+    the hook logs an advisory message via `host::log_warn` and emits `HookResult::Continue`
+    (non-blocking). Zero matched advisories: `HookResult::Continue`. This threshold answers
+    ADR-021 §"Open Sub-Questions for S-15.15 Part C Implementer" §2 (lines 269-272):
+    "HIGH and CRITICAL block; MEDIUM/LOW emit warning only" — the threshold question is
+    closed by this BC (INV-017 evidence: `grep -n "Open Sub-Questions\|advisory severity"
+    ADR-021-wasm-cargo-audit-sandboxing.md` → `262: Open Sub-Questions for S-15.15 Part C
+    Implementer`, `269: Advisory severity threshold: … HIGH and CRITICAL block; MEDIUM/LOW
+    emit warning only`).
 
     **Per-advisory emission:** Part C emits one advisory log entry per matched advisory
     (not batched). If 3 advisories are found, 3 `host::log_warn` calls are made, each
@@ -262,18 +277,35 @@ an advisory log (not a block) per postcondition 8.
    for Part B. For Part C: the filename must match `^td-.*-dispatch\.md$` via regex on the
    basename only. Using `ends_with("policies.yaml")` or raw-string path matching MUST NOT
    be substituted.
-4. The canonical POLICY ID format is exactly `POLICY \d{3}` where `\d{3}` is exactly three
-   digits (000-999). Two-digit forms like `POLICY 01` or `POLICY 1` are non-canonical and
-   MUST trigger the Block per F-PASS14-006 human direction (2026-05-15). Leading zeros are
-   required for single- and double-digit IDs (e.g., `POLICY 001`, not `POLICY 1`).
+4. The canonical policy `id` field is a YAML integer in the range [1, 999] (e.g., `id: 1`
+   through `id: 18` in the current production file). String forms, negative integers, and
+   zero are non-conforming and MUST trigger the Block. The `id` field MUST be a bare YAML
+   integer scalar, not a quoted string and not a `POLICY NNN` prefixed string.
+
+   **INV-017 evidence — production policies.yaml id format:**
+   ```
+   $ grep -nE '^  - id:' .factory/policies.yaml | head -5
+   33:  - id: 1
+   47:  - id: 2
+   62:  - id: 3
+   75:  - id: 4
+   90:  - id: 5
+
+   $ grep -nE 'POLICY [0-9]{3}' .factory/policies.yaml | grep -v '^[0-9]*:#'
+   (zero output — no POLICY NNN pattern in production data fields)
+   ```
+   Production format is bare integer `id: N` (N in [1,18] currently). `POLICY \d{3}` does
+   NOT appear in production data fields. Hook MUST validate integer range [1, 999], not a
+   `POLICY \d{3}` string pattern.
 5. The required policy entry fields and their constraints:
-   - `id`: string, canonical form `POLICY \d{3}`
+   - `id`: YAML integer scalar in range [1, 999] (canonical production format; NOT a string,
+     NOT a `POLICY NNN`-prefixed value). INV-017 evidence: `grep -nE '^  - id:' .factory/policies.yaml`
+     returns `33: - id: 1` through `282: - id: 18` — bare integers only.
    - `name`: non-empty string
-   - `severity`: string; allowed values are `HIGH` and `MEDIUM` (per current policies.yaml
-     corpus — `policies.yaml` line 16 comment: `severity: <HIGH|MEDIUM>`). The P0/P1/P2/P3/P4
-     severity vocabulary is an alternative form that MAY be introduced in a future amendment;
-     if present, the hook accepts both vocabularies. Canonical source: `.factory/policies.yaml`
-     preamble comment and the policies.yaml schema as defined by this BC.
+   - `severity`: string; allowed values are `HIGH` and `MEDIUM` only (per current policies.yaml
+     corpus). INV-017 evidence: `grep -nE 'severity:' .factory/policies.yaml | head -10` returns
+     entries using only `HIGH` or `MEDIUM`. P0/P1/P2/P3/P4 vocabulary is NOT accepted in v1.2;
+     a future v1.3 amendment may add it with an explicit invariant change.
    - `scope`: non-empty string
    - `description`: non-empty string
    - `lint_hook`: string (slug or namespaced slug per postcondition 6) OR null
@@ -314,9 +346,9 @@ an advisory log (not a block) per postcondition 8.
 |----|-------------|-------------------|
 | EC-001 | policies.yaml has invalid YAML syntax (unmatched `{`) | `HookResult::Block` with parse-error location (line N); Part A postcondition 1 |
 | EC-002 | policies.yaml missing `version:` header field | `HookResult::Block` naming `version` as missing; citing F-PASS14-004 |
-| EC-003 | Policy entry has `id: "POLICY 01"` (two-digit) | `HookResult::Block` citing F-PASS14-006 non-canonical ID format |
-| EC-004 | Policy entry has `id: "POLICY 001"` (three-digit canonical) | `HookResult::Continue` for ID format check |
-| EC-005 | Two policy entries both have `id: "POLICY 003"` | `HookResult::Block` citing duplicate ID |
+| EC-003 | Policy entry has `id: "POLICY 01"` (string, not integer) | `HookResult::Block` citing non-conforming id format; expected bare YAML integer in [1,999] |
+| EC-004 | Policy entry has `id: 1` (bare integer, canonical) | `HookResult::Continue` for ID format check |
+| EC-005 | Two policy entries both have `id: 3` | `HookResult::Block` citing duplicate ID |
 | EC-006 | Policy entry has `lint_hook: "validate-dispatch-advance"` and that plugin exists in hooks-registry.toml | `HookResult::Continue` for lint_hook-existence check |
 | EC-007 | Policy entry has `lint_hook: "nonexistent-plugin"` (not in hooks-registry.toml) | `HookResult::Block` naming missing plugin reference |
 | EC-008 | Policy entry has `lint_hook: null` | `HookResult::Continue` for lint_hook check; null is valid (no automation yet) |
@@ -340,17 +372,17 @@ an advisory log (not a block) per postcondition 8.
 
 | Scenario | Input Condition | Expected Hook Output | Preconditions Exercised | Decision |
 |----------|----------------|---------------------|------------------------|----------|
-| Valid policies.yaml | All fields correct; all 3-digit IDs; no duplicates; null lint_hooks; D-NNN codified_at | `HookResult::Continue` | PC1-PC8 all satisfied | PASS |
+| Valid policies.yaml | All fields correct; integer ids 1..N; no duplicates; null lint_hooks; D-NNN codified_at | `HookResult::Continue` | PC1-PC8 all satisfied | PASS |
 | YAML parse error | `policies.yaml` has unmatched brace | `HookResult::Block` with parse-error location | PC5 violated (parse failure) | BLOCK |
 | Missing header field | policies.yaml lacks `version:` header | `HookResult::Block` naming `version`; F-PASS14-004 | PC5 satisfied, PC2 header check violated | BLOCK |
-| Non-canonical ID (two-digit) | `id: "POLICY 01"` | `HookResult::Block` citing F-PASS14-006 | PC5 satisfied; ID format violated | BLOCK |
-| Duplicate ID | Two entries with `id: "POLICY 003"` | `HookResult::Block` naming duplicated ID | PC5 satisfied; duplicate check violated | BLOCK |
+| Non-conforming ID (string) | `id: "POLICY 01"` (quoted string, not integer) | `HookResult::Block` citing non-conforming id format; expected integer in [1,999] | PC5 satisfied; ID format violated | BLOCK |
+| Duplicate ID | Two entries with `id: 3` | `HookResult::Block` naming duplicated ID | PC5 satisfied; duplicate check violated | BLOCK |
 | Missing lint_hook field | Policy entry has no `lint_hook` key | `HookResult::Block` naming missing field | PC2 (required field absent) | BLOCK |
 | Nonexistent lint_hook plugin | `lint_hook: "ghost-plugin"` not in hooks-registry.toml | `HookResult::Block` naming missing plugin | PC8 satisfied; lint_hook existence violated | BLOCK |
 | null lint_hook | `lint_hook: null` | `HookResult::Continue` for that field | PC2 satisfied (null valid) | PASS |
 | Malformed codified_at | `codified_at: "pass-72"` | `HookResult::Block` citing malformed value | PC7 rationale: lint_hook non-null; codified_at invalid | BLOCK |
 | Extra unknown field | Policy has `custom_note: "..."` | `HookResult::Continue` + `host::log_warn` (not block) | PC2 scope: mandatory fields only | ADVISORY |
-| Cascade: 3 violations | Missing `codified_at` + dup ID + two-digit format | Single `HookResult::Block` enumerating all 3 | PC2, ID format, duplicate checks all violated | BLOCK |
+| Cascade: 3 violations | Missing `codified_at` + dup ID (both `id: 3`) + string-format id | Single `HookResult::Block` enumerating all 3 | PC2, ID format, duplicate checks all violated | BLOCK |
 | Part C: HIGH advisory crate | `td-dispatch.md` recommends `serde_yaml = "0.9.34"`; cache has RUSTSEC-2025-0068 severity `high` | `HookResult::Block` citing RUSTSEC-2025-0068 | PC9, PC10; HIGH threshold triggers block | BLOCK |
 | Part C: MEDIUM advisory only | `td-dispatch.md` crate with MEDIUM advisory in cache | `HookResult::Continue` + `host::log_warn` | PC9, PC10; MEDIUM below block threshold | ADVISORY |
 | Part C: cache absent | `cargo-audit-cache.json` not found | `HookResult::Continue` + `host::log_warn` advisory | PC10 absent-file path | PASS (advisory) |
@@ -365,7 +397,7 @@ an advisory log (not a block) per postcondition 8.
 |-----------------|---------------|---------------|
 | F-PASS14-004 | policies.yaml frontmatter header required fields | PC2 |
 | F-PASS14-006 | Three-digit POLICY ID canonical format (human direction 2026-05-15) | PC4 |
-| ADR-021 Option b | cargo-audit cache file provisioning for Part C advisory checks (Option (a) REJECTED per ADR-021 line 251) | PC12/PC13 |
+| ADR-021 Option b | cargo-audit cache file provisioning for Part C advisory checks (Option (a) REJECTED per ADR-021 §"Alternatives Considered — Option (a)" (lines 245-258)) | PC12/PC13 |
 | POLICY 13 | `lint_hook` field required per POLICY 13 codification at D-472 | PC3/PC6 |
 | POLICY 16 | `codified_at` field required per POLICY 16 codification at D-472 | PC3/PC7 |
 
@@ -398,7 +430,7 @@ VP IDs are pending VP-INDEX allocation by state-manager at post-merge burst.
 | L2 Capability | E-12 (Engine Governance — policies.yaml schema enforcement automation; Part A + Part B) and E-13 (Artifact Integrity — cargo-audit advisory check; Part C) |
 | Capability Anchor Justification | E-12 governs factory engine discipline automation. Part A + Part B of this BC formalizes the PostToolUse gate that mechanically enforces the policies.yaml schema invariants codified at D-472 (POLICY 13/16), F-PASS14-004 (header fields), and F-PASS14-006 (three-digit ID canonical form per human direction 2026-05-15). The hook targets policies.yaml — the governance policy registry artifact. Part C enforces artifact integrity for dispatch packages by cross-referencing crate dependencies against known RUSTSEC advisories (TD #74 Option b per ADR-021 Option b ACCEPTED 2026-05-15). E-12 and E-13 as used in the BC-5.39.xxx family per engine-discipline automation sub-capability convention. |
 | Architecture Module | `crates/hook-plugins/validate-policies-schema/` (Rust WASM plugin, new crate); `plugins/vsdd-factory/hooks-registry.toml` (registry entry); `plugins/vsdd-factory/hook-plugins/validate-policies-schema.wasm` (compiled binary); `.factory/hooks/cargo-audit-cache.json` (Part C data file, written by pre-commit bash script per ADR-021 Option b) |
-| D-NNN Sub-Clauses Closed | F-PASS14-004 (policies.yaml frontmatter header); F-PASS14-006 (three-digit POLICY ID canonical form); POLICY 13+16 schema requirements (D-472 codification); ADR-021 Option b (cargo-audit cache reader; Option (a) REJECTED at ADR-021 line 251) |
+| D-NNN Sub-Clauses Closed | F-PASS14-004 (policies.yaml frontmatter header); F-PASS14-006 (integer id field canonical form per production policies.yaml); POLICY 13+16 schema requirements (D-472 codification); ADR-021 Option b (cargo-audit cache reader; Option (a) REJECTED per ADR-021 §"Alternatives Considered — Option (a)" (lines 245-258)) |
 | ADR References | ADR-021 (WASM Plugin Cargo-Audit Integration Sandboxing — Option b bash cache + WASM reader; ACCEPTED 2026-05-15; gates Part C; Option (a) REJECTED) |
 | Stories | S-15.15 |
 | L2 Invariants | (none currently assigned — this BC is a process-automation gate; no L2 domain invariants apply) |
@@ -420,7 +452,7 @@ VP IDs are pending VP-INDEX allocation by state-manager at post-merge burst.
 - `plugins/vsdd-factory/hooks-registry.toml` — PostToolUse registration with `tool = "Edit|Write"` and two file targets: `policies.yaml` (Part B) and `td-*-dispatch.md` glob (Part C)
 - `.factory/policies.yaml` — target governance file; schema defined by this BC
 - `plugins/vsdd-factory/hooks/update-cargo-audit-cache.sh` — bash data-provisioning script (NOT a hook plugin); invokes `cargo audit --json` and writes cache file; NOT registered as a hook plugin per ADR-021 D-337 scope note
-- `specs/architecture/decisions/ADR-021-wasm-cargo-audit-sandboxing.md` — Part C gate; cargo-audit cache provisioning architecture; Option (b) ACCEPTED; Option (a) REJECTED at line 251
+- `specs/architecture/decisions/ADR-021-wasm-cargo-audit-sandboxing.md` — Part C gate; cargo-audit cache provisioning architecture; Option (b) ACCEPTED; Option (a) REJECTED per §"Alternatives Considered — Option (a)" (lines 245-258)
 
 ## Story Anchor
 
@@ -434,5 +466,6 @@ VP IDs pending VP-INDEX allocation by state-manager at S-15.15 post-merge burst.
 
 | Version | Date | Description |
 |---------|------|-------------|
+| 1.2 | 2026-05-19 | Pass-2 adversary fix-burst (product-owner; brownfield-backfill M3 3M3a-r pass-2; INV-017 applied). Closes F-BC008P2-001 (CRITICAL: id format), F-BC008P2-002 (CRITICAL: PC10 exec_subprocess), F-BC008P2-003 (HIGH: invariant 5 self-contradiction), F-BC008P2-004 (MEDIUM: PC2 orphan section), F-BC008P2-005 (MEDIUM: ADR-021 cite), F-BC007P2-006 (MEDIUM: ADR-021 Open Sub-Questions PC13 cite), F-BC008P2-007 (LOW: phase), F-BC008P2-009 (NITPICK: changelog format). See body changes for INV-017 evidence. |
 | 1.1 | 2026-05-18 | Pass-1 adversary fix-burst. F-BC008P1-001 DO NOT ACT (FALSE POSITIVE — TD-VSDD-101 registered; env-var present; adversary grepped stale local main). Closes F-BC008P1-002..020. CRITICAL: PC13 completely rewritten — ADR-021 Option (a) (embedded RUSTSEC lookup table) is REJECTED at line 251; PC13 now reflects Option (b): WASM hook reads cargo-audit-cache.json via host::read_file; bash script provisions cache; no embedded table in WASM binary (F-BC008P1-002). HIGH: WASM sandboxing constraint documented: host::exec_subprocess NOT available; WASM reads cache file only (F-BC008P1-003); Part C advisory escalation threshold: 1+ HIGH/CRITICAL → block; all MEDIUM/LOW → advisory-log + Continue (F-BC008P1-004); PC7 lint_hook+codified_at coupling rationale documented (F-BC008P1-005); Invariant 5 severity enum: HIGH and MEDIUM per policies.yaml corpus (line 16 comment) with P0/P1/P2/P3/P4 alternative accepted (F-BC008P1-006); policies.yaml file-size cap 512 KiB explicit with META-LEVEL-24 rationale (F-BC008P1-007). MEDIUM: PC2 scope clarified: required-mandatory keys only (F-BC008P1-008); EC-021 Part-C per-advisory emission specified (not batched) (F-BC008P1-009); HookResult::Advisory references replaced with HookResult::Continue + host::log_warn — no Advisory variant in hook-sdk (F-BC008P1-010); Part A/B/C invocation order documented: A→B→C, C last due to I/O cost (F-BC008P1-011); ADR-021 Option (b) WASM integration documented inline in PC10 (F-BC008P1-012); EC-021 YAML syntax error EC added; prior EC-021 renumbered EC-022 (F-BC008P1-013). LOW: lint_hook multi-segment slug regex `^[a-z0-9-]+:[a-z0-9-]+$` specified in postcondition 6 (F-BC008P1-015); invariant numbering verified contiguous 1-11 (F-BC008P1-016); YAML parse error test vector row added (F-BC008P1-017); PC identifier columns added to Test Vectors (F-BC008P1-018). NIT: Part A/B/C capitalization standardized (F-BC008P1-019); SS-05 anchor confirmed (F-BC008P1-020). |
 | 1.0 | 2026-05-18 | Initial authoring (product-owner; brownfield-backfill S-15.03 M3 wave 3M3a BC authoring). Anchors F-PASS14-004+F-PASS14-006+POLICY-13/16-D-472+ADR-021-Option-b. BC-5.39.008 allocated as next monotonic ID after BC-5.39.007 in ss-05/. lifecycle_status: draft (POL-14 auto-promotion to active on S-15.15 merge). Part C gated on ADR-021 (ACCEPTED 2026-05-15). TD-VSDD-101 CI env-var paper-fix does not affect this BC's invariants (invariant 10). Preemptive cascade lessons applied: path-component-strict guard for both policies.yaml and td-*-dispatch.md arms; is_char_boundary() invariant 11; fail-open invariant 9; 524288 max_bytes; cascade-all-violations invariant 8; advisory-not-block for Part C per ADR-021; advisory for extra fields (forward-compat). |

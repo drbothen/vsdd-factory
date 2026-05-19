@@ -1,11 +1,11 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: product-owner
 timestamp: 2026-05-18T00:00:00Z
-phase: section-12-step-3M3a
+phase: section-12-step-3M3a-r-pass-2
 cycle: brownfield-backfill
 inputs:
   - .factory/cycles/v1.0-brownfield-backfill/s-15.03-wave-plan-2026-05-15.md
@@ -24,6 +24,7 @@ lifecycle_status: draft
 introduced: v1.0-brownfield-backfill
 modified:
   - 2026-05-18
+  - 2026-05-19
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -65,8 +66,29 @@ pointer file, Option c — state-manager writes `.factory/current-adversary-pass
 Commit A). Phase 2 will be specified in BC-5.39.007 v1.2 as part of S-15.13 authorship.
 If Phase 2 is never shipped, Phase 1's blocking coverage governs all structural violation
 classes; cross-site staleness (a cite ID appearing correctly formatted but referencing a
-nonexistent decision-log row) remains a Phase 1 advisory-log item (not a block) — this
-is an explicit false-negative window acknowledged per ADR-022 Option c gate.
+nonexistent decision-log row) remains a Phase 1 advisory-log item (not a block) **forever**
+— this is an explicit, indefinite false-negative window accepted per ADR-022 Option c gate.
+This accepted defect will be re-evaluated at S-15.13 if Phase 2 ships; if S-15.13 is
+permanently abandoned, the false-negative window persists indefinitely as a
+production-grade known limitation. Consumers of this hook MUST NOT assume cross-site
+staleness is detected in Phase 1 deployments.
+
+## Dispatch Arm Routing
+
+The hook fires on Edit/Write to any of 4 files. Different preconditions apply per arm:
+
+| File Target | Applicable PCs | Arm-Specific Notes |
+|-------------|---------------|-------------------|
+| `lessons.md` | PC1, PC4, PC5, PC6 | PC5 (lesson entry detection) is **lessons.md-specific**. PC2a/PC2b (trajectory-tail marker/LENGTH) do NOT apply — lessons.md has no `current_step:` field. A PC2a failure on a lessons.md write MUST NOT produce a false-positive Block. |
+| `STATE.md` | PC1, PC2a, PC2b, PC4, PC6 | PC2a (trajectory-tail marker present) and PC2b (LENGTH==4) are **STATE.md-specific** — they operate on the `current_step:` frontmatter field. |
+| `INDEX.md` | PC1, PC4, PC6 | Umbrella-flag check only. No lesson-entry or trajectory-tail checks. |
+| `decision-log.md` | PC1, PC4, PC6 | Umbrella-flag check only. No lesson-entry or trajectory-tail checks. |
+
+This routing is a top-level structural feature of the hook. PC2a/PC2b are per-arm
+preconditions for the STATE.md arm only; they MUST NOT be evaluated on lessons.md,
+INDEX.md, or decision-log.md writes. Failure to isolate arm routing risks
+false-positive Block on lessons.md when PC2a fails on a file that has no
+`trajectory-tail ` marker (because it is not STATE.md).
 
 ## No Sub-Contracts
 
@@ -237,7 +259,7 @@ window per ADR-022 Option c gate.
 
 | Violation Class | Phase 1 Behavior | Phase 2 Behavior | Notes |
 |-----------------|-----------------|-----------------|-------|
-| Missing `**Closes:**` line in lesson entry | **BLOCK** (PC2/postcondition 2) | — (Phase 1 covers) | Hard block per D-448(b) |
+| Missing `**Closes:**` line in lesson entry | **BLOCK** (PC5/postcondition 2) | — (Phase 1 covers) | Hard block per D-448(b) |
 | Empty `**Closes:**` line (label only, no content) | **BLOCK** (postcondition 2) | — | Same rule as absent |
 | `### Closes` h3 heading (wrong format) | **BLOCK** (postcondition 2) | — | `### Closes` is not a valid `**Closes:**` line |
 | Forbidden per-mechanism annotation in Closes | **BLOCK** (postcondition 3) | — | Pattern `\(per D-413\(b\) mandate\)` |
@@ -266,8 +288,11 @@ window per ADR-022 Option c gate.
    `per D-413(b) completeness mandate` and the `N items per D-413(b)` phrase used as a
    shorthand. Individual per-item cites (e.g., `F-P39-001`) in a Closes block are NOT
    forbidden — only the aggregate annotation is. Explicitly verbatim: patterns matching
-   `\(per D-413\(b\) (?:completeness )?mandate\)` MUST NOT appear in Closes block cite
-   lines per D-420(e).
+   `\(per D-413\(b\) completeness mandate\)` MUST NOT appear in Closes block cite lines
+   per D-420(e). The `(?:completeness )?` optional-group form is the regex used for
+   detection; the EC-004 example uses the literal `(per D-413(b) completeness mandate)`
+   form (with the word "completeness" present) which is the canonical production instance
+   that triggers the block. Both with and without "completeness" are blocked by the regex.
 6. Lesson-entry detection in `lessons.md` is h2-heading-based. A line matching
    `^## (L-|PG-)` begins a new lesson entry. The `**Closes:**` requirement applies to
    entries after the `## L-` or `## PG-` heading. Pre-existing entries that predate the
@@ -333,7 +358,7 @@ cross-document resolver.
 | EC-013 | `lessons.md` pre-D-448(b) entry silently omits `**Closes:**` line with no exemption declaration | `HookResult::Block`: silent omission is NOT a valid exemption per invariant 7 |
 | EC-014 | Multiple violations across lessons.md and decision-log.md in a single write | Single `HookResult::Block` enumerating all violations (postcondition 9) |
 | EC-015 | Path is `/some/dir/xSTATE.md` (ends_with "STATE.md" but file_name differs) | `HookResult::Continue` (path-component-strict guard; not a target file) |
-| EC-016 | `host::read_file` returns HostError::Timeout for lessons.md | `HookResult::Continue` + `host::log_warn`; fail-open |
+| EC-016 | `host::read_file` returns HostError::Timeout for lessons.md (partial read or full failure) | `HookResult::Continue` + `host::log_warn`; fail-open. **Cascade order with EC-018:** if partial content is returned before timeout and that partial content contains a `### Closes` block (wrong format), EC-016 (read-failure fail-open) takes precedence — the hook MUST NOT block on potentially-incomplete data. Rationale: a partial read cannot establish that a `**Closes:**` line is absent; false-positive block on truncated data is worse than the advisory miss. |
 | EC-017 | Closes line contains `**Closes:** L-EDP1-052` (valid structured ID) | `HookResult::Continue` for that cite |
 | EC-018 | `lessons.md` h2 entry has `### Closes` h3 heading instead of `**Closes:**` bold-prefix line | `HookResult::Block` citing D-448(b): `### Closes` is an input-validation failure — the canonical format is `**Closes:**` bold-prefix-line per lessons.md corpus ground truth. This is a precondition-violation path (wrong format), not a postcondition-assertion failure. The hook returns block with message citing the wrong format used. |
 | EC-019 | Closes line contains only a dash and whitespace (`- `) adjacent to `**Closes:**` | Treat as empty/malformed cite; `HookResult::Block` citing D-419(c). The canonical `→(\d+)` regex (applied to detect non-structured content) matches nothing; blank content after Closes label is a structural violation. |
@@ -435,5 +460,6 @@ VP IDs pending VP-INDEX allocation by state-manager at S-15.12 post-merge burst.
 
 | Version | Date | Description |
 |---------|------|-------------|
+| 1.2 | 2026-05-19 | Pass-2 adversary fix-burst (product-owner; brownfield-backfill M3 3M3a-r pass-2; INV-017 applied). Closes F-BC007P2-002 (HIGH: Phase-2-never-shipped false-negative window declared explicitly), F-BC007P2-003 (HIGH: PC2/PC5 renumber propagation — Phase-1 boundary table + Test Vectors updated), F-BC007P2-004 (MEDIUM: Dispatch Arm Routing section added), F-BC007P2-005 (MEDIUM: EC-016/EC-018 cascade order declared), F-BC007P2-007 (LOW: invariant 5 regex parenthetical aligned with EC-004). F-BC007P2-001 handled in BC-5.39.006 v1.4. F-BC007P2-006 handled in BC-5.39.008 v1.2. |
 | 1.1 | 2026-05-18 | Pass-1 adversary fix-burst. Closes all 21 F-BC007P1-NNN findings. CRITICAL: Postconditions rewritten to use `**Closes:**` bold-prefix line (not `### Closes` h3) per lessons.md corpus ground truth (F-BC007P1-001); PC2 split into PC2a (marker presence) + PC2b (LENGTH == 4) with explicit AND semantics (F-BC007P1-008); trajectory-tail regex `→(\d+)` first-semicolon-segment verbatim from BC-5.39.006 v1.3 (F-BC007P1-002); Phase 1/2 boundary table added explicitly enumerating all violation classes (F-BC007P1-003); PC4 file-read cap 512 KiB with META-LEVEL-24 false-green rationale (F-BC007P1-004); EC-018 clarified as input-validation/precondition-violation path for wrong-format detection (F-BC007P1-005); PC1 trivially-satisfied attestation added (F-BC007P1-006); EC-019 canonical regex noted (F-BC007P1-007); HookResult::Advisory references replaced with HookResult::Continue + host::log_warn — no Advisory variant exists in hook-sdk crates/hook-sdk/src/result.rs (F-BC007P1-009); Phase 2 ADR-022 gate trigger condition added inline (F-BC007P1-010); EC-021 empty/zero-byte STATE.md added (F-BC007P1-011); hook ordering with BC-5.39.005 specified (independent/parallel, no short-circuit) (F-BC007P1-012); sub-contracts none statement added (F-BC007P1-013); LENGTH==3 off-by-one test vector row added (F-BC007P1-014); EC-017 trimmed (F-BC007P1-015); PC identifier columns added to Test Vectors (F-BC007P1-018); adversary pass coverage note added (F-BC007P1-019); Phase 1 capitalization standardized throughout (F-BC007P1-020); SS-05 anchor confirmed (F-BC007P1-021). |
 | 1.0 | 2026-05-18 | Initial authoring (product-owner; brownfield-backfill S-15.03 M3 wave 3M3a BC authoring). Anchors D-419(c)+D-420(e)+D-441(c)+D-442(c)+D-443(b)+D-448(b). BC-5.39.007 allocated as next monotonic ID after BC-5.39.006 in ss-05/. lifecycle_status: draft (POL-14 auto-promotion to active on S-15.12 merge). Phase 2 (cross-cell agreement) reserved for v1.1 in S-15.13 scope per ADR-022 Option c. Preemptive cascade lessons applied: path-component-strict guard; is_char_boundary() invariant 10; fail-open invariant 9; 524288 max_bytes; Phase-1-advisory for cross-site staleness (postcondition and EC-010). |
