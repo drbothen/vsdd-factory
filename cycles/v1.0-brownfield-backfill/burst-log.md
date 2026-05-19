@@ -2076,7 +2076,7 @@ Single-Commit Burst Protocol per TD-VSDD-053: one atomic commit on factory-artif
 - `865062b5` (PO fix-burst: BC-5.39.007 v1.0→v1.1 + BC-5.39.008 v1.0→v1.1 + BC-INDEX v2.37→v2.38)
 - `aac1b834` (this codification burst: D-483 + L-M3-BC-cascade-pass-1-PO-fix-burst + STATE.md advance; single atomic commit per TD-VSDD-053)
 
-## 2026-05-19 — M3 BC cascade pass-2 PO fix-burst codification (factory-artifacts PLACEHOLDER-SHA)
+## 2026-05-19 — M3 BC cascade pass-2 PO fix-burst codification (factory-artifacts a4b1d99b)
 
 ### Parent-commit
 `ad793e49` (SHA-patch following D-484 pass-2 persistence burst).
@@ -2189,4 +2189,4 @@ Single-Commit Burst Protocol per TD-VSDD-053: one atomic commit on factory-artif
 
 ### Factory-artifacts commits
 - `8c9b1200` (PO fix-burst: BC-5.39.006 v1.3→v1.4 + BC-5.39.007 v1.1→v1.2 + BC-5.39.008 v1.1→v1.2 + BC-INDEX last_amended/table bump; INV-017 applied with 6 literal-shell stdouts)
-- `PLACEHOLDER-SHA` (this codification burst: D-485 + L-M3-BC-cascade-pass-2-PO-fix-burst + STATE.md advance + BC-INDEX v2.38→v2.39; single atomic commit per TD-VSDD-053; parent-commit 8c9b1200 per D-419(b))
+- `a4b1d99b` (this codification burst: D-485 + L-M3-BC-cascade-pass-2-PO-fix-burst + STATE.md advance + BC-INDEX v2.38→v2.39; single atomic commit per TD-VSDD-053; parent-commit 8c9b1200 per D-419(b))
