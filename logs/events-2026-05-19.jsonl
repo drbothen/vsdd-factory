@@ -16,3 +16,14 @@
 {"type":"hook.block","hook":"validate-changelog-monotonicity","reason":"changelog_frontmatter_mismatch","ts":"2026-05-19T01:03:44-0500","ts_epoch":1779170624,"schema_version":1}
 {"type":"hook.block","hook":"validate-table-cell-count","reason":"table_cell_count","ts":"2026-05-19T01:16:36-0500","ts_epoch":1779171396,"schema_version":1}
 {"type":"hook.block","hook":"validate-table-cell-count","reason":"table_cell_count","ts":"2026-05-19T01:16:57-0500","ts_epoch":1779171417,"schema_version":1}
+{"type":"hook.block","hook":"validate-input-hash","reason":"input_hash_format","ts":"2026-05-19T01:45:38-0500","ts_epoch":1779173138,"schema_version":1}
+{"type":"hook.block","hook":"validate-input-hash","reason":"input_hash_drift","ts":"2026-05-19T01:46:07-0500","ts_epoch":1779173167,"schema_version":1}
+{"type":"hook.block","hook":"validate-input-hash","reason":"input_hash_drift","ts":"2026-05-19T01:48:58-0500","ts_epoch":1779173338,"schema_version":1}
+{"type":"hook.block","hook":"validate-changelog-monotonicity","reason":"changelog_frontmatter_mismatch","ts":"2026-05-19T11:32:14-0500","ts_epoch":1779208334,"schema_version":1}
+{"type":"hook.block","hook":"validate-changelog-monotonicity","reason":"changelog_frontmatter_mismatch","ts":"2026-05-19T11:40:00-0500","ts_epoch":1779208800,"schema_version":1}
+{"type":"hook.block","hook":"validate-changelog-monotonicity","reason":"changelog_frontmatter_mismatch","ts":"2026-05-19T11:46:32-0500","ts_epoch":1779209192,"schema_version":1}
+{"type":"hook.block","hook":"validate-changelog-monotonicity","reason":"changelog_frontmatter_mismatch","ts":"2026-05-19T11:49:57-0500","ts_epoch":1779209397,"schema_version":1}
+{"type":"hook.block","hook":"validate-table-cell-count","reason":"table_cell_count","ts":"2026-05-19T12:01:57-0500","ts_epoch":1779210117,"schema_version":1}
+{"type":"hook.block","hook":"validate-count-propagation","reason":"count_propagation_drift","ts":"2026-05-19T12:05:30-0500","ts_epoch":1779210330,"schema_version":1}
+{"type":"hook.block","hook":"validate-count-propagation","reason":"count_propagation_drift","ts":"2026-05-19T12:06:04-0500","ts_epoch":1779210364,"schema_version":1}
+{"type":"hook.block","hook":"validate-input-hash","reason":"input_hash_drift","ts":"2026-05-19T12:15:18-0500","ts_epoch":1779210918,"schema_version":1}

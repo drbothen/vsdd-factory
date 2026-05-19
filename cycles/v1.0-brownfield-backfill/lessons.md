@@ -2038,3 +2038,47 @@ The pattern: 4 META-LEVELs detected in 4 consecutive passes. Each emerges when t
 **Forward routing:** INV-019-CANDIDATE forwarded to SK-MCP-001 Appendix D. Dispatch templates for changelog row evidence sections must incorporate one of the three cure options. Option (c) pattern-by-construction is recommended as the most structurally robust: anchoring evidence greps to `^| ` table-row context prevents changelog-row prose from being a false positive.
 
 **Closes:** F-BC008P4-001, F-BC006P4-001, F-BC007P4-NIT. D-488 codified.
+
+## L-M3-BC-cascade-pass-4-PO-fix-burst — M3 BC cascade pass-4 PO fix-burst: 3 documentary-only findings; INV-019 CANDIDATE→CONFIRMED; cascade genuinely converging
+
+**Date:** 2026-05-19
+**Source:** D-489 M3 BC cascade pass-4 PO fix-burst state-manager codification burst
+**Class:** Cascade convergence signal; INV-019 class confirmation; cross-BC idiom standardization
+
+**Symptom:** Pass-4 had 3 findings (1 MEDIUM + 1 LOW + 1 NIT) with CRITICAL+HIGH both zero. This is the first time in the M3 BC cascade that all spec-content defects are resolved and only documentary/META-LEVEL evidence-quality findings remain. This is proof-of-concept that the cascade is genuinely converging: the CRITICAL and HIGH severity classes (SDK API mis-claims, D-NNN Anchor Coverage mis-anchors, bare non-existent SDK constructs) have all been eliminated across 4 passes. The remaining findings are structural meta-discipline documentation issues, not substantive spec defects.
+
+**Cause:** Two root causes converged at pass-4:
+
+1. **INV-018 misapplication (F-BC008P4-001 MEDIUM):** BC-5.39.008 v1.3 PO fix-burst at pass-3 correctly invoked INV-018 discipline (included both narrow and residual-class greps) but chose a residual-class pattern `PC3.*POLICY.POLICY.*PC3` that is structurally NARROWER than the narrow pattern `POLICY 13.*PC3|POLICY 16.*PC3`. INV-018 requires the residual pattern to be BROADER — catching any occurrence of the semantic class, not only specific sequential combinations of tokens that were already in the narrow pattern.
+
+2. **INV-019 self-reference drift (F-BC006P4-001 LOW):** BC-5.39.006 v1.5 changelog row correctly embedded INV-018 evidence with a count of `4`. But the changelog row itself quotes `BlockWithFix` in its evidence prose. The instant the row was committed, the count became `5` (the row itself contributes one occurrence). This is the INV-019-CANDIDATE class: post-commit self-reference makes the evidence non-reproducible. The count was accurate at write time but wrong post-commit.
+
+3. **Cross-BC idiom inconsistency (F-BC007P4-NIT):** BC-5.39.006 used assoc-fn form `HookResult::block_with_fix(...)` while BC-5.39.007 and BC-5.39.008 used struct-pattern form `HookResult::Block { reason: ... }`. Both forms are semantically equivalent and reference real SDK constructs. This is a documentation style inconsistency only.
+
+**Cure applied:**
+
+- **F-BC008P4-001:** BC-5.39.008 v1.3→v1.4 — INV-018 residual-sweep pattern corrected to `PC[0-9]+/PC[0-9]+` (genuinely broader: catches any multi-PC anchor row). Changelog row evidence rewritten per INV-018 normative cure. INV-019 cure (a) applied to the evidence section.
+- **F-BC006P4-001:** BC-5.39.006 v1.5→v1.6 — INV-019 cure (a) line-range-exclude applied to the changelog row evidence section. Self-reference accounting drift class documented in-place for BC-006 and noted for BC-007/BC-008 sibling rows.
+- **F-BC007P4-NIT:** BC-5.39.007 v1.3→v1.4 — cross-BC idiom standardized on assoc-fn `HookResult::block_with_fix(...)` form per BC-006 precedent. Struct-pattern form deprecated as documentation style.
+
+**INV-019 CONFIRMED (from CANDIDATE):** The class is confirmed with cure options codified:
+- **(a) Line-range-exclude:** Exclude the changelog row's line range from the grep target (grep on a range that does not include the evidence row itself). Chosen for this burst.
+- **(b) Inline-acknowledge:** Add "post-fix count excluding this changelog row = N" to the evidence. Explicit self-reference disclosure.
+- **(c) Pattern-by-construction:** Use a search pattern that the changelog row's prose cannot match (e.g., anchor to `^| ` table-row context which prose lines do not have). Most structurally robust.
+
+**Forward discipline:** ALL future BC changelog rows MUST apply one of INV-019 cures (a)/(b)/(c). Orchestrator/PO discretion per-row; document cure type chosen in the changelog row evidence section. This is MANDATORY going forward for all BC cascades.
+
+**Cascade trajectory:**
+
+| Pass | Total | CRIT | HIGH | MED | LOW | NIT |
+|------|-------|------|------|-----|-----|-----|
+| Pass-1 | ~41 | 2 | ~17 | ~10 | ~10 | ~2 |
+| Pass-2 | 14 | 2 | 4 | 5 | 3 | 1 |
+| Pass-3 | 8 | 1 | 2 | 2 | 2 | 1 |
+| Pass-4 PO fix-burst | 3 (all closed) | 0 | 0 | 1 | 1 | 1 |
+
+Monotonically decreasing. CRITICAL+HIGH reach zero at pass-4. The cascade is at documentary-only floor — subsequent passes should be CLEAN or NIT-only if INV-019 discipline is correctly applied.
+
+**Cites:** D-489, INV-017, INV-018, INV-019, BC-5.39.006 v1.6, BC-5.39.007 v1.4, BC-5.39.008 v1.4, BC-006 (assoc-fn idiom precedent).
+
+**Closes:** F-BC008P4-001, F-BC006P4-001, F-BC007P4-NIT. D-489 codified.

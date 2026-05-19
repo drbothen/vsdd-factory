@@ -1,7 +1,7 @@
 ---
 document_type: vp-index
 level: L4
-version: "1.97"
+version: "1.98"
 status: draft
 producer: state-manager
 timestamp: 2026-05-15T00:00:00Z
@@ -10,6 +10,8 @@ phase: F5
 traces_to: ARCH-INDEX.md
 total_vps: 80
 changelog:
+  - date: 2026-05-19
+    change: "v1.98 (2026-05-19; D-489 M3 BC cascade pass-4 PO fix-burst codification acknowledgment. No VP content changes this burst. INV-019 CANDIDATE→CONFIRMED codified; cross-BC assoc-fn idiom standardized; INV-018 corrigendum applied to BC-5.39.008 v1.4. BC-INDEX v2.41 (PO `f3cc03fc`). D-range D-001..D-489. Refs: D-489, INV-017, INV-018, INV-019, F-BC008P4-001, F-BC006P4-001, F-BC007P4-NIT. VP-INDEX v1.97→v1.98."
   - date: 2026-05-15
     change: "v1.97 (2026-05-15; S-15.06 F-PASS14-005 closure — POLICY 9 propagation acknowledgment for VP-014 v1.2.1 NN-2 parity update. verification-architecture.md and verification-coverage-matrix.md are DEFERRED per this document's own preamble note (see Source of truth block above): both files do not yet exist; VP-INDEX IS the authoritative Provable Properties Catalog and VP-to-Module coverage table. F-PASS14-005 required fix = confirming parity acknowledgment in VP-INDEX at the same burst as VP-014 v1.2.1 was recognized; D-472 is the retroactive codification decision. validate-vp-consistency hook (priority 410 in hooks-registry.toml) triggers only on VP-INDEX.md / verification-architecture.md / verification-coverage-matrix.md edits — it does NOT trigger on individual VP file edits (e.g., VP-014.md). Therefore it would NOT have caught the D-468 propagation omission going forward; S-15.11 will extend hook coverage to individual VP file edits per POLICY 9 unconditional obligation. VP-INDEX v1.96→v1.97. Refs: D-472, F-PASS14-005, S-15.06."
   - date: 2026-05-14

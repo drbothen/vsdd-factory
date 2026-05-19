@@ -1,7 +1,7 @@
 ---
 document_type: architecture-index
 level: L3
-version: "2.06"
+version: "2.07"
 status: accepted
 producer: architect
 timestamp: 2026-05-15T00:00:00Z
@@ -17,6 +17,8 @@ inputs:
 traces_to: phase-1-spec-crystallization
 deployment_topology: single-service
 changelog:
+  - date: 2026-05-19
+    change: "v2.07 (2026-05-19; D-489 M3 BC cascade pass-4 PO fix-burst codification acknowledgment. No ADR or subsystem changes this burst. INV-019 CANDIDATE→CONFIRMED; cross-BC assoc-fn idiom standardized; INV-018 corrigendum applied to BC-5.39.008 v1.4. BC-INDEX v2.41 (PO `f3cc03fc`). D-range D-001..D-489. Refs: D-489, F-BC008P4-001, F-BC006P4-001, F-BC007P4-NIT. ARCH-INDEX v2.06→v2.07."
   - date: 2026-05-15
     change: "v2.06 (2026-05-15; ADR-021 + ADR-022 registered — S-15.03 wave Milestone 3 gating. ADR-021 = WASM Plugin Cargo-Audit Integration Sandboxing (Option b: bash cache script + WASM reader; no D-337 exemption required; data-provisioning bash is tooling not hook plugin; gates S-15.15 Part C — TD #74 Option b). ADR-022 = Hook Plugin Access to Current Adversary Pass Context (Option c: pointer file at .factory/current-adversary-pass.txt; state-manager writes single-line integer at every Commit A; hook reads via host::read_file; gates S-15.13 Phase 2 validate-closes-completeness). OQ-1 three-digit POLICY ID schema (F-PASS14-006) RESOLVED by human direction 2026-05-15 (three-digit canonical POLICY 001-018; override of adversary two-digit recommendation; migration deferred to S-15.15 Part B). ARCH-INDEX v2.05→v2.06. State-manager Commit A new forward-pending obligation: write .factory/current-adversary-pass.txt (activates at S-15.13 ship time)."
   - date: 2026-05-14

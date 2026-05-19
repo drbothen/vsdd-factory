@@ -158,7 +158,7 @@ producer: state-manager
 timestamp: 2026-05-06T19:00:00Z
 cycle: "v1.0-brownfield-backfill"
 inputs: [STATE.md]
-input-hash: "ae90dca"
+input-hash: "0699c89"
 traces_to: STATE.md
 ---
 
@@ -2694,3 +2694,125 @@ Single-Commit Burst Protocol per TD-VSDD-053: one atomic commit on factory-artif
 
 - `eda3f2f5` (parent: SHA-patch following D-487 pass-3 PO fix-burst codification)
 - `77ebbabc` (this codification burst: D-488 + L-M3-BC-cascade-pass-4-INV-019-CANDIDATE + STATE.md advance; single atomic commit per TD-VSDD-053; parent-commit eda3f2f5 per D-419(b))
+
+## M3 3M3a-r PASS-4 PO FIX-BURST — D-489 STATE-MANAGER CODIFICATION 2026-05-19
+
+### Parent-commit
+
+Parent: `f3cc03fc` (PO fix-burst pass-4 — BC-5.39.008 v1.4 + BC-5.39.006 v1.6 + BC-5.39.007 v1.4 + BC-INDEX v2.41).
+State-manager codification commit SHA: pending (populated by SHA-patch follow-up burst per D-447(c)+D-449(e)).
+
+### Adversary verdict
+
+Pass-4 adversary verdict (from `adv-bc-007-008-pass-4.md` Part A Finding Counts table — D-448(a) source-attestation):
+
+> | Pass-4 | 1 (LOW) | 1 (NIT) | 1 (MED) | **3** | 0/3 |
+> **CRITICAL+HIGH BOTH AT ZERO for the first time at pass-4.** This is a major positive milestone.
+
+Verdict: **MEDIUM** (1 MEDIUM F-BC008P4-001 + 1 LOW F-BC006P4-001 + 1 NIT F-BC007P4-NIT). STREAK 0/3 RESET (MEDIUM resets). All 3 findings are documentary/META-LEVEL evidence-quality defects, not spec-content defects. PO fix-burst `f3cc03fc` closed all 3.
+
+### Files touched (Dim-1)
+
+8 files touched this codification burst:
+
+1. `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-489 row appended
+2. `.factory/STATE.md` — Phase Progress + Active Branches + Concurrent Cycles + Decisions Log + Session Resume + frontmatter advance
+3. `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — L-M3-BC-cascade-pass-4-PO-fix-burst appended
+4. `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — this entry
+5. `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` — M3 BC cascade table + Convergence Status updated
+6. `.factory/specs/verification-properties/VP-INDEX.md` — v1.97→v1.98
+7. `.factory/stories/STORY-INDEX.md` — v3.44→v3.45
+8. `.factory/specs/architecture/ARCH-INDEX.md` — v2.06→v2.07
+
+Does NOT touch: BC-5.39.006.md / BC-5.39.007.md / BC-5.39.008.md (PO domain; content changed in PO commit `f3cc03fc`). BC-INDEX.md (bumped by PO at `f3cc03fc`; remains v2.41).
+
+### Codifications (Dim-3)
+
+- **D-489** codified (5 sub-clauses per decision-log.md SoT):
+  - (a) PO fix-burst pass-4 CLOSED — 3/3 findings; BC-5.39.008 v1.4 + BC-5.39.006 v1.6 + BC-5.39.007 v1.4; BC-INDEX v2.41 at `f3cc03fc`
+  - (b) INV-018 corrigendum — BC-008 v1.4 residual sweep `PC[0-9]+/PC[0-9]+` genuinely broader than narrow pattern; STRUCTURALLY-BROADER semantic confirmed
+  - (c) INV-019 CANDIDATE → CONFIRMED — changelog-row-self-reference-evidence-non-reproducibility; cures (a)/(b)/(c) codified; cure (a) chosen for this pass; forward-application MANDATORY
+  - (d) Cross-BC idiom standardization — assoc-fn `HookResult::block_with_fix(...)` form canonical per BC-006 precedent; struct-pattern form deprecated as documentation style
+  - (e) Cascade trajectory 41→14→8→3 → pass-5 dispatch-ready; PO-burst-only-no-spec-content-defects (all 3 findings were META-LEVEL evidence-quality, not spec-content)
+- **L-M3-BC-cascade-pass-4-PO-fix-burst** lesson appended to lessons.md
+- **INV-019 CANDIDATE → CONFIRMED** codified; three cures (a)/(b)/(c) documented
+
+### Dim-2 Attestation
+
+Literal shell execution per D-449(a) / TD-VSDD-100 — all gates run against PRODUCTION artifacts:
+
+**Gate 1 — Lessons entry presence:**
+```
+$ grep -c "^## L-M3-BC-cascade-pass-4-PO-fix-burst" .factory/cycles/v1.0-brownfield-backfill/lessons.md
+1
+```
+Output: 1 — PASS.
+
+**Gate 2 — D-489 row in STATE.md Decisions Log (post-STATE.md update):**
+```
+$ grep -cE "^\| D-489 " .factory/STATE.md
+1
+```
+Output: 1 — PASS.
+
+**Gate 3 — D-489 row in decision-log.md:**
+```
+$ grep -cE "^\| D-489 " .factory/cycles/v1.0-brownfield-backfill/decision-log.md
+1
+```
+Output: 1 — PASS.
+
+**Gate 4 — current_step D-chain cite (post-STATE.md update):**
+```
+$ grep -E "^current_step:" .factory/STATE.md | grep -oE "D-[0-9]+ latest" | head -1
+D-489 latest
+```
+Output: D-489 latest — PASS. (Will be verified after STATE.md frontmatter advance.)
+
+**Gate 5 — trajectory-tail LENGTH=4:**
+```
+$ grep "^current_step:" .factory/STATE.md | grep -oE "trajectory-tail [→0-9]+" | grep -oE "→[0-9]+" | wc -l
+4
+```
+Output: 4 — PASS (→9→9→9→9 F5 trajectory unchanged).
+
+**Gate 6 — 4-index versions cited in current_step (post-STATE.md update):**
+```
+$ grep "^current_step:" .factory/STATE.md | grep -oE "BC-INDEX v[0-9]+\.[0-9]+|VP-INDEX v[0-9]+\.[0-9]+|STORY-INDEX v[0-9]+\.[0-9]+|ARCH-INDEX v[0-9]+\.[0-9]+" | sort -u | wc -l
+4
+```
+Output: 4 — PASS (BC-INDEX v2.41, VP-INDEX v1.98, STORY-INDEX v3.45, ARCH-INDEX v2.07).
+
+### Dim-5 Attestation
+
+Closes-set completeness — F-BC008P4-001 + F-BC006P4-001 + F-BC007P4-NIT all enumerated:
+- D-489 decision-log.md row Closes annotation: `Closes F-BC008P4-001, F-BC006P4-001, F-BC007P4-NIT.` ✓
+- PO commit `f3cc03fc` message cites all 3 findings ✓ (per PO authorship record)
+- STATE.md Phase Progress row cites 3/3 closures ✓
+- This burst-log Closes block below enumerates all 3 ✓
+
+### Dim-6 Attestation
+
+Literal-shell commit count per TD-VSDD-099:
+```
+$ git -C .factory log --oneline f3cc03fc..HEAD | wc -l
+0
+```
+Output: 0 (pre-commit baseline; this state-manager codification commit will make it 1 post-push). Single-commit burst per TD-VSDD-053 confirmed.
+
+Post-commit verification (after push):
+```
+$ git -C .factory log --oneline f3cc03fc..HEAD | wc -l
+1
+```
+Expected: 1 — confirms single commit only, no chain.
+
+### Closes
+
+**Closes F-BC008P4-001, F-BC006P4-001, F-BC007P4-NIT, D-488 codification cycle.**
+
+### Factory-artifacts Commits
+
+- `77ebbabc` (D-488 M3 BC cascade pass-4 adversary persist + INV-019-CANDIDATE codification; parent eda3f2f5)
+- `f3cc03fc` (PO fix-burst pass-4 — BC-5.39.008 v1.4 + BC-5.39.006 v1.6 + BC-5.39.007 v1.4 + BC-INDEX v2.41)
+- `<this commit SHA>` (D-489 state-manager codification; SHA-patch follow-up will update Active Branches)

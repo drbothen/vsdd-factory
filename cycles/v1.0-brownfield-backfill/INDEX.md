@@ -88,6 +88,19 @@ Per human direction 2026-05-14, the E-10 sub-cycle adopts asymptotic-acceptance 
 
 **Convergence Status (S-15.08 LOCAL cascade):** **BC-5.39.001 3-CLEAN CONVERGED 2026-05-16** — pass-6 CLEAN (0 findings; 0 obs; 0 POLICY violations); streak 2/3 → 3/3 CONVERGED. Cascade trajectory: pass-1 HIGH(6) → pass-2 NITPICK(1/3) → pass-3 HIGH(1) → pass-4 NITPICK(1/3) → pass-5 LOW(2/3) → pass-6 CLEAN(3/3). 3 fix-bursts applied (test-writer+implementer fix-burst-1; fix-burst-2 spec v1.1+source; story-writer+implementer fix-burst-3; story-writer fix-burst-4 spec v1.2). Asymptotic decay; convergence in 6 passes with 4 fix-bursts. **Story S-15.08 PRODUCTION-GRADE READY** — pr-manager 9-step PR lifecycle dispatch pending. Evidence: `s-15.08-local-adversary-pass-6.md` diff_base=224fa184 diff_head=51378cbf spec_head=f8892007 input-hash=d39ba52. Pass-5 (LOW 2026-05-16): 1 finding F-S15.08-LOCAL-P5-001 partial-fix-regression; spec v1.2 SHIPPED at f8892007. Pass-4 (NITPICK 2026-05-16): 0 Part-A findings; 1 LOW obs O-P4-001; streak 0/3 → 1/3. Pass-3 (HIGH 2026-05-16): F-S15.08-LOCAL-P3-001 sibling-sweep miss (regex `[\( ]` in spec body L207+L283 + bats comment L5; 3 sites across 2 files; TD-VSDD-060 class); streak RESETS 1/3 → 0/3; fix-burst-3 SHIPPED: story-writer spec v1.1 at factory-artifacts `c7002987` + implementer source at feature branch `51378cbf`. Pass-2 (NITPICK 2026-05-16): 0 MEDIUM+, streak 1/3; fix-burst-2 SHIPPED `c7002987`+`51378cbf`. Pass-1 (HIGH 2026-05-15): fix-burst routed to implementer (F-001/F-002/F-006) + test-writer (F-003/F-004/F-005); all 6 F-001..F-006 closures VERIFIED at pass-2.
 
+## M3 BC Cascade Adversarial Reviews (BC-5.39.006 + BC-5.39.007 + BC-5.39.008)
+
+| Pass | Date | Findings | Verdict | CRIT\|HIGH | PO Fix-burst | Status |
+|------|------|----------|---------|-----------|--------------|--------|
+| Pass-1 | 2026-05-18 | ~41 | CRITICAL | 2\|~17 | `865062b5` (D-483; 41/41 closed) | CLOSED — STREAK 0/3 → pass-2 |
+| Pass-2 | 2026-05-18 | 14 | CRITICAL | 2\|4 | `8c9b1200` (D-485; 14/14 closed; INV-017 applied) | CLOSED — STREAK 0/3 → pass-3 |
+| Pass-3 | 2026-05-19 | 8 | CRITICAL | 1\|2 | `50e03f82` (D-487; 8/8 closed; INV-018 applied) | CLOSED — STREAK 0/3 → pass-4 |
+| Pass-4 | 2026-05-19 | 3 | MEDIUM | 0\|0 | `f3cc03fc` (D-489; 3/3 closed; INV-019 cure (a)) | CLOSED — STREAK 0/3 → pass-5 dispatch-ready |
+
+**Cascade trajectory:** ~41 → 14 → 8 → 3. CRITICAL+HIGH both zero at pass-4 (major positive milestone). All spec-content defects resolved. Remaining findings at pass-4 were documentary/META-LEVEL evidence-quality only. Pass-5 dispatch-ready.
+
+**4 META-LEVEL INV classes emerged across 4 passes:** INV-016 (pass-1) → INV-017 (pass-2) → INV-018 (pass-3) → INV-019 (pass-4→CONFIRMED D-489). Each reveals structural limitation in prior cure's application. INV-019 CONFIRMED: post-commit self-reference makes changelog-row evidence non-reproducible; cure (a)/(b)/(c) mandatory going forward.
+
 ## Convergence Status
 
 - Phase 0 (ingestion): COMPLETE
@@ -96,4 +109,5 @@ Per human direction 2026-05-14, the E-10 sub-cycle adopts asymptotic-acceptance 
 - Story re-anchoring: PENDING (TD-001..TD-005 wave-scale follow-up)
 - E-10 sub-cycle adversarial review: **PARTIAL-CLOSED (ASYMPTOTIC-ACCEPTANCE)** — pass-14 PARTIAL-CLOSED 2026-05-14; D-470 mandatory HIGH closures + D-471 seal; 6 findings DEFERRED to S-15.03 PRIORITY-A automation wave; trend 22→11→16→16→12→2→1→4→5→4→6→7→5→8; NITPICK_ONLY counter FROZEN at 0/3; resumption gate = S-15.03 PRIORITY-A lint hooks in v1.0-feature-engine-discipline-pass-2
 - S-15.08 LOCAL adversary cascade: **BC-5.39.001 3-CLEAN CONVERGED 2026-05-16** — pass-6 CLEAN (0 findings; 0 obs; 0 POLICY violations); streak 2/3 → 3/3 CONVERGED; cascade HIGH(6)→NITPICK→HIGH(1)→NITPICK→LOW→CLEAN in 6 passes + 4 fix-bursts; pr-manager 9-step PR lifecycle dispatch pending
-- S-15.14 LOCAL adversary cascade: **ASYMPTOTIC-ACCEPTANCE SEALED D-477 2026-05-18** — 11 passes; trajectory 16→9→8→2→0→1→1→0→4→1→2; best streak 1/3 (twice); 6 META-LEVEL classes TD-VSDD-095..100; SEALED at recurrence floor [1,4] per F5 D-386 + E-10 D-471 precedent; SK-MCP-001 Tier 2 resumption gate; PR #148 squash-merged `6d2ba5ad` 2026-05-19; D-479 post-merge burst; BC-5.39.006 v1.3 POL-14 draft→active; M2 COMPLETE; M3 gate SATISFIED; D-range D-001..D-479
+- S-15.14 LOCAL adversary cascade: **ASYMPTOTIC-ACCEPTANCE SEALED D-477 2026-05-18** — 11 passes; trajectory 16→9→8→2→0→1→1→0→4→1→2; best streak 1/3 (twice); 6 META-LEVEL classes TD-VSDD-095..100; SEALED at recurrence floor [1,4] per F5 D-386 + E-10 D-471 precedent; SK-MCP-001 Tier 2 resumption gate; PR #148 squash-merged `6d2ba5ad` 2026-05-19; D-479 post-merge burst; BC-5.39.006 v1.3 POL-14 draft→active; M2 COMPLETE; M3 gate SATISFIED; D-range D-001..D-489
+- M3 BC cascade (BC-5.39.006 + BC-5.39.007 + BC-5.39.008): **PASS-4 PO FIX-BURST CLOSED D-489** — 4 passes; trajectory ~41→14→8→3; CRIT+HIGH both zero at pass-4; 4 INV classes (INV-016→017→018→019); INV-019 CONFIRMED; STREAK 0/3 → pass-5 dispatch-ready; BC-INDEX v2.41 + VP-INDEX v1.98 + STORY-INDEX v3.45 + ARCH-INDEX v2.07
