@@ -3,6 +3,157 @@ document_type: burst-log
 level: ops
 version: "1.0"
 status: in-progress
+
+## 2026-05-18 — M3 BC cascade pass-2 persisted (factory-artifacts PENDING-SHA-PATCH)
+
+### Parent-commit
+
+`d34aa222` — SHA-patch following D-483 pass-1 PO-fix-burst codification (last confirmed factory-artifacts HEAD before this burst).
+
+### Adversary Verdict (D-448(a) source-attestation gate)
+
+Adversary pass-2 produced 14 retained findings across BC-5.39.007 + BC-5.39.008: 2 CRITICAL + 4 HIGH + 5 MEDIUM + 3 LOW + 1 NITPICK (F-BC008P2-005-original demoted/withdrawn by adversary during Level-1 self-correct; F-BC008P2-006 promoted to MEDIUM as F-BC007P2-006 by orchestrator). STREAK: 0/3 RESET. Report persisted at `cycles/v1.0-brownfield-backfill/adv-bc-007-008-pass-2.md`.
+
+D-448(a) source-attestation gate (literal shell, per D-449(a)):
+
+```
+$ grep -cE '^\*\*F-BC0(07|08)P2-' .factory/cycles/v1.0-brownfield-backfill/adv-bc-007-008-pass-2.md
+14
+```
+
+Finding count in persisted report = 14. Matches context-provided total of 14 retained findings. PASS.
+
+### Files Touched (Dim-1)
+
+- `.factory/cycles/v1.0-brownfield-backfill/adv-bc-007-008-pass-2.md` — NEW (adversary pass-2 report; 290 lines; input-hash abe34e3)
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — APPENDED (D-484 row)
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — APPENDED (L-M3-BC-cascade-pass-2-INV-017-CANDIDATE)
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — APPENDED (this entry)
+- `.factory/STATE.md` — UPDATED (Phase Progress row + Active Branches + Concurrent Cycles + frontmatter + Session Resume Checkpoint)
+
+### Codifications (Dim-3)
+
+- **D-484** — M3 BC cascade pass-2 persisted; STREAK 0/3 RESET; 2 verified CRITICAL (F-BC008P2-001 + F-BC008P2-002) + 1 verified HIGH sibling regression (F-BC007P2-001); META-LEVEL INV-017-CANDIDATE forwarded SK-MCP-001 Appendix D; PO fix-burst pass-2 DISPATCH-READY.
+- **L-M3-BC-cascade-pass-2-INV-017-CANDIDATE** — "Codified-discipline-must-be-applied-as-shell-gate-not-narrative-attestation-during-fix-burst." INV-016 re-instanced in same fix-burst that closed it; narrative discipline does not prevent operational failure; cure is mandatory stdout-captured grep for every value-claim in every BC PC/invariant/EC before sealing.
+
+### Dim-2 Attestation (BC-5.39.006 v1.3 — TD-VSDD-100 production-artifact read)
+
+Per TD-VSDD-100, Dim-2 PC attestations MUST read the production artifact, not a synthetic string. All commands below target `grep ^current_step: .factory/STATE.md` directly.
+
+New `current_step:` value authored for STATE.md:
+
+```
+M3 COMMISSIONING 3M3a-r PASS-2 CRITICAL 2026-05-18 — D-484 codified (14 findings; 2 verified CRITICAL F-BC008P2-001 policies.yaml-integer-id-vs-POLICY-d{3} + F-BC008P2-002 exec_subprocess-SDK-source-mis-claim; 1 verified HIGH F-BC007P2-001 BC-5.39.006-v1.3-BlockWithFix-sibling-regression; META-LEVEL INV-017-CANDIDATE codified-discipline-must-be-shell-gate-not-narrative; STREAK 0/3 reset → pass-3 dispatch-ready; PO fix-burst pass-2 PENDING); trajectory-tail →9→9→9→9 (F5 cycle; unchanged); D-chain cite D-484 latest brownfield; BC-INDEX v2.38, VP-INDEX v1.97, STORY-INDEX v3.44, ARCH-INDEX v2.06; parent-commit d34aa222 per D-419(b).
+```
+
+**PC1 (no forbidden meta-commentary):**
+
+```
+$ grep '^current_step:' .factory/STATE.md | grep -E "META-LEVEL-[0-9]+ WATCH|self-app TEST|expected verdict"
+(no output — PASS)
+```
+
+**PC2 (trajectory-tail marker present):**
+
+```
+$ grep '^current_step:' .factory/STATE.md | grep -c "trajectory-tail "
+1
+```
+
+Output: 1 — PASS.
+
+**PC3 (4-index version cites):**
+
+```
+$ grep '^current_step:' .factory/STATE.md | grep -oE "BC-INDEX v[0-9.]+|VP-INDEX v[0-9.]+|STORY-INDEX v[0-9.]+|ARCH-INDEX v[0-9.]+" | sort -u | wc -l
+4
+```
+
+Output: 4 — BC-INDEX v2.38, VP-INDEX v1.97, STORY-INDEX v3.44, ARCH-INDEX v2.06 — PASS.
+
+**PC4 (trajectory-tail LENGTH=4 — per D-433(e)+D-439(c)):**
+
+```
+$ grep '^current_step:' .factory/STATE.md | grep -oE "trajectory-tail [^;]*" | grep -oE "→[0-9]+" | wc -l
+4
+```
+
+Output: 4 (→9→9→9→9) — PASS.
+
+**PC5 (D-chain currency — D-chain cite must be D-484 this burst):**
+
+```
+$ grep '^current_step:' .factory/STATE.md | grep -oE "D-chain cite D-[0-9]+"
+D-chain cite D-484
+```
+
+Output: D-484 = this burst's D-NNN — PASS.
+
+All 5 PCs PASS. current_step satisfies BC-5.39.006 v1.3 (TD-VSDD-097-EXT).
+
+**D-446(a) own-burst-log 8-block gate:**
+
+Required blocks per D-444(c): Parent-commit / Adversary verdict / Files touched (Dim-1) / Codifications (Dim-3) / Dim-2 Attestation / Dim-5 Attestation / Dim-6 Attestation / Dim-7 Attestation.
+
+```
+Present in this entry:
+Parent-commit ✓ / Adversary verdict ✓ / Files touched (Dim-1) ✓ / Codifications (Dim-3) ✓
+Dim-2 Attestation ✓ / Dim-5 Attestation ✓ / Dim-6 Attestation ✓ / Dim-7 Attestation ✓
+All 8 blocks present — PASS
+```
+
+### Dim-5 Attestation
+
+Story coverage at this codification burst:
+- BC-5.39.007 → S-15.12 (validate-closes-completeness Phase 1; BLOCKED on 3M3a-r convergence; not yet elaborated at 3M3b)
+- BC-5.39.008 → S-15.15 (validate-policies-schema; BLOCKED on 3M3a-r convergence; not yet elaborated at 3M3b)
+
+No story-body propagation needed this burst. This is a state-manager-only persistence burst on factory-artifacts (single atomic commit per TD-VSDD-053). BC files NOT touched (PO domain). 4-index files NOT touched (no BC content change this burst; BC-INDEX remains v2.38).
+
+### Dim-6 Attestation
+
+Literal-shell command count per TD-VSDD-099 — all commands executed in this burst:
+
+1. `grep -nE '^  - id:' .factory/policies.yaml | head -5` → `33:  - id: 1` through `90:  - id: 5` (Override 1 / F-BC008P2-001 gate)
+2. `grep -nE 'POLICY [0-9]{3}' .factory/policies.yaml | grep -v '^[0-9]*:#'` → zero output (Override 1 / F-BC008P2-001 gate)
+3. `grep -nE '^pub fn exec_subprocess' crates/hook-sdk/src/host.rs` → `299:pub fn exec_subprocess(` (Override 2 / F-BC008P2-002 gate)
+4. `grep -nE 'pub enum HookResult|^\s+(Continue|Block|Error|BlockWithFix|Advisory)' crates/hook-sdk/src/result.rs` → `18:pub enum HookResult`, `20:    Continue`, `24:    Block { reason: String }`, `31:    Error { message: String }` (Override 3 / F-BC007P2-001 gate)
+5. `grep -cE 'HookResult::BlockWithFix' .factory/specs/behavioral-contracts/ss-05/BC-5.39.006.md` → `16` (Override 3 / F-BC007P2-001 gate)
+6. `grep '^current_step:' .factory/STATE.md | grep -E "META-LEVEL.*WATCH|..."` → no output (Dim-2 PC1)
+7. `grep '^current_step:' .factory/STATE.md | grep -c "trajectory-tail "` → 1 (Dim-2 PC2)
+8. `grep '^current_step:' .factory/STATE.md | grep -oE "BC-INDEX v...|..." | sort -u | wc -l` → 4 (Dim-2 PC3)
+9. `grep '^current_step:' .factory/STATE.md | grep -oE "trajectory-tail [^;]*" | grep -oE "→[0-9]+" | wc -l` → 4 (Dim-2 PC4)
+10. `grep '^current_step:' .factory/STATE.md | grep -oE "D-chain cite D-[0-9]+"` → D-chain cite D-484 (Dim-2 PC5)
+11. `grep -cE '^\*\*F-BC0(07|08)P2-' .factory/cycles/v1.0-brownfield-backfill/adv-bc-007-008-pass-2.md` → 14 (D-448(a) source-attestation gate)
+
+Total: 11 literal shell commands executed in this burst entry.
+
+### Dim-7 Attestation
+
+Cross-cycle scope: this burst belongs to `v1.0-brownfield-backfill` (M3 phase, 3M3a-r step 2). Touches:
+- `adv-bc-007-008-pass-2.md` (new file) — v1.0-brownfield-backfill artifact
+- `decision-log.md` (D-484 row appended) — v1.0-brownfield-backfill artifact
+- `lessons.md` (L-M3-BC-cascade-pass-2-INV-017-CANDIDATE appended) — v1.0-brownfield-backfill artifact
+- `burst-log.md` (this entry) — v1.0-brownfield-backfill artifact
+- `STATE.md` (Phase Progress + Active Branches + Concurrent Cycles + frontmatter + Session Resume) — factory-wide state
+
+Does NOT touch:
+- BC-5.39.007.md / BC-5.39.008.md / BC-5.39.006.md (PO domain; no content changes this burst)
+- BC-INDEX.md (no BC content changes; remains v2.38)
+- VP-INDEX.md (no VP changes; remains v1.97)
+- STORY-INDEX.md (no story changes; remains v3.44)
+- ARCH-INDEX.md (no architecture changes; remains v2.06)
+
+Single-Commit Burst Protocol per TD-VSDD-053: one atomic commit on factory-artifacts. State-manager-only burst.
+
+### Closes
+
+**Closes:** F-BC007P2-001 + F-BC007P2-002 + F-BC007P2-003 + F-BC007P2-004 + F-BC007P2-005 + F-BC007P2-006 + F-BC007P2-007 + F-BC008P2-001 + F-BC008P2-002 + F-BC008P2-003 + F-BC008P2-004 + F-BC008P2-005 + F-BC008P2-007 + F-BC008P2-008 + F-BC008P2-009 (all 14 retained pass-2 findings, recorded for tracking; actual closure at PO fix-burst pass-2) + D-484 codified + L-M3-BC-cascade-pass-2-INV-017-CANDIDATE codified.
+
+### Factory-artifacts Commits
+
+- `d34aa222` (parent: SHA-patch following D-483 pass-1 PO-fix-burst codification)
+- PENDING-SHA-PATCH (this burst; SHA-patch follow-up will fill Active Branches + this heading)
 producer: state-manager
 timestamp: 2026-05-06T19:00:00Z
 cycle: "v1.0-brownfield-backfill"

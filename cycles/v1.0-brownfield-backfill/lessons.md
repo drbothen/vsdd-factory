@@ -1877,3 +1877,35 @@ BC-5.39.007 + BC-5.39.008 pass-1 adversary cascade yielded 41 findings (21 + 20;
 
 **Closes:** F-BC007P1-001 (CRITICAL Closes format) + F-BC007P1-002 through F-BC007P1-021 (HIGH/MED/LOW/NIT BC-007) + F-BC008P1-002 (CRITICAL PC13 ADR-021 contradiction) + F-BC008P1-003 through F-BC008P1-020 (HIGH/MED/LOW/NIT BC-008; F-BC008P1-001 FALSE POSITIVE excluded) + D-483 codified.
 
+## L-M3-BC-cascade-pass-2-INV-017-CANDIDATE — Codified-discipline-must-be-applied-as-shell-gate-not-narrative-attestation-during-fix-burst (META-LEVEL INV-017-CANDIDATE)
+
+**Date:** 2026-05-18
+**Source:** D-484 M3 BC cascade pass-2 state-manager persistence burst
+**Class:** Meta-level discipline self-application failure + shell-gate-not-narrative-attestation pattern
+
+M3 BC cascade pass-2 (2026-05-18) produced 14 findings including 2 verified CRITICAL that were not present at pass-1. Both CRITICAL findings are RE-INSTANCES of the META-LEVEL-INV-016 class ("BC-authorship-must-grep-actual-artifact-format") codified at D-482/D-483 in the immediately preceding bursts.
+
+**Self-application failure pattern:** L-M3-BC-cascade-pass-1 + L-M3-BC-cascade-pass-1-PO-fix-burst codified INV-016-CANDIDATE ("BC spec format claims must be verified against actual artifact corpus via literal grep"). The PO fix-burst at 865062b5 that produced BC-5.39.007 v1.1 + BC-5.39.008 v1.1 then:
+
+1. Authored invariant 4 + PC4 mandating POLICY \d{3} (three-digit form) for policies.yaml IDs without grepping actual policies.yaml which uses bare integer YAML values (id: 1 through id: 18). Result: F-BC008P2-001 VERIFIED CRITICAL. Hook built per spec would HARD BLOCK every write to the production file.
+
+2. Authored PC10 stating host::exec_subprocess is NOT a registered host import without grepping crates/hook-sdk/src/host.rs which exposes pub fn exec_subprocess( at line 299. Result: F-BC008P2-002 VERIFIED CRITICAL. BC architectural justification for Option (b) layering cites a false factual claim about the SDK.
+
+3. Failed to sweep BC-5.39.006 v1.3 for HookResult::BlockWithFix non-existence, parallel to the Advisory class just closed in BC-5.39.007/008. BC-5.39.006 v1.3 contains HookResult::BlockWithFix 16 times; the variant does not exist in result.rs. Result: F-BC007P2-001 VERIFIED HIGH sibling regression.
+
+**The discipline was recorded but not operationalized.** The PO had access to the lesson (codified in the same burst that produced the v1.1 BCs). The lesson was in narrative form in lessons.md. Narrative lessons create awareness but not enforcement. The lesson becomes enforceable only when it is expressed as a concrete shell gate that the authoring agent must execute and embed as captured stdout in the changelog row before declaring the BC sealed.
+
+**INV-017-CANDIDATE normative cure:** Every BC-authoring agent, for EVERY value-claim in EVERY PC/invariant/EC/test-vector, MUST:
+- Execute a literal grep (or equivalent) against the canonical-source artifact
+- Capture stdout
+- Embed the captured stdout in the changelog row of the BC version being authored
+- ONLY THEN seal the BC version
+
+This transforms "you should check" (narrative discipline) into "you must produce verifiable evidence" (shell-gate discipline). A BC changelog row claiming a format or SDK fact without embedded grep stdout is an incomplete changelog row and a protocol violation under INV-017.
+
+**Forward routing:** INV-017-CANDIDATE forwarded to SK-MCP-001 Appendix D. The cure belongs in orchestrator dispatch templates: for each PC/invariant/EC that makes a claim about an artifact's format or an SDK's API surface, the dispatch template must enumerate the specific literal grep required and require its stdout be embedded in the changelog row.
+
+**Relationship to prior META-LEVELs:** INV-015 (adversary-must-grep-canonical-source) + INV-016 (BC-authorship-must-grep-actual-artifact-format) + INV-017 (codified-discipline-must-be-shell-gate-not-narrative) form a progression. Each is a deeper layer of the same failure class: the gap between knowing a rule and executing the mechanical verification that enforces it.
+
+**Closes:** F-BC007P2-001 (HIGH sibling BC-5.39.006 v1.3 BlockWithFix regression) + F-BC007P2-002 (HIGH Phase-1 false-negative window) + F-BC007P2-003 (HIGH PC2/PC5 renumber propagation) + F-BC007P2-004 (MEDIUM 4-file arm-routing under-specified) + F-BC007P2-005 (MEDIUM EC-016 vs EC-018 cascade order undefined) + F-BC007P2-006 (MEDIUM ADR-021 Open Sub-Questions traceability anchor) + F-BC007P2-007 (LOW invariant 5 regex parenthetical) + F-BC008P2-001 (CRITICAL policies.yaml integer-id-vs-POLICY-d{3}) + F-BC008P2-002 (CRITICAL exec_subprocess SDK-source mis-claim) + F-BC008P2-003 (HIGH severity-enum self-contradiction) + F-BC008P2-004 (MEDIUM orphan PC2 scope clarification paragraph) + F-BC008P2-005 (MEDIUM ADR-021 line 251 partial-sentence cite) + F-BC008P2-007 (LOW frontmatter phase stale) + F-BC008P2-008 (LOW ADR-021 Open Sub-Questions BC-008 perspective) + F-BC008P2-009 (NITPICK changelog row length) + D-484 codified + INV-017-CANDIDATE forwarded SK-MCP-001 Appendix D.
+
