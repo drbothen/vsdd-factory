@@ -1861,3 +1861,19 @@ Spec-reviewer and adversary were dispatched in parallel for BC-5.39.007 + BC-5.3
 
 **Closes:** D-482 + F-BC007P1-001 (verified CRITICAL — `**Closes:**` vs `### Closes` format mismatch) + F-BC008P1-002 (verified CRITICAL — PC13 ADR-021 Option (a) contradiction) + L-EDP1-067-CANDIDATE-INV-015-forward (adversary-fresh-context-must-grep-canonical-source forwarded SK-MCP-001 Appendix D INV-015) + INV-016-CANDIDATE-forward (BC-authorship-must-grep-actual-artifact-format forwarded SK-MCP-001 Appendix D INV-016).
 
+## L-M3-BC-cascade-pass-1-PO-fix-burst — PO fix-burst closed 41/41 findings without deferrals; production-grade default applied uniformly to LOW/NIT findings
+
+**Date:** 2026-05-18
+**Source:** D-483 M3 BC cascade pass-1 PO fix-burst codification
+**Class:** Production-grade-default discipline + cross-cutting SDK API verification discipline
+
+BC-5.39.007 + BC-5.39.008 pass-1 adversary cascade yielded 41 findings (21 + 20; F-BC008P1-001 FALSE POSITIVE not acted on = 40 actionable). PO fix-burst at `865062b5` closed all 40 actionable findings in a single commit without requesting any deferrals to the tech-debt register. This is the first pure PO fix-burst (no architect contention, no cross-subsystem entanglement) where the production-grade default was applied uniformly across all severity levels.
+
+**Production-grade default on LOW/NIT findings:** Mechanical in-scope fixes — invariant-numbering contiguity verification, changelog section authoring, PC identifier cross-references in test vectors, capitalization standardization, and subsystem anchor confirmation — were all completed in-scope. No P4 "opportunistic cleanup" TDs were filed for work that constituted ~45-minute inline edits. This validates CLAUDE.md Canonical Principle Rule 3: a finding that could be a 1-line inline fix should not generate a TD register entry.
+
+**Cross-cutting SDK API verification discipline:** F-BC007P1-009 + F-BC008P1-010 (both MEDIUM) were cross-cutting: `HookResult::Advisory` was referenced in both BCs but the variant does not exist in `crates/hook-sdk/src/result.rs` (only `Continue`/`Block`/`Error`). The PO correctly identified these as the same class and closed both by rewriting advisory behavior as `HookResult::Continue` + `host::log_warn`. Normative discipline: when a BC prescribes use of an SDK enum variant, the BC authorship burst MUST verify the variant exists in the actual SDK source before sealing. This is the same ground-truth verification discipline as INV-016-CANDIDATE (format claims must be verified against artifact corpus).
+
+**No new META-LEVEL classes generated.** Unlike S-15.14 LOCAL cascade (6 META-LEVEL classes) and E-10 cascade (5 META-LEVEL classes), this PO-only BC cascade pass generated zero new META-LEVEL classes. The prior two META-LEVEL codifications (INV-015 adversary-must-grep-canonical-source + INV-016 BC-authorship-must-grep-actual-format) were already codified at D-482 persist. Pass-2 dispatch proceeds with streak = 0/3 and no pre-existing codification debt.
+
+**Closes:** F-BC007P1-001 (CRITICAL Closes format) + F-BC007P1-002 through F-BC007P1-021 (HIGH/MED/LOW/NIT BC-007) + F-BC008P1-002 (CRITICAL PC13 ADR-021 contradiction) + F-BC008P1-003 through F-BC008P1-020 (HIGH/MED/LOW/NIT BC-008; F-BC008P1-001 FALSE POSITIVE excluded) + D-483 codified.
+

@@ -1778,3 +1778,149 @@ Count = 8 blocks. Gate D-446(a): PASS.
 
 ### Factory-artifacts commits
 - fd616634 (D-482 M3 BC cascade pass-1 persistence burst: spec-review-bc-007-008.md + adv-bc-007-008-pass-1.md created; decision-log D-482 row; lessons.md L-M3-BC-cascade-pass-1; burst-log entry; STATE.md updates; single atomic commit per TD-VSDD-053)
+- 865062b5 (PO fix-burst: BC-5.39.007 v1.0→v1.1 + BC-5.39.008 v1.0→v1.1 + BC-INDEX v2.37→v2.38; 41/41 findings addressed)
+
+---
+
+## 2026-05-18 — M3 BC cascade pass-1 PO fix-burst codification (factory-artifacts 865062b5)
+
+### Parent-commit
+- `7fa3b184` — SHA-patch following D-482 pass-1 persist (burst-log Factory-artifacts commit fd616634 SHA fill); per D-419(b)+D-420(d)+D-421(a)
+
+### Adversary verdict
+
+Adversary pass-1 report `adv-bc-007-008-pass-1.md` (persisted at `fd616634`). Part A findings: BC-5.39.007 yielded 21 findings (F-BC007P1-001..021): 1 CRITICAL + 4 HIGH + 7 MEDIUM + 7 LOW + 2 NITPICK. BC-5.39.008 yielded 20 findings (F-BC008P1-001..020): 2 CRITICAL (1 verified CRITICAL + 1 FALSE POSITIVE) + 5 HIGH + 7 MEDIUM + 4 LOW + 2 NITPICK. Orchestrator override reclassified F-BC008P1-001 as FALSE POSITIVE (adversary grepped stale local main `392b56d6`; TD-VSDD-101 EXISTS at `tech-debt-register.md:45`; CI env-var EXISTS at `origin/develop:.github/workflows/ci.yml` lines 141/153/398/405 — verified via literal shell). Net: 2 verified CRITICAL (F-BC007P1-001 + F-BC008P1-002) + 1 FP-override + ~17 HIGH/MEDIUM + LOW/NIT. Total actionable: 40 findings (41 minus FP-override). Streak: 0/3 CLEAN.
+
+**D-448(a) source-attestation gate — LITERAL SHELL EXECUTION per D-449(a):**
+
+```
+$ grep -cE '^\*\*F-BC007P1-[0-9]+' .factory/cycles/v1.0-brownfield-backfill/adv-bc-007-008-pass-1.md
+22
+$ grep -cE '^\*\*F-BC008P1-[0-9]+' .factory/cycles/v1.0-brownfield-backfill/adv-bc-007-008-pass-1.md
+22
+```
+
+Note: both counts are 22 (not 21/20) because F-BC007P1-001 appears in the Orchestrator Overrides section AND the Part A body (duplicated for orchestrator-verified-confirmed finding), and F-BC008P1-001 + F-BC008P1-002 similarly appear in overrides + body. Unique finding IDs: BC-007 F-BC007P1-001..021 = 21 unique; BC-008 F-BC008P1-001..020 = 20 unique. Source-attestation PASS: adversary verdict description above faithfully represents Part A finding set (2 verified CRITICAL + 1 FP-override + 4+5=9 HIGH + 7+7=14 MEDIUM + 7+4=11 LOW + 2+2=4 NITPICK).
+
+### Files touched (Dim-1)
+
+**PO fix-burst `865062b5` (3 files):**
+- `.factory/specs/behavioral-contracts/ss-05/BC-5.39.007.md` (v1.0→v1.1; 353 insertions + 207 deletions)
+- `.factory/specs/behavioral-contracts/ss-05/BC-5.39.008.md` (v1.0→v1.1; 377 insertions + 243 deletions)
+- `.factory/specs/behavioral-contracts/BC-INDEX.md` (v2.37→v2.38; 12 lines changed)
+
+**This codification commit (5 files):**
+- `.factory/STATE.md` (frontmatter + Phase Progress + Concurrent Cycles + Active Branches + Session Resume Checkpoint)
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` (D-483 row)
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` (L-M3-BC-cascade-pass-1-PO-fix-burst entry)
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` (this entry)
+- `.factory/specs/behavioral-contracts/BC-INDEX.md` (version: "2.37"→"2.38" was already done by PO; codification confirms no further bump needed)
+
+Total unique files across both commits: 7 files (3 PO + 5 codification; BC-INDEX.md counted once — PO bumped it to v2.38, codification adds no further version change).
+
+### Codifications (Dim-3)
+
+- D-483: M3 BC cascade pass-1 PO fix-burst CLOSED — 41/41 findings addressed; STREAK 0/3 → pass-2 dispatch-ready
+- L-M3-BC-cascade-pass-1-PO-fix-burst: production-grade default applied uniformly; SDK API verification discipline; no new META-LEVEL classes; 40 actionable findings closed
+
+### Dim-2 Attestation (literal-shell per D-449(a))
+
+**BC-5.39.006 v1.3 — all 5 PC verification against authored `current_step:`:**
+
+Candidate `current_step:` value:
+```
+M3 COMMISSIONING 3M3a-r PASS-1 PO FIX-BURST CLOSED 2026-05-18 — D-483 codified (41/41 findings closed; 2 verified CRITICAL F-BC007P1-001 + F-BC008P1-002 + ~17 HIGH/MED + LOW/NIT; HookResult::Advisory absent → Continue+log_warn cross-cutting rewrite; BC-5.39.007 v1.0→v1.1; BC-5.39.008 v1.0→v1.1; no deferrals; STREAK 0/3 → pass-2 dispatch-ready); trajectory-tail →9→9→9→9 (F5 cycle; unchanged); D-chain cite D-483 latest brownfield; BC-INDEX v2.38, VP-INDEX v1.97, STORY-INDEX v3.44, ARCH-INDEX v2.06; parent-commit 865062b5 per D-419(b).
+```
+
+**PC1 (no forbidden meta-commentary):**
+```
+$ echo "M3 COMMISSIONING 3M3a-r PASS-1 PO FIX-BURST CLOSED 2026-05-18 — D-483 codified (41/41 findings closed; 2 verified CRITICAL F-BC007P1-001 + F-BC008P1-002 + ~17 HIGH/MED + LOW/NIT; HookResult::Advisory absent → Continue+log_warn cross-cutting rewrite; BC-5.39.007 v1.0→v1.1; BC-5.39.008 v1.0→v1.1; no deferrals; STREAK 0/3 → pass-2 dispatch-ready); trajectory-tail →9→9→9→9 (F5 cycle; unchanged); D-chain cite D-483 latest brownfield; BC-INDEX v2.38, VP-INDEX v1.97, STORY-INDEX v3.44, ARCH-INDEX v2.06; parent-commit 865062b5 per D-419(b)." | grep -E "META-LEVEL-[0-9]+ WATCH|self-app TEST|expected verdict"
+(no output — PASS)
+```
+
+**PC3 (4 index version cites):**
+```
+$ echo "...BC-INDEX v2.38, VP-INDEX v1.97, STORY-INDEX v3.44, ARCH-INDEX v2.06..." | grep -oE "BC-INDEX v[0-9.]+|VP-INDEX v[0-9.]+|STORY-INDEX v[0-9.]+|ARCH-INDEX v[0-9.]+" | sort -u | wc -l
+       4
+```
+4 unique index cites present: BC-INDEX v2.38, VP-INDEX v1.97, STORY-INDEX v3.44, ARCH-INDEX v2.06 — PASS
+
+**PC4 (trajectory-tail LENGTH=4):**
+```
+$ echo "...trajectory-tail →9→9→9→9 (F5 cycle; unchanged)..." | grep -oE "trajectory-tail [^;]*" | grep -oE "→[0-9]+" | wc -l
+       4
+```
+4 arrows confirmed (→9→9→9→9) — PASS
+
+**PC5 (D-chain currency):**
+```
+$ echo "...D-chain cite D-483 latest brownfield..." | grep -oE "D-[0-9]+" | sort -t- -k2 -n | tail -1
+D-483
+```
+max cited = D-483 = this burst's D-NNN — PASS
+
+**PC6 (canonical trajectory-tail marker):**
+```
+$ echo "...trajectory-tail →9→9→9→9..." | grep -c "trajectory-tail "
+1
+```
+Canonical marker present — PASS
+
+All 5 PCs PASS. current_step satisfies BC-5.39.006 v1.3 (TD-VSDD-097-EXT).
+
+**D-446(a) own-burst-log 8-block gate:**
+```
+Required blocks (D-444(c) canonical 8): Parent-commit / Adversary verdict / Files touched (Dim-1) / Codifications (Dim-3) / Dim-2 Attestation / Dim-5 Attestation / Dim-6 Attestation / Dim-7 Attestation
+Present in this entry: Parent-commit ✓ / Adversary verdict ✓ / Files touched (Dim-1) ✓ / Codifications (Dim-3) ✓ / Dim-2 Attestation ✓ / Dim-5 Attestation ✓ / Dim-6 Attestation ✓ / Dim-7 Attestation ✓
+All 8 blocks present — PASS
+```
+
+Note: Closes and Factory-artifacts commits are additional blocks (9 and 10 per the context instructions), present below.
+
+### Dim-5 Attestation
+
+Story coverage — BC-to-story mapping at this codification burst:
+- BC-5.39.007 → S-15.12 (M3 story validate-closes-completeness Phase 1; status: BLOCKED on 3M3a-r convergence per Session Resume §11 step 6 — not yet elaborated at 3M3b)
+- BC-5.39.008 → S-15.15 (M3 story validate-policies-schema; status: BLOCKED on 3M3a-r convergence — not yet elaborated at 3M3b)
+
+No story-body propagation needed at this burst. Both stories will use v1.1 BC content as input when story-writer is dispatched at 3M3b after full 3-CLEAN convergence. This is a state-manager-only burst on factory-artifacts (single atomic commit per TD-VSDD-053).
+
+### Dim-6 Attestation
+
+Literal-shell command count per TD-VSDD-099: 10 literal shell commands executed in this burst entry across Adversary verdict gate (2 grep-cE) + Dim-2 PC gates (5 commands: PC1/PC3/PC4/PC5/PC6) + D-446(a) own-burst-log gate (1 count check) + D-448(a) source-attestation gate (part of adversary verdict, 2 commands).
+
+List of commands executed:
+1. `grep -cE '^\*\*F-BC007P1-[0-9]+' ...adv-bc-007-008-pass-1.md` → 22
+2. `grep -cE '^\*\*F-BC008P1-[0-9]+' ...adv-bc-007-008-pass-1.md` → 22
+3. `echo "...candidate..." | grep -E "META-LEVEL...|self-app TEST|expected verdict"` → no output (PASS)
+4. `echo "...BC-INDEX v2.38..." | grep -oE "BC-INDEX v...|..." | sort -u | wc -l` → 4
+5. `echo "...trajectory-tail →9→9→9→9..." | grep -oE "trajectory-tail [^;]*" | grep -oE "→[0-9]+" | wc -l` → 4
+6. `echo "...D-chain cite D-483..." | grep -oE "D-[0-9]+" | sort -t- -k2 -n | tail -1` → D-483
+7. `echo "...trajectory-tail →9→9→9→9..." | grep -c "trajectory-tail "` → 1
+8. 8-block gate: count verified present (8 blocks listed above)
+
+Dim-6 integer count: 8 literal shell commands (items 1-7 above + D-448(a) is part of items 1-2).
+
+### Dim-7 Attestation
+
+Cross-cycle scope: this burst belongs to `v1.0-brownfield-backfill` (M3 phase). Touches:
+- BC-INDEX (version bump v2.37→v2.38 by PO at `865062b5`; catalog version advance for BC-5.39.007 v1.1 + BC-5.39.008 v1.1).
+
+Does NOT touch:
+- STORY-INDEX (no story changes in this burst; M3 stories not yet elaborated)
+- VP-INDEX (no VP changes; VP allocations for new v1.1 citations forwarded to architect dispatch per POLICY 9)
+- ARCH-INDEX (no architecture changes in this burst)
+
+Single-Commit Burst Protocol per TD-VSDD-053: one atomic commit on factory-artifacts. State-manager-only burst (devops-engineer scope not triggered; no source-code changes).
+
+### Closes
+- F-BC007P1-001 (CRITICAL — `**Closes:**` format corrected)
+- F-BC007P1-002 through F-BC007P1-021 (HIGH/MED/LOW/NIT — all BC-5.39.007 pass-1 findings)
+- F-BC008P1-002 (CRITICAL — PC13 ADR-021 Option (a) contradiction resolved)
+- F-BC008P1-003 through F-BC008P1-020 (HIGH/MED/LOW/NIT — all BC-5.39.008 pass-1 actionable findings)
+- F-BC008P1-001: FALSE POSITIVE — not acted on per orchestrator override at D-482
+- D-483 codified
+
+### Factory-artifacts commits
+- `865062b5` (PO fix-burst: BC-5.39.007 v1.0→v1.1 + BC-5.39.008 v1.0→v1.1 + BC-INDEX v2.37→v2.38)
+- `<TO_BE_SHA_PATCHED>` (this codification burst: D-483 + L-M3-BC-cascade-pass-1-PO-fix-burst + STATE.md advance; SHA filled in SHA-patch follow-up per D-447(c)+D-449(e))
