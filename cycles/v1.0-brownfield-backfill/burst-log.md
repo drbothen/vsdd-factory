@@ -2075,3 +2075,118 @@ Single-Commit Burst Protocol per TD-VSDD-053: one atomic commit on factory-artif
 ### Factory-artifacts commits
 - `865062b5` (PO fix-burst: BC-5.39.007 v1.0→v1.1 + BC-5.39.008 v1.0→v1.1 + BC-INDEX v2.37→v2.38)
 - `aac1b834` (this codification burst: D-483 + L-M3-BC-cascade-pass-1-PO-fix-burst + STATE.md advance; single atomic commit per TD-VSDD-053)
+
+## 2026-05-19 — M3 BC cascade pass-2 PO fix-burst codification (factory-artifacts PLACEHOLDER-SHA)
+
+### Parent-commit
+`ad793e49` (SHA-patch following D-484 pass-2 persistence burst).
+
+### Adversary verdict
+M3 BC cascade pass-2 adversary verdict was CRITICAL (2 VC + 4 HIGH + 5 MEDIUM + 3 LOW + 1 NITPICK = 15 bold findings / 14 retained). F-BC008P2-005-original was demoted and withdrawn by adversary during Level-1 self-correct; F-BC008P2-006 was promoted to MEDIUM and relabeled F-BC007P2-006 by orchestrator. Per D-448(a) source-attestation, literal shell executed:
+
+`grep -cE '^\*\*F-BC0(07|08)P2-' .factory/cycles/v1.0-brownfield-backfill/adv-bc-007-008-pass-2.md`
+
+stdout: `15`
+
+The count of 15 vs 14 retained is fully accounted for by the adversary withdrawal note at lines 97 and 237 of adv-bc-007-008-pass-2.md ("F-BC008P2-005 original adversary numbering was demoted and withdrawn"; final retained count is 14 per the note). This codification burst closes all 14 retained findings via PO fix-burst at `8c9b1200`.
+
+### Files touched
+**PO commit `8c9b1200`:** BC-5.39.006.md (v1.3→v1.4; sibling-sweep 16× HookResult::BlockWithFix→block_with_fix), BC-5.39.007.md (v1.1→v1.2; F-BC007P2-002..007), BC-5.39.008.md (v1.1→v1.2; F-BC008P2-001..009), BC-INDEX.md (last_amended bump + table rows to v1.4/v1.2/v1.2; version NOT bumped by PO).
+
+**This codification commit:** decision-log.md (D-485 row), lessons.md (L-M3-BC-cascade-pass-2-PO-fix-burst), burst-log.md (this entry), STATE.md (frontmatter advance + Phase Progress row + Session Resume Checkpoint + Concurrent Cycles + Decisions Log preamble), BC-INDEX.md (version v2.38→v2.39 + changelog row).
+
+### Codifications
+- D-485: M3 BC cascade pass-2 PO fix-burst codification row in decision-log.md
+- L-M3-BC-cascade-pass-2-PO-fix-burst: lesson in lessons.md (INV-017 discipline + BC sibling-sweep + production-grade-default)
+
+### Dim-2 attestation (BC-5.39.006 v1.4 all 5 PCs verified via literal shell per TD-VSDD-100 + INV-017)
+
+New `current_step:` value: `"M3 COMMISSIONING 3M3a-r PASS-2 PO FIX-BURST CLOSED 2026-05-19 — D-485 codified (14/14 findings closed in scope; F-BC008P2-001 + F-BC008P2-002 verified-CRITICAL closed; F-BC007P2-001 BC-5.39.006 v1.3→v1.4 sibling-sweep applied 16× HookResult::BlockWithFix → HookResult::block_with_fix(...); INV-017 discipline applied with 6 literal-shell stdouts in changelog rows; no deferrals; no new TDs; STREAK 0/3 → pass-3 dispatch-ready); trajectory-tail →9→9→9→9 (F5 cycle; unchanged); D-chain cite D-485 latest brownfield; BC-INDEX v2.39, VP-INDEX v1.97, STORY-INDEX v3.44, ARCH-INDEX v2.06; parent-commit 8c9b1200 per D-419(b)."`
+
+**PC1 — no forbidden meta-commentary regex:**
+```
+$ grep '^current_step:' .factory/STATE.md | grep -cE 'META-LEVEL-[0-9]+ WATCH|self-app TEST|expected verdict'
+0
+```
+stdout: `0` — PASS
+
+**PC2 — all 4 index version patterns present:**
+```
+$ grep '^current_step:' .factory/STATE.md | grep -oE 'BC-INDEX v[0-9.]+|VP-INDEX v[0-9.]+|STORY-INDEX v[0-9.]+|ARCH-INDEX v[0-9.]+'
+BC-INDEX v2.39
+VP-INDEX v1.97
+STORY-INDEX v3.44
+ARCH-INDEX v2.06
+```
+stdout: 4 matches — PASS
+
+**PC3 — trajectory-tail marker present:**
+```
+$ grep '^current_step:' .factory/STATE.md | grep -c 'trajectory-tail '
+1
+```
+stdout: `1` — PASS
+
+**PC4 — trajectory-tail LENGTH=4 (first-semicolon segment per invariant 6(b)):**
+```
+$ grep '^current_step:' .factory/STATE.md | grep -oE 'trajectory-tail [→0-9]+' | grep -oE '→[0-9]+' | wc -l
+4
+```
+stdout: `4` — PASS
+
+**PC5 — D-chain cite not stale (includes D-485):**
+```
+$ grep '^current_step:' .factory/STATE.md | grep -oE 'D-[0-9]+ latest'
+D-485 latest
+```
+stdout: `D-485 latest` — PASS
+
+All 5 BC-5.39.006 v1.4 PCs PASS.
+
+### Dim-5 attestation
+- BC-5.39.006 v1.4 → S-15.14 (SHIPPED PR #148; sibling-sweep amendment (v1.3→v1.4) is spec-internal-consistency only; the shipped validate-dispatch-advance hook already uses `HookResult::block_with_fix(...)` at the code level; no story re-elaboration required).
+- BC-5.39.007 v1.2 → S-15.12 (BLOCKED on 3M3a-r convergence; story not yet elaborated; v1.2 amendments are inputs to 3M3b story-writer dispatch).
+- BC-5.39.008 v1.2 → S-15.15 (BLOCKED on 3M3a-r convergence; story not yet elaborated; v1.2 amendments are inputs to 3M3b story-writer dispatch).
+
+### Dim-6 attestation (literal-shell count per TD-VSDD-099)
+Literal shell commands executed in this burst-log entry:
+
+1. `grep -cE '^\*\*F-BC0(07|08)P2-' .factory/cycles/v1.0-brownfield-backfill/adv-bc-007-008-pass-2.md` → `15` (source-attestation; D-448(a))
+2. `grep -nE 'pub enum HookResult|^\s+(Continue|Block|Error|BlockWithFix)' crates/hook-sdk/src/result.rs` → SDK variant set verification
+3. `grep -cE 'HookResult::BlockWithFix' .factory/specs/behavioral-contracts/ss-05/BC-5.39.006.md` → `0` (post-PO-sweep; F-BC007P2-001 closure verification)
+4. `git -C .factory show 8c9b1200 --stat` → PO commit verification (4 files changed)
+5. `grep '^current_step:' .factory/STATE.md | grep -cE 'META-LEVEL-[0-9]+ WATCH|self-app TEST|expected verdict'` → `0` (PC1)
+6. `grep '^current_step:' .factory/STATE.md | grep -oE 'trajectory-tail [→0-9]+' | grep -oE '→[0-9]+' | wc -l` → `4` (PC4)
+7. `grep -n '^version:' .factory/specs/behavioral-contracts/BC-INDEX.md` → `version: "2.39"` (post-bump verification)
+
+Count: 7 literal shell commands.
+
+### Dim-7 attestation
+Cross-cycle scope: `v1.0-brownfield-backfill` cycle exclusively. This burst:
+- Touches BC-INDEX (version bump v2.38→v2.39; 3 BC content changes: BC-5.39.006 v1.4 + BC-5.39.007 v1.2 + BC-5.39.008 v1.2).
+- Does NOT touch STORY-INDEX (no story changes; M3 stories not yet elaborated; 3M3b BLOCKED on 3M3a-r convergence).
+- Does NOT touch VP-INDEX (no VP changes; VP allocations for new BC-5.39.007/008 citations still pending architect dispatch per D-483 forward-routing and POLICY 9).
+- Does NOT touch ARCH-INDEX (no architecture changes in this burst).
+
+Single-Commit Burst Protocol per TD-VSDD-053: one atomic commit on factory-artifacts.
+
+### Closes
+- F-BC007P2-001 (HIGH — BC-5.39.006 v1.3 BlockWithFix sibling-sweep → v1.4)
+- F-BC007P2-002 (HIGH — Phase-1 false-negative window bounded)
+- F-BC007P2-003 (HIGH — PC2/PC5 renumber propagation)
+- F-BC007P2-004 (MEDIUM — 4-file arm-routing)
+- F-BC007P2-005 (MEDIUM — EC-016/EC-018 cascade order)
+- F-BC007P2-006 (MEDIUM — ADR-021 Open Sub-Questions traceability; relabeled from original F-BC008P2-006 by orchestrator)
+- F-BC007P2-007 (LOW — invariant 5 regex parenthetical)
+- F-BC008P2-001 (CRITICAL — policies.yaml integer-id format)
+- F-BC008P2-002 (CRITICAL — exec_subprocess SDK mis-claim)
+- F-BC008P2-003 (HIGH — severity-enum self-contradiction)
+- F-BC008P2-004 (MEDIUM — orphan PC2 scope paragraph)
+- F-BC008P2-005 (MEDIUM — ADR-021 line 251 partial-sentence cite; renumbered from original F-BC008P2-006)
+- F-BC008P2-007 (LOW — frontmatter phase stale)
+- F-BC008P2-008 (LOW — ADR-021 Open Sub-Questions BC-008 perspective)
+- F-BC008P2-005-original: DEMOTED/WITHDRAWN by adversary during Level-1 self-correct; not acted on
+
+### Factory-artifacts commits
+- `8c9b1200` (PO fix-burst: BC-5.39.006 v1.3→v1.4 + BC-5.39.007 v1.1→v1.2 + BC-5.39.008 v1.1→v1.2 + BC-INDEX last_amended/table bump; INV-017 applied with 6 literal-shell stdouts)
+- `PLACEHOLDER-SHA` (this codification burst: D-485 + L-M3-BC-cascade-pass-2-PO-fix-burst + STATE.md advance + BC-INDEX v2.38→v2.39; single atomic commit per TD-VSDD-053; parent-commit 8c9b1200 per D-419(b))
