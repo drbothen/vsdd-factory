@@ -7,7 +7,7 @@ producer: state-manager
 timestamp: 2026-05-06T19:00:00Z
 cycle: "v1.0-brownfield-backfill"
 inputs: [STATE.md]
-input-hash: "4c8a956"
+input-hash: "c27e9fb"
 traces_to: STATE.md
 ---
 
@@ -1424,3 +1424,119 @@ No --no-verify used.
 
 ### Factory-artifacts commits
 - `93e3c2f3` (state-manager S-15.14 POST-MERGE BURST D-479 single atomic commit per TD-VSDD-053)
+- `c993165e` (SHA-patch follow-up D-479 per D-447(c)+D-449(e))
+
+## M3 COMMISSIONING STATE ADVANCE BURST — D-480 — 2026-05-18
+
+### Parent-commit
+`c993165e` — SHA-patch D-479 (factory-artifacts Active Branches + burst-log Factory-artifacts commits per D-447(c)+D-449(e)). Parent-commit per D-419(b).
+
+### Adversary verdict
+N/A — this is a state-advance burst (commissioning state recording, not an adversary cycle pass). Upstream adversary authority: D-477 cascade seal (S-15.14 LOCAL cascade ASYMPTOTIC-ACCEPTANCE 2026-05-18; 11 passes; trajectory 16→9→8→2→0→1→1→0→4→1→2; 6 META-LEVEL classes TD-VSDD-095..100 SEALED). Human decision at Resume Checkpoint §11 step 8 authorized M3 commissioning path. No new adversary findings; no finding set to describe. D-448(a) source-attestation gate: N/A for state-advance bursts (no adversary review file for this burst); upstream D-477 verdict accurately described.
+
+### Files touched (Dim-1)
+1. `.factory/STATE.md` — frontmatter phase+last_amended+current_step; Project Metadata Last Updated+Current Phase; Active Branches factory-artifacts row TBD-POST-COMMIT; Concurrent Cycles v1.0-brownfield-backfill status advance; Decisions Log preamble umbrella D-480 + D-480 row; Drift Items TD-VSDD-101 row; Session Resume Checkpoint heading + §1/§2/§3/§4/§5/§6/§7/§9/§10/§11/§12 updates; Section 12 Step 3M3 COMMISSIONING + 3M3a/b/c sub-rows; Previous checkpoint archive pointer
+2. `.factory/tech-debt-register.md` — TD-VSDD-101 row added to Debt Items table
+3. `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-480 full codification row appended
+4. `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — L-M3-commissioning entry appended
+5. `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — this entry appended
+
+Total: 5 files
+
+### Codifications (Dim-3)
+- **D-480**: M3 commissioning chosen — human decision 2026-05-18; CI env-var paper-fix TD-VSDD-101 anchored S-15.15; M3 scope: S-15.10/12/13/15/16-Part-B + ADR-021/022 already ACCEPTED. Product-owner BC-5.39.007+BC-5.39.008 first; story-writer 5 stories second; per-story-delivery third.
+- **TD-VSDD-101**: VSDD_SKIP_PRODUCTION_STATE_MD_TEST=1 CI env-var paper-fix — MEDIUM severity; anchored S-15.15; TD-VSDD-059 class; Canonical Principle Rule 3 three-condition gate satisfied.
+- **L-M3-commissioning**: M3 commissioning at S-15.14 SHIPPED + asymptotic-acceptance precedent triple-stamp (F5 D-386 → E-10 D-471 → S-15.14 D-477) confirms natural-ordering decision; CI paper-fix TD-VSDD-101 Production-Grade Principle Rule 4 in practice.
+
+### Dim-2 Attestation
+Literal shell invocations per D-449(a) + TD-VSDD-100 (production-read; NOT synthetic echo):
+
+**PC2 (no meta-commentary):**
+```
+$ grep "^current_step:" .factory/STATE.md | grep -cv "for now\|good enough\|MVP\|we can fix"
+1
+```
+PASS — count=1 (no forbidden patterns)
+
+**PC3 (4 index version cites):**
+```
+$ grep "^current_step:" .factory/STATE.md | grep -oE "BC-INDEX v[0-9]+\.[0-9]+|VP-INDEX v[0-9]+\.[0-9]+|STORY-INDEX v[0-9]+\.[0-9]+|ARCH-INDEX v[0-9]+\.[0-9]+"
+BC-INDEX v2.36
+VP-INDEX v1.97
+STORY-INDEX v3.44
+ARCH-INDEX v2.06
+```
+PASS — all 4 indexes cited
+
+**PC4 (trajectory-tail LENGTH=4):**
+```
+$ grep "^current_step:" .factory/STATE.md | grep -oE "trajectory-tail [→0-9]+" | grep -oE "→[0-9]+" | wc -l
+       4
+```
+PASS — exactly 4 arrow-segments
+
+**PC5 (D-chain currency — max D-NNN in step ≥ D-480):**
+```
+$ grep "^current_step:" .factory/STATE.md | grep -oE "D-[0-9]+" | sort -t- -k2 -n | tail -1
+D-480
+```
+PASS — D-480 is the latest D-NNN (this burst); D-chain is current
+
+**PC6 (canonical trajectory-tail marker):**
+```
+$ grep "^current_step:" .factory/STATE.md | grep -oP "trajectory-tail " | wc -l
+       1
+```
+PASS — exactly 1 canonical marker with trailing space
+
+**STATE.md line count (D-446(c) dual-margin):**
+```
+$ wc -l .factory/STATE.md
+     389 .factory/STATE.md
+```
+389 lines. Margin from hard cap: 500 - 389 = 111. Margin from soft-target: 500 - 415 = 85. Both within bounds. PASS.
+
+### Dim-5 Attestation
+- D-480 codified in `cycles/v1.0-brownfield-backfill/decision-log.md` row 119.
+- TD-VSDD-101 filed in `tech-debt-register.md` Debt Items table (first row) + STATE.md Drift Items table.
+- L-M3-commissioning appended to `cycles/v1.0-brownfield-backfill/lessons.md`.
+- STATE.md Section 12 Step 3M3 advanced to COMMISSIONING + 3M3a/b/c sub-rows added.
+- D-452(e) umbrella range auto-advance: Decisions Log preamble updated to cite D-480.
+- Active Branches factory-artifacts row: TBD-POST-COMMIT (SHA-patch follow-up will fill after commit).
+- POLICY 3 compliance: state-manager wrote exclusively to `.factory/` paths.
+- No --no-verify; no force-push to main; no AI attribution.
+
+### Dim-6 Attestation
+Own-burst-log structural-integrity check per D-444(c)+TD-VSDD-099:
+
+This entry contains:
+1. Parent-commit
+2. Adversary verdict
+3. Files touched (Dim-1)
+4. Codifications (Dim-3)
+5. Dim-2 Attestation
+6. Dim-5 Attestation
+7. Dim-6 Attestation
+8. Dim-7 Attestation
+9. Closes
+10. Factory-artifacts commits
+
+Count = 10 blocks ≥ 8 required. PASS.
+
+D-448(a) source-attestation: N/A (state-advance burst; no new adversary review file). Upstream D-477 verdict cited accurately in Adversary verdict section.
+
+### Dim-7 Attestation
+- Burst type: state-manager-only on factory-artifacts (no implementer source-code dispatch).
+- POLICY 3 compliance: state-manager wrote exclusively to `.factory/` paths.
+- No source code, no feature branch, no --no-verify.
+- Sibling implementer dispatch: N/A (state-artifacts only; no code changes in this burst).
+- Factory-artifacts before burst: `c993165e` (D-479 SHA-patch). After burst: TBD-POST-COMMIT (this commit).
+
+### Closes
+- D-480 codified: M3 commissioning; human decision 2026-05-18 Resume Checkpoint §11 step 8 resolved.
+- TD-VSDD-101 filed: CI env-var paper-fix anchored S-15.15.
+- L-M3-commissioning codified: natural-ordering discipline + Production-Grade Principle Rule 4 in practice.
+- Section 12 Step 3M3 advanced to COMMISSIONING with 3M3a/b/c sub-steps.
+
+### Factory-artifacts commits
+- TBD-POST-COMMIT (state-manager M3 COMMISSIONING STATE ADVANCE BURST D-480 single atomic commit per TD-VSDD-053)
