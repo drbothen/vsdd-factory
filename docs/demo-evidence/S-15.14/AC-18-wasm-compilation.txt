@@ -1,0 +1,17 @@
+# AC-18 Demo Evidence: Hook crate compiles to wasm32-wasip1 cleanly with zero warnings
+# Architect Q4 crate convention
+#
+# Command:
+#   cd .worktrees/S-15.14
+#   cargo build --release --target wasm32-wasip1 -p validate-dispatch-advance
+#
+# Also verifies binary exists at expected path:
+#   ls -la plugins/vsdd-factory/hook-plugins/validate-dispatch-advance.wasm
+#
+# Expected: exit 0, no warnings, wasm binary present
+
+$ cargo build --release --target wasm32-wasip1 -p validate-dispatch-advance
+    Finished `release` profile [optimized] target(s) in 0.16s
+
+$ ls -la plugins/vsdd-factory/hook-plugins/validate-dispatch-advance.wasm
+-rwxr-xr-x@ 1 jmagady  staff  177763 May 17 23:20 plugins/vsdd-factory/hook-plugins/validate-dispatch-advance.wasm

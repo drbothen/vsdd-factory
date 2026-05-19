@@ -1,0 +1,15 @@
+# AC-15 Demo Evidence: Hook emits Continue (fail-open) when INDEX.md is unreadable
+# BC-5.39.006 postcondition 10; EC-018
+#
+# Command:
+#   cd plugins/vsdd-factory/tests/validate-dispatch-advance
+#   bats --tap fail-open-index-unreadable.bats
+#
+# Fixture: fail-open-index-unreadable/factory/ — empty; no INDEX.md file present
+#   hook invoked with path that resolves via host::read_file to HostError::Timeout
+#
+# Expected: exit 0 (Continue; NOT Block) — fail-open per invariant 9
+
+$ bats --tap fail-open-index-unreadable.bats
+1..1
+ok 1 AC-15 PASS (fail-open): hook emits Continue when INDEX.md is not readable via host::read_file

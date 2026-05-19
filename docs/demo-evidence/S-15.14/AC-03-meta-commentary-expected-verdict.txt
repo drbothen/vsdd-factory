@@ -1,0 +1,15 @@
+# AC-3 Demo Evidence: Hook blocks expected verdict substring in current_step:
+# BC-5.39.006 postcondition 2; EC-003
+#
+# Command:
+#   cd plugins/vsdd-factory/tests/validate-dispatch-advance
+#   bats --tap fail-meta-commentary-expected-verdict.bats
+#
+# Fixture: fail-meta-commentary-expected-verdict/factory/STATE.md
+#   current_step: contains "expected verdict" substring
+#
+# Expected: exit 2, block emitted
+
+$ bats --tap fail-meta-commentary-expected-verdict.bats
+1..1
+ok 1 AC-3 FAIL: hook blocks when current_step: contains 'expected verdict' substring

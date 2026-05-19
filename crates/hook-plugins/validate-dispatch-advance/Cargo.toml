@@ -1,12 +1,12 @@
 [package]
-name = "validate-index-cite-refresh"
+name = "validate-dispatch-advance"
 version = "0.0.1"
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
 authors.workspace = true
 rust-version.workspace = true
-description = "WASM hook plugin: PostToolUse gate that blocks stale 4-index version citations in ARCH-INDEX.md and cross-cell mismatches in STATE.md/INDEX.md (BC-5.39.003, D-405(c), D-429(b))"
+description = "WASM hook plugin: PostToolUse gate that blocks STATE.md writes with forbidden meta-commentary in current_step:, missing 4-index version cites, trajectory-tail cardinality violations, stale D-chain cites, and INDEX.md ## Adversarial Reviews rows with non-5-column schema (BC-5.39.006)"
 publish = false
 
 # Hook plugins ship as WASI commands (_start entry point) built via
@@ -17,7 +17,7 @@ path = "src/lib.rs"
 crate-type = ["cdylib", "rlib"]
 
 [[bin]]
-name = "validate-index-cite-refresh"
+name = "validate-dispatch-advance"
 path = "src/main.rs"
 
 [dependencies]
@@ -25,8 +25,8 @@ vsdd-hook-sdk = { path = "../../hook-sdk" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 # NOTE: No `regex` crate — hand-rolled scanning is used to stay within the
-# WASM 10M fuel budget. The regex crate's DFA compilation exhausts the fuel
-# cap on first call. See src/lib.rs extract_index_cites().
+# WASM fuel budget. The regex crate's DFA compilation exhausts the fuel
+# cap on first call. See src/lib.rs for hand-rolled pattern scanning.
 
 [dev-dependencies]
 serde_json = { workspace = true }

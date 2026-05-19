@@ -1,0 +1,47 @@
+# AC-19 Demo Evidence: hooks-registry.toml entry present with correct fields
+# Architect Q5+Q6 canonical lock
+#
+# Command 1 — verify registry entry:
+#   grep -A10 'name = "validate-dispatch-advance"' plugins/vsdd-factory/hooks-registry.toml
+#
+# Command 2 — verify no file_pattern field:
+#   grep 'file_pattern' plugins/vsdd-factory/hooks-registry.toml | grep dispatch || echo "no file_pattern"
+#
+# Command 3 — verify path-component-strict guards in production code (excluding tests/comments):
+#   grep 'is_state_md_target\|is_index_md_target' \
+#     crates/hook-plugins/validate-dispatch-advance/src/lib.rs | grep -v '//' | grep -v 'fn test'
+#
+# Expected:
+#   - event = "PostToolUse"
+#   - tool = "Edit|Write"  (canonical Q5 form; NOT "Write|Edit")
+#   - NO file_pattern field
+#   - is_state_md_target and is_index_md_target guards present in production code
+
+$ grep -A10 'name = "validate-dispatch-advance"' plugins/vsdd-factory/hooks-registry.toml
+name = "validate-dispatch-advance"
+event = "PostToolUse"
+tool = "Edit|Write"
+plugin = "hook-plugins/validate-dispatch-advance.wasm"
+priority = 154
+timeout_ms = 5000
+on_error = "continue"
+
+[hooks.capabilities.read_file]
+path_allow = [
+  ".factory",
+]
+
+$ grep 'file_pattern' plugins/vsdd-factory/hooks-registry.toml | grep dispatch || echo "no file_pattern"
+no file_pattern
+
+$ grep 'is_state_md_target\|is_index_md_target' crates/hook-plugins/validate-dispatch-advance/src/lib.rs | grep -v '//' | grep -v '#\['
+pub fn is_state_md_target(file_path: &str) -> bool {
+pub fn is_index_md_target(file_path: &str) -> bool {
+    if is_state_md_target(&file_path) {
+    } else if is_index_md_target(&file_path) {
+    fn test_is_state_md_target_positive() {
+        assert!(is_state_md_target(".factory/STATE.md"));
+        assert!(!is_state_md_target("/some/dir/xSTATE.md"));
+    fn test_is_index_md_target_positive() {
+        assert!(is_index_md_target(
+        assert!(!is_index_md_target("/some/dir/xINDEX.md"));

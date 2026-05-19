@@ -1,0 +1,15 @@
+# AC-2 Demo Evidence: Hook blocks self-app TEST substring in current_step:
+# BC-5.39.006 postcondition 2; EC-002
+#
+# Command:
+#   cd plugins/vsdd-factory/tests/validate-dispatch-advance
+#   bats --tap fail-meta-commentary-self-app.bats
+#
+# Fixture: fail-meta-commentary-self-app/factory/STATE.md
+#   current_step: contains "self-app TEST" substring
+#
+# Expected: exit 2, block emitted
+
+$ bats --tap fail-meta-commentary-self-app.bats
+1..1
+ok 1 AC-2 FAIL: hook blocks when current_step: contains 'self-app TEST' substring

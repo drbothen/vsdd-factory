@@ -1,0 +1,17 @@
+# AC-1 Demo Evidence: Hook blocks META-LEVEL-N WATCH pattern in current_step:
+# BC-5.39.006 postcondition 2; D-440(a)+D-441(a)+D-442(a)
+#
+# Command:
+#   cd plugins/vsdd-factory/tests/validate-dispatch-advance
+#   bats --tap fail-meta-commentary-watch.bats
+#
+# Fixture: fail-meta-commentary-watch/factory/STATE.md
+#   current_step: contains "META-LEVEL-5 WATCH: self-application check pending."
+#   otherwise valid: all 4 index cites, tail →9→9→9→9, D-chain cite D-477
+#
+# Expected: exit 2, blocking_plugins=validate-dispatch-advance, message cites D-440
+
+$ bats --tap fail-meta-commentary-watch.bats
+1..2
+ok 1 AC-1 FAIL: hook blocks when current_step: contains META-LEVEL-5 WATCH pattern
+ok 2 AC-1 FAIL: block message names META-LEVEL WATCH pattern and cites D-440

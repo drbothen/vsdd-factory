@@ -916,6 +916,44 @@ path_allow = [
   ".factory",
 ]
 
+# ---------- validate-dispatch-advance (PostToolUse, Edit|Write) ----------
+# BC-5.39.006: blocks STATE.md writes with forbidden meta-commentary in
+# current_step: (D-440(a)+D-441(a)+D-442(a)), missing 4-index version cites
+# (D-439(b)), trajectory-tail LENGTH != 4 (D-451(c)), stale D-chain cite
+# (D-443(a)), and INDEX.md writes with non-5-column adversary-pass rows
+# (D-441(b)/D-442(b)). S-15.14 M2 Wave-4.
+# Priority 154 = one above validate-state-structure's 153. Position-agnostic
+# form per F-P3-003 (line numbers decay across edits; TD-VSDD-091 anti-volatile-pin).
+# Literal-grep verification per PG-S-15.14-registry-priority-literal-evidence /
+# TD-VSDD-096 (captured 2026-05-17, post-edit):
+# $ grep -E '^priority = ' plugins/vsdd-factory/hooks-registry.toml | grep -E 'priority = (15[0-9]|16[0-9])'
+# priority = 150
+# priority = 152
+# priority = 151
+# priority = 153
+# priority = 154
+# priority = 155
+# priority = 160
+# 154 appears exactly once (validate-dispatch-advance); 153 = validate-state-structure;
+# 155 = next monotone slot.
+# No file_pattern field: registry schema does not support it per architect
+# Q5/Q6 canonical lock. File-pattern enforcement is in-plugin via
+# path-component-strict is_state_md_target + is_index_md_target guards.
+
+[[hooks]]
+name = "validate-dispatch-advance"
+event = "PostToolUse"
+tool = "Edit|Write"
+plugin = "hook-plugins/validate-dispatch-advance.wasm"
+priority = 154
+timeout_ms = 5000
+on_error = "continue"
+
+[hooks.capabilities.read_file]
+path_allow = [
+  ".factory",
+]
+
 # ---------- Stop ----------
 
 [[hooks]]

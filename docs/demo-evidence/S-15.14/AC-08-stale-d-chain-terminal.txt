@@ -1,0 +1,18 @@
+# AC-8 Demo Evidence: Hook blocks when D-chain cite in current_step: is stale
+# BC-5.39.006 postcondition 5; D-443(a); EC-009
+#
+# Command:
+#   cd plugins/vsdd-factory/tests/validate-dispatch-advance
+#   bats --tap fail-stale-d-chain-terminal.bats
+#
+# Fixture: fail-stale-d-chain-terminal/factory/STATE.md
+#   current_step: contains bare cite "D-476" (max_cited=476)
+#   Decisions Log body contains "D-477" row (max_in_file=477)
+#   Condition: max_cited=476 < max_in_file=477 => stale
+#
+# Expected: exit 2, block: "stale D-chain cite: max_cited=476 < max_in_file=477; D-443(a)"
+
+$ bats --tap fail-stale-d-chain-terminal.bats
+1..2
+ok 1 AC-8 FAIL: hook blocks when current_step: D-chain terminal D-476 is below latest D-477
+ok 2 AC-8 FAIL: block message names stale D-476 and latest D-477
