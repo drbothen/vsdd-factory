@@ -1925,3 +1925,43 @@ This transforms "you should check" (narrative discipline) into "you must produce
 
 **Closes:** F-BC007P2-001 (HIGH sibling BC-5.39.006 v1.3 BlockWithFix regression) + F-BC007P2-002 (HIGH Phase-1 false-negative window) + F-BC007P2-003 (HIGH PC2/PC5 renumber propagation) + F-BC007P2-004 (MEDIUM 4-file arm-routing under-specified) + F-BC007P2-005 (MEDIUM EC-016 vs EC-018 cascade order undefined) + F-BC007P2-006 (MEDIUM ADR-021 Open Sub-Questions traceability anchor) + F-BC007P2-007 (LOW invariant 5 regex parenthetical) + F-BC008P2-001 (CRITICAL policies.yaml integer-id-vs-POLICY-d{3}) + F-BC008P2-002 (CRITICAL exec_subprocess SDK-source mis-claim) + F-BC008P2-003 (HIGH severity-enum self-contradiction) + F-BC008P2-004 (MEDIUM orphan PC2 scope clarification paragraph) + F-BC008P2-005 (MEDIUM ADR-021 line 251 partial-sentence cite) + F-BC008P2-007 (LOW frontmatter phase stale) + F-BC008P2-008 (LOW ADR-021 Open Sub-Questions BC-008 perspective) + F-BC008P2-009 (NITPICK changelog row length) + D-484 codified + INV-017-CANDIDATE forwarded SK-MCP-001 Appendix D.
 
+## L-M3-BC-cascade-pass-3-INV-018-CANDIDATE — Narrow-pattern-vs-residual-class-sweep dual requirement (META-LEVEL INV-018-CANDIDATE)
+
+**Date:** 2026-05-19
+**Source:** D-486 M3 BC cascade pass-3 state-manager persistence burst
+**Class:** Meta-level shell-gate structural insufficiency — narrow-pattern-only sweep creates false-green; residual-class sweep required
+
+M3 BC cascade pass-3 (2026-05-19) produced 8 findings including 1 verified CRITICAL (F-BC006P3-001). The PO faithfully applied INV-017 at pass-2 — all 6 embedded stdouts re-execute and match their claimed results. F-BC006P3-001 arises from INV-017's structural insufficiency, not from INV-017 misapplication.
+
+**The narrow-pattern gap:** The PO fix at v1.4 targeted the prefixed form `HookResult::BlockWithFix` (the exact string being replaced). The INV-017 evidence grep was:
+
+```
+grep -cE 'HookResult::BlockWithFix' .factory/specs/behavioral-contracts/ss-05/BC-5.39.006.md → 0
+```
+
+This returned 0 and the claim was accurate: zero occurrences of the fully-prefixed `HookResult::BlockWithFix` remain. However, the broader semantic class — bare `BlockWithFix` tokens without the `HookResult::` prefix — was not checked. The residual-class sweep would be:
+
+```
+grep -cE 'BlockWithFix' .factory/specs/behavioral-contracts/ss-05/BC-5.39.006.md → 28
+```
+
+28 bare `BlockWithFix` tokens survived in EC tables, VP tables, D-NNN Anchor Coverage text, and rationale paragraphs. TDD test authors following EC table rows would write `HookResult::BlockWithFix { ... }` which does not compile — the variant does not exist. The narrow-pattern evidence was accurate; the structural coverage of that evidence was insufficient.
+
+**INV-018 normative cure:** Every fix-burst changelog row evidence block for a "replace pattern X with pattern Y" closure MUST include BOTH:
+
+1. **Narrow-pattern evidence (INV-017 satisfied):** `grep -nE '<exact-replaced-pattern>' <target>` → expected zero output or explicit count
+
+2. **Residual-class sweep (INV-018 required):** `grep -nE '<broader-semantic-class-pattern>' <target>` → expected zero output (or explicit residual-listing if non-zero is acceptable and documented)
+
+The broader-semantic-class pattern captures all syntactic variants of the same semantic construct — for example, when sweeping an SDK enum variant reference, the narrow pattern is `HookResult::BlockWithFix` (exact form) and the residual-class pattern is `BlockWithFix` (any occurrence, with or without qualifier). A zero result on the residual-class sweep confirms there are no latent instances that could mislead test authors.
+
+**Pattern structure:** INV-015 (adversary-must-grep-canonical-source) → INV-016 (BC-authorship-must-grep-actual-artifact-format) → INV-017 (codified-discipline-must-be-shell-gate-not-narrative) → INV-018 (shell-gate-must-cover-narrow-AND-residual-class-sweep). Each layer reveals a structural insufficiency in the prior layer's cure. INV-018 does not supersede INV-017 — it extends it. Both greps are required.
+
+**Cascade trajectory:** pass-1 ~41 → pass-2 14 → pass-3 8. CRITICAL count declining (2 → 2 → 1). Each pass introduces one new META-LEVEL class (INV-016, INV-017, INV-018). The INV-N class discovered at each pass is a refinement of the same structural depth: the gap between "applying a discipline" and "verifying that the discipline's coverage was complete."
+
+**Asymptotic-acceptance note (D-486(e)):** If the cascade approaches floor [1,3] findings without 3-CLEAN convergence by pass-5 or pass-6, D-386 Option C + D-477 precedent chain permits human asymptotic-acceptance authorization. Each pass's META-LEVEL discovery is a structural insight forwarded to SK-MCP-001 Appendix D; the forward routing preserves value regardless of whether 3-CLEAN is reached.
+
+**Forward routing:** INV-018-CANDIDATE forwarded to SK-MCP-001 Appendix D. Dispatch templates for "replace X with Y" fix-bursts must enumerate BOTH the narrow-pattern grep AND the residual-class grep and require both results to be embedded as captured stdout in the changelog row.
+
+**Closes:** F-BC006P3-001 (CRITICAL — BC-5.39.006 v1.4 sibling-sweep incomplete; 28 bare BlockWithFix residual), F-BC006P3-002 (MEDIUM — BC-5.39.006 v1.4 changelog typo: replace-target = replacement), F-BC006P3-NIT (NITPICK — BC-5.39.006 v1.4 frontmatter modified: array observation), F-BC007P3-001 (HIGH — BC-5.39.007 v1.2 D-NNN Anchor Coverage retired PC2/PC8 anchors), F-BC007P3-002 (MEDIUM — D-448(b) row specifically mis-anchored to retired PC1/PC2), F-BC008P3-001 (HIGH — BC-5.39.008 v1.2 POLICY 13/16 D-NNN Anchor Coverage mis-anchors PC3), F-BC008P3-002 (LOW — BC-5.39.008 PC4 [1, 999] over-specified without rationale), F-BC008P3-003 (LOW — cross-BC closure citation inconsistency). D-486 codified.
+
