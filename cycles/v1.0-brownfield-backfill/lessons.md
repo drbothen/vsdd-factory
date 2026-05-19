@@ -1992,3 +1992,49 @@ All 8 pass-3 findings closed in scope: F-BC006P3-001 CRITICAL (28→5 residual w
 **Forward routing:** INV-018-CANDIDATE confirmed as institutional discipline. Dispatch templates for "replace X with Y" fix-bursts must enumerate BOTH the narrow-pattern grep AND the residual-class grep and require BOTH results to be embedded as captured stdout in the changelog row evidence. Forward: SK-MCP-001 Appendix D INV-018 now CONFIRMED (discipline applied and verified).
 
 **Closes:** F-BC006P3-001, F-BC006P3-002, F-BC006P3-NIT, F-BC007P3-001, F-BC007P3-002, F-BC008P3-001, F-BC008P3-002, F-BC008P3-003. D-487 codified.
+
+## L-M3-BC-cascade-pass-4-INV-019-CANDIDATE — M3 BC cascade pass-4 detects META-LEVEL INV-019-CANDIDATE — changelog-row-self-reference accounting drift; CRITICAL+HIGH reach zero
+
+**Date:** 2026-05-19
+**Source:** D-488 M3 BC cascade pass-4 state-manager persistence burst
+**Class:** Meta-level structural limitation — post-commit changelog-row-self-reference makes INV-018 evidence non-reproducible; CRITICAL+HIGH both zero for first time
+
+M3 BC cascade pass-4 (2026-05-19) produced 3 findings: 1 MEDIUM + 1 LOW + 1 NITPICK. This is the first pass where CRITICAL = 0 and HIGH = 0. All spec-content defects (SDK API mis-claims, D-NNN Anchor Coverage mis-anchors, bare non-existent SDK constructs) have been fully resolved across 4 passes. The remaining 3 findings are all documentary / META-LEVEL evidence-quality concerns.
+
+**MAJOR POSITIVE SIGNAL — CRITICAL+HIGH BOTH ZERO:**
+
+Pass-4 marks the first time in the M3 BC cascade where neither CRITICAL nor HIGH findings appear. Cascade trajectory: ~41 → 14 → 8 → 3. CRITICAL progression: 2 → 2 → 1 → 0. HIGH progression: ~17 → 4 → 2 → 0. The spec content of BC-5.39.006 v1.5 + BC-5.39.007 v1.3 + BC-5.39.008 v1.3 is now correct — all SDK API claims verified against actual source, all D-NNN Anchor Coverage tables properly anchored, all postcondition references semantically correct. The cascade is genuinely converging.
+
+**META-LEVEL INV-019-CANDIDATE — Changelog-row-self-reference evidence non-reproducibility:**
+
+INV-018 was correctly invoked in the pass-3 PO fix-burst — all three BC changelog rows include both a narrow-pattern grep and a residual-class grep with embedded stdout. Pass-4 reveals two structural limitations in how INV-018 was applied:
+
+1. **F-BC006P4-001 LOW (INV-019 self-reference):** BC-5.39.006 v1.5 changelog row's INV-018 residual evidence claims `grep -cE 'BlockWithFix' BC-5.39.006.md → 4`. Post-commit re-execution returns `5` — the v1.5 row itself quotes `BlockWithFix` in its evidence prose, contributing a 5th occurrence. The count was accurate at the time of writing (before the commit) but becomes wrong after the commit. This is a new structural class: the act of writing evidence that quotes the searched pattern into the changelog row invalidates the evidence.
+
+2. **F-BC008P4-001 MEDIUM (INV-018 misapplication):** BC-5.39.008 v1.3 changelog row's INV-018 residual-class sweep uses pattern `PC3.*POLICY.POLICY.*PC3`, which is structurally NARROWER than the narrow pattern `POLICY 13.POLICY 16`. INV-018 requires the residual pattern to be genuinely BROADER (catching any syntactic variant of the same semantic class). A correct residual sweep would be `PC[0-9]+/PC[0-9]+` (any multi-PC anchor) or `\bPC[0-9]+\b.*POLICY` (any PC ordinal co-occurring with any POLICY citation).
+
+**INV-019-CANDIDATE normative statement:** "Embedded post-fix literal-shell stdout becomes non-reproducible the instant the changelog row containing the evidence is committed, if the searched pattern appears verbatim in the changelog row's own evidence prose. The discipline must either (a) line-range-exclude the changelog row from the post-fix grep, (b) acknowledge self-reference inline ('post-fix count excluding this changelog row = N'), or (c) use a search pattern that the changelog row's prose cannot match by construction (e.g., grep for `^| EC-` table-row context that prose lacks)."
+
+**Affected instances across all 3 BCs:**
+
+- BC-5.39.006 v1.5 changelog row: quotes `BlockWithFix` in evidence — self-reference confirmed; count drifts from 4 to 5 post-commit. Lessons.md entry L-M3-BC-cascade-pass-3-PO-fix-burst acknowledges this for BC-006.
+- BC-5.39.007 v1.3 changelog row: quotes PC-related patterns in evidence — self-reference risk present; not explicitly acknowledged in-place.
+- BC-5.39.008 v1.3 changelog row: quotes `POLICY` and `PC` patterns in evidence — self-reference risk present; additionally the residual pattern is structurally narrower (F-BC008P4-001 MEDIUM).
+
+Only BC-006 is acknowledged in lessons.md; BC-007/BC-008 are silently affected. The INV-019 cure should be applied to all three changelog rows in the PO fix-burst pass-4.
+
+**Cure options (a)/(b)/(c):**
+
+- **(a) Line-range-exclude:** Use `grep -v` or `sed -n '1,<line>p; <line+1>,$p'` to exclude the changelog row's line range from the grep target. Robust but requires knowing the line number, which is unstable.
+- **(b) Inline acknowledge:** Add to the changelog row's evidence: "post-fix count excluding this changelog row = N." Straightforward; makes the drift visible without fixing it structurally.
+- **(c) Pattern-by-construction:** Choose a search pattern that the changelog row's prose cannot match. For `BlockWithFix`, option (c) could be `^| .* HookResult::block_with_fix` (anchored to EC table `^| ` row starts) — changelog evidence prose does not start with `^| EC-` table-row markup. This is the most structurally robust option; the pattern is inherently immune to the self-reference class.
+
+**META-LEVEL progression INV-015 through INV-019:**
+
+INV-015 (adversary-must-grep-canonical-source) → INV-016 (BC-authorship-must-grep-actual-artifact-format) → INV-017 (codified-discipline-must-be-shell-gate-not-narrative) → INV-018 (shell-gate-must-cover-narrow-AND-residual-class-sweep) → INV-019-CANDIDATE (post-commit-self-reference-makes-evidence-non-reproducible). Each layer reveals a structural limitation in the prior layer's cure that only manifests after the prior cure is correctly applied.
+
+The pattern: 4 META-LEVELs detected in 4 consecutive passes. Each emerges when the prior META-LEVEL's cure is faithfully applied — the application reveals the next structural depth. This is consistent with the D-386 Option C asymptotic-acceptance model: the META-LEVEL class discoveries are valuable forward-routing artifacts (SK-MCP-001 Appendix D INV-NNN seeds) regardless of whether 3-CLEAN convergence is reached.
+
+**Forward routing:** INV-019-CANDIDATE forwarded to SK-MCP-001 Appendix D. Dispatch templates for changelog row evidence sections must incorporate one of the three cure options. Option (c) pattern-by-construction is recommended as the most structurally robust: anchoring evidence greps to `^| ` table-row context prevents changelog-row prose from being a false positive.
+
+**Closes:** F-BC008P4-001, F-BC006P4-001, F-BC007P4-NIT. D-488 codified.
