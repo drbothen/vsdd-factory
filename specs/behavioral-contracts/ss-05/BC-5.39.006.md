@@ -2,7 +2,7 @@
 document_type: behavioral-contract
 level: L3
 version: "1.3"
-status: draft
+status: active
 producer: product-owner
 timestamp: 2026-05-17T00:00:00Z
 phase: section-12-step-3
@@ -19,7 +19,7 @@ extracted_from: .factory/cycles/v1.0-brownfield-backfill/s-15.03-wave-m2-dispatc
 origin: brownfield
 subsystem: "SS-05"
 capability: "E-12"
-lifecycle_status: draft
+lifecycle_status: active
 introduced: v1.0-brownfield-backfill
 modified:
   - 2026-05-17

@@ -1,17 +1,19 @@
 ---
 document_type: bc-index
 level: L3
-version: "2.35"
+version: "2.36"
 status: draft
 producer: state-manager
 timestamp: 2026-05-17T00:00:00Z
-last_amended: "2026-05-18 (v2.35) — BC-5.39.006 amended v1.2→v1.3; S-15.14 LOCAL adversary pass-11 spec closure F-P11-001: invariant 6(b) under-specifies trajectory-tail LENGTH count right boundary; v1.3 codifies first-semicolon-segment scoping matching production `check_trajectory_tail_length` behavior; EC-022 reworded; EC-006/EC-007/Canonical Test Vectors updated; Architecture Anchors stable-symbol cite per TD-VSDD-091. BC-INDEX v2.34→v2.35. [Prior: 2026-05-17 (v2.34) — BC-5.39.006 amended v1.1→v1.2; S-15.14 LOCAL adversary pass-3 spec closure F-P3-006: trajectory-tail canonical marker 'trajectory-tail ' (with trailing space) absence is now a HARD BlockWithFix violation; new PC 6 added; invariant 6 rewritten as two-step prefix-check + scoped LENGTH count; EC-023 added; precondition renumbering 1,5,2,3,4→1,2,3,4,5,6 fixed (F-P3-009/F-P2-009 nitpick). BC-INDEX v2.33→v2.34. [Prior: 2026-05-17 (v2.33) — BC-5.39.006 amended v1.0→v1.1; S-15.14 LOCAL adversary pass-1 spec-level closures F-P1-001+F-P1-002+F-P1-003+F-P1-008: invariant 7 D-chain pattern relaxed to D-(\\d+) max-extraction; invariant 8 scoped to ## Adversarial Reviews h2 only + canonical schema corrected 6-col→5-col per D-442(b) + historical 4-col rows grandfathered; pipe arithmetic corrected throughout; H1 title updated; EC-013/EC-014 realigned; D-442(b) added to D-NNN Anchor Coverage and Traceability. BC-INDEX v2.32→v2.33.]"
+last_amended: "2026-05-18 (v2.36) — POL-14 auto-promotion BC-5.39.006 v1.3 draft→active at S-15.14 merge `6d2ba5ad` PR #148; D-479 codified; S-15.14 M2 wave-4 SHIPPED; 22 ACs all PASS; LOCAL cascade SEALED D-477; BC-INDEX v2.35→v2.36. [Prior: 2026-05-18 (v2.35) — BC-5.39.006 amended v1.2→v1.3; S-15.14 LOCAL adversary pass-11 spec closure F-P11-001: invariant 6(b) under-specifies trajectory-tail LENGTH count right boundary; v1.3 codifies first-semicolon-segment scoping matching production `check_trajectory_tail_length` behavior; EC-022 reworded; EC-006/EC-007/Canonical Test Vectors updated; Architecture Anchors stable-symbol cite per TD-VSDD-091. BC-INDEX v2.34→v2.35. [Prior: 2026-05-17 (v2.34) — BC-5.39.006 amended v1.1→v1.2; S-15.14 LOCAL adversary pass-3 spec closure F-P3-006: trajectory-tail canonical marker 'trajectory-tail ' (with trailing space) absence is now a HARD BlockWithFix violation; new PC 6 added; invariant 6 rewritten as two-step prefix-check + scoped LENGTH count; EC-023 added; precondition renumbering 1,5,2,3,4→1,2,3,4,5,6 fixed (F-P3-009/F-P2-009 nitpick). BC-INDEX v2.33→v2.34. [Prior: 2026-05-17 (v2.33) — BC-5.39.006 amended v1.0→v1.1; S-15.14 LOCAL adversary pass-1 spec-level closures F-P1-001+F-P1-002+F-P1-003+F-P1-008: invariant 7 D-chain pattern relaxed to D-(\\d+) max-extraction; invariant 8 scoped to ## Adversarial Reviews h2 only + canonical schema corrected 6-col→5-col per D-442(b) + historical 4-col rows grandfathered; pipe arithmetic corrected throughout; H1 title updated; EC-013/EC-014 realigned; D-442(b) added to D-NNN Anchor Coverage and Traceability. BC-INDEX v2.32→v2.33.]]"
 phase: F5
 inputs:
   - .factory/specs/behavioral-contracts/bc-id-mapping.md
 total_bcs: 1952
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-18
+    change: "v2.36 (2026-05-18; POL-14 auto-promotion BC-5.39.006 v1.3 draft→active at S-15.14 merge `6d2ba5ad` PR #148; D-479 codified; M2 wave-4 SHIPPED. BC-INDEX v2.35→v2.36."
   - date: 2026-05-18
     change: "v2.35 (2026-05-18; BC-5.39.006 amended v1.2→v1.3; S-15.14 LOCAL adversary pass-11 closure F-P11-001: invariant 6(b) right-boundary under-specified; v1.3 codifies first-semicolon-segment scoping per `check_trajectory_tail_length` production behavior; EC-022 reworded; EC-006/EC-007 + Canonical Test Vectors updated; Architecture Anchors stable-symbol cite per TD-VSDD-091. BC-INDEX v2.34→v2.35."
   - date: 2026-05-17
@@ -1218,7 +1220,7 @@ changelog:
 | [BC-5.39.003](ss-05/BC-5.39.003.md) | validate-index-cite-refresh hook MUST block on stale 4-index version citations in ARCH-INDEX, STATE.md, and INDEX.md | active | E-12 | S-15.07 |
 | [BC-5.39.004](ss-05/BC-5.39.004.md) | validate-burst-log hook MUST block on structurally incomplete burst-log entries | active | E-12 | S-15.11 |
 | [BC-5.39.005](ss-05/BC-5.39.005.md) | validate-state-structure Phase 1 hook MUST block on banner line-count drift, dual-margin absence, and trajectory-tail cardinality violations in STATE.md | active | E-12 | S-15.09 |
-| [BC-5.39.006](ss-05/BC-5.39.006.md) | validate-dispatch-advance WASM hook MUST block on forbidden meta-commentary in current_step, missing 4-index version citations, trajectory-tail cardinality violations, stale D-chain cites in STATE.md, and non-5-column adversary-pass rows in the INDEX.md ## Adversarial Reviews section | draft | E-12 | S-15.14 |
+| [BC-5.39.006](ss-05/BC-5.39.006.md) | validate-dispatch-advance WASM hook MUST block on forbidden meta-commentary in current_step, missing 4-index version citations, trajectory-tail cardinality violations, stale D-chain cites in STATE.md, and non-5-column adversary-pass rows in the INDEX.md ## Adversarial Reviews section | active | E-12 | S-15.14 |
 | [BC-8.29.001](ss-08/BC-8.29.001.md) | RED_RATIO = RED_TESTS / TOTAL_NEW_TESTS must be ≥ 0.5 before Step 4 implementer dispatch (BLOCKING) | draft | CAP-016 | S-7.03 |
 | [BC-8.29.002](ss-08/BC-8.29.002.md) | each non-RED test must be documented in red-gate-log with rationale before threshold relaxation | draft | CAP-016 | S-7.03 |
 | [BC-8.29.003](ss-08/BC-8.29.003.md) | on RED_RATIO < 0.5 without GREEN-BY-DESIGN justification, orchestrator must choose remediation option A or B | draft | CAP-016 | S-7.03 |

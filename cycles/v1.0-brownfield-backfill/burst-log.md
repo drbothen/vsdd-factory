@@ -1314,3 +1314,113 @@ PASS — 10 canonical blocks present (minimum 8 required per D-444(c)+TD-VSDD-09
 
 ### Factory-artifacts commits
 - `ea0d743e` (state-manager D-478 SESSION-END DURABILITY BURST single atomic commit per TD-VSDD-053)
+
+## S-15.14 POST-MERGE STATE-MANAGER BURST — D-479 — 2026-05-18
+
+### Parent-commit
+`ea0d743e` — SESSION-END DURABILITY BURST D-478 (factory-artifacts branch). Parent-commit per D-419(b).
+
+### Adversary verdict
+N/A — this is a post-merge state-manager burst, not an adversary pass. The upstream adversary cascade for S-15.14 was SEALED at D-477 asymptotic-acceptance (11 passes; trajectory 16→9→8→2→0→1→1→0→4→1→2; best streak 1/3 twice; 6 META-LEVEL classes TD-VSDD-095..100). Per D-477 codification, the cascade was sealed under SK-MCP-001 Tier 2 gate. All 22 ACs passed in production (PR #148 squash-merge `6d2ba5ad` 2026-05-19). D-448(a) source-attestation: cascade seal faithfully described — trajectory, pass count, streak, META-LEVEL classes, and D-477 decision all match `cycles/v1.0-brownfield-backfill/decision-log.md` D-477 row.
+
+### Files touched (Dim-1)
+8 files modified:
+1. `.factory/STATE.md` — frontmatter phase+last_amended+current_step; Project Metadata Last Updated+Current Phase; Phase Progress +1 row (S-15.14 SHIPPED); Active Branches develop 6e2d7805→6d2ba5ad; Concurrent Cycles M2-wave-4-SHIPPED; Story Status 68→69 merged; Decisions Log preamble D-479; D-479 row; Section 12 3a/3b/3c→COMPLETE 3M3→gate-satisfied; TD-VSDD-063 gate-satisfied; Session Resume Checkpoint full zero-context refresh; banner line-count tracker entry
+2. `.factory/specs/behavioral-contracts/ss-05/BC-5.39.006.md` — status draft→active; lifecycle_status draft→active (POL-14)
+3. `.factory/specs/behavioral-contracts/BC-INDEX.md` — version v2.35→v2.36; last_amended; changelog v2.36 entry; BC-5.39.006 row draft→active
+4. `.factory/stories/STORY-INDEX.md` — version v3.43→v3.44; last_amended; S-15.14 row draft→merged with PR/SHA/date
+5. `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-479 row appended
+6. `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — L-S-15.14-SHIPPED entry appended
+7. `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — this entry (self-referential)
+8. `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` — Convergence Status update for S-15.14
+
+### Codifications (Dim-3)
+- D-479: S-15.14 SHIPPED PR #148 `6d2ba5ad`; POL-14 BC-5.39.006 v1.3 draft→active; M2 wave-4 COMPLETE; M3 gate SATISFIED; CI fix commits surfaced to orchestrator (VSDD_SKIP_PRODUCTION_STATE_MD_TEST structural asymmetry)
+- L-S-15.14-SHIPPED: asymptotic-acceptance precedent chain third instance; F5 D-386 + E-10 D-471 + S-15.14 D-477 confirm structural law
+- POL-14 BC-5.39.006: lifecycle_status draft→active at S-15.14 merge (per BC-5.39.006.md frontmatter + BC-INDEX v2.36 row)
+
+### Dim-2 Attestation
+All 5 BC-5.39.006 v1.3 PCs verified via literal shell against production `.factory/STATE.md`:
+
+**PC2 (no forbidden meta-commentary):**
+```
+$ grep "^current_step:" .factory/STATE.md | grep -cv "for now\|good enough\|MVP\|we can fix"
+1
+```
+PASS — count=1 (no forbidden patterns found in current_step line)
+
+**PC3 (4 index version cites):**
+```
+$ grep "^current_step:" .factory/STATE.md | grep -oE "BC-INDEX v[0-9]+\.[0-9]+|VP-INDEX v[0-9]+\.[0-9]+|STORY-INDEX v[0-9]+\.[0-9]+|ARCH-INDEX v[0-9]+\.[0-9]+"
+BC-INDEX v2.36
+VP-INDEX v1.97
+STORY-INDEX v3.44
+ARCH-INDEX v2.06
+```
+PASS — all 4 indexes cited (BC-INDEX v2.36 and STORY-INDEX v3.44 are the new versions post-merge)
+
+**PC4 (trajectory-tail LENGTH=4):**
+```
+$ grep "^current_step:" .factory/STATE.md | grep -oE "trajectory-tail [→0-9]+" | grep -oE "→[0-9]+" | wc -l
+       4
+```
+PASS — exactly 4 arrow-segments
+
+**PC5 (D-chain currency — max D-NNN in step ≥ max D-NNN in body):**
+```
+$ grep "^current_step:" .factory/STATE.md | grep -oE "D-[0-9]+" | sort -t- -k2 -n | tail -1
+D-479
+```
+PASS — D-479 is the latest D-NNN in current_step; D-479 is also the latest in STATE.md body (D-479 row added this burst)
+
+**PC6 (canonical trajectory-tail marker with trailing space):**
+```
+$ grep "^current_step:" .factory/STATE.md | grep -oP "trajectory-tail " | wc -l
+       1
+```
+PASS — exactly 1 canonical marker
+
+**STATE.md line count:**
+```
+$ wc -l .factory/STATE.md
+     386 .factory/STATE.md
+```
+386 lines. Margin from hard cap: 500 - 386 = 114. Margin from soft-target: 500 - 415 = 85. Both within bounds.
+
+### Dim-5 Attestation
+- POL-14 BC-5.39.006 v1.3 lifecycle_status: BC-5.39.006.md frontmatter `status: draft→active` + `lifecycle_status: draft→active`; BC-INDEX v2.36 row `active`; confirmed tripartite parity (BC file + BC-INDEX row + this burst-log).
+- D-452(e) umbrella range auto-advance: Decisions Log preamble updated to cite D-479 as latest.
+- Active Branches develop row: updated from `6e2d7805` to `6d2ba5ad` (PR #148 merged).
+- Concurrent Cycles brownfield row: advanced to M2-wave-4 SHIPPED D-479 CODIFIED 2026-05-18.
+- Story Status: 68→69 merged (S-15.14 added to merged list).
+- Previous Session Resume Checkpoint archived to `cycles/v1.0-brownfield-backfill/session-checkpoints.md` (prior: D-478 durability burst).
+- POLICY 3 compliance: state-manager-only writes to `.factory/` paths.
+- No --no-verify; no force-push to main; no AI attribution.
+- CI fix commits noted: 2 commits with `VSDD_SKIP_PRODUCTION_STATE_MD_TEST=1` included in PR #148 squash. This guards a bats test that reads `.factory/STATE.md` — fails in CI because the factory worktree is not mounted. Structural asymmetry (CI vs local), not a code defect. Surfaced to orchestrator per D-479 for routing (TD filing or inline fix in next story touching that test).
+
+### Dim-6 Attestation
+Own-burst-log structural-integrity check:
+```
+$ awk '/^## S-15.14 POST-MERGE STATE-MANAGER BURST — D-479/,/^## [^S]/' .factory/cycles/v1.0-brownfield-backfill/burst-log.md | grep -cE "^### (Parent-commit|Adversary verdict|Files touched|Codifications|Dim-2 Attestation|Dim-5 Attestation|Dim-6 Attestation|Dim-7 Attestation|Closes|Factory-artifacts commits)"
+```
+Expected: ≥8 blocks present per D-444(c)+TD-VSDD-099.
+This entry contains: Parent-commit, Adversary verdict, Files touched (Dim-1), Codifications (Dim-3), Dim-2 Attestation, Dim-5 Attestation, Dim-6 Attestation, Dim-7 Attestation, Closes, Factory-artifacts commits = 10 blocks. PASS.
+
+D-448(a) source-attestation gate: Adversary verdict paragraph above faithfully describes actual upstream cascade state (D-477 sealed; 11 passes; trajectory and META-LEVEL classes match decision-log D-477 row). This is a state-advance burst; no new adversary pass; cite is accurate.
+
+No --no-verify used.
+
+### Dim-7 Attestation
+- Burst type: state-manager-only on factory-artifacts (no implementer source-code dispatch for this burst).
+- POLICY 3 compliance: state-manager wrote exclusively to `.factory/` paths.
+- No source code, no feature branch, no --no-verify.
+- Sibling implementer dispatch: N/A (state-artifacts only; S-15.14 already merged).
+- Factory-artifacts before burst: `ea0d743e` (D-478). After burst: TBD-D479 (this commit SHA, post-push).
+
+### Closes
+- D-479 codified: S-15.14 SHIPPED; POL-14 BC-5.39.006 v1.3 draft→active; M2 ALL WAVES COMPLETE.
+- M3 gate condition (3c) SATISFIED — human decision point active.
+- TD-VSDD-063 gate satisfied — architect VP allocation unblocked.
+
+### Factory-artifacts commits
+- TBD-D479 (state-manager S-15.14 POST-MERGE BURST D-479 single atomic commit per TD-VSDD-053)
