@@ -7,7 +7,7 @@ producer: state-manager
 timestamp: 2026-05-06T19:00:00Z
 cycle: "v1.0-brownfield-backfill"
 inputs: [STATE.md]
-input-hash: "e5e0cb8"
+input-hash: "2f6a18d"
 traces_to: STATE.md
 ---
 
@@ -1777,4 +1777,4 @@ Count = 8 blocks. Gate D-446(a): PASS.
 - PO fix-burst PENDING: addresses 2 verified CRITICAL (F-BC007P1-001 + F-BC008P1-002) + ~17 HIGH/MEDIUM before pass-2.
 
 ### Factory-artifacts commits
-- SHA pending — assigned at commit time after STATE.md update completes.
+- fd616634 (D-482 M3 BC cascade pass-1 persistence burst: spec-review-bc-007-008.md + adv-bc-007-008-pass-1.md created; decision-log D-482 row; lessons.md L-M3-BC-cascade-pass-1; burst-log entry; STATE.md updates; single atomic commit per TD-VSDD-053)
