@@ -158,7 +158,7 @@ producer: state-manager
 timestamp: 2026-05-06T19:00:00Z
 cycle: "v1.0-brownfield-backfill"
 inputs: [STATE.md]
-input-hash: "22e37f2"
+input-hash: "65c042e"
 traces_to: STATE.md
 ---
 
@@ -1754,9 +1754,9 @@ PASS
 **Input hashes valid (non-pending):**
 ```
 $ grep "^input-hash:" .factory/specs/behavioral-contracts/ss-05/BC-5.39.007.md
-input-hash: "22e37f2"
+input-hash: "65c042e"
 $ grep "^input-hash:" .factory/specs/behavioral-contracts/ss-05/BC-5.39.008.md
-input-hash: "22e37f2"
+input-hash: "65c042e"
 ```
 PASS — both are lowercase hex (7 chars); no "pending" placeholder
 
@@ -2191,7 +2191,7 @@ Single-Commit Burst Protocol per TD-VSDD-053: one atomic commit on factory-artif
 - `8c9b1200` (PO fix-burst: BC-5.39.006 v1.3→v1.4 + BC-5.39.007 v1.1→v1.2 + BC-5.39.008 v1.1→v1.2 + BC-INDEX last_amended/table bump; INV-017 applied with 6 literal-shell stdouts)
 - `a4b1d99b` (this codification burst: D-485 + L-M3-BC-cascade-pass-2-PO-fix-burst + STATE.md advance + BC-INDEX v2.38→v2.39; single atomic commit per TD-VSDD-053; parent-commit 8c9b1200 per D-419(b))
 
-## 2026-05-19 — M3 BC cascade pass-3 persisted (factory-artifacts PLACEHOLDER-SHA)
+## 2026-05-19 — M3 BC cascade pass-3 persisted (factory-artifacts 6219ea9d)
 
 ### Parent-commit
 
@@ -2353,4 +2353,4 @@ Single-Commit Burst Protocol per TD-VSDD-053: one atomic commit on factory-artif
 ### Factory-artifacts commits
 
 - `06f8c403` (parent: SHA-patch following D-485 pass-2 PO-fix-burst codification)
-- PLACEHOLDER-SHA (this burst; SHA-patch follow-up will fill Active Branches + this heading)
+- `6219ea9d` (this codification burst: D-486 + L-M3-BC-cascade-pass-3-INV-018-CANDIDATE + STATE.md advance; single atomic commit per TD-VSDD-053; parent-commit 06f8c403 per D-419(b))
