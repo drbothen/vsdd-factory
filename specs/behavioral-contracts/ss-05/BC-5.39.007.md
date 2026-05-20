@@ -1,10 +1,10 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.4"
+version: "1.5"
 status: draft
 producer: product-owner
-timestamp: 2026-05-18T00:00:00Z
+timestamp: 2026-05-20T00:00:00Z
 phase: section-12-step-3M3a-r-pass-4
 cycle: brownfield-backfill
 inputs:
@@ -27,6 +27,7 @@ modified:
   - 2026-05-19
   - 2026-05-19
   - 2026-05-19
+  - 2026-05-20
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -35,7 +36,7 @@ removed: null
 removal_reason: null
 bc_id: BC-5.39.007
 section: "5.39"
-last_amended: "2026-05-18 (v1.1) — Pass-1 adversary fix-burst (product-owner; brownfield-backfill M3 3M3a-r fix-burst). Closes F-BC007P1-001 (CRITICAL Closes format: ### h3 → **Closes:** bold-prefix-line per lessons.md corpus ground truth), F-BC007P1-002 (HIGH PC2a marker regex verbatim), F-BC007P1-003 (HIGH Phase 1/2 boundary crisply enumerated), F-BC007P1-004 (HIGH STATE.md 512 KiB read cap explicit in Preconditions), F-BC007P1-005 (HIGH EC-018 path clarified as precondition-violation input-validation path), F-BC007P1-006 (MEDIUM PC1 trivially-satisfied attestation added), F-BC007P1-007 (MEDIUM EC-019 regex verbatim), F-BC007P1-008 (MEDIUM PC2 split into PC2a+PC2b with explicit AND), F-BC007P1-009 (MEDIUM HookResult rewritten to use actual SDK variants: HookResult::Block / HookResult::Continue — no Advisory variant in hook-sdk), f-BC007P1-010 (MEDIUM Phase 2 ADR-022 gate inline summary added), F-BC007P1-011 (MEDIUM EC-020 empty/zero-byte STATE.md added; renumbered from prior EC-020), F-BC007P1-012 (MEDIUM hook ordering with BC-5.39.005 specified), F-BC007P1-013 (LOW sub-contracts none statement added), F-BC007P1-014 (LOW LENGTH==3 off-by-one test vector row added), F-BC007P1-015 (LOW EC-017 formatting trimmed), F-BC007P1-016 (LOW changelog section authored), F-BC007P1-017 (LOW invariant numbering verified contiguous 1-10), F-BC007P1-018 (LOW PC identifiers substituted in Test Vectors), F-BC007P1-019 (LOW adversary pass coverage note added), F-BC007P1-020 (NIT Phase 1 capitalization standardized), F-BC007P1-021 (NIT SS-05 anchor confirmed). [Prior: 2026-05-18 (v1.0) — Initial authoring (product-owner; brownfield-backfill S-15.03 M3 wave 3M3a BC authoring). Anchors D-419(c)+D-420(e)+D-441(c)+D-442(c)+D-443(b)+D-448(b). BC-5.39.007 allocated as next monotonic ID after BC-5.39.006 in ss-05/. lifecycle_status: draft (POL-14 auto-promotion to active on S-15.12 merge). Phase 2 (cross-cell agreement) is reserved for v1.1 in S-15.13 scope per ADR-022.]"
+last_amended: "2026-05-20 (v1.5) — Pass-5 fix-burst closing F-BC006P5-002 BC-007 leg-4 + F-BC007P5-001 (full BC-006-parity sweep Edge Cases + Test Vectors per orchestrator adjudication; ~24 bare→assoc-fn conversions) + F-BC006P5-004 BC-007 leg (5-leg KK-N quintuple parity per D-490; timestamp refresh). [Prior: 2026-05-18 (v1.1) — Pass-1 adversary fix-burst (product-owner; brownfield-backfill M3 3M3a-r fix-burst). Closes F-BC007P1-001 (CRITICAL Closes format: ### h3 → **Closes:** bold-prefix-line per lessons.md corpus ground truth), F-BC007P1-002 (HIGH PC2a marker regex verbatim), F-BC007P1-003 (HIGH Phase 1/2 boundary crisply enumerated), F-BC007P1-004 (HIGH STATE.md 512 KiB read cap explicit in Preconditions), F-BC007P1-005 (HIGH EC-018 path clarified as precondition-violation input-validation path), F-BC007P1-006 (MEDIUM PC1 trivially-satisfied attestation added), F-BC007P1-007 (MEDIUM EC-019 regex verbatim), F-BC007P1-008 (MEDIUM PC2 split into PC2a+PC2b with explicit AND), F-BC007P1-009 (MEDIUM HookResult rewritten to use actual SDK variants: HookResult::Block / HookResult::Continue — no Advisory variant in hook-sdk), f-BC007P1-010 (MEDIUM Phase 2 ADR-022 gate inline summary added), F-BC007P1-011 (MEDIUM EC-020 empty/zero-byte STATE.md added; renumbered from prior EC-020), F-BC007P1-012 (MEDIUM hook ordering with BC-5.39.005 specified), F-BC007P1-013 (LOW sub-contracts none statement added), F-BC007P1-014 (LOW LENGTH==3 off-by-one test vector row added), F-BC007P1-015 (LOW EC-017 formatting trimmed), F-BC007P1-016 (LOW changelog section authored), F-BC007P1-017 (LOW invariant numbering verified contiguous 1-10), F-BC007P1-018 (LOW PC identifiers substituted in Test Vectors), F-BC007P1-019 (LOW adversary pass coverage note added), F-BC007P1-020 (NIT Phase 1 capitalization standardized), F-BC007P1-021 (NIT SS-05 anchor confirmed). [Prior: 2026-05-18 (v1.0) — Initial authoring (product-owner; brownfield-backfill S-15.03 M3 wave 3M3a BC authoring). Anchors D-419(c)+D-420(e)+D-441(c)+D-442(c)+D-443(b)+D-448(b). BC-5.39.007 allocated as next monotonic ID after BC-5.39.006 in ss-05/. lifecycle_status: draft (POL-14 auto-promotion to active on S-15.12 merge). Phase 2 (cross-cell agreement) is reserved for v1.1 in S-15.13 scope per ADR-022.]"
 ---
 
 # BC-5.39.007: validate-closes-completeness Phase 1 WASM hook MUST block on missing Closes blocks in burst-log entries and lessons.md entries, malformed cite IDs in Closes blocks, forbidden per-mechanism annotations, and umbrella citation sites missing the sample-vs-exhaustive flag in decision-log.md, STATE.md, INDEX.md, and lessons.md
@@ -247,7 +248,7 @@ BC-5.39.001.
 
 ### All arms — cascade and fail-open
 
-9. Multiple violations in one write produce a single `HookResult::Block` message
+9. Multiple violations in one write produce a single `HookResult::block_with_fix(...)` message
    enumerating all violations together.
 10. If `host::read_file` returns an error for any target file (HostError of any kind), the
     hook emits `HookResult::Continue` and logs a warning via `host::log_warn` — fail-open.
@@ -345,50 +346,50 @@ cross-document resolver.
 
 | ID | Description | Expected Behavior |
 |----|-------------|-------------------|
-| EC-001 | `lessons.md` h2 entry `## L-EDP1-007` has no `**Closes:**` line | `HookResult::Block` naming the entry heading and citing D-448(b) |
-| EC-002 | `lessons.md` h2 entry `## L-EDP1-007` has `**Closes:**` label but no content after the colon | `HookResult::Block`: empty Closes line is equivalent to absent; cite D-448(b) |
+| EC-001 | `lessons.md` h2 entry `## L-EDP1-007` has no `**Closes:**` line | `HookResult::block_with_fix(...)` naming the entry heading and citing D-448(b) |
+| EC-002 | `lessons.md` h2 entry `## L-EDP1-007` has `**Closes:**` label but no content after the colon | `HookResult::block_with_fix(...)`: empty Closes line is equivalent to absent; cite D-448(b) |
 | EC-003 | `lessons.md` h2 entry `## PG-S-15.14-tdd-micro-commit` has `**Closes:** F-P1-007` line | `HookResult::Continue` for that entry |
-| EC-004 | Closes line reads `**Closes:** F-P39-001, F-P39-002 (per D-413(b) completeness mandate)` | `HookResult::Block` citing D-420(e); forbidden annotation pattern matched |
-| EC-005 | Closes line reads `**Closes:** 5 items per D-413(b) mandate` | `HookResult::Block` citing D-420(e); aggregate-shorthand pattern matched |
-| EC-006 | `STATE.md` contains `D-389..D-480` with no flag | `HookResult::Block`: umbrella cite without sample-vs-exhaustive flag; D-441(c)+D-442(c) |
+| EC-004 | Closes line reads `**Closes:** F-P39-001, F-P39-002 (per D-413(b) completeness mandate)` | `HookResult::block_with_fix(...)` citing D-420(e); forbidden annotation pattern matched |
+| EC-005 | Closes line reads `**Closes:** 5 items per D-413(b) mandate` | `HookResult::block_with_fix(...)` citing D-420(e); aggregate-shorthand pattern matched |
+| EC-006 | `STATE.md` contains `D-389..D-480` with no flag | `HookResult::block_with_fix(...)`: umbrella cite without sample-vs-exhaustive flag; D-441(c)+D-442(c) |
 | EC-007 | `STATE.md` contains `D-389..D-480 (sample; see decision-log.md for full range)` | `HookResult::Continue`: sample-vs-exhaustive flag present |
 | EC-008 | `decision-log.md` contains `D-401..D-454 (exhaustive)` | `HookResult::Continue`: exhaustive flag present |
-| EC-009 | `INDEX.md` contains `D-389..D-454` without flag on same line or sentence | `HookResult::Block` citing D-441(c)+D-442(c) |
+| EC-009 | `INDEX.md` contains `D-389..D-454` without flag on same line or sentence | `HookResult::block_with_fix(...)` citing D-441(c)+D-442(c) |
 | EC-010 | Closes line reads `**Closes:** D-999` where D-999 does not exist in decision-log.md | `HookResult::Continue` with advisory log via `host::log_warn` (Phase 1); not a block |
-| EC-011 | Closes line reads `**Closes:** fixed the thing` (no structured ID) | `HookResult::Block` citing D-419(c): malformed cite (no recognized structured ID pattern) |
+| EC-011 | Closes line reads `**Closes:** fixed the thing` (no structured ID) | `HookResult::block_with_fix(...)` citing D-419(c): malformed cite (no recognized structured ID pattern) |
 | EC-012 | `lessons.md` pre-D-448(b) entry has no `**Closes:**` line but carries `(pre-D-448(b) exemption)` inline declaration | `HookResult::Continue`: exemption declared per D-443(b); entry skipped |
-| EC-013 | `lessons.md` pre-D-448(b) entry silently omits `**Closes:**` line with no exemption declaration | `HookResult::Block`: silent omission is NOT a valid exemption per invariant 7 |
-| EC-014 | Multiple violations across lessons.md and decision-log.md in a single write | Single `HookResult::Block` enumerating all violations (postcondition 9) |
+| EC-013 | `lessons.md` pre-D-448(b) entry silently omits `**Closes:**` line with no exemption declaration | `HookResult::block_with_fix(...)`: silent omission is NOT a valid exemption per invariant 7 |
+| EC-014 | Multiple violations across lessons.md and decision-log.md in a single write | Single `HookResult::block_with_fix(...)` enumerating all violations (postcondition 9) |
 | EC-015 | Path is `/some/dir/xSTATE.md` (ends_with "STATE.md" but file_name differs) | `HookResult::Continue` (path-component-strict guard; not a target file) |
 | EC-016 | `host::read_file` returns HostError::Timeout for lessons.md (partial read or full failure) | `HookResult::Continue` + `host::log_warn`; fail-open. **Cascade order with EC-018:** if partial content is returned before timeout and that partial content contains a `### Closes` block (wrong format), EC-016 (read-failure fail-open) takes precedence — the hook MUST NOT block on potentially-incomplete data. Rationale: a partial read cannot establish that a `**Closes:**` line is absent; false-positive block on truncated data is worse than the advisory miss. |
 | EC-017 | Closes line contains `**Closes:** L-EDP1-052` (valid structured ID) | `HookResult::Continue` for that cite |
-| EC-018 | `lessons.md` h2 entry has `### Closes` h3 heading instead of `**Closes:**` bold-prefix line | `HookResult::Block` citing D-448(b): `### Closes` is an input-validation failure — the canonical format is `**Closes:**` bold-prefix-line per lessons.md corpus ground truth. This is a precondition-violation path (wrong format), not a postcondition-assertion failure. The hook returns block with message citing the wrong format used. |
-| EC-019 | Closes line contains only a dash and whitespace (`- `) adjacent to `**Closes:**` | Treat as empty/malformed cite; `HookResult::Block` citing D-419(c). The canonical `→(\d+)` regex (applied to detect non-structured content) matches nothing; blank content after Closes label is a structural violation. |
+| EC-018 | `lessons.md` h2 entry has `### Closes` h3 heading instead of `**Closes:**` bold-prefix line | `HookResult::block_with_fix(...)` citing D-448(b): `### Closes` is an input-validation failure — the canonical format is `**Closes:**` bold-prefix-line per lessons.md corpus ground truth. This is a precondition-violation path (wrong format), not a postcondition-assertion failure. The hook returns block with message citing the wrong format used. |
+| EC-019 | Closes line contains only a dash and whitespace (`- `) adjacent to `**Closes:**` | Treat as empty/malformed cite; `HookResult::block_with_fix(...)` citing D-419(c). The canonical `→(\d+)` regex (applied to detect non-structured content) matches nothing; blank content after Closes label is a structural violation. |
 | EC-020 | Multiple `### Closes` blocks within a single burst-log h2 entry | The validate-burst-log hook (BC-5.39.004) governs burst-log; this BC governs lessons.md only. For lessons.md: only `**Closes:**` bold-prefix lines are recognized; `### Closes` h3 headings in lessons.md are treated as the wrong format (EC-018 path). |
 | EC-021 | `lessons.md` is empty (zero bytes) or STATE.md is zero bytes | `HookResult::Continue`: empty file has no entries and no umbrella cites; no violations possible. Log advisory via `host::log_warn` noting empty file. |
-| EC-022 | `lessons.md` entry has `**Closes:** ` (label present, content after colon is only whitespace) | `HookResult::Block` citing D-448(b): whitespace-only content is equivalent to empty |
+| EC-022 | `lessons.md` entry has `**Closes:** ` (label present, content after colon is only whitespace) | `HookResult::block_with_fix(...)` citing D-448(b): whitespace-only content is equivalent to empty |
 
 ## Canonical Test Vectors
 
 | Scenario | Input Condition | Expected Hook Output | Preconditions Exercised | Decision |
 |----------|----------------|---------------------|------------------------|----------|
 | lessons.md entry with valid Closes | `## L-EDP1-052` entry; `**Closes:** D-444 codified` line present | `HookResult::Continue` | PC1, PC5 satisfied | PASS |
-| lessons.md entry missing Closes | `## L-EDP1-007` entry; no `**Closes:**` line; no exemption declaration | `HookResult::Block` citing D-448(b) | PC1 satisfied, PC5 violated | BLOCK |
-| lessons.md entry with empty Closes | `## PG-discipline` entry; `**Closes:**` label with no content | `HookResult::Block` citing D-448(b) | PC1 satisfied, PC5 violated | BLOCK |
-| lessons.md entry with wrong Closes format | `## L-EDP1-010` entry; `### Closes` h3 heading instead of `**Closes:**` line | `HookResult::Block` citing D-448(b): wrong format (input-validation path) | PC5 format-validation | BLOCK |
-| Forbidden aggregate annotation | Closes line contains `(per D-413(b) completeness mandate)` | `HookResult::Block` citing D-420(e) | PC1 satisfied | BLOCK |
-| STATE.md bare umbrella cite | STATE.md `D-389..D-480` with no flag | `HookResult::Block` citing D-441(c)+D-442(c) | PC1, PC6 satisfied; PC6 flag absent | BLOCK |
+| lessons.md entry missing Closes | `## L-EDP1-007` entry; no `**Closes:**` line; no exemption declaration | `HookResult::block_with_fix(...)` citing D-448(b) | PC1 satisfied, PC5 violated | BLOCK |
+| lessons.md entry with empty Closes | `## PG-discipline` entry; `**Closes:**` label with no content | `HookResult::block_with_fix(...)` citing D-448(b) | PC1 satisfied, PC5 violated | BLOCK |
+| lessons.md entry with wrong Closes format | `## L-EDP1-010` entry; `### Closes` h3 heading instead of `**Closes:**` line | `HookResult::block_with_fix(...)` citing D-448(b): wrong format (input-validation path) | PC5 format-validation | BLOCK |
+| Forbidden aggregate annotation | Closes line contains `(per D-413(b) completeness mandate)` | `HookResult::block_with_fix(...)` citing D-420(e) | PC1 satisfied | BLOCK |
+| STATE.md bare umbrella cite | STATE.md `D-389..D-480` with no flag | `HookResult::block_with_fix(...)` citing D-441(c)+D-442(c) | PC1, PC6 satisfied; PC6 flag absent | BLOCK |
 | STATE.md umbrella cite with sample flag | STATE.md `D-389..D-480 (sample; see decision-log.md for full range)` | `HookResult::Continue` | PC1, PC6 satisfied | PASS |
-| INDEX.md bare umbrella cite | INDEX.md `D-389..D-454` without adjacent flag | `HookResult::Block` citing D-441(c)+D-442(c) | PC1, PC6 satisfied; PC6 flag absent | BLOCK |
+| INDEX.md bare umbrella cite | INDEX.md `D-389..D-454` without adjacent flag | `HookResult::block_with_fix(...)` citing D-441(c)+D-442(c) | PC1, PC6 satisfied; PC6 flag absent | BLOCK |
 | decision-log.md umbrella with exhaustive flag | `D-401..D-454 (exhaustive)` | `HookResult::Continue` | PC1, PC6 satisfied | PASS |
-| Malformed cite in Closes | Closes line `**Closes:** fixed the thing` (no structured ID) | `HookResult::Block` citing D-419(c) | PC5 cite-validation | BLOCK |
+| Malformed cite in Closes | Closes line `**Closes:** fixed the thing` (no structured ID) | `HookResult::block_with_fix(...)` citing D-419(c) | PC5 cite-validation | BLOCK |
 | Cross-site staleness (Phase 2 scope) | Closes line `**Closes:** D-999` where D-999 nonexistent in decision-log.md | `HookResult::Continue` + `host::log_warn` advisory (Phase 1 only; not block) | PC5 format-check passes; Phase 2 cross-site PENDING | PASS (Phase 1) |
 | Pre-D-448(b) exemption declared | lessons.md entry with `(pre-D-448(b) exemption)` inline note and no Closes | `HookResult::Continue` | PC5 exemption path | PASS |
-| Pre-D-448(b) exemption NOT declared | lessons.md entry with no Closes and no exemption declaration | `HookResult::Block` citing D-448(b) | PC5 violated | BLOCK |
+| Pre-D-448(b) exemption NOT declared | lessons.md entry with no Closes and no exemption declaration | `HookResult::block_with_fix(...)` citing D-448(b) | PC5 violated | BLOCK |
 | Read failure | `host::read_file` returns HostError::CapabilityDenied | `HookResult::Continue` + `host::log_warn` | PC4 fail-open | PASS (fail-open) |
 | xSTATE.md path | file_name is "xSTATE.md" | `HookResult::Continue` (path-component-strict guard) | PC1 not triggered | PASS (not target) |
-| Multiple violations in one write | Empty Closes + bare umbrella cite + malformed cite ID | Single `HookResult::Block` enumerating all 3 violations | PC5, PC6 violated | BLOCK |
-| LENGTH == 3 off-by-one (trajectory-tail) | STATE.md `current_step:` has `trajectory-tail →9→9→9` (3 components after marker) | `HookResult::Block` via BC-5.39.006 trajectory-tail check (that BC owns this gate; this BC does not duplicate it) | Governed by BC-5.39.006 PC2b | BLOCK (BC-5.39.006) |
+| Multiple violations in one write | Empty Closes + bare umbrella cite + malformed cite ID | Single `HookResult::block_with_fix(...)` enumerating all 3 violations | PC5, PC6 violated | BLOCK |
+| LENGTH == 3 off-by-one (trajectory-tail) | STATE.md `current_step:` has `trajectory-tail →9→9→9` (3 components after marker) | `HookResult::block_with_fix(...)` via BC-5.39.006 trajectory-tail check (that BC owns this gate; this BC does not duplicate it) | Governed by BC-5.39.006 PC2b | BLOCK (BC-5.39.006) |
 | Empty STATE.md | STATE.md is zero bytes | `HookResult::Continue` + `host::log_warn` advisory | PC4 fail-open path (no umbrella cites possible) | PASS |
 
 ## D-NNN Anchor Coverage
@@ -467,6 +468,7 @@ VP IDs pending VP-INDEX allocation by state-manager at S-15.12 post-merge burst.
 
 | Version | Date | Description |
 |---------|------|-------------|
+| 1.5 | 2026-05-20 | Pass-5 fix-burst (product-owner; brownfield-backfill M3 3M3a-r). Closes F-BC006P5-002 BC-007 leg-4 (HIGH: `last_amended:` text-prefix stale; updated to `"2026-05-20 (v1.5)"`). Closes F-BC007P5-001 (LOW: full BC-006-parity sweep per orchestrator adjudication — all bare `HookResult::Block` in body tables converted to assoc-fn `HookResult::block_with_fix(...)` form; scope: Edge Cases table 15 occurrences + Test Vectors table 8 occurrences + postcondition 9 body text 1 occurrence = 24 total bare→assoc-fn conversions; POLICY-1-exempt historical content in Changelog rows excluded from sweep). Closes F-BC006P5-004 BC-007 leg (LOW: frontmatter `timestamp:` refreshed to 2026-05-20T00:00:00Z). Pre-fix bare count (body, non-changelog): `grep -cE 'HookResult::Block[^_]' .factory/specs/behavioral-contracts/ss-05/BC-5.39.007.md` → `24`. Post-fix target: `0` in body (changelog historical exempt). INV-019 cure type: cure (c) pattern-by-construction — post-fix, no bare `HookResult::Block` tokens exist in non-historical body; self-reference in this row uses backtick form only. |
 | 1.4 | 2026-05-19 | Pass-4 adversary fix-burst (product-owner; brownfield-backfill M3 3M3a-r fix-burst pass-4). Closes F-BC007P4-NIT (cross-BC idiom alignment: standardize on assoc-fn `HookResult::block_with_fix(...)` per BC-5.39.006 precedent (~43 occurrences) and `block_with_fix` pub-fn constructor in hook-sdk result module). Specific changes: 5 occurrences of struct-pattern form in Postconditions 2, 3, 5, 6, 8 replaced with assoc-fn `HookResult::block_with_fix(...)`. INV-017 pre-fix narrow-pattern evidence (struct-pattern count, excluding Changelog section): `sed -n '1,465p' .factory/specs/behavioral-contracts/ss-05/BC-5.39.007.md \| grep -cE 'HookResult::Block \{ reason: block_with_fix'` → `5`. INV-017 post-fix narrow-pattern (same sed-bounded grep on committed file): `0` (all 5 replaced; only remaining occurrence is in this Changelog row — POLICY-1-exempt). INV-018 residual-class sweep (structurally broader — any `Block \{ reason` in spec body, excluding Changelog): `sed -n '1,465p' .factory/specs/behavioral-contracts/ss-05/BC-5.39.007.md \| grep -cE 'HookResult::Block \{ reason'` → `0` post-fix. INV-019 cure: cure (a) line-range-exclude — greps bounded to lines 1-465 (spec body, pre-Changelog), excluding this row's self-reference; line range documented here for reproducibility. |
 | 1.3 | 2026-05-19 | Pass-3 adversary fix-burst (product-owner; brownfield-backfill M3 3M3a-r fix-burst pass-3; INV-018 dual-grep applied). Closes F-BC007P3-001 (HIGH: D-NNN Anchor Coverage table mis-anchors — PC2 retired and PC8 non-existent). Specific corrections: (1) D-419(c) row "Postcondition" column: was `PC3/PC8`; PC8 does not exist in BC-5.39.007 (postconditions are 1–10; no PC8 label); the gate enforced by D-419(c) is postcondition 3 (forbidden annotation block) and postcondition 8 (cite ID validation) — corrected to bare ordinals `3/8`. (2) D-420(e) row "Postcondition" column: was `PC3`; corrected to `3` (postcondition 3). (3) D-441(c) and D-442(c) rows: were `PC5/PC6/PC7`; corrected to `5/6/7` (postcondition ordinals for decision-log.md / STATE.md / INDEX.md umbrella-flag arms). (4) D-443(b) row: retained as `invariant 7` (references invariant, not postcondition — unchanged). (5) D-448(b) row: was `PC1/PC2`; PC2 was retired at pass-1 (split into PC2a/PC2b); the D-448(b) gate enforces postcondition 2 (missing/empty `**Closes:**` line → block) — corrected to `2`. Added convention-clarity note above table: column uses bare postcondition ordinals (1–10) except precondition checks which use PC-label form. Subsumed F-BC007P3-002 (MEDIUM: D-448(b) row specifically mis-anchored to retired PC1/PC2 — same table, fixed in same correction). INV-018 pre-fix narrow-pattern: `grep -nE 'PC3.PC8.PC1.PC2' .factory/specs/behavioral-contracts/ss-05/BC-5.39.007.md` → lines 396 and 401 (2 mis-anchor rows confirmed). INV-018 post-fix narrow-pattern: `grep -nE 'PC3.PC8.PC1.PC2' .factory/specs/behavioral-contracts/ss-05/BC-5.39.007.md` → `(zero output)`. INV-018 residual-class sweep: `grep -nE 'PC[789].PC1[0-9]' .factory/specs/behavioral-contracts/ss-05/BC-5.39.007.md` → `(zero output)` (no non-existent PC labels in spec body). |
 | 1.2 | 2026-05-19 | Pass-2 adversary fix-burst (product-owner; brownfield-backfill M3 3M3a-r pass-2; INV-017 applied). Closes F-BC007P2-002 (HIGH: Phase-2-never-shipped false-negative window declared explicitly), F-BC007P2-003 (HIGH: PC2/PC5 renumber propagation — Phase-1 boundary table + Test Vectors updated), F-BC007P2-004 (MEDIUM: Dispatch Arm Routing section added), F-BC007P2-005 (MEDIUM: EC-016/EC-018 cascade order declared), F-BC007P2-007 (LOW: invariant 5 regex parenthetical aligned with EC-004). F-BC007P2-001 handled in BC-5.39.006 v1.4. F-BC007P2-006 handled in BC-5.39.008 v1.2. |
