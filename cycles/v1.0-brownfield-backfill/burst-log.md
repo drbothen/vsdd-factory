@@ -3160,4 +3160,4 @@ Expected post-push: 1 (this codification commit). SHA-patch is a separate commit
 - `538de7fe` (D-491 state-manager codification burst)
 - `253ca85b` (D-491 SHA-patch)
 - `87e6fbe8` (D-491 SHA-patch follow-up)
-- `<this commit SHA>` (D-492 codification burst — SHA-patch follow-up pending)
+- `3f4fa4e5` (D-492 codification burst — this commit)
