@@ -1,7 +1,7 @@
 ---
 document_type: bc-index
 level: L3
-version: "2.44"
+version: "2.45"
 status: draft
 producer: state-manager
 timestamp: 2026-05-20T00:00:00Z
@@ -12,6 +12,8 @@ inputs:
 total_bcs: 1954
 traces_to: bc-id-mapping.md
 changelog:
+  - date: 2026-05-20
+    change: "v2.45 (2026-05-20; D-493 state-manager codification burst: M3 BC cascade pass-7 persisted; verdict NITPICK 1 NIT finding (F-BC007P7-001 INV-019 RESIDUAL meta-meta recursion; cure (c) by-construction applied in pass-7 persisted file — grep pattern not hardcoded line numbers); STREAK 1/3 → 2/3 SECOND ADVANCE; CRIT=0 sustained 6 passes; HIGH=0 sustained 2 passes; NO PO fix-burst required; D-range D-001..D-493. Refs: D-493, F-BC007P7-001, INV-019 extended scope (persisted reports), BC-5.39.001 streak protocol. BC-INDEX v2.44→v2.45."
   - date: 2026-05-20
     change: "v2.44 (2026-05-20; D-492 state-manager codification burst: M3 BC cascade pass-6 persisted; verdict NITPICK 2 NIT findings (F-BC006P6-001 + F-BC007P6-001; both INV-019 RESIDUAL; documentary-only; NO BC content changes); STREAK 0/3 → 1/3 FIRST ADVANCE in cascade; CRIT=0 sustained 5 passes; HIGH=0 RESTORED; cascade trajectory 41→14→8→3→5→2 NIT; NO PO fix-burst required per BC-5.39.001; D-range D-001..D-492. Refs: D-492, F-BC006P6-001, F-BC007P6-001, INV-019 RESIDUAL, BC-5.39.001 streak protocol, POLICY 14 production-validated. BC-INDEX v2.43→v2.44."
   - date: 2026-05-20

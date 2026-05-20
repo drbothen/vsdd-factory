@@ -1,11 +1,11 @@
 ---
 document_type: architecture-index
 level: L3
-version: "2.10"
+version: "2.11"
 status: accepted
 producer: architect
 timestamp: 2026-05-15T00:00:00Z
-last_amended: "2026-05-20 (v2.10) — D-492 M3 BC cascade pass-6 persisted (verdict NITPICK; 2 NIT findings; STREAK 0/3 → 1/3). No ADR or subsystem changes. [Prior: 2026-05-20 (v2.09) — D-491 M3 BC cascade pass-5 PO fix-burst codification.]"
+last_amended: "2026-05-20 (v2.11) — D-493 M3 BC cascade pass-7 persisted (NITPICK; 1 NIT; STREAK 1/3 → 2/3; CRIT=0 sustained 6 passes). No ADR or subsystem changes. [Prior: 2026-05-20 (v2.10) — D-492 M3 BC cascade pass-6 persisted (verdict NITPICK; 2 NIT findings; STREAK 0/3 → 1/3). No ADR or subsystem changes.]"
 phase: F5
 inputs:
   - .factory/phase-0-ingestion/pass-8-final-synthesis.md
@@ -17,6 +17,8 @@ inputs:
 traces_to: phase-1-spec-crystallization
 deployment_topology: single-service
 changelog:
+  - date: 2026-05-20
+    change: "v2.11 (2026-05-20; D-493 state-manager codification burst: M3 BC cascade pass-7 persisted; verdict NITPICK 1 NIT finding (F-BC007P7-001 INV-019 RESIDUAL meta-meta recursion); STREAK 1/3 → 2/3 SECOND ADVANCE; CRIT=0 sustained 6 passes; HIGH=0 sustained 2 passes; NO PO fix-burst required; BC-INDEX v2.45; 111 stories registered (96 file-resident + 15 stub IDs); 1954 BCs; 80 VPs. No ADR or subsystem changes. D-range D-001..D-493. Refs: D-493, F-BC007P7-001, INV-019 extended scope (persisted reports), BC-5.39.001 streak protocol. ARCH-INDEX v2.10→v2.11."
   - date: 2026-05-20
     change: "v2.10 (2026-05-20; D-492 state-manager codification burst: M3 BC cascade pass-6 persisted; verdict NITPICK 2 NIT findings (F-BC006P6-001 + F-BC007P6-001; both INV-019 RESIDUAL; documentary-only); STREAK 0/3 → 1/3 FIRST ADVANCE; CRIT=0 sustained 5 passes; HIGH=0 RESTORED; cascade trajectory 41→14→8→3→5→2 NIT; NO PO fix-burst required; BC-INDEX v2.44. No ADR or subsystem changes. D-range D-001..D-492. Refs: D-492, F-BC006P6-001, F-BC007P6-001, INV-019 RESIDUAL, POLICY 14 production-validated. ARCH-INDEX v2.09→v2.10."
   - date: 2026-05-20

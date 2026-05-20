@@ -2178,3 +2178,34 @@ POLICY 14 description and verification_steps updated in policies.yaml same-burst
 **Cites:** D-492, INV-019 RESIDUAL, POLICY 14 production-validated (D-490/D-491), BC-5.39.001 streak protocol confirmed, F-BC006P6-001, F-BC007P6-001.
 
 **Closes:** adv-bc-007-008-pass-6 persistence cycle (STREAK 1/3 advance). D-492 codified.
+
+---
+
+- [L-M3-BC-cascade-pass-7](#l-m3-bc-cascade-pass-7) — Pass-7 NITPICK verdict (1 finding F-BC007P7-001 INV-019 RESIDUAL meta-meta recursion); STREAK 1/3 → 2/3 SECOND ADVANCE; INV-019 cure (c) extended scope to persisted adversary reports; D-492 codification artifacts adversary-verified clean. D-493 codified.
+
+### L-M3-BC-cascade-pass-7
+
+**Lesson ID:** L-M3-BC-cascade-pass-7
+**Date:** 2026-05-20
+**Cycle:** v1.0-brownfield-backfill
+**Pass:** M3 BC cascade pass-7 adversary (D-493)
+
+**Symptom:** Pass-7 verdict NITPICK (0 CRIT / 0 HIGH / 0 MED / 0 LOW / 1 NIT). STREAK 1/3 → 2/3 SECOND CONSECUTIVE STREAK ADVANCE. Cascade trajectory 41→14→8→3→5→2 NIT→1 NIT (continued steep decay; single finding; one pass from convergence).
+
+**Significance:** The second consecutive streak advance confirms BC-5.39.001 3-CLEAN protocol is progressing correctly. The cascade is now at 2/3 — one more CLEAN or NITPICK pass produces 3/3 CONVERGED, which unblocks 3M3b story elaboration for S-15.10/12/13/15/16-Part-B. CRITICAL=0 sustained 6 passes; HIGH=0 sustained 2 passes — the cascade has reached a genuinely clean state at the spec content level.
+
+**META-LEVEL discovery — INV-019 RESIDUAL RECURSION at meta-meta level:** F-BC007P7-001 reveals that adversary persisted reports are themselves subject to the same INV-019 drift class they document. Pass-6's F-BC006P6-001 evidence block cited hardcoded row numbers (1235/1236/1237) for BC-INDEX body-table rows. After D-492 added the v2.44 changelog row to BC-INDEX, those row numbers shifted — exactly as INV-019 predicts for any hardcoded line-number citation. The report documenting the drift has itself drifted. This is INV-019 at the meta-meta level (not a new INV class — same mechanism, deeper recursion).
+
+**Cure — INV-019 cure (c) by-construction in persisted adversary reports:** This pass-7 file demonstrates the cure: the F-BC007P7-001 evidence section uses grep pattern `^\| \[BC-5\.39\.00[678]\]` rather than hardcoded line numbers. The grep pattern is self-updating — it locates the current row regardless of file position changes. Forward discipline: all persisted adversary reports must apply cure (c) by-construction in evidence sections that cite BC-INDEX body-table row positions, changelog row positions, or any other position that may shift post-commit. This extends INV-019 codification (D-489) from changelog rows to persisted adversary reports.
+
+**D-492 codification adversary-verified clean:** The pass-7 adversary confirmed that state-manager applied cure (c) by-construction in BC-INDEX v2.44 (the lesson learned from F-BC006P6-001 at pass-6). The v2.44 changelog row prose contains no hardcoded line numbers. All 4 index bumps synchronized (D-001..D-492). Burst-log h2 entry has all 8 D-444(c) blocks with literal-shell Dim-2 gates per D-449(a). STATE.md frontmatter satisfies all BC-5.39.006 v1.7 PCs. This demonstrates the discipline loop working: adversary finds class → state-manager applies cure → next adversary confirms cure applied → no recurrence.
+
+**Pass-6 deferred findings outcome validated:** F-BC006P6-001 did NOT recur in BC-INDEX v2.44. F-BC007P6-001 did NOT recur in D-492 codification artifacts. POLICY 1 append-only deferral was correctly applied — root-cause prevention (cure (c) by-construction going forward) is more valuable than fixing already-committed immutable records.
+
+**Forward discipline:** All future persisted adversary reports must apply INV-019 cure (c) by-construction in evidence sections: use grep patterns rather than hardcoded line numbers when citing BC-INDEX body-table or changelog row positions. BC-INDEX v2.45 row prose should optionally cite F-BC007P7-001 as forward-application of the discipline.
+
+**Cites:** D-493, INV-019 extended scope (persisted reports; D-489 changelog-rows scope extended), BC-5.39.001 streak protocol second advance confirmed, POLICY 1 append-only deferral validated, POLICY 14 5-leg parity sustained (no regression at pass-7), F-BC007P7-001.
+
+**Closes:** adv-bc-007-008-pass-7 persistence cycle (STREAK 2/3 advance). D-493 codified.
+
+**Closes:** adv-bc-007-008-pass-6 persistence cycle (STREAK 1/3 advance). D-492 codified.

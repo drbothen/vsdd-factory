@@ -1,15 +1,17 @@
 ---
 document_type: vp-index
 level: L4
-version: "2.01"
+version: "2.02"
 status: draft
 producer: state-manager
 timestamp: 2026-05-15T00:00:00Z
-last_amended: "2026-05-20 (v2.01) — D-492 M3 BC cascade pass-6 persisted (verdict NITPICK; 2 NIT findings; STREAK 0/3 → 1/3). No VP content changes. [Prior: 2026-05-20 (v2.00) — D-491 M3 BC cascade pass-5 PO fix-burst codification.]"
+last_amended: "2026-05-20 (v2.02) — D-493 M3 BC cascade pass-7 persisted (NITPICK; 1 NIT; STREAK 1/3 → 2/3; CRIT=0 sustained 6 passes). No VP content changes. [Prior: 2026-05-20 (v2.01) — D-492 M3 BC cascade pass-6 persisted (verdict NITPICK; 2 NIT findings; STREAK 0/3 → 1/3). No VP content changes.]"
 phase: F5
 traces_to: ARCH-INDEX.md
 total_vps: 80
 changelog:
+  - date: 2026-05-20
+    change: "v2.02 (2026-05-20; D-493 state-manager codification burst: M3 BC cascade pass-7 persisted; verdict NITPICK 1 NIT finding (F-BC007P7-001 INV-019 RESIDUAL meta-meta recursion); STREAK 1/3 → 2/3 SECOND ADVANCE; CRIT=0 sustained 6 passes; HIGH=0 sustained 2 passes; NO PO fix-burst required; 4-index BC v2.45/VP v2.02/STORY v3.49/ARCH v2.11. No VP content changes. D-range D-001..D-493. Refs: D-493, F-BC007P7-001, INV-019 extended scope (persisted reports), BC-5.39.001 streak protocol. VP-INDEX v2.01→v2.02."
   - date: 2026-05-20
     change: "v2.01 (2026-05-20; D-492 state-manager codification burst: M3 BC cascade pass-6 persisted; verdict NITPICK 2 NIT findings (F-BC006P6-001 + F-BC007P6-001; both INV-019 RESIDUAL; documentary-only); STREAK 0/3 → 1/3 FIRST ADVANCE in cascade; CRIT=0 sustained 5 passes; HIGH=0 RESTORED; CASCADE trajectory 41→14→8→3→5→2 NIT; NO PO fix-burst required; 4-index BC v2.44/VP v2.01/STORY v3.48/ARCH v2.10. No VP content changes. D-range D-001..D-492. Refs: D-492, F-BC006P6-001, F-BC007P6-001, INV-019 RESIDUAL, BC-5.39.001 streak protocol, POLICY 14 production-validated. VP-INDEX v2.00→v2.01."
   - date: 2026-05-20

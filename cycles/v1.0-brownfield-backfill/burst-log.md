@@ -158,7 +158,7 @@ producer: state-manager
 timestamp: 2026-05-06T19:00:00Z
 cycle: "v1.0-brownfield-backfill"
 inputs: [STATE.md]
-input-hash: "a36955d"
+input-hash: "6d7e07b"
 traces_to: STATE.md
 ---
 
@@ -3161,3 +3161,100 @@ Expected post-push: 1 (this codification commit). SHA-patch is a separate commit
 - `253ca85b` (D-491 SHA-patch)
 - `87e6fbe8` (D-491 SHA-patch follow-up)
 - `3f4fa4e5` (D-492 codification burst — this commit)
+
+## M3 3M3a-r PASS-7 PERSIST + CODIFY (STREAK 2/3)
+
+### Parent-commit
+
+`c7e3d7d0` (SHA-patch D-492 final) → this codification commit (D-493)
+
+### Adversary verdict
+
+Pass-7 verdict NITPICK (0 CRIT / 0 HIGH / 0 MED / 0 LOW / 1 NIT). Single finding F-BC007P7-001: INV-019 RESIDUAL meta-meta recursion — pass-6 persisted adversary report's own evidence block cited hardcoded row numbers (1235/1236/1237) for BC-INDEX body-table rows; after D-492 added v2.44 changelog row to BC-INDEX those row numbers shifted, demonstrating INV-019 at meta-meta level. Cure (c) by-construction applied in this pass-7 persisted file: grep pattern `^\| \[BC-5\.39\.00[678]\]` used in evidence section, not hardcoded line numbers. D-492 codification artifacts adversary-verified clean (state-manager applied cure (c) in BC-INDEX v2.44; no hardcoded line numbers; all 4 index bumps synchronized; burst-log 8 D-444(c) blocks; STATE.md PCs satisfied; L-M3-BC-cascade-pass-6 factually accurate). CRIT=0 sustained 6 passes; HIGH=0 sustained 2 passes. Cascade trajectory: 41→14→8→3→5→2 NIT→1 NIT. STREAK 1/3 → 2/3 per BC-5.39.001. NO PO fix-burst required per BC-5.39.001. Source: `cycles/v1.0-brownfield-backfill/adv-bc-007-008-pass-7.md` Part A.
+
+### Files touched (Dim-1)
+
+10 files:
+1. `.factory/cycles/v1.0-brownfield-backfill/adv-bc-007-008-pass-7.md` (NEW — pass-7 persisted report)
+2. `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` (D-493 row appended)
+3. `.factory/STATE.md` (Commit E suite — frontmatter + Phase Progress + Active Branches + Concurrent Cycles + Decisions Log + Story Status + Session Resume + size-budget banner)
+4. `.factory/cycles/v1.0-brownfield-backfill/lessons.md` (L-M3-BC-cascade-pass-7 appended)
+5. `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` (this h2 entry)
+6. `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` (pass-7 row + Convergence Status updated)
+7. `.factory/specs/behavioral-contracts/BC-INDEX.md` (v2.44→v2.45; v2.45 changelog entry)
+8. `.factory/specs/verification-properties/VP-INDEX.md` (v2.01→v2.02; v2.02 changelog entry)
+9. `.factory/stories/STORY-INDEX.md` (v3.48→v3.49; last_amended advance)
+10. `.factory/specs/architecture/ARCH-INDEX.md` (v2.10→v2.11; v2.11 changelog entry; 111 stories count for propagation gate)
+
+### Codifications (Dim-3)
+
+- **D-493** (5 sub-clauses): (a) pass-7 persisted verdict NITPICK 1 finding; CRIT=0 sustained 6 passes; HIGH=0 sustained 2 passes; cascade 41→14→8→3→5→2 NIT→1 NIT; (b) STREAK 1/3 → 2/3 SECOND ADVANCE per BC-5.39.001; one more CLEAN/NIT closes M3 3M3a-r convergence → unblocks 3M3b; (c) INV-019 cure (c) by-construction MANDATORY in persisted adversary reports; grep patterns not hardcoded line numbers; extension of INV-019 scope (D-489 changelog rows → persisted reports); (d) D-492 codification artifacts adversary-verified clean; (e) pass-6 deferred findings outcome validated; F-BC006P6-001+F-BC007P6-001 did NOT recur in D-492 artifacts; F-BC007P7-001 is meta-meta in pass-6 file itself (immutable POLICY 1)
+- **L-M3-BC-cascade-pass-7**: STREAK 2/3; INV-019 RESIDUAL meta-meta; cure (c) extended scope; D-492 verified clean; forward discipline for persisted reports
+- **STREAK 2/3 advance**: mechanical per BC-5.39.001; no new decisions required
+- **INV-019 cure (c) extended scope**: from changelog rows (D-489) to persisted adversary reports (D-493)
+
+### Dim-2 Attestation (literal-shell per D-449(a))
+
+**Gate 1 — L-M3-BC-cascade-pass-7 in lessons.md:**
+```
+$ grep -c "^- \[L-M3-BC-cascade-pass-7\]" .factory/cycles/v1.0-brownfield-backfill/lessons.md
+1
+```
+Result: 1 (expected 1) ✓
+
+**Gate 2 — D-493 row in STATE.md:**
+```
+$ grep -cE "^\| D-493 " .factory/STATE.md
+1
+```
+Result: 1 (expected 1) ✓
+
+**Gate 3 — D-493 row in decision-log.md:**
+```
+$ grep -cE "^\| D-493 " .factory/cycles/v1.0-brownfield-backfill/decision-log.md
+1
+```
+Result: 1 (expected 1) ✓
+
+**Gate 4 — current_step D-493 latest:**
+```
+$ grep -E "^current_step:" .factory/STATE.md | grep -oE "D-[0-9]+ latest" | head -1
+D-493 latest
+```
+Result: "D-493 latest" (expected) ✓
+
+**Gate 5 — streak "2/3" in adv-bc-007-008-pass-7.md frontmatter:**
+```
+$ grep -E "streak" .factory/cycles/v1.0-brownfield-backfill/adv-bc-007-008-pass-7.md | head -1 | grep -oE '"2/3"'
+"2/3"
+```
+Result: "2/3" (expected) ✓
+
+**Gate 6 — pass-7 file line count:**
+```
+$ wc -l .factory/cycles/v1.0-brownfield-backfill/adv-bc-007-008-pass-7.md
+     118
+```
+Result: 118 lines ✓
+
+### Dim-5 Attestation (Closes-set completeness)
+
+Closes-set: adv-bc-007-008-pass-7 persistence cycle CLOSED; STREAK 2/3 advance acknowledged; NO PO fix-burst required per BC-5.39.001 protocol; F-BC007P7-001 documentary finding deferred OPTIONAL per POLICY 1 append-only (immutable pass-6 report). D-492 codification cycle advances to D-493.
+
+### Dim-6 Attestation (literal-shell commit count per TD-VSDD-099)
+
+Pre-commit baseline:
+```
+$ git -C .factory log --oneline c7e3d7d0..HEAD | wc -l
+       0
+```
+Expected post-push: 1 (this codification commit). SHA-patch is a separate commit per D-447(c).
+
+### Closes
+
+**Closes adv-bc-007-008-pass-7 persistence cycle (STREAK 2/3 advance). D-492 codification cycle advances to D-493.**
+
+### Factory-artifacts Commits
+
+- `c7e3d7d0` (SHA-patch D-492 final — parent commit; factory-artifacts HEAD pre-this-burst)
+- `<codification-SHA>` (D-493 codification burst — this commit; SHA-patch pending separate commit)
