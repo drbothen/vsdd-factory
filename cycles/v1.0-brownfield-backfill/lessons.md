@@ -2209,3 +2209,13 @@ POLICY 14 description and verification_steps updated in policies.yaml same-burst
 **Closes:** adv-bc-007-008-pass-7 persistence cycle (STREAK 2/3 advance). D-493 codified.
 
 **Closes:** adv-bc-007-008-pass-6 persistence cycle (STREAK 1/3 advance). D-492 codified.
+
+- [L-M3-BC-cascade-pass-8] **Pass-8 verdict HIGH 1 finding (INV-020 RECURRENCE at 4-index codifying-burst level); STREAK 2/3 → 0/3 RESET; cascade prolonged.**
+  - **Symptom:** Adversary pass-8 returned verdict HIGH with 1 finding F-BC008P8-001: BC-INDEX v2.45 `last_amended:` text-prefix stale at "(v2.44)" while `version: "2.45"`. D-493 codification burst updated BC-INDEX leg-1 (version:) and leg-2 (changelog row) but missed leg-4 (last_amended: text-prefix) on BC-INDEX itself, while correctly syncing the same leg-4 on VP-INDEX, STORY-INDEX, and ARCH-INDEX. STREAK 2/3 → 0/3 RESET; convergence postponed.
+  - **Cause:** INV-020 RECURRENCE at the meta-level: the D-493 codification burst that documented the POLICY 14 5-leg cure applied it to BC bodies + 3 of 4 indexes but failed to self-apply leg-4 to BC-INDEX, the index being bumped in that very burst. This is the same class as F-BC006P5-002 (pass-5 HIGH; systematic 3-of-3 on BC bodies) now manifesting at the 4-index level as a singleton miss.
+  - **Cure:** D-494 burst (a) closes F-BC008P8-001 by bumping BC-INDEX v2.45→v2.46 with proper leg-4 sync, (b) extends POLICY 14 verification_steps with a literal-shell 4-index self-application gate template (new 7th step; extended_at updated D-490→D-494), (c) requires forward state-manager codification bursts to run the gate before commit.
+  - **Validation:** This D-494 burst itself ran the literal-shell gate post-fix; all 4 indexes returned PASS: BC-INDEX.md version=2.46 last_amended_prefix=2.46; VP-INDEX.md version=2.03 last_amended_prefix=2.03; STORY-INDEX.md version=3.50 last_amended_prefix=3.50; ARCH-INDEX.md version=2.12 last_amended_prefix=2.12. Demonstrates gate is operational.
+  - **Forward discipline:** NO codification burst commit that bumps any of the 4 indexes without first running the literal-shell 4-index leg-4 gate and verifying zero FAIL output. Gate is a POLICY 14 verification_step (extended_at D-494).
+  - **Cites:** D-494, INV-020 RECURRENCE at 4-index codifying-burst level, POLICY 14 verification_steps extended (extended_at D-494), BC-5.39.001 STREAK 0/3 RESET (HIGH resets streak).
+
+**Closes:** adv-bc-007-008-pass-8 persistence + fix cycle. D-494 codified.

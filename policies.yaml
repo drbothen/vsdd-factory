@@ -229,7 +229,7 @@ policies:
     scope: [bc, vp, story, epic]
     lint_hook: null
     codified_at: D-472
-    extended_at: D-490
+    extended_at: D-494
     verification_steps:
       - "For each file with body Changelog section, verify latest row date matches frontmatter last_amended: date prefix"
       - "Verify frontmatter modified: array's last entry corresponds to latest body Changelog row"
@@ -237,6 +237,7 @@ policies:
       - "Verify frontmatter last_amended: TEXT PREFIX (e.g., '(v1.6) — ...') matches body Changelog top row's version (5-leg leg-4; codified D-490)"
       - "Verify upstream-index body-table cells citing the bumped artifact (e.g., BC-INDEX body table for BC bumps; STORY-INDEX body table for story bumps) reflect the new version same-burst (5-leg leg-5; codified D-490)"
       - "All five legs must be updated in the same burst — no deferred-frontmatter pattern; no deferred-upstream-index pattern"
+      - "State-manager codification bursts that bump any of the 4 indexes (BC/VP/STORY/ARCH) MUST run a literal-shell self-application gate BEFORE commit: for each of 4 indexes, grep ^version: and ^last_amended:, extract the v-prefix, assert match. Template: `for IDX_PATH in BC-INDEX.md VP-INDEX.md STORY-INDEX.md ARCH-INDEX.md; do V=$(grep -E '^version:' \"$IDX_PATH\" | grep -oE '\"[0-9]+\\.[0-9]+\"' | tr -d '\"'); LA=$(grep -E '^last_amended:' \"$IDX_PATH\" | grep -oE '\\(v[0-9]+\\.[0-9]+\\)' | head -1 | tr -d '()v'); [ \"$V\" = \"$LA\" ] && echo PASS || echo FAIL; done`. Gate produces zero FAIL output before commit (5-leg leg-4 self-application; codified D-494 per INV-020 RECURRENCE at the 4-index codifying-burst level)."
 
   - id: 15
     name: ll_n_verbatim_stdout_discipline

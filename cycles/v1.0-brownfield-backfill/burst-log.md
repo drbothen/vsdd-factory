@@ -3258,3 +3258,120 @@ Expected post-push: 1 (this codification commit). SHA-patch is a separate commit
 
 - `c7e3d7d0` (SHA-patch D-492 final — parent commit; factory-artifacts HEAD pre-this-burst)
 - `14ffb4b8` (D-493 codification burst — Commit 1; SHA-patch is Commit 2)
+
+## M3 3M3a-r PASS-8 PERSIST + FIX + CODIFY (STREAK 0/3 RESET)
+
+**Date:** 2026-05-20
+**D-494 Combined burst: adversary pass-8 persist + F-BC008P8-001 fix + codification + POLICY 14 gate extension**
+
+### Parent-commit
+
+`1ef40cec` (SHA-patch D-493 final) → this commit (D-494 combined)
+
+### Adversary Verdict (per D-448(a) source-attestation)
+
+Pass-8 verdict HIGH (0 CRIT / 1 HIGH / 0 MED / 0 LOW / 0 NIT). Finding F-BC008P8-001 HIGH: BC-INDEX v2.45 `last_amended:` text-prefix stale at "(v2.44)" while `version: "2.45"`. D-493 codification burst updated BC-INDEX leg-1 (version:) and leg-2 (changelog row) but missed leg-4 (last_amended: text-prefix) on BC-INDEX itself, while correctly syncing the same leg-4 on VP-INDEX, STORY-INDEX, and ARCH-INDEX (3 of 4 correctly synced; 1 singleton miss). INV-020 RECURRENCE at the 4-index codifying-burst self-application level. Cascade trajectory 41→14→8→3→5→2 NIT→1 NIT→1 HIGH. STREAK 2/3 → 0/3 RESET per BC-5.39.001 (HIGH resets). CRIT=0 sustained 7 passes. Pass-7 deferred F-BC007P7-001 did NOT recur (cure (c) by-construction discipline holding). Persisted to: `cycles/v1.0-brownfield-backfill/adv-bc-007-008-pass-8.md` (134 lines; input-hash 78b8646; ORCHESTRATOR-VERIFIED OVERRIDES 1-5 prepended).
+
+### Files Touched (11 files)
+
+1. `.factory/cycles/v1.0-brownfield-backfill/adv-bc-007-008-pass-8.md` (NEW — pass-8 adversary review; 134 lines)
+2. `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` (D-494 row appended)
+3. `.factory/STATE.md` (frontmatter + Phase Progress + Active Branches + Concurrent Cycles + Decisions Log + Session Resume §1/§3/§4/§5/§6/§8/§9/§11/§12 + Last Updated + Current Phase + banner line-growth tracker)
+4. `.factory/cycles/v1.0-brownfield-backfill/lessons.md` (L-M3-BC-cascade-pass-8 appended)
+5. `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` (this h2 entry)
+6. `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` (pass-8 row + Convergence Status advance)
+7. `.factory/specs/behavioral-contracts/BC-INDEX.md` (v2.45→v2.46; leg-1+leg-2+leg-4 all synced; changelog row prepended)
+8. `.factory/specs/verification-properties/VP-INDEX.md` (v2.02→v2.03; all 5 legs synced)
+9. `.factory/stories/STORY-INDEX.md` (v3.49→v3.50; leg-1+leg-4 synced)
+10. `.factory/specs/architecture/ARCH-INDEX.md` (v2.11→v2.12; all 5 legs synced)
+11. `.factory/policies.yaml` (POLICY 14 verification_steps extended: new 7th step literal-shell 4-index self-application gate; extended_at updated D-490→D-494)
+
+### Codifications
+
+- **D-494** (5 sub-clauses): (a) pass-8 persisted + fix closed; (b) INV-020 RECURRENCE acknowledged at 4-index codifying-burst level; (c) POLICY 14 verification_steps EXTENDED with literal-shell 4-index self-application gate (extended_at D-494); (d) 4 indexes BC v2.46/VP v2.03/STORY v3.50/ARCH v2.12 all 5-leg parity gate-verified; (e) cascade prolonged; pass-9 dispatch-ready STREAK 0/3
+- **L-M3-BC-cascade-pass-8**: symptom HIGH 1 finding; cause INV-020 RECURRENCE; cure: BC-INDEX v2.46 proper 5-leg parity + POLICY 14 gate extension; validation: this burst ran gate; all 4 PASS; forward discipline codified
+- **POLICY 14 verification_steps extended**: new 7th step — literal-shell 4-index self-application gate template codified; extended_at D-490→D-494
+
+### Dim-2 Attestation (literal-shell per D-449(a))
+
+All gates executed with captured stdout:
+
+**Gate 1: L-M3-BC-cascade-pass-8 in lessons.md**
+```
+$ grep -c "^\- \[L-M3-BC-cascade-pass-8\]" .factory/cycles/v1.0-brownfield-backfill/lessons.md
+1
+```
+
+**Gate 2: D-494 row in STATE.md**
+```
+$ grep -cE "^\| D-494 " .factory/STATE.md
+1
+```
+
+**Gate 3: D-494 row in decision-log.md**
+```
+$ grep -cE "^\| D-494 " .factory/cycles/v1.0-brownfield-backfill/decision-log.md
+1
+```
+
+**Gate 4: current_step D-494 in STATE.md**
+```
+$ grep -E "^current_step:" .factory/STATE.md | grep -oE "D-[0-9]+ " | head -1
+D-494 
+```
+
+**Gate 5: streak "0/3" in pass-8 file**
+```
+$ grep -E "streak" .factory/cycles/v1.0-brownfield-backfill/adv-bc-007-008-pass-8.md | head -1 | grep -oE '"0/3"'
+"0/3"
+```
+
+**Gate 6: pass-8 file line count**
+```
+$ wc -l .factory/cycles/v1.0-brownfield-backfill/adv-bc-007-008-pass-8.md
+     134 .factory/cycles/v1.0-brownfield-backfill/adv-bc-007-008-pass-8.md
+```
+
+**NEW 4-INDEX SELF-APPLICATION GATE (D-494 POLICY 14 extended — literal shell with captured stdout):**
+```
+$ for IDX_PATH in \
+    .factory/specs/behavioral-contracts/BC-INDEX.md \
+    .factory/specs/verification-properties/VP-INDEX.md \
+    .factory/stories/STORY-INDEX.md \
+    .factory/specs/architecture/ARCH-INDEX.md; do
+    V=$(grep -E '^version:' "$IDX_PATH" | grep -oE '"[0-9]+\.[0-9]+"' | tr -d '"')
+    LA=$(grep -E '^last_amended:' "$IDX_PATH" | grep -oE '\(v[0-9]+\.[0-9]+\)' | head -1 | tr -d '()v')
+    [ "$V" = "$LA" ] && echo "PASS: $(basename $IDX_PATH) version=$V last_amended_prefix=$LA" || echo "FAIL: $(basename $IDX_PATH) version=$V last_amended_prefix=$LA"
+  done
+PASS: BC-INDEX.md version=2.46 last_amended_prefix=2.46
+PASS: VP-INDEX.md version=2.03 last_amended_prefix=2.03
+PASS: STORY-INDEX.md version=3.50 last_amended_prefix=3.50
+PASS: ARCH-INDEX.md version=2.12 last_amended_prefix=2.12
+```
+
+### Dim-5 Attestation (Closes-set completeness)
+
+- F-BC008P8-001 CLOSED: BC-INDEX v2.45→v2.46 with proper 5-leg parity (all legs synced this burst including leg-4)
+- INV-020 RECURRENCE acknowledged: no new INV class; same cure as INV-020 (POLICY 14 5-leg parity self-applied)
+- POLICY 14 verification_steps extended: new 7th step literal-shell 4-index self-application gate; extended_at D-490→D-494
+- 4-index self-application gate operational and verified PASS this burst (4 PASS lines captured above)
+- L-M3-BC-cascade-pass-8 lesson codified: gate discipline going-forward
+- D-494 codified: 5 sub-clauses all complete
+
+### Dim-6 Attestation (literal-shell commit count per TD-VSDD-099)
+
+Pre-commit baseline:
+```
+$ git -C .factory log --oneline 1ef40cec..HEAD | wc -l
+       0
+```
+Expected post-push: 1 (this D-494 combined codification commit). SHA-patch is a separate commit per D-447(c).
+
+### Closes
+
+**Closes F-BC008P8-001 (INV-020 RECURRENCE 4-index self-application gap); D-493 codification cycle advances to D-494; codifies POLICY 14 verification_steps extension (4-index self-application gate).**
+
+### Factory-artifacts Commits
+
+- `1ef40cec` (SHA-patch D-493 final — parent commit; factory-artifacts HEAD pre-this-burst)
+- `<D-494-SHA>` (D-494 combined persist+fix+codify burst — Commit 1; SHA-patch is Commit 2)

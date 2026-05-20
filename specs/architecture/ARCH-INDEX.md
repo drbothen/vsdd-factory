@@ -1,11 +1,11 @@
 ---
 document_type: architecture-index
 level: L3
-version: "2.11"
+version: "2.12"
 status: accepted
 producer: architect
 timestamp: 2026-05-15T00:00:00Z
-last_amended: "2026-05-20 (v2.11) — D-493 M3 BC cascade pass-7 persisted (NITPICK; 1 NIT; STREAK 1/3 → 2/3; CRIT=0 sustained 6 passes). No ADR or subsystem changes. [Prior: 2026-05-20 (v2.10) — D-492 M3 BC cascade pass-6 persisted (verdict NITPICK; 2 NIT findings; STREAK 0/3 → 1/3). No ADR or subsystem changes.]"
+last_amended: "2026-05-20 (v2.12) — D-494 M3 BC cascade pass-8 persist+fix+codify; HIGH 1 finding F-BC008P8-001 closed (INV-020 RECURRENCE; BC-INDEX leg-4 gap); STREAK 2/3 → 0/3 RESET; POLICY 14 verification_steps extended with literal-shell 4-index self-application gate; 4-index BC v2.46/VP v2.03/STORY v3.50/ARCH v2.12 all with proper 5-leg parity; pass-9 dispatch-ready. No ADR or subsystem changes. [Prior: 2026-05-20 (v2.11) — D-493 M3 BC cascade pass-7 persisted (NITPICK; 1 NIT; STREAK 1/3 → 2/3; CRIT=0 sustained 6 passes). No ADR or subsystem changes. [Prior: 2026-05-20 (v2.10) — D-492 M3 BC cascade pass-6 persisted (verdict NITPICK; 2 NIT findings; STREAK 0/3 → 1/3). No ADR or subsystem changes.]]"
 phase: F5
 inputs:
   - .factory/phase-0-ingestion/pass-8-final-synthesis.md
@@ -17,6 +17,8 @@ inputs:
 traces_to: phase-1-spec-crystallization
 deployment_topology: single-service
 changelog:
+  - date: 2026-05-20
+    change: "v2.12 (2026-05-20; D-494 state-manager persist+fix+codify: M3 BC cascade pass-8 persisted; verdict HIGH 1 finding (F-BC008P8-001 INV-020 RECURRENCE; BC-INDEX leg-4 self-application gap at D-493 burst); STREAK 2/3 → 0/3 RESET; POLICY 14 verification_steps EXTENDED with literal-shell 4-index self-application gate; 4-index BC v2.46/VP v2.03/STORY v3.50/ARCH v2.12 all with proper 5-leg parity gate-verified pre-commit; pass-9 dispatch-ready. No ADR or subsystem changes. D-range D-001..D-494. Refs: D-494, F-BC008P8-001, INV-020 RECURRENCE, POLICY 14 verification_steps extended. ARCH-INDEX v2.11→v2.12."
   - date: 2026-05-20
     change: "v2.11 (2026-05-20; D-493 state-manager codification burst: M3 BC cascade pass-7 persisted; verdict NITPICK 1 NIT finding (F-BC007P7-001 INV-019 RESIDUAL meta-meta recursion); STREAK 1/3 → 2/3 SECOND ADVANCE; CRIT=0 sustained 6 passes; HIGH=0 sustained 2 passes; NO PO fix-burst required; BC-INDEX v2.45; 111 stories registered (96 file-resident + 15 stub IDs); 1954 BCs; 80 VPs. No ADR or subsystem changes. D-range D-001..D-493. Refs: D-493, F-BC007P7-001, INV-019 extended scope (persisted reports), BC-5.39.001 streak protocol. ARCH-INDEX v2.10→v2.11."
   - date: 2026-05-20
