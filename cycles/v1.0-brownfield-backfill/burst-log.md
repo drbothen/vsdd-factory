@@ -158,7 +158,7 @@ producer: state-manager
 timestamp: 2026-05-06T19:00:00Z
 cycle: "v1.0-brownfield-backfill"
 inputs: [STATE.md]
-input-hash: "6d7e07b"
+input-hash: "9954df6"
 traces_to: STATE.md
 ---
 
@@ -3257,4 +3257,4 @@ Expected post-push: 1 (this codification commit). SHA-patch is a separate commit
 ### Factory-artifacts Commits
 
 - `c7e3d7d0` (SHA-patch D-492 final — parent commit; factory-artifacts HEAD pre-this-burst)
-- `<codification-SHA>` (D-493 codification burst — this commit; SHA-patch pending separate commit)
+- `14ffb4b8` (D-493 codification burst — Commit 1; SHA-patch is Commit 2)
