@@ -2149,3 +2149,32 @@ POLICY 14 description and verification_steps updated in policies.yaml same-burst
 **Cites:** D-491, INV-019, INV-020, POLICY 14 (5-leg extended D-490, validated D-491), BC-006 v1.7, BC-007 v1.5, BC-008 v1.5, BC-INDEX v2.43, ~46 bare→assoc-fn conversions, F-BC006P5-002, F-BC006P5-003, F-BC006P5-004, F-BC007P5-001.
 
 **Closes:** F-BC006P5-002, F-BC006P5-003, F-BC006P5-004, F-BC007P5-001. D-491 codified.
+
+---
+
+- [L-M3-BC-cascade-pass-6](#l-m3-bc-cascade-pass-6) — Pass-6 NITPICK verdict (2 documentary INV-019 RESIDUAL findings); STREAK 0/3 → 1/3 FIRST ADVANCE in cascade; POLICY 14 5-leg parity production-validated; F-BC007P5-001 full sweep adversary-verified; NO PO fix-burst required. D-492 codified.
+
+### L-M3-BC-cascade-pass-6
+
+**Lesson ID:** L-M3-BC-cascade-pass-6
+**Date:** 2026-05-20
+**Cycle:** v1.0-brownfield-backfill
+**Pass:** M3 BC cascade pass-6 adversary (D-492)
+
+**Symptom:** Pass-6 verdict NITPICK (0 CRIT / 0 HIGH / 0 MED / 0 LOW / 2 NIT). STREAK 0/3 → 1/3 FIRST ADVANCE IN THE 6-PASS CASCADE. Cascade trajectory 41→14→8→3→5→2 NIT (steep decay restored; HIGH=0 RESTORED).
+
+**Significance:** The first streak advance in the cascade demonstrates BC-5.39.001 3-CLEAN protocol working as designed — NITPICK advances without resetting (MED+ would reset). The cascade has been stuck at STREAK 0/3 for 5 consecutive passes due to CRITICAL/HIGH findings; pass-6 is the first pass where the cascade advances mechanically. Two more consecutive CLEAN or NITPICK passes produce 3-CLEAN convergence and unblock 3M3b story elaboration.
+
+**POLICY 14 5-leg parity production-validated:** PO commit `c4be5fde` (pass-5 fix-burst) applied all 5 legs of POLICY 14 (v2; 5-leg quintuple parity per D-490) correctly for all 3 BCs. Pass-6 adversary confirmed NO regression — no new leg-4 or leg-5 violations detected. INV-020 codification (D-490) is practically viable: a single PO commit can correctly apply all 5 legs simultaneously when the checklist enumerates all 5 legs explicitly. The risk of missing a leg drops to NITPICK/none when POLICY 14 is applied rigorously.
+
+**F-BC007P5-001 full BC-006-parity sweep adversary-verified:** ~46 bare `HookResult::Block` → `HookResult::block_with_fix(...)` conversions across BC-007/008 body tables (Edge Cases + Test Vectors) sampled at 10+ sites by pass-6 adversary. NO conversion defects found. Semantic preservation confirmed: no accidental Block→Continue flips; complex multi-clause semantics (EC-022 multi-advisory) preserved intact. This validates the D-489 cross-BC idiom standardization and the D-491 production-grade full-sweep approach.
+
+**Both findings are INV-019 RESIDUAL:** F-BC006P6-001 (row-number drift in BC-INDEX changelog: "rows 1233-1235" should be "rows 1235-1237") and F-BC007P6-001 (cross-SoT count inconsistency: exact-form in BC-007/008 body vs approximation-form in D-491/BC-INDEX/lessons). Both documentary-only; no load-bearing impact. INV-019 forward-application discipline gap — cure (c) by-construction (uniform ~tilde approximation) would have prevented F-BC007P6-001 by ensuring approximation form in ALL 5 SoTs from the start.
+
+**NIT findings do NOT require PO fix-burst:** BC-5.39.001 3-CLEAN protocol is clear — NITPICK advances the streak without requiring a fix-burst. Documentary cleanup is deferred per POLICY 1 append-only: the finding is ACKNOWLEDGED but NOT actioned immediately. This is the intended behavior for truly documentary-only issues where correction would require a BC-INDEX changelog bump (which POLICY 1 restricts to append-only at the next genuine version bump). Adversary Part B Recommendation #2 honored with explicit deferral cite.
+
+**Forward discipline:** For cross-artifact count narratives, adopt uniform cure (c) by-construction — use approximation-tilde (~N) in ALL SoTs when a count may drift post-commit, rather than mixing exact-form in one SoT and approximation-form in others. This eliminates F-BC007P6-001 class findings by construction. POLICY 1 append-only does not prevent this — tilde form is simply written into each new changelog row from the start.
+
+**Cites:** D-492, INV-019 RESIDUAL, POLICY 14 production-validated (D-490/D-491), BC-5.39.001 streak protocol confirmed, F-BC006P6-001, F-BC007P6-001.
+
+**Closes:** adv-bc-007-008-pass-6 persistence cycle (STREAK 1/3 advance). D-492 codified.

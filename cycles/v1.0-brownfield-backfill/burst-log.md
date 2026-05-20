@@ -3050,3 +3050,114 @@ Expected post-push: 1 (this codification commit only). SHA-patch is a separate c
 - `274a5321` (SHA-patch D-490 — parent commit; factory-artifacts HEAD pre-this-burst)
 - `c4be5fde` (PO fix-burst pass-5 — BC-006 v1.7 + BC-007 v1.5 + BC-008 v1.5 + BC-INDEX v2.43)
 - `538de7fe` (D-491 state-manager codification burst)
+
+---
+
+## M3 3M3a-r PASS-6 PERSIST + CODIFY (STREAK 0/3 → 1/3)
+
+**Date:** 2026-05-20
+**Decision:** D-492
+**Verdict:** NITPICK (2 NIT; 0 CRIT / 0 HIGH / 0 MED / 0 LOW)
+**Streak:** 0/3 → 1/3 (FIRST ADVANCE IN 6-PASS CASCADE)
+
+### Parent-commit
+
+`87e6fbe8` (SHA-patch D-491 final — factory-artifacts HEAD pre-this-burst) → this codification commit (D-492).
+
+### Adversary verdict
+
+Pass-6 verdict: **NITPICK** (0 CRIT / 0 HIGH / 0 MED / 0 LOW / **2 NIT**). Cascade trajectory: 41→14→8→3→5→**2 NIT** (steep decay restored). CRITICAL=0 sustained 5 consecutive passes; HIGH=0 RESTORED at pass-6.
+
+Two findings, both INV-019 RESIDUAL (post-commit accounting drift applied to different axes):
+- **F-BC006P6-001 NITPICK** — BC-INDEX v2.43 changelog row cites stale body-table row range: v2.43 says "rows 1233-1235 updated"; v2.42 says "rows 1231-1233 corrected"; actual rows are 1235/1236/1237 (off by 2). Documentary-only; INV-019 applied to LINE NUMBERS rather than counts.
+- **F-BC007P6-001 NITPICK** — Cross-SoT count narrative inconsistency: 5 artifacts narrate F-BC007P5-001 conversions in slightly different count/approximation forms (BC-007/008 body uses exact form; D-491/BC-INDEX/lessons uses ~tilde approximation). INV-019 cure (c) by-construction would have unified all to tilde.
+
+POLICY 14 5-leg quintuple parity VALIDATED in production by PO commit `c4be5fde` — NO regression detected. F-BC007P5-001 full BC-006-parity sweep adversary-verified: 10+ samples, NO conversion defects, semantic preservation confirmed. NO new INV class at pass-6. STREAK 0/3 → **1/3 first advance**.
+
+### Files touched (Dim-1)
+
+11 files:
+1. `.factory/cycles/v1.0-brownfield-backfill/adv-bc-007-008-pass-6.md` (NEW)
+2. `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` (D-492 row)
+3. `.factory/STATE.md` (Decisions Log + Phase Progress + Active Branches + Concurrent Cycles + Last Updated + Current Phase + Section 11 + frontmatter)
+4. `.factory/cycles/v1.0-brownfield-backfill/lessons.md` (L-M3-BC-cascade-pass-6)
+5. `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` (this entry)
+6. `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` (pass-6 row + Convergence Status)
+7. `.factory/specs/behavioral-contracts/BC-INDEX.md` (v2.43→v2.44)
+8. `.factory/specs/verification-properties/VP-INDEX.md` (v2.00→v2.01)
+9. `.factory/stories/STORY-INDEX.md` (v3.47→v3.48)
+10. `.factory/specs/architecture/ARCH-INDEX.md` (v2.09→v2.10)
+11. (SHA-patch follow-up: Active Branches + Phase Progress + burst-log Factory-artifacts block)
+
+### Codifications (Dim-3)
+
+- **D-492** (5 sub-clauses): (a) pass-6 persisted; NITPICK verdict; 2 INV-019 RESIDUAL documentary findings; CRIT=0 sustained 5 passes; HIGH=0 RESTORED; (b) STREAK 0/3 → 1/3 first advance per BC-5.39.001 3-CLEAN protocol; need 2 more CLEAN for convergence; (c) POLICY 14 5-leg quintuple parity production-validated by PO commit `c4be5fde`; INV-020 codification (D-490) practically viable; (d) F-BC007P5-001 full BC-006-parity sweep adversary-verified: 10+ samples, NO conversion defects, semantic preservation confirmed; (e) NO PO fix-burst required; documentary cleanup deferred OPTIONAL to next BC-INDEX bump per POLICY 1 append-only.
+- **L-M3-BC-cascade-pass-6** lesson appended.
+- STREAK 1/3 advance acknowledged.
+- 4-index bumps: BC-INDEX v2.43→v2.44, VP-INDEX v2.00→v2.01, STORY-INDEX v3.47→v3.48, ARCH-INDEX v2.09→v2.10.
+
+### Dim-2 Attestation (literal-shell per D-449(a))
+
+**Gate 1 — L-M3-BC-cascade-pass-6 row in lessons.md:**
+```
+$ grep -c "^- \[L-M3-BC-cascade-pass-6\]" .factory/cycles/v1.0-brownfield-backfill/lessons.md
+1
+```
+Result: 1 ✓ (expected 1)
+
+**Gate 2 — D-492 row in decision-log.md:**
+```
+$ grep -cE "^\| D-492 " .factory/cycles/v1.0-brownfield-backfill/decision-log.md
+1
+```
+Result: 1 ✓ (expected 1)
+
+**Gate 3 — streak "1/3" in adv-bc-007-008-pass-6.md frontmatter:**
+```
+$ grep -E "streak" .factory/cycles/v1.0-brownfield-backfill/adv-bc-007-008-pass-6.md | head -1 | grep -oE '"1/3"'
+"1/3"
+```
+Result: "1/3" ✓ (expected "1/3")
+
+**Gate 4 — pass-6 file line count:**
+```
+$ wc -l .factory/cycles/v1.0-brownfield-backfill/adv-bc-007-008-pass-6.md
+     125 .factory/cycles/v1.0-brownfield-backfill/adv-bc-007-008-pass-6.md
+```
+Result: 125 lines ✓
+
+**Gate 5 — D-492 row in STATE.md (verified post STATE.md update):**
+```
+$ grep -cE "^\| D-492 " .factory/STATE.md
+1
+```
+Result: 1 ✓ (expected 1; verified after STATE.md update)
+
+**Gate 6 (D-448(a) source-attestation) — adv-bc-007-008-pass-6.md Part A describes NITPICK verdict with 2 NIT findings:**
+Burst-log Adversary verdict paragraph above faithfully describes Part A: NITPICK; F-BC006P6-001 + F-BC007P6-001; both INV-019 RESIDUAL; trajectory 41→14→8→3→5→2 NIT; STREAK 1/3. No divergence from adv-bc-007-008-pass-6.md Part A.
+
+### Dim-5 Attestation (Closes-set completeness)
+
+Closes-set: adv-bc-007-008-pass-6 persistence cycle CLOSED; STREAK 1/3 advance acknowledged; NO PO fix-burst required per BC-5.39.001 protocol; documentary findings (F-BC006P6-001 + F-BC007P6-001) deferred OPTIONAL per POLICY 1 append-only. D-491 codification cycle advances to D-492.
+
+### Dim-6 Attestation (literal-shell commit count per TD-VSDD-099)
+
+Pre-commit baseline:
+```
+$ git -C .factory log --oneline 87e6fbe8..HEAD | wc -l
+       0
+```
+Expected post-push: 1 (this codification commit). SHA-patch is a separate commit per D-447(c).
+
+### Closes
+
+**Closes adv-bc-007-008-pass-6 persistence cycle (STREAK 1/3 advance). D-491 codification cycle advances to D-492.**
+
+### Factory-artifacts Commits
+
+- `87e6fbe8` (SHA-patch D-491 final — parent commit; factory-artifacts HEAD pre-this-burst)
+- `c4be5fde` (PO fix-burst pass-5 — BC-006 v1.7 + BC-007 v1.5 + BC-008 v1.5 + BC-INDEX v2.43)
+- `538de7fe` (D-491 state-manager codification burst)
+- `253ca85b` (D-491 SHA-patch)
+- `87e6fbe8` (D-491 SHA-patch follow-up)
+- `<this commit SHA>` (D-492 codification burst — SHA-patch follow-up pending)
