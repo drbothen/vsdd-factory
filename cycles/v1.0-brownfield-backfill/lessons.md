@@ -2082,3 +2082,35 @@ Monotonically decreasing. CRITICAL+HIGH reach zero at pass-4. The cascade is at 
 **Cites:** D-489, INV-017, INV-018, INV-019, BC-5.39.006 v1.6, BC-5.39.007 v1.4, BC-5.39.008 v1.4, BC-006 (assoc-fn idiom precedent).
 
 **Closes:** F-BC008P4-001, F-BC006P4-001, F-BC007P4-NIT. D-489 codified.
+
+---
+
+- [L-M3-BC-cascade-pass-5](#l-m3-bc-cascade-pass-5) — INV-020 CONFIRMED: 3-leg KK-N parity is insufficient; 5-leg quintuple parity required (last_amended: text-prefix + upstream-index body-table cells must sync same-burst). D-490 codified.
+
+### L-M3-BC-cascade-pass-5
+
+**Lesson ID:** L-M3-BC-cascade-pass-5
+**Date:** 2026-05-20
+**Cycle:** v1.0-brownfield-backfill
+**Pass:** M3 BC cascade pass-5 adversary (D-490)
+
+**Symptom:** Pass-5 verdict HIGH (2 HIGH cross-file propagation + 3 LOW). STREAK 0/3 RESET. INV-019 RECURRENCE confirmed. Trajectory 41→14→8→3→5 (slight uptick). CRIT=0 sustained.
+
+**Cause:** PO commit `f3cc03fc` (pass-4 PO fix-burst) bumped version: frontmatter + body Changelog row + modified[] correctly (3-leg KK-N per POLICY 14 v1) but missed two legs: (1) last_amended: text-prefix (leg-4) still showed the prior version's text prefix in all 3 BCs; (2) BC-INDEX body-table cells (leg-5) at lines 1231-1233 still showed stale v1.5/v1.3/v1.3 despite the BC-INDEX v2.41 changelog row in the same commit stating the bumps. Additionally, INV-019 cure (a) was applied correctly to the load-bearing grep in BC-006 v1.6 changelog row but the side-narrative enumeration "5 remaining tokens" was not updated — INV-019 RECURRENCE in the very fix-burst that confirmed INV-019.
+
+**Diagnosis:** 3-leg KK-N parity (POLICY 14 v1 — codified D-468, extended NN-N D-468) is INSUFFICIENT to cover all same-burst propagation legs. The original POLICY 14 definition named only `version:`, `body Changelog row`, and `modified[]` as the tripartite. Two additional legs exist but were not gated: leg-4 (`last_amended:` text-prefix, which must cite the new version in its parenthetical) and leg-5 (upstream-index body-table cells that cite the bumped artifact's version in their version column). INV-019 RECURRENCE further demonstrates that INV-019 cure (a) must be applied to ALL literal counts in a row, not only the load-bearing grep.
+
+**Cure:** INV-020 codified (D-490): extend POLICY 14 from tripartite to quintuple 5-leg parity. All 5 legs MUST sync in the same burst:
+1. `version:` frontmatter — new version string
+2. Body Changelog row — new row with new version label + date
+3. `modified:` frontmatter array — new entry corresponding to new version
+4. `last_amended:` text-prefix — parenthetical version in the string value (e.g., `"2026-05-20 (v1.7) — ..."`)
+5. Upstream-index body-table version column cells (BC-INDEX for BC bumps; STORY-INDEX for story bumps; ARCH-INDEX for architecture bumps)
+
+POLICY 14 description and verification_steps updated in policies.yaml same-burst per INV-020.
+
+**Forward discipline:** All BC/VP/story/epic/architecture version bumps from this point MUST sync all 5 legs same-burst. The PO and state-manager checklist MUST include legs 4 and 5 explicitly. The adversary verification rubric must check all 5 legs per updated POLICY 14 verification_steps.
+
+**Cites:** D-490, INV-019 RECURRENCE, INV-020 CONFIRMED, F-BC006P5-001, F-BC006P5-002, F-BC006P5-003, F-BC007P5-001, F-BC006P5-004, POLICY 14.
+
+**Closes:** adv-bc-007-008-pass-5 persistence cycle; pass-5 verdict acknowledged; META-LEVEL INV-019 RECURRENCE + INV-020 CONFIRMED. Finding closures DEFERRED to D-491 PO fix-burst pass-5.

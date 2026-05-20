@@ -1,11 +1,11 @@
 ---
 document_type: architecture-index
 level: L3
-version: "2.07"
+version: "2.08"
 status: accepted
 producer: architect
 timestamp: 2026-05-15T00:00:00Z
-last_amended: 2026-05-15
+last_amended: "2026-05-20 (v2.08) — D-490 M3 BC cascade pass-5 persist + codify. No ADR or subsystem changes."
 phase: F5
 inputs:
   - .factory/phase-0-ingestion/pass-8-final-synthesis.md
@@ -17,6 +17,8 @@ inputs:
 traces_to: phase-1-spec-crystallization
 deployment_topology: single-service
 changelog:
+  - date: 2026-05-20
+    change: "v2.08 (2026-05-20; D-490 state-manager codification burst: M3 BC cascade pass-5 adversary persisted; verdict HIGH 5 findings 2H+3L; STREAK 0/3 RESET; INV-019 RECURRENCE + INV-020 CONFIRMED; POLICY 14 extended to 5-leg quintuple parity. No ADR or subsystem changes. BC-INDEX v2.42. D-range D-001..D-490. Refs: D-490, INV-019, INV-020, F-BC006P5-001, F-BC006P5-002. ARCH-INDEX v2.07→v2.08."
   - date: 2026-05-19
     change: "v2.07 (2026-05-19; D-489 M3 BC cascade pass-4 PO fix-burst codification acknowledgment. No ADR or subsystem changes this burst. INV-019 CANDIDATE→CONFIRMED; cross-BC assoc-fn idiom standardized; INV-018 corrigendum applied to BC-5.39.008 v1.4. BC-INDEX v2.41 (PO `f3cc03fc`). D-range D-001..D-489. Refs: D-489, F-BC008P4-001, F-BC006P4-001, F-BC007P4-NIT. ARCH-INDEX v2.06→v2.07."
   - date: 2026-05-15

@@ -1,15 +1,17 @@
 ---
 document_type: vp-index
 level: L4
-version: "1.98"
+version: "1.99"
 status: draft
 producer: state-manager
 timestamp: 2026-05-15T00:00:00Z
-last_amended: 2026-05-15
+last_amended: "2026-05-20 (v1.99) — D-490 M3 BC cascade pass-5 persist + codify. No VP content changes."
 phase: F5
 traces_to: ARCH-INDEX.md
 total_vps: 80
 changelog:
+  - date: 2026-05-20
+    change: "v1.99 (2026-05-20; D-490 state-manager codification burst: M3 BC cascade pass-5 adversary persisted; verdict HIGH 5 findings 2H+3L; STREAK 0/3 RESET; INV-019 RECURRENCE + INV-020 CONFIRMED; POLICY 14 extended to 5-leg quintuple parity. No VP content changes. BC-INDEX v2.42. D-range D-001..D-490. Refs: D-490, INV-019, INV-020, F-BC006P5-001, F-BC006P5-002. VP-INDEX v1.98→v1.99."
   - date: 2026-05-19
     change: "v1.98 (2026-05-19; D-489 M3 BC cascade pass-4 PO fix-burst codification acknowledgment. No VP content changes this burst. INV-019 CANDIDATE→CONFIRMED codified; cross-BC assoc-fn idiom standardized; INV-018 corrigendum applied to BC-5.39.008 v1.4. BC-INDEX v2.41 (PO `f3cc03fc`). D-range D-001..D-489. Refs: D-489, INV-017, INV-018, INV-019, F-BC008P4-001, F-BC006P4-001, F-BC007P4-NIT. VP-INDEX v1.97→v1.98."
   - date: 2026-05-15

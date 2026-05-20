@@ -2816,3 +2816,127 @@ Expected: 1 — confirms single commit only, no chain.
 - `77ebbabc` (D-488 M3 BC cascade pass-4 adversary persist + INV-019-CANDIDATE codification; parent eda3f2f5)
 - `f3cc03fc` (PO fix-burst pass-4 — BC-5.39.008 v1.4 + BC-5.39.006 v1.6 + BC-5.39.007 v1.4 + BC-INDEX v2.41)
 - `daf1df60` (D-489 state-manager codification; SHA-patch follow-up will update Active Branches)
+
+---
+
+## M3 3M3a-r PASS-5 PERSIST + CODIFY (D-490; 2026-05-20)
+
+### Parent-commit
+
+`a107f72e` (SHA-patch D-489 — factory-artifacts HEAD pre-this-burst) → this codification commit (SHA filled in Factory-artifacts Commits block below after push).
+
+### Adversary verdict
+
+Pass-5 verdict: **HIGH**. 5 findings (2H + 3L). Cascade trajectory 41→14→8→3→5 (slight uptick from META-LEVEL discovery + cross-file gap detection). CRIT=0 sustained (4th pass; positive trend). HIGH=2 reverted from pass-4 zero: F-BC006P5-001 HIGH (BC-INDEX body table lines 1231-1233 carry stale v1.5/v1.3/v1.3 despite BC-INDEX v2.41 changelog row in PO commit `f3cc03fc` stating bumps; POLICY 14 KK-N 5-leg leg-5 violation) + F-BC006P5-002 HIGH (frontmatter `last_amended:` text-prefix stale across all 3 BCs; BC-006 shows v1.4, BC-007 shows v1.1, BC-008 shows v1.2 while versions are v1.6/v1.4/v1.4; systematic 3-of-3 → HIGH; POLICY 14 KK-N 5-leg leg-4 violation). LOW findings: F-BC006P5-003 (INV-019 RECURRENCE in BC-006 v1.6 side-narrative enumeration — cure (a) applied to load-bearing grep but not side-narrative); F-BC007P5-001 (cross-BC idiom partial — Edge Cases + Test Vectors tables still bare HookResult::Block in BC-007/008; orchestrator adjudication: full BC-006-parity sweep required); F-BC006P5-004 (timestamp: stale across 3 BCs). STREAK 0/3 RESET. Source: `cycles/v1.0-brownfield-backfill/adv-bc-007-008-pass-5.md` Part A (D-448(a) source-attestation parity verified).
+
+### Files touched (Dim-1)
+
+11 files touched:
+
+1. `cycles/v1.0-brownfield-backfill/adv-bc-007-008-pass-5.md` (NEW — pass-5 adversary review)
+2. `cycles/v1.0-brownfield-backfill/decision-log.md` (D-490 row appended)
+3. `cycles/v1.0-brownfield-backfill/lessons.md` (L-M3-BC-cascade-pass-5 appended)
+4. `cycles/v1.0-brownfield-backfill/burst-log.md` (this h2 entry)
+5. `cycles/v1.0-brownfield-backfill/INDEX.md` (pass-5 row + Convergence Status + 4-index cite)
+6. `policies.yaml` (POLICY 14 extended to 5-leg quintuple parity per INV-020)
+7. `specs/behavioral-contracts/BC-INDEX.md` (v2.41→v2.42; last_amended; changelog row; body table lines 1231-1233 v1.5/v1.3/v1.3→v1.6/v1.4/v1.4)
+8. `specs/verification-properties/VP-INDEX.md` (v1.98→v1.99; last_amended; changelog row)
+9. `stories/STORY-INDEX.md` (v3.45→v3.46; last_amended)
+10. `specs/architecture/ARCH-INDEX.md` (v2.07→v2.08; last_amended; changelog row)
+11. `STATE.md` (Phase Progress + Active Branches + Concurrent Cycles + Decisions Log + Session Resume + frontmatter advance)
+
+### Codifications (Dim-3)
+
+- **D-490** (5 sub-clauses): (a) pass-5 persisted HIGH 5 findings 2H+3L STREAK 0/3 RESET trajectory 41→14→8→3→5; (b) INV-019 RECURRENCE confirmed; (c) INV-020 CANDIDATE→CONFIRMED; POLICY 14 extended to 5-leg quintuple parity; (d) orchestrator adjudication F-BC007P5-001 full BC-006-parity sweep; (e) cross-file propagation gap class confirmed (F-BC006P5-001+F-BC006P5-002 from single PO commit `f3cc03fc`)
+- **L-M3-BC-cascade-pass-5** appended to lessons.md
+- **INV-019 RECURRENCE** acknowledged (cure (a) applied to load-bearing grep but not side-narrative in same row)
+- **INV-020 CANDIDATE→CONFIRMED**: "Same-burst KK-N parity covers only 3 of 5 propagation legs; last_amended: text-prefix and upstream-index body-table cells are not gated."
+- **POLICY 14** description + verification_steps extended to 5-leg quintuple parity in policies.yaml
+
+### Dim-2 Attestation (literal-shell per D-449(a))
+
+Gate 1 — L-M3-BC-cascade-pass-5 lesson present:
+```
+$ grep -c "^- \[L-M3-BC-cascade-pass-5\]" .factory/cycles/v1.0-brownfield-backfill/lessons.md
+1
+```
+
+Gate 2 — D-490 row in STATE.md Decisions Log:
+```
+$ grep -cE "^\| D-490 " .factory/STATE.md
+1
+```
+
+Gate 3 — D-490 row in decision-log.md:
+```
+$ grep -cE "^\| D-490 " .factory/cycles/v1.0-brownfield-backfill/decision-log.md
+1
+```
+
+Gate 4 — current_step D-490 cite:
+```
+$ grep -E "^current_step:" .factory/STATE.md | grep -oE "D-[0-9]+ latest" | head -1
+D-490 latest
+```
+
+Gate 5 — adv-bc-007-008-pass-5.md line count:
+```
+$ wc -l .factory/cycles/v1.0-brownfield-backfill/adv-bc-007-008-pass-5.md
+     155 .factory/cycles/v1.0-brownfield-backfill/adv-bc-007-008-pass-5.md
+```
+
+Gate 6 — INV-020 in lessons.md:
+```
+$ grep -c "INV-020" .factory/cycles/v1.0-brownfield-backfill/lessons.md
+5
+```
+
+Gate 7 — POLICY 14 extension in policies.yaml:
+```
+$ grep -c "POLICY 14" .factory/policies.yaml
+2
+```
+
+Gate 8 — 4-index versions confirmed:
+```
+$ grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md | head -1
+version: "2.42"
+$ grep "^version:" .factory/specs/verification-properties/VP-INDEX.md | head -1
+version: "1.99"
+$ grep "^version:" .factory/stories/STORY-INDEX.md | head -1
+version: "3.46"
+$ grep "^version:" .factory/specs/architecture/ARCH-INDEX.md | head -1
+version: "2.08"
+```
+
+Gate 9 — BC-INDEX body table rows corrected (stale v1.5/v1.3/v1.3 removed):
+```
+$ grep -nE 'BC-5\.39\.00[678].*\| v1\.[345] \|' .factory/specs/behavioral-contracts/BC-INDEX.md | wc -l
+0
+```
+
+### Dim-5 Attestation (closes-set completeness)
+
+- adv-bc-007-008-pass-5 persistence cycle: CLOSED (adversary review file written; verdict HIGH persisted)
+- Pass-5 verdict HIGH acknowledged; META-LEVEL INV-019 RECURRENCE codified; INV-020 CANDIDATE→CONFIRMED; POLICY 14 5-leg extension applied
+- Finding closure DEFERRED to D-491 PO fix-burst pass-5 (5 open: F-BC006P5-001+002+003+004 + F-BC007P5-001)
+- D-490 codification cycle: CLOSED this burst
+
+### Dim-6 Attestation (literal-shell commit count per TD-VSDD-099)
+
+Pre-commit baseline:
+```
+$ git -C .factory log --oneline a107f72e..HEAD | wc -l
+       0
+```
+Expected post-push: 1 (this codification commit only). SHA-patch is a separate commit per D-447(c).
+
+### Closes
+
+**Closes adv-bc-007-008-pass-5 persistence cycle; D-489 codification cycle advances to D-490 (pass-5 persistence). Finding closures DEFERRED to D-491 PO fix-burst pass-5.**
+
+### Factory-artifacts Commits
+
+- `a107f72e` (SHA-patch D-489 — parent commit; factory-artifacts HEAD pre-this-burst)
+- `<D-490 codification commit SHA>` (this state-manager burst; SHA filled after push)
+- SHA-patch follow-up: separate commit per D-447(c)+D-449(e)

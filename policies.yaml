@@ -222,18 +222,21 @@ policies:
 
   - id: 14
     name: kk_n_tripartite_parity_gate
-    description: "When a body changelog row is added with version v(N+1), the same burst MUST sync frontmatter last_amended: (today's date) AND append to modified: array. Body changelog, last_amended, and modified[] are TRIPARTITE-PARITY and must all match same-burst."
-    adopted: "2026-05-14 (D-468; codifies KK-2 tripartite-parity from E-10 pass-11/12 discipline)"
+    description: "When a body changelog row is added with version v(N+1), the same burst MUST sync ALL 5 parity legs: (1) version: frontmatter, (2) body Changelog row, (3) frontmatter modified[] array, (4) frontmatter last_amended: text-prefix, (5) upstream-index body-table cells citing the bumped artifact. Codified at D-468 (3-leg); extended at D-490 to 5-leg quintuple parity per INV-020 CONFIRMED."
+    adopted: "2026-05-14 (D-468; codifies KK-2 tripartite-parity from E-10 pass-11/12 discipline); extended 2026-05-20 (D-490; codifies INV-020 5-leg quintuple parity per pass-5 F-BC006P5-001 + F-BC006P5-002)"
     severity: HIGH
     enforced_by: [state-manager-prompt, consistency-validator, pre-commit-hook]
     scope: [bc, vp, story, epic]
     lint_hook: null
     codified_at: D-472
+    extended_at: D-490
     verification_steps:
-      - "For each file with body Changelog section, verify latest row date matches frontmatter last_amended:"
+      - "For each file with body Changelog section, verify latest row date matches frontmatter last_amended: date prefix"
       - "Verify frontmatter modified: array's last entry corresponds to latest body Changelog row"
       - "Verify frontmatter version: matches body Changelog row's version cell"
-      - "All three must be updated in the same burst — no deferred-frontmatter pattern"
+      - "Verify frontmatter last_amended: TEXT PREFIX (e.g., '(v1.6) — ...') matches body Changelog top row's version (5-leg leg-4; codified D-490)"
+      - "Verify upstream-index body-table cells citing the bumped artifact (e.g., BC-INDEX body table for BC bumps; STORY-INDEX body table for story bumps) reflect the new version same-burst (5-leg leg-5; codified D-490)"
+      - "All five legs must be updated in the same burst — no deferred-frontmatter pattern; no deferred-upstream-index pattern"
 
   - id: 15
     name: ll_n_verbatim_stdout_discipline

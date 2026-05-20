@@ -1,0 +1,2 @@
+{"type":"hook.block","hook":"validate-input-hash","reason":"input_hash_format","ts":"2026-05-20T15:43:59-0500","ts_epoch":1779309839,"schema_version":1}
+{"type":"hook.block","hook":"validate-count-propagation","reason":"count_propagation_drift","ts":"2026-05-20T15:57:42-0500","ts_epoch":1779310662,"schema_version":1}
