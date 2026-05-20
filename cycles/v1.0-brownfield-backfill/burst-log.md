@@ -2938,5 +2938,5 @@ Expected post-push: 1 (this codification commit only). SHA-patch is a separate c
 ### Factory-artifacts Commits
 
 - `a107f72e` (SHA-patch D-489 — parent commit; factory-artifacts HEAD pre-this-burst)
-- `<D-490 codification commit SHA>` (this state-manager burst; SHA filled after push)
-- SHA-patch follow-up: separate commit per D-447(c)+D-449(e)
+- `fec08854` (D-490 state-manager codification burst; this commit)
+- SHA-patch follow-up: `<SHA-patch commit>` (separate commit per D-447(c)+D-449(e); fills Active Branches + Phase Progress + burst-log Factory-artifacts SHA)
