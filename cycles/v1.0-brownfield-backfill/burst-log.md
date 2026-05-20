@@ -158,7 +158,7 @@ producer: state-manager
 timestamp: 2026-05-06T19:00:00Z
 cycle: "v1.0-brownfield-backfill"
 inputs: [STATE.md]
-input-hash: "569b542"
+input-hash: "a36955d"
 traces_to: STATE.md
 ---
 
@@ -3049,4 +3049,4 @@ Expected post-push: 1 (this codification commit only). SHA-patch is a separate c
 
 - `274a5321` (SHA-patch D-490 — parent commit; factory-artifacts HEAD pre-this-burst)
 - `c4be5fde` (PO fix-burst pass-5 — BC-006 v1.7 + BC-007 v1.5 + BC-008 v1.5 + BC-INDEX v2.43)
-- `<this commit SHA>` (D-491 state-manager codification burst; to be filled by SHA-patch)
+- `538de7fe` (D-491 state-manager codification burst)
