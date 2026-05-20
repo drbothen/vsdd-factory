@@ -2114,3 +2114,38 @@ POLICY 14 description and verification_steps updated in policies.yaml same-burst
 **Cites:** D-490, INV-019 RECURRENCE, INV-020 CONFIRMED, F-BC006P5-001, F-BC006P5-002, F-BC006P5-003, F-BC007P5-001, F-BC006P5-004, POLICY 14.
 
 **Closes:** adv-bc-007-008-pass-5 persistence cycle; pass-5 verdict acknowledged; META-LEVEL INV-019 RECURRENCE + INV-020 CONFIRMED. Finding closures DEFERRED to D-491 PO fix-burst pass-5.
+
+---
+
+- [L-M3-BC-cascade-pass-5-PO-fix-burst](#l-m3-bc-cascade-pass-5-po-fix-burst) — POLICY 14 5-leg quintuple parity validated in production (PO commit `c4be5fde`); F-BC007P5-001 full BC-006-parity sweep ~46 conversions; INV-019 cure-type-per-row mix confirmed. D-491 codified.
+
+### L-M3-BC-cascade-pass-5-PO-fix-burst
+
+**Lesson ID:** L-M3-BC-cascade-pass-5-PO-fix-burst
+**Date:** 2026-05-20
+**Cycle:** v1.0-brownfield-backfill
+**Pass:** M3 BC cascade pass-5 PO fix-burst (D-491)
+
+**Symptom:** Pass-5 had 5 findings (2H+3L) — verdict HIGH from cross-file propagation gaps. Root: POLICY 14 v1 (3-leg KK-N tripartite parity codified at D-468) was insufficient; it gated only `version:` frontmatter + body Changelog row + `modified[]` array. Two additional legs were not gated: `last_amended:` text-prefix (leg-4) and upstream-index body-table version cells (leg-5). A single PO commit (`f3cc03fc`) propagated legs 1/2/3 correctly but missed legs 4 and 5, producing 2 HIGH findings (F-BC006P5-001 + F-BC006P5-002) that reset the STREAK from 0/3 to 0/3 again.
+
+**Cause:** PO commit `f3cc03fc` (pass-4 fix-burst) applied 3-leg KK-N parity per POLICY 14 v1 but missed leg-4 (`last_amended:` text-prefix still showed prior version's parenthetical across all 3 BCs) and leg-5 (BC-INDEX body table cells lines 1231-1233 still showed stale v1.5/v1.3/v1.3 despite the v2.41 changelog row in the same commit claiming bumps). Additionally INV-019 cure (a) was applied only to the load-bearing grep in BC-006 v1.6 but the side-narrative enumeration "5 remaining tokens" was not updated — INV-019 RECURRENCE in the very fix-burst that confirmed INV-019.
+
+**Cure applied in PO commit `c4be5fde`:**
+
+- **F-BC006P5-002 HIGH:** BC-006 v1.6→v1.7 — `last_amended:` text-prefix updated to `(v1.7)`; all 3 BCs updated leg-4.
+- **F-BC006P5-003 LOW:** BC-006 v1.7 — INV-019 cure (b) inline-acknowledge applied to side-narrative enumeration in changelog row. INV-019 cure-type-per-row mix demonstrated (cure (a) on load-bearing grep; cure (b) on side-narrative).
+- **F-BC006P5-004 LOW:** `timestamp:` field refreshed to 2026-05-20 on all 3 BCs (BC-006/007/008) — documentary-only but 5-leg parity extends to all frontmatter fields updated in same-burst.
+- **F-BC007P5-001 LOW (full BC-006-parity sweep):** BC-007 v1.4→v1.5 + BC-008 v1.4→v1.5 — orchestrator adjudication: FULL parity sweep per production-grade default (CLAUDE.md Rule 4). ~23 BC-007 + ~22 BC-008 = ~46 total bare `HookResult::Block` → `HookResult::block_with_fix(...)` assoc-fn conversions. Remaining raw=1 per BC are POLICY-1-exempt historical. Cross-BC idiom consistency now fully aligned with BC-006 precedent.
+- **Leg-5 (BC-INDEX body table):** BC-INDEX v2.42→v2.43 — body table cells lines 1235-1237 propagated v1.7/v1.5/v1.5 per INV-020 leg-5.
+
+**POLICY 14 5-leg quintuple parity validated in production:** PO commit `c4be5fde` literally-shell-verified all 5 legs synced same-burst for all 3 BCs. INV-020 codification practical viability confirmed. No leg missed on first production application.
+
+**INV-019 cure-type-per-row mix-and-match confirmed operational:** BC-006 v1.7 uses cure (b) on side-narrative; BC-007/008 v1.5 uses cure (c) by-construction (new changelog rows do not embed reproducibility-sensitive counts); BC-INDEX v2.43 uses cure (c). PO/orchestrator discretion per-row is the correct policy — mandating uniform cure type would cause unnecessary rewrites.
+
+**Cascade trajectory update:** 41→14→8→3→5. CRITICAL=0 sustained across all 5 passes. HIGH reverted to 0 at pass-4 (CRITICAL+HIGH=0 first time); pass-5 HIGH was cross-file propagation gap class (POLICY 14 extension root cause), not spec-content regression. Pass-6 expected CLEAN if 5-leg parity discipline holds.
+
+**Forward discipline:** 5-leg parity (POLICY 14 v2) is now the standard for ALL BC/VP/story/epic/architecture version bumps. F-BC007P5-001 establishes precedent that "cross-BC idiom alignment" intent defaults to FULL parity sweep (not narrow scope) per production-grade default. Subsequent PO fix-bursts and state-manager codification bursts MUST verify all 5 legs before declaring same-burst parity complete.
+
+**Cites:** D-491, INV-019, INV-020, POLICY 14 (5-leg extended D-490, validated D-491), BC-006 v1.7, BC-007 v1.5, BC-008 v1.5, BC-INDEX v2.43, ~46 bare→assoc-fn conversions, F-BC006P5-002, F-BC006P5-003, F-BC006P5-004, F-BC007P5-001.
+
+**Closes:** F-BC006P5-002, F-BC006P5-003, F-BC006P5-004, F-BC007P5-001. D-491 codified.

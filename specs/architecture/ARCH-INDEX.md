@@ -1,11 +1,11 @@
 ---
 document_type: architecture-index
 level: L3
-version: "2.08"
+version: "2.09"
 status: accepted
 producer: architect
 timestamp: 2026-05-15T00:00:00Z
-last_amended: "2026-05-20 (v2.08) — D-490 M3 BC cascade pass-5 persist + codify. No ADR or subsystem changes."
+last_amended: "2026-05-20 (v2.09) — D-491 M3 BC cascade pass-5 PO fix-burst codification. No ADR or subsystem changes."
 phase: F5
 inputs:
   - .factory/phase-0-ingestion/pass-8-final-synthesis.md
@@ -17,6 +17,8 @@ inputs:
 traces_to: phase-1-spec-crystallization
 deployment_topology: single-service
 changelog:
+  - date: 2026-05-20
+    change: "v2.09 (2026-05-20; D-491 state-manager codification burst: M3 BC cascade pass-5 PO fix-burst CLOSED; 4/4 findings closed (+ F-BC006P5-001 closed D-490 = 5/5 pass-5 total); POLICY 14 5-leg quintuple parity validated in production (PO commit `c4be5fde`); full BC-006-parity sweep ~46 conversions; BC-006 v1.7 + BC-007 v1.5 + BC-008 v1.5; BC-INDEX v2.43. No ADR or subsystem changes. D-range D-001..D-491. Refs: D-491, INV-019, INV-020, POLICY 14 (5-leg validated), F-BC006P5-002, F-BC006P5-003, F-BC006P5-004, F-BC007P5-001. ARCH-INDEX v2.08→v2.09."
   - date: 2026-05-20
     change: "v2.08 (2026-05-20; D-490 state-manager codification burst: M3 BC cascade pass-5 adversary persisted; verdict HIGH 5 findings 2H+3L; STREAK 0/3 RESET; INV-019 RECURRENCE + INV-020 CONFIRMED; POLICY 14 extended to 5-leg quintuple parity. No ADR or subsystem changes. BC-INDEX v2.42. D-range D-001..D-490. Refs: D-490, INV-019, INV-020, F-BC006P5-001, F-BC006P5-002. ARCH-INDEX v2.07→v2.08."
   - date: 2026-05-19

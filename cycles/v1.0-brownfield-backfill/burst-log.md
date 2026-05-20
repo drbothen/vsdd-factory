@@ -158,7 +158,7 @@ producer: state-manager
 timestamp: 2026-05-06T19:00:00Z
 cycle: "v1.0-brownfield-backfill"
 inputs: [STATE.md]
-input-hash: "41b021b"
+input-hash: "569b542"
 traces_to: STATE.md
 ---
 
@@ -2939,4 +2939,114 @@ Expected post-push: 1 (this codification commit only). SHA-patch is a separate c
 
 - `a107f72e` (SHA-patch D-489 — parent commit; factory-artifacts HEAD pre-this-burst)
 - `fec08854` (D-490 state-manager codification burst; this commit)
-- SHA-patch follow-up: `<SHA-patch commit>` (separate commit per D-447(c)+D-449(e); fills Active Branches + Phase Progress + burst-log Factory-artifacts SHA)
+- SHA-patch follow-up: `274a5321` (SHA-patch D-490; factory-artifacts final state at D-490 closure)
+
+## M3 3M3a-r PASS-5 PO FIX-BURST — D-491 Codification (2026-05-20)
+
+### Parent-commit
+
+**Parent:** `c4be5fde` (PO fix-burst pass-5 — BC-006 v1.7 + BC-007 v1.5 + BC-008 v1.5 + BC-INDEX v2.43; 4/4 findings closed; ~46 bare→assoc-fn conversions; POLICY 14 5-leg parity validated)
+
+This codification commit is the first commit on factory-artifacts after `c4be5fde`.
+
+### Adversary Verdict (Pass-5 — source-attestation per D-448(a))
+
+Verdict: **HIGH** — 5 findings (2 HIGH + 3 LOW). STREAK 0/3 RESET. CRITICAL=0 sustained. CASCADE TRAJECTORY: 41→14→8→3→5.
+
+**F-BC006P5-001 HIGH** (orchestrator-verified): BC-INDEX body-table lines 1231-1233 carry stale v1.5/v1.3/v1.3 despite BC-INDEX v2.41 changelog row in PO commit `f3cc03fc` stating bumps. POLICY 14 KK-N 5-leg leg-5 violation. — CLOSED at D-490 persistence burst (PO commit `c4be5fde` body-table cells propagated v1.7/v1.5/v1.5 at lines 1235-1237).
+
+**F-BC006P5-002 HIGH** (orchestrator-verified): Frontmatter `last_amended:` text-prefix stale across all 3 BCs — BC-006 showed v1.4, BC-007 showed v1.1, BC-008 showed v1.2 while versions were v1.6/v1.4/v1.4. Systematic 3-of-3 pattern → HIGH per pattern-flag rubric. POLICY 14 KK-N 5-leg leg-4 violation. — CLOSED this burst (PO commit `c4be5fde`).
+
+**F-BC006P5-003 LOW**: INV-019 RECURRENCE in BC-006 v1.6 changelog row — cure (a) applied to load-bearing grep correctly but side-narrative enumeration "5 remaining tokens" not updated (post-commit self-reference). — CLOSED this burst (BC-006 v1.7 cure (b) inline-acknowledge).
+
+**F-BC006P5-004 LOW**: Frontmatter `timestamp:` stale across all 3 BCs (documentary-only impact). — CLOSED this burst (BC-006/007/008 `timestamp:` refreshed 2026-05-20).
+
+**F-BC007P5-001 LOW** (orchestrator adjudicated → closure-required): BC-007 + BC-008 retained bare `HookResult::Block` in Edge Cases + Test Vectors tables while BC-006 has ZERO. Orchestrator adjudication: FULL BC-006-parity sweep required per production-grade default. — CLOSED this burst (~23 BC-007 + ~22 BC-008 = ~46 total conversions).
+
+### Files Touched (Dim-1) — 8 files
+
+1. `cycles/v1.0-brownfield-backfill/decision-log.md` (D-491 row appended)
+2. `cycles/v1.0-brownfield-backfill/lessons.md` (L-M3-BC-cascade-pass-5-PO-fix-burst appended)
+3. `cycles/v1.0-brownfield-backfill/burst-log.md` (this entry)
+4. `cycles/v1.0-brownfield-backfill/INDEX.md` (pass-5 row CLOSED; Convergence Status updated)
+5. `specs/verification-properties/VP-INDEX.md` (v1.99→v2.00)
+6. `stories/STORY-INDEX.md` (v3.46→v3.47)
+7. `specs/architecture/ARCH-INDEX.md` (v2.08→v2.09)
+8. `STATE.md` (Phase Progress + Active Branches + Concurrent Cycles + Decisions Log + Session Resume + frontmatter advance)
+
+### Codifications (Dim-3)
+
+- **D-491** (5 sub-clauses): PO fix-burst pass-5 closure (4/4 + F-BC006P5-001 closed D-490 = 5/5); POLICY 14 5-leg quintuple parity validated production; F-BC007P5-001 full BC-006-parity sweep ~46 conversions; INV-019 cure-type-per-row mix-and-match confirmed operational; cascade trajectory 41→14→8→3→5 STREAK 0/3 → pass-6 dispatch-ready.
+- **L-M3-BC-cascade-pass-5-PO-fix-burst**: Lesson capturing POLICY 14 5-leg validation in production, ~46 bare→assoc-fn conversions, INV-019 cure mix-and-match, forward discipline for all BC/VP/story/epic version bumps.
+- **4-index version bumps**: VP-INDEX v2.00, STORY-INDEX v3.47, ARCH-INDEX v2.09 (BC-INDEX v2.43 bumped by PO in `c4be5fde`).
+
+### Dim-2 Attestation (literal-shell per D-449(a))
+
+**Gate 1 — lessons.md anchor count:**
+```
+$ grep -c "^- \[L-M3-BC-cascade-pass-5-PO-fix-burst\]" .factory/cycles/v1.0-brownfield-backfill/lessons.md
+1
+```
+Result: 1 ✓ (expected 1)
+
+**Gate 2 — STATE.md D-491 row (post-update):**
+```
+$ grep -cE "^\| D-491 " .factory/STATE.md
+1
+```
+Result: 1 ✓ (expected 1; verified after STATE.md update)
+
+**Gate 3 — decision-log.md D-491 row:**
+```
+$ grep -cE "^\| D-491 " .factory/cycles/v1.0-brownfield-backfill/decision-log.md
+1
+```
+Result: 1 ✓ (expected 1)
+
+**Gate 4 — BC-006 version leg-1 (5-leg parity validation for PO commit `c4be5fde`):**
+```
+$ grep -E "^version:" .factory/specs/behavioral-contracts/ss-05/BC-5.39.006.md
+version: "1.7"
+```
+Result: v1.7 ✓
+
+**Gate 5 — BC-006 last_amended text-prefix leg-4:**
+```
+$ grep -E "^last_amended:" .factory/specs/behavioral-contracts/ss-05/BC-5.39.006.md | grep -oE "\(v1\.[0-9]+\)" | head -1
+(v1.7)
+```
+Result: (v1.7) ✓
+
+**Gate 6 — BC-INDEX body table cells leg-5 (v1.7/v1.5/v1.5):**
+```
+$ grep -nE 'BC-5\.39\.00[678].*v1\.' .factory/specs/behavioral-contracts/BC-INDEX.md | tail -3
+1235:| [BC-5.39.006](...) | ... | active | E-12 | S-15.14 | v1.7 |
+1236:| [BC-5.39.007](...) | ... | draft | E-12 | S-15.12 | v1.5 |
+1237:| [BC-5.39.008](...) | ... | draft | E-12 | S-15.15 | v1.5 |
+```
+Result: v1.7/v1.5/v1.5 ✓ — POLICY 14 / INV-020 5-leg parity VALIDATED in production for PO commit `c4be5fde`.
+
+### Dim-5 Attestation (Closes-set completeness)
+
+Closes-set: F-BC006P5-002, F-BC006P5-003, F-BC006P5-004, F-BC007P5-001 — all four cited in D-491 decision-log row `Closes` annotation AND in lessons.md L-M3-BC-cascade-pass-5-PO-fix-burst `Closes` block AND in this burst-log Closes block below.
+
+F-BC006P5-001 confirmed CLOSED at D-490 (PO commit `c4be5fde` propagated BC-INDEX body-table leg-5; closing action was in the PO commit, codified at D-490 persistence burst). Total pass-5 closure: 5/5 findings.
+
+### Dim-6 Attestation (literal-shell commit count per TD-VSDD-099)
+
+Pre-commit baseline:
+```
+$ git -C .factory log --oneline c4be5fde..HEAD | wc -l
+       0
+```
+Expected post-push: 1 (this codification commit only). SHA-patch is a separate commit per D-447(c).
+
+### Closes
+
+**Closes F-BC006P5-002, F-BC006P5-003, F-BC006P5-004, F-BC007P5-001. D-490 codification cycle advances to D-491. Pass-5 PO fix-burst COMPLETE. STREAK 0/3 → pass-6 dispatch-ready.**
+
+### Factory-artifacts Commits
+
+- `274a5321` (SHA-patch D-490 — parent commit; factory-artifacts HEAD pre-this-burst)
+- `c4be5fde` (PO fix-burst pass-5 — BC-006 v1.7 + BC-007 v1.5 + BC-008 v1.5 + BC-INDEX v2.43)
+- `<this commit SHA>` (D-491 state-manager codification burst; to be filled by SHA-patch)
