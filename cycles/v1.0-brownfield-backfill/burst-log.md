@@ -3374,4 +3374,5 @@ Expected post-push: 1 (this D-494 combined codification commit). SHA-patch is a 
 ### Factory-artifacts Commits
 
 - `1ef40cec` (SHA-patch D-493 final — parent commit; factory-artifacts HEAD pre-this-burst)
-- `<D-494-SHA>` (D-494 combined persist+fix+codify burst — Commit 1; SHA-patch is Commit 2)
+- `e928319d` (D-494 combined persist+fix+codify burst — Commit 1)
+- SHA-patch commit (Commit 2 — this SHA-patch; fills Active Branches + Phase Progress)
