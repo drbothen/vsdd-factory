@@ -1,15 +1,17 @@
 ---
 document_type: vp-index
 level: L4
-version: "2.03"
+version: "2.04"
 status: draft
 producer: state-manager
 timestamp: 2026-05-15T00:00:00Z
-last_amended: "2026-05-20 (v2.03) — D-494 M3 BC cascade pass-8 persist+fix+codify; HIGH 1 finding F-BC008P8-001 closed (INV-020 RECURRENCE; BC-INDEX leg-4 gap); STREAK 2/3 → 0/3 RESET; POLICY 14 verification_steps extended with literal-shell 4-index self-application gate; 4-index BC v2.46/VP v2.03/STORY v3.50/ARCH v2.12 all with proper 5-leg parity; pass-9 dispatch-ready. No VP content changes. [Prior: 2026-05-20 (v2.02) — D-493 M3 BC cascade pass-7 persisted (NITPICK; 1 NIT; STREAK 1/3 → 2/3; CRIT=0 sustained 6 passes). No VP content changes. [Prior: 2026-05-20 (v2.01) — D-492 M3 BC cascade pass-6 persisted (verdict NITPICK; 2 NIT findings; STREAK 0/3 → 1/3). No VP content changes.]]"
+last_amended: "2026-05-20 (v2.04) — D-495 M3 BC cascade pass-9 persisted (verdict CLEAN; 0 findings; FIRST TRUE CLEAN of cascade); STREAK 0/3 → 1/3 FIRST ADVANCE POST-RESET; D-494 POLICY 14 extension empirically validated; 4-index BC v2.47/VP v2.04/STORY v3.51/ARCH v2.13 all 5-leg parity gate-verified; pass-10 dispatch-ready. No VP content changes. D-range D-001..D-495. [Prior: 2026-05-20 (v2.03) — D-494 M3 BC cascade pass-8 persist+fix+codify; HIGH 1 finding F-BC008P8-001 closed (INV-020 RECURRENCE; BC-INDEX leg-4 gap); STREAK 2/3 → 0/3 RESET; POLICY 14 verification_steps extended with literal-shell 4-index self-application gate; 4-index BC v2.46/VP v2.03/STORY v3.50/ARCH v2.12 all with proper 5-leg parity; pass-9 dispatch-ready. No VP content changes. [Prior: 2026-05-20 (v2.02) — D-493 M3 BC cascade pass-7 persisted (NITPICK; 1 NIT; STREAK 1/3 → 2/3; CRIT=0 sustained 6 passes). No VP content changes. [Prior: 2026-05-20 (v2.01) — D-492 M3 BC cascade pass-6 persisted (verdict NITPICK; 2 NIT findings; STREAK 0/3 → 1/3). No VP content changes.]]]"
 phase: F5
 traces_to: ARCH-INDEX.md
 total_vps: 80
 changelog:
+  - date: 2026-05-20
+    change: "v2.04 (2026-05-20; D-495 state-manager persistence-only burst: M3 BC cascade pass-9 persisted; verdict CLEAN 0 findings (FIRST TRUE CLEAN of cascade); STREAK 0/3 → 1/3 FIRST ADVANCE POST-RESET per BC-5.39.001; CRITICAL=0 sustained 8 passes; HIGH=0 RESTORED; D-494 POLICY 14 extension empirically validated; cure-extension parsimony confirmed; NO PO fix-burst required; 4-index BC v2.47/VP v2.04/STORY v3.51/ARCH v2.13 all 5-leg parity gate-verified; pass-10 dispatch-ready. No VP content changes. D-range D-001..D-495. Refs: D-495, POLICY 14 verification_step 7 validated, BC-5.39.001 streak protocol FIRST ADVANCE POST-RESET. VP-INDEX v2.03→v2.04."
   - date: 2026-05-20
     change: "v2.03 (2026-05-20; D-494 state-manager persist+fix+codify: M3 BC cascade pass-8 persisted; verdict HIGH 1 finding (F-BC008P8-001 INV-020 RECURRENCE; BC-INDEX leg-4 self-application gap at D-493 burst); STREAK 2/3 → 0/3 RESET; POLICY 14 verification_steps EXTENDED with literal-shell 4-index self-application gate; 4-index BC v2.46/VP v2.03/STORY v3.50/ARCH v2.12 all with proper 5-leg parity gate-verified pre-commit; pass-9 dispatch-ready. D-range D-001..D-494. Refs: D-494, F-BC008P8-001, INV-020 RECURRENCE, POLICY 14 verification_steps extended. VP-INDEX v2.02→v2.03."
   - date: 2026-05-20

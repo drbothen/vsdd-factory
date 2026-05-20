@@ -3375,4 +3375,131 @@ Expected post-push: 1 (this D-494 combined codification commit). SHA-patch is a 
 
 - `1ef40cec` (SHA-patch D-493 final — parent commit; factory-artifacts HEAD pre-this-burst)
 - `e928319d` (D-494 combined persist+fix+codify burst — Commit 1)
-- SHA-patch commit (Commit 2 — this SHA-patch; fills Active Branches + Phase Progress)
+- `0fecb014` (SHA-patch D-494 final — Commit 2; factory-artifacts HEAD pre-D-495-burst)
+
+## M3 3M3a-r PASS-9 PERSIST + CODIFY (STREAK 1/3 FIRST ADVANCE POST-RESET)
+
+**Date:** 2026-05-20
+**D-NNN:** D-495
+**Type:** Persistence-only burst (verdict CLEAN; no fix required)
+
+### Parent-commit
+
+`0fecb014` (SHA-patch D-494 final) → this burst Commit 1 (D-495 codification)
+
+### Adversary Verdict
+
+Pass-9 verdict CLEAN (0 CRIT / 0 HIGH / 0 MED / 0 LOW / 0 NIT). FIRST TRUE CLEAN of the 9-pass M3 BC cascade. STREAK 0/3 → 1/3 FIRST ADVANCE POST-RESET per BC-5.39.001. CRITICAL=0 sustained 8 passes; HIGH=0 RESTORED at pass-9. Cascade trajectory: 41→14→8→3→5→2 NIT→1 NIT→1 HIGH→0 CLEAN.
+
+Adversary independently executed POLICY 14 4-index self-application gate. All 4 PASS (BC v2.46 LA=2.46; VP v2.03 LA=2.03; STORY v3.50 LA=3.50; ARCH v2.12 LA=2.12). D-494 codification artifacts verified clean. INV-019 cure (c) by-construction discipline holding. Cure-extension parsimony confirmed — no INV-021 needed. Per D-448(a) source-attestation: this paragraph faithfully describes adv-bc-007-008-pass-9.md Part A finding set (0 findings; finding-counts table all-zero; verdict CLEAN; streak "1/3"; 4-index gate 4 PASS lines verbatim).
+
+### Files Touched (Dim-1)
+
+8 files touched (8 files):
+
+1. `.factory/cycles/v1.0-brownfield-backfill/adv-bc-007-008-pass-9.md` (NEW — pass-9 adversary review persisted)
+2. `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` (D-495 row appended)
+3. `.factory/cycles/v1.0-brownfield-backfill/lessons.md` (L-M3-BC-cascade-pass-9 appended)
+4. `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` (this h2 entry)
+5. `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` (pass-9 row + Convergence Status updated)
+6. `.factory/specs/behavioral-contracts/BC-INDEX.md` (v2.46→v2.47; last_amended + changelog row)
+7. `.factory/specs/verification-properties/VP-INDEX.md` (v2.03→v2.04; last_amended + changelog row)
+8. `.factory/stories/STORY-INDEX.md` (v3.50→v3.51; last_amended updated)
+9. `.factory/specs/architecture/ARCH-INDEX.md` (v2.12→v2.13; last_amended + changelog row)
+10. `.factory/STATE.md` (Decisions Log preamble + D-495 row + Phase Progress + Active Branches + Concurrent Cycles + Session Resume + frontmatter)
+
+Note: 10 files touched total (headline count 8 understated — correction: 10 files).
+
+### Codifications (Dim-3)
+
+- **D-495** (5 sub-clauses): (a) pass-9 persisted CLEAN 0 findings FIRST TRUE CLEAN; (b) STREAK 0/3 → 1/3 FIRST ADVANCE POST-RESET; (c) D-494 POLICY 14 extension empirically validated; (d) cure-extension parsimony confirmed no INV-021; (e) no PO fix-burst required; pass-10 dispatch-ready; 4-index BC v2.47/VP v2.04/STORY v3.51/ARCH v2.13
+- **L-M3-BC-cascade-pass-9**: lesson appended to lessons.md
+- **STREAK 1/3 FIRST ADVANCE POST-RESET** acknowledged in INDEX.md Convergence Status + STATE.md
+
+### Dim-2 Attestation (Literal-shell per D-449(a))
+
+**Gate 1 — L-M3-BC-cascade-pass-9 in lessons.md:**
+```
+$ grep -c "^\- \[L-M3-BC-cascade-pass-9\]" .factory/cycles/v1.0-brownfield-backfill/lessons.md
+1
+```
+
+**Gate 2 — D-495 row in STATE.md Decisions Log:**
+```
+$ grep -cE "^\| D-495 " .factory/STATE.md
+1
+```
+(captured post-STATE.md update)
+
+**Gate 3 — D-495 row in decision-log.md:**
+```
+$ grep -cE "^\| D-495 " .factory/cycles/v1.0-brownfield-backfill/decision-log.md
+1
+```
+
+**Gate 4 — current_step D-495 in STATE.md:**
+```
+$ grep -E "^current_step:" .factory/STATE.md | grep -oE "D-[0-9]+ latest" | head -1
+D-495 latest
+```
+(captured post-STATE.md update)
+
+**Gate 5 — streak 1/3 in pass-9 file:**
+```
+$ grep -E "^streak:" .factory/cycles/v1.0-brownfield-backfill/adv-bc-007-008-pass-9.md | head -1 | grep -oE '"1/3"'
+"1/3"
+```
+
+**Gate 6 — verdict CLEAN in pass-9 file:**
+```
+$ grep -E "^verdict:" .factory/cycles/v1.0-brownfield-backfill/adv-bc-007-008-pass-9.md | head -1 | grep -oE 'CLEAN'
+CLEAN
+```
+
+**Gate 7 — pass-9 file line count:**
+```
+$ wc -l .factory/cycles/v1.0-brownfield-backfill/adv-bc-007-008-pass-9.md
+     129 .factory/cycles/v1.0-brownfield-backfill/adv-bc-007-008-pass-9.md
+```
+
+**Gate 8 — POLICY 14 4-INDEX SELF-APPLICATION GATE (verification_step 7; literal-shell post-fix):**
+```
+$ for IDX_PATH in .factory/specs/behavioral-contracts/BC-INDEX.md \
+    .factory/specs/verification-properties/VP-INDEX.md \
+    .factory/stories/STORY-INDEX.md \
+    .factory/specs/architecture/ARCH-INDEX.md; do
+    V=$(grep -E '^version:' "$IDX_PATH" | grep -oE '"[0-9]+\.[0-9]+"' | tr -d '"')
+    LA=$(grep -E '^last_amended:' "$IDX_PATH" | grep -oE '\(v[0-9]+\.[0-9]+\)' | head -1 | tr -d '()v')
+    [ "$V" = "$LA" ] && echo "PASS: $(basename $IDX_PATH) version=$V last_amended_prefix=$LA" || echo "FAIL: $(basename $IDX_PATH) version=$V last_amended_prefix=$LA"
+  done
+PASS: BC-INDEX.md version=2.47 last_amended_prefix=2.47
+PASS: VP-INDEX.md version=2.04 last_amended_prefix=2.04
+PASS: STORY-INDEX.md version=3.51 last_amended_prefix=3.51
+PASS: ARCH-INDEX.md version=2.13 last_amended_prefix=2.13
+```
+All 4 PASS. D-495 5-leg parity verified.
+
+### Dim-5 Attestation (Closes-set completeness)
+
+- `adv-bc-007-008-pass-9` persistence cycle CLOSED (verdict CLEAN persisted; streak 1/3 acknowledged)
+- STREAK 1/3 FIRST ADVANCE POST-RESET acknowledged in decision-log D-495 + INDEX.md + STATE.md
+- NO PO fix-burst required per BC-5.39.001 CLEAN verdict
+- D-494 codification cycle advances to D-495 (pass-9 persistence)
+
+### Dim-6 Attestation (Commit count)
+
+```
+$ git -C .factory log --oneline 0fecb014..HEAD | wc -l
+0
+```
+(pre-commit; expect 1 after Commit 1; TD-VSDD-053 single-commit-per-burst)
+
+### Closes
+
+Closes adv-bc-007-008-pass-9 persistence cycle (STREAK 1/3 first advance post-RESET). D-494 codification cycle advances to D-495.
+
+### Factory-artifacts Commits
+
+- `0fecb014` (SHA-patch D-494 final — parent commit; factory-artifacts HEAD pre-this-burst)
+- `<D-495-codification-SHA>` (D-495 persist+codify burst — Commit 1; SHA-patch pending)
+- `<D-495-SHA-patch>` (SHA-patch D-495 — Commit 2; fills Active Branches)

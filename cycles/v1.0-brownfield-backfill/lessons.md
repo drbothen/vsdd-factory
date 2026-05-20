@@ -2219,3 +2219,17 @@ POLICY 14 description and verification_steps updated in policies.yaml same-burst
   - **Cites:** D-494, INV-020 RECURRENCE at 4-index codifying-burst level, POLICY 14 verification_steps extended (extended_at D-494), BC-5.39.001 STREAK 0/3 RESET (HIGH resets streak).
 
 **Closes:** adv-bc-007-008-pass-8 persistence + fix cycle. D-494 codified.
+
+- [L-M3-BC-cascade-pass-9] **Pass-9 verdict CLEAN (0 findings) — FIRST TRUE CLEAN of the 9-pass cascade; STREAK 0/3 → 1/3 FIRST ADVANCE POST-RESET.**
+
+**Symptom:** Adversary pass-9 returned verdict CLEAN with 0 findings (0 CRIT / 0 HIGH / 0 MED / 0 LOW / 0 NIT). First TRUE CLEAN of the 9-pass M3 BC cascade. STREAK 0/3 → 1/3 FIRST ADVANCE POST-RESET per BC-5.39.001. CRITICAL=0 sustained 8 passes; HIGH=0 RESTORED at pass-9. Cascade trajectory 41→14→8→3→5→2 NIT→1 NIT→1 HIGH→0 CLEAN.
+
+**Significance:** The first TRUE CLEAN confirms that D-494 POLICY 14 extension is operational and effective. The literal-shell 4-index self-application gate (POLICY 14 verification_step 7; codified D-494) was independently executed by the adversary at pass-9 review — all 4 indexes returned PASS (BC v2.46 LA=2.46; VP v2.03 LA=2.03; STORY v3.50 LA=3.50; ARCH v2.12 LA=2.12). The cure-extension parsimony is validated: no new INV-021 abstraction is needed. The same INV-020 cure class (POLICY 14 5-leg parity + literal-shell gate) closes the recurrence at the meta-level.
+
+**Validation:** Adversary independently executed the 4-index self-application gate. All 4 PASS. D-494 codification artifacts verified clean (POLICY 14 `extended_at: D-494` present; burst-log 8 D-444(c) blocks with literal-shell Dim-2; STATE.md frontmatter satisfies all 5 BC-5.39.006 v1.7 PCs; lessons.md L-M3-BC-cascade-pass-8 factually accurate; INDEX.md pass-8 row 5-col compliant). INV-019 cure (c) by-construction discipline holding — no regression detected.
+
+**Forward discipline:** Continue cure (c) by-construction in all persisted adversary reports. Continue literal-shell 4-index self-application gate on every state-manager codification burst that bumps any of the 4 indexes. BC-5.39.001 streak protocol confirmed working: two more CLEAN/NITPICK passes advance to 2/3 then 3/3 CONVERGED → unblocks 3M3b story elaboration.
+
+**Cites:** D-495, POLICY 14 verification_step 7 empirically validated, BC-5.39.001 streak protocol STREAK 0/3 → 1/3 FIRST ADVANCE POST-RESET confirmed, INV-020 cure-extension parsimony validated (no INV-021 needed), cascade trajectory complete-to-date.
+
+**Closes:** adv-bc-007-008-pass-9 persistence cycle (STREAK 1/3 first advance post-RESET). D-495 codified.
