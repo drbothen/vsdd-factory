@@ -3501,5 +3501,5 @@ Closes adv-bc-007-008-pass-9 persistence cycle (STREAK 1/3 first advance post-RE
 ### Factory-artifacts Commits
 
 - `0fecb014` (SHA-patch D-494 final — parent commit; factory-artifacts HEAD pre-this-burst)
-- `<D-495-codification-SHA>` (D-495 persist+codify burst — Commit 1; SHA-patch pending)
-- `<D-495-SHA-patch>` (SHA-patch D-495 — Commit 2; fills Active Branches)
+- `d6bfd1c8` (D-495 persist+codify burst — Commit 1)
+- SHA-patch commit (Commit 2 — this SHA-patch; fills Active Branches + Phase Progress)
