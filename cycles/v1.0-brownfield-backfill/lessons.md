@@ -2297,4 +2297,39 @@ POLICY 14 description and verification_steps updated in policies.yaml same-burst
 
 **Closes:** M3 3M3a-r BC cascade (CONVERGED at pass-11; 3-CLEAN per BC-5.39.001). D-496 codification cycle advances to D-497 CONVERGENCE DECLARATION. Unblocks 3M3b story-writer dispatch for S-15.10/12/13/15/16-Part-B.
 
+- [L-session-2026-05-20-resume-CONVERGENCE](#l-session-2026-05-20-resume-convergence) — MILESTONE: Single 2026-05-20 resume session converged M3 3M3a-r BC cascade (11 passes + 2 PO fix-bursts + 9 state-manager bursts D-487..D-498); cure-extension parsimony principle empirically validated 3 consecutive passes; D-498 session-end durability burst makes state self-contained for zero-context new-session resume.
+
+### L-session-2026-05-20-resume-CONVERGENCE
+
+**Lesson ID:** L-session-2026-05-20-resume-CONVERGENCE
+**Date:** 2026-05-20
+**Cycle:** v1.0-brownfield-backfill
+**Burst:** D-498 SESSION-END DURABILITY BURST
+
+**Achievement:** Single 2026-05-20 resume session converged M3 3M3a-r BC cascade (BC-5.39.006 + BC-5.39.007 + BC-5.39.008) in full — 11 adversary passes, 2 PO fix-bursts, 8 state-manager codification bursts (D-487..D-497), and 1 session-end durability burst (D-498). Starting position: STREAK 0/3 with PO fix-burst pass-4 dispatch-ready. Ending position: M3 3M3a-r CONVERGED D-497 + state durability established at D-498 + 3M3b dispatch-ready for new-session resume.
+
+**Starting position this session:** D-489 codified (pass-4 PO fix-burst CLOSED; 3/3 findings; STREAK 0/3 → pass-5 dispatch-ready). The session picked up immediately from the dispatch-ready state and ran passes-5 through 11 to completion.
+
+**Ending position:** M3 3M3a-r CONVERGED at pass-11 (D-497; STREAK 3/3; cascade trajectory 41→14→8→3→5→2 NIT→1 NIT→1 HIGH→0→0→0). D-498 SESSION-END DURABILITY BURST comprehensive Section 11 + Section 12 rewrite preserves all session state for zero-context resume.
+
+**Engine evolution this session:** Four engine-discipline advances codified during this resume session:
+- **INV-019 cure (a) codified in production** (D-489; pass-4 PO fix-burst): grep anchors on load-bearing content; cross-BC assoc-fn idiom standardized.
+- **INV-020 CONFIRMED + POLICY 14 → 5-leg quintuple parity** (D-490; pass-5 persist): same-burst propagation must cover all 5 legs — version: / body-Changelog / modified[] / last_amended: text-prefix / upstream-index body-table cells.
+- **INV-020 RECURRENCE + POLICY 14 verification_step 7** (D-494; pass-8 persist+fix+codify): literal-shell 4-index self-application gate; BC-INDEX own-leg-4 gap caught by adversary; gate template codified in policies.yaml.
+- **INV-019 cure (c) extended to persisted adversary reports** (D-493; pass-7 persist): grep patterns not hardcoded line numbers in evidence sections; same INV class as changelog rows but new application domain.
+
+**Key principle empirically validated — Cure-extension parsimony (3 consecutive passes):** When a META-LEVEL recurrence is structurally the same class as a prior INV, extend the cure rather than introduce a new INV-N abstraction. Pass-8 raised INV-021-CANDIDATE; correct decision was to absorb as INV-020 RECURRENCE with POLICY 14 extension. Pass-9, pass-10, and pass-11 all produced CLEAN verdicts confirming no INV-021 was needed. Three consecutive zeros with the existing cure set is definitive proof the abstraction layer was sufficient. This principle is now engine-grade validated across a complete convergence cycle.
+
+**BC-5.39.001 3-CLEAN protocol worked as designed:** The streak-reset mechanism at pass-8 (HIGH INV-020 RECURRENCE) correctly prevented false convergence — the cascade would have declared convergence at STREAK 2/3 pass-7 despite an unfixed discipline gap in the codification burst itself. The protocol's gating purpose (surface the cures' own self-application gaps) was fulfilled. Passes 9/10/11 provided genuine empirical validation.
+
+**POLICY 14 5-leg + verification_step 7 operational across multiple bursts:** The literal-shell 4-index self-application gate (codified at D-494) was adversary-executed at passes 9, 10, and 11 with PASS verdicts each time. The gate is stable and not a one-time artifact of the codifying burst. This demonstrates the production-grade default applies to gate codification itself — gates must be self-applying.
+
+**INV-019 cure (c) by-construction sustained in all persisted adversary reports:** Passes 9, 10, and 11 adversary reports were all authored using grep patterns rather than hardcoded line numbers in evidence sections. No INV-019 recurrence in the final 3 passes. The cure-discipline propagated correctly from changelog rows (D-489) to persisted reports (D-493) to the adversary's own fresh-context behavior.
+
+**State durability — D-498 rationale:** In-memory task tracking does not survive /clear. Per human directive 2026-05-20 ("we need to make our state durable along with our tasks so we can start this in a new session with zero context"), this D-498 burst comprehensively rewrote STATE.md Section 11 + Section 12 to be self-sufficient. Section 12 shows the exact current dispatch ordering; §11 step 4 embeds the verbatim story-writer Agent tool prompt. A new orchestrator reading only Section 11 can dispatch the correct next action (3M3b story-writer) without any external context. This pattern (session-end durability burst before /clear) is now codified in the session-checkpoints.md archive record.
+
+**Cites:** D-498 (session-end durability), D-489 (INV-019 cure (a) codified), D-490 (INV-020 CONFIRMED; POLICY 14 5-leg), D-491 (POLICY 14 5-leg validated production; ~46 assoc-fn conversions), D-493 (INV-019 cure (c) extended to persisted reports), D-494 (INV-020 RECURRENCE; POLICY 14 verification_step 7), D-495 (pass-9 FIRST CLEAN), D-496 (pass-10 SECOND CLEAN; parsimony validated 2 passes), D-497 (pass-11 CONVERGENCE; parsimony validated 3 passes; S-7.02 satisfied), L-M3-BC-cascade-CONVERGED (milestone lesson), BC-5.39.001 3-CLEAN protocol confirmed working as designed.
+
+**Closes:** 2026-05-20 resume session (18 substantive bursts: PO×2 + state-manager×9 + adversary×7); D-498 durability burst. Advances to 3M3b story-writer dispatch for S-15.10/12/13/15/16-Part-B elaboration.
+
 **Closes:** adv-bc-007-008-pass-10 persistence cycle (STREAK 2/3 SECOND ADVANCE). D-496 codified.

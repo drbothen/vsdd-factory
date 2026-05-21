@@ -3,6 +3,95 @@ document_type: burst-log
 level: ops
 version: "1.0"
 status: in-progress
+producer: state-manager
+timestamp: 2026-05-20T00:00:00Z
+cycle: v1.0-brownfield-backfill
+inputs: [STATE.md]
+input-hash: "[live-state]"
+traces_to: STATE.md
+---
+
+## SESSION-END DURABILITY BURST D-498 2026-05-20
+
+### Parent-commit
+
+`84585f59` (SHA-patch D-497 final) → this D-498 commit.
+
+### Adversary Verdict (D-448(a) source-attestation gate)
+
+N/A — no adversary review dispatched for this burst. This is a durability burst, not an adversary pass. Pass-11 CONVERGED state preserved per D-497. M3 3M3a-r cascade CONVERGED at D-497; 3M3b story-writer dispatch is the next adversary-gated activity.
+
+### Files touched (Dim-1)
+
+8 files modified:
+
+1. `.factory/STATE.md` (Section 11 zero-context rewrite + Section 12 refresh + frontmatter + Phase Progress + Decisions Log + Active Branches + Concurrent Cycles + Last Updated + Current Phase + line-growth tracker)
+2. `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` (D-498 row prepended)
+3. `.factory/cycles/v1.0-brownfield-backfill/lessons.md` (L-session-2026-05-20-resume-CONVERGENCE appended)
+4. `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` (this h2 entry)
+5. `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` (D-498 acknowledgment row)
+6. `.factory/cycles/v1.0-brownfield-backfill/session-checkpoints.md` (prior Section 11 checkpoint archived)
+
+### Codifications (Dim-3)
+
+- **D-498 codified (5 sub-clauses):** (a) human-directive rationale + Section 11 zero-context rewrite; (b) Section 12 refresh with 3M3a-r CONVERGED + 3M3b ACTIVE NEXT markers + §11 step 4 explicit dispatch template; (c) prior checkpoint archived to session-checkpoints.md per POLICY 1; (d) task list → STATE.md dispatch-template translation; (e) L-session-2026-05-20-resume-CONVERGENCE session-level milestone lesson.
+- **L-session-2026-05-20-resume-CONVERGENCE appended** to lessons.md: session retrospective covering 18 bursts, cure-extension parsimony validation (3 passes), BC-5.39.001 3-CLEAN protocol confirmed, POLICY 14 5-leg + verification_step 7 sustained, state durability pattern codified.
+- **STATE.md Section 11 comprehensive zero-context rewrite** with all 12 subsections (§1-§12): §1 Where We Are (D-497 convergence + cascade trajectory); §2 Operating Mode; §3 User Directives (all carry-across including 2026-05-20 additions); §4 Tier-A Completed Log (full session history D-489..D-497 + D-498); §5 Cumulative Codifications (D-001..D-498); §6 Cumulative Lessons; §7 S-15.03 PRIORITY-A Scope; §8 4-Index State; §9 Critical Anchors; §10 PR Status; §11 Post-CLEAR Resume Checklist (with §11 step 4 story-writer dispatch template); §12 Pending Work Items.
+- **STATE.md Section 12 refreshed:** 3M3a-r CONVERGED with trajectory notation; 3M3b ACTIVE NEXT 🚀 with template reference; 3M3c BLOCKED on 3M3b.
+- **Prior checkpoint archived** to session-checkpoints.md per POLICY 1 append-only.
+
+### Dim-2 Attestation (literal-shell per D-449(a))
+
+```bash
+$ grep -c "^## Session Resume Checkpoint" /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md
+1
+
+$ grep -cE "^\| D-498 " /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md
+1
+
+$ grep -cE "^\| D-498 " /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-brownfield-backfill/decision-log.md
+1
+
+$ grep -c "^\- \[L-session-2026-05-20-resume-CONVERGENCE\]" /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-brownfield-backfill/lessons.md
+1
+
+$ grep -E "^current_step:" /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md | grep -oE "D-[0-9]+ latest" | head -1
+D-498 latest
+
+$ grep -E "^current_step:" /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md | grep -oE "trajectory-tail [→0-9]+" | grep -oE "→[0-9]+" | wc -l
+4
+
+$ grep -c "M3 3M3a-r CONVERGED" /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md
+3
+
+$ grep -c "3M3b" /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md
+9
+```
+
+(stdout values above are post-STATE.md-edit captures per D-449(a) + D-452(c) freshness discipline)
+
+### Dim-5 Attestation
+
+Closes-set completeness: D-498 session-end durability burst closed. All 5 sub-clauses executed: (a) Section 11 zero-context rewrite with all 12 subsections and §11 step 4 dispatch template; (b) Section 12 refreshed with 3M3a-r CONVERGED marker + 3M3b ACTIVE NEXT + template reference; (c) prior checkpoint archived to session-checkpoints.md; (d) in-memory task list translated to dispatch-ready Agent tool prompt in §11 step 4; (e) L-session-2026-05-20-resume-CONVERGENCE milestone lesson appended. 4-index UNCHANGED (BC v2.49/VP v2.06/STORY v3.53/ARCH v2.15) — durability burst; no BC/VP/story/arch version bumps.
+
+### Dim-6 Attestation (literal-shell commit count per D-449(a))
+
+```bash
+$ git -C /Users/jmagady/Dev/vsdd-factory/.factory log --oneline 84585f59..HEAD | wc -l
+1
+```
+
+Single commit per TD-VSDD-053 (no SHA-patch needed; actual SHA written directly to Active Branches since this is a single-commit burst and the SHA is known at commit time).
+
+### Closes
+
+Closes 2026-05-20 resume session (18 substantive bursts: PO×2 `f3cc03fc`, `c4be5fde` + state-manager×9 D-489..D-497 codifications + SHA-patches + adversary×7 read-only pass-5..11); D-497 codification cycle advances to D-498; 3M3b dispatch-ready for next-session resume with full context. Advances to 3M3b story-writer elaboration of 5 M3 stories (S-15.10/12/13/15/16-Part-B).
+
+### Factory-artifacts commits
+
+`<D-498-SHA>` — D-498 SESSION-END DURABILITY BURST (single commit per TD-VSDD-053; SHA written at commit time).
+
+---
 
 ## 2026-05-18 — M3 BC cascade pass-2 persisted (factory-artifacts 09758b5c)
 

@@ -148,3 +148,31 @@ Three rename-propagation patterns reached N=3 trigger:
 **Where We Are:** D-486 codified 2026-05-19 — M3 BC cascade pass-3 CRITICAL. 8 findings; 1 verified CRITICAL F-BC006P3-001 (28 bare BlockWithFix residual in BC-5.39.006 v1.4); 2 verified HIGH F-BC007P3-001+F-BC008P3-001 (D-NNN Anchor Coverage mis-anchors). META-LEVEL INV-018-CANDIDATE codified. STREAK 0/3 reset. PO fix-burst pass-3 PENDING with INV-018 dual-grep discipline. factory-artifacts HEAD `6219ea9d`. BC-5.39.006 v1.4 ACTIVE. BC-5.39.007 v1.2. BC-5.39.008 v1.2. D-range D-001..D-486.
 
 **Critical Anchors at archive time:** factory-artifacts HEAD `6219ea9d` (D-486 pass-3 persist); develop HEAD `6d2ba5ad`; BC-INDEX v2.39; VP-INDEX v1.97; STORY-INDEX v3.44; ARCH-INDEX v2.06.
+
+---
+
+## Archived: 2026-05-20 — M3 3M3a-r CONVERGED D-497 (pre-D-498 session-end durability burst)
+
+(Archived from STATE.md at D-498 SESSION-END DURABILITY BURST — replaced by comprehensive zero-context rewrite for new-session resume)
+
+### Where We Are (at archive time)
+- **S-15.14 SHIPPED 2026-05-19 PR #148 squash-merge `6d2ba5ad`** — validate-dispatch-advance WASM hook; M2 wave-4. D-479 CODIFIED.
+- **D-480..D-496 CODIFIED 2026-05-18/19/20** — M3 commissioning; BC authoring; pass-1..10 persist + PO fix-bursts; cascade trajectory 41→14→8→3→5→2 NIT→1 NIT→1 HIGH→0→0.
+- **D-497 CODIFIED 2026-05-20 — M3 3M3a-r BC CASCADE CONVERGED.** Pass-11 verdict CLEAN; 0 findings; THIRD consecutive TRUE CLEAN. STREAK 2/3 → 3/3 CONVERGED per BC-5.39.001. CRIT=0 sustained 10 passes. HIGH=0 sustained 3 passes. Cure-extension parsimony DEFINITIVELY validated 3 consecutive passes. S-7.02 cycle-closing checklist SATISFIED. 4-index BC v2.49/VP v2.06/STORY v3.53/ARCH v2.15 all gate-PASS.
+- factory-artifacts HEAD at archive time: `e3c80646` (D-497 CONVERGENCE DECLARATION; SHA-patch `84585f59`).
+- develop HEAD: `6d2ba5ad`. main HEAD: `70811f4a`.
+- BC-5.39.006 v1.7 ACTIVE. BC-5.39.007 v1.5. BC-5.39.008 v1.5. BC-INDEX v2.49. D-range D-001..D-497.
+
+### Section 11 Step 4 (at archive time — NEXT ACTION)
+dispatch story-writer for 3M3b elaboration (5 M3 stories: S-15.10/12/13/15/16-Part-B). 3M3a-r CONVERGED D-497 (pass-11 CLEAN; STREAK 3/3; S-7.02 satisfied; 4-index BC v2.49/VP v2.06/STORY v3.53/ARCH v2.15).
+
+### User Directives Carry-Across (at archive time)
+- TD-VSDD-097 EXTENDED: ALL 5 BC-5.39.006 v1.7 PCs on current_step writes.
+- TD-VSDD-099: all 4 Dim blocks in burst-log; Dim-6 literal-shell count.
+- TD-VSDD-100: Dim-2 attestations MUST read production artifact.
+- POLICY 14 5-leg parity MANDATORY (D-490+D-491).
+- POLICY 14 verification_step 7 4-index self-application gate MANDATORY (D-494).
+- INV-019 cure (a)/(b)/(c) MANDATORY in changelog rows AND persisted reports (D-489+D-493).
+- Cure-extension parsimony principle validated 3 consecutive passes (D-497).
+
+**This checkpoint superseded by D-498 comprehensive zero-context Section 11 rewrite 2026-05-20.**
