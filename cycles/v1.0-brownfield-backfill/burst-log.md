@@ -3736,5 +3736,5 @@ Closes M3 3M3a-r BC cascade (CONVERGED at pass-11; 3-CLEAN per BC-5.39.001); D-4
 ### Factory-artifacts Commits
 
 - `d9664f82` (SHA-patch D-496 final — parent commit; factory-artifacts HEAD pre-this-burst)
-- `<Commit-1-SHA>` (D-497 convergence burst — Commit 1; SHA-patch pending)
+- `e3c80646` (D-497 convergence burst — Commit 1)
 - `<SHA-patch-SHA>` (SHA-patch D-497 — Commit 2; fills Active Branches SHA)
