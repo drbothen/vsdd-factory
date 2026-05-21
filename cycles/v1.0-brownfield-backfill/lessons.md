@@ -2258,3 +2258,43 @@ POLICY 14 description and verification_steps updated in policies.yaml same-burst
 **Cites:** D-496, BC-5.39.001 STREAK 1/3 → 2/3 SECOND ADVANCE confirmed, parsimony validated 2 consecutive passes (no INV-021), POLICY 14 verification_step 7 sustained operational 2 passes, cascade trajectory complete-to-date.
 
 **Closes:** adv-bc-007-008-pass-10 persistence cycle (STREAK 2/3 SECOND ADVANCE). D-496 codified.
+
+- [L-M3-BC-cascade-CONVERGED](#l-m3-bc-cascade-converged) — MILESTONE: M3 3M3a-r 3-CLEAN convergence achieved at pass-11 (11-pass cascade; trajectory 41→14→8→3→5→2 NIT→1 NIT→1 HIGH→0→0→0; STREAK 3/3; D-497 declared CONVERGENCE; S-7.02 cycle-closing checklist satisfied; META-LEVEL evolution INV-017→018→019→020→POLICY 14 5-leg+gate codified into engine; unblocks 3M3b story elaboration).
+
+### L-M3-BC-cascade-CONVERGED
+
+**Lesson ID:** L-M3-BC-cascade-CONVERGED
+**Date:** 2026-05-20
+**Cycle:** v1.0-brownfield-backfill
+**Pass:** M3 BC cascade pass-11 — CONVERGENCE DECLARATION (D-497)
+
+**Achievement:** M3 3M3a-r BC cascade (BC-5.39.006 + BC-5.39.007 + BC-5.39.008) achieved 3-CLEAN convergence at pass-11. BC-5.39.001 3-CLEAN threshold SATISFIED. Cascade trajectory: 41→14→8→3→5→2 NIT→1 NIT→1 HIGH→0→0→0 (three consecutive zeros culminating in CONVERGED declaration). 11 passes; 2 PO fix-bursts; 8 state-manager codification bursts (D-487..D-496); D-497 declares convergence.
+
+**Cascade trajectory narrative:** The cascade opened with 41 findings at pass-1 (major structural defects in two brand-new BC drafts) and closed at zero after 11 passes with systematic remediation at every severity level. The trajectory demonstrates the 3-CLEAN protocol working as designed: streak-reset-on-MED+ at pass-8 (HIGH INV-020 RECURRENCE) correctly prevented false convergence when the cure's own self-application gap was discovered. The 3 passes post-reset (pass-9/10/11) provided genuine empirical validation of the fixed cure discipline.
+
+**META-LEVEL evolution narrative:** The cascade produced 5 codified INV classes plus 2 recurrence codifications:
+- **INV-017 (pass-2; D-485):** narrow-vs-residual dual-grep discipline — adversary narrow grep missed residual class of same finding; forward rule: every grep search MUST cover both narrow occurrence AND residual class via separate grep invocations
+- **INV-018 (pass-3; D-487):** residual STRUCTURALLY BROADER than narrow class — when INV-017 dual-grep finds residual occurrences, the residual may be a different structural class requiring broader treatment; forward rule: check whether residual grep pattern covers MORE semantic territory than narrow pattern
+- **INV-019 (pass-4→CONFIRMED D-489; cures a/b/c):** changelog self-reference drift — evidence blocks citing line numbers or counts in the document being modified become self-referentially stale post-commit; three cures: (a) grep anchors on load-bearing content, (b) inline-acknowledge on side-narrative, (c) by-construction avoidance
+- **INV-020 (pass-5→CONFIRMED D-490; POLICY 14 → 5-leg quintuple parity):** same-burst KK-N parity covers only 3 of 5 propagation legs; extended POLICY 14 to 5-leg quintuple parity: (1) version: frontmatter, (2) body Changelog row, (3) modified[] array, (4) last_amended: text-prefix, (5) upstream-index body-table cells
+- **INV-020 RECURRENCE (pass-8; D-494; POLICY 14 verification_step 7):** 4-index codifying-burst self-application gap — the codification burst documenting the 5-leg cure applied it to BC bodies + 3 of 4 indexes but missed leg-4 on BC-INDEX itself; cure: literal-shell 4-index self-application gate (POLICY 14 verification_step 7) required before any commit that bumps any of the 4 indexes
+- **INV-019 RESIDUAL (pass-7; D-493):** cure (c) by-construction scope extended from changelog rows to persisted adversary reports — persisted reports are themselves subject to INV-019 drift when citing line numbers in documents that grow post-commit
+
+**Cure-extension parsimony principle CONFIRMED:** When a META-LEVEL recurrence is structurally the same class as a prior INV, EXTEND the cure rather than introduce a new INV-N abstraction. Pass-8 raised INV-021-CANDIDATE; correct decision was to absorb as INV-020 RECURRENCE with POLICY 14 extension. Pass-9, pass-10, and pass-11 all confirmed: NO INV-021 needed. The 3-CLEAN protocol empirically validated the parsimony decision — three consecutive zeros with the existing cure set is definitive proof the abstraction layer was sufficient. Future cascades should apply this principle: new INV number warrants only a genuinely novel mechanism class, not a recurrence of an existing mechanism.
+
+**3-CLEAN protocol works as designed:** The streak-reset-on-MED+ mechanism caught a real META-LEVEL recurrence at pass-8 (INV-020 RECURRENCE; POLICY 14 leg-4 self-application gap). Without the reset, the cascade would have declared convergence at STREAK 2/3 pass-7 despite an unfixed discipline gap. The protocol correctly required three consecutive true CLEANs post-fix, providing genuine empirical validation that the cure discipline is operational and stable. The protocol's gating purpose — surface the cures' own self-application gaps — was fulfilled.
+
+**Forward-applicable cure set codified into engine:**
+- INV-019 cure (c) by-construction: use grep patterns not hardcoded line numbers in changelog rows AND persisted reports (D-489 + D-493)
+- POLICY 14 5-leg quintuple parity: all 5 legs must sync same-burst for BC/VP/story/epic/arch version bumps (D-490)
+- POLICY 14 verification_step 7: literal-shell 4-index self-application gate before any state-manager codification commit that bumps any of the 4 indexes (D-494); gate template in policies.yaml
+- INV-017 dual-grep: adversary narrow grep + residual-class grep both required when checking for occurrence patterns (D-485)
+- INV-018 structural-breadth check: verify residual grep covers broader territory than narrow grep, not just more occurrences (D-487)
+
+**Unblocks:** 3M3b story elaboration for 5 M3 stories (S-15.10, S-15.12, S-15.13, S-15.15, S-15.16-Part-B). These stories implement BC-5.39.007 (validate-closes-completeness) and BC-5.39.008 (validate-policies-schema) hooks now adversary-converged. Story-writer dispatch ready immediately post D-497 codification.
+
+**Cites:** D-497 (convergence declaration), D-485 (INV-017), D-487 (INV-018), D-489 (INV-019; cures a/b/c), D-490 (INV-020; POLICY 14 5-leg), D-493 (INV-019 RESIDUAL; persisted reports), D-494 (INV-020 RECURRENCE; POLICY 14 verification_step 7), BC-5.39.001 3-CLEAN protocol confirmed working as designed, S-7.02 cycle-closing checklist satisfied.
+
+**Closes:** M3 3M3a-r BC cascade (CONVERGED at pass-11; 3-CLEAN per BC-5.39.001). D-496 codification cycle advances to D-497 CONVERGENCE DECLARATION. Unblocks 3M3b story-writer dispatch for S-15.10/12/13/15/16-Part-B.
+
+**Closes:** adv-bc-007-008-pass-10 persistence cycle (STREAK 2/3 SECOND ADVANCE). D-496 codified.

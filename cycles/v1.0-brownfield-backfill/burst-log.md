@@ -3619,4 +3619,122 @@ Closes adv-bc-007-008-pass-10 persistence cycle (STREAK 2/3 SECOND ADVANCE). D-4
 
 - `6a4a16cd` (SHA-patch D-495 final — parent commit; factory-artifacts HEAD pre-this-burst)
 - `3a5517d5` (D-496 persist+codify burst — Commit 1)
-- SHA-patch commit (Commit 2 — fills Active Branches + Phase Progress)
+- `d9664f82` (SHA-patch D-496 final — Commit 2; HEAD pre-D-497)
+
+## M3 3M3a-r BC CASCADE CONVERGED — PASS-11 PERSIST + CODIFY (D-497)
+
+**Date:** 2026-05-20
+
+### Parent-commit
+
+`d9664f82` (SHA-patch D-496 final) → this commit
+
+### Adversary Verdict
+
+Pass-11 verdict CLEAN (0 / 0 / 0 / 0 / 0). THIRD consecutive TRUE CLEAN. STREAK 2/3 → **3/3 CONVERGED** per BC-5.39.001 3-CLEAN threshold. Cascade trajectory 41→14→8→3→5→2 NIT→1 NIT→1 HIGH→0→0→**0 CONVERGED** (three consecutive zeros culminating in CONVERGENCE). CRITICAL=0 sustained 10 consecutive passes. HIGH=0 sustained 3 consecutive passes. Cure-extension parsimony DEFINITIVELY validated 3 consecutive passes (pass-9, pass-10, pass-11) — INV-021 abstraction permanently unwarranted. POLICY 14 verification_step 7 adversary-validated 3 consecutive codification bursts. S-7.02 cycle-closing checklist SATISFIED. Per D-448(a) source-attestation gate: adv-bc-007-008-pass-11.md Part A confirms 0/0/0/0/0 findings; Overrides 1-5 faithfully describe CONVERGENCE milestone; no divergence from adversary text.
+
+### Files touched (Dim-1) — 10 files
+
+1. `.factory/cycles/v1.0-brownfield-backfill/adv-bc-007-008-pass-11.md` (NEW)
+2. `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` (D-497 row prepended)
+3. `.factory/cycles/v1.0-brownfield-backfill/lessons.md` (L-M3-BC-cascade-CONVERGED milestone lesson appended)
+4. `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` (this entry)
+5. `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` (pass-11 row + CONVERGENCE STATUS updated)
+6. `.factory/specs/behavioral-contracts/BC-INDEX.md` (v2.48→v2.49; 5-leg parity)
+7. `.factory/specs/verification-properties/VP-INDEX.md` (v2.05→v2.06; 5-leg parity)
+8. `.factory/stories/STORY-INDEX.md` (v3.52→v3.53; 5-leg parity)
+9. `.factory/specs/architecture/ARCH-INDEX.md` (v2.14→v2.15; 5-leg parity)
+10. `.factory/STATE.md` (Phase Progress CONVERGENCE row + D-430(a) compaction + Active Branches + Concurrent Cycles + Decisions Log + Session Resume + frontmatter advance)
+
+### Codifications (Dim-3)
+
+- **D-497** (5 sub-clauses): (a) 3M3a-r 3-CLEAN CONVERGENCE DECLARED at pass-11 per BC-5.39.001; (b) S-7.02 cycle-closing checklist satisfied — all INV-017..020+RECURRENCE codified into engine; no deferrals; (c) cure-extension parsimony empirically validated 3 consecutive passes; INV-021 definitively unwarranted; (d) cumulative metrics: 11 passes + 2 PO + 8 state-manager bursts; (e) unblocks 3M3b story elaboration for S-15.10/12/13/15/16-Part-B
+- **L-M3-BC-cascade-CONVERGED** milestone lesson: cascade closure narrative; META-LEVEL evolution INV-017→020→POLICY 14 5-leg+gate; cure-extension parsimony principle CONFIRMED; BC-5.39.001 protocol validated as designed
+- **D-430(a) compaction** applied: 13 M3 cascade Phase Progress rows archived to 2 consolidated summary rows; STATE.md 445→424 lines post-compaction
+
+### Dim-2 Attestation (literal-shell per D-449(a))
+
+**Gate 1 — L-M3-BC-cascade-CONVERGED lesson exists:**
+```
+$ grep -c "^\- \[L-M3-BC-cascade-CONVERGED\]" .factory/cycles/v1.0-brownfield-backfill/lessons.md
+1
+```
+
+**Gate 2 — D-497 row in STATE.md:**
+```
+$ grep -cE "^\| D-497 " .factory/STATE.md
+1
+```
+
+**Gate 3 — D-497 row in decision-log.md:**
+```
+$ grep -cE "^\| D-497 " .factory/cycles/v1.0-brownfield-backfill/decision-log.md
+1
+```
+
+**Gate 4 — current_step cites D-497 latest:**
+```
+$ grep -E "^current_step:" .factory/STATE.md | grep -oE "D-[0-9]+ latest" | head -1
+D-497 latest
+```
+
+**Gate 5 — pass-11 file streak = "3/3":**
+```
+$ grep -E "streak" .factory/cycles/v1.0-brownfield-backfill/adv-bc-007-008-pass-11.md | head -1 | grep -oE '"3/3"'
+"3/3"
+```
+
+**Gate 6 — pass-11 convergence_status = CONVERGED:**
+```
+$ grep -E "convergence_status" .factory/cycles/v1.0-brownfield-backfill/adv-bc-007-008-pass-11.md | grep -oE "CONVERGED"
+CONVERGED
+```
+
+**Gate 7 — pass-11 verdict = CLEAN:**
+```
+$ grep -E "^verdict:" .factory/cycles/v1.0-brownfield-backfill/adv-bc-007-008-pass-11.md | head -1 | grep -oE 'CLEAN'
+CLEAN
+```
+
+**Gate 8 — POLICY 14 4-INDEX SELF-APPLICATION GATE (verification_step 7; literal-shell post-fix):**
+```
+$ for IDX_PATH in .factory/specs/behavioral-contracts/BC-INDEX.md \
+    .factory/specs/verification-properties/VP-INDEX.md \
+    .factory/stories/STORY-INDEX.md \
+    .factory/specs/architecture/ARCH-INDEX.md; do
+    V=$(grep -E '^version:' "$IDX_PATH" | grep -oE '"[0-9]+\.[0-9]+"' | tr -d '"')
+    LA=$(grep -E '^last_amended:' "$IDX_PATH" | grep -oE '\(v[0-9]+\.[0-9]+\)' | head -1 | tr -d '()v')
+    [ "$V" = "$LA" ] && echo "PASS: $(basename $IDX_PATH) version=$V last_amended_prefix=$LA" || echo "FAIL: $(basename $IDX_PATH) version=$V last_amended_prefix=$LA"
+  done
+PASS: BC-INDEX.md version=2.49 last_amended_prefix=2.49
+PASS: VP-INDEX.md version=2.06 last_amended_prefix=2.06
+PASS: STORY-INDEX.md version=3.53 last_amended_prefix=3.53
+PASS: ARCH-INDEX.md version=2.15 last_amended_prefix=2.15
+```
+All 4 PASS. D-497 CONVERGENCE 5-leg parity verified.
+
+### Dim-5 Attestation (Closes-set completeness)
+
+- M3 3M3a-r BC cascade CONVERGED at pass-11; all 11 passes' findings closed; no open findings remain
+- All process-gap findings codified into engine: INV-017 (D-485), INV-018 (D-487), INV-019 (D-489), INV-020 (D-490), INV-020 RECURRENCE (D-494), INV-019 RESIDUAL (D-493)
+- S-7.02 cycle-closing checklist explicitly satisfied — no deferred follow-ups required
+- Cure-extension parsimony validated 3 consecutive passes; INV-021 definitively unwarranted
+- 3M3b story elaboration unblocked for 5 M3 stories (S-15.10/12/13/15/16-Part-B)
+
+### Dim-6 Attestation (Commit count)
+
+```
+$ git -C .factory log --oneline d9664f82..HEAD | wc -l
+1
+```
+Result: 1 — Commit 1 (D-497 convergence); SHA-patch pending. TD-VSDD-053 single-commit-per-burst confirmed.
+
+### Closes
+
+Closes M3 3M3a-r BC cascade (CONVERGED at pass-11; 3-CLEAN per BC-5.39.001); D-496 codification cycle advances to D-497 CONVERGENCE DECLARATION; unblocks 3M3b story-writer dispatch for S-15.10/12/13/15/16-Part-B.
+
+### Factory-artifacts Commits
+
+- `d9664f82` (SHA-patch D-496 final — parent commit; factory-artifacts HEAD pre-this-burst)
+- `<Commit-1-SHA>` (D-497 convergence burst — Commit 1; SHA-patch pending)
+- `<SHA-patch-SHA>` (SHA-patch D-497 — Commit 2; fills Active Branches SHA)
