@@ -78,8 +78,9 @@ Closes-set completeness: D-498 session-end durability burst closed. All 5 sub-cl
 
 ```bash
 $ git -C /Users/jmagady/Dev/vsdd-factory/.factory log --oneline 84585f59..HEAD | wc -l
-1
+       1
 ```
+(Output: 1 — single commit `ca13b67b` per TD-VSDD-053)
 
 Single commit per TD-VSDD-053 (no SHA-patch needed; actual SHA written directly to Active Branches since this is a single-commit burst and the SHA is known at commit time).
 
@@ -89,7 +90,7 @@ Closes 2026-05-20 resume session (18 substantive bursts: PO×2 `f3cc03fc`, `c4be
 
 ### Factory-artifacts commits
 
-`<D-498-SHA>` — D-498 SESSION-END DURABILITY BURST (single commit per TD-VSDD-053; SHA written at commit time).
+`ca13b67b` — D-498 SESSION-END DURABILITY BURST (single commit per TD-VSDD-053).
 
 ---
 
