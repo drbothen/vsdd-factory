@@ -3502,4 +3502,120 @@ Closes adv-bc-007-008-pass-9 persistence cycle (STREAK 1/3 first advance post-RE
 
 - `0fecb014` (SHA-patch D-494 final — parent commit; factory-artifacts HEAD pre-this-burst)
 - `d6bfd1c8` (D-495 persist+codify burst — Commit 1)
-- SHA-patch commit (Commit 2 — this SHA-patch; fills Active Branches + Phase Progress)
+- `6a4a16cd` (SHA-patch D-495 — fills Active Branches + Phase Progress; factory-artifacts HEAD pre-D-496-burst)
+
+## M3 3M3a-r PASS-10 PERSIST + CODIFY (STREAK 2/3)
+
+### Parent-commit
+
+`6a4a16cd` (SHA-patch D-495 final) → this Commit 1 (D-496 persist+codify)
+
+### Adversary Verdict (pass-10; per D-448(a) source-attestation)
+
+Pass-10 verdict CLEAN — 0 findings (0 CRIT / 0 HIGH / 0 MED / 0 LOW / 0 NIT). Second consecutive TRUE CLEAN. STREAK 1/3 → 2/3 SECOND ADVANCE per BC-5.39.001. CRITICAL=0 sustained 9 consecutive passes; HIGH=0 sustained 2 consecutive passes. Cascade trajectory 41→14→8→3→5→2 NIT→1 NIT→1 HIGH→0 CLEAN→0 CLEAN (two consecutive zeros). Cure-extension parsimony VALIDATED 2 consecutive passes — INV-021-CANDIDATE NOT observed; cure (c) + POLICY 14 5-leg + literal-shell 4-index gate sufficient for convergence. D-495 codification artifacts adversary-verified clean (adv-bc-007-008-pass-9.md faithfully persisted; CLEAN streak "1/3"; cure (c) by-construction; 4-index 5-leg parity gate-verified; burst-log 8 D-444(c) blocks; STATE.md frontmatter satisfies all 5 BC-5.39.006 v1.7 PCs; L-M3-BC-cascade-pass-9 lesson factually accurate). Source: adv-bc-007-008-pass-10.md Part A.
+
+### Files Touched (Dim-1)
+
+10 files:
+- `.factory/cycles/v1.0-brownfield-backfill/adv-bc-007-008-pass-10.md` (NEW)
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` (D-496 row appended)
+- `.factory/STATE.md` (D-496 Decisions Log preamble + row + full Commit E suite)
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` (L-M3-BC-cascade-pass-10 appended)
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` (this h2 entry)
+- `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` (pass-10 row + Convergence Status advance)
+- `.factory/specs/behavioral-contracts/BC-INDEX.md` (v2.47→v2.48 with 5-leg parity)
+- `.factory/specs/verification-properties/VP-INDEX.md` (v2.04→v2.05 with 5-leg parity)
+- `.factory/stories/STORY-INDEX.md` (v3.51→v3.52 with 5-leg parity)
+- `.factory/specs/architecture/ARCH-INDEX.md` (v2.13→v2.14 with 5-leg parity)
+
+### Codifications (Dim-3)
+
+- D-496 codified (5 sub-clauses): (a) pass-10 persisted CLEAN second consecutive TRUE CLEAN; (b) STREAK 1/3 → 2/3 SECOND ADVANCE; (c) cure-extension parsimony validated 2 consecutive passes (no INV-021 needed); (d) D-495 codification artifacts adversary-verified clean; (e) no PO fix-burst required; pass-11 dispatch-ready; convergence imminent
+- L-M3-BC-cascade-pass-10 lesson appended
+- STREAK 2/3 acknowledged; ONE PASS FROM CONVERGENCE
+- 4-index version bumps: BC v2.47→v2.48; VP v2.04→v2.05; STORY v3.51→v3.52; ARCH v2.13→v2.14; all with PROPER 5-leg parity
+
+### Dim-2 Attestation (literal-shell per D-449(a))
+
+**Gate 1 — L-M3-BC-cascade-pass-10 lesson presence:**
+```
+$ grep -c "^- \[L-M3-BC-cascade-pass-10\]" .factory/cycles/v1.0-brownfield-backfill/lessons.md
+1
+```
+
+**Gate 2 — D-496 row in STATE.md:**
+```
+$ grep -cE "^\| D-496 " .factory/STATE.md
+1
+```
+
+**Gate 3 — D-496 row in decision-log.md:**
+```
+$ grep -cE "^\| D-496 " .factory/cycles/v1.0-brownfield-backfill/decision-log.md
+1
+```
+
+**Gate 4 — STATE.md current_step D-496 latest:**
+```
+$ grep -E "^current_step:" .factory/STATE.md | grep -oE "D-[0-9]+ latest" | head -1
+D-496 latest
+```
+
+**Gate 5 — adv-bc-007-008-pass-10.md streak:**
+```
+$ grep -E "streak" .factory/cycles/v1.0-brownfield-backfill/adv-bc-007-008-pass-10.md | head -1 | grep -oE '"2/3"'
+"2/3"
+```
+
+**Gate 6 — adv-bc-007-008-pass-10.md verdict:**
+```
+$ grep -E "verdict" .factory/cycles/v1.0-brownfield-backfill/adv-bc-007-008-pass-10.md | head -1 | grep -oE 'CLEAN'
+CLEAN
+```
+
+**Gate 7 — pass-10 file line count:**
+```
+$ wc -l .factory/cycles/v1.0-brownfield-backfill/adv-bc-007-008-pass-10.md
+     142 .factory/cycles/v1.0-brownfield-backfill/adv-bc-007-008-pass-10.md
+```
+
+**Gate 8 — POLICY 14 4-INDEX SELF-APPLICATION GATE (verification_step 7; literal-shell post-fix):**
+```
+$ for IDX_PATH in .factory/specs/behavioral-contracts/BC-INDEX.md \
+    .factory/specs/verification-properties/VP-INDEX.md \
+    .factory/stories/STORY-INDEX.md \
+    .factory/specs/architecture/ARCH-INDEX.md; do
+    V=$(grep -E '^version:' "$IDX_PATH" | grep -oE '"[0-9]+\.[0-9]+"' | tr -d '"')
+    LA=$(grep -E '^last_amended:' "$IDX_PATH" | grep -oE '\(v[0-9]+\.[0-9]+\)' | head -1 | tr -d '()v')
+    [ "$V" = "$LA" ] && echo "PASS: $(basename $IDX_PATH) version=$V last_amended_prefix=$LA" || echo "FAIL: $(basename $IDX_PATH) version=$V last_amended_prefix=$LA"
+  done
+PASS: BC-INDEX.md version=2.48 last_amended_prefix=2.48
+PASS: VP-INDEX.md version=2.05 last_amended_prefix=2.05
+PASS: STORY-INDEX.md version=3.52 last_amended_prefix=3.52
+PASS: ARCH-INDEX.md version=2.14 last_amended_prefix=2.14
+```
+All 4 PASS. D-496 5-leg parity verified.
+
+### Dim-5 Attestation (Closes-set completeness)
+
+- `adv-bc-007-008-pass-10` persistence cycle CLOSED (verdict CLEAN persisted; STREAK 2/3 acknowledged)
+- STREAK 2/3 SECOND ADVANCE acknowledged in decision-log D-496 + INDEX.md + STATE.md
+- NO PO fix-burst required per BC-5.39.001 CLEAN verdict
+- D-495 codification cycle advances to D-496 (pass-10 persistence)
+
+### Dim-6 Attestation (Commit count)
+
+```
+$ git -C .factory log --oneline 6a4a16cd..HEAD | wc -l
+1
+```
+(expect 1 — Commit 1 only; TD-VSDD-053 single-commit-per-burst)
+
+### Closes
+
+Closes adv-bc-007-008-pass-10 persistence cycle (STREAK 2/3 SECOND ADVANCE). D-495 codification cycle advances to D-496.
+
+### Factory-artifacts Commits
+
+- `6a4a16cd` (SHA-patch D-495 final — parent commit; factory-artifacts HEAD pre-this-burst)
+- `<Commit-1-SHA>` (D-496 persist+codify burst — this commit; SHA-patch pending)

@@ -2233,3 +2233,28 @@ POLICY 14 description and verification_steps updated in policies.yaml same-burst
 **Cites:** D-495, POLICY 14 verification_step 7 empirically validated, BC-5.39.001 streak protocol STREAK 0/3 → 1/3 FIRST ADVANCE POST-RESET confirmed, INV-020 cure-extension parsimony validated (no INV-021 needed), cascade trajectory complete-to-date.
 
 **Closes:** adv-bc-007-008-pass-9 persistence cycle (STREAK 1/3 first advance post-RESET). D-495 codified.
+
+- [L-M3-BC-cascade-pass-10](#l-m3-bc-cascade-pass-10) — Pass-10 CLEAN verdict (0 findings; SECOND consecutive TRUE CLEAN); STREAK 1/3 → 2/3 SECOND ADVANCE; cure-extension parsimony validated 2 consecutive passes (no INV-021 needed). D-496 codified.
+
+### L-M3-BC-cascade-pass-10
+
+**Lesson ID:** L-M3-BC-cascade-pass-10
+**Date:** 2026-05-20
+**Cycle:** v1.0-brownfield-backfill
+**Pass:** M3 BC cascade pass-10 adversary (D-496)
+
+**Symptom:** Pass-10 verdict CLEAN (0 CRIT / 0 HIGH / 0 MED / 0 LOW / 0 NIT). STREAK 1/3 → 2/3 SECOND CONSECUTIVE ADVANCE. Cascade trajectory 41→14→8→3→5→2 NIT→1 NIT→1 HIGH→0 CLEAN→0 CLEAN (two consecutive zeros). CRITICAL=0 sustained 9 consecutive passes; HIGH=0 sustained 2 consecutive passes.
+
+**Significance:** The second consecutive TRUE CLEAN confirms the cascade is one pass from BC-5.39.001 3-CLEAN convergence. STREAK 2/3 SECOND ADVANCE means one more CLEAN or NITPICK pass produces 3/3 CONVERGED at projected D-497, which unblocks 3M3b story elaboration for S-15.10/12/13/15/16-Part-B. This is the first time in the 10-pass M3 BC cascade that two consecutive zeros have been observed.
+
+**Cure-extension parsimony VALIDATED 2 consecutive passes:** Pass-8 raised potential INV-021-CANDIDATE (suggesting a new abstraction class might be needed). D-494 correctly absorbed it as INV-020 RECURRENCE with POLICY 14 extension rather than introducing a new INV class. Pass-9 confirmed no INV-021 needed. Pass-10 ALSO confirms no INV-021 needed. Two consecutive CLEAN passes with the same cure discipline demonstrates that parsimony was the right decision — new INV abstraction would have been premature. The existing cure set (INV-019 cure (c) by-construction + POLICY 14 5-leg parity + literal-shell 4-index gate) is sufficient for convergence.
+
+**POLICY 14 verification_step 7 operational 2 consecutive codification bursts:** The literal-shell 4-index self-application gate (codified at D-494, extended_at D-494) was adversary-executed at both pass-9 and pass-10 reviews. Both times all 4 indexes returned PASS. This demonstrates the gate is both operational and stable — it is not a one-time artifact of the codifying burst that introduced it, but a durable discipline. The extension is production-grade.
+
+**D-495 codification adversary-verified clean:** Pass-10 adversary independently confirmed that adv-bc-007-008-pass-9.md was persisted correctly (verdict CLEAN; streak "1/3"; cure (c) by-construction throughout). All 4 index bumps synchronized D-001..D-495. Burst-log D-495 h2 entry had all 8 D-444(c) blocks with literal-shell Dim-2 gates per D-449(a). STATE.md frontmatter satisfies all BC-5.39.006 v1.7 PCs. L-M3-BC-cascade-pass-9 lesson factually accurate. The discipline loop is closing correctly at each burst.
+
+**Forward discipline:** Continue cure (c) by-construction in all persisted adversary reports. Continue literal-shell 4-index self-application gate on every state-manager codification burst that bumps any of the 4 indexes. Continue 5-leg parity on all BC/VP/story/epic/architecture version bumps. No INV-021 abstraction warranted. BC-5.39.001 streak protocol: one more CLEAN/NITPICK produces 3/3 CONVERGED → unblocks 3M3b.
+
+**Cites:** D-496, BC-5.39.001 STREAK 1/3 → 2/3 SECOND ADVANCE confirmed, parsimony validated 2 consecutive passes (no INV-021), POLICY 14 verification_step 7 sustained operational 2 passes, cascade trajectory complete-to-date.
+
+**Closes:** adv-bc-007-008-pass-10 persistence cycle (STREAK 2/3 SECOND ADVANCE). D-496 codified.
