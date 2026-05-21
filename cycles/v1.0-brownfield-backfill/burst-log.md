@@ -3609,7 +3609,7 @@ All 4 PASS. D-496 5-leg parity verified.
 $ git -C .factory log --oneline 6a4a16cd..HEAD | wc -l
 1
 ```
-(expect 1 — Commit 1 only; TD-VSDD-053 single-commit-per-burst)
+Result: 1 — Commit 1 (`3a5517d5`) only; TD-VSDD-053 single-commit-per-burst confirmed.
 
 ### Closes
 
@@ -3618,4 +3618,5 @@ Closes adv-bc-007-008-pass-10 persistence cycle (STREAK 2/3 SECOND ADVANCE). D-4
 ### Factory-artifacts Commits
 
 - `6a4a16cd` (SHA-patch D-495 final — parent commit; factory-artifacts HEAD pre-this-burst)
-- `<Commit-1-SHA>` (D-496 persist+codify burst — this commit; SHA-patch pending)
+- `3a5517d5` (D-496 persist+codify burst — Commit 1)
+- SHA-patch commit (Commit 2 — fills Active Branches + Phase Progress)
