@@ -165,7 +165,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | 70811f4a | verified `git rev-parse origin/main` = 70811f4a5d68d163021f46856c3de51bf8f4aab8 2026-05-13; includes CLAUDE.md expansion PR #136 (845d0007 squash-merge) + rc.18 merge PR #135 (666d689f) |
 | develop | e4cc0ae2 | Story-writer fix-burst pass-4 (0ccd8c62) 3M3b-r STORY-INDEX v3.63. Prior: PR #148 6d2ba5ad (S-15.14 M2 wave-4 COMPLETE). |
-| factory-artifacts | `[SHA-patch]` | D-501 remove-uncertainty COMPLETE 2026-05-25 — 28 uncertainties 18 fixed 5 CRITICAL saves STORY-INDEX v3.65; prior: D-500 3M3b-r CONVERGED `912face9` |
+| factory-artifacts | `2dcba4a5` | D-501 remove-uncertainty COMPLETE 2026-05-25 — 28 uncertainties 18 fixed 5 CRITICAL saves STORY-INDEX v3.65; prior: D-500 3M3b-r CONVERGED `912face9` |
 | v1.0.0-rc.16 (tag) | feb894a2 | SHIPPED; claude-mp PR #8 awaiting human merge |
 | v1.0.0-rc.15 (tag) | e68bb436 | SHIPPED |
 
