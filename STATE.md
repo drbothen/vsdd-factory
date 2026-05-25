@@ -164,7 +164,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | 70811f4a | verified `git rev-parse origin/main` = 70811f4a5d68d163021f46856c3de51bf8f4aab8 2026-05-13; includes CLAUDE.md expansion PR #136 (845d0007 squash-merge) + rc.18 merge PR #135 (666d689f) |
 | develop | e4cc0ae2 | Story-writer fix-burst pass-4 (0ccd8c62) 3M3b-r STORY-INDEX v3.63. Prior: PR #148 6d2ba5ad (S-15.14 M2 wave-4 COMPLETE). |
-| factory-artifacts | `[D-500-SHA]` | D-500 3M3b-r STORY SPEC CASCADE CONVERGED 2026-05-25 — 7 passes trajectory 12→5→2→2→0→0→0 STREAK 3/3; STORY-INDEX v3.63; 3M3c per-story-delivery UNBLOCKED; prior: D-499 story-writer dispatch `bb086cb7` |
+| factory-artifacts | `912face9` | D-500 3M3b-r STORY SPEC CASCADE CONVERGED 2026-05-25 — 7 passes trajectory 12→5→2→2→0→0→0 STREAK 3/3; STORY-INDEX v3.63; 3M3c per-story-delivery UNBLOCKED; prior: D-499 story-writer dispatch `bb086cb7` |
 | v1.0.0-rc.16 (tag) | feb894a2 | SHIPPED; claude-mp PR #8 awaiting human merge |
 | v1.0.0-rc.15 (tag) | e68bb436 | SHIPPED |
 
@@ -369,7 +369,7 @@ dtu_services: []
 
 ### §9. Critical Anchors
 - factory-artifacts HEAD: verify via `git -C .factory log -1 --format='%h %s'`
-- D-500 codification commit: verify via `git -C .factory log -1 --format='%h'` (this commit)
+- D-500 codification commit: `912face9` (state-manager) — SHA-patch follow-up updates factory-artifacts row
 - D-499 codification commit: `bb086cb7` (state-manager); story-writer burst: `135849ea`
 - D-498 SESSION-END DURABILITY commit: `ca13b67b`
 - D-497 CONVERGENCE commit: `e3c80646` (codification) + `84585f59` (SHA-patch)
