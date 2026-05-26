@@ -1,0 +1,22 @@
+policies:
+  - id: "POLICY 01"
+    name: single_commit_per_burst
+    description: "Each logical burst produces exactly ONE commit in .factory/"
+    severity: HIGH
+    scope: ".factory/"
+    lint_hook: null
+    codified_at: null
+  - id: 3
+    name: append_only_numbering
+    description: "All VSDD identifiers are never renumbered or reused."
+    severity: MEDIUM
+    scope: ".factory/"
+    lint_hook: null
+    codified_at: null
+  - id: 3
+    name: no_mvp_deferrals
+    description: "Default behavior is enterprise/production-grade correctness."
+    severity: HIGH
+    scope: ".factory/"
+    lint_hook: null
+    codified_at: null

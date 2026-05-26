@@ -1,0 +1,19 @@
+{
+  "vulnerabilities": {
+    "found": 1,
+    "list": [
+      {
+        "advisory": {
+          "id": "RUSTSEC-2025-0068",
+          "package": "serde_yaml",
+          "title": "serde_yaml is unmaintained",
+          "severity": "HIGH"
+        },
+        "versions": {
+          "patched": [],
+          "unaffected": []
+        }
+      }
+    ]
+  }
+}
