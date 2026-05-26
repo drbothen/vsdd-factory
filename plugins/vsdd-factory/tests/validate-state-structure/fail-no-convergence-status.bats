@@ -70,7 +70,6 @@ _state_md_envelope() {
 # ---------------------------------------------------------------------------
 
 @test "AC-10 FAIL: hook blocks when STATE.md has no Convergence Status section (D-434(e) sub-check 1)" {
-  skip "pending Phase 2 implementation (S-15.10 T-5 through T-8)"
   _require_artifacts
   _setup_fixture
   _write_registry
@@ -88,7 +87,6 @@ _state_md_envelope() {
 }
 
 @test "AC-10 FAIL: block message names missing Convergence Status element and cites D-434(e)" {
-  skip "pending Phase 2 implementation (S-15.10 T-5 through T-8)"
   _require_artifacts
   _setup_fixture
   _write_registry

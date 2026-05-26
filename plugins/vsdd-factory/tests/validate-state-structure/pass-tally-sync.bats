@@ -74,7 +74,6 @@ _state_md_envelope() {
 # ---------------------------------------------------------------------------
 
 @test "AC-5 PASS: hook emits Continue when STATE.md and INDEX.md tally values agree (pass count: 72)" {
-  skip "pending Phase 2 implementation (S-15.10 T-5 through T-8)"
   _require_artifacts
   _setup_fixture
   _write_registry

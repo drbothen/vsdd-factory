@@ -74,7 +74,6 @@ _state_md_envelope() {
 # ---------------------------------------------------------------------------
 
 @test "AC-9 PASS: hook emits Continue when Phase Progress has both adversary and fix-burst rows" {
-  skip "pending Phase 2 implementation (S-15.10 T-5 through T-8)"
   _require_artifacts
   _setup_fixture
   _write_registry

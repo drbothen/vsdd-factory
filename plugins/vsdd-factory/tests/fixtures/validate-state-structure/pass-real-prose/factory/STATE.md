@@ -10,8 +10,8 @@ phase: test-fixture-pass-real-prose
 
 <!--
   STATE.md SIZE BUDGET (per D-421(c) + D-422(c) reconciliation):
-  Soft target: ≤415 lines; margin from soft-target = 500 - 415 = 85; margin from actual = 500 - 29 = 471 (D-446(c) dual-margin form).
-  Line-growth tracker (D-437(e)+D-441(e)): pass-65 395 lines (wc-l; net -52 from pass-64); pass-66 397 lines (wc-l; net +2 from pass-65); pass-67 399 lines (wc-l; net +2 from pass-66); pass-68 402 lines (wc-l; net +3 from pass-67); this-fixture 29 lines (wc-l; net -373 from pass-68; fixture is minimal; canonical test claim — must match actual newline count of this file).
+  Soft target: ≤415 lines; margin from soft-target = 500 - 415 = 85; margin from actual = 500 - 53 = 447 (D-446(c) dual-margin form).
+  Line-growth tracker (D-437(e)+D-441(e)): pass-65 395 lines (wc-l; net -52 from pass-64); pass-66 397 lines (wc-l; net +2 from pass-65); pass-67 399 lines (wc-l; net +2 from pass-66); pass-68 402 lines (wc-l; net +3 from pass-67); this-fixture 53 lines (wc-l; net -349 from pass-68; fixture is minimal; canonical test claim — must match actual newline count of this file).
   Hard cap: 500 lines.
 -->
 
@@ -21,9 +21,33 @@ phase: test-fixture-pass-real-prose
 
 | Entry | Status |
 |-------|--------|
-| test pass-real-prose | COMPLETE |
+| pass-72 adversary | COMPLETE |
+| pass-72 fix burst | COMPLETE |
 
 ## Convergence Status
 
 Trajectory →9→9→9→9
 
+pass count: 72
+
+## Session Resume Checkpoint
+
+1. Current phase: test
+2. Last burst: pass-72
+3. Branch: develop
+4. Cycle: v1.0-brownfield-backfill
+5. Active stories: none
+6. Blocked on: nothing
+7. Next step: dispatch
+8. Concurrent cycles: none
+9. Last Updated: 2026-05-17
+10. Session ID: test-fixture
+11. Notes: none
+
+## Concurrent Cycles
+
+| Cycle | Status |
+|-------|--------|
+| v1.0-brownfield-backfill | ACTIVE |
+
+Last Updated: 2026-05-17

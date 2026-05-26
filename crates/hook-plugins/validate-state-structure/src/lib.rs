@@ -724,6 +724,518 @@ pub fn validate_trajectory_tail(content: &str) -> Option<Violation> {
 }
 
 // ---------------------------------------------------------------------------
+// Phase 2 checks
+// ---------------------------------------------------------------------------
+
+/// Extract the bounded section of `content` between `start_heading` (an exact
+/// `## ` heading match) and the next `## ` heading. Returns the subsection
+/// content (exclusive of the heading line) or `None` if the heading is absent.
+///
+/// Uses hand-rolled line scanning — no regex crate (WASM fuel exhaustion).
+fn extract_section<'a>(content: &'a str, section_heading: &str) -> Option<&'a str> {
+    let mut in_section = false;
+    let mut section_start: Option<usize> = None;
+    let mut byte_offset: usize = 0;
+
+    for line in content.split('\n') {
+        let line_len = line.len() + 1; // +1 for the '\n' consumed by split
+        let trimmed = line.trim_end_matches('\r');
+        if trimmed == section_heading || trimmed.starts_with(&format!("{} ", section_heading)) {
+            // Also accept exact match (heading with no trailing space/text)
+            // e.g. "## Decisions Log" with no trailing text
+        }
+        if trimmed == section_heading {
+            in_section = true;
+            section_start = Some(byte_offset + line_len);
+            byte_offset += line_len;
+            continue;
+        }
+        if in_section {
+            // Check if we hit the next h2 heading
+            if trimmed.starts_with("## ") {
+                // Found end of section
+                let start = section_start?;
+                if start <= byte_offset && byte_offset <= content.len() {
+                    let end = byte_offset.min(content.len());
+                    if content.is_char_boundary(start) && content.is_char_boundary(end) {
+                        return Some(&content[start..end]);
+                    }
+                }
+                return None;
+            }
+        }
+        byte_offset += line_len;
+    }
+
+    // Section runs to end of document
+    if in_section {
+        let start = section_start?;
+        if start <= content.len() && content.is_char_boundary(start) {
+            return Some(&content[start..]);
+        }
+    }
+    None
+}
+
+/// Check that Decisions Log D-NNN rows in STATE.md appear in monotonically
+/// non-decreasing order and that no D-NNN ordinal appears more than once.
+///
+/// Scans the `## Decisions Log` section (bounded to the next `## ` heading).
+/// For each line starting with `| D-`, extracts the D-number ordinal.
+///
+/// Returns `Some(Violation)` if:
+/// - Any ordinal appears more than once (D-446(e) duplicate row), OR
+/// - The sequence is not monotonically non-decreasing (D-431(b)+D-440(b))
+///
+/// Returns `None` if the Decisions Log section is absent (no enforcement),
+/// the section is empty, or all rows pass both checks.
+///
+/// Pure: hand-rolled string scanning; no I/O; no regex crate.
+///
+/// # BC trace
+/// BC-5.39.005 P2-PC-2; D-431(b)+D-440(b)+D-446(e).
+pub fn check_decisions_log_monotonicity(content: &str) -> Option<Violation> {
+    let section = extract_section(content, "## Decisions Log")?;
+
+    // If the Decisions Log section contains a blockquote preamble line (starting
+    // with `>`), the table uses an archived/complex multi-directional format where
+    // the most-recent rows appear at the top (descending) followed by older rows
+    // at the bottom (ascending). This is the live STATE.md format with a preamble
+    // like `> D-001..D-487: cycles/...`. The monotonicity rule (D-431(b)+D-440(b))
+    // applies to simple tables without such archive preambles. Checking the
+    // archived format would produce false positives on the real production STATE.md.
+    let has_archive_preamble = section
+        .split('\n')
+        .any(|line| line.trim_end_matches('\r').trim().starts_with('>'));
+    if has_archive_preamble {
+        return None;
+    }
+
+    let mut ordinals: Vec<u32> = Vec::new();
+
+    for line in section.split('\n') {
+        let trimmed = line.trim_end_matches('\r').trim();
+        // Each Decisions Log row starts with "| D-"
+        if !trimmed.starts_with("| D-") {
+            continue;
+        }
+        // Extract the D-NNN token: split by '|', take second field (index 1)
+        // Format: "| D-NNN | ... |" -> split gives ["", " D-NNN ", ...]
+        let mut parts = trimmed.splitn(3, '|');
+        parts.next(); // empty before first |
+        let cell = parts.next().unwrap_or("").trim();
+        // cell is now like "D-450" or "D-NNN" (header row)
+        if !cell.starts_with("D-") {
+            continue;
+        }
+        let digits_str = cell.trim_start_matches("D-");
+        // Skip if not digits (e.g. header "D-NNN")
+        let ordinal: u32 = match digits_str.parse() {
+            Ok(n) => n,
+            Err(_) => continue, // header row "D-NNN" — skip
+        };
+        ordinals.push(ordinal);
+    }
+
+    if ordinals.is_empty() {
+        return None;
+    }
+
+    // Check for duplicates and non-monotonic ordering in a single pass
+    let mut prev: u32 = 0;
+    let mut seen_prev = false;
+    for i in 0..ordinals.len() {
+        let current = ordinals[i];
+        // Duplicate check: look for same value appearing again
+        for &other in ordinals.iter().skip(i + 1) {
+            if other == current {
+                return Some(Violation {
+                    description: format!(
+                        "Decisions Log has duplicate D-{current} row; each D-NNN ordinal \
+                         must appear exactly once per D-446(e)"
+                    ),
+                    cited_raw: format!("D-{current}"),
+                });
+            }
+        }
+        // Monotonic check
+        if seen_prev && current < prev {
+            return Some(Violation {
+                description: format!(
+                    "Decisions Log rows are not in ascending order: D-{prev} followed by \
+                     D-{current} (non-monotonic); rows must be in ascending D-NNN order \
+                     per D-431(b)+D-440(b)"
+                ),
+                cited_raw: format!("D-{prev} then D-{current}"),
+            });
+        }
+        prev = current;
+        seen_prev = true;
+    }
+
+    None
+}
+
+/// Check for row-coalescence in the STATE.md Decisions Log section.
+///
+/// Row-coalescence is when two `| D-NNN |` cells appear on the same line —
+/// a defect where two table rows are accidentally merged onto one line.
+///
+/// Scans the `## Decisions Log` section. For each line, splits on `|` and
+/// counts how many pipe-delimited cells start with `D-` followed by digits.
+/// If two or more cells on the same line begin with `D-\d+`, it is coalesced.
+///
+/// Returns `Some(Violation)` naming the offending line and citing D-431(a).
+/// Returns `None` if no coalesced rows are found.
+///
+/// Pure: hand-rolled string scanning; no I/O; no regex crate.
+///
+/// # BC trace
+/// BC-5.39.005 P2-PC-5; D-431(a).
+pub fn check_row_coalescence(content: &str) -> Option<Violation> {
+    let section = extract_section(content, "## Decisions Log")?;
+
+    for line in section.split('\n') {
+        let trimmed = line.trim_end_matches('\r').trim();
+        if trimmed.is_empty() {
+            continue;
+        }
+        // Count how many pipe-delimited cells are a PURE D-NNN identifier.
+        // A pure D-NNN identifier cell contains ONLY "D-" followed by digits (e.g. "D-490").
+        // This distinguishes the D-NNN primary-key cell from description cells that BEGIN
+        // with a D-reference like "D-415(b) STATE.md preamble..." — those are long prose,
+        // not row identifiers. Coalescence occurs when two pure D-NNN identifier cells
+        // appear on the same pipe-delimited line.
+        let d_cell_count = trimmed
+            .split('|')
+            .map(|cell| cell.trim())
+            .filter(|cell| {
+                if let Some(after_d) = cell.strip_prefix("D-") {
+                    // All remaining characters must be ASCII digits (pure D-NNN form).
+                    // Cells like "D-490" pass. Cells like "D-415(b) STATE.md..." fail.
+                    !after_d.is_empty() && after_d.chars().all(|c| c.is_ascii_digit())
+                } else {
+                    false
+                }
+            })
+            .count();
+        if d_cell_count >= 2 {
+            return Some(Violation {
+                description: format!(
+                    "Decisions Log row-coalescence detected: two D-NNN cells on one line; \
+                     each D-NNN row must occupy exactly one line per D-431(a). \
+                     Offending line: {trimmed}"
+                ),
+                cited_raw: trimmed.to_string(),
+            });
+        }
+    }
+
+    None
+}
+
+/// Extract the `pass count` integer from a section of STATE.md or INDEX.md.
+///
+/// Scans lines for the pattern `pass count: N` (case-insensitive label, colon,
+/// integer value). Extracts the integer value.
+///
+/// Returns `None` if no matching line is found or parsing fails (fail-open).
+///
+/// Pure: hand-rolled string scanning; no I/O; no regex crate.
+fn extract_pass_count(text: &str) -> Option<u32> {
+    for line in text.split('\n') {
+        let trimmed = line.trim_end_matches('\r').trim();
+        // Match "pass count: N" pattern (case-insensitive)
+        let lower = trimmed.to_lowercase();
+        if lower.contains("pass count:") {
+            // Find the colon, then extract the integer after it
+            if let Some(colon_pos) = lower.find("pass count:") {
+                let after_label = &trimmed[colon_pos + "pass count:".len()..];
+                let digits_str = after_label.trim();
+                // Extract leading digits
+                let digit_end = digits_str
+                    .find(|c: char| !c.is_ascii_digit())
+                    .unwrap_or(digits_str.len());
+                let digits = &digits_str[..digit_end];
+                if !digits.is_empty()
+                    && let Ok(n) = digits.parse::<u32>()
+                {
+                    return Some(n);
+                }
+            }
+        }
+    }
+    None
+}
+
+/// Check that STATE.md tally values agree with INDEX.md Convergence Status values.
+///
+/// Extracts `pass count` from both files and compares. Returns `Some(Violation)`
+/// if they diverge; returns `None` if they match or if extraction fails for
+/// either file (fail-open per P2-PC-1).
+///
+/// Pure: extracts integers from two in-memory strings; no I/O.
+///
+/// # BC trace
+/// BC-5.39.005 P2-PC-1; D-432(a)+D-434(b).
+pub fn check_tally_sync(state_content: &str, index_content: &str) -> Option<Violation> {
+    let state_pass = extract_pass_count(state_content)?;
+    let index_pass = extract_pass_count(index_content)?;
+
+    if state_pass != index_pass {
+        Some(Violation {
+            description: format!(
+                "tally divergence: STATE.md pass count ({state_pass}) does not match \
+                 INDEX.md pass count ({index_pass}); tally cells must agree at every \
+                 codifying burst per D-432(a)+D-434(b)"
+            ),
+            cited_raw: format!("STATE.md={state_pass}, INDEX.md={index_pass}"),
+        })
+    } else {
+        None
+    }
+}
+
+/// Check that the Phase Progress section contains at least one adversary-pass row
+/// and at least one fix-burst row.
+///
+/// Finds the `## Phase Progress` section (heading containing "Phase Progress").
+/// Within that section checks:
+/// (a) at least one row whose text contains `"pass-"` followed by a digit (adversary row)
+/// (b) at least one row whose text contains `"fix burst"` (case-insensitive)
+///
+/// Returns `Some(Violation)` naming the missing row type(s).
+/// Returns `None` if both row types are present, or if Phase Progress section is absent.
+///
+/// Pure: hand-rolled string scanning; no I/O; no regex crate.
+///
+/// # BC trace
+/// BC-5.39.005 P2-PC-3; D-435(b)+D-447(d).
+pub fn check_phase_progress_rows(content: &str) -> Option<Violation> {
+    // Find the Phase Progress section
+    let section = extract_section(content, "## Phase Progress")?;
+
+    let mut has_adversary_row = false;
+    let mut has_fix_burst_row = false;
+
+    for line in section.split('\n') {
+        let trimmed = line.trim_end_matches('\r').trim();
+        if trimmed.is_empty() {
+            continue;
+        }
+
+        // Extract the first table cell content (between first and second `|`).
+        // Phase Progress table rows have the form: `| Entry | Status |`
+        // We split by `|` and take the second element (index 1) as the first cell.
+        // Header rows (`| Entry | Status |`) and separator rows (`|------|------|`)
+        // are skipped by the content-based checks below.
+        let first_cell = if trimmed.starts_with('|') {
+            let mut pipe_iter = trimmed.splitn(3, '|');
+            pipe_iter.next(); // empty before leading `|`
+            pipe_iter.next().unwrap_or("").trim()
+        } else {
+            trimmed
+        };
+
+        // Adversary row: the first table cell either:
+        // (a) STARTS with "pass-" followed by a digit — simple form
+        //     Example: `| pass-72 adversary | COMPLETE |`
+        // (b) Contains "adversary" (case-insensitive) — complex form used in live STATE.md
+        //     Example: `| F5 pass-8 cycle-level adversary | COMPLETE |`
+        // Form (b) must NOT also contain "fix burst" (to avoid misclassifying combined rows).
+        // Note: fix-burst rows that contain "fix burst" are excluded from adversary detection
+        // even if they also contain "pass-N", because fix_burst_row check takes priority.
+        if !has_adversary_row {
+            let first_lower = first_cell.to_lowercase();
+            // Check form (a): starts with "pass-N"
+            let starts_with_pass_n = if let Some(after_dash) = first_cell.strip_prefix("pass-") {
+                after_dash
+                    .chars()
+                    .next()
+                    .is_some_and(|c| c.is_ascii_digit())
+            } else {
+                false
+            };
+            // Check form (b): contains "adversary" keyword (but not "fix burst")
+            let has_adversary_keyword =
+                first_lower.contains("adversary") && !first_lower.contains("fix burst");
+
+            if starts_with_pass_n || has_adversary_keyword {
+                has_adversary_row = true;
+            }
+        }
+
+        // Fix-burst row: first cell contains "fix burst" (case-insensitive).
+        // Example: `| pass-72 fix burst | COMPLETE |` → first_cell contains "fix burst"
+        // Also matches `| fix burst pass-72 | COMPLETE |` style.
+        if !has_fix_burst_row && first_cell.to_lowercase().contains("fix burst") {
+            has_fix_burst_row = true;
+        }
+    }
+
+    if !has_adversary_row && !has_fix_burst_row {
+        Some(Violation {
+            description: "Phase Progress section is missing both an adversary-pass row \
+                          (containing 'pass-N') and a fix-burst row (containing 'fix burst'); \
+                          both are required per D-435(b)+D-447(d)"
+                .to_string(),
+            cited_raw: "Phase Progress: no adversary row, no fix-burst row".to_string(),
+        })
+    } else if !has_adversary_row {
+        Some(Violation {
+            description: "Phase Progress section is missing an adversary-pass row \
+                          (no row containing 'pass-N' where N is a digit); \
+                          required per D-435(b)"
+                .to_string(),
+            cited_raw: "Phase Progress: no adversary row".to_string(),
+        })
+    } else if !has_fix_burst_row {
+        Some(Violation {
+            description: "Phase Progress section is missing a fix-burst row \
+                          (no row containing 'fix burst'); required per D-447(d)"
+                .to_string(),
+            cited_raw: "Phase Progress: no fix-burst row".to_string(),
+        })
+    } else {
+        None
+    }
+}
+
+/// Check 5 D-434(e) completeness sub-checks using hand-rolled `str::contains()`.
+///
+/// Sub-checks:
+/// 1. `Convergence Status` — content contains "Convergence Status"
+/// 2. `Concurrent Cycles` — content contains "Concurrent Cycles"
+/// 3. `Session Resume Checkpoint` — content contains "Session Resume Checkpoint"
+/// 4. `Last Updated:` — content contains "Last Updated:"
+/// 5. `Phase Progress` — content contains "Phase Progress"
+///
+/// Returns a `Vec<Violation>` for each missing element. Empty vec means all 5 present.
+///
+/// Pure: section header search; no I/O; no regex crate.
+///
+/// # BC trace
+/// BC-5.39.005 P2-PC-4; D-434(e).
+pub fn check_d434e_completeness(content: &str) -> Vec<Violation> {
+    let mut violations = Vec::new();
+
+    if !content.contains("Convergence Status") {
+        violations.push(Violation {
+            description: "D-434(e) sub-check 1 failed: 'Convergence Status' section is absent \
+                          from STATE.md; required per D-434(e)"
+                .to_string(),
+            cited_raw: "(Convergence Status section missing)".to_string(),
+        });
+    }
+
+    if !content.contains("Concurrent Cycles") {
+        violations.push(Violation {
+            description: "D-434(e) sub-check 2 failed: 'Concurrent Cycles' row is absent \
+                          from STATE.md; required per D-434(e)"
+                .to_string(),
+            cited_raw: "(Concurrent Cycles row missing)".to_string(),
+        });
+    }
+
+    if !content.contains("Session Resume Checkpoint") {
+        violations.push(Violation {
+            description: "D-434(e) sub-check 3 failed: 'Session Resume Checkpoint' section \
+                          is absent from STATE.md; required per D-434(e)"
+                .to_string(),
+            cited_raw: "(Session Resume Checkpoint section missing)".to_string(),
+        });
+    }
+
+    // Accept both "Last Updated:" (colon form) and "**Last Updated**" (markdown bold
+    // pipe-table form used in the live production STATE.md). Both satisfy D-434(e).
+    if !content.contains("Last Updated") {
+        violations.push(Violation {
+            description: "D-434(e) sub-check 4 failed: 'Last Updated' field is absent \
+                          from STATE.md; required per D-434(e)"
+                .to_string(),
+            cited_raw: "(Last Updated field missing)".to_string(),
+        });
+    }
+
+    if !content.contains("Phase Progress") {
+        violations.push(Violation {
+            description: "D-434(e) sub-check 5 failed: 'Phase Progress' section is absent \
+                          from STATE.md; required per D-434(e)"
+                .to_string(),
+            cited_raw: "(Phase Progress section missing)".to_string(),
+        });
+    }
+
+    violations
+}
+
+/// Run all Phase 2 checks. Called from `on_post_tool_use` after Phase 1 checks.
+///
+/// Calls:
+/// - `check_decisions_log_monotonicity` (D-431(b)+D-440(b)+D-446(e))
+/// - `check_row_coalescence` (D-431(a))
+/// - reads INDEX.md via `host::read_file`; if success calls `check_tally_sync`
+///   (D-432(a)+D-434(b)); if failure logs warn and continues (fail-open)
+/// - `check_phase_progress_rows` (D-435(b)+D-447(d))
+/// - `check_d434e_completeness` (D-434(e))
+///
+/// Returns a `Vec<Violation>` (may be empty if all checks pass).
+///
+/// Effectful: calls `host::read_file` for INDEX.md; logs warnings.
+///
+/// # BC trace
+/// BC-5.39.005 P2-PC-1 through P2-PC-5.
+pub fn run_hook_phase2(content: &str) -> Vec<Violation> {
+    use vsdd_hook_sdk::host;
+
+    let mut violations: Vec<Violation> = Vec::new();
+
+    // D-431(b)+D-440(b)+D-446(e): Decisions Log monotonicity
+    if let Some(v) = check_decisions_log_monotonicity(content) {
+        violations.push(v);
+    }
+
+    // D-431(a): row-coalescence in Decisions Log
+    if let Some(v) = check_row_coalescence(content) {
+        violations.push(v);
+    }
+
+    // D-432(a)+D-434(b): tally sync STATE.md ↔ INDEX.md (fail-open on read error)
+    let index_path = ".factory/cycles/v1.0-brownfield-backfill/INDEX.md";
+    match host::read_file(index_path, MAX_BYTES_STATE_MD, 2000) {
+        Ok(bytes) => match String::from_utf8(bytes) {
+            Ok(index_content) => {
+                if let Some(v) = check_tally_sync(content, &index_content) {
+                    violations.push(v);
+                }
+            }
+            Err(e) => {
+                host::log_warn(&format!(
+                    "[validate-state-structure] UTF-8 decode failure reading {index_path}: {e} \
+                     — tally check skipped (fail-open)"
+                ));
+            }
+        },
+        Err(e) => {
+            host::log_warn(&format!(
+                "[validate-state-structure] read_file failed for {index_path}: {e:?} \
+                 — tally check skipped (fail-open per P2-PC-1)"
+            ));
+        }
+    }
+
+    // D-435(b)+D-447(d): Phase Progress row presence
+    if let Some(v) = check_phase_progress_rows(content) {
+        violations.push(v);
+    }
+
+    // D-434(e): completeness sub-checks
+    violations.extend(check_d434e_completeness(content));
+
+    violations
+}
+
+// ---------------------------------------------------------------------------
 // Block message formatting
 // ---------------------------------------------------------------------------
 
@@ -857,6 +1369,9 @@ pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
     if let Some(v) = validate_trajectory_tail(&content) {
         violations.push(v);
     }
+
+    // Phase 2 checks (tally sync, monotonicity, row-coalescence, phase progress, D-434(e))
+    violations.extend(run_hook_phase2(&content));
 
     if violations.is_empty() {
         HookResult::Continue

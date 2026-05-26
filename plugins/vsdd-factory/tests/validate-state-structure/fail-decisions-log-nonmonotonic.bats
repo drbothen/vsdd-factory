@@ -72,7 +72,6 @@ _state_md_envelope() {
 # ---------------------------------------------------------------------------
 
 @test "AC-2 FAIL: hook blocks when Decisions Log has D-480 before D-478 (non-ascending order; D-431(b))" {
-  skip "pending Phase 2 implementation (S-15.10 T-5 through T-8)"
   _require_artifacts
   _setup_fixture
   _write_registry
@@ -90,7 +89,6 @@ _state_md_envelope() {
 }
 
 @test "AC-2 FAIL: block message names out-of-order D-NNN rows and cites D-431(b)" {
-  skip "pending Phase 2 implementation (S-15.10 T-5 through T-8)"
   _require_artifacts
   _setup_fixture
   _write_registry

@@ -71,7 +71,6 @@ _state_md_envelope() {
 # ---------------------------------------------------------------------------
 
 @test "AC-15 FAIL: hook blocks when Decisions Log has two D-NNN cells coalesced on one line (D-431(a))" {
-  skip "pending Phase 2 implementation (S-15.10 T-5 through T-8)"
   _require_artifacts
   _setup_fixture
   _write_registry
@@ -89,7 +88,6 @@ _state_md_envelope() {
 }
 
 @test "AC-15 FAIL: block message names the coalesced line (D-490/D-491) and cites D-431(a)" {
-  skip "pending Phase 2 implementation (S-15.10 T-5 through T-8)"
   _require_artifacts
   _setup_fixture
   _write_registry

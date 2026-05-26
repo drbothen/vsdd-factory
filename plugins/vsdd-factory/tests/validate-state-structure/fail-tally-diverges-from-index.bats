@@ -74,7 +74,6 @@ _state_md_envelope() {
 # ---------------------------------------------------------------------------
 
 @test "AC-4 FAIL: hook blocks when STATE.md pass count (72) diverges from INDEX.md pass count (73)" {
-  skip "pending Phase 2 implementation (S-15.10 T-5 through T-8)"
   _require_artifacts
   _setup_fixture
   _write_registry
@@ -92,7 +91,6 @@ _state_md_envelope() {
 }
 
 @test "AC-4 FAIL: block message names STATE.md value (72) and INDEX.md value (73) and cites D-432(a)" {
-  skip "pending Phase 2 implementation (S-15.10 T-5 through T-8)"
   _require_artifacts
   _setup_fixture
   _write_registry

@@ -72,7 +72,6 @@ _state_md_envelope() {
 # ---------------------------------------------------------------------------
 
 @test "AC-7 FAIL: hook blocks when Phase Progress section has no adversary-pass row (D-435(b))" {
-  skip "pending Phase 2 implementation (S-15.10 T-5 through T-8)"
   _require_artifacts
   _setup_fixture
   _write_registry
@@ -90,7 +89,6 @@ _state_md_envelope() {
 }
 
 @test "AC-7 FAIL: block message cites D-435(b) for missing adversary-pass row" {
-  skip "pending Phase 2 implementation (S-15.10 T-5 through T-8)"
   _require_artifacts
   _setup_fixture
   _write_registry

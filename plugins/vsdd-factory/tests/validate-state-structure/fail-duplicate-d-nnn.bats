@@ -69,7 +69,6 @@ _state_md_envelope() {
 # ---------------------------------------------------------------------------
 
 @test "AC-1 FAIL: hook blocks when Decisions Log has two D-450 rows (duplicate D-NNN; D-446(e))" {
-  skip "pending Phase 2 implementation (S-15.10 T-5 through T-8)"
   _require_artifacts
   _setup_fixture
   _write_registry
@@ -87,7 +86,6 @@ _state_md_envelope() {
 }
 
 @test "AC-1 FAIL: block message names D-450 as duplicate ordinal and cites D-446(e)" {
-  skip "pending Phase 2 implementation (S-15.10 T-5 through T-8)"
   _require_artifacts
   _setup_fixture
   _write_registry

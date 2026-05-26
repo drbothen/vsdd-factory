@@ -71,7 +71,6 @@ _state_md_envelope() {
 # ---------------------------------------------------------------------------
 
 @test "AC-8 FAIL: hook blocks when Phase Progress section has no fix-burst row (D-447(d))" {
-  skip "pending Phase 2 implementation (S-15.10 T-5 through T-8)"
   _require_artifacts
   _setup_fixture
   _write_registry
@@ -89,7 +88,6 @@ _state_md_envelope() {
 }
 
 @test "AC-8 FAIL: block message cites D-447(d) for missing fix-burst row in Phase Progress" {
-  skip "pending Phase 2 implementation (S-15.10 T-5 through T-8)"
   _require_artifacts
   _setup_fixture
   _write_registry

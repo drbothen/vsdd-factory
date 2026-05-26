@@ -112,11 +112,12 @@ _state_md_envelope() {
   [[ "$output" == *"3 violation(s)"* ]]
 
   # ── Banner wc-l class ───────────────────────────────────────────────────────
-  # Fixture banner claims 25 lines (wc-l); actual newline count is 28.
+  # Fixture banner claims 25 lines (wc-l); actual newline count is 52
+  # (Phase 2 sections added; banner intentionally stale to trigger wc-l violation).
   # lib.rs format: "banner claims {claimed} lines but actual line count is {actual}"
   # D-421(c) is the canonical anchor for banner wc-l discipline.
   [[ "$output" == *"25"* ]]
-  [[ "$output" == *"28"* ]]
+  [[ "$output" == *"52"* ]]
   [[ "$output" == *"D-421"* ]]
 
   # ── Dual-margin class ───────────────────────────────────────────────────────

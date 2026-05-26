@@ -82,7 +82,6 @@ _state_md_envelope() {
 # ---------------------------------------------------------------------------
 
 @test "AC-6 PASS (fail-open): hook emits Continue when INDEX.md is unreadable (tally check skipped)" {
-  skip "pending Phase 2 implementation (S-15.10 T-5 through T-8)"
   _require_artifacts
   _setup_fixture
   _write_registry

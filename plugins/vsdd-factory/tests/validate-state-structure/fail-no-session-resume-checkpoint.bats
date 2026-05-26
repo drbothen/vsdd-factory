@@ -70,7 +70,6 @@ _state_md_envelope() {
 # ---------------------------------------------------------------------------
 
 @test "AC-11 FAIL: hook blocks when STATE.md has no Session Resume Checkpoint section (D-434(e) sub-check 3)" {
-  skip "pending Phase 2 implementation (S-15.10 T-5 through T-8)"
   _require_artifacts
   _setup_fixture
   _write_registry
@@ -88,7 +87,6 @@ _state_md_envelope() {
 }
 
 @test "AC-11 FAIL: block message names missing Session Resume Checkpoint and cites D-434(e)" {
-  skip "pending Phase 2 implementation (S-15.10 T-5 through T-8)"
   _require_artifacts
   _setup_fixture
   _write_registry
