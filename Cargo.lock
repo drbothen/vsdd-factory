@@ -3722,6 +3722,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "validate-closes-completeness"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "vsdd-hook-sdk",
+]
+
+[[package]]
 name = "validate-dispatch-advance"
 version = "0.0.1"
 dependencies = [
