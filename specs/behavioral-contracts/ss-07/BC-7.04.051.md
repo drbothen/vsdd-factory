@@ -2,7 +2,7 @@
 document_type: behavioral-contract
 level: L3
 version: "1.1"
-status: draft
+status: active
 producer: "PHASE_1_4_B_BCS_AGENT_9"
 timestamp: 2026-04-25T00:00:00
 phase: 1a
