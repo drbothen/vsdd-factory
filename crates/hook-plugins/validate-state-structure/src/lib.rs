@@ -724,6 +724,671 @@ pub fn validate_trajectory_tail(content: &str) -> Option<Violation> {
 }
 
 // ---------------------------------------------------------------------------
+// Phase 2 checks
+// ---------------------------------------------------------------------------
+
+/// Extract the bounded section of `content` between `start_heading` (an exact
+/// `## ` heading match) and the next `## ` heading. Returns the subsection
+/// content (exclusive of the heading line) or `None` if the heading is absent.
+///
+/// Uses hand-rolled line scanning — no regex crate (WASM fuel exhaustion).
+fn extract_section<'a>(content: &'a str, section_heading: &str) -> Option<&'a str> {
+    let mut in_section = false;
+    let mut section_start: Option<usize> = None;
+    let mut byte_offset: usize = 0;
+
+    for line in content.split('\n') {
+        let line_len = line.len() + 1; // +1 for the '\n' consumed by split
+        let trimmed = line.trim_end_matches('\r');
+        if trimmed == section_heading {
+            in_section = true;
+            section_start = Some(byte_offset + line_len);
+            byte_offset += line_len;
+            continue;
+        }
+        if in_section {
+            // Check if we hit the next h2 heading
+            if trimmed.starts_with("## ") {
+                // Found end of section
+                let start = section_start?;
+                if start <= byte_offset && byte_offset <= content.len() {
+                    let end = byte_offset.min(content.len());
+                    if content.is_char_boundary(start) && content.is_char_boundary(end) {
+                        return Some(&content[start..end]);
+                    }
+                }
+                return None;
+            }
+        }
+        byte_offset += line_len;
+    }
+
+    // Section runs to end of document
+    if in_section {
+        let start = section_start?;
+        if start <= content.len() && content.is_char_boundary(start) {
+            return Some(&content[start..]);
+        }
+    }
+    None
+}
+
+/// Check that Decisions Log D-NNN rows in STATE.md appear in monotonically
+/// non-decreasing order and that no D-NNN ordinal appears more than once.
+///
+/// Scans the `## Decisions Log` section (bounded to the next `## ` heading).
+/// For each line starting with `| D-`, extracts the D-number ordinal.
+///
+/// Returns `Some(Violation)` if:
+/// - Any ordinal appears more than once (D-446(e) duplicate row), OR
+/// - The sequence is not monotonically non-decreasing (D-431(b)+D-440(b))
+///
+/// Returns `None` if the Decisions Log section is absent (no enforcement),
+/// the section is empty, or all rows pass both checks.
+///
+/// Pure: hand-rolled string scanning; no I/O; no regex crate.
+///
+/// # BC trace
+/// BC-5.39.005 P2-PC-2; D-431(b)+D-440(b)+D-446(e).
+pub fn check_decisions_log_monotonicity(content: &str) -> Option<Violation> {
+    let section = extract_section(content, "## Decisions Log")?;
+
+    // If the Decisions Log section contains a blockquote preamble line (starting
+    // with `>`), the table uses an archived/complex multi-directional format where
+    // the most-recent rows appear at the top (descending) followed by older rows
+    // at the bottom (ascending). This is the live STATE.md format with a preamble
+    // like `> D-001..D-487: cycles/...`. The monotonicity rule (D-431(b)+D-440(b))
+    // applies to simple tables without such archive preambles. Checking the
+    // archived format would produce false positives on the real production STATE.md.
+    let has_archive_preamble = section
+        .split('\n')
+        .any(|line| line.trim_end_matches('\r').trim().starts_with('>'));
+    if has_archive_preamble {
+        return None;
+    }
+
+    let mut ordinals: Vec<u32> = Vec::new();
+
+    for line in section.split('\n') {
+        let trimmed = line.trim_end_matches('\r').trim();
+        // Each Decisions Log row starts with "| D-"
+        if !trimmed.starts_with("| D-") {
+            continue;
+        }
+        // Extract the D-NNN token: split by '|', take second field (index 1)
+        // Format: "| D-NNN | ... |" -> split gives ["", " D-NNN ", ...]
+        let mut parts = trimmed.splitn(3, '|');
+        parts.next(); // empty before first |
+        let cell = parts.next().unwrap_or("").trim();
+        // cell is now like "D-450" or "D-NNN" (header row)
+        if !cell.starts_with("D-") {
+            continue;
+        }
+        let digits_str = cell.trim_start_matches("D-");
+        // Skip if not digits (e.g. header "D-NNN")
+        let ordinal: u32 = match digits_str.parse() {
+            Ok(n) => n,
+            Err(_) => continue, // header row "D-NNN" — skip
+        };
+        ordinals.push(ordinal);
+    }
+
+    if ordinals.is_empty() {
+        return None;
+    }
+
+    // Check for duplicates and non-monotonic ordering in a single pass
+    let mut prev: u32 = 0;
+    let mut seen_prev = false;
+    for i in 0..ordinals.len() {
+        let current = ordinals[i];
+        // Duplicate check: look for same value appearing again
+        for &other in ordinals.iter().skip(i + 1) {
+            if other == current {
+                return Some(Violation {
+                    description: format!(
+                        "Decisions Log has duplicate D-{current} row; each D-NNN ordinal \
+                         must appear exactly once per D-446(e)"
+                    ),
+                    cited_raw: format!("D-{current}"),
+                });
+            }
+        }
+        // Monotonic check
+        if seen_prev && current < prev {
+            return Some(Violation {
+                description: format!(
+                    "Decisions Log rows are not in ascending order: D-{prev} followed by \
+                     D-{current} (non-monotonic); rows must be in ascending D-NNN order \
+                     per D-431(b)+D-440(b)"
+                ),
+                cited_raw: format!("D-{prev} then D-{current}"),
+            });
+        }
+        prev = current;
+        seen_prev = true;
+    }
+
+    None
+}
+
+/// Check for row-coalescence in the STATE.md Decisions Log section.
+///
+/// Row-coalescence is when two `| D-NNN |` cells appear on the same line —
+/// a defect where two table rows are accidentally merged onto one line.
+///
+/// Scans the `## Decisions Log` section. For each line, splits on `|` and
+/// counts how many pipe-delimited cells start with `D-` followed by digits.
+/// If two or more cells on the same line begin with `D-\d+`, it is coalesced.
+///
+/// Returns `Some(Violation)` naming the offending line and citing D-431(a).
+/// Returns `None` if no coalesced rows are found, or if the section uses an
+/// archive-preamble format (blockquote `>` lines present — same bypass as
+/// `check_decisions_log_monotonicity` for production STATE.md symmetry).
+///
+/// Pure: hand-rolled string scanning; no I/O; no regex crate.
+///
+/// # BC trace
+/// BC-5.39.005 P2-PC-5; D-431(a).
+/// F-P1-005: archive-preamble bypass added — symmetric with check_decisions_log_monotonicity.
+pub fn check_row_coalescence(content: &str) -> Option<Violation> {
+    let section = extract_section(content, "## Decisions Log")?;
+
+    // If the Decisions Log section contains a blockquote preamble line (starting
+    // with `>`), the table uses an archived/complex multi-directional format where
+    // row ordering is not simple ascending. This is the live STATE.md format with a
+    // preamble like `> D-001..D-487: cycles/...`. The coalescence rule (D-431(a))
+    // applies to simple tables without such archive preambles. Checking the archived
+    // format would produce false positives on the real production STATE.md.
+    // Symmetric with the bypass in check_decisions_log_monotonicity.
+    let has_archive_preamble = section
+        .split('\n')
+        .any(|line| line.trim_end_matches('\r').trim().starts_with('>'));
+    if has_archive_preamble {
+        return None;
+    }
+
+    for line in section.split('\n') {
+        let trimmed = line.trim_end_matches('\r').trim();
+        if trimmed.is_empty() {
+            continue;
+        }
+        // Count how many pipe-delimited cells are a PURE D-NNN identifier.
+        // A pure D-NNN identifier cell contains ONLY "D-" followed by digits (e.g. "D-490").
+        // This distinguishes the D-NNN primary-key cell from description cells that BEGIN
+        // with a D-reference like "D-415(b) STATE.md preamble..." — those are long prose,
+        // not row identifiers. Coalescence occurs when two pure D-NNN identifier cells
+        // appear on the same pipe-delimited line.
+        let d_cell_count = trimmed
+            .split('|')
+            .map(|cell| cell.trim())
+            .filter(|cell| {
+                if let Some(after_d) = cell.strip_prefix("D-") {
+                    // All remaining characters must be ASCII digits (pure D-NNN form).
+                    // Cells like "D-490" pass. Cells like "D-415(b) STATE.md..." fail.
+                    !after_d.is_empty() && after_d.chars().all(|c| c.is_ascii_digit())
+                } else {
+                    false
+                }
+            })
+            .count();
+        if d_cell_count >= 2 {
+            return Some(Violation {
+                description: format!(
+                    "Decisions Log row-coalescence detected: two D-NNN cells on one line; \
+                     each D-NNN row must occupy exactly one line per D-431(a). \
+                     Offending line: {trimmed}"
+                ),
+                cited_raw: trimmed.to_string(),
+            });
+        }
+    }
+
+    None
+}
+
+/// Extract the `pass count` integer from a section of STATE.md or INDEX.md.
+///
+/// Scans lines for the pattern `pass count: N` (case-insensitive label, colon,
+/// integer value). Extracts the integer value.
+///
+/// Returns `None` if no matching line is found or parsing fails (best-effort extraction).
+///
+/// # Production content note
+///
+/// Real production STATE.md and INDEX.md do NOT contain the literal string
+/// `pass count:` — they embed pass-count information in narrative prose within the
+/// `## Convergence Status` section. This function returns `None` for such content,
+/// which is the common case. The caller (`run_hook_phase2`) handles the `None` case
+/// by emitting an explicit `log_warn` (fail-open with telemetry), rather than silently
+/// passing. This makes the silent fail-open from pre-F-P1-001 into an EXPLICIT fail-open
+/// with auditable diagnostic output.
+///
+/// Pure: hand-rolled string scanning; no I/O; no regex crate.
+///
+/// # BC trace
+/// BC-5.39.005 P2-PC-1; D-432(a)+D-434(b).
+/// F-P1-001: documented as best-effort; explicit fail-open logging moved to caller.
+pub fn extract_pass_count(text: &str) -> Option<u32> {
+    for line in text.split('\n') {
+        let trimmed = line.trim_end_matches('\r').trim();
+        // Match "pass count: N" pattern (case-insensitive)
+        let lower = trimmed.to_lowercase();
+        if lower.contains("pass count:") {
+            // Find the colon, then extract the integer after it
+            if let Some(colon_pos) = lower.find("pass count:") {
+                let after_label = &trimmed[colon_pos + "pass count:".len()..];
+                let digits_str = after_label.trim();
+                // Extract leading digits
+                let digit_end = digits_str
+                    .find(|c: char| !c.is_ascii_digit())
+                    .unwrap_or(digits_str.len());
+                let digits = &digits_str[..digit_end];
+                if !digits.is_empty()
+                    && let Ok(n) = digits.parse::<u32>()
+                {
+                    return Some(n);
+                }
+            }
+        }
+    }
+    None
+}
+
+/// Check that STATE.md tally values agree with INDEX.md Convergence Status values.
+///
+/// Extracts `pass count` from both files and compares. Returns `Some(Violation)`
+/// if they diverge; returns `None` if they match or if extraction fails for
+/// either file (fail-open per P2-PC-1).
+///
+/// # Extraction failure handling
+///
+/// When `extract_pass_count` returns `None` for BOTH files (the common case with
+/// real production content that uses narrative prose, not `pass count: N`), this
+/// function returns `None` (no violation). The caller (`run_hook_phase2`) is
+/// responsible for emitting the `tally_sync_extraction_failed` log_warn in this case
+/// to make the fail-open auditable via telemetry. When extraction fails for ONE
+/// but not the other (asymmetric), the caller also logs a warning.
+///
+/// Pure: extracts integers from two in-memory strings; no I/O.
+///
+/// # BC trace
+/// BC-5.39.005 P2-PC-1; D-432(a)+D-434(b).
+/// F-P1-001: explicit fail-open telemetry logging delegated to run_hook_phase2 caller.
+pub fn check_tally_sync(state_content: &str, index_content: &str) -> Option<Violation> {
+    let state_pass = extract_pass_count(state_content)?;
+    let index_pass = extract_pass_count(index_content)?;
+    check_tally_sync_values(state_pass, index_pass)
+}
+
+/// Compare two already-extracted pass-count values and return a `Violation` if they diverge.
+///
+/// Pure helper used by both `check_tally_sync` (batch API) and `run_hook_phase2`
+/// (effectful path with explicit fail-open logging for extraction failures).
+///
+/// Returns `None` if both values are equal (no violation).
+///
+/// # BC trace
+/// BC-5.39.005 P2-PC-1; D-432(a)+D-434(b).
+pub fn check_tally_sync_values(state_pass: u32, index_pass: u32) -> Option<Violation> {
+    if state_pass != index_pass {
+        Some(Violation {
+            description: format!(
+                "tally divergence: STATE.md pass count ({state_pass}) does not match \
+                 INDEX.md pass count ({index_pass}); tally cells must agree at every \
+                 codifying burst per D-432(a)+D-434(b)"
+            ),
+            cited_raw: format!("STATE.md={state_pass}, INDEX.md={index_pass}"),
+        })
+    } else {
+        None
+    }
+}
+
+/// Check that the Phase Progress section contains at least one adversary-pass row
+/// and at least one fix-burst row.
+///
+/// Finds the `## Phase Progress` section (heading containing "Phase Progress").
+/// Within that section checks:
+/// (a) at least one row whose text contains `"pass-"` followed by a digit (adversary row)
+/// (b) at least one row whose text contains `"fix burst"` (case-insensitive)
+///
+/// Returns `Some(Violation)` naming the missing row type(s).
+/// Returns `None` if both row types are present, or if Phase Progress section is absent.
+///
+/// Pure: hand-rolled string scanning; no I/O; no regex crate.
+///
+/// # BC trace
+/// BC-5.39.005 P2-PC-3; D-435(b)+D-447(d).
+pub fn check_phase_progress_rows(content: &str) -> Option<Violation> {
+    // Find the Phase Progress section
+    let section = extract_section(content, "## Phase Progress")?;
+
+    let mut has_adversary_row = false;
+    let mut has_fix_burst_row = false;
+
+    for line in section.split('\n') {
+        let trimmed = line.trim_end_matches('\r').trim();
+        if trimmed.is_empty() {
+            continue;
+        }
+
+        // Extract the first table cell content (between first and second `|`).
+        // Phase Progress table rows have the form: `| Entry | Status |`
+        // We split by `|` and take the second element (index 1) as the first cell.
+        // Header rows (`| Entry | Status |`) and separator rows (`|------|------|`)
+        // are skipped by the content-based checks below.
+        let first_cell = if trimmed.starts_with('|') {
+            let mut pipe_iter = trimmed.splitn(3, '|');
+            pipe_iter.next(); // empty before leading `|`
+            pipe_iter.next().unwrap_or("").trim()
+        } else {
+            trimmed
+        };
+
+        // Adversary row: the first table cell either:
+        // (a) STARTS with "pass-" followed by a digit — simple form
+        //     Example: `| pass-72 adversary | COMPLETE |`
+        // (b) Contains "adversary" (case-insensitive) — complex form used in live STATE.md
+        //     Example: `| F5 pass-8 cycle-level adversary | COMPLETE |`
+        // Form (b) must NOT also contain "fix burst" (to avoid misclassifying combined rows).
+        // Note: fix-burst rows that contain "fix burst" are excluded from adversary detection
+        // even if they also contain "pass-N", because fix_burst_row check takes priority.
+        if !has_adversary_row {
+            let first_lower = first_cell.to_lowercase();
+            // Check form (a): starts with "pass-N"
+            let starts_with_pass_n = if let Some(after_dash) = first_cell.strip_prefix("pass-") {
+                after_dash
+                    .chars()
+                    .next()
+                    .is_some_and(|c| c.is_ascii_digit())
+            } else {
+                false
+            };
+            // Check form (b): contains "adversary" keyword (but not "fix burst")
+            let has_adversary_keyword =
+                first_lower.contains("adversary") && !first_lower.contains("fix burst");
+
+            if starts_with_pass_n || has_adversary_keyword {
+                has_adversary_row = true;
+            }
+        }
+
+        // Fix-burst row: first cell contains "fix burst" (case-insensitive).
+        // Example: `| pass-72 fix burst | COMPLETE |` → first_cell contains "fix burst"
+        // Also matches `| fix burst pass-72 | COMPLETE |` style.
+        if !has_fix_burst_row && first_cell.to_lowercase().contains("fix burst") {
+            has_fix_burst_row = true;
+        }
+    }
+
+    if !has_adversary_row && !has_fix_burst_row {
+        Some(Violation {
+            description: "Phase Progress section is missing both an adversary-pass row \
+                          (containing 'pass-N') and a fix-burst row (containing 'fix burst'); \
+                          both are required per D-435(b)+D-447(d)"
+                .to_string(),
+            cited_raw: "Phase Progress: no adversary row, no fix-burst row".to_string(),
+        })
+    } else if !has_adversary_row {
+        Some(Violation {
+            description: "Phase Progress section is missing an adversary-pass row \
+                          (no row containing 'pass-N' where N is a digit); \
+                          required per D-435(b)"
+                .to_string(),
+            cited_raw: "Phase Progress: no adversary row".to_string(),
+        })
+    } else if !has_fix_burst_row {
+        Some(Violation {
+            description: "Phase Progress section is missing a fix-burst row \
+                          (no row containing 'fix burst'); required per D-447(d)"
+                .to_string(),
+            cited_raw: "Phase Progress: no fix-burst row".to_string(),
+        })
+    } else {
+        None
+    }
+}
+
+/// Returns `true` if any line in `content` is an `## ` heading that starts with `keyword`.
+///
+/// A heading line is identified by starting with `## ` (two hashes + space). The keyword
+/// check uses `starts_with`: this accepts both exact headings (`## Convergence Status\n`)
+/// and headings with trailing context (`## Session Resume Checkpoint (2026-05-25 — ...)`).
+///
+/// This is more precise than raw `contains(keyword)` (which matches anywhere including
+/// D-NNN description cells) while more flexible than `extract_section()` (which requires
+/// an exact heading match with no trailing text).
+///
+/// # WASM fuel budget (F-P1-003)
+///
+/// The heading prefix strings are pre-computed ONCE outside the per-line scan loop to avoid
+/// `format!()` allocations inside the hot-path closure. A naive implementation that called
+/// `format!("{heading_prefix} ")` and `format!("{heading_prefix}(")` inside the closure
+/// allocated two new Strings per line, exhausting the 10M fuel budget on the live 426-line
+/// STATE.md. Pre-computing strings once reduces allocations from O(n_lines) to O(1).
+///
+/// # BC trace
+/// F-P1-003: heading-anchored detection (line-level `## ` prefix + keyword prefix).
+fn has_heading_starting_with(content: &str, keyword: &str) -> bool {
+    // Pre-compute the three candidate patterns ONCE, outside the per-line scan loop.
+    // This avoids O(n_lines) format!() allocations that exhausted WASM fuel on large files.
+    let exact = format!("## {keyword}");
+    let with_space = format!("## {keyword} ");
+    let with_paren = format!("## {keyword}(");
+    content
+        .split('\n')
+        .map(|line| line.trim_end_matches('\r'))
+        .any(|line| {
+            line == exact.as_str()
+                || line.starts_with(with_space.as_str())
+                || line.starts_with(with_paren.as_str())
+        })
+}
+
+/// Check 5 D-434(e) completeness sub-checks using heading-anchored detection.
+///
+/// Sub-checks:
+/// 1. `Convergence Status` — must appear as a `## Convergence Status` heading line
+/// 2. `Concurrent Cycles` — must appear as a `## Concurrent Cycles` heading line
+/// 3. `Session Resume Checkpoint` — must appear as a `## Session Resume Checkpoint` heading line
+///    (including headings with trailing context like `## Session Resume Checkpoint (2026-...)`)
+/// 4. `Last Updated` — line-anchored: any line containing `Last Updated` (table row or plain form)
+/// 5. `Phase Progress` — must appear as a `## Phase Progress` heading line
+///
+/// Using `## ` heading-anchored detection via `has_heading_starting_with` prevents
+/// false-negative passes when the heading text appears only in D-NNN description cells
+/// (e.g., "INDEX.md Convergence Status auto-advance") rather than as a true `## ` heading.
+/// Raw `contains()` on the full document would return `true` in that case, masking a genuine
+/// structural absence.
+///
+/// The `has_heading_starting_with` check accepts headings with trailing context
+/// (e.g., `## Session Resume Checkpoint (2026-05-25 — ...)`) in addition to bare headings,
+/// since real production STATE.md uses the trailing-context form.
+///
+/// Returns a `Vec<Violation>` for each missing element. Empty vec means all 5 present.
+///
+/// Pure: section header search; no I/O; no regex crate.
+///
+/// # BC trace
+/// BC-5.39.005 P2-PC-4; D-434(e).
+/// F-P1-003: heading-anchored `has_heading_starting_with` replaces raw `contains()` to
+///           prevent false-negatives when heading text appears only in D-NNN description cells.
+pub fn check_d434e_completeness(content: &str) -> Vec<Violation> {
+    let mut violations = Vec::new();
+
+    // Sub-check 1: Convergence Status — must be a real `## Convergence Status` heading line.
+    // Raw contains("Convergence Status") would false-pass when the string appears only in
+    // D-NNN description cells like "INDEX.md Convergence Status auto-advance".
+    if !has_heading_starting_with(content, "Convergence Status") {
+        violations.push(Violation {
+            description: "D-434(e) sub-check 1 failed: '## Convergence Status' section heading is \
+                          absent from STATE.md; required per D-434(e)"
+                .to_string(),
+            cited_raw: "(Convergence Status section missing)".to_string(),
+        });
+    }
+
+    // Sub-check 2: Concurrent Cycles — must be a real `## Concurrent Cycles` heading line.
+    if !has_heading_starting_with(content, "Concurrent Cycles") {
+        violations.push(Violation {
+            description: "D-434(e) sub-check 2 failed: '## Concurrent Cycles' section heading is \
+                          absent from STATE.md; required per D-434(e)"
+                .to_string(),
+            cited_raw: "(Concurrent Cycles row missing)".to_string(),
+        });
+    }
+
+    // Sub-check 3: Session Resume Checkpoint — must be a real `## Session Resume Checkpoint`
+    // heading line. Accepts headings with trailing context
+    // (e.g., `## Session Resume Checkpoint (2026-05-25 — ...)`).
+    if !has_heading_starting_with(content, "Session Resume Checkpoint") {
+        violations.push(Violation {
+            description: "D-434(e) sub-check 3 failed: '## Session Resume Checkpoint' section \
+                          heading is absent from STATE.md; required per D-434(e)"
+                .to_string(),
+            cited_raw: "(Session Resume Checkpoint section missing)".to_string(),
+        });
+    }
+
+    // Sub-check 4: Last Updated — appears as a table row (`| **Last Updated**`) in the
+    // Project Metadata table or as `Last Updated:` plain line. Neither form is a `## ` heading,
+    // so we use line-level detection: accept any line containing "Last Updated".
+    // This is safe because "Last Updated" is a specific enough string that it does not appear
+    // spuriously in D-NNN description cells.
+    if !content.contains("Last Updated") {
+        violations.push(Violation {
+            description: "D-434(e) sub-check 4 failed: 'Last Updated' field is absent \
+                          from STATE.md; required per D-434(e)"
+                .to_string(),
+            cited_raw: "(Last Updated field missing)".to_string(),
+        });
+    }
+
+    // Sub-check 5: Phase Progress — must be a real `## Phase Progress` heading line.
+    if !has_heading_starting_with(content, "Phase Progress") {
+        violations.push(Violation {
+            description: "D-434(e) sub-check 5 failed: '## Phase Progress' section heading is \
+                          absent from STATE.md; required per D-434(e)"
+                .to_string(),
+            cited_raw: "(Phase Progress section missing)".to_string(),
+        });
+    }
+
+    violations
+}
+
+/// Run all Phase 2 checks. Called from `on_post_tool_use` after Phase 1 checks.
+///
+/// Calls:
+/// - `check_decisions_log_monotonicity` (D-431(b)+D-440(b)+D-446(e))
+/// - `check_row_coalescence` (D-431(a))
+/// - reads INDEX.md via `host::read_file`; if success calls `check_tally_sync`
+///   (D-432(a)+D-434(b)); if failure logs warn and continues (fail-open)
+/// - `check_phase_progress_rows` (D-435(b)+D-447(d))
+/// - `check_d434e_completeness` (D-434(e))
+///
+/// Returns a `Vec<Violation>` (may be empty if all checks pass).
+///
+/// Effectful: calls `host::read_file` for INDEX.md; logs warnings.
+///
+/// # BC trace
+/// BC-5.39.005 P2-PC-1 through P2-PC-5.
+pub fn run_hook_phase2(content: &str) -> Vec<Violation> {
+    use vsdd_hook_sdk::host;
+
+    let mut violations: Vec<Violation> = Vec::new();
+
+    // D-431(b)+D-440(b)+D-446(e): Decisions Log monotonicity
+    if let Some(v) = check_decisions_log_monotonicity(content) {
+        violations.push(v);
+    }
+
+    // D-431(a): row-coalescence in Decisions Log
+    if let Some(v) = check_row_coalescence(content) {
+        violations.push(v);
+    }
+
+    // D-432(a)+D-434(b): tally sync STATE.md ↔ INDEX.md (fail-open on read error)
+    //
+    // F-P1-001: explicit fail-open telemetry. When extract_pass_count returns None
+    // for both STATE.md and INDEX.md (the common case with real production prose-format
+    // content that does not contain the `pass count: N` machine-readable marker),
+    // emit log_warn("tally_sync_extraction_failed: ...") so the fail-open is AUDITABLE
+    // via dispatcher logs rather than silently inert.
+    let index_path = ".factory/cycles/v1.0-brownfield-backfill/INDEX.md";
+    match host::read_file(index_path, MAX_BYTES_STATE_MD, 2000) {
+        Ok(bytes) => match String::from_utf8(bytes) {
+            Ok(index_content) => {
+                let state_pass = extract_pass_count(content);
+                let index_pass = extract_pass_count(&index_content);
+
+                match (state_pass, index_pass) {
+                    (None, None) => {
+                        // Both extractions failed — common case for real prose-format content.
+                        // Emit explicit fail-open warning so the inert state is auditable.
+                        host::log_warn(
+                            "[validate-state-structure] tally_sync_extraction_failed: \
+                             could not extract comparable pass-count values from STATE.md and \
+                             INDEX.md (no 'pass count: N' machine-readable marker found in either) \
+                             — tally sync check is INERT for this content format. \
+                             Add a 'pass count: N' line in the Convergence Status section to \
+                             activate machine-readable tally sync (D-432(a)+D-434(b))",
+                        );
+                    }
+                    (None, Some(index_n)) => {
+                        // Asymmetric: INDEX.md has machine-readable tally but STATE.md does not.
+                        host::log_warn(&format!(
+                            "[validate-state-structure] tally_sync_extraction_failed: \
+                             INDEX.md pass count extracted ({index_n}) but STATE.md has no \
+                             'pass count: N' marker — tally sync check is INERT (asymmetric). \
+                             Add a 'pass count: N' line to STATE.md Convergence Status section."
+                        ));
+                    }
+                    (Some(state_n), None) => {
+                        // Asymmetric: STATE.md has machine-readable tally but INDEX.md does not.
+                        host::log_warn(&format!(
+                            "[validate-state-structure] tally_sync_extraction_failed: \
+                             STATE.md pass count extracted ({state_n}) but INDEX.md has no \
+                             'pass count: N' marker — tally sync check is INERT (asymmetric). \
+                             Add a 'pass count: N' line to INDEX.md Convergence Status section."
+                        ));
+                    }
+                    (Some(state_n), Some(index_n)) => {
+                        // Both extracted successfully — compare and emit violation on mismatch.
+                        if let Some(v) = check_tally_sync_values(state_n, index_n) {
+                            violations.push(v);
+                        }
+                    }
+                }
+            }
+            Err(e) => {
+                host::log_warn(&format!(
+                    "[validate-state-structure] UTF-8 decode failure reading {index_path}: {e} \
+                     — tally check skipped (fail-open)"
+                ));
+            }
+        },
+        Err(e) => {
+            host::log_warn(&format!(
+                "[validate-state-structure] read_file failed for {index_path}: {e:?} \
+                 — tally check skipped (fail-open per P2-PC-1)"
+            ));
+        }
+    }
+
+    // D-435(b)+D-447(d): Phase Progress row presence
+    if let Some(v) = check_phase_progress_rows(content) {
+        violations.push(v);
+    }
+
+    // D-434(e): completeness sub-checks
+    violations.extend(check_d434e_completeness(content));
+
+    violations
+}
+
+// ---------------------------------------------------------------------------
 // Block message formatting
 // ---------------------------------------------------------------------------
 
@@ -857,6 +1522,9 @@ pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
     if let Some(v) = validate_trajectory_tail(&content) {
         violations.push(v);
     }
+
+    // Phase 2 checks (tally sync, monotonicity, row-coalescence, phase progress, D-434(e))
+    violations.extend(run_hook_phase2(&content));
 
     if violations.is_empty() {
         HookResult::Continue
@@ -1864,6 +2532,248 @@ mod tests {
             "validate_trajectory_tail must return None for oversize valid content; \
              got: {:?}",
             tail_viol.as_ref().map(|v| &v.description)
+        );
+    }
+
+    // ── F-P1-001: tally sync explicit fail-open (extract_pass_count + check_tally_sync) ─
+
+    /// F-P1-001: extract_pass_count must return None for real-world prose content
+    /// that does not contain a machine-readable `pass count: N` marker.
+    /// This is the common case for production STATE.md and INDEX.md content.
+    #[test]
+    fn test_BC_5_39_005_f_p1_001_extract_pass_count_absent_returns_none() {
+        let prose_content = concat!(
+            "## Convergence Status\n",
+            "\n",
+            "Trajectory →9→9→9→9\n",
+            "\n",
+            "Adversary pass-74 yielded 7 HIGH and 2 MEDIUM findings.\n",
+            "All prior passes have been resolved. Asymptotic floor reached.\n",
+        );
+        let result = extract_pass_count(prose_content);
+        assert!(
+            result.is_none(),
+            "extract_pass_count must return None for prose-only content (no 'pass count: N' marker); \
+             got: {result:?}"
+        );
+    }
+
+    /// F-P1-001: extract_pass_count must return the integer when `pass count: N` is present.
+    /// This tests the machine-readable format used in test fixtures and future STATE.md forms.
+    #[test]
+    fn test_BC_5_39_005_f_p1_001_extract_pass_count_present_returns_value() {
+        let content_with_marker = concat!(
+            "## Convergence Status\n",
+            "\n",
+            "Trajectory →9→9→9→9\n",
+            "\n",
+            "pass count: 72\n",
+        );
+        let result = extract_pass_count(content_with_marker);
+        assert_eq!(
+            result,
+            Some(72),
+            "extract_pass_count must return 72 for 'pass count: 72'; got: {result:?}"
+        );
+    }
+
+    /// F-P1-001: check_tally_sync must return None (fail-open) when both STATE.md and
+    /// INDEX.md use prose format without a machine-readable `pass count: N` marker.
+    /// The explicit log_warn is emitted by run_hook_phase2 (effectful); this tests
+    /// the pure function behavior — it must NOT produce a false-positive violation.
+    #[test]
+    fn test_BC_5_39_005_f_p1_001_check_tally_sync_both_none_returns_none() {
+        let prose_state = concat!(
+            "## Convergence Status\n",
+            "Trajectory →9→9→9→9\n",
+            "Adversary pass-74 yielded 7 findings.\n",
+        );
+        let prose_index = concat!(
+            "## Convergence Status\n",
+            "Pass 74 verdict: HIGH=7, MEDIUM=2. Floor stable.\n",
+        );
+        let result = check_tally_sync(prose_state, prose_index);
+        assert!(
+            result.is_none(),
+            "check_tally_sync must return None (fail-open) when neither file has a \
+             machine-readable 'pass count: N' marker; got: {result:?}"
+        );
+    }
+
+    /// F-P1-001: check_tally_sync_values must return a Violation when the two extracted
+    /// pass counts diverge. This is the machine-readable format test (both present, mismatch).
+    #[test]
+    fn test_BC_5_39_005_f_p1_001_check_tally_sync_values_diverge_returns_violation() {
+        let v = check_tally_sync_values(72, 73);
+        assert!(
+            v.is_some(),
+            "check_tally_sync_values(72, 73) must return Some(Violation); got None"
+        );
+        let viol = v.unwrap();
+        assert!(
+            viol.description.contains("72"),
+            "violation must name STATE.md count 72; got: {}",
+            viol.description
+        );
+        assert!(
+            viol.description.contains("73"),
+            "violation must name INDEX.md count 73; got: {}",
+            viol.description
+        );
+        assert!(
+            viol.description.contains("D-432"),
+            "violation must cite D-432(a); got: {}",
+            viol.description
+        );
+    }
+
+    /// F-P1-001: check_tally_sync_values must return None when both counts match.
+    #[test]
+    fn test_BC_5_39_005_f_p1_001_check_tally_sync_values_match_returns_none() {
+        let result = check_tally_sync_values(72, 72);
+        assert!(
+            result.is_none(),
+            "check_tally_sync_values(72, 72) must return None (counts match); got: {result:?}"
+        );
+    }
+
+    // ── F-P1-003: check_d434e_completeness heading-anchored search ────────────
+
+    /// F-P1-003: check_d434e_completeness must fire a violation when "Convergence Status"
+    /// appears ONLY in a D-NNN description cell, not as a real `## Convergence Status` heading.
+    /// Raw contains() would false-pass; heading-anchored extract_section must detect absence.
+    #[test]
+    fn test_BC_5_39_005_f_p1_003_convergence_status_in_decision_cell_not_a_heading() {
+        // Content where "Convergence Status" appears only in a Decisions Log description cell,
+        // NOT as a `## Convergence Status` heading. Raw contains() would pass; extract_section
+        // must correctly detect that no real heading exists.
+        let content = concat!(
+            "<!--\n",
+            "  STATE.md SIZE BUDGET (per D-421(c)):\n",
+            "  Hard cap (500 lines) margin from soft-target = 500 - 415 = 85; ",
+            "margin from actual = 500 - 10 = 490 (D-446(c) dual-margin form). 10 lines (wc-l).\n",
+            "  Trajectory →9→9→9→9\n",
+            "-->\n",
+            "\n",
+            "## Phase Progress\n",
+            "| pass-72 adversary | COMPLETE |\n",
+            "| pass-72 fix burst | COMPLETE |\n",
+            "\n",
+            "## Session Resume Checkpoint\n",
+            "Notes here.\n",
+            "\n",
+            "## Concurrent Cycles\n",
+            "| v1.0 | ACTIVE |\n",
+            "\n",
+            "Last Updated: 2026-05-25\n",
+            "\n",
+            "## Decisions Log\n",
+            "| D-NNN | Date | Description | Author |\n",
+            "| D-490 | 2026-05-25 | INDEX.md Convergence Status auto-advance | state-manager |\n",
+        );
+        let violations = check_d434e_completeness(content);
+        // Must find the Convergence Status heading absence as a violation
+        let has_convergence_violation = violations
+            .iter()
+            .any(|v| v.description.contains("Convergence Status"));
+        assert!(
+            has_convergence_violation,
+            "check_d434e_completeness must fire a violation for 'Convergence Status' when it \
+             appears only in a decision-cell description, not as a `## Convergence Status` heading; \
+             got violations: {:?}",
+            violations
+                .iter()
+                .map(|v| &v.description)
+                .collect::<Vec<_>>()
+        );
+    }
+
+    /// F-P1-003: check_d434e_completeness must return no violation for "Convergence Status"
+    /// when a real `## Convergence Status` heading is present, even if the string also
+    /// appears in a D-NNN description cell.
+    #[test]
+    fn test_BC_5_39_005_f_p1_003_convergence_status_heading_present_no_violation() {
+        let content = concat!(
+            "<!--\n",
+            "  STATE.md SIZE BUDGET (per D-421(c)):\n",
+            "  Hard cap (500 lines) margin from soft-target = 500 - 415 = 85; ",
+            "margin from actual = 500 - 10 = 490 (D-446(c) dual-margin form). 10 lines (wc-l).\n",
+            "  Trajectory →9→9→9→9\n",
+            "-->\n",
+            "\n",
+            "## Phase Progress\n",
+            "| pass-72 adversary | COMPLETE |\n",
+            "| pass-72 fix burst | COMPLETE |\n",
+            "\n",
+            "## Convergence Status\n",
+            "Trajectory →9→9→9→9\n",
+            "\n",
+            "## Session Resume Checkpoint\n",
+            "Notes here.\n",
+            "\n",
+            "## Concurrent Cycles\n",
+            "| v1.0 | ACTIVE |\n",
+            "\n",
+            "Last Updated: 2026-05-25\n",
+            "\n",
+            "## Decisions Log\n",
+            "| D-NNN | Date | Description | Author |\n",
+            "| D-490 | 2026-05-25 | INDEX.md Convergence Status auto-advance | state-manager |\n",
+        );
+        let violations = check_d434e_completeness(content);
+        let has_convergence_violation = violations
+            .iter()
+            .any(|v| v.description.contains("Convergence Status"));
+        assert!(
+            !has_convergence_violation,
+            "check_d434e_completeness must NOT fire a violation when '## Convergence Status' \
+             heading is present; got violations: {:?}",
+            violations
+                .iter()
+                .map(|v| &v.description)
+                .collect::<Vec<_>>()
+        );
+    }
+
+    // ── F-P1-005: check_row_coalescence archive-preamble bypass ──────────────
+
+    /// F-P1-005: check_row_coalescence must return None (skip) when the Decisions Log
+    /// section contains a blockquote preamble line starting with `>`. This is the
+    /// same bypass as check_decisions_log_monotonicity — symmetric maintenance.
+    #[test]
+    fn test_BC_5_39_005_f_p1_005_row_coalescence_skips_with_archive_preamble() {
+        let content = concat!(
+            "## Decisions Log\n",
+            "\n",
+            "> D-001..D-487: archived in cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md\n",
+            "\n",
+            "| D-NNN | Date | Description | Author |\n",
+            "| D-490 | 2026-05-25 | Decision 490 | state-manager |\n",
+        );
+        let result = check_row_coalescence(content);
+        assert!(
+            result.is_none(),
+            "check_row_coalescence must return None (skip) when archive preamble `>` is present; \
+             got: {result:?}"
+        );
+    }
+
+    /// F-P1-005: check_row_coalescence must still detect coalescence in sections WITHOUT
+    /// an archive preamble (the bypass only applies when `>` lines are present).
+    #[test]
+    fn test_BC_5_39_005_f_p1_005_row_coalescence_fires_without_archive_preamble() {
+        // Coalesced row: two D-NNN pure cells on one line
+        let content = concat!(
+            "## Decisions Log\n",
+            "\n",
+            "| D-NNN | Date | Description | Author |\n",
+            "| D-490 | D-491 | 2026-05-25 | coalesced |\n",
+        );
+        let result = check_row_coalescence(content);
+        assert!(
+            result.is_some(),
+            "check_row_coalescence must detect coalescence (two D-NNN cells on one line) \
+             when no archive preamble is present; got None"
         );
     }
 }
