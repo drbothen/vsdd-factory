@@ -10,8 +10,9 @@ phase: test-fixture-fail-no-convergence-status
 
 <!--
   STATE.md SIZE BUDGET (per D-421(c)):
-  Hard cap (500 lines) margin from soft-target = 500 - 415 = 85; margin from actual = 500 - 57 = 443 (D-446(c) dual-margin form). 57 lines (wc-l).
+  Hard cap (500 lines) margin from soft-target = 500 - 415 = 85; margin from actual = 500 - 58 = 442 (D-446(c) dual-margin form). 58 lines (wc-l).
   Hard cap: 500 lines.
+  Trajectory →9→9→9→9
 -->
 
 # Pipeline State: test-fixture
