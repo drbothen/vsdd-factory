@@ -56,7 +56,7 @@ set +e   # allow individual bats suites to fail without aborting the loop
 fail_count=0
 failed_suites=()
 skipped_suites=()
-for f in tests/*.bats tests/dim2-gates/*.bats tests/validate-index-cite-refresh/*.bats tests/validate-burst-log/*.bats tests/validate-state-structure/*.bats tests/validate-state-size/*.bats tests/validate-dispatch-advance/*.bats; do
+for f in tests/*.bats tests/dim2-gates/*.bats tests/docs-completeness/*.bats tests/validate-index-cite-refresh/*.bats tests/validate-burst-log/*.bats tests/validate-state-structure/*.bats tests/validate-state-size/*.bats tests/validate-dispatch-advance/*.bats; do
   name=$(basename "$f" .bats)
   if is_skipped "$name"; then
     skipped_suites+=("$name")
