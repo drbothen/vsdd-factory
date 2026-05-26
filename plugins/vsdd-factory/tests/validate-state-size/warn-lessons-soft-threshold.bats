@@ -30,8 +30,6 @@ _make_lessons_md() {
 # ---------------------------------------------------------------------------
 
 @test "AC-2 WARN: 3501-line lessons.md exits 0 with LESSONS.MD SIZE WARNING on stderr" {
-  skip "pending lessons.md arm implementation (S-15.16-Part-B T-6)"
-
   local lessons_path="${WORK}/.factory/cycles/v1.0-test/lessons.md"
   _make_lessons_md 3501 "${lessons_path}"
 

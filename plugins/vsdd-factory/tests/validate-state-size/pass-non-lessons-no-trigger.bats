@@ -26,8 +26,6 @@ teardown() {
 # ---------------------------------------------------------------------------
 
 @test "AC-5 PASS: lessons-backup.md path does not trigger lessons.md arm (exit 0, no output)" {
-  skip "pending lessons.md arm implementation (S-15.16-Part-B T-6)"
-
   # lessons-backup.md with >4000 lines — would block if lessons.md arm incorrectly matched it
   local backup_path="${WORK}/.factory/cycles/v1.0-test/lessons-backup.md"
   seq 4001 > "${backup_path}"

@@ -41,8 +41,6 @@ teardown() {
 # ---------------------------------------------------------------------------
 
 @test "AC-4 PASS: compaction write (6000→5000 lines) exits 0 unconditionally despite exceeding hard threshold" {
-  skip "pending lessons.md arm implementation (S-15.16-Part-B T-6)"
-
   local lessons_path="${WORK}/.factory/cycles/v1.0-test/lessons.md"
 
   # Write 5000 lines (above 4000 hard threshold, but REDUCING from 6000 committed)

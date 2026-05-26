@@ -31,8 +31,6 @@ _make_lessons_md() {
 # ---------------------------------------------------------------------------
 
 @test "AC-9 WARN: exactly 4000-line lessons.md exits 0 with advisory warning (boundary: >4000 not >=4000 for block)" {
-  skip "pending lessons.md arm implementation (S-15.16-Part-B T-6)"
-
   local lessons_path="${WORK}/.factory/cycles/v1.0-test/lessons.md"
   _make_lessons_md 4000 "${lessons_path}"
 

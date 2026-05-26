@@ -33,8 +33,6 @@ _make_lessons_md() {
 # ---------------------------------------------------------------------------
 
 @test "AC-1 PASS: 925-line lessons.md exits 0 with no stderr output (within threshold)" {
-  skip "pending lessons.md arm implementation (S-15.16-Part-B T-6)"
-
   local lessons_path="${WORK}/.factory/cycles/v1.0-test/lessons.md"
   _make_lessons_md 925 "${lessons_path}"
 

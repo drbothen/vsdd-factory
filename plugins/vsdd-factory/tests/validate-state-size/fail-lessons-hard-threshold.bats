@@ -33,8 +33,6 @@ _make_lessons_md() {
 # ---------------------------------------------------------------------------
 
 @test "AC-3 BLOCK: 4001-line lessons.md exits 2 (hard block threshold exceeded)" {
-  skip "pending lessons.md arm implementation (S-15.16-Part-B T-6)"
-
   local lessons_path="${WORK}/.factory/cycles/v1.0-test/lessons.md"
   _make_lessons_md 4001 "${lessons_path}"
 
@@ -59,8 +57,6 @@ _make_lessons_md() {
 # ---------------------------------------------------------------------------
 
 @test "AC-7 BLOCK: 4001-line lessons.md block message contains D-442(e) and compact-lessons" {
-  skip "pending lessons.md arm implementation (S-15.16-Part-B T-6)"
-
   local lessons_path="${WORK}/.factory/cycles/v1.0-test/lessons.md"
   _make_lessons_md 4001 "${lessons_path}"
 
