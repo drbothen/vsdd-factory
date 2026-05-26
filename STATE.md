@@ -167,7 +167,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | 70811f4a | verified `git rev-parse origin/main` = 70811f4a5d68d163021f46856c3de51bf8f4aab8 2026-05-13; includes CLAUDE.md expansion PR #136 (845d0007 squash-merge) + rc.18 merge PR #135 (666d689f) |
 | develop | a36ab711 | D-503 S-15.10 SHIPPED + Wave 1 COMPLETE PR #154 squash-merge a36ab711 2026-05-25. Prior: D-502 S-15.16-Part-B SHIPPED c1c81603. |
-| factory-artifacts | `SHA-PATCH` | D-503 S-15.10 SHIPPED 2026-05-25 — STORY-INDEX v3.67; BC-5.39.005 active; merged count 71; prior: D-502 `0b49732f` |
+| factory-artifacts | `598a552a` | D-503 S-15.10 SHIPPED 2026-05-25 — STORY-INDEX v3.67; BC-5.39.005 active; merged count 71; prior: D-502 `0b49732f` |
 | v1.0.0-rc.16 (tag) | feb894a2 | SHIPPED; claude-mp PR #8 awaiting human merge |
 | v1.0.0-rc.15 (tag) | e68bb436 | SHIPPED |
 
