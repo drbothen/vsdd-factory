@@ -175,4 +175,27 @@ dispatch story-writer for 3M3b elaboration (5 M3 stories: S-15.10/12/13/15/16-Pa
 - INV-019 cure (a)/(b)/(c) MANDATORY in changelog rows AND persisted reports (D-489+D-493).
 - Cure-extension parsimony principle validated 3 consecutive passes (D-497).
 
+**This checkpoint superseded by D-503 S-15.10 SHIPPED + Wave 1 COMPLETE 2026-05-25.**
+
+---
+
+## Archived Checkpoint: D-503 S-15.10 SHIPPED + Wave 1 COMPLETE (2026-05-25)
+
+*Archived from STATE.md Section 11 per POLICY 1 when D-504 SESSION-END DURABILITY BURST superseded it.*
+
+### §1. Where We Are (D-503)
+- D-503 S-15.10 SHIPPED + Wave 1 COMPLETE 2026-05-25. PR #154 squash-merged at a36ab711. LOCAL adversary 4-pass CONVERGED 3/3 (trajectory 5→0→0→0). BC-5.39.005 POL-14 active. 8 story points. Wave 1 COMPLETE (11pts). 3M3c 2/5 delivered.
+- STORY-INDEX v3.67; merged count 71. D-range D-001..D-503. develop HEAD a36ab711. main HEAD 70811f4a.
+- Prior: D-502 S-15.16-Part-B SHIPPED (PR #153 c1c81603; 3M3c 1/5). D-501 remove-uncertainty COMPLETE (18 fixes; 5 CRITICAL saves). D-500 3M3b-r CONVERGED (7 passes STREAK 3/3).
+
+### §2-§12. Summary (D-503)
+- Operating Mode: brownfield-backfill; E-10 SEALED D-471; F5 PAUSED D-386 Option C; 3M3c ACTIVE Wave 1 COMPLETE.
+- Next: Wave 2 S-15.12 (8pts, BC-5.39.007, priority 156, new WASM crate validate-closes-completeness).
+- 4-index: BC-INDEX v2.49, VP-INDEX v2.06, STORY-INDEX v3.67, ARCH-INDEX v2.15 (all UNCHANGED at D-503).
+- factory-artifacts HEAD at D-503: cea3deb3 (SHA-patch). D-503 codification: 598a552a.
+- Story files ready: S-15.12 v1.3, S-15.13 v1.2, S-15.15 v1.3.
+- All directives (TD-VSDD-097-EXT, TD-VSDD-099, TD-VSDD-100, POLICY 14 5-leg, verification_step 7, INV-019 cure, adversary grep origin/develop) carry forward.
+
+**This checkpoint superseded by D-504 SESSION-END DURABILITY BURST 2026-05-26.**
+
 **This checkpoint superseded by D-498 comprehensive zero-context Section 11 rewrite 2026-05-20.**
