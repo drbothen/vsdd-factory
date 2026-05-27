@@ -79,7 +79,6 @@ _state_md_envelope() {
 # ---------------------------------------------------------------------------
 
 @test "AC-5 FAIL: hook blocks when citation sites have divergent finding counts (3 vs 2)" {
-  @pending
   _require_artifacts
   _setup_fixture
   _write_registry
@@ -102,7 +101,6 @@ _state_md_envelope() {
 # ---------------------------------------------------------------------------
 
 @test "AC-5 FAIL: block message cites D-420(a) for cardinality divergence across citation sites" {
-  @pending
   _require_artifacts
   _setup_fixture
   _write_registry

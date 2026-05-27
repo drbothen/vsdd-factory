@@ -79,7 +79,6 @@ _state_md_envelope() {
 # ---------------------------------------------------------------------------
 
 @test "AC-4 FAIL: hook blocks when STATE.md Decisions Log row Closes is missing F-P15-003 from canonical finding set" {
-  @pending
   _require_artifacts
   _setup_fixture
   _write_registry
@@ -102,7 +101,6 @@ _state_md_envelope() {
 # ---------------------------------------------------------------------------
 
 @test "AC-4 FAIL: block message names missing finding F-P15-003" {
-  @pending
   _require_artifacts
   _setup_fixture
   _write_registry
@@ -121,7 +119,6 @@ _state_md_envelope() {
 # ---------------------------------------------------------------------------
 
 @test "AC-4 FAIL: block message cites D-411 for missing finding at citation site" {
-  @pending
   _require_artifacts
   _setup_fixture
   _write_registry

@@ -77,7 +77,6 @@ _state_md_envelope() {
 # ---------------------------------------------------------------------------
 
 @test "AC-2 PASS: hook emits Continue when pointer file present but adversary review file is unreadable (fail-open)" {
-  @pending
   _require_artifacts
   _setup_fixture
   _write_registry
@@ -105,7 +104,6 @@ _state_md_envelope() {
 # ---------------------------------------------------------------------------
 
 @test "AC-2 PASS: no block message when adversary review file is absent" {
-  @pending
   _require_artifacts
   _setup_fixture
   _write_registry

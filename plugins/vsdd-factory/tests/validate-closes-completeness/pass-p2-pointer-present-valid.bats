@@ -78,7 +78,6 @@ _state_md_envelope() {
 # ---------------------------------------------------------------------------
 
 @test "AC-3 PASS: hook emits Continue when pointer and adversary file present with 3 findings and all sites complete" {
-  @pending
   _require_artifacts
   _setup_fixture
   _write_registry
@@ -105,7 +104,6 @@ _state_md_envelope() {
 # ---------------------------------------------------------------------------
 
 @test "AC-3 PASS: hook correctly extracts all 3 finding IDs from Part A and validates complete citation" {
-  @pending
   _require_artifacts
   _setup_fixture
   _write_registry

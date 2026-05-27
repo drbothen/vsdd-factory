@@ -80,7 +80,6 @@ _state_md_envelope() {
 # ---------------------------------------------------------------------------
 
 @test "AC-1b FAIL: hook emits block (exits 2) when current-adversary-pass.txt contains non-integer content" {
-  @pending
   _require_artifacts
   _setup_fixture
   _write_registry
@@ -106,7 +105,6 @@ _state_md_envelope() {
 # ---------------------------------------------------------------------------
 
 @test "AC-1b FAIL: block message references invalid pointer content and parse-error fix" {
-  @pending
   _require_artifacts
   _setup_fixture
   _write_registry

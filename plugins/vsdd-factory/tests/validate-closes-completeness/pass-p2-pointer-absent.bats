@@ -76,7 +76,6 @@ _state_md_envelope() {
 # ---------------------------------------------------------------------------
 
 @test "AC-1 PASS: hook emits Continue when .factory/current-adversary-pass.txt is absent (Phase 2 skipped, fail-open)" {
-  @pending
   _require_artifacts
   _setup_fixture
   _write_registry
@@ -102,7 +101,6 @@ _state_md_envelope() {
 # ---------------------------------------------------------------------------
 
 @test "AC-1 PASS: no block message emitted when pointer file absent" {
-  @pending
   _require_artifacts
   _setup_fixture
   _write_registry
