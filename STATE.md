@@ -170,7 +170,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | 70811f4a | verified `git rev-parse origin/main` = 70811f4a5d68d163021f46856c3de51bf8f4aab8 2026-05-13; includes CLAUDE.md expansion PR #136 (845d0007 squash-merge) + rc.18 merge PR #135 (666d689f) |
 | develop | ced39c82 | D-508 S-15.13 SHIPPED PR #159 squash-merge ced39c82 2026-05-27. Prior: D-506 S-15.15 SHIPPED 24cc2ba6. |
-| factory-artifacts | `72250e2b` | D-507 SESSION-END DURABILITY BURST 2026-05-27 — STATE.md compacted; policies.yaml + code-delivery committed; Wave 4 S-15.13 dispatch-ready; prior: D-506 `ed8d79cd` |
+| factory-artifacts | `defe9ab1` | D-508 S-15.13 SHIPPED 2026-05-27 — STATE.md + BC-INDEX v2.52 + STORY-INDEX v3.70 + BC-5.39.007 v1.6 updated; Wave 4 COMPLETE; S-15.03 PRIORITY-A COMPLETE; prior: D-507 `72250e2b` |
 | v1.0.0-rc.16 (tag) | feb894a2 | SHIPPED; claude-mp PR #8 awaiting human merge |
 | v1.0.0-rc.15 (tag) | e68bb436 | SHIPPED |
 
@@ -277,7 +277,7 @@ dtu_services: []
 - **3M3c COMPLETE:** All 5 M3 stories = 40pts shipped.
 - **S-15.03 PRIORITY-A COMPLETE:** All 11 stories across M1+M2+M3 milestones shipped.
 - **develop HEAD:** `ced39c82` (PR #159 S-15.13 squash-merge 2026-05-27). **main HEAD:** `70811f4a`.
-- **factory-artifacts HEAD:** verify via `git -C .factory log -1 --format='%h %s'` (D-508 burst commit).
+- **factory-artifacts HEAD:** `defe9ab1` (D-508 S-15.13 SHIPPED 2026-05-27).
 - **D-range:** D-001..D-508.
 - **4-index (post-D-508):** BC-INDEX v2.52, VP-INDEX v2.06, STORY-INDEX v3.70, ARCH-INDEX v2.15.
 - **BC content:** BC-5.39.005 v1.3 ACTIVE + BC-5.39.006 v1.7 ACTIVE + BC-5.39.007 v1.6 ACTIVE (Phase 2 ACs SHIPPED) + BC-5.39.008 v1.5 ACTIVE + BC-7.04.051 v1.1 ACTIVE.
@@ -354,7 +354,7 @@ Prior Tier-A (pre-session, all COMPLETE): TD #71/72/70/74 (PRs #138–141 2026-0
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** verify via `git -C .factory log -1 --format='%h %s'` (D-508 burst commit)
+- **factory-artifacts HEAD:** `defe9ab1` (D-508 S-15.13 SHIPPED 2026-05-27)
 - **develop HEAD:** `ced39c82` (PR #159 S-15.13 squash-merge 2026-05-27)
 - **main HEAD:** `70811f4a` (rc.18 merge + CLAUDE.md expansion)
 - D-507 factory-artifacts HEAD: `72250e2b` (D-507 SESSION-END DURABILITY BURST 2026-05-27)
