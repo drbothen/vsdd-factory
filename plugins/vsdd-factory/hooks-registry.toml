@@ -975,6 +975,26 @@ path_allow = [
   ".factory",
 ]
 
+# ---------- validate-policies-schema (PostToolUse, Edit|Write) ----------
+# BC-5.39.008: blocks on policies.yaml structural violations (Part B)
+# and dispatch package cargo-audit advisories (Part C per ADR-021 Option b).
+# S-15.15 M3 Parts A+B+C. Priority 157.
+
+[[hooks]]
+name = "validate-policies-schema"
+event = "PostToolUse"
+tool = "Edit|Write"
+plugin = "hook-plugins/validate-policies-schema.wasm"
+priority = 157
+timeout_ms = 5000
+on_error = "continue"
+
+[hooks.capabilities.read_file]
+path_allow = [
+  ".factory",
+  "plugins/vsdd-factory",
+]
+
 # ---------- Stop ----------
 
 [[hooks]]

@@ -32,6 +32,7 @@ members = [
     "crates/hook-plugins/validate-per-story-adversary-convergence",
     "crates/vsdd-context-resolvers",
     "crates/hook-plugins/validate-stable-anchors",
+    "crates/hook-plugins/validate-policies-schema",
     "crates/sink-core",
     "crates/sink-file",
     "crates/sink-otel-grpc",

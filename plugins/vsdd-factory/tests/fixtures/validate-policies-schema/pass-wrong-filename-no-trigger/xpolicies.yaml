@@ -1,0 +1,4 @@
+policies:
+  - id: "POLICY 01"
+    name: bad_field
+    severity: INVALID
