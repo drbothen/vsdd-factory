@@ -169,7 +169,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | 70811f4a | verified `git rev-parse origin/main` = 70811f4a5d68d163021f46856c3de51bf8f4aab8 2026-05-13; includes CLAUDE.md expansion PR #136 (845d0007 squash-merge) + rc.18 merge PR #135 (666d689f) |
 | develop | 24cc2ba6 | D-506 S-15.15 SHIPPED PR #158 squash-merge 24cc2ba6 2026-05-27. Prior: D-505 S-15.12 SHIPPED fba7e1cd. |
-| factory-artifacts | `ed8d79cd` | D-506 post-merge burst 2026-05-27 — S-15.15 SHIPPED; BC-5.39.008 POL-14 active; Wave 3 COMPLETE; STORY-INDEX v3.69; prior: D-505 `2db3a7cf` |
+| factory-artifacts | `72250e2b` | D-507 SESSION-END DURABILITY BURST 2026-05-27 — STATE.md compacted; policies.yaml + code-delivery committed; Wave 4 S-15.13 dispatch-ready; prior: D-506 `ed8d79cd` |
 | v1.0.0-rc.16 (tag) | feb894a2 | SHIPPED; claude-mp PR #8 awaiting human merge |
 | v1.0.0-rc.15 (tag) | e68bb436 | SHIPPED |
 
@@ -352,7 +352,7 @@ Prior Tier-A (pre-session, all COMPLETE): TD #71/72/70/74 (PRs #138–141 2026-0
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** verify via `git -C .factory log -1 --format='%h %s'` (D-507 SESSION-END DURABILITY BURST)
+- **factory-artifacts HEAD:** `72250e2b` (D-507 SESSION-END DURABILITY BURST 2026-05-27)
 - **develop HEAD:** `24cc2ba6` (PR #158 S-15.15 squash-merge 2026-05-27)
 - **main HEAD:** `70811f4a` (rc.18 merge + CLAUDE.md expansion)
 - D-506 factory-artifacts HEAD: `ed8d79cd` + SHA-patch `20cb8e1c` (D-506 S-15.15 SHIPPED burst 2026-05-27)
