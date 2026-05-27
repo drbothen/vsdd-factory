@@ -854,6 +854,22 @@ pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
         }
     }
 
+    // Phase 2: cross-site Closes completeness validation (additive to Phase 1).
+    // Run for STATE.md, INDEX.md, and decision-log.md arms where Closes cites appear.
+    // Phase 2 is fail-open at every step — only appends violations when BOTH the pointer
+    // file and adversary file are readable AND violations are found.
+    match arm {
+        Arm::State | Arm::Index | Arm::DecisionLog => {
+            let phase2_violations = run_hook_phase2_cross_site(&file_path, &content);
+            violations.extend(phase2_violations);
+        }
+        Arm::Lessons => {
+            // Phase 2 cross-site validation applies to the structured citation sites;
+            // lessons.md entries are not cross-validated against the adversary canonical set
+            // in Phase 2 (that is a future scope item per BC-5.39.007).
+        }
+    }
+
     if violations.is_empty() {
         HookResult::Continue
     } else {
@@ -868,6 +884,517 @@ enum Arm {
     State,
     Index,
     DecisionLog,
+}
+
+// ---------------------------------------------------------------------------
+// Phase 2 — Cross-site Closes completeness validation (BC-5.39.007 P2-1..P2-4)
+// ---------------------------------------------------------------------------
+
+/// Read `.factory/current-adversary-pass.txt` and parse the integer pass number.
+///
+/// # Return values
+///
+/// - `Ok(None)`: file absent or unreadable via `host::read_file` — **fail-open**
+///   (no block; hook skips Phase 2 per P2-1 postcondition).
+/// - `Err(msg)`: file present but content is not a valid positive integer — **hard block**.
+///   Per ADR-022 parse-error handling, a corrupt pointer file must be fixed (NOT fail-open).
+/// - `Ok(Some(n))`: file present and content parses as u32 `n` (trimming whitespace).
+///
+/// # Architecture compliance
+///
+/// - Uses `host::read_file` which returns `Result<Vec<u8>, HostError>`.
+/// - Converts bytes to String via `String::from_utf8`.
+/// - Pointer file path is always `.factory/current-adversary-pass.txt` per ADR-022 Option c.
+/// - Content is parsed as integer pass number — NOT treated as a file path.
+///
+/// # BC trace
+/// BC-5.39.007 Phase 2 P2-1 postcondition; ADR-022 pointer file specification.
+pub fn read_current_adversary_pass_number() -> Result<Option<u32>, String> {
+    use vsdd_hook_sdk::host;
+
+    const POINTER_PATH: &str = ".factory/current-adversary-pass.txt";
+
+    let bytes = match host::read_file(POINTER_PATH, 1024, 1000) {
+        Ok(b) => b,
+        // HostError: absent or unreadable — fail-open per P2-1
+        Err(_) => return Ok(None),
+    };
+
+    let content = match String::from_utf8(bytes) {
+        Ok(s) => s,
+        Err(_) => {
+            return Err(format!(
+                "validate-closes-completeness: {POINTER_PATH} UTF-8 decode error — \
+                 corrupt pointer file. Run state-manager update-pass-pointer to fix."
+            ));
+        }
+    };
+
+    let trimmed = content.trim();
+    match trimmed.parse::<u32>() {
+        Ok(n) => Ok(Some(n)),
+        Err(_) => Err(format!(
+            "validate-closes-completeness: {POINTER_PATH} contains {:?} which is not a \
+             valid positive integer. Run state-manager update-pass-pointer to fix.",
+            trimmed
+        )),
+    }
+}
+
+/// Derive the adversary review file path from the integer pass number.
+///
+/// Pure function: returns `.factory/cycles/v1.0-brownfield-backfill/adv-cycle-pass-{pass_n}.md`.
+/// The cycle ID is hardcoded for M3 scope (cycle resolver is future scope per ADR-022).
+///
+/// This function encapsulates the pointer-integer → path-string convention per ADR-022,
+/// ensuring the pointer file content is NEVER used as a literal path string.
+///
+/// # BC trace
+/// BC-5.39.007 Phase 2 P2-1b postcondition; ADR-022 pointer file specification.
+pub fn derive_adversary_review_path(pass_n: u32) -> String {
+    format!(".factory/cycles/v1.0-brownfield-backfill/adv-cycle-pass-{pass_n}.md")
+}
+
+/// Extract the canonical finding set from the adversary review file content.
+///
+/// Finds the `## Part A` section (also accepts `# Part A` or `**Part A**` headings).
+/// Within that section, extracts all finding IDs matching:
+/// - `F-P\d+-\d+` (e.g., `F-P15-001`, `F-P74-003`)
+/// - `F-BC\d+P\d+-\d+` (e.g., `F-BC5P39-001`)
+///
+/// Returns `Vec<String>` of unique IDs in order of first appearance.
+/// Returns empty Vec if Part A section not found or no finding IDs present.
+///
+/// # CRITICAL
+/// Does NOT use the `regex` crate — hand-rolled scanning to stay within WASM fuel budget.
+/// The regex crate's DFA compilation exhausts the fuel cap on first call.
+///
+/// # BC trace
+/// BC-5.39.007 Phase 2 P2-2 postcondition.
+pub fn extract_canonical_finding_set(adversary_content: &str) -> Vec<String> {
+    // Find the Part A section start.
+    let part_a_start = find_part_a_start(adversary_content);
+    let part_a_start = match part_a_start {
+        Some(pos) => pos,
+        None => return Vec::new(),
+    };
+
+    // Extract content from Part A start to the next top-level section (## Part or # Part or end).
+    let after_part_a = &adversary_content[part_a_start..];
+    let section_end = find_next_section_after_first(after_part_a);
+    let part_a_content = &after_part_a[..section_end];
+
+    // Extract all finding IDs from Part A content.
+    extract_finding_ids_from_content(part_a_content)
+}
+
+/// Find the byte offset of the start of the Part A section content in `text`.
+///
+/// Accepts:
+/// - `## Part A` — standard h2 heading (with or without ` — suffix`)
+/// - `# Part A` — h1 heading
+/// - `**Part A**` — bold emphasis
+///
+/// Returns `Some(offset)` pointing to the start of the line *after* the heading,
+/// or `None` if no Part A heading found.
+fn find_part_a_start(text: &str) -> Option<usize> {
+    let mut pos = 0usize;
+    for line in text.split('\n') {
+        let line_len = line.len() + 1; // +1 for '\n'
+        let trimmed = line.trim_end_matches('\r').trim();
+
+        let is_part_a = trimmed.starts_with("## Part A")
+            || trimmed.starts_with("# Part A")
+            || trimmed.starts_with("**Part A**");
+
+        if is_part_a {
+            let after = pos + line.len() + 1; // skip the heading line + newline
+            // Guard against exceeding text length
+            return Some(after.min(text.len()));
+        }
+        pos += line_len;
+    }
+    None
+}
+
+/// Find the byte offset of the next top-level section heading after the first line.
+///
+/// Used to delimit the Part A section content. Looks for lines starting with `## `
+/// (but not the very first line if it's a heading).
+///
+/// Returns the byte offset of the start of that next section, or `text.len()` if none.
+fn find_next_section_after_first(text: &str) -> usize {
+    let mut pos = 0usize;
+    let mut first = true;
+    for line in text.split('\n') {
+        let line_len = line.len() + 1; // +1 for '\n'
+        let trimmed = line.trim_end_matches('\r').trim();
+
+        if !first {
+            // Check for any major section heading that marks end of Part A
+            if trimmed.starts_with("## ")
+                || (trimmed.starts_with("# ") && !trimmed.starts_with("## "))
+                || trimmed.starts_with("**Part B")
+                || trimmed.starts_with("**Part C")
+            {
+                return pos;
+            }
+        }
+        first = false;
+        pos += line_len;
+    }
+    pos.min(text.len())
+}
+
+/// Extract all finding IDs (`F-P\d+-\d+` or `F-BC\d+P\d+-\d+`) from `content`.
+///
+/// Returns unique IDs in order of first appearance. Hand-rolled scanning; no regex.
+///
+/// Patterns recognized (all ASCII, so byte scanning is safe):
+/// - `F-P` + digits + `-` + digits  (e.g., `F-P15-001`, `F-P74-003`)
+/// - `F-BC` + digits + `P` + digits + `-` + digits  (e.g., `F-BC5P39-001`)
+fn extract_finding_ids_from_content(content: &str) -> Vec<String> {
+    let mut ids: Vec<String> = Vec::new();
+    let bytes = content.as_bytes();
+    let len = bytes.len();
+    let mut i = 0usize;
+
+    while i < len {
+        // Look for 'F' followed by '-'
+        if bytes[i] == b'F' && i + 1 < len && bytes[i + 1] == b'-' {
+            // Try to match F-BC\d+P\d+-\d+ first (longer pattern)
+            if let Some(end) = try_match_f_bc_pattern(bytes, i) {
+                if content.is_char_boundary(i) && content.is_char_boundary(end) {
+                    let id = content[i..end].to_string();
+                    if !ids.contains(&id) {
+                        ids.push(id);
+                    }
+                }
+                i = end;
+                continue;
+            }
+            // Try to match F-P\d+-\d+
+            if let Some(end) = try_match_f_p_pattern(bytes, i) {
+                if content.is_char_boundary(i) && content.is_char_boundary(end) {
+                    let id = content[i..end].to_string();
+                    if !ids.contains(&id) {
+                        ids.push(id);
+                    }
+                }
+                i = end;
+                continue;
+            }
+        }
+        i += 1;
+    }
+
+    ids
+}
+
+/// Try to match `F-P\d+-\d+` at byte position `start` in `bytes`.
+///
+/// Returns `Some(end_pos)` if matched (end_pos is exclusive), `None` otherwise.
+/// Requires: `bytes[start] == b'F'` and `bytes[start+1] == b'-'`.
+fn try_match_f_p_pattern(bytes: &[u8], start: usize) -> Option<usize> {
+    let len = bytes.len();
+    // Must start with "F-P"
+    if start + 2 >= len || bytes[start + 2] != b'P' {
+        return None;
+    }
+    let mut i = start + 3; // past "F-P"
+    // Collect digits after "F-P"
+    let digit_start = i;
+    while i < len && bytes[i].is_ascii_digit() {
+        i += 1;
+    }
+    if i == digit_start {
+        return None; // no digit after F-P
+    }
+    // Must have '-' separator
+    if i >= len || bytes[i] != b'-' {
+        return None;
+    }
+    i += 1; // skip '-'
+    // Collect digits after '-'
+    let digit2_start = i;
+    while i < len && bytes[i].is_ascii_digit() {
+        i += 1;
+    }
+    if i == digit2_start {
+        return None; // no digit after '-'
+    }
+    Some(i)
+}
+
+/// Try to match `F-BC\d+P\d+-\d+` at byte position `start` in `bytes`.
+///
+/// Returns `Some(end_pos)` if matched, `None` otherwise.
+/// Requires: `bytes[start] == b'F'` and `bytes[start+1] == b'-'`.
+fn try_match_f_bc_pattern(bytes: &[u8], start: usize) -> Option<usize> {
+    let len = bytes.len();
+    // Must start with "F-BC"
+    if start + 3 >= len || bytes[start + 2] != b'B' || bytes[start + 3] != b'C' {
+        return None;
+    }
+    let mut i = start + 4; // past "F-BC"
+    // Collect digits
+    let digit_start = i;
+    while i < len && bytes[i].is_ascii_digit() {
+        i += 1;
+    }
+    if i == digit_start {
+        return None;
+    }
+    // Must have 'P'
+    if i >= len || bytes[i] != b'P' {
+        return None;
+    }
+    i += 1;
+    // Collect digits after 'P'
+    let digit2_start = i;
+    while i < len && bytes[i].is_ascii_digit() {
+        i += 1;
+    }
+    if i == digit2_start {
+        return None;
+    }
+    // Must have '-'
+    if i >= len || bytes[i] != b'-' {
+        return None;
+    }
+    i += 1;
+    // Collect digits after '-'
+    let digit3_start = i;
+    while i < len && bytes[i].is_ascii_digit() {
+        i += 1;
+    }
+    if i == digit3_start {
+        return None;
+    }
+    Some(i)
+}
+
+/// Collect all finding IDs cited in `**Closes:**` lines in `content`.
+///
+/// Scans all lines in `content` for lines starting with `**Closes:**`,
+/// extracts finding IDs (matching `F-P\d+-\d+` or `F-BC\d+P\d+-\d+`)
+/// from the portion after the label.
+///
+/// `site_name` is unused here (it's passed to callers for labeling violations).
+///
+/// Returns `Vec<String>` of unique cited finding IDs.
+///
+/// Pure: no I/O; no regex crate.
+///
+/// # BC trace
+/// BC-5.39.007 Phase 2 P2-3; D-411(c).
+pub fn collect_closes_cites(content: &str, _site_name: &str) -> Vec<String> {
+    let mut ids: Vec<String> = Vec::new();
+    for line in content.split('\n') {
+        let trimmed = line.trim_end_matches('\r').trim();
+        if let Some(rest) = trimmed.strip_prefix("**Closes:**") {
+            let found = extract_finding_ids_from_content(rest);
+            for id in found {
+                if !ids.contains(&id) {
+                    ids.push(id);
+                }
+            }
+        }
+    }
+    ids
+}
+
+/// Collect finding IDs per `**Closes:**` line (one site per line).
+///
+/// Returns a Vec of `(label, Vec<finding_ids>)` — one entry per `**Closes:**` line.
+/// The label includes the site name and a line index for disambiguation.
+///
+/// This enables per-line site comparison for cardinality checks.
+fn collect_closes_sites_by_line(content: &str, site_name: &str) -> Vec<(String, Vec<String>)> {
+    let mut sites: Vec<(String, Vec<String>)> = Vec::new();
+    let mut line_idx = 0usize;
+    for line in content.split('\n') {
+        let trimmed = line.trim_end_matches('\r').trim();
+        if let Some(rest) = trimmed.strip_prefix("**Closes:**") {
+            let ids = extract_finding_ids_from_content(rest);
+            if !ids.is_empty() {
+                let label = format!("{site_name} line {line_idx}");
+                sites.push((label, ids));
+                line_idx += 1;
+            }
+        }
+    }
+    sites
+}
+
+/// Check cross-site completeness: every site must enumerate all canonical finding IDs,
+/// and all sites that enumerate findings must agree on cardinality.
+///
+/// - Missing canonical IDs at a site → `Violation` citing D-411(c)+D-413(b).
+/// - Cardinality divergence across sites → `Violation` citing D-420(a).
+///
+/// `sites`: Vec of `(site_name, cited_ids)` pairs.
+/// `canonical_set`: the authoritative list of finding IDs from Part A.
+///
+/// Returns `Vec<Violation>` — empty if all sites are complete and agree.
+///
+/// Pure: no I/O; no regex crate.
+///
+/// # BC trace
+/// BC-5.39.007 Phase 2 P2-3 postcondition (missing finding → block naming site + D-411(c));
+/// BC-5.39.007 Phase 2 P2-4 postcondition (cardinality divergence → block citing D-420(a)).
+pub fn check_cross_site_completeness(
+    canonical_set: &[String],
+    sites: &[(String, Vec<String>)],
+) -> Vec<Violation> {
+    let mut violations: Vec<Violation> = Vec::new();
+
+    if canonical_set.is_empty() || sites.is_empty() {
+        return violations;
+    }
+
+    // Per-site completeness check (P2-3: each site must have all canonical IDs).
+    for (site_name, cited_ids) in sites {
+        let missing: Vec<&String> = canonical_set
+            .iter()
+            .filter(|id| !cited_ids.contains(id))
+            .collect();
+        if !missing.is_empty() {
+            let missing_list = missing
+                .iter()
+                .map(|s| s.as_str())
+                .collect::<Vec<_>>()
+                .join(", ");
+            violations.push(Violation {
+                description: format!(
+                    "citation site `{site_name}` is missing finding IDs [{missing_list}] \
+                     from the canonical set — all sites must enumerate the complete finding \
+                     set per D-411(c)+D-413(b)"
+                ),
+                cited_raw: missing_list,
+            });
+        }
+    }
+
+    // Cardinality parity check (P2-4: all sites must cite the same count).
+    // Only check sites that have at least one finding ID.
+    let non_empty_sites: Vec<&(String, Vec<String>)> = sites
+        .iter()
+        .filter(|(_, ids)| !ids.is_empty())
+        .collect();
+
+    if non_empty_sites.len() >= 2 {
+        let first_count = non_empty_sites[0].1.len();
+        let all_same = non_empty_sites.iter().all(|(_, ids)| ids.len() == first_count);
+        if !all_same {
+            // Build a summary of the divergence.
+            let counts_summary = non_empty_sites
+                .iter()
+                .map(|(name, ids)| format!("`{name}` cites {} finding(s)", ids.len()))
+                .collect::<Vec<_>>()
+                .join("; ");
+            violations.push(Violation {
+                description: format!(
+                    "multi-site cardinality divergence in Closes citation sets — {counts_summary}; \
+                     all sites must cite the same count of findings per D-420(a)"
+                ),
+                cited_raw: counts_summary,
+            });
+        }
+    }
+
+    violations
+}
+
+/// Orchestrate Phase 2 cross-site validation for a triggered file write.
+///
+/// # Control flow
+///
+/// 1. Call `read_current_adversary_pass_number()`:
+///    - `Ok(None)`: pointer file absent → `log_warn` advisory + return empty Vec (fail-open P2-1).
+///    - `Err(msg)`: corrupt pointer → return `[Violation]` (hard block).
+///    - `Ok(Some(n))`: proceed with pass number n.
+/// 2. Derive adversary review path via `derive_adversary_review_path(n)`.
+///    Read via `host::read_file`; on error → `log_warn` + return empty Vec (fail-open P2-2).
+/// 3. Extract canonical finding set. If empty → `log_warn` + return empty Vec (fail-open P2-2).
+/// 4. Collect Closes cites from `content` (the triggered file).
+/// 5. Call `check_cross_site_completeness`.
+/// 6. Return accumulated violations.
+///
+/// Phase 2 is fail-open at every step — only blocks when BOTH files are readable AND
+/// canonical set is non-empty AND violations are found.
+///
+/// # BC trace
+/// BC-5.39.007 Phase 2 P2-1..P2-4 postconditions; Phase 2 invariant 1 (fail-open).
+pub fn run_hook_phase2_cross_site(file_path: &str, content: &str) -> Vec<Violation> {
+    use vsdd_hook_sdk::host;
+
+    const HOOK_NAME: &str = "validate-closes-completeness";
+
+    // Step 1: read pointer file.
+    let pass_n = match read_current_adversary_pass_number() {
+        Ok(None) => {
+            host::log_warn(&format!(
+                "[{HOOK_NAME}] Phase 2: current-adversary-pass.txt absent; \
+                 skipping cross-site validation. Ensure state-manager's Commit A \
+                 writes this file per ADR-022."
+            ));
+            return Vec::new();
+        }
+        Err(msg) => {
+            // Corrupt pointer file — hard block.
+            return vec![Violation {
+                description: msg.clone(),
+                cited_raw: msg,
+            }];
+        }
+        Ok(Some(n)) => n,
+    };
+
+    // Step 2: derive adversary review path and read file.
+    let adversary_path = derive_adversary_review_path(pass_n);
+    let adversary_content = match host::read_file(&adversary_path, MAX_BYTES, 2000) {
+        Ok(bytes) => match String::from_utf8(bytes) {
+            Ok(s) => s,
+            Err(e) => {
+                host::log_warn(&format!(
+                    "[{HOOK_NAME}] Phase 2: UTF-8 decode error reading {adversary_path}: {e}; \
+                     skipping cross-site validation (fail-open)"
+                ));
+                return Vec::new();
+            }
+        },
+        Err(e) => {
+            host::log_warn(&format!(
+                "[{HOOK_NAME}] Phase 2: adversary review file {adversary_path} unreadable: \
+                 {e:?}; skipping cross-site validation (fail-open P2-2)"
+            ));
+            return Vec::new();
+        }
+    };
+
+    // Step 3: extract canonical finding set.
+    let canonical_set = extract_canonical_finding_set(&adversary_content);
+    if canonical_set.is_empty() {
+        host::log_warn(&format!(
+            "[{HOOK_NAME}] Phase 2: canonical finding set is empty from {adversary_path}; \
+             skipping cross-site validation (fail-open — cannot block on unknown canonical set)"
+        ));
+        return Vec::new();
+    }
+
+    // Step 4: collect per-line Closes cites from the triggered file.
+    // Each **Closes:** line is treated as a separate site for cross-site comparison.
+    let site_name = file_path;
+    let sites = collect_closes_sites_by_line(content, site_name);
+
+    if sites.is_empty() {
+        // No **Closes:** lines with finding IDs in the triggered file — nothing to validate.
+        return Vec::new();
+    }
+
+    // Step 5: cross-site completeness check.
+    check_cross_site_completeness(&canonical_set, &sites)
 }
 
 // ---------------------------------------------------------------------------
