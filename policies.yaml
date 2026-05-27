@@ -1,3 +1,8 @@
+---
+document_type: governance-policy-registry
+version: "1.0"
+last_amended: "2026-05-26 (v1.0) — Part A structural remediation; F-PASS14-004 closure"
+---
 # .factory/policies.yaml — Declarative governance policy registry
 #
 # Each project maintains its own policy list. The adversarial-review skill
@@ -154,7 +159,7 @@ policies:
     enforced_by: [adversary-prompt, lint-hook, consistency-validator]
     scope: [vp, architecture]
     lint_hook: hooks/validate-vp-consistency.sh
-    codified_at: null
+    codified_at: "D-472"
     verification_steps:
       - "Verify VP-INDEX arithmetic: total = sum of per-tool counts = row count"
       - "For each VP in VP-INDEX, verify it appears in verification-architecture.md Provable Properties Catalog"
@@ -170,7 +175,7 @@ policies:
     enforced_by: [adversary-prompt, consistency-validator, pr-reviewer, lint-hook]
     scope: [story, demo-evidence, pr]
     lint_hook: hooks/validate-demo-evidence-story-scoped.sh
-    codified_at: null
+    codified_at: "D-472"
     verification_steps:
       - "For each story's feature branch, verify docs/demo-evidence/<STORY-ID>/ exists"
       - "Verify NO files exist at docs/demo-evidence/*.md — only subfolders"
