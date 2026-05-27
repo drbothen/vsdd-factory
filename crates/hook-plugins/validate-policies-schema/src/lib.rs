@@ -467,7 +467,12 @@ pub fn check_required_fields(entry: &PolicyEntry, index: usize) -> Vec<Violation
         // Non-empty / value check for severity is handled by check_severity_value.
     }
     check_nonempty_value_field(&entry.scope, "scope", &entry_label, &mut violations);
-    check_nonempty_value_field(&entry.description, "description", &entry_label, &mut violations);
+    check_nonempty_value_field(
+        &entry.description,
+        "description",
+        &entry_label,
+        &mut violations,
+    );
     if entry.lint_hook.is_none() {
         violations.push(Violation {
             message: format!("policy entry {entry_label} missing required field `lint_hook`; \
