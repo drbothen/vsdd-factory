@@ -198,4 +198,23 @@ dispatch story-writer for 3M3b elaboration (5 M3 stories: S-15.10/12/13/15/16-Pa
 
 **This checkpoint superseded by D-504 SESSION-END DURABILITY BURST 2026-05-26.**
 
+---
+
+## Archived Checkpoint: D-505 S-15.12 SHIPPED + Wave 2 COMPLETE (2026-05-26)
+
+*Archived from STATE.md Section 11 per POLICY 1 when D-506 S-15.15 SHIPPED post-merge burst superseded it.*
+
+### §1. Where We Are (D-505)
+- D-505 S-15.12 SHIPPED 2026-05-26. PR #155 squash-merged at fba7e1cd. BC-5.39.007 POL-14 active. 8 story points. Wave 2 COMPLETE (8pts). 3M3c 3/5 delivered (19pts).
+- STORY-INDEX v3.68; merged count 72. D-range D-001..D-505. develop HEAD fba7e1cd. main HEAD 70811f4a.
+- Wave 3 NEXT: S-15.15 validate-policies-schema (13pts, ADR-021 gated, priority 157). Remaining after: S-15.13 (Wave 4).
+
+### §2-§12. Summary (D-505)
+- 4-index: BC-INDEX v2.50, VP-INDEX v2.06, STORY-INDEX v3.68, ARCH-INDEX v2.15 (VP/ARCH UNCHANGED at D-505).
+- factory-artifacts HEAD at D-505: 2db3a7cf. develop HEAD fba7e1cd.
+- BC content: BC-5.39.005 v1.3 ACTIVE + BC-5.39.006 v1.7 ACTIVE + BC-5.39.007 v1.5 ACTIVE (POL-14 D-505) + BC-5.39.008 v1.5 draft + BC-7.04.051 v1.1 ACTIVE.
+- All directives (TD-VSDD-097-EXT, TD-VSDD-099, TD-VSDD-100, POLICY 14 5-leg, verification_step 7, INV-019 cure, adversary grep origin/develop) carry forward.
+
+**This checkpoint superseded by D-506 S-15.15 SHIPPED 2026-05-27.**
+
 **This checkpoint superseded by D-498 comprehensive zero-context Section 11 rewrite 2026-05-20.**
