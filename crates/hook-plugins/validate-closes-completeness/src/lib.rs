@@ -1176,9 +1176,12 @@ fn try_match_f_bc_pattern(bytes: &[u8], start: usize) -> Option<usize> {
 
 /// Collect all finding IDs cited in `**Closes:**` lines in `content`.
 ///
-/// Scans all lines in `content` for lines starting with `**Closes:**`,
+/// Scans all lines in `content` for lines containing `**Closes:**`,
 /// extracts finding IDs (matching `F-P\d+-\d+` or `F-BC\d+P\d+-\d+`)
 /// from the portion after the label.
+///
+/// Searches for `**Closes:**` *anywhere* on the line (handles table-row format
+/// in STATE.md where Closes appear as `| D-411 | ... | **Closes:** F-P15-001 |`).
 ///
 /// `site_name` is unused here (it's passed to callers for labeling violations).
 ///
@@ -1190,13 +1193,19 @@ fn try_match_f_bc_pattern(bytes: &[u8], start: usize) -> Option<usize> {
 /// BC-5.39.007 Phase 2 P2-3; D-411(c).
 pub fn collect_closes_cites(content: &str, _site_name: &str) -> Vec<String> {
     let mut ids: Vec<String> = Vec::new();
+    let closes_prefix = "**Closes:**";
     for line in content.split('\n') {
         let trimmed = line.trim_end_matches('\r').trim();
-        if let Some(rest) = trimmed.strip_prefix("**Closes:**") {
-            let found = extract_finding_ids_from_content(rest);
-            for id in found {
-                if !ids.contains(&id) {
-                    ids.push(id);
+        // Search for **Closes:** anywhere in the line (handles table-row format).
+        if let Some(pos) = trimmed.find(closes_prefix) {
+            let rest_start = pos + closes_prefix.len();
+            if trimmed.is_char_boundary(rest_start) {
+                let rest = &trimmed[rest_start..];
+                let found = extract_finding_ids_from_content(rest);
+                for id in found {
+                    if !ids.contains(&id) {
+                        ids.push(id);
+                    }
                 }
             }
         }
@@ -1210,17 +1219,27 @@ pub fn collect_closes_cites(content: &str, _site_name: &str) -> Vec<String> {
 /// The label includes the site name and a line index for disambiguation.
 ///
 /// This enables per-line site comparison for cardinality checks.
+///
+/// Searches for `**Closes:**` *anywhere* on the line (not just at the start),
+/// to handle table-row format in STATE.md where Closes appear as:
+/// `| D-411 | ... | **Closes:** F-P15-001, F-P15-002 |`
 fn collect_closes_sites_by_line(content: &str, site_name: &str) -> Vec<(String, Vec<String>)> {
     let mut sites: Vec<(String, Vec<String>)> = Vec::new();
     let mut line_idx = 0usize;
+    let closes_prefix = "**Closes:**";
     for line in content.split('\n') {
         let trimmed = line.trim_end_matches('\r').trim();
-        if let Some(rest) = trimmed.strip_prefix("**Closes:**") {
-            let ids = extract_finding_ids_from_content(rest);
-            if !ids.is_empty() {
-                let label = format!("{site_name} line {line_idx}");
-                sites.push((label, ids));
-                line_idx += 1;
+        // Search for **Closes:** anywhere in the line (handles table-row format).
+        if let Some(pos) = trimmed.find(closes_prefix) {
+            let rest_start = pos + closes_prefix.len();
+            if trimmed.is_char_boundary(rest_start) {
+                let rest = &trimmed[rest_start..];
+                let ids = extract_finding_ids_from_content(rest);
+                if !ids.is_empty() {
+                    let label = format!("{site_name} line {line_idx}");
+                    sites.push((label, ids));
+                    line_idx += 1;
+                }
             }
         }
     }
@@ -1278,14 +1297,14 @@ pub fn check_cross_site_completeness(
 
     // Cardinality parity check (P2-4: all sites must cite the same count).
     // Only check sites that have at least one finding ID.
-    let non_empty_sites: Vec<&(String, Vec<String>)> = sites
-        .iter()
-        .filter(|(_, ids)| !ids.is_empty())
-        .collect();
+    let non_empty_sites: Vec<&(String, Vec<String>)> =
+        sites.iter().filter(|(_, ids)| !ids.is_empty()).collect();
 
     if non_empty_sites.len() >= 2 {
         let first_count = non_empty_sites[0].1.len();
-        let all_same = non_empty_sites.iter().all(|(_, ids)| ids.len() == first_count);
+        let all_same = non_empty_sites
+            .iter()
+            .all(|(_, ids)| ids.len() == first_count);
         if !all_same {
             // Build a summary of the divergence.
             let counts_summary = non_empty_sites
@@ -1763,5 +1782,100 @@ Body 2.
         let line = "D-389..D-400 and D-401..D-454 both.";
         let found = find_umbrella_cites(line);
         assert_eq!(found.len(), 2);
+    }
+
+    // ---- Phase 2: extract_canonical_finding_set ----
+
+    #[test]
+    fn test_extract_canonical_finding_set_from_adversary_file() {
+        let content = "# Adversary Review\n\n## Part A — Findings\n\n### F-P15-001 (HIGH): Desc\n\n**Closes:** F-P15-001\n\n---\n\n### F-P15-002 (MEDIUM): Desc\n\n**Closes:** F-P15-002\n\n---\n\n### F-P15-003 (LOW): Desc\n\n**Closes:** F-P15-003\n\n## Part B — Meta-Observations\n\nNone.\n";
+        let ids = extract_canonical_finding_set(content);
+        assert_eq!(ids.len(), 3, "expected 3 IDs, got: {:?}", ids);
+        assert!(ids.contains(&"F-P15-001".to_string()));
+        assert!(ids.contains(&"F-P15-002".to_string()));
+        assert!(ids.contains(&"F-P15-003".to_string()));
+    }
+
+    #[test]
+    fn test_extract_canonical_finding_set_no_part_a() {
+        let content = "## Part B — Meta-Observations\n\nSome observations.\n";
+        let ids = extract_canonical_finding_set(content);
+        assert!(ids.is_empty());
+    }
+
+    #[test]
+    fn test_collect_closes_sites_by_line_state_md() {
+        // STATE.md with one row citing 2 findings
+        let content =
+            "| D-411 | Closure-set completeness lint | **Closes:** F-P15-001, F-P15-002 |\n";
+        let sites = collect_closes_sites_by_line(content, ".factory/STATE.md");
+        assert_eq!(sites.len(), 1, "expected 1 site, got: {:?}", sites);
+        assert_eq!(sites[0].1.len(), 2);
+    }
+
+    #[test]
+    fn test_check_cross_site_completeness_missing_finding() {
+        let canonical = vec![
+            "F-P15-001".to_string(),
+            "F-P15-002".to_string(),
+            "F-P15-003".to_string(),
+        ];
+        let sites = vec![(
+            "site1".to_string(),
+            vec!["F-P15-001".to_string(), "F-P15-002".to_string()],
+        )];
+        let violations = check_cross_site_completeness(&canonical, &sites);
+        assert!(
+            !violations.is_empty(),
+            "expected violations for missing F-P15-003"
+        );
+        assert!(violations[0].description.contains("D-411"));
+        assert!(violations[0].description.contains("F-P15-003"));
+    }
+
+    #[test]
+    fn test_check_cross_site_completeness_cardinality_diverges() {
+        let canonical = vec![
+            "F-P15-001".to_string(),
+            "F-P15-002".to_string(),
+            "F-P15-003".to_string(),
+        ];
+        let sites = vec![
+            (
+                "site1".to_string(),
+                vec![
+                    "F-P15-001".to_string(),
+                    "F-P15-002".to_string(),
+                    "F-P15-003".to_string(),
+                ],
+            ),
+            (
+                "site2".to_string(),
+                vec!["F-P15-001".to_string(), "F-P15-002".to_string()],
+            ),
+        ];
+        let violations = check_cross_site_completeness(&canonical, &sites);
+        // site2 is missing F-P15-003 AND there's cardinality divergence
+        let has_cardinality = violations.iter().any(|v| v.description.contains("D-420"));
+        assert!(
+            has_cardinality,
+            "expected D-420 cardinality violation, got: {:?}",
+            violations
+                .iter()
+                .map(|v| &v.description)
+                .collect::<Vec<_>>()
+        );
+    }
+
+    #[test]
+    fn test_derive_adversary_review_path() {
+        assert_eq!(
+            derive_adversary_review_path(15),
+            ".factory/cycles/v1.0-brownfield-backfill/adv-cycle-pass-15.md"
+        );
+        assert_eq!(
+            derive_adversary_review_path(1),
+            ".factory/cycles/v1.0-brownfield-backfill/adv-cycle-pass-1.md"
+        );
     }
 }
