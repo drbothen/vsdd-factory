@@ -955,11 +955,15 @@ path_allow = [
 ]
 
 # ---------- validate-closes-completeness (PostToolUse, Edit|Write) ----------
-# BC-5.39.007 Phase 1: blocks missing **Closes:** lines in lessons.md entries
+# BC-5.39.007 Phase 1+2: blocks missing **Closes:** lines in lessons.md entries
 # (D-448(b)), forbidden per-mechanism annotations (D-419(c)+D-420(e)),
 # umbrella cites without sample-vs-exhaustive flag (D-441(c)+D-442(c)),
 # and undeclared documentary-historical exemptions (D-443(b)).
-# S-15.12 M3. Phase 2 cross-cell agreement added by S-15.13 (gated on ADR-022).
+# Phase 2 (S-15.13): cross-site Closes completeness validation — reads
+# .factory/current-adversary-pass.txt (ADR-022 Option c pointer file) and
+# .factory/cycles/v1.0-brownfield-backfill/adv-cycle-pass-{N}.md to validate
+# that all citation sites enumerate the complete finding set per D-411(c)+D-413(b)+D-420(a).
+# path_allow = [".factory"] covers both pointer file and adversary review files.
 
 [[hooks]]
 name = "validate-closes-completeness"
