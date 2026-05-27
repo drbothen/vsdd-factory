@@ -51,6 +51,13 @@ use vsdd_hook_sdk::{HookPayload, HookResult};
 pub const MAX_BYTES: u32 = 524_288;
 
 /// HOST_ABI_VERSION declares the ABI contract version this plugin was built against.
+///
+/// NOTE: This constant is declared locally in each hook plugin crate rather than
+/// imported from vsdd-hook-sdk. This is a systemic pattern across all 21 native-WASM
+/// hook plugins — each plugin statically declares the ABI version it was compiled
+/// against so the dispatcher can reject mismatched plugins at load time. Centralizing
+/// this into the SDK would require a breaking SDK change and is tracked as a future
+/// refactor, not a per-plugin defect.
 pub const HOST_ABI_VERSION: u32 = 1;
 
 // ---------------------------------------------------------------------------
@@ -101,6 +108,12 @@ pub fn is_dispatch_package_target(file_path: &str) -> bool {
         .unwrap_or("");
     // Pattern: ^td-.*-dispatch\.md$ where .* is non-empty (at least one char between td- and -dispatch.md).
     // Ensure the prefix and suffix don't overlap: filename must have length > len("td-") + len("-dispatch.md").
+    //
+    // Intentional tightening vs BC regex: `td--dispatch.md` (empty middle segment) is rejected
+    // because len("td-") + len("-dispatch.md") = 15 and "td--dispatch.md" has len 15, which fails
+    // the strict `>` guard. The BC regex `td-.*-dispatch\.md` would technically match with `.*`
+    // being empty, but valid dispatch package IDs always have a non-empty numeric segment
+    // (e.g., `td-99-dispatch.md`). Rejecting the degenerate empty-segment form is correct.
     const PREFIX: &str = "td-";
     const SUFFIX: &str = "-dispatch.md";
     if filename.len() <= PREFIX.len() + SUFFIX.len() {
@@ -212,18 +225,20 @@ pub fn parse_policies_yaml(content: &str) -> Result<(FrontmatterHeader, Vec<Poli
                     _ => {}
                 }
             }
-        } else if has_policies {
-            // Policies body document.
-            if let Some(policies_val) = mapping
+        }
+        // Parse policies from ANY document that has a `policies` key — handles both
+        // the canonical two-document format (separate frontmatter + body) and the
+        // degenerate single-document format (both keys in one YAML document).
+        if has_policies
+            && let Some(policies_val) = mapping
                 .iter()
                 .find(|(k, _)| k.as_str() == Some("policies"))
                 .map(|(_, v)| v)
-                && let Some(list) = policies_val.as_sequence()
-            {
-                for item in list {
-                    let entry = parse_policy_entry(item);
-                    entries.push(entry);
-                }
+            && let Some(list) = policies_val.as_sequence()
+        {
+            for item in list {
+                let entry = parse_policy_entry(item);
+                entries.push(entry);
             }
         }
     }
@@ -379,6 +394,52 @@ pub fn check_header_fields(header: &FrontmatterHeader) -> Vec<Violation> {
     violations
 }
 
+/// Helper: check that a serde_json::Value field is present and is a non-empty string.
+/// BC-5.39.008 invariant 5 requires `name`, `scope`, `description` to be non-empty.
+/// Production `policies.yaml` uses YAML arrays for `scope` (e.g., `scope: [bc, vp, di]`)
+/// and strings for `name`/`description`. This function accepts both: non-null, non-empty
+/// values of any JSON type (string, array, object). Only `null` and empty strings trigger
+/// a violation. Non-empty arrays and objects are considered valid (present + non-empty).
+fn check_nonempty_value_field(
+    field: &Option<serde_json::Value>,
+    field_name: &str,
+    entry_label: &str,
+    violations: &mut Vec<Violation>,
+) {
+    match field {
+        None => violations.push(Violation {
+            message: format!("policy entry {entry_label} missing required field `{field_name}`"),
+            cited_raw: field_name.to_string(),
+        }),
+        Some(serde_json::Value::Null) => violations.push(Violation {
+            message: format!(
+                "policy entry {entry_label} has null `{field_name}` \
+                 (must be non-empty per BC-5.39.008 invariant 5)"
+            ),
+            cited_raw: field_name.to_string(),
+        }),
+        Some(serde_json::Value::String(s)) if s.trim().is_empty() => {
+            violations.push(Violation {
+                message: format!(
+                    "policy entry {entry_label} has empty `{field_name}` \
+                     (must be non-empty string per BC-5.39.008 invariant 5)"
+                ),
+                cited_raw: field_name.to_string(),
+            });
+        }
+        Some(serde_json::Value::Array(arr)) if arr.is_empty() => {
+            violations.push(Violation {
+                message: format!(
+                    "policy entry {entry_label} has empty array `{field_name}` \
+                     (must be non-empty per BC-5.39.008 invariant 5)"
+                ),
+                cited_raw: field_name.to_string(),
+            });
+        }
+        _ => {} // Non-empty string, non-empty array, object, number, bool — all valid (present + non-empty)
+    }
+}
+
 /// Check that a policy entry has all 7 required fields present.
 ///
 /// Required fields: id, name, severity, scope, description, lint_hook, codified_at.
@@ -395,30 +456,18 @@ pub fn check_required_fields(entry: &PolicyEntry, index: usize) -> Vec<Violation
             cited_raw: "id".to_string(),
         });
     }
-    if entry.name.is_none() {
-        violations.push(Violation {
-            message: format!("policy entry {entry_label} missing required field `name`"),
-            cited_raw: "name".to_string(),
-        });
-    }
+    // BC-5.39.008 invariant 5: name, scope, description must be non-empty strings.
+    // Check both presence AND non-emptiness. Fields are serde_json::Value.
+    check_nonempty_value_field(&entry.name, "name", &entry_label, &mut violations);
     if entry.severity.is_none() {
         violations.push(Violation {
             message: format!("policy entry {entry_label} missing required field `severity`"),
             cited_raw: "severity".to_string(),
         });
+        // Non-empty / value check for severity is handled by check_severity_value.
     }
-    if entry.scope.is_none() {
-        violations.push(Violation {
-            message: format!("policy entry {entry_label} missing required field `scope`"),
-            cited_raw: "scope".to_string(),
-        });
-    }
-    if entry.description.is_none() {
-        violations.push(Violation {
-            message: format!("policy entry {entry_label} missing required field `description`"),
-            cited_raw: "description".to_string(),
-        });
-    }
+    check_nonempty_value_field(&entry.scope, "scope", &entry_label, &mut violations);
+    check_nonempty_value_field(&entry.description, "description", &entry_label, &mut violations);
     if entry.lint_hook.is_none() {
         violations.push(Violation {
             message: format!("policy entry {entry_label} missing required field `lint_hook`; \
@@ -581,10 +630,18 @@ pub fn check_duplicate_ids(entries: &[PolicyEntry]) -> Vec<Violation> {
 /// # BC trace
 /// BC-5.39.008 postcondition 6.
 pub fn check_lint_hook_exists(lint_hook: &str, registry_content: &str) -> bool {
-    // Normalize namespaced slug: extract basename after `:`.
+    // Normalize lint_hook value to a bare plugin slug:
+    // 1. Namespaced slug: `"vsdd-factory:validate-burst-log"` → `"validate-burst-log"`
+    // 2. Path-style: `"hooks/validate-vp-consistency.sh"` → `"validate-vp-consistency"`
+    // 3. Bare slug: `"validate-dispatch-advance"` → unchanged
     let basename = if let Some(pos) = lint_hook.rfind(':') {
+        // Namespaced slug normalization.
         let after = &lint_hook[pos + 1..];
         if after.is_empty() { lint_hook } else { after }
+    } else if lint_hook.contains('/') {
+        // Path-style normalization: strip directory prefix and .sh extension.
+        let after_slash = lint_hook.rsplit('/').next().unwrap_or(lint_hook);
+        after_slash.strip_suffix(".sh").unwrap_or(after_slash)
     } else {
         lint_hook
     };
@@ -642,8 +699,16 @@ pub fn check_lint_hook_and_codified_at(
             return violations;
         }
         Some(serde_json::Value::Null) => {
-            // codified_at: null with non-null lint_hook — that's acceptable
-            // (baseline policies predate D-472 and may have null codified_at)
+            // codified_at: null with non-null lint_hook → block per BC-5.39.008 PC7.
+            // Production policies.yaml POLICY 9+10 have been retroactively assigned D-472.
+            violations.push(Violation {
+                message: format!(
+                    "policy entry {entry_label} has `codified_at: null` but `lint_hook` is non-null; \
+                     `codified_at` must be a D-NNN string when `lint_hook` is set \
+                     (per BC-5.39.008 PC7 + D-472)"
+                ),
+                cited_raw: "codified_at: null".to_string(),
+            });
             return violations;
         }
         Some(serde_json::Value::String(s)) => s.as_str(),
@@ -1423,6 +1488,34 @@ event = "PostToolUse"
         ));
     }
 
+    #[test]
+    fn test_check_lint_hook_exists_path_style() {
+        // Regression test for ADV-P03-MED-001: path-style lint_hook values
+        // like `hooks/validate-vp-consistency.sh` must be normalized to the
+        // slug `validate-vp-consistency` before registry lookup.
+        let registry = r#"
+[[hooks]]
+name = "validate-vp-consistency"
+event = "PostToolUse"
+
+[[hooks]]
+name = "validate-demo-evidence-story-scoped"
+event = "PostToolUse"
+"#;
+        assert!(check_lint_hook_exists(
+            "hooks/validate-vp-consistency.sh",
+            registry
+        ));
+        assert!(check_lint_hook_exists(
+            "hooks/validate-demo-evidence-story-scoped.sh",
+            registry
+        ));
+        assert!(!check_lint_hook_exists(
+            "hooks/nonexistent-hook.sh",
+            registry
+        ));
+    }
+
     // ---- is_d_nnn_format ----
 
     #[test]
@@ -1481,11 +1574,17 @@ unsafe_crate = "0.1.0"
         assert!(!deps.is_empty());
     }
 
-    // ---- YAML merge key does not panic ----
+    // ---- YAML anchors/aliases do not panic ----
 
     #[test]
-    fn test_yaml_with_merge_keys_does_not_panic() {
-        // serde_norway should handle YAML anchors/aliases without panic.
+    fn test_yaml_with_anchors_and_aliases_does_not_panic() {
+        // serde_norway handles YAML anchors (&anchor) and aliases (*alias) natively.
+        // This fixture uses a scalar anchor to share the scope value between entries,
+        // exercising the anchor-resolution path in serde_norway before schema checks run.
+        //
+        // Note: serde_norway 0.9 resolves anchors/aliases but does NOT support the YAML
+        // merge key syntax (<<: *alias) on mappings. This test uses scalar anchors only,
+        // which ARE supported.
         let content = r#"---
 document_type: governance-policy-registry
 version: "1.0"
@@ -1494,15 +1593,97 @@ last_amended: "2026-05-26"
 
 policies:
   - id: 1
-    name: policy_one
-    description: "A policy"
+    name: policy_with_anchor
+    description: "A policy with anchor-inherited scope"
+    severity: HIGH
+    scope: &factory_scope ".factory/"
+    lint_hook: null
+    codified_at: null
+  - id: 2
+    name: policy_using_alias
+    description: "A policy reusing scope via alias"
+    severity: HIGH
+    scope: *factory_scope
+    lint_hook: null
+    codified_at: null
+"#;
+        // Should not panic — serde_norway resolves &anchor/*alias before schema checks.
+        let result = parse_policies_yaml(content);
+        assert!(
+            result.is_ok(),
+            "parse should succeed with anchor/alias: {result:?}"
+        );
+        let (header, entries) = result.unwrap();
+        assert_eq!(
+            header.document_type.as_deref(),
+            Some("governance-policy-registry")
+        );
+        assert_eq!(entries.len(), 2);
+        // Both entries should have their scope resolved (not raw anchor/alias tokens).
+        let scope_0 = entries[0]
+            .scope
+            .as_ref()
+            .and_then(|v| v.as_str())
+            .unwrap_or("");
+        let scope_1 = entries[1]
+            .scope
+            .as_ref()
+            .and_then(|v| v.as_str())
+            .unwrap_or("");
+        assert_eq!(
+            scope_0, ".factory/",
+            "anchored scope should resolve to .factory/"
+        );
+        assert_eq!(
+            scope_1, ".factory/",
+            "aliased scope should resolve to .factory/"
+        );
+    }
+
+    #[test]
+    fn test_single_document_with_both_header_and_policies() {
+        // Regression test for IMP-001 (pass-2): when `---` separator is absent
+        // and both document_type + policies appear in ONE YAML document, the
+        // parser must still detect and parse the policy entries.
+        let content = r#"document_type: governance-policy-registry
+version: "1.0"
+last_amended: "2026-05-26"
+policies:
+  - id: 1
+    name: test_policy
+    description: "Policy in single-document format"
+    severity: HIGH
+    scope: ".factory/"
+    lint_hook: null
+    codified_at: null
+  - id: "BAD_STRING"
+    name: another_policy
+    description: "Invalid id — must be integer"
     severity: HIGH
     scope: ".factory/"
     lint_hook: null
     codified_at: null
 "#;
-        // Should not panic — just exercise the parse path.
         let result = parse_policies_yaml(content);
-        assert!(result.is_ok());
+        assert!(result.is_ok(), "single-document parse must succeed");
+        let (header, entries) = result.unwrap();
+        // Header must be parsed.
+        assert_eq!(
+            header.document_type.as_deref(),
+            Some("governance-policy-registry")
+        );
+        assert!(header.version.is_some());
+        // Policies must ALSO be parsed (not silently skipped).
+        assert_eq!(
+            entries.len(),
+            2,
+            "both policy entries must be parsed from single-document format"
+        );
+        // Verify the id-format check would catch the string id.
+        let violations = check_policy_id_format(&entries[1], 1);
+        assert!(
+            !violations.is_empty(),
+            "string id 'BAD_STRING' must produce a violation"
+        );
     }
 }

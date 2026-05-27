@@ -1,7 +1,13 @@
 [package]
 name = "validate-policies-schema"
 version = "0.1.0"
-edition = "2024"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+description = "WASM hook plugin: PostToolUse gate that validates .factory/policies.yaml structural integrity (Part B) and checks dispatch packages against the cargo-audit advisory cache (Part C) (BC-5.39.008)"
+publish = false
 
 [lib]
 crate-type = ["cdylib", "rlib"]

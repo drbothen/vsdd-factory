@@ -7,11 +7,15 @@
 #   S-15.11 F-P2-001 lesson (preemptive application — included from day 1, not added in fix-burst)
 #   Dispatch package §Hard Constraint 1 (bare paths, no "**" glob in path_allow)
 #
-# Two scenarios:
+# Three scenarios:
 #   A. Production-shape registry + valid policies.yaml => exit 0 (Continue, not fail-open)
 #      Proves host::read_file succeeds (capability grants access).
 #   B. Production-shape registry + invalid policies.yaml (missing version header) => exit 2 (Block)
 #      Proves hook actually evaluates content (distinguishes real Continue from fail-open Continue).
+#   C. Production-shape registry + policies.yaml with nonexistent lint_hook => exit 2 (Block)
+#      Proves registry read works with production path_allow (includes "plugins/vsdd-factory").
+#      If "plugins/vsdd-factory" missing from path_allow: CapabilityDenied => fail-open => exit 0.
+#      CRIT-001 regression guard.
 #
 # If path_allow uses "**" glob (regression to S-15.07/S-15.11 bug): canonicalize() fails =>
 # path_allowed() returns false => host::read_file returns CapabilityDenied => hook fail-opens =>
@@ -33,9 +37,11 @@ setup() {
   PRODUCTION_REGISTRY="$REPO_ROOT/plugins/vsdd-factory/hooks-registry.toml"
   FIXTURE_VALID="${BATS_TEST_DIRNAME}/../fixtures/validate-policies-schema/integration-production-registry"
   FIXTURE_INVALID="${BATS_TEST_DIRNAME}/../fixtures/validate-policies-schema/fail-missing-header-field"
+  FIXTURE_NONEXISTENT_PLUGIN="${BATS_TEST_DIRNAME}/../fixtures/validate-policies-schema/integration-production-registry-nonexistent-plugin"
   WORK="$(mktemp -d)"
   mkdir -p "$WORK/hook-plugins"
   mkdir -p "$WORK/.factory/logs"
+  mkdir -p "$WORK/plugins/vsdd-factory"
 }
 
 teardown() {
@@ -83,7 +89,8 @@ _write_production_registry() {
     return 1
   fi
 
-  # Extract path_allow from production registry for validate-policies-schema entry
+  # Extract path_allow from production registry for validate-policies-schema entry.
+  # Each extracted line is a bare quoted string (e.g., ".factory" or "plugins/vsdd-factory").
   local prod_path_allow
   prod_path_allow=$(awk '
     /^name = "validate-policies-schema"$/ { in_hook=1 }
@@ -104,6 +111,12 @@ _write_production_registry() {
     return 1
   fi
 
+  # Convert multi-line path_allow entries to a comma-separated inline TOML array.
+  # Input: one quoted string per line (e.g., `".factory"\n"plugins/vsdd-factory"`).
+  # Output: `[".factory", "plugins/vsdd-factory"]` — valid TOML inline array.
+  local path_allow_toml
+  path_allow_toml=$(echo "$prod_path_allow" | awk 'BEGIN{ORS=""} NR>1{printf ", "} {print}')
+
   cat > "$WORK/hooks-registry.toml" << TOML
 schema_version = 2
 
@@ -117,9 +130,7 @@ timeout_ms = 5000
 on_error = "continue"
 
 [hooks.capabilities.read_file]
-path_allow = [
-  ${prod_path_allow}
-]
+path_allow = [${path_allow_toml}]
 TOML
 }
 
@@ -203,4 +214,46 @@ _policies_yaml_envelope() {
   # due to CapabilityDenied from misconfigured path_allow — the preemptive S-15.11 regression.
   [ "$status" -eq 2 ]
   [[ "$output" == *"blocking_plugins=validate-policies-schema"* ]]
+}
+
+# ---------------------------------------------------------------------------
+# AC-25 / Scenario C: production-shape registry + policies.yaml with nonexistent lint_hook => exit 2
+#
+# Proves the registry READ works with the production path_allow (which includes
+# "plugins/vsdd-factory"). If path_allow were missing "plugins/vsdd-factory":
+#   - host::read_file(hooks-registry.toml) returns CapabilityDenied => fail-open skip
+#   - hook cannot verify lint_hook existence => exits 0 (false Continue)
+#   - TEST FAILS (expected 2, got 0)
+#
+# With path_allow = [".factory", "plugins/vsdd-factory"] (CRIT-001 fix):
+#   - host::read_file succeeds => registry content available
+#   - "nonexistent-plugin" NOT found in registry => BlockWithFix naming missing plugin
+#   - TEST PASSES (exit 2)
+# ---------------------------------------------------------------------------
+
+@test "PROD-REGISTRY: hook blocks for nonexistent lint_hook using production path_allow (registry read works)" {
+  _require_artifacts
+  cp -r "$FIXTURE_NONEXISTENT_PLUGIN/factory/." "$WORK/.factory/"
+  # Copy the production registry to plugins/vsdd-factory so the hook can read it via path_allow
+  cp "$PRODUCTION_REGISTRY" "$WORK/plugins/vsdd-factory/hooks-registry.toml"
+  _write_production_registry || {
+    echo "production registry validation failed — test cannot proceed" >&2
+    return 1
+  }
+  grep -q 'path_allow = \[' "$WORK/hooks-registry.toml" || {
+    echo "FAIL: synthesized registry missing path_allow block" >&2
+    return 1
+  }
+  cp "$WASM_PLUGIN" "$WORK/hook-plugins/"
+
+  local envelope
+  envelope="$(_policies_yaml_envelope "prod-nonexistent-plugin")"
+  run bash -c "printf '%s' '$envelope' | CLAUDE_PLUGIN_ROOT='$WORK' CLAUDE_PROJECT_DIR='$WORK' '$DISPATCHER' 2>&1 >/dev/null"
+
+  # Exit 2: lint_hook "nonexistent-plugin" not in registry => Block.
+  # Exit 0 here means the registry read failed (CapabilityDenied due to missing
+  # "plugins/vsdd-factory" in path_allow) causing silent fail-open — the CRIT-001 bug.
+  [ "$status" -eq 2 ]
+  [[ "$output" == *"blocking_plugins=validate-policies-schema"* ]]
+  [[ "$output" == *"nonexistent-plugin"* ]]
 }
