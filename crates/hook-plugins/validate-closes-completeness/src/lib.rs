@@ -864,9 +864,10 @@ pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
             violations.extend(phase2_violations);
         }
         Arm::Lessons => {
-            // Phase 2 cross-site validation applies to the structured citation sites;
-            // lessons.md entries are not cross-validated against the adversary canonical set
-            // in Phase 2 (that is a future scope item per BC-5.39.007).
+            // BC-5.39.007 lists lessons.md as one of the 8 citation sites for Phase 2
+            // cross-site validation. Run Phase 2 for lessons.md same as other arms.
+            let phase2_violations = run_hook_phase2_cross_site(&file_path, &content);
+            violations.extend(phase2_violations);
         }
     }
 
@@ -931,13 +932,14 @@ pub fn read_current_adversary_pass_number() -> Result<Option<u32>, String> {
     };
 
     let trimmed = content.trim();
+    // ADR-022 specifies "positive integer" — 0 is not a valid pass number.
     match trimmed.parse::<u32>() {
-        Ok(n) => Ok(Some(n)),
-        Err(_) => Err(format!(
+        Ok(0) | Err(_) => Err(format!(
             "validate-closes-completeness: {POINTER_PATH} contains {:?} which is not a \
              valid positive integer. Run state-manager update-pass-pointer to fix.",
             trimmed
         )),
+        Ok(n) => Ok(Some(n)),
     }
 }
 
@@ -1225,9 +1227,11 @@ pub fn collect_closes_cites(content: &str, _site_name: &str) -> Vec<String> {
 /// `| D-411 | ... | **Closes:** F-P15-001, F-P15-002 |`
 fn collect_closes_sites_by_line(content: &str, site_name: &str) -> Vec<(String, Vec<String>)> {
     let mut sites: Vec<(String, Vec<String>)> = Vec::new();
-    let mut line_idx = 0usize;
     let closes_prefix = "**Closes:**";
+    // Track the actual 1-based file line number for accurate labeling (F-S15.13-LOCAL-P1-004).
+    let mut actual_line_number = 0usize;
     for line in content.split('\n') {
+        actual_line_number += 1;
         let trimmed = line.trim_end_matches('\r').trim();
         // Search for **Closes:** anywhere in the line (handles table-row format).
         if let Some(pos) = trimmed.find(closes_prefix) {
@@ -1236,9 +1240,8 @@ fn collect_closes_sites_by_line(content: &str, site_name: &str) -> Vec<(String, 
                 let rest = &trimmed[rest_start..];
                 let ids = extract_finding_ids_from_content(rest);
                 if !ids.is_empty() {
-                    let label = format!("{site_name} line {line_idx}");
+                    let label = format!("{site_name} line {actual_line_number}");
                     sites.push((label, ids));
-                    line_idx += 1;
                 }
             }
         }
@@ -1405,10 +1408,51 @@ pub fn run_hook_phase2_cross_site(file_path: &str, content: &str) -> Vec<Violati
     // Step 4: collect per-line Closes cites from the triggered file.
     // Each **Closes:** line is treated as a separate site for cross-site comparison.
     let site_name = file_path;
-    let sites = collect_closes_sites_by_line(content, site_name);
+    let mut sites = collect_closes_sites_by_line(content, site_name);
+
+    // Step 4b: read secondary files and collect their Closes cites (F-S15.13-LOCAL-P1-002).
+    // Per BC-5.39.007 postcondition (T-5 spec): when a write is triggered, also read
+    // burst-log.md, decision-log.md, lessons.md, and STATE.md (if not the triggered file)
+    // via host::read_file. Each secondary read is independently fail-open.
+    let secondary_paths: &[&str] = &[
+        ".factory/cycles/v1.0-brownfield-backfill/burst-log.md",
+        ".factory/cycles/v1.0-brownfield-backfill/decision-log.md",
+        ".factory/cycles/v1.0-brownfield-backfill/lessons.md",
+        ".factory/STATE.md",
+    ];
+
+    for &secondary_path in secondary_paths {
+        // Skip reading the triggered file again — it is already in `content`.
+        if secondary_path == file_path {
+            continue;
+        }
+
+        let secondary_content = match host::read_file(secondary_path, MAX_BYTES, 2000) {
+            Ok(bytes) => match String::from_utf8(bytes) {
+                Ok(s) => s,
+                Err(e) => {
+                    host::log_warn(&format!(
+                        "[{HOOK_NAME}] Phase 2: UTF-8 decode error reading secondary site \
+                         {secondary_path}: {e}; skipping (fail-open)"
+                    ));
+                    continue;
+                }
+            },
+            Err(e) => {
+                host::log_warn(&format!(
+                    "[{HOOK_NAME}] Phase 2: secondary site {secondary_path} unreadable: \
+                     {e:?}; skipping (fail-open)"
+                ));
+                continue;
+            }
+        };
+
+        let secondary_sites = collect_closes_sites_by_line(&secondary_content, secondary_path);
+        sites.extend(secondary_sites);
+    }
 
     if sites.is_empty() {
-        // No **Closes:** lines with finding IDs in the triggered file — nothing to validate.
+        // No **Closes:** lines with finding IDs in any site — nothing to validate.
         return Vec::new();
     }
 
