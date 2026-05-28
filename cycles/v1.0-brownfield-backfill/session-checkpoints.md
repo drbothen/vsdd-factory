@@ -331,3 +331,14 @@ dispatch story-writer for 3M3b elaboration (5 M3 stories: S-15.10/12/13/15/16-Pa
 - **develop HEAD:** `98ea0719`. **main HEAD:** `43afbfa7`.
 
 **This checkpoint superseded by D-514 S-15.17 spec cascade pass-1 fix-burst COMPLETE 2026-05-28.**
+
+---
+
+## Checkpoint: D-514 S-15.17 SPEC CASCADE PASS-1 FIX-BURST COMPLETE (2026-05-28; superseded by D-515)
+
+- **§1 Where We Are (at D-514):** D-514 S-15.17 spec cascade pass-1 fix-burst COMPLETE. Adversary pass-1 HIGH 14 findings (5H+5M+3L+1N); adv-spec-pass-1.md at `29d08cc7`. PO fix-burst `87f1bc8f` BC v1.0→v1.1 (9 findings: F-002/004/005/007/009/010/011/012/014; EC-018 LENGTH=5; inv-12 on_error=continue; LENGTH=4 STRICT). Story-writer fix-burst `7d12db2f` story v1.1→v1.2 (5 findings: F-001/003/006/008/013; AC-22; EC renumbered 1:1 BC). All 14 CLOSED. STREAK 0/3 reset.
+- **4-index (post-D-514):** BC-INDEX v2.55, VP-INDEX v2.06 (UNCHANGED), STORY-INDEX v3.73, ARCH-INDEX v2.15 (UNCHANGED).
+- **Next (at D-514):** pass-2 adversary dispatch on (BC-5.39.009 v1.1 + S-15.17 v1.2).
+- **develop HEAD:** `98ea0719`. **main HEAD:** `43afbfa7`. **factory-artifacts HEAD:** `410e53c2`.
+
+**This checkpoint superseded by D-515 S-15.17 spec cascade pass-2 fix-burst COMPLETE + META-31 codified 2026-05-28.**

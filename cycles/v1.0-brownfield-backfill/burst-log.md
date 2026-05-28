@@ -11,6 +11,163 @@ input-hash: "[live-state]"
 traces_to: STATE.md
 ---
 
+## D-515 S-15.17 SPEC CASCADE PASS-2 FIX-BURST COMPLETE + META-LEVEL-31 CODIFIED 2026-05-28
+
+### Parent-commit
+
+`ee6d3b8e` (story-writer pass-2 fix-burst commit; last factory-artifacts HEAD before this D-515 state-manager closing burst) per D-419(b).
+
+### Adversary Verdict (D-448(a) source-attestation gate)
+
+Pass-2 adversary reviewed (BC-5.39.009 v1.1 + S-15.17 v1.2) and produced verdict HIGH 11 findings (3H+4M+3L+1N). Report persisted at `.factory/code-delivery/S-15.17/adv-spec-pass-2.md` (factory-artifacts `5e467118`; 203 lines). Trajectory 14→11 modest improvement. Anchor finding F-SP2-001 [regression] of F-SP1-003: pass-1 "all 21 ACs swept" closure missed PC6-insertion cascade shift; ACs 9/10/11/12 and AC-17 range remained mis-anchored. STREAK 0/3 RESET per BC-5.39.001. All 11 findings CLOSED via PO fix-burst `a1cf38d2` (8 BC) + story-writer fix-burst `ee6d3b8e` (5 story).
+
+D-448(a) source-attestation parity (literal shell, per D-449(a)):
+
+```bash
+$ grep -c '^### F-S15.17-SP2' /Users/jmagady/Dev/vsdd-factory/.factory/code-delivery/S-15.17/adv-spec-pass-2.md
+11
+```
+
+PASS — 11 findings in adv-spec-pass-2.md match 11 closures (8 BC + 5 story with 2 overlapping mirror findings).
+
+### Files Touched (Dim-1)
+
+Files modified in this 3-step PO+story-writer+state-manager burst:
+
+1. `.factory/code-delivery/S-15.17/adv-spec-pass-2.md` — PERSISTED at `5e467118` (adversary persist step 1)
+2. `.factory/specs/behavioral-contracts/ss-05/BC-5.39.009.md` — UPDATED by PO (`a1cf38d2`): v1.1→v1.2; F-003/004/005/006/007/008/010/011/009 closed
+3. `.factory/specs/behavioral-contracts/BC-INDEX.md` — UPDATED by PO (`a1cf38d2`): v2.55→v2.56; BC-5.39.009 row version cell v1.1→v1.2
+4. `.factory/stories/S-15.17-validate-trajectory-tail-cell-completeness.md` — UPDATED by story-writer (`ee6d3b8e`): v1.2→v1.3; F-001/002/003/007/009 closed; §Bidirectional Parity Audit Note added
+5. `.factory/stories/STORY-INDEX.md` — UPDATED by story-writer (`ee6d3b8e`): v3.73→v3.74; S-15.17 row version cell v1.2→v1.3
+6. `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — UPDATED (this commit): D-515 row prepended + D-515 Appendix added
+7. `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — UPDATED (this commit): this entry prepended
+8. `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — UPDATED (this commit): L-S-15.17-SP2-cascade-propagation-gap-from-PC-insertion appended
+9. `.factory/policies.yaml` — UPDATED (this commit): POLICY 8 verification_steps extended with bidirectional parity check requirement per D-497 + D-515(d)
+10. `.factory/cycles/v1.0-brownfield-backfill/session-checkpoints.md` — UPDATED (this commit): D-514 checkpoint archived per POLICY 1
+11. `.factory/STATE.md` — UPDATED (this commit): full Commit-E advance (frontmatter phase/current_step/last_amended; Phase Progress +1 row; Decisions Log +D-515 row; Concurrent Cycles D-515 update; Last Updated; Current Phase; Active Branches; §1-§12 Session Resume Checkpoint refresh; banner tracker +D-515 entry)
+
+### Codifications (Dim-3)
+
+- **D-515 codified (6 sub-clauses per decision-log.md SoT appendix):** (a) pass-2 adversary HIGH 11 findings F-SP2-001 regression; (b) PO fix-burst 8 BC findings; (c) story-writer 5 story findings + META-31 bidirectional audit; (d) META-LEVEL-31 codified via POLICY 8 extension + L-S-15.17-SP2 lesson; (e) parent-commit ee6d3b8e; (f) 4-index BC v2.56/VP v2.06 (UNCHANGED)/STORY v3.74/ARCH v2.15 (UNCHANGED).
+- **L-S-15.17-SP2-cascade-propagation-gap-from-PC-insertion appended** to lessons.md.
+- **POLICY 8 `verification_steps` extended** with bidirectional AC↔PC parity check requirement.
+- **D-514 checkpoint archived** to session-checkpoints.md per POLICY 1.
+
+### Dim-2 Attestation (literal-shell per D-449(a) META-LEVEL-24 closure)
+
+**PC2 (trajectory-tail marker present in current_step:):**
+
+```bash
+$ grep "^current_step:" /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md | grep -c "trajectory-tail"
+1
+```
+
+PASS.
+
+**PC3 (trajectory-tail LENGTH=4 in current_step:):**
+
+```bash
+$ grep "^current_step:" /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md | grep -oE "→[0-9]+" | wc -l
+       4
+```
+
+PASS.
+
+**PC4 (BC-5.39.009 registered in BC file):**
+
+```bash
+$ grep "^bc_id: BC-5.39.009" /Users/jmagady/Dev/vsdd-factory/.factory/specs/behavioral-contracts/ss-05/BC-5.39.009.md
+bc_id: BC-5.39.009
+```
+
+PASS.
+
+**PC5 (behavioral_contracts in S-15.17 references BC-5.39.009):**
+
+```bash
+$ grep "behavioral_contracts:" /Users/jmagady/Dev/vsdd-factory/.factory/stories/S-15.17-validate-trajectory-tail-cell-completeness.md | grep "BC-5.39.009"
+behavioral_contracts: ["BC-5.39.009"]
+```
+
+PASS.
+
+**PC6 (banner SIZE BUDGET (wc-l; token form present):**
+
+```bash
+$ grep "(wc-l" /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md | head -1
+  D-515-S-15.17-PASS-2-FIX-BURST-COMPLETE-META-31-CODIFIED ... (wc-l; ...)
+```
+
+PASS — `(wc-l;` token present in STATE.md banner tracker.
+
+**Verification step 7 — 4-index gate (D-449(a) literal-shell):**
+
+```bash
+$ grep "^version:" /Users/jmagady/Dev/vsdd-factory/.factory/specs/behavioral-contracts/BC-INDEX.md
+version: "2.56"
+
+$ grep "^version:" /Users/jmagady/Dev/vsdd-factory/.factory/specs/verification-properties/VP-INDEX.md
+version: "2.06"
+
+$ grep "^version:" /Users/jmagady/Dev/vsdd-factory/.factory/stories/STORY-INDEX.md
+version: "3.74"
+
+$ grep "^version:" /Users/jmagady/Dev/vsdd-factory/.factory/specs/architecture/ARCH-INDEX.md
+version: "2.15"
+```
+
+4-index PASS: BC v2.56 ✓, VP v2.06 (UNCHANGED) ✓, STORY v3.74 ✓, ARCH v2.15 (UNCHANGED) ✓.
+
+**D-chain cite (PC5 / D-419(b)):**
+
+```bash
+$ grep "^current_step:" /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md | grep -oE "D-chain cite D-[0-9]+"
+D-chain cite D-514
+```
+
+PASS (D-514 is the prior burst per D-419(b)).
+
+**D-448(a) source-attestation parity (finding count):**
+
+```bash
+$ grep -c '^### F-S15.17-SP2' /Users/jmagady/Dev/vsdd-factory/.factory/code-delivery/S-15.17/adv-spec-pass-2.md
+11
+```
+
+PASS — 11 findings in adversary report matches 11 closures claimed.
+
+**META-31 bidirectional parity audit verification (13 PCs cited in story):**
+
+```bash
+$ grep -oE "BC-5\.39\.009 PC[0-9]+" /Users/jmagady/Dev/vsdd-factory/.factory/stories/S-15.17-validate-trajectory-tail-cell-completeness.md | sort -u | wc -l
+      13
+```
+
+PASS — 13 unique BC-5.39.009 PC citations in story (PC1-PC13 all anchored).
+
+### Dim-5 Attestation
+
+Closes-set completeness for D-515 burst: all 6 sub-clauses executed — (a) adv-spec-pass-2.md persisted 5e467118; (b) BC-5.39.009.md v1.1→v1.2 + BC-INDEX v2.56; (c) S-15.17 v1.2→v1.3 + STORY-INDEX v3.74 + bidirectional parity audit stdout; (d) META-LEVEL-31 codified via POLICY 8 extension + L-S-15.17-SP2 lesson; (e) decision-log.md D-515 row + appendix; (f) STATE.md comprehensive Commit-E advance + policies.yaml + burst-log + session-checkpoints archive. 4-index: BC v2.56 / VP v2.06 (UNCHANGED) / STORY v3.74 / ARCH v2.15 (UNCHANGED). POLICY 14 5-leg quintuple parity applied by PO and story-writer. POLICY 8 bidirectional parity extension applied.
+
+### Dim-6 Attestation (literal-shell Dim-block count)
+
+```bash
+$ awk '/^### (Parent-commit|Adversary Verdict|Files Touched|Codifications|Dim-2|Dim-5|Dim-6|Dim-7)/{c++} END{print c}' /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-brownfield-backfill/burst-log.md
+8
+```
+
+This entry contains all 8 D-444(c) mandatory blocks: Parent-commit, Adversary Verdict, Files Touched (Dim-1), Codifications (Dim-3), Dim-2 Attestation, Dim-5 Attestation, Dim-6 Attestation (this block), Dim-7 Attestation. PASS.
+
+### Dim-7 Attestation / Closes
+
+**Closes:** D-515 S-15.17 spec cascade pass-2 fix-burst (all 11 findings: F-SP2-001 regression cured + F-SP2-002/003/004/005/006/007/008/009/010/011) + META-LEVEL-31 CANDIDATE codification via POLICY 8 extension per D-497. Trajectory-tail →9→9→9→11 LENGTH=4 (F5 pass-75 carry-across per D-433(e)+D-439(c)).
+
+**Advances:** pass-3 fresh-context adversary dispatch on (BC-5.39.009 v1.2 + S-15.17 v1.3) — 2 consecutive CLEAN passes needed for 3-CLEAN convergence per BC-5.39.001. STREAK 0/3 reset.
+
+**4-index post-D-515:** BC-INDEX v2.56 / VP-INDEX v2.06 (UNCHANGED) / STORY-INDEX v3.74 / ARCH-INDEX v2.15 (UNCHANGED). Parent-commit `ee6d3b8e` per D-447(c).
+
+---
+
 ## D-513 BC-5.39.009 AUTHORED + S-15.17 v1.1 PROPAGATED 2026-05-28
 
 ### Parent-commit

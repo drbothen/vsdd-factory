@@ -2458,3 +2458,21 @@ POLICY 14 description and verification_steps updated in policies.yaml same-burst
 **Cites:** D-514 (this burst), D-513 (BC authoring), D-497 (cure-extension-parsimony), F-S15.17-SP1-005 (F-005 LENGTH=4), F-S15.17-SP1-004 (F-004 extractor anchors), POLICY 8, POLICY 14.
 
 **Closes:** D-514 lesson capture per S-7.02 cycle-closing checklist.
+
+---
+
+## L-S-15.17-SP2-cascade-propagation-gap-from-PC-insertion
+
+**Pattern (META-LEVEL-31 CANDIDATE):** cascade-propagation-gap-from-PC-insertion in BC↔story spec cascades.
+
+**Mechanism:** When PO inserts a new PC into a BC (e.g., BC-5.39.009 v1.1 added PC6 STATE.md cascade Block as a NEW PC), downstream ACs that anchor by PC ordinal silently shift by +1 across the insertion boundary. Story-writer fix-burst that audits ONLY the explicitly-named findings without re-deriving bidirectional AC↔PC parity will miss the cascade impact on other ACs.
+
+**Empirical evidence:** Pass-1 closed F-SP1-003 (3 named AC mis-anchors: AC-14/15/1) but PC6 insertion in PO's v1.1 burst shifted advisory-arm PCs +1; story-writer's v1.2 "all 21 ACs swept" closure narrative was false (ACs 9/10/11/12 remained mis-anchored; AC-17 range stale at "PC1-9"). Pass-2 found F-SP2-001 as regression of F-SP1-003.
+
+**Cure (D-497 parsimony — EXTENSION of POLICY 8, not new abstraction):** POLICY 8 `verification_steps` extended with literal-shell bidirectional AC↔PC parity check requirement: after any PC insertion/deletion/renumbering in BC, story-writer MUST run literal-shell bidirectional parity check (for each PC in BC, grep ACs for cite count; for each AC PC cite, grep BC for existence) with captured stdout per POLICY 15. Captured stdout MUST appear in fix-burst commit body or story §Bidirectional Parity Audit Note. Cure deliverable IS the captured stdout, not narrative claims.
+
+**Anchor:** F-SP2-001 [regression-of-F-SP1-003]; ADV-EDP1-P75-HIGH-002 (META-LEVEL-30 route-(b) parent); D-497 (cure-extension parsimony); D-515 (this burst codification).
+
+**Forward action:** policies.yaml POLICY 8 verification_steps extended in D-515 burst. Future BC-array-change fix-bursts MUST include bidirectional parity stdout. Sibling-sweep (TD-VSDD-060) generalization: same principle applies to invariant-array and EC-array changes — any structural re-numbering of PC/inv/EC requires re-deriving parity for ALL ACs, not just those explicitly named in the adversary report.
+
+**Closes:** D-515 META-LEVEL-31 codification per S-7.02 cycle-closing checklist.

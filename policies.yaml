@@ -1,7 +1,7 @@
 ---
 document_type: governance-policy-registry
 version: "1.0"
-last_amended: "2026-05-26 (v1.0) — Part A structural remediation; F-PASS14-004 closure"
+last_amended: "2026-05-28 (v1.1) — POLICY 8 verification_steps extended with bidirectional AC↔PC parity check requirement per D-515 + META-LEVEL-31 cascade-propagation-gap-from-PC-insertion cure (D-497 parsimony extension). [Prior: 2026-05-26 (v1.0) — Part A structural remediation; F-PASS14-004 closure]"
 ---
 # .factory/policies.yaml — Declarative governance policy registry
 #
@@ -150,6 +150,7 @@ policies:
       - "For each BC in behavioral_contracts: frontmatter, verify at least one AC traces to it"
       - "For each BC in body BC table or AC traces, verify it appears in behavioral_contracts: frontmatter"
       - "Verify Token Budget BC count matches len(behavioral_contracts)"
+      - "After any PC insertion/deletion/renumbering in BC, story-writer MUST run literal-shell bidirectional AC↔PC parity check (grep PC cites in story per PC in BC; grep BC for each AC PC cite) with captured stdout per POLICY 15. Captured stdout MUST appear in fix-burst commit body or story §Bidirectional Parity Audit Note. Prevents cascade-propagation-gap-from-PC-insertion (META-LEVEL-31 CANDIDATE; D-515)."
 
   - id: 9
     name: vp_index_is_vp_catalog_source_of_truth
