@@ -1,0 +1,17 @@
+# AC-5 Demo Evidence: Hook blocks when trajectory-tail has LENGTH=3 (prefix present)
+# BC-5.39.006 postcondition 4; D-451(c); EC-006
+#
+# Command:
+#   cd plugins/vsdd-factory/tests/validate-dispatch-advance
+#   bats --tap fail-tail-3-components.bats
+#
+# Fixture: fail-tail-3-components/factory/STATE.md
+#   current_step: contains "trajectory-tail →9→9→9" (marker present; 3 components
+#   in first-semicolon segment)
+#
+# Expected: exit 2, block: "trajectory-tail has 3 components; required LENGTH=4 per D-451(c)"
+
+$ bats --tap fail-tail-3-components.bats
+1..2
+ok 1 AC-5 FAIL: hook blocks when trajectory-tail has 3 arrow-N groups (not 4)
+ok 2 AC-5 FAIL: block message names 3 components and required LENGTH=4 citing D-451

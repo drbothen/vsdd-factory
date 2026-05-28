@@ -1,0 +1,23 @@
+# AC-20 Demo Evidence: Banner with em-dash (U+2014) does not cause panic
+# BC-5.39.006 invariant 10; S-15.11 cascade lesson F-P4-001
+#
+# Command:
+#   cd .worktrees/S-15.14
+#   cargo test -p validate-dispatch-advance -- validate_current_step_with_em_dash
+#
+# Test: validate_current_step_with_em_dash (in crates/hook-plugins/validate-dispatch-advance/src/lib.rs)
+#   Invokes extraction function with content containing em-dash (—, U+2014) adjacent to
+#   a digit. Asserts no panic and correct extraction result. Guards byte-index slice
+#   expressions with is_char_boundary() per BC-5.39.006 invariant 10.
+#
+# Expected: test passes, no panic, exit 0
+
+$ cargo test -p validate-dispatch-advance -- validate_current_step_with_em_dash
+   Compiling validate-dispatch-advance v0.0.1 (.../crates/hook-plugins/validate-dispatch-advance)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.87s
+     Running unittests src/lib.rs (target/debug/deps/validate_dispatch_advance-58d316a407e9eadf)
+
+running 1 test
+test tests::validate_current_step_with_em_dash ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 35 filtered out; finished in 0.00s

@@ -88,7 +88,12 @@ run_hook() {
         skip "AC-005: dispatcher binary not found at $DISPATCHER_BIN — build with 'cargo build -p factory-dispatcher' before running bats tests"
     fi
 
-    run bash -c "cd '$FIXTURE_DIR' && echo '$STOP_STDIN' | '$DISPATCHER_BIN' 2>&1"
+    # IMPORTANT: cd to CLAUDE_PLUGIN_ROOT (not FIXTURE_DIR) so that the resolver
+    # WASM path "hook-plugins/vsdd-context-resolvers.wasm" in resolvers-registry.toml
+    # resolves correctly (relative to plugin root, not the fixture temp dir).
+    # CLAUDE_PROJECT_DIR is set separately so the dispatcher reads .factory/ from
+    # the fixture dir. Pattern mirrors resolver-integration.bats (F-P4-001 fix).
+    run bash -c "cd '$CLAUDE_PLUGIN_ROOT' && echo '$STOP_STDIN' | '$DISPATCHER_BIN' 2>&1"
 }
 
 # ---------------------------------------------------------------------------
@@ -97,9 +102,11 @@ run_hook() {
 
 @test "AC-005(a): one pending wave → exit 0 + WAVE GATE REMINDER in stderr" {
     # Fixture: wave-state.yaml with one pending wave (BC-7.03.092 canonical test vector)
+    # Uses canonical SEQUENCE form (F-P3-001 fix — TD-073 resolved).
     write_wave_state "$(cat <<'YAML'
 waves:
-  W-15:
+  - wave: W-15
+    stories: []
     gate_status: pending
     started: 2026-04-01
 YAML
@@ -126,11 +133,14 @@ YAML
 
 @test "AC-005(b): two pending waves → exit 0 + both wave names in REMINDER" {
     # Fixture: wave-state.yaml with two pending waves (EC-004)
+    # Uses canonical SEQUENCE form (F-P3-001 fix — TD-073 resolved).
     write_wave_state "$(cat <<'YAML'
 waves:
-  W-15:
+  - wave: W-15
+    stories: []
     gate_status: pending
-  W-16:
+  - wave: W-16
+    stories: []
     gate_status: pending
 YAML
 )"
@@ -154,11 +164,14 @@ YAML
 
 @test "AC-005(c): all waves passed → exit 0 + no REMINDER in output" {
     # Fixture: wave-state.yaml with all waves passed
+    # Uses canonical SEQUENCE form (F-P3-001 fix — TD-073 resolved).
     write_wave_state "$(cat <<'YAML'
 waves:
-  W-14:
+  - wave: W-14
+    stories: []
     gate_status: passed
-  W-15:
+  - wave: W-15
+    stories: []
     gate_status: passed
 YAML
 )"

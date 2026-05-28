@@ -1,0 +1,8 @@
+# Disable line-ending normalization for EOL-sensitive fixture files.
+# The banner-wc-l-pass/STATE.md fixture must have exactly 23 lines (wc -l = 23).
+# Any git normalization (autocrlf, eol, text) that inserts or strips a trailing
+# newline would silently change wc -l and flip the banner-wc-l PASS test red.
+#
+# Closes: F-S15.08-LOCAL-P1-003 (banner-wc-l-pass fixture EOL fragility)
+# References: AC-004 (S-15.08), D-450(d) banner wc-l sub-clause
+banner-wc-l-pass/STATE.md -text

@@ -1,0 +1,17 @@
+# AC-17 Demo Evidence: Path /some/dir/xINDEX.md does NOT trigger INDEX.md validation
+# BC-5.39.006 invariant 3; EC-020
+#
+# Command:
+#   cd plugins/vsdd-factory/tests/validate-dispatch-advance
+#   bats --tap pass-xindex-md-not-target.bats
+#
+# Fixture: pass-xindex-md-not-target/ — INDEX.md content at path named xINDEX.md
+#   dispatcher envelope uses file_path ending in "xINDEX.md"
+#   is_index_md_target() uses Path::file_name() == Some("INDEX.md") — STRICT
+#   "xINDEX.md".file_name() == "xINDEX.md" != "INDEX.md" => is_index_md_target returns false
+#
+# Expected: exit 0 (Continue; hook does not run INDEX.md validation path)
+
+$ bats --tap pass-xindex-md-not-target.bats
+1..1
+ok 1 AC-17 PASS: path-component-strict guard passes when file is xINDEX.md (not INDEX.md)

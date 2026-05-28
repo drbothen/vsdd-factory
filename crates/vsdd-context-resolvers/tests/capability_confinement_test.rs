@@ -18,68 +18,83 @@
 //   2. Replace unimplemented!() with real harness invocations
 //   3. Remove #[ignore] and confirm GREEN
 
-/// AC-005 (VP-076-A, VP-076-B): `path_allow = [".factory/"]` blocks reads outside the prefix.
+/// AC-005 (VP-076-A, VP-076-B): `path_allow` blocks reads outside the prefix.
 ///
-/// Integration test: run resolver with a read attempt for `/etc/passwd`;
-/// assert `CapabilityDenied` is received by the resolver, which must then
-/// return `ResolverOutput { key: "wave_context", value: None }` (not a trap).
-/// No `/etc/passwd` content must appear in `plugin_config`.
+/// **Strategy chosen: Option B — redirect to bats (F-P3-002 fix-burst decision).**
 ///
-/// VP-076-A: capability denial is enforced.
-/// VP-076-B: no sensitive data leaks through a denied read.
+/// Architectural constraint: `vsdd-context-resolvers` crate has zero compile-time
+/// dependency on `factory-dispatcher` (BC-1.13.001 INV1 / ADR-018). The dispatcher's
+/// `ResolverLoader` harness is not available as a dev-dep here without violating the
+/// crate boundary. Real integration verification lives in the bats harness, which
+/// exercises the full dispatcher → WASM resolver → path_allow enforcement pipeline.
+///
+/// Bats test location: `plugins/vsdd-factory/tests/resolver-capability-confinement.bats`
+/// Test case: "VP-076 capability confinement: naughty resolver cannot read /etc/passwd"
+///
+/// VP-076-A: capability denial is enforced (bats asserts exit 0 / dispatcher does not crash).
+/// VP-076-B: no sensitive data leaks (bats asserts no /etc/passwd content in sink/stdout/stderr).
 #[test]
-#[ignore = "Requires built WASM artifact + factory-dispatcher integration harness \
-            — author in Step 3 after Step 4 build (cargo build --target wasm32-wasip1)"]
+#[ignore = "moved to bats: plugins/vsdd-factory/tests/resolver-capability-confinement.bats — \
+            Option B per F-P3-002 (crate boundary: vsdd-context-resolvers has no compile-time \
+            dep on factory-dispatcher per BC-1.13.001 INV1 / ADR-018)"]
 fn test_BC_4_12_003_capability_denied_for_etc_passwd() {
-    // AC-005 + VP-076-A/B
-    unimplemented!(
-        "Step 3: use the factory-dispatcher ResolverLoader test harness to run the WASM \
-         artifact with a mock path_allow = [\".factory/\"]. Inject an attempt to read \
-         /etc/passwd. Assert HostError::CapabilityDenied is the host response and \
-         ResolverOutput {{ key: \"wave_context\", value: None }}. Assert no /etc/passwd bytes appear in plugin_config."
-    )
+    // This stub is retained for traceability. The actual verification is in:
+    //   plugins/vsdd-factory/tests/resolver-capability-confinement.bats
+    //   @test "VP-076 capability confinement: naughty resolver cannot read /etc/passwd"
+    //
+    // Fixture: crates/factory-dispatcher/tests/fixtures/naughty_resolver.{wat,wasm}
+    // The naughty resolver calls vsdd::read_file("/etc/passwd") — the host must deny it.
 }
 
 /// AC-005 (VP-076-C): Capability denial emits a `resolver.capability_denied` audit event.
 ///
-/// Integration test: same setup as AC-005 VP-076-A/B; additionally assert that
-/// the dispatcher emits a `resolver.capability_denied` structured event with
-/// fields: `resolver = "wave_context"`, `denied_path = "/etc/passwd"`.
+/// **Strategy chosen: Option B — redirect to bats (F-P3-002 fix-burst decision).**
 ///
-/// VP-076-C: audit trail is written for all capability denials.
+/// Bats test location: `plugins/vsdd-factory/tests/resolver-capability-confinement.bats`
+/// Test case: "VP-076 capability confinement: naughty resolver cannot read /etc/passwd"
+///
+/// **Architectural limitation (F-P4-004 Option B):**
+/// The resolver HostContext is constructed with `internal_log: None` in
+/// `crates/factory-dispatcher/src/resolver_loader.rs` (see TODO(VP-076-C / F-P4-004)
+/// comment there). As a result, `capability_denied` events emitted inside the resolver
+/// via `HostContext::emit_internal()` do NOT flow to VSDD_SINK_FILE in the current
+/// architecture. VP-076-C is therefore verified STRUCTURALLY: `path_allowed()` returns
+/// false → CAPABILITY_DENIED code returned → resolver cannot receive file bytes → VP-076-B
+/// holds. Full sink-level audit verification is deferred pending InternalLog plumbing
+/// through the resolver dispatch call chain.
+///
+/// Previous claim "asserted in bats sink check" was incorrect; removed in F-P4-004 fix.
 #[test]
-#[ignore = "Requires built WASM artifact + factory-dispatcher integration harness \
-            — author in Step 3 after Step 4 build (cargo build --target wasm32-wasip1)"]
+#[ignore = "moved to bats: plugins/vsdd-factory/tests/resolver-capability-confinement.bats — \
+            Option B per F-P3-002 (crate boundary: vsdd-context-resolvers has no compile-time \
+            dep on factory-dispatcher per BC-1.13.001 INV1 / ADR-018). VP-076-C sink-level \
+            verification deferred per F-P4-004 (internal_log: None in resolver HostContext)."]
 fn test_BC_4_12_003_capability_denied_emits_audit_event() {
-    // AC-005 + VP-076-C
-    unimplemented!(
-        "Step 3: after running the resolver with a denied read, inspect the dispatcher's \
-         event sink for a 'resolver.capability_denied' event. Assert fields: \
-         resolver = 'wave_context', denied_path = '/etc/passwd'."
-    )
+    // Stub retained for traceability. Structural verification: path_allowed() returns
+    // false → resolver WASM cannot receive the denied file bytes (VP-076-B).
+    // Full sink audit trail deferred — see TODO(VP-076-C / F-P4-004) in resolver_loader.rs.
 }
 
-/// AC-006 (VP-076-D): Reads within `path_allow = [".factory/"]` succeed.
+/// AC-006 (VP-076-D): Reads within `path_allow` succeed.
 ///
-/// Positive capability test: create a temp project with `.factory/wave-state.yaml`
-/// and `.factory/STATE.md`, run WaveContextResolver with `project_dir = <temp_project>`,
-/// assert `wave_context` key is present in `plugin_config` with a non-null value.
+/// **Strategy chosen: Option B — redirect to bats (F-P3-002 fix-burst decision).**
 ///
-/// Note (pass-2 amendment, 2026-05-10): This test is deferred to S-12.08's bats harness
-/// per VP-076 pass-2 spec amendment. The test remains as an `#[ignore]`'d stub here;
-/// the S-12.08 bats test exercises the full dispatcher-with-resolver end-to-end path.
-/// See VP-076 §Proof Harness Locations for rationale.
+/// Note (pass-2 amendment, 2026-05-10): Deferred to S-12.08's bats harness per VP-076
+/// pass-2 spec amendment. The test remains as an `#[ignore]`'d stub; the S-12.08 bats
+/// test `resolver-integration.bats` ("F-P2-001 closure: all converged") exercises the
+/// full dispatcher-with-resolver end-to-end path.
+///
+/// Additional verification: `resolver-capability-confinement.bats` positive test case
+/// ("VP-076-D: reads within path_allow succeed") asserts wave_context appears in plugin_config.
 ///
 /// VP-076-D: the happy path capability grant works end-to-end.
 #[test]
-#[ignore = "Requires built WASM artifact + factory-dispatcher integration harness \
-            — author in Step 3 after Step 4 build (cargo build --target wasm32-wasip1)"]
+#[ignore = "moved to bats: plugins/vsdd-factory/tests/resolver-capability-confinement.bats + \
+            resolver-integration.bats — Option B per F-P3-002 (crate boundary: \
+            vsdd-context-resolvers has no compile-time dep on factory-dispatcher per \
+            BC-1.13.001 INV1 / ADR-018)"]
 fn test_BC_4_12_003_can_read_within_path_allow() {
-    // AC-006 + VP-076-D
-    unimplemented!(
-        "Step 3: create a temp dir with .factory/wave-state.yaml (valid YAML fixture) \
-         and .factory/STATE.md. Run the WASM resolver via the dispatcher harness with \
-         project_dir pointing to the temp dir. Assert ResolverOutput.value is Some and \
-         the injected plugin_config[\"wave_context\"] contains stories, wave_id, cycle_id."
-    )
+    // This stub is retained for traceability. The actual verification is in:
+    //   plugins/vsdd-factory/tests/resolver-integration.bats (happy-path end-to-end)
+    //   plugins/vsdd-factory/tests/resolver-capability-confinement.bats (VP-076-D positive)
 }

@@ -72,6 +72,16 @@ POST_HISTORICAL_SCRIPTS=(
   validate-red-ratio
 )
 
+# Utility scripts under hooks/ that are NOT hook plugins and must NEVER be
+# registered in hooks-registry.toml. The generator skips both the orphan
+# check and registry emission for these names.
+# S-15.15: update-cargo-audit-cache is a bash data provisioner (ADR-021
+# Option b) — it provisions .factory/hooks/cargo-audit-cache.json for the
+# validate-policies-schema WASM hook to read. It is not a dispatcher hook.
+NON_HOOK_SCRIPTS=(
+  update-cargo-audit-cache
+)
+
 # Allow-list of hook basenames that MUST block on plugin error rather
 # than continuing. These are the v0.79.x "gate" hooks: their job is to
 # stop a tool call dead, so a crash or timeout has to be treated as a
@@ -128,6 +138,15 @@ is_post_historical() {
   local name="$1"
   local n
   for n in "${POST_HISTORICAL_SCRIPTS[@]}"; do
+    [[ "$name" == "$n" ]] && return 0
+  done
+  return 1
+}
+
+is_non_hook() {
+  local name="$1"
+  local n
+  for n in "${NON_HOOK_SCRIPTS[@]}"; do
     [[ "$name" == "$n" ]] && return 0
   done
   return 1
@@ -224,10 +243,14 @@ REFERENCED_SCRIPTS="$(printf '%s' "$FILTERED_REFERENCED" | sort -u)"
 # Filter out post-historical scripts from the on-disk set before the orphan
 # check (they were added after the historical ref and need to be wired up
 # separately; they are not orphans from the perspective of this generator).
+# Also filter out non-hook utility scripts (NON_HOOK_SCRIPTS) — these live
+# under hooks/ for co-location but are never dispatcher hook plugins.
 FILTERED_ON_DISK=""
 while IFS= read -r name; do
   [ -z "$name" ] && continue
-  is_post_historical "$name" || FILTERED_ON_DISK+="$name"$'\n'
+  is_post_historical "$name" && continue
+  is_non_hook "$name" && continue
+  FILTERED_ON_DISK+="$name"$'\n'
 done <<< "$ON_DISK_SCRIPTS"
 ON_DISK_SCRIPTS="$(printf '%s' "$FILTERED_ON_DISK" | sort -u)"
 

@@ -841,7 +841,7 @@ env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT
 [[hooks]]
 name = "validate-artifact-path"
 event = "PreToolUse"
-tool = "Write|Edit"
+tool = "Edit|Write"
 plugin = "hook-plugins/validate-artifact-path.wasm"
 priority = 150
 timeout_ms = 5000
@@ -849,6 +849,155 @@ on_error = "continue"
 
 [hooks.capabilities.read_file]
 path_allow = ["plugins/vsdd-factory/config/artifact-path-registry.yaml"]
+
+# ---------- validate-burst-log (PostToolUse, Edit|Write) ----------
+# BC-5.39.004: blocks structurally incomplete burst-log entries —
+# validates h2 heading format, 9-block completeness (D-444(c)+D-446(a)),
+# and Dim-1 cardinality parity (D-432(e)+D-448(d)(i)).
+# File-pattern enforcement is in-plugin via path-component-strict Path::file_name guard (matches exactly "burst-log.md").
+# S-15.11 M2 Wave-2.
+
+[[hooks]]
+name = "validate-burst-log"
+event = "PostToolUse"
+tool = "Edit|Write"
+plugin = "hook-plugins/validate-burst-log.wasm"
+priority = 152
+timeout_ms = 5000
+on_error = "continue"
+
+[hooks.capabilities.read_file]
+path_allow = [
+  ".factory/cycles",
+]
+
+# ---------- validate-index-cite-refresh (PostToolUse, Edit|Write) ----------
+# BC-5.39.003: blocks stale 4-index version cites in ARCH-INDEX.md and
+# cross-cell mismatches in STATE.md / INDEX.md (D-405(c) + D-429(b)).
+# S-15.07 M2 Wave-1.
+
+[[hooks]]
+name = "validate-index-cite-refresh"
+event = "PostToolUse"
+tool = "Edit|Write"
+plugin = "hook-plugins/validate-index-cite-refresh.wasm"
+priority = 151
+timeout_ms = 5000
+on_error = "continue"
+
+[hooks.capabilities.read_file]
+path_allow = [
+  ".factory/specs/behavioral-contracts/BC-INDEX.md",
+  ".factory/specs/verification-properties/VP-INDEX.md",
+  ".factory/stories/STORY-INDEX.md",
+  ".factory/specs/architecture/ARCH-INDEX.md",
+  ".factory/STATE.md",
+  ".factory/cycles/v1.0-brownfield-backfill/INDEX.md",
+]
+
+# ---------- validate-state-structure (PostToolUse, Edit|Write) ----------
+# BC-5.39.005: blocks STATE.md writes with banner line-count drift, missing
+# dual-margin form, or trajectory-tail cardinality violations
+# (D-421(c)+D-422(c)+D-424(b)+D-428(d)+D-438(a)+D-440(d)+D-442(d)+D-446(c)+
+#  D-433(e)+D-439(c)+D-451(c)+D-432(b)).
+# S-15.09 M2 Wave-3.
+
+[[hooks]]
+name = "validate-state-structure"
+event = "PostToolUse"
+tool = "Edit|Write"
+plugin = "hook-plugins/validate-state-structure.wasm"
+priority = 153
+timeout_ms = 5000
+on_error = "continue"
+
+[hooks.capabilities.read_file]
+path_allow = [
+  ".factory",
+]
+
+# ---------- validate-dispatch-advance (PostToolUse, Edit|Write) ----------
+# BC-5.39.006: blocks STATE.md writes with forbidden meta-commentary in
+# current_step: (D-440(a)+D-441(a)+D-442(a)), missing 4-index version cites
+# (D-439(b)), trajectory-tail LENGTH != 4 (D-451(c)), stale D-chain cite
+# (D-443(a)), and INDEX.md writes with non-5-column adversary-pass rows
+# (D-441(b)/D-442(b)). S-15.14 M2 Wave-4.
+# Priority 154 = one above validate-state-structure's 153. Position-agnostic
+# form per F-P3-003 (line numbers decay across edits; TD-VSDD-091 anti-volatile-pin).
+# Literal-grep verification per PG-S-15.14-registry-priority-literal-evidence /
+# TD-VSDD-096 (captured 2026-05-17, post-edit):
+# $ grep -E '^priority = ' plugins/vsdd-factory/hooks-registry.toml | grep -E 'priority = (15[0-9]|16[0-9])'
+# priority = 150
+# priority = 152
+# priority = 151
+# priority = 153
+# priority = 154
+# priority = 155
+# priority = 160
+# 154 appears exactly once (validate-dispatch-advance); 153 = validate-state-structure;
+# 155 = next monotone slot.
+# No file_pattern field: registry schema does not support it per architect
+# Q5/Q6 canonical lock. File-pattern enforcement is in-plugin via
+# path-component-strict is_state_md_target + is_index_md_target guards.
+
+[[hooks]]
+name = "validate-dispatch-advance"
+event = "PostToolUse"
+tool = "Edit|Write"
+plugin = "hook-plugins/validate-dispatch-advance.wasm"
+priority = 154
+timeout_ms = 5000
+on_error = "continue"
+
+[hooks.capabilities.read_file]
+path_allow = [
+  ".factory",
+]
+
+# ---------- validate-closes-completeness (PostToolUse, Edit|Write) ----------
+# BC-5.39.007 Phase 1+2: blocks missing **Closes:** lines in lessons.md entries
+# (D-448(b)), forbidden per-mechanism annotations (D-419(c)+D-420(e)),
+# umbrella cites without sample-vs-exhaustive flag (D-441(c)+D-442(c)),
+# and undeclared documentary-historical exemptions (D-443(b)).
+# Phase 2 (S-15.13): cross-site Closes completeness validation — reads
+# .factory/current-adversary-pass.txt (ADR-022 Option c pointer file) and
+# .factory/cycles/v1.0-brownfield-backfill/adv-cycle-pass-{N}.md to validate
+# that all citation sites enumerate the complete finding set per D-411(c)+D-413(b)+D-420(a).
+# path_allow = [".factory"] covers both pointer file and adversary review files.
+
+[[hooks]]
+name = "validate-closes-completeness"
+event = "PostToolUse"
+tool = "Edit|Write"
+plugin = "hook-plugins/validate-closes-completeness.wasm"
+priority = 156
+timeout_ms = 5000
+on_error = "continue"
+
+[hooks.capabilities.read_file]
+path_allow = [
+  ".factory",
+]
+
+# ---------- validate-policies-schema (PostToolUse, Edit|Write) ----------
+# BC-5.39.008: blocks on policies.yaml structural violations (Part B)
+# and dispatch package cargo-audit advisories (Part C per ADR-021 Option b).
+# S-15.15 M3 Parts A+B+C. Priority 157.
+
+[[hooks]]
+name = "validate-policies-schema"
+event = "PostToolUse"
+tool = "Edit|Write"
+plugin = "hook-plugins/validate-policies-schema.wasm"
+priority = 157
+timeout_ms = 5000
+on_error = "continue"
+
+[hooks.capabilities.read_file]
+path_allow = [
+  ".factory",
+  "plugins/vsdd-factory",
+]
 
 # ---------- Stop ----------
 
@@ -968,7 +1117,7 @@ path_allow = [".factory/cycles"]
 [[hooks]]
 name = "validate-stable-anchors"
 event = "PreToolUse"
-tool = "Write|Edit"
+tool = "Edit|Write"
 plugin = "hook-plugins/validate-stable-anchors.wasm"
 priority = 155
 timeout_ms = 5000

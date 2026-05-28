@@ -1,0 +1,30 @@
+[package]
+name = "validate-policies-schema"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+description = "WASM hook plugin: PostToolUse gate that validates .factory/policies.yaml structural integrity (Part B) and checks dispatch packages against the cargo-audit advisory cache (Part C) (BC-5.39.008)"
+publish = false
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+# rlib target is REQUIRED for `cargo test` to work — cdylib-only prevents
+# test compilation. All sibling hook crates use ["cdylib", "rlib"].
+
+[[bin]]
+name = "validate-policies-schema"
+path = "src/main.rs"
+
+[dependencies]
+vsdd-hook-sdk = { path = "../../hook-sdk" }
+# NOTE: dependency name is "vsdd-hook-sdk" (with vsdd- prefix), NOT "hook-sdk".
+# In Rust imports use: use vsdd_hook_sdk::... (underscores replace hyphens).
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+serde_norway = { workspace = true }
+
+[lints]
+workspace = true

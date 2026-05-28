@@ -23,10 +23,16 @@ members = [
     "crates/hook-plugins/warn-pending-wave-gate",
     "crates/hook-plugins/validate-pr-review-posted",
     "crates/hook-plugins/validate-artifact-path",
+    "crates/hook-plugins/validate-burst-log",
+    "crates/hook-plugins/validate-closes-completeness",
+    "crates/hook-plugins/validate-dispatch-advance",
+    "crates/hook-plugins/validate-index-cite-refresh",
+    "crates/hook-plugins/validate-state-structure",
     "crates/hook-plugins/lint-registry-async-invariant",
     "crates/hook-plugins/validate-per-story-adversary-convergence",
     "crates/vsdd-context-resolvers",
     "crates/hook-plugins/validate-stable-anchors",
+    "crates/hook-plugins/validate-policies-schema",
     "crates/sink-core",
     "crates/sink-file",
     "crates/sink-otel-grpc",
@@ -45,10 +51,14 @@ rust-version = "1.95"
 [workspace.dependencies]
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-# serde_yaml 0.9.34: pinned to last release (deprecated by dtolnay 2024).
-# Tech-debt: migrate to yaml-rust2 or serde_yml in a future ADR. Do NOT
-# upgrade to an incompatible fork without an ADR.
-serde_yaml = "0.9.34"
+# serde_norway 0.9: maintained fork of serde_yaml (dtolnay, deprecated 2024).
+# Migrated from serde_yaml 0.9.34 in 2026-05 (TD #72). serde_yml 0.0.12 was
+# the initial target but was found to carry RUSTSEC-2025-0068 (unsound, no
+# patched version). serde_norway uses unsafe-libyaml-norway (actively
+# maintained) and is advisory-clean per cargo audit. Drop-in API: from_str,
+# to_string, Value, Mapping all preserved.
+# See: https://crates.io/crates/serde_norway
+serde_norway = "0.9"
 toml = "0.8"
 anyhow = "1.0"
 thiserror = "2.0"

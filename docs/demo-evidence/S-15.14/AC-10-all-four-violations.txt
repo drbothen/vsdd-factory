@@ -1,0 +1,20 @@
+# AC-10 Demo Evidence: All 4 STATE.md violations produce single BlockWithFix enumerating all
+# BC-5.39.006 postcondition 6; EC-012
+#
+# Command:
+#   cd plugins/vsdd-factory/tests/validate-dispatch-advance
+#   bats --tap fail-all-four-violations.bats
+#
+# Fixture: fail-all-four-violations/factory/STATE.md
+#   current_step: simultaneously violates ALL 4 conditions:
+#   - Contains "META-LEVEL-5 WATCH: ..." (forbidden meta-commentary)
+#   - Missing "ARCH-INDEX v" and "VP-INDEX v" cites (2 of 4 missing)
+#   - trajectory-tail has 5 components (LENGTH=5, marker present)
+#   - D-chain cite D-451 is stale (max_in_file contains D-477)
+#
+# Expected: exit 2, SINGLE block message listing all 4 violation classes together
+
+$ bats --tap fail-all-four-violations.bats
+1..2
+ok 1 AC-10 FAIL: hook blocks with single consolidated message when all 4 STATE.md violations present
+ok 2 AC-10 FAIL: single block message covers meta-commentary, missing index cite, tail, and D-chain violations

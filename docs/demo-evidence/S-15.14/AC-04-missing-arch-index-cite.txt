@@ -1,0 +1,16 @@
+# AC-4 Demo Evidence: Hook blocks when ARCH-INDEX v cite is absent from current_step:
+# BC-5.39.006 postcondition 3; D-439(b); EC-004
+#
+# Command:
+#   cd plugins/vsdd-factory/tests/validate-dispatch-advance
+#   bats --tap fail-missing-arch-index-cite.bats
+#
+# Fixture: fail-missing-arch-index-cite/factory/STATE.md
+#   current_step: has BC-INDEX v, VP-INDEX v, STORY-INDEX v — but NO ARCH-INDEX v cite
+#
+# Expected: exit 2, block message names "ARCH-INDEX v" as missing, cites D-439(b)
+
+$ bats --tap fail-missing-arch-index-cite.bats
+1..2
+ok 1 AC-4 FAIL: hook blocks when current_step: is missing ARCH-INDEX v cite
+ok 2 AC-4 FAIL: block message names ARCH-INDEX as missing cite and cites D-439

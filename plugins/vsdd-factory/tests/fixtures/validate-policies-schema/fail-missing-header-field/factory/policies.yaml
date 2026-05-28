@@ -1,0 +1,13 @@
+---
+document_type: governance-policy-registry
+last_amended: "2026-05-26"
+---
+
+policies:
+  - id: 1
+    name: single_commit_per_burst
+    description: "Each logical burst produces exactly ONE commit in .factory/"
+    severity: HIGH
+    scope: ".factory/"
+    lint_hook: null
+    codified_at: null

@@ -1,0 +1,16 @@
+# AC-13 Demo Evidence: Hook passes when all INDEX.md adversary-pass rows are 5 columns
+# BC-5.39.006 postcondition 8; EC-015
+#
+# Command:
+#   cd plugins/vsdd-factory/tests/validate-dispatch-advance
+#   bats --tap pass-index-6-col.bats
+#
+# Fixture: pass-index-6-col/factory/INDEX.md
+#   ## Adversarial Reviews section with 5-col header (6 pipes)
+#   All data rows have exactly 5 columns (6 pipe characters each)
+#
+# Expected: exit 0 (no block)
+
+$ bats --tap pass-index-6-col.bats
+1..1
+ok 1 AC-13 PASS: hook emits Continue when all INDEX.md adversary-pass rows are exactly 6 columns

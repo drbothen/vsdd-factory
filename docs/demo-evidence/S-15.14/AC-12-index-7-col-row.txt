@@ -1,0 +1,17 @@
+# AC-12 Demo Evidence: Hook blocks INDEX.md adversary-pass row with 6 columns (7 pipes)
+# BC-5.39.006 postcondition 9; D-441(b); EC-014
+#
+# Command:
+#   cd plugins/vsdd-factory/tests/validate-dispatch-advance
+#   bats --tap fail-index-7-col-row.bats
+#
+# Fixture: fail-index-7-col-row/factory/INDEX.md
+#   ## Adversarial Reviews section with 5-col header (6 pipes)
+#   One data row has 6 columns (7 pipe characters) — over-wide
+#
+# Expected: exit 2, block names row + "actual=6 required=5", cites D-441(b)/D-442(b)
+
+$ bats --tap fail-index-7-col-row.bats
+1..2
+ok 1 AC-12 FAIL: hook blocks when INDEX.md adversary-pass row has 6 columns (7 pipe chars)
+ok 2 AC-12 FAIL: block message names actual=6 and required=5

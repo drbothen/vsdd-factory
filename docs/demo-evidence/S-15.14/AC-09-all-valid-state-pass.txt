@@ -1,0 +1,19 @@
+# AC-9 Demo Evidence: Hook emits Continue when all STATE.md validations pass
+# BC-5.39.006 postcondition 1; EC-011
+#
+# Command:
+#   cd plugins/vsdd-factory/tests/validate-dispatch-advance
+#   bats --tap pass-all-valid-state.bats
+#
+# Fixture: pass-all-valid-state/factory/STATE.md
+#   current_step: satisfies ALL conditions:
+#   - No forbidden meta-commentary pattern
+#   - All 4 index cites: BC-INDEX v2.30 / VP-INDEX v1.97 / STORY-INDEX v3.31 / ARCH-INDEX v2.18
+#   - trajectory-tail →9→9→9→9 (LENGTH=4 in first-semicolon segment)
+#   - D-chain cite D-477 (max_cited=477 >= max_in_file=477)
+#
+# Expected: exit 0 (no block), no blocking_plugins= in output
+
+$ bats --tap pass-all-valid-state.bats
+1..1
+ok 1 AC-9 PASS: hook emits Continue when current_step: has no violations (all conditions satisfied)

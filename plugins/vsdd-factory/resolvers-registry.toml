@@ -14,4 +14,7 @@ schema_version = 1
 name = "wave_context"
 plugin = "hook-plugins/vsdd-context-resolvers.wasm"
 context_key = "wave_context"
-path_allow = [".factory/"]
+# F-P3-007 fix: narrowed from [".factory/"] to exact files the resolver reads.
+# The WaveContextResolver only reads wave-state.yaml + STATE.md (BC-4.12.003 INV1).
+# path_allowed() uses starts_with(), so exact filenames are the narrowest valid grant.
+path_allow = [".factory/wave-state.yaml", ".factory/STATE.md"]

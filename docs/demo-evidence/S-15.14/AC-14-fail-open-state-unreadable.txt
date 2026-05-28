@@ -1,0 +1,16 @@
+# AC-14 Demo Evidence: Hook emits Continue (fail-open) when STATE.md is unreadable
+# BC-5.39.006 postcondition 7; invariant 9; EC-017
+#
+# Command:
+#   cd plugins/vsdd-factory/tests/validate-dispatch-advance
+#   bats --tap fail-open-state-unreadable.bats
+#
+# Fixture: fail-open-state-unreadable/factory/ — empty; no STATE.md file present
+#   hook invoked with path that resolves via host::read_file to HostError
+#   (capability denied or file not found)
+#
+# Expected: exit 0 (Continue; NOT Block) — fail-open per invariant 9
+
+$ bats --tap fail-open-state-unreadable.bats
+1..1
+ok 1 AC-14 PASS (fail-open): hook emits Continue when STATE.md is not readable via host::read_file

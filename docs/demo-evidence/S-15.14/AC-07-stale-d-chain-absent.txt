@@ -1,0 +1,17 @@
+# AC-7 Demo Evidence: Hook blocks when current_step: has no D-\d+ reference at all
+# BC-5.39.006 postcondition 5; D-443(a); EC-008
+#
+# Command:
+#   cd plugins/vsdd-factory/tests/validate-dispatch-advance
+#   bats --tap fail-stale-d-chain-absent.bats
+#
+# Fixture: fail-stale-d-chain-absent/factory/STATE.md
+#   current_step: has no "D-\d+" reference — no D-NNN cite anywhere in value
+#
+# Expected: exit 2, block: "absent D-chain cite; no D-\d+ reference found in
+#   current_step: per D-443(a)"
+
+$ bats --tap fail-stale-d-chain-absent.bats
+1..2
+ok 1 AC-7 FAIL: hook blocks when current_step: has no D-382..D-NNN pattern
+ok 2 AC-7 FAIL: block message for absent D-chain cites D-443

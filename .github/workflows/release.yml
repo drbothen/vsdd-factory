@@ -109,9 +109,13 @@ jobs:
         run: cargo install cross --git https://github.com/cross-rs/cross --rev 588b3c99db52b5a9c5906fab96cfadcf1bde7863
 
       - name: Cache cargo
-        uses: Swatinem/rust-cache@v2
+        # Pinned to commit SHA for security (TD #74); resolves to v2.9.1.
+        # SHA verified: no open GitHub Security Advisories; last 10 commits
+        # are routine dependabot bumps; tag v2.9.1 is GPG-signed by maintainer.
+        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4  # v2.9.1
         with:
           key: release-${{ matrix.platform }}-${{ hashFiles('Cargo.lock', 'rust-toolchain.toml') }}
+          cache-on-failure: true
 
       - name: Build dispatcher (release)
         shell: bash

@@ -1,0 +1,23 @@
+# AC-22 Demo Evidence: Hook blocks when trajectory-tail canonical marker absent from current_step:
+# BC-5.39.006 postcondition 6; invariant 6(a); D-451(c)/F-P3-006; EC-023
+#
+# Command:
+#   cd plugins/vsdd-factory/tests/validate-dispatch-advance
+#   bats --tap fail-missing-trajectory-tail-marker.bats
+#
+# Fixture: fail-missing-trajectory-tail-marker/factory/STATE.md
+#   current_step: contains arrow patterns (e.g., "tail →9→9→9→9") but LACKS the
+#   literal substring "trajectory-tail " (with trailing space)
+#   BC-5.39.006 invariant 6(a): prefix check is mandatory first step; absence = BlockWithFix
+#   BC-5.39.006 invariant 6(b): LENGTH count does NOT run when marker is absent
+#
+# Expected:
+#   - exit 2 (block)
+#   - block message: "current_step missing 'trajectory-tail ' canonical marker; D-451(c)/F-P3-006"
+#   - NO "trajectory-tail has N components" message (LENGTH check did not run)
+
+$ bats --tap fail-missing-trajectory-tail-marker.bats
+1..3
+ok 1 AC-22 FAIL: hook blocks when trajectory-tail prefix absent from current_step
+ok 2 AC-22 FAIL: block message names missing trajectory-tail canonical marker and cites F-P3-006/EC-023
+ok 3 AC-22 PASS: hook does not block when trajectory-tail prefix present with LENGTH=4

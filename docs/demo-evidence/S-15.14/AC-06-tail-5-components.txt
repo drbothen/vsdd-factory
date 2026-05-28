@@ -1,0 +1,17 @@
+# AC-6 Demo Evidence: Hook blocks when trajectory-tail has LENGTH=5 (prefix present)
+# BC-5.39.006 postcondition 4; EC-007
+#
+# Command:
+#   cd plugins/vsdd-factory/tests/validate-dispatch-advance
+#   bats --tap fail-tail-5-components.bats
+#
+# Fixture: fail-tail-5-components/factory/STATE.md
+#   current_step: contains "trajectory-tail →9→9→9→9→9" (marker present; 5 components
+#   in first-semicolon segment)
+#
+# Expected: exit 2, block message names actual count=5, required=4
+
+$ bats --tap fail-tail-5-components.bats
+1..2
+ok 1 AC-6 FAIL: hook blocks when trajectory-tail has 5 arrow-N groups (not 4)
+ok 2 AC-6 FAIL: block message names actual count 5 and required 4

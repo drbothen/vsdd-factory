@@ -108,7 +108,7 @@ fn test_BC_4_12_002_wave_context_stories_contents() {
 
 /// BC-4.12.004 PC3: malformed YAML produces a parse error (not a panic).
 ///
-/// `parse_wave_state` must return `Err(serde_yaml::Error)` on malformed input;
+/// `parse_wave_state` must return `Err(serde_norway::Error)` on malformed input;
 /// callers map the error to `value: None`.
 #[test]
 fn test_BC_4_12_004_malformed_yaml_yields_parse_error() {
@@ -130,7 +130,7 @@ fn test_BC_4_12_004_malformed_yaml_yields_parse_error() {
 #[test]
 fn test_parse_wave_state_rejects_missing_required_wave_field() {
     // YAML has a waves entry with stories but no `wave:` key.
-    // serde_yaml must return Err because `wave` is a required String field.
+    // serde_norway must return Err because `wave` is a required String field.
     let yaml = "waves:\n  - stories: [\"S-12.07\"]";
 
     let result = parse_wave_state(yaml);
@@ -663,10 +663,18 @@ fn test_BC_4_12_001_wasm_artifact_registered_in_registry() {
         "AC-009: resolvers-registry.toml must contain context_key = \"wave_context\"; \
          file contents:\n{contents}"
     );
+    // F-P3-007: path_allow narrowed from [".factory/"] to exact files the resolver reads.
+    // AC-009 updated: assert both required files are in path_allow (not directory prefix).
+    // The WaveContextResolver reads only wave-state.yaml + STATE.md (BC-4.12.003 INV1).
     assert!(
-        contents.contains(r#"path_allow = [".factory/"]"#),
-        "AC-009: resolvers-registry.toml wave_context entry must declare path_allow = [\".factory/\"]; \
-         file contents:\n{contents}"
+        contents.contains(r#"".factory/wave-state.yaml""#),
+        "AC-009: resolvers-registry.toml wave_context path_allow must include \
+         \".factory/wave-state.yaml\" (F-P3-007 narrowed grant); file contents:\n{contents}"
+    );
+    assert!(
+        contents.contains(r#"".factory/STATE.md""#),
+        "AC-009: resolvers-registry.toml wave_context path_allow must include \
+         \".factory/STATE.md\" (F-P3-007 narrowed grant); file contents:\n{contents}"
     );
 }
 

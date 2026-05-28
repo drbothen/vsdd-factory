@@ -78,6 +78,7 @@ GATE_HOOKS=(
     session-learning track-agent-start track-agent-stop
     update-wave-state-on-merge validate-pr-review-posted warn-pending-wave-gate
     validate-count-propagation validate-red-ratio
+    update-cargo-audit-cache
   )
 
   # On-disk: every hooks/*.sh basename without extension, minus the
