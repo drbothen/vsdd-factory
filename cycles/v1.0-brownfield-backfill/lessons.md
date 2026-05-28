@@ -2333,3 +2333,23 @@ POLICY 14 description and verification_steps updated in policies.yaml same-burst
 **Closes:** 2026-05-20 resume session (18 substantive bursts: PO×2 + state-manager×9 + adversary×7); D-498 durability burst. Advances to 3M3b story-writer dispatch for S-15.10/12/13/15/16-Part-B elaboration.
 
 **Closes:** adv-bc-007-008-pass-10 persistence cycle (STREAK 2/3 SECOND ADVANCE). D-496 codified.
+
+---
+
+## [L-E10-pass15-automation-wave-effectiveness] E-10 pass-15 confirmed automation-wave-effectiveness: adversary surface shifted from governance-process META-class to implementation-correctness
+
+**Date:** 2026-05-27
+
+**Context:** E-10 adversary pass-15 was the first pass run against develop after S-15.03 PRIORITY-A COMPLETE (all 11 automation stories shipped). The adversary reviewed develop@ced39c82 and produced verdict MEDIUM-HIGH 8 findings (0C+2H+4M+2L).
+
+**Key observation — character SHIFT:** Passes 1-14 were dominated by governance-process META-class findings: bare-integer POLICY IDs, policy schema drift, citation-refresh thresholds, BC versioning conventions, index parity enforcement. Pass-15 showed ZERO governance-process META findings. All 8 findings were implementation-correctness findings: max_bytes cap too small, index file reads within same cap, cycle-path hardcoded, on_error behavioral semantics, CI count assertion stale, guard function logic. This is exactly what S-15.03 PRIORITY-A was designed to produce — close the governance tooling gap so the adversary surface shifts to implementation substance.
+
+**TD-VSDD-060 sibling-site sweep was the only HIGH-class finding pattern:** F-PASS15-001 and F-PASS15-002 both found that validate-index-cite-refresh and validate-burst-log had the same 65536-byte cap that had been fixed in validate-state-structure (S-15.09) but not swept to siblings. The fix in PR #160 applied 524288 to 7 crates with TD-VSDD-060 discipline: compile-time assertions on the 2 crates with material behavioral impact; mechanical sweep on the remaining 5. This is the residual class — the discipline is sound; one missed sibling sweep was the gap.
+
+**Lesson:** Automation-wave effectiveness manifests as adversary surface character shift, not just finding count reduction. A stable finding count (8→8) can represent improvement if the CLASS of findings shifted from systemic governance gaps to mechanical implementation details. The trend 22→11→16→16→12→2→1→4→5→4→6→7→5→8→8 shows the asymptotic floor is real and the S-15.03 PRIORITY-A investment paid off in adversary surface quality.
+
+**F-PASS15-003/005/006/007/008 ACCEPTED-AT-ASYMPTOTIC-FLOOR:** Consistent with D-471 model. Cycle-path hardcoding, INDEX.md as Phase 2 secondary, on_error=continue behavioral gap, CI assertion stale, find_part_a_start guard all represent legitimate improvement opportunities but are structurally in the same risk class as the D-471 accepted findings.
+
+**Cites:** D-509 (E-10 pass-15 fix-burst decision), D-471 (asymptotic-acceptance model), TD-VSDD-060 (sibling-site sweep discipline), PR #160 4b68ab83.
+
+**Closes:** D-509 E-10 pass-15 lesson capture per S-7.02 cycle-closing checklist.

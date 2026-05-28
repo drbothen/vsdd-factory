@@ -237,3 +237,27 @@ dispatch story-writer for 3M3b elaboration (5 M3 stories: S-15.10/12/13/15/16-Pa
 - All directives (TD-VSDD-097-EXT, TD-VSDD-099, TD-VSDD-100, POLICY 14 5-leg, verification_step 7, INV-019 cure, adversary grep origin/develop) carry forward.
 
 **This checkpoint superseded by D-507 SESSION-END DURABILITY BURST 2026-05-27.**
+
+---
+
+## Archived Checkpoint: D-508 S-15.13 SHIPPED + S-15.03 PRIORITY-A COMPLETE; E-10 resumption UNBLOCKED (2026-05-27)
+
+*Archived from STATE.md Section 11 per POLICY 1 when D-509 E-10 pass-15 fix-burst superseded it.*
+
+### §1. Where We Are (D-508)
+- S-15.03 PRIORITY-A COMPLETE. All 11 stories shipped. E-10 resumption UNBLOCKED.
+- Wave 1 COMPLETE (11pts): S-15.16-Part-B (PR #153 c1c81603) + S-15.10 (PR #154 a36ab711).
+- Wave 2 COMPLETE (8pts): S-15.12 (PR #155 fba7e1cd 2026-05-26).
+- Wave 3 COMPLETE (13pts): S-15.15 (PR #158 24cc2ba6 2026-05-27).
+- Wave 4 COMPLETE (8pts): S-15.13 (PR #159 ced39c82 2026-05-27). D-508 codified.
+- 3M3c COMPLETE: All 5 M3 stories = 40pts shipped.
+- develop HEAD ced39c82. main HEAD 70811f4a. factory-artifacts HEAD defe9ab1.
+- D-range D-001..D-508. 4-index: BC-INDEX v2.52, VP-INDEX v2.06, STORY-INDEX v3.70, ARCH-INDEX v2.15.
+
+### §2-§12. Summary (D-508)
+- BC content: BC-5.39.005 v1.3 + BC-5.39.006 v1.7 + BC-5.39.007 v1.6 (Phase 2 ACs ACTIVE) + BC-5.39.008 v1.5 + BC-7.04.051 v1.1 — all ACTIVE.
+- E-10 gate: S-15.03 PRIORITY-A COMPLETE. E-10 pass-15+ UNBLOCKED.
+- F5: PAUSED per D-386 Option C. Requires explicit human direction.
+- All directives (TD-VSDD-097-EXT, TD-VSDD-099, TD-VSDD-100, POLICY 14 5-leg, verification_step 7, INV-019 cure, adversary grep origin/develop) carry forward.
+
+**This checkpoint superseded by D-509 E-10 pass-15 fix-burst 2026-05-27.**

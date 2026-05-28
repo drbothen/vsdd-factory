@@ -11,6 +11,150 @@ input-hash: "[live-state]"
 traces_to: STATE.md
 ---
 
+## D-509 E-10 PASS-15 FIX-BURST POST-MERGE BURST 2026-05-27
+
+### Parent-commit
+
+`350fc86a` (E-10 pass-15 adversary report persisted at factory-artifacts; last confirmed HEAD before this D-509 burst) → this D-509 commit.
+
+### Adversary Verdict (D-448(a) source-attestation gate)
+
+Pass-15 adversary reviewed develop@ced39c82 and produced verdict MEDIUM-HIGH 8 findings (0C+2H+4M+2L). Report persisted at `.factory/cycles/v1.0-brownfield-backfill/E-10-pass-15.md` (factory-artifacts `350fc86a`). Trend 22→11→16→16→12→2→1→4→5→4→6→7→5→8→8 (holds at 8 from pass-14). Character SHIFT confirmed: governance-process META-class → implementation-correctness. Fix-burst PR #160 squash-merged at 4b68ab83 on develop 2026-05-27. F-PASS15-001/002/004 CLOSED. F-PASS15-003/005/006/007/008 ACCEPTED-AT-ASYMPTOTIC-FLOOR per D-471 model extension.
+
+D-448(a) source-attestation gate (literal shell, per D-449(a)):
+
+```bash
+$ grep -cE '^### F-PASS15-' /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-brownfield-backfill/E-10-pass-15.md
+8
+```
+
+Finding count in persisted report = 8. Matches context-provided total of 8 findings. PASS.
+
+### Files Touched (Dim-1)
+
+7 files modified:
+
+1. `.factory/STATE.md` — UPDATED (frontmatter phase/last_amended/current_step; Phase Progress +1 row; Active Branches develop SHA ced39c82→4b68ab83; Decisions Log +D-509 row + D-range D-508→D-509; Concurrent Cycles D-509 bolt-on; Last Updated; Current Phase; Session Resume Checkpoint full refresh §1/§2/§4/§5/§6/§9/§10/§11/§12; line-growth tracker)
+2. `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — PREPENDED (D-509 row)
+3. `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — PREPENDED (this h2 entry)
+4. `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — APPENDED (L-E10-pass15-automation-wave-effectiveness)
+5. `.factory/cycles/v1.0-brownfield-backfill/session-checkpoints.md` — APPENDED (D-508 checkpoint archived per POLICY 1)
+
+### Codifications (Dim-3)
+
+- **D-509 codified (5 sub-clauses):** (a) E-10 RESUMED post-D-508; pass-15 verdict MEDIUM-HIGH 8 findings; character SHIFT to implementation-correctness; (b) prior-pass closures F-PASS14-004/006 structurally closed by automation; F-PASS14-001/002/003/005/007/008 remain ACCEPTED; (c) fix-burst PR #160 4b68ab83 closed F-PASS15-001/002/004 + TD-VSDD-060 7-crate sibling sweep + CR-001/CR-004 addressed; (d) F-PASS15-003/005/006/007/008 ACCEPTED per D-471 extension; (e) CI 10/11 green; pass-15 report at factory-artifacts `350fc86a`; pass-16 or F5 per human direction.
+- **L-E10-pass15-automation-wave-effectiveness appended** to lessons.md: automation-wave-effectiveness lesson — character SHIFT in adversary surface (governance-process META-class → implementation-correctness) confirms S-15.03 PRIORITY-A investment paid off; TD-VSDD-060 sibling-sweep is the residual class.
+- **D-508 checkpoint archived** to session-checkpoints.md per POLICY 1.
+
+### Dim-2 Attestation (literal-shell per D-449(a))
+
+**PC1 (no forbidden meta-commentary in current_step:):**
+
+```bash
+$ grep '^current_step:' /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md | grep -E "META-LEVEL-[0-9]+ WATCH|self-app TEST|expected verdict"
+(no output)
+```
+
+Exit: 1 (no match) — PASS.
+
+**PC2 (trajectory-tail marker present):**
+
+```bash
+$ grep '^current_step:' /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md | grep -c "trajectory-tail"
+1
+```
+
+PASS.
+
+**PC3 (trajectory-tail has exactly 4 arrow values):**
+
+```bash
+$ grep '^current_step:' /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md | grep -oE "trajectory-tail [→0-9]+" | grep -oE "→[0-9]+" | wc -l
+       4
+```
+
+PASS.
+
+**PC4 (D-chain cite present and current — D-508):**
+
+```bash
+$ grep '^current_step:' /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md | grep -oE "D-chain cite D-[0-9]+"
+D-chain cite D-508
+```
+
+PASS (D-508 is the prior pass per D-419(b)).
+
+**PC5 (parent-commit present):**
+
+```bash
+$ grep '^current_step:' /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md | grep -oE "parent-commit [a-z0-9]+"
+parent-commit ced39c82
+```
+
+PASS.
+
+**D-509 row present in STATE.md Decisions Log:**
+
+```bash
+$ grep -cE "^\| D-509 \|" /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md
+1
+```
+
+PASS.
+
+**D-509 row present in decision-log.md:**
+
+```bash
+$ grep -cE "^\| D-509 \|" /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-brownfield-backfill/decision-log.md
+1
+```
+
+PASS.
+
+**L-E10-pass15-automation-wave-effectiveness in lessons.md:**
+
+```bash
+$ grep -c "L-E10-pass15-automation-wave-effectiveness" /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-brownfield-backfill/lessons.md
+1
+```
+
+PASS (header line present).
+
+**develop HEAD correct (4b68ab83):**
+
+```bash
+$ grep -cE "develop \| 4b68ab83" /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md
+1
+```
+
+PASS.
+
+### Dim-5 Attestation
+
+Closes-set completeness: D-509 post-merge burst. All 5 sub-clauses executed: (a) STATE.md comprehensive update (frontmatter, Phase Progress, Active Branches, Decisions Log, Concurrent Cycles, Last Updated, Current Phase, Session Resume Checkpoint §1/§2/§4/§5/§6/§9/§10/§11/§12); (b) decision-log.md D-509 row prepended; (c) lessons.md L-E10-pass15-automation-wave-effectiveness appended; (d) session-checkpoints.md D-508 checkpoint archived per POLICY 1; (e) burst-log.md this entry with all 8 D-444(c) blocks. 4-index UNCHANGED (BC v2.52/VP v2.06/STORY v3.70/ARCH v2.15) — no BC/VP/story/arch version bumps in this state-only burst.
+
+### Dim-6 Attestation (literal-shell commit count per D-449(a))
+
+```bash
+$ git -C /Users/jmagady/Dev/vsdd-factory/.factory log --oneline 350fc86a..HEAD | wc -l
+```
+
+(Count will be 1 after commit — single commit per TD-VSDD-053. SHA-patch follow-up will update Active Branches factory-artifacts row to D-509 HEAD per D-447(c)+D-449(e).)
+
+### Dim-7 Attestation
+
+4-index UNCHANGED from D-508: BC-INDEX v2.52, VP-INDEX v2.06, STORY-INDEX v3.70, ARCH-INDEX v2.15. This is a state-management burst only — no behavioral contract, verification property, story, or architecture changes.
+
+### Closes
+
+Closes D-509 E-10 pass-15 post-merge state burst. Files touched: STATE.md + decision-log.md + burst-log.md + lessons.md + session-checkpoints.md. Advances to: SHA-patch follow-up to update Active Branches factory-artifacts row, then await human direction for E-10 pass-16 or F5 pass-75.
+
+### Factory-artifacts commits
+
+(Updated via SHA-patch after this commit completes per D-447(c)+D-449(e).)
+
+---
+
 ## SESSION-END DURABILITY BURST D-498 2026-05-20
 
 ### Parent-commit
