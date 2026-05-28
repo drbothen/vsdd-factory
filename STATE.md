@@ -175,7 +175,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | 70811f4a | verified `git rev-parse origin/main` = 70811f4a5d68d163021f46856c3de51bf8f4aab8 2026-05-13; includes CLAUDE.md expansion PR #136 (845d0007 squash-merge) + rc.18 merge PR #135 (666d689f) |
 | develop | 4b68ab83 | D-509 E-10 pass-15 fix-burst PR #160 squash-merge 4b68ab83 2026-05-27. Prior: D-508 S-15.13 SHIPPED ced39c82. |
-| factory-artifacts | `PENDING-D-511` | D-511 banner-format remediation 2026-05-28 — STATE.md banner (wc-l; token form) + decision-log.md D-511 + lessons.md L-banner-format-drift; prior: D-510 `0663ba92` |
+| factory-artifacts | `bcccd421` | D-511 banner-format remediation 2026-05-28 — STATE.md banner (wc-l; token form) + decision-log.md D-511 + lessons.md L-banner-format-drift; prior: D-510 `0663ba92` |
 | v1.0.0-rc.16 (tag) | feb894a2 | SHIPPED; claude-mp PR #8 awaiting human merge |
 | v1.0.0-rc.15 (tag) | e68bb436 | SHIPPED |
 
@@ -284,7 +284,7 @@ dtu_services: []
 - **F5 pass-75 adversary + fix-burst (D-510 2026-05-27):** Verdict HIGH 11 findings (1C+5H+3M+2L). Trajectory tick-up 9→11 (14-day pause cost; 36th multi-axis). META-LEVEL-30 CANDIDATE-CONFIRMED 3 routes.
 - **4 structural META-30 findings ACCEPTED-AT-FLOOR per D-386 Option C extension (D-510):** CRIT-001 (route a) + HIGH-002 (route b anchored S-15.17) + LOW-001 (route a tail update in-burst) + route-c covered by HIGH-005.
 - **develop HEAD:** `4b68ab83` (PR #160 squash-merge 2026-05-27 — UNCHANGED). **main HEAD:** `70811f4a`.
-- **factory-artifacts HEAD:** `PENDING-D-511` (D-511 banner-format remediation 2026-05-28 — SHA-patch after commit).
+- **factory-artifacts HEAD:** `bcccd421` (D-511 banner-format remediation 2026-05-28 — SHA-patch after commit).
 - **D-range:** D-001..D-511.
 - **4-index (post-D-511, unchanged from D-510):** BC-INDEX v2.53, VP-INDEX v2.06, STORY-INDEX v3.71, ARCH-INDEX v2.15.
 - **BC content:** BC-5.39.005 v1.3 ACTIVE + BC-5.39.006 v1.7 ACTIVE + BC-5.39.007 v1.6 ACTIVE + BC-5.39.008 v1.5 ACTIVE + BC-7.04.051 v1.1 ACTIVE.
@@ -369,7 +369,7 @@ Prior Tier-A (pre-session, all COMPLETE): TD #71/72/70/74 (PRs #138–141 2026-0
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** `PENDING-D-511` (D-511 banner-format remediation 2026-05-28 — SHA-patch after commit)
+- **factory-artifacts HEAD:** `bcccd421` (D-511 banner-format remediation 2026-05-28 — SHA-patch after commit)
 - **develop HEAD:** `4b68ab83` (PR #160 E-10 pass-15 fix-burst squash-merge 2026-05-27 — UNCHANGED)
 - **main HEAD:** `70811f4a` (rc.18 merge + CLAUDE.md expansion)
 - D-510 factory-artifacts HEAD: `0663ba92` (D-510 F5 pass-75 fix-burst 2026-05-27)
