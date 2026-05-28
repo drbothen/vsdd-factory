@@ -2476,3 +2476,45 @@ POLICY 14 description and verification_steps updated in policies.yaml same-burst
 **Forward action:** policies.yaml POLICY 8 verification_steps extended in D-515 burst. Future BC-array-change fix-bursts MUST include bidirectional parity stdout. Sibling-sweep (TD-VSDD-060) generalization: same principle applies to invariant-array and EC-array changes — any structural re-numbering of PC/inv/EC requires re-deriving parity for ALL ACs, not just those explicitly named in the adversary report.
 
 **Closes:** D-515 META-LEVEL-31 codification per S-7.02 cycle-closing checklist.
+
+---
+
+## L-S-15.17-SP3-cure-of-cure-recursion
+
+**Date:** 2026-05-28
+
+**Pattern (META-LEVEL-31 sub-route):** cure-of-cure-recursion in spec cascade.
+
+**Mechanism:** Each cure layer introduces a structural escape hatch at increasing META level. Pass-2 cured META-LEVEL-31 (cascade-propagation-gap-from-PC-insertion) via POLICY 8 bidirectional parity audit. Pass-3 found the cure had its own META-31 hole: audit grep target included the audit's own embedded stdout, allowing zero-real-citation PCs to inflate to count=1 (F-SP3-005 — PC6 fabricated by self-reference; AC-7 actually traces to invariant 8, not PC6). F-SP3-014 independently confirmed the same self-counting vector.
+
+**Cure (D-497 parsimony — POLICY 8 v1.2 EXTENSION):** Audit grep target MUST exclude the audit block itself (sed-strip form) OR audit MUST list AC numbers per PC explicitly. `sed '/^## §Bidirectional Parity Audit Note/,/^## /d' story.md | grep -c "BC-5.39.009 PC6"` — strip audit section before counting. Alternative: explicit AC-per-PC listing (e.g., 'PC6: AC-7') makes self-counting structurally impossible. policies.yaml POLICY 8 v1.1→v1.2 applied at PO `ac74474f` burst.
+
+**Forward-watch:** Pass-4 adversary MUST verify POLICY 8 v1.2 audit form does NOT spawn new sub-route. If META-31 sub-route-N+1 surfaces, codify as POLICY 8 v1.3.
+
+**Anchors:** F-SP3-005 + F-SP3-014; D-515 (META-31 cure layer); D-497 (cure-extension parsimony); D-516 (this).
+
+**Cites:** D-516, POLICY 8 v1.2, adv-spec-pass-3.md at ebf7413f, ac74474f PO fix-burst.
+
+**Closes:** D-516 cure-of-cure-recursion lesson capture per S-7.02 cycle-closing checklist.
+
+---
+
+## L-S-15.17-SP3-SDK-grounding-mandate
+
+**Date:** 2026-05-28
+
+**Pattern (META-LEVEL ROOT CAUSE):** BC narrative authored without literal-shell grounding in actual SDK contract / file paths / cycle state / registry / sibling patterns. 3 HIGH+CRITICAL pass-3 findings share this root: F-SP3-002 (regex semantics — PO used mental model of SDK, not literal `grep` of `crates/hook-sdk/src/host.rs`); F-SP3-003 (HostError variant — PC11 claimed wrong variant without checking actual enum definition); F-SP3-006 (Vec<u8> sibling parity — assumed sibling pattern without grepping sibling lib.rs files).
+
+**Mechanism:** Adversary's spec authoring uses mental model of SDK rather than literal grep. Defects survive multi-pass cascades because the source of truth (crates/hook-sdk/src/host.rs, .factory/STATE.md current_cycle:, sibling lib.rs patterns) is never grepped during authoring. Regression cycle: adversary finds defect → PO fixes with another mental-model claim → adversary finds the same class again in next pass.
+
+**Cure (D-497 parsimony — POLICY 5 EXTENSION):** "Creators justify anchors" extended to require literal-shell grep of any cited SDK symbol, file path, cycle name, type signature, registry priority, or sibling pattern, with captured stdout in BC §SDK Grounding Evidence (or named equivalent section). policies.yaml POLICY 5 v1.2→v1.3 applied at this burst (D-516). This codifies the pass-3 mandate the orchestrator applied to the PO burst.
+
+**Applied at pass-3 PO burst** (`ac74474f`) with 9 literal-shell grep captures covering: HostError variants, current_cycle: STATE.md field, Vec<u8> sibling patterns, registry priority allocation, ADR paths, path_component_count form. Pass-4 adversary should verify the §SDK Grounding Evidence section is comprehensive — every BC narrative claim about external state has corresponding grep evidence.
+
+**Forward-watch:** Apply to all future BC-authoring + amendment bursts in this and other cycles. Document in agent prompts (PO, architect) for future cycles. The adversary should flag any BC section making claims about external state without a corresponding §SDK Grounding Evidence grep entry.
+
+**Anchors:** F-SP3-002 + F-SP3-003 + F-SP3-006; D-516.
+
+**Cites:** D-516, POLICY 5 v1.3, adv-spec-pass-3.md at ebf7413f, ac74474f PO fix-burst (9 literal-shell captures).
+
+**Closes:** D-516 SDK-grounding-mandate lesson capture per S-7.02 cycle-closing checklist.

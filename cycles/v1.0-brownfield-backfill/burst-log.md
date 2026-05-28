@@ -4469,3 +4469,110 @@ Result: 4 Dim blocks present (Dim-2, Dim-5, Dim-6, Dim-7) — PASS per D-446(a)
 - `7d12db2f` — S-15.17 v1.1→v1.2 story-writer fix-burst (5 story findings closed)
 - `34f06d2c` — state-manager closing burst (this commit; D-446(a) own-burst-log 8-block gate PASS)
 - `<D-514-SHA-patch-SHA>` — SHA-patch follow-up per D-447(c)+D-449(e)
+
+---
+
+## D-516 — S-15.17 Spec Cascade Pass-3 Fix-Burst COMPLETE + Cure-of-Cure-Recursion + SDK-Grounding Mandate 2026-05-28
+
+**Parent-commit:** `2d549ee5` (story-writer fix-burst; D-419(b))
+**Burst type:** Spec cascade pass-3 fix-burst close + 2 META-LEVEL lessons + POLICY 5+8 codification
+**Date:** 2026-05-28
+
+### Dim-2 Attestation (PC literal-shell evidence; D-449(a))
+
+**PC2 (BC frontmatter bc_id):**
+```
+$ grep "^bc_id: BC-5.39.009" .factory/specs/behavioral-contracts/ss-05/BC-5.39.009.md
+bc_id: BC-5.39.009
+```
+Result: PASS
+
+**PC3 (behavioral_contracts in story):**
+```
+$ grep 'BC-5.39.009' .factory/stories/S-15.17-validate-trajectory-tail-cell-completeness.md | head -1
+behavioral_contracts: ["BC-5.39.009"]
+```
+Result: PASS
+
+**PC4 (trajectory-tail LENGTH=4 in STATE.md current_step):**
+```
+$ grep "^current_step:" .factory/STATE.md | grep -oE "→[0-9]+" | wc -l
+4
+```
+Result: 4 — PASS (LENGTH=4 STRICT per D-433(e)+D-439(c))
+
+**PC5 (D-chain cite in STATE.md current_step):**
+```
+$ grep "^current_step:" .factory/STATE.md | grep -oE "D-[0-9]+" | tail -1
+D-516
+```
+Result: D-516 — PASS (D-chain cite D-515→D-516 per D-419(b))
+
+**PC6 (SIZE BUDGET wc-l token in STATE.md):**
+```
+$ grep "(wc-l;" .factory/STATE.md | tail -1
+  D-516-S-15.17-PASS-3-FIX-BURST-COMPLETE-CURE-OF-CURE-SDK-GROUNDING-CODIFIED NNN lines (wc-l; ...
+```
+Result: PASS (canonical (wc-l; token present per D-511 remediation)
+
+**Verification step 7 (4-index POLICY 14 self-application gate):**
+```
+$ for IDX_PATH in .factory/specs/behavioral-contracts/BC-INDEX.md .factory/specs/verification-properties/VP-INDEX.md .factory/stories/STORY-INDEX.md .factory/specs/architecture/ARCH-INDEX.md; do V=$(grep -E '^version:' "$IDX_PATH" | grep -oE '"[0-9]+\.[0-9]+"' | tr -d '"'); LA=$(grep -E '^last_amended:' "$IDX_PATH" | grep -oE '\(v[0-9]+\.[0-9]+\)' | head -1 | tr -d '()v'); echo "$(basename $IDX_PATH): version=$V last_amended_prefix=$LA match=$([ "$V" = "$LA" ] && echo PASS || echo FAIL)"; done
+BC-INDEX.md: version=2.57 last_amended_prefix=2.57 match=PASS
+VP-INDEX.md: version=2.06 last_amended_prefix=2.06 match=PASS
+STORY-INDEX.md: version=3.75 last_amended_prefix=3.75 match=PASS
+ARCH-INDEX.md: version=2.15 last_amended_prefix=2.15 match=PASS
+```
+Result: 4/4 PASS
+
+**D-448(a) source-attestation parity (pass-3 finding count):**
+```
+$ grep -c '^### F-S15.17-SP3' .factory/code-delivery/S-15.17/adv-spec-pass-3.md
+14
+```
+Result: 14 — matches adv-spec-pass-3.md at ebf7413f — PASS
+
+**META-31 audit-block-exclusion verification (12 PCs, no self-counting):**
+```
+$ sed '/^## §Bidirectional Parity Audit Note/,/^## /d' .factory/stories/S-15.17-validate-trajectory-tail-cell-completeness.md | grep -oE "BC-5\.39\.009 PC[0-9]+" | sort -u | wc -l
+12
+```
+Result: 12 unique PCs cited outside audit block — PASS (PC1-PC12; no self-counting; POLICY 8 v1.2 audit-block-exclusion verified)
+
+### Dim-5 Files Cross-Check
+
+Files touched this burst:
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-516 row + appendix
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — this entry (D-516)
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — 2 lessons (L-S-15.17-SP3-cure-of-cure-recursion + L-S-15.17-SP3-SDK-grounding-mandate)
+- `.factory/STATE.md` — Commit-E full advance (frontmatter + body + Session Resume Checkpoint)
+- `.factory/policies.yaml` — POLICY 5 extension v1.2→v1.3 (SDK-grounding mandate)
+
+Prior burst files (already committed; verified via `git -C .factory log --oneline`):
+- `ebf7413f` — adv-spec-pass-3.md persisted (HIGH 14 findings; 206 lines)
+- `ac74474f` — BC-5.39.009 v1.2→v1.3 PO fix-burst (9 BC findings closed; §SDK Grounding Evidence section)
+- `2d549ee5` — S-15.17 v1.3→v1.4 story-writer fix-burst (5 story findings + PC cascade re-anchor; AC-24)
+
+### Dim-6 Attestation (Block count gate per D-446(a))
+
+```
+$ awk '/^### Dim-/{c++} END{print c}' <(tail -120 .factory/cycles/v1.0-brownfield-backfill/burst-log.md)
+4
+```
+Result: 4 Dim blocks present (Dim-2, Dim-5, Dim-6, Dim-7) — PASS per D-446(a)
+
+### Dim-7 Attestation (Closes / Advances)
+
+**Closes:** D-516 S-15.17 spec cascade pass-3 fix-burst (all 14 findings: 1C+5H+4M+3L+1N+1PG); BC v1.2→v1.3; story v1.3→v1.4; BC-INDEX v2.56→v2.57; STORY-INDEX v3.74→v3.75; policies.yaml v1.2→v1.3 (POLICY 5 extension); 2 META-LEVEL lessons codified (L-S-15.17-SP3-cure-of-cure-recursion + L-S-15.17-SP3-SDK-grounding-mandate); STREAK 0/3 confirmed per BC-5.39.001.
+
+**Advances:** pass-4 fresh-context adversary dispatch on (BC-5.39.009 v1.3 + S-15.17 v1.4). Pass-4 adversary must specifically verify: (1) POLICY 8 v1.2 audit-block-exclusion form has no new sub-route; (2) §SDK Grounding Evidence section covers ALL BC narrative claims about external state; (3) EC-020 UTF-8 fail-open needs [needs-po] PO mirror. 3-CLEAN required from this point for convergence per BC-5.39.001.
+
+**Trajectory:** →9→9→9→11 (carry-across from F5 pass-75; spec cascade trajectory operates independently)
+
+### Factory-artifacts Commits
+
+- `ebf7413f` — adv-spec-pass-3.md persisted (adversary persist step)
+- `ac74474f` — BC-5.39.009 v1.2→v1.3 PO fix-burst (9 BC findings closed + §SDK Grounding Evidence)
+- `2d549ee5` — S-15.17 v1.3→v1.4 story-writer fix-burst (5 story findings + PC cascade re-anchor)
+- `<D-516-PRIMARY-SHA>` — state-manager closing burst (this commit; D-516 codification + 2 lessons + POLICY 5 + STATE.md advance)
+- `<D-516-SHA-patch-SHA>` — SHA-patch follow-up per D-447(c)+D-449(e)

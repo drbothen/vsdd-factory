@@ -342,3 +342,21 @@ dispatch story-writer for 3M3b elaboration (5 M3 stories: S-15.10/12/13/15/16-Pa
 - **develop HEAD:** `98ea0719`. **main HEAD:** `43afbfa7`. **factory-artifacts HEAD:** `410e53c2`.
 
 **This checkpoint superseded by D-515 S-15.17 spec cascade pass-2 fix-burst COMPLETE + META-31 codified 2026-05-28.**
+
+---
+
+## Archived Checkpoint: D-515 S-15.17 SPEC CASCADE PASS-2 FIX-BURST COMPLETE + META-LEVEL-31 CODIFIED (archived from STATE.md at D-516 advance)
+
+**Archived:** 2026-05-28 at D-516 state-manager advance.
+
+**§1 summary:** D-515 S-15.17 spec cascade pass-2 fix-burst COMPLETE + META-LEVEL-31 codified 2026-05-28. Pass-3 adversary dispatch was next action.
+
+**Key anchors:**
+- factory-artifacts HEAD: `8507a7f9` (D-515 primary) / SHA-patch: `556c268f`
+- D-515 PO fix-burst: `a1cf38d2` (BC v1.1→v1.2) / story-writer: `ee6d3b8e` (story v1.2→v1.3)
+- D-515 adv-persist: `5e467118` (11 findings; all CLOSED)
+- 4-index: BC-INDEX v2.56 / VP-INDEX v2.06 / STORY-INDEX v3.74 / ARCH-INDEX v2.15
+- policies.yaml v1.1 (POLICY 8 bidirectional parity extension at D-515)
+- D-range: D-001..D-515
+
+**This checkpoint superseded by D-516 S-15.17 spec cascade pass-3 fix-burst COMPLETE + cure-of-cure + SDK-grounding codified 2026-05-28.**
