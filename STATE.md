@@ -173,7 +173,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | 70811f4a | verified `git rev-parse origin/main` = 70811f4a5d68d163021f46856c3de51bf8f4aab8 2026-05-13; includes CLAUDE.md expansion PR #136 (845d0007 squash-merge) + rc.18 merge PR #135 (666d689f) |
 | develop | 4b68ab83 | D-509 E-10 pass-15 fix-burst PR #160 squash-merge 4b68ab83 2026-05-27. Prior: D-508 S-15.13 SHIPPED ced39c82. |
-| factory-artifacts | `e70ec966` | D-509 post-merge burst 2026-05-27 — STATE.md + decision-log.md + burst-log.md + lessons.md + session-checkpoints.md; prior: D-508 `defe9ab1` (pass-15 adversary report `350fc86a`) |
+| factory-artifacts | `0663ba92` | D-510 F5 pass-75 fix-burst 2026-05-27 — adv-cycle-pass-75.md + BC-INDEX + 7 story frontmatter + STORY-INDEX + INDEX.md + lessons.md + burst-log.md + decision-log.md + STATE.md; prior: D-509 `e70ec966` |
 | v1.0.0-rc.16 (tag) | feb894a2 | SHIPPED; claude-mp PR #8 awaiting human merge |
 | v1.0.0-rc.15 (tag) | e68bb436 | SHIPPED |
 
@@ -281,7 +281,7 @@ dtu_services: []
 - **6 mechanical findings CLOSED same-burst D-510:** HIGH-001 (BC-7.04.051 POL-14 leg-5) + HIGH-003 (7-story frontmatter draft→merged) + HIGH-004 (STATE.md banner literal wc-l) + HIGH-005 (INDEX.md paused_pending_resume) + MED-001 (BC-5.39.005 version-cell) + MED-002 (S-15.17 STORY-INDEX registered) + MED-003 (lessons.md corrigendum) + LOW-002 (D-510 codified).
 - **4 structural META-30 findings ACCEPTED-AT-FLOOR per D-386 Option C extension (D-510):** CRIT-001 (route a) + HIGH-002 (route b anchored S-15.17) + LOW-001 (route a tail update in-burst) + route-c covered by HIGH-005.
 - **develop HEAD:** `4b68ab83` (PR #160 squash-merge 2026-05-27 — UNCHANGED). **main HEAD:** `70811f4a`.
-- **factory-artifacts HEAD:** (SHA-patch pending this commit — see §9 after commit).
+- **factory-artifacts HEAD:** `0663ba92` (D-510 F5 pass-75 fix-burst 2026-05-27).
 - **D-range:** D-001..D-510.
 - **4-index (post-D-510):** BC-INDEX v2.53, VP-INDEX v2.06, STORY-INDEX v3.71, ARCH-INDEX v2.15.
 - **BC content:** BC-5.39.005 v1.3 ACTIVE + BC-5.39.006 v1.7 ACTIVE + BC-5.39.007 v1.6 ACTIVE + BC-5.39.008 v1.5 ACTIVE + BC-7.04.051 v1.1 ACTIVE.
@@ -363,7 +363,7 @@ Prior Tier-A (pre-session, all COMPLETE): TD #71/72/70/74 (PRs #138–141 2026-0
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** (D-510 single-commit burst 2026-05-27 — SHA-patch follow-up will update this after commit)
+- **factory-artifacts HEAD:** `0663ba92` (D-510 F5 pass-75 fix-burst 2026-05-27)
 - **develop HEAD:** `4b68ab83` (PR #160 E-10 pass-15 fix-burst squash-merge 2026-05-27 — UNCHANGED)
 - **main HEAD:** `70811f4a` (rc.18 merge + CLAUDE.md expansion)
 - D-509 factory-artifacts HEAD: `e70ec966` (D-509 post-merge burst 2026-05-27)
