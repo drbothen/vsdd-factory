@@ -2429,3 +2429,32 @@ POLICY 14 description and verification_steps updated in policies.yaml same-burst
 **Cites:** D-513 (this burst decision), BC-5.39.009 v1.0 (`393527a4`), S-15.17 v1.1 (`2300a27a`), D-497 (cure-extension-parsimony), TD-VSDD-063 (VP deferral pattern), POLICY 8, POLICY 14.
 
 **Closes:** D-513 BC authoring + propagation lesson capture.
+
+---
+
+## [L-S-15.17-SP1-fix-burst-clean-propagation] S-15.17 spec cascade pass-1 fix-burst: clean PO→story-writer→state-manager 3-burst sequence demonstrates POLICY 8 + POLICY 14 discipline working as designed
+
+**Date:** 2026-05-28
+
+**Context:** D-514 burst. Adversary pass-1 produced HIGH verdict 14 findings (5H+5M+3L+1N) against BC-5.39.009 v1.0 + S-15.17 v1.1. PO fix-burst closed 9 BC findings (`87f1bc8f`); story-writer fix-burst closed 5 story findings (`7d12db2f`); state-manager closed with bookkeeping only (this commit). No spec-content disputes escalated between agents; no sibling-sweep gaps discovered; no META-LEVEL self-violation classes surfaced.
+
+**Positive pattern — clean 3-burst anatomy:**
+1. Adversary identified 14 findings across BC+story; categorized by owner (BC-owner = PO, story-owner = story-writer) with no ambiguous scope boundaries.
+2. PO handled all BC-class findings including the hardest (F-005 LENGTH=4 STRICT adjudication) via cure-extension-parsimony (D-497) — aligning with BC-5.39.006 precedent rather than introducing a novel abstraction.
+3. Story-writer received clean input (PO's v1.1 with all BC adjudications settled) and propagated without needing to adjudicate any open PO questions.
+4. State-manager closing burst was bookkeeping-only (codifications + lesson + STATE.md advance).
+
+**Key observation — cross-BC semantic divergence caught at pass-1 (F-005):** The hardest finding was F-005 (LENGTH=4 STRICT vs APPROXIMATE boundary). PO resolved it by aligning with BC-5.39.006 inv-6(b)+EC-007 + production STATE.md evidence (the actual tail IS exactly 4). This is the correct resolution path — consult the predecessor BC for semantic parity rather than relaxing or abstracting. Adding EC-018 (LENGTH=5 FORBIDDEN) made the adjudication permanent and testable.
+
+**Key observation — META-LEVEL-30 partial recurrence caught at pass-1 (F-004):** STATE.md extractor anchors (PC2/PC3/PC5) were present in the BC but without literal-shell evidence. PO closed this by specifying the exact anchor forms (table-cell extract and heading-prefix-match) with literal-shell examples. This is a META-LEVEL-30 route (b) partial recurrence — codified-canonical-registry-with-no-runtime-gate — caught at pass-1 and structurally closed (anchors specified, not deferred to implementer). The pattern: adversary catches under-specification; PO provides precision; no cascade prolongation required.
+
+**Replication guide for future BC+story pass-N fix-bursts:**
+1. After adversary pass-N: categorize findings by owner before dispatching (BC-class→PO; story-class→story-writer). Prevents cross-agent rework.
+2. PO goes first (BC is the source-of-truth; story propagates FROM BC). Merge order matters.
+3. Story-writer waits for PO commit SHA before reading BC for propagation — this is the correct handoff point.
+4. Hardest adjudications (boundary cases) should consult PREDECESSOR BCs per D-497 cure-extension-parsimony. No novel abstractions unless structurally required.
+5. State-manager closes last, bookkeeping-only.
+
+**Cites:** D-514 (this burst), D-513 (BC authoring), D-497 (cure-extension-parsimony), F-S15.17-SP1-005 (F-005 LENGTH=4), F-S15.17-SP1-004 (F-004 extractor anchors), POLICY 8, POLICY 14.
+
+**Closes:** D-514 lesson capture per S-7.02 cycle-closing checklist.

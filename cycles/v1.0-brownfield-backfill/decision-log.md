@@ -11,6 +11,7 @@ Historical decision-log entries moved from STATE.md during compaction. Most rece
 
 | ID | Decision | Rationale | Phase | Date | Made By |
 |----|----------|-----------|-------|------|---------|
+| D-514 | S-15.17 SPEC CASCADE PASS-1 FIX-BURST COMPLETE 2026-05-28 — (a) adversary pass-1 verdict HIGH 14 findings (5H+5M+3L+1N); STREAK 0/3 reset per BC-5.39.001; adv-spec-pass-1.md persisted at 29d08cc7 (215 lines); (b) PO fix-burst at 87f1bc8f closed 9 BC findings (F-002 ADR-017 path; F-004 STATE.md extractor anchors PC2/3/5 corrected with literal-shell evidence; F-005 LENGTH=4 STRICT adjudicated aligning with BC-5.39.006 inv-6(b)+EC-007 + D-433(e)+D-439(c) original codification + production STATE.md tail; F-007 PC5/EC-016 fail-open reconciliation; F-009 path_allow sibling cite to BC-5.39.006; F-010 inv-12 on_error=continue added; F-011 D-NNN table purified; F-012 D-454(a) PC range; F-014 typo); BC v1.0→v1.1; BC-INDEX v2.54→v2.55; new EC-018 LENGTH=5 added; cure-extension parsimony per D-497 cited (BC-5.39.005+BC-5.39.006 predecessors); POLICY 14 5-leg verified PO; (c) story-writer fix-burst at 7d12db2f closed 5 story findings (F-001 T-5 u64→u32 sibling parity; F-003 AC PC mis-mapping AC-14/15/1 swept all 21 ACs; F-006 EC table renumbered 1:1 with BC with BC-EC cross-ref column; F-008 BC Table coverage claim corrected; F-013 token budget hooks-registry estimate corrected ~3K→~33K); AC-22 added for LENGTH=5; story v1.1→v1.2; STORY-INDEX v3.72→v3.73; PC2/3/5 extractor specs propagated to T-5 + Architecture Compliance per POLICY 8; POLICY 14 5-leg verified story-writer; (d) parent-commit `7d12db2f` per D-419(b); (e) 4-index post-burst: BC-INDEX v2.55 / VP-INDEX v2.06 (UNCHANGED) / STORY-INDEX v3.73 / ARCH-INDEX v2.15 (UNCHANGED); (f) cure-pattern observed: clean PO→story-writer→state-manager 3-burst sequence per orchestrator routing rules; no sibling-sweep gaps; no META-LEVEL self-violation classes; positive precedent for future BC+story pass-N fix-bursts. See decision-log.md SoT appendix. Closes: pass-1 fix-burst (all 14 findings); advances: pass-2 fresh-context adversary dispatch on (BC-5.39.009 v1.1 + S-15.17 v1.2). | M3-post-S-15.17 spec cascade pass-1 fix-burst close; 14/14 findings closed (9 BC + 5 story); BC v1.0→v1.1; story v1.1→v1.2; BC-INDEX v2.55; STORY-INDEX v3.73; STREAK 0/3 reset; pass-2 dispatch-ready | M3-post-S-15.17-SPEC-CASCADE-PASS-1-FIX-BURST | 2026-05-28 | state-manager |
 | D-513 | BC-5.39.009 v1.0 AUTHORED + S-15.17 v1.1 BC PROPAGATED 2026-05-28 — (a) product-owner authored `BC-5.39.009: validate-trajectory-tail-cell-completeness` v1.0 active (POL-14 lifecycle_status: draft → active on S-15.17 merge); anchors ADV-EDP1-P75-HIGH-002 META-LEVEL-30 route-(b) silent-degradation cure; 13 PCs + 11 invariants + ≥5 ECs + 18 VPs (pending architect post-merge); all 5 STATE.md sites adjudicated Block severity (no advisory hedge); EC-014 basename-only default; EC-017 multi-line YAML current_step added; INV-019 cure (a)/(b)/(c) included; cure-extension-parsimony per D-497 (extends BC-5.39.005+BC-5.39.006 structural-gate pattern rather than novel META-LEVEL abstraction); POLICY 14 5-leg quintuple parity applied (5 legs verified by PO literal-shell stdout); BC-INDEX v2.53→v2.54 same-burst (SS-05 count 655→656); (b) story-writer propagated BC into S-15.17 v1.0→v1.1 (POLICY 8 bc_array_changes_propagate_to_body_and_acs); `behavioral_contracts: ["BC-5.39.009"]`; Anticipated PCs/Invariants sections replaced (Option A canonical-source-of-truth reference) per CLAUDE.md production-grade default; AC-21 added for EC-017 multi-line YAML; T-2 fixture list + T-3 bats list extended; Post-Merge Burst Requirements section added with [needs-arch] 18 VP allocation deferral per TD-VSDD-063 precedent; STORY-INDEX v3.71→v3.72; status remains draft (pending adversarial review); POLICY 14 5-leg verified by story-writer literal-shell stdout; (c) state-manager bookkeeping closure — BC frontmatter duplicate `lifecycle_status: draft` key resolved in this burst (state-manager bookkeeping flag from story-writer; PO template artifact; canonical position after `capability:` per BC-5.39.008 precedent; first occurrence after `status: active` removed); (d) parent-commit `2300a27a` per D-419(b); (e) 4-index post-burst: BC-INDEX v2.54 / VP-INDEX v2.06 (UNCHANGED) / STORY-INDEX v3.72 / ARCH-INDEX v2.15 (UNCHANGED). See decision-log.md SoT appendix for full prose. Closes: BC-5.39.009 PO authoring + S-15.17 v1.1 propagation; advances: adversarial cascade on (BC-5.39.009 + S-15.17) 3-CLEAN before per-story-delivery dispatch. | BC-5.39.009 PO authoring + S-15.17 POLICY 8 BC propagation + state-manager lifecycle_status fix; cure-extension-parsimony per D-497; POLICY 14 5-leg verified; 4-index BC v2.54 / STORY v3.72 | BC authoring + story propagation burst | 2026-05-28 | state-manager |
 | D-512 | v1.0.0-rc.19 SHIPPED 2026-05-28 — (a) release pipeline run 26581752361 all 10 jobs PASS on second attempt; v1.0.0-rc.19 tag moved by release bot to d15152af (binary bundle commit); main `fea969ea`→`43afbfa7` (bot binary commit on top of merge); develop auto-synced `4b68ab83`→`98ea0719`; GitHub Release prerelease published 2026-05-28T15:10:56Z; marketplace PR drbothen/claude-mp PR #11 squash-merged 2026-05-28T15:44:36Z (operators receive rc.19 on next plugin sync); (b) first attempt run 26556220729 failed at Pre-release Validation — validate-state-structure WASM hook block on STATE.md banner format drift (line-growth tracker entries used `N lines (verified via wc -l ...)` not canonical `(wc-l;` token form per validator's `(\\d+) lines (wc-l<terminator>` pattern); D-511 banner remediation 2026-05-28 converted all 6 entries to `(wc-l;` form on factory-artifacts; tag was force-deleted + re-pushed at same fea969ea SHA (tag was 'innocent' — no bot artifacts had been created on first attempt); (c) release content: 18 PRs since rc.18 — S-15.03 PRIORITY-A complete (all 11 stories: M1 S-15.06+08+16-Part-A; M2 S-15.07+11+09+14; M3 S-15.16-Part-B+10+12+15+13; 40pts M3) + dispatcher stderr block_reason TD #71 + serde_norway TD #72 + cargo cache TD #70 + de-flake S-15.04+05 + 65536→524288 sibling sweep PR #160 (E-10 pass-15) + F5 pass-75 D-510 fix-burst + D-511 banner remediation; (d) lesson L-rc19-pre-release-validation-banner-format-drift captured: banner-format-drift class — five consecutive state-manager bursts (D-504..D-510) drifted format silently; hook caught it at Pre-release Validation (correct behavior); going-forward state-manager dispatch templates for STATE.md banner edits MUST include literal `(wc-l;` token; (e) all 3 planned items COMPLETE — E-10 pass-15+fix-burst (D-509), F5 pass-75+fix-burst (D-510), rc.19 SHIPPED (D-512); parent-commit b62c014a per D-419(b); 4-index: BC-INDEX v2.53 VP-INDEX v2.06 STORY-INDEX v3.71 ARCH-INDEX v2.15 (UNCHANGED). See decision-log.md SoT. Closes rc.19 release cycle; advances to steady-state next-cycle pending human direction. | rc.19 release ship record; all 3 planned items COMPLETE; marketplace PR #11 squash-merged; banner-format-drift lesson codified | rc.19-release-ship | 2026-05-28 | state-manager |
 | D-511 | STATE.md BANNER-FORMAT REMEDIATION 2026-05-28 — rc.19 release pipeline failed at Pre-release Validation due to validate-state-structure WASM hook block: line-growth tracker entries in SIZE BUDGET banner used `N lines (verified via wc -l ...)` and `N lines (AT HARD CAP ...)` forms instead of canonical `N lines (wc-l<terminator>` pattern that the hook scans for. Hook was correct; banner format had drifted across multiple state-manager bursts (D-504..D-510). Remediation: all 6 line-growth tracker entries converted to `(wc-l;` token form in-burst (D-504 `496 lines (wc-l;`; D-505 `498 lines (wc-l;`; D-506 `500 lines (wc-l;`; D-507 `430 lines (wc-l;`; D-509 `422 lines (wc-l;`; D-510 `431 lines (wc-l;`). New D-511 entry added: `N lines (wc-l; rc.19 release-blocker fix ...)`. Test pass-real-state-md-snapshot.bats now reads STATE.md without 'no SIZE BUDGET banner' violation (D-434(e) Convergence Status absence remains accepted at floor per test scope note). Closes rc.19 release-pipeline Pre-release Validation block. D-511 decision codified this row. L-banner-format-drift lesson captured in lessons.md. Single-commit burst per TD-VSDD-053; parent-commit 0663ba92 per D-419(b); 4-index UNCHANGED: BC-INDEX v2.53 VP-INDEX v2.06 STORY-INDEX v3.71 ARCH-INDEX v2.15. | rc.19 release-blocker: validate-state-structure hook SIZE BUDGET banner format drift D-504..D-510; canonical (wc-l; token restoration | rc.19-release-blocker-fix | 2026-05-28 | state-manager |
@@ -205,3 +206,68 @@ No new INV-NNN abstraction was introduced. The BC's Traceability §Predecessor C
 3. **per-story-delivery dispatch** — after 3-CLEAN + remove-uncertainty: test-writer → implementer → demo-recorder → pr-manager → devops-engineer.
 4. **Post-merge architect dispatch** — 18 VP `(pending)` allocations in BC-5.39.009 §Verification Properties must be allocated and propagated to VP-INDEX + verification-architecture.md + verification-coverage-matrix.md per POLICY 9 + TD-VSDD-063.
 5. **POL-14 auto-promotion** — on S-15.17 PR merge, BC-5.39.009 `lifecycle_status: draft → active` (state-manager post-merge burst).
+
+---
+
+## D-514 Appendix — S-15.17 Spec Cascade Pass-1 Fix-Burst Complete
+
+**Burst Date:** 2026-05-28
+**Parent-commit:** `7d12db2f` (story-writer fix-burst; per D-419(b))
+**factory-artifacts steps:** adv-persist `29d08cc7` → PO fix `87f1bc8f` → story-writer fix `7d12db2f` → state-manager close (this commit)
+
+### Pass-1 Fix-Burst Sequence
+
+**Step 1 — Adversary review persist (factory-artifacts `29d08cc7`):**
+Fresh-context adversary reviewed BC-5.39.009 v1.0 + S-15.17 v1.1. Verdict: HIGH 14 findings (5H+5M+3L+1N). adv-spec-pass-1.md persisted at 215 lines. STREAK 0/3 RESET per BC-5.39.001. Key finding categories: (F-002) ADR-017 path; (F-004) STATE.md extractor anchors PC2/3/5 needed literal-shell evidence; (F-005) LENGTH=4 STRICT boundary case (LONGEST-finding; PO adjudication required); (F-007) PC5/EC-016 fail-open reconciliation; (F-009) path_allow sibling cite; (F-010) inv-12 on_error=continue absent; (F-011) D-NNN table had non-decision rows; (F-012) D-454(a) PC range cited wrong D-NNN; (F-014) typo.
+
+**Step 2 — PO fix-burst (factory-artifacts `87f1bc8f`):**
+Product-owner closed 9 BC findings in BC-5.39.009 v1.0→v1.1. Key: F-005 LENGTH=4 STRICT adjudicated by aligning with BC-5.39.006 inv-6(b)+EC-007 + D-433(e)+D-439(c) original codification + production STATE.md tail evidence — LENGTH=4 STRICT confirmed (not relaxed). EC-018 LENGTH=5 FORBIDDEN added as new explicit edge case. inv-12 on_error=continue added. PC2/PC3/PC5 STATE.md extractor anchors corrected with literal-shell evidence (table-cell + heading-prefix-match forms per finding F-004). ADR-017 path corrected (F-002). D-NNN table purified of non-decision rows (F-011). D-454(a) PC range corrected (F-012). POLICY 14 5-leg verified PO. Cure-extension parsimony per D-497: BC-5.39.005+BC-5.39.006 predecessors cited. No novel INV-NNN abstraction. BC-INDEX v2.54→v2.55 same-burst.
+
+**Step 3 — Story-writer fix-burst (factory-artifacts `7d12db2f`):**
+Story-writer closed 5 story findings in S-15.17 v1.1→v1.2. Key: F-001 T-5 u64→u32 sibling-pattern parity with validate-policies-schema corrected; F-003 AC PC mis-mapping: AC-14 anchored to PC11, AC-15 to PC12, AC-1 to registry+inv-1 (all 21 ACs swept); F-006 story EC table renumbered 1:1 with BC EC numbering post-PO burst (BC-EC cross-ref column added); F-008 BC Table coverage claim corrected to actual invariant subset; F-013 Token Budget hooks-registry estimate corrected ~3K→~33K. AC-22 added for BC EC-018 (LENGTH=5 block test coverage). PC2/PC3/PC5 extractor specs propagated to T-5 narrative + Architecture Compliance Rules per POLICY 8. POLICY 14 5-leg verified story-writer. STORY-INDEX v3.72→v3.73.
+
+**Step 4 — State-manager closing burst (this commit):**
+D-514 codified. Lesson appended. STATE.md full Commit-E advance.
+
+### Finding Closure Summary
+
+| Finding | Severity | Closed By | Step |
+|---------|----------|-----------|------|
+| F-S15.17-SP1-001 T-5 u64→u32 | HIGH | story-writer | 3 |
+| F-S15.17-SP1-002 ADR-017 path | HIGH | PO | 2 |
+| F-S15.17-SP1-003 AC PC mis-mapping | HIGH | story-writer | 3 |
+| F-S15.17-SP1-004 PC2/3/5 extractor anchors | HIGH | PO | 2 |
+| F-S15.17-SP1-005 LENGTH=4 STRICT | HIGH | PO | 2 |
+| F-S15.17-SP1-006 EC table renumbered | MEDIUM | story-writer | 3 |
+| F-S15.17-SP1-007 PC5/EC-016 fail-open | MEDIUM | PO | 2 |
+| F-S15.17-SP1-008 BC Table coverage | MEDIUM | story-writer | 3 |
+| F-S15.17-SP1-009 path_allow sibling cite | MEDIUM | PO | 2 |
+| F-S15.17-SP1-010 inv-12 on_error=continue | MEDIUM | PO | 2 |
+| F-S15.17-SP1-011 D-NNN table purified | LOW | PO | 2 |
+| F-S15.17-SP1-012 D-454(a) PC range | LOW | PO | 2 |
+| F-S15.17-SP1-013 Token budget estimate | LOW | story-writer | 3 |
+| F-S15.17-SP1-014 typo | NITPICK | PO | 2 |
+
+All 14 findings CLOSED. 100% closure rate. STREAK 0/3 → pass-2 dispatch-ready.
+
+### POLICY 14 5-Leg Verification — PO Fix-Burst (factory-artifacts `87f1bc8f`)
+
+- Leg 1 — `version: "1.1"` in BC-5.39.009.md frontmatter ✓
+- Leg 2 — Changelog row v1.1 in BC-5.39.009.md body ✓
+- Leg 3 — `modified:` array updated 2026-05-28 in BC-5.39.009.md frontmatter ✓
+- Leg 4 — `last_amended: "2026-05-28 (v1.1) — ..."` text-prefix ✓
+- Leg 5 — BC-INDEX v2.55 body-table row with version cell `v1.1` for BC-5.39.009 ✓
+
+### POLICY 14 5-Leg Verification — Story-Writer Fix-Burst (factory-artifacts `7d12db2f`)
+
+- Leg 1 — `version: "1.2"` in S-15.17 frontmatter ✓
+- Leg 2 — Changelog row v1.2 in S-15.17 body ✓
+- Leg 3 — `modified:` array updated 2026-05-28 in S-15.17 frontmatter ✓
+- Leg 4 — `last_amended: "2026-05-28 (v1.2) — ..."` text-prefix ✓
+- Leg 5 — STORY-INDEX v3.73 body-table row with version cell `v1.2` for S-15.17 ✓
+
+### Forward Path
+
+1. **Pass-2 adversary dispatch** — fresh-context adversary on (BC-5.39.009 v1.1 + S-15.17 v1.2). Adversary reads ONLY the two files. Prior pass-1 report exists at `.factory/code-delivery/S-15.17/adv-spec-pass-1.md`. 3-CLEAN (2 more cleans required) before S-15.17 promoted to `status: ready`.
+2. **remove-uncertainty sweep** — after 3-CLEAN: architect verifies VP allocation, Cargo workspace additions, hooks-registry.toml priority 158, new crate structure.
+3. **per-story-delivery dispatch** — after 3-CLEAN + remove-uncertainty: standard per-story-delivery pipeline.

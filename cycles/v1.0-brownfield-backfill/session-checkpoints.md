@@ -317,3 +317,17 @@ dispatch story-writer for 3M3b elaboration (5 M3 stories: S-15.10/12/13/15/16-Pa
 - **Next per direction (at D-512):** F5 pass-76 or S-15.17 dispatch per human direction; E-10 pass-16 optional.
 
 **This checkpoint superseded by D-513 BC-5.39.009 AUTHORED + S-15.17 v1.1 PROPAGATED 2026-05-28.**
+
+---
+
+## Checkpoint: D-513 BC-5.39.009 AUTHORED + S-15.17 v1.1 PROPAGATED (archived 2026-05-28)
+
+> Superseded by D-514 S-15.17 SPEC CASCADE PASS-1 FIX-BURST COMPLETE.
+
+- **D-513 COMPLETE (2026-05-28):** BC-5.39.009 v1.0 authored by PO (`393527a4`); S-15.17 v1.0→v1.1 POLICY 8 propagated by story-writer (`2300a27a`); state-manager duplicate lifecycle_status fix + D-513 codification.
+- **factory-artifacts HEAD:** `56d907ad` (D-513 SHA-patch).
+- **4-index (post-D-513):** BC-INDEX v2.54, VP-INDEX v2.06, STORY-INDEX v3.72, ARCH-INDEX v2.15 (VP/ARCH UNCHANGED).
+- **Next (at D-513):** adversarial cascade on (BC-5.39.009 v1.0 + S-15.17 v1.1) → 3-CLEAN → remove-uncertainty → per-story-delivery.
+- **develop HEAD:** `98ea0719`. **main HEAD:** `43afbfa7`.
+
+**This checkpoint superseded by D-514 S-15.17 spec cascade pass-1 fix-burst COMPLETE 2026-05-28.**

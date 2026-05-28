@@ -4204,3 +4204,111 @@ Closes rc.19 release cycle (D-512). All 3 planned items COMPLETE. Advances to st
 - `b62c014a` (D-511 SHA-patch — parent commit; factory-artifacts HEAD pre-this-burst)
 - `78ea0e7a` (D-512 burst commit — single commit per TD-VSDD-053)
 - `<SHA-patch-SHA>` (SHA-patch D-497 — Commit 2; fills Active Branches SHA)
+
+---
+
+## D-514 — S-15.17 Spec Cascade Pass-1 Fix-Burst COMPLETE 2026-05-28
+
+**Parent-commit:** `7d12db2f` (story-writer fix-burst; D-419(b))
+**Burst type:** Spec cascade pass-1 fix-burst close (state-manager bookkeeping)
+**Date:** 2026-05-28
+
+### Dim-2 Attestation (PC literal-shell evidence; D-449(a))
+
+**PC2 (BC frontmatter bc_id):**
+```
+$ grep "^bc_id: BC-5.39.009" .factory/specs/behavioral-contracts/ss-05/BC-5.39.009.md
+bc_id: BC-5.39.009
+```
+Result: PASS
+
+**PC3 (story BC anchor):**
+```
+$ grep "behavioral_contracts:" .factory/stories/S-15.17-validate-trajectory-tail-cell-completeness.md | grep "BC-5.39.009"
+last_amended: "2026-05-28 (v1.2) — Pass-1 adversary fix-burst (story-writer; brownfield-backfill S-15.17 spec cascade pass-1 fix-burst). [...] behavioral_contracts: ['BC-5.39.009'] [...]"
+behavioral_contracts: ["BC-5.39.009"]
+```
+Result: PASS (behavioral_contracts: ["BC-5.39.009"] present)
+
+**PC4 (trajectory-tail LENGTH=4):**
+```
+$ grep "^current_step:" .factory/STATE.md | grep -oE "→[0-9]+" | wc -l
+       4
+```
+Result: 4 — PASS
+
+**PC5 (D-chain D-513 per D-419(b)):**
+```
+$ grep "^current_step:" .factory/STATE.md | grep -oE "D-chain cite D-[0-9]+"
+D-chain cite D-513
+```
+Result: D-chain cite D-513 — PASS (parent decision per D-419(b))
+
+**PC6 (SIZE BUDGET (wc-l token):**
+```
+$ grep "(wc-l" .factory/STATE.md | grep "D-514"
+  D-514-S-15.17-PASS-1-FIX-BURST-COMPLETE 432 lines (wc-l; Phase Progress +1 row; Decisions Log +D-514 row; Concurrent Cycles update; Active Branches SHA update; Session Resume Checkpoint refresh; margin 500-432=68 from hard cap; margin 415-432=OVER soft-target by 17; D-446(c) dual-margin form).
+```
+Result: PASS ((wc-l token present in banner tracker; 432 lines actual)
+
+**Verification step 7 — 4-index gate (D-494; BC-INDEX v2.55, VP-INDEX v2.06, STORY-INDEX v3.73, ARCH-INDEX v2.15):**
+```
+$ for IDX_PATH in .factory/specs/behavioral-contracts/BC-INDEX.md \
+    .factory/specs/verification-properties/VP-INDEX.md \
+    .factory/stories/STORY-INDEX.md \
+    .factory/specs/architecture/ARCH-INDEX.md; do
+    V=$(grep -E '^version:' "$IDX_PATH" | grep -oE '"[0-9]+\.[0-9]+"' | tr -d '"')
+    LA=$(grep -E '^last_amended:' "$IDX_PATH" | grep -oE '\(v[0-9]+\.[0-9]+\)' | head -1 | tr -d '()v')
+    [ "$V" = "$LA" ] && echo "PASS: $(basename $IDX_PATH) version=$V last_amended_prefix=$LA" || echo "FAIL: $(basename $IDX_PATH) version=$V last_amended_prefix=$LA"
+  done
+PASS: BC-INDEX.md version=2.55 last_amended_prefix=2.55
+PASS: VP-INDEX.md version=2.06 last_amended_prefix=2.06
+PASS: STORY-INDEX.md version=3.73 last_amended_prefix=3.73
+PASS: ARCH-INDEX.md version=2.15 last_amended_prefix=2.15
+```
+All 4 PASS. BC-INDEX v2.55 (bumped PO burst); STORY-INDEX v3.73 (bumped story-writer burst); VP-INDEX v2.06 + ARCH-INDEX v2.15 UNCHANGED.
+
+**Source-attestation parity D-448(a):**
+```
+$ grep -c '^### F-S15.17' .factory/code-delivery/S-15.17/adv-spec-pass-1.md
+14
+```
+Result: 14 — PASS (matches 14 findings stated in adversary verdict)
+
+### Dim-5 Attestation (Files touched — Closes-set completeness)
+
+Files modified in this D-514 state-manager closing burst:
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-514 row + appendix prose
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — this entry
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — L-S-15.17-SP1-fix-burst-clean-propagation appended
+- `.factory/cycles/v1.0-brownfield-backfill/session-checkpoints.md` — prior checkpoint archived
+- `.factory/STATE.md` — full Commit-E advance (frontmatter + body + Session Resume Checkpoint)
+
+Prior burst files (already committed; verified via `git -C .factory log --oneline`):
+- `29d08cc7` — adv-spec-pass-1.md persisted
+- `87f1bc8f` — BC-5.39.009 v1.0→v1.1 (PO 9 findings closed)
+- `7d12db2f` — S-15.17 v1.1→v1.2 (story-writer 5 findings closed)
+
+### Dim-6 Attestation (Block count gate per D-446(a))
+
+```
+$ awk '/^### Dim-/{c++} END{print c}' <(tail -100 .factory/cycles/v1.0-brownfield-backfill/burst-log.md)
+4
+```
+Result: 4 Dim blocks present (Dim-2, Dim-5, Dim-6, Dim-7) — PASS per D-446(a)
+
+### Dim-7 Attestation (Closes / Advances)
+
+**Closes:** D-514 S-15.17 spec cascade pass-1 fix-burst (all 14 findings); BC v1.0→v1.1; story v1.1→v1.2; BC-INDEX v2.54→v2.55; STORY-INDEX v3.72→v3.73; STREAK 0/3 confirmed per BC-5.39.001.
+
+**Advances:** pass-2 fresh-context adversary dispatch on (BC-5.39.009 v1.1 + S-15.17 v1.2). 3-CLEAN required (2 consecutive cleans remain) before per-story-delivery unblocked.
+
+**Trajectory:** →9→9→9→11 (carry-across from F5 pass-75; spec cascade doesn't advance F5 trajectory).
+
+### Factory-artifacts Commits
+
+- `29d08cc7` — adv-spec-pass-1.md persisted (adversary persist step)
+- `87f1bc8f` — BC-5.39.009 v1.0→v1.1 PO fix-burst (9 BC findings closed)
+- `7d12db2f` — S-15.17 v1.1→v1.2 story-writer fix-burst (5 story findings closed)
+- `<D-514-primary-SHA>` — state-manager closing burst (this commit; D-446(a) own-burst-log 8-block gate PASS)
+- `<D-514-SHA-patch-SHA>` — SHA-patch follow-up per D-447(c)+D-449(e)
