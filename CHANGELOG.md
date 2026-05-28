@@ -1,5 +1,227 @@
 # Changelog
 
+## 1.0.0-rc.19 — S-15.03 PRIORITY-A complete — 7 new WASM validation hooks + dispatcher hardening (2026-05-27)
+
+**rc.19 ships the complete S-15.03 PRIORITY-A automation wave** — the
+mechanical-gate infrastructure that closes the META-LEVEL-24 false-green
+class identified during the engine-discipline F5 cycle. Eleven stories
+landed across three milestones (M1: foundation; M2: core validation hooks;
+M3: extended validation + cross-document agreement) bringing 7 new WASM
+hook plugins into the registry plus dispatcher stderr surfacing, test
+infrastructure de-flake, security migration, and CI hardening.
+
+This is the largest rc since rc.15 by both PR count (18) and feature
+surface (7 net-new WASM plugins, 21 total native-WASM plugins now in the
+registry). It represents the post-asymptotic-acceptance ship: both
+E-10 (brownfield cycle adversarial review) and F5 (engine-discipline
+cycle adversarial review) reached their respective asymptotic floors and
+the human authorized cutting the release.
+
+### Added
+
+- **7 new WASM validation hook plugins** (S-15.03 PRIORITY-A M1+M2+M3
+  waves; priorities 152-157 in the PostToolUse Edit|Write tier):
+
+  - `validate-index-cite-refresh` (PR #145, S-15.07, priority 151):
+    enforces D-429(b) cross-cell version cite refresh when any of the
+    4 canonical indexes (BC/VP/STORY/ARCH) bumps. Catches stale version
+    citations in STATE.md and sibling docs.
+
+  - `validate-burst-log` (PR #146, S-15.11, priority 152): enforces
+    burst-log h2 entry structural completeness (8 D-444(c) blocks per
+    entry); detects missing Dim-2/5/6/7 attestation blocks before
+    commit.
+
+  - `validate-state-structure` Phase 1+2 (PRs #147+#154, S-15.09+S-15.10,
+    priority 153): enforces STATE.md structural invariants — tally sync,
+    monotonic D-NNN, row coalescence, Phase Progress completeness, and
+    D-434(e) frontmatter parity.
+
+  - `validate-dispatch-advance` (PR #148, S-15.14, priority 154):
+    enforces TD-VSDD-097-EXT — all 5 BC-5.39.006 PCs simultaneously
+    present in STATE.md `current_step:` field at dispatch-side advance.
+
+  - `validate-closes-completeness` Phase 1+2 (PRs #155+#159, S-15.12+
+    S-15.13, priority 156, new crate): enforces D-411(c) Closes-block
+    completeness; Phase 1 trigger-file Closes-set must agree with
+    pass-N Part A finding set; Phase 2 extends cross-document agreement
+    to burst-log + decision-log + lessons.md + STATE.md secondary
+    citation sites via ADR-022 pointer-file mechanism
+    (`.factory/current-adversary-pass.txt`).
+
+  - `validate-policies-schema` (PR #158, S-15.15, priority 157, new
+    crate): enforces policies.yaml schema integrity per F-PASS14-004
+    closure — frontmatter required (`document_type`, `version`,
+    `last_amended`), bare integer policy IDs, required per-policy
+    fields, and ADR-021 Option (b) cargo-audit cache reader. Closes
+    F-PASS14-004/006 + D-472 POLICY 13+16.
+
+- **`validate-stable-anchors`** (PreToolUse, priority 155): companion
+  hook ensuring anchor references in cross-document citations remain
+  stable across edits.
+
+- **`dim2-gates` bash template library** (PR #144, S-15.08): 11
+  canonical bash scripts at `plugins/vsdd-factory/hooks/dim2-gates/`
+  for fix-burst Dim-2 attestation — directly addresses D-449(a)
+  literal-shell-execution-evidence requirement (META-LEVEL-24 closure).
+  Each script follows `--help` + `set -euo pipefail` + structured
+  PASS/FAIL stdout pattern. 12 bats integration tests + 25 fixtures
+  exercise the library against representative artifacts.
+
+- **`lessons.md` size gate** (PR #153, S-15.16-Part-B): extends
+  `validate-state-size` hook to enforce D-442(e) lessons.md budget
+  (≤3500 soft / ≤4000 hard). Closes the WASM-fuel-exhaustion class
+  where oversized lessons.md silently failed PostToolUse validators.
+
+- **`wait_for_log_event` test helper** (PR #143, S-15.05): async
+  helper in `full_stack_plugin_invocation.rs` that observes
+  dispatcher internal-log events with 100ms polling instead of
+  wall-clock timing. Used to rewrite TC-4/5/7/9 from
+  timing-assertion to event-observation form. Resolves the recurring
+  TC-9 ubuntu flake (F-P3-008 root cause; architect Strategy B).
+
+### Changed
+
+- **Dispatcher stderr now surfaces `blocking_plugins` + `block_reason`**
+  (PR #138, TD #71): blocking dispatches now include the plugin name(s)
+  that fired and the block message inline in the dispatcher's stderr
+  summary line. Previously operators had to grep the daily internal-log
+  jsonl by trace UUID to discover *why* a dispatch was blocked; the
+  reason is now visible at the failure point. Reduces diagnostic
+  time-to-root-cause from minutes to seconds. 5 bats integration tests
+  cover the surfacing path. CLAUDE.md "Factory Hook Diagnostics" §Step 2
+  updated to reflect the change.
+
+- **Workspace serde migration: serde_yaml 0.9.34 → serde_norway 0.9**
+  (PR #139, TD #72): 13 files migrated. Initially recommended target
+  was serde_yml, but cargo-audit during security review caught
+  RUSTSEC-2025-0068 (serde_yml unsoundness) + RUSTSEC-2025-0067 (libyml
+  UB) — pivoted in-scope to serde_norway 0.9. 2 Critical security
+  findings resolved in 1 fix cycle. The pivot established TD #74
+  shift-left codification pattern (`docs/dispatch-package-authoring.md`).
+
+- **CI cache hardening** (PR #140, TD #70): `Swatinem/rust-cache` SHA-
+  pinned at 3 sites (ci.yml cargo-host + ci.yml cross-compile matrix
+  + release.yml cross-compile) at commit `c19371144df3bb44fab255c43d04cbc2ab54d1c4`.
+  `cache-on-failure=true` added for resilience. Note: floating `@v2` was
+  already present; TD #70 hardened the pin, did not introduce caching.
+  10/10 green on 7 runners.
+
+- **trace_id field-name canonicalization** (PR #142, S-15.04): bats
+  internal-log assertions tightened from `'"(dispatcher_)?trace_id":"'`
+  to `'"trace_id":"'` with negative `dispatcher_trace_id` assertion
+  enforcing BC-3.08.001 v1.7 Invariant 5 zero-occurrence contract.
+  Plugin stdin envelope `dispatcher_trace_id` field stays (intentionally
+  distinct). Closes TD #66.
+
+- **All 7 new WASM hooks fail-open on `host::read_file` errors with
+  524 KiB cap** (PR #160, F-PASS15 sibling sweep): full TD-VSDD-060
+  sibling-site sweep raised `host::read_file` byte cap from 65536 to
+  524288 across 7 hook plugin crates (`validate-index-cite-refresh`,
+  `validate-burst-log`, `lint-registry-async-invariant`,
+  `session-start-telemetry`, `update-wave-state-on-merge`,
+  `validate-artifact-path`, `validate-per-story-adversary-convergence`,
+  `warn-pending-wave-gate`). Each crate now declares a named
+  `MAX_BYTES = 524_288` constant with doc-comment; the 2 crates with
+  material behavioral impact (`validate-burst-log`,
+  `validate-index-cite-refresh`) carry compile-time
+  `const _: () = assert!(MAX_BYTES >= 524_288)` regression assertions.
+  Previously the 65536 cap silently rendered validators inert against
+  production STATE.md (95 KiB) — D-429(b) cross-cell version sweep
+  was functionally dead before this fix. Closes F-PASS15-001 (HIGH),
+  F-PASS15-002 (HIGH), F-PASS15-004 (MEDIUM).
+
+### Operational
+
+- **S-15.03 PRIORITY-A complete**: all 11 stories shipped across M1
+  (foundation: S-15.06 + S-15.08 + S-15.16-Part-A), M2 (core validation:
+  S-15.07 + S-15.11 + S-15.09 + S-15.14), and M3 (extended validation:
+  S-15.16-Part-B + S-15.10 + S-15.12 + S-15.15 + S-15.13). 40 story
+  points across M3 alone. E-10 (brownfield adversarial cycle) resumption
+  was gated on this work landing — NOW UNBLOCKED.
+
+- **E-10 pass-15 + fix-burst PR #160 shipped**: first cycle-level
+  adversarial review since the S-15.03 wave. Verdict
+  MEDIUM-HIGH 8 findings (0C+2H+4M+2L); trajectory holds at 8 from
+  pass-14. Character SHIFTED from governance-process META-class to
+  implementation-correctness — the automation wave WORKED. Fix-burst
+  closed the 2 HIGHs + 1 MEDIUM via the 65536→524288 sweep. Remaining
+  5 findings ACCEPTED-AT-ASYMPTOTIC-FLOOR per D-471 model.
+
+- **F5 pass-75 fix-burst + META-LEVEL-30 asymptotic-acceptance**: first
+  F5 cycle review since the 14-day pause at pass-74. Verdict HIGH 11
+  findings at META-LEVEL-30 CANDIDATE-CONFIRMED via 3 routes
+  (closure-burst literal-shell command-vs-interpretation path mismatch;
+  codified-without-runtime-gate degraded over pause; paused-cycle-INDEX
+  staleness). 6 mechanical findings closed in-burst (POL-14 leg-5
+  propagation, banner literal count, lessons.md corrigendum, F5
+  INDEX.md paused-frozen frontmatter, story status auto-promotion).
+  4 structural findings accepted at META-30 asymptotic floor per
+  D-386 Option C extension. HIGH-002 (codified-without-runtime-gate)
+  anchored to new forward-story S-15.17 per Canonical Principle Rule 3
+  concrete future dependency.
+
+- **TD #66/67/70/71/72/74 all closed in this release window**: six
+  technical debt items resolved across PRs #138-143 (TD #66 trace_id
+  + TD #67 de-flake + TD #70 cache + TD #71 stderr + TD #72 serde
+  migration + TD #74 cargo-audit codification).
+
+- **dim2-gates source instantiation** (PR #137 + D-454(c) preview):
+  `plugins/vsdd-factory/hooks/dim2-gates/` registered in artifact-path
+  registry and instantiated with template scaffolding before the full
+  library landed in S-15.08. Tier-B priority-1 closure for
+  ADV-EDP1-P74-HIGH-002.
+
+- **POLICY 14 5-leg quintuple parity gate**: extended at D-490 from
+  3-leg (BC frontmatter + body Changelog + modified[] array) to 5-leg
+  (adds frontmatter `last_amended:` text-prefix + upstream-index body-
+  table cells). Extended again at D-494 with `verification_step 7`
+  literal-shell 4-index self-application gate. Production-validated
+  through ~46 BC-006-parity-sweep conversions during M3 BC cascade.
+
+- **Cache implications**: operators upgrading from rc.18 will see 7 new
+  WASM plugins in their dispatcher cache: `validate-index-cite-refresh`,
+  `validate-burst-log`, `validate-state-structure`,
+  `validate-dispatch-advance`, `validate-closes-completeness`,
+  `validate-policies-schema`, `validate-stable-anchors`. All register
+  with `on_error = "continue"` (soft-launch mode); crash/timeout
+  produces warn-level log line, not block. Dispatcher binary changed
+  schema-compatibly via TD #71 (stderr summary additions); no manual
+  cache fix required.
+
+### Migration
+
+No breaking changes for end-users. Hook authors writing new plugins
+should adopt the `MAX_BYTES = 524_288` convention for `host::read_file`
+calls — the 65536 default is now considered an anti-pattern (silent
+fail-open on production-sized files). See PR #160 for canonical examples.
+
+### Deferred
+
+- **F-PASS15-003** (3 hooks hardcode `.factory/cycles/v1.0-brownfield-backfill/`)
+  remains open at asymptotic floor; cycle-resolver future work has no
+  story yet. Will surface on cycle rotation.
+
+- **F-PASS15-005** (validate-closes-completeness Phase 2 missing
+  INDEX.md as secondary citation site) accepted at floor.
+
+- **F-PASS15-006** (all 7 new hooks use `on_error=continue`) intentional
+  soft-launch; promote individual hooks to `block` after production
+  stabilization period.
+
+- **F-PASS15-007** (CI WASM plugin count assertion stale: `>=16` but
+  21 plugins exist) low-priority cosmetic.
+
+- **F-PASS15-008** (`find_part_a_start` off-by-one in pos tracking)
+  guarded by `.min(text.len())`; no current bug.
+
+- **S-15.17** (validate-trajectory-tail-cell-completeness, F5 pass-75
+  HIGH-002 anchor) authored as draft; awaits PO authorship of
+  BC-5.39.009 then per-story TDD delivery.
+
+- **TD-VSDD-101** (CI env-var paper-fix for production STATE.md read
+  in bats test) closed in S-15.15 ADR-021 implementation path.
+
 ## 1.0.0-rc.18 — research-agent MCP fix + S-12 convergence context migration (rc.17 retry) (2026-05-13)
 
 **rc.18 is a retry of rc.17.** Tag `v1.0.0-rc.17` was pushed on
