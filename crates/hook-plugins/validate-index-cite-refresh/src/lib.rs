@@ -31,6 +31,18 @@ use vsdd_hook_sdk::{HookPayload, HookResult};
 /// against. Must remain 1.
 pub const HOST_ABI_VERSION: u32 = 1;
 
+/// Maximum bytes to read from any factory artifact via `host::read_file`.
+///
+/// Set to 512 KiB (524288 bytes) — consistent with the cap used by
+/// `validate-state-structure` (F-P5-002) and `validate-dispatch-advance`.
+/// Production STATE.md is 95 KiB; this cap provides 5x growth runway.
+/// The old 65536-byte cap caused `host::read_file` to return
+/// `Err(HostError::OutputTooLarge)` (-3), silently disabling the
+/// D-429(b) cross-cell version sweep against the real production STATE.md.
+///
+/// F-PASS15-001/F-PASS15-004: raise from 65536 to 524288.
+pub const MAX_BYTES: u32 = 524_288;
+
 // ---------------------------------------------------------------------------
 // Index name enum
 // ---------------------------------------------------------------------------
@@ -309,7 +321,7 @@ pub fn is_stale(cited: (u32, u32), live: (u32, u32)) -> bool {
 /// BC-5.39.003 postcondition 4 — read failure → Continue + log_warn.
 pub fn read_live_version(index_name: IndexName) -> Option<(u32, u32)> {
     let path = index_name.canonical_path();
-    match vsdd_hook_sdk::host::read_file(path, 65536, 2000) {
+    match vsdd_hook_sdk::host::read_file(path, MAX_BYTES, 2000) {
         Ok(bytes) => {
             let content = match String::from_utf8(bytes) {
                 Ok(s) => s,
@@ -374,7 +386,7 @@ pub fn cross_cell_check(live_versions: &HashMap<IndexName, (u32, u32)>) -> Vec<V
 
     // STATE.md cross-cell check
     let state_path = ".factory/STATE.md";
-    match vsdd_hook_sdk::host::read_file(state_path, 65536, 2000) {
+    match vsdd_hook_sdk::host::read_file(state_path, MAX_BYTES, 2000) {
         Ok(bytes) => {
             if let Ok(content) = String::from_utf8(bytes) {
                 for cite in extract_index_cites(&content) {
@@ -409,7 +421,7 @@ pub fn cross_cell_check(live_versions: &HashMap<IndexName, (u32, u32)>) -> Vec<V
     // NOTE: This path is hardcoded to the brownfield cycle currently in-flight.
     // When the cycle rotates, this path must be updated. Tracked in S-15.07 spec §Risk.
     let index_path = ".factory/cycles/v1.0-brownfield-backfill/INDEX.md";
-    match vsdd_hook_sdk::host::read_file(index_path, 65536, 2000) {
+    match vsdd_hook_sdk::host::read_file(index_path, MAX_BYTES, 2000) {
         Ok(bytes) => {
             if let Ok(content) = String::from_utf8(bytes) {
                 for cite in extract_index_cites(&content) {
@@ -836,5 +848,26 @@ mod tests {
         ));
         assert!(is_arch_index_target("ARCH-INDEX.md"));
         assert!(is_arch_index_target("/absolute/path/to/ARCH-INDEX.md"));
+    }
+
+    // ── F-PASS15-001/F-PASS15-004: MAX_BYTES cap regression test ────────────
+
+    /// F-PASS15-001/F-PASS15-004: verifies that MAX_BYTES is set to at least
+    /// 524288 (512 KiB), consistent with the sibling cap used by
+    /// validate-state-structure (F-P5-002) and validate-dispatch-advance.
+    ///
+    /// If someone lowers MAX_BYTES below 512 KiB, this compile-time assertion
+    /// fails. This prevents silent regression where the D-429(b) cross-cell
+    /// sweep becomes functionally dead against production-sized STATE.md files
+    /// (95 KiB as of pass-15, growing with each adversarial pass).
+    #[test]
+    fn test_BC_5_39_003_max_bytes_cap_at_least_512_kib() {
+        // Compile-time assertion: MAX_BYTES must be >= 524288 (512 KiB).
+        // This is the load-bearing constant check that closes F-PASS15-001/F-PASS15-004.
+        // If someone lowers the cap below 512 KiB, this line fails to compile.
+        const _: () = assert!(
+            MAX_BYTES >= 524_288,
+            "MAX_BYTES must be >= 524288 (512 KiB) per F-PASS15-001/F-PASS15-004"
+        );
     }
 }

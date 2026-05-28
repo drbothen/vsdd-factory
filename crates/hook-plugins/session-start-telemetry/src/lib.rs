@@ -39,6 +39,14 @@ pub const TOOL_DEPS_MAX_VALUE_LEN: usize = 64;
 /// 512-byte budget for the serialized `tool_deps` JSON object.
 pub const TOOL_DEPS_SIZE_BUDGET: usize = 512;
 
+/// Maximum bytes to read from any factory artifact via `host::read_file`.
+///
+/// Set to 512 KiB (524288 bytes) — consistent with the project-wide cap
+/// established by validate-state-structure (F-P5-002) and the F-PASS15
+/// sibling-site sweep. settings.local.json is currently small but the named
+/// constant ensures consistency and enables future audits.
+pub const MAX_BYTES: u32 = 524_288;
+
 // ---------------------------------------------------------------------------
 // Outcome types for injectable callbacks.
 // ---------------------------------------------------------------------------
@@ -280,7 +288,7 @@ pub fn on_session_start(payload: HookPayload) -> HookResult {
     session_start_hook_logic(
         payload,
         // read_file: .claude/settings.local.json
-        || match vsdd_hook_sdk::host::read_file(".claude/settings.local.json", 65536, 1000) {
+        || match vsdd_hook_sdk::host::read_file(".claude/settings.local.json", MAX_BYTES, 1000) {
             Ok(bytes) => ReadFileOutcome::Ok(bytes),
             Err(_) => ReadFileOutcome::Err,
         },

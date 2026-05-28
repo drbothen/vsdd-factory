@@ -12,9 +12,14 @@ use warn_pending_wave_gate::warn_pending_wave_gate_logic;
 /// Path to the wave state file (relative to project root).
 const WAVE_STATE_PATH: &str = ".factory/wave-state.yaml";
 
-/// Maximum bytes to read from wave-state.yaml (64 KB; file is expected <10 KB).
+/// Maximum bytes to read from wave-state.yaml via `host::read_file`.
+///
+/// Set to 512 KiB (524288 bytes) — consistent with the sibling cap used by
+/// `validate-state-structure` (F-P5-002) and `validate-dispatch-advance`.
+/// wave-state.yaml is currently small (<10 KiB) but this constant aligns with
+/// the project-wide convention established after F-PASS15 sibling-site sweep.
 /// `host::read_file` accepts `u32` for max_bytes.
-const MAX_BYTES: u32 = 65536;
+const MAX_BYTES: u32 = 524_288;
 
 /// Timeout in milliseconds for the read_file host call.
 const TIMEOUT_MS: u32 = 1000;

@@ -43,6 +43,17 @@ use vsdd_hook_sdk::{HookPayload, HookResult};
 /// against. Must remain 1.
 pub const HOST_ABI_VERSION: u32 = 1;
 
+/// Maximum bytes to read from burst-log.md via `host::read_file`.
+///
+/// Set to 512 KiB (524288 bytes) — consistent with the cap used by
+/// `validate-state-structure` (F-P5-002) and `validate-dispatch-advance`.
+/// Burst-log.md grows with every adversarial pass (each entry ~2–5 KiB) and
+/// will exceed 64 KiB in long cycles. The old raw literal 65536 was a
+/// hardcoded magic number with no named constant, making future audits error-prone.
+///
+/// F-PASS15-002: introduce named constant and raise from 65536 to 524288.
+pub const MAX_BYTES: u32 = 524_288;
+
 // ---------------------------------------------------------------------------
 // Required block types (D-444(c))
 // ---------------------------------------------------------------------------
@@ -476,7 +487,7 @@ pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
     // Use the file_path from the envelope directly — it is the canonical path
     // to the file that was just written.
     // On read failure: fail-open (Continue + log_warn) per BC-5.39.004 postcondition 6.
-    let content = match host::read_file(&file_path, 65536, 2000) {
+    let content = match host::read_file(&file_path, MAX_BYTES, 2000) {
         Ok(bytes) => match String::from_utf8(bytes) {
             Ok(s) => s,
             Err(e) => {
@@ -927,5 +938,26 @@ mod tests {
         }];
         let result = emit_block(&violations);
         assert_eq!(result.exit_code(), 2);
+    }
+
+    // ── F-PASS15-002: MAX_BYTES cap regression test ──────────────────────────
+
+    /// F-PASS15-002: verifies that MAX_BYTES is set to at least 524288 (512 KiB),
+    /// consistent with the sibling cap used by validate-state-structure (F-P5-002)
+    /// and validate-dispatch-advance.
+    ///
+    /// Burst-log.md grows with every adversarial pass. If someone lowers MAX_BYTES
+    /// below 512 KiB, this compile-time assertion fails, preventing the silent
+    /// regression where burst-log validation becomes functionally dead against
+    /// production-sized files in long cycles.
+    #[test]
+    fn test_BC_5_39_004_max_bytes_cap_at_least_512_kib() {
+        // Compile-time assertion: MAX_BYTES must be >= 524288 (512 KiB).
+        // This is the load-bearing constant check that closes F-PASS15-002.
+        // If someone lowers the cap below 512 KiB, this line fails to compile.
+        const _: () = assert!(
+            MAX_BYTES >= 524_288,
+            "MAX_BYTES must be >= 524288 (512 KiB) per F-PASS15-002"
+        );
     }
 }

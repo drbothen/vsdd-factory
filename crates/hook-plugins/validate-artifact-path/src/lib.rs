@@ -37,6 +37,14 @@ pub const HOST_ABI_VERSION: u32 = 1;
 /// It does NOT violate BC-4.11.001 invariant 1 (no embedded path patterns).
 pub const REGISTRY_PATH: &str = "plugins/vsdd-factory/config/artifact-path-registry.yaml";
 
+/// Maximum bytes to read from any factory artifact via `host::read_file`.
+///
+/// Set to 512 KiB (524288 bytes) — consistent with the project-wide cap
+/// established by validate-state-structure (F-P5-002) and the F-PASS15
+/// sibling-site sweep. The artifact-path-registry.yaml is currently small but
+/// the named constant ensures consistency and enables future audits.
+pub const MAX_BYTES: u32 = 524_288;
+
 // ---------------------------------------------------------------------------
 // Registry data model (schema per ADR-016)
 // ---------------------------------------------------------------------------
@@ -507,7 +515,7 @@ pub fn on_pre_tool_use(payload: HookPayload) -> HookResult {
     hook_logic(
         payload,
         HookCallbacks {
-            read_file: |path| match host::read_file(path, 65536, 5000) {
+            read_file: |path| match host::read_file(path, MAX_BYTES, 5000) {
                 Ok(bytes) => String::from_utf8(bytes).map_err(|e| e.to_string()),
                 Err(e) => Err(format!("{:?}", e)),
             },
