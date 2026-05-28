@@ -172,7 +172,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | 70811f4a | verified `git rev-parse origin/main` = 70811f4a5d68d163021f46856c3de51bf8f4aab8 2026-05-13; includes CLAUDE.md expansion PR #136 (845d0007 squash-merge) + rc.18 merge PR #135 (666d689f) |
 | develop | 4b68ab83 | D-509 E-10 pass-15 fix-burst PR #160 squash-merge 4b68ab83 2026-05-27. Prior: D-508 S-15.13 SHIPPED ced39c82. |
-| factory-artifacts | `defe9ab1` | D-508 S-15.13 SHIPPED 2026-05-27 — STATE.md + BC-INDEX v2.52 + STORY-INDEX v3.70 + BC-5.39.007 v1.6 updated; Wave 4 COMPLETE; S-15.03 PRIORITY-A COMPLETE; prior: D-507 `72250e2b` |
+| factory-artifacts | `e70ec966` | D-509 post-merge burst 2026-05-27 — STATE.md + decision-log.md + burst-log.md + lessons.md + session-checkpoints.md; prior: D-508 `defe9ab1` (pass-15 adversary report `350fc86a`) |
 | v1.0.0-rc.16 (tag) | feb894a2 | SHIPPED; claude-mp PR #8 awaiting human merge |
 | v1.0.0-rc.15 (tag) | e68bb436 | SHIPPED |
 
@@ -278,7 +278,7 @@ dtu_services: []
 - **E-10 pass-15 fix-burst (PR #160 squash-merge 4b68ab83 2026-05-27):** F-PASS15-001 (HIGH validate-index-cite-refresh max_bytes 65536→524288) + F-PASS15-002 (HIGH validate-burst-log max_bytes 65536→524288) + F-PASS15-004 (MEDIUM index file reads) CLOSED. TD-VSDD-060 sibling-sweep 7 crates. CR-001 (EXEC_MAX_OUTPUT_BYTES named constant) + CR-004 addressed. CI 10/11 green.
 - **F-PASS15-003/005/006/007/008:** ACCEPTED-AT-ASYMPTOTIC-FLOOR per D-471 model extension.
 - **develop HEAD:** `4b68ab83` (PR #160 squash-merge 2026-05-27). **main HEAD:** `70811f4a`.
-- **factory-artifacts HEAD:** see §9 (updated post-commit to this D-509 burst SHA).
+- **factory-artifacts HEAD:** `e70ec966` (D-509 post-merge burst 2026-05-27).
 - **D-range:** D-001..D-509.
 - **4-index (post-D-509 — UNCHANGED from D-508):** BC-INDEX v2.52, VP-INDEX v2.06, STORY-INDEX v3.70, ARCH-INDEX v2.15.
 - **BC content:** BC-5.39.005 v1.3 ACTIVE + BC-5.39.006 v1.7 ACTIVE + BC-5.39.007 v1.6 ACTIVE + BC-5.39.008 v1.5 ACTIVE + BC-7.04.051 v1.1 ACTIVE.
@@ -357,7 +357,7 @@ Prior Tier-A (pre-session, all COMPLETE): TD #71/72/70/74 (PRs #138–141 2026-0
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** see §9 note — updated via SHA-patch after this D-509 commit
+- **factory-artifacts HEAD:** `e70ec966` (D-509 post-merge burst 2026-05-27)
 - **develop HEAD:** `4b68ab83` (PR #160 E-10 pass-15 fix-burst squash-merge 2026-05-27)
 - **main HEAD:** `70811f4a` (rc.18 merge + CLAUDE.md expansion)
 - D-508 factory-artifacts HEAD: `350fc86a` (E-10 pass-15 adversary report persisted 2026-05-27)

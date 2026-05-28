@@ -151,7 +151,7 @@ Closes D-509 E-10 pass-15 post-merge state burst. Files touched: STATE.md + deci
 
 ### Factory-artifacts commits
 
-(Updated via SHA-patch after this commit completes per D-447(c)+D-449(e).)
+`e70ec966` — D-509 post-merge burst (single commit per TD-VSDD-053). SHA-patch: `e70ec966` ← this is the D-509 burst HEAD per D-447(c)+D-449(e).
 
 ---
 
