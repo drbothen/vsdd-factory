@@ -2381,3 +2381,25 @@ POLICY 14 description and verification_steps updated in policies.yaml same-burst
 **Closes:** rc.19 Pre-release Validation block (pass-real-state-md-snapshot.bats).
 
 **Closes:** D-509 E-10 pass-15 lesson capture per S-7.02 cycle-closing checklist.
+
+---
+
+## [L-rc19-pre-release-validation-banner-format-drift] rc.19 Pre-release Validation: hook catches dispatch-template-vs-hook-contract alignment gap at release boundary — correct behavior; going-forward template rule established
+
+**Date:** 2026-05-28
+
+**Context:** rc.19 first release attempt (run 26556220729) failed at Pre-release Validation because `pass-real-state-md-snapshot.bats` runs the `validate-state-structure` WASM hook against the live `.factory/STATE.md`. The hook's SIZE BUDGET banner scanner requires entries to match `(wc-l<terminator>` pattern. D-511 remediated 6 entries; the second attempt (run 26581752361) succeeded with all 10 jobs PASS.
+
+**Key distinction from L-banner-format-drift:** L-banner-format-drift (D-511) captures the root cause — dispatch templates drifted from hook contract. This lesson (D-512) captures the release-boundary lesson — Pre-release Validation is the correct backstop; the hook catching it at release time is CORRECT BEHAVIOR, not a failure of the validation system. The system worked as designed: hook passes locally only if format is correct; release pipeline gates on that.
+
+**Release-boundary discipline:** When a WASM hook is added that validates STATE.md structure, ALL new STATE.md edits from that point forward must conform to the hook's pattern. The D-510 HIGH-004 fix (replacing `~N` approximations with literal wc-l counts) was necessary but not sufficient — the `(wc-l;` TOKEN FORM is a separate requirement codified by the hook regex, not just the count value. Both requirements must be satisfied simultaneously.
+
+**First-attempt tag recovery:** The v1.0.0-rc.19 tag was force-deleted and re-pushed at the same fea969ea SHA because no bot artifacts had been created on the first failed attempt. The tag was "innocent" — it correctly pointed at the pre-bot-binary commit. This is the correct recovery procedure for Pre-release Validation failures: no source changes needed, just factory-artifacts remediation + tag re-push.
+
+**Going-forward pattern for release attempts:** When a release attempt fails at Pre-release Validation (NOT at binary-build or marketplace-publish jobs), the recovery is: (1) identify the validate-state-structure block reason from the hook output, (2) apply the remediation in factory-artifacts in a single atomic burst per TD-VSDD-053, (3) force-delete + re-push the release tag at the same SHA, (4) retrigger the pipeline. No source PR needed.
+
+**All 3 planned items COMPLETE:** E-10 pass-15 + fix-burst (D-509, PR #160), F5 pass-75 + fix-burst (D-510), rc.19 SHIPPED (D-512). This closes the pre-session planning window. Next cycle direction pending human input.
+
+**Cites:** D-512 (release ship record), D-511 (banner remediation), D-510 HIGH-004 (wc-l literal count requirement), validate-state-structure WASM hook `crates/hook-plugins/validate-state-structure/src/lib.rs` (authoritative pattern), release pipeline run 26581752361.
+
+**Closes:** D-512 rc.19 release cycle lesson capture.

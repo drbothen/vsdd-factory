@@ -3971,4 +3971,105 @@ Closes M3 3M3a-r BC cascade (CONVERGED at pass-11; 3-CLEAN per BC-5.39.001); D-4
 
 - `d9664f82` (SHA-patch D-496 final — parent commit; factory-artifacts HEAD pre-this-burst)
 - `e3c80646` (D-497 convergence burst — Commit 1)
+
+---
+
+## D-512 POST-RELEASE BURST — rc.19 SHIPPED 2026-05-28 — v1.0.0-rc.19 released; all 3 planned items COMPLETE
+
+**Date:** 2026-05-28
+
+### Parent-commit
+
+`b62c014a` (D-511 SHA-patch 2026-05-28 — factory-artifacts HEAD pre-this-burst)
+
+### Adversary Verdict
+
+Not applicable — release ship record burst. No adversary dispatch. D-512 records the successful completion of v1.0.0-rc.19 release pipeline (run 26581752361 all 10 jobs PASS on second attempt). First attempt (run 26556220729) failed Pre-release Validation due to validate-state-structure WASM hook blocking on banner format drift; D-511 banner remediation resolved the block. Second attempt succeeded. Per D-448(a) source-attestation gate: no adversary report associated with this burst — D-512 is a release-ship record, not an adversary-persistence burst.
+
+### Files touched (Dim-1) — 5 files
+
+1. `.factory/STATE.md` (frontmatter phase+last_amended+current_step advance; SIZE BUDGET banner D-512 entry; Phase Progress Release v1.0.0-rc.19 row; Active Branches main/develop/factory-artifacts/rc.19-tag updated; Decisions Log D-512 row; Concurrent Cycles brownfield D-512 bolt-on row; Session Resume Checkpoint D-512 comprehensive refresh §1/§2/§4/§5/§6/§9/§10/§11/§12; Prior checkpoint archive note; Last Updated + Current Phase metadata)
+2. `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` (D-512 row prepended)
+3. `.factory/cycles/v1.0-brownfield-backfill/lessons.md` (L-rc19-pre-release-validation-banner-format-drift appended)
+4. `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` (this entry)
+5. `.factory/cycles/v1.0-brownfield-backfill/session-checkpoints.md` (D-511 checkpoint archived per POLICY 1)
+
+### Codifications (Dim-3)
+
+- **D-512** (5 sub-clauses): (a) release pipeline run 26581752361 all 10 jobs PASS; v1.0.0-rc.19 tag d15152af; main fea969ea→43afbfa7; develop auto-synced 4b68ab83→98ea0719; GitHub Release prerelease 2026-05-28T15:10:56Z; marketplace PR drbothen/claude-mp PR #11 squash-merged; (b) first attempt blocked by D-511 banner format drift; tag was force-deleted + re-pushed at same fea969ea; second attempt clean; (c) release content: 18 PRs since rc.18; S-15.03 PRIORITY-A complete; 7 new WASM hooks; dispatcher hardening; (d) L-rc19-pre-release-validation-banner-format-drift: hook-at-release-boundary is correct behavior; going-forward template rule for state-manager banner edits established; (e) all 3 planned items COMPLETE (D-509 E-10 pass-15, D-510 F5 pass-75, D-512 rc.19 SHIPPED)
+- **L-rc19-pre-release-validation-banner-format-drift** lesson: release-boundary backstop lesson; Pre-release Validation correct behavior; first-attempt tag recovery procedure; going-forward pattern for release attempts that fail at Pre-release Validation
+- **Session Resume Checkpoint** refreshed: D-511 checkpoint archived to session-checkpoints.md per POLICY 1; D-512 checkpoint installed in §1-§12
+
+### Dim-2 Attestation (literal-shell per D-449(a))
+
+**Gate 1 — D-512 row in STATE.md:**
+```
+$ grep -cE "^\| D-512 " .factory/STATE.md
+1
+```
+
+**Gate 2 — D-512 row in decision-log.md:**
+```
+$ grep -cE "^\| D-512 " .factory/cycles/v1.0-brownfield-backfill/decision-log.md
+1
+```
+
+**Gate 3 — L-rc19-pre-release-validation-banner-format-drift lesson present:**
+```
+$ grep -c "^## \[L-rc19-pre-release-validation-banner-format-drift\]" .factory/cycles/v1.0-brownfield-backfill/lessons.md
+1
+```
+
+**Gate 4 — current_step cites D-512:**
+```
+$ grep -E "^current_step:" .factory/STATE.md | grep -oE "D-512 RC\.19 SHIPPED" | head -1
+D-512 RC.19 SHIPPED
+```
+
+**Gate 5 — STATE.md SIZE BUDGET banner has D-512-RC.19-SHIPPED entry with (wc-l; token:**
+```
+$ grep -oE "D-512-RC\.19-SHIPPED [0-9]+ lines \(wc-l;" .factory/STATE.md
+D-512-RC.19-SHIPPED 448 lines (wc-l;
+```
+
+**Gate 6 — POLICY 14 4-INDEX SELF-APPLICATION GATE (verification_step 7; 4-index UNCHANGED at D-512):**
+```
+$ for IDX_PATH in .factory/specs/behavioral-contracts/BC-INDEX.md \
+    .factory/specs/verification-properties/VP-INDEX.md \
+    .factory/stories/STORY-INDEX.md \
+    .factory/specs/architecture/ARCH-INDEX.md; do
+    V=$(grep -E '^version:' "$IDX_PATH" | grep -oE '"[0-9]+\.[0-9]+"' | tr -d '"')
+    LA=$(grep -E '^last_amended:' "$IDX_PATH" | grep -oE '\(v[0-9]+\.[0-9]+\)' | head -1 | tr -d '()v')
+    [ "$V" = "$LA" ] && echo "PASS: $(basename $IDX_PATH) version=$V last_amended_prefix=$LA" || echo "FAIL: $(basename $IDX_PATH) version=$V last_amended_prefix=$LA"
+  done
+PASS: BC-INDEX.md version=2.53 last_amended_prefix=2.53
+PASS: VP-INDEX.md version=2.06 last_amended_prefix=2.06
+PASS: STORY-INDEX.md version=3.71 last_amended_prefix=3.71
+PASS: ARCH-INDEX.md version=2.15 last_amended_prefix=2.15
+```
+All 4 PASS. D-512 4-index UNCHANGED (release ship; no index version bumps required).
+
+### Dim-5 Attestation (Closes-set completeness)
+
+- D-512 closes the rc.19 release cycle; all 3 planned items COMPLETE (D-509 E-10 pass-15 fix-burst, D-510 F5 pass-75 fix-burst, D-512 rc.19 SHIPPED)
+- v1.0.0-rc.19 tag d15152af at main 43afbfa7; marketplace PR drbothen/claude-mp PR #11 squash-merged
+- L-rc19-pre-release-validation-banner-format-drift lesson captured
+- D-511 checkpoint archived per POLICY 1 append-only
+
+### Dim-6 Attestation (Commit count)
+
+```
+$ git -C .factory log --oneline b62c014a..HEAD | wc -l
+0
+```
+Result: 0 pre-commit (this burst is the single commit). TD-VSDD-053 single-commit-per-burst confirmed.
+
+### Closes
+
+Closes rc.19 release cycle (D-512). All 3 planned items COMPLETE. Advances to steady-state next-cycle pending human direction (F5 pass-76 or S-15.17 dispatch).
+
+### Factory-artifacts Commits
+
+- `b62c014a` (D-511 SHA-patch — parent commit; factory-artifacts HEAD pre-this-burst)
+- D-512 burst commit SHA: TBD (SHA-patch will follow per D-447(c)+D-449(e))
 - `<SHA-patch-SHA>` (SHA-patch D-497 — Commit 2; fills Active Branches SHA)

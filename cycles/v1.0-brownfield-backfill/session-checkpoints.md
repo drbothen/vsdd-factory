@@ -285,3 +285,19 @@ dispatch story-writer for 3M3b elaboration (5 M3 stories: S-15.10/12/13/15/16-Pa
 - Next: F5 pass-76 or S-15.17 dispatch per human direction.
 
 **This checkpoint superseded by D-511 rc.19 banner-format remediation 2026-05-28.**
+
+---
+
+## Archived Checkpoint: D-511 rc.19 Banner-Format Remediation COMPLETE (2026-05-28)
+
+**Archived from STATE.md §1 by D-512 burst 2026-05-28 per POLICY 1.**
+
+- **D-511 COMPLETE:** rc.19 Pre-release Validation block resolved; SIZE BUDGET banner 6 entries converted to canonical `(wc-l; ...)` form; D-511 decision codified; L-banner-format-drift lesson captured.
+- **S-15.03 PRIORITY-A COMPLETE** (D-508 2026-05-27): all 11 stories shipped; 40pts M3 total.
+- **E-10 pass-15 CLOSED** (D-509 2026-05-27): PR #160 4b68ab83; F-PASS15-001/002/004 CLOSED.
+- **F5 pass-75 COMPLETE** (D-510 2026-05-27): META-LEVEL-30 CANDIDATE-CONFIRMED; trajectory →9→9→9→11; 4 structural ACCEPTED-AT-FLOOR.
+- **develop HEAD** (at D-511): `4b68ab83`. **factory-artifacts HEAD**: `bcccd421` / SHA-patch `b62c014a`.
+- **D-range at D-511:** D-001..D-511. **4-index:** BC-INDEX v2.53 VP-INDEX v2.06 STORY-INDEX v3.71 ARCH-INDEX v2.15 (UNCHANGED).
+- **Next per direction:** rc.19 re-tag (now done D-512), F5 pass-76, S-15.17, E-10 pass-16.
+
+**This checkpoint superseded by D-512 rc.19 SHIPPED 2026-05-28.**
