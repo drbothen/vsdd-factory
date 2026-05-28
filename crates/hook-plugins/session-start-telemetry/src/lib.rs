@@ -47,6 +47,10 @@ pub const TOOL_DEPS_SIZE_BUDGET: usize = 512;
 /// constant ensures consistency and enables future audits.
 pub const MAX_BYTES: u32 = 524_288;
 
+/// Maximum bytes to capture from `exec_subprocess` stdout (factory-health --brief).
+/// Named constant so `grep MAX_` finds all I/O caps in this crate.
+pub const EXEC_MAX_OUTPUT_BYTES: u32 = 65_536;
+
 // ---------------------------------------------------------------------------
 // Outcome types for injectable callbacks.
 // ---------------------------------------------------------------------------
@@ -298,7 +302,7 @@ pub fn on_session_start(payload: HookPayload) -> HookResult {
             &["--brief"],
             &[],
             5000,
-            65536,
+            EXEC_MAX_OUTPUT_BYTES,
         ) {
             Ok(result) => ExecSubprocessOutcome::Ok {
                 exit_code: result.exit_code,

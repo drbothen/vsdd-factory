@@ -18,7 +18,6 @@ const WAVE_STATE_PATH: &str = ".factory/wave-state.yaml";
 /// `validate-state-structure` (F-P5-002) and `validate-dispatch-advance`.
 /// wave-state.yaml is currently small (<10 KiB) but this constant aligns with
 /// the project-wide convention established after F-PASS15 sibling-site sweep.
-/// `host::read_file` accepts `u32` for max_bytes.
 const MAX_BYTES: u32 = 524_288;
 
 /// Timeout in milliseconds for the read_file host call.
