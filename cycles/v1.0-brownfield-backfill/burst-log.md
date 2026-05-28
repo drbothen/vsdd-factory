@@ -4071,5 +4071,5 @@ Closes rc.19 release cycle (D-512). All 3 planned items COMPLETE. Advances to st
 ### Factory-artifacts Commits
 
 - `b62c014a` (D-511 SHA-patch — parent commit; factory-artifacts HEAD pre-this-burst)
-- D-512 burst commit SHA: TBD (SHA-patch will follow per D-447(c)+D-449(e))
+- `78ea0e7a` (D-512 burst commit — single commit per TD-VSDD-053)
 - `<SHA-patch-SHA>` (SHA-patch D-497 — Commit 2; fills Active Branches SHA)

@@ -12,7 +12,7 @@ input-hash: "[live-state]"
 traces_to: prd.md
 project: vsdd-factory
 mode: brownfield
-current_step: "D-512 RC.19 SHIPPED 2026-05-28 — v1.0.0-rc.19 released; release run 26581752361 all 10 jobs PASS (second attempt; first blocked by D-511 banner remediation); main fea969ea→43afbfa7 (bot binary commit); develop 4b68ab83→98ea0719 (sync main→develop); v1.0.0-rc.19 tag d15152af; GitHub Release prerelease 2026-05-28T15:10:56Z; marketplace PR drbothen/claude-mp PR #11 squash-merged 2026-05-28T15:44:36Z; 18 PRs since rc.18; S-15.03 PRIORITY-A complete + 7 new WASM hooks + dispatcher hardening; D-512 decision codified; L-rc19-pre-release-validation-banner-format-drift lesson captured; Phase Progress row added; Active Branches updated; Session Resume Checkpoint refreshed; 4-index: BC-INDEX v2.53 VP-INDEX v2.06 STORY-INDEX v3.71 ARCH-INDEX v2.15 (UNCHANGED); maintain all 5 BC-5.39.006 v1.7 PCs per TD-VSDD-097-EXT; D-chain cite D-511 per D-419(b); parent-commit b62c014a per D-419(b)."
+current_step: "D-512 RC.19 SHIPPED 2026-05-28 — v1.0.0-rc.19 released; release run 26581752361 all 10 jobs PASS (second attempt; first blocked by D-511 banner remediation); main fea969ea→43afbfa7 (bot binary commit); develop 4b68ab83→98ea0719 (sync main→develop); v1.0.0-rc.19 tag d15152af; GitHub Release prerelease 2026-05-28T15:10:56Z; marketplace PR drbothen/claude-mp PR #11 squash-merged 2026-05-28T15:44:36Z; 18 PRs since rc.18; S-15.03 PRIORITY-A complete + 7 new WASM hooks + dispatcher hardening; D-512 decision codified; L-rc19-pre-release-validation-banner-format-drift lesson captured; Phase Progress row added; Active Branches updated; Session Resume Checkpoint refreshed; 4-index: BC-INDEX v2.53 VP-INDEX v2.06 STORY-INDEX v3.71 ARCH-INDEX v2.15 (UNCHANGED); maintain all 5 BC-5.39.006 v1.7 PCs per TD-VSDD-097-EXT; D-chain cite D-511 per D-419(b); parent-commit b62c014a per D-419(b); factory-artifacts HEAD 78ea0e7a per D-447(c)+D-449(e)."
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -35,7 +35,7 @@ dtu_services: []
   D-509-E10-PASS-15-FIX-BURST 422 lines (wc-l; Phase Progress +1 row; Decisions Log +D-509 row; Active Branches develop SHA update; Session Resume Checkpoint refresh; margin 500-422=78 from hard cap; margin 415-422=OVER soft-target by 7).
   D-510-F5-PASS-75-FIX-BURST 431 lines (wc-l; POLICY 15 line-growth tracker extended per HIGH-004 closure — all prior ~N approximations replaced with literal wc-l counts; margin 500-431=69 from hard cap; margin 415-431=OVER soft-target by 16).
   D-511-BANNER-FORMAT-REMEDIATION 438 lines (wc-l; rc.19 release-blocker fix — banner entries converted to canonical (wc-l; ...) token form per validate-state-structure hook requirements; margin 500-438=62 from hard cap; margin 415-438=OVER soft-target by 23).
-  D-512-RC.19-SHIPPED 448 lines (wc-l; release ship record; rc.19 SHIPPED 2026-05-28 with D-511 banner fix closing first-attempt validate block; margin 500-448=52 from hard cap; margin 415-448=OVER soft-target by 33).
+  D-512-RC.19-SHIPPED 449 lines (wc-l; release ship record + SHA-patch; rc.19 SHIPPED 2026-05-28 with D-511 banner fix closing first-attempt validate block; margin 500-449=51 from hard cap; margin 415-449=OVER soft-target by 34).
 
   D-430(a) compaction authorization (this burst 2026-05-27): line-growth tracker pre-D-504 entries (covering pass-49..D-503) archived per D-430(a); Decisions Log rows D-413..D-498 (F5 pass-33..59 + brownfield D-498..D-489 individual rows) archived; Current Phase Steps F5 pass-57..60 individual rows archived; all content preserved in: git show 20cb8e1c:.factory/STATE.md (pre-compaction) + cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md (F5 D-NNN) + cycles/v1.0-brownfield-backfill/decision-log.md (brownfield D-NNN).
 -->
@@ -177,7 +177,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | 43afbfa7 | rc.19 SHIPPED 2026-05-28; bot binary commit on top of merge from develop; prior main HEAD: 70811f4a (rc.18 merge) |
 | develop | 98ea0719 | Sync main→develop auto-job 2026-05-28 post-rc.19 merge; prior: 4b68ab83 (PR #160 E-10 pass-15 fix-burst 2026-05-27) |
-| factory-artifacts | `b62c014a` | D-511 SHA-patch 2026-05-28 (prior: bcccd421 D-511 main commit; prior prior: 0663ba92 D-510) |
+| factory-artifacts | `78ea0e7a` | D-512 burst 2026-05-28 (prior: b62c014a D-511 SHA-patch; prior prior: bcccd421 D-511 main commit) |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28; GitHub Release prerelease 2026-05-28T15:10:56Z; marketplace PR drbothen/claude-mp PR #11 squash-merged |
 | v1.0.0-rc.18 (tag) | 666d689f | SHIPPED 2026-05-13 PR #135 |
 | v1.0.0-rc.16 (tag) | feb894a2 | SHIPPED; claude-mp PR #8 awaiting human merge |
@@ -375,11 +375,12 @@ Prior Tier-A (pre-session, all COMPLETE): TD #71/72/70/74 (PRs #138–141 2026-0
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** `b62c014a` (D-511 SHA-patch 2026-05-28 — current HEAD pre-D-512 burst)
+- **factory-artifacts HEAD:** `78ea0e7a` (D-512 burst 2026-05-28 — SHA-patch will follow per D-447(c))
 - **develop HEAD:** `98ea0719` (sync main→develop 2026-05-28; prior: 4b68ab83 PR #160 E-10 pass-15 fix-burst 2026-05-27)
 - **main HEAD:** `43afbfa7` (rc.19 bot binary commit 2026-05-28; prior: 70811f4a rc.18 merge)
 - **v1.0.0-rc.19 tag:** `d15152af` (binary bundle commit; GitHub Release 2026-05-28T15:10:56Z)
 - **release pipeline run:** 26581752361 (all 10 jobs PASS; second attempt 2026-05-28)
+- D-512 factory-artifacts HEAD: `78ea0e7a` (D-512 burst commit 2026-05-28)
 - D-511 factory-artifacts HEAD: `bcccd421` (D-511 main commit 2026-05-28) / SHA-patch `b62c014a`
 - D-510 factory-artifacts HEAD: `0663ba92` (D-510 F5 pass-75 fix-burst 2026-05-27)
 - D-509 factory-artifacts HEAD: `e70ec966` (D-509 post-merge burst 2026-05-27)
