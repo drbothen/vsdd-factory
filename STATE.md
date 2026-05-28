@@ -5,14 +5,14 @@ version: "2.0"
 status: draft
 producer: state-manager
 timestamp: 2026-05-12T00:00:00Z
-phase: E-10-PASS-15-FIX-BURST-SHIPPED-PR-160-D-509-2026-05-27
-last_amended: 2026-05-27 (v2.60) — D-509 E-10 pass-15 fix-burst PR #160 SHIPPED; F-PASS15-001/002/004 closed; F-PASS15-003/005/006/007/008 ACCEPTED-AT-ASYMPTOTIC-FLOOR. [Prior: 2026-05-27 (v2.59) — D-508 S-15.13 SHIPPED; Wave 4 COMPLETE; 3M3c COMPLETE; S-15.03 PRIORITY-A COMPLETE]
+phase: F5-PASS-75-FIX-BURST-D-510-META-LEVEL-30-CANDIDATE-CONFIRMED-2026-05-27
+last_amended: 2026-05-27 (v2.61) — D-510 F5 pass-75 fix-burst; META-LEVEL-30 CANDIDATE-CONFIRMED 3 routes; 6 mechanical closed (HIGH-001/003/004/005+MED-001/002/003+LOW-002); 4 structural ACCEPTED-AT-FLOOR; S-15.17 anchors HIGH-002 cure; BC-INDEX v2.53; STORY-INDEX v3.71. [Prior: 2026-05-27 (v2.60) — D-509 E-10 pass-15 fix-burst PR #160 SHIPPED]
 inputs: []
 input-hash: "[live-state]"
 traces_to: prd.md
 project: vsdd-factory
 mode: brownfield
-current_step: "D-509 E-10 PASS-15 FIX-BURST SHIPPED 2026-05-27 — PR #160 squash-merge 4b68ab83 on develop 2026-05-27; F-PASS15-001 (HIGH validate-index-cite-refresh 65536→524288) + F-PASS15-002 (HIGH validate-burst-log 65536→524288) + F-PASS15-004 (MEDIUM index reads) CLOSED; TD-VSDD-060 sibling-sweep 7 crates (lint-registry-async-invariant + session-start-telemetry + update-wave-state-on-merge + validate-artifact-path + validate-per-story-adversary-convergence + warn-pending-wave-gate + compile-time assertions on 2 material-impact crates); CR-001 (IMPORTANT) EXEC_MAX_OUTPUT_BYTES named constant addressed; F-PASS15-003/005/006/007/008 ACCEPTED-AT-ASYMPTOTIC-FLOOR per D-471 extension; CI 10/11 green (ubuntu cargo-host pre-existing F-P3-008 flake not introduced by PR #160); pass-15 adversary trend 22→11→16→16→12→2→1→4→5→4→6→7→5→8→8 (holds); 4-index: BC-INDEX v2.52 VP-INDEX v2.06 STORY-INDEX v3.70 ARCH-INDEX v2.15; trajectory-tail →9→9→9→9 (F5 cycle; unchanged); maintain all 5 BC-5.39.006 v1.7 PCs per TD-VSDD-097-EXT; D-chain cite D-508 per D-419(b); parent-commit ced39c82 per D-419(b)."
+current_step: "D-510 F5 PASS-75 FIX-BURST COMPLETE 2026-05-27 — META-LEVEL-30 CANDIDATE-CONFIRMED 3 routes (a) closure-burst-gate-via-interpretation (b) codified-registry-no-runtime-gate (c) paused-cycle-INDEX-stale-narrative; trajectory →9→9→9→11 (36th tick-up; pause-cost 14-day F5 pause 2026-05-13 to 2026-05-27; D-386 Option C extended D-510); 6 mechanical closed same-burst (HIGH-001 BC-7.04.051 body-row POL-14 leg-5 + HIGH-003 7-story frontmatter draft→merged + HIGH-004 STATE.md banner literal wc-l + HIGH-005 INDEX.md paused_pending_resume + MED-001 BC-5.39.005 version-cell + MED-002 S-15.17 STORY-INDEX + MED-003 lessons.md corrigendum + LOW-002 D-510 codified); 4 structural ACCEPTED-AT-FLOOR (CRIT-001+HIGH-002+LOW-001 + route-c covered); S-15.17 anchors HIGH-002 cure (validate-trajectory-tail-cell-completeness WASM hook); L-EDP1-067 captured META-LEVEL-30 time-dilated-discipline-degradation; cure-extension-parsimony per D-497 no new INV-NNN; 4-index: BC-INDEX v2.53 VP-INDEX v2.06 STORY-INDEX v3.71 ARCH-INDEX v2.15; maintain all 5 BC-5.39.006 v1.7 PCs per TD-VSDD-097-EXT; D-chain cite D-509 per D-419(b); parent-commit 4b68ab83 per D-419(b)."
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -32,7 +32,8 @@ dtu_services: []
   D-505-S-15.12-SHIPPED 498 lines (margin 500-498=2 from hard cap; AT HARD CAP).
   D-506-S-15.15-SHIPPED 500 lines (margin 500-500=0; AT HARD CAP — compaction mandatory).
   D-507-SESSION-END-DURABILITY-BURST ~430 lines (D-430(a) compaction: line-growth tracker pre-D-504 archived + Decisions Log D-413..D-498 rows archived + Current Phase Steps F5 pass-57..60 rows archived; margin 500-430=~70 from hard cap; margin 500-415=85 from soft-target; D-446(c) dual-margin form).
-  D-509-E10-PASS-15-FIX-BURST ~435 lines (Phase Progress +1 row; Decisions Log +D-509 row; Active Branches develop SHA update; Session Resume Checkpoint refresh; line-growth moderate; margin tracked at commit time).
+  D-509-E10-PASS-15-FIX-BURST 422 lines (verified via `wc -l .factory/STATE.md` → 422; Phase Progress +1 row; Decisions Log +D-509 row; Active Branches develop SHA update; Session Resume Checkpoint refresh; margin 500-422=78 from hard cap; margin 415-422=OVER soft-target by 7).
+  D-510-F5-PASS-75-FIX-BURST (this burst; POLICY 15 line-growth tracker extended per HIGH-004 closure — all prior ~N approximations replaced with literal wc-l counts; pre-burst 422 lines).
 
   D-430(a) compaction authorization (this burst 2026-05-27): line-growth tracker pre-D-504 entries (covering pass-49..D-503) archived per D-430(a); Decisions Log rows D-413..D-498 (F5 pass-33..59 + brownfield D-498..D-489 individual rows) archived; Current Phase Steps F5 pass-57..60 individual rows archived; all content preserved in: git show 20cb8e1c:.factory/STATE.md (pre-compaction) + cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md (F5 D-NNN) + cycles/v1.0-brownfield-backfill/decision-log.md (brownfield D-NNN).
 -->
@@ -50,8 +51,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-27 — D-509 E-10 pass-15 fix-burst SHIPPED PR #160 4b68ab83; F-PASS15-001/002/004 CLOSED; F-PASS15-003/005/006/007/008 ACCEPTED-AT-ASYMPTOTIC-FLOOR. |
-| **Current Phase** | E-10 pass-15 CLOSED D-509 2026-05-27 — F-PASS15-001/002/004 fixed via PR #160; remaining findings ACCEPTED per D-471. Next: pass-16 verification or F5 pass-75 per human direction. |
+| **Last Updated** | 2026-05-27 — D-510 F5 pass-75 fix-burst; META-LEVEL-30 CANDIDATE-CONFIRMED; 6 mechanical closed; BC-INDEX v2.53; STORY-INDEX v3.71; S-15.17 anchors HIGH-002 cure. |
+| **Current Phase** | F5 pass-75 FIX-BURST COMPLETE D-510 2026-05-27 — trajectory →9→9→9→11 (pause-cost); 4 structural accepted at floor; next: F5 pass-76 or S-15.17 dispatch per human direction. |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Phase Progress
@@ -151,13 +152,13 @@ dtu_services: []
 | Subsystem | SS-NN | `specs/architecture/ARCH-INDEX.md` | 10 |
 | Behavioral Contract | BC-S.SS.NNN | `specs/behavioral-contracts/ss-NN/` | 1,949 |
 | Verification Property | VP-NNN | `specs/verification-properties/VP-INDEX.md` | 80 |
-| Story | S-N.MM | `stories/S-N.MM-<short>.md` | 101 file-resident + 15 stub IDs (STORY-INDEX v3.70) |
+| Story | S-N.MM | `stories/S-N.MM-<short>.md` | 102 file-resident + 15 stub IDs (STORY-INDEX v3.71) |
 | Epic | E-N | `stories/epics/E-N-<short>.md` | 17 |
 | ADR | ADR-NNN | `specs/architecture/decisions/ADR-NNN.md` | 22 |
 
 ## Story Status
 
-101 file-resident + 15 unauthored stub IDs = 116 stories registered. (F-P9-003 reconciled 2026-05-11: prior headline 88 and breakdown stale; +S-16.01/S-16.02 added 2026-05-12 F-block-ai-attribution-message-file-arm F3; +S-15.04/S-15.05 added 2026-05-15 per architect adjudication TD #66+TD #67 split; +S-15.10/12/13/15/16-Part-B added 2026-05-25 D-499 3M3b story-writer elaboration. S-15.13 draft→merged D-508 2026-05-27.)
+102 file-resident + 15 unauthored stub IDs = 117 stories registered. (F-P9-003 reconciled 2026-05-11: prior headline 88 and breakdown stale; +S-16.01/S-16.02 added 2026-05-12 F-block-ai-attribution-message-file-arm F3; +S-15.04/S-15.05 added 2026-05-15 per architect adjudication TD #66+TD #67 split; +S-15.10/12/13/15/16-Part-B added 2026-05-25 D-499 3M3b story-writer elaboration; +S-15.17 added 2026-05-27 D-510 fix-burst STORY-INDEX v3.71.)
 
 - **Merged (74):** Includes all prior + S-12.06 (PR #105), S-12.05 (PR #119), S-12.03 (PR #120), S-12.04 (PR #121), S-12.07 (PR #122), S-12.08 (PR #123), S-15.04 (PR #142 fdc7da16 2026-05-15), S-15.05 (PR #143 224fa184 2026-05-15), S-15.08 (PR #144 c62f952c 2026-05-16), S-15.07 (PR #145 6fe7de4c 2026-05-16), S-15.11 (PR #146 6e0d5407 2026-05-17), S-15.09 (PR #147 6e2d7805 2026-05-17), S-15.14 (PR #148 6d2ba5ad 2026-05-19), S-15.16-Part-B (PR #153 c1c81603 2026-05-25), S-15.10 (PR #154 a36ab711 2026-05-25), S-15.12 (PR #155 fba7e1cd 2026-05-26), S-15.15 (PR #158 24cc2ba6 2026-05-27), S-15.13 (PR #159 ced39c82 2026-05-27). Full ledger: `cycles/v1.0-brownfield-backfill/merged-stories-ledger.md`
 - **In-Flight (0):** —
@@ -182,17 +183,18 @@ dtu_services: []
 |-------|------|--------|-------|
 | F-block-ai-attribution-message-file-arm | feature | F3 COMPLETE — F4 READY | F1+F2+F3 done 2026-05-12; 2 stories ready (S-16.01 5pts PostToolUse HEAD verify, S-16.02 3pts PreToolUse -F arm); E-16 under SS-07/SS-04; milestone v1.0.0-rc.17; BC-7.03.094/095/001, VP-080, ARCH SS-07 v1.3/SS-04 v1.4 registered |
 | v1.0-brownfield-backfill | brownfield | **PARTIAL-CLOSED E-10 sub-cycle 2026-05-14; S-15.03 PRIORITY-A M1 COMPLETE 2026-05-16; M2 wave-1/2/3/4 SHIPPED; S-15.14 PR #148 6d2ba5ad 2026-05-19; D-479 CODIFIED; M3 COMMISSIONING D-480 2026-05-18; TD-VSDD-101 anchored S-15.15; M3 3M3a-r pass-1 PO fix-burst CLOSED 2026-05-18 (D-483; 41/41; STREAK 0/3 → pass-2); M3 3M3a-r pass-2 CRITICAL CLOSED 2026-05-18 (D-484; 14 findings; STREAK 0/3 reset; META-LEVEL INV-017; PO fix-burst pass-2 dispatch-ready); M3 3M3a-r pass-2 PO fix-burst CLOSED 2026-05-19 (D-485; 14/14; BC-5.39.006 v1.4 sibling-sweep; INV-017 applied; STREAK 0/3 → pass-3 dispatch-ready); M3 3M3a-r pass-3 CRITICAL 2026-05-19 (D-486; 8 findings; META-LEVEL INV-018; STREAK reset; PO fix-burst pass-3 dispatch-ready with INV-018 narrow+residual-class sweep discipline); M3 3M3a-r pass-3 PO fix-burst CLOSED 2026-05-19 (D-487; 8/8; INV-018 applied; STREAK 0/3 → pass-4 dispatch-ready); M3 3M3a-r pass-4 MEDIUM 2026-05-19 (D-488; 3 findings; CRITICAL+HIGH=0 major positive; META-LEVEL INV-019-CANDIDATE; STREAK 0/3 → PO fix-burst pass-4 dispatch-ready); M3 3M3a-r pass-4 PO fix-burst CLOSED 2026-05-19 (D-489; 3/3; INV-019 cure (a) codified; cross-BC assoc-fn idiom standardized; STREAK 0/3 → pass-5 dispatch-ready); M3 3M3a-r pass-5 PERSISTED 2026-05-20 (D-490; verdict HIGH 5 findings 2H+3L; STREAK 0/3 RESET; INV-019 RECURRENCE confirmed; INV-020 CONFIRMED 5-leg KK-N quintuple parity; POLICY 14 extended; orchestrator adjudication F-BC007P5-001 full BC-006-parity sweep; PO fix-burst pass-5 dispatch-ready); M3 3M3a-r pass-5 PO FIX-BURST CLOSED 2026-05-20 (D-491; 4/4 closures + F-BC006P5-001 closed D-490 = 5/5; POLICY 14 5-leg parity validated production; ~46 bare→assoc-fn conversions; BC-006 v1.7+BC-007 v1.5+BC-008 v1.5; BC-INDEX v2.43; STREAK 0/3 → pass-6 dispatch-ready); M3 3M3a-r PASS-6 PERSISTED 2026-05-20 (D-492; verdict NITPICK 2 findings; STREAK 0/3 → 1/3 FIRST ADVANCE in cascade; CRIT=0 sustained 5 passes; HIGH=0 RESTORED; POLICY 14 5-leg parity production-validated adversary-confirmed; NO PO fix-burst required per BC-5.39.001; pass-7 dispatch-ready target CLEAN for 2/3); M3 3M3a-r PASS-7 PERSISTED 2026-05-20 (D-493; verdict NITPICK 1 finding F-BC007P7-001 INV-019 RESIDUAL meta-meta recursion; STREAK 1/3 → 2/3 SECOND ADVANCE; CRIT=0 sustained 6 passes; HIGH=0 sustained 2 passes); M3 3M3a-r PASS-8 PERSIST + FIX + CODIFY 2026-05-20 (D-494; verdict HIGH 1 finding F-BC008P8-001 closed (INV-020 RECURRENCE; POLICY 14 leg-4 self-application gap on BC-INDEX); STREAK 2/3 → 0/3 RESET; cascade prolonged; POLICY 14 verification_steps extended with literal-shell 4-index self-application gate; pass-9 dispatch-ready); M3 3M3a-r PASS-9 PERSISTED 2026-05-20 (D-495; verdict CLEAN first true clean of cascade; STREAK 0/3 → 1/3 FIRST ADVANCE POST-RESET; CRIT=0 sustained 8 passes; HIGH=0 RESTORED; D-494 POLICY 14 extension empirically validated; two more clean passes for 3-CLEAN convergence at projected D-496; pass-10 dispatch-ready); M3 3M3a-r PASS-10 PERSISTED 2026-05-20 (D-496; verdict CLEAN second consecutive true clean; STREAK 1/3 → 2/3 SECOND ADVANCE; CRIT=0 sustained 9 passes; HIGH=0 sustained 2 passes; cure-extension parsimony validated 2 passes; pass-11 dispatch-ready for projected 3-CLEAN convergence at D-497 → unblocks 3M3b); M3 3M3a-r BC CASCADE CONVERGED 2026-05-20 (D-497; verdict CLEAN; STREAK 3/3; cascade trajectory 41→14→8→3→5→2 NIT→1 NIT→1 HIGH→0→0→0; cure-extension parsimony validated 3 passes; META-LEVEL evolution INV-017→018→019→020→POLICY 14 5-leg+gate codified into engine; S-7.02 cycle-closing checklist satisfied; 4-index BC v2.49/VP v2.06/STORY v3.53/ARCH v2.15; 3M3b story-writer dispatch ready for S-15.10/12/13/15/16-Part-B); D-498 SESSION-END DURABILITY BURST 2026-05-20 (post-CONVERGENCE; STATE.md Section 11 + Section 12 comprehensive refresh; prior checkpoint archived per POLICY 1; 3M3b dispatch-ready for zero-context new-session resume); **3M3b-r CONVERGED 2026-05-25 (D-500; 7 passes trajectory 12→5→2→2→0→0→0; STREAK 3/3; S-7.02 satisfied; 3M3c per-story-delivery UNBLOCKED); D-501 remove-uncertainty 2026-05-25 (28 uncertainties scanned; 18 fixed; 5 CRITICAL-class saves; STORY-INDEX v3.65); D-502 S-15.16-Part-B SHIPPED 2026-05-25 (PR #153 c1c81603; BC-7.04.051 POL-14 active; STORY-INDEX v3.66; 3M3c 1/5 delivered); D-503 S-15.10 SHIPPED + Wave 1 COMPLETE 2026-05-25 (PR #154 a36ab711; BC-5.39.005 POL-14 active; STORY-INDEX v3.67; 3M3c 2/5 delivered; 11pts Wave 1); D-504 SESSION-END DURABILITY BURST 2026-05-26 (zero-context Section 11 rewrite; Wave 2 S-15.12 dispatch-ready); **D-505 S-15.12 SHIPPED + Wave 2 COMPLETE 2026-05-26 (PR #155 fba7e1cd; BC-5.39.007 POL-14 active; STORY-INDEX v3.68; 3M3c 3/5 delivered; 8pts Wave 2); D-506 S-15.15 SHIPPED + Wave 3 COMPLETE 2026-05-27 (PR #158 24cc2ba6; BC-5.39.008 POL-14 active; STORY-INDEX v3.69; 3M3c 4/5 delivered; 13pts Wave 3); **D-508 S-15.13 SHIPPED + Wave 4 COMPLETE + 3M3c COMPLETE + S-15.03 PRIORITY-A COMPLETE 2026-05-27 (PR #159 ced39c82; BC-5.39.007 Phase 2 ACs active; STORY-INDEX v3.70; 3M3c 5/5 COMPLETE; 8pts Wave 4; 40pts total M3; E-10 resumption UNBLOCKED); D-509 E-10 PASS-15 FIX-BURST SHIPPED 2026-05-27 (PR #160 4b68ab83; F-PASS15-001/002/004 CLOSED; TD-VSDD-060 sibling-sweep 7 crates; F-PASS15-003/005/006/007/008 ACCEPTED-AT-ASYMPTOTIC-FLOOR per D-471 extension; trend 22→...→8→8 holds; pass-16 or F5 per human direction)** | E-10 sub-cycle PARTIAL-CLOSED at pass-14 asymptotic-acceptance (D-470 + D-471 seal 2026-05-14); POLICY 13-18 registered (b8909832); trend 22→11→16→16→12→2→1→4→5→4→6→7→5→8; D-472 retroactive codify POLICY 13-18 registration (S-15.06 F-PASS14-003 closure 2026-05-15). S-15.03 PRIORITY-A M1 COMPLETE 2026-05-16 (S-15.06+S-15.16 Part A+S-15.08); M2 wave-1 SHIPPED 2026-05-16 (S-15.07 PR #145 6fe7de4c); M2 wave-2 SHIPPED 2026-05-17 (S-15.11 PR #146 6e0d5407); M2 wave-3 SHIPPED 2026-05-17 (S-15.09 PR #147 6e2d7805); D-473 + D-474 + D-475 + D-476 codified. M2 wave-4 S-15.14 LOCAL adversary pass-1 FIX-BURST CLOSED 2026-05-17 (BC-5.39.006 v1.1 + STORY-INDEX v3.42; 7 impl micro-commits e4427df4..f20bbdab; streak 0/3); pass-2 FIX-BURST CLOSED 2026-05-17 (TD ID re-allocation TD-VSDD-064/065→095/096 per F-P2-001; retroactive burst-log entries per F-P2-002; F-P2-003/004/005/006 implementer sibling burst; streak 0/3); pass-3 FIX-BURST CLOSED 2026-05-17 (META-LEVEL-24 recurrence F-P3-001 closed; orphan row F-P3-002 removed; F-P3-005/008 Dim-7/5 scope-clarified; F-P3-007 deferred; streak 0/3 → pass-4 dispatch-ready); pass-3 CLOSURE BURST 2026-05-17 (BC-5.39.006 v1.2 BC-INDEX v2.34; S-15.14 story v1.2 STORY-INDEX v3.43; implementer sibling 03656260+cd9fd273; F-P3-003+F-P3-006+F-P3-009 CLOSED); pass-4 PERSISTED 2026-05-17 (verdict NITPICK-only; streak 0/3 → 1/3; F-P4-001+F-P4-002 documentary deferred; trajectory 16→9→8→2; pass-5 dispatch-ready); pass-5 PERSISTED 2026-05-17 (verdict CLEAN; streak 1/3 → 2/3; trajectory 16→9→8→2→0; pass-6 dispatch-ready); pass-6 PERSISTED 2026-05-18 (verdict HIGH 1H; streak 2/3 → 0/3 RESET; F-P6-001 current_step marker absent); pass-6 FIX-BURST CLOSED 2026-05-18 (F-P6-001 canonical marker restored; TD-VSDD-097 codified; streak 0/3; pass-7 dispatch-ready); pass-7 PERSISTED 2026-05-18 (verdict HIGH 1H F-P7-001 D-chain PC5 stale; streak 0/3; 3rd META-LEVEL self-violation class); pass-7 FIX-BURST CLOSED 2026-05-18 (F-P7-001 D-chain cite restored to D-476; TD-VSDD-097 EXTENDED to ALL 5 BC PCs; streak 0/3; pass-8 dispatch-ready); pass-8 PERSISTED 2026-05-18 (verdict CLEAN 0 findings; streak 0/3 → 1/3; STATE.md surgical compaction D-430(a); pass-9 dispatch-ready); pass-9 PERSIST+FIX-BURST CLOSED 2026-05-18 (verdict MEDIUM 4 findings; streak 1/3 → 0/3 RESET; F-P9-001/002/003/004 compaction-burst sibling-sweep gaps closed; TD-VSDD-098 codified; pass-10 dispatch-ready); pass-10 PERSIST+FIX-BURST CLOSED 2026-05-18 (verdict HIGH 1 finding F-P10-001; pass-9 burst-log Dim-7 retroactively corrected; TD-VSDD-099 codified; 5th META-LEVEL self-violation class; streak 0/3 HIGH reset; pass-11 dispatch-ready); pass-11 PERSIST+FIX-BURST CLOSED 2026-05-18 (verdict HIGH 2 findings F-P11-001+F-P11-002; BC v1.3 invariant 6(b) semicolon-segment-scoping per PO; pass-9/10 Gate 3 synthetic→production-read retrofit; TD-VSDD-100 codified; BC-INDEX v2.35; 6th META-LEVEL self-violation class; streak 0/3 HIGH reset); S-15.14 LOCAL cascade ASYMPTOTIC-ACCEPTANCE SEALED 2026-05-18 (D-477; 11 passes; trajectory 16→9→8→2→0→1→1→0→4→1→2; 6 META-LEVEL classes TD-VSDD-095..100 forwarded to SK-MCP-001 Appendix D; proposals SK-MCP-001 + UNI-PLUG-001 enhanced 2026-05-18; per-story-delivery step 5 demo-recorder dispatch-ready; resumption gate SK-MCP-001 Tier 2). M3 (5 stories + ADR-021/022 gating) pending M2 SHIPS; resumption gates: E-10 + F5 remain blocked on S-15.03 SHIPS (all 11 stories merged). |
-| v1.0-feature-engine-discipline-pass-1 | feature | **PAUSED** | F5 5-pass session (passes 70-74) complete with META-LEVEL-29 CANDIDATE CONFIRMED; paused at asymptotic floor [7,9] per D-386 Option C + human direction 2026-05-13; 5 D-NNN codifications D-450..D-454 + 5 lessons L-EDP1-062..066; resumes only when S-15.03 PRIORITY-A automation lands. pass-74 SHA-patch `4b4b6819` is the cycle's final-state HEAD. Full-cycle trajectory (74 values): 29→15→11→9→8→7→5→6→6→6→4→3→3→10→13→9→9→10→11→10→10→11→11→10→12→10→12→11→10→6→7→8→6→2→5→5→5→7→8→7→8→7→8→7→8→7→7→8→8→7→7→7→8→8→8→9→8→8→9→9→9→9→9→9→9→8→9→9→9→9→9→9→9→9 |
+| v1.0-feature-engine-discipline-pass-1 | feature | **PAUSED** | F5 pass-75 adversary complete D-510 2026-05-27; META-LEVEL-30 CANDIDATE-CONFIRMED; trajectory →9→9→9→11 (tick-up from 35-consecutive 9s; 14-day pause cost); 4 structural ACCEPTED-AT-FLOOR per D-386 Option C extension; S-15.17 anchors HIGH-002 cure; L-EDP1-067 captured; BC-INDEX v2.53; STORY-INDEX v3.71. Full-cycle trajectory (75 values ending): →9→9→9→9→11. |
 | v1.0-feature-plugin-async-semantics-pass-1 | feature | CLOSED | All PRs merged; rc.14 shipped |
 
 ## Decisions Log
 
-> D-001..D-509: `cycles/v1.0-brownfield-backfill/decision-log.md` + `decisions-log-archive.md`
+> D-001..D-510: `cycles/v1.0-brownfield-backfill/decision-log.md` + `decisions-log-archive.md`
 > F5 pass-2 architect decisions: `cycles/v1.0-feature-engine-discipline-pass-1/F5-pass-2-architect-decisions.md` (factory-artifacts 7b83ef58)
-> D-379..D-454 (F5): `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md` <!-- D-452(e) umbrella-range-auto-advance; D-506 S-15.15 SHIPPED Wave 3 COMPLETE D-range→D-506; D-507 SESSION-END DURABILITY BURST 2026-05-27 D-range→D-507; D-508 S-15.13 SHIPPED Wave 4 COMPLETE S-15.03 PRIORITY-A COMPLETE D-range→D-508; D-509 E-10 pass-15 fix-burst PR #160 SHIPPED D-range→D-509 -->
+> D-379..D-454 (F5): `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md` <!-- D-452(e) umbrella-range-auto-advance; D-506 S-15.15 SHIPPED Wave 3 COMPLETE D-range→D-506; D-507 SESSION-END DURABILITY BURST 2026-05-27 D-range→D-507; D-508 S-15.13 SHIPPED Wave 4 COMPLETE S-15.03 PRIORITY-A COMPLETE D-range→D-508; D-509 E-10 pass-15 fix-burst PR #160 SHIPPED D-range→D-509; D-510 F5 pass-75 fix-burst META-LEVEL-30 CANDIDATE-CONFIRMED D-range→D-510 -->
 
 | ID | Decision | Phase | Date |
 |----|----------|-------|------|
+| D-510 | F5 PASS-75 FIX-BURST + META-LEVEL-30 CANDIDATE-CONFIRMED 2026-05-27 — 11 findings (1C+5H+3M+2L); trajectory →9→9→9→11 (pause-cost); 3 META-30 routes confirmed; 6 mechanical closed; 4 structural ACCEPTED-AT-FLOOR per D-386 Option C extension; S-15.17 anchors HIGH-002 cure; BC-INDEX v2.53; STORY-INDEX v3.71; L-EDP1-067. See decision-log.md SoT. | F5 pass-75 fix-burst | 2026-05-27 |
 | D-509 | E-10 PASS-15 + FIX-BURST PR #160 SHIPPED 2026-05-27 — (a) E-10 RESUMED post-D-508 S-15.03 PRIORITY-A COMPLETE gate-satisfied; pass-15 adversary review against develop@ced39c82 produced verdict MEDIUM-HIGH 8 findings (0C+2H+4M+2L); trend 22→11→16→16→12→2→1→4→5→4→6→7→5→8→8 (holds at 8 from pass-14); character SHIFT from governance-process to implementation-correctness — automation wave WORKED; (b) prior-pass closures: F-PASS14-004 structurally closed by validate-policies-schema (S-15.15); F-PASS14-006 structurally closed by bare-integer-ID enforcement; F-PASS14-001/002/003/005/007/008 remain ACCEPTED-AT-ASYMPTOTIC-FLOOR per D-471; (c) fix-burst PR #160 squash-merge `4b68ab83` closed F-PASS15-001 (HIGH validate-index-cite-refresh 65536→524288) + F-PASS15-002 (HIGH validate-burst-log 65536→524288) + F-PASS15-004 (MEDIUM index reads); TD-VSDD-060 sibling-sweep extended to 5 additional crates (lint-registry-async-invariant + session-start-telemetry + update-wave-state-on-merge + validate-artifact-path + validate-per-story-adversary-convergence + warn-pending-wave-gate); compile-time assertions added on the 2 crates with material behavioral impact; CR-001 (IMPORTANT) addressed in-scope (EXEC_MAX_OUTPUT_BYTES named); CR-004 (NITPICK) addressed; (d) F-PASS15-003 (cycle-path hardcoding) + F-PASS15-005 (INDEX.md as Phase 2 secondary) + F-PASS15-006 (on_error=continue) + F-PASS15-007 (CI count assertion stale) + F-PASS15-008 (find_part_a_start guard) all ACCEPTED-AT-ASYMPTOTIC-FLOOR per D-471 extension; (e) CI 10/11 green; ubuntu cargo-host pre-existing F-P3-008 flake (8630ms>8000ms threshold) not introduced by PR #160; pass-15 report persisted at factory-artifacts `350fc86a`; pass-16 verification or F5 pass-75 dispatch-ready per human direction. See decision-log.md SoT. Closes E-10 pass-15; advances to F5 pass-75 per human direction. | E-10 brownfield-backfill resumption + fix-burst | 2026-05-27 |
 | D-508 | S-15.13 SHIPPED 2026-05-27 — (a) PR #159 squash-merged at ced39c82 on develop 2026-05-27; validate-closes-completeness Phase 2 8pts; Phase 2 extension to existing crate `crates/hook-plugins/validate-closes-completeness/` (685 lines added); ADR-022 Option c pointer file protocol implemented (fail-open until state-manager activates); Closes D-411(c)+D-413(b)+D-420(a)+D-445(a)+D-447(a); (b) LOCAL adversary cascade 4 passes CONVERGED 3/3 (trajectory 7→2→0→0; 2 fix-bursts); 51/51 bats integration tests (32 Phase 1 non-regression + 19 Phase 2) + cargo unit tests; CI 8/9 green (1 pre-existing F-P3-008 resolver timing flake on ubuntu — not introduced by S-15.13); PR review APPROVE (0 CRITICAL, 0 IMPORTANT); security CLEAR; (c) BC-5.39.007 Phase 2 ACs ACTIVE; BC-INDEX v2.51→v2.52; (d) STORY-INDEX v3.69→v3.70 (S-15.13 status draft→merged; merged count 73→74); Wave 4 COMPLETE; 3M3c COMPLETE (all 5 M3 stories = 40pts); S-15.03 PRIORITY-A COMPLETE (all 11 stories); E-10 resumption UNBLOCKED; (e) parent-commit ced39c82 per D-419(b); 4-index: BC-INDEX v2.52 VP-INDEX v2.06 STORY-INDEX v3.70 ARCH-INDEX v2.15. See decision-log.md SoT. Closes S-15.13; Wave 4 COMPLETE; S-15.03 PRIORITY-A COMPLETE. | M3 3M3c per-story-delivery S-15.13 | 2026-05-27 |
 | D-507 | SESSION-END DURABILITY BURST 2026-05-27 — (a) STATE.md compacted 500→~436 lines per D-430(a): line-growth tracker pre-D-504 archived + Decisions Log D-413..D-498 individual rows archived (35 rows → 1 consolidated row) + Current Phase Steps F5 pass-57..60 archived (7 rows → 1 summary row); (b) dirty .factory/ files committed: policies.yaml (Part A frontmatter + POLICY 9/10 codified_at D-472) + code-delivery/S-15.12/ + code-delivery/S-15.15/ review artifacts; (c) Section 11 Session Resume Checkpoint zero-context rewrite §1-§12 (D-507 checkpoint; S-15.13 Wave 4 LAST dispatch template embedded; prior D-506 checkpoint archived to session-checkpoints.md per POLICY 1); (d) 4-index UNCHANGED: BC-INDEX v2.51 VP-INDEX v2.06 STORY-INDEX v3.69 ARCH-INDEX v2.15; (e) parent-commit 24cc2ba6 per D-419(b). See decision-log.md SoT. Closes D-506 S-15.15 durability gap; advances to Wave 4 S-15.13 dispatch-ready. | brownfield-backfill session-end durability | 2026-05-27 |
@@ -263,7 +265,7 @@ dtu_services: []
 - `cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md` (adversary reviews at `S-12.03/`, `S-12.04/`, `S-12.05/` subdirs)
 
 
-## Session Resume Checkpoint (2026-05-27 — D-509 E-10 pass-15 fix-burst PR #160 SHIPPED; F-PASS15-001/002/004 CLOSED; next: pass-16 or F5 per human direction)
+## Session Resume Checkpoint (2026-05-27 — D-510 F5 pass-75 fix-burst COMPLETE; META-LEVEL-30 CANDIDATE-CONFIRMED; next: F5 pass-76 or S-15.17 dispatch per human direction)
 
 > **SELF-SUFFICIENT RESUME CONTEXT FOR ZERO-CONTEXT NEW SESSION**
 > Read this section alone to resume the orchestrator after full CLEAR or new session. All context needed is here.
@@ -271,21 +273,23 @@ dtu_services: []
 
 ### §1. Where We Are
 
-**E-10 pass-15 CLOSED. D-509 codified 2026-05-27. Fix-burst PR #160 merged at 4b68ab83.**
+**F5 pass-75 fix-burst COMPLETE. D-510 codified 2026-05-27. META-LEVEL-30 CANDIDATE-CONFIRMED.**
 
 - **S-15.03 PRIORITY-A COMPLETE (all 11 stories, D-508 2026-05-27):** M1+M2+M3 Waves 1-4 all shipped; 40pts M3 total.
-- **E-10 pass-15 adversary (against develop@ced39c82):** Verdict MEDIUM-HIGH 8 findings (0C+2H+4M+2L). Trend 22→11→16→16→12→2→1→4→5→4→6→7→5→8→8 (holds at 8 from pass-14). Character SHIFT: governance-process → implementation-correctness.
-- **E-10 pass-15 fix-burst (PR #160 squash-merge 4b68ab83 2026-05-27):** F-PASS15-001 (HIGH validate-index-cite-refresh max_bytes 65536→524288) + F-PASS15-002 (HIGH validate-burst-log max_bytes 65536→524288) + F-PASS15-004 (MEDIUM index file reads) CLOSED. TD-VSDD-060 sibling-sweep 7 crates. CR-001 (EXEC_MAX_OUTPUT_BYTES named constant) + CR-004 addressed. CI 10/11 green.
-- **F-PASS15-003/005/006/007/008:** ACCEPTED-AT-ASYMPTOTIC-FLOOR per D-471 model extension.
-- **develop HEAD:** `4b68ab83` (PR #160 squash-merge 2026-05-27). **main HEAD:** `70811f4a`.
-- **factory-artifacts HEAD:** `e70ec966` (D-509 post-merge burst 2026-05-27).
-- **D-range:** D-001..D-509.
-- **4-index (post-D-509 — UNCHANGED from D-508):** BC-INDEX v2.52, VP-INDEX v2.06, STORY-INDEX v3.70, ARCH-INDEX v2.15.
+- **E-10 pass-15 CLOSED (D-509 2026-05-27):** PR #160 squash-merge 4b68ab83. F-PASS15-001/002/004 CLOSED. F-PASS15-003/005/006/007/008 ACCEPTED per D-471. Trend 22→...→8→8 holds.
+- **F5 pass-75 adversary + fix-burst (D-510 2026-05-27):** Verdict HIGH 11 findings (1C+5H+3M+2L). Trajectory tick-up 9→11 (14-day pause cost; 36th multi-axis). META-LEVEL-30 CANDIDATE-CONFIRMED 3 routes.
+- **6 mechanical findings CLOSED same-burst D-510:** HIGH-001 (BC-7.04.051 POL-14 leg-5) + HIGH-003 (7-story frontmatter draft→merged) + HIGH-004 (STATE.md banner literal wc-l) + HIGH-005 (INDEX.md paused_pending_resume) + MED-001 (BC-5.39.005 version-cell) + MED-002 (S-15.17 STORY-INDEX registered) + MED-003 (lessons.md corrigendum) + LOW-002 (D-510 codified).
+- **4 structural META-30 findings ACCEPTED-AT-FLOOR per D-386 Option C extension (D-510):** CRIT-001 (route a) + HIGH-002 (route b anchored S-15.17) + LOW-001 (route a tail update in-burst) + route-c covered by HIGH-005.
+- **develop HEAD:** `4b68ab83` (PR #160 squash-merge 2026-05-27 — UNCHANGED). **main HEAD:** `70811f4a`.
+- **factory-artifacts HEAD:** (SHA-patch pending this commit — see §9 after commit).
+- **D-range:** D-001..D-510.
+- **4-index (post-D-510):** BC-INDEX v2.53, VP-INDEX v2.06, STORY-INDEX v3.71, ARCH-INDEX v2.15.
 - **BC content:** BC-5.39.005 v1.3 ACTIVE + BC-5.39.006 v1.7 ACTIVE + BC-5.39.007 v1.6 ACTIVE + BC-5.39.008 v1.5 ACTIVE + BC-7.04.051 v1.1 ACTIVE.
 
-**E-10 pass-16 verification or F5 pass-75:** Dispatch-ready per human direction.
-
-**F5 resumption (pass-75+):** Requires explicit human direction per D-386 Option C.
+**Next per human direction:**
+- **F5 pass-76:** Dispatch adversary pass-76 (requires human authorization per D-386 Option C).
+- **S-15.17 dispatch:** validate-trajectory-tail-cell-completeness WASM hook (anchors HIGH-002 cure; required for structural F5 convergence).
+- **E-10 pass-16:** E-10 sub-cycle pass-16 verification against develop `4b68ab83`.
 
 ### §2. Operating Mode
 
@@ -299,7 +303,8 @@ dtu_services: []
 - **D-506 S-15.15 SHIPPED** (2026-05-27; PR #158 24cc2ba6; Wave 3 COMPLETE).
 - **D-507 SESSION-END DURABILITY BURST** (2026-05-27; STATE.md compacted; dirty .factory/ committed).
 - **D-508 S-15.13 SHIPPED** (2026-05-27; PR #159 ced39c82; Wave 4 COMPLETE; 3M3c COMPLETE; S-15.03 PRIORITY-A COMPLETE).
-- **D-509 E-10 PASS-15 FIX-BURST SHIPPED** (2026-05-27; PR #160 4b68ab83; F-PASS15-001/002/004 CLOSED; this checkpoint).
+- **D-509 E-10 PASS-15 FIX-BURST SHIPPED** (2026-05-27; PR #160 4b68ab83; F-PASS15-001/002/004 CLOSED).
+- **D-510 F5 PASS-75 FIX-BURST COMPLETE** (2026-05-27; META-LEVEL-30 CANDIDATE-CONFIRMED; 6 mechanical closed; 4 structural ACCEPTED-AT-FLOOR; BC-INDEX v2.53; STORY-INDEX v3.71; this checkpoint).
 
 ### §3. User Directives (Carry Across CLEAR)
 
@@ -329,18 +334,19 @@ All S-15.03 PRIORITY-A items SHIPPED (this session 2026-05-25..27):
 - **D-506 S-15.15 SHIPPED 2026-05-27:** PR #158 24cc2ba6; BC-5.39.008 POL-14 active; BC-INDEX v2.51; STORY-INDEX v3.69; merged count 72→73; Wave 3 COMPLETE; 3M3c 4/5 (32pts).
 - **D-507 SESSION-END DURABILITY BURST 2026-05-27:** STATE.md compacted 500→~436 lines; dirty .factory/ committed (policies.yaml + code-delivery/S-15.12/ + code-delivery/S-15.15/); Section 11 zero-context rewrite; Wave 4 S-15.13 dispatch-ready.
 - **D-508 S-15.13 SHIPPED 2026-05-27:** PR #159 ced39c82; BC-5.39.007 Phase 2 ACs ACTIVE; BC-INDEX v2.52; STORY-INDEX v3.70; merged count 73→74; Wave 4 COMPLETE; 3M3c COMPLETE; S-15.03 PRIORITY-A COMPLETE.
-- **D-509 E-10 PASS-15 FIX-BURST SHIPPED 2026-05-27:** PR #160 4b68ab83; F-PASS15-001 (validate-index-cite-refresh max_bytes) + F-PASS15-002 (validate-burst-log max_bytes) + F-PASS15-004 (index reads) CLOSED; 7-crate TD-VSDD-060 sibling sweep; F-PASS15-003/005/006/007/008 ACCEPTED-AT-ASYMPTOTIC-FLOOR per D-471; CI 10/11 green; trend holds at 8.
+- **D-509 E-10 PASS-15 FIX-BURST SHIPPED 2026-05-27:** PR #160 4b68ab83; F-PASS15-001/002/004 CLOSED; 7-crate TD-VSDD-060 sibling sweep; F-PASS15-003/005/006/007/008 ACCEPTED-AT-ASYMPTOTIC-FLOOR per D-471; CI 10/11 green; trend holds at 8.
+- **D-510 F5 PASS-75 FIX-BURST COMPLETE 2026-05-27:** META-LEVEL-30 CANDIDATE-CONFIRMED 3 routes; 6 mechanical findings closed (HIGH-001/003/004/005+MED-001/002/003+LOW-002); 4 structural ACCEPTED-AT-FLOOR per D-386 Option C extension; BC-INDEX v2.53; STORY-INDEX v3.71; L-EDP1-067; S-15.17 anchors HIGH-002 cure; single-commit burst per TD-VSDD-053.
 
 Prior Tier-A (pre-session, all COMPLETE): TD #71/72/70/74 (PRs #138–141 2026-05-14/15) + S-15.04/05/08/07/11/09/14 (PRs #142–148 2026-05-15..19) + 3M3a D-481 + 3M3a-r D-497 + D-498 durability (2026-05-18/20).
 
-**Current Active:** E-10 pass-15 CLOSED D-509. Next = E-10 pass-16 verification or F5 pass-75 per human direction.
+**Current Active:** D-510 F5 pass-75 fix-burst COMPLETE. Next = F5 pass-76 or S-15.17 dispatch per human direction.
 
 ### §5. Cumulative Codifications
 - F5: D-379..D-454 (76 decisions) — `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md`.
-- Brownfield: D-001..D-509 — `cycles/v1.0-brownfield-backfill/decision-log.md`. Key: D-480 M3; D-483..D-497 BC cascade (INV-017..020; POLICY 14 5-leg+gate); D-499 3M3b; D-500 3M3b-r CONVERGED; D-501 uncertainties; D-502/503 Wave 1 SHIPPED; D-504 durability; D-505 S-15.12 SHIPPED + Wave 2 COMPLETE; D-506 S-15.15 SHIPPED + Wave 3 COMPLETE; D-507 session-end durability; D-508 S-15.13 SHIPPED + Wave 4 COMPLETE + S-15.03 PRIORITY-A COMPLETE; D-509 E-10 pass-15 fix-burst PR #160 SHIPPED + F-PASS15-001/002/004 CLOSED.
+- Brownfield: D-001..D-510 — `cycles/v1.0-brownfield-backfill/decision-log.md`. Key: D-480 M3; D-483..D-497 BC cascade (INV-017..020; POLICY 14 5-leg+gate); D-499 3M3b; D-500 3M3b-r CONVERGED; D-501 uncertainties; D-502/503 Wave 1 SHIPPED; D-504 durability; D-505 S-15.12 SHIPPED + Wave 2 COMPLETE; D-506 S-15.15 SHIPPED + Wave 3 COMPLETE; D-507 session-end durability; D-508 S-15.13 SHIPPED + Wave 4 COMPLETE + S-15.03 PRIORITY-A COMPLETE; D-509 E-10 pass-15 fix-burst PR #160 SHIPPED + F-PASS15-001/002/004 CLOSED; D-510 F5 pass-75 fix-burst + META-LEVEL-30 CANDIDATE-CONFIRMED + 6 mechanical closed + 4 structural accepted-at-floor.
 
 ### §6. Cumulative Lessons
-- F5: L-EDP1-001..066 — `cycles/v1.0-feature-engine-discipline-pass-1/lessons.md`.
+- F5: L-EDP1-001..067 — `cycles/v1.0-feature-engine-discipline-pass-1/lessons.md`. L-EDP1-067: META-LEVEL-30 4-subclass taxonomy (routes a/b/c/time-dilation); time-dilated-discipline-degradation pattern; cure-extension-parsimony anchoring S-15.17.
 - Brownfield: TD-VSDD-095..100 + L-M3-BC-cascade-CONVERGED (2026-05-20) + L-session-2026-05-20-resume-CONVERGENCE + L-E10-pass15-automation-wave-effectiveness — `cycles/v1.0-brownfield-backfill/lessons.md`.
 
 ### §7. S-15.03 PRIORITY-A Scope (Cumulative)
@@ -350,18 +356,18 @@ Prior Tier-A (pre-session, all COMPLETE): TD #71/72/70/74 (PRs #138–141 2026-0
 
 | Index | Version | Notes |
 |-------|---------|-------|
-| BC-INDEX | v2.52 | D-508 S-15.13 SHIPPED; BC-5.39.007 body row v1.5→v1.6; merged count 73→74 |
-| VP-INDEX | v2.06 | D-497 cumulative cite; UNCHANGED at D-508 |
-| STORY-INDEX | v3.70 | D-508 S-15.13 SHIPPED; merged count 74; S-15.13 draft→merged |
-| ARCH-INDEX | v2.15 | D-497 cumulative cite; UNCHANGED at D-508 |
+| BC-INDEX | v2.53 | D-510 F5 pass-75 fix-burst; BC-7.04.051 body row active+E-12+S-15.16-Part-B+v1.1; BC-5.39.005 version cell v1.3 appended |
+| VP-INDEX | v2.06 | D-497 cumulative cite; UNCHANGED at D-510 |
+| STORY-INDEX | v3.71 | D-510 F5 pass-75 fix-burst; S-15.17 row added; 102 file-resident stories |
+| ARCH-INDEX | v2.15 | D-497 cumulative cite; UNCHANGED at D-510 |
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** `e70ec966` (D-509 post-merge burst 2026-05-27)
-- **develop HEAD:** `4b68ab83` (PR #160 E-10 pass-15 fix-burst squash-merge 2026-05-27)
+- **factory-artifacts HEAD:** (D-510 single-commit burst 2026-05-27 — SHA-patch follow-up will update this after commit)
+- **develop HEAD:** `4b68ab83` (PR #160 E-10 pass-15 fix-burst squash-merge 2026-05-27 — UNCHANGED)
 - **main HEAD:** `70811f4a` (rc.18 merge + CLAUDE.md expansion)
+- D-509 factory-artifacts HEAD: `e70ec966` (D-509 post-merge burst 2026-05-27)
 - D-508 factory-artifacts HEAD: `350fc86a` (E-10 pass-15 adversary report persisted 2026-05-27)
-- D-507 factory-artifacts HEAD: `72250e2b` (D-507 SESSION-END DURABILITY BURST 2026-05-27)
 - D-506 develop SHA: `24cc2ba6` (PR #158 S-15.15); D-506 factory-artifacts HEAD: `ed8d79cd` + SHA-patch `20cb8e1c`
 - D-505 factory-artifacts HEAD: `2db3a7cf` (D-505 post-merge burst 2026-05-26)
 - D-503 SHA-patch: `cea3deb3`; D-503 codification: `598a552a`
@@ -374,27 +380,27 @@ Prior Tier-A (pre-session, all COMPLETE): TD #71/72/70/74 (PRs #138–141 2026-0
 
 ### §10. PR Status
 
-- **No open PRs.** E-10 pass-15 fix-burst merged.
-- Last PR merged: **PR #160 (E-10 pass-15 fix-burst: host::read_file cap 65536→524288 across 7 WASM plugins)** at `4b68ab83` 2026-05-27.
+- **No open PRs.** D-510 F5 pass-75 fix-burst is factory-artifacts only (no source-code PR).
+- Last source PR merged: **PR #160 (E-10 pass-15 fix-burst: host::read_file cap 65536→524288 across 7 WASM plugins)** at `4b68ab83` 2026-05-27.
 - Prior: **PR #159 (S-15.13 validate-closes-completeness Phase 2)** at `ced39c82` 2026-05-27.
-- Next PR: none currently queued — E-10 pass-16 or F5 pass-75 per human direction.
+- Next PR: S-15.17 (validate-trajectory-tail-cell-completeness WASM hook) or E-10 pass-16 fix-burst per human direction.
 
 ### §11. Post-CLEAR Resume Checklist (zero-context)
 
 1. **Verify worktree:** `git -C .factory log -1` + `git -C .factory status` (expect clean; branch factory-artifacts).
 2. **Read this checkpoint** (entire §1-§12).
 3. **Verify PC4:** `grep "^current_step:" .factory/STATE.md | grep -oE "trajectory-tail [→0-9]+" | grep -oE "→[0-9]+" | wc -l` → expect `4`.
-4. **NEXT ACTION — await human direction.** D-509 COMPLETE. E-10 pass-15 fix-burst shipped. Options:
+4. **NEXT ACTION — await human direction.** D-510 COMPLETE. F5 pass-75 fix-burst shipped. Options:
+   - **F5 pass-76:** Dispatch adversary pass-76 (requires explicit human direction per D-386 Option C). Read `cycles/v1.0-feature-engine-discipline-pass-1/adv-cycle-pass-75.md` for context.
+   - **S-15.17 dispatch:** validate-trajectory-tail-cell-completeness WASM hook (anchors HIGH-002 cure; 9 D-453(d) prescribed sites; 12-18 ACs; BC-5.39.009 pending PO authorship).
    - **E-10 pass-16 verification:** Dispatch adversary pass-16 against develop `4b68ab83`. Read `cycles/v1.0-brownfield-backfill/E-10-pass-15.md` for context.
-   - **F5 resumption:** Requires explicit human direction (pass-75+).
    - **SK-MCP-001 + UNI-PLUG-001:** Proposals review-ready; require human authorization.
    - **TD-VSDD-063:** VP allocation for BC-5.39.006 PENDING — architect dispatch required.
-   - **New work:** Any wave/story the human directs.
-5. **E-10 pass-15 CLOSED** — F-PASS15-001/002/004 fixed; F-PASS15-003/005/006/007/008 ACCEPTED per D-471 model.
-6. **F5 PAUSED** — do NOT dispatch pass-75 without explicit human direction.
+5. **F5 PAUSED** — trajectory →9→9→9→11 (pass-75; pause-cost); 4 structural findings ACCEPTED-AT-FLOOR; S-15.17 required for structural closure of HIGH-002.
+6. **E-10 pass-15 CLOSED** — F-PASS15-001/002/004 fixed; F-PASS15-003/005/006/007/008 ACCEPTED per D-471 model.
 7. **SK-MCP-001 + UNI-PLUG-001:** proposals review-ready; require human authorization before proceeding.
 8. **TD-VSDD-063:** VP allocation for BC-5.39.006 PENDING — architect dispatch required.
-9. **ALL dispatches carry these non-negotiables:** TD-VSDD-097-EXT (all 5 BC-5.39.006 PCs in current_step:) + TD-VSDD-099 (4 Dim blocks in burst-log) + TD-VSDD-100 (production artifact read, no synthetic echo) + POLICY 14 5-leg quintuple parity + verification_step 7 4-index gate + INV-019 cure (a)/(b)/(c) in changelog rows + adversary must grep origin/develop (not stale local main).
+9. **ALL dispatches carry these non-negotiables:** TD-VSDD-097-EXT (all 5 BC-5.39.006 PCs in current_step:) + TD-VSDD-099 (4 Dim blocks in burst-log) + TD-VSDD-100 (production artifact read, no synthetic echo) + POLICY 14 5-leg quintuple parity + verification_step 7 4-index gate + INV-019 cure (a)/(b)/(c) in changelog rows + adversary must grep origin/develop (not stale local main) + D-449(a) literal-shell all Dim-2 gates (no interpretation voice).
 
 ### §12. Pending Work Items — Strict Engine-Discipline Ordering (refreshed 2026-05-27 post-D-508)
 
@@ -409,8 +415,10 @@ Prior Tier-A (pre-session, all COMPLETE): TD #71/72/70/74 (PRs #138–141 2026-0
 | ~~S-15.12~~ | ~~validate-closes-completeness Phase 1~~ | ~~D~~ | ~~—~~ | **SHIPPED 2026-05-26 PR #155 fba7e1cd D-505** |
 | ~~S-15.15~~ | ~~validate-policies-schema~~ | ~~D~~ | ~~—~~ | **SHIPPED 2026-05-27 PR #158 24cc2ba6 D-506** |
 | ~~S-15.13~~ | ~~validate-closes-completeness Phase 2~~ | ~~D~~ | ~~—~~ | **SHIPPED 2026-05-27 PR #159 ced39c82 D-508** |
-| ~~4~~ | ~~E-10 resumption (pass-15+)~~ | ~~gated~~ | ~~(3) COMPLETE~~ | **E-10 pass-15 COMPLETE D-509 — PR #160 4b68ab83; F-PASS15-001/002/004 CLOSED; next: pass-16 or F5** |
-| 5 | F5 resumption (pass-75+) | gated | (3) complete + human direction | PAUSED D-386 Option C |
+| ~~4~~ | ~~E-10 resumption (pass-15+)~~ | ~~gated~~ | ~~(3) COMPLETE~~ | **E-10 pass-15 COMPLETE D-509 — PR #160 4b68ab83; F-PASS15-001/002/004 CLOSED; next: pass-16** |
+| ~~5a~~ | ~~F5 pass-75 fix-burst~~ | ~~gated~~ | ~~human direction + S-15.03 COMPLETE~~ | **F5 PASS-75 COMPLETE D-510 — META-LEVEL-30 CANDIDATE-CONFIRMED; 6 mechanical closed; 4 structural accepted-at-floor** |
+| **5b** | **S-15.17 dispatch (validate-trajectory-tail-cell-completeness)** | **gated** | D-510 HIGH-002 anchor | **DISPATCH-READY — closes HIGH-002 structurally; BC-5.39.009 pending PO authorship** |
+| **5c** | **F5 pass-76** | **gated** | human direction | PAUSED D-386 Option C; pass-75 trajectory →9→9→9→11 |
 | **6** | **UNI-PLUG-001 implementation** | **forward** | human-authorize | **PROPOSAL REVIEW-READY** |
 | **7** | **SK-MCP-001 implementation** | **forward** | (6) Tier 1 done | **PROPOSAL REVIEW-READY** |
 
@@ -418,5 +426,5 @@ Prior Tier-A (pre-session, all COMPLETE): TD #71/72/70/74 (PRs #138–141 2026-0
 
 **[D-414(c) acknowledgment: Section 12 is a non-standard addition for forward-backlog durability.]**
 
-> Previous checkpoint (D-508 S-15.13 SHIPPED 2026-05-27; S-15.03 PRIORITY-A COMPLETE; E-10 resumption UNBLOCKED) archived to: `cycles/v1.0-brownfield-backfill/session-checkpoints.md`
+> Previous checkpoint (D-509 E-10 pass-15 fix-burst PR #160 SHIPPED 2026-05-27; F-PASS15-001/002/004 CLOSED; next pass-16 or F5) archived to: `cycles/v1.0-brownfield-backfill/session-checkpoints.md`
 

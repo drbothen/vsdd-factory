@@ -922,4 +922,39 @@ Net: **5 CONFIRMED-VIOLATED** (0 CONFIRMED-SATISFIED in prediction outcomes; the
 
 **Size-budget flag (D-442(e)):** lessons.md post-L-EDP1-066 append is at approximately 3730 lines. Hard limit ≤4000 lines per D-442(e). Compact or split REQUIRED at S-15.03 PRIORITY-A execution window — CRITICAL urgency; approximately 270 lines of headroom remain.
 
+**CORRIGENDUM 2026-05-27:** Post-S-15.16-Part-A compaction reduced file size from ~3730 to 925 lines (verified via `wc -l /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-feature-engine-discipline-pass-1/lessons.md` → `925`). CRITICAL urgency RESOLVED. Size-budget headroom restored (925 lines vs hard limit 4000 = 3075 lines headroom).
+
 **Closes:** ADV-EDP1-P74-CRIT-001 + ADV-EDP1-P74-HIGH-001 + ADV-EDP1-P74-HIGH-002 + ADV-EDP1-P74-HIGH-003 + ADV-EDP1-P74-HIGH-004 + ADV-EDP1-P74-MED-001 + ADV-EDP1-P74-MED-002 + ADV-EDP1-P74-MED-003 + ADV-EDP1-P74-LOW-001 + PG-P74-001 + PG-P74-002 + PG-P74-003 (D-413(b) completeness mandate + D-447(d) parity + D-448(b) Closes block discipline — 9 findings + 3 PG = 12 closure items)
+
+---
+
+## L-EDP1-067: META-LEVEL-30 CANDIDATE-CONFIRMED — Time-Dilated-Discipline-Degradation and Cure-Extension-Parsimony Routing (2026-05-27; D-510 F5 pass-75)
+
+**Trigger:** F5 pass-75 adversary review (2026-05-27) after 14-day pause (pass-74 2026-05-13 → pass-75 2026-05-27). Trajectory tick-up from 35-consecutive 9s to 11. META-LEVEL-30 CANDIDATE-CONFIRMED via 3 distinct routes.
+
+**Meta-level ply 30 taxonomy (4 sub-classes):**
+
+**Route (a) — closure-burst-gate-invoked-via-interpretation-not-literal-shell:** A gate command is present in the codification (D-454(a) per-cell line-anchor grep), the burst author executes something that looks like the gate, but the Dim-2 block contains narrative interpretation of the gate's result rather than literal command + captured stdout. This is structurally distinct from narrative-pseudocode (L-EDP1-055 META-LEVEL-24) in that the gate command IS present — the failure mode is that execution evidence is in interpretation voice ("→ all sites found") rather than literal stdout voice (actual grep output). D-449(a) requires literal stdout. The command-vs-interpretation gap is the route (a) escape hatch that D-454(a) did not close.
+
+**Route (b) — codified-canonical-registry-with-no-runtime-WASM-gate:** A canonical mapping table with prescribed sites (D-453(d)) is codified in the decision log, creating a normative registry of 9 trajectory_tail sites. No corresponding WASM hook validates per-cell compliance at runtime. The 14-day F5 pause allowed this codification-without-gate to exist without materialized defect — but it is structurally inert. S-15.17 (validate-trajectory-tail-cell-completeness WASM hook) is the cure anchor.
+
+**Route (c) — paused-cycle-INDEX.md-stale-narrative:** When a cycle is paused mid-stream and out-of-cycle activity continues (brownfield bursts, new PRs, index bumps), the cycle's INDEX.md accumulates stale narrative. The F5 cycle's INDEX.md Convergence Status section retained pass-74 4-index cites (BC v2.17/VP v1.93/STORY v3.18/ARCH v1.98) while actuals advanced to BC v2.53/VP v2.06/STORY v3.71/ARCH v2.15. No structural gate prevents INDEX.md from silently drifting during pause windows. The pause-amplification effect: the longer the pause, the larger the drift.
+
+**Route (time-dilation) — pause-amplifies-all-discipline-degradation:** The 14-day pause is not a separate META-LEVEL class but a multiplier on all existing escape hatches. Disciplines that would have been caught in the next pass (route a/b/c) accumulated undetected for 14 days because no adversary reviewed them. The pause-cost materializes as trajectory tick-up (35 consecutive 9s → 11 on resumption). This pattern is predictable: any F5 pause > 7 days is likely to produce at least one tick-up on resumption.
+
+**Cure-extension-parsimony decision (D-497 routing):** Per D-497, when META-LEVEL recurrence is structurally in the same class as a prior INV, extend the existing cure rather than introduce a new INV-NNN. Applied here:
+- Route (a) is absorbed as a self-application of D-449(a) (literal-shell discipline); no new INV. ACCEPTED-AT-FLOOR.
+- Route (b) is routed to S-15.17 (validate-trajectory-tail-cell-completeness WASM hook); no new INV. ACCEPTED-AT-FLOOR with concrete forward story.
+- Route (c) is closed same-burst (INDEX.md fix); no structural gate change warranted; ACCEPTED-AT-FLOOR.
+- No INV-031 introduced; cure-extension-parsimony preserved.
+
+**Forward-discipline for F5 resume:**
+1. Any F5 resume after a pause > 7 days MUST begin with a STATE.md + INDEX.md 4-index sync sweep before dispatching the next adversary.
+2. S-15.17 (validate-trajectory-tail-cell-completeness) is the structural closure for route (b); must be dispatched before F5 pass-76+ to prevent recurrence.
+3. Burst-log Dim-2 blocks MUST contain literal stdout (not interpretation voice) even when the gate command is present — route (a) demonstrates that command-presence alone does not satisfy D-449(a).
+
+**Convergence implication:** META-LEVEL ply ascending monotonically L1..L30 confirmed. Trajectory tick-up to 11 is a pause-cost not a genuine regression. Asymptotic floor [7,9] potentially extends to [7,11] under pause conditions — structural not behavioral. D-386 Option C asymptotic acceptance extended via D-510. Pass-76 trajectory prediction (future-tense per D-445(e)(i); LENGTH=4 tail per D-433(e)+D-439(c)):
+- Trajectory tail: →9→9→9→11 (passes 72+73+74+75; post-pass-75 canonical tail)
+- Prediction: If S-15.17 WASM hook is dispatched and merges before pass-76, HIGH-002 route (b) closes structurally; pass-76 axis may revert toward 9. If S-15.17 is not dispatched, route (b) may recur.
+
+**Closes:** ADV-EDP1-P75-CRIT-001 (ACCEPTED-AT-FLOOR) + ADV-EDP1-P75-HIGH-001 (CLOSED) + ADV-EDP1-P75-HIGH-002 (ACCEPTED-AT-FLOOR anchored S-15.17) + ADV-EDP1-P75-HIGH-003 (CLOSED) + ADV-EDP1-P75-HIGH-004 (CLOSED) + ADV-EDP1-P75-HIGH-005 (CLOSED) + ADV-EDP1-P75-MED-001 (CLOSED) + ADV-EDP1-P75-MED-002 (CLOSED) + ADV-EDP1-P75-MED-003 (CLOSED) + ADV-EDP1-P75-LOW-001 (ACCEPTED-AT-FLOOR) + ADV-EDP1-P75-LOW-002 (CLOSED) (D-510; 11 findings)
