@@ -12,7 +12,7 @@ input-hash: "[live-state]"
 traces_to: prd.md
 project: vsdd-factory
 mode: brownfield
-current_step: "D-513 BC-5.39.009-AUTHORED-S-15.17-v1.1-PROPAGATED 2026-05-28 — BC-5.39.009 v1.0 active (POL-14 lifecycle_status: draft; auto-promotes on S-15.17 merge); anchors ADV-EDP1-P75-HIGH-002 META-LEVEL-30 route-(b); 13 PCs + 11 invariants + 18 VPs (pending arch); all 5 STATE.md sites Block severity; EC-014 basename-only; EC-017 multi-line YAML current_step; INV-019 cure (a)/(b)/(c); cure-extension-parsimony per D-497 (extends BC-5.39.005+BC-5.39.006); POLICY 14 5-leg PO+story-writer verified; BC-INDEX v2.53→v2.54; S-15.17 v1.0→v1.1 POLICY 8 propagated; behavioral_contracts: [BC-5.39.009]; AC-21 added EC-017; STORY-INDEX v3.71→v3.72; status draft pending 3-CLEAN; duplicate lifecycle_status fix state-manager; D-513 codified; Session Resume Checkpoint refreshed; trajectory-tail →9→9→9→11 (F5 pass-75 carry); 4-index: BC-INDEX v2.54 VP-INDEX v2.06 STORY-INDEX v3.72 ARCH-INDEX v2.15 (VP/ARCH UNCHANGED); maintain all 5 BC-5.39.006 v1.7 PCs per TD-VSDD-097-EXT; D-chain cite D-512 per D-419(b); parent-commit 2300a27a per D-419(b); factory-artifacts HEAD [SHA-patch-pending] per D-447(c)+D-449(e). SIZE BUDGET: (wc-l; see banner tracker)"
+current_step: "D-513 BC-5.39.009-AUTHORED-S-15.17-v1.1-PROPAGATED 2026-05-28 — BC-5.39.009 v1.0 active (POL-14 lifecycle_status: draft; auto-promotes on S-15.17 merge); anchors ADV-EDP1-P75-HIGH-002 META-LEVEL-30 route-(b); 13 PCs + 11 invariants + 18 VPs (pending arch); all 5 STATE.md sites Block severity; EC-014 basename-only; EC-017 multi-line YAML current_step; INV-019 cure (a)/(b)/(c); cure-extension-parsimony per D-497 (extends BC-5.39.005+BC-5.39.006); POLICY 14 5-leg PO+story-writer verified; BC-INDEX v2.53→v2.54; S-15.17 v1.0→v1.1 POLICY 8 propagated; behavioral_contracts: [BC-5.39.009]; AC-21 added EC-017; STORY-INDEX v3.71→v3.72; status draft pending 3-CLEAN; duplicate lifecycle_status fix state-manager; D-513 codified; Session Resume Checkpoint refreshed; trajectory-tail →9→9→9→11 (F5 pass-75 carry); 4-index: BC-INDEX v2.54 VP-INDEX v2.06 STORY-INDEX v3.72 ARCH-INDEX v2.15 (VP/ARCH UNCHANGED); maintain all 5 BC-5.39.006 v1.7 PCs per TD-VSDD-097-EXT; D-chain cite D-512 per D-419(b); parent-commit 2300a27a per D-419(b); factory-artifacts HEAD `56d907ad` per D-447(c)+D-449(e). SIZE BUDGET: (wc-l; see banner tracker)"
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -179,7 +179,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | 43afbfa7 | rc.19 SHIPPED 2026-05-28; bot binary commit on top of merge from develop; prior main HEAD: 70811f4a (rc.18 merge) |
 | develop | 98ea0719 | Sync main→develop auto-job 2026-05-28 post-rc.19 merge; prior: 4b68ab83 (PR #160 E-10 pass-15 fix-burst 2026-05-27) |
-| factory-artifacts | `2300a27a` | D-513 closing burst 2026-05-28 — SHA-patch follow-up will update to primary-commit HEAD per D-447(c)+D-449(e); prior: 78ea0e7a D-512 burst |
+| factory-artifacts | `56d907ad` | D-513 state-manager closing burst 2026-05-28 (SHA-patch applied per D-447(c)+D-449(e)); prior: 78ea0e7a D-512 burst |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28; GitHub Release prerelease 2026-05-28T15:10:56Z; marketplace PR drbothen/claude-mp PR #11 squash-merged |
 | v1.0.0-rc.18 (tag) | 666d689f | SHIPPED 2026-05-13 PR #135 |
 | v1.0.0-rc.16 (tag) | feb894a2 | SHIPPED; claude-mp PR #8 awaiting human merge |
@@ -291,7 +291,7 @@ dtu_services: []
 - **D-513 S-15.17 v1.1 PROPAGATED (2026-05-28):** Story-writer applied POLICY 8 (`bc_array_changes_propagate_to_body_and_acs`). `behavioral_contracts: ["BC-5.39.009"]` set. Anticipated PCs/Invariants sections replaced (Option A canonical reference). AC-21 added for EC-017 multi-line YAML. Post-Merge Burst Requirements added (`[needs-arch]` 18 VP deferral per TD-VSDD-063). STORY-INDEX v3.71→v3.72. Status remains draft pending 3-CLEAN adversarial review. Factory-artifacts `2300a27a`.
 - **D-513 state-manager bookkeeping (2026-05-28):** Duplicate `lifecycle_status: draft` key resolved in BC-5.39.009.md (first occurrence after `status: active` removed; canonical occurrence after `capability: "E-12"` retained per BC-5.39.008 precedent). D-513 codified. Session Resume Checkpoint refreshed. Trajectory-tail carry-across →9→9→9→11 (F5 pass-75).
 - **develop HEAD:** `98ea0719` (sync main→develop 2026-05-28). **main HEAD:** `43afbfa7` (bot binary commit 2026-05-28).
-- **factory-artifacts HEAD:** `2300a27a` (story-writer commit; D-513 primary-commit SHA-patch follow-up pending per D-447(c)+D-449(e)).
+- **factory-artifacts HEAD:** `56d907ad` (D-513 state-manager closing burst 2026-05-28; SHA-patch applied per D-447(c)+D-449(e)).
 - **D-range:** D-001..D-513.
 - **4-index (post-D-513):** BC-INDEX v2.54, VP-INDEX v2.06 (UNCHANGED), STORY-INDEX v3.72, ARCH-INDEX v2.15 (UNCHANGED).
 - **BC content:** BC-5.39.005 v1.3 ACTIVE + BC-5.39.006 v1.7 ACTIVE + BC-5.39.007 v1.6 ACTIVE + BC-5.39.008 v1.5 ACTIVE + BC-5.39.009 v1.0 draft (pending adversarial cascade + merge for POL-14 active) + BC-7.04.051 v1.1 ACTIVE.
@@ -380,12 +380,12 @@ Prior Tier-A (pre-session, all COMPLETE): TD #71/72/70/74 (PRs #138–141 2026-0
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** `2300a27a` (story-writer commit; D-513 primary-commit SHA-patch follow-up pending per D-447(c)+D-449(e))
+- **factory-artifacts HEAD:** `56d907ad` (D-513 state-manager closing burst 2026-05-28; SHA-patch applied per D-447(c)+D-449(e))
 - **develop HEAD:** `98ea0719` (sync main→develop 2026-05-28; prior: 4b68ab83 PR #160 E-10 pass-15 fix-burst 2026-05-27)
 - **main HEAD:** `43afbfa7` (rc.19 bot binary commit 2026-05-28; prior: 70811f4a rc.18 merge)
 - **v1.0.0-rc.19 tag:** `d15152af` (binary bundle commit; GitHub Release 2026-05-28T15:10:56Z)
 - **release pipeline run:** 26581752361 (all 10 jobs PASS; second attempt 2026-05-28)
-- D-513 factory-artifacts HEAD: `2300a27a` (story-writer commit 2026-05-28; primary-commit SHA-patch pending)
+- D-513 factory-artifacts HEAD: `56d907ad` (state-manager closing burst 2026-05-28; SHA-patch applied per D-447(c)+D-449(e)) / prior steps: story-writer `2300a27a` + PO `393527a4`
 - D-512 factory-artifacts HEAD: `78ea0e7a` (D-512 burst commit 2026-05-28)
 - D-511 factory-artifacts HEAD: `bcccd421` (D-511 main commit 2026-05-28) / SHA-patch `b62c014a`
 - D-510 factory-artifacts HEAD: `0663ba92` (D-510 F5 pass-75 fix-burst 2026-05-27)
