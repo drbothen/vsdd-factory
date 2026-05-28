@@ -8,7 +8,7 @@
 //! 3. Finds the wave containing the story ID in its `stories` list.
 //! 4. Appends the story ID to `stories_merged` if not already present.
 //! 5. Writes the updated YAML back via `vsdd_hook_sdk::host::write_file`
-//!    (4-param form: path, contents, max_bytes=65536, timeout_ms=10000).
+//!    (4-param form: path, contents, max_bytes=MAX_BYTES, timeout_ms=10000).
 //! 6. If all stories in the wave are now merged: sets `gate_status="pending"`,
 //!    `next_gate_required=wave_name`, writes a stderr reminder.
 //! 7. Emits a `hook.action` event with all merge/gate fields.
@@ -27,7 +27,7 @@
 //! The GREEN-phase implementer must:
 //!
 //! - Use `vsdd_hook_sdk::host::write_file(path, contents, max_bytes, timeout_ms)`
-//!   with `max_bytes=65536` and `timeout_ms=10000` (4-param form per S-8.10 v1.1
+//!   with `max_bytes=MAX_BYTES` and `timeout_ms=10000` (4-param form per S-8.10 v1.1
 //!   AC-1; capability block `[hooks.capabilities.write_file] path_allow =
 //!   [".factory/wave-state.yaml"]` required in hooks-registry.toml at T-9).
 //! - Use `serde_norway::from_str` / `serde_norway::to_string` for YAML

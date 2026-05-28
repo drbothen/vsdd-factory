@@ -5,8 +5,8 @@
 //! ## Production mode (no default features, `--no-default-features`)
 //!
 //! Uses the full dispatcher host-function ABI:
-//! - `read_yaml`:  `vsdd_hook_sdk::host::read_file(".factory/wave-state.yaml", 65536, 1000)`
-//! - `write_yaml`: `vsdd_hook_sdk::host::write_file(".factory/wave-state.yaml", &bytes, 65536, 10000)`
+//! - `read_yaml`:  `vsdd_hook_sdk::host::read_file(".factory/wave-state.yaml", MAX_BYTES, 1000)`
+//! - `write_yaml`: `vsdd_hook_sdk::host::write_file(".factory/wave-state.yaml", &bytes, MAX_BYTES, 10000)`
 //!   (4-param form per S-8.10 v1.1 AC-1; `WriteFileCaps` capability block required
 //!   in hooks-registry.toml)
 //! - `emit`:       `vsdd_hook_sdk::host::emit_event("hook.action", &[...])`
@@ -35,6 +35,14 @@ use vsdd_hook_sdk::HookPayload;
 #[cfg(not(feature = "standalone"))]
 use vsdd_hook_sdk::HookResult;
 
+/// Maximum bytes for read_file and write_file calls on wave-state.yaml.
+///
+/// Set to 512 KiB (524288 bytes) — consistent with the project-wide cap
+/// established by validate-state-structure (F-P5-002) and the F-PASS15
+/// sibling-site sweep. wave-state.yaml is currently small but the named
+/// constant ensures future audits can locate all I/O caps uniformly.
+const MAX_BYTES: u32 = 524_288;
+
 // ---------------------------------------------------------------------------
 // Production entry point (no standalone feature)
 // ---------------------------------------------------------------------------
@@ -44,7 +52,7 @@ fn on_hook(payload: HookPayload) -> HookResult {
     wave_state_hook_logic(
         payload,
         // read_yaml: read .factory/wave-state.yaml via host read_file
-        || match vsdd_hook_sdk::host::read_file(".factory/wave-state.yaml", 65536, 1000) {
+        || match vsdd_hook_sdk::host::read_file(".factory/wave-state.yaml", MAX_BYTES, 1000) {
             Ok(bytes) => Some(String::from_utf8_lossy(&bytes).into_owned()),
             Err(vsdd_hook_sdk::host::HostError::CapabilityDenied) => {
                 vsdd_hook_sdk::host::log_warn(
@@ -57,9 +65,12 @@ fn on_hook(payload: HookPayload) -> HookResult {
         // write_yaml: write updated YAML back via host write_file (EC-005: advisory)
         |yaml_str: String| {
             let bytes = yaml_str.into_bytes();
-            if let Err(e) =
-                vsdd_hook_sdk::host::write_file(".factory/wave-state.yaml", &bytes, 65536, 10000)
-            {
+            if let Err(e) = vsdd_hook_sdk::host::write_file(
+                ".factory/wave-state.yaml",
+                &bytes,
+                MAX_BYTES,
+                10000,
+            ) {
                 vsdd_hook_sdk::host::emit_event(
                     "hook.error",
                     &[

@@ -38,6 +38,14 @@ pub const HOST_ABI_VERSION: u32 = 1;
 /// Path to the hooks-registry.toml (relative to CLAUDE_PROJECT_DIR).
 pub const REGISTRY_PATH: &str = "plugins/vsdd-factory/hooks-registry.toml";
 
+/// Maximum bytes to read from any factory artifact via `host::read_file`.
+///
+/// Set to 512 KiB (524288 bytes) — consistent with the project-wide cap
+/// established by validate-state-structure (F-P5-002) and the F-PASS15
+/// sibling-site sweep. hooks-registry.toml currently fits well within this
+/// limit but the named constant enables future audits to find all read caps.
+pub const MAX_BYTES: u32 = 524_288;
+
 // ---------------------------------------------------------------------------
 // Error codes (BC-7.06.001)
 // ---------------------------------------------------------------------------
@@ -283,7 +291,7 @@ pub fn on_pre_tool_use(payload: HookPayload) -> HookResult {
     lint_logic(
         payload,
         LintCallbacks {
-            read_file: |path| match host::read_file(path, 65536, 5000) {
+            read_file: |path| match host::read_file(path, MAX_BYTES, 5000) {
                 Ok(bytes) => String::from_utf8(bytes).map_err(|e| e.to_string()),
                 Err(e) => Err(format!("{:?}", e)),
             },

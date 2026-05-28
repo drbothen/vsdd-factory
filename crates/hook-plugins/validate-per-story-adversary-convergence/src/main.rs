@@ -28,6 +28,14 @@ use vsdd_hook_sdk::{HookPayload, HookResult};
 /// Must equal 1 — no new host functions are introduced.
 pub const HOST_ABI_VERSION: u32 = vsdd_hook_sdk::HOST_ABI_VERSION;
 
+/// Maximum bytes to read from any factory artifact via `host::read_file`.
+///
+/// Set to 512 KiB (524288 bytes) — consistent with the project-wide cap
+/// established by validate-state-structure (F-P5-002) and the F-PASS15
+/// sibling-site sweep. Per-story adversary-convergence-state.json files are
+/// small but the named constant ensures consistency across all hook plugins.
+const MAX_BYTES: u32 = 524_288;
+
 /// WASM entry point: wires real host functions to `hook_logic`.
 ///
 /// The `RealCallbacks` struct implements `HookCallbacks` using the real
@@ -52,10 +60,10 @@ fn on_hook(payload: HookPayload) -> HookResult {
 
     impl HookCallbacks for RealCallbacks {
         fn read_file(&self, path: &str) -> Result<Option<String>, IoError> {
-            // Use host::read_file with a generous cap (64 KiB) and 5s timeout.
+            // Use host::read_file with a 512 KiB cap and 5s timeout.
             // Returns Ok(None) when the file is absent (HostError maps to None
             // for capability-denied / not-found; other errors surface as Err).
-            match host::read_file(path, 65536, 5000) {
+            match host::read_file(path, MAX_BYTES, 5000) {
                 Ok(bytes) => {
                     if bytes.is_empty() {
                         Ok(None)
