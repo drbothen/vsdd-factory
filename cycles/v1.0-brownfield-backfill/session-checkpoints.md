@@ -261,3 +261,27 @@ dispatch story-writer for 3M3b elaboration (5 M3 stories: S-15.10/12/13/15/16-Pa
 - All directives (TD-VSDD-097-EXT, TD-VSDD-099, TD-VSDD-100, POLICY 14 5-leg, verification_step 7, INV-019 cure, adversary grep origin/develop) carry forward.
 
 **This checkpoint superseded by D-509 E-10 pass-15 fix-burst 2026-05-27.**
+
+---
+
+## Archived Checkpoint: D-510 F5 pass-75 fix-burst COMPLETE (2026-05-27)
+
+> Archived from STATE.md by D-511 banner-format remediation burst 2026-05-28.
+
+**D-510 complete. META-LEVEL-30 CANDIDATE-CONFIRMED 3 routes.**
+
+### §1. Where We Are (D-510)
+- S-15.03 PRIORITY-A COMPLETE (all 11 stories, D-508 2026-05-27). E-10 pass-15 CLOSED (D-509 2026-05-27; PR #160 4b68ab83). F5 pass-75: verdict HIGH 11 findings (1C+5H+3M+2L); trajectory →9→9→9→11; META-LEVEL-30 CANDIDATE-CONFIRMED 3 routes (a) closure-burst-gate-via-interpretation (b) codified-registry-no-runtime-gate (c) paused-cycle-INDEX-stale-narrative.
+- 6 mechanical findings CLOSED same-burst D-510: HIGH-001 (BC-7.04.051 POL-14 leg-5) + HIGH-003 (7-story frontmatter draft→merged) + HIGH-004 (STATE.md banner literal wc-l) + HIGH-005 (INDEX.md paused_pending_resume) + MED-001 (BC-5.39.005 version-cell) + MED-002 (S-15.17 STORY-INDEX) + MED-003 (lessons.md corrigendum) + LOW-002 (D-510 codified).
+- 4 structural ACCEPTED-AT-FLOOR per D-386 Option C extension: CRIT-001 (route a) + HIGH-002 (route b anchored S-15.17) + LOW-001 + route-c via HIGH-005.
+- factory-artifacts HEAD: `0663ba92`. develop HEAD: `4b68ab83`. main HEAD: `70811f4a`.
+- D-range: D-001..D-510. 4-index: BC-INDEX v2.53, VP-INDEX v2.06, STORY-INDEX v3.71, ARCH-INDEX v2.15.
+
+### §2-§12. Summary (D-510)
+- BC content: BC-5.39.005 v1.3 + BC-5.39.006 v1.7 + BC-5.39.007 v1.6 ACTIVE + BC-5.39.008 v1.5 + BC-7.04.051 v1.1 — all ACTIVE.
+- F5: PAUSED per D-386 Option C. S-15.17 required for structural closure of HIGH-002.
+- E-10: pass-15 CLOSED; pass-16 dispatch-ready per human direction.
+- All directives (TD-VSDD-097-EXT, TD-VSDD-099, TD-VSDD-100, POLICY 14 5-leg, verification_step 7, INV-019 cure, adversary grep origin/develop) carry forward.
+- Next: F5 pass-76 or S-15.17 dispatch per human direction.
+
+**This checkpoint superseded by D-511 rc.19 banner-format remediation 2026-05-28.**

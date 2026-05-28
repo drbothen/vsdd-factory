@@ -2352,4 +2352,32 @@ POLICY 14 description and verification_steps updated in policies.yaml same-burst
 
 **Cites:** D-509 (E-10 pass-15 fix-burst decision), D-471 (asymptotic-acceptance model), TD-VSDD-060 (sibling-site sweep discipline), PR #160 4b68ab83.
 
+---
+
+## [L-banner-format-drift] Banner-format-drift class: validate-state-structure `(wc-l` token scan was prescribed but state-manager dispatch templates didn't enforce it
+
+**Date:** 2026-05-28
+
+**Context:** rc.19 release pipeline Pre-release Validation failed because `pass-real-state-md-snapshot.bats` runs the `validate-state-structure` WASM hook against the live `.factory/STATE.md`. The hook's SIZE BUDGET banner scanner requires entries to match the pattern `N lines (wc-l<terminator>` where terminator is any non-letter/non-digit byte. Five consecutive state-manager bursts (D-504..D-510) produced banner entries using forms like `N lines (AT HARD CAP ...)`, `N lines (verified via wc -l ...)`, and `~N lines (...)` — none of which match the required `(wc-l` token. The hook blocked correctly; the banner format had drifted.
+
+**Root cause — dispatch template gap:** The D-510 fix-burst (HIGH-004) correctly codified that all `~N` approximations must be replaced with literal wc-l counts. However, it did not enforce the `(wc-l;` literal token form required by the hook's scanner. State-manager dispatch templates for STATE.md SIZE BUDGET banner edits accumulated the count values but used prose forms (`verified via wc -l`, `AT HARD CAP`, etc.) that diverge from the canonical token.
+
+**Pattern observed:** Five consecutive bursts (D-504..D-510) each extended the banner in natural-language prose form. No burst explicitly checked that the token form matched the hook regex. The hook's scanner (`lib.rs` comment lines 108-113) is authoritative; the state-manager prompt is not. This is a dispatch-template-vs-hook-contract alignment gap.
+
+**Going-forward rule — mandatory in every state-manager dispatch:** Every new SIZE BUDGET line-growth tracker entry MUST include the literal `(wc-l;` token immediately after the line count. Canonical forms:
+- `N lines (wc-l; <prose description>)` — standard form
+- `N lines (wc-l; net +N; <prose>)` — line-growth tracker with delta
+
+**Specific forms that are FORBIDDEN:**
+- `N lines (verified via wc -l ...)` — does NOT match `(wc-l` token
+- `N lines (AT HARD CAP ...)` — does NOT match `(wc-l` token
+- `~N lines (...)` — tilde approximation PLUS missing token
+- `(this burst; ...)` without a line count — no count = no match possible
+
+**Remediation anchor:** state-manager dispatch templates for STATE.md banner edits MUST include the `(wc-l;` literal token in every new line-growth tracker entry. Future state-manager prompt updates should embed this rule with a concrete example.
+
+**Cites:** D-511 (remediation decision), validate-state-structure hook `crates/hook-plugins/validate-state-structure/src/lib.rs` lines 108-113 (authoritative token patterns), D-510 HIGH-004 (wc-l literal count requirement — necessary but not sufficient; token form also required).
+
+**Closes:** rc.19 Pre-release Validation block (pass-real-state-md-snapshot.bats).
+
 **Closes:** D-509 E-10 pass-15 lesson capture per S-7.02 cycle-closing checklist.

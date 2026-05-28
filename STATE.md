@@ -5,14 +5,14 @@ version: "2.0"
 status: draft
 producer: state-manager
 timestamp: 2026-05-12T00:00:00Z
-phase: F5-PASS-75-FIX-BURST-D-510-META-LEVEL-30-CANDIDATE-CONFIRMED-2026-05-27
-last_amended: 2026-05-27 (v2.61) — D-510 F5 pass-75 fix-burst; META-LEVEL-30 CANDIDATE-CONFIRMED 3 routes; 6 mechanical closed (HIGH-001/003/004/005+MED-001/002/003+LOW-002); 4 structural ACCEPTED-AT-FLOOR; S-15.17 anchors HIGH-002 cure; BC-INDEX v2.53; STORY-INDEX v3.71. [Prior: 2026-05-27 (v2.60) — D-509 E-10 pass-15 fix-burst PR #160 SHIPPED]
+phase: D-511-BANNER-FORMAT-REMEDIATION-2026-05-28
+last_amended: 2026-05-28 (v2.62) — D-511 rc.19 release-blocker fix; SIZE BUDGET banner entries converted to canonical (wc-l; ...) token form. [Prior: 2026-05-27 (v2.61) — D-510 F5 pass-75 fix-burst; META-LEVEL-30 CANDIDATE-CONFIRMED 3 routes; 6 mechanical closed; 4 structural ACCEPTED-AT-FLOOR; BC-INDEX v2.53; STORY-INDEX v3.71]
 inputs: []
 input-hash: "[live-state]"
 traces_to: prd.md
 project: vsdd-factory
 mode: brownfield
-current_step: "D-510 F5 PASS-75 FIX-BURST COMPLETE 2026-05-27 — META-LEVEL-30 CANDIDATE-CONFIRMED 3 routes (a) closure-burst-gate-via-interpretation (b) codified-registry-no-runtime-gate (c) paused-cycle-INDEX-stale-narrative; trajectory →9→9→9→11 (36th tick-up; pause-cost 14-day F5 pause 2026-05-13 to 2026-05-27; D-386 Option C extended D-510); 6 mechanical closed same-burst (HIGH-001 BC-7.04.051 body-row POL-14 leg-5 + HIGH-003 7-story frontmatter draft→merged + HIGH-004 STATE.md banner literal wc-l + HIGH-005 INDEX.md paused_pending_resume + MED-001 BC-5.39.005 version-cell + MED-002 S-15.17 STORY-INDEX + MED-003 lessons.md corrigendum + LOW-002 D-510 codified); 4 structural ACCEPTED-AT-FLOOR (CRIT-001+HIGH-002+LOW-001 + route-c covered); S-15.17 anchors HIGH-002 cure (validate-trajectory-tail-cell-completeness WASM hook); L-EDP1-067 captured META-LEVEL-30 time-dilated-discipline-degradation; cure-extension-parsimony per D-497 no new INV-NNN; 4-index: BC-INDEX v2.53 VP-INDEX v2.06 STORY-INDEX v3.71 ARCH-INDEX v2.15; maintain all 5 BC-5.39.006 v1.7 PCs per TD-VSDD-097-EXT; D-chain cite D-509 per D-419(b); parent-commit 4b68ab83 per D-419(b)."
+current_step: "D-511 BANNER-FORMAT REMEDIATION COMPLETE 2026-05-28 — rc.19 release-blocker fix; SIZE BUDGET banner all 6 line-growth tracker entries converted to canonical (wc-l; ...) token form; validate-state-structure hook no-SIZE-BUDGET-banner violation resolved; trajectory →9→9→9→11 (D-510 pass-75; unchanged); D-511 decision codified + lesson L-banner-format-drift captured; Phase Progress row added; Active Branches factory-artifacts SHA updated; Session Resume Checkpoint refreshed; 4-index: BC-INDEX v2.53 VP-INDEX v2.06 STORY-INDEX v3.71 ARCH-INDEX v2.15 (UNCHANGED); maintain all 5 BC-5.39.006 v1.7 PCs per TD-VSDD-097-EXT; D-chain cite D-510 per D-419(b); parent-commit 0663ba92 per D-419(b)."
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -28,12 +28,13 @@ dtu_services: []
 
   Line-growth tracker (recent bursts only; pre-D-504 entries archived per D-430(a) 2026-05-27 compaction):
   Pre-D-504 tracker preserved at: git show 20cb8e1c:.factory/STATE.md (D-506 last known state before this compaction).
-  D-504-SESSION-END-DURABILITY-BURST 496 lines (AT HARD CAP; comprehensive Section 11 zero-context rewrite; margin 500-496=4).
-  D-505-S-15.12-SHIPPED 498 lines (margin 500-498=2 from hard cap; AT HARD CAP).
-  D-506-S-15.15-SHIPPED 500 lines (margin 500-500=0; AT HARD CAP — compaction mandatory).
-  D-507-SESSION-END-DURABILITY-BURST ~430 lines (D-430(a) compaction: line-growth tracker pre-D-504 archived + Decisions Log D-413..D-498 rows archived + Current Phase Steps F5 pass-57..60 rows archived; margin 500-430=~70 from hard cap; margin 500-415=85 from soft-target; D-446(c) dual-margin form).
-  D-509-E10-PASS-15-FIX-BURST 422 lines (verified via `wc -l .factory/STATE.md` → 422; Phase Progress +1 row; Decisions Log +D-509 row; Active Branches develop SHA update; Session Resume Checkpoint refresh; margin 500-422=78 from hard cap; margin 415-422=OVER soft-target by 7).
-  D-510-F5-PASS-75-FIX-BURST (this burst; POLICY 15 line-growth tracker extended per HIGH-004 closure — all prior ~N approximations replaced with literal wc-l counts; pre-burst 422 lines).
+  D-504-SESSION-END-DURABILITY-BURST 496 lines (wc-l; AT HARD CAP; comprehensive Section 11 zero-context rewrite; margin 500-496=4).
+  D-505-S-15.12-SHIPPED 498 lines (wc-l; margin 500-498=2 from hard cap; AT HARD CAP).
+  D-506-S-15.15-SHIPPED 500 lines (wc-l; margin 500-500=0; AT HARD CAP — compaction mandatory).
+  D-507-SESSION-END-DURABILITY-BURST 430 lines (wc-l; D-430(a) compaction: line-growth tracker pre-D-504 archived + Decisions Log D-413..D-498 rows archived + Current Phase Steps F5 pass-57..60 rows archived; margin 500-430=70 from hard cap; margin 500-415=85 from soft-target; D-446(c) dual-margin form).
+  D-509-E10-PASS-15-FIX-BURST 422 lines (wc-l; Phase Progress +1 row; Decisions Log +D-509 row; Active Branches develop SHA update; Session Resume Checkpoint refresh; margin 500-422=78 from hard cap; margin 415-422=OVER soft-target by 7).
+  D-510-F5-PASS-75-FIX-BURST 431 lines (wc-l; POLICY 15 line-growth tracker extended per HIGH-004 closure — all prior ~N approximations replaced with literal wc-l counts; margin 500-431=69 from hard cap; margin 415-431=OVER soft-target by 16).
+  D-511-BANNER-FORMAT-REMEDIATION 438 lines (wc-l; rc.19 release-blocker fix — banner entries converted to canonical (wc-l; ...) token form per validate-state-structure hook requirements; margin 500-438=62 from hard cap; margin 415-438=OVER soft-target by 23).
 
   D-430(a) compaction authorization (this burst 2026-05-27): line-growth tracker pre-D-504 entries (covering pass-49..D-503) archived per D-430(a); Decisions Log rows D-413..D-498 (F5 pass-33..59 + brownfield D-498..D-489 individual rows) archived; Current Phase Steps F5 pass-57..60 individual rows archived; all content preserved in: git show 20cb8e1c:.factory/STATE.md (pre-compaction) + cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md (F5 D-NNN) + cycles/v1.0-brownfield-backfill/decision-log.md (brownfield D-NNN).
 -->
@@ -51,8 +52,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-27 — D-510 F5 pass-75 fix-burst; META-LEVEL-30 CANDIDATE-CONFIRMED; 6 mechanical closed; BC-INDEX v2.53; STORY-INDEX v3.71; S-15.17 anchors HIGH-002 cure. |
-| **Current Phase** | F5 pass-75 FIX-BURST COMPLETE D-510 2026-05-27 — trajectory →9→9→9→11 (pause-cost); 4 structural accepted at floor; next: F5 pass-76 or S-15.17 dispatch per human direction. |
+| **Last Updated** | 2026-05-28 — D-511 rc.19 release-blocker fix; SIZE BUDGET banner format remediation; validate-state-structure hook compliance restored. |
+| **Current Phase** | D-511 BANNER-FORMAT REMEDIATION COMPLETE 2026-05-28 — rc.19 release-blocker resolved; next: F5 pass-76 or S-15.17 dispatch per human direction. |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Phase Progress
@@ -133,6 +134,7 @@ dtu_services: []
 | D-507 SESSION-END DURABILITY BURST 2026-05-27 | **COMPLETE 2026-05-27** | STATE.md compacted 500→~436 lines per D-430(a); dirty .factory/ files committed (policies.yaml + code-delivery/S-15.12/ + code-delivery/S-15.15/); Section 11 zero-context rewrite (Wave 4 S-15.13 dispatch template); 4-index UNCHANGED; prior D-506 checkpoint archived per POLICY 1. Single commit per TD-VSDD-053. |
 | D-508 S-15.13 SHIPPED + Wave 4 COMPLETE + 3M3c COMPLETE + S-15.03 PRIORITY-A COMPLETE — PR #159 ced39c82 | **SHIPPED 2026-05-27** | S-15.13 validate-closes-completeness Phase 2; 8pts; BC-5.39.007 Phase 2 ACs ACTIVE (POL-14 already active; v1.5→v1.6); LOCAL adversary 4-pass CONVERGED 3/3 (trajectory 7→2→0→0; 2 fix-bursts); 51/51 bats + cargo unit tests; CI 8/9 green (1 pre-existing F-P3-008 flake); Phase 2 extension to existing crate; ADR-022 Option c implemented; Closes D-411(c)+D-413(b)+D-420(a)+D-445(a)+D-447(a); Wave 4 COMPLETE; 3M3c COMPLETE (all 5 M3 stories = 40pts); S-15.03 PRIORITY-A COMPLETE (all 11 stories); BC-INDEX v2.51→v2.52; STORY-INDEX v3.69→v3.70; merged count 73→74. |
 | E-10 pass-15 adversary + fix-burst PR #160 SHIPPED | **COMPLETE 2026-05-27** | E-10 RESUMED post-D-508 gate-satisfied; pass-15 verdict MEDIUM-HIGH 8 findings (0C+2H+4M+2L); trend 22→11→16→16→12→2→1→4→5→4→6→7→5→8→8 (holds); F-PASS15-001/002/004 closed via PR #160 squash-merge `4b68ab83` 2026-05-27 (7-crate sibling sweep MAX_BYTES=524288); F-PASS15-003/005/006/007/008 ACCEPTED-AT-ASYMPTOTIC-FLOOR per D-471 model; pass-16 verification dispatch-ready or proceed to F5 per human direction; pass-15 report: `cycles/v1.0-brownfield-backfill/E-10-pass-15.md` |
+| D-511 rc.19 BANNER-FORMAT REMEDIATION | **COMPLETE 2026-05-28** | rc.19 release pipeline Pre-release Validation failed (pass-real-state-md-snapshot.bats): validate-state-structure WASM hook blocked on missing `(wc-l` token in SIZE BUDGET banner. 6 line-growth tracker entries converted to canonical `(wc-l; ...)` form in-burst. Hook validator compliance restored. D-511 codified + L-banner-format-drift lesson captured. |
 | **Tier-0 D-NNN renumbering (F-CRIT-001 closure)** | **COMPLETE** 2026-05-13 — brownfield D-344..D-349 → D-460..D-465; POLICY 1 violation resolved | ARCH-INDEX v2.02 + BC-INDEX v2.21 + VP-INDEX v1.95 + STORY-INDEX v3.20 corrigenda; ~25 files touched; pre+post grep stdout LL-2 strict-form; D-466 fix burst (HH-4/KK-2/LL-2/MM/NN) applied 553e9f58 |
 | E-10 pass-12 fix burst + seal | **COMPLETE** 2026-05-13 — D-466 fix burst (553e9f58) + D-467 seal (post-renumber from §8 nominal D-350/D-351) | 7 findings closed (1C closed pre-burst via Tier-0 + 2H+2M+2L closed via D-466); architect F-2/F-3/F-6 with HH-4 + state-manager F-1/F-5 with KK-2 tripartite + LL-2 verbatim stdout + MM cross-cycle namespace + NN parity disciplines applied; ARCH-INDEX v2.03 + BC-INDEX v2.22 + STORY-INDEX v3.21 cite-refresh; NITPICK_ONLY counter 0/3 (HIGH resets); pass-13 dispatch next (CRITICAL TEST per pass-12 §7) |
 | F5 pass-60..74 + pass-74-to-pivot + E-10 pass-9..14 fix bursts | **COMPACTED 2026-05-18** | All rows archived per D-430(a); F5 passes preserved in `cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md`; E-10 passes preserved in per-pass files `cycles/v1.0-brownfield-backfill/E-10-pass-9.md`..`E-10-pass-14.md`. Original content available via `git show df550a42:.factory/STATE.md`. Summary: F5 passes 60-74 D-440..D-454 codified; L-EDP1-052..066; META-LEVEL-15..29 CANDIDATE CONFIRMED; asymptotic floor [7,9]; paused at META-LEVEL-29 2026-05-13. |
@@ -173,7 +175,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | 70811f4a | verified `git rev-parse origin/main` = 70811f4a5d68d163021f46856c3de51bf8f4aab8 2026-05-13; includes CLAUDE.md expansion PR #136 (845d0007 squash-merge) + rc.18 merge PR #135 (666d689f) |
 | develop | 4b68ab83 | D-509 E-10 pass-15 fix-burst PR #160 squash-merge 4b68ab83 2026-05-27. Prior: D-508 S-15.13 SHIPPED ced39c82. |
-| factory-artifacts | `0663ba92` | D-510 F5 pass-75 fix-burst 2026-05-27 — adv-cycle-pass-75.md + BC-INDEX + 7 story frontmatter + STORY-INDEX + INDEX.md + lessons.md + burst-log.md + decision-log.md + STATE.md; prior: D-509 `e70ec966` |
+| factory-artifacts | `PENDING-D-511` | D-511 banner-format remediation 2026-05-28 — STATE.md banner (wc-l; token form) + decision-log.md D-511 + lessons.md L-banner-format-drift; prior: D-510 `0663ba92` |
 | v1.0.0-rc.16 (tag) | feb894a2 | SHIPPED; claude-mp PR #8 awaiting human merge |
 | v1.0.0-rc.15 (tag) | e68bb436 | SHIPPED |
 
@@ -188,12 +190,13 @@ dtu_services: []
 
 ## Decisions Log
 
-> D-001..D-510: `cycles/v1.0-brownfield-backfill/decision-log.md` + `decisions-log-archive.md`
+> D-001..D-511: `cycles/v1.0-brownfield-backfill/decision-log.md` + `decisions-log-archive.md`
 > F5 pass-2 architect decisions: `cycles/v1.0-feature-engine-discipline-pass-1/F5-pass-2-architect-decisions.md` (factory-artifacts 7b83ef58)
-> D-379..D-454 (F5): `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md` <!-- D-452(e) umbrella-range-auto-advance; D-506 S-15.15 SHIPPED Wave 3 COMPLETE D-range→D-506; D-507 SESSION-END DURABILITY BURST 2026-05-27 D-range→D-507; D-508 S-15.13 SHIPPED Wave 4 COMPLETE S-15.03 PRIORITY-A COMPLETE D-range→D-508; D-509 E-10 pass-15 fix-burst PR #160 SHIPPED D-range→D-509; D-510 F5 pass-75 fix-burst META-LEVEL-30 CANDIDATE-CONFIRMED D-range→D-510 -->
+> D-379..D-454 (F5): `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md` <!-- D-452(e) umbrella-range-auto-advance; D-506 S-15.15 SHIPPED Wave 3 COMPLETE D-range→D-506; D-507 SESSION-END DURABILITY BURST 2026-05-27 D-range→D-507; D-508 S-15.13 SHIPPED Wave 4 COMPLETE S-15.03 PRIORITY-A COMPLETE D-range→D-508; D-509 E-10 pass-15 fix-burst PR #160 SHIPPED D-range→D-509; D-510 F5 pass-75 fix-burst META-LEVEL-30 CANDIDATE-CONFIRMED D-range→D-510; D-511 banner-format remediation rc.19 release-blocker fix D-range→D-511 -->
 
 | ID | Decision | Phase | Date |
 |----|----------|-------|------|
+| D-511 | BANNER-FORMAT REMEDIATION 2026-05-28 — rc.19 release pipeline Pre-release Validation failed at pass-real-state-md-snapshot.bats: validate-state-structure WASM hook blocked because SIZE BUDGET banner line-growth tracker entries used `N lines (verified via wc -l ...)` and `N lines (AT HARD CAP ...)` forms instead of required `N lines (wc-l<terminator>` pattern. 6 entries converted to canonical `(wc-l; ...)` form in-burst. See decision-log.md SoT. | rc.19 release-blocker fix | 2026-05-28 |
 | D-510 | F5 PASS-75 FIX-BURST + META-LEVEL-30 CANDIDATE-CONFIRMED 2026-05-27 — 11 findings (1C+5H+3M+2L); trajectory →9→9→9→11 (pause-cost); 3 META-30 routes confirmed; 6 mechanical closed; 4 structural ACCEPTED-AT-FLOOR per D-386 Option C extension; S-15.17 anchors HIGH-002 cure; BC-INDEX v2.53; STORY-INDEX v3.71; L-EDP1-067. See decision-log.md SoT. | F5 pass-75 fix-burst | 2026-05-27 |
 | D-509 | E-10 PASS-15 + FIX-BURST PR #160 SHIPPED 2026-05-27 — (a) E-10 RESUMED post-D-508 S-15.03 PRIORITY-A COMPLETE gate-satisfied; pass-15 adversary review against develop@ced39c82 produced verdict MEDIUM-HIGH 8 findings (0C+2H+4M+2L); trend 22→11→16→16→12→2→1→4→5→4→6→7→5→8→8 (holds at 8 from pass-14); character SHIFT from governance-process to implementation-correctness — automation wave WORKED; (b) prior-pass closures: F-PASS14-004 structurally closed by validate-policies-schema (S-15.15); F-PASS14-006 structurally closed by bare-integer-ID enforcement; F-PASS14-001/002/003/005/007/008 remain ACCEPTED-AT-ASYMPTOTIC-FLOOR per D-471; (c) fix-burst PR #160 squash-merge `4b68ab83` closed F-PASS15-001 (HIGH validate-index-cite-refresh 65536→524288) + F-PASS15-002 (HIGH validate-burst-log 65536→524288) + F-PASS15-004 (MEDIUM index reads); TD-VSDD-060 sibling-sweep extended to 5 additional crates (lint-registry-async-invariant + session-start-telemetry + update-wave-state-on-merge + validate-artifact-path + validate-per-story-adversary-convergence + warn-pending-wave-gate); compile-time assertions added on the 2 crates with material behavioral impact; CR-001 (IMPORTANT) addressed in-scope (EXEC_MAX_OUTPUT_BYTES named); CR-004 (NITPICK) addressed; (d) F-PASS15-003 (cycle-path hardcoding) + F-PASS15-005 (INDEX.md as Phase 2 secondary) + F-PASS15-006 (on_error=continue) + F-PASS15-007 (CI count assertion stale) + F-PASS15-008 (find_part_a_start guard) all ACCEPTED-AT-ASYMPTOTIC-FLOOR per D-471 extension; (e) CI 10/11 green; ubuntu cargo-host pre-existing F-P3-008 flake (8630ms>8000ms threshold) not introduced by PR #160; pass-15 report persisted at factory-artifacts `350fc86a`; pass-16 verification or F5 pass-75 dispatch-ready per human direction. See decision-log.md SoT. Closes E-10 pass-15; advances to F5 pass-75 per human direction. | E-10 brownfield-backfill resumption + fix-burst | 2026-05-27 |
 | D-508 | S-15.13 SHIPPED 2026-05-27 — (a) PR #159 squash-merged at ced39c82 on develop 2026-05-27; validate-closes-completeness Phase 2 8pts; Phase 2 extension to existing crate `crates/hook-plugins/validate-closes-completeness/` (685 lines added); ADR-022 Option c pointer file protocol implemented (fail-open until state-manager activates); Closes D-411(c)+D-413(b)+D-420(a)+D-445(a)+D-447(a); (b) LOCAL adversary cascade 4 passes CONVERGED 3/3 (trajectory 7→2→0→0; 2 fix-bursts); 51/51 bats integration tests (32 Phase 1 non-regression + 19 Phase 2) + cargo unit tests; CI 8/9 green (1 pre-existing F-P3-008 resolver timing flake on ubuntu — not introduced by S-15.13); PR review APPROVE (0 CRITICAL, 0 IMPORTANT); security CLEAR; (c) BC-5.39.007 Phase 2 ACs ACTIVE; BC-INDEX v2.51→v2.52; (d) STORY-INDEX v3.69→v3.70 (S-15.13 status draft→merged; merged count 73→74); Wave 4 COMPLETE; 3M3c COMPLETE (all 5 M3 stories = 40pts); S-15.03 PRIORITY-A COMPLETE (all 11 stories); E-10 resumption UNBLOCKED; (e) parent-commit ced39c82 per D-419(b); 4-index: BC-INDEX v2.52 VP-INDEX v2.06 STORY-INDEX v3.70 ARCH-INDEX v2.15. See decision-log.md SoT. Closes S-15.13; Wave 4 COMPLETE; S-15.03 PRIORITY-A COMPLETE. | M3 3M3c per-story-delivery S-15.13 | 2026-05-27 |
@@ -265,7 +268,7 @@ dtu_services: []
 - `cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md` (adversary reviews at `S-12.03/`, `S-12.04/`, `S-12.05/` subdirs)
 
 
-## Session Resume Checkpoint (2026-05-27 — D-510 F5 pass-75 fix-burst COMPLETE; META-LEVEL-30 CANDIDATE-CONFIRMED; next: F5 pass-76 or S-15.17 dispatch per human direction)
+## Session Resume Checkpoint (2026-05-28 — D-511 rc.19 banner-format remediation COMPLETE; next: F5 pass-76 or S-15.17 dispatch per human direction)
 
 > **SELF-SUFFICIENT RESUME CONTEXT FOR ZERO-CONTEXT NEW SESSION**
 > Read this section alone to resume the orchestrator after full CLEAR or new session. All context needed is here.
@@ -273,20 +276,21 @@ dtu_services: []
 
 ### §1. Where We Are
 
-**F5 pass-75 fix-burst COMPLETE. D-510 codified 2026-05-27. META-LEVEL-30 CANDIDATE-CONFIRMED.**
+**D-511 rc.19 banner-format remediation COMPLETE 2026-05-28. F5 pass-75 fix-burst background: D-510 codified 2026-05-27. META-LEVEL-30 CANDIDATE-CONFIRMED.**
 
+- **D-511 rc.19 RELEASE-BLOCKER RESOLVED (2026-05-28):** pass-real-state-md-snapshot.bats failed: validate-state-structure WASM hook blocked on `(wc-l` token absence in SIZE BUDGET banner. 6 line-growth tracker entries (D-504..D-510) converted to canonical `(wc-l; ...)` form. rc.19 tag can be re-pushed.
 - **S-15.03 PRIORITY-A COMPLETE (all 11 stories, D-508 2026-05-27):** M1+M2+M3 Waves 1-4 all shipped; 40pts M3 total.
 - **E-10 pass-15 CLOSED (D-509 2026-05-27):** PR #160 squash-merge 4b68ab83. F-PASS15-001/002/004 CLOSED. F-PASS15-003/005/006/007/008 ACCEPTED per D-471. Trend 22→...→8→8 holds.
 - **F5 pass-75 adversary + fix-burst (D-510 2026-05-27):** Verdict HIGH 11 findings (1C+5H+3M+2L). Trajectory tick-up 9→11 (14-day pause cost; 36th multi-axis). META-LEVEL-30 CANDIDATE-CONFIRMED 3 routes.
-- **6 mechanical findings CLOSED same-burst D-510:** HIGH-001 (BC-7.04.051 POL-14 leg-5) + HIGH-003 (7-story frontmatter draft→merged) + HIGH-004 (STATE.md banner literal wc-l) + HIGH-005 (INDEX.md paused_pending_resume) + MED-001 (BC-5.39.005 version-cell) + MED-002 (S-15.17 STORY-INDEX registered) + MED-003 (lessons.md corrigendum) + LOW-002 (D-510 codified).
 - **4 structural META-30 findings ACCEPTED-AT-FLOOR per D-386 Option C extension (D-510):** CRIT-001 (route a) + HIGH-002 (route b anchored S-15.17) + LOW-001 (route a tail update in-burst) + route-c covered by HIGH-005.
 - **develop HEAD:** `4b68ab83` (PR #160 squash-merge 2026-05-27 — UNCHANGED). **main HEAD:** `70811f4a`.
-- **factory-artifacts HEAD:** `0663ba92` (D-510 F5 pass-75 fix-burst 2026-05-27).
-- **D-range:** D-001..D-510.
-- **4-index (post-D-510):** BC-INDEX v2.53, VP-INDEX v2.06, STORY-INDEX v3.71, ARCH-INDEX v2.15.
+- **factory-artifacts HEAD:** `PENDING-D-511` (D-511 banner-format remediation 2026-05-28 — SHA-patch after commit).
+- **D-range:** D-001..D-511.
+- **4-index (post-D-511, unchanged from D-510):** BC-INDEX v2.53, VP-INDEX v2.06, STORY-INDEX v3.71, ARCH-INDEX v2.15.
 - **BC content:** BC-5.39.005 v1.3 ACTIVE + BC-5.39.006 v1.7 ACTIVE + BC-5.39.007 v1.6 ACTIVE + BC-5.39.008 v1.5 ACTIVE + BC-7.04.051 v1.1 ACTIVE.
 
 **Next per human direction:**
+- **rc.19 tag re-push:** Orchestrator will delete + re-push v1.0.0-rc.19 tag to retrigger release pipeline (no state-manager action required).
 - **F5 pass-76:** Dispatch adversary pass-76 (requires human authorization per D-386 Option C).
 - **S-15.17 dispatch:** validate-trajectory-tail-cell-completeness WASM hook (anchors HIGH-002 cure; required for structural F5 convergence).
 - **E-10 pass-16:** E-10 sub-cycle pass-16 verification against develop `4b68ab83`.
@@ -304,7 +308,8 @@ dtu_services: []
 - **D-507 SESSION-END DURABILITY BURST** (2026-05-27; STATE.md compacted; dirty .factory/ committed).
 - **D-508 S-15.13 SHIPPED** (2026-05-27; PR #159 ced39c82; Wave 4 COMPLETE; 3M3c COMPLETE; S-15.03 PRIORITY-A COMPLETE).
 - **D-509 E-10 PASS-15 FIX-BURST SHIPPED** (2026-05-27; PR #160 4b68ab83; F-PASS15-001/002/004 CLOSED).
-- **D-510 F5 PASS-75 FIX-BURST COMPLETE** (2026-05-27; META-LEVEL-30 CANDIDATE-CONFIRMED; 6 mechanical closed; 4 structural ACCEPTED-AT-FLOOR; BC-INDEX v2.53; STORY-INDEX v3.71; this checkpoint).
+- **D-510 F5 PASS-75 FIX-BURST COMPLETE** (2026-05-27; META-LEVEL-30 CANDIDATE-CONFIRMED; 6 mechanical closed; 4 structural ACCEPTED-AT-FLOOR; BC-INDEX v2.53; STORY-INDEX v3.71).
+- **D-511 rc.19 BANNER-FORMAT REMEDIATION COMPLETE** (2026-05-28; SIZE BUDGET banner (wc-l; token form restored; validate-state-structure hook compliance; this checkpoint).
 
 ### §3. User Directives (Carry Across CLEAR)
 
@@ -336,18 +341,19 @@ All S-15.03 PRIORITY-A items SHIPPED (this session 2026-05-25..27):
 - **D-508 S-15.13 SHIPPED 2026-05-27:** PR #159 ced39c82; BC-5.39.007 Phase 2 ACs ACTIVE; BC-INDEX v2.52; STORY-INDEX v3.70; merged count 73→74; Wave 4 COMPLETE; 3M3c COMPLETE; S-15.03 PRIORITY-A COMPLETE.
 - **D-509 E-10 PASS-15 FIX-BURST SHIPPED 2026-05-27:** PR #160 4b68ab83; F-PASS15-001/002/004 CLOSED; 7-crate TD-VSDD-060 sibling sweep; F-PASS15-003/005/006/007/008 ACCEPTED-AT-ASYMPTOTIC-FLOOR per D-471; CI 10/11 green; trend holds at 8.
 - **D-510 F5 PASS-75 FIX-BURST COMPLETE 2026-05-27:** META-LEVEL-30 CANDIDATE-CONFIRMED 3 routes; 6 mechanical findings closed (HIGH-001/003/004/005+MED-001/002/003+LOW-002); 4 structural ACCEPTED-AT-FLOOR per D-386 Option C extension; BC-INDEX v2.53; STORY-INDEX v3.71; L-EDP1-067; S-15.17 anchors HIGH-002 cure; single-commit burst per TD-VSDD-053.
+- **D-511 rc.19 BANNER-FORMAT REMEDIATION COMPLETE 2026-05-28:** rc.19 Pre-release Validation block resolved; SIZE BUDGET banner 6 entries converted to canonical (wc-l; ...) form; D-511 decision codified; L-banner-format-drift lesson captured; single-commit burst per TD-VSDD-053.
 
 Prior Tier-A (pre-session, all COMPLETE): TD #71/72/70/74 (PRs #138–141 2026-05-14/15) + S-15.04/05/08/07/11/09/14 (PRs #142–148 2026-05-15..19) + 3M3a D-481 + 3M3a-r D-497 + D-498 durability (2026-05-18/20).
 
-**Current Active:** D-510 F5 pass-75 fix-burst COMPLETE. Next = F5 pass-76 or S-15.17 dispatch per human direction.
+**Current Active:** D-511 banner-format remediation COMPLETE 2026-05-28. Next = rc.19 re-tag + F5 pass-76 or S-15.17 dispatch per human direction.
 
 ### §5. Cumulative Codifications
 - F5: D-379..D-454 (76 decisions) — `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md`.
-- Brownfield: D-001..D-510 — `cycles/v1.0-brownfield-backfill/decision-log.md`. Key: D-480 M3; D-483..D-497 BC cascade (INV-017..020; POLICY 14 5-leg+gate); D-499 3M3b; D-500 3M3b-r CONVERGED; D-501 uncertainties; D-502/503 Wave 1 SHIPPED; D-504 durability; D-505 S-15.12 SHIPPED + Wave 2 COMPLETE; D-506 S-15.15 SHIPPED + Wave 3 COMPLETE; D-507 session-end durability; D-508 S-15.13 SHIPPED + Wave 4 COMPLETE + S-15.03 PRIORITY-A COMPLETE; D-509 E-10 pass-15 fix-burst PR #160 SHIPPED + F-PASS15-001/002/004 CLOSED; D-510 F5 pass-75 fix-burst + META-LEVEL-30 CANDIDATE-CONFIRMED + 6 mechanical closed + 4 structural accepted-at-floor.
+- Brownfield: D-001..D-511 — `cycles/v1.0-brownfield-backfill/decision-log.md`. Key: D-480 M3; D-483..D-497 BC cascade (INV-017..020; POLICY 14 5-leg+gate); D-499 3M3b; D-500 3M3b-r CONVERGED; D-501 uncertainties; D-502/503 Wave 1 SHIPPED; D-504 durability; D-505 S-15.12 SHIPPED + Wave 2 COMPLETE; D-506 S-15.15 SHIPPED + Wave 3 COMPLETE; D-507 session-end durability; D-508 S-15.13 SHIPPED + Wave 4 COMPLETE + S-15.03 PRIORITY-A COMPLETE; D-509 E-10 pass-15 fix-burst PR #160 SHIPPED + F-PASS15-001/002/004 CLOSED; D-510 F5 pass-75 fix-burst + META-LEVEL-30 CANDIDATE-CONFIRMED + 6 mechanical closed + 4 structural accepted-at-floor; D-511 rc.19 banner-format remediation + SIZE BUDGET (wc-l; token form restored.
 
 ### §6. Cumulative Lessons
 - F5: L-EDP1-001..067 — `cycles/v1.0-feature-engine-discipline-pass-1/lessons.md`. L-EDP1-067: META-LEVEL-30 4-subclass taxonomy (routes a/b/c/time-dilation); time-dilated-discipline-degradation pattern; cure-extension-parsimony anchoring S-15.17.
-- Brownfield: TD-VSDD-095..100 + L-M3-BC-cascade-CONVERGED (2026-05-20) + L-session-2026-05-20-resume-CONVERGENCE + L-E10-pass15-automation-wave-effectiveness — `cycles/v1.0-brownfield-backfill/lessons.md`.
+- Brownfield: TD-VSDD-095..100 + L-M3-BC-cascade-CONVERGED (2026-05-20) + L-session-2026-05-20-resume-CONVERGENCE + L-E10-pass15-automation-wave-effectiveness + L-banner-format-drift (2026-05-28) — `cycles/v1.0-brownfield-backfill/lessons.md`.
 
 ### §7. S-15.03 PRIORITY-A Scope (Cumulative)
 11-story wave S-15.06..S-15.16. **ALL SHIPPED:** M1 (S-15.06/08/16-Part-A) + M2 (S-15.07 #145, S-15.11 #146, S-15.09 #147, S-15.14 #148) + M3 Wave 1 (S-15.16-Part-B PR #153 + S-15.10 PR #154 = 11pts) + M3 Wave 2 (S-15.12 PR #155 = 8pts) + M3 Wave 3 (S-15.15 PR #158 = 13pts) + M3 Wave 4 (S-15.13 PR #159 = 8pts). **S-15.03 PRIORITY-A COMPLETE. All 11 stories. 40pts M3 total.**
@@ -363,9 +369,10 @@ Prior Tier-A (pre-session, all COMPLETE): TD #71/72/70/74 (PRs #138–141 2026-0
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** `0663ba92` (D-510 F5 pass-75 fix-burst 2026-05-27)
+- **factory-artifacts HEAD:** `PENDING-D-511` (D-511 banner-format remediation 2026-05-28 — SHA-patch after commit)
 - **develop HEAD:** `4b68ab83` (PR #160 E-10 pass-15 fix-burst squash-merge 2026-05-27 — UNCHANGED)
 - **main HEAD:** `70811f4a` (rc.18 merge + CLAUDE.md expansion)
+- D-510 factory-artifacts HEAD: `0663ba92` (D-510 F5 pass-75 fix-burst 2026-05-27)
 - D-509 factory-artifacts HEAD: `e70ec966` (D-509 post-merge burst 2026-05-27)
 - D-508 factory-artifacts HEAD: `350fc86a` (E-10 pass-15 adversary report persisted 2026-05-27)
 - D-506 develop SHA: `24cc2ba6` (PR #158 S-15.15); D-506 factory-artifacts HEAD: `ed8d79cd` + SHA-patch `20cb8e1c`
@@ -380,7 +387,7 @@ Prior Tier-A (pre-session, all COMPLETE): TD #71/72/70/74 (PRs #138–141 2026-0
 
 ### §10. PR Status
 
-- **No open PRs.** D-510 F5 pass-75 fix-burst is factory-artifacts only (no source-code PR).
+- **No open PRs.** D-511 banner-format remediation is factory-artifacts only (no source-code PR).
 - Last source PR merged: **PR #160 (E-10 pass-15 fix-burst: host::read_file cap 65536→524288 across 7 WASM plugins)** at `4b68ab83` 2026-05-27.
 - Prior: **PR #159 (S-15.13 validate-closes-completeness Phase 2)** at `ced39c82` 2026-05-27.
 - Next PR: S-15.17 (validate-trajectory-tail-cell-completeness WASM hook) or E-10 pass-16 fix-burst per human direction.
@@ -390,7 +397,8 @@ Prior Tier-A (pre-session, all COMPLETE): TD #71/72/70/74 (PRs #138–141 2026-0
 1. **Verify worktree:** `git -C .factory log -1` + `git -C .factory status` (expect clean; branch factory-artifacts).
 2. **Read this checkpoint** (entire §1-§12).
 3. **Verify PC4:** `grep "^current_step:" .factory/STATE.md | grep -oE "trajectory-tail [→0-9]+" | grep -oE "→[0-9]+" | wc -l` → expect `4`.
-4. **NEXT ACTION — await human direction.** D-510 COMPLETE. F5 pass-75 fix-burst shipped. Options:
+4. **NEXT ACTION — await human direction.** D-511 COMPLETE. rc.19 release-blocker resolved. Options:
+   - **rc.19 re-tag:** Orchestrator deletes + re-pushes v1.0.0-rc.19 tag to retrigger release pipeline (no state-manager action needed).
    - **F5 pass-76:** Dispatch adversary pass-76 (requires explicit human direction per D-386 Option C). Read `cycles/v1.0-feature-engine-discipline-pass-1/adv-cycle-pass-75.md` for context.
    - **S-15.17 dispatch:** validate-trajectory-tail-cell-completeness WASM hook (anchors HIGH-002 cure; 9 D-453(d) prescribed sites; 12-18 ACs; BC-5.39.009 pending PO authorship).
    - **E-10 pass-16 verification:** Dispatch adversary pass-16 against develop `4b68ab83`. Read `cycles/v1.0-brownfield-backfill/E-10-pass-15.md` for context.
@@ -426,5 +434,5 @@ Prior Tier-A (pre-session, all COMPLETE): TD #71/72/70/74 (PRs #138–141 2026-0
 
 **[D-414(c) acknowledgment: Section 12 is a non-standard addition for forward-backlog durability.]**
 
-> Previous checkpoint (D-509 E-10 pass-15 fix-burst PR #160 SHIPPED 2026-05-27; F-PASS15-001/002/004 CLOSED; next pass-16 or F5) archived to: `cycles/v1.0-brownfield-backfill/session-checkpoints.md`
+> Previous checkpoint (D-510 F5 pass-75 fix-burst COMPLETE 2026-05-27; META-LEVEL-30 CANDIDATE-CONFIRMED; next F5 pass-76 or S-15.17 dispatch) archived to: `cycles/v1.0-brownfield-backfill/session-checkpoints.md`
 
