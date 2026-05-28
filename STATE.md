@@ -12,7 +12,7 @@ input-hash: "[live-state]"
 traces_to: prd.md
 project: vsdd-factory
 mode: brownfield
-current_step: "D-515 S-15.17-SPEC-CASCADE-PASS-2-FIX-BURST-COMPLETE 2026-05-28 — adv pass-2 HIGH 11 findings (3H+4M+3L+1N) trajectory-tail →9→9→9→11 persisted 5e467118; F-SP2-001 [regression] of F-SP1-003 cured (PC6-insertion cascade-propagation-gap; META-LEVEL-31 CANDIDATE codified); PO fix-burst a1cf38d2 BC v1.1→v1.2 8 findings closed (F-003/004/005/006/007/008/010/011/009-partial); EC-019 monotonic append; BC-INDEX v2.55→v2.56; story-writer fix-burst ee6d3b8e S-15.17 v1.2→v1.3 5 findings closed (F-001/002/003/007/009; bidirectional parity audit 13/13 PCs cited per §Bidirectional Parity Audit Note; AC-23 added; EC-019 mirror; anchored_adrs ADR-021 drop); STORY-INDEX v3.73→v3.74; VP-INDEX v2.06 ARCH-INDEX v2.15 UNCHANGED; STREAK 0/3 reset per BC-5.39.001 → pass-3 dispatch-ready; META-LEVEL-31 cure via POLICY 8 extension (bidirectional AC↔PC parity check requirement); L-S-15.17-SP2 lesson appended; POLICY 14 5-leg PO+story-writer verified; D-515 codified; Session Resume Checkpoint refreshed; trajectory-tail →9→9→9→11 (F5 pass-75 carry-across); maintain all 5 BC-5.39.006 v1.7 PCs per TD-VSDD-097-EXT; D-chain cite D-514 per D-419(b); parent-commit ee6d3b8e per D-419(b); factory-artifacts HEAD `[SHA-patch follow-up]` per D-447(c)+D-449(e). SIZE BUDGET: (wc-l; see banner tracker)"
+current_step: "D-515 S-15.17-SPEC-CASCADE-PASS-2-FIX-BURST-COMPLETE 2026-05-28 — adv pass-2 HIGH 11 findings (3H+4M+3L+1N) trajectory-tail →9→9→9→11 persisted 5e467118; F-SP2-001 [regression] of F-SP1-003 cured (PC6-insertion cascade-propagation-gap; META-LEVEL-31 CANDIDATE codified); PO fix-burst a1cf38d2 BC v1.1→v1.2 8 findings closed (F-003/004/005/006/007/008/010/011/009-partial); EC-019 monotonic append; BC-INDEX v2.55→v2.56; story-writer fix-burst ee6d3b8e S-15.17 v1.2→v1.3 5 findings closed (F-001/002/003/007/009; bidirectional parity audit 13/13 PCs cited per §Bidirectional Parity Audit Note; AC-23 added; EC-019 mirror; anchored_adrs ADR-021 drop); STORY-INDEX v3.73→v3.74; VP-INDEX v2.06 ARCH-INDEX v2.15 UNCHANGED; STREAK 0/3 reset per BC-5.39.001 → pass-3 dispatch-ready; META-LEVEL-31 cure via POLICY 8 extension (bidirectional AC↔PC parity check requirement); L-S-15.17-SP2 lesson appended; POLICY 14 5-leg PO+story-writer verified; D-515 codified; Session Resume Checkpoint refreshed; trajectory-tail →9→9→9→11 (F5 pass-75 carry-across); maintain all 5 BC-5.39.006 v1.7 PCs per TD-VSDD-097-EXT; D-chain cite D-514 per D-419(b); parent-commit ee6d3b8e per D-419(b); factory-artifacts HEAD `8507a7f9` per D-447(c)+D-449(e). SIZE BUDGET: (wc-l; see banner tracker)"
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -183,7 +183,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | 43afbfa7 | rc.19 SHIPPED 2026-05-28; bot binary commit on top of merge from develop; prior main HEAD: 70811f4a (rc.18 merge) |
 | develop | 98ea0719 | Sync main→develop auto-job 2026-05-28 post-rc.19 merge; prior: 4b68ab83 (PR #160 E-10 pass-15 fix-burst 2026-05-27) |
-| factory-artifacts | `[D-515-primary]` | D-515 primary commit 2026-05-28; SHA-patch follow-up per D-447(c)+D-449(e); prior: 410e53c2 D-514 SHA-patch |
+| factory-artifacts | `8507a7f9` | D-515 primary commit 2026-05-28; SHA-patch follow-up updates this cell; prior: 410e53c2 D-514 SHA-patch |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28; GitHub Release prerelease 2026-05-28T15:10:56Z; marketplace PR drbothen/claude-mp PR #11 squash-merged |
 | v1.0.0-rc.18 (tag) | 666d689f | SHIPPED 2026-05-13 PR #135 |
 | v1.0.0-rc.16 (tag) | feb894a2 | SHIPPED; claude-mp PR #8 awaiting human merge |
@@ -378,7 +378,7 @@ Prior Tier-A (pre-session, all COMPLETE): TD #71/72/70/74 (PRs #138–141 2026-0
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** `[run git -C .factory log -1 --format='%h' for actual SHA]` (D-515 SHA-patch follow-up per D-447(c)+D-449(e))
+- **factory-artifacts HEAD:** `8507a7f9` (D-515 primary commit 2026-05-28; SHA-patch updates to final HEAD per D-447(c)+D-449(e))
 - **develop HEAD:** `98ea0719` (sync main→develop 2026-05-28)
 - **main HEAD:** `43afbfa7` (rc.19 bot binary commit 2026-05-28)
 - **v1.0.0-rc.19 tag:** `d15152af` (GitHub Release 2026-05-28T15:10:56Z)
