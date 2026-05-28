@@ -1,7 +1,7 @@
 ---
 document_type: governance-policy-registry
-version: "1.0"
-last_amended: "2026-05-28 (v1.1) — POLICY 8 verification_steps extended with bidirectional AC↔PC parity check requirement per D-515 + META-LEVEL-31 cascade-propagation-gap-from-PC-insertion cure (D-497 parsimony extension). [Prior: 2026-05-26 (v1.0) — Part A structural remediation; F-PASS14-004 closure]"
+version: "1.2"
+last_amended: "2026-05-28 (v1.2) — POLICY 8 verification_steps extended with audit-block exclusion mandate per F-SP3-014 (META-LEVEL-31 cure-of-cure closure). Adds: audit grep target MUST exclude the audit block itself using sed strip or AC-per-PC explicit listing to prevent self-counting false-positives. POLICY 8 extension chosen (not new POLICY 19) because this is a verification-step procedure extension, not a new governance policy domain. POLICY 19 slot reserved. [Prior: 2026-05-28 (v1.1) — POLICY 8 verification_steps extended with bidirectional AC↔PC parity check requirement per D-515 + META-LEVEL-31 cascade-propagation-gap-from-PC-insertion cure (D-497 parsimony extension). [Prior: 2026-05-26 (v1.0) — Part A structural remediation; F-PASS14-004 closure]]"
 ---
 # .factory/policies.yaml — Declarative governance policy registry
 #
@@ -151,6 +151,7 @@ policies:
       - "For each BC in body BC table or AC traces, verify it appears in behavioral_contracts: frontmatter"
       - "Verify Token Budget BC count matches len(behavioral_contracts)"
       - "After any PC insertion/deletion/renumbering in BC, story-writer MUST run literal-shell bidirectional AC↔PC parity check (grep PC cites in story per PC in BC; grep BC for each AC PC cite) with captured stdout per POLICY 15. Captured stdout MUST appear in fix-burst commit body or story §Bidirectional Parity Audit Note. Prevents cascade-propagation-gap-from-PC-insertion (META-LEVEL-31 CANDIDATE; D-515)."
+      - "AUDIT-BLOCK EXCLUSION MANDATE (v1.2; F-SP3-014 META-LEVEL-31 cure-of-cure): The parity check grep MUST exclude the audit block itself from the grep target to prevent self-counting false-positives. Implement via ONE of: (a) sed strip before grep: `sed '/^## Bidirectional Parity Audit Note/,/^## /d' story.md | grep -c \"BC-5.39.009 PC6\"` (strip audit section before counting); OR (b) explicit AC-per-PC listing: audit MUST list AC numbers per PC explicitly (e.g., 'PC6: AC-7' instead of 'PC6: 1 cite') — so self-counting produces no false-positive (the audit line says 'AC-7' not a count that would increment). A parity audit whose grep target includes the audit block's own stdout is structurally self-counting and constitutes a MEDIUM-severity finding per META-LEVEL-31."
 
   - id: 9
     name: vp_index_is_vp_catalog_source_of_truth
