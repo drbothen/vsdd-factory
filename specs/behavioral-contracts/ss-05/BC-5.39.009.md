@@ -1,8 +1,8 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
-status: active
+version: "1.2"
+status: draft
 producer: product-owner
 timestamp: 2026-05-28T00:00:00Z
 phase: section-12-step-3M4
@@ -18,7 +18,6 @@ inputs:
   - .factory/specs/behavioral-contracts/BC-INDEX.md
   - .factory/specs/architecture/decisions/ADR-017-per-story-adversary-phasing.md
   - .factory/specs/architecture/decisions/ADR-018-wasm-plugin-context-resolvers.md
-  - .factory/specs/architecture/decisions/ADR-021-wasm-cargo-audit-sandboxing.md
   - .factory/policies.yaml
   - plugins/vsdd-factory/hooks-registry.toml
 input-hash: "TBD"
@@ -32,6 +31,7 @@ introduced: v1.0-brownfield-backfill
 modified:
   - "2026-05-28"
   - "2026-05-28 (v1.1)"
+  - "2026-05-28 (v1.2)"
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -40,7 +40,7 @@ removed: null
 removal_reason: null
 bc_id: BC-5.39.009
 section: "5.39"
-last_amended: "2026-05-28 (v1.1) — Pass-1 adversary fix-burst (product-owner; brownfield-backfill S-15.17 spec cascade pass-1 fix-burst). Closes F-S15.17-SP1-002 (HIGH frontmatter ADR-017 path corrected to ADR-017-per-story-adversary-phasing.md per POLICY 4 semantic_anchoring_integrity), F-S15.17-SP1-004 (HIGH PC2/PC3/PC5 STATE.md extractor anchors updated to match production STATE.md table-cell + heading structure with literal-shell evidence; META-LEVEL-30 route-(b) partial-recurrence-inside-cure-BC closed), F-S15.17-SP1-005 (HIGH inv-4 + PC1 LENGTH=4-strict adjudication aligning with BC-5.39.006 inv-6(b)+EC-007 + D-433(e)+D-439(c) original codification; cure-extension parsimony per D-497 cited; new EC-018 LENGTH=5 added), F-S15.17-SP1-007 (MEDIUM precondition-5/EC-016 fail-open contradiction reconciled to log_warn+Continue), F-S15.17-SP1-009 (MEDIUM path_allow sibling cite corrected to BC-5.39.006), F-S15.17-SP1-010 (MEDIUM on_error=continue invariant added per sibling BC-5.39.004/005/006/007/008 precedent), F-S15.17-SP1-011 (LOW D-NNN table purified — ADR/META-LEVEL/BC refs moved out), F-S15.17-SP1-012 (LOW D-454(a) PC range clarified to 1-10), F-S15.17-SP1-014 (NITPICK STATE.md capitalization fix). INV-019 cure (a) anchor ADV-EDP1-P75-HIGH-002 via spec-cascade pass-1 / (b) structural per-cell extractor-anchor specification / (c) cure-extension of BC-5.39.005+BC-5.39.006 pattern per D-497 parsimony. POLICY 14 5-leg quintuple parity applied (version v1.1 + Changelog row + modified[] + this last_amended + BC-INDEX v2.55 cell). Story-writer (next burst) handles F-001 type, F-003 AC mis-mapping, F-006 EC renumber, F-008 BC table claim, F-013 token budget. [Prior: 2026-05-28 (v1.0) — Initial authoring (product-owner; brownfield-backfill F5 pass-75 HIGH-002 anchor; META-LEVEL-30 route (b) cure). Anchors ADV-EDP1-P75-HIGH-002. BC-5.39.009 allocated as next monotonic ID after BC-5.39.008 in ss-05/. lifecycle_status: draft (POL-14 auto-promotion to active on S-15.17 merge).]"
+last_amended: "2026-05-28 (v1.2) — Pass-2 adversary fix-burst (product-owner; brownfield-backfill S-15.17 spec cascade pass-2 fix-burst). Closes F-S15.17-SP2-003 (HIGH EC-008 '(PC4)' → '(Precondition 4)'; full EC table swept for Pre-vs-Post abbreviation ambiguity), F-S15.17-SP2-004 (MEDIUM status:active→status:draft to match lifecycle_status:draft; adjudication: both fields must be draft pre-merge, POL-14 fires on S-15.17 merge; sibling BC-5.39.008 is active/active only because it has shipped — BC-5.39.009 is pre-merge so status:draft is correct), F-S15.17-SP2-005 (MEDIUM PC2/PC3/PC5 line-number anti-volatile-pin per TD-VSDD-091: stripped line-number citations from literal-shell grep outputs; kept grep command + prefix/content match excerpts only), F-S15.17-SP2-006 (MEDIUM §Cure-Extension Parsimony Note and inv-4 + Description rephrase: documented deliberate non-extension of BC-5.39.006 marker-prefix semantics — BC-5.39.006 conditions LENGTH check on 'trajectory-tail ' canonical marker prefix; BC-5.39.009 per-cell sites 2-9 are heterogeneous text contexts where that marker convention does not apply), F-S15.17-SP2-007 (MEDIUM Precondition 4 parent-guard for STATE.md arm: hook MUST verify file_path is rooted at .factory/ before triggering STATE.md arm; new EC-019 non-factory STATE.md case added), F-S15.17-SP2-008 (LOW PC3 skip-list: dropped 'COMPLETE' from skip list; skip only ARCHIVED/COMPACTED; alternative bottommost-row rationale documented), F-S15.17-SP2-009 partial (LOW ADR-021 dropped from §ADR References in Traceability — cargo-audit-specific, not general no-subprocess principle; story-writer to drop from anchored_adrs frontmatter), F-S15.17-SP2-010 (LOW inv-9 anti-volatile-pin rephrase: avoid SDK-state assertion; prescribe behavior instead), F-S15.17-SP2-011 (NITPICK D-453 pass-73 cite corrected from 'pass-74'). INV-019 cure (a) anchor ADV-EDP1-P75-HIGH-002 via spec-cascade pass-2 / (b) PC2/PC3/PC5 line-number anti-volatile-pin applied / (c) cure-extension parsimony note updated with marker-prefix non-extension documentation. POLICY 14 5-leg quintuple parity applied (version v1.2 + Changelog row v1.2 + modified[] appended '2026-05-28 (v1.2)' + this last_amended text-prefix v1.2 + BC-INDEX v2.56 row). Story-writer (next burst) handles F-001 (AC-9/10/11/12/17 re-anchor + bidirectional parity check stdout), F-002 (SS-05 narrative rewrite), F-003 story EC-008 mirror, F-007 AC-23 false-positive STATE.md, F-009 anchored_adrs drop. [Prior: 2026-05-28 (v1.1) — Pass-1 adversary fix-burst (product-owner; brownfield-backfill S-15.17 spec cascade pass-1 fix-burst). Closes F-S15.17-SP1-002 (HIGH frontmatter ADR-017 path corrected to ADR-017-per-story-adversary-phasing.md per POLICY 4 semantic_anchoring_integrity), F-S15.17-SP1-004 (HIGH PC2/PC3/PC5 STATE.md extractor anchors updated to match production STATE.md table-cell + heading structure with literal-shell evidence; META-LEVEL-30 route-(b) partial-recurrence-inside-cure-BC closed), F-S15.17-SP1-005 (HIGH inv-4 + PC1 LENGTH=4-strict adjudication aligning with BC-5.39.006 inv-6(b)+EC-007 + D-433(e)+D-439(c) original codification; cure-extension parsimony per D-497 cited; new EC-018 LENGTH=5 added), F-S15.17-SP1-007 (MEDIUM precondition-5/EC-016 fail-open contradiction reconciled to log_warn+Continue), F-S15.17-SP1-009 (MEDIUM path_allow sibling cite corrected to BC-5.39.006), F-S15.17-SP1-010 (MEDIUM on_error=continue invariant added per sibling BC-5.39.004/005/006/007/008 precedent), F-S15.17-SP1-011 (LOW D-NNN table purified — ADR/META-LEVEL/BC refs moved out), F-S15.17-SP1-012 (LOW D-454(a) PC range clarified to 1-10), F-S15.17-SP1-014 (NITPICK STATE.md capitalization fix). INV-019 cure (a) anchor ADV-EDP1-P75-HIGH-002 via spec-cascade pass-1 / (b) structural per-cell extractor-anchor specification / (c) cure-extension of BC-5.39.005+BC-5.39.006 pattern per D-497 parsimony. POLICY 14 5-leg quintuple parity applied (version v1.1 + Changelog row + modified[] + this last_amended + BC-INDEX v2.55 cell). Story-writer (next burst) handles F-001 type, F-003 AC mis-mapping, F-006 EC renumber, F-008 BC table claim, F-013 token budget. [Prior: 2026-05-28 (v1.0) — Initial authoring (product-owner; brownfield-backfill F5 pass-75 HIGH-002 anchor; META-LEVEL-30 route (b) cure). Anchors ADV-EDP1-P75-HIGH-002. BC-5.39.009 allocated as next monotonic ID after BC-5.39.008 in ss-05/. lifecycle_status: draft (POL-14 auto-promotion to active on S-15.17 merge).]"
 ---
 
 # BC-5.39.009: validate-trajectory-tail-cell-completeness WASM hook MUST block on STATE.md writes missing trajectory_tail in any of the 5 prescribed STATE.md cells, and MUST emit advisory on INDEX.md / burst-log.md / lessons.md writes missing trajectory_tail in their prescribed cells
@@ -52,7 +52,7 @@ canonical trajectory_tail arrow-sequence (`(→[0-9]+){4}`, LENGTH=4 per D-433(e
 on writes to the four target artifact files that carry D-453(d)-prescribed trajectory_tail sites.
 This hook closes META-LEVEL-30 route (b): "codified-canonical-registry-with-per-cell-prescribed-
 sites-BUT-no-runtime-WASM-gate-enforcing-each-site." D-453(d) codified a canonical 9-site mapping
-table at pass-74, but the 14-day F5 pause demonstrated that codification without a runtime gate
+table at pass-73, but the 14-day F5 pause demonstrated that codification without a runtime gate
 permits silent cell-level degradation between passes (ADV-EDP1-P75-HIGH-002).
 
 The hook has two severity arms: STATE.md (sites 1-5, Block severity) and non-STATE.md (sites 6-9,
@@ -88,6 +88,8 @@ the adversary agent, not by state-manager; out-of-scope for a state-manager Post
 
 Pass-1 (2026-05-28; 14 findings 5H+5M+3L+1N; closed in this v1.1 — 9 BC findings (F-S15.17-SP1-002/004/005/007/009/010/011/012/014); story-writer fix-burst closes 5 remaining (F-001/003/006/008/013)). BC gate: BC-5.39.009 MUST reach 3-CLEAN before S-15.17 is promoted to `status: ready` per Spec-First Gate S-7.01. STREAK: 0/3 (pass-1 = HIGH verdict; streak reset).
 
+Pass-2 (2026-05-28; 11 findings 3H+4M+3L+1N including F-001 regression of F-SP1-003 cascade-propagation-gap; closed in this v1.2 — 7-8 PO findings (F-003/004/005/006/007/008/010/011 + partial F-009); story-writer fix-burst closes 5 remaining incl. mandatory bidirectional parity check per pass-2 META-LEVEL-31 mandate). STREAK: 0/3 (pass-2 = HIGH verdict; streak reset).
+
 ## Preconditions
 
 ### PostToolUse activation
@@ -120,22 +122,28 @@ Pass-1 (2026-05-28; 14 findings 5H+5M+3L+1N; closed in this v1.1 — 9 BC findin
    The hook does NOT inspect `tool_input.content`; the filesystem value is the source of truth
    for post-write validation.
 
-### Path discrimination — INDEX.md cycle-path guard
+### Path discrimination — STATE.md parent-guard + INDEX.md cycle-path guard
 
-4. The INDEX.md arm fires ONLY when both of the following hold:
+4. The STATE.md arm fires ONLY when BOTH of the following hold:
+   - `Path::new(file_path).file_name() == Some("STATE.md")` (path-component-strict basename check)
+   - `file_path` is rooted at `.factory/` — specifically, the path MUST contain the `.factory/`
+     path component: either `file_path.starts_with(".factory/")` (relative form) OR
+     `file_path.contains("/.factory/")` (absolute form, e.g., `/Users/x/dev/vsdd-factory/.factory/STATE.md`)
+
+   **Rationale:** A WASM hook that fires on ANY `STATE.md` anywhere on the filesystem (e.g.,
+   `/tmp/STATE.md`, `/home/user/notes/STATE.md`) and emits a Block-grade exit code is a false-
+   positive risk. The `.factory/` parent guard is the production-grade constraint — only the
+   factory pipeline's STATE.md carries the D-453(d) trajectory_tail requirement. Any `STATE.md`
+   outside `.factory/` MUST be treated as a non-target file: `HookResult::Continue` immediately
+   (see EC-019).
+
+   The INDEX.md arm fires ONLY when both of the following hold:
    - `Path::new(file_path).file_name() == Some("INDEX.md")` (path-component-strict basename check)
    - `file_path.contains("v1.0-feature-engine-discipline-pass-1")` (cycle-path substring guard)
 
    This prevents cross-cycle INDEX.md files (e.g., future cycle directories, brownfield cycle
    INDEX.md) from triggering the arm. If future cycles use a different cycle-path string, the
    cycle-path guard must be updated in the implementation and the BC amended.
-
-   **Rationale for STATE.md basename-only (no parent path guard):** STATE.md lives at
-   `.factory/STATE.md` — a unique location in the repository. The path-component-strict
-   `file_name() == Some("STATE.md")` check is sufficient for practical discrimination. If a
-   false-positive scenario arises from another `STATE.md` outside `.factory/`, the implementer
-   MAY add a `.factory/` parent path guard; this BC does not prohibit it but does not require it.
-   The default is basename-only, consistent with all sibling S-15.NN hook patterns.
 
 ### YAML frontmatter parse
 
@@ -183,12 +191,12 @@ Pass-1 (2026-05-28; 14 findings 5H+5M+3L+1N; closed in this v1.1 — 9 BC findin
    The extractor MUST scan for the markdown table row pattern `| **Last Updated** |` within the
    body and capture the cell value in the second pipe-delimited column. If the `## Project
    Metadata` table or the `| **Last Updated** |` row is absent, the site is treated as missing
-   (Block per postcondition 6). Production STATE.md evidence (factory-artifacts HEAD `29d08cc7`):
+   (Block per postcondition 6). Production STATE.md evidence:
    ```
-   $ grep -n 'Last Updated' .factory/STATE.md | head -3
-   57:| **Last Updated** | 2026-05-28 — D-513 ... Trajectory-tail carry-across →9→9→9→11. |
+   $ grep 'Last Updated' .factory/STATE.md | head -3
+   | **Last Updated** | 2026-05-28 — D-513 ... Trajectory-tail carry-across →9→9→9→11. |
    ```
-   The trajectory_tail appears in the cell value on line 57 — NOT in a heading. Extractor must
+   The trajectory_tail appears in the cell value — NOT in a heading. Extractor must
    NOT scan for `## Last Updated` heading (no such heading exists in production STATE.md).
 
 3. When STATE.md is written and the "Phase Progress" section's latest-pass row does not contain a
@@ -196,18 +204,20 @@ Pass-1 (2026-05-28; 14 findings 5H+5M+3L+1N; closed in this v1.1 — 9 BC findin
    "STATE.md Phase Progress rows" in the missing-sites list. **Extractor specification:** The
    `## Phase Progress` heading IS present in production STATE.md (line 61). The extractor MUST
    scan for the `## Phase Progress` heading and capture the TABLE ROWS that follow it (until the
-   next `##` heading). To identify the "latest pass row": scan from the BOTTOM of the Phase
-   Progress table upward, skipping any rows whose Status cell contains "ARCHIVED", "COMPACTED",
-   or "COMPLETE", and take the FIRST non-archived, non-summary row encountered (i.e., the most
-   recent active or in-progress row). That row is the "latest pass row" for trajectory_tail
-   validation. If no non-archived row exists (all rows compacted), the site is treated as present
-   (pass-through). Production STATE.md evidence (factory-artifacts HEAD `29d08cc7`):
+   next `##` heading). To identify the "latest pass row": take the BOTTOMMOST row of the Phase
+   Progress table, skipping any rows whose Status cell contains "ARCHIVED" or "COMPACTED". The
+   state-manager Commit E discipline appends one row per burst — the bottommost non-archived/non-
+   compacted row IS the latest by construction. Do NOT skip rows with Status "COMPLETE",
+   "SHIPPED", "MERGED", or "CYCLE CLOSED" — most Phase Progress rows carry these statuses and
+   skipping them would skip the most recent fix-burst row. If no non-archived/non-compacted row
+   exists (all rows compacted), the site is treated as present (pass-through). Production STATE.md
+   evidence:
    ```
-   $ grep -n '^## Phase Progress' .factory/STATE.md
-   61:## Phase Progress
+   $ grep '^## Phase Progress' .factory/STATE.md
+   ## Phase Progress
    ```
-   The heading exists at line 61 and contains historical rows spanning D-503..D-513. The latest
-   non-archived row is the most recent `| ... | **COMPLETE ... | ... |` row near line 140.
+   The heading exists and contains historical rows spanning D-503..D-513. The bottommost non-
+   archived row carries the most recent burst's trajectory_tail.
 
 4. When STATE.md is written and the "Concurrent Cycles" section or row does not contain a
    trajectory_tail matching `(→[0-9]+){4}`, the hook treats this as a missing site and includes
@@ -222,14 +232,14 @@ Pass-1 (2026-05-28; 14 findings 5H+5M+3L+1N; closed in this v1.1 — 9 BC findin
    `## Session Resume Checkpoint (2026-05-28 — D-513 ...)`). The extractor MUST match by
    PREFIX `## Session Resume Checkpoint` (not an exact string match) to tolerate the evolving
    parenthetical. The sub-section to validate is `### §1.` content (the first `###` sub-section
-   under the Checkpoint heading). Production STATE.md evidence (factory-artifacts HEAD `29d08cc7`):
+   under the Checkpoint heading). Production STATE.md evidence:
    ```
-   $ grep -n '^## Session Resume' .factory/STATE.md
-   280:## Session Resume Checkpoint (2026-05-28 — D-513 BC-5.39.009 v1.0 AUTHORED + ...)
-   $ grep -n '^### §1' .factory/STATE.md
-   286:### §1. Where We Are
+   $ grep '^## Session Resume' .factory/STATE.md
+   ## Session Resume Checkpoint (2026-05-28 — D-513 BC-5.39.009 v1.0 AUTHORED + ...)
+   $ grep '^### §1' .factory/STATE.md
+   ### §1. Where We Are
    ```
-   The trajectory_tail appears in §1 body content (line 289: `→9→9→9→11`). The extractor must NOT
+   The trajectory_tail appears in §1 body content (e.g., `→9→9→9→11`). The extractor must NOT
    require exact heading match — prefix-match `## Session Resume Checkpoint` is mandatory.
 
 6. When one or more STATE.md sites (postconditions 1-5) are missing trajectory_tail, the hook
@@ -304,8 +314,9 @@ Pass-1 (2026-05-28; 14 findings 5H+5M+3L+1N; closed in this v1.1 — 9 BC findin
    raw string suffix matching on the full path MUST NOT be substituted. This prevents the
    META-LEVEL-24 false-green where a non-target file with a matching path suffix triggers the arm.
    Example: file `/some/other/not-STATE.md` has basename `not-STATE.md` and does NOT trigger the
-   STATE.md arm. File `/other/STATE.md` has basename `STATE.md` and DOES trigger the STATE.md arm
-   (basename-only discrimination; see Precondition 4 rationale for STATE.md).
+   STATE.md arm. File `/tmp/STATE.md` has basename `STATE.md` but is OUTSIDE `.factory/` —
+   Precondition 4 parent-guard rejects it (see EC-019). File `.factory/STATE.md` has basename
+   `STATE.md` AND is rooted at `.factory/` — it triggers the STATE.md arm.
 
 4. **Canonical trajectory_tail pattern LENGTH=4 STRICT.** The canonical arrow-sequence regex is
    `(→[0-9]+){4}`: exactly 4 arrow-segments, each followed by one or more decimal digits. A site
@@ -314,9 +325,12 @@ Pass-1 (2026-05-28; 14 findings 5H+5M+3L+1N; closed in this v1.1 — 9 BC findin
    are also NOT present — LENGTH=5+ is equally a violation** per D-433(e)+D-439(c) original
    codification. This aligns with sibling BC-5.39.006 invariant 6(b) and EC-007 which explicitly
    block on LENGTH=5 (`HookResult::block_with_fix(...)` per EC-007 precedent). Multi-digit values
-   (`→10→12→11→13`) are valid and match `[0-9]+`. Cure-extension: this LENGTH=4-strict invariant
-   is a direct cure-extension of BC-5.39.006 inv-6(b) per D-497 parsimony — no novel abstraction
-   needed (see §Cure-Extension Parsimony Note).
+   (`→10→12→11→13`) are valid and match `[0-9]+`. Cure-extension: this BC adopts the LENGTH=4-
+   strict invariant from BC-5.39.006 EC-006/EC-007, but does NOT require the literal canonical
+   marker `trajectory-tail ` (with trailing space) before the LENGTH check because per-cell sites
+   2-9 are heterogeneous text contexts where the BC-5.39.006 marker-prefix convention does not
+   apply. This is a deliberate non-extension of marker-prefix semantics (see §Cure-Extension
+   Parsimony Note).
 
 5. **STATE.md sites (1-5): Block severity per D-411(a) HIGH classification.** Omission of
    trajectory_tail from any of the 5 STATE.md prescribed sites is classified HIGH severity
@@ -325,9 +339,9 @@ Pass-1 (2026-05-28; 14 findings 5H+5M+3L+1N; closed in this v1.1 — 9 BC findin
 
 6. **Non-STATE.md sites (6-9): Advisory severity only.** Sites 6 (INDEX.md Convergence Status),
    7 (INDEX.md adversarial-review row), 8 (burst-log.md Dim-7), and 9 (lessons.md trend-table)
-   use advisory severity: `host::log_warn` + `HookResult::Continue`. There is NO
-   `HookResult::Advisory` variant in vsdd-hook-sdk (see invariant 9). Advisory behavior is
-   implemented as `HookResult::Continue` + `host::log_warn` exclusively.
+   use advisory severity: `host::log_warn` + `HookResult::Continue`. Advisory behavior MUST NOT
+   use any `HookResult::Advisory` variant (see invariant 9). Advisory behavior is implemented as
+   `HookResult::Continue` + `host::log_warn` exclusively.
 
 7. **`max_bytes = 524288` on ALL `host::read_file` calls.** Every `host::read_file` invocation
    in this hook MUST specify `max_bytes = 524288` (512 KiB). This is non-negotiable and applies
@@ -340,10 +354,13 @@ Pass-1 (2026-05-28; 14 findings 5H+5M+3L+1N; closed in this v1.1 — 9 BC findin
    missing site. This ensures the author can fix all issues in one edit rather than iterating
    one-at-a-time (schema-violation cascade per BC-5.39.008 invariant 8 precedent).
 
-9. **No `HookResult::Advisory` variant.** There is no `HookResult::Advisory` variant in
-   `crates/hook-sdk/src/result.rs`. Advisory behavior is implemented as `HookResult::Continue`
-   + `host::log_warn`. Any code path that attempts to construct `HookResult::Advisory` will fail
-   to compile. This invariant prevents compile-time surprises for the implementer.
+9. **Advisory behavior: `HookResult::Continue` + `host::log_warn` exclusively.** Use
+   `HookResult::Continue` + `host::log_warn` for advisory behavior. This hook MUST NOT use any
+   `HookResult::Advisory` variant the SDK may add in future. Rationale: advisory is observable
+   via stderr/log_warn; constructing a separate variant would diverge from sibling BC-5.39.004/
+   005/006/007/008 pattern. Advisory is implemented as `HookResult::Continue` + `host::log_warn`
+   — consistent with the invariant 10 fail-open pattern. This invariant prevents implementer
+   surprises if a future SDK version adds such a variant.
 
 10. **`host::read_file` HostError → fail-open.** Any HostError from `host::read_file` (for any
     target file, any HostError variant) MUST result in `HookResult::Continue` + `host::log_warn`.
@@ -377,17 +394,18 @@ Pass-1 (2026-05-28; 14 findings 5H+5M+3L+1N; closed in this v1.1 — 9 BC findin
 | EC-005 | File path `/some/dir/not-STATE.md` — `file_name() == "not-STATE.md"` | `HookResult::Continue` immediately; basename does not match "STATE.md"; STATE.md arm not triggered (inv-3) |
 | EC-006 | STATE.md with 3 of 5 sites missing trajectory_tail simultaneously | Single cascade Block enumerating all 3 missing sites (inv-8); not 3 separate Blocks |
 | EC-007 | STATE.md with all 5 sites carrying `→9→9→9→9` | `HookResult::Continue`; no Block or advisory (PC13) |
-| EC-008 | INDEX.md from a different cycle path (e.g., `v2.0-future-cycle/INDEX.md`) | `HookResult::Continue`; cycle-path guard rejects non-active-cycle INDEX.md (PC4) |
+| EC-008 | INDEX.md from a different cycle path (e.g., `v2.0-future-cycle/INDEX.md`) | `HookResult::Continue`; cycle-path guard rejects non-active-cycle INDEX.md (Precondition 4) |
 | EC-009 | INDEX.md Convergence Status row missing tail | `host::log_warn` advisory + `HookResult::Continue` (NOT Block; inv-6) |
 | EC-010 | burst-log.md Dim-7 block missing tail | `host::log_warn` advisory + `HookResult::Continue` |
 | EC-011 | lessons.md trend-table missing tail | `host::log_warn` advisory + `HookResult::Continue` |
 | EC-012 | `host::read_file` HostError::Timeout for STATE.md | `HookResult::Continue` + `host::log_warn`; fail-open (inv-10) |
 | EC-013 | STATE.md has `current_step:` with multi-digit tail `→10→12→11→13` (4 arrows, multi-digit) | `HookResult::Continue` for that site; multi-digit values match `[0-9]+` (inv-4) |
 | EC-014 | STATE.md frontmatter has `→9→9→9→9` in current_step but Phase Progress section has no tail | Block: "STATE.md Phase Progress rows" listed as missing; partial presence still counts as missing-per-site |
-| EC-015 | File path `/factory-artifacts/STATE.md` vs `.factory/STATE.md` — both have `file_name() == "STATE.md"` | Both trigger STATE.md arm per basename-only discrimination; this is expected behavior per Precondition 4 rationale |
+| EC-015 | File path `/factory-artifacts/STATE.md` vs `.factory/STATE.md` — both have `file_name() == "STATE.md"` | `.factory/STATE.md` triggers STATE.md arm (basename match + parent guard satisfied). `/factory-artifacts/STATE.md` does NOT trigger STATE.md arm: path-component-strict check rejects it because `factory-artifacts` is not `.factory` (Precondition 4 parent-guard). |
 | EC-016 | YAML frontmatter region absent in STATE.md (no `---\n` delimiters found) | `host::log_warn` advisory + `HookResult::Continue` (fail-open per invariant 10; consistent with sibling BC-5.39.006/007/008 fail-open precedent; does NOT block for absent frontmatter) |
 | EC-017 | STATE.md with `current_step:` as multi-line YAML block scalar using `|` or `>` | Extractor reads the line containing `current_step:` and the indented continuation lines; must find `(→[0-9]+){4}` somewhere in the full value block |
 | EC-018 | STATE.md with `current_step:` containing `→9→9→9→9→9` (LENGTH=5 — too long) | Block: "STATE.md frontmatter current_step" listed as missing (LENGTH=5 ≠ LENGTH=4 strict per inv-4; mirrors BC-5.39.006 EC-007 precedent) |
+| EC-019 | File path `/tmp/STATE.md` or `/home/user/notes/STATE.md` — `file_name() == "STATE.md"` but path is NOT rooted at `.factory/` | `HookResult::Continue` immediately; Precondition 4 parent-guard rejects non-factory STATE.md; STATE.md arm MUST NOT fire for STATE.md files outside the `.factory/` directory |
 
 ## Canonical Test Vectors
 
@@ -405,7 +423,7 @@ Pass-1 (2026-05-28; 14 findings 5H+5M+3L+1N; closed in this v1.1 — 9 BC findin
 | INDEX.md Convergence Status missing | INDEX.md (active cycle) | Convergence Status row has no tail | `host::log_warn` + `HookResult::Continue` (not Block; PC7+inv-6) | PC7 |
 | INDEX.md adv-table row missing | INDEX.md (active cycle) | Latest adv-review row has no tail | `host::log_warn` + `HookResult::Continue` | PC8 |
 | INDEX.md all sites present | INDEX.md (active cycle) | Both sites carry `→9→9→9→9` | `HookResult::Continue` | PC13 |
-| INDEX.md wrong cycle | other-cycle/INDEX.md | Different cycle-path substring | `HookResult::Continue` (cycle guard; EC-008) | PC4 |
+| INDEX.md wrong cycle | other-cycle/INDEX.md | Different cycle-path substring | `HookResult::Continue` (cycle guard; EC-008) | Precondition 4 |
 | burst-log.md Dim-7 missing | burst-log.md | Latest Dim-7 block has no tail | `host::log_warn` + `HookResult::Continue` | PC9 |
 | burst-log.md Dim-7 present | burst-log.md | Latest Dim-7 block has `→9→9→9→9` | `HookResult::Continue` | PC13 |
 | lessons.md trend-table missing | lessons.md | Latest trend-table row has no tail | `host::log_warn` + `HookResult::Continue` | PC10 |
@@ -426,7 +444,7 @@ Pass-1 (2026-05-28; 14 findings 5H+5M+3L+1N; closed in this v1.1 — 9 BC findin
 
 Non-D-NNN references (moved out of D-NNN table per F-S15.17-SP1-011):
 - ADR-018: WASM path_allow capability model — see §ADR References in Traceability
-- ADR-021: Sandboxed file access model — see §ADR References in Traceability
+- ADR-018: WASM path_allow capability model + no-subprocess principle — see §ADR References in Traceability (ADR-021 dropped: cargo-audit-specific, not general no-subprocess principle; generic no-subprocess principle covered by ADR-018 hook-sdk contract)
 - META-LEVEL-24: `max_bytes = 524288` false-green prevention — see invariant 7
 - BC-5.39.001: 3-CLEAN convergence protocol — see §Related BCs
 
@@ -463,7 +481,7 @@ VP IDs pending VP-INDEX allocation by state-manager at post-merge burst.
 | Capability Anchor Justification | E-12 governs factory engine discipline automation. This BC formalizes the PostToolUse gate that mechanically enforces trajectory_tail per-cell presence at all 9 D-453(d) prescribed sites at write time, preventing META-LEVEL-30 route (b) recurrence ("codified-canonical-registry-with-no-runtime-WASM-gate-enforcing-each-site"). The hook targets the four STATE.md/INDEX.md/burst-log.md/lessons.md artifacts that carry the D-453(d) trajectory_tail sites — factory engine discipline artifacts. E-12 as used in the BC-5.39.xxx family per engine-discipline automation sub-capability convention. |
 | Architecture Module | `crates/hook-plugins/validate-trajectory-tail-cell-completeness/` (Rust WASM plugin, new crate); `plugins/vsdd-factory/hooks-registry.toml` (registry entry, priority 158, PostToolUse, `tool = "Edit\|Write"`, `path_allow = [".factory"]`); `plugins/vsdd-factory/hook-plugins/validate-trajectory-tail-cell-completeness.wasm` (compiled binary) |
 | D-NNN Sub-Clauses Closed | D-453(d) (canonical trajectory_tail prescribed sites registry — runtime enforcement); D-454(a) (per-cell granularity gate discipline); D-433(e)+D-439(c) (LENGTH=4 requirement); D-411(a) (HIGH classification → Block severity for STATE.md sites) |
-| ADR References | ADR-017 (Per-Story Adversary Phasing — 3-CLEAN applies to S-15.17 LOCAL cascade; file: `.factory/specs/architecture/decisions/ADR-017-per-story-adversary-phasing.md`); ADR-018 (WASM-Plugin Context Resolvers — `path_allow` capability model; `path_allow = [".factory"]`); ADR-021 (WASM Cargo-Audit Sandboxing — sandboxed file access model; `host::read_file` only, no subprocess) |
+| ADR References | ADR-017 (Per-Story Adversary Phasing — 3-CLEAN applies to S-15.17 LOCAL cascade; file: `.factory/specs/architecture/decisions/ADR-017-per-story-adversary-phasing.md`); ADR-018 (WASM-Plugin Context Resolvers — `path_allow` capability model; `path_allow = [".factory"]`; no-subprocess principle via host::read_file-only API) |
 | Stories | S-15.17 (validate-trajectory-tail-cell-completeness WASM hook) |
 | L2 Invariants | (none currently assigned — this BC is a process-automation gate; no L2 domain invariants apply; same classification as BC-5.39.008 sibling) |
 | Predecessor Cure-Extensions | BC-5.39.005 (validate-state-structure Phase 1 — structural-gate pattern for STATE.md PostToolUse validation; extended here to per-cell trajectory_tail checks); BC-5.39.006 (validate-dispatch-advance — trajectory_tail substring enforcement on current_step; BC-5.39.009 extends to multi-site multi-file scope per D-497 cure-extension-parsimony) |
@@ -506,10 +524,20 @@ patterns:
    presence at the 5 STATE.md prescribed sites.
 
 2. **BC-5.39.006 (validate-dispatch-advance):** Established trajectory_tail LENGTH=4 STRICT
-   enforcement (inv-6(b) + EC-007). BC-5.39.009 extends this to multi-site multi-file scope
-   (9 prescribed sites across 4 artifact files) and aligns on LENGTH=4-strict semantics
-   (LENGTH=5+ is also a violation, consistent with BC-5.39.006 EC-007 which blocks on LENGTH=5).
-   This is a cure-extension, not a re-invention.
+   enforcement (inv-6(b) + EC-007). BC-5.39.009 adopts the LENGTH=4-strict invariant from
+   BC-5.39.006 EC-006/EC-007 but does NOT require the literal canonical marker `trajectory-tail `
+   (with trailing space) before the LENGTH check.
+
+   **Deliberate non-extension of marker-prefix semantics:** BC-5.39.006 conditions its LENGTH check
+   on the `trajectory-tail ` marker prefix being present in the `current_step:` value — EC-023
+   specifies that if the marker is absent, the LENGTH count does not run. This BC does not extend
+   that marker-prefix convention to sites 2-9 because those sites are heterogeneous text contexts
+   (STATE.md table cells, Phase Progress rows, Session Resume §1, INDEX.md Convergence row,
+   burst-log Dim-7, lessons trend-table) where the `trajectory-tail ` marker convention does not
+   apply. The LENGTH=4 check runs on the extracted section text directly. This is a deliberate
+   non-extension, not an oversight. Per D-497 cure-extension-parsimony, extending the marker-prefix
+   semantics to heterogeneous text contexts would require a novel INV-NNN abstraction — which this
+   BC explicitly avoids.
 
 Both predecessor cure-extensions cited in Traceability §Predecessor Cure-Extensions.
 
@@ -521,5 +549,6 @@ VP IDs pending VP-INDEX allocation by state-manager at S-15.17 post-merge burst.
 
 | Version | Date | Description |
 |---------|------|-------------|
+| 1.2 | 2026-05-28 | Pass-2 adversary fix-burst (product-owner; brownfield-backfill S-15.17 spec cascade). INV-019 cure (a) anchor ADV-EDP1-P75-HIGH-002 via spec-cascade pass-2 / (b) PC2/PC3/PC5 line-number anti-volatile-pin (TD-VSDD-091) — stripped line numbers from grep excerpts, kept prefix/content match only / (c) cure-extension parsimony note updated with deliberate non-extension of BC-5.39.006 marker-prefix semantics documented per D-497. Closes 7-8 of 11 pass-2 findings: F-S15.17-SP2-003 (EC-008 + test vectors + inv-3 Pre-vs-Post disambiguation: `(PC4)` → `(Precondition 4)` where PC4 referred to cycle-path guard Precondition; full EC table swept); F-S15.17-SP2-004 (`status: active` → `status: draft` pre-merge; `lifecycle_status: draft` consistent; POL-14 fires on S-15.17 merge — both fields go active); F-S15.17-SP2-005 (PC2/PC3/PC5 grep excerpts stripped of `grep -n` line numbers; grep commands without `-n` flag; anti-volatile-pin per TD-VSDD-091); F-S15.17-SP2-006 (inv-4 + §Cure-Extension Parsimony Note updated to document deliberate non-extension of BC-5.39.006 marker-prefix `trajectory-tail ` semantics; EC-006/EC-007 context quoted; per-cell heterogeneous text context rationale); F-S15.17-SP2-007 (Precondition 4 expanded to require `.factory/` parent-guard for STATE.md arm in addition to basename check; EC-019 added for non-factory STATE.md → Continue; inv-3 updated; EC-015 revised to reflect new parent-guard semantics); F-S15.17-SP2-008 (PC3 skip-list: `COMPLETE` dropped; skip only ARCHIVED/COMPACTED; bottommost-row rationale documented — state-manager Commit E appends one row per burst so bottommost IS latest); F-S15.17-SP2-009 partial (ADR-021 dropped from §ADR References and D-NNN non-D table note; frontmatter inputs updated; ADR-018 clarified to cover no-subprocess principle; story-writer drops ADR-021 from `anchored_adrs:` frontmatter); F-S15.17-SP2-010 (inv-9 rephrased from SDK-state assertion to behavioral prescription: "MUST NOT use any HookResult::Advisory variant the SDK may add"; inv-6 updated to match); F-S15.17-SP2-011 (D-453 pass-73 cite corrected from pass-74). POLICY 14 5-leg quintuple parity applied (version "1.2" + this Changelog row v1.2 + modified[] appended "2026-05-28 (v1.2)" + last_amended text-prefix "2026-05-28 (v1.2)" + BC-INDEX v2.56 row version cell v1.2). Story-writer next burst handles F-001 (AC-9/10/11/12/17 re-anchor + bidirectional parity check stdout; META-LEVEL-31 mandate) / F-002 (SS-05 narrative) / F-003 story EC-008 mirror / F-007 AC-23 / F-009 anchored_adrs drop. EC-019 added (monotonic, no renumbering). |
 | 1.1 | 2026-05-28 | Pass-1 adversary fix-burst (product-owner; brownfield-backfill S-15.17 spec cascade). INV-019 cure (a) anchor ADV-EDP1-P75-HIGH-002 via spec-cascade pass-1 / (b) structural per-cell extractor-anchor specification (PC2/PC3/PC5 rewritten with production STATE.md structure evidence) / (c) cure-extension of BC-5.39.005+BC-5.39.006 pattern per D-497 parsimony. Closes 9 of 14 pass-1 findings: F-S15.17-SP1-002 (ADR-017 frontmatter path corrected to `ADR-017-per-story-adversary-phasing.md`); F-S15.17-SP1-004 (PC2 Last Updated as table cell in `## Project Metadata`, PC3 Phase Progress latest non-archived row, PC5 `## Session Resume Checkpoint` prefix-match with optional parenthetical, all with literal-shell evidence from factory-artifacts HEAD `29d08cc7`); F-S15.17-SP1-005 (inv-4 + PC6 LENGTH=4 STRICT adjudication — LENGTH=5+ also violation; EC-018 LENGTH=5 added; aligns with BC-5.39.006 inv-6(b)+EC-007+D-433(e)+D-439(c)); F-S15.17-SP1-007 (PC5/EC-016 fail-open contradiction resolved to log_warn+Continue); F-S15.17-SP1-009 (path_allow sibling cite corrected to BC-5.39.006); F-S15.17-SP1-010 (inv-12 on_error=continue added per sibling BC-5.39.004/005/006/007/008 precedent); F-S15.17-SP1-011 (D-NNN table purified — ADR/META-LEVEL/BC rows removed from table, moved to §ADR References / §Related BCs / inv-7); F-S15.17-SP1-012 (D-454(a) PC range 1-9→1-10); F-S15.17-SP1-014 (EC-017 "State.md"→"STATE.md"). POLICY 14 5-leg quintuple parity applied (version "1.1" + this Changelog row v1.1 + modified[] appended "2026-05-28 (v1.1)" + last_amended text-prefix "2026-05-28 (v1.1)" + BC-INDEX v2.55 row version cell v1.1). §Cure-Extension Parsimony Note section added. Story-writer next burst handles F-001/003/006/008/013. |
 | 1.0 | 2026-05-28 | Initial authoring (product-owner; brownfield-backfill F5 pass-75 HIGH-002 anchor). Anchors ADV-EDP1-P75-HIGH-002. META-LEVEL-30 route (b) cure (INV-019 cure (a)/(b)/(c)): (a) Anchor identification — closes ADV-EDP1-P75-HIGH-002 (codified-without-runtime-gate-permits-silent-degradation-over-time; D-453(d) canonical 9-site mapping had no WASM enforcement gate); (b) Cure scope — structural (multi-site PostToolUse gate at write time on all 9 D-453(d) mechanically-checkable sites), NOT codification-only; (c) Cure-extension-parsimony evaluation per D-497 — this BC EXTENDS the BC-5.39.005 + BC-5.39.006 structural-gate pattern (STATE.md PostToolUse validation from BC-5.39.005; trajectory_tail enforcement from BC-5.39.006) rather than introducing a new INV-NNN abstraction; both predecessor cure-extensions cited in Traceability §Predecessor Cure-Extensions. BC-5.39.009 allocated as next monotonic ID after BC-5.39.008 in ss-05/. lifecycle_status: draft (POL-14 auto-promotion to active on S-15.17 merge). Priority 158 (next available PostToolUse slot per hooks-registry.toml audit: 155=validate-stable-anchors PreToolUse; 156=validate-closes-completeness PostToolUse; 157=validate-policies-schema PostToolUse; 158=this hook, uncollided). POLICY 14 5-leg quintuple parity applied (version "1.0" + this Changelog row v1.0 + modified: ["2026-05-28"] + last_amended text-prefix "2026-05-28 (v1.0)" + BC-INDEX upstream v2.54 row with version cell v1.0). |
