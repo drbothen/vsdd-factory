@@ -12,7 +12,7 @@ input-hash: "[live-state]"
 traces_to: prd.md
 project: vsdd-factory
 mode: brownfield
-current_step: "D-514 S-15.17-SPEC-CASCADE-PASS-1-FIX-BURST-COMPLETE 2026-05-28 — adv pass-1 HIGH 14 findings (5H+5M+3L+1N) persisted 29d08cc7; PO fix-burst 87f1bc8f BC v1.0→v1.1 9 findings closed (F-002/004/005/007/009/010/011/012/014; LENGTH=4 STRICT adjudicated per BC-5.39.006 inv-6(b)+EC-007+D-433(e)+D-439(c); EC-018 LENGTH=5 added; inv-12 on_error=continue; PC2/3/5 extractor anchors literal-shell); story-writer fix-burst 7d12db2f S-15.17 v1.1→v1.2 5 findings closed (F-001/003/006/008/013; T-5 u64→u32; 21 ACs PC swept; EC renumbered 1:1 BC; token-budget corrected; AC-22 LENGTH=5); BC-INDEX v2.54→v2.55; STORY-INDEX v3.72→v3.73; VP-INDEX v2.06 ARCH-INDEX v2.15 UNCHANGED; STREAK 0/3 reset per BC-5.39.001 → pass-2 dispatch-ready; POLICY 8 propagation complete; POLICY 14 5-leg PO+story-writer verified; cure-extension-parsimony per D-497 (BC-5.39.005+BC-5.39.006 predecessors; no novel INV-NNN); D-514 codified; Session Resume Checkpoint refreshed; trajectory-tail →9→9→9→11 (F5 pass-75 carry-across); maintain all 5 BC-5.39.006 v1.7 PCs per TD-VSDD-097-EXT; D-chain cite D-513 per D-419(b); parent-commit 7d12db2f per D-419(b); factory-artifacts HEAD `<D-514-primary-SHA>` per D-447(c)+D-449(e). SIZE BUDGET: (wc-l; see banner tracker)"
+current_step: "D-514 S-15.17-SPEC-CASCADE-PASS-1-FIX-BURST-COMPLETE 2026-05-28 — adv pass-1 HIGH 14 findings (5H+5M+3L+1N) persisted 29d08cc7; PO fix-burst 87f1bc8f BC v1.0→v1.1 9 findings closed (F-002/004/005/007/009/010/011/012/014; LENGTH=4 STRICT adjudicated per BC-5.39.006 inv-6(b)+EC-007+D-433(e)+D-439(c); EC-018 LENGTH=5 added; inv-12 on_error=continue; PC2/3/5 extractor anchors literal-shell); story-writer fix-burst 7d12db2f S-15.17 v1.1→v1.2 5 findings closed (F-001/003/006/008/013; T-5 u64→u32; 21 ACs PC swept; EC renumbered 1:1 BC; token-budget corrected; AC-22 LENGTH=5); BC-INDEX v2.54→v2.55; STORY-INDEX v3.72→v3.73; VP-INDEX v2.06 ARCH-INDEX v2.15 UNCHANGED; STREAK 0/3 reset per BC-5.39.001 → pass-2 dispatch-ready; POLICY 8 propagation complete; POLICY 14 5-leg PO+story-writer verified; cure-extension-parsimony per D-497 (BC-5.39.005+BC-5.39.006 predecessors; no novel INV-NNN); D-514 codified; Session Resume Checkpoint refreshed; trajectory-tail →9→9→9→11 (F5 pass-75 carry-across); maintain all 5 BC-5.39.006 v1.7 PCs per TD-VSDD-097-EXT; D-chain cite D-513 per D-419(b); parent-commit 7d12db2f per D-419(b); factory-artifacts HEAD `34f06d2c` per D-447(c)+D-449(e). SIZE BUDGET: (wc-l; see banner tracker)"
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -181,7 +181,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | 43afbfa7 | rc.19 SHIPPED 2026-05-28; bot binary commit on top of merge from develop; prior main HEAD: 70811f4a (rc.18 merge) |
 | develop | 98ea0719 | Sync main→develop auto-job 2026-05-28 post-rc.19 merge; prior: 4b68ab83 (PR #160 E-10 pass-15 fix-burst 2026-05-27) |
-| factory-artifacts | `<D-514-primary-SHA>` | D-514 state-manager closing burst 2026-05-28 (SHA-patch applied per D-447(c)+D-449(e)); prior: 56d907ad D-513 SHA-patch |
+| factory-artifacts | `34f06d2c` | D-514 state-manager closing burst 2026-05-28 (SHA-patch applied per D-447(c)+D-449(e)); prior: 56d907ad D-513 SHA-patch |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28; GitHub Release prerelease 2026-05-28T15:10:56Z; marketplace PR drbothen/claude-mp PR #11 squash-merged |
 | v1.0.0-rc.18 (tag) | 666d689f | SHIPPED 2026-05-13 PR #135 |
 | v1.0.0-rc.16 (tag) | feb894a2 | SHIPPED; claude-mp PR #8 awaiting human merge |
@@ -292,7 +292,7 @@ dtu_services: []
 
 - **D-514 pass-1 fix-burst COMPLETE (2026-05-28):** Adversary pass-1 HIGH 14 findings (5H+5M+3L+1N); adv-spec-pass-1.md at `29d08cc7` (215 lines). PO fix-burst `87f1bc8f` closed 9 BC findings (F-002/004/005/007/009/010/011/012/014); BC v1.0→v1.1; BC-INDEX v2.54→v2.55; EC-018 LENGTH=5 added; inv-12 on_error=continue; LENGTH=4 STRICT adjudicated per BC-5.39.006 precedent. Story-writer fix-burst `7d12db2f` closed 5 story findings (F-001/003/006/008/013); story v1.1→v1.2; STORY-INDEX v3.72→v3.73; AC-22 added. All 14 findings CLOSED. STREAK 0/3 reset per BC-5.39.001. D-514 codified.
 - **develop HEAD:** `98ea0719` (sync main→develop 2026-05-28). **main HEAD:** `43afbfa7` (bot binary commit 2026-05-28).
-- **factory-artifacts HEAD:** `<D-514-primary-SHA>` (D-514 state-manager closing burst 2026-05-28; SHA-patch TBD per D-447(c)+D-449(e)).
+- **factory-artifacts HEAD:** `34f06d2c` (D-514 state-manager closing burst 2026-05-28; SHA-patch TBD per D-447(c)+D-449(e)).
 - **D-range:** D-001..D-514.
 - **4-index (post-D-514):** BC-INDEX v2.55, VP-INDEX v2.06 (UNCHANGED), STORY-INDEX v3.73, ARCH-INDEX v2.15 (UNCHANGED).
 - **BC content:** BC-5.39.005 v1.3 ACTIVE + BC-5.39.006 v1.7 ACTIVE + BC-5.39.007 v1.6 ACTIVE + BC-5.39.008 v1.5 ACTIVE + BC-5.39.009 v1.1 draft (pass-1 fix-burst complete; pass-2 dispatch-ready; active on S-15.17 merge per POL-14) + BC-7.04.051 v1.1 ACTIVE.
@@ -374,7 +374,7 @@ Prior Tier-A (pre-session, all COMPLETE): TD #71/72/70/74 (PRs #138–141 2026-0
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** `<D-514-primary-SHA>` (D-514 state-manager closing burst 2026-05-28; SHA-patch follow-up per D-447(c)+D-449(e))
+- **factory-artifacts HEAD:** `34f06d2c` (D-514 state-manager closing burst 2026-05-28; SHA-patch follow-up per D-447(c)+D-449(e))
 - **develop HEAD:** `98ea0719` (sync main→develop 2026-05-28)
 - **main HEAD:** `43afbfa7` (rc.19 bot binary commit 2026-05-28)
 - **v1.0.0-rc.19 tag:** `d15152af` (GitHub Release 2026-05-28T15:10:56Z)
