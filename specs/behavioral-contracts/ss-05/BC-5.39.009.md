@@ -3,7 +3,6 @@ document_type: behavioral-contract
 level: L3
 version: "1.0"
 status: active
-lifecycle_status: draft
 producer: product-owner
 timestamp: 2026-05-28T00:00:00Z
 phase: section-12-step-3M4

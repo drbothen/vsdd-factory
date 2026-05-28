@@ -301,3 +301,19 @@ dispatch story-writer for 3M3b elaboration (5 M3 stories: S-15.10/12/13/15/16-Pa
 - **Next per direction:** rc.19 re-tag (now done D-512), F5 pass-76, S-15.17, E-10 pass-16.
 
 **This checkpoint superseded by D-512 rc.19 SHIPPED 2026-05-28.**
+
+---
+
+## Checkpoint D-512 (archived 2026-05-28 — superseded by D-513)
+
+**Archived from STATE.md Section 11 at D-512 rc.19 SHIPPED.**
+
+- **D-512 rc.19 SHIPPED 2026-05-28:** release run 26581752361 all 10 jobs PASS; v1.0.0-rc.19 tag d15152af; main 43afbfa7; develop 98ea0719 (sync main→develop); marketplace PR drbothen/claude-mp PR #11 squash-merged 2026-05-28T15:44:36Z. All 3 planned items COMPLETE (E-10 pass-15 D-509, F5 pass-75 D-510, rc.19 D-512).
+- **factory-artifacts HEAD at D-512:** `78ea0e7a` (D-512 burst 2026-05-28 — SHA-patch follow up per D-447(c)+D-449(e)).
+- **D-range at D-512:** D-001..D-512. **4-index:** BC-INDEX v2.53 VP-INDEX v2.06 STORY-INDEX v3.71 ARCH-INDEX v2.15.
+- **F5 trajectory:** →9→9→9→11 (pass-75; pause-cost tick-up from 35-consecutive 9s; 4 structural accepted-at-floor).
+- **S-15.03 PRIORITY-A COMPLETE** (D-508): all 11 stories shipped; 40pts M3 total.
+- **develop HEAD:** `98ea0719`. **main HEAD:** `43afbfa7`.
+- **Next per direction (at D-512):** F5 pass-76 or S-15.17 dispatch per human direction; E-10 pass-16 optional.
+
+**This checkpoint superseded by D-513 BC-5.39.009 AUTHORED + S-15.17 v1.1 PROPAGATED 2026-05-28.**

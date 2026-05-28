@@ -2403,3 +2403,29 @@ POLICY 14 description and verification_steps updated in policies.yaml same-burst
 **Cites:** D-512 (release ship record), D-511 (banner remediation), D-510 HIGH-004 (wc-l literal count requirement), validate-state-structure WASM hook `crates/hook-plugins/validate-state-structure/src/lib.rs` (authoritative pattern), release pipeline run 26581752361.
 
 **Closes:** D-512 rc.19 release cycle lesson capture.
+
+---
+
+## [L-S-15.17-BC-authoring-clean-propagation] BC-5.39.009 + S-15.17: Clean PO-author → story-writer handoff via POLICY 8 + POLICY 14 quintuple parity is the positive norm for new-BC authoring bursts
+
+**Date:** 2026-05-28
+
+**Context:** D-513 burst: product-owner authored BC-5.39.009 v1.0 (`393527a4`), story-writer propagated into S-15.17 v1.1 (`2300a27a`), state-manager closed with bookkeeping only (duplicate `lifecycle_status:` key fix + D-513 codification + STATE.md advance). No spec-content disputes escalated; adversarial review deferred per protocol.
+
+**Positive pattern — clean handoff anatomy:** PO produced BC with: (1) POLICY 14 5-leg quintuple parity explicitly verified via literal-shell stdout in the commit; (2) `lifecycle_status: draft` at canonical position (after `capability:`, matching BC-5.39.008 precedent); (3) INV-019 cure (a)/(b)/(c) all present; (4) cure-extension-parsimony evaluated per D-497 (explicitly cited BC-5.39.005 + BC-5.39.006 as predecessor patterns; no novel INV-NNN abstraction introduced). Story-writer received clean input and propagated via POLICY 8 (bc_array_changes_propagate_to_body_and_acs) without needing to adjudicate any open PO questions. State-manager bookkeeping was limited to one template artifact fix (duplicate frontmatter key). Three steps, zero escalations, zero rework.
+
+**Lesson — template artifact category:** The duplicate `lifecycle_status: draft` key was a PO template artifact — PO correctly identified it as state-manager's bookkeeping scope and left it for D-513 closing burst. This is the correct division: PO owns spec-content correctness; state-manager owns frontmatter structural hygiene. PO flagging bookkeeping items in the commit message (rather than silently fixing or leaving unflagged) is the correct pattern — it gives state-manager explicit scope without requiring a re-dispatch.
+
+**Lesson — Option A canonical-source-of-truth replacement:** Story-writer replacing Anticipated Postconditions/Invariants sections with authoritative BC reference (Option A) rather than duplicating content is the production-grade pattern for POLICY 8 propagation. The canonical truth lives in the BC; the story body should POINT to it, not copy it. This prevents future drift where story and BC diverge silently.
+
+**Lesson — 18 VP deferral via TD-VSDD-063 pattern:** BC-5.39.009 ships with 18 VPs deferred to architect post-merge (Post-Merge Burst Requirements section in S-15.17 v1.1). Per TD-VSDD-063 precedent, VP allocation requiring cross-subsystem reasoning by the architect is a legitimate defer — it is NOT a missing-spec-content defer (the BCs and ACs are complete; only VP-ID assignment and coverage-matrix placement are pending). The Post-Merge Burst Requirements section makes this deferral explicit and actionable (not silent).
+
+**Replication guide for future new-BC authoring bursts:**
+1. PO: POLICY 14 5-leg verified via literal shell in commit; INV-019 cure (a)/(b)/(c) all present; cure-extension-parsimony per D-497 evaluated; `lifecycle_status:` at canonical position.
+2. Story-writer: POLICY 8 propagation; Option A canonical-source-of-truth; POLICY 14 5-leg verified; Post-Merge Burst Requirements section for any deferred items with explicit story/wave anchor.
+3. State-manager: bookkeeping-only scope (frontmatter hygiene, index verification, D-NNN codification, STATE.md advance); no spec-content writes.
+4. If VP allocation deferred: TD-VSDD-063 pattern — Post-Merge Burst Requirements section with [needs-arch] annotation; NOT a TD-register entry unless human-directed.
+
+**Cites:** D-513 (this burst decision), BC-5.39.009 v1.0 (`393527a4`), S-15.17 v1.1 (`2300a27a`), D-497 (cure-extension-parsimony), TD-VSDD-063 (VP deferral pattern), POLICY 8, POLICY 14.
+
+**Closes:** D-513 BC authoring + propagation lesson capture.

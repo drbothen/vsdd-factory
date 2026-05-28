@@ -11,6 +11,137 @@ input-hash: "[live-state]"
 traces_to: STATE.md
 ---
 
+## D-513 BC-5.39.009 AUTHORED + S-15.17 v1.1 PROPAGATED 2026-05-28
+
+### Parent-commit
+
+`2300a27a` (story-writer commit; last factory-artifacts HEAD before this D-513 state-manager closing burst) per D-419(b).
+
+### Adversary Verdict (D-448(a) source-attestation gate)
+
+Adversary verdict — n/a (authoring burst; no adversarial cascade has occurred yet on BC-5.39.009 v1.0 + S-15.17 v1.1; adversarial cascade is the NEXT burst). Source attestation parity gate D-448(a) — n/a (no adversary review file exists for this burst).
+
+### Files Touched (Dim-1)
+
+Files modified in this 2-step PO+story-writer+state-manager burst (steps 1+2 = PO at `393527a4`, story-writer at `2300a27a`, state-manager this commit):
+
+1. `.factory/specs/behavioral-contracts/ss-05/BC-5.39.009.md` — AUTHORED by PO (`393527a4`) + duplicate `lifecycle_status: draft` key resolved by state-manager (this commit)
+2. `.factory/specs/behavioral-contracts/BC-INDEX.md` — UPDATED by PO (`393527a4`): v2.53→v2.54; BC-5.39.009 row added; SS-05 count 655→656
+3. `.factory/stories/S-15.17-validate-trajectory-tail-cell-completeness.md` — UPDATED by story-writer (`2300a27a`): v1.0→v1.1; `behavioral_contracts: ["BC-5.39.009"]`; AC-21 added; Anticipated sections replaced (Option A)
+4. `.factory/stories/STORY-INDEX.md` — UPDATED by story-writer (`2300a27a`): v3.71→v3.72; S-15.17 row version cell updated
+5. `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — UPDATED (this commit): D-513 row prepended + D-513 Appendix appended
+6. `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — UPDATED (this commit): this entry prepended
+7. `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — UPDATED (this commit): L-S-15.17-BC-authoring-clean-propagation appended
+8. `.factory/cycles/v1.0-brownfield-backfill/session-checkpoints.md` — UPDATED (this commit): D-512 checkpoint archived per POLICY 1
+9. `.factory/STATE.md` — UPDATED (this commit): full Commit-E advance (frontmatter phase/current_step/last_amended; Phase Progress +1 row; Decisions Log +D-513 row; Concurrent Cycles D-513 bolt-on; Last Updated; Current Phase; Active Branches; §1-§12 Session Resume Checkpoint refresh; BC count 1,949→1,950; 4-index §8 update; banner tracker +D-513 entry)
+
+### Codifications (Dim-3)
+
+- **D-513 codified (5 sub-clauses per decision-log.md SoT appendix):** (a) PO BC-5.39.009 v1.0 authored; (b) story-writer S-15.17 v1.1 POLICY 8 propagated; (c) state-manager duplicate lifecycle_status fix; (d) parent-commit 2300a27a; (e) 4-index BC v2.54/VP v2.06 (UNCHANGED)/STORY v3.72/ARCH v2.15 (UNCHANGED).
+- **L-S-15.17-BC-authoring-clean-propagation appended** to lessons.md: positive lesson on PO+story-writer clean handoff via POLICY 8 + POLICY 14 quintuple parity on a new BC authoring burst.
+- **D-512 checkpoint archived** to session-checkpoints.md per POLICY 1.
+
+### Dim-2 Attestation (literal-shell per D-449(a) META-LEVEL-24 closure)
+
+**PC2 (trajectory-tail marker present in current_step:):**
+
+```
+$ grep "^current_step:" /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md | grep -c "trajectory-tail"
+1
+```
+
+PASS.
+
+**PC3 (trajectory-tail LENGTH=4 in current_step:):**
+
+```
+$ grep "^current_step:" /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md | grep -oE "→[0-9]+" | wc -l
+       4
+```
+
+PASS.
+
+**PC4 (BC-5.39.009 registered in BC file):**
+
+```
+$ grep "^bc_id: BC-5.39.009" /Users/jmagady/Dev/vsdd-factory/.factory/specs/behavioral-contracts/ss-05/BC-5.39.009.md
+bc_id: BC-5.39.009
+```
+
+PASS.
+
+**PC5 (behavioral_contracts in S-15.17 references BC-5.39.009):**
+
+```
+$ grep "behavioral_contracts:" /Users/jmagady/Dev/vsdd-factory/.factory/stories/S-15.17-validate-trajectory-tail-cell-completeness.md | grep "BC-5.39.009"
+behavioral_contracts: ["BC-5.39.009"]
+```
+
+PASS.
+
+**PC6 (banner SIZE BUDGET (wc-l; token form present):**
+
+```
+$ grep "(wc-l" /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md | head -1
+current_step: "D-513 BC-5.39.009-AUTHORED-S-15.17-v1.1-PROPAGATED 2026-05-28 — ... SIZE BUDGET: (wc-l; see banner tracker)"
+```
+
+PASS — `(wc-l;` token present in STATE.md (current_step: line; banner tracker section also contains multiple `(wc-l;` entries).
+
+**Verification step 7 — 4-index gate (D-449(a) literal-shell):**
+
+```
+$ grep "^version:" /Users/jmagady/Dev/vsdd-factory/.factory/specs/behavioral-contracts/BC-INDEX.md
+version: "2.54"
+
+$ grep "^version:" /Users/jmagady/Dev/vsdd-factory/.factory/specs/verification-properties/VP-INDEX.md
+version: "2.06"
+
+$ grep "^version:" /Users/jmagady/Dev/vsdd-factory/.factory/stories/STORY-INDEX.md
+version: "3.72"
+
+$ grep "^version:" /Users/jmagady/Dev/vsdd-factory/.factory/specs/architecture/ARCH-INDEX.md
+version: "2.15"
+```
+
+4-index PASS: BC v2.54 ✓, VP v2.06 (UNCHANGED) ✓, STORY v3.72 ✓, ARCH v2.15 (UNCHANGED) ✓.
+
+**D-chain cite (PC5 / D-419(b)):**
+
+```
+$ grep "^current_step:" /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md | grep -oE "D-chain cite D-[0-9]+"
+D-chain cite D-512
+```
+
+PASS (D-512 is the prior burst per D-419(b)).
+
+**duplicate lifecycle_status fix verification:**
+
+```
+$ grep -c "lifecycle_status:" /Users/jmagady/Dev/vsdd-factory/.factory/specs/behavioral-contracts/ss-05/BC-5.39.009.md
+3
+```
+
+Count is 3: (1) line 30 — canonical frontmatter key `lifecycle_status: draft`; (2) line 42 — inside `last_amended:` text string `lifecycle_status: draft (POL-14...)`; (3) line 445 — inside Changelog prose `lifecycle_status: draft (POL-14...)`. None of these are structural frontmatter duplicates. The structural duplicate (first occurrence after `status: active`, before `producer:`) was resolved. PASS — no structural frontmatter-level duplicate remains.
+
+### Dim-5 Attestation
+
+Closes-set completeness for D-513 burst: all 5 sub-clauses executed — (a) BC-5.39.009.md authored + lifecycle_status fixed; (b) BC-INDEX v2.54 updated; (c) S-15.17 v1.1 POLICY 8 propagated + STORY-INDEX v3.72; (d) decision-log.md D-513 row + appendix; (e) STATE.md comprehensive Commit-E advance (frontmatter, Phase Progress, Decisions Log, Concurrent Cycles, Last Updated, Current Phase, Active Branches, §1-§12 Session Resume Checkpoint, banner tracker). 4-index: BC v2.54 / VP v2.06 (UNCHANGED) / STORY v3.72 / ARCH v2.15 (UNCHANGED). POLICY 14 5-leg verification executed by both PO and story-writer on their respective artifacts.
+
+### Dim-6 Attestation (literal-shell Dim-block count)
+
+This entry contains the following Dim-N h3 headings: Dim-1 (Files Touched), Dim-2 (Attestation), Dim-5 (Attestation), Dim-6 (this block), Dim-7 (Closes). That is 5 Dim-blocks. Per D-444(c) the mandatory blocks are: Parent-commit, Adversary Verdict, Files Touched, Codifications, Dim-2 Attestation, Dim-5, Dim-6, Dim-7 (8 total blocks). All 8 present.
+
+### Dim-7 Attestation / Closes
+
+**Closes:** D-513 BC-5.39.009 v1.0 PO authoring + S-15.17 v1.1 POLICY 8 propagation + duplicate lifecycle_status fix (state-manager bookkeeping). Trajectory-tail →9→9→9→11 LENGTH=4 (F5 pass-75 carry-across per D-433(e)+D-439(c)+D-454(a)).
+
+**Advances:** adversarial cascade dispatch on (BC-5.39.009 v1.0 + S-15.17 v1.1) — fresh-context adversary; 3-CLEAN required per BC-5.39.001; pass-1 dispatch-ready.
+
+**4-index post-D-513:** BC-INDEX v2.54 / VP-INDEX v2.06 (UNCHANGED) / STORY-INDEX v3.72 / ARCH-INDEX v2.15 (UNCHANGED). Parent-commit `2300a27a` per D-447(c).
+
+---
+
 ## D-509 E-10 PASS-15 FIX-BURST POST-MERGE BURST 2026-05-27
 
 ### Parent-commit
