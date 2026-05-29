@@ -2741,3 +2741,47 @@ POLICY 14 description and verification_steps updated in policies.yaml same-burst
 **Anchors:** D-521 (this burst); TD-VSDD-059; adv-spec-pass-8.md at `dfcbea39`; F-SP8-001/002 closures.
 
 **Closes:** D-521 TD-VSDD-059 paper-fix detection lesson per S-7.02 cycle-closing checklist. `[codified]` `[process-gap]`
+
+---
+
+## L-S-15.17-SP9-META-37-asymptotic-acceptance-SEAL
+
+**Date:** 2026-05-29
+
+**Pattern (META-LEVEL-37 CANDIDATE — scalar-snapshot-of-cardinality-presented-as-structural-form-invariant-but-disowned-in-prose):** Distinct from META-36 (SHA-pinning of snapshot stdout) — META-37 captures a NUMERICAL VALUE (count, occurrence cardinality) and calls the value structural when only the PREDICATE producing non-zero is structural. F-SP9-001: Grep 10 in POLICY 5 v1.3.6 §Application Example captured `16` trajectory-tail occurrences in the self-application evidence. At HEAD the actual count is `17`. POLICY 5 v1.3.6 Part B mandated HEAD-reproducibility OR structural-form-only; the scalar `16` is neither — it is a snapshot-of-cardinality, not the structural form-invariant (trajectory-tail marker exists).
+
+**Cure (if executed):** Forbid captured-stdout numerical scalars in §Application Examples; mandate predicate-only narrative (e.g., "grep returns non-empty = structural-form-only passing"). Scalar counts in examples are self-invalidating as STATE.md grows.
+
+**DECISION: META-37 codification DEFERRED via SEAL.** The cure-of-cure recursion at LEVEL 7 has structurally demonstrated impossibility to terminate under prose-only codification. Continuing to codify META-37/38/N cures produces new sub-routes faster than closures land. SEAL adjudication per D-386 Option C accepts the asymptotic floor + META-LEVEL ascent as the documented residual. The pattern: each cure layer at policy-self-application boundary admits a new META-LEVEL via cure-form-asymmetry (snapshot→structural→scalar→...→N). Operational discipline (literal-shell verification gates at HEAD per POLICY 5 v1.3.4 + v1.3.6) DOES work mechanically — the asymptote is at NARRATIVE-vs-PRODUCTION drift in §Application Examples and §Cure-Extension Parsimony, not at literal-shell gates.
+
+**Anchors:** F-SP9-001; D-522 (this burst); adv-spec-pass-9.md at `30e0a08a`; POLICY 5 v1.3.6.
+
+**Cites:** D-522 SEAL adjudication; D-386 Option C; D-477 precedent (S-15.14 SEAL); D-471 (asymptotic-floor acceptance).
+
+**Closes:** D-522 META-37 CANDIDATE lesson capture — classified as cure-recursion-structural-impossibility evidence, NOT as a new codifiable cure. `[codified]` `[seal-precedent]`
+
+---
+
+## L-S-15.17-cascade-9-pass-SEAL-precedent
+
+**Date:** 2026-05-29
+
+**Pattern (process observation — 9-pass SEAL precedent joins F5 D-386 + S-15.14 D-477):** S-15.17 is the THIRD cycle to invoke D-386 Option C asymptotic-acceptance. Common 3-stage pattern across all three:
+
+**Stage 1 (passes 1-3): Real defects.** Initial passes produce mostly substantive closure (missing content, structural gaps, spec inconsistencies). Fix-bursts yield meaningful improvements. Trajectory moves generally downward.
+
+**Stage 2 (passes 4-6): Mixed real + META-LEVEL cures.** Middle passes produce genuine structural findings mixed with policy-self-application gaps. Each new POLICY cure introduces the next-level violation in its own application example. Trajectory oscillates. POLICY cure count begins to match pass count.
+
+**Stage 3 (passes 7+): Cure-of-cure-of-cure recursion.** Late passes produce mostly META-LEVEL recursion at policy-self-application boundary. Structural real-defect count approaches zero; residual count is dominated by the infinite recursion possibility space. Adversary explicitly recommends SEAL.
+
+**Heuristic (3-stage threshold for SEAL):** When POLICY cure-layer count >= adversary pass count - 4, SEAL is warranted. For S-15.17: POLICY 5 had 6 cure layers at pass-9 → 9 - 4 = 5 → 6 >= 5 → SEAL appropriate. For S-15.14: 6 META-LEVEL classes at pass-11 → 11 - 4 = 7 → 6 close (SEAL appropriate). For F5: 29 META-LEVEL classes at pass-14 → 14 - 4 = 10 → well over threshold.
+
+**Structural interpretation:** The cure-layer-count >= pass-count - 4 threshold is a heuristic for when the META-LEVEL recursion has consumed the productive improvement space. Once each pass produces more META-LEVEL cure variants than structural closures, additional passes yield diminishing returns and new liability (each cure adds a new self-application surface).
+
+**Forward use:** This heuristic could be codified in `convergence-protocol.md` for future cycle orchestration as the SEAL early-warning trigger. When monitoring a cascade: track POLICY cure-layer count vs pass count. When cure-layer count approaches pass-count - 4, prepare SEAL adjudication evidence.
+
+**Anchors:** D-522 (this burst); F5 D-386 (14-pass SEAL); S-15.14 D-477 (11-pass SEAL); S-15.17 D-522 (9-pass SEAL).
+
+**Cites:** D-386 Option C; D-477; D-522.
+
+**Closes:** D-522 cascade SEAL precedent lesson capture per S-7.02 cycle-closing checklist. `[codified]` `[meta-process]`

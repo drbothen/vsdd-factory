@@ -5200,3 +5200,114 @@ Result: 4 Dim blocks present (Dim-2, Dim-5, Dim-6, Dim-7) — PASS per D-446(a)
 - `2d549ee5` — S-15.17 v1.3→v1.4 story-writer fix-burst (5 story findings + PC cascade re-anchor)
 - `3529ffc6` — state-manager closing burst (D-516 codification + 2 lessons + POLICY 5 + STATE.md advance)
 - `<D-516-SHA-patch-SHA>` — SHA-patch follow-up per D-447(c)+D-449(e)
+
+---
+
+## D-522 S-15.17 Spec Cascade SEAL Adjudication (Asymptotic-Acceptance per D-386 Option C + D-477 Precedent) (2026-05-29)
+
+### Summary
+
+SEAL adjudication for S-15.17 spec cascade. Pass-9 DIAGNOSTIC result confirmed META-LEVEL-36 cure (POLICY 5 v1.3.6) did NOT structurally bottom out the cure-of-cure-OF-cure recursion. META-LEVEL-37 CANDIDATE emerged from META-36 cure's own self-application example (Grep 10 scalar `16` non-reproducible at HEAD `17`). Per D-386 Option C asymptotic-acceptance + D-477 precedent: cascade SEALED at floor [9, 11] HIGH. 9 residual findings classified ACCEPTED-AT-ASYMPTOTIC-FLOOR per D-471. BC-5.39.009 v1.8 + S-15.17 v1.9 SEALED for implementation. POL-14 auto-promotion to active on S-15.17 PR merge. Forward path: remove-uncertainty → per-story-delivery dispatch.
+
+### Dim-2 Attestation (PC literal-shell evidence; D-449(a))
+
+**PC2 (BC frontmatter bc_id):**
+```
+$ grep "^current_step:" .factory/STATE.md | head -c 80
+current_step: "D-521 S-15.17-SPEC-CASCADE-PASS-8-FIX-BURST-COMPLETE-META-36-CODIFIED
+```
+Result: PASS (current_step present)
+
+**PC3 (behavioral_contracts in story):**
+```
+$ grep "^version:" .factory/specs/behavioral-contracts/ss-05/BC-5.39.009.md
+version: "1.8"
+```
+Result: PASS (BC v1.8 at SEAL)
+
+**PC4 (trajectory-tail LENGTH=4 in STATE.md current_step):**
+```
+$ grep "^current_step:" .factory/STATE.md | grep -oE "→[0-9]+" | wc -l
+4
+```
+Result: 4 — PASS (LENGTH=4 STRICT per D-433(e)+D-439(c))
+
+**PC5 (S-15.17 story version):**
+```
+$ grep "^version:" .factory/stories/S-15.17-validate-trajectory-tail-cell-completeness.md
+version: "1.9"
+```
+Result: PASS (story v1.9 at SEAL)
+
+**PC6 (policies.yaml version):**
+```
+$ grep "^version:" .factory/policies.yaml
+version: "1.3.6"
+```
+Result: PASS (policies.yaml v1.3.6 current at SEAL)
+
+**D-448(a) source-attestation parity (pass-9 finding count):**
+```
+$ grep -c '^### F-S15.17-SP9' .factory/code-delivery/S-15.17/adv-spec-pass-9.md
+10
+```
+Result: 10 — (9 numbered findings + no explicit PG; adversary verdict 9 findings 0C+4H+3M+1L+1N) — PASS per D-448(a)
+
+**BC-INDEX version:**
+```
+$ grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md
+version: "2.62"
+```
+Result: pre-SEAL v2.62; post-SEAL → v2.63 (SEAL annotation bump in this burst)
+
+**STORY-INDEX version:**
+```
+$ grep "^version:" .factory/stories/STORY-INDEX.md
+version: "3.80"
+```
+Result: pre-SEAL v3.80; post-SEAL → v3.81 (SEAL annotation bump in this burst)
+
+### Dim-5 Files Touched This Burst
+
+- `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` — pass-9 row + Convergence Status SEALED
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — this entry (D-522)
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-522 6-column row
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — 2 SEAL lessons
+- `.factory/specs/behavioral-contracts/BC-INDEX.md` — BC-5.39.009 SEAL annotation; v2.62→v2.63
+- `.factory/stories/STORY-INDEX.md` — S-15.17 SEAL annotation; v3.80→v3.81
+- `.factory/STATE.md` — Commit-E full advance (frontmatter + body + Session Resume Checkpoint)
+
+Prior burst commits (already committed):
+- `30e0a08a` — adv(S-15.17): persist spec cascade pass-9 (parent-commit per D-419(b))
+
+### Dim-6 Attestation (Block count gate per D-446(a))
+
+```
+$ awk '/^## D-522 /{found=1} found{print}' .factory/cycles/v1.0-brownfield-backfill/burst-log.md | grep -c "^### Dim-"
+4
+```
+Result: 4 Dim blocks (Dim-2, Dim-5, Dim-6, Dim-7) — PASS per D-446(a) and D-449(a)
+
+### Dim-7 Attestation (Closes / Advances)
+
+**Codifications:** D-522 SEAL adjudication + L-S-15.17-SP9-META-37-asymptotic-acceptance-SEAL + L-S-15.17-cascade-9-pass-SEAL-precedent
+
+**Closes:** D-522 S-15.17 spec cascade SEAL adjudication; all 9 pass-9 findings classified ACCEPTED-AT-ASYMPTOTIC-FLOOR per D-471; META-37 CANDIDATE codified as cure-recursion-structural-impossibility evidence (NOT as fixable cure); cascade SEALED; remove-uncertainty + per-story-delivery dispatch UNBLOCKED.
+
+**SEAL DECISION (D-522):**
+1. S-15.17 SPEC CASCADE SEALED per D-386 Option C asymptotic-acceptance at pass-9 floor [9, 11] HIGH.
+2. All 9 pass-9 residual findings (0C+4H+3M+1L+1N) classified ACCEPTED-AT-ASYMPTOTIC-FLOOR per D-471 precedent.
+3. POLICY 5 cure evolution v1.3→v1.3.6 documented as converged-at-asymptote; cure-of-cure-OF-cure recursion at level 7 structurally impossible to terminate under prose-only codification per L-EDP1-007/051/061.
+4. BC-5.39.009 v1.8 + S-15.17 v1.9 SEALED for implementation phase.
+5. STREAK reset to N/A (SEAL is convergence; 3-CLEAN bypass under D-386 Option C).
+6. POL-14 auto-promotion to active on S-15.17 PR merge.
+7. Forward path: remove-uncertainty sweep → per-story-delivery dispatch.
+
+**Advances:** per-story-delivery dispatch for S-15.17 implementation phase UNBLOCKED.
+
+**Trajectory:** →9→9→9→9 SEALED (F5 carry-across per D-433(e)+D-439(c); D-386 Option C asymptotic-acceptance)
+
+### Factory-artifacts Commits
+
+- `30e0a08a` — adv(S-15.17): persist spec cascade pass-9 (parent-commit per D-419(b)+D-421(a))
+- `<D-522-SEAL-SHA>` — state(D-522): SEAL adjudication + INDEX.md + burst-log + decision-log + lessons + STATE.md + BC-INDEX v2.63 + STORY-INDEX v3.81 (this commit; SHA-patch follow-up per D-447(c)+D-449(e))

@@ -433,4 +433,44 @@ Key resume data:
 - 4-index: BC-INDEX v2.60 / VP-INDEX v2.06 / STORY-INDEX v3.78 / ARCH-INDEX v2.15
 - D-range: D-001..D-519
 
+**This checkpoint superseded by D-520 S-15.17 spec cascade pass-7 fix-burst COMPLETE + META-LEVEL-35 CODIFIED + ASYMPTOTIC-FLOOR BROKEN 2026-05-29.**
+
+---
+
+## Archived Checkpoint: D-520 S-15.17 SPEC CASCADE PASS-7 FIX-BURST COMPLETE + META-35 CODIFIED + ASYMPTOTIC-FLOOR BROKEN (2026-05-29)
+
+**Archived:** 2026-05-29 when D-521 pass-8 fix-burst state-manager close replaced this checkpoint.
+
+**Summary:** D-520 S-15.17 spec cascade pass-7 fix-burst COMPLETE + META-LEVEL-35 CODIFIED (POLICY 5 v1.3.5 historical-by-construction enumeration + adversary-replay-reproducibility + sibling-sweep categories (a)-(h)) 2026-05-29. Trajectory MATERIAL DROP 14→11→14→16→12→11→9; ASYMPTOTIC-FLOOR BROKEN. Next was pass-8 adversary dispatch.
+
+**Key anchors at D-520:**
+- factory-artifacts HEAD: `86119cec` (D-520 SHA-patch per D-447(c)+D-449(e) 2026-05-29)
+- develop HEAD: `98ea0719` (sync main→develop 2026-05-28)
+- BC-5.39.009: v1.7 draft (POLICY 5 v1.3.5 self-applied; PO fix-burst f5bf4082)
+- S-15.17: v1.8 draft (story-writer fix-burst 7b54600d)
+- policies.yaml: v1.3.5 (POLICY 5 META-35 historical-by-construction enumeration)
+- 4-index: BC-INDEX v2.61 / VP-INDEX v2.06 / STORY-INDEX v3.79 / ARCH-INDEX v2.15
+- D-range: D-001..D-520
+
+**This checkpoint superseded by D-521 S-15.17 spec cascade pass-8 fix-burst COMPLETE + META-LEVEL-36 CODIFIED + TD-VSDD-059 PAPER-FIX DETECTED 2026-05-29.**
+
+---
+
+## Archived Checkpoint: D-521 S-15.17 SPEC CASCADE PASS-8 FIX-BURST COMPLETE + META-36 CODIFIED + TD-VSDD-059 PAPER-FIX DETECTED (2026-05-29)
+
+**Archived:** 2026-05-29 when D-522 SEAL adjudication state-manager close replaced this checkpoint.
+
+**Summary:** D-521 S-15.17 spec cascade pass-8 fix-burst COMPLETE + META-LEVEL-36 CODIFIED (POLICY 5 v1.3.6 HEAD-reproducibility + structural-form-only + snapshot-rescue detection) + TD-VSDD-059 paper-fix detection 2026-05-29. Trajectory REGRESSED 9→11; CRITICAL returned. SEAL adjudication recommended. Next was pass-9 adversary dispatch (DIAGNOSTIC).
+
+**Key anchors at D-521:**
+- factory-artifacts HEAD: `182cd488` (D-521 SHA-patch per D-447(c)+D-449(e) 2026-05-29)
+- develop HEAD: `98ea0719` (sync main→develop 2026-05-28)
+- BC-5.39.009: v1.8 draft (PO fix-burst 068725ea; POLICY 5 v1.3.6 self-applied)
+- S-15.17: v1.9 draft (story-writer fix-burst aaf69b74; bats 25→28)
+- policies.yaml: v1.3.6 (POLICY 5 META-36 HEAD-reproducibility + structural-form-only + snapshot-rescue detection)
+- 4-index: BC-INDEX v2.62 / VP-INDEX v2.06 / STORY-INDEX v3.80 / ARCH-INDEX v2.15
+- D-range: D-001..D-521
+
+**This checkpoint superseded by D-522 S-15.17 SPEC CASCADE SEALED asymptotic-acceptance D-386 Option C 2026-05-29.**
+
 **This checkpoint superseded by D-520 S-15.17 spec cascade pass-7 fix-burst COMPLETE + META-LEVEL-35 CODIFIED 2026-05-29.**
