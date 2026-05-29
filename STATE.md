@@ -193,7 +193,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | 43afbfa7 | rc.19 SHIPPED 2026-05-28; bot binary commit on top of merge from develop; prior main HEAD: 70811f4a (rc.18 merge) |
 | develop | 98ea0719 | Sync main→develop auto-job 2026-05-28 post-rc.19 merge; prior: 4b68ab83 (PR #160 E-10 pass-15 fix-burst 2026-05-27) |
-| factory-artifacts | `e541eefc` | D-520 state-manager close HEAD pending SHA-patch; prior D-519: f189b45b (D-519 close+SHA-patch 2026-05-29); prior D-518: 887cfb9d (D-518 close) + 99bb1d0f (D-518 SHA-patch) |
+| factory-artifacts | `86119cec` | D-520 SHA-patch HEAD 2026-05-29 per D-447(c)+D-449(e); D-520 close: e541eefc; prior D-519: f189b45b (D-519 close+SHA-patch 2026-05-29); prior D-518: 887cfb9d (D-518 close) + 99bb1d0f (D-518 SHA-patch) |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28; GitHub Release prerelease 2026-05-28T15:10:56Z; marketplace PR drbothen/claude-mp PR #11 squash-merged |
 | v1.0.0-rc.18 (tag) | 666d689f | SHIPPED 2026-05-13 PR #135 |
 | v1.0.0-rc.16 (tag) | feb894a2 | SHIPPED; claude-mp PR #8 awaiting human merge |
