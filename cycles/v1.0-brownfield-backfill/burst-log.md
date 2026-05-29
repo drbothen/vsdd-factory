@@ -4618,7 +4618,8 @@ D-517 S-15.17 spec cascade pass-4 fix-burst (all 16 findings); BC-5.39.009 v1.3�
 - `c3ddda14` — adv-persist step (adv-spec-pass-4.md; HIGH 16 findings persisted)
 - `f1f0cb52` — PO fix-burst (BC-5.39.009 v1.3→v1.4; 10/10 closed; BC-INDEX v2.58; policies.yaml v1.3.1)
 - `2a307a4f` — story-writer fix-burst (S-15.17 v1.4→v1.5; 6/6 closed; STORY-INDEX v3.76)
-- `fe130df1` — state-manager closing burst (D-517 codification + 2 lessons + POLICY 8 v1.3 + POLICY 5 v1.3.1 + STATE.md advance; SHA-patch follow-up in next commit per D-447(c)+D-449(e))
+- `fe130df1` — state-manager closing burst (D-517 codification + 2 lessons + POLICY 8 v1.3 + POLICY 5 v1.3.1 + STATE.md advance)
+- `d9b86dc2` — SHA-patch follow-up (Active Branches factory-artifacts + burst-log placeholder updated; factory-artifacts HEAD per D-447(c)+D-449(e))
 
 ---
 

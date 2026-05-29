@@ -187,7 +187,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | 43afbfa7 | rc.19 SHIPPED 2026-05-28; bot binary commit on top of merge from develop; prior main HEAD: 70811f4a (rc.18 merge) |
 | develop | 98ea0719 | Sync main→develop auto-job 2026-05-28 post-rc.19 merge; prior: 4b68ab83 (PR #160 E-10 pass-15 fix-burst 2026-05-27) |
-| factory-artifacts | `fe130df1` | D-517 primary commit 2026-05-28; SHA-patch will update to SHA-patch HEAD per D-447(c)+D-449(e); prior: 3529ffc6 D-516 primary / 2aca470b D-516 SHA-patch |
+| factory-artifacts | `d9b86dc2` | D-517 SHA-patch HEAD 2026-05-28 per D-447(c)+D-449(e); prior primary: fe130df1 D-517; prior D-516: 3529ffc6 primary / 2aca470b SHA-patch |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28; GitHub Release prerelease 2026-05-28T15:10:56Z; marketplace PR drbothen/claude-mp PR #11 squash-merged |
 | v1.0.0-rc.18 (tag) | 666d689f | SHIPPED 2026-05-13 PR #135 |
 | v1.0.0-rc.16 (tag) | feb894a2 | SHIPPED; claude-mp PR #8 awaiting human merge |
@@ -301,7 +301,7 @@ dtu_services: []
 
 - **D-517 pass-4 fix-burst COMPLETE (2026-05-28):** Adversary pass-4 HIGH 16 findings (1C+6H+5M+2L+1N+1PG) REGRESSING (14→11→14→16). F-SP4-016 (process-gap: story EC additions accumulating [needs-po] placeholders across bursts — cured by POLICY 8 v1.3 EC-mirror routing-rule mandating same-burst PO mirror dispatch). META-LEVEL-32 CANDIDATE: SDK-grounding-mandate-with-stale-pins (POLICY 5 grep -n line numbers decay between authoring and adversary pass — cured by POLICY 5 v1.3.1 stable-anchor sub-clause). META-LEVEL-31 sub-sub-route: audit-grep-predicate-too-narrow (bare `PC13` evaded renumbering). META-LEVEL-30 route (b): PC9 Dim-7 extractor silently no-ops (not anchored to `^### Dim-7` heading). META-LEVEL-24 recurring: verbatim-discipline not self-applied during POLICY 5 cure. PO fix-burst `f1f0cb52` closed 10 BC findings; BC v1.3→v1.4; BC-INDEX v2.57→v2.58; EC-020 mirrored in BC-5.39.009. Story-writer fix-burst `2a307a4f` closed 6 story findings; story v1.4→v1.5; STORY-INDEX v3.75→v3.76; Path::components mandate; structural cycle-name; audit predicate widened. POLICY 8 v1.3 codified; POLICY 5 v1.3.1 codified. All 16 findings CLOSED. STREAK 0/3 reset per BC-5.39.001. D-517 codified.
 - **develop HEAD:** `98ea0719` (sync main→develop 2026-05-28). **main HEAD:** `43afbfa7` (bot binary commit 2026-05-28).
-- **factory-artifacts HEAD:** `fe130df1` (D-517 primary commit 2026-05-28; SHA-patch follow-up run per D-447(c)+D-449(e)).
+- **factory-artifacts HEAD:** `d9b86dc2` (D-517 SHA-patch 2026-05-28 per D-447(c)+D-449(e); D-517 primary: fe130df1).
 - **D-range:** D-001..D-517.
 - **4-index (post-D-517):** BC-INDEX v2.58, VP-INDEX v2.06 (UNCHANGED), STORY-INDEX v3.76, ARCH-INDEX v2.15 (UNCHANGED).
 - **BC content:** BC-5.39.005 v1.3 ACTIVE + BC-5.39.006 v1.7 ACTIVE + BC-5.39.007 v1.6 ACTIVE + BC-5.39.008 v1.5 ACTIVE + BC-5.39.009 v1.4 draft (pass-4 fix-burst complete; EC-020 mirrored; PC9 Dim-7 re-anchored; POLICY 5 v1.3.1 stable-anchor sub-clause; pass-5 dispatch-ready; active on S-15.17 merge per POL-14) + BC-7.04.051 v1.1 ACTIVE.
@@ -393,7 +393,7 @@ Prior Tier-A (pre-session, all COMPLETE): TD #71/72/70/74 (PRs #138–141 2026-0
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** `fe130df1` (D-517 primary commit 2026-05-28; SHA-patch follow-up run per D-447(c)+D-449(e))
+- **factory-artifacts HEAD:** `d9b86dc2` (D-517 SHA-patch 2026-05-28 per D-447(c)+D-449(e); D-517 primary: fe130df1)
 - **develop HEAD:** `98ea0719` (sync main→develop 2026-05-28)
 - **main HEAD:** `43afbfa7` (rc.19 bot binary commit 2026-05-28)
 - **v1.0.0-rc.19 tag:** `d15152af` (GitHub Release 2026-05-28T15:10:56Z)
