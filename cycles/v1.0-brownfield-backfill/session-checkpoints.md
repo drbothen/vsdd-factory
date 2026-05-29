@@ -360,3 +360,21 @@ dispatch story-writer for 3M3b elaboration (5 M3 stories: S-15.10/12/13/15/16-Pa
 - D-range: D-001..D-515
 
 **This checkpoint superseded by D-516 S-15.17 spec cascade pass-3 fix-burst COMPLETE + cure-of-cure + SDK-grounding codified 2026-05-28.**
+
+---
+
+## Archived Checkpoint: D-516 S-15.17 SPEC CASCADE PASS-3 FIX-BURST COMPLETE + CURE-OF-CURE + SDK-GROUNDING CODIFIED (archived from STATE.md at D-517 advance)
+
+**Archived:** 2026-05-28 at D-517 state-manager advance.
+
+**§1 summary:** D-516 S-15.17 spec cascade pass-3 fix-burst COMPLETE + cure-of-cure-recursion + SDK-grounding mandate codified 2026-05-28. Pass-4 adversary dispatch was next action.
+
+**Key anchors:**
+- factory-artifacts HEAD: `3529ffc6` (D-516 primary) / SHA-patch: `2aca470b`
+- D-516 PO fix-burst: `ac74474f` (BC v1.2→v1.3) / story-writer: `2d549ee5` (story v1.3→v1.4)
+- D-516 adv-persist: `ebf7413f` (14 findings; all CLOSED)
+- 4-index: BC-INDEX v2.57 / VP-INDEX v2.06 / STORY-INDEX v3.75 / ARCH-INDEX v2.15
+- policies.yaml v1.3 (POLICY 5 SDK-grounding mandate + POLICY 8 v1.2 audit-block-exclusion)
+- D-range: D-001..D-516
+
+**This checkpoint superseded by D-517 S-15.17 spec cascade pass-4 fix-burst COMPLETE + META-LEVEL-32 CANDIDATE + EC-mirror routing-rule 2026-05-28.**

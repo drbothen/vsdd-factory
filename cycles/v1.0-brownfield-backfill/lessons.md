@@ -2518,3 +2518,43 @@ POLICY 14 description and verification_steps updated in policies.yaml same-burst
 **Cites:** D-516, POLICY 5 v1.3, adv-spec-pass-3.md at ebf7413f, ac74474f PO fix-burst (9 literal-shell captures).
 
 **Closes:** D-516 SDK-grounding-mandate lesson capture per S-7.02 cycle-closing checklist.
+
+---
+
+## L-S-15.17-SP4-META-32-stable-anchor-extension
+
+**Date:** 2026-05-28
+
+**Pattern (META-LEVEL-32 CANDIDATE — SDK-grounding-mandate-with-stale-pins):** POLICY 5 v1.3 SDK-grounding mandate requires literal-shell grep captures in §SDK Grounding Evidence. However, when those captures use line numbers (`grep -n` flag or `sed -n 'NNN,MMMp'`), the line numbers in the captured stdout decay between the authoring burst and the next adversary pass because intervening edits shift line positions. F-SP4-002 confirmed this class: the POLICY 5 v1.3.1 compliance grep cited `## Phase Progress` at line 61 in STATE.md, but by the time of pass-4 adversary review it had shifted to line 64. The adversary could not verify the citation was pointing to the correct artifact location.
+
+**Mechanism:** Author greps with `grep -n` or `sed -n 'NNNp'`, captures the line-number-prefixed output, and persists it in §SDK Grounding Evidence. The grep was correct at authoring time. On the next adversary pass, the file has been edited, lines shifted, and the persisted stdout is now inaccurate. The adversary cannot distinguish stale-pin from never-verified.
+
+**Cure (D-497 parsimony — POLICY 5 v1.3.1 EXTENSION):** POLICY 5 stable-anchor sub-clause: all grep captures in §SDK Grounding Evidence MUST use stable anchors only — heading prefix `^## `, function signature `^pub fn `, regex pattern `^key:`, etc. Do NOT use `grep -n` (line-number prefix) or bare `sed -n 'NNNp'` as the sole capture. If captured stdout contains `file:NNN:` format, re-execute with a stable-anchor pattern. Stable anchors are invariant to line drift; line numbers are not. POLICY 5 v1.3→v1.3.1 applied at PO fix-burst `f1f0cb52` (D-517).
+
+**Forward-watch:** Pass-5+ adversary MUST verify POLICY 5 v1.3.1 stable-anchor sub-clause — check that no §SDK Grounding Evidence entry uses `grep -n` or bare line-number sed as the sole capture. If F-SP5-XXX class resurfaces on a different sub-constraint of SDK-grounding, extend POLICY 5 v1.3.2 per D-497 parsimony.
+
+**Anchors:** F-SP4-002; D-517 (this burst).
+
+**Cites:** D-517, POLICY 5 v1.3.1, adv-spec-pass-4.md at `c3ddda14`, PO fix-burst `f1f0cb52`.
+
+**Closes:** D-517 META-LEVEL-32 CANDIDATE stable-anchor lesson capture per S-7.02 cycle-closing checklist. `[codified]`
+
+---
+
+## L-S-15.17-SP4-orchestrator-routing-rule-EC-mirror
+
+**Date:** 2026-05-28
+
+**Pattern (PROCESS-GAP — story-local-EC-accumulates-needs-po-placeholders):** When the story-writer adds an Edge Case (EC) row to a story that names a BC anchor (PC, invariant, or AC-class), the PO must mirror an equivalent EC into the BC. Without an orchestrator routing rule, the story-writer flags the gap with `[needs-po]` and the burst closes without the mirror being dispatched. These `[needs-po]` placeholders accumulate across bursts, each one constituting a CLAUDE.md Canonical Principle Rule 3 violation: the deferral was never explicitly authorized by the human, has no concrete future dependency anchor, and is not attached to a specific future story/wave.
+
+**Mechanism:** F-SP4-016 (PROCESS-GAP MEDIUM) surfaced that EC-020 (`[needs-po]`) was added at D-516 story-writer fix-burst but not mirrored into BC-5.39.009 at the same burst. The orchestrator had no codified routing rule requiring same-burst PO mirror for story-local EC additions naming BC anchors. The adversary detected the `[needs-po]` placeholder still present at pass-4.
+
+**Cure (D-497 parsimony — POLICY 8 v1.3 EXTENSION):** POLICY 8 EC-MIRROR ROUTING-RULE sub-clause: when a story adds an EC row referencing a BC anchor, the orchestrator MUST dispatch a same-burst PO mirror task. Story-writer flags new ECs with `[needs-po-mirror]` signal. PO must add equivalent EC to BC body with consistent ID and trigger/expected-behavior/test-vector form. Story-writer MUST NOT leave `[needs-po]` placeholder across burst boundaries. POLICY 8 v1.2→v1.3 applied at state-manager close `<this-burst-SHA>` (D-517). EC-020 was PO-mirrored at fix-burst `f1f0cb52`.
+
+**Forward-watch:** In all future spec cascade fix-bursts where story-writer closes a story finding that introduces a new EC: orchestrator dispatch template MUST include a "PO mirror check" step before story-writer burst is declared complete. Adversary MUST verify absence of `[needs-po]` placeholder across burst boundary.
+
+**Anchors:** F-SP4-016; D-517 (this burst).
+
+**Cites:** D-517, POLICY 8 v1.3, adv-spec-pass-4.md at `c3ddda14`, PO fix-burst `f1f0cb52` (EC-020 mirror), story-writer fix-burst `2a307a4f`.
+
+**Closes:** D-517 EC-mirror routing-rule process-gap lesson capture per S-7.02 cycle-closing checklist. `[codified]` `[process-gap]`

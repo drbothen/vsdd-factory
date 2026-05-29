@@ -4472,6 +4472,156 @@ Result: 4 Dim blocks present (Dim-2, Dim-5, Dim-6, Dim-7) — PASS per D-446(a)
 
 ---
 
+## D-517 S-15.17 Spec Cascade Pass-4 Fix-Burst Close (2026-05-28)
+
+**Parent-commit:** `2a307a4f` (story-writer fix-burst; D-419(b))
+**Burst type:** Spec cascade pass-4 fix-burst close + META-LEVEL-32 CANDIDATE codification + POLICY 8 v1.3 EC-mirror routing-rule
+**Date:** 2026-05-28
+
+### Dim-1 (Overview)
+
+D-517 state-manager closing burst for S-15.17 spec cascade pass-4. Adversary pass-4 verdict HIGH 16 findings (1C+6H+5M+2L+1N+1PG). Trajectory REGRESSING 14→11→14→16 (third consecutive non-clean pass; STREAK 0/3 reset per BC-5.39.001). PO closed 10/10 findings at `f1f0cb52`; story-writer closed 6/6 findings at `2a307a4f`. All 16 findings CLOSED. META-LEVEL-32 CANDIDATE (SDK-grounding-mandate-with-stale-pins) codified via POLICY 5 v1.3.1 stable-anchor sub-clause. F-SP4-016 process-gap closed via POLICY 8 v1.3 EC-mirror routing-rule extension. Pass-5 dispatch-ready.
+
+### Dim-2 (Production-Attestation Gate)
+
+Per D-449(a) and TD-VSDD-100, all gates MUST be literal-shell invocations reading production artifacts. No synthetic echo/printf strings.
+
+**Gate 1 — current_step: field in STATE.md (PC2 gate — D-chain carry):**
+```
+$ grep "^current_step:" /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md
+```
+Output (pre-D-517 advance; will be updated in Commit-E):
+```
+current_step: "D-516 S-15.17-SPEC-CASCADE-PASS-3-FIX-BURST-COMPLETE 2026-05-28 — adv pass-3 HIGH 14 findings (1C+5H+4M+3L+1N+1PG) trajectory-tail →9→9→9→11 persisted ebf7413f; [truncated]"
+```
+
+**Gate 2 — BC-5.39.009 version in BC-INDEX (PC3 / POLICY 14 leg-5 gate):**
+```
+$ grep "^| BC-5\.39\.009 " /Users/jmagady/Dev/vsdd-factory/.factory/specs/behavioral-contracts/BC-INDEX.md
+```
+Output:
+```
+| S-15.17 | validate-trajectory-tail-cell-completeness WASM hook — per-cell runtime gate for D-453(d) prescribed sites | E-12 | 8 | P1 | [S-15.15] | [] | draft | [BC-5.39.009] (F5 pass-75 HIGH-002 anchor; [...] v1.5 2026-05-28 pass-4 adversary fix-burst; BC-5.39.009 v1.4; [...])
+```
+
+**Gate 3 — S-15.17 version in STORY-INDEX (PC4 trajectory-tail LENGTH=4 / POLICY 14 leg-5 gate):**
+```
+$ grep "^| S-15\.17 " /Users/jmagady/Dev/vsdd-factory/.factory/stories/STORY-INDEX.md
+```
+Output:
+```
+| S-15.17 | validate-trajectory-tail-cell-completeness WASM hook [...] v1.5 2026-05-28 pass-4 adversary fix-burst; BC-5.39.009 v1.4; [...] |
+```
+
+**Gate 4 — BC-5.39.009.md version: frontmatter (POLICY 14 leg-1 gate):**
+```
+$ grep "^version:" /Users/jmagady/Dev/vsdd-factory/.factory/specs/behavioral-contracts/ss-05/BC-5.39.009.md
+```
+Output:
+```
+version: "1.4"
+```
+
+**Gate 5 — S-15.17 story version: frontmatter (POLICY 14 leg-1 gate):**
+```
+$ grep "^version:" /Users/jmagady/Dev/vsdd-factory/.factory/stories/S-15.17-validate-trajectory-tail-cell-completeness.md
+```
+Output:
+```
+version: "1.5"
+```
+
+**Gate 6 — 4-index version verification (D-494 POLICY 14 leg-4 self-application):**
+```
+$ grep "^version:" /Users/jmagady/Dev/vsdd-factory/.factory/specs/behavioral-contracts/BC-INDEX.md
+$ grep "^version:" /Users/jmagady/Dev/vsdd-factory/.factory/specs/verification-properties/VP-INDEX.md
+$ grep "^version:" /Users/jmagady/Dev/vsdd-factory/.factory/stories/STORY-INDEX.md
+$ grep "^version:" /Users/jmagady/Dev/vsdd-factory/.factory/specs/architecture/ARCH-INDEX.md
+```
+Output:
+```
+version: "2.58"
+version: "2.06"
+version: "3.76"
+version: "2.15"
+```
+Result: BC v2.58 / VP v2.06 / STORY v3.76 / ARCH v2.15 — matches D-517 expected values. PASS.
+
+**Gate 7 — D-448(a) source-attestation (adversary finding count):**
+```
+$ grep -c '^### F-S15.17-SP4' /Users/jmagady/Dev/vsdd-factory/.factory/code-delivery/S-15.17/adv-spec-pass-4.md
+```
+Output:
+```
+16
+```
+Result: 16 findings confirmed in adv-spec-pass-4.md — PASS.
+
+### Dim-3 (Adversary Verdict)
+
+Adversary pass-4 verdict: **HIGH** — 16 findings (1C+6H+5M+2L+1N+1PG). Trajectory REGRESSING 14→11→14→16. STREAK 0/3 RESET per BC-5.39.001. 3 regression-class findings: F-SP4-003 ([regression] Architecture Mapping cycle-name `<active-cycle>` placeholder not eliminated by pass-3 cure — F-SP3-001 regression), F-SP4-006 ([regression] Path::components cycle-path guard absent in T-5 — F-SP3-001/F-SP3-008 regression), F-SP4-015 ([regression] EC-007 audit predicate `PC13` too narrow after PC renumbering — F-SP1-003 regression). META-LEVEL signals: META-LEVEL-32 CANDIDATE SDK-grounding-mandate-with-stale-pins anchored by F-SP4-002+F-SP4-010 (POLICY 5 v1.3 grep captures line-number-prefixed, decaying between authoring and adversary pass); META-LEVEL-31 sub-sub-route audit-grep-predicate-too-narrow (F-SP4-015 bare `PC13` evaded by renumbering). META-LEVEL-30 route (b) inside cure BC: F-SP4-004 PC9 Dim-7 extractor would silently no-op (regex not anchored to `^### Dim-7` heading). META-LEVEL-24 inside POLICY 5 cure: F-SP4-010 POLICY 15 verbatim-discipline self-non-application. Report faithfully describes adv-spec-pass-4.md Part A finding set per D-448(a) source-attestation gate (Gate 7 above confirms 16 findings).
+
+### Dim-4 (Files Touched)
+
+All files modified in this closing burst (D-517 state-manager):
+- `.factory/policies.yaml` — POLICY 8 v1.2→v1.3 EC-mirror routing-rule sub-clause; version v1.3.1→v1.3.2
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — 2 lessons appended (L-S-15.17-SP4-META-32-stable-anchor-extension + L-S-15.17-SP4-orchestrator-routing-rule-EC-mirror)
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-517 canonical 6-column row + appendix
+- `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` — S-15.17 cascade table pass-4 row + Convergence Status bullet
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — this entry (D-517)
+- `.factory/cycles/v1.0-brownfield-backfill/session-checkpoints.md` — D-516 checkpoint archived
+- `.factory/STATE.md` — Commit-E full advance (frontmatter + body sections + Session Resume Checkpoint)
+
+Prior burst files (already committed):
+- `c3ddda14` — `code-delivery/S-15.17/adv-spec-pass-4.md` persisted (adversary persist step; HIGH 16 findings)
+- `f1f0cb52` — BC-5.39.009 v1.3→v1.4 PO fix-burst (10 findings closed; BC-INDEX v2.57→v2.58; policies.yaml v1.3→v1.3.1)
+- `2a307a4f` — S-15.17 v1.4→v1.5 story-writer fix-burst (6 findings closed; STORY-INDEX v3.75→v3.76)
+
+### Dim-5 (Parent-Commit Chain Verification)
+
+```
+$ git -C /Users/jmagady/Dev/vsdd-factory/.factory log --format='%H %s' 2a307a4f^..HEAD
+```
+Output:
+```
+2a307a4fbf78089b6316e5d4a1d232503dd033f2 spec(S-15.17): v1.5 pass-4 fix-burst — 6 story findings + BC v1.4 alignment (Path::components + structural cycle-name + audit predicate widened)
+```
+Result: HEAD is `2a307a4f` (story-writer fix-burst) — this is the parent-commit per D-419(b). State-manager burst (D-517) will be the next commit. PASS.
+
+### Dim-6 (Verification Stdout — Literal-Shell Count)
+
+Per TD-VSDD-099 and D-448(a) source-attestation gate:
+
+```
+$ grep -c '^### F-S15.17-SP4' /Users/jmagady/Dev/vsdd-factory/.factory/code-delivery/S-15.17/adv-spec-pass-4.md
+```
+Output:
+```
+16
+```
+Result: 16 — confirms 16 findings in adv-spec-pass-4.md Part A. PASS per TD-VSDD-099 literal-shell count discipline.
+
+### Dim-7 (Attestation)
+
+**Closures:** PO `f1f0cb52` closed 10/10 BC findings (CRITICAL F-SP4-001 PC3-single-row-tightening + F-SP4-002 stable-anchor §SDK Grounding + F-SP4-003 EC-020 PO-mirror + F-SP4-004 PC9 Dim-7 re-anchor + F-SP4-005 extract_current_cycle() spec + F-SP4-007 caret-anchored PC predicate + F-SP4-009 architecture table structural form + F-SP4-010 POLICY 15 self-apply + F-SP4-013 secondary anchor form + F-SP4-014 stable-anchor migration). Story-writer `2a307a4f` closed 6/6 story findings (F-SP4-003 Architecture Mapping structural cycle-name form + F-SP4-006 T-5 Path::components mandate + F-SP4-008 Risk row reword + F-SP4-011 invariant coverage stdout + F-SP4-012 structural comment form + F-SP4-015 EC-007 PC13→PC12 + audit predicate widened). Total: 16/16 CLOSED. STREAK 0/3 confirmed per BC-5.39.001.
+
+**Advances:** pass-5 dispatch-ready. Fresh-context adversary on (BC-5.39.009 v1.4 + S-15.17 v1.5). Prior pass-1..pass-4 reports available. STREAK 0/3. 3-CLEAN required from this point for convergence per BC-5.39.001.
+
+**Trajectory:** →9→9→9→11 (F5 carry-across per D-433(e)+D-439(c))
+
+### Closes
+
+D-517 S-15.17 spec cascade pass-4 fix-burst (all 16 findings); BC-5.39.009 v1.3→v1.4; S-15.17 v1.4→v1.5; BC-INDEX v2.57→v2.58; STORY-INDEX v3.75→v3.76; policies.yaml v1.3→v1.3.1 (POLICY 5 v1.3.1 stable-anchor sub-clause, PO burst) → v1.3.1→v1.3.2 (POLICY 8 v1.3 EC-mirror routing-rule, state-manager this burst); F-SP4-016 process-gap via POLICY 8 v1.3 codification; META-LEVEL-32 CANDIDATE codified (L-S-15.17-SP4-META-32-stable-anchor-extension); EC-mirror routing-rule codified (L-S-15.17-SP4-orchestrator-routing-rule-EC-mirror).
+
+### Factory-artifacts Commits
+
+- `c3ddda14` — adv-persist step (adv-spec-pass-4.md; HIGH 16 findings persisted)
+- `f1f0cb52` — PO fix-burst (BC-5.39.009 v1.3→v1.4; 10/10 closed; BC-INDEX v2.58; policies.yaml v1.3.1)
+- `2a307a4f` — story-writer fix-burst (S-15.17 v1.4→v1.5; 6/6 closed; STORY-INDEX v3.76)
+- `<D-517-PRIMARY-SHA>` — state-manager closing burst (D-517 codification + 2 lessons + POLICY 8 v1.3 + STATE.md advance) — SHA-patch follow-up will replace this placeholder per D-447(c)+D-449(e)
+
+---
+
 ## D-516 — S-15.17 Spec Cascade Pass-3 Fix-Burst COMPLETE + Cure-of-Cure-Recursion + SDK-Grounding Mandate 2026-05-28
 
 **Parent-commit:** `2d549ee5` (story-writer fix-burst; D-419(b))
