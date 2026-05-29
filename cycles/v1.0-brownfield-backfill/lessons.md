@@ -2660,3 +2660,41 @@ POLICY 14 description and verification_steps updated in policies.yaml same-burst
 **Cites:** D-519, META-LEVEL-34, POLICY 5 v1.3.4, cure-of-cure-of-cure chain (D-518/519 two-burst validation).
 
 **Closes:** D-519 cure-of-cure-of-cure recursion success lesson capture per S-7.02 cycle-closing checklist. `[codified]`
+
+---
+
+## L-S-15.17-SP7-META-35-replay-reproducibility
+
+**Date:** 2026-05-29
+
+**Pattern (META-LEVEL-35: verification-gate-self-application-asserts-pass-but-replay-yields-non-empty):** Pass-6 codified POLICY 5 v1.3.4 verification gate. Pass-7 fresh-context adversary replayed the identical gate predicate against the same files and found 6+ non-historical hits — despite PO+story-writer pass-6 self-application claiming "all gates empty = PASS". Root cause: "historical-by-construction" category was not explicitly enumerated — different agents applied different intuitions about what content forms are historical vs current. The v1.3.4 gate required captured-stdout proof but not a shared definition of what stdout is EXPECTED to contain.
+
+**Cure: POLICY 5 v1.3.5** with three parts: (a) Part A — explicit historical-by-construction enumeration (only 5 content forms are historical: YAML modified[] entries, ## Changelog rows, [Prior:] in last_amended, §Adversary Pass Coverage entries, lesson cross-refs); (b) Part B — adversary-replay-reproducibility mandate (cite parent-commit SHA so a fresh-context adversary can reproduce stdout at exactly that SHA; gate claims without parent-commit SHA are NOT reproducible); (c) Part C — sibling-sweep categories extended (a)-(h) adding (f) Risk-Mitigation, (g) Parity Audit Note, (h) LOCAL Adversary Cascade Plan.
+
+**Validation:** PO and story-writer both passed v1.3.5 gates in the same burst at parent-commit cite f5bf4082. Cure-of-cure-of-cure-OF-cure recursion now at level 5: v1.3 → v1.3.1 → v1.3.3 → v1.3.4 → v1.3.5. Each layer adds an enforcement primitive (SDK-grounding → stable-anchor → sibling-sweep → literal-shell stdout → explicit-enumeration + replay-reproducibility).
+
+**Anchors:** F-SP7-PG-001 process-gap; D-520 (this burst); adv-spec-pass-7.md at `d4cadf68`.
+
+**Cites:** D-520, POLICY 5 v1.3.5, PO fix-burst `f5bf4082`, story-writer fix-burst `7b54600d`.
+
+**Closes:** D-520 META-LEVEL-35 lesson capture per S-7.02 cycle-closing checklist. `[codified]`
+
+---
+
+## L-S-15.17-SP7-asymptotic-floor-broken
+
+**Date:** 2026-05-29
+
+**Pattern (CONVERGENCE EVENT — asymptotic-floor partially broken by cure-stack accumulation):** Pass-7 finding count dropped to 9, the FIRST sub-11 result since pass-1, breaking the [11-16] asymptotic-floor pattern that held for passes 2-6. Trajectory: 14→11→14→16→12→11→9. The cumulative cure stack — (1) marker-prefix discipline (pass-5 META-24 cure), (2) META-33 sibling-sweep (pass-5), (3) META-34 literal-shell verification gate (pass-6), (4) META-35 historical-by-construction enumeration + replay-reproducibility (pass-7) — is collectively producing material improvement.
+
+**Why this generalizes:** META-LEVEL gaps emerging at policy-self-application boundaries are systematically cured by adding the NEXT layer of enforcement primitive. The pattern: (i) recognize the policy needs enforcement, not guidance; (ii) add enforcement via explicit enumeration or literal-shell gate or reproducibility constraint; (iii) self-apply the enforcement in the same burst; (iv) validate via independent adversary pass. This terminates the policy-guidance-only recursion loop because enforcement primitives are self-validating — you either have the stdout/SHA/enumeration or you don't.
+
+**The cure-of-cure-of-cure recursion DOES asymptote** when each layer adds enforcement (not just guidance). The trajectory drop from 11→9 is the first empirical evidence of floor-breaking, suggesting the v1.3.5 enforcement layer is materially more effective than v1.3.4.
+
+**Forward-watch:** Pass-8 is the first diagnostic opportunity. If trajectory <9 with NO new META class → convergence toward 3-CLEAN is plausible. If ≥9 OR new META class → SEAL adjudication is the production-grade response. The asymptotic-floor breaking does NOT mean convergence is certain — it means the cure stack is working and more passes will determine if 3-CLEAN is achievable vs requiring SEAL.
+
+**Anchors:** D-520 (this burst); trajectory 14→11→14→16→12→11→9; POLICY 5 v1.3.5.
+
+**Cites:** D-520, META-LEVEL-35, PO fix-burst `f5bf4082`, story-writer fix-burst `7b54600d`.
+
+**Closes:** D-520 asymptotic-floor-broken lesson capture per S-7.02 cycle-closing checklist. `[codified]`

@@ -415,3 +415,22 @@ Key resume data:
 - D-range: D-001..D-518
 
 **This checkpoint superseded by D-519 S-15.17 spec cascade pass-6 fix-burst COMPLETE + META-LEVEL-34 CODIFIED 2026-05-29.**
+
+---
+
+## Archived Checkpoint: D-519 S-15.17 SPEC CASCADE PASS-6 FIX-BURST COMPLETE + META-34 CODIFIED + CURE-OF-CURE-OF-CURE (2026-05-29)
+
+**Archived:** 2026-05-29 when D-520 pass-7 fix-burst state-manager close replaced this checkpoint.
+
+**Summary:** D-519 S-15.17 spec cascade pass-6 fix-burst COMPLETE + META-LEVEL-34 CODIFIED (POLICY 5 v1.3.4 literal-shell VERIFICATION GATE; cure-of-cure-of-cure) 2026-05-29. Next was pass-7 adversary dispatch on (BC-5.39.009 v1.6 + S-15.17 v1.7).
+
+**Key anchors at D-519:**
+- factory-artifacts HEAD: `f189b45b` (D-519 state-manager close 2026-05-29; SHA-patch per D-447(c)+D-449(e))
+- develop HEAD: `98ea0719` (sync main→develop 2026-05-28)
+- BC-5.39.009: v1.6 draft (Grep 10 added; §Adversary Pass Coverage Pass-5+Pass-6; POLICY 5 v1.3.4 gate)
+- S-15.17: v1.7 draft (Architecture Mapping function names; EC-020 attribution; Token Budget ~96,500)
+- policies.yaml: v1.3.4 (META-34 literal-shell VERIFICATION GATE)
+- 4-index: BC-INDEX v2.60 / VP-INDEX v2.06 / STORY-INDEX v3.78 / ARCH-INDEX v2.15
+- D-range: D-001..D-519
+
+**This checkpoint superseded by D-520 S-15.17 spec cascade pass-7 fix-burst COMPLETE + META-LEVEL-35 CODIFIED 2026-05-29.**

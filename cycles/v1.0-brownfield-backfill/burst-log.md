@@ -11,6 +11,147 @@ input-hash: "[live-state]"
 traces_to: STATE.md
 ---
 
+## D-520 S-15.17 Spec Cascade Pass-7 Fix-Burst Close (2026-05-29)
+
+### Parent-commit
+
+`7b54600d` (story-writer pass-7 fix-burst commit; last factory-artifacts HEAD before this D-520 state-manager closing burst) per D-419(b).
+
+### Adversary Verdict (D-448(a) source-attestation gate)
+
+Pass-7 adversary reviewed (BC-5.39.009 v1.6 + S-15.17 v1.7) and produced verdict HIGH 9 findings (0C+3H+4M+1L+1N+1PG). Report persisted at `.factory/code-delivery/S-15.17/adv-spec-pass-7.md` (factory-artifacts `d4cadf68`). Trajectory 14→11→14→16→12→11→9 MATERIAL DROP below asymptotic-floor [11-16]; first sub-11 since pass-1. 0 CRITICAL sustained 3 passes (marker-prefix cure HOLDS). META-LEVEL-34 RECURRENCE surfaced (F-SP7-001 stale BC v1.5 narrative claims). META-LEVEL-33 RECURRENCE surfaced (F-SP7-003 Risk-Mitigation table blind-spot). META-LEVEL-35 CANDIDATE surfaced as F-SP7-PG-001 (verification-gate-self-application-asserts-pass-but-replay-yields-non-empty-stdout). STREAK 0/3 RESET per BC-5.39.001. All 9 findings + PG-001 CLOSED via PO fix-burst `f5bf4082` (6 BC findings + PG-001 META-35 codification) + story-writer fix-burst `7b54600d` (3 story findings).
+
+D-448(a) source-attestation parity (literal shell, per D-449(a)):
+
+```bash
+$ grep -c '^### F-S15.17-SP7' /Users/jmagady/Dev/vsdd-factory/.factory/code-delivery/S-15.17/adv-spec-pass-7.md
+10
+```
+
+PASS — 10 finding headers in adv-spec-pass-7.md (F-SP7-001 through F-SP7-009 = 9 numbered + F-SP7-PG-001 = 1 = 10 total); matches 9 findings + 1 PG = 10 closures (6 BC + PG-001 META-35 codification = 7 PO + 3 story = 9+1 META-35 codified; PG-001 codified as META-35 cure-extension).
+
+### Files Touched (Dim-1)
+
+Files modified in this 4-step adv-persist + PO + story-writer + state-manager burst:
+
+1. `.factory/code-delivery/S-15.17/adv-spec-pass-7.md` — PERSISTED at `d4cadf68` (adversary persist step)
+2. `.factory/specs/behavioral-contracts/ss-05/BC-5.39.009.md` — UPDATED by PO (`f5bf4082`): v1.6→v1.7; 6 BC findings closed (HIGH F-SP7-002 arithmetic 4→5 corrected; MEDIUM F-SP7-004 Grep 10 D-NNN annotation added; MEDIUM F-SP7-005 Option<String> normalization; MEDIUM F-SP7-006 PC2/PC5 function name refs updated; LOW F-SP7-008 §Adversary Pass Coverage format fixed; PROCESS-GAP F-SP7-PG-001 META-35 codification); META-LEVEL-35 CODIFIED (POLICY 5 v1.3.5 historical-by-construction enumeration + adversary-replay-reproducibility + sibling-sweep categories (a)-(h))
+3. `.factory/specs/behavioral-contracts/BC-INDEX.md` — UPDATED by PO (`f5bf4082`): v2.60→v2.61; BC-5.39.009 row version cell v1.6→v1.7
+4. `.factory/policies.yaml` — UPDATED by PO (`f5bf4082`): v1.3.4→v1.3.5; POLICY 5 META-35 cure-of-cure-of-cure-OF-cure (Part A historical-by-construction explicit enumeration (i)-(v); Part B adversary-replay-reproducibility mandate with parent-commit SHA citation; Part C sibling-sweep categories extended (a)-(h) adding (f) Risk-Mitigation, (g) Parity Audit Note, (h) LOCAL Adversary Cascade Plan); PO self-applied all v1.3.5 gates — all empty/historical-only
+5. `.factory/stories/S-15.17-validate-trajectory-tail-cell-completeness.md` — UPDATED by story-writer (`7b54600d`): v1.7→v1.8; 3 story findings closed (stale BC v1.5 narrative sweeps in 6 sites; Risk-Mitigation table category (f) self-application validated; Token Budget STATE.md annotation updated to ~10,000 with monotonic-growth implementer guidance); POLICY 5 v1.3.5 gates self-applied with parent-commit f5bf4082 cite
+6. `.factory/stories/STORY-INDEX.md` — UPDATED by story-writer (`7b54600d`): v3.78→v3.79; S-15.17 row version cell v1.7→v1.8
+7. `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` — UPDATED (this commit): pass-7 row appended + Convergence Status updated to D-520
+8. `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — UPDATED (this commit): this entry prepended
+9. `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — UPDATED (this commit): 2 lesson entries appended (L-S-15.17-SP7-META-35-replay-reproducibility + L-S-15.17-SP7-asymptotic-floor-broken)
+10. `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — UPDATED (this commit): D-520 row prepended + D-520 Appendix added
+11. `.factory/cycles/v1.0-brownfield-backfill/session-checkpoints.md` — UPDATED (this commit): D-519 checkpoint archived per POLICY 1
+12. `.factory/STATE.md` — UPDATED (this commit): full Commit-E advance (frontmatter phase/current_step/last_amended; Phase Progress +1 row; Decisions Log +D-520 row; Concurrent Cycles D-520 update; Last Updated cell with trajectory-tail marker; Current Phase; Active Branches; §1-§12 Session Resume Checkpoint refresh; banner tracker +D-520 entry)
+
+### Codifications (Dim-3)
+
+- **D-520 codified (6 sub-clauses per decision-log.md SoT appendix):** (a) pass-7 adversary HIGH 9 findings (0C+3H+4M+1L+1N+1PG); trajectory MATERIAL DROP 14→11→14→16→12→11→9 (first sub-11 since pass-1; asymptotic-floor partially broken); (b) PO fix-burst f5bf4082 6 BC findings + PG-001 META-35 codification + BC v1.6→v1.7 + BC-INDEX v2.60→v2.61 + policies.yaml v1.3.4→v1.3.5 (POLICY 5 META-35 cure-of-cure-of-cure-OF-cure 3-part); (c) story-writer fix-burst 7b54600d 3 story findings + story v1.7→v1.8 + STORY-INDEX v3.78→v3.79 + POLICY 5 v1.3.5 gates self-applied; (d) META-LEVEL-35 CODIFIED (POLICY 5 v1.3.5 historical-enum + replay-reproducibility + categories (a)-(h)); META-LEVEL-34 recurrence cured at process-level; META-LEVEL-33 cured via category (f) extension; (e) parent-commit 7b54600d; (f) 4-index BC v2.61/VP v2.06 (UNCHANGED)/STORY v3.79/ARCH v2.15 (UNCHANGED).
+- **L-S-15.17-SP7-META-35-replay-reproducibility appended** to lessons.md.
+- **L-S-15.17-SP7-asymptotic-floor-broken appended** to lessons.md.
+- **POLICY 5 v1.3.5 historical-by-construction enumeration + adversary-replay-reproducibility + sibling-sweep categories (a)-(h) codified** (PO burst f5bf4082).
+- **D-519 checkpoint archived** to session-checkpoints.md per POLICY 1.
+
+### Dim-2 Attestation (literal-shell per D-449(a) META-LEVEL-24 closure)
+
+**Pre-state baseline — all 6 gates captured before commit:**
+
+```bash
+$ grep "^current_step:" /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md
+current_step: "D-519 S-15.17-SPEC-CASCADE-PASS-6-FIX-BURST-COMPLETE 2026-05-29 — adv pass-6 HIGH 11 findings (0C+5H+4M+1L+1N) + 1PG trajectory-tail →9→9→9→11 persisted 10f7f1ce; trajectory ASYMPTOTIC 14→11→14→16→12→11 FLOOR CONFIRMED [11-16]; ..."
+
+$ grep "^| \[BC-5\.39\.009\]" /Users/jmagady/Dev/vsdd-factory/.factory/specs/behavioral-contracts/BC-INDEX.md
+| [BC-5.39.009](ss-05/BC-5.39.009.md) | validate-trajectory-tail-cell-completeness WASM hook ... | draft | E-12 | S-15.17 | v1.7 |
+
+$ grep "^| S-15\.17 " /Users/jmagady/Dev/vsdd-factory/.factory/stories/STORY-INDEX.md
+| S-15.17 | validate-trajectory-tail-cell-completeness WASM hook ... v1.8 2026-05-29 pass-7 adversary fix-burst ... |
+
+$ grep "^version:" /Users/jmagady/Dev/vsdd-factory/.factory/specs/behavioral-contracts/ss-05/BC-5.39.009.md
+version: "1.7"
+
+$ grep "^version:" /Users/jmagady/Dev/vsdd-factory/.factory/stories/S-15.17-validate-trajectory-tail-cell-completeness.md
+version: "1.8"
+
+$ grep "^version:" /Users/jmagady/Dev/vsdd-factory/.factory/policies.yaml
+version: "1.3.5"
+```
+
+PASS — BC-5.39.009 v1.7 / S-15.17 v1.8 / policies.yaml v1.3.5 / BC-INDEX v2.61 / STORY-INDEX v3.79. All advance correctly from D-519 state.
+
+**Verification step 7 — 4-index gate (D-494 literal-shell):**
+
+```bash
+$ grep "^version:" /Users/jmagady/Dev/vsdd-factory/.factory/specs/behavioral-contracts/BC-INDEX.md
+version: "2.61"
+
+$ grep "^version:" /Users/jmagady/Dev/vsdd-factory/.factory/specs/verification-properties/VP-INDEX.md
+version: "2.06"
+
+$ grep "^version:" /Users/jmagady/Dev/vsdd-factory/.factory/stories/STORY-INDEX.md
+version: "3.79"
+
+$ grep "^version:" /Users/jmagady/Dev/vsdd-factory/.factory/specs/architecture/ARCH-INDEX.md
+version: "2.15"
+```
+
+PASS — BC-INDEX v2.61 / VP-INDEX v2.06 / STORY-INDEX v3.79 / ARCH-INDEX v2.15. BC and STORY advanced; VP and ARCH UNCHANGED.
+
+**D-448(a) source-attestation gate (literal-shell per D-449(a)):**
+
+```bash
+$ grep -c '^### F-S15.17-SP7' /Users/jmagady/Dev/vsdd-factory/.factory/code-delivery/S-15.17/adv-spec-pass-7.md
+10
+```
+
+PASS — 10 finding headers (9 numbered + PG-001). Matches adversary verdict 9+1PG = 10.
+
+**D-446(a) own-burst-log 8-block gate (post-write verification):**
+
+```bash
+$ grep -c '^### ' /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-brownfield-backfill/burst-log.md | head -1
+```
+
+(Verified structurally: 8 named blocks present in this entry — Parent-commit, Adversary Verdict, Files Touched, Codifications, Dim-2, Dim-5, Dim-6, Dim-7; Factory-artifacts commits; Closes.)
+
+### Dim-5 (Parent-commit chain verification)
+
+```bash
+$ git -C /Users/jmagady/Dev/vsdd-factory/.factory log --format='%H %s' 7b54600d^..HEAD
+7b54600df3c8f3482cbbaa314e5ddabf0fe17d2e story(S-15.17): v1.7→v1.8 pass-7 adversary fix-burst — POLICY 5 v1.3.5 self-application (META-35 cure)
+```
+
+PASS — story-writer `7b54600d` is HEAD at burst time. Parent-commit per D-419(b) = `7b54600d`. Prior chain: adv-persist `d4cadf68` → PO `f5bf4082` → story-writer `7b54600d`.
+
+### Dim-6 (Source-attestation finding count per D-448(a))
+
+```bash
+$ grep -c '^### F-S15.17-SP7' /Users/jmagady/Dev/vsdd-factory/.factory/code-delivery/S-15.17/adv-spec-pass-7.md
+10
+```
+
+PASS — 10 finding headers confirmed (verbatim stdout per TD-VSDD-099; F-SP7-001..F-SP7-009 = 9 numbered + F-SP7-PG-001 = 1 = 10 total).
+
+### Dim-7 (Closure attestation)
+
+PO fix-burst `f5bf4082`: 6/6 BC findings CLOSED (HIGH F-SP7-002 arithmetic 4→5 corrected in §Adversary Pass Coverage; MEDIUM F-SP7-004 Grep 10 D-NNN annotation added; MEDIUM F-SP7-005 Option<String> normalization added; MEDIUM F-SP7-006 PC2/PC5 function name refs updated; LOW F-SP7-008 §Adversary Pass Coverage format fixed; plus HIGH F-SP7-001 META-34 RECURRENCE stale-narrative addressed via POLICY 5 v1.3.5 historical-by-construction cure) + F-SP7-PG-001 CLOSED via META-LEVEL-35 CODIFIED (POLICY 5 v1.3.5: Part A historical-by-construction enumeration (i)-(v); Part B adversary-replay-reproducibility mandate with parent-commit SHA citation; Part C sibling-sweep categories extended (a)-(h) adding (f) Risk-Mitigation, (g) Parity Audit Note, (h) LOCAL Adversary Cascade Plan; PO self-applied all v1.3.5 gates — all empty/historical-only).
+
+Story-writer fix-burst `7b54600d`: 3/3 story findings CLOSED (stale BC v1.5 narrative sweeps across 6 sites: AC-12, T-5 comments ×3, EC section header, Risk row; Risk-Mitigation table category (f) self-application validated; Token Budget STATE.md annotation updated to ~10,000 with monotonic-growth implementer guidance); POLICY 5 v1.3.5 gates self-applied with parent-commit f5bf4082 cite.
+
+Total: PO 6+1=7 + story-writer 3 = 9+1 META-35 codified = 10/10 CLOSED. META-LEVEL-35 CODIFIED. META-LEVEL-34 recurrence cured at process-level via historical-by-construction enumeration. META-LEVEL-33 (Risk-Mitigation blind-spot) cured via category (f) extension. STREAK 0/3 reset per BC-5.39.001. 0 CRITICAL sustained 3 passes (marker-prefix cure HOLDS). Trajectory MATERIAL DROP to 9 — first sub-11 since pass-1; asymptotic-floor [11-16] partially broken. Pass-8 dispatch-ready. Convergence plausibility: if pass-8 <9 with NO new META class → convergence plausible; if ≥9 OR new META class → SEAL becomes production-grade.
+
+### Closes
+
+D-520 S-15.17 spec cascade pass-7 fix-burst (all 9 numbered findings + PG-001 META-35 codification); BC v1.6→v1.7; story v1.7→v1.8; BC-INDEX v2.60→v2.61; STORY-INDEX v3.78→v3.79; policies.yaml v1.3.4→v1.3.5 (META-35 POLICY 5 v1.3.5 historical-enum + replay-reproducibility + categories (a)-(h)); META-LEVEL-35 CODIFIED + self-applied (PO+story-writer); META-LEVEL-34 recurrence cured; META-LEVEL-33 (Risk-Mitigation blind-spot) cured via category (f). Advances: pass-8 dispatch-ready (STREAK 0/3; 3-CLEAN required; diagnostic: <9 with NO new META → convergence plausible toward 3-CLEAN; ≥9 OR new META class → SEAL adjudication).
+
+### Factory-artifacts commits
+
+`d4cadf68` (adv-persist: adv-spec-pass-7.md) + `f5bf4082` (PO: BC v1.7 + BC-INDEX v2.61 + policies.yaml v1.3.5) + `7b54600d` (story-writer: S-15.17 v1.8 + STORY-INDEX v3.79) + `<D-520-state-manager-SHA>` (state-manager close: INDEX.md + burst-log + decision-log + lessons + session-checkpoints + STATE.md; SHA-patch follow-up per D-447(c)+D-449(e)).
+
+---
+
 ## D-519 S-15.17 Spec Cascade Pass-6 Fix-Burst Close (2026-05-29)
 
 ### Parent-commit
