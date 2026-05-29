@@ -378,3 +378,23 @@ dispatch story-writer for 3M3b elaboration (5 M3 stories: S-15.10/12/13/15/16-Pa
 - D-range: D-001..D-516
 
 **This checkpoint superseded by D-517 S-15.17 spec cascade pass-4 fix-burst COMPLETE + META-LEVEL-32 CANDIDATE + EC-mirror routing-rule 2026-05-28.**
+
+---
+
+## Session Resume Checkpoint (2026-05-28 — D-517 S-15.17 SPEC CASCADE PASS-4 FIX-BURST COMPLETE + META-32 CODIFIED + EC-MIRROR ROUTING-RULE; next: pass-5 adversary dispatch)
+
+Archived from STATE.md at D-518 state-manager close burst per POLICY 1.
+
+**Summary:**
+- D-517 S-15.17 spec cascade pass-4 fix-burst COMPLETE 2026-05-28
+- Adversary pass-4 HIGH 16 findings (1C+6H+5M+2L+1N+1PG) REGRESSING 14→11→14→16; all CLOSED via PO `f1f0cb52` + story-writer `2a307a4f`
+- BC v1.3→v1.4; story v1.4→v1.5
+- BC-INDEX v2.57→v2.58; STORY-INDEX v3.75→v3.76
+- META-LEVEL-32 CANDIDATE codified (SDK-grounding-mandate-with-stale-pins; POLICY 5 v1.3.1 stable-anchor sub-clause)
+- POLICY 8 v1.3 EC-mirror routing-rule; policies.yaml v1.3.1→v1.3.2
+- STREAK 0/3 reset; pass-5 dispatch-ready
+- factory-artifacts HEAD: `d9b86dc2` (D-517 SHA-patch)
+- 4-index: BC-INDEX v2.58 / VP-INDEX v2.06 / STORY-INDEX v3.76 / ARCH-INDEX v2.15
+- D-range: D-001..D-517
+
+**This checkpoint superseded by D-518 S-15.17 spec cascade pass-5 fix-burst COMPLETE + META-LEVEL-33 CODIFIED + MARKER-PREFIX REDESIGN 2026-05-28.**

@@ -117,9 +117,11 @@ Per human direction 2026-05-14, the E-10 sub-cycle adopts asymptotic-acceptance 
 | Pass-3 | 2026-05-28 | `adv-spec-pass-3.md` | HIGH | 14 (1C+5H+4M+3L+1N+1PG) | 0/3 | `ac74474f` (PO 9/9) + `2d549ee5` (story-writer 5/5) = 14/14 CLOSED | CLOSED D-516 — STREAK 0/3 → pass-4 dispatch-ready |
 | Pass-4 | 2026-05-28 | `adv-spec-pass-4.md` | HIGH | 16 (1C+6H+5M+2L+1N+1PG) | 0/3 | `f1f0cb52` (PO 10/10) + `2a307a4f` (story-writer 6/6) = 16/16 CLOSED | CLOSED D-517 — STREAK 0/3 → pass-5 dispatch-ready |
 
-**Trend:** 14 → 11 → 14 → **16** (REGRESSING from pass-3)
+| Pass-5 | 2026-05-28 | `adv-spec-pass-5.md` | HIGH | 12 (1C+4H+5M+1L+1N) | 0/3 | `8e67ac38` (PO 7/7 closed + META-33 codified; with prior crash-resume) + `117d848a` (story-writer 5/5 closed + sibling-sweep self-applied) = 12/12 CLOSED | CLOSED D-518 — STREAK 0/3 → pass-6 dispatch-ready |
 
-**Convergence Status (S-15.17 spec cascade):** pass-4 PERSISTED + FIXED D-517 2026-05-28 — verdict HIGH 16 findings (1C+6H+5M+2L+1N+1PG) all CLOSED via PO `f1f0cb52` + story-writer `2a307a4f`; trajectory REGRESSING 14→11→14→16; STREAK 0/3 reset; META-LEVEL-32 CANDIDATE codified (SDK-grounding-mandate-with-stale-pins; POLICY 5 v1.3.1 stable-anchor cure-extension); META-LEVEL-31 sub-sub-route closed (audit predicate widened); 3 regression findings closed (F-SP4-003/006/015); pass-5 dispatch-ready per human direction. D-range D-001..D-517.
+**Trend:** 14 → 11 → 14 → 16 → **12** (IMPROVING from pass-4)
+
+**Convergence Status (S-15.17 spec cascade):** pass-5 PERSISTED + FIXED D-518 2026-05-28 — verdict HIGH 12 findings (1C+4H+5M+1L+1N) all CLOSED via PO `8e67ac38` (with prior crash-resume) + story-writer `117d848a`; trajectory IMPROVING 14→11→14→16→12; STREAK 0/3 reset; META-LEVEL-33 CANDIDATE CODIFIED (sibling-sweep-inside-policy-cure; POLICY 5 v1.3.3 sibling-sweep extension per D-497 parsimony — extends POLICY 5 stable-anchor sub-clause v1.3.1; cure-extension parsimony validated 4 consecutive passes META-32→33); META-LEVEL-24 cured via inv-4 marker-prefix redesign (HUMAN-DIRECTED partial reversal of §Cure-Extension Parsimony Note point 2); META-LEVEL-30 route (b) closed inside PC10 (OUT-OF-SCOPE); 3 regression findings closed (F-SP5-004/009/012); adversary recommends 2-3 more passes to confirm asymptotic-floor pattern, then escalate to human for SEAL adjudication if floor [8-12] sustains; pass-6 dispatch-ready per human direction. D-range D-001..D-518.
 
 ## Convergence Status
 

@@ -2558,3 +2558,63 @@ POLICY 14 description and verification_steps updated in policies.yaml same-burst
 **Cites:** D-517, POLICY 8 v1.3, adv-spec-pass-4.md at `c3ddda14`, PO fix-burst `f1f0cb52` (EC-020 mirror), story-writer fix-burst `2a307a4f`.
 
 **Closes:** D-517 EC-mirror routing-rule process-gap lesson capture per S-7.02 cycle-closing checklist. `[codified]` `[process-gap]`
+
+---
+
+## L-S-15.17-SP5-META-33-sibling-sweep-codified
+
+**Date:** 2026-05-28
+
+**Pattern (META-LEVEL-33 — sibling-sweep-gap-inside-policy-cure):** When a stable-anchor policy (POLICY 5 v1.3.1) or evidence-form policy is applied to cure a primary site (e.g., BC §SDK Grounding Evidence), sibling sites that exhibit the same evidence pattern (story T-5 NOTES, parallel body tables, Token Budget rows, code comments) accumulate stale anchors. The sibling sweep is not mandated by the existing policy, so it only covers the primary cure site.
+
+**Mechanism:** CONFIRMED at F-SP4-002 (cure applied to BC §SDK Grounding Evidence only, not to T-5 NOTES) + F-SP5-004 (T-5 NOTES grep -n volatile-pin reverted after POLICY 5 v1.3.1 — stable-anchor discipline applied at BC but not propagated to story T-5 in same burst) + F-SP5-009 (BC Table version cell still v1.3 after BC bumped to v1.5 — sibling table row not swept) + F-SP5-012 (Token Budget BC row stale — sibling row not swept). 3 regression findings in pass-5 all trace to same META-33 class. Cure-extension parsimony validated: this is extension of POLICY 5 v1.3.1 stable-anchor mandate, not a new INV-NNN abstraction (D-497 cure-extension parsimony confirmed 4 consecutive passes META-32→33).
+
+**Cure (D-497 parsimony — POLICY 5 v1.3.3 EXTENSION):** POLICY 5 SIBLING-SWEEP MANDATE sub-clause: when a stable-anchor or evidence-form policy is applied to a primary cure site, the same burst MUST sweep ALL sibling sites with the same evidence pattern. Categories defined: (a) story T-5 NOTES — all grep invocations; (b) story BC Table version cells; (c) story Token Budget BC rows; (d) BC body parallel narrative tables; (e) code comments citing volatile anchors. Sibling-sweep enumeration required in fix-burst commit message as POLICY 5 v1.3.3 self-application attestation.
+
+**Forward-watch:** In all future spec cascade fix-bursts where POLICY 5 is invoked: orchestrator dispatch template MUST include explicit sibling-sweep enumeration step covering categories (a)-(e). Adversary MUST specifically check each category for stable-anchor compliance at pass-N+1.
+
+**Anchors:** F-SP4-002, F-SP5-004, F-SP5-009, F-SP5-012; D-518 (this burst); adv-spec-pass-4.md at `c3ddda14`; adv-spec-pass-5.md at `10d9e443`.
+
+**Cites:** D-518, POLICY 5 v1.3.3, PO fix-burst `8e67ac38`, story-writer fix-burst `117d848a`.
+
+**Closes:** D-518 META-LEVEL-33 lesson capture per S-7.02 cycle-closing checklist. `[codified]`
+
+---
+
+## L-S-15.17-SP5-marker-prefix-redesign
+
+**Date:** 2026-05-28
+
+**Pattern (STRUCTURAL-CURE — inv-4-STRICT-heterogeneous-cell-false-Block):** BC-5.39.009 inv-4 STRICT count==4 applied to production STATE.md current_step: cell produces false-Block because the production current_step carries additional arrows beyond the trajectory-tail segment (8 arrows actual in D-517 current_step vs 4 required by inv-4 STRICT). The inv-4 STRICT rule was designed for the trajectory-tail segment only but was implemented as a global count on the full heterogeneous cell text.
+
+**Mechanism:** F-SP5-001 (CRITICAL): inv-4 specified `grep -oE "→[0-9]+" current_step | wc -l` → expect 4. Production current_step D-517 contains 8 arrow-number sequences (trajectory-tail 4 + carry-across metadata 4). BC-5.39.009 inv-4 as written would Block valid STATE.md writes. This is a structural impossibility: the BC's own STRICT gate would reject the STATE.md that records its own fix-burst (CRITICAL self-blocking). §Cure-Extension Parsimony Note point 2 (do not extend marker-prefix discipline to inv-4) was written as a deliberate boundary at D-514. However, the inv-4 structural impossibility is a CRITICAL defect that the Parsimony Note did not anticipate.
+
+**Cure (HUMAN-DIRECTED PARTIAL REVERSAL of §Cure-Extension Parsimony Note point 2):** Extend BC-5.39.006 v1.7 inv-6(b) semicolon-segment-scoping discipline to BC-5.39.009 PC1/PC2/PC4/PC5 via two-step marker-prefix check: Step 1: locate `trajectory-tail ` marker in the text; Step 2: count `→(\d+)` within the marker-scoped segment (from marker to first `;`). This produces count==4 for any valid trajectory-tail without false-blocking carry-across content. This was the first HUMAN-DIRECTED partial reversal of a §Cure-Extension Parsimony Note in this cycle — validates the §Note's evidentiary purpose (it documents WHY decisions were made, enabling later reversal with rationale when structural evidence overrides parsimony).
+
+**Forward-watch:** §Cure-Extension Parsimony Notes are evidentiary, not permanent prohibitions. When a CRITICAL defect provides structural evidence that the parsimony boundary is incorrect, HUMAN-DIRECTED reversal is correct. The Note must be updated with reversal rationale at the point of reversal.
+
+**Anchors:** F-SP5-001 (CRITICAL); D-518 (this burst); D-514 §Cure-Extension Parsimony Note point 2 original.
+
+**Cites:** D-518, BC-5.39.009 v1.5 inv-4, BC-5.39.006 v1.7 inv-6(b), PO fix-burst `8e67ac38`.
+
+**Closes:** D-518 META-LEVEL-24 cure via inv-4 marker-prefix redesign (HUMAN-DIRECTED partial reversal). `[codified]`
+
+---
+
+## L-S-15.17-SP5-PO-crash-recovery-pattern
+
+**Date:** 2026-05-28
+
+**Pattern (OPERATIONAL — agent-crash-mid-burst-recovery):** PO agent crashed mid-burst (socket error) after completing approximately 85% of BC body redesign work. The BC body was left in the working tree at an internally-consistent v1.5 state (frontmatter bumped + last_amended prepended + body content redesigned per F-SP5-001 marker-prefix spec) but POLICY 14 5-leg parity was incomplete: no Changelog row + no BC-INDEX bump + no policies.yaml extension + no commit.
+
+**Mechanism:** Agent dispatch died after the primary BC body work was done but before the 5-leg parity items (legs 2-5: Changelog body row, index update, policies.yaml extension, commit) were executed. The BC body was internally consistent — inv-4 had been redesigned, PC4/PC9/PC10 had been updated, inv-13 had been added — so redo would waste ~85% of prior agent compute.
+
+**Cure:** Recovery via fresh focused finalization dispatch succeeded in a single dispatch with instruction: "complete remaining 5-leg parity items only — do NOT redo body work." The dispatch completed: (2) Changelog body row appended, (3) BC-INDEX v2.58→v2.59, (4) policies.yaml v1.3.2→v1.3.3 (POLICY 5 META-33 sibling-sweep extension), (5) commit `8e67ac38`. Pattern: when an agent crashes mid-burst, inspect working-tree state first (`git status --short` + spot-check key markers in the partially-completed files); if body is internally consistent, dispatch focused-finalization rather than full redo (saves ~85% of agent compute); if body is inconsistent, soft-reset and restart from scratch.
+
+**Forward-watch:** Before dispatching a fresh agent after a crash, always run `git -C .factory status --short` to assess working-tree state. If partially-completed files are internally consistent (frontmatter bumped, body redesigned, last_amended prepended), use focused-finalization dispatch. If files are partially-written mid-section (truncated YAML, incomplete table rows, dangling brackets), soft-reset and restart.
+
+**Anchors:** D-518 PO crash-resume 2026-05-28; PO fix-burst `8e67ac38`.
+
+**Cites:** D-518, POLICY 14 5-leg quintuple parity mandate, BC-5.39.009 v1.5.
+
+**Closes:** D-518 process-gap lesson capture per S-7.02 cycle-closing checklist. `[process-gap]` `[codified]`
