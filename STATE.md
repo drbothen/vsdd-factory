@@ -12,7 +12,7 @@ input-hash: "[live-state]"
 traces_to: prd.md
 project: vsdd-factory
 mode: brownfield
-current_step: "D-522 S-15.17-SPEC-CASCADE-SEALED-ASYMPTOTIC-ACCEPTANCE-D-386-OPTION-C-2026-05-29 — adv pass-9 DIAGNOSTIC HIGH 9 findings (0C+4H+3M+1L+1N) persisted 30e0a08a; META-LEVEL-36 cure DID NOT bottom out; META-LEVEL-37 CANDIDATE (scalar-snapshot-of-cardinality `16` non-reproducible at HEAD `17`); recursion now at LEVEL 7; cascade trajectory 14→11→14→16→12→11→9→11→9 trajectory-tail →9→9→9→9 SEALED; asymptotic floor [9,11] HIGH confirmed; POLICY 5 cure evolution v1.3→v1.3.6 (6 cure layers); 3-CLEAN structurally impossible per L-EDP1-007/051/061; adversary SEAL recommendation at pass-8 + pass-9 both; SEAL DECISION D-522: BC-5.39.009 v1.8 + S-15.17 v1.9 SEALED; all 9 pass-9 residuals ACCEPTED-AT-ASYMPTOTIC-FLOOR per D-471; POL-14 auto-promotion active on S-15.17 PR merge; per-story-delivery dispatch UNBLOCKED; BC-INDEX v2.62→v2.63; STORY-INDEX v3.80→v3.81; VP-INDEX v2.06 ARCH-INDEX v2.15 UNCHANGED; 2 SEAL lessons codified (L-S-15.17-SP9-META-37-asymptotic-acceptance-SEAL + L-S-15.17-cascade-9-pass-SEAL-precedent); D-522 codified in decision-log.md; Session Resume Checkpoint refreshed; trajectory-tail →9→9→9→9 SEALED (F5 carry-across per D-433(e)+D-439(c)); maintain all 5 BC-5.39.006 v1.7 PCs per TD-VSDD-097-EXT; D-chain cite D-521 per D-419(b); parent-commit 30e0a08a per D-419(b); factory-artifacts HEAD pending SHA-patch per D-447(c)+D-449(e). SIZE BUDGET: (wc-l; see banner tracker)"
+current_step: "D-522 S-15.17-SPEC-CASCADE-SEALED-ASYMPTOTIC-ACCEPTANCE-D-386-OPTION-C-2026-05-29 — adv pass-9 DIAGNOSTIC HIGH 9 findings (0C+4H+3M+1L+1N) persisted 30e0a08a; META-LEVEL-36 cure DID NOT bottom out; META-LEVEL-37 CANDIDATE (scalar-snapshot-of-cardinality `16` non-reproducible at HEAD `17`); recursion now at LEVEL 7; cascade trajectory 14→11→14→16→12→11→9→11→9 trajectory-tail →9→9→9→9 SEALED; asymptotic floor [9,11] HIGH confirmed; POLICY 5 cure evolution v1.3→v1.3.6 (6 cure layers); 3-CLEAN structurally impossible per L-EDP1-007/051/061; adversary SEAL recommendation at pass-8 + pass-9 both; SEAL DECISION D-522: BC-5.39.009 v1.8 + S-15.17 v1.9 SEALED; all 9 pass-9 residuals ACCEPTED-AT-ASYMPTOTIC-FLOOR per D-471; POL-14 auto-promotion active on S-15.17 PR merge; per-story-delivery dispatch UNBLOCKED; BC-INDEX v2.62→v2.63; STORY-INDEX v3.80→v3.81; VP-INDEX v2.06 ARCH-INDEX v2.15 UNCHANGED; 2 SEAL lessons codified (L-S-15.17-SP9-META-37-asymptotic-acceptance-SEAL + L-S-15.17-cascade-9-pass-SEAL-precedent); D-522 codified in decision-log.md; Session Resume Checkpoint refreshed; trajectory-tail →9→9→9→9 SEALED (F5 carry-across per D-433(e)+D-439(c)); maintain all 5 BC-5.39.006 v1.7 PCs per TD-VSDD-097-EXT; D-chain cite D-521 per D-419(b); parent-commit 30e0a08a per D-419(b); factory-artifacts HEAD 501f813e per D-447(c)+D-449(e). SIZE BUDGET: (wc-l; see banner tracker)"
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -197,7 +197,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | 43afbfa7 | rc.19 SHIPPED 2026-05-28; bot binary commit on top of merge from develop; prior main HEAD: 70811f4a (rc.18 merge) |
 | develop | 98ea0719 | Sync main→develop auto-job 2026-05-28 post-rc.19 merge; prior: 4b68ab83 (PR #160 E-10 pass-15 fix-burst 2026-05-27) |
-| factory-artifacts | `<D-522-SEAL-SHA>` | D-522 SEAL pending SHA-patch (D-447(c)+D-449(e)); prior D-521 SHA-patch: 182cd488; adv-persist pass-9: 30e0a08a; D-520 SHA-patch: 86119cec; D-519: f189b45b (close+SHA-patch 2026-05-29) |
+| factory-artifacts | `501f813e` | D-522 SEAL 501f813e (D-447(c)+D-449(e)); prior D-521 SHA-patch: 182cd488; adv-persist pass-9: 30e0a08a; D-520 SHA-patch: 86119cec; D-519: f189b45b (close+SHA-patch 2026-05-29) |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28; GitHub Release prerelease 2026-05-28T15:10:56Z; marketplace PR drbothen/claude-mp PR #11 squash-merged |
 | v1.0.0-rc.18 (tag) | 666d689f | SHIPPED 2026-05-13 PR #135 |
 | v1.0.0-rc.16 (tag) | feb894a2 | SHIPPED; claude-mp PR #8 awaiting human merge |
@@ -316,7 +316,7 @@ dtu_services: []
 
 - **D-522 SEAL ADJUDICATION (2026-05-29):** Pass-9 DIAGNOSTIC HIGH 9 findings (0C+4H+3M+1L+1N) persisted at `30e0a08a`. META-LEVEL-36 cure (POLICY 5 v1.3.6 HEAD-reproducibility + structural-form-only) DID NOT bottom out cure-of-cure recursion. META-LEVEL-37 CANDIDATE emerged (F-SP9-001: scalar `16` trajectory-tail occurrences non-reproducible at HEAD `17`; POLICY 5 v1.3.6 Part B self-violation in cure's own §Application Example). Recursion now at LEVEL 7. 9-pass trajectory: 14→11→14→16→12→11→9→11→9; asymptotic floor [9,11] HIGH confirmed. POLICY 5 cure evolution v1.3→v1.3.6 = 6 cure layers. POLICY 5 cure-layer count 6 >= pass-count - 4 (9-4=5) → SEAL warranted per D-522 heuristic. 3-CLEAN structurally impossible per L-EDP1-007/051/061. Adversary SEAL recommendation at pass-8 AND pass-9. SEAL DECISION: BC-5.39.009 v1.8 + S-15.17 v1.9 SEALED for implementation; all 9 pass-9 residuals ACCEPTED-AT-ASYMPTOTIC-FLOOR per D-471; META-37 codification DEFERRED via SEAL; POL-14 auto-promotion on S-15.17 PR merge; BC-INDEX v2.62→v2.63; STORY-INDEX v3.80→v3.81.
 - **develop HEAD:** `98ea0719` (sync main→develop 2026-05-28). **main HEAD:** `43afbfa7` (bot binary commit 2026-05-28).
-- **factory-artifacts HEAD:** `<D-522-SEAL-SHA>` (D-522 SEAL commit pending SHA-patch; parent: `30e0a08a` adv-persist pass-9; prior D-521 SHA-patch: `182cd488`).
+- **factory-artifacts HEAD:** `501f813e` (D-522 SEAL commit per D-447(c)+D-449(e); parent: `30e0a08a` adv-persist pass-9; prior D-521 SHA-patch: `182cd488`).
 - **D-range:** D-001..D-522.
 - **4-index (post-D-522):** BC-INDEX v2.63, VP-INDEX v2.06 (UNCHANGED), STORY-INDEX v3.81, ARCH-INDEX v2.15 (UNCHANGED).
 - **BC content:** BC-5.39.005 v1.3 ACTIVE + BC-5.39.006 v1.7 ACTIVE + BC-5.39.007 v1.6 ACTIVE + BC-5.39.008 v1.5 ACTIVE + BC-5.39.009 v1.8 SEALED (active on S-15.17 PR merge per POL-14) + BC-7.04.051 v1.1 ACTIVE.
@@ -398,7 +398,7 @@ Prior Tier-A (pre-session, all COMPLETE): TD #71/72/70/74 (PRs #138–141 2026-0
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** `<D-522-SEAL-SHA>` (D-522 SEAL commit; SHA-patch follow-up per D-447(c)+D-449(e) required; prior D-521 SHA-patch: `182cd488`; adv-persist pass-9: `30e0a08a`)
+- **factory-artifacts HEAD:** `501f813e` (D-522 SEAL commit per D-447(c)+D-449(e) 2026-05-29; prior D-521 SHA-patch: `182cd488`; adv-persist pass-9: `30e0a08a`)
 - **develop HEAD:** `98ea0719` (sync main→develop 2026-05-28)
 - **main HEAD:** `43afbfa7` (rc.19 bot binary commit 2026-05-28)
 - **v1.0.0-rc.19 tag:** `d15152af` (GitHub Release 2026-05-28T15:10:56Z)

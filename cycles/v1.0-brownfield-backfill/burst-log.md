@@ -5310,4 +5310,4 @@ Result: 4 Dim blocks (Dim-2, Dim-5, Dim-6, Dim-7) — PASS per D-446(a) and D-44
 ### Factory-artifacts Commits
 
 - `30e0a08a` — adv(S-15.17): persist spec cascade pass-9 (parent-commit per D-419(b)+D-421(a))
-- `<D-522-SEAL-SHA>` — state(D-522): SEAL adjudication + INDEX.md + burst-log + decision-log + lessons + STATE.md + BC-INDEX v2.63 + STORY-INDEX v3.81 (this commit; SHA-patch follow-up per D-447(c)+D-449(e))
+- `501f813e` — state(D-522): SEAL adjudication + INDEX.md + burst-log + decision-log + lessons + STATE.md + BC-INDEX v2.63 + STORY-INDEX v3.81 + session-checkpoints; SHA-patch follow-up per D-447(c)+D-449(e)
