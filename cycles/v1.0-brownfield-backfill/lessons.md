@@ -2618,3 +2618,45 @@ POLICY 14 description and verification_steps updated in policies.yaml same-burst
 **Cites:** D-518, POLICY 14 5-leg quintuple parity mandate, BC-5.39.009 v1.5.
 
 **Closes:** D-518 process-gap lesson capture per S-7.02 cycle-closing checklist. `[process-gap]` `[codified]`
+
+---
+
+## L-S-15.17-SP6-META-34-sibling-sweep-verification-gate
+
+**Date:** 2026-05-29
+
+**Pattern (META-LEVEL-34 — sweep-claim-without-execution):** POLICY 5 v1.3.3 sibling-sweep mandate (codified at D-518 to cure META-33) required enumeration of sibling sites but had NO literal-shell verification gate. Pass-5+6 fix-bursts both produced changelog narrative claiming exhaustive sibling-sweeps that were factually incomplete (F-SP6-002/003/007 in pass-6). The adversary accepted narrative sweep claims because no captured-stdout evidence was required. This is the same class of failure as META-LEVEL-24 (literal-shell vs pseudocode) applied at the POLICY level — a policy can mandate sweep without mandating proof-of-sweep.
+
+**Mechanism:** POLICY 5 v1.3.3 said: "sibling-sweep enumeration REQUIRED in fix-burst commit message as POLICY 5 v1.3.3 self-application attestation." This mandated listing which sites were swept but did NOT require captured stdout proving the sites were swept clean. Fix-burst agents could (and did) produce narrative enumeration of sweep categories without actually executing literal-shell commands with captured output. The adversary could not distinguish "I swept these 5 categories and found nothing" (narrative) from "I swept these 5 categories and here is the grep stdout showing zero results" (verified).
+
+**Cure:** POLICY 5 v1.3.4 LITERAL-SHELL VERIFICATION GATE — after enumerating sibling sites, fix-burst MUST execute literal-shell grep capturing stdout that proves zero stale references (or only Changelog-historical). The captured stdout MUST appear in commit message body or burst-log Dim-2/6. Sweep claims without captured stdout become MEDIUM-severity findings. Validated 1-burst: PO + story-writer both self-applied successfully (all 8 gates empty/historical-only stdout per commit body evidence).
+
+**Cure-of-cure-of-cure recursion:** Each POLICY 5 cure layer (v1.3, v1.3.1, v1.3.3, v1.3.4) revealed a new sub-route at the boundary of self-application: v1.3 — SDK-grounding-mandate (BC authoring without evidence); v1.3.1 — stable-anchor-sub-clause (grep -n volatile-pin); v1.3.3 — sibling-sweep-inside-policy-cure (cure burst missed same pattern at sibling sites); v1.3.4 — sweep-claim-without-execution (enumerated sibling sites but no stdout proof). This recursion is structurally bounded because v1.3.4 adds enforcement (literal-shell + stdout required), not just guidance. A v1.3.5 sub-route would require a way to fake captured stdout — which is structurally impossible to do accidentally.
+
+**Forward-watch:** POLICY 5 v1.3.4 is the terminal layer for the sweep-mandate sub-class because it requires literal-shell stdout evidence (not just enumeration). Adversary pass-7 MUST specifically verify that POLICY 5 v1.3.4 self-application gates were executed with captured stdout, not just listed.
+
+**Anchors:** F-PG-001 process-gap; F-SP6-002/003/007; D-519 (this burst); adv-spec-pass-6.md at `10f7f1ce`.
+
+**Cites:** D-519, POLICY 5 v1.3.4, PO fix-burst `fee45e7e`, story-writer fix-burst `92021f2f`.
+
+**Closes:** D-519 META-LEVEL-34 lesson capture per S-7.02 cycle-closing checklist. `[codified]`
+
+---
+
+## L-S-15.17-SP6-cure-of-cure-of-cure-recursion-success
+
+**Date:** 2026-05-29
+
+**Pattern (PROCESS-POSITIVE — cure-of-cure-of-cure recursion bounded by enforcement mechanism):** For META-LEVEL classes that emerge as policy-self-non-application gaps (META-32 stable-anchor cure didn't apply to its own narrative; META-33 sibling-sweep cure didn't apply to its own siblings; META-34 sweep-claim cure required verification gate), the consistent cure pattern is: (i) recognize the policy needs an enforcement mechanism, not just guidance; (ii) extend the existing policy with a literal-shell verification gate; (iii) self-apply the gate in the same burst that codifies it; (iv) validate via independent adversary pass.
+
+**Mechanism:** Pass-6 demonstrated this pattern works mechanically: PO executed the v1.3.4 verification gate self-application with verbatim stdout proof (4 gates; all empty/Changelog-only). Story-writer executed the same (4 gates; gates b/c/d empty; gate a only provenance-labeled historical references). Both passed on first attempt, no additional fix-bursts required. This is evidence that the "enforcement mechanism > guidance" principle terminates the recursion — because the enforcement mechanism is self-validating (you either have the stdout or you don't).
+
+**Why this generalizes:** The cure-of-cure-of-cure recursion occurs specifically when a policy DESCRIBES what to do without REQUIRING EVIDENCE that it was done. Adding literal-shell verification gates to any policy mandate converts it from a "do this" requirement to a "prove you did this" requirement. The evidence requirement is structurally self-validating. This pattern applies beyond S-15.17 to any VSDD policy that involves enumeration, sweep, or compliance claims.
+
+**Forward-watch:** When authoring or amending any VSDD policy that requires enumeration, sweep, or compliance checks, include a literal-shell verification gate requirement with stdout evidence mandate. Without it, the policy may codify advisory-level sweep without blocking incomplete execution.
+
+**Anchors:** D-519 (this burst); POLICY 5 v1.3.4; PO fix-burst `fee45e7e`; story-writer fix-burst `92021f2f`.
+
+**Cites:** D-519, META-LEVEL-34, POLICY 5 v1.3.4, cure-of-cure-of-cure chain (D-518/519 two-burst validation).
+
+**Closes:** D-519 cure-of-cure-of-cure recursion success lesson capture per S-7.02 cycle-closing checklist. `[codified]`

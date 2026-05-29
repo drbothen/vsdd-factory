@@ -398,3 +398,20 @@ Archived from STATE.md at D-518 state-manager close burst per POLICY 1.
 - D-range: D-001..D-517
 
 **This checkpoint superseded by D-518 S-15.17 spec cascade pass-5 fix-burst COMPLETE + META-LEVEL-33 CODIFIED + MARKER-PREFIX REDESIGN 2026-05-28.**
+
+---
+
+## Session Resume Checkpoint (2026-05-28 — D-518 S-15.17 SPEC CASCADE PASS-5 FIX-BURST COMPLETE + META-33 CODIFIED + MARKER-PREFIX REDESIGN; next: pass-6 adversary dispatch)
+
+**Archived from STATE.md 2026-05-29 per POLICY 1 when D-519 checkpoint replaced it.**
+
+Key resume data:
+
+- D-518 S-15.17 spec cascade pass-5 fix-burst COMPLETE + META-33 CANDIDATE CODIFIED + MARKER-PREFIX REDESIGN (HUMAN-DIRECTED PARTIAL REVERSAL) 2026-05-28
+- Next: pass-6 adversary dispatch on (BC-5.39.009 v1.5 + S-15.17 v1.6)
+- factory-artifacts HEAD: `887cfb9d` (D-518 state-manager close + SHA-patch 99bb1d0f)
+- 4-index: BC-INDEX v2.59 / VP-INDEX v2.06 / STORY-INDEX v3.77 / ARCH-INDEX v2.15
+- policies.yaml v1.3.3 (POLICY 5 META-33 sibling-sweep extension categories a-e)
+- D-range: D-001..D-518
+
+**This checkpoint superseded by D-519 S-15.17 spec cascade pass-6 fix-burst COMPLETE + META-LEVEL-34 CODIFIED 2026-05-29.**
