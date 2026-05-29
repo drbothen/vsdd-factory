@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.3"
+version: "1.4"
 status: draft
 producer: product-owner
 timestamp: 2026-05-28T00:00:00Z
@@ -33,6 +33,7 @@ modified:
   - "2026-05-28 (v1.1)"
   - "2026-05-28 (v1.2)"
   - "2026-05-28 (v1.3)"
+  - "2026-05-28 (v1.4)"
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -41,7 +42,7 @@ removed: null
 removal_reason: null
 bc_id: BC-5.39.009
 section: "5.39"
-last_amended: "2026-05-28 (v1.3) — Pass-3 adversary fix-burst (product-owner; brownfield-backfill S-15.17 spec cascade pass-3 fix-burst). SDK-GROUNDING MANDATE satisfied (9 literal-shell greps in §SDK Grounding Evidence; POLICY 15 verbatim stdout). INV-019 cure (a)/(b)/(c) extended. Closes F-SP3-001 (CRITICAL: cycle-path-guard → dynamic STATE.md current_cycle: read via host::read_file + frontmatter scan; Precondition 4 INDEX.md arm rewritten; PC7/8/9/10 + Architecture Anchors updated; §Cure-Extension Parsimony Note extended; option (a) chosen per mandate recommendation — most robust to cycle transitions), F-SP3-002 (CRITICAL regression: LENGTH=4 STRICT equality semantics adopted from BC-5.39.006 inv-6(b) — extract candidate region → count →(\\d+) matches via separate regex iteration → assert count == 4; NOT count >= 4; inv-4 + PC1..PC5 + EC-003 + EC-018 + Test Vectors updated), F-SP3-003 (HIGH: HostError::TooBig → collapsed into PC12 per adversary recommendation '(any HostError → fail-open per inv-10 makes the distinction structurally redundant)'; PC11 removed; PC12 rewritten to cover ALL HostError variants uniformly; EC-004 + Test Vector + VP updated; rationale in §Cure-Extension Parsimony Note), F-SP3-005 (HIGH: PC6 orphan cross-reference extended — PC6 cascade-Block emission is exercised via AC anchors to invariant 8 per §Behavioral Contracts Table indirection; explicit cross-reference added to PC6 narrative; story-writer handles AC-7 trace extension to PC6 alongside invariant 8), F-SP3-008 (MEDIUM: Precondition 4 + EC-015 + EC-019 parent-guard updated to path-component-walk form: Path::new(file_path).components().any(|c| c.as_os_str() == \".factory\"); platform-independent and robust to ./ prefix + Windows backslash), F-SP3-009 (MEDIUM: dual-cycle attribution documented in §Description — BC anchors F5-cycle D-453(d) codification; delivered via brownfield-backfill story cycle; runtime gate targets active cycle per dynamic current_cycle: resolution post F-SP3-001 fix), F-SP3-011 (LOW: duplicate ADR-018 cite in §D-NNN Anchor Coverage collapsed to single line; parenthetical moved to §ADR References), F-SP3-013 (NITPICK: acceptable as-is per adversary guidance; both D-411(a) cites retained — line 60 description prose + D-NNN table canonical), F-SP3-014 (PROCESS-GAP HIGH: policies.yaml POLICY 8 amended v1.1→v1.2 — audit-block exclusion mandate added; POLICY 8 extension chosen NOT new POLICY 19; rationale: this is a verification-step procedure extension not a new governance policy; POLICY 19 reserved for future scope). POLICY 14 5-leg quintuple parity applied (version v1.3 + Changelog row v1.3 + modified[] appended '2026-05-28 (v1.3)' + this last_amended text-prefix v1.3 + BC-INDEX v2.57 row). PC11 removed (PC12 absorbs); no EC renumbering (EC-004 text updated in-place). Story-writer handles F-SP3-004 (story v1.0→v1.2 body text), F-SP3-006 (T-5 String::from_utf8 double-match), F-SP3-007 (narrative-vs-constraint), F-SP3-010 (EC framing), F-SP3-005 mirror (AC-7 PC6 trace + audit grep amendment), F-SP3-001 mirror (T-5 cycle-path logic), F-SP3-002 mirror (T-5 byte-walk equality count), F-SP3-003 mirror (story EC-004 + AC-14 trace). [Prior: 2026-05-28 (v1.2) — Pass-2 adversary fix-burst (product-owner; brownfield-backfill S-15.17 spec cascade pass-2 fix-burst). Closes F-S15.17-SP2-003 (HIGH EC-008 '(PC4)' → '(Precondition 4)'; full EC table swept for Pre-vs-Post abbreviation ambiguity), F-S15.17-SP2-004 (MEDIUM status:active→status:draft to match lifecycle_status:draft; adjudication: both fields must be draft pre-merge, POL-14 fires on S-15.17 merge; sibling BC-5.39.008 is active/active only because it has shipped — BC-5.39.009 is pre-merge so status:draft is correct), F-S15.17-SP2-005 (MEDIUM PC2/PC3/PC5 line-number anti-volatile-pin per TD-VSDD-091: stripped line-number citations from literal-shell grep outputs; kept grep command + prefix/content match excerpts only), F-S15.17-SP2-006 (MEDIUM §Cure-Extension Parsimony Note and inv-4 + Description rephrase: documented deliberate non-extension of BC-5.39.006 marker-prefix semantics — BC-5.39.006 conditions LENGTH check on 'trajectory-tail ' canonical marker prefix; BC-5.39.009 per-cell sites 2-9 are heterogeneous text contexts where that marker convention does not apply), F-S15.17-SP2-007 (MEDIUM Precondition 4 parent-guard for STATE.md arm: hook MUST verify file_path is rooted at .factory/ before triggering STATE.md arm; new EC-019 non-factory STATE.md case added), F-S15.17-SP2-008 (LOW PC3 skip-list: dropped 'COMPLETE' from skip list; skip only ARCHIVED/COMPACTED; alternative bottommost-row rationale documented), F-S15.17-SP2-009 partial (LOW ADR-021 dropped from §ADR References in Traceability — cargo-audit-specific, not general no-subprocess principle; story-writer to drop from anchored_adrs frontmatter), F-S15.17-SP2-010 (LOW inv-9 anti-volatile-pin rephrase: avoid SDK-state assertion; prescribe behavior instead), F-S15.17-SP2-011 (NITPICK D-453 pass-73 cite corrected from 'pass-74'). INV-019 cure (a) anchor ADV-EDP1-P75-HIGH-002 via spec-cascade pass-2 / (b) PC2/PC3/PC5 line-number anti-volatile-pin applied / (c) cure-extension parsimony note updated with marker-prefix non-extension documentation. POLICY 14 5-leg quintuple parity applied (version v1.2 + Changelog row v1.2 + modified[] appended '2026-05-28 (v1.2)' + this last_amended text-prefix v1.2 + BC-INDEX v2.56 row). Story-writer (next burst) handles F-001 (AC-9/10/11/12/17 re-anchor + bidirectional parity check stdout), F-002 (SS-05 narrative rewrite), F-003 story EC-008 mirror, F-007 AC-23 false-positive STATE.md, F-009 anchored_adrs drop. [Prior: 2026-05-28 (v1.1) — Pass-1 adversary fix-burst (product-owner; brownfield-backfill S-15.17 spec cascade pass-1 fix-burst). Closes F-S15.17-SP1-002 (HIGH frontmatter ADR-017 path corrected to ADR-017-per-story-adversary-phasing.md per POLICY 4 semantic_anchoring_integrity), F-S15.17-SP1-004 (HIGH PC2/PC3/PC5 STATE.md extractor anchors updated to match production STATE.md table-cell + heading structure with literal-shell evidence; META-LEVEL-30 route-(b) partial-recurrence-inside-cure-BC closed), F-S15.17-SP1-005 (HIGH inv-4 + PC1 LENGTH=4-strict adjudication aligning with BC-5.39.006 inv-6(b)+EC-007 + D-433(e)+D-439(c) original codification; cure-extension parsimony per D-497 cited; new EC-018 LENGTH=5 added), F-S15.17-SP1-007 (MEDIUM precondition-5/EC-016 fail-open contradiction reconciled to log_warn+Continue), F-S15.17-SP1-009 (MEDIUM path_allow sibling cite corrected to BC-5.39.006), F-S15.17-SP1-010 (MEDIUM on_error=continue invariant added per sibling BC-5.39.004/005/006/007/008 precedent), F-S15.17-SP1-011 (LOW D-NNN table purified — ADR/META-LEVEL/BC refs moved out), F-S15.17-SP1-012 (LOW D-454(a) PC range clarified to 1-10), F-S15.17-SP1-014 (NITPICK STATE.md capitalization fix). INV-019 cure (a) anchor ADV-EDP1-P75-HIGH-002 via spec-cascade pass-1 / (b) structural per-cell extractor-anchor specification / (c) cure-extension of BC-5.39.005+BC-5.39.006 pattern per D-497 parsimony. POLICY 14 5-leg quintuple parity applied (version v1.1 + Changelog row + modified[] + this last_amended + BC-INDEX v2.55 cell). Story-writer (next burst) handles F-001 type, F-003 AC mis-mapping, F-006 EC renumber, F-008 BC table claim, F-013 token budget. [Prior: 2026-05-28 (v1.0) — Initial authoring (product-owner; brownfield-backfill F5 pass-75 HIGH-002 anchor; META-LEVEL-30 route (b) cure). Anchors ADV-EDP1-P75-HIGH-002. BC-5.39.009 allocated as next monotonic ID after BC-5.39.008 in ss-05/. lifecycle_status: draft (POL-14 auto-promotion to active on S-15.17 merge).]"
+last_amended: "2026-05-28 (v1.4) — Pass-4 adversary fix-burst (product-owner; brownfield-backfill S-15.17 spec cascade pass-4 fix-burst). INV-019 cure (a)/(b)/(c) discipline extended. Closes F-S15.17-SP4-001 (CRITICAL: count==4 false-Block on multi-tail extracted region — PC3 tightened to single-row extraction; extract_phase_progress_latest_row returns SINGLE row text, not section; ONE-tail-per-extracted-region precondition added to PC3 and Architecture Anchors); F-S15.17-SP4-002 (HIGH: TD-VSDD-091 anti-volatile-pin violation inside POLICY 5 v1.3 cure — stripped ALL line numbers from §SDK Grounding Evidence greps; PC3 now uses stable anchor `^## Phase Progress` with no line number; Grep 4 updated; POLICY 5 extended with stable-anchor sub-clause per META-LEVEL-32 cure-extension); F-S15.17-SP4-004 (HIGH: PC9 extractor target `Dim-7 (Attestation)` heading absent from burst-log — actual heading form discovered via literal-shell grep: `^### Dim-7`; PC9 updated to match actual heading prefix `^### Dim-7`; scoped to brownfield-backfill cycle only with rationale; §SDK Grounding Evidence Grep 4 updated with literal stdout); F-S15.17-SP4-005 (HIGH: extract_current_cycle() function never specified — added extractor spec to §Architecture Anchors with all YAML form variants: bare, single-quoted, double-quoted, trailing comment, multi-line block-scalar; §SDK Grounding Evidence Grep 4 updated); F-S15.17-SP4-006 (HIGH: substring String::contains on cycle-path false-positive — §Architecture Anchors now mandates Path::new(file_path).components().any(|c| c.as_os_str() == active_cycle.as_str()) path-component-walk form; Precondition 4 INDEX.md arm updated); F-S15.17-SP4-007 (HIGH: §Cure-Extension Parsimony Note point 3 collapse direction inverted — rewritten to correct direction: old PC11→new PC11, old PC13→new PC12, net 13→12); F-S15.17-SP4-009 (MEDIUM: EC-020 UTF-8 fail-open mirrored from story into BC — EC-020 added to Edge Cases table; references added in PC11 fail-open umbrella; closes [needs-po] deferral violation of Canonical Principle Rule 3); F-S15.17-SP4-010 (MEDIUM: POLICY 15 violation inside POLICY 5 cure — §SDK Grounding Evidence Grep 1 HostError enum body replaced with literal sed -n '82,94p' stdout; closing-brace verified line 94; narrative paraphrase removed); F-S15.17-SP4-012 (MEDIUM joint w/ story-writer: §Architecture Anchors cycle-name examples replaced with structural form — NOT hardcoded to any specific cycle name; resolved from STATE.md current_cycle: at runtime); F-S15.17-SP4-013 (LOW: PC2 extractor spec extended with whitespace handling: cell value extraction captures text between second and third unescaped `|` characters, strips leading/trailing whitespace, joins continuation lines on whitespace). POLICY 5 v1.3.1 stable-anchor extension: all grep captures MUST use stable anchors only (heading prefix, fn signature); line numbers FORBIDDEN in captured stdout; if line numbers appear, re-execute with stable-anchor pattern. POLICY 14 5-leg quintuple parity applied (version v1.4 + Changelog row v1.4 + modified[] appended '2026-05-28 (v1.4)' + this last_amended text-prefix v1.4 + BC-INDEX v2.57→v2.58). [Prior: 2026-05-28 (v1.3) — Pass-3 adversary fix-burst (product-owner; brownfield-backfill S-15.17 spec cascade pass-3 fix-burst). SDK-GROUNDING MANDATE satisfied (9 literal-shell greps in §SDK Grounding Evidence; POLICY 15 verbatim stdout). INV-019 cure (a)/(b)/(c) extended. Closes F-SP3-001 (CRITICAL: cycle-path-guard → dynamic STATE.md current_cycle: read via host::read_file + frontmatter scan; Precondition 4 INDEX.md arm rewritten; PC7/8/9/10 + Architecture Anchors updated; §Cure-Extension Parsimony Note extended; option (a) chosen per mandate recommendation — most robust to cycle transitions), F-SP3-002 (CRITICAL regression: LENGTH=4 STRICT equality semantics adopted from BC-5.39.006 inv-6(b) — extract candidate region → count →(\\d+) matches via separate regex iteration → assert count == 4; NOT count >= 4; inv-4 + PC1..PC5 + EC-003 + EC-018 + Test Vectors updated), F-SP3-003 (HIGH: HostError::TooBig → collapsed into PC12 per adversary recommendation '(any HostError → fail-open per inv-10 makes the distinction structurally redundant)'; PC11 removed; PC12 rewritten to cover ALL HostError variants uniformly; EC-004 + Test Vector + VP updated; rationale in §Cure-Extension Parsimony Note), F-SP3-005 (HIGH: PC6 orphan cross-reference extended — PC6 cascade-Block emission is exercised via AC anchors to invariant 8 per §Behavioral Contracts Table indirection; explicit cross-reference added to PC6 narrative; story-writer handles AC-7 trace extension to PC6 alongside invariant 8), F-SP3-008 (MEDIUM: Precondition 4 + EC-015 + EC-019 parent-guard updated to path-component-walk form: Path::new(file_path).components().any(|c| c.as_os_str() == \".factory\"); platform-independent and robust to ./ prefix + Windows backslash), F-SP3-009 (MEDIUM: dual-cycle attribution documented in §Description — BC anchors F5-cycle D-453(d) codification; delivered via brownfield-backfill story cycle; runtime gate targets active cycle per dynamic current_cycle: resolution post F-SP3-001 fix), F-SP3-011 (LOW: duplicate ADR-018 cite in §D-NNN Anchor Coverage collapsed to single line; parenthetical moved to §ADR References), F-SP3-013 (NITPICK: acceptable as-is per adversary guidance; both D-411(a) cites retained — line 60 description prose + D-NNN table canonical), F-SP3-014 (PROCESS-GAP HIGH: policies.yaml POLICY 8 amended v1.1→v1.2 — audit-block exclusion mandate added; POLICY 8 extension chosen NOT new POLICY 19; rationale: this is a verification-step procedure extension not a new governance policy; POLICY 19 reserved for future scope). POLICY 14 5-leg quintuple parity applied (version v1.3 + Changelog row v1.3 + modified[] appended '2026-05-28 (v1.3)' + this last_amended text-prefix v1.3 + BC-INDEX v2.57 row). PC11 removed (PC12 absorbs); no EC renumbering (EC-004 text updated in-place). Story-writer handles F-SP3-004 (story v1.0→v1.2 body text), F-SP3-006 (T-5 String::from_utf8 double-match), F-SP3-007 (narrative-vs-constraint), F-SP3-010 (EC framing), F-SP3-005 mirror (AC-7 PC6 trace + audit grep amendment), F-SP3-001 mirror (T-5 cycle-path logic), F-SP3-002 mirror (T-5 byte-walk equality count), F-SP3-003 mirror (story EC-004 + AC-14 trace). [Prior: 2026-05-28 (v1.2) — Pass-2 adversary fix-burst (product-owner; brownfield-backfill S-15.17 spec cascade pass-2 fix-burst). Closes F-S15.17-SP2-003 (HIGH EC-008 '(PC4)' → '(Precondition 4)'; full EC table swept for Pre-vs-Post abbreviation ambiguity), F-S15.17-SP2-004 (MEDIUM status:active→status:draft to match lifecycle_status:draft; adjudication: both fields must be draft pre-merge, POL-14 fires on S-15.17 merge; sibling BC-5.39.008 is active/active only because it has shipped — BC-5.39.009 is pre-merge so status:draft is correct), F-S15.17-SP2-005 (MEDIUM PC2/PC3/PC5 line-number anti-volatile-pin per TD-VSDD-091: stripped line-number citations from literal-shell grep outputs; kept grep command + prefix/content match excerpts only), F-S15.17-SP2-006 (MEDIUM §Cure-Extension Parsimony Note and inv-4 + Description rephrase: documented deliberate non-extension of BC-5.39.006 marker-prefix semantics — BC-5.39.006 conditions LENGTH check on 'trajectory-tail ' canonical marker prefix; BC-5.39.009 per-cell sites 2-9 are heterogeneous text contexts where that marker convention does not apply), F-S15.17-SP2-007 (MEDIUM Precondition 4 parent-guard for STATE.md arm: hook MUST verify file_path is rooted at .factory/ before triggering STATE.md arm; new EC-019 non-factory STATE.md case added), F-S15.17-SP2-008 (LOW PC3 skip-list: dropped 'COMPLETE' from skip list; skip only ARCHIVED/COMPACTED; alternative bottommost-row rationale documented), F-S15.17-SP2-009 partial (LOW ADR-021 dropped from §ADR References in Traceability — cargo-audit-specific, not general no-subprocess principle; story-writer to drop from anchored_adrs frontmatter), F-S15.17-SP2-010 (LOW inv-9 anti-volatile-pin rephrase: avoid SDK-state assertion; prescribe behavior instead), F-S15.17-SP2-011 (NITPICK D-453 pass-73 cite corrected from 'pass-74'). INV-019 cure (a) anchor ADV-EDP1-P75-HIGH-002 via spec-cascade pass-2 / (b) PC2/PC3/PC5 line-number anti-volatile-pin applied / (c) cure-extension parsimony note updated with marker-prefix non-extension documentation. POLICY 14 5-leg quintuple parity applied (version v1.2 + Changelog row v1.2 + modified[] appended '2026-05-28 (v1.2)' + this last_amended text-prefix v1.2 + BC-INDEX v2.56 row). Story-writer (next burst) handles F-001 (AC-9/10/11/12/17 re-anchor + bidirectional parity check stdout), F-002 (SS-05 narrative rewrite), F-003 story EC-008 mirror, F-007 AC-23 false-positive STATE.md, F-009 anchored_adrs drop. [Prior: 2026-05-28 (v1.1) — Pass-1 adversary fix-burst (product-owner; brownfield-backfill S-15.17 spec cascade pass-1 fix-burst). Closes F-S15.17-SP1-002 (HIGH frontmatter ADR-017 path corrected to ADR-017-per-story-adversary-phasing.md per POLICY 4 semantic_anchoring_integrity), F-S15.17-SP1-004 (HIGH PC2/PC3/PC5 STATE.md extractor anchors updated to match production STATE.md table-cell + heading structure with literal-shell evidence; META-LEVEL-30 route-(b) partial-recurrence-inside-cure-BC closed), F-S15.17-SP1-005 (HIGH inv-4 + PC1 LENGTH=4-strict adjudication aligning with BC-5.39.006 inv-6(b)+EC-007 + D-433(e)+D-439(c) original codification; cure-extension parsimony per D-497 cited; new EC-018 LENGTH=5 added), F-S15.17-SP1-007 (MEDIUM precondition-5/EC-016 fail-open contradiction reconciled to log_warn+Continue), F-S15.17-SP1-009 (MEDIUM path_allow sibling cite corrected to BC-5.39.006), F-S15.17-SP1-010 (MEDIUM on_error=continue invariant added per sibling BC-5.39.004/005/006/007/008 precedent), F-S15.17-SP1-011 (LOW D-NNN table purified — ADR/META-LEVEL/BC refs moved out), F-S15.17-SP1-012 (LOW D-454(a) PC range clarified to 1-10), F-S15.17-SP1-014 (NITPICK STATE.md capitalization fix). INV-019 cure (a) anchor ADV-EDP1-P75-HIGH-002 via spec-cascade pass-1 / (b) structural per-cell extractor-anchor specification / (c) cure-extension of BC-5.39.005+BC-5.39.006 pattern per D-497 parsimony. POLICY 14 5-leg quintuple parity applied (version v1.1 + Changelog row + modified[] + this last_amended + BC-INDEX v2.55 cell). Story-writer (next burst) handles F-001 type, F-003 AC mis-mapping, F-006 EC renumber, F-008 BC table claim, F-013 token budget. [Prior: 2026-05-28 (v1.0) — Initial authoring (product-owner; brownfield-backfill F5 pass-75 HIGH-002 anchor; META-LEVEL-30 route (b) cure). Anchors ADV-EDP1-P75-HIGH-002. BC-5.39.009 allocated as next monotonic ID after BC-5.39.008 in ss-05/. lifecycle_status: draft (POL-14 auto-promotion to active on S-15.17 merge).]"
 ---
 
 # BC-5.39.009: validate-trajectory-tail-cell-completeness WASM hook MUST block on STATE.md writes missing trajectory_tail in any of the 5 prescribed STATE.md cells, and MUST emit advisory on INDEX.md / burst-log.md / lessons.md writes missing trajectory_tail in their prescribed cells
@@ -89,7 +90,7 @@ brownfield-backfill cycle delivers the runtime enforcement gate post-F5-pause.
 | 5 | STATE.md | Session Resume Section 1 | IN SCOPE | Block |
 | 6 | INDEX.md | Convergence Status row | IN SCOPE | Advisory |
 | 7 | INDEX.md | adversarial-review summary-table rows (latest pass) | IN SCOPE | Advisory |
-| 8 | burst-log.md | latest-pass Dim-7 (Attestation) | IN SCOPE | Advisory |
+| 8 | burst-log.md | latest-pass `^### Dim-7` block (heading prefix; actual variants confirmed in brownfield-backfill burst-log: `### Dim-7 Attestation / Closes`, `### Dim-7 Attestation`, `### Dim-7 attestation`) | IN SCOPE | Advisory |
 | 9 | lessons.md | latest-lesson trend-table | IN SCOPE | Advisory |
 | 10 | decision-log.md | trajectory-bearing rows | OUT OF SCOPE | Advisory-prose only |
 | 11 | adv-cycle-pass-*.md | frontmatter `trajectory_tail` field | OUT OF SCOPE | Written by adversary |
@@ -101,6 +102,8 @@ Pass-1 (2026-05-28; 14 findings 5H+5M+3L+1N; closed in this v1.1 — 9 BC findin
 Pass-2 (2026-05-28; 11 findings 3H+4M+3L+1N including F-001 regression of F-SP1-003 cascade-propagation-gap; closed in this v1.2 — 7-8 PO findings (F-003/004/005/006/007/008/010/011 + partial F-009); story-writer fix-burst closes 5 remaining incl. mandatory bidirectional parity check per pass-2 META-LEVEL-31 mandate). STREAK: 0/3 (pass-2 = HIGH verdict; streak reset).
 
 Pass-3 (2026-05-28; 14 findings 2C+5H+4M+3L+1N+1PG; closed in this v1.3 — 9 PO findings (F-SP3-001 CRITICAL/F-SP3-002 CRITICAL/F-SP3-003/F-SP3-005/F-SP3-008/F-SP3-009/F-SP3-011/F-SP3-013/F-SP3-014); story-writer fix-burst closes 5 remaining (F-SP3-004/F-SP3-006/F-SP3-007/F-SP3-010 + story mirrors of SP3-001/SP3-002/SP3-003/SP3-005). SDK-GROUNDING MANDATE from pass-3 root-cause analysis satisfied. STREAK: 0/3 (pass-3 = HIGH verdict; streak reset; 2 CRITICALs closed this burst).
+
+Pass-4 (2026-05-28; 16 findings 1C+6H+5M+2L+1N+1PG REGRESSING; closed in this v1.4 — 10 PO findings (F-SP4-001 CRITICAL/F-SP4-002/F-SP4-004/F-SP4-005/F-SP4-006/F-SP4-007/F-SP4-009/F-SP4-010/F-SP4-012/F-SP4-013); story-writer fix-burst closes remaining (F-SP4-003/F-SP4-008/F-SP4-011/F-SP4-015 + mirrors F-SP4-006). POLICY 5 v1.3.1 stable-anchor extension applied (META-LEVEL-32 cure-extension). STREAK: 0/3 (pass-4 = HIGH verdict; streak reset; trajectory 14→11→14→16 REGRESSING).
 
 ## Preconditions
 
@@ -156,9 +159,12 @@ Pass-3 (2026-05-28; 14 findings 2C+5H+4M+3L+1N+1PG; closed in this v1.3 — 9 PO
    - `Path::new(file_path).file_name() == Some("INDEX.md")` (path-component-strict basename check)
    - The **active cycle path** is matched: the hook reads `.factory/STATE.md` frontmatter
      `current_cycle:` field at runtime (via a secondary `host::read_file` call on STATE.md),
-     extracts the cycle name, and checks `file_path.contains(<active_cycle_name>)`. If the
-     STATE.md read fails (any HostError), the hook falls back to fail-open: `HookResult::Continue`
-     + `host::log_warn` for the INDEX.md arm only (not for STATE.md Block arm).
+     extracts the cycle name via `extract_current_cycle()`, and checks via path-component-walk:
+     `Path::new(file_path).components().any(|c| c.as_os_str() == active_cycle.as_str())`
+     (MANDATORY path-component-walk form per F-SP4-006; substring `String::contains` FORBIDDEN
+     — false-positive risk on overlapping cycle name prefixes). If the STATE.md read fails
+     (any HostError), the hook falls back to fail-open: `HookResult::Continue` + `host::log_warn`
+     for the INDEX.md arm only (not for STATE.md Block arm).
 
    **Rationale (F-SP3-001 — CRITICAL dynamic resolution):** The v1.2 cycle-path guard hardcoded
    `v1.0-feature-engine-discipline-pass-1/` — the F5 cycle which is PAUSED (`paused_pending_resume: true`
@@ -236,27 +242,38 @@ Pass-3 (2026-05-28; 14 findings 2C+5H+4M+3L+1N+1PG; closed in this v1.3 — 9 PO
    ```
    The trajectory_tail appears in the cell value — NOT in a heading. Extractor must
    NOT scan for `## Last Updated` heading (no such heading exists in production STATE.md).
+   **Cell value extraction (F-SP4-013 whitespace handling):** Capture text between the second
+   and third unescaped `|` characters in the `| **Last Updated** | <value> |` row; strip
+   leading and trailing whitespace from the captured text; join any continuation lines on
+   whitespace before running the arrow-count check.
 
 3. When STATE.md is written and the "Phase Progress" section's latest-pass row does not yield a
    `→(\d+)` match count of exactly 4 (LENGTH=4 STRICT equality per inv-4), the hook treats this
    as a missing site and includes
    "STATE.md Phase Progress rows" in the missing-sites list. **Extractor specification:** The
-   `## Phase Progress` heading IS present in production STATE.md (line 61). The extractor MUST
-   scan for the `## Phase Progress` heading and capture the TABLE ROWS that follow it (until the
-   next `##` heading). To identify the "latest pass row": take the BOTTOMMOST row of the Phase
-   Progress table, skipping any rows whose Status cell contains "ARCHIVED" or "COMPACTED". The
-   state-manager Commit E discipline appends one row per burst — the bottommost non-archived/non-
-   compacted row IS the latest by construction. Do NOT skip rows with Status "COMPLETE",
-   "SHIPPED", "MERGED", or "CYCLE CLOSED" — most Phase Progress rows carry these statuses and
-   skipping them would skip the most recent fix-burst row. If no non-archived/non-compacted row
-   exists (all rows compacted), the site is treated as present (pass-through). Production STATE.md
-   evidence:
+   `## Phase Progress` heading IS present in production STATE.md (verified via stable anchor
+   `^## Phase Progress`). The extractor MUST scan for the `^## Phase Progress` heading
+   (prefix-match; no line number — stable anchor per TD-VSDD-091) and capture the TABLE ROWS
+   that follow it (until the next `##` heading). To identify the "latest pass row": take the
+   BOTTOMMOST row of the Phase Progress table, skipping any rows whose Status cell contains
+   "ARCHIVED" or "COMPACTED". **ONE-tail-per-extracted-region precondition (F-SP4-001):** The
+   `extract_phase_progress_latest_row` function MUST return a SINGLE ROW TEXT — the text between
+   the `|` delimiters of the bottommost non-archived/non-compacted table row only, NOT the entire
+   Phase Progress section. The `count == 4` equality check (inv-4) operates on this single-row
+   text. Passing the whole-section text to the arrow-count check would produce false-Block
+   results because the Phase Progress section contains many rows, each with trajectory_tail
+   sequences, totaling far more than 4 arrow-segments. The state-manager Commit E discipline
+   appends one row per burst — the bottommost non-archived/non-compacted row IS the latest by
+   construction. Do NOT skip rows with Status "COMPLETE", "SHIPPED", "MERGED", or "CYCLE CLOSED"
+   — most Phase Progress rows carry these statuses and skipping them would skip the most recent
+   fix-burst row. If no non-archived/non-compacted row exists (all rows compacted), the site is
+   treated as present (pass-through). Production STATE.md evidence:
    ```
    $ grep '^## Phase Progress' .factory/STATE.md
    ## Phase Progress
    ```
-   The heading exists and contains historical rows spanning D-503..D-513. The bottommost non-
-   archived row carries the most recent burst's trajectory_tail.
+   The heading exists and contains historical rows spanning D-503..D-516. The bottommost non-
+   archived row carries the most recent burst's trajectory_tail (single row, between `|` delimiters).
 
 4. When STATE.md is written and the "Concurrent Cycles" section or row does not yield a `→(\d+)`
    match count of exactly 4 (LENGTH=4 STRICT equality per inv-4), the hook treats this as a
@@ -316,11 +333,25 @@ Pass-3 (2026-05-28; 14 findings 2C+5H+4M+3L+1N+1PG; closed in this v1.3 — 9 PO
 
 ### burst-log.md arm — Advisory severity (site 8)
 
-9. When burst-log.md is written and the latest-pass Dim-7 (Attestation) block does not yield a
+9. When burst-log.md is written and the latest-pass Dim-7 block does not yield a
    `→(\d+)` match count of exactly 4 (LENGTH=4 STRICT equality per inv-4), the hook emits
    `host::log_warn` with message
    "validate-trajectory-tail-cell-completeness: advisory — burst-log.md latest-pass Dim-7
-   (Attestation) block missing trajectory_tail (D-453(d) site 8)" and emits `HookResult::Continue`.
+   block missing trajectory_tail (D-453(d) site 8)" and emits `HookResult::Continue`.
+   **Extractor specification (F-SP4-004 — actual heading form):** The extractor scans for
+   the heading prefix `^### Dim-7` (case-insensitive prefix-match; actual heading variants
+   confirmed in active cycle `v1.0-brownfield-backfill/burst-log.md` include
+   `### Dim-7 Attestation / Closes`, `### Dim-7 Attestation`, `### Dim-7 attestation`,
+   `### Dim-7 Attestation (Closes / Advances)` — all share the prefix `### Dim-7`).
+   **Scope: brownfield-backfill cycle only.** The F5 cycle (`v1.0-feature-engine-discipline-pass-1`)
+   burst-log.md uses H2-level burst entries without `### Dim-7` sub-headings; that cycle is
+   PAUSED (`paused_pending_resume: true`) and NOT the active cycle at runtime. The hook targets
+   the active cycle's burst-log.md (scoped by basename detection — `burst-log.md` is an
+   unambiguous basename). Rationale for brownfield-scope: if a future cycle also uses `### Dim-7`
+   headings, this BC should be extended; for now the active-cycle burst-log.md is `v1.0-brownfield-backfill`
+   where the heading pattern is confirmed. §SDK Grounding Evidence Grep 4 provides literal stdout.
+   If the `^### Dim-7` heading is absent (e.g., in a future cycle with different burst-log structure),
+   the site is treated as present (fail-open per inv-10) with `host::log_warn`.
 
 ### lessons.md arm — Advisory severity (site 9)
 
@@ -464,6 +495,7 @@ Pass-3 (2026-05-28; 14 findings 2C+5H+4M+3L+1N+1PG; closed in this v1.3 — 9 PO
 | EC-017 | STATE.md with `current_step:` as multi-line YAML block scalar using `|` or `>` | Extractor reads the line containing `current_step:` and the indented continuation lines; must find `(→[0-9]+){4}` somewhere in the full value block |
 | EC-018 | STATE.md with `current_step:` containing `→9→9→9→9→9` (LENGTH=5 — `→(\d+)` count=5 ≠ 4) | Block: "STATE.md frontmatter current_step" listed as missing (count=5 ≠ 4 per inv-4 equality semantics; `(→[0-9]+){4}` non-anchored match would incorrectly pass — equality count check is required per BC-5.39.006 inv-6(b) precedent and F-SP3-002) |
 | EC-019 | File path `/tmp/STATE.md` or `/home/user/notes/STATE.md` — `file_name() == "STATE.md"` but path components do NOT include `.factory` | `HookResult::Continue` immediately; Precondition 4 path-component-walk rejects non-factory STATE.md (`Path::new("/tmp/STATE.md").components().any(|c| c.as_os_str() == ".factory")` returns false); STATE.md arm MUST NOT fire for STATE.md files outside the `.factory/` path component |
+| EC-020 | `host::read_file` returns `HostError::OutputTooLarge` with content that is NOT valid UTF-8 (e.g., file contains arbitrary binary bytes that exceed the 524288-byte cap OR partial-read produces a truncated multi-byte sequence at the boundary) | `HookResult::Continue` + `host::log_warn` fail-open (PC11 uniform HostError handling); the UTF-8 decode failure from `String::from_utf8(bytes)` MUST also be treated as fail-open — return `HookResult::Continue` + `host::log_warn`; NEVER block on UTF-8 decode error; consistent with PC11 fail-open umbrella and inv-10 |
 
 ## Canonical Test Vectors
 
@@ -555,13 +587,15 @@ VP IDs pending VP-INDEX allocation by state-manager at post-merge burst.
 
 ## Architecture Anchors
 
-- `crates/hook-plugins/validate-trajectory-tail-cell-completeness/src/lib.rs` — hook logic: `target_arm` enum routing; `has_trajectory_tail(text: &str) -> bool` (LENGTH=4 pattern check); section extractors (`extract_frontmatter_current_step`, `extract_last_updated_section`, `extract_phase_progress_section`, `extract_concurrent_cycles_section`, `extract_session_resume_section_1`); `check_state_md(content: &str) -> Vec<MissingStateSite>` (cascade accumulator); `check_index_sites`, `check_burst_log_sites`, `check_lessons_sites` (advisory checkers); `on_post_tool_use(payload: HookPayload) -> HookResult` (effectful orchestration entry point)
+- `crates/hook-plugins/validate-trajectory-tail-cell-completeness/src/lib.rs` — hook logic: `target_arm` enum routing; `has_trajectory_tail(text: &str) -> bool` (LENGTH=4 pattern check); section extractors (`extract_frontmatter_current_step`, `extract_last_updated_section`, `extract_phase_progress_latest_row`, `extract_concurrent_cycles_section`, `extract_session_resume_section_1`); `check_state_md(content: &str) -> Vec<MissingStateSite>` (cascade accumulator); `check_index_sites`, `check_burst_log_sites`, `check_lessons_sites` (advisory checkers); `on_post_tool_use(payload: HookPayload) -> HookResult` (effectful orchestration entry point)
+- **`extract_current_cycle(state_md_content: &str) -> Option<String>` (F-SP4-005 — extractor spec):** Scans the YAML frontmatter region (between first and second `---\n` delimiters) for a line matching `^current_cycle:` and extracts the value. MUST handle all production YAML forms: (a) bare form: `current_cycle: v1.0-brownfield-backfill` → extract `v1.0-brownfield-backfill`; (b) single-quoted: `current_cycle: 'v1.0-brownfield-backfill'` → strip quotes; (c) double-quoted: `current_cycle: "v1.0-brownfield-backfill"` → strip quotes; (d) trailing comment: `current_cycle: v1.0-brownfield-backfill # active` → strip `#...` suffix and trim; (e) multi-line block-scalar using `|` or `>` → read continuation lines as the value. Returns `None` if the key is absent or the frontmatter region cannot be located. On `None`, the INDEX.md arm falls back to fail-open (`HookResult::Continue` + `host::log_warn`) — parallel to EC-017 `current_step:` extraction handling. Production STATE.md uses bare form (confirmed by §SDK Grounding Evidence Grep 4: `current_cycle: v1.0-brownfield-backfill`).
+- **INDEX.md cycle-path guard — path-component-walk MANDATORY (F-SP4-006):** After extracting `active_cycle` via `extract_current_cycle`, the INDEX.md arm MUST use path-component-walk to check whether `file_path` belongs to that cycle: `Path::new(file_path).components().any(|c| c.as_os_str() == active_cycle.as_str())`. Using `file_path.contains(active_cycle.as_str())` (substring `String::contains`) is FORBIDDEN — it produces false-positives when cycle names share a prefix (e.g., `v1.0-brownfield-backfill` is a substring of `v1.0-brownfield-backfill-bolt-on/INDEX.md`). The path-component-walk form is platform-independent and resistant to path normalization edge cases (same principle as the `.factory` parent-guard in Precondition 4).
 - `crates/hook-sdk/src/host.rs` — `host::read_file(path, max_bytes, timeout_ms)` API consumed by this hook; `host::log_warn(message)` for advisory-level non-blocking log entries
 - `crates/hook-sdk/src/result.rs` — `HookResult` enum: `Continue`, `Block { reason }`, `Error { message }`; `HookResult::block_with_fix(hook, reason, recommendation, code)` constructor; NOTE: NO `HookResult::Advisory` variant exists
 - `plugins/vsdd-factory/hooks-registry.toml` — PostToolUse registration: priority 158 (next monotonic after validate-policies-schema at 157); `tool = "Edit|Write"`; `path_allow = [".factory"]`; `on_error = "continue"` (inv-12); closest `path_allow = [".factory"]`-only structural sibling is BC-5.39.006 (validate-dispatch-advance) — NOT BC-5.39.008 which uses `path_allow = [".factory", "plugins/vsdd-factory"]`
 - `.factory/STATE.md` — primary target artifact (5 prescribed sites; Block arm)
-- `.factory/STATE.md` `current_cycle:` frontmatter field — runtime source for active cycle name; read dynamically via secondary `host::read_file` call (F-SP3-001 dynamic resolution); currently `v1.0-brownfield-backfill` (per STATE.md line 16: `current_cycle: v1.0-brownfield-backfill`)
-- `.factory/cycles/<active-cycle>/INDEX.md` — target artifact (2 prescribed sites; Advisory arm; cycle-path-guarded dynamically)
+- `.factory/STATE.md` `current_cycle:` frontmatter field — runtime source for active cycle name; read dynamically via secondary `host::read_file` call (F-SP3-001 dynamic resolution); NOT hardcoded to any specific cycle name; resolved from STATE.md `current_cycle:` at runtime via `extract_current_cycle()` (F-SP4-012). Current production value `v1.0-brownfield-backfill` confirmed by §SDK Grounding Evidence Grep 4 — but this value changes across cycles and MUST be read dynamically.
+- `.factory/cycles/<active-cycle>/INDEX.md` — target artifact (2 prescribed sites; Advisory arm; cycle-path-guarded dynamically via path-component-walk per F-SP4-006)
 - `.factory/cycles/<active-cycle>/burst-log.md` — target artifact (1 prescribed site; Advisory arm)
 - `.factory/cycles/<active-cycle>/lessons.md` — target artifact (1 prescribed site; Advisory arm)
 - `plugins/vsdd-factory/hooks-registry.toml` §validate-trajectory-tail-cell-completeness — registry entry declaring capability `path_allow = [".factory"]` per ADR-018 OD-6 minimal capability grants
@@ -599,14 +633,16 @@ patterns:
 
 Both predecessor cure-extensions cited in Traceability §Predecessor Cure-Extensions.
 
-3. **F-SP3-003 HostError variant collapse rationale:** The former PC11 (`HostError::TooBig`) was
-   an incorrect SDK cite — the actual variant is `HostError::OutputTooLarge` per host.rs enum.
-   Rather than replace the variant name in a structurally separate PC (which would be fragile to
-   further SDK evolution), this BC collapses PC11 into PC12 (all HostError variants → fail-open)
-   per the adversary recommendation. This reduces structural complexity by eliminating a
-   special-case PC that inv-10 already covers uniformly. The `max_bytes = 524288` invariant (inv-7)
-   remains unchanged — if a file exceeds the cap, `HostError::OutputTooLarge` is returned and
-   handled uniformly by PC11. See §SDK Grounding Evidence for literal-shell confirmation of the
+3. **F-SP3-003 HostError variant collapse rationale (F-SP4-007 direction corrected):** The former
+   PC11 (`HostError::TooBig`) was an incorrect SDK cite — the actual variant is
+   `HostError::OutputTooLarge` per host.rs enum. Rather than replace the variant name in a
+   structurally separate PC (which would be fragile to further SDK evolution), this BC collapses
+   the old PC11 (HostError::TooBig-specific) into the new PC11 (uniform HostError fail-open) per
+   the adversary recommendation. The old PC13 (all-sites-present pass case) becomes the new PC12.
+   Net: PC count 13 → 12. This reduces structural complexity by eliminating a special-case PC
+   that inv-10 already covers uniformly. The `max_bytes = 524288` invariant (inv-7) remains
+   unchanged — if a file exceeds the cap, `HostError::OutputTooLarge` is returned and handled
+   uniformly by the new PC11. See §SDK Grounding Evidence for literal-shell confirmation of the
    actual variant name.
 
 ## VP Anchors
@@ -615,89 +651,105 @@ VP IDs pending VP-INDEX allocation by state-manager at S-15.17 post-merge burst.
 
 ## SDK Grounding Evidence
 
-**SDK-GROUNDING MANDATE (pass-3 root-cause discipline):** Every SDK symbol, file path, cycle name,
-type signature, registry priority, or constant cited in this BC v1.3 is backed by literal-shell
-grep of the actual source file. Nine mandatory greps executed per mandate. POLICY 15 verbatim
-stdout discipline applied.
+**SDK-GROUNDING MANDATE (pass-3 root-cause discipline; v1.4 POLICY 5 v1.3.1 stable-anchor extension):** Every SDK symbol, file path, cycle name, type signature, registry priority, or constant cited in this BC v1.4 is backed by literal-shell grep of the actual source file. POLICY 15 verbatim stdout discipline applied. STABLE ANCHORS ONLY — no line numbers in captured stdout per TD-VSDD-091 + POLICY 5 v1.3.1 sub-clause (F-SP4-002 META-LEVEL-32 cure-extension).
 
-**Grep 1 — HostError enum variants (crates/hook-sdk/src/host.rs)**
+**Grep 1 — HostError enum variants: literal enum body (crates/hook-sdk/src/host.rs) — F-SP4-010 fix**
 ```
-$ grep -n "pub enum HostError" crates/hook-sdk/src/host.rs
-crates/hook-sdk/src/host.rs:82:pub enum HostError {
+$ grep "^pub enum HostError" crates/hook-sdk/src/host.rs
+pub enum HostError {
+$ sed -n '82,94p' crates/hook-sdk/src/host.rs
+pub enum HostError {
+    /// The caller does not have the capability for this operation.
+    CapabilityDenied,
+    /// The host call exceeded its `timeout_ms` budget.
+    Timeout,
+    /// The output exceeded the per-call cap; truncated.
+    OutputTooLarge,
+    /// The argument failed host-side validation (path traversal, etc.).
+    InvalidArgument,
+    /// The host operation failed for a reason not classified above.
+    /// `code` is the negative error number returned by the host.
+    Other(i32),
+}
 ```
-Enum body (lines 82-95): `CapabilityDenied`, `Timeout`, `OutputTooLarge`, `InvalidArgument`,
-`Other(i32)`. `TooBig` DOES NOT EXIST. `OutputTooLarge` is the correct variant (F-SP3-003).
+Confirmed: enum closes at line 94. Variants: `CapabilityDenied`, `Timeout`, `OutputTooLarge`, `InvalidArgument`, `Other(i32)`. `TooBig` DOES NOT EXIST. `OutputTooLarge` is the correct variant (F-SP3-003). Closing brace on line 94 — claim of "lines 82-95" in v1.3 was incorrect (F-SP4-010 corrected).
 
 **Grep 2 — `read_file` signature (crates/hook-sdk/src/host.rs)**
 ```
-$ grep -n "pub fn read_file" crates/hook-sdk/src/host.rs
-crates/hook-sdk/src/host.rs:187:pub fn read_file(path: &str, max_bytes: u32, timeout_ms: u32) -> Result<Vec<u8>, HostError> {
+$ grep "^pub fn read_file" crates/hook-sdk/src/host.rs
+pub fn read_file(path: &str, max_bytes: u32, timeout_ms: u32) -> Result<Vec<u8>, HostError> {
 ```
 Confirmed: `max_bytes: u32`, `timeout_ms: u32`, returns `Result<Vec<u8>, HostError>`.
 
 **Grep 3 — Sibling double-match pattern (crates/hook-plugins/validate-policies-schema/src/lib.rs)**
 ```
-$ grep -n "Ok(bytes)" crates/hook-plugins/validate-policies-schema/src/lib.rs
-crates/hook-plugins/validate-policies-schema/src/lib.rs:788:        Ok(bytes) => match String::from_utf8(bytes) {
-crates/hook-plugins/validate-policies-schema/src/lib.rs:1143:            Ok(bytes) => match String::from_utf8(bytes) {
-crates/hook-plugins/validate-policies-schema/src/lib.rs:1181:            Ok(bytes) => match String::from_utf8(bytes) {
+$ grep "Ok(bytes)" crates/hook-plugins/validate-policies-schema/src/lib.rs
+        Ok(bytes) => match String::from_utf8(bytes) {
+            Ok(bytes) => match String::from_utf8(bytes) {
+            Ok(bytes) => match String::from_utf8(bytes) {
 ```
 Confirmed: double-match `Ok(bytes) => match String::from_utf8(bytes)` pattern at 3 call sites.
 T-5 is missing this decode step (F-SP3-006 — routes to story-writer).
 
-**Grep 4 — STATE.md `current_cycle:` value**
+**Grep 4 — STATE.md `current_cycle:` bare form + `## Phase Progress` heading + Dim-7 heading variants (F-SP4-002/F-SP4-004/F-SP4-005)**
 ```
-$ grep -n "^current_cycle:" .factory/STATE.md
-.factory/STATE.md:16:current_cycle: v1.0-brownfield-backfill
+$ grep "^current_cycle:" .factory/STATE.md
+current_cycle: v1.0-brownfield-backfill
+$ grep "^## Phase Progress" .factory/STATE.md
+## Phase Progress
+$ grep "^### Dim-7" .factory/cycles/v1.0-brownfield-backfill/burst-log.md | sort -u
+### Dim-7 attestation
+### Dim-7 Attestation
+### Dim-7 Attestation (Closes / Advances)
+### Dim-7 Attestation / Closes
 ```
-Active cycle: `v1.0-brownfield-backfill`. F5 cycle (`v1.0-feature-engine-discipline-pass-1`) is
-NOT active — confirms F-SP3-001 CRITICAL (v1.2 hardcoded F5 path was silently inert).
+Confirmed: `current_cycle:` bare form (no quotes, no trailing comment) — extractor handles bare, single-quoted, double-quoted forms. `## Phase Progress` heading present (stable anchor `^## Phase Progress`; no line number per TD-VSDD-091 F-SP4-002). Dim-7 actual headings use prefix `### Dim-7` with various suffixes — PC9 extractor uses `^### Dim-7` prefix-match (F-SP4-004). F5 cycle burst-log has ZERO `### Dim-7` lines (zero output); active cycle `v1.0-brownfield-backfill` has 4 heading variants, all sharing `^### Dim-7` prefix.
 
 **Grep 5 — Brownfield-backfill INDEX.md exists**
 ```
-$ ls -la .factory/cycles/v1.0-brownfield-backfill/INDEX.md
--rw-r--r--@ 1 jmagady  staff  21794 May 20 22:42 .factory/cycles/v1.0-brownfield-backfill/INDEX.md
+$ ls .factory/cycles/v1.0-brownfield-backfill/INDEX.md
+.factory/cycles/v1.0-brownfield-backfill/INDEX.md
 ```
 Confirmed: active cycle has INDEX.md artifact that would be missed by v1.2 hardcoded F5 guard.
 
 **Grep 6 — F5 cycle paused**
 ```
-$ grep -n "paused_pending_resume" .factory/cycles/v1.0-feature-engine-discipline-pass-1/INDEX.md
-.factory/cycles/v1.0-feature-engine-discipline-pass-1/INDEX.md:7:last_amended: "2026-05-27 (v1.4) — D-510 HIGH-005: paused_pending_resume: true added..."
-.factory/cycles/v1.0-feature-engine-discipline-pass-1/INDEX.md:10:paused_pending_resume: true
+$ grep "^paused_pending_resume:" .factory/cycles/v1.0-feature-engine-discipline-pass-1/INDEX.md
+paused_pending_resume: true
 ```
 Confirmed: F5 cycle has `paused_pending_resume: true`. F-SP3-001 CRITICAL confirmed.
 
 **Grep 7 — Priority 158 uncollided in hooks-registry.toml**
 ```
-$ grep -n "priority = 157\|priority = 158\|priority = 156" plugins/vsdd-factory/hooks-registry.toml
-plugins/vsdd-factory/hooks-registry.toml:973:priority = 156
-plugins/vsdd-factory/hooks-registry.toml:992:priority = 157
+$ grep "priority = 15[6-8]" plugins/vsdd-factory/hooks-registry.toml
+priority = 156
+priority = 157
 ```
 Confirmed: priority 157 is the highest PostToolUse Edit|Write priority (`validate-policies-schema`).
 Priority 158 is uncollided — next available for `validate-trajectory-tail-cell-completeness`.
 
 **Grep 8 — ARCH-INDEX SS-05 = "Pipeline Orchestration"**
 ```
-$ grep -n "SS-05 Pipeline Orchestration" .factory/specs/architecture/ARCH-INDEX.md
-.factory/specs/architecture/ARCH-INDEX.md:265:| SS-05 Pipeline Orchestration | SS-05-orchestration.md | orchestrator, story-writer | Agents, Lobster workflows, pipeline phase structure |
-.factory/specs/architecture/ARCH-INDEX.md:311:| SS-05 | Pipeline Orchestration | SS-05-orchestration.md | ...
+$ grep "SS-05 Pipeline Orchestration" .factory/specs/architecture/ARCH-INDEX.md
+| SS-05 Pipeline Orchestration | SS-05-orchestration.md | orchestrator, story-writer | Agents, Lobster workflows, pipeline phase structure |
+| SS-05 | Pipeline Orchestration | SS-05-orchestration.md | ...
 ```
 Confirmed: SS-05 = "Pipeline Orchestration" in ARCH-INDEX Subsystem Registry.
 
 **Grep 9 — BC-5.39.006 inv-6(b) equality semantics (count == 4 precedent)**
 ```
-$ grep -n "count must equal exactly 4" .factory/specs/behavioral-contracts/ss-05/BC-5.39.006.md
-.factory/specs/behavioral-contracts/ss-05/BC-5.39.006.md:173:   narratives, TD-NNN renumber references). The match count must equal exactly 4. A count of 3
+$ grep "count must equal exactly 4" .factory/specs/behavioral-contracts/ss-05/BC-5.39.006.md
+   narratives, TD-NNN renumber references). The match count must equal exactly 4. A count of 3
 ```
 Confirmed: BC-5.39.006 invariant 6(b) requires `count == 4` (equality), not `count >= 4`. This
-is the F-SP3-002 cure-extension precedent per D-497. BC-5.39.009 v1.3 adopts identical equality
+is the F-SP3-002 cure-extension precedent per D-497. BC-5.39.009 v1.4 adopts identical equality
 semantics in inv-4.
 
 ## Changelog
 
 | Version | Date | Description |
 |---------|------|-------------|
+| 1.4 | 2026-05-28 | Pass-4 adversary fix-burst (product-owner; brownfield-backfill S-15.17 spec cascade). INV-019 cure (a)/(b)/(c) discipline extended. POLICY 5 v1.3.1 stable-anchor sub-clause added (META-LEVEL-32 cure-extension per F-SP4-002: all grep captures MUST use stable anchors; line numbers FORBIDDEN). Closes 10 PO findings: F-SP4-001 CRITICAL (count==4 false-Block on multi-row Phase Progress section — PC3 tightened: extract_phase_progress_latest_row returns SINGLE ROW TEXT; ONE-tail-per-extracted-region precondition; Architecture Anchors function name updated); F-SP4-002 HIGH (TD-VSDD-091 anti-volatile-pin inside POLICY 5 cure — stripped ALL line numbers from §SDK Grounding Evidence; PC3 line cite removed; POLICY 5 extended with stable-anchor sub-clause); F-SP4-004 HIGH (PC9 Dim-7 heading absent — actual heading form `^### Dim-7` confirmed by literal-shell grep on brownfield-backfill/burst-log.md; PC9 updated; scoped to brownfield-backfill with rationale; §SDK Grounding Evidence Grep 4 updated); F-SP4-005 HIGH (extract_current_cycle() unspecified — added to §Architecture Anchors: bare/single-quoted/double-quoted/trailing-comment/multi-line YAML forms; §SDK Grounding Evidence Grep 4); F-SP4-006 HIGH (substring String::contains false-positive on overlapping cycle names — §Architecture Anchors mandates Path::new(file_path).components().any(|c| c.as_os_str() == active_cycle.as_str()); Precondition 4 INDEX.md arm updated); F-SP4-007 HIGH (§Cure-Extension Parsimony Note point 3 collapse direction inverted — rewritten: old PC11→new PC11, old PC13→new PC12, net 13→12); F-SP4-009 MEDIUM (EC-020 UTF-8 fail-open mirrored from story — EC-020 added; closes [needs-po] Canonical Principle Rule 3 violation); F-SP4-010 MEDIUM (POLICY 15 violation inside POLICY 5 cure — §SDK Grounding Evidence Grep 1 replaced with literal sed -n '82,94p' stdout; closing brace line 94 confirmed; narrative paraphrase removed); F-SP4-012 MEDIUM (§Architecture Anchors cycle-name examples → structural form: NOT hardcoded to any specific cycle name; resolved from STATE.md current_cycle: at runtime); F-SP4-013 LOW (PC2 extractor whitespace: capture between 2nd and 3rd unescaped `|`; strip leading/trailing whitespace; join continuation lines). §SDK Grounding Evidence Grep 4 updated (current_cycle + Phase Progress + Dim-7 variants); Grep 1 replaced with literal enum body; all `-n` flags stripped per POLICY 5 v1.3.1. EC-020 added (monotonic; no renumbering). POLICY 14 5-leg quintuple parity applied (version "1.4" + this Changelog row v1.4 + modified[] appended "2026-05-28 (v1.4)" + last_amended text-prefix "2026-05-28 (v1.4)" + BC-INDEX v2.57→v2.58). Story-writer next burst: F-SP4-003/008/011/015 + mirrors F-SP4-006. |
 | 1.3 | 2026-05-28 | Pass-3 adversary fix-burst (product-owner; brownfield-backfill S-15.17 spec cascade). SDK-GROUNDING MANDATE satisfied — 9 literal-shell greps per pass-3 root-cause mandate (§SDK Grounding Evidence). INV-019 cure (a)/(b)/(c) extended. Closes 9 PO findings: F-SP3-001 CRITICAL (dynamic STATE.md current_cycle: resolution — Precondition 4 INDEX.md arm rewired; Architecture Anchors `<active-cycle>` placeholders; option (a) per mandate; cycle-name read via secondary host::read_file on STATE.md); F-SP3-002 CRITICAL regression (LENGTH=4 STRICT equality semantics per BC-5.39.006 inv-6(b) precedent — `→(\d+)` count == 4; inv-4 + PC1..PC5 + EC-003 + EC-018 + Test Vectors + LENGTH=5 new TV row); F-SP3-003 HIGH (HostError::OutputTooLarge actual variant confirmed by host.rs grep; PC11 collapsed into PC12 uniform HostError handler; EC-004 + VP + Test Vectors updated; rationale in §Cure-Extension Parsimony Note point 3); F-SP3-005 HIGH (PC6 indirection via inv-8 documented — explicit cross-reference in PC6 cascade narrative; story-writer handles AC-7 trace extension); F-SP3-008 MEDIUM (Precondition 4 + EC-015 + EC-019 STATE.md parent-guard updated to path-component-walk form: `Path::new(file_path).components().any(|c| c.as_os_str() == ".factory")`); F-SP3-009 MEDIUM (dual-cycle attribution in §Description — F5 D-453(d) anchor + brownfield delivery + dynamic runtime resolution); F-SP3-011 LOW (duplicate ADR-018 cite in §D-NNN Anchor Coverage collapsed to single line + parenthetical moved to §ADR References); F-SP3-013 NITPICK (both D-411(a) cites retained — acceptable per adversary guidance); F-SP3-014 PROCESS-GAP HIGH (policies.yaml POLICY 8 amended v1.1→v1.2 — audit-block exclusion mandate; POLICY 8 extension chosen not new POLICY 19). §SDK Grounding Evidence section added. D-NNN table D-454(a) range updated from 1-10 to 1-11 (absorbs PC11 collapse). POLICY 14 5-leg quintuple parity applied (version "1.3" + this Changelog row v1.3 + modified[] appended "2026-05-28 (v1.3)" + last_amended text-prefix "2026-05-28 (v1.3)" + BC-INDEX v2.57 row). Story-writer next burst: F-SP3-004/006/007/010 + mirrors F-001/002/003/005. |
 | 1.2 | 2026-05-28 | Pass-2 adversary fix-burst (product-owner; brownfield-backfill S-15.17 spec cascade). INV-019 cure (a) anchor ADV-EDP1-P75-HIGH-002 via spec-cascade pass-2 / (b) PC2/PC3/PC5 line-number anti-volatile-pin (TD-VSDD-091) — stripped line numbers from grep excerpts, kept prefix/content match only / (c) cure-extension parsimony note updated with deliberate non-extension of BC-5.39.006 marker-prefix semantics documented per D-497. Closes 7-8 of 11 pass-2 findings: F-S15.17-SP2-003 (EC-008 + test vectors + inv-3 Pre-vs-Post disambiguation: `(PC4)` → `(Precondition 4)` where PC4 referred to cycle-path guard Precondition; full EC table swept); F-S15.17-SP2-004 (`status: active` → `status: draft` pre-merge; `lifecycle_status: draft` consistent; POL-14 fires on S-15.17 merge — both fields go active); F-S15.17-SP2-005 (PC2/PC3/PC5 grep excerpts stripped of `grep -n` line numbers; grep commands without `-n` flag; anti-volatile-pin per TD-VSDD-091); F-S15.17-SP2-006 (inv-4 + §Cure-Extension Parsimony Note updated to document deliberate non-extension of BC-5.39.006 marker-prefix `trajectory-tail ` semantics; EC-006/EC-007 context quoted; per-cell heterogeneous text context rationale); F-S15.17-SP2-007 (Precondition 4 expanded to require `.factory/` parent-guard for STATE.md arm in addition to basename check; EC-019 added for non-factory STATE.md → Continue; inv-3 updated; EC-015 revised to reflect new parent-guard semantics); F-S15.17-SP2-008 (PC3 skip-list: `COMPLETE` dropped; skip only ARCHIVED/COMPACTED; bottommost-row rationale documented — state-manager Commit E appends one row per burst so bottommost IS latest); F-S15.17-SP2-009 partial (ADR-021 dropped from §ADR References and D-NNN non-D table note; frontmatter inputs updated; ADR-018 clarified to cover no-subprocess principle; story-writer drops ADR-021 from `anchored_adrs:` frontmatter); F-S15.17-SP2-010 (inv-9 rephrased from SDK-state assertion to behavioral prescription: "MUST NOT use any HookResult::Advisory variant the SDK may add"; inv-6 updated to match); F-S15.17-SP2-011 (D-453 pass-73 cite corrected from pass-74). POLICY 14 5-leg quintuple parity applied (version "1.2" + this Changelog row v1.2 + modified[] appended "2026-05-28 (v1.2)" + last_amended text-prefix "2026-05-28 (v1.2)" + BC-INDEX v2.56 row version cell v1.2). Story-writer next burst handles F-001 (AC-9/10/11/12/17 re-anchor + bidirectional parity check stdout; META-LEVEL-31 mandate) / F-002 (SS-05 narrative) / F-003 story EC-008 mirror / F-007 AC-23 / F-009 anchored_adrs drop. EC-019 added (monotonic, no renumbering). |
 | 1.1 | 2026-05-28 | Pass-1 adversary fix-burst (product-owner; brownfield-backfill S-15.17 spec cascade). INV-019 cure (a) anchor ADV-EDP1-P75-HIGH-002 via spec-cascade pass-1 / (b) structural per-cell extractor-anchor specification (PC2/PC3/PC5 rewritten with production STATE.md structure evidence) / (c) cure-extension of BC-5.39.005+BC-5.39.006 pattern per D-497 parsimony. Closes 9 of 14 pass-1 findings: F-S15.17-SP1-002 (ADR-017 frontmatter path corrected to `ADR-017-per-story-adversary-phasing.md`); F-S15.17-SP1-004 (PC2 Last Updated as table cell in `## Project Metadata`, PC3 Phase Progress latest non-archived row, PC5 `## Session Resume Checkpoint` prefix-match with optional parenthetical, all with literal-shell evidence from factory-artifacts HEAD `29d08cc7`); F-S15.17-SP1-005 (inv-4 + PC6 LENGTH=4 STRICT adjudication — LENGTH=5+ also violation; EC-018 LENGTH=5 added; aligns with BC-5.39.006 inv-6(b)+EC-007+D-433(e)+D-439(c)); F-S15.17-SP1-007 (PC5/EC-016 fail-open contradiction resolved to log_warn+Continue); F-S15.17-SP1-009 (path_allow sibling cite corrected to BC-5.39.006); F-S15.17-SP1-010 (inv-12 on_error=continue added per sibling BC-5.39.004/005/006/007/008 precedent); F-S15.17-SP1-011 (D-NNN table purified — ADR/META-LEVEL/BC rows removed from table, moved to §ADR References / §Related BCs / inv-7); F-S15.17-SP1-012 (D-454(a) PC range 1-9→1-10); F-S15.17-SP1-014 (EC-017 "State.md"→"STATE.md"). POLICY 14 5-leg quintuple parity applied (version "1.1" + this Changelog row v1.1 + modified[] appended "2026-05-28 (v1.1)" + last_amended text-prefix "2026-05-28 (v1.1)" + BC-INDEX v2.55 row version cell v1.1). §Cure-Extension Parsimony Note section added. Story-writer next burst handles F-001/003/006/008/013. |
