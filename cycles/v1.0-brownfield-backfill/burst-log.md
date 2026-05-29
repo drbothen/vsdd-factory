@@ -148,7 +148,7 @@ D-520 S-15.17 spec cascade pass-7 fix-burst (all 9 numbered findings + PG-001 ME
 
 ### Factory-artifacts commits
 
-`d4cadf68` (adv-persist: adv-spec-pass-7.md) + `f5bf4082` (PO: BC v1.7 + BC-INDEX v2.61 + policies.yaml v1.3.5) + `7b54600d` (story-writer: S-15.17 v1.8 + STORY-INDEX v3.79) + `<D-520-state-manager-SHA>` (state-manager close: INDEX.md + burst-log + decision-log + lessons + session-checkpoints + STATE.md; SHA-patch follow-up per D-447(c)+D-449(e)).
+`d4cadf68` (adv-persist: adv-spec-pass-7.md) + `f5bf4082` (PO: BC v1.7 + BC-INDEX v2.61 + policies.yaml v1.3.5) + `7b54600d` (story-writer: S-15.17 v1.8 + STORY-INDEX v3.79) + `e541eefc` (state-manager close: INDEX.md + burst-log + decision-log + lessons + session-checkpoints + STATE.md) + `<D-520-SHA-patch>` (SHA-patch follow-up per D-447(c)+D-449(e)).
 
 ---
 
