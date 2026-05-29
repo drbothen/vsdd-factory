@@ -2698,3 +2698,46 @@ POLICY 14 description and verification_steps updated in policies.yaml same-burst
 **Cites:** D-520, META-LEVEL-35, PO fix-burst `f5bf4082`, story-writer fix-burst `7b54600d`.
 
 **Closes:** D-520 asymptotic-floor-broken lesson capture per S-7.02 cycle-closing checklist. `[codified]`
+
+---
+
+## L-S-15.17-SP8-META-36-snapshot-rescue
+
+**Date:** 2026-05-29
+
+**Pattern (META-LEVEL-36 CODIFIED — snapshot-annotation-rescue-pattern via fresh-context-loop-asymmetry):** POLICY 5 v1.3.5 Part B replay-reproducibility mandated parent-commit SHA citation + replay against SAME SHA. F-SP7-004 cure (pass-7) annotated Grep 10 stdout with historical parent-commit SHA — this satisfied Part B literal letter (SHA cited) but the adversary fresh-context loop ALWAYS executes at HEAD, never checks out historical SHAs. The snapshot annotation pattern satisfied Part B letter while defeating the reproducibility guarantee through loop-asymmetry: the annotated stdout was valid at the historical SHA but the adversary could NOT reproduce it by executing the gate at HEAD.
+
+**Cure:** POLICY 5 v1.3.6 3-part: (1) Part B REVISED — verification gates MUST be HEAD-reproducible at any cycle SHA OR use structural-form-only citations (function names, invariant properties, file paths — invariant structural properties not snapshot-dependent); snapshot-annotation-only FORBIDDEN. (2) Part D NEW — adversary executing at HEAD MUST detect if cited stdout evidence could only be valid at a specific historical SHA. Non-HEAD-reproducible citations = META-36 violation regardless of whether a SHA is cited.
+
+**Validated 1-burst:** PO (068725ea) self-applied v1.3.6 Part B — Grep 10 rewritten from snapshot-annotation to STRUCTURAL-FORM-only (trajectory-tail marker grep yields identical results at any SHA where STATE.md has marker-prefix discipline; HEAD-reproducible). Story-writer (aaf69b74) self-applied v1.3.6 gates at HEAD — structural-form stdout; zero non-historical stale refs.
+
+**Cure-of-cure-of-cure-OF-cure-OF-cure-OF-cure recursion:** POLICY 5 has now codified 6 cure layers — v1.3 SDK-grounding → v1.3.1 stable-anchor → v1.3.3 sibling-sweep enumeration → v1.3.4 literal-shell verification gate → v1.3.5 historical-by-construction + replay-reproducibility → v1.3.6 HEAD-reproducibility + structural-form-only. Each cure addresses the prior cure's self-application gap. Pattern: META-LEVEL gaps at policy-self-application boundaries are systematically cured by adding the NEXT enforcement primitive (structural-invariant replacing snapshot; HEAD-reproducibility replacing SHA-citation).
+
+**Forward-watch:** Whether this recursion bottoms out structurally is the diagnostic question for pass-9. If Grep 10 structural-form-only is truly HEAD-reproducible AND no new paper-fixes remain AND no new META class emerges, convergence within 2-4 passes is plausible. The adversary should specifically validate: (1) Is Grep 10 structural-form-only and HEAD-reproducible at pass-9 HEAD? (2) Does Part D snapshot-rescue-pattern detection catch any remaining snapshot-annotation evidence in BC body? (3) Are all 3 TD-VSDD-059 paper-fixes from Pass-5 structurally closed?
+
+**Anchors:** D-521 (this burst); META-LEVEL-36; PO fix-burst `068725ea`; story-writer fix-burst `aaf69b74`; parent `aaf69b74` per D-419(b).
+
+**Closes:** D-521 META-36 codification per S-7.02 cycle-closing checklist. `[codified]`
+
+---
+
+## L-S-15.17-SP8-TD-VSDD-059-paper-fix-detection
+
+**Date:** 2026-05-29
+
+**Pattern (process observation — TD-VSDD-059 paper-fix detection via cure-claim-vs-body-text-audit):** 3 long-standing TD-VSDD-059 paper-fixes from Pass-5 (§Cure-Extension Parsimony Note point 2 "deliberate non-extension" surviving HUMAN-DIRECTED REVERSAL claim; PC10 LENGTH=4 count check surviving OUT-OF-SCOPE annotation; §D-453(d) Site 9 stale IN-SCOPE annotation) survived 3 fresh-context adversary passes (pass-6/7/8) before detection at pass-8. Detection at pass-8 was triggered by an adversary with sufficiently broad context to compare changelog-claim vs body-text consistency.
+
+**Why paper-fixes survive multiple passes:** A narrow-scope adversary focused on new findings can miss long-standing paper-fixes from prior bursts because the adversary's fresh-context Iron Law (BC-5.39.001) prevents it from reviewing prior-pass adversary reports that would flag the original cure claims. The adversary CAN read the BC's own §Adversary Pass Coverage section (historical-by-construction) and verify body text matches the cure claims documented therein.
+
+**Mitigation — cure-claim-vs-body-text-audit pattern:** Adversary SHOULD periodically re-execute the implicit gate "does the body text actually match the changelog/§Adversary-Pass-Coverage claim?" against ALL prior-pass cure attestations. This is generalizable from POLICY 5 v1.3.6 Part D snapshot-rescue-pattern detection: the adversary executing at HEAD can verify whether any BC body claim (not just snapshot citations) matches its alleged cure. POLICY 5 v1.3.6 Part D is the structural home for this check.
+
+**Specific paper-fixes closed at D-521:**
+1. §Cure-Extension Parsimony Note point 2: claimed "deliberate non-extension is HUMAN-DIRECTED REVERSAL" but the actual HUMAN-DIRECTED instruction was not documented in the BC body. Fix: point 2 rewritten to faithfully document the F-SP5-001 HUMAN-DIRECTED REVERSAL with the actual human instruction preserved.
+2. PC10 OUT-OF-SCOPE: surviving LENGTH=4 count check annotation that claimed OUT-OF-SCOPE but still included a count check for the out-of-scope content. Fix: PC10 body rewritten to structurally exclude the out-of-scope content without count reference.
+3. §D-453(d) Site 9: stale IN-SCOPE annotation claiming Site 9 was in-scope but body implementation did not actually cover Site 9 per the §D-453(d) canonical mapping. Fix: Site 9 documentation updated to reflect actual implementation scope.
+
+**Forward-discipline for future adversary passes:** Before declaring a finding closed, adversary MUST verify: (a) Does the BC BODY TEXT actually reflect the claimed cure? (b) Does the §Adversary Pass Coverage entry for the prior closure faithfully describe the structural change — not just assert "CLOSED"? (c) Is the cure form structural (code/spec content change) or cosmetic (annotation/label change)?
+
+**Anchors:** D-521 (this burst); TD-VSDD-059; adv-spec-pass-8.md at `dfcbea39`; F-SP8-001/002 closures.
+
+**Closes:** D-521 TD-VSDD-059 paper-fix detection lesson per S-7.02 cycle-closing checklist. `[codified]` `[process-gap]`
