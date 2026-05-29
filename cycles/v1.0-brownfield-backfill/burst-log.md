@@ -177,7 +177,7 @@ D-519 S-15.17 spec cascade pass-6 fix-burst (all 11 numbered findings + PG-001);
 
 ### Factory-artifacts commits
 
-`10f7f1ce` (adv-persist: adv-spec-pass-6.md) + `fee45e7e` (PO: BC v1.6 + BC-INDEX v2.60 + policies.yaml v1.3.4) + `92021f2f` (story-writer: S-15.17 v1.7 + STORY-INDEX v3.78) + `<this commit>` (state-manager close: INDEX.md + burst-log + decision-log + lessons + session-checkpoints + STATE.md).
+`10f7f1ce` (adv-persist: adv-spec-pass-6.md) + `fee45e7e` (PO: BC v1.6 + BC-INDEX v2.60 + policies.yaml v1.3.4) + `92021f2f` (story-writer: S-15.17 v1.7 + STORY-INDEX v3.78) + `f189b45b` (state-manager close: INDEX.md + burst-log + decision-log + lessons + session-checkpoints + STATE.md).
 
 ---
 
@@ -339,7 +339,7 @@ D-518 S-15.17 spec cascade pass-5 fix-burst (all 12 findings); BC v1.4→v1.5; s
 
 ### Factory-artifacts commits
 
-`10d9e443` (adv-persist: adv-spec-pass-5.md) + `8e67ac38` (PO finalize after crash-resume: BC v1.5 + BC-INDEX v2.59 + policies.yaml v1.3.3) + `117d848a` (story-writer: S-15.17 v1.6 + STORY-INDEX v3.77) + `<this commit>` (state-manager close: INDEX.md + burst-log + decision-log + lessons + session-checkpoints + STATE.md).
+`10d9e443` (adv-persist: adv-spec-pass-5.md) + `8e67ac38` (PO finalize after crash-resume: BC v1.5 + BC-INDEX v2.59 + policies.yaml v1.3.3) + `117d848a` (story-writer: S-15.17 v1.6 + STORY-INDEX v3.77) + `887cfb9d` (state-manager close: INDEX.md + burst-log + decision-log + lessons + session-checkpoints + STATE.md).
 
 ---
 

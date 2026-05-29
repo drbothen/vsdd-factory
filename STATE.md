@@ -12,7 +12,7 @@ input-hash: "[live-state]"
 traces_to: prd.md
 project: vsdd-factory
 mode: brownfield
-current_step: "D-519 S-15.17-SPEC-CASCADE-PASS-6-FIX-BURST-COMPLETE 2026-05-29 — adv pass-6 HIGH 11 findings (0C+5H+4M+1L+1N) + 1PG trajectory-tail →9→9→9→11 persisted 10f7f1ce; trajectory ASYMPTOTIC 14→11→14→16→12→11 FLOOR CONFIRMED [11-16]; 0 CRITICAL sustained 2 passes; 3 regression findings (F-SP6-001/002/003 META-33 recurrence); META-LEVEL-34 CODIFIED sweep-claim-without-execution (POLICY 5 v1.3.4 literal-shell VERIFICATION GATE per D-449(a); cure-of-cure-of-cure recursion; PO+story-writer self-applied successfully); META-LEVEL-33 cured via v1.3.4 gate self-application (empty/historical-only stdout); PO fix-burst fee45e7e BC v1.5→v1.6 7 findings + PG-001 META-34 codification closed; BC-INDEX v2.59→v2.60; policies.yaml v1.3.3→v1.3.4 (POLICY 5 literal-shell VERIFICATION GATE); story-writer fix-burst 92021f2f S-15.17 v1.6→v1.7 5 findings closed (stale BC refs sweep + Architecture Mapping + EC-020 + Token Budget + inv-12); STORY-INDEX v3.77→v3.78; VP-INDEX v2.06 ARCH-INDEX v2.15 UNCHANGED; STREAK 0/3 reset per BC-5.39.001 → pass-7 dispatch-ready; 2 META-LEVEL lessons codified (L-S-15.17-SP6-META-34-sibling-sweep-verification-gate + L-S-15.17-SP6-cure-of-cure-of-cure-recursion-success); D-519 codified; Session Resume Checkpoint refreshed; trajectory-tail →9→9→9→11 (F5 pass-75 carry-across); maintain all 5 BC-5.39.006 v1.7 PCs per TD-VSDD-097-EXT; D-chain cite D-518 per D-419(b); parent-commit 92021f2f per D-419(b); factory-artifacts HEAD <pending SHA-patch> per D-447(c)+D-449(e). SIZE BUDGET: (wc-l; see banner tracker)"
+current_step: "D-519 S-15.17-SPEC-CASCADE-PASS-6-FIX-BURST-COMPLETE 2026-05-29 — adv pass-6 HIGH 11 findings (0C+5H+4M+1L+1N) + 1PG trajectory-tail →9→9→9→11 persisted 10f7f1ce; trajectory ASYMPTOTIC 14→11→14→16→12→11 FLOOR CONFIRMED [11-16]; 0 CRITICAL sustained 2 passes; 3 regression findings (F-SP6-001/002/003 META-33 recurrence); META-LEVEL-34 CODIFIED sweep-claim-without-execution (POLICY 5 v1.3.4 literal-shell VERIFICATION GATE per D-449(a); cure-of-cure-of-cure recursion; PO+story-writer self-applied successfully); META-LEVEL-33 cured via v1.3.4 gate self-application (empty/historical-only stdout); PO fix-burst fee45e7e BC v1.5→v1.6 7 findings + PG-001 META-34 codification closed; BC-INDEX v2.59→v2.60; policies.yaml v1.3.3→v1.3.4 (POLICY 5 literal-shell VERIFICATION GATE); story-writer fix-burst 92021f2f S-15.17 v1.6→v1.7 5 findings closed (stale BC refs sweep + Architecture Mapping + EC-020 + Token Budget + inv-12); STORY-INDEX v3.77→v3.78; VP-INDEX v2.06 ARCH-INDEX v2.15 UNCHANGED; STREAK 0/3 reset per BC-5.39.001 → pass-7 dispatch-ready; 2 META-LEVEL lessons codified (L-S-15.17-SP6-META-34-sibling-sweep-verification-gate + L-S-15.17-SP6-cure-of-cure-of-cure-recursion-success); D-519 codified; Session Resume Checkpoint refreshed; trajectory-tail →9→9→9→11 (F5 pass-75 carry-across); maintain all 5 BC-5.39.006 v1.7 PCs per TD-VSDD-097-EXT; D-chain cite D-518 per D-419(b); parent-commit 92021f2f per D-419(b); factory-artifacts HEAD f189b45b per D-447(c)+D-449(e). SIZE BUDGET: (wc-l; see banner tracker)"
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -191,7 +191,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | 43afbfa7 | rc.19 SHIPPED 2026-05-28; bot binary commit on top of merge from develop; prior main HEAD: 70811f4a (rc.18 merge) |
 | develop | 98ea0719 | Sync main→develop auto-job 2026-05-28 post-rc.19 merge; prior: 4b68ab83 (PR #160 E-10 pass-15 fix-burst 2026-05-27) |
-| factory-artifacts | `<pending SHA-patch>` | D-519 state-manager close HEAD 2026-05-29 per D-447(c)+D-449(e); prior D-518: 887cfb9d (D-518 close) + 99bb1d0f (D-518 SHA-patch) |
+| factory-artifacts | `f189b45b` | D-519 state-manager close HEAD 2026-05-29 per D-447(c)+D-449(e); prior D-518: 887cfb9d (D-518 close) + 99bb1d0f (D-518 SHA-patch) |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28; GitHub Release prerelease 2026-05-28T15:10:56Z; marketplace PR drbothen/claude-mp PR #11 squash-merged |
 | v1.0.0-rc.18 (tag) | 666d689f | SHIPPED 2026-05-13 PR #135 |
 | v1.0.0-rc.16 (tag) | feb894a2 | SHIPPED; claude-mp PR #8 awaiting human merge |
@@ -307,7 +307,7 @@ dtu_services: []
 
 - **D-519 pass-6 fix-burst COMPLETE (2026-05-29):** Adversary pass-6 HIGH 11 findings (0C+5H+4M+1L+1N) + 1PG. Trajectory ASYMPTOTIC 14→11→14→16→12→11 FLOOR CONFIRMED at [11-16]. 0 CRITICAL sustained 2 passes (marker-prefix cure HELD). 3 regressions (F-SP6-001/002/003 — META-33 recurrence INSIDE META-33 cure-burst). META-LEVEL-34 CANDIDATE surfaced as F-PG-001 (sweep-claim-without-execution: POLICY 5 v1.3.3 mandated enumeration but not stdout proof). PO fix-burst `fee45e7e` closed 7 BC findings + PG-001 META-34 codification; BC v1.5→v1.6; BC-INDEX v2.59→v2.60; policies.yaml v1.3.3→v1.3.4 (POLICY 5 literal-shell VERIFICATION GATE — sweep claims without captured-stdout are now MEDIUM-severity findings). Story-writer fix-burst `92021f2f` closed 5 story findings; story v1.6→v1.7; STORY-INDEX v3.77→v3.78; POLICY 5 v1.3.4 self-applied (4 gates; all empty/historical-only stdout). META-LEVEL-34 CODIFIED. META-LEVEL-33 cured via v1.3.4 gate. All 12 items CLOSED. STREAK 0/3 reset. D-519 codified.
 - **develop HEAD:** `98ea0719` (sync main→develop 2026-05-28). **main HEAD:** `43afbfa7` (bot binary commit 2026-05-28).
-- **factory-artifacts HEAD:** `<pending SHA-patch>` (D-519 state-manager close 2026-05-29; SHA-patch follow-up per D-447(c)+D-449(e)).
+- **factory-artifacts HEAD:** `f189b45b` (D-519 state-manager close 2026-05-29; SHA-patch follow-up per D-447(c)+D-449(e)).
 - **D-range:** D-001..D-519.
 - **4-index (post-D-519):** BC-INDEX v2.60, VP-INDEX v2.06 (UNCHANGED), STORY-INDEX v3.78, ARCH-INDEX v2.15 (UNCHANGED).
 - **BC content:** BC-5.39.005 v1.3 ACTIVE + BC-5.39.006 v1.7 ACTIVE + BC-5.39.007 v1.6 ACTIVE + BC-5.39.008 v1.5 ACTIVE + BC-5.39.009 v1.6 draft (pass-6 fix-burst complete; Grep 10 added with literal-shell evidence; §Adversary Pass Coverage Pass-5+Pass-6 added; Architecture Anchors function names updated; POLICY 5 v1.3.4 verification gate; pass-7 dispatch-ready; active on S-15.17 merge per POL-14) + BC-7.04.051 v1.1 ACTIVE.
@@ -387,7 +387,7 @@ Prior Tier-A (pre-session, all COMPLETE): TD #71/72/70/74 (PRs #138–141 2026-0
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** `<pending SHA-patch>` (D-519 state-manager close 2026-05-29; SHA-patch follow-up per D-447(c)+D-449(e); prior D-518: `887cfb9d` close + `99bb1d0f` SHA-patch)
+- **factory-artifacts HEAD:** `f189b45b` (D-519 state-manager close 2026-05-29; SHA-patch follow-up per D-447(c)+D-449(e); prior D-518: `887cfb9d` close + `99bb1d0f` SHA-patch)
 - **develop HEAD:** `98ea0719` (sync main→develop 2026-05-28)
 - **main HEAD:** `43afbfa7` (rc.19 bot binary commit 2026-05-28)
 - **v1.0.0-rc.19 tag:** `d15152af` (GitHub Release 2026-05-28T15:10:56Z)
