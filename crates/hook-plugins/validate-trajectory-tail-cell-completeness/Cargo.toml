@@ -1,0 +1,32 @@
+[package]
+name = "validate-trajectory-tail-cell-completeness"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+description = "WASM hook plugin: PostToolUse gate that validates trajectory_tail per-cell presence across all D-453(d) prescribed sites in STATE.md, INDEX.md, burst-log.md, and lessons.md (BC-5.39.009)"
+publish = false
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+# rlib target is REQUIRED for `cargo test` to work — cdylib-only prevents
+# test compilation. All sibling hook crates use ["cdylib", "rlib"].
+
+[[bin]]
+name = "validate-trajectory-tail-cell-completeness"
+path = "src/main.rs"
+
+[dependencies]
+vsdd-hook-sdk = { path = "../../hook-sdk" }
+# NOTE: dependency name is "vsdd-hook-sdk" (with vsdd- prefix), NOT "hook-sdk".
+# In Rust imports use: use vsdd_hook_sdk::... (underscores replace hyphens).
+# NOTE: `regex` crate deliberately NOT added — manual arrow-count scanner is
+# MANDATED unconditionally; regex adds ~200-600 KiB WASM cost unjustified for
+# counting fixed →[0-9]+ ASCII tokens (story T-5 U6 mandate).
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+
+[lints]
+workspace = true
