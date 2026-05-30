@@ -201,7 +201,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | 43afbfa7 | rc.19 SHIPPED 2026-05-28; bot binary commit on top of merge from develop; prior main HEAD: 70811f4a (rc.18 merge) |
 | develop | 98ea0719 | Sync main→develop auto-job 2026-05-28 post-rc.19 merge; prior: 4b68ab83 (PR #160 E-10 pass-15 fix-burst 2026-05-27) |
-| factory-artifacts | `58d6b8eb` | D-524 session-end durability burst commit (SHA-patch per D-447(c)+D-449(e)); prior D-523 SHA-patch: aaf49c51; D-523 main: b602bc3a; D-522 SEAL: 501f813e |
+| factory-artifacts | `2dac4007` | D-524 SHA-patch commit (primary: 58d6b8eb; prior D-523 SHA-patch: aaf49c51; D-523 main: b602bc3a; D-522 SEAL: 501f813e) |
 | feature/research-agent-perplexity-bias | `69f066eb` | PR #163 OPEN/MERGEABLE on develop; research-agent MCP-first tool manifest + MANDATORY MCP-usage gate + perplexity_research deep-research bias; plugin-source: effect post-release only |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28; GitHub Release prerelease 2026-05-28T15:10:56Z; marketplace PR drbothen/claude-mp PR #11 squash-merged |
 | v1.0.0-rc.18 (tag) | 666d689f | SHIPPED 2026-05-13 PR #135 |
@@ -410,7 +410,7 @@ Prior Tier-A (pre-session, all COMPLETE): TD #71/72/70/74 (PRs #138–141 2026-0
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** `58d6b8eb` (D-524 session-end durability burst; SHA-patch per D-447(c)+D-449(e); prior D-523 SHA-patch: `aaf49c51`; D-523 main: `b602bc3a`; D-522 SEAL: `501f813e`)
+- **factory-artifacts HEAD:** `2dac4007` (D-524 SHA-patch; primary burst: `58d6b8eb`; prior D-523 SHA-patch: `aaf49c51`; D-523 main: `b602bc3a`; D-522 SEAL: `501f813e`)
 - **develop HEAD:** `98ea0719` (sync main→develop 2026-05-28; main repo worktree on develop at session end)
 - **main HEAD:** `43afbfa7` (rc.19 bot binary commit 2026-05-28)
 - **v1.0.0-rc.19 tag:** `d15152af` (GitHub Release 2026-05-28T15:10:56Z)

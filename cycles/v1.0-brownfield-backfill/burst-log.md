@@ -71,7 +71,7 @@ PASS — main repo on develop (98ea0719); .factory on factory-artifacts.
 
 ```bash
 $ git -C /Users/jmagady/Dev/vsdd-factory/.factory log --format='%H %s' aaf49c51^..HEAD
-<D-524-SHA-PATCH-SHA-PENDING> state(D-524): SHA-patch — factory-artifacts HEAD 58d6b8eb per D-447(c)+D-449(e)
+2dac4007 state(D-524): SHA-patch — factory-artifacts HEAD 58d6b8eb per D-447(c)+D-449(e)
 58d6b8eb state(D-524): session-end durability burst — PR #163 + S-15.17 both captured for zero-context resume; working tree → develop
 aaf49c51 state(D-523): SHA-patch — factory-artifacts HEAD b602bc3a per D-447(c)+D-449(e)
 ```
@@ -95,7 +95,7 @@ Both threads (PR #163 + S-15.17) durable for zero-context resume: §10 PR Status
 ### Factory-artifacts Commits
 
 - `58d6b8eb` state(D-524): session-end durability burst — PR #163 + S-15.17 both captured for zero-context resume; working tree → develop
-- `<D-524-SHA-PATCH-SHA-PENDING>` state(D-524): SHA-patch — factory-artifacts HEAD 58d6b8eb per D-447(c)+D-449(e)
+- `2dac4007` state(D-524): SHA-patch — factory-artifacts HEAD 58d6b8eb per D-447(c)+D-449(e)
 
 ## D-520 S-15.17 Spec Cascade Pass-7 Fix-Burst Close (2026-05-29)
 
