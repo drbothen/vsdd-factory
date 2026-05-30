@@ -17,6 +17,18 @@ traces_to: STATE.md
      Only the LATEST checkpoint lives in STATE.md.
      Prior checkpoints are archived here for historical reference. -->
 
+## Session Resume Checkpoint (2026-05-30 — D-523 S-15.17 REMOVE-UNCERTAINTY SWEEP COMPLETE; per-story-delivery UNBLOCKED)
+
+Archived from STATE.md by D-524 session-end durability burst per POLICY 1.
+Primary content preserved in: `git show b602bc3a:.factory/STATE.md` (D-523 main commit) + `git show aaf49c51:.factory/STATE.md` (D-523 SHA-patch).
+
+Key state at D-523 archive:
+- §1: D-523 S-15.17 REMOVE-UNCERTAINTY COMPLETE 2026-05-30; per-story-delivery UNBLOCKED for S-15.17 WASM hook (priority 158, new crate).
+- §10: "No open PRs" — INCORRECT (PR #163 existed but was missing; gap closed by D-524).
+- §12: S-15.17 per-story-delivery as ACTIVE NEXT; PR-163 row missing (gap closed by D-524).
+- 4-index: BC v2.63 / VP v2.06 / STORY v3.82 / ARCH v2.15.
+- develop HEAD: 98ea0719 / factory-artifacts HEAD: b602bc3a (SHA-patch: aaf49c51).
+
 ## Session Resume Checkpoint (2026-04-29) — Wave 14 pass-4 dual-seal COMPLETE
 
 **WAVE 14 PASS-4 DUAL-SEAL COMPLETE (2026-04-29).** D-147 sealed. S-5.05 v1.7 NITPICK_ONLY (8 LOW; informational/delivery-scheduled/pending-intent; 0 substantive; clock 0_of_3→1_of_3). S-5.06 v1.6 NITPICK_ONLY (0 findings; 6 confirmation observations; clock 1_of_3→2_of_3). NO fix bursts — S-7.03 skip-fix discipline applied. Spec content unchanged. STORY-INDEX line 21 pass-4 narrative appended. 43 of 47 stories merged (unchanged — Wave 14 is docs-only). Convergence clocks: S-5.05 = 1_of_3; S-5.06 = 2_of_3.

@@ -11,6 +11,92 @@ input-hash: "[live-state]"
 traces_to: STATE.md
 ---
 
+## D-524 Session-End Durability Burst (2026-05-30)
+
+### Parent-commit
+
+`aaf49c51` (D-523 state-manager SHA-patch commit; last factory-artifacts HEAD before this D-524 state-manager burst) per D-419(b).
+
+### Adversary Verdict (D-448(a) source-attestation gate)
+
+Durability burst — no adversarial review dispatched. Purpose: resume-checkpoint gap-closure (PR #163 capture + both-threads framing). No spec/code change. Verdict: N/A (bookkeeping only). Source-attestation parity per D-448(a): D-524 closes §10 PR Status gap (prior content "No open PRs" was incorrect — PR #163 OPEN/MERGEABLE existed) + §12 malformed PR #163 row fixed + §1 two-thread framing added + §11 dual-worktree + PR #163 status check added + §4/§9 anchors updated with feature/research-agent-perplexity-bias HEAD 69f066eb + non-D session work recorded.
+
+D-448(a) self-attestation (literal shell, per D-449(a)):
+
+```bash
+$ grep -c "PR #163\|#163" /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md
+18
+```
+
+PASS — 18 occurrences of "163" in STATE.md (§1 two-thread framing, §4 Tier-A log ×2, §9 feature branch anchor, §10 PR Status ×4, §11 step 1+4, §12 PR-163 row ×2, Active Branches table, Concurrent Cycles, Decisions Log, current_step, last_amended). Threshold ≥3: SATISFIED.
+
+### Files Touched (Dim-1)
+
+Files modified in this D-524 state-manager burst (single atomic commit):
+
+1. `.factory/STATE.md` — UPDATED (this commit): frontmatter phase/current_step/last_amended/timestamp advance; banner tracker +D-524 entry (470 lines wc-l); Phase Progress +D-524 row; Active Branches +feature/research-agent-perplexity-bias row + factory-artifacts SHA placeholder pre-SHA-patch; Concurrent Cycles bolt-on extended to D-524; Decisions Log +D-524 row + D-range updated to D-001..D-524; Session Resume Checkpoint §1 two-thread framing, §4 +D-524+non-D entries, §9 +feature branch+PR #163 anchors, §10 PR Status rewrite (PR #163 OPEN/MERGEABLE), §11 dual-worktree branch state+step 4 PR #163 check+steps renumbered 5-10, §12 clean PR-163 row added + refresh annotation updated to post-D-524; Session Resume Checkpoint header updated; "previous checkpoint" line updated to D-523
+2. `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — UPDATED (this commit): D-524 row prepended
+3. `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — UPDATED (this commit): D-524 h2 entry prepended
+
+### Codifications (Dim-3)
+
+- **D-524** SESSION-END DURABILITY BURST 2026-05-30 — (a) PR #163 captured in §10/§12/§1/§9; (b) §1 two-thread framing (PR #163 + S-15.17); (c) §11 dual-worktree + PR #163 check; (d) non-D session work recorded; (e) working tree → develop; (f) 4-index UNCHANGED.
+
+### Dim-2 Literal-Shell Evidence (per D-449(a))
+
+Gate 1 — current_step D-524 marker present:
+```bash
+$ grep "^current_step:" /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md
+current_step: "D-524 SESSION-END-DURABILITY-BURST-ZERO-CONTEXT-RESUME-READY-2026-05-30 — PR #163 (research-agent Perplexity bias; OPEN/MERGEABLE; branch feature/research-agent-perplexity-bias HEAD 69f066eb; plugin-source: effect post-release only) + S-15.17 per-story-delivery both captured for zero-context resume; §10/§12/§1/§9/§11 gaps closed; working tree → develop; BC-INDEX v2.63 UNCHANGED; VP-INDEX v2.06 UNCHANGED; STORY-INDEX v3.82 UNCHANGED; ARCH-INDEX v2.15 UNCHANGED; trajectory-tail →9→9→9→11 (D-513 carry-across); maintain all 5 BC-5.39.006 v1.7 PCs per TD-VSDD-097-EXT; D-chain cite D-523 per D-419(b); parent-commit aaf49c51 per D-419(b); factory-artifacts HEAD pending SHA-patch per D-447(c)+D-449(e). SIZE BUDGET: (wc-l; see banner tracker)"
+```
+PASS — D-524 marker present; trajectory-tail →9→9→9→11 LENGTH=4 SATISFIED; all 5 BC-5.39.006 v1.7 PCs present; parent-commit aaf49c51 per D-419(b).
+
+Gate 2 — PR #163 now captured in STATE.md (≥3 references):
+```bash
+$ grep -c "163" /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md
+18
+```
+PASS — 18 occurrences (≥3 required).
+
+Gate 3 — main repo worktree on develop; .factory worktree on factory-artifacts:
+```bash
+$ git -C /Users/jmagady/Dev/vsdd-factory rev-parse --abbrev-ref HEAD
+develop
+$ git -C /Users/jmagady/Dev/vsdd-factory/.factory rev-parse --abbrev-ref HEAD
+factory-artifacts
+```
+PASS — main repo on develop (98ea0719); .factory on factory-artifacts.
+
+### Dim-5 Chain
+
+```bash
+$ git -C /Users/jmagady/Dev/vsdd-factory/.factory log --format='%H %s' aaf49c51^..HEAD
+<D-524-SHA-PATCH-PENDING> state(D-524): SHA-patch — factory-artifacts HEAD <actual> per D-447(c)+D-449(e)
+<D-524-PRIMARY-SHA-PENDING> state(D-524): session-end durability burst — PR #163 + S-15.17 both captured for zero-context resume; working tree → develop
+aaf49c51 state(D-523): SHA-patch — factory-artifacts HEAD b602bc3a per D-447(c)+D-449(e)
+```
+
+### Dim-6 Verification
+
+```bash
+$ grep -c "PR #163\|#163" /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md
+18
+```
+PASS — 18 ≥ 3; §1, §4, §9, §10, §11, §12, Active Branches, Concurrent Cycles, Decisions Log, current_step, last_amended all capture PR #163.
+
+### Dim-7 Attestation
+
+Both threads (PR #163 + S-15.17) durable for zero-context resume: §10 PR Status gap closed (PR #163 OPEN/MERGEABLE captured with release-caveat); §12 clean PR-163 row; §1 two-thread framing at top; §11 dual-worktree branch state + step 4 PR #163 status check with plugin-source caveat; §4/§9 anchors updated with feature/research-agent-perplexity-bias HEAD 69f066eb; non-D session work (research-agent MCP fixes, .mcp.json gitignore, Perplexity MCP live verification) recorded in §4. Working tree on develop. Zero-context resume ready. 4-index UNCHANGED: BC v2.63 / VP v2.06 / STORY v3.82 / ARCH v2.15.
+
+### Closes
+
+- D-524 session-end durability burst
+
+### Factory-artifacts Commits
+
+- `<D-524-PRIMARY-SHA-PENDING>` state(D-524): session-end durability burst — PR #163 + S-15.17 both captured for zero-context resume; working tree → develop
+- `<D-524-SHA-PATCH-PENDING>` state(D-524): SHA-patch — factory-artifacts HEAD per D-447(c)+D-449(e)
+
 ## D-520 S-15.17 Spec Cascade Pass-7 Fix-Burst Close (2026-05-29)
 
 ### Parent-commit
