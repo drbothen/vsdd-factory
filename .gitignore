@@ -56,3 +56,9 @@ plugins/vsdd-factory/hooks/hooks.json
 # `cargo build … --target wasm32-wasip1` followed by a manual `cp`
 # doesn't accidentally land binary diffs in commits.
 plugins/vsdd-factory/hook-plugins/
+
+# Local MCP server config. Contains live API keys in server URLs
+# (e.g., the tavily endpoint embeds tvly-prod-… as a query param).
+# This is per-developer local config, not shared state — keep the
+# secret out of git history.
+.mcp.json
