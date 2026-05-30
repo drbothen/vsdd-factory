@@ -3,7 +3,8 @@ name: planning-research
 description: >
   Conducts market, domain, and technical research to validate assumptions
   and fill knowledge gaps before brief or PRD creation. Uses Perplexity
-  for web research and Context7 for library/framework documentation.
+  deep research (perplexity_research) for web research, Context7 for
+  library/framework documentation, and Tavily for cross-validation.
   Can run domain, market, or technical research independently or combined.
 ---
 
@@ -39,7 +40,7 @@ description: >
 ## Research Process
 
 1. **Receive research brief** -- what questions need answering
-2. **Spawn research-agent** with Perplexity + Context7 MCP tools
+2. **Spawn research-agent** with Perplexity (deep research via `perplexity_research`) + Context7 + Tavily MCP tools
 3. **Follow AGENTS.md query construction rules** (explicit search directives,
    parent org context, alternative terms, source suggestions)
 4. **Cross-reference findings** across at least 2 independent sources
@@ -56,7 +57,7 @@ description: >
 
 ## Failure Modes
 
-- If MCP tools (Perplexity, Context7) are unavailable: use training data with explicit "UNVERIFIED -- based on training data, not live research" disclaimer
+- If MCP tools (Perplexity, Context7, Tavily) are unavailable: use training data with explicit "UNVERIFIED -- based on training data, not live research" disclaimer
 - If research yields no relevant results for a research type: document the gap and recommend alternative research approaches
 - If sources contradict each other: present both sides with evidence strength assessment
 

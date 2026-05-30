@@ -215,7 +215,7 @@ These skills are available at any point in the pipeline:
 | `/vsdd-factory:writing-skills` | TDD methodology for creating plugin skills |
 | `/vsdd-factory:validate-consistency` | Cross-document consistency validation |
 | `/vsdd-factory:spec-drift` | Compare implementation against spec documents |
-| `/vsdd-factory:research` | External research via Perplexity, Context7, Tavily |
+| `/vsdd-factory:research` | External research via Perplexity deep research (perplexity_research), Context7, Tavily |
 | `/vsdd-factory:track-debt` | Technical debt register management |
 | `/vsdd-factory:policy-registry` | View, validate, manage governance policy registry |
 | `/vsdd-factory:policy-add` | Register a new governance policy mid-cycle |

@@ -183,13 +183,13 @@ LLM AVAILABILITY CHECK
 
 Verify MCP servers are accessible via mcporter:
   mcporter installed -> check (ClawHub skill)
-  Perplexity MCP -> mcporter call perplexity.perplexity_search query="health check"
-  Context7 MCP -> mcporter call context7.resolve-library-id name="react"
-  Playwright MCP -> mcporter call playwright.browser_install
+  Perplexity MCP -> mcporter call perplexity mcp__perplexity__perplexity_search query="health check"
+  Context7 MCP -> mcporter call context7 mcp__context7__resolve-library-id name="react"
+  Playwright MCP -> mcporter call playwright mcp__playwright__browser_install
 
 Sub-agent validation:
   Spawn test  agent with task:
-    "mcporter call perplexity.perplexity_search query='test'"
+    "mcporter call perplexity perplexity_search query='test'"
   If  returns results -> sub-agent MCP access WORKS
   If  fails -> ESCALATE -- MCP bridge needed
 

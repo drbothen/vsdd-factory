@@ -172,14 +172,19 @@ Produce the L2 Domain Spec as a sharded directory, NOT a monolithic file:
 
 ## MCP Tools (Direct Access)
 
-You have direct access to MCP tools — call them as regular tools:
+You are a heavy external-research user with direct MCP access — call these as regular tools. Precedence: **Perplexity (primary) → Context7 (library docs) → Tavily (cross-validation/extraction).** Perplexity server is `perplexity` (npm `@perplexity-ai/mcp-server`); tool names are `mcp__perplexity__perplexity_*` — never drop the inner `perplexity_` prefix.
 
 | Tool | Use For |
 |------|---------|
-| `perplexity_search` | Market research, competitive analysis, and domain knowledge for grounding capabilities |
-| `perplexity_ask` | Quick domain questions — industry standards, regulatory requirements, terminology |
-| `resolve-library-id` | Find Context7 library ID when analyzing tech capabilities referenced in the brief |
-| `query-docs` | Query library/framework documentation to validate technical feasibility of capabilities |
+| `mcp__perplexity__perplexity_research` | **PRIMARY.** Market research, competitive analysis, domain knowledge for grounding capabilities — any non-trivial question. Backed by `sonar-deep-research`. Reach for this first. |
+| `mcp__perplexity__perplexity_search` | Raw ranked URLs only — when you want links, not synthesis. |
+| `mcp__perplexity__perplexity_ask` | Quick ≤2-sentence factual lookups only (single industry standard, regulatory requirement, terminology). |
+| `mcp__context7__resolve-library-id` | Find Context7 library ID when analyzing tech capabilities referenced in the brief. |
+| `mcp__context7__query-docs` | Query library/framework documentation to validate technical feasibility of capabilities. |
+
+**Bias: reach for `perplexity_research` unless there is a specific reason not to.** `perplexity_search`/`perplexity_ask` are narrow tools for narrow jobs, not investigation.
+
+**`reasoning_effort` tuning** (on `perplexity_research`): `minimal` | `low` | `medium` | `high`. Use `high` for competitive analysis and broad market research; `medium` for a focused single-aspect question; `low`/`minimal` for cheap confirmations. Pass `strip_thinking: true` to drop the reasoning trace and save context tokens.
 
 ## Failure & Escalation
 

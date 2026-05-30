@@ -82,7 +82,7 @@ Categorize as positive, negative, or neutral.
 Search for discussions mentioning the feature since ship date.
 
 **App Reviews / Review Sites:**
-Via research-agent -> Perplexity: "[product] [feature name] review"
+Via research-agent -> perplexity_search: "[product] [feature name] review"
 Look for mentions of the specific feature in recent reviews.
 
 **Slack/Discord:**

@@ -1,11 +1,11 @@
 ---
 name: research-cache-ops
-description: Operate the research-cache for Perplexity/Context7 query results. Check, inspect, and clear cached research to avoid re-running expensive queries.
+description: Operate the research-cache for Perplexity/Context7 query results (especially expensive perplexity_research deep-research calls). Check, inspect, and clear cached research to avoid re-running expensive queries.
 ---
 
 # Research Cache Operations
 
-Wraps `${CLAUDE_PLUGIN_ROOT}/bin/research-cache` for common cache operations. Research is expensive (Perplexity deep-research is 30s+ and costs money); cached results should be reused across sessions unless explicitly invalidated.
+Wraps `${CLAUDE_PLUGIN_ROOT}/bin/research-cache` for common cache operations. Research is expensive (`perplexity_research` deep-research — the primary research call — is 30s+ and costs money); cached results should be reused across sessions unless explicitly invalidated.
 
 ## Operations
 
@@ -25,7 +25,7 @@ Wraps `${CLAUDE_PLUGIN_ROOT}/bin/research-cache` for common cache operations. Re
 
 ## Integration
 
-The `research-agent` subagent should call this via Bash before making Perplexity/Context7 calls. Pseudocode:
+The `research-agent` subagent should call this via Bash before making Perplexity (`perplexity_research`) / Context7 calls. Pseudocode:
 
 ```bash
 key=$(${CLAUDE_PLUGIN_ROOT}/bin/research-cache key "$query")

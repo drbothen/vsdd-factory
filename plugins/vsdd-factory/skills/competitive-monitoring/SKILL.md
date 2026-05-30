@@ -32,8 +32,7 @@ competitive update report.
 
 - `discovery-config.yaml` exists with `products[*].competitors` configured
 - `.factory/discovery/competitive-baseline.md` exists (or will be created on first run)
-- `research-agent` is available (DF-002) with Perplexity MCP access
-- `` available for delegated research calls
+- `research-agent` is the canonical MCP caller (DF-002); this skill spawns it for delegated research calls. Its primary tool is `perplexity_research` (deep research, backed by `sonar-deep-research`), with `perplexity_search`/`perplexity_ask` for quick lookups
 
 ## Monitoring Targets
 
@@ -41,12 +40,12 @@ For each competitor in `discovery-config.yaml`:
 
 | Signal | How Detected | Urgency |
 |--------|-------------|---------|
-| New feature/release | Perplexity: "[competitor] release notes [month year]" | HIGH if overlaps with our roadmap |
-| Pricing change | Perplexity: "[competitor] pricing" vs baseline | MEDIUM |
-| Funding round | Perplexity: "[competitor] funding" | LOW (info only) |
-| Acquisition | Perplexity: "[competitor] acquired" | HIGH (market shift) |
-| Shutdown/pivot | Perplexity: "[competitor] shutdown OR pivot" | HIGH (opportunity) |
-| New competitor | Perplexity: "[domain] new startup 2026" | MEDIUM |
+| New feature/release | perplexity_research: "[competitor] release notes [month year]" | HIGH if overlaps with our roadmap |
+| Pricing change | perplexity_search: "[competitor] pricing" vs baseline | MEDIUM |
+| Funding round | perplexity_search: "[competitor] funding" | LOW (info only) |
+| Acquisition | perplexity_search: "[competitor] acquired" | HIGH (market shift) |
+| Shutdown/pivot | perplexity_search: "[competitor] shutdown OR pivot" | HIGH (opportunity) |
+| New competitor | perplexity_research: "[domain] new startup 2026" | MEDIUM |
 
 ## Monitoring Workflow
 
@@ -79,7 +78,7 @@ establishes the baseline.
 
 ### Step 3: Research Each Competitor
 
-For each competitor, spawn research-agent to run Perplexity queries:
+For each competitor, spawn research-agent to run these queries (deep `perplexity_research` for release/feature scans; `perplexity_search` for the single-fact baseline checks):
 
 1. **Release check:** "[competitor] release notes [current month] [current year]"
    - Compare against baseline's `Latest Known Release`
@@ -101,9 +100,9 @@ For each competitor, spawn research-agent to run Perplexity queries:
 
 ### Step 4: Scan for New Entrants
 
-Research the product's domain for new competitors:
-- Perplexity: "[product domain] new startup [current year]"
-- Perplexity: "[product domain] new tool launch [current year]"
+Research the product's domain for new competitors (deep research — this is an open-ended landscape scan, not a single-fact lookup):
+- perplexity_research: "[product domain] new startup [current year]"
+- perplexity_research: "[product domain] new tool launch [current year]"
 - Compare against known competitor list
 
 ### Step 5: Classify Urgency
@@ -159,7 +158,7 @@ of each competitor entry.
 
 ## Failure Modes
 
-- If a data source is unavailable (Perplexity timeout, API error): flag the source as UNAVAILABLE, continue with remaining sources, note gap in report
+- If a data source is unavailable (Perplexity timeout, API error): do not silently skip — per the research-agent's mandatory-MCP gate, flag the source as UNAVAILABLE with the verbatim error, continue with remaining sources, and note the gap in the report
 - If no changes detected for any competitor: produce a "no change" report (not a silent no-op)
 - If a new entrant cannot be verified: mark as UNVERIFIED and include in report with caveat
 

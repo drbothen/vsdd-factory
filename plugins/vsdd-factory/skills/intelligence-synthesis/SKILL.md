@@ -114,7 +114,7 @@ Score each theme's evidence strength based on source diversity and quality:
 
 | Evidence Level | Sources | Score Range |
 |---------------|---------|-------------|
-| Market scan only | Perplexity research | 0.3 - 0.5 |
+| Market scan only | deep research (perplexity_research) | 0.3 - 0.5 |
 | Market + one customer signal | Research + feedback OR analytics | 0.5 - 0.6 |
 | Market + multiple customer signals | Research + feedback + analytics | 0.6 - 0.8 |
 | Market + customer + competitive | Research + feedback + competitive | 0.7 - 0.8 |
