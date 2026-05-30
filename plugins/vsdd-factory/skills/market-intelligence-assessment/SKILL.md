@@ -58,9 +58,9 @@ reasonable assumptions and flag them as assumptions in the output.
 
 ## Step 2: Market Landscape Research
 
-**Agent:** `research-agent` via Perplexity MCP
+**Agent:** `research-agent` (canonical MCP caller; this skill spawns it)
 
-The research-agent executes five parallel research tracks using Perplexity:
+The research-agent executes five parallel research tracks, leading with deep research (`perplexity_research`, backed by `sonar-deep-research`, `reasoning_effort: high` for this landscape-level work):
 
 ### 2a. Competitive Landscape
 
@@ -245,5 +245,5 @@ research on projects that already have market validation:
 ## Failure Modes
 
 - If research sources are sparse (few results, low confidence): produce CAUTION recommendation with explicit gaps listed
-- If Perplexity MCP is unavailable: use training data with "UNVERIFIED -- no live research" disclaimer, default to CAUTION
+- If Perplexity MCP is unavailable: do not silently skip — per the research-agent's mandatory-MCP gate, escalate the toolchain failure with the verbatim error, then fall back to training data with an "UNVERIFIED -- no live research" disclaimer and default to CAUTION
 - If the input is too vague for meaningful research (L0 with one sentence): ask up to 3 clarifying questions, then proceed with assumptions flagged

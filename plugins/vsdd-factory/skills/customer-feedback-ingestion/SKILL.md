@@ -31,8 +31,8 @@ process -- the factory does not interact with customers directly.
 
 - `discovery-config.yaml` exists with `products[*].user_channels` configured
 - `.factory/discovery/feedback-state.yaml` exists (or will be created on first run)
-- `research-agent` is available (DF-002) for Perplexity-based review searches
-- `` available for GitHub API, Slack API access
+- `research-agent` is the canonical MCP caller (DF-002); this skill spawns it for review searches (`perplexity_search` for public app/review-site lookups)
+- GitHub API and Slack API access available for channel ingestion
 
 ## Supported Channels
 
@@ -41,8 +41,8 @@ process -- the factory does not interact with customers directly.
 | GitHub Issues | `gh` CLI / GitHub API | Feature requests, bug reports, discussions |
 | GitHub Discussions | `gh` CLI / GitHub API | Community questions, feature ideas |
 | Slack/Discord | Webhook archive or API | Customer messages in feedback channels |
-| App Store Reviews | Perplexity search (public) | iOS/Android app reviews |
-| G2/Capterra Reviews | Perplexity search (public) | Enterprise software reviews |
+| App Store Reviews | perplexity_search (public) | iOS/Android app reviews |
+| G2/Capterra Reviews | perplexity_search (public) | Enterprise software reviews |
 | Support Tickets | API integration (configurable) | Customer support issues |
 | NPS/Survey Results | File import (.factory/surveys/*.csv) | Structured survey responses |
 
@@ -130,15 +130,15 @@ gh api graphql -f query='{ repository(owner:"org", name:"product") {
 ```
 
 **Slack/Discord:**
-- Via : fetch messages from configured channel since last ingestion
+- Via the Slack/Discord API: fetch messages from configured channel since last ingestion
 - Parse for feature requests, complaints, praise
 
 **App Store Reviews:**
-- Via research-agent -> Perplexity: "[product name] app reviews [platform] [month year]"
+- Via research-agent -> perplexity_search: "[product name] app reviews [platform] [month year]"
 - Extract individual reviews with ratings and text
 
 **Review Sites (G2/Capterra):**
-- Via research-agent -> Perplexity: "[product name] reviews [site] [month year]"
+- Via research-agent -> perplexity_search: "[product name] reviews [site] [month year]"
 - Extract review summaries with ratings
 
 **Survey Import:**

@@ -465,14 +465,20 @@ When producing PRD supplements (extracted from monolithic PRD per DF-021):
 
 ## MCP Tools (Direct Access)
 
-You have direct access to MCP tools — call them as regular tools:
+You have direct access to MCP tools — call them as regular tools. Precedence: **Perplexity (primary) → Context7 (library docs) → Tavily (cross-validation, via research-agent).** Perplexity server is `perplexity` (npm `@perplexity-ai/mcp-server`); tool names are `mcp__perplexity__perplexity_*` — never drop the inner `perplexity_` prefix.
 
 | Tool | Use For |
 |------|---------|
-| `perplexity_search` | Competitive feature research, user behavior patterns, domain-specific acceptance criteria |
-| `perplexity_ask` | Quick lookup of industry standards or UX conventions for BC edge cases |
-| `resolve-library-id` | Find Context7 library ID when understanding API capabilities for BC writing |
-| `query-docs` | Query library/API docs to write accurate preconditions and postconditions |
+| `mcp__perplexity__perplexity_research` | **PRIMARY.** Competitive feature research, UX/user-behavior patterns, domain-specific acceptance criteria — any non-trivial question. Backed by `sonar-deep-research`. Reach for this first. |
+| `mcp__perplexity__perplexity_ask` | Quick ≤2-sentence factual lookups only (single industry standard, UX convention for a BC edge case). |
+| `mcp__context7__resolve-library-id` | Find Context7 library ID when understanding API capabilities for BC writing. |
+| `mcp__context7__query-docs` | Query library/API docs to write accurate preconditions and postconditions. |
+
+**Bias: reach for `perplexity_research` unless there is a specific reason not to.** `perplexity_ask` is for narrow factual lookups, not investigation.
+
+**`reasoning_effort` tuning** (on `perplexity_research`): `minimal` | `low` | `medium` | `high`. Use `high` for competitive analysis and market positioning; `medium` for a focused single-aspect question; `low`/`minimal` for cheap confirmations. Pass `strip_thinking: true` to drop the reasoning trace and save context tokens.
+
+For deep multi-source market intelligence (Tavily cross-validation, broad scans), delegate to `research-agent` via the orchestrator.
 
 ## Failure & Escalation
 - **Level 1 (self-correct):** If a BC has ambiguous preconditions, re-read the L2 domain spec for clarification and revise.

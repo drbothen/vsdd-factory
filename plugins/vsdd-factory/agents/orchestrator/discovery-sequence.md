@@ -29,8 +29,8 @@ Read discovery config from `.factory/discovery-config.yaml`:
 ## Feature Discovery
 
 1. Spawn research-agent: "Market research for opportunities
-   in [product domain]. Use Perplexity for market landscape, Context7 for
-   technology trends."
+   in [product domain]. Use Perplexity deep research (perplexity_research) for
+   market landscape, Context7 for technology trends."
 
 2. Spawn research-agent: "Customer feedback ingestion — analyze GitHub issues,
    support channels, app reviews for unmet needs."

@@ -428,14 +428,20 @@ In addition to the standard architecture section files, produce these when appli
 
 ## MCP Tools (Direct Access)
 
-You have direct access to MCP tools — call them as regular tools:
+You have direct access to MCP tools — call them as regular tools. Precedence: **Perplexity (primary) → Context7 (library docs) → Tavily (cross-validation, via research-agent).** Perplexity server is `perplexity` (npm `@perplexity-ai/mcp-server`); tool names are `mcp__perplexity__perplexity_*` — never drop the inner `perplexity_` prefix.
 
 | Tool | Use For |
 |------|---------|
-| `perplexity_search` | Architecture pattern research, technology comparisons, deployment topology trade-offs |
-| `perplexity_ask` | Quick lookup of framework capabilities, version compatibility, or protocol specs |
-| `resolve-library-id` | Find Context7 library ID for tech stack candidates |
-| `query-docs` | Query library API docs when making tooling selection or verification architecture decisions |
+| `mcp__perplexity__perplexity_research` | **PRIMARY.** Architecture pattern research, technology comparisons, deployment topology trade-offs — any non-trivial decision. Backed by `sonar-deep-research`. Reach for this first. |
+| `mcp__perplexity__perplexity_ask` | Quick ≤2-sentence factual lookups only (single framework capability, version compatibility, protocol detail). |
+| `mcp__context7__resolve-library-id` | Find Context7 library ID for tech stack candidates. |
+| `mcp__context7__query-docs` | Query library API docs when making tooling selection or verification architecture decisions. |
+
+**Bias: reach for `perplexity_research` unless there is a specific reason not to.** Use Context7 for the concrete API surface; `perplexity_ask` only for narrow factual lookups.
+
+**`reasoning_effort` tuning** (on `perplexity_research`): `minimal` | `low` | `medium` | `high`. Use `high` for architecture decisions and technology comparisons; `medium` for a focused single-aspect question; `low`/`minimal` for cheap confirmations. Pass `strip_thinking: true` to drop the reasoning trace and save context tokens.
+
+For broad market/ecosystem scans (multi-source, Tavily cross-validation), delegate to `research-agent`.
 
 ## Failure & Escalation
 - **Level 1 (self-correct):** If architecture section files have inconsistencies, re-read inputs and revise the affected section.

@@ -166,7 +166,7 @@ You produce TWO documents (returned to orchestrator, written by state-manager):
 
 ### Planning + Discovery Paths (5-7, 8)
 For entry paths and discovery, analyze the planning/discovery run itself:
-- Research quality (were Perplexity results useful?)
+- Research quality (were Perplexity deep-research (`perplexity_research`) results useful?)
 - Market intel accuracy (did GO/CAUTION/STOP align with human judgment?)
 - Brainstorming effectiveness (did the human find the session useful?)
 - Scoring calibration (did Delphi scores predict human approval?)

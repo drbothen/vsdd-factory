@@ -24,8 +24,8 @@ Discovery runs can be triggered:
 
 - `.factory/discovery-config.yaml` exists (or use defaults)
 - `.factory/product-registry.yaml` exists for feature discovery (list of products the factory has built)
-- `research-agent` is available (DF-002) with MCP tools:
-  - **Perplexity** — web search, deep research, reasoning (already configured in DF-002)
+- `research-agent` is the canonical MCP caller (DF-002); this skill spawns it. Its MCP tools:
+  - **Perplexity** — deep research (`perplexity_research`, the primary tool, backed by `sonar-deep-research`, tunable via `reasoning_effort: high|medium|low|minimal`), plus quick lookups (`perplexity_search`, `perplexity_ask`) and synthesis (`perplexity_reason`) (already configured in DF-002)
   - **Context7** — library documentation and code examples (already configured in DF-002)
   - **Tavily** — web search, intelligent extraction, website mapping (already configured)
   - **Exa** — company research, code search, academic paper search (free, no API key needed)
@@ -65,37 +65,37 @@ use the appropriate MCP tools:
 
 **Competitive intelligence:**
 - What have direct competitors shipped in the last 30 days?
-  Tools: Perplexity search, Product Hunt MCP, GitHub release Atom feeds via RSS Aggregator
+  Tools: deep research (perplexity_research), Product Hunt MCP, GitHub release Atom feeds via RSS Aggregator
 - What are competitors' public roadmaps or announced features?
-  Tools: Perplexity deep research, competitor changelog monitoring via RSS/changedetection
+  Tools: deep research (perplexity_research), competitor changelog monitoring via RSS/changedetection
 - What are users requesting in competitor communities (GitHub issues, forums, social media)?
-  Tools: Perplexity search, Hacker News MCP, Exa (social/community search)
+  Tools: deep research (perplexity_research), Hacker News MCP, Exa (social/community search)
 - What technology stacks are competitors adopting or abandoning?
-  Tools: BuiltWith MCP (if configured), Perplexity search
+  Tools: BuiltWith MCP (if configured), perplexity_search
 
 **Technology opportunities:**
 - Have any key dependencies released new versions with capabilities the product could use?
   Tools: GitHub release Atom feeds via RSS Aggregator, Context7 (library docs)
 - Are there new libraries or tools that could simplify or enhance existing functionality?
-  Tools: Context7, Exa (code search), Perplexity search
+  Tools: Context7, Exa (code search), perplexity_search
 - Have any AI model capabilities improved in ways that benefit the product's domain?
-  Tools: Perplexity deep research
+  Tools: deep research (perplexity_research)
 
 **User signal:**
 - What are the most common issues or feature requests in the product's issue tracker?
   Tools: GitHub API (issue search), Exa (community search)
 - What pain points do users report in the product's domain (not just this product)?
-  Tools: Perplexity search, Hacker News MCP, Reddit MCP (if configured)
+  Tools: deep research (perplexity_research), Hacker News MCP, Reddit MCP (if configured)
 - What workflows are users building around the product that could be first-class features?
-  Tools: GitHub API (search for repos that depend on the product), Perplexity search
+  Tools: GitHub API (search for repos that depend on the product), perplexity_search
 
 **Industry trends:**
 - What best practices have evolved in the product's domain?
-  Tools: Perplexity deep research, Exa (academic paper search)
+  Tools: deep research (perplexity_research), Exa (academic paper search)
 - Are there new standards, protocols, or regulations that affect the product?
-  Tools: Perplexity search, Tavily (extract from standards body websites)
+  Tools: deep research (perplexity_research), Tavily extract (from standards body websites)
 - What patterns are emerging across similar products?
-  Tools: Perplexity research, Product Hunt MCP
+  Tools: deep research (perplexity_research), Product Hunt MCP
 
 **Research quality controls:**
 - Every finding must cite a specific source with URL and date
@@ -247,7 +247,7 @@ Novelty 0.10 (was 0.10), Time-Criticality 0.10 (was 0.10), Effort 0.10 (was 0.15
 | Score | Criteria |
 |-------|---------|
 | 0.0 - 0.2 | Speculation -- no external validation |
-| 0.3 - 0.5 | Market research only -- Perplexity findings |
+| 0.3 - 0.5 | Market research only -- deep research (perplexity_research) findings |
 | 0.5 - 0.6 | Market + one customer signal (feedback OR analytics) |
 | 0.6 - 0.8 | Market + multiple customer signals |
 | 0.8 - 0.9 | Market + customer feedback + usage analytics |
@@ -296,7 +296,7 @@ intelligence data) default to evidence_strength = 0.3 (market scan level).
 
 ## Failure Modes
 
-- If MCP tools are unavailable (Perplexity, Context7, etc.): use training data with explicit "UNVERIFIED -- no live research" disclaimer on all findings
+- If MCP tools are unavailable (Perplexity, Context7, etc.): do NOT silently skip. Per the research-agent's mandatory-MCP gate, escalate the toolchain failure (capture the verbatim MCP error) and only then fall back to training data with an explicit "UNVERIFIED -- no live research" disclaimer on all findings
 - If product registry is empty: run Product Discovery mode only, skip Feature Discovery
 - If all ideas score below threshold: produce the report anyway, noting "no actionable ideas this cycle"
 

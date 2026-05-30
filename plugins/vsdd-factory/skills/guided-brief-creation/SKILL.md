@@ -81,7 +81,7 @@ If the human provided existing documents:
 - Spawn research-agent to analyze provided documents
 - Extract relevant insights for the brief
 - If web research would help (competitive landscape, technical feasibility),
-  spawn research-agent with Perplexity
+  spawn research-agent for deep research (perplexity_research)
 
 If the human provided brainstorming output:
 - Read `.factory/planning/brainstorming-report.md`

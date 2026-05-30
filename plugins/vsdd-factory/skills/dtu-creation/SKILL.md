@@ -38,7 +38,7 @@ description: >
 ### Step 1: Clone Specification
 
 For each DTU candidate, spawn `research-agent` to:
-1. Fetch the service's API documentation via Perplexity/Context7
+1. Fetch the service's API documentation via Context7 (library docs) or Perplexity deep research (`perplexity_research`)
 2. If an OpenAPI/Swagger spec exists, download it
 3. Analyze the SUT's code to identify which endpoints are actually used
 4. Write a clone specification using `templates/dtu-clone-spec-template.md`

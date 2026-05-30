@@ -23,7 +23,7 @@
    - Ask it to extract: stated problem, audience hints, scope hints, success metrics, constraints.
    - Capture findings in `elicitation-notes.md` under "Document analysis: <doc name>".
 
-3. **Decide whether web research is needed.** Spawn `research-agent` with Perplexity if any of these are true:
+3. **Decide whether web research is needed.** Spawn `research-agent` for deep research (`perplexity_research`) if any of these are true:
    - The domain is specialized (medical, legal, scientific, regulated)
    - The competitive landscape is unknown to you
    - Technical feasibility is unclear (would this even work?)
