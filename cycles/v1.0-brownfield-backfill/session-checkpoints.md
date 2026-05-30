@@ -473,4 +473,18 @@ Key resume data:
 
 **This checkpoint superseded by D-522 S-15.17 SPEC CASCADE SEALED asymptotic-acceptance D-386 Option C 2026-05-29.**
 
+**This checkpoint superseded by D-523 S-15.17 REMOVE-UNCERTAINTY SWEEP COMPLETE 2026-05-30.**
+
 **This checkpoint superseded by D-520 S-15.17 spec cascade pass-7 fix-burst COMPLETE + META-LEVEL-35 CODIFIED 2026-05-29.**
+
+---
+
+## Archived: D-522 Session Checkpoint (2026-05-29 — S-15.17 SPEC CASCADE SEALED; per-story-delivery UNBLOCKED)
+
+- Phase: D-522-S-15.17-SPEC-CASCADE-SEALED-ASYMPTOTIC-ACCEPTANCE-D-386-OPTION-C-2026-05-29
+- D-range: D-001..D-522
+- 4-index: BC-INDEX v2.63, VP-INDEX v2.06, STORY-INDEX v3.81, ARCH-INDEX v2.15
+- factory-artifacts HEAD: 501f813e (D-522 SEAL per D-447(c)+D-449(e))
+- Next: remove-uncertainty sweep on BC-5.39.009 v1.8 + S-15.17 v1.9 → per-story-delivery dispatch
+
+**This checkpoint superseded by D-523 S-15.17 REMOVE-UNCERTAINTY SWEEP COMPLETE 2026-05-30.**

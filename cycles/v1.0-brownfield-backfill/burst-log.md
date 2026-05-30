@@ -5311,3 +5311,87 @@ Result: 4 Dim blocks (Dim-2, Dim-5, Dim-6, Dim-7) — PASS per D-446(a) and D-44
 
 - `30e0a08a` — adv(S-15.17): persist spec cascade pass-9 (parent-commit per D-419(b)+D-421(a))
 - `501f813e` — state(D-522): SEAL adjudication + INDEX.md + burst-log + decision-log + lessons + STATE.md + BC-INDEX v2.63 + STORY-INDEX v3.81 + session-checkpoints; SHA-patch follow-up per D-447(c)+D-449(e)
+
+---
+
+## D-523 S-15.17 Remove-Uncertainty Sweep Complete (2026-05-30)
+
+### Parent-commit (D-419(b))
+
+`83a910b3` — spec(S-15.17): v1.10 remove-uncertainty sweep fixes — U6 regex premise + U7 HostError::TooBig stale text (story-writer)
+
+### Adversary Verdict
+
+Remove-uncertainty sweep CLEAN — 7/7 SDK/toolchain assumptions CONFIRMED technically correct; no D-501-class CRITICAL failures. 2 doc-quality fixes applied by story-writer at `83a910b3`; no adversarial-cascade re-open required. Sweep result contrasts with D-501 M3 wave sweep (5 CRITICAL-class saves) because S-15.17's SDK-grounding was pre-validated through the 9-pass adversarial cascade.
+
+### Files Touched
+
+- `.factory/stories/S-15.17-validate-trajectory-tail-cell-completeness.md` (v1.9→v1.10; story-writer `83a910b3`)
+- `.factory/stories/STORY-INDEX.md` (v3.81→v3.82; story-writer `83a910b3`)
+- `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` (D-523 row + S-15.17 Convergence Status update)
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` (this entry)
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` (D-523 6-column row)
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` (L-S-15.17-remove-uncertainty-clean-result)
+- `.factory/STATE.md` (phase + current_step advance; Session Resume Checkpoint refresh)
+
+### Codifications
+
+- **D-523** — S-15.17 REMOVE-UNCERTAINTY SWEEP COMPLETE 2026-05-30 (decision-log.md)
+- **L-S-15.17-remove-uncertainty-clean-result** — Positive result + method note: sweep CLEAN; cascade pre-validation pays off; internal vs external claim split discipline validated (lessons.md)
+
+### Dim-2 Literal-Shell Stdout (D-449(a))
+
+```
+$ grep "^current_step:" .factory/STATE.md
+current_step: "D-523 S-15.17-REMOVE-UNCERTAINTY-COMPLETE-PER-STORY-DELIVERY-UNBLOCKED-2026-05-30 — remove-uncertainty sweep CLEAN 7/7 CONFIRMED; 2 doc fixes (U6 regex premise + U7 HostError::TooBig→OutputTooLarge); story-writer 83a910b3; story v1.9→v1.10; STORY-INDEX v3.81→v3.82; BC-INDEX v2.63 UNCHANGED; VP-INDEX v2.06 UNCHANGED; ARCH-INDEX v2.15 UNCHANGED; per-story-delivery UNBLOCKED; trajectory-tail →9→9→9→11 (D-513 carry-across); maintain all 5 BC-5.39.006 v1.7 PCs per TD-VSDD-097-EXT; D-chain cite D-522 per D-419(b); parent-commit 83a910b3 per D-419(b); factory-artifacts HEAD pending SHA-patch per D-447(c)+D-449(e). SIZE BUDGET: (wc-l; see banner tracker)"
+
+$ grep "^| S-15\.17 " .factory/stories/STORY-INDEX.md
+| S-15.17 | validate-trajectory-tail-cell-completeness WASM hook — per-cell runtime gate for D-453(d) prescribed sites | E-12 | 8 | P1 | [S-15.15] | [] | draft **(SEALED D-522 asymptotic-acceptance 2026-05-29; per-story-delivery dispatch UNBLOCKED)** | [BC-5.39.009] (F5 pass-75 HIGH-002 anchor; subsystems [SS-05]; 24 ACs covering 9 D-453(d) prescribed sites + EC-017 multi-line YAML (AC-21) + EC-018 LENGTH=5 Block (AC-22) + EC-019 non-factory STATE.md parent-guard (AC-23) + EC-020 UTF-8 decode fail-open (AC-24); v1.10 2026-05-30; BC-5.39.009 v1.8 SEALED; tdd_mode strict; 28 bats (+1 EC-008 + 2 multi-line marker); story file: .factory/stories/S-15.17-validate-trajectory-tail-cell-completeness.md; last_amended 2026-05-30 (v1.10) — remove-uncertainty sweep fixes (U6 regex premise + U7 HostError::TooBig stale text; post-SEAL pre-implementation doc corrections; SEAL stands; POLICY 14 5-leg v3.81→v3.82) |
+
+$ grep "^version:" .factory/stories/S-15.17-validate-trajectory-tail-cell-completeness.md
+version: "1.10"
+```
+
+### Dim-5 Factory-Artifacts Chain
+
+```
+$ git -C .factory log --format='%H %s' 83a910b3^..HEAD
+83a910b3f440f65d3f495e3e9b666d93674f3024 spec(S-15.17): v1.10 remove-uncertainty sweep fixes — U6 regex premise + U7 HostError::TooBig stale text
+```
+
+(State-manager D-523 commit not yet pushed at time of Dim-5 capture; SHA-patch follow-up per D-447(c)+D-449(e) will record actual HEAD)
+
+### Dim-6 Verification — U7 TooBig Sweep Proof
+
+```
+$ grep -nE "TooBig" .factory/stories/S-15.17-validate-trajectory-tail-cell-completeness.md
+11:  ...NOT the non-existent `TooBig`...  [last_amended history — historical]
+52:  ...HostError::TooBig stale text...   [modified[] entry — historical]
+311:| AC-14 | ... `HostError::OutputTooLarge` (actual SDK variant per host.rs; NOT the non-existent `TooBig`) ...  [parenthetical]
+1052:| EC-004 | ... `HostError::OutputTooLarge` (actual SDK variant per crates/hook-sdk/src/host.rs; NOT the non-existent `TooBig`) ...  [parenthetical]
+1184:| 1.10 | ... HostError::TooBig` (non-existent SDK variant) corrected to `HostError::OutputTooLarge`...  [Changelog — historical]
+```
+
+All hits are historical (last_amended, modified[], Changelog) or parenthetical explanatory "(NOT the non-existent TooBig)". Zero non-historical body hits remain. U7 fix confirmed load-bearing at AC-14 + EC-004 actual variant names.
+
+### Dim-7 Attestation
+
+7 uncertainties validated in remove-uncertainty sweep on BC-5.39.009 v1.8 + S-15.17 v1.9:
+- U1 `wasm32-wasip1` target — CONFIRMED current canonical WASI-P1 target (renamed from wasm32-wasi in Rust 1.78; old name removed 1.84) via Perplexity deep-research
+- U2 `crate-type = ["cdylib", "rlib"]` dual-target — CONFIRMED matches sibling validate-policies-schema via codebase Grep
+- U3 `vsdd-hook-sdk` crate name + `../../hook-sdk` path + `host::read_file(path, max_bytes: u32, timeout_ms: u32) -> Result<Vec<u8>, HostError>` — CONFIRMED exact at host.rs:187 via codebase Read
+- U4 `on_post_tool_use(HookPayload) -> HookResult` entry point — CONFIRMED matches validate-policies-schema sibling (validate-policies-schema/src/lib.rs:1124); nuance: plain pub fn wired via `__internal::run` trampoline in main.rs, NOT `#[hook]` macro
+- U5 hooks-registry priority 158 — CONFIRMED free (157=validate-policies-schema; 158+159 free) via codebase Grep
+- U6 regex avoidance — engineering DECISION confirmed correct (regex adds ~200-600 KiB WASM cost) but conditional PREMISE was factually wrong (regex IS a workspace dependency) → FIXED by story-writer (3 sites: T-5 NOTE + Library Requirements + Risk table)
+- U7 `HostError::OutputTooLarge` (no `TooBig`) — CONFIRMED (host.rs enum: CapabilityDenied/Timeout/OutputTooLarge/InvalidArgument/Other(i32)); stale T-2 fixture `TooBig` → FIXED by story-writer (AC-14 match confirmed)
+
+Story-writer applied U6+U7 fixes at `83a910b3`. per-story-delivery for S-15.17 WASM hook (priority 158, new crate `crates/hook-plugins/validate-trajectory-tail-cell-completeness/`) now UNBLOCKED.
+
+### Closes
+
+- D-523 S-15.17 remove-uncertainty sweep gate (pre-implementation gate documented at D-522 SEAL)
+
+### Factory-artifacts Commits
+
+- `83a910b3` — spec(S-15.17): v1.10 remove-uncertainty sweep fixes — U6 regex premise + U7 HostError::TooBig stale text (story-writer; parent-commit per D-419(b))
+- `<D-523-SHA>` — state(D-523): S-15.17 remove-uncertainty sweep COMPLETE — 7/7 assumptions CONFIRMED; 2 doc fixes applied; per-story-delivery UNBLOCKED (state-manager; SHA-patch follow-up per D-447(c)+D-449(e))

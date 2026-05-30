@@ -2785,3 +2785,17 @@ POLICY 14 description and verification_steps updated in policies.yaml same-burst
 **Cites:** D-386 Option C; D-477; D-522.
 
 **Closes:** D-522 cascade SEAL precedent lesson capture per S-7.02 cycle-closing checklist. `[codified]` `[meta-process]`
+
+---
+
+### L-S-15.17-remove-uncertainty-clean-result
+
+**Category:** positive-result + method-note
+
+**Lesson:** The remove-uncertainty sweep on S-15.17 returned CLEAN (7/7 assumptions CONFIRMED, zero CRITICAL failures) — in contrast to D-501's sweep on the M3 wave which found 5 CRITICAL-class implementation failures. Reason: S-15.17's SDK-grounding was already hardened through the 9-pass adversarial cascade (BC §SDK Grounding Evidence Greps 1-10 + the META-32→37 SDK-grounding-mandate codifications forced host.rs symbol verification at every pass). The cascade's pain (cure-of-cure-of-cure SDK-grounding recursion) paid off as pre-validated implementation readiness. Method note: remove-uncertainty correctly split INTERNAL claims (validated via codebase Grep — hook-sdk is this repo's own crate, Perplexity cannot see it) from EXTERNAL claims (validated via Perplexity deep-research — wasm32-wasip1 rename timeline, regex WASM cost). The 2 residual fixes were doc-quality (false conditional premise + stale fixture text), not design errors. Takeaway: a spec that survives a deep SDK-grounding adversarial cascade enters remove-uncertainty largely pre-validated; the sweep becomes a confirmation pass rather than a defect-discovery pass. Going forward: when a story's adversarial cascade explicitly surfaces SDK-grounding cures (POLICY 5 class), the remove-uncertainty sweep may be abbreviated to a verification-only sweep rather than a discovery sweep — but must still run (the 2 doc-quality fixes in U6+U7 demonstrate value even in "clean" sweeps).
+
+**Anchors:** D-523 (this sweep); D-501 (M3 wave sweep — CRITICAL class contrast); D-516 (SDK-grounding mandate codified); D-522 (SEAL).
+
+**Cites:** D-501; D-516; D-522; D-523.
+
+**Closes:** D-523 remove-uncertainty sweep lesson capture. `[codified]`
