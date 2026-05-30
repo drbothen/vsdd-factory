@@ -5394,4 +5394,4 @@ Story-writer applied U6+U7 fixes at `83a910b3`. per-story-delivery for S-15.17 W
 ### Factory-artifacts Commits
 
 - `83a910b3` — spec(S-15.17): v1.10 remove-uncertainty sweep fixes — U6 regex premise + U7 HostError::TooBig stale text (story-writer; parent-commit per D-419(b))
-- `<D-523-SHA>` — state(D-523): S-15.17 remove-uncertainty sweep COMPLETE — 7/7 assumptions CONFIRMED; 2 doc fixes applied; per-story-delivery UNBLOCKED (state-manager; SHA-patch follow-up per D-447(c)+D-449(e))
+- `b602bc3a` — state(D-523): S-15.17 remove-uncertainty sweep COMPLETE — 7/7 assumptions CONFIRMED; 2 doc fixes applied; per-story-delivery UNBLOCKED (state-manager; SHA-patch follow-up per D-447(c)+D-449(e))

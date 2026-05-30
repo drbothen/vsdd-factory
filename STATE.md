@@ -199,7 +199,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | 43afbfa7 | rc.19 SHIPPED 2026-05-28; bot binary commit on top of merge from develop; prior main HEAD: 70811f4a (rc.18 merge) |
 | develop | 98ea0719 | Sync main→develop auto-job 2026-05-28 post-rc.19 merge; prior: 4b68ab83 (PR #160 E-10 pass-15 fix-burst 2026-05-27) |
-| factory-artifacts | `<D-523-SHA-PENDING>` | D-523 state-manager commit (SHA-patch per D-447(c)+D-449(e)); prior D-522 SEAL: 501f813e; story-writer sweep fixes: 83a910b3; adv-persist pass-9: 30e0a08a |
+| factory-artifacts | `b602bc3a` | D-523 state-manager commit (SHA-patch per D-447(c)+D-449(e)); prior D-522 SEAL: 501f813e; story-writer sweep fixes: 83a910b3; adv-persist pass-9: 30e0a08a |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28; GitHub Release prerelease 2026-05-28T15:10:56Z; marketplace PR drbothen/claude-mp PR #11 squash-merged |
 | v1.0.0-rc.18 (tag) | 666d689f | SHIPPED 2026-05-13 PR #135 |
 | v1.0.0-rc.16 (tag) | feb894a2 | SHIPPED; claude-mp PR #8 awaiting human merge |
@@ -320,7 +320,7 @@ dtu_services: []
 - **D-522 SEAL (2026-05-29):** 9-pass S-15.17 spec cascade SEALED at asymptotic floor [9,11] HIGH per D-386 Option C + D-477 precedent. BC-5.39.009 v1.8 + S-15.17 v1.9 SEALED. BC-INDEX v2.62→v2.63; STORY-INDEX v3.80→v3.81.
 - **D-523 REMOVE-UNCERTAINTY (2026-05-30):** Pre-implementation gate on BC-5.39.009 v1.8 + S-15.17 v1.9. 7/7 SDK/toolchain assumptions CONFIRMED technically correct. No D-501-class CRITICAL failures. 2 doc-quality fixes by story-writer `83a910b3`: U6 regex premise reworded unconditional (3 sites); U7 HostError::TooBig→OutputTooLarge (T-2 fixture prose). Story v1.9→v1.10; STORY-INDEX v3.81→v3.82. BC/VP/ARCH-INDEX UNCHANGED. L-S-15.17-remove-uncertainty-clean-result codified.
 - **develop HEAD:** `98ea0719` (sync main→develop 2026-05-28). **main HEAD:** `43afbfa7` (bot binary commit 2026-05-28).
-- **factory-artifacts HEAD:** `<D-523-SHA-PENDING>` (D-523 state-manager commit; SHA-patch per D-447(c)+D-449(e); parent: `83a910b3` story-writer sweep fixes; prior D-522 SEAL: `501f813e`).
+- **factory-artifacts HEAD:** `b602bc3a` (D-523 state-manager commit; SHA-patch per D-447(c)+D-449(e); parent: `83a910b3` story-writer sweep fixes; prior D-522 SEAL: `501f813e`).
 - **D-range:** D-001..D-523.
 - **4-index (post-D-523):** BC-INDEX v2.63 (UNCHANGED this burst), VP-INDEX v2.06 (UNCHANGED), STORY-INDEX v3.82, ARCH-INDEX v2.15 (UNCHANGED).
 - **BC content:** BC-5.39.005 v1.3 ACTIVE + BC-5.39.006 v1.7 ACTIVE + BC-5.39.007 v1.6 ACTIVE + BC-5.39.008 v1.5 ACTIVE + BC-5.39.009 v1.8 SEALED (active on S-15.17 PR merge per POL-14) + BC-7.04.051 v1.1 ACTIVE.
@@ -398,7 +398,7 @@ Prior Tier-A (pre-session, all COMPLETE): TD #71/72/70/74 (PRs #138–141 2026-0
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** `<D-523-SHA-PENDING>` (D-523 state-manager commit; SHA-patch per D-447(c)+D-449(e); prior: `83a910b3` story-writer; `501f813e` D-522 SEAL)
+- **factory-artifacts HEAD:** `b602bc3a` (D-523 state-manager commit; SHA-patch per D-447(c)+D-449(e); prior: `83a910b3` story-writer; `501f813e` D-522 SEAL)
 - **develop HEAD:** `98ea0719` (sync main→develop 2026-05-28)
 - **main HEAD:** `43afbfa7` (rc.19 bot binary commit 2026-05-28)
 - **v1.0.0-rc.19 tag:** `d15152af` (GitHub Release 2026-05-28T15:10:56Z)
