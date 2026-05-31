@@ -559,42 +559,12 @@ pub struct AdvisoryWarning {
 /// # BC trace
 /// BC-5.39.009 PC1–PC5 + PC6 (cascade) + invariant 8.
 pub fn check_state_md(content: &str) -> Vec<MissingStateSite> {
-    let mut missing: Vec<MissingStateSite> = Vec::new();
-
-    let site_present = |text: Option<String>| -> bool {
-        match text {
-            Some(t) => marker_prefix_check(&t),
-            None => false,
-        }
-    };
-
-    if !site_present(extract_frontmatter_current_step(content)) {
-        missing.push(MissingStateSite {
-            site_name: "STATE.md frontmatter current_step",
-        });
-    }
-    if !site_present(extract_last_updated_cell(content)) {
-        missing.push(MissingStateSite {
-            site_name: "STATE.md Last Updated cell",
-        });
-    }
-    if !site_present(extract_phase_progress_latest_row(content)) {
-        missing.push(MissingStateSite {
-            site_name: "STATE.md Phase Progress rows",
-        });
-    }
-    if !site_present(extract_concurrent_cycles_latest_row(content)) {
-        missing.push(MissingStateSite {
-            site_name: "STATE.md Concurrent Cycles row",
-        });
-    }
-    if !site_present(extract_session_resume_section_1(content)) {
-        missing.push(MissingStateSite {
-            site_name: "STATE.md Session Resume Section 1",
-        });
-    }
-
-    missing
+    // The v1.8 unconditional all-five-sites behavior is exactly the
+    // per-pass-tracked path of the v1.9 cycle-conditional model: PC1/PC2 always
+    // Block, plus PC3/PC4/PC5 Block when the cycle is per-pass-tracked. Delegate
+    // to the 2-arg form with `per_pass_trajectory = true` so there is a single
+    // source of truth (no dead duplicate site list).
+    check_state_md_with_flag(content, true)
 }
 
 /// Returns `true` iff the FIRST non-empty pipe-delimited cell of `row` names the
@@ -770,6 +740,64 @@ pub fn decode_read_result(
 }
 
 // ---------------------------------------------------------------------------
+// Cycle-type resolution (Precondition 7 — fail-open-to-advisory)
+// ---------------------------------------------------------------------------
+
+/// Resolves the active cycle's `per_pass_trajectory` flag (Precondition 7).
+///
+/// Resolution chain: extract `current_cycle` from the STATE.md write payload
+/// (already in hand) → construct `.factory/cycles/<cycle>/INDEX.md` →
+/// `host::read_file` (`MAX_BYTES`) → UTF-8 decode via the F-005
+/// [`decode_read_result`] seam → [`extract_per_pass_trajectory_flag`].
+///
+/// FAIL-OPEN-TO-ADVISORY (inv-15): any failure in the chain — unresolvable cycle,
+/// absent INDEX.md, any `HostError`, invalid UTF-8, or an INDEX.md whose flag is
+/// not `per_pass_trajectory: true` — yields `false`. A `false` result routes
+/// PC3/PC4/PC5 to advisory rather than Block in the caller. This NEVER fails open
+/// to Block: a Block-on-unresolvable-flag is the v1.8 pipeline-brick this re-spec
+/// removes.
+///
+/// `state_md` is the primary STATE.md write payload (Step 1 reuses it instead of a
+/// redundant read). A `host::log_warn` advisory is emitted on the fail-open path so
+/// the resolution failure is observable but non-blocking.
+///
+/// # BC trace
+/// BC-5.39.009 v1.9 Precondition 7 (Steps 1–4) + inv-15 (fail-open-to-advisory).
+fn resolve_per_pass_trajectory(hook_name: &str, state_md: &str) -> bool {
+    use vsdd_hook_sdk::host;
+
+    // Step 1 — resolve the active cycle name from the STATE.md payload in hand.
+    let cycle = match extract_current_cycle(state_md) {
+        Some(c) => c,
+        None => {
+            host::log_warn(&format!(
+                "[{hook_name}] per_pass_trajectory: current_cycle unresolvable — \
+                 fail-open-to-advisory (PC3/PC4/PC5 advisory, not Block)"
+            ));
+            return false;
+        }
+    };
+
+    // Step 2 — read the active cycle's INDEX.md frontmatter (MAX_BYTES per inv-7).
+    let index_path = format!(".factory/cycles/{cycle}/INDEX.md");
+    let index_md =
+        match decode_read_result(&index_path, host::read_file(&index_path, MAX_BYTES, 2000)) {
+            Ok(s) => s,
+            Err(advisory) => {
+                // HostError / absent file / invalid UTF-8 → fail-open-to-advisory.
+                host::log_warn(&format!(
+                    "[{hook_name}] per_pass_trajectory: {advisory} — \
+                 fail-open-to-advisory (PC3/PC4/PC5 advisory, not Block)"
+                ));
+                return false;
+            }
+        };
+
+    // Steps 3 + 4 — extract the flag; absent/false/non-boolean → false (milestone).
+    extract_per_pass_trajectory_flag(&index_md)
+}
+
+// ---------------------------------------------------------------------------
 // Main hook orchestration (effectful entry point)
 // ---------------------------------------------------------------------------
 
@@ -815,10 +843,32 @@ pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
 
     match arm {
         TargetArm::State => {
-            let missing = check_state_md(&content);
+            // Precondition 7 — resolve the active cycle's per_pass_trajectory flag
+            // (fail-open-to-advisory; never fail-open-to-Block, inv-15).
+            let per_pass_trajectory = resolve_per_pass_trajectory(HOOK_NAME, &content);
+
+            // PC1/PC2 (cycle-invariant) always Block when absent; PC3/PC4/PC5
+            // (cycle-conditional) join the Block set ONLY when per_pass_trajectory
+            // (inv-14).
+            let missing = check_state_md_with_flag(&content, per_pass_trajectory);
+
+            // When the cycle is NOT per-pass-tracked (milestone cycle OR fail-open
+            // default), any absent PC3/PC4/PC5 sites are advisory-only: log_warn and
+            // Continue — they are deliberately excluded from the Block set above.
+            if !per_pass_trajectory {
+                for site in conditional_missing_sites(&content) {
+                    host::log_warn(&format!(
+                        "[{HOOK_NAME}] cycle-conditional site absent (advisory, no Block — \
+                         milestone cycle / per_pass_trajectory not set): {}",
+                        site.site_name
+                    ));
+                }
+            }
+
             if missing.is_empty() {
                 HookResult::Continue
             } else {
+                // inv-8 — a single Block enumerates ALL missing Block-set sites.
                 let sites = missing
                     .iter()
                     .map(|s| format!("  - {}", s.site_name))
@@ -881,26 +931,16 @@ pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
 }
 
 // ---------------------------------------------------------------------------
-// RED GATE STUBS (BC-5.39.009 v1.9 — ADR-023 Option (c) cycle-conditional model)
+// Cycle-conditional STATE.md site model (BC-5.39.009 v1.9 — ADR-023 Option (c))
 //
-// These two functions are RED-GATE STUBS authored by the test-writer to give the
-// implementer a failing target for the v1.9 cycle-conditional STATE.md Block-arm
-// site model. They are deliberately `todo!()` so the test suite COMPILES (the v1.9
-// unit tests reference them) while FAILING by panic against the current v1.8
-// implementation — the Iron-Law Red Gate proof that the v1.9 behavior is not yet
-// built.
-//
-// IMPLEMENTER: replace both `todo!()` bodies with the real logic per BC-5.39.009
-// v1.9 §Architecture Anchors + Precondition 7 + Postconditions 3/4/5 + inv-14/inv-15.
-// The canonical signatures below are taken VERBATIM from BC §Architecture Anchors:
-//   - `extract_per_pass_trajectory_flag(index_md_content: &str) -> bool`
-//   - `check_state_md(content: &str, per_pass_trajectory: bool) -> Vec<MissingStateSite>`
-//     (the BC names the 2-arg form `check_state_md`; this stub is named
-//      `check_state_md_with_flag` so the existing v1.8 1-arg `check_state_md` tests
-//      keep compiling. The implementer may merge them — either by giving
-//      `check_state_md` the flag parameter and updating the v1.8 call-sites/tests, or
-//      by keeping this 2-arg wrapper. Whichever path is chosen, the v1.9 routing tests
-//      must pass and the v1.8 tests must remain correct.)
+// `extract_per_pass_trajectory_flag` (Precondition 7 Step 3) + the 2-arg
+// `check_state_md_with_flag` (PC1/PC2 always-Block, PC3/PC4/PC5 cycle-conditional
+// per inv-14) implement the v1.9 cycle-conditional STATE.md Block-arm site model.
+// The 1-arg `check_state_md` (above) delegates to the 2-arg form with
+// `per_pass_trajectory = true` (the v1.8 unconditional behavior == the
+// per-pass-tracked path). Canonical signatures match BC §Architecture Anchors;
+// the BC names the 2-arg form `check_state_md`, kept here as
+// `check_state_md_with_flag` so the 1-arg call sites + v1.8 tests are unchanged.
 // ---------------------------------------------------------------------------
 
 /// **RED GATE STUB (BC-5.39.009 v1.9; ADR-023 Option (c); Precondition 7).**
@@ -920,9 +960,24 @@ pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
 /// BC-5.39.009 v1.9 §Architecture Anchors `extract_per_pass_trajectory_flag`;
 /// Precondition 7 Step 3.
 pub fn extract_per_pass_trajectory_flag(index_md_content: &str) -> bool {
-    // RED GATE: not yet implemented — v1.9 cycle-type gate. The implementer fills this.
-    let _ = index_md_content;
-    todo!("BC-5.39.009 v1.9: extract_per_pass_trajectory_flag — implementer to fill (Red Gate stub)")
+    // Precondition 7 Step 3: scan ONLY the leading `---`…`---` frontmatter region
+    // for a `per_pass_trajectory:` key. A match outside the frontmatter does NOT
+    // count. Returns `true` IFF the value parses to the boolean `true`
+    // (case-insensitive); every other value (`false`/non-boolean/empty) AND an
+    // absent key fold to the safe milestone default `false`. The
+    // fail-open-to-advisory routing lives in the CALLER, not here (inv-15).
+    let region = match frontmatter_region(index_md_content) {
+        Some(r) => r,
+        None => return false, // no frontmatter → key absent → false
+    };
+    let raw = match extract_frontmatter_scalar(region, "per_pass_trajectory") {
+        Some(v) => v,
+        None => return false, // key absent → false (milestone convention)
+    };
+    // Strip an optional trailing `#`-comment, then surrounding whitespace, before
+    // the case-insensitive boolean parse.
+    let value = raw.split('#').next().unwrap_or("").trim();
+    value.eq_ignore_ascii_case("true")
 }
 
 /// **RED GATE STUB (BC-5.39.009 v1.9; ADR-023 Option (c); inv-14/inv-15).**
@@ -947,9 +1002,81 @@ pub fn extract_per_pass_trajectory_flag(index_md_content: &str) -> bool {
 /// routing-result + inv-5 (cycle-conditional) + inv-14 (cycle-conditional severity) +
 /// inv-15 (fail-open-to-advisory: caller passes `false` on unresolvable flag).
 pub fn check_state_md_with_flag(content: &str, per_pass_trajectory: bool) -> Vec<MissingStateSite> {
-    // RED GATE: not yet implemented — v1.9 cycle-conditional cascade. Implementer fills this.
-    let _ = (content, per_pass_trajectory);
-    todo!("BC-5.39.009 v1.9: check_state_md_with_flag cycle-conditional routing — implementer to fill (Red Gate stub)")
+    let mut missing: Vec<MissingStateSite> = Vec::new();
+
+    let site_present = |text: Option<String>| -> bool {
+        match text {
+            Some(t) => marker_prefix_check(&t),
+            None => false,
+        }
+    };
+
+    // PC1/PC2 — cycle-invariant: ALWAYS contribute to the Block set when absent,
+    // irrespective of the per_pass_trajectory flag (inv-14).
+    if !site_present(extract_frontmatter_current_step(content)) {
+        missing.push(MissingStateSite {
+            site_name: "STATE.md frontmatter current_step",
+        });
+    }
+    if !site_present(extract_last_updated_cell(content)) {
+        missing.push(MissingStateSite {
+            site_name: "STATE.md Last Updated cell",
+        });
+    }
+
+    // PC3/PC4/PC5 — cycle-conditional: contribute to the Block set ONLY when the
+    // active cycle is an F5-style per-pass cycle (per_pass_trajectory == true).
+    // When false (milestone cycle OR fail-open-to-advisory default), absent
+    // PC3/PC4/PC5 are NOT added here — the caller routes them to advisory log_warn
+    // (inv-14 cycle-conditional severity; inv-15 fail-open-to-advisory). inv-4
+    // LENGTH=4 strict is preserved by the underlying extractors + marker_prefix_check.
+    if per_pass_trajectory {
+        for site in conditional_missing_sites(content) {
+            missing.push(site);
+        }
+    }
+
+    missing
+}
+
+/// Returns the cycle-conditional PC3/PC4/PC5 sites that are absent from `content`,
+/// irrespective of any cycle flag.
+///
+/// Used in two places: (1) the per-pass-tracked Block path in
+/// [`check_state_md_with_flag`], and (2) the milestone/fail-open advisory path in
+/// the STATE.md arm, where absent PC3/PC4/PC5 are emitted as `host::log_warn`
+/// advisories rather than Block sites (inv-14). inv-4 LENGTH=4 strict is preserved
+/// by the underlying extractors + `marker_prefix_check`.
+///
+/// # BC trace
+/// BC-5.39.009 v1.9 PC3/PC4/PC5 (cycle-conditional sites) + inv-14.
+fn conditional_missing_sites(content: &str) -> Vec<MissingStateSite> {
+    let mut advisory: Vec<MissingStateSite> = Vec::new();
+
+    let site_present = |text: Option<String>| -> bool {
+        match text {
+            Some(t) => marker_prefix_check(&t),
+            None => false,
+        }
+    };
+
+    if !site_present(extract_phase_progress_latest_row(content)) {
+        advisory.push(MissingStateSite {
+            site_name: "STATE.md Phase Progress rows",
+        });
+    }
+    if !site_present(extract_concurrent_cycles_latest_row(content)) {
+        advisory.push(MissingStateSite {
+            site_name: "STATE.md Concurrent Cycles row",
+        });
+    }
+    if !site_present(extract_session_resume_section_1(content)) {
+        advisory.push(MissingStateSite {
+            site_name: "STATE.md Session Resume Section 1",
+        });
+    }
+
+    advisory
 }
 
 #[cfg(test)]
