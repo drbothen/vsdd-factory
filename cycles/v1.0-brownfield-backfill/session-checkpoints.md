@@ -500,3 +500,17 @@ Key resume data:
 - Next: remove-uncertainty sweep on BC-5.39.009 v1.8 + S-15.17 v1.9 → per-story-delivery dispatch
 
 **This checkpoint superseded by D-523 S-15.17 REMOVE-UNCERTAINTY SWEEP COMPLETE 2026-05-30.**
+
+---
+
+## Archived: D-524 SESSION-END DURABILITY BURST 2026-05-30 (superseded by D-526)
+
+**§1 Summary:** Two threads at session end: PR #163 (research-agent Perplexity bias; OPEN/MERGEABLE; HEAD 69f066eb) + S-15.17 per-story-delivery (SEALED D-522 + remove-uncertainty CLEAN D-523; spec v1.11 post-D-525 un-seal + ADR-023; per-story-delivery UNBLOCKED).
+**§8 4-index:** BC-INDEX v2.64 (D-525 advanced from v2.63) / VP-INDEX v2.06 / STORY-INDEX v3.83 (D-525 advanced from v3.82) / ARCH-INDEX v2.16 (D-525 ADR-023 registered).
+**§9 Anchors:**
+- develop HEAD: 98ea0719 (at D-524; D-526 advanced to 9ed17b1d)
+- factory-artifacts HEAD: 40d12083 (D-525 spec burst final; D-526 advances this)
+- D-range: D-001..D-525
+- BC-5.39.009: v1.9 cycle-conditional re-spec (ADR-023 Option (c)); LOCAL adversary cascade RESTARTS from 0/3
+
+**This checkpoint superseded by D-526 S-15.17 SHIPPED PR #164 2026-05-31.**

@@ -2,7 +2,7 @@
 document_type: behavioral-contract
 level: L3
 version: "1.9"
-status: draft
+status: active
 producer: product-owner
 timestamp: 2026-05-28T00:00:00Z
 phase: section-12-step-3M4 (un-sealed v1.9 per ADR-023 Option (c))
@@ -28,7 +28,7 @@ extracted_from: .factory/cycles/v1.0-feature-engine-discipline-pass-1/decision-l
 origin: brownfield
 subsystem: "SS-05"
 capability: "E-12"
-lifecycle_status: draft
+lifecycle_status: active
 sealed: false
 unsealed_from: "v1.8 (SEALED at D-522 2026-05-29 per D-386 Option C asymptotic acceptance)"
 unsealed_at: "v1.9 2026-05-30 — HUMAN-AUTHORIZED un-SEAL to apply ADR-023 Option (c) cycle-conditional STATE.md Block-arm site model (closes S-15.17 adv-local-pass-5 brick-risk root-cause-2)"

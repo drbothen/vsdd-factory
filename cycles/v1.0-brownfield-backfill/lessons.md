@@ -2799,3 +2799,31 @@ POLICY 14 description and verification_steps updated in policies.yaml same-burst
 **Cites:** D-501; D-516; D-522; D-523.
 
 **Closes:** D-523 remove-uncertainty sweep lesson capture. `[codified]`
+
+---
+
+### L-S-15.17-cycle-conditional-cure-ADR-023
+
+**Category:** spec-design + architecture-decision
+
+**Lesson:** A CRITICAL spec finding (F-S15.17-LOCAL-P5-001 — live STATE.md brick risk from unconditional PC3/PC4/PC5 Block on all cycle types) that survived a 9-pass SEALED cascade was resolved NOT by reopening the cascade but by a targeted human-authorized spec amendment (ADR-023 cycle-conditional site model). The cure is architecturally elegant: PC1/PC2 (current_step + Last Updated cell) are cycle-invariant and remain always-Block; PC3/PC4/PC5 (Phase Progress, Concurrent Cycles, Session Resume §1) are F5-style artifacts and Block only when the active cycle INDEX.md carries `per_pass_trajectory: true`. Milestone/story-delivery cycles omit the flag (absence = false = fail-safe: never Block). Lesson: when a spec SEAL is reached at asymptotic acceptance and a subsequent implementation-phase CRITICAL finding reveals a structural spec-vs-reality conflict (not a convergence gap), the correct path is human-authorized targeted amendment, not a cascade restart. The cascade restart (3-CLEAN from 0/3) on the amended v1.9 BC is the correct verification step — not a sunk cost. Going forward: the cycle-conditional flag mechanism (per_pass_trajectory) is an extensible pattern for other BCs that need to distinguish F5-style pipeline cycles from milestone/story-delivery cycles. Any BC prescribing behavior on Phase Progress or Concurrent Cycles rows should evaluate whether a similar flag gate applies.
+
+**Anchors:** D-525 (ADR-023 adoption + BC v1.9); D-522 (prior SEAL); F-S15.17-LOCAL-P5-001 (CRITICAL finding that prompted this).
+
+**Cites:** D-522; D-525; ADR-023.
+
+**Closes:** D-525 + D-526 cycle-conditional cure lesson capture per S-7.02 checklist. `[codified]`
+
+---
+
+### L-F-P3-008-wallclock-deflake-structural-recurrence
+
+**Category:** test-infrastructure + dependency-management
+
+**Lesson:** The F-P3-008 ubuntu timing flake pattern (wall-clock assertions against async event infrastructure) recurred in S-15.17's bats suite even after structural closure in S-15.05 (PR #143 224fa184 TC-9 event-observation). The recurrence mechanism: a new bats suite for a new hook crate that interacts with the same async dispatch infrastructure can independently exhibit the same timing dependency if it does not inherit the wait_for_log_event helper discipline from S-15.05. PR #165 (f34b7567) resolved the S-15.17 recurrence structurally. Lesson: the wait_for_log_event async helper pattern must be explicitly propagated to every new bats suite that observes async dispatch events — it is not automatically inherited. Going forward: when a new hook crate's bats suite is dispatched, the implementer dispatch template should include a mandatory step: "verify no wall-clock assertions against async events — use wait_for_log_event helper from full_stack_plugin_invocation.rs or equivalent." TD #67 FULLY RESOLVED across all known suites as of PR #165.
+
+**Anchors:** D-526 (S-15.17 SHIPPED; PR #165 f34b7567); D-505 (S-15.05 initial closure); F-P3-008 (original ubuntu timing flake).
+
+**Cites:** D-505; D-526; PR #143; PR #165.
+
+**Closes:** D-526 F-P3-008 recurrence lesson capture per S-7.02 checklist. `[codified]`
