@@ -12,7 +12,7 @@ input-hash: "[live-state]"
 traces_to: prd.md
 project: vsdd-factory
 mode: brownfield
-current_step: "D-526 S-15.17-SHIPPED-PR-164-4e4ff1d1-2026-05-31 — S-15.17 validate-trajectory-tail-cell-completeness WASM hook MERGED; BC-5.39.009 v1.9 POL-14 draft→active; F-P3-008 de-flake PR #165 f34b7567 RESOLVED; develop HEAD 9ed17b1d; BC-INDEX v2.65; VP-INDEX v2.06 UNCHANGED; STORY-INDEX v3.84; ARCH-INDEX v2.16 UNCHANGED; trajectory-tail →9→9→9→11 (D-513 carry-across); maintain all 5 BC-5.39.006 v1.7 PCs per TD-VSDD-097-EXT; D-chain cite D-525 per D-419(b); parent-commit 40d12083 per D-419(b); factory-artifacts HEAD pending SHA-patch per D-447(c)+D-449(e). SIZE BUDGET: (wc-l; see banner tracker)"
+current_step: "D-526 S-15.17-SHIPPED-PR-164-4e4ff1d1-2026-05-31 — S-15.17 validate-trajectory-tail-cell-completeness WASM hook MERGED; BC-5.39.009 v1.9 POL-14 draft→active; F-P3-008 de-flake PR #165 f34b7567 RESOLVED; develop HEAD 9ed17b1d; BC-INDEX v2.65; VP-INDEX v2.06 UNCHANGED; STORY-INDEX v3.84; ARCH-INDEX v2.16 UNCHANGED; trajectory-tail →9→9→9→11 (D-513 carry-across); maintain all 5 BC-5.39.006 v1.7 PCs per TD-VSDD-097-EXT; D-chain cite D-525 per D-419(b); parent-commit 40d12083 per D-419(b); factory-artifacts HEAD ab822bfa per D-447(c)+D-449(e). SIZE BUDGET: (wc-l; see banner tracker)"
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -203,7 +203,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | 43afbfa7 | rc.19 SHIPPED 2026-05-28; bot binary commit on top of merge from develop; prior main HEAD: 70811f4a (rc.18 merge) |
 | develop | 9ed17b1d | PR #164 S-15.17 merge 2026-05-31 (4e4ff1d1 squash); prior: 98ea0719 (sync main→develop auto-job 2026-05-28 post-rc.19) |
-| factory-artifacts | `pending-D-526-post-merge` | D-526 post-merge burst (parent: 40d12083 spec burst final; D-524 SHA-patch: 2dac4007; D-524 primary: 58d6b8eb) |
+| factory-artifacts | `ab822bfa` | D-526 post-merge burst (parent: 40d12083 spec burst final; D-524 SHA-patch: 2dac4007; D-524 primary: 58d6b8eb) |
 | feature/research-agent-perplexity-bias | `69f066eb` | PR #163 OPEN/MERGEABLE on develop; research-agent MCP-first tool manifest + MANDATORY MCP-usage gate + perplexity_research deep-research bias; plugin-source: effect post-release only |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28; GitHub Release prerelease 2026-05-28T15:10:56Z; marketplace PR drbothen/claude-mp PR #11 squash-merged |
 | v1.0.0-rc.18 (tag) | 666d689f | SHIPPED 2026-05-13 PR #135 |
@@ -328,7 +328,7 @@ dtu_services: []
 - **D-526 (2026-05-31):** S-15.17 validate-trajectory-tail-cell-completeness WASM hook (priority 158) squash-merged via PR #164 at 4e4ff1d1. F-P3-008 de-flake dependency merged via PR #165 at f34b7567. BC-5.39.009 POL-14 promoted draft→active. Closes ADV-EDP1-P75-HIGH-002 (META-LEVEL-30 route b structural cure per D-510). BC-INDEX v2.65; STORY-INDEX v3.84.
 - **D-525 (2026-05-30):** BC-5.39.009 v1.8 UN-SEALED + ADR-023 cycle-conditional site model adopted (human-authorized). BC v1.9 (PC3/PC4/PC5 conditional on per_pass_trajectory flag). ARCH-INDEX v2.16.
 - **develop HEAD:** `9ed17b1d` (PR #164 merge tip 2026-05-31). **main HEAD:** `43afbfa7` (rc.19 bot binary commit 2026-05-28).
-- **factory-artifacts HEAD:** `40d12083` (D-525 spec burst; parent for this D-526 post-merge burst).
+- **factory-artifacts HEAD:** `ab822bfa` (D-526 post-merge burst; parent `40d12083` D-525 spec burst).
 - **D-range:** D-001..D-526.
 - **4-index (post-D-526):** BC-INDEX v2.65, VP-INDEX v2.06 (UNCHANGED), STORY-INDEX v3.84, ARCH-INDEX v2.16.
 - **BC content:** BC-5.39.005 v1.3 ACTIVE + BC-5.39.006 v1.7 ACTIVE + BC-5.39.007 v1.6 ACTIVE + BC-5.39.008 v1.5 ACTIVE + BC-5.39.009 v1.9 ACTIVE (POL-14 promoted on PR #164 merge) + BC-7.04.051 v1.1 ACTIVE.
@@ -413,7 +413,7 @@ Prior Tier-A (pre-session, all COMPLETE): TD #71/72/70/74 (PRs #138–141 2026-0
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** `40d12083` (D-525 spec burst; D-526 post-merge burst is this commit being created — SHA-patch pending per D-447(c)+D-449(e); D-524 SHA-patch: `2dac4007`; D-524 primary: `58d6b8eb`)
+- **factory-artifacts HEAD:** `ab822bfa` (D-526 post-merge burst; parent: `40d12083` D-525 spec burst; D-524 SHA-patch: `2dac4007`)
 - **develop HEAD:** `9ed17b1d` (PR #164 S-15.17 merge 2026-05-31; prior: `98ea0719` sync main→develop 2026-05-28)
 - **main HEAD:** `43afbfa7` (rc.19 bot binary commit 2026-05-28)
 - **v1.0.0-rc.19 tag:** `d15152af` (GitHub Release 2026-05-28T15:10:56Z)
