@@ -880,6 +880,78 @@ pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
     }
 }
 
+// ---------------------------------------------------------------------------
+// RED GATE STUBS (BC-5.39.009 v1.9 — ADR-023 Option (c) cycle-conditional model)
+//
+// These two functions are RED-GATE STUBS authored by the test-writer to give the
+// implementer a failing target for the v1.9 cycle-conditional STATE.md Block-arm
+// site model. They are deliberately `todo!()` so the test suite COMPILES (the v1.9
+// unit tests reference them) while FAILING by panic against the current v1.8
+// implementation — the Iron-Law Red Gate proof that the v1.9 behavior is not yet
+// built.
+//
+// IMPLEMENTER: replace both `todo!()` bodies with the real logic per BC-5.39.009
+// v1.9 §Architecture Anchors + Precondition 7 + Postconditions 3/4/5 + inv-14/inv-15.
+// The canonical signatures below are taken VERBATIM from BC §Architecture Anchors:
+//   - `extract_per_pass_trajectory_flag(index_md_content: &str) -> bool`
+//   - `check_state_md(content: &str, per_pass_trajectory: bool) -> Vec<MissingStateSite>`
+//     (the BC names the 2-arg form `check_state_md`; this stub is named
+//      `check_state_md_with_flag` so the existing v1.8 1-arg `check_state_md` tests
+//      keep compiling. The implementer may merge them — either by giving
+//      `check_state_md` the flag parameter and updating the v1.8 call-sites/tests, or
+//      by keeping this 2-arg wrapper. Whichever path is chosen, the v1.9 routing tests
+//      must pass and the v1.8 tests must remain correct.)
+// ---------------------------------------------------------------------------
+
+/// **RED GATE STUB (BC-5.39.009 v1.9; ADR-023 Option (c); Precondition 7).**
+///
+/// Scan the active cycle's INDEX.md YAML frontmatter region (between first and
+/// second `---\n` delimiters) for a line matching `^per_pass_trajectory:` and parse
+/// the YAML boolean value. Returns `true` IFF the value parses to boolean `true`
+/// (accepting `true`/`True`/`TRUE` case-insensitive; a trailing `# comment` stripped
+/// and the remainder trimmed before parse). Returns `false` for any other value
+/// (`false`, `no`, `0`, empty, non-boolean string) AND when the `per_pass_trajectory:`
+/// key is ABSENT (milestone cycles omit it by convention). Note the return type is
+/// `bool`, NOT `Option<String>` — it folds "absent / unparseable / false" to the safe
+/// milestone default `false`; the fail-open-to-advisory behavior lives in the CALLER
+/// (Precondition 7 routing), not this extractor.
+///
+/// # BC trace
+/// BC-5.39.009 v1.9 §Architecture Anchors `extract_per_pass_trajectory_flag`;
+/// Precondition 7 Step 3.
+pub fn extract_per_pass_trajectory_flag(index_md_content: &str) -> bool {
+    // RED GATE: not yet implemented — v1.9 cycle-type gate. The implementer fills this.
+    let _ = index_md_content;
+    todo!("BC-5.39.009 v1.9: extract_per_pass_trajectory_flag — implementer to fill (Red Gate stub)")
+}
+
+/// **RED GATE STUB (BC-5.39.009 v1.9; ADR-023 Option (c); inv-14/inv-15).**
+///
+/// Cycle-conditional cascade accumulator. Returns ALL Block-routed missing STATE.md
+/// sites given the active cycle's `per_pass_trajectory` flag:
+///   - PC1 (`current_step:`) + PC2 (Last Updated cell) are ALWAYS added on missing
+///     tail — cycle-invariant, UNAFFECTED by the flag.
+///   - PC3 (Phase Progress) + PC4 (Concurrent Cycles) + PC5 (Session Resume §1) are
+///     added to the cascade ONLY when `per_pass_trajectory == true` (F5-per-pass
+///     cycle). When `per_pass_trajectory == false` (milestone cycle OR
+///     fail-open-to-advisory default), missing PC3/PC4/PC5 are NOT added to the Block
+///     cascade — they are routed to advisory by the caller (`host::log_warn` +
+///     Continue) and MUST NOT appear in this returned Vec.
+///
+/// This is the BC §Architecture Anchors `check_state_md(content, per_pass_trajectory)`
+/// 2-arg form, named `_with_flag` here so the v1.8 1-arg `check_state_md` tests keep
+/// compiling during the Red Gate.
+///
+/// # BC trace
+/// BC-5.39.009 v1.9 PC1–PC6 (cycle-conditional cascade membership) + Precondition 7
+/// routing-result + inv-5 (cycle-conditional) + inv-14 (cycle-conditional severity) +
+/// inv-15 (fail-open-to-advisory: caller passes `false` on unresolvable flag).
+pub fn check_state_md_with_flag(content: &str, per_pass_trajectory: bool) -> Vec<MissingStateSite> {
+    // RED GATE: not yet implemented — v1.9 cycle-conditional cascade. Implementer fills this.
+    let _ = (content, per_pass_trajectory);
+    todo!("BC-5.39.009 v1.9: check_state_md_with_flag cycle-conditional routing — implementer to fill (Red Gate stub)")
+}
+
 #[cfg(test)]
 #[allow(clippy::expect_used, clippy::unwrap_used)]
 mod tests {
@@ -1715,5 +1787,335 @@ trajectory-tail →9→9→9→9; session resume OK.
         let decoded =
             decode_read_result(".factory/STATE.md", result).expect("valid UTF-8 must decode");
         assert_eq!(decoded, "hello →9");
+    }
+
+    // =======================================================================
+    // BC-5.39.009 v1.9 — ADR-023 Option (c) cycle-conditional Block-arm model
+    //
+    // RED GATE: every test in this block exercises NEW v1.9 behavior that the
+    // current v1.8 implementation does NOT provide. The flag-extractor and the
+    // cycle-conditional cascade accumulator are `todo!()` stubs (see lib.rs
+    // "RED GATE STUBS" section), so these tests FAIL by panic against v1.8 —
+    // the Iron-Law proof the v1.9 behavior is not yet built. The implementer
+    // makes each pass by replacing the stub bodies with real logic.
+    // =======================================================================
+
+    // -----------------------------------------------------------------------
+    // extract_per_pass_trajectory_flag — BC-5.39.009 v1.9 Precondition 7 Step 3
+    // -----------------------------------------------------------------------
+
+    /// BC-5.39.009 v1.9 Precondition 7: `per_pass_trajectory: true` in INDEX.md
+    /// frontmatter => flag TRUE (F5-style per-pass cycle).
+    #[test]
+    fn test_BC_5_39_009_precondition_7_flag_true_when_per_pass_trajectory_true() {
+        let index = "---\ncycle: v1.0-feature-engine-discipline-pass-1\nper_pass_trajectory: true\n---\n\n# Cycle Index\n";
+        assert!(
+            extract_per_pass_trajectory_flag(index),
+            "per_pass_trajectory: true must yield flag TRUE (F5-per-pass cycle)"
+        );
+    }
+
+    /// BC-5.39.009 v1.9 Precondition 7 Step 3: `per_pass_trajectory: false` => flag FALSE.
+    #[test]
+    fn test_BC_5_39_009_precondition_7_flag_false_when_per_pass_trajectory_false() {
+        let index = "---\ncycle: v1.0-brownfield-backfill\nper_pass_trajectory: false\n---\n\n# Cycle Index\n";
+        assert!(
+            !extract_per_pass_trajectory_flag(index),
+            "per_pass_trajectory: false must yield flag FALSE"
+        );
+    }
+
+    /// BC-5.39.009 v1.9 Precondition 7 Step 3: key ABSENT (milestone cycle) => flag FALSE.
+    /// This is the live `v1.0-brownfield-backfill` shape — the flag is omitted by convention.
+    #[test]
+    fn test_BC_5_39_009_precondition_7_flag_false_when_key_absent_milestone_cycle() {
+        let index = "---\ncycle: v1.0-brownfield-backfill\nstatus: active\n---\n\n# Cycle Index\n\nNo per_pass_trajectory key here.\n";
+        assert!(
+            !extract_per_pass_trajectory_flag(index),
+            "absent per_pass_trajectory key (milestone cycle) must yield flag FALSE"
+        );
+    }
+
+    /// BC-5.39.009 v1.9 Precondition 7 Step 3: case-insensitive `True`/`TRUE` accepted.
+    #[test]
+    fn test_BC_5_39_009_precondition_7_flag_true_case_insensitive() {
+        let index_upper = "---\nper_pass_trajectory: TRUE\n---\n";
+        let index_title = "---\nper_pass_trajectory: True\n---\n";
+        assert!(
+            extract_per_pass_trajectory_flag(index_upper),
+            "TRUE (uppercase) must parse to flag TRUE"
+        );
+        assert!(
+            extract_per_pass_trajectory_flag(index_title),
+            "True (title-case) must parse to flag TRUE"
+        );
+    }
+
+    /// BC-5.39.009 v1.9 Precondition 7 Step 3: trailing `# comment` stripped before parse.
+    #[test]
+    fn test_BC_5_39_009_precondition_7_flag_true_with_trailing_comment() {
+        let index = "---\nper_pass_trajectory: true  # F5 per-pass cycle per ADR-023 §3\n---\n";
+        assert!(
+            extract_per_pass_trajectory_flag(index),
+            "trailing '# comment' must be stripped; value 'true' yields flag TRUE"
+        );
+    }
+
+    /// BC-5.39.009 v1.9 Precondition 7 Step 3: non-boolean string => flag FALSE (safe default).
+    #[test]
+    fn test_BC_5_39_009_precondition_7_flag_false_when_non_boolean_value() {
+        let index = "---\nper_pass_trajectory: maybe\n---\n";
+        assert!(
+            !extract_per_pass_trajectory_flag(index),
+            "non-boolean value must fold to the safe milestone default FALSE"
+        );
+    }
+
+    /// BC-5.39.009 v1.9 Precondition 7 Step 4 (caller fail-open): unparseable frontmatter
+    /// (no delimiters) => flag FALSE. The extractor never panics on absent frontmatter; the
+    /// caller treats FALSE as fail-open-to-advisory.
+    #[test]
+    fn test_BC_5_39_009_precondition_7_flag_false_when_frontmatter_absent() {
+        let index = "# Cycle Index\n\nNo YAML frontmatter at all.\n";
+        assert!(
+            !extract_per_pass_trajectory_flag(index),
+            "absent frontmatter must yield flag FALSE (caller fail-open-to-advisory)"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // check_state_md_with_flag — cycle-conditional cascade (inv-14)
+    // BC-5.39.009 v1.9 PC3/PC4/PC5 cycle-conditional routing
+    // -----------------------------------------------------------------------
+
+    /// Shared fixture: PC1 (current_step) + PC2 (Last Updated) carry valid LENGTH=4
+    /// `trajectory-tail` markers; PC3 (Phase Progress) + PC4 (Concurrent Cycles) +
+    /// PC5 (Session Resume §1) are tail-less milestone/status rows. This is the EXACT
+    /// shape of the live `.factory/STATE.md` under `current_cycle: v1.0-brownfield-backfill`.
+    fn milestone_shaped_state_md() -> &'static str {
+        "\
+---
+document_type: state
+current_step: \"D-524 SESSION-END — PR #163 + S-15.17 captured; trajectory-tail →9→9→9→11; resume ready\"
+current_cycle: \"v1.0-brownfield-backfill\"
+---
+
+| **Last Updated** | 2026-05-30 — D-524 SESSION-END DURABILITY BURST; trajectory-tail →9→9→9→11. |
+
+## Phase Progress
+
+| Pass | Status | Notes |
+|------|--------|-------|
+| D-524 SESSION-END DURABILITY BURST | COMPLETE | PR #163 + S-15.17 captured; milestone row (no per-pass tail) |
+
+## Concurrent Cycles
+
+| Cycle | Status | Notes |
+|-------|--------|-------|
+| v1.0-brownfield-backfill | active | S-15.17 per-story-delivery; F5 PAUSED; milestone status row (no per-pass tail) |
+
+## Session Resume Checkpoint (2026-05-30 — D-524 SESSION-END DURABILITY BURST)
+
+### §1. Where We Are
+
+Two threads durable: PR #163 + S-15.17 per-story-delivery. Milestone status narrative; no per-pass trajectory tail.
+"
+    }
+
+    /// BC-5.39.009 v1.9 inv-14 + PC3/PC4/PC5 cycle-conditional + EC-021:
+    /// MILESTONE cycle (per_pass_trajectory == false) with PC1/PC2 present and tail-less
+    /// PC3/PC4/PC5 => cascade is EMPTY (no Block). The tail-less milestone rows are
+    /// routed to advisory by the caller, NOT added to the Block cascade. This is the
+    /// live-STATE.md regression case the v1.8 model would have bricked.
+    #[test]
+    fn test_BC_5_39_009_invariant_14_milestone_cycle_tailless_per_pass_no_block() {
+        let content = milestone_shaped_state_md();
+        let missing = check_state_md_with_flag(content, false);
+        assert!(
+            missing.is_empty(),
+            "milestone cycle (flag=false): PC1/PC2 present + tail-less PC3/PC4/PC5 must \
+             yield NO Block-routed missing sites (advisory only); got: {:?}",
+            missing.iter().map(|s| s.site_name).collect::<Vec<_>>()
+        );
+    }
+
+    /// BC-5.39.009 v1.9 inv-14 + PC3/PC4/PC5 cycle-conditional:
+    /// F5-PER-PASS cycle (per_pass_trajectory == true) with the SAME tail-less
+    /// PC3/PC4/PC5 => those three sites ARE Block-eligible (in the cascade). PC1/PC2
+    /// present => not in cascade. Exactly the three per-pass sites must be flagged.
+    #[test]
+    fn test_BC_5_39_009_invariant_14_f5_per_pass_cycle_tailless_per_pass_blocks() {
+        let content = milestone_shaped_state_md();
+        let missing = check_state_md_with_flag(content, true);
+        // PC1/PC2 carry valid tails → not missing. PC3/PC4/PC5 tail-less → all 3 in cascade.
+        assert_eq!(
+            missing.len(),
+            3,
+            "F5-per-pass cycle (flag=true): tail-less PC3/PC4/PC5 must all be Block-routed; \
+             got: {:?}",
+            missing.iter().map(|s| s.site_name).collect::<Vec<_>>()
+        );
+        let names = missing
+            .iter()
+            .map(|s| s.site_name)
+            .collect::<Vec<_>>()
+            .join(" | ");
+        assert!(
+            names.contains("Phase Progress"),
+            "Phase Progress must be Block-routed in F5 cycle; got: {names}"
+        );
+        assert!(
+            names.contains("Concurrent Cycles"),
+            "Concurrent Cycles must be Block-routed in F5 cycle; got: {names}"
+        );
+        assert!(
+            names.contains("Session Resume"),
+            "Session Resume must be Block-routed in F5 cycle; got: {names}"
+        );
+    }
+
+    /// BC-5.39.009 v1.9 PC1/PC2 ALWAYS-Block (cycle-invariant; Precondition 7 "PC1 and PC2
+    /// are UNAFFECTED by this gate"): with per_pass_trajectory == FALSE (milestone) but
+    /// `current_step:` missing the tail, PC1 STILL Blocks regardless of cycle type.
+    #[test]
+    fn test_BC_5_39_009_PC1_always_block_even_in_milestone_cycle() {
+        let content = "\
+---
+document_type: state
+current_step: \"D-524 SESSION-END — no trajectory tail in current_step at all\"
+current_cycle: \"v1.0-brownfield-backfill\"
+---
+
+| **Last Updated** | 2026-05-30 — trajectory-tail →9→9→9→11. |
+
+## Phase Progress
+
+| Pass | Status | Notes |
+|------|--------|-------|
+| D-524 | COMPLETE | milestone row no tail |
+
+## Concurrent Cycles
+
+| Cycle | Status | Notes |
+|-------|--------|-------|
+| v1.0-brownfield-backfill | active | milestone status row no tail |
+
+## Session Resume Checkpoint (2026-05-30)
+
+### §1. Where We Are
+
+Milestone narrative; no per-pass tail.
+";
+        let missing = check_state_md_with_flag(content, false);
+        // Even though flag=false routes PC3/PC4/PC5 to advisory, PC1 (current_step) is
+        // cycle-invariant and STILL blocks. PC2 carries a valid tail → not missing.
+        assert_eq!(
+            missing.len(),
+            1,
+            "milestone cycle: only PC1 (current_step) must Block (cycle-invariant); \
+             PC3/PC4/PC5 advisory; got: {:?}",
+            missing.iter().map(|s| s.site_name).collect::<Vec<_>>()
+        );
+        assert!(
+            missing[0].site_name.contains("current_step"),
+            "the one Block-routed site must be current_step (PC1 cycle-invariant); got: {}",
+            missing[0].site_name
+        );
+    }
+
+    /// BC-5.39.009 v1.9 PC2 ALWAYS-Block (cycle-invariant): with per_pass_trajectory == FALSE
+    /// (milestone) but Last Updated cell missing the tail, PC2 STILL Blocks.
+    #[test]
+    fn test_BC_5_39_009_PC2_always_block_even_in_milestone_cycle() {
+        let content = "\
+---
+document_type: state
+current_step: \"D-524 — trajectory-tail →9→9→9→11; resume ready\"
+current_cycle: \"v1.0-brownfield-backfill\"
+---
+
+| **Last Updated** | 2026-05-30 — no trajectory tail in this Last Updated cell at all. |
+
+## Phase Progress
+
+| Pass | Status | Notes |
+|------|--------|-------|
+| D-524 | COMPLETE | milestone row no tail |
+
+## Concurrent Cycles
+
+| Cycle | Status | Notes |
+|-------|--------|-------|
+| v1.0-brownfield-backfill | active | milestone status row no tail |
+
+## Session Resume Checkpoint (2026-05-30)
+
+### §1. Where We Are
+
+Milestone narrative; no per-pass tail.
+";
+        let missing = check_state_md_with_flag(content, false);
+        assert_eq!(
+            missing.len(),
+            1,
+            "milestone cycle: only PC2 (Last Updated) must Block (cycle-invariant); got: {:?}",
+            missing.iter().map(|s| s.site_name).collect::<Vec<_>>()
+        );
+        assert!(
+            missing[0].site_name.contains("Last Updated"),
+            "the one Block-routed site must be Last Updated (PC2 cycle-invariant); got: {}",
+            missing[0].site_name
+        );
+    }
+
+    /// BC-5.39.009 v1.9 inv-15 fail-open-to-advisory: the caller passes `false` on any
+    /// unresolvable-flag path (HostError / utf8 / absent INDEX.md / current_cycle None).
+    /// This test pins the CONSEQUENCE at the routing layer: flag=false must NEVER produce
+    /// a Block from the per-pass sites (PC3/PC4/PC5). Mirrors AC-27 at the unit level.
+    #[test]
+    fn test_BC_5_39_009_invariant_15_fail_open_to_advisory_never_blocks_per_pass() {
+        // Caller resolved flag to FALSE because the cycle INDEX.md was unreadable
+        // (extract_per_pass_trajectory_flag never even ran, or returned its FALSE default).
+        let content = milestone_shaped_state_md();
+        let missing = check_state_md_with_flag(content, false);
+        assert!(
+            missing.is_empty(),
+            "fail-open-to-advisory (flag=false): tail-less PC3/PC4/PC5 must NEVER Block; \
+             a Block fail-open is the v1.8 pipeline-brick ADR-023 cures; got: {:?}",
+            missing.iter().map(|s| s.site_name).collect::<Vec<_>>()
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // EC-022 — LENGTH=4 marker coexisting with LENGTH=5 prose => PASS
+    // BC-5.39.009 v1.9 EC-022 + inv-4 marker-prefix first-semicolon-segment scoping
+    // -----------------------------------------------------------------------
+
+    /// BC-5.39.009 v1.9 EC-022: a cell containing BOTH a 4-segment `trajectory-tail`
+    /// marker AND a 5-segment prose "Full-cycle trajectory" string must PASS — the
+    /// marker-prefix first-semicolon-segment scoping counts only the marker's 4 arrows.
+    /// (Likely already green under the existing marker_prefix_check — regression-lock.)
+    #[test]
+    fn test_BC_5_39_009_EC022_length4_marker_with_length5_prose_passes() {
+        // Prose 5-segment first, then the canonical 4-segment marker, then a `;`.
+        let cell = "Full-cycle trajectory: →9→9→9→9→11 (history); trajectory-tail →9→9→9→11; done";
+        assert!(
+            marker_prefix_check(cell),
+            "EC-022: 4-segment trajectory-tail marker must PASS even when a 5-segment \
+             'Full-cycle trajectory' prose string coexists in the same cell (marker-prefix \
+             scoping ignores the prose); cell={cell}"
+        );
+    }
+
+    /// BC-5.39.009 v1.9 EC-022 (ordering variant): marker FIRST, then the 5-segment prose
+    /// AFTER the first `;` — the prose is outside the scoped segment, so PASS holds.
+    #[test]
+    fn test_BC_5_39_009_EC022_marker_first_then_length5_prose_after_semicolon_passes() {
+        let cell = "trajectory-tail →9→9→9→11; Full-cycle trajectory: →9→9→9→9→11 (history)";
+        assert!(
+            marker_prefix_check(cell),
+            "EC-022: marker-first form must PASS; the 5-segment prose after the first ';' is \
+             outside the scoped segment; cell={cell}"
+        );
     }
 }

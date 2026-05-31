@@ -30,8 +30,11 @@ teardown() {
 }
 
 _setup_fixture() {
-  mkdir -p "$WORK/.factory"
+  # v1.9: wire STATE.md (write target) + the F5 cycle INDEX.md carrying
+  # per_pass_trajectory: true so PC4/PC5 join PC1 in the Block cascade (cycle-conditional).
+  mkdir -p "$WORK/.factory/cycles/v1.0-feature-engine-discipline-pass-1"
   cp "$FIXTURE_SRC/STATE.md" "$WORK/.factory/STATE.md"
+  cp "$FIXTURE_SRC/INDEX.md" "$WORK/.factory/cycles/v1.0-feature-engine-discipline-pass-1/INDEX.md"
 }
 
 _write_registry() {

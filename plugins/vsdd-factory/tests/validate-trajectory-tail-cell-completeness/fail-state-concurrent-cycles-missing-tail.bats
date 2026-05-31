@@ -2,12 +2,21 @@
 # fail-state-concurrent-cycles-missing-tail.bats — AC-5: STATE.md with Concurrent Cycles row
 #   missing arrow-sequence => hook emits Block naming "STATE.md Concurrent Cycles row"
 #
-# Traces to:
-#   BC-5.39.009 postcondition 4 (PC4: Concurrent Cycles row missing tail => Block)
-#   BC-5.39.009 invariant 5 (STATE.md sites: Block severity)
+# v1.9 ALIGNMENT (NOT weakening): under BC-5.39.009 v1.9 (ADR-023 Option (c)) PC4 is
+#   CYCLE-CONDITIONAL — it Blocks ONLY in an F5-style per-pass cycle (per_pass_trajectory:
+#   true). The fixture's current_cycle: was changed to v1.0-feature-engine-discipline-pass-1
+#   and a cycle INDEX.md carrying per_pass_trajectory: true was added, so this test still
+#   correctly asserts Block — now via the v1.9 F5-per-pass arm. (The milestone arm is
+#   covered by pass-milestone-cycle-no-block.bats.)
 #
-# Fixture: STATE.md with Concurrent Cycles row containing no trajectory-tail marker
-# Expected: hook exits 2 (Block); block_reason names "STATE.md Concurrent Cycles row"
+# Traces to:
+#   BC-5.39.009 v1.9 postcondition 4 (PC4: cycle-conditional; F5-per-pass → Block)
+#   BC-5.39.009 v1.9 Precondition 7 (per_pass_trajectory: true → flag TRUE → Block)
+#   BC-5.39.009 v1.9 invariant 14 (cycle-conditional severity)
+#
+# Fixture: STATE.md (current_cycle: v1.0-feature-engine-discipline-pass-1) with Concurrent
+#   Cycles row containing no trajectory-tail marker + cycle INDEX.md per_pass_trajectory: true.
+# Expected: hook exits 2 (Block); block_reason names "STATE.md Concurrent Cycles row".
 #
 # RED GATE PHASE: test skips because validate-trajectory-tail-cell-completeness.wasm not yet compiled.
 
@@ -27,8 +36,11 @@ teardown() {
 }
 
 _setup_fixture() {
-  mkdir -p "$WORK/.factory"
+  # v1.9: wire STATE.md (write target) + the F5 cycle INDEX.md carrying
+  # per_pass_trajectory: true so PC4 routes to the Block arm (cycle-conditional).
+  mkdir -p "$WORK/.factory/cycles/v1.0-feature-engine-discipline-pass-1"
   cp "$FIXTURE_SRC/STATE.md" "$WORK/.factory/STATE.md"
+  cp "$FIXTURE_SRC/INDEX.md" "$WORK/.factory/cycles/v1.0-feature-engine-discipline-pass-1/INDEX.md"
 }
 
 _write_registry() {
