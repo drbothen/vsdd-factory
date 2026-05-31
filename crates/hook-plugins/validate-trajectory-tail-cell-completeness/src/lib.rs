@@ -597,6 +597,36 @@ pub fn check_state_md(content: &str) -> Vec<MissingStateSite> {
     missing
 }
 
+/// Returns `true` iff the FIRST non-empty pipe-delimited cell of `row` names the
+/// "Convergence Status" column (case-insensitive equal-or-start-with).
+///
+/// F-P2-001: anchors the Convergence Status row selection to column 1 rather than a
+/// whole-line substring. A markdown table row is `| cell0 | cell1 | … |`; `split('|')`
+/// yields a leading empty segment (text before the first `|`), so we take the first
+/// segment that is non-empty after trimming. Markdown bold/emphasis wrappers (`**`, `*`,
+/// `_`) around the cell label are stripped before comparison so a `| **Convergence
+/// Status** |` first cell still matches. The comparison is case-insensitive and accepts
+/// either exact equality or a `starts_with` (the canonical first cell may carry a
+/// trailing qualifier, e.g. "Convergence Status (pass-N)").
+fn row_first_cell_is_convergence_status(row: &str) -> bool {
+    let first_cell = row
+        .split('|')
+        .map(|c| c.trim())
+        .find(|c| !c.is_empty())
+        .map(|c| {
+            c.trim_matches(|ch| ch == '*' || ch == '_')
+                .trim()
+                .to_lowercase()
+        });
+    match first_cell {
+        Some(cell) => {
+            let target = "convergence status";
+            cell == target || cell.starts_with(target)
+        }
+        None => false,
+    }
+}
+
 /// Check the 2 INDEX.md advisory sites (Convergence Status + adv-table latest row).
 ///
 /// # BC trace
@@ -611,12 +641,18 @@ pub fn check_index_sites(content: &str) -> Vec<AdvisoryWarning> {
     // `## Convergence Status` HEADING line first (which never carries a tail), so the
     // advisory fired unconditionally regardless of the data row's content — the arm was
     // effectively inert and the false-green advisory tests never caught it. We now skip
-    // any `#`-heading line and require a pipe-delimited (`|`) row, so the check binds to
-    // the actual Convergence Status table row.
+    // any `#`-heading line and require a pipe-delimited (`|`) row.
+    //
+    // F-P2-001 fix: bind the selection to the row's FIRST pipe-delimited data cell rather
+    // than a whole-line `contains`. The prior whole-line substring would mis-select any
+    // future row whose LATER cell (e.g. a Notes column) merely mentioned the phrase
+    // "convergence status". A genuine Convergence Status row names it in column 1, so we
+    // split the row on `|`, take the first non-empty trimmed cell, and require it to
+    // equal-or-start-with "Convergence Status" (case-insensitive).
     let convergence = content
         .lines()
         .map(|l| l.trim_start())
-        .find(|l| l.starts_with('|') && l.contains("Convergence Status"))
+        .find(|l| l.starts_with('|') && row_first_cell_is_convergence_status(l))
         .map(|l| l.to_string());
     let convergence_ok = match &convergence {
         Some(line) => has_trajectory_tail(line),
