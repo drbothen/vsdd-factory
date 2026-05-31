@@ -8,6 +8,7 @@ last_amended: "2026-05-27 (v1.4) — D-510 HIGH-005: paused_pending_resume: true
 status: in-progress
 phase: F5-cycle-level-review
 paused_pending_resume: true
+per_pass_trajectory: true
 ---
 
 > **F5 CYCLE PAUSED AT PASS-74.** D-386 Option C asymptotic acceptance. 4-index version cites in Convergence Status row reflect pass-74 closure state (BC v2.17 / VP v1.93 / STORY v3.18 / ARCH v1.98) but **out-of-cycle brownfield activity has advanced indexes to BC v2.53 / VP v2.06 / STORY v3.71 / ARCH v2.15**. Pass-75 adversary report persisted at `adv-cycle-pass-75.md` (D-510 2026-05-27). Cycle-resume burst MUST refresh version cites to current actuals in same-burst. 4 structural META-30 findings ACCEPTED-AT-FLOOR per D-386 Option C extension (D-510). Pass-75 trajectory tick-up to 11 reflects 14-day F5 pause cost.
