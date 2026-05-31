@@ -133,5 +133,15 @@ _state_md_envelope() {
   # LOAD-BEARING: the advisory (log_warn) for the tail-less per-pass sites MUST be observable
   # (cycle-conditional → advisory, NOT silent). This proves the hook saw the tail-less
   # PC3/PC4/PC5 rows and routed them to advisory rather than ignoring them entirely.
-  [[ "$output" == *"advisory"* ]]
+  #
+  # host::log_warn records go to the dispatcher's internal JSONL log
+  # (.factory/logs/dispatcher-internal-*.jsonl), NOT to the dispatcher's stderr summary
+  # line — the SDK reserves plugin stdout/stderr for the hook-protocol verdict (see
+  # hook-sdk host.rs log() docs). Assert against the JSONL log, matching the canonical
+  # advisory-observability pattern used by fail-index-convergence-status-missing-tail.bats.
+  logf="$(ls "$WORK/.factory/logs/"dispatcher-internal-*.jsonl 2>/dev/null | head -1)"
+  [ -n "$logf" ]
+  run grep -c "advisory, no Block" "$logf"
+  [ "$status" -eq 0 ]
+  [ "$output" -ge 1 ]
 }
