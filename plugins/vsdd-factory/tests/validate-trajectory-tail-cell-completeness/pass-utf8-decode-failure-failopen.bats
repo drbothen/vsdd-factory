@@ -32,8 +32,15 @@ teardown() {
 
 _setup_fixture() {
   mkdir -p "$WORK/.factory"
-  # Copy fixture file containing non-UTF-8 bytes
-  cp "$FIXTURE_SRC/STATE.md" "$WORK/.factory/STATE.md"
+  # F-004: GENERATE genuinely non-UTF-8 bytes in setup rather than relying on a
+  # committed file that an editor could silently re-encode to valid UTF-8. 0xFF / 0xFE
+  # are never valid UTF-8 lead bytes, guaranteeing String::from_utf8 takes the Err branch.
+  printf '%s' '---' > "$WORK/.factory/STATE.md"
+  printf '\n' >> "$WORK/.factory/STATE.md"
+  printf 'document_type: state\n' >> "$WORK/.factory/STATE.md"
+  printf 'current_cycle: "v1.0-brownfield-backfill"\n' >> "$WORK/.factory/STATE.md"
+  printf '%s\n' '---' >> "$WORK/.factory/STATE.md"
+  printf '\xff\xfe\x80 invalid UTF-8 bytes here\n' >> "$WORK/.factory/STATE.md"
 }
 
 _write_registry() {
@@ -96,5 +103,29 @@ _state_md_envelope() {
   run bash -c "printf '%s' '$envelope' | CLAUDE_PLUGIN_ROOT='$WORK' CLAUDE_PROJECT_DIR='$WORK' '$DISPATCHER' 2>&1 >/dev/null"
 
   [ "$status" -eq 0 ]
+  [[ "$output" != *"blocking_plugins=validate-trajectory-tail-cell-completeness"* ]]
+}
+
+# F-004: make AC-24/EC-020 LOAD-BEARING — prove the String::from_utf8 Err branch actually
+# ran by asserting the "invalid UTF-8" advisory is emitted (plugin.log warn). Without
+# this, the hook could have failed open on a read error (a DIFFERENT branch) and the
+# exit-0 assertions above would still pass.
+@test "test_BC_5_39_009_EC020_utf8_decode_failure_emits_invalid_utf8_advisory" {
+  _require_artifacts
+  _setup_fixture
+  _write_registry
+  cp "$WASM_PLUGIN" "$WORK/hook-plugins/"
+
+  local envelope
+  envelope="$(_state_md_envelope)"
+  run bash -c "printf '%s' '$envelope' | FACTORY_DISPATCHER_INTERNAL_LOG=1 CLAUDE_PLUGIN_ROOT='$WORK' CLAUDE_PROJECT_DIR='$WORK' '$DISPATCHER' >/dev/null 2>&1"
+
+  [ "$status" -eq 0 ]
+  local logf
+  logf="$(ls "$WORK/.factory/logs/"dispatcher-internal-*.jsonl 2>/dev/null | head -1)"
+  [ -n "$logf" ]
+  # The UTF-8 decode Err branch emits an advisory containing "invalid UTF-8".
+  grep -q "invalid UTF-8" "$logf"
+  # And it must NOT be a Block.
   [[ "$output" != *"blocking_plugins=validate-trajectory-tail-cell-completeness"* ]]
 }
