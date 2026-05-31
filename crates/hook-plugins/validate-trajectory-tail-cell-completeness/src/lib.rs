@@ -709,16 +709,19 @@ pub fn check_lessons_sites(_content: &str) -> Vec<AdvisoryWarning> {
 /// * The UTF-8 decode branch (`String::from_utf8` Err) maps to `Err(advisory)` → same
 ///   fail-open path (EC-020 / inv-13).
 ///
-/// Generic over the error type `E: Debug` so it can be exercised in unit tests with a
-/// real `HostError` value WITHOUT performing any host I/O, and so the production caller
-/// can pass the SDK's `read_file` result directly. `HostError` implements `Debug` (not
-/// `Display`), matching the original `{e:?}` formatting of the read-error advisory.
+/// Monomorphized to the concrete `vsdd_hook_sdk::HostError` type (F-P2-002): the seam
+/// statically binds to the SAME error type the production `host::read_file` call returns,
+/// so the `OutputTooLarge` unit test exercises the exact production mapping rather than an
+/// abstract `E: Debug`. The test constructs a real `HostError::OutputTooLarge` value (no
+/// host I/O required), and the production caller passes the SDK's `read_file` result
+/// directly. `HostError` implements `Debug` (not `Display`), matching the `{e:?}`
+/// formatting of the read-error advisory.
 ///
 /// # BC trace
 /// BC-5.39.009 PC11 (uniform HostError fail-open), inv-10, inv-13, EC-020.
-pub fn decode_read_result<E: core::fmt::Debug>(
+pub fn decode_read_result(
     file_path: &str,
-    result: Result<Vec<u8>, E>,
+    result: Result<Vec<u8>, vsdd_hook_sdk::host::HostError>,
 ) -> Result<String, String> {
     match result {
         Ok(bytes) => String::from_utf8(bytes).map_err(|e| {
