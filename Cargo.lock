@@ -3795,6 +3795,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "validate-trajectory-tail-cell-completeness"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "vsdd-hook-sdk",
+]
+
+[[package]]
 name = "value-bag"
 version = "1.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"

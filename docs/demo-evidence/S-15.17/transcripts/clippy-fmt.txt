@@ -1,0 +1,6 @@
+$ cargo clippy -p validate-trajectory-tail-cell-completeness --all-targets -- -D warnings
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.12s
+CLIPPY_EXIT=0
+
+$ cargo fmt -p validate-trajectory-tail-cell-completeness --check
+FMT_EXIT=0

@@ -1,0 +1,7 @@
+1..6
+ok 1 test_BC_5_39_009_invariant_4_length_4_multi_digit_exits_0
+ok 2 test_BC_5_39_009_invariant_4_length_4_multi_digit_no_block
+ok 3 test_BC_5_39_009_invariant_4_length_3_exits_2
+ok 4 test_BC_5_39_009_invariant_4_length_3_blocks_with_site_name
+ok 5 test_BC_5_39_009_EC018_length_5_exits_2
+ok 6 test_BC_5_39_009_EC018_length_5_blocks_with_site_name
