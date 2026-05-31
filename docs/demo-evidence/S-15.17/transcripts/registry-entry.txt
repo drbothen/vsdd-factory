@@ -1,0 +1,17 @@
+1001-
+1002:# ---------- validate-trajectory-tail-cell-completeness (PostToolUse, Edit|Write) ----------
+1003-# BC-5.39.009: blocks on STATE.md writes missing trajectory_tail in any of the 5
+1004-# prescribed STATE.md cells; advisory log_warn on INDEX.md/burst-log.md/lessons.md.
+1005-# Closes ADV-EDP1-P75-HIGH-002 (META-LEVEL-30 route b). S-15.17. Priority 158.
+1006-
+1007-[[hooks]]
+1008:name = "validate-trajectory-tail-cell-completeness"
+1009-event = "PostToolUse"
+1010-tool = "Edit|Write"
+1011:plugin = "hook-plugins/validate-trajectory-tail-cell-completeness.wasm"
+1012-priority = 158
+1013-timeout_ms = 5000
+1014-on_error = "continue"
+1015-
+1016-[hooks.capabilities.read_file]
+1017-path_allow = [

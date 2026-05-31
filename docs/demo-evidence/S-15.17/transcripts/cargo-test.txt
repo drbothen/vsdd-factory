@@ -1,0 +1,82 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.09s
+     Running unittests src/lib.rs (target/debug/deps/validate_trajectory_tail_cell_completeness-0d6d34396304b00e)
+
+running 63 tests
+test tests::test_BC_5_39_009_EC005_target_arm_wrong_basename_returns_none ... ok
+test tests::test_BC_5_39_009_EC001_extract_frontmatter_current_step_absent_key_returns_none ... ok
+test tests::test_BC_5_39_009_EC013_has_tail_multi_digit_returns_true ... ok
+test tests::test_BC_5_39_009_EC015_target_arm_factory_artifacts_path_not_factory_component ... ok
+test tests::test_BC_5_39_009_EC016_extract_frontmatter_no_delimiters_returns_none ... ok
+test tests::test_BC_5_39_009_EC017_extract_frontmatter_current_step_multiline_block_scalar ... ok
+test tests::test_BC_5_39_009_EC018_has_tail_length_5_returns_false ... ok
+test tests::test_BC_5_39_009_EC019_target_arm_non_factory_state_md_returns_none ... ok
+test tests::test_BC_5_39_009_EC018_check_state_md_length_5_in_current_step_blocks ... ok
+test tests::test_BC_5_39_009_EC022_marker_first_then_length5_prose_after_semicolon_passes ... ok
+test tests::test_BC_5_39_009_EC022_length4_marker_with_length5_prose_passes ... ok
+test tests::test_BC_5_39_009_PC1_always_block_even_in_milestone_cycle ... ok
+test tests::test_BC_5_39_009_PC12_check_state_md_all_sites_present_empty_vec ... ok
+test tests::test_BC_5_39_009_PC1_extract_frontmatter_current_step_inline_with_marker ... ok
+test tests::test_BC_5_39_009_PC2_always_block_even_in_milestone_cycle ... ok
+test tests::test_BC_5_39_009_PC1_check_state_md_frontmatter_missing_returns_site ... ok
+test tests::test_BC_5_39_009_invariant_14_f5_per_pass_cycle_tailless_per_pass_blocks ... ok
+test tests::test_BC_5_39_009_invariant_14_milestone_cycle_tailless_per_pass_no_block ... ok
+test tests::test_BC_5_39_009_invariant_15_fail_open_to_advisory_never_blocks_per_pass ... ok
+test tests::test_BC_5_39_009_invariant_3_target_arm_burst_log_md ... ok
+test tests::test_BC_5_39_009_invariant_3_target_arm_factory_index_md ... ok
+test tests::test_BC_5_39_009_invariant_3_target_arm_factory_state_md ... ok
+test tests::test_BC_5_39_009_invariant_3_target_arm_lessons_md ... ok
+test tests::test_BC_5_39_009_invariant_3_target_arm_story_index_returns_none ... ok
+test tests::test_BC_5_39_009_invariant_4_count_arrows_arrow_no_digit_not_counted ... ok
+test tests::test_BC_5_39_009_invariant_4_count_arrows_empty_segment ... ok
+test tests::test_BC_5_39_009_invariant_4_count_arrows_length_3 ... ok
+test tests::test_BC_5_39_009_invariant_4_count_arrows_length_4 ... ok
+test tests::test_BC_5_39_009_invariant_4_count_arrows_length_5 ... ok
+test tests::test_BC_5_39_009_invariant_4_count_arrows_multi_digit ... ok
+test tests::test_BC_5_39_009_invariant_4_count_arrows_no_arrows ... ok
+test tests::test_BC_5_39_009_invariant_4_count_arrows_single ... ok
+test tests::test_BC_5_39_009_invariant_4_has_tail_empty_returns_false ... ok
+test tests::test_BC_5_39_009_invariant_4_has_tail_length_3_returns_false ... ok
+test tests::test_BC_5_39_009_invariant_4_has_tail_length_4_returns_true ... ok
+test tests::test_BC_5_39_009_precondition_4_extract_current_cycle_absent_returns_none ... ok
+test tests::test_BC_5_39_009_invariant_8_check_state_md_cascade_accumulates_all_sites ... ok
+test tests::test_BC_5_39_009_precondition_4_extract_current_cycle_bare_value ... ok
+test tests::test_BC_5_39_009_precondition_4_extract_current_cycle_quoted_value ... ok
+test tests::test_BC_5_39_009_precondition_7_flag_false_when_frontmatter_absent ... ok
+test tests::test_BC_5_39_009_precondition_7_flag_false_when_key_absent_milestone_cycle ... ok
+test tests::test_BC_5_39_009_precondition_7_flag_false_when_non_boolean_value ... ok
+test tests::test_BC_5_39_009_precondition_7_flag_false_when_per_pass_trajectory_false ... ok
+test tests::test_BC_5_39_009_precondition_7_flag_true_case_insensitive ... ok
+test tests::test_BC_5_39_009_precondition_7_flag_true_when_per_pass_trajectory_true ... ok
+test tests::test_BC_5_39_009_precondition_7_flag_true_with_trailing_comment ... ok
+test tests::test_F001_index_adv_table_missing_tail_in_latest_pass_row_flagged ... ok
+test tests::test_F001_index_adv_table_scoped_not_global_bottommost_row ... ok
+test tests::test_F001_index_no_adv_table_section_fails_open ... ok
+test tests::test_F003_rows_after_heading_header_only_section_returns_empty ... ok
+test tests::test_F003_rows_after_heading_skips_header_single_data_row ... ok
+test tests::test_F003_phase_progress_tail_in_header_not_data_row_is_missing ... ok
+test tests::test_F005_decode_read_result_capability_denied_maps_to_advisory ... ok
+test tests::test_F005_decode_read_result_invalid_utf8_maps_to_advisory ... ok
+test tests::test_F005_decode_read_result_output_too_large_maps_to_advisory ... ok
+test tests::test_F005_decode_read_result_valid_utf8_decodes_ok ... ok
+test tests::test_F006_is_separator_row_accepts_canonical_separators ... ok
+test tests::test_F006_is_separator_row_rejects_text_with_dashes ... ok
+test tests::test_F006_is_separator_row_rejects_thin_empty_data_row ... ok
+test tests::test_F006_thin_data_row_survives_rows_after_heading ... ok
+test tests::test_F008_extract_current_cycle_bare_value_strips_trailing_comment ... ok
+test tests::test_F008_extract_current_cycle_quoted_value_with_hash_not_truncated ... ok
+test tests::test_F008_extract_current_cycle_single_quoted_value_with_hash ... ok
+
+test result: ok. 63 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/main.rs (target/debug/deps/validate_trajectory_tail_cell_completeness-883b799f9c56e9de)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests validate_trajectory_tail_cell_completeness
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

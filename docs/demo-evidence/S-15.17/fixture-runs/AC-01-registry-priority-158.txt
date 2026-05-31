@@ -1,0 +1,4 @@
+1..3
+ok 1 test_BC_5_39_009_integration_production_registry_has_correct_entry
+ok 2 PROD-REGISTRY: hook emits Continue for valid STATE.md using production path_allow
+ok 3 PROD-REGISTRY: hook blocks for invalid STATE.md using production path_allow (not fail-open)

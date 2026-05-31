@@ -1,0 +1,4 @@
+1..3
+ok 1 test_BC_5_39_009_EC021_milestone_cycle_tailless_per_pass_no_block_exits_0
+ok 2 test_BC_5_39_009_EC021_milestone_cycle_no_blocking_plugins
+ok 3 test_BC_5_39_009_EC021_milestone_cycle_per_pass_sites_advisory_fired

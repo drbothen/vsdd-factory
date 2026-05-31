@@ -1,0 +1,4 @@
+    Finished `release` profile [optimized] target(s) in 0.18s
+
+=== built artifact ===
+-rwxr-xr-x  1 jmagady  staff  75 May 30 23:44 target/wasm32-wasip1/release/validate_trajectory_tail_cell_completeness.wasm
