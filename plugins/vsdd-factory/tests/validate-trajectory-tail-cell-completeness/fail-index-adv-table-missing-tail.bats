@@ -94,3 +94,29 @@ _index_md_envelope() {
   [ "$status" -eq 0 ]
   [[ "$output" != *"blocking_plugins=validate-trajectory-tail-cell-completeness"* ]]
 }
+
+# F-002: the advisory arm must be LOAD-BEARING — assert the specific log_warn advisory
+# string for the adv-table site is actually emitted (recorded as a `plugin.log` warn
+# event in the dispatcher internal log). Without this, the entire INDEX.md arm could be
+# inert and the exit-0 assertions above would still pass (false-green).
+@test "test_BC_5_39_009_PC8_adv_table_missing_tail_emits_advisory" {
+  _require_artifacts
+  _setup_fixture
+  _write_registry
+  cp "$WASM_PLUGIN" "$WORK/hook-plugins/"
+
+  local envelope
+  envelope="$(_index_md_envelope)"
+  # FACTORY_DISPATCHER_INTERNAL_LOG=1 opts in to the dispatcher internal log so plugin
+  # log_warn calls are recorded as `plugin.log` warn events we can assert on.
+  run bash -c "printf '%s' '$envelope' | FACTORY_DISPATCHER_INTERNAL_LOG=1 CLAUDE_PLUGIN_ROOT='$WORK' CLAUDE_PROJECT_DIR='$WORK' '$DISPATCHER' >/dev/null 2>&1"
+
+  [ "$status" -eq 0 ]
+  # The adv-table advisory MUST appear in the dispatcher internal log (plugin.log warn).
+  local logf
+  logf="$(ls "$WORK/.factory/logs/"dispatcher-internal-*.jsonl 2>/dev/null | head -1)"
+  [ -n "$logf" ]
+  grep -q "INDEX.md adv-table latest row missing" "$logf"
+  # The Convergence Status row HAS a tail in this fixture → its advisory must be ABSENT.
+  ! grep -q "INDEX.md Convergence Status row missing" "$logf"
+}

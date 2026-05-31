@@ -79,3 +79,26 @@ _index_md_envelope() {
   [ "$status" -eq 0 ]
   [[ "$output" != *"blocking_plugins=validate-trajectory-tail-cell-completeness"* ]]
 }
+
+# F-002: prove the all-sites-present path emits NO advisories. Without this, a wholly
+# inert INDEX.md arm would also pass the exit-0 assertion above; this test pins that BOTH
+# INDEX.md advisory strings are ABSENT when all sites carry a valid tail.
+@test "test_BC_5_39_009_PC12_index_all_sites_present_no_advisory" {
+  _require_artifacts
+  _setup_fixture
+  _write_registry
+  cp "$WASM_PLUGIN" "$WORK/hook-plugins/"
+
+  local envelope
+  envelope="$(_index_md_envelope)"
+  run bash -c "printf '%s' '$envelope' | FACTORY_DISPATCHER_INTERNAL_LOG=1 CLAUDE_PLUGIN_ROOT='$WORK' CLAUDE_PROJECT_DIR='$WORK' '$DISPATCHER' >/dev/null 2>&1"
+
+  [ "$status" -eq 0 ]
+  local logf
+  logf="$(ls "$WORK/.factory/logs/"dispatcher-internal-*.jsonl 2>/dev/null | head -1)"
+  # Internal logging is enabled; the log file must exist and neither INDEX.md advisory
+  # string may appear (all sites carry a valid tail).
+  [ -n "$logf" ]
+  ! grep -q "INDEX.md adv-table latest row missing" "$logf"
+  ! grep -q "INDEX.md Convergence Status row missing" "$logf"
+}

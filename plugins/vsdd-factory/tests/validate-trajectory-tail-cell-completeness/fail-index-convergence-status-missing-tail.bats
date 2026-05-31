@@ -97,3 +97,25 @@ _index_md_envelope() {
   [ "$status" -eq 0 ]
   [[ "$output" != *"blocking_plugins=validate-trajectory-tail-cell-completeness"* ]]
 }
+
+# F-002: make the PC7 advisory arm LOAD-BEARING — assert the specific Convergence Status
+# advisory string is emitted (plugin.log warn in the internal log), and that the
+# adv-table advisory (which HAS a tail in this fixture) is ABSENT.
+@test "test_BC_5_39_009_PC7_convergence_status_missing_tail_emits_advisory" {
+  _require_artifacts
+  _setup_fixture
+  _write_registry
+  cp "$WASM_PLUGIN" "$WORK/hook-plugins/"
+
+  local envelope
+  envelope="$(_index_md_envelope)"
+  run bash -c "printf '%s' '$envelope' | FACTORY_DISPATCHER_INTERNAL_LOG=1 CLAUDE_PLUGIN_ROOT='$WORK' CLAUDE_PROJECT_DIR='$WORK' '$DISPATCHER' >/dev/null 2>&1"
+
+  [ "$status" -eq 0 ]
+  local logf
+  logf="$(ls "$WORK/.factory/logs/"dispatcher-internal-*.jsonl 2>/dev/null | head -1)"
+  [ -n "$logf" ]
+  grep -q "INDEX.md Convergence Status row missing" "$logf"
+  # The adv-table latest row HAS a tail in this fixture → its advisory must be ABSENT.
+  ! grep -q "INDEX.md adv-table latest row missing" "$logf"
+}
