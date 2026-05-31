@@ -458,17 +458,38 @@ EOF
 # F-P3-008: Concurrent resolver timeout integration test
 #
 # With long_running_resolver + wave_context resolver registered, asserts:
-# 1. Total dispatch completes in <8000ms (raised from 3000ms in pass-6 to accommodate slow CI runners; see lines 562-565 rationale)
-# 2. resolver.error (timeout) event appears in sink for long_running resolver
-# 3. wave_context resolver output IS still in plugin_config (not blocked by peer timeout)
-#    — verified via absence of WAVE_CONTEXT_MISSING with vacuous-convergence Continue.
+# 1. The long_running resolver's timeout actually FIRED (not silently skipped or
+#    fired too early) — verified structurally via the wall-clock LOWER bound
+#    (>= 1300ms). The long_running resolver spins forever and is terminated by the
+#    dispatcher's epoch interruption at RESOLVER_TIMEOUT_MS=1500ms, so the dispatch
+#    cannot complete faster than ~1300ms unless the timeout misfired early.
+# 2. wave_context resolver output IS still in plugin_config (not blocked by the peer
+#    long_running timeout) — verified via absence of WAVE_CONTEXT_MISSING with a
+#    vacuous-convergence Continue (exit 0). This proves concurrency isolation.
+# 3. The convergence hook actually ran (positive coverage via the sink file).
+#
+# NOTE — why there is NO wall-clock UPPER bound (de-flake, TD #67):
+#   A prior revision asserted `elapsed_ms < 3000` (then bumped to `< 8000`) as a
+#   "hang guard." That upper bound was REDUNDANT and FLAKY, so it has been removed:
+#     * Redundant — the dispatcher's epoch interruption terminates the spinning
+#       resolver at RESOLVER_TIMEOUT_MS=1500ms, so the dispatch ALWAYS completes.
+#       A genuinely broken timeout mechanism would hang forever and be caught by
+#       the bats/CI job-level timeout, NOT by any in-test `< Nms` threshold. The
+#       upper bound therefore added nothing beyond the lower bound + exit-0 + the
+#       job-level timeout already provide.
+#     * Flaky — the wall-clock includes WASM-engine startup for every plugin plus
+#       bats subprocess + process-launch overhead, which balloons on loaded CI
+#       runners (8826ms observed on ubuntu cargo-host; 5382ms on macos-latest).
+#       The upper bound thus only ever caught "slow on a loaded runner" — i.e.
+#       false failures — never a real hang. Raising the threshold again would be a
+#       paper-fix; the assertion is removed instead.
 #
 # Fixture: crates/factory-dispatcher/tests/fixtures/long_running_resolver.wasm (tracked in git).
 # hook-plugins/ is gitignored (build artifacts); long-running-resolver.wasm is symlinked
 # from fixtures/ into a temp hook-plugins/ dir at test setup time.
 # ---------------------------------------------------------------------------
 
-@test "F-P3-008: concurrent resolver timeout — dispatch under 8000ms, timeout event in sink, wave_context succeeds" {
+@test "F-P3-008: concurrent resolver timeout — timeout fires (lower bound), wave_context succeeds despite peer timeout" {
     # Seed minimal .factory/ with active wave and empty stories (vacuous convergence).
     mkdir -p "${FACTORY_TMP}/.factory"
     cat > "${FACTORY_TMP}/.factory/STATE.md" <<'EOF'
@@ -540,7 +561,7 @@ RESOLVER_TOML
 
     local payload='{"event_name":"SubagentStop","session_id":"bats-timeout","dispatcher_trace_id":"bats-timeout-trace","agent_type":"wave-gate-dispatch","last_assistant_message":"Wave gate adversary pass completed for this iteration of the story review cycle."}'
 
-    # Time the dispatch for assertion 1.
+    # Time the dispatch for the timeout-fired lower-bound assertion.
     # Use python3 for millisecond timestamps (portable; date +%s%3N is GNU-only).
     local start_ms end_ms elapsed_ms
     start_ms=$(python3 -c "import time; print(int(time.time() * 1000))")
@@ -556,51 +577,40 @@ RESOLVER_TOML
         false
     }
 
-    # Assertion 1: total dispatch completes in <8000ms.
-    # Upper bound rationale: the resolver timeout is 1500ms; total wall-clock includes
-    # WASM engine startup, bats subprocess overhead, and process launch on potentially
-    # loaded CI runners. macOS CI runners under load have been observed taking 5000ms+
-    # for this test (5382ms observed on macos-latest 2026-05-10). 8000ms catches hangs
-    # (the resolver spins forever without the timeout) while tolerating runner variance.
-    # Prior bound of 3000ms was too tight for loaded macOS runners (F-P6-001 follow-up).
-    [ "${elapsed_ms}" -lt 8000 ] || {
-        echo "TIMEOUT EXCEEDED: dispatch took ${elapsed_ms}ms (threshold 8000ms)" >&2
-        false
-    }
-
-    # Assertion 2: long_running resolver timed out — observable as elapsed time.
-    # The long_running resolver spins forever; epoch interruption fires at ~1500ms.
-    # Total dispatch should take between 1300ms and 8000ms:
+    # Assertion 1 (timeout-fired, LOWER bound only): the long_running resolver's
+    # timeout fired and did not fire too early.
     #
-    # Timeout bound rationale (F-P4-005):
-    #   RESOLVER_TIMEOUT_MS = 1500ms (resolver_loader.rs:568); epoch tick = 10ms.
-    #   Measured wall time is ~1276ms on this machine due to bats overhead and epoch
-    #   pre-advancement (the shared epoch ticker thread may advance epochs before
-    #   set_epoch_deadline is called, reducing the effective window).
-    #   Lower bound 1100ms: tight enough to catch regressions where the deadline
-    #   fires at 800ms or earlier, while tolerating the ~200-400ms measurement
-    #   variance observed in practice. A bound of 1000ms (prior) was too loose —
-    #   firing at 1100ms or 800ms would still pass.
-    #   Upper bound 8000ms covers worst case: timeout fires + epoch tick + bats overhead
-    #   + process launch latency on loaded macOS CI runners (observed 5382ms on macos-latest).
+    # The long_running resolver spins forever; the dispatcher's epoch interruption
+    # terminates it at RESOLVER_TIMEOUT_MS (the hardcoded `const RESOLVER_TIMEOUT_MS:
+    # u64 = 1500;` in crates/factory-dispatcher/src/resolver_loader.rs). Because the
+    # resolver cannot return on its own, the dispatch cannot complete faster than
+    # ~the timeout window. A lower bound of 1300ms therefore proves the timeout
+    # actually fired at ~1500ms rather than being skipped or firing prematurely.
     #
-    # Architecture note: resolver.error events are written to InternalLog (not to
-    # base_host_ctx.events), so they do NOT appear in VSDD_SINK_FILE. The timeout
-    # is verified structurally via elapsed time (timeout fired → dispatch took ~1500ms).
-    # F-P5-007 (Option A): raised from 1100ms → 1300ms.
-    # Rationale: 1100ms was machine-specific (calibrated on a fast macOS dev box).
-    # CI runners (ubuntu-latest, macos-14) can be slower under load, causing the
-    # timeout to fire at 1500ms + overhead that exceeds the old lower bound.
-    # Catches any deadline reduction >13.3% (1300/1500 = 86.67% threshold);
-    # the 25% example (1500ms × 0.75 = 1125ms) is well within the guard. Trade-off:
-    # accepted risk of rare flake on severely loaded CI runners.
+    # Lower-bound rationale (F-P4-005 / F-P5-007 Option A):
+    #   Measured wall time is ~1276ms+ in practice; epoch tick = 10ms. The shared
+    #   epoch ticker thread may pre-advance epochs before set_epoch_deadline is
+    #   called, slightly shrinking the effective window. 1300ms catches any deadline
+    #   reduction >13.3% (1300/1500 = 86.67% threshold) — e.g. a regression firing
+    #   at 1125ms (25% early) or 800ms is caught — while tolerating the ~200-400ms
+    #   measurement variance observed across machines/CI runners.
+    #
+    # There is intentionally NO wall-clock UPPER bound — see the test header NOTE
+    # (TD #67): epoch interruption guarantees completion, so a true hang is caught
+    # by the bats/CI job-level timeout, and an upper bound only produced false
+    # failures on loaded CI runners.
+    #
+    # Architecture note: resolver.error (timeout) events are written to the
+    # dispatcher's InternalLog, NOT to base_host_ctx.events, so they do NOT appear
+    # in VSDD_SINK_FILE. The timeout is therefore verified structurally via the
+    # lower bound on elapsed time rather than by reading an error record.
     [ "${elapsed_ms}" -ge 1300 ] || {
         echo "UNEXPECTED: dispatch took only ${elapsed_ms}ms — long_running timeout may not have fired at expected 1500ms" >&2
         echo "Expected >= 1300ms (RESOLVER_TIMEOUT_MS=1500ms; ~200ms tolerance for bats/epoch overhead)" >&2
         false
     }
 
-    # Assertion 3: wave_context resolver succeeded (no WAVE_CONTEXT_MISSING in sink).
+    # Assertion 2: wave_context resolver succeeded (no WAVE_CONTEXT_MISSING in sink).
     # The wave_context resolver runs concurrently with long_running; a timeout on one
     # MUST NOT block the other. vacuous convergence → Continue (exit 0).
     ! grep -q "WAVE_CONTEXT_MISSING" "${sink_file}" 2>/dev/null || {
@@ -609,7 +619,7 @@ RESOLVER_TOML
         false
     }
 
-    # Confirm the convergence hook ran (positive coverage — hook.dispatch in sink).
+    # Assertion 3: confirm the convergence hook ran (positive coverage — hook.dispatch in sink).
     [[ -s "${sink_file}" ]] || { echo "SINK FILE EMPTY" >&2; false; }
     grep -q "validate-per-story-adversary-convergence" "${sink_file}" || {
         echo "FATAL: convergence hook not in sink — pipeline may not have executed" >&2
