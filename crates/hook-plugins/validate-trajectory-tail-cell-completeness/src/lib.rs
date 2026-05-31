@@ -204,6 +204,21 @@ fn frontmatter_region(content: &str) -> Option<&str> {
 ///
 /// If the value is a YAML block-scalar (`|` or `>`), the indented continuation lines
 /// are read and joined (newline for `|`, space for `>`).
+///
+/// # Folded-`>` blank-line handling (F-007)
+///
+/// This is a MARKER-DETECTION-oriented join, NOT a spec-complete YAML 1.2 block-scalar
+/// parser. For a folded (`>`) scalar, YAML 1.2 folds single newlines to spaces but
+/// preserves blank lines as paragraph breaks (a blank line becomes a literal newline in
+/// the folded result). Here, a blank line inside the block is collected as an empty
+/// string and joined with the surrounding space separator, so a folded blank line
+/// collapses to a doubled space rather than a newline. This is intentional and harmless
+/// for this hook's sole consumer: `marker_prefix_check` scans the joined value for the
+/// `trajectory-tail ` marker and counts `→\d+` segments up to the first `;` or `\n`.
+/// Collapsing folded blank lines to spaces neither hides a present marker nor fabricates
+/// an absent one — the arrow-sequence is always on the marker's own line, which is never
+/// a blank line. A literal (`|`) scalar preserves blank lines via newline joins, which
+/// `marker_prefix_check`'s `\n` segment boundary already handles correctly.
 fn extract_frontmatter_scalar(region: &str, key: &str) -> Option<String> {
     let key_prefix = format!("{key}:");
     let mut lines = region.lines().peekable();
@@ -264,28 +279,29 @@ pub fn extract_frontmatter_current_step(content: &str) -> Option<String> {
 pub fn extract_current_cycle(content: &str) -> Option<String> {
     let region = frontmatter_region(content)?;
     let raw = extract_frontmatter_scalar(region, "current_cycle")?;
-    // Strip a trailing `# comment` (only when the `#` is not inside quotes — cycle names
-    // never contain `#`, so a plain split is safe for the production form).
-    let no_comment = match raw.find('#') {
-        Some(pos) => raw[..pos].trim().to_string(),
-        None => raw.trim().to_string(),
-    };
-    // Strip surrounding single or double quotes.
-    let unquoted = no_comment
+    let raw = raw.trim();
+    // F-008 fix: UNQUOTE FIRST, then strip a trailing `#`-comment only on the BARE form.
+    // Per BC §Architecture Anchors, the trailing-comment strip applies only when the `#`
+    // is "not inside quotes". The prior order (strip `#` then unquote) truncated a quoted
+    // value that legitimately contained a `#` (e.g., `current_cycle: "v1.0#hotfix"`),
+    // because the `#`-split fired before the quote-aware parse. A YAML quoted scalar's
+    // value is the literal content between the quotes (comments after the closing quote
+    // are out of scope and dropped); a bare scalar's value ends at the first `#`.
+    let value = if let Some(inner) = raw
         .strip_prefix('"')
         .and_then(|s| s.strip_suffix('"'))
-        .or_else(|| {
-            no_comment
-                .strip_prefix('\'')
-                .and_then(|s| s.strip_suffix('\''))
-        })
-        .unwrap_or(&no_comment)
-        .trim();
-    if unquoted.is_empty() {
-        None
+        .or_else(|| raw.strip_prefix('\'').and_then(|s| s.strip_suffix('\'')))
+    {
+        // Quoted form: the value is the literal quoted content; do NOT strip `#`.
+        inner.trim().to_string()
     } else {
-        Some(unquoted.to_string())
-    }
+        // Bare form: strip a trailing `#`-comment, then trim.
+        match raw.find('#') {
+            Some(pos) => raw[..pos].trim().to_string(),
+            None => raw.to_string(),
+        }
+    };
+    if value.is_empty() { None } else { Some(value) }
 }
 
 /// Extract the second pipe-delimited column of a markdown table row, trimmed.
@@ -313,21 +329,79 @@ pub fn extract_last_updated_cell(content: &str) -> Option<String> {
     None
 }
 
-/// Returns `true` if a markdown table row is a separator row (`|---|---|`).
+/// Returns `true` if a markdown table row is a separator row (`|---|---|`,
+/// `| :--- | ---: |`, etc.).
+///
+/// F-006 fix: the prior predicate accepted any row whose inner characters were drawn
+/// from `{-, |, :, whitespace}` — which mis-classified an all-whitespace/empty data row
+/// (`|   |   |`) as a separator and silently DROPPED it. Dropping a thin data row could
+/// make `extract_*_latest_row` return an older row (or `None`), producing a
+/// false-negative on a Block-severity STATE.md site. A genuine separator row now MUST
+/// (a) contain at least one `-`, and (b) have EVERY pipe-delimited cell match the
+/// canonical separator-cell grammar `:?-+:?` (optional leading colon, one-or-more
+/// dashes, optional trailing colon) after trimming whitespace. An empty cell or a cell
+/// containing any other character disqualifies the row.
 fn is_separator_row(row: &str) -> bool {
-    let inner = row.trim().trim_matches('|');
-    !inner.is_empty()
-        && inner
-            .chars()
-            .all(|c| c == '-' || c == '|' || c == ':' || c.is_whitespace())
+    let trimmed = row.trim();
+    // Must be a pipe-delimited row.
+    if !trimmed.starts_with('|') {
+        return false;
+    }
+    let inner = trimmed.trim_matches('|');
+    if !inner.contains('-') {
+        return false;
+    }
+    // Split into cells on `|`; every cell must be a valid separator cell.
+    inner.split('|').all(|cell| is_separator_cell(cell.trim()))
 }
 
-/// Capture the table data rows that follow a heading (prefix-matched) until the next
-/// `## ` heading. Skips the table header row (the first data-looking row) and separator
-/// rows. Returns rows in document order.
+/// Returns `true` if `cell` matches the canonical separator-cell grammar `:?-+:?`.
+///
+/// An empty cell returns `false` (a separator cell must contain at least one dash).
+fn is_separator_cell(cell: &str) -> bool {
+    let bytes = cell.as_bytes();
+    let mut i = 0;
+    let n = bytes.len();
+    // Optional leading colon.
+    if i < n && bytes[i] == b':' {
+        i += 1;
+    }
+    // One-or-more dashes (mandatory).
+    let dash_start = i;
+    while i < n && bytes[i] == b'-' {
+        i += 1;
+    }
+    if i == dash_start {
+        return false; // no dashes → not a separator cell
+    }
+    // Optional trailing colon.
+    if i < n && bytes[i] == b':' {
+        i += 1;
+    }
+    i == n // entire cell consumed
+}
+
+/// Capture the table DATA rows that follow a heading (prefix-matched) until the next
+/// `## ` heading.
+///
+/// The canonical markdown table form is `header-row`, `separator-row` (`|---|---|`),
+/// then zero or more `data-row`s. This helper drops BOTH the separator row(s) AND the
+/// header row that precedes the first separator, returning only the data rows in
+/// document order.
+///
+/// F-003 fix: a prior version's doc-comment claimed it skipped the header row, but the
+/// code only skipped separator rows — it pushed the header as a data row. That made the
+/// header eligible for bottommost-row selection in single-data-row sections (where the
+/// header and the lone data row could be confused). Header detection is now explicit: a
+/// `|`-row is a header IFF it appears before the section's first separator row. Once a
+/// separator row is seen, every subsequent non-separator `|`-row is a genuine data row.
+/// Sections with no separator row at all (malformed / non-tabular) yield no data rows.
 fn rows_after_heading<'a>(content: &'a str, heading_prefix: &str) -> Vec<&'a str> {
     let mut rows: Vec<&str> = Vec::new();
     let mut in_section = false;
+    // Tracks whether the current section's separator row (`|---|---|`) has been seen.
+    // `|`-rows before the separator are header rows and are skipped.
+    let mut seen_separator = false;
     for line in content.lines() {
         let trimmed = line.trim_start();
         if trimmed.starts_with("## ") || trimmed == "##" {
@@ -337,12 +411,21 @@ fn rows_after_heading<'a>(content: &'a str, heading_prefix: &str) -> Vec<&'a str
             }
             if trimmed.starts_with(heading_prefix) {
                 in_section = true;
+                seen_separator = false;
                 continue;
             } else if in_section {
                 break; // next `## ` heading ends the section
             }
         }
-        if in_section && trimmed.starts_with('|') && !is_separator_row(trimmed) {
+        if !in_section || !trimmed.starts_with('|') {
+            continue;
+        }
+        if is_separator_row(trimmed) {
+            seen_separator = true; // header/data boundary
+            continue;
+        }
+        // Non-separator `|`-row: it is the header iff no separator has been seen yet.
+        if seen_separator {
             rows.push(trimmed);
         }
     }
@@ -521,15 +604,25 @@ pub fn check_state_md(content: &str) -> Vec<MissingStateSite> {
 pub fn check_index_sites(content: &str) -> Vec<AdvisoryWarning> {
     let mut warnings: Vec<AdvisoryWarning> = Vec::new();
 
-    // Site 6: Convergence Status — locate the row/line mentioning "Convergence Status"
-    // and check it for a LENGTH=4 tail (marker-optional; advisory uses raw count check).
+    // Site 6 (PC7): Convergence Status row. Locate the markdown table DATA row whose
+    // first cell names "Convergence Status" and check it for a LENGTH=4 tail.
+    //
+    // F-002 fix: the prior `find(|l| l.contains("Convergence Status"))` matched the
+    // `## Convergence Status` HEADING line first (which never carries a tail), so the
+    // advisory fired unconditionally regardless of the data row's content — the arm was
+    // effectively inert and the false-green advisory tests never caught it. We now skip
+    // any `#`-heading line and require a pipe-delimited (`|`) row, so the check binds to
+    // the actual Convergence Status table row.
     let convergence = content
         .lines()
-        .find(|l| l.contains("Convergence Status"))
+        .map(|l| l.trim_start())
+        .find(|l| l.starts_with('|') && l.contains("Convergence Status"))
         .map(|l| l.to_string());
     let convergence_ok = match &convergence {
         Some(line) => has_trajectory_tail(line),
-        None => false,
+        // No Convergence Status DATA row at all → fail-open (treat as present); the
+        // section may be absent / formatted as prose on a fresh cycle INDEX.md (inv-10).
+        None => true,
     };
     if !convergence_ok {
         warnings.push(AdvisoryWarning {
@@ -537,18 +630,25 @@ pub fn check_index_sites(content: &str) -> Vec<AdvisoryWarning> {
         });
     }
 
-    // Site 7: latest adversarial-review summary-table row. Take the bottommost table
-    // data row (non-separator) in the file and check it for a LENGTH=4 tail.
-    let adv_row = content
-        .lines()
-        .rfind(|l| {
-            let t = l.trim_start();
-            t.starts_with('|') && !is_separator_row(t)
-        })
-        .map(|l| l.to_string());
-    let adv_ok = match &adv_row {
+    // Site 7 (PC8): latest adversarial-review summary-table row. Per BC-5.39.009 PC8
+    // + §Architecture Anchors, this is the bottommost DATA row WITHIN the
+    // `## Adversarial Reviews` table — NOT the global-bottommost `|`-row in the file.
+    //
+    // F-001 fix: a global `rfind` of the bottommost markdown table row selects the
+    // WRONG row in production INDEX.md layout. The canonical cycle INDEX.md places the
+    // `## Adversarial Reviews` table BEFORE the `## Convergence Status` section, and
+    // other tables (Convergence Status metric tables, sub-cycle tables) follow it. A
+    // file-global bottommost `|`-row therefore lands in a later table (e.g., the
+    // Convergence Status "Streak" row), defeating PC8. Scope to the
+    // `## Adversarial Reviews` table via the same `rows_after_heading` helper used by
+    // the STATE.md row extractors (which already strips header + separator rows), then
+    // take the bottommost data row within that section.
+    let adv_rows = rows_after_heading(content, "## Adversarial Reviews");
+    let adv_ok = match adv_rows.last() {
+        // No `## Adversarial Reviews` table at all → fail-open (treat as present);
+        // the section may not yet exist on a freshly-created cycle INDEX.md (inv-10).
+        None => true,
         Some(row) => has_trajectory_tail(row),
-        None => false,
     };
     if !adv_ok {
         warnings.push(AdvisoryWarning {
@@ -592,6 +692,45 @@ pub fn check_lessons_sites(_content: &str) -> Vec<AdvisoryWarning> {
 }
 
 // ---------------------------------------------------------------------------
+// Read + decode seam (pure, unit-testable — F-005)
+// ---------------------------------------------------------------------------
+
+/// Map a `host::read_file` result through the UTF-8 decode gate to either decoded
+/// content or a fail-open advisory message.
+///
+/// This is the pure, unit-testable seam for the read-and-decode error path (F-005). It
+/// closes two findings at once:
+///
+/// * The read-error branch (any `HostError`, INCLUDING `HostError::OutputTooLarge`)
+///   maps to `Err(advisory)` → the caller emits `log_warn` + `HookResult::Continue`
+///   (fail-open per inv-10 / PC11). A prior version's bats test claimed a Rust unit test
+///   exercised the `OutputTooLarge` variant, but none existed; this seam plus
+///   `test_*_output_too_large_maps_to_advisory` makes that claim true.
+/// * The UTF-8 decode branch (`String::from_utf8` Err) maps to `Err(advisory)` → same
+///   fail-open path (EC-020 / inv-13).
+///
+/// Generic over the error type `E: Debug` so it can be exercised in unit tests with a
+/// real `HostError` value WITHOUT performing any host I/O, and so the production caller
+/// can pass the SDK's `read_file` result directly. `HostError` implements `Debug` (not
+/// `Display`), matching the original `{e:?}` formatting of the read-error advisory.
+///
+/// # BC trace
+/// BC-5.39.009 PC11 (uniform HostError fail-open), inv-10, inv-13, EC-020.
+pub fn decode_read_result<E: core::fmt::Debug>(
+    file_path: &str,
+    result: Result<Vec<u8>, E>,
+) -> Result<String, String> {
+    match result {
+        Ok(bytes) => String::from_utf8(bytes).map_err(|e| {
+            format!("invalid UTF-8 in {file_path}: {e}; skipping (fail-open per EC-020)")
+        }),
+        Err(e) => Err(format!(
+            "read failed for {file_path}: {e:?}; skipping (fail-open per inv-10)"
+        )),
+    }
+}
+
+// ---------------------------------------------------------------------------
 // Main hook orchestration (effectful entry point)
 // ---------------------------------------------------------------------------
 
@@ -623,22 +762,14 @@ pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
         None => return HookResult::Continue,
     };
 
-    // DOUBLE-MATCH (F-SP3-006 + inv-13 encoding gate): read bytes then decode to String.
-    let content = match host::read_file(&file_path, MAX_BYTES, 2000) {
-        Ok(bytes) => match String::from_utf8(bytes) {
-            Ok(s) => s,
-            Err(e) => {
-                host::log_warn(&format!(
-                    "[{HOOK_NAME}] invalid UTF-8 in {file_path}: {e}; \
-                     skipping (fail-open per EC-020)"
-                ));
-                return HookResult::Continue;
-            }
-        },
-        Err(e) => {
-            host::log_warn(&format!(
-                "[{HOOK_NAME}] read failed for {file_path}: {e:?}; skipping (fail-open per inv-10)"
-            ));
+    // Read bytes then decode to String through the pure F-005 seam. The seam maps EVERY
+    // HostError (including HostError::OutputTooLarge) AND the UTF-8 decode Err branch to
+    // a single fail-open advisory string (inv-10 / inv-13 / EC-020 / PC11).
+    let content = match decode_read_result(&file_path, host::read_file(&file_path, MAX_BYTES, 2000))
+    {
+        Ok(s) => s,
+        Err(advisory) => {
+            host::log_warn(&format!("[{HOOK_NAME}] {advisory}"));
             return HookResult::Continue;
         }
     };
@@ -668,21 +799,16 @@ pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
         }
         TargetArm::Index => {
             // Dynamic cycle-path guard: secondary read of STATE.md current_cycle: at runtime.
-            let active_cycle = match host::read_file(".factory/STATE.md", MAX_BYTES, 2000) {
-                Ok(bytes) => match String::from_utf8(bytes) {
-                    Ok(s) => extract_current_cycle(&s).unwrap_or_default(),
-                    Err(_) => {
-                        host::log_warn(&format!(
-                            "[{HOOK_NAME}] INDEX.md arm cycle-guard: STATE.md invalid UTF-8; \
-                             skipping INDEX.md check (fail-open)"
-                        ));
-                        return HookResult::Continue;
-                    }
-                },
-                Err(e) => {
+            // Routed through the same F-005 seam: any read error or UTF-8 decode failure
+            // on the secondary STATE.md read fails open (skip INDEX.md check).
+            let active_cycle = match decode_read_result(
+                ".factory/STATE.md",
+                host::read_file(".factory/STATE.md", MAX_BYTES, 2000),
+            ) {
+                Ok(s) => extract_current_cycle(&s).unwrap_or_default(),
+                Err(advisory) => {
                     host::log_warn(&format!(
-                        "[{HOOK_NAME}] INDEX.md arm cycle-guard: STATE.md read failed ({e:?}); \
-                         skipping INDEX.md check (fail-open)"
+                        "[{HOOK_NAME}] INDEX.md arm cycle-guard: {advisory}"
                     ));
                     return HookResult::Continue;
                 }
@@ -1184,5 +1310,371 @@ trajectory-tail →9→9→9→9; session resume OK.
             missing[0].site_name.contains("current_step"),
             "missing site must be current_step for LENGTH=5 violation"
         );
+    }
+
+    // -----------------------------------------------------------------------
+    // F-003: rows_after_heading header-row skip (doc-comment now matches code)
+    // -----------------------------------------------------------------------
+
+    /// F-003: a single-data-row section returns exactly the DATA row, NOT the header row.
+    /// The header (the `|`-row before the separator) must be dropped.
+    #[test]
+    fn test_F003_rows_after_heading_skips_header_single_data_row() {
+        let content = "\
+## Phase Progress
+
+| Pass | Status | Notes |
+|------|--------|-------|
+| P-1 | COMPLETE | the only data row |
+";
+        let rows = rows_after_heading(content, "## Phase Progress");
+        assert_eq!(rows.len(), 1, "exactly one DATA row (header dropped)");
+        assert!(
+            rows[0].contains("the only data row"),
+            "the returned row must be the data row, not the header; got: {}",
+            rows[0]
+        );
+        assert!(
+            !rows[0].contains("Pass | Status | Notes"),
+            "header row must not be returned as a data row"
+        );
+    }
+
+    /// F-003: a header-only section (no data rows) returns an EMPTY vec — the header is
+    /// never promoted to a data row even when it is the only `|`-row after the separator.
+    #[test]
+    fn test_F003_rows_after_heading_header_only_section_returns_empty() {
+        let content = "\
+## Phase Progress
+
+| Pass | Status | Notes |
+|------|--------|-------|
+
+## Next Section
+";
+        let rows = rows_after_heading(content, "## Phase Progress");
+        assert!(
+            rows.is_empty(),
+            "header-only section must yield no data rows; got {} rows",
+            rows.len()
+        );
+    }
+
+    /// F-003 regression guard: the fail-state-phase-progress fixture form (tail in the
+    /// HEADER row, no tail in the data row) must still be detected as MISSING — the
+    /// bottommost DATA row is what the inv-4 check sees, not the header.
+    #[test]
+    fn test_F003_phase_progress_tail_in_header_not_data_row_is_missing() {
+        let content = "\
+---
+document_type: state
+current_step: \"Phase 3 — trajectory-tail →9→9→9→9; OK\"
+current_cycle: \"v1.0-brownfield-backfill\"
+---
+
+| **Last Updated** | 2026-05-28 — trajectory-tail →9→9→9→9; good |
+
+## Phase Progress
+
+| Pass | Status | trajectory-tail →9→9→9→9 |
+|------|--------|-------|
+| P-1  | COMPLETE | no tail in this data row |
+
+## Concurrent Cycles
+
+| Cycle | Status | Notes |
+|-------|--------|-------|
+| v1.0 | active | trajectory-tail →9→9→9→9 |
+
+## Session Resume Checkpoint (2026-05-28)
+
+### §1. Where We Are
+
+trajectory-tail →9→9→9→9; session resume OK.
+";
+        let control = content.replace(
+            "| P-1  | COMPLETE | no tail in this data row |",
+            "| P-1  | COMPLETE | trajectory-tail →9→9→9→9 |",
+        );
+        eprintln!(
+            "DBG_F003 control (tail in data row) missing: {:?}",
+            check_state_md(&control)
+                .iter()
+                .map(|s| s.site_name)
+                .collect::<Vec<_>>()
+        );
+        let missing = check_state_md(content);
+        eprintln!(
+            "DBG_F003 missing sites: {:?}",
+            missing.iter().map(|s| s.site_name).collect::<Vec<_>>()
+        );
+        // The header row carries a valid tail but the DATA row does not. Because
+        // bottommost-DATA-row selection is what the inv-4 check sees (F-003), Phase
+        // Progress MUST be reported missing — proving the header is not promoted to a
+        // data row.
+        assert!(
+            missing
+                .iter()
+                .any(|s| s.site_name.contains("Phase Progress")),
+            "tail in header (not data row) must still flag Phase Progress as missing; got: {:?}",
+            missing.iter().map(|s| s.site_name).collect::<Vec<_>>()
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // F-006: is_separator_row must NOT misclassify thin/empty data rows
+    // -----------------------------------------------------------------------
+
+    /// F-006: a genuine separator row is classified as a separator.
+    #[test]
+    fn test_F006_is_separator_row_accepts_canonical_separators() {
+        assert!(is_separator_row("|------|--------|-------|"));
+        assert!(is_separator_row("| :--- | ---: | :---: |"));
+        assert!(is_separator_row("|---|"));
+    }
+
+    /// F-006: an all-whitespace/empty data row (`|   |   |`) is NOT a separator and must
+    /// therefore survive as a data row (it has no dashes).
+    #[test]
+    fn test_F006_is_separator_row_rejects_thin_empty_data_row() {
+        assert!(
+            !is_separator_row("|   |   |"),
+            "all-whitespace data row must NOT be classified as a separator"
+        );
+        assert!(
+            !is_separator_row("|  |  |  |"),
+            "empty-cell data row must NOT be classified as a separator"
+        );
+    }
+
+    /// F-006: a thin data row survives `rows_after_heading` (not dropped as a separator),
+    /// so it can be selected as the bottommost row by the extractors.
+    #[test]
+    fn test_F006_thin_data_row_survives_rows_after_heading() {
+        let content = "\
+## Concurrent Cycles
+
+| Cycle | Status | Notes |
+|-------|--------|-------|
+|   |   |   |
+";
+        let rows = rows_after_heading(content, "## Concurrent Cycles");
+        assert_eq!(
+            rows.len(),
+            1,
+            "the thin data row must survive (not be dropped as a separator)"
+        );
+        assert!(
+            rows[0].contains('|'),
+            "the surviving row is the thin data row"
+        );
+    }
+
+    /// F-006: a row of text containing dashes but also other chars is NOT a separator.
+    #[test]
+    fn test_F006_is_separator_row_rejects_text_with_dashes() {
+        assert!(
+            !is_separator_row("| a-b | c-d |"),
+            "cells with non-dash content must not be a separator"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // F-008: extract_current_cycle unquotes BEFORE stripping `#`-comment
+    // -----------------------------------------------------------------------
+
+    /// F-008: a quoted value containing `#` is NOT truncated (unquote before comment-strip).
+    #[test]
+    fn test_F008_extract_current_cycle_quoted_value_with_hash_not_truncated() {
+        let content = "---\ncurrent_cycle: \"v1.0#hotfix\"\n---\n";
+        let result = extract_current_cycle(content);
+        assert_eq!(
+            result,
+            Some("v1.0#hotfix".to_string()),
+            "quoted value containing '#' must be preserved intact"
+        );
+    }
+
+    /// F-008: single-quoted value containing `#` is preserved intact.
+    #[test]
+    fn test_F008_extract_current_cycle_single_quoted_value_with_hash() {
+        let content = "---\ncurrent_cycle: 'v1.0#hotfix'\n---\n";
+        let result = extract_current_cycle(content);
+        assert_eq!(result, Some("v1.0#hotfix".to_string()));
+    }
+
+    /// F-008: a BARE value with a trailing `#`-comment still strips the comment.
+    #[test]
+    fn test_F008_extract_current_cycle_bare_value_strips_trailing_comment() {
+        let content = "---\ncurrent_cycle: v1.0-brownfield-backfill # active cycle\n---\n";
+        let result = extract_current_cycle(content);
+        assert_eq!(
+            result,
+            Some("v1.0-brownfield-backfill".to_string()),
+            "bare-form trailing '#'-comment must be stripped"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // F-001: check_index_sites scopes site 7 to the Adversarial Reviews table
+    // -----------------------------------------------------------------------
+
+    /// F-001: when the `## Adversarial Reviews` bottommost data row HAS a tail but a
+    /// LATER table (Convergence Status) lacks one, the adv-table site must be considered
+    /// PRESENT — proving site 7 is scoped to the Adversarial Reviews table, not the
+    /// file-global bottommost `|`-row.
+    #[test]
+    fn test_F001_index_adv_table_scoped_not_global_bottommost_row() {
+        let content = "\
+# Cycle Index
+
+## Adversarial Reviews
+
+| Pass | Date | Findings | Status |
+|------|------|----------|--------|
+| 1 | 2026-05-01 | 9 | early pass no tail |
+| 2 | 2026-05-02 | 4 | trajectory-tail →9→9→9→9; latest pass present |
+
+## Convergence Status
+
+| Field | Value |
+|-------|-------|
+| Convergence Status | 3/3 CONVERGED no tail here at all |
+";
+        let warnings = check_index_sites(content);
+        // The adv-table latest row HAS a tail → no adv-table warning.
+        assert!(
+            !warnings
+                .iter()
+                .any(|w| w.message.contains("adv-table latest row")),
+            "adv-table site must be PRESENT (scoped to Adversarial Reviews table); \
+             warnings={warnings:?}"
+        );
+        // The Convergence Status DATA row lacks a tail → its own warning IS present.
+        assert!(
+            warnings
+                .iter()
+                .any(|w| w.message.contains("Convergence Status")),
+            "Convergence Status site must be flagged missing; warnings={warnings:?}"
+        );
+    }
+
+    /// F-001: when the Adversarial Reviews bottommost data row LACKS a tail, the
+    /// adv-table site is flagged missing — even if a later table row has a valid tail.
+    #[test]
+    fn test_F001_index_adv_table_missing_tail_in_latest_pass_row_flagged() {
+        let content = "\
+# Cycle Index
+
+## Adversarial Reviews
+
+| Pass | Date | Findings | Status |
+|------|------|----------|--------|
+| 1 | 2026-05-01 | 9 | trajectory-tail →9→9→9→9; substantive |
+| 2 | 2026-05-02 | 4 | NITPICK — no tail here at all |
+
+## Convergence Status
+
+| Field | Value |
+|-------|-------|
+| Convergence Status | trajectory-tail →9→9→9→9; 3/3 CONVERGED |
+";
+        let warnings = check_index_sites(content);
+        assert!(
+            warnings
+                .iter()
+                .any(|w| w.message.contains("adv-table latest row")),
+            "adv-table latest-pass row lacks a tail → must be flagged; warnings={warnings:?}"
+        );
+        // Convergence Status DATA row HAS a tail → no Convergence Status warning.
+        assert!(
+            !warnings
+                .iter()
+                .any(|w| w.message.contains("Convergence Status")),
+            "Convergence Status site must be PRESENT; warnings={warnings:?}"
+        );
+    }
+
+    /// F-001: an INDEX.md with NO `## Adversarial Reviews` table fails open for site 7
+    /// (no adv-table warning) — the section may not exist on a fresh cycle index.
+    #[test]
+    fn test_F001_index_no_adv_table_section_fails_open() {
+        let content = "\
+# Cycle Index
+
+## Convergence Status
+
+| Metric | Value |
+|--------|-------|
+| Streak | trajectory-tail →9→9→9→9; 3/3 CONVERGED |
+";
+        let warnings = check_index_sites(content);
+        assert!(
+            !warnings
+                .iter()
+                .any(|w| w.message.contains("adv-table latest row")),
+            "absent Adversarial Reviews table → adv-table site fails open; warnings={warnings:?}"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // F-005: decode_read_result pure seam (read-error + UTF-8 decode branches)
+    // -----------------------------------------------------------------------
+
+    /// F-005: a HostError::OutputTooLarge read result maps to a fail-open advisory.
+    /// This is the unit test the bats comment previously CLAIMED existed but did not.
+    #[test]
+    fn test_F005_decode_read_result_output_too_large_maps_to_advisory() {
+        use vsdd_hook_sdk::host::HostError;
+        let result: Result<Vec<u8>, HostError> = Err(HostError::OutputTooLarge);
+        let mapped = decode_read_result(".factory/STATE.md", result);
+        let advisory = mapped.expect_err("OutputTooLarge must map to Err(advisory)");
+        assert!(
+            advisory.contains("read failed"),
+            "advisory must describe a read failure; got: {advisory}"
+        );
+        assert!(
+            advisory.contains("fail-open"),
+            "advisory must mention fail-open; got: {advisory}"
+        );
+    }
+
+    /// F-005: other HostError variants also map to a fail-open advisory.
+    #[test]
+    fn test_F005_decode_read_result_capability_denied_maps_to_advisory() {
+        use vsdd_hook_sdk::host::HostError;
+        let result: Result<Vec<u8>, HostError> = Err(HostError::CapabilityDenied);
+        assert!(
+            decode_read_result(".factory/STATE.md", result).is_err(),
+            "CapabilityDenied must map to Err(advisory)"
+        );
+    }
+
+    /// F-005: invalid UTF-8 bytes map to a fail-open advisory (EC-020 / inv-13).
+    #[test]
+    fn test_F005_decode_read_result_invalid_utf8_maps_to_advisory() {
+        use vsdd_hook_sdk::host::HostError;
+        // 0xFF is never valid in UTF-8.
+        let result: Result<Vec<u8>, HostError> = Ok(vec![0x2d, 0x2d, 0x2d, 0xFF, 0xFE]);
+        let advisory =
+            decode_read_result(".factory/STATE.md", result).expect_err("invalid UTF-8 → Err");
+        assert!(
+            advisory.contains("invalid UTF-8"),
+            "advisory must mention invalid UTF-8; got: {advisory}"
+        );
+        assert!(
+            advisory.contains("EC-020"),
+            "advisory must cite EC-020 fail-open; got: {advisory}"
+        );
+    }
+
+    /// F-005: valid UTF-8 bytes decode to the expected String (Ok path).
+    #[test]
+    fn test_F005_decode_read_result_valid_utf8_decodes_ok() {
+        use vsdd_hook_sdk::host::HostError;
+        let result: Result<Vec<u8>, HostError> = Ok("hello →9".as_bytes().to_vec());
+        let decoded =
+            decode_read_result(".factory/STATE.md", result).expect("valid UTF-8 must decode");
+        assert_eq!(decoded, "hello →9");
     }
 }
