@@ -5493,7 +5493,7 @@ trajectory-tail →9→9→9→11
 ### Dim-6 Attestation (Block count gate per D-446(a) + TD-VSDD-099)
 
 ```
-$ awk '/^## D-528 /{found=1} found{print}' .factory/cycles/v1.0-brownfield-backfill/burst-log.md | grep -c "^### Dim-"
+$ awk '/^## D-528 /{found=1} /^## D-523 /{found=0} found{print}' .factory/cycles/v1.0-brownfield-backfill/burst-log.md | grep -c "^### Dim-"
 4
 ```
 Result: 4 Dim blocks (Dim-2, Dim-5, Dim-6, Dim-7) — PASS per D-446(a) and D-449(a)
