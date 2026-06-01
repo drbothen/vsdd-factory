@@ -5512,7 +5512,7 @@ Result: 4 Dim blocks (Dim-2, Dim-5, Dim-6, Dim-7) — PASS per D-446(a) and D-44
 
 - `2afc1117` — state(D-528): fix Dim-6 gate awk (parent commit; factory-artifacts HEAD pre-this-burst)
 - `13be0461` — state(D-529): POST-RC.20 maintenance sweep complete; develop b21fd358; zero open PRs; 4-index UNCHANGED (primary burst per TD-VSDD-053)
-- `TBD-SHA-PATCH` — state(D-529): SHA-patch — update 13be0461 in STATE.md per D-447(c)+D-449(e)
+- `8a876570` — state(D-529): SHA-patch — update 13be0461 in STATE.md per D-447(c)+D-449(e)
 
 ---
 
