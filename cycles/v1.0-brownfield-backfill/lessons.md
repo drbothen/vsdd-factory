@@ -2855,3 +2855,17 @@ POLICY 14 description and verification_steps updated in policies.yaml same-burst
 **Cites:** D-511; D-512; D-528; PR #166 e00ab1ab; RELEASING.md.
 
 **Closes:** D-528 rc.20 clean-ship lesson capture. `[codified]`
+
+---
+
+### L-session-2026-06-01-dependabot-sweep
+
+**Category:** dependency-management + maintenance-discipline
+
+**Lesson:** Transitive-major version bumps in optional skill dependencies (e.g., excalidraw 0.17→0.18 in visual-companion) are low-blast-radius when the dep is npm-only and isolated to a single optional skill with no cross-crate Rust effects. Dependabot auto-closes redundant PRs that target the same dependency after a bump merges — after PR #156 merged (excalidraw 0.18.1), Dependabot automatically closed PRs #152, #125, #2, and bonus #167 without manual intervention. When processing Dependabot queues, merge the highest-version bump first; redundant lower-version PRs self-close.
+
+**Anchors:** D-529 (POST-RC.20 maintenance sweep); PR #156 excalidraw merge auto-closing #152/#125/#2/#167.
+
+**Cites:** D-529; PR #156 1e5325bd; PR #157 b21fd358; PR #3 401f1bfb.
+
+**Closes:** D-529 Dependabot lesson capture. `[codified]`

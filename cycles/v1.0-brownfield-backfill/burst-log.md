@@ -5400,6 +5400,122 @@ Result: 4 Dim blocks (Dim-2, Dim-5, Dim-6, Dim-7) — PASS per D-446(a) and D-44
 
 ---
 
+## D-529 POST-RC.20 MAINTENANCE SWEEP COMPLETE (2026-06-01)
+
+**Date:** 2026-06-01
+
+### Parent-commit (D-419(b))
+
+`2afc1117` — state(D-528): fix Dim-6 gate awk to bound to D-528 section only (factory-artifacts HEAD pre-this-burst)
+
+### Adversary Verdict
+
+Not applicable — bookkeeping-only maintenance sweep burst. No adversary dispatch. D-529 records: PART A (stale worktree/branch cleanup) + PART B (Dependabot triage: 3 PRs merged, 4 closed-redundant). Per D-448(a) source-attestation gate: no adversary report associated with this burst — D-529 is a human-directed maintenance-sweep record with zero spec or code changes. develop advanced from 474a2731 to b21fd358 via 3 Dependabot merges (openssl cargo patch + excalidraw npm + postcss npm). 4-index UNCHANGED throughout.
+
+### Files Touched (Dim-1) — 4 files
+
+1. `.factory/STATE.md` — frontmatter phase+last_amended+current_step advance; SIZE BUDGET banner D-529 entry; Phase Progress POST-RC.20 MAINTENANCE SWEEP row added; Active Branches develop→b21fd358/factory-artifacts pending SHA-patch; Decisions Log D-529 row; Session Resume Checkpoint §1/§2/§4/§5/§6/§9/§10/§11/§12 refresh; Last Updated + Current Phase metadata advance; removed 2 duplicate D-500/D-501 rows (compaction -2 lines)
+2. `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-529 row prepended
+3. `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — L-session-2026-06-01-dependabot-sweep appended
+4. `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — this entry (D-529)
+
+### Codifications (Dim-3)
+
+- **D-529** (8 sub-clauses): (a) PART A stale .worktrees/td-74 worktree removed + feature/td-74-dispatch-cargo-audit-codification branch deleted; (b) PART B Dependabot MERGED: PR #3 postcss 401f1bfb + PR #156 excalidraw 0.18.1+dompurify 1e5325bd (human-approved transitive-major) + PR #157 openssl 0.10.79→0.10.80 b21fd358; (c) PART B Dependabot CLOSED-REDUNDANT: PR #152+#125+#2+#167 all superseded by #156 excalidraw bump (auto-closed by Dependabot); (d) develop HEAD advanced 474a2731→b21fd358; (e) main UNCHANGED 2a191314; tag e9e38286 UNCHANGED; (f) dependency merges reach operator cache on FUTURE rc release; (g) zero open PRs remain; (h) 4-index UNCHANGED: BC-INDEX v2.65 / VP-INDEX v2.06 / STORY-INDEX v3.84 / ARCH-INDEX v2.16.
+- **L-session-2026-06-01-dependabot-sweep** — transitive-major bumps in optional-dep skills are low-blast-radius when npm-only; Dependabot auto-closes redundant PRs after highest-version bump merges.
+
+### Dim-2 Attestation (literal-shell per D-449(a) + TD-VSDD-100)
+
+**Gate 1 — D-529 row in STATE.md:**
+```
+$ grep -cE "^\| D-529 " .factory/STATE.md
+1
+```
+
+**Gate 2 — D-529 row in decision-log.md:**
+```
+$ grep -cE "^\| D-529 " .factory/cycles/v1.0-brownfield-backfill/decision-log.md
+1
+```
+
+**Gate 3 — lesson L-session-2026-06-01-dependabot-sweep present:**
+```
+$ grep -c "^### L-session-2026-06-01-dependabot-sweep" .factory/cycles/v1.0-brownfield-backfill/lessons.md
+1
+```
+
+**Gate 4 — current_step cites D-529:**
+```
+$ grep -E "^current_step:" .factory/STATE.md | grep -oE "D-529 POST-RC\.20 MAINTENANCE SWEEP COMPLETE" | head -1
+D-529 POST-RC.20 MAINTENANCE SWEEP COMPLETE
+```
+
+**Gate 5 — STATE.md SIZE BUDGET banner has D-529 entry with (wc-l; token:**
+```
+$ grep "479 lines (wc-l;" .factory/STATE.md
+  D-529-POST-RC.20-MAINTENANCE-SWEEP-COMPLETE-2026-06-01 479 lines (wc-l; Phase Progress +D-529 row; Decisions Log +D-529 row; Active Branches develop→b21fd358/factory-artifacts pending SHA-patch; removed 2 duplicate D-500/D-501 rows (-2); Last Updated + Current Phase advance; Session Resume Checkpoint §1/§2/§4/§5/§6/§9/§10/§11/§12 refresh; lesson L-session-2026-06-01-dependabot-sweep; 4-index UNCHANGED; margin 500-479=21 from hard cap; margin 415-479=OVER soft-target by 64; D-446(c) dual-margin form).
+```
+479 lines (wc-l). Margin 500-479=21 from hard cap. PASS.
+
+**Gate 6 — 4-index UNCHANGED (verification_step 7 per D-494):**
+```
+$ for IDX_PATH in .factory/specs/behavioral-contracts/BC-INDEX.md \
+    .factory/specs/verification-properties/VP-INDEX.md \
+    .factory/stories/STORY-INDEX.md \
+    .factory/specs/architecture/ARCH-INDEX.md; do
+    V=$(grep -E '^version:' "$IDX_PATH" | grep -oE '"[0-9]+\.[0-9]+"' | tr -d '"')
+    LA=$(grep -E '^last_amended:' "$IDX_PATH" | grep -oE '\(v[0-9]+\.[0-9]+\)' | head -1 | tr -d '()v')
+    [ "$V" = "$LA" ] && echo "PASS: $(basename $IDX_PATH) version=$V last_amended_prefix=$LA" || echo "FAIL: $(basename $IDX_PATH) version=$V last_amended_prefix=$LA"
+  done
+PASS: BC-INDEX.md version=2.65 last_amended_prefix=2.65
+PASS: VP-INDEX.md version=2.06 last_amended_prefix=2.06
+PASS: STORY-INDEX.md version=3.84 last_amended_prefix=3.84
+PASS: ARCH-INDEX.md version=2.16 last_amended_prefix=2.16
+```
+All 4 PASS. D-529 4-index UNCHANGED (bookkeeping-only maintenance sweep; no index version bumps required).
+
+**Gate 7 — trajectory-tail carry (PC2 compliance):**
+```
+$ grep "^current_step:" .factory/STATE.md | grep -oE "trajectory-tail [→0-9]+"
+trajectory-tail →9→9→9→11
+```
+PC2 trajectory-tail →9→9→9→11 (LENGTH=4, UNCHANGED — no adversary pass this burst). PASS.
+
+### Dim-5 Attestation (Closes-set completeness)
+
+- D-529 closes POST-RC.20 maintenance sweep (human-directed 2026-06-01): PART A worktree cleanup + PART B Dependabot triage
+- develop HEAD advanced 474a2731→b21fd358 (3 Dependabot merges: #3 postcss, #156 excalidraw, #157 openssl)
+- 4 Dependabot PRs closed-redundant: #152 + #125 + #2 + #167 (all superseded by PR #156 excalidraw bump)
+- zero open PRs in repository after sweep
+- L-session-2026-06-01-dependabot-sweep lesson captured
+- operator cache note: dependency merges reach cache on FUTURE rc release
+
+### Dim-6 Attestation (Block count gate per D-446(a) + TD-VSDD-099)
+
+```
+$ awk '/^## D-529 /{found=1} /^## D-528 /{found=0} found{print}' .factory/cycles/v1.0-brownfield-backfill/burst-log.md | grep -c "^### Dim-"
+4
+```
+Result: 4 Dim blocks (Dim-2, Dim-5, Dim-6, Dim-7) — PASS per D-446(a) and D-449(a)
+
+### Dim-7 Attestation (Closes / Advances)
+
+**Codifications:** D-529 POST-RC.20 maintenance sweep complete record + L-session-2026-06-01-dependabot-sweep lesson
+
+**Closes:** D-529 closes the POST-RC.20 maintenance sweep (human-directed 2026-06-01). PART A: stale .worktrees/td-74 worktree + feature/td-74-dispatch-cargo-audit-codification branch REMOVED (TD #74 SHIPPED PR #141 5d1f8805). PART B: 3 Dependabot PRs MERGED (#3 postcss 401f1bfb + #156 excalidraw 1e5325bd + #157 openssl b21fd358); 4 Dependabot PRs CLOSED-REDUNDANT (#152+#125+#2+#167 all superseded by #156). Zero open PRs remain. develop 474a2731→b21fd358.
+
+**Advances:** POST-RC.20 maintenance sweep COMPLETE; develop HEAD current at b21fd358; next: E-10 pass-16 (dispatch-ready per human direction) OR F5 pass-76 (PAUSED; needs explicit human direction). Dependency merges reach operator cache on FUTURE rc release.
+
+**Trajectory:** →9→9→9→11 (UNCHANGED — no adversary pass this burst; carry per D-433(e)+D-439(c))
+
+### Factory-artifacts Commits
+
+- `2afc1117` — state(D-528): fix Dim-6 gate awk (parent commit; factory-artifacts HEAD pre-this-burst)
+- `TBD-PRIMARY` — state(D-529): POST-RC.20 maintenance sweep complete; develop b21fd358; zero open PRs; 4-index UNCHANGED (primary burst per TD-VSDD-053)
+- `TBD-SHA-PATCH` — state(D-529): SHA-patch — update TBD-PRIMARY in STATE.md per D-447(c)+D-449(e)
+
+---
+
 ## D-528 Release v1.0.0-rc.20 SHIPPED (2026-06-01)
 
 **Date:** 2026-06-01
