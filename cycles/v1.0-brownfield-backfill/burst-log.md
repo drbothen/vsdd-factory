@@ -5400,6 +5400,102 @@ Result: 4 Dim blocks (Dim-2, Dim-5, Dim-6, Dim-7) — PASS per D-446(a) and D-44
 
 ---
 
+## D-530 E-10 Pass-16 Adversary + Fix-Burst PR #168 (2026-06-01)
+
+**Date:** 2026-06-01
+
+### Parent-commit (D-419(b))
+
+`b21fd358` — chore(deps): bump openssl from 0.10.79 to 0.10.80 (Dependabot PR #157; develop HEAD post-D-529 maintenance sweep)
+
+### Adversary Verdict
+
+E-10 pass-16 verdict: **LOW** (3 findings: 0C+0H+0M+3L). Trend 8→3 — material drop below asymptotic-floor band [5-9]. Baseline develop@b21fd358 (POST-RC.20 maintenance sweep complete; zero open PRs; S-15.17 in operator cache rc.20).
+
+Prior-pass closures: F-PASS15-001/002/004 ALL CLOSED (MAX_BYTES=524_288 + compile-time assertions; no active 65536 cap independently verified). F-PASS15-003 class NOT repeated (dynamic current_cycle resolution; literal cycle names confined to `#[cfg(test)]`). S-15.17 2248-line hook adjudicated CLEAN: no silent-cap class, no hardcoded cycle path, sound ADR-023 fail-open-to-advisory discipline traced against live STATE.md and INDEX.md.
+
+Findings: F-PASS16-001 (LOW) on_error=continue priority-158 ACCEPTED-AT-FLOOR per D-471 (consistent soft-launch convention). F-PASS16-002 (LOW) [process-gap] CI WASM plugin count floor >=16 ~57% below reality FIXED IN-SCOPE via PR #168. F-PASS16-003 (LOW) dim2-gates grep literal anchor vs live trajectory values ACCEPTED-AT-FLOOR (WASM hook is authoritative gate).
+
+### Files Touched
+
+- `.factory/cycles/v1.0-brownfield-backfill/E-10-pass-16.md` (NEW — adversary report pass-16; state-manager)
+- `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` (pass-16 row added; Convergence Status updated to D-530; trend updated 8→8→3; state-manager)
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` (this entry; state-manager)
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` (D-530 canonical 6-column row; state-manager)
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` (L-E10-pass16-derived-ci-count lesson; state-manager)
+- `.factory/STATE.md` (Phase Progress +D-530 row; Decisions Log +D-530 row; Active Branches develop→82163b7f; Session Resume Checkpoint §9/§10/§11/§12 refresh; Last Updated + Current Phase advance; frontmatter phase:/current_step: advance; banner tracker +D-530 entry; state-manager)
+- `.github/workflows/ci.yml` (F-PASS16-002 fix: 3 sites derive floor from `ls -d crates/hook-plugins/*/`; squash-merged PR #168 at 82163b7f on develop; implementer)
+
+### Codifications
+
+- **D-530** — E-10 pass-16 adversary + fix-burst COMPLETE 2026-06-01 (decision-log.md)
+- **L-E10-pass16-derived-ci-count** — lesson: re-escalating a floor-accepted finding to FIX-NOW is warranted when the gap widens + fix is cheap + makes the check self-maintaining; derived count beats bumped literal (lessons.md)
+- **O-PASS16-002 deferred-cosmetic** — RED GATE STUB doc staleness in extract_per_pass_trajectory_flag; defer to next spec-touch burst (no action this burst)
+
+### Dim-2 Literal-Shell Stdout (TD-VSDD-100 / D-449(a))
+
+```
+$ grep "^current_step:" /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md
+current_step: "D-529 POST-RC.20 MAINTENANCE SWEEP COMPLETE 2026-06-01 — td-74 worktree+branch removed; Dependabot #3+#156+#157 MERGED; #152/#125/#2+#167 closed-redundant; develop 474a2731→b21fd358; zero open PRs; operator cache next rc; BC-INDEX v2.65 UNCHANGED; VP-INDEX v2.06 UNCHANGED; STORY-INDEX v3.84 UNCHANGED; ARCH-INDEX v2.16 UNCHANGED; trajectory-tail →9→9→9→11; maintain all 5 BC-5.39.006 v1.7 PCs per TD-VSDD-097-EXT; D-chain cite D-528 per D-419(b); parent-commit 2afc1117 per D-419(b); factory-artifacts HEAD pending SHA-patch per D-447(c)+D-449(e). SIZE BUDGET: (wc-l; see banner tracker)"
+```
+
+PC2 trajectory-tail marker: `trajectory-tail →9→9→9→11` — present in current_step ✓
+PC4 LENGTH=4 segment count:
+
+```
+$ grep "^current_step:" /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md | grep -oE "→[0-9]+" | wc -l
+       4
+```
+
+Segment count = 4 ✓
+
+D-530 new current_step will cite trajectory-tail →9→9→9→11 (UNCHANGED; no adversary pass changes trajectory; carry per D-433(e)+D-439(c)) + BC-5.39.006 v1.7 PCs + D-chain cite D-529 per D-419(b).
+
+### Dim-5 Factory-Artifacts Chain
+
+```
+$ git -C /Users/jmagady/Dev/vsdd-factory/.factory log -1 --format='%H %s'
+7405b14e77c55ef2e77daa6eef1179499ddb381c state(D-529): record SHA-patch SHA 8a876570 in burst-log factory-artifacts commits
+```
+
+factory-artifacts HEAD pre-burst: `7405b14e` (D-529 SHA-patch)
+
+### Dim-6 Literal-Shell Count (TD-VSDD-099)
+
+```
+$ ls -d /Users/jmagady/Dev/vsdd-factory/crates/hook-plugins/*/ | wc -l
+      28
+```
+
+28 hook-plugin crates confirmed. F-PASS16-002 fix: ci.yml derives floor from this count (self-maintaining). Prior hardcoded floor >=16 was ~57% below reality.
+
+```
+$ grep -c "F-PASS16" /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-brownfield-backfill/E-10-pass-16.md
+6
+```
+
+3 findings (F-PASS16-001, F-PASS16-002, F-PASS16-003) recorded in pass-16 adversary report.
+
+### Dim-7 Attestation (Closes / Advances)
+
+**Codifications:** D-530 E-10 pass-16 adversary + fix-burst record; L-E10-pass16-derived-ci-count lesson
+
+**Closes:**
+- F-PASS15-007 (LOW) [process-gap] — re-escalated to F-PASS16-002 FIX-NOW; CI plugin-count floor staleness class structurally eliminated via derived count; ci.yml 3 sites now self-maintaining.
+- F-PASS16-002 [process-gap] — CLOSED IN-SCOPE via PR #168 squash-merge 82163b7f on develop. No follow-up story required.
+
+**Advances:** E-10 cascade trend 22→11→16→16→12→2→1→4→5→4→6→7→5→8→8→3. SEAL-vs-pass-17 decision PENDING human direction. 4-index UNCHANGED (BC v2.65/VP v2.06/STORY v3.84/ARCH v2.16).
+
+**Trajectory:** →9→9→9→11 (UNCHANGED — no F5 adversary pass this burst; carry per D-433(e)+D-439(c))
+
+### Factory-artifacts Commits
+
+- `7405b14e` — state(D-529): SHA-patch follow-up (parent commit; factory-artifacts HEAD pre-this-burst)
+- `[PRIMARY-SHA]` — state(D-530): E-10 pass-16 adversary + fix-burst PR #168 COMPLETE; 4-index UNCHANGED (primary burst per TD-VSDD-053)
+- `[SHA-PATCH]` — state(D-530): SHA-patch — update [PRIMARY-SHA] in STATE.md per D-447(c)+D-449(e)
+
+---
+
 ## D-529 POST-RC.20 MAINTENANCE SWEEP COMPLETE (2026-06-01)
 
 **Date:** 2026-06-01

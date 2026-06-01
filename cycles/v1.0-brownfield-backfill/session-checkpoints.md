@@ -533,6 +533,21 @@ Key resume data:
 
 ---
 
+## Archived: D-529 POST-RC.20 MAINTENANCE SWEEP COMPLETE 2026-06-01 (superseded by D-530 E-10 PASS-16 COMPLETE)
+
+**§1 Summary:** POST-RC.20 MAINTENANCE SWEEP COMPLETE (D-529). td-74 worktree/branch removed. Dependabot #3+#156+#157 MERGED; #152/#125/#2+#167 closed-redundant. develop b21fd358. Zero open PRs. main HEAD 2a191314 (rc.20). S-15.17 + MCP fleet-sweep + research-agent Perplexity bias in operator cache rc.20.
+**§8 4-index:** BC-INDEX v2.65 / VP-INDEX v2.06 / STORY-INDEX v3.84 / ARCH-INDEX v2.16 (all UNCHANGED — bookkeeping-only burst).
+**§9 Anchors:**
+- develop HEAD: b21fd358 (D-529 Dependabot openssl PR #157 2026-06-01)
+- factory-artifacts HEAD: 13be0461 (D-529 SHA-patch; prior: 2afc1117 D-528 fix Dim-6 gate)
+- D-range: D-001..D-529
+- BC-5.39.009: v1.9 ACTIVE (POL-14 promoted on PR #164 merge)
+**§12 Next:** E-10 pass-16 dispatch-ready OR F5 pass-76 (PAUSED; needs explicit human direction).
+
+**This checkpoint superseded by D-530 E-10 PASS-16 COMPLETE 2026-06-01.**
+
+---
+
 ## Archived: D-526 S-15.17 SHIPPED 2026-05-31 (superseded by D-527 SESSION-END DURABILITY BURST)
 
 **§1 Summary:** S-15.17 SHIPPED (PR #164 9ed17b1d). BC-5.39.009 ACTIVE. ADV-EDP1-P75-HIGH-002 CLOSED. PR #163 (research-agent Perplexity bias) OPEN on develop (plugin-source effect post-release only). Clean milestone — no in-flight worktrees with active work.

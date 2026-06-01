@@ -2869,3 +2869,17 @@ POLICY 14 description and verification_steps updated in policies.yaml same-burst
 **Cites:** D-529; PR #156 1e5325bd; PR #157 b21fd358; PR #3 401f1bfb.
 
 **Closes:** D-529 Dependabot lesson capture. `[codified]`
+
+---
+
+### L-E10-pass16-derived-ci-count
+
+**Category:** ci-discipline + adversarial-convergence + production-grade-default
+
+**Lesson:** Re-escalating a finding from ACCEPTED-AT-FLOOR to FIX-NOW is warranted when three conditions hold simultaneously: (1) the gap between the accepted floor value and reality has widened enough to make the gate functionally meaningless (>=16 vs actual 28 plugins is ~57% gap), (2) the fix is cheap and bounded (~1 CI file, 3 sites, no logic change), and (3) the fix makes the check self-maintaining (derived count from `ls -d crates/hook-plugins/*/` always reflects the current codebase state; no future manual update required). A literal floor that requires manual bumping on every new crate is a staleness-class process gap that will predictably recur. Deriving the floor from the source-of-truth (crate directory count) eliminates the recurrence class structurally. The production-grade default is self-maintaining checks over literal-maintenance checks; defer to literal only when self-maintaining is infeasible.
+
+**Anchors:** D-530 (E-10 pass-16); F-PASS15-007 (original LOW ACCEPTED-AT-FLOOR); F-PASS16-002 (re-escalated FIX-NOW; ci.yml derived count); PR #168 82163b7f.
+
+**Cites:** D-530; D-471 (ACCEPTED-AT-FLOOR model); PR #168; ci.yml lines 192-202 / 229-240 / 440-450.
+
+**Closes:** D-530 pass-16 S-7.02 lesson capture; F-PASS15-007 closure via F-PASS16-002 FIX-NOW re-escalation. `[codified]`
