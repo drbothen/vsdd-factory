@@ -165,7 +165,7 @@ jobs:
         run: cargo publish --dry-run --workspace -p vsdd-hook-sdk-macros -p vsdd-hook-sdk
 
       - name: cargo build (all native WASM plugins, wasm32-wasip1)
-        # Build all 16 native WASM plugins to catch compilation regressions
+        # Build all hook-plugin crates to catch compilation regressions
         # across the full plugin set (CRIT-W15-001 / W-15-gate fix).
         run: |
           cargo build -p legacy-bash-adapter --bin legacy-bash-adapter --target wasm32-wasip1
@@ -186,16 +186,20 @@ jobs:
         # any plugin author sees it.
         run: cargo build -p vsdd-hook-sdk --example hello-hook --target wasm32-wasip1
 
-      - name: Verify all 16 native WASM plugins built
+      - name: Verify all native WASM plugins built
         shell: bash
         run: |
-          count=$(ls target/wasm32-wasip1/debug/*.wasm 2>/dev/null | wc -l)
-          if [ "$count" -lt 16 ]; then
-            echo "::error::Only $count wasm files built; expected >= 16."
+          # F-PASS16-002 / E-10 pass-16: derive floor from crates/hook-plugins/ count so
+          # the assertion stays correct automatically when plugins are added or removed,
+          # and a silent plugin drop FAILS this check without a manual floor update.
+          expected=$(ls -d crates/hook-plugins/*/ | wc -l | tr -d ' ')
+          count=$(ls target/wasm32-wasip1/debug/*.wasm 2>/dev/null | wc -l | tr -d ' ')
+          if [ "$count" -lt "$expected" ]; then
+            echo "::error::Only $count wasm files built; expected >= $expected (derived from crates/hook-plugins/ crate count)."
             ls target/wasm32-wasip1/debug/*.wasm 2>/dev/null || true
             exit 1
           fi
-          echo "Built $count wasm files."
+          echo "Built $count wasm files (floor: $expected crate dirs in crates/hook-plugins/)."
 
       - name: Mount factory artifacts (for perf-baseline bats)
         # perf-baseline.bats needs .factory/ (script + fixture + baseline doc).
@@ -223,13 +227,17 @@ jobs:
         run: |
           mkdir -p plugins/vsdd-factory/hook-plugins
           cp target/wasm32-wasip1/debug/*.wasm plugins/vsdd-factory/hook-plugins/ 2>/dev/null || true
-          count=$(ls plugins/vsdd-factory/hook-plugins/*.wasm 2>/dev/null | wc -l)
-          if [ "$count" -lt 16 ]; then
-            echo "::error::Only $count WASM plugins staged; expected >= 16. Build output:"
+          # F-PASS16-002 / E-10 pass-16: derive floor from crates/hook-plugins/ count so
+          # the assertion stays correct automatically when plugins are added or removed,
+          # and a silent plugin drop FAILS this check without a manual floor update.
+          expected=$(ls -d crates/hook-plugins/*/ | wc -l | tr -d ' ')
+          count=$(ls plugins/vsdd-factory/hook-plugins/*.wasm 2>/dev/null | wc -l | tr -d ' ')
+          if [ "$count" -lt "$expected" ]; then
+            echo "::error::Only $count WASM plugins staged; expected >= $expected (derived from crates/hook-plugins/ crate count). Build output:"
             ls target/wasm32-wasip1/debug/*.wasm 2>/dev/null || echo "  (no wasm files in debug target)"
             exit 1
           fi
-          echo "Staged $count WASM plugins to hook-plugins/."
+          echo "Staged $count WASM plugins to hook-plugins/ (floor: $expected crate dirs in crates/hook-plugins/)."
           ls plugins/vsdd-factory/hook-plugins/
 
       - name: Run S-9.00 perf-baseline tests
@@ -406,7 +414,7 @@ jobs:
         run: cargo test --release --target ${{ matrix.target }} --workspace
 
       - name: Build all native WASM plugins (release)
-        # Build all 16 native WASM plugins on every matrix entry —
+        # Build all hook-plugin crates on every matrix entry —
         # proves all plugins compile against the same toolchain as the
         # native dispatcher. Catches feature-flag drift and compilation
         # regressions across the full plugin set (CRIT-W15-001 / W-15-gate fix).
@@ -426,16 +434,20 @@ jobs:
       - name: Build wasm hello-hook example
         run: cargo build -p vsdd-hook-sdk --example hello-hook --target wasm32-wasip1 --release
 
-      - name: Verify all 16 native WASM plugins built (release)
+      - name: Verify all native WASM plugins built (release)
         shell: bash
         run: |
-          count=$(ls target/wasm32-wasip1/release/*.wasm 2>/dev/null | wc -l)
-          if [ "$count" -lt 16 ]; then
-            echo "::error::Only $count wasm files built (release); expected >= 16."
+          # F-PASS16-002 / E-10 pass-16: derive floor from crates/hook-plugins/ count so
+          # the assertion stays correct automatically when plugins are added or removed,
+          # and a silent plugin drop FAILS this check without a manual floor update.
+          expected=$(ls -d crates/hook-plugins/*/ | wc -l | tr -d ' ')
+          count=$(ls target/wasm32-wasip1/release/*.wasm 2>/dev/null | wc -l | tr -d ' ')
+          if [ "$count" -lt "$expected" ]; then
+            echo "::error::Only $count wasm files built (release); expected >= $expected (derived from crates/hook-plugins/ crate count)."
             ls target/wasm32-wasip1/release/*.wasm 2>/dev/null || true
             exit 1
           fi
-          echo "Built $count wasm files (release)."
+          echo "Built $count wasm files (release) (floor: $expected crate dirs in crates/hook-plugins/)."
 
       - name: Stage artifacts
         # Collect the dispatcher binary + every .wasm file into a single
