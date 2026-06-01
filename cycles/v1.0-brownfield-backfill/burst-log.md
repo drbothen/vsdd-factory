@@ -5491,8 +5491,8 @@ $ grep -c "F-PASS16" /Users/jmagady/Dev/vsdd-factory/.factory/cycles/v1.0-brownf
 ### Factory-artifacts Commits
 
 - `7405b14e` — state(D-529): SHA-patch follow-up (parent commit; factory-artifacts HEAD pre-this-burst)
-- `[PRIMARY-SHA]` — state(D-530): E-10 pass-16 adversary + fix-burst PR #168 COMPLETE; 4-index UNCHANGED (primary burst per TD-VSDD-053)
-- `[SHA-PATCH]` — state(D-530): SHA-patch — update [PRIMARY-SHA] in STATE.md per D-447(c)+D-449(e)
+- `1617ed1a` — state(D-530): E-10 pass-16 adversary + fix-burst PR #168 COMPLETE; 4-index UNCHANGED (primary burst per TD-VSDD-053)
+- `[SHA-PATCH pending]` — state(D-530): SHA-patch — update 1617ed1a in STATE.md per D-447(c)+D-449(e)
 
 ---
 
