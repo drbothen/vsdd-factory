@@ -2883,3 +2883,17 @@ POLICY 14 description and verification_steps updated in policies.yaml same-burst
 **Cites:** D-530; D-471 (ACCEPTED-AT-FLOOR model); PR #168; ci.yml lines 192-202 / 229-240 / 440-450.
 
 **Closes:** D-530 pass-16 S-7.02 lesson capture; F-PASS15-007 closure via F-PASS16-002 FIX-NOW re-escalation. `[codified]`
+
+---
+
+### L-E10-cascade-SEAL-16-pass
+
+**Category:** adversarial-convergence + asymptotic-acceptance + engine-implementation-discipline
+
+**Lesson:** The E-10 engine-implementation adversarial cascade SEALED at pass-16 under D-471 asymptotic-acceptance / D-386 Option C — the third cascade in this project to use this seal model (prior: F5 at D-386/D-454 pass-74, S-15.14 at D-477 pass-11, S-15.17 at D-522 pass-9). Key structural observations for the record: (1) **Character shift as a convergence signal** — the cascade traversed three distinct defect-class phases: governance-process META-class (passes 1-14, codification failures), implementation-correctness class (passes 14-15, MAX_BYTES cap), and CI-floor-staleness class (passes 15-16, literal count decay). When the dominant defect class shifts from structural/systemic to cosmetic/maintenance, the cascade has found its genuine floor. (2) **S-15.03 PRIORITY-A automation wave effectiveness confirmed** — passes 1-14 were dominated by process-gap / POLICY codification failures. After the automation wave shipped 11 hooks, passes 15-16 found zero process-gap findings in the automation-covered domains; only 3 residual LOWs remained, of which 1 was cheaply fixed (F-PASS16-002). The automation wave worked. (3) **Derived count beats literal count for self-maintaining CI gates** — F-PASS16-002 illustrated that a literal floor (`>=16`) that requires manual bumping on every new crate is a staleness-class recurrence. Deriving from the source-of-truth (`ls -d crates/hook-plugins/*/`) eliminates the recurrence structurally. Prefer self-maintaining checks wherever feasible. (4) **Asymptotic-acceptance is the correct production-grade response to prose-only convergence limits** — 3-CLEAN is structurally impossible when curable META-class findings can always be found in a large prose corpus under fresh-context analysis. Sealing at a LOW-verdict pass with clear S-7.02 satisfaction (no open process-gaps; FIX-NOW done in-scope; residuals cosmetically deferred at-floor) is the production-grade decision, not a compromise.
+
+**Anchors:** D-531 (E-10 SEALED); D-471 (asymptotic-acceptance seal model); D-386 Option C (F5 precedent); D-509 (pass-15 fix PR #160); D-530 (pass-16 fix PR #168); S-15.03 PRIORITY-A (automation wave).
+
+**Cites:** D-531; D-471; D-386; D-477; D-522; D-509; D-530; PR #160 4b68ab83; PR #168 82163b7f.
+
+**Closes:** D-531 milestone lesson capture; E-10 cascade 16-pass asymptotic-acceptance SEAL. `[codified]`

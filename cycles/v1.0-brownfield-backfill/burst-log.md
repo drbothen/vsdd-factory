@@ -5809,3 +5809,99 @@ Story-writer applied U6+U7 fixes at `83a910b3`. per-story-delivery for S-15.17 W
 
 - `83a910b3` — spec(S-15.17): v1.10 remove-uncertainty sweep fixes — U6 regex premise + U7 HostError::TooBig stale text (story-writer; parent-commit per D-419(b))
 - `b602bc3a` — state(D-523): S-15.17 remove-uncertainty sweep COMPLETE — 7/7 assumptions CONFIRMED; 2 doc fixes applied; per-story-delivery UNBLOCKED (state-manager; SHA-patch follow-up per D-447(c)+D-449(e))
+
+---
+
+## D-531 E-10 Cascade SEAL — Asymptotic-Acceptance (2026-06-01)
+
+**Date:** 2026-06-01
+
+### Parent-commit (D-419(b))
+
+`1f6095e2` — state(D-530): finalize factory-artifacts HEAD SHA 1f6095e2 in STATE.md Active Branches + §9 (factory-artifacts HEAD post-D-530 SHA-patch chain)
+
+### Adversary Verdict
+
+E-10 adversarial cascade SEALED at pass-16. Verdict pass-16: **LOW** (0C+0H+0M+3L). Full 16-pass trend: 22→11→16→16→12→2→1→4→5→4→6→7→5→8→8→3 — tightened from MEDIUM-HIGH asymptotic band; trend now below prior floor [5-9]. Prior-pass closures F-PASS15-001/002/004 VERIFIED-HELD across pass-16. S-15.17 2248-line hook CLEAN (no silent-cap class, no hardcoded cycle path, sound ADR-023 discipline; BC-5.39.009 PC4 LENGTH=4 enforcement correct). Sole FIX-NOW finding F-PASS16-002 FIXED in-scope via PR #168 82163b7f (derived count from `ls -d crates/hook-plugins/*/`; 3 ci.yml sites; self-maintaining). Residuals F-PASS16-001 (on_error=continue soft-launch) + F-PASS16-003 (dim2-gates grep literal anchor) ACCEPTED-AT-FLOOR per D-471. S-7.02 cycle-closing checklist SATISFIED.
+
+SEAL authorized by human 2026-06-01. D-531 codified per D-471 asymptotic-acceptance / D-386 Option C. Resumption gate = engine-surface material change.
+
+### Files Touched
+
+- `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` (Convergence Status E-10 sub-cycle updated to SEALED D-531; trend section updated; state-manager)
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` (D-531 canonical 6-column row prepended; state-manager)
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` (L-E10-cascade-SEAL-16-pass milestone lesson appended; state-manager)
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` (this entry; state-manager)
+- `.factory/STATE.md` (Phase Progress E-10 row updated to SEALED; Decisions Log +D-531 row; Concurrent Cycles updated; Active Branches factory-artifacts → this burst SHA; Session Resume Checkpoint §1/§2/§4/§8/§11/§12 refresh; Last Updated + Current Phase advance; frontmatter phase:/current_step: advance to D-531; banner tracker +D-531 entry; state-manager)
+
+### Codifications
+
+- **D-531** — E-10 cascade SEALED 2026-06-01 asymptotic-acceptance D-471 + D-386 Option C (decision-log.md)
+- **L-E10-cascade-SEAL-16-pass** — milestone lesson: asymptotic-acceptance seal precedent; engine-implementation surface converged; character-shift from governance-process META-class → implementation-correctness → CI-floor-staleness, each class closed in turn; S-15.03 automation wave confirmed effective (lessons.md)
+- **S-7.02 cycle-closing SATISFIED** — confirmed: no open process-gap findings; F-PASS16-002 [process-gap] closed IN-SCOPE PR #168 82163b7f (derived-count fix = structural closure, prevents recurrence class); no follow-up story or deferral needed; F-PASS16-001+003 cosmetically accepted at floor
+- **4-index UNCHANGED** — BC-INDEX v2.65 / VP-INDEX v2.06 / STORY-INDEX v3.84 / ARCH-INDEX v2.16 (seal is bookkeeping-only)
+
+### Dim-2 Literal-Shell Stdout (TD-VSDD-100 / D-449(a))
+
+```
+$ grep "^current_step:" /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md
+current_step: "D-530 E-10-PASS-16-ADVERSARY-FIX-BURST-PR-168-COMPLETE 2026-06-01 — E-10 pass-16 verdict LOW (0C+0H+0M+3L); trend 8→3; F-PASS16-002 CI-count-floor FIXED PR #168 82163b7f (derived from crates/hook-plugins/ count; self-maintaining); F-PASS16-001+003 ACCEPTED-AT-FLOOR per D-471; F-PASS15-001/002/004 closures VERIFIED (MAX_BYTES=524_288); S-15.17 2248-line hook CLEAN; SEAL-vs-pass-17 PENDING human direction; BC-INDEX v2.65 UNCHANGED; VP-INDEX v2.06 UNCHANGED; STORY-INDEX v3.84 UNCHANGED; ARCH-INDEX v2.16 UNCHANGED; trajectory-tail →9→9→9→11; maintain all 5 BC-5.39.006 v1.7 PCs per TD-VSDD-097-EXT; D-chain cite D-529 per D-419(b); parent-commit b21fd358 per D-419(b); factory-artifacts HEAD pending SHA-patch per D-447(c)+D-449(e). SIZE BUDGET: (wc-l; see banner tracker)"
+```
+
+PC2 trajectory-tail marker verified:
+
+```
+$ grep "^current_step:" /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md | grep -oE "trajectory-tail [→0-9]+"
+trajectory-tail →9→9→9→11
+```
+
+PC2 ✓ (trajectory-tail →9→9→9→11 present)
+
+PC4 LENGTH=4 segment count verified:
+
+```
+$ grep "^current_step:" /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md | grep -oE "→[0-9]+" | wc -l
+       4
+```
+
+PC4 ✓ (4 segments confirmed)
+
+D-531 new current_step will cite D-chain D-530 per D-419(b) + trajectory-tail →9→9→9→11 UNCHANGED (no adversary pass changes trajectory this seal burst; carry per D-433(e)+D-439(c)) + all 5 BC-5.39.006 v1.7 PCs per TD-VSDD-097-EXT.
+
+### Dim-5 Factory-Artifacts Chain
+
+```
+$ git -C /Users/jmagady/Dev/vsdd-factory/.factory log -3 --format='%H %s'
+4cdf18bdf34321c806de98a9e16a7e235733ab82 state(D-530): finalize factory-artifacts HEAD SHA 1f6095e2 in STATE.md Active Branches + §9
+1f6095e226a04a520d6c9e27ea83ad0441785945 state(D-530): record SHA-patch SHA ba193f27 in burst-log + Active Branches
+ba193f27986b599713ecc16eab7b82f80c0526dd state(D-530): SHA-patch — record primary commit 1617ed1a in STATE.md + burst-log per D-447(c)+D-449(e)
+```
+
+factory-artifacts HEAD pre-burst: `4cdf18bd` (D-530 finalize SHA-patch chain)
+
+### Dim-6 Literal-Shell Count (TD-VSDD-099)
+
+```
+$ ls -d /Users/jmagady/Dev/vsdd-factory/crates/hook-plugins/*/ | wc -l
+      28
+```
+
+28 hook-plugin crates confirmed. This is the production count that F-PASS16-002's fix derives from in ci.yml. Seal burst references 28 crates as the current state. 4-index UNCHANGED — no new crates added by this seal burst.
+
+### Dim-7 Attestation (Closes / Advances)
+
+**Codifications:** D-531 E-10 cascade SEALED asymptotic-acceptance; L-E10-cascade-SEAL-16-pass milestone lesson
+
+**Closes:**
+- E-10 adversarial cascade (16 passes; 2026-05-13 pass-1 through 2026-06-01 pass-16); cascade SEALED per D-471 + D-386 Option C; no further adversary passes without engine-surface material change
+- S-7.02 cycle-closing checklist: CONFIRMED SATISFIED — only [process-gap] finding F-PASS16-002 was closed in-scope PR #168 82163b7f; no open process-gap findings remain; no follow-up story or deferral needed
+
+**Advances:** Forward options (per human direction): (a) F5 pass-76 (PAUSED per D-386 Option C; needs explicit human direction) OR (b) UNI-PLUG-001/SK-MCP-001 forward proposals OR (c) wind-down. 4-index UNCHANGED (BC v2.65/VP v2.06/STORY v3.84/ARCH v2.16).
+
+**Trajectory:** →9→9→9→11 (UNCHANGED — seal burst; no F5 adversary pass; carry per D-433(e)+D-439(c))
+
+### Factory-artifacts Commits
+
+- `4cdf18bd` — state(D-530): finalize factory-artifacts HEAD SHA 1f6095e2 in STATE.md Active Branches + §9 (parent commit; factory-artifacts HEAD pre-this-burst)
+- `[D-531-primary]` — state(D-531): E-10 cascade SEALED asymptotic-acceptance pass-16 D-471+D-386-Option-C; 4-index UNCHANGED (primary burst per TD-VSDD-053; SHA-patch follow-up per D-447(c)+D-449(e))
+- `[D-531-SHA-patch]` — state(D-531): SHA-patch — record primary commit SHA in STATE.md + burst-log per D-447(c)+D-449(e)
