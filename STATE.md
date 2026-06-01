@@ -195,7 +195,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | 2a191314 | rc.20 SHIPPED 2026-06-01; bot binary commit on top of --merge from develop; prior: 43afbfa7 (rc.19 2026-05-28) |
 | develop | b21fd358 | D-529 maintenance sweep: openssl bump Dependabot PR #157 2026-06-01; prior: 474a2731 (rc.20 sync-develop 2026-06-01) |
-| factory-artifacts | `pending-SHA-patch` | D-529 POST-RC.20 maintenance sweep record (SHA-patch follow-up per D-447(c)+D-449(e); prior: 2afc1117 D-528 fix Dim-6 gate) |
+| factory-artifacts | `13be0461` | D-529 POST-RC.20 maintenance sweep record (SHA-patch follow-up per D-447(c)+D-449(e); prior: 2afc1117 D-528 fix Dim-6 gate) |
 | v1.0.0-rc.20 (tag) | e9e38286 | SHIPPED 2026-06-01; annotated tag object; GitHub Release prerelease; marketplace PR drbothen/claude-mp #12 squash-merged 862e660d |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28; GitHub Release prerelease 2026-05-28T15:10:56Z; marketplace PR #11 squash-merged |
 | v1.0.0-rc.18 (tag) | 666d689f | SHIPPED 2026-05-13 PR #135 |
@@ -326,7 +326,7 @@ Pipeline is at a clean milestone post-rc.20 with maintenance sweep complete. No 
 - **D-528 (2026-06-01):** v1.0.0-rc.20 SHIPPED. Run 26738809372 all 6 jobs PASS first attempt. PR #166 --merge e00ab1ab; tag e9e38286; main 2a191314; develop 474a2731. Marketplace PR #12 squash-merged 862e660d. Plugin count 52→53. 4-index UNCHANGED.
 - **D-526 (2026-05-31):** S-15.17 validate-trajectory-tail-cell-completeness WASM hook (priority 158) squash-merged via PR #164 at 9ed17b1d. BC-5.39.009 ACTIVE. ADV-EDP1-P75-HIGH-002 CLOSED. BC-INDEX v2.65; STORY-INDEX v3.84.
 - **develop HEAD:** `b21fd358` (D-529 openssl Dependabot PR #157 2026-06-01). **main HEAD:** `2a191314` (rc.20 bot binary commit 2026-06-01).
-- **factory-artifacts HEAD:** `pending-SHA-patch` (D-529 maintenance sweep; SHA-patch follow-up per D-447(c)+D-449(e); prior: `2afc1117` D-528 fix Dim-6 gate).
+- **factory-artifacts HEAD:** `13be0461` (D-529 maintenance sweep; SHA-patch follow-up per D-447(c)+D-449(e); prior: `2afc1117` D-528 fix Dim-6 gate).
 - **D-range:** D-001..D-529.
 - **4-index (post-D-529):** BC-INDEX v2.65, VP-INDEX v2.06 (UNCHANGED), STORY-INDEX v3.84, ARCH-INDEX v2.16 (all UNCHANGED — bookkeeping-only burst).
 - **BC content:** BC-5.39.005 v1.3 ACTIVE + BC-5.39.006 v1.7 ACTIVE + BC-5.39.007 v1.6 ACTIVE + BC-5.39.008 v1.5 ACTIVE + BC-5.39.009 v1.9 ACTIVE + BC-7.04.051 v1.1 ACTIVE.
@@ -413,7 +413,7 @@ Prior Tier-A (pre-session, all COMPLETE): TD #71/72/70/74 (PRs #138–141 2026-0
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** `pending-SHA-patch` (D-529 maintenance sweep; SHA-patch per D-447(c)+D-449(e); prior: `2afc1117` D-528 fix Dim-6 gate)
+- **factory-artifacts HEAD:** `13be0461` (D-529 maintenance sweep; SHA-patch per D-447(c)+D-449(e); prior: `2afc1117` D-528 fix Dim-6 gate)
 - **develop HEAD:** `b21fd358` (D-529 Dependabot PR #157 openssl 2026-06-01; prior: `474a2731` rc.20 sync-develop 2026-06-01)
 - **main HEAD:** `2a191314` (rc.20 bot binary commit 2026-06-01; prior: `43afbfa7` rc.19 2026-05-28)
 - **v1.0.0-rc.20 tag:** `e9e38286` (annotated tag object; GitHub Release prerelease 2026-06-01; marketplace PR #12 squash-merged 862e660d)
