@@ -517,6 +517,22 @@ Key resume data:
 
 ---
 
+## Archived: D-527 SESSION-END DURABILITY BURST 2026-05-31 (superseded by D-528 RC.20 SHIPPED)
+
+**§1 Summary:** S-15.17 SHIPPED (PR #164 9ed17b1d). BC-5.39.009 ACTIVE. ADV-EDP1-P75-HIGH-002 CLOSED. D-527 SESSION-END DURABILITY BURST COMPLETE. Clean milestone. No in-flight worktrees with active work (stale td-74 worktree remains — safe to clean).
+**§8 4-index:** BC-INDEX v2.65 / VP-INDEX v2.06 / STORY-INDEX v3.84 / ARCH-INDEX v2.16.
+**§9 Anchors:**
+- develop HEAD: 9ed17b1d (PR #164 S-15.17 merge 2026-05-31)
+- main HEAD: 43afbfa7 (rc.19 bot binary commit 2026-05-28)
+- factory-artifacts HEAD: aa1f05c9 (D-527 SHA-patch)
+- D-range: D-001..D-527
+- BC-5.39.009: v1.9 ACTIVE (POL-14 promoted on PR #164 merge)
+**§12 Next:** E-10 pass-16 OR F5 pass-76 OR cut rc release per human direction. PR #163 OPEN on develop.
+
+**This checkpoint superseded by D-528 RC.20 SHIPPED 2026-06-01.**
+
+---
+
 ## Archived: D-526 S-15.17 SHIPPED 2026-05-31 (superseded by D-527 SESSION-END DURABILITY BURST)
 
 **§1 Summary:** S-15.17 SHIPPED (PR #164 9ed17b1d). BC-5.39.009 ACTIVE. ADV-EDP1-P75-HIGH-002 CLOSED. PR #163 (research-agent Perplexity bias) OPEN on develop (plugin-source effect post-release only). Clean milestone — no in-flight worktrees with active work.

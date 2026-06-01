@@ -2841,3 +2841,17 @@ POLICY 14 description and verification_steps updated in policies.yaml same-burst
 **Cites:** D-526; D-527; D-447(c); D-449(e).
 
 **Closes:** D-527 fabricated-SHA process lesson capture. `[codified]`
+
+---
+
+### L-session-2026-06-01-rc20-clean-ship
+
+**Category:** release-discipline + orchestrator-bookkeeping
+
+**Lesson:** rc.20 shipped clean on the first attempt (run 26738809372 all 6 jobs PASS). Contrast with rc.19 (D-512), which required a first-attempt remediation: D-511 banner-format fix was needed because validate-state-structure WASM hook blocked on SIZE BUDGET entries using `N lines (wc -l ...)` form instead of canonical `(wc-l;` token. rc.20 avoided this class of defect because the state-manager had been applying the canonical `(wc-l;` form consistently since D-511. Additionally, rc.20 used --merge (not squash) for PR #166, preserving the main-is-ancestor-of-develop invariant (TD #68) required for the next release's sync-develop job. The Release PR --merge strategy is validated for a second cycle. Going forward: every release PR MUST use `--merge` and the state-manager post-merge burst MUST verify `git merge-base --is-ancestor main develop` passes.
+
+**Anchors:** D-528 (rc.20 release ship record); D-512 (rc.19 SHIPPED with first-attempt failure); D-511 (banner-format remediation).
+
+**Cites:** D-511; D-512; D-528; PR #166 e00ab1ab; RELEASING.md.
+
+**Closes:** D-528 rc.20 clean-ship lesson capture. `[codified]`

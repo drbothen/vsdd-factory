@@ -5400,6 +5400,121 @@ Result: 4 Dim blocks (Dim-2, Dim-5, Dim-6, Dim-7) — PASS per D-446(a) and D-44
 
 ---
 
+## D-528 Release v1.0.0-rc.20 SHIPPED (2026-06-01)
+
+**Date:** 2026-06-01
+
+### Parent-commit (D-419(b))
+
+`aa1f05c9` — state(D-527): SHA-patch — update 63bad38f in STATE.md per D-447(c)+D-449(e) (factory-artifacts HEAD pre-this-burst)
+
+### Adversary Verdict
+
+Not applicable — release ship record burst. No adversary dispatch. D-528 records the successful completion of v1.0.0-rc.20 release pipeline (run 26738809372 all 6 jobs PASS first attempt). Per D-448(a) source-attestation gate: no adversary report associated with this burst — D-528 is a release-ship bookkeeping record, not an adversary-persistence burst. Contrast with rc.19 (D-512) which required a first-attempt remediation (D-511 banner fix); rc.20 shipped clean first-attempt. 3 source commits since rc.19 tag d15152af: S-15.17 validate-trajectory-tail-cell-completeness WASM hook (PR #164, 9ed17b1d), F-P3-008 de-flake (PR #165, f34b7567), MCP fleet-sweep + research-agent Perplexity bias (PR #163, 766ab7bc).
+
+### Files Touched (Dim-1) — 7 files
+
+1. `.factory/STATE.md` — frontmatter phase+last_amended+current_step advance; SIZE BUDGET banner D-528 entry + D-430(a) compaction note; Phase Progress Release v1.0.0-rc.20 row added; Active Branches main/develop/factory-artifacts/v1.0.0-rc.20-tag updated; Decisions Log D-528 row; Session Resume Checkpoint §1-§12 full refresh; Last Updated + Current Phase metadata; prior D-527 checkpoint archive note
+2. `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-528 row prepended
+3. `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — L-session-2026-06-01-rc20-clean-ship appended
+4. `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — this entry (D-528)
+5. `.factory/cycles/v1.0-brownfield-backfill/session-checkpoints.md` — D-527 checkpoint archived per POLICY 1
+
+### Codifications (Dim-3)
+
+- **D-528** (7 sub-clauses): (a) release pipeline run 26738809372 all 6 jobs PASS first attempt (validate → build-binaries ×5 → commit-binaries → release → bump-marketplace → sync-develop); (b) Release PR #166 merged with --merge (not squash) at merge commit e00ab1ab; TD #68 ancestry invariant preserved (main IS ancestor of develop verified); (c) tag: v1.0.0-rc.20 annotated tag object e9e38286; main HEAD now 2a191314 (after bot binary-bundle commit force-moved tag); (d) develop HEAD now 474a2731 (after sync-develop back-merge; clean no-op); (e) GitHub Release published as prerelease; marketplace PR drbothen/claude-mp #12 squash-merged at 862e660d; marketplace.json references 1.0.0-rc.20; operator cache picks up on next /plugin update; (f) operator plugin count 52→53 WASM plugins (S-15.17 validate-trajectory-tail-cell-completeness priority-158 now reaches operator cache); (g) 4-index UNCHANGED (bookkeeping-only burst): BC-INDEX v2.65 / VP-INDEX v2.06 / STORY-INDEX v3.84 / ARCH-INDEX v2.16.
+- **L-session-2026-06-01-rc20-clean-ship** — rc.20 clean-first-attempt lesson: contrast with rc.19 (D-511 banner remediation required); --merge ancestry preserved; stable release discipline established.
+- **Session Resume Checkpoint** refreshed: D-527 checkpoint archived to session-checkpoints.md per POLICY 1; D-528 checkpoint installed in §1-§12.
+
+### Dim-2 Attestation (literal-shell per D-449(a) + TD-VSDD-100)
+
+**Gate 1 — D-528 row in STATE.md:**
+```
+$ grep -cE "^\| D-528 " .factory/STATE.md
+1
+```
+
+**Gate 2 — D-528 row in decision-log.md:**
+```
+$ grep -cE "^\| D-528 " .factory/cycles/v1.0-brownfield-backfill/decision-log.md
+1
+```
+
+**Gate 3 — lesson L-session-2026-06-01-rc20-clean-ship present:**
+```
+$ grep -c "^### L-session-2026-06-01-rc20-clean-ship" .factory/cycles/v1.0-brownfield-backfill/lessons.md
+1
+```
+
+**Gate 4 — current_step cites D-528:**
+```
+$ grep -E "^current_step:" .factory/STATE.md | grep -oE "D-528 RC\.20 SHIPPED" | head -1
+D-528 RC.20 SHIPPED
+```
+
+**Gate 5 — STATE.md SIZE BUDGET banner has D-528 entry with (wc-l; token:**
+```
+$ grep "480 lines (wc-l;" .factory/STATE.md
+  D-528-RC.20-SHIPPED-2026-06-01 480 lines (wc-l; D-430(a) compaction: 14 Phase Progress rows archived (rc.11..rc.18+F3/F4/S-12) net -13 lines; Phase Progress +D-528 row; Decisions Log +D-528 row; Active Branches main→2a191314/develop→474a2731/factory-artifacts pending SHA-patch/rc.20-tag e9e38286 added; Last Updated + Current Phase advance; Session Resume Checkpoint §1-§12 refresh; lesson L-session-2026-06-01 captured; D-528 decision-log row; 4-index UNCHANGED; margin 500-480=20 from hard cap; margin 415-480=OVER soft-target by 65; D-446(c) dual-margin form).
+```
+480 lines (wc-l). Margin 500-480=20 from hard cap. PASS.
+
+**Gate 6 — 4-index UNCHANGED (verification_step 7 per D-494):**
+```
+$ for IDX_PATH in .factory/specs/behavioral-contracts/BC-INDEX.md \
+    .factory/specs/verification-properties/VP-INDEX.md \
+    .factory/stories/STORY-INDEX.md \
+    .factory/specs/architecture/ARCH-INDEX.md; do
+    V=$(grep -E '^version:' "$IDX_PATH" | grep -oE '"[0-9]+\.[0-9]+"' | tr -d '"')
+    LA=$(grep -E '^last_amended:' "$IDX_PATH" | grep -oE '\(v[0-9]+\.[0-9]+\)' | head -1 | tr -d '()v')
+    [ "$V" = "$LA" ] && echo "PASS: $(basename $IDX_PATH) version=$V last_amended_prefix=$LA" || echo "FAIL: $(basename $IDX_PATH) version=$V last_amended_prefix=$LA"
+  done
+PASS: BC-INDEX.md version=2.65 last_amended_prefix=2.65
+PASS: VP-INDEX.md version=2.06 last_amended_prefix=2.06
+PASS: STORY-INDEX.md version=3.84 last_amended_prefix=3.84
+PASS: ARCH-INDEX.md version=2.16 last_amended_prefix=2.16
+```
+All 4 PASS. D-528 4-index UNCHANGED (release ship bookkeeping; no index version bumps required).
+
+**Gate 7 — trajectory-tail carry (PC2 compliance):**
+```
+$ grep "^current_step:" .factory/STATE.md | grep -oE "trajectory-tail [→0-9]+"
+trajectory-tail →9→9→9→11
+```
+
+### Dim-5 Attestation (Closes-set completeness)
+
+- D-528 closes the rc.20 release cycle; S-15.17 + MCP fleet-sweep + research-agent Perplexity bias reach operator cache
+- v1.0.0-rc.20 tag e9e38286 (annotated object); main HEAD 2a191314; develop HEAD 474a2731
+- marketplace PR drbothen/claude-mp #12 squash-merged 862e660d; marketplace.json updated to 1.0.0-rc.20
+- L-session-2026-06-01-rc20-clean-ship lesson captured
+- D-527 checkpoint archived per POLICY 1 append-only
+
+### Dim-6 Attestation (Block count gate per D-446(a) + TD-VSDD-099)
+
+```
+$ awk '/^## D-528 /{found=1} found{print}' .factory/cycles/v1.0-brownfield-backfill/burst-log.md | grep -c "^### Dim-"
+4
+```
+Result: 4 Dim blocks (Dim-2, Dim-5, Dim-6, Dim-7) — PASS per D-446(a) and D-449(a)
+
+### Dim-7 Attestation (Closes / Advances)
+
+**Codifications:** D-528 rc.20 SHIPPED record + L-session-2026-06-01-rc20-clean-ship lesson
+
+**Closes:** D-528 rc.20 release cycle. S-15.17 validate-trajectory-tail-cell-completeness WASM hook (priority 158), MCP fleet-sweep (PR #163 766ab7bc), and research-agent Perplexity bias now in operator cache. Plugin count 52→53. RC.20 clean-first-attempt — no remediation bursts required.
+
+**Advances:** POST-RC.20 state: clean milestone; develop ahead of main by sync-develop no-op merge; next: E-10 pass-16 OR F5 pass-76 per human direction. Maintenance sweep queued: clean stale .worktrees/td-74 (TD #74 SHIPPED PR #141) + triage 6 Dependabot PRs (#157 openssl 0.10.80 cargo; #156/#152/#125/#3/#2 npm visual-companion).
+
+**Trajectory:** →9→9→9→11 (UNCHANGED — no adversary pass this burst; carry per D-433(e)+D-439(c))
+
+### Factory-artifacts Commits
+
+- `aa1f05c9` — state(D-527): SHA-patch (parent commit; factory-artifacts HEAD pre-this-burst)
+- `<D-528-PRIMARY-SHA>` — state(D-528): rc.20 SHIPPED release ship record; 4-index UNCHANGED (SHA-patch follow-up per D-447(c)+D-449(e))
+
+---
+
 ## D-523 S-15.17 Remove-Uncertainty Sweep Complete (2026-05-30)
 
 ### Parent-commit (D-419(b))
