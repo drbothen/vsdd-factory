@@ -514,3 +514,18 @@ Key resume data:
 - BC-5.39.009: v1.9 cycle-conditional re-spec (ADR-023 Option (c)); LOCAL adversary cascade RESTARTS from 0/3
 
 **This checkpoint superseded by D-526 S-15.17 SHIPPED PR #164 2026-05-31.**
+
+---
+
+## Archived: D-526 S-15.17 SHIPPED 2026-05-31 (superseded by D-527 SESSION-END DURABILITY BURST)
+
+**§1 Summary:** S-15.17 SHIPPED (PR #164 9ed17b1d). BC-5.39.009 ACTIVE. ADV-EDP1-P75-HIGH-002 CLOSED. PR #163 (research-agent Perplexity bias) OPEN on develop (plugin-source effect post-release only). Clean milestone — no in-flight worktrees with active work.
+**§8 4-index:** BC-INDEX v2.65 / VP-INDEX v2.06 / STORY-INDEX v3.84 / ARCH-INDEX v2.16.
+**§9 Anchors:**
+- develop HEAD: 9ed17b1d (PR #164 merge 2026-05-31)
+- factory-artifacts HEAD: ab822bfa (D-526 primary) → 66ae0a2c (SHA-patch) → 5fa87c19 (SHA-correction; actual HEAD at D-526 close)
+- D-range: D-001..D-526
+- BC-5.39.009: v1.9 ACTIVE (POL-14 promoted on PR #164 merge)
+**§12 Next:** E-10 pass-16 OR F5 pass-76 per human direction.
+
+**This checkpoint superseded by D-527 SESSION-END DURABILITY BURST 2026-05-31.**

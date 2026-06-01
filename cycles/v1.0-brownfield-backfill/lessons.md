@@ -2827,3 +2827,17 @@ POLICY 14 description and verification_steps updated in policies.yaml same-burst
 **Cites:** D-505; D-526; PR #143; PR #165.
 
 **Closes:** D-526 F-P3-008 recurrence lesson capture per S-7.02 checklist. `[codified]`
+
+---
+
+### L-session-2026-05-31-fabricated-SHA-discipline
+
+**Category:** orchestrator-bookkeeping + state-manager-protocol
+
+**Lesson:** When the orchestrator feeds a merge commit SHA to the state-manager, that SHA MUST be read from the actual GitHub merge event (e.g., `gh pr view NNN --json mergeCommit`) AFTER the merge completes. Anticipating a merge SHA before the merge — or carrying forward a placeholder SHA from a prior draft state — produces a fabricated-SHA defect that requires a subsequent correction commit (D-526 went through three commits: ab822bfa primary → 66ae0a2c SHA-patch → 5fa87c19 SHA-correction, because the orchestrator fed the wrong SHA twice). The correction commit creates an additional chain link that must itself be tracked. Prevention: the state-manager's post-merge burst dispatch template MUST include a mandatory step: "read the actual merge commit SHA via `gh pr view NNN --json mergeCommit --jq .mergeCommit.oid` before constructing any factory-artifacts commit; do not use anticipated or placeholder SHAs."
+
+**Anchors:** D-527 (SESSION-END DURABILITY BURST codifying this lesson); D-526 fabricated-SHA chain (ab822bfa → 66ae0a2c → 5fa87c19).
+
+**Cites:** D-526; D-527; D-447(c); D-449(e).
+
+**Closes:** D-527 fabricated-SHA process lesson capture. `[codified]`

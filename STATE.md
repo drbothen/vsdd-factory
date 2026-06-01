@@ -5,14 +5,14 @@ version: "2.0"
 status: draft
 producer: state-manager
 timestamp: 2026-05-31T00:00:00Z
-phase: D-526-S-15.17-SHIPPED-PR-164-POL-14-BC-5.39.009-ACTIVE-2026-05-31
-last_amended: 2026-05-31 (v2.76) — D-526 S-15.17 SHIPPED PR #164 9ed17b1d (2026-05-31); BC-5.39.009 POL-14 draft→active; F-P3-008 recurrence RESOLVED PR #165 f34b7567 (TD #67 de-flake); STORY-INDEX v3.83→v3.84; BC-INDEX v2.64→v2.65; develop_head 9ed17b1d; Closes ADV-EDP1-P75-HIGH-002 + S-15.03-follow-on; D-526 codified. [Prior: 2026-05-30 (v2.75) — D-524 SESSION-END DURABILITY BURST; PR #163 (research-agent Perplexity bias; OPEN/MERGEABLE; branch feature/research-agent-perplexity-bias HEAD 69f066eb) captured in §10/§12/§1/§9; §1 two-thread framing; §11 dual-worktree + PR #163 check; §4/§9 anchors updated; non-D session work recorded (research-agent MCP fixes + .mcp.json gitignored + Perplexity MCP verified live); working tree → develop; 4-index UNCHANGED BC v2.63/VP v2.06/STORY v3.82/ARCH v2.15. [Prior: 2026-05-30 (v2.74) — D-523 S-15.17 REMOVE-UNCERTAINTY SWEEP COMPLETE; 7/7 assumptions CONFIRMED; 2 doc fixes (U6 regex premise + U7 HostError::TooBig→OutputTooLarge); story v1.9→v1.10 `83a910b3`; STORY-INDEX v3.81→v3.82; BC/VP/ARCH-INDEX UNCHANGED; per-story-delivery UNBLOCKED.]]
+phase: D-527-SESSION-END-DURABILITY-BURST-ZERO-CONTEXT-RESUME-READY-2026-05-31
+last_amended: 2026-05-31 (v2.77) — D-527 SESSION-END DURABILITY BURST; factory-artifacts HEAD [D-527-PRIMARY-SHA] (SHA-patch pending); §4 Current Active stale text fixed; 2 S-15.17 code-reviewer suggestions ACCEPTED-DEFERRED; §12 forward backlog refreshed; §11 td-74 stale worktree noted; D-527 decision-log row; L-session-2026-05-31 lesson; 4-index UNCHANGED BC v2.65/VP v2.06/STORY v3.84/ARCH v2.16. [Prior: 2026-05-31 (v2.76) — D-526 S-15.17 SHIPPED PR #164 9ed17b1d; BC-5.39.009 POL-14 draft→active; F-P3-008 recurrence RESOLVED PR #165 f34b7567; STORY-INDEX v3.83→v3.84; BC-INDEX v2.64→v2.65; develop_head 9ed17b1d; Closes ADV-EDP1-P75-HIGH-002 + S-15.03-follow-on; D-526 codified. [Prior: 2026-05-30 (v2.75) — D-524 SESSION-END DURABILITY BURST; PR #163 captured; §1/§9/§11/§12 gaps closed. [Prior: 2026-05-30 (v2.74) — D-523 REMOVE-UNCERTAINTY SWEEP COMPLETE; story v1.10; STORY-INDEX v3.82.]]]
 inputs: []
 input-hash: "[live-state]"
 traces_to: prd.md
 project: vsdd-factory
 mode: brownfield
-current_step: "D-526 S-15.17-SHIPPED-PR-164-9ed17b1d-2026-05-31 — S-15.17 validate-trajectory-tail-cell-completeness WASM hook MERGED; BC-5.39.009 v1.9 POL-14 draft→active; F-P3-008 de-flake PR #165 f34b7567 RESOLVED; develop HEAD 9ed17b1d; BC-INDEX v2.65; VP-INDEX v2.06 UNCHANGED; STORY-INDEX v3.84; ARCH-INDEX v2.16 UNCHANGED; trajectory-tail →9→9→9→11 (D-513 carry-across); maintain all 5 BC-5.39.006 v1.7 PCs per TD-VSDD-097-EXT; D-chain cite D-525 per D-419(b); parent-commit 40d12083 per D-419(b); factory-artifacts HEAD ab822bfa per D-447(c)+D-449(e). SIZE BUDGET: (wc-l; see banner tracker)"
+current_step: "D-527 SESSION-END-DURABILITY-BURST-2026-05-31 — factory-artifacts HEAD [D-527-PRIMARY-SHA] (SHA-patch pending per D-447(c)+D-449(e)); §4 Current Active stale text fixed; 2 S-15.17 code-reviewer suggestions ACCEPTED-DEFERRED; §12 forward backlog refreshed; §11 td-74 stale worktree noted; D-527 decision-log row; S-15.17 SHIPPED (D-526); BC-5.39.009 v1.9 ACTIVE; ADV-EDP1-P75-HIGH-002 CLOSED; develop HEAD 9ed17b1d; BC-INDEX v2.65; VP-INDEX v2.06 UNCHANGED; STORY-INDEX v3.84; ARCH-INDEX v2.16 UNCHANGED; trajectory-tail →9→9→9→11; maintain all 5 BC-5.39.006 v1.7 PCs per TD-VSDD-097-EXT; D-chain cite D-526 per D-419(b); parent-commit 5fa87c19 per D-419(b); factory-artifacts HEAD [D-527-PRIMARY-SHA] per D-447(c)+D-449(e). SIZE BUDGET: (wc-l; see banner tracker)"
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -48,6 +48,7 @@ dtu_services: []
   D-522-S-15.17-SPEC-CASCADE-SEALED-ASYMPTOTIC-ACCEPTANCE-D-386-OPTION-C-2026-05-29 455 lines (wc-l; Phase Progress +1 SEAL row; Decisions Log +D-522 row; Concurrent Cycles D-522 SEALED update; Active Branches factory-artifacts SHA placeholder pre-SHA-patch; Session Resume Checkpoint full refresh; Last Updated cell D-522 SEAL + trajectory-tail →9→9→9→9; banner tracker +D-522 entry; margin 500-455=45 from hard cap; margin 415-455=OVER soft-target by 40; D-446(c) dual-margin form).
   D-523-S-15.17-REMOVE-UNCERTAINTY-COMPLETE-PER-STORY-DELIVERY-UNBLOCKED-2026-05-30 454 lines (wc-l; Phase Progress +D-523 row; Decisions Log +D-523 row; Concurrent Cycles D-523 update; Active Branches factory-artifacts SHA placeholder pre-SHA-patch; Session Resume Checkpoint full refresh; Last Updated cell D-523 + trajectory-tail →9→9→9→11; banner tracker +D-523 entry; margin 500-454=46 from hard cap; margin 415-454=OVER soft-target by 39; D-446(c) dual-margin form).
   D-526-S-15.17-SHIPPED-PR-164-POL-14-BC-5.39.009-ACTIVE-2026-05-31 475 lines (wc-l; Phase Progress +D-526 row; Decisions Log +D-525+D-526 rows; Active Branches develop→9ed17b1d + factory-artifacts placeholder; Drift Items TD #67 recurrence RESOLVED; Session Resume Checkpoint refreshed; banner tracker +D-526 entry; margin 500-473=27 from hard cap; margin 415-473=OVER soft-target by 58; D-446(c) dual-margin form).
+  D-527-SESSION-END-DURABILITY-BURST-ZERO-CONTEXT-RESUME-READY-2026-05-31 487 lines (wc-l; factory-artifacts HEAD updated ab822bfa→[D-527-PRIMARY-SHA]; §4 Current Active stale text fixed; 2 code-reviewer S-15.17 suggestion-level findings added to Drift Items; §12 forward backlog refreshed; §11 td-74 stale worktree noted; D-527 decision-log row; Session Resume Checkpoint refreshed; lesson L-session-2026-05-31 captured; margin 500-487=13 from hard cap; margin 415-487=OVER soft-target by 72; D-446(c) dual-margin form).
   D-524-SESSION-END-DURABILITY-BURST-ZERO-CONTEXT-RESUME-READY-2026-05-30 470 lines (wc-l; Phase Progress +D-524 row; Decisions Log +D-524 row; Concurrent Cycles bolt-on extended to D-524; Active Branches +feature/research-agent-perplexity-bias + factory-artifacts SHA placeholder pre-SHA-patch; Session Resume Checkpoint §1/§4/§9/§10/§11/§12 gaps closed — PR #163 captured; two-thread framing; dual-worktree branch note; PR #163 status check step; banner tracker +D-524 entry; margin 500-470=30 from hard cap; margin 415-470=OVER soft-target by 55; D-446(c) dual-margin form).
 
   D-430(a) compaction authorization (this burst 2026-05-27): line-growth tracker pre-D-504 entries (covering pass-49..D-503) archived per D-430(a); Decisions Log rows D-413..D-498 (F5 pass-33..59 + brownfield D-498..D-489 individual rows) archived; Current Phase Steps F5 pass-57..60 individual rows archived; all content preserved in: git show 20cb8e1c:.factory/STATE.md (pre-compaction) + cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md (F5 D-NNN) + cycles/v1.0-brownfield-backfill/decision-log.md (brownfield D-NNN).
@@ -66,8 +67,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-05-31 — D-526 S-15.17 SHIPPED PR #164 9ed17b1d; BC-5.39.009 POL-14 draft→active; F-P3-008 de-flake PR #165 f34b7567 RESOLVED; develop HEAD 9ed17b1d; Closes ADV-EDP1-P75-HIGH-002. trajectory-tail →9→9→9→11. |
-| **Current Phase** | D-526 S-15.17 SHIPPED 2026-05-31 — PR #164 9ed17b1d merged; BC-5.39.009 ACTIVE; F-P3-008 RESOLVED; next: E-10 pass-16 OR F5 pass-76 per human direction. |
+| **Last Updated** | 2026-05-31 — D-527 SESSION-END DURABILITY BURST; factory-artifacts HEAD updated; §4/§9/§11/§12 zero-context resume ready post-S-15.17 SHIP. trajectory-tail →9→9→9→11. |
+| **Current Phase** | D-527 SESSION-END DURABILITY BURST 2026-05-31 — S-15.17 SHIPPED (D-526); clean milestone; next: E-10 pass-16 OR F5 pass-76 OR cut rc release per human direction. |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Phase Progress
@@ -203,7 +204,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | 43afbfa7 | rc.19 SHIPPED 2026-05-28; bot binary commit on top of merge from develop; prior main HEAD: 70811f4a (rc.18 merge) |
 | develop | 9ed17b1d | PR #164 S-15.17 merge 2026-05-31 (9ed17b1d squash); prior: 98ea0719 (sync main→develop auto-job 2026-05-28 post-rc.19) |
-| factory-artifacts | `ab822bfa` | D-526 post-merge burst (parent: 40d12083 spec burst final; D-524 SHA-patch: 2dac4007; D-524 primary: 58d6b8eb) |
+| factory-artifacts | `[D-527-PRIMARY-SHA]` | D-527 session-end durability burst (prior chain: D-526 SHA-correction `5fa87c19`; D-526 SHA-patch `66ae0a2c`; D-526 primary `ab822bfa`) |
 | feature/research-agent-perplexity-bias | `69f066eb` | PR #163 OPEN/MERGEABLE on develop; research-agent MCP-first tool manifest + MANDATORY MCP-usage gate + perplexity_research deep-research bias; plugin-source: effect post-release only |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28; GitHub Release prerelease 2026-05-28T15:10:56Z; marketplace PR drbothen/claude-mp PR #11 squash-merged |
 | v1.0.0-rc.18 (tag) | 666d689f | SHIPPED 2026-05-13 PR #135 |
@@ -222,12 +223,13 @@ dtu_services: []
 
 ## Decisions Log
 
-> D-001..D-526: `cycles/v1.0-brownfield-backfill/decision-log.md` + `decisions-log-archive.md`
+> D-001..D-527: `cycles/v1.0-brownfield-backfill/decision-log.md` + `decisions-log-archive.md`
 > F5 pass-2 architect decisions: `cycles/v1.0-feature-engine-discipline-pass-1/F5-pass-2-architect-decisions.md` (factory-artifacts 7b83ef58)
-> D-379..D-454 (F5): `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md` <!-- D-452(e) umbrella-range-auto-advance; D-511 banner-format remediation rc.19 release-blocker fix D-range→D-511; D-512 rc.19 SHIPPED 2026-05-28 D-range→D-512; D-513 BC-5.39.009 AUTHORED 2026-05-28 D-range→D-513; D-514 S-15.17 spec cascade pass-1 fix-burst COMPLETE 2026-05-28 D-range→D-514; D-515 S-15.17 spec cascade pass-2 fix-burst COMPLETE + META-31 codified 2026-05-28 D-range→D-515; D-516 S-15.17 spec cascade pass-3 fix-burst COMPLETE + cure-of-cure + SDK-grounding codified 2026-05-28 D-range→D-516; D-517 S-15.17 spec cascade pass-4 fix-burst COMPLETE + META-32 + EC-mirror routing-rule 2026-05-28 D-range→D-517; D-518 S-15.17 spec cascade pass-5 fix-burst COMPLETE + META-33 CODIFIED + marker-prefix redesign (HUMAN-DIRECTED partial reversal) 2026-05-28 D-range→D-518; D-519 S-15.17 spec cascade pass-6 fix-burst COMPLETE + META-34 CODIFIED + cure-of-cure-of-cure 2026-05-29 D-range→D-519; D-520 S-15.17 spec cascade pass-7 fix-burst COMPLETE + META-35 CODIFIED + asymptotic-floor BROKEN 2026-05-29 D-range→D-520; D-521 S-15.17 spec cascade pass-8 fix-burst COMPLETE + META-36 CODIFIED + TD-VSDD-059 paper-fix detection 2026-05-29 D-range→D-521; D-522 S-15.17 SPEC CASCADE SEALED asymptotic-acceptance D-386 Option C 2026-05-29 D-range→D-522; D-523 S-15.17 REMOVE-UNCERTAINTY SWEEP COMPLETE 2026-05-30 D-range→D-523; D-524 SESSION-END DURABILITY BURST 2026-05-30 D-range→D-524; D-525 BC-5.39.009 UN-SEAL + ADR-023 cycle-conditional site model adopted 2026-05-30 D-range→D-525; D-526 S-15.17 SHIPPED PR #164 9ed17b1d + POL-14 BC-5.39.009 active + F-P3-008 RESOLVED 2026-05-31 D-range→D-526 -->
+> D-379..D-454 (F5): `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md` <!-- D-452(e) umbrella-range-auto-advance; D-511 banner-format remediation rc.19 release-blocker fix D-range→D-511; D-512 rc.19 SHIPPED 2026-05-28 D-range→D-512; D-513 BC-5.39.009 AUTHORED 2026-05-28 D-range→D-513; D-514 S-15.17 spec cascade pass-1 fix-burst COMPLETE 2026-05-28 D-range→D-514; D-515 S-15.17 spec cascade pass-2 fix-burst COMPLETE + META-31 codified 2026-05-28 D-range→D-515; D-516 S-15.17 spec cascade pass-3 fix-burst COMPLETE + cure-of-cure + SDK-grounding codified 2026-05-28 D-range→D-516; D-517 S-15.17 spec cascade pass-4 fix-burst COMPLETE + META-32 + EC-mirror routing-rule 2026-05-28 D-range→D-517; D-518 S-15.17 spec cascade pass-5 fix-burst COMPLETE + META-33 CODIFIED + marker-prefix redesign (HUMAN-DIRECTED partial reversal) 2026-05-28 D-range→D-518; D-519 S-15.17 spec cascade pass-6 fix-burst COMPLETE + META-34 CODIFIED + cure-of-cure-of-cure 2026-05-29 D-range→D-519; D-520 S-15.17 spec cascade pass-7 fix-burst COMPLETE + META-35 CODIFIED + asymptotic-floor BROKEN 2026-05-29 D-range→D-520; D-521 S-15.17 spec cascade pass-8 fix-burst COMPLETE + META-36 CODIFIED + TD-VSDD-059 paper-fix detection 2026-05-29 D-range→D-521; D-522 S-15.17 SPEC CASCADE SEALED asymptotic-acceptance D-386 Option C 2026-05-29 D-range→D-522; D-523 S-15.17 REMOVE-UNCERTAINTY SWEEP COMPLETE 2026-05-30 D-range→D-523; D-524 SESSION-END DURABILITY BURST 2026-05-30 D-range→D-524; D-525 BC-5.39.009 UN-SEAL + ADR-023 cycle-conditional site model adopted 2026-05-30 D-range→D-525; D-526 S-15.17 SHIPPED PR #164 9ed17b1d + POL-14 BC-5.39.009 active + F-P3-008 RESOLVED 2026-05-31 D-range→D-526; D-527 SESSION-END DURABILITY BURST 2026-05-31 D-range→D-527 -->
 
 | ID | Decision | Phase | Date |
 |----|----------|-------|------|
+| D-527 | SESSION-END DURABILITY BURST 2026-05-31 — (a) factory-artifacts HEAD anchors corrected: prior D-526 chain was 5fa87c19 (SHA-correction)→66ae0a2c (SHA-patch)→ab822bfa (primary); all four stale ab822bfa "current HEAD" citations updated; self-reference: primary SHA cited in SHA-patch follow-up per D-447(c)+D-449(e); (b) §4 Tier-A "Current Active" stale text fixed (was: "Next = per-story-delivery S-15.17 OR merge PR #163" — S-15.17 SHIPPED); (c) 2 code-reviewer suggestion-level findings on S-15.17 recorded as ACCEPTED-DEFERRED in Drift Items (INDEX advisory arm; advisory-only; no production reachability); (d) §12 forward backlog refreshed (E-10 pass-16 READY; F5 pass-76 PAUSED; PR #163 + MCP fleet-sweep + S-15.17 into next release bundle; 2 suggestion-level accepted-deferred; UNI-PLUG-001 + SK-MCP-001 REVIEW-READY); (e) §11 stale td-74 worktree noted (.worktrees/td-74; feature/td-74-dispatch-cargo-audit-codification fa06ca4b; TD #74 SHIPPED PR #141; safe to clean); (f) prior D-526 checkpoint archived to session-checkpoints.md; lesson L-session-2026-05-31-fabricated-SHA-discipline added; (g) parent-commit 5fa87c19 per D-419(b); (h) 4-index UNCHANGED: BC-INDEX v2.65 VP-INDEX v2.06 STORY-INDEX v3.84 ARCH-INDEX v2.16. See decision-log.md SoT. | session-end durability | 2026-05-31 |
 | D-526 | S-15.17 SHIPPED 2026-05-31 — (a) PR #164 squash-merged at 9ed17b1d; validate-trajectory-tail-cell-completeness WASM hook priority 158; 59 files; (b) F-P3-008 de-flake dependency: PR #165 f34b7567 (TD #67 structural recurrence fix) merged just before PR #164; (c) BC-5.39.009 POL-14 draft→active; BC-INDEX v2.64→v2.65; STORY-INDEX v3.83→v3.84 (S-15.17 draft→merged); (d) Closes ADV-EDP1-P75-HIGH-002 (META-LEVEL-30 route b) + S-15.03-follow-on; develop HEAD 9ed17b1d; (e) 4-index: BC-INDEX v2.65 VP-INDEX v2.06 STORY-INDEX v3.84 ARCH-INDEX v2.16. See decision-log.md SoT. | S-15.17 post-merge ship record | 2026-05-31 |
 | D-525 | S-15.17 BC-5.39.009 UN-SEAL + ADR-023 CYCLE-CONDITIONAL SITE MODEL ADOPTED 2026-05-30 — BC-5.39.009 v1.8→v1.9 cycle-conditional (PC1/PC2 always-Block; PC3/PC4/PC5 on per_pass_trajectory flag); +Precondition 5; +inv-14/15; +EC-021/022; ADR-023 registered; STORY-INDEX v3.82→v3.83; BC-INDEX v2.63→v2.64; ARCH-INDEX v2.15→v2.16. See decision-log.md SoT. | ADR-023 cycle-conditional site model | 2026-05-30 |
 | D-524 | SESSION-END DURABILITY BURST 2026-05-30 — (a) PR #163 (research-agent Perplexity bias; OPEN/MERGEABLE; branch feature/research-agent-perplexity-bias HEAD 69f066eb; plugin-source effect post-release only) captured in §10/§12/§1/§9; (b) §1 reframed as two-thread (PR #163 + S-15.17); (c) §11 dual-worktree branch state + PR #163 status check added; (d) non-D session work recorded (research-agent MCP fixes 69f066eb→PR #163; .mcp.json gitignored; Perplexity MCP verified live mcp__perplexity__perplexity_* byte-exact); (e) working tree main repo → develop; (f) 4-index UNCHANGED BC v2.63/VP v2.06/STORY v3.82/ARCH v2.15; (g) parent-commit aaf49c51 per D-419(b). See decision-log.md SoT. Closes: session-end durability; next session resumes from §11 (per-story-delivery for S-15.17 OR merge PR #163). | session-end durability | 2026-05-30 |
@@ -307,6 +309,8 @@ dtu_services: []
 | **F-P11-003-deferred (story v1.2 AC-5/AC-6 + invariant 6(b) BC v1.3 wording mismatch)** | OPEN-DEFERRED 2026-05-18 | S-15.14 story v1.2 AC-5/AC-6 + Invariant 6 body prose still says "substring AFTER the trajectory-tail marker" (v1.2 wording); BC v1.3 codifies "first-semicolon-segment scoping". Documentary inconsistency (code is correct; BC v1.3 is correct; story body describes old wording). Severity: LOW. Routing: story-writer for next S-15.14 story touch. Deferral anchor: S-15.14 v1.3 POLICY 8 body propagation or post-merge sweep. |
 | **L-EDP1-067-CANDIDATE-INV-015 (adversary-fresh-context-must-grep-canonical-source)** | FORWARDED-TO-SK-MCP-001-APPENDIX-D 2026-05-18 | D-482 META-LEVEL process-gap: adversary grepped stale local main `392b56d6` instead of `factory-artifacts` / `origin/develop`. Produced false-positive CRITICAL F-BC008P1-001. Codified in L-M3-BC-cascade-pass-1. Forward: SK-MCP-001 Appendix D INV-015 seed input. Severity: MEDIUM (process-gap class). |
 | **TD-VSDD-101 (CI env-var paper-fix)** | OPEN 2026-05-18 — anchored S-15.15 | `VSDD_SKIP_PRODUCTION_STATE_MD_TEST=1` env-var in `.github/workflows/ci.yml` (cargo-host + build-dispatcher Test steps) skips bats test that reads production `.factory/STATE.md`. CI cannot mount factory worktree. Severity: MEDIUM (TD-VSDD-059 paper-fix class). Anchored S-15.15: that story already touches CI-test infrastructure; structural fix options: (a) mount factory worktree in CI; (b) capability-check skip; (c) local-only harness. Full entry in `tech-debt-register.md`. |
+| **S-15.17-CR-001 (advisory-arm check_index_sites uses has_trajectory_tail on full table rows)** | ACCEPTED-DEFERRED 2026-05-31 | Code-reviewer suggestion-level finding on PR #164 review. `check_index_sites` in `validate-trajectory-tail-cell-completeness/src/lib.rs` uses `has_trajectory_tail` (raw arrow count) on full table rows rather than `marker_prefix_check`. A row containing 4 arrows outside a trajectory-tail marker could generate a mis-advisory. Severity: suggestion (advisory-arm only; unreachable in production INDEX.md layout where trajectory-tail marker is the only 4-arrow row form). ACCEPTED-DEFERRED: revisit if INDEX.md layout ever changes to include non-trajectory-tail 4-arrow rows. |
+| **S-15.17-CR-002 (advisory-arm rows_after_heading duplicate-heading seen_separator not reset)** | ACCEPTED-DEFERRED 2026-05-31 | Code-reviewer suggestion-level finding on PR #164 review. `rows_after_heading` duplicate-heading `continue` branch does not reset `seen_separator`. A repeated same heading would cause the function to collect a header row as data. Severity: suggestion (advisory-arm only; impossible in production; headings are unique). ACCEPTED-DEFERRED: revisit if INDEX.md ever gains duplicate section headings. |
 
 ## Historical Content
 
@@ -315,7 +319,7 @@ dtu_services: []
 - `cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md` (adversary reviews at `S-12.03/`, `S-12.04/`, `S-12.05/` subdirs)
 
 
-## Session Resume Checkpoint (2026-05-31 — D-526 S-15.17 SHIPPED PR #164; BC-5.39.009 ACTIVE; zero-context resume ready)
+## Session Resume Checkpoint (2026-05-31 — D-527 SESSION-END DURABILITY BURST; S-15.17 SHIPPED; zero-context resume ready)
 
 > **SELF-SUFFICIENT RESUME CONTEXT FOR ZERO-CONTEXT NEW SESSION**
 > Read this section alone to resume the orchestrator after full CLEAR or new session. All context needed is here.
@@ -323,19 +327,22 @@ dtu_services: []
 
 ### §1. Where We Are
 
-**S-15.17 SHIPPED 2026-05-31 — D-526 COMPLETE. BC-5.39.009 ACTIVE. ADV-EDP1-P75-HIGH-002 CLOSED.**
+**S-15.17 SHIPPED 2026-05-31 — D-526 COMPLETE. BC-5.39.009 ACTIVE. ADV-EDP1-P75-HIGH-002 CLOSED. D-527 SESSION-END DURABILITY BURST COMPLETE.**
 
+Pipeline is at a clean milestone. No in-flight worktrees with active work (S-15.17 + TD #67 cleaned; only stale td-74 worktree remains — see §11).
+
+- **D-527 (2026-05-31):** SESSION-END DURABILITY BURST. Factory-artifacts HEAD anchors corrected (D-526 chain: 5fa87c19→66ae0a2c→ab822bfa). §4/§9/§11/§12 zero-context resume gaps closed. 2 code-reviewer S-15.17 suggestion-level findings recorded as ACCEPTED-DEFERRED. Lesson L-session-2026-05-31-fabricated-SHA-discipline captured.
 - **D-526 (2026-05-31):** S-15.17 validate-trajectory-tail-cell-completeness WASM hook (priority 158) squash-merged via PR #164 at 9ed17b1d. F-P3-008 de-flake dependency merged via PR #165 at f34b7567. BC-5.39.009 POL-14 promoted draft→active. Closes ADV-EDP1-P75-HIGH-002 (META-LEVEL-30 route b structural cure per D-510). BC-INDEX v2.65; STORY-INDEX v3.84.
 - **D-525 (2026-05-30):** BC-5.39.009 v1.8 UN-SEALED + ADR-023 cycle-conditional site model adopted (human-authorized). BC v1.9 (PC3/PC4/PC5 conditional on per_pass_trajectory flag). ARCH-INDEX v2.16.
 - **develop HEAD:** `9ed17b1d` (PR #164 merge tip 2026-05-31). **main HEAD:** `43afbfa7` (rc.19 bot binary commit 2026-05-28).
-- **factory-artifacts HEAD:** `ab822bfa` (D-526 post-merge burst; parent `40d12083` D-525 spec burst).
-- **D-range:** D-001..D-526.
-- **4-index (post-D-526):** BC-INDEX v2.65, VP-INDEX v2.06 (UNCHANGED), STORY-INDEX v3.84, ARCH-INDEX v2.16.
+- **factory-artifacts HEAD:** `[D-527-PRIMARY-SHA]` (D-527 primary burst; SHA-patch follow-up will cite actual SHA per D-447(c)+D-449(e); prior chain: D-526 SHA-correction `5fa87c19`, SHA-patch `66ae0a2c`, primary `ab822bfa`).
+- **D-range:** D-001..D-527.
+- **4-index (post-D-527):** BC-INDEX v2.65, VP-INDEX v2.06 (UNCHANGED), STORY-INDEX v3.84, ARCH-INDEX v2.16 (all UNCHANGED at D-527 — bookkeeping-only burst).
 - **BC content:** BC-5.39.005 v1.3 ACTIVE + BC-5.39.006 v1.7 ACTIVE + BC-5.39.007 v1.6 ACTIVE + BC-5.39.008 v1.5 ACTIVE + BC-5.39.009 v1.9 ACTIVE (POL-14 promoted on PR #164 merge) + BC-7.04.051 v1.1 ACTIVE.
 - **policies.yaml v1.3.6:** SEALED — no further cures.
-- **PR #163 (research-agent Perplexity bias):** still OPEN on develop; branch `feature/research-agent-perplexity-bias` HEAD `69f066eb`. Check status on resume.
+- **PR #163 (research-agent Perplexity bias):** OPEN on develop; branch `feature/research-agent-perplexity-bias` HEAD `69f066eb`. Check status on resume. Plugin-source: effect post-release only.
 
-**D-526 S-15.17 SHIPPED 2026-05-31 — BC-5.39.009 ACTIVE; ADV-EDP1-P75-HIGH-002 CLOSED; next: E-10 pass-16 OR F5 pass-76 per human direction.**
+**D-527 SESSION-END DURABILITY BURST COMPLETE 2026-05-31 — S-15.17 SHIPPED; clean milestone; next: E-10 pass-16 OR F5 pass-76 OR cut bundled rc release per human direction (see §12).**
 
 ### §2. Operating Mode
 
@@ -352,6 +359,7 @@ dtu_services: []
 - **D-522 S-15.17 SPEC CASCADE SEALED — ASYMPTOTIC-ACCEPTANCE per D-386 OPTION C + D-477 PRECEDENT** (2026-05-29; 9-pass SEALED at floor [9,11] HIGH; META-37 CANDIDATE deferred; BC-INDEX v2.63; STORY-INDEX v3.81; per-story-delivery UNBLOCKED).
 - **D-525 BC-5.39.009 UN-SEAL + ADR-023 ADOPTED** (2026-05-30; v1.9 cycle-conditional site model; ARCH-INDEX v2.16; BC-INDEX v2.64; STORY-INDEX v3.83).
 - **D-526 S-15.17 SHIPPED PR #164 9ed17b1d** (2026-05-31; BC-5.39.009 ACTIVE; F-P3-008 PR #165 RESOLVED; ADV-EDP1-P75-HIGH-002 CLOSED; develop HEAD 9ed17b1d; BC-INDEX v2.65; STORY-INDEX v3.84).
+- **D-527 SESSION-END DURABILITY BURST** (2026-05-31; factory-artifacts HEAD anchors corrected; §4/§9/§11/§12 gaps closed; 2 S-15.17 code-reviewer suggestions ACCEPTED-DEFERRED; L-session-2026-05-31 lesson captured; 4-index UNCHANGED).
 
 ### §3. User Directives (Carry Across CLEAR)
 
@@ -387,17 +395,17 @@ All S-15.03 PRIORITY-A items SHIPPED. Key recent entries:
 - **D-526 S-15.17 SHIPPED 2026-05-31:** PR #164 9ed17b1d merged; BC-5.39.009 POL-14 active; F-P3-008 PR #165 resolved; ADV-EDP1-P75-HIGH-002 CLOSED; BC-INDEX v2.65; STORY-INDEX v3.84.
 - **Non-D session work recorded (2026-05-30):** research-agent Perplexity MCP fixes committed `69f066eb` → PR #163 OPEN; .mcp.json gitignored; Perplexity MCP verified live (mcp__perplexity__perplexity_* format confirmed byte-exact + smoke-tested).
 
-**Current Active:** D-524 COMPLETE 2026-05-30. Next = per-story-delivery dispatch for S-15.17 implementation (validate-trajectory-tail-cell-completeness WASM hook; priority 158; new crate) OR merge PR #163 (research-agent bias; plugin-source: effect post-release).
+**Current Active:** D-527 SESSION-END DURABILITY BURST COMPLETE 2026-05-31. S-15.17 SHIPPED (D-526). Next = E-10 pass-16 (dispatch-ready per human direction) OR F5 pass-76 (PAUSED per D-386 Option C; needs explicit human direction) OR cut bundled rc release (PR #163 + MCP fleet-sweep + S-15.17 reach operator cache only on next rc; human chose to bundle — decide when to cut).
 
 Prior Tier-A (pre-session, all COMPLETE): TD #71/72/70/74 (PRs #138–141 2026-05-14/15) + S-15.04/05/08/07/11/09/14 (PRs #142–148) + 3M3a D-497 + D-498/504/507 durability + D-499 3M3b + D-500 3M3b-r + D-501 remove-uncertainty + D-502/503/505/506/508 Waves 1-4 + D-509 E-10 pass-15 + D-510 F5 pass-75 + D-511 banner remediation + D-512 rc.19 SHIPPED.
 
 ### §5. Cumulative Codifications
 - F5: D-379..D-454 (76 decisions) — `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md`.
-- Brownfield: D-001..D-526 — `cycles/v1.0-brownfield-backfill/decision-log.md`. Key: D-497 BC cascade CONVERGED; D-508 Wave 4 + S-15.03 PRIORITY-A COMPLETE; D-510 F5 pass-75 + META-LEVEL-30; D-512 rc.19 SHIPPED; D-513 BC-5.39.009 AUTHORED; D-514..D-521 passes 1-8 fix-bursts + META-31..36 codified; D-522 S-15.17 SPEC CASCADE SEALED; D-523 remove-uncertainty CLEAN; D-525 BC-5.39.009 UN-SEAL + ADR-023; **D-526 S-15.17 SHIPPED PR #164 9ed17b1d; BC-5.39.009 ACTIVE; ADV-EDP1-P75-HIGH-002 CLOSED**.
+- Brownfield: D-001..D-527 — `cycles/v1.0-brownfield-backfill/decision-log.md`. Key: D-497 BC cascade CONVERGED; D-508 Wave 4 + S-15.03 PRIORITY-A COMPLETE; D-510 F5 pass-75 + META-LEVEL-30; D-512 rc.19 SHIPPED; D-513 BC-5.39.009 AUTHORED; D-514..D-521 passes 1-8 fix-bursts + META-31..36 codified; D-522 S-15.17 SPEC CASCADE SEALED; D-523 remove-uncertainty CLEAN; D-525 BC-5.39.009 UN-SEAL + ADR-023; D-526 S-15.17 SHIPPED PR #164 9ed17b1d; BC-5.39.009 ACTIVE; ADV-EDP1-P75-HIGH-002 CLOSED; **D-527 SESSION-END DURABILITY BURST 2026-05-31 — factory-artifacts HEAD corrected; zero-context resume ready**.
 
 ### §6. Cumulative Lessons
 - F5: L-EDP1-001..067 — `cycles/v1.0-feature-engine-discipline-pass-1/lessons.md`.
-- Brownfield: TD-VSDD-095..100 + L-M3-BC-cascade-CONVERGED + L-session-2026-05-20-resume-CONVERGENCE + L-E10-pass15-automation-wave-effectiveness + L-banner-format-drift + L-rc19-pre-release-validation-banner-format-drift + L-S-15.17-BC-authoring-clean-propagation + L-S-15.17-SP1..SP7 lessons + L-S-15.17-SP8-META-36-snapshot-rescue + L-S-15.17-SP8-TD-VSDD-059-paper-fix-detection + L-S-15.17-SP9-META-37-asymptotic-acceptance-SEAL (2026-05-29) + L-S-15.17-cascade-9-pass-SEAL-precedent (2026-05-29) + **L-S-15.17-remove-uncertainty-clean-result** (2026-05-30) — `cycles/v1.0-brownfield-backfill/lessons.md`.
+- Brownfield: TD-VSDD-095..100 + L-M3-BC-cascade-CONVERGED + L-session-2026-05-20-resume-CONVERGENCE + L-E10-pass15-automation-wave-effectiveness + L-banner-format-drift + L-rc19-pre-release-validation-banner-format-drift + L-S-15.17-BC-authoring-clean-propagation + L-S-15.17-SP1..SP7 lessons + L-S-15.17-SP8-META-36-snapshot-rescue + L-S-15.17-SP8-TD-VSDD-059-paper-fix-detection + L-S-15.17-SP9-META-37-asymptotic-acceptance-SEAL (2026-05-29) + L-S-15.17-cascade-9-pass-SEAL-precedent (2026-05-29) + L-S-15.17-remove-uncertainty-clean-result (2026-05-30) + **L-session-2026-05-31-fabricated-SHA-discipline: orchestrator MUST read actual gh mergeCommit after merge before feeding SHAs to state-manager; never anticipate a merge SHA** — `cycles/v1.0-brownfield-backfill/lessons.md`.
 
 ### §7. S-15.03 PRIORITY-A Scope (Cumulative)
 11-story wave S-15.06..S-15.16. **ALL SHIPPED:** M1 + M2 + M3 Wave 1+2+3+4. **S-15.03 PRIORITY-A COMPLETE. All 11 stories. 40pts M3 total.**
@@ -413,7 +421,7 @@ Prior Tier-A (pre-session, all COMPLETE): TD #71/72/70/74 (PRs #138–141 2026-0
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** `ab822bfa` (D-526 post-merge burst; parent: `40d12083` D-525 spec burst; D-524 SHA-patch: `2dac4007`)
+- **factory-artifacts HEAD:** `[D-527-PRIMARY-SHA]` (D-527 session-end durability burst; SHA-patch follow-up will resolve to actual SHA; prior chain: D-526 SHA-correction `5fa87c19`, SHA-patch `66ae0a2c`, primary `ab822bfa`)
 - **develop HEAD:** `9ed17b1d` (PR #164 S-15.17 merge 2026-05-31; prior: `98ea0719` sync main→develop 2026-05-28)
 - **main HEAD:** `43afbfa7` (rc.19 bot binary commit 2026-05-28)
 - **v1.0.0-rc.19 tag:** `d15152af` (GitHub Release 2026-05-28T15:10:56Z)
@@ -436,18 +444,18 @@ Prior Tier-A (pre-session, all COMPLETE): TD #71/72/70/74 (PRs #138–141 2026-0
 
 ### §11. Post-CLEAR Resume Checklist (zero-context)
 
-1. **Verify worktree state (TWO worktrees):** Main repo: `git rev-parse --abbrev-ref HEAD` → expect `develop` (HEAD `9ed17b1d`). Factory: `git -C .factory log -1` + `git -C .factory status` (expect clean; branch factory-artifacts).
+1. **Verify worktree state (TWO worktrees):** Main repo: `git rev-parse --abbrev-ref HEAD` → expect `develop` (HEAD `9ed17b1d`). Factory: `git -C .factory log -1` + `git -C .factory status` (expect clean; branch factory-artifacts). **Note stale worktree:** `.worktrees/td-74` (branch `feature/td-74-dispatch-cargo-audit-codification` at `fa06ca4b`) is STALE — TD #74 already SHIPPED via PR #141 (5d1f8805); safe to clean with `git worktree remove .worktrees/td-74`.
 2. **Read this checkpoint** (entire §1-§12).
 3. **Verify PC4 (trajectory-tail segment LENGTH=4):** `grep "^current_step:" .factory/STATE.md | grep -oE "trajectory-tail [→0-9]+"` → expect `trajectory-tail →9→9→9→11`.
-4. **Check PR #163 status:** `gh pr view 163 --json state,mergeable,headRefName` — if still OPEN/MERGEABLE, decide merge. **CRITICAL CAVEAT:** plugin-source change; effect post-release only.
-5. **S-15.17 SHIPPED (D-526 2026-05-31).** BC-5.39.009 v1.9 ACTIVE. ADV-EDP1-P75-HIGH-002 CLOSED. Next: E-10 pass-16 OR F5 pass-76 per human direction.
+4. **Check PR #163 status:** `gh pr view 163 --json state,mergeable,headRefName` — if still OPEN/MERGEABLE, decide merge. **CRITICAL CAVEAT:** plugin-source change; effect post-release only. Also decide: bundle PR #163 + MCP fleet-sweep + S-15.17 changes into next rc release? Human chose to bundle; decide timing.
+5. **S-15.17 SHIPPED (D-526 2026-05-31). D-527 DURABILITY BURST COMPLETE.** Clean milestone. No in-flight worktrees with active work. BC-5.39.009 v1.9 ACTIVE. ADV-EDP1-P75-HIGH-002 CLOSED. Next: E-10 pass-16 OR F5 pass-76 OR cut rc release per human direction.
 6. **BC-5.39.009 v1.9 STATUS:** ACTIVE (POL-14 promoted on PR #164 merge). 13 PCs total. BC-INDEX v2.65. hooks-registry priority 158.
 7. **S-15.17 v1.11 STATUS:** MERGED PR #164. STORY-INDEX v3.84.
 8. **F5 PAUSED** — trajectory →9→9→9→11; S-15.17 now SHIPPED (closes HIGH-002). Do NOT resume F5 without explicit human direction.
 9. **E-10 pass-16:** Dispatch-ready per human direction.
 10. **ALL dispatches carry these non-negotiables:** TD-VSDD-097-EXT (all 5 BC-5.39.006 PCs in current_step:) + TD-VSDD-099 (4 Dim blocks in burst-log) + TD-VSDD-100 (production artifact read, no synthetic echo) + POLICY 14 5-leg quintuple parity + verification_step 7 4-index gate + INV-019 cure (a)/(b)/(c) in changelog rows + adversary must grep origin/factory-artifacts (not stale local main) + D-449(a) literal-shell all Dim-2 gates (no pseudocode) + POLICY 8 v1.3 bidirectional AC↔PC parity + audit-block-exclusion + EC-mirror routing-rule + POLICY 5 v1.3.1 SDK-grounding stable-anchor mandate + POLICY 5 v1.3.4 literal-shell VERIFICATION GATE + POLICY 5 v1.3.5 historical-by-construction enumeration (5 forms only) + POLICY 5 v1.3.6 HEAD-reproducibility + structural-form-only + snapshot-rescue detection.
 
-### §12. Pending Work Items — Strict Engine-Discipline Ordering (refreshed 2026-05-31 post-D-526)
+### §12. Pending Work Items — Strict Engine-Discipline Ordering (refreshed 2026-05-31 post-D-527)
 
 | Step | Item | Tier | Gate | Status / Scope |
 |------|------|------|------|---------------|
@@ -461,15 +469,19 @@ Prior Tier-A (pre-session, all COMPLETE): TD #71/72/70/74 (PRs #138–141 2026-0
 | ~~5a-prime~~ | ~~BC-5.39.009 v1.0 AUTHORED + S-15.17 v1.1 PROPAGATED~~ | ~~A~~ | ~~—~~ | **COMPLETE D-513 2026-05-28** — BC-INDEX v2.54; STORY-INDEX v3.72 |
 | ~~5b-cascade~~ | ~~S-15.17 adversarial cascade (passes 1-9)~~ | ~~gated~~ | ~~BC-5.39.001 (D-386 Option C SEAL)~~ | **SEALED D-522 2026-05-29 — 9-pass asymptotic-acceptance; BC v1.8 + story v1.9 SEALED** |
 | ~~5b-remove-uncertainty~~ | ~~S-15.17 remove-uncertainty sweep~~ | ~~gated~~ | ~~D-522 SEAL~~ | **COMPLETE D-523 2026-05-30 — 7/7 CONFIRMED; story v1.10; STORY-INDEX v3.82** |
-| **PR-163** | **PR #163 research-agent Perplexity bias** | **OPEN** | monitor CI → review → merge → schedule into next release (plugin-source: effect only post-release) | OPEN on develop; branch `feature/research-agent-perplexity-bias` HEAD `69f066eb`; merge when ready |
 | ~~5b-impl~~ | ~~S-15.17 per-story-delivery~~ | ~~ACTIVE NEXT~~ | ~~D-523 CLEAN~~ | **SHIPPED D-526 2026-05-31** — PR #164 9ed17b1d merged; BC-5.39.009 ACTIVE; ADV-EDP1-P75-HIGH-002 CLOSED |
-| **5c** | **F5 pass-76** | **gated** | human direction | PAUSED D-386 Option C; pass-75 trajectory →9→9→9→11; S-15.17 SHIPPED (HIGH-002 closed) |
+| **4-next** | **E-10 pass-16** | **gated→READY** | S-15.03 PRIORITY-A COMPLETE (D-508) — gate SATISFIED | E-10 RESUMED pass-15 D-509. Pass-16 dispatch-ready per human direction. Trend 22→...→8→8. F-PASS15-003/005/006/007/008 ACCEPTED-AT-ASYMPTOTIC-FLOOR per D-471. |
+| **PR-163** | **PR #163 research-agent Perplexity bias + MCP fleet-sweep** | **OPEN** | monitor CI → review → merge → schedule into next rc release | OPEN on develop; branch `feature/research-agent-perplexity-bias` HEAD `69f066eb`. **Plugin-source caveat: effect post-release only.** Decide: merge now + bundle with S-15.17 changes for next rc? Human chose to bundle — timing per human direction. |
+| **CR-DEFERRED** | **2 S-15.17 code-reviewer suggestion-level findings** | **deferred** | — | ACCEPTED-DEFERRED (see Drift Items S-15.17-CR-001 + S-15.17-CR-002). Advisory-arm only; no production reachability. Revisit if INDEX.md layout changes. |
+| **5c** | **F5 pass-76** | **gated** | EXPLICIT human direction required | PAUSED per D-386 Option C. Pass-75 trajectory →9→9→9→11. S-15.17 SHIPPED closes HIGH-002. Do NOT resume without explicit human direction. |
 | **6** | **UNI-PLUG-001 implementation** | **forward** | human-authorize | **PROPOSAL REVIEW-READY** |
 | **7** | **SK-MCP-001 implementation** | **forward** | (6) Tier 1 done | **PROPOSAL REVIEW-READY** |
+
+**RECOMMENDED ACTIVE NEXT (per human direction):** E-10 pass-16 (unblocked, dispatch-ready) OR F5 pass-76 (needs explicit human direction) OR cut the bundled rc release (PR #163 + S-15.17 reach operator cache only on next rc — timing decision).
 
 **Track-independent:** E-9 W-16 Tier 2 + E-11 W-17 Tier 3 + verify-git-push.sh + S-10.08 + S-11.00.
 
 **[D-414(c) acknowledgment: Section 12 is a non-standard addition for forward-backlog durability.]**
 
-> Previous checkpoint (D-524 SESSION-END DURABILITY BURST 2026-05-30; next: per-story-delivery S-15.17 OR merge PR #163) archived to: `cycles/v1.0-brownfield-backfill/session-checkpoints.md`
+> Previous checkpoint (D-526 S-15.17 SHIPPED 2026-05-31; next: E-10 pass-16 OR F5 pass-76) archived to: `cycles/v1.0-brownfield-backfill/session-checkpoints.md`
 
