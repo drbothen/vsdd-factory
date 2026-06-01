@@ -5903,5 +5903,5 @@ $ ls -d /Users/jmagady/Dev/vsdd-factory/crates/hook-plugins/*/ | wc -l
 ### Factory-artifacts Commits
 
 - `4cdf18bd` — state(D-530): finalize factory-artifacts HEAD SHA 1f6095e2 in STATE.md Active Branches + §9 (parent commit; factory-artifacts HEAD pre-this-burst)
-- `[D-531-primary]` — state(D-531): E-10 cascade SEALED asymptotic-acceptance pass-16 D-471+D-386-Option-C; 4-index UNCHANGED (primary burst per TD-VSDD-053; SHA-patch follow-up per D-447(c)+D-449(e))
-- `[D-531-SHA-patch]` — state(D-531): SHA-patch — record primary commit SHA in STATE.md + burst-log per D-447(c)+D-449(e)
+- `b12756e2` — state(D-531): E-10 cascade SEALED asymptotic-acceptance pass-16 D-471+D-386-Option-C; 4-index UNCHANGED (primary burst per TD-VSDD-053)
+- `[D-531-SHA-patch]` — state(D-531): SHA-patch — record primary commit SHA b12756e2 in STATE.md + burst-log per D-447(c)+D-449(e)
