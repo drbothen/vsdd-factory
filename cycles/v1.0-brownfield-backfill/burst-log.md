@@ -5512,7 +5512,7 @@ Result: 4 Dim blocks (Dim-2, Dim-5, Dim-6, Dim-7) — PASS per D-446(a) and D-44
 
 - `aa1f05c9` — state(D-527): SHA-patch (parent commit; factory-artifacts HEAD pre-this-burst)
 - `c0db28f4` — state(D-528): rc.20 SHIPPED release ship record; 4-index UNCHANGED (primary burst per TD-VSDD-053)
-- `<D-528-SHA-PATCH>` — state(D-528): SHA-patch — update c0db28f4 in STATE.md per D-447(c)+D-449(e)
+- `9b7abaf4` — state(D-528): SHA-patch — update c0db28f4 in STATE.md per D-447(c)+D-449(e)
 
 ---
 
