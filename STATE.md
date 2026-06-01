@@ -193,7 +193,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | 2a191314 | rc.20 SHIPPED 2026-06-01; bot binary commit on top of --merge from develop; prior: 43afbfa7 (rc.19 2026-05-28) |
 | develop | 474a2731 | rc.20 sync-develop back-merge (clean no-op) 2026-06-01; prior: 9ed17b1d (PR #164 S-15.17 merge 2026-05-31) |
-| factory-artifacts | `<D-528-SHA>` | D-528 rc.20 ship record (SHA-patch follow-up per D-447(c)+D-449(e); prior: aa1f05c9 D-527 SHA-patch) |
+| factory-artifacts | `c0db28f4` | D-528 rc.20 ship record (SHA-patch follow-up per D-447(c)+D-449(e); prior: aa1f05c9 D-527 SHA-patch) |
 | v1.0.0-rc.20 (tag) | e9e38286 | SHIPPED 2026-06-01; annotated tag object; GitHub Release prerelease; marketplace PR drbothen/claude-mp #12 squash-merged 862e660d |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28; GitHub Release prerelease 2026-05-28T15:10:56Z; marketplace PR #11 squash-merged |
 | v1.0.0-rc.18 (tag) | 666d689f | SHIPPED 2026-05-13 PR #135 |
@@ -326,7 +326,7 @@ Pipeline is at a clean milestone post-rc.20. No in-flight worktrees with active 
 - **D-526 (2026-05-31):** S-15.17 validate-trajectory-tail-cell-completeness WASM hook (priority 158) squash-merged via PR #164 at 9ed17b1d. BC-5.39.009 ACTIVE. ADV-EDP1-P75-HIGH-002 CLOSED. BC-INDEX v2.65; STORY-INDEX v3.84.
 - **D-525 (2026-05-30):** BC-5.39.009 v1.9 cycle-conditional re-spec (ADR-023). ARCH-INDEX v2.16.
 - **develop HEAD:** `474a2731` (rc.20 sync-develop 2026-06-01). **main HEAD:** `2a191314` (rc.20 bot binary commit 2026-06-01).
-- **factory-artifacts HEAD:** `<D-528-SHA>` (D-528 rc.20 ship record; SHA-patch follow-up per D-447(c)+D-449(e); prior: `aa1f05c9` D-527 SHA-patch).
+- **factory-artifacts HEAD:** `c0db28f4` (D-528 rc.20 ship record; SHA-patch follow-up per D-447(c)+D-449(e); prior: `aa1f05c9` D-527 SHA-patch).
 - **D-range:** D-001..D-528.
 - **4-index (post-D-528):** BC-INDEX v2.65, VP-INDEX v2.06 (UNCHANGED), STORY-INDEX v3.84, ARCH-INDEX v2.16 (all UNCHANGED at D-528 — bookkeeping-only burst).
 - **BC content:** BC-5.39.005 v1.3 ACTIVE + BC-5.39.006 v1.7 ACTIVE + BC-5.39.007 v1.6 ACTIVE + BC-5.39.008 v1.5 ACTIVE + BC-5.39.009 v1.9 ACTIVE + BC-7.04.051 v1.1 ACTIVE.
@@ -412,7 +412,7 @@ Prior Tier-A (pre-session, all COMPLETE): TD #71/72/70/74 (PRs #138–141 2026-0
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** `<D-528-SHA>` (D-528 rc.20 ship record; SHA-patch follow-up per D-447(c)+D-449(e); prior: `aa1f05c9` D-527 SHA-patch)
+- **factory-artifacts HEAD:** `c0db28f4` (D-528 rc.20 ship record; SHA-patch follow-up per D-447(c)+D-449(e); prior: `aa1f05c9` D-527 SHA-patch)
 - **develop HEAD:** `474a2731` (rc.20 sync-develop 2026-06-01; prior: `9ed17b1d` PR #164 S-15.17 merge 2026-05-31)
 - **main HEAD:** `2a191314` (rc.20 bot binary commit 2026-06-01; prior: `43afbfa7` rc.19 2026-05-28)
 - **v1.0.0-rc.20 tag:** `e9e38286` (annotated tag object; GitHub Release prerelease 2026-06-01; marketplace PR #12 squash-merged 862e660d)
