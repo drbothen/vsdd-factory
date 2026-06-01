@@ -1,5 +1,27 @@
 # Changelog
 
+## 1.0.0-rc.20 — trajectory-tail completeness hook + MCP fleet-sweep (2026-06-01)
+
+Ships the S-15.17 validate-trajectory-tail-cell-completeness WASM hook to the operator-level cache, completes the S-15.03 PRIORITY-A lint-hook automation wave, hardens a flaky resolver-timeout test, and sweeps MCP tool-guidance across the agent fleet (research-agent now biases toward Perplexity deep-research).
+
+### Added
+
+- **validate-trajectory-tail-cell-completeness WASM hook** (BC-5.39.009 v1.9, ADR-023, hooks-registry priority 158): enforces STATE.md trajectory-tail cell completeness. New dispatcher hook plugin — operator plugin count now 53 (was 52). (S-15.17, PR #164)
+
+### Fixed
+
+- **F-P3-008 resolver-timeout flake** (TD #67): de-flaked the resolver-timeout wall-clock assertion in the integration suite, stabilizing CI on ubuntu runners. (PR #165)
+- **MCP tool-guidance fleet-sweep**: fleet-wide MCP tool-guidance corrections; research-agent now biases toward Perplexity deep-research and enforces MCP usage. (PR #163)
+
+### Operational
+
+- This release brings the S-15.17 hook and the MCP fleet-sweep agent guidance onto the operator-level marketplace cache. Develop-branch-only changes prior to this release did not affect the cached plugin; after rc.20 ships and the marketplace PR merges, operators on `/plugin update vsdd-factory@claude-mp` pick up the new hook + guidance.
+
+### Deferred
+
+- 2 S-15.17 code-reviewer suggestion-level findings (S-15.17-CR-001/002) remain ACCEPTED-DEFERRED (advisory-arm only, no production reachability).
+- 6 open Dependabot PRs (#157 openssl, #156/#152/#125/#3/#2 npm visual-companion) deferred to a future maintenance sweep — NOT in this release.
+
 ## 1.0.0-rc.19 — S-15.03 PRIORITY-A complete — 7 new WASM validation hooks + dispatcher hardening (2026-05-27)
 
 **rc.19 ships the complete S-15.03 PRIORITY-A automation wave** — the

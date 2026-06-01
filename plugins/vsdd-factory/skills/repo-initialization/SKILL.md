@@ -330,11 +330,11 @@ After repo is created, orchestrator spawns dx-engineer for environment setup:
 7. **Configure MCP servers via mcporter:**
    ```bash
    mcporter config add perplexity --transport stdio \
-     --command "npx" --args "-y @anthropic/perplexity-mcp"
+     --command "npx" --args "-y @perplexity-ai/mcp-server"
    mcporter config add context7 --transport stdio \
-     --command "npx" --args "-y @anthropic/context7-mcp"
+     --command "npx" --args "-y @upstash/context7-mcp"
    mcporter config add playwright --transport stdio \
-     --command "npx" --args "-y @anthropic/playwright-mcp"
+     --command "npx" --args "-y @playwright/mcp@latest"
    ```
 
 8. **LLM health check:**

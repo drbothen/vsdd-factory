@@ -1,0 +1,3 @@
+ERROR: Test file "/Users/jmagady/Dev/vsdd-factory/.worktrees/S-15.17/plugins/vsdd-factory/tests/validate-trajectory-tail-cell-completeness/pass-length-3-absent.bats" does not exist.
+1..1
+not ok 1 bats-gather-tests

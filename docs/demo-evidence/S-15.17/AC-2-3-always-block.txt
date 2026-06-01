@@ -1,0 +1,5 @@
+1..4
+ok 1 test_BC_5_39_009_PC1_frontmatter_missing_tail_exits_2
+ok 2 test_BC_5_39_009_PC1_frontmatter_missing_tail_block_names_site
+ok 3 test_BC_5_39_009_PC2_last_updated_missing_tail_exits_2
+ok 4 test_BC_5_39_009_PC2_last_updated_missing_tail_block_names_site

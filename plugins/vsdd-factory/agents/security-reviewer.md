@@ -184,9 +184,9 @@ When dx-engineer requests a security audit before installing a tool:
 
 1. **CVE/NVD/OSV lookup:** Check the tool name + version against NVD,
    OSV (osv.dev), and GitHub Advisory Database
-2. **Recent compromise events:** Search Perplexity directly:
+2. **Recent compromise events:** Research with Perplexity directly:
    ```
-   perplexity_search({ query: "[TOOL] [VERSION] security vulnerability compromise 2025 2026" })
+   mcp__perplexity__perplexity_research({ query: "[TOOL] [VERSION] security vulnerability compromise 2025 2026", reasoning_effort: "high", strip_thinking: true })
    ```
 3. **Package integrity:** Verify SHA/checksum where available
    (cargo: Cargo.lock checksum, npm: package-lock.json integrity, brew: SHA256)
@@ -247,14 +247,20 @@ or "fix this" without showing the secure alternative.
 
 ## MCP Tools (Direct Access)
 
-You have direct access to MCP tools — call them as regular tools:
+You have direct access to MCP tools — call them as regular tools. Precedence: **Perplexity (primary) → Context7 (library docs) → Tavily (cross-validation, via research-agent).** Perplexity server is `perplexity` (npm `@perplexity-ai/mcp-server`); tool names are `mcp__perplexity__perplexity_*` — never drop the inner `perplexity_` prefix, never a `perplexity-ask` server name.
 
 | Tool | Use For |
 |------|---------|
-| `perplexity_search` | CVE/NVD/OSV lookup, supply chain compromise events, recent vulnerability disclosures |
-| `perplexity_ask` | Quick CWE classification details, OWASP category definitions, exploit technique references |
-| `perplexity_reason` | Complex threat modeling requiring multi-step analysis of attack chains |
-| `perplexity_research` | Deep investigation of dependency security history or emerging attack patterns |
+| `mcp__perplexity__perplexity_research` | **PRIMARY.** CVE/dependency-history sweeps, supply-chain compromise investigation, emerging attack-pattern research — any non-trivial security question. Backed by `sonar-deep-research`. Reach for this first. |
+| `mcp__perplexity__perplexity_reason` | Threat modeling: multi-step synthesis OVER evidence you already gathered (attack-chain analysis). |
+| `mcp__perplexity__perplexity_search` | Raw ranked URLs only — when you want links (e.g. advisory pages), not synthesis. |
+| `mcp__perplexity__perplexity_ask` | Quick ≤2-sentence factual lookups only (single CWE detail, OWASP category definition). |
+
+**Bias: reach for `perplexity_research` unless there is a specific reason not to.** `perplexity_ask`/`perplexity_search` are narrow tools for narrow jobs, not investigation.
+
+**`reasoning_effort` tuning** (on `perplexity_research`): `minimal` | `low` | `medium` | `high`. Use `high` for security-posture sweeps and CVE-history analysis; `medium` for a focused single-dependency question; `low`/`minimal` for cheap confirmations. Pass `strip_thinking: true` to drop the reasoning trace and save context tokens.
+
+For broad multi-source cross-validation (corroborating a CVE finding via Tavily), delegate to `research-agent` via the orchestrator.
 
 ## Failure & Escalation
 - **Level 1 (self-correct):** Re-assess a finding's severity if initial classification is uncertain after deeper analysis.

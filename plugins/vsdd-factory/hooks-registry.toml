@@ -999,6 +999,25 @@ path_allow = [
   "plugins/vsdd-factory",
 ]
 
+# ---------- validate-trajectory-tail-cell-completeness (PostToolUse, Edit|Write) ----------
+# BC-5.39.009: blocks on STATE.md writes missing trajectory_tail in any of the 5
+# prescribed STATE.md cells; advisory log_warn on INDEX.md/burst-log.md/lessons.md.
+# Closes ADV-EDP1-P75-HIGH-002 (META-LEVEL-30 route b). S-15.17. Priority 158.
+
+[[hooks]]
+name = "validate-trajectory-tail-cell-completeness"
+event = "PostToolUse"
+tool = "Edit|Write"
+plugin = "hook-plugins/validate-trajectory-tail-cell-completeness.wasm"
+priority = 158
+timeout_ms = 5000
+on_error = "continue"
+
+[hooks.capabilities.read_file]
+path_allow = [
+  ".factory",
+]
+
 # ---------- Stop ----------
 
 [[hooks]]
