@@ -4,15 +4,15 @@ level: ops
 version: "2.0"
 status: draft
 producer: state-manager
-timestamp: 2026-06-08T00:00:00Z
-phase: D-532-SESSION-END-DURABILITY-BURST-ZERO-CONTEXT-RESUME-READY-2026-06-08
-last_amended: 2026-06-08 (v2.82) — D-532 SESSION-END DURABILITY BURST; D-430(a) compaction (Phase Progress F5 pass-9..17 archived, banner tracker pre-D-520 archived, Decisions Log D-499..D-509 archived); Session Resume Checkpoint §1-§12 full refresh; D-532 decision-log row + lesson; 4-index UNCHANGED. [Prior: 2026-06-01 (v2.81) — D-531 E-10 cascade SEALED pass-16 asymptotic-acceptance D-471+D-386-Option-C; F-PASS16-002 FIXED PR #168 82163b7f (derived count; self-maintaining); F-PASS16-001+003 ACCEPTED-AT-FLOOR; S-7.02 SATISFIED; 4-index UNCHANGED.]
+timestamp: 2026-06-09T00:00:00Z
+phase: D-533-ISSUE-VALIDATION-SWEEP-BACKLOG-RECORDED-2026-06-09
+last_amended: 2026-06-09 (v2.83) — D-533 ISSUE-VALIDATION SWEEP: 18 GitHub issues validated; 17 actionable + #149 ALREADY-DONE; research cached at .factory/research/issues/issue-<N>.md; INDEX authored; §12 validated-backlog subsection added; D-533 decision-log row; 4-index UNCHANGED. [Prior: 2026-06-08 (v2.82) — D-532 SESSION-END DURABILITY BURST; D-430(a) compaction; Session Resume Checkpoint §1-§12 full refresh; D-532 decision-log row + lesson; 4-index UNCHANGED.]
 inputs: []
 input-hash: "[live-state]"
 traces_to: prd.md
 project: vsdd-factory
 mode: brownfield
-current_step: "D-532 SESSION-END-DURABILITY-BURST-ZERO-CONTEXT-RESUME-READY 2026-06-08 — rc.20 SHIPPED D-528 (2026-06-01; run 26738809372; tag e9e38286; main 2a191314); POST-RC.20 MAINTENANCE-SWEEP COMPLETE D-529 (td-74 removed; #3+#156+#157 MERGED; zero open PRs; develop b21fd358); E-10 PASS-16 COMPLETE D-530 (verdict LOW 0C+0H+0M+3L; trend 8→3; F-PASS16-002 FIXED PR #168 82163b7f; develop 82163b7f); E-10 CASCADE SEALED D-531 (asymptotic-acceptance D-471+D-386 Option C; S-7.02 SATISFIED); D-532 SESSION-END DURABILITY BURST COMPLETE (D-430(a) compaction; Session Resume Checkpoint §1-§12 refreshed; 2 follow-up candidates captured); BC-INDEX v2.65 UNCHANGED; VP-INDEX v2.06 UNCHANGED; STORY-INDEX v3.84 UNCHANGED; ARCH-INDEX v2.16 UNCHANGED; trajectory-tail →9→9→9→11; maintain all 5 BC-5.39.006 v1.7 PCs per TD-VSDD-097-EXT; D-chain cite D-531 per D-419(b); parent-commit b12756e2 per D-419(b); factory-artifacts HEAD updated to D-532 burst SHA per D-447(c)+D-449(e). SIZE BUDGET: (wc-l; see banner tracker)"
+current_step: "D-533 ISSUE-VALIDATION-SWEEP-BACKLOG-RECORDED 2026-06-09 — 18 GitHub issues validated (develop 82163b7f); 17 actionable (VALID-NEW/PARTIAL) + #149 ALREADY-DONE; research cached at .factory/research/issues/issue-<N>.md; INDEX authored at .factory/research/issues/INDEX.md; §12 validated-backlog subsection added; D-533 decision-log row; BC-INDEX v2.65 UNCHANGED; VP-INDEX v2.06 UNCHANGED; STORY-INDEX v3.84 UNCHANGED; ARCH-INDEX v2.16 UNCHANGED; trajectory-tail →9→9→9→11; maintain all 5 BC-5.39.006 v1.7 PCs per TD-VSDD-097-EXT; D-chain cite D-532 per D-419(b); parent-commit f671ca50 per D-419(b). SIZE BUDGET: (wc-l; see banner tracker)"
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -46,6 +46,7 @@ dtu_services: []
   D-530-E10-PASS-16-ADVERSARY-FIX-BURST-PR-168-COMPLETE-2026-06-01 484 lines (wc-l; Phase Progress +D-530 row; Decisions Log +D-530 row; Concurrent Cycles D-530 update; Active Branches develop→82163b7f/factory-artifacts pending SHA-patch; Session Resume Checkpoint §1/§4/§8/§9/§10/§11/§12 refresh; Last Updated + Current Phase advance; banner tracker +D-530 entry; lesson L-E10-pass16-derived-ci-count; 4-index UNCHANGED; margin 500-484=16 from hard cap; margin 415-484=OVER soft-target by 69; D-446(c) dual-margin form).
   D-531-E10-CASCADE-SEALED-ASYMPTOTIC-ACCEPTANCE-D471-D386-OPTION-C-2026-06-01 488 lines (wc-l; Phase Progress E-10 row updated SEALED; Decisions Log +D-531 row; Concurrent Cycles D-531 update; Active Branches factory-artifacts → D-531 primary SHA placeholder; Session Resume Checkpoint §1/§2/§4/§8/§11/§12 refresh; Last Updated + Current Phase advance to D-531; frontmatter phase:/current_step: advance; banner tracker +D-531 entry; lesson L-E10-cascade-SEAL-16-pass; 4-index UNCHANGED; margin 500-488=12 from hard cap; margin 415-488=OVER soft-target by 73; D-446(c) dual-margin form).
   D-532-SESSION-END-DURABILITY-BURST-ZERO-CONTEXT-RESUME-READY-2026-06-08 379 lines (wc-l; D-430(a) compaction: F5 pass-9..17 Phase Progress rows (20 rows) archived + banner tracker pre-D-520 archived + Decisions Log D-499..D-509 archived; frontmatter/Last Updated/Current Phase/current_step advance; Phase Progress +D-532 row; Decisions Log +D-532 row; Concurrent Cycles D-532 update; Active Branches factory-artifacts updated to D-532 SHA; Session Resume Checkpoint §1-§12 full refresh; lesson L-session-2026-06-08-session-end-durability; 2 follow-up candidates added to §12 + Drift Items; 4-index UNCHANGED; margin 500-379=121 from hard cap; margin 415-379=36 UNDER soft-target; D-446(c) dual-margin form).
+  D-533-ISSUE-VALIDATION-SWEEP-BACKLOG-RECORDED-2026-06-09 400 lines (wc-l; frontmatter/Last Updated/Current Phase/current_step advance; Decisions Log +D-533 row; §12 validated-backlog subsection added (~16 lines); §11 next-D advance; research/issues/INDEX.md authored; 18 cache files staged; 4-index UNCHANGED; margin 500-400=100 from hard cap; margin 415-400=15 UNDER soft-target; D-446(c) dual-margin form).
 -->
 
 # Pipeline State: vsdd-factory
@@ -61,8 +62,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-06-08 — D-532 SESSION-END DURABILITY BURST COMPLETE; D-430(a) compaction; Session Resume Checkpoint §1-§12 full refresh; 2 follow-up candidates captured; 4-index UNCHANGED; develop 82163b7f. trajectory-tail →9→9→9→11. |
-| **Current Phase** | D-532 SESSION-END DURABILITY BURST 2026-06-08 — rc.20 SHIPPED (D-528); maintenance sweep COMPLETE (D-529); E-10 pass-16 COMPLETE (D-530); E-10 CASCADE SEALED (D-531); durability burst COMPLETE (D-532); zero-context resume ready; no open PRs; develop 82163b7f; 4-index UNCHANGED. |
+| **Last Updated** | 2026-06-09 — D-533 ISSUE-VALIDATION SWEEP; 18 issues validated; 17 actionable + #149 ALREADY-DONE; research cached; INDEX authored; §12 backlog updated; 4-index UNCHANGED; develop 82163b7f. trajectory-tail →9→9→9→11. |
+| **Current Phase** | D-533 ISSUE-VALIDATION SWEEP 2026-06-09 — 18 GitHub issues validated; research cached at .factory/research/issues/; INDEX at research/issues/INDEX.md; §12 validated-backlog added; #149 ALREADY-DONE (recommend close); 17 actionable clustered into 10 groups; 4-index UNCHANGED; develop 82163b7f. |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Phase Progress
@@ -161,6 +162,7 @@ dtu_services: []
 
 | ID | Decision | Phase | Date |
 |----|----------|-------|------|
+| D-533 | ISSUE-VALIDATION SWEEP BACKLOG RECORDED 2026-06-09 — (a) 18 GitHub issues validated by 5 research-agent subagents against develop @ 82163b7f; (b) 17 actionable (VALID-NEW: #128/#129/#131/#162/#169/#170/#171/#172/#173/#174/#175/#176; VALID-PARTIAL: #130/#133/#150/#151/#177) + #149 ALREADY-DONE (recommend GitHub close: claude-telemetry/factory-obs/onboard-observability already ship the requested OTEL stack); (c) durable per-issue research cached at .factory/research/issues/issue-<N>.md (18 files); (d) triage INDEX authored at .factory/research/issues/INDEX.md with full cluster table, cross-coupling notes, and advisory sequencing; (e) §12 "Validated GitHub-Issue Backlog (2026-06-09 sweep)" subsection added to STATE.md; (f) D-chain cite D-532 per D-419(b); parent-commit f671ca50 per D-419(b); (g) 4-index UNCHANGED: BC-INDEX v2.65 VP-INDEX v2.06 STORY-INDEX v3.84 ARCH-INDEX v2.16. | issue-validation sweep; 17 actionable backlog items; #149 already-done; 4-index UNCHANGED | issue-validation | 2026-06-09 |
 | D-532 | SESSION-END DURABILITY BURST 2026-06-08 — (a) D-430(a) compaction: Phase Progress F5 pass-9..17 adversary+fix-burst rows (20 rows) archived; banner tracker pre-D-520 entries (D-504..D-519, 16 entries) archived; Decisions Log D-499..D-509 (11 rows) archived; all content preserved at git show 688dd1c2:.factory/STATE.md; (b) Session Resume Checkpoint §1-§12 full refresh for zero-context resume on different machine; prior D-531 checkpoint archived to session-checkpoints.md per POLICY 1; (c) 2 new follow-up candidates captured in §12 + Drift Items: (i) test_F_P2_001 timing flake (darwin-x64 3761ms vs 3000ms; same class as TD #67/F-P3-008; de-flake candidate) + (ii) O-PASS16-002 validate-trajectory-tail-cell-completeness header stale doc-comment cosmetic cleanup; (d) burst-log D-532 h2 entry with 4 Dim blocks; (e) lessons: L-session-2026-06-08-session-end-durability; (f) D-chain cite D-531 per D-419(b); parent-commit b12756e2 per D-419(b); (g) 4-index UNCHANGED: BC-INDEX v2.65 VP-INDEX v2.06 STORY-INDEX v3.84 ARCH-INDEX v2.16. See decision-log.md SoT. | session-end durability burst; compaction; zero-context resume ready; 4-index UNCHANGED | session-end-durability | 2026-06-08 |
 | D-531 | E-10 CASCADE SEALED 2026-06-01 — ASYMPTOTIC-ACCEPTANCE PER D-471 + D-386 OPTION C (D-chain cites D-530): pass-16 verdict LOW (0C+0H+0M+3L); 16-pass trend ends at 3; F-PASS15-001/002/004 VERIFIED-HELD; S-15.17 hook CLEAN; F-PASS16-002 FIXED PR #168 82163b7f (derived count; self-maintaining); F-PASS16-001+003 ACCEPTED-AT-FLOOR; S-7.02 SATISFIED (no open process-gaps; no follow-up story needed); milestone lesson L-E10-cascade-SEAL-16-pass captured; resumption gate = engine-surface material change; parent-commit 1f6095e2 per D-419(b); 4-index UNCHANGED: BC-INDEX v2.65 VP-INDEX v2.06 STORY-INDEX v3.84 ARCH-INDEX v2.16. See decision-log.md SoT. | E-10 cascade SEALED pass-16 asymptotic-acceptance D-471+D-386-Option-C; S-7.02 SATISFIED; 4-index UNCHANGED; resumption gate = engine-surface material change | e10-cascade-seal | 2026-06-01 |
 | D-530 | E-10 PASS-16 ADVERSARY + FIX-BURST COMPLETE 2026-06-01 — verdict LOW (0C+0H+0M+3L); trend 8→3; F-PASS16-002 [process-gap] CI-count-floor FIXED PR #168 82163b7f (derived count; 3 ci.yml sites; self-maintaining); F-PASS16-001+003 ACCEPTED-AT-FLOOR per D-471; F-PASS15-001/002/004 closures VERIFIED; S-15.17 2248-line hook CLEAN; 4-index UNCHANGED: BC-INDEX v2.65 VP-INDEX v2.06 STORY-INDEX v3.84 ARCH-INDEX v2.16. See decision-log.md SoT. | E-10 pass-16 LOW verdict; F-PASS16-002 FIXED PR #168; 4-index UNCHANGED | e10-pass-16 | 2026-06-01 |
@@ -341,9 +343,9 @@ Prior Tier-A (pre-session, all COMPLETE): TD #71/72/70/74 (PRs #138–141) + S-1
 8. **F5 PAUSED** — trajectory →9→9→9→11. Do NOT resume F5 without explicit human direction.
 9. **RC.20 SHIPPED D-528 (2026-06-01):** run 26738809372 all 6 PASS; tag e9e38286; main 2a191314; marketplace #12; plugin 52→53; operator cache updated.
 10. **ALL dispatches carry these non-negotiables:** TD-VSDD-097-EXT (all 5 BC-5.39.006 PCs in current_step:) + TD-VSDD-099 (4 Dim blocks in burst-log) + TD-VSDD-100 (production artifact read, no synthetic echo) + POLICY 14 5-leg quintuple parity + verification_step 7 4-index gate + INV-019 cure (a)/(b)/(c) in changelog rows + adversary must grep origin/factory-artifacts (not stale local main) + D-449(a) literal-shell all Dim-2 gates (no pseudocode) + POLICY 8 v1.3 bidirectional AC↔PC parity + audit-block-exclusion + EC-mirror routing-rule + POLICY 5 v1.3.1 SDK-grounding stable-anchor mandate + POLICY 5 v1.3.4 literal-shell VERIFICATION GATE + POLICY 5 v1.3.5 historical-by-construction enumeration (5 forms only) + POLICY 5 v1.3.6 HEAD-reproducibility + structural-form-only + snapshot-rescue detection.
-11. **All caught up.** Next decision is D-533. Options: F5 pass-76 (PAUSED, needs human) OR forward proposals (UNI-PLUG-001 + SK-MCP-001 REVIEW-READY) OR wind down.
+11. **All caught up.** Next decision is D-534. Options: F5 pass-76 (PAUSED, needs human) OR forward proposals (UNI-PLUG-001 + SK-MCP-001 REVIEW-READY) OR validated-backlog bugs #128/#130 (ship-ready) OR wind down.
 
-### §12. Pending Work Items — Strict Engine-Discipline Ordering (refreshed 2026-06-08 post-D-532)
+### §12. Pending Work Items — Strict Engine-Discipline Ordering (refreshed 2026-06-09 post-D-533)
 
 | Step | Item | Tier | Gate | Status / Scope |
 |------|------|------|------|---------------|
@@ -370,7 +372,26 @@ Prior Tier-A (pre-session, all COMPLETE): TD #71/72/70/74 (PRs #138–141) + S-1
 | **6** | **UNI-PLUG-001 implementation** | **forward** | human-authorize | **PROPOSAL REVIEW-READY** |
 | **7** | **SK-MCP-001 implementation** | **forward** | (6) Tier 1 done | **PROPOSAL REVIEW-READY** |
 
-**RECOMMENDED ACTIVE NEXT (per human direction):** F5 pass-76 (needs explicit human direction; PAUSED per D-386 Option C) OR UNI-PLUG-001/SK-MCP-001 forward proposals (REVIEW-READY) OR wind-down. E-10 cascade SEALED D-531 2026-06-01.
+### Validated GitHub-Issue Backlog (2026-06-09 sweep — D-533)
+
+Research cached at `.factory/research/issues/issue-<N>.md`; full triage at `.factory/research/issues/INDEX.md`.
+
+| Cluster | Issues | Verdict |
+|---------|--------|---------|
+| Bug: PR-lifecycle | #128 pr-manager branch-deletion verify | VALID-NEW |
+| Bug: dispatcher | #130 `.factory/.factory/` log shadow | VALID-PARTIAL |
+| Worktree-identity (fix together) | #169 stale-spec sub-agents + #176 adv-review preflight | VALID-NEW×2 |
+| State durability/concurrency (#170→#173→#171) | #170 factory lock/lease + #173 wave-checkpoint + #171 deferred-revalidate | VALID-NEW×3 |
+| Runtime enforcement (#162 umbrella + #133/#177) | #162 orchestrator enforcement + #133 intra-phase adversary + #177 hollow-demo | VALID-NEW/PARTIAL |
+| Consistency/citation (ship together) | #151 drift checker + #131 URL/path coherence | VALID-PARTIAL/NEW |
+| Pre-Phase-3 gate | #150 uncertainty-removal/self-containment | VALID-PARTIAL |
+| Canonicalization | #129 canonical-principle in shipped plugin | VALID-NEW |
+| Demo-evidence routing | #172 route demo evidence → factory-artifacts | VALID-NEW |
+| Doc governance | #174 CLAUDE.md health-check | VALID-NEW |
+| Activate | #175 version-drift block hook | VALID-PARTIAL |
+| **ALREADY-DONE** | **#149 OTEL telemetry — recommend GitHub close** (claude-telemetry/factory-obs/onboard-observability already ship this) | ALREADY-DONE |
+
+**RECOMMENDED ACTIVE NEXT (per human direction):** F5 pass-76 (needs explicit human direction; PAUSED per D-386 Option C) OR UNI-PLUG-001/SK-MCP-001 forward proposals (REVIEW-READY) OR begin validated backlog (bugs #128/#130 are ship-ready; worktree-identity #169+#176 are coupled). E-10 cascade SEALED D-531 2026-06-01.
 
 **Track-independent:** E-9 W-16 Tier 2 + E-11 W-17 Tier 3 + verify-git-push.sh + S-10.08 + S-11.00.
 
