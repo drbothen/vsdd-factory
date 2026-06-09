@@ -257,9 +257,13 @@ Agent(subagent_type="vsdd-factory:github-ops", prompt="cd <project-path> && gh p
 ```
 
 - If `state == MERGED` — proceed to Step 8b.
-- If `state != MERGED` (queued, open, or pending) — do NOT attempt force-delete.
-  A merge queue is still in-flight; deleting the branch now would break the queue run.
-  Wait for the state to reach MERGED before continuing.
+- If `state == CLOSED` — the PR was closed without merging; abort Step 8 and surface a
+  clear BLOCKED note. Do NOT attempt branch deletion.
+- If `state != MERGED` and `state != CLOSED` (queued, open, or pending) — do NOT attempt
+  force-delete. A merge queue is still in-flight; deleting the branch now would break the
+  queue run. Poll every ~30 seconds, up to 10 attempts (total ~5 minutes). If state is
+  still not MERGED after 10 attempts, abort Step 8 and emit a clear BLOCKED note — never
+  hot-loop or wait indefinitely.
 
 **Step 8b — Fork / cross-repo guard.**
 Dispatch github-ops to determine whether the PR head branch is on a fork:
@@ -291,6 +295,11 @@ Interpret the result:
   re-checks and re-check up to 3 times (bounded retry) to absorb GitHub's own
   queued/async deletion before taking action. If still present after 3 re-checks
   (each separated by a 5–10 second wait), proceed to force-delete.
+- **Any other non-zero exit code (e.g. exit 128 — network failure, auth error, or
+  bad repository)** — treat as an error, NOT as "deleted". Retry the ls-remote check
+  up to 2 times with a brief wait between attempts; if the unexpected non-zero exit
+  persists, surface a clear failure note and abort the deletion verification. Do NOT
+  proceed as if the branch is gone.
 
 **Step 8d — Force-delete (only if ls-remote still shows branch after bounded retry).**
 Dispatch github-ops to force-delete:
@@ -306,14 +315,25 @@ also success; branch was deleted concurrently between the ls-remote check and th
 
 If deletion is rejected due to branch-protection rules or insufficient permissions,
 LOG A WARNING and PROCEED — do not dead-end the delivery. The branch-leak is surfaced
-in the STEP_COMPLETE note, but branch protection rejection is not fatal to the workflow.
+in the STEP_COMPLETE note, but branch-protection rejection is not fatal to the workflow.
 
-Do NOT emit `STEP_COMPLETE: step=8` until the ls-remote exact-ref check returns exit code 2
-(branch confirmed deleted), or the fork guard determined deletion verification is not
-applicable for this cross-repository PR.
+Emit `STEP_COMPLETE: step=8` when ANY of the following conditions is true:
+(a) the ls-remote exact-ref check returns exit code 2 (branch confirmed deleted),
+(b) deletion was rejected by branch-protection rules or insufficient permissions
+    (warn-and-proceed — the warning has been logged and delivery continues), or
+(c) the fork guard determined origin verification is not applicable (cross-repo PR).
 
-After completing this step, emit:
-`STEP_COMPLETE: step=8 name=execute-merge status=ok note=PR #<N> merged; remote branch confirmed deleted via ls-remote`
+Set the STEP_COMPLETE note dynamically to reflect the actual deletion outcome:
+
+After completing this step, emit one of:
+- `STEP_COMPLETE: step=8 name=execute-merge status=ok note=PR #<N> merged; remote branch confirmed deleted via ls-remote`
+- `STEP_COMPLETE: step=8 name=execute-merge status=ok note=PR #<N> merged; branch-deletion skipped — cross-repository (fork) PR, origin verification not applicable`
+- `STEP_COMPLETE: step=8 name=execute-merge status=ok note=PR #<N> merged; branch-deletion-warning — protection-rejected-warning, branch may still exist on remote`
+
+Choose the note that reflects the actual <deletion-outcome>: deleted / skipped-fork /
+protection-rejected-warning. Do NOT hardcode the "confirmed deleted" wording when the
+actual outcome was different.
+
 **Proceed immediately to step 9.**
 
 ### Step 9: Post-merge

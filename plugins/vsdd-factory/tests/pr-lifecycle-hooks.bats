@@ -412,3 +412,75 @@ EOF
   [ "$status" -eq 0 ]
 }
 
+# ========================================================================
+# pr-manager Step 8 third-pass hardening (issue #128 round 3)
+# ========================================================================
+# RED GATE: these tests MUST fail against the unmodified pr-manager.md
+# before the Step (Green) fixes are applied.
+
+@test "pr-manager step-8: completion gate admits branch-protection-rejected case" {
+  # Fix 1 (HIGH): The STEP_COMPLETE gate must allow emission when deletion was
+  # rejected by branch-protection or permissions (warn-and-proceed case).
+  # The gate line must include all three conditions: (a) ls-remote exit 2
+  # (deleted), (b) branch-protection/permission rejection (warn-and-proceed),
+  # (c) fork guard skipped (cross-repo). A gate that only lists (a) and (c)
+  # creates a deadlock: the branch still exists → ls-remote returns 0 → gate
+  # never fires → STEP_COMPLETE is never emitted.
+  local file="$PLUGIN_ROOT/agents/pr-manager.md"
+  # The completion-gate sentence must reference branch-protection or permission
+  # rejection as an allowed emission condition alongside ls-remote exit 2.
+  run grep -iE 'protection.*rejected|rejected.*protection|permission.*rejected|rejected.*permission|branch.protection.*proceed|warn.and.proceed' "$file"
+  [ "$status" -eq 0 ]
+  # Crucially the three-way OR must be in the gate itself — verify the gate
+  # sentence references all three completion paths.
+  run grep -iE 'STEP_COMPLETE.*step=8.*(fork|cross|protection|permission|warn)|fork.*STEP_COMPLETE.*step=8|protection.*STEP_COMPLETE.*step=8' "$file"
+  [ "$status" -eq 0 ]
+}
+
+@test "pr-manager step-8: merge-queue wait is bounded with explicit poll interval" {
+  # Fix 2 (MEDIUM): Step 8a must specify a poll interval (e.g. ~30 seconds)
+  # and a maximum attempt count (e.g. up to 10 attempts) when waiting for
+  # state == MERGED. An unbounded "wait" hot-loops or hangs forever; the
+  # agent needs explicit numbers to know when to give up.
+  local file="$PLUGIN_ROOT/agents/pr-manager.md"
+  # Must include a numeric poll-interval instruction near the wait-for-MERGED prose.
+  run grep -iE '(poll|check|wait).*every.*(second|minute|[0-9]+s)|every.*(second|minute|[0-9]+s).*(poll|check|wait)|30.second|30s' "$file"
+  [ "$status" -eq 0 ]
+  # Must include a maximum attempt count or timeout.
+  run grep -iE 'up to.*(attempt|poll|check|time)|max.*(attempt|poll|check)|(attempt|poll|check).*max|[0-9]+.attempt' "$file"
+  [ "$status" -eq 0 ]
+}
+
+@test "pr-manager step-8: merge-queue wait FAILS on CLOSED state" {
+  # Fix 2 (MEDIUM): If the PR reaches CLOSED (rather than MERGED) the agent
+  # must abort — not continue polling. The playbook must explicitly name
+  # CLOSED as a terminal failure condition in Step 8a.
+  local file="$PLUGIN_ROOT/agents/pr-manager.md"
+  run grep -iE 'CLOSED.*(fail|abort|stop|halt|error)|state.*CLOSED.*(fail|abort)|CLOSED.*terminal' "$file"
+  [ "$status" -eq 0 ]
+}
+
+@test "pr-manager step-8: STEP_COMPLETE note is dynamic not hardcoded" {
+  # Fix 3 (LOW): The STEP_COMPLETE note must reflect the actual outcome:
+  # "deleted" / "skipped-fork" / "protection-rejected-warning". A static
+  # string that always says "confirmed deleted via ls-remote" is incorrect
+  # when deletion was skipped (fork) or rejected (branch protection).
+  local file="$PLUGIN_ROOT/agents/pr-manager.md"
+  # The note template must include a dynamic/variable placeholder or
+  # conditional phrasing rather than a single hardcoded string.
+  # Accept: angle-bracket placeholders, OR explicit conditional note phrasing.
+  run grep -iE 'note=.*<outcome>|note=.*<result>|note=.*<deletion.outcome>|deletion.outcome|actual outcome|reflect.*actual|dynamic.*note' "$file"
+  [ "$status" -eq 0 ]
+}
+
+@test "pr-manager step-8: unexpected ls-remote exit codes treated as errors not success" {
+  # Fix 4 (LOW): Step 8c handles exit 0 and exit 2 only. Exit 128 (network
+  # failure, auth error, or bad repository) must be treated as an error
+  # requiring retry then surface — NOT silently treated as "deleted" (exit 2).
+  # The playbook must explicitly instruct the agent about unexpected non-zero
+  # exit codes from git ls-remote.
+  local file="$PLUGIN_ROOT/agents/pr-manager.md"
+  # Must mention exit 128 or "unexpected" / "non-zero" exit handling near ls-remote.
+  run grep -iE 'exit.?(code.)?(128|unexpected|other)|unexpected.*(exit|non.zero)|non.zero.*unexpected|network.*fail|auth.*fail|ls.remote.*error|error.*ls.remote' "$file"
+  [ "$status" -eq 0 ]
+}
