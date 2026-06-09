@@ -127,9 +127,15 @@ Max 10 review cycles:
 
 ### Step 10: Merge and Cleanup
 
-pr-manager spawns github-ops to merge, then orchestrator spawns devops-engineer and state-manager for cleanup:
+pr-manager spawns github-ops to merge, then verifies remote branch deletion,
+then orchestrator spawns devops-engineer and state-manager for cleanup:
 ```
 github-ops: "cd <project-path> && gh pr merge --squash --delete-branch"
+# Post-merge: verify branch is actually deleted — --delete-branch is async
+# (not guaranteed under merge queues; see cli/cli#9073).
+github-ops: "cd <project-path> && git ls-remote origin refs/heads/<branch>"
+# Empty output → deleted. Non-empty → bounded retry (up to 3 re-checks),
+# then force-delete: git push origin --delete <branch> and re-verify.
 devops-engineer: "cd <project-path> && git worktree remove .worktrees/FIX-P[phase]-NNN"
 state-manager: "Update STATE.md with FIX-P[phase]-NNN completion — merge status, PR number, timestamp"
 ```

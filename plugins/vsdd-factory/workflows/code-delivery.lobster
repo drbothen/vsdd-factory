@@ -410,6 +410,11 @@ workflow:
       depends_on: [dependency-merge-check]
       task: >
         Merge PR via github-ops: gh pr merge --squash --delete-branch.
+        After merge, verify remote branch deletion via github-ops:
+        git ls-remote origin refs/heads/<branch> must return empty before
+        marking merge complete. If non-empty, bounded retry (up to 3 re-checks)
+        to absorb GitHub async deletion, then force-delete via
+        git push origin --delete <branch> and re-verify (idempotent).
         Read .factory/merge-config.yaml for autonomy level.
         Level 3: label for human review.
         Level 3.5: auto-merge low-risk, label medium/high.

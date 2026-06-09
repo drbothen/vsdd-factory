@@ -240,3 +240,99 @@ EOF
   [[ "$output" == *"WARNING"* ]]
 }
 
+# ========================================================================
+# pr-manager Step 8 remote-branch-deletion verification (issue #128)
+# ========================================================================
+# These are prompt-contract tests: they assert that the pr-manager.md
+# playbook prose contains the required post-merge ls-remote verification
+# block and that STEP_COMPLETE: step=8 is gated on empty ls-remote output.
+# They MUST fail against the unmodified pr-manager.md (RED gate).
+
+@test "pr-manager step-8: contains git ls-remote branch-deletion verification" {
+  # pr-manager Step 8 must dispatch a git ls-remote check after the merge
+  # to verify the remote branch is actually gone (not just requested).
+  # Root cause: gh pr merge --delete-branch exit 0 is async (cli/cli#9073).
+  local file="$PLUGIN_ROOT/agents/pr-manager.md"
+  run grep -F 'git ls-remote' "$file"
+  [ "$status" -eq 0 ]
+}
+
+@test "pr-manager step-8: ls-remote check targets refs/heads/ namespace" {
+  # The verification must use the full refs/heads/<branch> path so it
+  # targets the remote tracking ref, not tags or other refs.
+  local file="$PLUGIN_ROOT/agents/pr-manager.md"
+  run grep -F 'refs/heads/' "$file"
+  [ "$status" -eq 0 ]
+}
+
+@test "pr-manager step-8: STEP_COMPLETE step=8 gated on ls-remote empty" {
+  # STEP_COMPLETE: step=8 must NOT be emitted until ls-remote returns empty.
+  # Verify that the file documents that the gate condition is ls-remote
+  # returning empty (branch deleted) before the step=8 completion signal.
+  local file="$PLUGIN_ROOT/agents/pr-manager.md"
+  # The playbook must mention that STEP_COMPLETE is gated on the ls-remote
+  # verification confirming the branch is gone.
+  run grep -E 'ls-remote.*empty|empty.*ls-remote|ls-remote.*deleted|deleted.*ls-remote|STEP_COMPLETE.*step=8.*ls-remote|ls-remote.*STEP_COMPLETE' "$file"
+  [ "$status" -eq 0 ]
+}
+
+@test "pr-manager step-8: includes force-delete fallback via github-ops" {
+  # If ls-remote is non-empty after the bounded retry, pr-manager must
+  # dispatch github-ops to force-delete: git push origin --delete <branch>.
+  local file="$PLUGIN_ROOT/agents/pr-manager.md"
+  run grep -F 'push origin --delete' "$file"
+  [ "$status" -eq 0 ]
+}
+
+@test "pr-manager step-8: bounded retry before force-delete" {
+  # The verification must include a bounded retry (not an infinite loop)
+  # to absorb GitHub's own queued/async deletion before force-deleting.
+  # The retry must be in the context of the branch-deletion verification,
+  # so we check for the combination of ls-remote and retry/bounded language.
+  local file="$PLUGIN_ROOT/agents/pr-manager.md"
+  # ls-remote must appear (from earlier test), and there must be a bounded
+  # retry described in the step-8 block (cap/up to 3/bounded/retry N times).
+  run grep -E 'up to.*[0-9].*time|[0-9].*time.*retry|bounded retry|retry.*up to|cap.*retr' "$file"
+  [ "$status" -eq 0 ]
+}
+
+@test "pr-manager step-9: post-merge wording reflects verified deletion" {
+  # Step 9 wording must say the remote branch is *verified* deleted,
+  # not merely assumed deleted by --delete-branch.
+  local file="$PLUGIN_ROOT/agents/pr-manager.md"
+  run grep -E 'verified|confirmed|ls-remote' "$file"
+  [ "$status" -eq 0 ]
+}
+
+@test "code-delivery skill: remote branch deletion uses ls-remote verification" {
+  # skills/code-delivery/SKILL.md Step 10 must not claim --delete-branch
+  # alone handles deletion; it must document the ls-remote verify step.
+  local file="$PLUGIN_ROOT/skills/code-delivery/SKILL.md"
+  run grep -F 'git ls-remote' "$file"
+  [ "$status" -eq 0 ]
+}
+
+@test "fix-pr-delivery skill: merge step includes ls-remote verification" {
+  # skills/fix-pr-delivery/SKILL.md merge step must include the post-merge
+  # ls-remote verification note (sibling-sweep TD-VSDD-060).
+  local file="$PLUGIN_ROOT/skills/fix-pr-delivery/SKILL.md"
+  run grep -F 'git ls-remote' "$file"
+  [ "$status" -eq 0 ]
+}
+
+@test "code-delivery workflow: merge step includes ls-remote verification" {
+  # workflows/code-delivery.lobster merge-pr task must include the
+  # ls-remote verify-and-reconcile clause (sibling-sweep TD-VSDD-060).
+  local file="$PLUGIN_ROOT/workflows/code-delivery.lobster"
+  run grep -F 'ls-remote' "$file"
+  [ "$status" -eq 0 ]
+}
+
+@test "greenfield workflow: merge step includes ls-remote verification" {
+  # workflows/greenfield.lobster merge-pr task must include the
+  # ls-remote verify-and-reconcile clause (sibling-sweep TD-VSDD-060).
+  local file="$PLUGIN_ROOT/workflows/greenfield.lobster"
+  run grep -F 'ls-remote' "$file"
+  [ "$status" -eq 0 ]
+}
+

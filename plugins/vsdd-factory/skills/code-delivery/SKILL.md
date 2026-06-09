@@ -187,7 +187,11 @@ Agent(subagent_type="vsdd-factory:github-ops", prompt="cd <project-path> && gh p
 
 After successful merge (delegated to devops-engineer):
 
-1. Remote branch deleted (`--delete-branch` handles this)
+1. Remote branch deletion verified: `--delete-branch` only *requests* deletion
+   (async; not guaranteed under merge queues — cli/cli#9073). Confirm via
+   `git ls-remote origin refs/heads/<branch>` returning empty. If non-empty,
+   dispatch github-ops to `git push origin --delete <branch>` and re-verify
+   (idempotent — already-gone/404 is success).
 2. Remove local worktree: `git worktree remove .worktrees/STORY-NNN`
 3. Update `.factory/STATE.md` with merge status, PR number, and timestamp
 4. Write delivery report to `.factory/code-delivery/STORY-NNN/delivery.md`

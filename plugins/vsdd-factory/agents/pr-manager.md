@@ -242,15 +242,44 @@ Read `.factory/merge-config.yaml` for autonomy level:
 - **Level 4:** Auto-merge if CI passes
 
 After github-ops returns, YOU must verify the merge succeeded.
-Do NOT treat the sub-agent's response as terminal. Continue immediately to step 9.
+Do NOT treat the sub-agent's response as terminal.
+
+**Verify remote branch deletion** — `gh pr merge --delete-branch` only *requests*
+deletion; it is asynchronous and not guaranteed (especially under merge queues,
+see cli/cli#9073). You MUST verify the branch is actually gone before emitting
+STEP_COMPLETE for step 8. Dispatch github-ops to check:
+
+```
+Agent(subagent_type="vsdd-factory:github-ops", prompt="cd <project-path> && git ls-remote origin refs/heads/<branch-name>")
+```
+
+Interpret the result:
+- **Empty output** — branch deleted; proceed.
+- **Non-empty output** — branch still exists; re-check up to 3 times (bounded retry)
+  to absorb GitHub's own queued/async deletion before taking action. If still
+  non-empty after 3 re-checks, dispatch github-ops to force-delete and re-verify:
+
+  ```
+  Agent(subagent_type="vsdd-factory:github-ops", prompt="cd <project-path> && git push origin --delete <branch-name>")
+  ```
+
+  After the force-delete, re-run the `git ls-remote origin refs/heads/<branch-name>`
+  check. Empty output confirms deletion (idempotent — a 404/already-gone is also
+  success). If deletion is blocked by branch protection rules, emit a BLOCKED note
+  with the reason rather than looping further.
+
+Do NOT emit `STEP_COMPLETE: step=8` until `git ls-remote origin refs/heads/<branch-name>`
+returns empty (branch confirmed deleted).
 
 After completing this step, emit:
-`STEP_COMPLETE: step=8 name=execute-merge status=ok note=PR #<N> merged`
+`STEP_COMPLETE: step=8 name=execute-merge status=ok note=PR #<N> merged; remote branch confirmed deleted via ls-remote`
 **Proceed immediately to step 9.**
 
 ### Step 9: Post-merge
 
-Trigger worktree cleanup and state updates. Compile the final deliverables report.
+Trigger worktree cleanup and state updates. The remote feature branch has been
+verified deleted (confirmed by ls-remote returning empty in step 8). Compile
+the final deliverables report.
 
 After completing this step, emit:
 `STEP_COMPLETE: step=9 name=post-merge status=ok note=cleanup complete`
