@@ -6000,4 +6000,4 @@ $ wc -l /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md
 
 - `688dd1c2` — state(D-531): finalize burst-log — record SHA-patch SHA b066da72 (parent commit; factory-artifacts HEAD pre-this-burst)
 - `659f039e` — state(D-532): SESSION-END DURABILITY BURST; D-430(a) compaction; §1-§12 checkpoint refresh; 4-index UNCHANGED (primary burst per TD-VSDD-053)
-- `[D-532 SHA-patch SHA — fill after SHA-patch commit]` — state(D-532): SHA-patch — record primary commit SHA 659f039e in STATE.md + burst-log per D-447(c)+D-449(e)
+- `f671ca50` — state(D-532): SHA-patch — record primary commit SHA 659f039e in STATE.md + burst-log per D-447(c)+D-449(e)
