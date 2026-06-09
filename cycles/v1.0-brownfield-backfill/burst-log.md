@@ -5905,3 +5905,99 @@ $ ls -d /Users/jmagady/Dev/vsdd-factory/crates/hook-plugins/*/ | wc -l
 - `4cdf18bd` — state(D-530): finalize factory-artifacts HEAD SHA 1f6095e2 in STATE.md Active Branches + §9 (parent commit; factory-artifacts HEAD pre-this-burst)
 - `b12756e2` — state(D-531): E-10 cascade SEALED asymptotic-acceptance pass-16 D-471+D-386-Option-C; 4-index UNCHANGED (primary burst per TD-VSDD-053)
 - `b066da72` — state(D-531): SHA-patch — record primary commit SHA b12756e2 in STATE.md + burst-log per D-447(c)+D-449(e)
+
+## D-532 — SESSION-END DURABILITY BURST COMPLETE 2026-06-08
+
+**Parent-commit:** `688dd1c2` (state(D-531): finalize burst-log — record SHA-patch SHA b066da72 per D-447(c)+D-449(e))
+
+**Adversary verdict:** No adversary pass this burst. SESSION-END DURABILITY BURST only. Prior adversary: D-531 seal — E-10 CASCADE SEALED pass-16 asymptotic-acceptance per D-471+D-386 Option C; 16-pass trend ends LOW (0C+0H+0M+3L); S-7.02 SATISFIED. No open process-gaps. Resumption gate = engine-surface material change.
+
+**Files touched:**
+- `.factory/STATE.md` — frontmatter advance (phase/current_step/timestamp/last_amended); D-430(a) compaction (F5 pass-9..17 Phase Progress rows archived, banner tracker pre-D-520 archived, Decisions Log D-499..D-509 archived); Phase Progress +D-532 row; Decisions Log +D-532 row; Concurrent Cycles D-532 update; Active Branches factory-artifacts placeholder; Session Resume Checkpoint §1-§12 full refresh; banner tracker +D-532 entry with wc-l 379; Last Updated + Current Phase advance; 2 follow-up candidates added to §12 + Drift Items.
+- `.factory/cycles/v1.0-brownfield-backfill/session-checkpoints.md` — D-531 checkpoint archived per POLICY 1.
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — D-532 h2 entry (this entry).
+
+**Codifications:** D-532 SESSION-END DURABILITY BURST; L-session-2026-06-08-session-end-durability; 2 follow-up candidates captured (test_F_P2_001 timing flake FLAKE-001 + O-PASS16-002 stale header COSMETIC-001).
+
+### Dim-2 Literal-Shell PC Attestation (TD-VSDD-100 / D-449(a))
+
+Reads production `.factory/STATE.md` — no synthetic echo/printf:
+
+```
+$ grep "^current_step:" /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md | head -1
+current_step: "D-532 SESSION-END-DURABILITY-BURST-ZERO-CONTEXT-RESUME-READY 2026-06-08 — rc.20 SHIPPED D-528 (2026-06-01; run 26738809372; tag e9e38286; main 2a191314); POST-RC.20 MAINTENANCE-SWEEP COMPLETE D-529 (td-74 removed; #3+#156+#157 MERGED; zero open PRs; develop b21fd358); E-10 PASS-16 COMPLETE D-530 (verdict LOW 0C+0H+0M+3L; trend 8→3; F-PASS16-002 FIXED PR #168 82163b7f; develop 82163b7f); E-10 CASCADE SEALED D-531 (asymptotic-acceptance D-471+D-386 Option C; S-7.02 SATISFIED); D-532 SESSION-END DURABILITY BURST COMPLETE (D-430(a) compaction; Session Resume Checkpoint §1-§12 refreshed; 2 follow-up candidates captured); BC-INDEX v2.65 UNCHANGED; VP-INDEX v2.06 UNCHANGED; STORY-INDEX v3.84 UNCHANGED; ARCH-INDEX v2.16 UNCHANGED; trajectory-tail →9→9→9→11; maintain all 5 BC-5.39.006 v1.7 PCs per TD-VSDD-097-EXT; D-chain cite D-531 per D-419(b); parent-commit b12756e2 per D-419(b); factory-artifacts HEAD updated to D-532 burst SHA per D-447(c)+D-449(e). SIZE BUDGET: (wc-l; see banner tracker)"
+```
+
+PC2 — trajectory-tail verification:
+```
+$ grep "^current_step:" /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md | grep -oE "trajectory-tail [→0-9]+"
+trajectory-tail →9→9→9→11
+```
+PC2 ✓ (trajectory-tail →9→9→9→11 present)
+
+PC4 — LENGTH=4 segment count:
+```
+$ grep "^current_step:" /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md | grep -oE "trajectory-tail (→[0-9]+)+" | grep -oE "→[0-9]+" | wc -l
+       4
+```
+PC4 ✓ (4 segments confirmed)
+
+PC5 — D-chain citation:
+current_step cites `D-chain cite D-531 per D-419(b)` ✓ (D-531 is prior burst; correct D-419(b) parent-commit convention)
+
+PC3 — 4-index all UNCHANGED:
+current_step contains `BC-INDEX v2.65 UNCHANGED; VP-INDEX v2.06 UNCHANGED; STORY-INDEX v3.84 UNCHANGED; ARCH-INDEX v2.16 UNCHANGED` ✓
+
+PC6 (verify_step 7) — develop HEAD anchor:
+```
+$ git rev-parse --short origin/develop
+82163b7f
+```
+PC6 ✓ (develop HEAD 82163b7f matches current_step reference)
+
+### Dim-5 Factory-Artifacts Chain
+
+```
+$ git -C /Users/jmagady/Dev/vsdd-factory/.factory log -3 --format='%H %s'
+688dd1c2540f184af30d23dbd0d1f9afa227277c state(D-531): finalize burst-log — record SHA-patch SHA b066da72 per D-447(c)+D-449(e)
+b066da721279a5ddd2d4a45e4c86f0b080d433d9 state(D-531): SHA-patch — record primary commit b12756e2 in STATE.md + burst-log per D-447(c)+D-449(e)
+b12756e20ac3fdcaf89879985738eba2ea2344fa state(D-531): E-10 cascade SEALED asymptotic-acceptance pass-16 D-471+D-386-Option-C; 4-index UNCHANGED
+```
+
+factory-artifacts HEAD pre-burst: `688dd1c2` (D-531 finalize burst-log)
+
+### Dim-6 Literal-Shell Count (TD-VSDD-099)
+
+```
+$ ls -d /Users/jmagady/Dev/vsdd-factory/crates/hook-plugins/*/ | wc -l
+      28
+```
+
+28 hook-plugin crates (UNCHANGED — no new crates this durability burst). 4-index UNCHANGED; no version bumps this burst.
+
+STATE.md line count after compaction:
+```
+$ wc -l /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md
+     379 /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md
+```
+
+379 lines — 36 UNDER soft-target of 415; 121 from hard cap of 500. D-430(a) compaction successful.
+
+### Dim-7 Attestation (Closes / Advances)
+
+**Codifications:** D-532 SESSION-END DURABILITY BURST; L-session-2026-06-08-session-end-durability lesson captured; 2 follow-up candidates FLAKE-001 (test_F_P2_001 timing flake) + COSMETIC-001 (O-PASS16-002 stale header) recorded for durability.
+
+**Closes:**
+- D-532 durability burst goal: zero-context resume on a different machine must be possible from STATE.md alone. SATISFIED.
+- POLICY 1 checkpoint archive: D-531 checkpoint archived to session-checkpoints.md.
+- D-430(a) compaction mandate: STATE.md was at 488 lines (12 from hard cap); compacted to 379 lines.
+
+**Advances:** Forward options (per human direction): (a) F5 pass-76 (PAUSED per D-386 Option C; needs explicit human direction) OR (b) UNI-PLUG-001/SK-MCP-001 forward proposals OR (c) wind-down. 4-index UNCHANGED (BC v2.65/VP v2.06/STORY v3.84/ARCH v2.16).
+
+**Trajectory:** →9→9→9→11 (UNCHANGED — durability burst; no adversary pass; carry per D-433(e)+D-439(c))
+
+### Factory-artifacts Commits
+
+- `688dd1c2` — state(D-531): finalize burst-log — record SHA-patch SHA b066da72 (parent commit; factory-artifacts HEAD pre-this-burst)
+- `[D-532 primary SHA — fill after commit]` — state(D-532): SESSION-END DURABILITY BURST; D-430(a) compaction; §1-§12 checkpoint refresh; 4-index UNCHANGED (primary burst per TD-VSDD-053)
+- `[D-532 SHA-patch SHA — fill after SHA-patch follow-up]` — state(D-532): SHA-patch — record primary commit SHA in STATE.md + burst-log per D-447(c)+D-449(e)

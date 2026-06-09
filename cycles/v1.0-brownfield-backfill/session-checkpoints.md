@@ -548,6 +548,20 @@ Key resume data:
 
 ---
 
+## Archived: D-531 E-10 CASCADE SEALED 2026-06-01 (superseded by D-532 SESSION-END DURABILITY BURST 2026-06-08)
+
+**§1 Summary:** E-10 CASCADE SEALED pass-16 asymptotic-acceptance per D-471+D-386 Option C. 16-pass trend ends 3 (LOW). F-PASS16-002 FIXED PR #168 82163b7f. S-7.02 SATISFIED. develop 82163b7f. No open PRs. Resumption gate = engine-surface material change. rc.20 SHIPPED (D-528). Maintenance sweep COMPLETE (D-529).
+**§2 Mode:** E-10 SEALED D-531; F5 PAUSED D-386 Option C (needs explicit human direction); S-15.14 SEALED D-477; S-15.17 SHIPPED D-526; S-15.03 PRIORITY-A COMPLETE D-508.
+**§8 4-index:** BC-INDEX v2.65 / VP-INDEX v2.06 / STORY-INDEX v3.84 / ARCH-INDEX v2.16 (all UNCHANGED).
+**§9 Anchors:**
+- develop HEAD: 82163b7f (D-530 E-10 pass-16 fix PR #168 2026-06-01)
+- main HEAD: 2a191314 (rc.20 bot binary commit 2026-06-01)
+- v1.0.0-rc.20 tag: e9e38286
+- factory-artifacts HEAD: b12756e2 (D-531 primary; SHA-patch follow-up per D-447(c)+D-449(e))
+- D-range: D-001..D-531
+**§10 PR Status:** Zero open PRs. PR #168 MERGED. Marketplace #12 MERGED.
+**§12 Next:** F5 pass-76 (PAUSED, needs human) OR UNI-PLUG-001/SK-MCP-001 OR wind-down.
+
 ## Archived: D-526 S-15.17 SHIPPED 2026-05-31 (superseded by D-527 SESSION-END DURABILITY BURST)
 
 **§1 Summary:** S-15.17 SHIPPED (PR #164 9ed17b1d). BC-5.39.009 ACTIVE. ADV-EDP1-P75-HIGH-002 CLOSED. PR #163 (research-agent Perplexity bias) OPEN on develop (plugin-source effect post-release only). Clean milestone — no in-flight worktrees with active work.

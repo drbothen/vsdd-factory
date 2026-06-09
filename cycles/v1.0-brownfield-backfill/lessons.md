@@ -2897,3 +2897,25 @@ POLICY 14 description and verification_steps updated in policies.yaml same-burst
 **Cites:** D-531; D-471; D-386; D-477; D-522; D-509; D-530; PR #160 4b68ab83; PR #168 82163b7f.
 
 **Closes:** D-531 milestone lesson capture; E-10 cascade 16-pass asymptotic-acceptance SEAL. `[codified]`
+
+---
+
+### L-session-2026-06-08-session-end-durability
+
+**Category:** session-management + state-hygiene + durability-discipline
+
+**Lesson:** SESSION-END DURABILITY BURST following rc.20 SHIP + E-10 CASCADE SEAL at clean milestone. Four durability discipline points confirmed at D-532:
+
+(1) **D-430(a) compaction is load-bearing, not cosmetic** — STATE.md was at 488 lines (12 from hard cap) entering this burst. Compaction to 379 lines (36 under soft-target) restores the full 121-line headroom for future bursts. Every session-end burst at or above 450 lines should trigger compaction. The rule: archive Phase Progress rows older than 6 months of work OR compacted-marker rows; archive banner tracker entries older than 10 bursts; archive Decisions Log rows older than 20 decisions.
+
+(2) **Two follow-up candidates captured durably** — The session surfaced two minor items (test_F_P2_001 timing flake FLAKE-001; O-PASS16-002 stale header COSMETIC-001) that were observed but not fixed. Recording them explicitly in §12 Pending Work Items AND Drift Items ensures they are not lost across CLEAR. This is the correct production-grade default: either fix in-scope or record durably; never silently discard.
+
+(3) **Clean milestone is the ideal durability burst target** — Performing session-end durability after rc.20 SHIP + E-10 SEAL + maintenance sweep (zero open PRs, no in-flight worktrees) means the checkpoint §1-§12 is minimal and clean. No partially-resolved state to carry. Future sessions benefit maximally from clean milestone durability bursts.
+
+(4) **SHA-patch follow-up is a two-step atomic operation** — Primary commit sets all content except the factory-artifacts HEAD SHA (which isn't known yet). SHA-patch commit updates only the Active Branches factory-artifacts row and burst-log SHA placeholders. These two commits together constitute the single logical burst (per TD-VSDD-053 Single-Commit-Per-Burst — the SHA-patch is explicitly exempted as a follow-up, not a "second commit" in the prohibited sense).
+
+**Anchors:** D-532 (this burst); D-531 (E-10 CASCADE SEALED); D-528 (rc.20 SHIPPED); D-430(a) (compaction authorization).
+
+**Cites:** D-532; D-531; D-430(a); TD-VSDD-053; POLICY 1 (checkpoint archive).
+
+**Closes:** D-532 session-end durability lesson capture. `[codified]`
