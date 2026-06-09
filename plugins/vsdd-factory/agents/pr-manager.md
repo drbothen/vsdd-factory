@@ -242,15 +242,129 @@ Read `.factory/merge-config.yaml` for autonomy level:
 - **Level 4:** Auto-merge if CI passes
 
 After github-ops returns, YOU must verify the merge succeeded.
-Do NOT treat the sub-agent's response as terminal. Continue immediately to step 9.
+Do NOT treat the sub-agent's response as terminal.
 
-After completing this step, emit:
-`STEP_COMPLETE: step=8 name=execute-merge status=ok note=PR #<N> merged`
-**Proceed immediately to step 9.**
+**Verify remote branch deletion** — `gh pr merge --delete-branch` only *requests*
+deletion; it is asynchronous and not guaranteed (especially under merge queues,
+see cli/cli#9073). You MUST verify the branch is actually gone before emitting
+STEP_COMPLETE for step 8. Follow this sequence:
+
+**Step 8a — Confirm PR is MERGED (not just queued).**
+Dispatch github-ops to confirm the PR state before any branch-deletion work:
+
+```
+Agent(subagent_type="vsdd-factory:github-ops", prompt="cd <project-path> && gh pr view <PR_NUMBER> --json state,mergeStateStatus")
+```
+
+- If `state == MERGED` — proceed to Step 8b.
+- If `state == CLOSED` — the PR was closed without merging; abort Step 8 and surface a
+  clear BLOCKED note. Do NOT attempt branch deletion. **If Step 8 aborts for any reason
+  (CLOSED state or merge-queue timeout exceeded), the agent MUST HALT and do NOT proceed
+  to Step 9.** Step 9 is only for successfully merged PRs.
+- If `state != MERGED` and `state != CLOSED` (queued, open, or pending) — do NOT attempt
+  force-delete. A merge queue is still in-flight; deleting the branch now would break the
+  queue run. Poll every ~30 seconds, up to 10 attempts (total ~5 minutes). If state is
+  still not MERGED after 10 attempts, abort Step 8 and emit a clear BLOCKED note — never
+  hot-loop or wait indefinitely. **Abort must not proceed to Step 9.**
+
+**Step 8b — Fork / cross-repo guard.**
+Dispatch github-ops to determine whether the PR head branch is on a fork:
+
+```
+Agent(subagent_type="vsdd-factory:github-ops", prompt="cd <project-path> && gh pr view <PR_NUMBER> --json isCrossRepository,headRepositoryOwner,headRefName")
+```
+
+- If `isCrossRepository == true` — the branch lives on the contributor's fork remote,
+  not on `origin`. SKIP the `git ls-remote origin` verification and force-delete steps
+  entirely. Note in STEP_COMPLETE that branch lives on fork (cross-repository PR) and
+  deletion verification is not applicable for `origin`. Proceed to Step 9.
+- If `isCrossRepository == false` — continue to Step 8c.
+
+**Step 8c — ls-remote exact-ref verification.**
+Dispatch github-ops to check with an exact-ref match:
+
+```
+Agent(subagent_type="vsdd-factory:github-ops", prompt="cd <project-path> && git ls-remote --exit-code origin refs/heads/<branch-name>")
+```
+
+Use `--exit-code` so that exit code 2 means the ref is absent (deleted) and exit code 0
+means it is present. Additionally, parse stdout to confirm an exact-line match: the output
+must contain a line ending exactly in `<TAB>refs/heads/<branch-name>` (not a suffix variant
+like `refs/heads/<branch-name>-v2`). Do NOT rely solely on exit code or any non-empty
+output — `git ls-remote` performs prefix matching and could match
+`refs/heads/<branch-name>-suffix`.
+
+Interpret the result:
+- **Exit code 2 (ref absent)** — branch deleted; proceed to Step 9.
+- **Exit code 0 (ref present)** — branch still exists; wait 5–10 seconds between
+  re-checks and re-check up to 3 times (bounded retry) to absorb GitHub's own
+  queued/async deletion before taking action. If still present after 3 re-checks
+  (each separated by a 5–10 second wait), proceed to force-delete.
+- **Any other non-zero exit code (e.g. exit 128 — network failure, auth error, or
+  bad repository)** — treat as an error, NOT as "deleted". Retry the ls-remote check
+  up to 2 times with a brief wait between attempts; if the unexpected non-zero exit
+  persists, surface a clear failure note and abort the deletion verification. Do NOT
+  proceed as if the branch is gone.
+
+**Step 8d — Force-delete (only if ls-remote still shows branch after bounded retry).**
+Dispatch github-ops to force-delete:
+
+```
+Agent(subagent_type="vsdd-factory:github-ops", prompt="cd <project-path> && git push origin --delete <branch-name>")
+```
+
+Classify the `git push origin --delete` exit code before running any post-delete check:
+
+- **Exit 0 (push succeeded)** — proceed to post-delete ls-remote verification below.
+  If a subsequent lagging ls-remote still shows the branch transiently present, accept the
+  push exit 0 as deletion confirmation (replication lag); the post-delete retry absorbs the
+  lag but push success is authoritative if all retry attempts see the branch still present.
+- **"remote ref does not exist" / already-gone (any non-zero that indicates the ref is
+  absent)** — treat as SUCCESS (idempotent); branch was deleted concurrently between the
+  ls-remote check and the push. Proceed to post-delete confirmation.
+- **Transient/network error** (e.g. connection timeout, temporary auth failure, exit 128) —
+  retry the push briefly (up to 2 additional attempts with a short wait); if the transient
+  error persists after retries, surface a clear failure note and abort the deletion step.
+- **Branch-protection or permission rejection** — LOG A WARNING and PROCEED — do not
+  dead-end the delivery. The branch-leak is surfaced in the STEP_COMPLETE note, but
+  branch-protection rejection is not fatal to the workflow.
+- **Persistent unexpected non-zero exit** (not covered above) — surface a clear failure
+  note; do NOT treat as deleted.
+
+After a successful push (exit 0 or already-gone), re-run `git ls-remote --exit-code origin
+refs/heads/<branch-name>` to confirm deletion. To absorb GitHub replication lag, use a
+post-force-delete bounded retry: up to 3 re-checks, each separated by a 5–10 second wait.
+Exit code 2 on any attempt confirms deletion. If replication lag means ls-remote still
+returns exit 0 after all 3 post-force-delete retry attempts, but the push itself returned
+exit 0 (success), accept the push exit 0 as confirmation — the replication-lag deadlock
+must not wedge the completion gate.
+
+Emit `STEP_COMPLETE: step=8` when ANY of the following conditions is true:
+(a) the ls-remote exact-ref check returns exit code 2 (branch confirmed deleted),
+(b) deletion was rejected by branch-protection rules or insufficient permissions
+    (warn-and-proceed — the warning has been logged and delivery continues), or
+(c) the fork guard determined origin verification is not applicable (cross-repo PR).
+
+Set the STEP_COMPLETE note dynamically to reflect the actual deletion outcome:
+
+After completing this step, emit one of:
+- `STEP_COMPLETE: step=8 name=execute-merge status=ok note=PR #<N> merged; remote branch confirmed deleted via ls-remote`
+- `STEP_COMPLETE: step=8 name=execute-merge status=ok note=PR #<N> merged; branch-deletion skipped — cross-repository (fork) PR, origin verification not applicable`
+- `STEP_COMPLETE: step=8 name=execute-merge status=ok note=PR #<N> merged; branch-deletion-warning — protection-rejected-warning, branch may still exist on remote`
+
+Choose the note that reflects the actual <deletion-outcome>: deleted / skipped-fork /
+protection-rejected-warning. Do NOT hardcode the "confirmed deleted" wording when the
+actual outcome was different.
+
+**On the success/warn-and-proceed path only: proceed immediately to step 9.** If Step 8
+aborted (CLOSED state, merge-queue timeout, or persistent deletion failure), the agent
+MUST HALT — do NOT proceed to Step 9.
 
 ### Step 9: Post-merge
 
-Trigger worktree cleanup and state updates. Compile the final deliverables report.
+Trigger worktree cleanup and state updates. The remote feature branch has been
+verified deleted (confirmed by ls-remote returning empty in step 8). Compile
+the final deliverables report.
 
 After completing this step, emit:
 `STEP_COMPLETE: step=9 name=post-merge status=ok note=cleanup complete`
