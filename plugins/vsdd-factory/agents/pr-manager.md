@@ -258,12 +258,14 @@ Agent(subagent_type="vsdd-factory:github-ops", prompt="cd <project-path> && gh p
 
 - If `state == MERGED` — proceed to Step 8b.
 - If `state == CLOSED` — the PR was closed without merging; abort Step 8 and surface a
-  clear BLOCKED note. Do NOT attempt branch deletion.
+  clear BLOCKED note. Do NOT attempt branch deletion. **If Step 8 aborts for any reason
+  (CLOSED state or merge-queue timeout exceeded), the agent MUST HALT and do NOT proceed
+  to Step 9.** Step 9 is only for successfully merged PRs.
 - If `state != MERGED` and `state != CLOSED` (queued, open, or pending) — do NOT attempt
   force-delete. A merge queue is still in-flight; deleting the branch now would break the
   queue run. Poll every ~30 seconds, up to 10 attempts (total ~5 minutes). If state is
   still not MERGED after 10 attempts, abort Step 8 and emit a clear BLOCKED note — never
-  hot-loop or wait indefinitely.
+  hot-loop or wait indefinitely. **Abort must not proceed to Step 9.**
 
 **Step 8b — Fork / cross-repo guard.**
 Dispatch github-ops to determine whether the PR head branch is on a fork:
@@ -286,8 +288,11 @@ Agent(subagent_type="vsdd-factory:github-ops", prompt="cd <project-path> && git 
 ```
 
 Use `--exit-code` so that exit code 2 means the ref is absent (deleted) and exit code 0
-means it is present. Do NOT rely on "any non-empty output" — `git ls-remote` performs
-prefix matching and could match `refs/heads/<branch-name>-suffix`.
+means it is present. Additionally, parse stdout to confirm an exact-line match: the output
+must contain a line ending exactly in `<TAB>refs/heads/<branch-name>` (not a suffix variant
+like `refs/heads/<branch-name>-v2`). Do NOT rely solely on exit code or any non-empty
+output — `git ls-remote` performs prefix matching and could match
+`refs/heads/<branch-name>-suffix`.
 
 Interpret the result:
 - **Exit code 2 (ref absent)** — branch deleted; proceed to Step 9.
@@ -308,14 +313,31 @@ Dispatch github-ops to force-delete:
 Agent(subagent_type="vsdd-factory:github-ops", prompt="cd <project-path> && git push origin --delete <branch-name>")
 ```
 
-After force-delete, re-run the `git ls-remote --exit-code origin refs/heads/<branch-name>`
-check. Exit code 2 confirms deletion. Treat a non-zero exit from the force-delete command
-that indicates "remote ref does not exist" as SUCCESS (idempotent — a 404/already-gone is
-also success; branch was deleted concurrently between the ls-remote check and the push).
+Classify the `git push origin --delete` exit code before running any post-delete check:
 
-If deletion is rejected due to branch-protection rules or insufficient permissions,
-LOG A WARNING and PROCEED — do not dead-end the delivery. The branch-leak is surfaced
-in the STEP_COMPLETE note, but branch-protection rejection is not fatal to the workflow.
+- **Exit 0 (push succeeded)** — proceed to post-delete ls-remote verification below.
+  If a subsequent lagging ls-remote still shows the branch transiently present, accept the
+  push exit 0 as deletion confirmation (replication lag); the post-delete retry absorbs the
+  lag but push success is authoritative if all retry attempts see the branch still present.
+- **"remote ref does not exist" / already-gone (any non-zero that indicates the ref is
+  absent)** — treat as SUCCESS (idempotent); branch was deleted concurrently between the
+  ls-remote check and the push. Proceed to post-delete confirmation.
+- **Transient/network error** (e.g. connection timeout, temporary auth failure, exit 128) —
+  retry the push briefly (up to 2 additional attempts with a short wait); if the transient
+  error persists after retries, surface a clear failure note and abort the deletion step.
+- **Branch-protection or permission rejection** — LOG A WARNING and PROCEED — do not
+  dead-end the delivery. The branch-leak is surfaced in the STEP_COMPLETE note, but
+  branch-protection rejection is not fatal to the workflow.
+- **Persistent unexpected non-zero exit** (not covered above) — surface a clear failure
+  note; do NOT treat as deleted.
+
+After a successful push (exit 0 or already-gone), re-run `git ls-remote --exit-code origin
+refs/heads/<branch-name>` to confirm deletion. To absorb GitHub replication lag, use a
+post-force-delete bounded retry: up to 3 re-checks, each separated by a 5–10 second wait.
+Exit code 2 on any attempt confirms deletion. If replication lag means ls-remote still
+returns exit 0 after all 3 post-force-delete retry attempts, but the push itself returned
+exit 0 (success), accept the push exit 0 as confirmation — the replication-lag deadlock
+must not wedge the completion gate.
 
 Emit `STEP_COMPLETE: step=8` when ANY of the following conditions is true:
 (a) the ls-remote exact-ref check returns exit code 2 (branch confirmed deleted),
@@ -334,7 +356,9 @@ Choose the note that reflects the actual <deletion-outcome>: deleted / skipped-f
 protection-rejected-warning. Do NOT hardcode the "confirmed deleted" wording when the
 actual outcome was different.
 
-**Proceed immediately to step 9.**
+**On the success/warn-and-proceed path only: proceed immediately to step 9.** If Step 8
+aborted (CLOSED state, merge-queue timeout, or persistent deletion failure), the agent
+MUST HALT — do NOT proceed to Step 9.
 
 ### Step 9: Post-merge
 

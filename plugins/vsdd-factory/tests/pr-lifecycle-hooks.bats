@@ -484,3 +484,72 @@ EOF
   run grep -iE 'exit.?(code.)?(128|unexpected|other)|unexpected.*(exit|non.zero)|non.zero.*unexpected|network.*fail|auth.*fail|ls.remote.*error|error.*ls.remote' "$file"
   [ "$status" -eq 0 ]
 }
+
+# ========================================================================
+# pr-manager Step 8 fourth-pass hardening (issue #128 round 4)
+# ========================================================================
+# RED GATE: these tests MUST fail against the unmodified pr-manager.md
+# before the Step (Green) fixes are applied.
+
+@test "pr-manager step-8d: post-force-delete ls-remote verification uses bounded retry" {
+  # Fix 1 (HIGH): After a successful git push origin --delete, an immediate
+  # ls-remote re-verify can still show the branch present (GitHub replication
+  # lag). The current single re-check after force-delete is not enough — the
+  # playbook must instruct a bounded retry (with explicit wait between attempts)
+  # on the post-force-delete ls-remote check, not just one immediate re-check.
+  local file="$PLUGIN_ROOT/agents/pr-manager.md"
+  # The post-force-delete ls-remote check must mention a bounded retry or
+  # multiple attempts to absorb replication lag.
+  run grep -iE 'post.force.delete.*retr|retr.*post.force.delete|after.*force.delete.*up.to|after.*push.*delete.*retr|retr.*after.*push.*delete|post.delete.*retr|retr.*post.delete|force.delete.*up.to.*retr|up.to.*retr.*force.delete' "$file"
+  [ "$status" -eq 0 ]
+}
+
+@test "pr-manager step-8d: push exit-0 accepted as deletion confirmation even if ls-remote lags" {
+  # Fix 1 (HIGH): If git push origin --delete itself returned exit 0 (or
+  # "remote ref does not exist"), the completion gate must treat the deletion
+  # as successful even if a subsequent lagging ls-remote still transiently
+  # shows the branch present. This prevents the rigid completion gate from
+  # wedging on replication-lag.
+  local file="$PLUGIN_ROOT/agents/pr-manager.md"
+  # The playbook must instruct: push exit 0 (success) is accepted as
+  # confirmation even if the post-delete ls-remote is still non-empty.
+  run grep -iE 'push.*exit.0.*success|push.*exit.0.*confirm|push.*success.*lag|replication.lag|lag.*replication|push.*succe.*even if|push.*succe.*still|accept.*push.*success|push.*delete.*success.*lag|push.*0.*still.*show|push.*0.*transient' "$file"
+  [ "$status" -eq 0 ]
+}
+
+@test "pr-manager step-8: abort path explicitly HALTS and must not proceed to step 9" {
+  # Fix 2 (LOW): Step 8a can abort (PR state CLOSED, or merge-queue wait
+  # bound exceeded) emitting a BLOCKED note, but the section currently ends
+  # with "Proceed immediately to step 9." — an agent could then run step 9
+  # worktree cleanup on an UNMERGED PR. The playbook must explicitly state
+  # that if Step 8 aborts, the agent HALTS and must NOT proceed to Step 9.
+  local file="$PLUGIN_ROOT/agents/pr-manager.md"
+  # Must instruct that abort path does NOT proceed to step 9.
+  run grep -iE 'abort.*do not proceed|abort.*must not proceed|abort.*halt|halt.*abort|blocked.*do not proceed|do not proceed.*step.?9|must not.*step.?9.*abort|abort.*step.?9.*halt|step.8.*abort.*halt' "$file"
+  [ "$status" -eq 0 ]
+}
+
+@test "pr-manager step-8c: instructs stdout exact-line parse for refs/heads branch" {
+  # Fix 3 (HIGH, cheap): Rather than relying solely on --exit-code (which
+  # could match refs/heads/<branch>-suffix via prefix matching), the playbook
+  # must also instruct parsing stdout to confirm a line ending exactly in
+  # <TAB>refs/heads/<branch-name>, removing ambiguity.
+  local file="$PLUGIN_ROOT/agents/pr-manager.md"
+  # Must mention parsing stdout / confirming an exact line match against
+  # the returned ref string.
+  run grep -iE 'parse.*stdout|stdout.*parse|confirm.*line.*refs.heads|exact.*line.*refs.heads|line.*ending.*refs.heads|tab.*refs.heads|grep.*refs.heads.*exact|exact.*grep.*refs.heads' "$file"
+  [ "$status" -eq 0 ]
+}
+
+@test "pr-manager step-8d: force-delete error taxonomy classifies transient errors" {
+  # Fix 4 (MEDIUM): Step 8d must explicitly classify non-zero git push origin
+  # --delete exits into distinct branches: transient/network errors (retry
+  # briefly), branch-protection/permission rejection (warn-and-proceed, per
+  # existing behavior), already-gone (success/idempotent), and persistent
+  # unexpected errors (surface clear failure). The transient/network retry
+  # branch must be explicitly named.
+  local file="$PLUGIN_ROOT/agents/pr-manager.md"
+  # Must mention transient/network errors → retry for force-delete.
+  run grep -iE 'transient.*retr|retr.*transient|network.*retr.*push.*(delete|origin)|push.*(delete|origin).*network.*retr|transient.*push.*delete|push.*delete.*transient|network.*error.*retr.*delete|delete.*network.*error.*retr' "$file"
+  [ "$status" -eq 0 ]
+}
