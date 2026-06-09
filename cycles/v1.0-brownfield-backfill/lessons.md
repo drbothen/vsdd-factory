@@ -2919,3 +2919,21 @@ POLICY 14 description and verification_steps updated in policies.yaml same-burst
 **Cites:** D-532; D-531; D-430(a); TD-VSDD-053; POLICY 1 (checkpoint archive).
 
 **Closes:** D-532 session-end durability lesson capture. `[codified]`
+
+---
+
+### L-issue-128-cross-family-adversary
+
+**Category:** adversarial-review + model-diversity + operational-tooling
+
+**Lesson:** Two reusable learnings from the issue-128 delivery (D-534) with Gemini cross-model-family adversary:
+
+**(a) Cross-model-family adversary catches implementer-introduced regressions that same-family review misses.** The Gemini adversary ran 3 passes (findings 6→4→4). Critically, each pass caught a real regression that the prior fix introduced: Pass 1 found 6 core-correctness bugs; Pass 2 found 4 including a branch-protection completion deadlock introduced by Pass 1's fix; Pass 3 found 4 including a post-delete replication-lag wedge introduced by Pass 2's fix. All regressions were fixed in-scope; none deferred. This confirms the model-diversity value in the review loop: a Gemini adversary (different family than the Claude implementer) is not anchored to the same reasoning patterns and therefore catches completeness failures at boundaries that same-family review is likely to miss. Pattern generalizes: when the implementer is Claude-family, the adversary should be Gemini-family (or vice versa) for maximum cognitive diversity. Per D-386 Option C asymptotic-acceptance, 6→4→4 with severity shift from core-correctness to fine edge-robustness constitutes convergence (the floor is genuine, not a failure to improve).
+
+**(b) agy --print reads prompt from STDIN, not argv.** When using antigravity-cli (`agy`) for cross-family adversary dispatch, the `--print` flag causes the tool to read the prompt from STDIN rather than a positional argument. Correct invocation: `agy --print --model "Gemini 3.5 Flash (High)" < slice-prompt.txt` (or via heredoc). Passing the prompt as a positional argument after `--print` is silently ignored. This is an operational gotcha that can cause misleading results (empty or default model behavior) if not caught. Always verify the model actually received the intended prompt by checking the first few lines of the response for prompt acknowledgment.
+
+**Anchors:** D-534 (this delivery); D-386 Option C (asymptotic-acceptance convergence model); D-533 (validated backlog sourcing #128).
+
+**Cites:** D-534; D-533; D-386; D-471; PR #178; feature/issue-128-verify-branch-deletion @ abde4c68.
+
+**Closes:** D-534 lessons-capture; issue-128 cross-family adversary pattern codification. `[codified]`
