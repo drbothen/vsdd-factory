@@ -188,10 +188,17 @@ Agent(subagent_type="vsdd-factory:github-ops", prompt="cd <project-path> && gh p
 After successful merge (delegated to devops-engineer):
 
 1. Remote branch deletion verified: `--delete-branch` only *requests* deletion
-   (async; not guaranteed under merge queues — cli/cli#9073). Confirm via
-   `git ls-remote origin refs/heads/<branch>` returning empty. If non-empty,
-   dispatch github-ops to `git push origin --delete <branch>` and re-verify
-   (idempotent — already-gone/404 is success).
+   (async; not guaranteed under merge queues — cli/cli#9073). Full hardened
+   sequence (see pr-manager.md Step 8 for authoritative detail):
+   (a) Confirm PR state is MERGED (not queued) before deletion work.
+   (b) Check `isCrossRepository`; if fork PR, skip origin deletion — branch
+       lives on the contributor's fork, not origin.
+   (c) Verify with exact-ref: `git ls-remote --exit-code origin refs/heads/<branch>`
+       (exit code 2 = not found = deleted; avoids prefix-match false positives).
+   (d) If still present, wait 5–10 seconds between re-checks (bounded retry, up
+       to 3 re-checks), then force-delete: `git push origin --delete <branch>`
+       and re-verify (idempotent — already-gone/404 is success).
+   (e) If branch-protection blocks deletion, log a warning and proceed — not fatal.
 2. Remove local worktree: `git worktree remove .worktrees/STORY-NNN`
 3. Update `.factory/STATE.md` with merge status, PR number, and timestamp
 4. Write delivery report to `.factory/code-delivery/STORY-NNN/delivery.md`

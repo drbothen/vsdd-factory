@@ -247,29 +247,70 @@ Do NOT treat the sub-agent's response as terminal.
 **Verify remote branch deletion** — `gh pr merge --delete-branch` only *requests*
 deletion; it is asynchronous and not guaranteed (especially under merge queues,
 see cli/cli#9073). You MUST verify the branch is actually gone before emitting
-STEP_COMPLETE for step 8. Dispatch github-ops to check:
+STEP_COMPLETE for step 8. Follow this sequence:
+
+**Step 8a — Confirm PR is MERGED (not just queued).**
+Dispatch github-ops to confirm the PR state before any branch-deletion work:
 
 ```
-Agent(subagent_type="vsdd-factory:github-ops", prompt="cd <project-path> && git ls-remote origin refs/heads/<branch-name>")
+Agent(subagent_type="vsdd-factory:github-ops", prompt="cd <project-path> && gh pr view <PR_NUMBER> --json state,mergeStateStatus")
 ```
+
+- If `state == MERGED` — proceed to Step 8b.
+- If `state != MERGED` (queued, open, or pending) — do NOT attempt force-delete.
+  A merge queue is still in-flight; deleting the branch now would break the queue run.
+  Wait for the state to reach MERGED before continuing.
+
+**Step 8b — Fork / cross-repo guard.**
+Dispatch github-ops to determine whether the PR head branch is on a fork:
+
+```
+Agent(subagent_type="vsdd-factory:github-ops", prompt="cd <project-path> && gh pr view <PR_NUMBER> --json isCrossRepository,headRepositoryOwner,headRefName")
+```
+
+- If `isCrossRepository == true` — the branch lives on the contributor's fork remote,
+  not on `origin`. SKIP the `git ls-remote origin` verification and force-delete steps
+  entirely. Note in STEP_COMPLETE that branch lives on fork (cross-repository PR) and
+  deletion verification is not applicable for `origin`. Proceed to Step 9.
+- If `isCrossRepository == false` — continue to Step 8c.
+
+**Step 8c — ls-remote exact-ref verification.**
+Dispatch github-ops to check with an exact-ref match:
+
+```
+Agent(subagent_type="vsdd-factory:github-ops", prompt="cd <project-path> && git ls-remote --exit-code origin refs/heads/<branch-name>")
+```
+
+Use `--exit-code` so that exit code 2 means the ref is absent (deleted) and exit code 0
+means it is present. Do NOT rely on "any non-empty output" — `git ls-remote` performs
+prefix matching and could match `refs/heads/<branch-name>-suffix`.
 
 Interpret the result:
-- **Empty output** — branch deleted; proceed.
-- **Non-empty output** — branch still exists; re-check up to 3 times (bounded retry)
-  to absorb GitHub's own queued/async deletion before taking action. If still
-  non-empty after 3 re-checks, dispatch github-ops to force-delete and re-verify:
+- **Exit code 2 (ref absent)** — branch deleted; proceed to Step 9.
+- **Exit code 0 (ref present)** — branch still exists; wait 5–10 seconds between
+  re-checks and re-check up to 3 times (bounded retry) to absorb GitHub's own
+  queued/async deletion before taking action. If still present after 3 re-checks
+  (each separated by a 5–10 second wait), proceed to force-delete.
 
-  ```
-  Agent(subagent_type="vsdd-factory:github-ops", prompt="cd <project-path> && git push origin --delete <branch-name>")
-  ```
+**Step 8d — Force-delete (only if ls-remote still shows branch after bounded retry).**
+Dispatch github-ops to force-delete:
 
-  After the force-delete, re-run the `git ls-remote origin refs/heads/<branch-name>`
-  check. Empty output confirms deletion (idempotent — a 404/already-gone is also
-  success). If deletion is blocked by branch protection rules, emit a BLOCKED note
-  with the reason rather than looping further.
+```
+Agent(subagent_type="vsdd-factory:github-ops", prompt="cd <project-path> && git push origin --delete <branch-name>")
+```
 
-Do NOT emit `STEP_COMPLETE: step=8` until `git ls-remote origin refs/heads/<branch-name>`
-returns empty (branch confirmed deleted).
+After force-delete, re-run the `git ls-remote --exit-code origin refs/heads/<branch-name>`
+check. Exit code 2 confirms deletion. Treat a non-zero exit from the force-delete command
+that indicates "remote ref does not exist" as SUCCESS (idempotent — a 404/already-gone is
+also success; branch was deleted concurrently between the ls-remote check and the push).
+
+If deletion is rejected due to branch-protection rules or insufficient permissions,
+LOG A WARNING and PROCEED — do not dead-end the delivery. The branch-leak is surfaced
+in the STEP_COMPLETE note, but branch protection rejection is not fatal to the workflow.
+
+Do NOT emit `STEP_COMPLETE: step=8` until the ls-remote exact-ref check returns exit code 2
+(branch confirmed deleted), or the fork guard determined deletion verification is not
+applicable for this cross-repository PR.
 
 After completing this step, emit:
 `STEP_COMPLETE: step=8 name=execute-merge status=ok note=PR #<N> merged; remote branch confirmed deleted via ls-remote`

@@ -336,3 +336,79 @@ EOF
   [ "$status" -eq 0 ]
 }
 
+# ========================================================================
+# pr-manager Step 8 adversary hardening: 6 behaviors (issue #128 round 2)
+# ========================================================================
+# RED GATE: these tests MUST fail against the unmodified pr-manager.md
+# before the Step (Green) fixes are applied.
+
+@test "pr-manager step-8: instructs wait/sleep between re-checks" {
+  # Each re-check in the bounded retry loop must include an explicit
+  # wait/sleep instruction (e.g. "wait 5 seconds", "sleep 5–10 seconds")
+  # so the agent absorbs GitHub's async deletion latency instead of
+  # firing three re-checks in milliseconds (adversary finding 1).
+  # The instruction must appear in the branch-deletion context: near a
+  # mention of "second(s)" paired with a delay intent — "wait N s" or
+  # "sleep N s" or "5 seconds between" etc.
+  local file="$PLUGIN_ROOT/agents/pr-manager.md"
+  run grep -iE '(wait|sleep).*([0-9]+.?second|second.*[0-9]+)|([0-9]+.?second|second.*[0-9]+).*(wait|sleep|between|re.?check)' "$file"
+  [ "$status" -eq 0 ]
+}
+
+@test "pr-manager step-8: detects cross-repo fork PRs before verifying deletion" {
+  # For fork PRs the head branch lives on the contributor's fork remote,
+  # not on origin. Checking git ls-remote origin gives a false "deleted".
+  # pr-manager must instruct: determine whether the PR is cross-repo
+  # (e.g. gh pr view --json isCrossRepository) and SKIP origin
+  # branch-deletion verification for fork PRs (adversary finding 2).
+  local file="$PLUGIN_ROOT/agents/pr-manager.md"
+  run grep -iE 'fork|isCrossRepository|cross.?repo|cross-repository' "$file"
+  [ "$status" -eq 0 ]
+}
+
+@test "pr-manager step-8: confirms PR merged state before force-deleting branch" {
+  # If a PR is queued in a GitHub Merge Queue, gh pr merge returns success
+  # while the merge is still in-flight. Force-deleting the branch at that
+  # point breaks the queue run. pr-manager must confirm the PR state is
+  # MERGED (e.g. gh pr view --json state → MERGED) before force-deleting
+  # and skip force-delete if the PR is queued (adversary finding 3).
+  local file="$PLUGIN_ROOT/agents/pr-manager.md"
+  run grep -iE 'merge.?queue|MERGED|--json state|gh pr view.*state|confirm.*merge|merge.*confirm' "$file"
+  [ "$status" -eq 0 ]
+  # Specifically check that force-delete is guarded by a merged-state check
+  run grep -iE '(MERGED|merged state|merge queue).*(force.?delete|push.*delete)|force.?delete.*(MERGED|merged state|merge queue)' "$file"
+  [ "$status" -eq 0 ]
+}
+
+@test "pr-manager step-8: treats already-deleted branch as success (idempotent)" {
+  # git push origin --delete returns non-zero if the branch was already
+  # deleted (race between ls-remote check and the push). The agent must
+  # be instructed to treat "remote ref does not exist" / already-gone as
+  # SUCCESS, not a workflow failure (adversary finding 4).
+  local file="$PLUGIN_ROOT/agents/pr-manager.md"
+  run grep -iE 'already.?gone|already.?deleted|remote ref does not exist|idempotent|non.?zero.*already|already.*success' "$file"
+  [ "$status" -eq 0 ]
+}
+
+@test "pr-manager step-8: uses exact-ref match not prefix match for ls-remote" {
+  # git ls-remote origin refs/heads/<branch> performs prefix matching:
+  # refs/heads/feat matches refs/heads/feat-2. The playbook must instruct
+  # an exact-ref check — either git ls-remote --exit-code origin
+  # refs/heads/<branch> (exit code 2 = not found) or an exact-line match
+  # against the returned ref string (adversary finding 5).
+  local file="$PLUGIN_ROOT/agents/pr-manager.md"
+  run grep -iE '\-\-exit-code|exact.?ref|exact.?match|exact.?line|exact ref' "$file"
+  [ "$status" -eq 0 ]
+}
+
+@test "pr-manager step-8: logs warning and proceeds on branch-protection rejection" {
+  # If branch-protection or permissions prevent deletion, the current prose
+  # emits BLOCKED and stops the whole delivery. Instead the agent must log
+  # a WARNING and PROCEED — the branch-leak is surfaced but not fatal
+  # (adversary finding 6).
+  local file="$PLUGIN_ROOT/agents/pr-manager.md"
+  # Must NOT dead-end with BLOCKED; must emit a warning and continue.
+  run grep -iE 'warn.*proceed|proceed.*warn|log.*warn|warning.*proceed|protection.*warn|warn.*protection' "$file"
+  [ "$status" -eq 0 ]
+}
+

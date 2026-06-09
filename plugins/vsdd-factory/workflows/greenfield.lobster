@@ -782,12 +782,15 @@ workflow:
                 depends_on: [dependency-merge-check]
                 task: >
                   Merge PR via github-ops: gh pr merge --squash --delete-branch.
-                  After merge, verify remote branch deletion via github-ops:
-                  git ls-remote origin refs/heads/<branch> must return empty
-                  before marking merge complete. If non-empty, bounded retry
-                  (up to 3 re-checks) to absorb GitHub async deletion, then
-                  force-delete via git push origin --delete <branch> and
-                  re-verify (idempotent).
+                  After merge, run the hardened branch-deletion verification
+                  sequence per pr-manager.md Step 8 (authoritative):
+                  (1) Confirm PR state is MERGED (not queued) before deletion work;
+                  (2) Check isCrossRepository — skip origin deletion for fork PRs;
+                  (3) Exact-ref ls-remote: git ls-remote --exit-code origin refs/heads/<branch>
+                      (exit code 2 = deleted; avoids prefix-match false positives);
+                  (4) If still present: wait 5–10 seconds between re-checks, bounded
+                      retry up to 3 times, then force-delete and re-verify (idempotent);
+                  (5) If branch-protection blocks deletion: log warning and proceed.
                   Read .factory/merge-config.yaml for autonomy level.
 
               - name: cleanup-worktree

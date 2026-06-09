@@ -133,9 +133,16 @@ then orchestrator spawns devops-engineer and state-manager for cleanup:
 github-ops: "cd <project-path> && gh pr merge --squash --delete-branch"
 # Post-merge: verify branch is actually deleted — --delete-branch is async
 # (not guaranteed under merge queues; see cli/cli#9073).
-github-ops: "cd <project-path> && git ls-remote origin refs/heads/<branch>"
-# Empty output → deleted. Non-empty → bounded retry (up to 3 re-checks),
-# then force-delete: git push origin --delete <branch> and re-verify.
+# Full hardened sequence (pr-manager.md Step 8 is authoritative):
+# 1. Confirm PR state is MERGED (not queued): gh pr view --json state,mergeStateStatus
+# 2. Check isCrossRepository: gh pr view --json isCrossRepository,headRepositoryOwner,headRefName
+#    If fork PR → skip origin deletion (branch lives on contributor's fork).
+# 3. Exact-ref check: git ls-remote --exit-code origin refs/heads/<branch>
+#    (exit code 2 = not found = deleted; avoids prefix-match false positives)
+# 4. If still present: wait 5–10 seconds between re-checks, bounded retry (up to 3),
+#    then force-delete: git push origin --delete <branch> and re-verify
+#    (idempotent — already-gone/404 is success).
+# 5. If branch-protection blocks deletion: log warning and proceed (not fatal).
 devops-engineer: "cd <project-path> && git worktree remove .worktrees/FIX-P[phase]-NNN"
 state-manager: "Update STATE.md with FIX-P[phase]-NNN completion — merge status, PR number, timestamp"
 ```
