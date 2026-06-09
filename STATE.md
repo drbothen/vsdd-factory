@@ -142,7 +142,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | 2a191314 | rc.20 SHIPPED 2026-06-01; bot binary commit on top of --merge from develop; prior: 43afbfa7 (rc.19 2026-05-28) |
 | develop | f6ce4b7c | D-535 PR #178 SQUASH-MERGED 2026-06-09; issue #128 branch-deletion verify; prior: 82163b7f (D-530 E-10 pass-16 fix PR #168 2026-06-01) |
-| factory-artifacts | `[this burst]` | D-535 ISSUE-128 PR-178 MERGED 2026-06-09 (prior: ead64a33 D-534) |
+| factory-artifacts | `33056f0d` | D-535 ISSUE-128 PR-178 MERGED 2026-06-09 (prior: ead64a33 D-534) |
 | v1.0.0-rc.20 (tag) | e9e38286 | SHIPPED 2026-06-01; annotated tag object; GitHub Release prerelease; marketplace PR drbothen/claude-mp #12 squash-merged 862e660d |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28; GitHub Release prerelease 2026-05-28T15:10:56Z; marketplace PR #11 squash-merged |
 | v1.0.0-rc.18 (tag) | 666d689f | SHIPPED 2026-05-13 PR #135 |
@@ -318,7 +318,7 @@ Prior Tier-A (pre-session, all COMPLETE): TD #71/72/70/74 (PRs #138–141) + S-1
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** see `git -C .factory log -1 --format='%h %s'` (D-535 post-merge burst 2026-06-09; prior: `ead64a33` D-534; per TD-VSDD-053 current HEAD is git-owned)
+- **factory-artifacts HEAD:** `33056f0d` (D-535 ISSUE-128 PR-178 MERGED 2026-06-09; prior: `ead64a33` D-534)
 - **develop HEAD:** `f6ce4b7c` (D-535 PR #178 squash-merge 2026-06-09; prior: `82163b7f` D-530 E-10 pass-16 fix PR #168 2026-06-01)
 - **main HEAD:** `2a191314` (rc.20 bot binary commit 2026-06-01; prior: `43afbfa7` rc.19 2026-05-28)
 - **v1.0.0-rc.20 tag:** `e9e38286` (annotated tag object; GitHub Release prerelease 2026-06-01; marketplace PR #12 squash-merged 862e660d)
