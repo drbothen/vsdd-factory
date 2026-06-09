@@ -2937,3 +2937,23 @@ POLICY 14 description and verification_steps updated in policies.yaml same-burst
 **Cites:** D-534; D-533; D-386; D-471; PR #178; feature/issue-128-verify-branch-deletion @ abde4c68.
 
 **Closes:** D-534 lessons-capture; issue-128 cross-family adversary pattern codification. `[codified]`
+
+---
+
+### L-issue-128-PR-178-merged
+
+**Category:** ci-infra + merge-process + observability
+
+**Lesson:** Post-merge CI hang observation for PRs touching zero Rust: build-dispatcher cargo-test jobs (windows-x64/darwin-x64) hung approximately 65 minutes on infra before completing green. PR #178 touched ZERO .rs files (only pr-manager.md, bats tests, lobster workflow files). The Rust suite was identical to the green develop branch. This is an infra timeout class (likely GitHub Actions runner queue/caching delay) with NO bearing on merge correctness.
+
+**Diagnostic heuristic:** Before investigating a CI hang on cargo-test jobs, check whether the PR diff contains any `.rs` files (`git diff HEAD~1 --name-only | grep '\.rs$'`). If zero Rust files changed, the hang is almost certainly infra, not a test regression. Confirmation: the jobs eventually completed green; no test failures.
+
+**Pattern:** Previously observed in D-512 (rc.19 build infra delay) and D-528 (rc.20 build first attempt). This class of hang occurs when the GitHub-hosted runner capacity is constrained and Rust compile jobs queue up — even when the actual Rust suite passes identically to the prior green HEAD.
+
+**Action:** No action needed. Document as infra-flake class. Do not block merges on cargo-test job duration alone when PR contains zero Rust changes. Monitor if duration approaches 90min (GitHub's default job timeout).
+
+**Anchors:** D-535 (merge-closure burst); PR #178 merge `f6ce4b7c`; D-534 (TDD delivery).
+
+**Cites:** D-535; D-534; D-512 (rc.19 infra delay precedent); D-528 (rc.20 clean first-attempt).
+
+**Closes:** D-535 infra-flake observation capture; issue-128 merge-closure lessons. `[codified]`

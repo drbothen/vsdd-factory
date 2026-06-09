@@ -574,3 +574,18 @@ Key resume data:
 **§12 Next:** E-10 pass-16 OR F5 pass-76 per human direction.
 
 **This checkpoint superseded by D-527 SESSION-END DURABILITY BURST 2026-05-31.**
+
+---
+
+## Archived Checkpoint: D-534 ISSUE-128 DELIVERY 2026-06-09 (PR #178 in-flight)
+
+**Superseded by D-535 POST-MERGE STATE BURST 2026-06-09.**
+
+- **D-534 (2026-06-09):** ISSUE-128 DELIVERY. TDD 45/45 green (21 new assertions). Gemini adversary 3-pass (6→4→4) converged — each pass caught prior-fix regression; all fixed in-scope. PR #178 OPEN CI-running → develop. feature/issue-128-verify-branch-deletion @ abde4c68. 4-index UNCHANGED.
+- **develop HEAD at archive:** `82163b7f`. **main HEAD:** `2a191314`.
+- **D-range:** D-001..D-534.
+- **4-index:** BC-INDEX v2.65, VP-INDEX v2.06, STORY-INDEX v3.84, ARCH-INDEX v2.16 (all UNCHANGED).
+- **BC content:** BC-5.39.005 v1.3 ACTIVE + BC-5.39.006 v1.7 ACTIVE + BC-5.39.007 v1.6 ACTIVE + BC-5.39.008 v1.5 ACTIVE + BC-5.39.009 v1.9 ACTIVE + BC-7.04.051 v1.1 ACTIVE.
+- **factory-artifacts HEAD at archive:** `ead64a33` (D-534).
+
+**This checkpoint superseded by D-535 POST-MERGE STATE BURST 2026-06-09.**

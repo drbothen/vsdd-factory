@@ -6001,3 +6001,101 @@ $ wc -l /Users/jmagady/Dev/vsdd-factory/.factory/STATE.md
 - `688dd1c2` — state(D-531): finalize burst-log — record SHA-patch SHA b066da72 (parent commit; factory-artifacts HEAD pre-this-burst)
 - `659f039e` — state(D-532): SESSION-END DURABILITY BURST; D-430(a) compaction; §1-§12 checkpoint refresh; 4-index UNCHANGED (primary burst per TD-VSDD-053)
 - `f671ca50` — state(D-532): SHA-patch — record primary commit SHA 659f039e in STATE.md + burst-log per D-447(c)+D-449(e)
+
+## D-535 — ISSUE-128 PR-178 MERGED 2026-06-09
+
+**Parent-commit:** `ead64a33` (state(D-534): SHA-patch — factory-artifacts HEAD ead64a33; this is the factory-artifacts HEAD pre-this-burst per D-419(b))
+
+**Adversary verdict:** No adversary pass this burst. POST-MERGE STATE BURST only. Prior adversary: D-534 — Gemini 3.5 Flash (High) cross-model-family adversary 3-pass asymptotic convergence (findings 6→4→4); severity shifted from core-correctness → fine edge-robustness across passes; all regressions fixed in-scope; convergence declared per D-386 Option C. PR #178 CI 10 SUCCESS + 1 SKIPPED (mergeStateStatus CLEAN) at merge. Infra-flake OBS: build-dispatcher cargo-test jobs (windows-x64/darwin-x64) hung ~65min on infra then completed green — PR touched ZERO Rust; infra timeout class; no bearing on merge correctness (L-issue-128-PR-178-merged).
+
+**Files touched:**
+- `.factory/STATE.md` — frontmatter advance (phase/current_step/last_amended/timestamp); banner tracker +D-535 entry (411 lines); Active Branches: develop row updated 82163b7f→f6ce4b7c; feature/issue-128-verify-branch-deletion row REMOVED (branch deleted+verified); factory-artifacts row updated; Decisions Log +D-535 row + D-range→D-535; Concurrent Cycles D-535 update; §12 #128 marked DELIVERED/MERGED + RECOMMENDED ACTIVE NEXT updated; §12 section header refreshed post-D-535; Session Resume Checkpoint §1/§2/§5/§9/§10/§11/§12 refreshed; Last Updated + Current Phase advanced.
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-535 row prepended (SoT; D-range→D-535).
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — L-issue-128-PR-178-merged entry added (infra-flake observation; CI hang class for zero-Rust PRs).
+- `.factory/cycles/v1.0-brownfield-backfill/session-checkpoints.md` — D-534 checkpoint archived per POLICY 1.
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — D-535 h2 entry (this entry).
+
+**Codifications:** D-535 ISSUE-128 PR-178 MERGED; L-issue-128-PR-178-merged infra-flake lesson; D-534 checkpoint archived; POL-14 no-op (zero BCs in PR); develop HEAD advanced to f6ce4b7c; feature/issue-128-verify-branch-deletion DELETED+VERIFIED.
+
+### Dim-2 Literal-Shell PC Attestation (TD-VSDD-100 / D-449(a))
+
+Reads production `.factory/STATE.md` — no synthetic echo/printf:
+
+```
+$ grep "^current_step:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/STATE.md | head -1
+current_step: "D-535 ISSUE-128-PR-178-MERGED 2026-06-09 — PR #178 SQUASH-MERGED into develop at f6ce4b7c (2026-06-09T22:45:39Z); CI 10 SUCCESS+1 SKIPPED CLEAN; feature/issue-128-verify-branch-deletion DELETED+VERIFIED (git ls-remote --exit-code exit 2; exact pattern delivered by this PR's Step 8); develop 82163b7f→f6ce4b7c; POL-14 no-op (no BCs in PR); infra-flake OBS: 2 build-dispatcher cargo-test jobs (windows-x64/darwin-x64) hung ~65min on infra then completed green (no Rust touched; Rust suite identical to green develop; infra timeout class); BC-INDEX v2.65 UNCHANGED; VP-INDEX v2.06 UNCHANGED; STORY-INDEX v3.84 UNCHANGED; ARCH-INDEX v2.16 UNCHANGED; trajectory-tail →9→9→9→11; maintain all 5 BC-5.39.006 v1.7 PCs per TD-VSDD-097-EXT; D-chain cite D-534 per D-419(b); parent-commit ead64a33 per D-419(b). SIZE BUDGET: (wc-l; see banner tracker)"
+```
+
+PC2 — trajectory-tail verification:
+```
+$ grep "^current_step:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/STATE.md | grep -oE "trajectory-tail [→0-9]+"
+trajectory-tail →9→9→9→11
+```
+PC2 ✓ (trajectory-tail →9→9→9→11 present)
+
+PC4 — LENGTH=4 segment count:
+```
+$ grep "^current_step:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/STATE.md | grep -oE "trajectory-tail (→[0-9]+)+" | grep -oE "→[0-9]+" | wc -l
+       4
+```
+PC4 ✓ (4 segments confirmed)
+
+PC5 — D-chain citation:
+current_step cites `D-chain cite D-534 per D-419(b)` ✓ (D-534 is prior burst; correct D-419(b) parent-commit convention)
+
+PC3 — 4-index all UNCHANGED:
+current_step contains `BC-INDEX v2.65 UNCHANGED; VP-INDEX v2.06 UNCHANGED; STORY-INDEX v3.84 UNCHANGED; ARCH-INDEX v2.16 UNCHANGED` ✓
+
+PC6 (verify_step 7) — develop HEAD anchor:
+```
+$ git rev-parse --short origin/develop
+f6ce4b7c
+```
+PC6 ✓ (develop HEAD f6ce4b7c matches current_step reference and actual merge SHA)
+
+### Dim-5 Factory-Artifacts Chain
+
+```
+$ git -C /Users/zious/Documents/GITHUB/vsdd-factory/.factory log -3 --format='%H %s'
+ef194777... state(D-534): SHA-patch — factory-artifacts HEAD ead64a33
+ead64a33... state(D-534): issue-128 delivery — PR #178 in-flight; Gemini 3-pass adversary converged
+949b63dd... state(D-533): issue-validation sweep — 18 issues validated, 17 actionable + #149 already-done
+```
+
+factory-artifacts HEAD pre-burst: `ead64a33` (state(D-534): issue-128 delivery — after SHA-patch `ef194777`)
+
+### Dim-6 Literal-Shell Count (TD-VSDD-099)
+
+```
+$ ls -d /Users/zious/Documents/GITHUB/vsdd-factory/crates/hook-plugins/*/ | wc -l
+      28
+```
+
+28 hook-plugin crates (UNCHANGED — no new crates this post-merge burst). 4-index UNCHANGED; no version bumps this burst.
+
+STATE.md line count:
+```
+$ wc -l /Users/zious/Documents/GITHUB/vsdd-factory/.factory/STATE.md
+     411 /Users/zious/Documents/GITHUB/vsdd-factory/.factory/STATE.md
+```
+
+411 lines — 4 UNDER soft-target of 415; 89 from hard cap of 500. Budget healthy.
+
+### Dim-7 Attestation (Closes / Advances)
+
+**Codifications:** D-535 ISSUE-128 PR-178 MERGED; L-issue-128-PR-178-merged (infra-flake CI hang class for zero-Rust PRs); D-534 checkpoint archived to session-checkpoints.md per POLICY 1.
+
+**Closes:**
+- D-534 IN-FLIGHT state: PR #178 was OPEN CI-running at D-534 burst. Now SQUASH-MERGED f6ce4b7c. Closure confirmed.
+- Issue #128 delivery complete: feature/issue-128-verify-branch-deletion DELETED from remote; git ls-remote --exit-code returned exit 2. The fix verifies itself — Step 8 now correctly verifies branch deletion, and the verification pattern was used to confirm the branch deletion here.
+- POL-14 auto-promotion: no-op (zero BCs in PR #178). Gate checked and satisfied.
+- §12 validated-backlog #128 row: IN-FLIGHT → DELIVERED/MERGED.
+
+**Advances:** Forward options (per human direction): (a) next validated-backlog bug: #130 dispatcher log-shadow; #129 canonical-principle in shipped plugin; #169+#176 worktree-identity couple (recommended as cluster); OR (b) F5 pass-76 (PAUSED per D-386 Option C; needs explicit human direction) OR (c) UNI-PLUG-001/SK-MCP-001 forward proposals OR (d) wind-down. 4-index UNCHANGED (BC v2.65/VP v2.06/STORY v3.84/ARCH v2.16). Next D: D-536.
+
+**Trajectory:** →9→9→9→11 (UNCHANGED — post-merge bookkeeping burst; no adversary pass; carry per D-433(e)+D-439(c))
+
+### Factory-artifacts Commits
+
+- `ef194777` — state(D-534): SHA-patch — factory-artifacts HEAD ead64a33 (parent commit; factory-artifacts HEAD pre-this-burst)
+- `[this burst SHA]` — state(D-535): PR #178 squash-merged f6ce4b7c; issue-128 DELIVERED/MERGED; develop f6ce4b7c; 4-index UNCHANGED (primary burst per TD-VSDD-053; no SHA-patch follow-up required per single-commit protocol)
