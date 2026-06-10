@@ -793,4 +793,198 @@ mod tests {
             "second line must be the non-deduped dispatcher.started event"
         );
     }
+
+    // -----------------------------------------------------------------------
+    // RED GATE: adversary pass-1 finding M-5 — dedup_hash_for char-boundary panic
+    //
+    // ADR-024 Decision 3 spec says "first 256 bytes (byte-level, not char-level)".
+    // The current implementation does `s[..s.len().min(256)]` which slices at
+    // byte 256. If byte 256 lands inside a multi-byte UTF-8 codepoint (e.g.
+    // a 2-byte accented character whose first byte is at index 255), Rust will
+    // PANIC at the slice boundary.
+    //
+    // Contract: `write` must NEVER panic regardless of the `message` field content.
+    // This test verifies the non-panicking contract on a multi-byte UTF-8 path
+    // long enough that byte 256 falls mid-codepoint.
+    //
+    // Construction: We need a string whose JSON serialization is >256 bytes
+    // and has a multi-byte codepoint straddling the 256-byte boundary.
+    //
+    // JSON value of a string `msg` serializes to `"<msg>"` (with surrounding
+    // quotes added by `v.to_string()` via serde_json::Value::String).
+    // So `v.to_string().len()` = msg.len() + 2 (for the quotes), minus any
+    // escape sequences.
+    //
+    // We use a path prefix of 254 ASCII chars, then a 2-byte UTF-8 codepoint
+    // (e.g. 'é' = 0xC3 0xA9).  After JSON serialization:
+    //   `"<254 ASCII chars><é>"` → len = 1 + 254 + 2 + 1 = 258 bytes.
+    //   Byte 256 (0-indexed) = second byte of 'é' (0xA9), inside the codepoint.
+    //   Slicing `s[..256]` splits the codepoint → PANIC.
+    //
+    // CURRENTLY PANICS — that is the RED. The fix must use
+    // `s.floor_char_boundary(256)` (Rust 1.65+ nightly; available in stable via
+    // manual scan) or `s.char_indices().take_while(|(i,_)| *i < 256)` to find
+    // the largest valid boundary ≤ 256 bytes.
+    // -----------------------------------------------------------------------
+
+    /// M-5 adversary finding: `write` must not panic when `message` JSON value
+    /// has a multi-byte UTF-8 codepoint straddling byte index 256.
+    ///
+    /// RED: currently panics with `byte index 256 is not a char boundary`.
+    #[test]
+    fn test_BC_2_06_001_dedup_no_panic_on_multibyte_utf8_at_256_boundary() {
+        let dir = tempfile::tempdir().unwrap();
+        let log = InternalLog::new(dir.path().to_path_buf());
+        let ts = Local.with_ymd_and_hms(2026, 6, 9, 10, 0, 0).unwrap();
+
+        // Build a message such that the JSON-serialized value has a multi-byte
+        // UTF-8 codepoint spanning byte 256.
+        //
+        // `serde_json::Value::String(s).to_string()` produces `"<s>"` (with
+        // surrounding double-quotes, 2 extra bytes).  We need the boundary at
+        // byte 256 of that serialized form.
+        //
+        // Target: place 'é' (2 bytes: 0xC3 0xA9) at positions 255-256 of the
+        // serialized string. Serialized prefix = `"` + 254 ASCII chars = 255
+        // bytes. Then 'é' starts at byte 255, meaning byte 256 is the second
+        // byte (0xA9) — inside the codepoint.
+        //
+        // So msg = 254 ASCII chars + 'é' + enough filler to exceed 256.
+        let prefix = "A".repeat(254);
+        let msg = format!("{prefix}é/tmp/some/path/that/keeps/going");
+
+        // Sanity-check: the JSON serialized value straddles byte 256.
+        let json_val = serde_json::Value::String(msg.clone()).to_string();
+        assert!(
+            json_val.len() > 256,
+            "test setup: JSON value must be >256 bytes, got {}",
+            json_val.len()
+        );
+        // Byte 256 should not be a char boundary (it's mid-codepoint).
+        // We assert the string is NOT valid UTF-8 if sliced at 256 bytes.
+        // Using `is_char_boundary` to verify test construction.
+        assert!(
+            !json_val.is_char_boundary(256),
+            "test setup: byte 256 must NOT be a char boundary (required for RED test)"
+        );
+
+        // This call MUST NOT panic (non-panicking write contract).
+        // The dedup hash computation calls `s[..s.len().min(256)]` which panics
+        // when byte 256 is not a char boundary.
+        let event =
+            InternalEvent::with_ts(INTERNAL_DISPATCHER_ERROR, ts).with_field("message", msg);
+        log.write(&event); // RED: panics here under current implementation
+
+        // If we reach here, the non-panicking contract was upheld.
+        // The event should have been written (first occurrence, no prior hash).
+        let log_file = dir
+            .path()
+            .join(format!("{FILENAME_PREFIX}2026-06-09{FILENAME_SUFFIX}"));
+        assert!(
+            log_file.exists(),
+            "log file must exist after successful write"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // RED GATE: adversary pass-1 finding M-5 — false dedup on distinct
+    // messages sharing identical first-256-byte JSON prefix.
+    //
+    // If two DISTINCT error messages share the same first 256 bytes of their
+    // JSON-serialized value but differ after byte 256, the current hash
+    // function produces identical hashes for both. The second write is
+    // incorrectly suppressed (false dedup = silent data loss).
+    //
+    // Contract: two distinct `internal.dispatcher_error` events whose message
+    // fields differ (even if only after byte 256) MUST both be logged.
+    //
+    // CURRENTLY FAILS: both produce the same hash; second write is skipped.
+    // -----------------------------------------------------------------------
+
+    /// M-5 adversary finding: two distinct errors sharing a 256-byte JSON
+    /// prefix must BOTH be logged (no false dedup).
+    ///
+    /// RED: currently the second event is falsely suppressed.
+    #[test]
+    fn test_BC_2_06_001_dedup_no_false_dedup_for_messages_differing_after_byte_256() {
+        let dir = tempfile::tempdir().unwrap();
+        let log = InternalLog::new(dir.path().to_path_buf());
+        let ts = Local.with_ymd_and_hms(2026, 6, 9, 11, 0, 0).unwrap();
+
+        // Construct two distinct messages whose JSON-serialized values share the
+        // same first 256 bytes but differ after byte 256.
+        //
+        // JSON serialization of a plain ASCII string of length N is `"<N chars>"`,
+        // so bytes 0..=N+1 (N+2 total). We want the shared prefix to be exactly
+        // 256 bytes long.
+        //
+        // shared_prefix_chars: 254 ASCII chars (bytes 1..254 inside `"..."` quotes).
+        // Full shared JSON prefix = `"` + 254 chars = 255 bytes (byte 0..254).
+        // At byte 255 and 256 we place distinct characters so the msgs differ.
+        //
+        // msg_a: 254 shared chars + "X" + suffix_a
+        // msg_b: 254 shared chars + "Y" + suffix_b
+        // Both have identical bytes 0..255 in JSON form, differ at byte 255+.
+        // After .min(256) truncation: bytes 0..256 are shared for both.
+        //
+        // Actually we need to ensure the first 256 bytes of `v.to_string()` are
+        // identical. `v.to_string()` for a String value = `"<escaped_string>"`.
+        // So: byte 0 = `"`, bytes 1..254 = shared prefix, byte 255 = first
+        // differing char, byte 256+ = rest.
+        //
+        // Therefore: shared_prefix = 254 ASCII chars, then distinct char at index 254.
+        // Both messages: same 254 chars, then different suffix.
+        // JSON of both: `"<254 chars><different suffix>"`.
+        // Bytes 0..255 = `"` + 254 chars = 255 bytes shared.
+        // Byte 255 = first byte of different suffix char.
+        // Byte 256 = second byte (or another char).
+        //
+        // For the hash to collide: we need bytes 0..256 identical.
+        // So shared content must be 255 bytes: `"` + 254 chars.
+        // Make suffix start at byte 255, ensure bytes 255-256 are ASCII and same.
+        // Then differ at byte 257+. → shared_prefix = 255 ASCII chars works:
+        // JSON = `"<255 chars><msg_a_tail>"` vs `"<255 chars><msg_b_tail>"`.
+        // First 256 bytes = `"` + 255 chars = 256 bytes — IDENTICAL for both.
+        // Byte 256 = start of msg_a_tail vs msg_b_tail — DIFFERENT.
+        //
+        // This is the false-dedup scenario: hash uses s[..256] = same for both.
+
+        let shared = "B".repeat(255);
+        let msg_a = format!("{shared}TAIL_ALPHA_UNIQUE");
+        let msg_b = format!("{shared}TAIL_BETA_DIFFERENT");
+
+        // Sanity-check setup: first 256 bytes of JSON value must be identical.
+        let json_a = serde_json::Value::String(msg_a.clone()).to_string();
+        let json_b = serde_json::Value::String(msg_b.clone()).to_string();
+        assert_eq!(
+            &json_a.as_bytes()[..256],
+            &json_b.as_bytes()[..256],
+            "test setup: first 256 bytes must be identical for both JSON values"
+        );
+        assert_ne!(
+            json_a, json_b,
+            "test setup: messages must be distinct overall"
+        );
+
+        // Write both distinct errors.
+        let event_a =
+            InternalEvent::with_ts(INTERNAL_DISPATCHER_ERROR, ts).with_field("message", msg_a);
+        let event_b =
+            InternalEvent::with_ts(INTERNAL_DISPATCHER_ERROR, ts).with_field("message", msg_b);
+        log.write(&event_a);
+        log.write(&event_b);
+
+        // Both events are distinct — BOTH must be logged.
+        let log_file = dir
+            .path()
+            .join(format!("{FILENAME_PREFIX}2026-06-09{FILENAME_SUFFIX}"));
+        let lines = read_lines(&log_file);
+        assert_eq!(
+            lines.len(),
+            2,
+            "M-5 (false dedup): two distinct dispatcher_error events that differ after \
+             byte 256 must BOTH be logged; got {} lines (second was falsely suppressed)",
+            lines.len()
+        );
+    }
 }

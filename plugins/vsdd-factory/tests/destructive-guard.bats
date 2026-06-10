@@ -727,3 +727,72 @@ _run_hook_with_emit() {
   [ -z "$(ls "$EMIT_TMPDIR"/events-*.jsonl 2>/dev/null)" ]
   rm -rf "$EMIT_TMPDIR"
 }
+
+# ---------------------------------------------------------------------------
+# RED GATE: adversary pass-1 findings — C-1/C-2/H-1
+# multi-target bypass: shadow exception must be TARGET-SCOPED, never
+# command-string-scoped.
+#
+# The bug: the current shadow exception fires when the command STRING
+# contains ".factory/.factory" — so a command like
+#   rm -rf .factory/ .factory/.factory
+# contains the shadow substring, causing the exception to `continue` and
+# skip checking the real .factory/ target on the SAME command line.
+#
+# Security requirement: if ANY target on the command line is a real
+# .factory/ path, the command must be BLOCKED (exit 2) regardless of
+# whether the shadow path also appears.
+#
+# These tests will CURRENTLY PASS-the-wrong-way (exit 0) — that is the RED.
+# The implementer must narrow the exception to apply only when the ENTIRE
+# rm target matches .factory/.factory (and not also a real .factory path).
+# ---------------------------------------------------------------------------
+
+# C-1 / H-1: multi-target — real .factory/ PLUS shadow on same rm command.
+# MUST exit 2 (real .factory/ target present).
+# CURRENTLY exits 0 — BUG (shadow substring causes exception to fire for
+# the whole command, bypassing the block).
+@test "C-1: rm -rf .factory/ .factory/.factory MUST exit 2 (real target present)" {
+  _run_hook "rm -rf .factory/ .factory/.factory"
+  [ "$status" -eq 2 ]
+}
+
+# C-2: real subtree (.factory/specs) plus shadow on same rm command.
+# MUST exit 2.
+# CURRENTLY exits 0 — BUG.
+@test "C-2: rm -rf .factory/specs .factory/.factory MUST exit 2 (real subtree present)" {
+  _run_hook "rm -rf .factory/specs .factory/.factory"
+  [ "$status" -eq 2 ]
+}
+
+# H-1 (compound): find on real .factory combined with shadow echo in same command.
+# The compound command contains ".factory/.factory" as a literal string in the
+# echo argument, but the find target is the real .factory tree.
+# MUST exit 2 (find on real .factory present).
+# CURRENTLY exits 0 — BUG (command string contains ".factory/.factory").
+@test "H-1a: find .factory -delete ; echo .factory/.factory MUST exit 2 (real find target)" {
+  _run_hook "find .factory -delete ; echo .factory/.factory"
+  [ "$status" -eq 2 ]
+}
+
+# H-1 (compound): shadow find THEN real find.  Both subcommands are present;
+# real one must still be blocked.
+# MUST exit 2.
+# CURRENTLY exits 0 — BUG.
+@test "H-1b: find .factory/.factory -delete ; find .factory -delete MUST exit 2 (real find present)" {
+  _run_hook "find .factory/.factory -delete ; find .factory -delete"
+  [ "$status" -eq 2 ]
+}
+
+# Positive regression: shadow-only rm must remain allowed (exit 0).
+# This test ALREADY passes and must not regress after the fix.
+@test "positive: rm -rf .factory/.factory/ alone exits 0 (shadow only)" {
+  _run_hook "rm -rf .factory/.factory/"
+  [ "$status" -eq 0 ]
+}
+
+# Positive regression: shadow-only find must remain allowed (exit 0).
+@test "positive: find .factory/.factory -delete alone exits 0 (shadow only)" {
+  _run_hook "find .factory/.factory -delete"
+  [ "$status" -eq 0 ]
+}
