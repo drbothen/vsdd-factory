@@ -375,7 +375,57 @@ _make_worktree_with_space() {
 }
 
 # ---------------------------------------------------------------------------
-# Test 11 (L-1 short-SHA): abbreviated EXPECTED_HEAD_SHA still matches full SHA.
+# Test 11 (M-2 last-record): matching worktree IS the LAST record in git
+# worktree list --porcelain — still resolves correctly.
+#
+# This test MUST FAIL if the trailing blank line in the heredoc is removed:
+# without it, the LAST porcelain record never triggers the blank-line branch
+# and is silently dropped, so the matching worktree (being last) is never
+# evaluated and MATCH_COUNT stays 0 → exit non-zero.
+#
+# git worktree list --porcelain lists in creation order with the main worktree
+# first.  To guarantee S-12.08 is the LAST record, create the non-matching
+# worktrees (S-99.01, S-99.02) FIRST, then create S-12.08 last.
+#
+# Non-vacuousness proof: temporarily remove the trailing blank line from the
+# heredoc in resolve-worktree-identity.sh and run this test — it goes RED.
+# Restore the blank line and the test returns GREEN.
+# ---------------------------------------------------------------------------
+
+@test "test_resolve_wt_identity_matching_worktree_is_LAST_record_resolves" {
+  # Create the MATCHING worktree as the ONLY additional worktree beyond the main
+  # repo — this guarantees it is the FINAL record in git worktree list --porcelain
+  # output and that no preceding non-matching worktree provides a "free" inter-
+  # record blank line for the last record.
+  #
+  # git worktree list --porcelain format:
+  #   worktree <main-repo>    <- record 1 (main)
+  #   HEAD ...
+  #   branch ...
+  #   <blank>
+  #   worktree <S-12.08>      <- record 2 (LAST, no trailing blank from git)
+  #   HEAD ...
+  #   branch ...
+  #   <-- NO trailing blank from git -->
+  #
+  # The load-bearing blank line in the heredoc is the ONLY terminator for this
+  # last record.  Without it the blank-line branch is never triggered and
+  # MATCH_COUNT stays 0, causing the helper to exit non-zero.
+  _make_worktree "S-12.08"
+  wt_target="$WT_PATH"
+  sha="$(git -C "$wt_target" rev-parse HEAD)"
+
+  run env STORY_ID="S-12.08" EXPECTED_HEAD_SHA="$sha" VSDD_REPO_ROOT="$MAIN_REPO" \
+    bash "$HELPER"
+
+  # The matching worktree (FINAL record, sole non-main worktree) must resolve
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"worktree-abs-path:   $wt_target"* ]]
+  [[ "$output" == *"story-id:            S-12.08"* ]]
+}
+
+# ---------------------------------------------------------------------------
+# Test 12 (L-1 short-SHA): abbreviated EXPECTED_HEAD_SHA still matches full SHA.
 #
 # The orchestrator typically records the full 40-char SHA, but abbreviated SHAs
 # (7-char git abbrev) should also work.  Without normalization, the comparison

@@ -160,9 +160,11 @@ EOF
 # and mandatory.  git worktree list --porcelain separates records with blank lines but
 # does NOT emit a trailing blank line after the LAST record.  Without the explicit
 # blank line here, the final record never triggers the "elif [[ -z "$line" ]]" branch
-# and is silently dropped.  Removing or collapsing this blank line breaks
-# non-final-record-last matching (see resolve-worktree-identity.bats:
-# test_resolve_wt_identity_non_final_record_still_resolves_correctly).
+# and is silently dropped.  Removing or collapsing this blank line breaks last-record
+# matching (see resolve-worktree-identity.bats:
+# test_resolve_wt_identity_matching_worktree_is_LAST_record_resolves — the test that
+# exercises the matching worktree as the FINAL porcelain record and MUST fail when
+# this blank line is removed).
 
 # Disambiguate
 if [[ "$MATCH_COUNT" -eq 0 ]]; then
