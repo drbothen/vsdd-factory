@@ -40,21 +40,49 @@ setup() {
 
 # (b) AC-002: adversary.md must assert that the worktree HEAD SHA must equal
 #     the dispatched feature HEAD SHA; mismatch must cause STOP + dispatch-error.
-#     Anchor: the phrase "dispatch-error" paired with HEAD SHA mismatch language.
+#     Anchor: the phrase "dispatch-error" paired with HEAD SHA mismatch language,
+#     verified within the "Worktree-Identity Preflight" section context.
 @test "test_BC_adversary_head_sha_mismatch_emits_dispatch_error_not_findings" {
-  run grep -i "dispatch-error" "$ADVERSARY_AGENT"
-  [ "$status" -eq 0 ]
-  # Also verify the HEAD SHA comparison verb is present (rev-parse HEAD)
-  run grep -i "rev-parse HEAD" "$ADVERSARY_AGENT"
-  [ "$status" -eq 0 ]
+  # Section-scoped check: extract the Worktree-Identity Preflight section
+  # (from "#### Worktree-Identity Preflight" up to the next "####" heading or "---")
+  # and verify both dispatch-error AND rev-parse HEAD co-occur within it.
+  preflight_section="$(awk '/^#### Worktree-Identity Preflight/{found=1} found{print} /^#### /{if(!found)next; if(found && !/^#### Worktree-Identity Preflight/)exit} /^---/{if(found)exit}' "$ADVERSARY_AGENT")"
+  # dispatch-error must appear in the preflight section
+  printf '%s\n' "$preflight_section" | grep -i "dispatch-error" >/dev/null
+  # rev-parse HEAD OR the SHA comparison concept must appear in the preflight section
+  # (adversary checks the EMBEDDED sha, not git directly — but the orchestrator
+  # uses rev-parse HEAD; the section must reference this mechanism)
+  printf '%s\n' "$preflight_section" | grep -iE "rev-parse HEAD|feature-HEAD-SHA|HEAD SHA" >/dev/null
 }
 
-# (c) AC-003: adversary.md must assert basename of show-toplevel must match
-#     the dispatched story id / target.
-#     Anchor: "show-toplevel" paired with "story" identity verification.
+# (c) AC-003: adversary.md must assert that the basename of the embedded
+#     worktree-abs-path matches the story-id, and that the mechanism is the
+#     porcelain-list / basename resolution (NOT show-toplevel).
+#     Anchors: "worktree list" + "--porcelain" + "basename" must co-occur in
+#     adversary.md Rule 2.  "show-toplevel" MUST NOT appear as the mechanism
+#     description (the prior wrong description is superseded by this finding).
 @test "test_BC_adversary_toplevel_basename_must_match_story_id" {
-  run grep -i "show-toplevel" "$ADVERSARY_AGENT"
+  # The correct mechanism tokens must be present
+  run grep -i "worktree list" "$ADVERSARY_AGENT"
   [ "$status" -eq 0 ]
+  run grep -i "\-\-porcelain" "$ADVERSARY_AGENT"
+  [ "$status" -eq 0 ]
+  run grep -i "basename" "$ADVERSARY_AGENT"
+  [ "$status" -eq 0 ]
+  # The WRONG mechanism token must NOT appear as the primary description
+  # (the porcelain-list resolver does NOT use show-toplevel for worktree matching)
+  # We allow show-toplevel to appear elsewhere (e.g. legacy comments or SKILL.md
+  # cross-refs) but it must NOT appear in the worktree-abs-path derivation clause
+  # in adversary.md Rule 2.  Extract just Rule 2 paragraph and verify absence.
+  rule2="$(awk '/^2\. \*\*Verify basename/{found=1} found{print; if (/^$/ && found) exit}' "$ADVERSARY_AGENT")"
+  # rule2 paragraph must contain porcelain + basename
+  printf '%s\n' "$rule2" | grep -i "\-\-porcelain" >/dev/null
+  printf '%s\n' "$rule2" | grep -i "basename" >/dev/null
+  # and must NOT describe show-toplevel as the derivation mechanism
+  if printf '%s\n' "$rule2" | grep -q "rev-parse --show-toplevel"; then
+    echo "FAIL: adversary.md Rule 2 still contains 'rev-parse --show-toplevel' as the worktree-abs-path derivation mechanism" >&2
+    return 1
+  fi
 }
 
 # (d) AC-004: adversary.md must mandate absolute worktree-rooted paths for all
@@ -128,11 +156,14 @@ setup() {
 # (j) AC-010: adversarial-review SKILL.md must document that the adversary
 #     must ASSERT the triple before producing findings.
 #     Anchor: "ASSERT" (uppercased to match the imperative form) within
-#     the preflight subsection context.
+#     the "Worktree-Identity Preflight" subsection context.
 @test "test_BC_adv_review_skill_adversary_must_assert_triple_before_findings" {
-  # Use case-insensitive so the implementer has latitude in prose styling
-  run grep -iE "\bASSERT\b" "$ADV_REVIEW_SKILL"
-  [ "$status" -eq 0 ]
+  # Section-scoped check: extract the Worktree-Identity Preflight subsection
+  # (from "## Worktree-Identity Preflight" up to the next "##" heading)
+  # and verify ASSERT appears within it.
+  preflight_section="$(awk '/^## Worktree-Identity Preflight/{found=1} found{print} /^## /{if(!found)next; if(found && !/^## Worktree-Identity Preflight/)exit}' "$ADV_REVIEW_SKILL")"
+  # ASSERT must appear in the Worktree-Identity Preflight section
+  printf '%s\n' "$preflight_section" | grep -iE "\bASSERT\b" >/dev/null
 }
 
 # ============================================================

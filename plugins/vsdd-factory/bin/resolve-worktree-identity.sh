@@ -9,6 +9,7 @@
 # Inputs (environment variables):
 #   STORY_ID            — the story identifier, e.g. S-12.08 (required)
 #   EXPECTED_HEAD_SHA   — the orchestrator-recorded implementer-final-commit SHA (required)
+#   VSDD_REPO_ROOT      — optional override for the main repo root (test fixtures / hooks)
 #
 # Outputs (on success, to stdout):
 #   worktree-abs-path:   <absolute-path-to-worktree>
@@ -18,7 +19,7 @@
 #
 # Exit codes:
 #   0   — identity resolved and asserted; tuple printed to stdout
-#   1   — dispatch-error; error message printed to stdout
+#   1   — dispatch-error; error message printed to stderr + exit non-zero
 
 set -euo pipefail
 
@@ -27,29 +28,52 @@ set -euo pipefail
 # ---------------------------------------------------------------------------
 
 if [[ -z "${STORY_ID:-}" ]]; then
-  echo "dispatch-error: STORY_ID is required but not set"
+  printf 'dispatch-error: STORY_ID is required but not set\n' >&2
   exit 1
 fi
 
 if [[ -z "${EXPECTED_HEAD_SHA:-}" ]]; then
-  echo "dispatch-error: EXPECTED_HEAD_SHA is required but not set"
+  printf 'dispatch-error: EXPECTED_HEAD_SHA is required but not set\n' >&2
   exit 1
 fi
 
 # ---------------------------------------------------------------------------
-# Step 1: Resolve main repo root nesting-safe via git-common-dir.
-# git rev-parse --show-toplevel returns the WORKTREE root when run from inside
-# a linked worktree; --git-common-dir always points to the main .git/ directory,
-# so "$(git rev-parse --git-common-dir)/.." is always the main checkout root.
+# Step 1: Resolve main repo root nesting-safe via git-common-dir, anchored to
+# the script's own directory — NOT the ambient CWD.
 #
-# VSDD_REPO_ROOT may be set by callers (e.g. test fixtures) to override the
-# auto-detected root without requiring the caller to cd into the repo.
+# RATIONALE (C-1 fix, issues #169 + #176):
+#   `git rev-parse --git-common-dir` returns a path RELATIVE TO THE -C TARGET,
+#   not relative to the caller's CWD.  Without anchoring, naive
+#     "$(git rev-parse --git-common-dir)/.."
+#   resolves relative to whatever CWD the caller happened to have, which may be
+#   outside the repo entirely, producing the wrong repo root and reading the
+#   wrong .factory (the exact #169 regression).
+#
+#   The fix: use `-C "$_SCRIPT_DIR"` so git resolves the common-dir relative to
+#   a directory the script CONTROLS (its own location).  Then cd into
+#   `$_SCRIPT_DIR` first, and from there cd into the common-dir result, and
+#   finally cd `..` to reach the main repo root.  This works in both a normal
+#   checkout (script at <repo>/plugins/vsdd-factory/bin/) and a linked worktree
+#   (--git-common-dir from any worktree always points at the main .git/).
+#
+#   `VSDD_REPO_ROOT` override is kept for test fixtures and explicit hooks that
+#   already know the root.  It MUST also be exercised by tests (not just the
+#   override path) — see resolve-worktree-identity.bats for the production-path
+#   test that does NOT set VSDD_REPO_ROOT.
 # ---------------------------------------------------------------------------
+
+_SCRIPT_DIR="$(cd -- "$(dirname -- "$0")" && pwd)"
 
 if [[ -n "${VSDD_REPO_ROOT:-}" ]]; then
   REPO_ROOT="$(cd -- "$VSDD_REPO_ROOT" && pwd)"
 else
-  REPO_ROOT="$(cd -- "$(git rev-parse --git-common-dir)/.." && pwd)"
+  # --git-common-dir is relative to the -C target; canonicalize by cd-ing there
+  # first, then into the common-dir result, then one level up to the repo root.
+  _common="$(git -C "$_SCRIPT_DIR" rev-parse --git-common-dir 2>/dev/null)" || {
+    printf 'dispatch-error: git rev-parse --git-common-dir failed (is %s inside a git repo?)\n' "$_SCRIPT_DIR" >&2
+    exit 1
+  }
+  REPO_ROOT="$(cd -- "$_SCRIPT_DIR" && cd -- "$_common" && cd -- .. && pwd)"
 fi
 CANONICAL_REPO_ROOT="$REPO_ROOT"
 
@@ -58,7 +82,7 @@ CANONICAL_REPO_ROOT="$REPO_ROOT"
 # ---------------------------------------------------------------------------
 
 if [[ ! -d "$CANONICAL_REPO_ROOT/.factory" ]]; then
-  printf 'dispatch-error: canonical .factory not mounted — %s/.factory does not exist. STOP.\n' "$CANONICAL_REPO_ROOT"
+  printf 'dispatch-error: canonical .factory not mounted — %s/.factory does not exist. STOP.\n' "$CANONICAL_REPO_ROOT" >&2
   exit 1
 fi
 
@@ -88,7 +112,7 @@ MATCH_COUNT=0
 
 # Capture git output first with an explicit failure check so git's non-zero
 # exit code is not swallowed by a process substitution under set -euo pipefail.
-if ! _wt_porcelain="$(git -C "$CANONICAL_REPO_ROOT" worktree list --porcelain)"; then
+if ! _wt_porcelain="$(git -C "$CANONICAL_REPO_ROOT" worktree list --porcelain 2>&1)"; then
   printf 'dispatch-error: git worktree list failed in %s\n' "$CANONICAL_REPO_ROOT" >&2
   exit 1
 fi
@@ -132,32 +156,49 @@ done <<EOF
 $_wt_porcelain
 
 EOF
+# LOAD-BEARING: The blank line between "$_wt_porcelain" and EOF above is intentional
+# and mandatory.  git worktree list --porcelain separates records with blank lines but
+# does NOT emit a trailing blank line after the LAST record.  Without the explicit
+# blank line here, the final record never triggers the "elif [[ -z "$line" ]]" branch
+# and is silently dropped.  Removing or collapsing this blank line breaks
+# non-final-record-last matching (see resolve-worktree-identity.bats:
+# test_resolve_wt_identity_non_final_record_still_resolves_correctly).
 
 # Disambiguate
 if [[ "$MATCH_COUNT" -eq 0 ]]; then
-  printf 'dispatch-error: no worktree matched STORY_ID=%s in git worktree list. STOP.\n' "'$STORY_ID'"
+  printf 'dispatch-error: no worktree matched STORY_ID=%s in git worktree list. STOP.\n' "'$STORY_ID'" >&2
   exit 1
 fi
 
 if [[ "$MATCH_COUNT" -gt 1 ]]; then
-  printf 'dispatch-error: %d worktrees matched STORY_ID=%s — ambiguous. STOP.\n' "$MATCH_COUNT" "'$STORY_ID'"
+  printf 'dispatch-error: %d worktrees matched STORY_ID=%s — ambiguous. STOP.\n' "$MATCH_COUNT" "'$STORY_ID'" >&2
   exit 1
 fi
 
 # Verify the resolved path is a real directory
 if [[ ! -d "$WORKTREE_ABS_PATH" ]]; then
-  printf 'dispatch-error: resolved worktree path %s is not a directory. STOP.\n' "'$WORKTREE_ABS_PATH'"
+  printf 'dispatch-error: resolved worktree path %s is not a directory. STOP.\n' "'$WORKTREE_ABS_PATH'" >&2
   exit 1
 fi
 
 # ---------------------------------------------------------------------------
 # Step 4: Assert HEAD SHA equals the orchestrator-recorded expected SHA.
+#
+# L-1 fix: normalize both SHAs via `git rev-parse` before comparing so that
+# a short/abbreviated EXPECTED_HEAD_SHA (e.g. 7-char abbrev) still matches the
+# full 40-char actual HEAD.  `git rev-parse <sha>` returns the full 40-char SHA
+# for any unambiguous prefix; if EXPECTED_HEAD_SHA is unresolvable (garbage or
+# does not exist in this repo), the fallback preserves the original value so the
+# mismatch error message still shows the caller-supplied token.
 # ---------------------------------------------------------------------------
 
 ACTUAL_HEAD_SHA="$(git -C "$WORKTREE_ABS_PATH" rev-parse HEAD)"
+_normalized_expected="$(git -C "$WORKTREE_ABS_PATH" rev-parse "$EXPECTED_HEAD_SHA" 2>/dev/null \
+  || printf '%s' "$EXPECTED_HEAD_SHA")"
 
-if [[ "$ACTUAL_HEAD_SHA" != "$EXPECTED_HEAD_SHA" ]]; then
-  printf 'dispatch-error: worktree HEAD %s != expected %s — STOP\n' "$ACTUAL_HEAD_SHA" "$EXPECTED_HEAD_SHA"
+if [[ "$ACTUAL_HEAD_SHA" != "$_normalized_expected" ]]; then
+  printf 'dispatch-error: worktree HEAD %s != expected %s — STOP\n' \
+    "$ACTUAL_HEAD_SHA" "$EXPECTED_HEAD_SHA" >&2
   exit 1
 fi
 

@@ -102,9 +102,11 @@ Before dispatching the adversary for a Perimeter-1 per-story review, the orchest
 
 **Adversary behavior (enforced by `adversary.md` Worktree-Identity Preflight section):**
 
-The adversary MUST ASSERT the identity tuple is present before producing any findings. If the tuple is missing or the paths are inconsistent, the adversary emits a `dispatch-error` and halts — it does NOT proceed to content review. This ASSERT-before-findings discipline is the structural guarantee that a misconfigured dispatch is caught immediately rather than producing misleading review output.
+The adversary MUST ASSERT the identity tuple is present before producing any findings. If the tuple is missing or the paths are inconsistent, the adversary emits a `dispatch-error` and halts — it does NOT proceed to content review.
 
-**Why the orchestrator embeds, not the adversary verifies independently:** The adversary is read-only (no Bash access); it cannot run `git rev-parse HEAD` itself. The orchestrator has Bash access and runs the SHA capture and equality assertion pre-dispatch. The adversary's role is to ASSERT the embedded identity tuple is present and consistent — not to independently compute it.
+**Primary structural guarantee — PATH-CONFINEMENT:** The true structural guarantee that prevents reading the wrong tree is PATH-CONFINEMENT: the adversary reads feature-code evidence ONLY from paths rooted at the embedded `worktree-abs-path`, and spec/BC/ADR ground-truth ONLY from paths rooted at the embedded `canonical-repo-root/.factory/`. Because these absolute paths are embedded by the orchestrator (after being resolved and asserted by `resolve-worktree-identity.sh`), the adversary cannot accidentally read the wrong checkout or the wrong spec snapshot regardless of CWD or context. The ASSERT-before-findings step is defense-in-depth: it catches a MISSING tuple (dispatch misconfiguration) immediately, before any reads occur. It is NOT the primary mechanism that prevents wrong-tree reads — path-confinement is.
+
+**Why the orchestrator embeds, not the adversary verifies independently:** The adversary is read-only (no Bash access); it cannot run `git rev-parse HEAD` itself. The orchestrator has Bash access and runs the SHA capture and equality assertion pre-dispatch via `resolve-worktree-identity.sh`. The adversary's role is to ASSERT the embedded identity tuple is present and consistent — confirming the orchestrator completed the preflight — not to independently compute it.
 
 ## Filename Collision Guard (MANDATORY pre-flight)
 

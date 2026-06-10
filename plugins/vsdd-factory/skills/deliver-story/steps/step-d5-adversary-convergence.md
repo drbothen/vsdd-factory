@@ -57,14 +57,17 @@ IDENTITY_TUPLE="$(STORY_ID="$STORY_ID" EXPECTED_HEAD_SHA="$EXPECTED_HEAD_SHA" \
   exit 1
 }
 
-# Parse the 4 tuple fields from the helper output:
+# Parse ALL 4 tuple fields from the helper output:
 #   worktree-abs-path:   <path>
 #   feature-HEAD-SHA:    <sha>
 #   story-id:            <id>
 #   canonical-repo-root: <root>
 WORKTREE_ABS_PATH="$(echo "$IDENTITY_TUPLE"  | grep '^worktree-abs-path:'   | sed 's/^worktree-abs-path:[[:space:]]*//')"
 FEATURE_HEAD_SHA="$(echo "$IDENTITY_TUPLE"   | grep '^feature-HEAD-SHA:'    | sed 's/^feature-HEAD-SHA:[[:space:]]*//')"
+STORY_ID_FROM_TUPLE="$(echo "$IDENTITY_TUPLE" | grep '^story-id:'            | sed 's/^story-id:[[:space:]]*//')"
 CANONICAL_REPO_ROOT="$(echo "$IDENTITY_TUPLE" | grep '^canonical-repo-root:' | sed 's/^canonical-repo-root:[[:space:]]*//')"
+# STORY_ID_FROM_TUPLE should equal $STORY_ID (the helper echoes it back verbatim).
+# Use $STORY_ID for dispatch context; use STORY_ID_FROM_TUPLE to cross-verify if needed.
 # The feature HEAD SHA returned by the helper equals EXPECTED_HEAD_SHA (helper asserted this).
 # EXPECTED_HEAD_SHA and FEATURE_HEAD_SHA are identical — use either for the embedded tuple.
 ```

@@ -278,3 +278,120 @@ _make_worktree_with_space() {
   [[ "$output" == *"dispatch-error"* ]]
   [[ "$output" == *"EXPECTED_HEAD_SHA"* ]]
 }
+
+# ---------------------------------------------------------------------------
+# Test 9 (C-1 production-path): helper resolves REPO_ROOT WITHOUT VSDD_REPO_ROOT,
+# invoked from a CWD OUTSIDE the worktree.
+#
+# This test MUST FAIL against the old CWD-relative code:
+#   REPO_ROOT="$(cd -- "$(git rev-parse --git-common-dir)/.." && pwd)"
+# When the CWD is /tmp (outside the repo), `git rev-parse --git-common-dir`
+# fails (not in a git repo) → the helper would error or resolve the wrong root.
+# With the C-1 fix the helper anchors to its own _SCRIPT_DIR, so CWD is irrelevant.
+#
+# This test exercises the PRODUCTION branch (no VSDD_REPO_ROOT override) and
+# asserts that CANONICAL_REPO_ROOT resolves to the MAIN_REPO, not a tempdir.
+# ---------------------------------------------------------------------------
+
+@test "test_resolve_wt_identity_production_path_no_VSDD_REPO_ROOT_resolves_correct_root" {
+  # C-1 production-path test: the helper MUST resolve the repo root via its
+  # own _SCRIPT_DIR anchor, NOT via ambient CWD.  To exercise this:
+  #   1. Place a COPY of the helper inside the test repo (so _SCRIPT_DIR points
+  #      at the test repo, not the real vsdd-factory repo).
+  #   2. Run WITHOUT VSDD_REPO_ROOT.
+  #   3. CWD is an entirely different tmpdir (outside the test repo).
+  #
+  # If the old CWD-relative code were used:
+  #   git rev-parse --git-common-dir (run from outside_dir) would either fail
+  #   (not in a git repo) or resolve the wrong repo — the test would exit non-zero.
+  # With the C-1 fix:
+  #   git -C "$_SCRIPT_DIR" rev-parse --git-common-dir anchors to the test repo
+  #   regardless of CWD — the test exits 0 with the correct canonical-repo-root.
+
+  _make_worktree "S-12.08"
+  sha="$(git -C "$WT_PATH" rev-parse HEAD)"
+
+  # Install a copy of the helper inside the test repo at a bin/ path
+  mkdir -p "$MAIN_REPO/bin"
+  cp "$HELPER" "$MAIN_REPO/bin/resolve-worktree-identity.sh"
+  chmod +x "$MAIN_REPO/bin/resolve-worktree-identity.sh"
+  local_helper="$MAIN_REPO/bin/resolve-worktree-identity.sh"
+
+  # Stage the copy so git is aware (not strictly necessary for the helper to run,
+  # but keeps the repo clean for teardown)
+  git -C "$MAIN_REPO" add "$local_helper" >/dev/null 2>&1 || true
+
+  # Outside directory — entirely different from both the test repo and the helper
+  outside_dir="$(mktemp -d)"
+  outside_dir="$(cd "$outside_dir" && pwd -P)"
+
+  # Run WITHOUT VSDD_REPO_ROOT — production path; CWD is outside_dir
+  run bash -c "cd '$outside_dir' && STORY_ID='S-12.08' EXPECTED_HEAD_SHA='$sha' bash '$local_helper'"
+
+  rm -rf "$outside_dir"
+
+  # Must succeed — _SCRIPT_DIR is inside MAIN_REPO so git anchors correctly
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"worktree-abs-path:"* ]]
+  [[ "$output" == *"canonical-repo-root:"* ]]
+
+  # canonical-repo-root in the output must equal MAIN_REPO
+  resolved_root="$(printf '%s\n' "$output" | grep '^canonical-repo-root:' | sed 's/^canonical-repo-root:[[:space:]]*//')"
+  [ "$resolved_root" = "$MAIN_REPO" ]
+}
+
+# ---------------------------------------------------------------------------
+# Test 10 (M-1 non-final-record): matching worktree is NOT the last record
+# in git worktree list --porcelain — still resolves correctly.
+#
+# This test MUST FAIL if the trailing-blank-line in the heredoc is removed:
+# without it, the LAST porcelain record never triggers the blank-line branch
+# and is dropped.  But here the MATCHING worktree is the FIRST (non-last)
+# record, and a non-matching worktree follows it — so both orderings are
+# covered: the matching worktree fires during the loop (non-final), and the
+# trailing blank ensures the LAST record (non-matching) also gets evaluated
+# (proving the load-bearing blank handles the final record correctly too).
+# ---------------------------------------------------------------------------
+
+@test "test_resolve_wt_identity_non_final_record_still_resolves_correctly" {
+  # Create the MATCHING worktree FIRST (S-12.08)
+  _make_worktree "S-12.08"
+  wt_target="$WT_PATH"
+  sha="$(git -C "$wt_target" rev-parse HEAD)"
+
+  # Then create a LATER (non-matching) worktree — it comes AFTER S-12.08 in
+  # git worktree list output, making S-12.08 a non-final record.
+  _make_worktree "S-99.99"
+
+  run env STORY_ID="S-12.08" EXPECTED_HEAD_SHA="$sha" VSDD_REPO_ROOT="$MAIN_REPO" \
+    bash "$HELPER"
+
+  # The matching worktree (non-final record) must still resolve
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"worktree-abs-path:   $wt_target"* ]]
+  [[ "$output" == *"story-id:            S-12.08"* ]]
+  # The non-matching worktree must not appear
+  [[ "$output" != *"S-99.99"* ]]
+}
+
+# ---------------------------------------------------------------------------
+# Test 11 (L-1 short-SHA): abbreviated EXPECTED_HEAD_SHA still matches full SHA.
+#
+# The orchestrator typically records the full 40-char SHA, but abbreviated SHAs
+# (7-char git abbrev) should also work.  Without normalization, the comparison
+# "abcdef1" != "abcdef1234567890..." fails even though they name the same commit.
+# ---------------------------------------------------------------------------
+
+@test "test_resolve_wt_identity_short_sha_matches_full_sha" {
+  _make_worktree "S-12.08"
+  full_sha="$(git -C "$WT_PATH" rev-parse HEAD)"
+  # Use a 7-char abbreviated SHA
+  short_sha="${full_sha:0:7}"
+
+  run env STORY_ID="S-12.08" EXPECTED_HEAD_SHA="$short_sha" VSDD_REPO_ROOT="$MAIN_REPO" \
+    bash "$HELPER"
+
+  # Must succeed — short SHA names the same commit
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"feature-HEAD-SHA:    $full_sha"* ]]
+}
