@@ -47,9 +47,9 @@ fi
 # ---------------------------------------------------------------------------
 
 if [[ -n "${VSDD_REPO_ROOT:-}" ]]; then
-  REPO_ROOT="$(cd "$VSDD_REPO_ROOT" && pwd)"
+  REPO_ROOT="$(cd -- "$VSDD_REPO_ROOT" && pwd)"
 else
-  REPO_ROOT="$(cd "$(git rev-parse --git-common-dir)/.." && pwd)"
+  REPO_ROOT="$(cd -- "$(git rev-parse --git-common-dir)/.." && pwd)"
 fi
 CANONICAL_REPO_ROOT="$REPO_ROOT"
 
@@ -58,7 +58,7 @@ CANONICAL_REPO_ROOT="$REPO_ROOT"
 # ---------------------------------------------------------------------------
 
 if [[ ! -d "$CANONICAL_REPO_ROOT/.factory" ]]; then
-  echo "dispatch-error: canonical .factory not mounted — $CANONICAL_REPO_ROOT/.factory does not exist. STOP."
+  printf 'dispatch-error: canonical .factory not mounted — %s/.factory does not exist. STOP.\n' "$CANONICAL_REPO_ROOT"
   exit 1
 fi
 
@@ -86,8 +86,17 @@ STORY_ID_LOWER="$(printf '%s' "$STORY_ID" | tr '[:upper:]' '[:lower:]')"  # POSI
 WORKTREE_ABS_PATH=""
 MATCH_COUNT=0
 
-# Parse git worktree list --porcelain
+# Capture git output first with an explicit failure check so git's non-zero
+# exit code is not swallowed by a process substitution under set -euo pipefail.
+if ! _wt_porcelain="$(git -C "$CANONICAL_REPO_ROOT" worktree list --porcelain)"; then
+  printf 'dispatch-error: git worktree list failed in %s\n' "$CANONICAL_REPO_ROOT" >&2
+  exit 1
+fi
+
+# Parse porcelain output SPACE-SAFE using a here-document.
 # Reset block variable at the start of each "worktree" line.
+# A trailing newline on $_wt_porcelain ensures the last record's implicit
+# blank-line terminator is present (the here-doc appends a trailing newline).
 _path=""
 
 while IFS= read -r line; do
@@ -97,7 +106,7 @@ while IFS= read -r line; do
   elif [[ -z "$line" ]]; then
     # End of record — evaluate basename match (branch/detached state irrelevant)
     if [[ -n "$_path" ]]; then
-      _basename="$(basename "$_path")"
+      _basename="$(basename -- "$_path")"
       _basename_lower="$(printf '%s' "$_basename" | tr '[:upper:]' '[:lower:]')"
 
       # Check: worktree basename == STORY_ID (case-insensitive, exact)
@@ -119,23 +128,25 @@ while IFS= read -r line; do
     fi
     _path=""
   fi
-done < <(git -C "$CANONICAL_REPO_ROOT" worktree list --porcelain; echo "")
-# The extra echo "" ensures the last record's blank-line terminator is present.
+done <<EOF
+$_wt_porcelain
+
+EOF
 
 # Disambiguate
 if [[ "$MATCH_COUNT" -eq 0 ]]; then
-  echo "dispatch-error: no worktree matched STORY_ID='$STORY_ID' in git worktree list. STOP."
+  printf 'dispatch-error: no worktree matched STORY_ID=%s in git worktree list. STOP.\n' "'$STORY_ID'"
   exit 1
 fi
 
 if [[ "$MATCH_COUNT" -gt 1 ]]; then
-  echo "dispatch-error: $MATCH_COUNT worktrees matched STORY_ID='$STORY_ID' — ambiguous. STOP."
+  printf 'dispatch-error: %d worktrees matched STORY_ID=%s — ambiguous. STOP.\n' "$MATCH_COUNT" "'$STORY_ID'"
   exit 1
 fi
 
 # Verify the resolved path is a real directory
 if [[ ! -d "$WORKTREE_ABS_PATH" ]]; then
-  echo "dispatch-error: resolved worktree path '$WORKTREE_ABS_PATH' is not a directory. STOP."
+  printf 'dispatch-error: resolved worktree path %s is not a directory. STOP.\n' "'$WORKTREE_ABS_PATH'"
   exit 1
 fi
 
@@ -146,7 +157,7 @@ fi
 ACTUAL_HEAD_SHA="$(git -C "$WORKTREE_ABS_PATH" rev-parse HEAD)"
 
 if [[ "$ACTUAL_HEAD_SHA" != "$EXPECTED_HEAD_SHA" ]]; then
-  echo "dispatch-error: worktree HEAD $ACTUAL_HEAD_SHA != expected $EXPECTED_HEAD_SHA — STOP"
+  printf 'dispatch-error: worktree HEAD %s != expected %s — STOP\n' "$ACTUAL_HEAD_SHA" "$EXPECTED_HEAD_SHA"
   exit 1
 fi
 
@@ -154,7 +165,7 @@ fi
 # Step 5: Print the 4-field WORKTREE-IDENTITY TUPLE.
 # ---------------------------------------------------------------------------
 
-echo "worktree-abs-path:   $WORKTREE_ABS_PATH"
-echo "feature-HEAD-SHA:    $ACTUAL_HEAD_SHA"
-echo "story-id:            $STORY_ID"
-echo "canonical-repo-root: $CANONICAL_REPO_ROOT"
+printf 'worktree-abs-path:   %s\n' "$WORKTREE_ABS_PATH"
+printf 'feature-HEAD-SHA:    %s\n' "$ACTUAL_HEAD_SHA"
+printf 'story-id:            %s\n' "$STORY_ID"
+printf 'canonical-repo-root: %s\n' "$CANONICAL_REPO_ROOT"
