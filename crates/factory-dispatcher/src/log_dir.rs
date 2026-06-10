@@ -1,41 +1,46 @@
-//! Worktree-aware log-directory resolution (ADR-024 Decision 1).
+//! Worktree-aware log-directory resolution (ADR-024 Decision 1, v1.1).
 //!
 //! Exposes `resolve_log_dir_from` as a pure helper so that both the
 //! `main.rs` startup path and the integration-test suite can exercise
 //! the resolution algorithm without touching the process environment.
 //!
-//! # Resolution order (six levels, first match wins)
+//! # Resolution order (seven levels A–G, first match wins)
 //!
 //! A. `VSDD_LOG_DIR` env var — set and non-empty → use directly (append
-//!    `logs` only if not already ending in `logs`). No `.factory` re-appended.
+//!    `logs` only if not already ending in `logs` or `logs/`).
+//!    No `.factory` re-appended.
 //! B. `FACTORY_ROOT` env var — set and non-empty → `$FACTORY_ROOT/logs`.
 //! C. `project_dir` / cwd basename == `.factory` (case-insensitive) →
 //!    use the path directly, append `logs`. Primary shadow fix.
 //! D. Walk parent chain from `cwd` to find an enclosing `.factory` dir.
 //!    Guard symlink loops via `(st_dev, st_ino)` tracking. Append `logs`.
-//! E. `git worktree list --porcelain` first entry → `<path>/.factory/logs`.
+//! E. Cwd child `.factory` directory exists (`<cwd>/.factory` is a dir) →
+//!    `<cwd>/.factory/logs`. Pure `Path::is_dir()` check; no subprocess.
+//!    Handles the dominant repo-root invocation pattern without spawning git.
+//! F. `git worktree list --porcelain` first entry → `<path>/.factory/logs`.
 //!    200ms hard timeout; git absent/timeout/non-repo → fall through.
-//! F. Fallback: `./.factory/logs` (cwd-relative).
+//!    Only reached for linked-worktree invocations where Level E did not fire.
+//! G. Fallback: `./.factory/logs` (cwd-relative).
 
 use std::collections::HashSet;
 use std::path::{Path, PathBuf};
 
-/// Resolve the internal log directory using the six-level ADR-024 algorithm.
+/// Resolve the internal log directory using the seven-level A–G ADR-024 v1.1 algorithm.
 ///
 /// # Parameters
 ///
+/// - `vsdd_log_dir`: the value of `VSDD_LOG_DIR` (level A override).
+/// - `factory_root`: the value of `FACTORY_ROOT` (level B override).
 /// - `project_dir`: the value of `CLAUDE_PROJECT_DIR` (or `None` if unset/empty).
 ///   This corresponds to ADR-024 level-C check. The caller (thin `resolve_log_dir()`
 ///   wrapper) reads env vars and passes them here so the function is testable without
 ///   mutating the process environment.
-/// - `vsdd_log_dir`: the value of `VSDD_LOG_DIR` (level A override).
-/// - `factory_root`: the value of `FACTORY_ROOT` (level B override).
-/// - `cwd`: the process current working directory (for levels C, D, E, F).
+/// - `cwd`: the process current working directory (for levels C, D, E, F, G).
 ///
 /// # Returns
 ///
 /// A `PathBuf` for the directory in which daily-rotated JSONL files should be written.
-/// Never panics; every error branch falls through to the next level or to F.
+/// Never panics; every error branch falls through to the next level or to G.
 pub fn resolve_log_dir_from_params(
     vsdd_log_dir: Option<&str>,
     factory_root: Option<&str>,
@@ -74,13 +79,25 @@ pub fn resolve_log_dir_from_params(
         return factory_dir.join("logs");
     }
 
-    // ── Level E: git worktree list ───────────────────────────────────────────
-    if let Some(worktree_root) = git_worktree_main_root(cwd) {
-        let candidate = worktree_root.join(".factory").join("logs");
-        return candidate;
+    // ── Level E: cwd child `.factory` directory ──────────────────────────────
+    // Handles the dominant repo-root invocation pattern: cwd is the repo root
+    // and `.factory/` is a child directory.  Pure `Path::is_dir()` — no subprocess.
+    // This eliminates the git subprocess (Level F) for the common non-worktree case.
+    {
+        let child = cwd.join(".factory");
+        if child.is_dir() {
+            return child.join("logs");
+        }
     }
 
-    // ── Level F: cwd-relative fallback ──────────────────────────────────────
+    // ── Level F: git worktree list ───────────────────────────────────────────
+    // Only reached for linked-worktree invocations where cwd has no .factory child
+    // and no .factory ancestor.  Spawns git with a 200ms hard timeout.
+    if let Some(worktree_root) = git_worktree_main_root(cwd) {
+        return worktree_root.join(".factory").join("logs");
+    }
+
+    // ── Level G: cwd-relative fallback ──────────────────────────────────────
     cwd.join(".factory").join("logs")
 }
 
@@ -115,6 +132,13 @@ fn is_dot_factory_basename(path: &Path) -> bool {
 }
 
 /// Returns `true` if the path already ends in `logs` or `logs/`.
+///
+/// `Path::file_name()` uses basename semantics: it strips any trailing path
+/// separators before extracting the last component. This means both
+/// `/some/dir/logs` and `/some/dir/logs/` return `file_name() == "logs"`, so
+/// the check `s == "logs"` handles both the plain and trailing-slash forms
+/// transparently.  A unit test (`test_ends_with_logs_trailing_slash`) confirms
+/// this behaviour so it is not silently lost if the implementation changes.
 fn ends_with_logs(path: &Path) -> bool {
     path.file_name()
         .and_then(|n| n.to_str())
@@ -261,19 +285,29 @@ fn wait_with_timeout(
             Ok(None) => {
                 if Instant::now() >= deadline {
                     let _ = child.kill();
+                    // Reap the zombie: wait for the child after kill so the OS can
+                    // reclaim its process table entry (M-3 adversary finding).
+                    let _ = child.wait();
                     return None;
                 }
                 std::thread::sleep(poll_interval);
             }
             Err(_) => {
                 let _ = child.kill();
+                // Reap the zombie on error path as well.
+                let _ = child.wait();
                 return None;
             }
         }
     }
 }
 
-/// Drain stdout from a child whose stdout pipe we captured.
+/// Drain all bytes from the captured stdout pipe of a child process.
+///
+/// Called after `try_wait()` reports the process has exited, so `read_to_end`
+/// will reach EOF promptly.  The function name `read_piped_stdout` reflects
+/// that only the piped stdout handle is drained — stderr is discarded
+/// (`Stdio::null()` in the spawner).
 fn read_piped_stdout(child: &mut std::process::Child) -> Vec<u8> {
     use std::io::Read;
     let mut buf = Vec::new();
@@ -281,4 +315,30 @@ fn read_piped_stdout(child: &mut std::process::Child) -> Vec<u8> {
         let _ = stdout.read_to_end(&mut buf);
     }
     buf
+}
+
+#[cfg(test)]
+mod ends_with_logs_tests {
+    use super::*;
+
+    /// M-2 / N-2: `ends_with_logs` must handle both `logs` and `logs/` forms.
+    /// `Path::file_name()` strips trailing separators, so both should return true.
+    #[test]
+    fn test_ends_with_logs_trailing_slash() {
+        // Plain form.
+        assert!(
+            ends_with_logs(Path::new("/some/dir/logs")),
+            "ends_with_logs must return true for plain 'logs' suffix"
+        );
+        // Trailing-slash form — file_name() strips the separator.
+        assert!(
+            ends_with_logs(Path::new("/some/dir/logs/")),
+            "ends_with_logs must return true for 'logs/' trailing-slash form"
+        );
+        // Negative: not a logs path.
+        assert!(
+            !ends_with_logs(Path::new("/some/dir/.factory")),
+            "ends_with_logs must return false for non-logs path"
+        );
+    }
 }

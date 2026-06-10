@@ -349,3 +349,75 @@ fn test_BC_2_06_001_level_g_fallback_no_factory_anywhere() {
         "Level G fallback: result must not contain .factory/.factory shadow; got {log_dir:?}"
     );
 }
+
+// ---------------------------------------------------------------------------
+// Test 5: ADR-024 v1.1 Decision 2 — absent CLAUDE_PLUGIN_ROOT → degraded-continue
+// (L-1 adversary finding).
+//
+// The dispatcher binary MUST exit 0 when CLAUDE_PLUGIN_ROOT is absent/empty,
+// not exit 2 (old hard-abort behaviour).  This test spawns the debug binary;
+// it is skipped if the binary has not been built.
+// ---------------------------------------------------------------------------
+
+/// L-1 (LOW-1 from ADR-024 v1.1): absent CLAUDE_PLUGIN_ROOT must produce
+/// degraded-continue (exit 0), not hard-abort (exit 2).
+///
+/// Spawns the factory-dispatcher debug binary with no CLAUDE_PLUGIN_ROOT and
+/// a minimal valid payload.  Asserts exit code 0.
+///
+/// Skipped when the debug binary does not exist (standard `cargo test` without
+/// prior `cargo build` would miss it; CI builds always compile before testing
+/// so the binary is present in CI).
+#[test]
+fn test_BC_2_06_001_absent_plugin_root_degraded_continue_exit_0() {
+    let bin = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .parent() // crates/
+        .expect("crates dir")
+        .parent() // workspace root
+        .expect("workspace root")
+        .join("target")
+        .join("debug")
+        .join("factory-dispatcher");
+
+    if !bin.exists() {
+        // Binary not yet built — skip silently.  CI always builds before testing.
+        eprintln!(
+            "test_BC_2_06_001_absent_plugin_root_degraded_continue_exit_0: SKIP — \
+             debug binary not found at {bin:?}. Run `cargo build -p factory-dispatcher` first."
+        );
+        return;
+    }
+
+    // Minimal valid PreToolUse payload (no hooks will run — degraded mode).
+    let payload = r#"{"hook_event_name":"PreToolUse","tool_name":"Bash","session_id":"test-l1-000","tool_input":{"command":"ls"}}"#;
+
+    let tmpdir = tempfile::tempdir().expect("create tmpdir");
+    let output = std::process::Command::new(&bin)
+        // Explicitly unset CLAUDE_PLUGIN_ROOT — tests env inherits it from shell;
+        // we must remove it to exercise the absent-env-var path.
+        .env_remove("CLAUDE_PLUGIN_ROOT")
+        // Provide a log dir so the InternalLog write doesn't create .factory/logs
+        // relative to the test's cwd.
+        .env("VSDD_LOG_DIR", tmpdir.path())
+        .stdin(std::process::Stdio::piped())
+        .stdout(std::process::Stdio::null())
+        .stderr(std::process::Stdio::piped())
+        .spawn()
+        .and_then(|mut child| {
+            use std::io::Write;
+            if let Some(mut stdin) = child.stdin.take() {
+                let _ = stdin.write_all(payload.as_bytes());
+            }
+            child.wait_with_output()
+        })
+        .expect("failed to spawn factory-dispatcher binary");
+
+    assert_eq!(
+        output.status.code(),
+        Some(0),
+        "L-1 (ADR-024 v1.1 Decision 2): absent CLAUDE_PLUGIN_ROOT must exit 0 \
+         (degraded-continue), not exit 2 (hard-abort). \
+         Stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
