@@ -74,26 +74,28 @@ When `--scope` is not `full`, note the scope limitation in the review output hea
 
 ## Worktree-Identity Preflight (MANDATORY)
 
-Before dispatching the adversary for a Perimeter-1 per-story review, the orchestrator MUST resolve and embed the worktree-identity triple. Skipping this step causes the adversary to read the wrong git tree — either a stale `.factory/specs` snapshot (#169) or the wrong feature checkout (#176) — producing phantom "absent file" findings or a dangerous false-GREEN review.
+Before dispatching the adversary for a Perimeter-1 per-story review, the orchestrator MUST resolve and embed the worktree-identity tuple. Skipping this step causes the adversary to read the wrong git tree — either a stale `.factory/specs` snapshot (#169) or the wrong feature checkout (#176) — producing phantom "absent file" findings or a dangerous false-GREEN review.
 
 **Orchestrator steps (pre-dispatch):**
 
 1. **Resolve `worktree-abs-path`:** the absolute path to the story's worktree (e.g., `/path/to/repo/.worktrees/S-12.08`). This must be the actual worktree directory, not the main checkout.
-2. **Capture `feature-HEAD-SHA`:** run `git -C <worktree-abs-path> rev-parse HEAD` and capture the output. This is the expected feature HEAD SHA the adversary will review.
+2. **Capture `feature-HEAD-SHA` and assert against pushed tip:** run `git -C <worktree-abs-path> rev-parse @{upstream}` to get the remote feature-branch tip that was pushed. Then run `git -C <worktree-abs-path> rev-parse HEAD` to get the local worktree HEAD. These MUST be equal — if they differ, the worktree is stale or on the wrong branch. STOP with a `dispatch-error` and fix the checkout before proceeding. Do NOT dispatch the adversary with a mismatched tree. The `feature-HEAD-SHA` embedded in the tuple is the pushed remote tip (EXPECTED), not an arbitrary local HEAD.
 3. **Confirm `story-id`:** the story ID from the STORY-INDEX entry (e.g., `S-12.08`).
-4. **Embed the triple** in the adversary task prompt verbatim:
+4. **Resolve `canonical-repo-root`:** the main repo root where `factory-artifacts` is mounted at `.factory/`. Use `cd "$(git rev-parse --git-common-dir)/.." && pwd` — this is nesting-safe and works correctly whether run from a worktree or the main checkout. The adversary reads all spec, BC, and ADR files from `<canonical-repo-root>/.factory/...`.
+5. **Embed the identity tuple** in the adversary task prompt verbatim:
    ```
-   WORKTREE-IDENTITY TRIPLE (pre-verified by orchestrator):
-     worktree-abs-path: <absolute-path>
-     feature-HEAD-SHA:  <sha>
-     story-id:          <story-id>
+   WORKTREE-IDENTITY TUPLE (pre-verified by orchestrator):
+     worktree-abs-path:   <absolute-path>
+     feature-HEAD-SHA:    <pushed-remote-tip-sha>
+     story-id:            <story-id>
+     canonical-repo-root: <main-repo-root>
    ```
 
 **Adversary behavior (enforced by `adversary.md` Worktree-Identity Preflight section):**
 
-The adversary MUST ASSERT the triple is present before producing any findings. If the triple is missing or the paths are inconsistent, the adversary emits a `dispatch-error` and halts — it does NOT proceed to content review. This ASSERT-before-findings discipline is the structural guarantee that a misconfigured dispatch is caught immediately rather than producing misleading review output.
+The adversary MUST ASSERT the identity tuple is present before producing any findings. If the tuple is missing or the paths are inconsistent, the adversary emits a `dispatch-error` and halts — it does NOT proceed to content review. This ASSERT-before-findings discipline is the structural guarantee that a misconfigured dispatch is caught immediately rather than producing misleading review output.
 
-**Why the orchestrator embeds, not the adversary verifies independently:** The adversary is read-only (no Bash access); it cannot run `git rev-parse HEAD` itself. The orchestrator has Bash access and runs the SHA capture pre-dispatch. The adversary's role is to ASSERT the embedded triple is present and consistent — not to independently compute it.
+**Why the orchestrator embeds, not the adversary verifies independently:** The adversary is read-only (no Bash access); it cannot run `git rev-parse HEAD` itself. The orchestrator has Bash access and runs the SHA capture and equality assertion pre-dispatch. The adversary's role is to ASSERT the embedded identity tuple is present and consistent — not to independently compute it.
 
 ## Filename Collision Guard (MANDATORY pre-flight)
 
