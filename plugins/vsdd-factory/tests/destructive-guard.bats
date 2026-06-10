@@ -796,3 +796,109 @@ _run_hook_with_emit() {
   _run_hook "find .factory/.factory -delete"
   [ "$status" -eq 0 ]
 }
+
+# ---------------------------------------------------------------------------
+# RED GATE: adversary pass-2 findings — C2-CRIT-1 / C2-HIGH-2
+#
+# C2-CRIT-1 (guard traversal under-protect):
+#   Paths containing ".factory/.factory/.." resolve via ".." to the REAL
+#   .factory/ tree.  The current strip-and-check logic replaces the literal
+#   substring ".factory/.factory" with "__SHADOW__" and then checks whether
+#   ".factory" remains.  A path like ".factory/.factory/../specs" becomes
+#   "__SHADOW__/../specs" — which does NOT contain ".factory", so the guard
+#   allows the command.  But __SHADOW__/../specs resolves to the real
+#   .factory/specs path on disk.
+#
+#   These commands MUST exit 2 (blocked).  They currently exit 0 — that is
+#   the RED.  The implementer must add ".." (and "..") detection: any
+#   command whose shadow-stripped form still contains ".." escaping out of
+#   the shadow subtree must be blocked.
+#
+# C2-HIGH-2 (nested-shadow over-block):
+#   The shadow may itself contain a sub-directory also named ".factory",
+#   e.g. if a mis-configured child workspace created .factory/.factory/.factory.
+#   The current guard blocks ".factory/.factory/.factory" because after
+#   shadow-stripping ".factory/.factory" becomes "__SHADOW__" and then
+#   ".factory" still appears (from the third component).  But
+#   ".factory/.factory/.factory" is entirely inside the shadow subtree —
+#   it is NOT the real .factory/ worktree.
+#
+#   These commands MUST exit 0 (allowed).  They currently exit 2 — that is
+#   the RED.  The implementer must extend the shadow exception so that any
+#   path that begins with the literal prefix ".factory/.factory" (regardless
+#   of what follows) is considered shadow-only.
+#
+# ALLOW/BLOCK matrix the implementer must satisfy:
+#
+#   BLOCK (exit 2) — path resolves to real .factory tree:
+#     rm -rf .factory/.factory/../specs            (..  escapes to .factory/specs)
+#     rm -rf .factory/.factory/..                  (.. escapes to .factory itself)
+#     rm -rf .factory/.factory/../../              (../.. escapes above repo root)
+#     find .factory/.factory/.. -delete            (.. escapes to real .factory)
+#     find .factory/.factory -delete ; find .factory -delete   (already tested above)
+#
+#   ALLOW (exit 0) — path stays inside shadow subtree:
+#     rm -rf .factory/.factory/             (already pass-1 green; keep regression)
+#     rm -rf .factory/.factory/logs         (sub-dir of shadow; already green; keep)
+#     rm -rf .factory/.factory/             (already pass-1 green; keep)
+#     find .factory/.factory -delete        (already pass-1 green; keep)
+#     rm -rf .factory/.factory/.factory     (nested shadow — C2-HIGH-2; currently RED)
+# ---------------------------------------------------------------------------
+
+# ---- C2-CRIT-1: traversal under-protect (currently exit 0 — BUG) --------
+
+# ".." after ".factory/.factory/" resolves to the real .factory/specs path.
+# MUST exit 2.  CURRENTLY exits 0.
+@test "C2-CRIT-1a: rm -rf .factory/.factory/../specs MUST exit 2 (..traversal to real specs)" {
+  _run_hook "rm -rf .factory/.factory/../specs"
+  [ "$status" -eq 2 ]
+}
+
+# ".." after ".factory/.factory" resolves to the real .factory/ directory.
+# MUST exit 2.  CURRENTLY exits 0.
+@test "C2-CRIT-1b: rm -rf .factory/.factory/.. MUST exit 2 (..traversal to real .factory)" {
+  _run_hook "rm -rf .factory/.factory/.."
+  [ "$status" -eq 2 ]
+}
+
+# "../.." escapes entirely above the .factory/ worktree — catastrophic.
+# MUST exit 2.  CURRENTLY exits 0.
+@test "C2-CRIT-1c: rm -rf .factory/.factory/../../ MUST exit 2 (double ..traversal)" {
+  _run_hook "rm -rf .factory/.factory/../../"
+  [ "$status" -eq 2 ]
+}
+
+# find variant with ".." traversal: find .factory/.factory/.. -delete resolves
+# to find .factory -delete — the real .factory tree.
+# MUST exit 2.  CURRENTLY exits 0.
+@test "C2-CRIT-1d: find .factory/.factory/.. -delete MUST exit 2 (..traversal in find)" {
+  _run_hook "find .factory/.factory/.. -delete"
+  [ "$status" -eq 2 ]
+}
+
+# ---- C2-HIGH-2: nested-shadow over-block (currently exit 2 — BUG) --------
+
+# ".factory/.factory/.factory" is entirely inside the shadow subtree — no
+# ".." escape, no real .factory/ worktree path.  MUST exit 0.  CURRENTLY exits 2.
+@test "C2-HIGH-2a: rm -rf .factory/.factory/.factory MUST exit 0 (nested shadow, no escape)" {
+  _run_hook "rm -rf .factory/.factory/.factory"
+  [ "$status" -eq 0 ]
+}
+
+# ---- Regression guards: pass-1 greens that must remain green ------------
+
+# These were introduced in pass-1 and must not regress after the pass-2 fix.
+@test "regression: rm -rf .factory/.factory/ still exits 0 after pass-2 fix" {
+  _run_hook "rm -rf .factory/.factory/"
+  [ "$status" -eq 0 ]
+}
+
+@test "regression: rm -rf .factory/.factory/logs still exits 0 after pass-2 fix" {
+  _run_hook "rm -rf .factory/.factory/logs"
+  [ "$status" -eq 0 ]
+}
+
+@test "regression: find .factory/.factory -delete still exits 0 after pass-2 fix" {
+  _run_hook "find .factory/.factory -delete"
+  [ "$status" -eq 0 ]
+}

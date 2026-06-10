@@ -345,11 +345,12 @@ impl InternalLog {
 
 /// Compute the dedup hash for an `internal.dispatcher_error` event.
 ///
-/// Hash key = `event.type_ + ":" + message_string_value` (ADR-024 Decision 3,
-/// as clarified by adversary pass-1 finding M-5).  Uses `std::hash::DefaultHasher`
-/// which is non-cryptographic but sufficient for in-process dedup.
+/// **Hash key = `event.type_ + ":" + char-boundary-safe-truncation(message_string_value, N≈4096)`**
+/// (ADR-024 Decision 3, amended by adversary pass-2 findings C2-CRIT-2/C2-HIGH-1).
+/// Uses `std::hash::DefaultHasher` which is non-cryptographic but sufficient
+/// for in-process dedup.
 ///
-/// **Implementation notes (M-5 fixes):**
+/// **Implementation notes (pass-1 M-5 + pass-2 C2-CRIT-2/C2-HIGH-1 fixes):**
 ///
 /// 1. **String value, not JSON repr.** We extract the raw string value via
 ///    `Value::as_str()` rather than `Value::to_string()`.  `to_string()` produces
@@ -358,17 +359,21 @@ impl InternalLog {
 ///    256 bytes in their JSON repr even though their raw values differ — a false
 ///    dedup.  Using `as_str()` hashes the actual string content.
 ///
-/// 2. **No byte-level truncation.** The original 256-byte truncation was applied to
-///    the JSON repr (including the surrounding `"` quotes).  With the raw string
-///    value, truncating at 256 bytes still collides for messages that share a long
-///    prefix (e.g. 255 shared chars + distinct tail).  We hash the full raw string
-///    value so that any difference anywhere in the message produces a distinct hash.
-///    Dispatcher error messages are short in practice (< 512 bytes); no memory
-///    concern.
+/// 2. **Bounded raw value at N=4096 bytes with char-safe ceiling.**
+///    (ADR-024 Decision 3, amended pass-2.)  Dispatcher error messages are short
+///    in practice, but unbounded hashing costs O(message length) per invocation.
+///    To bound cost and prevent pathological slowdowns on runaway callers that
+///    append context to the message, we truncate to at most 4096 bytes of the
+///    raw string value.  The truncation MUST be char-safe: find the largest byte
+///    index ≤ N that is a valid UTF-8 char boundary (`str::floor_char_boundary`
+///    or equivalent scan).  A naive byte slice at N panics when byte N falls
+///    inside a multi-byte codepoint.  Accepted tradeoff: two messages that share
+///    the same first N bytes but differ in their tails are treated as duplicates.
 ///
-/// 3. **Non-panicking contract.** No index-based string slicing; no `unwrap()`.
-///    `as_str()` returns `None` for non-string JSON values; we fall back to the
-///    empty string.  `DefaultHasher` and `HashSet` operations cannot panic.
+/// 3. **Non-panicking contract.** No index-based string slicing without boundary
+///    checks; no `unwrap()`.  `as_str()` returns `None` for non-string JSON
+///    values; we fall back to the empty string.  `DefaultHasher` and `HashSet`
+///    operations cannot panic.
 fn dedup_hash_for(event: &InternalEvent) -> u64 {
     let mut h = DefaultHasher::new();
     event.type_.hash(&mut h);
@@ -907,24 +912,253 @@ mod tests {
     }
 
     // -----------------------------------------------------------------------
+    // REGRESSION GUARD: adversary pass-2 finding C2-MED-2 — dedup doc-block
+    // recap must reflect the amended ADR-024 Decision 3 contract.
+    //
+    // The pass-1 doc-block in dedup_hash_for() cited "first 256 bytes of
+    // message JSON value". ADR-024 Decision 3 was amended in pass-2 to use
+    // "bounded raw Value::as_str() at 4096-byte char-safe ceiling". The
+    // implementation was already updated (dedup_hash_for uses as_str() +
+    // full hash). The implementer must complete the pass-2 amendment by
+    // adding the 4096-byte char-safe truncation bound.
+    //
+    // This constant captures the intended N for test assertions so tests
+    // do not embed a magic literal. When the implementer adds truncation,
+    // the tests here remain in sync.
+    // -----------------------------------------------------------------------
+
+    /// Dedup bound N from ADR-024 Decision 3 (amended pass-2).
+    /// The implementer must add truncation at this boundary in `dedup_hash_for`.
+    /// Tests reference this constant — do NOT substitute a magic literal.
+    const DEDUP_HASH_N: usize = 4096;
+
+    // -----------------------------------------------------------------------
+    // REGRESSION GUARD (C2-MED-2 / C2-HIGH-1): two DISTINCT messages that
+    // differ at an EARLY byte (well within N) must BOTH be logged.
+    //
+    // This passes today with both the full-hash implementation AND the
+    // bounded-N implementation (early difference → distinct hashes under
+    // both strategies).  It is a regression guard: the implementer must not
+    // accidentally collapse distinct messages into the same N-prefix bucket.
+    //
+    // Contract: two dispatcher_error events with messages that differ at
+    // byte 20 → both are written (2 lines in the log file).
+    // -----------------------------------------------------------------------
+
+    /// C2-MED-2 / C2-HIGH-1 regression guard: messages differing at an early
+    /// byte (byte 20, << N=4096) are not deduplicated.
+    ///
+    /// Expected: PASSES against current HEAD and after bounded-N implementation.
+    #[test]
+    fn test_BC_2_06_001_dedup_distinct_messages_early_diff_both_logged() {
+        let dir = tempfile::tempdir().unwrap();
+        let log = InternalLog::new(dir.path().to_path_buf());
+        let ts = Local.with_ymd_and_hms(2026, 6, 9, 14, 0, 0).unwrap();
+
+        // Two messages: 20 identical ASCII chars, then differ at byte 20.
+        // Both are short (< N) so both full-hash and bounded-N produce
+        // distinct hashes.
+        let shared_20 = "A".repeat(20);
+        let msg_a = format!("{shared_20}ALPHA_suffix_one");
+        let msg_b = format!("{shared_20}BETA__suffix_two");
+        // Verify test setup: byte 20 differs.
+        assert_ne!(
+            msg_a.as_bytes()[20],
+            msg_b.as_bytes()[20],
+            "test setup: byte 20 must differ between msg_a and msg_b"
+        );
+
+        let event_a =
+            InternalEvent::with_ts(INTERNAL_DISPATCHER_ERROR, ts).with_field("message", msg_a);
+        let event_b =
+            InternalEvent::with_ts(INTERNAL_DISPATCHER_ERROR, ts).with_field("message", msg_b);
+        log.write(&event_a);
+        log.write(&event_b);
+
+        let log_file = dir
+            .path()
+            .join(format!("{FILENAME_PREFIX}2026-06-09{FILENAME_SUFFIX}"));
+        let lines = read_lines(&log_file);
+        assert_eq!(
+            lines.len(),
+            2,
+            "C2-MED-2 / C2-HIGH-1: two distinct dispatcher_error events differing at byte 20 \
+             must both be logged (got {} lines)",
+            lines.len()
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // REGRESSION GUARD (C2-HIGH-1): oversized message (>> N=4096) containing
+    // multibyte UTF-8 near and beyond byte N, written twice → dedup to 1 line,
+    // no panic.
+    //
+    // Current behavior (full-hash): passes — the two identical writes produce
+    // the same hash and the second is skipped.  No panic since as_str() +
+    // full hash never slices at a byte boundary.
+    //
+    // After implementer adds bounded truncation at N=4096: must also pass —
+    // the truncation is char-safe so the multibyte codepoint near N does not
+    // cause a panic, and the two identical truncated prefixes produce the
+    // same hash (dedup to 1).
+    //
+    // If bounded truncation is added naively (byte slice at N with no char
+    // safety), this test becomes RED (panic).  That is the point: this test
+    // guards against the naive panic regression.
+    // -----------------------------------------------------------------------
+
+    /// C2-HIGH-1 regression guard: oversized message with multibyte UTF-8 near
+    /// byte N written twice → dedup to 1 line, MUST NOT panic.
+    ///
+    /// Expected: PASSES against current HEAD and after correct bounded-N
+    /// implementation.  Becomes RED if the implementer introduces a naive
+    /// byte-slice at N that splits a multibyte codepoint.
+    #[test]
+    fn test_BC_2_06_001_dedup_oversized_multibyte_near_N_no_panic_deduped() {
+        let dir = tempfile::tempdir().unwrap();
+        let log = InternalLog::new(dir.path().to_path_buf());
+        let ts = Local.with_ymd_and_hms(2026, 6, 9, 15, 0, 0).unwrap();
+
+        // Build a message that:
+        //   1. Has a multibyte UTF-8 codepoint ('é' = 0xC3 0xA9, 2 bytes)
+        //      placed such that its FIRST byte lands at index DEDUP_HASH_N-1
+        //      (i.e., byte DEDUP_HASH_N is the second byte, inside the codepoint).
+        //   2. Continues for ~1 MB past the multibyte codepoint (oversized).
+        //
+        // Placement: N-1 ASCII chars, then 'é', then ~1MB of 'Z' chars.
+        // Raw string bytes: byte 0..(N-1) = ASCII, byte (N-1) = 0xC3,
+        // byte N = 0xA9 (inside 'é' codepoint).
+        //
+        // A naive `msg[..N]` byte-slice would split 'é' and panic.
+        // A char-safe implementation finds the last char boundary <= N and
+        // truncates there, landing at byte N-1 (just before 'é').
+        let oversized_suffix = "Z".repeat(1_000_000);
+        let msg = format!("{}{}{}", "A".repeat(DEDUP_HASH_N - 1), 'é', oversized_suffix);
+
+        // Verify the multibyte codepoint straddles the N boundary.
+        assert_eq!(msg.as_bytes()[DEDUP_HASH_N - 1], 0xC3, "test setup: byte N-1 must be first byte of 'é' (0xC3)");
+        assert_eq!(msg.as_bytes()[DEDUP_HASH_N], 0xA9, "test setup: byte N must be second byte of 'é' (0xA9)");
+        assert!(!msg.is_char_boundary(DEDUP_HASH_N), "test setup: byte N must NOT be a char boundary");
+
+        // Write the same oversized message twice.
+        for _ in 0..2 {
+            let event =
+                InternalEvent::with_ts(INTERNAL_DISPATCHER_ERROR, ts).with_field("message", msg.clone());
+            log.write(&event); // Must not panic under any implementation.
+        }
+
+        let log_file = dir
+            .path()
+            .join(format!("{FILENAME_PREFIX}2026-06-09{FILENAME_SUFFIX}"));
+        let lines = read_lines(&log_file);
+        assert_eq!(
+            lines.len(),
+            1,
+            "C2-HIGH-1: two identical oversized dispatcher_error writes must dedup to 1 line \
+             (got {} lines)",
+            lines.len()
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // RED GATE (C2-MED-2 + C2-HIGH-1): two messages IDENTICAL for the first
+    // N+100 bytes but differing only AFTER byte N → dedup to 1 line.
+    //
+    // This documents the accepted bounded-prefix tradeoff: once bounded
+    // truncation is in place, two messages that share the same N-byte prefix
+    // but differ in their tails are treated as duplicates.
+    //
+    // ADR-024 Decision 3 (amended): hash key = type + ":" +
+    // char-boundary-safe-truncation(message string value, N≈4096).
+    //
+    // Current behavior (full-hash, no truncation): the two messages have
+    // DISTINCT hashes (they differ after byte N), so BOTH are logged → 2 lines.
+    // This test FAILS (RED) against the current full-hash implementation.
+    //
+    // After the implementer adds bounded truncation at N=DEDUP_HASH_N:
+    // both messages produce the SAME truncated prefix → same hash → dedup
+    // to 1 line. The test turns GREEN.
+    //
+    // This is the primary RED gate driving the pass-2 bounded-truncation work.
+    // -----------------------------------------------------------------------
+
+    /// C2-MED-2 / C2-HIGH-1: two messages identical for first N bytes, differing
+    /// only after byte N → deduplicated to 1 line (bounded-prefix tradeoff).
+    ///
+    /// RED: currently 2 lines (full-hash distinguishes the messages).
+    /// GREEN after: bounded truncation at N=DEDUP_HASH_N collapses them.
+    #[test]
+    fn test_BC_2_06_001_dedup_messages_differing_only_after_N_deduped_to_1() {
+        let dir = tempfile::tempdir().unwrap();
+        let log = InternalLog::new(dir.path().to_path_buf());
+        let ts = Local.with_ymd_and_hms(2026, 6, 9, 16, 0, 0).unwrap();
+
+        // Construct two messages:
+        //   msg_a: DEDUP_HASH_N ASCII chars + "TAIL_ALPHA_UNIQUE"
+        //   msg_b: DEDUP_HASH_N ASCII chars + "TAIL_BETA_DIFFERENT"
+        //
+        // Both share the same N-char prefix; they differ only in the tail
+        // that lies beyond byte N.  Under bounded-N truncation both hash to
+        // the same N-byte prefix → dedup to 1 line.
+        let shared_prefix = "C".repeat(DEDUP_HASH_N);
+        let msg_a = format!("{shared_prefix}TAIL_ALPHA_UNIQUE");
+        let msg_b = format!("{shared_prefix}TAIL_BETA_DIFFERENT");
+
+        // Sanity: messages share exact N-byte prefix and differ after.
+        assert_eq!(
+            &msg_a.as_bytes()[..DEDUP_HASH_N],
+            &msg_b.as_bytes()[..DEDUP_HASH_N],
+            "test setup: first N bytes must be identical"
+        );
+        assert_ne!(msg_a, msg_b, "test setup: full messages must be distinct");
+
+        let event_a =
+            InternalEvent::with_ts(INTERNAL_DISPATCHER_ERROR, ts).with_field("message", msg_a);
+        let event_b =
+            InternalEvent::with_ts(INTERNAL_DISPATCHER_ERROR, ts).with_field("message", msg_b);
+        log.write(&event_a);
+        log.write(&event_b);
+
+        let log_file = dir
+            .path()
+            .join(format!("{FILENAME_PREFIX}2026-06-09{FILENAME_SUFFIX}"));
+        let lines = read_lines(&log_file);
+        assert_eq!(
+            lines.len(),
+            1,
+            "C2-MED-2 / C2-HIGH-1 (bounded-prefix tradeoff): two dispatcher_error messages \
+             that share the first {} bytes but differ only in the tail must be deduplicated \
+             to 1 line under bounded-prefix hashing (got {} lines — full-hash implementation \
+             is RED here; add char-safe truncation at N={} to turn GREEN)",
+            DEDUP_HASH_N,
+            lines.len(),
+            DEDUP_HASH_N,
+        );
+    }
+
+    // -----------------------------------------------------------------------
     // RED GATE: adversary pass-1 finding M-5 — false dedup on distinct
     // messages sharing identical first-256-byte JSON prefix.
     //
-    // If two DISTINCT error messages share the same first 256 bytes of their
-    // JSON-serialized value but differ after byte 256, the current hash
-    // function produces identical hashes for both. The second write is
-    // incorrectly suppressed (false dedup = silent data loss).
+    // HISTORICAL NOTE: this test was written for pass-1 when the contract was
+    // "first 256 bytes of JSON repr".  Under the AMENDED pass-2 contract
+    // (N=4096, raw string value), it still passes as a regression guard:
+    // messages differing after byte 256 (but before byte 4096) must BOTH be
+    // logged under both the old and new contract.
     //
-    // Contract: two distinct `internal.dispatcher_error` events whose message
-    // fields differ (even if only after byte 256) MUST both be logged.
+    // Contract (unchanged): two distinct `internal.dispatcher_error` events
+    // whose message fields differ (even if only after byte 256) MUST both be
+    // logged.
     //
-    // CURRENTLY FAILS: both produce the same hash; second write is skipped.
+    // CURRENTLY PASSES: the current full-hash implementation logs both.
+    // After bounded-N (N=4096) truncation: still passes (difference is at
+    // byte 256, well within the 4096 window).
     // -----------------------------------------------------------------------
 
     /// M-5 adversary finding: two distinct errors sharing a 256-byte JSON
     /// prefix must BOTH be logged (no false dedup).
     ///
-    /// RED: currently the second event is falsely suppressed.
+    /// Regression guard: PASSES against current HEAD and after bounded-N fix.
     #[test]
     fn test_BC_2_06_001_dedup_no_false_dedup_for_messages_differing_after_byte_256() {
         let dir = tempfile::tempdir().unwrap();
