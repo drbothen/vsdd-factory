@@ -6200,4 +6200,4 @@ $ wc -l /Users/zious/Documents/GITHUB/vsdd-factory/.factory/STATE.md
 
 ### Factory-artifacts Commits
 
-- `<D-536-SHA-PENDING>` — state(D-536): ADR-024 adopted issue #130 design; ARCH-INDEX v2.16→v2.17; issue-130 IN-FLIGHT (primary burst per TD-VSDD-053; SHA-patch follow-up required per D-447(c))
+- `77f1abd6` — state(D-536): ADR-024 adopted issue #130 design; ARCH-INDEX v2.16→v2.17; issue-130 IN-FLIGHT (primary burst per TD-VSDD-053)
