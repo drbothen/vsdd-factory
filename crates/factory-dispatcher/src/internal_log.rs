@@ -387,7 +387,7 @@ fn dedup_hash_for(event: &InternalEvent) -> u64 {
         .and_then(|v| v.as_str())
         .unwrap_or("");
     // Bounded char-safe truncation at N=4096 (ADR-024 Decision 3, amended pass-2).
-    // `floor_char_boundary` is stable since Rust 1.77; toolchain is 1.95.0.
+    // `floor_char_boundary` is stable since Rust 1.80; toolchain is 1.95.0.
     // This bounds hashing cost to O(4 KiB) and is guaranteed to land on a
     // valid UTF-8 char boundary (never panics for any string content).
     const N: usize = 4096;
@@ -762,9 +762,9 @@ mod tests {
     // The test uses a fixed timestamp so all writes land in the same JSONL
     // file and the line-count assertion is deterministic.
     //
-    // ADR-024 Decision 3 spec:
-    //   - Dedup key = hash(event.type_ + ":" + first 256 bytes of message
-    //     JSON value).
+    // ADR-024 Decision 3 spec (amended v1.2):
+    //   - Dedup key = hash(type_ + ":" + char-boundary-safe
+    //     bounded_prefix(message string value via Value::as_str(), N=4096)).
     //   - Cap at 1024 entries.
     //   - Non-dispatcher_error events are written unconditionally.
     //   - Mutex::lock() failure → log anyway (non-panicking contract).
