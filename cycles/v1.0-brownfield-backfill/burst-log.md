@@ -6201,3 +6201,91 @@ $ wc -l /Users/zious/Documents/GITHUB/vsdd-factory/.factory/STATE.md
 ### Factory-artifacts Commits
 
 - `77f1abd6` — state(D-536): ADR-024 adopted issue #130 design; ARCH-INDEX v2.16→v2.17; issue-130 IN-FLIGHT (primary burst per TD-VSDD-053)
+- `51724a92` — state(D-536): SHA-patch — record primary commit SHA 77f1abd6 in STATE.md + burst-log per D-447(c)+D-449(e)
+
+## D-537 — ISSUE-130 PR-179 MERGED 2026-06-10
+
+**Parent-commit:** `51724a92` (state(D-536): SHA-patch — record primary commit SHA 77f1abd6 in STATE.md + burst-log per D-447(c)+D-449(e); this is the factory-artifacts HEAD pre-this-burst per D-419(b))
+
+**Adversary verdict:** REMEDIATED — Awaiting Pass 4 (no further pass dispatched; convergence achieved). 3-pass fresh-context cross-context adversary convergence for issue #130 PR #179 per D-386 Option C: pass 1 (2C+3H+5M+others) → pass 2 (2C: `..`-traversal escape under-protect + dedup spec-vs-code drift; 3H+3M) → pass 3 CLEAN (0C/0H/0M; 2L+2NIT cosmetic accepted). Each pass caught a real regression the prior fix introduced; all fixed in-scope; none deferred. Security-critical guard (`destructive-command-guard.sh`) withstood fresh-context attack from both under-protect (pass-2 CRIT) and over-block (pass-1 CRIT) directions. Monotone decay → CLEAN. Pass-3 verdict satisfies D-386 Option C convergence criterion. ADR-024 amended v1.0→v1.2 post-merge to codify pass-2 corrections (Decision 3 bounded hash input + Decision 4 lexical-normalization guard) and add Process note for spec-drift routing obligation.
+
+**Files touched:**
+- `.factory/specs/architecture/ARCH-INDEX.md` — v2.17→v2.18: changelog entry v2.18 prepended; last_amended updated; frontmatter version bumped; ADR-024 body-table row updated with v1.2 amendment details + PR #179 MERGED note. POLICY 14 5-leg parity VERIFIED (Dim-2).
+- `.factory/specs/architecture/decisions/ADR-024-dispatcher-log-dir-resolution-and-plugin-root-fail-loud.md` — v1.0→v1.2 (pre-modified in working tree; committed this burst): Decision 3 hash input bounded to raw Value::as_str() 4096-byte char-safe ceiling; Decision 4 guard amended to lexical path-normalization predicate with allow/block matrix; [process-gap] Process note added.
+- `.factory/STATE.md` — frontmatter advance; banner tracker +D-537 entry; Decisions Log +D-537 row; Active Branches develop→89fbe2d6 + feature/issue-130 row removed + factory-artifacts SHA placeholder; Concurrent Cycles D-537 update; §1/§2/§4/§5/§8/§9/§10/§11/§12 checkpoint refresh; §8 ARCH-INDEX v2.17→v2.18; §12 #130 → DELIVERED/MERGED; Last Updated + Current Phase advanced.
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-537 row prepended (SoT).
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — D-537 h2 entry (this entry).
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — L-issue-130-3pass-convergence appended.
+
+**Codifications:** D-537 PR #179 MERGED; ADR-024 v1.2 amendments (Decision 3 + Decision 4 + Process note); ARCH-INDEX v2.17→v2.18; [process-gap] spec-drift routing obligation codified; S-7.02 cycle-closing checklist satisfied; L-issue-130-3pass-convergence captured.
+
+### Dim-2 Literal-Shell PC Attestation (TD-VSDD-100 / D-449(a))
+
+Reads production `.factory/STATE.md` — no synthetic echo/printf:
+
+```
+$ grep "^current_step:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/STATE.md
+current_step: "D-537 ISSUE-130-PR-179-MERGED 2026-06-10 — PR #179 SQUASH-MERGED 89fbe2d6 2026-06-10T05:03:19Z; develop f6ce4b7c→89fbe2d6; feature/issue-130-dispatcher-log-shadow DELETED+VERIFIED (ls-remote exit 2); ADR-024 v1.0→v1.2 (Decision 3 bounded char-safe dedup hash + Decision 4 lexical-normalization guard + [process-gap] spec-drift Process note); ARCH-INDEX v2.17→v2.18; 3-pass adversary CLEAN (0C/0H/0M pass-3); requires rc release for operator cache; BC-INDEX v2.65 UNCHANGED; VP-INDEX v2.06 UNCHANGED; STORY-INDEX v3.84 UNCHANGED; ARCH-INDEX v2.17→v2.18; trajectory-tail →9→9→9→11; maintain all 5 BC-5.39.006 v1.7 PCs per TD-VSDD-097-EXT; D-chain cite D-536 per D-419(b); parent-commit 51724a92 per D-419(b). SIZE BUDGET: (wc-l; see banner tracker)"
+```
+
+PC2 — trajectory-tail verification:
+```
+$ grep "^current_step:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/STATE.md | grep -oE "trajectory-tail [→0-9]+"
+trajectory-tail →9→9→9→11
+```
+PC2 ✓ (trajectory-tail →9→9→9→11 present; carried per D-433(e)+D-439(c) — no new adversary pass)
+
+PC4 — LENGTH=4 segment count:
+```
+$ grep "^current_step:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/STATE.md | grep -oE "trajectory-tail (→[0-9]+)+" | grep -oE "→[0-9]+" | wc -l
+       4
+```
+PC4 ✓ (4 segments confirmed)
+
+PC5 — D-chain citation: current_step cites `D-chain cite D-536 per D-419(b)` ✓
+PC3 — 4-index: contains `BC-INDEX v2.65 UNCHANGED; VP-INDEX v2.06 UNCHANGED; STORY-INDEX v3.84 UNCHANGED; ARCH-INDEX v2.17→v2.18` ✓
+PC6 (verify_step 7) — ARCH-INDEX v2.18:
+```
+$ grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/architecture/ARCH-INDEX.md | head -1
+version: "2.18"
+```
+PC6 ✓
+
+POLICY 14 5-leg parity (ARCH-INDEX v2.17→v2.18): Leg 1 (version: "2.18") ✓ Leg 2 (changelog row prepended 2026-06-10 v2.18) ✓ Leg 3 (last_amended "2026-06-10 (v2.18)") ✓ Leg 4 (ADR-024 body-table row updated) ✓ Leg 5 (SS-01/SS-03/SS-07 BC counts unchanged — ADR amendment only) ✓
+
+### Dim-5 Factory-Artifacts Chain
+
+```
+$ git -C /Users/zious/Documents/GITHUB/vsdd-factory/.factory log -3 --format='%H %s'
+51724a92 state(D-536): SHA-patch — record primary commit SHA 77f1abd6 in STATE.md + burst-log per D-447(c)+D-449(e)
+77f1abd6 state(D-536): ADR-024 adopted issue #130 design; ARCH-INDEX v2.16→v2.17; issue-130 IN-FLIGHT
+a81cce61 state(D-535): SHA-patch — record primary commit SHA 33056f0d in STATE.md + burst-log per D-447(c)+D-449(e)
+```
+
+factory-artifacts HEAD pre-burst: `51724a92` ✓ (matches parent-commit per D-419(b))
+
+### Dim-6 Literal-Shell Count (TD-VSDD-099)
+
+```
+$ ls -d /Users/zious/Documents/GITHUB/vsdd-factory/crates/hook-plugins/*/ | wc -l
+      28
+```
+
+28 hook-plugin crates (UNCHANGED — issue #130 touched existing log_dir.rs, not a new crate). STATE.md line count after burst captured in banner tracker entry below.
+
+### Dim-7 Attestation (Closes / Advances)
+
+**Codifications:** D-537 ISSUE-130 PR-179 MERGED; ADR-024 v1.0→v1.2; ARCH-INDEX v2.17→v2.18; [process-gap] spec-drift routing obligation; S-7.02 satisfied; lessons captured.
+
+**Closes:**
+- Issue #130 DELIVERED/MERGED: PR #179 squash-merged 89fbe2d6; 7-level worktree-aware log-dir; all 6 ACs met (pass-3 CLEAN).
+- §12 #130 row: IN-FLIGHT → DELIVERED/MERGED.
+- [process-gap] spec-drift routing obligation: codified ADR-024 v1.2 + L-issue-130-3pass-convergence; S-7.02 satisfied.
+
+**Advances:** develop HEAD 89fbe2d6; ARCH-INDEX v2.18; rc release required for operator cache; next: #129 canonical-principle, #169+#176 worktree-identity. Next D: D-538.
+
+**Trajectory:** →9→9→9→11 (CARRIED — delivery+convergence burst; no F5/E-10 adversary pass)
+
+### Factory-artifacts Commits
+
+- `[PRIMARY-SHA-PENDING-SHA-PATCH]` — state(D-537): PR #179 squash-merged 89fbe2d6; ADR-024 v1.2 amended; ARCH-INDEX v2.17→v2.18; issue-130 DELIVERED/MERGED (primary burst per TD-VSDD-053)

@@ -2957,3 +2957,21 @@ POLICY 14 description and verification_steps updated in policies.yaml same-burst
 **Cites:** D-535; D-534; D-512 (rc.19 infra delay precedent); D-528 (rc.20 clean first-attempt).
 
 **Closes:** D-535 infra-flake observation capture; issue-128 merge-closure lessons. `[codified]`
+
+---
+
+### L-issue-130-3pass-convergence
+
+**Category:** adversarial-convergence + security-review + spec-drift-routing
+
+**(a) 3-pass fresh-context adversary convergence is sufficient for security-critical guard changes.** Issue #130 adversary ran 3 passes (findings: pass-1 2C+3H+5M+others → pass-2 2C+3H+3M → pass-3 CLEAN 0C/0H/0M). Each pass caught a real regression the prior fix introduced: pass-1 found the multi-target bypass and dedup spec-vs-code drift; pass-2 found `..`-traversal escape under-protect (a guard that allowed traversal above .factory/) and a deeper dedup spec drift; pass-3 returned CLEAN with only cosmetic findings. The security-critical guard (`destructive-command-guard.sh`) withstood fresh-context attack from both under-protect (pass-2 CRIT) and over-block (pass-1 CRIT) directions before achieving CLEAN. Pattern: do NOT accept convergence on security-critical guards until CLEAN; any residual CRITICAL at step N means step N+1 will find a regression. Per D-386 Option C, CLEAN (0C/0H/0M) with only LOW+NIT cosmetic findings constitutes convergence.
+
+**(b) [process-gap] Spec-drift routing obligation codified: when an implementer TDD fix changes behavior an accepted ADR specifies verbatim, the fix-burst MUST route an architect ADR amendment in the SAME burst.** Pass-2 surfaced that the implementer's dedup implementation used a different hash input strategy than ADR-024 Decision 3 specified. The implementer's fix was correct (bounded raw Value::as_str() at char-safe ceiling) but the ADR said '256-byte JSON repr'. This is a spec-drift violation per CLAUDE.md Architectural Authority §12 (spec wins; code must align). Correct routing: implementer finds drift → routes to orchestrator → orchestrator dispatches architect for ADR amendment → ADR amendment in same burst → state-manager records. This was done post-merge for D-537 (ADR-024 v1.0→v1.2). **Forward obligation:** any implementer that changes behavior an ADR specifies verbatim must check the ADR at the end of TDD implementation and flag any spec-drift to the orchestrator before the PR is created. This is now codified in ADR-024 v1.2 Process note so future adversary passes have a machine-checkable anchor.
+
+**(c) Infra-flake recurrence (windows-x64/darwin-x64 cargo-test hang).** PR #179 saw the same ~40-65min hang class on windows-x64/darwin-x64 build-dispatcher cargo-test jobs as PR #178 (D-535 infra-flake observation). PR #179 DID contain Rust changes (log_dir.rs, internal_log.rs, main.rs) — the hang was still infra queue not a test regression (all jobs completed green). Diagnostic: the hang duration is a reliable indicator of GitHub Actions runner queue pressure; the test result itself is the ground truth. Confirmed: same class as D-512 (rc.19) and D-528 (rc.20). No action. Duration 40-65min across two consecutive PRs suggests sustained runner capacity pressure. Monitor if duration approaches 90min (GitHub job timeout).
+
+**Anchors:** D-537 (merge-closure burst); PR #179 merge `89fbe2d6`; ADR-024 v1.2 (process note anchor); D-536 (ADR-024 v1.0 adopted); D-535 (infra-flake class prior observation).
+
+**Cites:** D-537; D-536; D-386 Option C (convergence model); D-471 (asymptotic-acceptance precedent); D-535 (infra-flake class); D-512; D-528.
+
+**Closes:** D-537 lessons-capture; issue-130 3-pass adversary convergence pattern; spec-drift routing obligation codification (S-7.02 cycle-closing checklist process-gap). `[codified]`

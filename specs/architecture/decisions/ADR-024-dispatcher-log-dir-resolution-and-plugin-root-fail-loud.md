@@ -2,10 +2,12 @@
 document_type: architecture-decision-record
 level: L3
 adr_id: ADR-024
-version: "1.0"
+version: "1.2"
 status: accepted
 producer: architect
 timestamp: 2026-06-09T00:00:00Z
+amended: 2026-06-09T00:00:00Z
+amendment_reason: "Pass-2 adversary review (issue #130): (C2-CRIT-2/C2-HIGH-1) amend Decision 3 dedup hash input from '256-byte JSON repr' to 'bounded raw Value::as_str() at 4096-byte char-safe ceiling' — eliminates char-boundary panic, JSON-quote false-collision, and unbounded hashing cost; (C2-CRIT-1/C2-HIGH-2) amend Decision 4 guard from substring predicate to lexical path-normalization predicate with explicit allow/block matrix — fixes traversal under-protect (.factory/.factory/../specs wrongly allowed) and nested-shadow over-block (.factory/.factory/.factory wrongly blocked), retracts 'structurally impossible' security-analysis claim; (process-gap) add Process note recording spec-drift routing obligation."
 title: "ADR-024: Dispatcher log-dir worktree-aware resolution, CLAUDE_PLUGIN_ROOT fail-loud contract, internal-error dedup, and destructive-guard shadow exception"
 traces_to: .factory/specs/architecture/ARCH-INDEX.md
 anchors:
@@ -90,7 +92,7 @@ required env vars.
 
 ### Decision
 
-The five-level precedence order below replaces the current two-branch
+The seven-level precedence order below replaces the current two-branch
 `resolve_log_dir()`. Each level is tried in order; the first match wins.
 
 | Level | Source | Condition | Result |
@@ -99,33 +101,43 @@ The five-level precedence order below replaces the current two-branch
 | B | `FACTORY_ROOT` env var | set and non-empty | Use `$FACTORY_ROOT/logs`. No additional `.factory` appended. |
 | C | `CLAUDE_PROJECT_DIR` / cwd — basename-is-`.factory` guard | The resolved directory's final component is `.factory` (case-insensitive on macOS/Windows; case-sensitive on Linux) | Use the path directly as the factory root; append `logs/`. Do NOT re-append `.factory`. |
 | D | Walk-up to enclosing `.factory` | Neither C-condition nor level-A/B override matches; walk the parent chain from cwd up to filesystem root | First ancestor whose `file_name()` == `.factory` (case-insensitive on macOS/Windows) is used as the factory root; append `logs/`. Guard against symlink loops by tracking visited inodes (device+inode pair). Stop at filesystem root (`path.parent() == None` or `path == path.parent()`). |
-| E | Git worktree main-root | Levels A–D all fail | Spawn `git worktree list --porcelain` with a 200ms hard timeout (see Latency section). Parse the first `worktree <path>` line. If the path exists and is a directory, use `<path>/.factory/logs`. If git exits non-zero, is unavailable, or times out: fall through to F. |
-| F | Cwd fallback | Level E fails | `./.factory/logs` (current behavior). |
+| E | Cwd child `.factory` directory | Levels A–D all fail AND `<cwd>/.factory` exists as a directory | Use `<cwd>/.factory/logs`. This is a pure, subprocess-free `std::path::Path::exists()` check. Handles the dominant repo-root invocation pattern (cwd == repo root, `.factory/` is a child directory) without spawning git. |
+| F | Git worktree main-root | Levels A–E all fail | Spawn `git worktree list --porcelain` with a 200ms hard timeout (see Latency section). Parse the first `worktree <path>` line. If the path exists and is a directory, use `<path>/.factory/logs`. If git exits non-zero, is unavailable, or times out: fall through to G. |
+| G | Cwd fallback | Level F fails | `./.factory/logs` (current behavior). |
 
 **Rationale for ordering:**
 
 - A and B are explicit operator overrides; they win unconditionally. This preserves
   backward compatibility with any environment that already sets `VSDD_LOG_DIR`.
-- C is the single-step fix for the issue: if `CLAUDE_PROJECT_DIR=/project/.factory`,
+- C is the single-step fix for the primary bug: if `CLAUDE_PROJECT_DIR=/project/.factory`,
   the basename is `.factory`, so we use it directly without re-appending. This closes
   the primary bug with one predicate.
 - D handles the case where neither env var is set and cwd is a subdirectory inside
   `.factory/` (e.g. cwd = `/project/.factory/cycles/`). Walking up finds `.factory`.
-- E provides worktree consolidation (all linked worktrees land events in the main
+- **E (new)** handles the dominant real-world invocation pattern: cwd is the repo root,
+  `.factory/` is a child directory. Levels C and D do not match this case (cwd basename
+  is NOT `.factory`; there is no `.factory` ancestor above cwd). Without Level E, every
+  repo-root hook invocation falls through to F (git subprocess, up to 200ms per call).
+  Level E eliminates that subprocess for the common case with a single `Path::exists()`
+  call — sub-millisecond, no I/O beyond a single `stat(2)`.
+- F provides worktree consolidation (all linked worktrees land events in the main
   worktree's `.factory/logs/`) matching the v0.70.0 reference implementation. It is
-  last-resort because it requires a subprocess and adds latency.
-- F is the safe-fallback: same behavior as today when no git repo is present.
+  now a genuine last-resort: Level E already handles the common non-worktree case,
+  so Level F fires only for linked-worktree invocations (cwd is a linked worktree root
+  with no `.factory/` child, and no ancestor named `.factory`).
+- G is the safe-fallback: same behavior as today when no git repo is present and
+  `.factory/` does not exist as a child of cwd.
 
 **Latency constraint (per ADR-020 Class A, p95 ≤ 1500ms):**
 
-- Levels A–D are pure Rust `std::path` operations. No I/O except `symlink_metadata`
-  for loop detection. Sub-millisecond.
-- Level E spawns `git`. The `Command::new("git")` call MUST use a hard timeout of
+- Levels A–E are pure Rust `std::path` / `std::env` operations. No subprocess. Level E
+  adds one `stat(2)` call (`Path::exists()`). All of A–E are sub-millisecond.
+- Level F spawns `git`. The `Command::new("git")` call MUST use a hard timeout of
   200ms. If `git` is unavailable (`which git` fails at binary lookup), the
-  `std::process::Command::spawn()` call returns `Err`; treat as fallthrough to F
+  `std::process::Command::spawn()` call returns `Err`; treat as fallthrough to G
   without logging an error (git absent is not an error condition).
 - `resolve_log_dir()` MUST NEVER panic. Every branch that can produce an `Err` or
-  `None` must fall through to the next level or to F.
+  `None` must fall through to the next level or to G.
 
 **Case-sensitivity rule:**
 
@@ -179,6 +191,34 @@ stale or wrong-version registry. The correct fix is to ensure `CLAUDE_PLUGIN_ROO
 always set by the install/activation flow (DX concern, not dispatcher concern). The
 dispatcher's job is to fail loud and tell the operator what to fix — not to guess.
 
+**Intended control-flow when `CLAUDE_PLUGIN_ROOT` is absent (LOW-1 clarification):**
+
+The intended behavior is **degraded-continue** — emit the Tier-1 diagnostic error and
+process the dispatch with an empty plugin set (no plugins run), exiting 0. This is NOT
+a hard abort.
+
+To make this intent reachable, the implementer MUST ensure the Tier-1 check at startup
+(the `unwrap_or_default()` replacement at lines 267–269 and 307–310) executes BEFORE
+`resolve_registry_path()` is called. The call order in `run()` MUST be:
+
+1. Read `CLAUDE_PLUGIN_ROOT` env var.
+2. If absent/empty: emit `internal.dispatcher_error` (Tier 1), set `plugin_root =
+   PathBuf::new()` (empty), and proceed to dispatch with empty plugin set — DO NOT call
+   `resolve_registry_path()` (there is nothing to resolve).
+3. If present and non-empty: call `resolve_registry_path()` (Tier 2). If that returns
+   an error, emit the actionable Tier-2 error message and return early (current behavior,
+   which is correct for the "env var set but path invalid" case).
+
+This means Tier 1 and Tier 2 are mutually exclusive paths, not sequential checks.
+The adversary concern that `resolve_registry_path()` may be called before Tier-1 runs
+is valid under the current implementation; the implementer must restructure the call
+order so that an absent `CLAUDE_PLUGIN_ROOT` short-circuits before any
+`resolve_registry_path()` call.
+
+**Summary: `CLAUDE_PLUGIN_ROOT` absent → degraded-continue (exit 0, empty plugin set,
+`internal.dispatcher_error` emitted). `CLAUDE_PLUGIN_ROOT` set but path invalid →
+hard-error (Tier-2 actionable message, return early from `run()`).**
+
 **Relationship to issue #129:** This decision is an instance of the general
 canonicalization-and-fail-loud principle in #129. ADR-024 codifies the specific
 behavior for this env var; the broader principle will be codified separately in #129's
@@ -191,14 +231,51 @@ resolution.
 ### Decision
 
 Add per-session deduplication to `InternalLog` for `internal.dispatcher_error` events
-only, using a fixed-capacity seen-set stored as a `HashSet<u64>` (hash of
-`event.type_ + ":" + message_field`) behind a `Mutex` on `InternalLog`.
+only, using a fixed-capacity seen-set stored as a `HashSet<u64>` (hash of a
+bounded-prefix of the raw message string value) behind a `Mutex` on `InternalLog`.
 
-**Specification:**
+**Hash input specification (amended v1.2):**
+
+The hash input is constructed as:
+
+```
+hash_input = event.type_ + ":" + bounded_prefix(message_string_value, N=4096)
+```
+
+Where:
+
+- `message_string_value` = `event.message.as_str().unwrap_or("")` — the raw string
+  value of the `message` JSON field, NOT the JSON representation (`to_string()` /
+  `as_json`). If the `message` field is absent, not a JSON string type, or
+  `Value::Null`, use the empty string `""`.
+- `bounded_prefix(s, N)` = the longest prefix of `s` that is both (a) at most N bytes
+  long and (b) ends on a valid UTF-8 char boundary. In Rust:
+  ```rust
+  let n = N.min(s.len());
+  let safe_n = s.floor_char_boundary(n); // std::str floor_char_boundary (stable Rust 1.80+)
+  &s[..safe_n]
+  ```
+  For targets below Rust 1.80, use the manual fallback: scan backwards from `n` while
+  `!s.is_char_boundary(n) { n -= 1; }`. This is O(1) in practice (≤3 iterations for
+  any valid UTF-8 sequence).
+- **N = 4096 bytes.** This bound is chosen to:
+  - Eliminate the char-boundary panic seen in the pass-1 implementation (the old 256-byte
+    `as_bytes()[..256]` slice could split a multibyte char).
+  - Avoid JSON-quote false-collision: using `Value::as_str()` returns the raw string
+    content without JSON escape sequences, so two messages with different literal
+    content always produce different prefixes (up to byte N).
+  - Bound per-event hashing cost: a registry/toml parse error can embed a multi-MB
+    offending TOML fragment in the message. Hashing the full string would be O(MB)
+    per invocation. With N=4096 the cost is O(4 KiB) unconditionally.
+  - Preserve correct dedup for all realistic dispatcher errors: every known error
+    message class (env-var absent, registry parse failure, plugin crash, payload
+    malformed) differs well within the first 4096 bytes.
+
+**Full specification:**
 
 - `InternalLog` gains a new field: `seen_errors: Mutex<HashSet<u64>>`.
 - `write_inner` checks: before writing any event whose `type_` == `"internal.dispatcher_error"`,
-  compute `hash = DefaultHasher(event.type_ + ":" + first 256 bytes of message_json_value)`.
+  compute `hash = DefaultHasher(event.type_ + ":" + bounded_prefix(message_string_value, 4096))`.
   If `seen_errors` already contains the hash, skip the write (return `Ok(())`). Otherwise
   insert the hash and proceed with the write.
 - The dedup applies ONLY to `internal.dispatcher_error`. All other event types
@@ -212,6 +289,12 @@ only, using a fixed-capacity seen-set stored as a `HashSet<u64>` (hash of
   invocation) starts fresh. This is correct: each dispatcher invocation is one hook
   event, so "per-session" here means "per-process lifetime" which is milliseconds.
 
+**Residual tradeoff (accepted):** Two distinct error messages that differ ONLY in bytes
+after position 4096 will dedup to the same hash and one will be suppressed. This is
+pathological — it requires two messages with identical type and identical first 4096 bytes
+but different content thereafter. No known dispatcher error class has this property.
+The tradeoff is explicitly accepted in exchange for bounded hashing cost.
+
 **Why only `internal.dispatcher_error`?**
 
 This is the noisy event class: it fires on every hook invocation when `CLAUDE_PLUGIN_ROOT`
@@ -224,6 +307,11 @@ eliminates the most common cause of `missing field 'event_name'` noise (per
 `payload.rs:16-23`). Dedup provides defense-in-depth for residual noise from legacy or
 malformed payloads.
 
+**Testing obligation (C2-MED-1/MED-2):** The test-writer MUST update `internal_log.rs`
+dedup test doc-blocks to reflect the bounded-full-value contract: hash input is
+`bounded_prefix(Value::as_str(), 4096)`, not "256 bytes of JSON repr". Tests that assert
+dedup identity must use raw string values (not JSON-escaped) as their message inputs.
+
 ---
 
 ## Decision 4 — Destructive-op guard shadow exception (SECURITY-SENSITIVE)
@@ -231,65 +319,162 @@ malformed payloads.
 ### Decision
 
 Add a single targeted exception to `destructive-command-guard.sh`'s
-`.factory/`-recursive-delete guard (lines 73–90) that permits deletion of the specific
-shadow path `.factory/.factory/` while keeping all other `.factory/` deletion blocked.
+`.factory/`-recursive-delete guard (lines 73–90) that permits deletion of paths strictly
+inside `.factory/.factory/` (the recursive shadow), while keeping all real `.factory/`
+deletion blocked.
 
-**Exact predicate (Bash):**
+**v1.1 predicate retracted.** The v1.1 substring predicate
+(`[[ "$COMMAND" == *".factory/.factory"* ]]`) is INCORRECT and is replaced in full by
+the lexical path-normalization predicate specified below. The v1.1 "structurally
+impossible" security-analysis claim is also retracted — two exploits existed:
+
+1. **Traversal under-protect:** `rm -rf .factory/.factory/../specs` contains the
+   substring `.factory/.factory`, so the v1.1 predicate ALLOWED it. But lexical
+   normalization resolves the path to `.factory/specs` — outside the shadow root —
+   so the deletion MUST be blocked.
+2. **Nested-shadow over-block:** `rm -rf .factory/.factory/.factory` (a path that is
+   entirely INSIDE the shadow root) does NOT match the v1.1 regex
+   `\.factory/\.factory(/|$)` because it has three `.factory` components, so it was
+   wrongly BLOCKED. It must be allowed.
+
+**Corrected predicate algorithm (Bash):**
+
+For each target argument in the command that contains `.factory`:
+
+1. Tokenize the `rm`/`find` target arguments from `$COMMAND`.
+2. For each token that contains `.factory`, lexically normalize the path by
+   resolving all `.` and `..` components without filesystem access:
+   - Split on `/`.
+   - Maintain a stack: push non-empty non-`.` components; on `..` pop the last
+     stack entry (if any); ignore empty or `.` entries.
+   - Reconstruct the normalized path from the stack.
+3. Check: does the normalized path start with `.factory/.factory/` (or equal
+   `.factory/.factory` exactly)?
+   - YES → this token is inside the shadow root; continue checking other tokens.
+   - NO → this token resolves outside the shadow root; the entire command MUST be
+     BLOCKED (exit 2). Do NOT take the exception.
+4. If ALL `.factory`-bearing tokens pass step 3 (every one normalizes to inside the
+   shadow root), take the exception (allow the command).
+
+**Conservative simplification (acceptable):** Any `.factory`-bearing token that
+contains a `..` component adjacent to `.factory` (i.e., `..` appears directly before
+or after a `.factory` path component) MUST be treated as outside the shadow root and
+the command blocked. This is conservative — some such paths could theoretically
+normalize to inside the shadow — but `..` adjacent to `.factory` is a strong signal
+of a traversal attempt and the conservative rejection is explicitly accepted over a
+more complex normalization that could be mis-implemented.
+
+**Bash implementation sketch (for implementer guidance):**
 
 ```bash
-# Allow deletion of the recursive shadow ONLY.
-# The shadow is the exact path .factory/.factory/ (and its subdirectories).
-# Pattern: the command targets something under .factory/.factory/ — i.e.,
-# the string ".factory/.factory" appears in the rm target.
-# We must NOT allow .factory/ deletion via this exception.
-if [[ "$COMMAND" == *".factory/.factory"* ]] || \
-   [[ "$COMMAND" =~ \.factory/\.factory(/|$) ]]; then
-  continue  # Allow this specific shadow-path deletion
+# Returns 0 if ALL .factory-bearing tokens in "$1" normalize to inside the shadow root.
+# Returns 1 if any token resolves outside the shadow root (or contains suspicious ..).
+_all_targets_inside_shadow() {
+  local cmd="$1"
+  local found_factory_token=0
+  # Tokenize on whitespace; skip flags (starting with -)
+  for token in $cmd; do
+    [[ "$token" == -* ]] && continue
+    if [[ "$token" != *".factory"* ]]; then continue; fi
+    found_factory_token=1
+    # Conservative: reject any .. adjacent to a .factory component.
+    # Matches: .factory/.. (factory then dotdot) OR ../.factory (dotdot then factory).
+    if [[ "$token" =~ \.factory/\.\. ]] || [[ "$token" =~ \.\./\.factory ]]; then
+      return 1
+    fi
+    # Lexical normalization
+    local stack=()
+    IFS='/' read -ra parts <<< "$token"
+    for part in "${parts[@]}"; do
+      if [[ "$part" == ".." ]]; then
+        (( ${#stack[@]} > 0 )) && unset 'stack[-1]'
+      elif [[ -n "$part" && "$part" != "." ]]; then
+        stack+=("$part")
+      fi
+    done
+    local normalized
+    normalized=$(IFS='/'; echo "${stack[*]}")
+    # Must start with .factory/.factory
+    if [[ "$normalized" != ".factory/.factory" && \
+          "$normalized" != ".factory/.factory/"* ]]; then
+      return 1
+    fi
+  done
+  # If no .factory token was found at all, this function should not have been called;
+  # return 1 (do not grant exception without evidence of shadow target).
+  (( found_factory_token == 0 )) && return 1
+  return 0
+}
+```
+
+Insert the exception INSIDE the existing `for protected_re in ...` loop, BEFORE the
+existing `.worktrees/` exception (line 77):
+
+```bash
+if _all_targets_inside_shadow "$COMMAND"; then
+  continue  # All .factory-bearing targets normalize to inside .factory/.factory/
 fi
 ```
 
-This exception is inserted INSIDE the existing `for protected_re in ...` loop, BEFORE
-the existing `.worktrees/` exception (line 77). Placement order: shadow exception first,
-then `.worktrees/` exception, then build-dir exception.
+**Allow/block matrix (authoritative; implementer and test-writer MUST satisfy):**
 
-**Security analysis:**
+| Command | Outcome | Reason |
+|---------|---------|--------|
+| `rm -rf .factory/` | BLOCK | Normalizes to `.factory` — outside shadow |
+| `rm -rf .factory/specs` | BLOCK | Normalizes to `.factory/specs` — outside shadow |
+| `rm -rf .factory/ .factory/.factory` | BLOCK | Multi-target: `.factory/` token outside shadow |
+| `rm -rf .factory/.factory/../specs` | BLOCK | Normalizes to `.factory/specs` — outside shadow (traversal) |
+| `rm -rf .factory/.factory/..` | BLOCK | `..` adjacent to `.factory` — conservative reject |
+| `find .factory -delete` | BLOCK | `.factory` normalizes outside shadow |
+| `find .factory/.factory/.. -delete` | BLOCK | `..` adjacent — conservative reject |
+| `find .factory -delete ; find .factory/.factory -delete` | BLOCK | First find target outside shadow |
+| `rm -rf .factory/.factory/` | ALLOW | Normalizes to `.factory/.factory` — inside shadow |
+| `rm -rf .factory/.factory/logs` | ALLOW | Normalizes to `.factory/.factory/logs` — inside shadow |
+| `rm -rf .factory/.factory/.factory` | ALLOW | Normalizes to `.factory/.factory/.factory` — inside shadow (nested) |
+| `find .factory/.factory -delete` | ALLOW | Normalizes to `.factory/.factory` — inside shadow |
 
-The exception fires if and only if the command string contains `.factory/.factory`.
-A legitimate `.factory/` path never contains the substring `.factory/.factory` (because
-the real worktree is mounted at the repo root's `.factory/`, not inside another
-`.factory/`). An attacker attempting to exploit this exception to delete the real
-`.factory/` would need to construct a command that contains `.factory/.factory` while
-targeting the real path — which is structurally impossible because the real path is
-`.factory/<subdir>`, not `.factory/.factory/<subdir>`.
+**Security analysis (corrected):**
 
-**Scope confirmation — what remains protected:**
+The exception is TARGET-RESOLUTION-SCOPED, not substring-scoped. An attacker must
+provide a target argument that lexically normalizes to inside `.factory/.factory/` —
+the shadow root. The real factory worktree is mounted at `.factory/` and its
+subdirectories are `.factory/specs`, `.factory/stories`, `.factory/STATE.md`, etc.
+None of these normalize to `.factory/.factory/<anything>` unless a `..` escape is used,
+and the conservative `..`-adjacent-to-`.factory` rule blocks all such attempts. The
+only way to satisfy the predicate is to target paths that genuinely begin with
+`.factory/.factory/` after normalization.
 
-| Command | Outcome after this change |
-|---------|--------------------------|
-| `rm -rf .factory/` | BLOCKED — no `.factory/.factory` substring |
-| `rm -rf .factory/specs/` | BLOCKED — no `.factory/.factory` substring |
-| `rm -rf .factory/.factory/` | ALLOWED — exact shadow path |
-| `rm -rf .factory/.factory/logs/` | ALLOWED — subdirectory of shadow |
-| `find .factory -delete` | BLOCKED — `\.factory\b` still matched |
-| `find .factory/.factory -delete` | ALLOWED — `.factory/.factory` in command |
+**Prior claim retracted:** The v1.1 claim that exploiting the substring exception is
+"structurally impossible" is FALSE. The substring predicate admitted traversal attacks
+(`rm -rf .factory/.factory/../specs`) and incorrectly blocked legitimate nested-shadow
+operations (`rm -rf .factory/.factory/.factory`). Both are fixed by the normalization
+predicate above.
 
 **Find-delete guard update:** The `find ... -delete` block (lines 148–158) uses
-`\.factory\b` as its pattern. Add the same shadow exception inside that block:
-
-```bash
-if echo "$COMMAND" | grep -qE '\.factory/\.factory'; then
-  continue  # shadow path — allow
-fi
-```
+`\.factory\b` as its pattern. Add the same `_all_targets_inside_shadow` call inside
+that block (same placement, same logic).
 
 **Git rm guard:** The `git rm` block (lines 277–286) guards `.factory/specs/`,
-`.factory/stories/`, `.factory/STATE.md`. These path strings cannot match
-`.factory/.factory` so no change needed.
+`.factory/stories/`, `.factory/STATE.md`. These path strings normalize to outside the
+shadow root and are unaffected. No change needed.
 
-**Testing obligation:** The test-writer MUST produce a bats test asserting:
-- `rm -rf .factory/.factory/` exits 0 (allowed by guard).
-- `rm -rf .factory/` exits 2 (still blocked by guard).
-- `rm -rf .factory/specs/` exits 2 (still blocked by guard).
+**Testing obligation (C2-CRIT-1/C2-HIGH-2):** The test-writer MUST produce bats tests
+asserting the full allow/block matrix above. At minimum:
+- `rm -rf .factory/` → exits 2 (BLOCK).
+- `rm -rf .factory/specs` → exits 2 (BLOCK).
+- `rm -rf .factory/.factory/../specs` → exits 2 (BLOCK — traversal attempt).
+- `rm -rf .factory/.factory/..` → exits 2 (BLOCK — conservative `..` reject).
+- `rm -rf .factory/ .factory/.factory` → exits 2 (BLOCK — multi-target with real path).
+- `rm -rf .factory/.factory/` → exits 0 (ALLOW — exact shadow root).
+- `rm -rf .factory/.factory/logs` → exits 0 (ALLOW — shadow subdirectory).
+- `rm -rf .factory/.factory/.factory` → exits 0 (ALLOW — nested shadow, was wrongly blocked by v1.1).
+- `find .factory/.factory -delete` → exits 0 (ALLOW — shadow root, find form).
+- `find .factory/.factory/.. -delete` → exits 2 (BLOCK — conservative `..` reject).
+
+**Note on `main.rs` doc-comment (C2-HIGH-3):** The `resolve_log_dir` doc-comment in
+`main.rs` MUST describe the algorithm as "seven-level A–G". This is not an ADR change
+(the seven levels are already correct in Decision 1); it is a code-comment correctness
+obligation for the implementer. Confirmed here as a testing and review checkpoint.
 
 ---
 
@@ -297,11 +482,12 @@ fi
 
 ### Log-dir resolution: "Only fix level C, skip git subprocess"
 
-Level C alone closes the primary bug. Levels D and E are necessary to handle the
-log-fragmentation scenario (linked worktrees write to their own `.factory/`) and the
-walk-up case (cwd inside a subdirectory of `.factory/`). Without D and E, those cases
-regress the v0.70.0 capability. Rejected: production-grade default requires full
-restoration of v0.70.0 behavior.
+Level C alone closes the primary bug. Levels D, E, and F are necessary: D handles
+cwd-inside-`.factory/`; E handles the dominant repo-root pattern without spawning git;
+F handles linked-worktree consolidation (v0.70.0 capability). Without D–F, those cases
+either produce fragmented logs or impose a git subprocess on every common invocation.
+Rejected: production-grade default requires full restoration of v0.70.0 behavior and
+elimination of the unnecessary git subprocess for repo-root invocations.
 
 ### `CLAUDE_PLUGIN_ROOT`: Hard-abort on missing env var
 
@@ -320,8 +506,23 @@ identical. Fixed-cap no-eviction is simpler and correct for this use case. Rejec
 
 A heuristic (e.g., "allow if `.factory/.factory/` exists on disk") would require a
 filesystem read inside the guard. The guard must be deterministic and sub-50ms per its
-contract. String-predicate approach is the only acceptable mechanism. Implemented as
-decided above.
+contract. A pure lexical approach is the only acceptable mechanism.
+
+The v1.1 substring predicate (`*".factory/.factory"*`) was incorrect: it admitted
+traversal attacks (`rm -rf .factory/.factory/../specs` normalizes to outside the shadow)
+and over-blocked nested-shadow operations (`rm -rf .factory/.factory/.factory` is fully
+inside the shadow). The correct mechanism is lexical path normalization per Decision 4
+above — it is deterministic, sub-millisecond, requires no filesystem I/O, and correctly
+handles both traversal attempts and nested shadow paths.
+
+### Decision 3 dedup: Full `Value::as_str()` with no bound
+
+Hashing the full raw string value with no byte ceiling bounds the correctness risk
+(no false-collisions from truncation) but unbounds the cost: a single TOML parse error
+embedding a multi-MB fragment would hash O(MB) on every hook invocation. The 4096-byte
+ceiling is the correct tradeoff: it eliminates the cost risk, still eliminates JSON-quote
+false-collisions (raw string value, not JSON repr), and is char-boundary-safe. Rejected:
+unbounded cost in adversarial input scenarios violates the production-grade default.
 
 ---
 
@@ -334,10 +535,13 @@ decided above.
 2. `CLAUDE_PLUGIN_ROOT` absence produces an actionable stderr + `internal.dispatcher_error`
    diagnostic. AC-3 partially closed (the "not set" message becomes actionable; the silent
    default fallback is replaced with explicit degraded-mode behavior).
-3. Identical `internal.dispatcher_error` messages are logged once per process lifetime.
-   AC-4 closed.
-4. `destructive-command-guard.sh` permits deletion of the `.factory/.factory/` shadow
-   without weakening protection of the real `.factory/`. AC-6 closed.
+3. Identical `internal.dispatcher_error` messages are logged at most once per process
+   lifetime. Dedup hash is keyed on `event.type_ + ":" + bounded_prefix(Value::as_str(), 4096)` —
+   raw string value (not JSON repr), char-boundary-safe ceiling at 4096 bytes. AC-4 closed.
+4. `destructive-command-guard.sh` permits deletion of paths inside `.factory/.factory/`
+   (the recursive shadow root) via lexical path-normalization predicate, while keeping
+   all real `.factory/` deletion blocked. Traversal attacks (`..` adjacent to `.factory`)
+   are rejected conservatively. AC-6 closed.
 5. AC-5 (regression test) is a test-writer deliverable, not an architectural decision.
 
 ### Files to change
@@ -347,6 +551,27 @@ decided above.
 | `crates/factory-dispatcher/src/main.rs` | Replace `resolve_log_dir()` (lines 669–674 + TODO comment 661–668); update `plugin_root` defaulting at 267–269 and 307–310; update `resolve_registry_path()` error message at 655–659 |
 | `crates/factory-dispatcher/src/internal_log.rs` | Add `seen_errors: Mutex<HashSet<u64>>` field to `InternalLog`; update `write_inner` with dedup check |
 | `plugins/vsdd-factory/hooks/destructive-command-guard.sh` | Add shadow exception inside the `.factory/`-recursive-delete loop (lines 73–90) and inside the find-delete guard (lines 148–158) |
+
+### Process note — spec-drift routing obligation
+
+**When an implementer's TDD fix changes behavior that an `accepted` ADR specifies
+verbatim, the fix-burst MUST route an architect ADR amendment in the SAME burst.**
+
+This obligation derives from CLAUDE.md Architectural Authority Rule 12: "the SPEC wins
+— code is brought into alignment via fix-burst or follow-up story." When the implementer
+chose to change `dedup_hash_for` from the v1.1-specified "256-byte JSON repr slice" to
+the full `Value::as_str()` (to fix the char-boundary panic), that was a correct
+implementation judgment — but it created spec-vs-code drift that persisted through
+commit and required a second adversary pass (C2-CRIT-2) to surface. The routing
+obligation that should have fired at Commit B of the implementer's fix-burst:
+
+> Implementer changes behavior specified in ADR-024 Decision 3 → routes finding to
+> orchestrator → orchestrator dispatches architect for ADR amendment → ADR amendment
+> lands in the SAME fix-burst commit sequence before merge.
+
+This ADR amendment (v1.2) is the retroactive closure. The process-gap lesson is
+codified here so future implementers encountering similar ADR-specified behaviors treat
+the spec-vs-code drift as a routing trigger, not a silent override.
 
 ### Release requirement
 
@@ -361,23 +586,25 @@ also requires a release to take effect in the operator-level cache.
 
 ### Latency budget compliance (ADR-020)
 
-- Levels A–D: < 1ms (pure path operations).
-- Level E: bounded by 200ms timeout on `git worktree list --porcelain`. In the nominal
-  case (git present, in-repo): ~5–20ms. In the timeout case: 200ms + fallthrough. This
-  is level E (last-resort) only; levels A–D handle all common cases without spawning
-  git.
-- Total log-dir resolution overhead at dispatch time: nominally < 5ms; worst-case
-  (level E timeout) ≤ 200ms, still within ADR-020 Class A p95 = 1500ms budget.
+- Levels A–E: < 1ms (pure env/path operations; Level E adds one `stat(2)` call).
+- Level F (git): bounded by 200ms timeout on `git worktree list --porcelain`. In the
+  nominal case (git present, in-repo): ~5–20ms. In the timeout case: 200ms +
+  fallthrough. Level F is now a genuine last-resort for linked-worktree invocations
+  only. The dominant repo-root pattern is handled by Level E (sub-millisecond, no git).
+- Total log-dir resolution overhead at dispatch time: nominally < 1ms for all
+  repo-root invocations (levels A–E); worst-case (level F timeout) ≤ 200ms, still
+  within ADR-020 Class A p95 = 1500ms budget.
 
 ### Purity boundary (SS-01 purity notes)
 
 `resolve_log_dir()` is currently a pure function returning a `PathBuf`. After this
-change it remains pure for levels A–D (reads env vars + walks path metadata). Level E
-spawns a subprocess — this moves the function from "pure" to "effectful shell" in the
-purity boundary sense. This is acceptable: `resolve_log_dir()` is explicitly a
-side-effect initialization step at dispatcher startup, not a per-hook pure computation.
-No formal verification applies to this function; integration test coverage (AC-5) is
-the required verification mechanism.
+change it remains pure for levels A–E (reads env vars + walks path metadata; Level E
+adds one `stat(2)` call which is a read-only filesystem probe). Level F spawns a
+subprocess — this moves the function from "pure" to "effectful shell" in the purity
+boundary sense. This is acceptable: `resolve_log_dir()` is explicitly a side-effect
+initialization step at dispatcher startup, not a per-hook pure computation. No formal
+verification applies to this function; integration test coverage (AC-5) is the required
+verification mechanism.
 
 ---
 
@@ -386,3 +613,5 @@ the required verification mechanism.
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
 | 1.0 | 2026-06-09 | architect | Initial acceptance. Closes all four architecture questions from issue #130. |
+| 1.1 | 2026-06-09 | architect | Pass-1 adversary review amendments: (M-1) corrected level-count prose from "five-level" to "seven-level" throughout; (L-2) added Level E (cwd child `.factory` directory check) between old Level D and old Level E (git), renumbered old E→F and old F→G, eliminates git subprocess for dominant repo-root invocation pattern; (LOW-1) added explicit control-flow intent for `CLAUDE_PLUGIN_ROOT`-absent: degraded-continue (Tier 1, empty plugin set, exit 0) with Tier 1 check occurring BEFORE `resolve_registry_path()` call, making the two tiers mutually exclusive. |
+| 1.2 | 2026-06-09 | architect | Pass-2 adversary review amendments: (C2-CRIT-2/C2-HIGH-1) Decision 3 hash input changed from "first 256 bytes of message_json_value" (JSON repr, fixed byte slice) to "bounded_prefix(Value::as_str(), N=4096)" (raw string value, char-boundary-safe, 4096-byte ceiling) — simultaneously fixes char-boundary panic, JSON-quote false-collision, and unbounded hashing cost; accepted residual tradeoff: messages differing only after byte 4096 dedup to same hash (pathological, accepted); (C2-CRIT-1/C2-HIGH-2) Decision 4 guard predicate replaced: v1.1 substring predicate removed and replaced with lexical path-normalization predicate — tokenize targets, normalize `.`/`..` components, allow only when ALL `.factory`-bearing tokens normalize to strictly inside `.factory/.factory/`, conservative `..`-adjacent reject rule added; full allow/block matrix added; "structurally impossible" security-analysis claim retracted; nested-shadow over-block and traversal under-protect both fixed; (process-gap) Process note added recording spec-drift routing obligation; (C2-HIGH-3) Decision 4 testing obligation note added for `main.rs` doc-comment seven-level assertion; (C2-MED-1/MED-2) Decision 3 testing obligation note added for `internal_log.rs` dedup test doc-block regrounding. |
