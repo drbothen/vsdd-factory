@@ -264,9 +264,28 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
         .filter(|p| !p.as_os_str().is_empty())
         .or_else(|| std::env::current_dir().ok())
         .unwrap_or_else(|| PathBuf::from("."));
-    base_host_ctx.plugin_root = std::env::var(ENV_PLUGIN_ROOT)
-        .map(PathBuf::from)
-        .unwrap_or_default();
+    // ADR-024 Decision 2: fail-loud (but non-fatal) when CLAUDE_PLUGIN_ROOT is absent/empty.
+    // Emit an actionable internal.dispatcher_error diagnostic and continue in degraded mode
+    // (empty plugin_root so registry loading returns the documented empty-registry path per
+    // BC-1.13.001 INV2). Do NOT hard-abort — degraded dispatch is still valid.
+    base_host_ctx.plugin_root = {
+        let root_val = std::env::var(ENV_PLUGIN_ROOT).unwrap_or_default();
+        if root_val.is_empty() {
+            internal_log.write(
+                &InternalEvent::now(INTERNAL_DISPATCHER_ERROR)
+                    .with_trace_id(trace_id.clone())
+                    .with_field(
+                        "message",
+                        "$CLAUDE_PLUGIN_ROOT is not set or empty — hook registry and resolver \
+                         registry paths unresolvable; all plugins will be skipped. Set \
+                         CLAUDE_PLUGIN_ROOT to the vsdd-factory plugin directory.",
+                    ),
+            );
+            PathBuf::new()
+        } else {
+            PathBuf::from(root_val)
+        }
+    };
     // Project the dispatcher's whole process env into the host context's
     // env_view. The host's exec_subprocess + env host functions look up
     // names against ctx.env_view (not std::env::var) so per-plugin env
@@ -304,10 +323,11 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
     // BC-4.12.001: modules are compiled once at startup and cached by mtime.
     // F-P1-005/006: ResolverLoader holds the executor's engine (BC-4.12.001 INV3);
     // load_registry is an instance method so the mtime cache survives.
-    let resolvers_registry_path = std::env::var(ENV_PLUGIN_ROOT)
-        .map(PathBuf::from)
-        .unwrap_or_default()
-        .join("resolvers-registry.toml");
+    // Derive resolvers_registry_path from the already-resolved plugin_root.
+    // If plugin_root is empty (fail-loud path above), this produces a relative
+    // "resolvers-registry.toml" path that will fail to load and return the
+    // documented "absent registry → empty registry" result per BC-1.13.001 INV2.
+    let resolvers_registry_path = base_host_ctx.plugin_root.join("resolvers-registry.toml");
     let resolver_loader = ResolverLoader::new(engine.clone());
     let resolver_registry = match resolver_loader.load_registry(&resolvers_registry_path) {
         Ok((reg, warnings)) => {
@@ -653,24 +673,33 @@ fn extract_reason_from_outcome(result: &PluginResult) -> Option<String> {
 }
 
 fn resolve_registry_path() -> anyhow::Result<PathBuf> {
-    let plugin_root = std::env::var(ENV_PLUGIN_ROOT)
-        .map_err(|_| anyhow::anyhow!("${ENV_PLUGIN_ROOT} is not set"))?;
+    let plugin_root = std::env::var(ENV_PLUGIN_ROOT).map_err(|_| {
+        anyhow::anyhow!(
+            "${ENV_PLUGIN_ROOT} is not set — cannot resolve hooks-registry.toml. \
+             Ensure the vsdd-factory plugin is installed and CLAUDE_PLUGIN_ROOT points to its \
+             directory (e.g. ~/.claude/plugins/cache/claude-mp/vsdd-factory/<version>/)."
+        )
+    })?;
+    if plugin_root.is_empty() {
+        return Err(anyhow::anyhow!(
+            "${ENV_PLUGIN_ROOT} is empty — cannot resolve hooks-registry.toml. \
+             Ensure the vsdd-factory plugin is installed and CLAUDE_PLUGIN_ROOT points to its \
+             directory (e.g. ~/.claude/plugins/cache/claude-mp/vsdd-factory/<version>/)."
+        ));
+    }
     Ok(PathBuf::from(plugin_root).join("hooks-registry.toml"))
 }
 
-/// Resolve the internal log directory.
+/// Thin wrapper around `factory_dispatcher::log_dir::resolve_log_dir_from`.
 ///
-/// TODO(S-2.6): v0.79.x has full git-worktree-aware resolution so the
-/// log always lands on the main worktree even when the dispatcher is
-/// invoked from a subdir. For v1.0-beta.1 we keep it simple: prefer
-/// `${CLAUDE_PROJECT_DIR}/.factory/logs`, fall back to `./.factory/logs`
-/// relative to the cwd. S-2.6 will replace this with the full
-/// resolution used by the existing `emit-event` bash bin.
+/// Reads `CLAUDE_PROJECT_DIR` from the process environment and delegates to
+/// the pure six-level ADR-024 resolution algorithm in `log_dir.rs`. Levels
+/// A (`VSDD_LOG_DIR`) and B (`FACTORY_ROOT`) are also read from env inside
+/// `resolve_log_dir_from`.
 fn resolve_log_dir() -> PathBuf {
-    match std::env::var(ENV_PROJECT_DIR) {
-        Ok(root) if !root.is_empty() => PathBuf::from(root).join(".factory").join("logs"),
-        _ => PathBuf::from(".factory").join("logs"),
-    }
+    let project_dir = std::env::var(ENV_PROJECT_DIR).ok();
+    let cwd = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
+    factory_dispatcher::log_dir::resolve_log_dir_from(project_dir.as_deref(), &cwd)
 }
 
 /// Write plugin-emitted events as JSONL to the `VSDD_SINK_FILE` path.
@@ -763,88 +792,40 @@ fn emit_dispatcher_error(
 }
 
 // ---------------------------------------------------------------------------
-// Red Gate tests — issue #130 (ADR-024)
+// Tests — issue #130 (ADR-024)
 //
-// These tests exercise `resolve_log_dir()`, which is a private function in
-// this file. They MUST live here (not in crates/factory-dispatcher/tests/)
-// because Rust integration tests cannot access private items.
-//
-// TEST-ONLY SEAM NOTE (for implementer):
-//   ADR-024 Decision 1 calls for `resolve_log_dir()` to accept params for
-//   levels A–D rather than reading env vars and cwd directly.  If the
-//   implementer refactors to a pure helper — e.g.
-//   `resolve_log_dir_from(project_dir: Option<&str>, cwd: &Path) -> PathBuf`
-//   — then the env-var tests below can be rewritten to call the pure form
-//   directly (no Mutex needed).  Until that refactor lands, the Mutex
-//   serialization guard is the correct mechanism:  `std::env::set_var` is
-//   `unsafe` in Rust ≥ 1.80 in multi-threaded contexts; we use a
-//   module-level Mutex so tests never run concurrently.
-//
-// ENV-VAR SERIALIZATION:
-//   The `ENV_TEST_LOCK` mutex serialises all env-var tests.  Acquire it at
-//   the top of each test that calls `std::env::set_var` / `remove_var` and
-//   release it before the assertion to keep the critical section minimal.
-//   Restore the original value (or remove the var) in all paths — including
-//   on assertion failure — so a panicking test does not poison the mutex for
-//   subsequent tests.
+// Now that `resolve_log_dir_from_params` is a pure function, these tests
+// call it directly with explicit parameter values — no process-environment
+// mutation required.  The ENV_TEST_LOCK and unsafe set_var / remove_var
+// are gone; tests are now safe to run in parallel.
 // ---------------------------------------------------------------------------
 #[cfg(test)]
 mod tests_issue_130 {
-    use super::resolve_log_dir;
-    use std::sync::Mutex;
-
-    /// Serializes every test that mutates process environment.
-    /// `std::env::set_var` is `unsafe` (UB if another thread reads the env
-    /// concurrently).  All issue-130 env-var tests MUST hold this guard for
-    /// the duration of their env mutation.
-    static ENV_TEST_LOCK: Mutex<()> = Mutex::new(());
+    use factory_dispatcher::log_dir::resolve_log_dir_from_params;
 
     // -----------------------------------------------------------------------
     // AC-1 / ADR-024 Decision 1 Level C:
-    // When CLAUDE_PROJECT_DIR already ends in `.factory`, the result must be
+    // When project_dir already ends in `.factory`, the result must be
     // `<that-path>/logs` — NOT `<that-path>/.factory/logs`.
-    //
-    // CURRENTLY FAILS because `resolve_log_dir()` unconditionally appends
-    // `.factory/logs`, producing the recursive shadow.
     // -----------------------------------------------------------------------
     #[test]
     fn test_BC_2_06_001_resolve_log_dir_project_dir_is_factory() {
         let dir = tempfile::tempdir().expect("tempdir");
-        // Construct a path that looks like <project>/.factory
         let factory_path = dir.path().join(".factory");
         std::fs::create_dir_all(&factory_path).expect("create .factory");
 
-        let factory_str = factory_path
-            .to_str()
-            .expect("path is UTF-8");
+        let factory_str = factory_path.to_str().expect("path is UTF-8");
 
-        let _guard = ENV_TEST_LOCK.lock().unwrap_or_else(|p| p.into_inner());
-
-        // Save original
-        let original = std::env::var("CLAUDE_PROJECT_DIR").ok();
-
-        // SAFETY: test is serialised by ENV_TEST_LOCK
-        unsafe { std::env::set_var("CLAUDE_PROJECT_DIR", factory_str) };
-        // Also ensure VSDD_LOG_DIR and FACTORY_ROOT are absent so they don't
-        // short-circuit to levels A/B.
-        unsafe { std::env::remove_var("VSDD_LOG_DIR") };
-        unsafe { std::env::remove_var("FACTORY_ROOT") };
-
-        let result = resolve_log_dir();
-
-        // Restore
-        match original {
-            Some(v) => unsafe { std::env::set_var("CLAUDE_PROJECT_DIR", v) },
-            None => unsafe { std::env::remove_var("CLAUDE_PROJECT_DIR") },
-        }
+        // Pass None for VSDD_LOG_DIR and FACTORY_ROOT so level-A/B don't fire.
+        let result = resolve_log_dir_from_params(None, None, Some(factory_str), dir.path());
 
         let expected = factory_path.join("logs");
         let forbidden = factory_path.join(".factory").join("logs");
 
         assert_eq!(
             result, expected,
-            "resolve_log_dir must NOT re-append .factory when CLAUDE_PROJECT_DIR already ends in .factory; \
-             got {result:?}, expected {expected:?}"
+            "resolve_log_dir must NOT re-append .factory when project_dir already ends \
+             in .factory; got {result:?}, expected {expected:?}"
         );
         assert_ne!(
             result, forbidden,
@@ -853,50 +834,27 @@ mod tests_issue_130 {
     }
 
     // -----------------------------------------------------------------------
-    // Regression: normal CLAUDE_PROJECT_DIR (not a .factory path) still
-    // resolves to <project>/.factory/logs  (Level D happy-path).
-    //
-    // CURRENTLY FAILS because the implementer hasn't yet added the
-    // VSDD_LOG_DIR / FACTORY_ROOT levels (A/B) or the basename-guard (C).
-    // This test verifies the *result* is correct after the refactor and
-    // must remain GREEN post-implementation.  It is RED today only because
-    // the refactored function does not yet exist — the current function
-    // happens to produce the right value here, so this test MAY PASS
-    // against current HEAD; see report for classification.
+    // Regression: normal project_dir (not a .factory path) still
+    // resolves to <project>/.factory/logs (Level C returns false; Level D
+    // or F is used).
     // -----------------------------------------------------------------------
     #[test]
     fn test_BC_2_06_001_resolve_log_dir_project_dir_normal() {
         let dir = tempfile::tempdir().expect("tempdir");
         let project_str = dir.path().to_str().expect("path is UTF-8");
 
-        let _guard = ENV_TEST_LOCK.lock().unwrap_or_else(|p| p.into_inner());
-
-        let original = std::env::var("CLAUDE_PROJECT_DIR").ok();
-
-        unsafe { std::env::set_var("CLAUDE_PROJECT_DIR", project_str) };
-        unsafe { std::env::remove_var("VSDD_LOG_DIR") };
-        unsafe { std::env::remove_var("FACTORY_ROOT") };
-
-        let result = resolve_log_dir();
-
-        match original {
-            Some(v) => unsafe { std::env::set_var("CLAUDE_PROJECT_DIR", v) },
-            None => unsafe { std::env::remove_var("CLAUDE_PROJECT_DIR") },
-        }
+        let result = resolve_log_dir_from_params(None, None, Some(project_str), dir.path());
 
         let expected = dir.path().join(".factory").join("logs");
         assert_eq!(
             result, expected,
-            "Normal CLAUDE_PROJECT_DIR should resolve to <project>/.factory/logs; \
-             got {result:?}"
+            "Normal project_dir should resolve to <project>/.factory/logs; got {result:?}"
         );
     }
 
     // -----------------------------------------------------------------------
     // AC-2 / ADR-024 Decision 1 Level A:
-    // VSDD_LOG_DIR override wins over all other env vars.
-    //
-    // CURRENTLY FAILS because `resolve_log_dir()` does not read VSDD_LOG_DIR.
+    // VSDD_LOG_DIR override wins over all other parameters.
     // -----------------------------------------------------------------------
     #[test]
     fn test_BC_2_06_001_resolve_log_dir_vsdd_log_dir_override() {
@@ -904,34 +862,18 @@ mod tests_issue_130 {
         let override_path = dir.path().join("custom").join("logs");
         let override_str = override_path.to_str().expect("path is UTF-8");
 
-        let _guard = ENV_TEST_LOCK.lock().unwrap_or_else(|p| p.into_inner());
-
-        // Save originals
-        let orig_log_dir = std::env::var("VSDD_LOG_DIR").ok();
-        let orig_project_dir = std::env::var("CLAUDE_PROJECT_DIR").ok();
-
-        // Set VSDD_LOG_DIR override; also set CLAUDE_PROJECT_DIR to something
-        // plausible so it's clear the override wins.
-        unsafe { std::env::set_var("VSDD_LOG_DIR", override_str) };
-        unsafe { std::env::set_var("CLAUDE_PROJECT_DIR", "/some/other/project") };
-        unsafe { std::env::remove_var("FACTORY_ROOT") };
-
-        let result = resolve_log_dir();
-
-        // Restore
-        match orig_log_dir {
-            Some(v) => unsafe { std::env::set_var("VSDD_LOG_DIR", v) },
-            None => unsafe { std::env::remove_var("VSDD_LOG_DIR") },
-        }
-        match orig_project_dir {
-            Some(v) => unsafe { std::env::set_var("CLAUDE_PROJECT_DIR", v) },
-            None => unsafe { std::env::remove_var("CLAUDE_PROJECT_DIR") },
-        }
+        // Pass VSDD_LOG_DIR override, FACTORY_ROOT=None, project_dir = plausible
+        // non-factory path. Level A must win.
+        let result = resolve_log_dir_from_params(
+            Some(override_str),
+            None,
+            Some("/some/other/project"),
+            dir.path(),
+        );
 
         assert_eq!(
             result, override_path,
-            "VSDD_LOG_DIR must win over CLAUDE_PROJECT_DIR; \
-             got {result:?}, expected {override_path:?}"
+            "VSDD_LOG_DIR must win over project_dir; got {result:?}, expected {override_path:?}"
         );
     }
 }

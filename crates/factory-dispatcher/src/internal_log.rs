@@ -29,9 +29,12 @@
 use chrono::{DateTime, Duration, Local, TimeZone};
 use serde::Serialize;
 use serde_json::{Map, Value};
+use std::collections::HashSet;
 use std::fs::{self, OpenOptions};
+use std::hash::{DefaultHasher, Hash, Hasher};
 use std::io::Write;
 use std::path::{Path, PathBuf};
+use std::sync::Mutex;
 
 /// Filename prefix for every rotated log. Matched during retention
 /// scans.
@@ -208,22 +211,34 @@ impl InternalEvent {
     }
 }
 
+/// Maximum number of unique error hashes held in `seen_errors` before
+/// new insertions are paused (ADR-024 Decision 3 cap).
+const SEEN_ERRORS_CAP: usize = 1024;
+
 /// Best-effort JSONL writer for dispatcher self-telemetry.
 ///
-/// Cheap to construct and `Clone`/share across threads — it holds only
-/// a `PathBuf`; each write reopens the file. The reopen cost is
-/// negligible compared to the outer dispatcher latency and it keeps the
-/// writer trivially `Send + Sync` without any locking.
+/// Cheap to construct and `Clone`/share across threads. Each write
+/// reopens the file (negligible vs dispatcher latency) and the
+/// `seen_errors` set is held in an `Arc<Mutex<_>>` so clones share
+/// the same dedup state within a process lifetime.
 #[derive(Debug, Clone)]
 pub struct InternalLog {
     log_dir: PathBuf,
+    /// Per-session dedup set for `internal.dispatcher_error` events.
+    /// Only those events are deduplicated; all others are written unconditionally.
+    /// Shared via `Arc` so every `clone()` of `InternalLog` participates in the
+    /// same dedup window (one process invocation = one dispatcher session).
+    seen_errors: std::sync::Arc<Mutex<HashSet<u64>>>,
 }
 
 impl InternalLog {
     /// Build a writer rooted at `log_dir`. The directory is NOT created
     /// eagerly; `write` will `mkdir -p` on first use.
     pub fn new(log_dir: PathBuf) -> Self {
-        Self { log_dir }
+        Self {
+            log_dir,
+            seen_errors: std::sync::Arc::new(Mutex::new(HashSet::new())),
+        }
     }
 
     /// Best-effort append. Never panics, never propagates errors. On
@@ -241,6 +256,28 @@ impl InternalLog {
     }
 
     fn write_inner(&self, event: &InternalEvent) -> std::io::Result<()> {
+        // ADR-024 Decision 3: deduplicate `internal.dispatcher_error` events.
+        // Other event types are written unconditionally.
+        if event.type_ == INTERNAL_DISPATCHER_ERROR {
+            let hash = dedup_hash_for(event);
+            // Mutex::lock() failure → skip dedup and write (non-panicking contract).
+            match self.seen_errors.lock() {
+                Ok(mut set) => {
+                    if set.contains(&hash) {
+                        // Already seen — skip this write.
+                        return Ok(());
+                    }
+                    // Cap at SEEN_ERRORS_CAP: stop inserting once full, but still write.
+                    if set.len() < SEEN_ERRORS_CAP {
+                        set.insert(hash);
+                    }
+                }
+                Err(_) => {
+                    // Poisoned mutex — write anyway to avoid silent loss.
+                }
+            }
+        }
+
         fs::create_dir_all(&self.log_dir)?;
 
         let filename = format!(
@@ -304,6 +341,29 @@ impl InternalLog {
             eprintln!("factory-dispatcher: internal_log prune_old_dlq failed: {e}");
         }
     }
+}
+
+/// Compute the dedup hash for an `internal.dispatcher_error` event.
+///
+/// Hash key = `event.type_ + ":" + first 256 bytes of the JSON-serialized
+/// `message` field value` (ADR-024 Decision 3).  Uses `std::hash::DefaultHasher`
+/// which is non-cryptographic but sufficient for in-process dedup.
+fn dedup_hash_for(event: &InternalEvent) -> u64 {
+    let mut h = DefaultHasher::new();
+    event.type_.hash(&mut h);
+    ":".hash(&mut h);
+    // Extract the `message` field value as a JSON string; if absent, hash empty.
+    let msg_json = event
+        .fields
+        .get("message")
+        .map(|v| {
+            let s = v.to_string();
+            // Take at most 256 bytes (byte-level, not char-level, per ADR-024).
+            s[..s.len().min(256)].to_owned()
+        })
+        .unwrap_or_default();
+    msg_json.hash(&mut h);
+    h.finish()
 }
 
 /// Walk `dir` and delete files that match `prefix` + `suffix` (both must be present)
