@@ -40,37 +40,62 @@ Before building the adversary context package, the orchestrator MUST capture and
 # "$(git rev-parse --git-common-dir)/.." is the main checkout root.
 REPO_ROOT="$(cd "$(git rev-parse --git-common-dir)/.." && pwd)"
 CANONICAL_REPO_ROOT="$REPO_ROOT"
-WORKTREE_ABS_PATH="$REPO_ROOT/.worktrees/<STORY-ID>"
 
-# The EXPECTED feature HEAD SHA is the pushed remote feature-branch tip that
-# the orchestrator is about to dispatch for review. Resolve it from the
-# upstream tracking ref — this is the commit that was pushed to origin and
-# is visible in the PR. Do NOT hardcode a placeholder: the equality assertion
-# below is only meaningful when EXPECTED is resolved from the remote.
-EXPECTED_HEAD_SHA="$(git -C "$WORKTREE_ABS_PATH" rev-parse @{upstream})"
-# Alternative if the tracking ref is not set:
-#   EXPECTED_HEAD_SHA="$(git ls-remote origin <feature-branch> | cut -f1)"
+# Guard: factory-artifacts MUST be mounted before dispatch.
+# If .factory is absent, spec/BC/ADR reads will silently fail or hit stale data.
+[ -d "$CANONICAL_REPO_ROOT/.factory" ] || {
+  echo "dispatch-error: $CANONICAL_REPO_ROOT/.factory does not exist — factory-artifacts not mounted. STOP."
+  exit 1
+}
 
-# ASSERTION: verify the worktree is checked out at the expected commit, i.e.,
-# the local HEAD matches the pushed remote feature-branch tip. A mismatch means
-# the worktree is stale (not yet updated to the latest push) or points to the
-# wrong branch. STOP immediately — do NOT dispatch the adversary against a
-# wrong checkout. Fix the worktree and re-run.
+# Resolve the worktree path robustly by querying git worktree list.
+# Fall back to the .worktrees/<STORY-ID> convention only if no unambiguous match
+# is found from the porcelain output.
+STORY_ID="<STORY-ID>"
+WORKTREE_ABS_PATH="$(git worktree list --porcelain \
+  | awk '/^worktree /{path=$2} /^branch /{branch=$2} branch ~ STORY_ID {print path; found=1} END{if(!found && path!="")print ""}' \
+  STORY_ID="refs/heads/feature/$STORY_ID" \
+  | head -1)"
+# If the porcelain query found no match, fall back to the conventional path.
+if [ -z "$WORKTREE_ABS_PATH" ] || [ ! -d "$WORKTREE_ABS_PATH" ]; then
+  WORKTREE_ABS_PATH="$REPO_ROOT/.worktrees/$STORY_ID"
+fi
+[ -d "$WORKTREE_ABS_PATH" ] || {
+  echo "dispatch-error: worktree directory $WORKTREE_ABS_PATH does not exist — STOP"
+  exit 1
+}
+
+# The EXPECTED feature HEAD SHA is the SHA the orchestrator recorded from the
+# preceding implementer/TDD step — the last commit produced in the worktree
+# before this LOCAL adversary dispatch. This is a PRE-PUSH local cascade;
+# there is no remote tracking branch yet. The orchestrator captures this SHA
+# immediately after the implementer's final micro-commit and supplies it here.
+# Replace <IMPLEMENTER-FINAL-COMMIT-SHA> with the value recorded by the orchestrator.
+EXPECTED_HEAD_SHA="<IMPLEMENTER-FINAL-COMMIT-SHA>"
+
+# ASSERTION: verify the worktree is checked out at the expected commit.
+# A mismatch means the worktree drifted after the implementer finished (e.g.,
+# an extra commit was made, or the wrong worktree was resolved). STOP — do NOT
+# dispatch the adversary against a wrong checkout. Fix and re-run.
 ACTUAL_HEAD_SHA="$(git -C "$WORKTREE_ABS_PATH" rev-parse HEAD)"
 [ "$ACTUAL_HEAD_SHA" = "$EXPECTED_HEAD_SHA" ] || {
-  echo "dispatch-error: worktree HEAD $ACTUAL_HEAD_SHA != pushed feature tip $EXPECTED_HEAD_SHA — STOP"
+  echo "dispatch-error: worktree HEAD $ACTUAL_HEAD_SHA != expected implementer tip $EXPECTED_HEAD_SHA — STOP"
   exit 1
 }
 ```
 
-The dispatch MUST embed the expected feature HEAD SHA (`EXPECTED_HEAD_SHA`), the absolute worktree path (`WORKTREE_ABS_PATH`), the story-id, and the canonical repo root (`CANONICAL_REPO_ROOT`) as a WORKTREE-IDENTITY TUPLE in the adversary task prompt (see adversarial-review SKILL.md "Worktree-Identity Preflight (MANDATORY)" for the exact format). The `canonical-repo-root` is the main repo root where `factory-artifacts` is mounted at `.factory/`; it is the authoritative source for spec, BC, and ADR files — the adversary reads from `<canonical-repo-root>/.factory/...`, NOT from the stale worktree `.factory/specs` snapshot. The embedded `feature HEAD SHA` is the EXPECTED commit — the pushed remote feature-branch tip that the orchestrator verified before dispatch. A mismatch between the worktree's actual HEAD and the expected feature HEAD SHA is a STOP/dispatch-error condition, not a content finding: fix the worktree checkout and re-run, do NOT proceed to the adversary with a mismatched tree.
+**Expected-SHA model:** This step runs LOCAL (pre-push) in the per-story flow (stubs → tests → TDD green → LOCAL adversary 3-CLEAN → demo → push → PR). There is NO remote tracking branch at this point. The `EXPECTED_HEAD_SHA` is therefore NOT resolved from `@{upstream}` or any remote ref — it is the SHA the orchestrator recorded from the implementer's last commit. The orchestrator MUST capture this value (`git -C "$WORKTREE_ABS_PATH" rev-parse HEAD`) immediately after the TDD-green step, before dispatching the adversary. At the PR-level adversarial perimeter (after push), the expected value IS the pushed remote-branch tip and `@{upstream}` is appropriate there; do not conflate the two contexts.
+
+**Structural guarantee:** The adversary reads ONLY from the embedded `worktree-abs-path` for feature code, so cwd-resolution to the wrong checkout (the #176 failure) cannot occur. The SHA equality assertion is the additional temporal guard: same worktree, same commit, before and after the dispatch.
+
+The dispatch MUST embed the expected feature HEAD SHA (`EXPECTED_HEAD_SHA`), the absolute worktree path (`WORKTREE_ABS_PATH`), the story-id, and the canonical repo root (`CANONICAL_REPO_ROOT`) as a WORKTREE-IDENTITY TUPLE (4 fields) in the adversary task prompt (see adversarial-review SKILL.md "Worktree-Identity Preflight (MANDATORY)" for the exact format). The `canonical-repo-root` is the main repo root where `factory-artifacts` is mounted at `.factory/`; it is the authoritative source for spec, BC, and ADR files — the adversary reads from `<canonical-repo-root>/.factory/...`, NOT from the stale worktree `.factory/specs` snapshot. The embedded `feature HEAD SHA` is the EXPECTED commit — the orchestrator-recorded implementer tip. A mismatch between the worktree's actual HEAD and the expected feature HEAD SHA is a STOP/dispatch-error condition, not a content finding: fix the worktree checkout and re-run, do NOT proceed to the adversary with a mismatched tree.
 
 This identity tuple is the orchestrator's assertion, made before the adversary reads any files, that the worktree is on the correct commit. The preflight assertion MUST pass — i.e., the adversary MUST find the tuple present and internally consistent — before findings are accepted. Any adversary response that omits tuple verification or emits a `dispatch-error` about a missing tuple MUST be treated as a dispatch misconfiguration, not a content finding; fix the dispatch and re-run.
 
 Dispatch `adversary` agent (model tier: Capable) with context:
-- WORKTREE-IDENTITY TRIPLE (embedded verbatim as described above)
+- WORKTREE-IDENTITY TUPLE (4 fields) (embedded verbatim as described above)
 - Story worktree diff (`.worktrees/<STORY-ID>/`) — use `worktree-abs-path` from the identity tuple as the read root
-- Story spec (`.factory/stories/<STORY-ID>-*.md`) — canonical repo-root path only (NOT worktree snapshot)
+- Story spec (`<canonical-repo-root>/.factory/stories/<STORY-ID>-*.md`) — canonical repo-root path only (NOT worktree snapshot)
 - Anchored BCs listed in the story's `behavioral_contracts:` frontmatter field — canonical repo-root paths only
 - Current convergence state file (if it exists)
 

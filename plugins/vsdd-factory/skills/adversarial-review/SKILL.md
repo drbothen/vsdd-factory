@@ -78,15 +78,15 @@ Before dispatching the adversary for a Perimeter-1 per-story review, the orchest
 
 **Orchestrator steps (pre-dispatch):**
 
-1. **Resolve `worktree-abs-path`:** the absolute path to the story's worktree (e.g., `/path/to/repo/.worktrees/S-12.08`). This must be the actual worktree directory, not the main checkout.
-2. **Capture `feature-HEAD-SHA` and assert against pushed tip:** run `git -C <worktree-abs-path> rev-parse @{upstream}` to get the remote feature-branch tip that was pushed. Then run `git -C <worktree-abs-path> rev-parse HEAD` to get the local worktree HEAD. These MUST be equal — if they differ, the worktree is stale or on the wrong branch. STOP with a `dispatch-error` and fix the checkout before proceeding. Do NOT dispatch the adversary with a mismatched tree. The `feature-HEAD-SHA` embedded in the tuple is the pushed remote tip (EXPECTED), not an arbitrary local HEAD.
+1. **Resolve `worktree-abs-path`:** the absolute path to the story's worktree (e.g., `/path/to/repo/.worktrees/S-12.08`). This must be the actual worktree directory, not the main checkout. Resolve it robustly: query `git worktree list --porcelain` and select the worktree whose branch matches the story's feature branch (`feature/<story-id>`); fall back to the `.worktrees/<story-id>` convention if no unambiguous match is found.
+2. **Capture `feature-HEAD-SHA` from the orchestrator-recorded implementer commit:** the LOCAL adversary cascade runs PRE-PUSH (there is no remote tracking branch yet at this point). The `EXPECTED_HEAD_SHA` is therefore the SHA the orchestrator recorded immediately after the TDD-green step — `git -C <worktree-abs-path> rev-parse HEAD` captured right after the implementer's final micro-commit. Then assert: run `git -C <worktree-abs-path> rev-parse HEAD` again and confirm it equals the recorded value. A mismatch means the worktree drifted after the implementer finished. STOP with a `dispatch-error` and fix the checkout before proceeding. Do NOT dispatch the adversary with a mismatched tree. **Note:** At the PR-level perimeter (post-push), the expected value IS the pushed remote-branch tip and `@{upstream}` is the appropriate source; do not conflate the two contexts.
 3. **Confirm `story-id`:** the story ID from the STORY-INDEX entry (e.g., `S-12.08`).
 4. **Resolve `canonical-repo-root`:** the main repo root where `factory-artifacts` is mounted at `.factory/`. Use `cd "$(git rev-parse --git-common-dir)/.." && pwd` — this is nesting-safe and works correctly whether run from a worktree or the main checkout. The adversary reads all spec, BC, and ADR files from `<canonical-repo-root>/.factory/...`.
 5. **Embed the identity tuple** in the adversary task prompt verbatim:
    ```
    WORKTREE-IDENTITY TUPLE (pre-verified by orchestrator):
      worktree-abs-path:   <absolute-path>
-     feature-HEAD-SHA:    <pushed-remote-tip-sha>
+     feature-HEAD-SHA:    <orchestrator-recorded-implementer-commit-sha>
      story-id:            <story-id>
      canonical-repo-root: <main-repo-root>
    ```
