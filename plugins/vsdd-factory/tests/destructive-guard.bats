@@ -569,6 +569,59 @@ _run_hook() {
   [ "$status" -eq 0 ]
 }
 
+# ---------------------------------------------------------------------------
+# Red Gate tests — issue #130 / ADR-024 Decision 4
+#
+# Three tests:
+#   1. guard_allows_shadow_delete    — NEW RED   (currently blocked by guard)
+#   2. guard_blocks_real_factory     — REGRESSION PASS (already blocked)
+#   3. guard_blocks_factory_specs    — REGRESSION PASS (already blocked)
+#
+# ADR-024 Decision 4: the guard must allow deletion of the exact shadow
+# path `.factory/.factory/` while keeping all other `.factory/` paths
+# blocked.  The fix adds a shadow-exception predicate BEFORE the existing
+# `.worktrees/` exception inside the `for protected_re in ...` loop and
+# inside the `find ... -delete` block.
+# ---------------------------------------------------------------------------
+
+# NEW RED: .factory/.factory/ is the recursive shadow created by the bug.
+# Currently the guard blocks it because it matches the \.factory/ protected
+# regex.  After ADR-024 Decision 4 is implemented, this must exit 0.
+@test "guard_allows_shadow_delete: rm -rf .factory/.factory/ exits 0" {
+  _run_hook "rm -rf .factory/.factory/"
+  [ "$status" -eq 0 ]
+}
+
+# REGRESSION PASS: real .factory/ must remain blocked after the shadow
+# exception is added.
+@test "guard_blocks_real_factory_delete: rm -rf .factory/ exits 2" {
+  _run_hook "rm -rf .factory/"
+  [ "$status" -eq 2 ]
+  [[ "$output" == *"BLOCKED"* ]]
+}
+
+# REGRESSION PASS: subdirectory of real .factory/ must remain blocked.
+@test "guard_blocks_factory_specs_delete: rm -rf .factory/specs/ exits 2" {
+  _run_hook "rm -rf .factory/specs/"
+  [ "$status" -eq 2 ]
+  [[ "$output" == *"BLOCKED"* ]]
+}
+
+# NEW RED: find variant of shadow delete must also be allowed.
+# Currently blocked by the find-delete guard's \.factory\b pattern.
+# After the find-delete shadow exception (ADR-024 Decision 4, second block)
+# is implemented, this must exit 0.
+@test "guard_allows_shadow_find_delete: find .factory/.factory -delete exits 0" {
+  _run_hook "find .factory/.factory -type f -delete"
+  [ "$status" -eq 0 ]
+}
+
+# REGRESSION PASS: find on real .factory/ (no shadow) stays blocked.
+@test "guard_blocks_real_factory_find_delete: find .factory -delete exits 2" {
+  _run_hook "find .factory -type f -delete"
+  [ "$status" -eq 2 ]
+}
+
 # ---------- Emit-event integration ----------
 # These tests verify that (a) events are emitted when the hook blocks, and
 # (b) the hook still blocks correctly even when emit-event is missing or

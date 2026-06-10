@@ -659,4 +659,74 @@ mod tests {
         assert!(parsed.get("plugin_name").is_none());
         assert!(parsed.get("plugin_version").is_none());
     }
+
+    // -----------------------------------------------------------------------
+    // Red Gate test — issue #130 / ADR-024 Decision 3
+    //
+    // Writing the same `internal.dispatcher_error` message N times through
+    // the public API must produce exactly ONE line in the log file (dedup).
+    //
+    // CURRENTLY FAILS: `InternalLog` has no `seen_errors` field and no
+    // dedup logic.  Writing 5× produces 5 lines.
+    //
+    // The test uses a fixed timestamp so all writes land in the same JSONL
+    // file and the line-count assertion is deterministic.
+    //
+    // ADR-024 Decision 3 spec:
+    //   - Dedup key = hash(event.type_ + ":" + first 256 bytes of message
+    //     JSON value).
+    //   - Cap at 1024 entries.
+    //   - Non-dispatcher_error events are written unconditionally.
+    //   - Mutex::lock() failure → log anyway (non-panicking contract).
+    // -----------------------------------------------------------------------
+    #[test]
+    fn test_BC_2_06_001_internal_log_dedup_same_message() {
+        let dir = tempfile::tempdir().unwrap();
+        let log = InternalLog::new(dir.path().to_path_buf());
+
+        // Pin a date so all events land in the same file.
+        let ts = Local.with_ymd_and_hms(2026, 6, 9, 10, 0, 0).unwrap();
+        let msg = "$CLAUDE_PLUGIN_ROOT is not set or empty — hook registry and resolver registry paths unresolvable";
+
+        // Write the SAME dispatcher_error message 5 times.
+        for _ in 0..5 {
+            let event = InternalEvent::with_ts(INTERNAL_DISPATCHER_ERROR, ts)
+                .with_field("message", msg);
+            log.write(&event);
+        }
+
+        // Write a non-dispatcher_error event once — it must NOT be deduped.
+        let other_event = InternalEvent::with_ts(DISPATCHER_STARTED, ts)
+            .with_field("pid", 42_i64);
+        log.write(&other_event);
+
+        let expected_file = dir.path().join(format!("{FILENAME_PREFIX}2026-06-09{FILENAME_SUFFIX}"));
+        assert!(expected_file.exists(), "log file must be created: {expected_file:?}");
+
+        let lines = read_lines(&expected_file);
+
+        // The 5 identical dispatcher_error events must be deduped to 1.
+        // The 1 dispatcher.started event must pass through unconditionally.
+        // Total expected: 2 lines.
+        assert_eq!(
+            lines.len(),
+            2,
+            "ADR-024 Decision 3: 5 identical dispatcher_error writes must be deduped to 1 line; \
+             got {} lines (dedup not yet implemented)",
+            lines.len()
+        );
+
+        // Verify the surviving lines are the right types.
+        let parsed_0: serde_json::Value = serde_json::from_str(&lines[0]).unwrap();
+        let parsed_1: serde_json::Value = serde_json::from_str(&lines[1]).unwrap();
+
+        assert_eq!(
+            parsed_0["type"], INTERNAL_DISPATCHER_ERROR,
+            "first surviving line must be the dispatcher_error"
+        );
+        assert_eq!(
+            parsed_1["type"], DISPATCHER_STARTED,
+            "second line must be the non-deduped dispatcher.started event"
+        );
+    }
 }

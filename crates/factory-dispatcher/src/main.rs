@@ -761,3 +761,177 @@ fn emit_dispatcher_error(
         msg
     );
 }
+
+// ---------------------------------------------------------------------------
+// Red Gate tests — issue #130 (ADR-024)
+//
+// These tests exercise `resolve_log_dir()`, which is a private function in
+// this file. They MUST live here (not in crates/factory-dispatcher/tests/)
+// because Rust integration tests cannot access private items.
+//
+// TEST-ONLY SEAM NOTE (for implementer):
+//   ADR-024 Decision 1 calls for `resolve_log_dir()` to accept params for
+//   levels A–D rather than reading env vars and cwd directly.  If the
+//   implementer refactors to a pure helper — e.g.
+//   `resolve_log_dir_from(project_dir: Option<&str>, cwd: &Path) -> PathBuf`
+//   — then the env-var tests below can be rewritten to call the pure form
+//   directly (no Mutex needed).  Until that refactor lands, the Mutex
+//   serialization guard is the correct mechanism:  `std::env::set_var` is
+//   `unsafe` in Rust ≥ 1.80 in multi-threaded contexts; we use a
+//   module-level Mutex so tests never run concurrently.
+//
+// ENV-VAR SERIALIZATION:
+//   The `ENV_TEST_LOCK` mutex serialises all env-var tests.  Acquire it at
+//   the top of each test that calls `std::env::set_var` / `remove_var` and
+//   release it before the assertion to keep the critical section minimal.
+//   Restore the original value (or remove the var) in all paths — including
+//   on assertion failure — so a panicking test does not poison the mutex for
+//   subsequent tests.
+// ---------------------------------------------------------------------------
+#[cfg(test)]
+mod tests_issue_130 {
+    use super::resolve_log_dir;
+    use std::sync::Mutex;
+
+    /// Serializes every test that mutates process environment.
+    /// `std::env::set_var` is `unsafe` (UB if another thread reads the env
+    /// concurrently).  All issue-130 env-var tests MUST hold this guard for
+    /// the duration of their env mutation.
+    static ENV_TEST_LOCK: Mutex<()> = Mutex::new(());
+
+    // -----------------------------------------------------------------------
+    // AC-1 / ADR-024 Decision 1 Level C:
+    // When CLAUDE_PROJECT_DIR already ends in `.factory`, the result must be
+    // `<that-path>/logs` — NOT `<that-path>/.factory/logs`.
+    //
+    // CURRENTLY FAILS because `resolve_log_dir()` unconditionally appends
+    // `.factory/logs`, producing the recursive shadow.
+    // -----------------------------------------------------------------------
+    #[test]
+    fn test_BC_2_06_001_resolve_log_dir_project_dir_is_factory() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        // Construct a path that looks like <project>/.factory
+        let factory_path = dir.path().join(".factory");
+        std::fs::create_dir_all(&factory_path).expect("create .factory");
+
+        let factory_str = factory_path
+            .to_str()
+            .expect("path is UTF-8");
+
+        let _guard = ENV_TEST_LOCK.lock().unwrap_or_else(|p| p.into_inner());
+
+        // Save original
+        let original = std::env::var("CLAUDE_PROJECT_DIR").ok();
+
+        // SAFETY: test is serialised by ENV_TEST_LOCK
+        unsafe { std::env::set_var("CLAUDE_PROJECT_DIR", factory_str) };
+        // Also ensure VSDD_LOG_DIR and FACTORY_ROOT are absent so they don't
+        // short-circuit to levels A/B.
+        unsafe { std::env::remove_var("VSDD_LOG_DIR") };
+        unsafe { std::env::remove_var("FACTORY_ROOT") };
+
+        let result = resolve_log_dir();
+
+        // Restore
+        match original {
+            Some(v) => unsafe { std::env::set_var("CLAUDE_PROJECT_DIR", v) },
+            None => unsafe { std::env::remove_var("CLAUDE_PROJECT_DIR") },
+        }
+
+        let expected = factory_path.join("logs");
+        let forbidden = factory_path.join(".factory").join("logs");
+
+        assert_eq!(
+            result, expected,
+            "resolve_log_dir must NOT re-append .factory when CLAUDE_PROJECT_DIR already ends in .factory; \
+             got {result:?}, expected {expected:?}"
+        );
+        assert_ne!(
+            result, forbidden,
+            "resolve_log_dir produced the recursive shadow path {forbidden:?}"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // Regression: normal CLAUDE_PROJECT_DIR (not a .factory path) still
+    // resolves to <project>/.factory/logs  (Level D happy-path).
+    //
+    // CURRENTLY FAILS because the implementer hasn't yet added the
+    // VSDD_LOG_DIR / FACTORY_ROOT levels (A/B) or the basename-guard (C).
+    // This test verifies the *result* is correct after the refactor and
+    // must remain GREEN post-implementation.  It is RED today only because
+    // the refactored function does not yet exist — the current function
+    // happens to produce the right value here, so this test MAY PASS
+    // against current HEAD; see report for classification.
+    // -----------------------------------------------------------------------
+    #[test]
+    fn test_BC_2_06_001_resolve_log_dir_project_dir_normal() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let project_str = dir.path().to_str().expect("path is UTF-8");
+
+        let _guard = ENV_TEST_LOCK.lock().unwrap_or_else(|p| p.into_inner());
+
+        let original = std::env::var("CLAUDE_PROJECT_DIR").ok();
+
+        unsafe { std::env::set_var("CLAUDE_PROJECT_DIR", project_str) };
+        unsafe { std::env::remove_var("VSDD_LOG_DIR") };
+        unsafe { std::env::remove_var("FACTORY_ROOT") };
+
+        let result = resolve_log_dir();
+
+        match original {
+            Some(v) => unsafe { std::env::set_var("CLAUDE_PROJECT_DIR", v) },
+            None => unsafe { std::env::remove_var("CLAUDE_PROJECT_DIR") },
+        }
+
+        let expected = dir.path().join(".factory").join("logs");
+        assert_eq!(
+            result, expected,
+            "Normal CLAUDE_PROJECT_DIR should resolve to <project>/.factory/logs; \
+             got {result:?}"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // AC-2 / ADR-024 Decision 1 Level A:
+    // VSDD_LOG_DIR override wins over all other env vars.
+    //
+    // CURRENTLY FAILS because `resolve_log_dir()` does not read VSDD_LOG_DIR.
+    // -----------------------------------------------------------------------
+    #[test]
+    fn test_BC_2_06_001_resolve_log_dir_vsdd_log_dir_override() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let override_path = dir.path().join("custom").join("logs");
+        let override_str = override_path.to_str().expect("path is UTF-8");
+
+        let _guard = ENV_TEST_LOCK.lock().unwrap_or_else(|p| p.into_inner());
+
+        // Save originals
+        let orig_log_dir = std::env::var("VSDD_LOG_DIR").ok();
+        let orig_project_dir = std::env::var("CLAUDE_PROJECT_DIR").ok();
+
+        // Set VSDD_LOG_DIR override; also set CLAUDE_PROJECT_DIR to something
+        // plausible so it's clear the override wins.
+        unsafe { std::env::set_var("VSDD_LOG_DIR", override_str) };
+        unsafe { std::env::set_var("CLAUDE_PROJECT_DIR", "/some/other/project") };
+        unsafe { std::env::remove_var("FACTORY_ROOT") };
+
+        let result = resolve_log_dir();
+
+        // Restore
+        match orig_log_dir {
+            Some(v) => unsafe { std::env::set_var("VSDD_LOG_DIR", v) },
+            None => unsafe { std::env::remove_var("VSDD_LOG_DIR") },
+        }
+        match orig_project_dir {
+            Some(v) => unsafe { std::env::set_var("CLAUDE_PROJECT_DIR", v) },
+            None => unsafe { std::env::remove_var("CLAUDE_PROJECT_DIR") },
+        }
+
+        assert_eq!(
+            result, override_path,
+            "VSDD_LOG_DIR must win over CLAUDE_PROJECT_DIR; \
+             got {result:?}, expected {override_path:?}"
+        );
+    }
+}
