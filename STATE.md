@@ -144,7 +144,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | 2a191314 | rc.20 SHIPPED 2026-06-01; bot binary commit on top of --merge from develop; prior: 43afbfa7 (rc.19 2026-05-28) |
 | develop | 89fbe2d6 | D-537 PR #179 SQUASH-MERGED 2026-06-10; issue #130 dispatcher log-shadow DELIVERED; prior: f6ce4b7c (D-535 PR #178 2026-06-09) |
-| factory-artifacts | `[D-537-PRIMARY-SHA-PENDING]` | D-537 ISSUE-130 PR-179 MERGED 2026-06-10 (prior: 51724a92 D-536 SHA-patch) |
+| factory-artifacts | `c32b753d` | D-537 ISSUE-130 PR-179 MERGED 2026-06-10 (prior: 51724a92 D-536 SHA-patch) |
 | v1.0.0-rc.20 (tag) | e9e38286 | SHIPPED 2026-06-01; annotated tag object; GitHub Release prerelease; marketplace PR drbothen/claude-mp #12 squash-merged 862e660d |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28; GitHub Release prerelease 2026-05-28T15:10:56Z; marketplace PR #11 squash-merged |
 | v1.0.0-rc.18 (tag) | 666d689f | SHIPPED 2026-05-13 PR #135 |
@@ -326,7 +326,7 @@ Prior Tier-A (pre-session, all COMPLETE): TD #71/72/70/74 (PRs #138–141) + S-1
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** `[D-537-PRIMARY-SHA-PENDING]` (D-537 ISSUE-130 PR-179 MERGED 2026-06-10; prior: `51724a92` D-536 SHA-patch; prior-prior: `77f1abd6` D-536 primary)
+- **factory-artifacts HEAD:** `c32b753d` (D-537 ISSUE-130 PR-179 MERGED 2026-06-10; prior: `51724a92` D-536 SHA-patch; prior-prior: `77f1abd6` D-536 primary)
 - **develop HEAD:** `89fbe2d6` (D-537 PR #179 squash-merge 2026-06-10; prior: `f6ce4b7c` D-535 PR #178 2026-06-09)
 - **main HEAD:** `2a191314` (rc.20 bot binary commit 2026-06-01; prior: `43afbfa7` rc.19 2026-05-28)
 - **v1.0.0-rc.20 tag:** `e9e38286` (annotated tag object; GitHub Release prerelease 2026-06-01; marketplace PR #12 squash-merged 862e660d)

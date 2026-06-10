@@ -6288,4 +6288,4 @@ $ ls -d /Users/zious/Documents/GITHUB/vsdd-factory/crates/hook-plugins/*/ | wc -
 
 ### Factory-artifacts Commits
 
-- `[PRIMARY-SHA-PENDING-SHA-PATCH]` — state(D-537): PR #179 squash-merged 89fbe2d6; ADR-024 v1.2 amended; ARCH-INDEX v2.17→v2.18; issue-130 DELIVERED/MERGED (primary burst per TD-VSDD-053)
+- `c32b753d` — state(D-537): PR #179 squash-merged 89fbe2d6; ADR-024 v1.2 amended; ARCH-INDEX v2.17→v2.18; issue-130 DELIVERED/MERGED (primary burst per TD-VSDD-053)
