@@ -104,17 +104,28 @@ _all_targets_inside_shadow() {
       return 1
     fi
     # Lexical normalization: resolve "." and ".." without filesystem access.
+    # Split on "/" using parameter expansion to avoid IFS tampering.
     local stack=()
-    IFS='/' read -ra parts <<< "$token"
-    for part in "${parts[@]}"; do
+    local remaining="${token}"
+    while [[ "$remaining" == */* ]]; do
+      local part="${remaining%%/*}"
+      remaining="${remaining#*/}"
       if [[ "$part" == ".." ]]; then
         (( ${#stack[@]} > 0 )) && unset 'stack[-1]'
       elif [[ -n "$part" && "$part" != "." ]]; then
         stack+=("$part")
       fi
     done
-    local IFS='/'
-    local normalized="${stack[*]}"
+    # Process final component after last "/".
+    if [[ -n "$remaining" && "$remaining" != "." && "$remaining" != ".." ]]; then
+      stack+=("$remaining")
+    elif [[ "$remaining" == ".." ]]; then
+      (( ${#stack[@]} > 0 )) && unset 'stack[-1]'
+    fi
+    # Join stack with "/" using printf to avoid IFS assignment.
+    local normalized
+    printf -v normalized '%s/' "${stack[@]}"
+    normalized="${normalized%/}"
     # Must normalize to .factory/.factory or a path inside it.
     if [[ "$normalized" != ".factory/.factory" && \
           "$normalized" != ".factory/.factory/"* ]]; then
