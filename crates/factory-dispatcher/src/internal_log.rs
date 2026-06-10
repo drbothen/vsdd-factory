@@ -750,18 +750,22 @@ mod tests {
 
         // Write the SAME dispatcher_error message 5 times.
         for _ in 0..5 {
-            let event = InternalEvent::with_ts(INTERNAL_DISPATCHER_ERROR, ts)
-                .with_field("message", msg);
+            let event =
+                InternalEvent::with_ts(INTERNAL_DISPATCHER_ERROR, ts).with_field("message", msg);
             log.write(&event);
         }
 
         // Write a non-dispatcher_error event once — it must NOT be deduped.
-        let other_event = InternalEvent::with_ts(DISPATCHER_STARTED, ts)
-            .with_field("pid", 42_i64);
+        let other_event = InternalEvent::with_ts(DISPATCHER_STARTED, ts).with_field("pid", 42_i64);
         log.write(&other_event);
 
-        let expected_file = dir.path().join(format!("{FILENAME_PREFIX}2026-06-09{FILENAME_SUFFIX}"));
-        assert!(expected_file.exists(), "log file must be created: {expected_file:?}");
+        let expected_file = dir
+            .path()
+            .join(format!("{FILENAME_PREFIX}2026-06-09{FILENAME_SUFFIX}"));
+        assert!(
+            expected_file.exists(),
+            "log file must be created: {expected_file:?}"
+        );
 
         let lines = read_lines(&expected_file);
 

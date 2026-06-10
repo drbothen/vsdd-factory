@@ -801,6 +801,7 @@ fn emit_dispatcher_error(
 // ---------------------------------------------------------------------------
 #[cfg(test)]
 mod tests_issue_130 {
+    #![allow(clippy::expect_used, clippy::unwrap_used)]
     use factory_dispatcher::log_dir::resolve_log_dir_from_params;
 
     // -----------------------------------------------------------------------

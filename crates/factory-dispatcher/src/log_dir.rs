@@ -110,7 +110,7 @@ pub fn resolve_log_dir_from(project_dir: Option<&str>, cwd: &Path) -> PathBuf {
 fn is_dot_factory_basename(path: &Path) -> bool {
     path.file_name()
         .and_then(|n| n.to_str())
-        .map(|s| is_factory_name(s))
+        .map(is_factory_name)
         .unwrap_or(false)
 }
 
@@ -148,11 +148,11 @@ fn walk_up_to_factory(start: &Path) -> Option<PathBuf> {
     loop {
         // Record this node to detect symlink loops using (dev, ino) on Unix.
         // On non-Unix platforms we skip loop detection (no stable inode API).
-        if let Some(key) = symlink_inode(&current) {
-            if !seen.insert(key) {
-                // Already visited — symlink loop detected, stop.
-                break;
-            }
+        if let Some(key) = symlink_inode(&current)
+            && !seen.insert(key)
+        {
+            // Already visited — symlink loop detected, stop.
+            break;
         }
 
         // Check if THIS directory is `.factory`.
