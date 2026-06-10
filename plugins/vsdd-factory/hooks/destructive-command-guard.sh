@@ -113,8 +113,8 @@ _all_targets_inside_shadow() {
         stack+=("$part")
       fi
     done
-    local normalized
-    normalized=$(IFS='/'; echo "${stack[*]}")
+    local IFS='/'
+    local normalized="${stack[*]}"
     # Must normalize to .factory/.factory or a path inside it.
     if [[ "$normalized" != ".factory/.factory" && \
           "$normalized" != ".factory/.factory/"* ]]; then
