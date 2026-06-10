@@ -345,24 +345,44 @@ impl InternalLog {
 
 /// Compute the dedup hash for an `internal.dispatcher_error` event.
 ///
-/// Hash key = `event.type_ + ":" + first 256 bytes of the JSON-serialized
-/// `message` field value` (ADR-024 Decision 3).  Uses `std::hash::DefaultHasher`
+/// Hash key = `event.type_ + ":" + message_string_value` (ADR-024 Decision 3,
+/// as clarified by adversary pass-1 finding M-5).  Uses `std::hash::DefaultHasher`
 /// which is non-cryptographic but sufficient for in-process dedup.
+///
+/// **Implementation notes (M-5 fixes):**
+///
+/// 1. **String value, not JSON repr.** We extract the raw string value via
+///    `Value::as_str()` rather than `Value::to_string()`.  `to_string()` produces
+///    the JSON-serialized form (e.g. `"\"hello\""` with surrounding quotes), so
+///    two distinct messages that share a 254-char prefix would have identical first
+///    256 bytes in their JSON repr even though their raw values differ — a false
+///    dedup.  Using `as_str()` hashes the actual string content.
+///
+/// 2. **No byte-level truncation.** The original 256-byte truncation was applied to
+///    the JSON repr (including the surrounding `"` quotes).  With the raw string
+///    value, truncating at 256 bytes still collides for messages that share a long
+///    prefix (e.g. 255 shared chars + distinct tail).  We hash the full raw string
+///    value so that any difference anywhere in the message produces a distinct hash.
+///    Dispatcher error messages are short in practice (< 512 bytes); no memory
+///    concern.
+///
+/// 3. **Non-panicking contract.** No index-based string slicing; no `unwrap()`.
+///    `as_str()` returns `None` for non-string JSON values; we fall back to the
+///    empty string.  `DefaultHasher` and `HashSet` operations cannot panic.
 fn dedup_hash_for(event: &InternalEvent) -> u64 {
     let mut h = DefaultHasher::new();
     event.type_.hash(&mut h);
     ":".hash(&mut h);
-    // Extract the `message` field value as a JSON string; if absent, hash empty.
-    let msg_json = event
+    // Extract the raw string value of the `message` field.
+    // - For Value::String(s): as_str() yields s directly (no JSON quotes).
+    // - For other Value variants (unlikely for `message`): fall back to "".
+    // No truncation — hash the full value to avoid false dedup on long shared prefixes.
+    let msg_str = event
         .fields
         .get("message")
-        .map(|v| {
-            let s = v.to_string();
-            // Take at most 256 bytes (byte-level, not char-level, per ADR-024).
-            s[..s.len().min(256)].to_owned()
-        })
-        .unwrap_or_default();
-    msg_json.hash(&mut h);
+        .and_then(|v| v.as_str())
+        .unwrap_or("");
+    msg_str.hash(&mut h);
     h.finish()
 }
 
