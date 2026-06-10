@@ -6388,4 +6388,4 @@ $ ls -d /Users/zious/Documents/GITHUB/vsdd-factory/crates/hook-plugins/*/ | wc -
 
 ### Factory-artifacts Commits
 
-- `[D-538-PRIMARY-SHA]` — state(D-538): SESSION-END DURABILITY BURST; §1-§12 full refresh; pr-description.md committed; D-430(a) compaction (primary burst per TD-VSDD-053)
+- `3294361e` — state(D-538): SESSION-END DURABILITY BURST; §1-§12 full refresh; pr-description.md committed; D-430(a) compaction (primary burst per TD-VSDD-053)
