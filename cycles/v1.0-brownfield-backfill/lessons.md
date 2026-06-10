@@ -2960,6 +2960,26 @@ POLICY 14 description and verification_steps updated in policies.yaml same-burst
 
 ---
 
+### L-session-2026-06-10-issue-128-130-delivered-durability
+
+**Category:** session-durability + delivery-cadence + release-gate
+
+**(a) Two issues delivered in a single session (cross-family adversary pattern).** Issues #128 (pr-manager branch-deletion verify, plugin-skill change) and #130 (dispatcher log-shadow, crates+hooks change) were both researched, implemented TDD-first, adversary-reviewed (3-pass convergence), merged, and DELIVERED within a two-day session window (2026-06-09 to 2026-06-10). Both used Gemini Flash (cross-model-family) adversary review per D-386 Option C. Both achieved monotone decay to CLEAN. Pattern: 3-pass cross-family adversary is sufficient for PRs of this scope (plugin/prompt-fix + security-critical guard). The third pass returned only cosmetic findings in both cases.
+
+**(b) Release gate distinction: develop-only vs operator-cache.** Issue #128 is a plugin skill/agent file change (markdown-only); these ship in the next rc release and take effect immediately in develop for any user running from HEAD. Issue #130 is a crates+hooks change (Rust binary + destructive-command-guard.sh); this requires a new rc release for the operator-level marketplace-tarball cache to pick it up. Users on rc.20 will not see the #130 fix until rc.21+. This dual-track release obligation (markdown immediate vs binary gated) is a recurring pattern that must be flagged at every merge with "requires rc release for operator cache."
+
+**(c) pr-description.md durability convention.** The pr-manager authored PR #179's description as code-delivery/issue-130/pr-description.md (16.5KB). This matches the code-delivery/<id>/pr-description.md convention used in prior delivery cycles (code-delivery/F5-B1/, code-delivery/S-15.17/). The file was untracked in .factory/ and committed in D-538 for consistency with the convention. Forward obligation: every pr-manager PR description should be committed to code-delivery/<id>/pr-description.md before the PR is created, so it is part of the audit trail.
+
+**(d) Session-end durability burst timing.** The D-538 SESSION-END DURABILITY BURST was executed immediately after both issue deliveries in the same session, providing a clean zero-context-resume anchor. This is the recommended pattern: when a session delivers ≥1 issue and context may clear (end-of-session, machine change), execute a SESSION-END DURABILITY BURST before clearing. The burst cost (one commit, ~30 min elapsed) is negligible relative to the recovery cost of a stale checkpoint on a new machine.
+
+**Anchors:** D-538 (this burst); D-537 (issue #130 merge); D-535 (issue #128 merge); D-533 (issue-validation sweep). PR #179 `89fbe2d6`; PR #178 `f6ce4b7c`.
+
+**Cites:** D-538; D-537; D-535; D-533; D-386 Option C (convergence model); CLAUDE.md release-gate distinction.
+
+**Closes:** D-538 session-end durability lesson. `[codified]`
+
+---
+
 ### L-issue-130-3pass-convergence
 
 **Category:** adversarial-convergence + security-review + spec-drift-routing

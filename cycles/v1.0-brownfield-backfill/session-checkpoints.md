@@ -589,3 +589,19 @@ Key resume data:
 - **factory-artifacts HEAD at archive:** `ead64a33` (D-534).
 
 **This checkpoint superseded by D-535 POST-MERGE STATE BURST 2026-06-09.**
+
+---
+
+## Archived Checkpoint: D-537 ISSUE-130 PR-179 MERGED 2026-06-10 (ARCH-INDEX v2.18)
+
+**Superseded by D-538 SESSION-END DURABILITY BURST 2026-06-10.**
+
+- **D-537 (2026-06-10):** ISSUE-130 PR-179 MERGED. PR #179 SQUASH-MERGED 89fbe2d6 (2026-06-10T05:03:19Z). CI 10/10 PASS. feature/issue-130-dispatcher-log-shadow DELETED+VERIFIED (git ls-remote --exit-code exit 2). develop f6ce4b7c→89fbe2d6. POL-14 no-op. 3-pass adversary CLEAN (2C+3H+5M → 2C+3H+3M → 0C/0H/0M). ADR-024 v1.0→v1.2 (Decision 3 bounded char-safe dedup hash + Decision 4 lexical-normalization guard + [process-gap] Process note). ARCH-INDEX v2.17→v2.18. #130 DELIVERED/MERGED. Code+hooks → REQUIRES rc release for operator cache.
+- **develop HEAD at archive:** `89fbe2d6`. **main HEAD:** `2a191314` (rc.20 2026-06-01).
+- **D-range:** D-001..D-537.
+- **4-index:** BC-INDEX v2.65, VP-INDEX v2.06, STORY-INDEX v3.84, ARCH-INDEX v2.18.
+- **BC content:** BC-5.39.005 v1.3 ACTIVE + BC-5.39.006 v1.7 ACTIVE + BC-5.39.007 v1.6 ACTIVE + BC-5.39.008 v1.5 ACTIVE + BC-5.39.009 v1.9 ACTIVE + BC-7.04.051 v1.1 ACTIVE.
+- **factory-artifacts HEAD at archive:** `c62c2c03` (D-537 SHA-patch).
+- **§12 RECOMMENDED ACTIVE NEXT:** (a) rc release to ship #128+#130 to operator cache; (b) #169+#176 worktree-identity couple (process-only; no release needed); (c) #129 canonical-principle; F5 pass-76 PAUSED needs human.
+
+**This checkpoint superseded by D-538 SESSION-END DURABILITY BURST 2026-06-10.**

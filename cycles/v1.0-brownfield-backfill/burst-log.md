@@ -6289,3 +6289,103 @@ $ ls -d /Users/zious/Documents/GITHUB/vsdd-factory/crates/hook-plugins/*/ | wc -
 ### Factory-artifacts Commits
 
 - `c32b753d` — state(D-537): PR #179 squash-merged 89fbe2d6; ADR-024 v1.2 amended; ARCH-INDEX v2.17→v2.18; issue-130 DELIVERED/MERGED (primary burst per TD-VSDD-053)
+- `c62c2c03` — state(D-537): SHA-patch — record primary commit SHA c32b753d in STATE.md + burst-log per D-447(c)+D-449(e)
+
+---
+
+## D-538 SESSION-END DURABILITY BURST 2026-06-10
+
+**Burst type:** session-end durability / zero-context resume anchor  
+**D-range advances:** D-001..D-537 → D-001..D-538  
+**Parent-commit:** `c62c2c03` (factory-artifacts HEAD pre-burst per D-419(b))  
+**D-chain cite:** D-537 per D-419(b)
+
+### Dim-1 Parent-Commit / Adversary Verdict
+
+No adversary pass in this burst (durability/bookkeeping burst only). SESSION-END DURABILITY BURST per state-burst protocol. Prior burst D-537: PR #179 squash-merged 89fbe2d6; ADR-024 v1.2; ARCH-INDEX v2.18; issue #130 DELIVERED/MERGED. factory-artifacts pre-burst HEAD: `c62c2c03` (D-537 SHA-patch per D-447(c)). No new adversary findings; trajectory CARRIED: →9→9→9→11.
+
+### Dim-2 PC Attestations (Literal-Shell per TD-VSDD-100 + D-449(a))
+
+PC1 — current_step: reads production STATE.md (post-burst):
+```
+$ grep "^current_step:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/STATE.md
+current_step: "D-538 SESSION-END-DURABILITY-BURST 2026-06-10 — §1-§12 FULL REFRESH; code-delivery/issue-130/pr-description.md committed; D-430(a) compaction; #128 DELIVERED/MERGED (D-535 PR #178 f6ce4b7c); #130 DELIVERED/MERGED (D-537 PR #179 89fbe2d6); ADR-024 v1.2; ARCH-INDEX v2.18; requires rc release for operator cache; BC-INDEX v2.65 UNCHANGED; VP-INDEX v2.06 UNCHANGED; STORY-INDEX v3.84 UNCHANGED; ARCH-INDEX v2.18 UNCHANGED; trajectory-tail →9→9→9→11; maintain all 5 BC-5.39.006 v1.7 PCs per TD-VSDD-097-EXT; D-chain cite D-537 per D-419(b); parent-commit c62c2c03 per D-419(b). SIZE BUDGET: (wc-l; see banner tracker)"
+```
+PC1 ✓ (production STATE.md read; no synthetic echo; matches literal output above)
+
+PC2 — trajectory-tail LENGTH=4 from production STATE.md:
+```
+$ grep "^current_step:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/STATE.md | grep -oE "trajectory-tail [→0-9]+"
+trajectory-tail →9→9→9→11
+```
+PC2 ✓ (trajectory-tail →9→9→9→11 present; LENGTH=4 carried per D-433(e)+D-439(c))
+
+PC4 — LENGTH=4 segment count:
+```
+$ grep "^current_step:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/STATE.md | grep -oE "trajectory-tail (→[0-9]+)+" | grep -oE "→[0-9]+" | wc -l
+       4
+```
+PC4 ✓ (4 segments confirmed)
+
+PC5 — D-chain citation:
+```
+$ grep "^current_step:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/STATE.md | grep -o "D-chain cite D-[0-9]*"
+D-chain cite D-537
+```
+PC5 ✓ (D-chain cite D-537 per D-419(b))
+
+PC3 + PC6 — 4-index (all UNCHANGED):
+```
+$ grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/architecture/ARCH-INDEX.md | head -1
+version: "2.18"
+$ grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/behavioral-contracts/BC-INDEX.md | head -1
+version: "2.65"
+$ grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/verification-properties/VP-INDEX.md | head -1
+version: "2.06"
+$ grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/stories/STORY-INDEX.md | head -1
+version: "3.84"
+```
+PC3 ✓ (all 4 index versions present in current_step; UNCHANGED) | PC6 ✓ (ARCH-INDEX v2.18 confirmed from file)
+
+### Dim-5 Factory-Artifacts Chain
+
+```
+$ git -C /Users/zious/Documents/GITHUB/vsdd-factory/.factory log -3 --format='%H %s'
+c62c2c03 state(D-537): SHA-patch — record primary commit SHA c32b753d in STATE.md + burst-log per D-447(c)+D-449(e)
+c32b753d state(D-537): PR #179 squash-merged 89fbe2d6; ADR-024 v1.2 amended; ARCH-INDEX v2.17->v2.18; issue-130 DELIVERED/MERGED
+51724a92 state(D-536): SHA-patch — record primary commit SHA 77f1abd6 in STATE.md + burst-log per D-447(c)+D-449(e)
+```
+
+factory-artifacts HEAD pre-burst: `c62c2c03` ✓ (matches parent-commit per D-419(b))
+
+### Dim-6 Literal-Shell Count (TD-VSDD-099)
+
+```
+$ wc -l /Users/zious/Documents/GITHUB/vsdd-factory/.factory/STATE.md
+     408 /Users/zious/Documents/GITHUB/vsdd-factory/.factory/STATE.md
+```
+STATE.md: 408 lines (7 UNDER soft-target 415; margin 500-408=92 from hard cap). D-430(a) compaction: 22 Phase Progress rows + D-520..D-531 banner tracker entries (12 entries) + D-527+D-528 Decisions Log rows archived.
+
+```
+$ ls -d /Users/zious/Documents/GITHUB/vsdd-factory/crates/hook-plugins/*/ | wc -l
+      28
+```
+28 hook-plugin crates (UNCHANGED — durability burst only; no crate changes).
+
+### Dim-7 Attestation (Closes / Advances)
+
+**Codifications:** D-538 SESSION-END DURABILITY BURST; §1-§12 full refresh; code-delivery/issue-130/pr-description.md committed; D-430(a) compaction; lesson L-session-2026-06-10-issue-128-130-delivered-durability; D-537 checkpoint archived to session-checkpoints.md; D-538 row added to decision-log.md SoT.
+
+**Closes:**
+- Session-end durability: STATE.md fully self-sufficient for zero-context resume on any machine/session.
+- code-delivery/issue-130/pr-description.md: committed for audit-trail consistency with prior delivery cycles.
+- §12 backlog: #128 + #130 both struck DELIVERED/MERGED.
+- Prior D-537 checkpoint archived to session-checkpoints.md per POLICY 1.
+
+**Advances:** D-chain D-537 → D-538; next-D = D-539; RECOMMENDED ACTIVE NEXT: (a) rc release to ship #128+#130 to operators, (b) #169+#176 worktree-identity, (c) #129 canonical-principle.
+
+**Trajectory:** →9→9→9→11 (CARRIED — session-end durability burst; no adversary pass)
+
+### Factory-artifacts Commits
+
+- `[D-538-PRIMARY-SHA]` — state(D-538): SESSION-END DURABILITY BURST; §1-§12 full refresh; pr-description.md committed; D-430(a) compaction (primary burst per TD-VSDD-053)
