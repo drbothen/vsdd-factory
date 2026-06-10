@@ -6099,3 +6099,105 @@ $ wc -l /Users/zious/Documents/GITHUB/vsdd-factory/.factory/STATE.md
 
 - `ef194777` — state(D-534): SHA-patch — factory-artifacts HEAD ead64a33 (parent commit; factory-artifacts HEAD pre-this-burst)
 - `33056f0d` — state(D-535): PR #178 squash-merged f6ce4b7c; issue-128 DELIVERED/MERGED; develop f6ce4b7c; 4-index UNCHANGED (primary burst per TD-VSDD-053; no SHA-patch follow-up required per single-commit protocol)
+
+## D-536 — ADR-024 ADOPTED ISSUE-130 DESIGN 2026-06-09
+
+**Parent-commit:** `a81cce61` (state(D-535): SHA-patch — record primary commit SHA 33056f0d in STATE.md + burst-log per D-447(c)+D-449(e); this is the factory-artifacts HEAD pre-this-burst per D-419(b))
+
+**Adversary verdict:** No adversary pass this burst. FOCUSED DESIGN-DECISION BURST only. ADR-024 authored by architect in same session. ADR-024 is the design resolution for issue #130 (dispatcher recursive .factory/.factory/logs/ shadow). Covers: 6-level non-re-appending worktree-aware log-dir resolution order (5 resolution levels + cwd fallback); fail-loud CLAUDE_PLUGIN_ROOT handling (replacing silent empty-PathBuf default); per-session internal-error dedup; security-scoped destructive-guard shadow-vs-worktree exception. No prior adversary pass on ADR-024 (ADR within architect scope; no sealed BCs modified; human_gate_required: false). Design gates test-writer Red Gate tests + implementer TDD on feature/issue-130-dispatcher-log-shadow.
+
+**Files touched:**
+- `.factory/STATE.md` — frontmatter advance (phase/current_step/last_amended); banner tracker +D-536 entry (416 lines); Decisions Log +D-536 row + D-range→D-536; Identifier Conventions ADR count 22→23; Active Branches +feature/issue-130-dispatcher-log-shadow row + factory-artifacts SHA placeholder; Concurrent Cycles D-536 update; §1/§2/§4/§5/§8/§9/§10/§11/§12 checkpoint refresh; §8 ARCH-INDEX v2.16→v2.17; §12 #130 IN-FLIGHT; Last Updated + Current Phase advanced; RECOMMENDED ACTIVE NEXT updated.
+- `.factory/specs/architecture/ARCH-INDEX.md` — v2.16→v2.17: ADR-024 row appended to Architecture Decisions table (SS-01/SS-03/SS-07); changelog entry prepended; last_amended updated. (Authored by architect; state-manager verifies POLICY 14 parity — see Dim-2.)
+- `.factory/specs/architecture/decisions/ADR-024-dispatcher-log-dir-resolution-and-plugin-root-fail-loud.md` — NEW: 388-line ADR file. (Authored by architect.)
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-536 row prepended (SoT; D-range→D-536).
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — D-536 h2 entry (this entry).
+
+**Codifications:** D-536 ADR-024 ADOPTED; ARCH-INDEX v2.16→v2.17; issue #130 IN-FLIGHT (design complete); ADR-024 gates test-writer + implementer for feature/issue-130-dispatcher-log-shadow.
+
+### Dim-2 Literal-Shell PC Attestation (TD-VSDD-100 / D-449(a))
+
+Reads production `.factory/STATE.md` — no synthetic echo/printf:
+
+```
+$ grep "^current_step:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/STATE.md
+current_step: "D-536 ADR-024-ADOPTED-ISSUE-130-DESIGN 2026-06-09 — ADR-024 ACCEPTED: dispatcher log-dir worktree-aware resolution (5-level: VSDD_LOG_DIR override → FACTORY_ROOT override → basename-is-.factory guard → walk-up ancestor → git-worktree-main-root subprocess [200ms timeout] → cwd fallback); CLAUDE_PLUGIN_ROOT absent → fail-loud-but-continue; internal.dispatcher_error dedup per-session HashSet<u64> cap 1024; destructive-guard shadow exception scoped to .factory/.factory substring; issue #130 IN-FLIGHT (design complete; feature/issue-130-dispatcher-log-shadow @ f6ce4b7c); BC-INDEX v2.65 UNCHANGED; VP-INDEX v2.06 UNCHANGED; STORY-INDEX v3.84 UNCHANGED; ARCH-INDEX v2.16→v2.17; trajectory-tail →9→9→9→11; maintain all 5 BC-5.39.006 v1.7 PCs per TD-VSDD-097-EXT; D-chain cite D-535 per D-419(b); parent-commit a81cce61 per D-419(b). SIZE BUDGET: (wc-l; see banner tracker)"
+```
+
+PC2 — trajectory-tail verification:
+```
+$ grep "^current_step:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/STATE.md | grep -oE "trajectory-tail [→0-9]+"
+trajectory-tail →9→9→9→11
+```
+PC2 ✓ (trajectory-tail →9→9→9→11 present)
+
+PC4 — LENGTH=4 segment count:
+```
+$ grep "^current_step:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/STATE.md | grep -oE "trajectory-tail (→[0-9]+)+" | grep -oE "→[0-9]+" | wc -l
+       4
+```
+PC4 ✓ (4 segments confirmed)
+
+PC5 — D-chain citation:
+current_step cites `D-chain cite D-535 per D-419(b)` ✓ (D-535 is prior burst; correct D-419(b) parent-commit convention)
+
+PC3 — 4-index contains only ARCH change:
+current_step contains `BC-INDEX v2.65 UNCHANGED; VP-INDEX v2.06 UNCHANGED; STORY-INDEX v3.84 UNCHANGED; ARCH-INDEX v2.16→v2.17` ✓
+
+PC6 (verify_step 7) — ARCH-INDEX v2.17 parity (POLICY 14 5-leg):
+```
+$ grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/architecture/ARCH-INDEX.md | head -1
+version: "2.17"
+```
+PC6 ✓ (ARCH-INDEX frontmatter version: "2.17" confirmed)
+
+POLICY 14 parity (ARCH-INDEX bump v2.16→v2.17):
+- Leg 1 (version: frontmatter): "2.17" ✓ (confirmed above)
+- Leg 2 (changelog row prepended): 2026-06-09 / "v2.17 (2026-06-09; ADR-024 registered..." ✓ (authored by architect; verified present in ARCH-INDEX)
+- Leg 3 (last_amended text-prefix updated): "2026-06-09 (v2.17)" ✓ (authored by architect; verified present)
+- Leg 4 (Architecture Decisions table ADR-024 row added): ADR-024 row visible in ARCH-INDEX body ✓
+- Leg 5 (Subsystem Registry body-table cells): ADR-024 spans SS-01/SS-03/SS-07 — no BC count changes; ADR-only addition; subsystem BC counts unaffected ✓
+
+### Dim-5 Factory-Artifacts Chain
+
+```
+$ git -C /Users/zious/Documents/GITHUB/vsdd-factory/.factory log -3 --format='%H %s'
+a81cce61 state(D-535): SHA-patch — record primary commit SHA 33056f0d in STATE.md + burst-log per D-447(c)+D-449(e)
+33056f0d state(D-535): PR #178 squash-merged f6ce4b7c; issue-128 DELIVERED/MERGED; develop f6ce4b7c; 4-index UNCHANGED
+ef194777 state(D-534): SHA-patch — factory-artifacts HEAD ead64a33
+```
+
+factory-artifacts HEAD pre-burst: `a81cce61` ✓ (matches parent-commit in frontmatter per D-419(b))
+
+### Dim-6 Literal-Shell Count (TD-VSDD-099)
+
+```
+$ ls -d /Users/zious/Documents/GITHUB/vsdd-factory/crates/hook-plugins/*/ | wc -l
+      28
+```
+
+28 hook-plugin crates (UNCHANGED — no new crates this design-decision burst). ARCH-INDEX v2.16→v2.17; BC/VP/STORY indexes UNCHANGED.
+
+STATE.md line count:
+```
+$ wc -l /Users/zious/Documents/GITHUB/vsdd-factory/.factory/STATE.md
+     416 /Users/zious/Documents/GITHUB/vsdd-factory/.factory/STATE.md
+```
+
+416 lines — 1 OVER soft-target of 415; 84 from hard cap of 500. Budget within limits (hard cap 500 not breached).
+
+### Dim-7 Attestation (Closes / Advances)
+
+**Codifications:** D-536 ADR-024 ADOPTED FOR ISSUE-130 DESIGN; ARCH-INDEX v2.16→v2.17 (ADR-024 registered SS-01/SS-03/SS-07); issue #130 design gate CLOSED; feature/issue-130-dispatcher-log-shadow in-flight.
+
+**Closes:**
+- Issue #130 design gate: ADR-024 ACCEPTED closes the architecture-question blocker on issue #130 (which resolution strategy to use for .factory/.factory/logs/ shadow). Test-writer can now author Red Gate tests against the 5-level resolution spec.
+- §12 validated-backlog #130 row: VALID-PARTIAL → IN-FLIGHT (design ADR-024 adopted).
+
+**Advances:** Next = test-writer Red Gate tests for issue #130 on feature/issue-130-dispatcher-log-shadow branch. After Red Gate tests pass with cargo test (RED): implementer TDD fix. After implementer GREEN: LOCAL cross-family adversary (≥3-pass asymptotic). After convergence: PR to develop + CI + merge. Then next backlog item (#129 canonical-principle, #169+#176 worktree-identity couple). 4-index: BC v2.65/VP v2.06/STORY v3.84/ARCH v2.17. Next D: D-537.
+
+**Trajectory:** →9→9→9→11 (UNCHANGED — design-decision burst; no adversary pass; carry per D-433(e)+D-439(c))
+
+### Factory-artifacts Commits
+
+- `<D-536-SHA-PENDING>` — state(D-536): ADR-024 adopted issue #130 design; ARCH-INDEX v2.16→v2.17; issue-130 IN-FLIGHT (primary burst per TD-VSDD-053; SHA-patch follow-up required per D-447(c))
