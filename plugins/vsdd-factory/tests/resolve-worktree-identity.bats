@@ -133,16 +133,21 @@ _make_worktree_with_space() {
   _make_worktree "S-12.08"
   wt_08="$WT_PATH"
   _make_worktree "S-12.088"
+  wt_088="$WT_PATH"
   sha_08="$(git -C "$wt_08" rev-parse HEAD)"
 
   run env STORY_ID="S-12.08" EXPECTED_HEAD_SHA="$sha_08" VSDD_REPO_ROOT="$MAIN_REPO" \
     bash "$HELPER"
 
   [ "$status" -eq 0 ]
-  # Must print the S-12.08 path, not the S-12.088 path
+  # The resolved worktree-abs-path must be EXACTLY the S-12.08 path
   [[ "$output" == *"worktree-abs-path:   $wt_08"* ]]
-  # S-12.088 path must NOT appear in output
-  [[ "$output" != *"wt-S-12.088"* ]]
+  # S-12.088 path must NOT appear anywhere in the output
+  [[ "$output" != *"${wt_088}"* ]]
+  # Extra: the path we got must end with /S-12.08 (not /S-12.088)
+  resolved="$(echo "$output" | grep "^worktree-abs-path:" | sed 's/^worktree-abs-path:[[:space:]]*//')"
+  [[ "$resolved" == */S-12.08 ]]
+  [[ "$resolved" != */S-12.088* ]]
 }
 
 # When ONLY S-12.088 exists, resolving S-12.08 must fail (no false match).
@@ -181,28 +186,42 @@ _make_worktree_with_space() {
 }
 
 # ---------------------------------------------------------------------------
-# Test 5: detached-HEAD worktree present → not falsely matched
+# Test 5: detached-HEAD worktree with matching basename + SHA → ACCEPTED
 #
-# A detached HEAD worktree record in porcelain has "detached" instead of
-# "branch <ref>". The helper must skip it — not match it against STORY_ID.
+# Identity is (right directory basename) + (right HEAD SHA), independent of
+# branch ref.  A detached-HEAD worktree whose basename equals the story-id
+# and whose HEAD matches the expected SHA MUST be accepted (resolves to success).
+# This test MUST FAIL if the implementation skips detached records.
+#
+# Additionally: a detached worktree with matching basename but WRONG SHA must
+# still produce a dispatch-error (the SHA assertion is mandatory regardless of
+# branch state).
 # ---------------------------------------------------------------------------
 
-@test "test_resolve_wt_identity_detached_head_worktree_not_falsely_matched" {
-  # Create a normal worktree for the story we want
-  _make_worktree "S-12.08"
-  wt_path="$WT_PATH"
-  sha="$(git -C "$wt_path" rev-parse HEAD)"
-
-  # Also create a detached worktree — its basename happens to contain the story ID
-  # to maximally stress the matcher
-  git -C "$MAIN_REPO" worktree add --detach "$WORK/wt-detached-S-12.08-extra" >/dev/null 2>&1
+@test "test_resolve_wt_identity_detached_head_matching_basename_and_sha_is_accepted" {
+  # Create a detached worktree whose basename == S-12.08 (matching basename rule)
+  git -C "$MAIN_REPO" worktree add --detach "$WORK/S-12.08" >/dev/null 2>&1
+  sha="$(git -C "$WORK/S-12.08" rev-parse HEAD)"
 
   run env STORY_ID="S-12.08" EXPECTED_HEAD_SHA="$sha" VSDD_REPO_ROOT="$MAIN_REPO" \
     bash "$HELPER"
 
+  # Must succeed — detached-HEAD is NOT a disqualifier
   [ "$status" -eq 0 ]
-  # Must resolve to the branched worktree, not the detached one
-  [[ "$output" == *"worktree-abs-path:   $wt_path"* ]]
+  [[ "$output" == *"worktree-abs-path:   $WORK/S-12.08"* ]]
+  [[ "$output" == *"feature-HEAD-SHA:    $sha"* ]]
+}
+
+@test "test_resolve_wt_identity_detached_head_matching_basename_wrong_sha_fails" {
+  # Detached worktree with correct basename but wrong SHA must still be rejected
+  git -C "$MAIN_REPO" worktree add --detach "$WORK/S-12.08" >/dev/null 2>&1
+  wrong_sha="bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+
+  run env STORY_ID="S-12.08" EXPECTED_HEAD_SHA="$wrong_sha" VSDD_REPO_ROOT="$MAIN_REPO" \
+    bash "$HELPER"
+
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"dispatch-error"* ]]
 }
 
 # ---------------------------------------------------------------------------

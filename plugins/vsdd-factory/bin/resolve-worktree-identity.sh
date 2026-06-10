@@ -64,16 +64,19 @@ fi
 
 # ---------------------------------------------------------------------------
 # Step 3: Resolve the story's worktree from git worktree list --porcelain.
-# Parse porcelain SPACE-SAFE: each record is three lines:
+# Parse porcelain SPACE-SAFE: each record is one or more lines:
 #   worktree <path>
 #   HEAD <sha>
 #   branch <ref>  OR  detached
 # (blank line separates records)
 #
-# Matching rules (case-insensitive on STORY_ID):
-#   - Branch ends with /<STORY_ID> exactly (ANCHORED)
-#   - OR worktree basename equals STORY_ID (ANCHORED, case-insensitive)
-#   - OR worktree basename starts with <STORY_ID>- (ANCHORED, case-insensitive)
+# Matching rule (case-insensitive on STORY_ID, basename-only):
+#   A worktree matches IFF its BASENAME equals STORY_ID (case-insensitive)
+#   OR its BASENAME begins with <STORY_ID>- (case-insensitive, anchored).
+#
+# Identity is (right directory basename) + (right HEAD SHA), independent of
+# branch ref.  A detached-HEAD worktree whose basename and HEAD match IS valid
+# and must be accepted — detached-HEAD is NOT a disqualifier.
 #
 # "ANCHORED" means S-12.08 does NOT match S-12.088.
 # ---------------------------------------------------------------------------
@@ -84,73 +87,37 @@ WORKTREE_ABS_PATH=""
 MATCH_COUNT=0
 
 # Parse git worktree list --porcelain
-# Reset block variables at the start of each "worktree" line.
+# Reset block variable at the start of each "worktree" line.
 _path=""
-_branch=""
-_detached=0
 
 while IFS= read -r line; do
   if [[ "$line" == worktree\ * ]]; then
     # Start of a new record — use ${line#worktree } to strip prefix SPACE-SAFE
     _path="${line#worktree }"
-    _branch=""
-    _detached=0
-  elif [[ "$line" == branch\ * ]]; then
-    _branch="${line#branch }"
-  elif [[ "$line" == "detached" ]]; then
-    _detached=1
   elif [[ -z "$line" ]]; then
-    # End of record — evaluate match
-    if [[ "$_detached" -eq 0 && -n "$_path" && -n "$_branch" ]]; then
-      # Anchored branch-end match: branch == refs/heads/feature/<STORY_ID> (case-insensitive)
-      _branch_lower="$(printf '%s' "$_branch" | tr '[:upper:]' '[:lower:]')"
+    # End of record — evaluate basename match (branch/detached state irrelevant)
+    if [[ -n "$_path" ]]; then
       _basename="$(basename "$_path")"
       _basename_lower="$(printf '%s' "$_basename" | tr '[:upper:]' '[:lower:]')"
 
-      _branch_suffix_exact="${_branch_lower##*/}"  # everything after last /
-      _story_lower="${STORY_ID_LOWER}"
-
-      # Check: branch ends with /<STORY_ID> exactly
-      _branch_ends_with_story=0
-      if [[ "$_branch_suffix_exact" == "$_story_lower" ]]; then
-        _branch_ends_with_story=1
-      fi
-
-      # Check: worktree basename == STORY_ID (case-insensitive)
+      # Check: worktree basename == STORY_ID (case-insensitive, exact)
       _basename_is_story=0
-      if [[ "$_basename_lower" == "$_story_lower" ]]; then
+      if [[ "$_basename_lower" == "$STORY_ID_LOWER" ]]; then
         _basename_is_story=1
       fi
 
       # Check: worktree basename starts with <STORY_ID>- (case-insensitive, anchored)
       _basename_starts_story=0
-      if [[ "$_basename_lower" == "${_story_lower}-"* ]]; then
+      if [[ "$_basename_lower" == "${STORY_ID_LOWER}-"* ]]; then
         _basename_starts_story=1
       fi
 
-      # A candidate matches if any of the three conditions fire AND the basename
-      # satisfies the basename rule (== story-id OR starts with <story-id>-).
-      # This keeps helper and adversary.md Rule 2 aligned: the emitted
-      # worktree-abs-path MUST have a basename that passes the same check the
-      # adversary enforces.  A worktree whose branch ends with /<STORY_ID> but
-      # whose basename is something like "wt-S-12.08" would be resolved by the
-      # old helper yet REJECTED by the adversary → false dispatch-error halt.
-      _candidate_matched=0
-      if [[ "$_branch_ends_with_story" -eq 1 || "$_basename_is_story" -eq 1 || "$_basename_starts_story" -eq 1 ]]; then
-        # Enforce basename rule: basename must equal story-id OR start with <story-id>-
-        if [[ "$_basename_is_story" -eq 1 || "$_basename_starts_story" -eq 1 ]]; then
-          _candidate_matched=1
-        fi
-      fi
-
-      if [[ "$_candidate_matched" -eq 1 ]]; then
+      if [[ "$_basename_is_story" -eq 1 || "$_basename_starts_story" -eq 1 ]]; then
         WORKTREE_ABS_PATH="$_path"
         MATCH_COUNT=$((MATCH_COUNT + 1))
       fi
     fi
     _path=""
-    _branch=""
-    _detached=0
   fi
 done < <(git -C "$CANONICAL_REPO_ROOT" worktree list --porcelain; echo "")
 # The extra echo "" ensures the last record's blank-line terminator is present.
