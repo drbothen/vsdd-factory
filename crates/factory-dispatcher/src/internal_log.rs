@@ -1038,17 +1038,33 @@ mod tests {
         // A char-safe implementation finds the last char boundary <= N and
         // truncates there, landing at byte N-1 (just before 'é').
         let oversized_suffix = "Z".repeat(1_000_000);
-        let msg = format!("{}{}{}", "A".repeat(DEDUP_HASH_N - 1), 'é', oversized_suffix);
+        let msg = format!(
+            "{}{}{}",
+            "A".repeat(DEDUP_HASH_N - 1),
+            'é',
+            oversized_suffix
+        );
 
         // Verify the multibyte codepoint straddles the N boundary.
-        assert_eq!(msg.as_bytes()[DEDUP_HASH_N - 1], 0xC3, "test setup: byte N-1 must be first byte of 'é' (0xC3)");
-        assert_eq!(msg.as_bytes()[DEDUP_HASH_N], 0xA9, "test setup: byte N must be second byte of 'é' (0xA9)");
-        assert!(!msg.is_char_boundary(DEDUP_HASH_N), "test setup: byte N must NOT be a char boundary");
+        assert_eq!(
+            msg.as_bytes()[DEDUP_HASH_N - 1],
+            0xC3,
+            "test setup: byte N-1 must be first byte of 'é' (0xC3)"
+        );
+        assert_eq!(
+            msg.as_bytes()[DEDUP_HASH_N],
+            0xA9,
+            "test setup: byte N must be second byte of 'é' (0xA9)"
+        );
+        assert!(
+            !msg.is_char_boundary(DEDUP_HASH_N),
+            "test setup: byte N must NOT be a char boundary"
+        );
 
         // Write the same oversized message twice.
         for _ in 0..2 {
-            let event =
-                InternalEvent::with_ts(INTERNAL_DISPATCHER_ERROR, ts).with_field("message", msg.clone());
+            let event = InternalEvent::with_ts(INTERNAL_DISPATCHER_ERROR, ts)
+                .with_field("message", msg.clone());
             log.write(&event); // Must not panic under any implementation.
         }
 
