@@ -381,13 +381,18 @@ fn dedup_hash_for(event: &InternalEvent) -> u64 {
     // Extract the raw string value of the `message` field.
     // - For Value::String(s): as_str() yields s directly (no JSON quotes).
     // - For other Value variants (unlikely for `message`): fall back to "".
-    // No truncation — hash the full value to avoid false dedup on long shared prefixes.
     let msg_str = event
         .fields
         .get("message")
         .and_then(|v| v.as_str())
         .unwrap_or("");
-    msg_str.hash(&mut h);
+    // Bounded char-safe truncation at N=4096 (ADR-024 Decision 3, amended pass-2).
+    // `floor_char_boundary` is stable since Rust 1.77; toolchain is 1.95.0.
+    // This bounds hashing cost to O(4 KiB) and is guaranteed to land on a
+    // valid UTF-8 char boundary (never panics for any string content).
+    const N: usize = 4096;
+    let safe_n = msg_str.floor_char_boundary(N.min(msg_str.len()));
+    msg_str[..safe_n].hash(&mut h);
     h.finish()
 }
 
