@@ -74,14 +74,23 @@ When `--scope` is not `full`, note the scope limitation in the review output hea
 
 ## Worktree-Identity Preflight (MANDATORY)
 
-Before dispatching the adversary for a Perimeter-1 per-story review, the orchestrator MUST resolve and embed the worktree-identity tuple. Skipping this step causes the adversary to read the wrong git tree — either a stale `.factory/specs` snapshot (#169) or the wrong feature checkout (#176) — producing phantom "absent file" findings or a dangerous false-GREEN review.
+Before dispatching the adversary for a Perimeter-1 per-story review, the orchestrator MUST resolve and embed the worktree-identity tuple. Skipping this step causes the adversary to read the wrong git tree — either a stale worktree `.factory/` snapshot (#169) or the wrong feature checkout (#176) — producing phantom "absent file" findings or a dangerous false-GREEN review.
 
 **Orchestrator steps (pre-dispatch):**
 
-1. **Resolve `worktree-abs-path`:** the absolute path to the story's worktree (e.g., `/path/to/repo/.worktrees/S-12.08`). This must be the actual worktree directory, not the main checkout. Resolve it robustly: query `git worktree list --porcelain` and select the worktree whose branch matches the story's feature branch (`feature/<story-id>`); fall back to the `.worktrees/<story-id>` convention if no unambiguous match is found.
-2. **Capture `feature-HEAD-SHA` from the orchestrator-recorded implementer commit:** the LOCAL adversary cascade runs PRE-PUSH (there is no remote tracking branch yet at this point). The `EXPECTED_HEAD_SHA` is therefore the SHA the orchestrator recorded immediately after the TDD-green step — `git -C <worktree-abs-path> rev-parse HEAD` captured right after the implementer's final micro-commit. Then assert: run `git -C <worktree-abs-path> rev-parse HEAD` again and confirm it equals the recorded value. A mismatch means the worktree drifted after the implementer finished. STOP with a `dispatch-error` and fix the checkout before proceeding. Do NOT dispatch the adversary with a mismatched tree. **Note:** At the PR-level perimeter (post-push), the expected value IS the pushed remote-branch tip and `@{upstream}` is the appropriate source; do not conflate the two contexts.
+1. **Resolve and assert the full identity tuple in one step** by calling the tested helper:
+   ```bash
+   STORY_ID="<story-id>"
+   EXPECTED_HEAD_SHA="<orchestrator-recorded-implementer-tip-sha>"
+   IDENTITY_TUPLE="$(STORY_ID="$STORY_ID" EXPECTED_HEAD_SHA="$EXPECTED_HEAD_SHA" \
+     "${CLAUDE_PLUGIN_ROOT}/bin/resolve-worktree-identity.sh")" || {
+     echo "dispatch-error: worktree-identity preflight failed — $IDENTITY_TUPLE"; exit 1
+   }
+   ```
+   The helper resolves `worktree-abs-path` (SPACE-SAFE, anchored story-ID matching), verifies the `.factory` mount, and asserts `git rev-parse HEAD == EXPECTED_HEAD_SHA`. Any non-zero exit is a preflight failure — STOP and fix before dispatching.
+2. **LOCAL vs PR-level model:** The LOCAL adversary cascade runs PRE-PUSH (there is no remote tracking branch yet). The `EXPECTED_HEAD_SHA` is therefore the SHA the orchestrator recorded immediately after the TDD-green step — NOT resolved from `@{upstream}` or any remote ref. At the PR-level perimeter (post-push), the expected value IS the pushed remote-branch tip; `@{upstream}` is appropriate only at that perimeter. Do not conflate the two contexts.
 3. **Confirm `story-id`:** the story ID from the STORY-INDEX entry (e.g., `S-12.08`).
-4. **Resolve `canonical-repo-root`:** the main repo root where `factory-artifacts` is mounted at `.factory/`. Use `cd "$(git rev-parse --git-common-dir)/.." && pwd` — this is nesting-safe and works correctly whether run from a worktree or the main checkout. The adversary reads all spec, BC, and ADR files from `<canonical-repo-root>/.factory/...`.
+4. **Resolve `canonical-repo-root`:** extracted from the helper's output, or independently via `cd "$(git rev-parse --git-common-dir)/.." && pwd`. The adversary reads all spec, BC, ADR, and story-spec files from `<canonical-repo-root>/.factory/...` — the entire `<worktree>/.factory/` tree is a stale snapshot and off-limits as spec ground-truth.
 5. **Embed the identity tuple** in the adversary task prompt verbatim:
    ```
    WORKTREE-IDENTITY TUPLE (pre-verified by orchestrator):
