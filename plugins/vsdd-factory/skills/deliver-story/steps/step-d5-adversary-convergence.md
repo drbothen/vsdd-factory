@@ -28,10 +28,63 @@ It RESETS to 0 if any pass produces a finding above NITPICK_ONLY. Minimum 3 clea
 ## Dispatch Loop
 
 **Step 1 — Adversary dispatch:**
+
+Before building the adversary context package, the orchestrator MUST capture and assert the worktree-identity tuple by calling the tested helper:
+
+```bash
+# The orchestrator records the implementer's final micro-commit SHA immediately
+# after the TDD-green step. This is a PRE-PUSH local cascade — no remote
+# tracking branch exists yet. Replace <IMPLEMENTER-FINAL-COMMIT-SHA> with the
+# value captured right after the implementer's last commit.
+STORY_ID="<STORY-ID>"
+EXPECTED_HEAD_SHA="<IMPLEMENTER-FINAL-COMMIT-SHA>"
+
+# Invoke the tested helper to resolve + assert the 4-field WORKTREE-IDENTITY TUPLE.
+# The helper:
+#   1. Resolves CANONICAL_REPO_ROOT nesting-safe via git-common-dir
+#   2. Guards that canonical .factory is mounted (factory-artifacts)
+#   3. Parses git worktree list --porcelain SPACE-SAFE (${line#worktree }, not awk $2)
+#      with ANCHORED, case-insensitive story-ID matching (S-12.08 never matches S-12.088)
+#   4. Asserts git -C <worktree> rev-parse HEAD == EXPECTED_HEAD_SHA
+#   5. On mismatch, emits dispatch-error and exits non-zero
+#   6. On success, prints the 4-field tuple to stdout
+#
+# Any non-zero exit from the helper is a preflight assertion failure:
+# STOP — do NOT dispatch the adversary. Fix the checkout and re-run.
+IDENTITY_TUPLE="$(STORY_ID="$STORY_ID" EXPECTED_HEAD_SHA="$EXPECTED_HEAD_SHA" \
+  "${CLAUDE_PLUGIN_ROOT}/bin/resolve-worktree-identity.sh")" || {
+  echo "dispatch-error: worktree-identity preflight failed — $IDENTITY_TUPLE"
+  exit 1
+}
+
+# Parse ALL 4 tuple fields from the helper output:
+#   worktree-abs-path:   <path>
+#   feature-HEAD-SHA:    <sha>
+#   story-id:            <id>
+#   canonical-repo-root: <root>
+WORKTREE_ABS_PATH="$(echo "$IDENTITY_TUPLE"  | grep '^worktree-abs-path:'   | sed 's/^worktree-abs-path:[[:space:]]*//')"
+FEATURE_HEAD_SHA="$(echo "$IDENTITY_TUPLE"   | grep '^feature-HEAD-SHA:'    | sed 's/^feature-HEAD-SHA:[[:space:]]*//')"
+STORY_ID_FROM_TUPLE="$(echo "$IDENTITY_TUPLE" | grep '^story-id:'            | sed 's/^story-id:[[:space:]]*//')"
+CANONICAL_REPO_ROOT="$(echo "$IDENTITY_TUPLE" | grep '^canonical-repo-root:' | sed 's/^canonical-repo-root:[[:space:]]*//')"
+# STORY_ID_FROM_TUPLE should equal $STORY_ID (the helper echoes it back verbatim).
+# Use $STORY_ID for dispatch context; use STORY_ID_FROM_TUPLE to cross-verify if needed.
+# The feature HEAD SHA returned by the helper equals EXPECTED_HEAD_SHA (helper asserted this).
+# EXPECTED_HEAD_SHA and FEATURE_HEAD_SHA are identical — use either for the embedded tuple.
+```
+
+**Expected-SHA model:** This step runs LOCAL (pre-push) in the per-story flow (stubs → tests → TDD green → LOCAL adversary 3-CLEAN → demo → push → PR). There is NO remote tracking branch at this point. The `EXPECTED_HEAD_SHA` is therefore NOT resolved from `@{upstream}` or any remote ref — it is the SHA the orchestrator recorded from the implementer's last commit. The orchestrator MUST capture this value (`git -C "$WORKTREE_ABS_PATH" rev-parse HEAD`) immediately after the TDD-green step, before dispatching the adversary. At the PR-level adversarial perimeter (after push), the expected value IS the pushed remote-branch tip and `@{upstream}` is appropriate there; do not conflate the two contexts.
+
+**Structural guarantee:** The adversary reads ONLY from the embedded `worktree-abs-path` for feature code, so cwd-resolution to the wrong checkout (the #176 failure) cannot occur. The SHA equality assertion is the additional temporal guard: same worktree, same commit, before and after the dispatch.
+
+The dispatch MUST embed the expected feature HEAD SHA (`EXPECTED_HEAD_SHA`), the absolute worktree path (`WORKTREE_ABS_PATH`), the story-id, and the canonical repo root (`CANONICAL_REPO_ROOT`) as a WORKTREE-IDENTITY TUPLE (4 fields) in the adversary task prompt (see adversarial-review SKILL.md "Worktree-Identity Preflight (MANDATORY)" for the exact format). The `canonical-repo-root` is the main repo root where `factory-artifacts` is mounted at `.factory/`; it is the authoritative source for spec, BC, and ADR files — the adversary reads from `<canonical-repo-root>/.factory/...`, NOT from the stale worktree `.factory/specs` snapshot. The embedded `feature HEAD SHA` is the EXPECTED commit — the orchestrator-recorded implementer tip. A mismatch between the worktree's actual HEAD and the expected feature HEAD SHA is a STOP/dispatch-error condition, not a content finding: fix the worktree checkout and re-run, do NOT proceed to the adversary with a mismatched tree.
+
+This identity tuple is the orchestrator's assertion, made before the adversary reads any files, that the worktree is on the correct commit. The preflight assertion MUST pass — i.e., the adversary MUST find the tuple present and internally consistent — before findings are accepted. Any adversary response that omits tuple verification or emits a `dispatch-error` about a missing tuple MUST be treated as a dispatch misconfiguration, not a content finding; fix the dispatch and re-run.
+
 Dispatch `adversary` agent (model tier: Capable) with context:
-- Story worktree diff (`.worktrees/<STORY-ID>/`)
-- Story spec (`.factory/stories/<STORY-ID>-*.md`)
-- Anchored BCs listed in the story's `behavioral_contracts:` frontmatter field
+- WORKTREE-IDENTITY TUPLE (4 fields) (embedded verbatim as described above)
+- Story worktree diff (`.worktrees/<STORY-ID>/`) — use `worktree-abs-path` from the identity tuple as the read root
+- Story spec (`<canonical-repo-root>/.factory/stories/<STORY-ID>-*.md`) — canonical repo-root path only (NOT worktree snapshot)
+- Anchored BCs listed in the story's `behavioral_contracts:` frontmatter field — canonical repo-root paths only
 - Current convergence state file (if it exists)
 
 Task: "Review the story diff against the story spec and anchored BCs. Classify each finding as CRITICAL, HIGH, MEDIUM, LOW, or NITPICK_ONLY. Tag out-of-scope findings (cross-story, integration, system-level, architectural) as deferred per BC-5.39.002. Write updated convergence state JSON to `.factory/cycles/<cycle-id>/<story-id>/adversary-convergence-state.json`."
