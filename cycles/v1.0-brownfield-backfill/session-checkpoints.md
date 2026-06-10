@@ -605,3 +605,19 @@ Key resume data:
 - **§12 RECOMMENDED ACTIVE NEXT:** (a) rc release to ship #128+#130 to operator cache; (b) #169+#176 worktree-identity couple (process-only; no release needed); (c) #129 canonical-principle; F5 pass-76 PAUSED needs human.
 
 **This checkpoint superseded by D-538 SESSION-END DURABILITY BURST 2026-06-10.**
+
+---
+
+## Archived Checkpoint: D-538 SESSION-END DURABILITY BURST 2026-06-10
+
+**Superseded by D-539 ISSUE-169+176 PR-180 MERGED 2026-06-10.**
+
+- **D-538 (2026-06-10):** SESSION-END DURABILITY BURST COMPLETE. §1-§12 full refresh. code-delivery/issue-130/pr-description.md committed. D-430(a) compaction (D-527+D-528 rows archived to decision-log.md SoT). Lesson L-session-2026-06-10-issue-128-130-delivered-durability captured. Zero-context resume ready.
+- **develop HEAD at archive:** `89fbe2d6`. **main HEAD:** `2a191314` (rc.20 2026-06-01).
+- **D-range:** D-001..D-538.
+- **4-index:** BC-INDEX v2.65, VP-INDEX v2.06, STORY-INDEX v3.84, ARCH-INDEX v2.18 (ALL UNCHANGED).
+- **BC content:** BC-5.39.005 v1.3 ACTIVE + BC-5.39.006 v1.7 ACTIVE + BC-5.39.007 v1.6 ACTIVE + BC-5.39.008 v1.5 ACTIVE + BC-5.39.009 v1.9 ACTIVE + BC-7.04.051 v1.1 ACTIVE.
+- **factory-artifacts HEAD at archive:** `9eb53aab` (D-538 SHA-patch).
+- **§12 RECOMMENDED ACTIVE NEXT:** (a) rc release to ship #128+#130 to operator cache (#130 code+hooks requires it); (b) #169+#176 worktree-identity couple (process-only; no release needed); (c) #129 canonical-principle; F5 pass-76 PAUSED needs human direction.
+
+**This checkpoint superseded by D-538 SESSION-END DURABILITY BURST 2026-06-10.**

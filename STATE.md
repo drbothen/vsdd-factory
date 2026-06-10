@@ -5,14 +5,14 @@ version: "2.0"
 status: draft
 producer: state-manager
 timestamp: 2026-06-10T00:00:00Z
-phase: D-538-SESSION-END-DURABILITY-BURST-2026-06-10
-last_amended: 2026-06-10 (v2.88) — D-538 SESSION-END DURABILITY BURST: §1-§12 full refresh; code-delivery/issue-130/pr-description.md committed; D-430(a) compaction (D-527+D-528 rows archived); zero-context resume ready. [Prior: 2026-06-10 (v2.87) — D-537 ISSUE-130 PR-179 MERGED: PR #179 squash-merged 89fbe2d6 2026-06-10T05:03:19Z; ADR-024 v1.2; ARCH-INDEX v2.17→v2.18.]
+phase: D-539-ISSUE-169-176-PR-180-MERGED-2026-06-10
+last_amended: 2026-06-10 (v2.89) — D-539 ISSUE-169+176 WORKTREE-IDENTITY COUPLE MERGED: PR #180 squash-merged 0f4793f1; CI 11/11 GREEN; 4-index ALL UNCHANGED; requires rc release; multi-family 3-CLEAN; LOCAL SHA 5ea02ecf; lesson L-issue-169-176-worktree-identity captured. [Prior: 2026-06-10 (v2.88) — D-538 SESSION-END DURABILITY BURST: §1-§12 full refresh; pr-description.md committed; D-430(a) compaction (D-527+D-528 archived).]
 inputs: []
 input-hash: "[live-state]"
 traces_to: prd.md
 project: vsdd-factory
 mode: brownfield
-current_step: "D-538 SESSION-END-DURABILITY-BURST 2026-06-10 — §1-§12 FULL REFRESH; code-delivery/issue-130/pr-description.md committed; D-430(a) compaction; #128 DELIVERED/MERGED (D-535 PR #178 f6ce4b7c); #130 DELIVERED/MERGED (D-537 PR #179 89fbe2d6); ADR-024 v1.2; ARCH-INDEX v2.18; requires rc release for operator cache; BC-INDEX v2.65 UNCHANGED; VP-INDEX v2.06 UNCHANGED; STORY-INDEX v3.84 UNCHANGED; ARCH-INDEX v2.18 UNCHANGED; trajectory-tail →9→9→9→11; maintain all 5 BC-5.39.006 v1.7 PCs per TD-VSDD-097-EXT; D-chain cite D-537 per D-419(b); parent-commit c62c2c03 per D-419(b). SIZE BUDGET: (wc-l; see banner tracker)"
+current_step: "D-539 ISSUE-169+176 WORKTREE-IDENTITY COUPLE MERGED 2026-06-10 — PR #180 squash-merged 0f4793f1; CI run 27309724791 11/11 GREEN; issues #169+#176 AUTO-CLOSED; feature/issue-169-176-worktree-identity DELETED+VERIFIED; develop 89fbe2d6→0f4793f1; POL-14 no-op; 4-index BC-INDEX v2.65 UNCHANGED VP-INDEX v2.06 UNCHANGED STORY-INDEX v3.84 UNCHANGED ARCH-INDEX v2.18 UNCHANGED; requires rc release for operator cache; multi-family 3-CLEAN (Gemini 7-iter + Claude 3-pass) at LOCAL SHA 5ea02ecf; lesson L-issue-169-176-worktree-identity codified; trajectory-tail →9→9→9→11; maintain all 5 BC-5.39.006 v1.7 PCs per TD-VSDD-097-EXT; D-chain cite D-538 per D-419(b); parent-commit 9eb53aab per D-419(b). SIZE BUDGET: (wc-l; see banner tracker)"
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -47,6 +47,7 @@ dtu_services: []
   D-536-ADR-024-ADOPTED-ISSUE-130-DESIGN-2026-06-09 416 lines (wc-l; margin 500-416=84 from hard cap; margin 415-416=OVER soft-target by 1; D-446(c) dual-margin form).
   D-537-ISSUE-130-PR-179-MERGED-2026-06-10 421 lines (wc-l; margin 500-421=79 from hard cap; margin 415-421=OVER soft-target by 6; D-446(c) dual-margin form).
   D-538-SESSION-END-DURABILITY-BURST-ZERO-CONTEXT-RESUME-READY-2026-06-10 408 lines (wc-l; D-430(a) compaction: D-527+D-528 Decisions Log rows + D-520..D-531 banner entries + 22 Phase Progress rows archived; §1-§12 checkpoint full refresh; margin 500-408=92 from hard cap; margin 415-408=7 UNDER soft-target; D-446(c) dual-margin form).
+  D-539-ISSUE-169-176-PR-180-MERGED-2026-06-10 401 lines (wc-l; D-430(a) compaction: D-529+D-530+D-531 Decisions Log rows archived; §1-§12 checkpoint full refresh; margin 500-401=99 from hard cap; margin 415-401=14 UNDER soft-target; D-446(c) dual-margin form).
 -->
 
 # Pipeline State: vsdd-factory
@@ -62,8 +63,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-06-10 — D-538 SESSION-END DURABILITY BURST; §1-§12 full refresh; #128+#130 DELIVERED/MERGED; pr-description.md committed; rc release pending; develop 89fbe2d6. trajectory-tail →9→9→9→11. |
-| **Current Phase** | D-538 SESSION-END DURABILITY BURST 2026-06-10 — §1-§12 full refresh; #128 DELIVERED/MERGED (PR #178 f6ce4b7c); #130 DELIVERED/MERGED (PR #179 89fbe2d6; ADR-024 v1.2; ARCH-INDEX v2.18); pr-description.md committed; D-430(a) compaction; zero-context resume ready. Next: rc release OR #129 canonical-principle OR #169+#176 worktree-identity. |
+| **Last Updated** | 2026-06-10 — D-539 ISSUE-169+176 PR-180 MERGED; §1-§12 full refresh; multi-family 3-CLEAN; #128+#130+#169+#176 DELIVERED/MERGED; rc release pending; develop 0f4793f1. trajectory-tail →9→9→9→11. |
+| **Current Phase** | D-539 ISSUE-169+176 WORKTREE-IDENTITY COUPLE MERGED 2026-06-10 — PR #180 squash-merged 0f4793f1; CI 11/11 GREEN; issues #169+#176 AUTO-CLOSED; feature/issue-169-176 DELETED+VERIFIED; 4-index ALL UNCHANGED; requires rc release for operator cache; multi-family 3-CLEAN (Gemini 7-iter + Claude 3-pass) LOCAL SHA 5ea02ecf; L-issue-169-176-worktree-identity codified. Next: rc release (#128+#130+#169+#176) OR #129 canonical-principle OR state-durability chain (#170→#173→#171). |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Phase Progress
@@ -85,6 +86,7 @@ dtu_services: []
 | D-535 ISSUE-128 PR-178 MERGED 2026-06-09 | **DELIVERED/MERGED** | PR #178 squash-merged f6ce4b7c; feature/issue-128 DELETED+VERIFIED; develop f6ce4b7c; POL-14 no-op; 4-index UNCHANGED |
 | D-537 ISSUE-130 PR-179 MERGED 2026-06-10 | **DELIVERED/MERGED** | PR #179 squash-merged 89fbe2d6; ADR-024 v1.2; ARCH-INDEX v2.18; 3-pass adversary CLEAN; requires rc release |
 | D-538 SESSION-END DURABILITY BURST 2026-06-10 | **COMPLETE** | §1-§12 full refresh; pr-description.md committed; D-430(a) compaction; zero-context resume ready; 4-index UNCHANGED |
+| D-539 ISSUE-169+176 PR-180 MERGED 2026-06-10 | **DELIVERED/MERGED** | PR #180 squash-merged 0f4793f1; issues #169+#176 AUTO-CLOSED; feature/issue-169-176 DELETED+VERIFIED; multi-family 3-CLEAN (Gemini 7-iter + Claude 3-pass); requires rc release; 4-index ALL UNCHANGED |
 
 ## Current Phase Steps
 
@@ -121,8 +123,8 @@ dtu_services: []
 | Branch / Tag | SHA | Notes |
 |--------------|-----|-------|
 | main | 2a191314 | rc.20 SHIPPED 2026-06-01; bot binary commit on top of --merge from develop; prior: 43afbfa7 (rc.19 2026-05-28) |
-| develop | 89fbe2d6 | D-537 PR #179 SQUASH-MERGED 2026-06-10; issue #130 dispatcher log-shadow DELIVERED; prior: f6ce4b7c (D-535 PR #178 2026-06-09) |
-| factory-artifacts | `3294361e` | D-538 SESSION-END DURABILITY BURST 2026-06-10 (prior: c62c2c03 D-537 SHA-patch) |
+| develop | 0f4793f1 | D-539 PR #180 SQUASH-MERGED 2026-06-10; issues #169+#176 worktree-identity DELIVERED; prior: 89fbe2d6 (D-537 PR #179 2026-06-10) |
+| factory-artifacts | `[D-539-HEAD]` | D-539 ISSUE-169+176 MERGED 2026-06-10 (prior: 9eb53aab D-538 SHA-patch) |
 | v1.0.0-rc.20 (tag) | e9e38286 | SHIPPED 2026-06-01; annotated tag object; GitHub Release prerelease; marketplace PR drbothen/claude-mp #12 squash-merged 862e660d |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28; GitHub Release prerelease 2026-05-28T15:10:56Z; marketplace PR #11 squash-merged |
 | v1.0.0-rc.18 (tag) | 666d689f | SHIPPED 2026-05-13 PR #135 |
@@ -132,18 +134,19 @@ dtu_services: []
 | Cycle | Type | Status | Notes |
 |-------|------|--------|-------|
 | F-block-ai-attribution-message-file-arm | feature | F3 COMPLETE — F4 READY | F1+F2+F3 done 2026-05-12; 2 stories ready (S-16.01 5pts PostToolUse HEAD verify, S-16.02 3pts PreToolUse -F arm); E-16 under SS-07/SS-04; milestone v1.0.0-rc.17; BC-7.03.094/095/001, VP-080, ARCH SS-07 v1.3/SS-04 v1.4 registered |
-| v1.0-brownfield-backfill | brownfield | **D-538 SESSION-END DURABILITY BURST 2026-06-10** | S-15.03 PRIORITY-A COMPLETE D-508; E-10 CASCADE SEALED D-531 2026-06-01; rc.20 SHIPPED D-528; D-535 PR #178 MERGED; D-537 PR #179 SQUASH-MERGED 89fbe2d6; ADR-024 v1.2; ARCH-INDEX v2.18; #130 DELIVERED; D-538 DURABILITY BURST COMPLETE; requires rc release for operator cache. |
+| v1.0-brownfield-backfill | brownfield | **D-539 ISSUE-169+176 PR-180 MERGED 2026-06-10** | S-15.03 PRIORITY-A COMPLETE D-508; E-10 CASCADE SEALED D-531 2026-06-01; rc.20 SHIPPED D-528; D-535 #128 MERGED; D-537 #130 MERGED 89fbe2d6; D-539 #169+#176 MERGED 0f4793f1; 4-index ALL UNCHANGED; requires rc release (#128+#130+#169+#176). |
 | v1.0-feature-engine-discipline-pass-1 | feature | **PAUSED** | F5 pass-75 adversary complete D-510 2026-05-27; META-LEVEL-30 CANDIDATE-CONFIRMED; trajectory →9→9→9→11 (tick-up from 35-consecutive 9s; 14-day pause cost); 4 structural ACCEPTED-AT-FLOOR per D-386 Option C extension; S-15.17 anchors HIGH-002 cure; L-EDP1-067 captured; BC-INDEX v2.53; STORY-INDEX v3.71. Full-cycle trajectory (75 values ending): →9→9→9→9→11. |
 | v1.0-feature-plugin-async-semantics-pass-1 | feature | CLOSED | All PRs merged; rc.14 shipped |
 
 ## Decisions Log
 
-> D-001..D-538: `cycles/v1.0-brownfield-backfill/decision-log.md` + `decisions-log-archive.md`
+> D-001..D-539: `cycles/v1.0-brownfield-backfill/decision-log.md` + `decisions-log-archive.md`
 > F5 pass-2 architect decisions: `cycles/v1.0-feature-engine-discipline-pass-1/F5-pass-2-architect-decisions.md` (factory-artifacts 7b83ef58)
-> D-379..D-454 (F5): `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md` <!-- D-452(e) umbrella-range-auto-advance; D-511..D-538 per-burst D-range advances archived to decision-log.md; D-538 SESSION-END DURABILITY BURST 2026-06-10 D-range→D-538 -->
+> D-379..D-454 (F5): `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md` <!-- D-452(e) umbrella-range-auto-advance; D-511..D-539 per-burst D-range advances archived to decision-log.md; D-539 ISSUE-169+176 PR-180 MERGED 2026-06-10 D-range→D-539 -->
 
 | ID | Decision | Phase | Date |
 |----|----------|-------|------|
+| D-539 | ISSUE-169+176 WORKTREE-IDENTITY COUPLE MERGED 2026-06-10 — PR #180 "fix(adversary): worktree-identity engine fix — eliminate phantom findings (#169 + #176)" SQUASH-MERGED 0f4793f1; CI run 27309724791 11/11 GREEN (cargo-host ubuntu+macos, 5× build-dispatcher, validate, SAST, platforms-drift); issues #169+#176 AUTO-CLOSED; feature/issue-169-176-worktree-identity DELETED+VERIFIED (git ls-remote --exit-code exit 2); develop 89fbe2d6→0f4793f1; POL-14 no-op; 4-index ALL UNCHANGED (BC-INDEX v2.65, VP-INDEX v2.06, STORY-INDEX v3.84, ARCH-INDEX v2.18); requires rc release for operator cache (agents/adversary.md + skills/adversarial-review/SKILL.md + skills/deliver-story/steps/shared-context+step-d5-adversary-convergence + NEW bin/resolve-worktree-identity.sh + 2 NEW bats test files); multi-family 3-CLEAN at LOCAL SHA 5ea02ecf (Gemini cross-family 7-iter ~20 defects + Claude canonical 3-pass CRITICAL CWD-relative repo-root bug caught); lesson L-issue-169-176-worktree-identity codified; D-538 checkpoint archived to session-checkpoints.md; D-chain cite D-538 per D-419(b); parent-commit 9eb53aab per D-419(b). | issue-169-176-merge-closure | 2026-06-10 |
 | D-538 | SESSION-END DURABILITY BURST 2026-06-10 — §1-§12 full refresh; code-delivery/issue-130/pr-description.md committed; D-430(a) compaction (D-527+D-528 rows archived to decision-log.md SoT); #128 DELIVERED/MERGED (D-535); #130 DELIVERED/MERGED (D-537; ADR-024 v1.2; ARCH-INDEX v2.18; requires rc release); lesson L-session-2026-06-10-issue-128-130-delivered-durability captured; D-537 checkpoint archived to session-checkpoints.md; D-chain cite D-537; parent-commit c62c2c03; 4-index ALL UNCHANGED. | session-end-durability | 2026-06-10 |
 | D-537 | ISSUE-130 PR-179 MERGED 2026-06-10 — PR #179 SQUASH-MERGED 89fbe2d6 2026-06-10T05:03:19Z; CI 10/10 PASS; feature/issue-130-dispatcher-log-shadow DELETED+VERIFIED (git ls-remote --exit-code exit 2); develop f6ce4b7c→89fbe2d6; POL-14 no-op; 3-pass adversary CLEAN (0C/0H/0M pass-3); ADR-024 v1.0→v1.2 (Decision 3 bounded char-safe dedup hash + Decision 4 lexical-normalization guard + [process-gap] Process note); ARCH-INDEX v2.17→v2.18; S-7.02 satisfied; requires rc release; D-chain cite D-536; parent-commit 51724a92; 4-index: BC-INDEX v2.65 UNCHANGED, VP-INDEX v2.06 UNCHANGED, STORY-INDEX v3.84 UNCHANGED, ARCH-INDEX v2.17→v2.18. See decision-log.md SoT. | issue-130-merge-closure | 2026-06-10 |
 | D-536 | ADR-024 ADOPTED FOR ISSUE-130 DESIGN 2026-06-09 — ADR-024 ACCEPTED: 5-level worktree-aware log-dir; CLAUDE_PLUGIN_ROOT fail-loud; internal-error dedup; destructive-guard shadow exception; ARCH-INDEX v2.16→v2.17; D-chain cite D-535; parent-commit a81cce61; 4-index BC/VP/STORY UNCHANGED; ARCH-INDEX v2.16→v2.17. See decision-log.md SoT. | adr-adoption | 2026-06-09 |
@@ -151,9 +154,7 @@ dtu_services: []
 | D-534 | ISSUE-128 DELIVERY PR-178 IN-FLIGHT 2026-06-09 — TDD 45/45; Gemini 3-pass 6→4→4; PR #178 open CI-running; 4-index UNCHANGED. See decision-log.md SoT. | issue-delivery | 2026-06-09 |
 | D-533 | ISSUE-VALIDATION SWEEP BACKLOG RECORDED 2026-06-09 — 18 issues validated; 17 actionable; #149 already-done; 4-index UNCHANGED. See decision-log.md SoT. | issue-validation | 2026-06-09 |
 | D-532 | SESSION-END DURABILITY BURST 2026-06-08 — D-430(a) compaction; §1-§12 full refresh; 2 follow-up candidates; 4-index UNCHANGED. See decision-log.md SoT. | session-end-durability | 2026-06-08 |
-| D-531 | E-10 CASCADE SEALED 2026-06-01 — ASYMPTOTIC-ACCEPTANCE PER D-471 + D-386 OPTION C; pass-16 verdict LOW; S-7.02 SATISFIED; resumption gate = engine-surface material change; 4-index UNCHANGED. See decision-log.md SoT. | e10-cascade-seal | 2026-06-01 |
-| D-530 | E-10 PASS-16 ADVERSARY + FIX-BURST COMPLETE 2026-06-01 — verdict LOW; F-PASS16-002 FIXED PR #168; 4-index UNCHANGED. See decision-log.md SoT. | e10-pass-16 | 2026-06-01 |
-| D-529 | POST-RC.20 MAINTENANCE SWEEP COMPLETE 2026-06-01 — develop b21fd358; zero open PRs; 4-index UNCHANGED. See decision-log.md SoT. | maintenance-sweep | 2026-06-01 |
+| D-529+D-530+D-531 archived | **COMPACTED 2026-06-10 per D-430(a)** | D-529 POST-RC.20 MAINT SWEEP COMPLETE 2026-06-01; D-530 E-10 PASS-16 COMPLETE 2026-06-01 (verdict LOW; F-PASS16-002 FIXED PR #168 82163b7f); D-531 E-10 CASCADE SEALED 2026-06-01 (asymptotic-acceptance per D-471+D-386 Option C; S-7.02 SATISFIED). Full rows in decision-log.md SoT. |
 | D-527+D-528 archived | **COMPACTED 2026-06-10 per D-430(a)** | D-527 SESSION-END DURABILITY BURST 2026-05-31; D-528 v1.0.0-rc.20 SHIPPED 2026-06-01 (PR #166 --merge e00ab1ab; tag e9e38286; main 2a191314; marketplace #12; plugin 52→53). Full rows in decision-log.md SoT. |
 | D-526 | S-15.17 SHIPPED 2026-05-31 — PR #164 squash-merged at 9ed17b1d; BC-5.39.009 POL-14 draft→active; BC-INDEX v2.64→v2.65; STORY-INDEX v3.83→v3.84; develop HEAD 9ed17b1d. See decision-log.md SoT. | S-15.17 post-merge ship record | 2026-05-31 |
 | D-525 | S-15.17 BC-5.39.009 UN-SEAL + ADR-023 CYCLE-CONDITIONAL SITE MODEL ADOPTED 2026-05-30 — BC-5.39.009 v1.8→v1.9 cycle-conditional; ADR-023 registered; STORY-INDEX v3.82→v3.83; BC-INDEX v2.63→v2.64; ARCH-INDEX v2.15→v2.16. See decision-log.md SoT. | ADR-023 cycle-conditional site model | 2026-05-30 |
@@ -199,7 +200,7 @@ dtu_services: []
 - `cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md` (adversary reviews at `S-12.03/`, `S-12.04/`, `S-12.05/` subdirs)
 
 
-## Session Resume Checkpoint (2026-06-10 — D-538 SESSION-END DURABILITY BURST; #128+#130 DELIVERED/MERGED)
+## Session Resume Checkpoint (2026-06-10 — D-539 ISSUE-169+176 PR-180 MERGED; worktree-identity couple delivered)
 
 > **SELF-SUFFICIENT RESUME CONTEXT FOR ZERO-CONTEXT NEW SESSION ON A DIFFERENT MACHINE**
 > Read this section alone to resume the orchestrator after full CLEAR, new session, or new machine. All context needed is here.
@@ -207,25 +208,21 @@ dtu_services: []
 
 ### §1. Where We Are
 
-**BOTH DELIVERIES COMPLETE 2026-06-10. rc.20 SHIPPED (D-528). E-10 CASCADE SEALED (D-531). Issue-validation sweep COMPLETE (D-533). D-535 PR #178 #128 MERGED. D-537 PR #179 #130 MERGED. D-538 SESSION-END DURABILITY BURST COMPLETE. develop 89fbe2d6. ARCH-INDEX v2.18. RC RELEASE PENDING for operator cache.**
+**THREE ISSUES DELIVERED THIS CYCLE. rc.20 SHIPPED (D-528). E-10 CASCADE SEALED (D-531). Issue-validation sweep COMPLETE (D-533). D-535 PR #178 #128 MERGED. D-537 PR #179 #130 MERGED. D-539 PR #180 #169+#176 MERGED. develop 0f4793f1. RC RELEASE PENDING for operator cache (#128+#130+#169+#176).**
 
 - **D-528 (2026-06-01):** v1.0.0-rc.20 SHIPPED. Run 26738809372 all 6 jobs PASS. PR #166 --merge; tag e9e38286; main 2a191314. Marketplace #12. Plugin count 52→53. 4-index UNCHANGED.
-- **D-529 (2026-06-01):** POST-RC.20 MAINTENANCE SWEEP COMPLETE. develop b21fd358. Zero open PRs. 4-index UNCHANGED.
-- **D-530 (2026-06-01):** E-10 PASS-16 COMPLETE. Verdict LOW; trend 8→3. F-PASS16-002 FIXED PR #168 82163b7f. develop 82163b7f. 4-index UNCHANGED.
-- **D-531 (2026-06-01):** E-10 CASCADE SEALED. Pass-16 asymptotic-acceptance per D-471+D-386 Option C. 16-pass trend ends 3. S-7.02 SATISFIED. Resumption gate = engine-surface material change. 4-index UNCHANGED.
 - **D-533 (2026-06-09):** ISSUE-VALIDATION SWEEP. 18 issues validated; 17 actionable. Research cached. 4-index UNCHANGED.
-- **D-534 (2026-06-09):** ISSUE-128 DELIVERY. TDD 45/45. Gemini adversary 3-pass (6→4→4). 4-index UNCHANGED.
-- **D-535 (2026-06-09):** ISSUE-128 PR-178 MERGED. PR #178 SQUASH-MERGED f6ce4b7c (2026-06-09T22:45:39Z). CI CLEAN. feature/issue-128 DELETED+VERIFIED. develop 82163b7f→f6ce4b7c. #128 DELIVERED/MERGED. 4-index UNCHANGED.
-- **D-536 (2026-06-09):** ADR-024 ADOPTED FOR ISSUE-130 DESIGN. ADR-024 ACCEPTED: 5-level log-dir resolution, CLAUDE_PLUGIN_ROOT fail-loud, internal-error dedup, destructive-guard shadow exception. ARCH-INDEX v2.16→v2.17. Issue #130 IN-FLIGHT. 4-index BC/VP/STORY UNCHANGED.
-- **D-537 (2026-06-10):** ISSUE-130 PR-179 MERGED. PR #179 SQUASH-MERGED 89fbe2d6 (2026-06-10T05:03:19Z). CI 10/10 PASS. feature/issue-130-dispatcher-log-shadow DELETED+VERIFIED (git ls-remote --exit-code exit 2). develop f6ce4b7c→89fbe2d6. POL-14 no-op. 3-pass adversary CLEAN. ADR-024 v1.0→v1.2 (Decision 3 bounded char-safe dedup hash + Decision 4 lexical-normalization guard + [process-gap] Process note). ARCH-INDEX v2.17→v2.18. #130 DELIVERED/MERGED. Code+hooks → REQUIRES rc release for operator cache.
-- **D-538 (2026-06-10):** SESSION-END DURABILITY BURST COMPLETE. §1-§12 full refresh. code-delivery/issue-130/pr-description.md committed. D-430(a) compaction (D-527+D-528 rows archived). Lesson L-session-2026-06-10-issue-128-130-delivered-durability captured. Prior D-537 checkpoint archived to session-checkpoints.md. Zero-context resume ready.
-- **develop HEAD:** `89fbe2d6`. **main HEAD:** `2a191314` (rc.20 bot binary commit 2026-06-01).
-- **D-range:** D-001..D-538.
-- **4-index (post-D-538):** BC-INDEX v2.65, VP-INDEX v2.06 (UNCHANGED), STORY-INDEX v3.84, ARCH-INDEX v2.18 (all UNCHANGED this burst).
+- **D-535 (2026-06-09):** ISSUE-128 PR-178 MERGED. PR #178 SQUASH-MERGED f6ce4b7c. CI CLEAN. feature/issue-128 DELETED+VERIFIED. develop→f6ce4b7c. #128 DELIVERED/MERGED. 4-index UNCHANGED.
+- **D-537 (2026-06-10):** ISSUE-130 PR-179 MERGED. PR #179 SQUASH-MERGED 89fbe2d6. CI 10/10 PASS. ADR-024 v1.0→v1.2. ARCH-INDEX v2.17→v2.18. #130 DELIVERED/MERGED. Requires rc release.
+- **D-538 (2026-06-10):** SESSION-END DURABILITY BURST COMPLETE. §1-§12 refresh. pr-description.md committed. D-430(a) compaction. Zero-context resume ready.
+- **D-539 (2026-06-10):** ISSUE-169+176 PR-180 MERGED. PR #180 SQUASH-MERGED 0f4793f1. CI run 27309724791 11/11 GREEN. issues #169+#176 AUTO-CLOSED. feature/issue-169-176-worktree-identity DELETED+VERIFIED (git ls-remote --exit-code exit 2). develop 89fbe2d6→0f4793f1. POL-14 no-op. 4-index ALL UNCHANGED. Requires rc release for operator cache. Multi-family 3-CLEAN at LOCAL SHA 5ea02ecf. Lesson L-issue-169-176-worktree-identity codified.
+- **develop HEAD:** `0f4793f1`. **main HEAD:** `2a191314` (rc.20 bot binary commit 2026-06-01).
+- **D-range:** D-001..D-539.
+- **4-index (post-D-539):** BC-INDEX v2.65, VP-INDEX v2.06, STORY-INDEX v3.84, ARCH-INDEX v2.18 (ALL UNCHANGED this burst).
 - **BC content:** BC-5.39.005 v1.3 ACTIVE + BC-5.39.006 v1.7 ACTIVE + BC-5.39.007 v1.6 ACTIVE + BC-5.39.008 v1.5 ACTIVE + BC-5.39.009 v1.9 ACTIVE + BC-7.04.051 v1.1 ACTIVE.
 - **policies.yaml v1.3.6:** SEALED — no further cures.
 
-**D-538 SESSION-END DURABILITY BURST COMPLETE 2026-06-10 — #128 DELIVERED/MERGED (D-535); #130 DELIVERED/MERGED (D-537); ADR-024 v1.2; ARCH-INDEX v2.18; requires rc release for operator cache. Next: rc release OR #169+#176 worktree-identity OR #129 canonical-principle.**
+**D-539 ISSUE-169+176 WORKTREE-IDENTITY COUPLE MERGED 2026-06-10 — #128+#130+#169+#176 DELIVERED/MERGED; 4-index ALL UNCHANGED; requires rc release for operator cache. Next: rc release (#128+#130+#169+#176) OR #129 canonical-principle OR state-durability chain (#170→#173→#171).**
 
 ### §2. Operating Mode
 
@@ -237,12 +234,10 @@ dtu_services: []
 - **S-15.03 PRIORITY-A COMPLETE D-508** (2026-05-27; Wave 4 COMPLETE; 3M3c COMPLETE; all 11 stories merged).
 - **RC.20 SHIPPED D-528** (2026-06-01; run 26738809372; tag e9e38286; main 2a191314; marketplace #12).
 - **D-532 SESSION-END DURABILITY BURST** (2026-06-08; D-430(a) compaction; §1-§12 checkpoint refresh; zero-context resume ready).
-- **D-533 ISSUE-VALIDATION SWEEP** (2026-06-09; 18 issues validated; 17 actionable; research cached; INDEX authored).
-- **D-534 ISSUE-128 DELIVERY** (2026-06-09; TDD 45/45; Gemini 3-pass 6→4→4; 4-index UNCHANGED).
 - **D-535 ISSUE-128 PR-178 MERGED** (2026-06-09; squash-merged f6ce4b7c; feature/issue-128 DELETED+VERIFIED; develop f6ce4b7c; POL-14 no-op; 4-index UNCHANGED).
-- **D-536 ADR-024 ADOPTED** (2026-06-09; ADR-024 ACCEPTED; ARCH-INDEX v2.17; issue #130 IN-FLIGHT).
 - **D-537 ISSUE-130 PR-179 MERGED** (2026-06-10; PR #179 squash-merged 89fbe2d6; feature/issue-130 DELETED+VERIFIED; ADR-024 v1.2; ARCH-INDEX v2.18; 3-pass adversary CLEAN; requires rc release).
 - **D-538 SESSION-END DURABILITY BURST** (2026-06-10; §1-§12 full refresh; pr-description.md committed; D-430(a) compaction; zero-context resume ready).
+- **D-539 ISSUE-169+176 PR-180 MERGED** (2026-06-10; PR #180 squash-merged 0f4793f1; issues #169+#176 AUTO-CLOSED; feature/issue-169-176 DELETED+VERIFIED; develop 0f4793f1; 4-index ALL UNCHANGED; requires rc release; multi-family 3-CLEAN SHA 5ea02ecf; lesson L-issue-169-176-worktree-identity codified).
 
 ### §3. User Directives (Carry Across CLEAR)
 
@@ -263,38 +258,35 @@ ALL of these are ACTIVE and MANDATORY on every dispatch:
 - **POLICY 5 v1.3.1 SDK-grounding stable-anchor sub-clause (D-517):** Every BC narrative claim about external artifact MUST have literal-shell grep stdout at §SDK Grounding Evidence using stable anchors. NO grep -n line numbers.
 - **POLICY 5 v1.3.3/v1.3.4/v1.3.5/v1.3.6 sibling-sweep mandates (D-518/519/520/521):** Sibling-sweep required with captured-stdout proof; historical-by-construction enumeration (5 forms only); HEAD-reproducibility mandate; snapshot-rescue detection.
 - **Last Updated cell trajectory-tail marker requirement (PC2):** Last Updated cell MUST include `trajectory-tail →N→N→N→N` marker (BC-5.39.009 v1.8 PC2 compliance).
-- **D-537 [process-gap] spec-drift routing obligation (D-538 carry):** When an implementer TDD fix changes behavior an accepted ADR specifies verbatim, the fix-burst MUST route an architect ADR amendment in the SAME burst per CLAUDE.md Architectural Authority §12 (spec wins). Codified in ADR-024 v1.2 Process note; L-issue-130-3pass-convergence lesson (b).
+- **D-537 [process-gap] spec-drift routing obligation (D-539 carry):** When an implementer TDD fix changes behavior an accepted ADR specifies verbatim, the fix-burst MUST route an architect ADR amendment in the SAME burst per CLAUDE.md Architectural Authority §12 (spec wins). Codified in ADR-024 v1.2 Process note; L-issue-130-3pass-convergence lesson (b).
+- **D-539 multi-family adversary obligation:** For issues involving both prompt-contract discipline and shell-logic correctness, both a cross-family adversary pass AND a same-family Claude adversary pass are required before declaring convergence. Per L-issue-169-176-worktree-identity (a).
 
 ### §4. Tier-A Completed Log
 
 All S-15.03 PRIORITY-A items SHIPPED. Key entries (most recent first):
+- **D-539 (2026-06-10):** ISSUE-169+176 PR-180 MERGED. PR #180 squash-merged 0f4793f1. Issues #169+#176 AUTO-CLOSED. feature/issue-169-176 DELETED+VERIFIED. Multi-family 3-CLEAN. Requires rc release.
 - **D-538 (2026-06-10):** SESSION-END DURABILITY BURST COMPLETE. §1-§12 checkpoint refresh. pr-description.md committed. D-430(a) compaction. Zero-context resume ready.
 - **D-537 (2026-06-10):** ISSUE-130 PR-179 MERGED. PR #179 squash-merged 89fbe2d6. feature/issue-130 DELETED+VERIFIED. ADR-024 v1.2. ARCH-INDEX v2.18. #130 DELIVERED. Requires rc release.
 - **D-535 (2026-06-09):** ISSUE-128 PR-178 MERGED. PR #178 squash-merged f6ce4b7c. feature/issue-128 DELETED+VERIFIED. #128 DELIVERED.
-- **D-532 (2026-06-08):** SESSION-END DURABILITY BURST COMPLETE. D-430(a) compaction. §1-§12 checkpoint refresh. 2 follow-up candidates captured. Zero-context resume ready.
+- **D-532 (2026-06-08):** SESSION-END DURABILITY BURST COMPLETE. D-430(a) compaction. §1-§12 checkpoint refresh. Zero-context resume ready.
 - **D-531 (2026-06-01):** E-10 CASCADE SEALED. Pass-16 asymptotic-acceptance per D-471+D-386 Option C.
-- **D-530 (2026-06-01):** E-10 PASS-16 COMPLETE. Verdict LOW; F-PASS16-002 FIXED PR #168 82163b7f.
-- **D-529 (2026-06-01):** POST-RC.20 MAINTENANCE SWEEP COMPLETE. develop b21fd358. Zero open PRs.
 - **D-528 (2026-06-01):** RC.20 SHIPPED. Plugin 52→53. Marketplace #12.
 - **D-526 (2026-05-31):** S-15.17 SHIPPED PR #164 9ed17b1d. BC-5.39.009 ACTIVE. BC-INDEX v2.65. STORY-INDEX v3.84.
-- **D-525 (2026-05-30):** BC-5.39.009 UN-SEAL + ADR-023. ARCH-INDEX v2.16. BC-INDEX v2.64.
-- **D-523 (2026-05-30):** S-15.17 REMOVE-UNCERTAINTY COMPLETE. 7/7 CONFIRMED. STORY-INDEX v3.82.
-- **D-522 (2026-05-29):** S-15.17 SPEC CASCADE SEALED. 9-pass asymptotic-acceptance. BC-INDEX v2.63. STORY-INDEX v3.81.
-- **D-513..D-521 (2026-05-28/29):** BC-5.39.009 authored + S-15.17 passes 1-8 fix-bursts + META-31..36 codified.
+- **D-522 (2026-05-29):** S-15.17 SPEC CASCADE SEALED. 9-pass asymptotic-acceptance. BC-INDEX v2.63.
 - **D-512 (2026-05-28):** RC.19 SHIPPED. run 26581752361. main 43afbfa7. marketplace PR #11.
 - **D-508 (2026-05-27):** S-15.13 SHIPPED + Wave 4 COMPLETE + 3M3c COMPLETE + S-15.03 PRIORITY-A COMPLETE.
 
-**Current Active:** D-538 COMPLETE. Both #128 and #130 DELIVERED/MERGED. Requires rc release for operator cache (#130 code+hooks). Next = rc release OR #169+#176 worktree-identity couple OR #129 canonical-principle.
+**Current Active:** D-539 COMPLETE. Issues #128, #130, #169, #176 all DELIVERED/MERGED. Requires rc release for operator cache. Next = rc release OR #129 canonical-principle OR state-durability chain (#170→#173→#171).
 
-Prior Tier-A (pre-session, all COMPLETE): TD #71/72/70/74 (PRs #138–141) + S-15.04/05/08/07/11/09/14 (PRs #142–148) + 3M3a D-497 + D-498/504/507 durability + D-499 3M3b + D-500 3M3b-r + D-501 remove-uncertainty + D-502/503/505/506/508 Waves 1-4 + D-509 E-10 pass-15 + D-510 F5 pass-75 + D-511 banner remediation.
+Prior Tier-A (pre-session, all COMPLETE): TD #71/72/70/74 (PRs #138–141) + S-15.04/05/08/07/11/09/14 (PRs #142–148) + 3M3a D-497 + D-498/504/507 durability + D-499/500/501 3M3b/r/remove-uncertainty + D-502/503/505/506/508 Waves 1-4 + D-509 E-10 pass-15 + D-510 F5 pass-75 + D-511 banner remediation + D-523/525/529/530/536 prior milestones.
 
 ### §5. Cumulative Codifications
 - F5: D-379..D-454 (76 decisions) — `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md`.
-- Brownfield: D-001..D-538 — `cycles/v1.0-brownfield-backfill/decision-log.md`. Key: D-497 BC cascade CONVERGED; D-508 Wave 4 + S-15.03 PRIORITY-A COMPLETE; D-510 F5 pass-75 + META-LEVEL-30; D-512 rc.19 SHIPPED; D-513 BC-5.39.009 AUTHORED; D-514..D-521 passes 1-8 fix-bursts + META-31..36 codified; D-522 S-15.17 SPEC CASCADE SEALED; D-525 BC-5.39.009 UN-SEAL + ADR-023; D-526 S-15.17 SHIPPED PR #164 9ed17b1d; D-527 SESSION-END DURABILITY BURST 2026-05-31; D-528 RC.20 SHIPPED 2026-06-01; D-529 POST-RC.20 MAINTENANCE SWEEP COMPLETE 2026-06-01; D-530 E-10 PASS-16 COMPLETE 2026-06-01; D-531 E-10 CASCADE SEALED 2026-06-01; D-532 SESSION-END DURABILITY BURST 2026-06-08; D-533 ISSUE-VALIDATION SWEEP 2026-06-09 (18 issues; 17 actionable); D-534 ISSUE-128 DELIVERY 2026-06-09 (TDD 45/45; Gemini 3-pass 6→4→4); D-535 ISSUE-128 PR-178 MERGED 2026-06-09 (squash-merged f6ce4b7c; feature/issue-128 DELETED+VERIFIED; develop f6ce4b7c; POL-14 no-op; 4-index UNCHANGED); D-536 ADR-024 ADOPTED ISSUE-130 DESIGN 2026-06-09 (ADR-024 ACCEPTED; ARCH-INDEX v2.16→v2.17; issue #130 IN-FLIGHT); D-537 ISSUE-130 PR-179 MERGED 2026-06-10 (PR #179 squash-merged 89fbe2d6; feature/issue-130 DELETED+VERIFIED; ADR-024 v1.0→v1.2 + [process-gap] spec-drift Process note; ARCH-INDEX v2.17→v2.18; 3-pass adversary CLEAN; requires rc release); **D-538 SESSION-END DURABILITY BURST 2026-06-10 — §1-§12 full refresh; pr-description.md committed; D-430(a) compaction (D-527+D-528 archived); lesson L-session-2026-06-10-issue-128-130-delivered-durability; zero-context resume ready; 4-index ALL UNCHANGED**.
+- Brownfield: D-001..D-539 — `cycles/v1.0-brownfield-backfill/decision-log.md`. Key: D-497 BC cascade CONVERGED; D-508 Wave 4 + S-15.03 PRIORITY-A COMPLETE; D-510 F5 pass-75 + META-LEVEL-30; D-512 rc.19 SHIPPED; D-526 S-15.17 SHIPPED PR #164 9ed17b1d; D-528 RC.20 SHIPPED 2026-06-01; D-531 E-10 CASCADE SEALED 2026-06-01; D-532 SESSION-END DURABILITY BURST 2026-06-08; D-533 ISSUE-VALIDATION SWEEP 2026-06-09 (18 issues; 17 actionable); D-535 ISSUE-128 PR-178 MERGED 2026-06-09 (squash-merged f6ce4b7c; POL-14 no-op; 4-index UNCHANGED); D-537 ISSUE-130 PR-179 MERGED 2026-06-10 (PR #179 squash-merged 89fbe2d6; ADR-024 v1.2; ARCH-INDEX v2.18; 3-pass adversary CLEAN; requires rc release); D-538 SESSION-END DURABILITY BURST 2026-06-10 (§1-§12 full refresh; pr-description.md committed; D-430(a) compaction; 4-index ALL UNCHANGED); **D-539 ISSUE-169+176 PR-180 MERGED 2026-06-10 — PR #180 0f4793f1; CI run 27309724791 11/11 GREEN; issues #169+#176 AUTO-CLOSED; feature/issue-169-176 DELETED+VERIFIED; multi-family 3-CLEAN SHA 5ea02ecf; L-issue-169-176-worktree-identity codified; D-430(a) compaction D-529..D-531; 4-index ALL UNCHANGED; requires rc release**.
 
 ### §6. Cumulative Lessons
 - F5: L-EDP1-001..067 — `cycles/v1.0-feature-engine-discipline-pass-1/lessons.md`.
-- Brownfield: TD-VSDD-095..100 + L-M3-BC-cascade-CONVERGED + L-session-2026-05-20-resume-CONVERGENCE + L-E10-pass15-automation-wave-effectiveness + L-banner-format-drift + L-rc19-pre-release-validation-banner-format-drift + L-S-15.17-BC-authoring-clean-propagation + L-S-15.17-SP1..SP7 lessons + L-S-15.17-SP8-META-36-snapshot-rescue + L-S-15.17-SP8-TD-VSDD-059-paper-fix-detection + L-S-15.17-SP9-META-37-asymptotic-acceptance-SEAL + L-S-15.17-cascade-9-pass-SEAL-precedent + L-S-15.17-remove-uncertainty-clean-result + L-F-P3-008-wallclock-deflake-structural-recurrence + L-session-2026-05-31-fabricated-SHA-discipline + L-session-2026-06-01-rc20-clean-ship + L-session-2026-06-01-dependabot-sweep + L-E10-pass16-derived-ci-count + L-E10-cascade-SEAL-16-pass + L-session-2026-06-08-session-end-durability + L-issue-128-cross-family-adversary + L-issue-128-PR-178-merged + L-issue-130-3pass-convergence: (a) 3-pass adversary sufficient for security-critical guard; (b) spec-drift routing obligation codified; (c) infra-flake recurrence class + **L-session-2026-06-10-issue-128-130-delivered-durability: (a) two issues delivered in single session via 3-pass cross-family adversary; (b) release gate distinction develop-only vs operator-cache; (c) pr-description.md durability convention; (d) SESSION-END DURABILITY BURST timing pattern** — `cycles/v1.0-brownfield-backfill/lessons.md`.
+- Brownfield: TD-VSDD-095..100 + L-M3-BC-cascade-CONVERGED + L-session-2026-05-20-resume-CONVERGENCE + L-E10-pass15-automation-wave-effectiveness + L-banner-format-drift + L-rc19-pre-release-validation-banner-format-drift + L-S-15.17-BC-authoring-clean-propagation + L-S-15.17-SP1..SP7 lessons + L-S-15.17-SP8-META-36-snapshot-rescue + L-S-15.17-SP8-TD-VSDD-059-paper-fix-detection + L-S-15.17-SP9-META-37-asymptotic-acceptance-SEAL + L-S-15.17-cascade-9-pass-SEAL-precedent + L-S-15.17-remove-uncertainty-clean-result + L-F-P3-008-wallclock-deflake-structural-recurrence + L-session-2026-05-31-fabricated-SHA-discipline + L-session-2026-06-01-rc20-clean-ship + L-session-2026-06-01-dependabot-sweep + L-E10-pass16-derived-ci-count + L-E10-cascade-SEAL-16-pass + L-session-2026-06-08-session-end-durability + L-issue-128-cross-family-adversary + L-issue-128-PR-178-merged + L-issue-130-3pass-convergence + L-session-2026-06-10-issue-128-130-delivered-durability + **L-issue-169-176-worktree-identity: (a) multi-family adversary diversity is load-bearing — one family catches CRITICAL the other misses; (b) extract mechanical logic to tested bash helper vs inline markdown; (c) run bats from mount-less feature worktree to reproduce #169 phantom-failure class; (d) fix dogfooded its own discipline — adversary reviewed with embedded worktree-identity tuple** — `cycles/v1.0-brownfield-backfill/lessons.md`.
 
 ### §7. S-15.03 PRIORITY-A Scope (Cumulative)
 11-story wave S-15.06..S-15.16. **ALL SHIPPED:** M1 + M2 + M3 Wave 1+2+3+4. **S-15.03 PRIORITY-A COMPLETE. All 11 stories. 40pts M3 total.**
@@ -303,15 +295,15 @@ Prior Tier-A (pre-session, all COMPLETE): TD #71/72/70/74 (PRs #138–141) + S-1
 
 | Index | Version | Notes |
 |-------|---------|-------|
-| BC-INDEX | v2.65 | D-526 post-merge: BC-5.39.009 POL-14 draft→active; body table row active; v2.64→v2.65 |
-| VP-INDEX | v2.06 | UNCHANGED at D-526 (18 VPs pending architect per TD-VSDD-063) |
-| STORY-INDEX | v3.84 | D-526: S-15.17 draft→merged; merged_commit 9ed17b1d; merged_pr #164; v3.83→v3.84 |
-| ARCH-INDEX | v2.18 | D-537 ADR-024 v1.0→v1.2 amended: Decision 3 bounded char-safe dedup hash + Decision 4 lexical-normalization guard + [process-gap] Process note; PR #179 MERGED 89fbe2d6; v2.17→v2.18 |
+| BC-INDEX | v2.65 | D-526 post-merge: BC-5.39.009 POL-14 draft→active; UNCHANGED D-539 |
+| VP-INDEX | v2.06 | UNCHANGED at D-539 (18 VPs pending architect per TD-VSDD-063) |
+| STORY-INDEX | v3.84 | D-526: S-15.17 draft→merged; merged_commit 9ed17b1d; UNCHANGED D-539 |
+| ARCH-INDEX | v2.18 | D-537 ADR-024 v1.0→v1.2 amended; UNCHANGED D-539 (fix is engine-prompt + tooling; no ADR content changed) |
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** `3294361e` (D-538 SESSION-END DURABILITY BURST 2026-06-10; prior: `c62c2c03` D-537 SHA-patch; prior-prior: `c32b753d` D-537 primary)
-- **develop HEAD:** `89fbe2d6` (D-537 PR #179 squash-merge 2026-06-10; prior: `f6ce4b7c` D-535 PR #178 2026-06-09)
+- **factory-artifacts HEAD:** `[D-539-HEAD]` (D-539 ISSUE-169+176 MERGED 2026-06-10; prior: `9eb53aab` D-538 SHA-patch; prior-prior: `3294361e` D-538 primary)
+- **develop HEAD:** `0f4793f1` (D-539 PR #180 squash-merge 2026-06-10; prior: `89fbe2d6` D-537 PR #179 2026-06-10)
 - **main HEAD:** `2a191314` (rc.20 bot binary commit 2026-06-01; prior: `43afbfa7` rc.19 2026-05-28)
 - **v1.0.0-rc.20 tag:** `e9e38286` (annotated tag object; GitHub Release prerelease 2026-06-01; marketplace PR #12 squash-merged 862e660d)
 - **v1.0.0-rc.19 tag:** `d15152af` (GitHub Release 2026-05-28T15:10:56Z)
@@ -322,36 +314,36 @@ Prior Tier-A (pre-session, all COMPLETE): TD #71/72/70/74 (PRs #138–141) + S-1
 - **policies.yaml:** `.factory/policies.yaml` (v1.3.6 — POLICY 5 v1.3.6 SEALED; no further cures)
 - D-535: PR #178 squash-merged `f6ce4b7c` 2026-06-09; feature/issue-128-verify-branch-deletion DELETED+VERIFIED
 - D-537: PR #179 squash-merged `89fbe2d6` 2026-06-10; feature/issue-130-dispatcher-log-shadow DELETED+VERIFIED; ADR-024 v1.2 amended
+- D-539: PR #180 squash-merged `0f4793f1` 2026-06-10; feature/issue-169-176-worktree-identity DELETED+VERIFIED; LOCAL 3-CLEAN SHA `5ea02ecf`
 - **ADR-024 v1.2:** `.factory/specs/architecture/decisions/ADR-024.md` — ARCH-INDEX v2.18; Decision 3 bounded char-safe N=4096 + Decision 4 lexical-normalization guard + [process-gap] spec-drift routing Process note
-- Verify on resume: `git rev-parse --short origin/develop` → expect `89fbe2d6`
+- Verify on resume: `git rev-parse --short origin/develop` → expect `0f4793f1`
 
 ### §10. PR Status
 
-- **0 open source PRs; 2 issues delivered this session; rc release PENDING for #130 code reach.**
+- **0 open source PRs; 3 issues delivered this cycle; rc release PENDING for #128+#130+#169+#176 operator reach.**
+- **MERGED (D-539 issues #169+#176):** PR #180 feature/issue-169-176-worktree-identity `0f4793f1` 2026-06-10; branch deleted+verified; worktree-identity preflight + resolve-worktree-identity.sh + 28 bats tests; REQUIRES rc release for operator cache.
 - **MERGED (D-537 issue #130):** PR #179 feature/issue-130-dispatcher-log-shadow `89fbe2d6` 2026-06-10; branch deleted+verified; 7-level worktree-aware log-dir; 3-pass adversary CLEAN; ADR-024 v1.2; REQUIRES rc release for operator cache.
 - **MERGED (D-535 issue #128):** PR #178 feature/issue-128-verify-branch-deletion `f6ce4b7c` 2026-06-09; branch deleted+verified; plugin skill/agent file — ships in next rc release.
 - **MERGED (D-530 E-10 pass-16):** PR #168 ci.yml derived WASM-plugin-count assertion `82163b7f` 2026-06-01.
-- **MERGED (D-529 Dependabot):** PR #157 openssl `b21fd358`; PR #156 excalidraw+dompurify `1e5325bd`; PR #3 postcss `401f1bfb`.
-- **CLOSED-REDUNDANT (D-529):** PR #152+#125+#2+#167.
 - **MERGED (rc.20 bundle):** PR #166 rc.20 release `e00ab1ab`; PR #163 research-agent `766ab7bc`; PR #164 S-15.17 `9ed17b1d`; PR #165 de-flake `f34b7567`.
 - **Marketplace:** drbothen/claude-mp PR #11 (rc.19) + PR #12 (rc.20) both squash-merged.
-- **Next source PR:** rc release (ships #128+#130 to operator cache — #130 requires it); OR issue #129 canonical-principle; OR #169+#176 worktree-identity couple. NOTE: issue #130 code+hooks change requires rc release before reaching operator-level cache.
+- **Next source PR:** rc release (ships #128+#130+#169+#176 to operator cache — #130+#169+#176 require it; #128 also reaches operators); OR issue #129 canonical-principle; OR state-durability chain #170→#173→#171. NOTE: #130+#169+#176 code+hooks require rc release before reaching operator-level cache.
 
 ### §11. Post-CLEAR Resume Checklist (zero-context)
 
-1. **Verify worktree state (TWO worktrees only):** Main repo: `git rev-parse --abbrev-ref HEAD` → expect `develop` (HEAD `89fbe2d6`). Factory: `git -C .factory log -1` + `git -C .factory status` (expect clean; branch factory-artifacts). No feature branches open. Main repo + .factory are the only worktrees.
+1. **Verify worktree state (TWO worktrees only):** Main repo: `git rev-parse --abbrev-ref HEAD` → expect `develop` (HEAD `0f4793f1`). Factory: `git -C .factory log -1` + `git -C .factory status` (expect clean; branch factory-artifacts). No feature branches open. Main repo + .factory are the only worktrees.
 2. **Read this checkpoint** (entire §1-§12).
 3. **Verify PC4 (trajectory-tail segment LENGTH=4):** `grep "^current_step:" .factory/STATE.md | grep -oE "trajectory-tail [→0-9]+"` → expect `trajectory-tail →9→9→9→11`.
-4. **Verify develop HEAD:** `git rev-parse --short origin/develop` → expect `89fbe2d6`.
+4. **Verify develop HEAD:** `git rev-parse --short origin/develop` → expect `0f4793f1`.
 5. **E-10 CASCADE SEALED (D-531 2026-06-01).** Pass-16 asymptotic-acceptance per D-471+D-386 Option C. 16-pass trend ends at 3 (LOW). S-7.02 SATISFIED. Resumption gate = engine-surface material change. Do NOT resume E-10 without engine-surface material change.
 6. **BC-5.39.009 v1.9 STATUS:** ACTIVE. BC-INDEX v2.65. hooks-registry priority 158. IN OPERATOR CACHE rc.20.
 7. **S-15.17 v1.11 STATUS:** MERGED PR #164. STORY-INDEX v3.84.
 8. **F5 PAUSED** — trajectory →9→9→9→11. Do NOT resume F5 without explicit human direction.
-9. **RC.20 SHIPPED D-528 (2026-06-01):** run 26738809372 all 6 PASS; tag e9e38286; main 2a191314; marketplace #12; plugin 52→53; operator cache updated. NEXT RC RELEASE PENDING: #128 (plugin skill change) + #130 (crates+hooks) both require rc.21+ for operator cache reach.
-10. **ALL dispatches carry these non-negotiables:** TD-VSDD-097-EXT (all 5 BC-5.39.006 PCs in current_step:) + TD-VSDD-099 (4 Dim blocks in burst-log) + TD-VSDD-100 (production artifact read, no synthetic echo) + POLICY 14 5-leg quintuple parity + verification_step 7 4-index gate + INV-019 cure (a)/(b)/(c) in changelog rows + adversary must grep origin/factory-artifacts (not stale local main) + D-449(a) literal-shell all Dim-2 gates (no pseudocode) + POLICY 8 v1.3 bidirectional AC↔PC parity + audit-block-exclusion + EC-mirror routing-rule + POLICY 5 v1.3.1 SDK-grounding stable-anchor mandate + POLICY 5 v1.3.4 literal-shell VERIFICATION GATE + POLICY 5 v1.3.5 historical-by-construction enumeration (5 forms only) + POLICY 5 v1.3.6 HEAD-reproducibility + structural-form-only + snapshot-rescue detection + D-537/D-538 [process-gap] spec-drift routing: implementer TDD fix changing ADR-specified behavior MUST route architect ADR amendment in same burst.
-11. **All caught up.** Next decision is D-539. #128 DELIVERED/MERGED D-535 2026-06-09. #130 DELIVERED/MERGED D-537 2026-06-10 (PR #179 89fbe2d6; ADR-024 v1.2; ARCH-INDEX v2.18). D-538 SESSION-END DURABILITY BURST COMPLETE 2026-06-10. Issue #130 code+hooks requires rc release for operator-level cache. Options: (a) rc release to ship #128+#130 to operators (RECOMMENDED FIRST if human wants operator reach); (b) #169+#176 worktree-identity couple (process-only; no release needed); (c) #129 canonical-principle; F5 pass-76 (PAUSED, needs human); forward proposals (UNI-PLUG-001+SK-MCP-001).
+9. **RC.20 SHIPPED D-528 (2026-06-01):** run 26738809372 all 6 PASS; tag e9e38286; main 2a191314; marketplace #12; plugin 52→53; operator cache updated. NEXT RC RELEASE PENDING: #128 (plugin skill change) + #130 (crates+hooks) + #169+#176 (agents/skills/bin/bats) — all require rc.21+ for operator cache reach.
+10. **ALL dispatches carry these non-negotiables:** TD-VSDD-097-EXT (all 5 BC-5.39.006 PCs in current_step:) + TD-VSDD-099 (4 Dim blocks in burst-log) + TD-VSDD-100 (production artifact read, no synthetic echo) + POLICY 14 5-leg quintuple parity + verification_step 7 4-index gate + INV-019 cure (a)/(b)/(c) in changelog rows + adversary must grep origin/factory-artifacts (not stale local main) + D-449(a) literal-shell all Dim-2 gates (no pseudocode) + POLICY 8 v1.3 bidirectional AC↔PC parity + audit-block-exclusion + EC-mirror routing-rule + POLICY 5 v1.3.1 SDK-grounding stable-anchor mandate + POLICY 5 v1.3.4 literal-shell VERIFICATION GATE + POLICY 5 v1.3.5 historical-by-construction enumeration (5 forms only) + POLICY 5 v1.3.6 HEAD-reproducibility + structural-form-only + snapshot-rescue detection + D-537/D-539 [process-gap] spec-drift routing: implementer TDD fix changing ADR-specified behavior MUST route architect ADR amendment in same burst + D-539 multi-family adversary obligation: prompt-contract + shell-logic issues require cross-family AND same-family Claude adversary passes.
+11. **All caught up.** Next decision is D-540. #128 DELIVERED/MERGED D-535 2026-06-09. #130 DELIVERED/MERGED D-537 2026-06-10. #169+#176 DELIVERED/MERGED D-539 2026-06-10 (PR #180 0f4793f1; CI 11/11 GREEN; issues AUTO-CLOSED; multi-family 3-CLEAN SHA 5ea02ecf; L-issue-169-176-worktree-identity codified). All require rc release for operator-level cache. Options: (a) rc release to ship #128+#130+#169+#176 to operators (RECOMMENDED FIRST if human wants operator reach); (b) #129 canonical-principle; (c) state-durability chain #170→#173→#171; F5 pass-76 (PAUSED, needs human); forward proposals (UNI-PLUG-001+SK-MCP-001).
 
-### §12. Pending Work Items — Strict Engine-Discipline Ordering (refreshed 2026-06-10 post-D-538)
+### §12. Pending Work Items — Strict Engine-Discipline Ordering (refreshed 2026-06-10 post-D-539)
 
 | Step | Item | Tier | Gate | Status / Scope |
 |------|------|------|------|---------------|
@@ -373,6 +365,7 @@ Prior Tier-A (pre-session, all COMPLETE): TD #71/72/70/74 (PRs #138–141) + S-1
 | ~~SESSION-END~~ | ~~D-532 SESSION-END DURABILITY BURST~~ | ~~durability~~ | ~~—~~ | **COMPLETE 2026-06-08** — D-430(a) compaction; §1-§12 refresh; 2 follow-up candidates captured. |
 | ~~#128~~ | ~~Issue #128 pr-manager branch-deletion verify~~ | ~~bug~~ | ~~—~~ | **DELIVERED/MERGED — PR #178 squash-merged f6ce4b7c 2026-06-09** (TDD 45/45; Gemini 3-pass 6→4→4; branch DELETED+VERIFIED) |
 | ~~#130~~ | ~~Issue #130 dispatcher `.factory/.factory/` log shadow~~ | ~~bug~~ | ~~—~~ | **DELIVERED/MERGED — PR #179 squash-merged 89fbe2d6 2026-06-10** (7-level worktree-aware log-dir; 3-pass adversary CLEAN; ADR-024 v1.2; ARCH-INDEX v2.18; requires rc release for operator cache) |
+| ~~#169+#176~~ | ~~Issues #169+#176 worktree-identity couple~~ | ~~bug~~ | ~~—~~ | **DELIVERED/MERGED — PR #180 squash-merged 0f4793f1 2026-06-10** (worktree-identity preflight + resolve-worktree-identity.sh + 28 bats tests; multi-family 3-CLEAN SHA 5ea02ecf; CI 11/11 GREEN; requires rc release for operator cache) |
 | **CR-DEFERRED** | **2 S-15.17 code-reviewer suggestion-level findings** | **deferred** | — | ACCEPTED-DEFERRED (see Drift Items S-15.17-CR-001 + S-15.17-CR-002). Advisory-arm only; no production reachability. |
 | **FLAKE-001** | **test_F_P2_001 timing flake de-flake** | **candidate** | human-authorize | darwin-x64 3761ms vs 3000ms; same class as TD #67/F-P3-008; event-observation rewrite candidate. D-532 capture. |
 | **COSMETIC-001** | **O-PASS16-002 stale header doc-comment** | **cosmetic** | on next spec-touch | validate-trajectory-tail-cell-completeness extract/check function headers stale. Cleanup on next S-15.17 spec-touch. D-532 capture. |
@@ -380,7 +373,7 @@ Prior Tier-A (pre-session, all COMPLETE): TD #71/72/70/74 (PRs #138–141) + S-1
 | **6** | **UNI-PLUG-001 implementation** | **forward** | human-authorize | **PROPOSAL REVIEW-READY** |
 | **7** | **SK-MCP-001 implementation** | **forward** | (6) Tier 1 done | **PROPOSAL REVIEW-READY** |
 
-### Validated GitHub-Issue Backlog (2026-06-09 sweep — D-533; updated 2026-06-10 D-538)
+### Validated GitHub-Issue Backlog (2026-06-09 sweep — D-533; updated 2026-06-10 D-539)
 
 Research cached at `.factory/research/issues/issue-<N>.md`; full triage at `.factory/research/issues/INDEX.md`.
 
@@ -388,7 +381,7 @@ Research cached at `.factory/research/issues/issue-<N>.md`; full triage at `.fac
 |---------|--------|---------|
 | Bug: PR-lifecycle | ~~#128 pr-manager branch-deletion verify~~ | **DELIVERED/MERGED — PR #178 squash-merged f6ce4b7c 2026-06-09** |
 | Bug: dispatcher | ~~#130 `.factory/.factory/` log shadow~~ | **DELIVERED/MERGED — PR #179 squash-merged 89fbe2d6 2026-06-10** (requires rc release for operator cache) |
-| Worktree-identity (fix together) | #169 stale-spec sub-agents + #176 adv-review preflight | VALID-NEW×2 |
+| Worktree-identity (fix together) | ~~#169 stale-spec sub-agents + #176 adv-review preflight~~ | **DELIVERED/MERGED — PR #180 squash-merged 0f4793f1 2026-06-10** (requires rc release for operator cache) |
 | State durability/concurrency (#170→#173→#171) | #170 factory lock/lease + #173 wave-checkpoint + #171 deferred-revalidate | VALID-NEW×3 |
 | Runtime enforcement (#162 umbrella + #133/#177) | #162 orchestrator enforcement + #133 intra-phase adversary + #177 hollow-demo | VALID-NEW/PARTIAL |
 | Consistency/citation (ship together) | #151 drift checker + #131 URL/path coherence | VALID-PARTIAL/NEW |
@@ -399,10 +392,10 @@ Research cached at `.factory/research/issues/issue-<N>.md`; full triage at `.fac
 | Activate | #175 version-drift block hook | VALID-PARTIAL |
 | **ALREADY-DONE** | **#149 OTEL telemetry — recommend GitHub close** | ALREADY-DONE |
 
-**RECOMMENDED ACTIVE NEXT:** (a) **rc release** to ship #128+#130 to operator cache (#130 code+hooks REQUIRES it; #128 plugin change also reaches operators); (b) **#169+#176 worktree-identity couple** (fix-together; process-only; no release needed); (c) **#129 canonical-principle** (VALID-NEW; ship-ready); F5 pass-76 (PAUSED; needs explicit human direction); UNI-PLUG-001/SK-MCP-001 REVIEW-READY.
+**RECOMMENDED ACTIVE NEXT:** (a) **rc release** to ship #128+#130+#169+#176 to operator cache (#130+#169+#176 code+hooks+agents REQUIRE it; #128 plugin change also reaches operators); (b) **#129 canonical-principle** (VALID-NEW; ship-ready); (c) **state-durability chain #170→#173→#171**; F5 pass-76 (PAUSED; needs explicit human direction); UNI-PLUG-001/SK-MCP-001 REVIEW-READY.
 
 **Track-independent:** E-9 W-16 Tier 2 + E-11 W-17 Tier 3 + verify-git-push.sh + S-10.08 + S-11.00.
 
 **[D-414(c) acknowledgment: Section 12 is a non-standard addition for forward-backlog durability.]**
 
-> Previous checkpoint (D-537 ISSUE-130 PR-179 MERGED 2026-06-10) archived to: `cycles/v1.0-brownfield-backfill/session-checkpoints.md`
+> Previous checkpoint (D-538 SESSION-END DURABILITY BURST 2026-06-10) archived to: `cycles/v1.0-brownfield-backfill/session-checkpoints.md`
