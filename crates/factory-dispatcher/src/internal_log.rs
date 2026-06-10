@@ -29,9 +29,12 @@
 use chrono::{DateTime, Duration, Local, TimeZone};
 use serde::Serialize;
 use serde_json::{Map, Value};
+use std::collections::HashSet;
 use std::fs::{self, OpenOptions};
+use std::hash::{DefaultHasher, Hash, Hasher};
 use std::io::Write;
 use std::path::{Path, PathBuf};
+use std::sync::Mutex;
 
 /// Filename prefix for every rotated log. Matched during retention
 /// scans.
@@ -208,22 +211,34 @@ impl InternalEvent {
     }
 }
 
+/// Maximum number of unique error hashes held in `seen_errors` before
+/// new insertions are paused (ADR-024 Decision 3 cap).
+const SEEN_ERRORS_CAP: usize = 1024;
+
 /// Best-effort JSONL writer for dispatcher self-telemetry.
 ///
-/// Cheap to construct and `Clone`/share across threads — it holds only
-/// a `PathBuf`; each write reopens the file. The reopen cost is
-/// negligible compared to the outer dispatcher latency and it keeps the
-/// writer trivially `Send + Sync` without any locking.
+/// Cheap to construct and `Clone`/share across threads. Each write
+/// reopens the file (negligible vs dispatcher latency) and the
+/// `seen_errors` set is held in an `Arc<Mutex<_>>` so clones share
+/// the same dedup state within a process lifetime.
 #[derive(Debug, Clone)]
 pub struct InternalLog {
     log_dir: PathBuf,
+    /// Per-session dedup set for `internal.dispatcher_error` events.
+    /// Only those events are deduplicated; all others are written unconditionally.
+    /// Shared via `Arc` so every `clone()` of `InternalLog` participates in the
+    /// same dedup window (one process invocation = one dispatcher session).
+    seen_errors: std::sync::Arc<Mutex<HashSet<u64>>>,
 }
 
 impl InternalLog {
     /// Build a writer rooted at `log_dir`. The directory is NOT created
     /// eagerly; `write` will `mkdir -p` on first use.
     pub fn new(log_dir: PathBuf) -> Self {
-        Self { log_dir }
+        Self {
+            log_dir,
+            seen_errors: std::sync::Arc::new(Mutex::new(HashSet::new())),
+        }
     }
 
     /// Best-effort append. Never panics, never propagates errors. On
@@ -241,6 +256,28 @@ impl InternalLog {
     }
 
     fn write_inner(&self, event: &InternalEvent) -> std::io::Result<()> {
+        // ADR-024 Decision 3: deduplicate `internal.dispatcher_error` events.
+        // Other event types are written unconditionally.
+        if event.type_ == INTERNAL_DISPATCHER_ERROR {
+            let hash = dedup_hash_for(event);
+            // Mutex::lock() failure → skip dedup and write (non-panicking contract).
+            match self.seen_errors.lock() {
+                Ok(mut set) => {
+                    if set.contains(&hash) {
+                        // Already seen — skip this write.
+                        return Ok(());
+                    }
+                    // Cap at SEEN_ERRORS_CAP: stop inserting once full, but still write.
+                    if set.len() < SEEN_ERRORS_CAP {
+                        set.insert(hash);
+                    }
+                }
+                Err(_) => {
+                    // Poisoned mutex — write anyway to avoid silent loss.
+                }
+            }
+        }
+
         fs::create_dir_all(&self.log_dir)?;
 
         let filename = format!(
@@ -304,6 +341,59 @@ impl InternalLog {
             eprintln!("factory-dispatcher: internal_log prune_old_dlq failed: {e}");
         }
     }
+}
+
+/// Compute the dedup hash for an `internal.dispatcher_error` event.
+///
+/// **Hash key = `event.type_ + ":" + char-boundary-safe-truncation(message_string_value, N≈4096)`**
+/// (ADR-024 Decision 3, amended by adversary pass-2 findings C2-CRIT-2/C2-HIGH-1).
+/// Uses `std::hash::DefaultHasher` which is non-cryptographic but sufficient
+/// for in-process dedup.
+///
+/// **Implementation notes (pass-1 M-5 + pass-2 C2-CRIT-2/C2-HIGH-1 fixes):**
+///
+/// 1. **String value, not JSON repr.** We extract the raw string value via
+///    `Value::as_str()` rather than `Value::to_string()`.  `to_string()` produces
+///    the JSON-serialized form (e.g. `"\"hello\""` with surrounding quotes), so
+///    two distinct messages that share a 254-char prefix would have identical first
+///    256 bytes in their JSON repr even though their raw values differ — a false
+///    dedup.  Using `as_str()` hashes the actual string content.
+///
+/// 2. **Bounded raw value at N=4096 bytes with char-safe ceiling.**
+///    (ADR-024 Decision 3, amended pass-2.)  Dispatcher error messages are short
+///    in practice, but unbounded hashing costs O(message length) per invocation.
+///    To bound cost and prevent pathological slowdowns on runaway callers that
+///    append context to the message, we truncate to at most 4096 bytes of the
+///    raw string value.  The truncation MUST be char-safe: find the largest byte
+///    index ≤ N that is a valid UTF-8 char boundary (`str::floor_char_boundary`
+///    or equivalent scan).  A naive byte slice at N panics when byte N falls
+///    inside a multi-byte codepoint.  Accepted tradeoff: two messages that share
+///    the same first N bytes but differ in their tails are treated as duplicates.
+///
+/// 3. **Non-panicking contract.** No index-based string slicing without boundary
+///    checks; no `unwrap()`.  `as_str()` returns `None` for non-string JSON
+///    values; we fall back to the empty string.  `DefaultHasher` and `HashSet`
+///    operations cannot panic.
+fn dedup_hash_for(event: &InternalEvent) -> u64 {
+    let mut h = DefaultHasher::new();
+    event.type_.hash(&mut h);
+    ":".hash(&mut h);
+    // Extract the raw string value of the `message` field.
+    // - For Value::String(s): as_str() yields s directly (no JSON quotes).
+    // - For other Value variants (unlikely for `message`): fall back to "".
+    let msg_str = event
+        .fields
+        .get("message")
+        .and_then(|v| v.as_str())
+        .unwrap_or("");
+    // Bounded char-safe truncation at N=4096 (ADR-024 Decision 3, amended pass-2).
+    // `floor_char_boundary` is stable since Rust 1.80; toolchain is 1.95.0.
+    // This bounds hashing cost to O(4 KiB) and is guaranteed to land on a
+    // valid UTF-8 char boundary (never panics for any string content).
+    const N: usize = 4096;
+    let safe_n = msg_str.floor_char_boundary(N.min(msg_str.len()));
+    msg_str[..safe_n].hash(&mut h);
+    h.finish()
 }
 
 /// Walk `dir` and delete files that match `prefix` + `suffix` (both must be present)
@@ -658,5 +748,518 @@ mod tests {
         assert!(parsed.get("session_id").is_none());
         assert!(parsed.get("plugin_name").is_none());
         assert!(parsed.get("plugin_version").is_none());
+    }
+
+    // -----------------------------------------------------------------------
+    // Red Gate test — issue #130 / ADR-024 Decision 3
+    //
+    // Writing the same `internal.dispatcher_error` message N times through
+    // the public API must produce exactly ONE line in the log file (dedup).
+    //
+    // CURRENTLY FAILS: `InternalLog` has no `seen_errors` field and no
+    // dedup logic.  Writing 5× produces 5 lines.
+    //
+    // The test uses a fixed timestamp so all writes land in the same JSONL
+    // file and the line-count assertion is deterministic.
+    //
+    // ADR-024 Decision 3 spec (amended v1.2):
+    //   - Dedup key = hash(type_ + ":" + char-boundary-safe
+    //     bounded_prefix(message string value via Value::as_str(), N=4096)).
+    //   - Cap at 1024 entries.
+    //   - Non-dispatcher_error events are written unconditionally.
+    //   - Mutex::lock() failure → log anyway (non-panicking contract).
+    // -----------------------------------------------------------------------
+    #[test]
+    fn test_BC_2_06_001_internal_log_dedup_same_message() {
+        let dir = tempfile::tempdir().unwrap();
+        let log = InternalLog::new(dir.path().to_path_buf());
+
+        // Pin a date so all events land in the same file.
+        let ts = Local.with_ymd_and_hms(2026, 6, 9, 10, 0, 0).unwrap();
+        let msg = "$CLAUDE_PLUGIN_ROOT is not set or empty — hook registry and resolver registry paths unresolvable";
+
+        // Write the SAME dispatcher_error message 5 times.
+        for _ in 0..5 {
+            let event =
+                InternalEvent::with_ts(INTERNAL_DISPATCHER_ERROR, ts).with_field("message", msg);
+            log.write(&event);
+        }
+
+        // Write a non-dispatcher_error event once — it must NOT be deduped.
+        let other_event = InternalEvent::with_ts(DISPATCHER_STARTED, ts).with_field("pid", 42_i64);
+        log.write(&other_event);
+
+        let expected_file = dir
+            .path()
+            .join(format!("{FILENAME_PREFIX}2026-06-09{FILENAME_SUFFIX}"));
+        assert!(
+            expected_file.exists(),
+            "log file must be created: {expected_file:?}"
+        );
+
+        let lines = read_lines(&expected_file);
+
+        // The 5 identical dispatcher_error events must be deduped to 1.
+        // The 1 dispatcher.started event must pass through unconditionally.
+        // Total expected: 2 lines.
+        assert_eq!(
+            lines.len(),
+            2,
+            "ADR-024 Decision 3: 5 identical dispatcher_error writes must be deduped to 1 line; \
+             got {} lines (dedup not yet implemented)",
+            lines.len()
+        );
+
+        // Verify the surviving lines are the right types.
+        let parsed_0: serde_json::Value = serde_json::from_str(&lines[0]).unwrap();
+        let parsed_1: serde_json::Value = serde_json::from_str(&lines[1]).unwrap();
+
+        assert_eq!(
+            parsed_0["type"], INTERNAL_DISPATCHER_ERROR,
+            "first surviving line must be the dispatcher_error"
+        );
+        assert_eq!(
+            parsed_1["type"], DISPATCHER_STARTED,
+            "second line must be the non-deduped dispatcher.started event"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // RED GATE: adversary pass-1 finding M-5 — dedup_hash_for char-boundary panic
+    //
+    // ADR-024 Decision 3 spec says "first 256 bytes (byte-level, not char-level)".
+    // The current implementation does `s[..s.len().min(256)]` which slices at
+    // byte 256. If byte 256 lands inside a multi-byte UTF-8 codepoint (e.g.
+    // a 2-byte accented character whose first byte is at index 255), Rust will
+    // PANIC at the slice boundary.
+    //
+    // Contract: `write` must NEVER panic regardless of the `message` field content.
+    // This test verifies the non-panicking contract on a multi-byte UTF-8 path
+    // long enough that byte 256 falls mid-codepoint.
+    //
+    // Construction: We need a string whose JSON serialization is >256 bytes
+    // and has a multi-byte codepoint straddling the 256-byte boundary.
+    //
+    // JSON value of a string `msg` serializes to `"<msg>"` (with surrounding
+    // quotes added by `v.to_string()` via serde_json::Value::String).
+    // So `v.to_string().len()` = msg.len() + 2 (for the quotes), minus any
+    // escape sequences.
+    //
+    // We use a path prefix of 254 ASCII chars, then a 2-byte UTF-8 codepoint
+    // (e.g. 'é' = 0xC3 0xA9).  After JSON serialization:
+    //   `"<254 ASCII chars><é>"` → len = 1 + 254 + 2 + 1 = 258 bytes.
+    //   Byte 256 (0-indexed) = second byte of 'é' (0xA9), inside the codepoint.
+    //   Slicing `s[..256]` splits the codepoint → PANIC.
+    //
+    // CURRENTLY PANICS — that is the RED. The fix must use
+    // `s.floor_char_boundary(256)` (Rust 1.65+ nightly; available in stable via
+    // manual scan) or `s.char_indices().take_while(|(i,_)| *i < 256)` to find
+    // the largest valid boundary ≤ 256 bytes.
+    // -----------------------------------------------------------------------
+
+    /// M-5 adversary finding: `write` must not panic when `message` JSON value
+    /// has a multi-byte UTF-8 codepoint straddling byte index 256.
+    ///
+    /// RED: currently panics with `byte index 256 is not a char boundary`.
+    #[test]
+    fn test_BC_2_06_001_dedup_no_panic_on_multibyte_utf8_at_256_boundary() {
+        let dir = tempfile::tempdir().unwrap();
+        let log = InternalLog::new(dir.path().to_path_buf());
+        let ts = Local.with_ymd_and_hms(2026, 6, 9, 10, 0, 0).unwrap();
+
+        // Build a message such that the JSON-serialized value has a multi-byte
+        // UTF-8 codepoint spanning byte 256.
+        //
+        // `serde_json::Value::String(s).to_string()` produces `"<s>"` (with
+        // surrounding double-quotes, 2 extra bytes).  We need the boundary at
+        // byte 256 of that serialized form.
+        //
+        // Target: place 'é' (2 bytes: 0xC3 0xA9) at positions 255-256 of the
+        // serialized string. Serialized prefix = `"` + 254 ASCII chars = 255
+        // bytes. Then 'é' starts at byte 255, meaning byte 256 is the second
+        // byte (0xA9) — inside the codepoint.
+        //
+        // So msg = 254 ASCII chars + 'é' + enough filler to exceed 256.
+        let prefix = "A".repeat(254);
+        let msg = format!("{prefix}é/tmp/some/path/that/keeps/going");
+
+        // Sanity-check: the JSON serialized value straddles byte 256.
+        let json_val = serde_json::Value::String(msg.clone()).to_string();
+        assert!(
+            json_val.len() > 256,
+            "test setup: JSON value must be >256 bytes, got {}",
+            json_val.len()
+        );
+        // Byte 256 should not be a char boundary (it's mid-codepoint).
+        // We assert the string is NOT valid UTF-8 if sliced at 256 bytes.
+        // Using `is_char_boundary` to verify test construction.
+        assert!(
+            !json_val.is_char_boundary(256),
+            "test setup: byte 256 must NOT be a char boundary (required for RED test)"
+        );
+
+        // This call MUST NOT panic (non-panicking write contract).
+        // The dedup hash computation calls `s[..s.len().min(256)]` which panics
+        // when byte 256 is not a char boundary.
+        let event =
+            InternalEvent::with_ts(INTERNAL_DISPATCHER_ERROR, ts).with_field("message", msg);
+        log.write(&event); // RED: panics here under current implementation
+
+        // If we reach here, the non-panicking contract was upheld.
+        // The event should have been written (first occurrence, no prior hash).
+        let log_file = dir
+            .path()
+            .join(format!("{FILENAME_PREFIX}2026-06-09{FILENAME_SUFFIX}"));
+        assert!(
+            log_file.exists(),
+            "log file must exist after successful write"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // REGRESSION GUARD: adversary pass-2 finding C2-MED-2 — dedup doc-block
+    // recap must reflect the amended ADR-024 Decision 3 contract.
+    //
+    // The pass-1 doc-block in dedup_hash_for() cited "first 256 bytes of
+    // message JSON value". ADR-024 Decision 3 was amended in pass-2 to use
+    // "bounded raw Value::as_str() at 4096-byte char-safe ceiling". The
+    // implementation was already updated (dedup_hash_for uses as_str() +
+    // full hash). The implementer must complete the pass-2 amendment by
+    // adding the 4096-byte char-safe truncation bound.
+    //
+    // This constant captures the intended N for test assertions so tests
+    // do not embed a magic literal. When the implementer adds truncation,
+    // the tests here remain in sync.
+    // -----------------------------------------------------------------------
+
+    /// Dedup bound N from ADR-024 Decision 3 (amended pass-2).
+    /// The implementer must add truncation at this boundary in `dedup_hash_for`.
+    /// Tests reference this constant — do NOT substitute a magic literal.
+    const DEDUP_HASH_N: usize = 4096;
+
+    // -----------------------------------------------------------------------
+    // REGRESSION GUARD (C2-MED-2 / C2-HIGH-1): two DISTINCT messages that
+    // differ at an EARLY byte (well within N) must BOTH be logged.
+    //
+    // This passes today with both the full-hash implementation AND the
+    // bounded-N implementation (early difference → distinct hashes under
+    // both strategies).  It is a regression guard: the implementer must not
+    // accidentally collapse distinct messages into the same N-prefix bucket.
+    //
+    // Contract: two dispatcher_error events with messages that differ at
+    // byte 20 → both are written (2 lines in the log file).
+    // -----------------------------------------------------------------------
+
+    /// C2-MED-2 / C2-HIGH-1 regression guard: messages differing at an early
+    /// byte (byte 20, << N=4096) are not deduplicated.
+    ///
+    /// Expected: PASSES against current HEAD and after bounded-N implementation.
+    #[test]
+    fn test_BC_2_06_001_dedup_distinct_messages_early_diff_both_logged() {
+        let dir = tempfile::tempdir().unwrap();
+        let log = InternalLog::new(dir.path().to_path_buf());
+        let ts = Local.with_ymd_and_hms(2026, 6, 9, 14, 0, 0).unwrap();
+
+        // Two messages: 20 identical ASCII chars, then differ at byte 20.
+        // Both are short (< N) so both full-hash and bounded-N produce
+        // distinct hashes.
+        let shared_20 = "A".repeat(20);
+        let msg_a = format!("{shared_20}ALPHA_suffix_one");
+        let msg_b = format!("{shared_20}BETA__suffix_two");
+        // Verify test setup: byte 20 differs.
+        assert_ne!(
+            msg_a.as_bytes()[20],
+            msg_b.as_bytes()[20],
+            "test setup: byte 20 must differ between msg_a and msg_b"
+        );
+
+        let event_a =
+            InternalEvent::with_ts(INTERNAL_DISPATCHER_ERROR, ts).with_field("message", msg_a);
+        let event_b =
+            InternalEvent::with_ts(INTERNAL_DISPATCHER_ERROR, ts).with_field("message", msg_b);
+        log.write(&event_a);
+        log.write(&event_b);
+
+        let log_file = dir
+            .path()
+            .join(format!("{FILENAME_PREFIX}2026-06-09{FILENAME_SUFFIX}"));
+        let lines = read_lines(&log_file);
+        assert_eq!(
+            lines.len(),
+            2,
+            "C2-MED-2 / C2-HIGH-1: two distinct dispatcher_error events differing at byte 20 \
+             must both be logged (got {} lines)",
+            lines.len()
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // REGRESSION GUARD (C2-HIGH-1): oversized message (>> N=4096) containing
+    // multibyte UTF-8 near and beyond byte N, written twice → dedup to 1 line,
+    // no panic.
+    //
+    // Current behavior (full-hash): passes — the two identical writes produce
+    // the same hash and the second is skipped.  No panic since as_str() +
+    // full hash never slices at a byte boundary.
+    //
+    // After implementer adds bounded truncation at N=4096: must also pass —
+    // the truncation is char-safe so the multibyte codepoint near N does not
+    // cause a panic, and the two identical truncated prefixes produce the
+    // same hash (dedup to 1).
+    //
+    // If bounded truncation is added naively (byte slice at N with no char
+    // safety), this test becomes RED (panic).  That is the point: this test
+    // guards against the naive panic regression.
+    // -----------------------------------------------------------------------
+
+    /// C2-HIGH-1 regression guard: oversized message with multibyte UTF-8 near
+    /// byte N written twice → dedup to 1 line, MUST NOT panic.
+    ///
+    /// Expected: PASSES against current HEAD and after correct bounded-N
+    /// implementation.  Becomes RED if the implementer introduces a naive
+    /// byte-slice at N that splits a multibyte codepoint.
+    #[test]
+    fn test_BC_2_06_001_dedup_oversized_multibyte_near_N_no_panic_deduped() {
+        let dir = tempfile::tempdir().unwrap();
+        let log = InternalLog::new(dir.path().to_path_buf());
+        let ts = Local.with_ymd_and_hms(2026, 6, 9, 15, 0, 0).unwrap();
+
+        // Build a message that:
+        //   1. Has a multibyte UTF-8 codepoint ('é' = 0xC3 0xA9, 2 bytes)
+        //      placed such that its FIRST byte lands at index DEDUP_HASH_N-1
+        //      (i.e., byte DEDUP_HASH_N is the second byte, inside the codepoint).
+        //   2. Continues for ~1 MB past the multibyte codepoint (oversized).
+        //
+        // Placement: N-1 ASCII chars, then 'é', then ~1MB of 'Z' chars.
+        // Raw string bytes: byte 0..(N-1) = ASCII, byte (N-1) = 0xC3,
+        // byte N = 0xA9 (inside 'é' codepoint).
+        //
+        // A naive `msg[..N]` byte-slice would split 'é' and panic.
+        // A char-safe implementation finds the last char boundary <= N and
+        // truncates there, landing at byte N-1 (just before 'é').
+        let oversized_suffix = "Z".repeat(1_000_000);
+        let msg = format!(
+            "{}{}{}",
+            "A".repeat(DEDUP_HASH_N - 1),
+            'é',
+            oversized_suffix
+        );
+
+        // Verify the multibyte codepoint straddles the N boundary.
+        assert_eq!(
+            msg.as_bytes()[DEDUP_HASH_N - 1],
+            0xC3,
+            "test setup: byte N-1 must be first byte of 'é' (0xC3)"
+        );
+        assert_eq!(
+            msg.as_bytes()[DEDUP_HASH_N],
+            0xA9,
+            "test setup: byte N must be second byte of 'é' (0xA9)"
+        );
+        assert!(
+            !msg.is_char_boundary(DEDUP_HASH_N),
+            "test setup: byte N must NOT be a char boundary"
+        );
+
+        // Write the same oversized message twice.
+        for _ in 0..2 {
+            let event = InternalEvent::with_ts(INTERNAL_DISPATCHER_ERROR, ts)
+                .with_field("message", msg.clone());
+            log.write(&event); // Must not panic under any implementation.
+        }
+
+        let log_file = dir
+            .path()
+            .join(format!("{FILENAME_PREFIX}2026-06-09{FILENAME_SUFFIX}"));
+        let lines = read_lines(&log_file);
+        assert_eq!(
+            lines.len(),
+            1,
+            "C2-HIGH-1: two identical oversized dispatcher_error writes must dedup to 1 line \
+             (got {} lines)",
+            lines.len()
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // RED GATE (C2-MED-2 + C2-HIGH-1): two messages IDENTICAL for the first
+    // N+100 bytes but differing only AFTER byte N → dedup to 1 line.
+    //
+    // This documents the accepted bounded-prefix tradeoff: once bounded
+    // truncation is in place, two messages that share the same N-byte prefix
+    // but differ in their tails are treated as duplicates.
+    //
+    // ADR-024 Decision 3 (amended): hash key = type + ":" +
+    // char-boundary-safe-truncation(message string value, N≈4096).
+    //
+    // Current behavior (full-hash, no truncation): the two messages have
+    // DISTINCT hashes (they differ after byte N), so BOTH are logged → 2 lines.
+    // This test FAILS (RED) against the current full-hash implementation.
+    //
+    // After the implementer adds bounded truncation at N=DEDUP_HASH_N:
+    // both messages produce the SAME truncated prefix → same hash → dedup
+    // to 1 line. The test turns GREEN.
+    //
+    // This is the primary RED gate driving the pass-2 bounded-truncation work.
+    // -----------------------------------------------------------------------
+
+    /// C2-MED-2 / C2-HIGH-1: two messages identical for first N bytes, differing
+    /// only after byte N → deduplicated to 1 line (bounded-prefix tradeoff).
+    ///
+    /// RED: currently 2 lines (full-hash distinguishes the messages).
+    /// GREEN after: bounded truncation at N=DEDUP_HASH_N collapses them.
+    #[test]
+    fn test_BC_2_06_001_dedup_messages_differing_only_after_N_deduped_to_1() {
+        let dir = tempfile::tempdir().unwrap();
+        let log = InternalLog::new(dir.path().to_path_buf());
+        let ts = Local.with_ymd_and_hms(2026, 6, 9, 16, 0, 0).unwrap();
+
+        // Construct two messages:
+        //   msg_a: DEDUP_HASH_N ASCII chars + "TAIL_ALPHA_UNIQUE"
+        //   msg_b: DEDUP_HASH_N ASCII chars + "TAIL_BETA_DIFFERENT"
+        //
+        // Both share the same N-char prefix; they differ only in the tail
+        // that lies beyond byte N.  Under bounded-N truncation both hash to
+        // the same N-byte prefix → dedup to 1 line.
+        let shared_prefix = "C".repeat(DEDUP_HASH_N);
+        let msg_a = format!("{shared_prefix}TAIL_ALPHA_UNIQUE");
+        let msg_b = format!("{shared_prefix}TAIL_BETA_DIFFERENT");
+
+        // Sanity: messages share exact N-byte prefix and differ after.
+        assert_eq!(
+            &msg_a.as_bytes()[..DEDUP_HASH_N],
+            &msg_b.as_bytes()[..DEDUP_HASH_N],
+            "test setup: first N bytes must be identical"
+        );
+        assert_ne!(msg_a, msg_b, "test setup: full messages must be distinct");
+
+        let event_a =
+            InternalEvent::with_ts(INTERNAL_DISPATCHER_ERROR, ts).with_field("message", msg_a);
+        let event_b =
+            InternalEvent::with_ts(INTERNAL_DISPATCHER_ERROR, ts).with_field("message", msg_b);
+        log.write(&event_a);
+        log.write(&event_b);
+
+        let log_file = dir
+            .path()
+            .join(format!("{FILENAME_PREFIX}2026-06-09{FILENAME_SUFFIX}"));
+        let lines = read_lines(&log_file);
+        assert_eq!(
+            lines.len(),
+            1,
+            "C2-MED-2 / C2-HIGH-1 (bounded-prefix tradeoff): two dispatcher_error messages \
+             that share the first {} bytes but differ only in the tail must be deduplicated \
+             to 1 line under bounded-prefix hashing (got {} lines — full-hash implementation \
+             is RED here; add char-safe truncation at N={} to turn GREEN)",
+            DEDUP_HASH_N,
+            lines.len(),
+            DEDUP_HASH_N,
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // RED GATE: adversary pass-1 finding M-5 — false dedup on distinct
+    // messages sharing identical first-256-byte JSON prefix.
+    //
+    // HISTORICAL NOTE: this test was written for pass-1 when the contract was
+    // "first 256 bytes of JSON repr".  Under the AMENDED pass-2 contract
+    // (N=4096, raw string value), it still passes as a regression guard:
+    // messages differing after byte 256 (but before byte 4096) must BOTH be
+    // logged under both the old and new contract.
+    //
+    // Contract (unchanged): two distinct `internal.dispatcher_error` events
+    // whose message fields differ (even if only after byte 256) MUST both be
+    // logged.
+    //
+    // CURRENTLY PASSES: the current full-hash implementation logs both.
+    // After bounded-N (N=4096) truncation: still passes (difference is at
+    // byte 256, well within the 4096 window).
+    // -----------------------------------------------------------------------
+
+    /// M-5 adversary finding: two distinct errors sharing a 256-byte JSON
+    /// prefix must BOTH be logged (no false dedup).
+    ///
+    /// Regression guard: PASSES against current HEAD and after bounded-N fix.
+    #[test]
+    fn test_BC_2_06_001_dedup_no_false_dedup_for_messages_differing_after_byte_256() {
+        let dir = tempfile::tempdir().unwrap();
+        let log = InternalLog::new(dir.path().to_path_buf());
+        let ts = Local.with_ymd_and_hms(2026, 6, 9, 11, 0, 0).unwrap();
+
+        // Construct two distinct messages whose JSON-serialized values share the
+        // same first 256 bytes but differ after byte 256.
+        //
+        // JSON serialization of a plain ASCII string of length N is `"<N chars>"`,
+        // so bytes 0..=N+1 (N+2 total). We want the shared prefix to be exactly
+        // 256 bytes long.
+        //
+        // shared_prefix_chars: 254 ASCII chars (bytes 1..254 inside `"..."` quotes).
+        // Full shared JSON prefix = `"` + 254 chars = 255 bytes (byte 0..254).
+        // At byte 255 and 256 we place distinct characters so the msgs differ.
+        //
+        // msg_a: 254 shared chars + "X" + suffix_a
+        // msg_b: 254 shared chars + "Y" + suffix_b
+        // Both have identical bytes 0..255 in JSON form, differ at byte 255+.
+        // After .min(256) truncation: bytes 0..256 are shared for both.
+        //
+        // Actually we need to ensure the first 256 bytes of `v.to_string()` are
+        // identical. `v.to_string()` for a String value = `"<escaped_string>"`.
+        // So: byte 0 = `"`, bytes 1..254 = shared prefix, byte 255 = first
+        // differing char, byte 256+ = rest.
+        //
+        // Therefore: shared_prefix = 254 ASCII chars, then distinct char at index 254.
+        // Both messages: same 254 chars, then different suffix.
+        // JSON of both: `"<254 chars><different suffix>"`.
+        // Bytes 0..255 = `"` + 254 chars = 255 bytes shared.
+        // Byte 255 = first byte of different suffix char.
+        // Byte 256 = second byte (or another char).
+        //
+        // For the hash to collide: we need bytes 0..256 identical.
+        // So shared content must be 255 bytes: `"` + 254 chars.
+        // Make suffix start at byte 255, ensure bytes 255-256 are ASCII and same.
+        // Then differ at byte 257+. → shared_prefix = 255 ASCII chars works:
+        // JSON = `"<255 chars><msg_a_tail>"` vs `"<255 chars><msg_b_tail>"`.
+        // First 256 bytes = `"` + 255 chars = 256 bytes — IDENTICAL for both.
+        // Byte 256 = start of msg_a_tail vs msg_b_tail — DIFFERENT.
+        //
+        // This is the false-dedup scenario: hash uses s[..256] = same for both.
+
+        let shared = "B".repeat(255);
+        let msg_a = format!("{shared}TAIL_ALPHA_UNIQUE");
+        let msg_b = format!("{shared}TAIL_BETA_DIFFERENT");
+
+        // Sanity-check setup: first 256 bytes of JSON value must be identical.
+        let json_a = serde_json::Value::String(msg_a.clone()).to_string();
+        let json_b = serde_json::Value::String(msg_b.clone()).to_string();
+        assert_eq!(
+            &json_a.as_bytes()[..256],
+            &json_b.as_bytes()[..256],
+            "test setup: first 256 bytes must be identical for both JSON values"
+        );
+        assert_ne!(
+            json_a, json_b,
+            "test setup: messages must be distinct overall"
+        );
+
+        // Write both distinct errors.
+        let event_a =
+            InternalEvent::with_ts(INTERNAL_DISPATCHER_ERROR, ts).with_field("message", msg_a);
+        let event_b =
+            InternalEvent::with_ts(INTERNAL_DISPATCHER_ERROR, ts).with_field("message", msg_b);
+        log.write(&event_a);
+        log.write(&event_b);
+
+        // Both events are distinct — BOTH must be logged.
+        let log_file = dir
+            .path()
+            .join(format!("{FILENAME_PREFIX}2026-06-09{FILENAME_SUFFIX}"));
+        let lines = read_lines(&log_file);
+        assert_eq!(
+            lines.len(),
+            2,
+            "M-5 (false dedup): two distinct dispatcher_error events that differ after \
+             byte 256 must BOTH be logged; got {} lines (second was falsely suppressed)",
+            lines.len()
+        );
     }
 }

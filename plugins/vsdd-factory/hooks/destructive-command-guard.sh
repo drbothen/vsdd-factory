@@ -70,9 +70,85 @@ done
 # ---------------------------------------------------------------------------
 # rm -rf / rm -r on protected paths (.factory/, src/, tests/)
 # ---------------------------------------------------------------------------
+# ADR-024 Decision 4 v1.2 — lexical path-normalization predicate for the
+# .factory/.factory/ shadow exception.
+#
+# Returns 0 (true) if ALL .factory-bearing tokens in the command lexically
+# normalize to strictly inside the .factory/.factory/ shadow root.
+# Returns 1 (false) if ANY token resolves outside the shadow root, contains
+# ".." adjacent to a .factory component (conservative traversal reject), or
+# if no .factory-bearing token is found at all.
+#
+# Algorithm per token:
+#   (a) Skip flags (tokens starting with -) and tokens without ".factory".
+#   (b) Conservative: reject any token where ".." appears directly adjacent to
+#       a ".factory" path component (".factory/.." or "../.factory").
+#   (c) Lexically normalize: split on "/", maintain a stack — push non-empty
+#       non-"." components; pop on ".."; ignore empty/"." entries.
+#   (d) Reconstruct normalized path from stack.
+#   (e) Allow ONLY if normalized == ".factory/.factory" OR starts with
+#       ".factory/.factory/" (i.e., strictly inside the shadow root).
+#   (f) If ALL .factory-bearing tokens pass → return 0 (allow).
+#       If ANY fails → return 1 (block).
+_all_targets_inside_shadow() {
+  local cmd="$1"
+  local found_factory_token=0
+  for token in $cmd; do
+    # Skip flags.
+    [[ "$token" == -* ]] && continue
+    # Only process tokens containing ".factory".
+    if [[ "$token" != *".factory"* ]]; then continue; fi
+    found_factory_token=1
+    # Conservative: reject ".." adjacent to a .factory component.
+    if [[ "$token" =~ \.factory/\.\. ]] || [[ "$token" =~ \.\./\.factory ]]; then
+      return 1
+    fi
+    # Lexical normalization: resolve "." and ".." without filesystem access.
+    # Split on "/" using parameter expansion to avoid IFS tampering.
+    local stack=()
+    local remaining="${token}"
+    while [[ "$remaining" == */* ]]; do
+      local part="${remaining%%/*}"
+      remaining="${remaining#*/}"
+      if [[ "$part" == ".." ]]; then
+        (( ${#stack[@]} > 0 )) && unset 'stack[-1]'
+      elif [[ -n "$part" && "$part" != "." ]]; then
+        stack+=("$part")
+      fi
+    done
+    # Process final component after last "/".
+    if [[ -n "$remaining" && "$remaining" != "." && "$remaining" != ".." ]]; then
+      stack+=("$remaining")
+    elif [[ "$remaining" == ".." ]]; then
+      (( ${#stack[@]} > 0 )) && unset 'stack[-1]'
+    fi
+    # Join stack with "/" using printf to avoid IFS assignment.
+    local normalized
+    printf -v normalized '%s/' "${stack[@]}"
+    normalized="${normalized%/}"
+    # Must normalize to .factory/.factory or a path inside it.
+    if [[ "$normalized" != ".factory/.factory" && \
+          "$normalized" != ".factory/.factory/"* ]]; then
+      return 1
+    fi
+  done
+  # No .factory token found — do not grant exception without evidence.
+  (( found_factory_token == 0 )) && return 1
+  return 0
+}
+
 if echo "$COMMAND" | grep -qE "$RM_RECURSIVE"; then
   for protected_re in '\.factory/' '\.factory(\s|$|;|&|\|)' '\bsrc/' '\btests/'; do
     if echo "$COMMAND" | grep -qE "$protected_re"; then
+      # ADR-024 Decision 4 v1.2 — lexical path-normalization shadow exception.
+      # Applies ONLY for .factory-related protected patterns (not src/ or tests/).
+      if [[ "$protected_re" == *".factory"* ]]; then
+        if _all_targets_inside_shadow "$COMMAND"; then
+          # All .factory-bearing targets normalize to inside .factory/.factory/ — allow.
+          continue
+        fi
+        # At least one target resolves outside the shadow root — fall through to block.
+      fi
       # Allow .worktrees/ cleanup (normal workflow)
       if [[ "$COMMAND" == *".worktrees/"* ]]; then
         continue
@@ -150,10 +226,28 @@ if echo "$COMMAND" | grep -qE '\bfind\b[^|&;]*(-delete|-exec\s+rm\b)'; then
   # - .factory followed by word-boundary (end, slash, or space)
   # - src/tests as full words
   if echo "$COMMAND" | grep -qE '\.factory\b|\bsrc\b|\btests\b'; then
-    block_pre "destructive-command-guard" \
-      "find with -delete or -exec rm on protected path: $COMMAND" \
-      "find -delete bypasses rm safety checks. Remove specific files explicitly" \
-      "find_delete_protected"
+    # ADR-024 Decision 4 v1.2 — lexical path-normalization shadow exception.
+    # Applies ONLY when .factory appears in the command.
+    # For src/ and tests/ targets, no exception exists — always block.
+    if echo "$COMMAND" | grep -qE '\.factory'; then
+      # Command contains .factory — check via lexical normalization predicate.
+      if _all_targets_inside_shadow "$COMMAND"; then
+        # All .factory-bearing targets normalize to inside .factory/.factory/ — allow.
+        : # fall through to exit 0
+      else
+        # At least one target resolves outside the shadow root — block.
+        block_pre "destructive-command-guard" \
+          "find with -delete or -exec rm on protected path: $COMMAND" \
+          "find -delete bypasses rm safety checks. Remove specific files explicitly" \
+          "find_delete_protected"
+      fi
+    else
+      # No .factory in command — must be src/ or tests/ → always block.
+      block_pre "destructive-command-guard" \
+        "find with -delete or -exec rm on protected path: $COMMAND" \
+        "find -delete bypasses rm safety checks. Remove specific files explicitly" \
+        "find_delete_protected"
+    fi
   fi
 fi
 

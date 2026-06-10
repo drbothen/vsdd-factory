@@ -24,6 +24,8 @@ pub mod executor;
 pub mod host;
 pub mod internal_log;
 pub mod invoke;
+pub mod log_dir;
+pub use log_dir::{resolve_log_dir_from, resolve_log_dir_from_params};
 pub mod partition;
 pub mod payload;
 pub mod plugin_loader;
