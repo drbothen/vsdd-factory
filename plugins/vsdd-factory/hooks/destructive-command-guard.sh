@@ -73,6 +73,15 @@ done
 if echo "$COMMAND" | grep -qE "$RM_RECURSIVE"; then
   for protected_re in '\.factory/' '\.factory(\s|$|;|&|\|)' '\bsrc/' '\btests/'; do
     if echo "$COMMAND" | grep -qE "$protected_re"; then
+      # Allow deletion of the recursive shadow ONLY (.factory/.factory/).
+      # ADR-024 Decision 4: the shadow is the exact path .factory/.factory/
+      # and its subdirectories. A legitimate .factory/ path never contains
+      # the substring .factory/.factory, so this exception cannot be
+      # exploited to delete the real .factory/.
+      if [[ "$COMMAND" == *".factory/.factory"* ]] || \
+         echo "$COMMAND" | grep -qE '\.factory/\.factory(/|$)'; then
+        continue
+      fi
       # Allow .worktrees/ cleanup (normal workflow)
       if [[ "$COMMAND" == *".worktrees/"* ]]; then
         continue
@@ -150,10 +159,16 @@ if echo "$COMMAND" | grep -qE '\bfind\b[^|&;]*(-delete|-exec\s+rm\b)'; then
   # - .factory followed by word-boundary (end, slash, or space)
   # - src/tests as full words
   if echo "$COMMAND" | grep -qE '\.factory\b|\bsrc\b|\btests\b'; then
-    block_pre "destructive-command-guard" \
-      "find with -delete or -exec rm on protected path: $COMMAND" \
-      "find -delete bypasses rm safety checks. Remove specific files explicitly" \
-      "find_delete_protected"
+    # ADR-024 Decision 4: allow find-delete on the shadow path .factory/.factory/
+    # only. Real .factory/ paths stay blocked.
+    if echo "$COMMAND" | grep -qE '\.factory/\.factory'; then
+      : # shadow path — allow
+    else
+      block_pre "destructive-command-guard" \
+        "find with -delete or -exec rm on protected path: $COMMAND" \
+        "find -delete bypasses rm safety checks. Remove specific files explicitly" \
+        "find_delete_protected"
+    fi
   fi
 fi
 
