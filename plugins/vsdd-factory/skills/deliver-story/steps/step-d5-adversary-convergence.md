@@ -28,10 +28,23 @@ It RESETS to 0 if any pass produces a finding above NITPICK_ONLY. Minimum 3 clea
 ## Dispatch Loop
 
 **Step 1 — Adversary dispatch:**
+
+Before building the adversary context package, the orchestrator MUST capture the worktree-identity triple:
+
+```bash
+# Resolve the absolute worktree path for this story
+WORKTREE_ABS_PATH="$(git -C /path/to/repo rev-parse --show-toplevel)/.worktrees/<STORY-ID>"
+# Capture the feature HEAD SHA at dispatch time
+FEATURE_HEAD_SHA="$(git -C "$WORKTREE_ABS_PATH" rev-parse HEAD)"
+```
+
+The dispatch MUST embed the expected feature HEAD SHA, the absolute worktree path, and the story-id as a WORKTREE-IDENTITY TRIPLE in the adversary task prompt (see adversarial-review SKILL.md "Worktree-Identity Preflight (MANDATORY)" for the exact format). This triple is the orchestrator's assertion, made before the adversary reads any files, that the worktree is on the correct commit. The preflight assertion MUST pass — i.e., the adversary MUST find the triple present and internally consistent — before findings are accepted. Any adversary response that omits triple verification or emits a `dispatch-error` about a missing triple MUST be treated as a dispatch misconfiguration, not a content finding; fix the dispatch and re-run.
+
 Dispatch `adversary` agent (model tier: Capable) with context:
-- Story worktree diff (`.worktrees/<STORY-ID>/`)
-- Story spec (`.factory/stories/<STORY-ID>-*.md`)
-- Anchored BCs listed in the story's `behavioral_contracts:` frontmatter field
+- WORKTREE-IDENTITY TRIPLE (embedded verbatim as described above)
+- Story worktree diff (`.worktrees/<STORY-ID>/`) — use `worktree-abs-path` from the triple as the read root
+- Story spec (`.factory/stories/<STORY-ID>-*.md`) — canonical repo-root path only (NOT worktree snapshot)
+- Anchored BCs listed in the story's `behavioral_contracts:` frontmatter field — canonical repo-root paths only
 - Current convergence state file (if it exists)
 
 Task: "Review the story diff against the story spec and anchored BCs. Classify each finding as CRITICAL, HIGH, MEDIUM, LOW, or NITPICK_ONLY. Tag out-of-scope findings (cross-story, integration, system-level, architectural) as deferred per BC-5.39.002. Write updated convergence state JSON to `.factory/cycles/<cycle-id>/<story-id>/adversary-convergence-state.json`."

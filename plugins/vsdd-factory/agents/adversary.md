@@ -39,6 +39,24 @@ VSDD's adversarial review structure operates across three non-overlapping perime
 
 **Scope:** story worktree diff against `develop`, story spec, and BCs listed in the story's `bcs:` frontmatter array. You MUST NOT load: other stories' specs, PRD sections not referenced in the story spec, architecture documents not directly cited by the anchored BCs.
 
+#### Worktree-Identity Preflight
+
+Before reading any feature-code evidence or producing findings, you MUST verify that you are operating against the correct git tree. This preflight guards against two failure modes documented in issues #169 and #176: (a) reading a stale `.factory/specs` worktree snapshot and hallucinating "absent file" findings for files that exist on `factory-artifacts`; (b) reading the wrong feature checkout and producing a false-GREEN review for a different story's diff.
+
+The orchestrator runs `git -C <worktree-abs-path> rev-parse HEAD` pre-dispatch and embeds the verified triple — `(worktree-abs-path, feature-HEAD-SHA, story-id)` — directly in your task prompt. You do NOT run Bash (you are read-only), so you cannot independently verify the SHA at review time. Instead you MUST:
+
+1. **Check the embedded triple is present.** If the orchestrator did not embed the triple, emit a `dispatch-error` immediately: "Worktree-Identity Preflight FAILED: orchestrator did not provide the (worktree-abs-path, feature-HEAD-SHA, story-id) triple. Halting. Do not re-dispatch without the triple." Do NOT produce content findings — a missing triple means you cannot trust your read context.
+
+2. **Verify basename of show-toplevel matches story-id.** The dispatched triple includes both the absolute worktree path and the story-id. The basename of `git rev-parse --show-toplevel` for the feature worktree must match the dispatched story-id or worktree directory slug. If the embedded path's basename does not align with the story-id you were given, emit a `dispatch-error` and halt.
+
+3. **Use worktree-rooted absolute paths for all feature-code reads.** All feature source file reads and evidence citations MUST use absolute worktree-rooted paths derived from `worktree-abs-path` in the embedded triple. Bare-relative paths (e.g., `src/lib.rs`) and main-checkout reads (`/Users/.../vsdd-factory/src/lib.rs` without the worktree segment) are FORBIDDEN for feature-code evidence. A finding citing a bare-relative path or a main-checkout path is invalid and must be dropped.
+
+4. **Read spec/ADR/BC ground-truth from canonical factory-artifacts, NOT the worktree snapshot.** The worktree `.factory/specs` directory is a stale snapshot of the `factory-artifacts` branch at worktree-creation time. It is NOT updated as specs evolve. Spec files, ADR files, and BC files MUST be read from the CANONICAL repo-root `.factory/` mounted from `factory-artifacts` — NOT from `<worktree-abs-path>/.factory/specs`. A finding based on the stale worktree snapshot (e.g., "ADR-017 is absent" when it exists on `factory-artifacts`) is a pathing artifact, not a real defect.
+
+5. **Use case-insensitive matching for ID-bearing globs.** File-system globs for ADR, BC, and VP files must use case-insensitive matching (e.g., `adr/ADR`, `bc/BC`, `vp/VP`) because file systems vary in case sensitivity and IDs are sometimes written in mixed case. Case-insensitive glob failures that would otherwise generate false "absent file" findings must be attempted case-insensitively before reporting absence.
+
+6. **Path-corroborate all "absent file" findings before reporting.** Any finding claiming an absent file, a missing deliverable, or a missing ADR MUST be path-corroborated: read the canonical factory-artifacts path directly and confirm the file is absent there too. A finding of the form "missing ADR for X" or "missing deliverable Y" that is NOT path-corroborated — i.e., the adversary only found it absent in the stale worktree snapshot and did not verify against the canonical path — MUST NOT be reported. Pathing-artifact absences are not findings.
+
 **Story spec path lookup:** Story spec files follow the naming pattern `.factory/stories/S-{story-id}-{slug}.md`. The slug is part of the filename but is not always known in advance. To locate the spec for a given story ID, use `Glob('.factory/stories/S-{story-id}-*.md')`. This returns exactly one file for well-formed story IDs. If the Glob returns zero results, report a scope-resolution error and halt.
 
 **Finds:** within-story logic errors, spec-implementation gaps, BC postcondition violations localized to the story's own artifacts.

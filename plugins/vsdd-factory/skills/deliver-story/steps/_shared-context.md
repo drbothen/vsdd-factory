@@ -53,6 +53,14 @@ Pass only the specific files each specialist needs. Never pass the whole story f
 | demo-recorder | story file, acceptance criteria extract only |
 | pr-manager | story ID, feature branch name, PR template path |
 
+### Spec-Path Discipline (canonical repo-root paths only)
+
+**All spec, BC, and ADR files passed to specialists MUST be canonical repo-root absolute paths** — paths rooted at the main checkout where the `factory-artifacts` branch is mounted at `.factory/`. For example: `/path/to/repo/.factory/specs/behavioral-contracts/BC-5.39.001.md`.
+
+**The worktree `.factory/specs` snapshot is stale and off-limits for spec ground-truth.** When a story worktree is created (e.g., `.worktrees/S-12.08/`), git populates the worktree with a snapshot of `.factory/specs` as it existed at worktree-creation time. That snapshot is NOT updated when specs evolve on `factory-artifacts`. Passing the worktree-local `.factory/specs` path to the adversary or any spec-reading specialist causes them to review against stale content and produce phantom "absent BC" or "outdated spec" findings that have already been resolved on `factory-artifacts`.
+
+**Enforcement:** Before building the context package for any specialist dispatch involving spec files, the orchestrator MUST resolve the canonical repo-root path for each spec file and pass that path — not `<worktree>/.factory/specs/<file>`. If the canonical path cannot be resolved (e.g., factory-artifacts worktree is not mounted), STOP and report to the human before dispatching.
+
 If a story is too large to fit any specialist's budget (≥60% of target model's context window), STOP and dispatch story-writer to split it before proceeding.
 
 ## Verification Discipline

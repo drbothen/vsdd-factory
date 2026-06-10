@@ -72,6 +72,29 @@ Examples:
 
 When `--scope` is not `full`, note the scope limitation in the review output header so readers know the review was targeted, not comprehensive.
 
+## Worktree-Identity Preflight (MANDATORY)
+
+Before dispatching the adversary for a Perimeter-1 per-story review, the orchestrator MUST resolve and embed the worktree-identity triple. Skipping this step causes the adversary to read the wrong git tree — either a stale `.factory/specs` snapshot (#169) or the wrong feature checkout (#176) — producing phantom "absent file" findings or a dangerous false-GREEN review.
+
+**Orchestrator steps (pre-dispatch):**
+
+1. **Resolve `worktree-abs-path`:** the absolute path to the story's worktree (e.g., `/path/to/repo/.worktrees/S-12.08`). This must be the actual worktree directory, not the main checkout.
+2. **Capture `feature-HEAD-SHA`:** run `git -C <worktree-abs-path> rev-parse HEAD` and capture the output. This is the expected feature HEAD SHA the adversary will review.
+3. **Confirm `story-id`:** the story ID from the STORY-INDEX entry (e.g., `S-12.08`).
+4. **Embed the triple** in the adversary task prompt verbatim:
+   ```
+   WORKTREE-IDENTITY TRIPLE (pre-verified by orchestrator):
+     worktree-abs-path: <absolute-path>
+     feature-HEAD-SHA:  <sha>
+     story-id:          <story-id>
+   ```
+
+**Adversary behavior (enforced by `adversary.md` Worktree-Identity Preflight section):**
+
+The adversary MUST ASSERT the triple is present before producing any findings. If the triple is missing or the paths are inconsistent, the adversary emits a `dispatch-error` and halts — it does NOT proceed to content review. This ASSERT-before-findings discipline is the structural guarantee that a misconfigured dispatch is caught immediately rather than producing misleading review output.
+
+**Why the orchestrator embeds, not the adversary verifies independently:** The adversary is read-only (no Bash access); it cannot run `git rev-parse HEAD` itself. The orchestrator has Bash access and runs the SHA capture pre-dispatch. The adversary's role is to ASSERT the embedded triple is present and consistent — not to independently compute it.
+
 ## Filename Collision Guard (MANDATORY pre-flight)
 
 Before writing any review file, the orchestrator MUST check for filename collisions:
