@@ -73,14 +73,29 @@ done
 if echo "$COMMAND" | grep -qE "$RM_RECURSIVE"; then
   for protected_re in '\.factory/' '\.factory(\s|$|;|&|\|)' '\bsrc/' '\btests/'; do
     if echo "$COMMAND" | grep -qE "$protected_re"; then
-      # Allow deletion of the recursive shadow ONLY (.factory/.factory/).
-      # ADR-024 Decision 4: the shadow is the exact path .factory/.factory/
-      # and its subdirectories. A legitimate .factory/ path never contains
-      # the substring .factory/.factory, so this exception cannot be
-      # exploited to delete the real .factory/.
-      if [[ "$COMMAND" == *".factory/.factory"* ]] || \
-         echo "$COMMAND" | grep -qE '\.factory/\.factory(/|$)'; then
-        continue
+      # ADR-024 Decision 4 — TARGET-SCOPED shadow exception (C-1/C-2/H-1 fix).
+      #
+      # The shadow exception applies ONLY for .factory-related protected patterns,
+      # NOT for src/ or tests/. Check this before applying the exception.
+      #
+      # When the pattern is .factory-related: allow deletion ONLY when EVERY
+      # .factory-bearing target is under .factory/.factory/ (the shadow path).
+      # Implementation: strip all .factory/.factory occurrences from the command;
+      # if any .factory reference survives, a real-worktree target is present
+      # → must be BLOCKED.  If no .factory survives, all refs are shadow → ALLOW.
+      #
+      # This prevents `rm -rf .factory/ .factory/.factory` from being allowed:
+      # stripping `.factory/.factory` leaves `.factory/` → still matches → block.
+      if [[ "$protected_re" == *".factory"* ]]; then
+        # SC2001: sed required here — bash ${//} glob treats '.' as wildcard, but
+        # we need a literal dot to avoid matching non-.factory paths.
+        # shellcheck disable=SC2001
+        _shadow_stripped_cmd=$(echo "$COMMAND" | sed 's|\.factory/\.factory|__SHADOW__|g')
+        if ! echo "$_shadow_stripped_cmd" | grep -qE '\.factory'; then
+          # All .factory references are shadow paths — allow.
+          continue
+        fi
+        # At least one real .factory target remains — fall through to block.
       fi
       # Allow .worktrees/ cleanup (normal workflow)
       if [[ "$COMMAND" == *".worktrees/"* ]]; then
@@ -159,11 +174,30 @@ if echo "$COMMAND" | grep -qE '\bfind\b[^|&;]*(-delete|-exec\s+rm\b)'; then
   # - .factory followed by word-boundary (end, slash, or space)
   # - src/tests as full words
   if echo "$COMMAND" | grep -qE '\.factory\b|\bsrc\b|\btests\b'; then
-    # ADR-024 Decision 4: allow find-delete on the shadow path .factory/.factory/
-    # only. Real .factory/ paths stay blocked.
-    if echo "$COMMAND" | grep -qE '\.factory/\.factory'; then
-      : # shadow path — allow
+    # ADR-024 Decision 4 — TARGET-SCOPED shadow exception (C-1/C-2/H-1 fix).
+    #
+    # The shadow exception applies ONLY when .factory appears in the command.
+    # For src/ and tests/ targets, no exception exists — always block.
+    #
+    # When .factory IS present: allow ONLY if every .factory-bearing token
+    # is the shadow path (.factory/.factory).  Strip shadow occurrences; if
+    # any .factory reference survives, a real-worktree path is present → block.
+    if echo "$COMMAND" | grep -qE '\.factory'; then
+      # Command contains .factory — check if it's ALL shadow.
+      # shellcheck disable=SC2001
+      _find_shadow_stripped=$(echo "$COMMAND" | sed 's|\.factory/\.factory|__SHADOW__|g')
+      if ! echo "$_find_shadow_stripped" | grep -qE '\.factory'; then
+        # All .factory refs are shadow — allow (fall through to exit 0).
+        : # do nothing; fall through to next check
+      else
+        # At least one real .factory reference remains — block.
+        block_pre "destructive-command-guard" \
+          "find with -delete or -exec rm on protected path: $COMMAND" \
+          "find -delete bypasses rm safety checks. Remove specific files explicitly" \
+          "find_delete_protected"
+      fi
     else
+      # No .factory in command — must be src/ or tests/ → always block.
       block_pre "destructive-command-guard" \
         "find with -delete or -exec rm on protected path: $COMMAND" \
         "find -delete bypasses rm safety checks. Remove specific files explicitly" \
