@@ -53,7 +53,9 @@ use factory_dispatcher::invoke::PluginResult;
 use factory_dispatcher::partition::partition_plugins;
 use factory_dispatcher::payload::HookPayload;
 use factory_dispatcher::plugin_loader::PluginCache;
-use factory_dispatcher::registry::{Registry, RegistryError};
+use factory_dispatcher::registry::{
+    REGISTRY_SCHEMA_VERSION, Registry, RegistryDefaults, RegistryError,
+};
 use factory_dispatcher::resolver_loader::ResolverLoader;
 use factory_dispatcher::routing::{group_by_priority, match_plugins};
 use factory_dispatcher::{ASYNC_DRAIN_WINDOW_MS, HOST_ABI_VERSION, new_trace_id};
@@ -95,96 +97,136 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
     let trace_id = new_trace_id();
     let payload = HookPayload::from_reader(std::io::stdin().lock())?;
 
-    let registry_path = resolve_registry_path()?;
-    let registry = match Registry::load(&registry_path) {
-        Ok(r) => r,
-        Err(e) => {
-            // S-15.01 T-3e/T-3f: fail-closed registry errors must exit 2 and emit structured
-            // events per BC-1.14.001 EC-006 (schema mismatch) and EC-008 (async+block conflict).
-            // These are the explicit exceptions to BC-1.08.001 fail-open policy (ADR-019 §Decision 2).
-            //
-            // Build a minimal HostContext so we can use the structured emit fns.
-            // Events accumulate in the context's event queue and are flushed to
-            // VSDD_SINK_FILE below (debug builds only, SEC-003).
-            let err_ctx = {
-                let mut ctx = HostContext::new(
-                    "dispatcher",
-                    env!("CARGO_PKG_VERSION"),
-                    payload.session_id.clone(),
-                    trace_id.clone(),
+    // ADR-024 Decision 2 — two-tier CLAUDE_PLUGIN_ROOT check.
+    //
+    // Tier 1 (absent/empty): emit internal.dispatcher_error, use empty registry,
+    // proceed in degraded mode — exit 0 (no hard-abort).
+    //
+    // Tier 2 (present but invalid path): resolve_registry_path() / Registry::load()
+    // hard-error path — emit structured error, may exit 0 or 2 depending on error type.
+    //
+    // The Tier-1 check MUST run BEFORE resolve_registry_path() to make the
+    // degraded-continue path reachable (ADR-024 v1.1 Decision 2, LOW-1 clarification).
+    // Tier 1 and Tier 2 are MUTUALLY EXCLUSIVE: an absent CLAUDE_PLUGIN_ROOT never
+    // reaches Tier-2 code.
+    let plugin_root_val = std::env::var(ENV_PLUGIN_ROOT).unwrap_or_default();
+    let (registry, registry_path) = if plugin_root_val.is_empty() {
+        // Tier 1: CLAUDE_PLUGIN_ROOT absent or empty — degraded-continue.
+        // Emit an actionable internal.dispatcher_error and proceed with an empty
+        // Registry (no plugins will run).  BC-1.13.001 INV2: absent registry →
+        // empty registry, not an error.  Do NOT call resolve_registry_path().
+        internal_log.write(
+            &InternalEvent::now(INTERNAL_DISPATCHER_ERROR)
+                .with_trace_id(trace_id.clone())
+                .with_session_id(payload.session_id.clone())
+                .with_field(
+                    "message",
+                    "$CLAUDE_PLUGIN_ROOT is not set or empty — hook registry and resolver \
+                     registry paths unresolvable; all plugins will be skipped. Set \
+                     CLAUDE_PLUGIN_ROOT to the vsdd-factory plugin directory.",
+                ),
+        );
+        let empty_registry = Registry {
+            schema_version: REGISTRY_SCHEMA_VERSION,
+            defaults: RegistryDefaults::default(),
+            hooks: Vec::new(),
+        };
+        (empty_registry, PathBuf::new())
+    } else {
+        // Tier 2: CLAUDE_PLUGIN_ROOT is set — resolve and load the registry.
+        // Hard-error on path resolution failure (actionable message).
+        let rp = resolve_registry_path()?;
+        let reg = match Registry::load(&rp) {
+            Ok(r) => r,
+            Err(e) => {
+                // S-15.01 T-3e/T-3f: fail-closed registry errors must exit 2 and emit structured
+                // events per BC-1.14.001 EC-006 (schema mismatch) and EC-008 (async+block conflict).
+                // These are the explicit exceptions to BC-1.08.001 fail-open policy (ADR-019 §Decision 2).
+                //
+                // Build a minimal HostContext so we can use the structured emit fns.
+                // Events accumulate in the context's event queue and are flushed to
+                // VSDD_SINK_FILE below (debug builds only, SEC-003).
+                let err_ctx = {
+                    let mut ctx = HostContext::new(
+                        "dispatcher",
+                        env!("CARGO_PKG_VERSION"),
+                        payload.session_id.clone(),
+                        trace_id.clone(),
+                    );
+                    ctx.internal_log = Some(internal_log.clone());
+                    ctx
+                };
+                // Always emit generic error to internal log for durability.
+                emit_dispatcher_error(
+                    &internal_log,
+                    Some(trace_id.clone()),
+                    Some(payload.session_id.clone()),
+                    &format!("registry load: {e}"),
                 );
-                ctx.internal_log = Some(internal_log.clone());
-                ctx
-            };
-            // Always emit generic error to internal log for durability.
-            emit_dispatcher_error(
-                &internal_log,
-                Some(trace_id.clone()),
-                Some(payload.session_id.clone()),
-                &format!("registry load: {e}"),
-            );
-            // Emit structured event + fail-closed (exit 2) for schema/invariant errors.
-            // Other registry errors (file not found, parse error) remain fail-open (exit 0)
-            // per BC-1.08.001 (only schema-version mismatch and invariant violation are
-            // the named fail-closed exceptions per ADR-019 §Decision 2 and BC-1.14.001 EC-006/EC-008).
-            let exit_code = match &e {
-                RegistryError::SchemaVersion { got, expected } => {
-                    // BC-1.14.001 EC-006 + BC-3.08.001 Event 2.
-                    // Emit dispatcher.schema_mismatch with found_version/expected_version/error_code.
-                    emit_dispatcher_schema_mismatch(&err_ctx, *got, *expected);
-                    eprintln!(
-                        "factory-dispatcher: E-REG-001 schema_version={got} expected={expected}; exiting 2 (fail-closed per ADR-019 §Decision 2)"
-                    );
-                    2
+                // Emit structured event + fail-closed (exit 2) for schema/invariant errors.
+                // Other registry errors (file not found, parse error) remain fail-open (exit 0)
+                // per BC-1.08.001 (only schema-version mismatch and invariant violation are
+                // the named fail-closed exceptions per ADR-019 §Decision 2 and BC-1.14.001 EC-006/EC-008).
+                let exit_code = match &e {
+                    RegistryError::SchemaVersion { got, expected } => {
+                        // BC-1.14.001 EC-006 + BC-3.08.001 Event 2.
+                        // Emit dispatcher.schema_mismatch with found_version/expected_version/error_code.
+                        emit_dispatcher_schema_mismatch(&err_ctx, *got, *expected);
+                        eprintln!(
+                            "factory-dispatcher: E-REG-001 schema_version={got} expected={expected}; exiting 2 (fail-closed per ADR-019 §Decision 2)"
+                        );
+                        2
+                    }
+                    RegistryError::AsyncBlockConflict { name } => {
+                        // BC-1.14.001 EC-008 + BC-3.08.001 Event 3.
+                        // Emit dispatcher.registry_invalid with offending_plugin/violation/error_code.
+                        // E-REG-002 is intra-entry; offending_event/tool absence is enforced by type system.
+                        emit_registry_invalid_e_reg002(&err_ctx, name, "async_block_conflict");
+                        eprintln!(
+                            "factory-dispatcher: E-REG-002 on_error=block AND async=true for '{name}'; exiting 2 (fail-closed per ADR-019 §Decision 2)"
+                        );
+                        2
+                    }
+                    RegistryError::DuplicateEntry { name, event, tool } => {
+                        // BC-7.06.001 Invariant 7 + BC-3.08.001 Event 3 (E-REG-003).
+                        // Emit dispatcher.registry_invalid with full wire payload per BC-7.06.001 v1.8:
+                        // offending_plugin, violation, error_code, offending_event, offending_tool.
+                        // F-P8-001 / F-P14-001 Path B: fail-closed; dispatcher refuses to start on
+                        // duplicate (name, event, tool) tuple.
+                        eprintln!(
+                            "[E-REG-003] Duplicate hook registration: name={name}, event={event}, tool={tool:?} \
+                             (BC-7.06.001 v1.8 Invariant 7). Each (name, event, tool) tuple must be unique \
+                             across all [[hooks]] entries; dispatcher refuses to start."
+                        );
+                        emit_registry_invalid_e_reg003(
+                            &err_ctx,
+                            name.as_str(),
+                            "duplicate_hook_registration",
+                            event.as_str(), // offending_event — required for E-REG-003
+                            tool.as_deref(), // offending_tool — None means wildcard/"all tools"
+                        );
+                        2
+                    }
+                    // Other errors: file not found, parse failures, regex errors.
+                    // These are operational errors (misconfiguration / missing file), not
+                    // semantic invariant violations. Fail-open per BC-1.08.001.
+                    _ => 0,
+                };
+                // Flush structured events to VSDD_SINK_FILE (debug builds / bats harness only).
+                // VP-079 S2/S3 verify these events appear in the sink.
+                // SEC-003: VSDD_SINK_FILE is debug-only; only reject path traversal sequences.
+                // Absolute paths are allowed — bats tests use mktemp which produces absolute paths.
+                #[cfg(debug_assertions)]
+                if let Ok(sink_path) = std::env::var(ENV_SINK_FILE)
+                    && !sink_path.is_empty()
+                    && !sink_path.contains("..")
+                {
+                    flush_sink_file(&sink_path, &err_ctx.events);
                 }
-                RegistryError::AsyncBlockConflict { name } => {
-                    // BC-1.14.001 EC-008 + BC-3.08.001 Event 3.
-                    // Emit dispatcher.registry_invalid with offending_plugin/violation/error_code.
-                    // E-REG-002 is intra-entry; offending_event/tool absence is enforced by type system.
-                    emit_registry_invalid_e_reg002(&err_ctx, name, "async_block_conflict");
-                    eprintln!(
-                        "factory-dispatcher: E-REG-002 on_error=block AND async=true for '{name}'; exiting 2 (fail-closed per ADR-019 §Decision 2)"
-                    );
-                    2
-                }
-                RegistryError::DuplicateEntry { name, event, tool } => {
-                    // BC-7.06.001 Invariant 7 + BC-3.08.001 Event 3 (E-REG-003).
-                    // Emit dispatcher.registry_invalid with full wire payload per BC-7.06.001 v1.8:
-                    // offending_plugin, violation, error_code, offending_event, offending_tool.
-                    // F-P8-001 / F-P14-001 Path B: fail-closed; dispatcher refuses to start on
-                    // duplicate (name, event, tool) tuple.
-                    eprintln!(
-                        "[E-REG-003] Duplicate hook registration: name={name}, event={event}, tool={tool:?} \
-                         (BC-7.06.001 v1.8 Invariant 7). Each (name, event, tool) tuple must be unique \
-                         across all [[hooks]] entries; dispatcher refuses to start."
-                    );
-                    emit_registry_invalid_e_reg003(
-                        &err_ctx,
-                        name.as_str(),
-                        "duplicate_hook_registration",
-                        event.as_str(),  // offending_event — required for E-REG-003
-                        tool.as_deref(), // offending_tool — None means wildcard/"all tools"
-                    );
-                    2
-                }
-                // Other errors: file not found, parse failures, regex errors.
-                // These are operational errors (misconfiguration / missing file), not
-                // semantic invariant violations. Fail-open per BC-1.08.001.
-                _ => 0,
-            };
-            // Flush structured events to VSDD_SINK_FILE (debug builds / bats harness only).
-            // VP-079 S2/S3 verify these events appear in the sink.
-            // SEC-003: VSDD_SINK_FILE is debug-only; only reject path traversal sequences.
-            // Absolute paths are allowed — bats tests use mktemp which produces absolute paths.
-            #[cfg(debug_assertions)]
-            if let Ok(sink_path) = std::env::var(ENV_SINK_FILE)
-                && !sink_path.is_empty()
-                && !sink_path.contains("..")
-            {
-                flush_sink_file(&sink_path, &err_ctx.events);
+                return Ok(exit_code);
             }
-            return Ok(exit_code);
-        }
+        };
+        (reg, rp)
     };
 
     internal_log.write(
@@ -264,27 +306,14 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
         .filter(|p| !p.as_os_str().is_empty())
         .or_else(|| std::env::current_dir().ok())
         .unwrap_or_else(|| PathBuf::from("."));
-    // ADR-024 Decision 2: fail-loud (but non-fatal) when CLAUDE_PLUGIN_ROOT is absent/empty.
-    // Emit an actionable internal.dispatcher_error diagnostic and continue in degraded mode
-    // (empty plugin_root so registry loading returns the documented empty-registry path per
-    // BC-1.13.001 INV2). Do NOT hard-abort — degraded dispatch is still valid.
-    base_host_ctx.plugin_root = {
-        let root_val = std::env::var(ENV_PLUGIN_ROOT).unwrap_or_default();
-        if root_val.is_empty() {
-            internal_log.write(
-                &InternalEvent::now(INTERNAL_DISPATCHER_ERROR)
-                    .with_trace_id(trace_id.clone())
-                    .with_field(
-                        "message",
-                        "$CLAUDE_PLUGIN_ROOT is not set or empty — hook registry and resolver \
-                         registry paths unresolvable; all plugins will be skipped. Set \
-                         CLAUDE_PLUGIN_ROOT to the vsdd-factory plugin directory.",
-                    ),
-            );
-            PathBuf::new()
-        } else {
-            PathBuf::from(root_val)
-        }
+    // ADR-024 Decision 2: CLAUDE_PLUGIN_ROOT already checked above (Tier-1 vs Tier-2).
+    // plugin_root_val is set from ENV_PLUGIN_ROOT at the start of run(); use it here
+    // directly so HostContext carries the same value as the registry resolution path.
+    // If plugin_root_val is empty, plugin_root is PathBuf::new() (Tier-1 degraded mode).
+    base_host_ctx.plugin_root = if plugin_root_val.is_empty() {
+        PathBuf::new()
+    } else {
+        PathBuf::from(&plugin_root_val)
     };
     // Project the dispatcher's whole process env into the host context's
     // env_view. The host's exec_subprocess + env host functions look up
