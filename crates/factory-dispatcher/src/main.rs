@@ -722,7 +722,7 @@ fn resolve_registry_path() -> anyhow::Result<PathBuf> {
 /// Thin wrapper around `factory_dispatcher::log_dir::resolve_log_dir_from`.
 ///
 /// Reads `CLAUDE_PROJECT_DIR` from the process environment and delegates to
-/// the pure six-level ADR-024 resolution algorithm in `log_dir.rs`. Levels
+/// the pure seven-level A–G ADR-024 resolution algorithm in `log_dir.rs`. Levels
 /// A (`VSDD_LOG_DIR`) and B (`FACTORY_ROOT`) are also read from env inside
 /// `resolve_log_dir_from`.
 fn resolve_log_dir() -> PathBuf {
