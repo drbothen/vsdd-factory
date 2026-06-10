@@ -29,16 +29,30 @@ It RESETS to 0 if any pass produces a finding above NITPICK_ONLY. Minimum 3 clea
 
 **Step 1 — Adversary dispatch:**
 
-Before building the adversary context package, the orchestrator MUST capture the worktree-identity triple:
+Before building the adversary context package, the orchestrator MUST capture and assert the worktree-identity triple:
 
 ```bash
-# Resolve the absolute worktree path for this story
-WORKTREE_ABS_PATH="$(git -C /path/to/repo rev-parse --show-toplevel)/.worktrees/<STORY-ID>"
-# Capture the feature HEAD SHA at dispatch time
-FEATURE_HEAD_SHA="$(git -C "$WORKTREE_ABS_PATH" rev-parse HEAD)"
+# Resolve the repo root dynamically (run from the main checkout, not a worktree)
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+WORKTREE_ABS_PATH="$REPO_ROOT/.worktrees/<STORY-ID>"
+
+# The EXPECTED feature HEAD SHA is the commit the orchestrator just pushed
+# and intends to review — capture it now, before the adversary is dispatched.
+EXPECTED_HEAD_SHA="<the-sha-of-the-pushed-feature-branch-tip>"
+
+# ASSERTION: verify the worktree is checked out at the expected commit.
+# A mismatch means the worktree is stale or points to the wrong branch.
+# STOP immediately — do NOT dispatch the adversary against a wrong checkout.
+ACTUAL_HEAD_SHA="$(git -C "$WORKTREE_ABS_PATH" rev-parse HEAD)"
+[ "$ACTUAL_HEAD_SHA" = "$EXPECTED_HEAD_SHA" ] || {
+  echo "dispatch-error: worktree HEAD $ACTUAL_HEAD_SHA != expected feature HEAD SHA $EXPECTED_HEAD_SHA — aborting adversary dispatch"
+  exit 1
+}
 ```
 
-The dispatch MUST embed the expected feature HEAD SHA, the absolute worktree path, and the story-id as a WORKTREE-IDENTITY TRIPLE in the adversary task prompt (see adversarial-review SKILL.md "Worktree-Identity Preflight (MANDATORY)" for the exact format). This triple is the orchestrator's assertion, made before the adversary reads any files, that the worktree is on the correct commit. The preflight assertion MUST pass — i.e., the adversary MUST find the triple present and internally consistent — before findings are accepted. Any adversary response that omits triple verification or emits a `dispatch-error` about a missing triple MUST be treated as a dispatch misconfiguration, not a content finding; fix the dispatch and re-run.
+The dispatch MUST embed the expected feature HEAD SHA (`EXPECTED_HEAD_SHA`), the absolute worktree path (`WORKTREE_ABS_PATH`), and the story-id as a WORKTREE-IDENTITY TRIPLE in the adversary task prompt (see adversarial-review SKILL.md "Worktree-Identity Preflight (MANDATORY)" for the exact format). The embedded `feature HEAD SHA` is the EXPECTED commit — the one the orchestrator verified and asserts is checked out. A mismatch between the worktree's actual HEAD and the expected feature HEAD SHA is a STOP/dispatch-error condition, not a content finding: fix the worktree checkout and re-run, do NOT proceed to the adversary with a mismatched tree.
+
+This triple is the orchestrator's assertion, made before the adversary reads any files, that the worktree is on the correct commit. The preflight assertion MUST pass — i.e., the adversary MUST find the triple present and internally consistent — before findings are accepted. Any adversary response that omits triple verification or emits a `dispatch-error` about a missing triple MUST be treated as a dispatch misconfiguration, not a content finding; fix the dispatch and re-run.
 
 Dispatch `adversary` agent (model tier: Capable) with context:
 - WORKTREE-IDENTITY TRIPLE (embedded verbatim as described above)
