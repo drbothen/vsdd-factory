@@ -110,6 +110,7 @@ setup() {
   run grep -i "Worktree-Identity Preflight" "$ADV_REVIEW_SKILL"
   [ "$status" -eq 0 ]
   run grep -iE "MANDATORY|mandatory" "$ADV_REVIEW_SKILL"
+  [ "$status" -eq 0 ]
   # grep for "MANDATORY" is broad; narrow to same section by checking both on same pass
   run grep -i "Worktree-Identity Preflight (MANDATORY)" "$ADV_REVIEW_SKILL"
   [ "$status" -eq 0 ]

@@ -78,7 +78,7 @@ fi
 # "ANCHORED" means S-12.08 does NOT match S-12.088.
 # ---------------------------------------------------------------------------
 
-STORY_ID_LOWER="${STORY_ID,,}"  # lower-case copy for case-insensitive comparison
+STORY_ID_LOWER="$(printf '%s' "$STORY_ID" | tr '[:upper:]' '[:lower:]')"  # POSIX lower-case (3.2-safe)
 
 WORKTREE_ABS_PATH=""
 MATCH_COUNT=0
@@ -103,9 +103,9 @@ while IFS= read -r line; do
     # End of record — evaluate match
     if [[ "$_detached" -eq 0 && -n "$_path" && -n "$_branch" ]]; then
       # Anchored branch-end match: branch == refs/heads/feature/<STORY_ID> (case-insensitive)
-      _branch_lower="${_branch,,}"
+      _branch_lower="$(printf '%s' "$_branch" | tr '[:upper:]' '[:lower:]')"
       _basename="$(basename "$_path")"
-      _basename_lower="${_basename,,}"
+      _basename_lower="$(printf '%s' "$_basename" | tr '[:upper:]' '[:lower:]')"
 
       _branch_suffix_exact="${_branch_lower##*/}"  # everything after last /
       _story_lower="${STORY_ID_LOWER}"
@@ -128,7 +128,22 @@ while IFS= read -r line; do
         _basename_starts_story=1
       fi
 
+      # A candidate matches if any of the three conditions fire AND the basename
+      # satisfies the basename rule (== story-id OR starts with <story-id>-).
+      # This keeps helper and adversary.md Rule 2 aligned: the emitted
+      # worktree-abs-path MUST have a basename that passes the same check the
+      # adversary enforces.  A worktree whose branch ends with /<STORY_ID> but
+      # whose basename is something like "wt-S-12.08" would be resolved by the
+      # old helper yet REJECTED by the adversary → false dispatch-error halt.
+      _candidate_matched=0
       if [[ "$_branch_ends_with_story" -eq 1 || "$_basename_is_story" -eq 1 || "$_basename_starts_story" -eq 1 ]]; then
+        # Enforce basename rule: basename must equal story-id OR start with <story-id>-
+        if [[ "$_basename_is_story" -eq 1 || "$_basename_starts_story" -eq 1 ]]; then
+          _candidate_matched=1
+        fi
+      fi
+
+      if [[ "$_candidate_matched" -eq 1 ]]; then
         WORKTREE_ABS_PATH="$_path"
         MATCH_COUNT=$((MATCH_COUNT + 1))
       fi

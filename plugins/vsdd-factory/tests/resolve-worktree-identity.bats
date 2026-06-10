@@ -57,19 +57,24 @@ teardown() {
 # Helpers
 # ---------------------------------------------------------------------------
 
-# Create a standard worktree for STORY_ID at $WORK/wt-<story>.
+# Create a standard worktree for STORY_ID at $WORK/<story_id>.
+# Basename equals story_id — matches the engine convention (.worktrees/<STORY-ID>/)
+# and satisfies the adversary.md Rule 2 basename check.
 # Returns the path via the WT_PATH variable (avoids echo/stdout contamination).
 _make_worktree() {
   local story_id="$1"
-  WT_PATH="$WORK/wt-${story_id}"
+  WT_PATH="$WORK/${story_id}"
   git -C "$MAIN_REPO" worktree add -b "feature/${story_id}" "$WT_PATH" >/dev/null 2>&1
 }
 
-# Same but with a space in the path basename — proves space-safe parsing.
+# Same but with a space in the PARENT directory — proves space-safe path parsing.
+# The basename is still the story_id (satisfies adversary.md Rule 2); the space
+# is in the parent segment to stress IFS-split / awk-$2 naive implementations.
 # Returns the path via WT_PATH.
 _make_worktree_with_space() {
   local story_id="$1"
-  WT_PATH="$WORK/wt ${story_id}"
+  mkdir -p "$WORK/my worktrees"
+  WT_PATH="$WORK/my worktrees/${story_id}"
   git -C "$MAIN_REPO" worktree add -b "feature/${story_id}" "$WT_PATH" >/dev/null 2>&1
 }
 
@@ -214,8 +219,8 @@ _make_worktree_with_space() {
   git -C "$WORK/repo-no-factory" commit -m "init" >/dev/null 2>&1
 
   git -C "$WORK/repo-no-factory" worktree add \
-    -b "feature/S-12.08" "$WORK/wt-nofactory-S-12.08" >/dev/null 2>&1
-  sha="$(git -C "$WORK/wt-nofactory-S-12.08" rev-parse HEAD)"
+    -b "feature/S-12.08" "$WORK/S-12.08" >/dev/null 2>&1
+  sha="$(git -C "$WORK/S-12.08" rev-parse HEAD)"
 
   run env STORY_ID="S-12.08" EXPECTED_HEAD_SHA="$sha" \
     VSDD_REPO_ROOT="$WORK/repo-no-factory" \
