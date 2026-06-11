@@ -6907,4 +6907,4 @@ STATE.md current_step confirms: D-545 S-17.02-DELIVERED/MERGED; develop HEAD df4
 
 ### Factory-artifacts Commits
 
-- TBD — state(D-545): S-17.02 DELIVERED/MERGED; BC-4.13.001 POL-14 active; STORY-INDEX v3.89→v3.90; BC-INDEX v2.69→v2.70; ARCH-INDEX v2.19→v2.20 (primary burst per TD-VSDD-053)
+- `735b9168` — state(D-545): S-17.02 DELIVERED/MERGED; BC-4.13.001 POL-14 active; STORY-INDEX v3.89→v3.90; BC-INDEX v2.69→v2.70; ARCH-INDEX v2.19→v2.20 (primary burst per TD-VSDD-053)
