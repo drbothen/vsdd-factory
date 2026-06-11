@@ -248,30 +248,47 @@ teardown() {
 # ---------------------------------------------------------------------------
 # test_BC_6_23_001_acquire_precheck_foreign_lock_refusal_all_five_fields
 # AC-003 / BC-6.23.001 PC3 — foreign unexpired lock → REFUSED_FOREIGN_LOCK
-# with all 5 required fields in the refusal message (BC-4.13.001 PC1 format)
+# refusal message MUST match the GUARD's build_block_message format exactly
+# (PC3/AC-003 parity anchor: BC-4.13.001 PC1).
+#
+# Guard format (crates/hook-plugins/verify-factory-lock/src/lib.rs build_block_message):
+#
+#   BLOCKED by verify-factory-lock: factory-artifacts branch is locked by <holder>.
+#   locked_at: <locked_at>
+#   expires_at: <expires_at> (<N> min remaining)
+#   To break the lock: /factory-unlock --force
+#
+# format_time_remaining always uses "{N} min remaining" — no hours branch.
+# N = floor((expires_epoch - now_epoch) / 60) (integer division).
 #
 # When factory_lock.holder != current_email and lock is unexpired, the helper MUST:
 #   - Exit 1.
 #   - Print "REFUSED_FOREIGN_LOCK" to stderr.
-#   - Print a refusal message to stderr containing ALL FIVE required fields:
-#     1. Holder email (factory_lock.holder value)
-#     2. locked_at timestamp
-#     3. expires_at timestamp
-#     4. time_remaining (human-readable)
-#     5. "/factory-unlock --force" command string
+#   - Print the refusal body to stderr using the guard's EXACT labels and layout:
+#       Line 1: "BLOCKED by verify-factory-lock: factory-artifacts branch is locked by <holder>."
+#       Line 2: "locked_at: <locked_at>"
+#       Line 3: "expires_at: <expires_at> (<N> min remaining)"
+#       Line 4: "To break the lock: /factory-unlock --force"
 #
-# RED GATE: stub exits 1 with TODO (wrong message entirely) — exit-1 assertion
-# happens to pass but all field-content assertions fail.
+# Fixture: holder_email="other@example.com", locked_at="2099-01-01T00:00:00Z",
+#          expires_at="2099-01-01T00:45:00Z" (far future; never expires in test lifetime).
+# Expected N: computed in-test via date to match format_time_remaining integer division.
+#
+# RED GATE: current precheck uses different labels (Holder:/Locked at:/Expires at:/
+# Time remaining:/To force-release: with indentation), so the exact-line assertions FAIL.
+# The implementer must align the precheck to the guard's format to make this test pass.
 # ---------------------------------------------------------------------------
 
 @test "test_BC_6_23_001_acquire_precheck_foreign_lock_refusal_all_five_fields" {
   local holder_email="other@example.com"
   local caller_email="dev@example.com"
+  local fixture_locked_at="2099-01-01T00:00:00Z"
+  local fixture_expires_at="2099-01-01T00:45:00Z"
 
   _fixture_with_lock "$FIXTURE_STATE" \
     "$holder_email" \
-    "$FUTURE_LOCKED_AT" \
-    "$FUTURE_EXPIRES_AT"
+    "$fixture_locked_at" \
+    "$fixture_expires_at"
   # Shim: fetch succeeds, email returns caller (not holder)
   _write_git_shim 0 "$caller_email" 0
 
@@ -280,24 +297,43 @@ teardown() {
   # Must exit 1 (REFUSED_FOREIGN_LOCK)
   [ "$status" -eq 1 ]
 
-  # Field 1: holder email MUST appear in the output
-  [[ "$output" == *"${holder_email}"* ]]
+  # Compute the expected "<N> min remaining" in the test body using the same
+  # integer-division logic as format_time_remaining (total_seconds / 60).
+  # Supports BSD date (macOS) and GNU date (Linux).
+  local now_epoch
+  now_epoch="$(date -u +%s)"
+  local expires_epoch
+  if date --version >/dev/null 2>&1; then
+    # GNU date
+    expires_epoch="$(date -u -d "${fixture_expires_at}" +%s)"
+  else
+    # BSD date (macOS)
+    expires_epoch="$(date -u -j -f "%Y-%m-%dT%H:%M:%SZ" "${fixture_expires_at}" +%s)"
+  fi
+  local remaining_secs=$(( expires_epoch - now_epoch ))
+  local expected_mins=$(( remaining_secs / 60 ))
 
-  # Field 2: locked_at MUST appear in the output
-  [[ "$output" == *"${FUTURE_LOCKED_AT}"* ]]
+  # Assert the GUARD's exact format (build_block_message layout):
+  # Line 1 — leading line with holder (guard: "...locked by <holder>.")
+  [[ "$output" == *"BLOCKED by verify-factory-lock: factory-artifacts branch is locked by ${holder_email}."* ]] \
+    || { echo "FAIL: expected leading line 'BLOCKED by verify-factory-lock: factory-artifacts branch is locked by ${holder_email}.' not found in output: $output"; false; }
 
-  # Field 3: expires_at MUST appear in the output
-  [[ "$output" == *"${FUTURE_EXPIRES_AT}"* ]]
+  # Line 2 — exact label "locked_at:" (guard format, NOT "Locked at:")
+  [[ "$output" == *"locked_at: ${fixture_locked_at}"* ]] \
+    || { echo "FAIL: expected 'locked_at: ${fixture_locked_at}' not found in output: $output"; false; }
 
-  # Field 4: time_remaining — must contain a duration indication
-  # (the BC prescribes "human-readable duration"; match "min" or "remaining")
-  [[ "$output" == *"remaining"* ]] || [[ "$output" == *"min"* ]]
+  # Line 3 — merged expires_at + remaining line: "expires_at: <value> (<N> min remaining)"
+  # (guard format, NOT separate "Expires at:" / "Time remaining:" lines)
+  [[ "$output" == *"expires_at: ${fixture_expires_at} (${expected_mins} min remaining)"* ]] \
+    || { echo "FAIL: expected 'expires_at: ${fixture_expires_at} (${expected_mins} min remaining)' not found in output: $output"; false; }
 
-  # Field 5: /factory-unlock --force command MUST appear verbatim
-  [[ "$output" == *"/factory-unlock --force"* ]]
+  # Line 4 — exact break-glass prose (guard format: "To break the lock:", NOT "To force-release:")
+  [[ "$output" == *"To break the lock: /factory-unlock --force"* ]] \
+    || { echo "FAIL: expected 'To break the lock: /factory-unlock --force' not found in output: $output"; false; }
 
   # Decision token MUST also be present
-  [[ "$output" == *"REFUSED_FOREIGN_LOCK"* ]]
+  [[ "$output" == *"REFUSED_FOREIGN_LOCK"* ]] \
+    || { echo "FAIL: expected 'REFUSED_FOREIGN_LOCK' decision token not found in output: $output"; false; }
 }
 
 # ---------------------------------------------------------------------------
