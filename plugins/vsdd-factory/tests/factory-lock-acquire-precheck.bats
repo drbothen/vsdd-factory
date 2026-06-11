@@ -390,3 +390,56 @@ teardown() {
   # stdout MUST contain the PROCEED_ACQUIRE decision token
   [[ "$output" == *"PROCEED_ACQUIRE"* ]]
 }
+
+# ---------------------------------------------------------------------------
+# test_BC_6_23_001_acquire_precheck_crlf_foreign_lock_refuses
+# F-1 / BC-6.23.001 PC3 — CRLF line endings in STATE.md must not cause a
+# valid foreign unexpired lock to be treated as absent (PROCEED_ACQUIRE).
+#
+# The S-17.02 guard normalizes \r\n→\n before parsing factory_lock; the
+# precheck helper MUST apply the same normalization so a CRLF STATE.md with
+# a valid foreign unexpired lock returns REFUSED_FOREIGN_LOCK (exit 1), NOT
+# PROCEED_ACQUIRE (exit 0, as if the lock block were absent/malformed).
+#
+# Fixture: written via printf with \r\n line endings (CRLF throughout).
+#
+# RED GATE: the current stub exits 1 with TODO (wrong exit path, wrong
+# content). After stub replacement the CRLF gap will cause PROCEED_ACQUIRE
+# to be emitted instead of REFUSED_FOREIGN_LOCK, and the exit-1 +
+# REFUSED_FOREIGN_LOCK assertions will both fail.
+# ---------------------------------------------------------------------------
+
+@test "test_BC_6_23_001_acquire_precheck_crlf_foreign_lock_refuses" {
+  local holder_email="other@example.com"
+  local caller_email="dev@example.com"
+
+  # Build a CRLF fixture using printf '%s\r\n' (portable: no leading -- flag needed).
+  {
+    printf '%s\r\n' '---'
+    printf '%s\r\n' 'document_type: state'
+    printf '%s\r\n' 'version: "0.0.1-test"'
+    printf '%s\r\n' 'phase: test'
+    printf '%s\r\n' 'current_step: "test-step"'
+    printf '%s\r\n' 'factory_lock:'
+    printf '  holder: "%s"\r\n' "$holder_email"
+    printf '  locked_at: "%s"\r\n' "$FUTURE_LOCKED_AT"
+    printf '  expires_at: "%s"\r\n' "$FUTURE_EXPIRES_AT"
+    printf '%s\r\n' '---'
+    printf '\r\n'
+    printf '%s\r\n' '# STATE (CRLF fixture)'
+    printf '%s\r\n' 'Foreign unexpired lock — CRLF line endings throughout.'
+  } > "$FIXTURE_STATE"
+
+  # Shim: fetch succeeds, email returns caller (not holder)
+  _write_git_shim 0 "$caller_email" 0
+
+  run env PATH="${STUB_BIN}:${PATH}" bash "$HELPER" "$FIXTURE_STATE"
+
+  # Must exit 1 (REFUSED_FOREIGN_LOCK — CRLF normalization must not drop the lock)
+  [ "$status" -eq 1 ] \
+    || { printf 'FAIL: expected exit 1 (REFUSED_FOREIGN_LOCK), got exit %s\n  output: %s\n' "$status" "$output" >&2; false; }
+
+  # stdout/stderr MUST contain the REFUSED_FOREIGN_LOCK decision token
+  [[ "$output" == *"REFUSED_FOREIGN_LOCK"* ]] \
+    || { printf 'FAIL: expected REFUSED_FOREIGN_LOCK in output, got: %s\n' "$output" >&2; false; }
+}

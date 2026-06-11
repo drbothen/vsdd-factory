@@ -304,3 +304,58 @@ teardown() {
   # stdout MUST contain the NOOP_ABSENT decision token
   [[ "$output" == *"NOOP_ABSENT"* ]]
 }
+
+# ---------------------------------------------------------------------------
+# test_BC_6_23_001_unlock_decide_crlf_self_release
+# F-1 / BC-6.23.001 PC4 — CRLF line endings in STATE.md must not cause
+# the self-held holder field to be mis-parsed (CR-polluted), resulting in a
+# holder mismatch and spurious REFUSED_NOT_HOLDER.
+#
+# When factory_lock.holder == current_email and the STATE.md uses CRLF line
+# endings, the helper MUST normalize before comparing and MUST return
+# PROCEED_RELEASE (exit 0), NOT REFUSED_NOT_HOLDER (exit 1) caused by a
+# CR-trailing holder value not matching the caller's clean email string.
+#
+# Fixture: written via printf with \r\n line endings (CRLF throughout).
+#
+# RED GATE: the current stub exits 1 with TODO, so the exit-0 assertion
+# fails first. After stub replacement the CRLF gap will produce a CR-polluted
+# holder ("self@example.com\r") that does not equal "self@example.com", so
+# REFUSED_NOT_HOLDER fires and the exit-0 + PROCEED_RELEASE assertions fail.
+# ---------------------------------------------------------------------------
+
+@test "test_BC_6_23_001_unlock_decide_crlf_self_release" {
+  local test_email="self@example.com"
+
+  # Build a CRLF fixture using printf '%s\r\n' (portable: no leading -- flag needed).
+  {
+    printf '%s\r\n' '---'
+    printf '%s\r\n' 'document_type: state'
+    printf '%s\r\n' 'version: "0.0.1-test"'
+    printf '%s\r\n' 'phase: test'
+    printf '%s\r\n' 'current_step: "test-step"'
+    printf '%s\r\n' 'factory_lock:'
+    printf '  holder: "%s"\r\n' "$test_email"
+    printf '  locked_at: "%s"\r\n' "$FUTURE_LOCKED_AT"
+    printf '  expires_at: "%s"\r\n' "$FUTURE_EXPIRES_AT"
+    printf '%s\r\n' '---'
+    printf '\r\n'
+    printf '%s\r\n' '# STATE (CRLF fixture)'
+    printf '%s\r\n' 'Self-held lock — CRLF line endings throughout.'
+  } > "$FIXTURE_STATE"
+
+  run bash "$HELPER" "$FIXTURE_STATE" "$test_email"
+
+  # Must exit 0 — CRLF normalization must not produce a CR-polluted holder
+  # that fails the equality check, causing REFUSED_NOT_HOLDER
+  [ "$status" -eq 0 ] \
+    || { printf 'FAIL: expected exit 0 (PROCEED_RELEASE), got exit %s\n  output: %s\n' "$status" "$output" >&2; false; }
+
+  # stdout MUST contain PROCEED_RELEASE (not REFUSED_NOT_HOLDER)
+  [[ "$output" == *"PROCEED_RELEASE"* ]] \
+    || { printf 'FAIL: expected PROCEED_RELEASE in output, got: %s\n' "$output" >&2; false; }
+
+  # MUST NOT contain REFUSED_NOT_HOLDER
+  [[ "$output" != *"REFUSED_NOT_HOLDER"* ]] \
+    || { printf 'FAIL: REFUSED_NOT_HOLDER must not appear in CRLF self-release output\n' >&2; false; }
+}

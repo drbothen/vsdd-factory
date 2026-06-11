@@ -255,6 +255,58 @@ FIXTURE
 # assertions fail.
 # ---------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------
+# test_BC_6_23_001_factory_lock_status_sh_crlf_foreign_held
+# F-1 / BC-6.23.001 PC7 — CRLF line endings in STATE.md must not cause
+# foreign-held status to be misreported as FREE (malformed).
+#
+# The S-17.02 guard normalizes \r\n→\n before parsing factory_lock; the
+# status helper MUST apply the same normalization so a CRLF STATE.md with a
+# valid foreign unexpired lock produces:
+#   Factory lock: HELD by <holder> since <locked_at> (expires <expires_at>)
+# NOT "Factory lock: FREE (malformed block — treated as unlocked)".
+#
+# Fixture: written via printf with \r\n line endings (CRLF throughout).
+#
+# RED GATE: the current stub exits 1 with TODO, so the exit-0 assertion fails
+# first. After stub replacement the CRLF normalization gap will cause the
+# assertion to fail on wrong output before implementation adds normalization.
+# ---------------------------------------------------------------------------
+
+@test "test_BC_6_23_001_factory_lock_status_sh_crlf_foreign_held" {
+  local holder_email="other@example.com"
+  local caller_email="dev@example.com"
+
+  # Build a CRLF fixture using printf '%s\r\n' (portable: no leading -- flag needed).
+  {
+    printf '%s\r\n' '---'
+    printf '%s\r\n' 'document_type: state'
+    printf '%s\r\n' 'version: "0.0.1-test"'
+    printf '%s\r\n' 'phase: test'
+    printf '%s\r\n' 'current_step: "test-step"'
+    printf '%s\r\n' 'factory_lock:'
+    printf '  holder: "%s"\r\n' "$holder_email"
+    printf '  locked_at: "%s"\r\n' "$FUTURE_LOCKED_AT"
+    printf '  expires_at: "%s"\r\n' "$FUTURE_EXPIRES_AT"
+    printf '%s\r\n' '---'
+    printf '\r\n'
+    printf '%s\r\n' '# STATE (CRLF fixture)'
+    printf '%s\r\n' 'Foreign unexpired lock — CRLF line endings throughout.'
+  } > "$FIXTURE_STATE"
+
+  run bash "$HELPER" "$FIXTURE_STATE" "$caller_email"
+
+  # Must exit 0 (display-only helper always exits 0)
+  [ "$status" -eq 0 ]
+
+  # MUST report HELD (not FREE / malformed) — CRLF normalization required
+  local expected="Factory lock: HELD by ${holder_email} since ${FUTURE_LOCKED_AT} (expires ${FUTURE_EXPIRES_AT})"
+  [ "$output" = "$expected" ] \
+    || { printf 'FAIL: expected "%s"\n  got "%s"\n' "$expected" "$output" >&2; false; }
+}
+
+# ---------------------------------------------------------------------------
+
 @test "test_BC_6_23_001_factory_lock_status_sh_shared_by_both_health_skills" {
   local health_skill="$SKILL_DIR/factory-health/SKILL.md"
   local worktree_health_skill="$SKILL_DIR/factory-worktree-health/SKILL.md"

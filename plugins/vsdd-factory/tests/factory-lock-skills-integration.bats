@@ -168,8 +168,8 @@ STATE
 #   Each "session" has a session working directory (session-a / session-b) with a
 #   .factory symlink pointing at the respective clone (clone-a / clone-b). This
 #   mirrors the production layout: main worktree root → .factory/ worktree.
-#   factory-cas-push.sh detects .factory/.git and uses GIT_FACTORY_DIR=".factory"
-#   (the PRODUCTION path). The "." fallback in the helper is NOT triggered.
+#   factory-cas-push.sh uses `git -C .factory` (hardcoded) for all git operations,
+#   so the .factory symlink resolves to the correct clone for each session.
 #
 # Precheck invocation: factory-lock-acquire-precheck.sh uses bare `git fetch`
 # and `git config user.email` (no -C), so it must be called with CWD = a git
@@ -198,7 +198,8 @@ STATE
   # ---------------------------------------------------------------------------
   # Build production-faithful session directories:
   #   session-a and session-b each have a .factory symlink → respective clone.
-  # factory-cas-push.sh detects .factory/.git → GIT_FACTORY_DIR=".factory" (production path).
+  # factory-cas-push.sh uses `git -C .factory` (hardcoded), so running it from
+  # session-a/session-b resolves .factory to the correct clone via the symlink.
   # ---------------------------------------------------------------------------
   local session_a="$WORK/session-a"
   local session_b="$WORK/session-b"
