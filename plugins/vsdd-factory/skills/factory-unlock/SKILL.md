@@ -12,8 +12,6 @@ and `--force` break-glass release with mandatory `factory.lock.stolen` audit eve
 
 ## Step 1 — Invoke factory-unlock-decide.sh
 
-<!-- TODO(S-17.03): implementer fills -->
-
 Run the unlock decision helper with the STATE.md path, current git email, and optional --force flag:
 
 ```bash
@@ -48,8 +46,6 @@ state-manager which invokes `factory-lock-write.sh` + `factory-cas-push.sh` from
 
 ## Step 2 — Delegate clear to state-manager (factory-lock-write.sh + factory-cas-push.sh)
 
-<!-- TODO(S-17.03): implementer fills -->
-
 On PROCEED_RELEASE, PROCEED_RELEASE_SELF_FORCE, or PROCEED_FORCE_STEAL, delegate to
 state-manager. State-manager runs:
 
@@ -63,8 +59,6 @@ state-manager. State-manager runs:
 On CAS push rejection: Error variant `UnlockCASRejected`; user retries.
 
 ## Step 3 — Emit factory.lock.released or factory.lock.stolen via emit-event
-
-<!-- TODO(S-17.03): implementer fills -->
 
 The decision token from Step 1 determines which event to emit:
 
@@ -95,8 +89,6 @@ Emission failure logged as log_warn.
 emitted and cannot be suppressed (BC-6.23.001 Invariant 2).
 
 ## Step 4 — Display result message
-
-<!-- TODO(S-17.03): implementer fills -->
 
 **For PROCEED_RELEASE or PROCEED_RELEASE_SELF_FORCE:**
 ```

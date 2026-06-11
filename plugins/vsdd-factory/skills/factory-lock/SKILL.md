@@ -13,8 +13,6 @@ acquisition path (BC-6.23.001 Invariant 1 / ADR-025 Decision 6).
 
 ## Step 1 — Invoke factory-lock-acquire-precheck.sh
 
-<!-- TODO(S-17.03): implementer fills -->
-
 Run the acquire precheck helper with the STATE.md path:
 
 ```bash
@@ -35,8 +33,6 @@ The helper performs (in order):
 **Exit 2 (EC-006 or EC-007)**: Helper already printed error to stderr. Propagate exit 2.
 
 ## Step 2 — Delegate write to state-manager (factory-lock-write.sh + factory-cas-push.sh)
-
-<!-- TODO(S-17.03): implementer fills -->
 
 On PROCEED_ACQUIRE, delegate to state-manager. State-manager runs:
 
@@ -60,8 +56,6 @@ state-manager which invokes `factory-lock-write.sh` + `factory-cas-push.sh` from
 
 ## Step 3 — Emit factory.lock.acquired via emit-event
 
-<!-- TODO(S-17.03): implementer fills -->
-
 On successful CAS push, emit the acquisition event via the SS-03 event pipeline:
 
 ```bash
@@ -76,8 +70,6 @@ plugins/vsdd-factory/bin/emit-event \
 the acquire — the lock is already written and pushed (BC-6.23.001 Invariant 2 pattern).
 
 ## Step 4 — Display success message
-
-<!-- TODO(S-17.03): implementer fills -->
 
 Display to user:
 
