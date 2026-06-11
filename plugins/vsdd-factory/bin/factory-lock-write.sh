@@ -209,6 +209,24 @@ _update_expires_at() {
 }
 
 # ---------------------------------------------------------------------------
+# Helper: normalize CRLF line endings to LF in-place.
+# CRLF causes awk patterns like /^---$/ to fail (the line is `---\r`).
+# Production-grade path: detect and normalize before any awk processing.
+# ---------------------------------------------------------------------------
+_normalize_crlf() {
+  local file="$1"
+  # Only normalize if CR bytes are actually present (avoid rewriting clean files).
+  if tr -cd '\r' < "$file" | grep -q .; then
+    local tmpfile
+    tmpfile="$(mktemp "${file}.XXXXXX")"
+    tr -d '\r' < "$file" > "$tmpfile"
+    # Preserve original file mode on replacement.
+    chmod --reference="$file" "$tmpfile" 2>/dev/null || chmod "$(stat -f '%p' "$file" 2>/dev/null || stat -c '%a' "$file" 2>/dev/null || echo 644)" "$tmpfile" 2>/dev/null || true
+    mv "$tmpfile" "$file"
+  fi
+}
+
+# ---------------------------------------------------------------------------
 # Helper: validate that STATE.md has well-formed YAML frontmatter (opening
 # and closing --- fences). Exits non-zero with a SchemaViolation message if
 # the frontmatter is absent, single-fence, or otherwise malformed.
@@ -231,6 +249,9 @@ _validate_frontmatter() {
 case "$MODE" in
 
   acquire)
+    # Normalize CRLF → LF first (F-P1-010): CRLF breaks awk /^---$/ pattern.
+    _normalize_crlf "$STATE_MD"
+
     # Validate frontmatter structure before any write (PC1 SchemaViolation).
     _validate_frontmatter "$STATE_MD"
 
