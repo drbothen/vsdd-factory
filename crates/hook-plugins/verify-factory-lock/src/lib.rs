@@ -452,7 +452,7 @@ pub fn trim_git_email(raw: &str) -> String {
 ///   3. Parse frontmatter for `factory_lock`. On absent: return Continue (EC-001).
 ///      On malformed: log_warn + return Continue (PC4).
 ///   4. Parse `expires_at`. On parse fail: log_warn + return Continue (EC-005).
-///   5. Compare `now > expires_at`. If true: return Continue (PC2 LockExpired).
+///   5. Compare `now >= expires_at`. If true: return Continue (PC2 LockExpired).
 ///   6. Resolve caller email via `exec_subprocess`. On failure: log_warn +
 ///      return Continue (PC7).
 ///   7. Trim email output.
@@ -753,17 +753,6 @@ mod tests {
     fn state_md_malformed_expires_at() -> Vec<u8> {
         b"---\ndocument_type: state\nversion: \"0.0.1-test\"\nphase: test\nfactory_lock:\n  holder: \"other@example.com\"\n  locked_at: \"2026-06-10T14:00:00Z\"\n  expires_at: \"not-a-timestamp\"\n---\n\n# STATE\n"
             .to_vec()
-    }
-
-    /// STATE.md content with factory_lock.expires_at exactly at the Unix epoch
-    /// boundary we use for boundary testing (EC-002). The test uses a fixed
-    /// past timestamp for the "exactly now" scenario — actual boundary test
-    /// is implemented by calling parse_iso8601 + comparison directly.
-    fn state_md_exact_boundary_lock(expires_at: &str) -> Vec<u8> {
-        format!(
-            "---\ndocument_type: state\nversion: \"0.0.1-test\"\nphase: test\nfactory_lock:\n  holder: \"other@example.com\"\n  locked_at: \"2026-06-10T14:00:00Z\"\n  expires_at: \"{expires_at}\"\n---\n\n# STATE\n"
-        )
-        .into_bytes()
     }
 
     // -----------------------------------------------------------------------
@@ -1169,51 +1158,6 @@ mod tests {
         );
     }
 
-    /// EC-002: expires_at == now exactly → Continue (just-expired, not greater-than).
-    ///
-    /// BC-4.13.001 EC-002: `now > expires_at` semantics mean `now == expires_at`
-    /// evaluates as NOT greater-than, so the lock is treated as just-expired → Continue.
-    ///
-    /// This test uses parse_iso8601 + the comparison semantics directly.
-    /// Strategy: parse a fixed timestamp, use it as both `expires_at` and `now`;
-    /// verify that `now > expires_at` is false (so the lock is considered expired).
-    ///
-    /// RED GATE: parse_iso8601 is todo!() — panics immediately.
-    #[test]
-    fn test_BC_4_13_001_expires_at_exact_boundary_treated_as_expired() {
-        let ts = "2026-06-10T15:00:00Z";
-        // parse_iso8601 must succeed on a valid ISO-8601 UTC string.
-        let expires_at_dt = parse_iso8601(ts).expect("parse_iso8601 must parse valid ISO-8601");
-        // Simulate: now == expires_at exactly.
-        let now_dt = expires_at_dt;
-        // The BC-4.13.001 EC-002 semantics: lock is blocked only when now > expires_at.
-        // When now == expires_at: now > expires_at is false → treat as expired → Continue.
-        assert!(
-            now_dt <= expires_at_dt,
-            "EC-002: now == expires_at must evaluate as NOT greater-than (lock expired). \
-             The `now > expires_at` check must use strict greater-than semantics."
-        );
-        // Additionally, verify via guard_logic end-to-end using a timestamp that has
-        // already passed (exact boundary relative to a fixed past time is non-trivial
-        // with real wall-clock; the unit test for the pure boundary uses the above).
-        // The integration-level boundary test uses a past timestamp (already expired).
-        let warn_log = Arc::new(Mutex::new(Vec::new()));
-        // Use a timestamp in the distant past as the "exact boundary" anchor — any time
-        // in the past is already expired, exercising the same `now > expires_at` false path.
-        let callbacks = make_callbacks_success(
-            state_md_exact_boundary_lock("2020-01-01T00:45:00Z"),
-            "self@example.com",
-            warn_log.clone(),
-        );
-        let payload = payload_for_tool("Edit");
-        let result = guard_logic(payload, callbacks);
-        assert_eq!(
-            result,
-            HookResult::Continue,
-            "EC-002: past timestamp must return Continue (expired lock = unlocked)"
-        );
-    }
-
     // -----------------------------------------------------------------------
     // Pure helper tests — each pure fn gets at least one focused test.
     // These fail with todo!() panics before implementation.
@@ -1353,32 +1297,20 @@ mod tests {
     // -----------------------------------------------------------------------
     // F-S1702-002: Real boundary test via injectable `is_expired` pure helper.
     //
-    // The existing boundary test (test_BC_4_13_001_expires_at_exact_boundary_treated_as_expired)
-    // is tautological: it sets now == expires_at then asserts now <= expires_at, which
-    // is trivially true regardless of guard logic. This test replaces that tautology with
-    // a real API call to `is_expired(now, expires_at) -> bool` which the implementer must
-    // extract from guard_logic's inlined `now > expires_at_dt` comparison.
-    //
-    // RED GATE STATUS: COMPILE ERROR — `is_expired` does not exist yet.
-    // The implementer must add:
-    //   pub fn is_expired(now: chrono::DateTime<chrono::Utc>, expires_at: chrono::DateTime<chrono::Utc>) -> bool {
-    //       now > expires_at
-    //   }
-    // and thread calls to it through guard_logic's Step 5.
+    // Tests the `is_expired(now, expires_at) -> bool` pure helper with correct
+    // `>=` semantics: `now >= expires_at` returns true (expired).
     // -----------------------------------------------------------------------
 
     /// EC-002: `is_expired` pure helper — now == expires_at → true (just-expired → Continue).
     ///
     /// BC-4.13.001 EC-002: the lock is expired (and the guard must return Continue) when
-    /// `now > expires_at`. The `==` case must also be expired (not blocked), so
+    /// `now >= expires_at`. The `==` case is treated as expired (not blocked), so
     /// `is_expired` returns true when `now == expires_at`.
     ///
     /// Three cases asserted:
     ///   1. now == expires_at → true (exact boundary, just-expired → Continue per EC-002).
     ///   2. now 1 second BEFORE expires_at → false (not expired → would Block if foreign).
     ///   3. now 1 second AFTER expires_at → true (expired → Continue).
-    ///
-    /// RED GATE: `is_expired` does not exist — COMPILE ERROR until implementer adds it.
     #[test]
     #[allow(non_snake_case)]
     fn test_BC_4_13_001_is_expired_now_equals_expires_at_is_expired() {
