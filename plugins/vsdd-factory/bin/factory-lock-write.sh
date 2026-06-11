@@ -40,6 +40,27 @@
 set -euo pipefail
 
 # ---------------------------------------------------------------------------
+# Temp-file registry + EXIT trap (F-P1-011).
+# All mktemp calls in this script MUST go through _make_tmpfile so they are
+# registered here and cleaned up on any exit (normal, set -e abort, or signal).
+# ---------------------------------------------------------------------------
+_TMPFILES=()
+_make_tmpfile() {
+  local template="$1"
+  local path
+  path="$(mktemp "$template")"
+  _TMPFILES+=("$path")
+  printf '%s' "$path"
+}
+_cleanup_tmpfiles() {
+  local f
+  for f in "${_TMPFILES[@]+"${_TMPFILES[@]}"}"; do
+    [[ -e "$f" ]] && rm -f "$f"
+  done
+}
+trap '_cleanup_tmpfiles' EXIT
+
+# ---------------------------------------------------------------------------
 # TTL constant — non-configurable (BC-5.40.001 Invariant 2)
 # ---------------------------------------------------------------------------
 TTL_SECONDS=2700
@@ -125,7 +146,7 @@ _now_plus_seconds() {
 _remove_factory_lock() {
   local file="$1"
   local tmpfile
-  tmpfile="$(mktemp "${file}.XXXXXX")"
+  tmpfile="$(_make_tmpfile "${file}.XXXXXX")"
   awk '
     BEGIN { fence=0; skip=0 }
     /^---$/ {
@@ -138,6 +159,7 @@ _remove_factory_lock() {
     fence == 1 && skip && /^  /    { next }
     { skip=0; print }
   ' "$file" > "$tmpfile"
+  chmod --reference="$file" "$tmpfile" 2>/dev/null || true
   mv "$tmpfile" "$file"
 }
 
@@ -159,7 +181,7 @@ _write_factory_lock_block() {
   # The frontmatter is bounded by the first --- at line 1 and the next ---.
   # We insert before the second --- (the closing delimiter).
   local tmpfile
-  tmpfile="$(mktemp "${file}.XXXXXX")"
+  tmpfile="$(_make_tmpfile "${file}.XXXXXX")"
   awk -v holder="$holder" -v locked_at="$locked_at" -v expires_at="$expires_at" '
     BEGIN { front=0; inserted=0 }
     /^---$/ {
@@ -175,6 +197,7 @@ _write_factory_lock_block() {
     }
     { print }
   ' "$file" > "$tmpfile"
+  chmod --reference="$file" "$tmpfile" 2>/dev/null || true
   mv "$tmpfile" "$file"
 }
 
@@ -188,7 +211,7 @@ _update_expires_at() {
   local file="$1"
   local new_expires_at="$2"
   local tmpfile
-  tmpfile="$(mktemp "${file}.XXXXXX")"
+  tmpfile="$(_make_tmpfile "${file}.XXXXXX")"
   awk -v new_exp="$new_expires_at" '
     BEGIN { fence=0; in_lock=0 }
     /^---$/ {
@@ -205,6 +228,7 @@ _update_expires_at() {
     fence == 1 && in_lock && !/^  / { in_lock=0 }
     { print }
   ' "$file" > "$tmpfile"
+  chmod --reference="$file" "$tmpfile" 2>/dev/null || true
   mv "$tmpfile" "$file"
 }
 
@@ -218,10 +242,10 @@ _normalize_crlf() {
   # Only normalize if CR bytes are actually present (avoid rewriting clean files).
   if tr -cd '\r' < "$file" | grep -q .; then
     local tmpfile
-    tmpfile="$(mktemp "${file}.XXXXXX")"
+    tmpfile="$(_make_tmpfile "${file}.XXXXXX")"
     tr -d '\r' < "$file" > "$tmpfile"
     # Preserve original file mode on replacement.
-    chmod --reference="$file" "$tmpfile" 2>/dev/null || chmod "$(stat -f '%p' "$file" 2>/dev/null || stat -c '%a' "$file" 2>/dev/null || echo 644)" "$tmpfile" 2>/dev/null || true
+    chmod --reference="$file" "$tmpfile" 2>/dev/null || true
     mv "$tmpfile" "$file"
   fi
 }
