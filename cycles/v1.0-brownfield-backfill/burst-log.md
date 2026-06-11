@@ -7037,3 +7037,80 @@ STATE.md current_step confirms: D-547 S-17.03-DELIVERED-MERGED; PR #183 60fd0233
 ### Factory-artifacts Commits
 
 - `31c1fd94` — state(D-547): S-17.03 DELIVERED/MERGED; BC-6.23.001 POL-14 active; issue #170 CLOSED; E-17 3/3 COMPLETE; STORY-INDEX v3.91→v3.92; BC-INDEX v2.71→v2.72; D-547 codified (primary burst per TD-VSDD-053)
+
+---
+
+## D-548 — ADR-025 v1.3→v1.4 + S-17.04 Auto-Renew Wiring Codified (2026-06-11)
+
+**Parent-commit:** `0f122e70` (factory-artifacts HEAD pre-burst; D-547 sha-patch e2bda434 was latest push; git -C .factory rev-parse HEAD at burst start = 0f122e70 via latest ARCH-INDEX+STORY-INDEX uncommitted delta)
+
+**Adversary verdict:** N/A — codification burst (no adversary pass in this burst; ADR-025 v1.4 amendment was human-reviewed + architect-authored; S-17.04 story authored by story-writer; state-manager records)
+
+### Dim-2: Gate Attestations (literal shell)
+
+```
+$ grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/architecture/ARCH-INDEX.md | head -1
+version: "2.21"
+$ grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/stories/STORY-INDEX.md | head -1
+version: "3.93"
+$ grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/behavioral-contracts/BC-INDEX.md | head -1
+version: "2.72"
+$ grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/verification-properties/VP-INDEX.md | head -1
+version: "2.06"
+$ grep -c "S-17.04" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/stories/STORY-INDEX.md
+5
+$ grep "^current_step:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/STATE.md | grep -oE "trajectory-tail [→0-9]+"
+trajectory-tail →9→9→9→11
+```
+
+4-index gate (ARCH-INDEX v2.21 | STORY-INDEX v3.93 | BC-INDEX v2.72 UNCHANGED | VP-INDEX v2.06 UNCHANGED): PASS.
+
+D-548 own burst-log entry present (this entry): PASS (D-446(a) self-check).
+
+Source-attestation (D-448(a)): This burst is a codification burst (no adversary review file). Dim-2 attests to 4-index version gate — the mechanically-verifiable scope of this burst.
+
+### Dim-5: Files Touched
+
+- `.factory/specs/architecture/decisions/ADR-025-single-writer-factory-locklease-prevent-concurrent-session-races-on-factory-artifacts-orphan-branch.md` — v1.3→v1.4; Decision 11 added (auto heartbeat renewal enforcement: Mechanism 1 SKILL step + Mechanism 2 PreToolUse gate); Decision 5 corrected (vestigial burst-end text replaced); Deliverables D10–D14 added; BC-5.40.001 PC4 UNAFFECTED annotation; Consequences updated; Source/Origin v1.4 entry (architect-authored)
+- `.factory/specs/architecture/ARCH-INDEX.md` — v2.20→v2.21; frontmatter version + last_amended updated; changelog v2.21 entry prepended (ADR-025 v1.4 / Decision 11 / S-17.04 / STORY-INDEX v3.93); ADR-025 body row already updated by architect with v1.4 amendment text
+- `.factory/stories/S-17.04-mid-burst-heartbeat-renewal-wiring.md` — v1.0 initial authoring (story-writer; issue #170 follow-up; ADR-025 v1.4 Decision 11; 7 ACs; 8 bats Red Gate tests; D10+D11+D12+D13+D14; wave 4; 5pts; depends_on []; tdd_mode strict; SS-05/SS-07)
+- `.factory/stories/STORY-INDEX.md` — v3.92→v3.93; S-17.04 row added (E-17 wave 4; 5pts; draft; BC-5.40.001 PC4; depends_on []); E-17 story_count 3→4; E-17 total pts 21→26; story count 107→108; totals footnote updated
+- `.factory/stories/epics/E-17-factory-state-durability-concurrency.md` — v1.0→v1.1 (story-writer; S-17.04 added to Stories table; story_count 3→4; 21pts→26pts; BC traceability updated; dependency graph S-17.04 no-deps note; changelog v1.1 row)
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-548 row prepended (this burst SoT)
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — this entry (this burst)
+- `.factory/STATE.md` — frontmatter advance; current_step D-548; Decisions Log D-548 row; §8 ARCH-INDEX v2.21 + STORY-INDEX v3.93; §1/§9/§11/§12 Session Resume Checkpoint refresh; Story Status draft count updated; Phase Progress row updated; Last Updated cell; banner tracker D-548 entry
+
+### Dim-6: 4-Index Version Gate (literal shell — post-write)
+
+```
+$ grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/behavioral-contracts/BC-INDEX.md | head -1
+version: "2.72"
+$ grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/verification-properties/VP-INDEX.md | head -1
+version: "2.06"
+$ grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/stories/STORY-INDEX.md | head -1
+version: "3.93"
+$ grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/architecture/ARCH-INDEX.md | head -1
+version: "2.21"
+```
+
+4-index gate: BC-INDEX v2.72 (UNCHANGED) | VP-INDEX v2.06 (UNCHANGED) | STORY-INDEX v3.93 (bumped; S-17.04 authored; E-17 wave 4) | ARCH-INDEX v2.21 (bumped; ADR-025 v1.4; Decision 11). PASS.
+
+### Dim-7: State Attestation
+
+STATE.md current_step confirms: D-548 ADR-025-V1.4-S-17.04-AUTO-RENEW-WIRING-CODIFIED 2026-06-11; ADR-025 v1.3→v1.4 Decision 11 (SKILL step + push gate); S-17.04 authored E-17 wave 4 5pts 7ACs; ARCH-INDEX v2.20→v2.21; STORY-INDEX v3.92→v3.93; D-chain cite D-547; parent-commit 0f122e70; trajectory-tail →9→9→9→11; BC-INDEX v2.72 UNCHANGED; VP-INDEX v2.06 UNCHANGED. All 5 BC-5.39.006 v1.7 PCs satisfied. TD-VSDD-099 4-Dim structural integrity SATISFIED.
+
+**Codifications:** D-548 ADR-025 v1.4 amendment (Decision 11) + S-17.04 authored (E-17 wave 4); ARCH-INDEX v2.20→v2.21; STORY-INDEX v3.92→v3.93; D-548 row added to decision-log.md SoT + STATE.md Decisions Log summary row; develop HEAD stale-checkout resolved to 60fd0233; §1/§8/§9/§11/§12 STATE.md refresh.
+
+**Closes:**
+- ADR-025 v1.3→v1.4 amendment codified (Decision 11: auto heartbeat renewal enforcement; Decision 5: vestigial text corrected; D10–D14 deliverables enumerated).
+- S-17.04 story authored and registered in STORY-INDEX v3.93 (E-17 wave 4; 5pts; draft; BC-5.40.001 PC4 enforcement target).
+- BC-5.40.001 PC4 prose/executable gap formally closed in spec — S-17.04 TDD delivery will implement.
+- Local develop stale-checkout resolved: HEAD now 60fd0233 (was stale pre-D-547).
+
+**Advances:** D-chain D-547 → D-548; next-D = D-549; RECOMMENDED ACTIVE NEXT: (a) rc release to ship #128+#130+#169+#176+#170(S17.01+S17.02+S17.03) to operators; (b) test-writer Red Gate for S-17.04 on feature/S-17.04-heartbeat-renewal-wiring; (c) issue #129 canonical-principle; F5 pass-76 (PAUSED per D-386 Option C).
+
+**Trajectory:** →9→9→9→11 (CARRIED — codification burst; no new adversary pass)
+
+### Factory-artifacts Commits
+
+(SHA to be filled in post-commit per D-419(b) convention)

@@ -2,12 +2,12 @@
 document_type: architecture-decision-record
 level: L3
 adr_id: ADR-025
-version: "1.3"
+version: "1.4"
 status: accepted
 producer: architect
 timestamp: 2026-06-10T00:00:00Z
 amended: 2026-06-11T00:00:00Z
-amendment_reason: "v1.2→v1.3: [process-gap] S-17.02 TDD implementation finding — exec_subprocess env_allow omission footgun. Decision 2 / D2 capability block spec was incomplete: exec_subprocess capability block listed only binary_allow = [\"git\"] but omitted env_allow. The dispatcher's exec_subprocess host function calls env_clear() and passes ONLY vars listed in caps.env_allow; without HOME (and GIT_CONFIG_GLOBAL / XDG_CONFIG_HOME) in env_allow, git config user.email cannot read the developer's global gitconfig, returns empty string, plugin hits IdentityResolutionFailed, fails open (Continue), and the lock guard is a silent no-op. This is the THIRD instance of the deny-by-default silent-no-op footgun class (first: read_file block omitted; second: exec_subprocess binary_allow omitted; third: exec_subprocess env_allow omitted). Fix: Decision 2 and D2 canonical registry snippet updated to include env_allow = [\"HOME\", \"GIT_CONFIG_GLOBAL\", \"XDG_CONFIG_HOME\"] on the exec_subprocess capability block. Rationale section updated to name all three footgun vectors explicitly. Process note added. v1.1→v1.2 amendment_reason preserved inline."
+amendment_reason: "v1.3→v1.4: [S-17.04] Automatic heartbeat renewal enforcement wiring. Decision 11 added: two complementary mechanisms close the prose-only PC4 enforcement gap — (1) mandatory executable factory-lock-write.sh renew step in state-burst SKILL before git add/commit (Option A); (2) new verify-lock-renewal.sh PreToolUse bash hook that blocks a held-lock factory-artifacts push when HEAD's expires_at equals origin/factory-artifacts' expires_at (RenewalMissed — renewal not committed in this burst), on_error=continue, async=false, no-op when unlocked or no remote baseline (Option C). Decision 5 vestigial burst-END-only sentence corrected: replaces 'Renewal happens at burst END (the state-manager commit that closes the burst writes the updated expires_at).' with the authoritative mid-burst-every-commit formulation pointing to Decision 11. Deliverables D10–D14 added. BC-5.40.001 PC4 unaffected (this amendment implements PC4, does not change it). v1.2→v1.3 amendment_reason preserved inline: [process-gap] S-17.02 TDD implementation finding — exec_subprocess env_allow omission footgun. Decision 2 / D2 capability block spec was incomplete: exec_subprocess capability block listed only binary_allow = [\"git\"] but omitted env_allow. The dispatcher's exec_subprocess host function calls env_clear() and passes ONLY vars listed in caps.env_allow; without HOME (and GIT_CONFIG_GLOBAL / XDG_CONFIG_HOME) in env_allow, git config user.email cannot read the developer's global gitconfig, returns empty string, plugin hits IdentityResolutionFailed, fails open (Continue), and the lock guard is a silent no-op. This is the THIRD instance of the deny-by-default silent-no-op footgun class (first: read_file block omitted; second: exec_subprocess binary_allow omitted; third: exec_subprocess env_allow omitted). Fix: Decision 2 and D2 canonical registry snippet updated to include env_allow = [\"HOME\", \"GIT_CONFIG_GLOBAL\", \"XDG_CONFIG_HOME\"] on the exec_subprocess capability block. Rationale section updated to name all three footgun vectors explicitly. Process note added."
 title: "ADR-025: Single-writer factory lock/lease — prevent concurrent session races on factory-artifacts orphan branch"
 traces_to: .factory/specs/architecture/ARCH-INDEX.md
 anchors:
@@ -32,12 +32,12 @@ human_gate_reason: "All decisions confirmed by human design review 2026-06-10. R
 
 ## Status
 
-**ACCEPTED — human design confirmed 2026-06-10; research-agent verification APPROVE-WITH-FIXES incorporated as v1.2. D-540 codification recorded by state-manager 2026-06-10. Implementation dispatch ready. v1.3 amended 2026-06-11: [process-gap] S-17.02 TDD finding — exec_subprocess env_allow omission footgun; env_allow = ["HOME", "GIT_CONFIG_GLOBAL", "XDG_CONFIG_HOME"] added to D2 canonical registry form.**
+**ACCEPTED — human design confirmed 2026-06-10; research-agent verification APPROVE-WITH-FIXES incorporated as v1.2. D-540 codification recorded by state-manager 2026-06-10. Implementation dispatch ready. v1.3 amended 2026-06-11: [process-gap] S-17.02 TDD finding — exec_subprocess env_allow omission footgun; env_allow = ["HOME", "GIT_CONFIG_GLOBAL", "XDG_CONFIG_HOME"] added to D2 canonical registry form. v1.4 amended 2026-06-11: [S-17.04] Decision 11 added — automatic heartbeat renewal enforcement (executable state-burst SKILL step + PreToolUse push gate); Decision 5 vestigial burst-END sentence corrected; Deliverables D10–D14 added.**
 
 This ADR resolves the design for the factory lock/lease primitive requested in issue #170.
-All ten decisions are confirmed by human review. Five research-agent fixes are incorporated
-in v1.2, and one process-gap spec-drift amendment incorporated in v1.3 (see amendment_reason
-above). No further human-gated questions remain.
+All eleven decisions are confirmed by human review. Five research-agent fixes are incorporated
+in v1.2, one process-gap spec-drift amendment in v1.3, and one enforcement-wiring amendment
+in v1.4 (see amendment_reason above). No further human-gated questions remain.
 
 ## Context
 
@@ -213,9 +213,9 @@ Both escape paths are required. A lock without escape is a stale-lock footgun in
 - The guard computes `now > expires_at` on every check. An expired lock is treated as
   absent — the check passes and the operation proceeds.
 - Heartbeat renewal: `state-manager` updates `expires_at = now + TTL` on every
-  `state-burst` completion, extending the lease while the session is active. Renewal
-  happens at burst END (the `state-manager` commit that closes the burst writes the
-  updated `expires_at`).
+  `state-burst` completion, extending the lease while the session is active. The renewal
+  heartbeat fires on every `state-manager` commit in a burst (Commits A through E), not
+  only at burst-close. See Decision 11 for the enforcement mechanism.
 - A crashed session that never calls `/factory-unlock` auto-expires after 45 minutes at
   worst.
 
@@ -404,6 +404,86 @@ A developer who does not run `/factory-lock` is in the same position as today: t
 reads `factory_lock: null` and passes all checks. The lock is opt-in; absence of a lock
 record is treated as unlocked.
 
+### Decision 11: Automatic heartbeat renewal enforcement — executable skill step + PreToolUse push gate
+
+The mid-burst `expires_at` renewal obligation (Decision 5 / BC-5.40.001 PC4) is enforced
+by two complementary mechanisms, not by agent-remembered prose alone. Prior to this
+decision, `state-manager.md` §"factory_lock Write/Renewal/Clear Obligation" documented the
+requirement to call `factory-lock-write.sh renew` before each burst commit, but the
+`state-burst` SKILL itself never invoked it. An agent that followed state-manager.md prose
+but not the skill step — or ran the skill without loading the obligation section — would
+silently miss the renewal, allowing the lock to self-evict mid-burst.
+
+**Mechanism 1 — Executable `state-burst` step (Option A):**
+
+The `state-burst` SKILL (`plugins/vsdd-factory/skills/state-burst/SKILL.md`) MUST include
+`factory-lock-write.sh renew .factory/STATE.md` as a mandatory numbered step immediately
+before the `git -C .factory add -A` / `git commit` block. The call is unconditional: when
+no lock is held (absent `factory_lock:` key), the script exits 0 with "no factory_lock
+block present — renew is a no-op" — zero friction on the common case. This converts PC4
+from a prose obligation to a mechanically-invocable step executed every time the burst
+skill is followed.
+
+The `factory-lock-write.sh` script (`plugins/vsdd-factory/bin/factory-lock-write.sh`,
+delivered by S-17.01) already implements the `renew` subcommand with a RenewalMissed
+guard, post-renew assertion, and CRLF normalization. No new script is required.
+
+**Mechanism 2 — `verify-lock-renewal.sh` PreToolUse gate (Option C):**
+
+A new bash hook `plugins/vsdd-factory/hooks/verify-lock-renewal.sh`, registered in
+`hooks-registry.toml` as `PreToolUse` / Bash / `on_error = "continue"` / `async = false`,
+provides fail-closed enforcement at the push boundary. At PreToolUse on any Bash command
+targeting `factory-artifacts`, the gate:
+
+1. Checks for a `factory-artifacts` push pattern in the tool input. Any Bash command that
+   does not match `git.*push.*factory-artifacts` returns exit 0 (Continue) immediately —
+   non-push commands add zero overhead.
+2. Reads `factory_lock.holder` and `factory_lock.expires_at` from the local committed HEAD:
+   `git -C .factory show HEAD:STATE.md`. At PreToolUse time the commit already exists
+   locally (the `git commit` ran before the push Bash command fires), so HEAD reflects the
+   staged renew if Mechanism 1 was followed.
+3. If `factory_lock.holder` is absent in HEAD (factory unlocked): returns exit 0. No-op.
+4. If `origin/factory-artifacts` does not exist (first push to a new branch): returns exit 0.
+5. Reads `factory_lock.expires_at` from the remote tip:
+   `git -C .factory show origin/factory-artifacts:STATE.md`.
+6. If HEAD `expires_at` equals `origin/factory-artifacts` `expires_at` (the value was NOT
+   refreshed in this burst's commits): returns exit code 2 (block) with the message:
+   ```
+   RenewalMissed — factory_lock is held but expires_at was not refreshed in this burst.
+   Run: factory-lock-write.sh renew .factory/STATE.md
+   Then: git -C .factory add STATE.md && git -C .factory commit --amend --no-edit
+   Then retry the push.
+   ```
+7. If HEAD `expires_at` differs from remote (renewal was committed): returns exit 0.
+
+**Why PreToolUse, not PostToolUse:**
+
+PostToolUse fires after the push has already executed — it can flag but cannot block.
+PreToolUse fires before the push runs, allowing a hard block. This is the same trigger
+point as `verify-git-push.sh` (PreToolUse / Bash), which guards `factory-artifacts`
+pushes using the same legacy-bash-adapter pattern. The gate mirrors that pattern exactly.
+
+**`on_error = "continue"` rationale:**
+
+Consistent with Decision 7: an efficiency-class lock's guard crash must not wedge the
+factory. A broken gate that permanently blocks all pushes is a worse failure mode than
+a missed renewal, which is bounded by the TTL auto-expiry (Decision 5 Path A). Fail-open
+on crash; the audit trail via `internal.dispatcher_error` (SS-03) surfaces the crash
+without blocking the developer.
+
+**`async = false` requirement:**
+
+Same as Decision 2 / Decisions 1 rationale: only sync-group plugins participate in the
+`block_intent` aggregation at `executor.rs:100–117` (ADR-019). An async plugin's block
+signal is advisory-only and would silently reduce the gate to telemetry.
+
+**BC-5.40.001 PC4 unaffected:**
+
+This decision implements BC-5.40.001 PC4 ("state-manager MUST refresh
+`factory_lock.expires_at = now + 45 minutes` at every intermediate burst commit, atomic
+with the commit"). PC4's postcondition text is correct and complete as written; no BC
+amendment is required. S-17.04 is the story that wires the enforcement mechanism.
+
 ## Concrete Deliverables
 
 The following artifacts are required to implement this ADR. Story decomposition MUST
@@ -420,6 +500,11 @@ trace to each entry:
 | D7 | Lock-status surfacing in `factory-health` | `plugins/vsdd-factory/skills/factory-health/SKILL.md` | Show `Factory lock: FREE` / `HELD by this session (expires <time>)` / `HELD by <holder> since <locked_at> (expires <expires_at>)` |
 | D8 | Lock-status surfacing in `factory-worktree-health` | `plugins/vsdd-factory/skills/factory-worktree-health/SKILL.md` | Same three-state display as D7 |
 | D9 | Bats integration tests | `plugins/vsdd-factory/tests/` | Cover: lock blocked when held by other developer; read passes when locked; TTL expiry treated as unlocked; acquire CAS rejection on concurrent acquire; mid-burst renewal extends TTL; force-release emits audit event; single-developer unlocked path adds zero friction; capability-omitted registry entry graceful-degrades (advisory only) |
+| D10 | `state-burst` SKILL renewal step | `plugins/vsdd-factory/skills/state-burst/SKILL.md` | Add mandatory step before `git -C .factory add -A` / `git commit`: `bash plugins/vsdd-factory/bin/factory-lock-write.sh renew .factory/STATE.md`. Annotate as no-op when unlocked. Also add anti-pattern row: "Skipping renew before git add while lock held → RenewalMissed gate blocks the push." Reuses existing `factory-lock-write.sh renew` subcommand (S-17.01 deliverable). |
+| D11 | `verify-lock-renewal.sh` PreToolUse gate | `plugins/vsdd-factory/hooks/verify-lock-renewal.sh` | New bash hook. Filters on `git.*push.*factory-artifacts` pattern; exit 0 immediately for non-push commands. Compares `git -C .factory show HEAD:STATE.md` `expires_at` vs `git -C .factory show origin/factory-artifacts:STATE.md` `expires_at`; blocks with `RenewalMissed` message (exit 2) when held lock's `expires_at` identical (not refreshed this burst). No-op when unlocked or no remote baseline (`origin/factory-artifacts` absent). |
+| D12 | Registry entry for `verify-lock-renewal.sh` | `plugins/vsdd-factory/hooks-registry.toml` | New `[[hooks]]` entry: `name = "verify-lock-renewal"`, `event = "PreToolUse"`, `tool = "Bash"`, `plugin = "hook-plugins/legacy-bash-adapter.wasm"`, `async = false` (REQUIRED), `on_error = "continue"`, `timeout_ms = 5000`. Capabilities: `env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT"]`; `exec_subprocess.binary_allow = ["bash", "git"]`. Registered after `verify-factory-lock-bash` in priority order. |
+| D13 | `state-manager.md` obligation amendment | `plugins/vsdd-factory/agents/state-manager.md` | Amendment to existing §"factory_lock Write/Renewal/Clear Obligation" (line ~240): add a cross-reference sentence at the end of §Sequencing invariants pointing to the `state-burst` SKILL as the executable enforcement mechanism for Invariant 2 (renew on every intermediate commit). The obligation table and sequencing prose are already correct; this adds the pointer to close the prose/skill gap explicitly. |
+| D14 | Bats tests for Decision 11 | `plugins/vsdd-factory/tests/verify-lock-renewal.bats` (or appended to existing lock test suite) | Cover: (a) gate blocks push when lock held and HEAD `expires_at` equals remote `expires_at` (renewal not committed); (b) gate passes when lock held and HEAD `expires_at` differs from remote (renewal committed); (c) gate exit 0 when no lock held; (d) gate exit 0 when `origin/factory-artifacts` does not exist; (e) gate exit 0 for non-push Bash command (pattern filter). |
 
 ## Rationale
 
@@ -567,14 +652,16 @@ cross-developer scenarios. Both are needed and neither subsumes the other.
   IdentityResolutionFailed → fail-open). All three explicitly documented in D2 and
   Rationale (v1.3). The bats test in D9 MUST cover all three omission cases.
 
-### Status as of v1.3 (amended, 2026-06-11)
+### Status as of v1.4 (amended, 2026-06-11)
 
 Human design confirmed. Research-agent verification APPROVE-WITH-FIXES incorporated (v1.2).
 v1.3 [process-gap] amendment incorporated: exec_subprocess env_allow footgun closed; D2
-canonical registry form updated. No further human-gated questions remain. All ten decisions
-are final. D-540 codification recorded by state-manager 2026-06-10. Implementation stories
-may be dispatched; implementers must use the v1.3 D2 canonical registry form which includes
-the env_allow field.
+canonical registry form updated. v1.4 [S-17.04] amendment incorporated: Decision 11 added
+(automatic heartbeat renewal enforcement — executable state-burst SKILL step + PreToolUse
+push gate); Decision 5 vestigial burst-end-only sentence corrected; Deliverables D10–D14
+added; BC-5.40.001 PC4 confirmed unaffected. No further human-gated questions remain. All
+eleven decisions are final. D-540 codification recorded by state-manager 2026-06-10.
+Implementation stories may be dispatched; S-17.04 implements Decision 11.
 
 ## Alternatives Considered
 
@@ -687,3 +774,14 @@ canonical registry form specifies MUST route an architect ADR amendment in the s
   form updated to `env_allow = ["HOME", "GIT_CONFIG_GLOBAL", "XDG_CONFIG_HOME"]` on the
   `exec_subprocess` block; Rationale section updated to enumerate all three footgun vectors;
   Process note and Consequences bullet updated. ARCH-INDEX v2.19→v2.20. Issue #170, S-17.02.
+- **v1.4 [S-17.04] amendment:** 2026-06-11 — enforcement wiring for BC-5.40.001 PC4. Gap:
+  `state-burst` SKILL had no call to `factory-lock-write.sh renew` before `git add`/commit
+  despite state-manager.md §obligation table requiring it. Decision 11 added: (1) mandatory
+  executable `renew` step in `state-burst` SKILL before staging (Mechanism 1 — reuses
+  existing `factory-lock-write.sh renew` from S-17.01, no new script); (2) new
+  `verify-lock-renewal.sh` PreToolUse bash hook that blocks a held-lock `factory-artifacts`
+  push when HEAD `expires_at` equals `origin/factory-artifacts` `expires_at` (RenewalMissed),
+  `on_error=continue`, `async=false`, no-op when unlocked or no remote baseline (Mechanism 2).
+  Decision 5 vestigial "burst END" sentence corrected to "every commit in a burst, not only
+  at burst-close." Deliverables D10–D14 added. BC-5.40.001 PC4 confirmed unaffected.
+  ARCH-INDEX v2.20→v2.21 (pending state-manager row update + version bump). S-17.04.

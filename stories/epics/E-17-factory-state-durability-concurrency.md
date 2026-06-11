@@ -7,7 +7,7 @@ title: "Factory State Durability and Concurrency — single-writer factory lock/
 prd_capabilities: [CAP-031]
 subsystems_affected: [SS-04, SS-05, SS-06]
 target_release: "v1.0.0-rc.18"
-story_count: 3
+story_count: 4
 producer: story-writer
 timestamp: 2026-06-10T00:00:00Z
 phase: brownfield-backfill
@@ -75,6 +75,7 @@ the same BC family (BC-4.13.001 / BC-5.40.001 / BC-6.23.001), and the same issue
 | S-17.01 | factory_lock STATE.md schema + state-burst CAS push | D3, D6 | BC-5.40.001 | 1 | 5 |
 | S-17.02 | verify-factory-lock WASM guard crate + registry | D1, D2, D9 (unit+guard bats) | BC-4.13.001 | 2 | 8 |
 | S-17.03 | /factory-lock + /factory-unlock skills + health status surfacing | D4, D5, D7, D8, D9 (skill bats) | BC-6.23.001 | 3 | 8 |
+| S-17.04 | Automatic mid-burst heartbeat renewal wiring — SKILL renew step + verify-lock-renewal.sh PreToolUse gate | D10, D11, D12, D13, D14 | BC-5.40.001 (PC4) | 4 | 5 |
 
 **Sequencing rationale:**
 
@@ -99,9 +100,11 @@ S-17.01 (schema + CAS push) --> S-17.02 (WASM guard)
                           ╘--> S-17.03 (skills + health)
                                   ^
 S-17.02 (guard active) ----------'
+
+S-17.04 (renewal wiring) -- no product deps (renew subcommand merged in S-17.01)
 ```
 
-Topological order: S-17.01 → S-17.02 → S-17.03. No cycles. Acyclic confirmed.
+Topological order: S-17.01 → S-17.02 → S-17.03; S-17.04 has no product deps (parallel to any wave ≥2, scheduled wave 4). No cycles. Acyclic confirmed.
 
 ## Out of Scope
 
@@ -124,7 +127,7 @@ Topological order: S-17.01 → S-17.02 → S-17.03. No cycles. Acyclic confirmed
 
 | BC ID | Title | Story |
 |-------|-------|-------|
-| BC-5.40.001 | factory_lock STATE.md schema + TTL + mid-burst renewal + state-burst CAS push | S-17.01 |
+| BC-5.40.001 | factory_lock STATE.md schema + TTL + mid-burst renewal + state-burst CAS push | S-17.01 (PC1-PC3/PC5-PC6); S-17.04 (PC4 enforcement wiring) |
 | BC-4.13.001 | verify-factory-lock WASM PreToolUse guard | S-17.02 |
 | BC-6.23.001 | /factory-lock + /factory-unlock + health status | S-17.03 |
 
@@ -151,3 +154,4 @@ Topological order: S-17.01 → S-17.02 → S-17.03. No cycles. Acyclic confirmed
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
 | v1.0 | 2026-06-10 | story-writer | Initial authoring. brownfield-backfill issue #170; ADR-025 v1.2; D-540+D-541 codified. 3 stories S-17.01/02/03 spanning SS-04/SS-05/SS-06. |
+| v1.1 | 2026-06-11 | story-writer | S-17.04 added (ADR-025 v1.4 Decision 11; BC-5.40.001 PC4 enforcement wiring; wave 4; 5 pts; depends_on []). story_count 3→4; total pts 21→26. BC-5.40.001 traceability updated. Dependency graph note added for S-17.04 no-deps placement. |
