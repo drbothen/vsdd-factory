@@ -6836,4 +6836,4 @@ STATE.md current_step confirms: D-544 S-17.01-DELIVERED/MERGED; develop HEAD c64
 
 ### Factory-artifacts Commits
 
-- `[SHA-TBD-D-544]` — state(D-544): S-17.01 DELIVERED/MERGED; BC-5.40.001 POL-14 active; STORY-INDEX v3.87→v3.88; BC-INDEX v2.66→v2.67 (primary burst per TD-VSDD-053)
+- `10f22cab` — state(D-544): S-17.01 DELIVERED/MERGED; BC-5.40.001 POL-14 active; STORY-INDEX v3.87→v3.88; BC-INDEX v2.66→v2.67 (primary burst per TD-VSDD-053)

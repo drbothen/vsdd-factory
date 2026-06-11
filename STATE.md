@@ -130,7 +130,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | 2a191314 | rc.20 SHIPPED 2026-06-01; bot binary commit on top of --merge from develop; prior: 43afbfa7 (rc.19 2026-05-28) |
 | develop | c64b46d2 | D-544 PR #181 S-17.01 SQUASH-MERGED 2026-06-11; factory_lock schema+CAS push DELIVERED; prior: 0f4793f1 (D-539 PR #180 2026-06-10) |
-| factory-artifacts | `c01bacc6` | D-543 S-17.01-V1.1-EXECUTABLE-HELPER-REFINEMENT 2026-06-10 (prior: `0601fdb1` D-542-sha-patch; prior-prior: `ec0a317e` D-542) |
+| factory-artifacts | `10f22cab` | D-544 S-17.01-DELIVERED-MERGED-2026-06-11 (prior: `c01bacc6` D-543; prior-prior: `0601fdb1` D-542-sha-patch) |
 | v1.0.0-rc.20 (tag) | e9e38286 | SHIPPED 2026-06-01; annotated tag object; GitHub Release prerelease; marketplace PR drbothen/claude-mp #12 squash-merged 862e660d |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28; GitHub Release prerelease 2026-05-28T15:10:56Z; marketplace PR #11 squash-merged |
 | v1.0.0-rc.18 (tag) | 666d689f | SHIPPED 2026-05-13 PR #135 |
@@ -323,7 +323,7 @@ Prior Tier-A (pre-session, all COMPLETE): TD #71/72/70/74 (PRs #138–141) + S-1
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** `[SHA-TBD-D-544]` D-544 S-17.01-DELIVERED-MERGED-2026-06-11 (prior: `c01bacc6` D-543; prior-prior: `0601fdb1` D-542-sha-patch)
+- **factory-artifacts HEAD:** `10f22cab` D-544 S-17.01-DELIVERED-MERGED-2026-06-11 (prior: `c01bacc6` D-543; prior-prior: `0601fdb1` D-542-sha-patch)
 - **develop HEAD:** `c64b46d2` (D-544 PR #181 S-17.01 squash-merge 2026-06-11; prior: `0f4793f1` D-539 PR #180 2026-06-10)
 - **main HEAD:** `2a191314` (rc.20 bot binary commit 2026-06-01; prior: `43afbfa7` rc.19 2026-05-28)
 - **v1.0.0-rc.20 tag:** `e9e38286` (annotated tag object; GitHub Release prerelease 2026-06-01; marketplace PR #12 squash-merged 862e660d)
@@ -338,7 +338,7 @@ Prior Tier-A (pre-session, all COMPLETE): TD #71/72/70/74 (PRs #138–141) + S-1
 - D-539: PR #180 squash-merged `0f4793f1` 2026-06-10; feature/issue-169-176-worktree-identity DELETED+VERIFIED; LOCAL 3-CLEAN SHA `5ea02ecf`
 - **ADR-024 v1.2:** `.factory/specs/architecture/decisions/ADR-024.md` — ARCH-INDEX v2.18; Decision 3 bounded char-safe N=4096 + Decision 4 lexical-normalization guard + [process-gap] spec-drift routing Process note
 - **ADR-025 v1.2:** `.factory/specs/architecture/decisions/ADR-025-single-writer-factory-locklease-prevent-concurrent-session-races-on-factory-artifacts-orphan-branch.md` — ARCH-INDEX v2.19; verify-factory-lock WASM crate; factory_lock frontmatter; TTL 45min; CWE-367 CAS; 9 deliverables; D-540
-- Verify on resume: `git rev-parse --short origin/develop` → expect `0f4793f1`
+- Verify on resume: `git rev-parse --short origin/develop` → expect `c64b46d2`
 - **BC-5.40.001:** `.factory/specs/behavioral-contracts/ss-05/BC-5.40.001.md` v1.1 ACTIVE (POL-14 auto-promoted on PR #181 merge; BC-INDEX v2.67; factory_lock schema+TTL+CAS; SS-05)
 - **S-17.01 story:** `.factory/stories/S-17.01-factory-lock-schema-cas-push.md` v1.4 MERGED PR #181 c64b46d2 (STORY-INDEX v3.88; E-17 W1)
 - **S-17.02..S-17.03 stories:** `.factory/stories/S-17.02-*.md` (draft; BC-4.13.001; W2; S-17.02 test-writer Red Gate next) + `.factory/stories/S-17.03-*.md` (draft; BC-6.23.001; W3)
