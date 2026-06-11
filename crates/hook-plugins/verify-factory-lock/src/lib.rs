@@ -191,11 +191,13 @@ pub fn parse_factory_lock(content: &str) -> Result<Option<LockState>, LockCheckE
         }) {
             &after_open[..close_pos]
         } else {
-            // No closing `---` delimiter — treat as malformed (EC-013).
-            // But: if factory_lock key is present without a closing delimiter,
-            // that is malformed. If absent, it is just unlocked. We fall through
-            // and scan the whole file after the opening delimiter.
-            after_open
+            // No closing `---` delimiter — EC-013 malformed frontmatter.
+            // Return MalformedLockBlock so guard_logic emits log_warn + Continue (PC4 fail-open).
+            // Do NOT fall through and scan the body: body-resident factory_lock blocks must NOT
+            // be treated as real locks (O4 fix: over-blocking prevention).
+            return Err(LockCheckError::MalformedLockBlock(
+                "missing closing --- delimiter (EC-013)".to_string(),
+            ));
         }
     } else {
         // No opening `---\n` — no frontmatter at all, treat as unlocked.
