@@ -2,12 +2,12 @@
 document_type: architecture-decision-record
 level: L3
 adr_id: ADR-025
-version: "1.2"
+version: "1.3"
 status: accepted
 producer: architect
 timestamp: 2026-06-10T00:00:00Z
-amended: 2026-06-10T00:00:00Z
-amendment_reason: "v1.1→v1.2: research-agent APPROVE-WITH-FIXES (5 fixes). Fix 1 (ACQUIRE-RACE / CWE-367): /factory-lock acquire push routed through fetch-then-force-with-lease CAS; residual TOCTOU window named honestly. Fix 2 (LONG-BURST TTL SELF-EVICTION): Decision 5 adds explicit failure-mode subsection with mid-burst renewal mitigation and residual-risk attribution to Decision 9 git-ref-CAS future path. Fix 3 (CAPABILITY DENY-BY-DEFAULT): D2 deliverable now enumerates both capability blocks explicitly (read_file path_allow + exec_subprocess binary_allow). Fix 4 (SYNC-GROUP REQUIREMENT): D2 now states async=false with rationale. Fix 5 (FAIL-OPEN HONESTY): Decision 7 adds Kleppmann efficiency-vs-correctness framing with Decision 8 CAS as safety-net. Minor nits: Decision 10 latency cost updated to name git subprocess; executor.rs:609 block path cited."
+amended: 2026-06-11T00:00:00Z
+amendment_reason: "v1.2→v1.3: [process-gap] S-17.02 TDD implementation finding — exec_subprocess env_allow omission footgun. Decision 2 / D2 capability block spec was incomplete: exec_subprocess capability block listed only binary_allow = [\"git\"] but omitted env_allow. The dispatcher's exec_subprocess host function calls env_clear() and passes ONLY vars listed in caps.env_allow; without HOME (and GIT_CONFIG_GLOBAL / XDG_CONFIG_HOME) in env_allow, git config user.email cannot read the developer's global gitconfig, returns empty string, plugin hits IdentityResolutionFailed, fails open (Continue), and the lock guard is a silent no-op. This is the THIRD instance of the deny-by-default silent-no-op footgun class (first: read_file block omitted; second: exec_subprocess binary_allow omitted; third: exec_subprocess env_allow omitted). Fix: Decision 2 and D2 canonical registry snippet updated to include env_allow = [\"HOME\", \"GIT_CONFIG_GLOBAL\", \"XDG_CONFIG_HOME\"] on the exec_subprocess capability block. Rationale section updated to name all three footgun vectors explicitly. Process note added. v1.1→v1.2 amendment_reason preserved inline."
 title: "ADR-025: Single-writer factory lock/lease — prevent concurrent session races on factory-artifacts orphan branch"
 traces_to: .factory/specs/architecture/ARCH-INDEX.md
 anchors:
@@ -32,11 +32,12 @@ human_gate_reason: "All decisions confirmed by human design review 2026-06-10. R
 
 ## Status
 
-**ACCEPTED — human design confirmed 2026-06-10; research-agent verification APPROVE-WITH-FIXES incorporated as v1.2. D-540 codification recorded by state-manager 2026-06-10. Implementation dispatch ready.**
+**ACCEPTED — human design confirmed 2026-06-10; research-agent verification APPROVE-WITH-FIXES incorporated as v1.2. D-540 codification recorded by state-manager 2026-06-10. Implementation dispatch ready. v1.3 amended 2026-06-11: [process-gap] S-17.02 TDD finding — exec_subprocess env_allow omission footgun; env_allow = ["HOME", "GIT_CONFIG_GLOBAL", "XDG_CONFIG_HOME"] added to D2 canonical registry form.**
 
 This ADR resolves the design for the factory lock/lease primitive requested in issue #170.
 All ten decisions are confirmed by human review. Five research-agent fixes are incorporated
-in v1.2 (see amendment_reason above). No further human-gated questions remain.
+in v1.2, and one process-gap spec-drift amendment incorporated in v1.3 (see amendment_reason
+above). No further human-gated questions remain.
 
 ## Context
 
@@ -147,6 +148,10 @@ is the synchronization point.
 `state-manager` is the sole writer of this block, consistent with its role as the sole
 `.factory/` writer (TD-VSDD-053). The `/factory-lock` and `/factory-unlock` skills
 (Decision 6) delegate writing to `state-manager`.
+
+**Note:** See Decision 3 and the D2 capability block specification for the env_allow
+requirement on `exec_subprocess`. Without `HOME` in `env_allow`, `git config user.email`
+cannot read the developer's global gitconfig and identity resolution fails open.
 
 ### Decision 3: Session identity — `git config user.email` (developer-level, coarse)
 
@@ -407,7 +412,7 @@ trace to each entry:
 | # | Deliverable | Owner crate / path | Notes |
 |---|-------------|-------------------|-------|
 | D1 | New Rust crate `verify-factory-lock` | `crates/hook-plugins/verify-factory-lock/` → compiled to `plugins/vsdd-factory/hook-plugins/verify-factory-lock.wasm` | Native WASM plugin; uses `host::read_file` + `host::exec_subprocess`; no dispatcher changes; HOST_ABI_VERSION=1 unchanged |
-| D2 | Registry entries for `verify-factory-lock` | `plugins/vsdd-factory/hooks-registry.toml` | Two entries: `PreToolUse` on `Edit\|Write\|Agent` and `PreToolUse` on `Bash`; `async = false` (REQUIRED — sync-group for block decisions); `on_error = "continue"`; `timeout_ms = 5000`; MUST include BOTH capability blocks: `[hooks.capabilities.read_file] path_allow = [".factory/STATE.md"]` AND `[hooks.capabilities.exec_subprocess] binary_allow = ["git"]`. Omitting either block causes capability-denied graceful-degrade to Continue and THE LOCK NEVER ENFORCES. This is the single most likely implementation-time footgun. |
+| D2 | Registry entries for `verify-factory-lock` | `plugins/vsdd-factory/hooks-registry.toml` | Two entries: `PreToolUse` on `Edit\|Write\|Agent` and `PreToolUse` on `Bash`; `async = false` (REQUIRED — sync-group for block decisions); `on_error = "continue"`; `timeout_ms = 5000`; MUST include BOTH capability blocks: `[hooks.capabilities.read_file] path_allow = [".factory/STATE.md"]` AND `[hooks.capabilities.exec_subprocess] binary_allow = ["git"] env_allow = ["HOME", "GIT_CONFIG_GLOBAL", "XDG_CONFIG_HOME"]`. Omitting ANY sub-field within a capability block causes the relevant host call to return CapabilityDenied → plugin graceful-degrades to Continue → THE LOCK NEVER ENFORCES. Three confirmed footgun vectors: (1) read_file block absent; (2) exec_subprocess binary_allow absent; (3) exec_subprocess env_allow absent — env_clear() strips HOME, git config user.email returns empty, IdentityResolutionFailed → fail-open. All three must be enumerated explicitly. |
 | D3 | STATE.md frontmatter schema extension | `factory_lock` block (`holder`, `locked_at`, `expires_at`) | `state-manager` is sole writer; absent block = unlocked; malformed block = unlocked (fail-open) |
 | D4 | `/factory-lock` skill | `plugins/vsdd-factory/skills/factory-lock/SKILL.md` | Acquires lock via fetch-then-CAS push (same primitive as D6); emits `factory.lock.acquired`; mid-burst renewal path in state-manager |
 | D5 | `/factory-unlock` skill | `plugins/vsdd-factory/skills/factory-unlock/SKILL.md` | Releases lock (holder only without `--force`; any developer with `--force`); emits `factory.lock.released` or `factory.lock.stolen`; delegates write to state-manager |
@@ -449,11 +454,30 @@ therefore a correctness requirement, not a performance preference.
 The dispatcher enforces capability deny-by-default: a `host::read_file` call without a
 matching `[hooks.capabilities.read_file]` block returns `CapabilityDenied`, which causes
 the Rust plugin to graceful-degrade to `Continue` (no block, no error — invisible). The
-same applies to `exec_subprocess`. An implementer who scaffolds the registry entry
-from a minimal template and omits either block ships a lock plugin that reads nothing,
-identifies nobody, and never blocks — indistinguishable from a working guard until a
-concurrent-session incident reveals it. Enumerating both blocks explicitly in D2 closes
-this footgun.
+same applies to `exec_subprocess`, and the deny-by-default principle applies equally to
+every sub-field within a capability block.
+
+Three confirmed silent-no-op footgun vectors for `verify-factory-lock`:
+
+1. **read_file block absent** — `host::read_file` returns `CapabilityDenied`; plugin
+   cannot read STATE.md; graceful-degrades to `Continue`; lock never enforces.
+2. **exec_subprocess binary_allow absent (or does not list `"git"`)** — `host::exec_subprocess`
+   returns `CapabilityDenied`; plugin cannot invoke `git config user.email`; graceful-degrades
+   to `Continue`; lock never enforces.
+3. **exec_subprocess env_allow absent (or does not include `"HOME"`)** — the dispatcher's
+   `exec_subprocess` host function calls `env_clear()` and passes ONLY the env vars listed
+   in `caps.env_allow`. Without `HOME` (and optionally `GIT_CONFIG_GLOBAL` /
+   `XDG_CONFIG_HOME`) in `env_allow`, `git config user.email` cannot read the developer's
+   global gitconfig → returns empty string → plugin hits `IdentityResolutionFailed` →
+   fails open (`Continue`) → lock never enforces. This is the same deny-by-default
+   silent-no-op class as vectors 1 and 2, surfaced via the env-isolation axis rather than
+   the binary-allow axis. Discovered in S-17.02 TDD implementation; codified as v1.3
+   [process-gap] amendment.
+
+An implementer who scaffolds the registry entry from a minimal template and omits any of
+these three fields ships a lock plugin that is indistinguishable from a working guard until
+a concurrent-session incident reveals it. Enumerating all three sub-fields explicitly in D2
+closes all three footguns.
 
 ### Why `on_error = "continue"` (fail-open) rather than `on_error = "block"`
 
@@ -537,15 +561,20 @@ cross-developer scenarios. Both are needed and neither subsumes the other.
   STATE.md. If a developer has not fetched `factory-artifacts` recently, the guard's view
   of the lock is stale. The burst fetch (Decision 8) and the fetch in `/factory-lock`
   acquire (Decision 6) mitigate this for the write path.
-- **Capability footgun at implementation time:** if the registry entry omits either
-  capability block, the guard silently degrades to no-op. Explicitly documented in D2 and
-  in the Rationale. The bats test in D9 MUST cover this case.
+- **Capability footgun at implementation time:** three confirmed silent-no-op vectors —
+  (1) read_file block absent, (2) exec_subprocess binary_allow absent, (3) exec_subprocess
+  env_allow absent (env_clear() strips HOME; git config user.email returns empty;
+  IdentityResolutionFailed → fail-open). All three explicitly documented in D2 and
+  Rationale (v1.3). The bats test in D9 MUST cover all three omission cases.
 
-### Status as of v1.2 (proposed, 2026-06-10)
+### Status as of v1.3 (amended, 2026-06-11)
 
-Human design confirmed. Research-agent verification APPROVE-WITH-FIXES incorporated. No
-implementation has begun. All ten decisions are final. State-manager to record D-540, then
-implementation stories may be dispatched.
+Human design confirmed. Research-agent verification APPROVE-WITH-FIXES incorporated (v1.2).
+v1.3 [process-gap] amendment incorporated: exec_subprocess env_allow footgun closed; D2
+canonical registry form updated. No further human-gated questions remain. All ten decisions
+are final. D-540 codification recorded by state-manager 2026-06-10. Implementation stories
+may be dispatched; implementers must use the v1.3 D2 canonical registry form which includes
+the env_allow field.
 
 ## Alternatives Considered
 
@@ -585,6 +614,19 @@ implementation stories may be dispatched.
 - **Per-story granularity lock:** Considered but rejected. The race window is not limited
   to story delivery; any `state-manager` write is a potential concurrent write. Whole-factory
   granularity is simpler and conservative.
+
+## Process Note
+
+**[process-gap]:** Capability enumeration completeness must include `env_allow` for any
+guard whose subprocess depends on ambient environment configuration. `git config user.email`
+reads from the developer's global gitconfig, which requires `HOME` to locate
+`~/.gitconfig`. The dispatcher's `env_clear()` strips all ambient env vars before
+subprocess execution; only vars listed in `caps.env_allow` are forwarded. Omitting
+`env_allow` from the `exec_subprocess` capability block silently breaks identity resolution
+via the same deny-by-default path as omitting the capability block itself. This footgun was
+discovered during S-17.02 TDD implementation and codified in v1.3. The routing obligation
+per ADR-024 Process Note applies: implementer TDD findings that change behavior the ADR's
+canonical registry form specifies MUST route an architect ADR amendment in the same burst.
 
 ## Source / Origin
 
@@ -636,3 +678,12 @@ implementation stories may be dispatched.
   mode + mid-burst renewal + fencing residual risk; (3) capability block enumeration in D2;
   (4) async=false sync-group requirement in D2; (5) Kleppmann efficiency-vs-correctness
   framing in Decision 7.
+- **v1.3 [process-gap] amendment:** 2026-06-11 — S-17.02 TDD implementation finding.
+  `exec_subprocess` capability block spec was missing `env_allow`. The dispatcher's
+  `exec_subprocess` host function calls `env_clear()` before spawning the subprocess and
+  passes only vars listed in `caps.env_allow`; without `HOME`, `git config user.email`
+  returns empty → `IdentityResolutionFailed` → fail-open → silent no-op guard. Third
+  instance of the deny-by-default silent-no-op footgun class. Fix: D2 canonical registry
+  form updated to `env_allow = ["HOME", "GIT_CONFIG_GLOBAL", "XDG_CONFIG_HOME"]` on the
+  `exec_subprocess` block; Rationale section updated to enumerate all three footgun vectors;
+  Process note and Consequences bullet updated. ARCH-INDEX v2.19→v2.20. Issue #170, S-17.02.

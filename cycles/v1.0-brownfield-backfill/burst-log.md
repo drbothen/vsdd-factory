@@ -6837,3 +6837,74 @@ STATE.md current_step confirms: D-544 S-17.01-DELIVERED/MERGED; develop HEAD c64
 ### Factory-artifacts Commits
 
 - `10f22cab` — state(D-544): S-17.01 DELIVERED/MERGED; BC-5.40.001 POL-14 active; STORY-INDEX v3.87→v3.88; BC-INDEX v2.66→v2.67 (primary burst per TD-VSDD-053)
+
+---
+
+## D-545 S-17.02 DELIVERED/MERGED 2026-06-11
+
+**Parent-commit (factory-artifacts HEAD pre-burst):** `37414e5a` — state(D-544-sha-patch): patch Active Branches + burst-log + §9 with actual D-544 commit SHA 10f22cab per D-447(c)+D-449(e)
+
+**Adversary verdict:** Not applicable — post-merge codification burst (code-delivery bursts carry adversary verdict from the pre-merge cascade). S-17.02 LOCAL adversary BC-5.39.001 3-CLEAN was achieved prior to merge: trend 1H+2M+4L→1M→0→0→0 (adv-pass-1: H1 env_allow footgun omission + M2 boundary `>`→`>=` + 4L; adv-pass-1-remediation: story v1.0→v1.1; adv-pass-2: 1M residual boundary semantics in ACs/ECs; adv-pass-2-remediation: story v1.1→v1.2; adv-pass-3: 0 CLEAN; adv-pass-4: 0 CLEAN; adv-pass-5: 0 CLEAN — 3-CLEAN streak confirmed). pr-reviewer APPROVE cycle 1 (0 blocking 0 non-blocking).
+
+### Dim-2: PC Attestations (production artifact reads)
+
+```
+$ grep ^current_step: .factory/STATE.md | head -1
+current_step: "D-544 S-17.01-DELIVERED/MERGED 2026-06-11 — PR #181 squash-merged c64b46d2; ..."
+```
+
+This burst advances current_step to D-545. All 5 BC-5.39.006 v1.7 PCs maintained per TD-VSDD-097-EXT:
+- **PC2 (trajectory-tail LENGTH=4):** `→9→9→9→11` — 4 values. PASS (CARRIED; code delivery burst).
+- **PC3 (D-chain cite):** `D-chain cite D-544` present. PASS.
+- **PC4 (parent-commit):** `parent-commit 37414e5a` present. PASS.
+- **PC5 (SIZE BUDGET):** dual-margin present in STATE.md banner tracker. PASS.
+- **PC6 (5 PCs mandate):** `maintain all 5 BC-5.39.006 v1.7 PCs per TD-VSDD-097-EXT` present. PASS.
+
+### Dim-5: Files Touched
+
+- `.factory/specs/architecture/decisions/ADR-025-single-writer-factory-locklease-prevent-concurrent-session-races-on-factory-artifacts-orphan-branch.md` — v1.2→v1.3; env_allow footgun (3rd silent-no-op vector) enumerated in Accepted Tradeoffs; last_amended v1.3; Changelog v1.3 row added
+- `.factory/specs/architecture/ARCH-INDEX.md` — v2.19→v2.20; ADR-025 body-table version cell v1.2→v1.3; last_amended v2.20; changelog row v2.20 prepended
+- `.factory/specs/behavioral-contracts/ss-04/BC-4.13.001.md` — v1.0→v1.1→v1.2→v1.3; v1.1 env_allow Inv5+EC-016+PC7; v1.2 boundary now>=expires_at (PC1/PC2/ECs); v1.3 POL-14 auto-promotion draft→active; lifecycle_status draft→active; modified[] 2026-06-11; last_amended v1.3; Changelog v1.3 row added
+- `.factory/specs/behavioral-contracts/BC-INDEX.md` — v2.67→v2.68→v2.69→v2.70; v2.68+v2.69 env_allow+boundary pre-staged; v2.70 POL-14 BC-4.13.001 draft→active + body row status+version updated; last_amended v2.70; changelog rows prepended
+- `.factory/stories/S-17.02-verify-factory-lock-wasm-guard.md` — v1.4→v1.5; status draft→merged; merged_commit df4f26b8; merged_pr 182; merged_date 2026-06-11; closes ["issue #170 (partial)"]; modified[] 2026-06-11; last_amended v1.5 POST-MERGE; Changelog v1.5 row added
+- `.factory/stories/STORY-INDEX.md` — v3.89→v3.90; S-17.02 row status draft→merged + v1.5 cite + PR #182/df4f26b8/D-545/BC-4.13.001 POL-14 active; last_amended v3.90; changelog row prepended; merged count 75→76; E-17 2/3 stories merged
+- `.factory/code-delivery/S-17.02/delivery-record.md` — CREATED (metrics, adversary convergence, key findings H1+M2, files delivered, POL-14, 4-index versions, issue status)
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-545 row prepended (this burst SoT)
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — this entry (this burst)
+- `.factory/STATE.md` — frontmatter phase/current_step/last_amended advance; D-430(a) compaction (archive D-532..D-538 decisions + stale banner rows); banner tracker +D-545; Phase Progress +D-545 row; Decisions Log +D-545; Story Status 75→76; Active Branches develop→df4f26b8 + factory-artifacts advance; Drift rows added (RUSTSEC-2026-0149 + #170-partial-close); §1/§3/§4/§8/§9/§12 Session Resume Checkpoint refresh
+
+### Dim-6: 4-Index Version Gate (literal shell)
+
+```
+$ grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md | head -1
+version: "2.70"
+$ grep "^version:" .factory/specs/verification-properties/VP-INDEX.md | head -1
+version: "2.06"
+$ grep "^version:" .factory/stories/STORY-INDEX.md | head -1
+version: "3.90"
+$ grep "^version:" .factory/specs/architecture/ARCH-INDEX.md | head -1
+version: "2.20"
+```
+
+4-index gate: BC-INDEX v2.70 (bumped; BC-4.13.001 POL-14 active) | VP-INDEX v2.06 (UNCHANGED) | STORY-INDEX v3.90 (bumped; S-17.02 merged) | ARCH-INDEX v2.20 (bumped; ADR-025 v1.3 env_allow footgun). PASS.
+
+### Dim-7: State Attestation
+
+STATE.md current_step confirms: D-545 S-17.02-DELIVERED/MERGED; develop HEAD df4f26b8; BC-4.13.001 active; issue #170 partial-close (S-17.03 remains); E-17 2/3 merged; S-17.03 Wave 3 next. All 5 BC-5.39.006 v1.7 PCs satisfied. TD-VSDD-099 4-Dim structural integrity SATISFIED.
+
+**Codifications:** D-545 S-17.02-DELIVERED/MERGED; BC-4.13.001 POL-14 active; STORY-INDEX v3.89→v3.90; BC-INDEX v2.69→v2.70; ARCH-INDEX v2.19→v2.20; ADR-025 v1.3 env_allow footgun; D-545 row added to decision-log.md SoT + STATE.md Decisions Log summary row.
+
+**Closes:**
+- S-17.02 DELIVERED/MERGED. PR #182 squash-merge df4f26b8. 23 unit + 13 bats green. LOCAL 3-CLEAN trend 1H+2M+4L→1M→0→0→0.
+- BC-4.13.001 POL-14 draft→active (E-17 Wave 2 BC promoted).
+- E-17 Wave 2 SHIPPED. verify-factory-lock WASM guard (D1+D2) + env_allow footgun fixed (D2 capability block complete) + boundary semantics corrected reach develop.
+- ADR-025 v1.3 — 3rd silent-no-op vector (env_allow omission) enumerated.
+- issue #170 partial: S-17.01 W1 + S-17.02 W2 MERGED; S-17.03 W3 remains.
+
+**Advances:** D-chain D-544 → D-545; next-D = D-546; issue #170 partial-close; RECOMMENDED ACTIVE NEXT: (a) S-17.03 test-writer Red Gate on feature/S-17.03-factory-lock-skills (E-17 Wave 3); (b) rc release to ship S-17.01+S-17.02 to operators.
+
+**Trajectory:** →9→9→9→11 (CARRIED — post-merge codification burst; no adversary pass)
+
+### Factory-artifacts Commits
+
+- TBD — state(D-545): S-17.02 DELIVERED/MERGED; BC-4.13.001 POL-14 active; STORY-INDEX v3.89→v3.90; BC-INDEX v2.69→v2.70; ARCH-INDEX v2.19→v2.20 (primary burst per TD-VSDD-053)

@@ -1,8 +1,8 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
-status: draft
+version: "1.3"
+status: active
 producer: product-owner
 timestamp: 2026-06-10T00:00:00Z
 phase: brownfield-backfill
@@ -18,9 +18,12 @@ traces_to: .factory/specs/architecture/decisions/ADR-025-single-writer-factory-l
 origin: brownfield
 subsystem: "SS-04"
 capability: "CAP-031"
-lifecycle_status: draft
+lifecycle_status: active
 introduced: v1.0-brownfield-backfill
-modified: []
+modified:
+  - "2026-06-11 (v1.1)"
+  - "2026-06-11 (v1.2)"
+  - "2026-06-11 (v1.3)"
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -29,7 +32,7 @@ removed: null
 removal_reason: null
 bc_id: BC-4.13.001
 section: "4.13"
-last_amended: "2026-06-10 (v1.0) — Initial authoring (product-owner; brownfield-backfill issue #170; ADR-025 v1.2 D1/D2/D7/D9 deliverables). verify-factory-lock WASM guard behavioral contract. lifecycle_status: draft (POL-14 auto-promotion to active on implementing PR merge)."
+last_amended: "2026-06-11 (v1.3) — POL-14 auto-promotion: lifecycle_status draft→active on PR #182 squash-merge df4f26b8 (S-17.02 MERGED 2026-06-11); BC-INDEX v2.69→v2.70; D-545. [Prior: 2026-06-11 (v1.2) — Boundary-semantics spec error (product-owner; S-17.02 testing finding; issue #170). EC-002 and PC2 prescribed `now > expires_at` as the expiry test, which is self-contradictory: `now == expires_at` would evaluate false under strict `>`, causing the guard to BLOCK at the exact-expiry instant — opposite of the stated EC-002 outcome (boundary → Continue). Corrected to `now >= expires_at` throughout (PC2 condition, EC-002 description, Invariant 3). PC1 blocking condition updated from `now ≤ expires_at` to `now < expires_at` for consistency (boundary is expired, not blocking). BC version v1.1→v1.2. [Prior: 2026-06-11 (v1.1) — Production-correctness spec gap (product-owner; S-17.02 implementation finding; issue #170). Inv 5 registry-shape UPDATED: both exec_subprocess capability blocks now REQUIRE `env_allow = [\"HOME\", \"GIT_CONFIG_GLOBAL\", \"XDG_CONFIG_HOME\"]` alongside `binary_allow = [\"git\"]`; without env_allow the dispatcher calls env_clear() → git config user.email returns empty → IdentityResolutionFailed → HookResult::Continue → lock silently inert. EC-016 added (env_allow omitted footgun). PC7 IdentityResolutionFailed extended to document env_allow dependency. BC version v1.0→v1.1. Prior: 2026-06-10 (v1.0) — Initial authoring (product-owner; brownfield-backfill issue #170; ADR-025 v1.2 D1/D2/D7/D9 deliverables). verify-factory-lock WASM guard behavioral contract. lifecycle_status: draft (POL-14 auto-promotion to active on implementing PR merge).]"
 ---
 
 # BC-4.13.001: verify-factory-lock WASM PreToolUse guard MUST block mutating tools when a foreign unexpired factory_lock is held, MUST pass all read-only tools unconditionally, MUST fail-open on crash, MUST be registered async=false with both capability blocks enumerated, and MUST treat expired/absent/malformed locks as unlocked
@@ -83,9 +86,15 @@ push fix (D6) are specified in BC-5.40.001 and BC-6.23.001 respectively.
 
 4. The guard MUST invoke `git config user.email` via `host::exec_subprocess` to obtain the
    caller's identity. The registry-level `[hooks.capabilities.exec_subprocess]` MUST enumerate
-   `binary_allow = ["git"]` explicitly. Same caveat as Precondition 3: omission causes silent
-   `CapabilityDenied` degrade, meaning the guard can never compare identities and never blocks.
-   Both capability blocks are REQUIRED together — omitting either is the single most likely
+   BOTH `binary_allow = ["git"]` AND `env_allow = ["HOME", "GIT_CONFIG_GLOBAL",
+   "XDG_CONFIG_HOME"]` explicitly. The dispatcher calls `env_clear()` before subprocess
+   execution; only env vars listed in `env_allow` are passed through. Without `HOME` (and
+   optionally `GIT_CONFIG_GLOBAL` / `XDG_CONFIG_HOME`), `git config user.email` returns
+   empty output regardless of the developer's git configuration → `IdentityResolutionFailed`
+   → `HookResult::Continue` (PC7 fail-open) → the lock SILENTLY NEVER ENFORCES. This is the
+   same class of footgun as omitting the capability block entirely (EC-007/EC-008), but subtler
+   because the capability block IS present — only the env pass-through is missing (EC-016).
+   Both capability fields are REQUIRED together — omitting either is the single most likely
    implementation-time footgun (ADR-025 D2, Rationale §Capability blocks must be enumerated).
 
 ### Registry correctness
@@ -103,7 +112,7 @@ push fix (D6) are specified in BC-5.40.001 and BC-6.23.001 respectively.
 
 When ALL of the following are true:
 - `factory_lock.holder` is present and non-null in STATE.md frontmatter (Invariants 1-3)
-- `now ≤ factory_lock.expires_at` (TTL not elapsed)
+- `now < factory_lock.expires_at` (TTL not yet elapsed; the boundary instant `now == expires_at` is treated as expired — see PC2)
 - `factory_lock.holder != current_git_email` (caller is not the lock holder)
 
 The guard MUST return `block_intent = true` (exit code 2). The block message MUST include ALL
@@ -124,10 +133,11 @@ this path — see Precondition 5).
 
 ### PC2 — Expired lock: Pass (treat as unlocked)
 
-When `factory_lock.holder` is present but `now > factory_lock.expires_at`, the guard MUST return
-`HookResult::Continue` immediately. An expired lock is treated as absent; the caller proceeds
-without any block. The guard MUST NOT emit a warning for expired-lock pass-through (it is the
-normal TTL expiry path, not an error condition).
+When `factory_lock.holder` is present but `now >= factory_lock.expires_at`, the guard MUST return
+`HookResult::Continue` immediately. The boundary instant `now == expires_at` is treated as
+expired — the lock is considered to have just lapsed. An expired lock is treated as absent; the
+caller proceeds without any block. The guard MUST NOT emit a warning for expired-lock
+pass-through (it is the normal TTL expiry path, not an error condition).
 
 **Error variant:** `LockExpired` (for internal instrumentation only; not surfaced as a block)
 
@@ -174,6 +184,14 @@ When `host::exec_subprocess(["git", "config", "user.email"])` fails (non-zero ex
 output, or HostError), the guard MUST return `HookResult::Continue` after emitting
 `host::log_warn`. Identity resolution failure MUST NOT block — same fail-open rationale as PC6.
 
+**env_allow dependency:** The dispatcher calls `env_clear()` before invoking the subprocess;
+only env vars listed in `[hooks.capabilities.exec_subprocess] env_allow` are passed through.
+If `env_allow` is absent or omits `HOME`, git cannot locate `~/.gitconfig` or the system
+config, and `git config user.email` returns empty output — triggering this path even on a
+correctly configured machine. The result is indistinguishable from a genuinely unconfigured
+git identity: the guard returns `HookResult::Continue` and the lock silently never enforces.
+This is EC-016; see also Precondition 4 and Invariant 5 for the mandatory `env_allow` values.
+
 **Error variant:** `IdentityResolutionFailed`
 
 ### PC8 — On-error behavior: Always Continue (fail-open)
@@ -196,8 +214,10 @@ are surfaced as advisory `internal.dispatcher_error` events via SS-03.
    for the cooperative threat model.
 
 3. **Absent `factory_lock` block = unlocked**: `None` for the entire block equals unlocked.
-   `Some(block)` with `expires_at` in the past also equals unlocked. Only
-   `Some(block)` with `expires_at` in the future AND `holder != current_email` equals locked.
+   `Some(block)` with `expires_at` in the past OR equal to `now` (i.e., `now >= expires_at`)
+   also equals unlocked — the boundary instant is treated as expired. Only
+   `Some(block)` with `now < expires_at` (strictly in the future) AND `holder != current_email`
+   equals locked.
 
 4. **No STATE.md write**: The guard is read-only at runtime. It NEVER writes STATE.md. Writing
    the `factory_lock` block is exclusively `state-manager`'s responsibility (TD-VSDD-053).
@@ -219,6 +239,7 @@ are surfaced as advisory `internal.dispatcher_error` events via SS-03.
 
    [hooks.capabilities.exec_subprocess]
    binary_allow = ["git"]
+   env_allow = ["HOME", "GIT_CONFIG_GLOBAL", "XDG_CONFIG_HOME"]
 
    [[hooks]]
    name = "verify-factory-lock-bash"
@@ -234,6 +255,7 @@ are surfaced as advisory `internal.dispatcher_error` events via SS-03.
 
    [hooks.capabilities.exec_subprocess]
    binary_allow = ["git"]
+   env_allow = ["HOME", "GIT_CONFIG_GLOBAL", "XDG_CONFIG_HOME"]
    ```
    The Bash entry filters on commands matching `git.*push.*factory-artifacts` within the plugin
    logic (the registry `tool = "Bash"` is the trigger; the push-regex check is internal to the
@@ -270,7 +292,7 @@ are surfaced as advisory `internal.dispatcher_error` events via SS-03.
 | ID | Description | Expected Behavior |
 |----|-------------|-------------------|
 | EC-001 | `factory_lock` block absent from STATE.md | `HookResult::Continue` (PC4 fail-open: no lock = unlocked) |
-| EC-002 | `factory_lock.expires_at` is exactly `now` (boundary) | `HookResult::Continue` — expired lock. `now > expires_at` evaluates as `false` for `now == expires_at`; behavior: treat `now == expires_at` as just-expired, i.e., pass (LockExpired path) |
+| EC-002 | `factory_lock.expires_at` is exactly `now` (boundary) | `HookResult::Continue` — expired lock. The expiry test is `now >= expires_at`; at the exact boundary `now == expires_at` this evaluates `true` → lock is treated as just-expired → guard returns Continue (LockExpired path). The boundary instant is NOT blocking. |
 | EC-003 | `factory_lock.holder` == `current_git_email` and lock is unexpired | `HookResult::Continue` (PC3 self-held; developer is not blocked by their own lock) |
 | EC-004 | `factory_lock.holder` is set but `holder` field is empty string | `MalformedLockBlock` → `HookResult::Continue` (PC4; empty holder is malformed) |
 | EC-005 | `factory_lock.expires_at` is not a valid ISO-8601 datetime | `MalformedLockBlock` → `HookResult::Continue` (PC4; unparseable expiry = treat as absent) |
@@ -284,6 +306,7 @@ are surfaced as advisory `internal.dispatcher_error` events via SS-03.
 | EC-013 | STATE.md frontmatter region missing closing `---\n` delimiter | `MalformedLockBlock` (parse fail-open) → `HookResult::Continue` |
 | EC-014 | Two concurrent Edit calls from different sessions; both arrive before either is blocked | First Edit proceeds (no lock set yet); CAS push at `state-burst` is the safety net for the push layer (BC-5.40.001). The guard provides per-call blocking, not atomicity across concurrent arrivals. |
 | EC-015 | `host::exec_subprocess` times out (git subprocess stalls) | `HostError::Timeout` → `IdentityResolutionFailed` → `HookResult::Continue` (PC7 fail-open) |
+| EC-016 | `env_allow` absent (or omits `HOME`) from `[hooks.capabilities.exec_subprocess]` in registry — dispatcher calls `env_clear()` → `git config user.email` runs without `HOME` → empty output → `IdentityResolutionFailed` → `HookResult::Continue` → guard silently inert (lock never enforces). Same footgun class as EC-007/EC-008 (capability block omitted), but subtler: the capability block IS present, only the env pass-through is missing. | `IdentityResolutionFailed` → `HookResult::Continue` (PC7 fail-open; lock silently inert); bats integration test MUST cover this case (D9 §"env_allow-omitted registry entry silently fails identity resolution") |
 
 ## Canonical Test Vectors
 
@@ -392,4 +415,7 @@ TBD — VP IDs to be assigned after VP authoring pass.
 
 | Version | Date | Description |
 |---------|------|-------------|
+| 1.3 | 2026-06-11 | POL-14 auto-promotion: lifecycle_status draft→active on PR #182 squash-merge df4f26b8 (S-17.02 MERGED 2026-06-11; D-545). BC-4.13.001 is now the enforcement BC for the deployed verify-factory-lock WASM guard. BC-INDEX v2.69→v2.70. No spec content changes. |
+| 1.2 | 2026-06-11 | Boundary-semantics spec error corrected (product-owner; S-17.02 testing; issue #170). EC-002 and PC2 prescribed `now > expires_at` as the expiry test, which is self-contradictory: under strict `>`, `now == expires_at` evaluates false → guard would BLOCK at the exact-expiry instant, contradicting EC-002's stated outcome (boundary → Continue). Corrected to `now >= expires_at` in PC2, EC-002, and Invariant 3. PC1 blocking condition corrected from `now ≤ expires_at` to `now < expires_at` (boundary is expired, not blocking). All four locations now consistently state: the lock is expired (Continue) when `now >= expires_at`; the guard blocks only when `now < expires_at`. EC-002 outcome (boundary → Continue) unchanged. BC version v1.1→v1.2. |
+| 1.1 | 2026-06-11 | Production-correctness spec gap found during S-17.02 implementation (product-owner; issue #170; S-17.02). Inv 5 registry-shape: both `[hooks.capabilities.exec_subprocess]` blocks now REQUIRE `env_allow = ["HOME", "GIT_CONFIG_GLOBAL", "XDG_CONFIG_HOME"]` alongside `binary_allow = ["git"]` — without env_allow the dispatcher's env_clear() causes `git config user.email` to return empty → IdentityResolutionFailed → HookResult::Continue → lock silently inert. Precondition 4 updated to document env_allow requirement. PC7 extended with env_allow dependency note (env_clear() path to IdentityResolutionFailed). EC-016 added (env_allow omitted footgun — same class as EC-007/EC-008 but subtler). 16 edge cases total EC-001..EC-016. BC version v1.0→v1.1. |
 | 1.0 | 2026-06-10 | Initial authoring (product-owner; brownfield-backfill issue #170; ADR-025 v1.2 D1/D2/D9 deliverables). verify-factory-lock WASM guard: PC1 (ForeignLockHeld block), PC2 (LockExpired pass), PC3 (self-held pass), PC4 (absent/malformed fail-open), PC5 (read-only pass), PC6 (read failure fail-open), PC7 (identity resolution fail-open), PC8 (on_error=continue). 9 error variants. 15 edge cases EC-001..EC-015. 10 canonical test vectors T-1..T-10. CAP-031 registered same burst. lifecycle_status: draft (POL-14 auto-promotion on implementing PR merge). |
