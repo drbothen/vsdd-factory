@@ -136,23 +136,48 @@ where
 
 /// Check whether a Bash command payload matches the factory-artifacts push pattern.
 ///
-/// Returns `true` if the command contains all three fragments required by the
-/// internal push-regex `git.*push.*factory-artifacts`. Does NOT read STATE.md.
-/// A non-matching Bash command must return `false` so `guard_logic` can
-/// return `HookResult::Continue` immediately (EC-011; AC-013).
+/// Returns `true` if the command is a `git push` targeting `factory-artifacts`.
+/// Does NOT read STATE.md. A non-matching Bash command must return `false` so
+/// `guard_logic` can return `HookResult::Continue` immediately (EC-011; AC-013).
 ///
-/// Architecture Compliance Rule 4 — no `regex` crate: uses substring matching
-/// on the three required literal fragments in order.
+/// Architecture Compliance Rule 4 — no `regex` crate: uses whitespace-tokenization
+/// to require all three tokens (`git`, `push`, `factory-artifacts`) as distinct words
+/// in order. This prevents false-matches on contrived filenames and echo strings where
+/// the pattern appears inside a quoted string or as part of a longer word (O1 fix).
+///
+/// Matched real forms:
+///   - `git push origin factory-artifacts`
+///   - `git -C .factory push origin factory-artifacts`
+///   - `git push --force-with-lease=factory-artifacts:<sha> factory-artifacts`
+///   - `git push factory-artifacts`
+///
+/// The `PUSH_PATTERN_*` constants are retained for documentation purposes.
 pub fn matches_factory_artifacts_push(command: &str) -> bool {
-    // Check that "git", "push", "factory-artifacts" all appear in the command
-    // in left-to-right order (no regex crate; Architecture Compliance Rule 4).
-    if let Some(git_pos) = command.find(PUSH_PATTERN_GIT) {
-        let after_git = &command[git_pos..];
-        if let Some(push_pos) = after_git.find(PUSH_PATTERN_PUSH) {
-            return after_git[push_pos..].contains(PUSH_PATTERN_BRANCH);
-        }
-    }
-    false
+    // Tokenize the command on ASCII whitespace.
+    // Architecture Compliance Rule 4 — no `regex` crate.
+    let tokens: Vec<&str> = command.split_ascii_whitespace().collect();
+
+    // Require a "git" token, a "push" token appearing after it, and a
+    // "factory-artifacts" token (exact) appearing after the "push" token.
+    // This matches `git -C .factory push ... factory-artifacts` (options allowed
+    // between git and push, and between push and the branch name).
+    let git_idx = tokens.iter().position(|&t| t == PUSH_PATTERN_GIT);
+    let git_idx = match git_idx {
+        Some(i) => i,
+        None => return false,
+    };
+
+    let push_idx = tokens[git_idx + 1..].iter().position(|&t| t == PUSH_PATTERN_PUSH);
+    let push_idx = match push_idx {
+        Some(i) => git_idx + 1 + i,
+        None => return false,
+    };
+
+    // factory-artifacts may appear as an exact token (bare branch name or remote)
+    // anywhere after the "push" token.
+    tokens[push_idx + 1..]
+        .iter()
+        .any(|&t| t == PUSH_PATTERN_BRANCH)
 }
 
 /// Scan the YAML frontmatter of STATE.md content for the `factory_lock:` block.
