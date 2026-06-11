@@ -155,9 +155,22 @@ If FAIL:
 
 ## Push
 
+Use the `factory-cas-push.sh` helper (BC-5.40.001 PC5 / S-17.01 D6). This replaces
+the former blind `git push origin factory-artifacts` with a fetch-then-`--force-with-lease`
+CAS sequence that detects concurrent writes rather than silently clobbering them.
+
 ```bash
-git -C .factory push origin factory-artifacts
+bash plugins/vsdd-factory/bin/factory-cas-push.sh
 ```
+
+The helper internally runs:
+1. `git -C .factory fetch origin factory-artifacts` — synchronize remote ref
+2. `EXPECTED_SHA=$(git -C .factory rev-parse origin/factory-artifacts)` — capture tip
+3. `git -C .factory push --force-with-lease=factory-artifacts:"${EXPECTED_SHA}" origin factory-artifacts`
+
+On push rejection (concurrent write detected), the helper exits non-zero with a
+human-readable `CASPushRejected` message. The local `.factory/` commit is preserved;
+fetch and retry after resolving the divergence.
 
 After push, run the hook one more time to catch any push-side issues:
 
