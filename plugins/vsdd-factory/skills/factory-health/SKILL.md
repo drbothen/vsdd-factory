@@ -121,7 +121,7 @@ cd .factory && git status --porcelain
 - **Uncommitted changes**: Warn the user — there are uncommitted factory artifacts.
 - **Diverged from remote**: Warn — manual resolution needed.
 
-### 8. STATE.md health
+### 9. STATE.md health
 
 Check STATE.md size and content routing compliance:
 
