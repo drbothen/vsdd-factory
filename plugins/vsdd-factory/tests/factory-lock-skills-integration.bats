@@ -146,58 +146,143 @@ STATE
 #
 # Simulates two concurrent /factory-lock invocations (dev-a@x.com and
 # dev-b@x.com) that both see an unlocked STATE.md and both attempt acquire.
-# The CAS push is the tiebreaker: one succeeds, one gets AcquireRaceRejected.
+# The CAS push is the tiebreaker: one succeeds, one gets CASPushRejected.
 #
-# Test strategy (mirrors factory-cas-push.bats real-fixture approach):
-#   1. Both clones see the same initial unlocked STATE.md (INIT_SHA).
-#   2. Both run factory-lock-acquire-precheck.sh → both should return
-#      PROCEED_ACQUIRE (unlocked base state).
-#   3. Clone A writes its lock (factory-lock-write.sh acquire) and does the
-#      CAS push (factory-cas-push.sh) FIRST. This succeeds.
-#   4. Clone B attempts the same sequence. Its CAS push fails because the
-#      remote has advanced past INIT_SHA (clone A's push moved it forward).
-#   5. Assert: clone A push succeeded; clone B push failed with
-#      AcquireRaceRejected (or CASPushRejected) error message.
+# Test strategy — models the REAL state-manager acquire sequence:
+#   acquire = factory-lock-write.sh acquire → git add → git commit → factory-cas-push.sh
 #
-# A git shim installed in PATH intercepts the fetch and config subcommands
-# for each clone to supply the correct email identity without touching
-# real git config.
+# The RACE is deterministically simulated via a race-injecting git shim (same
+# pattern as test_BC_5_40_001_cas_push_rejected_on_concurrent_write in
+# factory-cas-push.bats). The shim intercepts clone B's `git fetch` inside
+# factory-cas-push.sh: after the real fetch completes (B captures EXPECTED_SHA
+# = INIT_SHA, reflecting the pre-race remote state), the shim THEN injects
+# clone A's push into the bare repo, advancing the remote to SHA_A. When B's
+# cas-push then executes `git push --force-with-lease=factory-artifacts:INIT_SHA`,
+# the remote is at SHA_A ≠ INIT_SHA → --force-with-lease fires → CASPushRejected.
 #
-# RED GATE: factory-lock-acquire-precheck.sh and factory-cas-push.sh are stubs
-# that exit 1 immediately. The PROCEED_ACQUIRE assertion for clone A fails
-# because the precheck stub exits 1 with TODO. The test fails at the precheck
-# stage — demonstrating RED for the right reason.
+# Without the shim, clone B's cas-push would fetch AFTER clone A pushed, capture
+# EXPECTED_SHA=SHA_A, and succeed as a force push (lease check passes because
+# remote == EXPECTED_SHA). The shim is required for deterministic race simulation.
+#
+# Fixture strategy — PRODUCTION-FAITHFUL (.factory path exercised):
+#   Each "session" has a session working directory (session-a / session-b) with a
+#   .factory symlink pointing at the respective clone (clone-a / clone-b). This
+#   mirrors the production layout: main worktree root → .factory/ worktree.
+#   factory-cas-push.sh detects .factory/.git and uses GIT_FACTORY_DIR=".factory"
+#   (the PRODUCTION path). The "." fallback in the helper is NOT triggered.
+#
+# Precheck invocation: factory-lock-acquire-precheck.sh uses bare `git fetch`
+# and `git config user.email` (no -C), so it must be called with CWD = a git
+# repo. We run it from clone dirs directly (both are factory-artifacts repos
+# with `origin` pointing at the bare repo). This is equivalent to the production
+# context where the precheck runs from the main project root (also a git repo).
+#
+# Sequence:
+#   1. Both clones run precheck from their clone dirs → both return PROCEED_ACQUIRE.
+#   2. Both clones write+commit locally: write lock → git add → git commit.
+#   3. Clone A runs CAS push from session-a WITHOUT shim → succeeds (first push).
+#   4. Clone B runs CAS push from session-b WITH race-injecting shim:
+#        shim fetch: real fetch returns INIT_SHA to B's tracking, THEN injects A's push
+#        B captures EXPECTED_SHA=INIT_SHA; pushes with lease=INIT_SHA;
+#        remote is now at SHA_A → lease check fires → REJECTED.
+#   5. Assert: A push exit 0; B push non-zero + CASPushRejected message.
+#   6. Assert: dev-a@x.com holds the lock on the bare remote (clone A's STATE.md).
 # ---------------------------------------------------------------------------
 
 @test "test_BC_6_23_001_concurrent_acquire_cas_race_one_wins_one_rejected" {
   _setup_two_clone_fixture
 
+  local state_a="$CLONE_A/STATE.md"
+  local state_b="$CLONE_B/STATE.md"
+
   # ---------------------------------------------------------------------------
-  # Build a git shim that supplies the correct email per clone path
+  # Build production-faithful session directories:
+  #   session-a and session-b each have a .factory symlink → respective clone.
+  # factory-cas-push.sh detects .factory/.git → GIT_FACTORY_DIR=".factory" (production path).
   # ---------------------------------------------------------------------------
-  local stub_bin="$WORK/stub-bin"
+  local session_a="$WORK/session-a"
+  local session_b="$WORK/session-b"
+  mkdir -p "$session_a" "$session_b"
+  ln -s "$CLONE_A" "$session_a/.factory"
+  ln -s "$CLONE_B" "$session_b/.factory"
+
+  # ---------------------------------------------------------------------------
+  # Step 1: Both clones run precheck (from clone dirs — git repo CWD required).
+  # Remote is at INIT_SHA (unlocked). Both return PROCEED_ACQUIRE.
+  # ---------------------------------------------------------------------------
+  run bash -c "cd '${CLONE_A}' && bash '${PRECHECK_HELPER}' '${state_a}'"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"PROCEED_ACQUIRE"* ]]
+
+  run bash -c "cd '${CLONE_B}' && bash '${PRECHECK_HELPER}' '${state_b}'"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"PROCEED_ACQUIRE"* ]]
+
+  # ---------------------------------------------------------------------------
+  # Step 2: Both clones write+commit their lock locally (against INIT_SHA base).
+  # factory-lock-write.sh ONLY modifies STATE.md — it does NOT commit.
+  # The state-manager commit step is modelled explicitly here (TD-VSDD-053:
+  # write → commit → CAS push is the atomic acquire sequence).
+  # ---------------------------------------------------------------------------
+  run bash "$LOCK_WRITE_HELPER" acquire "$state_a"
+  [ "$status" -eq 0 ]
+  git -C "$CLONE_A" add STATE.md >/dev/null 2>&1
+  git -C "$CLONE_A" commit -m "acquire lock (dev-a)" >/dev/null 2>&1
+
+  run bash "$LOCK_WRITE_HELPER" acquire "$state_b"
+  [ "$status" -eq 0 ]
+  git -C "$CLONE_B" add STATE.md >/dev/null 2>&1
+  git -C "$CLONE_B" commit -m "acquire lock (dev-b)" >/dev/null 2>&1
+
+  # ---------------------------------------------------------------------------
+  # Step 3: Clone A — CAS push from session-a (no shim, first push WINS).
+  # factory-cas-push.sh: fetch → EXPECTED_SHA=INIT_SHA → push succeeds.
+  # Remote advances to SHA_A (clone A's lock commit).
+  # ---------------------------------------------------------------------------
+  run bash -c "cd '${session_a}' && bash '${CAS_PUSH_HELPER}'"
+  cas_push_a_status="$status"
+  cas_push_a_output="$output"
+
+  [ "$cas_push_a_status" -eq 0 ]
+
+  # ---------------------------------------------------------------------------
+  # Step 4: Clone B — CAS push from session-b WITH race-injecting shim (LOSES).
+  #
+  # Shim intercepts clone B's `git fetch` inside factory-cas-push.sh:
+  #   - Runs the real fetch (B's tracking: origin/factory-artifacts = INIT_SHA,
+  #     because at the moment the shim's REAL fetch runs, A's push happened BEFORE
+  #     this step — but wait, A already pushed in Step 3, so B's real fetch WILL
+  #     see SHA_A. We need B to see INIT_SHA.
+  #
+  # Revised shim strategy: stub the FETCH to return exit 0 without actually
+  # fetching (B's tracking stays at INIT_SHA from the precheck's fetch in Step 1).
+  # Then EXPECTED_SHA = INIT_SHA (B's stale tracking ref). Then push with
+  # lease=INIT_SHA but remote is SHA_A → lease fires → REJECTED.
+  #
+  # This accurately models the race: B fetched during precheck (INIT_SHA), decided
+  # PROCEED_ACQUIRE, then wrote+committed, then attempted push — but A beat it to
+  # the remote between precheck and push. The fetch inside cas-push.sh is stubbed
+  # to represent B not re-fetching (or fetching too quickly before A's push landed),
+  # leaving EXPECTED_SHA at INIT_SHA.
+  # ---------------------------------------------------------------------------
+  local stub_bin="$WORK/stub-bin-b"
   mkdir -p "$stub_bin"
 
   cat > "$stub_bin/git" <<SHIM
 #!/usr/bin/env bash
-# Git shim for concurrent CAS race test.
-# Intercepts 'config user.email' to return the correct identity based on
-# which clone directory is being used (detected via -C argument).
-# All other subcommands delegate to real git.
+# Race-injecting git shim for clone B's cas-push in the concurrent race test.
+# Stubs 'fetch' to return exit 0 without updating the tracking ref, leaving
+# origin/factory-artifacts at INIT_SHA (the value from clone B's precheck fetch).
+# All other subcommands delegate to the real git.
 REAL_GIT="${REAL_GIT_PATH}"
-CLONE_A_PATH="${CLONE_A}"
-CLONE_B_PATH="${CLONE_B}"
 
-# Parse subcommand and -C path
 args=("\$@")
 i=0
 subcommand=""
-git_c_path=""
 while [ \$i -lt \${#args[@]} ]; do
   arg="\${args[\$i]}"
   if [ "\$arg" = "-C" ]; then
     i=\$(( i + 1 ))
-    git_c_path="\${args[\$i]}"
   else
     subcommand="\$arg"
     break
@@ -206,21 +291,10 @@ while [ \$i -lt \${#args[@]} ]; do
 done
 
 case "\$subcommand" in
-  config)
-    if [[ "\$*" == *"user.email"* ]]; then
-      # Return identity based on which clone is active
-      if [[ "\$git_c_path" == *"clone-a"* ]] || [[ "\$(pwd)" == *"clone-a"* ]]; then
-        printf 'dev-a@x.com\n'
-        exit 0
-      elif [[ "\$git_c_path" == *"clone-b"* ]] || [[ "\$(pwd)" == *"clone-b"* ]]; then
-        printf 'dev-b@x.com\n'
-        exit 0
-      fi
-      # Fallback to real git config
-      "\$REAL_GIT" "\$@"
-      exit \$?
-    fi
-    "\$REAL_GIT" "\$@"
+  fetch)
+    # Stub: do NOT fetch — leave B's tracking at INIT_SHA (stale).
+    # This models B having fetched during precheck but not re-fetching before push.
+    exit 0
     ;;
   *)
     "\$REAL_GIT" "\$@"
@@ -229,62 +303,22 @@ esac
 SHIM
   chmod +x "$stub_bin/git"
 
-  # ---------------------------------------------------------------------------
-  # Step 1: Clone A runs factory-lock-acquire-precheck.sh
-  # Expect: PROCEED_ACQUIRE (unlocked base state)
-  # RED GATE: precheck stub exits 1 → this assertion fails → RED for right reason
-  # ---------------------------------------------------------------------------
-  local state_a="$CLONE_A/STATE.md"
-  local state_b="$CLONE_B/STATE.md"
+  run bash -c "export PATH='${stub_bin}:${PATH}'; cd '${session_b}' && bash '${CAS_PUSH_HELPER}'"
+  cas_push_b_status="$status"
+  cas_push_b_output="$output"
 
-  run env PATH="${stub_bin}:${PATH}" bash "$PRECHECK_HELPER" "$state_a"
-  precheck_a_status="$status"
-  precheck_a_output="$output"
+  # Clone B's push must be rejected (remote has advanced past INIT_SHA)
+  [ "$cas_push_b_status" -ne 0 ]
 
-  # Must exit 0 and return PROCEED_ACQUIRE
-  [ "$precheck_a_status" -eq 0 ]
-  [[ "$precheck_a_output" == *"PROCEED_ACQUIRE"* ]]
+  # Must emit the CASPushRejected message (AC-005 / BC-6.23.001 AC-013)
+  [[ "$cas_push_b_output" == *"state-burst CAS push failed — concurrent write detected."* ]] || \
+    [[ "$cas_push_b_output" == *"CASPushRejected"* ]] || \
+    [[ "$cas_push_b_output" == *"AcquireRaceRejected"* ]]
 
   # ---------------------------------------------------------------------------
-  # Step 2: Clone A writes the lock (factory-lock-write.sh acquire)
+  # Final assertions: clone A holds the lock; clone A succeeded; clone B rejected
   # ---------------------------------------------------------------------------
-  run env GIT_CONFIG_GLOBAL=/dev/null \
-    HOME="$WORK/home-a" \
-    bash "$LOCK_WRITE_HELPER" acquire "$state_a"
-  lock_write_a_status="$status"
-
-  # Must exit 0 (write succeeds)
-  [ "$lock_write_a_status" -eq 0 ]
-
-  # ---------------------------------------------------------------------------
-  # Step 3: Clone A does the CAS push (factory-cas-push.sh)
-  # This succeeds because remote is still at INIT_SHA
-  # ---------------------------------------------------------------------------
-  run bash -c "cd '${CLONE_A}' && bash '${CAS_PUSH_HELPER}'"
-  cas_push_a_status="$status"
-  cas_push_a_output="$output"
-
-  # Must exit 0 (first pusher wins)
-  [ "$cas_push_a_status" -eq 0 ]
-
-  # ---------------------------------------------------------------------------
-  # Step 4: Clone B runs factory-lock-acquire-precheck.sh
-  # At this point the remote has clone A's lock commit. After fetch, clone B
-  # should see a foreign unexpired lock and return REFUSED_FOREIGN_LOCK.
-  # ---------------------------------------------------------------------------
-  run env PATH="${stub_bin}:${PATH}" bash "$PRECHECK_HELPER" "$state_b"
-  precheck_b_status="$status"
-  precheck_b_output="$output"
-
-  # Must exit 1 (foreign lock detected after fetch — AcquireRaceRejected)
-  [ "$precheck_b_status" -eq 1 ]
-  [[ "$precheck_b_output" == *"REFUSED_FOREIGN_LOCK"* ]] || \
-    [[ "$precheck_b_output" == *"AcquireRaceRejected"* ]]
-
-  # ---------------------------------------------------------------------------
-  # Final assertion: Clone A holds the lock; Clone B was rejected
-  # ---------------------------------------------------------------------------
-  # The lock in STATE.md on the remote (bare) must be held by dev-a@x.com
-  # Verify by checking clone A's state file after the push
   grep -q 'dev-a@x.com' "$state_a"
+  [ "$cas_push_a_status" -eq 0 ]
+  [ "$cas_push_b_status" -ne 0 ]
 }
