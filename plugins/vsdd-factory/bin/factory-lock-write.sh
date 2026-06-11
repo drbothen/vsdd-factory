@@ -136,6 +136,24 @@ _now_plus_seconds() {
 }
 
 # ---------------------------------------------------------------------------
+# Helper: capture the octal permission bits of a file portably.
+# Returns a 3-digit octal string such as "644" or "600".
+# Mirrors the BSD/GNU branch pattern used by _epoch_to_iso above:
+#   GNU stat (Linux):   stat -c '%a' <file>
+#   BSD stat (macOS):   stat -f '%Lp' <file>
+# ---------------------------------------------------------------------------
+_get_file_mode() {
+  local file="$1"
+  if stat --version >/dev/null 2>&1; then
+    # GNU stat (Linux)
+    stat -c '%a' "$file"
+  else
+    # BSD stat (macOS)
+    stat -f '%Lp' "$file"
+  fi
+}
+
+# ---------------------------------------------------------------------------
 # Helper: remove factory_lock block (key + all 2-space-indented sub-fields)
 # from STATE.md in-place using awk.
 # FRONTMATTER-BOUNDARY-AWARE: only removes the key inside the frontmatter
@@ -145,6 +163,8 @@ _now_plus_seconds() {
 # ---------------------------------------------------------------------------
 _remove_factory_lock() {
   local file="$1"
+  local orig_mode
+  orig_mode="$(_get_file_mode "$file")"
   local tmpfile
   tmpfile="$(_make_tmpfile "${file}.XXXXXX")"
   awk '
@@ -159,7 +179,7 @@ _remove_factory_lock() {
     fence == 1 && skip && /^  /    { next }
     { skip=0; print }
   ' "$file" > "$tmpfile"
-  chmod --reference="$file" "$tmpfile" 2>/dev/null || true
+  chmod "$orig_mode" "$tmpfile"
   mv "$tmpfile" "$file"
 }
 
@@ -180,6 +200,8 @@ _write_factory_lock_block() {
   # Now insert the new block before the closing --- of the frontmatter.
   # The frontmatter is bounded by the first --- at line 1 and the next ---.
   # We insert before the second --- (the closing delimiter).
+  local orig_mode
+  orig_mode="$(_get_file_mode "$file")"
   local tmpfile
   tmpfile="$(_make_tmpfile "${file}.XXXXXX")"
   awk -v holder="$holder" -v locked_at="$locked_at" -v expires_at="$expires_at" '
@@ -197,7 +219,7 @@ _write_factory_lock_block() {
     }
     { print }
   ' "$file" > "$tmpfile"
-  chmod --reference="$file" "$tmpfile" 2>/dev/null || true
+  chmod "$orig_mode" "$tmpfile"
   mv "$tmpfile" "$file"
 }
 
@@ -210,6 +232,8 @@ _write_factory_lock_block() {
 _update_expires_at() {
   local file="$1"
   local new_expires_at="$2"
+  local orig_mode
+  orig_mode="$(_get_file_mode "$file")"
   local tmpfile
   tmpfile="$(_make_tmpfile "${file}.XXXXXX")"
   awk -v new_exp="$new_expires_at" '
@@ -228,7 +252,7 @@ _update_expires_at() {
     fence == 1 && in_lock && !/^  / { in_lock=0 }
     { print }
   ' "$file" > "$tmpfile"
-  chmod --reference="$file" "$tmpfile" 2>/dev/null || true
+  chmod "$orig_mode" "$tmpfile"
   mv "$tmpfile" "$file"
 }
 
@@ -241,11 +265,13 @@ _normalize_crlf() {
   local file="$1"
   # Only normalize if CR bytes are actually present (avoid rewriting clean files).
   if tr -cd '\r' < "$file" | grep -q .; then
+    local orig_mode
+    orig_mode="$(_get_file_mode "$file")"
     local tmpfile
     tmpfile="$(_make_tmpfile "${file}.XXXXXX")"
     tr -d '\r' < "$file" > "$tmpfile"
-    # Preserve original file mode on replacement.
-    chmod --reference="$file" "$tmpfile" 2>/dev/null || true
+    # Preserve original file mode on replacement (portable: no --reference).
+    chmod "$orig_mode" "$tmpfile"
     mv "$tmpfile" "$file"
   fi
 }
