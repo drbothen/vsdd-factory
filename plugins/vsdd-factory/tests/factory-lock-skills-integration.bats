@@ -223,13 +223,19 @@ STATE
   # factory-lock-write.sh ONLY modifies STATE.md — it does NOT commit.
   # The state-manager commit step is modelled explicitly here (TD-VSDD-053:
   # write → commit → CAS push is the atomic acquire sequence).
+  #
+  # CWD discipline: factory-lock-write.sh resolves the holder via bare
+  # `git config user.email` (no -C), so it MUST be invoked with CWD = the
+  # relevant clone directory (which has user.email configured repo-locally).
+  # This mirrors production context where state-manager runs from the project
+  # root (also a git repo with user.email in its local config).
   # ---------------------------------------------------------------------------
-  run bash "$LOCK_WRITE_HELPER" acquire "$state_a"
+  run bash -c "cd '${CLONE_A}' && bash '${LOCK_WRITE_HELPER}' acquire '${state_a}'"
   [ "$status" -eq 0 ]
   git -C "$CLONE_A" add STATE.md >/dev/null 2>&1
   git -C "$CLONE_A" commit -m "acquire lock (dev-a)" >/dev/null 2>&1
 
-  run bash "$LOCK_WRITE_HELPER" acquire "$state_b"
+  run bash -c "cd '${CLONE_B}' && bash '${LOCK_WRITE_HELPER}' acquire '${state_b}'"
   [ "$status" -eq 0 ]
   git -C "$CLONE_B" add STATE.md >/dev/null 2>&1
   git -C "$CLONE_B" commit -m "acquire lock (dev-b)" >/dev/null 2>&1
