@@ -6984,14 +6984,14 @@ STATE.md current_step confirms: D-546 S-17.03-V1.1-EXECUTABLE-HELPER-REFINEMENT;
 
 ```
 $ grep ^current_step: /Users/zious/Documents/GITHUB/vsdd-factory/.factory/STATE.md | head -1
-current_step: "D-547 S-17.03-DELIVERED-MERGED 2026-06-11 — PR #183 squash-merged 60fd0233; CI run 27343001859 26/26 bats 5-platform all-green; LOCAL adversary 3-CLEAN (refusal-msg guard-parity + CRLF cross-component parity + subshell CRLF temp-file leak); security 0-findings; pr-reviewer APPROVE; /factory-lock + /factory-unlock skills + 3-state lock-status in factory-health/factory-worktree-health via shared factory-lock-status.sh; 3 bats-tested bin helpers (factory-lock-status/acquire-precheck/unlock-decide) reusing S-17.01 factory-lock-write.sh/factory-cas-push.sh/emit-event; BC-6.23.001 POL-14 draft→active v1.1→v1.2; issue #170 CLOSED; E-17 (Factory State Durability & Concurrency) 3/3 stories DELIVERED; BC-INDEX v2.71→v2.72; STORY-INDEX v3.91→v3.92; 4-index: BC-INDEX v2.71→v2.72 STORY-INDEX v3.91→v3.92 VP-INDEX v2.06 UNCHANGED ARCH-INDEX v2.20 UNCHANGED; trajectory-tail →9→9→9→11; maintain all 5 BC-5.39.006 v1.7 PCs per TD-VSDD-097-EXT; D-chain cite D-546 per D-419(b); parent-commit 2d5b1c98 per D-419(b). SIZE BUDGET: <N>L (wc-l; <M> under soft 415; margin 500-<N>=<K> from hard cap; D-446(c))"
+current_step: "D-547 S-17.03-DELIVERED-MERGED 2026-06-11 — PR #183 squash-merged 60fd0233; CI run 27343001859 26/26 bats 5-platform all-green; LOCAL adversary 3-CLEAN (refusal-msg guard-parity + CRLF cross-component parity + subshell CRLF temp-file leak); security 0-findings; pr-reviewer APPROVE; /factory-lock + /factory-unlock skills + 3-state lock-status in factory-health/factory-worktree-health via shared factory-lock-status.sh; 3 bats-tested bin helpers (factory-lock-status/acquire-precheck/unlock-decide) reusing S-17.01 factory-lock-write.sh/factory-cas-push.sh/emit-event; BC-6.23.001 POL-14 draft→active v1.1→v1.2; issue #170 CLOSED; E-17 (Factory State Durability & Concurrency) 3/3 stories DELIVERED; BC-INDEX v2.71→v2.72; STORY-INDEX v3.91→v3.92; 4-index: BC-INDEX v2.71→v2.72 STORY-INDEX v3.91→v3.92 VP-INDEX v2.06 UNCHANGED ARCH-INDEX v2.20 UNCHANGED; trajectory-tail →9→9→9→11; maintain all 5 BC-5.39.006 v1.7 PCs per TD-VSDD-097-EXT; D-chain cite D-546 per D-419(b); parent-commit 2d5b1c98 per D-419(b). SIZE BUDGET: 415L (wc-l; 0 under soft 415; margin 500-415=85 from hard cap; D-446(c))"
 ```
 
 All 5 BC-5.39.006 v1.7 PCs maintained per TD-VSDD-097-EXT:
 - **PC2 (trajectory-tail LENGTH=4):** `→9→9→9→11` — 4 values. PASS (CARRIED; post-merge burst; no adversary pass).
 - **PC3 (D-chain cite):** `D-chain cite D-546` present. PASS.
 - **PC4 (parent-commit):** `parent-commit 2d5b1c98` present. PASS.
-- **PC5 (SIZE BUDGET):** dual-margin form present. PASS.
+- **PC5 (SIZE BUDGET):** `415L (wc-l; 0 under soft 415; margin 500-415=85 from hard cap; D-446(c))` dual-margin form present. PASS.
 - **PC6 (5 PCs mandate):** `maintain all 5 BC-5.39.006 v1.7 PCs per TD-VSDD-097-EXT` present. PASS.
 
 ### Dim-5: Files Touched
@@ -7036,4 +7036,4 @@ STATE.md current_step confirms: D-547 S-17.03-DELIVERED-MERGED; PR #183 60fd0233
 
 ### Factory-artifacts Commits
 
-- `<SHA-TO-BE-FILLED>` — state(D-547): S-17.03 DELIVERED/MERGED; BC-6.23.001 POL-14 active; issue #170 CLOSED; E-17 3/3 COMPLETE; STORY-INDEX v3.91→v3.92; BC-INDEX v2.71→v2.72; D-547 codified (primary burst per TD-VSDD-053)
+- `31c1fd94` — state(D-547): S-17.03 DELIVERED/MERGED; BC-6.23.001 POL-14 active; issue #170 CLOSED; E-17 3/3 COMPLETE; STORY-INDEX v3.91→v3.92; BC-INDEX v2.71→v2.72; D-547 codified (primary burst per TD-VSDD-053)
