@@ -1294,6 +1294,210 @@ mod tests {
         );
     }
 
+    // -----------------------------------------------------------------------
+    // F-S1702-002: Real boundary test via injectable `is_expired` pure helper.
+    //
+    // The existing boundary test (test_BC_4_13_001_expires_at_exact_boundary_treated_as_expired)
+    // is tautological: it sets now == expires_at then asserts now <= expires_at, which
+    // is trivially true regardless of guard logic. This test replaces that tautology with
+    // a real API call to `is_expired(now, expires_at) -> bool` which the implementer must
+    // extract from guard_logic's inlined `now > expires_at_dt` comparison.
+    //
+    // RED GATE STATUS: COMPILE ERROR — `is_expired` does not exist yet.
+    // The implementer must add:
+    //   pub fn is_expired(now: chrono::DateTime<chrono::Utc>, expires_at: chrono::DateTime<chrono::Utc>) -> bool {
+    //       now > expires_at
+    //   }
+    // and thread calls to it through guard_logic's Step 5.
+    // -----------------------------------------------------------------------
+
+    /// EC-002: `is_expired` pure helper — now == expires_at → true (just-expired → Continue).
+    ///
+    /// BC-4.13.001 EC-002: the lock is expired (and the guard must return Continue) when
+    /// `now > expires_at`. The `==` case must also be expired (not blocked), so
+    /// `is_expired` returns true when `now == expires_at`.
+    ///
+    /// Three cases asserted:
+    ///   1. now == expires_at → true (exact boundary, just-expired → Continue per EC-002).
+    ///   2. now 1 second BEFORE expires_at → false (not expired → would Block if foreign).
+    ///   3. now 1 second AFTER expires_at → true (expired → Continue).
+    ///
+    /// RED GATE: `is_expired` does not exist — COMPILE ERROR until implementer adds it.
+    #[test]
+    #[allow(non_snake_case)]
+    fn test_BC_4_13_001_is_expired_now_equals_expires_at_is_expired() {
+        use chrono::{TimeZone, Utc};
+        let expires_at = Utc.with_ymd_and_hms(2026, 6, 10, 15, 0, 0).unwrap();
+
+        // Case 1: now == expires_at → expired (EC-002: exact boundary treated as expired).
+        let now_equal = expires_at;
+        assert!(
+            is_expired(now_equal, expires_at),
+            "EC-002: is_expired(now == expires_at) must return true (lock expired at exact boundary → Continue)"
+        );
+
+        // Case 2: now 1 second BEFORE expires_at → NOT expired (lock is still active).
+        let now_before = expires_at - chrono::Duration::seconds(1);
+        assert!(
+            !is_expired(now_before, expires_at),
+            "is_expired(now 1s before expires_at) must return false (lock still active → would Block)"
+        );
+
+        // Case 3: now 1 second AFTER expires_at → expired.
+        let now_after = expires_at + chrono::Duration::seconds(1);
+        assert!(
+            is_expired(now_after, expires_at),
+            "is_expired(now 1s after expires_at) must return true (lock expired)"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // LOW sweeps (production-grade — RED tests for current parse_factory_lock bugs)
+    // -----------------------------------------------------------------------
+
+    /// CRLF STATE.md with a foreign unexpired lock → guard_logic must return Block.
+    ///
+    /// BC-4.13.001 compliance requires handling Windows-style CRLF line endings in
+    /// STATE.md (e.g., files edited on Windows or by certain editors). A CRLF file
+    /// has `\r\n` line endings throughout.
+    ///
+    /// Current bug: `parse_factory_lock` uses `strip_prefix("---\n")` which fails on
+    /// `"---\r\n"` — the frontmatter opening delimiter is not recognised, so the
+    /// function returns Ok(None) (no lock found) → guard returns Continue instead of Block.
+    ///
+    /// This test RED because: with a CRLF file holding a foreign unexpired lock and a
+    /// foreign git email, `guard_logic` currently returns Continue (parse failure treats
+    /// content as unlocked). The correct behavior per BC-4.13.001 is Block.
+    ///
+    /// Implementer fix: `parse_factory_lock` must normalise `\r\n` → `\n` before scanning,
+    /// or use a delimiter that tolerates CRLF.
+    ///
+    /// RED GATE: assertion fails — guard returns Continue instead of Block.
+    #[test]
+    #[allow(non_snake_case)]
+    fn test_BC_4_13_001_crlf_state_md_foreign_lock_blocks() {
+        // Build a CRLF STATE.md with a foreign unexpired lock. Every line ends with \r\n.
+        let crlf_content = concat!(
+            "---\r\n",
+            "document_type: state\r\n",
+            "version: \"0.0.1-test\"\r\n",
+            "phase: test\r\n",
+            "factory_lock:\r\n",
+            "  holder: \"other@example.com\"\r\n",
+            "  locked_at: \"2026-06-10T14:00:00Z\"\r\n",
+            "  expires_at: \"2099-01-01T00:00:00Z\"\r\n",
+            "---\r\n",
+            "\r\n",
+            "# STATE\r\n",
+        );
+
+        let warn_log = Arc::new(Mutex::new(Vec::new()));
+        let content_bytes = crlf_content.as_bytes().to_vec();
+        // Foreign git email — different from the lock holder.
+        let email = "self@example.com";
+        let wl = warn_log.clone();
+        let callbacks = GuardCallbacks {
+            read_file: move |_path, _max, _timeout| Ok(content_bytes),
+            exec_subprocess: move |_argv| Ok((0, format!("{}\n", email))),
+            log_warn: move |msg: &str| {
+                wl.lock().unwrap().push(msg.to_string());
+            },
+        };
+        let payload = payload_for_tool("Edit");
+
+        let result = guard_logic(payload, callbacks);
+
+        // Must block: CRLF file with foreign unexpired lock must be parsed correctly
+        // and the guard must return Block (not Continue due to a parse failure).
+        match result {
+            HookResult::Block { .. } => {
+                // Correct — CRLF frontmatter parsed, foreign lock detected, Block returned.
+            }
+            HookResult::Continue => panic!(
+                "CRLF STATE.md with foreign unexpired lock must return Block, not Continue. \
+                 Current bug: parse_factory_lock strips '---\\n' prefix but CRLF files start with '---\\r\\n'. \
+                 Implementer must normalise CRLF before parsing."
+            ),
+            other => panic!(
+                "Expected HookResult::Block for CRLF STATE.md with foreign lock, got: {:?}",
+                other
+            ),
+        }
+    }
+
+    /// Missing closing `---` delimiter + body-resident factory_lock block → Continue (fail-open).
+    ///
+    /// BC-4.13.001 EC-013: STATE.md with an opening `---` frontmatter delimiter but no
+    /// closing `---` is malformed. The factory_lock block that appears indented in the
+    /// body (2-space indent) must NOT cause a Block — the guard must return Continue
+    /// (MalformedLockBlock fail-open per PC4).
+    ///
+    /// Current bug: when the closing delimiter is absent, `parse_factory_lock` falls through
+    /// and scans the entire content after the opening delimiter as the "frontmatter region".
+    /// If a `factory_lock:` block appears in that region (as body content), the parser may
+    /// incorrectly find it and return Ok(Some(LockState)) → guard proceeds to the Block path
+    /// (over-blocking on a malformed file).
+    ///
+    /// The correct behavior: absent closing delimiter + body-resident factory_lock block
+    /// → treat as MalformedLockBlock → log_warn + return Continue.
+    ///
+    /// RED GATE: assertion fails — guard may return Block instead of Continue for this
+    /// malformed input.
+    #[test]
+    #[allow(non_snake_case)]
+    fn test_BC_4_13_001_missing_closing_delimiter_returns_continue() {
+        // STATE.md with opening `---` but no closing `---`.
+        // A factory_lock block appears in the body (2-space indented sub-fields).
+        let malformed_content = concat!(
+            "---\n",
+            "document_type: state\n",
+            "version: \"0.0.1-test\"\n",
+            "phase: test\n",
+            "\n",
+            "# Body content (no closing --- delimiter)\n",
+            "\n",
+            "factory_lock:\n",
+            "  holder: \"other@example.com\"\n",
+            "  locked_at: \"2026-06-10T14:00:00Z\"\n",
+            "  expires_at: \"2099-01-01T00:00:00Z\"\n",
+        );
+
+        let warn_log = Arc::new(Mutex::new(Vec::new()));
+        let content_bytes = malformed_content.as_bytes().to_vec();
+        let email = "self@example.com";
+        let wl = warn_log.clone();
+        let callbacks = GuardCallbacks {
+            read_file: move |_path, _max, _timeout| Ok(content_bytes),
+            exec_subprocess: move |_argv| Ok((0, format!("{}\n", email))),
+            log_warn: move |msg: &str| {
+                wl.lock().unwrap().push(msg.to_string());
+            },
+        };
+        let payload = payload_for_tool("Edit");
+
+        let result = guard_logic(payload, callbacks);
+
+        // Must be Continue (MalformedLockBlock fail-open per PC4 / EC-013).
+        // A body-resident factory_lock block in a file without a closing delimiter must NOT
+        // cause a Block — the file structure is malformed and the guard must fail-open.
+        assert_eq!(
+            result,
+            HookResult::Continue,
+            "Missing closing --- delimiter: body-resident factory_lock block must return Continue \
+             (MalformedLockBlock fail-open, EC-013 / PC4). \
+             Current bug: the scanner falls through and may parse body content as frontmatter, \
+             producing an over-block. Implementer must detect absent closing delimiter and return \
+             Err(MalformedLockBlock) rather than scanning the whole file body."
+        );
+        // Additionally verify a log_warn was emitted (PC4 requires log_warn for MalformedLockBlock).
+        let warns = warn_log.lock().unwrap();
+        assert!(
+            warns.iter().any(|w| w.contains("MalformedLockBlock")),
+            "Missing closing delimiter must emit log_warn containing 'MalformedLockBlock'. Got: {:?}",
+            warns
+        );
+    }
+
     /// trim_git_email: trailing newline stripped.
     ///
     /// RED GATE: todo!() panics immediately.
