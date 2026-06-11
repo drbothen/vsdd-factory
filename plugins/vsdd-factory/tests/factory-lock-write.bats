@@ -886,3 +886,91 @@ sys.stdout.buffer.write(content.encode('utf-8'))
   final_locked_at="$(_get_lock_field "$FIXTURE_STATE" locked_at)"
   [ "$final_locked_at" = "$original_locked_at" ]
 }
+
+# ---------------------------------------------------------------------------
+# _file_mode helper
+#
+# Returns the octal permission bits of a file as a 3-digit string (e.g. "644").
+# Mirrors the BSD/GNU branch pattern used by _iso_to_epoch above:
+#   BSD/macOS: stat -f '%Lp' <file>
+#   GNU/Linux: stat -c '%a'  <file>
+# ---------------------------------------------------------------------------
+_file_mode() {
+  local file="$1"
+  if stat --version >/dev/null 2>&1; then
+    # GNU stat
+    stat -c '%a' "$file"
+  else
+    # BSD stat (macOS)
+    stat -f '%Lp' "$file"
+  fi
+}
+
+# ---------------------------------------------------------------------------
+# test_BC_5_40_001_acquire_preserves_file_mode
+# Portability / BC-5.40.001 PC1 — mktemp+mv write MUST preserve original
+# file permissions on BSD/macOS.
+#
+# Defect: every awk helper that performs mktemp+mv uses:
+#   chmod --reference="$file" "$tmpfile" 2>/dev/null || true
+# `chmod --reference` is GNU-only.  On BSD/macOS it is silently a no-op,
+# so the mv replaces the original file with the mktemp-created tmpfile whose
+# permissions are 0600 (mktemp default).  A STATE.md that was 0644 becomes
+# 0600 after the first acquire (or renew, or clear) on macOS.
+#
+# This test:
+#   1. Creates a fixture STATE.md and sets its mode to 0644.
+#   2. Runs factory-lock-write.sh acquire on it.
+#   3. Asserts that the resulting file mode is STILL 0644.
+#
+# RED GATE on macOS: chmod --reference silently fails, mktemp leaves tmpfile
+# at 0600, mv replaces the 0644 original with 0600 — the mode assertion fails
+# with actual=600 expected=644.
+#
+# Also asserts mode preservation after renew and clear (cheap: same code path).
+# ---------------------------------------------------------------------------
+
+@test "test_BC_5_40_001_acquire_preserves_file_mode" {
+  _fixture_no_lock "$FIXTURE_STATE"
+
+  # Set an explicit mode that differs from mktemp's default (0600)
+  chmod 0644 "$FIXTURE_STATE"
+
+  # Precondition: mode is 644 before any helper invocation
+  local pre_mode
+  pre_mode="$(_file_mode "$FIXTURE_STATE")"
+  [ "$pre_mode" = "644" ]
+
+  # --- acquire ---
+  run bash "$HELPER" acquire "$FIXTURE_STATE"
+  [ "$status" -eq 0 ]
+
+  local post_acquire_mode
+  post_acquire_mode="$(_file_mode "$FIXTURE_STATE")"
+  if [ "$post_acquire_mode" != "644" ]; then
+    printf 'FAIL acquire: expected mode 644 but got %s\n' "$post_acquire_mode" >&2
+    false
+  fi
+
+  # --- renew ---
+  run bash "$HELPER" renew "$FIXTURE_STATE"
+  [ "$status" -eq 0 ]
+
+  local post_renew_mode
+  post_renew_mode="$(_file_mode "$FIXTURE_STATE")"
+  if [ "$post_renew_mode" != "644" ]; then
+    printf 'FAIL renew: expected mode 644 but got %s\n' "$post_renew_mode" >&2
+    false
+  fi
+
+  # --- clear ---
+  run bash "$HELPER" clear "$FIXTURE_STATE"
+  [ "$status" -eq 0 ]
+
+  local post_clear_mode
+  post_clear_mode="$(_file_mode "$FIXTURE_STATE")"
+  if [ "$post_clear_mode" != "644" ]; then
+    printf 'FAIL clear: expected mode 644 but got %s\n' "$post_clear_mode" >&2
+    false
+  fi
+}
