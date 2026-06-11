@@ -1183,6 +1183,7 @@ path_allow = [".factory/STATE.md"]
 
 [hooks.capabilities.exec_subprocess]
 binary_allow = ["git"]
+env_allow = ["HOME", "GIT_CONFIG_GLOBAL", "XDG_CONFIG_HOME"]
 
 # ---------- verify-factory-lock-bash (PreToolUse, Bash) ----------
 # S-17.02: Bash arm — intercepts git push to factory-artifacts branch only.
@@ -1204,3 +1205,4 @@ path_allow = [".factory/STATE.md"]
 
 [hooks.capabilities.exec_subprocess]
 binary_allow = ["git"]
+env_allow = ["HOME", "GIT_CONFIG_GLOBAL", "XDG_CONFIG_HOME"]
