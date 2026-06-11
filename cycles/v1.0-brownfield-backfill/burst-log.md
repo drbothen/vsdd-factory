@@ -107,7 +107,7 @@ $ grep -c "^| \[BC-" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/b
 
 ### Factory-artifacts Commits
 
-- [SHA-patch pending — see `git -C .factory log -1 --format='%h %s'` after push]
+- `2b133509` state(D-541): BC-AUTHORING ISSUE-170 3-BCS-AUTHORED — BC-4.13.001+BC-5.40.001+BC-6.23.001 draft; CAP-031 registered; BC-INDEX v2.65→v2.66; total_bcs 1955→1958
 
 ## D-540 ADR-025 Adopted for Issue #170 Factory Lock/Lease Design (2026-06-10)
 
