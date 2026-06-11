@@ -96,7 +96,7 @@ _iso_to_epoch() {
     date -d "$ts" +%s
   else
     # BSD date (macOS)
-    date -jf '%Y-%m-%dT%H:%M:%SZ' "$ts" +%s
+    date -u -jf '%Y-%m-%dT%H:%M:%SZ' "$ts" +%s
   fi
 }
 
@@ -191,7 +191,7 @@ teardown() {
   [ "$status" -eq 0 ]
 
   # Key MUST be absent — grep returns non-zero when key is gone
-  run grep 'factory_lock' "$FIXTURE_STATE"
+  run grep 'factory_lock:' "$FIXTURE_STATE"
   [ "$status" -ne 0 ]
 
   # Stronger: must not contain null form (StaleNullBlock)
