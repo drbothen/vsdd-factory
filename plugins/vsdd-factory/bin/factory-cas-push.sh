@@ -62,6 +62,16 @@ if ! EXPECTED_SHA="$(git -C .factory rev-parse origin/factory-artifacts 2>&1)"; 
 fi
 
 # ---------------------------------------------------------------------------
+# Object-existence check: rev-parse may succeed (ref resolves) while the
+# object is absent from the local store (e.g., partial fetch, GC'd object).
+# Pushing a ghost SHA is unsafe — abort with CASPushRejected (EC-008 / F-R1-003).
+# ---------------------------------------------------------------------------
+if ! git -C .factory cat-file -e "${EXPECTED_SHA}^{commit}" 2>/dev/null; then
+  printf 'state-burst CAS push failed — stale SHA after fetch: object %s is absent from local store. Re-fetch and retry.\n' "$EXPECTED_SHA" >&2
+  exit 1
+fi
+
+# ---------------------------------------------------------------------------
 # Step 3: CAS push with explicit --force-with-lease=<refname>:<sha> form.
 # If the remote has advanced past EXPECTED_SHA, this push will be rejected
 # (non-zero exit), which is the desired CASPushRejected behavior.
