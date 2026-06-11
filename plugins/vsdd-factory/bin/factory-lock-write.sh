@@ -330,6 +330,9 @@ case "$MODE" in
     ;;
 
   renew)
+    # Normalize CRLF → LF first (F-R1-001): CRLF breaks awk /^---$/ pattern.
+    _normalize_crlf "$STATE_MD"
+
     # No-op if factory_lock key is absent (frontmatter-scoped check).
     if ! awk '/^---$/{f++} f==1 && /^factory_lock:/{found=1} f>=2{exit} END{exit !found}' "$STATE_MD" 2>/dev/null; then
       printf 'factory-lock-write: no factory_lock block present — renew is a no-op\n'
@@ -358,7 +361,18 @@ case "$MODE" in
     ;;
 
   clear)
+    # Normalize CRLF → LF first (F-R1-001): CRLF breaks awk /^---$/ pattern.
+    _normalize_crlf "$STATE_MD"
+
     _remove_factory_lock "$STATE_MD"
+
+    # Post-clear assertion: factory_lock key MUST now be absent from frontmatter.
+    # Symmetry with acquire's post-write assert (F-R1-001 StaleNullBlock guard).
+    if awk '/^---$/{f++} f==1 && /^factory_lock:/{found=1} f>=2{exit} END{exit !found}' "$STATE_MD" 2>/dev/null; then
+      printf 'factory-lock-write: StaleNullBlock — factory_lock key is still present in frontmatter of %s after clear. File may have malformed structure.\n' "$STATE_MD" >&2
+      exit 1
+    fi
+
     printf 'factory-lock-write: factory_lock block removed (unlocked)\n'
     ;;
 
