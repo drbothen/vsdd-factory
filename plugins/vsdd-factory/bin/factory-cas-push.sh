@@ -52,9 +52,14 @@ fi
 
 # ---------------------------------------------------------------------------
 # Step 2: Capture expected SHA immediately after fetch.
+# Guard: if rev-parse fails (ref pruned/absent after fetch), emit a
+# CASPushRejected-class message and abort — do NOT push with an invalid SHA.
 # ---------------------------------------------------------------------------
 
-EXPECTED_SHA="$(git -C .factory rev-parse origin/factory-artifacts)"
+if ! EXPECTED_SHA="$(git -C .factory rev-parse origin/factory-artifacts 2>&1)"; then
+  printf 'state-burst CAS push failed — stale SHA after fetch: origin/factory-artifacts ref could not be resolved. Re-fetch and retry.\n' >&2
+  exit 1
+fi
 
 # ---------------------------------------------------------------------------
 # Step 3: CAS push with explicit --force-with-lease=<refname>:<sha> form.
