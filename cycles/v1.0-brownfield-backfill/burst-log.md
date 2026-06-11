@@ -6908,3 +6908,66 @@ STATE.md current_step confirms: D-545 S-17.02-DELIVERED/MERGED; develop HEAD df4
 ### Factory-artifacts Commits
 
 - `735b9168` — state(D-545): S-17.02 DELIVERED/MERGED; BC-4.13.001 POL-14 active; STORY-INDEX v3.89→v3.90; BC-INDEX v2.69→v2.70; ARCH-INDEX v2.19→v2.20 (primary burst per TD-VSDD-053)
+
+---
+
+## D-546 S-17.03 v1.0→v1.1 EXECUTABLE-HELPER REFINEMENT 2026-06-11
+
+**Parent-commit (factory-artifacts HEAD pre-burst):** `e9a22a0b` — state(D-545): S-17.02-DELIVERED-MERGED-2026-06-11
+
+**Adversary verdict:** Not applicable — story-refinement burst (delivery-prep; no code delivery). Per S-17.01 D-543 precedent: executable-helper model applied before TDD Red Gate dispatch. S-17.03 v1.1 is ready for test-writer Red Gate; adversary passes run during per-story-delivery cycle.
+
+### Dim-2: PC Attestations (production artifact reads)
+
+```
+$ grep ^current_step: /Users/zious/Documents/GITHUB/vsdd-factory/.factory/STATE.md | head -1
+current_step: "D-546 S-17.03-V1.1-EXECUTABLE-HELPER-REFINEMENT 2026-06-11 — delivery-prep applied S-17.01 precedent (D-543): 3 new bin/ helpers extracted (factory-lock-status.sh shared three-state display, factory-lock-acquire-precheck.sh, factory-unlock-decide.sh) + 3 bats; SKILL.md files become thin orchestrators delegating STATE.md write to state-manager (single-writer) via S-17.01 helpers; reuses factory-lock-write.sh+factory-cas-push.sh (S-17.01 D-543); BC-6.23.001 UNCHANGED; 14 ACs preserved; STORY-INDEX v3.90→v3.91; 4-index: BC-INDEX v2.70 UNCHANGED STORY-INDEX v3.90→v3.91 VP-INDEX v2.06 UNCHANGED ARCH-INDEX v2.20 UNCHANGED; trajectory-tail →9→9→9→11; maintain all 5 BC-5.39.006 v1.7 PCs per TD-VSDD-097-EXT; D-chain cite D-545 per D-419(b); parent-commit e9a22a0b per D-419(b). SIZE BUDGET: 413L (wc-l; -2 under soft 415; margin 500-413=87 from hard cap; D-446(c))"
+```
+
+This burst advances current_step to D-546. All 5 BC-5.39.006 v1.7 PCs maintained per TD-VSDD-097-EXT:
+- **PC2 (trajectory-tail LENGTH=4):** `→9→9→9→11` — 4 values. PASS (CARRIED; story-refinement burst).
+- **PC3 (D-chain cite):** `D-chain cite D-545` present. PASS.
+- **PC4 (parent-commit):** `parent-commit e9a22a0b` present. PASS.
+- **PC5 (SIZE BUDGET):** `413L (wc-l; -2 under soft 415; margin 500-413=87 from hard cap; D-446(c))` dual-margin form present. PASS.
+- **PC6 (5 PCs mandate):** `maintain all 5 BC-5.39.006 v1.7 PCs per TD-VSDD-097-EXT` present. PASS.
+
+### Dim-5: Files Touched
+
+- `.factory/stories/S-17.03-factory-lock-unlock-skills-health.md` — v1.0→v1.1; 3 new bin/ helpers (factory-lock-status.sh + factory-lock-acquire-precheck.sh + factory-unlock-decide.sh) + 3 bats files added to File Structure; Red Gate Test Table rewritten as bats @test names; Tasks updated; Token Budget updated; SKILL.md orchestrator delegation model documented; version 1.0→1.1; last_amended updated; Changelog v1.1 row added (story-writer pre-staged)
+- `.factory/stories/STORY-INDEX.md` — v3.90→v3.91; S-17.03 row version cell v1.0→v1.1; last_amended cell updated; changelog row prepended (story-writer pre-staged; this burst commits it)
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-546 row prepended (this burst SoT)
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — this entry (this burst)
+- `.factory/STATE.md` — frontmatter phase/current_step/timestamp/last_amended advance; banner tracker +D-546 entry; Last Updated + Current Phase cells updated; Decisions Log +D-546 row + range comment D-range→D-546; §8 STORY-INDEX v3.90→v3.91; Active Branches factory-artifacts advance; Concurrent Cycles brownfield row updated; §1/§3/§4/§5/§9/§10/§11/§12 Session Resume Checkpoint refresh; 413 lines (-2 under soft 415)
+
+### Dim-6: 4-Index Version Gate (literal shell)
+
+```
+$ grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/behavioral-contracts/BC-INDEX.md | head -1
+version: "2.70"
+$ grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/verification-properties/VP-INDEX.md | head -1
+version: "2.06"
+$ grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/stories/STORY-INDEX.md | head -1
+version: "3.91"
+$ grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/architecture/ARCH-INDEX.md | head -1
+version: "2.20"
+```
+
+4-index gate: BC-INDEX v2.70 (UNCHANGED) | VP-INDEX v2.06 (UNCHANGED) | STORY-INDEX v3.91 (bumped; S-17.03 v1.1 executable-helper refinement) | ARCH-INDEX v2.20 (UNCHANGED). PASS.
+
+### Dim-7: State Attestation
+
+STATE.md current_step confirms: D-546 S-17.03-V1.1-EXECUTABLE-HELPER-REFINEMENT; parent-commit e9a22a0b; D-chain cite D-545; trajectory-tail →9→9→9→11; STORY-INDEX v3.90→v3.91; BC-6.23.001 UNCHANGED; 14 ACs preserved; SIZE BUDGET 413L -2 under soft 415. All 5 BC-5.39.006 v1.7 PCs satisfied. TD-VSDD-099 4-Dim structural integrity SATISFIED.
+
+**Codifications:** D-546 S-17.03-V1.1-EXECUTABLE-HELPER-REFINEMENT; STORY-INDEX v3.90→v3.91; D-546 row added to decision-log.md SoT + STATE.md Decisions Log summary row; §1/§3/§4/§5/§8/§9/§10/§11/§12 STATE.md refresh.
+
+**Closes:**
+- S-17.03 v1.0→v1.1 executable-helper refinement complete. 3 bin/ helpers + 3 bats. SKILL.md thin orchestrators.
+- Issue #170 Wave 3 delivery-prep gate satisfied. S-17.03 v1.1 ready for test-writer Red Gate.
+
+**Advances:** D-chain D-545 → D-546; next-D = D-547; RECOMMENDED ACTIVE NEXT: (a) S-17.03 test-writer Red Gate on feature/S-17.03-factory-lock-skills (E-17 Wave 3); (b) rc release to ship S-17.01+S-17.02 to operators.
+
+**Trajectory:** →9→9→9→11 (CARRIED — story-refinement burst; no adversary pass)
+
+### Factory-artifacts Commits
+
+- TBD — state(D-546): S-17.03 v1.0→v1.1 EXECUTABLE-HELPER REFINEMENT; STORY-INDEX v3.90→v3.91; D-546 codified (primary burst per TD-VSDD-053)

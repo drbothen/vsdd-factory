@@ -638,3 +638,21 @@ Key anchors at D-541:
 - **Next:** Story decomposition for issue #170 (test-writer Red Gate on feature/issue-170-factory-locklease)
 
 **This checkpoint superseded by D-542 STORY-DECOMPOSITION 2026-06-10.**
+
+---
+
+## Archived: D-545 S-17.02 DELIVERED/MERGED 2026-06-11 (Superseded by D-546)
+
+> Archived when D-546 S-17.03 v1.0→v1.1 EXECUTABLE-HELPER REFINEMENT burst replaced this checkpoint.
+
+**Status:** D-545 S-17.02 DELIVERED/MERGED — PR #182 squash-merged df4f26b8; CI 13/13 bats green; trend 1H+2M+4L→1M→0→0→0 3-CLEAN; BC-4.13.001 POL-14 active; ADR-025 v1.3 env_allow footgun; STORY-INDEX v3.90; BC-INDEX v2.70; ARCH-INDEX v2.20; develop df4f26b8; issue #170 partial-close (S-17.03 W3 remains); E-17 2/3 stories merged.
+
+Key anchors at D-545:
+- **4-index:** BC-INDEX v2.70, VP-INDEX v2.06, STORY-INDEX v3.90, ARCH-INDEX v2.20
+- **develop HEAD:** `df4f26b8`
+- **factory-artifacts HEAD at archive:** `735b9168` (D-545)
+- **D-range:** D-001..D-545
+- **BC status:** BC-5.40.001 v1.1 ACTIVE + BC-4.13.001 v1.3 ACTIVE + BC-6.23.001 v1.0 DRAFT
+- **Next:** S-17.03 test-writer Red Gate on feature/S-17.03-factory-lock-skills (E-17 Wave 3) OR rc release
+
+**This checkpoint superseded by D-546 S-17.03-V1.1-EXECUTABLE-HELPER-REFINEMENT 2026-06-11.**

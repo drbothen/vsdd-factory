@@ -4,15 +4,15 @@ level: ops
 version: "2.0"
 status: draft
 producer: state-manager
-timestamp: 2026-06-10T00:00:00Z
-phase: D-545-S-17.02-DELIVERED-MERGED-2026-06-11
-last_amended: 2026-06-11 (v2.95) — D-545 S-17.02 DELIVERED/MERGED: PR #182 squash-merged df4f26b8; CI 13/13 bats green; trend 1H+2M+4L→1M→0→0→0 3-CLEAN; pr-reviewer APPROVE; develop c64b46d2→df4f26b8; BC-4.13.001 POL-14 draft→active; issue #170 partial-close (S-17.03 remains); STORY-INDEX v3.89→v3.90; BC-INDEX v2.69→v2.70; ARCH-INDEX v2.19→v2.20 (ADR-025 v1.3 env_allow footgun). [Prior: 2026-06-11 (v2.94) — D-544 S-17.01 DELIVERED/MERGED: PR #181 squash-merged c64b46d2; CI 22/22 bats green; trend 9→3→0→0→0 3-CLEAN; BC-5.40.001 POL-14 draft→active; issue #170 REOPENED; STORY-INDEX v3.87→v3.88; BC-INDEX v2.66→v2.67. [Prior: 2026-06-10 (v2.93) — D-543 S-17.01 v1.0→v1.1 EXECUTABLE-HELPER REFINEMENT. [Prior: 2026-06-10 (v2.92) — D-542 STORY-DECOMPOSITION FOR ISSUE-170 FACTORY LOCK: epic E-17 + 3 stories S-17.01/02/03. [Prior: 2026-06-10 (v2.91) — D-541 BC-AUTHORING: 3 BCs draft; BC-INDEX v2.65→v2.66. [Prior: 2026-06-10 (v2.90) — D-540 ADR-025 ADOPTED FOR ISSUE-170; ARCH-INDEX v2.18→v2.19.]]]]]
+timestamp: 2026-06-11T00:00:00Z
+phase: D-546-S-17.03-V1.1-EXECUTABLE-HELPER-REFINEMENT-2026-06-11
+last_amended: 2026-06-11 (v2.96) — D-546 S-17.03 v1.0→v1.1 EXECUTABLE-HELPER REFINEMENT: 3 bin/ helpers (factory-lock-status.sh + factory-lock-acquire-precheck.sh + factory-unlock-decide.sh) + 3 bats; SKILL.md thin orchestrators; BC-6.23.001 UNCHANGED; 14 ACs preserved; STORY-INDEX v3.90→v3.91; issue #170 Wave 3 delivery-prep complete. [Prior: 2026-06-11 (v2.95) — D-545 S-17.02 DELIVERED/MERGED: PR #182 squash-merged df4f26b8; CI 13/13 bats green; trend 1H+2M+4L→1M→0→0→0 3-CLEAN; pr-reviewer APPROVE; develop c64b46d2→df4f26b8; BC-4.13.001 POL-14 draft→active; issue #170 partial-close (S-17.03 remains); STORY-INDEX v3.89→v3.90; BC-INDEX v2.69→v2.70; ARCH-INDEX v2.19→v2.20 (ADR-025 v1.3 env_allow footgun). [Prior: 2026-06-11 (v2.94) — D-544 S-17.01 DELIVERED/MERGED: PR #181 squash-merged c64b46d2; CI 22/22 bats green; trend 9→3→0→0→0 3-CLEAN; BC-5.40.001 POL-14 draft→active; issue #170 REOPENED; STORY-INDEX v3.87→v3.88; BC-INDEX v2.66→v2.67. [Prior: 2026-06-10 (v2.93) — D-543 S-17.01 v1.0→v1.1 EXECUTABLE-HELPER REFINEMENT. [Prior: 2026-06-10 (v2.92) — D-542 STORY-DECOMPOSITION FOR ISSUE-170 FACTORY LOCK: epic E-17 + 3 stories S-17.01/02/03. [Prior: 2026-06-10 (v2.91) — D-541 BC-AUTHORING: 3 BCs draft; BC-INDEX v2.65→v2.66. [Prior: 2026-06-10 (v2.90) — D-540 ADR-025 ADOPTED FOR ISSUE-170; ARCH-INDEX v2.18→v2.19.]]]]]]
 inputs: []
 input-hash: "[live-state]"
 traces_to: prd.md
 project: vsdd-factory
 mode: brownfield
-current_step: "D-545 S-17.02-DELIVERED/MERGED 2026-06-11 — PR #182 squash-merged df4f26b8; CI RUN 27331109884 13/13 bats green (verify-factory-lock.bats 13); 23 unit tests; LOCAL adversary trend 1H+2M+4L→1M→0→0→0 BC-5.39.001 3-CLEAN achieved; pr-reviewer APPROVE (0 blocking 0 non-blocking); feature/S-17.02-verify-factory-lock-wasm-guard DELETED+VERIFIED; develop c64b46d2→df4f26b8; BC-4.13.001 POL-14 draft→active (BC-INDEX v2.69→v2.70; body row draft→active + v1.3); ADR-025 v1.2→v1.3 (env_allow footgun — 3rd silent-no-op vector; ARCH-INDEX v2.19→v2.20); issue #170 PARTIAL-CLOSE (S-17.03 wave 3 remains; E-17 2/3 stories merged); STORY-INDEX v3.89→v3.90 (S-17.02 row merged + df4f26b8; merged count 75→76; E-17 2/3 stories merged); 4-index: BC-INDEX v2.69→v2.70 STORY-INDEX v3.89→v3.90 VP-INDEX v2.06 UNCHANGED ARCH-INDEX v2.19→v2.20; trajectory-tail →9→9→9→11; maintain all 5 BC-5.39.006 v1.7 PCs per TD-VSDD-097-EXT; D-chain cite D-544 per D-419(b); parent-commit 37414e5a per D-419(b). SIZE BUDGET: 409L (wc-l; -6 under soft 415; margin 500-409=91 from hard cap; D-430(a) compaction; D-446(c))"
+current_step: "D-546 S-17.03-V1.1-EXECUTABLE-HELPER-REFINEMENT 2026-06-11 — delivery-prep applied S-17.01 precedent (D-543): 3 new bin/ helpers extracted (factory-lock-status.sh shared three-state display, factory-lock-acquire-precheck.sh, factory-unlock-decide.sh) + 3 bats; SKILL.md files become thin orchestrators delegating STATE.md write to state-manager (single-writer) via S-17.01 helpers; reuses factory-lock-write.sh+factory-cas-push.sh (S-17.01 D-543); BC-6.23.001 UNCHANGED; 14 ACs preserved; STORY-INDEX v3.90→v3.91; 4-index: BC-INDEX v2.70 UNCHANGED STORY-INDEX v3.90→v3.91 VP-INDEX v2.06 UNCHANGED ARCH-INDEX v2.20 UNCHANGED; trajectory-tail →9→9→9→11; maintain all 5 BC-5.39.006 v1.7 PCs per TD-VSDD-097-EXT; D-chain cite D-545 per D-419(b); parent-commit e9a22a0b per D-419(b). SIZE BUDGET: 413L (wc-l; -2 under soft 415; margin 500-413=87 from hard cap; D-446(c))"
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -50,6 +50,7 @@ dtu_services: []
   D-543-S-17.01-V1.1-EXECUTABLE-HELPER-REFINEMENT-2026-06-10 418 lines (wc-l; STORY-INDEX v3.86; D-543 row + §1/§3/§4/§5/§8/§9/§11/§12 refresh; D-430(a) D-536..D-538 banner archived; +3 over soft-target; margin 500-418=82 from hard cap; D-446(c) dual-margin form).
   D-544-S-17.01-DELIVERED-MERGED-2026-06-11 430 lines (wc-l; D-544 row + BC-5.40.001 POL-14 active + §1/§3/§4/§5/§8/§9/§10/§11/§12 refresh; STORY-INDEX v3.88; BC-INDEX v2.67; develop c64b46d2; +15 over soft-target; margin 500-430=70 from hard cap; D-446(c) dual-margin form).
   D-545-S-17.02-DELIVERED-MERGED-2026-06-11 409 lines (wc-l; D-545 row + BC-4.13.001 POL-14 active + ADR-025 v1.3 + §1/§3/§4/§8/§9/§10/§11/§12 refresh; STORY-INDEX v3.90; BC-INDEX v2.70; ARCH-INDEX v2.20; develop df4f26b8; D-430(a) compaction Phase Progress + Decisions Log D-532..D-543 archived; -6 under soft 415; margin 500-409=91 from hard cap; D-446(c) dual-margin form).
+  D-546-S-17.03-V1.1-EXECUTABLE-HELPER-REFINEMENT-2026-06-11 413 lines (wc-l; D-546 row + STORY-INDEX v3.91 + §1/§3/§4/§5/§8/§9/§10/§11/§12 refresh; BC-INDEX v2.70 UNCHANGED; ARCH-INDEX v2.20 UNCHANGED; -2 under soft 415; margin 500-413=87 from hard cap; D-446(c) dual-margin form).
 -->
 
 # Pipeline State: vsdd-factory
@@ -65,8 +66,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-06-11 — D-545 S-17.02 DELIVERED/MERGED: PR #182 squash-merged df4f26b8; 13/13 bats green; trend 1H+2M+4L→1M→0→0→0 3-CLEAN; BC-4.13.001 POL-14 active; ADR-025 v1.3 env_allow footgun; STORY-INDEX v3.89→v3.90; BC-INDEX v2.69→v2.70; ARCH-INDEX v2.19→v2.20; trajectory-tail →9→9→9→11. |
-| **Current Phase** | D-545 S-17.02-DELIVERED/MERGED 2026-06-11 — S-17.02 MERGED PR #182 df4f26b8; verify-factory-lock WASM guard (D1+D2) reach develop; BC-4.13.001 POL-14 active; env_allow footgun fixed; boundary semantics corrected; issue #170 partial-close (S-17.03 remains); E-17 2/3 stories merged. Next: S-17.03 test-writer Red Gate for E-17 Wave 3. |
+| **Last Updated** | 2026-06-11 — D-546 S-17.03 v1.0→v1.1 EXECUTABLE-HELPER REFINEMENT: 3 bin/ helpers (factory-lock-status.sh + factory-lock-acquire-precheck.sh + factory-unlock-decide.sh) + 3 bats; SKILL.md thin orchestrators; BC-6.23.001 UNCHANGED; 14 ACs preserved; STORY-INDEX v3.90→v3.91; trajectory-tail →9→9→9→11. |
+| **Current Phase** | D-546 S-17.03-V1.1-EXECUTABLE-HELPER-REFINEMENT 2026-06-11 — S-17.03 v1.0→v1.1 executable-helper model applied (S-17.01 D-543 precedent); 3 bin/ helpers + 3 bats; BC-6.23.001 UNCHANGED; 14 ACs preserved; issue #170 Wave 3 delivery-prep complete. Next: S-17.03 test-writer Red Gate on feature/S-17.03-factory-lock-skills. |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Phase Progress
@@ -124,7 +125,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | 2a191314 | rc.20 SHIPPED 2026-06-01; bot binary commit on top of --merge from develop; prior: 43afbfa7 (rc.19 2026-05-28) |
 | develop | df4f26b8 | D-545 PR #182 S-17.02 SQUASH-MERGED 2026-06-11; verify-factory-lock WASM guard DELIVERED; prior: c64b46d2 (D-544 PR #181 S-17.01 2026-06-11) |
-| factory-artifacts | `735b9168` | D-545 S-17.02-DELIVERED-MERGED-2026-06-11 (prior: `37414e5a` D-544-sha-patch; prior-prior: `10f22cab` D-544) |
+| factory-artifacts | `e9a22a0b` (pre-burst; post-burst SHA TBD — run `git -C .factory log -1 --format='%h'`) | D-546 S-17.03-V1.1-EXECUTABLE-HELPER-REFINEMENT-2026-06-11 (prior: `735b9168` D-545; prior-prior: `37414e5a` D-544-sha-patch) |
 | v1.0.0-rc.20 (tag) | e9e38286 | SHIPPED 2026-06-01; annotated tag object; GitHub Release prerelease; marketplace PR drbothen/claude-mp #12 squash-merged 862e660d |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28; GitHub Release prerelease 2026-05-28T15:10:56Z; marketplace PR #11 squash-merged |
 | v1.0.0-rc.18 (tag) | 666d689f | SHIPPED 2026-05-13 PR #135 |
@@ -134,7 +135,7 @@ dtu_services: []
 | Cycle | Type | Status | Notes |
 |-------|------|--------|-------|
 | F-block-ai-attribution-message-file-arm | feature | F3 COMPLETE — F4 READY | F1+F2+F3 done 2026-05-12; 2 stories ready (S-16.01 5pts PostToolUse HEAD verify, S-16.02 3pts PreToolUse -F arm); E-16 under SS-07/SS-04; milestone v1.0.0-rc.17; BC-7.03.094/095/001, VP-080, ARCH SS-07 v1.3/SS-04 v1.4 registered |
-| v1.0-brownfield-backfill | brownfield | **D-545 S-17.02-DELIVERED/MERGED 2026-06-11** | S-15.03 PRIORITY-A COMPLETE D-508; rc.20 SHIPPED D-528; #128+#130+#169+#176+#170-S17.01+#170-S17.02 MERGED; D-544 S-17.01 MERGED c64b46d2 BC-5.40.001 ACTIVE; D-545 S-17.02 MERGED df4f26b8; BC-4.13.001 ACTIVE; ADR-025 v1.3; STORY-INDEX v3.90; BC-INDEX v2.70; ARCH-INDEX v2.20; issue #170 partial-close; S-17.03 Wave 3 next; requires rc release. |
+| v1.0-brownfield-backfill | brownfield | **D-546 S-17.03-V1.1-EXECUTABLE-HELPER-REFINEMENT 2026-06-11** | S-15.03 PRIORITY-A COMPLETE D-508; rc.20 SHIPPED D-528; #128+#130+#169+#176+#170-S17.01+#170-S17.02 MERGED; D-544 S-17.01 MERGED c64b46d2 BC-5.40.001 ACTIVE; D-545 S-17.02 MERGED df4f26b8; BC-4.13.001 ACTIVE; ADR-025 v1.3; **D-546 S-17.03 v1.1 executable-helper refinement (3 helpers+3 bats); STORY-INDEX v3.91**; BC-INDEX v2.70; ARCH-INDEX v2.20; issue #170 partial-close; S-17.03 Red Gate next; requires rc release. |
 | v1.0-feature-engine-discipline-pass-1 | feature | **PAUSED** | F5 pass-75 adversary complete D-510 2026-05-27; META-LEVEL-30 CANDIDATE-CONFIRMED; trajectory →9→9→9→11 (tick-up from 35-consecutive 9s; 14-day pause cost); 4 structural ACCEPTED-AT-FLOOR per D-386 Option C extension; S-15.17 anchors HIGH-002 cure; L-EDP1-067 captured; BC-INDEX v2.53; STORY-INDEX v3.71. Full-cycle trajectory (75 values ending): →9→9→9→9→11. |
 | v1.0-feature-plugin-async-semantics-pass-1 | feature | CLOSED | All PRs merged; rc.14 shipped |
 
@@ -142,10 +143,11 @@ dtu_services: []
 
 > D-001..D-540: `cycles/v1.0-brownfield-backfill/decision-log.md` + `decisions-log-archive.md`
 > F5 pass-2 architect decisions: `cycles/v1.0-feature-engine-discipline-pass-1/F5-pass-2-architect-decisions.md` (factory-artifacts 7b83ef58)
-> D-379..D-454 (F5): `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md` <!-- D-452(e) umbrella-range-auto-advance; D-511..D-543 per-burst D-range advances archived to decision-log.md; D-543 S-17.01-V1.1-EXECUTABLE-HELPER-REFINEMENT 2026-06-10 D-range→D-543 -->
+> D-379..D-454 (F5): `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md` <!-- D-452(e) umbrella-range-auto-advance; D-511..D-546 per-burst D-range advances archived to decision-log.md; D-546 S-17.03-V1.1-EXECUTABLE-HELPER-REFINEMENT 2026-06-11 D-range→D-546 -->
 
 | ID | Decision | Phase | Date |
 |----|----------|-------|------|
+| D-546 | S-17.03 v1.0→v1.1 EXECUTABLE-HELPER REFINEMENT 2026-06-11 — delivery-prep applied S-17.01 precedent: 3 bin/ helpers (factory-lock-status.sh shared three-state display, factory-lock-acquire-precheck.sh, factory-unlock-decide.sh) + 3 bats; SKILL.md thin orchestrators delegating STATE.md write to state-manager via S-17.01 helpers; BC-6.23.001 UNCHANGED; 14 ACs preserved; STORY-INDEX v3.90→v3.91; D-chain cite D-545; parent-commit e9a22a0b. | S-17.03 v1.1 executable-helper model: 3 helpers + 3 bats; BC-6.23.001 UNCHANGED; 14 ACs preserved; STORY-INDEX v3.90→v3.91 | story-refinement | 2026-06-11 |
 | D-545 | S-17.02 DELIVERED/MERGED 2026-06-11 — PR #182 squash-merged df4f26b8; CI 13/13 bats green; trend 1H+2M+4L→1M→0→0→0 3-CLEAN; pr-reviewer APPROVE; feature DELETED+VERIFIED; develop c64b46d2→df4f26b8; BC-4.13.001 POL-14 draft→active; ADR-025 v1.2→v1.3 (env_allow footgun — 3rd silent-no-op vector); issue #170 partial-close (S-17.03 remains); STORY-INDEX v3.89→v3.90; BC-INDEX v2.69→v2.70; ARCH-INDEX v2.19→v2.20; D-chain cite D-544; parent-commit 37414e5a. | S-17.02 MERGED PR #182 df4f26b8; BC-4.13.001 POL-14 active; ADR-025 v1.3; develop df4f26b8; E-17 2/3; issue #170 partial-close | story-merge-closure | 2026-06-11 |
 | D-544 | S-17.01 DELIVERED/MERGED 2026-06-11 — PR #181 squash-merged c64b46d2; CI 22/22 bats green; trend 9→3→0→0→0 3-CLEAN; pr-reviewer APPROVE; feature DELETED+VERIFIED; develop 0f4793f1→c64b46d2; BC-5.40.001 POL-14 draft→active; issue #170 REOPENED (S-17.02 Wave 2 next); STORY-INDEX v3.87→v3.88; BC-INDEX v2.66→v2.67; D-chain cite D-543; parent-commit b84a6886. | S-17.01 MERGED; BC-5.40.001 POL-14 active; develop c64b46d2; E-17 1/3; issue #170 REOPENED | story-merge-closure | 2026-06-11 |
 | D-543 | S-17.01 v1.0→v1.1 EXECUTABLE-HELPER REFINEMENT 2026-06-10 — delivery-prep Red-Gate-feasibility defect: v1.0 tested prose (SKILL.md + state-manager.md) with Rust-style test names + no host module; refined per L-issue-169-176-worktree-identity(b): factory-lock-write.sh (D3) + factory-cas-push.sh (D6) under plugins/vsdd-factory/bin/; factory-lock-write.bats + factory-cas-push.bats under tests/; all 10 ACs + BC-5.40.001 PC/EC traces UNCHANGED; STORY-INDEX v3.85→v3.86; D-chain cite D-542; parent-commit 0601fdb1. | S-17.01 v1.1 executable-helper model: factory-lock-write.sh+factory-cas-push.sh+bats; STORY-INDEX v3.85→v3.86; BC-5.40.001 UNCHANGED | story-refinement | 2026-06-10 |
@@ -198,7 +200,7 @@ dtu_services: []
 - `cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` | `session-checkpoints.md` | `lessons.md`
 - `cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md` (adversary reviews at `S-12.03/`, `S-12.04/`, `S-12.05/` subdirs)
 
-## Session Resume Checkpoint (2026-06-11 — D-545 S-17.02 DELIVERED/MERGED PR #182 df4f26b8; BC-4.13.001 POL-14 ACTIVE; ADR-025 v1.3; issue #170 partial-close; S-17.03 Wave 3 next)
+## Session Resume Checkpoint (2026-06-11 — D-546 S-17.03 v1.0→v1.1 EXECUTABLE-HELPER REFINEMENT; 3 bin/ helpers + 3 bats; BC-6.23.001 UNCHANGED; STORY-INDEX v3.91; S-17.03 Red Gate next)
 
 > **SELF-SUFFICIENT RESUME CONTEXT FOR ZERO-CONTEXT NEW SESSION ON A DIFFERENT MACHINE**
 > Read this section alone to resume the orchestrator after full CLEAR, new session, or new machine. All context needed is here.
@@ -206,7 +208,7 @@ dtu_services: []
 
 ### §1. Where We Are
 
-**FIVE ISSUES DELIVERED THIS CYCLE (plus 3 design gates). rc.20 SHIPPED (D-528). E-10 CASCADE SEALED (D-531). D-535 #128 MERGED. D-537 #130 MERGED. D-539 #169+#176 MERGED. D-540 ADR-025 ADOPTED. D-541 3-BCS-AUTHORED. D-542 E-17+S-17.01/02/03 AUTHORED. D-543 S-17.01 v1.1 HELPERS. D-544 S-17.01 DELIVERED/MERGED — PR #181 c64b46d2; BC-5.40.001 POL-14 active; E-17 1/3. D-545 S-17.02 DELIVERED/MERGED — PR #182 squash-merged df4f26b8; CI 13/13 bats green; trend 1H+2M+4L→1M→0→0→0 3-CLEAN; BC-4.13.001 POL-14 active; ADR-025 v1.3 env_allow footgun; issue #170 partial-close; develop df4f26b8; E-17 2/3. RC RELEASE PENDING for operator cache (#128+#130+#169+#176+#170-S17.01+#170-S17.02).**
+**FIVE ISSUES DELIVERED THIS CYCLE (plus 3 design gates). rc.20 SHIPPED (D-528). E-10 CASCADE SEALED (D-531). D-535 #128 MERGED. D-537 #130 MERGED. D-539 #169+#176 MERGED. D-540 ADR-025 ADOPTED. D-541 3-BCS-AUTHORED. D-542 E-17+S-17.01/02/03 AUTHORED. D-543 S-17.01 v1.1 HELPERS. D-544 S-17.01 DELIVERED/MERGED — PR #181 c64b46d2; BC-5.40.001 POL-14 active; E-17 1/3. D-545 S-17.02 DELIVERED/MERGED — PR #182 squash-merged df4f26b8; CI 13/13 bats green; trend 1H+2M+4L→1M→0→0→0 3-CLEAN; BC-4.13.001 POL-14 active; ADR-025 v1.3 env_allow footgun; issue #170 partial-close; develop df4f26b8; E-17 2/3. D-546 S-17.03 v1.0→v1.1 EXECUTABLE-HELPER REFINEMENT — 3 bin/ helpers (factory-lock-status.sh + factory-lock-acquire-precheck.sh + factory-unlock-decide.sh) + 3 bats; SKILL.md thin orchestrators; BC-6.23.001 UNCHANGED; 14 ACs preserved; STORY-INDEX v3.91; S-17.03 ready for Red Gate. RC RELEASE PENDING for operator cache (#128+#130+#169+#176+#170-S17.01+#170-S17.02).**
 
 - **D-528..D-533 (2026-06-01/09; archived):** rc.20 SHIPPED tag e9e38286 main 2a191314; issue-validation 18 issues 17 actionable. Full rows: decision-log.md SoT.
 - **D-535 (2026-06-09):** ISSUE-128 PR-178 MERGED f6ce4b7c. feature/issue-128 DELETED+VERIFIED. develop→f6ce4b7c. #128 DELIVERED.
@@ -218,7 +220,7 @@ dtu_services: []
 - **D-540..D-543 (2026-06-10):** ADR-025 ADOPTED; 3-BCs-AUTHORED; E-17+stories-AUTHORED; S-17.01-v1.1-helpers. (Decision-log.md SoT for details.)
 - **develop HEAD:** `df4f26b8`. **main HEAD:** `2a191314` (rc.20 bot binary commit 2026-06-01).
 - **D-range:** D-001..D-545.
-- **4-index (post-D-545):** BC-INDEX v2.70, VP-INDEX v2.06, STORY-INDEX v3.90, ARCH-INDEX v2.20 (all 3 bumped; VP UNCHANGED).
+- **4-index (post-D-546):** BC-INDEX v2.70, VP-INDEX v2.06, STORY-INDEX v3.91, ARCH-INDEX v2.20 (STORY-INDEX bumped D-546; others UNCHANGED).
 - **BC content:** BC-5.39.005 v1.3 ACTIVE + BC-5.39.006 v1.7 ACTIVE + BC-5.39.007 v1.6 ACTIVE + BC-5.39.008 v1.5 ACTIVE + BC-5.39.009 v1.9 ACTIVE + BC-7.04.051 v1.1 ACTIVE + **BC-4.13.001 v1.3 ACTIVE** + **BC-5.40.001 v1.1 ACTIVE** + BC-6.23.001 v1.0 DRAFT.
 - **policies.yaml v1.3.6:** SEALED — no further cures.
 
@@ -257,13 +259,15 @@ ALL of these are ACTIVE and MANDATORY on every dispatch:
 - **D-537 [process-gap] spec-drift routing obligation (D-539 carry):** When an implementer TDD fix changes behavior an accepted ADR specifies verbatim, the fix-burst MUST route an architect ADR amendment in the SAME burst per CLAUDE.md Architectural Authority §12 (spec wins). Codified in ADR-024 v1.2 Process note; L-issue-130-3pass-convergence lesson (b).
 - **D-539 multi-family adversary obligation:** For issues involving both prompt-contract discipline and shell-logic correctness, both a cross-family adversary pass AND a same-family Claude adversary pass are required before declaring convergence. Per L-issue-169-176-worktree-identity (a).
 - **D-540 carry:** ADR-025 v1.2 ACCEPTED. Issue #170 factory lock/lease design-codified. 9 deliverables enumerated (see D-540 in decision-log.md SoT). Implementation next: test-writer Red Gate on feature/issue-170-factory-locklease.
-- **D-545 carry:** S-17.02 DELIVERED/MERGED. PR #182 squash-merged df4f26b8. BC-4.13.001 v1.3 ACTIVE (POL-14). ADR-025 v1.3 (env_allow footgun — 3rd silent-no-op vector). Issue #170 partial-close — S-17.03 (/factory-lock+/factory-unlock skills; BC-6.23.001) remains draft. STORY-INDEX v3.90; BC-INDEX v2.70; ARCH-INDEX v2.20. NEXT: S-17.03 test-writer Red Gate on feature/S-17.03-factory-lock-skills (E-17 Wave 3). RC RELEASE PENDING (#128+#130+#169+#176+#170-S17.01+#170-S17.02).
+- **D-546 carry:** S-17.03 v1.0→v1.1 EXECUTABLE-HELPER REFINEMENT COMPLETE. 3 bin/ helpers (factory-lock-status.sh + factory-lock-acquire-precheck.sh + factory-unlock-decide.sh) + 3 bats added. SKILL.md files are thin orchestrators delegating STATE.md write to state-manager via S-17.01 helpers (factory-lock-write.sh). BC-6.23.001 UNCHANGED. 14 ACs preserved. STORY-INDEX v3.91. BC-INDEX v2.70 UNCHANGED. ARCH-INDEX v2.20 UNCHANGED. NEXT: S-17.03 test-writer Red Gate on feature/S-17.03-factory-lock-skills (E-17 Wave 3).
+- **D-545 carry:** S-17.02 DELIVERED/MERGED. PR #182 squash-merged df4f26b8. BC-4.13.001 v1.3 ACTIVE (POL-14). ADR-025 v1.3 (env_allow footgun — 3rd silent-no-op vector). Issue #170 partial-close — S-17.03 (/factory-lock+/factory-unlock skills; BC-6.23.001) remains draft. STORY-INDEX v3.90; BC-INDEX v2.70; ARCH-INDEX v2.20. RC RELEASE PENDING (#128+#130+#169+#176+#170-S17.01+#170-S17.02).
 - **D-544 carry (superseded):** S-17.01 DELIVERED/MERGED c64b46d2; BC-5.40.001 ACTIVE; E-17 1/3 (now 2/3 per D-545).
 - **D-541 carry:** BC-6.23.001 remains draft (S-17.03 not yet merged); VP IDs TBD per TD-VSDD-063; POLICY 8 propagation deferred to S-17.03.
 
 ### §4. Tier-A Completed Log
 
 All S-15.03 PRIORITY-A items SHIPPED. Key entries (most recent first):
+- **D-546 (2026-06-11):** S-17.03 v1.0→v1.1 EXECUTABLE-HELPER REFINEMENT. 3 bin/ helpers (factory-lock-status.sh + factory-lock-acquire-precheck.sh + factory-unlock-decide.sh) + 3 bats. SKILL.md thin orchestrators. BC-6.23.001 UNCHANGED. 14 ACs preserved. STORY-INDEX v3.90→v3.91. S-17.03 ready for Red Gate.
 - **D-545 (2026-06-11):** S-17.02 DELIVERED/MERGED. PR #182 squash-merged df4f26b8. 13/13 bats green. 23 unit tests. Trend 1H+2M+4L→1M→0→0→0 3-CLEAN. BC-4.13.001 POL-14 active. ADR-025 v1.3 env_allow footgun. issue #170 partial-close. STORY-INDEX v3.89→v3.90. BC-INDEX v2.69→v2.70. ARCH-INDEX v2.19→v2.20. develop df4f26b8. E-17 2/3 stories merged.
 - **D-544 (2026-06-11):** S-17.01 DELIVERED/MERGED. PR #181 squash-merged c64b46d2. 22/22 bats green. BC-5.40.001 POL-14 active. E-17 1/3.
 - **D-540..D-543 (2026-06-10):** ADR-025 v1.2 ADOPTED; 3-BCs-AUTHORED (BC-INDEX v2.66); E-17+S-17.01/02/03 AUTHORED; S-17.01-v1.1-helpers. Full rows: decision-log.md SoT.
@@ -273,13 +277,13 @@ All S-15.03 PRIORITY-A items SHIPPED. Key entries (most recent first):
 - **D-526 (2026-05-31):** S-15.17 SHIPPED PR #164 9ed17b1d. BC-5.39.009 ACTIVE. BC-INDEX v2.65. STORY-INDEX v3.84.
 - **D-508 (2026-05-27):** S-15.03 PRIORITY-A COMPLETE. All 11 stories. 40pts.
 
-**Current Active:** D-545 COMPLETE. Issues #128, #130, #169, #176 all DELIVERED/MERGED. Issue #170 S-17.01+S-17.02 DELIVERED/MERGED (D-544+D-545; S-17.03 remains). BC-5.40.001+BC-4.13.001 ACTIVE. Requires rc release for operator cache. Next = S-17.03 test-writer Red Gate E-17 Wave 3 OR rc release OR #129 canonical-principle.
+**Current Active:** D-546 COMPLETE. Issues #128, #130, #169, #176 all DELIVERED/MERGED. Issue #170 S-17.01+S-17.02 DELIVERED/MERGED (D-544+D-545; S-17.03 delivery-prep COMPLETE D-546). BC-5.40.001+BC-4.13.001 ACTIVE. BC-6.23.001 DRAFT. Requires rc release for operator cache. Next = S-17.03 test-writer Red Gate E-17 Wave 3 OR rc release OR #129 canonical-principle.
 
 Prior Tier-A (pre-session, all COMPLETE): TD #71/72/70/74 (PRs #138–141) + S-15.04/05/08/07/11/09/14 (PRs #142–148) + 3M3a D-497 + D-498/504/507 durability + D-499/500/501 3M3b/r/remove-uncertainty + D-502/503/505/506/508 Waves 1-4 + D-509 E-10 pass-15 + D-510 F5 pass-75 + D-511 banner remediation + D-523/525/529/530/536 prior milestones.
 
 ### §5. Cumulative Codifications
 - F5: D-379..D-454 (76 decisions) — `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md`.
-- Brownfield: D-001..D-545 — `cycles/v1.0-brownfield-backfill/decision-log.md`. Key: D-497 BC cascade CONVERGED; D-508 Wave 4 + S-15.03 PRIORITY-A COMPLETE; D-510 F5 pass-75 + META-LEVEL-30; D-512 rc.19 SHIPPED; D-526 S-15.17 SHIPPED PR #164 9ed17b1d; D-528 RC.20 SHIPPED 2026-06-01; D-531 E-10 CASCADE SEALED 2026-06-01; D-535 ISSUE-128 PR-178 MERGED 2026-06-09; D-537 ISSUE-130 PR-179 MERGED 2026-06-10 (ADR-024 v1.2; ARCH-INDEX v2.18); D-539 ISSUE-169+176 PR-180 MERGED 2026-06-10; D-540 ADR-025 ADOPTED 2026-06-10 (ARCH-INDEX v2.19); D-541 BC-AUTHORING COMPLETE 2026-06-10 (BC-INDEX v2.66); D-542 E-17+S-17.01/02/03 AUTHORED 2026-06-10; D-544 S-17.01 DELIVERED/MERGED 2026-06-11 (BC-5.40.001 ACTIVE; develop c64b46d2; E-17 1/3); **D-545 S-17.02 DELIVERED/MERGED 2026-06-11 — PR #182 squash-merged df4f26b8; 13/13 bats green; 3-CLEAN trend 1H+2M+4L→1M→0→0→0; BC-4.13.001 POL-14 active; ADR-025 v1.3 env_allow footgun; STORY-INDEX v3.89→v3.90; BC-INDEX v2.69→v2.70; ARCH-INDEX v2.19→v2.20; issue #170 partial-close; E-17 2/3**.
+- Brownfield: D-001..D-546 — `cycles/v1.0-brownfield-backfill/decision-log.md`. Key: D-497 BC cascade CONVERGED; D-508 Wave 4 + S-15.03 PRIORITY-A COMPLETE; D-510 F5 pass-75 + META-LEVEL-30; D-512 rc.19 SHIPPED; D-526 S-15.17 SHIPPED PR #164 9ed17b1d; D-528 RC.20 SHIPPED 2026-06-01; D-531 E-10 CASCADE SEALED 2026-06-01; D-535 ISSUE-128 PR-178 MERGED 2026-06-09; D-537 ISSUE-130 PR-179 MERGED 2026-06-10 (ADR-024 v1.2; ARCH-INDEX v2.18); D-539 ISSUE-169+176 PR-180 MERGED 2026-06-10; D-540 ADR-025 ADOPTED 2026-06-10 (ARCH-INDEX v2.19); D-541 BC-AUTHORING COMPLETE 2026-06-10 (BC-INDEX v2.66); D-542 E-17+S-17.01/02/03 AUTHORED 2026-06-10; D-544 S-17.01 DELIVERED/MERGED 2026-06-11 (BC-5.40.001 ACTIVE; develop c64b46d2; E-17 1/3); D-545 S-17.02 DELIVERED/MERGED 2026-06-11 (BC-4.13.001 ACTIVE; ADR-025 v1.3; develop df4f26b8; E-17 2/3); **D-546 S-17.03 v1.0→v1.1 EXECUTABLE-HELPER REFINEMENT 2026-06-11 — 3 bin/ helpers + 3 bats; BC-6.23.001 UNCHANGED; 14 ACs preserved; STORY-INDEX v3.90→v3.91; S-17.03 ready for Red Gate**.
 
 ### §6. Cumulative Lessons
 - F5: L-EDP1-001..067 — `cycles/v1.0-feature-engine-discipline-pass-1/lessons.md`.
@@ -294,12 +298,12 @@ Prior Tier-A (pre-session, all COMPLETE): TD #71/72/70/74 (PRs #138–141) + S-1
 |-------|---------|-------|
 | BC-INDEX | v2.70 | D-545 BC-4.13.001 POL-14 draft→active (PR #182 S-17.02 merged); body row draft→active + v1.0→v1.1→v1.2→v1.3; total_bcs 1958 UNCHANGED |
 | VP-INDEX | v2.06 | UNCHANGED (18 VPs pending architect per TD-VSDD-063) |
-| STORY-INDEX | v3.90 | D-545: S-17.02 status draft→merged; merged_commit df4f26b8; merged count 75→76; E-17 2/3 stories merged |
+| STORY-INDEX | v3.91 | D-546: S-17.03 v1.0→v1.1 executable-helper refinement; 3 bin/ helpers + 3 bats; BC-6.23.001 UNCHANGED; 14 ACs preserved |
 | ARCH-INDEX | v2.20 | D-545 ADR-025 v1.2→v1.3 (env_allow footgun — 3rd silent-no-op vector enumerated; ADR count 25) |
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** `735b9168` D-545 S-17.02-DELIVERED-MERGED-2026-06-11 (prior: `37414e5a` D-544-sha-patch; prior-prior: `10f22cab` D-544)
+- **factory-artifacts HEAD:** post-D-546 (see `git -C .factory log -1`); prior: `735b9168` D-545; prior-prior: `37414e5a` D-544-sha-patch
 - **develop HEAD:** `df4f26b8` (D-545 PR #182 S-17.02 squash-merge 2026-06-11; prior: `c64b46d2` D-544 PR #181 S-17.01 2026-06-11)
 - **main HEAD:** `2a191314` (rc.20 bot binary commit 2026-06-01; prior: `43afbfa7` rc.19 2026-05-28)
 - **v1.0.0-rc.20 tag:** `e9e38286` (annotated tag object; GitHub Release prerelease 2026-06-01; marketplace PR #12 squash-merged 862e660d)
@@ -319,7 +323,7 @@ Prior Tier-A (pre-session, all COMPLETE): TD #71/72/70/74 (PRs #138–141) + S-1
 - **BC-4.13.001:** `.factory/specs/behavioral-contracts/ss-04/BC-4.13.001.md` v1.3 ACTIVE (POL-14 auto-promoted on PR #182 merge; BC-INDEX v2.70; verify-factory-lock WASM guard; SS-04; env_allow PC7+Inv5+EC-016; boundary now>=expires_at)
 - **S-17.01 story:** `.factory/stories/S-17.01-factory-lock-schema-cas-push.md` v1.4 MERGED PR #181 c64b46d2 (STORY-INDEX v3.90; E-17 W1)
 - **S-17.02 story:** `.factory/stories/S-17.02-verify-factory-lock-wasm-guard.md` v1.5 MERGED PR #182 df4f26b8 (STORY-INDEX v3.90; E-17 W2; D-545 codified)
-- **S-17.03 story:** `.factory/stories/S-17.03-*.md` (draft; BC-6.23.001; W3; test-writer Red Gate next)
+- **S-17.03 story:** `.factory/stories/S-17.03-factory-lock-unlock-skills-health.md` v1.1 (draft; BC-6.23.001; W3; STORY-INDEX v3.91; 3 bin/ helpers + 3 bats added; test-writer Red Gate next)
 
 ### §10. PR Status
 
@@ -332,7 +336,7 @@ Prior Tier-A (pre-session, all COMPLETE): TD #71/72/70/74 (PRs #138–141) + S-1
 - **MERGED (D-530 E-10 pass-16):** PR #168 `82163b7f` 2026-06-01.
 - **MERGED (rc.20 bundle):** PR #166 `e00ab1ab`; PR #163 `766ab7bc`; PR #164 `9ed17b1d`; PR #165 `f34b7567`.
 - **Marketplace:** drbothen/claude-mp PR #11 (rc.19) + PR #12 (rc.20) both squash-merged.
-- **Next source PR:** test-writer Red Gate feature branch S-17.03 for #170 (D-545 S-17.02 MERGED; BC-6.23.001 draft; feature/S-17.03-factory-lock-skills; E-17 Wave 3); OR rc release (ships #128+#130+#169+#176+#170-S17.01+#170-S17.02 to operator cache — #130+#169+#176+S17.01+S17.02 code+hooks REQUIRE it); OR issue #129 canonical-principle.
+- **Next source PR:** test-writer Red Gate feature branch S-17.03 for #170 (D-546 S-17.03 v1.1 delivery-prep COMPLETE; BC-6.23.001 draft; feature/S-17.03-factory-lock-skills; E-17 Wave 3; 3 bin/ helpers+3 bats ready); OR rc release (ships #128+#130+#169+#176+#170-S17.01+#170-S17.02 to operator cache — #130+#169+#176+S17.01+S17.02 code+hooks REQUIRE it); OR issue #129 canonical-principle.
 
 ### §11. Post-CLEAR Resume Checklist (zero-context)
 
@@ -346,7 +350,7 @@ Prior Tier-A (pre-session, all COMPLETE): TD #71/72/70/74 (PRs #138–141) + S-1
 8. **F5 PAUSED** — trajectory →9→9→9→11. Do NOT resume F5 without explicit human direction.
 9. **RC.20 SHIPPED D-528 (2026-06-01):** run 26738809372 all 6 PASS; tag e9e38286; main 2a191314; marketplace #12; plugin 52→53; operator cache updated. NEXT RC RELEASE PENDING: #128 + #130 (crates+hooks) + #169+#176 (agents/skills/bin/bats) + **#170-S17.01 (factory-lock-write.sh+factory-cas-push.sh; SKILL.md+state-manager.md)** + **#170-S17.02 (verify-factory-lock WASM crate + hooks-registry entry)** — all require rc.21+ for operator cache reach.
 10. **ALL dispatches carry these non-negotiables:** TD-VSDD-097-EXT (all 5 BC-5.39.006 PCs in current_step:) + TD-VSDD-099 (4 Dim blocks in burst-log) + TD-VSDD-100 (production artifact read, no synthetic echo) + POLICY 14 5-leg quintuple parity + verification_step 7 4-index gate + INV-019 cure (a)/(b)/(c) in changelog rows + adversary must grep origin/factory-artifacts (not stale local main) + D-449(a) literal-shell all Dim-2 gates (no pseudocode) + POLICY 8 v1.3 bidirectional AC↔PC parity + audit-block-exclusion + EC-mirror routing-rule + POLICY 5 v1.3.1 SDK-grounding stable-anchor mandate + POLICY 5 v1.3.4 literal-shell VERIFICATION GATE + POLICY 5 v1.3.5 historical-by-construction enumeration (5 forms only) + POLICY 5 v1.3.6 HEAD-reproducibility + structural-form-only + snapshot-rescue detection + D-537/D-539 [process-gap] spec-drift routing: implementer TDD fix changing ADR-specified behavior MUST route architect ADR amendment in same burst + D-539 multi-family adversary obligation: prompt-contract + shell-logic issues require cross-family AND same-family Claude adversary passes.
-11. **All caught up.** Next decision is D-546. #128 D-535. #130 D-537. #169+#176 D-539. D-540 ADR-025 ADOPTED. D-541 3-BCs-AUTHORED. D-542 E-17+stories. D-544 S-17.01 MERGED. **D-545 S-17.02 DELIVERED/MERGED 2026-06-11 — PR #182 squash-merged df4f26b8; 13/13 bats green; 23 unit tests; 3-CLEAN 1H+2M+4L→1M→0→0→0; BC-4.13.001 POL-14 active; ADR-025 v1.3 env_allow footgun; STORY-INDEX v3.90; BC-INDEX v2.70; ARCH-INDEX v2.20; develop df4f26b8; issue #170 partial-close; E-17 2/3.** All PRs require rc release for operator-level cache. Options: (a) S-17.03 test-writer Red Gate on feature/S-17.03-factory-lock-skills (RECOMMENDED — E-17 Wave 3); (b) rc release to ship #128+#130+#169+#176+#170-S17.01+#170-S17.02 to operators; (c) #129 canonical-principle; F5 pass-76 (PAUSED, needs human); forward proposals (UNI-PLUG-001+SK-MCP-001).
+11. **All caught up.** Next decision is D-547. #128 D-535. #130 D-537. #169+#176 D-539. D-540 ADR-025 ADOPTED. D-541 3-BCs-AUTHORED. D-542 E-17+stories. D-544 S-17.01 MERGED. D-545 S-17.02 DELIVERED/MERGED. **D-546 S-17.03 v1.0→v1.1 EXECUTABLE-HELPER REFINEMENT 2026-06-11 — 3 bin/ helpers + 3 bats; SKILL.md thin orchestrators; BC-6.23.001 UNCHANGED; 14 ACs preserved; STORY-INDEX v3.91.** All PRs require rc release for operator-level cache. Options: (a) S-17.03 test-writer Red Gate on feature/S-17.03-factory-lock-skills (RECOMMENDED — E-17 Wave 3); (b) rc release to ship #128+#130+#169+#176+#170-S17.01+#170-S17.02 to operators; (c) #129 canonical-principle; F5 pass-76 (PAUSED, needs human); forward proposals (UNI-PLUG-001+SK-MCP-001).
 
 ### §12. Pending Work Items — Strict Engine-Discipline Ordering (refreshed 2026-06-11 post-D-545)
 
@@ -376,7 +380,7 @@ Prior Tier-A (pre-session, all COMPLETE): TD #71/72/70/74 (PRs #138–141) + S-1
 | **COSMETIC-001** | **O-PASS16-002 stale header doc-comment** | **cosmetic** | on next spec-touch | validate-trajectory-tail-cell-completeness extract/check function headers stale. Cleanup on next S-15.17 spec-touch. D-532 capture. |
 | ~~**#170-S17.01**~~ | ~~**Issue #170 S-17.01 factory_lock schema+CAS push**~~ | ~~**implementation**~~ | ~~D-543 S-17.01 v1.1 ready~~ | **DELIVERED/MERGED — PR #181 squash-merged c64b46d2 2026-06-11** (22/22 bats; 3-CLEAN; BC-5.40.001 ACTIVE) |
 | ~~**#170-S17.02**~~ | ~~**Issue #170 S-17.02 verify-factory-lock WASM guard**~~ | ~~**implementation**~~ | ~~D-544 S-17.01 MERGED~~ | **DELIVERED/MERGED — PR #182 squash-merged df4f26b8 2026-06-11** (23 unit + 13 bats; 3-CLEAN; BC-4.13.001 ACTIVE; ADR-025 v1.3 env_allow footgun; issue #170 partial-close) |
-| **#170-S17.03** | **Issue #170 S-17.03 /factory-lock+/factory-unlock+/factory-health skills** | **implementation** | D-545 S-17.02 MERGED | ADR-025 v1.3 ACCEPTED; BC-6.23.001 v1.0 DRAFT; S-17.03 v1.0 draft; test-writer Red Gate on feature/S-17.03-factory-lock-skills NEXT (E-17 Wave 3) |
+| **#170-S17.03** | **Issue #170 S-17.03 /factory-lock+/factory-unlock+/factory-health skills** | **implementation** | D-545 S-17.02 MERGED | ADR-025 v1.3 ACCEPTED; BC-6.23.001 v1.0 DRAFT; S-17.03 **v1.1** draft (D-546 executable-helper refinement COMPLETE: 3 bin/ helpers + 3 bats); **test-writer Red Gate on feature/S-17.03-factory-lock-skills NEXT** (E-17 Wave 3) |
 | **5c** | **F5 pass-76** | **gated** | EXPLICIT human direction required | PAUSED per D-386 Option C. Pass-75 trajectory →9→9→9→11. Do NOT resume without explicit human direction. |
 | **6** | **UNI-PLUG-001 implementation** | **forward** | human-authorize | **PROPOSAL REVIEW-READY** |
 | **7** | **SK-MCP-001 implementation** | **forward** | (6) Tier 1 done | **PROPOSAL REVIEW-READY** |
@@ -400,10 +404,10 @@ Research cached at `.factory/research/issues/issue-<N>.md`; full triage at `.fac
 | Activate | #175 version-drift block hook | VALID-PARTIAL |
 | **ALREADY-DONE** | **#149 OTEL telemetry — recommend GitHub close** | ALREADY-DONE |
 
-**RECOMMENDED ACTIVE NEXT:** (a) **#170 S-17.03 test-writer Red Gate** (D-545 S-17.02 MERGED; BC-6.23.001 draft; feature/S-17.03-factory-lock-skills; E-17 Wave 3 skills crate); (b) **rc release** to ship #128+#130+#169+#176+#170-S17.01+#170-S17.02 to operator cache (#130+#169+#176+S17.01+S17.02 code+hooks REQUIRE it); (c) **#129 canonical-principle** (VALID-NEW; ship-ready); (d) **#173 wave-checkpoint** (state-durability chain next after #170); F5 pass-76 (PAUSED; needs explicit human direction); UNI-PLUG-001/SK-MCP-001 REVIEW-READY.
+**RECOMMENDED ACTIVE NEXT:** (a) **#170 S-17.03 test-writer Red Gate** (D-546 S-17.03 v1.1 delivery-prep COMPLETE; BC-6.23.001 draft; feature/S-17.03-factory-lock-skills; E-17 Wave 3 skills crate; 3 bin/ helpers + 3 bats ready); (b) **rc release** to ship #128+#130+#169+#176+#170-S17.01+#170-S17.02 to operator cache (#130+#169+#176+S17.01+S17.02 code+hooks REQUIRE it); (c) **#129 canonical-principle** (VALID-NEW; ship-ready); (d) **#173 wave-checkpoint** (state-durability chain next after #170); F5 pass-76 (PAUSED; needs explicit human direction); UNI-PLUG-001/SK-MCP-001 REVIEW-READY.
 
 **Track-independent:** E-9 W-16 Tier 2 + E-11 W-17 Tier 3 + verify-git-push.sh + S-10.08 + S-11.00.
 
 **[D-414(c) acknowledgment: Section 12 is a non-standard addition for forward-backlog durability.]**
 
-> Previous checkpoint (D-543 S-17.01-V1.1-EXECUTABLE-HELPER-REFINEMENT COMPLETE 2026-06-10) archived to: `cycles/v1.0-brownfield-backfill/session-checkpoints.md`
+> Previous checkpoint (D-545 S-17.02-DELIVERED-MERGED-2026-06-11) archived to: `cycles/v1.0-brownfield-backfill/session-checkpoints.md`
