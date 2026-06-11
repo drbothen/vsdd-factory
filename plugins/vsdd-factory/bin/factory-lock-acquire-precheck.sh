@@ -125,26 +125,17 @@ _iso_to_epoch() {
 
 # ---------------------------------------------------------------------------
 # Helper: compute human-readable time remaining from seconds.
-# Rounds down to nearest minute.
+# Format: "<N> min remaining" — ALWAYS minutes, no "hr" form.
+# Mirrors the guard's format_time_remaining (BC-4.13.001 AC-003 parity).
 # ---------------------------------------------------------------------------
 _seconds_to_human() {
   local secs="$1"
   if [[ "$secs" -le 0 ]]; then
-    printf '0 min'
+    printf '0 min remaining'
     return
   fi
   local mins=$(( secs / 60 ))
-  if [[ "$mins" -ge 60 ]]; then
-    local hrs=$(( mins / 60 ))
-    local rem_mins=$(( mins % 60 ))
-    if [[ "$rem_mins" -gt 0 ]]; then
-      printf '%d hr %d min remaining' "$hrs" "$rem_mins"
-    else
-      printf '%d hr remaining' "$hrs"
-    fi
-  else
-    printf '%d min remaining' "$mins"
-  fi
+  printf '%d min remaining' "$mins"
 }
 
 # ---------------------------------------------------------------------------
@@ -220,18 +211,22 @@ if [[ "$HOLDER" == "$CURRENT_EMAIL" ]]; then
 fi
 
 # Step 5: Foreign unexpired lock — REFUSED_FOREIGN_LOCK (PC3)
-# Compute time remaining
+# Compute time remaining — mirrors guard's format_time_remaining (AC-003 parity)
 REMAINING_SECS=$(( EXPIRES_EPOCH - NOW_EPOCH ))
 TIME_REMAINING="$(_seconds_to_human "$REMAINING_SECS")"
 
+# Emit message to stderr in the SAME format as the guard's build_block_message (AC-003).
+# Guard format (build_block_message in verify-factory-lock/src/lib.rs):
+#   BLOCKED by verify-factory-lock: factory-artifacts branch is locked by <holder>.
+#   locked_at: <locked_at>
+#   expires_at: <expires_at> (<N> min remaining)
+#   To break the lock: /factory-unlock --force
 {
   printf 'REFUSED_FOREIGN_LOCK\n'
-  printf 'Factory lock is held by another session.\n'
-  printf '  Holder:          %s\n' "$HOLDER"
-  printf '  Locked at:       %s\n' "$LOCKED_AT"
-  printf '  Expires at:      %s\n' "$EXPIRES_AT"
-  printf '  Time remaining:  %s\n' "$TIME_REMAINING"
-  printf '  To force-release: /factory-unlock --force\n'
+  printf 'BLOCKED by verify-factory-lock: factory-artifacts branch is locked by %s.\n' "$HOLDER"
+  printf 'locked_at: %s\n' "$LOCKED_AT"
+  printf 'expires_at: %s (%s)\n' "$EXPIRES_AT" "$TIME_REMAINING"
+  printf 'To break the lock: /factory-unlock --force\n'
 } >&2
 
 exit 1
