@@ -76,48 +76,133 @@ if [[ ! -f "$STATE_MD" ]]; then
 fi
 
 # ---------------------------------------------------------------------------
+# Helper: compute ISO-8601 UTC timestamp for now + N seconds
+# Supports both BSD date (macOS) and GNU date (Linux).
+# ---------------------------------------------------------------------------
+_now_plus_seconds() {
+  local delta="$1"
+  if date --version >/dev/null 2>&1; then
+    # GNU date
+    date -u -d "+${delta} seconds" +%Y-%m-%dT%H:%M:%SZ
+  else
+    # BSD date (macOS): -v+Ns where N is in seconds
+    date -u -v "+${delta}S" +%Y-%m-%dT%H:%M:%SZ
+  fi
+}
+
+# ---------------------------------------------------------------------------
+# Helper: compute ISO-8601 UTC timestamp for the current moment.
+# ---------------------------------------------------------------------------
+_now_iso() {
+  date -u +%Y-%m-%dT%H:%M:%SZ
+}
+
+# ---------------------------------------------------------------------------
+# Helper: remove factory_lock block (key + all 2-space-indented sub-fields)
+# from STATE.md in-place using awk.
+# This produces a clean key-deletion (not null assignment).
+# ---------------------------------------------------------------------------
+_remove_factory_lock() {
+  local file="$1"
+  local tmpfile
+  tmpfile="$(mktemp "${file}.XXXXXX")"
+  awk '
+    /^factory_lock:/ { skip=1; next }
+    skip && /^  / { next }
+    { skip=0; print }
+  ' "$file" > "$tmpfile"
+  mv "$tmpfile" "$file"
+}
+
+# ---------------------------------------------------------------------------
+# Helper: write/replace the factory_lock block inside YAML frontmatter.
+# Strategy: strip any existing factory_lock block, then insert the new one
+# just before the closing --- of the frontmatter.
+# ---------------------------------------------------------------------------
+_write_factory_lock_block() {
+  local file="$1"
+  local holder="$2"
+  local locked_at="$3"
+  local expires_at="$4"
+
+  # First, remove any existing factory_lock block
+  _remove_factory_lock "$file"
+
+  # Now insert the new block before the closing --- of the frontmatter.
+  # The frontmatter is bounded by the first --- at line 1 and the next ---.
+  # We insert before the second --- (the closing delimiter).
+  local tmpfile
+  tmpfile="$(mktemp "${file}.XXXXXX")"
+  awk -v holder="$holder" -v locked_at="$locked_at" -v expires_at="$expires_at" '
+    BEGIN { front=0; inserted=0 }
+    /^---$/ {
+      front++
+      if (front == 2 && !inserted) {
+        # Insert factory_lock block before the closing ---
+        print "factory_lock:"
+        print "  holder: \"" holder "\""
+        print "  locked_at: \"" locked_at "\""
+        print "  expires_at: \"" expires_at "\""
+        inserted=1
+      }
+    }
+    { print }
+  ' "$file" > "$tmpfile"
+  mv "$tmpfile" "$file"
+}
+
+# ---------------------------------------------------------------------------
+# Helper: update factory_lock.expires_at in-place (for renew mode).
+# Replaces the existing expires_at line under factory_lock: with the new value.
+# ---------------------------------------------------------------------------
+_update_expires_at() {
+  local file="$1"
+  local new_expires_at="$2"
+  local tmpfile
+  tmpfile="$(mktemp "${file}.XXXXXX")"
+  awk -v new_exp="$new_expires_at" '
+    BEGIN { in_lock=0 }
+    /^factory_lock:/ { in_lock=1; print; next }
+    in_lock && /^  expires_at:/ {
+      print "  expires_at: \"" new_exp "\""
+      next
+    }
+    in_lock && !/^  / { in_lock=0 }
+    { print }
+  ' "$file" > "$tmpfile"
+  mv "$tmpfile" "$file"
+}
+
+# ---------------------------------------------------------------------------
 # Mode dispatch
 # ---------------------------------------------------------------------------
 
 case "$MODE" in
 
   acquire)
-    # Intended (NOT YET IMPLEMENTED):
-    #   1. holder=$(git config user.email | tr -d '\n')
-    #   2. locked_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-    #   3. expires_at = locked_at + TTL_SECONDS (ISO-8601 UTC arithmetic)
-    #   4. Write/replace the factory_lock YAML block in STATE.md frontmatter:
-    #        factory_lock:
-    #          holder: "<holder>"
-    #          locked_at: "<locked_at>"
-    #          expires_at: "<expires_at>"
-    #   All three fields MUST be present (BC-5.40.001 PC1 / SchemaViolation on missing field).
-    #   locked_at and expires_at MUST use format YYYY-MM-DDTHH:MM:SSZ.
-    #   expires_at MUST equal locked_at + exactly TTL_SECONDS (= ${TTL_SECONDS}).
-    printf 'TODO(S-17.01): factory-lock-write acquire not implemented\n' >&2
-    exit 1
+    HOLDER="$(git config user.email | tr -d '\n')"
+    LOCKED_AT="$(_now_iso)"
+    EXPIRES_AT="$(_now_plus_seconds "$TTL_SECONDS")"
+
+    _write_factory_lock_block "$STATE_MD" "$HOLDER" "$LOCKED_AT" "$EXPIRES_AT"
+    printf 'factory-lock-write: acquired lock for %s (expires %s)\n' "$HOLDER" "$EXPIRES_AT"
     ;;
 
   renew)
-    # Intended (NOT YET IMPLEMENTED):
-    #   1. If factory_lock key is absent from STATE.md frontmatter → exit 0 (no-op).
-    #   2. new_expires_at=$(date -u +%Y-%m-%dT%H:%M:%SZ) + TTL_SECONDS
-    #   3. Update factory_lock.expires_at = new_expires_at in STATE.md frontmatter.
-    #   4. factory_lock.locked_at and factory_lock.holder MUST NOT change (BC-5.40.001 PC4).
-    #   RenewalMissed error variant is detectable post-commit by comparing old vs new expires_at.
-    printf 'TODO(S-17.01): factory-lock-write renew not implemented\n' >&2
-    exit 1
+    # No-op if factory_lock key is absent
+    if ! grep -q '^factory_lock:' "$STATE_MD"; then
+      printf 'factory-lock-write: no factory_lock block present — renew is a no-op\n'
+      exit 0
+    fi
+
+    NEW_EXPIRES_AT="$(_now_plus_seconds "$TTL_SECONDS")"
+    _update_expires_at "$STATE_MD" "$NEW_EXPIRES_AT"
+    printf 'factory-lock-write: renewed lock expires_at to %s\n' "$NEW_EXPIRES_AT"
     ;;
 
   clear)
-    # Intended (NOT YET IMPLEMENTED):
-    #   1. Remove the factory_lock key and its sub-fields entirely from STATE.md frontmatter.
-    #   2. Key MUST be deleted — NOT set to null (factory_lock: null is a StaleNullBlock
-    #      violation per BC-5.40.001 PC2).
-    #   3. After clear, grep for 'factory_lock' in the frontmatter region MUST return non-zero
-    #      (key entirely absent).
-    printf 'TODO(S-17.01): factory-lock-write clear not implemented\n' >&2
-    exit 1
+    _remove_factory_lock "$STATE_MD"
+    printf 'factory-lock-write: factory_lock block removed (unlocked)\n'
     ;;
 
 esac
