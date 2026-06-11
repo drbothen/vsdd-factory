@@ -1,8 +1,8 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
-status: draft
+version: "1.2"
+status: active
 producer: product-owner
 timestamp: 2026-06-10T00:00:00Z
 phase: brownfield-backfill
@@ -18,9 +18,9 @@ traces_to: .factory/specs/architecture/decisions/ADR-025-single-writer-factory-l
 origin: brownfield
 subsystem: "SS-06"
 capability: "CAP-031"
-lifecycle_status: draft
+lifecycle_status: active
 introduced: v1.0-brownfield-backfill
-modified: []
+modified: ["2026-06-11 (v1.1)", "2026-06-11 (v1.2)"]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -29,7 +29,7 @@ removed: null
 removal_reason: null
 bc_id: BC-6.23.001
 section: "6.23"
-last_amended: "2026-06-10 (v1.0) — Initial authoring (product-owner; brownfield-backfill issue #170; ADR-025 v1.2 D4/D5/D7/D8 deliverables). /factory-lock acquire (CAS push), /factory-unlock release + force-steal, factory-health lock status, factory-worktree-health lock status. lifecycle_status: draft (POL-14 auto-promotion on implementing PR merge)."
+last_amended: "2026-06-11 (v1.2) — POL-14 auto-promotion: lifecycle_status draft→active on PR #183 squash-merge 60fd0233 (S-17.03 DELIVERED/MERGED 2026-06-11; D-547). /factory-lock + /factory-unlock skills + factory-health + factory-worktree-health three-state lock status SHIPPED; 26 bats; CI run 27343001859 all-green; issue #170 CLOSED; E-17 3/3 COMPLETE. [Prior: 2026-06-11 (v1.1) — Boundary-semantics staleness sync (product-owner; S-17.03 adversary O-1; issue #170; BC-4.13.001 v1.3 boundary correction). PC3 foreign-held blocking condition corrected from `now ≤ expires_at` to `now < expires_at`; PC7 two HELD-display conditions corrected from `now ≤ expires_at` to `now < expires_at`; EC-002 explicit operator added `now >= expires_at` for expired/proceed path. Outcomes unchanged. [Prior: 2026-06-10 (v1.0) — Initial authoring (product-owner; brownfield-backfill issue #170; ADR-025 v1.2 D4/D5/D7/D8 deliverables). /factory-lock acquire (CAS push), /factory-unlock release + force-steal, factory-health lock status, factory-worktree-health lock status. lifecycle_status: draft (POL-14 auto-promotion on implementing PR merge).]]"
 ---
 
 # BC-6.23.001: /factory-lock MUST acquire the factory_lock via fetch-then-CAS push (emitting factory.lock.acquired), /factory-unlock MUST release a self-held lock or force-release any lock (emitting factory.lock.released or factory.lock.stolen), and /factory-health and /factory-worktree-health MUST display three-state lock status
@@ -117,9 +117,10 @@ rejected acquire.
 
 ### PC3 — `/factory-lock` foreign lock held: refuse with refusal message
 
-When the fetch reveals `factory_lock.holder` is set, `now ≤ expires_at`, and
-`holder != current_git_email`, the `/factory-lock` skill MUST exit without attempting the CAS
-push and MUST display the same refusal message format as the guard (BC-4.13.001 PC1):
+When the fetch reveals `factory_lock.holder` is set, `now < expires_at` (strictly future —
+the lock has not yet expired), and `holder != current_git_email`, the `/factory-lock` skill
+MUST exit without attempting the CAS push and MUST display the same refusal message format as
+the guard (BC-4.13.001 PC1):
 - Holder email
 - `locked_at` timestamp
 - `expires_at` timestamp
@@ -174,11 +175,11 @@ is run, the skill succeeds silently (no event; lock was already absent; exit 0).
 
 The `/factory-health` skill MUST display one of three lock status lines based on the local
 STATE.md `factory_lock` block:
-- `Factory lock: FREE` — `factory_lock` absent or expired
+- `Factory lock: FREE` — `factory_lock` absent or expired (`now >= expires_at`)
 - `Factory lock: HELD by this session (expires <expires_at>)` — `factory_lock.holder ==
-  current_git_email` and `now ≤ expires_at`
+  current_git_email` and `now < expires_at` (strictly future)
 - `Factory lock: HELD by <holder_email> since <locked_at> (expires <expires_at>)` —
-  `factory_lock.holder != current_git_email` and `now ≤ expires_at`
+  `factory_lock.holder != current_git_email` and `now < expires_at` (strictly future)
 
 The status is read from the LOCAL STATE.md (no fetch required for display — the lock state
 visible to the local session is what matters for informational display).
@@ -228,7 +229,7 @@ implementation — same helper as `/factory-health`.
 | ID | Description | Expected Behavior |
 |----|-------------|-------------------|
 | EC-001 | `/factory-lock` when factory already locked by self (re-lock) | Treat as already acquired: display "Factory lock already held by this session." No STATE.md write, no new event. Exit 0. |
-| EC-002 | `/factory-lock` when lock is expired (held by other developer but expired) | Treat as unlocked; proceed with acquire (same path as absent lock). The CAS push is the safety net. |
+| EC-002 | `/factory-lock` when lock is expired (held by other developer but `now >= expires_at`) | Treat as unlocked; proceed with acquire (same path as absent lock). The expiry test is `now >= expires_at`; at the exact boundary `now == expires_at` the lock is treated as just-expired (not blocking). The CAS push is the safety net. |
 | EC-003 | `/factory-unlock` when factory is already unlocked | Exit 0 silently. No error. No event. |
 | EC-004 | `/factory-lock` CAS push rejected (concurrent acquire race) | `AcquireRaceRejected` error; user retries. No partial STATE.md write. |
 | EC-005 | `/factory-unlock --force` when no lock is held | No-op; exit 0; no event (nothing to steal). |
@@ -322,4 +323,6 @@ TBD — VP IDs to be assigned after VP authoring pass.
 
 | Version | Date | Description |
 |---------|------|-------------|
+| 1.2 | 2026-06-11 | POL-14 auto-promotion: lifecycle_status draft→active on PR #183 squash-merge 60fd0233 (state-manager; D-547; S-17.03 DELIVERED/MERGED 2026-06-11). /factory-lock + /factory-unlock skills + factory-health + factory-worktree-health three-state lock status SHIPPED; 26 bats; CI run 27343001859 all-green; issue #170 CLOSED; E-17 3/3 COMPLETE. No content changes. |
+| 1.1 | 2026-06-11 | Boundary-semantics staleness sync (product-owner; S-17.03 adversary O-1; issue #170; BC-4.13.001-v1.3 boundary correction). PC3 foreign-held blocking condition: `now ≤ expires_at` → `now < expires_at` (strictly future). PC7 HELD display conditions (×2): `now ≤ expires_at` → `now < expires_at`. EC-002 expired/proceed path: explicit `now >= expires_at` operator added (boundary `now == expires_at` → expired/proceed, not blocking). FREE display string: added `(now >= expires_at)` clarification. All outcomes unchanged — foreign-unexpired → refuse; expired → proceed. Syncs to BC-4.13.001 v1.3 canonical boundary semantics. |
 | 1.0 | 2026-06-10 | Initial authoring (product-owner; brownfield-backfill issue #170; ADR-025 v1.2 D4/D5/D7/D8 deliverables). /factory-lock CAS acquire (PC1 success, PC2 CAS rejection, PC3 foreign lock); /factory-unlock self-release (PC4), non-holder rejection (PC5), force-release + audit (PC6); /factory-health (PC7) + /factory-worktree-health (PC8) three-state status. 6 error variants: AcquireRaceRejected, ForeignLockHeld, CASPushRejected, NotLockHolder, ForceStealAudited, UnlockCASRejected. 10 edge cases EC-001..EC-010. 10 canonical test vectors T-1..T-10. CAP-031 registered same burst. lifecycle_status: draft. |

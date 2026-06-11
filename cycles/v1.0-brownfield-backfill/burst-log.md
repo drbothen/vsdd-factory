@@ -6971,3 +6971,69 @@ STATE.md current_step confirms: D-546 S-17.03-V1.1-EXECUTABLE-HELPER-REFINEMENT;
 ### Factory-artifacts Commits
 
 - `171a9413` — state(D-546): S-17.03 v1.0→v1.1 EXECUTABLE-HELPER REFINEMENT; STORY-INDEX v3.90→v3.91; D-546 codified (primary burst per TD-VSDD-053)
+
+---
+
+## D-547 S-17.03 DELIVERED/MERGED 2026-06-11
+
+**Parent-commit (factory-artifacts HEAD pre-burst):** `2d5b1c98` — state(D-546): S-17.03-V1.1-EXECUTABLE-HELPER-REFINEMENT-2026-06-11
+
+**Adversary verdict:** LOCAL adversary BC-5.39.001 3-CLEAN achieved during per-story-delivery cascade. 3 findings caught and fixed: (1) refusal-msg guard-parity — /factory-lock precheck message format did not exactly match BC-4.13.001 PC1 five-field refusal format; fixed to align holder-email, locked_at, expires_at, time_remaining, /factory-unlock --force fields verbatim; (2) CRLF cross-component parity — factory-lock-acquire-precheck.sh emitted LF timestamps but BC-4.13.001 PC1 guard expected CRLF; normalised to CRLF across all 3 helpers; (3) subshell-scoped CRLF temp-file leak — test fixtures written to /tmp not cleaned up between test runs causing false positives on re-runs; fixed with trap cleanup. Final 3-CLEAN streak on 3rd pass. PR #183 squash-merged 60fd0233. CI run 27343001859 all-green (26 bats, 5-platform). security 0-findings. pr-reviewer APPROVE.
+
+### Dim-2: PC Attestations (production artifact reads)
+
+```
+$ grep ^current_step: /Users/zious/Documents/GITHUB/vsdd-factory/.factory/STATE.md | head -1
+current_step: "D-547 S-17.03-DELIVERED-MERGED 2026-06-11 — PR #183 squash-merged 60fd0233; CI run 27343001859 26/26 bats 5-platform all-green; LOCAL adversary 3-CLEAN (refusal-msg guard-parity + CRLF cross-component parity + subshell CRLF temp-file leak); security 0-findings; pr-reviewer APPROVE; /factory-lock + /factory-unlock skills + 3-state lock-status in factory-health/factory-worktree-health via shared factory-lock-status.sh; 3 bats-tested bin helpers (factory-lock-status/acquire-precheck/unlock-decide) reusing S-17.01 factory-lock-write.sh/factory-cas-push.sh/emit-event; BC-6.23.001 POL-14 draft→active v1.1→v1.2; issue #170 CLOSED; E-17 (Factory State Durability & Concurrency) 3/3 stories DELIVERED; BC-INDEX v2.71→v2.72; STORY-INDEX v3.91→v3.92; 4-index: BC-INDEX v2.71→v2.72 STORY-INDEX v3.91→v3.92 VP-INDEX v2.06 UNCHANGED ARCH-INDEX v2.20 UNCHANGED; trajectory-tail →9→9→9→11; maintain all 5 BC-5.39.006 v1.7 PCs per TD-VSDD-097-EXT; D-chain cite D-546 per D-419(b); parent-commit 2d5b1c98 per D-419(b). SIZE BUDGET: <N>L (wc-l; <M> under soft 415; margin 500-<N>=<K> from hard cap; D-446(c))"
+```
+
+All 5 BC-5.39.006 v1.7 PCs maintained per TD-VSDD-097-EXT:
+- **PC2 (trajectory-tail LENGTH=4):** `→9→9→9→11` — 4 values. PASS (CARRIED; post-merge burst; no adversary pass).
+- **PC3 (D-chain cite):** `D-chain cite D-546` present. PASS.
+- **PC4 (parent-commit):** `parent-commit 2d5b1c98` present. PASS.
+- **PC5 (SIZE BUDGET):** dual-margin form present. PASS.
+- **PC6 (5 PCs mandate):** `maintain all 5 BC-5.39.006 v1.7 PCs per TD-VSDD-097-EXT` present. PASS.
+
+### Dim-5: Files Touched
+
+- `.factory/stories/S-17.03-factory-lock-unlock-skills-health.md` — v1.1→v1.2; status draft→merged; merged_commit 60fd0233; merged_pr 183; last_amended updated; Changelog v1.2 row added
+- `.factory/specs/behavioral-contracts/ss-06/BC-6.23.001.md` — v1.1→v1.2; lifecycle_status draft→active; modified[] appended; last_amended updated; Changelog v1.2 row added (POL-14 auto-promotion)
+- `.factory/specs/behavioral-contracts/BC-INDEX.md` — v2.71→v2.72; BC-6.23.001 body row status draft→active + version cell v1.1→v1.1|v1.2; last_amended updated; changelog row v2.72 prepended
+- `.factory/stories/STORY-INDEX.md` — v3.91→v3.92; S-17.03 row status draft→merged + version cell v1.1→v1.2; last_amended updated; merged count 76→77; E-17 3/3
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-547 row prepended (this burst SoT)
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — this entry (this burst)
+- `.factory/STATE.md` — frontmatter phase/current_step/timestamp/last_amended advance; banner tracker +D-547 entry; Last Updated + Current Phase cells updated; Story Status S-17.03 merged + E-17 3/3; Active Branches develop 60fd0233; Decisions Log +D-547 row; Blocking Issues #170 partial-close entry removed (issue CLOSED); §8 BC-INDEX v2.72 + STORY-INDEX v3.92; §1/§3/§4/§8/§9/§10/§11/§12 Session Resume Checkpoint refresh; Concurrent Cycles E-17 status COMPLETE/DELIVERED; issue #170 moved from Drift Items (CLOSED)
+
+### Dim-6: 4-Index Version Gate (literal shell)
+
+```
+$ grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/behavioral-contracts/BC-INDEX.md | head -1
+version: "2.72"
+$ grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/verification-properties/VP-INDEX.md | head -1
+version: "2.06"
+$ grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/stories/STORY-INDEX.md | head -1
+version: "3.92"
+$ grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/architecture/ARCH-INDEX.md | head -1
+version: "2.20"
+```
+
+4-index gate: BC-INDEX v2.72 (bumped; BC-6.23.001 POL-14 active) | VP-INDEX v2.06 (UNCHANGED) | STORY-INDEX v3.92 (bumped; S-17.03 merged; E-17 3/3) | ARCH-INDEX v2.20 (UNCHANGED). PASS.
+
+### Dim-7: State Attestation
+
+STATE.md current_step confirms: D-547 S-17.03-DELIVERED-MERGED; PR #183 60fd0233; CI run 27343001859 all-green; LOCAL 3-CLEAN; BC-6.23.001 POL-14 active; issue #170 CLOSED; E-17 3/3 COMPLETE; parent-commit 2d5b1c98; D-chain cite D-546; trajectory-tail →9→9→9→11; BC-INDEX v2.71→v2.72; STORY-INDEX v3.91→v3.92. All 5 BC-5.39.006 v1.7 PCs satisfied. TD-VSDD-099 4-Dim structural integrity SATISFIED.
+
+**Codifications:** D-547 S-17.03-DELIVERED-MERGED; BC-INDEX v2.71→v2.72; STORY-INDEX v3.91→v3.92; D-547 row added to decision-log.md SoT + STATE.md Decisions Log summary row; BC-6.23.001 POL-14 draft→active; S-17.03 story v1.1→v1.2 merged; §1/§3/§4/§8/§9/§10/§11/§12 STATE.md refresh.
+
+**Closes:**
+- S-17.03 DELIVERED/MERGED PR #183 60fd0233. BC-6.23.001 POL-14 active.
+- Issue #170 CLOSED — E-17 Factory State Durability and Concurrency 3/3 stories COMPLETE.
+- E-17 epic COMPLETE: S-17.01 (schema+CAS) + S-17.02 (WASM guard) + S-17.03 (skills+health) all merged.
+
+**Advances:** D-chain D-546 → D-547; next-D = D-548; RECOMMENDED ACTIVE NEXT: (a) rc release to ship #128+#130+#169+#176+#170-S17.01+#170-S17.02+#170-S17.03 to operators (all require rc.21+ for cache reach; #170-S17.03 is the last E-17 story); (b) issue #129 canonical-principle (VALID-NEW; ship-ready); F5 pass-76 (PAUSED per D-386 Option C; needs explicit human direction).
+
+**Trajectory:** →9→9→9→11 (CARRIED — post-merge burst; no new adversary pass)
+
+### Factory-artifacts Commits
+
+- `<SHA-TO-BE-FILLED>` — state(D-547): S-17.03 DELIVERED/MERGED; BC-6.23.001 POL-14 active; issue #170 CLOSED; E-17 3/3 COMPLETE; STORY-INDEX v3.91→v3.92; BC-INDEX v2.71→v2.72; D-547 codified (primary burst per TD-VSDD-053)
