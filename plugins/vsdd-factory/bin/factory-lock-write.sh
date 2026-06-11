@@ -259,14 +259,30 @@ case "$MODE" in
     ;;
 
   renew)
-    # No-op if factory_lock key is absent
-    if ! grep -q '^factory_lock:' "$STATE_MD"; then
+    # No-op if factory_lock key is absent (frontmatter-scoped check).
+    if ! awk '/^---$/{f++} f==1 && /^factory_lock:/{found=1} f>=2{exit} END{exit !found}' "$STATE_MD" 2>/dev/null; then
       printf 'factory-lock-write: no factory_lock block present — renew is a no-op\n'
       exit 0
     fi
 
+    # The block must contain an expires_at sub-field to renew; a malformed block
+    # (missing expires_at) is a RenewalMissed condition (BC-5.40.001 PC4).
+    if ! awk '/^---$/{f++} f==1 && /^  expires_at:/{found=1} f>=2{exit} END{exit !found}' "$STATE_MD" 2>/dev/null; then
+      printf 'factory-lock-write: RenewalMissed — factory_lock block is missing expires_at sub-field in frontmatter of %s. Cannot renew a malformed block.\n' "$STATE_MD" >&2
+      exit 1
+    fi
+
     NEW_EXPIRES_AT="$(_now_plus_seconds "$TTL_SECONDS")"
     _update_expires_at "$STATE_MD" "$NEW_EXPIRES_AT"
+
+    # Post-renew assertion: expires_at must now reflect the new value.
+    ACTUAL_EXPIRES="$(awk '/^---$/{f++} f==1 && /^  expires_at:/{gsub(/^  expires_at: *"?/,""); gsub(/"$/,""); print; exit} f>=2{exit}' "$STATE_MD")"
+    if [[ "$ACTUAL_EXPIRES" != "$NEW_EXPIRES_AT" ]]; then
+      printf 'factory-lock-write: RenewalMissed — expires_at was not updated in %s (expected %s, got %s).\n' \
+        "$STATE_MD" "$NEW_EXPIRES_AT" "$ACTUAL_EXPIRES" >&2
+      exit 1
+    fi
+
     printf 'factory-lock-write: renewed lock expires_at to %s\n' "$NEW_EXPIRES_AT"
     ;;
 
