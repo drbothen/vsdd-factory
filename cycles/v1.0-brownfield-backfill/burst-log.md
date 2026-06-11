@@ -7113,4 +7113,4 @@ STATE.md current_step confirms: D-548 ADR-025-V1.4-S-17.04-AUTO-RENEW-WIRING-COD
 
 ### Factory-artifacts Commits
 
-(SHA to be filled in post-commit per D-419(b) convention)
+`e5af78f7` state(D-548): ADR-025 v1.4 + S-17.04 auto-renew wiring codified
