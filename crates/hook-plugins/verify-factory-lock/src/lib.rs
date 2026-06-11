@@ -376,6 +376,22 @@ pub fn build_block_message(
     )
 }
 
+/// Check whether the lock is expired relative to the current time.
+///
+/// Returns `true` if `now >= expires_at` — meaning the lock has expired or
+/// is expiring at this exact instant.
+///
+/// BC-4.13.001 EC-002: `now == expires_at` is treated as EXPIRED (returns `true`),
+/// so `guard_logic` will return `HookResult::Continue` (not Block) at the exact
+/// expiry boundary. The strict `>` form would block at `now == expires_at`; this
+/// `>=` form correctly treats the exact-expiry instant as already-expired.
+pub fn is_expired(
+    now: chrono::DateTime<chrono::Utc>,
+    expires_at: chrono::DateTime<chrono::Utc>,
+) -> bool {
+    now >= expires_at
+}
+
 /// Trim trailing whitespace (including `\n`) from a git subprocess stdout line.
 pub fn trim_git_email(raw: &str) -> String {
     raw.trim_end().to_string()
@@ -501,10 +517,12 @@ where
         }
     };
 
-    // Step 5: Compare now > expires_at. If true (expired): return Continue (PC2 LockExpired).
-    // EC-002: now == expires_at evaluates as NOT greater-than → treat as just-expired → Continue.
+    // Step 5: Compare now >= expires_at. If true (expired): return Continue (PC2 LockExpired).
+    // EC-002: now == expires_at is treated as expired (is_expired returns true), so the guard
+    // returns Continue at the exact-expiry boundary (not Block). Uses is_expired(now, expires_at)
+    // pure helper for testability and correct `>=` semantics.
     let now = chrono::Utc::now();
-    if now > expires_at_dt {
+    if is_expired(now, expires_at_dt) {
         // Lock has expired — treat as unlocked (PC2 LockExpired). No log_warn per BC-4.13.001 PC2.
         return HookResult::Continue;
     }
