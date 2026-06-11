@@ -6769,4 +6769,4 @@ version: "2.19"
 
 ### Factory-artifacts Commits
 
-- TBD — state(D-543): S-17.01 v1.0→v1.1 executable-helper refinement; STORY-INDEX v3.85→v3.86; D-543 codified (primary burst per TD-VSDD-053)
+- `c01bacc6` — state(D-543): S-17.01 v1.0→v1.1 executable-helper refinement; STORY-INDEX v3.85→v3.86; D-543 codified (primary burst per TD-VSDD-053)
