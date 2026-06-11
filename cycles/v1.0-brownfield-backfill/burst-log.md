@@ -11,6 +11,115 @@ input-hash: "[live-state]"
 traces_to: STATE.md
 ---
 
+## D-542 STORY-DECOMPOSITION ISSUE-170 E-17+3-STORIES (2026-06-10)
+
+### Parent-commit
+
+`ba471c58` (D-541 sha-patch Active Branches update; last factory-artifacts HEAD before this D-542 state-manager burst) per D-419(b).
+
+### Adversary Verdict (D-448(a) source-attestation gate)
+
+Story-decomposition burst — no adversarial review dispatched this burst. Story-writer authored epic E-17 (Factory State Durability and Concurrency) + 3 story files (S-17.01/S-17.02/S-17.03); state-manager codified STORY-INDEX v3.85 + decision-log D-542 + STATE.md. D-448(a) source-attestation parity: epic E-17 persisted at `stories/epics/E-17-factory-state-durability-concurrency.md` (draft v1.0; SS-04/SS-05/SS-06; CAP-031; 3 stories); S-17.01 persisted at `stories/S-17.01-factory-lock-schema-cas-push.md` (5pts; BC-5.40.001; wave 1; depends_on []); S-17.02 persisted at `stories/S-17.02-verify-factory-lock-wasm-guard.md` (8pts; BC-4.13.001; wave 2; depends_on [S-17.01]); S-17.03 persisted at `stories/S-17.03-factory-lock-unlock-skills-health.md` (8pts; BC-6.23.001; wave 3; depends_on [S-17.01, S-17.02]); STORY-INDEX v3.84→v3.85 (total pts 321+→342+; count 100→103); D-542 row in decision-log.md SoT; D-542 row in STATE.md. Verdict: N/A (story-decomposition + bookkeeping only).
+
+D-448(a) self-attestation (literal shell, per D-449(a)):
+
+```bash
+$ grep -c "^## Epic E-17" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/stories/STORY-INDEX.md
+1
+```
+
+PASS — E-17 epic section present exactly once in STORY-INDEX.
+
+### Files Touched (Dim-1)
+
+Files modified in this D-542 state-manager burst (single atomic commit):
+
+1. `.factory/stories/epics/E-17-factory-state-durability-concurrency.md` — NEW (this commit): epic E-17 Factory State Durability and Concurrency; draft v1.0; spans SS-04/SS-05/SS-06; CAP-031; 3 stories (S-17.01/02/03); first epic of #170→#173→#171 state-durability chain. Authored by story-writer.
+2. `.factory/stories/S-17.01-factory-lock-schema-cas-push.md` — NEW (this commit): factory_lock STATE.md frontmatter schema + state-burst fetch-then-CAS push (D3+D6); 5pts; BC-5.40.001; wave 1; SS-05; depends_on []; blocks [S-17.02, S-17.03]; tdd_mode strict. Authored by story-writer.
+3. `.factory/stories/S-17.02-verify-factory-lock-wasm-guard.md` — NEW (this commit): verify-factory-lock WASM guard crate + registry entries (D1+D2+D9 guard bats); 8pts; BC-4.13.001; wave 2; SS-04; depends_on [S-17.01]; blocks [S-17.03]; tdd_mode strict. Authored by story-writer.
+4. `.factory/stories/S-17.03-factory-lock-unlock-skills-health.md` — NEW (this commit): /factory-lock + /factory-unlock skills + /factory-health and /factory-worktree-health lock status (D4+D5+D7+D8+D9 skill bats); 8pts; BC-6.23.001; wave 3; SS-06; depends_on [S-17.01, S-17.02]; blocks []; tdd_mode strict. Authored by story-writer.
+5. `.factory/stories/STORY-INDEX.md` — UPDATED (this commit): version v3.84→v3.85; E-17 epic section + 3 story rows added; total pts 321+→342+ (+21pts); story count 100→103 (+3); last_amended updated with D-542 citation; total story points footnote updated (+21 E-17). Arithmetic verified: 321+21=342 ✓; 100+3=103 ✓.
+6. `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — UPDATED (this commit): D-542 row prepended before D-541 row in decisions table.
+7. `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — UPDATED (this commit): D-542 h2 entry prepended before D-541 entry.
+8. `.factory/STATE.md` — UPDATED (this commit): frontmatter phase/current_step/last_amended advance; banner tracker +D-542 entry (415 lines wc-l; AT soft-target); D-430(a) compaction (D-510+D-522+D-525+D-526 Decisions Log rows + D-532..D-535 banner entries archived); Phase Progress +D-542 row; Decisions Log +D-542 row + D-510/D-522/D-525/D-526 rows removed; Identifier Conventions Story 102→105 file-resident; Story Status header 117→120/draft 29→32; §8 STORY-INDEX v3.84→v3.85; Last Updated + Current Phase cells updated; Active Branches factory-artifacts updated; Session Resume Checkpoint §1-§3-§4-§5-§8-§9-§10-§11-§12 refresh; Concurrent Cycles v1.0-brownfield-backfill updated.
+
+### Dim-2 Literal-Shell Evidence (per D-449(a) / TD-VSDD-100)
+
+Gate 1 — current_step D-542 marker present with trajectory-tail →9→9→9→11 and all 5 BC-5.39.006 PCs (TD-VSDD-100: read production STATE.md, no synthetic echo):
+
+```bash
+$ grep "^current_step:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/STATE.md
+current_step: "D-542 STORY-DECOMPOSITION FOR ISSUE-170 FACTORY LOCK 2026-06-10 — 3 stories authored under epic E-17 (Factory State Durability and Concurrency): S-17.01 (factory_lock schema+CAS; 5pts; BC-5.40.001; wave 1; SS-05; depends_on []; acyclic); S-17.02 (verify-factory-lock WASM guard; 8pts; BC-4.13.001; wave 2; SS-04; depends_on [S-17.01]); S-17.03 (/factory-lock+/factory-unlock+factory-health; 8pts; BC-6.23.001; wave 3; SS-06; depends_on [S-17.01, S-17.02]); 21pts/39ACs/acyclic; STORY-INDEX v3.84→v3.85 (total pts 321+→342+; count 100→103); 4-index: BC-INDEX v2.66 UNCHANGED VP-INDEX v2.06 UNCHANGED STORY-INDEX v3.84→v3.85 ARCH-INDEX v2.19 UNCHANGED; trajectory-tail →9→9→9→11; maintain all 5 BC-5.39.006 v1.7 PCs per TD-VSDD-097-EXT; D-chain cite D-541 per D-419(b); parent-commit ba471c58 per D-419(b). SIZE BUDGET: (wc-l; see banner tracker)"
+```
+
+PASS — D-542 marker present; D-541 D-chain cite per D-419(b); parent-commit ba471c58 per D-419(b); trajectory-tail →9→9→9→11 LENGTH=4 SATISFIED (PC2/PC4); all 5 BC-5.39.006 v1.7 PCs present (PC1: D-542 marker; PC2: trajectory-tail →9→9→9→11; PC3: D-541 D-chain cite; PC4: LENGTH=4; PC5: parent-commit ba471c58; PC6: TD-VSDD-097-EXT cite).
+
+Gate 2 — STORY-INDEX version v3.85 confirmed:
+
+```bash
+$ grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/stories/STORY-INDEX.md | head -1
+version: "3.85"
+```
+
+PASS — STORY-INDEX version is v3.85.
+
+Gate 3 — 3 new S-17 story rows in STORY-INDEX body:
+
+```bash
+$ grep -c "| S-17\." /Users/zious/Documents/GITHUB/vsdd-factory/.factory/stories/STORY-INDEX.md
+3
+```
+
+PASS — exactly 3 S-17 story rows present in STORY-INDEX.
+
+Gate 4 — E-17 epic section present in STORY-INDEX:
+
+```bash
+$ grep -c "^## Epic E-17" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/stories/STORY-INDEX.md
+1
+```
+
+PASS — E-17 epic section present exactly once.
+
+### Dim-5 Chain
+
+D-542 single-commit burst. D-chain: D-541 → D-542. Parent-commit ba471c58 (D-541 sha-patch Active Branches update per D-419(b)).
+
+### Dim-6 Verification
+
+Literal-shell story + epic file count for E-17 burst:
+
+```bash
+$ ls /Users/zious/Documents/GITHUB/vsdd-factory/.factory/stories/S-17.0*.md /Users/zious/Documents/GITHUB/vsdd-factory/.factory/stories/epics/E-17*.md | wc -l
+       4
+```
+
+4 new files (E-17 epic + S-17.01 + S-17.02 + S-17.03). Dependency graph acyclic: S-17.01 (no deps) → S-17.02 (deps [S-17.01]) → S-17.03 (deps [S-17.01, S-17.02]). Topological order: S-17.01, S-17.02, S-17.03.
+
+```bash
+$ wc -l /Users/zious/Documents/GITHUB/vsdd-factory/.factory/STATE.md
+     415 /Users/zious/Documents/GITHUB/vsdd-factory/.factory/STATE.md
+```
+
+STATE.md: 415 lines (AT soft-target 415; margin 500-415=85 from hard cap). D-430(a) compaction: D-510+D-522+D-525+D-526 Decisions Log rows (4 rows) + D-532..D-535 banner tracker entries (4 entries) archived.
+
+### Dim-7 Attestation (Closes / Advances)
+
+**Codifications:** D-542 STORY-DECOMPOSITION; epic E-17 + S-17.01/02/03 authored draft by story-writer; STORY-INDEX v3.84→v3.85; D-542 row in decision-log.md SoT; D-430(a) compaction.
+
+**Closes:**
+- D-542 story-decomposition for issue #170 factory lock/lease (epic E-17 + 3 stories draft; 21pts/39ACs/acyclic)
+- Issue #170 story-decomposition gate (stories authored; test-writer Red Gate next)
+- STATE.md compaction: 4 Decisions Log rows + 4 banner entries archived; AT soft-target 415 lines
+
+**Advances:** D-chain D-541 → D-542; next-D = D-543; RECOMMENDED ACTIVE NEXT: test-writer Red Gate S-17.01 on feature/issue-170-factory-locklease (S-17.01 schema+CAS first; W1; BC-5.40.001).
+
+**Trajectory:** →9→9→9→11 (CARRIED — story-decomposition burst; no adversary pass)
+
+### Factory-artifacts Commits
+
+- (SHA to be recorded in D-542 sha-patch burst per D-447(c)+D-449(e))
+
 ## D-541 BC-AUTHORING ISSUE-170 3-BCS-AUTHORED (2026-06-10)
 
 ### Parent-commit

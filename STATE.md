@@ -5,14 +5,14 @@ version: "2.0"
 status: draft
 producer: state-manager
 timestamp: 2026-06-10T00:00:00Z
-phase: D-541-BC-AUTHORING-ISSUE-170-3-BCS-AUTHORED-2026-06-10
-last_amended: 2026-06-10 (v2.91) — D-541 BC-AUTHORING FOR ISSUE-170 FACTORY LOCK/LEASE: 3 BCs authored draft (BC-4.13.001 verify-factory-lock WASM guard 8PCs; BC-5.40.001 factory_lock schema+TTL+CAS 6PCs; BC-6.23.001 /factory-lock+/factory-unlock+factory-health 8PCs); CAP-031 registered capabilities.md v1.3; BC-INDEX v2.65→v2.66; SS-04 39→40 SS-05 656→657 SS-06 586→587 total_bcs 1955→1958; VP IDs TBD per TD-VSDD-063; 4-index BC bumped VP/STORY/ARCH UNCHANGED. [Prior: 2026-06-10 (v2.90) — D-540 ADR-025 ADOPTED FOR ISSUE-170 FACTORY LOCK/LEASE DESIGN: ADR-025 v1.2 ACCEPTED; 9 deliverables enumerated; ARCH-INDEX v2.18→v2.19; 4-index BC/VP/STORY UNCHANGED; human+research-agent verified. [Prior: 2026-06-10 (v2.89) — D-539 ISSUE-169+176 WORKTREE-IDENTITY COUPLE MERGED: PR #180 squash-merged 0f4793f1; CI 11/11 GREEN; 4-index ALL UNCHANGED; requires rc release; multi-family 3-CLEAN; LOCAL SHA 5ea02ecf; lesson L-issue-169-176-worktree-identity captured. [Prior: 2026-06-10 (v2.88) — D-538 SESSION-END DURABILITY BURST: §1-§12 full refresh; pr-description.md committed; D-430(a) compaction (D-527+D-528 archived).]]]
+phase: D-542-STORY-DECOMPOSITION-ISSUE-170-3-STORIES-E17-AUTHORED-2026-06-10
+last_amended: 2026-06-10 (v2.92) — D-542 STORY-DECOMPOSITION FOR ISSUE-170 FACTORY LOCK: epic E-17 + 3 stories S-17.01/S-17.02/S-17.03 authored (story-writer); STORY-INDEX v3.84→v3.85; total pts 321+→342+ (+21pts); story count 100→103; 4-index STORY-INDEX bumped VP/BC/ARCH UNCHANGED. [Prior: 2026-06-10 (v2.91) — D-541 BC-AUTHORING FOR ISSUE-170 FACTORY LOCK/LEASE: 3 BCs authored draft (BC-4.13.001 verify-factory-lock WASM guard 8PCs; BC-5.40.001 factory_lock schema+TTL+CAS 6PCs; BC-6.23.001 /factory-lock+/factory-unlock+factory-health 8PCs); CAP-031 registered capabilities.md v1.3; BC-INDEX v2.65→v2.66; SS-04 39→40 SS-05 656→657 SS-06 586→587 total_bcs 1955→1958; VP IDs TBD per TD-VSDD-063; 4-index BC bumped VP/STORY/ARCH UNCHANGED. [Prior: 2026-06-10 (v2.90) — D-540 ADR-025 ADOPTED FOR ISSUE-170 FACTORY LOCK/LEASE DESIGN: ADR-025 v1.2 ACCEPTED; 9 deliverables enumerated; ARCH-INDEX v2.18→v2.19; 4-index BC/VP/STORY UNCHANGED; human+research-agent verified. [Prior: 2026-06-10 (v2.89) — D-539 ISSUE-169+176 WORKTREE-IDENTITY COUPLE MERGED: PR #180 squash-merged 0f4793f1; CI 11/11 GREEN; 4-index ALL UNCHANGED; requires rc release; multi-family 3-CLEAN; LOCAL SHA 5ea02ecf; lesson L-issue-169-176-worktree-identity captured. [Prior: 2026-06-10 (v2.88) — D-538 SESSION-END DURABILITY BURST: §1-§12 full refresh; pr-description.md committed; D-430(a) compaction (D-527+D-528 archived).]]]
 inputs: []
 input-hash: "[live-state]"
 traces_to: prd.md
 project: vsdd-factory
 mode: brownfield
-current_step: "D-541 BC-AUTHORING FOR ISSUE-170 FACTORY LOCK/LEASE 2026-06-10 — 3 BCs authored draft (product-owner; ADR-025 v1.2 D-540 deliverables D1/D2/D3/D4/D5/D6/D7/D9): BC-4.13.001 (SS-04) verify-factory-lock WASM PreToolUse guard 8PCs+15ECs+10TVs; BC-5.40.001 (SS-05) factory_lock schema+TTL=45min+mid-burst-renewal+CAS-push 6PCs+9ECs; BC-6.23.001 (SS-06) /factory-lock+/factory-unlock+factory-health+factory-worktree-health 8PCs+10ECs+10TVs; CAP-031 registered capabilities.md v1.3; BC-INDEX v2.65→v2.66 (SS-04 39→40; SS-05 656→657; SS-06 586→587; total_bcs 1955→1958); VP IDs TBD per TD-VSDD-063 lagging-VP precedent; POLICY 8 propagation deferred to implementing-story authoring burst; 4-index: BC-INDEX v2.65→v2.66 VP-INDEX v2.06 UNCHANGED STORY-INDEX v3.84 UNCHANGED ARCH-INDEX v2.19 UNCHANGED; trajectory-tail →9→9→9→11; maintain all 5 BC-5.39.006 v1.7 PCs per TD-VSDD-097-EXT; D-chain cite D-540 per D-419(b); parent-commit c7277468 per D-419(b). SIZE BUDGET: (wc-l; see banner tracker)"
+current_step: "D-542 STORY-DECOMPOSITION FOR ISSUE-170 FACTORY LOCK 2026-06-10 — 3 stories authored under epic E-17 (Factory State Durability and Concurrency): S-17.01 (factory_lock schema+CAS; 5pts; BC-5.40.001; wave 1; SS-05; depends_on []; acyclic); S-17.02 (verify-factory-lock WASM guard; 8pts; BC-4.13.001; wave 2; SS-04; depends_on [S-17.01]); S-17.03 (/factory-lock+/factory-unlock+factory-health; 8pts; BC-6.23.001; wave 3; SS-06; depends_on [S-17.01, S-17.02]); 21pts/39ACs/acyclic; STORY-INDEX v3.84→v3.85 (total pts 321+→342+; count 100→103); 4-index: BC-INDEX v2.66 UNCHANGED VP-INDEX v2.06 UNCHANGED STORY-INDEX v3.84→v3.85 ARCH-INDEX v2.19 UNCHANGED; trajectory-tail →9→9→9→11; maintain all 5 BC-5.39.006 v1.7 PCs per TD-VSDD-097-EXT; D-chain cite D-541 per D-419(b); parent-commit ba471c58 per D-419(b). SIZE BUDGET: (wc-l; see banner tracker)"
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -40,16 +40,14 @@ dtu_services: []
   Line-growth tracker (D-532 onward; D-520..D-531 archived per D-430(a) 2026-06-10 compaction):
   Pre-D-520 tracker entries (D-504..D-519) preserved at: git show 688dd1c2:.factory/STATE.md.
   D-520..D-531 tracker entries (12 entries, all OVER soft-target) archived per D-430(a) 2026-06-10; preserved at: git show c62c2c03:.factory/STATE.md lines 36-51.
-  D-532-SESSION-END-DURABILITY-BURST-ZERO-CONTEXT-RESUME-READY-2026-06-08 379 lines (wc-l; D-430(a) compaction; margin 500-379=121 from hard cap; margin 415-379=36 UNDER soft-target; D-446(c) dual-margin form).
-  D-533-ISSUE-VALIDATION-SWEEP-BACKLOG-RECORDED-2026-06-09 400 lines (wc-l; margin 500-400=100 from hard cap; margin 415-400=15 UNDER soft-target; D-446(c) dual-margin form).
-  D-534-ISSUE-128-PR-178-IN-FLIGHT-2026-06-09 406 lines (wc-l; margin 500-406=94 from hard cap; margin 415-406=9 UNDER soft-target; D-446(c) dual-margin form).
-  D-535-ISSUE-128-PR-178-MERGED-2026-06-09 411 lines (wc-l; margin 500-411=89 from hard cap; margin 415-411=4 UNDER soft-target; D-446(c) dual-margin form).
-  D-536-ADR-024-ADOPTED-ISSUE-130-DESIGN-2026-06-09 416 lines (wc-l; margin 500-416=84 from hard cap; margin 415-416=OVER soft-target by 1; D-446(c) dual-margin form).
-  D-537-ISSUE-130-PR-179-MERGED-2026-06-10 421 lines (wc-l; margin 500-421=79 from hard cap; margin 415-421=OVER soft-target by 6; D-446(c) dual-margin form).
-  D-538-SESSION-END-DURABILITY-BURST-ZERO-CONTEXT-RESUME-READY-2026-06-10 408 lines (wc-l; D-430(a) compaction: D-527+D-528 Decisions Log rows + D-520..D-531 banner entries + 22 Phase Progress rows archived; §1-§12 checkpoint full refresh; margin 500-408=92 from hard cap; margin 415-408=7 UNDER soft-target; D-446(c) dual-margin form).
-  D-539-ISSUE-169-176-PR-180-MERGED-2026-06-10 401 lines (wc-l; D-430(a) compaction: D-529+D-530+D-531 Decisions Log rows archived; §1-§12 checkpoint full refresh; margin 500-401=99 from hard cap; margin 415-401=14 UNDER soft-target; D-446(c) dual-margin form).
-  D-540-ADR-025-ADOPTED-ISSUE-170-DESIGN-2026-06-10 409 lines (wc-l; ADR-025 v1.2 ACCEPTED; ARCH-INDEX v2.18→v2.19; §1-§3-§4-§5-§8-§9-§10-§11-§12 Session Resume refresh; margin 500-409=91 from hard cap; margin 415-409=6 UNDER soft-target; D-446(c) dual-margin form).
-  D-541-BC-AUTHORING-ISSUE-170-3-BCS-AUTHORED-2026-06-10 415 lines (wc-l; 3 BCs authored draft + CAP-031 + BC-INDEX v2.66; §1-§4-§5-§8-§9-§10-§11-§12 Session Resume refresh; margin 500-415=85 from hard cap; margin 415-415=AT soft-target; D-446(c) dual-margin form).
+  D-532..D-535 tracker entries (4 entries; all UNDER soft-target) archived per D-430(a) D-542 burst; preserved at: git show ba471c58:.factory/STATE.md lines 43-46.
+  D-536-ADR-024-ADOPTED-ISSUE-130-DESIGN-2026-06-09 416 lines (wc-l; +1 over soft-target; D-446(c)).
+  D-537-ISSUE-130-PR-179-MERGED-2026-06-10 421 lines (wc-l; +6 over soft-target; D-446(c)).
+  D-538-SESSION-END-DURABILITY-BURST-ZERO-CONTEXT-RESUME-READY-2026-06-10 408 lines (wc-l; D-430(a) D-527+D-528+D-520..D-531+22-PP-rows archived; §1-§12 refresh; 7 UNDER soft; D-446(c)).
+  D-539-ISSUE-169-176-PR-180-MERGED-2026-06-10 401 lines (wc-l; D-430(a) D-529+D-530+D-531 archived; 14 UNDER soft; D-446(c)).
+  D-540-ADR-025-ADOPTED-ISSUE-170-DESIGN-2026-06-10 409 lines (wc-l; ADR-025 v1.2; ARCH-INDEX v2.19; 6 UNDER soft; D-446(c)).
+  D-541-BC-AUTHORING-ISSUE-170-3-BCS-AUTHORED-2026-06-10 415 lines (wc-l; 3 BCs + CAP-031 + BC-INDEX v2.66; AT soft-target; D-446(c)).
+  D-542-STORY-DECOMPOSITION-ISSUE-170-3-STORIES-E17-AUTHORED-2026-06-10 415 lines (wc-l; epic E-17 + S-17.01/02/03; STORY-INDEX v3.85; D-430(a) compaction: D-510+D-522+D-525+D-526+D-532..D-535 archived; §1-§4-§5-§8-§9-§10-§11-§12 Session Resume refresh; margin 500-415=85 from hard cap; margin 415-415=AT soft-target; D-446(c) dual-margin form).
 -->
 
 # Pipeline State: vsdd-factory
@@ -65,8 +63,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-06-10 — D-541 BC-AUTHORING for issue #170: 3 BCs authored draft (BC-4.13.001+BC-5.40.001+BC-6.23.001); CAP-031 registered; BC-INDEX v2.65→v2.66; total_bcs 1955→1958. trajectory-tail →9→9→9→11. |
-| **Current Phase** | D-541 BC-AUTHORING FOR ISSUE-170 FACTORY LOCK/LEASE 2026-06-10 — 3 BCs authored draft per ADR-025 v1.2 D-540: BC-4.13.001 (verify-factory-lock WASM guard, 8PCs); BC-5.40.001 (factory_lock schema+TTL+CAS, 6PCs); BC-6.23.001 (/factory-lock+/factory-unlock+factory-health, 8PCs); CAP-031 registered; BC-INDEX v2.65→v2.66; total_bcs 1955→1958. Next: test-writer Red Gate for #170 OR rc release (#128+#130+#169+#176) OR story decomposition #170. |
+| **Last Updated** | 2026-06-10 — D-542 STORY-DECOMPOSITION for issue #170: epic E-17 + 3 stories S-17.01/02/03 authored; STORY-INDEX v3.84→v3.85; 21pts/39ACs/acyclic; trajectory-tail →9→9→9→11. |
+| **Current Phase** | D-542 STORY-DECOMPOSITION FOR ISSUE-170 FACTORY LOCK 2026-06-10 — epic E-17 (Factory State Durability and Concurrency) + 3 stories authored: S-17.01 (schema+CAS; 5pts; W1; BC-5.40.001), S-17.02 (WASM guard; 8pts; W2; BC-4.13.001), S-17.03 (lock skills+health; 8pts; W3; BC-6.23.001); 21pts/39ACs/acyclic; STORY-INDEX v3.84→v3.85. Next: test-writer Red Gate for #170 on feature/issue-170-factory-locklease. |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Phase Progress
@@ -89,6 +87,7 @@ dtu_services: []
 | D-537 ISSUE-130 PR-179 MERGED 2026-06-10 | **DELIVERED/MERGED** | PR #179 squash-merged 89fbe2d6; ADR-024 v1.2; ARCH-INDEX v2.18; 3-pass adversary CLEAN; requires rc release |
 | D-538 SESSION-END DURABILITY BURST 2026-06-10 | **COMPLETE** | §1-§12 full refresh; pr-description.md committed; D-430(a) compaction; zero-context resume ready; 4-index UNCHANGED |
 | D-539 ISSUE-169+176 PR-180 MERGED 2026-06-10 | **DELIVERED/MERGED** | PR #180 squash-merged 0f4793f1; issues #169+#176 AUTO-CLOSED; feature/issue-169-176 DELETED+VERIFIED; multi-family 3-CLEAN (Gemini 7-iter + Claude 3-pass); requires rc release; 4-index ALL UNCHANGED |
+| D-542 STORY-DECOMPOSITION ISSUE-170 E-17+3-STORIES 2026-06-10 | **COMPLETE** | epic E-17 + S-17.01/02/03 authored draft; 21pts/39ACs/acyclic; STORY-INDEX v3.84→v3.85; S-17.01 TDD Red Gate next |
 | D-541 BC-AUTHORING ISSUE-170 3-BCS-AUTHORED 2026-06-10 | **COMPLETE** | 3 BCs authored draft (BC-4.13.001+BC-5.40.001+BC-6.23.001); CAP-031 registered; BC-INDEX v2.65→v2.66; total_bcs 1955→1958; VP IDs TBD; POLICY 8 deferred to implementing-story |
 | D-540 ADR-025 ADOPTED ISSUE-170 DESIGN 2026-06-10 | **DESIGN-CODIFIED** | ADR-025 v1.2 ACCEPTED; 9 deliverables enumerated; ARCH-INDEX v2.18→v2.19; BC/VP/STORY-INDEX UNCHANGED; implementation-ready |
 
@@ -107,17 +106,17 @@ dtu_services: []
 | Subsystem | SS-NN | `specs/architecture/ARCH-INDEX.md` | 10 |
 | Behavioral Contract | BC-S.SS.NNN | `specs/behavioral-contracts/ss-NN/` | 1,958 |
 | Verification Property | VP-NNN | `specs/verification-properties/VP-INDEX.md` | 80 |
-| Story | S-N.MM | `stories/S-N.MM-<short>.md` | 102 file-resident + 15 stub IDs (STORY-INDEX v3.71) |
+| Story | S-N.MM | `stories/S-N.MM-<short>.md` | 105 file-resident + 15 stub IDs (STORY-INDEX v3.85) |
 | Epic | E-N | `stories/epics/E-N-<short>.md` | 17 |
 | ADR | ADR-NNN | `specs/architecture/decisions/ADR-NNN.md` | 24 |
 
 ## Story Status
 
-102 file-resident + 15 unauthored stub IDs = 117 stories registered.
+105 file-resident + 15 unauthored stub IDs = 120 stories registered.
 
 - **Merged (74):** Includes all prior + S-15.04 (PR #142 fdc7da16) + S-15.05 (PR #143 224fa184) + S-15.08 (PR #144 c62f952c) + S-15.07 (PR #145 6fe7de4c) + S-15.11 (PR #146 6e0d5407) + S-15.09 (PR #147 6e2d7805) + S-15.14 (PR #148 6d2ba5ad) + S-15.16-Part-B (PR #153 c1c81603) + S-15.10 (PR #154 a36ab711) + S-15.12 (PR #155 fba7e1cd) + S-15.15 (PR #158 24cc2ba6) + S-15.13 (PR #159 ced39c82) + S-15.17 (PR #164 9ed17b1d). Full ledger: `cycles/v1.0-brownfield-backfill/merged-stories-ledger.md`
 - **In-Flight (0):** —
-- **Draft (29 file-resident):** S-5.07; S-10.09; S-11.00; S-14.01..S-14.09 (E-14); S-15.02; S-15.03; S-16.01..S-16.02 (E-16); and others
+- **Draft (32 file-resident):** S-5.07; S-10.09; S-11.00; S-14.01..S-14.09 (E-14); S-15.02; S-15.03; S-16.01..S-16.02 (E-16); S-17.01 (BC-5.40.001; W1); S-17.02 (BC-4.13.001; W2); S-17.03 (BC-6.23.001; W3); and others
 - **Partial (2):** S-2.05 (hook-sdk-publish); S-3.04 (emit-event-host-function) — superseded by ADR-015
 - **Unauthored stub IDs (15):** S-9.01..S-9.07 (W-16); S-11.01..S-11.08 (E-11 W-17 Tier 3)
 - **Withdrawn (1):** S-9.30
@@ -128,7 +127,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | 2a191314 | rc.20 SHIPPED 2026-06-01; bot binary commit on top of --merge from develop; prior: 43afbfa7 (rc.19 2026-05-28) |
 | develop | 0f4793f1 | D-539 PR #180 SQUASH-MERGED 2026-06-10; issues #169+#176 worktree-identity DELIVERED; prior: 89fbe2d6 (D-537 PR #179 2026-06-10) |
-| factory-artifacts | `2b133509` | D-541 BC-AUTHORING 3-BCS-AUTHORED 2026-06-10 (prior: c7277468 D-540; prior-prior: ba6844c1 D-539) |
+| factory-artifacts | (post-D-542 SHA — see `git -C .factory log -1`) | D-542 STORY-DECOMPOSITION ISSUE-170 2026-06-10 (prior: `2b133509` D-541; prior-prior: `c7277468` D-540) |
 | v1.0.0-rc.20 (tag) | e9e38286 | SHIPPED 2026-06-01; annotated tag object; GitHub Release prerelease; marketplace PR drbothen/claude-mp #12 squash-merged 862e660d |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28; GitHub Release prerelease 2026-05-28T15:10:56Z; marketplace PR #11 squash-merged |
 | v1.0.0-rc.18 (tag) | 666d689f | SHIPPED 2026-05-13 PR #135 |
@@ -138,7 +137,7 @@ dtu_services: []
 | Cycle | Type | Status | Notes |
 |-------|------|--------|-------|
 | F-block-ai-attribution-message-file-arm | feature | F3 COMPLETE — F4 READY | F1+F2+F3 done 2026-05-12; 2 stories ready (S-16.01 5pts PostToolUse HEAD verify, S-16.02 3pts PreToolUse -F arm); E-16 under SS-07/SS-04; milestone v1.0.0-rc.17; BC-7.03.094/095/001, VP-080, ARCH SS-07 v1.3/SS-04 v1.4 registered |
-| v1.0-brownfield-backfill | brownfield | **D-540 ADR-025 ADOPTED ISSUE-170 DESIGN 2026-06-10** | S-15.03 PRIORITY-A COMPLETE D-508; E-10 CASCADE SEALED D-531 2026-06-01; rc.20 SHIPPED D-528; D-535 #128 MERGED; D-537 #130 MERGED 89fbe2d6; D-539 #169+#176 MERGED 0f4793f1; D-540 ADR-025 ACCEPTED design-codified; 4-index ARCH-INDEX v2.19; requires rc release (#128+#130+#169+#176). |
+| v1.0-brownfield-backfill | brownfield | **D-542 STORY-DECOMP ISSUE-170 3-STORIES E-17 2026-06-10** | S-15.03 PRIORITY-A COMPLETE D-508; rc.20 SHIPPED D-528; #128+#130+#169+#176 MERGED; D-540 ADR-025 ACCEPTED; D-541 3-BCS-AUTHORED; D-542 E-17+S-17.01/02/03 authored draft; STORY-INDEX v3.85; requires rc release (#128+#130+#169+#176). |
 | v1.0-feature-engine-discipline-pass-1 | feature | **PAUSED** | F5 pass-75 adversary complete D-510 2026-05-27; META-LEVEL-30 CANDIDATE-CONFIRMED; trajectory →9→9→9→11 (tick-up from 35-consecutive 9s; 14-day pause cost); 4 structural ACCEPTED-AT-FLOOR per D-386 Option C extension; S-15.17 anchors HIGH-002 cure; L-EDP1-067 captured; BC-INDEX v2.53; STORY-INDEX v3.71. Full-cycle trajectory (75 values ending): →9→9→9→9→11. |
 | v1.0-feature-plugin-async-semantics-pass-1 | feature | CLOSED | All PRs merged; rc.14 shipped |
 
@@ -150,6 +149,7 @@ dtu_services: []
 
 | ID | Decision | Phase | Date |
 |----|----------|-------|------|
+| D-542 | STORY-DECOMPOSITION FOR ISSUE-170 FACTORY LOCK 2026-06-10 — epic E-17 (Factory State Durability and Concurrency) + 3 stories: S-17.01 (factory_lock schema+CAS; 5pts; BC-5.40.001; W1; SS-05; acyclic), S-17.02 (verify-factory-lock WASM guard; 8pts; BC-4.13.001; W2; SS-04; deps [S-17.01]), S-17.03 (/factory-lock+/factory-unlock+factory-health; 8pts; BC-6.23.001; W3; SS-06; deps [S-17.01, S-17.02]); 21pts/39ACs; STORY-INDEX v3.84→v3.85; D-chain cite D-541; parent-commit ba471c58. | epic E-17 + 3 stories S-17.01/02/03 (21pts; acyclic); STORY-INDEX v3.84→v3.85 | story-decomposition | 2026-06-10 |
 | D-541 | BC-AUTHORING FOR ISSUE-170 FACTORY LOCK/LEASE 2026-06-10 — 3 BCs authored draft per ADR-025 v1.2: BC-4.13.001 (verify-factory-lock WASM guard, SS-04, 8PCs, 15ECs, 10TVs); BC-5.40.001 (factory_lock schema+TTL+CAS, SS-05, 6PCs, 9ECs); BC-6.23.001 (/factory-lock+/factory-unlock+factory-health, SS-06, 8PCs, 10ECs, 10TVs); CAP-031 registered capabilities.md v1.3; BC-INDEX v2.65→v2.66; SS-04 39→40 SS-05 656→657 SS-06 586→587 total_bcs 1955→1958; VP IDs TBD (TD-VSDD-063); POLICY 8 propagation deferred to implementing-story; 4-index BC bumped VP/STORY/ARCH UNCHANGED; D-chain cite D-540; parent-commit c7277468. | bc-authoring | 2026-06-10 |
 | D-540 | ADR-025 ADOPTED FOR ISSUE-170 FACTORY LOCK/LEASE DESIGN 2026-06-10 — ADR-025 v1.2 ACCEPTED: local native-WASM PreToolUse guard verify-factory-lock as primary enforcement (frontmatter factory_lock block, git-email identity, block-mutations/allow-reads, TTL 45min mid-burst-renewed + audited force-unlock break-glass, fail-open-on-crash); --force-with-lease push-CAS complementary mitigation; git-ref refs/factory-lock CAS deferred; NO dispatcher-binary/host-ABI change (host_abi=1 unchanged); research-verified APPROVE-WITH-FIXES all 5 fixes landed; 9 deliverables enumerated; ARCH-INDEX v2.18→v2.19; 4-index BC/VP/STORY UNCHANGED; human-approved for implementation; D-chain cite D-539 per D-419(b); parent-commit ba6844c1 per D-419(b). | adr-adoption | 2026-06-10 |
 | D-539 | ISSUE-169+176 WORKTREE-IDENTITY COUPLE MERGED 2026-06-10 — PR #180 "fix(adversary): worktree-identity engine fix — eliminate phantom findings (#169 + #176)" SQUASH-MERGED 0f4793f1; CI run 27309724791 11/11 GREEN (cargo-host ubuntu+macos, 5× build-dispatcher, validate, SAST, platforms-drift); issues #169+#176 AUTO-CLOSED; feature/issue-169-176-worktree-identity DELETED+VERIFIED (git ls-remote --exit-code exit 2); develop 89fbe2d6→0f4793f1; POL-14 no-op; 4-index ALL UNCHANGED (BC-INDEX v2.65, VP-INDEX v2.06, STORY-INDEX v3.84, ARCH-INDEX v2.18); requires rc release for operator cache (agents/adversary.md + skills/adversarial-review/SKILL.md + skills/deliver-story/steps/shared-context+step-d5-adversary-convergence + NEW bin/resolve-worktree-identity.sh + 2 NEW bats test files); multi-family 3-CLEAN at LOCAL SHA 5ea02ecf (Gemini cross-family 7-iter ~20 defects + Claude canonical 3-pass CRITICAL CWD-relative repo-root bug caught); lesson L-issue-169-176-worktree-identity codified; D-538 checkpoint archived to session-checkpoints.md; D-chain cite D-538 per D-419(b); parent-commit 9eb53aab per D-419(b). | issue-169-176-merge-closure | 2026-06-10 |
@@ -162,12 +162,9 @@ dtu_services: []
 | D-532 | SESSION-END DURABILITY BURST 2026-06-08 — D-430(a) compaction; §1-§12 full refresh; 2 follow-up candidates; 4-index UNCHANGED. See decision-log.md SoT. | session-end-durability | 2026-06-08 |
 | D-529+D-530+D-531 archived | **COMPACTED 2026-06-10 per D-430(a)** | D-529 POST-RC.20 MAINT SWEEP COMPLETE 2026-06-01; D-530 E-10 PASS-16 COMPLETE 2026-06-01 (verdict LOW; F-PASS16-002 FIXED PR #168 82163b7f); D-531 E-10 CASCADE SEALED 2026-06-01 (asymptotic-acceptance per D-471+D-386 Option C; S-7.02 SATISFIED). Full rows in decision-log.md SoT. |
 | D-527+D-528 archived | **COMPACTED 2026-06-10 per D-430(a)** | D-527 SESSION-END DURABILITY BURST 2026-05-31; D-528 v1.0.0-rc.20 SHIPPED 2026-06-01 (PR #166 --merge e00ab1ab; tag e9e38286; main 2a191314; marketplace #12; plugin 52→53). Full rows in decision-log.md SoT. |
-| D-526 | S-15.17 SHIPPED 2026-05-31 — PR #164 squash-merged at 9ed17b1d; BC-5.39.009 POL-14 draft→active; BC-INDEX v2.64→v2.65; STORY-INDEX v3.83→v3.84; develop HEAD 9ed17b1d. See decision-log.md SoT. | S-15.17 post-merge ship record | 2026-05-31 |
-| D-525 | S-15.17 BC-5.39.009 UN-SEAL + ADR-023 CYCLE-CONDITIONAL SITE MODEL ADOPTED 2026-05-30 — BC-5.39.009 v1.8→v1.9 cycle-conditional; ADR-023 registered; STORY-INDEX v3.82→v3.83; BC-INDEX v2.63→v2.64; ARCH-INDEX v2.15→v2.16. See decision-log.md SoT. | ADR-023 cycle-conditional site model | 2026-05-30 |
-| D-522 | S-15.17 SPEC CASCADE SEALED 2026-05-29 — 9-pass trajectory SEALED at floor [9,11] HIGH per D-386 Option C + D-477 precedent; BC-5.39.009 v1.8 + S-15.17 v1.9 SEALED; BC-INDEX v2.63; STORY-INDEX v3.81. See decision-log.md SoT. | S-15.17 SPEC CASCADE SEAL asymptotic-acceptance | 2026-05-29 |
-| D-510 | F5 PASS-75 FIX-BURST + META-LEVEL-30 CANDIDATE-CONFIRMED 2026-05-27 — 11 findings (1C+5H+3M+2L); trajectory →9→9→9→11; 3 META-30 routes confirmed; BC-INDEX v2.53; STORY-INDEX v3.71; L-EDP1-067. See decision-log.md SoT. | F5 pass-75 fix-burst | 2026-05-27 |
 | D-499..D-509 archived | **COMPACTED 2026-06-08 per D-430(a)** | 11 rows archived. Full rows: `git show 688dd1c2:.factory/STATE.md` lines 249-259. |
 | D-413..D-498 archived | **COMPACTED 2026-05-27 per D-430(a)** | 36 rows archived. Full content: decision-log.md (F5 + brownfield). Pre-compaction state: `git show 20cb8e1c:.factory/STATE.md`. |
+| D-510+D-522+D-525+D-526 archived | **COMPACTED 2026-06-10 per D-430(a) D-542 burst** | 4 rows archived to decision-log.md SoT (D-510 F5 pass-75; D-522 S-15.17 SEALED; D-525 ADR-023; D-526 S-15.17 SHIPPED). Full rows in decision-log.md SoT. |
 
 ## Skip Log
 
@@ -205,8 +202,7 @@ dtu_services: []
 - `cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` | `session-checkpoints.md` | `lessons.md`
 - `cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md` (adversary reviews at `S-12.03/`, `S-12.04/`, `S-12.05/` subdirs)
 
-
-## Session Resume Checkpoint (2026-06-10 — D-541 BC-AUTHORING COMPLETE; 3 BCs authored draft; BC-INDEX v2.66; stories next)
+## Session Resume Checkpoint (2026-06-10 — D-542 STORY-DECOMPOSITION COMPLETE; epic E-17 + S-17.01/02/03 authored draft; STORY-INDEX v3.85; test-writer Red Gate next)
 
 > **SELF-SUFFICIENT RESUME CONTEXT FOR ZERO-CONTEXT NEW SESSION ON A DIFFERENT MACHINE**
 > Read this section alone to resume the orchestrator after full CLEAR, new session, or new machine. All context needed is here.
@@ -214,7 +210,7 @@ dtu_services: []
 
 ### §1. Where We Are
 
-**THREE ISSUES DELIVERED THIS CYCLE. rc.20 SHIPPED (D-528). E-10 CASCADE SEALED (D-531). Issue-validation sweep COMPLETE (D-533). D-535 PR #178 #128 MERGED. D-537 PR #179 #130 MERGED. D-539 PR #180 #169+#176 MERGED. D-540 ADR-025 ADOPTED — issue #170 factory lock/lease DESIGN-CODIFIED. D-541 BC-AUTHORING COMPLETE — 3 BCs authored draft; BC-INDEX v2.66; CAP-031 registered. develop 0f4793f1. RC RELEASE PENDING for operator cache (#128+#130+#169+#176).**
+**THREE ISSUES DELIVERED THIS CYCLE. rc.20 SHIPPED (D-528). E-10 CASCADE SEALED (D-531). Issue-validation sweep COMPLETE (D-533). D-535 PR #178 #128 MERGED. D-537 PR #179 #130 MERGED. D-539 PR #180 #169+#176 MERGED. D-540 ADR-025 ADOPTED — issue #170 factory lock/lease DESIGN-CODIFIED. D-541 BC-AUTHORING COMPLETE — 3 BCs authored draft; BC-INDEX v2.66; CAP-031 registered. D-542 STORY-DECOMPOSITION COMPLETE — epic E-17 + S-17.01/02/03 authored draft; STORY-INDEX v3.85; 21pts/39ACs. develop 0f4793f1. RC RELEASE PENDING for operator cache (#128+#130+#169+#176).**
 
 - **D-528 (2026-06-01):** v1.0.0-rc.20 SHIPPED. Run 26738809372 all 6 jobs PASS. PR #166 --merge; tag e9e38286; main 2a191314. Marketplace #12. Plugin count 52→53. 4-index UNCHANGED.
 - **D-533 (2026-06-09):** ISSUE-VALIDATION SWEEP. 18 issues validated; 17 actionable. Research cached. 4-index UNCHANGED.
@@ -223,10 +219,11 @@ dtu_services: []
 - **D-538 (2026-06-10):** SESSION-END DURABILITY BURST COMPLETE. §1-§12 refresh. pr-description.md committed. D-430(a) compaction. Zero-context resume ready.
 - **D-539 (2026-06-10):** ISSUE-169+176 PR-180 MERGED. PR #180 SQUASH-MERGED 0f4793f1. CI run 27309724791 11/11 GREEN. issues #169+#176 AUTO-CLOSED. feature/issue-169-176-worktree-identity DELETED+VERIFIED (git ls-remote --exit-code exit 2). develop 89fbe2d6→0f4793f1. POL-14 no-op. 4-index ALL UNCHANGED. Requires rc release for operator cache. Multi-family 3-CLEAN at LOCAL SHA 5ea02ecf. Lesson L-issue-169-176-worktree-identity codified.
 - **D-540 (2026-06-10):** ADR-025 ADOPTED FOR ISSUE-170 FACTORY LOCK/LEASE DESIGN. ADR-025 v1.2 ACCEPTED. verify-factory-lock WASM guard; factory_lock frontmatter; TTL 45min mid-burst renewal; fetch-then-force-with-lease CAS (CWE-367 closed); fail-open on crash; 9 deliverables enumerated. ARCH-INDEX v2.18→v2.19. 4-index BC/VP/STORY UNCHANGED. Human-approved. Implementation-ready.
+- **D-542 (2026-06-10):** STORY-DECOMPOSITION FOR ISSUE-170 COMPLETE. Epic E-17 (Factory State Durability and Concurrency) + 3 stories authored draft: S-17.01 (factory_lock schema+CAS; 5pts; BC-5.40.001; W1), S-17.02 (verify-factory-lock WASM guard; 8pts; BC-4.13.001; W2; deps [S-17.01]), S-17.03 (/factory-lock+/factory-unlock+factory-health; 8pts; BC-6.23.001; W3; deps [S-17.01, S-17.02]). 21pts/39ACs/acyclic. STORY-INDEX v3.84→v3.85 (total pts 321+→342+; count 100→103). 4-index: STORY-INDEX v3.85; BC/VP/ARCH UNCHANGED.
 - **D-541 (2026-06-10):** BC-AUTHORING FOR ISSUE-170 COMPLETE. 3 BCs authored draft per ADR-025 v1.2: BC-4.13.001 (verify-factory-lock WASM guard; 8PCs), BC-5.40.001 (factory_lock schema+TTL+CAS; 6PCs), BC-6.23.001 (/factory-lock+/factory-unlock+factory-health; 8PCs). CAP-031 registered capabilities.md v1.3. BC-INDEX v2.65→v2.66. total_bcs 1955→1958. VP IDs TBD (TD-VSDD-063). POLICY 8 propagation deferred to implementing-story.
 - **develop HEAD:** `0f4793f1`. **main HEAD:** `2a191314` (rc.20 bot binary commit 2026-06-01).
-- **D-range:** D-001..D-541.
-- **4-index (post-D-541):** BC-INDEX v2.66, VP-INDEX v2.06, STORY-INDEX v3.84, ARCH-INDEX v2.19 (BC-INDEX v2.65→v2.66 this burst; VP/STORY/ARCH UNCHANGED).
+- **D-range:** D-001..D-542.
+- **4-index (post-D-542):** BC-INDEX v2.66, VP-INDEX v2.06, STORY-INDEX v3.85, ARCH-INDEX v2.19 (STORY-INDEX v3.84→v3.85 this burst; BC/VP/ARCH UNCHANGED).
 - **BC content:** BC-5.39.005 v1.3 ACTIVE + BC-5.39.006 v1.7 ACTIVE + BC-5.39.007 v1.6 ACTIVE + BC-5.39.008 v1.5 ACTIVE + BC-5.39.009 v1.9 ACTIVE + BC-7.04.051 v1.1 ACTIVE + BC-4.13.001 v1.0 DRAFT + BC-5.40.001 v1.0 DRAFT + BC-6.23.001 v1.0 DRAFT.
 - **policies.yaml v1.3.6:** SEALED — no further cures.
 
@@ -269,11 +266,13 @@ ALL of these are ACTIVE and MANDATORY on every dispatch:
 - **D-537 [process-gap] spec-drift routing obligation (D-539 carry):** When an implementer TDD fix changes behavior an accepted ADR specifies verbatim, the fix-burst MUST route an architect ADR amendment in the SAME burst per CLAUDE.md Architectural Authority §12 (spec wins). Codified in ADR-024 v1.2 Process note; L-issue-130-3pass-convergence lesson (b).
 - **D-539 multi-family adversary obligation:** For issues involving both prompt-contract discipline and shell-logic correctness, both a cross-family adversary pass AND a same-family Claude adversary pass are required before declaring convergence. Per L-issue-169-176-worktree-identity (a).
 - **D-540 carry:** ADR-025 v1.2 ACCEPTED. Issue #170 factory lock/lease design-codified. 9 deliverables enumerated (see D-540 in decision-log.md SoT). Implementation next: test-writer Red Gate on feature/issue-170-factory-locklease.
+- **D-542 carry:** epic E-17 + 3 stories (S-17.01/02/03) authored draft; STORY-INDEX v3.85; 21pts/39ACs/acyclic; test-writer Red Gate on feature/issue-170-factory-locklease next.
 - **D-541 carry:** 3 BCs authored draft (BC-4.13.001+BC-5.40.001+BC-6.23.001); BC-INDEX v2.66; VP IDs TBD; POLICY 8 deferred to implementing-story; stories next (test-writer Red Gate feature/issue-170-factory-locklease).
 
 ### §4. Tier-A Completed Log
 
 All S-15.03 PRIORITY-A items SHIPPED. Key entries (most recent first):
+- **D-542 (2026-06-10):** STORY-DECOMPOSITION FOR ISSUE-170 COMPLETE. Epic E-17 (Factory State Durability and Concurrency) + 3 stories: S-17.01/02/03 authored draft. 21pts/39ACs/acyclic. STORY-INDEX v3.85.
 - **D-541 (2026-06-10):** BC-AUTHORING FOR ISSUE-170 COMPLETE. BC-4.13.001+BC-5.40.001+BC-6.23.001 authored draft. CAP-031 registered. BC-INDEX v2.66. total_bcs 1958.
 - **D-540 (2026-06-10):** ADR-025 ADOPTED FOR ISSUE-170. ADR-025 v1.2 ACCEPTED. 9 deliverables enumerated. ARCH-INDEX v2.18→v2.19. Implementation-ready: test-writer Red Gate next.
 - **D-539 (2026-06-10):** ISSUE-169+176 PR-180 MERGED. PR #180 squash-merged 0f4793f1. Issues #169+#176 AUTO-CLOSED. feature/issue-169-176 DELETED+VERIFIED. Multi-family 3-CLEAN. Requires rc release.
@@ -288,13 +287,13 @@ All S-15.03 PRIORITY-A items SHIPPED. Key entries (most recent first):
 - **D-512 (2026-05-28):** RC.19 SHIPPED. run 26581752361. main 43afbfa7. marketplace PR #11.
 - **D-508 (2026-05-27):** S-15.13 SHIPPED + Wave 4 COMPLETE + 3M3c COMPLETE + S-15.03 PRIORITY-A COMPLETE.
 
-**Current Active:** D-540 COMPLETE. Issues #128, #130, #169, #176 all DELIVERED/MERGED. Issue #170 design-codified (D-540; ADR-025 v1.2; implementation-ready). Requires rc release for operator cache. Next = test-writer Red Gate #170 OR rc release OR #129 canonical-principle.
+**Current Active:** D-542 COMPLETE. Issues #128, #130, #169, #176 all DELIVERED/MERGED. Issue #170 design-codified + BCs-authored + stories-decomposed (D-540+D-541+D-542). Requires rc release for operator cache. Next = test-writer Red Gate #170 feature/issue-170-factory-locklease OR rc release OR #129 canonical-principle.
 
 Prior Tier-A (pre-session, all COMPLETE): TD #71/72/70/74 (PRs #138–141) + S-15.04/05/08/07/11/09/14 (PRs #142–148) + 3M3a D-497 + D-498/504/507 durability + D-499/500/501 3M3b/r/remove-uncertainty + D-502/503/505/506/508 Waves 1-4 + D-509 E-10 pass-15 + D-510 F5 pass-75 + D-511 banner remediation + D-523/525/529/530/536 prior milestones.
 
 ### §5. Cumulative Codifications
 - F5: D-379..D-454 (76 decisions) — `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md`.
-- Brownfield: D-001..D-541 — `cycles/v1.0-brownfield-backfill/decision-log.md`. Key: D-497 BC cascade CONVERGED; D-508 Wave 4 + S-15.03 PRIORITY-A COMPLETE; D-510 F5 pass-75 + META-LEVEL-30; D-512 rc.19 SHIPPED; D-526 S-15.17 SHIPPED PR #164 9ed17b1d; D-528 RC.20 SHIPPED 2026-06-01; D-531 E-10 CASCADE SEALED 2026-06-01; D-532 SESSION-END DURABILITY BURST 2026-06-08; D-533 ISSUE-VALIDATION SWEEP 2026-06-09 (18 issues; 17 actionable); D-535 ISSUE-128 PR-178 MERGED 2026-06-09; D-537 ISSUE-130 PR-179 MERGED 2026-06-10 (ADR-024 v1.2; ARCH-INDEX v2.18; requires rc release); D-538+D-539 SESSION-END+ISSUE-169+176 MERGED 2026-06-10; D-540 ADR-025 ADOPTED 2026-06-10 (9 deliverables; ARCH-INDEX v2.19); **D-541 BC-AUTHORING COMPLETE 2026-06-10 — 3 BCs authored draft (BC-4.13.001+BC-5.40.001+BC-6.23.001); CAP-031 registered; BC-INDEX v2.65→v2.66; total_bcs 1955→1958; VP IDs TBD; POLICY 8 deferred to implementing-story**.
+- Brownfield: D-001..D-542 — `cycles/v1.0-brownfield-backfill/decision-log.md`. Key: D-497 BC cascade CONVERGED; D-508 Wave 4 + S-15.03 PRIORITY-A COMPLETE; D-510 F5 pass-75 + META-LEVEL-30; D-512 rc.19 SHIPPED; D-526 S-15.17 SHIPPED PR #164 9ed17b1d; D-528 RC.20 SHIPPED 2026-06-01; D-531 E-10 CASCADE SEALED 2026-06-01; D-532 SESSION-END DURABILITY BURST 2026-06-08; D-533 ISSUE-VALIDATION SWEEP 2026-06-09 (18 issues; 17 actionable); D-535 ISSUE-128 PR-178 MERGED 2026-06-09; D-537 ISSUE-130 PR-179 MERGED 2026-06-10 (ADR-024 v1.2; ARCH-INDEX v2.18; requires rc release); D-538+D-539 SESSION-END+ISSUE-169+176 MERGED 2026-06-10; D-540 ADR-025 ADOPTED 2026-06-10 (9 deliverables; ARCH-INDEX v2.19); **D-541 BC-AUTHORING COMPLETE 2026-06-10 — 3 BCs authored draft (BC-4.13.001+BC-5.40.001+BC-6.23.001); CAP-031 registered; BC-INDEX v2.65→v2.66; total_bcs 1955→1958; VP IDs TBD; POLICY 8 deferred to implementing-story**; **D-542 STORY-DECOMPOSITION COMPLETE 2026-06-10 — epic E-17 + S-17.01/02/03 authored draft; STORY-INDEX v3.84→v3.85; 21pts/39ACs/acyclic**.
 
 ### §6. Cumulative Lessons
 - F5: L-EDP1-001..067 — `cycles/v1.0-feature-engine-discipline-pass-1/lessons.md`.
@@ -309,12 +308,12 @@ Prior Tier-A (pre-session, all COMPLETE): TD #71/72/70/74 (PRs #138–141) + S-1
 |-------|---------|-------|
 | BC-INDEX | v2.66 | D-541 3 BCs authored (BC-4.13.001+BC-5.40.001+BC-6.23.001); total_bcs 1955→1958; SS-04 39→40; SS-05 656→657; SS-06 586→587 |
 | VP-INDEX | v2.06 | UNCHANGED at D-539 (18 VPs pending architect per TD-VSDD-063) |
-| STORY-INDEX | v3.84 | D-526: S-15.17 draft→merged; merged_commit 9ed17b1d; UNCHANGED D-539 |
+| STORY-INDEX | v3.85 | D-542: epic E-17 + S-17.01/02/03 authored draft; total pts 321+→342+; count 100→103 |
 | ARCH-INDEX | v2.19 | D-540 ADR-025 v1.2 ACCEPTED; ARCH-INDEX v2.18→v2.19; ADR count 23→24 |
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** `2b133509` D-541 BC-AUTHORING 3-BCS-AUTHORED (prior: `c7277468` D-540; prior-prior: `ba6844c1` D-539)
+- **factory-artifacts HEAD:** (post-D-542 SHA — run `git -C .factory log -1 --format="%h %s"`) D-542 STORY-DECOMPOSITION (prior: `2b133509` D-541; prior-prior: `c7277468` D-540)
 - **develop HEAD:** `0f4793f1` (D-539 PR #180 squash-merge 2026-06-10; prior: `89fbe2d6` D-537 PR #179 2026-06-10)
 - **main HEAD:** `2a191314` (rc.20 bot binary commit 2026-06-01; prior: `43afbfa7` rc.19 2026-05-28)
 - **v1.0.0-rc.20 tag:** `e9e38286` (annotated tag object; GitHub Release prerelease 2026-06-01; marketplace PR #12 squash-merged 862e660d)
@@ -322,7 +321,7 @@ Prior Tier-A (pre-session, all COMPLETE): TD #71/72/70/74 (PRs #138–141) + S-1
 - D-526: PR #164 merge commit `9ed17b1d`; PR #165 merge commit `f34b7567`; PR #163 merge commit `766ab7bc`
 - D-530: PR #168 merge commit `82163b7f`
 - **BC-5.39.009:** `.factory/specs/behavioral-contracts/ss-05/BC-5.39.009.md` v1.9 ACTIVE (POL-14 promoted on PR #164 merge; BC-INDEX v2.65; 13 PCs; hooks-registry priority 158)
-- **S-15.17 story:** `.factory/stories/S-15.17-validate-trajectory-tail-cell-completeness.md` v1.11 (MERGED PR #164 9ed17b1d; STORY-INDEX v3.84)
+- **S-15.17 story:** `.factory/stories/S-15.17-validate-trajectory-tail-cell-completeness.md` v1.11 (MERGED PR #164 9ed17b1d; STORY-INDEX v3.85)
 - **policies.yaml:** `.factory/policies.yaml` (v1.3.6 — POLICY 5 v1.3.6 SEALED; no further cures)
 - D-535: PR #178 squash-merged `f6ce4b7c` 2026-06-09; feature/issue-128-verify-branch-deletion DELETED+VERIFIED
 - D-537: PR #179 squash-merged `89fbe2d6` 2026-06-10; feature/issue-130-dispatcher-log-shadow DELETED+VERIFIED; ADR-024 v1.2 amended
@@ -330,17 +329,18 @@ Prior Tier-A (pre-session, all COMPLETE): TD #71/72/70/74 (PRs #138–141) + S-1
 - **ADR-024 v1.2:** `.factory/specs/architecture/decisions/ADR-024.md` — ARCH-INDEX v2.18; Decision 3 bounded char-safe N=4096 + Decision 4 lexical-normalization guard + [process-gap] spec-drift routing Process note
 - **ADR-025 v1.2:** `.factory/specs/architecture/decisions/ADR-025-single-writer-factory-locklease-prevent-concurrent-session-races-on-factory-artifacts-orphan-branch.md` — ARCH-INDEX v2.19; verify-factory-lock WASM crate; factory_lock frontmatter; TTL 45min; CWE-367 CAS; 9 deliverables; D-540
 - Verify on resume: `git rev-parse --short origin/develop` → expect `0f4793f1`
+- **S-17.01..S-17.03 stories:** `.factory/stories/S-17.0[1-3]-*.md` (STORY-INDEX v3.85; draft; E-17; test-writer Red Gate next)
 
 ### §10. PR Status
 
-- **0 open source PRs; 3 issues delivered this cycle; issue #170 DESIGN-CODIFIED (D-540) + BC-AUTHORED (D-541); rc release PENDING for #128+#130+#169+#176 operator reach.**
+- **0 open source PRs; 3 issues delivered this cycle; issue #170 DESIGN-CODIFIED (D-540) + BC-AUTHORED (D-541) + STORY-DECOMPOSED (D-542); rc release PENDING for #128+#130+#169+#176 operator reach.**
 - **MERGED (D-539 issues #169+#176):** PR #180 feature/issue-169-176-worktree-identity `0f4793f1` 2026-06-10; branch deleted+verified; worktree-identity preflight + resolve-worktree-identity.sh + 28 bats tests; REQUIRES rc release for operator cache.
 - **MERGED (D-537 issue #130):** PR #179 feature/issue-130-dispatcher-log-shadow `89fbe2d6` 2026-06-10; branch deleted+verified; 7-level worktree-aware log-dir; 3-pass adversary CLEAN; ADR-024 v1.2; REQUIRES rc release for operator cache.
 - **MERGED (D-535 issue #128):** PR #178 feature/issue-128-verify-branch-deletion `f6ce4b7c` 2026-06-09; branch deleted+verified; plugin skill/agent file — ships in next rc release.
 - **MERGED (D-530 E-10 pass-16):** PR #168 ci.yml derived WASM-plugin-count assertion `82163b7f` 2026-06-01.
 - **MERGED (rc.20 bundle):** PR #166 rc.20 release `e00ab1ab`; PR #163 research-agent `766ab7bc`; PR #164 S-15.17 `9ed17b1d`; PR #165 de-flake `f34b7567`.
 - **Marketplace:** drbothen/claude-mp PR #11 (rc.19) + PR #12 (rc.20) both squash-merged.
-- **Next source PR:** test-writer Red Gate feature branch for #170 (D-541 BCs authored; ADR-025 v1.2 ACCEPTED; verify-factory-lock WASM crate); OR story decomposition #170; OR rc release (ships #128+#130+#169+#176 to operator cache — #130+#169+#176 require it; #128 also reaches operators); OR issue #129 canonical-principle. NOTE: #130+#169+#176 code+hooks require rc release before reaching operator-level cache.
+- **Next source PR:** test-writer Red Gate feature branch for #170 (D-542 stories authored; ADR-025 v1.2 ACCEPTED; BCs draft; verify-factory-lock WASM crate — S-17.01 schema+CAS first); OR rc release (ships #128+#130+#169+#176 to operator cache — #130+#169+#176 require it; #128 also reaches operators); OR issue #129 canonical-principle. NOTE: #130+#169+#176 code+hooks require rc release before reaching operator-level cache.
 
 ### §11. Post-CLEAR Resume Checklist (zero-context)
 
@@ -354,7 +354,7 @@ Prior Tier-A (pre-session, all COMPLETE): TD #71/72/70/74 (PRs #138–141) + S-1
 8. **F5 PAUSED** — trajectory →9→9→9→11. Do NOT resume F5 without explicit human direction.
 9. **RC.20 SHIPPED D-528 (2026-06-01):** run 26738809372 all 6 PASS; tag e9e38286; main 2a191314; marketplace #12; plugin 52→53; operator cache updated. NEXT RC RELEASE PENDING: #128 (plugin skill change) + #130 (crates+hooks) + #169+#176 (agents/skills/bin/bats) — all require rc.21+ for operator cache reach.
 10. **ALL dispatches carry these non-negotiables:** TD-VSDD-097-EXT (all 5 BC-5.39.006 PCs in current_step:) + TD-VSDD-099 (4 Dim blocks in burst-log) + TD-VSDD-100 (production artifact read, no synthetic echo) + POLICY 14 5-leg quintuple parity + verification_step 7 4-index gate + INV-019 cure (a)/(b)/(c) in changelog rows + adversary must grep origin/factory-artifacts (not stale local main) + D-449(a) literal-shell all Dim-2 gates (no pseudocode) + POLICY 8 v1.3 bidirectional AC↔PC parity + audit-block-exclusion + EC-mirror routing-rule + POLICY 5 v1.3.1 SDK-grounding stable-anchor mandate + POLICY 5 v1.3.4 literal-shell VERIFICATION GATE + POLICY 5 v1.3.5 historical-by-construction enumeration (5 forms only) + POLICY 5 v1.3.6 HEAD-reproducibility + structural-form-only + snapshot-rescue detection + D-537/D-539 [process-gap] spec-drift routing: implementer TDD fix changing ADR-specified behavior MUST route architect ADR amendment in same burst + D-539 multi-family adversary obligation: prompt-contract + shell-logic issues require cross-family AND same-family Claude adversary passes.
-11. **All caught up.** Next decision is D-542. #128 DELIVERED/MERGED D-535 2026-06-09. #130 DELIVERED/MERGED D-537 2026-06-10. #169+#176 DELIVERED/MERGED D-539 2026-06-10. D-540 ADR-025 ADOPTED. **D-541 BC-AUTHORING COMPLETE 2026-06-10 — 3 BCs authored draft (BC-4.13.001+BC-5.40.001+BC-6.23.001); BC-INDEX v2.66; total_bcs 1958; CAP-031 registered; VP IDs TBD; POLICY 8 deferred.** All PRs require rc release for operator-level cache. Options: (a) test-writer Red Gate for #170 (RECOMMENDED BC-COMPLETE NEXT); (b) story decomposition #170; (c) rc release to ship #128+#130+#169+#176 to operators; (d) #129 canonical-principle; F5 pass-76 (PAUSED, needs human); forward proposals (UNI-PLUG-001+SK-MCP-001).
+11. **All caught up.** Next decision is D-543. #128 DELIVERED/MERGED D-535 2026-06-09. #130 DELIVERED/MERGED D-537 2026-06-10. #169+#176 DELIVERED/MERGED D-539 2026-06-10. D-540 ADR-025 ADOPTED. D-541 BC-AUTHORING COMPLETE. **D-542 STORY-DECOMPOSITION COMPLETE 2026-06-10 — epic E-17 (Factory State Durability and Concurrency) + 3 stories: S-17.01 (schema+CAS; 5pts; BC-5.40.001; W1), S-17.02 (WASM guard; 8pts; BC-4.13.001; W2), S-17.03 (skills+health; 8pts; BC-6.23.001; W3); 21pts/39ACs/acyclic; STORY-INDEX v3.85.** All PRs require rc release for operator-level cache. Options: (a) test-writer Red Gate for #170 on feature/issue-170-factory-locklease (RECOMMENDED: S-17.01 first); (b) rc release to ship #128+#130+#169+#176 to operators; (c) #129 canonical-principle; F5 pass-76 (PAUSED, needs human); forward proposals (UNI-PLUG-001+SK-MCP-001).
 
 ### §12. Pending Work Items — Strict Engine-Discipline Ordering (refreshed 2026-06-10 post-D-539)
 
@@ -382,7 +382,7 @@ Prior Tier-A (pre-session, all COMPLETE): TD #71/72/70/74 (PRs #138–141) + S-1
 | **CR-DEFERRED** | **2 S-15.17 code-reviewer suggestion-level findings** | **deferred** | — | ACCEPTED-DEFERRED (see Drift Items S-15.17-CR-001 + S-15.17-CR-002). Advisory-arm only; no production reachability. |
 | **FLAKE-001** | **test_F_P2_001 timing flake de-flake** | **candidate** | human-authorize | darwin-x64 3761ms vs 3000ms; same class as TD #67/F-P3-008; event-observation rewrite candidate. D-532 capture. |
 | **COSMETIC-001** | **O-PASS16-002 stale header doc-comment** | **cosmetic** | on next spec-touch | validate-trajectory-tail-cell-completeness extract/check function headers stale. Cleanup on next S-15.17 spec-touch. D-532 capture. |
-| **#170-impl** | **Issue #170 factory lock/lease implementation** | **implementation** | D-541 BCs authored | ADR-025 v1.2 ACCEPTED; 3 BCs draft (BC-4.13.001+BC-5.40.001+BC-6.23.001); test-writer Red Gate on feature/issue-170-factory-locklease; 9 deliverables (verify-factory-lock WASM crate + /factory-lock + /factory-unlock + factory_lock schema + stolen event + TTL renewal + hooks-registry + --force-with-lease + bats tests) |
+| **#170-impl** | **Issue #170 factory lock/lease implementation** | **implementation** | D-542 stories authored | ADR-025 v1.2 ACCEPTED; 3 BCs draft (D-541); 3 stories draft (D-542: S-17.01 5pts W1, S-17.02 8pts W2, S-17.03 8pts W3); test-writer Red Gate S-17.01 on feature/issue-170-factory-locklease NEXT |
 | **5c** | **F5 pass-76** | **gated** | EXPLICIT human direction required | PAUSED per D-386 Option C. Pass-75 trajectory →9→9→9→11. Do NOT resume without explicit human direction. |
 | **6** | **UNI-PLUG-001 implementation** | **forward** | human-authorize | **PROPOSAL REVIEW-READY** |
 | **7** | **SK-MCP-001 implementation** | **forward** | (6) Tier 1 done | **PROPOSAL REVIEW-READY** |
@@ -396,7 +396,7 @@ Research cached at `.factory/research/issues/issue-<N>.md`; full triage at `.fac
 | Bug: PR-lifecycle | ~~#128 pr-manager branch-deletion verify~~ | **DELIVERED/MERGED — PR #178 squash-merged f6ce4b7c 2026-06-09** |
 | Bug: dispatcher | ~~#130 `.factory/.factory/` log shadow~~ | **DELIVERED/MERGED — PR #179 squash-merged 89fbe2d6 2026-06-10** (requires rc release for operator cache) |
 | Worktree-identity (fix together) | ~~#169 stale-spec sub-agents + #176 adv-review preflight~~ | **DELIVERED/MERGED — PR #180 squash-merged 0f4793f1 2026-06-10** (requires rc release for operator cache) |
-| State durability/concurrency (#170→#173→#171) | **#170 factory lock/lease** (D-540 DESIGN-CODIFIED; ADR-025 v1.2 ACCEPTED; implementation-ready) + #173 wave-checkpoint + #171 deferred-revalidate | VALID-NEW×3 (#170 design-done) |
+| State durability/concurrency (#170→#173→#171) | **#170 factory lock/lease** (D-540 DESIGN-CODIFIED + D-541 BCS-AUTHORED + D-542 STORIES-DECOMPOSED; ADR-025 v1.2 ACCEPTED; S-17.01/02/03 draft; test-writer next) + #173 wave-checkpoint + #171 deferred-revalidate | VALID-NEW×3 (#170 stories-ready) |
 | Runtime enforcement (#162 umbrella + #133/#177) | #162 orchestrator enforcement + #133 intra-phase adversary + #177 hollow-demo | VALID-NEW/PARTIAL |
 | Consistency/citation (ship together) | #151 drift checker + #131 URL/path coherence | VALID-PARTIAL/NEW |
 | Pre-Phase-3 gate | #150 uncertainty-removal/self-containment | VALID-PARTIAL |
@@ -406,10 +406,10 @@ Research cached at `.factory/research/issues/issue-<N>.md`; full triage at `.fac
 | Activate | #175 version-drift block hook | VALID-PARTIAL |
 | **ALREADY-DONE** | **#149 OTEL telemetry — recommend GitHub close** | ALREADY-DONE |
 
-**RECOMMENDED ACTIVE NEXT:** (a) **#170 test-writer Red Gate** (D-540 design-codified; ADR-025 v1.2 ACCEPTED; implementation-ready on feature/issue-170-factory-locklease); (b) **rc release** to ship #128+#130+#169+#176 to operator cache (#130+#169+#176 code+hooks+agents REQUIRE it; #128 plugin change also reaches operators); (c) **#129 canonical-principle** (VALID-NEW; ship-ready); (d) **#173 wave-checkpoint** (state-durability chain); F5 pass-76 (PAUSED; needs explicit human direction); UNI-PLUG-001/SK-MCP-001 REVIEW-READY.
+**RECOMMENDED ACTIVE NEXT:** (a) **#170 test-writer Red Gate S-17.01** (D-542 stories authored; ADR-025 v1.2 ACCEPTED; BCs draft; feature/issue-170-factory-locklease; S-17.01 schema+CAS first); (b) **rc release** to ship #128+#130+#169+#176 to operator cache (#130+#169+#176 code+hooks+agents REQUIRE it; #128 plugin change also reaches operators); (c) **#129 canonical-principle** (VALID-NEW; ship-ready); (d) **#173 wave-checkpoint** (state-durability chain next after #170); F5 pass-76 (PAUSED; needs explicit human direction); UNI-PLUG-001/SK-MCP-001 REVIEW-READY.
 
 **Track-independent:** E-9 W-16 Tier 2 + E-11 W-17 Tier 3 + verify-git-push.sh + S-10.08 + S-11.00.
 
 **[D-414(c) acknowledgment: Section 12 is a non-standard addition for forward-backlog durability.]**
 
-> Previous checkpoint (D-539 ISSUE-169+176 PR-180 MERGED 2026-06-10) archived to: `cycles/v1.0-brownfield-backfill/session-checkpoints.md`
+> Previous checkpoint (D-541 BC-AUTHORING COMPLETE 2026-06-10) archived to: `cycles/v1.0-brownfield-backfill/session-checkpoints.md`

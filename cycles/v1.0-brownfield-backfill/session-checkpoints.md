@@ -621,3 +621,20 @@ Key resume data:
 - **§12 RECOMMENDED ACTIVE NEXT:** (a) rc release to ship #128+#130 to operator cache (#130 code+hooks requires it); (b) #169+#176 worktree-identity couple (process-only; no release needed); (c) #129 canonical-principle; F5 pass-76 PAUSED needs human direction.
 
 **This checkpoint superseded by D-538 SESSION-END DURABILITY BURST 2026-06-10.**
+
+---
+
+## Archived: D-541 BC-AUTHORING COMPLETE 2026-06-10 (Superseded by D-542)
+
+> Archived when D-542 STORY-DECOMPOSITION burst replaced this checkpoint with updated state.
+
+**Status:** D-541 BC-AUTHORING FOR ISSUE-170 COMPLETE — 3 BCs authored draft (BC-4.13.001+BC-5.40.001+BC-6.23.001); CAP-031 registered; BC-INDEX v2.65→v2.66; total_bcs 1955→1958; VP IDs TBD (TD-VSDD-063); POLICY 8 deferred to implementing-story; stories next.
+
+Key anchors at D-541:
+- **4-index:** BC-INDEX v2.66, VP-INDEX v2.06, STORY-INDEX v3.84, ARCH-INDEX v2.19
+- **develop HEAD:** `0f4793f1`
+- **factory-artifacts HEAD at archive:** `2b133509` (D-541 sha-patch)
+- **D-range:** D-001..D-541
+- **Next:** Story decomposition for issue #170 (test-writer Red Gate on feature/issue-170-factory-locklease)
+
+**This checkpoint superseded by D-542 STORY-DECOMPOSITION 2026-06-10.**
