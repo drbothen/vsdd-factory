@@ -147,11 +147,9 @@ pub fn matches_factory_artifacts_push(command: &str) -> bool {
     // Check that "git", "push", "factory-artifacts" all appear in the command
     // in left-to-right order (no regex crate; Architecture Compliance Rule 4).
     if let Some(git_pos) = command.find(PUSH_PATTERN_GIT) {
-        if let Some(push_pos) = command[git_pos..].find(PUSH_PATTERN_PUSH) {
-            let push_abs = git_pos + push_pos;
-            if command[push_abs..].find(PUSH_PATTERN_BRANCH).is_some() {
-                return true;
-            }
+        let after_git = &command[git_pos..];
+        if let Some(push_pos) = after_git.find(PUSH_PATTERN_PUSH) {
+            return after_git[push_pos..].contains(PUSH_PATTERN_BRANCH);
         }
     }
     false
@@ -171,8 +169,7 @@ pub fn matches_factory_artifacts_push(command: &str) -> bool {
 pub fn parse_factory_lock(content: &str) -> Result<Option<LockState>, LockCheckError> {
     // Extract frontmatter region: between first and second `---\n`.
     // The file starts with `---\n`; we skip that delimiter and find the closing one.
-    let frontmatter = if content.starts_with("---\n") {
-        let after_open = &content[4..]; // skip leading `---\n`
+    let frontmatter = if let Some(after_open) = content.strip_prefix("---\n") {
         if let Some(close_pos) = after_open.find("\n---\n").or_else(|| {
             // Also handle `---\n` at end of file with no trailing newline after the block close
             if after_open.ends_with("\n---") {
@@ -543,6 +540,53 @@ where
 }
 
 // ---------------------------------------------------------------------------
+// Top-level entry point (wired to real host fns in main.rs)
+// ---------------------------------------------------------------------------
+
+/// Called from the WASI entry point in `main.rs`.
+///
+/// Wires the real vsdd_hook_sdk host functions to the injectable-callback
+/// surface of `guard_logic`.
+///
+/// host::exec_subprocess signature: `(cmd, args, stdin, timeout_ms, max_output_bytes)`.
+/// We call `git config user.email` with no stdin. Max output is 512 bytes
+/// (an email address is short; this prevents wasting WASM fuel on large output).
+pub fn on_pre_tool_use(payload: HookPayload) -> HookResult {
+    use vsdd_hook_sdk::host;
+
+    guard_logic(
+        payload,
+        GuardCallbacks {
+            read_file: |path, max_bytes, timeout_ms| {
+                match host::read_file(path, max_bytes, timeout_ms) {
+                    Ok(bytes) => Ok(bytes),
+                    Err(e) => Err(format!("{:?}", e)),
+                }
+            },
+            exec_subprocess: |argv| {
+                // argv is ["git", "config", "user.email"]
+                // host API: exec_subprocess(cmd, args, stdin, timeout_ms, max_output_bytes)
+                match argv.split_first() {
+                    Some((cmd, args)) => {
+                        match host::exec_subprocess(cmd, args, &[], 5000, 512) {
+                            Ok(result) => {
+                                let stdout = String::from_utf8_lossy(&result.stdout).into_owned();
+                                Ok((result.exit_code, stdout))
+                            }
+                            Err(e) => Err(format!("{:?}", e)),
+                        }
+                    }
+                    None => Err("exec_subprocess: empty argv".to_string()),
+                }
+            },
+            log_warn: |msg| {
+                host::log_warn(msg);
+            },
+        },
+    )
+}
+
+// ---------------------------------------------------------------------------
 // Unit tests — Red Gate (BC-4.13.001)
 //
 // All tests in this module exercise the production functions declared above via
@@ -634,6 +678,8 @@ mod tests {
     }
 
     /// STATE.md content with a malformed block — expires_at not ISO-8601 (EC-005).
+    /// Used by bats T-9 fixture builder; defined here for parity with other fixtures.
+    #[allow(dead_code)]
     fn state_md_malformed_expires_at() -> Vec<u8> {
         b"---\ndocument_type: state\nversion: \"0.0.1-test\"\nphase: test\nfactory_lock:\n  holder: \"other@example.com\"\n  locked_at: \"2026-06-10T14:00:00Z\"\n  expires_at: \"not-a-timestamp\"\n---\n\n# STATE\n"
             .to_vec()
@@ -662,6 +708,7 @@ mod tests {
     ///   - read_file returns `Ok(content)` immediately (success path)
     ///   - exec_subprocess returns `Ok((0, git_email))` (success path)
     ///   - log_warn captures messages into `warn_log`
+    #[allow(clippy::type_complexity)]
     fn make_callbacks_success(
         content: Vec<u8>,
         git_email: &str,
@@ -683,6 +730,7 @@ mod tests {
     }
 
     /// Build callbacks where read_file returns an error string.
+    #[allow(clippy::type_complexity)]
     fn make_callbacks_read_error(
         error_msg: &str,
         warn_log: Arc<Mutex<Vec<String>>>,
@@ -703,6 +751,7 @@ mod tests {
     }
 
     /// Build callbacks where exec_subprocess returns an error string.
+    #[allow(clippy::type_complexity)]
     fn make_callbacks_subprocess_error(
         content: Vec<u8>,
         error_msg: &str,
@@ -1070,7 +1119,7 @@ mod tests {
         // The BC-4.13.001 EC-002 semantics: lock is blocked only when now > expires_at.
         // When now == expires_at: now > expires_at is false → treat as expired → Continue.
         assert!(
-            !(now_dt > expires_at_dt),
+            now_dt <= expires_at_dt,
             "EC-002: now == expires_at must evaluate as NOT greater-than (lock expired). \
              The `now > expires_at` check must use strict greater-than semantics."
         );
@@ -1283,51 +1332,4 @@ mod tests {
             "Block message must contain '/factory-unlock --force'. Got: {msg}"
         );
     }
-}
-
-// ---------------------------------------------------------------------------
-// Top-level entry point (wired to real host fns in main.rs)
-// ---------------------------------------------------------------------------
-
-/// Called from the WASI entry point in `main.rs`.
-///
-/// Wires the real vsdd_hook_sdk host functions to the injectable-callback
-/// surface of `guard_logic`.
-///
-/// host::exec_subprocess signature: `(cmd, args, stdin, timeout_ms, max_output_bytes)`.
-/// We call `git config user.email` with no stdin. Max output is 512 bytes
-/// (an email address is short; this prevents wasting WASM fuel on large output).
-pub fn on_pre_tool_use(payload: HookPayload) -> HookResult {
-    use vsdd_hook_sdk::host;
-
-    guard_logic(
-        payload,
-        GuardCallbacks {
-            read_file: |path, max_bytes, timeout_ms| {
-                match host::read_file(path, max_bytes, timeout_ms) {
-                    Ok(bytes) => Ok(bytes),
-                    Err(e) => Err(format!("{:?}", e)),
-                }
-            },
-            exec_subprocess: |argv| {
-                // argv is ["git", "config", "user.email"]
-                // host API: exec_subprocess(cmd, args, stdin, timeout_ms, max_output_bytes)
-                match argv.split_first() {
-                    Some((cmd, args)) => {
-                        match host::exec_subprocess(cmd, args, &[], 5000, 512) {
-                            Ok(result) => {
-                                let stdout = String::from_utf8_lossy(&result.stdout).into_owned();
-                                Ok((result.exit_code, stdout))
-                            }
-                            Err(e) => Err(format!("{:?}", e)),
-                        }
-                    }
-                    None => Err("exec_subprocess: empty argv".to_string()),
-                }
-            },
-            log_warn: |msg| {
-                host::log_warn(msg);
-            },
-        },
-    )
 }
