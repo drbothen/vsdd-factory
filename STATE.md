@@ -127,7 +127,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | 2a191314 | rc.20 SHIPPED 2026-06-01; bot binary commit on top of --merge from develop; prior: 43afbfa7 (rc.19 2026-05-28) |
 | develop | 0f4793f1 | D-539 PR #180 SQUASH-MERGED 2026-06-10; issues #169+#176 worktree-identity DELIVERED; prior: 89fbe2d6 (D-537 PR #179 2026-06-10) |
-| factory-artifacts | (post-D-542 SHA — see `git -C .factory log -1`) | D-542 STORY-DECOMPOSITION ISSUE-170 2026-06-10 (prior: `2b133509` D-541; prior-prior: `c7277468` D-540) |
+| factory-artifacts | `ec0a317e` | D-542 STORY-DECOMPOSITION ISSUE-170 2026-06-10 (prior: `2b133509` D-541; prior-prior: `c7277468` D-540) |
 | v1.0.0-rc.20 (tag) | e9e38286 | SHIPPED 2026-06-01; annotated tag object; GitHub Release prerelease; marketplace PR drbothen/claude-mp #12 squash-merged 862e660d |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28; GitHub Release prerelease 2026-05-28T15:10:56Z; marketplace PR #11 squash-merged |
 | v1.0.0-rc.18 (tag) | 666d689f | SHIPPED 2026-05-13 PR #135 |
@@ -313,7 +313,7 @@ Prior Tier-A (pre-session, all COMPLETE): TD #71/72/70/74 (PRs #138–141) + S-1
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** (post-D-542 SHA — run `git -C .factory log -1 --format="%h %s"`) D-542 STORY-DECOMPOSITION (prior: `2b133509` D-541; prior-prior: `c7277468` D-540)
+- **factory-artifacts HEAD:** `ec0a317e` D-542 STORY-DECOMPOSITION ISSUE-170 2026-06-10 (prior: `2b133509` D-541; prior-prior: `c7277468` D-540)
 - **develop HEAD:** `0f4793f1` (D-539 PR #180 squash-merge 2026-06-10; prior: `89fbe2d6` D-537 PR #179 2026-06-10)
 - **main HEAD:** `2a191314` (rc.20 bot binary commit 2026-06-01; prior: `43afbfa7` rc.19 2026-05-28)
 - **v1.0.0-rc.20 tag:** `e9e38286` (annotated tag object; GitHub Release prerelease 2026-06-01; marketplace PR #12 squash-merged 862e660d)

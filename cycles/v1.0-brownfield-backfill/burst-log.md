@@ -118,7 +118,7 @@ STATE.md: 415 lines (AT soft-target 415; margin 500-415=85 from hard cap). D-430
 
 ### Factory-artifacts Commits
 
-- (SHA to be recorded in D-542 sha-patch burst per D-447(c)+D-449(e))
+- `ec0a317e` — state(D-542): STORY-DECOMP ISSUE-170 — epic E-17 + S-17.01/02/03 authored; STORY-INDEX v3.84→v3.85
 
 ## D-541 BC-AUTHORING ISSUE-170 3-BCS-AUTHORED (2026-06-10)
 
