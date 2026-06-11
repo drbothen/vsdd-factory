@@ -43,6 +43,36 @@
 set -euo pipefail
 
 # ---------------------------------------------------------------------------
+# Temp-file cleanup on EXIT.
+# ---------------------------------------------------------------------------
+_STATUS_TMPFILE=""
+# shellcheck disable=SC2329  # invoked indirectly via trap
+_cleanup_status_tmp() {
+  [[ -n "$_STATUS_TMPFILE" && -e "$_STATUS_TMPFILE" ]] && rm -f "$_STATUS_TMPFILE"
+  return 0
+}
+trap '_cleanup_status_tmp' EXIT
+
+# ---------------------------------------------------------------------------
+# CRLF normalization helper.
+# If the file contains CR bytes, write a CR-stripped copy to a temp file and
+# return the temp-file path on stdout.  If no CRs are present, echo the
+# original path unchanged (no-op on LF-only files).
+# Side-effect: sets _STATUS_TMPFILE so the EXIT trap can clean up.
+# ---------------------------------------------------------------------------
+_normalize_crlf_for_read() {
+  local file="$1"
+  # tr -cd '\r' strips everything except CR bytes; grep -q . returns 0 if any CRs found.
+  if tr -cd '\r' < "$file" | grep -q .; then
+    _STATUS_TMPFILE="$(mktemp "${file}.XXXXXX")"
+    tr -d '\r' < "$file" > "$_STATUS_TMPFILE"
+    printf '%s' "$_STATUS_TMPFILE"
+  else
+    printf '%s' "$file"
+  fi
+}
+
+# ---------------------------------------------------------------------------
 # Input validation
 # ---------------------------------------------------------------------------
 
@@ -67,6 +97,11 @@ if [[ ! -f "$STATE_MD" ]]; then
   printf 'factory-lock-status: STATE.md path not found: %s\n' "$STATE_MD" >&2
   exit 1
 fi
+
+# Normalize CRLF → LF before parsing (F-1 parity with factory-lock-write.sh):
+# CRLF-encoded STATE.md causes awk /^---$/ to fail (line is `---\r`).
+# Read through a CR-stripped temp file; original is never modified.
+STATE_MD="$(_normalize_crlf_for_read "$STATE_MD")"
 
 # ---------------------------------------------------------------------------
 # Parse factory_lock block from YAML frontmatter.

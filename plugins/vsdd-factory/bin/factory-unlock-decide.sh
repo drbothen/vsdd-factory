@@ -58,6 +58,35 @@
 set -euo pipefail
 
 # ---------------------------------------------------------------------------
+# Temp-file cleanup on EXIT.
+# ---------------------------------------------------------------------------
+_UNLOCK_TMPFILE=""
+# shellcheck disable=SC2329  # invoked indirectly via trap
+_cleanup_unlock_tmp() {
+  [[ -n "$_UNLOCK_TMPFILE" && -e "$_UNLOCK_TMPFILE" ]] && rm -f "$_UNLOCK_TMPFILE"
+  return 0
+}
+trap '_cleanup_unlock_tmp' EXIT
+
+# ---------------------------------------------------------------------------
+# CRLF normalization helper.
+# If the file contains CR bytes, write a CR-stripped copy to a temp file and
+# return the temp-file path on stdout.  If no CRs are present, echo the
+# original path unchanged (no-op on LF-only files).
+# Side-effect: sets _UNLOCK_TMPFILE so the EXIT trap can clean up.
+# ---------------------------------------------------------------------------
+_normalize_crlf_for_read() {
+  local file="$1"
+  if tr -cd '\r' < "$file" | grep -q .; then
+    _UNLOCK_TMPFILE="$(mktemp "${file}.XXXXXX")"
+    tr -d '\r' < "$file" > "$_UNLOCK_TMPFILE"
+    printf '%s' "$_UNLOCK_TMPFILE"
+  else
+    printf '%s' "$file"
+  fi
+}
+
+# ---------------------------------------------------------------------------
 # Input validation
 # ---------------------------------------------------------------------------
 
@@ -83,6 +112,11 @@ if [[ ! -f "$STATE_MD" ]]; then
   printf 'factory-unlock-decide: STATE.md path not found: %s\n' "$STATE_MD" >&2
   exit 1
 fi
+
+# Normalize CRLF → LF before parsing (F-1 parity with factory-lock-write.sh):
+# CRLF-encoded STATE.md causes awk /^---$/ to fail (line is `---\r`).
+# Read through a CR-stripped temp file; original is never modified.
+STATE_MD="$(_normalize_crlf_for_read "$STATE_MD")"
 
 if [[ -n "$FORCE_FLAG" && "$FORCE_FLAG" != "--force" ]]; then
   printf 'factory-unlock-decide: unknown flag: %s (expected --force or absent)\n' "$FORCE_FLAG" >&2
