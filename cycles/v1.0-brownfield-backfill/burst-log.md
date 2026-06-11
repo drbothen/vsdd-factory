@@ -7176,4 +7176,4 @@ STATE.md current_step confirms: D-549 SESSION-END-DURABILITY-BURST 2026-06-11; A
 
 ### Factory-artifacts Commits
 
-D-549 commit: `git -C .factory log -1 --format='%h %s'` (post-push)
+`1d6c67c1` state(D-549): SESSION-END DURABILITY BURST — ADR-025 v1.5 + S-17.04 v1.1 + ARCH-INDEX v2.22 + STORY-INDEX v3.94
