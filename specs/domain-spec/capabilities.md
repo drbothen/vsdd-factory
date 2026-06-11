@@ -201,10 +201,16 @@ The `bin/emit-event` CLI tool normalizes event emission from bash hooks, writing
 Subsystems: SS-07, SS-10. Outcome: a bash hook emits a `hook.block` event that appears in Grafana.
 Source: pass-2 §Event (logical); pass-8 §L-P0-004.
 
+**CAP-031 — Enforce single-writer cross-session exclusivity on factory-artifacts state**
+A cooperative advisory lock prevents two developers from concurrently mutating the `factory-artifacts` orphan branch. The `verify-factory-lock` WASM PreToolUse guard blocks mutating tools (Edit, Write, Agent dispatch, `git push` to `factory-artifacts`) when another developer holds an unexpired lock; reads always pass. Lock state lives in `STATE.md` frontmatter (`factory_lock.holder`, `locked_at`, `expires_at`). Lock acquisition uses fetch-then-`--force-with-lease` CAS push (closing the primary TOCTOU acquire-race, CWE-367). TTL is 45 minutes with mid-burst renewal; an expired or absent lock is treated as unlocked. Fail-open on guard crash preserves the guard as advisory/efficiency-class (Kleppmann §8); the CAS push is the independent safety net. Force-unlock (`/factory-unlock --force`) is audited via `factory.lock.stolen`.
+Subsystems: SS-04, SS-05, SS-06. Outcome: Developer A running `/factory-lock` blocks Developer B's Edit/Write/Agent dispatch until the lock expires or is released, with an actionable refusal message naming holder, expiry, and break-glass command.
+Source: ADR-025 v1.2 (issue #170); D-540.
+
 ## CHANGELOG
 
 | Version | Date | Change |
 |---------|------|--------|
 | v1.0 | 2026-04-25 | Initial authoring from domain spec crystallization (Phase 1.3). 28 capabilities (CAP-001–CAP-028). |
 | v1.1 | 2026-05-06 | D-314 F-1/F-2 fix. Authored CAP-029 (P0 — single-stream FileSink; ADR-015 D-15.1) and CAP-030 (P1 — OTel resource enrichment; ADR-015 D-15.2). Marked CAP-003 REWRITTEN per ADR-015 D-15.1 (original description preserved per POLICY 1 append-only). Marked CAP-023 and CAP-024 SUPERSEDED per ADR-015 D-15.1 (original descriptions preserved per POLICY 1 append-only). |
+| v1.3 | 2026-06-10 | D-540 / issue #170. Authored CAP-031 (P0 — single-writer cross-session factory lock/lease; ADR-025 v1.2). Spans SS-04/SS-05/SS-06. |
 | v1.2 | 2026-05-06 | D-318 F-1 fix: CAP-030 enumeration corrected to reference ADR-015 D-15.2 authoritatively. Original enumeration preserved as historical record per POLICY 1. Errata note appended to CAP-030 documenting divergence and providing the authoritative 15-field set (`service.name`, `service.namespace`, `service.instance.id`, `service.version`, `deployment.environment.name`, `host.name`, `host.id`, `os.type`, `process.pid`, `vcs.repository.url.full`, `vcs.repository.name`, `vcs.provider.name`, `vcs.owner.name`, `worktree.id`, `schema_url`). |

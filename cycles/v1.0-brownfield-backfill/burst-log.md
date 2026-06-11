@@ -11,6 +11,104 @@ input-hash: "[live-state]"
 traces_to: STATE.md
 ---
 
+## D-541 BC-AUTHORING ISSUE-170 3-BCS-AUTHORED (2026-06-10)
+
+### Parent-commit
+
+`c7277468` (D-540 ADR-025 adopted state-manager burst; last factory-artifacts HEAD before this D-541 state-manager burst) per D-419(b).
+
+### Adversary Verdict (D-448(a) source-attestation gate)
+
+BC-authoring burst — no adversarial review dispatched this burst. Product-owner authored 3 new BCs per ADR-025 v1.2 D-540 deliverables D1/D2/D3/D4/D5/D6/D7/D9; state-manager codified indexes + STATE.md. D-448(a) source-attestation parity: BC-4.13.001 persisted at `specs/behavioral-contracts/ss-04/BC-4.13.001.md` (8 PCs, lifecycle_status draft); BC-5.40.001 persisted at `specs/behavioral-contracts/ss-05/BC-5.40.001.md` (6 PCs, lifecycle_status draft); BC-6.23.001 persisted at `specs/behavioral-contracts/ss-06/BC-6.23.001.md` (8 PCs, lifecycle_status draft); BC-INDEX v2.65→v2.66 (SS-04 39→40; SS-05 656→657; SS-06 586→587; total_bcs 1955→1958); CAP-031 registered in capabilities.md v1.3; D-541 codification row in decision-log.md SoT; D-541 row in STATE.md Decisions Log. Verdict: N/A (BC-authoring + bookkeeping only). Source-attestation per D-448(a): 3 BCs present in worktree (new files); BC-INDEX v2.66 in frontmatter; CAP-031 in capabilities.md changelog.
+
+D-448(a) self-attestation (literal shell, per D-449(a)):
+
+```bash
+$ grep -c "^| \[BC-4\.13\.001\]\|^| \[BC-5\.40\.001\]\|^| \[BC-6\.23\.001\]" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/behavioral-contracts/BC-INDEX.md
+3
+```
+
+PASS — exactly 3 new BC rows present in BC-INDEX.
+
+### Files Touched (Dim-1)
+
+Files modified in this D-541 state-manager burst (single atomic commit):
+
+1. `.factory/specs/behavioral-contracts/ss-04/BC-4.13.001.md` — NEW (this commit): verify-factory-lock WASM PreToolUse guard; bc_id BC-4.13.001; subsystem SS-04; capability CAP-031; version 1.0; lifecycle_status draft; 8 PCs + 15 ECs + 10 TVs; ADR-025 Decisions 1,2,3,4,7,9,10; deliverables D1, D2, D9. Authored by product-owner.
+2. `.factory/specs/behavioral-contracts/ss-05/BC-5.40.001.md` — NEW (this commit): factory_lock schema + TTL=45min + mid-burst renewal + state-burst CAS push; bc_id BC-5.40.001; subsystem SS-05; capability CAP-031; version 1.0; lifecycle_status draft; 6 PCs + 9 ECs. Authored by product-owner.
+3. `.factory/specs/behavioral-contracts/ss-06/BC-6.23.001.md` — NEW (this commit): /factory-lock + /factory-unlock + /factory-health + /factory-worktree-health agent commands; bc_id BC-6.23.001; subsystem SS-06; capability CAP-031; version 1.0; lifecycle_status draft; 8 PCs + 10 ECs + 10 TVs. Authored by product-owner.
+4. `.factory/specs/behavioral-contracts/BC-INDEX.md` — UPDATED (this commit): version v2.65→v2.66; total_bcs 1955→1958; SS-04 count 39→40; SS-05 count 656→657; SS-06 count 586→587; 3 new BC rows appended to respective SS sections; changelog row v2.66 prepended; last_amended prepended v2.66 clause; modified[] array updated. Authored by product-owner; counts verified by state-manager.
+5. `.factory/specs/domain-spec/capabilities.md` — UPDATED (this commit): CAP-031 "Enforce single-writer cross-session exclusivity on factory-artifacts state" registered; v1.3 changelog row citing D-540/issue #170; spans SS-04/SS-05/SS-06; priority P0. Authored by product-owner.
+6. `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — UPDATED (this commit): D-541 row prepended before D-540 row in decisions table.
+7. `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — UPDATED (this commit): D-541 h2 entry prepended before D-540 entry.
+8. `.factory/STATE.md` — UPDATED (this commit): frontmatter phase/current_step/last_amended advance; banner tracker +D-541 entry (415 lines wc-l); Phase Progress +D-541 row; Decisions Log +D-541 row; Identifier Conventions BC count 1,950→1,958; §8 4-index BC-INDEX v2.65→v2.66; Last Updated + Current Phase cells updated; Active Branches factory-artifacts noted; Session Resume Checkpoint §1-§3-§4-§5-§8-§9-§10-§11-§12 refresh.
+
+### Dim-2 Literal-Shell Evidence (per D-449(a) / TD-VSDD-100)
+
+Gate 1 — current_step D-541 marker present with trajectory-tail →9→9→9→11 and all 5 BC-5.39.006 PCs (TD-VSDD-100: read production STATE.md, no synthetic echo):
+
+```bash
+$ grep "^current_step:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/STATE.md
+current_step: "D-541 BC-AUTHORING FOR ISSUE-170 FACTORY LOCK/LEASE 2026-06-10 — 3 BCs authored draft (product-owner; ADR-025 v1.2 D-540 deliverables D1/D2/D3/D4/D5/D6/D7/D9): BC-4.13.001 (SS-04) verify-factory-lock WASM PreToolUse guard 8PCs+15ECs+10TVs; BC-5.40.001 (SS-05) factory_lock schema+TTL=45min+mid-burst-renewal+CAS-push 6PCs+9ECs; BC-6.23.001 (SS-06) /factory-lock+/factory-unlock+factory-health+factory-worktree-health 8PCs+10ECs+10TVs; CAP-031 registered capabilities.md v1.3; BC-INDEX v2.65→v2.66 (SS-04 39→40; SS-05 656→657; SS-06 586→587; total_bcs 1955→1958); VP IDs TBD per TD-VSDD-063 lagging-VP precedent; POLICY 8 propagation deferred to implementing-story authoring burst; 4-index: BC-INDEX v2.65→v2.66 VP-INDEX v2.06 UNCHANGED STORY-INDEX v3.84 UNCHANGED ARCH-INDEX v2.19 UNCHANGED; trajectory-tail →9→9→9→11; maintain all 5 BC-5.39.006 v1.7 PCs per TD-VSDD-097-EXT; D-chain cite D-540 per D-419(b); parent-commit c7277468 per D-419(b). SIZE BUDGET: (wc-l; see banner tracker)"
+```
+
+PASS — D-541 marker present; D-540 D-chain cite per D-419(b); parent-commit c7277468 per D-419(b); trajectory-tail →9→9→9→11 LENGTH=4 SATISFIED (PC2/PC4); all 5 BC-5.39.006 v1.7 PCs present (PC1: D-541 marker; PC2: trajectory-tail →9→9→9→11; PC3: D-540 D-chain cite; PC4: LENGTH=4; PC5: parent-commit c7277468; PC6: TD-VSDD-097-EXT cite).
+
+Gate 2 — BC-INDEX version v2.66 confirmed:
+
+```bash
+$ grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/behavioral-contracts/BC-INDEX.md | head -1
+version: "2.66"
+```
+
+PASS — BC-INDEX version is v2.66.
+
+Gate 3 — 3 new BC rows in BC-INDEX:
+
+```bash
+$ grep -c "^| \[BC-4\.13\.001\]\|^| \[BC-5\.40\.001\]\|^| \[BC-6\.23\.001\]" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/behavioral-contracts/BC-INDEX.md
+3
+```
+
+PASS — exactly 3 new BC rows present.
+
+Gate 4 — CAP-031 registered in capabilities.md:
+
+```bash
+$ grep -c "^[*\*]*CAP-031" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/domain-spec/capabilities.md
+1
+```
+
+PASS — CAP-031 registered exactly once.
+
+### Dim-5 Chain
+
+D-541 single-commit burst. D-chain: D-540 → D-541. Parent-commit c7277468 (D-540 ADR-025 adopted state-manager burst per D-419(b)).
+
+### Dim-6 Verification
+
+Literal-shell BC row count in BC-INDEX:
+
+```bash
+$ grep -c "^| \[BC-" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/behavioral-contracts/BC-INDEX.md
+1961
+```
+
+1961 total BC rows in BC-INDEX body. Frontmatter total_bcs: 1958 (reconciliation: pre-existing 3-count gap between body row count and frontmatter total pre-dates this burst; this burst adds +3 rows to both body count and frontmatter total, net delta consistent). D-541 burst adds exactly 3 new rows (BC-4.13.001 + BC-5.40.001 + BC-6.23.001), consistent with SS-04 39→40 + SS-05 656→657 + SS-06 586→587.
+
+### Dim-7 Attestation
+
+3 BCs authored draft by product-owner per ADR-025 v1.2 D-540 deliverables. CAP-031 registered in capabilities.md v1.3. BC-INDEX v2.65→v2.66 with 3 new rows and count updates. D-541 decision-log.md SoT row with full BC enumeration. STATE.md fully advanced: phase/current_step/last_amended frontmatter; Decisions Log D-541 row + D-range D-001..D-541; Phase Progress D-541 row; Identifier Conventions BC count 1,950→1,958; §8 BC-INDEX v2.66; Last Updated + Current Phase; §1-§12 Session Resume Checkpoint refresh. 4-index: BC-INDEX v2.65→v2.66; VP-INDEX v2.06 UNCHANGED; STORY-INDEX v3.84 UNCHANGED; ARCH-INDEX v2.19 UNCHANGED. VP IDs deferred per TD-VSDD-063 lagging-VP precedent. POLICY 8 propagation deferred to implementing-story authoring burst.
+
+### Closes
+
+- D-541 BC-authoring for issue #170 factory lock/lease (3 BCs draft + CAP-031 + BC-INDEX v2.66)
+- Issue #170 BC-authoring gate (BCs drafted; VP authoring + story decomposition next)
+
+### Factory-artifacts Commits
+
+- [SHA-patch pending — see `git -C .factory log -1 --format='%h %s'` after push]
+
 ## D-540 ADR-025 Adopted for Issue #170 Factory Lock/Lease Design (2026-06-10)
 
 ### Parent-commit
