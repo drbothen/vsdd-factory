@@ -96,134 +96,236 @@ _setup_caller_dir() {
 
 # ---------------------------------------------------------------------------
 # test_BC_5_40_001_cas_push_rejected_on_concurrent_write
-# AC-005 / BC-5.40.001 PC5 — CAS push rejected on concurrent write
+# F-P1-008 / AC-005 / BC-5.40.001 PC5 — CAS push rejected on genuine concurrent write
+# (DE-TAUTOLOGIZED: uses real bare-repo+clone fixture, NOT an all-stub git shim)
 #
-# Setup:
-#   1. Build bare repo + clone; push initial factory-artifacts commit.
-#   2. Capture INIT_SHA = origin/factory-artifacts at clone's view.
-#   3. Simulate concurrent write: push an additional commit DIRECTLY to the
-#      bare repo (advancing the remote past INIT_SHA) without updating the clone.
-#   4. Now the clone's `origin/factory-artifacts` is stale (INIT_SHA) but the
-#      bare repo's tip is CONCURRENT_SHA.
-#   5. After the helper runs `git fetch` (which updates origin/factory-artifacts
-#      in the clone to CONCURRENT_SHA), the EXPECTED_SHA it computes will be
-#      CONCURRENT_SHA — but we need the push to fail.
+# The correct failure mechanism for --force-with-lease=<refname>:<sha>:
+#   The lease check passes when remote tip == <sha> AT PUSH TIME.
+#   The push is REJECTED with "(stale info)" when the remote has advanced
+#   past <sha> between the fetch and the push.
 #
-# Revised strategy using local commit in clone before fetch:
-#   1. Push initial commit to bare repo. Clone sees INIT_SHA.
-#   2. Make a LOCAL commit in the clone (NOT pushed) — this advances the clone's
-#      factory-artifacts tip past origin/factory-artifacts.
-#   3. Simulate concurrent write in the bare repo (advancing remote to CONCURRENT_SHA).
-#   4. When the helper runs `git fetch`, it updates origin/factory-artifacts to
-#      CONCURRENT_SHA, which is NOT an ancestor of the clone's local tip.
-#   5. `git push --force-with-lease=factory-artifacts:CONCURRENT_SHA` will be
-#      rejected because the local factory-artifacts != CONCURRENT_SHA's lineage.
+# Simulation strategy (race-injecting shim):
+#   1. Build a real bare repo + primary clone + racer clone.
+#   2. Push initial factory-artifacts commit; all parties start at INIT_SHA.
+#   3. Make a local commit in the primary clone (not yet pushed) — this gives
+#      the primary clone a factory-artifacts tip AHEAD of INIT_SHA.
+#   4. Install a git shim that: (a) performs REAL fetch (updating
+#      origin/factory-artifacts in primary clone to INIT_SHA); (b) after fetch,
+#      advances the bare repo by pushing a commit from the racer clone; then
+#      (c) passes control back to the real git for the push.
+#   5. When the helper executes:
+#        EXPECTED_SHA=$(git rev-parse origin/factory-artifacts)  →  INIT_SHA
+#        git push --force-with-lease=factory-artifacts:INIT_SHA ...
+#      At push time the remote is at RACER_SHA (not INIT_SHA) — the lease check
+#      fires → push rejected with "(stale info)" → CASPushRejected error emitted.
 #
-# Wait — the actual failure mechanism for --force-with-lease:
-#   `--force-with-lease=<refname>:<expect>` checks that the remote ref currently
-#   equals <expect>. After fetch, origin/factory-artifacts = CONCURRENT_SHA.
-#   The helper pushes `--force-with-lease=factory-artifacts:CONCURRENT_SHA`.
-#   The remote's factory-artifacts is CONCURRENT_SHA. The check passes (remote == expect).
-#   This means fetch+push would SUCCEED in this scenario.
+# Additional assertion: verify the push command used --force-with-lease=factory-artifacts:<sha>
+# (not a blind force) by capturing the exact git invocation in the shim.
 #
-# Correct simulation of rejection:
-#   The race window is: fetch sets EXPECTED_SHA; then remote advances AGAIN before
-#   the push arrives. We simulate this by:
-#     a. Clone has LOCAL_SHA as HEAD of factory-artifacts.
-#     b. Helper fetches → EXPECTED_SHA = INIT_SHA (bare repo still at INIT_SHA).
-#     c. Between fetch and push: another commit is pushed to bare repo (RACE_SHA).
-#     d. Push with --force-with-lease=factory-artifacts:INIT_SHA fails because
-#        remote is now at RACE_SHA, not INIT_SHA.
+# RED GATE: the current implementation DOES handle non-zero push exit by
+# emitting the correct CASPushRejected message. This test is RED because the
+# PREVIOUS stub-based version was tautological (the push stub always returned 1
+# regardless of EXPECTED_SHA, so the helper never had to actually form the
+# correct lease command). This real-fixture test verifies the ACTUAL push
+# command contains the correct `--force-with-lease=factory-artifacts:<sha>`
+# form — something the all-stub shim could not verify.
 #
-#   To achieve (c) without modifying the helper, we need to inject the race.
-#   Implementation: use a git wrapper script that succeeds for `fetch` (which
-#   updates origin/factory-artifacts to INIT_SHA in the clone) but then advances
-#   the bare repo, then the push fails because remote advanced past EXPECTED_SHA.
+# Specifically: the test asserts that the push argument log contains the
+# string `--force-with-lease=factory-artifacts:` followed by a real SHA.
+# The current implementation does form this correctly, meaning this specific
+# assertion will PASS. But the test also asserts the REAL rejection scenario
+# (not a synthetic exit-1), removing the tautology entirely.
 #
-#   Simpler and more reliable: use a stub `git` on PATH that:
-#     - Returns exit 0 for `fetch` calls (no-op)
-#     - Returns exit 1 for `push` calls (simulating --force-with-lease rejection)
-#   This directly tests the helper's error-handling on push failure, which is
-#   the exact behavioral contract (PC5): on non-zero push exit, helper must emit
-#   the CASPushRejected error and exit non-zero.
-#
-# This approach mirrors the stub-on-PATH pattern from resolve-worktree-identity.bats.
-#
-# RED GATE: stub helper exits 1 before executing any git commands — fails on
-# the "non-zero exit + correct error message" assertion (wrong exit reason).
+# Note: the test IS expected to pass once the helper is implemented correctly.
+# It is RED at this step only if the helper is a pure stub (which it is not here —
+# the helpers are real). Per the adversary finding, the original test was
+# tautological because a pure git stub can never prove the helper forms the
+# correct --force-with-lease argument. This rewrite proves that.
 # ---------------------------------------------------------------------------
 
 @test "test_BC_5_40_001_cas_push_rejected_on_concurrent_write" {
-  # Build a stub git directory on PATH.
-  # The stub:
-  #   - For `fetch`: exits 0 (fetch succeeds; no-op here because rev-parse
-  #     needs to resolve, but the stub does not update any real repo state —
-  #     we handle rev-parse separately below).
-  #   - For `push --force-with-lease`: exits 1 (concurrent write detected).
-  #   - For `rev-parse origin/factory-artifacts`: prints a fake SHA (so the
-  #     helper can capture EXPECTED_SHA without failing at step 2).
-  #   - All other git commands: delegate to real git.
+  _setup_git_fixture
+  _setup_caller_dir
 
+  # Create a racer clone to simulate the concurrent writer
+  RACER_REPO="$WORK/racer"
+  git clone "$BARE_REPO" "$RACER_REPO" >/dev/null 2>&1
+  git -C "$RACER_REPO" config user.email "racer@concurrent.test"
+  git -C "$RACER_REPO" config user.name "Racer"
+  git -C "$RACER_REPO" checkout factory-artifacts >/dev/null 2>&1
+
+  # Make a local commit in the primary clone (our work to push)
+  echo "primary-work" >> "$CLONE_REPO/STATE.md"
+  git -C "$CLONE_REPO" add STATE.md >/dev/null 2>&1
+  git -C "$CLONE_REPO" commit -m "primary work (not yet pushed)" >/dev/null 2>&1
+
+  # Install a race-injecting git shim:
+  #   - For fetch: runs the real fetch (updates origin/factory-artifacts in clone to INIT_SHA)
+  #     then injects the race by pushing from the racer clone before returning.
+  #   - For everything else (rev-parse, push): delegates to real git.
+  # The push command is also logged to a file so we can assert it used
+  # --force-with-lease=factory-artifacts:<sha>.
   STUB_BIN="$WORK/stub-bin"
   mkdir -p "$STUB_BIN"
+  PUSH_ARGS_LOG="$WORK/push-args.log"
 
-  cat > "$STUB_BIN/git" <<'STUB'
+  # Resolve the real git binary BEFORE writing the shim so we can hardcode it.
+  REAL_GIT_PATH="$(command -v git)"
+
+  cat > "$STUB_BIN/git" <<STUB
 #!/usr/bin/env bash
-# Stub git for test_BC_5_40_001_cas_push_rejected_on_concurrent_write
-# Arguments are passed as: git -C .factory <subcommand> [args...]
+# Race-injecting git shim for test_BC_5_40_001_cas_push_rejected_on_concurrent_write
+REAL_GIT="${REAL_GIT_PATH}"
 
-# Strip leading `-C <path>` flag pair so we can inspect the subcommand.
-args=("$@")
-i=0
-subcommand=""
-while [ $i -lt ${#args[@]} ]; do
-  arg="${args[$i]}"
-  if [ "$arg" = "-C" ]; then
-    i=$(( i + 1 ))  # skip the path argument
-  else
-    subcommand="$arg"
-    break
+# Parse subcommand (skipping leading -C <path> flag pairs)
+args=("\$@")
+i=0; subcommand=""
+while [ \$i -lt \${#args[@]} ]; do
+  arg="\${args[\$i]}"
+  if [ "\$arg" = "-C" ]; then i=\$(( i + 1 ))
+  else subcommand="\$arg"; break
   fi
-  i=$(( i + 1 ))
+  i=\$(( i + 1 ))
 done
 
-case "$subcommand" in
+case "\$subcommand" in
   fetch)
-    # Fetch succeeds (no-op for stub)
-    exit 0
-    ;;
-  rev-parse)
-    # Return a deterministic fake SHA for EXPECTED_SHA capture
-    printf 'aabbccddeeff00112233445566778899aabbccdd\n'
-    exit 0
+    # Step 1: run real fetch to update origin/factory-artifacts in the clone
+    "\$REAL_GIT" "\$@"
+    FETCH_STATUS=\$?
+    # Step 2: inject the race — push from racer to advance the bare remote
+    # Only inject once (idempotent via sentinel)
+    if [ ! -f "${WORK}/race-injected" ]; then
+      touch "${WORK}/race-injected"
+      echo "racer-concurrent-write" >> "${RACER_REPO}/STATE.md"
+      "\$REAL_GIT" -C "${RACER_REPO}" add STATE.md >/dev/null 2>&1
+      "\$REAL_GIT" -C "${RACER_REPO}" commit -m "racer concurrent write" >/dev/null 2>&1
+      "\$REAL_GIT" -C "${RACER_REPO}" push origin factory-artifacts >/dev/null 2>&1
+    fi
+    exit \$FETCH_STATUS
     ;;
   push)
-    # Simulate --force-with-lease rejection (concurrent write detected)
-    exit 1
+    # Log the full push invocation for later assertion
+    echo "\$@" >> "${PUSH_ARGS_LOG}"
+    # Delegate to real git — the real --force-with-lease check will fire
+    "\$REAL_GIT" "\$@"
     ;;
   *)
-    # Delegate everything else to real git
-    exec "$(command -v git)" "$@"
+    "\$REAL_GIT" "\$@"
     ;;
 esac
 STUB
   chmod +x "$STUB_BIN/git"
 
-  # Create a minimal caller directory (the helper does not need a real .factory/
-  # because git is fully stubbed)
+  # Run the helper with the race-injecting shim on PATH
+  run bash -c "export PATH='${STUB_BIN}:${PATH}'; cd '${CALLER_DIR}' && bash '${HELPER}'"
+
+  # Must exit non-zero (CAS push rejected by --force-with-lease stale-info check)
+  [ "$status" -ne 0 ]
+
+  # Must emit the exact CASPushRejected error message (AC-005 / BC-5.40.001 PC5)
+  [[ "$output" == *"state-burst CAS push failed — concurrent write detected."* ]]
+  [[ "$output" == *"Fetch origin/factory-artifacts and retry."* ]]
+
+  # The push command MUST have used --force-with-lease=factory-artifacts:<sha>
+  # (not a blind --force). Assert the push log contains the correct lease form.
+  [ -f "$PUSH_ARGS_LOG" ]
+  grep -q -- '--force-with-lease=factory-artifacts:' "$PUSH_ARGS_LOG"
+}
+
+# ---------------------------------------------------------------------------
+# test_BC_5_40_001_cas_push_stale_sha_after_fetch
+# F-P1-007 / EC-008 / BC-5.40.001 EC-008 — stale SHA after fetch aborts push
+#
+# When `git fetch origin factory-artifacts` SUCCEEDS but the subsequent
+# `git rev-parse origin/factory-artifacts` FAILS (ref pruned/absent after
+# fetch — e.g., the ref was deleted or the fetch left an inconsistent state),
+# the helper MUST:
+#   - Exit non-zero.
+#   - Emit a CASPushRejected-class error message referencing the stale SHA
+#     or fetch-parse failure (not merely the generic fetch-failure message).
+#   - NOT proceed to the push step (no push attempted with an invalid SHA).
+#
+# Failure mode: the current implementation uses `set -euo pipefail`.
+# When rev-parse exits 128, bash exits immediately with that status code but
+# emits NO error message (the pipeline fails silently).  EC-008 requires an
+# actionable CASPushRejected-class error so the developer knows to re-fetch.
+#
+# Test strategy: stub git such that fetch returns exit 0 (success) but
+# rev-parse returns exit 128 (ref absent). Track push via sentinel file.
+#
+# RED GATE: current impl exits 128 with only git's own error on stderr
+# ("fatal: unknown revision...") — does NOT emit the required CASPushRejected
+# stale-SHA message.  The assertion checking for that message will fail.
+# ---------------------------------------------------------------------------
+
+@test "test_BC_5_40_001_cas_push_stale_sha_after_fetch" {
+  STUB_BIN="$WORK/stub-bin"
+  mkdir -p "$STUB_BIN"
+
+  PUSH_SENTINEL="$WORK/push-not-attempted"
+
+  cat > "$STUB_BIN/git" <<STUB
+#!/usr/bin/env bash
+# Stub git for test_BC_5_40_001_cas_push_stale_sha_after_fetch
+# Parse subcommand (skip -C <path> flag pairs)
+args=("\$@")
+i=0; subcommand=""
+while [ \$i -lt \${#args[@]} ]; do
+  arg="\${args[\$i]}"
+  if [ "\$arg" = "-C" ]; then i=\$(( i + 1 ))
+  else subcommand="\$arg"; break
+  fi
+  i=\$(( i + 1 ))
+done
+
+case "\$subcommand" in
+  fetch)
+    # Fetch succeeds
+    exit 0
+    ;;
+  rev-parse)
+    # Simulate: ref absent / pruned after fetch (EC-008 condition)
+    printf 'fatal: ambiguous argument '"'"'origin/factory-artifacts'"'"': unknown revision or path\n' >&2
+    exit 128
+    ;;
+  push)
+    # Record that push was incorrectly attempted
+    touch "${WORK}/push-was-attempted"
+    exit 0
+    ;;
+  *)
+    "$(command -v git)" "\$@"
+    ;;
+esac
+STUB
+  chmod +x "$STUB_BIN/git"
+
   CALLER_DIR="$WORK/caller"
   mkdir -p "$CALLER_DIR/.factory"
 
-  # Run the helper with the stub git first on PATH
-  run bash -c "export PATH='$STUB_BIN:$PATH'; cd '$CALLER_DIR' && bash '$HELPER'"
+  run bash -c "export PATH='${STUB_BIN}:${PATH}'; cd '${CALLER_DIR}' && bash '${HELPER}'"
 
-  # Must exit non-zero (CAS push rejected)
+  # MUST exit non-zero
   [ "$status" -ne 0 ]
 
-  # Must emit the exact CASPushRejected error message (AC-005)
-  # Output captures both stdout and stderr via `run`
-  [[ "$output" == *"state-burst CAS push failed — concurrent write detected."* ]]
-  [[ "$output" == *"Fetch origin/factory-artifacts and retry."* ]]
+  # MUST emit a CASPushRejected-class error message FROM THE HELPER — not merely
+  # git's own "fatal: unknown revision" stderr.  The helper must diagnose the
+  # rev-parse failure and emit an actionable message so the developer knows to
+  # re-fetch.  The contract keyword is "CASPushRejected" or "stale" combined with
+  # "SHA" or "ref", produced by the helper itself (not by git).
+  #
+  # The current implementation uses `set -euo pipefail` and exits on the failing
+  # rev-parse command WITHOUT emitting any helper-level message — this assertion
+  # will fail because the output contains only git's native error text, not the
+  # required CASPushRejected-class message from the helper.
+  [[ "$output" == *"CASPushRejected"* ]] || \
+    [[ "$output" == *"stale-burst CAS"* ]] || \
+    [[ "$output" == *"stale SHA"* ]] || \
+    [[ "$output" == *"state-burst CAS push failed"* && "$output" == *"stale"* ]]
+
+  # MUST NOT have attempted the push (ref is invalid; pushing would use an empty SHA)
+  [ ! -f "$WORK/push-was-attempted" ]
 }
 
 # ---------------------------------------------------------------------------

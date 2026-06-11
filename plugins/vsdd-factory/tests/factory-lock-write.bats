@@ -384,3 +384,505 @@ teardown() {
   # The TTL constant MUST be exactly 2700 seconds — not 2699, not 2701
   [ "$delta" -eq 2700 ]
 }
+
+# ---------------------------------------------------------------------------
+# test_BC_5_40_001_expires_at_derived_from_captured_locked_at
+# F-P1-001 / AC-008 / BC-5.40.001 PC1 + Invariant 3 — expires_at MUST be derived
+# from the same captured epoch as locked_at (zero-tolerance, deterministic).
+#
+# The contract (BC-5.40.001 Invariant 3) requires:
+#   expires_at = locked_at + 2700s EXACTLY (not "approximately").
+#
+# The failure mode: if the implementation calls the clock TWICE — once for
+# locked_at and once for expires_at via _now_plus_seconds — a second boundary
+# crossing during acquire will produce delta = 2701 (or rarely 2699).
+# The correct implementation must capture ONE epoch and derive BOTH timestamps
+# from that single captured value.
+#
+# Test strategy: run acquire 60 times in rapid succession.  Across 60 invocations
+# of a two-clock implementation, at least one will cross a second boundary and
+# produce delta != 2700.  A single-clock implementation always produces delta
+# == 2700 regardless of boundary crossings.
+#
+# RED GATE: the current two-clock implementation will produce at least one
+# delta == 2701 across 60 iterations, causing this test to fail.
+# ---------------------------------------------------------------------------
+
+@test "test_BC_5_40_001_expires_at_derived_from_captured_locked_at" {
+  # The correct implementation MUST capture ONE epoch and derive BOTH locked_at and
+  # expires_at from that single captured value:
+  #   locked_at  = epoch_at_acquire (formatted as ISO-8601)
+  #   expires_at = epoch_at_acquire + 2700 (formatted as ISO-8601)
+  #
+  # The structural defect in the two-clock implementation:
+  #   locked_at  = _now_iso()           → reads clock at time T
+  #   expires_at = _now_plus_seconds()  → reads clock AGAIN at time T'
+  # When a second boundary crosses between T and T', delta = T' - T + 2700 = 2701 (or 2699).
+  #
+  # Test strategy: inject a `date` shim that returns the real timestamp for the
+  # FIRST call (locked_at) and returns a timestamp +1 second for the SECOND call
+  # (the _now_plus_seconds call).  A two-clock implementation will produce delta = 2701.
+  # A single-clock implementation captures the epoch ONCE before calling date at all,
+  # so the shim's extra second only affects the formatting — but because the correct
+  # implementation derives expires_at arithmetically from the captured epoch (not by
+  # calling `date` a second time for the base), the delta remains 2700.
+  #
+  # The shim tests the structural invariant, not the absolute timestamp value.
+  # This approach is deterministic: it always produces delta = 2701 on a two-clock
+  # implementation, regardless of system load or second-boundary timing.
+
+  local stub_bin="$BATS_TEST_TMPDIR/date-stub-bin"
+  mkdir -p "$stub_bin"
+
+  # Resolve the real date binary BEFORE writing the shim
+  local real_date_path
+  real_date_path="$(command -v date)"
+
+  # Call counter file — the shim increments it on each invocation
+  local call_counter="$BATS_TEST_TMPDIR/date-call-count"
+  echo "0" > "$call_counter"
+
+  cat > "$stub_bin/date" <<STUB
+#!/usr/bin/env bash
+# date shim for test_BC_5_40_001_expires_at_derived_from_captured_locked_at
+# On the SECOND call (the _now_plus_seconds call for expires_at), inject +1 extra
+# second to simulate a second-boundary crossing between the two date calls.
+REAL_DATE="${real_date_path}"
+CALL_COUNT_FILE="${call_counter}"
+
+count=\$(cat "\$CALL_COUNT_FILE")
+count=\$(( count + 1 ))
+echo "\$count" > "\$CALL_COUNT_FILE"
+
+if [ "\$count" -ge 2 ]; then
+  # Second or later call: inject an extra +1 second to simulate boundary crossing.
+  # For BSD date: -v+2700S becomes -v+2701S
+  # For GNU date: "+2700 seconds" becomes "+2701 seconds"
+  new_args=()
+  for arg in "\$@"; do
+    if [[ "\$arg" == *"+2700S"* ]]; then
+      new_args+=( "\${arg/+2700S/+2701S}" )
+    elif [[ "\$arg" == "+2700 seconds" ]]; then
+      new_args+=( "+2701 seconds" )
+    elif [[ "\$arg" == "-d" ]]; then
+      new_args+=( "\$arg" )
+    else
+      new_args+=( "\$arg" )
+    fi
+  done
+  "\$REAL_DATE" "\${new_args[@]}"
+else
+  "\$REAL_DATE" "\$@"
+fi
+STUB
+  chmod +x "$stub_bin/date"
+
+  _fixture_no_lock "$FIXTURE_STATE"
+
+  # Run acquire with the date shim on PATH
+  run env PATH="${stub_bin}:${PATH}" bash "$HELPER" acquire "$FIXTURE_STATE"
+  [ "$status" -eq 0 ]
+
+  local actual_locked_at actual_expires_at epoch_locked epoch_expires delta
+  actual_locked_at="$(_get_lock_field "$FIXTURE_STATE" locked_at)"
+  actual_expires_at="$(_get_lock_field "$FIXTURE_STATE" expires_at)"
+
+  # Both fields must be valid ISO-8601 UTC timestamps
+  [[ "$actual_locked_at" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$ ]]
+  [[ "$actual_expires_at" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$ ]]
+
+  epoch_locked="$(_iso_to_epoch "$actual_locked_at")"
+  epoch_expires="$(_iso_to_epoch "$actual_expires_at")"
+  delta=$(( epoch_expires - epoch_locked ))
+
+  # ZERO tolerance: expires_at MUST equal locked_at + EXACTLY 2700 seconds.
+  # A two-clock implementation will produce delta = 2701 (shim's extra second
+  # affects the second date call for _now_plus_seconds, not the first).
+  # A single-clock implementation derives expires_at from the captured locked_at epoch,
+  # so the shim's extra second does NOT shift the delta — delta remains 2700.
+  [ "$delta" -eq 2700 ]
+}
+
+# ---------------------------------------------------------------------------
+# test_BC_5_40_001_clear_preserves_body_factory_lock_mention
+# F-P1-002 / BC-5.40.001 PC2 — clear removes ONLY the frontmatter key,
+# not any prose/code-block lines in the document body that happen to begin
+# with `factory_lock:`.
+#
+# Failure mode: the current `_remove_factory_lock` awk matches `^factory_lock:`
+# file-wide (not frontmatter-scoped), so it deletes body lines too.
+#
+# Fixture: STATE.md with a real factory_lock block in frontmatter AND a line
+# beginning with `factory_lock:` in the document body.
+#
+# After clear:
+#   - The frontmatter factory_lock key MUST be absent (grep returns non-zero).
+#   - The body line beginning with `factory_lock:` MUST be preserved.
+#
+# RED GATE: the current awk in _remove_factory_lock matches ^factory_lock:
+# globally, so the body line is also deleted — this assertion will fail.
+# ---------------------------------------------------------------------------
+
+@test "test_BC_5_40_001_clear_preserves_body_factory_lock_mention" {
+  # Write fixture with factory_lock in BOTH frontmatter AND a body code-block
+  cat > "$FIXTURE_STATE" <<'FIXTURE'
+---
+document_type: state
+version: "0.0.1-test"
+phase: test
+factory_lock:
+  holder: "dev@example.com"
+  locked_at: "2026-06-10T14:00:00Z"
+  expires_at: "2026-06-10T14:45:00Z"
+---
+
+# STATE (test fixture)
+This section documents the factory lock schema.
+
+Example YAML block showing the lock schema:
+
+```yaml
+factory_lock:
+  holder: "developer@example.com"
+  locked_at: "2026-06-10T14:00:00Z"
+  expires_at: "2026-06-10T14:45:00Z"
+```
+
+See ADR-025 for details.
+FIXTURE
+
+  # Precondition: frontmatter factory_lock key is present
+  grep -q 'factory_lock:' "$FIXTURE_STATE"
+  # Precondition: body line beginning factory_lock: is also present
+  grep -q '^factory_lock:' "$FIXTURE_STATE"
+
+  run bash "$HELPER" clear "$FIXTURE_STATE"
+  [ "$status" -eq 0 ]
+
+  # The frontmatter factory_lock key MUST be gone.
+  # Because the body still contains `factory_lock:`, a file-global grep
+  # would return 0 (found) — so we must check the FRONTMATTER specifically.
+  # Strategy: extract frontmatter region and assert factory_lock is absent there.
+  local frontmatter_only
+  frontmatter_only="$(awk '/^---$/{f++} f==1{print} f==2{exit}' "$FIXTURE_STATE")"
+  if echo "$frontmatter_only" | grep -q 'factory_lock:'; then
+    echo "FAIL: factory_lock key still present in frontmatter after clear" >&2
+    false
+  fi
+
+  # The body line beginning with `factory_lock:` MUST be preserved.
+  # Extract body (everything after the closing --- of frontmatter).
+  local body_only
+  body_only="$(awk '/^---$/{f++} f>=2{if(f==2){f=3; next} print}' "$FIXTURE_STATE")"
+  if ! echo "$body_only" | grep -q '^factory_lock:'; then
+    echo "FAIL: body line starting with 'factory_lock:' was incorrectly deleted" >&2
+    false
+  fi
+
+  # The prose sentence MUST also be preserved
+  grep -q 'This section documents the factory lock schema.' "$FIXTURE_STATE"
+}
+
+# ---------------------------------------------------------------------------
+# test_BC_5_40_001_acquire_on_malformed_frontmatter_fails_loud
+# F-P1-003 / BC-5.40.001 PC1 — SchemaViolation on malformed frontmatter
+#
+# When STATE.md has NO closing `---` delimiter (malformed frontmatter),
+# the helper MUST:
+#   - Exit NON-ZERO (not silently exit 0 having written nothing).
+#   - Emit an actionable error message containing a schema/frontmatter-related
+#     term (e.g., "SchemaViolation", "frontmatter", "malformed", "---").
+#   - NOT write a partial factory_lock block to the corrupted file.
+#
+# Failure mode: the current _write_factory_lock_block awk inserts the block
+# "before the second ---" — with no closing ---, there is no second --- so
+# the awk produces no insertion at all, yet the helper exits 0 having silently
+# written nothing.  PC1 requires a SchemaViolation signal on malformed input.
+#
+# RED GATE: current impl exits 0 without writing the block and without emitting
+# any error — both the non-zero exit assertion and the error-message assertion fail.
+# ---------------------------------------------------------------------------
+
+@test "test_BC_5_40_001_acquire_on_malformed_frontmatter_fails_loud" {
+  # Fixture: opening --- but NO closing --- (malformed frontmatter)
+  cat > "$FIXTURE_STATE" <<'FIXTURE'
+---
+document_type: state
+version: "0.0.1-test"
+phase: test
+FIXTURE
+  # Deliberately: no closing ---
+
+  run bash "$HELPER" acquire "$FIXTURE_STATE"
+
+  # MUST exit non-zero — a silent exit 0 with no block written is a PC1 violation
+  [ "$status" -ne 0 ]
+
+  # MUST emit an actionable error message referencing schema/frontmatter problems
+  # (matches any of: SchemaViolation, frontmatter, malformed, ---)
+  [[ "$output" =~ SchemaViolation|frontmatter|malformed|'---' ]]
+
+  # MUST NOT have written a factory_lock block (no partial/silent write)
+  run grep 'factory_lock' "$FIXTURE_STATE"
+  [ "$status" -ne 0 ]
+}
+
+# ---------------------------------------------------------------------------
+# test_BC_5_40_001_acquire_fails_when_git_email_unset
+# F-P1-004 / BC-5.40.001 PC1 — SchemaViolation when git user.email is unset
+#
+# When `git config user.email` returns an empty string (user email not configured),
+# the helper MUST:
+#   - Exit NON-ZERO.
+#   - Emit an actionable error message that helps the developer understand they
+#     need to configure git user.email (e.g., references "git config", "user.email",
+#     "holder", or "email").
+#   - NOT write a factory_lock block with an empty holder (which would violate
+#     BC-5.40.001 PC1: holder must be non-empty git user.email).
+#
+# Test strategy: use GIT_CONFIG_GLOBAL=/dev/null and a fresh HOME directory
+# with no local git config so that `git config user.email` returns empty.
+#
+# Failure mode: the current implementation runs `git config user.email | tr -d '\n'`
+# with `set -euo pipefail`.  When email is unconfigured, git config exits 1 and the
+# pipeline exits non-zero — BUT the error message emitted is empty (bash's
+# `set -e` exits the script silently).  PC1 requires an ACTIONABLE error message.
+#
+# RED GATE: current impl exits non-zero but emits NO error message.
+# The assertion checking for an actionable message will fail.
+# ---------------------------------------------------------------------------
+
+@test "test_BC_5_40_001_acquire_fails_when_git_email_unset" {
+  _fixture_no_lock "$FIXTURE_STATE"
+
+  # Isolate git config: use /dev/null as global config and a clean HOME
+  # so no user.email is set anywhere in the resolution chain.
+  local fake_home="$BATS_TEST_TMPDIR/fake-home"
+  mkdir -p "$fake_home"
+
+  run env GIT_CONFIG_GLOBAL=/dev/null HOME="$fake_home" \
+    bash "$HELPER" acquire "$FIXTURE_STATE"
+
+  # MUST exit non-zero (empty holder is a SchemaViolation)
+  [ "$status" -ne 0 ]
+
+  # MUST emit an actionable message referencing git config, email, or holder
+  # so the developer knows what to fix.
+  [[ "$output" =~ git|config|email|holder|user ]]
+
+  # MUST NOT have written a factory_lock block with an empty holder
+  # (a block with holder: "" would silently satisfy grep but violate PC1)
+  run grep 'factory_lock' "$FIXTURE_STATE"
+  [ "$status" -ne 0 ]
+}
+
+# ---------------------------------------------------------------------------
+# test_BC_5_40_001_renew_on_malformed_block_fails_loud
+# F-P1-006 / BC-5.40.001 PC4 — RenewalMissed on malformed block (missing expires_at)
+#
+# When factory_lock block is present but MISSING the `expires_at` sub-field,
+# the helper in `renew` mode MUST:
+#   - Exit NON-ZERO with a RenewalMissed-class error.
+#   - NOT silently exit 0 claiming a successful renewal.
+#   - NOT leave the block in a partially-updated state.
+#
+# Failure mode: the current _update_expires_at awk processes the file, finds
+# no `expires_at:` line, and writes the file unchanged — then the helper exits 0
+# printing "renewed lock expires_at to ..." despite having changed nothing.
+# This is a silent no-op that violates PC4 (renewal MUST refresh expires_at).
+#
+# RED GATE: current impl exits 0 without actually writing expires_at — both the
+# non-zero exit assertion and the error-message assertion fail.
+# ---------------------------------------------------------------------------
+
+@test "test_BC_5_40_001_renew_on_malformed_block_fails_loud" {
+  # Fixture: factory_lock block with holder + locked_at but NO expires_at
+  _fixture_with_lock "$FIXTURE_STATE" \
+    "dev@example.com" \
+    "2026-06-10T14:00:00Z" \
+    "PLACEHOLDER_EXPIRES_WILL_BE_REMOVED"
+
+  # Remove the expires_at line to create the malformed-block condition
+  local tmpfile
+  tmpfile="$(mktemp "$BATS_TEST_TMPDIR/state-noexpiry.XXXXXX")"
+  grep -v 'expires_at:' "$FIXTURE_STATE" > "$tmpfile"
+  mv "$tmpfile" "$FIXTURE_STATE"
+
+  # Precondition: block is present but expires_at is absent
+  grep -q 'factory_lock:' "$FIXTURE_STATE"
+  run grep 'expires_at:' "$FIXTURE_STATE"
+  [ "$status" -ne 0 ]
+
+  run bash "$HELPER" renew "$FIXTURE_STATE"
+
+  # MUST exit non-zero — a silent exit 0 with no expires_at written is RenewalMissed
+  [ "$status" -ne 0 ]
+
+  # MUST emit a RenewalMissed-class error message
+  [[ "$output" =~ RenewalMissed|expires_at|malformed|missing|renewal ]]
+}
+
+# ---------------------------------------------------------------------------
+# test_BC_5_40_001_crlf_frontmatter_handled
+# F-P1-010 / BC-5.40.001 PC1 — CRLF line endings MUST NOT cause silent no-op
+#
+# When STATE.md has CRLF line endings (e.g., from a Windows checkout), the
+# helper in `acquire` mode MUST either:
+#   (a) Normalize the file to LF and write a valid factory_lock block, OR
+#   (b) Fail loud with a non-zero exit and an actionable error.
+#
+# Under no circumstances may the helper exit 0 with no block written (silent no-op).
+#
+# Failure mode: the current awk pattern `/^---$/` matches a bare `---` line
+# terminated by LF.  With CRLF, the line is `---\r` which does NOT match the
+# pattern — the closing --- is invisible to awk, so _write_factory_lock_block
+# never fires the insertion, yet the helper exits 0 having written nothing.
+#
+# The production-grade behavior is normalize-and-write (option a).
+# The test asserts option (a): factory_lock block IS written after acquire.
+#
+# RED GATE: current impl exits 0 without writing the block — the assertion
+# that factory_lock is present in the file will fail.
+# ---------------------------------------------------------------------------
+
+@test "test_BC_5_40_001_crlf_frontmatter_handled" {
+  # Build a CRLF fixture using printf with octal escapes (portable across
+  # bash versions that may not support printf '--' syntax)
+  local crlf_state="$BATS_TEST_TMPDIR/crlf-state.md"
+  python3 -c "
+import sys
+content = (
+    '---\r\n'
+    'document_type: state\r\n'
+    'version: \"0.0.1-test\"\r\n'
+    'phase: test\r\n'
+    'current_step: \"test-step\"\r\n'
+    '---\r\n'
+    '\r\n'
+    '# STATE (CRLF fixture)\r\n'
+)
+sys.stdout.buffer.write(content.encode('utf-8'))
+" > "$crlf_state"
+
+  # Precondition: file has CRLF line endings (the --- lines end in \r\n)
+  # Verify by checking for carriage-return bytes
+  local cr_count
+  cr_count="$(tr -cd '\r' < "$crlf_state" | wc -c | tr -d ' ')"
+  [ "$cr_count" -gt 0 ]
+
+  run bash "$HELPER" acquire "$crlf_state"
+
+  # MUST exit 0 (normalize-and-write is the production-grade path)
+  [ "$status" -eq 0 ]
+
+  # MUST have written a factory_lock block (no silent no-op)
+  grep -q 'factory_lock:' "$crlf_state"
+  grep -q 'holder:' "$crlf_state"
+  grep -q 'locked_at:' "$crlf_state"
+  grep -q 'expires_at:' "$crlf_state"
+
+  # The written block MUST have correct TTL (delta == 2700)
+  local actual_locked_at actual_expires_at epoch_locked epoch_expires delta
+  actual_locked_at="$(_get_lock_field "$crlf_state" locked_at)"
+  actual_expires_at="$(_get_lock_field "$crlf_state" expires_at)"
+  [[ "$actual_locked_at" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$ ]]
+  [[ "$actual_expires_at" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$ ]]
+  epoch_locked="$(_iso_to_epoch "$actual_locked_at")"
+  epoch_expires="$(_iso_to_epoch "$actual_expires_at")"
+  delta=$(( epoch_expires - epoch_locked ))
+  [ "$delta" -eq 2700 ]
+}
+
+# ---------------------------------------------------------------------------
+# test_BC_5_40_001_three_sequential_renewals_preserve_locked_at
+# EC-009 / BC-5.40.001 PC4 + Invariant 3 — locked_at is immutable across renewals;
+# expires_at advances on each renewal.
+#
+# Scenario: acquire once, then renew 3 times (with small real sleeps to produce
+# distinct expires_at values). After all renewals:
+#   - locked_at MUST be byte-identical to the value written by acquire.
+#   - expires_at MUST have a DIFFERENT value after EACH renewal (advancing each time).
+#   - The holder MUST be unchanged throughout.
+#
+# This is the EC-009 long-burst scenario executed at small scale (3 renewals).
+#
+# RED GATE: the current implementation correctly preserves locked_at across
+# renewals (this part passes today). However, EC-009 is not yet covered by any
+# test — the test is NEW and RED because a potential regression in renewal
+# (e.g., renew accidentally overwriting locked_at) is not yet caught.
+#
+# Wait — actually: this test may PASS with the current impl. Re-reading the
+# RED gate requirement: a test for EC-009 doesn't exist yet (gap in coverage),
+# and the adversary noted it as missing. The test exercises EC-009's edge case
+# explicitly. Given the current impl does handle this correctly, this test will
+# GREEN on current impl — which means it is a COVERAGE addition, not a defect
+# discovery. Per instructions, EC-009 is listed as a new test to add.
+#
+# NOTE: This test is expected to be GREEN on the current implementation (it
+# covers a gap in test coverage rather than a code defect). It is listed as a
+# required addition by the adversary's gap analysis.
+# ---------------------------------------------------------------------------
+
+@test "test_BC_5_40_001_three_sequential_renewals_preserve_locked_at" {
+  _fixture_no_lock "$FIXTURE_STATE"
+
+  # Step 1: acquire to establish the lock and capture locked_at
+  run bash "$HELPER" acquire "$FIXTURE_STATE"
+  [ "$status" -eq 0 ]
+
+  local original_locked_at original_holder
+  original_locked_at="$(_get_lock_field "$FIXTURE_STATE" locked_at)"
+  original_holder="$(_get_lock_field "$FIXTURE_STATE" holder)"
+
+  # Verify locked_at is a valid ISO-8601 UTC timestamp
+  [[ "$original_locked_at" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$ ]]
+
+  local prev_expires_at
+  prev_expires_at="$(_get_lock_field "$FIXTURE_STATE" expires_at)"
+
+  # Steps 2–4: three sequential renewals
+  local i
+  for i in 1 2 3; do
+    # Small sleep to ensure the renewal timestamp differs from the previous one
+    sleep 1
+
+    run bash "$HELPER" renew "$FIXTURE_STATE"
+    [ "$status" -eq 0 ]
+
+    # locked_at MUST be byte-identical to the original acquire value
+    local current_locked_at
+    current_locked_at="$(_get_lock_field "$FIXTURE_STATE" locked_at)"
+    [ "$current_locked_at" = "$original_locked_at" ]
+
+    # holder MUST be unchanged
+    local current_holder
+    current_holder="$(_get_lock_field "$FIXTURE_STATE" holder)"
+    [ "$current_holder" = "$original_holder" ]
+
+    # expires_at MUST have advanced from the previous value
+    local current_expires_at
+    current_expires_at="$(_get_lock_field "$FIXTURE_STATE" expires_at)"
+    [ "$current_expires_at" != "$prev_expires_at" ]
+
+    # expires_at MUST be a valid ISO-8601 UTC timestamp
+    [[ "$current_expires_at" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$ ]]
+
+    # expires_at - locked_at MUST still be exactly 2700 seconds
+    local epoch_locked epoch_expires delta
+    epoch_locked="$(_iso_to_epoch "$original_locked_at")"
+    epoch_expires="$(_iso_to_epoch "$current_expires_at")"
+    delta=$(( epoch_expires - epoch_locked ))
+    # After each renewal: expires_at = now+2700, locked_at = original_locked_at
+    # delta grows beyond 2700 — that is correct and expected (renewal is not constrained
+    # to exactly 2700 from original locked_at; it is now+2700 from the renewal instant).
+    # Assert only that expires_at is in the FUTURE relative to original locked_at.
+    [ "$delta" -gt 2700 ]
+
+    prev_expires_at="$current_expires_at"
+  done
+
+  # Final state: locked_at must still be byte-identical to the original
+  local final_locked_at
+  final_locked_at="$(_get_lock_field "$FIXTURE_STATE" locked_at)"
+  [ "$final_locked_at" = "$original_locked_at" ]
+}
