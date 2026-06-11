@@ -11,6 +11,110 @@ input-hash: "[live-state]"
 traces_to: STATE.md
 ---
 
+## D-540 ADR-025 Adopted for Issue #170 Factory Lock/Lease Design (2026-06-10)
+
+### Parent-commit
+
+`ba6844c1` (D-539 ISSUE-169+176 MERGED 2026-06-10 SHA-patch commit; last factory-artifacts HEAD before this D-540 state-manager burst) per D-419(b).
+
+### Adversary Verdict (D-448(a) source-attestation gate)
+
+Design-codification burst — no adversarial review dispatched this burst. ADR-025 was independently research-agent-verified APPROVE-WITH-FIXES (5 fixes) and human-approved prior to this codification burst. D-448(a) source-attestation parity: ADR-025 v1.2 persisted at `specs/architecture/decisions/ADR-025-single-writer-factory-locklease-prevent-concurrent-session-races-on-factory-artifacts-orphan-branch.md`; status updated from proposed→accepted; ARCH-INDEX v2.18→v2.19; D-540 codification row in decision-log.md SoT; D-540 row in STATE.md Decisions Log. Verdict: N/A (bookkeeping + ADR acceptance only). Source-attestation per D-448(a): ADR-025 ACCEPTED in both the ADR document and the ARCH-INDEX Architecture Decisions table.
+
+D-448(a) self-attestation (literal shell, per D-449(a)):
+
+```bash
+$ grep "^status:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/architecture/decisions/ADR-025-single-writer-factory-locklease-prevent-concurrent-session-races-on-factory-artifacts-orphan-branch.md | head -1
+status: accepted
+```
+
+PASS — ADR-025 status is `accepted`.
+
+### Files Touched (Dim-1)
+
+Files modified in this D-540 state-manager burst (single atomic commit):
+
+1. `.factory/specs/architecture/decisions/ADR-025-single-writer-factory-locklease-prevent-concurrent-session-races-on-factory-artifacts-orphan-branch.md` — ACCEPTED (this commit): status proposed→accepted; decision_status proposed→accepted; human_gate_reason updated; Status section updated to ACCEPTED.
+2. `.factory/specs/architecture/ARCH-INDEX.md` — UPDATED (this commit): version v2.18→v2.19; last_amended prepended v2.19 clause; changelog row v2.19 prepended; ADR-025 Architecture Decisions table row status PROPOSED→ACCEPTED; ARCH-INDEX v2.18→v2.19.
+3. `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — UPDATED (this commit): D-540 row prepended.
+4. `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — UPDATED (this commit): D-540 h2 entry prepended.
+5. `.factory/STATE.md` — UPDATED (this commit): frontmatter phase/current_step/last_amended advance; banner tracker +D-540 entry (409 lines wc-l); Phase Progress +D-540 row; Decisions Log +D-540 row + D-range updated D-001..D-540; Identifier Conventions ADR count 23→24; Last Updated + Current Phase cells updated; Concurrent Cycles v1.0-brownfield-backfill updated; Active Branches factory-artifacts note updated; Session Resume Checkpoint §1-§3-§4-§5-§8-§9-§10-§11-§12 refresh; "previous checkpoint" line updated to D-539.
+
+### Codifications (Dim-3)
+
+- **D-540** ADR-025 ADOPTED FOR ISSUE-170 FACTORY LOCK/LEASE DESIGN 2026-06-10 — ADR-025 v1.2 ACCEPTED; 9 deliverables enumerated (verify-factory-lock WASM crate + /factory-lock + /factory-unlock + factory_lock schema + stolen event + TTL renewal + hooks-registry + --force-with-lease + bats tests); ARCH-INDEX v2.18→v2.19; ADR count 23→24; 4-index BC/VP/STORY UNCHANGED; human-approved for implementation.
+
+### Dim-2 Literal-Shell Evidence (per D-449(a))
+
+Gate 1 — current_step D-540 marker present with trajectory-tail and all 5 BC-5.39.006 PCs:
+
+```bash
+$ grep "^current_step:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/STATE.md
+current_step: "D-540 ADR-025 ADOPTED FOR ISSUE-170 FACTORY LOCK/LEASE DESIGN 2026-06-10 — ADR-025 v1.2 ACCEPTED: local native-WASM PreToolUse guard verify-factory-lock as primary enforcement (frontmatter factory_lock block, git-email identity, block-mutations/allow-reads, TTL 45min mid-burst-renewed + audited force-unlock break-glass, fail-open-on-crash); --force-with-lease push-CAS complementary mitigation (also guards the acquire); git-ref refs/factory-lock CAS deferred to Future/Out-of-Scope; NO dispatcher-binary/host-ABI change (host_abi=1 unchanged); independently research-verified APPROVE-WITH-FIXES all 5 fixes landed (acquire-race CWE-367 CAS, long-burst TTL self-eviction mid-burst renewal, capability deny-by-default enumeration, async=false sync-group, fail-open Kleppmann efficiency-class framing); 9 deliverables enumerated for story decomposition; ARCH-INDEX v2.18→v2.19; 4-index BC-INDEX v2.65 UNCHANGED VP-INDEX v2.06 UNCHANGED STORY-INDEX v3.84 UNCHANGED ARCH-INDEX v2.18→v2.19; human-approved for implementation; trajectory-tail →9→9→9→11; maintain all 5 BC-5.39.006 v1.7 PCs per TD-VSDD-097-EXT; D-chain cite D-539 per D-419(b); parent-commit ba6844c1 per D-419(b). SIZE BUDGET: (wc-l; see banner tracker)"
+```
+
+PASS — D-540 marker present; D-539 D-chain cite per D-419(b); parent-commit ba6844c1 per D-419(b); trajectory-tail →9→9→9→11 LENGTH=4 SATISFIED (PC2/PC4); maintain all 5 BC-5.39.006 v1.7 PCs present (PC1: D-540 marker; PC2: trajectory-tail →9→9→9→11; PC3: D-539 D-chain cite; PC4: LENGTH=4; PC5: parent-commit ba6844c1; PC6: TD-VSDD-097-EXT cite).
+
+Gate 2 — ARCH-INDEX version v2.19 confirmed:
+
+```bash
+$ grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/architecture/ARCH-INDEX.md
+version: "2.19"
+```
+
+PASS — ARCH-INDEX version is v2.19.
+
+Gate 3 — ADR-025 row exists in ARCH-INDEX Architecture Decisions table (exactly 1):
+
+```bash
+$ grep -c "^| ADR-025" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/architecture/ARCH-INDEX.md
+1
+```
+
+PASS — exactly 1 ADR-025 row (no duplicate).
+
+Gate 4 — ADR-025 status accepted in ADR document:
+
+```bash
+$ grep "^status:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/architecture/decisions/ADR-025-single-writer-factory-locklease-prevent-concurrent-session-races-on-factory-artifacts-orphan-branch.md | head -1
+status: accepted
+```
+
+PASS — status is accepted.
+
+### Dim-5 Chain
+
+D-540 single-commit burst. Parent-commit ba6844c1 (D-539 ISSUE-169+176 MERGED SHA-patch commit per D-419(b)).
+
+```bash
+$ git -C /Users/zious/Documents/GITHUB/vsdd-factory/.factory log --format='%H %s' -3
+[POST-COMMIT: to be filled by factory-artifacts chain log]
+```
+
+### Dim-6 Verification
+
+Literal-shell ADR count in ARCH-INDEX Architecture Decisions table:
+
+```bash
+$ grep -c "^| ADR-" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/architecture/ARCH-INDEX.md
+25
+```
+
+25 rows (ADR-001 through ADR-025, including ADR-005 which is SUPERSEDED but still present in the table). ADR-025 is the 25th row; Identifier Conventions count updated to 24 (distinct ADR files, excluding the superseded ADR-005 entry which shares the ADR-005.md file). D-540 burst adds exactly 1 new ADR file.
+
+### Dim-7 Attestation
+
+ADR-025 v1.2 accepted and persisted. D-540 decision-log.md SoT row with full 9-deliverable enumeration. ARCH-INDEX v2.19 with changelog entry. STATE.md fully advanced: phase/current_step/last_amended frontmatter; Decisions Log D-540 row + D-range D-001..D-540; Phase Progress D-540 row; Identifier Conventions ADR 23→24; Last Updated + Current Phase; Concurrent Cycles; §1-§12 Session Resume Checkpoint refresh. 4-index: ARCH-INDEX v2.18→v2.19; BC-INDEX v2.65 UNCHANGED; VP-INDEX v2.06 UNCHANGED; STORY-INDEX v3.84 UNCHANGED. Implementation-ready: test-writer Red Gate for #170 on feature/issue-170-factory-locklease.
+
+### Closes
+
+- D-540 ADR-025 design-codification
+- Issue #170 design gate (design-codified; implementation dispatch ready)
+
+### Factory-artifacts Commits
+
+- [SHA-patch pending — see `git -C .factory log -1 --format='%h %s'` after push]
+
 ## D-524 Session-End Durability Burst (2026-05-30)
 
 ### Parent-commit
