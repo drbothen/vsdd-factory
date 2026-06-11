@@ -321,3 +321,70 @@ FIXTURE
   # factory-worktree-health/SKILL.md MUST contain an invocation of factory-lock-status.sh
   grep -q 'factory-lock-status.sh' "$worktree_health_skill"
 }
+
+# ---------------------------------------------------------------------------
+# test_BC_6_23_001_factory_lock_status_sh_crlf_no_tempfile_leak
+# F-1703-001 / BC-6.23.001 — CRLF normalization MUST NOT leak a temp file
+# beside STATE.md in .factory/.
+#
+# Bug: _normalize_crlf_for_read sets _STATUS_TMPFILE INSIDE a command-
+# substitution subshell.  The parent process's EXIT trap never sees it, so
+# the CR-stripped temp file (mktemp "${file}.XXXXXX") survives the helper.
+# Empirically: a CRLF read of STATE.md leaves STATE.md.XXXXXX beside it.
+#
+# Contract: after factory-lock-status.sh reads a CRLF STATE.md, the
+# STATE.md's directory MUST contain no STATE.md.* temp file (neither
+# beside it, nor any stray file).  This assertion is satisfied whether the
+# implementer (a) properly cleans up the temp or (b) creates it in
+# ${TMPDIR:-/tmp} instead — the .factory/ dir stays clean either way.
+#
+# RED GATE: the current implementation leaks STATE.md.XXXXXX, so the
+# after-listing differs from the before-listing → assertion fails with
+# detected-leftover-file evidence.
+# ---------------------------------------------------------------------------
+
+@test "test_BC_6_23_001_factory_lock_status_sh_crlf_no_tempfile_leak" {
+  # Use a dedicated subdirectory so the directory listing is fully controlled
+  local leakdir="$WORK/leakcheck"
+  mkdir -p "$leakdir"
+  local crlf_state="$leakdir/STATE.md"
+
+  # Write CRLF fixture (holder = foreign unexpired → helper exits 0 + HELD output)
+  {
+    printf '%s\r\n' '---'
+    printf '%s\r\n' 'document_type: state'
+    printf '%s\r\n' 'version: "0.0.1-test"'
+    printf '%s\r\n' 'phase: test'
+    printf '%s\r\n' 'current_step: "test-step"'
+    printf '%s\r\n' 'factory_lock:'
+    printf '  holder: "%s"\r\n' "other@example.com"
+    printf '  locked_at: "%s"\r\n' "$FUTURE_LOCKED_AT"
+    printf '  expires_at: "%s"\r\n' "$FUTURE_EXPIRES_AT"
+    printf '%s\r\n' '---'
+    printf '\r\n'
+    printf '%s\r\n' '# STATE (CRLF leak-check fixture)'
+  } > "$crlf_state"
+
+  # Snapshot directory contents BEFORE the helper run
+  local before_listing
+  before_listing="$(ls "$leakdir")"
+
+  # Run the helper — must succeed (exit 0) to ensure the CRLF path was exercised
+  run bash "$HELPER" "$crlf_state" "caller@example.com"
+  [ "$status" -eq 0 ] \
+    || { printf 'FAIL: helper must exit 0, got exit %s\n  output: %s\n' "$status" "$output" >&2; false; }
+
+  # Snapshot directory contents AFTER the helper run
+  local after_listing
+  after_listing="$(ls "$leakdir")"
+
+  # The directory listing MUST be unchanged — no STATE.md.* temp file left behind
+  [ "$before_listing" = "$after_listing" ] \
+    || {
+      printf 'FAIL (F-1703-001): temp file leaked beside STATE.md after CRLF read\n' >&2
+      printf '  BEFORE: %s\n' "$before_listing" >&2
+      printf '  AFTER:  %s\n' "$after_listing" >&2
+      printf '  Leaked: %s\n' "$(comm -13 <(printf '%s\n' "$before_listing" | sort) <(printf '%s\n' "$after_listing" | sort))" >&2
+      false
+    }
+}

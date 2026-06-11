@@ -443,3 +443,72 @@ teardown() {
   [[ "$output" == *"REFUSED_FOREIGN_LOCK"* ]] \
     || { printf 'FAIL: expected REFUSED_FOREIGN_LOCK in output, got: %s\n' "$output" >&2; false; }
 }
+
+# ---------------------------------------------------------------------------
+# test_BC_6_23_001_acquire_precheck_crlf_no_tempfile_leak
+# F-1703-001 / BC-6.23.001 — CRLF normalization MUST NOT leak a temp file
+# beside STATE.md in .factory/.
+#
+# Bug: _normalize_crlf_for_read sets _PRECHECK_TMPFILE INSIDE a command-
+# substitution subshell.  The parent process's EXIT trap never sees it, so
+# the CR-stripped temp file (mktemp "${file}.XXXXXX") survives the helper.
+# Empirically: a CRLF read of STATE.md leaves STATE.md.XXXXXX beside it.
+#
+# Contract: after factory-lock-acquire-precheck.sh reads a CRLF STATE.md,
+# the STATE.md's directory MUST contain no STATE.md.* temp file.  This
+# assertion holds whether the implementer cleans up the temp or moves its
+# creation to ${TMPDIR:-/tmp} — the .factory/ directory stays clean either way.
+#
+# RED GATE: the current implementation leaks STATE.md.XXXXXX, so the
+# after-listing differs from the before-listing → assertion fails with
+# detected-leftover-file evidence.
+# ---------------------------------------------------------------------------
+
+@test "test_BC_6_23_001_acquire_precheck_crlf_no_tempfile_leak" {
+  # Use a dedicated subdirectory so the directory listing is fully controlled
+  local leakdir="$WORK/leakcheck"
+  mkdir -p "$leakdir"
+  local crlf_state="$leakdir/STATE.md"
+
+  # Write CRLF fixture (foreign unexpired lock → helper exits 1 REFUSED_FOREIGN_LOCK,
+  # but the CRLF normalization path is exercised regardless of the decision)
+  {
+    printf '%s\r\n' '---'
+    printf '%s\r\n' 'document_type: state'
+    printf '%s\r\n' 'version: "0.0.1-test"'
+    printf '%s\r\n' 'phase: test'
+    printf '%s\r\n' 'current_step: "test-step"'
+    printf '%s\r\n' 'factory_lock:'
+    printf '  holder: "%s"\r\n' "other@example.com"
+    printf '  locked_at: "%s"\r\n' "$FUTURE_LOCKED_AT"
+    printf '  expires_at: "%s"\r\n' "$FUTURE_EXPIRES_AT"
+    printf '%s\r\n' '---'
+    printf '\r\n'
+    printf '%s\r\n' '# STATE (CRLF leak-check fixture)'
+  } > "$crlf_state"
+
+  # Shim: fetch succeeds; email returns caller (not holder) → CRLF normalization runs
+  _write_git_shim 0 "caller@example.com" 0
+
+  # Snapshot directory contents BEFORE the helper run
+  local before_listing
+  before_listing="$(ls "$leakdir")"
+
+  # Run the helper — exit code is 1 (REFUSED_FOREIGN_LOCK) which is expected;
+  # what matters is that the leakcheck directory is clean afterward
+  run env PATH="${STUB_BIN}:${PATH}" bash "$HELPER" "$crlf_state"
+
+  # Snapshot directory contents AFTER the helper run
+  local after_listing
+  after_listing="$(ls "$leakdir")"
+
+  # The directory listing MUST be unchanged — no STATE.md.* temp file left behind
+  [ "$before_listing" = "$after_listing" ] \
+    || {
+      printf 'FAIL (F-1703-001): temp file leaked beside STATE.md after CRLF read\n' >&2
+      printf '  BEFORE: %s\n' "$before_listing" >&2
+      printf '  AFTER:  %s\n' "$after_listing" >&2
+      printf '  Leaked: %s\n' "$(comm -13 <(printf '%s\n' "$before_listing" | sort) <(printf '%s\n' "$after_listing" | sort))" >&2
+      false
+    }
+}
