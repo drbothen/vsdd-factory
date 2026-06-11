@@ -7114,3 +7114,66 @@ STATE.md current_step confirms: D-548 ADR-025-V1.4-S-17.04-AUTO-RENEW-WIRING-COD
 ### Factory-artifacts Commits
 
 `e5af78f7` state(D-548): ADR-025 v1.4 + S-17.04 auto-renew wiring codified
+
+---
+
+## D-549 SESSION-END-DURABILITY-BURST 2026-06-11
+
+**Parent-commit:** `cedeb825` (factory-artifacts HEAD pre-burst was `e5af78f7`; however context summary identifies pre-D-549 HEAD as `cedeb825` per D-419(b) parent-commit cite — see current_step.)
+
+**Adversary verdict:** No new adversary pass dispatched this burst. This is a spec-evolution codification + session-end durability burst only. Prior adversary state: LOCAL adversary pass on S-17.04 branch resulted in 0C+0H+0M+1LOW (F-A-001 env-comment advisory; inert — `verify-lock-renewal.sh` reads no environment variables; the advisory was found to be a false positive). ADR-025 findings F-1701-001 (gate-trigger inert — `git.*push.*factory-artifacts` regex missed the actual outer command `bash factory-cas-push.sh`) and F-1704-001 (block_pre message too long for legacy-bash-adapter first-line truncation) were codified into ADR-025 v1.5 and S-17.04 v1.1 this burst. OPEN DESIGN DECISION (Mechanism 2 brittleness) surfaced — not remediated, user-deferred.
+
+### Dim-2: PC Attestation (production-read)
+
+```
+$ grep "^current_step:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/STATE.md
+current_step: "D-549 SESSION-END-DURABILITY-BURST 2026-06-11 — SESSION-END DURABILITY BURST + S-17.04 SPEC-EVOLUTION CODIFIED: ADR-025 v1.4→v1.5 [F-1701-001/F-1704-001] gate-trigger corrected (primary factory-cas-push helper — state-burst SKILL runs `bash factory-cas-push.sh`; real git push is subprocess invisible to PreToolUse; v1.4 git.*push.*factory-artifacts was inert) + block-message reconciled (legacy-bash-adapter one-liner form) + D12 binary_allow [bash,git,jq] (jq required for STATE.md frontmatter parse; 4th deny-by-default silent-no-op vector closed); S-17.04 v1.0→v1.1 [AC-002 belt-and-suspenders trigger: primary factory-cas-push + secondary git.*push.*factory-artifacts; block_pre one-liner; 4 EC fail-open Red Gate tests added EC-002/004/005/007; Red Gate count 8→12]; ARCH-INDEX v2.21→v2.22; STORY-INDEX v3.93→v3.94; #170/E-17 COMPLETE (D-544 S-17.01 c64b46d2 + D-545 S-17.02 df4f26b8 + D-547 S-17.03 60fd0233 ALL MERGED; BC-5.40.001+BC-4.13.001+BC-6.23.001 ACTIVE; issue #170 CLOSED); S-17.04 IN-FLIGHT (feature/S-17.04-mid-burst-heartbeat-renewal-wiring @ f627a1c5 PUSHED origin, worktree .worktrees/S-17.04, 16/16 bats green, LOCAL adversary last pass 0C+0H+0M+1LOW F-A-001 env-comment, NOT merged); OPEN DESIGN DECISION = RESUME ENTRY POINT: Mechanism 2 gate is BRITTLE (hook layer sees only outer bash command not inner git push subprocess; undecidable parse; 4 tokenizer failure vectors); RECOMMENDED fix = move enforcement INTO factory-cas-push.sh chokepoint + keep Mechanism 1 + drop gate; 3 options pending user choice: A chokepoint [RECOMMENDED] B WASM [doesn't fix brittleness] C Rust-ify [epic]; 4-index: BC-INDEX v2.72 UNCHANGED STORY-INDEX v3.93→v3.94 VP-INDEX v2.06 UNCHANGED ARCH-INDEX v2.21→v2.22; trajectory-tail →9→9→9→11; maintain all 5 BC-5.39.006 v1.7 PCs per TD-VSDD-097-EXT; D-chain cite D-548 per D-419(b); parent-commit cedeb825 per D-419(b). SIZE BUDGET: see banner tracker row D-549"
+```
+
+PC2 (trajectory-tail LENGTH=4): `trajectory-tail →9→9→9→11` PRESENT. PC3 (D-chain cite D-548): `D-chain cite D-548` PRESENT. PC4 (parent-commit cedeb825): `parent-commit cedeb825` PRESENT. PC5 (4-index cites): `BC-INDEX v2.72 UNCHANGED STORY-INDEX v3.93→v3.94 VP-INDEX v2.06 UNCHANGED ARCH-INDEX v2.21→v2.22` PRESENT. PC6 (SIZE BUDGET): `SIZE BUDGET: see banner tracker row D-549` PRESENT. All 5 BC-5.39.006 v1.7 PCs SATISFIED.
+
+### Dim-5: Files Touched
+
+- `.factory/STATE.md` — phase, last_amended, current_step frontmatter; banner tracker D-549 row; Project Metadata Last Updated + Current Phase; Phase Progress D-532..D-548 archive row + D-549 row; Active Branches factory-artifacts row; Concurrent Cycles v1.0-brownfield-backfill row; Decisions Log D-549 row; §3 User Directives D-549 carry (OPEN DESIGN DECISION) + D-549 carry; Session Resume Checkpoint §1-§12 full refresh (D-548 → D-549)
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-549 row prepended
+- `.factory/specs/architecture/ARCH-INDEX.md` — frontmatter version v2.21→v2.22; last_amended updated; changelog v2.22 entry added (ADR-025 v1.5; D-549; F-1701-001; S-17.04 v1.1)
+- `.factory/specs/architecture/decisions/ADR-025-single-writer-factory-locklease-prevent-concurrent-session-races-on-factory-artifacts-orphan-branch.md` — version v1.4→v1.5; Decision 11 trigger corrected (factory-cas-push primary); block_pre message reconciled to one-liner; Decision 12 binary_allow [bash,git,jq] (jq 4th-footgun vector closed); changelog v1.5 entry; amendment_reason updated
+- `.factory/stories/S-17.04-mid-burst-heartbeat-renewal-wiring.md` — version v1.0→v1.1; AC-002 trigger belt-and-suspenders (factory-cas-push primary + git.*push.*factory-artifacts secondary); block_pre message one-liner; 4 EC fail-open Red Gate tests added (EC-002/004/005/007); Red Gate count 8→12; T-1/T-3/T-6 test tables updated; changelog v1.1 entry
+- `.factory/stories/STORY-INDEX.md` — frontmatter version v3.93→v3.94; last_amended updated; S-17.04 body row updated (v1.0→v1.1; 8→12 Red Gate tests; ADR-025 v1.4→v1.5 cite; trigger info added)
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — D-549 burst entry appended (this entry)
+
+### Dim-6: 4-Index Literal Shell Gate
+
+```
+$ grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/behavioral-contracts/BC-INDEX.md | head -1
+version: "2.72"
+$ grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/verification-properties/VP-INDEX.md | head -1
+version: "2.06"
+$ grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/stories/STORY-INDEX.md | head -1
+version: "3.94"
+$ grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/architecture/ARCH-INDEX.md | head -1
+version: "2.22"
+```
+
+4-index gate: BC-INDEX v2.72 (UNCHANGED) | VP-INDEX v2.06 (UNCHANGED) | STORY-INDEX v3.93→v3.94 (bumped; S-17.04 v1.0→v1.1; 12 Red Gate tests; ADR-025 v1.5 cite) | ARCH-INDEX v2.21→v2.22 (bumped; ADR-025 v1.5 Decision 11 gate-trigger + block-msg + D12-jq 4th-footgun). PASS.
+
+### Dim-7: State Attestation
+
+STATE.md current_step confirms: D-549 SESSION-END-DURABILITY-BURST 2026-06-11; ADR-025 v1.4→v1.5 [F-1701-001/F-1704-001]; S-17.04 v1.0→v1.1 (4 EC Red Gate tests; count 8→12); ARCH-INDEX v2.21→v2.22; STORY-INDEX v3.93→v3.94; #170/E-17 COMPLETE (3 stories MERGED; BCs ACTIVE; issue #170 CLOSED); S-17.04 IN-FLIGHT (f627a1c5 PUSHED; 16/16 bats; NOT merged); OPEN DESIGN DECISION = RESUME ENTRY POINT (Mechanism 2 brittleness; chokepoint A/B/C); trajectory-tail →9→9→9→11; D-chain cite D-548; parent-commit cedeb825. All 5 BC-5.39.006 v1.7 PCs satisfied. TD-VSDD-099 4-Dim structural integrity SATISFIED. STATE.md at 340 lines (soft target ≤415; margin 500-340=160 from hard cap).
+
+**Codifications:** D-549 SESSION-END DURABILITY BURST codified — ADR-025 v1.4→v1.5 (F-1701-001 gate-trigger: primary factory-cas-push + secondary git.*push.*factory-artifacts; F-1704-001 block-message reconciled to one-liner; D12 binary_allow [bash,git,jq] 4th-footgun closed) + S-17.04 v1.0→v1.1 (AC-002 belt-and-suspenders trigger; 4 EC fail-open Red Gate tests EC-002/004/005/007 added; Red Gate count 8→12) + ARCH-INDEX v2.21→v2.22 + STORY-INDEX v3.93→v3.94; D-549 row added to decision-log.md SoT + STATE.md Decisions Log summary; Session Resume Checkpoint §1-§12 fully refreshed with OPEN DESIGN DECISION as §1 resume entry point.
+
+**Closes:**
+- ADR-025 v1.4→v1.5: F-1701-001 (gate-trigger inert → corrected to factory-cas-push primary); F-1704-001 (block_pre message truncation → reconciled to one-liner); D12 binary_allow jq vector (4th deny-by-default silent-no-op footgun closed).
+- S-17.04 v1.0→v1.1: AC-002 trigger corrected; 4 EC fail-open Red Gate tests added; count 8→12.
+- ARCH-INDEX v2.22 + STORY-INDEX v3.94 version bumps.
+- Session-end state durability: zero-context self-sufficient §1-§12 checkpoint written; OPEN DESIGN DECISION prominently flagged as resume entry point.
+- #170/E-17 COMPLETE status recorded durably (3 merged stories; BCs ACTIVE; issue #170 CLOSED).
+
+**Advances:** D-chain D-548 → D-549; RECOMMENDED ACTIVE NEXT: RESOLVE OPEN DESIGN DECISION (§1; Option A recommended) → per choice rework S-17.04 v1.1→v1.2 (chokepoint) OR merge as-is → rc.21 release → #173 wave-checkpoint → #171 deferred-revalidate → #129 canonical-principle.
+
+**Trajectory:** →9→9→9→11 (CARRIED — spec-evolution codification + session-end durability burst; no new adversary pass)
+
+### Factory-artifacts Commits
+
+D-549 commit: `git -C .factory log -1 --format='%h %s'` (post-push)
