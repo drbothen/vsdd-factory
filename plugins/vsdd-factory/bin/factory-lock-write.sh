@@ -117,6 +117,9 @@ _now_plus_seconds() {
 # ---------------------------------------------------------------------------
 # Helper: remove factory_lock block (key + all 2-space-indented sub-fields)
 # from STATE.md in-place using awk.
+# FRONTMATTER-BOUNDARY-AWARE: only removes the key inside the frontmatter
+# region (between the first and second --- fences). Body lines that begin
+# with `factory_lock:` are preserved unchanged.
 # This produces a clean key-deletion (not null assignment).
 # ---------------------------------------------------------------------------
 _remove_factory_lock() {
@@ -124,8 +127,15 @@ _remove_factory_lock() {
   local tmpfile
   tmpfile="$(mktemp "${file}.XXXXXX")"
   awk '
-    /^factory_lock:/ { skip=1; next }
-    skip && /^  / { next }
+    BEGIN { fence=0; skip=0 }
+    /^---$/ {
+      fence++
+      skip=0
+      print
+      next
+    }
+    fence == 1 && /^factory_lock:/ { skip=1; next }
+    fence == 1 && skip && /^  /    { next }
     { skip=0; print }
   ' "$file" > "$tmpfile"
   mv "$tmpfile" "$file"
@@ -170,6 +180,8 @@ _write_factory_lock_block() {
 
 # ---------------------------------------------------------------------------
 # Helper: update factory_lock.expires_at in-place (for renew mode).
+# FRONTMATTER-BOUNDARY-AWARE: only modifies the expires_at sub-key inside
+# the frontmatter region (between the first and second --- fences).
 # Replaces the existing expires_at line under factory_lock: with the new value.
 # ---------------------------------------------------------------------------
 _update_expires_at() {
@@ -178,13 +190,19 @@ _update_expires_at() {
   local tmpfile
   tmpfile="$(mktemp "${file}.XXXXXX")"
   awk -v new_exp="$new_expires_at" '
-    BEGIN { in_lock=0 }
-    /^factory_lock:/ { in_lock=1; print; next }
-    in_lock && /^  expires_at:/ {
+    BEGIN { fence=0; in_lock=0 }
+    /^---$/ {
+      fence++
+      in_lock=0
+      print
+      next
+    }
+    fence == 1 && /^factory_lock:/ { in_lock=1; print; next }
+    fence == 1 && in_lock && /^  expires_at:/ {
       print "  expires_at: \"" new_exp "\""
       next
     }
-    in_lock && !/^  / { in_lock=0 }
+    fence == 1 && in_lock && !/^  / { in_lock=0 }
     { print }
   ' "$file" > "$tmpfile"
   mv "$tmpfile" "$file"
