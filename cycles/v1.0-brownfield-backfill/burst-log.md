@@ -6700,3 +6700,73 @@ $ ls -d /Users/zious/Documents/GITHUB/vsdd-factory/crates/hook-plugins/*/ | wc -
 ### Factory-artifacts Commits
 
 - `3294361e` — state(D-538): SESSION-END DURABILITY BURST; §1-§12 full refresh; pr-description.md committed; D-430(a) compaction (primary burst per TD-VSDD-053)
+
+---
+
+## D-543 — S-17.01-V1.1-EXECUTABLE-HELPER-REFINEMENT — 2026-06-10
+
+**Parent-commit:** `0601fdb1` (factory-artifacts HEAD D-542-sha-patch per D-419(b))
+**Cycle:** v1.0-brownfield-backfill
+**Burst type:** story-refinement (delivery-prep Red-Gate-feasibility correction)
+
+### Dim-2 PC Attestations (TD-VSDD-100 — production STATE.md read; D-449(a) literal shell)
+
+**Gate: current_step: production read**
+```
+$ grep "^current_step:" .factory/STATE.md
+current_step: "D-543 S-17.01-V1.1-EXECUTABLE-HELPER-REFINEMENT 2026-06-10 — S-17.01 v1.0→v1.1 delivery-prep Red-Gate-feasibility defect corrected: factory-lock-write.sh (acquire/renew/clear; D3) + factory-cas-push.sh (fetch-then-CAS; D6) bash helpers added under plugins/vsdd-factory/bin/; factory-lock-write.bats (6 tests; AC-001..AC-007) + factory-cas-push.bats (3 tests; AC-005/AC-009/AC-010) added under plugins/vsdd-factory/tests/; SKILL.md + state-manager.md INVOKE helpers (MODIFY targets, not test targets); all 10 ACs + BC-5.40.001 PC/EC traces UNCHANGED (BC mechanism-agnostic); File Structure Requirements + Red Gate Test Table + Tasks + Token Budget updated; STORY-INDEX v3.85→v3.86 (S-17.01 row v1.0→v1.1); 4-index: BC-INDEX v2.66 UNCHANGED VP-INDEX v2.06 UNCHANGED STORY-INDEX v3.85→v3.86 ARCH-INDEX v2.19 UNCHANGED; trajectory-tail →9→9→9→11; maintain all 5 BC-5.39.006 v1.7 PCs per TD-VSDD-097-EXT; D-chain cite D-542 per D-419(b); parent-commit 0601fdb1 per D-419(b). SIZE BUDGET: (wc-l; see banner tracker)"
+```
+
+**PC2 (trajectory-tail marker LENGTH=4):** `trajectory-tail →9→9→9→11` — PRESENT ✓
+**PC3 (4-index all present):** BC-INDEX v2.66 ✓; VP-INDEX v2.06 ✓; STORY-INDEX v3.85→v3.86 ✓; ARCH-INDEX v2.19 ✓
+**PC4 (D-chain cite D-542 per D-419(b)):** `D-chain cite D-542` — PRESENT ✓
+**PC5 (parent-commit 0601fdb1 per D-419(b)):** `parent-commit 0601fdb1` — PRESENT ✓
+**PC6 (TD-VSDD-097-EXT all 5 BCs PCs named):** `maintain all 5 BC-5.39.006 v1.7 PCs per TD-VSDD-097-EXT` — PRESENT ✓
+
+### Dim-5 Factory-Artifacts Chain
+
+**Pre-burst HEAD:** `0601fdb1` — state(D-542-sha-patch): Active Branches → actual D-542 HEAD ec0a317e per D-447(c)+D-449(e)
+**Parent-commit confirmed:** 0601fdb1 ✓ (matches D-419(b) requirement; D-chain D-542)
+
+### Dim-6 Literal-Shell Count (TD-VSDD-099)
+
+```
+$ wc -l .factory/STATE.md
+     418 .factory/STATE.md
+```
+STATE.md: 418 lines (+3 over soft-target 415; margin 500-418=82 from hard cap; D-430(a) D-536..D-538 banner archived; D-446(c) dual-margin form).
+
+```
+$ grep "^version:" .factory/stories/STORY-INDEX.md | head -1
+version: "3.86"
+$ grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md | head -1
+version: "2.66"
+$ grep "^version:" .factory/specs/verification-properties/VP-INDEX.md | head -1
+version: "2.06"
+$ grep "^version:" .factory/specs/architecture/ARCH-INDEX.md | head -1
+version: "2.19"
+```
+4-index: STORY-INDEX v3.86 (BUMPED v3.85→v3.86); BC-INDEX v2.66 UNCHANGED; VP-INDEX v2.06 UNCHANGED; ARCH-INDEX v2.19 UNCHANGED.
+
+### Dim-7 Attestation (Closes / Advances)
+
+**Codifications:** D-543 S-17.01-V1.1-EXECUTABLE-HELPER-REFINEMENT; STORY-INDEX v3.85→v3.86; D-543 row added to decision-log.md SoT + STATE.md Decisions Log summary row.
+
+**Files touched:**
+- `.factory/stories/S-17.01-factory-lock-schema-cas-push.md` — story-writer bump v1.0→v1.1 (verified staged; executable-helper model; bats test targets; all 10 ACs unchanged)
+- `.factory/stories/STORY-INDEX.md` — story-writer bump v3.85→v3.86 (verified staged; S-17.01 body row v1.1 cite; changelog row)
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-543 row prepended (this burst)
+- `.factory/STATE.md` — frontmatter phase/current_step/last_amended advance; banner tracker +D-543; Phase Progress +D-543 row; Decisions Log +D-543; Concurrent Cycles update; Active Branches TBD-D-543; §1/§3/§4/§5/§8/§9/§11/§12 Session Resume Checkpoint refresh; D-430(a) compaction D-536..D-538 banner archived (this burst)
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — this entry (this burst)
+
+**Closes:**
+- Delivery-prep Red-Gate-feasibility defect for S-17.01 v1.0 (prose-only test targets with Rust-style test names, no host module).
+- S-17.01 v1.1 ready for test-writer Red Gate dispatch on feature/issue-170-factory-locklease.
+
+**Advances:** D-chain D-542 → D-543; next-D = D-544; RECOMMENDED ACTIVE NEXT: (a) test-writer Red Gate S-17.01 v1.1 feature/issue-170-factory-locklease; (b) rc release to ship #128+#130+#169+#176 to operators; (c) #129 canonical-principle.
+
+**Trajectory:** →9→9→9→11 (CARRIED — story-refinement burst; no adversary pass)
+
+### Factory-artifacts Commits
+
+- TBD — state(D-543): S-17.01 v1.0→v1.1 executable-helper refinement; STORY-INDEX v3.85→v3.86; D-543 codified (primary burst per TD-VSDD-053)
