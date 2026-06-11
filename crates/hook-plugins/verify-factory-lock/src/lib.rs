@@ -167,6 +167,17 @@ pub fn matches_factory_artifacts_push(command: &str) -> bool {
 /// - `Err(MalformedLockBlock)` if the block is present but malformed (EC-004,
 ///   EC-005, EC-012, EC-013).
 pub fn parse_factory_lock(content: &str) -> Result<Option<LockState>, LockCheckError> {
+    // Normalise Windows-style CRLF line endings to LF before scanning.
+    // This ensures STATE.md files edited on Windows or by certain editors (which
+    // emit `\r\n`) are parsed identically to LF-only files (O2 fix: CRLF support).
+    let normalised;
+    let content = if content.contains('\r') {
+        normalised = content.replace("\r\n", "\n");
+        normalised.as_str()
+    } else {
+        content
+    };
+
     // Extract frontmatter region: between first and second `---\n`.
     // The file starts with `---\n`; we skip that delimiter and find the closing one.
     let frontmatter = if let Some(after_open) = content.strip_prefix("---\n") {
