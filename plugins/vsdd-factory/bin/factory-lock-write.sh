@@ -209,13 +209,38 @@ _update_expires_at() {
 }
 
 # ---------------------------------------------------------------------------
+# Helper: validate that STATE.md has well-formed YAML frontmatter (opening
+# and closing --- fences). Exits non-zero with a SchemaViolation message if
+# the frontmatter is absent, single-fence, or otherwise malformed.
+# ---------------------------------------------------------------------------
+_validate_frontmatter() {
+  local file="$1"
+  local fence_count
+  fence_count="$(grep -c '^---$' "$file" 2>/dev/null || true)"
+  if [[ "$fence_count" -lt 2 ]]; then
+    printf 'factory-lock-write: SchemaViolation — %s has malformed frontmatter (need two --- fences, found %s). Fix the frontmatter before acquiring the lock.\n' \
+      "$file" "$fence_count" >&2
+    exit 1
+  fi
+}
+
+# ---------------------------------------------------------------------------
 # Mode dispatch
 # ---------------------------------------------------------------------------
 
 case "$MODE" in
 
   acquire)
-    HOLDER="$(git config user.email | tr -d '\n')"
+    # Validate frontmatter structure before any write (PC1 SchemaViolation).
+    _validate_frontmatter "$STATE_MD"
+
+    # Validate git user.email is configured and non-empty.
+    # (PC1: holder must be non-empty; git config failure exits 1 here.)
+    if ! HOLDER="$(git config user.email 2>/dev/null | tr -d '\n')" || [[ -z "$HOLDER" ]]; then
+      printf 'factory-lock-write: SchemaViolation — git config user.email is unset or empty. Run: git config user.email <your-email> to configure the lock holder.\n' >&2
+      exit 1
+    fi
+
     # Capture clock ONCE; derive both locked_at and expires_at from same epoch
     # (BC-5.40.001 Invariant 3: expires_at = locked_at + TTL_SECONDS exactly).
     _capture_now_epoch
@@ -223,6 +248,13 @@ case "$MODE" in
     EXPIRES_AT="$NOW_EXPIRES_AT"
 
     _write_factory_lock_block "$STATE_MD" "$HOLDER" "$LOCKED_AT" "$EXPIRES_AT"
+
+    # Post-write assertion: factory_lock block MUST now exist in frontmatter.
+    if ! awk '/^---$/{f++} f==1 && /^factory_lock:/{found=1} f>=2{exit} END{exit !found}' "$STATE_MD"; then
+      printf 'factory-lock-write: SchemaViolation — factory_lock block was not written to frontmatter of %s. File may have malformed structure.\n' "$STATE_MD" >&2
+      exit 1
+    fi
+
     printf 'factory-lock-write: acquired lock for %s (expires %s)\n' "$HOLDER" "$EXPIRES_AT"
     ;;
 
