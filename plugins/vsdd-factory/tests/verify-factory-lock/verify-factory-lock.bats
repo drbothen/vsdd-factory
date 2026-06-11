@@ -42,7 +42,7 @@
 # ---------------------------------------------------------------------------
 
 setup() {
-  REPO_ROOT="$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)"
+  REPO_ROOT="$(cd "${BATS_TEST_DIRNAME}/../../../.." && pwd)"
   PLUGIN_ROOT="$REPO_ROOT/plugins/vsdd-factory"
   DISPATCHER="$REPO_ROOT/target/release/factory-dispatcher"
   GUARD_WASM="$PLUGIN_ROOT/hook-plugins/verify-factory-lock.wasm"
@@ -105,6 +105,7 @@ path_allow = [".factory/STATE.md"]
 
 [hooks.capabilities.exec_subprocess]
 binary_allow = ["git"]
+env_allow = ["HOME", "GIT_CONFIG_GLOBAL", "XDG_CONFIG_HOME"]
 
 # async = false REQUIRED — see ADR-019 + ADR-025
 [[hooks]]
@@ -121,6 +122,7 @@ path_allow = [".factory/STATE.md"]
 
 [hooks.capabilities.exec_subprocess]
 binary_allow = ["git"]
+env_allow = ["HOME", "GIT_CONFIG_GLOBAL", "XDG_CONFIG_HOME"]
 EOF
 }
 
@@ -460,4 +462,42 @@ _run_dispatcher() {
 
   # Must exit 0 (Continue) — malformed expires_at → MalformedLockBlock → fail-open.
   [ "$status" -eq 0 ]
+}
+
+# ---------------------------------------------------------------------------
+# AC-016: env_allow-present assertion — production registry guard
+#
+# The production hooks-registry.toml MUST have env_allow containing HOME on
+# BOTH verify-factory-lock exec_subprocess blocks. Without this, git config
+# user.email runs in a clean environment → IdentityResolutionFailed → the
+# guard falls back to fail-open (never blocks), breaking T-2 and T-6.
+#
+# Literal-shell grep asserting exactly 2 occurrences within the verify-factory-lock
+# section of the production registry. Guards the env_allow footgun in CI.
+# ---------------------------------------------------------------------------
+
+@test "test_BC_4_13_001_registry_exec_subprocess_has_env_allow_home" {
+  local registry="$REPO_ROOT/plugins/vsdd-factory/hooks-registry.toml"
+
+  # Confirm the production registry file exists and is readable.
+  [ -f "$registry" ]
+
+  # Extract only the verify-factory-lock section(s) from the registry and count
+  # occurrences of env_allow lines containing HOME.
+  #
+  # Strategy: use awk to collect lines between a verify-factory-lock plugin
+  # declaration and the next [[hooks]] section (or EOF), then grep for env_allow
+  # lines containing HOME.
+  local count
+  count=$(awk '
+    /name = "verify-factory-lock/ { in_section=1 }
+    /^\[\[hooks\]\]/ && in_section { in_section=0 }
+    in_section && /env_allow/ && /HOME/ { count++ }
+    END { print count+0 }
+  ' "$registry")
+
+  # Must be exactly 2 — one for verify-factory-lock (Edit|Write|Agent) and one
+  # for verify-factory-lock-bash (Bash). Any fewer means a block is missing and
+  # the guard is broken for that tool class.
+  [ "$count" -eq 2 ]
 }
