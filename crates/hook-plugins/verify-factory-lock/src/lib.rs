@@ -167,7 +167,9 @@ pub fn matches_factory_artifacts_push(command: &str) -> bool {
         None => return false,
     };
 
-    let push_idx = tokens[git_idx + 1..].iter().position(|&t| t == PUSH_PATTERN_PUSH);
+    let push_idx = tokens[git_idx + 1..]
+        .iter()
+        .position(|&t| t == PUSH_PATTERN_PUSH);
     let push_idx = match push_idx {
         Some(i) => git_idx + 1 + i,
         None => return false,
@@ -175,9 +177,7 @@ pub fn matches_factory_artifacts_push(command: &str) -> bool {
 
     // factory-artifacts may appear as an exact token (bare branch name or remote)
     // anywhere after the "push" token.
-    tokens[push_idx + 1..]
-        .iter()
-        .any(|&t| t == PUSH_PATTERN_BRANCH)
+    tokens[push_idx + 1..].contains(&PUSH_PATTERN_BRANCH)
 }
 
 /// Scan the YAML frontmatter of STATE.md content for the `factory_lock:` block.
