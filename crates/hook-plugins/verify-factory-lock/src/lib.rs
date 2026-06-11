@@ -332,8 +332,9 @@ fn extract_yaml_string_value(line: &str, key: &str) -> Option<String> {
 /// Returns `Ok(dt)` on success, `Err(MalformedLockBlock)` if unparseable
 /// (EC-005).
 pub fn parse_iso8601(s: &str) -> Result<chrono::DateTime<chrono::Utc>, LockCheckError> {
-    s.parse::<chrono::DateTime<chrono::Utc>>()
-        .map_err(|e| LockCheckError::MalformedLockBlock(format!("invalid ISO-8601 datetime '{}': {}", s, e)))
+    s.parse::<chrono::DateTime<chrono::Utc>>().map_err(|e| {
+        LockCheckError::MalformedLockBlock(format!("invalid ISO-8601 datetime '{}': {}", s, e))
+    })
 }
 
 /// Compute `expires_at - now` as a human-readable duration string.
@@ -437,7 +438,11 @@ where
     }
 
     // Step 2: Read STATE.md. On HostError: log_warn + return Continue (PC6).
-    let state_bytes = match (callbacks.read_file)(".factory/STATE.md", STATE_MD_MAX_BYTES, READ_FILE_TIMEOUT_MS) {
+    let state_bytes = match (callbacks.read_file)(
+        ".factory/STATE.md",
+        STATE_MD_MAX_BYTES,
+        READ_FILE_TIMEOUT_MS,
+    ) {
         Ok(bytes) => bytes,
         Err(e) => {
             // PC6 + Invariant 6 capability-denied graceful degrade.
@@ -454,7 +459,10 @@ where
     let content = match String::from_utf8(state_bytes) {
         Ok(s) => s,
         Err(e) => {
-            (callbacks.log_warn)(&format!("StateReadError: STATE.md is not valid UTF-8: {}", e));
+            (callbacks.log_warn)(&format!(
+                "StateReadError: STATE.md is not valid UTF-8: {}",
+                e
+            ));
             return HookResult::Continue;
         }
     };
@@ -472,7 +480,10 @@ where
             return HookResult::Continue;
         }
         Err(e) => {
-            (callbacks.log_warn)(&format!("MalformedLockBlock: unexpected parse error: {:?}", e));
+            (callbacks.log_warn)(&format!(
+                "MalformedLockBlock: unexpected parse error: {:?}",
+                e
+            ));
             return HookResult::Continue;
         }
     };
@@ -535,7 +546,12 @@ where
     let time_remaining = format_time_remaining(expires_at_dt, now);
 
     // Step 10: Return Block with 5-field message (PC1 ForeignLockHeld).
-    let message = build_block_message(&lock.holder, &lock.locked_at, &lock.expires_at, &time_remaining);
+    let message = build_block_message(
+        &lock.holder,
+        &lock.locked_at,
+        &lock.expires_at,
+        &time_remaining,
+    );
     HookResult::Block { reason: message }
 }
 
@@ -557,25 +573,23 @@ pub fn on_pre_tool_use(payload: HookPayload) -> HookResult {
     guard_logic(
         payload,
         GuardCallbacks {
-            read_file: |path, max_bytes, timeout_ms| {
-                match host::read_file(path, max_bytes, timeout_ms) {
-                    Ok(bytes) => Ok(bytes),
-                    Err(e) => Err(format!("{:?}", e)),
-                }
+            read_file: |path, max_bytes, timeout_ms| match host::read_file(
+                path, max_bytes, timeout_ms,
+            ) {
+                Ok(bytes) => Ok(bytes),
+                Err(e) => Err(format!("{:?}", e)),
             },
             exec_subprocess: |argv| {
                 // argv is ["git", "config", "user.email"]
                 // host API: exec_subprocess(cmd, args, stdin, timeout_ms, max_output_bytes)
                 match argv.split_first() {
-                    Some((cmd, args)) => {
-                        match host::exec_subprocess(cmd, args, &[], 5000, 512) {
-                            Ok(result) => {
-                                let stdout = String::from_utf8_lossy(&result.stdout).into_owned();
-                                Ok((result.exit_code, stdout))
-                            }
-                            Err(e) => Err(format!("{:?}", e)),
+                    Some((cmd, args)) => match host::exec_subprocess(cmd, args, &[], 5000, 512) {
+                        Ok(result) => {
+                            let stdout = String::from_utf8_lossy(&result.stdout).into_owned();
+                            Ok((result.exit_code, stdout))
                         }
-                    }
+                        Err(e) => Err(format!("{:?}", e)),
+                    },
                     None => Err("exec_subprocess: empty argv".to_string()),
                 }
             },
@@ -1226,9 +1240,7 @@ mod tests {
                 "Expected MalformedLockBlock for empty holder, but got Ok(Some(lock)) with holder: '{}'",
                 lock.holder
             ),
-            Ok(None) => panic!(
-                "Expected MalformedLockBlock for empty holder, but got Ok(None)"
-            ),
+            Ok(None) => panic!("Expected MalformedLockBlock for empty holder, but got Ok(None)"),
             Err(other) => panic!(
                 "Expected MalformedLockBlock for empty holder, but got: {:?}",
                 other
