@@ -76,25 +76,42 @@ if [[ ! -f "$STATE_MD" ]]; then
 fi
 
 # ---------------------------------------------------------------------------
-# Helper: compute ISO-8601 UTC timestamp for now + N seconds
+# Helper: format an epoch (seconds since 1970-01-01T00:00:00Z) as ISO-8601 UTC.
 # Supports both BSD date (macOS) and GNU date (Linux).
 # ---------------------------------------------------------------------------
-_now_plus_seconds() {
-  local delta="$1"
+_epoch_to_iso() {
+  local epoch="$1"
   if date --version >/dev/null 2>&1; then
     # GNU date
-    date -u -d "+${delta} seconds" +%Y-%m-%dT%H:%M:%SZ
+    date -u -d "@${epoch}" +%Y-%m-%dT%H:%M:%SZ
   else
-    # BSD date (macOS): -v+Ns where N is in seconds
-    date -u -v "+${delta}S" +%Y-%m-%dT%H:%M:%SZ
+    # BSD date (macOS)
+    date -u -r "${epoch}" +%Y-%m-%dT%H:%M:%SZ
   fi
 }
 
 # ---------------------------------------------------------------------------
-# Helper: compute ISO-8601 UTC timestamp for the current moment.
+# Helper: capture the current epoch ONCE and set two variables:
+#   NOW_LOCKED_AT  — ISO-8601 UTC string for this moment
+#   NOW_EXPIRES_AT — ISO-8601 UTC string for this moment + TTL_SECONDS
+# Both are derived from a SINGLE clock read (BC-5.40.001 Invariant 3).
 # ---------------------------------------------------------------------------
-_now_iso() {
-  date -u +%Y-%m-%dT%H:%M:%SZ
+_capture_now_epoch() {
+  local now_epoch
+  now_epoch="$(date -u +%s)"
+  NOW_LOCKED_AT="$(_epoch_to_iso "$now_epoch")"
+  NOW_EXPIRES_AT="$(_epoch_to_iso "$(( now_epoch + TTL_SECONDS ))")"
+}
+
+# ---------------------------------------------------------------------------
+# Helper: compute ISO-8601 UTC timestamp for the current moment + N seconds.
+# Used by renew mode only (does not need to share epoch with locked_at).
+# ---------------------------------------------------------------------------
+_now_plus_seconds() {
+  local delta="$1"
+  local epoch
+  epoch="$(date -u +%s)"
+  _epoch_to_iso "$(( epoch + delta ))"
 }
 
 # ---------------------------------------------------------------------------
@@ -181,8 +198,11 @@ case "$MODE" in
 
   acquire)
     HOLDER="$(git config user.email | tr -d '\n')"
-    LOCKED_AT="$(_now_iso)"
-    EXPIRES_AT="$(_now_plus_seconds "$TTL_SECONDS")"
+    # Capture clock ONCE; derive both locked_at and expires_at from same epoch
+    # (BC-5.40.001 Invariant 3: expires_at = locked_at + TTL_SECONDS exactly).
+    _capture_now_epoch
+    LOCKED_AT="$NOW_LOCKED_AT"
+    EXPIRES_AT="$NOW_EXPIRES_AT"
 
     _write_factory_lock_block "$STATE_MD" "$HOLDER" "$LOCKED_AT" "$EXPIRES_AT"
     printf 'factory-lock-write: acquired lock for %s (expires %s)\n' "$HOLDER" "$EXPIRES_AT"
