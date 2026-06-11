@@ -84,7 +84,154 @@ if [[ ! -f "$STATE_MD" ]]; then
 fi
 
 # ---------------------------------------------------------------------------
-# TODO(S-17.03): factory-lock-acquire-precheck not implemented
+# Helper: extract a sub-field value from factory_lock block in frontmatter.
+# Argument: field name (e.g. "holder", "locked_at", "expires_at")
+# Prints the value without surrounding quotes, or empty string if not found.
 # ---------------------------------------------------------------------------
-printf 'TODO(S-17.03): factory-lock-acquire-precheck not implemented\n' >&2
+_extract_lock_field() {
+  local field="$1"
+  awk -v field="$field" '
+    /^---$/ { fence++; next }
+    fence == 1 && /^factory_lock:/ { in_lock=1; next }
+    fence == 1 && in_lock && /^  / {
+      if ($0 ~ "^  " field ":") {
+        val = $0
+        sub("^  " field ": *", "", val)
+        gsub(/^"/, "", val)
+        gsub(/"$/, "", val)
+        print val
+        exit
+      }
+    }
+    fence == 1 && in_lock && !/^  / { in_lock=0 }
+    fence >= 2 { exit }
+  ' "$STATE_MD" 2>/dev/null
+}
+
+# ---------------------------------------------------------------------------
+# Helper: convert ISO-8601 UTC timestamp to Unix epoch seconds.
+# Supports BSD date (macOS) and GNU date (Linux).
+# ---------------------------------------------------------------------------
+_iso_to_epoch() {
+  local ts="$1"
+  if date --version >/dev/null 2>&1; then
+    # GNU date
+    date -u -d "${ts}" +%s 2>/dev/null || true
+  else
+    # BSD date (macOS)
+    date -u -j -f "%Y-%m-%dT%H:%M:%SZ" "${ts}" +%s 2>/dev/null || true
+  fi
+}
+
+# ---------------------------------------------------------------------------
+# Helper: compute human-readable time remaining from seconds.
+# Rounds down to nearest minute.
+# ---------------------------------------------------------------------------
+_seconds_to_human() {
+  local secs="$1"
+  if [[ "$secs" -le 0 ]]; then
+    printf '0 min'
+    return
+  fi
+  local mins=$(( secs / 60 ))
+  if [[ "$mins" -ge 60 ]]; then
+    local hrs=$(( mins / 60 ))
+    local rem_mins=$(( mins % 60 ))
+    if [[ "$rem_mins" -gt 0 ]]; then
+      printf '%d hr %d min remaining' "$hrs" "$rem_mins"
+    else
+      printf '%d hr remaining' "$hrs"
+    fi
+  else
+    printf '%d min remaining' "$mins"
+  fi
+}
+
+# ---------------------------------------------------------------------------
+# Step 1: git fetch origin factory-artifacts (EC-006 guard)
+# Must complete before any lock state is read.
+# ---------------------------------------------------------------------------
+if ! git fetch origin factory-artifacts 2>/dev/null; then
+  printf 'Fetch failed before lock check. Cannot acquire safely.\n' >&2
+  exit 2
+fi
+
+# ---------------------------------------------------------------------------
+# Step 2: git config user.email (EC-007 guard)
+# ---------------------------------------------------------------------------
+CURRENT_EMAIL=""
+if ! CURRENT_EMAIL="$(git config user.email 2>/dev/null | tr -d '\n')" || [[ -z "$CURRENT_EMAIL" ]]; then
+  printf 'git user.email not configured — cannot acquire factory lock.\n' >&2
+  exit 2
+fi
+
+# ---------------------------------------------------------------------------
+# Step 3: Read local STATE.md factory_lock block
+# Check if factory_lock key is present in frontmatter
+# ---------------------------------------------------------------------------
+HAS_LOCK=false
+if awk '/^---$/{f++} f==1 && /^factory_lock:/{found=1} f>=2{exit} END{exit !found}' "$STATE_MD" 2>/dev/null; then
+  HAS_LOCK=true
+fi
+
+# ---------------------------------------------------------------------------
+# Step 4-6: Decision tree
+# ---------------------------------------------------------------------------
+
+if [[ "$HAS_LOCK" == "false" ]]; then
+  # Absent lock — proceed
+  printf 'PROCEED_ACQUIRE\n'
+  exit 0
+fi
+
+# Lock block is present — extract fields
+HOLDER="$(_extract_lock_field "holder")"
+LOCKED_AT="$(_extract_lock_field "locked_at")"
+EXPIRES_AT="$(_extract_lock_field "expires_at")"
+
+# Malformed block (missing required fields) — treat as absent, proceed
+if [[ -z "$HOLDER" || -z "$LOCKED_AT" || -z "$EXPIRES_AT" ]]; then
+  printf 'PROCEED_ACQUIRE\n'
+  exit 0
+fi
+
+# Check expiry (BC-4.13.001 PC2: now >= expires_at is expired)
+NOW_EPOCH="$(date -u +%s 2>/dev/null || true)"
+EXPIRES_EPOCH="$(_iso_to_epoch "$EXPIRES_AT")"
+
+if [[ -z "$EXPIRES_EPOCH" || -z "$NOW_EPOCH" ]]; then
+  # Cannot parse — treat as absent, proceed
+  printf 'PROCEED_ACQUIRE\n'
+  exit 0
+fi
+
+if [[ "$NOW_EPOCH" -ge "$EXPIRES_EPOCH" ]]; then
+  # Expired lock — treat as absent (EC-002)
+  printf 'PROCEED_ACQUIRE\n'
+  exit 0
+fi
+
+# Lock is unexpired. Compare holder to current email.
+if [[ "$HOLDER" == "$CURRENT_EMAIL" ]]; then
+  # Step 4: Self-held, unexpired — NOOP_SELF_HELD (EC-001)
+  printf 'NOOP_SELF_HELD\n'
+  printf 'Already held by this session.\n'
+  exit 0
+fi
+
+# Step 5: Foreign unexpired lock — REFUSED_FOREIGN_LOCK (PC3)
+# Compute time remaining
+REMAINING_SECS=$(( EXPIRES_EPOCH - NOW_EPOCH ))
+TIME_REMAINING="$(_seconds_to_human "$REMAINING_SECS")"
+
+{
+  printf 'REFUSED_FOREIGN_LOCK\n'
+  printf 'Factory lock is held by another session.\n'
+  printf '  Holder:          %s\n' "$HOLDER"
+  printf '  Locked at:       %s\n' "$LOCKED_AT"
+  printf '  Expires at:      %s\n' "$EXPIRES_AT"
+  printf '  Time remaining:  %s\n' "$TIME_REMAINING"
+  printf '  To force-release: /factory-unlock --force\n'
+} >&2
+
 exit 1

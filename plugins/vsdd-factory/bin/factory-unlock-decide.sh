@@ -90,7 +90,100 @@ if [[ -n "$FORCE_FLAG" && "$FORCE_FLAG" != "--force" ]]; then
 fi
 
 # ---------------------------------------------------------------------------
-# TODO(S-17.03): factory-unlock-decide not implemented
+# Helper: extract a sub-field value from factory_lock block in frontmatter.
+# Argument: field name (e.g. "holder", "locked_at", "expires_at")
+# Prints the value without surrounding quotes, or empty string if not found.
 # ---------------------------------------------------------------------------
-printf 'TODO(S-17.03): factory-unlock-decide not implemented\n' >&2
-exit 1
+_extract_lock_field() {
+  local field="$1"
+  awk -v field="$field" '
+    /^---$/ { fence++; next }
+    fence == 1 && /^factory_lock:/ { in_lock=1; next }
+    fence == 1 && in_lock && /^  / {
+      if ($0 ~ "^  " field ":") {
+        val = $0
+        sub("^  " field ": *", "", val)
+        gsub(/^"/, "", val)
+        gsub(/"$/, "", val)
+        print val
+        exit
+      }
+    }
+    fence == 1 && in_lock && !/^  / { in_lock=0 }
+    fence >= 2 { exit }
+  ' "$STATE_MD" 2>/dev/null
+}
+
+# ---------------------------------------------------------------------------
+# Helper: produce ISO-8601 UTC timestamp for the current moment.
+# ---------------------------------------------------------------------------
+_now_iso() {
+  date -u +%Y-%m-%dT%H:%M:%SZ 2>/dev/null
+}
+
+# ---------------------------------------------------------------------------
+# Check if factory_lock key is present in frontmatter
+# ---------------------------------------------------------------------------
+HAS_LOCK=false
+if awk '/^---$/{f++} f==1 && /^factory_lock:/{found=1} f>=2{exit} END{exit !found}' "$STATE_MD" 2>/dev/null; then
+  HAS_LOCK=true
+fi
+
+# ---------------------------------------------------------------------------
+# Decision tree
+# ---------------------------------------------------------------------------
+
+if [[ "$HAS_LOCK" == "false" ]]; then
+  # EC-003 / EC-005: absent lock — no-op regardless of --force
+  printf 'NOOP_ABSENT\n'
+  exit 0
+fi
+
+# Lock block is present — extract fields
+HOLDER="$(_extract_lock_field "holder")"
+LOCKED_AT="$(_extract_lock_field "locked_at")"
+
+# Malformed block (missing required fields) — treat as absent
+if [[ -z "$HOLDER" || -z "$LOCKED_AT" ]]; then
+  printf 'NOOP_ABSENT\n'
+  exit 0
+fi
+
+NOW_ISO="$(_now_iso)"
+
+if [[ "$FORCE_FLAG" == "--force" ]]; then
+  # Force path
+  if [[ "$HOLDER" == "$CURRENT_EMAIL" ]]; then
+    # EC-010: self-force — emit released NOT stolen (stolen_by == stolen_from is meaningless)
+    printf 'PROCEED_RELEASE_SELF_FORCE\n'
+    printf 'holder=%s\n' "$HOLDER"
+    printf 'locked_at=%s\n' "$LOCKED_AT"
+    printf 'released_at=%s\n' "$NOW_ISO"
+    exit 0
+  else
+    # PC6: force-steal on foreign lock — emit factory.lock.stolen with 4 fields
+    printf 'PROCEED_FORCE_STEAL\n'
+    printf 'stolen_by=%s\n' "$CURRENT_EMAIL"
+    printf 'stolen_from=%s\n' "$HOLDER"
+    printf 'holder_locked_at=%s\n' "$LOCKED_AT"
+    printf 'stolen_at=%s\n' "$NOW_ISO"
+    exit 0
+  fi
+else
+  # Plain unlock path
+  if [[ "$HOLDER" == "$CURRENT_EMAIL" ]]; then
+    # PC4: self-release
+    printf 'PROCEED_RELEASE\n'
+    printf 'holder=%s\n' "$HOLDER"
+    printf 'locked_at=%s\n' "$LOCKED_AT"
+    printf 'released_at=%s\n' "$NOW_ISO"
+    exit 0
+  else
+    # PC5: non-holder rejection
+    {
+      printf 'REFUSED_NOT_HOLDER\n'
+      printf 'Cannot unlock — factory is held by %s. Use /factory-unlock --force to force-release.\n' "$HOLDER"
+    } >&2
+    exit 1
+  fi
+fi

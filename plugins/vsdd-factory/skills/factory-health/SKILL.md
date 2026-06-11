@@ -93,7 +93,25 @@ test -f .factory/reference-manifest.yaml
   - Report count: `Reference repos: <N>/<total> present`
 - **If no manifest**: Skip — this is a from-scratch project.
 
-### 7. Sync state
+### 7. Factory lock status (BC-6.23.001 PC7 — shared helper)
+
+Invoke the shared three-state lock status helper:
+
+```bash
+plugins/vsdd-factory/bin/factory-lock-status.sh .factory/STATE.md "$(git config user.email)"
+```
+
+Append the output line to the health report. The helper returns one of:
+- `Factory lock: FREE` — no lock held or lock expired
+- `Factory lock: HELD by this session (expires <expires_at>)` — self-held, unexpired
+- `Factory lock: HELD by <holder_email> since <locked_at> (expires <expires_at>)` — foreign, unexpired
+- `Factory lock: FREE (malformed block — treated as unlocked)` — parse failure, fail-open
+
+This check reads the LOCAL STATE.md (no fetch required — local view is what matters for
+informational display). Invokes the shared `factory-lock-status.sh` helper (AC-008
+shared-helper mandate) so display cannot diverge from `/factory-worktree-health`.
+
+### 8. Sync state
 
 ```bash
 cd .factory && git status --porcelain

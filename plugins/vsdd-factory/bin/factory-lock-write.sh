@@ -307,7 +307,11 @@ case "$MODE" in
 
     # Validate git user.email is configured and non-empty.
     # (PC1: holder must be non-empty; git config failure exits 1 here.)
-    if ! HOLDER="$(git config user.email 2>/dev/null | tr -d '\n')" || [[ -z "$HOLDER" ]]; then
+    # Use the git repo containing STATE.md (via -C <dir>) so that repository-local
+    # git config is respected even when the caller's HOME / GIT_CONFIG_GLOBAL are
+    # overridden (S-17.03 integration test fixture; factory-lock acquire context).
+    _STATE_MD_DIR="$(dirname "$STATE_MD")"
+    if ! HOLDER="$(git -C "$_STATE_MD_DIR" config user.email 2>/dev/null | tr -d '\n')" || [[ -z "$HOLDER" ]]; then
       printf 'factory-lock-write: SchemaViolation — git config user.email is unset or empty. Run: git config user.email <your-email> to configure the lock holder.\n' >&2
       exit 1
     fi
