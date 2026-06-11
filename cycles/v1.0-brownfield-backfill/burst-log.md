@@ -6970,4 +6970,4 @@ STATE.md current_step confirms: D-546 S-17.03-V1.1-EXECUTABLE-HELPER-REFINEMENT;
 
 ### Factory-artifacts Commits
 
-- TBD — state(D-546): S-17.03 v1.0→v1.1 EXECUTABLE-HELPER REFINEMENT; STORY-INDEX v3.90→v3.91; D-546 codified (primary burst per TD-VSDD-053)
+- `171a9413` — state(D-546): S-17.03 v1.0→v1.1 EXECUTABLE-HELPER REFINEMENT; STORY-INDEX v3.90→v3.91; D-546 codified (primary burst per TD-VSDD-053)

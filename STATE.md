@@ -125,7 +125,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | 2a191314 | rc.20 SHIPPED 2026-06-01; bot binary commit on top of --merge from develop; prior: 43afbfa7 (rc.19 2026-05-28) |
 | develop | df4f26b8 | D-545 PR #182 S-17.02 SQUASH-MERGED 2026-06-11; verify-factory-lock WASM guard DELIVERED; prior: c64b46d2 (D-544 PR #181 S-17.01 2026-06-11) |
-| factory-artifacts | `e9a22a0b` (pre-burst; post-burst SHA TBD — run `git -C .factory log -1 --format='%h'`) | D-546 S-17.03-V1.1-EXECUTABLE-HELPER-REFINEMENT-2026-06-11 (prior: `735b9168` D-545; prior-prior: `37414e5a` D-544-sha-patch) |
+| factory-artifacts | `171a9413` | D-546 S-17.03-V1.1-EXECUTABLE-HELPER-REFINEMENT-2026-06-11 (prior: `735b9168` D-545; prior-prior: `37414e5a` D-544-sha-patch) |
 | v1.0.0-rc.20 (tag) | e9e38286 | SHIPPED 2026-06-01; annotated tag object; GitHub Release prerelease; marketplace PR drbothen/claude-mp #12 squash-merged 862e660d |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28; GitHub Release prerelease 2026-05-28T15:10:56Z; marketplace PR #11 squash-merged |
 | v1.0.0-rc.18 (tag) | 666d689f | SHIPPED 2026-05-13 PR #135 |
@@ -303,7 +303,7 @@ Prior Tier-A (pre-session, all COMPLETE): TD #71/72/70/74 (PRs #138–141) + S-1
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** post-D-546 (see `git -C .factory log -1`); prior: `735b9168` D-545; prior-prior: `37414e5a` D-544-sha-patch
+- **factory-artifacts HEAD:** `171a9413` D-546 S-17.03-V1.1-EXECUTABLE-HELPER-REFINEMENT-2026-06-11 (prior: `735b9168` D-545; prior-prior: `37414e5a` D-544-sha-patch)
 - **develop HEAD:** `df4f26b8` (D-545 PR #182 S-17.02 squash-merge 2026-06-11; prior: `c64b46d2` D-544 PR #181 S-17.01 2026-06-11)
 - **main HEAD:** `2a191314` (rc.20 bot binary commit 2026-06-01; prior: `43afbfa7` rc.19 2026-05-28)
 - **v1.0.0-rc.20 tag:** `e9e38286` (annotated tag object; GitHub Release prerelease 2026-06-01; marketplace PR #12 squash-merged 862e660d)
