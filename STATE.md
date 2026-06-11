@@ -5,14 +5,14 @@ version: "2.0"
 status: draft
 producer: state-manager
 timestamp: 2026-06-11T00:00:00Z
-phase: D-549-SESSION-END-DURABILITY-BURST-2026-06-11
-last_amended: 2026-06-11 (v2.99) — D-549 SESSION-END DURABILITY BURST: ADR-025 v1.4→v1.5 (F-1701-001 gate-trigger: primary factory-cas-push + secondary git push; block-message one-liner; D12 jq binary_allow 4th-footgun); S-17.04 v1.0→v1.1 (AC-002 belt-and-suspenders trigger; 4 EC fail-open Red Gate tests; count 8→12); ARCH-INDEX v2.21→v2.22; STORY-INDEX v3.93→v3.94; #170/E-17 COMPLETE (3 stories merged); S-17.04 IN-FLIGHT (feature/S-17.04 @ f627a1c5 pushed, 16/16 bats, NOT merged); OPEN DESIGN DECISION: Mechanism 2 gate-enforcement chokepoint (A/B/C) pending user choice; D-chain cite D-548; parent-commit cedeb825. [Prior: 2026-06-11 (v2.98) — D-548 ADR-025 v1.3→v1.4 + S-17.04 CODIFIED. [Prior: 2026-06-11 (v2.97) — D-547 S-17.03 DELIVERED/MERGED PR #183 60fd0233; BC-6.23.001 ACTIVE; issue #170 CLOSED; E-17 3/3 COMPLETE. [Prior: 2026-06-11 (v2.96) — D-546 S-17.03 v1.1 helpers. [Prior: 2026-06-11 (v2.95) — D-545 S-17.02 MERGED df4f26b8. [Prior: 2026-06-11 (v2.94) — D-544 S-17.01 MERGED c64b46d2. [Prior: 2026-06-10 (v2.93) — D-543 S-17.01 v1.1 helpers. [Prior: 2026-06-10 (v2.92) — D-542 E-17+3 stories. [Prior: 2026-06-10 (v2.91) — D-541 3-BCs. [Prior: 2026-06-10 (v2.90) — D-540 ADR-025 ADOPTED.]]]]]]]]]]
+phase: D-550-ADR-025-V1.6-S-17.04-V1.2-REDIRECT-CODIFIED-2026-06-11
+last_amended: 2026-06-11 (v3.00) — D-550 ADR-025 v1.5→v1.6 + S-17.04 v1.1→v1.2 REDIRECT (human-approved): Decision 11 Mechanism 2 bash gate WITHDRAWN; Decision 12 verify-state-timestamp-refresh WASM PreToolUse guard ADOPTED (fires on Edit/Write to .factory/STATE.md; blocks TimestampStale + LockExpiryStale; on_error=continue fail-open); push-time cas-push chokepoint dropped; D15 factory-lock-parse shared crate + D16 guard + D17 tests; S-17.04 v1.2 8pts SS-04+SS-05 10ACs 12 Red Gate tests; ARCH-INDEX v2.22→v2.23; STORY-INDEX v3.94→v3.95; BC impact NONE; D-chain cite D-549; parent-commit 29ee394b. [Prior: 2026-06-11 (v2.99) — D-549 SESSION-END DURABILITY BURST: ADR-025 v1.4→v1.5. S-17.04 v1.0→v1.1. ARCH-INDEX v2.22. STORY-INDEX v3.94. OPEN DESIGN DECISION. [Prior: 2026-06-11 (v2.98) — D-548 ADR-025 v1.3→v1.4 + S-17.04 CODIFIED. [Prior: 2026-06-11 (v2.97) — D-547 S-17.03 DELIVERED/MERGED PR #183 60fd0233; BC-6.23.001 ACTIVE; issue #170 CLOSED; E-17 3/3 COMPLETE. [Prior: 2026-06-11 (v2.96) — D-546 S-17.03 v1.1 helpers. [Prior: 2026-06-11 (v2.95) — D-545 S-17.02 MERGED df4f26b8. [Prior: 2026-06-11 (v2.94) — D-544 S-17.01 MERGED c64b46d2. [Prior: 2026-06-10 (v2.93) — D-543 S-17.01 v1.1 helpers. [Prior: 2026-06-10 (v2.92) — D-542 E-17+3 stories. [Prior: 2026-06-10 (v2.91) — D-541 3-BCs. [Prior: 2026-06-10 (v2.90) — D-540 ADR-025 ADOPTED.]]]]]]]]]]]]
 inputs: []
 input-hash: "[live-state]"
 traces_to: prd.md
 project: vsdd-factory
 mode: brownfield
-current_step: "D-549 SESSION-END-DURABILITY-BURST 2026-06-11 — SESSION-END DURABILITY BURST + S-17.04 SPEC-EVOLUTION CODIFIED: ADR-025 v1.4→v1.5 [F-1701-001/F-1704-001] gate-trigger corrected (primary factory-cas-push helper — state-burst SKILL runs `bash factory-cas-push.sh`; real git push is subprocess invisible to PreToolUse; v1.4 git.*push.*factory-artifacts was inert) + block-message reconciled (legacy-bash-adapter one-liner form) + D12 binary_allow [bash,git,jq] (jq required for STATE.md frontmatter parse; 4th deny-by-default silent-no-op vector closed); S-17.04 v1.0→v1.1 [AC-002 belt-and-suspenders trigger: primary factory-cas-push + secondary git.*push.*factory-artifacts; block_pre one-liner; 4 EC fail-open Red Gate tests added EC-002/004/005/007; Red Gate count 8→12]; ARCH-INDEX v2.21→v2.22; STORY-INDEX v3.93→v3.94; #170/E-17 COMPLETE (D-544 S-17.01 c64b46d2 + D-545 S-17.02 df4f26b8 + D-547 S-17.03 60fd0233 ALL MERGED; BC-5.40.001+BC-4.13.001+BC-6.23.001 ACTIVE; issue #170 CLOSED); S-17.04 IN-FLIGHT (feature/S-17.04-mid-burst-heartbeat-renewal-wiring @ f627a1c5 PUSHED origin, worktree .worktrees/S-17.04, 16/16 bats green, LOCAL adversary last pass 0C+0H+0M+1LOW F-A-001 env-comment, NOT merged); OPEN DESIGN DECISION = RESUME ENTRY POINT: Mechanism 2 gate is BRITTLE (hook layer sees only outer bash command not inner git push subprocess; undecidable parse; 4 tokenizer failure vectors); RECOMMENDED fix = move enforcement INTO factory-cas-push.sh chokepoint + keep Mechanism 1 + drop gate; 3 options pending user choice: A chokepoint [RECOMMENDED] B WASM [doesn't fix brittleness] C Rust-ify [epic]; 4-index: BC-INDEX v2.72 UNCHANGED STORY-INDEX v3.93→v3.94 VP-INDEX v2.06 UNCHANGED ARCH-INDEX v2.21→v2.22; trajectory-tail →9→9→9→11; maintain all 5 BC-5.39.006 v1.7 PCs per TD-VSDD-097-EXT; D-chain cite D-548 per D-419(b); parent-commit cedeb825 per D-419(b). SIZE BUDGET: see banner tracker row D-549"
+current_step: "D-550 ADR-025-V1.6-S-17.04-V1.2-REDIRECT 2026-06-11 — ARCHITECTURE REDIRECT CODIFIED (human-approved): ADR-025 v1.5→v1.6 Decision 11 Mechanism 2 bash gate WITHDRAWN; Decision 12 verify-state-timestamp-refresh WASM PreToolUse guard ADOPTED [fires on Edit/Write to .factory/STATE.md; blocks TimestampStale + LockExpiryStale; on_error=continue fail-open; async=false; tool=Edit|Write]; push-time cas-push chokepoint dropped (freshness guaranteed at write-time); D15 factory-lock-parse shared crate + D16 verify-state-timestamp-refresh WASM plugin + D17 Rust unit + bats tests; S-17.04 v1.1→v1.2 [10 ACs; 12 Red Gate tests (9 Rust unit + 3 bats); 5→8pts; SS-07 removed SS-04 added; subsystems SS-04+SS-05]; 4-index: BC-INDEX v2.72 UNCHANGED VP-INDEX v2.06 UNCHANGED STORY-INDEX v3.94→v3.95 ARCH-INDEX v2.22→v2.23; trajectory-tail →9→9→9→11; maintain all 5 BC-5.39.006 v1.7 PCs per TD-VSDD-097-EXT; D-chain cite D-549 per D-419(b); parent-commit 29ee394b per D-419(b). SIZE BUDGET: see banner tracker row D-550"
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -53,6 +53,7 @@ dtu_services: []
   D-547-S-17.03-DELIVERED-MERGED-2026-06-11 415 lines (wc-l; D-547 row + BC-6.23.001 POL-14 active + §1/§3/§4/§5/§8/§9/§10/§11/§12 refresh; issue #170 CLOSED; E-17 3/3 COMPLETE; STORY-INDEX v3.91→v3.92; BC-INDEX v2.71→v2.72; develop 60fd0233; D-430(a) compaction: Phase Progress D-544+D-545 rows → D-532..D-545 archive row; Decisions Log D-527..D-531 folded; AT soft 415; margin 500-415=85 from hard cap; D-446(c) dual-margin form).
   D-548-ADR-025-V1.4-S-17.04-AUTO-RENEW-WIRING-CODIFIED-2026-06-11 412 lines (wc-l; D-548 row + ADR-025 v1.4 Decision 11 + S-17.04 E-17 wave 4 draft + ARCH-INDEX v2.21 + STORY-INDEX v3.93; §1/§3/§4/§5/§8/§9/§10/§11/§12 refresh; D-430(a): dup banner entry + D-545-carry-superseded + 2 PR rows compacted; -3 under soft 415; margin 500-412=88 from hard cap; D-446(c) dual-margin form).
   D-549-SESSION-END-DURABILITY-BURST-2026-06-11 340 lines (wc-l; ADR-025 v1.4→v1.5 + S-17.04 v1.0→v1.1 codified; ARCH-INDEX v2.21→v2.22; STORY-INDEX v3.93→v3.94; §1-§12 Session Resume Checkpoint full refresh; OPEN DESIGN DECISION as resume entry point; D-430(a): D-532..D-548 Phase Progress rows archived to single row; D-430(a): §4-§7 compacted; -75 under soft 415; margin 500-340=160 from hard cap; D-446(c) dual-margin form).
+  D-550-ADR-025-V1.6-S-17.04-V1.2-REDIRECT-CODIFIED-2026-06-11 336 lines (wc-l; ADR-025 v1.5→v1.6 + S-17.04 v1.1→v1.2 REDIRECT; ARCH-INDEX v2.22→v2.23; STORY-INDEX v3.94→v3.95; §1/§3/§4/§5/§8/§9/§11/§12 Session Resume refresh; OPEN DESIGN DECISION RESOLVED; D-550 row added; -79 under soft 415; margin 500-336=164 from hard cap; D-446(c) dual-margin form).
 -->
 
 # Pipeline State: vsdd-factory
@@ -68,8 +69,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-06-11 — D-549 SESSION-END DURABILITY BURST: ADR-025 v1.4→v1.5; S-17.04 v1.0→v1.1; ARCH-INDEX v2.21→v2.22; STORY-INDEX v3.93→v3.94; #170/E-17 COMPLETE; S-17.04 IN-FLIGHT f627a1c5; OPEN DESIGN DECISION (Mechanism 2 chokepoint A/B/C); trajectory-tail →9→9→9→11. |
-| **Current Phase** | D-549 SESSION-END-DURABILITY-BURST 2026-06-11 — ADR-025 v1.5 (F-1701-001 gate-trigger + block-msg + D12-jq 4th-footgun); S-17.04 v1.1 (AC-002 belt-and-suspenders + 4 EC Red Gate tests; count 8→12); #170/E-17 COMPLETE; S-17.04 IN-FLIGHT NOT merged; OPEN DESIGN DECISION: Mechanism 2 gate brittleness (A/B/C pending). Next: RESOLVE OPEN DESIGN DECISION → per choice rework or merge S-17.04 → rc.21 release → #173 wave-checkpoint. |
+| **Last Updated** | 2026-06-11 — D-550 ADR-025 v1.5→v1.6 REDIRECT (human-approved); S-17.04 v1.1→v1.2 (WASM guard Decision 12 + D15/D16/D17; 10 ACs; 8pts; SS-04+SS-05); ARCH-INDEX v2.22→v2.23; STORY-INDEX v3.94→v3.95; OPEN DESIGN DECISION RESOLVED; trajectory-tail →9→9→9→11. |
+| **Current Phase** | D-550 ADR-025-V1.6-S-17.04-V1.2-REDIRECT 2026-06-11 — Architecture redirect codified: Decision 11 Mechanism 2 bash gate WITHDRAWN; Decision 12 verify-state-timestamp-refresh WASM guard ADOPTED (write-time enforcement; structurally bypass-proof); D15/D16/D17 deliverables; S-17.04 v1.2 re-scoped (8pts SS-04+SS-05). OPEN DESIGN DECISION RESOLVED. Next: TDD delivery of S-17.04 v1.2 on .worktrees/S-17.04 → rc.21 release. |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Phase Progress
@@ -89,6 +90,7 @@ dtu_services: []
 | D-526 S-15.17 SHIPPED — PR #164 9ed17b1d | **SHIPPED 2026-05-31** | validate-trajectory-tail-cell-completeness WASM hook; priority 158; BC-5.39.009 POL-14 draft→active; ADV-EDP1-P75-HIGH-002 CLOSED; BC-INDEX v2.65; STORY-INDEX v3.84; develop HEAD 9ed17b1d |
 | D-532..D-548 (2026-06-08..2026-06-11) | **ARCHIVED 2026-06-11 per D-430(a)** | D-532 SESSION-END; D-535 #128 MERGED f6ce4b7c; D-537 #130 MERGED 89fbe2d6 ADR-024 v1.2; D-539 #169+#176 MERGED 0f4793f1; D-540 ADR-025 ADOPTED; D-541 3-BCS; D-542 E-17+stories; D-543 S-17.01 v1.1; D-544 S-17.01 MERGED c64b46d2 BC-5.40.001 ACTIVE E-17 1/3; D-545 S-17.02 MERGED df4f26b8 BC-4.13.001 ACTIVE ADR-025 v1.3 E-17 2/3; D-546 S-17.03 v1.1 helpers; D-547 S-17.03 MERGED 60fd0233 BC-6.23.001 ACTIVE E-17 3/3 issue #170 CLOSED; D-548 ADR-025 v1.4+S-17.04 CODIFIED ARCH-INDEX v2.21 STORY-INDEX v3.93. Full rows: decision-log.md SoT. |
 | D-549 SESSION-END DURABILITY BURST 2026-06-11 | **COMPLETE** | ADR-025 v1.4→v1.5 (F-1701-001 gate-trigger + block-message + D12-jq 4th-footgun); S-17.04 v1.0→v1.1 (AC-002 belt-and-suspenders + 4 EC Red Gate tests; count 8→12); ARCH-INDEX v2.21→v2.22; STORY-INDEX v3.93→v3.94; #170/E-17 COMPLETE recorded; S-17.04 IN-FLIGHT @ f627a1c5; OPEN DESIGN DECISION (Mechanism 2 chokepoint A/B/C) as resume entry point |
+| D-550 ADR-025-V1.6-S-17.04-V1.2-REDIRECT 2026-06-11 | **COMPLETE** | ADR-025 v1.5→v1.6 (human-approved): Decision 11 Mechanism 2 bash gate WITHDRAWN; Decision 12 verify-state-timestamp-refresh WASM PreToolUse guard ADOPTED; D15 factory-lock-parse shared crate + D16 plugin + D17 tests; S-17.04 v1.1→v1.2 (10 ACs; 12 Red Gate tests; 8pts; SS-04+SS-05); ARCH-INDEX v2.22→v2.23; STORY-INDEX v3.94→v3.95; BC impact NONE; OPEN DESIGN DECISION RESOLVED |
 
 ## Current Phase Steps
 
@@ -126,7 +128,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | 2a191314 | rc.20 SHIPPED 2026-06-01; bot binary commit on top of --merge from develop; prior: 43afbfa7 (rc.19 2026-05-28) |
 | develop | 60fd0233 | D-547 PR #183 S-17.03 SQUASH-MERGED 2026-06-11; issue #170 CLOSED; E-17 3/3 COMPLETE; prior: df4f26b8 (D-545 PR #182 S-17.02 2026-06-11) |
-| factory-artifacts | D-549 (see `git -C .factory log -1`) | D-549 SESSION-END DURABILITY BURST 2026-06-11; prior: `e5af78f7` D-548; prior-prior: `e2bda434` D-547-sha-patch |
+| factory-artifacts | D-550 (see `git -C .factory log -1`) | D-550 ADR-025 v1.6 + S-17.04 v1.2 REDIRECT 2026-06-11; prior: `29ee394b` D-549-sha-patch; prior-prior: `1d6c67c1` D-549 |
 | v1.0.0-rc.20 (tag) | e9e38286 | SHIPPED 2026-06-01; annotated tag object; GitHub Release prerelease; marketplace PR drbothen/claude-mp #12 squash-merged 862e660d |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28; GitHub Release prerelease 2026-05-28T15:10:56Z; marketplace PR #11 squash-merged |
 | v1.0.0-rc.18 (tag) | 666d689f | SHIPPED 2026-05-13 PR #135 |
@@ -136,7 +138,7 @@ dtu_services: []
 | Cycle | Type | Status | Notes |
 |-------|------|--------|-------|
 | F-block-ai-attribution-message-file-arm | feature | F3 COMPLETE — F4 READY | F1+F2+F3 done 2026-05-12; 2 stories ready (S-16.01 5pts PostToolUse HEAD verify, S-16.02 3pts PreToolUse -F arm); E-16 under SS-07/SS-04; milestone v1.0.0-rc.17; BC-7.03.094/095/001, VP-080, ARCH SS-07 v1.3/SS-04 v1.4 registered |
-| v1.0-brownfield-backfill | brownfield | **D-549 SESSION-END 2026-06-11; #170/E-17 COMPLETE (3 MERGED); S-17.04 IN-FLIGHT feature/S-17.04 @ f627a1c5; OPEN DESIGN DECISION pending** | S-15.03 PRIORITY-A COMPLETE D-508; rc.20 SHIPPED D-528; #128+#130+#169+#176+#170(S17.01+S17.02+S17.03) all MERGED; E-17 delivery complete: BC-5.40.001+BC-4.13.001+BC-6.23.001 ACTIVE; ADR-025 v1.5 (F-1701 gate-trigger + block-msg + D12-jq); S-17.04 v1.1 IN-FLIGHT (16/16 bats, LOCAL adv 0C+0H+0M+1LOW, NOT merged); OPEN DESIGN: Mechanism 2 chokepoint A/B/C pending user choice; BC-INDEX v2.72; STORY-INDEX v3.94; ARCH-INDEX v2.22; **rc release PENDING** to ship all to operator cache. |
+| v1.0-brownfield-backfill | brownfield | **D-550 ADR-025 v1.6 + S-17.04 v1.2 REDIRECT 2026-06-11; OPEN DESIGN DECISION RESOLVED; S-17.04 awaiting TDD** | S-15.03 PRIORITY-A COMPLETE D-508; rc.20 SHIPPED D-528; #128+#130+#169+#176+#170(S17.01+S17.02+S17.03) all MERGED; E-17 delivery complete: BC-5.40.001+BC-4.13.001+BC-6.23.001 ACTIVE; ADR-025 v1.6 (Decision 12 WASM guard; Decision 11 Mech-2 WITHDRAWN); S-17.04 v1.2 REDIRECTED (10 ACs; 8pts; SS-04+SS-05; D15/D16/D17; feature/S-17.04 @ f627a1c5 IN-FLIGHT NOT merged); BC-INDEX v2.72; STORY-INDEX v3.95; ARCH-INDEX v2.23; **rc release PENDING** to ship all to operator cache. |
 | v1.0-feature-engine-discipline-pass-1 | feature | **PAUSED** | F5 pass-75 adversary complete D-510 2026-05-27; META-LEVEL-30 CANDIDATE-CONFIRMED; trajectory →9→9→9→11 (tick-up from 35-consecutive 9s; 14-day pause cost); 4 structural ACCEPTED-AT-FLOOR per D-386 Option C extension; S-15.17 anchors HIGH-002 cure; L-EDP1-067 captured; BC-INDEX v2.53; STORY-INDEX v3.71. Full-cycle trajectory (75 values ending): →9→9→9→9→11. |
 | v1.0-feature-plugin-async-semantics-pass-1 | feature | CLOSED | All PRs merged; rc.14 shipped |
 
@@ -148,6 +150,7 @@ dtu_services: []
 
 | ID | Decision | Phase | Date |
 |----|----------|-------|------|
+| D-550 | ADR-025 v1.5→v1.6 + S-17.04 v1.1→v1.2 REDIRECT (human-approved) 2026-06-11 — Decision 11 Mechanism 2 bash gate WITHDRAWN; Decision 12 verify-state-timestamp-refresh WASM PreToolUse guard ADOPTED (fires on Edit/Write to .factory/STATE.md; blocks TimestampStale + LockExpiryStale; on_error=continue fail-open); push-time cas-push chokepoint dropped; D15 factory-lock-parse shared crate + D16 guard + D17 tests; S-17.04 v1.2 8pts SS-04+SS-05; BC impact NONE; ARCH-INDEX v2.22→v2.23; STORY-INDEX v3.94→v3.95; D-chain cite D-549; parent-commit 29ee394b. | D-550 ADR-025 v1.6; S-17.04 v1.2; ARCH-INDEX v2.23; STORY-INDEX v3.95; OPEN DESIGN DECISION RESOLVED | architecture-redirect | 2026-06-11 |
 | D-549 | SESSION-END DURABILITY BURST + S-17.04 SPEC-EVOLUTION CODIFIED 2026-06-11 — ADR-025 v1.4→v1.5 (F-1701-001 gate-trigger: primary factory-cas-push + secondary git push; block-message one-liner; D12 jq 4th-footgun); S-17.04 v1.0→v1.1 (AC-002 belt-and-suspenders; 4 EC fail-open Red Gate tests; count 8→12); ARCH-INDEX v2.21→v2.22; STORY-INDEX v3.93→v3.94; #170/E-17 COMPLETE (D-544+D-545+D-547 all merged); S-17.04 IN-FLIGHT feature/S-17.04 @ f627a1c5; OPEN DESIGN DECISION (Mechanism 2 chokepoint A/B/C pending user choice); D-chain cite D-548; parent-commit cedeb825. | D-549 SESSION-END; ADR-025 v1.5; S-17.04 v1.1; ARCH-INDEX v2.22; STORY-INDEX v3.94; #170 COMPLETE; S-17.04 IN-FLIGHT; OPEN DESIGN DECISION | session-end-durability | 2026-06-11 |
 | D-548 | ADR-025 v1.3→v1.4 + S-17.04 AUTO-RENEW WIRING CODIFIED 2026-06-11 — ADR-025 Decision 11 (auto heartbeat renewal: SKILL renew step + verify-lock-renewal.sh PreToolUse gate); Decision 5 corrected; D10–D14 deliverables; BC-5.40.001 PC4 UNAFFECTED; S-17.04 authored E-17 wave 4 5pts 7ACs; ARCH-INDEX v2.20→v2.21; STORY-INDEX v3.92→v3.93; develop stale-checkout resolved 60fd0233; D-chain cite D-547; parent-commit 0f122e70. | ADR-025 v1.4 Decision 11; S-17.04 E-17 wave 4; ARCH-INDEX v2.21; STORY-INDEX v3.93 | story-authoring | 2026-06-11 |
 | D-547 | S-17.03 DELIVERED/MERGED 2026-06-11 — PR #183 squash-merged 60fd0233; CI run 27343001859 26/26 bats 5-platform all-green; LOCAL adversary 3-CLEAN (refusal-msg guard-parity + CRLF cross-component parity + subshell CRLF temp-file leak); security 0-findings; pr-reviewer APPROVE; /factory-lock + /factory-unlock skills + 3-state lock-status in factory-health/factory-worktree-health via shared factory-lock-status.sh; 3 bats-tested bin helpers reusing S-17.01 factory-lock-write.sh/factory-cas-push.sh/emit-event; BC-6.23.001 POL-14 draft→active v1.1→v1.2; issue #170 CLOSED; E-17 (Factory State Durability & Concurrency) 3/3 DELIVERED; BC-INDEX v2.71→v2.72; STORY-INDEX v3.91→v3.92; D-chain cite D-546; parent-commit 2d5b1c98. | S-17.03 MERGED PR #183 60fd0233; BC-6.23.001 POL-14 active; issue #170 CLOSED; E-17 3/3 COMPLETE | story-merge-closure | 2026-06-11 |
@@ -202,7 +205,7 @@ dtu_services: []
 - `cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` | `session-checkpoints.md` | `lessons.md`
 - `cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md` (adversary reviews at `S-12.03/`, `S-12.04/`, `S-12.05/` subdirs)
 
-## Session Resume Checkpoint (2026-06-11 — D-549 SESSION-END DURABILITY BURST; ADR-025 v1.5; S-17.04 v1.1 IN-FLIGHT; ARCH-INDEX v2.22; STORY-INDEX v3.94; OPEN DESIGN DECISION as resume entry point)
+## Session Resume Checkpoint (2026-06-11 — D-550 ADR-025 v1.6 + S-17.04 v1.2 REDIRECT CODIFIED; ARCH-INDEX v2.23; STORY-INDEX v3.95; OPEN DESIGN DECISION RESOLVED; resume = TDD delivery of S-17.04 v1.2)
 
 > **SELF-SUFFICIENT RESUME CONTEXT FOR ZERO-CONTEXT NEW SESSION ON A DIFFERENT MACHINE**
 > Read this section alone to resume the orchestrator after full CLEAR, new session, or new machine. All context needed is here.
@@ -210,23 +213,17 @@ dtu_services: []
 
 ### §1. Where We Are
 
-> **OPEN DESIGN DECISION — RESOLVE THIS FIRST BEFORE ANY DISPATCH**
+**OPEN DESIGN DECISION RESOLVED (D-550 2026-06-11).** The human approved a WASM-guard approach (Decision 12 / Option B-variant) rather than the bash chokepoint (Option A). ADR-025 v1.6 codifies: Decision 11 Mechanism 2 bash gate WITHDRAWN; Decision 12 `verify-state-timestamp-refresh` WASM PreToolUse guard ADOPTED. S-17.04 v1.2 re-scoped accordingly.
 
-**S-17.04 Mechanism 2 (verify-lock-renewal.sh PreToolUse gate) is architecturally BRITTLE.** The hook layer only sees `bash factory-cas-push.sh` as outer command; the actual `git push --force-with-lease` runs INSIDE that helper as a subprocess invisible to PreToolUse. Any bash/WASM hook must parse the command string — which is undecidable and fail-open on unrecognized forms. Adversary identified 4 tokenizer failure vectors (inert→over-match→newline-injection→env-injection). 3 options pending user choice:
-- **(A) RECOMMENDED: Move enforcement INTO factory-cas-push.sh (push chokepoint)** — add direct `factory-lock-write.sh renew`-based check inside factory-cas-push.sh BEFORE the `git push --force-with-lease` call; drop the D11 gate + D12 registry entry entirely; no parsing, no fail-open holes. Mechanism 1 (state-burst SKILL step) already implemented and robust. Per-choice work: amend ADR-025 v1.5→v1.6, rework S-17.04 v1.1→v1.2 (drop AC-002 gate tests; add chokepoint tests), re-converge LOCAL adversary, merge.
-- **(B) Make gate WASM** — doesn't fix brittleness (same subprocess-invisibility problem); 4 tokenizer vectors remain.
-- **(C) Rust-ify lock mechanics** — epic scope; wrong layer for current delivery.
-User DEFERRED the decision to make state durable. **RESOLVE THIS BEFORE dispatching test-writer or implementer for S-17.04.**
+**S-17.04 v1.2 REDIRECTED — TDD DELIVERY NEXT.** Branch `feature/S-17.04-mid-burst-heartbeat-renewal-wiring` @ `f627a1c5` PUSHED to origin. Worktree at `.worktrees/S-17.04`. **Note:** the branch still contains the v1.1 spec (bash-gate approach). The worktree must be rebased/force-updated to match the v1.2 story spec before test-writer dispatch. S-17.04 v1.2 deliverables: D10 (SKILL renew step retained), D13 (state-manager.md cross-ref updated for D16), D15 (`factory-lock-parse` shared crate), D16 (`verify-state-timestamp-refresh` WASM plugin + registry), D17 (9 Rust unit + 3 bats tests). 10 ACs, 8 pts, SS-04+SS-05.
 
-**#170/E-17 (Factory State Durability & Concurrency) COMPLETE.** 3 stories MERGED: S-17.01 PR #181 c64b46d2 + S-17.02 PR #182 df4f26b8 + S-17.03 PR #183 60fd0233. BC-5.40.001+BC-4.13.001+BC-6.23.001 ALL ACTIVE (POL-14). Issue #170 CLOSED D-547 2026-06-11.
+**ADR-025 v1.6 (2026-06-11) CODIFIED.** Decision 12: `verify-state-timestamp-refresh` WASM PreToolUse guard — fires on Edit/Write to `.factory/STATE.md`; blocks `TimestampStale` (timestamp not advanced) + `LockExpiryStale` (lock held, expires_at not advanced); `on_error=continue` fail-open; `async=false`; no `exec_subprocess` capability (eliminates env_allow footgun class). D15 `factory-lock-parse` shared crate extracts parse logic from `verify-factory-lock`. D11/D12-registry/D14 WITHDRAWN. `factory-cas-push.sh` reverts to plain CAS push with no renewal gate.
 
-**S-17.04 IN-FLIGHT — NOT MERGED.** Branch feature/S-17.04-mid-burst-heartbeat-renewal-wiring @ `f627a1c5` PUSHED to origin. Worktree at `.worktrees/S-17.04`. 16/16 bats green. LOCAL adversary last pass 0C+0H+0M+1LOW (F-A-001 env-comment advisory; inert). **Gate: resolve OPEN DESIGN DECISION above first.**
-
-**D-549 SESSION-END DURABILITY BURST (2026-06-11) COMPLETE.** ADR-025 v1.4→v1.5 (F-1701-001/F-1704-001: gate-trigger primary factory-cas-push + secondary git.*push.*factory-artifacts; block-message one-liner; D12 binary_allow [bash,git,jq] 4th-footgun closed). S-17.04 v1.0→v1.1 (AC-002 belt-and-suspenders trigger; 4 EC fail-open Red Gate tests EC-002/004/005/007; Red Gate count 8→12). ARCH-INDEX v2.21→v2.22. STORY-INDEX v3.93→v3.94.
+**#170/E-17 (Factory State Durability & Concurrency) COMPLETE.** 3 stories MERGED: S-17.01 PR #181 c64b46d2 + S-17.02 PR #182 df4f26b8 + S-17.03 PR #183 60fd0233. BC-5.40.001+BC-4.13.001+BC-6.23.001 ALL ACTIVE (POL-14). Issue #170 CLOSED D-547 2026-06-11. S-17.04 is the enforcement-wiring follow-up (E-17 wave 4, not part of #170 closure).
 
 - **D-range:** D-001..D-549.
 - **develop HEAD:** `60fd0233` (D-547 PR #183 S-17.03 squash-merge 2026-06-11).
-- **4-index (post-D-549):** BC-INDEX v2.72, VP-INDEX v2.06, STORY-INDEX v3.94, ARCH-INDEX v2.22.
+- **4-index (post-D-550):** BC-INDEX v2.72, VP-INDEX v2.06, STORY-INDEX v3.95, ARCH-INDEX v2.23.
 - **BC content:** BC-5.39.005 v1.3 + BC-5.39.006 v1.7 + BC-5.39.007 v1.6 + BC-5.39.008 v1.5 + BC-5.39.009 v1.9 + BC-7.04.051 v1.1 + BC-4.13.001 v1.3 + BC-5.40.001 v1.1 + BC-6.23.001 v1.2 — all ACTIVE. policies.yaml v1.3.6 SEALED.
 
 ### §2. Operating Mode
@@ -251,12 +248,12 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 - **POLICY 8 v1.3 EC-mirror routing-rule (D-517); bidirectional AC↔PC parity (D-515+D-516); POLICY 5 v1.3.1/v1.3.3/v1.3.4/v1.3.5/v1.3.6 SDK-grounding + sibling-sweep mandates.**
 - **D-537 [process-gap] spec-drift routing:** When TDD fix changes ADR-specified behavior, route architect ADR amendment in SAME burst. Codified ADR-024 v1.2 Process note.
 - **D-539 multi-family adversary obligation:** prompt-contract + shell-logic issues require cross-family AND same-family Claude adversary passes before convergence.
-- **D-549 carry (OPEN DESIGN DECISION — resolve FIRST on resume):** S-17.04 Mechanism 2 gate BRITTLE. See §1 above for full context + 3 options (A recommended).
-- **D-549 carry:** ADR-025 v1.5 CODIFIED (F-1701/F-1704). S-17.04 v1.1 CODIFIED. feature/S-17.04 @ f627a1c5 PUSHED (16/16 bats; LOCAL adv 0C+0H+0M+1LOW; NOT merged). ARCH-INDEX v2.22. STORY-INDEX v3.94.
+- **D-550 carry:** ADR-025 v1.6 CODIFIED (Decision 12 WASM guard ADOPTED; Decision 11 Mech-2 WITHDRAWN). S-17.04 v1.2 CODIFIED. feature/S-17.04 @ f627a1c5 PUSHED (branch contains v1.1 spec — must update before TDD dispatch). ARCH-INDEX v2.23. STORY-INDEX v3.95. OPEN DESIGN DECISION RESOLVED — do NOT re-open without explicit human direction.
 - **D-541 carry (partial):** VP IDs TBD per TD-VSDD-063. POLICY 8 propagation — BC-6.23.001 now ACTIVE per POL-14.
 
 ### §4. Tier-A Completed Log (most recent first)
 
+- **D-550 (2026-06-11):** ARCHITECTURE REDIRECT. ADR-025 v1.5→v1.6. S-17.04 v1.1→v1.2. ARCH-INDEX v2.23. STORY-INDEX v3.95. OPEN DESIGN DECISION RESOLVED.
 - **D-549 (2026-06-11):** SESSION-END DURABILITY BURST. ADR-025 v1.4→v1.5. S-17.04 v1.0→v1.1. ARCH-INDEX v2.22. STORY-INDEX v3.94.
 - **D-547 (2026-06-11):** S-17.03 DELIVERED/MERGED PR #183 60fd0233. BC-6.23.001 ACTIVE. issue #170 CLOSED. E-17 3/3 COMPLETE.
 - **D-544+D-545 (2026-06-11):** S-17.01+S-17.02 MERGED PRs #181 c64b46d2 + #182 df4f26b8. BC-5.40.001+BC-4.13.001 ACTIVE. ADR-025 v1.3 env_allow footgun.
@@ -266,7 +263,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 ### §5. Cumulative Codifications
 
 - F5: D-379..D-454 (76 decisions) — `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md`.
-- Brownfield: D-001..D-549 — `cycles/v1.0-brownfield-backfill/decision-log.md`. Latest: D-548 ADR-025 v1.3→v1.4 + S-17.04 CODIFIED 2026-06-11; **D-549 SESSION-END DURABILITY BURST 2026-06-11 — ADR-025 v1.4→v1.5; S-17.04 v1.0→v1.1; ARCH-INDEX v2.21→v2.22; STORY-INDEX v3.93→v3.94; #170/E-17 COMPLETE; S-17.04 IN-FLIGHT f627a1c5; OPEN DESIGN DECISION.**
+- Brownfield: D-001..D-550 — `cycles/v1.0-brownfield-backfill/decision-log.md`. Latest: D-549 SESSION-END DURABILITY BURST 2026-06-11; **D-550 ADR-025 v1.5→v1.6 + S-17.04 v1.1→v1.2 REDIRECT 2026-06-11 — Decision 12 WASM guard ADOPTED; Decision 11 Mech-2 WITHDRAWN; D15/D16/D17; ARCH-INDEX v2.22→v2.23; STORY-INDEX v3.94→v3.95; OPEN DESIGN DECISION RESOLVED.**
 
 ### §6. Cumulative Lessons
 
@@ -283,18 +280,18 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 |-------|---------|-------|
 | BC-INDEX | v2.72 | D-547 BC-6.23.001 POL-14 draft→active (PR #183 S-17.03 merged); total_bcs 1958 UNCHANGED |
 | VP-INDEX | v2.06 | UNCHANGED (18 VPs pending architect per TD-VSDD-063) |
-| STORY-INDEX | v3.94 | D-549: S-17.04 v1.0→v1.1; body row updated; 12 Red Gate tests; ADR-025 v1.5 Decision 11 |
-| ARCH-INDEX | v2.22 | D-549: ADR-025 v1.4→v1.5 (F-1701-001 gate-trigger + block-msg + D12-jq 4th-footgun) |
+| STORY-INDEX | v3.95 | D-550: S-17.04 v1.1→v1.2 (WASM guard redirect; 10 ACs; 8pts; SS-04+SS-05; D15/D16/D17) |
+| ARCH-INDEX | v2.23 | D-550: ADR-025 v1.5→v1.6 (Decision 12 WASM guard ADOPTED; Decision 11 Mech-2 WITHDRAWN) |
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** D-549 burst (see `git -C .factory log -1`); prior: `e5af78f7` D-548; prior-prior: `e2bda434` D-547-sha-patch
+- **factory-artifacts HEAD:** D-550 burst (see `git -C .factory log -1`); prior: `29ee394b` D-549-sha-patch; prior-prior: `1d6c67c1` D-549
 - **develop HEAD:** `60fd0233` (D-547 PR #183 S-17.03 squash-merge 2026-06-11)
 - **feature/S-17.04 HEAD:** `f627a1c5` PUSHED to origin; worktree `.worktrees/S-17.04`
 - **main HEAD:** `2a191314` (rc.20 bot binary commit 2026-06-01)
 - **v1.0.0-rc.20 tag:** `e9e38286` (prerelease; marketplace PR #12 squash-merged 862e660d)
-- **ADR-025 v1.5:** `.factory/specs/architecture/decisions/ADR-025-single-writer-factory-locklease-prevent-concurrent-session-races-on-factory-artifacts-orphan-branch.md` — D-549; Decision 11 gate-trigger fix; Decision 12 binary_allow [bash,git,jq]; ARCH-INDEX v2.22
-- **S-17.04 story:** `.factory/stories/S-17.04-mid-burst-heartbeat-renewal-wiring.md` v1.1 DRAFT — STORY-INDEX v3.94; E-17 W4; 7 ACs; 12 bats Red Gate tests; ADR-025 v1.5 Decision 11; OPEN DESIGN DECISION pending
+- **ADR-025 v1.6:** `.factory/specs/architecture/decisions/ADR-025-single-writer-factory-locklease-prevent-concurrent-session-races-on-factory-artifacts-orphan-branch.md` — D-550; Decision 12 WASM guard ADOPTED; Decision 11 Mech-2 WITHDRAWN; D15/D16/D17; ARCH-INDEX v2.23
+- **S-17.04 story:** `.factory/stories/S-17.04-mid-burst-heartbeat-renewal-wiring.md` v1.2 DRAFT — STORY-INDEX v3.95; E-17 W4; 10 ACs; 12 Red Gate tests (9 Rust unit + 3 bats); 8pts; SS-04+SS-05; ADR-025 v1.6 Decision 12; OPEN DESIGN DECISION RESOLVED
 - **BC-5.40.001:** `.factory/specs/behavioral-contracts/ss-05/BC-5.40.001.md` v1.1 ACTIVE (SS-05; factory_lock schema+TTL+CAS)
 - **BC-4.13.001:** `.factory/specs/behavioral-contracts/ss-04/BC-4.13.001.md` v1.3 ACTIVE (SS-04; verify-factory-lock WASM guard; env_allow PC7)
 - **BC-6.23.001:** `.factory/specs/behavioral-contracts/ss-06/BC-6.23.001.md` v1.2 ACTIVE (SS-06; /factory-lock+/factory-unlock+factory-health)
@@ -309,25 +306,24 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 ### §11. Post-CLEAR Resume Checklist (zero-context)
 
-1. **Verify worktree state:** Main: `git rev-parse --abbrev-ref HEAD` → expect `develop` (HEAD `60fd0233`). Factory: `git -C .factory log -1` + `git -C .factory status` (expect clean; branch factory-artifacts). Feature: `git -C .worktrees/S-17.04 rev-parse --short HEAD` → expect `f627a1c5`.
+1. **Verify worktree state:** Main: `git rev-parse --abbrev-ref HEAD` → expect `develop` (HEAD `60fd0233`). Factory: `git -C .factory log -1` + `git -C .factory status` (expect clean; branch factory-artifacts). Feature: `git -C .worktrees/S-17.04 rev-parse --short HEAD` → expect `f627a1c5` (note: branch has v1.1 spec; update to v1.2 before TDD dispatch).
 2. **Read §1-§12 this checkpoint** (all of it).
 3. **Verify trajectory-tail PC4:** `grep "^current_step:" .factory/STATE.md | grep -oE "trajectory-tail [→0-9]+"` → expect `trajectory-tail →9→9→9→11`.
 4. **Verify develop HEAD:** `git rev-parse --short origin/develop` → expect `60fd0233`.
 5. **E-10 CASCADE SEALED D-531.** Do NOT resume without engine-surface material change.
 6. **F5 PAUSED** — trajectory →9→9→9→11. Do NOT resume without explicit human direction.
-7. **RC.20 SHIPPED D-528** (run 26738809372; tag e9e38286; main 2a191314; marketplace #12; plugin 52→53). **NEXT RC RELEASE PENDING**: ships #128+#130+#169+#176+#170(S17.01+S17.02+S17.03) to operator cache.
-8. **OPEN DESIGN DECISION for S-17.04 Mechanism 2** — see §1. MUST RESOLVE BEFORE any dispatch on S-17.04.
-9. **4-index confirmed D-549:** BC-INDEX v2.72, VP-INDEX v2.06, STORY-INDEX v3.94, ARCH-INDEX v2.22.
+7. **RC.20 SHIPPED D-528** (run 26738809372; tag e9e38286; main 2a191314; marketplace #12; plugin 52→53). **NEXT RC RELEASE HELD until S-17.04 merges**: ships #128+#130+#169+#176+#170(S17.01+S17.02+S17.03)+S-17.04 to operator cache.
+8. **OPEN DESIGN DECISION RESOLVED (D-550)** — ADR-025 v1.6 Decision 12 WASM guard ADOPTED. S-17.04 v1.2 ready for TDD dispatch. Update feature/S-17.04 worktree to v1.2 spec first.
+9. **4-index confirmed D-550:** BC-INDEX v2.72, VP-INDEX v2.06, STORY-INDEX v3.95, ARCH-INDEX v2.23.
 10. **ALL dispatches carry:** TD-VSDD-097-EXT + TD-VSDD-099 + TD-VSDD-100 + POLICY 14 5-leg + verification_step 7 4-index gate + INV-019 (a)/(b)/(c) + adversary grep origin/factory-artifacts + D-449(a) literal-shell Dim-2 + POLICY 8 v1.3 parity + POLICY 5 v1.3.1/v1.3.4/v1.3.5/v1.3.6 + D-537 spec-drift routing + D-539 multi-family adversary.
-11. **Latest decision D-549.** All #128+#130+#169+#176+#170(S17.01+S17.02+S17.03) MERGED; REQUIRE rc.21+ for operator reach. S-17.04 IN-FLIGHT NOT merged.
+11. **Latest decision D-550.** All #128+#130+#169+#176+#170(S17.01+S17.02+S17.03) MERGED; REQUIRE rc.21+ for operator reach. S-17.04 v1.2 IN-FLIGHT NOT merged (TDD delivery next).
 
-### §12. Pending Work Items — Strict Resume Ordering (refreshed 2026-06-11 D-549)
+### §12. Pending Work Items — Strict Resume Ordering (refreshed 2026-06-11 D-550)
 
 | Step | Item | Tier | Gate | Status |
 |------|------|------|------|--------|
-| **RESOLVE-FIRST** | **OPEN DESIGN DECISION: S-17.04 Mechanism 2 chokepoint enforcement** | **BLOCKER** | user choice required | (A) chokepoint in factory-cas-push.sh [RECOMMENDED] + rework S-17.04→v1.2 + re-converge / (B) WASM gate [same brittleness] / (C) Rust epic |
-| **1** | **rc.21 release** | **release** | OPEN DESIGN DECISION resolved OR explicit human skip | Ships #128+#130+#169+#176+#170(S17.01+S17.02+S17.03) to operator cache; ENTIRE #170 lock feature requires rc for operator reach |
-| **2** | **S-17.04 TDD delivery (post-design-decision)** | **implementation** | OPEN DESIGN DECISION resolved first | Per choice: rework (A: drop gate add chokepoint) OR merge as-is (risky per adversary); test-writer Red Gate → implementer → 3-CLEAN → PR |
+| **1** | **S-17.04 v1.2 TDD delivery** | **implementation** | worktree updated to v1.2 spec | Update feature/S-17.04 worktree to v1.2 spec; test-writer 12 Red Gate stubs (9 Rust unit + 3 bats) → implementer D15/D16/D10/D13 → 3-CLEAN LOCAL adversary → PR → merge |
+| **2** | **rc.21 release** | **release** | S-17.04 merged | Ships #128+#130+#169+#176+#170(S17.01+S17.02+S17.03)+S-17.04 to operator cache |
 | **3** | **#173 wave-checkpoint** | **implementation** | #170 CLOSED | State-durability chain: factory-artifacts orphan-branch checkpoint/restore |
 | **4** | **#171 deferred-revalidate** | **implementation** | #173 done | Deferred-revalidation story |
 | **5** | **#129 canonical-principle** | **implementation** | human-authorize | Ship canonical-principle in plugin |
@@ -337,4 +333,4 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 **[D-414(c) acknowledgment: Section 12 is a non-standard addition for forward-backlog durability.]**
 
-> Previous checkpoint (D-548 ADR-025-V1.4-S-17.04-AUTO-RENEW-WIRING-CODIFIED-2026-06-11) archived to: `cycles/v1.0-brownfield-backfill/session-checkpoints.md`
+> Previous checkpoint (D-549 SESSION-END-DURABILITY-BURST-2026-06-11) archived to: `cycles/v1.0-brownfield-backfill/session-checkpoints.md`
