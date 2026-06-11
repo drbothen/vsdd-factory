@@ -329,6 +329,117 @@ STUB
 }
 
 # ---------------------------------------------------------------------------
+# test_BC_5_40_001_cas_push_object_absent_after_fetch
+# F-R1-003 / EC-008 / BC-5.40.001 EC-008 — object absent from local store after fetch
+#
+# The BC EC-008 condition (distinct from the rev-parse-fails case above):
+#   git rev-parse origin/factory-artifacts SUCCEEDS (returns a valid-looking SHA)
+#   BUT git cat-file -e <sha>^{commit} FAILS (the object is absent from the
+#   local store — the SHA is a ghost: the ref was advertised but the object
+#   was never transmitted, or was GC'd between fetch and push).
+#
+# Under this condition the helper MUST:
+#   - Exit non-zero.
+#   - Emit a CASPushRejected-class message referencing stale SHA or the
+#     object-absent condition.
+#   - NOT proceed to push (pushing a non-existent object SHA would corrupt
+#     the remote or be rejected in unpredictable ways).
+#
+# The EXISTING test (test_BC_5_40_001_cas_push_stale_sha_after_fetch) covers
+# the case where rev-parse itself FAILS (exit 128). This test covers the
+# distinct case where rev-parse SUCCEEDS but the object is locally absent.
+# Both siblings must be guarded.
+#
+# Failure mode: the current implementation has NO git cat-file -e object-
+# existence check after rev-parse. After a successful rev-parse it proceeds
+# directly to the push step. The push step will either silently attempt to
+# push a non-existent SHA or fail with an opaque git error — neither of which
+# satisfies EC-008's requirement for a CASPushRejected stale-SHA message
+# emitted by the helper.
+#
+# RED GATE: current impl has no cat-file check → proceeds to push stub →
+# push stub exits 0 → helper exits 0 → [ "$status" -ne 0 ] assertion FAILS → RED.
+# (Even if stub returns non-zero, the helper has no stale-SHA message path for
+# this code branch, so the CASPushRejected message assertion also FAILS → RED.)
+# ---------------------------------------------------------------------------
+
+@test "test_BC_5_40_001_cas_push_object_absent_after_fetch" {
+  STUB_BIN="$WORK/stub-bin"
+  mkdir -p "$STUB_BIN"
+
+  PUSH_SENTINEL="$WORK/push-was-attempted"
+
+  # A realistic-looking but locally-absent SHA (40 hex chars)
+  GHOST_SHA="deadbeef000000000000000000000000deadbeef"
+
+  cat > "$STUB_BIN/git" <<STUB
+#!/usr/bin/env bash
+# Stub git for test_BC_5_40_001_cas_push_object_absent_after_fetch
+# Simulates EC-008: rev-parse returns a SHA but cat-file -e fails (object absent).
+# Parse subcommand (skip -C <path> flag pairs)
+args=("\$@")
+i=0; subcommand=""
+while [ \$i -lt \${#args[@]} ]; do
+  arg="\${args[\$i]}"
+  if [ "\$arg" = "-C" ]; then i=\$(( i + 1 ))
+  else subcommand="\$arg"; break
+  fi
+  i=\$(( i + 1 ))
+done
+
+case "\$subcommand" in
+  fetch)
+    # Fetch succeeds — the ref appears to exist on the remote
+    exit 0
+    ;;
+  rev-parse)
+    # rev-parse succeeds — returns a valid-looking SHA (the EC-008 condition:
+    # the ref resolves but the object is not in the local store)
+    printf '%s\n' "${GHOST_SHA}"
+    exit 0
+    ;;
+  cat-file)
+    # cat-file -e <sha>^{commit} FAILS — object is absent from local store.
+    # This is the EC-008 object-absent condition that distinguishes this test
+    # from the rev-parse-fails case in test_BC_5_40_001_cas_push_stale_sha_after_fetch.
+    printf 'error: object does not exist\n' >&2
+    exit 1
+    ;;
+  push)
+    # Record that push was incorrectly attempted (helper must NOT reach this step)
+    touch "${WORK}/push-was-attempted"
+    exit 0
+    ;;
+  *)
+    "$(command -v git)" "\$@"
+    ;;
+esac
+STUB
+  chmod +x "$STUB_BIN/git"
+
+  CALLER_DIR="$WORK/caller"
+  mkdir -p "$CALLER_DIR/.factory"
+
+  run bash -c "export PATH='${STUB_BIN}:${PATH}'; cd '${CALLER_DIR}' && bash '${HELPER}'"
+
+  # MUST exit non-zero — the object is absent; pushing would be corrupt or opaque
+  [ "$status" -ne 0 ]
+
+  # MUST emit a CASPushRejected-class stale-SHA message from the helper itself.
+  # The message must reference the stale-SHA / object-absent condition so the
+  # developer knows to re-fetch rather than retry the same push.
+  # Current impl: no cat-file check → no such message path → assertion FAILS → RED.
+  [[ "$output" == *"CASPushRejected"* ]] || \
+    [[ "$output" == *"stale SHA"* ]] || \
+    [[ "$output" == *"object absent"* ]] || \
+    [[ "$output" == *"state-burst CAS push failed"* && \
+       ( "$output" == *"stale"* || "$output" == *"object"* ) ]]
+
+  # MUST NOT have attempted the push (object is invalid; pushing must be aborted)
+  [ ! -f "$WORK/push-was-attempted" ]
+}
+
+# ---------------------------------------------------------------------------
 # test_BC_5_40_001_fetch_failure_aborts_push
 # AC-010 / BC-5.40.001 EC-003 — fetch failure aborts push
 #

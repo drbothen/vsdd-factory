@@ -888,6 +888,189 @@ sys.stdout.buffer.write(content.encode('utf-8'))
 }
 
 # ---------------------------------------------------------------------------
+# test_BC_5_40_001_clear_handles_crlf_frontmatter
+# F-R1-001 / BC-5.40.001 PC2 — clear MUST remove factory_lock from CRLF STATE.md
+#
+# When STATE.md has CRLF line endings AND holds a real factory_lock block,
+# `factory-lock-write.sh clear` MUST remove the factory_lock key entirely.
+#
+# Failure mode: _remove_factory_lock's awk uses /^---$/ to count frontmatter
+# fences. With CRLF, the delimiter line is `---\r` which does NOT match /^---$/.
+# awk's fence counter stays at 0 (never enters "fence == 1" mode), so the
+# /^factory_lock:/ branch is never reached. The file is written back unchanged
+# — the factory_lock key REMAINS — yet the helper prints success and exits 0.
+#
+# RED GATE: current clear mode does NOT call _normalize_crlf before
+# _remove_factory_lock, so factory_lock key is still present after clear.
+# The colon-anchored grep assertion will return 0 (key found) where we
+# assert non-zero (key absent) → RED.
+# ---------------------------------------------------------------------------
+
+@test "test_BC_5_40_001_clear_handles_crlf_frontmatter" {
+  # Build a CRLF fixture that HOLDS a factory_lock block in frontmatter
+  local crlf_state="$BATS_TEST_TMPDIR/crlf-locked-state.md"
+  python3 -c "
+import sys
+content = (
+    '---\r\n'
+    'document_type: state\r\n'
+    'version: \"0.0.1-test\"\r\n'
+    'phase: test\r\n'
+    'current_step: \"test-step\"\r\n'
+    'factory_lock:\r\n'
+    '  holder: \"dev@example.com\"\r\n'
+    '  locked_at: \"2026-06-10T14:00:00Z\"\r\n'
+    '  expires_at: \"2026-06-10T14:45:00Z\"\r\n'
+    '---\r\n'
+    '\r\n'
+    '# STATE (CRLF locked fixture)\r\n'
+)
+sys.stdout.buffer.write(content.encode('utf-8'))
+" > "$crlf_state"
+
+  # Precondition: file has CRLF line endings
+  local cr_count
+  cr_count="$(tr -cd '\r' < "$crlf_state" | wc -c | tr -d ' ')"
+  [ "$cr_count" -gt 0 ]
+
+  # Precondition: factory_lock key is present before clear
+  grep -q 'factory_lock:' "$crlf_state"
+
+  run bash "$HELPER" clear "$crlf_state"
+
+  # Must exit 0 (clear succeeds)
+  [ "$status" -eq 0 ]
+
+  # The factory_lock KEY must be ABSENT from the frontmatter after clear.
+  # Use a colon-anchored grep on the frontmatter region specifically.
+  # Current impl: _remove_factory_lock's awk /^---$/ doesn't match ---\r so
+  # the block is NOT removed → factory_lock: still present → grep returns 0
+  # → [ $status -ne 0 ] assertion FAILS → RED.
+  local frontmatter_only
+  frontmatter_only="$(awk '/^---/{gsub(/\r/,"")} /^---$/{f++} f==1{print} f==2{exit}' "$crlf_state")"
+  if echo "$frontmatter_only" | grep -q 'factory_lock:'; then
+    printf 'FAIL: factory_lock key still present in frontmatter after clear on CRLF file\n' >&2
+    printf 'Frontmatter contents:\n%s\n' "$frontmatter_only" >&2
+    false
+  fi
+}
+
+# ---------------------------------------------------------------------------
+# test_BC_5_40_001_renew_handles_crlf_frontmatter
+# F-R1-001 / BC-5.40.001 PC4 — renew MUST advance expires_at on CRLF STATE.md
+#
+# When STATE.md has CRLF line endings AND holds a valid factory_lock block
+# (with expires_at), `factory-lock-write.sh renew` MUST update expires_at.
+#
+# Failure mode: renew's no-op check uses awk /^---$/ to detect the factory_lock
+# block in frontmatter. With CRLF, /^---$/ never matches → the frontmatter-
+# scoped factory_lock check returns "not found" → renew treats it as a no-op
+# and exits 0 without updating expires_at. The expires_at value is UNCHANGED.
+#
+# RED GATE: current renew mode does NOT call _normalize_crlf before its
+# frontmatter-scoped awk checks. The no-op branch fires silently. The
+# expires_at UNCHANGED assertion will hold (values equal) → the
+# [ "$actual_expires_at" != "$original_expires_at" ] assertion FAILS → RED.
+# ---------------------------------------------------------------------------
+
+@test "test_BC_5_40_001_renew_handles_crlf_frontmatter" {
+  local original_expires_at="2026-06-10T14:45:00Z"
+
+  # Build a CRLF fixture holding a valid lock with a known expires_at
+  local crlf_state="$BATS_TEST_TMPDIR/crlf-locked-renew.md"
+  python3 -c "
+import sys
+content = (
+    '---\r\n'
+    'document_type: state\r\n'
+    'version: \"0.0.1-test\"\r\n'
+    'phase: test\r\n'
+    'current_step: \"test-step\"\r\n'
+    'factory_lock:\r\n'
+    '  holder: \"dev@example.com\"\r\n'
+    '  locked_at: \"2026-06-10T14:00:00Z\"\r\n'
+    '  expires_at: \"2026-06-10T14:45:00Z\"\r\n'
+    '---\r\n'
+    '\r\n'
+    '# STATE (CRLF renew fixture)\r\n'
+)
+sys.stdout.buffer.write(content.encode('utf-8'))
+" > "$crlf_state"
+
+  # Precondition: CRLF line endings present
+  local cr_count
+  cr_count="$(tr -cd '\r' < "$crlf_state" | wc -c | tr -d ' ')"
+  [ "$cr_count" -gt 0 ]
+
+  # Precondition: factory_lock and expires_at are present (raw grep, ignoring \r)
+  grep -q 'factory_lock' "$crlf_state"
+  grep -q 'expires_at' "$crlf_state"
+
+  run bash "$HELPER" renew "$crlf_state"
+
+  # Must exit 0 (renew succeeds — normalize-and-renew is the production-grade path)
+  [ "$status" -eq 0 ]
+
+  # expires_at MUST have been updated (not still the original value).
+  # Current impl: renew's awk no-op check fires on CRLF → exits 0 without
+  # modifying expires_at → value is UNCHANGED → assertion fails → RED.
+  local actual_expires_at
+  # Strip \r when reading the value so comparison works
+  actual_expires_at="$(tr -d '\r' < "$crlf_state" | awk '/^---$/{f++} f==1 && /^  expires_at:/{gsub(/^  expires_at: *"?/,""); gsub(/"$/,""); print; exit} f>=2{exit}')"
+
+  if [ "$actual_expires_at" = "$original_expires_at" ]; then
+    printf 'FAIL: expires_at was NOT updated after renew on CRLF file (still: %s)\n' \
+      "$actual_expires_at" >&2
+    printf 'Indicates renew hit the CRLF-caused no-op branch\n' >&2
+    false
+  fi
+
+  # locked_at MUST remain unchanged (immutable after acquire)
+  local actual_locked_at
+  actual_locked_at="$(tr -d '\r' < "$crlf_state" | awk '/^---$/{f++} f==1 && /^  locked_at:/{gsub(/^  locked_at: *"?/,""); gsub(/"$/,""); print; exit} f>=2{exit}')"
+  [ "$actual_locked_at" = "2026-06-10T14:00:00Z" ]
+}
+
+# ---------------------------------------------------------------------------
+# test_BC_5_40_001_clear_on_held_lock_asserts_removal
+# F-R1-001 (LF regression guard) / BC-5.40.001 PC2 — clear on LF STATE.md
+# removes the factory_lock key (regression guard for the LF path).
+#
+# This test pins the post-clear assertion that the implementer will verify.
+# The LF path MAY already pass today (the existing _remove_factory_lock awk
+# works on LF files). Its purpose is to prevent a future regression where
+# a CRLF fix accidentally breaks the LF path.
+#
+# If this test passes on current impl (LF path works), it is a GREEN
+# regression guard — that is acceptable per instructions. The CRLF-specific
+# RED tests are tests 1 and 2 above.
+# ---------------------------------------------------------------------------
+
+@test "test_BC_5_40_001_clear_on_held_lock_asserts_removal" {
+  # Use the standard LF fixture helper
+  _fixture_with_lock "$FIXTURE_STATE" \
+    "developer@example.com" \
+    "2026-06-10T14:00:00Z" \
+    "2026-06-10T14:45:00Z"
+
+  # Precondition: key is present
+  grep -q 'factory_lock:' "$FIXTURE_STATE"
+
+  run bash "$HELPER" clear "$FIXTURE_STATE"
+
+  # Must exit 0
+  [ "$status" -eq 0 ]
+
+  # factory_lock key MUST be absent from the frontmatter
+  local frontmatter_only
+  frontmatter_only="$(awk '/^---$/{f++} f==1{print} f==2{exit}' "$FIXTURE_STATE")"
+  if echo "$frontmatter_only" | grep -q 'factory_lock:'; then
+    printf 'FAIL: factory_lock key still present in frontmatter after clear on LF file\n' >&2
+    false
+  fi
+}
+
+# ---------------------------------------------------------------------------
 # _file_mode helper
 #
 # Returns the octal permission bits of a file as a 3-digit string (e.g. "644").
