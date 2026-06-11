@@ -30,6 +30,7 @@ chrono = { workspace = true }
 
 [dev-dependencies]
 vsdd-hook-sdk = { path = "../../hook-sdk" }
+serde_json = { workspace = true }
 
 [lints]
 workspace = true

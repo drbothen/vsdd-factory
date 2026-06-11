@@ -3820,6 +3820,7 @@ name = "verify-factory-lock"
 version = "0.0.1"
 dependencies = [
  "chrono",
+ "serde_json",
  "vsdd-hook-sdk",
 ]
 
