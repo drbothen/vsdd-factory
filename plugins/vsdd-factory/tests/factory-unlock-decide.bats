@@ -1,0 +1,306 @@
+#!/usr/bin/env bats
+# factory-unlock-decide.bats — RED-phase (TDD) tests for BC-6.23.001 PC4, PC5, PC6,
+# EC-003, EC-005, EC-010. AC-004, AC-005, AC-006, AC-014.
+#
+# Traces to: BC-6.23.001 PC4 (self-release), PC5 (non-holder rejection), PC6
+#            (force-steal 4-field audit event), EC-003 (absent lock noop), EC-005
+#            (force on absent = noop), EC-010 (self-force emits released not stolen).
+#            AC-004, AC-005, AC-006, AC-014.
+# Story: S-17.03 — /factory-lock + /factory-unlock skills + health status.
+# Target: plugins/vsdd-factory/bin/factory-unlock-decide.sh
+#
+# RED GATE: All tests MUST FAIL because the helper is a stub that exits 1 with a
+# TODO message. Tests fail with ASSERTION errors (wrong exit code, wrong output
+# content) — NOT "file not found" errors.
+#
+# The helper signature (from stub header):
+#   factory-unlock-decide.sh <state_md_path> <current_git_email> [--force]
+#
+# This helper is pure-core: no git operations, no STATE.md writes.
+# All output (decision tokens + field blocks) goes to stdout.
+# Error messages (REFUSED_NOT_HOLDER) go to stderr.
+#
+# Run:
+#   bats plugins/vsdd-factory/tests/factory-unlock-decide.bats
+
+HELPER="$(cd "$(dirname "$BATS_TEST_FILENAME")/.." && pwd)/bin/factory-unlock-decide.sh"
+
+# ---------------------------------------------------------------------------
+# Fixed timestamps used across fixtures — far future so they never expire
+# ---------------------------------------------------------------------------
+FUTURE_LOCKED_AT="2099-01-01T00:00:00Z"
+FUTURE_EXPIRES_AT="2099-01-01T00:45:00Z"
+
+# ---------------------------------------------------------------------------
+# Fixture helpers
+# ---------------------------------------------------------------------------
+
+# Write a minimal STATE.md to $1 with NO factory_lock key.
+_fixture_no_lock() {
+  local path="$1"
+  cat > "$path" <<'FIXTURE'
+---
+document_type: state
+version: "0.0.1-test"
+phase: test
+current_step: "test-step"
+---
+
+# STATE (test fixture)
+Unlocked baseline — no lock block present.
+FIXTURE
+}
+
+# Write a minimal STATE.md to $1 with a factory_lock block.
+# Arguments: path holder locked_at expires_at
+_fixture_with_lock() {
+  local path="$1"
+  local holder="$2"
+  local locked_at="$3"
+  local expires_at="$4"
+  cat > "$path" <<FIXTURE
+---
+document_type: state
+version: "0.0.1-test"
+phase: test
+current_step: "test-step"
+factory_lock:
+  holder: "${holder}"
+  locked_at: "${locked_at}"
+  expires_at: "${expires_at}"
+---
+
+# STATE (test fixture)
+Has a factory_lock block.
+FIXTURE
+}
+
+# ---------------------------------------------------------------------------
+# setup / teardown
+# ---------------------------------------------------------------------------
+
+setup() {
+  WORK="$BATS_TEST_TMPDIR"
+  FIXTURE_STATE="$WORK/STATE.md"
+}
+
+teardown() {
+  : # BATS_TEST_TMPDIR is cleaned automatically by bats
+}
+
+# ---------------------------------------------------------------------------
+# test_BC_6_23_001_unlock_decide_self_release_proceed
+# AC-004 / BC-6.23.001 PC4 — self-held lock, plain unlock → PROCEED_RELEASE
+#
+# When holder == current_email and no --force flag is passed, the helper MUST:
+#   - Exit 0.
+#   - Print "PROCEED_RELEASE" to stdout.
+#   - Print the 3 release event fields to stdout:
+#       holder=<email>
+#       locked_at=<original_locked_at>
+#       released_at=<now_iso8601>
+#
+# RED GATE: stub exits 1 with TODO — fails on exit-0 assertion.
+# ---------------------------------------------------------------------------
+
+@test "test_BC_6_23_001_unlock_decide_self_release_proceed" {
+  local test_email="self@example.com"
+
+  _fixture_with_lock "$FIXTURE_STATE" \
+    "$test_email" \
+    "$FUTURE_LOCKED_AT" \
+    "$FUTURE_EXPIRES_AT"
+
+  run bash "$HELPER" "$FIXTURE_STATE" "$test_email"
+
+  # Must exit 0 (self-release is a success path)
+  [ "$status" -eq 0 ]
+
+  # stdout MUST contain the PROCEED_RELEASE decision token
+  [[ "$output" == *"PROCEED_RELEASE"* ]]
+
+  # stdout MUST contain the holder field
+  [[ "$output" == *"holder="* ]] || [[ "$output" == *"holder:"* ]]
+
+  # stdout MUST contain the original locked_at
+  [[ "$output" == *"${FUTURE_LOCKED_AT}"* ]]
+
+  # stdout MUST contain a released_at field with an ISO-8601 UTC timestamp
+  [[ "$output" == *"released_at="* ]] || [[ "$output" == *"released_at:"* ]]
+}
+
+# ---------------------------------------------------------------------------
+# test_BC_6_23_001_unlock_decide_non_holder_rejected
+# AC-005 / BC-6.23.001 PC5 — foreign lock, plain unlock → REFUSED_NOT_HOLDER
+#
+# When holder != current_email and no --force flag, the helper MUST:
+#   - Exit 1.
+#   - Print "REFUSED_NOT_HOLDER" to stderr.
+#   - Print error message to stderr: "Cannot unlock — factory is held by <holder_email>.
+#     Use /factory-unlock --force to force-release."
+#
+# RED GATE: stub exits 1 with TODO (wrong error message) — exit-1 assertion
+# happens to pass but all content assertions fail.
+# ---------------------------------------------------------------------------
+
+@test "test_BC_6_23_001_unlock_decide_non_holder_rejected" {
+  local holder_email="other@example.com"
+  local caller_email="dev@example.com"
+
+  _fixture_with_lock "$FIXTURE_STATE" \
+    "$holder_email" \
+    "$FUTURE_LOCKED_AT" \
+    "$FUTURE_EXPIRES_AT"
+
+  run bash "$HELPER" "$FIXTURE_STATE" "$caller_email"
+
+  # Must exit 1 (non-holder rejection)
+  [ "$status" -eq 1 ]
+
+  # stderr (captured in $output by bats) MUST contain the REFUSED_NOT_HOLDER token
+  [[ "$output" == *"REFUSED_NOT_HOLDER"* ]]
+
+  # MUST contain the error message with the holder email
+  [[ "$output" == *"Cannot unlock"* ]]
+  [[ "$output" == *"${holder_email}"* ]]
+
+  # MUST contain the /factory-unlock --force command hint
+  [[ "$output" == *"/factory-unlock --force"* ]]
+}
+
+# ---------------------------------------------------------------------------
+# test_BC_6_23_001_unlock_decide_force_steal_four_fields
+# AC-006 / BC-6.23.001 PC6 — foreign lock + --force → PROCEED_FORCE_STEAL
+# with all 4 required audit event fields
+#
+# When holder != current_email and --force is passed, the helper MUST:
+#   - Exit 0.
+#   - Print "PROCEED_FORCE_STEAL" to stdout.
+#   - Print the 4-field factory.lock.stolen audit event block to stdout:
+#       1. stolen_by=<current_git_email>
+#       2. stolen_from=<factory_lock.holder>
+#       3. holder_locked_at=<factory_lock.locked_at>
+#       4. stolen_at=<now_iso8601>
+#
+# RED GATE: stub exits 1 with TODO — fails on exit-0 assertion.
+# ---------------------------------------------------------------------------
+
+@test "test_BC_6_23_001_unlock_decide_force_steal_four_fields" {
+  local holder_email="other@example.com"
+  local caller_email="dev@example.com"
+
+  _fixture_with_lock "$FIXTURE_STATE" \
+    "$holder_email" \
+    "$FUTURE_LOCKED_AT" \
+    "$FUTURE_EXPIRES_AT"
+
+  run bash "$HELPER" "$FIXTURE_STATE" "$caller_email" --force
+
+  # Must exit 0 (force-steal proceeds)
+  [ "$status" -eq 0 ]
+
+  # stdout MUST contain the PROCEED_FORCE_STEAL decision token
+  [[ "$output" == *"PROCEED_FORCE_STEAL"* ]]
+
+  # Field 1: stolen_by MUST be the caller email
+  [[ "$output" == *"${caller_email}"* ]]
+  [[ "$output" == *"stolen_by="* ]] || [[ "$output" == *"stolen_by:"* ]]
+
+  # Field 2: stolen_from MUST be the holder email
+  [[ "$output" == *"${holder_email}"* ]]
+  [[ "$output" == *"stolen_from="* ]] || [[ "$output" == *"stolen_from:"* ]]
+
+  # Field 3: holder_locked_at MUST be the original locked_at from fixture
+  [[ "$output" == *"${FUTURE_LOCKED_AT}"* ]]
+  [[ "$output" == *"holder_locked_at="* ]] || [[ "$output" == *"holder_locked_at:"* ]]
+
+  # Field 4: stolen_at MUST be an ISO-8601 UTC timestamp
+  [[ "$output" == *"stolen_at="* ]] || [[ "$output" == *"stolen_at:"* ]]
+}
+
+# ---------------------------------------------------------------------------
+# test_BC_6_23_001_unlock_decide_self_force_emits_released_not_stolen
+# EC-010 / BC-6.23.001 EC-010 — self-held lock + --force →
+# PROCEED_RELEASE_SELF_FORCE (NOT PROCEED_FORCE_STEAL)
+#
+# When holder == current_email and --force is passed, the helper MUST:
+#   - Exit 0.
+#   - Print "PROCEED_RELEASE_SELF_FORCE" to stdout.
+#   - NOT print "PROCEED_FORCE_STEAL" (stolen_by == stolen_from is meaningless audit).
+#
+# This corresponds to emit factory.lock.released (not factory.lock.stolen).
+#
+# RED GATE: stub exits 1 with TODO — fails on exit-0 assertion.
+# ---------------------------------------------------------------------------
+
+@test "test_BC_6_23_001_unlock_decide_self_force_emits_released_not_stolen" {
+  local test_email="self@example.com"
+
+  _fixture_with_lock "$FIXTURE_STATE" \
+    "$test_email" \
+    "$FUTURE_LOCKED_AT" \
+    "$FUTURE_EXPIRES_AT"
+
+  run bash "$HELPER" "$FIXTURE_STATE" "$test_email" --force
+
+  # Must exit 0 (self-force proceeds like a plain release)
+  [ "$status" -eq 0 ]
+
+  # stdout MUST contain PROCEED_RELEASE_SELF_FORCE (NOT PROCEED_FORCE_STEAL)
+  [[ "$output" == *"PROCEED_RELEASE_SELF_FORCE"* ]]
+
+  # MUST NOT output PROCEED_FORCE_STEAL (EC-010 invariant)
+  [[ "$output" != *"PROCEED_FORCE_STEAL"* ]]
+}
+
+# ---------------------------------------------------------------------------
+# test_BC_6_23_001_unlock_decide_force_on_absent_lock_noop
+# AC-014 / BC-6.23.001 EC-005 — absent lock + --force → NOOP_ABSENT
+#
+# When factory_lock block is absent and --force is passed, the helper MUST:
+#   - Exit 0.
+#   - Print "NOOP_ABSENT" to stdout.
+#   - NOT emit any event fields (no holder to name in stolen_from).
+#
+# RED GATE: stub exits 1 with TODO — fails on exit-0 assertion.
+# ---------------------------------------------------------------------------
+
+@test "test_BC_6_23_001_unlock_decide_force_on_absent_lock_noop" {
+  _fixture_no_lock "$FIXTURE_STATE"
+
+  run bash "$HELPER" "$FIXTURE_STATE" "dev@example.com" --force
+
+  # Must exit 0 (absent lock + --force is a no-op, not an error)
+  [ "$status" -eq 0 ]
+
+  # stdout MUST contain the NOOP_ABSENT decision token
+  [[ "$output" == *"NOOP_ABSENT"* ]]
+
+  # MUST NOT contain stolen_from or PROCEED_FORCE_STEAL (nothing to steal)
+  [[ "$output" != *"stolen_from"* ]]
+  [[ "$output" != *"PROCEED_FORCE_STEAL"* ]]
+}
+
+# ---------------------------------------------------------------------------
+# test_BC_6_23_001_unlock_decide_already_unlocked_noop
+# BC-6.23.001 EC-003 — absent lock, plain unlock → NOOP_ABSENT
+#
+# When factory_lock block is absent and no --force is passed, the helper MUST:
+#   - Exit 0.
+#   - Print "NOOP_ABSENT" to stdout.
+# This is the EC-003 "already unlocked" case.
+#
+# RED GATE: stub exits 1 with TODO — fails on exit-0 assertion.
+# ---------------------------------------------------------------------------
+
+@test "test_BC_6_23_001_unlock_decide_already_unlocked_noop" {
+  _fixture_no_lock "$FIXTURE_STATE"
+
+  run bash "$HELPER" "$FIXTURE_STATE" "dev@example.com"
+
+  # Must exit 0 (already unlocked is a no-op, not an error)
+  [ "$status" -eq 0 ]
+
+  # stdout MUST contain the NOOP_ABSENT decision token
+  [[ "$output" == *"NOOP_ABSENT"* ]]
+}
