@@ -1,10 +1,10 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
-status: draft
+version: "1.1"
+status: active
 producer: product-owner
-timestamp: 2026-06-10T00:00:00Z
+timestamp: 2026-06-11T00:00:00Z
 phase: brownfield-backfill
 cycle: v1.0-brownfield-backfill
 inputs:
@@ -17,9 +17,10 @@ traces_to: .factory/specs/architecture/decisions/ADR-025-single-writer-factory-l
 origin: brownfield
 subsystem: "SS-05"
 capability: "CAP-031"
-lifecycle_status: draft
+lifecycle_status: active
 introduced: v1.0-brownfield-backfill
-modified: []
+modified:
+  - "2026-06-11 (v1.1)"
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -28,7 +29,7 @@ removed: null
 removal_reason: null
 bc_id: BC-5.40.001
 section: "5.40"
-last_amended: "2026-06-10 (v1.0) — Initial authoring (product-owner; brownfield-backfill issue #170; ADR-025 v1.2 D3/D6 deliverables). factory_lock STATE.md frontmatter schema, TTL auto-expiry, mid-burst renewal, state-burst CAS push fix. lifecycle_status: draft (POL-14 auto-promotion on implementing PR merge)."
+last_amended: "2026-06-11 (v1.1) — POL-14 auto-promotion: lifecycle_status draft→active on PR #181 squash-merge c64b46d2 (S-17.01 merged); status draft→active; D-544 codified. [Prior: 2026-06-10 (v1.0) — Initial authoring (product-owner; brownfield-backfill issue #170; ADR-025 v1.2 D3/D6 deliverables). factory_lock STATE.md frontmatter schema, TTL auto-expiry, mid-burst renewal, state-burst CAS push fix.]"
 ---
 
 # BC-5.40.001: STATE.md MUST carry a factory_lock frontmatter block (holder, locked_at, expires_at) as the authoritative lock state, state-manager MUST be its sole writer, TTL auto-expiry MUST be enforced at 45 minutes, state-manager MUST renew expires_at at each intermediate burst commit, and state-burst MUST use fetch-then-force-with-lease CAS push
@@ -281,4 +282,5 @@ TBD — VP IDs to be assigned after VP authoring pass.
 
 | Version | Date | Description |
 |---------|------|-------------|
-| 1.0 | 2026-06-10 | Initial authoring (product-owner; brownfield-backfill issue #170; ADR-025 v1.2 D3/D6 deliverables). factory_lock STATE.md schema (holder, locked_at, expires_at); TTL=45min; mid-burst renewal; state-burst CAS push fix; fail-open on malformed; sole-writer invariant. PC1 (schema correctness), PC2 (unlock clears block), PC3 (TTL expiry guard), PC4 (mid-burst renewal), PC5 (CAS push), PC6 (single-dev zero friction). 4 error variants: SchemaViolation, StaleNullBlock, RenewalMissed, CASPushRejected. 9 edge cases EC-001..EC-009. CAP-031 registered same burst. lifecycle_status: draft. |
+| 1.1 | 2026-06-11 | POL-14 auto-promotion (state-manager; D-544; PR #181 squash-merged c64b46d2 2026-06-11; S-17.01 MERGED; status draft→active; lifecycle_status draft→active; modified[] appended 2026-06-11 (v1.1)). No BC content changes. BC-INDEX v2.66→v2.67 (body row draft→active). |
+| 1.0 | 2026-06-10 | Initial authoring (product-owner; brownfield-backfill issue #170; ADR-025 v1.2 D3/D6 deliverables). factory_lock STATE.md schema (holder, locked_at, expires_at); TTL=45min; mid-burst renewal; state-burst CAS push fix; fail-open on malformed; sole-writer invariant. PC1 (schema correctness), PC2 (unlock clears block), PC3 (TTL expiry guard), PC4 (mid-burst renewal), PC5 (CAS push), PC6 (single-dev zero friction). 4 error variants: SchemaViolation, StaleNullBlock, RenewalMissed, CASPushRejected. 9 edge cases EC-001..EC-009. CAP-031 registered same burst. lifecycle_status: draft (POL-14 auto-promotion pending). |
