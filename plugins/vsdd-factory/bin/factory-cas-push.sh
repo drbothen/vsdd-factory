@@ -11,7 +11,7 @@
 # directory (consistent with state-manager burst discipline). Requires git >= 2.6 for
 # the --force-with-lease=<refname>:<sha> explicit form (ADR-025 Decision 8).
 #
-# Intended sequence (NOT YET IMPLEMENTED):
+# Sequence:
 #   Step 1: git -C .factory fetch origin factory-artifacts
 #           On non-zero exit → print AC-010 fetch-failure error to stderr; exit non-zero.
 #           The push MUST NOT proceed with a potentially stale EXPECTED_SHA.
@@ -29,7 +29,8 @@
 #
 # Error messages (exact strings required by ACs):
 #   AC-005 / CASPushRejected:
-#     "state-burst CAS push failed — concurrent write detected.\nFetch origin/factory-artifacts and retry."
+#     "state-burst CAS push failed — concurrent write detected."
+#     "Fetch origin/factory-artifacts and retry."
 #   AC-010 / fetch failure:
 #     "state-burst CAS push failed — fetch error before push. Retry after resolving network."
 #
@@ -40,26 +41,33 @@
 set -euo pipefail
 
 # ---------------------------------------------------------------------------
-# Stub body — NOT YET IMPLEMENTED (S-17.01 implementer fills in below)
+# Step 1: Fetch to synchronize origin/factory-artifacts before capturing SHA.
+# On failure, abort immediately — do NOT proceed with a stale EXPECTED_SHA.
 # ---------------------------------------------------------------------------
 
-# Intended (NOT YET IMPLEMENTED):
-#   Step 1 — fetch:
-#     if ! git -C .factory fetch origin factory-artifacts; then
-#       printf 'state-burst CAS push failed — fetch error before push. Retry after resolving network.\n' >&2
-#       exit 1
-#     fi
-#
-#   Step 2 — capture expected SHA:
-#     EXPECTED_SHA="$(git -C .factory rev-parse origin/factory-artifacts)"
-#
-#   Step 3 — CAS push with explicit lease SHA:
-#     if ! git -C .factory push \
-#         --force-with-lease=factory-artifacts:"${EXPECTED_SHA}" \
-#         origin factory-artifacts; then
-#       printf 'state-burst CAS push failed — concurrent write detected.\nFetch origin/factory-artifacts and retry.\n' >&2
-#       exit 1
-#     fi
+if ! git -C .factory fetch origin factory-artifacts 2>&1; then
+  printf 'state-burst CAS push failed — fetch error before push. Retry after resolving network.\n' >&2
+  exit 1
+fi
 
-printf 'TODO(S-17.01): factory-cas-push not implemented\n' >&2
-exit 1
+# ---------------------------------------------------------------------------
+# Step 2: Capture expected SHA immediately after fetch.
+# ---------------------------------------------------------------------------
+
+EXPECTED_SHA="$(git -C .factory rev-parse origin/factory-artifacts)"
+
+# ---------------------------------------------------------------------------
+# Step 3: CAS push with explicit --force-with-lease=<refname>:<sha> form.
+# If the remote has advanced past EXPECTED_SHA, this push will be rejected
+# (non-zero exit), which is the desired CASPushRejected behavior.
+# ---------------------------------------------------------------------------
+
+if ! git -C .factory push \
+    "--force-with-lease=factory-artifacts:${EXPECTED_SHA}" \
+    origin factory-artifacts 2>&1; then
+  printf 'state-burst CAS push failed — concurrent write detected.\n' >&2
+  printf 'Fetch origin/factory-artifacts and retry.\n' >&2
+  exit 1
+fi
+
+printf 'state-burst CAS push succeeded (SHA: %s)\n' "$EXPECTED_SHA"
