@@ -55,18 +55,26 @@ trap '_cleanup_status_tmp' EXIT
 
 # ---------------------------------------------------------------------------
 # CRLF normalization helper.
-# If the file contains CR bytes, write a CR-stripped copy to a temp file and
-# return the temp-file path on stdout.  If no CRs are present, echo the
-# original path unchanged (no-op on LF-only files).
-# Side-effect: sets _STATUS_TMPFILE so the EXIT trap can clean up.
+# If the file contains CR bytes, write a CR-stripped copy to a temp file
+# in ${TMPDIR:-/tmp} and return the temp-file path on stdout.
+# If no CRs are present, echo the original path unchanged (no-op on LF-only
+# files — no temp file is created).
+#
+# NOTE: this function is called via command substitution, so any assignment
+# to a global variable inside it is lost on return (subshell scope).  The
+# caller MUST register the returned path for cleanup by comparing it to the
+# original:
+#   STATE_MD="$(_normalize_crlf_for_read "$ORIG_STATE_MD")"
+#   [[ "$STATE_MD" != "$ORIG_STATE_MD" ]] && _STATUS_TMPFILE="$STATE_MD"
 # ---------------------------------------------------------------------------
 _normalize_crlf_for_read() {
   local file="$1"
   # tr -cd '\r' strips everything except CR bytes; grep -q . returns 0 if any CRs found.
   if tr -cd '\r' < "$file" | grep -q .; then
-    _STATUS_TMPFILE="$(mktemp "${file}.XXXXXX")"
-    tr -d '\r' < "$file" > "$_STATUS_TMPFILE"
-    printf '%s' "$_STATUS_TMPFILE"
+    local tmp
+    tmp="$(mktemp "${TMPDIR:-/tmp}/factory-lock-status.XXXXXX")"
+    tr -d '\r' < "$file" > "$tmp"
+    printf '%s' "$tmp"
   else
     printf '%s' "$file"
   fi
@@ -101,7 +109,11 @@ fi
 # Normalize CRLF → LF before parsing (F-1 parity with factory-lock-write.sh):
 # CRLF-encoded STATE.md causes awk /^---$/ to fail (line is `---\r`).
 # Read through a CR-stripped temp file; original is never modified.
-STATE_MD="$(_normalize_crlf_for_read "$STATE_MD")"
+# _normalize_crlf_for_read runs in a subshell (command substitution), so we
+# register the returned temp path for cleanup in the PARENT shell here.
+_ORIG_STATE_MD="$STATE_MD"
+STATE_MD="$(_normalize_crlf_for_read "$_ORIG_STATE_MD")"
+[[ "$STATE_MD" != "$_ORIG_STATE_MD" ]] && _STATUS_TMPFILE="$STATE_MD"
 
 # ---------------------------------------------------------------------------
 # Parse factory_lock block from YAML frontmatter.
