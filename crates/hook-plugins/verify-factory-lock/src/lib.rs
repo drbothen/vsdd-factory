@@ -144,12 +144,17 @@ where
 /// Architecture Compliance Rule 4 — no `regex` crate: uses substring matching
 /// on the three required literal fragments in order.
 pub fn matches_factory_artifacts_push(command: &str) -> bool {
-    todo!(
-        "implement: check command contains '{}', '{}', '{}' in order",
-        PUSH_PATTERN_GIT,
-        PUSH_PATTERN_PUSH,
-        PUSH_PATTERN_BRANCH
-    )
+    // Check that "git", "push", "factory-artifacts" all appear in the command
+    // in left-to-right order (no regex crate; Architecture Compliance Rule 4).
+    if let Some(git_pos) = command.find(PUSH_PATTERN_GIT) {
+        if let Some(push_pos) = command[git_pos..].find(PUSH_PATTERN_PUSH) {
+            let push_abs = git_pos + push_pos;
+            if command[push_abs..].find(PUSH_PATTERN_BRANCH).is_some() {
+                return true;
+            }
+        }
+    }
+    false
 }
 
 /// Scan the YAML frontmatter of STATE.md content for the `factory_lock:` block.
@@ -164,7 +169,165 @@ pub fn matches_factory_artifacts_push(command: &str) -> bool {
 /// - `Err(MalformedLockBlock)` if the block is present but malformed (EC-004,
 ///   EC-005, EC-012, EC-013).
 pub fn parse_factory_lock(content: &str) -> Result<Option<LockState>, LockCheckError> {
-    todo!("implement: scan frontmatter between --- delimiters for factory_lock block")
+    // Extract frontmatter region: between first and second `---\n`.
+    // The file starts with `---\n`; we skip that delimiter and find the closing one.
+    let frontmatter = if content.starts_with("---\n") {
+        let after_open = &content[4..]; // skip leading `---\n`
+        if let Some(close_pos) = after_open.find("\n---\n").or_else(|| {
+            // Also handle `---\n` at end of file with no trailing newline after the block close
+            if after_open.ends_with("\n---") {
+                Some(after_open.len() - 4)
+            } else {
+                None
+            }
+        }) {
+            &after_open[..close_pos]
+        } else {
+            // No closing `---` delimiter — treat as malformed (EC-013).
+            // But: if factory_lock key is present without a closing delimiter,
+            // that is malformed. If absent, it is just unlocked. We fall through
+            // and scan the whole file after the opening delimiter.
+            after_open
+        }
+    } else {
+        // No opening `---\n` — no frontmatter at all, treat as unlocked.
+        return Ok(None);
+    };
+
+    // Scan lines for `factory_lock:` key.
+    let mut in_factory_lock = false;
+    let mut holder: Option<String> = None;
+    let mut locked_at: Option<String> = None;
+    let mut expires_at: Option<String> = None;
+
+    for line in frontmatter.lines() {
+        if line == "factory_lock:" || line.starts_with("factory_lock:") {
+            // Check it's the bare key (no inline value after the colon+space).
+            // e.g. "factory_lock:" — the value is null/absent (unlocked path)
+            // or the sub-fields follow on subsequent lines.
+            let after_colon = line["factory_lock:".len()..].trim();
+            if after_colon.is_empty() || after_colon == "~" || after_colon == "null" {
+                in_factory_lock = true;
+            } else {
+                // Inline value — treat as malformed (unexpected shape).
+                return Err(LockCheckError::MalformedLockBlock(
+                    "factory_lock key has unexpected inline value".to_string(),
+                ));
+            }
+            continue;
+        }
+
+        if in_factory_lock {
+            // Sub-fields must be indented with exactly 2 spaces.
+            if line.starts_with("  ") && !line.starts_with("   ") {
+                // 2-space indent — a sub-field of factory_lock.
+                let field_line = &line[2..]; // strip the 2-space indent
+                if let Some(value) = extract_yaml_string_value(field_line, "holder") {
+                    holder = Some(value);
+                } else if let Some(value) = extract_yaml_string_value(field_line, "locked_at") {
+                    locked_at = Some(value);
+                } else if let Some(value) = extract_yaml_string_value(field_line, "expires_at") {
+                    expires_at = Some(value);
+                }
+                // Unknown sub-field lines under factory_lock are ignored (fail-open).
+            } else if !line.is_empty() {
+                // Non-indented, non-empty line after factory_lock: — we've exited the block.
+                in_factory_lock = false;
+            }
+            // Empty lines: stay in in_factory_lock state (blank lines between fields allowed).
+        }
+    }
+
+    // If factory_lock was not found, return Ok(None) (unlocked).
+    if !in_factory_lock && holder.is_none() && locked_at.is_none() && expires_at.is_none() {
+        return Ok(None);
+    }
+
+    // If factory_lock was found but all fields are None, treat as absent/null (unlocked).
+    // This covers `factory_lock: ~` or `factory_lock: null` which would set in_factory_lock
+    // briefly but never populate sub-fields. Actually in the current logic, null/~ sets
+    // in_factory_lock=true but no sub-fields appear, so we need to handle this:
+    if in_factory_lock && holder.is_none() && locked_at.is_none() && expires_at.is_none() {
+        // factory_lock block present but null/empty — treat as unlocked (EC-001 variant).
+        return Ok(None);
+    }
+
+    // factory_lock was found — validate all three required sub-fields.
+    let holder_val = match holder {
+        Some(h) if !h.is_empty() => h,
+        Some(_) => {
+            return Err(LockCheckError::MalformedLockBlock(
+                "factory_lock.holder is empty string (EC-004)".to_string(),
+            ));
+        }
+        None => {
+            return Err(LockCheckError::MalformedLockBlock(
+                "factory_lock.holder field is absent (EC-012 variant)".to_string(),
+            ));
+        }
+    };
+
+    let locked_at_val = match locked_at {
+        Some(v) if !v.is_empty() => v,
+        Some(_) => {
+            return Err(LockCheckError::MalformedLockBlock(
+                "factory_lock.locked_at is empty string".to_string(),
+            ));
+        }
+        None => {
+            return Err(LockCheckError::MalformedLockBlock(
+                "factory_lock.locked_at field is absent (EC-012)".to_string(),
+            ));
+        }
+    };
+
+    let expires_at_val = match expires_at {
+        Some(v) if !v.is_empty() => v,
+        Some(_) => {
+            return Err(LockCheckError::MalformedLockBlock(
+                "factory_lock.expires_at is empty string".to_string(),
+            ));
+        }
+        None => {
+            return Err(LockCheckError::MalformedLockBlock(
+                "factory_lock.expires_at field is absent".to_string(),
+            ));
+        }
+    };
+
+    Ok(Some(LockState {
+        holder: holder_val,
+        locked_at: locked_at_val,
+        expires_at: expires_at_val,
+    }))
+}
+
+/// Extract the string value from a YAML key-value line like `key: "value"` or `key: value`.
+///
+/// Returns `Some(value)` if the line starts with `{key}: `, otherwise `None`.
+/// Strips surrounding double-quotes from quoted values.
+/// Returns `Some("")` for empty quoted values `""`.
+fn extract_yaml_string_value(line: &str, key: &str) -> Option<String> {
+    let prefix = format!("{}: ", key);
+    let bare_prefix = format!("{}:", key);
+
+    let raw_value = if let Some(rest) = line.strip_prefix(&prefix) {
+        rest
+    } else if line == bare_prefix {
+        // `key:` with no value — treat as empty.
+        ""
+    } else {
+        return None;
+    };
+
+    // Strip surrounding double-quotes if present.
+    let value = if raw_value.starts_with('"') && raw_value.ends_with('"') && raw_value.len() >= 2 {
+        &raw_value[1..raw_value.len() - 1]
+    } else {
+        raw_value
+    };
+
+    Some(value.to_string())
 }
 
 /// Parse an ISO-8601 datetime string into a `chrono::DateTime<chrono::Utc>`.
@@ -172,7 +335,8 @@ pub fn parse_factory_lock(content: &str) -> Result<Option<LockState>, LockCheckE
 /// Returns `Ok(dt)` on success, `Err(MalformedLockBlock)` if unparseable
 /// (EC-005).
 pub fn parse_iso8601(s: &str) -> Result<chrono::DateTime<chrono::Utc>, LockCheckError> {
-    todo!("implement: parse ISO-8601 string via chrono; return MalformedLockBlock on error")
+    s.parse::<chrono::DateTime<chrono::Utc>>()
+        .map_err(|e| LockCheckError::MalformedLockBlock(format!("invalid ISO-8601 datetime '{}': {}", s, e)))
 }
 
 /// Compute `expires_at - now` as a human-readable duration string.
@@ -185,7 +349,11 @@ pub fn format_time_remaining(
     expires_at: chrono::DateTime<chrono::Utc>,
     now: chrono::DateTime<chrono::Utc>,
 ) -> String {
-    todo!("implement: compute expires_at - now, round down to minutes, return 'N min remaining'")
+    let duration = expires_at.signed_duration_since(now);
+    // Round down to the nearest minute (integer division truncates).
+    let total_seconds = duration.num_seconds().max(0);
+    let minutes = total_seconds / 60;
+    format!("{} min remaining", minutes)
 }
 
 /// Build the block message for PC1 (ForeignLockHeld).
@@ -202,14 +370,17 @@ pub fn build_block_message(
     expires_at: &str,
     time_remaining: &str,
 ) -> String {
-    todo!(
-        "implement: format block message with all 5 required fields including /factory-unlock --force"
+    format!(
+        "BLOCKED by verify-factory-lock: factory-artifacts branch is locked by {holder}.\n\
+         locked_at: {locked_at}\n\
+         expires_at: {expires_at} ({time_remaining})\n\
+         To break the lock: /factory-unlock --force"
     )
 }
 
 /// Trim trailing whitespace (including `\n`) from a git subprocess stdout line.
 pub fn trim_git_email(raw: &str) -> String {
-    todo!("implement: trim trailing newline and whitespace from git email output")
+    raw.trim_end().to_string()
 }
 
 // ---------------------------------------------------------------------------
@@ -255,7 +426,120 @@ where
     E: FnOnce(&[&str]) -> Result<(i32, String), String>,
     L: FnMut(&str),
 {
-    todo!("implement guard_logic decision tree per BC-4.13.001 T-3 specification")
+    // Step 1: For Bash tool, apply internal push-regex filter.
+    // Non-push Bash commands return Continue immediately (EC-011; AC-013).
+    if payload.tool_name == "Bash" {
+        let command = payload
+            .tool_input
+            .get("command")
+            .and_then(|v| v.as_str())
+            .unwrap_or("");
+        if !matches_factory_artifacts_push(command) {
+            return HookResult::Continue;
+        }
+    }
+
+    // Step 2: Read STATE.md. On HostError: log_warn + return Continue (PC6).
+    let state_bytes = match (callbacks.read_file)(".factory/STATE.md", STATE_MD_MAX_BYTES, READ_FILE_TIMEOUT_MS) {
+        Ok(bytes) => bytes,
+        Err(e) => {
+            // PC6 + Invariant 6 capability-denied graceful degrade.
+            let msg = if e.contains("CapabilityDenied") {
+                format!("capability_denied: read_file ({})", e)
+            } else {
+                format!("StateReadError: {}", e)
+            };
+            (callbacks.log_warn)(&msg);
+            return HookResult::Continue;
+        }
+    };
+
+    let content = match String::from_utf8(state_bytes) {
+        Ok(s) => s,
+        Err(e) => {
+            (callbacks.log_warn)(&format!("StateReadError: STATE.md is not valid UTF-8: {}", e));
+            return HookResult::Continue;
+        }
+    };
+
+    // Step 3: Parse frontmatter for factory_lock.
+    // Absent: return Continue (EC-001). Malformed: log_warn + return Continue (PC4).
+    let lock = match parse_factory_lock(&content) {
+        Ok(None) => {
+            // factory_lock block absent — factory is unlocked.
+            return HookResult::Continue;
+        }
+        Ok(Some(l)) => l,
+        Err(LockCheckError::MalformedLockBlock(detail)) => {
+            (callbacks.log_warn)(&format!("MalformedLockBlock: {}", detail));
+            return HookResult::Continue;
+        }
+        Err(e) => {
+            (callbacks.log_warn)(&format!("MalformedLockBlock: unexpected parse error: {:?}", e));
+            return HookResult::Continue;
+        }
+    };
+
+    // Step 4: Parse expires_at as ISO-8601. On parse fail: log_warn + return Continue (EC-005).
+    let expires_at_dt = match parse_iso8601(&lock.expires_at) {
+        Ok(dt) => dt,
+        Err(LockCheckError::MalformedLockBlock(detail)) => {
+            (callbacks.log_warn)(&format!("MalformedLockBlock: {}", detail));
+            return HookResult::Continue;
+        }
+        Err(e) => {
+            (callbacks.log_warn)(&format!("MalformedLockBlock: {:?}", e));
+            return HookResult::Continue;
+        }
+    };
+
+    // Step 5: Compare now > expires_at. If true (expired): return Continue (PC2 LockExpired).
+    // EC-002: now == expires_at evaluates as NOT greater-than → treat as just-expired → Continue.
+    let now = chrono::Utc::now();
+    if now > expires_at_dt {
+        // Lock has expired — treat as unlocked (PC2 LockExpired). No log_warn per BC-4.13.001 PC2.
+        return HookResult::Continue;
+    }
+
+    // Step 6: Resolve caller email via exec_subprocess.
+    // On failure/empty/HostError: log_warn + return Continue (PC7).
+    let git_email_raw = match (callbacks.exec_subprocess)(&["git", "config", "user.email"]) {
+        Err(e) => {
+            let msg = if e.contains("CapabilityDenied") {
+                format!("capability_denied: exec_subprocess ({})", e)
+            } else {
+                format!("IdentityResolutionFailed: exec_subprocess error: {}", e)
+            };
+            (callbacks.log_warn)(&msg);
+            return HookResult::Continue;
+        }
+        Ok((exit_code, stdout)) => {
+            if exit_code != 0 || stdout.trim().is_empty() {
+                (callbacks.log_warn)(&format!(
+                    "IdentityResolutionFailed: git config user.email returned exit_code={} output='{}'",
+                    exit_code,
+                    stdout.trim()
+                ));
+                return HookResult::Continue;
+            }
+            stdout
+        }
+    };
+
+    // Step 7: Trim trailing newline from git email output.
+    let caller_email = trim_git_email(&git_email_raw);
+
+    // Step 8: If holder == caller_email: return Continue (PC3 self-held).
+    if lock.holder == caller_email {
+        return HookResult::Continue;
+    }
+
+    // Step 9: Compute time_remaining = expires_at - now, rounded down to nearest minute.
+    let time_remaining = format_time_remaining(expires_at_dt, now);
+
+    // Step 10: Return Block with 5-field message (PC1 ForeignLockHeld).
+    let message = build_block_message(&lock.holder, &lock.locked_at, &lock.expires_at, &time_remaining);
+    HookResult::Block { reason: message }
 }
 
 // ---------------------------------------------------------------------------
