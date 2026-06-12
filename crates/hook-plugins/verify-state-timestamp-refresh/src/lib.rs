@@ -789,11 +789,13 @@ where
         }
     };
 
-    // AC-019: empty proposed timestamp is equivalent to absent — Block: TimestampStale.
-    // `extract_top_level_field` returns `Found("")` for `timestamp: ""` (field present
-    // but value is empty string). An empty timestamp is not a valid advancement; treat it
-    // identically to NotFound. ADR-025 §12.2: stale detection must reject empty values.
-    if proposed_ts.is_empty() {
+    // AC-019: empty or whitespace-only proposed timestamp is equivalent to absent
+    // — Block: TimestampStale. `extract_top_level_field` returns `Found("")` for
+    // `timestamp: ""` and `Found("   ")` for `timestamp: "   "` (field present but
+    // value is empty or whitespace-only). Neither is a valid RFC-3339 timestamp;
+    // treat identically to NotFound. ADR-025 §12.2: stale detection must reject
+    // empty and whitespace-only values (L4 fix).
+    if proposed_ts.trim().is_empty() {
         return HookResult::Block {
             reason: canonical_timestamp_stale_message(),
         };
@@ -855,14 +857,16 @@ where
                 .unwrap_or("")
                 .to_string();
 
-            if proposed_expires.is_empty() {
-                // expires_at absent or empty string → Block: LockExpiryStale (AC-016/AC-017).
+            if proposed_expires.trim().is_empty() {
+                // expires_at absent, empty string, or whitespace-only → Block: LockExpiryStale
+                // (AC-016/AC-017). Whitespace-only is not a valid RFC-3339 timestamp and must
+                // not slip through as a non-empty renewal (L4 fix / consistency with AC-019).
                 return HookResult::Block {
                     reason: canonical_lock_expiry_stale_message(),
                 };
             }
 
-            // expires_at present and non-empty — compare byte-for-byte with on-disk (AC-006).
+            // expires_at present, non-whitespace — compare byte-for-byte with on-disk (AC-006).
             let on_disk_subfields = extract_lock_subfields(&on_disk_content);
             let on_disk_expires = on_disk_subfields
                 .as_ref()
