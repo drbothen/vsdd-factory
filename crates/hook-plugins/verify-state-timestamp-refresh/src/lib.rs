@@ -689,6 +689,9 @@ where
             Ok(bytes) => bytes,
             Err(_e) => {
                 // On-disk read failed (HostError or NotFound) — fail-open (AC-008/AC-015).
+                (callbacks.log_warn)(
+                    "verify-state-timestamp-refresh: fail-open read-error (STATE.md unreadable)",
+                );
                 (callbacks.write_stderr)(
                     "verify-state-timestamp-refresh: guard_ran (continue: fail-open read-error)\n",
                 );
@@ -700,6 +703,9 @@ where
         Ok(s) => s,
         Err(_) => {
             // Non-UTF-8 on-disk content — fail-open.
+            (callbacks.log_warn)(
+                "verify-state-timestamp-refresh: fail-open utf8 (STATE.md is not valid UTF-8)",
+            );
             (callbacks.write_stderr)(
                 "verify-state-timestamp-refresh: guard_ran (continue: fail-open utf8)\n",
             );
@@ -712,6 +718,9 @@ where
         "Write" => match extract_write_proposed(&payload) {
             ProposedContent::Content(s) => s,
             ProposedContent::FailOpen => {
+                (callbacks.log_warn)(
+                    "verify-state-timestamp-refresh: fail-open extract-write (content field absent)",
+                );
                 (callbacks.write_stderr)(
                     "verify-state-timestamp-refresh: guard_ran (continue: fail-open extract-write)\n",
                 );
@@ -721,6 +730,9 @@ where
         "Edit" => match extract_edit_proposed(&payload, &on_disk_content) {
             ProposedContent::Content(s) => s,
             ProposedContent::FailOpen => {
+                (callbacks.log_warn)(
+                    "verify-state-timestamp-refresh: fail-open extract-edit (old_string not found or absent)",
+                );
                 (callbacks.write_stderr)(
                     "verify-state-timestamp-refresh: guard_ran (continue: fail-open extract-edit)\n",
                 );
@@ -730,6 +742,9 @@ where
         "MultiEdit" => match extract_multiedit_proposed(&payload, &on_disk_content) {
             ProposedContent::Content(s) => s,
             ProposedContent::FailOpen => {
+                (callbacks.log_warn)(
+                    "verify-state-timestamp-refresh: fail-open extract-multiedit (edits[] absent or old_string not found)",
+                );
                 (callbacks.write_stderr)(
                     "verify-state-timestamp-refresh: guard_ran (continue: fail-open extract-multiedit)\n",
                 );
@@ -741,6 +756,9 @@ where
             match extract_write_proposed(&payload) {
                 ProposedContent::Content(s) => s,
                 ProposedContent::FailOpen => {
+                    (callbacks.log_warn)(
+                        "verify-state-timestamp-refresh: fail-open extract-unknown-tool (content field absent)",
+                    );
                     (callbacks.write_stderr)(
                         "verify-state-timestamp-refresh: guard_ran (continue: fail-open extract-unknown-tool)\n",
                     );
@@ -761,6 +779,9 @@ where
         }
         FieldResult::Malformed => {
             // Malformed proposed frontmatter — fail-open (AC-008 §12.3 row 1).
+            (callbacks.log_warn)(
+                "verify-state-timestamp-refresh: fail-open malformed-proposed (frontmatter unparseable)",
+            );
             (callbacks.write_stderr)(
                 "verify-state-timestamp-refresh: guard_ran (continue: fail-open malformed-proposed)\n",
             );
@@ -784,6 +805,9 @@ where
         FieldResult::NotFound | FieldResult::Malformed => {
             // Absent or malformed on-disk timestamp — first write ever (AC-008 §12.3 row 5 / EC-004).
             // Continue — no prior value to compare against.
+            (callbacks.log_warn)(
+                "verify-state-timestamp-refresh: fail-open no-disk-timestamp (first write or malformed on-disk)",
+            );
             (callbacks.write_stderr)(
                 "verify-state-timestamp-refresh: guard_ran (continue: fail-open no-disk-timestamp)\n",
             );
@@ -862,7 +886,8 @@ where
     // bats allow-path tests can assert the guard executed its decision logic (AC-R5).
     // A guard that panics on entry never reaches any emit; combined with exit 0 this
     // proves clean execution (not a silent crash). Block paths prove execution via exit 2.
-    let _ = callbacks.log_warn; // log_warn unused on success path — suppress warning
+    // log_warn is wired on every fail-open Continue path (observability parity with
+    // verify-factory-lock — L2 fix); the clean success path has no warn to emit.
     (callbacks.write_stderr)("verify-state-timestamp-refresh: guard_ran (continue: advanced)\n");
     HookResult::Continue
 }
