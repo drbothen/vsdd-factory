@@ -649,6 +649,56 @@ _run_dispatcher() {
 # require the WASM artifact.
 # ---------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------
+# AC-001 regression — state-burst SKILL.md contains the factory-lock renew step
+#
+# Traces: AC-001 / BC-5.40.001 PC4 / ADR-025 §12.2 / S-17.04 v1.7
+#
+# Scenario:
+#   The state-burst skill MUST document the `factory-lock-write.sh renew` call
+#   so that agents running mid-burst heartbeat renewal know to invoke it before
+#   writing STATE.md. If the renew step is silently removed from SKILL.md, the
+#   WASM guard (verify-state-timestamp-refresh) will Block every mid-burst write
+#   with LockExpiryStale — causing a live-session outage with no user-visible
+#   explanation in the skill doc.
+#
+# This is a pure grep regression guard — no dispatcher/WASM required.
+# The SKILL.md already contains the renew step (D10 landed), so this test
+# PASSES on add. Load-bearing: silently removing the renew step will cause this
+# test to FAIL immediately, preventing the regression from shipping.
+#
+# Path: $REPO_ROOT/plugins/vsdd-factory/skills/state-burst/SKILL.md
+# (REPO_ROOT established in setup() as $BATS_TEST_DIRNAME/../../..)
+# ---------------------------------------------------------------------------
+
+@test "test_state_burst_skill_contains_renew_step" {
+  local skill_md="$REPO_ROOT/plugins/vsdd-factory/skills/state-burst/SKILL.md"
+
+  # Confirm the SKILL.md file exists and is readable.
+  [ -f "$skill_md" ] || {
+    echo "FAIL: state-burst SKILL.md not found at: $skill_md"
+    echo "AC-001 requires the skill document the factory-lock renew step."
+    echo "Expected path: plugins/vsdd-factory/skills/state-burst/SKILL.md"
+    return 1
+  }
+
+  # Assert the renew step is present (>= 1 occurrence).
+  # grep -c counts matching lines; exits 1 if no match found.
+  local count
+  count=$(grep -c 'factory-lock-write.sh renew' "$skill_md" || true)
+
+  [ "$count" -ge 1 ] || {
+    echo "FAIL: state-burst SKILL.md does not contain 'factory-lock-write.sh renew'."
+    echo "AC-001 / BC-5.40.001 PC4: the skill MUST document the renew step so agents"
+    echo "know to call factory-lock-write.sh renew .factory/STATE.md before each"
+    echo "mid-burst STATE.md write when the lock is held."
+    echo "Without this step, verify-state-timestamp-refresh will Block every mid-burst"
+    echo "write with LockExpiryStale (guard-inert-in-production P0 regression)."
+    echo "Skill file: $skill_md"
+    return 1
+  }
+}
+
 @test "test_verify_state_timestamp_refresh_registry_entry_has_correct_shape" {
   local registry="$REPO_ROOT/plugins/vsdd-factory/hooks-registry.toml"
 
