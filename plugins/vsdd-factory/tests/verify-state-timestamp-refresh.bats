@@ -177,6 +177,28 @@ factory_lock:
 EOF
 }
 
+# Write STATE.md with lock held (holder present) but NO expires_at line.
+# factory_lock_parse returns Err(MalformedLockBlock) for this content.
+# Used by the AC-016 (v1.4) LockExpiryStale bats test.
+_write_state_lock_expires_absent() {
+  local timestamp="${1:-2026-06-11T11:00:00Z}"
+  mkdir -p "$WORK/.factory"
+  cat > "$WORK/.factory/STATE.md" <<EOF
+---
+document_type: state
+version: "0.0.1-bats-test"
+timestamp: "${timestamp}"
+phase: test
+current_step: "bats-test"
+factory_lock:
+  holder: "dev@example.com"
+  locked_at: "2026-06-11T10:00:00Z"
+---
+
+# STATE (bats fixture — lock held, NO expires_at)
+EOF
+}
+
 # ---------------------------------------------------------------------------
 # Dispatcher invocation helper
 # ---------------------------------------------------------------------------
@@ -227,7 +249,41 @@ _run_dispatcher() {
   _run_dispatcher "$envelope"
 
   # Must exit 0 (Continue) — timestamps advanced, guard passes.
-  [ "$status" -eq 0 ]
+  [ "$status" -eq 0 ] || {
+    echo "FAIL: expected exit 0 (Continue) but got status=$status"
+    echo "Output: $output"
+    return 1
+  }
+
+  # R5 — guard-ran robustness (strengthened assertion).
+  #
+  # Problem: on_error=continue means a guard CRASH also exits 0, so exit 0 alone
+  # cannot distinguish "guard ran and returned Continue" from "guard crashed".
+  #
+  # Solution: the dispatcher stderr summary always emits `plugins_run=N`.
+  # The synthetic registry (_write_full_registry) has EXACTLY ONE entry.
+  # If plugins_run=1 appears in the output, the guard executed (crashed or
+  # returned) — combined with exit 0 it proves the guard ran without crashing
+  # (a crash emits plugins_run=1 but also emits block_intent=true when
+  # on_error=block; with on_error=continue a crash emits exit 0 + plugins_run=1
+  # without block_reason — indistinguishable from a clean Continue via this signal).
+  #
+  # R5 resolution: plugins_run=1 is the STRONGEST EXISTING dispatcher signal for
+  # confirming guard execution on a non-blocking dispatch. It is a REUSED signal
+  # (no implementer change required). It cannot distinguish "clean Continue" from
+  # "crash+on_error=continue" — that distinction would require the implementer to
+  # emit a log_warn("guard_ran: ...") on the Continue success path.
+  #
+  # The guard plugin emits a log_warn already (it calls callbacks.log_warn; see
+  # main.rs). If the dispatcher surfaces advisory log_warn records in stderr,
+  # we check for "verify-state-timestamp-refresh" in the output as the ideal signal.
+  # If not surfaced, we fall back to plugins_run=1.
+  if [[ "$output" == *"plugins_run=1"* ]]; then
+    : # Confirmed: the guard plugin ran.
+  else
+    echo "FAIL: expected 'plugins_run=1' in dispatcher stderr but got: $output"
+    return 1
+  fi
 }
 
 # ---------------------------------------------------------------------------
@@ -323,6 +379,17 @@ _run_dispatcher() {
     echo "Output: $output"
     return 1
   }
+
+  # R5 — guard-ran robustness (same strengthened assertion as T-1).
+  # plugins_run=1 in the dispatcher stderr confirms the guard plugin was invoked
+  # (even though it short-circuited at the path check and returned Continue).
+  # Single-entry synthetic registry: plugins_run=1 = exactly this guard ran.
+  if [[ "$output" == *"plugins_run=1"* ]]; then
+    : # Confirmed: the guard plugin ran (returned Continue at path-check).
+  else
+    echo "FAIL: expected 'plugins_run=1' in dispatcher stderr but got: $output"
+    return 1
+  fi
 }
 
 # ---------------------------------------------------------------------------
@@ -381,6 +448,73 @@ _run_dispatcher() {
 
   [[ "$output" == *"${expected_msg}"* ]] || {
     echo "FAIL: expected FULL canonical TimestampStale message in output."
+    echo "Expected message (substring): ${expected_msg}"
+    echo "Actual output: $output"
+    return 1
+  }
+}
+
+# ---------------------------------------------------------------------------
+# T-5 (AC-016 / v1.4 Red Gate): Write payload, lock held + expires_at absent → Block LockExpiryStale
+#
+# Payload type: Write (tool_input.content = full file body, AC-011).
+#
+# Scenario:
+#   - On-disk STATE.md: lock held with a valid expires_at (2026-06-11T10:45:00Z).
+#   - Proposed STATE.md (in tool_input.content): lock block has `holder` and
+#     `locked_at` but NO `expires_at` line at all. Timestamp IS advanced.
+#   - factory_lock_parse::parse_factory_lock(proposed) returns
+#     Err(MalformedLockBlock("factory_lock.expires_at field is absent")).
+#
+# Required result: exit 2 (Block) + FULL canonical LockExpiryStale message.
+#
+# Canonical LockExpiryStale message (AC-006, full line):
+#   BLOCKED by verify-state-timestamp-refresh: factory_lock.expires_at not refreshed
+#   in this write while lock is held. Fix: Run: factory-lock-write.sh renew
+#   .factory/STATE.md before writing STATE.md. Code: LockExpiryStale.
+#
+# RED GATE v1.4: current impl routes parse Err(_) on proposed → None → Continue.
+# This test MUST FAIL until the implementer adds absent-expires detection (AC-016).
+#
+# The on-disk STATE.md (written by _write_state_with_lock) has a valid lock so the
+# guard can detect the holder from on-disk if needed; but the guard must primarily
+# detect the absent expires_at from the PROPOSED content.
+# ---------------------------------------------------------------------------
+
+@test "T-5 test_verify_state_timestamp_refresh_lock_held_expires_absent_blocks" {
+  _require_artifacts
+  _write_full_registry
+
+  # On-disk STATE.md: lock held, valid expires_at (TS_OLD, EXPIRES_OLD).
+  # The guard reads this to compare expires_at values.
+  _write_state_with_lock "2026-06-11T10:00:00Z" "2026-06-11T10:45:00Z"
+
+  # Proposed content: lock held (holder present), timestamp ADVANCED,
+  # but NO expires_at line in the lock block.
+  # Write payload: tool_input.content = full file body (AC-011).
+  local ts_new="2026-06-11T11:00:00Z"
+  local proposed_content
+  proposed_content="---\ndocument_type: state\nversion: 0.0.1-bats-test\ntimestamp: ${ts_new}\nphase: test\ncurrent_step: bats-test\nfactory_lock:\n  holder: dev@example.com\n  locked_at: 2026-06-11T10:00:00Z\n---\n\n# STATE (bats fixture - lock held, expires_at ABSENT)\n"
+
+  local envelope
+  envelope="{\"event_name\":\"PreToolUse\",\"tool_name\":\"Write\",\"session_id\":\"t5\",\"dispatcher_trace_id\":\"t5-trace\",\"tool_input\":{\"file_path\":\".factory/STATE.md\",\"content\":\"${proposed_content}\"}}"
+
+  _run_dispatcher "$envelope"
+
+  # Must exit 2 (Block) — lock held with absent expires_at must Block.
+  [ "$status" -eq 2 ] || {
+    echo "FAIL: expected exit 2 (Block: LockExpiryStale) but got status=$status"
+    echo "RED GATE v1.4: current impl routes Err(MalformedLockBlock) on proposed → None → Continue."
+    echo "Implementer must detect absent/malformed expires_at when holder is present and Block."
+    echo "Output: $output"
+    return 1
+  }
+
+  # FULL canonical LockExpiryStale block message (full-line equality check).
+  local expected_msg="BLOCKED by verify-state-timestamp-refresh: factory_lock.expires_at not refreshed in this write while lock is held. Fix: Run: factory-lock-write.sh renew .factory/STATE.md before writing STATE.md. Code: LockExpiryStale."
+
+  [[ "$output" == *"${expected_msg}"* ]] || {
+    echo "FAIL: expected FULL canonical LockExpiryStale message in output."
     echo "Expected message (substring): ${expected_msg}"
     echo "Actual output: $output"
     return 1

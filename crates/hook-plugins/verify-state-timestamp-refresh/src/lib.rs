@@ -1816,4 +1816,378 @@ mod tests {
             ),
         }
     }
+
+    // -----------------------------------------------------------------------
+    // Fixture builders — lock-held STATE.md variants with absent/empty expires_at
+    //
+    // These fixtures support the AC-016/AC-017 Red Gate tests (v1.4 additions).
+    // The standard `state_md_with_lock` always emits a full valid lock block.
+    // These variants omit or empty the `expires_at` field to drive the new
+    // expired/absent blocking paths required by ADR-025 §12.2 / AC-016.
+    // -----------------------------------------------------------------------
+
+    /// Build STATE.md content: lock held (holder present), expires_at LINE ABSENT.
+    ///
+    /// The lock block has `holder` and `locked_at` but NO `expires_at:` line at all.
+    /// factory_lock_parse::parse_factory_lock returns
+    /// Err(MalformedLockBlock("factory_lock.expires_at field is absent")).
+    ///
+    /// Under the v1.4 spec (AC-016), the guard MUST treat an absent expires_at
+    /// while lock is held as a LockExpiryStale violation and Block.
+    /// Against the current impl (which routes Err(_) → None → Continue), tests
+    /// using this fixture will FAIL — establishing the v1.4 Red Gate.
+    fn state_md_lock_expires_absent(timestamp: &str) -> String {
+        format!(
+            concat!(
+                "---\n",
+                "document_type: state\n",
+                "version: \"0.0.1-test\"\n",
+                "timestamp: \"{ts}\"\n",
+                "phase: test\n",
+                "factory_lock:\n",
+                "  holder: \"{holder}\"\n",
+                "  locked_at: \"2026-06-11T10:00:00Z\"\n",
+                // NOTE: NO expires_at line — parse returns Err(MalformedLockBlock)
+                "---\n\n# STATE\n",
+            ),
+            ts = timestamp,
+            holder = HOLDER,
+        )
+    }
+
+    /// Build STATE.md content: lock held (holder present), expires_at EMPTY STRING.
+    ///
+    /// The lock block has `holder`, `locked_at`, and `expires_at: ""`.
+    /// factory_lock_parse::parse_factory_lock returns
+    /// Err(MalformedLockBlock("factory_lock.expires_at is empty string")).
+    ///
+    /// Under the v1.4 spec (AC-016/AC-017), the guard MUST treat an empty
+    /// expires_at while lock is held as a LockExpiryStale violation and Block.
+    /// Against the current impl (which routes Err(_) → None → Continue), tests
+    /// using this fixture will FAIL — establishing the v1.4 Red Gate.
+    fn state_md_lock_expires_empty(timestamp: &str) -> String {
+        format!(
+            concat!(
+                "---\n",
+                "document_type: state\n",
+                "version: \"0.0.1-test\"\n",
+                "timestamp: \"{ts}\"\n",
+                "phase: test\n",
+                "factory_lock:\n",
+                "  holder: \"{holder}\"\n",
+                "  locked_at: \"2026-06-11T10:00:00Z\"\n",
+                "  expires_at: \"\"\n", // empty string → MalformedLockBlock
+                "---\n\n# STATE\n",
+            ),
+            ts = timestamp,
+            holder = HOLDER,
+        )
+    }
+
+    // -----------------------------------------------------------------------
+    // (t) AC-016 / v1.4 Red Gate — lock held + expires_at ABSENT → Block LockExpiryStale
+    //
+    // Traces: AC-016 (v1.4) / ADR-025 §12.2 / BC-5.40.001 PC4
+    //
+    // Scenario:
+    //   - On-disk STATE.md: lock held, valid expires_at (EXPIRES_OLD).
+    //   - Proposed STATE.md: lock held (holder present), NO expires_at line.
+    //     Timestamp is ADVANCED (TS_NEW) — the Block is specifically about expires_at.
+    //   - factory_lock_parse::parse_factory_lock(proposed) returns
+    //     Err(MalformedLockBlock("factory_lock.expires_at field is absent")).
+    //
+    // Required result: Block with FULL canonical LockExpiryStale message.
+    //
+    // Current impl: guard routes Err(_) on proposed → proposed_expires_opt = None
+    //   → if-let branch not entered → Continue. Therefore this test MUST FAIL
+    //   against the current impl (v1.4 Red Gate).
+    //
+    // v1.4 spec mandate (AC-016): when `factory_lock.holder` is present and non-empty
+    // in the proposed content but `expires_at` is absent or malformed (Err from
+    // parse_factory_lock), the guard MUST Block: LockExpiryStale.
+    // Rationale: an absent expires_at is MORE dangerous than a stale one — the TTL
+    // enforcement window is undefined. Fail-closed is the correct behaviour.
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_lock_held_expires_at_absent_blocks() {
+        // On-disk: valid lock with full expires_at (EXPIRES_OLD).
+        let on_disk = state_md_with_lock(TS_OLD, EXPIRES_OLD);
+        // Proposed: lock held (holder present), timestamp ADVANCED (not stale),
+        // but NO expires_at line at all.
+        let proposed = state_md_lock_expires_absent(TS_NEW);
+
+        let warn_log = Arc::new(Mutex::new(Vec::new()));
+        let callbacks = make_callbacks_with_disk(on_disk, warn_log.clone());
+        // Write payload: proposed content has holder but no expires_at.
+        let payload = payload_write(&proposed);
+
+        let result = guard_logic(payload, callbacks);
+
+        let expected_msg = canonical_lock_expiry_stale_message();
+        match result {
+            HookResult::Block { reason } => {
+                assert_eq!(
+                    reason, expected_msg,
+                    "test_lock_held_expires_at_absent_blocks: \
+                     proposed content has lock holder present but NO expires_at line. \
+                     The guard must Block with FULL canonical LockExpiryStale message \
+                     (absent expires_at is more dangerous than stale — fail-closed). \
+                     AC-016 / ADR-025 §12.2 / BC-5.40.001 PC4. \
+                     Expected: {expected_msg:?}. Got: {reason:?}"
+                );
+            }
+            HookResult::Continue => panic!(
+                "test_lock_held_expires_at_absent_blocks: \
+                 expected Block(LockExpiryStale) but got Continue. \
+                 RED GATE v1.4: current impl routes parse Err(_) on proposed → None → Continue. \
+                 Implementer must detect Err(MalformedLockBlock) on proposed when holder is present \
+                 and Block: LockExpiryStale (AC-016 / ADR-025 §12.2)."
+            ),
+            other => panic!(
+                "test_lock_held_expires_at_absent_blocks: expected Block, got: {:?}",
+                other
+            ),
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // (u) AC-016/017 / v1.4 Red Gate — lock held + expires_at EMPTY → Block LockExpiryStale
+    //
+    // Traces: AC-016 / AC-017 (v1.4) / ADR-025 §12.2 / BC-5.40.001 PC4
+    //
+    // Scenario:
+    //   - On-disk STATE.md: lock held, valid expires_at (EXPIRES_OLD).
+    //   - Proposed STATE.md: lock held (holder present), `expires_at: ""`
+    //     (empty string). Timestamp is ADVANCED (TS_NEW).
+    //   - factory_lock_parse::parse_factory_lock(proposed) returns
+    //     Err(MalformedLockBlock("factory_lock.expires_at is empty string")).
+    //
+    // Required result: Block with FULL canonical LockExpiryStale message.
+    //
+    // Current impl: same Err(_) → None → Continue path as (t). MUST FAIL.
+    //
+    // v1.4 spec mandate (AC-017): empty expires_at (same as absent for enforcement
+    // purposes — the TTL is undefined). The guard must Block: LockExpiryStale.
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_lock_held_expires_at_empty_blocks() {
+        // On-disk: valid lock with full expires_at (EXPIRES_OLD).
+        let on_disk = state_md_with_lock(TS_OLD, EXPIRES_OLD);
+        // Proposed: lock held (holder present), timestamp ADVANCED,
+        // but expires_at is empty string.
+        let proposed = state_md_lock_expires_empty(TS_NEW);
+
+        let warn_log = Arc::new(Mutex::new(Vec::new()));
+        let callbacks = make_callbacks_with_disk(on_disk, warn_log.clone());
+        let payload = payload_write(&proposed);
+
+        let result = guard_logic(payload, callbacks);
+
+        let expected_msg = canonical_lock_expiry_stale_message();
+        match result {
+            HookResult::Block { reason } => {
+                assert_eq!(
+                    reason, expected_msg,
+                    "test_lock_held_expires_at_empty_blocks: \
+                     proposed content has lock holder present but expires_at is empty string. \
+                     The guard must Block with FULL canonical LockExpiryStale message \
+                     (empty expires_at has undefined TTL — fail-closed). \
+                     AC-016/017 / ADR-025 §12.2 / BC-5.40.001 PC4. \
+                     Expected: {expected_msg:?}. Got: {reason:?}"
+                );
+            }
+            HookResult::Continue => panic!(
+                "test_lock_held_expires_at_empty_blocks: \
+                 expected Block(LockExpiryStale) but got Continue. \
+                 RED GATE v1.4: current impl routes parse Err(_) on proposed → None → Continue. \
+                 Implementer must detect Err(MalformedLockBlock) on proposed when holder is present \
+                 (holder extracted before expires_at parse fails) and Block: LockExpiryStale \
+                 (AC-016/017 / ADR-025 §12.2)."
+            ),
+            other => panic!(
+                "test_lock_held_expires_at_empty_blocks: expected Block, got: {:?}",
+                other
+            ),
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // Continue control — lock held + expires_at DIFFERENT from on-disk → Continue
+    //
+    // Traces: AC-006 (inverse — not stale), BC-5.40.001 PC6 (no over-blocking)
+    //
+    // This is the GREEN control that must PASS against both current AND fixed impl.
+    // It proves the guard does NOT over-block when both proposed and on-disk have
+    // valid, different expires_at values (lock was properly renewed).
+    //
+    // On-disk: lock held, EXPIRES_OLD. Proposed: lock held, EXPIRES_NEW (advanced).
+    // Timestamp also advanced. Expected: Continue.
+    //
+    // If this test FAILS, the implementer over-blocked valid renewal. Must remain GREEN.
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_lock_held_expires_at_different_continues() {
+        // On-disk: lock held with EXPIRES_OLD.
+        let on_disk = state_md_with_lock(TS_OLD, EXPIRES_OLD);
+        // Proposed: same lock, but BOTH timestamp AND expires_at advanced.
+        let proposed = state_md_with_lock(TS_NEW, EXPIRES_NEW);
+
+        let warn_log = Arc::new(Mutex::new(Vec::new()));
+        let callbacks = make_callbacks_with_disk(on_disk, warn_log.clone());
+        let payload = payload_write(&proposed);
+
+        let result = guard_logic(payload, callbacks);
+
+        assert_eq!(
+            result,
+            HookResult::Continue,
+            "test_lock_held_expires_at_different_continues: \
+             lock held, timestamp AND expires_at both advanced → must Continue. \
+             The guard must NOT over-block valid mid-burst heartbeat renewal. \
+             AC-006 (inverse) / BC-5.40.001 PC6 (fail-open success path)."
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // (v) EC-006 / v1.4 Red Gate — double-dot relative path resolves → Block
+    //
+    // Traces: EC-006 / ADR-025 §12.7 R6 (.. segment resolution) / v1.4
+    //
+    // Scenario:
+    //   file_path = "foo/../.factory/STATE.md"
+    //
+    // Correct normalisation (segment-stack algorithm):
+    //   "foo/../.factory/STATE.md"
+    //   → process segments: "foo" → push; ".." → pop "foo" → empty; ".factory" → push;
+    //     "STATE.md" → push → ".factory/STATE.md"
+    //   → Result: ".factory/STATE.md" → guard triggers.
+    //
+    // Current impl: normalise_path only collapses "//" and "/./". It does NOT
+    // resolve ".." segments. So "foo/../.factory/STATE.md" stays as
+    // "foo/../.factory/STATE.md" (after no-op collapse) which != ".factory/STATE.md"
+    // → guard returns Continue without reading STATE.md → stale write goes unblocked.
+    //
+    // This test MUST FAIL against current impl (v1.4 Red Gate).
+    //
+    // The implementer must add segment-stack ".." resolution to normalise_path.
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_double_dot_relative_path_triggers_guard() {
+        // On-disk: old timestamp.
+        let on_disk = state_md_no_lock(TS_OLD);
+        // Proposed: stale timestamp (not advanced) → Block TimestampStale.
+        let stale_proposed = state_md_no_lock(TS_OLD);
+
+        let warn_log = Arc::new(Mutex::new(Vec::new()));
+        let callbacks = make_callbacks_with_disk(on_disk, warn_log.clone());
+
+        // Path variant: double-dot traversal that resolves to .factory/STATE.md.
+        // "foo/../.factory/STATE.md" → segment stack: push "foo", pop on "..",
+        // push ".factory", push "STATE.md" → ".factory/STATE.md".
+        let path = "foo/../.factory/STATE.md";
+        let payload = payload_write_path_variant(path, &stale_proposed);
+
+        let result = guard_logic(payload, callbacks);
+
+        let expected_msg = canonical_timestamp_stale_message();
+        match result {
+            HookResult::Block { reason } => {
+                assert_eq!(
+                    reason, expected_msg,
+                    "test_double_dot_relative_path_triggers_guard: \
+                     path '{path}' must normalise to .factory/STATE.md via segment-stack .. resolution \
+                     and Block on stale timestamp. \
+                     Expected: {expected_msg:?}. Got: {reason:?}"
+                );
+            }
+            HookResult::Continue => panic!(
+                "test_double_dot_relative_path_triggers_guard: \
+                 path 'foo/../.factory/STATE.md' must normalise to '.factory/STATE.md' via \
+                 segment-stack .. resolution and Block. Got Continue instead. \
+                 RED GATE v1.4: current normalise_path does not resolve '..' segments. \
+                 Implementer must add segment-stack algorithm to normalise_path \
+                 (EC-006 / ADR-025 §12.7 R6)."
+            ),
+            other => panic!(
+                "test_double_dot_relative_path_triggers_guard: expected Block, got: {:?}",
+                other
+            ),
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // (w) EC-006 / v1.4 Red Gate — above-root double-dot discarded → Block
+    //
+    // Traces: EC-006 / ADR-025 §12.7 R6 (above-root .. clamped) / v1.4
+    //
+    // Scenario:
+    //   file_path = "../../.factory/STATE.md"
+    //
+    // Correct normalisation (segment-stack with above-root clamping):
+    //   Segments: "..", "..", ".factory", "STATE.md"
+    //   Stack processing:
+    //     ".."  → stack is empty → clamp (discard; cannot go above root)
+    //     ".."  → stack is empty → clamp
+    //     ".factory" → push
+    //     "STATE.md" → push
+    //   → Result: ".factory/STATE.md" → guard triggers.
+    //
+    // This matches POSIX path normalisation: you cannot `..` above the
+    // relative root. Paths like "../../.factory/STATE.md" collapse to
+    // ".factory/STATE.md" after above-root clamping.
+    //
+    // Current impl: same as (v) — ".." not resolved → path stays as-is
+    // → normalise returns "../../.factory/STATE.md" != ".factory/STATE.md"
+    // → Continue. MUST FAIL (v1.4 Red Gate).
+    //
+    // The implementer uses the same segment-stack algorithm as (v).
+    // Above-root ".." is discarded (clamped to empty stack), not surfaced
+    // as an error — fail-closed would break legitimate paths where a
+    // tool emits absolute paths that start with "../" relative to cwd.
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_double_dot_above_root_path_triggers_guard() {
+        let on_disk = state_md_no_lock(TS_OLD);
+        let stale_proposed = state_md_no_lock(TS_OLD); // stale → Block TimestampStale.
+
+        let warn_log = Arc::new(Mutex::new(Vec::new()));
+        let callbacks = make_callbacks_with_disk(on_disk, warn_log.clone());
+
+        // Path with above-root ".." — both leading ".." segments are discarded
+        // by the segment-stack clamp, leaving ".factory/STATE.md".
+        let path = "../../.factory/STATE.md";
+        let payload = payload_write_path_variant(path, &stale_proposed);
+
+        let result = guard_logic(payload, callbacks);
+
+        let expected_msg = canonical_timestamp_stale_message();
+        match result {
+            HookResult::Block { reason } => {
+                assert_eq!(
+                    reason, expected_msg,
+                    "test_double_dot_above_root_path_triggers_guard: \
+                     path '{path}' must normalise to .factory/STATE.md via above-root \
+                     .. clamping and Block on stale timestamp. \
+                     Expected: {expected_msg:?}. Got: {reason:?}"
+                );
+            }
+            HookResult::Continue => panic!(
+                "test_double_dot_above_root_path_triggers_guard: \
+                 path '../../.factory/STATE.md' must normalise to '.factory/STATE.md' via \
+                 segment-stack with above-root clamping and Block. Got Continue instead. \
+                 RED GATE v1.4: current normalise_path does not resolve '..' segments. \
+                 Implementer must add above-root-clamped segment-stack algorithm \
+                 (EC-006 / ADR-025 §12.7 R6)."
+            ),
+            other => panic!(
+                "test_double_dot_above_root_path_triggers_guard: expected Block, got: {:?}",
+                other
+            ),
+        }
+    }
 }
