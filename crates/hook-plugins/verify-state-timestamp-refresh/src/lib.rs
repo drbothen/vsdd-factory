@@ -88,22 +88,22 @@ pub const STATE_MD_PATH: &str = ".factory/STATE.md";
 // Canonical block messages (AC-005 / AC-006 exact text)
 // ---------------------------------------------------------------------------
 
-/// Canonical TimestampStale block message produced by `block_with_fix`.
+/// Canonical TimestampStale block message constants.
 ///
 /// Full line (per AC-005 / Red Gate Test Table — full-line equality required):
 /// `BLOCKED by verify-state-timestamp-refresh: STATE.md timestamp not advanced in
 ///  this write. Fix: Update 'timestamp:' to the current UTC time before writing
 ///  STATE.md. Code: TimestampStale.`
 ///
-/// Constructed by: `HookResult::block_with_fix(GUARD_NAME, TIMESTAMP_STALE_REASON,
-///   TIMESTAMP_STALE_FIX, TIMESTAMP_STALE_CODE)`
+/// The string is assembled by `canonical_timestamp_stale_message()` via `format!()`
+/// using these constants — byte-identical to what `block_with_fix` would produce.
 pub const GUARD_NAME: &str = "verify-state-timestamp-refresh";
 pub const TIMESTAMP_STALE_REASON: &str = "STATE.md timestamp not advanced in this write";
 pub const TIMESTAMP_STALE_FIX: &str =
     "Update 'timestamp:' to the current UTC time before writing STATE.md";
 pub const TIMESTAMP_STALE_CODE: &str = "TimestampStale";
 
-/// Canonical LockExpiryStale reason for `block_with_fix`.
+/// Canonical LockExpiryStale block message constants.
 ///
 /// Full line (per AC-006):
 /// `BLOCKED by verify-state-timestamp-refresh: factory_lock.expires_at not refreshed
@@ -119,10 +119,12 @@ pub const LOCK_EXPIRY_STALE_CODE: &str = "LockExpiryStale";
 // Canonical block message strings (for full-line equality assertions in tests)
 // ---------------------------------------------------------------------------
 
-/// Full canonical TimestampStale block string as produced by `block_with_fix`.
+/// Full canonical TimestampStale block string.
 ///
-/// Tests MUST assert equality to this exact string (not a substring), per
-/// the Red Gate Test Table "full-line equality required" mandate (AC-005, M03 fix).
+/// Assembled via `format!()` from the constants above — byte-identical to what
+/// `block_with_fix` would produce. Tests MUST assert equality to this exact string
+/// (not a substring), per the Red Gate Test Table "full-line equality required"
+/// mandate (AC-005, M03 fix).
 pub fn canonical_timestamp_stale_message() -> String {
     format!(
         "BLOCKED by {}: {}. Fix: {}. Code: {}.",
@@ -130,10 +132,12 @@ pub fn canonical_timestamp_stale_message() -> String {
     )
 }
 
-/// Full canonical LockExpiryStale block string as produced by `block_with_fix`.
+/// Full canonical LockExpiryStale block string.
 ///
-/// Tests MUST assert equality to this exact string (not a substring), per
-/// the Red Gate Test Table "full-line equality required" mandate (AC-006, M03 fix).
+/// Assembled via `format!()` from the constants above — byte-identical to what
+/// `block_with_fix` would produce. Tests MUST assert equality to this exact string
+/// (not a substring), per the Red Gate Test Table "full-line equality required"
+/// mandate (AC-006, M03 fix).
 pub fn canonical_lock_expiry_stale_message() -> String {
     format!(
         "BLOCKED by {}: {}. Fix: {}. Code: {}.",
@@ -813,11 +817,11 @@ pub fn on_pre_tool_use(payload: HookPayload) -> HookResult {
 }
 
 // ---------------------------------------------------------------------------
-// Unit tests — conformance suite v1.3 (D17 / S-17.04 / AC-005/006/007/008/011-015)
+// Unit tests — conformance suite v1.4 (D17 / S-17.04 / AC-005/006/007/008/011-017)
 //
-// 20 Rust unit tests covering the full AC matrix from S-17.04 v1.3.
+// 28 Rust unit tests covering the full AC matrix from S-17.04 v1.4.
 // Uses injectable callbacks so no WASM runtime is required.
-// All 20 tests pass green against the implemented guard_logic (T-3 complete).
+// All 28 tests pass green against the implemented guard_logic (T-3 + v1.4 T-5 complete).
 //
 // BLOCK MESSAGE ASSERTIONS: every Block assertion uses FULL canonical equality
 // to the `canonical_timestamp_stale_message()` or `canonical_lock_expiry_stale_message()`
@@ -2002,22 +2006,19 @@ mod tests {
     // -----------------------------------------------------------------------
     // Fixture builders — lock-held STATE.md variants with absent/empty expires_at
     //
-    // These fixtures support the AC-016/AC-017 Red Gate tests (v1.4 additions).
+    // These fixtures support the AC-016/AC-017 tests added in v1.4.
     // The standard `state_md_with_lock` always emits a full valid lock block.
-    // These variants omit or empty the `expires_at` field to drive the new
-    // expired/absent blocking paths required by ADR-025 §12.2 / AC-016.
+    // These variants omit or empty the `expires_at` field to drive the
+    // expired/absent blocking paths implemented per ADR-025 §12.2 / AC-016.
     // -----------------------------------------------------------------------
 
     /// Build STATE.md content: lock held (holder present), expires_at LINE ABSENT.
     ///
     /// The lock block has `holder` and `locked_at` but NO `expires_at:` line at all.
-    /// factory_lock_parse::parse_factory_lock returns
-    /// Err(MalformedLockBlock("factory_lock.expires_at field is absent")).
+    /// `extract_lock_subfields` returns `LockSubfields { holder: Some(..), expires_at: None }`.
     ///
-    /// Under the v1.4 spec (AC-016), the guard MUST treat an absent expires_at
-    /// while lock is held as a LockExpiryStale violation and Block.
-    /// Against the current impl (which routes Err(_) → None → Continue), tests
-    /// using this fixture will FAIL — establishing the v1.4 Red Gate.
+    /// GREEN: guard_logic Step 7 detects `holder` present + `expires_at` None and
+    /// returns `Block { reason: canonical_lock_expiry_stale_message() }` (AC-016).
     fn state_md_lock_expires_absent(timestamp: &str) -> String {
         format!(
             concat!(
@@ -2029,7 +2030,7 @@ mod tests {
                 "factory_lock:\n",
                 "  holder: \"{holder}\"\n",
                 "  locked_at: \"2026-06-11T10:00:00Z\"\n",
-                // NOTE: NO expires_at line — parse returns Err(MalformedLockBlock)
+                // NOTE: NO expires_at line — extract_lock_subfields returns expires_at: None
                 "---\n\n# STATE\n",
             ),
             ts = timestamp,
@@ -2040,13 +2041,10 @@ mod tests {
     /// Build STATE.md content: lock held (holder present), expires_at EMPTY STRING.
     ///
     /// The lock block has `holder`, `locked_at`, and `expires_at: ""`.
-    /// factory_lock_parse::parse_factory_lock returns
-    /// Err(MalformedLockBlock("factory_lock.expires_at is empty string")).
+    /// `extract_lock_subfields` returns `LockSubfields { holder: Some(..), expires_at: Some("") }`.
     ///
-    /// Under the v1.4 spec (AC-016/AC-017), the guard MUST treat an empty
-    /// expires_at while lock is held as a LockExpiryStale violation and Block.
-    /// Against the current impl (which routes Err(_) → None → Continue), tests
-    /// using this fixture will FAIL — establishing the v1.4 Red Gate.
+    /// GREEN: guard_logic Step 7 detects `holder` present + `expires_at` empty string and
+    /// returns `Block { reason: canonical_lock_expiry_stale_message() }` (AC-016/AC-017).
     fn state_md_lock_expires_empty(timestamp: &str) -> String {
         format!(
             concat!(
@@ -2058,7 +2056,7 @@ mod tests {
                 "factory_lock:\n",
                 "  holder: \"{holder}\"\n",
                 "  locked_at: \"2026-06-11T10:00:00Z\"\n",
-                "  expires_at: \"\"\n", // empty string → MalformedLockBlock
+                "  expires_at: \"\"\n", // empty string → extract_lock_subfields returns expires_at: Some("")
                 "---\n\n# STATE\n",
             ),
             ts = timestamp,
@@ -2067,7 +2065,7 @@ mod tests {
     }
 
     // -----------------------------------------------------------------------
-    // (t) AC-016 / v1.4 Red Gate — lock held + expires_at ABSENT → Block LockExpiryStale
+    // (t) AC-016 — lock held + expires_at ABSENT → Block LockExpiryStale
     //
     // Traces: AC-016 (v1.4) / ADR-025 §12.2 / BC-5.40.001 PC4
     //
@@ -2075,20 +2073,16 @@ mod tests {
     //   - On-disk STATE.md: lock held, valid expires_at (EXPIRES_OLD).
     //   - Proposed STATE.md: lock held (holder present), NO expires_at line.
     //     Timestamp is ADVANCED (TS_NEW) — the Block is specifically about expires_at.
-    //   - factory_lock_parse::parse_factory_lock(proposed) returns
-    //     Err(MalformedLockBlock("factory_lock.expires_at field is absent")).
+    //   - extract_lock_subfields(proposed) returns
+    //     LockSubfields { holder: Some(..), expires_at: None }.
     //
     // Required result: Block with FULL canonical LockExpiryStale message.
     //
-    // Current impl: guard routes Err(_) on proposed → proposed_expires_opt = None
-    //   → if-let branch not entered → Continue. Therefore this test MUST FAIL
-    //   against the current impl (v1.4 Red Gate).
+    // GREEN: guard_logic Step 7 uses extract_lock_subfields (not parse_factory_lock),
+    //   detects holder present + expires_at None → Block: LockExpiryStale.
     //
-    // v1.4 spec mandate (AC-016): when `factory_lock.holder` is present and non-empty
-    // in the proposed content but `expires_at` is absent or malformed (Err from
-    // parse_factory_lock), the guard MUST Block: LockExpiryStale.
-    // Rationale: an absent expires_at is MORE dangerous than a stale one — the TTL
-    // enforcement window is undefined. Fail-closed is the correct behaviour.
+    // AC-016 rationale: an absent expires_at is MORE dangerous than a stale one —
+    // the TTL enforcement window is undefined. Fail-closed is the correct behaviour.
     // -----------------------------------------------------------------------
 
     #[test]
@@ -2134,7 +2128,7 @@ mod tests {
     }
 
     // -----------------------------------------------------------------------
-    // (u) AC-016/017 / v1.4 Red Gate — lock held + expires_at EMPTY → Block LockExpiryStale
+    // (u) AC-016/017 — lock held + expires_at EMPTY → Block LockExpiryStale
     //
     // Traces: AC-016 / AC-017 (v1.4) / ADR-025 §12.2 / BC-5.40.001 PC4
     //
@@ -2142,15 +2136,16 @@ mod tests {
     //   - On-disk STATE.md: lock held, valid expires_at (EXPIRES_OLD).
     //   - Proposed STATE.md: lock held (holder present), `expires_at: ""`
     //     (empty string). Timestamp is ADVANCED (TS_NEW).
-    //   - factory_lock_parse::parse_factory_lock(proposed) returns
-    //     Err(MalformedLockBlock("factory_lock.expires_at is empty string")).
+    //   - extract_lock_subfields(proposed) returns
+    //     LockSubfields { holder: Some(..), expires_at: Some("") }.
     //
     // Required result: Block with FULL canonical LockExpiryStale message.
     //
-    // Current impl: same Err(_) → None → Continue path as (t). MUST FAIL.
+    // GREEN: guard_logic Step 7 detects holder present + expires_at empty string
+    //   → Block: LockExpiryStale.
     //
-    // v1.4 spec mandate (AC-017): empty expires_at (same as absent for enforcement
-    // purposes — the TTL is undefined). The guard must Block: LockExpiryStale.
+    // AC-017: empty expires_at is treated identically to absent — TTL undefined,
+    // fail-closed is the correct behaviour.
     // -----------------------------------------------------------------------
 
     #[test]
@@ -2234,7 +2229,7 @@ mod tests {
     }
 
     // -----------------------------------------------------------------------
-    // (v) EC-006 / v1.4 Red Gate — double-dot relative path resolves → Block
+    // (v) EC-006 — double-dot relative path resolves → Block
     //
     // Traces: EC-006 / ADR-025 §12.7 R6 (.. segment resolution) / v1.4
     //
@@ -2247,14 +2242,9 @@ mod tests {
     //     "STATE.md" → push → ".factory/STATE.md"
     //   → Result: ".factory/STATE.md" → guard triggers.
     //
-    // Current impl: normalise_path only collapses "//" and "/./". It does NOT
-    // resolve ".." segments. So "foo/../.factory/STATE.md" stays as
-    // "foo/../.factory/STATE.md" (after no-op collapse) which != ".factory/STATE.md"
-    // → guard returns Continue without reading STATE.md → stale write goes unblocked.
-    //
-    // This test MUST FAIL against current impl (v1.4 Red Gate).
-    //
-    // The implementer must add segment-stack ".." resolution to normalise_path.
+    // GREEN: normalise_path segment-stack algorithm resolves ".." segments.
+    //   "foo/../.factory/STATE.md" → ".factory/STATE.md" → guard reads STATE.md
+    //   and blocks on stale timestamp (TimestampStale).
     // -----------------------------------------------------------------------
 
     #[test]
@@ -2302,7 +2292,7 @@ mod tests {
     }
 
     // -----------------------------------------------------------------------
-    // (w) EC-006 / v1.4 Red Gate — above-root double-dot discarded → Block
+    // (w) EC-006 — above-root double-dot discarded → Block
     //
     // Traces: EC-006 / ADR-025 §12.7 R6 (above-root .. clamped) / v1.4
     //
@@ -2322,11 +2312,9 @@ mod tests {
     // relative root. Paths like "../../.factory/STATE.md" collapse to
     // ".factory/STATE.md" after above-root clamping.
     //
-    // Current impl: same as (v) — ".." not resolved → path stays as-is
-    // → normalise returns "../../.factory/STATE.md" != ".factory/STATE.md"
-    // → Continue. MUST FAIL (v1.4 Red Gate).
-    //
-    // The implementer uses the same segment-stack algorithm as (v).
+    // GREEN: normalise_path segment-stack algorithm applies the same above-root
+    // clamping as (v). "../../.factory/STATE.md" → ".factory/STATE.md" → guard
+    // reads STATE.md and blocks on stale timestamp (TimestampStale).
     // Above-root ".." is discarded (clamped to empty stack), not surfaced
     // as an error — fail-closed would break legitimate paths where a
     // tool emits absolute paths that start with "../" relative to cwd.
