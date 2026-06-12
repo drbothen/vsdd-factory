@@ -95,7 +95,7 @@ schema_version = 2
 name = "verify-factory-lock"
 plugin = "hook-plugins/verify-factory-lock.wasm"
 event = "PreToolUse"
-tool = "Edit|Write|Agent"
+tool = "Edit|Write|MultiEdit|Agent"
 async = false
 on_error = "continue"
 timeout_ms = 5000
@@ -137,7 +137,7 @@ schema_version = 2
 name = "verify-factory-lock"
 plugin = "hook-plugins/verify-factory-lock.wasm"
 event = "PreToolUse"
-tool = "Edit|Write|Agent"
+tool = "Edit|Write|MultiEdit|Agent"
 async = false
 on_error = "continue"
 timeout_ms = 5000
@@ -358,7 +358,7 @@ _run_dispatcher() {
 # ---------------------------------------------------------------------------
 # T-5: foreign unexpired lock → Read → not triggered (Continue, PC5)
 #
-# Read is NOT in the registry's tool regex (Edit|Write|Agent) so the plugin
+# Read is NOT in the registry's tool regex (Edit|Write|MultiEdit|Agent) so the plugin
 # is never invoked. The dispatcher exits 0 immediately.
 # ---------------------------------------------------------------------------
 
@@ -496,7 +496,7 @@ _run_dispatcher() {
     END { print count+0 }
   ' "$registry")
 
-  # Must be exactly 2 — one for verify-factory-lock (Edit|Write|Agent) and one
+  # Must be exactly 2 — one for verify-factory-lock (Edit|Write|MultiEdit|Agent) and one
   # for verify-factory-lock-bash (Bash). Any fewer means a block is missing and
   # the guard is broken for that tool class.
   [ "$count" -eq 2 ]
@@ -519,7 +519,7 @@ _run_dispatcher() {
 # ---------------------------------------------------------------------------
 # test_BC_4_13_001_registry_has_two_entries_with_both_capability_blocks
 #
-# Assert BOTH verify-factory-lock entries (Edit|Write|Agent + Bash) are present
+# Assert BOTH verify-factory-lock entries (Edit|Write|MultiEdit|Agent + Bash) are present
 # AND each entry has BOTH required capability blocks:
 #   - [hooks.capabilities.read_file]  with path_allow containing .factory/STATE.md
 #   - [hooks.capabilities.exec_subprocess]  with binary_allow containing git

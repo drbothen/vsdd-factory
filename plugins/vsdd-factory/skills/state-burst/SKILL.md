@@ -115,6 +115,19 @@ Write all narrative as if the burst has already completed. ❌ Never
 "REMEDIATION IN PROGRESS" or "this burst remediates…". ✅ Always
 "REMEDIATED — Awaiting Pass N+1".
 
+## Apply changes — mandatory renew step
+
+Before staging the commit, renew the factory lock (if one is held) to advance
+`factory_lock.expires_at` and `timestamp:` in STATE.md:
+
+```bash
+bash plugins/vsdd-factory/bin/factory-lock-write.sh renew .factory/STATE.md
+```
+
+No-op when factory is unlocked (absent `factory_lock:` key) — exits 0 with
+'no factory_lock block present — renew is a no-op'. Safe to call
+unconditionally.
+
 ## Commit
 
 When all changes are staged:
@@ -187,6 +200,7 @@ bash .factory/hooks/verify-sha-currency.sh
 | In-progress voice in narrative | Hook tense-flip WARN | Edit narrative to past-tense before push |
 | Cross-record SHA drift between STATE.md and wave-state.yaml | Hook DRIFT report | Fix the disagreeing record (per Schema Semantics in checklist) |
 | Develop SHA in STATE.md does not match actual develop HEAD | Hook FAIL | Update the develop cite to the current develop HEAD |
+| Skipping renew before `git add` while lock is held | `verify-state-timestamp-refresh` WASM guard blocks the subsequent STATE.md write (LockExpiryStale) | Run `bash plugins/vsdd-factory/bin/factory-lock-write.sh renew .factory/STATE.md`; then retry the Edit/Write/MultiEdit to STATE.md |
 
 ## When to bypass
 

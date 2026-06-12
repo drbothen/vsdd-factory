@@ -42,6 +42,7 @@
 // Allow `#[cfg(kani)]` without triggering unexpected_cfgs warning.
 #![cfg_attr(not(kani), allow(unexpected_cfgs))]
 
+use factory_lock_parse as flp;
 use vsdd_hook_sdk::{HookPayload, HookResult};
 
 // ---------------------------------------------------------------------------
@@ -92,21 +93,16 @@ pub enum LockCheckError {
 
 // ---------------------------------------------------------------------------
 // Parsed lock state (output of frontmatter scanner)
+// Re-exported from factory_lock_parse (D15 / S-17.04 AC-004).
 // ---------------------------------------------------------------------------
 
 /// A successfully-parsed `factory_lock` block from STATE.md frontmatter.
 ///
 /// All three fields are required; absence of any field routes to
 /// `MalformedLockBlock`.
-#[derive(Debug, Clone)]
-pub struct LockState {
-    /// Email of the current lock holder.
-    pub holder: String,
-    /// ISO-8601 timestamp when the lock was acquired (required for refusal message).
-    pub locked_at: String,
-    /// ISO-8601 datetime when the lock auto-expires.
-    pub expires_at: String,
-}
+///
+/// Re-exported from `factory_lock_parse` crate (D15 / S-17.04 AC-004).
+pub use factory_lock_parse::LockState;
 
 // ---------------------------------------------------------------------------
 // Injectable callbacks surface (testable without WASM runtime)
@@ -131,7 +127,7 @@ where
 }
 
 // ---------------------------------------------------------------------------
-// Pure helper fn stubs (implementer fills in T-3)
+// Pure helper functions
 // ---------------------------------------------------------------------------
 
 /// Check whether a Bash command payload matches the factory-artifacts push pattern.
@@ -182,9 +178,8 @@ pub fn matches_factory_artifacts_push(command: &str) -> bool {
 
 /// Scan the YAML frontmatter of STATE.md content for the `factory_lock:` block.
 ///
-/// Reads only the region between the first and second `---\n` delimiters.
-/// Uses a line-by-line scan (no YAML parser; no `regex` crate).
-/// Sub-fields are indented with exactly 2 spaces under `factory_lock:`.
+/// Delegates to `factory_lock_parse::parse_factory_lock` (D15 / S-17.04 AC-004).
+/// The `LockParseError::MalformedLockBlock` is bridged to `LockCheckError::MalformedLockBlock`.
 ///
 /// Returns:
 /// - `Ok(None)` if the `factory_lock` key is absent (EC-001 unlocked path).
@@ -192,186 +187,25 @@ pub fn matches_factory_artifacts_push(command: &str) -> bool {
 /// - `Err(MalformedLockBlock)` if the block is present but malformed (EC-004,
 ///   EC-005, EC-012, EC-013).
 pub fn parse_factory_lock(content: &str) -> Result<Option<LockState>, LockCheckError> {
-    // Normalise Windows-style CRLF line endings to LF before scanning.
-    // This ensures STATE.md files edited on Windows or by certain editors (which
-    // emit `\r\n`) are parsed identically to LF-only files (O2 fix: CRLF support).
-    let normalised;
-    let content = if content.contains('\r') {
-        normalised = content.replace("\r\n", "\n");
-        normalised.as_str()
-    } else {
-        content
-    };
-
-    // Extract frontmatter region: between first and second `---\n`.
-    // The file starts with `---\n`; we skip that delimiter and find the closing one.
-    let frontmatter = if let Some(after_open) = content.strip_prefix("---\n") {
-        if let Some(close_pos) = after_open.find("\n---\n").or_else(|| {
-            // Also handle `---\n` at end of file with no trailing newline after the block close
-            if after_open.ends_with("\n---") {
-                Some(after_open.len() - 4)
-            } else {
-                None
-            }
-        }) {
-            &after_open[..close_pos]
-        } else {
-            // No closing `---` delimiter — EC-013 malformed frontmatter.
-            // Return MalformedLockBlock so guard_logic emits log_warn + Continue (PC4 fail-open).
-            // Do NOT fall through and scan the body: body-resident factory_lock blocks must NOT
-            // be treated as real locks (O4 fix: over-blocking prevention).
-            return Err(LockCheckError::MalformedLockBlock(
-                "missing closing --- delimiter (EC-013)".to_string(),
-            ));
-        }
-    } else {
-        // No opening `---\n` — no frontmatter at all, treat as unlocked.
-        return Ok(None);
-    };
-
-    // Scan lines for `factory_lock:` key.
-    let mut in_factory_lock = false;
-    let mut holder: Option<String> = None;
-    let mut locked_at: Option<String> = None;
-    let mut expires_at: Option<String> = None;
-
-    for line in frontmatter.lines() {
-        if line == "factory_lock:" || line.starts_with("factory_lock:") {
-            // Check it's the bare key (no inline value after the colon+space).
-            // e.g. "factory_lock:" — the value is null/absent (unlocked path)
-            // or the sub-fields follow on subsequent lines.
-            let after_colon = line["factory_lock:".len()..].trim();
-            if after_colon.is_empty() || after_colon == "~" || after_colon == "null" {
-                in_factory_lock = true;
-            } else {
-                // Inline value — treat as malformed (unexpected shape).
-                return Err(LockCheckError::MalformedLockBlock(
-                    "factory_lock key has unexpected inline value".to_string(),
-                ));
-            }
-            continue;
-        }
-
-        if in_factory_lock {
-            // Sub-fields must be indented with exactly 2 spaces.
-            if line.starts_with("  ") && !line.starts_with("   ") {
-                // 2-space indent — a sub-field of factory_lock.
-                let field_line = &line[2..]; // strip the 2-space indent
-                if let Some(value) = extract_yaml_string_value(field_line, "holder") {
-                    holder = Some(value);
-                } else if let Some(value) = extract_yaml_string_value(field_line, "locked_at") {
-                    locked_at = Some(value);
-                } else if let Some(value) = extract_yaml_string_value(field_line, "expires_at") {
-                    expires_at = Some(value);
-                }
-                // Unknown sub-field lines under factory_lock are ignored (fail-open).
-            } else if !line.is_empty() {
-                // Non-indented, non-empty line after factory_lock: — we've exited the block.
-                in_factory_lock = false;
-            }
-            // Empty lines: stay in in_factory_lock state (blank lines between fields allowed).
-        }
-    }
-
-    // If factory_lock was not found, return Ok(None) (unlocked).
-    if !in_factory_lock && holder.is_none() && locked_at.is_none() && expires_at.is_none() {
-        return Ok(None);
-    }
-
-    // If factory_lock was found but all fields are None, treat as absent/null (unlocked).
-    // This covers `factory_lock: ~` or `factory_lock: null` which would set in_factory_lock
-    // briefly but never populate sub-fields. Actually in the current logic, null/~ sets
-    // in_factory_lock=true but no sub-fields appear, so we need to handle this:
-    if in_factory_lock && holder.is_none() && locked_at.is_none() && expires_at.is_none() {
-        // factory_lock block present but null/empty — treat as unlocked (EC-001 variant).
-        return Ok(None);
-    }
-
-    // factory_lock was found — validate all three required sub-fields.
-    let holder_val = match holder {
-        Some(h) if !h.is_empty() => h,
-        Some(_) => {
-            return Err(LockCheckError::MalformedLockBlock(
-                "factory_lock.holder is empty string (EC-004)".to_string(),
-            ));
-        }
-        None => {
-            return Err(LockCheckError::MalformedLockBlock(
-                "factory_lock.holder field is absent (EC-012 variant)".to_string(),
-            ));
-        }
-    };
-
-    let locked_at_val = match locked_at {
-        Some(v) if !v.is_empty() => v,
-        Some(_) => {
-            return Err(LockCheckError::MalformedLockBlock(
-                "factory_lock.locked_at is empty string".to_string(),
-            ));
-        }
-        None => {
-            return Err(LockCheckError::MalformedLockBlock(
-                "factory_lock.locked_at field is absent (EC-012)".to_string(),
-            ));
-        }
-    };
-
-    let expires_at_val = match expires_at {
-        Some(v) if !v.is_empty() => v,
-        Some(_) => {
-            return Err(LockCheckError::MalformedLockBlock(
-                "factory_lock.expires_at is empty string".to_string(),
-            ));
-        }
-        None => {
-            return Err(LockCheckError::MalformedLockBlock(
-                "factory_lock.expires_at field is absent".to_string(),
-            ));
-        }
-    };
-
-    Ok(Some(LockState {
-        holder: holder_val,
-        locked_at: locked_at_val,
-        expires_at: expires_at_val,
-    }))
+    flp::parse_factory_lock(content).map_err(|e| match e {
+        flp::LockParseError::MalformedLockBlock(msg) => LockCheckError::MalformedLockBlock(msg),
+    })
 }
 
 /// Extract the string value from a YAML key-value line like `key: "value"` or `key: value`.
 ///
-/// Returns `Some(value)` if the line starts with `{key}: `, otherwise `None`.
-/// Strips surrounding double-quotes from quoted values.
-/// Returns `Some("")` for empty quoted values `""`.
-fn extract_yaml_string_value(line: &str, key: &str) -> Option<String> {
-    let prefix = format!("{}: ", key);
-    let bare_prefix = format!("{}:", key);
-
-    let raw_value = if let Some(rest) = line.strip_prefix(&prefix) {
-        rest
-    } else if line == bare_prefix {
-        // `key:` with no value — treat as empty.
-        ""
-    } else {
-        return None;
-    };
-
-    // Strip surrounding double-quotes if present.
-    let value = if raw_value.starts_with('"') && raw_value.ends_with('"') && raw_value.len() >= 2 {
-        &raw_value[1..raw_value.len() - 1]
-    } else {
-        raw_value
-    };
-
-    Some(value.to_string())
+/// Delegates to `factory_lock_parse::extract_yaml_string_value` (D15 / S-17.04 AC-004).
+pub fn extract_yaml_string_value(line: &str, key: &str) -> Option<String> {
+    flp::extract_yaml_string_value(line, key)
 }
 
 /// Parse an ISO-8601 datetime string into a `chrono::DateTime<chrono::Utc>`.
 ///
-/// Returns `Ok(dt)` on success, `Err(MalformedLockBlock)` if unparseable
-/// (EC-005).
+/// Delegates to `factory_lock_parse::parse_iso8601` (D15 / S-17.04 AC-004).
+/// Returns `Ok(dt)` on success, `Err(MalformedLockBlock)` if unparseable (EC-005).
 pub fn parse_iso8601(s: &str) -> Result<chrono::DateTime<chrono::Utc>, LockCheckError> {
-    s.parse::<chrono::DateTime<chrono::Utc>>().map_err(|e| {
-        LockCheckError::MalformedLockBlock(format!("invalid ISO-8601 datetime '{}': {}", s, e))
+    flp::parse_iso8601(s).map_err(|e| match e {
+        flp::LockParseError::MalformedLockBlock(msg) => LockCheckError::MalformedLockBlock(msg),
     })
 }
 
@@ -663,8 +497,8 @@ pub fn on_pre_tool_use(payload: HookPayload) -> HookResult {
 // injectable mock closures — no WASM runtime required. Each test is named per
 // the BC-based convention: test_BC_S_SS_NNN_xxx() for full traceability.
 //
-// RED GATE: every test MUST FAIL before implementation begins (todo!() panics).
-// Tests will pass once the implementer fills in the helper bodies in T-3.
+// All tests exercise the production functions via injectable mock closures —
+// no WASM runtime required. Implementation is complete (T-3 done).
 //
 // Canonical STATE.md fixture content with a factory_lock block
 // conforming to BC-5.40.001 PC1 (2-space indented sub-fields):
@@ -849,7 +683,7 @@ mod tests {
     ///   4. "min remaining" (time_remaining human-readable)
     ///   5. "/factory-unlock --force" (exact break-glass command)
     ///
-    /// RED GATE: guard_logic is todo!() — panics immediately.
+    /// GREEN: guard_logic implemented; test exercises this BC path.
     #[test]
     fn test_BC_4_13_001_foreign_unexpired_lock_blocks_with_all_five_fields() {
         let warn_log = Arc::new(Mutex::new(Vec::new()));
@@ -900,7 +734,7 @@ mod tests {
     ///
     /// Expected: HookResult::Continue. No log_warn on expired-lock path.
     ///
-    /// RED GATE: guard_logic is todo!() — panics immediately.
+    /// GREEN: guard_logic implemented; test exercises this BC path.
     #[test]
     fn test_BC_4_13_001_expired_lock_returns_continue() {
         let warn_log = Arc::new(Mutex::new(Vec::new()));
@@ -936,7 +770,7 @@ mod tests {
     ///
     /// Expected: HookResult::Continue (developer not blocked by own lock).
     ///
-    /// RED GATE: guard_logic is todo!() — panics immediately.
+    /// GREEN: guard_logic implemented; test exercises this BC path.
     #[test]
     fn test_BC_4_13_001_self_held_lock_returns_continue() {
         let warn_log = Arc::new(Mutex::new(Vec::new()));
@@ -964,7 +798,7 @@ mod tests {
     ///
     /// Expected: HookResult::Continue, AND log_warn captured containing "MalformedLockBlock".
     ///
-    /// RED GATE: guard_logic is todo!() — panics immediately.
+    /// GREEN: guard_logic implemented; test exercises this BC path.
     #[test]
     fn test_BC_4_13_001_malformed_block_returns_continue_with_log_warn() {
         let warn_log = Arc::new(Mutex::new(Vec::new()));
@@ -997,7 +831,7 @@ mod tests {
     ///
     /// Expected: HookResult::Continue + log_warn containing the error description.
     ///
-    /// RED GATE: guard_logic is todo!() — panics immediately.
+    /// GREEN: guard_logic implemented; test exercises this BC path.
     #[test]
     fn test_BC_4_13_001_read_file_host_error_returns_continue() {
         let warn_log = Arc::new(Mutex::new(Vec::new()));
@@ -1026,7 +860,7 @@ mod tests {
     ///
     /// Expected: HookResult::Continue + log_warn containing identity-resolution info.
     ///
-    /// RED GATE: guard_logic is todo!() — panics immediately.
+    /// GREEN: guard_logic implemented; test exercises this BC path.
     #[test]
     fn test_BC_4_13_001_git_subprocess_failure_returns_continue() {
         let warn_log = Arc::new(Mutex::new(Vec::new()));
@@ -1058,7 +892,7 @@ mod tests {
     ///
     /// Expected: HookResult::Continue + log_warn containing "capability_denied:".
     ///
-    /// RED GATE: guard_logic is todo!() — panics immediately.
+    /// GREEN: guard_logic implemented; test exercises this BC path.
     #[test]
     fn test_BC_4_13_001_capability_denied_graceful_degrades_to_continue() {
         let warn_log = Arc::new(Mutex::new(Vec::new()));
@@ -1090,7 +924,7 @@ mod tests {
     ///
     /// Expected: HookResult::Block (push arm intercepted by internal push-regex).
     ///
-    /// RED GATE: guard_logic is todo!() — panics immediately.
+    /// GREEN: guard_logic implemented; test exercises this BC path.
     #[test]
     fn test_BC_4_13_001_bash_factory_artifacts_push_blocked_when_foreign_lock() {
         let warn_log = Arc::new(Mutex::new(Vec::new()));
@@ -1122,7 +956,7 @@ mod tests {
     /// Test verifies via a call-counting mock on read_file: if read_file is called,
     /// the test fails (assert read_file_call_count == 0).
     ///
-    /// RED GATE: guard_logic is todo!() — panics immediately.
+    /// GREEN: guard_logic implemented; test exercises this BC path.
     #[test]
     fn test_BC_4_13_001_non_push_bash_returns_continue_immediately() {
         let warn_log = Arc::new(Mutex::new(Vec::new()));
@@ -1160,12 +994,12 @@ mod tests {
 
     // -----------------------------------------------------------------------
     // Pure helper tests — each pure fn gets at least one focused test.
-    // These fail with todo!() panics before implementation.
+    // Each pure helper is exercised by at least one focused test.
     // -----------------------------------------------------------------------
 
     /// matches_factory_artifacts_push: push command → true.
     ///
-    /// RED GATE: todo!() panics immediately.
+    /// GREEN: pure helper implemented; test verifies this case.
     #[test]
     fn test_BC_4_13_001_push_regex_matches_factory_artifacts_push() {
         assert!(
@@ -1176,7 +1010,7 @@ mod tests {
 
     /// matches_factory_artifacts_push: non-push command → false.
     ///
-    /// RED GATE: todo!() panics immediately.
+    /// GREEN: pure helper implemented; test verifies this case.
     #[test]
     fn test_BC_4_13_001_push_regex_does_not_match_non_push_command() {
         assert!(
@@ -1195,7 +1029,7 @@ mod tests {
 
     /// parse_factory_lock: valid block present → Ok(Some(LockState)).
     ///
-    /// RED GATE: todo!() panics immediately.
+    /// GREEN: pure helper implemented; test verifies this case.
     #[test]
     fn test_BC_4_13_001_parse_factory_lock_returns_some_on_valid_block() {
         let raw = state_md_foreign_unexpired_lock();
@@ -1211,7 +1045,7 @@ mod tests {
 
     /// parse_factory_lock: no factory_lock block → Ok(None).
     ///
-    /// RED GATE: todo!() panics immediately.
+    /// GREEN: pure helper implemented; test verifies this case.
     #[test]
     fn test_BC_4_13_001_parse_factory_lock_returns_none_on_absent_block() {
         let raw = state_md_no_lock();
@@ -1226,7 +1060,7 @@ mod tests {
 
     /// parse_factory_lock: malformed block (empty holder) → Err(MalformedLockBlock).
     ///
-    /// RED GATE: todo!() panics immediately.
+    /// GREEN: pure helper implemented; test verifies this case.
     #[test]
     fn test_BC_4_13_001_parse_factory_lock_errors_on_empty_holder() {
         let raw = state_md_malformed_empty_holder();
@@ -1250,7 +1084,7 @@ mod tests {
 
     /// parse_iso8601: valid ISO-8601 UTC string → Ok(DateTime).
     ///
-    /// RED GATE: todo!() panics immediately.
+    /// GREEN: pure helper implemented; test verifies this case.
     #[test]
     fn test_BC_4_13_001_parse_iso8601_succeeds_on_valid_timestamp() {
         let result = parse_iso8601("2026-06-10T14:00:00Z");
@@ -1262,7 +1096,7 @@ mod tests {
 
     /// parse_iso8601: invalid string → Err(MalformedLockBlock).
     ///
-    /// RED GATE: todo!() panics immediately.
+    /// GREEN: pure helper implemented; test verifies this case.
     #[test]
     fn test_BC_4_13_001_parse_iso8601_errors_on_invalid_timestamp() {
         let result = parse_iso8601("not-a-timestamp");
@@ -1280,7 +1114,7 @@ mod tests {
 
     /// format_time_remaining: correct "N min remaining" format.
     ///
-    /// RED GATE: todo!() panics immediately.
+    /// GREEN: pure helper implemented; test verifies this case.
     #[test]
     fn test_BC_4_13_001_format_time_remaining_returns_n_min_remaining() {
         use chrono::{TimeZone, Utc};
@@ -1360,7 +1194,7 @@ mod tests {
     /// Implementer fix: `parse_factory_lock` must normalise `\r\n` → `\n` before scanning,
     /// or use a delimiter that tolerates CRLF.
     ///
-    /// RED GATE: assertion fails — guard returns Continue instead of Block.
+    /// GREEN: CRLF normalisation implemented; guard now returns Block as required.
     #[test]
     #[allow(non_snake_case)]
     fn test_BC_4_13_001_crlf_state_md_foreign_lock_blocks() {
@@ -1429,8 +1263,7 @@ mod tests {
     /// The correct behavior: absent closing delimiter + body-resident factory_lock block
     /// → treat as MalformedLockBlock → log_warn + return Continue.
     ///
-    /// RED GATE: assertion fails — guard may return Block instead of Continue for this
-    /// malformed input.
+    /// GREEN: missing-closing-delimiter detection implemented; guard returns Continue (fail-open).
     #[test]
     #[allow(non_snake_case)]
     fn test_BC_4_13_001_missing_closing_delimiter_returns_continue() {
@@ -1488,7 +1321,7 @@ mod tests {
 
     /// trim_git_email: trailing newline stripped.
     ///
-    /// RED GATE: todo!() panics immediately.
+    /// GREEN: pure helper implemented; test verifies this case.
     #[test]
     fn test_BC_4_13_001_trim_git_email_strips_trailing_newline() {
         let result = trim_git_email("dev@example.com\n");
@@ -1497,7 +1330,7 @@ mod tests {
 
     /// trim_git_email: no trailing newline unchanged.
     ///
-    /// RED GATE: todo!() panics immediately.
+    /// GREEN: pure helper implemented; test verifies this case.
     #[test]
     fn test_BC_4_13_001_trim_git_email_unchanged_when_no_newline() {
         let result = trim_git_email("dev@example.com");
@@ -1506,7 +1339,7 @@ mod tests {
 
     /// build_block_message: all 5 fields present in the message.
     ///
-    /// RED GATE: todo!() panics immediately.
+    /// GREEN: pure helper implemented; test verifies this case.
     #[test]
     fn test_BC_4_13_001_build_block_message_contains_all_five_fields() {
         let msg = build_block_message(
