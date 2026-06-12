@@ -1163,7 +1163,7 @@ on_error = "block"
 [hooks.capabilities.read_file]
 path_allow = ["plugins/vsdd-factory/hooks-registry.toml"]
 
-# ---------- verify-factory-lock (PreToolUse, Edit|Write|Agent) ----------
+# ---------- verify-factory-lock (PreToolUse, Edit|Write|MultiEdit|Agent) ----------
 # S-17.02: factory-artifacts orphan-branch single-writer guard (BC-4.13.001).
 # Reads factory_lock block from STATE.md; blocks mutating tools when a foreign
 # unexpired lock is held. Fail-open (on_error=continue) per ADR-025 Decision 7.
