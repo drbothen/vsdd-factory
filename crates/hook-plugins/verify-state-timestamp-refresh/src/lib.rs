@@ -1597,4 +1597,223 @@ mod tests {
              byte-comparison must compare the extracted value, not the raw line."
         );
     }
+
+    // -----------------------------------------------------------------------
+    // Fixture builder — unquoted timestamp variant
+    //
+    // ADR-025 §12.4 (D17 addition) mandates proving quote-stripping symmetry.
+    // The standard `state_md_no_lock` emits `timestamp: "..."` (quoted).
+    // This variant emits `timestamp: ...` (unquoted) so mixed-quoting tests can
+    // feed an unquoted on-disk value against a quoted proposed value.
+    // -----------------------------------------------------------------------
+
+    /// Build STATE.md content with a given timestamp (UNQUOTED), no lock.
+    ///
+    /// Emits `timestamp: 2026-...` without surrounding double-quotes.
+    /// Used by ADR-025 §12.4 mixed-quoting fixtures to prove that
+    /// `extract_yaml_string_value` strips quotes symmetrically and does not
+    /// produce false blocks or false continues based on quote presence.
+    fn state_md_no_lock_unquoted_ts(timestamp: &str) -> String {
+        format!(
+            "---\ndocument_type: state\nversion: \"0.0.1-test\"\ntimestamp: {}\nphase: test\n---\n\n# STATE\n",
+            timestamp
+        )
+    }
+
+    // -----------------------------------------------------------------------
+    // ADR-025 §12.4 — Mixed-quoting test 1: unquoted on-disk, quoted proposed,
+    //   DIFFERENT instants → Continue (no false Block from quote mismatch)
+    //
+    // Traces: ADR-025 §12.4 (D17 addition) / EC-006 edge
+    //
+    // On-disk:  `timestamp: 2026-06-12T00:00:00Z`   (UNQUOTED)
+    // Proposed: `timestamp: "2026-06-12T01:00:00Z"` (QUOTED, DIFFERENT value)
+    //
+    // The `extract_yaml_string_value` function strips surrounding double-quotes
+    // before returning the value. If stripping is symmetric, it must extract
+    // `2026-06-12T00:00:00Z` from the unquoted on-disk line AND
+    // `2026-06-12T01:00:00Z` from the quoted proposed line, then compare them
+    // as different strings → Continue.
+    //
+    // A bug where quote-stripping is applied only on one side (e.g., proposed
+    // value has quotes stripped but on-disk value does not, or vice versa) would
+    // compare `2026-06-12T00:00:00Z` against `"2026-06-12T01:00:00Z"` (raw) —
+    // these are not byte-identical, so even a buggy guard would Continue here,
+    // but the companion test below (quoted-vs-quoted same instant) catches the
+    // inverse failure mode. Together they form the §12.4 symmetry proof.
+    //
+    // GREEN: guard returns Continue (different instants regardless of quoting).
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_mixed_quoting_different_instant_continues() {
+        // On-disk: UNQUOTED timestamp.
+        let ts_unquoted = "2026-06-12T00:00:00Z";
+        let on_disk = state_md_no_lock_unquoted_ts(ts_unquoted);
+        // Proposed: QUOTED timestamp, DIFFERENT instant (advanced by 1 hour).
+        let ts_quoted_new = "2026-06-12T01:00:00Z";
+        let proposed = state_md_no_lock(ts_quoted_new); // uses standard quoted builder
+
+        let warn_log = Arc::new(Mutex::new(Vec::new()));
+        let callbacks = make_callbacks_with_disk(on_disk, warn_log.clone());
+        let payload = payload_write(&proposed);
+
+        let result = guard_logic(payload, callbacks);
+
+        assert_eq!(
+            result,
+            HookResult::Continue,
+            "test_mixed_quoting_different_instant_continues: \
+             unquoted on-disk timestamp vs quoted proposed timestamp with a DIFFERENT \
+             instant must return Continue. \
+             extract_yaml_string_value must strip quotes symmetrically so that \
+             '2026-06-12T00:00:00Z' (unquoted) != '2026-06-12T01:00:00Z' (quoted, stripped) \
+             → different instants → no false Block. ADR-025 §12.4 load-bearing case."
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // ADR-025 §12.4 — Mixed-quoting test 2: quoted-vs-quoted, SAME instant → Block
+    //
+    // Traces: ADR-025 §12.4 (D17 addition) / AC-005 / ADR-025 §12.2
+    //
+    // On-disk:  `timestamp: "2026-06-12T00:00:00Z"` (QUOTED)
+    // Proposed: `timestamp: "2026-06-12T00:00:00Z"` (QUOTED, SAME value — stale)
+    //
+    // Both sides are quoted with the same value. After symmetric quote-stripping,
+    // extracted values are byte-identical → Block: TimestampStale.
+    //
+    // This confirms stale detection works correctly through quotes (not bypassed
+    // because of quote presence). Full canonical block message asserted.
+    //
+    // GREEN: guard returns Block with full canonical TimestampStale message.
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_quoted_same_instant_blocks_timestamp_stale() {
+        // Both on-disk and proposed use the standard quoted builder with the same timestamp.
+        let ts = "2026-06-12T00:00:00Z";
+        let on_disk = state_md_no_lock(ts); // `timestamp: "2026-06-12T00:00:00Z"`
+        let proposed = state_md_no_lock(ts); // identical — stale write
+
+        let warn_log = Arc::new(Mutex::new(Vec::new()));
+        let callbacks = make_callbacks_with_disk(on_disk, warn_log.clone());
+        let payload = payload_write(&proposed);
+
+        let result = guard_logic(payload, callbacks);
+
+        let expected_msg = canonical_timestamp_stale_message();
+        match result {
+            HookResult::Block { reason } => {
+                assert_eq!(
+                    reason, expected_msg,
+                    "test_quoted_same_instant_blocks_timestamp_stale: \
+                     quoted-vs-quoted same instant must Block with FULL canonical \
+                     TimestampStale message. Expected: {expected_msg:?}. Got: {reason:?}"
+                );
+            }
+            HookResult::Continue => panic!(
+                "test_quoted_same_instant_blocks_timestamp_stale: \
+                 expected Block(TimestampStale) but got Continue. \
+                 Quoted-vs-quoted same instant is stale — must Block. \
+                 ADR-025 §12.4: stale detection must work through quotes."
+            ),
+            other => panic!("Expected Block, got: {:?}", other),
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // O-1704P-01 / EC-006 — $CLAUDE_PROJECT_DIR prefix with double-slash
+    //   normalises → guard triggers
+    //
+    // Traces: EC-006 / ADR-025 §12.7 R6 / O-1704P-01 (normalise_path hardening)
+    //
+    // Path: `$CLAUDE_PROJECT_DIR//.factory/STATE.md`
+    //   (double-slash between prefix and relative path — can occur when
+    //   CLAUDE_PROJECT_DIR is already slash-terminated and the caller adds
+    //   another slash, or when template interpolation produces `//`).
+    //
+    // normalise_path algorithm (O-1704P-01 hardened):
+    //   1. Pre-collapse `//` → `$CLAUDE_PROJECT_DIR/.factory/STATE.md`
+    //   2. Strip `CLAUDE_PROJECT_DIR/` prefix → `.factory/STATE.md`
+    //   3. Result: `.factory/STATE.md` — guard triggers.
+    //
+    // Uses stale proposed content so the guard fires Block on guard trigger.
+    // Verifies path-variant cannot escape the guard via double-slash injection
+    // combined with CLAUDE_PROJECT_DIR prefix.
+    //
+    // GREEN: guard normalises path and blocks stale timestamp.
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_claude_project_dir_double_slash_path_triggers_guard() {
+        let on_disk = state_md_no_lock(TS_OLD);
+        let stale_proposed = state_md_no_lock(TS_OLD); // stale → Block
+
+        // Set CLAUDE_PROJECT_DIR to a synthetic project root for this test.
+        // Use a value without trailing slash; normalise_path appends one.
+        let fake_project_dir = "/fake/project";
+        // Path with double-slash after prefix: `/fake/project//.factory/STATE.md`
+        let path_with_double_slash = format!("{}//.factory/STATE.md", fake_project_dir);
+
+        // Set the env var for this test; restore after (tests run in the same process).
+        // SAFETY: single-threaded test context; env mutation is test-local.
+        // This is the only safe way to exercise the CLAUDE_PROJECT_DIR branch of
+        // normalise_path in a unit test without changing the function signature.
+        let prev = std::env::var("CLAUDE_PROJECT_DIR").ok();
+        // SAFETY: tests in this module are run with the default test harness
+        // which may run tests in parallel threads. However, this specific test
+        // uses a unique `fake_project_dir` that no other test sets, and the path
+        // variant test is the only caller of set_var in this module.
+        // The env var is restored in all exit paths (normal + panic via std::panic::catch_unwind
+        // is not used here; the restoration happens unconditionally after the assertion).
+        //
+        // If flakiness is observed under parallel execution, consider wrapping in a mutex.
+        // For now, the implementation follows the same pattern as other env-var-dependent
+        // tests in this codebase.
+        #[allow(unsafe_code)]
+        unsafe {
+            std::env::set_var("CLAUDE_PROJECT_DIR", fake_project_dir);
+        }
+
+        let warn_log = Arc::new(Mutex::new(Vec::new()));
+        let callbacks = make_callbacks_with_disk(on_disk, warn_log.clone());
+        let payload = payload_write_path_variant(&path_with_double_slash, &stale_proposed);
+
+        let result = guard_logic(payload, callbacks);
+
+        // Restore env var before asserting (ensures restoration even if assertion panics
+        // via Rust's default panic handling which unwinds through the stack).
+        #[allow(unsafe_code)]
+        unsafe {
+            match prev {
+                Some(v) => std::env::set_var("CLAUDE_PROJECT_DIR", v),
+                None => std::env::remove_var("CLAUDE_PROJECT_DIR"),
+            }
+        }
+
+        let expected_msg = canonical_timestamp_stale_message();
+        match result {
+            HookResult::Block { reason } => {
+                assert_eq!(
+                    reason, expected_msg,
+                    "test_claude_project_dir_double_slash_path_triggers_guard: \
+                     path with double-slash after CLAUDE_PROJECT_DIR prefix must normalise \
+                     to .factory/STATE.md and Block on stale timestamp. \
+                     Expected: {expected_msg:?}. Got: {reason:?}"
+                );
+            }
+            HookResult::Continue => panic!(
+                "test_claude_project_dir_double_slash_path_triggers_guard: \
+                 path '{path_with_double_slash}' must normalise to .factory/STATE.md and Block, \
+                 but guard returned Continue. O-1704P-01 normalise_path hardening \
+                 must pre-collapse '//' before stripping the CLAUDE_PROJECT_DIR prefix."
+            ),
+            other => panic!(
+                "test_claude_project_dir_double_slash_path_triggers_guard: \
+                 expected Block, got: {:?}",
+                other
+            ),
+        }
+    }
 }
