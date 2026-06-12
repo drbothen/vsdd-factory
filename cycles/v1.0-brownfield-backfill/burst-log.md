@@ -7376,3 +7376,71 @@ STATE.md current_step D-552: ADR-025 v1.6 Gemini cross-family adversary pass 2 c
 ### Factory-artifacts Commits
 
 `aa3cd62f` state(D-552): ADR-025 v1.6 pass-2 corrections + S-17.04 v1.4 codified
+
+---
+
+## D-553 — ADR-025 v1.6 Adversary Pass 4+5 Deep-Probe Build/Test-Harness Corrections + S-17.04 v1.4→v1.5 (2026-06-12)
+
+**Parent-commit:** `aa3cd62f` (D-552 sha-patch; factory-artifacts HEAD pre-burst)
+
+**Adversary verdict:** Passes 4+5 deep-probe found NO guard logic defects. Guard logic confirmed clean by Claude same-family passes 3, 4, 5 + Gemini cross-family (D-539 multi-family obligation previously satisfied at D-552). Deep-probe scope: build harness + CI test infrastructure. Four H/M-severity build/test-harness findings: P5-H1 factory-lock-parse crate path (lib-only crate under hook-plugins/ inflated CI WASM floor-count); P5-M1 bats _require_artifacts skip-as-green (hard-fail not wired); P4-H1 plugins_run=1 false-green assertion (guard crash exits 0 under on_error=continue); P4-O1 Red-Gate count ambiguity (19 mandated vs 28 shipped not reconciled). All 4 closed in S-17.04 v1.5 + ADR-025 v1.6 D15/§12.9. Impl green 2c4977a3 (28 unit + 23 + 9 + 6 bats). BC impact NONE.
+
+**Files touched:** `.factory/STATE.md` (v3.02→v3.03; D-553 frontmatter + banner + D-553 Phase Progress row + D-553 Decisions Log row + Concurrent Cycles + §1/§3/§4/§5/§8/§9/§11/§12 Session Resume refresh); `.factory/stories/STORY-INDEX.md` (v3.97→v3.98; S-17.04 row v1.4→v1.5); `.factory/specs/architecture/ARCH-INDEX.md` (v2.25→v2.26; v2.26 changelog entry + last_amended + ADR-025 body row AMENDED v1.6 PASS-4+5); `.factory/specs/architecture/decisions/ADR-025-...md` (architect pre-staged; v1.6 D15 path + §12.5 + §12.9 guard_ran sentinel); `.factory/stories/S-17.04-mid-burst-heartbeat-renewal-wiring.md` (story-writer pre-staged; v1.4→v1.5; factory-lock-parse path corrected; CI_REQUIRE_ARTIFACTS=1; guard_ran T-1/T-3; Red Gate count reconcile); `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` (D-553 row prepended); `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` (this entry).
+
+**Codifications:** D-553. P5-H1: factory-lock-parse crate relocated to `crates/factory-lock-parse/` (lib-only, no [[bin]]; must not reside under crates/hook-plugins/ — that scope is the CI WASM floor-count gate domain; floor-count now [[bin]]-derived). P5-M1: CI_REQUIRE_ARTIFACTS=1 hard-fail (bats skip-as-green closed). P4-H1: guard_ran stderr sentinel on all 10 Continue paths in verify-state-timestamp-refresh (plugins_run=1 alone is false-green; crash exits 0 under on_error=continue); T-1/T-3 bats assert sentinel. P4-O1: Red-Gate count reconcile (19 mandated Rust unit + 9 GREEN control = 28 shipped; 5 bats mandated; minimum 24 unchanged). ADR-025 v1.6 D15/§12.5/§12.9 corrected. ARCH-INDEX v2.25→v2.26. STORY-INDEX v3.97→v3.98. BC-INDEX v2.72 UNCHANGED. VP-INDEX v2.06 UNCHANGED.
+
+**Dim-2 (PC attestation — production artifact read via literal shell):**
+
+```
+$ grep "^current_step:" .factory/STATE.md
+current_step: "D-553 ADR-025-V1.6-PASS-4-5-BUILD-HARNESS-CORRECTIONS-S-17.04-V1.5 2026-06-12 — ADVERSARY PASS 4+5 (DEEP-PROBE) BUILD/TEST-HARNESS CORRECTIONS CODIFIED: P5-H1 factory-lock-parse relocated from crates/hook-plugins/ to crates/factory-lock-parse/ (lib-only crate, no [[bin]], no WASM output — must not reside in hook-plugins/ or inflates CI WASM floor-count gate; floor-count now derives from [[bin]]-bearing crates only); P5-M1 bats _require_artifacts skip-as-green CLOSED — CI_REQUIRE_ARTIFACTS=1 hard-fail added; CI runs e2e bats suite with artifacts present; P4-H1 guard_ran stderr sentinel added on all 10 Continue paths in verify-state-timestamp-refresh (false-green plugins_run=1 replaced — on_error=continue crash exits 0, so exit-code alone cannot confirm guard ran); T-1/T-3 bats assert guard_ran sentinel; P4-O1 Red-Gate count reconcile (19 mandated / 33 shipped — 19 Rust unit mandated + 9 GREEN control/symmetry tests = 28 shipped Rust unit + 5 bats mandated; story Red-Gate minimum 19 Rust unit + 5 bats; extras are GREEN control tests, not mandate); guard LOGIC confirmed unchanged + clean by Claude same-family passes 3-5 + Gemini cross-family (D-539 obligation previously satisfied); impl green 2c4977a3 (28 unit + 23 + 9 + 6 bats); BC impact NONE; S-17.04 v1.4→v1.5 [factory-lock-parse path corrected throughout; CI_REQUIRE_ARTIFACTS=1 noted; guard_ran sentinel noted in T-1/T-3]; LOCAL adversary streak 0/3 (re-cascade REQUIRED); 4-index: BC-INDEX v2.72 UNCHANGED VP-INDEX v2.06 UNCHANGED STORY-INDEX v3.97→v3.98 ARCH-INDEX v2.25→v2.26; trajectory-tail →9→9→9→11; maintain all 5 BC-5.39.006 v1.7 PCs per TD-VSDD-097-EXT; D-chain cite D-552 per D-419(b); parent-commit aa3cd62f per D-419(b). SIZE BUDGET: see banner tracker row D-553"
+```
+
+PC1 event identity: `D-553 ADR-025-V1.6-PASS-4-5-BUILD-HARNESS-CORRECTIONS-S-17.04-V1.5 2026-06-12` — PASS
+PC2 trajectory-tail LENGTH=4: `trajectory-tail →9→9→9→11` — 4 arrow-separated values — PASS
+PC3 D-chain cite: `D-chain cite D-552 per D-419(b)` — PASS
+PC4 parent-commit SHA: `parent-commit aa3cd62f per D-419(b)` — PASS
+PC5 4-index cites: `BC-INDEX v2.72 UNCHANGED VP-INDEX v2.06 UNCHANGED STORY-INDEX v3.97→v3.98 ARCH-INDEX v2.25→v2.26` — PASS
+SIZE BUDGET: banner tracker row D-553 present — PASS
+All 6 PCs (5 BC-5.39.006 v1.7 + SIZE BUDGET) satisfied per TD-VSDD-097-EXT.
+
+**Dim-5 (INV-019 cure (a)/(b)/(c) + POLICY 14 5-leg parity):**
+
+INV-019 cure:
+- (a) ADR-025 v1.6 D15 path corrected (crates/factory-lock-parse/); §12.9 guard_ran sentinel spec added; ARCH-INDEX v2.26 body row AMENDED v1.6 PASS-4+5; changelog v2.26 entry present.
+- (b) S-17.04 v1.5 deliverables: D15 path corrected throughout; CI_REQUIRE_ARTIFACTS=1 noted in T-5 CI scaffold; guard_ran sentinel requirement in T-1/T-3 task rows; Red Gate count table updated (19 mandated + 9 GREEN = 28 shipped + 5 bats).
+- (c) POLICY 14 5-leg parity verified for S-17.04 v1.5: (1) version: "1.5" frontmatter PASS; (2) body Changelog row v1.5 present PASS; (3) modified[] "2026-06-12 v1.5" present PASS; (4) last_amended: "2026-06-12 (v1.5)" text-prefix PASS; (5) STORY-INDEX v3.98 S-17.04 body row → story v1.5 PASS.
+- POLICY 14 5-leg parity for ARCH-INDEX v2.26: (1) version: "2.26" frontmatter PASS; (2) changelog[] v2.26 entry PASS; (3) N/A; (4) last_amended: "2026-06-12 (v2.26)" text-prefix PASS; (5) ADR-025 body row AMENDED v1.6 PASS-4+5 D-553 PASS.
+
+**Dim-6 (verification_step 7 literal-shell 4-index gate):**
+
+```
+$ grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md | head -1
+version: "2.72"
+$ grep "^version:" .factory/specs/verification-properties/VP-INDEX.md | head -1
+version: "2.06"
+$ grep "^version:" .factory/stories/STORY-INDEX.md | head -1
+version: "3.98"
+$ grep "^version:" .factory/specs/architecture/ARCH-INDEX.md | head -1
+version: "2.26"
+```
+
+Expected D-553: BC-INDEX v2.72 (UNCHANGED), VP-INDEX v2.06 (UNCHANGED), STORY-INDEX v3.98, ARCH-INDEX v2.26. ALL MATCH. PASS.
+
+**Dim-7 (state attestation):**
+
+D-553 current_step encodes: P5-H1 factory-lock-parse relocation; P5-M1 CI_REQUIRE_ARTIFACTS=1; P4-H1 guard_ran sentinel; P4-O1 Red-Gate reconcile; impl green 2c4977a3; BC NONE; S-17.04 v1.4→v1.5; 4-index STORY-INDEX v3.97→v3.98 ARCH-INDEX v2.25→v2.26; trajectory-tail →9→9→9→11; D-chain D-552; parent aa3cd62f. All 5 PCs satisfied. STATE.md version 3.03, timestamp 2026-06-12T04:00:00Z. STATE.md 349 lines — -66 under soft 415; margin 500-349=151 from hard cap (D-446(c) dual-margin form). Size gate: PASS.
+
+**Closes:**
+- P5-H1: factory-lock-parse lib-only crate misplaced under crates/hook-plugins/ (CI WASM floor-count break).
+- P5-M1: bats _require_artifacts skip-as-green (CI_REQUIRE_ARTIFACTS=1 hard-fail not wired).
+- P4-H1: guard plugins_run=1 false-green assertion (guard_ran sentinel now emitted on all 10 Continue paths, asserted T-1/T-3).
+- P4-O1: Red-Gate count ambiguity (19 mandated vs 28 shipped — now explicitly documented as 19 mandated + 9 GREEN control = 28 shipped Rust unit).
+
+**Advances:** D-chain D-552 → D-553; NEXT: S-17.04 v1.5 TDD re-implementation (rebase worktree to v1.5; test-writer 24 Red Gate stubs; implementer D15/D16/D10/D13 with factory-lock-parse at crates/factory-lock-parse/ and guard_ran sentinel) → LOCAL adversary re-cascade pass-6 toward 0/3 → 3-CLEAN → PR → merge → rc.21 release.
+
+**Trajectory:** →9→9→9→11 (CARRIED — per-story LOCAL adversary pass 4+5 deep-probe build/test-harness corrections codification burst; F5 cycle trajectory unchanged; 0/3 per-story streak in LOCAL BC-5.39.001 metric)
+
+### Factory-artifacts Commits
+
+`TBD-D553` state(D-553): ADR-025 v1.6 pass-4+5 deep-probe corrections + S-17.04 v1.5 codified
