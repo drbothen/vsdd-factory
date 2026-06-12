@@ -7443,4 +7443,4 @@ D-553 current_step encodes: P5-H1 factory-lock-parse relocation; P5-M1 CI_REQUIR
 
 ### Factory-artifacts Commits
 
-`TBD-D553` state(D-553): ADR-025 v1.6 pass-4+5 deep-probe corrections + S-17.04 v1.5 codified
+`edc397a2` state(D-553): ADR-025 v1.6 pass-4+5 deep-probe corrections + S-17.04 v1.5 codified
