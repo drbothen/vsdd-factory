@@ -7297,3 +7297,82 @@ STATE.md current_step D-551: ADR-025 v1.6 ADVERSARY-PASS-1 CORRECTIONS + S-17.04
 ### Factory-artifacts Commits
 
 `f7a4cc1a` state(D-551): ADR-025 v1.6 adversary-pass-1 corrections + S-17.04 v1.3 codified
+
+---
+
+## D-552 — ADR-025 v1.6 Gemini Cross-Family Adversary Pass 2 Corrections + S-17.04 v1.3→v1.4 Codified (2026-06-12)
+
+**Parent-commit:** `ce277f92` (factory-artifacts HEAD pre-burst; D-551-sha-patch)
+
+**Adversary verdict:** Gemini Flash (agy cross-family) adversary pass 2 on ADR-025 v1.6 + S-17.04 v1.3. Five correction slices: (R2) LockExpiryStale enforcement asymmetry — lock-held + proposed `expires_at` absent OR empty → Continue was wrong; corrected to Block LockExpiryStale; §12.3 5-row table replaces 3-row; (R4) canonical-path `normalise_path` did not resolve `..` — segment-stack resolution added as step 5 in §12.7 R6; (R1) verify-factory-lock tool matcher `Edit|Write|Agent` missing MultiEdit — corrected to `Edit|Write|MultiEdit|Agent` in §12.9 R1 directive; (R3) SKILL.md anti-pattern row `Edit/Write` → `Edit/Write/MultiEdit`; (R5) bats allow-path tests must assert `plugins_run=1` (on_error=continue exit-0 insufficient to confirm guard ran). Clarity note added (§12.9): `timestamp:` is sole independently-gated freshness field; `last_amended:` is POLICY-14 discipline only. Implementation green at develop SHA `1d92d847` (28/28 Rust unit + 6/6 bats). D-539 multi-family adversary obligation SATISFIED.
+
+**Files touched:**
+- `.factory/specs/architecture/decisions/ADR-025-single-writer-factory-locklease-prevent-concurrent-session-races-on-factory-artifacts-orphan-branch.md` (uncommitted architect revision: §12.2/§12.3/§12.7 R6/§12.9 content additions)
+- `.factory/stories/S-17.04-mid-burst-heartbeat-renewal-wiring.md` (uncommitted story-writer revision: v1.3→v1.4; AC-016/017 added; EC-006 extended; AC-001/006/010 amended; Red Gate 19→24)
+- `.factory/specs/architecture/ARCH-INDEX.md` (v2.24→v2.25; changelog + last_amended + body ADR-025 row + timestamp)
+- `.factory/stories/STORY-INDEX.md` (v3.96→v3.97; last_amended + body S-17.04 row + timestamp)
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` (D-552 row prepended)
+- `.factory/STATE.md` (v3.01→v3.02; all §1-§12 + frontmatter + Phase Progress + Decisions Log + banner tracker D-552 row)
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` (this entry)
+
+**Versions bumped:** STORY-INDEX v3.96→v3.97; ARCH-INDEX v2.24→v2.25; BC-INDEX v2.72 UNCHANGED; VP-INDEX v2.06 UNCHANGED.
+
+### Dim-2: PC Attestation (literal shell — TD-VSDD-100)
+
+```
+$ grep "^current_step:" .factory/STATE.md
+current_step: "D-552 ADR-025-V1.6-PASS-2-CORRECTIONS-S-17.04-V1.4 2026-06-12 — GEMINI CROSS-FAMILY ADVERSARY PASS 2 CORRECTIONS CODIFIED: ADR-025 v1.6 §12.3 LockExpiryStale table expanded (lock-held + proposed expires_at absent → Block; lock-held + proposed expires_at empty → Block; previously only byte-identical stale triggered Block); §12.7 R6 step 5 added (.. segment-stack resolution: split on /, pop on .., above-root escape discarded); §12.9 clarity note (timestamp: sole guard-gated field; last_amended: POLICY-14 discipline only — NOT independently gated); verify-factory-lock tool matcher Edit|Write|Agent → Edit|Write|MultiEdit|Agent (lock-identity guard parity); SKILL.md anti-pattern +MultiEdit; bats guard-ran assertion (plugins_run=1 — on_error=continue exit-0 insufficient alone); impl green 1d92d847 28/28 unit + 6/6 bats; D-539 multi-family obligation satisfied; S-17.04 v1.3→v1.4 [AC-016/017 added; EC-006 ..; AC-006 scope note; AC-001/010 amended; Red Gate 19→24 (19 Rust unit + 5 bats)]; LOCAL adversary streak 0/3 (re-cascade REQUIRED after TDD re-implementation); 4-index: BC-INDEX v2.72 UNCHANGED VP-INDEX v2.06 UNCHANGED STORY-INDEX v3.96→v3.97 ARCH-INDEX v2.24→v2.25; trajectory-tail →9→9→9→11; maintain all 5 BC-5.39.006 v1.7 PCs per TD-VSDD-097-EXT; D-chain cite D-551 per D-419(b); parent-commit ce277f92 per D-419(b). SIZE BUDGET: see banner tracker row D-552"
+```
+
+PC1 (event identity): "D-552 ADR-025-V1.6-PASS-2-CORRECTIONS-S-17.04-V1.4 2026-06-12" PRESENT ✓
+PC2 (trajectory-tail LENGTH=4): "trajectory-tail →9→9→9→11" PRESENT ✓
+PC3 (D-chain cite): "D-chain cite D-551 per D-419(b)" PRESENT ✓
+PC4 (parent-commit SHA): "parent-commit ce277f92 per D-419(b)" PRESENT ✓
+PC5 (4-index cites): "BC-INDEX v2.72 UNCHANGED VP-INDEX v2.06 UNCHANGED STORY-INDEX v3.96→v3.97 ARCH-INDEX v2.24→v2.25" PRESENT ✓
+PC6 (SIZE BUDGET): "SIZE BUDGET: see banner tracker row D-552" PRESENT ✓
+All 5 BC-5.39.006 v1.7 PCs (+ SIZE BUDGET per TD-VSDD-097-EXT) satisfied.
+
+### Dim-5: INV-019 Cure Verification
+
+INV-019 cure (a)/(b)/(c) SATISFIED:
+(a) ADR-025 v1.6 TITLE unchanged; §12.2/§12.3/§12.7/§12.9 content extended with Gemini pass-2 corrections; same version maintained.
+(b) DELIVERABLES scope: D16 implementation now covers absent/empty `expires_at` LockExpiryStale + step-5 `..` segment-stack + verify-factory-lock +MultiEdit; §12.9 R1 in scope.
+(c) AC LIST: S-17.04 v1.4 AC-016 + AC-017 added; EC-006 extended; AC-001/006/010 amended per §12.9 directive. POLICY 14 5-leg parity SATISFIED for S-17.04: (1) v1.4 frontmatter; (2) Changelog body row v1.4; (3) modified[] entry "2026-06-12 v1.4"; (4) last_amended text-prefix v1.4; (5) STORY-INDEX v3.97 body S-17.04 row → v1.4/24 Red Gate tests. POLICY 14 5-leg parity SATISFIED for ARCH-INDEX: (1) v2.25 frontmatter; (2) changelog[] array entry v2.25; (3) N/A (no modified[] array); (4) last_amended text-prefix v2.25; (5) body ADR-025 row updated with AMENDED v1.6 PASS-2 text. D-539 multi-family adversary obligation confirmed satisfied.
+
+### Dim-6: 4-Index Gate (literal shell — verification_step 7)
+
+```
+$ grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md | head -1
+version: "2.72"
+$ grep "^version:" .factory/specs/verification-properties/VP-INDEX.md | head -1
+version: "2.06"
+$ grep "^version:" .factory/stories/STORY-INDEX.md | head -1
+version: "3.97"
+$ grep "^version:" .factory/specs/architecture/ARCH-INDEX.md | head -1
+version: "2.25"
+```
+
+4-index gate: BC-INDEX v2.72 (UNCHANGED) | VP-INDEX v2.06 (UNCHANGED) | STORY-INDEX v3.96→v3.97 (bumped; S-17.04 v1.3→v1.4; 17 ACs; 24 Red Gate tests; AC-016/017 added; verify-factory-lock +MultiEdit) | ARCH-INDEX v2.24→v2.25 (bumped; ADR-025 v1.6 pass-2 additions: §12.3 absent+empty → Block; §12.7 R6 step 5 `..`; §12.9 clarity note + verify-factory-lock +MultiEdit). PASS.
+
+### Dim-7: State Attestation
+
+STATE.md current_step D-552: ADR-025 v1.6 Gemini cross-family adversary pass 2 corrections + S-17.04 v1.3→v1.4 codified; §12.3 LockExpiryStale absent+empty → Block; §12.7 R6 step 5 `..` segment-stack; §12.9 clarity note + verify-factory-lock +MultiEdit; bats guard-ran R5; impl green 1d92d847 28/28+6/6 bats; D-539 multi-family SATISFIED; ARCH-INDEX v2.24→v2.25; STORY-INDEX v3.96→v3.97; LOCAL adversary streak 0/3. All 5 BC-5.39.006 v1.7 PCs satisfied.
+
+**Codifications:** D-552 ADR-025 v1.6 Gemini cross-family pass 2 corrections + S-17.04 v1.4 codified. §12.3 expanded (absent/empty → Block). §12.7 R6 step 5 `..` segment-stack. §12.9 clarity note + verify-factory-lock +MultiEdit. ARCH-INDEX v2.24→v2.25. STORY-INDEX v3.96→v3.97. BC-INDEX v2.72 UNCHANGED. VP-INDEX v2.06 UNCHANGED.
+
+**Closes:**
+- R2: LockExpiryStale enforcement asymmetry (absent/empty proposed `expires_at` now blocks).
+- R4: `normalise_path` `..` escape — segment-stack resolution added as canonical-path step 5.
+- R1: verify-factory-lock MultiEdit gap — tool matcher `Edit|Write|Agent` → `Edit|Write|MultiEdit|Agent`.
+- R3: SKILL.md anti-pattern row `Edit/Write` → `Edit/Write/MultiEdit`.
+- R5: bats allow-path guard-ran assertion requirement codified.
+- ADR-025 v1.6 §12.9 clarity note distinguishing `timestamp:` (guard-gated) vs `last_amended:` (POLICY-14 only).
+- D-539 multi-family adversary obligation SATISFIED.
+
+**Advances:** D-chain D-551 → D-552; NEXT: S-17.04 v1.4 TDD re-implementation (test-writer 24 Red Gate stubs; implementer D15/D16/D10/D13) → LOCAL adversary re-cascade 0/3 → 3-CLEAN → PR → merge → rc.21 release.
+
+**Trajectory:** →9→9→9→11 (CARRIED — per-story LOCAL adversary pass 2 corrections codification burst; F5 cycle trajectory unchanged; 0/3 per-story streak in LOCAL BC-5.39.001 metric)
+
+### Factory-artifacts Commits
+
+`TBD-D552` state(D-552): ADR-025 v1.6 pass-2 corrections + S-17.04 v1.4 codified
