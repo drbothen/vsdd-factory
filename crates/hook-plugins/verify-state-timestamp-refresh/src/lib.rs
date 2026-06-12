@@ -58,8 +58,9 @@
 //! - No `exec_subprocess` — reads proposed content from payload, on-disk via `host::read_file`.
 //! - Pure `fn guard_logic(...)` takes all host I/O as injectable callbacks;
 //!   unit tests exercise every branch without a WASM runtime.
-//! - Trigger: `file_path == ".factory/STATE.md"` after canonical-path normalisation
-//!   (bypass-proof per §12.1 / EC-006).
+//! - Trigger (v1.6 env-free): normalised path EQUALS `.factory/STATE.md` OR ends with
+//!   `/.factory/STATE.md` — covers both relative and absolute paths from Claude Code
+//!   production (bypass-proof per §12.1 / EC-006 / AC-018 / ADR-025 §12.7 R6 v1.6).
 
 // Allow `#[cfg(kani)]` without triggering unexpected_cfgs warning.
 #![cfg_attr(not(kani), allow(unexpected_cfgs))]
@@ -95,8 +96,11 @@ pub const STATE_MD_PATH: &str = ".factory/STATE.md";
 ///  this write. Fix: Update 'timestamp:' to the current UTC time before writing
 ///  STATE.md. Code: TimestampStale.`
 ///
-/// The string is assembled by `canonical_timestamp_stale_message()` via `format!()`
-/// using these constants — byte-identical to what `block_with_fix` would produce.
+/// The string is assembled by `canonical_timestamp_stale_message()` by calling
+/// `HookResult::block_with_fix(...)` — the canonical, single code path shared with
+/// every Block return site in `guard_logic`. This guarantees byte-level parity
+/// between the test-visible canonical string and the guard's actual Block output
+/// (M1 / single-source-of-truth). No format! duplication.
 pub const GUARD_NAME: &str = "verify-state-timestamp-refresh";
 pub const TIMESTAMP_STALE_REASON: &str = "STATE.md timestamp not advanced in this write";
 pub const TIMESTAMP_STALE_FIX: &str =
@@ -121,28 +125,46 @@ pub const LOCK_EXPIRY_STALE_CODE: &str = "LockExpiryStale";
 
 /// Full canonical TimestampStale block string.
 ///
-/// Assembled via `format!()` from the constants above — byte-identical to what
-/// `block_with_fix` would produce. Tests MUST assert equality to this exact string
-/// (not a substring), per the Red Gate Test Table "full-line equality required"
-/// mandate (AC-005, M03 fix).
+/// Constructed by calling `HookResult::block_with_fix(...)` — the SAME constructor
+/// used in every Block return site in `guard_logic`. This is the single source of
+/// truth: tests that assert `reason == canonical_timestamp_stale_message()` are
+/// asserting equality to the actual output of the guard, not to a separately
+/// maintained format string that could drift (M1 fix).
+///
+/// Tests MUST assert equality to this exact string (not a substring), per the
+/// Red Gate Test Table "full-line equality required" mandate (AC-005, M03 fix).
 pub fn canonical_timestamp_stale_message() -> String {
-    format!(
-        "BLOCKED by {}: {}. Fix: {}. Code: {}.",
-        GUARD_NAME, TIMESTAMP_STALE_REASON, TIMESTAMP_STALE_FIX, TIMESTAMP_STALE_CODE
-    )
+    match HookResult::block_with_fix(
+        GUARD_NAME,
+        TIMESTAMP_STALE_REASON,
+        TIMESTAMP_STALE_FIX,
+        TIMESTAMP_STALE_CODE,
+    ) {
+        HookResult::Block { reason } => reason,
+        // block_with_fix always returns Block — this arm is unreachable.
+        _ => unreachable!("block_with_fix always returns HookResult::Block"),
+    }
 }
 
 /// Full canonical LockExpiryStale block string.
 ///
-/// Assembled via `format!()` from the constants above — byte-identical to what
-/// `block_with_fix` would produce. Tests MUST assert equality to this exact string
-/// (not a substring), per the Red Gate Test Table "full-line equality required"
-/// mandate (AC-006, M03 fix).
+/// Constructed by calling `HookResult::block_with_fix(...)` — the SAME constructor
+/// used in every LockExpiryStale Block return site in `guard_logic`. Single source
+/// of truth (M1 fix).
+///
+/// Tests MUST assert equality to this exact string (not a substring), per the
+/// Red Gate Test Table "full-line equality required" mandate (AC-006, M03 fix).
 pub fn canonical_lock_expiry_stale_message() -> String {
-    format!(
-        "BLOCKED by {}: {}. Fix: {}. Code: {}.",
-        GUARD_NAME, LOCK_EXPIRY_STALE_REASON, LOCK_EXPIRY_STALE_FIX, LOCK_EXPIRY_STALE_CODE
-    )
+    match HookResult::block_with_fix(
+        GUARD_NAME,
+        LOCK_EXPIRY_STALE_REASON,
+        LOCK_EXPIRY_STALE_FIX,
+        LOCK_EXPIRY_STALE_CODE,
+    ) {
+        HookResult::Block { reason } => reason,
+        // block_with_fix always returns Block — this arm is unreachable.
+        _ => unreachable!("block_with_fix always returns HookResult::Block"),
+    }
 }
 
 // ---------------------------------------------------------------------------
