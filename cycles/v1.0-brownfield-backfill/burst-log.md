@@ -7177,3 +7177,123 @@ STATE.md current_step confirms: D-549 SESSION-END-DURABILITY-BURST 2026-06-11; A
 ### Factory-artifacts Commits
 
 `1d6c67c1` state(D-549): SESSION-END DURABILITY BURST — ADR-025 v1.5 + S-17.04 v1.1 + ARCH-INDEX v2.22 + STORY-INDEX v3.94
+
+## D-550 ADR-025-V1.6-S-17.04-V1.2-REDIRECT 2026-06-11
+
+**Parent-commit:** `29ee394b` (factory-artifacts HEAD pre-burst; D-549-sha-patch)
+
+**Adversary verdict:** No new adversary pass dispatched this burst. This is an architecture-redirect codification burst only (human-approved). Prior adversary state from D-549: LOCAL adversary pass on S-17.04 branch result 0C+0H+0M+1LOW (F-A-001 env-comment advisory; false positive). Root finding F-1704-C01 identified (guard read `tool_input.new_content` — field does not exist; validated via Perplexity + dispatcher-log ground truth at D-551). OPEN DESIGN DECISION RESOLVED: human chose WASM guard (Decision 12 / Option B-variant) over bash chokepoint (Option A). ADR-025 v1.5→v1.6 codified. S-17.04 v1.1→v1.2 REDIRECTED. LOCAL adversary cascade 0/3 streak (re-cascade pending after S-17.04 v1.3 TDD).
+
+### Dim-2: PC Attestation (production-read)
+
+```
+$ grep "^current_step:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/STATE.md
+current_step: "D-550 ADR-025-V1.6-S-17.04-V1.2-REDIRECT 2026-06-11 — ARCHITECTURE REDIRECT CODIFIED (human-approved): ADR-025 v1.5→v1.6 Decision 11 Mechanism 2 bash gate WITHDRAWN; Decision 12 verify-state-timestamp-refresh WASM PreToolUse guard ADOPTED [fires on Edit/Write to .factory/STATE.md; blocks TimestampStale + LockExpiryStale; on_error=continue fail-open; async=false; tool=Edit|Write]; push-time cas-push chokepoint dropped (freshness guaranteed at write-time); D15 factory-lock-parse shared crate + D16 verify-state-timestamp-refresh WASM plugin + D17 Rust unit + bats tests; S-17.04 v1.1→v1.2 [10 ACs; 12 Red Gate tests (9 Rust unit + 3 bats); 5→8pts; SS-07 removed SS-04 added; subsystems SS-04+SS-05]; 4-index: BC-INDEX v2.72 UNCHANGED VP-INDEX v2.06 UNCHANGED STORY-INDEX v3.94→v3.95 ARCH-INDEX v2.22→v2.23; trajectory-tail →9→9→9→11; maintain all 5 BC-5.39.006 v1.7 PCs per TD-VSDD-097-EXT; D-chain cite D-549 per D-419(b); parent-commit 29ee394b per D-419(b). SIZE BUDGET: see banner tracker row D-550"
+```
+
+PC2 (trajectory-tail LENGTH=4): `trajectory-tail →9→9→9→11` PRESENT. PC3 (D-chain cite D-549): `D-chain cite D-549` PRESENT. PC4 (parent-commit 29ee394b): `parent-commit 29ee394b` PRESENT. PC5 (4-index cites): `BC-INDEX v2.72 UNCHANGED VP-INDEX v2.06 UNCHANGED STORY-INDEX v3.94→v3.95 ARCH-INDEX v2.22→v2.23` PRESENT. PC6 (SIZE BUDGET): `SIZE BUDGET: see banner tracker row D-550` PRESENT. All 5 BC-5.39.006 v1.7 PCs SATISFIED.
+
+### Dim-5: Files Touched
+
+- `.factory/STATE.md` — phase, last_amended, current_step frontmatter; banner tracker D-550 row; Project Metadata Last Updated + Current Phase; Phase Progress D-550 row; Active Branches factory-artifacts row; Concurrent Cycles v1.0-brownfield-backfill row; Decisions Log D-550 row; §1 (OPEN DESIGN DECISION RESOLVED) + §3 D-550 carry + §4 + §5 + §8 + §9 + §11 + §12 Session Resume refresh
+- `.factory/specs/architecture/decisions/ADR-025-single-writer-factory-locklease-prevent-concurrent-session-races-on-factory-artifacts-orphan-branch.md` — version v1.5→v1.6; Decision 11 SUPERSESSION NOTE; Decision 12 WASM guard full spec; D15/D16/D17 deliverables table; changelog v1.6 entry; amendment_reason updated
+- `.factory/stories/S-17.04-mid-burst-heartbeat-renewal-wiring.md` — version v1.1→v1.2; ACs rewritten (10 ACs; AC-002 dropped; AC-003 re-anchored; AC-004..010 new); bash Red Gate tests dropped; 12 WASM Red Gate tests added (9 Rust unit + 3 bats); subsystems SS-07→SS-04; points 5→8; title updated; changelog v1.2 entry
+- `.factory/specs/architecture/ARCH-INDEX.md` — frontmatter version v2.22→v2.23; last_amended updated; changelog v2.23 entry; ADR-025 body row updated (Decision 12 WASM guard text)
+- `.factory/stories/STORY-INDEX.md` — frontmatter version v3.94→v3.95; last_amended updated; S-17.04 row updated (v1.1→v1.2; 10 ACs; 12 Red Gate tests; 8pts; SS-04+SS-05)
+
+### Dim-6: 4-Index Literal Shell Gate
+
+(Executed at burst-close; values as committed at 8f19bab2)
+
+```
+$ grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/behavioral-contracts/BC-INDEX.md | head -1
+version: "2.72"
+$ grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/verification-properties/VP-INDEX.md | head -1
+version: "2.06"
+$ grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/stories/STORY-INDEX.md | head -1
+version: "3.95"
+$ grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/architecture/ARCH-INDEX.md | head -1
+version: "2.23"
+```
+
+4-index gate: BC-INDEX v2.72 (UNCHANGED) | VP-INDEX v2.06 (UNCHANGED) | STORY-INDEX v3.94→v3.95 (bumped; S-17.04 v1.2; 10 ACs; 12 Red Gate tests) | ARCH-INDEX v2.22→v2.23 (bumped; ADR-025 v1.6 Decision 12 WASM guard ADOPTED). PASS.
+
+### Dim-7: State Attestation
+
+STATE.md current_step confirms: D-550 ADR-025-V1.6-S-17.04-V1.2-REDIRECT 2026-06-11; Decision 12 WASM guard ADOPTED; Decision 11 Mech-2 WITHDRAWN; D15/D16/D17; S-17.04 v1.1→v1.2 (10 ACs; 12 Red Gate tests; 8pts; SS-04+SS-05); ARCH-INDEX v2.22→v2.23; STORY-INDEX v3.94→v3.95; BC impact NONE; OPEN DESIGN DECISION RESOLVED; trajectory-tail →9→9→9→11; D-chain cite D-549; parent-commit 29ee394b. All 5 BC-5.39.006 v1.7 PCs satisfied.
+
+**Codifications:** D-550 ARCHITECTURE REDIRECT codified — ADR-025 v1.5→v1.6 (Decision 12 WASM guard; Decision 11 Mech-2 WITHDRAWN; D15/D16/D17); S-17.04 v1.1→v1.2 (10 ACs; 12 Red Gate tests; 8pts; SS-04+SS-05); ARCH-INDEX v2.22→v2.23; STORY-INDEX v3.94→v3.95; OPEN DESIGN DECISION RESOLVED.
+
+**Closes:** OPEN DESIGN DECISION (Mechanism 2 chokepoint A/B/C) RESOLVED — WASM guard chosen. ADR-025 v1.6 Decision 12 codified. S-17.04 v1.2 re-scoped and codified. ARCH-INDEX v2.23 + STORY-INDEX v3.95 version bumps.
+
+**Advances:** D-chain D-549 → D-550; NEXT: adversary LOCAL pass on S-17.04 v1.2 → (corrections needed — F-1704-C01 root finding → D-551) → S-17.04 v1.3 → TDD re-cascade → PR → rc.21.
+
+**Trajectory:** →9→9→9→11 (CARRIED — architecture-redirect codification burst; no new adversary pass; LOCAL adversary cascade 0/3 pending F-1704-C01 correction)
+
+### Factory-artifacts Commits
+
+`8f19bab2` state(D-550): ADR-025 v1.5→v1.6 + S-17.04 v1.1→v1.2 REDIRECT — Decision 12 WASM guard ADOPTED
+
+---
+
+## D-551 ADR-025-V1.6-PASS-1-CORRECTIONS + S-17.04-V1.3 2026-06-12
+
+**Parent-commit:** `8f19bab2` (factory-artifacts HEAD pre-burst; D-550)
+
+**Adversary verdict:** LOCAL adversary pass 1 on S-17.04 v1.2 was NOT CLEAN: C2/H4/M4/L1 (11 total findings). Root finding F-1704-C01: guard read `tool_input.new_content` — a field no real Claude Code Write/Edit/MultiEdit tool emits. Validated via Perplexity (official Claude Code hooks documentation) AND this repo's dispatcher logs (`new_content` 0× in 5,000+ real events; `file_path` 5,235×). Human approved correction: (a) strict + reconstruct semantics (Write→`content`; Edit→on-disk+old_string/new_string reconstruct; MultiEdit→sequential edits[] apply). ADR-025 v1.6 Decision 12 revised in place by architect (same version, content revision). S-17.04 v1.2→v1.3 corrections applied by story-writer. REMEDIATED — adversary re-cascade pending after TDD re-implementation with v1.3 spec. LOCAL streak: 0/3 (re-cascade required).
+
+### Dim-2: PC Attestation (production-read)
+
+```
+$ grep "^current_step:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/STATE.md
+current_step: "D-551 ADR-025-V1.6-PASS-1-CORRECTIONS-S-17.04-V1.3 2026-06-12 — ADVERSARY-PASS-1 CORRECTIONS CODIFIED: ADR-025 v1.6 Decision 12 payload-field fix (new_content→reconstruct semantics: Write tool_input.content / Edit old_string+new_string reconstruct / MultiEdit edits[] sequential apply; new_content confirmed 0× in 5000+ real dispatcher events per Perplexity + dispatcher-log ground truth); registry caps path_allow-only (ReadFileCaps deny_unknown_fields; max_bytes+timeout_ms removed); explicit priorities 142/143 (verify-factory-lock=142; verify-state-timestamp-refresh=143); canonical-path normalization (strip ./, strip $CLAUDE_PROJECT_DIR/ prefix, collapse //, collapse /./); block_with_fix message format corrected; tool matcher → Edit|Write|MultiEdit; S-17.04 v1.2→v1.3 [AC-005/006 block strings; AC-010 registry; EC-006 path normalization; AC-011..015 added; Red Gate 12→19 (15 Rust unit + 4 bats)]; LOCAL adversary streak 0/3 (C2/H4/M4/L1; re-cascade pending after S-17.04 v1.3 TDD); 4-index: BC-INDEX v2.72 UNCHANGED VP-INDEX v2.06 UNCHANGED STORY-INDEX v3.95→v3.96 ARCH-INDEX v2.23→v2.24; trajectory-tail →9→9→9→11; maintain all 5 BC-5.39.006 v1.7 PCs per TD-VSDD-097-EXT; D-chain cite D-550 per D-419(b); parent-commit 8f19bab2 per D-419(b). SIZE BUDGET: see banner tracker row D-551"
+```
+
+PC2 (trajectory-tail LENGTH=4): `trajectory-tail →9→9→9→11` PRESENT. PC3 (D-chain cite D-550): `D-chain cite D-550 per D-419(b)` PRESENT. PC4 (parent-commit 8f19bab2): `parent-commit 8f19bab2 per D-419(b)` PRESENT. PC5 (4-index cites): `BC-INDEX v2.72 UNCHANGED VP-INDEX v2.06 UNCHANGED STORY-INDEX v3.95→v3.96 ARCH-INDEX v2.23→v2.24` PRESENT. PC6 (SIZE BUDGET): `SIZE BUDGET: see banner tracker row D-551` PRESENT. All 5 BC-5.39.006 v1.7 PCs SATISFIED.
+
+### Dim-5: Files Touched
+
+- `.factory/STATE.md` — phase, last_amended, current_step frontmatter advance (D-550→D-551); banner tracker D-551 row; Project Metadata Last Updated + Current Phase; Phase Progress D-551 row; Decisions Log D-551 row; §1 (resume = S-17.04 v1.3 re-implementation + LOCAL adversary re-cascade 0/3; C01 root-cause + strict-reconstruct decision noted) + §3 D-551 carry + §4 + §5 + §8 (4-index reconcile) + §9 (anchors updated) + §12 (S-17.04 TDD re-cascade + rc.21 pending) Session Resume refresh
+- `.factory/specs/architecture/decisions/ADR-025-single-writer-factory-locklease-prevent-concurrent-session-races-on-factory-artifacts-orphan-branch.md` — Decision 12 content revision (in-place; version stays v1.6; architect): `new_content` removed; per-tool payload fields corrected; registry caps path_allow-ONLY; priorities 142/143 added; canonical-path normalization rule; block_with_fix message format; tool matcher → Edit|Write|MultiEdit
+- `.factory/stories/S-17.04-mid-burst-heartbeat-renewal-wiring.md` — version v1.2→v1.3; AC-005/006 block strings corrected; AC-010 registry spec corrected; EC-006 canonical-path normalization added; AC-011/012/013/014/015 added; Red Gate Test Table expanded to 19 tests; Arch Rule 1+5 corrected; Registry Entry Spec corrected; Tasks T-1/T-3/T-4/T-7 updated; changelog v1.3 entry
+- `.factory/specs/architecture/ARCH-INDEX.md` — frontmatter version v2.23→v2.24; last_amended updated; changelog v2.24 entry; ADR-025 body row updated (Edit|Write|MultiEdit; per-tool payload; path_allow-only; priorities; canonical-path normalization)
+- `.factory/stories/STORY-INDEX.md` — frontmatter version v3.95→v3.96; last_amended updated; S-17.04 row updated (v1.2→v1.3; 15 ACs; 19 Red Gate tests)
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-551 row prepended + D-550 row added (retroactive)
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — D-550 burst entry appended (retroactive) + D-551 burst entry appended (this entry)
+
+### Dim-6: 4-Index Literal Shell Gate
+
+```
+$ grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/behavioral-contracts/BC-INDEX.md | head -1
+version: "2.72"
+$ grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/verification-properties/VP-INDEX.md | head -1
+version: "2.06"
+$ grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/stories/STORY-INDEX.md | head -1
+version: "3.96"
+$ grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/architecture/ARCH-INDEX.md | head -1
+version: "2.24"
+```
+
+4-index gate: BC-INDEX v2.72 (UNCHANGED) | VP-INDEX v2.06 (UNCHANGED) | STORY-INDEX v3.95→v3.96 (bumped; S-17.04 v1.3; 15 ACs; 19 Red Gate tests) | ARCH-INDEX v2.23→v2.24 (bumped; ADR-025 v1.6 content revision: payload-field + caps + priorities + canonical-path + block_with_fix format + MultiEdit). PASS.
+
+### Dim-7: State Attestation
+
+STATE.md current_step D-551: ADR-025 v1.6 ADVERSARY-PASS-1 CORRECTIONS + S-17.04 v1.2→v1.3 codified; payload field fix (new_content→reconstruct semantics: Write content / Edit old_string+new_string / MultiEdit edits[]); registry caps path_allow-only (ReadFileCaps deny_unknown_fields); explicit priorities 142/143; canonical-path normalization; block_with_fix message format; AC-005/006/010 corrected + AC-011..015 added; Red Gate 12→19 tests (15 Rust unit + 4 bats); validated Perplexity + dispatcher-log ground truth (new_content 0× in 5000+ events); LOCAL adversary streak 0/3 (C2/H4/M4/L1; re-cascade pending after S-17.04 v1.3 TDD); BC impact NONE; ARCH-INDEX v2.23→v2.24; STORY-INDEX v3.95→v3.96; trajectory-tail →9→9→9→11; D-chain cite D-550; parent-commit 8f19bab2. All 5 BC-5.39.006 v1.7 PCs satisfied.
+
+**Codifications:** D-551 ADR-025 v1.6 adversary-pass-1 corrections + S-17.04 v1.3 codified. ADR-025 Decision 12 payload-field corrected + registry caps fixed + priorities explicit + canonical-path + block_with_fix format + MultiEdit. ARCH-INDEX v2.23→v2.24. STORY-INDEX v3.95→v3.96. BC-INDEX v2.72 UNCHANGED. VP-INDEX v2.06 UNCHANGED.
+
+**Closes:**
+- F-1704-C01 root finding: `new_content` stale field → corrected to Write `content` / Edit `old_string`+`new_string` / MultiEdit `edits[]` (validated Perplexity + dispatcher-log ground truth: `new_content` 0×, `file_path` 5,235× in 5,000+ events).
+- ADR-025 v1.6 Decision 12 payload-field spec corrected in place (content revision; version stays 1.6).
+- S-17.04 v1.2→v1.3 AC corrections + 5 new ACs + Red Gate table expanded.
+- ARCH-INDEX v2.23→v2.24 material content revision row + body row updated.
+- STORY-INDEX v3.95→v3.96 S-17.04 v1.3 row update.
+- decision-log.md D-551 + D-550 (retroactive) rows added.
+
+**Advances:** D-chain D-550 → D-551; NEXT: S-17.04 v1.3 TDD re-implementation (test-writer 19 Red Gate stubs; implementer D15/D16/D10/D13) → LOCAL adversary re-cascade 0/3 → 3-CLEAN → PR → merge → rc.21 release.
+
+**Trajectory:** →9→9→9→11 (CARRIED — per-story LOCAL adversary pass 1 corrections codification burst; F5 cycle trajectory unchanged; 0/3 per-story streak in LOCAL BC-5.39.001 metric)
+
+### Factory-artifacts Commits
+
+(SHA to be recorded after push; see Active Branches row in STATE.md post-commit)
