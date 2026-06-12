@@ -552,6 +552,85 @@ _run_dispatcher() {
 }
 
 # ---------------------------------------------------------------------------
+# T-6 (AC-018 / v1.6 Red Gate): Write payload with ABSOLUTE file_path → Block TimestampStale
+#
+# Payload type: Write (tool_input.content = full file body, AC-011).
+#
+# Scenario (the exact production bypass):
+#   Claude Code emits absolute file_path values like `/tmp/work/.factory/STATE.md`
+#   through the dispatcher. In the WASI sandbox, std::env::var("CLAUDE_PROJECT_DIR")
+#   always returns Err — the env-based prefix strip never fired. The absolute path
+#   does NOT equal `.factory/STATE.md` so the current guard returns Continue
+#   unconditionally for all real Claude Code writes. The guard was completely inert.
+#
+#   The v1.6 fix: trigger = (normalised == ".factory/STATE.md") OR
+#                            (normalised.ends_with("/.factory/STATE.md"))
+#   No env var needed.
+#
+# This bats test constructs an absolute path pointing at the real STATE.md fixture
+# file written inside $WORK (the mktemp dir). $WORK is already an absolute path.
+# So `file_path = "$WORK/.factory/STATE.md"` is the exact style of absolute path
+# Claude Code emits in production.
+#
+# On-disk STATE.md: old timestamp.
+# Proposed content (tool_input.content): same stale timestamp → Block.
+# Expected: exit 2 + FULL canonical TimestampStale message.
+#
+# MUST FAIL against current impl: current guard checks
+#   `normalised != ".factory/STATE.md"` (exact equality only).
+# `$WORK/.factory/STATE.md` normalises to an absolute path that never equals
+# the bare relative path → Continue. Exit 2 assertion fails — RED GATE v1.6.
+#
+# After the implementer lands the ends_with trigger, this becomes GREEN.
+# ---------------------------------------------------------------------------
+
+@test "T-6 test_verify_state_timestamp_refresh_absolute_path_stale_blocks" {
+  _require_artifacts
+  _write_full_registry
+
+  local ts_old="2026-06-11T10:00:00Z"
+
+  # On-disk STATE.md: old timestamp. Written to $WORK/.factory/STATE.md.
+  _write_state_no_lock_with_ts "$ts_old"
+
+  # Absolute file_path: exactly what Claude Code emits in production.
+  # $WORK is already an absolute path (mktemp -d produces /tmp/... or /var/folders/...).
+  local abs_state_md_path="$WORK/.factory/STATE.md"
+
+  # Proposed content: SAME stale timestamp (not advanced) → stale write.
+  # Write payload: tool_input.content = full file body (AC-011).
+  local proposed_content
+  proposed_content="---\ndocument_type: state\nversion: 0.0.1-bats-test\ntimestamp: ${ts_old}\nphase: test\ncurrent_step: bats-test\n---\n\n# STATE (bats fixture - absolute path, stale)\n"
+
+  # Envelope: file_path is the ABSOLUTE path (the production bypass pattern).
+  local envelope
+  envelope="{\"event_name\":\"PreToolUse\",\"tool_name\":\"Write\",\"session_id\":\"t6\",\"dispatcher_trace_id\":\"t6-trace\",\"tool_input\":{\"file_path\":\"${abs_state_md_path}\",\"content\":\"${proposed_content}\"}}"
+
+  _run_dispatcher "$envelope"
+
+  # Must exit 2 (Block) — absolute path must trigger guard via ends_with suffix-match.
+  [ "$status" -eq 2 ] || {
+    echo "FAIL: expected exit 2 (Block: TimestampStale) but got status=$status"
+    echo "file_path was absolute: ${abs_state_md_path}"
+    echo "RED GATE v1.6: current guard uses exact equality only (normalised != '.factory/STATE.md')."
+    echo "Absolute paths never match the bare relative path → Continue (guard inert in production)."
+    echo "Implementer must add ends_with('/.factory/STATE.md') trigger (AC-018 / v1.6 P0 fix)."
+    echo "Output: $output"
+    return 1
+  }
+
+  # FULL canonical TimestampStale block message asserted as substring.
+  local expected_msg="BLOCKED by verify-state-timestamp-refresh: STATE.md timestamp not advanced in this write. Fix: Update 'timestamp:' to the current UTC time before writing STATE.md. Code: TimestampStale."
+
+  [[ "$output" == *"${expected_msg}"* ]] || {
+    echo "FAIL: expected FULL canonical TimestampStale message in output."
+    echo "Expected (substring): ${expected_msg}"
+    echo "Actual output: $output"
+    return 1
+  }
+}
+
+# ---------------------------------------------------------------------------
 # Registry assertion test (no WASM required — inspects production registry file).
 #
 # Asserts that the production hooks-registry.toml has the correct

@@ -1976,94 +1976,274 @@ mod tests {
     }
 
     // -----------------------------------------------------------------------
-    // O-1704P-01 / EC-006 — $CLAUDE_PROJECT_DIR prefix with double-slash
-    //   normalises → guard triggers
+    // EC-006 / v1.6 Red Gate — absolute path with double-slash triggers guard
+    //   WITHOUT any env var (env-free suffix-match model)
     //
-    // Traces: EC-006 / ADR-025 §12.7 R6 / O-1704P-01 (normalise_path hardening)
+    // Traces: EC-006 / ADR-025 §12.7 R6 / AC-018 / v1.6 P0
     //
-    // Path: `$CLAUDE_PROJECT_DIR//.factory/STATE.md`
-    //   (double-slash between prefix and relative path — can occur when
-    //   CLAUDE_PROJECT_DIR is already slash-terminated and the caller adds
-    //   another slash, or when template interpolation produces `//`).
+    // This test was previously `test_claude_project_dir_double_slash_path_triggers_guard`
+    // which relied on `std::env::set_var("CLAUDE_PROJECT_DIR", ...)`. That approach is
+    // now WRONG: the guard runs in the WASI sandbox where std::env::var is dead, so the
+    // env-based prefix strip never fired in production — the guard was inert for all
+    // absolute paths. The v1.6 fix replaces env-based prefix-stripping with a
+    // suffix-match trigger: after all normalizations, fire when the normalized path
+    // EQUALS `.factory/STATE.md` OR ENDS WITH `/.factory/STATE.md` (no env var).
     //
-    // normalise_path algorithm (O-1704P-01 hardened):
-    //   1. Pre-collapse `//` → `$CLAUDE_PROJECT_DIR/.factory/STATE.md`
-    //   2. Strip `CLAUDE_PROJECT_DIR/` prefix → `.factory/STATE.md`
-    //   3. Result: `.factory/STATE.md` — guard triggers.
+    // This rewrite exercises the same double-slash collapse scenario using a concrete
+    // absolute path WITHOUT any set_var coupling:
+    //   `/Users/alice/project//.factory/STATE.md`
+    //   → pre-collapse `//` → `/Users/alice/project/.factory/STATE.md`
+    //   → ends_with `/.factory/STATE.md` → guard triggers.
     //
-    // Uses stale proposed content so the guard fires Block on guard trigger.
-    // Verifies path-variant cannot escape the guard via double-slash injection
-    // combined with CLAUDE_PROJECT_DIR prefix.
+    // MUST FAIL against current impl: current impl uses exact equality
+    // (`normalised != STATE_MD_PATH`) so the absolute path → Continue.
+    // After the implementer lands the ends_with trigger, this becomes GREEN.
     //
-    // GREEN: guard normalises path and blocks stale timestamp.
+    // NO std::env::set_var / std::env::remove_var anywhere in this test.
     // -----------------------------------------------------------------------
 
     #[test]
-    fn test_claude_project_dir_double_slash_path_triggers_guard() {
+    fn test_absolute_double_slash_path_triggers_guard_no_env() {
         let on_disk = state_md_no_lock(TS_OLD);
         let stale_proposed = state_md_no_lock(TS_OLD); // stale → Block
 
-        // Set CLAUDE_PROJECT_DIR to a synthetic project root for this test.
-        // Use a value without trailing slash; normalise_path appends one.
-        let fake_project_dir = "/fake/project";
-        // Path with double-slash after prefix: `/fake/project//.factory/STATE.md`
-        let path_with_double_slash = format!("{}//.factory/STATE.md", fake_project_dir);
-
-        // Set the env var for this test; restore after (tests run in the same process).
-        // SAFETY: single-threaded test context; env mutation is test-local.
-        // This is the only safe way to exercise the CLAUDE_PROJECT_DIR branch of
-        // normalise_path in a unit test without changing the function signature.
-        let prev = std::env::var("CLAUDE_PROJECT_DIR").ok();
-        // SAFETY: tests in this module are run with the default test harness
-        // which may run tests in parallel threads. However, this specific test
-        // uses a unique `fake_project_dir` that no other test sets, and the path
-        // variant test is the only caller of set_var in this module.
-        // The env var is restored in all exit paths (normal + panic via std::panic::catch_unwind
-        // is not used here; the restoration happens unconditionally after the assertion).
-        //
-        // If flakiness is observed under parallel execution, consider wrapping in a mutex.
-        // For now, the implementation follows the same pattern as other env-var-dependent
-        // tests in this codebase.
-        #[allow(unsafe_code)]
-        unsafe {
-            std::env::set_var("CLAUDE_PROJECT_DIR", fake_project_dir);
-        }
+        // Absolute path with double-slash: pre-collapse turns `//` into `/`,
+        // leaving `/Users/alice/project/.factory/STATE.md`.
+        // The v1.6 suffix-match trigger: ends_with("/.factory/STATE.md") → fires.
+        // No CLAUDE_PROJECT_DIR env var — the suffix-match needs none.
+        let path = "/Users/alice/project//.factory/STATE.md";
 
         let warn_log = Arc::new(Mutex::new(Vec::new()));
         let callbacks = make_callbacks_with_disk(on_disk, warn_log.clone());
-        let payload = payload_write_path_variant(&path_with_double_slash, &stale_proposed);
+        let payload = payload_write_path_variant(path, &stale_proposed);
 
         let result = guard_logic(payload, callbacks);
-
-        // Restore env var before asserting (ensures restoration even if assertion panics
-        // via Rust's default panic handling which unwinds through the stack).
-        #[allow(unsafe_code)]
-        unsafe {
-            match prev {
-                Some(v) => std::env::set_var("CLAUDE_PROJECT_DIR", v),
-                None => std::env::remove_var("CLAUDE_PROJECT_DIR"),
-            }
-        }
 
         let expected_msg = canonical_timestamp_stale_message();
         match result {
             HookResult::Block { reason } => {
                 assert_eq!(
                     reason, expected_msg,
-                    "test_claude_project_dir_double_slash_path_triggers_guard: \
-                     path with double-slash after CLAUDE_PROJECT_DIR prefix must normalise \
-                     to .factory/STATE.md and Block on stale timestamp. \
+                    "test_absolute_double_slash_path_triggers_guard_no_env: \
+                     absolute path with double-slash '{path}' must pre-collapse to \
+                     '/Users/alice/project/.factory/STATE.md', match via ends_with \
+                     '/.factory/STATE.md', and Block on stale timestamp (no env var). \
                      Expected: {expected_msg:?}. Got: {reason:?}"
                 );
             }
             HookResult::Continue => panic!(
-                "test_claude_project_dir_double_slash_path_triggers_guard: \
-                 path '{path_with_double_slash}' must normalise to .factory/STATE.md and Block, \
-                 but guard returned Continue. O-1704P-01 normalise_path hardening \
-                 must pre-collapse '//' before stripping the CLAUDE_PROJECT_DIR prefix."
+                "test_absolute_double_slash_path_triggers_guard_no_env: \
+                 path '{path}' → after '//' collapse → '/Users/alice/project/.factory/STATE.md' \
+                 must trigger the guard via ends_with '/.factory/STATE.md' and Block. \
+                 Got Continue. RED GATE v1.6: current impl uses exact equality only \
+                 (normalised != STATE_MD_PATH), which misses all absolute paths. \
+                 Implementer must add the ends_with('/.factory/STATE.md') suffix-match trigger \
+                 (AC-018 / ADR-025 §12.7 R6 v1.6 / P0 fix for WASI sandbox env-var deadness)."
             ),
             other => panic!(
-                "test_claude_project_dir_double_slash_path_triggers_guard: \
+                "test_absolute_double_slash_path_triggers_guard_no_env: \
+                 expected Block, got: {:?}",
+                other
+            ),
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // AC-018 / v1.6 Red Gate — absolute path without env var triggers guard
+    //
+    // Traces: AC-018 / ADR-025 §12.7 R6 / BC-5.40.001 PC4 / v1.6 P0
+    //
+    // This is the EXACT production bypass that was masking the guard: Claude Code
+    // emits absolute file_path values like `/Users/alice/project/.factory/STATE.md`
+    // through the dispatcher. In the WASI sandbox, std::env::var("CLAUDE_PROJECT_DIR")
+    // always returns Err — the env-based prefix strip never fired. The absolute path
+    // does NOT equal `.factory/STATE.md` so the exact-equality guard trigger returned
+    // Continue unconditionally. The guard was completely inert in production.
+    //
+    // The v1.6 fix: trigger = (normalised == STATE_MD_PATH) OR
+    //               (normalised.ends_with("/.factory/STATE.md"))
+    // No env var needed.
+    //
+    // This test explicitly removes CLAUDE_PROJECT_DIR from the environment (it may
+    // have been set by another test in this process) before invoking guard_logic, to
+    // confirm the env-free suffix-match path works without any env scaffolding.
+    //
+    // MUST FAIL against current impl (exact-equality only → Continue for absolute paths).
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_absolute_path_triggers_guard_without_env() {
+        // Ensure CLAUDE_PROJECT_DIR is absent so we exercise the env-free code path.
+        // SAFETY: process-global mutation; other tests that set this var save/restore it.
+        // This test only removes the var (never sets it), so concurrent tests that
+        // read CLAUDE_PROJECT_DIR may transiently see it absent, but that is safe:
+        // the only effect is that normalise_path skips the env prefix strip, which is
+        // exactly the production WASI behaviour we are testing.
+        #[allow(unsafe_code)]
+        unsafe {
+            std::env::remove_var("CLAUDE_PROJECT_DIR");
+        }
+
+        let on_disk = state_md_no_lock(TS_OLD);
+        let stale_proposed = state_md_no_lock(TS_OLD); // stale → Block
+
+        // Real absolute path as emitted by Claude Code in production.
+        // Normalises to `/Users/alice/project/.factory/STATE.md` (already clean).
+        // Suffix-match: ends_with("/.factory/STATE.md") → guard must trigger.
+        let path = "/Users/alice/project/.factory/STATE.md";
+
+        let warn_log = Arc::new(Mutex::new(Vec::new()));
+        let callbacks = make_callbacks_with_disk(on_disk, warn_log.clone());
+        let payload = payload_write_path_variant(path, &stale_proposed);
+
+        let result = guard_logic(payload, callbacks);
+
+        let expected_msg = canonical_timestamp_stale_message();
+        match result {
+            HookResult::Block { reason } => {
+                assert_eq!(
+                    reason, expected_msg,
+                    "test_absolute_path_triggers_guard_without_env: \
+                     absolute path '{path}' without CLAUDE_PROJECT_DIR set must trigger \
+                     guard via ends_with('/.factory/STATE.md') suffix-match and Block. \
+                     Expected: {expected_msg:?}. Got: {reason:?}"
+                );
+            }
+            HookResult::Continue => panic!(
+                "test_absolute_path_triggers_guard_without_env: \
+                 path '{path}' must trigger guard without CLAUDE_PROJECT_DIR env var. \
+                 Got Continue — this is the exact production bypass (P0). \
+                 RED GATE v1.6: current impl uses exact equality \
+                 (normalised != STATE_MD_PATH); absolute paths never match '.factory/STATE.md'. \
+                 Implementer must add ends_with('/.factory/STATE.md') trigger \
+                 (AC-018 / ADR-025 §12.7 R6 v1.6)."
+            ),
+            other => panic!(
+                "test_absolute_path_triggers_guard_without_env: \
+                 expected Block, got: {:?}",
+                other
+            ),
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // AC-018 / v1.6 — non-matching absolute paths must NOT false-trigger (control)
+    //
+    // Traces: AC-018 suffix-match boundary / AC-007 (non-STATE.md → Continue)
+    //
+    // The suffix-match trigger `ends_with("/.factory/STATE.md")` must NOT fire
+    // on paths that merely contain ".factory/STATE.md" as a substring in the wrong
+    // position, or that end with a similar-but-different string.
+    //
+    // Control paths:
+    //   (1) `/Users/alice/project/other/STATE.md`   — ends with `/STATE.md` but
+    //       the directory component is `other`, NOT `.factory`.
+    //   (2) `/Users/alice/project/.factory/STATE.md.bak` — ends with `.md.bak`
+    //       (not `.md`), so the suffix does not match.
+    //
+    // Both must return Continue (no false-trigger). These are GREEN controls —
+    // they should pass against both current impl AND the v1.6 suffix-match impl.
+    // Included here so any future change to the trigger boundary has an immediate
+    // regression signal.
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_absolute_non_state_md_paths_do_not_trigger_guard() {
+        // Absolute path ending in /other/STATE.md — NOT /.factory/STATE.md.
+        {
+            let on_disk = state_md_no_lock(TS_OLD);
+            let stale = state_md_no_lock(TS_OLD);
+            let warn_log = Arc::new(Mutex::new(Vec::new()));
+            let callbacks = make_callbacks_with_disk(on_disk, warn_log.clone());
+            let payload = payload_write_path_variant("/Users/alice/project/other/STATE.md", &stale);
+            let result = guard_logic(payload, callbacks);
+            assert_eq!(
+                result,
+                HookResult::Continue,
+                "test_absolute_non_state_md_paths_do_not_trigger_guard: \
+                 '/Users/alice/project/other/STATE.md' must NOT trigger guard — \
+                 path ends with '/other/STATE.md', not '/.factory/STATE.md'. \
+                 Suffix-match must be precise."
+            );
+        }
+
+        // Absolute path ending in .factory/STATE.md.bak — NOT .factory/STATE.md.
+        {
+            let on_disk = state_md_no_lock(TS_OLD);
+            let stale = state_md_no_lock(TS_OLD);
+            let warn_log = Arc::new(Mutex::new(Vec::new()));
+            let callbacks = make_callbacks_with_disk(on_disk, warn_log.clone());
+            let payload =
+                payload_write_path_variant("/Users/alice/project/.factory/STATE.md.bak", &stale);
+            let result = guard_logic(payload, callbacks);
+            assert_eq!(
+                result,
+                HookResult::Continue,
+                "test_absolute_non_state_md_paths_do_not_trigger_guard: \
+                 '/Users/alice/project/.factory/STATE.md.bak' must NOT trigger guard — \
+                 path ends with '.md.bak', not '/.factory/STATE.md'. \
+                 Suffix-match boundary must not over-match."
+            );
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // AC-019 / v1.6 Red Gate — proposed timestamp present but EMPTY → Block
+    //
+    // Traces: AC-019 / ADR-025 §12.2 / BC-5.40.001 PC4 / v1.6
+    //
+    // Scenario:
+    //   On-disk STATE.md:  `timestamp: "2026-06-11T10:00:00Z"` (real value)
+    //   Proposed STATE.md: `timestamp: ""` (empty string — field present but empty)
+    //
+    // Current behaviour: `extract_yaml_string_value` returns `Some("")` for an
+    // empty-quoted value. `extract_top_level_field` returns `FieldResult::Found("")`.
+    // In guard_logic Step 4, `proposed_ts = ""`. In Step 6, `"" != on_disk_ts`
+    // (they differ) → the guard falls through to Continue.
+    //
+    // An empty timestamp is NOT a valid advancement. The guard must treat
+    // `proposed_ts.is_empty()` as equivalent to `NotFound` — Block: TimestampStale.
+    //
+    // MUST FAIL against current impl: `"" != on_disk_ts` → Continue.
+    // After the implementer adds the empty-check in Step 4/6, this becomes GREEN.
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_timestamp_empty_string_in_proposed_blocks() {
+        // On-disk: real timestamp.
+        let on_disk = state_md_no_lock(TS_OLD);
+        // Proposed: timestamp field present but with an empty-string value.
+        // `extract_yaml_string_value` returns `Some("")` for `timestamp: ""`.
+        let proposed = "---\ndocument_type: state\nversion: \"0.0.1-test\"\ntimestamp: \"\"\nphase: test\n---\n\n# STATE\n".to_string();
+
+        let warn_log = Arc::new(Mutex::new(Vec::new()));
+        let callbacks = make_callbacks_with_disk(on_disk, warn_log.clone());
+        let payload = payload_write(&proposed);
+
+        let result = guard_logic(payload, callbacks);
+
+        let expected_msg = canonical_timestamp_stale_message();
+        match result {
+            HookResult::Block { reason } => {
+                assert_eq!(
+                    reason, expected_msg,
+                    "test_timestamp_empty_string_in_proposed_blocks: \
+                     proposed timestamp: \"\" (empty string) must Block: TimestampStale. \
+                     An empty timestamp is not a valid advancement. \
+                     Expected: {expected_msg:?}. Got: {reason:?}"
+                );
+            }
+            HookResult::Continue => panic!(
+                "test_timestamp_empty_string_in_proposed_blocks: \
+                 proposed has timestamp: \"\" (empty string) — must Block: TimestampStale. \
+                 Got Continue instead. RED GATE v1.6: current impl extracts empty string \
+                 via FieldResult::Found(\"\") and then falls through Step 6 \
+                 (\"\" != on_disk_ts → differs → Continue). \
+                 Implementer must add empty-timestamp check: \
+                 if proposed_ts.is_empty() → Block: TimestampStale (AC-019 / ADR-025 §12.2)."
+            ),
+            other => panic!(
+                "test_timestamp_empty_string_in_proposed_blocks: \
                  expected Block, got: {:?}",
                 other
             ),
