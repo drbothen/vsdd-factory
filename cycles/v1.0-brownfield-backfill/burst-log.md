@@ -7540,3 +7540,98 @@ D-554 current_step encodes: P0 WASM env-var dead-code fix (std::env::var dead in
 ### Factory-artifacts Commits
 
 64c5c587 state(D-554): ADR-025 v1.6 deep-pass-7 P0 WASM env-dead-code fix + S-17.04 v1.6 codified
+
+---
+
+## D-555 — S-17.04 v1.6→v1.7 + adversary pass 8+9 cleanup codified (2026-06-12)
+
+**Parent-commit:** `406291e0` (D-554 sha-patch; factory-artifacts HEAD pre-burst)
+
+**Adversary verdict:** Re-cascade passes 8+9 (post-P0-fix; same-family Claude adversary) returned **C0/H0** — guard is functionally converged. The P0 env-free trigger is verified correct by T-6 real-WASM absolute-path e2e bats test. All findings were quality/cleanup only: M1 (canonical_block_message/canonical_continue_message formatted block_with_fix inline with format! macros — single source of truth gap; fix: delegate to HookResult::block_with_fix from hook-sdk crate); L1 (dead `unsafe { std::env::remove_var("CLAUDE_PROJECT_DIR") }` in unit test — from env-var era, removed); L2 (8 fail-open paths had no log_warn — observability gap vs verify-factory-lock; log_warn! added to all 8); L4 (whitespace-only timestamp:/expires_at: parsed as non-empty strings, passing byte-equality check; .trim().is_empty() added → Block); stale-doc sweep (trigger comments in main.rs/lib.rs/registry/ci.yml/bats → suffix-match description); L3 (story Red Gate Test Table test-names drifted from shipped names in 6 occurrences across 4 locations; normative table reconciled → S-17.04 v1.7). impl green `5a704b6a` (37 unit + 7 bats). BC impact NONE. LOCAL adversary streak: pass 8 advance → pass 9 advance = **2/3** (converging toward 3-CLEAN).
+
+**Files touched:**
+- `.factory/stories/S-17.04-mid-burst-heartbeat-renewal-wiring.md` (pre-staged by story-writer; v1.6→v1.7; test-name reconcile 6 occurrences)
+- `.factory/stories/STORY-INDEX.md` (v3.99→v4.00; S-17.04 row v1.6→v1.7; last_amended updated)
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` (D-555 row prepended)
+- `.factory/STATE.md` (v3.04→v3.05; D-555 frontmatter + all §1/§3/§4/§5/§8/§9/§11/§12 refresh)
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` (this entry)
+
+**Codifications:**
+- D-555: S-17.04 v1.6→v1.7 — adversary pass 8+9 cleanup (C0/H0; functionally converged); test-name traceability reconcile; impl green 5a704b6a (37 unit+7 bats); BC NONE
+
+**Dim-2 (PC attestations — production artifact reads):**
+
+PC1 (event identity):
+```
+$ grep "^current_step:" .factory/STATE.md | head -1
+current_step: "D-555 S-17.04-V1.6-V1.7-ADVERSARY-PASS-8-9-CLEANUP 2026-06-12 — ADVERSARY PASS 8+9 CLEANUP CODIFIED: re-cascade post-P0-fix returned C0/H0 (guard functionally converged; env-free suffix trigger verified T-6 real-WASM e2e); M1 canonical_*_message delegates to SDK block_with_fix (single source of truth; no format! drift); L1 dead unsafe std::env::remove_var removed (env-var era artifact); L2 log_warn added to all 8 fail-open paths (observability parity with verify-factory-lock); L4 whitespace-only timestamp/expires .trim().is_empty()→Block (consistency gap closed); stale-doc sweep trigger comments→suffix-match; L3 story test-name table reconciled (6 occurrences 4 locations; normative table drives test-writer stub naming); S-17.04 v1.6→v1.7; impl green 5a704b6a (37 unit+7 bats); BC impact NONE; 4-index: BC-INDEX v2.72 UNCHANGED VP-INDEX v2.06 UNCHANGED STORY-INDEX v3.99→v4.00 ARCH-INDEX v2.27 UNCHANGED; trajectory-tail →9→9→9→11; maintain all 5 BC-5.39.006 v1.7 PCs per TD-VSDD-097-EXT; D-chain cite D-554 per D-419(b); parent-commit 406291e0 per D-419(b). SIZE BUDGET: see banner tracker row D-555"
+```
+
+PC2 (trajectory-tail LENGTH=4):
+```
+$ grep "^current_step:" .factory/STATE.md | grep -oE "trajectory-tail [→0-9]+"
+trajectory-tail →9→9→9→11
+```
+PASS (4 values, LENGTH=4 per D-433(e)+D-439(c)).
+
+PC3 (D-chain cite):
+```
+$ grep "^current_step:" .factory/STATE.md | grep -o "D-chain cite D-554"
+D-chain cite D-554
+```
+PASS (D-554 per D-419(b)).
+
+PC4 (parent-commit SHA):
+```
+$ grep "^current_step:" .factory/STATE.md | grep -o "parent-commit 406291e0"
+parent-commit 406291e0
+```
+PASS (406291e0 = D-554 sha-patch factory-artifacts HEAD pre-burst per D-419(b)).
+
+PC5 (4-index cites):
+Present in current_step: BC-INDEX v2.72 UNCHANGED VP-INDEX v2.06 UNCHANGED STORY-INDEX v3.99→v4.00 ARCH-INDEX v2.27 UNCHANGED. PASS.
+
+PC6 (SIZE BUDGET): see Dim-7 for line count.
+
+**Dim-5 (INV-019 cure (a)/(b)/(c) + POLICY 14 5-leg parity):**
+
+INV-019 cure:
+- (a) S-17.04 v1.7 Red Gate Test Table normative names reconciled (6 occurrences; table drives test-writer stub naming); STORY-INDEX v4.00 body row → story v1.7; no ADR change this round.
+- (b) S-17.04 v1.7 deliverables: test-name traceability corrections only (L3); no AC/EC/architecture changes; impl green 5a704b6a 37 unit+7 bats.
+- (c) POLICY 14 5-leg parity verified for S-17.04 v1.7: (1) version: "1.7" frontmatter PASS; (2) body Changelog row v1.7 present PASS; (3) modified[] "2026-06-12 v1.7" present PASS; (4) last_amended: "2026-06-12 (v1.7)" text-prefix PASS; (5) STORY-INDEX v4.00 S-17.04 body row → story v1.7 PASS.
+- POLICY 14 5-leg for STORY-INDEX v4.00: (1) version: "4.00" frontmatter PASS; (2) last_amended "2026-06-12 (v4.00)" present PASS; (3) N/A (no modified[] on index); (4) last_amended text-prefix PASS; (5) S-17.04 body row story v1.7 PASS.
+
+**Dim-6 (verification_step 7 literal-shell 4-index gate):**
+
+```
+$ grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md | head -1
+version: "2.72"
+$ grep "^version:" .factory/specs/verification-properties/VP-INDEX.md | head -1
+version: "2.06"
+$ grep "^version:" .factory/stories/STORY-INDEX.md | head -1
+version: "4.00"
+$ grep "^version:" .factory/specs/architecture/ARCH-INDEX.md | head -1
+version: "2.27"
+```
+
+Expected D-555: BC-INDEX v2.72 (UNCHANGED), VP-INDEX v2.06 (UNCHANGED), STORY-INDEX v4.00, ARCH-INDEX v2.27 (UNCHANGED). ALL MATCH. PASS.
+
+**Dim-7 (state attestation):**
+
+D-555 current_step encodes: pass 8+9 C0/H0; M1 canonical→block_with_fix delegation; L1 dead unsafe removal; L2 log_warn 8 fail-open paths; L4 whitespace trim→Block; stale-doc sweep; L3 test-name reconcile; impl green 5a704b6a 37 unit+7 bats; BC NONE; S-17.04 v1.6→v1.7; STORY-INDEX v3.99→v4.00; trajectory-tail →9→9→9→11; D-chain D-554; parent 406291e0. All 5 PCs satisfied. STATE.md version 3.05, timestamp 2026-06-12T06:00:00Z. STATE.md TBD-D555-LINES — see banner tracker row D-555 after STATE.md edit.
+
+**Closes:**
+- M1: canonical_*_message format! drift surface vs SDK block_with_fix.
+- L1: dead unsafe std::env::remove_var in unit test (env-var era artifact).
+- L2: 8 fail-open paths without log_warn (observability gap).
+- L4: whitespace-only timestamp/expires_at not triggering Block.
+- STALE-DOC: trigger comments describing dead env-strip instead of suffix/equality rule.
+- L3: 6 test-name mismatches in normative Red Gate Test Table (traceability audit gap).
+
+**Advances:** D-chain D-554 → D-555; LOCAL adversary streak 2/3 (passes 8+9 both C0/H0). NEXT: final confirming adversary pass 10 → 3-CLEAN → PR → merge → rc.21.
+
+**Trajectory:** →9→9→9→11 (CARRIED — per-story LOCAL adversary pass 8+9 cleanup codification burst; F5 cycle trajectory unchanged; 2/3 per-story streak in LOCAL BC-5.39.001 metric)
+
+### Factory-artifacts Commits
+
+TBD-D555 state(D-555): S-17.04 v1.7 + adversary pass 8+9 cleanup codified
