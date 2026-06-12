@@ -393,34 +393,33 @@ _run_dispatcher() {
     return 1
   }
 
-  # P4-H1 — guard-ran assertion for T-3 (Step 1 early-Continue path).
+  # P4-H1 closed — guard_ran sentinel assertion (PRIMARY / load-bearing).
   #
-  # NOTE: the guard_ran sentinel ("verify-state-timestamp-refresh: guard_ran (continue)")
-  # is emitted ONLY at guard_logic Step 8 (post-check Continue success path). The T-3
-  # path short-circuits at Step 1 (non-STATE.md file_path check, line: if normalised !=
-  # STATE_MD_PATH { return HookResult::Continue }). Step 1 returns BEFORE the sentinel
-  # emit, so "guard_ran" does NOT appear in the dispatcher output for this test.
+  # The implementer (commit 6fe4c72e) added a sentinel emit on the Step 1 early-Continue
+  # branch (non-STATE.md path), emitting:
+  #   "verify-state-timestamp-refresh: guard_ran (continue: non-state-md)"
+  # to plugin stderr via write_stderr → eprint!() → dispatcher stderr (captured by 2>&1).
   #
-  # Asserting "guard_ran" here would make T-3 FAIL — that is a false failure, not a
-  # real guard problem. The guard is correctly short-circuiting at Step 1 as designed.
+  # A crashed guard never reaches the sentinel emit. Sentinel-present + exit 0 is
+  # therefore definitive proof the guard executed its decision logic and deliberately
+  # returned Continue — not a crash silenced by on_error=continue.
   #
-  # To get a guard_ran-equivalent sentinel on the Step 1 path, the implementer would
-  # need to add a second write_stderr emit on the early-Continue branch. That is a
-  # tracked gap (P4-H1 finding for T-3) — do not silently weaken this assertion.
-  #
-  # Best available signal for T-3: plugins_run=1 confirms the guard WASM was loaded
-  # and invoked by the dispatcher (the plugin ran to completion, returning Continue).
-  # Combined with exit 0 + absence of block_reason, this proves the guard did not
-  # crash and the dispatcher correctly received the Continue decision. It cannot
-  # distinguish a clean Step-1-Continue from a crash-with-on_error=continue, but
-  # that distinction requires the implementer-side sentinel on the Step 1 path.
-  [[ "$output" == *"plugins_run=1"* ]] || {
-    echo "FAIL: expected 'plugins_run=1' in dispatcher stderr but got: $output"
-    echo "plugins_run=1 confirms the guard plugin was invoked (Step 1 early-Continue path)."
+  # The sentinel string for this path differs from the T-1 Step-8 sentinel
+  # ("guard_ran (continue)" vs "guard_ran (continue: non-state-md)"), but both
+  # contain the substring "guard_ran", which is the load-bearing assertion here.
+  [[ "$output" == *"guard_ran"* ]] || {
+    echo "FAIL: guard_ran sentinel not found in dispatcher output."
+    echo "Expected 'verify-state-timestamp-refresh: guard_ran (continue: non-state-md)' in stderr."
+    echo "This sentinel is emitted at the Step 1 non-STATE.md early-Continue branch."
+    echo "Absence means the guard crashed, was not loaded, or the sentinel was not wired."
+    echo "Output: $output"
     return 1
   }
-  # Guard_ran sentinel is intentionally NOT asserted here — the Step 1 early-Continue
-  # path does not reach the Step 8 sentinel emit. See P4-H1 note above.
+  # Secondary: plugins_run=1 confirms the registry entry loaded and invoked the plugin.
+  [[ "$output" == *"plugins_run=1"* ]] || {
+    echo "FAIL: expected 'plugins_run=1' in dispatcher stderr but got: $output"
+    return 1
+  }
 }
 
 # ---------------------------------------------------------------------------
