@@ -3,25 +3,44 @@
 //! Enforces BC-5.40.001 PC4 (mid-burst TTL renewal) at write-time.
 //!
 //! On each invocation the guard:
-//!   1. Checks `file_path` in the tool payload. If NOT `.factory/STATE.md`:
-//!      return `Continue` immediately — zero overhead for all other files (AC-007).
-//!   2. Reads the on-disk `.factory/STATE.md` via `host::read_file`.
-//!      On error (HostError): return `Continue` (fail-open per §12.3).
-//!   3. Extracts `timestamp:` from both proposed content (payload `new_content`)
-//!      and the on-disk content.
-//!   4. If `timestamp:` is absent in proposed content → Block: TimestampStale.
-//!   5. If `timestamp:` is absent in on-disk content → Continue (first write ever).
-//!   6. If `timestamp:` values are byte-identical → Block: TimestampStale.
-//!   7. If a lock is held in proposed content (`factory_lock.holder` present and
+//!   1. Checks `file_path` in the tool payload (after canonical-path normalisation
+//!      per EC-006 / ADR-025 §12.7 R6). If NOT `.factory/STATE.md`: return
+//!      `Continue` immediately — zero overhead for all other files (AC-007).
+//!   2. Extract the proposed content per tool:
+//!      - Write   → `tool_input.content`       (full file body; AC-011)
+//!      - Edit    → reconstruct: on-disk + `old_string`→`new_string` apply (AC-012)
+//!      - MultiEdit → reconstruct: on-disk + sequential `edits[]` apply (AC-013)
+//!   3. Read the on-disk `.factory/STATE.md` via `host::read_file`.
+//!      On error (HostError or NotFound): return `Continue` (fail-open per §12.3 / AC-015).
+//!   4. Extract `timestamp:` from both proposed content and the on-disk content.
+//!   5. If `timestamp:` is absent in proposed content → Block: TimestampStale (AC-008 §12.3 row 6).
+//!   6. If `timestamp:` is absent in on-disk content → Continue (first write ever, AC-015/AC-008).
+//!   7. If `timestamp:` values are byte-identical → Block: TimestampStale (AC-005/AC-011).
+//!   8. If a lock is held in proposed content (`factory_lock.holder` present and
 //!      non-empty): compare `factory_lock.expires_at` byte-for-byte.
-//!      If byte-identical → Block: LockExpiryStale.
-//!   8. All other paths → Continue.
+//!      If byte-identical → Block: LockExpiryStale (AC-006).
+//!   9. All other paths → Continue.
+//!
+//! For Edit/MultiEdit reconstruction (AC-012/AC-013/AC-014):
+//!   - Replace first occurrence of `old_string` (or all if `replace_all = true`).
+//!   - If `old_string` not found in on-disk content → Continue (fail-open, AC-014).
 //!
 //! Fail-open error paths (AC-008 / ADR-025 §12.3):
 //!   - Proposed content unparseable → Continue
-//!   - On-disk read fails → Continue
+//!   - On-disk read fails (HostError or NotFound) → Continue
 //!   - `timestamp:` absent in on-disk → Continue
 //!   - Plugin crash (on_error = continue) → Continue
+//!
+//! # Payload field discipline (ADR-025 §12.1 / Red Gate Test Table)
+//!
+//! - Write tool: `tool_input.content` (full file body)
+//! - Edit tool: `tool_input.old_string` + `tool_input.new_string`
+//!   (+ optional `tool_input.replace_all: bool`)
+//! - MultiEdit tool: `tool_input.edits[]`
+//!   (array of `{old_string, new_string, replace_all?}`)
+//! - Path field: `tool_input.file_path` (NOT `tool_input.new_content` — that
+//!   field does not exist in Claude Code payloads; 0 occurrences in
+//!   5,235+ real dispatcher events per ADR-025 §12.1)
 //!
 //! # Behavioral Contracts
 //!
@@ -35,11 +54,12 @@
 //! - No `serde_yaml` / `serde_norway` — manual line-by-line scan via `factory-lock-parse`.
 //! - No `regex` crate — manual tokenisation only.
 //! - `async = false` REQUIRED in registry entry (ADR-019; ADR-025 Decision 12).
-//! - Guard is read-only: NEVER writes STATE.md (Invariant 4 from verify-factory-lock pattern).
+//! - Guard is read-only: NEVER writes STATE.md.
 //! - No `exec_subprocess` — reads proposed content from payload, on-disk via `host::read_file`.
 //! - Pure `fn guard_logic(...)` takes all host I/O as injectable callbacks;
 //!   unit tests exercise every branch without a WASM runtime.
-//! - Trigger: `file_path == ".factory/STATE.md"` (exact path; bypass-proof per §12.1).
+//! - Trigger: `file_path == ".factory/STATE.md"` after canonical-path normalisation
+//!   (bypass-proof per §12.1 / EC-006).
 
 // Allow `#[cfg(kani)]` without triggering unexpected_cfgs warning.
 #![cfg_attr(not(kani), allow(unexpected_cfgs))]
@@ -61,25 +81,253 @@ pub const STATE_MD_MAX_BYTES: u32 = 65536;
 /// Timeout in milliseconds for the `host::read_file` call.
 pub const READ_FILE_TIMEOUT_MS: u32 = 5000;
 
-/// Canonical path of STATE.md — exact string comparison in WASM (ADR-025 §12.1).
+/// Canonical path of STATE.md — exact string comparison trigger after normalisation.
 pub const STATE_MD_PATH: &str = ".factory/STATE.md";
 
 // ---------------------------------------------------------------------------
-// Injectable callbacks surface (testable without WASM runtime)
+// Canonical block messages (AC-005 / AC-006 exact text)
 // ---------------------------------------------------------------------------
 
-/// All side-effecting host calls injected into `guard_logic` for testability.
-/// In production (`main.rs`), these are wired to real vsdd_hook_sdk host fns.
-pub struct GuardCallbacks<R, L>
-where
-    R: FnOnce(&str, u32, u32) -> Result<Vec<u8>, String>,
-    L: FnMut(&str),
-{
-    /// Read a file by path with `(path, max_bytes, timeout_ms)`.
-    /// Returns `Ok(bytes)` or `Err(host_error_description)` on failure.
-    pub read_file: R,
-    /// Emit a `host::log_warn` message (advisory; non-blocking).
-    pub log_warn: L,
+/// Canonical TimestampStale block message produced by `block_with_fix`.
+///
+/// Full line (per AC-005 / Red Gate Test Table — full-line equality required):
+/// `BLOCKED by verify-state-timestamp-refresh: STATE.md timestamp not advanced in
+///  this write. Fix: Update 'timestamp:' to the current UTC time before writing
+///  STATE.md. Code: TimestampStale.`
+///
+/// Constructed by: `HookResult::block_with_fix(GUARD_NAME, TIMESTAMP_STALE_REASON,
+///   TIMESTAMP_STALE_FIX, TIMESTAMP_STALE_CODE)`
+pub const GUARD_NAME: &str = "verify-state-timestamp-refresh";
+pub const TIMESTAMP_STALE_REASON: &str = "STATE.md timestamp not advanced in this write";
+pub const TIMESTAMP_STALE_FIX: &str =
+    "Update 'timestamp:' to the current UTC time before writing STATE.md";
+pub const TIMESTAMP_STALE_CODE: &str = "TimestampStale";
+
+/// Canonical LockExpiryStale reason for `block_with_fix`.
+///
+/// Full line (per AC-006):
+/// `BLOCKED by verify-state-timestamp-refresh: factory_lock.expires_at not refreshed
+///  in this write while lock is held. Fix: Run: factory-lock-write.sh renew
+///  .factory/STATE.md before writing STATE.md. Code: LockExpiryStale.`
+pub const LOCK_EXPIRY_STALE_REASON: &str =
+    "factory_lock.expires_at not refreshed in this write while lock is held";
+pub const LOCK_EXPIRY_STALE_FIX: &str =
+    "Run: factory-lock-write.sh renew .factory/STATE.md before writing STATE.md";
+pub const LOCK_EXPIRY_STALE_CODE: &str = "LockExpiryStale";
+
+// ---------------------------------------------------------------------------
+// Canonical block message strings (for full-line equality assertions in tests)
+// ---------------------------------------------------------------------------
+
+/// Full canonical TimestampStale block string as produced by `block_with_fix`.
+///
+/// Tests MUST assert equality to this exact string (not a substring), per
+/// the Red Gate Test Table "full-line equality required" mandate (AC-005, M03 fix).
+pub fn canonical_timestamp_stale_message() -> String {
+    format!(
+        "BLOCKED by {}: {}. Fix: {}. Code: {}.",
+        GUARD_NAME, TIMESTAMP_STALE_REASON, TIMESTAMP_STALE_FIX, TIMESTAMP_STALE_CODE
+    )
+}
+
+/// Full canonical LockExpiryStale block string as produced by `block_with_fix`.
+///
+/// Tests MUST assert equality to this exact string (not a substring), per
+/// the Red Gate Test Table "full-line equality required" mandate (AC-006, M03 fix).
+pub fn canonical_lock_expiry_stale_message() -> String {
+    format!(
+        "BLOCKED by {}: {}. Fix: {}. Code: {}.",
+        GUARD_NAME, LOCK_EXPIRY_STALE_REASON, LOCK_EXPIRY_STALE_FIX, LOCK_EXPIRY_STALE_CODE
+    )
+}
+
+// ---------------------------------------------------------------------------
+// Canonical-path normalisation (EC-006 / ADR-025 §12.7 R6)
+// ---------------------------------------------------------------------------
+
+/// Normalise a `file_path` from a tool payload for comparison against `STATE_MD_PATH`.
+///
+/// Normalisation algorithm per EC-006 / ADR-025 §12.7 R6:
+///   1. Strip leading `./`
+///   2. Strip absolute `$CLAUDE_PROJECT_DIR/` prefix (where `$CLAUDE_PROJECT_DIR`
+///      is read from environment; no-op if env var absent)
+///   3. Collapse `//` → `/`
+///   4. Collapse `/./` → `/`
+///
+/// A path that normalises to `.factory/STATE.md` MUST trigger the guard.
+/// Fail-open applies ONLY to paths with genuinely unresolvable traversal sequences
+/// (e.g., `../../` after normalisation yields a path outside the project).
+pub fn normalise_path(path: &str) -> String {
+    // Step 2: strip CLAUDE_PROJECT_DIR prefix first (it may contain a leading ./).
+    let path = if let Ok(project_dir) = std::env::var("CLAUDE_PROJECT_DIR") {
+        if !project_dir.is_empty() {
+            let with_slash = format!("{}/", project_dir.trim_end_matches('/'));
+            if let Some(stripped) = path.strip_prefix(with_slash.as_str()) {
+                stripped
+            } else {
+                path
+            }
+        } else {
+            path
+        }
+    } else {
+        path
+    };
+
+    // Step 1: strip leading `./`.
+    let path = path.strip_prefix("./").unwrap_or(path);
+
+    // Step 3 + 4: collapse `//` and `/./` (repeated until stable).
+    let mut result = path.to_string();
+    loop {
+        let next = result.replace("//", "/").replace("/./", "/");
+        if next == result {
+            break;
+        }
+        result = next;
+    }
+
+    result
+}
+
+// ---------------------------------------------------------------------------
+// Proposed-content extraction (per-tool reconstruct — AC-011/012/013/014)
+// ---------------------------------------------------------------------------
+
+/// The result of extracting the proposed content from a tool payload.
+#[derive(Debug)]
+pub enum ProposedContent {
+    /// Proposed full content string.
+    Content(String),
+    /// Fail-open: cannot reconstruct (old_string not found, or absent content field).
+    FailOpen,
+}
+
+/// Extract the proposed full content for a `Write` tool payload.
+///
+/// Write tool provides `tool_input.content` — the complete new file body.
+/// Returns `FailOpen` if the field is absent or not a string (fail-open per AC-008).
+///
+/// AC-011: the correct field is `content` (NOT `new_content`).
+pub fn extract_write_proposed(payload: &HookPayload) -> ProposedContent {
+    match payload.tool_input.get("content").and_then(|v| v.as_str()) {
+        Some(s) => ProposedContent::Content(s.to_string()),
+        None => ProposedContent::FailOpen,
+    }
+}
+
+/// Extract the proposed full content for an `Edit` tool payload by reconstruction.
+///
+/// Edit tool provides `tool_input.old_string` + `tool_input.new_string` and optionally
+/// `tool_input.replace_all`. The guard reconstructs the proposed full content by
+/// applying the substitution to the on-disk content.
+///
+/// Returns:
+/// - `Content(reconstructed)` if `old_string` found in `on_disk_content`.
+/// - `FailOpen` if `old_string` not found (fail-open per AC-014).
+/// - `FailOpen` if `old_string` or `new_string` is absent from payload.
+///
+/// AC-012: reconstruct from on-disk + fragment — NOT from fragment alone.
+pub fn extract_edit_proposed(payload: &HookPayload, on_disk_content: &str) -> ProposedContent {
+    let old_string = match payload
+        .tool_input
+        .get("old_string")
+        .and_then(|v| v.as_str())
+    {
+        Some(s) => s,
+        None => return ProposedContent::FailOpen,
+    };
+    let new_string = match payload
+        .tool_input
+        .get("new_string")
+        .and_then(|v| v.as_str())
+    {
+        Some(s) => s,
+        None => return ProposedContent::FailOpen,
+    };
+    let replace_all = payload
+        .tool_input
+        .get("replace_all")
+        .and_then(|v| v.as_bool())
+        .unwrap_or(false);
+
+    if replace_all {
+        if !on_disk_content.contains(old_string) {
+            // old_string not found → fail-open (AC-014).
+            return ProposedContent::FailOpen;
+        }
+        ProposedContent::Content(on_disk_content.replace(old_string, new_string))
+    } else {
+        // Replace first occurrence only.
+        match on_disk_content.find(old_string) {
+            None => ProposedContent::FailOpen, // AC-014: old_string not found → fail-open.
+            Some(pos) => {
+                let mut result = String::with_capacity(
+                    on_disk_content.len() - old_string.len() + new_string.len(),
+                );
+                result.push_str(&on_disk_content[..pos]);
+                result.push_str(new_string);
+                result.push_str(&on_disk_content[pos + old_string.len()..]);
+                ProposedContent::Content(result)
+            }
+        }
+    }
+}
+
+/// Extract the proposed full content for a `MultiEdit` tool payload by sequential reconstruction.
+///
+/// MultiEdit tool provides `tool_input.edits[]` — an array of `{old_string, new_string,
+/// replace_all?}`. The guard applies each element in array order to the accumulating content.
+///
+/// Returns:
+/// - `Content(reconstructed)` if all edits applied successfully.
+/// - `FailOpen` if any `old_string` is not found in the current content state (AC-014).
+/// - `FailOpen` if the `edits` field is absent or not an array.
+///
+/// AC-013: sequential application, same substitution logic as Edit per element.
+pub fn extract_multiedit_proposed(payload: &HookPayload, on_disk_content: &str) -> ProposedContent {
+    let edits = match payload.tool_input.get("edits").and_then(|v| v.as_array()) {
+        Some(arr) => arr,
+        None => return ProposedContent::FailOpen,
+    };
+
+    let mut current = on_disk_content.to_string();
+
+    for edit in edits {
+        let old_string = match edit.get("old_string").and_then(|v| v.as_str()) {
+            Some(s) => s,
+            None => return ProposedContent::FailOpen,
+        };
+        let new_string = match edit.get("new_string").and_then(|v| v.as_str()) {
+            Some(s) => s,
+            None => return ProposedContent::FailOpen,
+        };
+        let replace_all = edit
+            .get("replace_all")
+            .and_then(|v| v.as_bool())
+            .unwrap_or(false);
+
+        if replace_all {
+            if !current.contains(old_string) {
+                return ProposedContent::FailOpen; // AC-014.
+            }
+            current = current.replace(old_string, new_string);
+        } else {
+            match current.find(old_string) {
+                None => return ProposedContent::FailOpen, // AC-014.
+                Some(pos) => {
+                    let mut result =
+                        String::with_capacity(current.len() - old_string.len() + new_string.len());
+                    result.push_str(&current[..pos]);
+                    result.push_str(new_string);
+                    result.push_str(&current[pos + old_string.len()..]);
+                    current = result;
+                }
+            }
+        }
+    }
+
+    ProposedContent::Content(current)
 }
 
 // ---------------------------------------------------------------------------
@@ -87,13 +335,8 @@ where
 // ---------------------------------------------------------------------------
 
 /// Result of attempting to extract a top-level frontmatter field.
-///
-/// Distinguishes between:
-/// - `Found(value)`: the key exists and has a value
-/// - `NotFound`: the frontmatter is well-formed but the key is absent
-/// - `Malformed`: the frontmatter structure is unparseable (no closing `---`)
 #[derive(Debug)]
-enum FieldResult {
+pub enum FieldResult {
     Found(String),
     NotFound,
     Malformed,
@@ -110,7 +353,7 @@ enum FieldResult {
 /// - `FieldResult::NotFound` if the frontmatter is well-formed but key is absent.
 /// - `FieldResult::Malformed` if the frontmatter is unparseable (no closing `---`
 ///   delimiter). Callers must fail-open on Malformed (AC-008 §12.3 row 1).
-fn extract_top_level_field(content: &str, key: &str) -> FieldResult {
+pub fn extract_top_level_field(content: &str, key: &str) -> FieldResult {
     // Normalise CRLF.
     let normalised;
     let content = if content.contains('\r') {
@@ -153,7 +396,37 @@ fn extract_top_level_field(content: &str, key: &str) -> FieldResult {
 }
 
 // ---------------------------------------------------------------------------
+// Injectable callbacks surface (testable without WASM runtime)
+// ---------------------------------------------------------------------------
+
+/// All side-effecting host calls injected into `guard_logic` for testability.
+/// In production (`main.rs`), these are wired to real vsdd_hook_sdk host fns.
+pub struct GuardCallbacks<R, L>
+where
+    R: FnOnce(&str, u32, u32) -> Result<Vec<u8>, String>,
+    L: FnMut(&str),
+{
+    /// Read a file by path with `(path, max_bytes, timeout_ms)`.
+    ///
+    /// Returns:
+    /// - `Ok(bytes)` on success.
+    /// - `Err(msg)` on HostError (including `"NotFound"` when the file does not exist).
+    ///   The guard treats ALL `Err(_)` variants as fail-open (AC-008/AC-015).
+    pub read_file: R,
+    /// Emit a `host::log_warn` message (advisory; non-blocking).
+    pub log_warn: L,
+}
+
+// ---------------------------------------------------------------------------
 // Core guard logic (injectable callbacks — testable without WASM runtime)
+//
+// STUB: returns `Continue` unconditionally.
+//
+// RED GATE STATUS: All tests that expect `Block` MUST FAIL against this stub.
+// The stub intentionally violates every blocking postcondition so that the
+// Red Gate test suite is demonstrably failing before implementation begins.
+//
+// Implementer (T-3): replace the stub body with real logic per ADR-025 §12.1–§12.8.
 // ---------------------------------------------------------------------------
 
 /// Core verify-state-timestamp-refresh guard logic.
@@ -162,156 +435,66 @@ fn extract_top_level_field(content: &str, key: &str) -> FieldResult {
 /// branch without a WASM runtime.
 ///
 /// Decision tree (per ADR-025 Decision 12 / BC-5.40.001 PC4+PC6):
-///   1. Extract `file_path` from payload. If NOT `.factory/STATE.md`:
-///      return Continue immediately — zero overhead (AC-007 / §12.1).
-///   2. Extract `new_content` (proposed write) from payload.
-///      If absent or not a string: fail-open → return Continue.
-///   3. Extract `timestamp:` from proposed content.
-///      If absent → Block: TimestampStale (§12.3 row 6 / EC-005).
-///   4. Read on-disk STATE.md via `read_file`.
-///      If error → Continue (fail-open §12.3 row 2).
+///   1. Normalise `file_path` (EC-006). If NOT `.factory/STATE.md`: return Continue
+///      immediately without calling `read_file` (AC-007 / §12.1).
+///   2. Extract proposed content per tool:
+///      - Write: `tool_input.content` directly (AC-011)
+///      - Edit: reconstruct from on-disk + `old_string`/`new_string` (AC-012)
+///      - MultiEdit: reconstruct from on-disk + sequential `edits[]` (AC-013)
+///
+///      On absent/fail-open condition → Continue (AC-008/AC-014).
+///   3. Read on-disk STATE.md. On Err (any variant, including NotFound) → Continue
+///      (fail-open §12.3 / AC-015).
+///   4. Extract `timestamp:` from proposed content.
+///      - Absent (NotFound) in proposed → Block: TimestampStale (§12.3 row 6).
+///      - Malformed proposed frontmatter → Continue (fail-open, AC-008 §12.3 row 1).
 ///   5. Extract `timestamp:` from on-disk content.
-///      If absent → Continue (first write ever, §12.3 row 5 / EC-004).
-///   6. If proposed `timestamp:` byte-identical to on-disk → Block: TimestampStale (§12.2).
-///   7. If lock held in proposed content (factory_lock.holder present + non-empty):
+///      - Absent or Malformed → Continue (first write ever, §12.3 row 5 / EC-004).
+///   6. Byte-identical `timestamp:` → Block: TimestampStale (§12.2 / AC-005).
+///   7. Lock held in proposed content (factory_lock.holder present + non-empty):
 ///      extract `factory_lock.expires_at` from proposed and on-disk.
-///      If byte-identical → Block: LockExpiryStale (§12.2).
+///      Byte-identical → Block: LockExpiryStale (§12.2 / AC-006).
 ///   8. All other paths → Continue.
 ///
 /// # BC traces
 /// - BC-5.40.001 PC4: TimestampStale block / LockExpiryStale block
 /// - BC-5.40.001 PC6: fail-open on all error paths
-/// - ADR-025 Decision 12 §12.1: file_path trigger (bypass-proof)
+/// - ADR-025 Decision 12 §12.1: file_path trigger (bypass-proof, EC-006 normalise)
 /// - ADR-025 Decision 12 §12.2: byte-comparison, not datetime parse
 /// - ADR-025 Decision 12 §12.3: fail-open table
-pub fn guard_logic<R, L>(payload: HookPayload, mut callbacks: GuardCallbacks<R, L>) -> HookResult
+/// - AC-011: Write payload uses `content`
+/// - AC-012: Edit payload reconstructs from on-disk + fragment
+/// - AC-013: MultiEdit payload reconstructs sequentially from on-disk
+/// - AC-014: old_string not found → fail-open
+/// - AC-015: host::read_file NotFound → fail-open
+pub fn guard_logic<R, L>(payload: HookPayload, callbacks: GuardCallbacks<R, L>) -> HookResult
 where
     R: FnOnce(&str, u32, u32) -> Result<Vec<u8>, String>,
     L: FnMut(&str),
 {
-    // Step 1: Check file_path. If not STATE.md, return Continue immediately (AC-007 / §12.1).
+    // Step 1: Normalise file_path. If not STATE.md, return Continue immediately (AC-007 / §12.1).
     let file_path = payload
         .tool_input
         .get("file_path")
         .and_then(|v| v.as_str())
         .unwrap_or("");
 
-    // Normalize leading "./" (EC-006: path normalization).
-    let normalized_path = file_path.strip_prefix("./").unwrap_or(file_path);
-    // Also strip double-slashes (EC-006).
-    let target_path = if normalized_path == STATE_MD_PATH {
-        normalized_path
-    } else {
-        // Not STATE.md — return Continue immediately without reading any file (AC-007).
+    let normalised = normalise_path(file_path);
+    if normalised != STATE_MD_PATH {
+        // Not STATE.md — return Continue without reading any file (AC-007 zero-overhead).
         return HookResult::Continue;
-    };
-
-    // Step 2: Extract proposed content (new_content field from payload).
-    let proposed_content = match payload
-        .tool_input
-        .get("new_content")
-        .and_then(|v| v.as_str())
-    {
-        Some(s) => s.to_string(),
-        None => {
-            // Absent new_content: fail-open (cannot validate what we cannot read).
-            (callbacks.log_warn)("TimestampRefresh: new_content absent in payload — fail-open");
-            return HookResult::Continue;
-        }
-    };
-
-    // Step 3: Extract timestamp: from proposed content.
-    // - Malformed frontmatter → Continue (fail-open, AC-008 §12.3 row 1).
-    // - Absent timestamp: in well-formed proposed content → Block: TimestampStale (§12.3 row 6).
-    let proposed_ts = match extract_top_level_field(&proposed_content, "timestamp") {
-        FieldResult::Found(ts) => ts,
-        FieldResult::NotFound => {
-            // timestamp: absent in proposed write — missing-field violation.
-            return HookResult::block_with_fix(
-                "verify-state-timestamp-refresh",
-                "TimestampStale: STATE.md timestamp not advanced in this write",
-                "Update timestamp to the current UTC time before writing STATE.md",
-                "TimestampStale",
-            );
-        }
-        FieldResult::Malformed => {
-            // Unparseable proposed content — fail-open (AC-008 §12.3 row 1).
-            (callbacks.log_warn)(
-                "TimestampRefresh: proposed content has malformed frontmatter — fail-open",
-            );
-            return HookResult::Continue;
-        }
-    };
-
-    // Step 4: Read on-disk STATE.md. On error: fail-open (§12.3 row 2).
-    let on_disk_bytes =
-        match (callbacks.read_file)(target_path, STATE_MD_MAX_BYTES, READ_FILE_TIMEOUT_MS) {
-            Ok(bytes) => bytes,
-            Err(e) => {
-                (callbacks.log_warn)(&format!(
-                    "TimestampRefresh: read_file failed — fail-open: {}",
-                    e
-                ));
-                return HookResult::Continue;
-            }
-        };
-
-    let on_disk_content = match String::from_utf8(on_disk_bytes) {
-        Ok(s) => s,
-        Err(e) => {
-            (callbacks.log_warn)(&format!(
-                "TimestampRefresh: on-disk STATE.md is not valid UTF-8 — fail-open: {}",
-                e
-            ));
-            return HookResult::Continue;
-        }
-    };
-
-    // Step 5: Extract timestamp: from on-disk content.
-    // Absent (or malformed) → Continue (first write ever or unreadable, §12.3 row 5 / EC-004).
-    let on_disk_ts = match extract_top_level_field(&on_disk_content, "timestamp") {
-        FieldResult::Found(ts) => ts,
-        FieldResult::NotFound | FieldResult::Malformed => {
-            // No prior timestamp to compare against — any write is valid.
-            return HookResult::Continue;
-        }
-    };
-
-    // Step 6: Byte-identical timestamp: → Block: TimestampStale (§12.2).
-    if proposed_ts == on_disk_ts {
-        return HookResult::block_with_fix(
-            "verify-state-timestamp-refresh",
-            "TimestampStale: STATE.md timestamp not advanced in this write",
-            "Update timestamp to the current UTC time before writing STATE.md",
-            "TimestampStale",
-        );
     }
 
-    // Step 7: If lock held in proposed content, check factory_lock.expires_at.
-    // "Lock held" = factory_lock.holder present and non-empty in PROPOSED content.
-    let lock_in_proposed = factory_lock_parse::parse_factory_lock(&proposed_content);
-    let proposed_lock = match lock_in_proposed {
-        Ok(Some(lock)) if !lock.holder.is_empty() => Some(lock),
-        _ => None, // No lock held, or parse error → skip LockExpiryStale check.
-    };
-
-    if let Some(lock) = proposed_lock {
-        // Lock is held in proposed content. Check expires_at byte-identity.
-        let on_disk_lock = factory_lock_parse::parse_factory_lock(&on_disk_content);
-        if let Ok(Some(on_disk_lock_state)) = on_disk_lock
-            && lock.expires_at == on_disk_lock_state.expires_at
-        {
-            return HookResult::block_with_fix(
-                "verify-state-timestamp-refresh",
-                "LockExpiryStale: factory_lock.expires_at not refreshed in this write while lock is held",
-                "Run: factory-lock-write.sh renew .factory/STATE.md before committing",
-                "LockExpiryStale",
-            );
-        }
-        // If on-disk has no lock or parse fails: fail-open (no prior expires_at to compare).
-    }
-
-    // Step 8: All checks passed → Continue.
+    // STUB: unconditional Continue — implementer replaces this body.
+    //
+    // RED GATE: all tests that expect Block(...) will FAIL against this stub.
+    // This is intentional — see Red Gate Test Table in S-17.04 v1.3.
+    //
+    // The following dead-code paths are included to make the callback surface
+    // compile-checked and to prevent "unused" warnings that would interfere with
+    // fmt/clippy clean.
+    let _ = callbacks.read_file;
+    let _ = callbacks.log_warn;
     HookResult::Continue
 }
 
@@ -343,42 +526,54 @@ pub fn on_pre_tool_use(payload: HookPayload) -> HookResult {
 }
 
 // ---------------------------------------------------------------------------
-// Unit tests — Red Gate (D17 / S-17.04 v1.2 Red Gate Test Table)
+// Unit tests — Red Gate v1.3 (D17 / S-17.04 / AC-005/006/007/008/011-015)
 //
-// 9 Rust unit tests from ADR-025 §12.6 (table-driven cases a..i).
+// 15 Rust unit tests covering the full AC matrix from S-17.04 v1.3.
 // Uses injectable callbacks so no WASM runtime is required.
 //
-// RED GATE: The stub `guard_logic` returns `Continue` unconditionally AND
-// calls `read_file` unconditionally (no file_path check). Against this stub:
+// RED GATE: The stub `guard_logic` returns `Continue` after the path check
+// (unconditionally, once file_path normalises to STATE.md). Against this stub:
 //
-//   FAIL (assertion errors — correct Red Gate):
-//     (a) test_lock_expiry_stale_blocks          — expects Block(LockExpiryStale)
-//     (b) test_timestamp_stale_no_lock_blocks    — expects Block(TimestampStale)
-//     (c) test_timestamp_stale_lock_held_blocks  — expects Block(TimestampStale)
-//     (i) test_timestamp_absent_in_proposed_blocks — expects Block(TimestampStale)
-//     (g) test_non_state_md_file_continues_without_read — expects Continue + read_file_calls==0;
-//         stub calls read_file once → read_file call-count assertion fails
+//   FAIL (assertion errors — correct Red Gate failures):
+//     test_timestamp_stale_no_lock_blocks           → expects Block(TimestampStale)
+//     test_timestamp_stale_lock_held_blocks         → expects Block(TimestampStale)
+//     test_lock_expiry_stale_blocks                 → expects Block(LockExpiryStale)
+//     test_timestamp_absent_in_proposed_blocks      → expects Block(TimestampStale)
+//     test_write_payload_stale_timestamp_blocks     → expects Block(TimestampStale)
+//     test_edit_payload_reconstruct_stale_timestamp_blocks   → expects Block(TimestampStale)
+//     test_edit_payload_reconstruct_advanced_timestamp_continues — expects Continue
+//                                                   → PASSES against stub (acceptable)
+//     test_multiedit_payload_reconstruct_stale_timestamp_blocks → expects Block(TimestampStale)
+//     test_multiedit_payload_reconstruct_advanced_timestamp_continues → expects Continue
+//                                                   → PASSES against stub (acceptable)
+//     test_non_state_md_file_continues_without_read → read_file call-count assertion:
+//         stub returns Continue without calling read_file for non-STATE.md path
+//         → PASSES (acceptable — AC-007 path check is in stub)
+//     test_canonical_path_variants_trigger_guard    → all variants → expects Block(TimestampStale)
 //
-//   PASS (trivially satisfied by the all-Continue stub — acceptable):
-//     (e) test_proposed_unparseable_continues       — expects Continue
-//     (f) test_on_disk_read_fails_continues         — expects Continue
-//     (h) test_timestamp_absent_on_disk_continues   — expects Continue
-//         (no lock path + Continue → passes against stub)
+//   PASS against stub (fail-open paths — structurally correct):
+//     test_proposed_unparseable_continues           → expects Continue → stub returns Continue
+//     test_on_disk_read_fails_continues             → expects Continue → stub returns Continue
+//     test_timestamp_absent_on_disk_continues       → expects Continue → stub returns Continue
+//     test_no_lock_held_skips_expiry_check          → expects Continue → stub returns Continue
+//     test_edit_old_string_not_found_continues      → expects Continue → stub returns Continue
+//     test_multiedit_first_old_string_not_found_continues → expects Continue → stub returns Continue
+//     test_read_file_not_found_continues            → expects Continue → stub returns Continue
 //
-// Net Red Gate: 5 FAILING tests (4 Block-assertions + 1 read_file-call assertion).
-// The 3 Continue-only tests passing against the stub are structurally correct:
-// the stub is fail-open and these test fail-open paths — they will remain green
-// after implementation (the real guard also returns Continue for these paths).
-// The test_no_lock_held_skips_expiry_check is a Continue-assertion and passes —
-// see the note in that test's comment.
+// Net Red Gate: 8 FAILING tests (block-assertions + canonical-path assertion).
+// The Continue-only tests passing against the stub are structurally correct: the
+// stub is fail-open and these test fail-open paths — they remain green after
+// implementation (the real guard also returns Continue for these paths).
 //
-// Canonical STATE.md frontmatter fixture (used across tests):
+// BLOCK MESSAGE ASSERTIONS: every Block assertion uses FULL canonical equality
+// to the `canonical_timestamp_stale_message()` or `canonical_lock_expiry_stale_message()`
+// strings — NOT substring contains checks. This fixes finding M03 from adversary pass-1.
 //
-//   timestamp: "2026-06-11T10:00:00Z"
-//   factory_lock:
-//     holder: "dev@example.com"
-//     locked_at: "2026-06-11T10:00:00Z"
-//     expires_at: "2026-06-11T10:45:00Z"
+// PAYLOAD FIELD DISCIPLINE:
+//   - Write tests use `tool_input.content` (full file body)
+//   - Edit tests use `tool_input.old_string` + `tool_input.new_string`
+//   - MultiEdit tests use `tool_input.edits[]`
+//   - `tool_input.new_content` NEVER appears — that field does not exist in real payloads.
 // ---------------------------------------------------------------------------
 #[cfg(test)]
 mod tests {
@@ -399,38 +594,8 @@ mod tests {
     const HOLDER: &str = "dev@example.com";
 
     // -----------------------------------------------------------------------
-    // Fixture builders
+    // Fixture builders — STATE.md content strings
     // -----------------------------------------------------------------------
-
-    /// Build a HookPayload for an Edit/Write to STATE.md with the given new_content.
-    fn payload_state_md(new_content: &str) -> HookPayload {
-        serde_json::from_value(json!({
-            "event_name": "PreToolUse",
-            "tool_name": "Edit",
-            "session_id": "test-session",
-            "dispatcher_trace_id": "test-trace",
-            "tool_input": {
-                "file_path": ".factory/STATE.md",
-                "new_content": new_content
-            }
-        }))
-        .expect("fixture HookPayload must deserialize")
-    }
-
-    /// Build a HookPayload for an Edit/Write to a non-STATE.md path.
-    fn payload_non_state_md(file_path: &str, new_content: &str) -> HookPayload {
-        serde_json::from_value(json!({
-            "event_name": "PreToolUse",
-            "tool_name": "Edit",
-            "session_id": "test-session",
-            "dispatcher_trace_id": "test-trace",
-            "tool_input": {
-                "file_path": file_path,
-                "new_content": new_content
-            }
-        }))
-        .expect("fixture HookPayload must deserialize")
-    }
 
     /// Build STATE.md content with a given timestamp, no lock.
     fn state_md_no_lock(timestamp: &str) -> String {
@@ -473,11 +638,107 @@ mod tests {
     }
 
     // -----------------------------------------------------------------------
+    // Payload builders — real tool payloads (NEVER use new_content)
+    // -----------------------------------------------------------------------
+
+    /// Build a `Write` tool HookPayload for `.factory/STATE.md`.
+    ///
+    /// Write tool payload: `tool_input.content` = full file body (AC-011).
+    fn payload_write(content: &str) -> HookPayload {
+        serde_json::from_value(json!({
+            "event_name": "PreToolUse",
+            "tool_name": "Write",
+            "session_id": "test-session",
+            "dispatcher_trace_id": "test-trace",
+            "tool_input": {
+                "file_path": ".factory/STATE.md",
+                "content": content
+            }
+        }))
+        .expect("fixture HookPayload must deserialize")
+    }
+
+    /// Build an `Edit` tool HookPayload for `.factory/STATE.md`.
+    ///
+    /// Edit tool payload: `tool_input.old_string` + `tool_input.new_string` (AC-012).
+    /// The guard reconstructs the proposed content from on-disk + this fragment.
+    fn payload_edit(old_string: &str, new_string: &str) -> HookPayload {
+        serde_json::from_value(json!({
+            "event_name": "PreToolUse",
+            "tool_name": "Edit",
+            "session_id": "test-session",
+            "dispatcher_trace_id": "test-trace",
+            "tool_input": {
+                "file_path": ".factory/STATE.md",
+                "old_string": old_string,
+                "new_string": new_string
+            }
+        }))
+        .expect("fixture HookPayload must deserialize")
+    }
+
+    /// Build a `MultiEdit` tool HookPayload for `.factory/STATE.md`.
+    ///
+    /// MultiEdit tool payload: `tool_input.edits[]` array (AC-013).
+    /// Each element: `{old_string, new_string, replace_all?}`.
+    fn payload_multiedit(edits: Vec<(&str, &str)>) -> HookPayload {
+        let edits_json: Vec<serde_json::Value> = edits
+            .iter()
+            .map(|(old, new)| json!({"old_string": old, "new_string": new}))
+            .collect();
+        serde_json::from_value(json!({
+            "event_name": "PreToolUse",
+            "tool_name": "MultiEdit",
+            "session_id": "test-session",
+            "dispatcher_trace_id": "test-trace",
+            "tool_input": {
+                "file_path": ".factory/STATE.md",
+                "edits": edits_json
+            }
+        }))
+        .expect("fixture HookPayload must deserialize")
+    }
+
+    /// Build a payload for a non-STATE.md `Edit` (AC-007).
+    fn payload_edit_non_state_md(
+        file_path: &str,
+        old_string: &str,
+        new_string: &str,
+    ) -> HookPayload {
+        serde_json::from_value(json!({
+            "event_name": "PreToolUse",
+            "tool_name": "Edit",
+            "session_id": "test-session",
+            "dispatcher_trace_id": "test-trace",
+            "tool_input": {
+                "file_path": file_path,
+                "old_string": old_string,
+                "new_string": new_string
+            }
+        }))
+        .expect("fixture HookPayload must deserialize")
+    }
+
+    /// Build a `Write` payload for a canonical-path variant of STATE.md.
+    fn payload_write_path_variant(file_path: &str, content: &str) -> HookPayload {
+        serde_json::from_value(json!({
+            "event_name": "PreToolUse",
+            "tool_name": "Write",
+            "session_id": "test-session",
+            "dispatcher_trace_id": "test-trace",
+            "tool_input": {
+                "file_path": file_path,
+                "content": content
+            }
+        }))
+        .expect("fixture HookPayload must deserialize")
+    }
+
+    // -----------------------------------------------------------------------
     // Callback builders
     // -----------------------------------------------------------------------
 
-    /// Build callbacks where read_file returns `on_disk_content` and log_warn
-    /// records to `warn_log`.
+    /// Build callbacks where read_file returns `on_disk_content` as bytes.
     #[allow(clippy::type_complexity)]
     fn make_callbacks_with_disk(
         on_disk_content: String,
@@ -493,7 +754,7 @@ mod tests {
         }
     }
 
-    /// Build callbacks where read_file returns an error.
+    /// Build callbacks where read_file returns an error string (covers HostError and NotFound).
     #[allow(clippy::type_complexity)]
     fn make_callbacks_read_error(
         error_msg: &str,
@@ -511,208 +772,373 @@ mod tests {
     }
 
     // -----------------------------------------------------------------------
-    // Case (a) — lock held + expires_at unchanged → Block: LockExpiryStale
-    // Traces to: AC-006 / ADR-025 D17(a) / BC-5.40.001 PC4
+    // AC-005 — WRITE payload: stale timestamp blocks (test_write_payload_stale_timestamp_blocks)
+    // Traces: AC-011, AC-005 / ADR-025 D12 §12.2 / BC-5.40.001 PC4
+    //
+    // Write tool payload: tool_input.content = full stale file body.
+    // Expected: Block with FULL canonical TimestampStale message.
+    //
+    // RED GATE: stub returns Continue → assertion fails.
     // -----------------------------------------------------------------------
 
-    /// (a) Lock held + `factory_lock.expires_at` byte-identical → Block(LockExpiryStale).
-    ///
-    /// Proposed content: timestamp ADVANCED (new), expires_at UNCHANGED (old).
-    /// On-disk: timestamp old, expires_at old.
-    ///
-    /// Expected: Block with "LockExpiryStale" in the reason.
-    ///
-    /// RED GATE: stub returns Continue → assertion fails.
     #[test]
-    fn test_lock_expiry_stale_blocks() {
-        let on_disk = state_md_with_lock(TS_OLD, EXPIRES_OLD);
-        // Proposed: timestamp advanced, but expires_at NOT advanced.
-        let proposed = state_md_with_lock(TS_NEW, EXPIRES_OLD);
+    fn test_write_payload_stale_timestamp_blocks() {
+        let on_disk = state_md_no_lock(TS_OLD);
+        // Proposed: full file body with SAME timestamp as on-disk (stale).
+        let proposed_content = state_md_no_lock(TS_OLD);
 
         let warn_log = Arc::new(Mutex::new(Vec::new()));
         let callbacks = make_callbacks_with_disk(on_disk, warn_log.clone());
-        let payload = payload_state_md(&proposed);
+        // Write payload: tool_input.content = full proposed file body (AC-011).
+        let payload = payload_write(&proposed_content);
 
         let result = guard_logic(payload, callbacks);
 
+        let expected_msg = canonical_timestamp_stale_message();
         match result {
             HookResult::Block { reason } => {
-                assert!(
-                    reason.contains("LockExpiryStale"),
-                    "Block reason must contain 'LockExpiryStale'. Got: {reason}"
+                assert_eq!(
+                    reason, expected_msg,
+                    "test_write_payload_stale_timestamp_blocks: Block message must be the FULL \
+                     canonical TimestampStale string (not a substring). \
+                     Expected: {expected_msg:?}. Got: {reason:?}"
                 );
             }
             HookResult::Continue => panic!(
-                "test_lock_expiry_stale_blocks: expected Block(LockExpiryStale) but got Continue. \
-                 Stub returns Continue unconditionally — this is the expected Red Gate failure. \
-                 Implementer: add LockExpiryStale check when lock held + expires_at byte-identical."
+                "test_write_payload_stale_timestamp_blocks: expected Block(TimestampStale) but got Continue. \
+                 Stub returns Continue — RED GATE. \
+                 Write tool: tool_input.content contains unchanged timestamp → must Block."
             ),
-            other => panic!("Expected Block, got: {:?}", other),
+            other => panic!(
+                "test_write_payload_stale_timestamp_blocks: expected Block, got: {:?}",
+                other
+            ),
         }
     }
 
     // -----------------------------------------------------------------------
-    // Case (b) — lock held + expires_at advanced → Continue
-    // Traces to: AC-003 / ADR-025 D17(b) / BC-5.40.001 PC4
+    // AC-005 — WRITE payload: timestamp advanced → Continue
+    // Traces: AC-003, AC-011 / BC-5.40.001 PC4 success path
+    //
+    // RED GATE: stub returns Continue → PASSES (acceptable for Continue-expecting test).
     // -----------------------------------------------------------------------
 
-    /// (b) Lock held + both timestamp and expires_at advanced → Continue.
-    ///
-    /// This is the success path: state-manager ran renew, both fields are fresh.
-    ///
-    /// RED GATE: stub returns Continue → assertion PASSES.
-    /// This test will remain green after implementation (correct renew path).
     #[test]
-    fn test_lock_held_both_advanced_continues() {
-        let on_disk = state_md_with_lock(TS_OLD, EXPIRES_OLD);
-        // Proposed: both timestamp AND expires_at advanced.
-        let proposed = state_md_with_lock(TS_NEW, EXPIRES_NEW);
+    fn test_write_payload_advanced_timestamp_continues() {
+        let on_disk = state_md_no_lock(TS_OLD);
+        // Proposed: timestamp advanced.
+        let proposed_content = state_md_no_lock(TS_NEW);
 
         let warn_log = Arc::new(Mutex::new(Vec::new()));
         let callbacks = make_callbacks_with_disk(on_disk, warn_log.clone());
-        let payload = payload_state_md(&proposed);
+        let payload = payload_write(&proposed_content);
 
         let result = guard_logic(payload, callbacks);
 
         assert_eq!(
             result,
             HookResult::Continue,
-            "Lock held + both fields advanced must return Continue (success path / AC-003)"
+            "test_write_payload_advanced_timestamp_continues: Write with advanced timestamp must Continue (AC-003)"
         );
     }
 
     // -----------------------------------------------------------------------
-    // Case (c) — no lock + timestamp unchanged → Block: TimestampStale
-    // Traces to: AC-005 / ADR-025 D17(c) / BC-5.40.001 PC4
+    // AC-005 — timestamp stale, no lock → Block: TimestampStale (FULL canonical message)
+    // Traces: AC-005 / ADR-025 D12 §12.2 / BC-5.40.001 PC4
+    //
+    // Uses Write payload (tool_input.content) — clean single-tool case.
+    // RED GATE: stub returns Continue → assertion fails.
     // -----------------------------------------------------------------------
 
-    /// (c) No lock held + `timestamp:` byte-identical to on-disk → Block(TimestampStale).
-    ///
-    /// Expected: Block with "TimestampStale" in the reason.
-    ///
-    /// RED GATE: stub returns Continue → assertion fails.
     #[test]
     fn test_timestamp_stale_no_lock_blocks() {
         let on_disk = state_md_no_lock(TS_OLD);
-        // Proposed: timestamp NOT advanced (same value as on-disk).
-        let proposed = state_md_no_lock(TS_OLD);
+        let proposed = state_md_no_lock(TS_OLD); // same timestamp — stale.
 
         let warn_log = Arc::new(Mutex::new(Vec::new()));
         let callbacks = make_callbacks_with_disk(on_disk, warn_log.clone());
-        let payload = payload_state_md(&proposed);
+        let payload = payload_write(&proposed);
 
         let result = guard_logic(payload, callbacks);
 
+        let expected_msg = canonical_timestamp_stale_message();
         match result {
             HookResult::Block { reason } => {
-                assert!(
-                    reason.contains("TimestampStale"),
-                    "Block reason must contain 'TimestampStale'. Got: {reason}"
+                assert_eq!(
+                    reason, expected_msg,
+                    "test_timestamp_stale_no_lock_blocks: Block message must be FULL canonical \
+                     TimestampStale string. Expected: {expected_msg:?}. Got: {reason:?}"
                 );
             }
             HookResult::Continue => panic!(
                 "test_timestamp_stale_no_lock_blocks: expected Block(TimestampStale) but got Continue. \
-                 Stub returns Continue unconditionally — Red Gate. \
-                 Implementer: add TimestampStale check when timestamp byte-identical to on-disk."
+                 Stub returns Continue — RED GATE."
             ),
             other => panic!("Expected Block, got: {:?}", other),
         }
     }
 
     // -----------------------------------------------------------------------
-    // Case (d) — no lock + timestamp advanced → Continue
-    // Traces to: AC-003 / ADR-025 D17(d) / BC-5.40.001 PC4
+    // AC-005 — lock held, timestamp stale → Block: TimestampStale (FULL canonical message)
+    // Traces: AC-005 / BC-5.40.001 PC4
+    //
+    // TimestampStale fires before LockExpiryStale (EC-003: both stale → TimestampStale first).
+    // expires_at is advanced here to isolate timestamp staleness.
+    // RED GATE: stub returns Continue → assertion fails.
     // -----------------------------------------------------------------------
 
-    /// (d) No lock held + timestamp advanced → Continue (clean write path).
-    ///
-    /// RED GATE: stub returns Continue → assertion PASSES.
     #[test]
-    fn test_timestamp_advanced_no_lock_continues() {
-        let on_disk = state_md_no_lock(TS_OLD);
+    fn test_timestamp_stale_lock_held_blocks() {
+        let on_disk = state_md_with_lock(TS_OLD, EXPIRES_OLD);
+        // Proposed: timestamp NOT advanced; expires_at advanced (isolates TimestampStale).
+        let proposed = state_md_with_lock(TS_OLD, EXPIRES_NEW);
+
+        let warn_log = Arc::new(Mutex::new(Vec::new()));
+        let callbacks = make_callbacks_with_disk(on_disk, warn_log.clone());
+        let payload = payload_write(&proposed);
+
+        let result = guard_logic(payload, callbacks);
+
+        let expected_msg = canonical_timestamp_stale_message();
+        match result {
+            HookResult::Block { reason } => {
+                assert_eq!(
+                    reason, expected_msg,
+                    "test_timestamp_stale_lock_held_blocks: Block message must be FULL canonical \
+                     TimestampStale string. Expected: {expected_msg:?}. Got: {reason:?}"
+                );
+            }
+            HookResult::Continue => panic!(
+                "test_timestamp_stale_lock_held_blocks: expected Block(TimestampStale) but got Continue. \
+                 TimestampStale must fire even when lock is held. RED GATE."
+            ),
+            other => panic!("Expected Block, got: {:?}", other),
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // AC-006 — lock held, expires_at stale → Block: LockExpiryStale (FULL canonical message)
+    // Traces: AC-006 / ADR-025 D12 §12.2 / BC-5.40.001 PC4
+    //
+    // timestamp IS advanced (to get past TimestampStale), expires_at NOT advanced.
+    // RED GATE: stub returns Continue → assertion fails.
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_lock_expiry_stale_blocks() {
+        let on_disk = state_md_with_lock(TS_OLD, EXPIRES_OLD);
+        // Proposed: timestamp advanced, expires_at NOT advanced (stale lock expiry).
+        let proposed = state_md_with_lock(TS_NEW, EXPIRES_OLD);
+
+        let warn_log = Arc::new(Mutex::new(Vec::new()));
+        let callbacks = make_callbacks_with_disk(on_disk, warn_log.clone());
+        let payload = payload_write(&proposed);
+
+        let result = guard_logic(payload, callbacks);
+
+        let expected_msg = canonical_lock_expiry_stale_message();
+        match result {
+            HookResult::Block { reason } => {
+                assert_eq!(
+                    reason, expected_msg,
+                    "test_lock_expiry_stale_blocks: Block message must be FULL canonical \
+                     LockExpiryStale string. Expected: {expected_msg:?}. Got: {reason:?}"
+                );
+            }
+            HookResult::Continue => panic!(
+                "test_lock_expiry_stale_blocks: expected Block(LockExpiryStale) but got Continue. \
+                 Lock held + expires_at unchanged must Block. RED GATE."
+            ),
+            other => panic!("Expected Block, got: {:?}", other),
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // AC-006 — no lock in proposed content → LockExpiryStale MUST NOT fire
+    // Traces: AC-006 / ADR-025 §12.3 row 3 / BC-5.40.001 PC6
+    //
+    // On-disk has a lock; proposed clears the lock. Timestamp is advanced.
+    // Expected: Continue (clearing the lock + advancing timestamp is valid).
+    //
+    // RED GATE: stub returns Continue → PASSES (acceptable Continue-expecting test).
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_no_lock_held_skips_expiry_check() {
+        let on_disk = state_md_with_lock(TS_OLD, EXPIRES_OLD);
+        // Proposed: no lock (clearing the lock), timestamp advanced.
         let proposed = state_md_no_lock(TS_NEW);
 
         let warn_log = Arc::new(Mutex::new(Vec::new()));
         let callbacks = make_callbacks_with_disk(on_disk, warn_log.clone());
-        let payload = payload_state_md(&proposed);
+        let payload = payload_write(&proposed);
 
         let result = guard_logic(payload, callbacks);
 
         assert_eq!(
             result,
             HookResult::Continue,
-            "No lock + timestamp advanced must return Continue (AC-003 success path)"
+            "test_no_lock_held_skips_expiry_check: No lock in proposed must skip LockExpiryStale \
+             and return Continue when timestamp is advanced (AC-006 / ADR-025 §12.3 row 3)"
         );
     }
 
     // -----------------------------------------------------------------------
-    // Case (e) — proposed content unparseable → Continue (fail-open)
-    // Traces to: AC-008 / ADR-025 §12.3 / BC-5.40.001 PC6
+    // AC-008 — proposed content unparseable → Continue (fail-open)
+    // Traces: AC-008 / ADR-025 §12.3 row 1 / BC-5.40.001 PC6
+    //
+    // RED GATE: stub returns Continue → PASSES (acceptable).
     // -----------------------------------------------------------------------
 
-    /// (e) Proposed content is malformed frontmatter → Continue (fail-open).
-    ///
-    /// RED GATE: stub returns Continue → assertion PASSES.
-    /// This is structurally correct — the stub's unconditional Continue IS the
-    /// fail-open path. The test remains green after implementation.
     #[test]
     fn test_proposed_unparseable_continues() {
         let on_disk = state_md_no_lock(TS_OLD);
-        let proposed = state_md_malformed();
+        let proposed = state_md_malformed(); // No closing `---`.
 
         let warn_log = Arc::new(Mutex::new(Vec::new()));
         let callbacks = make_callbacks_with_disk(on_disk, warn_log.clone());
-        let payload = payload_state_md(&proposed);
+        let payload = payload_write(&proposed);
 
         let result = guard_logic(payload, callbacks);
 
         assert_eq!(
             result,
             HookResult::Continue,
-            "Unparseable proposed content must return Continue (fail-open, AC-008)"
+            "test_proposed_unparseable_continues: Malformed proposed frontmatter must fail-open (AC-008)"
         );
     }
 
     // -----------------------------------------------------------------------
-    // Case (f) — on-disk read fails → Continue (fail-open)
-    // Traces to: AC-008 / ADR-025 §12.3 / BC-5.40.001 PC6
+    // AC-008 — on-disk read fails (HostError) → Continue (fail-open)
+    // Traces: AC-008 / ADR-025 §12.3 row 2 / BC-5.40.001 PC6
+    //
+    // RED GATE: stub returns Continue → PASSES (acceptable).
     // -----------------------------------------------------------------------
 
-    /// (f) `host::read_file` returns HostError → Continue (fail-open).
-    ///
-    /// RED GATE: stub calls read_file and ignores its error, returns Continue.
-    /// Assertion PASSES (stub is fail-open by coincidence).
-    /// Real implementation must also fail-open — this remains green.
     #[test]
     fn test_on_disk_read_fails_continues() {
         let proposed = state_md_no_lock(TS_NEW);
 
         let warn_log = Arc::new(Mutex::new(Vec::new()));
         let callbacks = make_callbacks_read_error("HostError: Timeout", warn_log.clone());
-        let payload = payload_state_md(&proposed);
+        let payload = payload_write(&proposed);
 
         let result = guard_logic(payload, callbacks);
 
         assert_eq!(
             result,
             HookResult::Continue,
-            "On-disk read failure must return Continue (fail-open, AC-008)"
+            "test_on_disk_read_fails_continues: On-disk read HostError must fail-open (AC-008)"
         );
     }
 
     // -----------------------------------------------------------------------
-    // Case (g) — file_path NOT STATE.md → Continue immediately, NO read_file call
-    // Traces to: AC-007 / ADR-025 §12.1 / BC-5.40.001 PC6
+    // AC-008 / AC-015 — host::read_file returns NotFound (first-ever write) → Continue
+    // Traces: AC-015 / ADR-025 §12.3 row 5 / BC-5.40.001 PC6
+    //
+    // This tests AC-015 specifically: `host::read_file` returns `NotFound`
+    // because the file does not yet exist on disk (first write to the repo).
+    //
+    // RED GATE: stub returns Continue → PASSES (acceptable).
     // -----------------------------------------------------------------------
 
-    /// (g) `file_path` is NOT `.factory/STATE.md` → Continue immediately without
-    /// calling `read_file` (AC-007 / ADR-025 §12.1).
-    ///
-    /// The test verifies via a call-counting mock: if `read_file` is called even once,
-    /// the assertion `read_file_calls == 0` fails.
-    ///
-    /// RED GATE: stub calls `read_file` unconditionally (no path check) → call-count
-    /// assertion fails. This is the critical non-trivial Red Gate for the non-STATE.md path.
+    #[test]
+    fn test_read_file_not_found_continues() {
+        let proposed = state_md_no_lock(TS_NEW);
+
+        let warn_log = Arc::new(Mutex::new(Vec::new()));
+        // Simulate NotFound by returning Err with "NotFound" in the message.
+        let callbacks = make_callbacks_read_error(
+            "NotFound: .factory/STATE.md does not exist",
+            warn_log.clone(),
+        );
+        let payload = payload_write(&proposed);
+
+        let result = guard_logic(payload, callbacks);
+
+        assert_eq!(
+            result,
+            HookResult::Continue,
+            "test_read_file_not_found_continues: host::read_file NotFound must fail-open (AC-015). \
+             First write to STATE.md — no prior value to compare against."
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // AC-008 — timestamp absent in on-disk → Continue (first write ever, EC-004)
+    // Traces: AC-008 §12.3 row 5 / BC-5.40.001 PC6
+    //
+    // On-disk file is well-formed but has NO timestamp field.
+    // RED GATE: stub returns Continue → PASSES (acceptable).
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_timestamp_absent_on_disk_continues() {
+        let on_disk = state_md_no_timestamp(); // No timestamp: field at all.
+        let proposed = state_md_no_lock(TS_NEW);
+
+        let warn_log = Arc::new(Mutex::new(Vec::new()));
+        let callbacks = make_callbacks_with_disk(on_disk, warn_log.clone());
+        let payload = payload_write(&proposed);
+
+        let result = guard_logic(payload, callbacks);
+
+        assert_eq!(
+            result,
+            HookResult::Continue,
+            "test_timestamp_absent_on_disk_continues: Absent on-disk timestamp must Continue \
+             (first write ever / AC-008 §12.3 row 5 / EC-004)"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // AC-008 — timestamp absent in proposed content → Block: TimestampStale
+    // Traces: AC-008 §12.3 row 6 / BC-5.40.001 PC4
+    //
+    // Absence of timestamp: in proposed content is itself a missing-field violation.
+    // RED GATE: stub returns Continue → assertion fails.
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_timestamp_absent_in_proposed_blocks() {
+        let on_disk = state_md_no_lock(TS_OLD);
+        let proposed = state_md_no_timestamp(); // Proposed has NO timestamp: field.
+
+        let warn_log = Arc::new(Mutex::new(Vec::new()));
+        let callbacks = make_callbacks_with_disk(on_disk, warn_log.clone());
+        let payload = payload_write(&proposed);
+
+        let result = guard_logic(payload, callbacks);
+
+        let expected_msg = canonical_timestamp_stale_message();
+        match result {
+            HookResult::Block { reason } => {
+                assert_eq!(
+                    reason, expected_msg,
+                    "test_timestamp_absent_in_proposed_blocks: Block message must be FULL canonical \
+                     TimestampStale string for absent proposed timestamp. \
+                     Expected: {expected_msg:?}. Got: {reason:?}"
+                );
+            }
+            HookResult::Continue => panic!(
+                "test_timestamp_absent_in_proposed_blocks: expected Block(TimestampStale) but got Continue. \
+                 Absence of timestamp: in proposed content is a violation. RED GATE."
+            ),
+            other => panic!("Expected Block, got: {:?}", other),
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // AC-007 — non-STATE.md file_path → Continue immediately, NO read_file call
+    // Traces: AC-007 / ADR-025 §12.1 / BC-5.40.001 PC6
+    //
+    // The guard MUST return Continue without calling read_file for non-STATE.md paths.
+    // Verified via call-counting mock: if read_file is called, assertion fails.
+    //
+    // RED GATE: stub checks path (returns Continue for non-STATE.md without read_file call)
+    // → PASSES (acceptable — the stub does implement the path check).
+    // -----------------------------------------------------------------------
+
     #[test]
     fn test_non_state_md_file_continues_without_read() {
         let warn_log = Arc::new(Mutex::new(Vec::new()));
@@ -723,7 +1149,6 @@ mod tests {
         let callbacks = GuardCallbacks {
             read_file: move |_path, _max, _timeout| {
                 *read_count_clone.lock().unwrap() += 1;
-                // Returns any valid content — the point is to count the call.
                 Ok(b"some other file content".to_vec())
             },
             log_warn: move |msg: &str| {
@@ -731,169 +1156,378 @@ mod tests {
             },
         };
 
-        // Non-STATE.md path.
-        let payload = payload_non_state_md(".factory/specs/some-spec.md", "# Some spec content\n");
+        let payload =
+            payload_edit_non_state_md(".factory/specs/some-spec.md", "old text", "new text");
 
         let result = guard_logic(payload, callbacks);
 
         assert_eq!(
             result,
             HookResult::Continue,
-            "Non-STATE.md file must return Continue (AC-007)"
+            "test_non_state_md_file_continues_without_read: Non-STATE.md must return Continue (AC-007)"
         );
 
         let calls = *read_call_count.lock().unwrap();
         assert_eq!(
             calls, 0,
-            "Non-STATE.md file must NOT call read_file (zero-overhead path per AC-007). \
-             read_file was called {} time(s). \
-             RED GATE: stub does not check file_path and calls read_file unconditionally.",
+            "test_non_state_md_file_continues_without_read: Non-STATE.md must NOT call read_file \
+             (zero-overhead path per AC-007). read_file was called {} time(s).",
             calls
         );
     }
 
     // -----------------------------------------------------------------------
-    // Case (h) — timestamp absent in on-disk → Continue (first write ever)
-    // Traces to: AC-008 / ADR-025 §12.3 row 5 / BC-5.40.001 PC6
+    // AC-012 — Edit payload: reconstruct stale timestamp → Block: TimestampStale
+    // Traces: AC-012 / ADR-025 D12 §12.2 / BC-5.40.001 PC4
+    //
+    // Edit payload: old_string = old_ts_line, new_string = same old_ts_line
+    // (timestamp not updated in the edit). Guard reconstructs proposed from on-disk
+    // + edit fragment and finds timestamp still byte-identical.
+    //
+    // RED GATE: stub returns Continue → assertion fails.
     // -----------------------------------------------------------------------
 
-    /// (h) `timestamp:` absent in on-disk STATE.md → Continue (first write ever, EC-004).
-    ///
-    /// No prior value to compare against; any write is valid.
-    ///
-    /// RED GATE: stub returns Continue → assertion PASSES.
-    /// Remains green after implementation.
     #[test]
-    fn test_timestamp_absent_on_disk_continues() {
-        // On-disk: no timestamp field (brand-new repo, first write).
-        let on_disk = state_md_no_timestamp();
-        let proposed = state_md_no_lock(TS_NEW);
+    fn test_edit_payload_reconstruct_stale_timestamp_blocks() {
+        let on_disk = state_md_no_lock(TS_OLD);
+
+        // The edit changes something else (e.g., the phase field), NOT the timestamp.
+        // old_string: the phase line in on-disk content.
+        // new_string: different phase value but timestamp unchanged.
+        let old_str = "phase: test";
+        let new_str = "phase: complete";
+
+        // Verify our fixture has the old_string so the test is valid.
+        assert!(
+            on_disk.contains(old_str),
+            "Test fixture must contain old_string: {old_str:?}"
+        );
 
         let warn_log = Arc::new(Mutex::new(Vec::new()));
         let callbacks = make_callbacks_with_disk(on_disk, warn_log.clone());
-        let payload = payload_state_md(&proposed);
+        let payload = payload_edit(old_str, new_str);
+
+        let result = guard_logic(payload, callbacks);
+
+        let expected_msg = canonical_timestamp_stale_message();
+        match result {
+            HookResult::Block { reason } => {
+                assert_eq!(
+                    reason, expected_msg,
+                    "test_edit_payload_reconstruct_stale_timestamp_blocks: After Edit reconstruction, \
+                     unchanged timestamp must Block with FULL canonical message. \
+                     Expected: {expected_msg:?}. Got: {reason:?}"
+                );
+            }
+            HookResult::Continue => panic!(
+                "test_edit_payload_reconstruct_stale_timestamp_blocks: expected Block(TimestampStale) \
+                 but got Continue. Edit reconstruction yielded unchanged timestamp → must Block. RED GATE."
+            ),
+            other => panic!("Expected Block, got: {:?}", other),
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // AC-012 — Edit payload: reconstruct advances timestamp → Continue
+    // Traces: AC-012 / AC-003 / BC-5.40.001 PC4 success path
+    //
+    // Edit payload: old_string = old timestamp line, new_string = new timestamp line.
+    // Guard reconstructs: proposed has advanced timestamp → Continue.
+    //
+    // RED GATE: stub returns Continue → PASSES (acceptable Continue-expecting test).
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_edit_payload_reconstruct_advanced_timestamp_continues() {
+        let on_disk = state_md_no_lock(TS_OLD);
+
+        // Edit: update the timestamp line from TS_OLD to TS_NEW.
+        let old_str = &format!("timestamp: \"{}\"", TS_OLD);
+        let new_str = &format!("timestamp: \"{}\"", TS_NEW);
+
+        assert!(
+            on_disk.contains(old_str.as_str()),
+            "Test fixture must contain old timestamp line: {old_str:?}"
+        );
+
+        let warn_log = Arc::new(Mutex::new(Vec::new()));
+        let callbacks = make_callbacks_with_disk(on_disk, warn_log.clone());
+        let payload = payload_edit(old_str, new_str);
 
         let result = guard_logic(payload, callbacks);
 
         assert_eq!(
             result,
             HookResult::Continue,
-            "Absent on-disk timestamp must return Continue (first write ever / AC-008 row 3)"
+            "test_edit_payload_reconstruct_advanced_timestamp_continues: \
+             Edit that advances timestamp must Continue (AC-012 / AC-003)"
         );
     }
 
     // -----------------------------------------------------------------------
-    // Case (i) — timestamp absent in proposed content → Block: TimestampStale
-    // Traces to: AC-008 / ADR-025 §12.3 row 6 / BC-5.40.001 PC4
+    // AC-013 — MultiEdit payload: reconstruct stale timestamp → Block: TimestampStale
+    // Traces: AC-013 / ADR-025 D12 §12.2 / BC-5.40.001 PC4
+    //
+    // MultiEdit: two edits applied sequentially. Neither edit touches the timestamp.
+    // Guard reconstructs full content from edits[] and finds timestamp unchanged.
+    //
+    // RED GATE: stub returns Continue → assertion fails.
     // -----------------------------------------------------------------------
 
-    /// (i) `timestamp:` absent in proposed content → Block(TimestampStale).
-    ///
-    /// Absence of `timestamp:` in the proposed write is itself a missing-field
-    /// violation — state-manager is required to include `timestamp:` on every write
-    /// (POLICY 14). Block even when on-disk has a timestamp.
-    ///
-    /// Expected: Block with "TimestampStale" in the reason.
-    ///
-    /// RED GATE: stub returns Continue → assertion fails.
     #[test]
-    fn test_timestamp_absent_in_proposed_blocks() {
+    fn test_multiedit_payload_reconstruct_stale_timestamp_blocks() {
         let on_disk = state_md_no_lock(TS_OLD);
-        // Proposed: NO timestamp field.
-        let proposed = state_md_no_timestamp();
+
+        // Two edits that don't touch the timestamp line.
+        let edit1_old = "phase: test";
+        let edit1_new = "phase: complete";
+        let edit2_old = "version: \"0.0.1-test\"";
+        let edit2_new = "version: \"0.0.2-test\"";
+
+        assert!(
+            on_disk.contains(edit1_old),
+            "Fixture must contain: {edit1_old:?}"
+        );
+        assert!(
+            on_disk.contains(edit2_old),
+            "Fixture must contain: {edit2_old:?}"
+        );
 
         let warn_log = Arc::new(Mutex::new(Vec::new()));
         let callbacks = make_callbacks_with_disk(on_disk, warn_log.clone());
-        let payload = payload_state_md(&proposed);
+        let payload = payload_multiedit(vec![(edit1_old, edit1_new), (edit2_old, edit2_new)]);
 
         let result = guard_logic(payload, callbacks);
 
+        let expected_msg = canonical_timestamp_stale_message();
         match result {
             HookResult::Block { reason } => {
-                assert!(
-                    reason.contains("TimestampStale"),
-                    "Block reason must contain 'TimestampStale' for absent proposed timestamp. Got: {reason}"
+                assert_eq!(
+                    reason, expected_msg,
+                    "test_multiedit_payload_reconstruct_stale_timestamp_blocks: After MultiEdit \
+                     reconstruction, unchanged timestamp must Block with FULL canonical message. \
+                     Expected: {expected_msg:?}. Got: {reason:?}"
                 );
             }
             HookResult::Continue => panic!(
-                "test_timestamp_absent_in_proposed_blocks: expected Block(TimestampStale) but got Continue. \
-                 Stub returns Continue unconditionally — Red Gate. \
-                 Implementer: absence of timestamp: in proposed content is a TimestampStale violation."
+                "test_multiedit_payload_reconstruct_stale_timestamp_blocks: expected Block(TimestampStale) \
+                 but got Continue. MultiEdit reconstruction has unchanged timestamp → must Block. RED GATE."
             ),
             other => panic!("Expected Block, got: {:?}", other),
         }
     }
 
     // -----------------------------------------------------------------------
-    // AC-005 additional test — lock held, timestamp stale → Block: TimestampStale
-    // Traces to: AC-005 / ADR-025 D17(c) with lock / BC-5.40.001 PC4
+    // AC-013 — MultiEdit payload: reconstruct advances timestamp → Continue
+    // Traces: AC-013 / AC-003 / BC-5.40.001 PC4 success path
+    //
+    // RED GATE: stub returns Continue → PASSES (acceptable).
     // -----------------------------------------------------------------------
 
-    /// Lock held + timestamp byte-identical (NOT advanced) → Block(TimestampStale).
-    ///
-    /// The TimestampStale check applies regardless of lock state.
-    /// Even if expires_at is advanced, a stale timestamp still triggers Block.
-    ///
-    /// RED GATE: stub returns Continue → assertion fails.
     #[test]
-    fn test_timestamp_stale_lock_held_blocks() {
-        let on_disk = state_md_with_lock(TS_OLD, EXPIRES_OLD);
-        // Proposed: timestamp NOT advanced; expires_at advanced (to ensure only timestamp
-        // triggers the block, not the expiry check).
-        let proposed = state_md_with_lock(TS_OLD, EXPIRES_NEW);
+    fn test_multiedit_payload_reconstruct_advanced_timestamp_continues() {
+        let on_disk = state_md_no_lock(TS_OLD);
+
+        // First edit advances the timestamp.
+        let ts_old_line = format!("timestamp: \"{}\"", TS_OLD);
+        let ts_new_line = format!("timestamp: \"{}\"", TS_NEW);
+        // Second edit changes something else.
+        let phase_old = "phase: test";
+        let phase_new = "phase: complete";
+
+        assert!(
+            on_disk.contains(ts_old_line.as_str()),
+            "Fixture must contain old ts line"
+        );
+        assert!(
+            on_disk.contains(phase_old),
+            "Fixture must contain phase line"
+        );
 
         let warn_log = Arc::new(Mutex::new(Vec::new()));
         let callbacks = make_callbacks_with_disk(on_disk, warn_log.clone());
-        let payload = payload_state_md(&proposed);
-
-        let result = guard_logic(payload, callbacks);
-
-        match result {
-            HookResult::Block { reason } => {
-                assert!(
-                    reason.contains("TimestampStale"),
-                    "Block reason must contain 'TimestampStale'. Got: {reason}"
-                );
-            }
-            HookResult::Continue => panic!(
-                "test_timestamp_stale_lock_held_blocks: expected Block(TimestampStale) but got Continue. \
-                 Red Gate — stub returns Continue unconditionally."
-            ),
-            other => panic!("Expected Block, got: {:?}", other),
-        }
-    }
-
-    // -----------------------------------------------------------------------
-    // AC-006 additional test — no lock held, skips LockExpiryStale check
-    // Traces to: AC-006 / ADR-025 §12.3 row 3 / BC-5.40.001 PC6
-    // -----------------------------------------------------------------------
-
-    /// No lock held in proposed content → LockExpiryStale check MUST NOT fire.
-    ///
-    /// Even if on-disk had a lock with some expires_at, when the proposed content
-    /// has no lock block, the LockExpiryStale check does not apply.
-    /// The TimestampStale check still applies — but here timestamp IS advanced.
-    ///
-    /// RED GATE: stub returns Continue → assertion PASSES.
-    /// This test remains green after implementation (no lock → no expiry check).
-    #[test]
-    fn test_no_lock_held_skips_expiry_check() {
-        // On-disk: lock held (with some expires_at).
-        let on_disk = state_md_with_lock(TS_OLD, EXPIRES_OLD);
-        // Proposed: no lock block (clearing the lock), timestamp advanced.
-        let proposed = state_md_no_lock(TS_NEW);
-
-        let warn_log = Arc::new(Mutex::new(Vec::new()));
-        let callbacks = make_callbacks_with_disk(on_disk, warn_log.clone());
-        let payload = payload_state_md(&proposed);
+        let payload = payload_multiedit(vec![
+            (ts_old_line.as_str(), ts_new_line.as_str()),
+            (phase_old, phase_new),
+        ]);
 
         let result = guard_logic(payload, callbacks);
 
         assert_eq!(
             result,
             HookResult::Continue,
-            "No lock in proposed content must skip LockExpiryStale check and return Continue \
-             when timestamp is advanced (AC-006 / ADR-025 §12.3 row 3)"
+            "test_multiedit_payload_reconstruct_advanced_timestamp_continues: \
+             MultiEdit that advances timestamp must Continue (AC-013 / AC-003)"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // AC-014 — Edit payload: old_string not found in on-disk → Continue (fail-open)
+    // Traces: AC-014 / ADR-025 D12 §12.3 / BC-5.40.001 PC6
+    //
+    // old_string is not present in the on-disk content. The Edit tool itself will
+    // reject this; the guard must fail-open (not block).
+    //
+    // RED GATE: stub returns Continue → PASSES (acceptable).
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_edit_old_string_not_found_continues() {
+        let on_disk = state_md_no_lock(TS_OLD);
+
+        // old_string that does NOT exist in on-disk content.
+        let old_str = "THIS_STRING_DOES_NOT_EXIST_IN_STATE_MD_FIXTURE_12345";
+        let new_str = "some replacement";
+
+        assert!(
+            !on_disk.contains(old_str),
+            "Fixture must NOT contain old_string for this test to be valid"
+        );
+
+        let warn_log = Arc::new(Mutex::new(Vec::new()));
+        let callbacks = make_callbacks_with_disk(on_disk, warn_log.clone());
+        let payload = payload_edit(old_str, new_str);
+
+        let result = guard_logic(payload, callbacks);
+
+        assert_eq!(
+            result,
+            HookResult::Continue,
+            "test_edit_old_string_not_found_continues: old_string not found in on-disk → fail-open \
+             Continue (AC-014). The Edit tool itself will reject the payload with an error."
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // AC-014 — MultiEdit: first old_string not found → Continue (fail-open)
+    // Traces: AC-014 / ADR-025 D12 §12.3 / BC-5.40.001 PC6
+    //
+    // RED GATE: stub returns Continue → PASSES (acceptable).
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_multiedit_first_old_string_not_found_continues() {
+        let on_disk = state_md_no_lock(TS_OLD);
+
+        // First edit's old_string does NOT exist.
+        let edit1_old = "THIS_ALSO_DOES_NOT_EXIST_5678";
+        let edit1_new = "replacement";
+
+        assert!(
+            !on_disk.contains(edit1_old),
+            "Fixture must NOT contain edit1 old_string"
+        );
+
+        let warn_log = Arc::new(Mutex::new(Vec::new()));
+        let callbacks = make_callbacks_with_disk(on_disk, warn_log.clone());
+        let payload = payload_multiedit(vec![(edit1_old, edit1_new)]);
+
+        let result = guard_logic(payload, callbacks);
+
+        assert_eq!(
+            result,
+            HookResult::Continue,
+            "test_multiedit_first_old_string_not_found_continues: first edit's old_string not \
+             found → fail-open Continue (AC-014)"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // EC-006 — Canonical-path variants: all normalise to STATE.md → guard triggers
+    // Traces: EC-006 / ADR-025 §12.7 R6 / AC-007
+    //
+    // Tests that path variants that should normalise to .factory/STATE.md
+    // do NOT escape the guard via fail-open-path-evasion.
+    // Each variant uses a stale timestamp so the expected result is Block.
+    //
+    // Variants tested:
+    //   1. `./.factory/STATE.md`  (leading ./)
+    //   2. `.factory//STATE.md`   (double slash)
+    //   3. `.factory/./STATE.md`  (/./  segment)
+    //
+    // Note: `$CLAUDE_PROJECT_DIR/.factory/STATE.md` (absolute prefix) is tested
+    // separately below since it requires controlling the env var.
+    //
+    // RED GATE: stub returns Continue after path check; variants must normalise
+    // to STATE.md and enter the guard body → stub returns Continue → Block assertions FAIL.
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_canonical_path_variants_trigger_guard() {
+        let on_disk = state_md_no_lock(TS_OLD);
+        let stale_proposed = state_md_no_lock(TS_OLD); // stale → would Block if real impl.
+
+        let variants = [
+            "./.factory/STATE.md",
+            ".factory//STATE.md",
+            ".factory/./STATE.md",
+        ];
+
+        let expected_msg = canonical_timestamp_stale_message();
+
+        for variant in &variants {
+            let warn_log = Arc::new(Mutex::new(Vec::new()));
+            let callbacks = make_callbacks_with_disk(on_disk.clone(), warn_log.clone());
+            let payload = payload_write_path_variant(variant, &stale_proposed);
+
+            let result = guard_logic(payload, callbacks);
+
+            match result {
+                HookResult::Block { ref reason } => {
+                    assert_eq!(
+                        *reason, expected_msg,
+                        "test_canonical_path_variants_trigger_guard: variant {variant:?} — \
+                         Block message must be FULL canonical TimestampStale string. \
+                         Expected: {expected_msg:?}. Got: {reason:?}"
+                    );
+                }
+                HookResult::Continue => panic!(
+                    "test_canonical_path_variants_trigger_guard: variant {variant:?} normalises \
+                     to .factory/STATE.md but guard returned Continue instead of Block. \
+                     RED GATE: path normalisation + stale-timestamp block must both be implemented. \
+                     Variant must NOT escape the guard via path normalisation."
+                ),
+                other => panic!(
+                    "test_canonical_path_variants_trigger_guard: variant {variant:?}: \
+                     expected Block, got: {:?}",
+                    other
+                ),
+            }
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // EC-006 — Quoted timestamp edge case: genuinely-advanced quoted timestamp
+    //          must NOT be over-blocked (robust-extraction test)
+    // Traces: EC-006 edge / ADR-025 §12.2 (byte-comparison, not datetime parse)
+    //
+    // Verify that a timestamp in a quoted form that IS genuinely different from
+    // the on-disk timestamp (not byte-identical) correctly returns Continue.
+    // This guards against over-zealous `extract_yaml_string_value` stripping
+    // that might incorrectly compare stripped vs. non-stripped values.
+    //
+    // RED GATE: stub returns Continue → PASSES (acceptable for Continue-expecting test).
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_quoted_timestamp_advanced_does_not_over_block() {
+        // On-disk has timestamp with quotes.
+        let on_disk = state_md_no_lock(TS_OLD); // contains: timestamp: "2026-06-11T10:00:00Z"
+        // Proposed has a different (advanced) quoted timestamp.
+        let proposed = state_md_no_lock(TS_NEW); // contains: timestamp: "2026-06-11T11:00:00Z"
+
+        let warn_log = Arc::new(Mutex::new(Vec::new()));
+        let callbacks = make_callbacks_with_disk(on_disk, warn_log.clone());
+        let payload = payload_write(&proposed);
+
+        let result = guard_logic(payload, callbacks);
+
+        assert_eq!(
+            result,
+            HookResult::Continue,
+            "test_quoted_timestamp_advanced_does_not_over_block: \
+             Genuinely-advanced quoted timestamp must Continue (no over-blocking). \
+             byte-comparison must compare the extracted value, not the raw line."
         );
     }
 }
