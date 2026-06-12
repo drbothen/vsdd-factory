@@ -2355,6 +2355,30 @@ mod tests {
         )
     }
 
+    /// Produces a STATE.md with lock held and `expires_at: "   "` (whitespace-only).
+    ///
+    /// Used by L4-regression tests: `proposed_expires.trim().is_empty()` must Block
+    /// even when the raw field value is non-empty (three spaces). Ensures `.is_empty()`
+    /// cannot silently regress back (L4 / BC-5.40.001 / ADR-025 §12.2).
+    fn state_md_lock_expires_whitespace(timestamp: &str) -> String {
+        format!(
+            concat!(
+                "---\n",
+                "document_type: state\n",
+                "version: \"0.0.1-test\"\n",
+                "timestamp: \"{ts}\"\n",
+                "phase: test\n",
+                "factory_lock:\n",
+                "  holder: \"{holder}\"\n",
+                "  locked_at: \"2026-06-11T10:00:00Z\"\n",
+                "  expires_at: \"   \"\n", // whitespace-only → trim().is_empty() → Block
+                "---\n\n# STATE\n",
+            ),
+            ts = timestamp,
+            holder = HOLDER,
+        )
+    }
+
     // -----------------------------------------------------------------------
     // (t) AC-016 — lock held + expires_at ABSENT → Block LockExpiryStale
     //
@@ -2610,6 +2634,314 @@ mod tests {
     // as an error — fail-closed would break legitimate paths where a
     // tool emits absolute paths that start with "../" relative to cwd.
     // -----------------------------------------------------------------------
+
+    // -----------------------------------------------------------------------
+    // L4 regression — whitespace-only proposed timestamp → Block TimestampStale
+    //
+    // Traces: AC-019 (v1.6 L4) / ADR-025 §12.2 / BC-5.40.001 PC4
+    //
+    // Scenario:
+    //   - On-disk STATE.md: valid timestamp (TS_OLD).
+    //   - Proposed STATE.md: `timestamp: "   "` (three spaces — whitespace-only).
+    //   - extract_top_level_field returns FieldResult::Found("   ").
+    //   - proposed_ts.trim().is_empty() → true → Block TimestampStale.
+    //
+    // GREEN: guard_logic Step 4 checks `proposed_ts.trim().is_empty()` (L4 fix).
+    //   A whitespace-only timestamp is not a valid RFC-3339 value; the guard
+    //   must fail-closed with Block(TimestampStale).
+    //
+    // Load-bearing: if impl reverts to `.is_empty()`, a " " value passes the
+    // empty check, differs from on-disk TS_OLD, and returns Continue. This test
+    // would then FAIL, catching the regression.
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_timestamp_whitespace_only_in_proposed_blocks() {
+        let on_disk = state_md_no_lock(TS_OLD);
+        // Proposed: `timestamp: "   "` — three spaces. Not a valid RFC-3339 value.
+        // Build by replacing the timestamp field inline.
+        let proposed = concat!(
+            "---\n",
+            "document_type: state\n",
+            "version: \"0.0.1-test\"\n",
+            "timestamp: \"   \"\n",
+            "phase: test\n",
+            "---\n\n# STATE\n",
+        );
+
+        let warn_log = Arc::new(Mutex::new(Vec::new()));
+        let callbacks = make_callbacks_with_disk(on_disk, warn_log.clone());
+        let payload = payload_write(proposed);
+
+        let result = guard_logic(payload, callbacks);
+
+        let expected_msg = canonical_timestamp_stale_message();
+        match result {
+            HookResult::Block { reason } => {
+                assert_eq!(
+                    reason, expected_msg,
+                    "test_timestamp_whitespace_only_in_proposed_blocks: \
+                     proposed timestamp is whitespace-only (\"   \"); \
+                     trim().is_empty() must → Block TimestampStale (L4 / AC-019). \
+                     Expected: {expected_msg:?}. Got: {reason:?}"
+                );
+            }
+            HookResult::Continue => panic!(
+                "test_timestamp_whitespace_only_in_proposed_blocks: \
+                 got Continue — impl regressed to .is_empty() check. \
+                 Whitespace-only is not a valid RFC-3339 timestamp; must Block. \
+                 L4 regression (AC-019 / ADR-025 §12.2)."
+            ),
+            other => panic!(
+                "test_timestamp_whitespace_only_in_proposed_blocks: expected Block, got: {:?}",
+                other
+            ),
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // L4 regression — whitespace-only proposed expires_at → Block LockExpiryStale
+    //
+    // Traces: AC-016/017 (v1.4/v1.6 L4) / ADR-025 §12.2 / BC-5.40.001 PC4
+    //
+    // Scenario:
+    //   - On-disk STATE.md: lock held, valid expires_at (EXPIRES_OLD).
+    //   - Proposed STATE.md: lock held (holder present), timestamp ADVANCED (TS_NEW),
+    //     `expires_at: "   "` (three spaces — whitespace-only).
+    //   - extract_lock_subfields returns expires_at: Some("   ").
+    //   - proposed_expires.trim().is_empty() → true → Block LockExpiryStale.
+    //
+    // GREEN: guard_logic Step 7 checks `proposed_expires.trim().is_empty()` (L4 fix).
+    //   A whitespace-only expires_at is not a valid RFC-3339 value; the TTL
+    //   enforcement window is undefined → fail-closed with Block(LockExpiryStale).
+    //
+    // Load-bearing: if impl reverts to `.is_empty()`, whitespace-only passes the
+    // empty check, differs from on-disk EXPIRES_OLD, and returns Continue. This
+    // test would then FAIL, catching the regression.
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_lock_held_expires_whitespace_only_blocks() {
+        let on_disk = state_md_with_lock(TS_OLD, EXPIRES_OLD);
+        // Proposed: timestamp advanced (TS_NEW), but expires_at is whitespace-only.
+        let proposed = state_md_lock_expires_whitespace(TS_NEW);
+
+        let warn_log = Arc::new(Mutex::new(Vec::new()));
+        let callbacks = make_callbacks_with_disk(on_disk, warn_log.clone());
+        let payload = payload_write(&proposed);
+
+        let result = guard_logic(payload, callbacks);
+
+        let expected_msg = canonical_lock_expiry_stale_message();
+        match result {
+            HookResult::Block { reason } => {
+                assert_eq!(
+                    reason, expected_msg,
+                    "test_lock_held_expires_whitespace_only_blocks: \
+                     proposed expires_at is whitespace-only (\"   \"); \
+                     trim().is_empty() must → Block LockExpiryStale (L4 / AC-016/017). \
+                     Expected: {expected_msg:?}. Got: {reason:?}"
+                );
+            }
+            HookResult::Continue => panic!(
+                "test_lock_held_expires_whitespace_only_blocks: \
+                 got Continue — impl regressed to .is_empty() check. \
+                 Whitespace-only is not a valid RFC-3339 expires_at; must Block. \
+                 L4 regression (AC-016/017 / ADR-025 §12.2)."
+            ),
+            other => panic!(
+                "test_lock_held_expires_whitespace_only_blocks: expected Block, got: {:?}",
+                other
+            ),
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // L2 regression — log_warn fires on fail-open: read error path
+    //
+    // Traces: L2 (v1.6) / ADR-025 §12.5 / BC-5.40.001 PC4 (observability)
+    //
+    // Scenario:
+    //   - On-disk read returns Err("simulated read error").
+    //   - Guard cannot read on-disk timestamp → fail-open Continue.
+    //   - log_warn MUST be called with a token containing "fail-open read-error"
+    //     so that fail-open events are observable in production logs.
+    //
+    // GREEN: guard_logic Step 2 calls log_warn("fail-open read-error ...") before
+    //   returning Continue. warn_log Arc captures the call.
+    //
+    // Load-bearing: if log_warn is removed from the fail-open path, warn_log
+    // remains empty and this test FAILS, catching the regression.
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_log_warn_fires_on_read_error_fail_open() {
+        let warn_log = Arc::new(Mutex::new(Vec::new()));
+        let callbacks = make_callbacks_read_error("simulated read error", warn_log.clone());
+
+        // Any STATE.md write payload — guard will fail-open before reaching timestamp check.
+        let proposed = state_md_no_lock(TS_NEW);
+        let payload = payload_write(&proposed);
+
+        let result = guard_logic(payload, callbacks);
+
+        // Guard must Continue (fail-open).
+        assert_eq!(
+            result,
+            HookResult::Continue,
+            "test_log_warn_fires_on_read_error_fail_open: \
+             read error must produce fail-open Continue (not Block). L2."
+        );
+
+        // log_warn must have been called at least once.
+        let log = warn_log.lock().unwrap();
+        assert!(
+            !log.is_empty(),
+            "test_log_warn_fires_on_read_error_fail_open: \
+             warn_log is empty — log_warn was NOT called on read-error fail-open path. \
+             L2 regression: guard_logic Step 2 must call log_warn with \
+             'fail-open read-error' token."
+        );
+
+        // The warn message must contain the canonical token.
+        let has_token = log.iter().any(|m| m.contains("fail-open read-error"));
+        assert!(
+            has_token,
+            "test_log_warn_fires_on_read_error_fail_open: \
+             log_warn was called but no entry contains 'fail-open read-error' token. \
+             Got: {:?}. L2 regression (ADR-025 §12.5).",
+            *log
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // L2 regression — log_warn fires on fail-open: malformed proposed content
+    //
+    // Traces: L2 (v1.6) / ADR-025 §12.5 / BC-5.40.001 PC4 (observability)
+    //
+    // Scenario:
+    //   - On-disk STATE.md: valid content (TS_OLD).
+    //   - Proposed content: malformed frontmatter (no parseable timestamp field).
+    //   - extract_top_level_field returns FieldResult::NotFound → guard cannot
+    //     determine proposed timestamp → fail-open Continue.
+    //   - log_warn MUST be called with a token containing "fail-open malformed-proposed".
+    //
+    // GREEN: guard_logic Step 4 calls log_warn("fail-open malformed-proposed ...") when
+    //   proposed content has no extractable timestamp field.
+    //
+    // Load-bearing: if log_warn is removed from this fail-open path, warn_log
+    // remains empty and this test FAILS, catching the regression.
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_log_warn_fires_on_malformed_proposed_fail_open() {
+        let on_disk = state_md_no_lock(TS_OLD);
+        // state_md_malformed produces content with no recognisable frontmatter fields.
+        let proposed = state_md_malformed();
+
+        let warn_log = Arc::new(Mutex::new(Vec::new()));
+        let callbacks = make_callbacks_with_disk(on_disk, warn_log.clone());
+        let payload = payload_write(&proposed);
+
+        let result = guard_logic(payload, callbacks);
+
+        // Guard must Continue (fail-open on malformed proposed content).
+        assert_eq!(
+            result,
+            HookResult::Continue,
+            "test_log_warn_fires_on_malformed_proposed_fail_open: \
+             malformed proposed content must produce fail-open Continue (not Block). L2."
+        );
+
+        // log_warn must have been called at least once.
+        let log = warn_log.lock().unwrap();
+        assert!(
+            !log.is_empty(),
+            "test_log_warn_fires_on_malformed_proposed_fail_open: \
+             warn_log is empty — log_warn was NOT called on malformed-proposed fail-open path. \
+             L2 regression: guard_logic Step 4 must call log_warn with \
+             'fail-open malformed-proposed' token."
+        );
+
+        // The warn message must contain the canonical token.
+        let has_token = log
+            .iter()
+            .any(|m| m.contains("fail-open malformed-proposed"));
+        assert!(
+            has_token,
+            "test_log_warn_fires_on_malformed_proposed_fail_open: \
+             log_warn was called but no entry contains 'fail-open malformed-proposed' token. \
+             Got: {:?}. L2 regression (ADR-025 §12.5).",
+            *log
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // M1 regression — canonical_timestamp_stale_message() == AC-005 literal
+    //
+    // Traces: AC-005 / M1 (v1.6) / ADR-025 §12.2 / BC-5.40.001 PC4
+    //
+    // Scenario: canonical_timestamp_stale_message() must produce EXACTLY the string
+    //   mandated by AC-005, assembled via HookResult::block_with_fix (M1 fix).
+    //
+    // GREEN: M1 wires block_with_fix as the single format source. If the format
+    //   changes (e.g., separator drift, code suffix removed), this test FAILS.
+    //
+    // Load-bearing: any format drift in GUARD_NAME / TIMESTAMP_STALE_REASON /
+    //   TIMESTAMP_STALE_FIX / TIMESTAMP_STALE_CODE OR block_with_fix template
+    //   causes this assertion to FAIL, preventing silent AC-005 drift.
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_canonical_message_equals_ac005_literal() {
+        let expected = concat!(
+            "BLOCKED by verify-state-timestamp-refresh: ",
+            "STATE.md timestamp not advanced in this write. ",
+            "Fix: Update 'timestamp:' to the current UTC time before writing STATE.md. ",
+            "Code: TimestampStale.",
+        );
+        let actual = canonical_timestamp_stale_message();
+        assert_eq!(
+            actual, expected,
+            "test_canonical_message_equals_ac005_literal: \
+             canonical_timestamp_stale_message() does not match AC-005 exact literal. \
+             M1 regression: block_with_fix format or constant values have drifted. \
+             Expected: {expected:?}. Got: {actual:?}"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // M1 regression — canonical_lock_expiry_stale_message() == AC-006 literal
+    //
+    // Traces: AC-006 / M1 (v1.6) / ADR-025 §12.2 / BC-5.40.001 PC4
+    //
+    // Scenario: canonical_lock_expiry_stale_message() must produce EXACTLY the
+    //   string mandated by AC-006, assembled via HookResult::block_with_fix (M1 fix).
+    //
+    // GREEN: M1 wires block_with_fix as the single format source. Any format drift
+    //   in GUARD_NAME / LOCK_EXPIRY_STALE_REASON / LOCK_EXPIRY_STALE_FIX /
+    //   LOCK_EXPIRY_STALE_CODE OR block_with_fix template causes this to FAIL.
+    //
+    // Load-bearing: prevents silent AC-006 drift across refactors.
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_canonical_message_equals_ac006_literal() {
+        let expected = concat!(
+            "BLOCKED by verify-state-timestamp-refresh: ",
+            "factory_lock.expires_at not refreshed in this write while lock is held. ",
+            "Fix: Run: factory-lock-write.sh renew .factory/STATE.md before writing STATE.md. ",
+            "Code: LockExpiryStale.",
+        );
+        let actual = canonical_lock_expiry_stale_message();
+        assert_eq!(
+            actual, expected,
+            "test_canonical_message_equals_ac006_literal: \
+             canonical_lock_expiry_stale_message() does not match AC-006 exact literal. \
+             M1 regression: block_with_fix format or constant values have drifted. \
+             Expected: {expected:?}. Got: {actual:?}"
+        );
+    }
 
     #[test]
     fn test_double_dot_above_root_path_triggers_guard() {
