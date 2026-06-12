@@ -127,7 +127,7 @@ where
 }
 
 // ---------------------------------------------------------------------------
-// Pure helper fn stubs (implementer fills in T-3)
+// Pure helper functions
 // ---------------------------------------------------------------------------
 
 /// Check whether a Bash command payload matches the factory-artifacts push pattern.
@@ -497,8 +497,8 @@ pub fn on_pre_tool_use(payload: HookPayload) -> HookResult {
 // injectable mock closures — no WASM runtime required. Each test is named per
 // the BC-based convention: test_BC_S_SS_NNN_xxx() for full traceability.
 //
-// RED GATE: every test MUST FAIL before implementation begins (todo!() panics).
-// Tests will pass once the implementer fills in the helper bodies in T-3.
+// All tests exercise the production functions via injectable mock closures —
+// no WASM runtime required. Implementation is complete (T-3 done).
 //
 // Canonical STATE.md fixture content with a factory_lock block
 // conforming to BC-5.40.001 PC1 (2-space indented sub-fields):
@@ -683,7 +683,7 @@ mod tests {
     ///   4. "min remaining" (time_remaining human-readable)
     ///   5. "/factory-unlock --force" (exact break-glass command)
     ///
-    /// RED GATE: guard_logic is todo!() — panics immediately.
+    /// GREEN: guard_logic implemented; test exercises this BC path.
     #[test]
     fn test_BC_4_13_001_foreign_unexpired_lock_blocks_with_all_five_fields() {
         let warn_log = Arc::new(Mutex::new(Vec::new()));
@@ -734,7 +734,7 @@ mod tests {
     ///
     /// Expected: HookResult::Continue. No log_warn on expired-lock path.
     ///
-    /// RED GATE: guard_logic is todo!() — panics immediately.
+    /// GREEN: guard_logic implemented; test exercises this BC path.
     #[test]
     fn test_BC_4_13_001_expired_lock_returns_continue() {
         let warn_log = Arc::new(Mutex::new(Vec::new()));
@@ -770,7 +770,7 @@ mod tests {
     ///
     /// Expected: HookResult::Continue (developer not blocked by own lock).
     ///
-    /// RED GATE: guard_logic is todo!() — panics immediately.
+    /// GREEN: guard_logic implemented; test exercises this BC path.
     #[test]
     fn test_BC_4_13_001_self_held_lock_returns_continue() {
         let warn_log = Arc::new(Mutex::new(Vec::new()));
@@ -798,7 +798,7 @@ mod tests {
     ///
     /// Expected: HookResult::Continue, AND log_warn captured containing "MalformedLockBlock".
     ///
-    /// RED GATE: guard_logic is todo!() — panics immediately.
+    /// GREEN: guard_logic implemented; test exercises this BC path.
     #[test]
     fn test_BC_4_13_001_malformed_block_returns_continue_with_log_warn() {
         let warn_log = Arc::new(Mutex::new(Vec::new()));
@@ -831,7 +831,7 @@ mod tests {
     ///
     /// Expected: HookResult::Continue + log_warn containing the error description.
     ///
-    /// RED GATE: guard_logic is todo!() — panics immediately.
+    /// GREEN: guard_logic implemented; test exercises this BC path.
     #[test]
     fn test_BC_4_13_001_read_file_host_error_returns_continue() {
         let warn_log = Arc::new(Mutex::new(Vec::new()));
@@ -860,7 +860,7 @@ mod tests {
     ///
     /// Expected: HookResult::Continue + log_warn containing identity-resolution info.
     ///
-    /// RED GATE: guard_logic is todo!() — panics immediately.
+    /// GREEN: guard_logic implemented; test exercises this BC path.
     #[test]
     fn test_BC_4_13_001_git_subprocess_failure_returns_continue() {
         let warn_log = Arc::new(Mutex::new(Vec::new()));
@@ -892,7 +892,7 @@ mod tests {
     ///
     /// Expected: HookResult::Continue + log_warn containing "capability_denied:".
     ///
-    /// RED GATE: guard_logic is todo!() — panics immediately.
+    /// GREEN: guard_logic implemented; test exercises this BC path.
     #[test]
     fn test_BC_4_13_001_capability_denied_graceful_degrades_to_continue() {
         let warn_log = Arc::new(Mutex::new(Vec::new()));
@@ -924,7 +924,7 @@ mod tests {
     ///
     /// Expected: HookResult::Block (push arm intercepted by internal push-regex).
     ///
-    /// RED GATE: guard_logic is todo!() — panics immediately.
+    /// GREEN: guard_logic implemented; test exercises this BC path.
     #[test]
     fn test_BC_4_13_001_bash_factory_artifacts_push_blocked_when_foreign_lock() {
         let warn_log = Arc::new(Mutex::new(Vec::new()));
@@ -956,7 +956,7 @@ mod tests {
     /// Test verifies via a call-counting mock on read_file: if read_file is called,
     /// the test fails (assert read_file_call_count == 0).
     ///
-    /// RED GATE: guard_logic is todo!() — panics immediately.
+    /// GREEN: guard_logic implemented; test exercises this BC path.
     #[test]
     fn test_BC_4_13_001_non_push_bash_returns_continue_immediately() {
         let warn_log = Arc::new(Mutex::new(Vec::new()));
@@ -994,12 +994,12 @@ mod tests {
 
     // -----------------------------------------------------------------------
     // Pure helper tests — each pure fn gets at least one focused test.
-    // These fail with todo!() panics before implementation.
+    // Each pure helper is exercised by at least one focused test.
     // -----------------------------------------------------------------------
 
     /// matches_factory_artifacts_push: push command → true.
     ///
-    /// RED GATE: todo!() panics immediately.
+    /// GREEN: pure helper implemented; test verifies this case.
     #[test]
     fn test_BC_4_13_001_push_regex_matches_factory_artifacts_push() {
         assert!(
@@ -1010,7 +1010,7 @@ mod tests {
 
     /// matches_factory_artifacts_push: non-push command → false.
     ///
-    /// RED GATE: todo!() panics immediately.
+    /// GREEN: pure helper implemented; test verifies this case.
     #[test]
     fn test_BC_4_13_001_push_regex_does_not_match_non_push_command() {
         assert!(
@@ -1029,7 +1029,7 @@ mod tests {
 
     /// parse_factory_lock: valid block present → Ok(Some(LockState)).
     ///
-    /// RED GATE: todo!() panics immediately.
+    /// GREEN: pure helper implemented; test verifies this case.
     #[test]
     fn test_BC_4_13_001_parse_factory_lock_returns_some_on_valid_block() {
         let raw = state_md_foreign_unexpired_lock();
@@ -1045,7 +1045,7 @@ mod tests {
 
     /// parse_factory_lock: no factory_lock block → Ok(None).
     ///
-    /// RED GATE: todo!() panics immediately.
+    /// GREEN: pure helper implemented; test verifies this case.
     #[test]
     fn test_BC_4_13_001_parse_factory_lock_returns_none_on_absent_block() {
         let raw = state_md_no_lock();
@@ -1060,7 +1060,7 @@ mod tests {
 
     /// parse_factory_lock: malformed block (empty holder) → Err(MalformedLockBlock).
     ///
-    /// RED GATE: todo!() panics immediately.
+    /// GREEN: pure helper implemented; test verifies this case.
     #[test]
     fn test_BC_4_13_001_parse_factory_lock_errors_on_empty_holder() {
         let raw = state_md_malformed_empty_holder();
@@ -1084,7 +1084,7 @@ mod tests {
 
     /// parse_iso8601: valid ISO-8601 UTC string → Ok(DateTime).
     ///
-    /// RED GATE: todo!() panics immediately.
+    /// GREEN: pure helper implemented; test verifies this case.
     #[test]
     fn test_BC_4_13_001_parse_iso8601_succeeds_on_valid_timestamp() {
         let result = parse_iso8601("2026-06-10T14:00:00Z");
@@ -1096,7 +1096,7 @@ mod tests {
 
     /// parse_iso8601: invalid string → Err(MalformedLockBlock).
     ///
-    /// RED GATE: todo!() panics immediately.
+    /// GREEN: pure helper implemented; test verifies this case.
     #[test]
     fn test_BC_4_13_001_parse_iso8601_errors_on_invalid_timestamp() {
         let result = parse_iso8601("not-a-timestamp");
@@ -1114,7 +1114,7 @@ mod tests {
 
     /// format_time_remaining: correct "N min remaining" format.
     ///
-    /// RED GATE: todo!() panics immediately.
+    /// GREEN: pure helper implemented; test verifies this case.
     #[test]
     fn test_BC_4_13_001_format_time_remaining_returns_n_min_remaining() {
         use chrono::{TimeZone, Utc};
@@ -1194,7 +1194,7 @@ mod tests {
     /// Implementer fix: `parse_factory_lock` must normalise `\r\n` → `\n` before scanning,
     /// or use a delimiter that tolerates CRLF.
     ///
-    /// RED GATE: assertion fails — guard returns Continue instead of Block.
+    /// GREEN: CRLF normalisation implemented; guard now returns Block as required.
     #[test]
     #[allow(non_snake_case)]
     fn test_BC_4_13_001_crlf_state_md_foreign_lock_blocks() {
@@ -1263,8 +1263,7 @@ mod tests {
     /// The correct behavior: absent closing delimiter + body-resident factory_lock block
     /// → treat as MalformedLockBlock → log_warn + return Continue.
     ///
-    /// RED GATE: assertion fails — guard may return Block instead of Continue for this
-    /// malformed input.
+    /// GREEN: missing-closing-delimiter detection implemented; guard returns Continue (fail-open).
     #[test]
     #[allow(non_snake_case)]
     fn test_BC_4_13_001_missing_closing_delimiter_returns_continue() {
@@ -1322,7 +1321,7 @@ mod tests {
 
     /// trim_git_email: trailing newline stripped.
     ///
-    /// RED GATE: todo!() panics immediately.
+    /// GREEN: pure helper implemented; test verifies this case.
     #[test]
     fn test_BC_4_13_001_trim_git_email_strips_trailing_newline() {
         let result = trim_git_email("dev@example.com\n");
@@ -1331,7 +1330,7 @@ mod tests {
 
     /// trim_git_email: no trailing newline unchanged.
     ///
-    /// RED GATE: todo!() panics immediately.
+    /// GREEN: pure helper implemented; test verifies this case.
     #[test]
     fn test_BC_4_13_001_trim_git_email_unchanged_when_no_newline() {
         let result = trim_git_email("dev@example.com");
@@ -1340,7 +1339,7 @@ mod tests {
 
     /// build_block_message: all 5 fields present in the message.
     ///
-    /// RED GATE: todo!() panics immediately.
+    /// GREEN: pure helper implemented; test verifies this case.
     #[test]
     fn test_BC_4_13_001_build_block_message_contains_all_five_fields() {
         let msg = build_block_message(
