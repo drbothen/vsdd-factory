@@ -485,16 +485,120 @@ where
         return HookResult::Continue;
     }
 
-    // STUB: unconditional Continue — implementer replaces this body.
-    //
-    // RED GATE: all tests that expect Block(...) will FAIL against this stub.
-    // This is intentional — see Red Gate Test Table in S-17.04 v1.3.
-    //
-    // The following dead-code paths are included to make the callback surface
-    // compile-checked and to prevent "unused" warnings that would interfere with
-    // fmt/clippy clean.
-    let _ = callbacks.read_file;
-    let _ = callbacks.log_warn;
+    // Step 2: Determine proposed content based on tool type.
+    // For Write: proposed content is tool_input.content directly (AC-011).
+    // For Edit/MultiEdit: we need on-disk content first, then reconstruct.
+    // In all cases: read on-disk STATE.md for comparison. Fail-open on any error (AC-008/AC-015).
+    let on_disk_bytes = match (callbacks.read_file)(STATE_MD_PATH, STATE_MD_MAX_BYTES, READ_FILE_TIMEOUT_MS) {
+        Ok(bytes) => bytes,
+        Err(_e) => {
+            // On-disk read failed (HostError or NotFound) — fail-open (AC-008/AC-015).
+            return HookResult::Continue;
+        }
+    };
+
+    let on_disk_content = match String::from_utf8(on_disk_bytes) {
+        Ok(s) => s,
+        Err(_) => {
+            // Non-UTF-8 on-disk content — fail-open.
+            return HookResult::Continue;
+        }
+    };
+
+    // Step 3: Extract proposed content per tool type.
+    let proposed_content: String = match payload.tool_name.as_str() {
+        "Write" => {
+            match extract_write_proposed(&payload) {
+                ProposedContent::Content(s) => s,
+                ProposedContent::FailOpen => return HookResult::Continue,
+            }
+        }
+        "Edit" => {
+            match extract_edit_proposed(&payload, &on_disk_content) {
+                ProposedContent::Content(s) => s,
+                ProposedContent::FailOpen => return HookResult::Continue,
+            }
+        }
+        "MultiEdit" => {
+            match extract_multiedit_proposed(&payload, &on_disk_content) {
+                ProposedContent::Content(s) => s,
+                ProposedContent::FailOpen => return HookResult::Continue,
+            }
+        }
+        _ => {
+            // Unknown tool name — fall back to Write behaviour (content field).
+            match extract_write_proposed(&payload) {
+                ProposedContent::Content(s) => s,
+                ProposedContent::FailOpen => return HookResult::Continue,
+            }
+        }
+    };
+
+    // Step 4: Extract timestamp: from proposed content.
+    let proposed_ts = match extract_top_level_field(&proposed_content, "timestamp") {
+        FieldResult::Found(v) => v,
+        FieldResult::NotFound => {
+            // Absent timestamp: in proposed content is a violation (AC-008 §12.3 row 6 / EC-005).
+            return HookResult::Block {
+                reason: canonical_timestamp_stale_message(),
+            };
+        }
+        FieldResult::Malformed => {
+            // Malformed proposed frontmatter — fail-open (AC-008 §12.3 row 1).
+            return HookResult::Continue;
+        }
+    };
+
+    // Step 5: Extract timestamp: from on-disk content.
+    let on_disk_ts = match extract_top_level_field(&on_disk_content, "timestamp") {
+        FieldResult::Found(v) => v,
+        FieldResult::NotFound | FieldResult::Malformed => {
+            // Absent or malformed on-disk timestamp — first write ever (AC-008 §12.3 row 5 / EC-004).
+            // Continue — no prior value to compare against.
+            return HookResult::Continue;
+        }
+    };
+
+    // Step 6: Byte-identical timestamp: → Block TimestampStale (AC-005/AC-011/AC-012/AC-013).
+    // ADR-025 §12.2: string comparison, not datetime parse.
+    if proposed_ts == on_disk_ts {
+        return HookResult::Block {
+            reason: canonical_timestamp_stale_message(),
+        };
+    }
+
+    // Step 7: Lock held in proposed content? If so, check factory_lock.expires_at (AC-006).
+    // "Lock held" = factory_lock.holder present and non-empty in proposed content.
+    // Use factory_lock_parse::parse_factory_lock for lock detection (AC-004).
+    let proposed_lock = factory_lock_parse::parse_factory_lock(&proposed_content);
+    let proposed_expires_opt: Option<String> = match proposed_lock {
+        Ok(Some(ref lock_state)) if !lock_state.holder.is_empty() => {
+            Some(lock_state.expires_at.clone())
+        }
+        Ok(_) | Err(_) => None,
+    };
+
+    if let Some(proposed_expires) = proposed_expires_opt {
+        // Lock is held in proposed content — check factory_lock.expires_at (AC-006).
+        let on_disk_expires = match factory_lock_parse::parse_factory_lock(&on_disk_content) {
+            Ok(Some(ls)) => ls.expires_at,
+            Ok(None) => {
+                // On-disk has no lock — can't compare expires_at. No LockExpiryStale possible.
+                return HookResult::Continue;
+            }
+            Err(_) => return HookResult::Continue, // malformed on-disk lock — fail-open.
+        };
+
+        // Byte-identical expires_at while lock is held → Block LockExpiryStale (AC-006).
+        if proposed_expires == on_disk_expires {
+            return HookResult::Block {
+                reason: canonical_lock_expiry_stale_message(),
+            };
+        }
+    }
+
+    // Step 8: All checks passed — allow the write.
+    let _ = callbacks.log_warn; // suppress unused warning
     HookResult::Continue
 }
 
