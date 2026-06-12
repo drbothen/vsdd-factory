@@ -153,10 +153,14 @@ pub fn canonical_lock_expiry_stale_message() -> String {
 ///      is read from environment; no-op if env var absent)
 ///   3. Collapse `//` → `/`
 ///   4. Collapse `/./` → `/`
+///   5. Segment-stack `..` resolution: split on `/`, push normal segments,
+///      drop `.` segments, pop on `..` (clamp to empty stack on above-root `..`
+///      — discard, do not underflow). Rejoin with `/`. (EC-006 / v1.4 R4)
 ///
 /// A path that normalises to `.factory/STATE.md` MUST trigger the guard.
-/// Fail-open applies ONLY to paths with genuinely unresolvable traversal sequences
-/// (e.g., `../../` after normalisation yields a path outside the project).
+/// Fail-open (return the partially-normalised path unchanged) only when an
+/// unresolvable encoding (NUL byte, empty result after segment-stack) is
+/// encountered — residual misses must never false-block.
 pub fn normalise_path(path: &str) -> String {
     // Pre-collapse: normalise `//` and `/./` on the raw input first so that
     // prefix-strip works even when the project-dir boundary has a double-slash
@@ -201,7 +205,48 @@ pub fn normalise_path(path: &str) -> String {
         result = next;
     }
 
-    result
+    // Step 5: Segment-stack `..` resolution (EC-006 / ADR-025 §12.7 R6 / v1.4 R4).
+    //
+    // Split the path on `/`, build a stack:
+    //   - empty segment (from leading/trailing `/` or `//`) → skip
+    //   - `.` segment → skip (already collapsed above, but handle defensively)
+    //   - `..` segment → pop last entry if stack non-empty; discard (clamp) if empty
+    //   - any other segment → push
+    //
+    // Rejoin stack entries with `/`.
+    // A leading `/` is preserved by detecting it on the input.
+    //
+    // Fail-open: if the result is empty after segment-stack resolution AND the
+    // original path was non-empty, return the pre-stack result unchanged (safe
+    // miss — no false-block on pathological input).
+    let has_leading_slash = result.starts_with('/');
+    let mut stack: Vec<&str> = Vec::new();
+    for segment in result.split('/') {
+        match segment {
+            "" | "." => {} // skip empty and dot segments
+            ".." => {
+                // Pop last segment if stack is non-empty; clamp (discard) at root.
+                if !stack.is_empty() {
+                    stack.pop();
+                }
+                // If stack is empty: above-root `..` is clamped (discarded) — no underflow.
+            }
+            s => stack.push(s),
+        }
+    }
+
+    if stack.is_empty() && !result.is_empty() {
+        // Segment-stack collapsed everything (e.g., pure `..` input) — fail-open.
+        // Return the pre-stack result so we never false-block on degenerate paths.
+        return result;
+    }
+
+    let rejoined = stack.join("/");
+    if has_leading_slash {
+        format!("/{rejoined}")
+    } else {
+        rejoined
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -410,6 +455,115 @@ pub fn extract_top_level_field(content: &str, key: &str) -> FieldResult {
 }
 
 // ---------------------------------------------------------------------------
+// Helper: extract factory_lock sub-fields independently (AC-016/AC-017)
+// ---------------------------------------------------------------------------
+
+/// Extracted `factory_lock` sub-field values from STATE.md frontmatter.
+///
+/// Both fields are `Option<String>`:
+/// - `holder`:     `None` if the sub-field is absent; `Some("")` if present but empty.
+/// - `expires_at`: `None` if the sub-field is absent; `Some("")` if present but empty.
+///
+/// This struct enables independent enforcement decisions:
+/// - Lock held  ⟺ `holder` is `Some(h)` where `!h.is_empty()`
+/// - ExpiryStale ⟺ lock held AND `expires_at` is `None` OR `Some("")`
+///   OR byte-identical to the on-disk value.
+///
+/// Unlike `parse_factory_lock`, this extractor does NOT error when `expires_at`
+/// is absent or empty — it returns `None` for the missing field and lets the
+/// caller apply enforcement logic (AC-016/AC-017 / ADR-025 §12.2 revised).
+#[derive(Debug)]
+pub struct LockSubfields {
+    /// Raw `factory_lock.holder` value, or `None` if the sub-field is absent.
+    pub holder: Option<String>,
+    /// Raw `factory_lock.expires_at` value, or `None` if the sub-field is absent.
+    pub expires_at: Option<String>,
+}
+
+/// Extract `factory_lock.holder` and `factory_lock.expires_at` independently
+/// from STATE.md frontmatter content without failing when either sub-field
+/// is absent or empty.
+///
+/// Returns `None` (fail-open) if:
+/// - The frontmatter is malformed (no closing `---` delimiter). Callers must
+///   fail-open on malformed content per AC-008 §12.3 row 1.
+/// - The `factory_lock:` key is entirely absent (unlocked state).
+///
+/// Returns `Some(LockSubfields)` when the `factory_lock:` key is present,
+/// regardless of whether sub-fields are present, empty, or absent.
+/// This is the key difference from `parse_factory_lock` — it does NOT error
+/// on absent/empty sub-fields; it returns the raw `Option<String>` for each.
+///
+/// Architecture: no YAML parser, no `regex` crate (Rule 4). Line-by-line scan
+/// over the frontmatter region only (between first and second `---\n`).
+pub fn extract_lock_subfields(content: &str) -> Option<LockSubfields> {
+    // Normalise CRLF.
+    let normalised;
+    let content = if content.contains('\r') {
+        normalised = content.replace("\r\n", "\n");
+        normalised.as_str()
+    } else {
+        content
+    };
+
+    // Extract frontmatter region.
+    // None → no frontmatter (unlocked) or no closing delimiter (malformed) — both fail-open.
+    let after_open = content.strip_prefix("---\n")?;
+    let frontmatter_end = after_open.find("\n---\n").or_else(|| {
+        if after_open.ends_with("\n---") {
+            Some(after_open.len() - 4)
+        } else {
+            None
+        }
+    })?;
+    let frontmatter = &after_open[..frontmatter_end];
+
+    // Scan for factory_lock: key and its 2-space-indented sub-fields.
+    let mut in_factory_lock = false;
+    let mut found_factory_lock = false;
+    let mut holder: Option<String> = None;
+    let mut expires_at: Option<String> = None;
+
+    for line in frontmatter.lines() {
+        if line == "factory_lock:" || line.starts_with("factory_lock:") {
+            let after_colon = line["factory_lock:".len()..].trim();
+            if after_colon.is_empty() || after_colon == "~" || after_colon == "null" {
+                in_factory_lock = true;
+                found_factory_lock = true;
+            } else {
+                // Inline value on factory_lock: — treat as malformed, fail-open.
+                return None;
+            }
+            continue;
+        }
+
+        if in_factory_lock {
+            // Sub-fields indented with exactly 2 spaces.
+            if line.starts_with("  ") && !line.starts_with("   ") {
+                let field_line = &line[2..];
+                if let Some(v) = factory_lock_parse::extract_yaml_string_value(field_line, "holder")
+                {
+                    holder = Some(v);
+                } else if let Some(v) =
+                    factory_lock_parse::extract_yaml_string_value(field_line, "expires_at")
+                {
+                    expires_at = Some(v);
+                }
+            } else if !line.is_empty() {
+                // Non-indented non-empty line — exited the block.
+                in_factory_lock = false;
+            }
+        }
+    }
+
+    if !found_factory_lock {
+        return None; // factory_lock key absent — unlocked (no enforcement needed).
+    }
+
+    Some(LockSubfields { holder, expires_at })
+}
+
+// ---------------------------------------------------------------------------
 // Injectable callbacks surface (testable without WASM runtime)
 // ---------------------------------------------------------------------------
 
@@ -568,33 +722,61 @@ where
         };
     }
 
-    // Step 7: Lock held in proposed content? If so, check factory_lock.expires_at (AC-006).
+    // Step 7: Lock held in proposed content? If so, enforce factory_lock.expires_at freshness
+    // (AC-006 / AC-016 / AC-017 / ADR-025 §12.2 revised).
+    //
     // "Lock held" = factory_lock.holder present and non-empty in proposed content.
-    // Use factory_lock_parse::parse_factory_lock for lock detection (AC-004).
-    let proposed_lock = factory_lock_parse::parse_factory_lock(&proposed_content);
-    let proposed_expires_opt: Option<String> = match proposed_lock {
-        Ok(Some(ref lock_state)) if !lock_state.holder.is_empty() => {
-            Some(lock_state.expires_at.clone())
-        }
-        Ok(_) | Err(_) => None,
-    };
+    //
+    // Use extract_lock_subfields (not parse_factory_lock) to extract holder and expires_at
+    // independently — parse_factory_lock errors on absent/empty expires_at and routes through
+    // Err(_) → None → skip, which is wrong when holder is present (AC-016/AC-017).
+    //
+    // Enforcement matrix (when holder is present and non-empty):
+    //   - expires_at absent (None)          → Block: LockExpiryStale (AC-016)
+    //   - expires_at empty string ("")      → Block: LockExpiryStale (AC-017)
+    //   - expires_at byte-identical to disk → Block: LockExpiryStale (AC-006)
+    //   - expires_at different from disk    → Continue (renewal happened)
+    //
+    // Fail-open cases (no lock enforcement):
+    //   - extract_lock_subfields returns None (malformed frontmatter / no factory_lock key)
+    //   - holder absent or empty (lock not held in proposed)
+    if let Some(proposed_subfields) = extract_lock_subfields(&proposed_content) {
+        let proposed_holder = proposed_subfields
+            .holder
+            .as_deref()
+            .unwrap_or("")
+            .to_string();
+        if !proposed_holder.is_empty() {
+            // Lock is held in proposed content — enforce expires_at freshness.
+            let proposed_expires = proposed_subfields
+                .expires_at
+                .as_deref()
+                .unwrap_or("")
+                .to_string();
 
-    if let Some(proposed_expires) = proposed_expires_opt {
-        // Lock is held in proposed content — check factory_lock.expires_at (AC-006).
-        let on_disk_expires = match factory_lock_parse::parse_factory_lock(&on_disk_content) {
-            Ok(Some(ls)) => ls.expires_at,
-            Ok(None) => {
-                // On-disk has no lock — can't compare expires_at. No LockExpiryStale possible.
-                return HookResult::Continue;
+            if proposed_expires.is_empty() {
+                // expires_at absent or empty string → Block: LockExpiryStale (AC-016/AC-017).
+                return HookResult::Block {
+                    reason: canonical_lock_expiry_stale_message(),
+                };
             }
-            Err(_) => return HookResult::Continue, // malformed on-disk lock — fail-open.
-        };
 
-        // Byte-identical expires_at while lock is held → Block LockExpiryStale (AC-006).
-        if proposed_expires == on_disk_expires {
-            return HookResult::Block {
-                reason: canonical_lock_expiry_stale_message(),
-            };
+            // expires_at present and non-empty — compare byte-for-byte with on-disk (AC-006).
+            let on_disk_subfields = extract_lock_subfields(&on_disk_content);
+            let on_disk_expires = on_disk_subfields
+                .as_ref()
+                .and_then(|sf| sf.expires_at.as_deref())
+                .unwrap_or("")
+                .to_string();
+
+            if !on_disk_expires.is_empty() && proposed_expires == on_disk_expires {
+                // Byte-identical expires_at while lock is held → Block: LockExpiryStale (AC-006).
+                return HookResult::Block {
+                    reason: canonical_lock_expiry_stale_message(),
+                };
+            }
+            // expires_at present, non-empty, and different from on-disk → renewal happened.
+            // Fall through to Continue.
         }
     }
 

@@ -200,7 +200,7 @@ bash .factory/hooks/verify-sha-currency.sh
 | In-progress voice in narrative | Hook tense-flip WARN | Edit narrative to past-tense before push |
 | Cross-record SHA drift between STATE.md and wave-state.yaml | Hook DRIFT report | Fix the disagreeing record (per Schema Semantics in checklist) |
 | Develop SHA in STATE.md does not match actual develop HEAD | Hook FAIL | Update the develop cite to the current develop HEAD |
-| Skipping renew before `git add` while lock is held | `verify-state-timestamp-refresh` WASM guard blocks the subsequent STATE.md write (LockExpiryStale) | Run `bash plugins/vsdd-factory/bin/factory-lock-write.sh renew .factory/STATE.md`; then retry the Edit/Write to STATE.md |
+| Skipping renew before `git add` while lock is held | `verify-state-timestamp-refresh` WASM guard blocks the subsequent STATE.md write (LockExpiryStale) | Run `bash plugins/vsdd-factory/bin/factory-lock-write.sh renew .factory/STATE.md`; then retry the Edit/Write/MultiEdit to STATE.md |
 
 ## When to bypass
 
