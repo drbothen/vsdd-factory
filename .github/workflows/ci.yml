@@ -189,17 +189,21 @@ jobs:
       - name: Verify all native WASM plugins built
         shell: bash
         run: |
-          # F-PASS16-002 / E-10 pass-16: derive floor from crates/hook-plugins/ count so
-          # the assertion stays correct automatically when plugins are added or removed,
-          # and a silent plugin drop FAILS this check without a manual floor update.
-          expected=$(ls -d crates/hook-plugins/*/ | wc -l | tr -d ' ')
+          # P5-H1 (S-17.04): derive floor from crates that actually produce a WASM binary
+          # (those with a [[bin]] section in Cargo.toml) rather than raw dir count.
+          # A lib-only crate under hook-plugins/ (e.g. factory-lock-parse before relocation)
+          # does not produce a .wasm and must not inflate the floor — doing so would make
+          # this assertion fail even when all real plugins built successfully.
+          # The [[bin]] grep is robust: it returns the right floor both before and after
+          # the implementer relocates any lib-only crate out of hook-plugins/.
+          expected=$(grep -rl '^\[\[bin\]\]' crates/hook-plugins/*/Cargo.toml | wc -l | tr -d ' ')
           count=$(ls target/wasm32-wasip1/debug/*.wasm 2>/dev/null | wc -l | tr -d ' ')
           if [ "$count" -lt "$expected" ]; then
-            echo "::error::Only $count wasm files built; expected >= $expected (derived from crates/hook-plugins/ crate count)."
+            echo "::error::Only $count wasm files built; expected >= $expected (wasm-producing crates in crates/hook-plugins/ with [[bin]])."
             ls target/wasm32-wasip1/debug/*.wasm 2>/dev/null || true
             exit 1
           fi
-          echo "Built $count wasm files (floor: $expected crate dirs in crates/hook-plugins/)."
+          echo "Built $count wasm files (floor: $expected wasm-producing crates in crates/hook-plugins/)."
 
       - name: Mount factory artifacts (for perf-baseline bats)
         # perf-baseline.bats needs .factory/ (script + fixture + baseline doc).
@@ -227,18 +231,40 @@ jobs:
         run: |
           mkdir -p plugins/vsdd-factory/hook-plugins
           cp target/wasm32-wasip1/debug/*.wasm plugins/vsdd-factory/hook-plugins/ 2>/dev/null || true
-          # F-PASS16-002 / E-10 pass-16: derive floor from crates/hook-plugins/ count so
-          # the assertion stays correct automatically when plugins are added or removed,
-          # and a silent plugin drop FAILS this check without a manual floor update.
-          expected=$(ls -d crates/hook-plugins/*/ | wc -l | tr -d ' ')
+          # P5-H1 (S-17.04): derive floor from wasm-producing crates only (those with [[bin]])
+          # so that a lib-only crate under hook-plugins/ does not inflate the floor and
+          # cause false failures when all real plugins built successfully.
+          expected=$(grep -rl '^\[\[bin\]\]' crates/hook-plugins/*/Cargo.toml | wc -l | tr -d ' ')
           count=$(ls plugins/vsdd-factory/hook-plugins/*.wasm 2>/dev/null | wc -l | tr -d ' ')
           if [ "$count" -lt "$expected" ]; then
-            echo "::error::Only $count WASM plugins staged; expected >= $expected (derived from crates/hook-plugins/ crate count). Build output:"
+            echo "::error::Only $count WASM plugins staged; expected >= $expected (wasm-producing crates in crates/hook-plugins/ with [[bin]]). Build output:"
             ls target/wasm32-wasip1/debug/*.wasm 2>/dev/null || echo "  (no wasm files in debug target)"
             exit 1
           fi
-          echo "Staged $count WASM plugins to hook-plugins/ (floor: $expected crate dirs in crates/hook-plugins/)."
+          echo "Staged $count WASM plugins to hook-plugins/ (floor: $expected wasm-producing crates in crates/hook-plugins/)."
           ls plugins/vsdd-factory/hook-plugins/
+
+      - name: Run verify-state-timestamp-refresh e2e tests (P5-M1)
+        # P5-M1 (S-17.04): verify-state-timestamp-refresh.bats has 5 dispatcher+WASM
+        # e2e tests that call _require_artifacts() and skip if the dispatcher binary or
+        # WASM is absent. In CI this produces a false-green: all 5 tests skip-pass while
+        # the security write-guard is entirely untested.
+        #
+        # This step runs AFTER the dispatcher build and WASM staging steps above, so
+        # both artifacts are guaranteed present. CI_REQUIRE_ARTIFACTS=1 converts the
+        # _require_artifacts() skip guard into a hard fail — the test-writer must honor
+        # this env: replace `skip "..."` with `[ -z "${CI_REQUIRE_ARTIFACTS:-}" ] || fail "..."`.
+        # See test-writer coordination note in S-17.04 adversary pass-5 P5-M1 finding.
+        #
+        # bats already installed in this job from the perf-baseline step install above;
+        # the ordering here places this step BEFORE perf-baseline so the install is
+        # guaranteed from the apt/brew step that immediately follows if bats is absent.
+        shell: bash
+        env:
+          CI_REQUIRE_ARTIFACTS: "1"
+        run: |
+          sudo apt-get install -y jq bats 2>/dev/null || brew install jq bats 2>/dev/null || true
+          bats plugins/vsdd-factory/tests/verify-state-timestamp-refresh.bats
 
       - name: Run S-9.00 perf-baseline tests
         # Requires: Rust toolchain (for setup_file cargo build), jq, and .factory/
@@ -437,17 +463,17 @@ jobs:
       - name: Verify all native WASM plugins built (release)
         shell: bash
         run: |
-          # F-PASS16-002 / E-10 pass-16: derive floor from crates/hook-plugins/ count so
-          # the assertion stays correct automatically when plugins are added or removed,
-          # and a silent plugin drop FAILS this check without a manual floor update.
-          expected=$(ls -d crates/hook-plugins/*/ | wc -l | tr -d ' ')
+          # P5-H1 (S-17.04): derive floor from wasm-producing crates only (those with [[bin]])
+          # so that a lib-only crate under hook-plugins/ does not inflate the floor and
+          # cause false failures when all real plugins built successfully.
+          expected=$(grep -rl '^\[\[bin\]\]' crates/hook-plugins/*/Cargo.toml | wc -l | tr -d ' ')
           count=$(ls target/wasm32-wasip1/release/*.wasm 2>/dev/null | wc -l | tr -d ' ')
           if [ "$count" -lt "$expected" ]; then
-            echo "::error::Only $count wasm files built (release); expected >= $expected (derived from crates/hook-plugins/ crate count)."
+            echo "::error::Only $count wasm files built (release); expected >= $expected (wasm-producing crates in crates/hook-plugins/ with [[bin]])."
             ls target/wasm32-wasip1/release/*.wasm 2>/dev/null || true
             exit 1
           fi
-          echo "Built $count wasm files (release) (floor: $expected crate dirs in crates/hook-plugins/)."
+          echo "Built $count wasm files (release) (floor: $expected wasm-producing crates in crates/hook-plugins/)."
 
       - name: Stage artifacts
         # Collect the dispatcher binary + every .wasm file into a single
