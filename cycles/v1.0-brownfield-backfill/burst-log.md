@@ -7635,3 +7635,64 @@ D-555 current_step encodes: pass 8+9 C0/H0; M1 canonical→block_with_fix delega
 ### Factory-artifacts Commits
 
 `c4dd9076` state(D-555): adversary pass 8+9 cleanup codified; STORY-INDEX v4.00; S-17.04 v1.7; LOCAL streak 2/3
+
+---
+
+## D-556 — S-17.04 DELIVERED/MERGED PR #184 3b2a378c (2026-06-12T20:01:07Z)
+
+**Parent-commit:** `0eb4cc71` (D-555 sha-patch, factory-artifacts branch)
+**Adversary verdict:** S-17.04 completed LOCAL adversary cascade: 10 Claude fresh-context passes + Gemini cross-family (D-539 multi-family obligation satisfied). Passes 1-6: corrections to ADR-025 v1.6 Decision 12 (payload fields, registry caps, trigger, priorities, canonical-path, LockExpiryStale, `..` resolution, MultiEdit coverage, guard_ran sentinel, test harness, CI hardening). Pass 7 (deep-probe): CRITICAL P0 `GUARD-INERT` finding — `std::env::var("CLAUDE_PROJECT_DIR")` dead in WASI sandbox; guard always Continued in production; fixed with env-free suffix/equality trigger + AC-019 empty-timestamp→Block + AC-018 absolute-path bats e2e. Passes 8+9 (post-fix re-cascade): C0/H0 — guard functionally converged; M1/L1/L2/L4/stale-doc/L3 quality fixes only. Pass 10 (final confirming): C0/H0 — 3-CLEAN achieved; LOCAL adversary streak 3/3.
+
+**Files touched:** STATE.md (v3.05→v3.06; D-556 decision row; §1/§3/§4/§5/§8/§9/§10/§11/§12 refresh; Active Branches develop 3b2a378c; Story Status 77→78 + S-17.04 merged; Phase Progress D-556 row; Concurrent Cycles; Last Updated + Current Phase; Session Resume Checkpoint refreshed; banner tracker D-556 row); STORY-INDEX.md (v4.00→v4.01; S-17.04 row draft→merged + PR #184 3b2a378c; E-17 delivery note ALL 4 MERGED); decision-log.md (D-556 row prepended); burst-log.md (this entry); merged-stories-ledger.md (S-17.01/02/03/04 appended).
+
+**Dim-2 (PC attestations — production reads):**
+
+```
+$ grep "^current_step:" .factory/STATE.md
+current_step: "D-556 S-17.04-MERGED-PR-184-3b2a378c 2026-06-12 — S-17.04 DELIVERED/MERGED PR #184 squash-merge 3b2a378c: verify-state-timestamp-refresh WASM PreToolUse guard (env-free suffix/equality trigger; timestamp+lock-expires enforcement on Edit/Write/MultiEdit; guard_ran sentinel; canonical messages SDK delegation; log_warn fail-open paths; whitespace trim→Block) + factory-lock-parse shared crate (crates/factory-lock-parse/) + CI hardening (CI_REQUIRE_ARTIFACTS=1; absolute-path bats e2e); CI 10/10 green (validate+SAST+platforms-drift+cargo-host ubuntu+macos+build-dispatcher 5 platforms); pr-reviewer APPROVE 3-cycle; security CLEAN; LOCAL adversary converged 10 Claude fresh-context passes + Gemini cross-family (D-539); P0 absolute-path-inert defect caught pass-7 + fixed; ADR-025 v1.6 Decision 12 / BC-5.40.001 PC4; E-17 W4 COMPLETE; feature branch deleted+verified; develop 60fd0233→3b2a378c; 4-index: BC-INDEX v2.72 UNCHANGED VP-INDEX v2.06 UNCHANGED STORY-INDEX v4.00→v4.01 ARCH-INDEX v2.27 UNCHANGED; trajectory-tail →9→9→9→11; maintain all 5 BC-5.39.006 v1.7 PCs per TD-VSDD-097-EXT; D-chain cite D-555 per D-419(b); parent-commit 0eb4cc71 per D-419(b). SIZE BUDGET: see banner tracker row D-556"
+```
+
+PC1 (event identity): D-556 S-17.04-MERGED-PR-184-3b2a378c — CONFIRMED.
+PC2 (trajectory-tail LENGTH=4): `→9→9→9→11` — CONFIRMED.
+PC3 (D-chain cite D-555): D-chain cite D-555 per D-419(b) — CONFIRMED.
+PC4 (parent-commit 0eb4cc71): parent-commit 0eb4cc71 per D-419(b) — CONFIRMED.
+PC5 (4-index cites): BC-INDEX v2.72 UNCHANGED VP-INDEX v2.06 UNCHANGED STORY-INDEX v4.00→v4.01 ARCH-INDEX v2.27 UNCHANGED — CONFIRMED.
+
+**Dim-5 (source burst attestations — INV-019 a/b/c):**
+
+D-556 codifies S-17.04 story-merge-closure. INV-019 cure (a) per-finding-entry: N/A — no BC changelog modified in this burst (story merge closure; BC-5.40.001 ALREADY ACTIVE per POL-14 D-544; no BC version bump). INV-019 cure (b) adversary-report-attestation: burst-log Adversary verdict paragraph faithfully describes the 10+1 pass convergence trajectory (passes 1-10 Claude; Gemini cross-family; P0 GUARD-INERT finding pass-7; C0/H0 passes 8+9+10). INV-019 cure (c) literal-shell diff gate: story-merge-closure bursts have no adversary report file to diff; N/A for this burst class.
+
+**Dim-6 (verification_step 7 — literal-shell 4-index gate):**
+
+```
+$ echo "=== verification_step 7: 4-index gate ===" && echo "--- BC-INDEX ---" && grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md | head -1 && echo "--- VP-INDEX ---" && grep "^version:" .factory/specs/verification-properties/VP-INDEX.md | head -1 && echo "--- STORY-INDEX ---" && grep "^version:" .factory/stories/STORY-INDEX.md | head -1 && echo "--- ARCH-INDEX ---" && grep "^version:" .factory/specs/architecture/ARCH-INDEX.md | head -1
+=== verification_step 7: 4-index gate ===
+--- BC-INDEX ---
+version: "2.72"
+--- VP-INDEX ---
+version: "2.06"
+--- STORY-INDEX ---
+version: "4.01"
+--- ARCH-INDEX ---
+version: "2.27"
+```
+
+Expected D-556: BC-INDEX v2.72 (UNCHANGED), VP-INDEX v2.06 (UNCHANGED), STORY-INDEX v4.00→v4.01, ARCH-INDEX v2.27 (UNCHANGED). ALL MATCH. PASS.
+
+**Dim-7 (state attestation):**
+
+D-556 current_step encodes: S-17.04 MERGED PR #184 3b2a378c; E-17 W4 COMPLETE; feature branch deleted+verified; CI 10/10 green; pr-reviewer APPROVE 3-cycle; security CLEAN; LOCAL adversary converged 10 Claude+Gemini passes; BC-5.40.001 ALREADY ACTIVE; STORY-INDEX v4.00→v4.01; trajectory-tail →9→9→9→11; D-chain D-555; parent 0eb4cc71. All 5 PCs satisfied. STATE.md version 3.06, timestamp 2026-06-12T20:01:07Z. STATE.md 362 lines (banner tracker D-556; -53 under soft 415; margin 500-362=138 from hard cap).
+
+**Closes:**
+- S-17.04 MERGED: verify-state-timestamp-refresh WASM guard SHIPPED to develop.
+- E-17 Wave 4 COMPLETE: all 4 E-17 stories now merged.
+- BC-5.40.001 PC4: now enforced at write-time by `verify-state-timestamp-refresh`.
+- REQUIRES rc.21 for operator cache (ships guard + factory-lock-parse + E-17 skills).
+
+**Advances:** D-chain D-555 → D-556; develop 60fd0233 → 3b2a378c; E-17 ALL 4 WAVES MERGED; STORY-INDEX v4.00 → v4.01. NEXT: rc.21 release → then #173 wave-checkpoint.
+
+**Trajectory:** →9→9→9→11 (CARRIED — post-merge state codification burst; F5 cycle trajectory unchanged)
+
+### Factory-artifacts Commits
+
+TBD-D556 state(D-556): S-17.04 MERGED PR #184 3b2a378c; STORY-INDEX v4.01; E-17 W4 COMPLETE
