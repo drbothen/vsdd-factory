@@ -16,7 +16,8 @@
 //! - Block messages use HookResult::block_with_fix (canonical actionable format).
 //! - async = false REQUIRED in registry entry — see ADR-019 + ADR-025 Decision 12.
 //! - No dependency on factory-dispatcher or verify-factory-lock (forbidden).
-//! - Trigger: file_path == ".factory/STATE.md" (exact path comparison in WASM).
+//! - Trigger (v1.6 env-free): normalised path == ".factory/STATE.md" OR ends with
+//!   "/.factory/STATE.md" — covers absolute paths from Claude Code production (AC-018).
 
 use verify_state_timestamp_refresh::on_pre_tool_use;
 

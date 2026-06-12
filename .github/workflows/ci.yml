@@ -245,10 +245,10 @@ jobs:
           ls plugins/vsdd-factory/hook-plugins/
 
       - name: Run verify-state-timestamp-refresh e2e tests (P5-M1)
-        # P5-M1 (S-17.04): verify-state-timestamp-refresh.bats has 5 dispatcher+WASM
-        # e2e tests that call _require_artifacts() and skip if the dispatcher binary or
-        # WASM is absent. In CI this produces a false-green: all 5 tests skip-pass while
-        # the security write-guard is entirely untested.
+        # P5-M1 (S-17.04): verify-state-timestamp-refresh.bats has 6 dispatcher+WASM
+        # e2e tests (T-1..T-6) that call _require_artifacts() and skip if the dispatcher
+        # binary or WASM is absent. In CI this produces a false-green: all 6 tests
+        # skip-pass while the security write-guard is entirely untested.
         #
         # This step runs AFTER the dispatcher build and WASM staging steps above, so
         # both artifacts are guaranteed present. CI_REQUIRE_ARTIFACTS=1 converts the
