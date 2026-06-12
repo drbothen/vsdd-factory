@@ -1197,6 +1197,7 @@ name = "verify-factory-lock-bash"
 plugin = "hook-plugins/verify-factory-lock.wasm"
 event = "PreToolUse"
 tool = "Bash"
+priority = 142
 async = false
 on_error = "continue"
 timeout_ms = 5000

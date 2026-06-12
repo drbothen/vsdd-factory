@@ -18,10 +18,11 @@
 //! - `chrono` (workspace dep) is the only non-std dependency.
 //! - Pure library: no I/O, no host calls. All functions are deterministic given input.
 //!
-//! # Red Gate status (S-17.04 T-1)
+//! # Implementation status (S-17.04 T-2 — COMPLETE)
 //!
-//! STUB: function bodies are unimplemented (`todo!()`). The unit tests in this file
-//! MUST FAIL until the implementer fills in the real logic in T-2 (D15).
+//! All public functions are fully implemented and their unit tests pass green.
+//! This crate is the canonical source for `parse_factory_lock`, `LockState`,
+//! `extract_yaml_string_value`, and `parse_iso8601` (D15 / S-17.04).
 
 // Allow the BC-based test naming convention (non_snake_case is workspace-allowed).
 #![cfg_attr(not(kani), allow(unexpected_cfgs))]
@@ -61,7 +62,7 @@ pub struct LockState {
 }
 
 // ---------------------------------------------------------------------------
-// Public API — STUB bodies (implementer fills these in T-2 / D15)
+// Public API
 // ---------------------------------------------------------------------------
 
 /// Scan the YAML frontmatter of STATE.md content for the `factory_lock:` block.
@@ -243,8 +244,7 @@ pub fn parse_iso8601(s: &str) -> Result<chrono::DateTime<chrono::Utc>, LockParse
 // Unit tests — factory-lock-parse crate (D15 / S-17.04)
 //
 // These tests exercise the public API of this crate directly.
-// ALL tests MUST FAIL before implementation (Red Gate) because every public
-// function is a `todo!()` stub.
+// All tests pass green against the implemented functions (T-2 complete).
 //
 // Test naming: test_BC_5_40_001_xxx() — traces to BC-5.40.001 PC4 (shared
 // parse logic is a prerequisite for the timestamp-refresh guard).
@@ -299,8 +299,6 @@ mod tests {
     // -----------------------------------------------------------------------
 
     /// parse_factory_lock: valid block → Ok(Some(LockState)) with correct fields.
-    ///
-    /// RED GATE: parse_factory_lock is todo!() → panics.
     #[test]
     fn test_BC_5_40_001_parse_factory_lock_returns_some_on_valid_block() {
         let result = parse_factory_lock(state_with_valid_lock());
@@ -313,8 +311,6 @@ mod tests {
     }
 
     /// parse_factory_lock: no factory_lock key → Ok(None).
-    ///
-    /// RED GATE: parse_factory_lock is todo!() → panics.
     #[test]
     fn test_BC_5_40_001_parse_factory_lock_returns_none_when_absent() {
         let result = parse_factory_lock(state_no_lock())
@@ -326,8 +322,6 @@ mod tests {
     }
 
     /// parse_factory_lock: malformed block (empty holder) → Err(MalformedLockBlock).
-    ///
-    /// RED GATE: parse_factory_lock is todo!() → panics.
     #[test]
     fn test_BC_5_40_001_parse_factory_lock_errors_on_empty_holder() {
         let result = parse_factory_lock(state_with_empty_holder());
@@ -344,8 +338,6 @@ mod tests {
     }
 
     /// parse_factory_lock: CRLF line endings → same result as LF-only.
-    ///
-    /// RED GATE: parse_factory_lock is todo!() → panics.
     #[test]
     fn test_BC_5_40_001_parse_factory_lock_handles_crlf_line_endings() {
         // CRLF version of state_with_valid_lock.
@@ -373,8 +365,6 @@ mod tests {
     // -----------------------------------------------------------------------
 
     /// extract_yaml_string_value: bare unquoted value → Some("value").
-    ///
-    /// RED GATE: extract_yaml_string_value is todo!() → panics.
     #[test]
     fn test_BC_5_40_001_extract_yaml_string_value_bare_unquoted() {
         let result = extract_yaml_string_value("holder: user@example.com", "holder");
@@ -386,8 +376,6 @@ mod tests {
     }
 
     /// extract_yaml_string_value: double-quoted value → Some("value") without quotes.
-    ///
-    /// RED GATE: extract_yaml_string_value is todo!() → panics.
     #[test]
     fn test_BC_5_40_001_extract_yaml_string_value_double_quoted() {
         let result =
@@ -400,8 +388,6 @@ mod tests {
     }
 
     /// extract_yaml_string_value: wrong key → None.
-    ///
-    /// RED GATE: extract_yaml_string_value is todo!() → panics.
     #[test]
     fn test_BC_5_40_001_extract_yaml_string_value_wrong_key_returns_none() {
         let result = extract_yaml_string_value("holder: user@example.com", "expires_at");
@@ -413,8 +399,6 @@ mod tests {
     // -----------------------------------------------------------------------
 
     /// parse_iso8601: valid UTC ISO-8601 string → Ok(DateTime).
-    ///
-    /// RED GATE: parse_iso8601 is todo!() → panics.
     #[test]
     fn test_BC_5_40_001_parse_iso8601_valid_utc_string_succeeds() {
         let result = parse_iso8601("2026-06-10T14:00:00Z");
@@ -425,8 +409,6 @@ mod tests {
     }
 
     /// parse_iso8601: invalid string → Err(MalformedLockBlock).
-    ///
-    /// RED GATE: parse_iso8601 is todo!() → panics.
     #[test]
     fn test_BC_5_40_001_parse_iso8601_invalid_string_errors() {
         let result = parse_iso8601("not-a-timestamp");

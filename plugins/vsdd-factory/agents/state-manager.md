@@ -265,7 +265,7 @@ commits invoke renew, the burst-close ordering) is agent behavior described here
    executable equivalent of this prose obligation. See
    `plugins/vsdd-factory/skills/state-burst/SKILL.md` §"Apply changes — mandatory
    renew step". The `verify-state-timestamp-refresh` WASM guard (D16, S-17.04)
-   enforces freshness at write-time: any Edit or Write to `.factory/STATE.md` that
+   enforces freshness at write-time: any Edit, Write, or MultiEdit to `.factory/STATE.md` that
    does not advance `timestamp:` (and `factory_lock.expires_at` when a lock is held)
    is blocked before the write lands on disk.
 

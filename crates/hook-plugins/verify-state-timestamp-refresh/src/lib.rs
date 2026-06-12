@@ -158,7 +158,21 @@ pub fn canonical_lock_expiry_stale_message() -> String {
 /// Fail-open applies ONLY to paths with genuinely unresolvable traversal sequences
 /// (e.g., `../../` after normalisation yields a path outside the project).
 pub fn normalise_path(path: &str) -> String {
-    // Step 2: strip CLAUDE_PROJECT_DIR prefix first (it may contain a leading ./).
+    // Pre-collapse: normalise `//` and `/./` on the raw input first so that
+    // prefix-strip works even when the project-dir boundary has a double-slash
+    // (e.g., `$CLAUDE_PROJECT_DIR//.factory/STATE.md` → pre-collapsed before
+    // the `project_dir + "/"` prefix is stripped).  EC-006 / O-1704P-01.
+    let mut pre = path.to_string();
+    loop {
+        let next = pre.replace("//", "/").replace("/./", "/");
+        if next == pre {
+            break;
+        }
+        pre = next;
+    }
+    let path: &str = &pre;
+
+    // Step 2: strip CLAUDE_PROJECT_DIR prefix (may contain a leading ./).
     let path = if let Ok(project_dir) = std::env::var("CLAUDE_PROJECT_DIR") {
         if !project_dir.is_empty() {
             let with_slash = format!("{}/", project_dir.trim_end_matches('/'));
@@ -177,7 +191,7 @@ pub fn normalise_path(path: &str) -> String {
     // Step 1: strip leading `./`.
     let path = path.strip_prefix("./").unwrap_or(path);
 
-    // Step 3 + 4: collapse `//` and `/./` (repeated until stable).
+    // Post-collapse: handle any `//` or `/./` introduced after prefix removal.
     let mut result = path.to_string();
     loop {
         let next = result.replace("//", "/").replace("/./", "/");
@@ -419,14 +433,6 @@ where
 
 // ---------------------------------------------------------------------------
 // Core guard logic (injectable callbacks — testable without WASM runtime)
-//
-// STUB: returns `Continue` unconditionally.
-//
-// RED GATE STATUS: All tests that expect `Block` MUST FAIL against this stub.
-// The stub intentionally violates every blocking postcondition so that the
-// Red Gate test suite is demonstrably failing before implementation begins.
-//
-// Implementer (T-3): replace the stub body with real logic per ADR-025 §12.1–§12.8.
 // ---------------------------------------------------------------------------
 
 /// Core verify-state-timestamp-refresh guard logic.
@@ -625,48 +631,15 @@ pub fn on_pre_tool_use(payload: HookPayload) -> HookResult {
 }
 
 // ---------------------------------------------------------------------------
-// Unit tests — Red Gate v1.3 (D17 / S-17.04 / AC-005/006/007/008/011-015)
+// Unit tests — conformance suite v1.3 (D17 / S-17.04 / AC-005/006/007/008/011-015)
 //
-// 15 Rust unit tests covering the full AC matrix from S-17.04 v1.3.
+// 20 Rust unit tests covering the full AC matrix from S-17.04 v1.3.
 // Uses injectable callbacks so no WASM runtime is required.
-//
-// RED GATE: The stub `guard_logic` returns `Continue` after the path check
-// (unconditionally, once file_path normalises to STATE.md). Against this stub:
-//
-//   FAIL (assertion errors — correct Red Gate failures):
-//     test_timestamp_stale_no_lock_blocks           → expects Block(TimestampStale)
-//     test_timestamp_stale_lock_held_blocks         → expects Block(TimestampStale)
-//     test_lock_expiry_stale_blocks                 → expects Block(LockExpiryStale)
-//     test_timestamp_absent_in_proposed_blocks      → expects Block(TimestampStale)
-//     test_write_payload_stale_timestamp_blocks     → expects Block(TimestampStale)
-//     test_edit_payload_reconstruct_stale_timestamp_blocks   → expects Block(TimestampStale)
-//     test_edit_payload_reconstruct_advanced_timestamp_continues — expects Continue
-//                                                   → PASSES against stub (acceptable)
-//     test_multiedit_payload_reconstruct_stale_timestamp_blocks → expects Block(TimestampStale)
-//     test_multiedit_payload_reconstruct_advanced_timestamp_continues → expects Continue
-//                                                   → PASSES against stub (acceptable)
-//     test_non_state_md_file_continues_without_read → read_file call-count assertion:
-//         stub returns Continue without calling read_file for non-STATE.md path
-//         → PASSES (acceptable — AC-007 path check is in stub)
-//     test_canonical_path_variants_trigger_guard    → all variants → expects Block(TimestampStale)
-//
-//   PASS against stub (fail-open paths — structurally correct):
-//     test_proposed_unparseable_continues           → expects Continue → stub returns Continue
-//     test_on_disk_read_fails_continues             → expects Continue → stub returns Continue
-//     test_timestamp_absent_on_disk_continues       → expects Continue → stub returns Continue
-//     test_no_lock_held_skips_expiry_check          → expects Continue → stub returns Continue
-//     test_edit_old_string_not_found_continues      → expects Continue → stub returns Continue
-//     test_multiedit_first_old_string_not_found_continues → expects Continue → stub returns Continue
-//     test_read_file_not_found_continues            → expects Continue → stub returns Continue
-//
-// Net Red Gate: 8 FAILING tests (block-assertions + canonical-path assertion).
-// The Continue-only tests passing against the stub are structurally correct: the
-// stub is fail-open and these test fail-open paths — they remain green after
-// implementation (the real guard also returns Continue for these paths).
+// All 20 tests pass green against the implemented guard_logic (T-3 complete).
 //
 // BLOCK MESSAGE ASSERTIONS: every Block assertion uses FULL canonical equality
 // to the `canonical_timestamp_stale_message()` or `canonical_lock_expiry_stale_message()`
-// strings — NOT substring contains checks. This fixes finding M03 from adversary pass-1.
+// strings — NOT substring contains checks (per ADR-025 finding M03 correction).
 //
 // PAYLOAD FIELD DISCIPLINE:
 //   - Write tests use `tool_input.content` (full file body)
@@ -876,8 +849,6 @@ mod tests {
     //
     // Write tool payload: tool_input.content = full stale file body.
     // Expected: Block with FULL canonical TimestampStale message.
-    //
-    // RED GATE: stub returns Continue → assertion fails.
     // -----------------------------------------------------------------------
 
     #[test]
@@ -919,7 +890,7 @@ mod tests {
     // AC-005 — WRITE payload: timestamp advanced → Continue
     // Traces: AC-003, AC-011 / BC-5.40.001 PC4 success path
     //
-    // RED GATE: stub returns Continue → PASSES (acceptable for Continue-expecting test).
+    // GREEN: guard returns Continue for valid advanced-timestamp write.
     // -----------------------------------------------------------------------
 
     #[test]
@@ -946,7 +917,7 @@ mod tests {
     // Traces: AC-005 / ADR-025 D12 §12.2 / BC-5.40.001 PC4
     //
     // Uses Write payload (tool_input.content) — clean single-tool case.
-    // RED GATE: stub returns Continue → assertion fails.
+    // GREEN: guard blocks stale timestamp with full canonical TimestampStale message.
     // -----------------------------------------------------------------------
 
     #[test]
@@ -983,7 +954,7 @@ mod tests {
     //
     // TimestampStale fires before LockExpiryStale (EC-003: both stale → TimestampStale first).
     // expires_at is advanced here to isolate timestamp staleness.
-    // RED GATE: stub returns Continue → assertion fails.
+    // GREEN: guard blocks stale timestamp even when lock is held.
     // -----------------------------------------------------------------------
 
     #[test]
@@ -1020,7 +991,7 @@ mod tests {
     // Traces: AC-006 / ADR-025 D12 §12.2 / BC-5.40.001 PC4
     //
     // timestamp IS advanced (to get past TimestampStale), expires_at NOT advanced.
-    // RED GATE: stub returns Continue → assertion fails.
+    // GREEN: guard blocks stale lock expiry with full canonical LockExpiryStale message.
     // -----------------------------------------------------------------------
 
     #[test]
@@ -1058,8 +1029,7 @@ mod tests {
     //
     // On-disk has a lock; proposed clears the lock. Timestamp is advanced.
     // Expected: Continue (clearing the lock + advancing timestamp is valid).
-    //
-    // RED GATE: stub returns Continue → PASSES (acceptable Continue-expecting test).
+    // GREEN: guard returns Continue — no lock in proposed skips LockExpiryStale check.
     // -----------------------------------------------------------------------
 
     #[test]
@@ -1086,7 +1056,7 @@ mod tests {
     // AC-008 — proposed content unparseable → Continue (fail-open)
     // Traces: AC-008 / ADR-025 §12.3 row 1 / BC-5.40.001 PC6
     //
-    // RED GATE: stub returns Continue → PASSES (acceptable).
+    // GREEN: guard fails open — malformed proposed frontmatter returns Continue.
     // -----------------------------------------------------------------------
 
     #[test]
@@ -1111,7 +1081,7 @@ mod tests {
     // AC-008 — on-disk read fails (HostError) → Continue (fail-open)
     // Traces: AC-008 / ADR-025 §12.3 row 2 / BC-5.40.001 PC6
     //
-    // RED GATE: stub returns Continue → PASSES (acceptable).
+    // GREEN: guard fails open — HostError on read_file returns Continue.
     // -----------------------------------------------------------------------
 
     #[test]
@@ -1138,7 +1108,7 @@ mod tests {
     // This tests AC-015 specifically: `host::read_file` returns `NotFound`
     // because the file does not yet exist on disk (first write to the repo).
     //
-    // RED GATE: stub returns Continue → PASSES (acceptable).
+    // GREEN: guard fails open — NotFound on read_file returns Continue (first-ever write).
     // -----------------------------------------------------------------------
 
     #[test]
@@ -1168,7 +1138,7 @@ mod tests {
     // Traces: AC-008 §12.3 row 5 / BC-5.40.001 PC6
     //
     // On-disk file is well-formed but has NO timestamp field.
-    // RED GATE: stub returns Continue → PASSES (acceptable).
+    // GREEN: guard fails open — absent on-disk timestamp returns Continue (first-ever write).
     // -----------------------------------------------------------------------
 
     #[test]
@@ -1195,7 +1165,7 @@ mod tests {
     // Traces: AC-008 §12.3 row 6 / BC-5.40.001 PC4
     //
     // Absence of timestamp: in proposed content is itself a missing-field violation.
-    // RED GATE: stub returns Continue → assertion fails.
+    // GREEN: guard blocks — absent proposed timestamp treated as TimestampStale.
     // -----------------------------------------------------------------------
 
     #[test]
@@ -1234,8 +1204,7 @@ mod tests {
     // The guard MUST return Continue without calling read_file for non-STATE.md paths.
     // Verified via call-counting mock: if read_file is called, assertion fails.
     //
-    // RED GATE: stub checks path (returns Continue for non-STATE.md without read_file call)
-    // → PASSES (acceptable — the stub does implement the path check).
+    // GREEN: guard returns Continue for non-STATE.md without calling read_file.
     // -----------------------------------------------------------------------
 
     #[test]
@@ -1283,7 +1252,7 @@ mod tests {
     // (timestamp not updated in the edit). Guard reconstructs proposed from on-disk
     // + edit fragment and finds timestamp still byte-identical.
     //
-    // RED GATE: stub returns Continue → assertion fails.
+    // GREEN: guard blocks — reconstructed Edit proposed has stale timestamp.
     // -----------------------------------------------------------------------
 
     #[test]
@@ -1333,7 +1302,7 @@ mod tests {
     // Edit payload: old_string = old timestamp line, new_string = new timestamp line.
     // Guard reconstructs: proposed has advanced timestamp → Continue.
     //
-    // RED GATE: stub returns Continue → PASSES (acceptable Continue-expecting test).
+    // GREEN: guard returns Continue — reconstructed Edit proposed has advanced timestamp.
     // -----------------------------------------------------------------------
 
     #[test]
@@ -1370,7 +1339,7 @@ mod tests {
     // MultiEdit: two edits applied sequentially. Neither edit touches the timestamp.
     // Guard reconstructs full content from edits[] and finds timestamp unchanged.
     //
-    // RED GATE: stub returns Continue → assertion fails.
+    // GREEN: guard blocks — reconstructed MultiEdit proposed has stale timestamp.
     // -----------------------------------------------------------------------
 
     #[test]
@@ -1420,7 +1389,7 @@ mod tests {
     // AC-013 — MultiEdit payload: reconstruct advances timestamp → Continue
     // Traces: AC-013 / AC-003 / BC-5.40.001 PC4 success path
     //
-    // RED GATE: stub returns Continue → PASSES (acceptable).
+    // GREEN: guard returns Continue — reconstructed MultiEdit proposed has advanced timestamp.
     // -----------------------------------------------------------------------
 
     #[test]
@@ -1467,7 +1436,7 @@ mod tests {
     // old_string is not present in the on-disk content. The Edit tool itself will
     // reject this; the guard must fail-open (not block).
     //
-    // RED GATE: stub returns Continue → PASSES (acceptable).
+    // GREEN: guard fails open — old_string not found in on-disk returns Continue.
     // -----------------------------------------------------------------------
 
     #[test]
@@ -1501,7 +1470,7 @@ mod tests {
     // AC-014 — MultiEdit: first old_string not found → Continue (fail-open)
     // Traces: AC-014 / ADR-025 D12 §12.3 / BC-5.40.001 PC6
     //
-    // RED GATE: stub returns Continue → PASSES (acceptable).
+    // GREEN: guard fails open — first edit's old_string not found returns Continue.
     // -----------------------------------------------------------------------
 
     #[test]
@@ -1547,8 +1516,7 @@ mod tests {
     // Note: `$CLAUDE_PROJECT_DIR/.factory/STATE.md` (absolute prefix) is tested
     // separately below since it requires controlling the env var.
     //
-    // RED GATE: stub returns Continue after path check; variants must normalise
-    // to STATE.md and enter the guard body → stub returns Continue → Block assertions FAIL.
+    // GREEN: guard normalises all variants to .factory/STATE.md and blocks stale timestamp.
     // -----------------------------------------------------------------------
 
     #[test]
@@ -1605,7 +1573,7 @@ mod tests {
     // This guards against over-zealous `extract_yaml_string_value` stripping
     // that might incorrectly compare stripped vs. non-stripped values.
     //
-    // RED GATE: stub returns Continue → PASSES (acceptable for Continue-expecting test).
+    // GREEN: guard returns Continue — genuinely-advanced quoted timestamp is not over-blocked.
     // -----------------------------------------------------------------------
 
     #[test]
