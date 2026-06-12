@@ -1174,6 +1174,7 @@ name = "verify-factory-lock"
 plugin = "hook-plugins/verify-factory-lock.wasm"
 event = "PreToolUse"
 tool = "Edit|Write|Agent"
+priority = 142
 async = false
 on_error = "continue"
 timeout_ms = 5000
@@ -1207,19 +1208,20 @@ path_allow = [".factory/STATE.md"]
 binary_allow = ["git"]
 env_allow = ["HOME", "GIT_CONFIG_GLOBAL", "XDG_CONFIG_HOME"]
 
-# ---------- verify-state-timestamp-refresh (PreToolUse, Edit|Write) ----------
-# S-17.04: PreToolUse guard — blocks Edit/Write to .factory/STATE.md when proposed
-# content does not advance timestamp: frontmatter (every write) or
-# factory_lock.expires_at (when lock held). Decision 12 / BC-5.40.001 PC4.
-# Trigger: file_path == ".factory/STATE.md" — structurally bypass-proof.
+# ---------- verify-state-timestamp-refresh (PreToolUse, Edit|Write|MultiEdit) ----------
+# S-17.04: PreToolUse guard — blocks Edit/Write/MultiEdit to .factory/STATE.md when
+# proposed content (reconstructed for Edit/MultiEdit) does not advance timestamp:
+# frontmatter (every write) or factory_lock.expires_at (when lock held).
+# Decision 12 / BC-5.40.001 PC4.
+# Trigger: file_path == ".factory/STATE.md" after canonical-path normalization.
 # async = false REQUIRED — see ADR-019 + ADR-025 Decision 12
 
 [[hooks]]
 name = "verify-state-timestamp-refresh"
 event = "PreToolUse"
-tool = "Edit|Write"
+tool = "Edit|Write|MultiEdit"
 plugin = "hook-plugins/verify-state-timestamp-refresh.wasm"
-priority = 142
+priority = 143
 timeout_ms = 5000
 on_error = "continue"
 async = false

@@ -489,13 +489,14 @@ where
     // For Write: proposed content is tool_input.content directly (AC-011).
     // For Edit/MultiEdit: we need on-disk content first, then reconstruct.
     // In all cases: read on-disk STATE.md for comparison. Fail-open on any error (AC-008/AC-015).
-    let on_disk_bytes = match (callbacks.read_file)(STATE_MD_PATH, STATE_MD_MAX_BYTES, READ_FILE_TIMEOUT_MS) {
-        Ok(bytes) => bytes,
-        Err(_e) => {
-            // On-disk read failed (HostError or NotFound) — fail-open (AC-008/AC-015).
-            return HookResult::Continue;
-        }
-    };
+    let on_disk_bytes =
+        match (callbacks.read_file)(STATE_MD_PATH, STATE_MD_MAX_BYTES, READ_FILE_TIMEOUT_MS) {
+            Ok(bytes) => bytes,
+            Err(_e) => {
+                // On-disk read failed (HostError or NotFound) — fail-open (AC-008/AC-015).
+                return HookResult::Continue;
+            }
+        };
 
     let on_disk_content = match String::from_utf8(on_disk_bytes) {
         Ok(s) => s,
@@ -507,24 +508,18 @@ where
 
     // Step 3: Extract proposed content per tool type.
     let proposed_content: String = match payload.tool_name.as_str() {
-        "Write" => {
-            match extract_write_proposed(&payload) {
-                ProposedContent::Content(s) => s,
-                ProposedContent::FailOpen => return HookResult::Continue,
-            }
-        }
-        "Edit" => {
-            match extract_edit_proposed(&payload, &on_disk_content) {
-                ProposedContent::Content(s) => s,
-                ProposedContent::FailOpen => return HookResult::Continue,
-            }
-        }
-        "MultiEdit" => {
-            match extract_multiedit_proposed(&payload, &on_disk_content) {
-                ProposedContent::Content(s) => s,
-                ProposedContent::FailOpen => return HookResult::Continue,
-            }
-        }
+        "Write" => match extract_write_proposed(&payload) {
+            ProposedContent::Content(s) => s,
+            ProposedContent::FailOpen => return HookResult::Continue,
+        },
+        "Edit" => match extract_edit_proposed(&payload, &on_disk_content) {
+            ProposedContent::Content(s) => s,
+            ProposedContent::FailOpen => return HookResult::Continue,
+        },
+        "MultiEdit" => match extract_multiedit_proposed(&payload, &on_disk_content) {
+            ProposedContent::Content(s) => s,
+            ProposedContent::FailOpen => return HookResult::Continue,
+        },
         _ => {
             // Unknown tool name — fall back to Write behaviour (content field).
             match extract_write_proposed(&payload) {
