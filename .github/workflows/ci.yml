@@ -244,21 +244,29 @@ jobs:
           echo "Staged $count WASM plugins to hook-plugins/ (floor: $expected wasm-producing crates in crates/hook-plugins/)."
           ls plugins/vsdd-factory/hook-plugins/
 
+      - name: Build factory-dispatcher (release, for e2e bats)
+        # The verify-state-timestamp-refresh e2e bats tests invoke the dispatcher binary
+        # at target/release/factory-dispatcher (set in bats setup() as $DISPATCHER).
+        # The preceding WASM build steps use --target wasm32-wasip1 only and never
+        # produce a native binary — cargo-host had no release dispatcher build at all.
+        # cargo test (above) builds a debug dispatcher but bats setup() hard-codes the
+        # release path. Build --release here so the artifact is present at the exact
+        # path _require_artifacts() checks before CI_REQUIRE_ARTIFACTS hard-fails.
+        # Incremental: workspace deps are already compiled by cargo test above; only
+        # the final factory-dispatcher link step runs here (fast, ~10s).
+        run: cargo build --release -p factory-dispatcher
+
       - name: Run verify-state-timestamp-refresh e2e tests (P5-M1)
         # P5-M1 (S-17.04): verify-state-timestamp-refresh.bats has 6 dispatcher+WASM
-        # e2e tests (T-1..T-6) that call _require_artifacts() and skip if the dispatcher
-        # binary or WASM is absent. In CI this produces a false-green: all 6 tests
-        # skip-pass while the security write-guard is entirely untested.
+        # e2e tests (T-1..T-6) that call _require_artifacts() and hard-fail under
+        # CI_REQUIRE_ARTIFACTS=1 if either artifact is absent (no silent skip-pass).
         #
-        # This step runs AFTER the dispatcher build and WASM staging steps above, so
-        # both artifacts are guaranteed present. CI_REQUIRE_ARTIFACTS=1 converts the
-        # _require_artifacts() skip guard into a hard fail — the test-writer must honor
-        # this env: replace `skip "..."` with `[ -z "${CI_REQUIRE_ARTIFACTS:-}" ] || fail "..."`.
-        # See test-writer coordination note in S-17.04 adversary pass-5 P5-M1 finding.
-        #
-        # bats already installed in this job from the perf-baseline step install above;
-        # the ordering here places this step BEFORE perf-baseline so the install is
-        # guaranteed from the apt/brew step that immediately follows if bats is absent.
+        # Artifact paths _require_artifacts() checks:
+        #   $DISPATCHER  = <repo-root>/target/release/factory-dispatcher
+        #                  (built by the preceding step)
+        #   $GUARD_WASM  = plugins/vsdd-factory/hook-plugins/verify-state-timestamp-refresh.wasm
+        #                  (staged by "Stage WASM plugins to hook-plugins directory" above)
+        # Both are now guaranteed present before this step runs.
         shell: bash
         env:
           CI_REQUIRE_ARTIFACTS: "1"
@@ -269,10 +277,10 @@ jobs:
       - name: Run S-9.00 perf-baseline tests
         # Requires: Rust toolchain (for setup_file cargo build), jq, and .factory/
         # mounted above. hyperfine is not installed; cold-start test skips gracefully.
-        # The factory-dispatcher binary was built in the cargo-host build steps above,
-        # so setup_file() will skip the build and proceed directly to tests.
-        # WASM plugins are staged by the preceding step — perf-baseline.bats dispatcher
-        # invocations will find plugins in hook-plugins/ (F-P6-001 ordering fix).
+        # The factory-dispatcher release binary is built by the preceding step, so
+        # setup_file() will skip its own build and proceed directly to tests.
+        # WASM plugins are staged by the "Stage WASM plugins" step — perf-baseline.bats
+        # dispatcher invocations will find plugins in hook-plugins/ (F-P6-001 ordering fix).
         shell: bash
         run: |
           sudo apt-get install -y jq bats 2>/dev/null || brew install jq bats 2>/dev/null || true
