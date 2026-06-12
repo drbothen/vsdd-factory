@@ -7444,3 +7444,99 @@ D-553 current_step encodes: P5-H1 factory-lock-parse relocation; P5-M1 CI_REQUIR
 ### Factory-artifacts Commits
 
 `edc397a2` state(D-553): ADR-025 v1.6 pass-4+5 deep-probe corrections + S-17.04 v1.5 codified
+
+---
+
+## D-554 — ADR-025 v1.6 adversary deep-pass-7 P0 WASM env-var dead-code fix + S-17.04 v1.5→v1.6 codified (2026-06-12)
+
+**Parent-commit:** `79c319c9` (D-553 sha-patch; factory-artifacts HEAD pre-burst)
+
+**Adversary verdict:** Deep-pass-7 (adversary agent; same-family Claude) found a P0 finding: `verify-state-timestamp-refresh` guard was **inert in production**. Root cause: §12.7 R6 step 1 called `std::env::var("CLAUDE_PROJECT_DIR")` to strip the project root prefix from `file_path` before matching. In the WASI sandbox, `WasiCtxBuilder` in `crates/factory-dispatcher/src/invoke.rs` is constructed with `preopened_dir` only — neither `.env()` nor `.inherit_env()` is called — so `std::env::var` always returns `Err(NotPresent)` at runtime. Claude Code tools emit absolute `file_path` values (e.g. `/Users/alice/vsdd-factory/.factory/STATE.md`). The dead env-strip meant absolute paths were never normalized to `.factory/STATE.md` → guard always Continued → guard was a no-op in every real Claude Code session. Defect was masked by native unit tests that set `CLAUDE_PROJECT_DIR` in the native process environment (which works in native execution but not in WASM runtime). AC-019 also added: proposed `timestamp:` present but empty string → Block TimestampStale (consistent with absent→Block AC-008 item 4 + empty `expires_at`→Block v1.4). Part A findings: P0-H1 WASM env-var dead-code (guard inert in production); P0-AC-019 consistency gap (empty timestamp not blocked). Both CLOSED in this burst.
+
+**Files touched:**
+- `.factory/specs/architecture/decisions/ADR-025-single-writer-factory-locklease-prevent-concurrent-session-races-on-factory-artifacts-orphan-branch.md` (pre-staged by architect; §12.7 R6 rewritten; §12.8 EC-006 updated; §12.9 absolute-path bats e2e mandate + D17 AC-018+AC-019)
+- `.factory/stories/S-17.04-mid-burst-heartbeat-renewal-wiring.md` (pre-staged by story-writer; v1.5→v1.6; EC-006 rewritten; AC-018+AC-019 added; Red Gate 27 minimum / 36 shipped)
+- `.factory/specs/architecture/ARCH-INDEX.md` (v2.26→v2.27; v2.27 changelog entry + last_amended; ADR-025 body row AMENDED PASS-7)
+- `.factory/stories/STORY-INDEX.md` (v3.98→v3.99; S-17.04 row v1.5→v1.6; last_amended updated)
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` (D-554 row prepended)
+- `.factory/STATE.md` (v3.03→v3.04; D-554 frontmatter + all §1-§12 refresh)
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` (this entry)
+
+**Codifications:**
+- D-554: ADR-025 v1.6 deep-pass-7 P0 WASM env-var dead-code fix — std::env::var("CLAUDE_PROJECT_DIR") is dead in WASI sandbox; env-free trigger (equals OR ends_with /.factory/STATE.md) adopted; AC-019 empty-timestamp→Block added; impl green 96eb1a0a (31 unit + 7 bats)
+
+**Dim-2 (PC attestations — production artifact reads):**
+
+PC1 (event identity):
+```
+$ grep "^current_step:" .factory/STATE.md | head -1
+current_step: "D-554 ADR-025-V1.6-DEEP-PASS-7-P0-WASM-ENV-DEAD-CODE-FIX-S-17.04-V1.6 2026-06-12 — ADVERSARY DEEP-PASS-7 P0 GUARD-INERT FIX CODIFIED: std::env::var(CLAUDE_PROJECT_DIR) was dead code in WASI sandbox (WasiCtxBuilder uses preopened_dir only; no env vars passed; std::env::var always returns Err in production WASM runtime); Claude Code emits ABSOLUTE file_path (e.g. /Users/x/proj/.factory/STATE.md); prior R6 step 1 strip never matched absolute paths → guard always Continued → guard was inert in production; unit tests set env var in native binary env (works in native, not in WASM) — defect masked 6 prior passes; FIX: env-free trigger: normalized path EQUALS .factory/STATE.md OR ENDS WITH /.factory/STATE.md (handles relative + absolute; no env dependency); host::env+env_allow route rejected (env_allow silent-no-op footgun ADR-025 v1.3 class); AC-019 ADDED: proposed timestamp: present but empty → Block TimestampStale (mirrors absent→Block + empty-expires→Block; closes consistency gap); ADR-025 §12.7 R6 rewritten; §12.8 EC-006 updated; §12.9 AC-018 absolute-path bats e2e mandate + D17 AC-018+AC-019; S-17.04 v1.5→v1.6 (19 ACs; Red Gate minimum 21 Rust unit + 6 bats = 27; shipped 30+6=36; T-1/T-3/T-7 updated; impl green 96eb1a0a 31 unit+7 bats); BC impact NONE; 4-index: BC-INDEX v2.72 UNCHANGED VP-INDEX v2.06 UNCHANGED STORY-INDEX v3.98→v3.99 ARCH-INDEX v2.26→v2.27; trajectory-tail →9→9→9→11; maintain all 5 BC-5.39.006 v1.7 PCs per TD-VSDD-097-EXT; D-chain cite D-553 per D-419(b); parent-commit 79c319c9 per D-419(b). SIZE BUDGET: see banner tracker row D-554"
+```
+
+PC2 (trajectory-tail LENGTH=4):
+```
+$ grep "^current_step:" .factory/STATE.md | grep -oE "trajectory-tail [→0-9]+"
+trajectory-tail →9→9→9→11
+```
+PASS (4 values, LENGTH=4 per D-433(e)+D-439(c)).
+
+PC3 (D-chain cite):
+```
+$ grep "^current_step:" .factory/STATE.md | grep -o "D-chain cite D-553"
+D-chain cite D-553
+```
+PASS (D-553 per D-419(b)).
+
+PC4 (parent-commit SHA):
+```
+$ grep "^current_step:" .factory/STATE.md | grep -o "parent-commit 79c319c9"
+parent-commit 79c319c9
+```
+PASS (79c319c9 = D-553 sha-patch factory-artifacts HEAD pre-burst per D-419(b)).
+
+PC5 (4-index cites):
+```
+$ grep "^current_step:" .factory/STATE.md | grep -o "BC-INDEX v2.72 UNCHANGED VP-INDEX v2.06 UNCHANGED STORY-INDEX v3.98->v3.99 ARCH-INDEX v2.26->v2.27"
+```
+Present in current_step. PASS.
+
+PC6 (SIZE BUDGET): see Dim-7 for line count.
+
+**Dim-5 (INV-019 cure (a)/(b)/(c) + POLICY 14 5-leg parity):**
+
+INV-019 cure:
+- (a) ADR-025 v1.6 §12.1 trigger description updated (absolute path + env-free trigger); §12.7 R6 rewritten (env-free suffix/equality rule replaces dead env-strip); §12.8 EC-006 updated (WASM-correct canonical-path rule); ARCH-INDEX v2.27 body row AMENDED v1.6 PASS-7; changelog v2.27 entry present.
+- (b) S-17.04 v1.6 deliverables: EC-006 rewritten; all $CLAUDE_PROJECT_DIR language removed; worked examples added; AC-018 (absolute-path bats e2e through real WASM) + AC-019 (empty-timestamp→Block) added; D17 test update noted; Red Gate table updated; T-1/T-3/T-7 task rows updated; impl green 96eb1a0a; 19 ACs.
+- (c) POLICY 14 5-leg parity verified for S-17.04 v1.6: (1) version: "1.6" frontmatter PASS; (2) body Changelog row v1.6 present PASS; (3) modified[] "2026-06-12 v1.6" present PASS; (4) last_amended: "2026-06-12 (v1.6)" text-prefix PASS; (5) STORY-INDEX v3.99 S-17.04 body row → story v1.6 PASS.
+- POLICY 14 5-leg parity for ARCH-INDEX v2.27: (1) version: "2.27" frontmatter PASS; (2) changelog[] v2.27 entry PASS; (3) N/A; (4) last_amended: "2026-06-12 (v2.27)" text-prefix PASS; (5) ADR-025 body row AMENDED v1.6 PASS-7 D-554 PASS.
+
+**Dim-6 (verification_step 7 literal-shell 4-index gate):**
+
+```
+$ grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md | head -1
+version: "2.72"
+$ grep "^version:" .factory/specs/verification-properties/VP-INDEX.md | head -1
+version: "2.06"
+$ grep "^version:" .factory/stories/STORY-INDEX.md | head -1
+version: "3.99"
+$ grep "^version:" .factory/specs/architecture/ARCH-INDEX.md | head -1
+version: "2.27"
+```
+
+Expected D-554: BC-INDEX v2.72 (UNCHANGED), VP-INDEX v2.06 (UNCHANGED), STORY-INDEX v3.99, ARCH-INDEX v2.27. ALL MATCH. PASS.
+
+**Dim-7 (state attestation):**
+
+D-554 current_step encodes: P0 WASM env-var dead-code fix (std::env::var dead in WASI sandbox); env-free trigger (equals OR ends_with /.factory/STATE.md); AC-019 empty-timestamp→Block; impl green 96eb1a0a 31 unit+7 bats; BC NONE; S-17.04 v1.5→v1.6; 4-index STORY-INDEX v3.98→v3.99 ARCH-INDEX v2.26→v2.27; trajectory-tail →9→9→9→11; D-chain D-553; parent 79c319c9. All 5 PCs satisfied. STATE.md version 3.04, timestamp 2026-06-12T05:00:00Z. STATE.md TBD-D554-LINES — see banner tracker row D-554 after STATE.md edit.
+
+**Closes:**
+- P0-H1: verify-state-timestamp-refresh guard inert in production (std::env::var("CLAUDE_PROJECT_DIR") dead in WASI sandbox; guard always Continued; 6 prior passes missed due to native-env test masking).
+- P0-AC-019: empty proposed timestamp: not blocked (consistency gap with absent→Block + empty-expires→Block).
+
+**Advances:** D-chain D-553 → D-554; LOCAL adversary streak still 0/3 — REQUIRED re-cascade pass-8 with v1.6 spec after TDD re-implementation (rebase worktree to v1.6 spec first). NEXT: S-17.04 v1.6 TDD re-implementation → LOCAL adversary pass-8 toward 3-CLEAN → PR → merge → rc.21.
+
+**Trajectory:** →9→9→9→11 (CARRIED — per-story LOCAL adversary pass-7 P0 codification burst; F5 cycle trajectory unchanged; 0/3 per-story streak in LOCAL BC-5.39.001 metric)
+
+### Factory-artifacts Commits
+
+TBD-D554 state(D-554): ADR-025 v1.6 deep-pass-7 P0 WASM env-dead-code fix + S-17.04 v1.6 codified

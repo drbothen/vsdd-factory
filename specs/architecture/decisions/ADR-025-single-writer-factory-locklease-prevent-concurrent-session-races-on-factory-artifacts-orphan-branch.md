@@ -7,7 +7,7 @@ status: accepted
 producer: architect
 timestamp: 2026-06-10T00:00:00Z
 amended: 2026-06-11T00:00:00Z
-amendment_reason: "v1.5→v1.6: [S-17.04 redirect — human approved, adversary pass 1 incorporated] Decision 12 added: `verify-state-timestamp-refresh` WASM PreToolUse guard plugin. Decision 11 Mechanism 2 SUPERSEDED. Mechanism 1 (D10) RETAINED. (a) DECISION 12: new WASM plugin `verify-state-timestamp-refresh` in `crates/hook-plugins/verify-state-timestamp-refresh/`, registered in `hooks-registry.toml` as PreToolUse on Edit|Write|MultiEdit where file_path resolves to `.factory/STATE.md`. Per-tool proposed-content extraction: Write → `tool_input.content` (full file body); Edit → on-disk STATE.md with `tool_input.old_string` replaced by `tool_input.new_string` (first occurrence; `replace_all` honored); MultiEdit → on-disk STATE.md with each `tool_input.edits[]` element applied sequentially. Guard reads on-disk via `host::read_file`; compares time fields: BLOCKS if `timestamp:` not advanced (TimestampStale) OR lock held in proposed content and `factory_lock.expires_at` not advanced (LockExpiryStale). Fails open on parse/IO errors per Decision 7 precedent. (b) CORRECTED FINDINGS (adversary pass 1): `new_content` stale field removed (not a real Claude Code payload field — correct fields are `content`/`old_string`+`new_string`/`edits[]`); `[hooks.capabilities.read_file]` corrected to `path_allow`-only (ReadFileCaps is `#[serde(deny_unknown_fields)]` with only `path_allow: Vec<String>` — `max_bytes`/`timeout_ms` fields do not exist in the struct and would break registry load); explicit priorities added (verify-factory-lock at 142, verify-state-timestamp-refresh at 143 — must run AFTER verify-factory-lock, so 143 > 142); canonical-path rule specified (strip leading `./`, collapse `//`, treat absolute `$CLAUDE_PROJECT_DIR/`-prefixed paths — robust normalization, not fail-open); block message format corrected to real `block_with_fix` segments; robust frontmatter extraction specified. (c) SUPERSESSION: Decision 11 Mechanism 2 (D11/D12-registry/D14) WITHDRAWN. Push-time enforcement dropped. (d) INV-019 CURE: (a) Decision 12 added; (b) D11/D12-registry/D14 withdrawn, D15/D16/D17 added; (c) S-17.04 Re-Scope Directive issued. ARCH-INDEX v2.21→v2.22 pending state-manager codification burst. (e) GEMINI CROSS-FAMILY PASS (adversary pass 2): two semantics gaps closed: (R2) lock-held + proposed expires_at absent OR empty now Blocks LockExpiryStale (previously only byte-identical-to-on-disk triggered the block; absent/empty slipped through); (R4) `..` segment resolution added to canonical-path algorithm (segment-stack pop, fail-open if above-root escape). One clarity note added: `timestamp:` is the sole independently-gated freshness field; `last_amended:` is advanced by state-manager POLICY-14 discipline but not independently gated. Lock-identity guard sibling-sweep noted: verify-factory-lock `tool` matcher MUST include MultiEdit for parity. AC/test delta directive issued (§12.9). INV-019 cure: (a) §12.2 time-field table and §12.3 table updated; (b) §12.7 R6 extended; (c) AC/test delta directive issued. (f) ADVERSARY PASS 5 — factory-lock-parse crate relocation: `factory-lock-parse` is a pure library crate (no `[[bin]]`, no WASM output); placing it under `crates/hook-plugins/` inflated the WASM-plugin floor-count gate's expected count and broke CI. Correct path is `crates/factory-lock-parse/`. Updated in §12.5 and D15. INV-019 cure: (a) §12.5 and D15 path updated; (b) no other deliverables affected; (c) one-sentence rationale added in §12.5." v1.4→v1.5 amendment_reason preserved inline: [S-17.04 adversary F-1701-001] Gate-trigger fix for Decision 11 Mechanism 2 + block-message reconciliation + D12 jq capability sync. (1) TRIGGER CORRECTION: the v1.4 spec stated the gate triggers on `git.*push.*factory-artifacts` in the Bash tool-command string. This is inert on the production push path: post-S-17.01 the state-burst SKILL runs `bash plugins/vsdd-factory/bin/factory-cas-push.sh`, and the real `git push --force-with-lease` is a subprocess inside that helper — PreToolUse never inspects subprocess commands. The gate MUST trigger when `.tool_input.command` contains `factory-cas-push` (the canonical helper the SKILL uses) OR matches `git`+`push`+`factory-artifacts` (belt-and-suspenders for any hand-typed raw push). The check fires at PreToolUse on `bash factory-cas-push.sh`, at which point the burst commit already exists locally (HEAD STATE.md carries this burst's expires_at), so the HEAD-vs-origin comparison is valid. (2) BLOCK MESSAGE RECONCILIATION: the legacy-bash-adapter truncates plugin output to the first line of stdout. The implemented gate must therefore emit a single-line block_pre-form message: 'BLOCKED by verify-lock-renewal: RenewalMissed — factory_lock held but expires_at not refreshed in this burst. Fix: Run: factory-lock-write.sh renew .factory/STATE.md Code: RenewalMissed.' The multi-line verbatim text specified in v1.4 step 6 is unreachable through the legacy-bash-adapter; it is now replaced by this one-liner in the Decision 11 spec. (3) D12 JQ SYNC: D12 `exec_subprocess.binary_allow` must include `\"jq\"` alongside `\"bash\"` and `\"git\"`. The gate script execs `jq` to parse the JSON-envelope STATE.md frontmatter; omitting `jq` from binary_allow causes CapabilityDenied → silent fail-open → gate is inert. This is the fourth instance of the deny-by-default silent-no-op footgun class (vector 4: exec_subprocess binary_allow missing required tool for script internals). v1.3→v1.4 amendment_reason preserved inline: [S-17.04] Automatic heartbeat renewal enforcement wiring. Decision 11 added: two complementary mechanisms close the prose-only PC4 enforcement gap — (1) mandatory executable factory-lock-write.sh renew step in state-burst SKILL before git add/commit (Option A); (2) new verify-lock-renewal.sh PreToolUse bash hook that blocks a held-lock factory-artifacts push when HEAD's expires_at equals origin/factory-artifacts' expires_at (RenewalMissed — renewal not committed in this burst), on_error=continue, async=false, no-op when unlocked or no remote baseline (Option C). Decision 5 vestigial burst-END-only sentence corrected. Deliverables D10–D14 added. BC-5.40.001 PC4 unaffected. v1.2→v1.3 amendment_reason preserved inline: [process-gap] S-17.02 TDD implementation finding — exec_subprocess env_allow omission footgun. Decision 2 / D2 capability block spec was incomplete: exec_subprocess capability block listed only binary_allow = [\"git\"] but omitted env_allow. The dispatcher's exec_subprocess host function calls env_clear() and passes ONLY vars listed in caps.env_allow; without HOME (and GIT_CONFIG_GLOBAL / XDG_CONFIG_HOME) in env_allow, git config user.email cannot read the developer's global gitconfig, returns empty string, plugin hits IdentityResolutionFailed, fails open (Continue), and the lock guard is a silent no-op. This is the THIRD instance of the deny-by-default silent-no-op footgun class (first: read_file block omitted; second: exec_subprocess binary_allow omitted; third: exec_subprocess env_allow omitted). Fix: Decision 2 and D2 canonical registry snippet updated to include env_allow = [\"HOME\", \"GIT_CONFIG_GLOBAL\", \"XDG_CONFIG_HOME\"] on the exec_subprocess capability block. Rationale section updated to name all three footgun vectors explicitly. Process note added."
+amendment_reason: "v1.5→v1.6: [S-17.04 redirect — human approved, adversary pass 1 incorporated] Decision 12 added: `verify-state-timestamp-refresh` WASM PreToolUse guard plugin. Decision 11 Mechanism 2 SUPERSEDED. Mechanism 1 (D10) RETAINED. (a) DECISION 12: new WASM plugin `verify-state-timestamp-refresh` in `crates/hook-plugins/verify-state-timestamp-refresh/`, registered in `hooks-registry.toml` as PreToolUse on Edit|Write|MultiEdit where file_path resolves to `.factory/STATE.md`. Per-tool proposed-content extraction: Write → `tool_input.content` (full file body); Edit → on-disk STATE.md with `tool_input.old_string` replaced by `tool_input.new_string` (first occurrence; `replace_all` honored); MultiEdit → on-disk STATE.md with each `tool_input.edits[]` element applied sequentially. Guard reads on-disk via `host::read_file`; compares time fields: BLOCKS if `timestamp:` not advanced (TimestampStale) OR lock held in proposed content and `factory_lock.expires_at` not advanced (LockExpiryStale). Fails open on parse/IO errors per Decision 7 precedent. (b) CORRECTED FINDINGS (adversary pass 1): `new_content` stale field removed (not a real Claude Code payload field — correct fields are `content`/`old_string`+`new_string`/`edits[]`); `[hooks.capabilities.read_file]` corrected to `path_allow`-only (ReadFileCaps is `#[serde(deny_unknown_fields)]` with only `path_allow: Vec<String>` — `max_bytes`/`timeout_ms` fields do not exist in the struct and would break registry load); explicit priorities added (verify-factory-lock at 142, verify-state-timestamp-refresh at 143 — must run AFTER verify-factory-lock, so 143 > 142); canonical-path rule specified (strip leading `./`, collapse `//`, treat absolute `$CLAUDE_PROJECT_DIR/`-prefixed paths — robust normalization, not fail-open); block message format corrected to real `block_with_fix` segments; robust frontmatter extraction specified. (c) SUPERSESSION: Decision 11 Mechanism 2 (D11/D12-registry/D14) WITHDRAWN. Push-time enforcement dropped. (d) INV-019 CURE: (a) Decision 12 added; (b) D11/D12-registry/D14 withdrawn, D15/D16/D17 added; (c) S-17.04 Re-Scope Directive issued. ARCH-INDEX v2.21→v2.22 pending state-manager codification burst. (e) GEMINI CROSS-FAMILY PASS (adversary pass 2): two semantics gaps closed: (R2) lock-held + proposed expires_at absent OR empty now Blocks LockExpiryStale (previously only byte-identical-to-on-disk triggered the block; absent/empty slipped through); (R4) `..` segment resolution added to canonical-path algorithm (segment-stack pop, fail-open if above-root escape). One clarity note added: `timestamp:` is the sole independently-gated freshness field; `last_amended:` is advanced by state-manager POLICY-14 discipline but not independently gated. Lock-identity guard sibling-sweep noted: verify-factory-lock `tool` matcher MUST include MultiEdit for parity. AC/test delta directive issued (§12.9). INV-019 cure: (a) §12.2 time-field table and §12.3 table updated; (b) §12.7 R6 extended; (c) AC/test delta directive issued. (f) ADVERSARY PASS 5 — factory-lock-parse crate relocation: `factory-lock-parse` is a pure library crate (no `[[bin]]`, no WASM output); placing it under `crates/hook-plugins/` inflated the WASM-plugin floor-count gate's expected count and broke CI. Correct path is `crates/factory-lock-parse/`. Updated in §12.5 and D15. INV-019 cure: (a) §12.5 and D15 path updated; (b) no other deliverables affected; (c) one-sentence rationale added in §12.5. (g) ADVERSARY PASS 7 — P0 WASM env-var dead-code fix: §12.7 R6 step 1 specified stripping `$CLAUDE_PROJECT_DIR/` via `std::env::var("CLAUDE_PROJECT_DIR")`. The WASI sandbox inherits NO env vars (WasiCtxBuilder in `crates/factory-dispatcher/src/invoke.rs` uses preopened_dir only, never .env()/.inherit_env()); `std::env::var` always returns Err in production. Claude Code tools emit ABSOLUTE paths (verified in dispatcher logs); the prior step 1 was dead code — absolute paths never stripped, guard always returned Continue → guard was inert in production. Fix: replace env-var strip with WASM-correct suffix/equality rule: after `./`, `//`, `/./`, `..` normalizations, trigger if normalized path EQUALS `.factory/STATE.md` OR ENDS WITH `/.factory/STATE.md`. No env dependency; no capability required; handles both relative and absolute forms. `host::env`+`env_allow` route explicitly rejected (reintroduces env_allow silent-no-op footgun, ADR-025 v1.3 class). §12.1 trigger description updated; §12.7 R6 rewritten; §12.9 absolute-path bats e2e test mandate added. INV-019 cure: (a) §12.1 and §12.7 R6 rewritten; (b) §12.9 updated with absolute-path e2e mandate; (c) AC/EC delta directive updated." v1.4→v1.5 amendment_reason preserved inline: [S-17.04 adversary F-1701-001] Gate-trigger fix for Decision 11 Mechanism 2 + block-message reconciliation + D12 jq capability sync. (1) TRIGGER CORRECTION: the v1.4 spec stated the gate triggers on `git.*push.*factory-artifacts` in the Bash tool-command string. This is inert on the production push path: post-S-17.01 the state-burst SKILL runs `bash plugins/vsdd-factory/bin/factory-cas-push.sh`, and the real `git push --force-with-lease` is a subprocess inside that helper — PreToolUse never inspects subprocess commands. The gate MUST trigger when `.tool_input.command` contains `factory-cas-push` (the canonical helper the SKILL uses) OR matches `git`+`push`+`factory-artifacts` (belt-and-suspenders for any hand-typed raw push). The check fires at PreToolUse on `bash factory-cas-push.sh`, at which point the burst commit already exists locally (HEAD STATE.md carries this burst's expires_at), so the HEAD-vs-origin comparison is valid. (2) BLOCK MESSAGE RECONCILIATION: the legacy-bash-adapter truncates plugin output to the first line of stdout. The implemented gate must therefore emit a single-line block_pre-form message: 'BLOCKED by verify-lock-renewal: RenewalMissed — factory_lock held but expires_at not refreshed in this burst. Fix: Run: factory-lock-write.sh renew .factory/STATE.md Code: RenewalMissed.' The multi-line verbatim text specified in v1.4 step 6 is unreachable through the legacy-bash-adapter; it is now replaced by this one-liner in the Decision 11 spec. (3) D12 JQ SYNC: D12 `exec_subprocess.binary_allow` must include `\"jq\"` alongside `\"bash\"` and `\"git\"`. The gate script execs `jq` to parse the JSON-envelope STATE.md frontmatter; omitting `jq` from binary_allow causes CapabilityDenied → silent fail-open → gate is inert. This is the fourth instance of the deny-by-default silent-no-op footgun class (vector 4: exec_subprocess binary_allow missing required tool for script internals). v1.3→v1.4 amendment_reason preserved inline: [S-17.04] Automatic heartbeat renewal enforcement wiring. Decision 11 added: two complementary mechanisms close the prose-only PC4 enforcement gap — (1) mandatory executable factory-lock-write.sh renew step in state-burst SKILL before git add/commit (Option A); (2) new verify-lock-renewal.sh PreToolUse bash hook that blocks a held-lock factory-artifacts push when HEAD's expires_at equals origin/factory-artifacts' expires_at (RenewalMissed — renewal not committed in this burst), on_error=continue, async=false, no-op when unlocked or no remote baseline (Option C). Decision 5 vestigial burst-END-only sentence corrected. Deliverables D10–D14 added. BC-5.40.001 PC4 unaffected. v1.2→v1.3 amendment_reason preserved inline: [process-gap] S-17.02 TDD implementation finding — exec_subprocess env_allow omission footgun. Decision 2 / D2 capability block spec was incomplete: exec_subprocess capability block listed only binary_allow = [\"git\"] but omitted env_allow. The dispatcher's exec_subprocess host function calls env_clear() and passes ONLY vars listed in caps.env_allow; without HOME (and GIT_CONFIG_GLOBAL / XDG_CONFIG_HOME) in env_allow, git config user.email cannot read the developer's global gitconfig, returns empty string, plugin hits IdentityResolutionFailed, fails open (Continue), and the lock guard is a silent no-op. This is the THIRD instance of the deny-by-default silent-no-op footgun class (first: read_file block omitted; second: exec_subprocess binary_allow omitted; third: exec_subprocess env_allow omitted). Fix: Decision 2 and D2 canonical registry snippet updated to include env_allow = [\"HOME\", \"GIT_CONFIG_GLOBAL\", \"XDG_CONFIG_HOME\"] on the exec_subprocess capability block. Rationale section updated to name all three footgun vectors explicitly. Process note added."
 title: "ADR-025: Single-writer factory lock/lease — prevent concurrent session races on factory-artifacts orphan branch"
 traces_to: .factory/specs/architecture/ARCH-INDEX.md
 anchors:
@@ -32,7 +32,7 @@ human_gate_reason: "All decisions confirmed by human design review 2026-06-10. R
 
 ## Status
 
-**ACCEPTED — human design confirmed 2026-06-10; research-agent verification APPROVE-WITH-FIXES incorporated as v1.2. D-540 codification recorded by state-manager 2026-06-10. Implementation dispatch ready. v1.3 amended 2026-06-11: [process-gap] S-17.02 TDD finding — exec_subprocess env_allow omission footgun; env_allow = ["HOME", "GIT_CONFIG_GLOBAL", "XDG_CONFIG_HOME"] added to D2 canonical registry form. v1.4 amended 2026-06-11: [S-17.04] Decision 11 added — automatic heartbeat renewal enforcement (executable state-burst SKILL step + PreToolUse push gate); Decision 5 vestigial burst-END sentence corrected; Deliverables D10–D14 added. v1.5 amended 2026-06-11: [S-17.04 adversary F-1701-001] Decision 11 gate-trigger correction (trigger must fire on `factory-cas-push` helper, not only raw `git push`; the real push runs as subprocess inside the helper and is invisible to PreToolUse), block-message reconciled to legacy-bash-adapter one-liner form, D12 binary_allow extended with "jq" (fourth deny-by-default silent-no-op vector closed). v1.6 amended 2026-06-11: [S-17.04 redirect — human approved; adversary pass 1 incorporated] Decision 12 added — `verify-state-timestamp-refresh` Rust WASM PreToolUse guard: blocks Edit/Write/MultiEdit to STATE.md when proposed full content (reconstructed for Edit/MultiEdit) does not advance `timestamp:` frontmatter (every write) or `factory_lock.expires_at` (when lock held). Per-tool field extraction: Write→`tool_input.content`; Edit→on-disk+`old_string`/`new_string` reconstruct; MultiEdit→sequential `edits[]` apply. Registry caps corrected: `[hooks.capabilities.read_file]` accepts `path_allow` ONLY (`max_bytes`/`timeout_ms` are not struct fields — adding them breaks registry load). Priorities made explicit: verify-factory-lock=142, verify-state-timestamp-refresh=143 (lock-identity check fires first). Canonical-path normalization rule specified. Block message format corrected to real `block_with_fix` segments. Decision 11 Mechanism 2 (D11/D12-registry/D14) SUPERSEDED. Mechanism 1 (D10) RETAINED. S-17.04 REDIRECTED to v1.2. Gemini cross-family pass (adversary pass 2) incorporated: lock-held+absent/empty `expires_at` now Blocks LockExpiryStale (closes enforcement asymmetry); `..` segment resolution added to canonical-path algorithm; clarity note on `timestamp:` vs `last_amended:` scoping added; lock-identity guard MultiEdit sibling-sweep noted. Adversary pass 5: `factory-lock-parse` crate path corrected to `crates/factory-lock-parse/` (lib-only crate must not live under `crates/hook-plugins/` — WASM floor-count gate scope). S-17.04 + rc.21 HELD.**
+**ACCEPTED — human design confirmed 2026-06-10; research-agent verification APPROVE-WITH-FIXES incorporated as v1.2. D-540 codification recorded by state-manager 2026-06-10. Implementation dispatch ready. v1.3 amended 2026-06-11: [process-gap] S-17.02 TDD finding — exec_subprocess env_allow omission footgun; env_allow = ["HOME", "GIT_CONFIG_GLOBAL", "XDG_CONFIG_HOME"] added to D2 canonical registry form. v1.4 amended 2026-06-11: [S-17.04] Decision 11 added — automatic heartbeat renewal enforcement (executable state-burst SKILL step + PreToolUse push gate); Decision 5 vestigial burst-END sentence corrected; Deliverables D10–D14 added. v1.5 amended 2026-06-11: [S-17.04 adversary F-1701-001] Decision 11 gate-trigger correction (trigger must fire on `factory-cas-push` helper, not only raw `git push`; the real push runs as subprocess inside the helper and is invisible to PreToolUse), block-message reconciled to legacy-bash-adapter one-liner form, D12 binary_allow extended with "jq" (fourth deny-by-default silent-no-op vector closed). v1.6 amended 2026-06-11: [S-17.04 redirect — human approved; adversary pass 1 incorporated] Decision 12 added — `verify-state-timestamp-refresh` Rust WASM PreToolUse guard: blocks Edit/Write/MultiEdit to STATE.md when proposed full content (reconstructed for Edit/MultiEdit) does not advance `timestamp:` frontmatter (every write) or `factory_lock.expires_at` (when lock held). Per-tool field extraction: Write→`tool_input.content`; Edit→on-disk+`old_string`/`new_string` reconstruct; MultiEdit→sequential `edits[]` apply. Registry caps corrected: `[hooks.capabilities.read_file]` accepts `path_allow` ONLY (`max_bytes`/`timeout_ms` are not struct fields — adding them breaks registry load). Priorities made explicit: verify-factory-lock=142, verify-state-timestamp-refresh=143 (lock-identity check fires first). Canonical-path normalization rule specified. Block message format corrected to real `block_with_fix` segments. Decision 11 Mechanism 2 (D11/D12-registry/D14) SUPERSEDED. Mechanism 1 (D10) RETAINED. S-17.04 REDIRECTED to v1.2. Gemini cross-family pass (adversary pass 2) incorporated: lock-held+absent/empty `expires_at` now Blocks LockExpiryStale (closes enforcement asymmetry); `..` segment resolution added to canonical-path algorithm; clarity note on `timestamp:` vs `last_amended:` scoping added; lock-identity guard MultiEdit sibling-sweep noted. Adversary pass 5: `factory-lock-parse` crate path corrected to `crates/factory-lock-parse/` (lib-only crate must not live under `crates/hook-plugins/` — WASM floor-count gate scope). Adversary pass 7 (P0): `$CLAUDE_PROJECT_DIR` env-var strip was dead code in WASM sandbox (WasiCtxBuilder inherits no env vars; `std::env::var` always returns Err; absolute `file_path` forms never matched; guard was inert in production). Fixed: §12.7 R6 step 1 replaced with WASM-correct suffix/equality rule — trigger when normalized path equals `.factory/STATE.md` OR ends with `/.factory/STATE.md`. No env dependency. Absolute-path bats e2e test mandate added to §12.9. S-17.04 + rc.21 HELD.**
 
 This ADR resolves the design for the factory lock/lease primitive requested in issue #170.
 Twelve decisions are confirmed. Five research-agent fixes are incorporated in v1.2, one
@@ -544,10 +544,18 @@ VSDD Rust hook pattern precisely.
 **Compiled to:** `plugins/vsdd-factory/hook-plugins/verify-state-timestamp-refresh.wasm`
 **Event:** `PreToolUse`
 **Tools:** `Edit`, `Write`, and `MultiEdit` — all three tools that mutate file content
-**Trigger condition:** `tool_input.file_path` in the payload resolves to `.factory/STATE.md`
-(after canonical-path normalization — see §12.7 R6). Any of the three tools whose
-`file_path` does NOT resolve to `.factory/STATE.md` returns `Continue` immediately without
-reading any file.
+**Trigger condition:** `tool_input.file_path` in the payload, after applying the
+normalization steps in §12.7 R6, either EQUALS `.factory/STATE.md` exactly OR ENDS WITH
+`/.factory/STATE.md`. Any payload whose `file_path` does not satisfy either condition
+returns `Continue` immediately without reading any file.
+
+**Why suffix/equality, not exact equality alone:** Claude Code's Edit, Write, and
+MultiEdit tools emit the `file_path` as an **absolute path** (e.g.
+`/Users/alice/project/.factory/STATE.md`) — verified in dispatcher logs across 5,235+
+captured PreToolUse events. The WASI sandbox has no access to env vars (see §12.7 R6 for
+rationale), so the prior `$CLAUDE_PROJECT_DIR` strip was dead code. The suffix check
+`ends_with("/.factory/STATE.md")` handles absolute paths with zero env dependency and
+zero capability requirement.
 
 **`tool_input.file_path` is always the correct field name.** Claude Code's Write, Edit, and
 MultiEdit tools all use `file_path` (not `path`). The dispatcher log confirms: `file_path`
@@ -838,43 +846,80 @@ primary deliverable. There is NO pre-rc interim period where the guard is absent
 state-manager is expected to advance timestamps — the guard and the obligation are
 co-deployed.
 
-**R6 — Canonical-path normalization rule (H03/EC-006 + Gemini R4 resolution):** The guard
-receives `tool_input.file_path` as a raw string. Claude Code tools may send the path in
-various forms depending on context (user-typed path, absolute path, normalized path). The
-guard MUST apply the following normalization algorithm in order before comparing:
+**R6 — WASM-correct path-matching rule (adversary pass 7 P0 rewrite):**
 
-1. **Strip `$CLAUDE_PROJECT_DIR/` prefix** if present: an absolute path starting with the
-   project root directory is equivalent to the repo-relative path. After stripping, the
-   result is a relative path — continue with remaining steps.
-2. **Strip a single leading `./`** if present: `"./. factory/STATE.md"` → `".factory/STATE.md"`.
-3. **Collapse double slashes**: `".factory//STATE.md"` → `".factory/STATE.md"` (repeat until
+**Root cause of prior failure:** The previous step 1 specified stripping the
+`$CLAUDE_PROJECT_DIR/` prefix via `std::env::var("CLAUDE_PROJECT_DIR")`. The WASI
+sandbox built by the dispatcher (`WasiCtxBuilder` in `crates/factory-dispatcher/src/invoke.rs`)
+uses `preopened_dir` only — it never calls `.env()` or `.inherit_env()`. Therefore
+`std::env::var` **always returns `Err` in production**. Claude Code tools emit `file_path`
+as an **absolute path** (e.g. `/Users/alice/project/.factory/STATE.md`) — verified across
+5,235+ captured PreToolUse events. With step 1 dead, absolute paths never matched the
+canonical string `.factory/STATE.md`, and the guard returned `Continue` on every real
+Edit/Write/MultiEdit to STATE.md. The guard was inert in production while passing unit
+tests only because `#[test]` runs as a native binary where `std::env::set_var` works.
+
+**Why `host::env` + `env_allow` is NOT the fix:** The `host::env` call is capability-gated
+via `env_allow`. Omitting a variable name from `env_allow` causes the host function to
+silently return nothing — the same deny-by-default silent-no-op footgun class documented
+in ADR-025 v1.3 (D-545 class). Depending on `env_allow` recreates the exact dead-branch
+failure mode in a new costume. This route is explicitly rejected.
+
+**WASM-correct rule (no env dependency, no additional capability):**
+
+Apply the following normalization steps to the raw `tool_input.file_path` string, then
+apply the match test:
+
+1. **Strip a single leading `./`** if present: `"./. factory/STATE.md"` → `".factory/STATE.md"`.
+2. **Collapse double slashes**: `".factory//STATE.md"` → `".factory/STATE.md"` (repeat until
    no `//` remains).
-4. **Collapse `/./` segments**: `".factory/./STATE.md"` → `".factory/STATE.md"` (repeat until
+3. **Collapse `/./` segments**: `".factory/./STATE.md"` → `".factory/STATE.md"` (repeat until
    no `/./` remains).
-5. **Resolve `..` segments (segment-stack algorithm):** split the path on `/`; iterate
+4. **Resolve `..` segments (segment-stack algorithm):** split the path on `/`; iterate
    segments left-to-right; push non-empty, non-`.` segments onto a stack; on `..` pop the
-   top of the stack (if the stack is non-empty); rebuild the path by joining the stack with
-   `/`. Examples:
-   - `"foo/../.factory/STATE.md"` → segments `["foo", "..", ".factory", "STATE.md"]` → stack after: `[".factory", "STATE.md"]` → `".factory/STATE.md"` → **triggers guard**
-   - `"$CLAUDE_PROJECT_DIR/x/../.factory/STATE.md"` → after step 1: `"x/../.factory/STATE.md"` → after step 5: `".factory/STATE.md"` → **triggers guard**
-   - `"../../.factory/STATE.md"` → segments `["..", "..", ".factory", "STATE.md"]` → stack after: `[]` then push `.factory`, `STATE.md` → `".factory/STATE.md"` → **triggers guard** (above-root `..` segments that pop an empty stack are silently discarded — do NOT treat this as an error)
+   top of the stack (if non-empty — above-root `..` against an empty stack is silently
+   discarded); rebuild the path by joining the stack with `/`.
 
-After all five steps, compare to the canonical string `".factory/STATE.md"`.
+**Match test (after all four normalization steps):**
 
-**Direction of residual misses is always fail-open (never false-block).** Any path that
-cannot be resolved after applying the algorithm — for example a path containing NUL bytes,
-paths that are not valid UTF-8, or paths that reduce to the empty string — MUST Continue
-(fail-open), not Block. The threat model is a cooperative state-manager; an evasion here
-means the timestamp obligation is transiently unenforced for one pathological write, which
-is a better failure mode than a false-block that wedges the factory.
+Trigger the guard if the normalized string EQUALS `".factory/STATE.md"` exactly,
+OR ENDS WITH `"/.factory/STATE.md"`.
 
-**Do NOT fail-open on merely non-canonical representations.** A path that normalizes to
-`.factory/STATE.md` MUST trigger the guard regardless of how it was written. The prior
-implementation comment claimed double-slash stripping while the code did not perform it —
-a doc-vs-code lie that created an evasion path. This spec requires exhaustive normalization.
+Do NOT apply any further stripping. The `ends_with` branch handles all absolute-path
+forms regardless of the leading prefix — no knowledge of the project root is needed.
 
-The canonical form to compare against is always `.factory/STATE.md` (relative, leading dot,
-no leading slash, single forward slash between components, no trailing slash).
+**Worked examples:**
+
+| Raw `file_path` | After normalization | Match? | Outcome |
+|---|---|---|---|
+| `".factory/STATE.md"` | `".factory/STATE.md"` | equals | **triggers guard** |
+| `"./.factory/STATE.md"` | `".factory/STATE.md"` (strip `./`) | equals | **triggers guard** |
+| `"/Users/alice/project/.factory/STATE.md"` | unchanged (no `./`/`//`/`/./`/`..`) | ends_with `/.factory/STATE.md` | **triggers guard** |
+| `"/home/ci/repo/.factory//STATE.md"` | `/home/ci/repo/.factory/STATE.md` | ends_with `/.factory/STATE.md` | **triggers guard** |
+| `"/repo/x/../.factory/STATE.md"` | `/repo/.factory/STATE.md` (step 4) | ends_with `/.factory/STATE.md` | **triggers guard** |
+| `".factory/STATE.md.bak"` | `".factory/STATE.md.bak"` | no match | Continue |
+| `"other/STATE.md"` | `"other/STATE.md"` | no match | Continue |
+| `".factory/state.md"` (wrong case) | `".factory/state.md"` | no match | Continue |
+
+**Cross-project false-block analysis:** A suffix match could theoretically match a
+DIFFERENT repo's `…/.factory/STATE.md`. This is acceptable: the dispatcher runs
+per-project and `host::read_file` reads THIS project's `.factory/STATE.md` via the
+`path_allow = [".factory/STATE.md"]` capability (relative path). Blocking a stale write
+to any path ending in `/.factory/STATE.md` is fail-toward-enforcement — the worst case is
+a spurious block on a hypothetical write to a nested project's STATE.md from within this
+project's Claude Code session, which is not a supported usage pattern. This risk is judged
+negligible against the certainty of the guard being permanently inert under the prior rule.
+
+**Direction of residual misses is always fail-open (never false-block).** Any path that is
+not valid UTF-8, or reduces to the empty string after normalization, MUST Continue
+(fail-open). The threat model is a cooperative state-manager; a transient evasion is a
+better failure mode than a false-block that wedges the factory.
+
+**Absolute-path bats e2e test is MANDATORY (see §12.9).** Native-env unit tests using
+`std::env::set_var` do NOT validate the WASM trigger — the WASI sandbox does not inherit
+env vars, so a test that works in the native binary can mask a dead branch in the compiled
+WASM. The absolute-path code path MUST be exercised through the actual `wasmtime` runtime
+via a bats integration test.
 
 **R7 — Priority ordering (H02 resolution):** Resolved in §12.1. Explicit priority values
 are mandated: `verify-factory-lock = 142`, `verify-state-timestamp-refresh = 143`. The D2
@@ -914,7 +959,7 @@ finding routed to the correct specialist per CLAUDE.md Companion Principle.
 
 **EC-006 (canonical-path matching rule):**
 - Current: absent or underspecified
-- Correct: add an EC or clarifying note specifying the canonical-path normalization algorithm from §12.7 R6 above: strip `./`, strip `$CLAUDE_PROJECT_DIR/` prefix, collapse `//`, collapse `/./`; compare result to `.factory/STATE.md`; fail-open ONLY for genuinely unresolvable traversal paths
+- Correct (updated per adversary pass 7): add an EC or clarifying note specifying the WASM-correct canonical-path rule from §12.7 R6: strip leading `./`; collapse `//`; collapse `/./`; resolve `..` via segment-stack; then trigger if result EQUALS `".factory/STATE.md"` OR ENDS WITH `"/.factory/STATE.md"`. No env vars read. The `$CLAUDE_PROJECT_DIR` prefix strip is REMOVED — it was dead code in the WASM sandbox.
 
 **New ACs for Write/Edit/MultiEdit coverage (proposed additions — product-owner decides exact AC numbering):**
 - AC-NEW-WRITE: When the guard receives a Write tool payload for `.factory/STATE.md` with `tool_input.content` containing an unchanged `timestamp:` → Block TimestampStale
@@ -962,6 +1007,37 @@ Test-writer MUST add two unit test cases:
 - **(w)** `file_path = "../../.factory/STATE.md"` → resolves to `.factory/STATE.md`
   (above-root `..` segments silently discarded) → guard triggers
 
+**Gap R7 (adversary pass 7 P0) — WASM-correct path trigger; absolute-path e2e test:**
+
+Story-writer MUST update EC-006 to reflect the suffix/equality rule:
+"The guard triggers when, after normalization steps (strip leading `./`; collapse `//`;
+collapse `/./`; resolve `..` via segment-stack), the path EQUALS `.factory/STATE.md` OR
+ENDS WITH `/.factory/STATE.md`. No env vars are read. The `$CLAUDE_PROJECT_DIR`-based
+prefix strip is removed — it was dead code in the WASM sandbox."
+
+Test-writer MUST add the following bats integration test (MANDATORY — existing unit tests
+do NOT cover this because `std::env::set_var` works in native binaries but the WASI
+sandbox inherits no env vars):
+- **(e2e-abs)** Send a real PreToolUse payload with `file_path` set to an ABSOLUTE path
+  ending in `/.factory/STATE.md` (e.g. `/tmp/test-project/.factory/STATE.md`) and stale
+  `timestamp:` content through the actual WASM runtime (wasmtime, not native test binary).
+  Assert exit code 2 (Block) with canonical TimestampStale message. This test MUST fail
+  before the fix (demonstrating the inert guard) and pass after.
+
+**Why native-env unit tests are insufficient:** `std::env::set_var` in a `#[test]`
+function sets the var in the native OS process, where `std::env::var` works normally.
+The compiled WASM plugin runs in a wasmtime WASI sandbox with no inherited env vars.
+A unit test that calls `std::env::set_var("CLAUDE_PROJECT_DIR", …)` gives false
+confidence — the test passes in native, the WASM guard silently does nothing in production.
+The bats e2e test exercises the actual binary path through the real sandbox.
+
+Implementer directive (separate from story/test-writer above):
+- Remove all `std::env::var("CLAUDE_PROJECT_DIR")` calls from `verify-state-timestamp-refresh`
+- Replace the prefix-strip step with: after normalization (strip `./`; collapse `//`,
+  `/./`; resolve `..`), check `normalized == ".factory/STATE.md" || normalized.ends_with("/.factory/STATE.md")`
+- Do NOT add any `env_allow` entry or `host::env` call — capability-free is the correct path
+- The D16 registry entry and D15 crate are NOT changed by this fix (no new capabilities needed)
+
 **Lock-identity guard sibling-sweep note (R1-adjacent, implementer in-scope):**
 
 The existing `verify-factory-lock` registry entry has `tool = "Edit|Write|Agent"` and
@@ -996,7 +1072,7 @@ trace to each entry:
 | ~~D14~~ | ~~Bats tests for Decision 11 (`verify-lock-renewal.bats`)~~ | ~~`plugins/vsdd-factory/tests/verify-lock-renewal.bats`~~ | **WITHDRAWN in v1.6.** The bash gate no longer exists. Renewal-check logic is tested at D17 (Rust unit tests + bats for `verify-state-timestamp-refresh`). Do NOT create `verify-lock-renewal.bats`. |
 | D15 | Shared `factory-lock-parse` crate | `crates/factory-lock-parse/` | New workspace-internal **library** crate (no `[[bin]]`, no WASM output). MUST NOT live under `crates/hook-plugins/` — that directory is the WASM-plugin floor-count gate's scope; a lib-only crate there breaks CI. Promotes `parse_factory_lock`, `LockState`, `extract_yaml_string_value`, `parse_iso8601` from `verify-factory-lock::lib` to this shared crate. `verify-factory-lock` and `verify-state-timestamp-refresh` both depend on it. `verify-factory-lock/src/lib.rs` changes import paths from `crate::` to `factory_lock_parse::` — logic and tests unchanged. All existing `verify-factory-lock` tests continue to pass unmodified. No `serde_yaml`/`serde_norway` (manual line-by-line scan per Architecture Compliance Rule 4). `chrono` as workspace dep. |
 | D16 | `verify-state-timestamp-refresh` WASM plugin + registry entry + priority amendment to `verify-factory-lock` entry | `crates/hook-plugins/verify-state-timestamp-refresh/` → `plugins/vsdd-factory/hook-plugins/verify-state-timestamp-refresh.wasm`; registry entry in `plugins/vsdd-factory/hooks-registry.toml`; also add `priority = 142` to existing `verify-factory-lock` entry | New PreToolUse guard. See Decision 12 for full spec. Crate pattern identical to `verify-factory-lock`: `[lib]` with pure `guard_logic(payload, callbacks)` injectable for unit tests + `[[bin]]` WASI entry point. Uses `factory-lock-parse` for `parse_factory_lock` and `extract_yaml_string_value`. Registry entry: `event = "PreToolUse"`, `tool = "Edit\|Write\|MultiEdit"`, `async = false` (REQUIRED per ADR-019), `on_error = "continue"`, `priority = 143`, `timeout_ms = 5000`. Capability block: `[hooks.capabilities.read_file]` with `path_allow = [".factory/STATE.md"]` ONLY — NO `max_bytes`/`timeout_ms` (ReadFileCaps is `#[serde(deny_unknown_fields)]` with only `path_allow: Vec<String>`; extra fields break registry load). No `exec_subprocess` capability needed. `max_bytes` and `timeout_ms` values are passed as arguments in the WASM plugin source code at `host::read_file` call sites, not in TOML. |
-| D17 | Rust `#[test]` unit coverage + bats integration tests for `verify-state-timestamp-refresh` | `crates/hook-plugins/verify-state-timestamp-refresh/src/lib.rs`; `plugins/vsdd-factory/tests/verify-state-timestamp-refresh.bats` | Table-driven unit tests via injectable callbacks (matching `verify-factory-lock` test pattern). MUST cover: (a) Write payload, lock held, `factory_lock.expires_at` unchanged → Block LockExpiryStale; (b) Write payload, lock held, `expires_at` advanced → Continue; (c) Write payload, no lock held, `timestamp:` unchanged → Block TimestampStale; (d) Write payload, no lock held, `timestamp:` advanced → Continue; (e) Write payload, proposed content frontmatter unparseable → Continue (fail-open); (f) on-disk `host::read_file` fails (any HostError) → Continue (fail-open); (g) `file_path` not STATE.md (after normalization) → Continue immediately (no read_file called); (h) `timestamp:` absent in on-disk content → Continue; (i) `timestamp:` absent in proposed content → Block TimestampStale; (j) Edit payload, `old_string` found, reconstructed full content has stale `timestamp:` → Block TimestampStale; (k) Edit payload, `old_string` found, reconstructed full content has advanced `timestamp:` → Continue; (l) Edit payload, `old_string` NOT found in on-disk content → Continue (fail-open); (m) Edit payload with `replace_all=true`, all occurrences replaced, reconstructed content has advanced `timestamp:` → Continue; (n) MultiEdit payload, all edits apply, reconstructed content has stale `timestamp:` → Block TimestampStale; (o) MultiEdit payload, first edit's `old_string` not found → Continue (fail-open); (p) quoted `timestamp:` value normalization — on-disk unquoted, proposed quoted but different value → Continue (no false positive); (q) quoted `timestamp:` value normalization — both sides same quoted value → Block TimestampStale; (r) canonical-path normalization — `file_path = "./. factory/STATE.md"` → triggers guard (same as unadorned path); (s) file_path with `$CLAUDE_PROJECT_DIR/` prefix → triggers guard. Bats integration tests MUST cover: Write happy path (advanced timestamp → exit 0), Write stale path (unchanged timestamp → exit 2 with `BLOCKED by verify-state-timestamp-refresh` canonical message), Edit happy path (reconstructed content has advanced timestamp → exit 0), non-STATE.md path (`file_path = ".factory/OTHER.md"` → exit 0 without read_file). |
+| D17 | Rust `#[test]` unit coverage + bats integration tests for `verify-state-timestamp-refresh` | `crates/hook-plugins/verify-state-timestamp-refresh/src/lib.rs`; `plugins/vsdd-factory/tests/verify-state-timestamp-refresh.bats` | Table-driven unit tests via injectable callbacks (matching `verify-factory-lock` test pattern). MUST cover: (a) Write payload, lock held, `factory_lock.expires_at` unchanged → Block LockExpiryStale; (b) Write payload, lock held, `expires_at` advanced → Continue; (c) Write payload, no lock held, `timestamp:` unchanged → Block TimestampStale; (d) Write payload, no lock held, `timestamp:` advanced → Continue; (e) Write payload, proposed content frontmatter unparseable → Continue (fail-open); (f) on-disk `host::read_file` fails (any HostError) → Continue (fail-open); (g) `file_path` not STATE.md (after normalization) → Continue immediately (no read_file called); (h) `timestamp:` absent in on-disk content → Continue; (i) `timestamp:` absent in proposed content → Block TimestampStale; (j) Edit payload, `old_string` found, reconstructed full content has stale `timestamp:` → Block TimestampStale; (k) Edit payload, `old_string` found, reconstructed full content has advanced `timestamp:` → Continue; (l) Edit payload, `old_string` NOT found in on-disk content → Continue (fail-open); (m) Edit payload with `replace_all=true`, all occurrences replaced, reconstructed content has advanced `timestamp:` → Continue; (n) MultiEdit payload, all edits apply, reconstructed content has stale `timestamp:` → Block TimestampStale; (o) MultiEdit payload, first edit's `old_string` not found → Continue (fail-open); (p) quoted `timestamp:` value normalization — on-disk unquoted, proposed quoted but different value → Continue (no false positive); (q) quoted `timestamp:` value normalization — both sides same quoted value → Block TimestampStale; (r) canonical-path normalization — `file_path = "./.factory/STATE.md"` (leading `./`) → triggers guard after strip (same as unadorned path); (s) absolute-path trigger — `file_path = "/Users/alice/project/.factory/STATE.md"` → triggers guard via `ends_with("/.factory/STATE.md")` (WASM-correct; no env var required); NOTE: `std::env::var("CLAUDE_PROJECT_DIR")` MUST NOT appear in the implementation — always returns Err in WASM sandbox. Bats integration tests MUST cover: Write happy path (advanced timestamp → exit 0), Write stale path (unchanged timestamp → exit 2 with `BLOCKED by verify-state-timestamp-refresh` canonical message), Edit happy path (reconstructed content has advanced timestamp → exit 0), non-STATE.md path (`file_path = ".factory/OTHER.md"` → exit 0 without read_file), AND (e2e-abs) absolute `file_path` = `"/abs/project/.factory/STATE.md"` with stale timestamp through actual wasmtime runtime → exit 2 (validates suffix/equality rule in WASM context, not just native binary). |
 
 ## Rationale
 
@@ -1433,4 +1509,21 @@ canonical registry form specifies MUST route an architect ADR amendment in the s
   prose and D15 table row. No behavior change; no BC impact. INV-019 cure: (a) §12.5 and
   D15 path corrected; (b) path rationale note added to §12.5; (c) no other deliverables
   or ACs affected. ARCH-INDEX v2.25→v2.26 pending state-manager codification burst.
-  Architect: S-17.04, issue #170.
+- **v1.6 [adversary pass 7 — P0 WASM env-var dead-code fix] amendment:** 2026-06-12 —
+  §12.7 R6 step 1 (`$CLAUDE_PROJECT_DIR` prefix strip via `std::env::var`) was dead code
+  in the WASI sandbox. Root cause: `WasiCtxBuilder` in `crates/factory-dispatcher/src/invoke.rs`
+  uses `preopened_dir` only, never `.env()`/`.inherit_env()`; `std::env::var` always
+  returns `Err` at runtime. Claude Code tools emit absolute `file_path` values (verified,
+  5,235+ events); absolute paths never matched the canonical relative string; guard always
+  returned `Continue` → guard was inert in production. Survived 6 adversary passes because
+  native `#[test]` binary inherits host env vars where `std::env::set_var` works. Fix:
+  step 1 removed; match rule changed to: after normalization (steps 1–4: strip `./`,
+  collapse `//`, collapse `/./`, `..` segment-stack), trigger if normalized path EQUALS
+  `".factory/STATE.md"` OR ENDS WITH `"/.factory/STATE.md"`. No env dependency; no new
+  capability. `host::env`+`env_allow` route explicitly rejected (reintroduces
+  deny-by-default silent-no-op footgun, ADR-025 v1.3 class). §12.1 trigger description
+  updated; §12.9 absolute-path bats e2e test mandate added (MANDATORY — native-env unit
+  tests do not validate the WASM trigger). INV-019 cure: (a) §12.1 trigger and §12.7 R6
+  rewritten; (b) §12.9 updated with absolute-path e2e mandate and implementer directive;
+  (c) AC/EC delta directive updated. ARCH-INDEX v2.26→v2.27 pending state-manager
+  codification burst. Architect: S-17.04, issue #170.
