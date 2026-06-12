@@ -577,7 +577,7 @@ pub struct GuardCallbacks<R, L, W>
 where
     R: FnOnce(&str, u32, u32) -> Result<Vec<u8>, String>,
     L: FnMut(&str),
-    W: FnOnce(&str),
+    W: FnMut(&str),
 {
     /// Read a file by path with `(path, max_bytes, timeout_ms)`.
     ///
@@ -590,8 +590,11 @@ where
     pub log_warn: L,
     /// Write a user-visible message to plugin stderr (relayed to dispatcher stderr).
     ///
-    /// Used to emit the `guard_ran` sentinel on the Continue success path so bats
-    /// allow-path tests can assert the guard executed its decision logic (AC-R5).
+    /// Used to emit `guard_ran (continue: <reason>)` on every Continue return path
+    /// so bats allow-path tests can assert the guard executed its decision logic
+    /// (AC-R5). FnMut because multiple Continue paths exist and only one fires per
+    /// invocation — Rust requires FnMut for stored closures that may be called more
+    /// than once even if only one call actually occurs at runtime.
     /// In production (`main.rs`) wired to `eprint!`; in tests wired to a noop or
     /// capturing closure.
     pub write_stderr: W,
@@ -639,11 +642,14 @@ where
 /// - AC-013: MultiEdit payload reconstructs sequentially from on-disk
 /// - AC-014: old_string not found → fail-open
 /// - AC-015: host::read_file NotFound → fail-open
-pub fn guard_logic<R, L, W>(payload: HookPayload, callbacks: GuardCallbacks<R, L, W>) -> HookResult
+pub fn guard_logic<R, L, W>(
+    payload: HookPayload,
+    mut callbacks: GuardCallbacks<R, L, W>,
+) -> HookResult
 where
     R: FnOnce(&str, u32, u32) -> Result<Vec<u8>, String>,
     L: FnMut(&str),
-    W: FnOnce(&str),
+    W: FnMut(&str),
 {
     // Step 1: Normalise file_path. If not STATE.md, return Continue immediately (AC-007 / §12.1).
     let file_path = payload
@@ -655,6 +661,9 @@ where
     let normalised = normalise_path(file_path);
     if normalised != STATE_MD_PATH {
         // Not STATE.md — return Continue without reading any file (AC-007 zero-overhead).
+        (callbacks.write_stderr)(
+            "verify-state-timestamp-refresh: guard_ran (continue: non-state-md)\n",
+        );
         return HookResult::Continue;
     }
 
@@ -667,6 +676,9 @@ where
             Ok(bytes) => bytes,
             Err(_e) => {
                 // On-disk read failed (HostError or NotFound) — fail-open (AC-008/AC-015).
+                (callbacks.write_stderr)(
+                    "verify-state-timestamp-refresh: guard_ran (continue: fail-open read-error)\n",
+                );
                 return HookResult::Continue;
             }
         };
@@ -675,6 +687,9 @@ where
         Ok(s) => s,
         Err(_) => {
             // Non-UTF-8 on-disk content — fail-open.
+            (callbacks.write_stderr)(
+                "verify-state-timestamp-refresh: guard_ran (continue: fail-open utf8)\n",
+            );
             return HookResult::Continue;
         }
     };
@@ -683,21 +698,41 @@ where
     let proposed_content: String = match payload.tool_name.as_str() {
         "Write" => match extract_write_proposed(&payload) {
             ProposedContent::Content(s) => s,
-            ProposedContent::FailOpen => return HookResult::Continue,
+            ProposedContent::FailOpen => {
+                (callbacks.write_stderr)(
+                    "verify-state-timestamp-refresh: guard_ran (continue: fail-open extract-write)\n",
+                );
+                return HookResult::Continue;
+            }
         },
         "Edit" => match extract_edit_proposed(&payload, &on_disk_content) {
             ProposedContent::Content(s) => s,
-            ProposedContent::FailOpen => return HookResult::Continue,
+            ProposedContent::FailOpen => {
+                (callbacks.write_stderr)(
+                    "verify-state-timestamp-refresh: guard_ran (continue: fail-open extract-edit)\n",
+                );
+                return HookResult::Continue;
+            }
         },
         "MultiEdit" => match extract_multiedit_proposed(&payload, &on_disk_content) {
             ProposedContent::Content(s) => s,
-            ProposedContent::FailOpen => return HookResult::Continue,
+            ProposedContent::FailOpen => {
+                (callbacks.write_stderr)(
+                    "verify-state-timestamp-refresh: guard_ran (continue: fail-open extract-multiedit)\n",
+                );
+                return HookResult::Continue;
+            }
         },
         _ => {
             // Unknown tool name — fall back to Write behaviour (content field).
             match extract_write_proposed(&payload) {
                 ProposedContent::Content(s) => s,
-                ProposedContent::FailOpen => return HookResult::Continue,
+                ProposedContent::FailOpen => {
+                    (callbacks.write_stderr)(
+                        "verify-state-timestamp-refresh: guard_ran (continue: fail-open extract-unknown-tool)\n",
+                    );
+                    return HookResult::Continue;
+                }
             }
         }
     };
@@ -713,6 +748,9 @@ where
         }
         FieldResult::Malformed => {
             // Malformed proposed frontmatter — fail-open (AC-008 §12.3 row 1).
+            (callbacks.write_stderr)(
+                "verify-state-timestamp-refresh: guard_ran (continue: fail-open malformed-proposed)\n",
+            );
             return HookResult::Continue;
         }
     };
@@ -723,6 +761,9 @@ where
         FieldResult::NotFound | FieldResult::Malformed => {
             // Absent or malformed on-disk timestamp — first write ever (AC-008 §12.3 row 5 / EC-004).
             // Continue — no prior value to compare against.
+            (callbacks.write_stderr)(
+                "verify-state-timestamp-refresh: guard_ran (continue: fail-open no-disk-timestamp)\n",
+            );
             return HookResult::Continue;
         }
     };
@@ -793,14 +834,13 @@ where
         }
     }
 
-    // Step 8: All checks passed — allow the write.
-    // Emit guard_ran sentinel to plugin stderr so bats allow-path tests can assert
-    // the guard actually executed its decision logic (AC-R5 / prove guard ran).
-    // The sentinel is only emitted here (post-check Continue), NOT on the pre-logic
-    // early return at Step 1 (non-STATE.md path) — that path never reads STATE.md
-    // and must stay silent. Block paths already prove execution via exit code 2.
+    // Step 8: All checks passed — allow the write (timestamp advanced + lock renewed if held).
+    // Every Continue path in this function emits a guard_ran sentinel via write_stderr so
+    // bats allow-path tests can assert the guard executed its decision logic (AC-R5).
+    // A guard that panics on entry never reaches any emit; combined with exit 0 this
+    // proves clean execution (not a silent crash). Block paths prove execution via exit 2.
     let _ = callbacks.log_warn; // log_warn unused on success path — suppress warning
-    (callbacks.write_stderr)("verify-state-timestamp-refresh: guard_ran (continue)\n");
+    (callbacks.write_stderr)("verify-state-timestamp-refresh: guard_ran (continue: advanced)\n");
     HookResult::Continue
 }
 
@@ -1022,7 +1062,7 @@ mod tests {
     ) -> GuardCallbacks<
         impl FnOnce(&str, u32, u32) -> Result<Vec<u8>, String>,
         impl FnMut(&str),
-        impl FnOnce(&str),
+        impl FnMut(&str),
     > {
         let wl = warn_log.clone();
         GuardCallbacks {
@@ -1042,7 +1082,7 @@ mod tests {
     ) -> GuardCallbacks<
         impl FnOnce(&str, u32, u32) -> Result<Vec<u8>, String>,
         impl FnMut(&str),
-        impl FnOnce(&str),
+        impl FnMut(&str),
     > {
         let err = error_msg.to_string();
         let wl = warn_log.clone();
@@ -1434,7 +1474,7 @@ mod tests {
             log_warn: move |msg: &str| {
                 wl.lock().unwrap().push(msg.to_string());
             },
-            write_stderr: |_msg| {}, // noop in tests
+            write_stderr: |_msg: &str| {}, // noop in tests
         };
 
         let payload =
