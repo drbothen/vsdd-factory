@@ -7527,7 +7527,7 @@ Expected D-554: BC-INDEX v2.72 (UNCHANGED), VP-INDEX v2.06 (UNCHANGED), STORY-IN
 
 **Dim-7 (state attestation):**
 
-D-554 current_step encodes: P0 WASM env-var dead-code fix (std::env::var dead in WASI sandbox); env-free trigger (equals OR ends_with /.factory/STATE.md); AC-019 empty-timestamp→Block; impl green 96eb1a0a 31 unit+7 bats; BC NONE; S-17.04 v1.5→v1.6; 4-index STORY-INDEX v3.98→v3.99 ARCH-INDEX v2.26→v2.27; trajectory-tail →9→9→9→11; D-chain D-553; parent 79c319c9. All 5 PCs satisfied. STATE.md version 3.04, timestamp 2026-06-12T05:00:00Z. STATE.md TBD-D554-LINES — see banner tracker row D-554 after STATE.md edit.
+D-554 current_step encodes: P0 WASM env-var dead-code fix (std::env::var dead in WASI sandbox); env-free trigger (equals OR ends_with /.factory/STATE.md); AC-019 empty-timestamp→Block; impl green 96eb1a0a 31 unit+7 bats; BC NONE; S-17.04 v1.5→v1.6; 4-index STORY-INDEX v3.98→v3.99 ARCH-INDEX v2.26→v2.27; trajectory-tail →9→9→9→11; D-chain D-553; parent 79c319c9. All 5 PCs satisfied. STATE.md version 3.04, timestamp 2026-06-12T05:00:00Z. STATE.md 64c5c587-LINES — see banner tracker row D-554 after STATE.md edit.
 
 **Closes:**
 - P0-H1: verify-state-timestamp-refresh guard inert in production (std::env::var("CLAUDE_PROJECT_DIR") dead in WASI sandbox; guard always Continued; 6 prior passes missed due to native-env test masking).
@@ -7539,4 +7539,4 @@ D-554 current_step encodes: P0 WASM env-var dead-code fix (std::env::var dead in
 
 ### Factory-artifacts Commits
 
-TBD-D554 state(D-554): ADR-025 v1.6 deep-pass-7 P0 WASM env-dead-code fix + S-17.04 v1.6 codified
+64c5c587 state(D-554): ADR-025 v1.6 deep-pass-7 P0 WASM env-dead-code fix + S-17.04 v1.6 codified

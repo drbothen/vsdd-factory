@@ -136,7 +136,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | 2a191314 | rc.20 SHIPPED 2026-06-01; bot binary commit on top of --merge from develop; prior: 43afbfa7 (rc.19 2026-05-28) |
 | develop | 60fd0233 | D-547 PR #183 S-17.03 SQUASH-MERGED 2026-06-11; issue #170 CLOSED; E-17 3/3 COMPLETE; prior: df4f26b8 (D-545 PR #182 S-17.02 2026-06-11) |
-| factory-artifacts | TBD-D554 | D-554 ADR-025 v1.6 deep-pass-7 P0 WASM env-dead-code fix + S-17.04 v1.6 2026-06-12; prior: `edc397a2` D-553; prior-prior: `aa3cd62f` D-552 |
+| factory-artifacts | 64c5c587 | D-554 ADR-025 v1.6 deep-pass-7 P0 WASM env-dead-code fix + S-17.04 v1.6 2026-06-12; prior: `edc397a2` D-553; prior-prior: `aa3cd62f` D-552 |
 | v1.0.0-rc.20 (tag) | e9e38286 | SHIPPED 2026-06-01; annotated tag object; GitHub Release prerelease; marketplace PR drbothen/claude-mp #12 squash-merged 862e660d |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28; GitHub Release prerelease 2026-05-28T15:10:56Z; marketplace PR #11 squash-merged |
 | v1.0.0-rc.18 (tag) | 666d689f | SHIPPED 2026-05-13 PR #135 |
@@ -303,7 +303,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** TBD-D554 D-554 burst; prior: `edc397a2` D-553; prior-prior: `aa3cd62f` D-552
+- **factory-artifacts HEAD:** 64c5c587 D-554 burst; prior: `edc397a2` D-553; prior-prior: `aa3cd62f` D-552
 - **develop HEAD:** `60fd0233` (D-547 PR #183 S-17.03 squash-merge 2026-06-11)
 - **feature/S-17.04 HEAD:** `f627a1c5` PUSHED to origin; worktree `.worktrees/S-17.04` (contains v1.1 spec — rebase to v1.6 before TDD dispatch)
 - **main HEAD:** `2a191314` (rc.20 bot binary commit 2026-06-01)
