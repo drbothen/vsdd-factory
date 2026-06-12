@@ -151,55 +151,29 @@ pub fn canonical_lock_expiry_stale_message() -> String {
 
 /// Normalise a `file_path` from a tool payload for comparison against `STATE_MD_PATH`.
 ///
-/// Normalisation algorithm per EC-006 / ADR-025 §12.7 R6:
+/// Normalisation algorithm per EC-006 / ADR-025 §12.7 R6 (v1.6 — env-free):
 ///   1. Strip leading `./`
-///   2. Strip absolute `$CLAUDE_PROJECT_DIR/` prefix (where `$CLAUDE_PROJECT_DIR`
-///      is read from environment; no-op if env var absent)
-///   3. Collapse `//` → `/`
-///   4. Collapse `/./` → `/`
-///   5. Segment-stack `..` resolution: split on `/`, push normal segments,
+///   2. Collapse `//` → `/` (loop until stable)
+///   3. Collapse `/./` → `/` (loop until stable)
+///   4. Segment-stack `..` resolution: split on `/`, push normal segments,
 ///      drop `.` segments, pop on `..` (clamp to empty stack on above-root `..`
 ///      — discard, do not underflow). Rejoin with `/`. (EC-006 / v1.4 R4)
 ///
-/// A path that normalises to `.factory/STATE.md` MUST trigger the guard.
+/// The `$CLAUDE_PROJECT_DIR` env-based prefix-strip (v1.5 Step 2) has been REMOVED.
+/// `std::env::var` is dead in the WASI sandbox — env vars are never set — so the
+/// strip never fired in production, making the guard inert on absolute paths.
+/// The v1.6 trigger model uses suffix-match instead: after normalisation, the guard
+/// fires when the result EQUALS `.factory/STATE.md` OR ENDS WITH `/.factory/STATE.md`
+/// (see `guard_logic` Step 1). No env scaffolding needed. (AC-018 / ADR-025 §12.7 R6 v1.6)
+///
 /// Fail-open (return the partially-normalised path unchanged) only when an
-/// unresolvable encoding (NUL byte, empty result after segment-stack) is
+/// unresolvable encoding (empty result after segment-stack on non-empty input) is
 /// encountered — residual misses must never false-block.
 pub fn normalise_path(path: &str) -> String {
-    // Pre-collapse: normalise `//` and `/./` on the raw input first so that
-    // prefix-strip works even when the project-dir boundary has a double-slash
-    // (e.g., `$CLAUDE_PROJECT_DIR//.factory/STATE.md` → pre-collapsed before
-    // the `project_dir + "/"` prefix is stripped).  EC-006 / O-1704P-01.
-    let mut pre = path.to_string();
-    loop {
-        let next = pre.replace("//", "/").replace("/./", "/");
-        if next == pre {
-            break;
-        }
-        pre = next;
-    }
-    let path: &str = &pre;
-
-    // Step 2: strip CLAUDE_PROJECT_DIR prefix (may contain a leading ./).
-    let path = if let Ok(project_dir) = std::env::var("CLAUDE_PROJECT_DIR") {
-        if !project_dir.is_empty() {
-            let with_slash = format!("{}/", project_dir.trim_end_matches('/'));
-            if let Some(stripped) = path.strip_prefix(with_slash.as_str()) {
-                stripped
-            } else {
-                path
-            }
-        } else {
-            path
-        }
-    } else {
-        path
-    };
-
     // Step 1: strip leading `./`.
     let path = path.strip_prefix("./").unwrap_or(path);
 
-    // Post-collapse: handle any `//` or `/./` introduced after prefix removal.
+    // Step 2+3: collapse `//` → `/` and `/./` → `/` (loop until stable).
     let mut result = path.to_string();
     loop {
         let next = result.replace("//", "/").replace("/./", "/");
@@ -209,7 +183,7 @@ pub fn normalise_path(path: &str) -> String {
         result = next;
     }
 
-    // Step 5: Segment-stack `..` resolution (EC-006 / ADR-025 §12.7 R6 / v1.4 R4).
+    // Step 4: Segment-stack `..` resolution (EC-006 / ADR-025 §12.7 R6 / v1.4 R4).
     //
     // Split the path on `/`, build a stack:
     //   - empty segment (from leading/trailing `/` or `//`) → skip
@@ -642,6 +616,8 @@ where
 /// - AC-013: MultiEdit payload reconstructs sequentially from on-disk
 /// - AC-014: old_string not found → fail-open
 /// - AC-015: host::read_file NotFound → fail-open
+/// - AC-018: absolute file_path (env-free suffix-match trigger, v1.6 P0 fix)
+/// - AC-019: proposed timestamp empty string → Block TimestampStale
 pub fn guard_logic<R, L, W>(
     payload: HookPayload,
     mut callbacks: GuardCallbacks<R, L, W>,
@@ -659,7 +635,22 @@ where
         .unwrap_or("");
 
     let normalised = normalise_path(file_path);
-    if normalised != STATE_MD_PATH {
+    // Trigger check (AC-018 / ADR-025 §12.7 R6 v1.6 — env-free suffix-match model):
+    //   - EQUALS ".factory/STATE.md"         (relative path, existing tests a–s)
+    //   - ENDS WITH "/.factory/STATE.md"     (absolute path from Claude Code production)
+    //
+    // The prior env-based prefix-strip (std::env::var("CLAUDE_PROJECT_DIR")) is GONE —
+    // it was dead code in the WASI sandbox where env vars are never set, making the
+    // guard completely inert for all real Claude Code writes (AC-018 P0 fix).
+    //
+    // Boundary correctness:
+    //   ".factory/STATE.md"                    → exact-eq  → fires
+    //   "/abs/path/.factory/STATE.md"          → ends_with → fires
+    //   "/abs/path/other/STATE.md"             → neither   → no-fire (correct)
+    //   "/abs/path/.factory/STATE.md.bak"      → neither   → no-fire (correct)
+    let is_state_md =
+        normalised == STATE_MD_PATH || normalised.ends_with(concat!("/", ".factory/STATE.md"));
+    if !is_state_md {
         // Not STATE.md — return Continue without reading any file (AC-007 zero-overhead).
         (callbacks.write_stderr)(
             "verify-state-timestamp-refresh: guard_ran (continue: non-state-md)\n",
