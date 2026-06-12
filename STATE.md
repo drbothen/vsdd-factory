@@ -140,7 +140,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | 2a191314 | rc.20 SHIPPED 2026-06-01; bot binary commit on top of --merge from develop; prior: 43afbfa7 (rc.19 2026-05-28) |
 | develop | 3b2a378c | D-556 PR #184 S-17.04 SQUASH-MERGED 2026-06-12; E-17 W4 COMPLETE; feature branch deleted+verified; prior: 60fd0233 (D-547 PR #183 S-17.03 2026-06-11) |
-| factory-artifacts | TBD-D556 | D-556 S-17.04 MERGED post-merge burst 2026-06-12; prior: `0eb4cc71` D-555 sha-patch; prior-prior: `c4dd9076` D-555 |
+| factory-artifacts | 6b61cfc0 | D-556 S-17.04 MERGED post-merge burst 2026-06-12; prior: `0eb4cc71` D-555 sha-patch; prior-prior: `c4dd9076` D-555 |
 | v1.0.0-rc.20 (tag) | e9e38286 | SHIPPED 2026-06-01; annotated tag object; GitHub Release prerelease; marketplace PR drbothen/claude-mp #12 squash-merged 862e660d |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28; GitHub Release prerelease 2026-05-28T15:10:56Z; marketplace PR #11 squash-merged |
 | v1.0.0-rc.18 (tag) | 666d689f | SHIPPED 2026-05-13 PR #135 |
@@ -311,7 +311,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** TBD-D556 D-556 burst; prior: `0eb4cc71` D-555 sha-patch; prior-prior: `c4dd9076` D-555
+- **factory-artifacts HEAD:** `6b61cfc0` D-556 burst; prior: `0eb4cc71` D-555 sha-patch; prior-prior: `c4dd9076` D-555
 - **develop HEAD:** `3b2a378c` (D-556 PR #184 S-17.04 squash-merge 2026-06-12; prior: `60fd0233` D-547)
 - **feature/S-17.04:** DELETED+VERIFIED (MERGED PR #184 3b2a378c 2026-06-12; worktree `.worktrees/S-17.04` may be removed)
 - **main HEAD:** `2a191314` (rc.20 bot binary commit 2026-06-01)
