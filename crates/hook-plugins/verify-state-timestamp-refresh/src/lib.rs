@@ -746,6 +746,16 @@ where
         }
     };
 
+    // AC-019: empty proposed timestamp is equivalent to absent — Block: TimestampStale.
+    // `extract_top_level_field` returns `Found("")` for `timestamp: ""` (field present
+    // but value is empty string). An empty timestamp is not a valid advancement; treat it
+    // identically to NotFound. ADR-025 §12.2: stale detection must reject empty values.
+    if proposed_ts.is_empty() {
+        return HookResult::Block {
+            reason: canonical_timestamp_stale_message(),
+        };
+    }
+
     // Step 5: Extract timestamp: from on-disk content.
     let on_disk_ts = match extract_top_level_field(&on_disk_content, "timestamp") {
         FieldResult::Found(v) => v,
