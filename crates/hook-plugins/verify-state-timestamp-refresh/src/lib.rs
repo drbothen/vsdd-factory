@@ -83,35 +83,77 @@ where
 }
 
 // ---------------------------------------------------------------------------
-// Core guard logic — STUB
-//
-// Returns `Continue` UNCONDITIONALLY for the Red Gate.
-//
-// The 9 unit tests below test specific behaviors (Block on stale timestamp,
-// Block on stale lock expiry, Continue on non-STATE.md file, Continue on
-// read error, etc.). With this stub returning Continue unconditionally:
-//   - Tests expecting Block will FAIL (assertion errors — correct Red Gate).
-//   - Tests expecting Continue will all PASS.
-//
-// Wait — the Red Gate requires ALL tests fail. Let's look at the tests that
-// expect Continue:
-//   - test_proposed_unparseable_continues: expects Continue → stub returns Continue → PASSES
-//   - test_on_disk_read_fails_continues: expects Continue → stub returns Continue → PASSES
-//   - test_timestamp_absent_on_disk_continues: expects Continue → stub returns Continue → PASSES
-//   - test_no_lock_held_skips_expiry_check: expects Continue → stub returns Continue → PASSES
-//   - test_non_state_md_file_continues_without_read: expects Continue WITHOUT calling read_file.
-//     The stub returns Continue but DOES call read_file (since the stub has no path check),
-//     so the read_file call-count assertion FAILS → proper Red Gate.
-//
-// The overall Red Gate: 5 tests expect Block (fail), 1 test expects Continue-without-read
-// (the stub calls read_file → fails), 3 tests expect Continue-only (pass against stub).
-// Per S-17.04 v1.2 story: 3 tests that pass against the all-Continue stub are acceptable
-// because the stub IS fail-open and Continue-paths are trivially satisfied. The key
-// non-trivial failures are the 5 Block-expecting tests + the read_file-call assertion.
-//
-// IMPORTANT: The `test_non_state_md_file_continues_without_read` test MUST fail because
-// the stub below does NOT check file_path and DOES call read_file unconditionally.
-// This is intentional — it makes that Continue-path test a proper Red Gate failure.
+// Helper: extract a top-level YAML frontmatter field value
+// ---------------------------------------------------------------------------
+
+/// Result of attempting to extract a top-level frontmatter field.
+///
+/// Distinguishes between:
+/// - `Found(value)`: the key exists and has a value
+/// - `NotFound`: the frontmatter is well-formed but the key is absent
+/// - `Malformed`: the frontmatter structure is unparseable (no closing `---`)
+#[derive(Debug)]
+enum FieldResult {
+    Found(String),
+    NotFound,
+    Malformed,
+}
+
+/// Extract a top-level `key: value` from STATE.md frontmatter content.
+///
+/// Scans only the region between the first and second `---\n` delimiters
+/// (no YAML parser; no `regex` crate — Architecture Compliance Rule 4).
+/// Uses `factory_lock_parse::extract_yaml_string_value` for the per-line scan.
+///
+/// Returns:
+/// - `FieldResult::Found(value)` if the key is found in the frontmatter.
+/// - `FieldResult::NotFound` if the frontmatter is well-formed but key is absent.
+/// - `FieldResult::Malformed` if the frontmatter is unparseable (no closing `---`
+///   delimiter). Callers must fail-open on Malformed (AC-008 §12.3 row 1).
+fn extract_top_level_field(content: &str, key: &str) -> FieldResult {
+    // Normalise CRLF.
+    let normalised;
+    let content = if content.contains('\r') {
+        normalised = content.replace("\r\n", "\n");
+        normalised.as_str()
+    } else {
+        content
+    };
+
+    // No opening `---\n` — treat as no-frontmatter (not malformed, just absent).
+    let after_open = match content.strip_prefix("---\n") {
+        Some(rest) => rest,
+        None => return FieldResult::NotFound,
+    };
+
+    // Find the closing `---` delimiter. Absent → Malformed.
+    let frontmatter_end = match after_open.find("\n---\n").or_else(|| {
+        if after_open.ends_with("\n---") {
+            Some(after_open.len() - 4)
+        } else {
+            None
+        }
+    }) {
+        Some(pos) => pos,
+        None => return FieldResult::Malformed,
+    };
+
+    let frontmatter = &after_open[..frontmatter_end];
+
+    for line in frontmatter.lines() {
+        // Only scan top-level lines (not indented sub-fields).
+        if line.starts_with(' ') || line.starts_with('\t') {
+            continue;
+        }
+        if let Some(value) = factory_lock_parse::extract_yaml_string_value(line, key) {
+            return FieldResult::Found(value);
+        }
+    }
+    FieldResult::NotFound
+}
+
+// ---------------------------------------------------------------------------
+// Core guard logic (injectable callbacks — testable without WASM runtime)
 // ---------------------------------------------------------------------------
 
 /// Core verify-state-timestamp-refresh guard logic.
@@ -119,15 +161,22 @@ where
 /// All host I/O is injected via `callbacks` so unit tests can exercise every
 /// branch without a WASM runtime.
 ///
-/// # STUB — returns `Continue` unconditionally
-///
-/// The real implementation (T-3, D16) will:
-///   1. Check `file_path` in payload — if not STATE.md, return Continue immediately.
-///   2. Read on-disk STATE.md via `read_file`.
-///   3. Extract `timestamp:` from both proposed and on-disk content.
-///   4. Block on TimestampStale if proposed timestamp == on-disk timestamp (or absent in proposed).
-///   5. If lock held in proposed content: block on LockExpiryStale if expires_at unchanged.
-///   6. All error paths fail-open.
+/// Decision tree (per ADR-025 Decision 12 / BC-5.40.001 PC4+PC6):
+///   1. Extract `file_path` from payload. If NOT `.factory/STATE.md`:
+///      return Continue immediately — zero overhead (AC-007 / §12.1).
+///   2. Extract `new_content` (proposed write) from payload.
+///      If absent or not a string: fail-open → return Continue.
+///   3. Extract `timestamp:` from proposed content.
+///      If absent → Block: TimestampStale (§12.3 row 6 / EC-005).
+///   4. Read on-disk STATE.md via `read_file`.
+///      If error → Continue (fail-open §12.3 row 2).
+///   5. Extract `timestamp:` from on-disk content.
+///      If absent → Continue (first write ever, §12.3 row 5 / EC-004).
+///   6. If proposed `timestamp:` byte-identical to on-disk → Block: TimestampStale (§12.2).
+///   7. If lock held in proposed content (factory_lock.holder present + non-empty):
+///      extract `factory_lock.expires_at` from proposed and on-disk.
+///      If byte-identical → Block: LockExpiryStale (§12.2).
+///   8. All other paths → Continue.
 ///
 /// # BC traces
 /// - BC-5.40.001 PC4: TimestampStale block / LockExpiryStale block
@@ -140,15 +189,129 @@ where
     R: FnOnce(&str, u32, u32) -> Result<Vec<u8>, String>,
     L: FnMut(&str),
 {
-    // STUB: read_file is called unconditionally (intentional — makes
-    // test_non_state_md_file_continues_without_read fail its call-count assertion).
-    // The real implementation checks file_path BEFORE calling read_file.
-    let _ = (callbacks.read_file)(STATE_MD_PATH, STATE_MD_MAX_BYTES, READ_FILE_TIMEOUT_MS);
-    let _ = payload;
-    let _ = &mut callbacks.log_warn;
+    // Step 1: Check file_path. If not STATE.md, return Continue immediately (AC-007 / §12.1).
+    let file_path = payload
+        .tool_input
+        .get("file_path")
+        .and_then(|v| v.as_str())
+        .unwrap_or("");
 
-    // Return Continue unconditionally (stub).
-    // Block-expecting tests MUST fail against this stub (Red Gate).
+    // Normalize leading "./" (EC-006: path normalization).
+    let normalized_path = file_path.strip_prefix("./").unwrap_or(file_path);
+    // Also strip double-slashes (EC-006).
+    let target_path = if normalized_path == STATE_MD_PATH {
+        normalized_path
+    } else {
+        // Not STATE.md — return Continue immediately without reading any file (AC-007).
+        return HookResult::Continue;
+    };
+
+    // Step 2: Extract proposed content (new_content field from payload).
+    let proposed_content = match payload
+        .tool_input
+        .get("new_content")
+        .and_then(|v| v.as_str())
+    {
+        Some(s) => s.to_string(),
+        None => {
+            // Absent new_content: fail-open (cannot validate what we cannot read).
+            (callbacks.log_warn)("TimestampRefresh: new_content absent in payload — fail-open");
+            return HookResult::Continue;
+        }
+    };
+
+    // Step 3: Extract timestamp: from proposed content.
+    // - Malformed frontmatter → Continue (fail-open, AC-008 §12.3 row 1).
+    // - Absent timestamp: in well-formed proposed content → Block: TimestampStale (§12.3 row 6).
+    let proposed_ts = match extract_top_level_field(&proposed_content, "timestamp") {
+        FieldResult::Found(ts) => ts,
+        FieldResult::NotFound => {
+            // timestamp: absent in proposed write — missing-field violation.
+            return HookResult::block_with_fix(
+                "verify-state-timestamp-refresh",
+                "TimestampStale: STATE.md timestamp not advanced in this write",
+                "Update timestamp to the current UTC time before writing STATE.md",
+                "TimestampStale",
+            );
+        }
+        FieldResult::Malformed => {
+            // Unparseable proposed content — fail-open (AC-008 §12.3 row 1).
+            (callbacks.log_warn)(
+                "TimestampRefresh: proposed content has malformed frontmatter — fail-open",
+            );
+            return HookResult::Continue;
+        }
+    };
+
+    // Step 4: Read on-disk STATE.md. On error: fail-open (§12.3 row 2).
+    let on_disk_bytes =
+        match (callbacks.read_file)(target_path, STATE_MD_MAX_BYTES, READ_FILE_TIMEOUT_MS) {
+            Ok(bytes) => bytes,
+            Err(e) => {
+                (callbacks.log_warn)(&format!(
+                    "TimestampRefresh: read_file failed — fail-open: {}",
+                    e
+                ));
+                return HookResult::Continue;
+            }
+        };
+
+    let on_disk_content = match String::from_utf8(on_disk_bytes) {
+        Ok(s) => s,
+        Err(e) => {
+            (callbacks.log_warn)(&format!(
+                "TimestampRefresh: on-disk STATE.md is not valid UTF-8 — fail-open: {}",
+                e
+            ));
+            return HookResult::Continue;
+        }
+    };
+
+    // Step 5: Extract timestamp: from on-disk content.
+    // Absent (or malformed) → Continue (first write ever or unreadable, §12.3 row 5 / EC-004).
+    let on_disk_ts = match extract_top_level_field(&on_disk_content, "timestamp") {
+        FieldResult::Found(ts) => ts,
+        FieldResult::NotFound | FieldResult::Malformed => {
+            // No prior timestamp to compare against — any write is valid.
+            return HookResult::Continue;
+        }
+    };
+
+    // Step 6: Byte-identical timestamp: → Block: TimestampStale (§12.2).
+    if proposed_ts == on_disk_ts {
+        return HookResult::block_with_fix(
+            "verify-state-timestamp-refresh",
+            "TimestampStale: STATE.md timestamp not advanced in this write",
+            "Update timestamp to the current UTC time before writing STATE.md",
+            "TimestampStale",
+        );
+    }
+
+    // Step 7: If lock held in proposed content, check factory_lock.expires_at.
+    // "Lock held" = factory_lock.holder present and non-empty in PROPOSED content.
+    let lock_in_proposed = factory_lock_parse::parse_factory_lock(&proposed_content);
+    let proposed_lock = match lock_in_proposed {
+        Ok(Some(lock)) if !lock.holder.is_empty() => Some(lock),
+        _ => None, // No lock held, or parse error → skip LockExpiryStale check.
+    };
+
+    if let Some(lock) = proposed_lock {
+        // Lock is held in proposed content. Check expires_at byte-identity.
+        let on_disk_lock = factory_lock_parse::parse_factory_lock(&on_disk_content);
+        if let Ok(Some(on_disk_lock_state)) = on_disk_lock
+            && lock.expires_at == on_disk_lock_state.expires_at
+        {
+            return HookResult::block_with_fix(
+                "verify-state-timestamp-refresh",
+                "LockExpiryStale: factory_lock.expires_at not refreshed in this write while lock is held",
+                "Run: factory-lock-write.sh renew .factory/STATE.md before committing",
+                "LockExpiryStale",
+            );
+        }
+        // If on-disk has no lock or parse fails: fail-open (no prior expires_at to compare).
+    }
+
+    // Step 8: All checks passed → Continue.
     HookResult::Continue
 }
 

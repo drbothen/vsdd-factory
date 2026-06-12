@@ -1206,3 +1206,23 @@ path_allow = [".factory/STATE.md"]
 [hooks.capabilities.exec_subprocess]
 binary_allow = ["git"]
 env_allow = ["HOME", "GIT_CONFIG_GLOBAL", "XDG_CONFIG_HOME"]
+
+# ---------- verify-state-timestamp-refresh (PreToolUse, Edit|Write) ----------
+# S-17.04: PreToolUse guard — blocks Edit/Write to .factory/STATE.md when proposed
+# content does not advance timestamp: frontmatter (every write) or
+# factory_lock.expires_at (when lock held). Decision 12 / BC-5.40.001 PC4.
+# Trigger: file_path == ".factory/STATE.md" — structurally bypass-proof.
+# async = false REQUIRED — see ADR-019 + ADR-025 Decision 12
+
+[[hooks]]
+name = "verify-state-timestamp-refresh"
+event = "PreToolUse"
+tool = "Edit|Write"
+plugin = "hook-plugins/verify-state-timestamp-refresh.wasm"
+priority = 142
+timeout_ms = 5000
+on_error = "continue"
+async = false
+
+[hooks.capabilities.read_file]
+path_allow = [".factory/STATE.md"]

@@ -74,14 +74,132 @@ pub struct LockState {
 /// - `Ok(None)` if the `factory_lock` key is absent (unlocked path).
 /// - `Ok(Some(LockState))` if all three sub-fields are present and non-empty.
 /// - `Err(MalformedLockBlock)` if the block is present but malformed.
-///
-/// # Red Gate
-///
-/// STUB — `todo!()`. Tests that call this function MUST fail until the
-/// implementer fills in the real body.
 pub fn parse_factory_lock(content: &str) -> Result<Option<LockState>, LockParseError> {
-    let _ = content;
-    todo!("D15 implementer task: extract parse_factory_lock from verify-factory-lock")
+    // Normalise Windows-style CRLF line endings to LF before scanning.
+    let normalised;
+    let content = if content.contains('\r') {
+        normalised = content.replace("\r\n", "\n");
+        normalised.as_str()
+    } else {
+        content
+    };
+
+    // Extract frontmatter region: between first and second `---\n`.
+    let frontmatter = if let Some(after_open) = content.strip_prefix("---\n") {
+        if let Some(close_pos) = after_open.find("\n---\n").or_else(|| {
+            if after_open.ends_with("\n---") {
+                Some(after_open.len() - 4)
+            } else {
+                None
+            }
+        }) {
+            &after_open[..close_pos]
+        } else {
+            // No closing `---` delimiter — malformed frontmatter.
+            return Err(LockParseError::MalformedLockBlock(
+                "missing closing --- delimiter".to_string(),
+            ));
+        }
+    } else {
+        // No opening `---\n` — no frontmatter at all, treat as unlocked.
+        return Ok(None);
+    };
+
+    // Scan lines for `factory_lock:` key.
+    let mut in_factory_lock = false;
+    let mut holder: Option<String> = None;
+    let mut locked_at: Option<String> = None;
+    let mut expires_at: Option<String> = None;
+
+    for line in frontmatter.lines() {
+        if line == "factory_lock:" || line.starts_with("factory_lock:") {
+            let after_colon = line["factory_lock:".len()..].trim();
+            if after_colon.is_empty() || after_colon == "~" || after_colon == "null" {
+                in_factory_lock = true;
+            } else {
+                return Err(LockParseError::MalformedLockBlock(
+                    "factory_lock key has unexpected inline value".to_string(),
+                ));
+            }
+            continue;
+        }
+
+        if in_factory_lock {
+            // Sub-fields must be indented with exactly 2 spaces.
+            if line.starts_with("  ") && !line.starts_with("   ") {
+                let field_line = &line[2..];
+                if let Some(value) = extract_yaml_string_value(field_line, "holder") {
+                    holder = Some(value);
+                } else if let Some(value) = extract_yaml_string_value(field_line, "locked_at") {
+                    locked_at = Some(value);
+                } else if let Some(value) = extract_yaml_string_value(field_line, "expires_at") {
+                    expires_at = Some(value);
+                }
+            } else if !line.is_empty() {
+                // Non-indented, non-empty line after factory_lock: — exited the block.
+                in_factory_lock = false;
+            }
+        }
+    }
+
+    // If factory_lock was not found, return Ok(None) (unlocked).
+    if !in_factory_lock && holder.is_none() && locked_at.is_none() && expires_at.is_none() {
+        return Ok(None);
+    }
+
+    // factory_lock block present but null/empty — treat as unlocked.
+    if in_factory_lock && holder.is_none() && locked_at.is_none() && expires_at.is_none() {
+        return Ok(None);
+    }
+
+    // factory_lock was found — validate all three required sub-fields.
+    let holder_val = match holder {
+        Some(h) if !h.is_empty() => h,
+        Some(_) => {
+            return Err(LockParseError::MalformedLockBlock(
+                "factory_lock.holder is empty string".to_string(),
+            ));
+        }
+        None => {
+            return Err(LockParseError::MalformedLockBlock(
+                "factory_lock.holder field is absent".to_string(),
+            ));
+        }
+    };
+
+    let locked_at_val = match locked_at {
+        Some(v) if !v.is_empty() => v,
+        Some(_) => {
+            return Err(LockParseError::MalformedLockBlock(
+                "factory_lock.locked_at is empty string".to_string(),
+            ));
+        }
+        None => {
+            return Err(LockParseError::MalformedLockBlock(
+                "factory_lock.locked_at field is absent".to_string(),
+            ));
+        }
+    };
+
+    let expires_at_val = match expires_at {
+        Some(v) if !v.is_empty() => v,
+        Some(_) => {
+            return Err(LockParseError::MalformedLockBlock(
+                "factory_lock.expires_at is empty string".to_string(),
+            ));
+        }
+        None => {
+            return Err(LockParseError::MalformedLockBlock(
+                "factory_lock.expires_at field is absent".to_string(),
+            ));
+        }
+    };
+
+    Ok(Some(LockState {
+        holder: holder_val,
+        locked_at: locked_at_val,
+        expires_at: expires_at_val,
+    }))
 }
 
 /// Extract the string value from a YAML key-value line like `key: "value"` or `key: value`.
@@ -89,28 +207,36 @@ pub fn parse_factory_lock(content: &str) -> Result<Option<LockState>, LockParseE
 /// Returns `Some(value)` if the line starts with `{key}: `, otherwise `None`.
 /// Strips surrounding double-quotes from quoted values.
 /// Returns `Some("")` for empty quoted values `""`.
-///
-/// # Red Gate
-///
-/// STUB — `todo!()`. Tests that call this function MUST fail until the
-/// implementer fills in the real body.
 pub fn extract_yaml_string_value(line: &str, key: &str) -> Option<String> {
-    let _ = line;
-    let _ = key;
-    todo!("D15 implementer task: extract extract_yaml_string_value from verify-factory-lock")
+    let prefix = format!("{}: ", key);
+    let bare_prefix = format!("{}:", key);
+
+    let raw_value = if let Some(rest) = line.strip_prefix(&prefix) {
+        rest
+    } else if line == bare_prefix {
+        // `key:` with no value — treat as empty.
+        ""
+    } else {
+        return None;
+    };
+
+    // Strip surrounding double-quotes if present.
+    let value = if raw_value.starts_with('"') && raw_value.ends_with('"') && raw_value.len() >= 2 {
+        &raw_value[1..raw_value.len() - 1]
+    } else {
+        raw_value
+    };
+
+    Some(value.to_string())
 }
 
 /// Parse an ISO-8601 datetime string into a `chrono::DateTime<chrono::Utc>`.
 ///
 /// Returns `Ok(dt)` on success, `Err(MalformedLockBlock)` if unparseable.
-///
-/// # Red Gate
-///
-/// STUB — `todo!()`. Tests that call this function MUST fail until the
-/// implementer fills in the real body.
 pub fn parse_iso8601(s: &str) -> Result<chrono::DateTime<chrono::Utc>, LockParseError> {
-    let _ = s;
-    todo!("D15 implementer task: extract parse_iso8601 from verify-factory-lock")
+    s.parse::<chrono::DateTime<chrono::Utc>>().map_err(|e| {
+        LockParseError::MalformedLockBlock(format!("invalid ISO-8601 datetime '{}': {}", s, e))
+    })
 }
 
 // ---------------------------------------------------------------------------

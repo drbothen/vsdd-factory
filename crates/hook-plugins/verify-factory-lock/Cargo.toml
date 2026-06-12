@@ -27,6 +27,10 @@ vsdd-hook-sdk = { path = "../../hook-sdk" }
 # forbidden per Architecture Compliance Rule 4 (manual line-by-line frontmatter scan).
 # regex is forbidden per Architecture Compliance Rule 4 (manual scan; no WASM bloat).
 chrono = { workspace = true }
+# factory-lock-parse: shared parse primitives (D15 / S-17.04 AC-004).
+# parse_factory_lock, LockState, extract_yaml_string_value, parse_iso8601
+# extracted here so verify-state-timestamp-refresh can reuse without duplication.
+factory-lock-parse = { path = "../factory-lock-parse" }
 
 [dev-dependencies]
 vsdd-hook-sdk = { path = "../../hook-sdk" }

@@ -109,8 +109,6 @@ async = false
 
 [hooks.capabilities.read_file]
 path_allow = [".factory/STATE.md"]
-max_bytes = 65536
-timeout_ms = 5000
 EOF
 }
 
@@ -192,8 +190,10 @@ _run_dispatcher_with_content() {
   _write_state_no_lock_with_ts "$ts_old"
 
   # Proposed content: timestamp advanced to ts_new.
+  # Note: YAML values are unquoted to avoid double-quote escaping issues when
+  # embedding in the JSON envelope via shell variable interpolation.
   local proposed_content
-  proposed_content="---\ndocument_type: state\nversion: \"0.0.1-bats-test\"\ntimestamp: \"${ts_new}\"\nphase: test\ncurrent_step: \"bats-test\"\n---\n\n# STATE (bats fixture — advanced)\n"
+  proposed_content="---\ndocument_type: state\nversion: 0.0.1-bats-test\ntimestamp: ${ts_new}\nphase: test\ncurrent_step: bats-test\n---\n\n# STATE (bats fixture - advanced)\n"
 
   local envelope
   # new_content carries the proposed write payload.
@@ -227,8 +227,10 @@ _run_dispatcher_with_content() {
   _write_state_no_lock_with_ts "$ts_old"
 
   # Proposed content: timestamp NOT advanced (same as on-disk → stale).
+  # Note: YAML values are unquoted to avoid double-quote escaping issues when
+  # embedding in the JSON envelope via shell variable interpolation.
   local proposed_content
-  proposed_content="---\ndocument_type: state\nversion: \"0.0.1-bats-test\"\ntimestamp: \"${ts_old}\"\nphase: test\ncurrent_step: \"bats-test\"\n---\n\n# STATE (bats fixture — stale)\n"
+  proposed_content="---\ndocument_type: state\nversion: 0.0.1-bats-test\ntimestamp: ${ts_old}\nphase: test\ncurrent_step: bats-test\n---\n\n# STATE (bats fixture - stale)\n"
 
   local envelope
   envelope="{\"event_name\":\"PreToolUse\",\"tool_name\":\"Edit\",\"session_id\":\"t2\",\"dispatcher_trace_id\":\"t2-trace\",\"tool_input\":{\"file_path\":\".factory/STATE.md\",\"new_content\":\"${proposed_content}\"}}"
@@ -305,7 +307,7 @@ _run_dispatcher_with_content() {
 
   local score
   score=$(awk '
-    /name = "verify-state-timestamp-refresh"/ { in_section=1; has_async_false=0; has_read_file=0; has_path_allow=0; has_max_bytes=0 }
+    /name = "verify-state-timestamp-refresh"/ { in_section=1; has_async_false=0; has_read_file=0; has_path_allow=0 }
     /^\[\[hooks\]\]/ && in_section && !/name = "verify-state-timestamp-refresh"/ {
       # End of section — tally.
       in_section = 0
@@ -313,18 +315,20 @@ _run_dispatcher_with_content() {
     in_section && /^async = false/ { has_async_false = 1 }
     in_section && /\[hooks\.capabilities\.read_file\]/ { has_read_file = 1 }
     in_section && has_read_file && /\.factory\/STATE\.md/ { has_path_allow = 1 }
-    in_section && has_read_file && /max_bytes = 65536/ { has_max_bytes = 1 }
     END {
       # Flush last section.
-      total = has_async_false + has_read_file + has_path_allow + has_max_bytes
+      total = has_async_false + has_read_file + has_path_allow
       print total
     }
   ' "$registry")
 
-  # Must score 4: async=false + read_file block + path_allow + max_bytes.
-  [ "$score" -eq 4 ] || {
-    echo "FAIL: verify-state-timestamp-refresh registry entry is incomplete (score=$score/4)."
-    echo "Required: async=false + [hooks.capabilities.read_file] + path_allow=.factory/STATE.md + max_bytes=65536"
+  # Must score 3: async=false + read_file block + path_allow=.factory/STATE.md.
+  # Note: max_bytes and timeout_ms are not valid ReadFileCaps fields in the registry
+  # schema (ReadFileCaps uses deny_unknown_fields; only path_allow is supported).
+  # The registry entry must use only schema-valid fields to avoid TOML parse failure.
+  [ "$score" -eq 3 ] || {
+    echo "FAIL: verify-state-timestamp-refresh registry entry is incomplete (score=$score/3)."
+    echo "Required: async=false + [hooks.capabilities.read_file] + path_allow=.factory/STATE.md"
     echo "See ADR-025 Decision 12 §12.5 / S-17.04 AC-010."
     return 1
   }
