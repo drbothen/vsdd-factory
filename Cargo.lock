@@ -967,6 +967,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "factory-lock-parse"
+version = "0.0.1"
+dependencies = [
+ "chrono",
+]
+
+[[package]]
 name = "fastrand"
 version = "2.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3820,6 +3827,15 @@ name = "verify-factory-lock"
 version = "0.0.1"
 dependencies = [
  "chrono",
+ "serde_json",
+ "vsdd-hook-sdk",
+]
+
+[[package]]
+name = "verify-state-timestamp-refresh"
+version = "0.0.1"
+dependencies = [
+ "factory-lock-parse",
  "serde_json",
  "vsdd-hook-sdk",
 ]
