@@ -1,0 +1,26 @@
+[package]
+name = "factory-lock-parse"
+version = "0.0.1"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+description = "Shared library crate: parse_factory_lock, LockState, extract_yaml_string_value, parse_iso8601 — extracted from verify-factory-lock for reuse by verify-state-timestamp-refresh (D15, S-17.04 / ADR-025 Decision 12 §12.4)"
+publish = false
+
+# Pure library crate — no WASM entry point, no I/O.
+# All parse logic is no_std-compatible except for chrono; no serde_yaml/serde_norway.
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+# chrono 0.4 for parse_iso8601 (ISO-8601 datetime parsing + computation).
+# serde_yaml/serde_norway FORBIDDEN — manual line-by-line scan per Architecture Compliance Rule 4.
+chrono = { workspace = true }
+
+[dev-dependencies]
+# No test-only dependencies needed; parse functions are pure.
+
+[lints]
+workspace = true

@@ -24,7 +24,7 @@ vsdd-hook-sdk = { path = "../../hook-sdk" }
 # factory-lock-parse: shared parse primitives (D15). Imported for parse_factory_lock
 # and extract_yaml_string_value. MUST NOT be verify-factory-lock directly (circular
 # dependency footgun — both crates depend on factory-lock-parse, not each other).
-factory-lock-parse = { path = "../factory-lock-parse" }
+factory-lock-parse = { path = "../../factory-lock-parse" }
 # serde_yaml/serde_norway FORBIDDEN — factory-lock-parse uses manual scan.
 # regex FORBIDDEN — manual tokenisation only (Architecture Compliance Rule 4).
 

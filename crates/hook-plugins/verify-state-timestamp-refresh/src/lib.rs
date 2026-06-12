@@ -573,10 +573,11 @@ pub fn extract_lock_subfields(content: &str) -> Option<LockSubfields> {
 
 /// All side-effecting host calls injected into `guard_logic` for testability.
 /// In production (`main.rs`), these are wired to real vsdd_hook_sdk host fns.
-pub struct GuardCallbacks<R, L>
+pub struct GuardCallbacks<R, L, W>
 where
     R: FnOnce(&str, u32, u32) -> Result<Vec<u8>, String>,
     L: FnMut(&str),
+    W: FnOnce(&str),
 {
     /// Read a file by path with `(path, max_bytes, timeout_ms)`.
     ///
@@ -585,8 +586,15 @@ where
     /// - `Err(msg)` on HostError (including `"NotFound"` when the file does not exist).
     ///   The guard treats ALL `Err(_)` variants as fail-open (AC-008/AC-015).
     pub read_file: R,
-    /// Emit a `host::log_warn` message (advisory; non-blocking).
+    /// Emit a `host::log_warn` message (advisory; non-blocking, internal log only).
     pub log_warn: L,
+    /// Write a user-visible message to plugin stderr (relayed to dispatcher stderr).
+    ///
+    /// Used to emit the `guard_ran` sentinel on the Continue success path so bats
+    /// allow-path tests can assert the guard executed its decision logic (AC-R5).
+    /// In production (`main.rs`) wired to `eprint!`; in tests wired to a noop or
+    /// capturing closure.
+    pub write_stderr: W,
 }
 
 // ---------------------------------------------------------------------------
@@ -631,10 +639,11 @@ where
 /// - AC-013: MultiEdit payload reconstructs sequentially from on-disk
 /// - AC-014: old_string not found → fail-open
 /// - AC-015: host::read_file NotFound → fail-open
-pub fn guard_logic<R, L>(payload: HookPayload, callbacks: GuardCallbacks<R, L>) -> HookResult
+pub fn guard_logic<R, L, W>(payload: HookPayload, callbacks: GuardCallbacks<R, L, W>) -> HookResult
 where
     R: FnOnce(&str, u32, u32) -> Result<Vec<u8>, String>,
     L: FnMut(&str),
+    W: FnOnce(&str),
 {
     // Step 1: Normalise file_path. If not STATE.md, return Continue immediately (AC-007 / §12.1).
     let file_path = payload
@@ -785,7 +794,13 @@ where
     }
 
     // Step 8: All checks passed — allow the write.
-    let _ = callbacks.log_warn; // suppress unused warning
+    // Emit guard_ran sentinel to plugin stderr so bats allow-path tests can assert
+    // the guard actually executed its decision logic (AC-R5 / prove guard ran).
+    // The sentinel is only emitted here (post-check Continue), NOT on the pre-logic
+    // early return at Step 1 (non-STATE.md path) — that path never reads STATE.md
+    // and must stay silent. Block paths already prove execution via exit code 2.
+    let _ = callbacks.log_warn; // log_warn unused on success path — suppress warning
+    (callbacks.write_stderr)("verify-state-timestamp-refresh: guard_ran (continue)\n");
     HookResult::Continue
 }
 
@@ -811,6 +826,9 @@ pub fn on_pre_tool_use(payload: HookPayload) -> HookResult {
             },
             log_warn: |msg| {
                 host::log_warn(msg);
+            },
+            write_stderr: |msg| {
+                eprint!("{msg}");
             },
         },
     )
@@ -1001,14 +1019,18 @@ mod tests {
     fn make_callbacks_with_disk(
         on_disk_content: String,
         warn_log: Arc<Mutex<Vec<String>>>,
-    ) -> GuardCallbacks<impl FnOnce(&str, u32, u32) -> Result<Vec<u8>, String>, impl FnMut(&str)>
-    {
+    ) -> GuardCallbacks<
+        impl FnOnce(&str, u32, u32) -> Result<Vec<u8>, String>,
+        impl FnMut(&str),
+        impl FnOnce(&str),
+    > {
         let wl = warn_log.clone();
         GuardCallbacks {
             read_file: move |_path, _max, _timeout| Ok(on_disk_content.into_bytes()),
             log_warn: move |msg: &str| {
                 wl.lock().unwrap().push(msg.to_string());
             },
+            write_stderr: |_msg| {}, // noop in tests — sentinel not asserted here
         }
     }
 
@@ -1017,8 +1039,11 @@ mod tests {
     fn make_callbacks_read_error(
         error_msg: &str,
         warn_log: Arc<Mutex<Vec<String>>>,
-    ) -> GuardCallbacks<impl FnOnce(&str, u32, u32) -> Result<Vec<u8>, String>, impl FnMut(&str)>
-    {
+    ) -> GuardCallbacks<
+        impl FnOnce(&str, u32, u32) -> Result<Vec<u8>, String>,
+        impl FnMut(&str),
+        impl FnOnce(&str),
+    > {
         let err = error_msg.to_string();
         let wl = warn_log.clone();
         GuardCallbacks {
@@ -1026,6 +1051,7 @@ mod tests {
             log_warn: move |msg: &str| {
                 wl.lock().unwrap().push(msg.to_string());
             },
+            write_stderr: |_msg| {}, // noop in tests — sentinel not asserted here
         }
     }
 
@@ -1408,6 +1434,7 @@ mod tests {
             log_warn: move |msg: &str| {
                 wl.lock().unwrap().push(msg.to_string());
             },
+            write_stderr: |_msg| {}, // noop in tests
         };
 
         let payload =
