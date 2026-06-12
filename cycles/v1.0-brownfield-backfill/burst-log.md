@@ -7375,4 +7375,4 @@ STATE.md current_step D-552: ADR-025 v1.6 Gemini cross-family adversary pass 2 c
 
 ### Factory-artifacts Commits
 
-`TBD-D552` state(D-552): ADR-025 v1.6 pass-2 corrections + S-17.04 v1.4 codified
+`aa3cd62f` state(D-552): ADR-025 v1.6 pass-2 corrections + S-17.04 v1.4 codified
