@@ -2096,17 +2096,9 @@ mod tests {
 
     #[test]
     fn test_absolute_path_triggers_guard_without_env() {
-        // Ensure CLAUDE_PROJECT_DIR is absent so we exercise the env-free code path.
-        // SAFETY: process-global mutation; other tests that set this var save/restore it.
-        // This test only removes the var (never sets it), so concurrent tests that
-        // read CLAUDE_PROJECT_DIR may transiently see it absent, but that is safe:
-        // the only effect is that normalise_path skips the env prefix strip, which is
-        // exactly the production WASI behaviour we are testing.
-        #[allow(unsafe_code)]
-        unsafe {
-            std::env::remove_var("CLAUDE_PROJECT_DIR");
-        }
-
+        // The v1.6 normalise_path implementation is env-free: CLAUDE_PROJECT_DIR is
+        // never read (the env-based prefix strip was removed in P0-H1). No env setup
+        // or teardown is needed — the suffix-match trigger fires purely on path content.
         let on_disk = state_md_no_lock(TS_OLD);
         let stale_proposed = state_md_no_lock(TS_OLD); // stale → Block
 
