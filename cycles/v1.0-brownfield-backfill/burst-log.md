@@ -7618,7 +7618,7 @@ Expected D-555: BC-INDEX v2.72 (UNCHANGED), VP-INDEX v2.06 (UNCHANGED), STORY-IN
 
 **Dim-7 (state attestation):**
 
-D-555 current_step encodes: pass 8+9 C0/H0; M1 canonical→block_with_fix delegation; L1 dead unsafe removal; L2 log_warn 8 fail-open paths; L4 whitespace trim→Block; stale-doc sweep; L3 test-name reconcile; impl green 5a704b6a 37 unit+7 bats; BC NONE; S-17.04 v1.6→v1.7; STORY-INDEX v3.99→v4.00; trajectory-tail →9→9→9→11; D-chain D-554; parent 406291e0. All 5 PCs satisfied. STATE.md version 3.05, timestamp 2026-06-12T06:00:00Z. STATE.md TBD-D555-LINES — see banner tracker row D-555 after STATE.md edit.
+D-555 current_step encodes: pass 8+9 C0/H0; M1 canonical→block_with_fix delegation; L1 dead unsafe removal; L2 log_warn 8 fail-open paths; L4 whitespace trim→Block; stale-doc sweep; L3 test-name reconcile; impl green 5a704b6a 37 unit+7 bats; BC NONE; S-17.04 v1.6→v1.7; STORY-INDEX v3.99→v4.00; trajectory-tail →9→9→9→11; D-chain D-554; parent 406291e0. All 5 PCs satisfied. STATE.md version 3.05, timestamp 2026-06-12T06:00:00Z. STATE.md 359 lines (banner tracker row D-555; -56 under soft 415; margin 500-359=141 from hard cap).
 
 **Closes:**
 - M1: canonical_*_message format! drift surface vs SDK block_with_fix.
@@ -7634,4 +7634,4 @@ D-555 current_step encodes: pass 8+9 C0/H0; M1 canonical→block_with_fix delega
 
 ### Factory-artifacts Commits
 
-TBD-D555 state(D-555): S-17.04 v1.7 + adversary pass 8+9 cleanup codified
+`c4dd9076` state(D-555): adversary pass 8+9 cleanup codified; STORY-INDEX v4.00; S-17.04 v1.7; LOCAL streak 2/3
