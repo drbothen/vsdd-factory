@@ -7296,4 +7296,4 @@ STATE.md current_step D-551: ADR-025 v1.6 ADVERSARY-PASS-1 CORRECTIONS + S-17.04
 
 ### Factory-artifacts Commits
 
-(SHA to be recorded after push; see Active Branches row in STATE.md post-commit)
+`f7a4cc1a` state(D-551): ADR-025 v1.6 adversary-pass-1 corrections + S-17.04 v1.3 codified
