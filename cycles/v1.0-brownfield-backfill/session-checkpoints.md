@@ -693,3 +693,22 @@ Key anchors at D-557:
 - **Open release action:** PR #185 OPEN MERGEABLE — resume = merge with --merge (HUMAN-GATED)
 
 **This checkpoint superseded by D-558 RC21-RELEASE-SHIPPED CLOSING BURST 2026-06-13.**
+
+---
+
+## Archived: D-558 RC21-RELEASE-SHIPPED-CLOSING-BURST 2026-06-13 (Superseded by D-559)
+
+> Archived when D-559 MARKETPLACE-MERGED CLOSURE BURST replaced this checkpoint with rc.21 FULLY SHIPPED state.
+
+**Status:** D-558 RC21-RELEASE-SHIPPED CLOSING BURST — v1.0.0-rc.21 RELEASED via re-release after 6-class fix cycle. Source side complete. Single remaining release action at time of archive: merge marketplace PR drbothen/claude-mp #13 (human-gated — Zious11 lacks merge permission).
+
+Key anchors at D-558:
+- **4-index:** BC-INDEX v2.72, VP-INDEX v2.06, STORY-INDEX v4.01, ARCH-INDEX v2.27 (UNCHANGED)
+- **develop HEAD:** `7e99f6ef` (PR #186 fix a431ff47 + release.yml sync back-merge 2026-06-13)
+- **main HEAD:** `caf06c68` (rc.21 bot bundle commit)
+- **v1.0.0-rc.21 tag:** `03054524` (annotated; force-moved to bundle commit)
+- **factory-artifacts HEAD at archive:** `7b5e3434` (D-558 RC21-RELEASE-SHIPPED closing burst; sha-patch: `2ab9bef7`)
+- **D-range:** D-001..D-558
+- **Open release action at archive:** marketplace PR drbothen/claude-mp #13 OPEN PENDING human merge
+
+**This checkpoint superseded by D-559 MARKETPLACE-MERGED CLOSURE BURST 2026-06-13.**

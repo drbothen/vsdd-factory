@@ -1,18 +1,18 @@
 ---
 document_type: pipeline-state
 level: ops
-version: "3.08"
+version: "3.09"
 status: draft
 producer: state-manager
-timestamp: 2026-06-13T00:00:00Z
-phase: D-558-RC21-RELEASE-SHIPPED-2026-06-13
-last_amended: 2026-06-13 (v3.08) — D-558 RC21-RELEASE-SHIPPED CLOSING BURST: v1.0.0-rc.21 RELEASED via re-release (PR #185 stale-superseded; 6-class fix cycle PR #186 a431ff47 + re-release PR #188 d3b4e247; release.yml run 27478345756 all jobs PASS; main caf06c68; tag 03054524; develop 7e99f6ef; marketplace PR drbothen/claude-mp #13 OPEN pending human merge); D-chain cite D-557 per D-419(b); parent-commit c447b834 per D-419(b). [Prior: 2026-06-13 (v3.07) — D-557 SESSION-INTERRUPT DURABILITY BURST: rc.21 RELEASE IN-FLIGHT captured; RELEASING.md Steps 1-4 COMPLETE (branch release/v1.0.0-rc.21 off 3b2a378c; CHANGELOG 0302f917; PR #185 OPEN base=main MERGEABLE CI-11/11-GREEN created 2026-06-12T20:39:13Z); Steps 5-9 (merge-gate) PENDING human authorization; develop/main/4-index UNCHANGED; D-chain cite D-556 per D-419(b); parent-commit e828b486 per D-419(b). [Prior: 2026-06-12 (v3.06) — D-556 S-17.04 DELIVERED/MERGED PR #184 3b2a378c: verify-state-timestamp-refresh WASM guard + factory-lock-parse shared crate + CI hardening; CI 10/10 green; pr-reviewer APPROVE 3-cycle; security CLEAN; LOCAL adversary converged 10 Claude passes + Gemini cross-family; D-chain cite D-555; parent 0eb4cc71; develop 60fd0233→3b2a378c; feature branch deleted+verified; STORY-INDEX v4.00→v4.01. [Prior: 2026-06-12 (v3.05) — D-555 S-17.04 v1.6→v1.7 + adversary pass 8+9 cleanup CODIFIED: re-cascade post-P0-fix C0/H0 (guard functionally converged); M1 canonical_*_message→block_with_fix delegation; L1 dead unsafe env removal; L2 log_warn 8 fail-open paths; L4 whitespace trim→Block; stale-doc sweep; L3 test-name table reconcile (6 occurrences); impl green 5a704b6a (37 unit+7 bats); STORY-INDEX v3.99→v4.00; BC NONE; D-chain cite D-554; parent-commit 406291e0. [Prior: 2026-06-12 (v3.04) — D-554 ADR-025 v1.6 adversary deep-pass-7 P0 WASM env-var dead-code fix + S-17.04 v1.5→v1.6 CODIFIED: std::env::var(CLAUDE_PROJECT_DIR) was dead code in WASI sandbox (WasiCtxBuilder uses preopened_dir only; no env vars passed; always Err at runtime); Claude Code emits ABSOLUTE file_path; guard always Continued in production → inert; FIX: env-free trigger: normalized path EQUALS .factory/STATE.md OR ENDS WITH /.factory/STATE.md; AC-019 empty-timestamp→Block; AC-018 absolute-path bats e2e mandate; impl green 96eb1a0a 31 unit+7 bats; ARCH-INDEX v2.26→v2.27; STORY-INDEX v3.98→v3.99; BC impact NONE; D-chain cite D-553; parent-commit 79c319c9. [Prior: 2026-06-12 (v3.03) — D-553 ADR-025 v1.6 adversary pass 4+5 (deep-probe) build/test-harness corrections + S-17.04 v1.4→v1.5 CODIFIED: P5-H1 factory-lock-parse relocated crates/hook-plugins/→crates/factory-lock-parse/ (lib-only crate broke CI WASM floor-count; floor now [[bin]]-derived); P5-M1 bats CI_REQUIRE_ARTIFACTS=1 hard-fail (skip-as-green closed) + CI e2e with artifacts; P4-H1 guard_ran stderr sentinel on all 10 Continue paths replacing false-green plugins_run=1, asserted T-1/T-3; P4-O1 Red-Gate count reconcile (19 mandated / 33 shipped); guard LOGIC unchanged + verified clean by Claude passes 3-5 + Gemini cross-family; impl green 2c4977a3 28/28+23+9+6 bats; BC impact NONE; ARCH-INDEX v2.25→v2.26; STORY-INDEX v3.97→v3.98; D-chain cite D-552; parent-commit aa3cd62f. [Prior: 2026-06-12 (v3.02) — D-552 ADR-025 v1.6 Gemini cross-family adversary pass 2 corrections + S-17.04 v1.3→v1.4 CODIFIED: §12.3 LockExpiryStale absent+empty subcases → Block; §12.7 R6 step 5 `..` segment-stack; verify-factory-lock +MultiEdit; SKILL.md +MultiEdit; bats plugins_run=1 guard-ran; clarity note timestamp vs last_amended; impl green 1d92d847 28/28+6/6; D-539 multi-family satisfied; ARCH-INDEX v2.24→v2.25; STORY-INDEX v3.96→v3.97; BC impact NONE; D-chain cite D-551; parent-commit ce277f92. [Prior: 2026-06-12 (v3.01) — D-551 ADR-025 v1.6 adversary-pass-1 corrections + S-17.04 v1.2→v1.3 CODIFIED: payload field fix (new_content→reconstruct semantics: Write content / Edit old_string+new_string / MultiEdit edits[]); registry caps path_allow-only (ReadFileCaps deny_unknown_fields); explicit priorities 142/143; canonical-path normalization; block_with_fix message format; AC-005/006/010 corrected + AC-011..015 added; Red Gate 12→19 tests; validated Perplexity + dispatcher-log ground truth (new_content 0× in 5000+ events); LOCAL adversary streak 0/3 (C2/H4/M4/L1; re-cascade pending); ARCH-INDEX v2.23→v2.24; STORY-INDEX v3.95→v3.96; BC impact NONE; D-chain cite D-550; parent-commit 8f19bab2. [Prior: 2026-06-11 (v3.00) — D-550 ADR-025 v1.5→v1.6 + S-17.04 v1.1→v1.2 REDIRECT (human-approved): Decision 11 Mechanism 2 bash gate WITHDRAWN; Decision 12 verify-state-timestamp-refresh WASM PreToolUse guard ADOPTED (fires on Edit/Write to .factory/STATE.md; blocks TimestampStale + LockExpiryStale; on_error=continue fail-open); push-time cas-push chokepoint dropped; D15 factory-lock-parse shared crate + D16 guard + D17 tests; S-17.04 v1.2 8pts SS-04+SS-05 10ACs 12 Red Gate tests; ARCH-INDEX v2.22→v2.23; STORY-INDEX v3.94→v3.95; BC impact NONE; D-chain cite D-549; parent-commit 29ee394b. [Prior: 2026-06-11 (v2.99) — D-549 SESSION-END DURABILITY BURST: ADR-025 v1.4→v1.5. S-17.04 v1.0→v1.1. ARCH-INDEX v2.22. STORY-INDEX v3.94. OPEN DESIGN DECISION. [Prior: 2026-06-11 (v2.98) — D-548 ADR-025 v1.3→v1.4 + S-17.04 CODIFIED. [Prior: 2026-06-11 (v2.97) — D-547 S-17.03 DELIVERED/MERGED PR #183 60fd0233; BC-6.23.001 ACTIVE; issue #170 CLOSED; E-17 3/3 COMPLETE. [Prior: 2026-06-11 (v2.96) — D-546 S-17.03 v1.1 helpers. [Prior: 2026-06-11 (v2.95) — D-545 S-17.02 MERGED df4f26b8. [Prior: 2026-06-11 (v2.94) — D-544 S-17.01 MERGED c64b46d2. [Prior: 2026-06-10 (v2.93) — D-543 S-17.01 v1.1 helpers. [Prior: 2026-06-10 (v2.92) — D-542 E-17+3 stories. [Prior: 2026-06-10 (v2.91) — D-541 3-BCs. [Prior: 2026-06-10 (v2.90) — D-540 ADR-025 ADOPTED.]]]]]]]]]]]]]]]]]]]]
+timestamp: 2026-06-13T12:00:00Z
+phase: D-559-MARKETPLACE-MERGED-RC21-FULLY-SHIPPED-2026-06-13
+last_amended: 2026-06-13 (v3.09) — D-559 MARKETPLACE-MERGED CLOSURE BURST: marketplace PR drbothen/claude-mp #13 MERGED by human 2026-06-13; marketplace.json rc.20→rc.21 live on drbothen/claude-mp default branch; v1.0.0-rc.21 FULLY SHIPPED to operator marketplace; plugin count 53→55; operators receive via /plugin update vsdd-factory@claude-mp; closes D-558 pending-marketplace item; next = #173 wave-checkpoint; 4-index UNCHANGED; D-chain cite D-558 per D-419(b); parent-commit 2ab9bef7 per D-419(b). [Prior: 2026-06-13 (v3.08) — D-558 RC21-RELEASE-SHIPPED CLOSING BURST: v1.0.0-rc.21 RELEASED via re-release (PR #185 stale-superseded; 6-class fix cycle PR #186 a431ff47 + re-release PR #188 d3b4e247; release.yml run 27478345756 all jobs PASS; main caf06c68; tag 03054524; develop 7e99f6ef; marketplace PR drbothen/claude-mp #13 OPEN pending human merge); D-chain cite D-557 per D-419(b); parent-commit c447b834 per D-419(b). [Prior: 2026-06-13 (v3.07) — D-557 SESSION-INTERRUPT DURABILITY BURST: rc.21 RELEASE IN-FLIGHT captured; RELEASING.md Steps 1-4 COMPLETE (branch release/v1.0.0-rc.21 off 3b2a378c; CHANGELOG 0302f917; PR #185 OPEN base=main MERGEABLE CI-11/11-GREEN created 2026-06-12T20:39:13Z); Steps 5-9 (merge-gate) PENDING human authorization; develop/main/4-index UNCHANGED; D-chain cite D-556 per D-419(b); parent-commit e828b486 per D-419(b). [Prior: 2026-06-12 (v3.06) — D-556 S-17.04 DELIVERED/MERGED PR #184 3b2a378c: verify-state-timestamp-refresh WASM guard + factory-lock-parse shared crate + CI hardening; CI 10/10 green; pr-reviewer APPROVE 3-cycle; security CLEAN; LOCAL adversary converged 10 Claude passes + Gemini cross-family; D-chain cite D-555; parent 0eb4cc71; develop 60fd0233→3b2a378c; feature branch deleted+verified; STORY-INDEX v4.00→v4.01. [Prior: 2026-06-12 (v3.05) — D-555 S-17.04 v1.6→v1.7 + adversary pass 8+9 cleanup CODIFIED; STORY-INDEX v3.99→v4.00; BC NONE; D-chain cite D-554; parent-commit 406291e0. [Prior: 2026-06-12 (v3.04) — D-554 ADR-025 v1.6 adversary deep-pass-7 P0 WASM env-var dead-code fix + S-17.04 v1.5→v1.6 CODIFIED; ARCH-INDEX v2.26→v2.27; STORY-INDEX v3.98→v3.99; D-chain cite D-553; parent-commit 79c319c9. [Prior: 2026-06-12 (v3.03) — D-553 ADR-025 v1.6 adversary pass 4+5 (deep-probe) build/test-harness corrections + S-17.04 v1.4→v1.5; ARCH-INDEX v2.25→v2.26; STORY-INDEX v3.97→v3.98; D-chain cite D-552; parent-commit aa3cd62f. [Prior: 2026-06-12 (v3.02) — D-552 ADR-025 v1.6 Gemini cross-family adversary pass 2 corrections + S-17.04 v1.3→v1.4; ARCH-INDEX v2.24→v2.25; STORY-INDEX v3.96→v3.97; D-chain cite D-551; parent-commit ce277f92. [Prior: 2026-06-12 (v3.01) — D-551 ADR-025 v1.6 adversary-pass-1 corrections + S-17.04 v1.2→v1.3; ARCH-INDEX v2.23→v2.24; STORY-INDEX v3.95→v3.96; D-chain cite D-550; parent-commit 8f19bab2. [Prior: 2026-06-11 (v3.00) — D-550 ADR-025 v1.5→v1.6 + S-17.04 v1.1→v1.2 REDIRECT; ARCH-INDEX v2.22→v2.23; STORY-INDEX v3.94→v3.95; D-chain cite D-549; parent-commit 29ee394b. [Prior: 2026-06-11 (v2.99) — D-549 SESSION-END DURABILITY BURST: ADR-025 v1.4→v1.5. S-17.04 v1.0→v1.1. ARCH-INDEX v2.22. STORY-INDEX v3.94. OPEN DESIGN DECISION. [Prior: 2026-06-11 (v2.98) — D-548 ADR-025 v1.3→v1.4 + S-17.04 CODIFIED. [Prior: 2026-06-11 (v2.97) — D-547 S-17.03 DELIVERED/MERGED PR #183 60fd0233; BC-6.23.001 ACTIVE; issue #170 CLOSED; E-17 3/3 COMPLETE. [Prior: 2026-06-11 (v2.96) — D-546 S-17.03 v1.1 helpers. [Prior: 2026-06-11 (v2.95) — D-545 S-17.02 MERGED df4f26b8. [Prior: 2026-06-11 (v2.94) — D-544 S-17.01 MERGED c64b46d2. [Prior: 2026-06-10 (v2.93) — D-543 S-17.01 v1.1 helpers. [Prior: 2026-06-10 (v2.92) — D-542 E-17+3 stories. [Prior: 2026-06-10 (v2.91) — D-541 3-BCs. [Prior: 2026-06-10 (v2.90) — D-540 ADR-025 ADOPTED.]]]]]]]]]]]]]]]]]]]]
 inputs: []
 input-hash: "[live-state]"
 traces_to: prd.md
 project: vsdd-factory
 mode: brownfield
-current_step: "D-558 RC21-RELEASE-SHIPPED-CLOSING-BURST 2026-06-13 — v1.0.0-rc.21 RELEASED via re-release: PR #185 stale-superseded (release.yml run 27468463761 FAIL: full bats suite linux exposed 6-class latent defects); 6-class fix cycle PR #186 squash-merged a431ff47; re-release PR #188 squash-merged d3b4e247; release.yml run 27478345756 all-PASS (Pre-release Validation + 5-platform Build + Commit bundled binaries + retag + Create GitHub Release + Sync main→develop + Bump claude-mp marketplace); main 2a191314→caf06c68 (bot bundle commit); v1.0.0-rc.21 tag 03054524 (annotated; force-moved to bundle commit); develop 3b2a378c→7e99f6ef (PR #186 fix + release.yml sync); marketplace PR drbothen/claude-mp #13 OPEN MERGEABLE single-line rc.20→rc.21 bump PENDING human merge (Zious11 lacks merge permission on drbothen/claude-mp); 4-index: BC-INDEX v2.72 UNCHANGED VP-INDEX v2.06 UNCHANGED STORY-INDEX v4.01 UNCHANGED ARCH-INDEX v2.27 UNCHANGED; trajectory-tail →9→9→9→11; D-chain cite D-557 per D-419(b); parent-commit c447b834 per D-419(b). SIZE BUDGET: see banner tracker row D-558"
+current_step: "D-559 MARKETPLACE-MERGED-CLOSURE-BURST 2026-06-13 — marketplace PR drbothen/claude-mp #13 MERGED by human; marketplace.json rc.20→rc.21 live on drbothen/claude-mp default branch; v1.0.0-rc.21 FULLY SHIPPED to operator marketplace (plugin count 53→55; operators receive via /plugin update vsdd-factory@claude-mp); closes D-558 pending-marketplace item; 4-index: BC-INDEX v2.72 UNCHANGED VP-INDEX v2.06 UNCHANGED STORY-INDEX v4.01 UNCHANGED ARCH-INDEX v2.27 UNCHANGED (literal-shell: grep '^version:' .factory/specs/behavioral-contracts/BC-INDEX.md → 2.72; VP-INDEX.md → 2.06; stories/STORY-INDEX.md → 4.01; architecture/ARCH-INDEX.md → 2.27); trajectory-tail →9→9→9→11; D-chain cite D-558 per D-419(b); parent-commit 2ab9bef7 per D-419(b). SIZE BUDGET: see banner tracker row D-559"
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -62,6 +62,7 @@ dtu_services: []
   D-552-ADR-025-V1.6-PASS-2-CORRECTIONS-S-17.04-V1.4-CODIFIED-2026-06-12 346 lines (wc-l; ADR-025 v1.6 Gemini cross-family pass 2 corrections + S-17.04 v1.3→v1.4; ARCH-INDEX v2.24→v2.25; STORY-INDEX v3.96→v3.97; §1/§3/§4/§5/§8/§9/§11/§12 Session Resume refresh; D-552 row added; -69 under soft 415; margin 500-346=154 from hard cap; D-446(c) dual-margin form).
   D-551-ADR-025-V1.6-PASS-1-CORRECTIONS-S-17.04-V1.3-CODIFIED-2026-06-12 341 lines (wc-l; ADR-025 v1.6 adversary-pass-1 content corrections + S-17.04 v1.2→v1.3; ARCH-INDEX v2.23→v2.24; STORY-INDEX v3.95→v3.96; §1/§3/§4/§5/§8/§9/§11/§12 Session Resume refresh; D-551 row added; -74 under soft 415; margin 500-341=159 from hard cap; D-446(c) dual-margin form).
   D-558-RC21-RELEASE-SHIPPED-CLOSING-BURST-2026-06-13 362 lines (wc-l; rc.21 RELEASED via re-release; 6-class fix cycle PR #186 a431ff47 + PR #188 d3b4e247; main caf06c68; tag 03054524; develop 7e99f6ef; marketplace #13 OPEN pending; D-558 row added; §1/§3/§4/§5/§8/§9/§10/§11/§12 Session Resume refresh; D-430(a) N/A; -53 under soft 415; margin 500-362=138 from hard cap; D-446(c) dual-margin form).
+  D-559-MARKETPLACE-MERGED-RC21-FULLY-SHIPPED-2026-06-13 365 lines (wc-l; marketplace #13 MERGED; rc.21 FULLY SHIPPED to operator marketplace; plugin count 53→55; next #173 wave-checkpoint; 4-index UNCHANGED; STATE.md-only burst; D-559 row added; §1/§3/§4/§5/§8/§9/§10/§11/§12 Session Resume refresh; -50 under soft 415; margin 500-365=135 from hard cap; D-446(c) dual-margin form).
 -->
 
 # Pipeline State: vsdd-factory
@@ -77,8 +78,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-06-13 — D-558 RC21-RELEASE-SHIPPED CLOSING BURST: v1.0.0-rc.21 RELEASED (re-release after 6-class fix cycle; release.yml run 27478345756 all-PASS); main caf06c68; tag 03054524; develop 7e99f6ef; marketplace PR drbothen/claude-mp #13 OPEN PENDING HUMAN MERGE (Zious11 lacks permission on drbothen/claude-mp). |
-| **Current Phase** | D-558 RC21-RELEASE-SHIPPED 2026-06-13 — v1.0.0-rc.21 RELEASED. Source side complete. Marketplace PR #13 OPEN pending human merge. After #13 merges: operator cache updated → verify install → #173 wave-checkpoint. |
+| **Last Updated** | 2026-06-13 — D-559 MARKETPLACE-MERGED CLOSURE BURST: marketplace PR drbothen/claude-mp #13 MERGED; marketplace.json rc.20→rc.21 live; v1.0.0-rc.21 FULLY SHIPPED to operator marketplace (plugin count 53→55). Next: #173 wave-checkpoint. |
+| **Current Phase** | D-559 MARKETPLACE-MERGED 2026-06-13 — v1.0.0-rc.21 FULLY SHIPPED (marketplace #13 MERGED; operators receive via /plugin update vsdd-factory@claude-mp). Next: #173 wave-checkpoint. |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Phase Progress
@@ -101,6 +102,7 @@ dtu_services: []
 | D-557 SESSION-INTERRUPT DURABILITY BURST 2026-06-13 | **COMPLETE** | rc.21 RELEASE IN-FLIGHT captured — RELEASING.md Steps 1-4 COMPLETE (branch release/v1.0.0-rc.21 off 3b2a378c; CHANGELOG 0302f917; PR #185 OPEN base=main MERGEABLE; CI 11/11 GREEN); Steps 5-9 (merge-gate) PENDING human authorization. develop 3b2a378c / main 2a191314 / 4-index ALL UNCHANGED. |
 | D-556 S-17.04-MERGED-PR-184-3b2a378c 2026-06-12 | **COMPLETE** | S-17.04 DELIVERED/MERGED PR #184 3b2a378c; verify-state-timestamp-refresh WASM guard + factory-lock-parse shared crate; CI 10/10 green; pr-reviewer APPROVE 3-cycle; security CLEAN; LOCAL converged 10 passes + Gemini; BC-5.40.001 ALREADY ACTIVE; E-17 W4 COMPLETE; feature branch deleted+verified; STORY-INDEX v4.00→v4.01 |
 | D-558 RC21-RELEASE-SHIPPED CLOSING BURST 2026-06-13 | **COMPLETE** | v1.0.0-rc.21 RELEASED via re-release. First attempt (PR #185 merged; tag b27663cc) FAILED at release.yml (run 27468463761; full bats suite linux exposed 6-class latent defects). Recovery: tag deleted; 6-class fix cycle (PR #186 a431ff47 squash-merged to develop 2026-06-13T17:56); re-release PR #188 d3b4e247 squash-merged; release.yml run 27478345756 all jobs PASS. main 2a191314→caf06c68 (bot bundle); tag 03054524; develop 3b2a378c→7e99f6ef; marketplace PR drbothen/claude-mp #13 OPEN PENDING human merge; 4-index UNCHANGED; plugin count 53→55. |
+| D-559 MARKETPLACE-MERGED CLOSURE BURST 2026-06-13 | **COMPLETE** | marketplace PR drbothen/claude-mp #13 MERGED by human; marketplace.json rc.20→rc.21 live on drbothen/claude-mp default branch; v1.0.0-rc.21 FULLY SHIPPED to operator marketplace; plugin count 53→55; operators receive via /plugin update vsdd-factory@claude-mp; closes D-558 pending-marketplace item; next = #173 wave-checkpoint; 4-index UNCHANGED. |
 
 ## Current Phase Steps
 
@@ -138,8 +140,8 @@ dtu_services: []
 |--------------|-----|-------|
 | main | caf06c68 | rc.21 bot binary bundle commit 2026-06-13; PR #188 merge d3b4e247 underneath; prior: 2a191314 (rc.20 SHIPPED 2026-06-01) |
 | develop | 7e99f6ef | PR #186 fix a431ff47 + release.yml sync-develop back-merge from main 2026-06-13; prior: 3b2a378c (D-556 PR #184 S-17.04 2026-06-12) |
-| factory-artifacts | 7b5e3434 | D-558 RC21-RELEASE-SHIPPED closing burst 2026-06-13; prior: c447b834 D-557-sha-patch-3 |
-| v1.0.0-rc.21 (tag) | 03054524 | PRERELEASE 2026-06-13; annotated tag object; force-moved by bot to bundle commit; GitHub Release https://github.com/drbothen/vsdd-factory/releases/tag/v1.0.0-rc.21; marketplace PR drbothen/claude-mp #13 OPEN PENDING human merge |
+| factory-artifacts | TBD-D-559 | D-559 MARKETPLACE-MERGED closure burst 2026-06-13; prior: 2ab9bef7 D-558-sha-patch |
+| v1.0.0-rc.21 (tag) | 03054524 | SHIPPED 2026-06-13; FULLY IN OPERATOR MARKETPLACE (marketplace PR #13 MERGED); annotated tag object; GitHub Release https://github.com/drbothen/vsdd-factory/releases/tag/v1.0.0-rc.21 |
 | v1.0.0-rc.20 (tag) | e9e38286 | SHIPPED 2026-06-01; annotated tag object; GitHub Release prerelease; marketplace PR drbothen/claude-mp #12 squash-merged 862e660d |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28; GitHub Release prerelease 2026-05-28T15:10:56Z; marketplace PR #11 squash-merged |
 | v1.0.0-rc.18 (tag) | 666d689f | SHIPPED 2026-05-13 PR #135 |
@@ -149,18 +151,19 @@ dtu_services: []
 | Cycle | Type | Status | Notes |
 |-------|------|--------|-------|
 | F-block-ai-attribution-message-file-arm | feature | F3 COMPLETE — F4 READY | F1+F2+F3 done 2026-05-12; 2 stories ready (S-16.01 5pts PostToolUse HEAD verify, S-16.02 3pts PreToolUse -F arm); E-16 under SS-07/SS-04; milestone v1.0.0-rc.17; BC-7.03.094/095/001, VP-080, ARCH SS-07 v1.3/SS-04 v1.4 registered |
-| v1.0-brownfield-backfill | brownfield | **D-558 2026-06-13; rc.21 RELEASED — marketplace #13 OPEN pending human merge; develop 7e99f6ef; main caf06c68** | S-15.03 PRIORITY-A COMPLETE D-508; rc.20 SHIPPED D-528; #128+#130+#169+#176+#170(S17.01+S17.02+S17.03)+S-17.04(PR#184) ALL MERGED; E-17 ALL WAVES DELIVERED; ADR-025 v1.6 FULLY CORRECTED (passes 1-10 converged; guard SHIPPED 3b2a378c); BC-INDEX v2.72; STORY-INDEX v4.01; ARCH-INDEX v2.27; **rc.21 RELEASED** (re-release PR #188 d3b4e247; release.yml run 27478345756 all-PASS; tag 03054524; marketplace #13 PENDING); After #13 merges: operator cache updated; then #173 wave-checkpoint. |
+| v1.0-brownfield-backfill | brownfield | **D-559 2026-06-13; rc.21 FULLY SHIPPED — marketplace #13 MERGED; develop 7e99f6ef; main caf06c68** | S-15.03 PRIORITY-A COMPLETE D-508; rc.20 SHIPPED D-528; #128+#130+#169+#176+#170(S17.01+S17.02+S17.03)+S-17.04(PR#184) ALL MERGED; E-17 ALL WAVES DELIVERED; ADR-025 v1.6 FULLY CORRECTED (passes 1-10 converged; guard SHIPPED 3b2a378c); BC-INDEX v2.72; STORY-INDEX v4.01; ARCH-INDEX v2.27; **rc.21 FULLY SHIPPED** (re-release PR #188 d3b4e247; release.yml run 27478345756 all-PASS; tag 03054524; marketplace #13 MERGED 2026-06-13; plugin count 53→55); **Next: #173 wave-checkpoint.** |
 | v1.0-feature-engine-discipline-pass-1 | feature | **PAUSED** | F5 pass-75 adversary complete D-510 2026-05-27; META-LEVEL-30 CANDIDATE-CONFIRMED; trajectory →9→9→9→11 (tick-up from 35-consecutive 9s; 14-day pause cost); 4 structural ACCEPTED-AT-FLOOR per D-386 Option C extension; S-15.17 anchors HIGH-002 cure; L-EDP1-067 captured; BC-INDEX v2.53; STORY-INDEX v3.71. Full-cycle trajectory (75 values ending): →9→9→9→9→11. |
 | v1.0-feature-plugin-async-semantics-pass-1 | feature | CLOSED | All PRs merged; rc.14 shipped |
 
 ## Decisions Log
 
-> D-001..D-549: `cycles/v1.0-brownfield-backfill/decision-log.md` + `decisions-log-archive.md` (D-550..D-558 also in decision-log.md SoT)
+> D-001..D-549: `cycles/v1.0-brownfield-backfill/decision-log.md` + `decisions-log-archive.md` (D-550..D-559 also in decision-log.md SoT)
 > F5 pass-2 architect decisions: `cycles/v1.0-feature-engine-discipline-pass-1/F5-pass-2-architect-decisions.md` (factory-artifacts 7b83ef58)
-> D-379..D-454 (F5): `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md` <!-- D-452(e) umbrella-range-auto-advance; D-511..D-558 per-burst D-range advances archived to decision-log.md; D-558 RC21-RELEASE-SHIPPED CLOSING BURST 2026-06-13 D-range→D-558 -->
+> D-379..D-454 (F5): `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md` <!-- D-452(e) umbrella-range-auto-advance; D-511..D-559 per-burst D-range advances archived to decision-log.md; D-559 MARKETPLACE-MERGED CLOSURE BURST 2026-06-13 D-range→D-559 -->
 
 | ID | Decision | Phase | Date |
 |----|----------|-------|------|
+| D-559 | MARKETPLACE-MERGED CLOSURE BURST 2026-06-13 — marketplace PR drbothen/claude-mp #13 MERGED by human; marketplace.json rc.20→rc.21 live on drbothen/claude-mp default branch; v1.0.0-rc.21 FULLY SHIPPED to operator marketplace; plugin count 53→55 (verify-factory-lock + verify-state-timestamp-refresh WASM guards; factory-lock-parse crate; /factory-lock + /factory-unlock skills); operators receive via /plugin update vsdd-factory@claude-mp; closes D-558 pending-marketplace item; 4-index UNCHANGED (BC-INDEX v2.72 VP-INDEX v2.06 STORY-INDEX v4.01 ARCH-INDEX v2.27); STATE.md-only burst; D-chain cite D-558 per D-419(b); parent-commit 2ab9bef7 per D-419(b). | release-shipped-marketplace | 2026-06-13 |
 | D-558 | RC21 RELEASE-SHIPPED CLOSING BURST 2026-06-13 — v1.0.0-rc.21 RELEASED via re-release after 6-class fix cycle. FIRST ATTEMPT FAILED: PR #185 merged main→b27663cc (stale); tag v1.0.0-rc.21 at b27663cc; release.yml run 27468463761 FAILED — full bats run-all.sh on linux exposed 6-class latent defects accumlated on develop (fix #1: log-dir test isolation via ADR-024 Level-A VSDD_LOG_DIR override; fix #2: factory-lock-write hermetic git identity for CI runner; fix #3: SC2317 shellcheck false-positive scoped directives on S-17.03 trap-EXIT handlers; fix #4: pr-manager.md inline backtick prose reword; fix #5 STRUCTURAL META-FIX: new ci.yml bats-full-suite(linux) job runs full run-all.sh on ubuntu — ROOT-CAUSE CLOSURE of ci.yml never-ran-run-all.sh gap; fix #6: regression-v1.0 tests 6+9 build RELEASE wasm in bats-full-suite, not debug-wasm). RECOVERY: stale tag deleted; PR #186 squash-merged a431ff47 to develop 2026-06-13T17:56; re-release PR #188 d3b4e247 squash-merged. RELEASE.YML run 27478345756 all 7 jobs PASS (Pre-release Validation + 5-platform Build dispatcher + Commit bundled binaries + retag + Create GitHub Release + Sync main→develop + Bump claude-mp marketplace version). main 2a191314→caf06c68 (bot bundle commit); v1.0.0-rc.21 tag 03054524 (annotated; force-moved by bot to bundle commit caf06c68); develop 3b2a378c→7e99f6ef; GitHub Release PRERELEASE https://github.com/drbothen/vsdd-factory/releases/tag/v1.0.0-rc.21; marketplace PR drbothen/claude-mp #13 OPEN MERGEABLE single-line rc.20→rc.21 bump PENDING human merge (Zious11 lacks merge permission; operator cache updates only after #13 merges). test_F_P2_001 timing flake RECURRED darwin-x64 PR #188 CI (3179ms vs 3000ms); cleared by re-run; strengthens de-flake follow-up. Process-gap (ci.yml-never-ran-run-all.sh) CLOSED IN-CYCLE by fix #5 bats-full-suite(linux) job; residual: job not yet in branch-protection required-status-checks (see Drift Items). What rc.21 ships to operators (post #13 merge): verify-factory-lock + verify-state-timestamp-refresh WASM guards; factory-lock-parse crate; /factory-lock + /factory-unlock skills (S-17.01..S-17.04); #128/#130/#169/#176 fixes; plugin count 53→55. 4-index UNCHANGED. D-chain cite D-557 per D-419(b); parent-commit c447b834 per D-419(b). | release-shipped | 2026-06-13 |
 | D-557 | SESSION-INTERRUPT DURABILITY BURST 2026-06-13 — prior session began rc.21 release, was interrupted mid-flight; durability gap closed. RELEASING.md Steps 1-4 COMPLETE: release branch `release/v1.0.0-rc.21` cut off develop `3b2a378c`; CHANGELOG.md rc.21 entry committed `0302f917` (title: "1.0.0-rc.21 — factory-lock subsystem + dispatcher hardening + STATE.md freshness guard"; ships S-17.01..S-17.04 PRs #181/#182/#183/#184 + #128/#130/#169+#176/#180); PR #185 OPEN (base=main, isDraft=false, MERGEABLE, created 2026-06-12T20:39:13Z, url https://github.com/drbothen/vsdd-factory/pull/185, title "release: v1.0.0-rc.21 — factory-lock subsystem + dispatcher hardening + STATE.md freshness guard"); CI 11/11 GREEN (guardrail PASS + SAST PASS + build-dispatcher ×5 darwin-arm64/x64 linux-arm64/x64 windows-x64 PASS + cargo-host macos+ubuntu PASS + platforms-drift PASS + validate PASS). plugin.json currently at 1.0.0-rc.20 — bot-automated during release.yml commit-binaries step (confirmed rc.20 precedent bot commit 2a191314); NOT a gap. Steps 5-9 REMAIN: merge PR #185 with --merge (NOT --squash; HUMAN-GATED) → tag v1.0.0-rc.21 annotated at main tip → watch release.yml 5-platform builds + bot binary-bundle chore commit + GitHub Release prerelease + marketplace bump PR → verify+merge marketplace PR drbothen/claude-mp → verify operator `/plugin update` install. develop `3b2a378c` UNCHANGED; main `2a191314` UNCHANGED; 4-index: BC-INDEX v2.72 UNCHANGED VP-INDEX v2.06 UNCHANGED STORY-INDEX v4.01 UNCHANGED ARCH-INDEX v2.27 UNCHANGED; D-chain cite D-556 per D-419(b); parent-commit e828b486 per D-419(b). | release-interrupt-durability | 2026-06-13 |
 | D-556 | S-17.04 DELIVERED/MERGED 2026-06-12 — PR #184 squash-merged 3b2a378c; CI 10/10 green (validate+SAST+platforms-drift+cargo-host ubuntu+macos+build-dispatcher 5 platforms); pr-reviewer APPROVE 3-cycle (F-001 CI count floor + CI-001 CI_REQUIRE_ARTIFACTS hard-fail resolved); security CLEAN; LOCAL adversary converged 10 Claude fresh-context passes + Gemini cross-family (D-539 obligation satisfied); P0 absolute-path-inert defect caught pass-7 + fixed (env-free suffix/equality trigger); ADR-025 v1.6 Decision 12 / BC-5.40.001 PC4; E-17 wave-4 COMPLETE (E-17 ALL 4 WAVES MERGED); develop 60fd0233→3b2a378c; feature branch feature/S-17.04-mid-burst-heartbeat-renewal-wiring DELETED+VERIFIED; POL-14 BC promotion: BC-5.40.001 ALREADY ACTIVE (promoted D-544); STORY-INDEX v4.00→v4.01; BC-INDEX v2.72 UNCHANGED; VP-INDEX v2.06 UNCHANGED; ARCH-INDEX v2.27 UNCHANGED; REQUIRES rc.21 for operator cache; D-chain cite D-555 per D-419(b); parent-commit 0eb4cc71 per D-419(b). | S-17.04 MERGED PR #184 3b2a378c; BC-5.40.001 ALREADY ACTIVE; E-17 W4 COMPLETE; STORY-INDEX v4.00→v4.01; develop 3b2a378c; feature branch DELETED | story-merge-closure | 2026-06-12 |
@@ -216,7 +219,7 @@ dtu_services: []
 - `cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` | `session-checkpoints.md` | `lessons.md`
 - `cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md` (adversary reviews at `S-12.03/`, `S-12.04/`, `S-12.05/` subdirs)
 
-## Session Resume Checkpoint (2026-06-13 — D-558 RC21-RELEASE-SHIPPED CLOSING BURST; v1.0.0-rc.21 RELEASED; marketplace #13 OPEN pending human merge)
+## Session Resume Checkpoint (2026-06-13 — D-559 MARKETPLACE-MERGED CLOSURE BURST; v1.0.0-rc.21 FULLY SHIPPED to operator marketplace; next: #173 wave-checkpoint)
 
 > **SELF-SUFFICIENT RESUME CONTEXT FOR ZERO-CONTEXT NEW SESSION ON A DIFFERENT MACHINE**
 > Read this section alone to resume the orchestrator after full CLEAR, new session, or new machine. All context needed is here.
@@ -224,21 +227,21 @@ dtu_services: []
 
 ### §1. Where We Are
 
-**v1.0.0-rc.21 RELEASED (D-558 2026-06-13). Source side complete. Single remaining release action: merge marketplace PR drbothen/claude-mp #13 (human-gated — Zious11 lacks merge permission on drbothen/claude-mp).**
+**v1.0.0-rc.21 FULLY SHIPPED (D-559 2026-06-13). Release 100% complete. NO open release action remaining.**
 
 Release summary:
-- First release attempt FAILED: PR #185 merged; release.yml run 27468463761 FAILED — full bats suite linux exposed 6-class latent defects (ci.yml had never run full run-all.sh).
-- 6-class fix cycle: PR #186 squash-merged a431ff47 to develop 2026-06-13T17:56. Fixes: log-dir isolation (ADR-024 VSDD_LOG_DIR), factory-lock-write hermetic git identity, SC2317 shellcheck scoped directives, pr-manager.md inline backtick prose, ci.yml bats-full-suite(linux) new job (ROOT-CAUSE CLOSURE), regression-v1.0 release-wasm build.
+- First release attempt FAILED: PR #185 merged; release.yml run 27468463761 FAILED — full bats suite linux exposed 6-class latent defects.
+- 6-class fix cycle: PR #186 squash-merged a431ff47 to develop 2026-06-13T17:56.
 - Re-release: PR #188 squash-merged d3b4e247; release.yml run 27478345756 all 7 jobs PASS.
 - **main:** caf06c68 (bot bundle commit). **develop:** 7e99f6ef. **tag v1.0.0-rc.21:** 03054524 (annotated, force-moved to bundle commit).
-- **Marketplace PR drbothen/claude-mp #13:** OPEN MERGEABLE, single-line rc.20→rc.21 version bump; https://github.com/drbothen/claude-mp/pull/13; PENDING human merge. Operator cache updates ONLY after #13 merges.
+- **Marketplace PR drbothen/claude-mp #13:** MERGED by human 2026-06-13. marketplace.json rc.20→rc.21 live on drbothen/claude-mp default branch. Operators receive via `/plugin update vsdd-factory@claude-mp`.
 
-What rc.21 ships to operators (post-#13 merge): verify-factory-lock + verify-state-timestamp-refresh WASM guards; factory-lock-parse crate; /factory-lock + /factory-unlock skills (S-17.01..S-17.04); #128/#130/#169/#176 fixes; plugin count 53→55.
+What rc.21 ships to operators: verify-factory-lock + verify-state-timestamp-refresh WASM guards; factory-lock-parse crate; /factory-lock + /factory-unlock skills (S-17.01..S-17.04); #128/#130/#169/#176 fixes; plugin count 53→55.
 
-- **D-range:** D-001..D-558.
+- **D-range:** D-001..D-559.
 - **develop HEAD:** `7e99f6ef` (PR #186 fix + release.yml sync back-merge 2026-06-13; prior: `3b2a378c` D-556).
 - **main HEAD:** `caf06c68` (rc.21 bot bundle commit; prior: `2a191314` rc.20).
-- **4-index (post-D-558, UNCHANGED):** BC-INDEX v2.72, VP-INDEX v2.06, STORY-INDEX v4.01, ARCH-INDEX v2.27.
+- **4-index (UNCHANGED throughout release):** BC-INDEX v2.72, VP-INDEX v2.06, STORY-INDEX v4.01, ARCH-INDEX v2.27.
 - **BC content:** BC-5.39.005 v1.3 + BC-5.39.006 v1.7 + BC-5.39.007 v1.6 + BC-5.39.008 v1.5 + BC-5.39.009 v1.9 + BC-7.04.051 v1.1 + BC-4.13.001 v1.3 + BC-5.40.001 v1.1 + BC-6.23.001 v1.2 — all ACTIVE. policies.yaml v1.3.6 SEALED.
 
 ### §2. Operating Mode
@@ -246,7 +249,7 @@ What rc.21 ships to operators (post-#13 merge): verify-factory-lock + verify-sta
 - vsdd-factory brownfield-onboarding; cycle `v1.0-brownfield-backfill`; self-referential.
 - **E-10 CASCADE FULLY SEALED D-531** (2026-06-01; pass-16 asymptotic-acceptance; resumption gate = engine-surface material change). **Do NOT resume E-10 without material change.**
 - **F5 PAUSED D-386 Option C** (2026-05-13; trajectory →9→9→9→11). **Do NOT resume without explicit human direction.**
-- **S-15.03 PRIORITY-A COMPLETE D-508** (2026-05-27; 11 stories; 40pts). **RC.20 SHIPPED D-528** (2026-06-01; tag e9e38286; marketplace PR #12). **RC.21 SHIPPED D-558** (2026-06-13; tag 03054524; marketplace #13 PENDING).
+- **S-15.03 PRIORITY-A COMPLETE D-508** (2026-05-27; 11 stories; 40pts). **RC.20 SHIPPED D-528** (2026-06-01; tag e9e38286; marketplace PR #12). **RC.21 FULLY SHIPPED D-559** (2026-06-13; tag 03054524; marketplace #13 MERGED).
 
 ### §3. User Directives (Carry Across CLEAR)
 
@@ -263,15 +266,16 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 - **POLICY 8 v1.3 EC-mirror routing-rule (D-517); bidirectional AC↔PC parity (D-515+D-516); POLICY 5 v1.3.1/v1.3.3/v1.3.4/v1.3.5/v1.3.6 SDK-grounding + sibling-sweep mandates.**
 - **D-537 [process-gap] spec-drift routing:** When TDD fix changes ADR-specified behavior, route architect ADR amendment in SAME burst. Codified ADR-024 v1.2 Process note.
 - **D-539 multi-family adversary obligation:** prompt-contract + shell-logic issues require cross-family AND same-family Claude adversary passes before convergence.
-- **D-558 carry:** RC21 RELEASE-SHIPPED CLOSING BURST 2026-06-13. v1.0.0-rc.21 RELEASED via re-release after 6-class fix cycle (PR #186 a431ff47 + PR #188 d3b4e247; release.yml run 27478345756 all-PASS). main caf06c68; develop 7e99f6ef; tag 03054524. Marketplace PR drbothen/claude-mp #13 OPEN PENDING human merge (Zious11 lacks permission). 4-index UNCHANGED. Process-gap (ci.yml-never-ran-run-all.sh) CLOSED by fix #5 (bats-full-suite(linux) job). bats-full-suite not yet in branch-protection required-checks (Drift Item). Next: merge #13 (human) → operator verify → #173 wave-checkpoint.
-- **D-557 carry (prior):** SESSION-INTERRUPT DURABILITY BURST 2026-06-13. rc.21 RELEASE IN-FLIGHT: PR #185 OPEN base=main MERGEABLE CI-11/11-GREEN. RELEASING.md Steps 1-4 COMPLETE (branch release/v1.0.0-rc.21 off 3b2a378c; CHANGELOG 0302f917; PR #185 created 2026-06-12T20:39:13Z). Steps 5-9 PENDING → COMPLETED by D-558.
+- **D-559 carry:** MARKETPLACE-MERGED CLOSURE BURST 2026-06-13. marketplace PR drbothen/claude-mp #13 MERGED. marketplace.json rc.20→rc.21 live. v1.0.0-rc.21 FULLY SHIPPED. plugin count 53→55. NO open release action. Next: #173 wave-checkpoint (gate: rc.21 marketplace merged + operator verified — BOTH NOW SATISFIED).
+- **D-558 carry (prior):** RC21 RELEASE-SHIPPED CLOSING BURST 2026-06-13. v1.0.0-rc.21 RELEASED via re-release after 6-class fix cycle (PR #186 a431ff47 + PR #188 d3b4e247; release.yml run 27478345756 all-PASS). main caf06c68; develop 7e99f6ef; tag 03054524. 4-index UNCHANGED. Process-gap (ci.yml-never-ran-run-all.sh) CLOSED by fix #5 (bats-full-suite(linux) job). bats-full-suite not yet in branch-protection required-checks (Drift Item).
 - **D-556 carry:** S-17.04 MERGED PR #184 3b2a378c 2026-06-12. E-17 ALL 4 WAVES COMPLETE. Feature branch deleted+verified. STORY-INDEX v4.01. ADR-025 v1.6 guard SHIPPED. SHIPPED in rc.21.
 - **D-550 carry (prior):** OPEN DESIGN DECISION RESOLVED — do NOT re-open without explicit human direction.
 - **D-541 carry (partial):** VP IDs TBD per TD-VSDD-063. POLICY 8 propagation — BC-6.23.001 now ACTIVE per POL-14.
 
 ### §4. Tier-A Completed Log (most recent first)
 
-- **D-558 (2026-06-13):** RC21 RELEASE-SHIPPED CLOSING BURST. v1.0.0-rc.21 RELEASED via re-release (6-class fix cycle PR #186 a431ff47 + PR #188 d3b4e247; release.yml run 27478345756 all-PASS). main caf06c68; develop 7e99f6ef; tag 03054524. marketplace #13 PENDING human merge. 4-index UNCHANGED.
+- **D-559 (2026-06-13):** MARKETPLACE-MERGED CLOSURE BURST. marketplace #13 MERGED. marketplace.json rc.20→rc.21 live. v1.0.0-rc.21 FULLY SHIPPED. plugin count 53→55. NO open release action. 4-index UNCHANGED.
+- **D-558 (2026-06-13):** RC21 RELEASE-SHIPPED CLOSING BURST. v1.0.0-rc.21 RELEASED via re-release (6-class fix cycle PR #186 a431ff47 + PR #188 d3b4e247; release.yml run 27478345756 all-PASS). main caf06c68; develop 7e99f6ef; tag 03054524. marketplace #13 PENDING human merge at D-558. 4-index UNCHANGED.
 - **D-557 (2026-06-13):** SESSION-INTERRUPT DURABILITY BURST. rc.21 RELEASE IN-FLIGHT captured. PR #185 OPEN base=main MERGEABLE CI-11/11-GREEN (2026-06-12T20:39:13Z). RELEASING.md Steps 1-4 COMPLETE; Steps 5-9 PENDING human authorization. develop/main/4-index UNCHANGED.
 - **D-556 (2026-06-12):** S-17.04 DELIVERED/MERGED PR #184 3b2a378c. CI 10/10 green. pr-reviewer APPROVE 3-cycle. Security CLEAN. LOCAL adversary converged 10 Claude+Gemini passes. E-17 W4 COMPLETE (E-17 ALL 4 MERGED). STORY-INDEX v4.00→v4.01. develop 60fd0233→3b2a378c. Feature branch DELETED. SHIPPED in rc.21.
 - **D-555 (2026-06-12):** ADVERSARY PASS 8+9 CLEANUP CODIFIED. Guard functionally CONVERGED (C0/H0). M1/L1/L2/L4/stale-doc/L3 quality fixes. S-17.04 v1.6→v1.7. STORY-INDEX v3.99→v4.00.
@@ -288,7 +292,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 ### §5. Cumulative Codifications
 
 - F5: D-379..D-454 (76 decisions) — `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md`.
-- Brownfield: D-001..D-558 — `cycles/v1.0-brownfield-backfill/decision-log.md`. Latest: **D-558 RC21-RELEASE-SHIPPED CLOSING BURST 2026-06-13 — v1.0.0-rc.21 RELEASED via re-release; 6-class fix cycle PR #186 a431ff47 + PR #188 d3b4e247; release.yml run 27478345756 all-PASS; main caf06c68; tag 03054524; develop 7e99f6ef; marketplace #13 PENDING; 4-index UNCHANGED.**
+- Brownfield: D-001..D-559 — `cycles/v1.0-brownfield-backfill/decision-log.md`. Latest: **D-559 MARKETPLACE-MERGED CLOSURE BURST 2026-06-13 — marketplace #13 MERGED; marketplace.json rc.20→rc.21 live; v1.0.0-rc.21 FULLY SHIPPED; plugin count 53→55; 4-index UNCHANGED.**
 
 ### §6. Cumulative Lessons
 
@@ -306,16 +310,16 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 | BC-INDEX | v2.72 | D-547 BC-6.23.001 POL-14 draft→active (PR #183 S-17.03 merged); total_bcs 1958 UNCHANGED |
 | VP-INDEX | v2.06 | UNCHANGED (18 VPs pending architect per TD-VSDD-063) |
 | STORY-INDEX | v4.01 | D-556: S-17.04 MERGED PR #184 3b2a378c (status draft→merged; E-17 W4 COMPLETE; feature branch deleted+verified) |
-| ARCH-INDEX | v2.27 | D-554: ADR-025 v1.6 deep-pass-7 P0 WASM env-dead-code fix (§12.7 R6 rewritten — env-free trigger; §12.8 EC-006; §12.9 AC-018+AC-019 mandate; INV-019 cure (a)/(b)/(c)). UNCHANGED at D-555..D-558. |
+| ARCH-INDEX | v2.27 | D-554: ADR-025 v1.6 deep-pass-7 P0 WASM env-dead-code fix (§12.7 R6 rewritten — env-free trigger; §12.8 EC-006; §12.9 AC-018+AC-019 mandate; INV-019 cure (a)/(b)/(c)). UNCHANGED at D-555..D-559. |
 
-4-index UNCHANGED at D-558 (literal-shell verification: `grep "^version:"` on all 4 indexes → BC-INDEX "2.72" / VP-INDEX "2.06" / STORY-INDEX "4.01" / ARCH-INDEX "2.27"). No BC/VP/story content changed by 6-class fix cycle (tests + ci.yml + shellcheck directives + agent-doc prose only).
+4-index UNCHANGED at D-559 (literal-shell verification: `grep "^version:"` on all 4 indexes → BC-INDEX "2.72" / VP-INDEX "2.06" / STORY-INDEX "4.01" / ARCH-INDEX "2.27"). No BC/VP/story/arch content changed by this marketplace-closure STATE.md-only burst.
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** `7b5e3434` (D-558 RC21-RELEASE-SHIPPED closing burst 2026-06-13; prior: `c447b834` D-557-sha-patch-3)
+- **factory-artifacts HEAD:** TBD-D-559 (D-559 MARKETPLACE-MERGED closure burst 2026-06-13; prior: `2ab9bef7` D-558-sha-patch)
 - **develop HEAD:** `7e99f6ef` (PR #186 fix a431ff47 + release.yml sync back-merge 2026-06-13; prior: `3b2a378c` D-556)
 - **main HEAD:** `caf06c68` (rc.21 bot bundle commit 2026-06-13; prior: `2a191314` rc.20)
-- **v1.0.0-rc.21 tag:** `03054524` (annotated; force-moved to bundle commit; prerelease; marketplace #13 OPEN pending)
+- **v1.0.0-rc.21 tag:** `03054524` (annotated; force-moved to bundle commit; FULLY SHIPPED; marketplace #13 MERGED)
 - **v1.0.0-rc.20 tag:** `e9e38286` (prerelease; marketplace PR #12 squash-merged 862e660d)
 - **ADR-025 v1.6 SHIPPED:** `crates/hook-plugins/verify-state-timestamp-refresh/` guard SHIPPED at `3b2a378c`; ARCH-INDEX v2.27
 - **S-17.04 story:** `.factory/stories/S-17.04-mid-burst-heartbeat-renewal-wiring.md` v1.7 MERGED — STORY-INDEX v4.01; E-17 W4 COMPLETE; PR #184 3b2a378c
@@ -323,11 +327,10 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 ### §10. PR Status
 
-- **0 open feature PRs. 0 open release PRs (source side). 1 open marketplace PR.**
-- **PR #185 SUPERSEDED** — merged as first-attempt release that failed release.yml; stale; effectively replaced by PR #188.
+- **0 open feature PRs. 0 open release PRs. 0 open marketplace PRs.**
+- **marketplace PR drbothen/claude-mp #13 MERGED** 2026-06-13 — rc.21 FULLY SHIPPED to operator marketplace.
 - **PR #186 MERGED** a431ff47 to develop 2026-06-13T17:56 — 6-class fix cycle (log-dir isolation + factory-lock-write hermetic git identity + SC2317 shellcheck + pr-manager.md prose + ci.yml bats-full-suite(linux) job + regression-v1.0 release-wasm).
 - **PR #188 MERGED** d3b4e247 to main (re-release) 2026-06-13 — `release/v1.0.0-rc.21` re-cut off develop post-#186; release.yml run 27478345756 all-PASS; main now at caf06c68 (bot bundle commit on top).
-- **marketplace PR drbothen/claude-mp #13 OPEN** — single-line rc.20→rc.21 bump; MERGEABLE; PENDING human merge (Zious11 lacks merge permission on drbothen/claude-mp); url https://github.com/drbothen/claude-mp/pull/13.
 - **MERGED (E-17 ALL 4 WAVES):** PR #184 3b2a378c S-17.04 + PR #183 60fd0233 S-17.03 + PR #182 df4f26b8 S-17.02 + PR #181 c64b46d2 S-17.01 — ALL SHIPPED in rc.21.
 - **MERGED (prior bugs):** PR #180 0f4793f1 (#169+#176) + PR #179 89fbe2d6 (#130 ADR-024 v1.2) + PR #178 f6ce4b7c (#128) — ALL SHIPPED in rc.21.
 
@@ -339,24 +342,24 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 4. **Verify develop HEAD:** `git rev-parse --short origin/develop` → expect `7e99f6ef`.
 5. **E-10 CASCADE SEALED D-531.** Do NOT resume without engine-surface material change.
 6. **F5 PAUSED** — trajectory →9→9→9→11. Do NOT resume without explicit human direction.
-7. **RC.21 SHIPPED D-558** (run 27478345756 all-PASS; tag 03054524; main caf06c68; develop 7e99f6ef). **Remaining release action: merge marketplace PR drbothen/claude-mp #13 (human-gated; Zious11 lacks permission on drbothen/claude-mp)**. After merge: verify operator `/plugin update` install. Ships verify-factory-lock + verify-state-timestamp-refresh WASM guards + /factory-lock+/factory-unlock skills + plugin count 53→55.
-8. **S-17.04 MERGED D-556.** E-17 ALL 4 WAVES MERGED. ADR-025 v1.6 guard SHIPPED at `3b2a378c` (in develop; reaches operators after rc.21 marketplace merge). BC-5.40.001 PC4 now enforced at write-time.
-9. **4-index confirmed D-558 UNCHANGED:** BC-INDEX v2.72, VP-INDEX v2.06, STORY-INDEX v4.01, ARCH-INDEX v2.27.
+7. **RC.21 FULLY SHIPPED D-559** (marketplace #13 MERGED; tag 03054524; main caf06c68; develop 7e99f6ef). **NO remaining release action.** Operators receive via `/plugin update vsdd-factory@claude-mp`. Ships verify-factory-lock + verify-state-timestamp-refresh WASM guards + /factory-lock+/factory-unlock skills + plugin count 53→55.
+8. **S-17.04 MERGED D-556.** E-17 ALL 4 WAVES MERGED. ADR-025 v1.6 guard SHIPPED at `3b2a378c` (in develop; now in operator cache via rc.21 marketplace). BC-5.40.001 PC4 now enforced at write-time.
+9. **4-index confirmed D-559 UNCHANGED:** BC-INDEX v2.72, VP-INDEX v2.06, STORY-INDEX v4.01, ARCH-INDEX v2.27.
 10. **ALL dispatches carry:** TD-VSDD-097-EXT + TD-VSDD-099 + TD-VSDD-100 + POLICY 14 5-leg + verification_step 7 4-index gate + INV-019 (a)/(b)/(c) + adversary grep origin/factory-artifacts + D-449(a) literal-shell Dim-2 + POLICY 8 v1.3 parity + POLICY 5 v1.3.1/v1.3.4/v1.3.5/v1.3.6 + D-537 spec-drift routing + D-539 multi-family adversary.
-11. **Latest decision D-558.** rc.21 RELEASED. Marketplace #13 OPEN pending human merge.
+11. **Latest decision D-559.** rc.21 FULLY SHIPPED. Marketplace #13 MERGED. NO open release action.
 
-### §12. Pending Work Items — Strict Resume Ordering (refreshed 2026-06-13 D-558)
+### §12. Pending Work Items — Strict Resume Ordering (refreshed 2026-06-13 D-559)
 
 | Step | Item | Tier | Gate | Status |
 |------|------|------|------|--------|
-| **1** | **rc.21 marketplace merge** | **release** | rc.21 SHIPPED (D-558) | **PENDING HUMAN ACTION:** merge marketplace PR drbothen/claude-mp #13 (human-gated; Zious11 lacks merge permission). After merge: verify operator `/plugin update` install (ships verify-factory-lock + verify-state-timestamp-refresh + /factory-lock+/factory-unlock + plugin count 53→55). |
-| **2** | **#173 wave-checkpoint** | **implementation** | rc.21 marketplace MERGED + operator verified | State-durability chain: factory-artifacts orphan-branch checkpoint/restore |
-| **3** | **#171 deferred-revalidate** | **implementation** | #173 done | Deferred-revalidation story |
-| **4** | **#129 canonical-principle** | **implementation** | human-authorize | Ship canonical-principle in plugin |
-| ~~prior~~ | ~~TD #74/66/67; S-15.03 PRIORITY-A; E-10 pass-16; rc.19+rc.20; #128+#130+#169+#176+#170-S17.01/02/03/04~~ | ~~—~~ | ~~—~~ | **ALL COMPLETE/MERGED/SHIPPED** (full rows decision-log.md SoT) |
-| **5c** | **F5 pass-76** | **gated** | EXPLICIT human direction | PAUSED D-386 Option C. Do NOT resume. |
-| **6/7** | **UNI-PLUG-001 / SK-MCP-001** | **forward** | human-authorize | PROPOSAL REVIEW-READY |
+| ~~1~~ | ~~rc.21 marketplace merge~~ | ~~release~~ | ~~—~~ | **COMPLETE — marketplace #13 MERGED 2026-06-13. rc.21 FULLY SHIPPED.** |
+| **1** | **#173 wave-checkpoint** | **implementation** | rc.21 marketplace MERGED + operator verified (BOTH SATISFIED) | State-durability chain: factory-artifacts orphan-branch checkpoint/restore. Gate now OPEN. |
+| **2** | **#171 deferred-revalidate** | **implementation** | #173 done | Deferred-revalidation story |
+| **3** | **#129 canonical-principle** | **implementation** | human-authorize | Ship canonical-principle in plugin |
+| ~~prior~~ | ~~TD #74/66/67; S-15.03 PRIORITY-A; E-10 pass-16; rc.19+rc.20; #128+#130+#169+#176+#170-S17.01/02/03/04; rc.21 release~~ | ~~—~~ | ~~—~~ | **ALL COMPLETE/MERGED/SHIPPED** (full rows decision-log.md SoT) |
+| **4c** | **F5 pass-76** | **gated** | EXPLICIT human direction | PAUSED D-386 Option C. Do NOT resume. |
+| **5/6** | **UNI-PLUG-001 / SK-MCP-001** | **forward** | human-authorize | PROPOSAL REVIEW-READY |
 
 **[D-414(c) acknowledgment: Section 12 is a non-standard addition for forward-backlog durability.]**
 
-> Previous checkpoint (D-557 SESSION-INTERRUPT-DURABILITY-BURST-RC21-IN-FLIGHT-2026-06-13) archived to: `cycles/v1.0-brownfield-backfill/session-checkpoints.md`
+> Previous checkpoint (D-558 RC21-RELEASE-SHIPPED-CLOSING-BURST-2026-06-13) archived to: `cycles/v1.0-brownfield-backfill/session-checkpoints.md`
