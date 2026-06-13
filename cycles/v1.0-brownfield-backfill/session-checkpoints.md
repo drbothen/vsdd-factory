@@ -656,3 +656,22 @@ Key anchors at D-545:
 - **Next:** S-17.03 test-writer Red Gate on feature/S-17.03-factory-lock-skills (E-17 Wave 3) OR rc release
 
 **This checkpoint superseded by D-546 S-17.03-V1.1-EXECUTABLE-HELPER-REFINEMENT 2026-06-11.**
+
+---
+
+## Archived: D-556 S-17.04-MERGED-PR-184-3b2a378c 2026-06-12 (Superseded by D-557)
+
+> Archived when D-557 SESSION-INTERRUPT DURABILITY BURST replaced this checkpoint with rc.21 IN-FLIGHT state.
+
+**Status:** D-556 S-17.04 DELIVERED/MERGED — PR #184 squash-merged 3b2a378c; CI 10/10 green; pr-reviewer APPROVE 3-cycle; security CLEAN; LOCAL adversary converged 10 Claude fresh-context passes + Gemini cross-family (D-539 satisfied); P0 absolute-path-inert defect caught pass-7 + fixed; ADR-025 v1.6 Decision 12 / BC-5.40.001 PC4; E-17 W4 COMPLETE (ALL 4 WAVES MERGED); feature branch deleted+verified; STORY-INDEX v4.00→v4.01; develop 60fd0233→3b2a378c. RC.21 RELEASE NEXT.
+
+Key anchors at D-556:
+- **4-index:** BC-INDEX v2.72, VP-INDEX v2.06, STORY-INDEX v4.01, ARCH-INDEX v2.27
+- **develop HEAD:** `3b2a378c`
+- **main HEAD:** `2a191314` (rc.20)
+- **factory-artifacts HEAD at archive:** `e828b486` (D-556 sha-patch)
+- **D-range:** D-001..D-556
+- **BC status:** BC-5.40.001 v1.1 ACTIVE + BC-4.13.001 v1.3 ACTIVE + BC-6.23.001 v1.2 ACTIVE
+- **Next:** rc.21 release (RELEASING.md Steps 1-4 complete at time of archive; Steps 5-9 pending)
+
+**This checkpoint superseded by D-557 SESSION-INTERRUPT DURABILITY BURST 2026-06-13.**
