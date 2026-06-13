@@ -1162,3 +1162,71 @@ on_error = "block"
 
 [hooks.capabilities.read_file]
 path_allow = ["plugins/vsdd-factory/hooks-registry.toml"]
+
+# ---------- verify-factory-lock (PreToolUse, Edit|Write|MultiEdit|Agent) ----------
+# S-17.02: factory-artifacts orphan-branch single-writer guard (BC-4.13.001).
+# Reads factory_lock block from STATE.md; blocks mutating tools when a foreign
+# unexpired lock is held. Fail-open (on_error=continue) per ADR-025 Decision 7.
+# async = false REQUIRED — see ADR-019 + ADR-025
+
+[[hooks]]
+name = "verify-factory-lock"
+plugin = "hook-plugins/verify-factory-lock.wasm"
+event = "PreToolUse"
+tool = "Edit|Write|MultiEdit|Agent"
+priority = 142
+async = false
+on_error = "continue"
+timeout_ms = 5000
+
+[hooks.capabilities.read_file]
+path_allow = [".factory/STATE.md"]
+
+[hooks.capabilities.exec_subprocess]
+binary_allow = ["git"]
+env_allow = ["HOME", "GIT_CONFIG_GLOBAL", "XDG_CONFIG_HOME"]
+
+# ---------- verify-factory-lock-bash (PreToolUse, Bash) ----------
+# S-17.02: Bash arm — intercepts git push to factory-artifacts branch only.
+# Internal push-regex filters `git.*push.*factory-artifacts`; non-push Bash
+# commands return Continue immediately (EC-011, sub-millisecond path).
+# async = false REQUIRED — see ADR-019 + ADR-025
+
+[[hooks]]
+name = "verify-factory-lock-bash"
+plugin = "hook-plugins/verify-factory-lock.wasm"
+event = "PreToolUse"
+tool = "Bash"
+priority = 142
+async = false
+on_error = "continue"
+timeout_ms = 5000
+
+[hooks.capabilities.read_file]
+path_allow = [".factory/STATE.md"]
+
+[hooks.capabilities.exec_subprocess]
+binary_allow = ["git"]
+env_allow = ["HOME", "GIT_CONFIG_GLOBAL", "XDG_CONFIG_HOME"]
+
+# ---------- verify-state-timestamp-refresh (PreToolUse, Edit|Write|MultiEdit) ----------
+# S-17.04: PreToolUse guard — blocks Edit/Write/MultiEdit to .factory/STATE.md when
+# proposed content (reconstructed for Edit/MultiEdit) does not advance timestamp:
+# frontmatter (every write) or factory_lock.expires_at (when lock held).
+# Decision 12 / BC-5.40.001 PC4.
+# Trigger (v1.6 env-free): normalised path == ".factory/STATE.md" OR ends with
+# "/.factory/STATE.md" — covers absolute paths from Claude Code production (AC-018).
+# async = false REQUIRED — see ADR-019 + ADR-025 Decision 12
+
+[[hooks]]
+name = "verify-state-timestamp-refresh"
+event = "PreToolUse"
+tool = "Edit|Write|MultiEdit"
+plugin = "hook-plugins/verify-state-timestamp-refresh.wasm"
+priority = 143
+timeout_ms = 5000
+on_error = "continue"
+async = false
+
+[hooks.capabilities.read_file]
+path_allow = [".factory/STATE.md"]

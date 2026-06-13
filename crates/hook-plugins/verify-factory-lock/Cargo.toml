@@ -1,0 +1,40 @@
+[package]
+name = "verify-factory-lock"
+version = "0.0.1"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+description = "WASM hook plugin: reads factory_lock block from STATE.md and blocks mutating tools when a foreign unexpired lock is held (BC-4.13.001)"
+publish = false
+
+# Hook plugins ship as WASI commands (_start entry point) built via
+# `cargo build --target wasm32-wasip1`. The [lib] target carries testable
+# logic; [[bin]] wraps the macro-generated entry point that calls into the lib.
+[lib]
+path = "src/lib.rs"
+
+[[bin]]
+name = "verify-factory-lock"
+path = "src/main.rs"
+
+[dependencies]
+vsdd-hook-sdk = { path = "../../hook-sdk" }
+# chrono 0.4 is present in the workspace with features = ["serde"] and is
+# wasm32-wasip1 compatible. Using it for ISO-8601 parsing of factory_lock.expires_at
+# and computing time_remaining (expires_at - now). serde_yaml/serde_norway are
+# forbidden per Architecture Compliance Rule 4 (manual line-by-line frontmatter scan).
+# regex is forbidden per Architecture Compliance Rule 4 (manual scan; no WASM bloat).
+chrono = { workspace = true }
+# factory-lock-parse: shared parse primitives (D15 / S-17.04 AC-004).
+# parse_factory_lock, LockState, extract_yaml_string_value, parse_iso8601
+# extracted here so verify-state-timestamp-refresh can reuse without duplication.
+factory-lock-parse = { path = "../../factory-lock-parse" }
+
+[dev-dependencies]
+vsdd-hook-sdk = { path = "../../hook-sdk" }
+serde_json = { workspace = true }
+
+[lints]
+workspace = true

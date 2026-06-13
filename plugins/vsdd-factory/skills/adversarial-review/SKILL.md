@@ -72,6 +72,42 @@ Examples:
 
 When `--scope` is not `full`, note the scope limitation in the review output header so readers know the review was targeted, not comprehensive.
 
+## Worktree-Identity Preflight (MANDATORY)
+
+Before dispatching the adversary for a Perimeter-1 per-story review, the orchestrator MUST resolve and embed the worktree-identity tuple. Skipping this step causes the adversary to read the wrong git tree — either a stale worktree `.factory/` snapshot (#169) or the wrong feature checkout (#176) — producing phantom "absent file" findings or a dangerous false-GREEN review.
+
+**Orchestrator steps (pre-dispatch):**
+
+1. **Resolve and assert the full identity tuple in one step** by calling the tested helper:
+   ```bash
+   STORY_ID="<story-id>"
+   EXPECTED_HEAD_SHA="<orchestrator-recorded-implementer-tip-sha>"
+   IDENTITY_TUPLE="$(STORY_ID="$STORY_ID" EXPECTED_HEAD_SHA="$EXPECTED_HEAD_SHA" \
+     "${CLAUDE_PLUGIN_ROOT}/bin/resolve-worktree-identity.sh")" || {
+     echo "dispatch-error: worktree-identity preflight failed — $IDENTITY_TUPLE"; exit 1
+   }
+   ```
+   The helper resolves `worktree-abs-path` (SPACE-SAFE, anchored story-ID matching), verifies the `.factory` mount, and asserts `git rev-parse HEAD == EXPECTED_HEAD_SHA`. Any non-zero exit is a preflight failure — STOP and fix before dispatching.
+2. **LOCAL vs PR-level model:** The LOCAL adversary cascade runs PRE-PUSH (there is no remote tracking branch yet). The `EXPECTED_HEAD_SHA` is therefore the SHA the orchestrator recorded immediately after the TDD-green step — NOT resolved from `@{upstream}` or any remote ref. At the PR-level perimeter (post-push), the expected value IS the pushed remote-branch tip; `@{upstream}` is appropriate only at that perimeter. Do not conflate the two contexts.
+3. **Confirm `story-id`:** the story ID from the STORY-INDEX entry (e.g., `S-12.08`).
+4. **Resolve `canonical-repo-root`:** extracted from the `canonical-repo-root:` field in the helper's output (step 1 above). The adversary reads all spec, BC, ADR, and story-spec files from `<canonical-repo-root>/.factory/...` — the entire `<worktree>/.factory/` tree is a stale snapshot and off-limits as spec ground-truth. Do NOT use `cd "$(git rev-parse --git-common-dir)/.." && pwd` as an alternative — that construction is CWD-relative and reproduces the #169 wrong-root bug when invoked from outside the repo. The only correct resolution is via the SCRIPT_DIR-anchored helper output.
+5. **Embed the identity tuple** in the adversary task prompt verbatim:
+   ```
+   WORKTREE-IDENTITY TUPLE (pre-verified by orchestrator):
+     worktree-abs-path:   <absolute-path>
+     feature-HEAD-SHA:    <orchestrator-recorded-implementer-commit-sha>
+     story-id:            <story-id>
+     canonical-repo-root: <main-repo-root>
+   ```
+
+**Adversary behavior (enforced by `adversary.md` Worktree-Identity Preflight section):**
+
+The adversary MUST ASSERT the identity tuple is present before producing any findings. If the tuple is missing or the paths are inconsistent, the adversary emits a `dispatch-error` and halts — it does NOT proceed to content review.
+
+**Primary structural guarantee — PATH-CONFINEMENT:** The true structural guarantee that prevents reading the wrong tree is PATH-CONFINEMENT: the adversary reads feature-code evidence ONLY from paths rooted at the embedded `worktree-abs-path`, and spec/BC/ADR ground-truth ONLY from paths rooted at the embedded `canonical-repo-root/.factory/`. Because these absolute paths are embedded by the orchestrator (after being resolved and asserted by `resolve-worktree-identity.sh`), the adversary cannot accidentally read the wrong checkout or the wrong spec snapshot regardless of CWD or context. The ASSERT-before-findings step is defense-in-depth: it catches a MISSING tuple (dispatch misconfiguration) immediately, before any reads occur. It is NOT the primary mechanism that prevents wrong-tree reads — path-confinement is.
+
+**Why the orchestrator embeds, not the adversary verifies independently:** The adversary is read-only (no Bash access); it cannot run `git rev-parse HEAD` itself. The orchestrator has Bash access and runs the SHA capture and equality assertion pre-dispatch via `resolve-worktree-identity.sh`. The adversary's role is to ASSERT the embedded identity tuple is present and consistent — confirming the orchestrator completed the preflight — not to independently compute it.
+
 ## Filename Collision Guard (MANDATORY pre-flight)
 
 Before writing any review file, the orchestrator MUST check for filename collisions:

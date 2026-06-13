@@ -148,6 +148,25 @@ Evaluate:
 | `LOCAL != REMOTE` and `BASE == LOCAL` | Local is behind | Pull: `git -C ${WORKTREE_DIR} pull --ff-only origin ${BRANCH_NAME}` |
 | `LOCAL != REMOTE` and `BASE != LOCAL` and `BASE != REMOTE` | Diverged | STOP. Report error with both SHAs. Human must resolve. |
 
+### Step 4b: Factory lock status (BC-6.23.001 PC8 — shared helper)
+
+After the sync state check, invoke the shared three-state lock status helper and append the
+output to the health report:
+
+```bash
+plugins/vsdd-factory/bin/factory-lock-status.sh "${WORKTREE_DIR}/STATE.md" "$(git config user.email)"
+```
+
+The helper returns one of:
+- `Factory lock: FREE` — no lock held or lock expired
+- `Factory lock: HELD by this session (expires <expires_at>)` — self-held, unexpired
+- `Factory lock: HELD by <holder_email> since <locked_at> (expires <expires_at>)` — foreign, unexpired
+- `Factory lock: FREE (malformed block — treated as unlocked)` — parse failure, fail-open
+
+This check reads the LOCAL STATE.md (no fetch required). Invokes the shared
+`factory-lock-status.sh` helper (BC-6.23.001 PC8 AC-008 shared-helper mandate) so display
+strings cannot diverge from `/factory-health`.
+
 ### Step 5: Report Result
 
 Report to orchestrator (one report per worktree checked):

@@ -115,6 +115,19 @@ Write all narrative as if the burst has already completed. ❌ Never
 "REMEDIATION IN PROGRESS" or "this burst remediates…". ✅ Always
 "REMEDIATED — Awaiting Pass N+1".
 
+## Apply changes — mandatory renew step
+
+Before staging the commit, renew the factory lock (if one is held) to advance
+`factory_lock.expires_at` and `timestamp:` in STATE.md:
+
+```bash
+bash plugins/vsdd-factory/bin/factory-lock-write.sh renew .factory/STATE.md
+```
+
+No-op when factory is unlocked (absent `factory_lock:` key) — exits 0 with
+'no factory_lock block present — renew is a no-op'. Safe to call
+unconditionally.
+
 ## Commit
 
 When all changes are staged:
@@ -155,9 +168,22 @@ If FAIL:
 
 ## Push
 
+Use the `factory-cas-push.sh` helper (BC-5.40.001 PC5 / S-17.01 D6). This replaces
+the former blind `git push origin factory-artifacts` with a fetch-then-`--force-with-lease`
+CAS sequence that detects concurrent writes rather than silently clobbering them.
+
 ```bash
-git -C .factory push origin factory-artifacts
+bash plugins/vsdd-factory/bin/factory-cas-push.sh
 ```
+
+The helper internally runs:
+1. `git -C .factory fetch origin factory-artifacts` — synchronize remote ref
+2. `EXPECTED_SHA=$(git -C .factory rev-parse origin/factory-artifacts)` — capture tip
+3. `git -C .factory push --force-with-lease=factory-artifacts:"${EXPECTED_SHA}" origin factory-artifacts`
+
+On push rejection (concurrent write detected), the helper exits non-zero with a
+human-readable `CASPushRejected` message. The local `.factory/` commit is preserved;
+fetch and retry after resolving the divergence.
 
 After push, run the hook one more time to catch any push-side issues:
 
@@ -174,6 +200,7 @@ bash .factory/hooks/verify-sha-currency.sh
 | In-progress voice in narrative | Hook tense-flip WARN | Edit narrative to past-tense before push |
 | Cross-record SHA drift between STATE.md and wave-state.yaml | Hook DRIFT report | Fix the disagreeing record (per Schema Semantics in checklist) |
 | Develop SHA in STATE.md does not match actual develop HEAD | Hook FAIL | Update the develop cite to the current develop HEAD |
+| Skipping renew before `git add` while lock is held | `verify-state-timestamp-refresh` WASM guard blocks the subsequent STATE.md write (LockExpiryStale) | Run `bash plugins/vsdd-factory/bin/factory-lock-write.sh renew .factory/STATE.md`; then retry the Edit/Write/MultiEdit to STATE.md |
 
 ## When to bypass
 

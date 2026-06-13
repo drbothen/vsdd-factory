@@ -232,6 +232,61 @@ Reference docs:
   `${CLAUDE_PLUGIN_ROOT}/templates/verify-sha-currency.sh`
 - Case study: `docs/lessons-learned/wave-gate-bookkeeping.md`
 
+## factory_lock Write/Renewal/Clear Obligation (BC-5.40.001 / S-17.01)
+
+`state-manager` is the **sole writer** of the `factory_lock` frontmatter block in
+STATE.md (TD-VSDD-053 single-writer discipline). Use
+`plugins/vsdd-factory/bin/factory-lock-write.sh` as the canonical helper for all
+lock field mechanics (ISO-8601 timestamp computation, TTL arithmetic, key deletion).
+The script encapsulates the MECHANICAL operations; the SEQUENCING obligation (which
+commits invoke renew, the burst-close ordering) is agent behavior described here.
+
+### When to invoke each mode
+
+| Event | Command | What changes in STATE.md |
+|-------|---------|--------------------------|
+| `/factory-lock` skill runs (lock acquire) | `factory-lock-write.sh acquire <STATE.md>` | Writes `factory_lock:` block with `holder`, `locked_at`, `expires_at = now + 2700s` |
+| Every intermediate burst commit (Commit A/B/C/D) while a lock is held | `factory-lock-write.sh renew <STATE.md>` | Refreshes `expires_at = now + 2700s`; `locked_at` and `holder` unchanged |
+| Burst-close commit (Commit E) while a lock is held | `factory-lock-write.sh renew <STATE.md>` | Same renewal — resets TTL clock to 45 min from final commit |
+| `/factory-unlock` skill runs (lock release) | `factory-lock-write.sh clear <STATE.md>` | Removes `factory_lock:` key entirely — NOT null assignment (BC-5.40.001 PC2) |
+
+### Sequencing invariants
+
+1. **Acquire is atomic with the lock-grant commit.** The `factory_lock` block MUST be
+   written in the same commit that records the lock grant in STATE.md — no separate
+   "lock-then-commit" split.
+
+2. **Renew on every intermediate commit (Commits A–E) while a lock is held.**
+   At the start of composing each burst commit payload, run `renew` so that the
+   in-progress commit content already carries the refreshed `expires_at`. The
+   renewal is atomic with the commit (same `git -C .factory add` + commit).
+   The `state-burst` SKILL enforces this invariant mechanically: the mandatory
+   `factory-lock-write.sh renew` step before `git add` (D10, S-17.04) is the
+   executable equivalent of this prose obligation. See
+   `plugins/vsdd-factory/skills/state-burst/SKILL.md` §"Apply changes — mandatory
+   renew step". The `verify-state-timestamp-refresh` WASM guard (D16, S-17.04)
+   enforces freshness at write-time: any Edit, Write, or MultiEdit to `.factory/STATE.md` that
+   does not advance `timestamp:` (and `factory_lock.expires_at` when a lock is held)
+   is blocked before the write lands on disk.
+
+3. **Clear is atomic with the unlock-grant commit.** The `factory_lock` key MUST
+   be removed in the same commit that records the unlock in STATE.md.
+
+4. **Renew is a no-op if no lock is held** (absent `factory_lock:` key). Safe to
+   call unconditionally at each burst step.
+
+### TTL constant
+
+`TTL_SECONDS=2700` (45 minutes). Non-configurable. Encoded in the helper.
+Do NOT pass a TTL argument or set environment variables that alter it.
+
+### Prose/script boundary
+
+- **Script (`factory-lock-write.sh`):** ISO-8601 formatting, `date` arithmetic,
+  `expires_at = now + 2700s`, key deletion vs null, three-field YAML block format.
+- **Prose (this section):** WHICH commits must call renew, the acquire/renew/clear
+  ordering obligations, the single-writer invariant.
+
 ## What You NEVER Write
 
 - Specification documents (PRD, architecture, BCs, VPs)

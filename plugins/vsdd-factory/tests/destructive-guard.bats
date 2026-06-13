@@ -569,6 +569,59 @@ _run_hook() {
   [ "$status" -eq 0 ]
 }
 
+# ---------------------------------------------------------------------------
+# Red Gate tests — issue #130 / ADR-024 Decision 4
+#
+# Three tests:
+#   1. guard_allows_shadow_delete    — NEW RED   (currently blocked by guard)
+#   2. guard_blocks_real_factory     — REGRESSION PASS (already blocked)
+#   3. guard_blocks_factory_specs    — REGRESSION PASS (already blocked)
+#
+# ADR-024 Decision 4: the guard must allow deletion of the exact shadow
+# path `.factory/.factory/` while keeping all other `.factory/` paths
+# blocked.  The fix adds a shadow-exception predicate BEFORE the existing
+# `.worktrees/` exception inside the `for protected_re in ...` loop and
+# inside the `find ... -delete` block.
+# ---------------------------------------------------------------------------
+
+# NEW RED: .factory/.factory/ is the recursive shadow created by the bug.
+# Currently the guard blocks it because it matches the \.factory/ protected
+# regex.  After ADR-024 Decision 4 is implemented, this must exit 0.
+@test "guard_allows_shadow_delete: rm -rf .factory/.factory/ exits 0" {
+  _run_hook "rm -rf .factory/.factory/"
+  [ "$status" -eq 0 ]
+}
+
+# REGRESSION PASS: real .factory/ must remain blocked after the shadow
+# exception is added.
+@test "guard_blocks_real_factory_delete: rm -rf .factory/ exits 2" {
+  _run_hook "rm -rf .factory/"
+  [ "$status" -eq 2 ]
+  [[ "$output" == *"BLOCKED"* ]]
+}
+
+# REGRESSION PASS: subdirectory of real .factory/ must remain blocked.
+@test "guard_blocks_factory_specs_delete: rm -rf .factory/specs/ exits 2" {
+  _run_hook "rm -rf .factory/specs/"
+  [ "$status" -eq 2 ]
+  [[ "$output" == *"BLOCKED"* ]]
+}
+
+# NEW RED: find variant of shadow delete must also be allowed.
+# Currently blocked by the find-delete guard's \.factory\b pattern.
+# After the find-delete shadow exception (ADR-024 Decision 4, second block)
+# is implemented, this must exit 0.
+@test "guard_allows_shadow_find_delete: find .factory/.factory -delete exits 0" {
+  _run_hook "find .factory/.factory -type f -delete"
+  [ "$status" -eq 0 ]
+}
+
+# REGRESSION PASS: find on real .factory/ (no shadow) stays blocked.
+@test "guard_blocks_real_factory_find_delete: find .factory -delete exits 2" {
+  _run_hook "find .factory -type f -delete"
+  [ "$status" -eq 2 ]
+}
+
 # ---------- Emit-event integration ----------
 # These tests verify that (a) events are emitted when the hook blocks, and
 # (b) the hook still blocks correctly even when emit-event is missing or
@@ -673,4 +726,179 @@ _run_hook_with_emit() {
   [ "$status" -eq 2 ]
   [ -z "$(ls "$EMIT_TMPDIR"/events-*.jsonl 2>/dev/null)" ]
   rm -rf "$EMIT_TMPDIR"
+}
+
+# ---------------------------------------------------------------------------
+# RED GATE: adversary pass-1 findings — C-1/C-2/H-1
+# multi-target bypass: shadow exception must be TARGET-SCOPED, never
+# command-string-scoped.
+#
+# The bug: the current shadow exception fires when the command STRING
+# contains ".factory/.factory" — so a command like
+#   rm -rf .factory/ .factory/.factory
+# contains the shadow substring, causing the exception to `continue` and
+# skip checking the real .factory/ target on the SAME command line.
+#
+# Security requirement: if ANY target on the command line is a real
+# .factory/ path, the command must be BLOCKED (exit 2) regardless of
+# whether the shadow path also appears.
+#
+# These tests will CURRENTLY PASS-the-wrong-way (exit 0) — that is the RED.
+# The implementer must narrow the exception to apply only when the ENTIRE
+# rm target matches .factory/.factory (and not also a real .factory path).
+# ---------------------------------------------------------------------------
+
+# C-1 / H-1: multi-target — real .factory/ PLUS shadow on same rm command.
+# MUST exit 2 (real .factory/ target present).
+# CURRENTLY exits 0 — BUG (shadow substring causes exception to fire for
+# the whole command, bypassing the block).
+@test "C-1: rm -rf .factory/ .factory/.factory MUST exit 2 (real target present)" {
+  _run_hook "rm -rf .factory/ .factory/.factory"
+  [ "$status" -eq 2 ]
+}
+
+# C-2: real subtree (.factory/specs) plus shadow on same rm command.
+# MUST exit 2.
+# CURRENTLY exits 0 — BUG.
+@test "C-2: rm -rf .factory/specs .factory/.factory MUST exit 2 (real subtree present)" {
+  _run_hook "rm -rf .factory/specs .factory/.factory"
+  [ "$status" -eq 2 ]
+}
+
+# H-1 (compound): find on real .factory combined with shadow echo in same command.
+# The compound command contains ".factory/.factory" as a literal string in the
+# echo argument, but the find target is the real .factory tree.
+# MUST exit 2 (find on real .factory present).
+# CURRENTLY exits 0 — BUG (command string contains ".factory/.factory").
+@test "H-1a: find .factory -delete ; echo .factory/.factory MUST exit 2 (real find target)" {
+  _run_hook "find .factory -delete ; echo .factory/.factory"
+  [ "$status" -eq 2 ]
+}
+
+# H-1 (compound): shadow find THEN real find.  Both subcommands are present;
+# real one must still be blocked.
+# MUST exit 2.
+# CURRENTLY exits 0 — BUG.
+@test "H-1b: find .factory/.factory -delete ; find .factory -delete MUST exit 2 (real find present)" {
+  _run_hook "find .factory/.factory -delete ; find .factory -delete"
+  [ "$status" -eq 2 ]
+}
+
+# Positive regression: shadow-only rm must remain allowed (exit 0).
+# This test ALREADY passes and must not regress after the fix.
+@test "positive: rm -rf .factory/.factory/ alone exits 0 (shadow only)" {
+  _run_hook "rm -rf .factory/.factory/"
+  [ "$status" -eq 0 ]
+}
+
+# Positive regression: shadow-only find must remain allowed (exit 0).
+@test "positive: find .factory/.factory -delete alone exits 0 (shadow only)" {
+  _run_hook "find .factory/.factory -delete"
+  [ "$status" -eq 0 ]
+}
+
+# ---------------------------------------------------------------------------
+# RED GATE: adversary pass-2 findings — C2-CRIT-1 / C2-HIGH-2
+#
+# C2-CRIT-1 (guard traversal under-protect):
+#   Paths containing ".factory/.factory/.." resolve via ".." to the REAL
+#   .factory/ tree.  The current strip-and-check logic replaces the literal
+#   substring ".factory/.factory" with "__SHADOW__" and then checks whether
+#   ".factory" remains.  A path like ".factory/.factory/../specs" becomes
+#   "__SHADOW__/../specs" — which does NOT contain ".factory", so the guard
+#   allows the command.  But __SHADOW__/../specs resolves to the real
+#   .factory/specs path on disk.
+#
+#   These commands MUST exit 2 (blocked).  They currently exit 0 — that is
+#   the RED.  The implementer must add ".." (and "..") detection: any
+#   command whose shadow-stripped form still contains ".." escaping out of
+#   the shadow subtree must be blocked.
+#
+# C2-HIGH-2 (nested-shadow over-block):
+#   The shadow may itself contain a sub-directory also named ".factory",
+#   e.g. if a mis-configured child workspace created .factory/.factory/.factory.
+#   The current guard blocks ".factory/.factory/.factory" because after
+#   shadow-stripping ".factory/.factory" becomes "__SHADOW__" and then
+#   ".factory" still appears (from the third component).  But
+#   ".factory/.factory/.factory" is entirely inside the shadow subtree —
+#   it is NOT the real .factory/ worktree.
+#
+#   These commands MUST exit 0 (allowed).  They currently exit 2 — that is
+#   the RED.  The implementer must extend the shadow exception so that any
+#   path that begins with the literal prefix ".factory/.factory" (regardless
+#   of what follows) is considered shadow-only.
+#
+# ALLOW/BLOCK matrix the implementer must satisfy:
+#
+#   BLOCK (exit 2) — path resolves to real .factory tree:
+#     rm -rf .factory/.factory/../specs            (..  escapes to .factory/specs)
+#     rm -rf .factory/.factory/..                  (.. escapes to .factory itself)
+#     rm -rf .factory/.factory/../../              (../.. escapes above repo root)
+#     find .factory/.factory/.. -delete            (.. escapes to real .factory)
+#     find .factory/.factory -delete ; find .factory -delete   (already tested above)
+#
+#   ALLOW (exit 0) — path stays inside shadow subtree:
+#     rm -rf .factory/.factory/             (already pass-1 green; keep regression)
+#     rm -rf .factory/.factory/logs         (sub-dir of shadow; already green; keep)
+#     rm -rf .factory/.factory/             (already pass-1 green; keep)
+#     find .factory/.factory -delete        (already pass-1 green; keep)
+#     rm -rf .factory/.factory/.factory     (nested shadow — C2-HIGH-2; currently RED)
+# ---------------------------------------------------------------------------
+
+# ---- C2-CRIT-1: traversal under-protect (currently exit 0 — BUG) --------
+
+# ".." after ".factory/.factory/" resolves to the real .factory/specs path.
+# MUST exit 2.  CURRENTLY exits 0.
+@test "C2-CRIT-1a: rm -rf .factory/.factory/../specs MUST exit 2 (..traversal to real specs)" {
+  _run_hook "rm -rf .factory/.factory/../specs"
+  [ "$status" -eq 2 ]
+}
+
+# ".." after ".factory/.factory" resolves to the real .factory/ directory.
+# MUST exit 2.  CURRENTLY exits 0.
+@test "C2-CRIT-1b: rm -rf .factory/.factory/.. MUST exit 2 (..traversal to real .factory)" {
+  _run_hook "rm -rf .factory/.factory/.."
+  [ "$status" -eq 2 ]
+}
+
+# "../.." escapes entirely above the .factory/ worktree — catastrophic.
+# MUST exit 2.  CURRENTLY exits 0.
+@test "C2-CRIT-1c: rm -rf .factory/.factory/../../ MUST exit 2 (double ..traversal)" {
+  _run_hook "rm -rf .factory/.factory/../../"
+  [ "$status" -eq 2 ]
+}
+
+# find variant with ".." traversal: find .factory/.factory/.. -delete resolves
+# to find .factory -delete — the real .factory tree.
+# MUST exit 2.  CURRENTLY exits 0.
+@test "C2-CRIT-1d: find .factory/.factory/.. -delete MUST exit 2 (..traversal in find)" {
+  _run_hook "find .factory/.factory/.. -delete"
+  [ "$status" -eq 2 ]
+}
+
+# ---- C2-HIGH-2: nested-shadow over-block (currently exit 2 — BUG) --------
+
+# ".factory/.factory/.factory" is entirely inside the shadow subtree — no
+# ".." escape, no real .factory/ worktree path.  MUST exit 0.  CURRENTLY exits 2.
+@test "C2-HIGH-2a: rm -rf .factory/.factory/.factory MUST exit 0 (nested shadow, no escape)" {
+  _run_hook "rm -rf .factory/.factory/.factory"
+  [ "$status" -eq 0 ]
+}
+
+# ---- Regression guards: pass-1 greens that must remain green ------------
+
+# These were introduced in pass-1 and must not regress after the pass-2 fix.
+@test "regression: rm -rf .factory/.factory/ still exits 0 after pass-2 fix" {
+  _run_hook "rm -rf .factory/.factory/"
+  [ "$status" -eq 0 ]
+}
+
+@test "regression: rm -rf .factory/.factory/logs still exits 0 after pass-2 fix" {
+  _run_hook "rm -rf .factory/.factory/logs"
+  [ "$status" -eq 0 ]
+}
+
+@test "regression: find .factory/.factory -delete still exits 0 after pass-2 fix" {
+  _run_hook "find .factory/.factory -delete"
+  [ "$status" -eq 0 ]
 }

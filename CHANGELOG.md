@@ -1,5 +1,37 @@
 # Changelog
 
+## 1.0.0-rc.21 — factory-lock subsystem + dispatcher hardening + STATE.md freshness guard (2026-06-12)
+
+Ships the complete S-17 factory-lock wave (S-17.01 through S-17.04), three dispatcher/adversary/pr-manager hardening fixes, and the write-time STATE.md freshness guard. This release brings the lock-heartbeat mechanism, the `/factory-lock` and `/factory-unlock` skills, the `verify-factory-lock` and `verify-state-timestamp-refresh` WASM guards, and the new `factory-lock-parse` crate onto the operator-level cache — the first production-grade implementation of coordinated factory-state locking.
+
+### Added
+
+- **S-17.01 — factory_lock STATE.md schema + state-burst fetch-then-CAS push** (BC-5.40.001 PC1, PR #181, Closes #170): Adds `factory_lock:` block to STATE.md frontmatter schema (owner, acquired_at, lock_id, heartbeat_at, reason). State-burst uses fetch-then-compare-and-swap push to prevent blind overwrites under concurrent factory sessions.
+
+- **S-17.02 — verify-factory-lock WASM PreToolUse guard** (BC-4.13.001, PR #182, part of #170): New WASM hook plugin (`verify-factory-lock`) that fires PreToolUse on Agent/Edit/Write tools; blocks state mutations when STATE.md is locked by a different session. Ships new `factory-lock-parse` crate.
+
+- **S-17.03 — /factory-lock + /factory-unlock skills + health lock status** (BC-6.23.001, PR #183, Closes #170): Adds the `/vsdd-factory:factory-lock` and `/vsdd-factory:factory-unlock` skills plus lock-status reporting in the `/vsdd-factory:factory-health` skill. Operators can now acquire, release, and inspect factory-state locks from the Claude Code UI.
+
+- **S-17.04 — verify-state-timestamp-refresh WASM guard (mid-burst heartbeat renewal wiring)** (BC-5.40.001 PC4, PR #184): New `verify-state-timestamp-refresh` WASM PostToolUse guard that enforces timestamp and lock-heartbeat advance on every factory state write. Ensures STATE.md `last_updated` and `heartbeat_at` fields advance monotonically; blocks stale writes that would regress the timestamp.
+
+### Fixed
+
+- **Dispatcher: recursive .factory/.factory/logs/ shadow + fail-loud plugin-root** (PR #179, Closes #130): Resolves the recursive log-directory shadow where `.factory/logs/` was nested inside itself under certain cwd configurations. Dispatcher now fails loudly on bad plugin-root rather than silently emitting to a shadow path. Adds guard shadow-exception for the legitimate factory-artifacts worktree layout.
+
+- **Adversary: worktree-identity engine fix — eliminate phantom findings** (PR #180, Closes #169, #176): Fixes the adversarial-review agent emitting findings scoped to the wrong worktree (phantom findings in the engine root when the adversary was dispatched from a story worktree). Worktree-identity resolution is now correct; fresh-context adversary reviews no longer bleed across worktree boundaries.
+
+- **PR-manager: verify remote branch deletion after merge** (PR #178, Closes #128): The pr-manager now verifies the remote feature branch is actually deleted after a squash-merge rather than assuming the `--delete-branch` flag succeeded. Prevents stale remote branches from accumulating silently.
+
+### Operational
+
+- rc.21 delivers the complete factory-lock subsystem to the operator-level cache. After the marketplace PR merges, operators on `/plugin update vsdd-factory@claude-mp` will receive the new `verify-factory-lock` WASM guard (PreToolUse), the `verify-state-timestamp-refresh` WASM guard (PostToolUse), the `factory-lock-parse` crate, and the `/factory-lock` + `/factory-unlock` skills.
+- Hook plugin count advances: `verify-factory-lock` + `verify-state-timestamp-refresh` join the registry (operator count was 53 as of rc.20; rc.21 brings it to 55).
+- Pre-existing advisory RUSTSEC-2026-0149 (wasmtime-wasi) is tracked in STATE.md and is not a release blocker; no operator action required.
+
+### Deferred
+
+- 6 open Dependabot PRs (#157 openssl, #156/#152/#125/#3/#2 npm visual-companion) remain deferred to a future maintenance sweep.
+
 ## 1.0.0-rc.20 — trajectory-tail completeness hook + MCP fleet-sweep (2026-06-01)
 
 Ships the S-15.17 validate-trajectory-tail-cell-completeness WASM hook to the operator-level cache, completes the S-15.03 PRIORITY-A lint-hook automation wave, hardens a flaky resolver-timeout test, and sweeps MCP tool-guidance across the agent fleet (research-agent now biases toward Perplexity deep-research).
