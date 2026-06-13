@@ -321,7 +321,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** TBD D-557 burst (commit in progress); prior: `e828b486` D-556 sha-patch; prior-prior: `6b61cfc0` D-556 burst
+- **factory-artifacts HEAD:** `135ee2f6` D-557 SESSION-INTERRUPT DURABILITY BURST; prior: `e828b486` D-556 sha-patch; prior-prior: `6b61cfc0` D-556 burst
 - **develop HEAD:** `3b2a378c` (D-556 PR #184 S-17.04 squash-merge 2026-06-12; prior: `60fd0233` D-547)
 - **feature/S-17.04:** DELETED+VERIFIED (MERGED PR #184 3b2a378c 2026-06-12; worktree `.worktrees/S-17.04` may be removed)
 - **main HEAD:** `2a191314` (rc.20 bot binary commit 2026-06-01)
