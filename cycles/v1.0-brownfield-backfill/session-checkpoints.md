@@ -675,3 +675,21 @@ Key anchors at D-556:
 - **Next:** rc.21 release (RELEASING.md Steps 1-4 complete at time of archive; Steps 5-9 pending)
 
 **This checkpoint superseded by D-557 SESSION-INTERRUPT DURABILITY BURST 2026-06-13.**
+
+---
+
+## Archived: D-557 SESSION-INTERRUPT-DURABILITY-BURST-RC21-IN-FLIGHT 2026-06-13 (Superseded by D-558)
+
+> Archived when D-558 RC21-RELEASE-SHIPPED CLOSING BURST replaced this checkpoint with rc.21 RELEASED state.
+
+**Status:** D-557 SESSION-INTERRUPT DURABILITY BURST — rc.21 release was IN-FLIGHT (PR #185 OPEN CI-11/11-GREEN MERGEABLE; RELEASING.md Steps 1-4 COMPLETE; Steps 5-9 pending human authorization). develop 3b2a378c / main 2a191314 / 4-index ALL UNCHANGED.
+
+Key anchors at D-557:
+- **4-index:** BC-INDEX v2.72, VP-INDEX v2.06, STORY-INDEX v4.01, ARCH-INDEX v2.27 (UNCHANGED)
+- **develop HEAD:** `3b2a378c` (D-556 PR #184 S-17.04)
+- **main HEAD:** `2a191314` (rc.20)
+- **factory-artifacts HEAD at archive:** `c447b834` (D-557-sha-patch-3)
+- **D-range:** D-001..D-557
+- **Open release action:** PR #185 OPEN MERGEABLE — resume = merge with --merge (HUMAN-GATED)
+
+**This checkpoint superseded by D-558 RC21-RELEASE-SHIPPED CLOSING BURST 2026-06-13.**
