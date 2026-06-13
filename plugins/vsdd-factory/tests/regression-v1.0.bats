@@ -90,14 +90,11 @@ setup() {
     skip "preflight artifacts missing"
   fi
   envelope='{"event_name":"PreToolUse","tool_name":"Bash","session_id":"s","tool_input":{"command":"echo hi"}}'
-  # DIAGNOSTIC: capture stderr to expose block_reason on linux CI
+  # || true: a plugin may legitimately block (exit 2) for this event;
+  # the log assertions below verify the real behavior regardless of exit code.
   env CLAUDE_PLUGIN_ROOT="$PLUGIN_ROOT" CLAUDE_PROJECT_DIR="$WORK" \
     bash -c "printf '%s' '$envelope' | '$DISPATCHER'" \
-    >/dev/null 2>"$WORK/test6_diag.txt" || true
-  if [ -s "$WORK/test6_diag.txt" ]; then
-    echo "--- test6 dispatcher stderr ---" >&3
-    cat "$WORK/test6_diag.txt" >&3
-  fi
+    >/dev/null 2>&1 || true
   log="$(ls "$WORK/.factory/logs/dispatcher-internal-"*.jsonl 2>/dev/null | head -1)"
   [ -n "$log" ]
   invoked="$(grep -c '"type":"plugin.invoked"' "$log" || true)"
@@ -177,14 +174,11 @@ fn main() {
 }
 EOF
   envelope=$(printf '{"event_name":"PostToolUse","tool_name":"Edit","session_id":"events-land","tool_input":{"file_path":"%s"},"tool_response":{"exit_code":0}}' "$pure_file")
-  # DIAGNOSTIC: capture stderr to expose block_reason on linux CI
+  # || true: on_error=block adapters for Edit events may fail-closed on non-matching
+  # paths if debug WASM exhausts fuel; the events assertion below is the real check.
   env CLAUDE_PLUGIN_ROOT="$PLUGIN_ROOT" CLAUDE_PROJECT_DIR="$WORK" \
     bash -c "printf '%s' '$envelope' | '$DISPATCHER'" \
-    >/dev/null 2>"$WORK/test9_diag.txt" || true
-  if [ -s "$WORK/test9_diag.txt" ]; then
-    echo "--- test9 dispatcher stderr ---" >&3
-    cat "$WORK/test9_diag.txt" >&3
-  fi
+    >/dev/null 2>&1 || true
   count="$(ls "$WORK/.factory/logs/events-"*.jsonl 2>/dev/null | wc -l | tr -d ' ')"
   [ "$count" -ge 1 ]
 }

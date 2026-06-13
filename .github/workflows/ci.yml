@@ -573,15 +573,18 @@ jobs:
       - name: Stage WASM plugins for run-all.sh
         # Suites that invoke the dispatcher live-test need the WASM plugins staged
         # in plugins/vsdd-factory/hook-plugins/ (the dispatcher's plugin lookup path).
-        # Build WASM debug artifacts and stage them, mirroring cargo-host's
-        # "Stage WASM plugins" step.
+        # Build WASM release artifacts — mirroring build-dispatcher's "Build all
+        # native WASM plugins (release)" step. Release builds match the production
+        # fuel profile; debug builds exhaust the 10M-instruction fuel cap during
+        # serde_json deserialization, causing on_error=block adapters to fail-closed
+        # and the dispatcher to exit 2 in bats tests that use the full registry.
         shell: bash
         run: |
-          cargo build --target wasm32-wasip1 \
+          cargo build --release --target wasm32-wasip1 \
             -p legacy-bash-adapter --bin legacy-bash-adapter
-          cargo build --target wasm32-wasip1 \
+          cargo build --release --target wasm32-wasip1 \
             -p update-wave-state-on-merge --no-default-features
-          cargo build --target wasm32-wasip1 \
+          cargo build --release --target wasm32-wasip1 \
             --workspace \
             --exclude legacy-bash-adapter \
             --exclude update-wave-state-on-merge \
@@ -590,7 +593,7 @@ jobs:
             --exclude sink-http --exclude sink-datadog --exclude sink-honeycomb \
             --exclude vsdd-hook-sdk-macros
           mkdir -p plugins/vsdd-factory/hook-plugins
-          cp target/wasm32-wasip1/debug/*.wasm plugins/vsdd-factory/hook-plugins/ 2>/dev/null || true
+          cp target/wasm32-wasip1/release/*.wasm plugins/vsdd-factory/hook-plugins/ 2>/dev/null || true
 
       - name: Run full bats suite (run-all.sh)
         # This is the canonical gate that release.yml runs. Running it on every PR
