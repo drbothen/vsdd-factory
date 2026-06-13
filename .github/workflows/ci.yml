@@ -508,3 +508,91 @@ jobs:
           path: artifact-staging/
           retention-days: 14
           if-no-files-found: error
+
+  bats-full-suite:
+    # Mirrors release.yml's Pre-release Validation job so every PR to develop/main
+    # runs the FULL bats run-all.sh suite on Linux before merge.
+    # Root cause: ci.yml previously ran only individual bats suites (hooks.bats,
+    # bin.bats, permissions.bats, hook-robustness.bats etc.) but NOT run-all.sh,
+    # so failures caught by run-all.sh on release tag (e.g. shellcheck SC2317 on
+    # a newer ubuntu shellcheck, inline-backtick lint violations) went undetected
+    # until the release.yml validate job ran.
+    name: bats-full-suite (linux)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Mount factory artifacts
+        # run-all.sh suites that validate STATE.md / cycle artifacts need .factory/.
+        # Mirrors release.yml's Mount factory artifacts step exactly.
+        run: |
+          git fetch origin factory-artifacts
+          git worktree add .factory origin/factory-artifacts
+
+      - name: Configure git identity
+        # factory-lock-write.bats and factory-lock-skills-integration.bats tests
+        # call factory-cas-push.sh which requires a valid git user.email/name to
+        # author commits. Without this, those tests fail on a fresh CI runner.
+        run: |
+          git config --global user.email "ci-bats@vsdd-factory.test"
+          git config --global user.name "CI Bats Runner"
+
+      - name: Install tools
+        # bats + yq are required by run-all.sh.
+        # shellcheck is pre-installed on ubuntu-latest — the same version that
+        # flags SC2317 on trap handlers, which is exactly the signal we want to
+        # catch here so it no longer reaches the release tag.
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y bats
+          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
+
+      - name: Install Rust toolchain
+        # Needed to build factory-dispatcher (release) below.
+        # Pinned to rust-toolchain.toml version — keep in sync with cargo-host.
+        uses: dtolnay/rust-toolchain@1.95.0
+        with:
+          targets: wasm32-wasip1
+
+      - name: Cache cargo
+        # Pinned to commit SHA for security (TD #74); resolves to v2.9.1.
+        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4  # v2.9.1
+        with:
+          shared-key: bats-full-suite-linux
+          cache-on-failure: true
+
+      - name: Build factory-dispatcher (release)
+        # Dispatcher-dependent bats suites (regression-v1.0, td-71-stderr-block-reason,
+        # per-story-adversary-convergence-hook, etc.) skip gracefully when the binary
+        # is absent. Building it here ensures those suites run rather than skip,
+        # giving full coverage. Target path: target/release/factory-dispatcher —
+        # matches $REPO_ROOT/target/release/factory-dispatcher in bats setup().
+        run: cargo build --release -p factory-dispatcher
+
+      - name: Stage WASM plugins for run-all.sh
+        # Suites that invoke the dispatcher live-test need the WASM plugins staged
+        # in plugins/vsdd-factory/hook-plugins/ (the dispatcher's plugin lookup path).
+        # Build WASM debug artifacts and stage them, mirroring cargo-host's
+        # "Stage WASM plugins" step.
+        shell: bash
+        run: |
+          cargo build --target wasm32-wasip1 \
+            -p legacy-bash-adapter --bin legacy-bash-adapter
+          cargo build --target wasm32-wasip1 \
+            -p update-wave-state-on-merge --no-default-features
+          cargo build --target wasm32-wasip1 \
+            --workspace \
+            --exclude legacy-bash-adapter \
+            --exclude update-wave-state-on-merge \
+            --exclude factory-dispatcher \
+            --exclude sink-core --exclude sink-file --exclude sink-otel-grpc \
+            --exclude sink-http --exclude sink-datadog --exclude sink-honeycomb \
+            --exclude vsdd-hook-sdk-macros
+          mkdir -p plugins/vsdd-factory/hook-plugins
+          cp target/wasm32-wasip1/debug/*.wasm plugins/vsdd-factory/hook-plugins/ 2>/dev/null || true
+
+      - name: Run full bats suite (run-all.sh)
+        # This is the canonical gate that release.yml runs. Running it on every PR
+        # catches failures before they reach the release tag.
+        run: cd plugins/vsdd-factory/tests && ./run-all.sh

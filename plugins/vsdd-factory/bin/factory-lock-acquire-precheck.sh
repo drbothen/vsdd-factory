@@ -62,7 +62,7 @@ set -euo pipefail
 # Temp-file cleanup on EXIT.
 # ---------------------------------------------------------------------------
 _PRECHECK_TMPFILE=""
-# shellcheck disable=SC2329  # invoked indirectly via trap
+# shellcheck disable=SC2329,SC2317  # invoked indirectly via trap; SC2317 false positive on trap handlers
 _cleanup_precheck_tmp() {
   [[ -n "$_PRECHECK_TMPFILE" && -e "$_PRECHECK_TMPFILE" ]] && rm -f "$_PRECHECK_TMPFILE"
   return 0
