@@ -46,7 +46,7 @@ set -euo pipefail
 # Temp-file cleanup on EXIT.
 # ---------------------------------------------------------------------------
 _STATUS_TMPFILE=""
-# shellcheck disable=SC2329  # invoked indirectly via trap
+# shellcheck disable=SC2329,SC2317  # invoked indirectly via trap; SC2317 false positive on trap handlers
 _cleanup_status_tmp() {
   [[ -n "$_STATUS_TMPFILE" && -e "$_STATUS_TMPFILE" ]] && rm -f "$_STATUS_TMPFILE"
   return 0

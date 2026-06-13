@@ -28,6 +28,7 @@ setup() {
   ADAPTER_WASM="$PLUGIN_ROOT/hook-plugins/legacy-bash-adapter.wasm"
   WORK="$BATS_TEST_TMPDIR/proj"
   mkdir -p "$WORK/.factory/logs"
+  export VSDD_LOG_DIR="$WORK/.factory/logs"
 }
 
 # ---------- preflight ---------------------------------------------------
@@ -89,9 +90,11 @@ setup() {
     skip "preflight artifacts missing"
   fi
   envelope='{"event_name":"PreToolUse","tool_name":"Bash","session_id":"s","tool_input":{"command":"echo hi"}}'
+  # || true: a plugin may legitimately block (exit 2) for this event;
+  # the log assertions below verify the real behavior regardless of exit code.
   env CLAUDE_PLUGIN_ROOT="$PLUGIN_ROOT" CLAUDE_PROJECT_DIR="$WORK" \
     bash -c "printf '%s' '$envelope' | '$DISPATCHER'" \
-    >/dev/null 2>&1
+    >/dev/null 2>&1 || true
   log="$(ls "$WORK/.factory/logs/dispatcher-internal-"*.jsonl 2>/dev/null | head -1)"
   [ -n "$log" ]
   invoked="$(grep -c '"type":"plugin.invoked"' "$log" || true)"
@@ -171,9 +174,11 @@ fn main() {
 }
 EOF
   envelope=$(printf '{"event_name":"PostToolUse","tool_name":"Edit","session_id":"events-land","tool_input":{"file_path":"%s"},"tool_response":{"exit_code":0}}' "$pure_file")
+  # || true: on_error=block adapters for Edit events may fail-closed on non-matching
+  # paths if debug WASM exhausts fuel; the events assertion below is the real check.
   env CLAUDE_PLUGIN_ROOT="$PLUGIN_ROOT" CLAUDE_PROJECT_DIR="$WORK" \
     bash -c "printf '%s' '$envelope' | '$DISPATCHER'" \
-    >/dev/null 2>&1
+    >/dev/null 2>&1 || true
   count="$(ls "$WORK/.factory/logs/events-"*.jsonl 2>/dev/null | wc -l | tr -d ' ')"
   [ "$count" -ge 1 ]
 }

@@ -24,6 +24,7 @@ setup() {
   WORK="$(mktemp -d)"
   mkdir -p "$WORK/hook-plugins"
   mkdir -p "$WORK/.factory/logs"
+  export VSDD_LOG_DIR="$WORK/.factory/logs"
 }
 
 teardown() {
