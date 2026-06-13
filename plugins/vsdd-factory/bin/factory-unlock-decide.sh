@@ -61,7 +61,7 @@ set -euo pipefail
 # Temp-file cleanup on EXIT.
 # ---------------------------------------------------------------------------
 _UNLOCK_TMPFILE=""
-# shellcheck disable=SC2329  # invoked indirectly via trap
+# shellcheck disable=SC2329,SC2317  # invoked indirectly via trap; SC2317 false positive on trap handlers
 _cleanup_unlock_tmp() {
   [[ -n "$_UNLOCK_TMPFILE" && -e "$_UNLOCK_TMPFILE" ]] && rm -f "$_UNLOCK_TMPFILE"
   return 0

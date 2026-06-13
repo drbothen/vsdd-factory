@@ -313,7 +313,7 @@ Dispatch github-ops to force-delete:
 Agent(subagent_type="vsdd-factory:github-ops", prompt="cd <project-path> && git push origin --delete <branch-name>")
 ```
 
-Classify the `git push origin --delete` exit code before running any post-delete check:
+Classify the exit code from the force-delete push before running any post-delete check:
 
 - **Exit 0 (push succeeded)** — proceed to post-delete ls-remote verification below.
   If a subsequent lagging ls-remote still shows the branch transiently present, accept the

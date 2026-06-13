@@ -107,6 +107,26 @@ _iso_to_epoch() {
 setup() {
   WORK="$BATS_TEST_TMPDIR"
   FIXTURE_STATE="$WORK/STATE.md"
+
+  # Hermetic git identity: isolate every git config lookup to the sandbox so
+  # the suite does not depend on the runner's ambient global config (which is
+  # absent on GitHub-hosted ubuntu runners, causing the helper to fail with an
+  # empty holder and 7 tests to fail in CI — see release.yml run 27468463761).
+  #
+  # Strategy:
+  #   GIT_CONFIG_SYSTEM=/dev/null  — suppress /etc/gitconfig and OS-level config
+  #   GIT_CONFIG_GLOBAL=<sandbox>/.gitconfig  — redirect the user-global config
+  #   HOME=<sandbox>               — prevent ~/.gitconfig fallback on older git
+  #
+  # The negative test (test_BC_5_40_001_acquire_fails_when_git_email_unset)
+  # overrides GIT_CONFIG_GLOBAL=/dev/null and HOME=<clean-dir> via `env` on its
+  # `run` call, which takes precedence over these exported vars for that helper
+  # invocation — so the unset-email SchemaViolation path is still exercised.
+  export HOME="$WORK"
+  export GIT_CONFIG_SYSTEM=/dev/null
+  export GIT_CONFIG_GLOBAL="$WORK/.gitconfig"
+  git config --global user.email "factory-test@example.com"
+  git config --global user.name "Factory Test"
 }
 
 teardown() {
