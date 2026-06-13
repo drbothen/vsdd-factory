@@ -712,3 +712,22 @@ Key anchors at D-558:
 - **Open release action at archive:** marketplace PR drbothen/claude-mp #13 OPEN PENDING human merge
 
 **This checkpoint superseded by D-559 MARKETPLACE-MERGED CLOSURE BURST 2026-06-13.**
+
+---
+
+## Session Resume Checkpoint (2026-06-13 — D-559 MARKETPLACE-MERGED CLOSURE BURST; v1.0.0-rc.21 FULLY SHIPPED to operator marketplace; next: #173 wave-checkpoint)
+
+Archived from STATE.md by D-560 OPERATOR-INSTALL-VERIFIED BURST per content-routing rules.
+Primary content preserved in: `git show afb0b184:.factory/STATE.md` (D-559 main commit; factory-artifacts HEAD at archive).
+
+Key state at D-559 archive:
+- §1: v1.0.0-rc.21 FULLY SHIPPED (D-559 2026-06-13). Release 100% complete. marketplace PR drbothen/claude-mp #13 MERGED by human. marketplace.json rc.20→rc.21 live. Operators receive via /plugin update vsdd-factory@claude-mp. NO open release action. Operator-install NOT YET VERIFIED (that is D-560's job).
+- §9: factory-artifacts HEAD `afb0b184` (D-559 MARKETPLACE-MERGED closure burst; prior: `2ab9bef7` D-558-sha-patch).
+- §10: 0 open feature/release/marketplace PRs. marketplace PR #13 MERGED. rc.21 FULLY SHIPPED.
+- §12: Step 1 (rc.21 marketplace merge) = COMPLETE; #173 wave-checkpoint promoted to active Step 1 (gate: rc.21 marketplace-merged SATISFIED; operator-verified pending D-560).
+- 4-index: BC-INDEX v2.72 / VP-INDEX v2.06 / STORY-INDEX v4.01 / ARCH-INDEX v2.27 (ALL UNCHANGED).
+- **develop HEAD:** `7e99f6ef` / **main HEAD:** `caf06c68` / **tag:** `03054524`
+- **D-range:** D-001..D-559
+- **Open action at archive:** Operator-install verification (RELEASING.md Step 9) pending — that is D-560's closure action.
+
+**This checkpoint superseded by D-560 OPERATOR-INSTALL-VERIFIED BURST 2026-06-13.**
