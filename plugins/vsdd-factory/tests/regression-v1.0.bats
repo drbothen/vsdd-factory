@@ -28,6 +28,7 @@ setup() {
   ADAPTER_WASM="$PLUGIN_ROOT/hook-plugins/legacy-bash-adapter.wasm"
   WORK="$BATS_TEST_TMPDIR/proj"
   mkdir -p "$WORK/.factory/logs"
+  export VSDD_LOG_DIR="$WORK/.factory/logs"
 }
 
 # ---------- preflight ---------------------------------------------------
