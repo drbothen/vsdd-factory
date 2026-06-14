@@ -1,11 +1,11 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.3"
+version: "1.4"
 status: draft
 producer: product-owner
 timestamp: 2026-06-14T00:00:00Z
-last_amended: "2026-06-14 (v1.3) — F2 pass-3 fix-burst: ADR cite v1.1→v1.3. [Prior: 2026-06-14 (v1.2) — F2 pass-2 fix-burst: (F-P2-002 BLOCKER) EC-002/003/004/005/006 `current_wave = N` load-bearing references replaced with first-wave detection language (wave-group position per sprint-state.yaml OR absence of prior HANDOFF.md on factory-artifacts); test vector `any current_wave` → `any pipeline context`; VP-083 + VP-081 verification property rows updated to first-wave detection semantics — no phantom `current_wave:` field referenced anywhere in body. [Prior: 2026-06-14 (v1.1) — F2 pass-1 fix-burst: (F-1) Precondition 4 re-anchored: `current_wave` field removed; wave-1 no-op now derives from sprint-state.yaml dependency-order wave-group OR STATE.md `current_step:` for engine context. PC3 + PC8 updated to reflect real substrate (no phantom `current_wave:` field). (DI) TBD-DI replaced with DI-020.]"
+last_amended: "2026-06-14 (v1.4) — F2 pass-4 fix-burst: (F-P4-003) ADR cite v1.3→v1.4 (cite-only). [Prior: 2026-06-14 (v1.3) — F2 pass-3 fix-burst: ADR cite v1.1→v1.3. [Prior: 2026-06-14 (v1.2) — F2 pass-2 fix-burst: (F-P2-002 BLOCKER) EC-002/003/004/005/006 `current_wave = N` load-bearing references replaced with first-wave detection language (wave-group position per sprint-state.yaml OR absence of prior HANDOFF.md on factory-artifacts); test vector `any current_wave` → `any pipeline context`; VP-083 + VP-081 verification property rows updated to first-wave detection semantics — no phantom `current_wave:` field referenced anywhere in body. [Prior: 2026-06-14 (v1.1) — F2 pass-1 fix-burst: (F-1) Precondition 4 re-anchored: `current_wave` field removed; wave-1 no-op now derives from sprint-state.yaml dependency-order wave-group OR STATE.md `current_step:` for engine context. PC3 + PC8 updated to reflect real substrate (no phantom `current_wave:` field). (DI) TBD-DI replaced with DI-020.]"
 phase: F2
 inputs:
   - .factory/feature-delta/issue-173/F1-delta-analysis.md
@@ -19,6 +19,7 @@ capability: "CAP-032"
 lifecycle_status: draft
 introduced: v1.0-feature-context-durability-E18
 modified:
+  - "2026-06-14 (v1.4) — F2 pass-4 fix-burst: (F-P4-003) ADR cite v1.3→v1.4 (cite-only)."
   - "2026-06-14 (v1.3) — F2 pass-3 fix-burst: ADR cite v1.1→v1.3."
   - "2026-06-14 (v1.2) — F2 pass-2 fix-burst: EC-002/003/004/005/006 phantom current_wave = N → first-wave detection; test vector + VP-083 + VP-081 rows updated to first-wave detection semantics."
   - "2026-06-14 (v1.1) — F2 pass-1 fix-burst: PC4 + PC3 + PC8 re-anchored to real substrate (sprint-state.yaml wave-group order or STATE.md current_step: for engine context); phantom current_wave: field removed; TBD-DI replaced with DI-020; ADR cite v1.0→v1.1."
@@ -150,7 +151,7 @@ S-18.02 (validate-wave-handoff-completeness WASM gate crate + registry)
 | Capability Anchor Justification | CAP-032 ("Guarantee lossless context-window transitions via wave-boundary checkpoint and PreCompact flush") per capabilities.md §CAP-032 — this BC specifies the WASM completeness gate that enforces HANDOFF.md integrity at write time, preventing a partial or incomplete handoff artifact from being committed and corrupting the wave-boundary continuity guarantee; it directly enforces ADR-026 Decision 8 and Decision 9 |
 | L2 Domain Invariants | DI-020 (Wave/phase boundary transitions must not lose load-bearing pipeline state — enforced by this gate blocking incomplete HANDOFF.md writes) |
 | Architecture Module | SS-04 (Plugin Ecosystem) — new WASM crate under `crates/hook-plugins/validate-wave-handoff-completeness/` |
-| ADR | ADR-026 v1.3 Decision 8 (WASM for completeness gate; deterministic parse-heavy validation; shell for flush), Decision 9 (no-op on wave-1 / HANDOFF.md absent; wave identity from real substrate — sprint-state.yaml wave-group order or factory-artifacts HANDOFF.md presence) |
+| ADR | ADR-026 v1.4 Decision 8 (WASM for completeness gate; deterministic parse-heavy validation; shell for flush), Decision 9 (no-op on wave-1 / HANDOFF.md absent; wave identity from real substrate — sprint-state.yaml wave-group order or factory-artifacts HANDOFF.md presence) |
 | Stories | S-18.02 |
 | Cycle | v1.0-feature-context-durability-E18 (F2) |
 | Feature | issue #173 / E-18 |

@@ -2,7 +2,7 @@
 document_type: domain-spec-section
 level: L2
 section: invariants
-version: "1.14"
+version: "1.15"
 status: accepted
 producer: business-analyst
 timestamp: 2026-04-25T00:00:00
@@ -210,12 +210,13 @@ A `PreCompact flush <cycle>/<step> <ISO-timestamp>` commit on `factory-artifacts
 - When `.factory/hooks/precompact-flush-log` does not yet exist (first-ever flush in the repo), the bare prefix match alone is sufficient — the log is created on first flush.
 A commit bearing the `PreCompact flush ` prefix that cannot be corroborated via the append-only log when the log exists is not exempt. The prefix match is case-sensitive on the raw commit subject; it is not NLP inference. The exemption — prefix-match AND append-log last-line SHA corroboration (+ `git cat-file -t` existence) when the log exists — must be implemented symmetrically in both hooks. A burst-log entry must not cite a PreCompact flush commit as Commit A/B/C/D/E.
 Enforcement owner: SS-05 (validate-burst-log + validate-dispatch-advance apply the exemption); SS-07 (precompact-flush.sh produces the canonical commit message prefix and appends the SHA to `.factory/hooks/precompact-flush-log`). BC range: BC-5.41.003, BC-7.07.001.
-Justification: DI-025 is a business invariant because the TD-VSDD-053 single-commit-per-burst discipline is a core factory-governance rule. Without an explicit lifecycle boundary, every PreCompact flush commit would produce a false-positive MULTI_COMMIT_CHAIN_NOT_ALLOWED block, making the factory unworkable after any compaction event. The lifecycle boundary is the domain-level rule that keeps both disciplines (durability + governance) simultaneously satisfied. Source: ADR-026 v1.3 §Crash-Consistency Design §Decision A (append-only log replaces point-file); CAP-032 (capabilities.md §CAP-032); TD-VSDD-053.
+Justification: DI-025 is a business invariant because the TD-VSDD-053 single-commit-per-burst discipline is a core factory-governance rule. Without an explicit lifecycle boundary, every PreCompact flush commit would produce a false-positive MULTI_COMMIT_CHAIN_NOT_ALLOWED block, making the factory unworkable after any compaction event. The lifecycle boundary is the domain-level rule that keeps both disciplines (durability + governance) simultaneously satisfied. Source: ADR-026 v1.4 §Crash-Consistency Design §Decision A (append-only log replaces point-file); CAP-032 (capabilities.md §CAP-032); TD-VSDD-053.
 
 ## CHANGELOG
 
 | Version | Date | Change |
 |---------|------|--------|
+| v1.15 | 2026-06-14 | D-565 F2 pass-4 cross-document cite-tracking fix: DI-025 Justification source cite updated ADR-026 v1.3→v1.4 (version-token propagation only; behavioral content of DI-025 unchanged). |
 | v1.14 | 2026-06-14 | F-P3-004 sibling-sweep fix (F2 adversarial pass-3, E-18): DI-025 corroboration semantics updated from point-file `.factory/hooks/last-precompact-flush-sha` to append-only log `.factory/hooks/precompact-flush-log` (ADR-026 v1.3 §Crash-Consistency Design §Decision A). Exemption now requires: SHA appears as LAST LINE of the append-only log AND `git cat-file -t <SHA>` returns `commit`. A SHA in the log but absent from git = write-before-push crash, treat as stale/absent. When the log does not yet exist (first flush), bare prefix match is sufficient. Invariant intent (lifecycle-orthogonality of flush commits vs burst commits) unchanged. |
 | v1.13 | 2026-06-14 | Convention-alignment fix for DI-025: (a) commit-format example updated from `PreCompact flush wave-<N>` to `PreCompact flush <cycle>/<step> <ISO-timestamp>` (ADR-026 v1.1 Decision 10); (b) exempt-prefix corrected from `PreCompact flush wave-` to `PreCompact flush ` (general, no `wave-`); (c) exemption semantics strengthened to prefix-match AND side-channel-SHA-corroboration against `.factory/hooks/last-precompact-flush-sha` when that file exists (BC-5.41.003 EC-003). Invariant intent (lifecycle-orthogonality of flush commits vs burst commits) unchanged. |
 | v1.12 | 2026-06-14 | F-14 fix (POLICY 2 systematic gap — E-18 BCs all declared TBD-DI): authored DI-020 through DI-025 (Context-Durability Invariants for CAP-032). Grounded in ADR-026 v1.1 and CAP-032 (capabilities.md v1.4). New section "Context-Durability Invariants (CAP-032)" added. BC→DI lift map documented in section header. ID Registry DI-NNN range extended to DI-025. |
