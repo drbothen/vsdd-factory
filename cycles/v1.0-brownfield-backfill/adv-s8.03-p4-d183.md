@@ -13,7 +13,7 @@ inputs:
   - .factory/specs/behavioral-contracts/ss-07/BC-7.03.082.md
   - plugins/vsdd-factory/hooks/track-agent-stop.sh
   - .factory/cycles/v1.0-brownfield-backfill/adv-s8.03-p3.md
-input-hash: "775f24f"
+input-hash: "b486ea5"
 traces_to: prd.md
 pass: p4-d183
 previous_review: adv-s8.03-p3.md

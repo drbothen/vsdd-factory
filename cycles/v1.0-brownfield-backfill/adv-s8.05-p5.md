@@ -16,7 +16,7 @@ inputs:
   - crates/hook-plugins/capture-pr-activity/Cargo.toml
   - plugins/vsdd-factory/hooks/validate-pr-review-posted.sh
   - plugins/vsdd-factory/hooks-registry.toml
-input-hash: "97af269"
+input-hash: "6a0f1f3"
 traces_to: prd.md
 story_id: "S-8.05"
 pass_number: 5

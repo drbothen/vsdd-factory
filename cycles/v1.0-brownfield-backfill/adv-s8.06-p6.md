@@ -13,7 +13,7 @@ inputs:
   - .factory/specs/behavioral-contracts/ss-07/BC-7.03.078.md
   - plugins/vsdd-factory/hooks/session-learning.sh
   - .factory/cycles/v1.0-brownfield-backfill/adv-s8.06-p5.md
-input-hash: "1d5fd3f"
+input-hash: "92d4e2d"
 traces_to: prd.md
 story_id: "S-8.06"
 pass_number: 6

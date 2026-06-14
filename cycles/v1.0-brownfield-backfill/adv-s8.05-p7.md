@@ -13,7 +13,7 @@ inputs:
   - crates/hook-sdk/src/payload.rs
   - crates/hook-sdk/src/host.rs
   - crates/hook-plugins/capture-pr-activity/src/lib.rs
-input-hash: "97af269"
+input-hash: "6a0f1f3"
 traces_to: prd.md
 story_id: "S-8.05"
 story_version: "1.6"

@@ -10,7 +10,7 @@ inputs:
   - .factory/stories/S-8.02-native-port-pr-manager-completion-guard.md
   - .factory/stories/epics/E-8-native-wasm-migration.md
   - .factory/stories/STORY-INDEX.md
-input-hash: "1c9ed60"
+input-hash: "9961ec6"
 traces_to: prd.md
 pass: 1
 previous_review: null

@@ -19,7 +19,7 @@ inputs:
   - .factory/specs/verification-properties/VP-015.md
   - .factory/stories/S-0.03-activation-skill-platform-detection.md
   - .factory/stories/S-2.06-activation-skill-integration.md
-input-hash: "bc3c2da"
+input-hash: "e93ad66"
 traces_to: ".factory/specs/prd.md#FR-037"
 cycle: v1.0-brownfield-backfill
 sub_cycle: wave-5-ss-06-re-anchor

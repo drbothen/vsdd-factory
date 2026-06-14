@@ -13,7 +13,7 @@ inputs:
   - Cargo.toml
   - .factory/specs/architecture/ARCH-INDEX.md
   - .factory/stories/STORY-INDEX.md
-input-hash: "1c9ed60"
+input-hash: "9961ec6"
 traces_to: prd.md
 pass: p3
 previous_review: adv-s8.02-p2.md

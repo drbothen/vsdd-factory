@@ -18,7 +18,7 @@ inputs:
   - .factory/specs/behavioral-contracts/ss-07/BC-7.03.048.md
   - plugins/vsdd-factory/hooks/pr-manager-completion-guard.sh
   - plugins/vsdd-factory/hooks-registry.toml
-input-hash: "1c9ed60"
+input-hash: "9961ec6"
 story_id: "S-8.02"
 story_version: "1.3"
 story_input_hash: "5ae44ad"

@@ -10,7 +10,7 @@ inputs:
   - .factory/stories/S-8.08-native-port-track-agent-start.md
   - .factory/stories/epics/E-8-native-wasm-migration.md
   - .factory/stories/STORY-INDEX.md
-input-hash: "38d5d6e"
+input-hash: "38b05d7"
 traces_to: prd.md
 pass: 2
 previous_review: adv-s8.08-p1.md

@@ -14,7 +14,7 @@ inputs:
   - crates/hook-sdk/src/host.rs
   - crates/factory-dispatcher/src/host/read_file.rs
   - crates/factory-dispatcher/src/host/mod.rs
-input-hash: "4d78863"
+input-hash: "5761db0"
 traces_to: prd.md
 pass: p3
 story_id: "S-8.10"

@@ -13,7 +13,7 @@ inputs:
   - crates/hook-plugins/capture-commit-activity/Cargo.toml
   - crates/hook-plugins/capture-commit-activity/src/main.rs
   - plugins/vsdd-factory/hooks/validate-pr-review-posted.sh
-input-hash: "97af269"
+input-hash: "6a0f1f3"
 traces_to: prd.md
 pass: p4
 previous_review: adv-s8.05-p3.md

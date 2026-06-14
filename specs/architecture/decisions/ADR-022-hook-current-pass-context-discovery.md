@@ -15,7 +15,7 @@ inputs:
   - .factory/specs/architecture/ARCH-INDEX.md
   - .factory/specs/architecture/decisions/ADR-017-per-story-adversary-phasing.md
   - .factory/specs/architecture/decisions/ADR-018-wasm-plugin-context-resolvers.md
-input-hash: "87edb1e"
+input-hash: "08556e9"
 ---
 
 # ADR-022: Hook Plugin Access to Current Adversary Pass Context

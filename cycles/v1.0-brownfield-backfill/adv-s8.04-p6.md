@@ -12,7 +12,7 @@ inputs:
   - .factory/specs/architecture/ARCH-INDEX.md
   - plugins/vsdd-factory/hooks-registry.toml
   - crates/hook-sdk/src/host.rs
-input-hash: "18753a3"
+input-hash: "16dd014"
 traces_to: prd.md
 story_id: "S-8.04"
 pass_number: 6

@@ -7,7 +7,7 @@ producer: state-manager
 timestamp: 2026-05-20T00:00:00Z
 cycle: v1.0-brownfield-backfill
 inputs: [STATE.md]
-input-hash: "24eba9e"
+input-hash: "5897666"
 traces_to: STATE.md
 ---
 
@@ -1550,7 +1550,7 @@ producer: state-manager
 timestamp: 2026-05-06T19:00:00Z
 cycle: "v1.0-brownfield-backfill"
 inputs: [STATE.md]
-input-hash: "24eba9e"
+input-hash: "5897666"
 traces_to: STATE.md
 ---
 
@@ -3146,9 +3146,9 @@ PASS
 **Input hashes valid (non-pending):**
 ```
 $ grep "^input-hash:" .factory/specs/behavioral-contracts/ss-05/BC-5.39.007.md
-input-hash: "24eba9e"
+input-hash: "5897666"
 $ grep "^input-hash:" .factory/specs/behavioral-contracts/ss-05/BC-5.39.008.md
-input-hash: "24eba9e"
+input-hash: "5897666"
 ```
 PASS — both are lowercase hex (7 chars); no "pending" placeholder
 

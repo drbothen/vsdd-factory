@@ -22,7 +22,7 @@ inputs:
   - crates/factory-dispatcher/src/host/read_file.rs
   - crates/factory-dispatcher/src/host/memory.rs
   - crates/factory-dispatcher/src/registry.rs
-input-hash: "4d78863"
+input-hash: "5761db0"
 traces_to: .factory/stories/epics/E-8-native-wasm-migration.md
 phase: 1d
 target: story

@@ -15,7 +15,7 @@ inputs:
   - .factory/specs/architecture/ARCH-INDEX.md
   - plugins/vsdd-factory/hooks-registry.toml
   - plugins/vsdd-factory/hooks/session-learning.sh
-input-hash: "1d5fd3f"
+input-hash: "92d4e2d"
 traces_to: prd.md
 pass: p4
 previous_review: adv-s8.06-p3.md
