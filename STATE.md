@@ -64,7 +64,7 @@ dtu_services: []
   D-558-RC21-RELEASE-SHIPPED-CLOSING-BURST-2026-06-13 362 lines (wc-l; rc.21 RELEASED via re-release; 6-class fix cycle PR #186 a431ff47 + PR #188 d3b4e247; main caf06c68; tag 03054524; develop 7e99f6ef; marketplace #13 OPEN pending; D-558 row added; §1/§3/§4/§5/§8/§9/§10/§11/§12 Session Resume refresh; D-430(a) N/A; -53 under soft 415; margin 500-362=138 from hard cap; D-446(c) dual-margin form).
   D-559-MARKETPLACE-MERGED-RC21-FULLY-SHIPPED-2026-06-13 365 lines (wc-l; marketplace #13 MERGED; rc.21 FULLY SHIPPED to operator marketplace; plugin count 53→55; next #173 wave-checkpoint; 4-index UNCHANGED; STATE.md-only burst; D-559 row added; §1/§3/§4/§5/§8/§9/§10/§11/§12 Session Resume refresh; -50 under soft 415; margin 500-365=135 from hard cap; D-446(c) dual-margin form).
   D-560-OPERATOR-INSTALL-VERIFIED-RC21-100PCT-COMPLETE-2026-06-13 373 lines (wc-l; /plugin update → operator cache 1.0.0-rc.21 VERIFIED; /reload-plugins applied; Step 9 PASSED; rc.21 100% COMPLETE; #173 wave-checkpoint ACTIVE; 4-index UNCHANGED; STATE.md-only burst; D-560 row added; §1/§3/§4/§5/§8/§9/§10/§11/§12 Session Resume refresh; -42 under soft 415; margin 500-373=127 from hard cap; D-446(c) dual-margin form).
-  D-561-F2-E18-CONTEXT-DURABILITY-SPEC-EVOLUTION-COMPLETE-2026-06-14 TBD lines (wc-l pending commit; F2 COMPLETE — ADR-026+8BCs+VP-081..085+CAP-032; ARCH-INDEX v2.28; VP-INDEX v2.07; BC-INDEX v2.73; STORY-INDEX v4.01 UNCHANGED; D-561 row added; §1/§3/§4/§5/§8/§12 Session Resume refresh; D-446(c) dual-margin form pending wc-l).
+  D-561-F2-E18-CONTEXT-DURABILITY-SPEC-EVOLUTION-COMPLETE-2026-06-14 380 lines (wc-l; F2 COMPLETE — ADR-026+8BCs+VP-081..085+CAP-032; ARCH-INDEX v2.28; VP-INDEX v2.07; BC-INDEX v2.73; STORY-INDEX v4.01 UNCHANGED; D-561 row added; §1/§3/§4/§5/§8/§9/§11/§12 Session Resume refresh; -35 under soft 415; margin 500-380=120 from hard cap; D-446(c) dual-margin form).
 -->
 
 # Pipeline State: vsdd-factory
@@ -144,7 +144,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | caf06c68 | rc.21 bot binary bundle commit 2026-06-13; PR #188 merge d3b4e247 underneath; prior: 2a191314 (rc.20 SHIPPED 2026-06-01) |
 | develop | 7e99f6ef | PR #186 fix a431ff47 + release.yml sync-develop back-merge from main 2026-06-13; prior: 3b2a378c (D-556 PR #184 S-17.04 2026-06-12) |
-| factory-artifacts | TBD-D-561 | D-561 F2 E-18 spec-evolution burst 2026-06-14 (SHA-patch follow-up after commit); prior: f4a6b065 D-560 sha-patch |
+| factory-artifacts | c0188ea7 | D-561 F2 E-18 spec-evolution burst 2026-06-14; prior: f4a6b065 D-560 sha-patch |
 | v1.0.0-rc.21 (tag) | 03054524 | SHIPPED 2026-06-13; FULLY IN OPERATOR MARKETPLACE (marketplace PR #13 MERGED); annotated tag object; GitHub Release https://github.com/drbothen/vsdd-factory/releases/tag/v1.0.0-rc.21 |
 | v1.0.0-rc.20 (tag) | e9e38286 | SHIPPED 2026-06-01; annotated tag object; GitHub Release prerelease; marketplace PR drbothen/claude-mp #12 squash-merged 862e660d |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28; GitHub Release prerelease 2026-05-28T15:10:56Z; marketplace PR #11 squash-merged |
@@ -327,7 +327,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** TBD-D-561 (D-561 F2 E-18 spec-evolution burst 2026-06-14; prior: `f4a6b065` D-560 sha-patch)
+- **factory-artifacts HEAD:** `c0188ea7` (D-561 F2 E-18 spec-evolution burst 2026-06-14; prior: `f4a6b065` D-560 sha-patch)
 - **develop HEAD:** `7e99f6ef` (PR #186 fix a431ff47 + release.yml sync back-merge 2026-06-13; prior: `3b2a378c` D-556)
 - **main HEAD:** `caf06c68` (rc.21 bot bundle commit 2026-06-13; prior: `2a191314` rc.20)
 - **v1.0.0-rc.21 tag:** `03054524` (annotated; force-moved to bundle commit; FULLY SHIPPED; marketplace #13 MERGED)
