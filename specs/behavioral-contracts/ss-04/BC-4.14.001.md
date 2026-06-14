@@ -1,11 +1,11 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: product-owner
 timestamp: 2026-06-14T00:00:00Z
-last_amended: "2026-06-14 (v1.1) — F2 pass-1 fix-burst: (F-1) Precondition 4 re-anchored: `current_wave` field removed; wave-1 no-op now derives from sprint-state.yaml dependency-order wave-group OR STATE.md `current_step:` for engine context. PC3 + PC8 updated to reflect real substrate (no phantom `current_wave:` field). (DI) TBD-DI replaced with DI-020."
+last_amended: "2026-06-14 (v1.2) — F2 pass-2 fix-burst: (F-P2-002 BLOCKER) EC-002/003/004/005/006 `current_wave = N` load-bearing references replaced with first-wave detection language (wave-group position per sprint-state.yaml OR absence of prior HANDOFF.md on factory-artifacts); test vector `any current_wave` → `any pipeline context`; VP-083 + VP-081 verification property rows updated to first-wave detection semantics — no phantom `current_wave:` field referenced anywhere in body. [Prior: 2026-06-14 (v1.1) — F2 pass-1 fix-burst: (F-1) Precondition 4 re-anchored: `current_wave` field removed; wave-1 no-op now derives from sprint-state.yaml dependency-order wave-group OR STATE.md `current_step:` for engine context. PC3 + PC8 updated to reflect real substrate (no phantom `current_wave:` field). (DI) TBD-DI replaced with DI-020.]"
 phase: F2
 inputs:
   - .factory/feature-delta/issue-173/F1-delta-analysis.md
@@ -19,6 +19,7 @@ capability: "CAP-032"
 lifecycle_status: draft
 introduced: v1.0-feature-context-durability-E18
 modified:
+  - "2026-06-14 (v1.2) — F2 pass-2 fix-burst: EC-002/003/004/005/006 phantom current_wave = N → first-wave detection; test vector + VP-083 + VP-081 rows updated to first-wave detection semantics."
   - "2026-06-14 (v1.1) — F2 pass-1 fix-burst: PC4 + PC3 + PC8 re-anchored to real substrate (sprint-state.yaml wave-group order or STATE.md current_step: for engine context); phantom current_wave: field removed; TBD-DI replaced with DI-020; ADR cite v1.0→v1.1."
 deprecated: null
 deprecated_by: null
@@ -89,11 +90,11 @@ removal_reason: null
 | ID | Description | Expected Behavior |
 |----|-------------|-------------------|
 | EC-001 | HANDOFF.md write on first wave (no prior HANDOFF.md on factory-artifacts; or wave-group position 1 per sprint-state.yaml) | Continue (wave-1 no-op); no validation |
-| EC-002 | HANDOFF.md write; all 9 fields present; current_wave = 2 | Continue; no block |
-| EC-003 | HANDOFF.md write; `last_verified_develop_sha` field missing; current_wave = 2 | HandoffIncomplete: `["last_verified_develop_sha"]` |
-| EC-004 | HANDOFF.md write; `last_verified_develop_sha` present but empty string; current_wave = 2 | HandoffIncomplete: field present but empty is treated as malformed |
-| EC-005 | HANDOFF.md write; 4 fields missing; current_wave = 3 | HandoffIncomplete: names all 4 missing fields in one message |
-| EC-006 | HANDOFF.md write; `precompact_flush_sha: null`; current_wave = 2 | Continue if null is explicitly permitted in the field schema for wave > 1 (advisory only — anti-fabrication check on null is the skill's job, not the gate's) |
+| EC-002 | HANDOFF.md write; all 9 fields present; wave-group position 2 per sprint-state.yaml (not first wave — prior HANDOFF.md exists on factory-artifacts) | Continue; no block |
+| EC-003 | HANDOFF.md write; `last_verified_develop_sha` field missing; not first wave (prior HANDOFF.md exists on factory-artifacts) | HandoffIncomplete: `["last_verified_develop_sha"]` |
+| EC-004 | HANDOFF.md write; `last_verified_develop_sha` present but empty string; not first wave | HandoffIncomplete: field present but empty is treated as malformed |
+| EC-005 | HANDOFF.md write; 4 fields missing; wave-group position 3 per sprint-state.yaml (not first wave) | HandoffIncomplete: names all 4 missing fields in one message |
+| EC-006 | HANDOFF.md write; `precompact_flush_sha: null`; not first wave (prior HANDOFF.md exists on factory-artifacts) | Continue if null is explicitly permitted in the field schema for wave > 1 (advisory only — anti-fabrication check on null is the skill's job, not the gate's) |
 | EC-007 | Edit to `STATE.md` (not HANDOFF.md) | Continue (non-HANDOFF.md no-op); gate fires but immediately returns Continue |
 | EC-008 | Gate crashes (WASM panic) | fail-open Continue; plugin.crashed log; compaction/wave-close not blocked |
 | EC-009 | HANDOFF.md body is 350 lines (over 200-line cap) | Gate parses it; emits advisory warn; validates all fields normally |
@@ -108,7 +109,7 @@ removal_reason: null
 | Write to HANDOFF.md; second wave (prior HANDOFF.md exists on factory-artifacts); all 9 fields present + well-formed | Continue | happy-path |
 | Write to HANDOFF.md; second wave; `wave_id` missing | `HandoffIncomplete: ["wave_id"]`; exit 2 | missing-field-single |
 | Write to HANDOFF.md; second wave; 3 fields missing | `HandoffIncomplete: ["<f1>", "<f2>", "<f3>"]`; exit 2 | missing-field-multiple |
-| Write to STATE.md; any current_wave | Continue (non-HANDOFF.md target) | non-target-no-op |
+| Write to STATE.md; any pipeline context | Continue (non-HANDOFF.md target) | non-target-no-op |
 | WASM panic during field parse | Continue; `plugin.crashed` in dispatcher log | crash-fail-open |
 | Write to HANDOFF.md; body = 350 lines; all fields present | Continue + advisory warn in plugin.log | over-cap-advisory |
 
@@ -137,8 +138,8 @@ S-18.02 (validate-wave-handoff-completeness WASM gate crate + registry)
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-083 | validate-wave-handoff-completeness returns Continue unconditionally when current_wave = 1; also no-op on non-HANDOFF.md writes | unit-test |
-| VP-081 | Gate blocks HandoffIncomplete when any required ADR-026 §D2 field is missing on a HANDOFF.md write with current_wave > 1 | integration |
+| VP-083 | validate-wave-handoff-completeness returns Continue unconditionally on first wave (wave-group position 1 per sprint-state.yaml, OR absence of prior HANDOFF.md on factory-artifacts); also no-op on non-HANDOFF.md writes | unit-test |
+| VP-081 | Gate blocks HandoffIncomplete when any required ADR-026 §D2 field is missing on a HANDOFF.md write on a non-first wave (prior HANDOFF.md exists on factory-artifacts, OR wave-group position > 1 per sprint-state.yaml) | integration |
 
 ## Traceability
 

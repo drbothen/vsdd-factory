@@ -1,11 +1,11 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: product-owner
 timestamp: 2026-06-14T00:00:00Z
-last_amended: "2026-06-14 (v1.1) — F2 pass-1 fix-burst: (F-3 consistency) PC1 explicitly mandates git-sourced read from factory-artifacts (no in-context memory fallback); Invariant 1 strengthened to disallow working-tree fallback. (DI) TBD-DI replaced with DI-023. TBD-VP retained with justification per report."
+last_amended: "2026-06-14 (v1.2) — F2 pass-2 fix-burst: (F-P2-004/008) EC-EPIC added (final-wave EPIC-COMPLETE: HANDOFF has epic_status:complete, rehydrate-wave reads HANDOFF.md only, must not error on absent wave-state.yaml); EC-004 clarified as non-final context. [Prior: 2026-06-14 (v1.1) — F2 pass-1 fix-burst: (F-3 consistency) PC1 explicitly mandates git-sourced read from factory-artifacts (no in-context memory fallback); Invariant 1 strengthened to disallow working-tree fallback. (DI) TBD-DI replaced with DI-023. TBD-VP retained with justification per report.]"
 phase: F2
 inputs:
   - .factory/feature-delta/issue-173/F1-delta-analysis.md
@@ -19,6 +19,7 @@ capability: "CAP-032"
 lifecycle_status: draft
 introduced: v1.0-feature-context-durability-E18
 modified:
+  - "2026-06-14 (v1.2) — F2 pass-2 fix-burst: EC-EPIC (EPIC-COMPLETE final wave; reads HANDOFF.md only; no error on absent wave-state.yaml); EC-004 non-final context clarification."
   - "2026-06-14 (v1.1) — F2 pass-1 fix-burst: PC1 git-source mandate strengthened; working-tree fallback explicitly disallowed; TBD-DI replaced with DI-023; TBD-VP retained with justification; ADR cite v1.0→v1.1."
 deprecated: null
 deprecated_by: null
@@ -76,7 +77,8 @@ The `rehydrate-wave` skill is invoked at the start of a new session after a wave
 | EC-001 | wave-state.yaml exists; all paths resolve | All files injected; confirmation prompt shown |
 | EC-002 | wave-state.yaml missing from factory-artifacts | Hard block with RehydrationError; no injection |
 | EC-003 | wave-state.yaml exists; one spec_file path missing on filesystem | Warning names missing path; remaining files injected; confirmation prompt shown |
-| EC-004 | wave-state.yaml `stories: []` (empty wave) | Only `arch_files` + `state_pointer` injected; operator warned no stories are listed |
+| EC-004 | wave-state.yaml `stories: []` (empty wave) — non-final context (wave-state.yaml exists but stories is empty without EPIC-COMPLETE indicator) | Only `arch_files` + `state_pointer` injected; operator warned no stories are listed |
+| EC-EPIC | EPIC-COMPLETE final wave: HANDOFF.md has `epic_status: complete` and `next_wave_stories: []`; wave-state.yaml was NOT written by wave-handoff (BC-5.41.002 EC-001a) | `rehydrate-wave` reads HANDOFF.md (not wave-state.yaml); detects `epic_status: complete`; injects STATE.md + arch_files from HANDOFF.md only; emits message "Epic complete — no next-wave stories"; does NOT error on absence of wave-state.yaml |
 | EC-005 | Operator invokes /rehydrate-wave mid-session (not at start) | Skill executes normally but warns that prior in-session context may already be contaminated with stale specs |
 | EC-006 | wave-state.yaml `arch_files: []` (empty) | Only `stories[*].spec_files` + `state_pointer` injected; no architectural context — operator warned |
 

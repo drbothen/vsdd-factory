@@ -1,11 +1,11 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: product-owner
 timestamp: 2026-06-14T00:00:00Z
-last_amended: "2026-06-14 (v1.1) — F2 pass-1 fix-burst: (F-6) Best-effort status made explicit in §Description and §Invariants; NOT in CAP-032 continuity-guarantee chain. (F-13 POLICY 7) H1 title corrected: 'reads compaction summary' removed from H1 because PC7 makes it optional; H1 now accurately describes what postconditions specify. (DI) TBD-DI replaced with DI-024. TBD-VP retained with justification."
+last_amended: "2026-06-14 (v1.2) — F2 pass-2 fix-burst: (F-P2-002/009) PC1 stdout template: `wave=<current_wave>` → `context=<current_cycle>/<current_step>` (no phantom current_wave: field; hook derives from STATE.md current_cycle: + current_step:). Inv 2: `current_wave`, `current_step`, `last_verified_develop_sha` → `current_cycle:`, `current_step:`, `last_verified_develop_sha`; explicit statement that current_wave: does not exist. EC-003: `current_wave field absent` → `current_cycle: or current_step: absent`; emit `context=UNKNOWN`. Test vector updated to new stdout format. [Prior: 2026-06-14 (v1.1) — F2 pass-1 fix-burst: (F-6) Best-effort status made explicit in §Description and §Invariants; NOT in CAP-032 continuity-guarantee chain. (F-13 POLICY 7) H1 title corrected: 'reads compaction summary' removed from H1 because PC7 makes it optional; H1 now accurately describes what postconditions specify. (DI) TBD-DI replaced with DI-024. TBD-VP retained with justification.]"
 phase: F2
 inputs:
   - .factory/feature-delta/issue-173/F1-delta-analysis.md
@@ -19,6 +19,7 @@ capability: "CAP-032"
 lifecycle_status: draft
 introduced: v1.0-feature-context-durability-E18
 modified:
+  - "2026-06-14 (v1.2) — F2 pass-2 fix-burst: PC1 stdout template + Inv 2 + EC-003 + test vector: phantom current_wave: removed; current_cycle+current_step from STATE.md frontmatter used instead."
   - "2026-06-14 (v1.1) — F2 pass-1 fix-burst: H1 title corrected (removed 'reads compaction summary' per F-13 POLICY 7 H1↔postcondition parity); §Description + §Invariants updated to state best-effort explicitly (F-6); NOT in CAP-032 guarantee chain; TBD-DI replaced with DI-024; TBD-VP retained with justification; ADR cite v1.0→v1.1."
 deprecated: null
 deprecated_by: null
@@ -59,10 +60,10 @@ removal_reason: null
 
 1. **Re-anchor block emitted to stdout**: The hook emits a concise (2–5 line) re-anchor summary to stdout in a structured format readable by the LLM:
    ```
-   [PostCompact Re-anchor] wave=<current_wave> step=<current_step> sha=<last_verified_develop_sha>
+   [PostCompact Re-anchor] context=<current_cycle>/<current_step> sha=<last_verified_develop_sha>
    Source: factory-artifacts STATE.md (verified at <ISO-timestamp>)
    ```
-   The values are read from `factory-artifacts` STATE.md via `git show factory-artifacts:.factory/STATE.md`, NOT from in-context knowledge.
+   The values are read from `factory-artifacts` STATE.md via `git show factory-artifacts:.factory/STATE.md`, NOT from in-context knowledge. Wave identity is derived — not stored as a `current_wave:` field. The hook emits `current_cycle:` and `current_step:` from STATE.md frontmatter; the human can derive the wave/pass ordinal from `current_step:` if needed.
 
 2. **Log written to .factory/logs/**: The hook appends a structured log entry to `.factory/logs/postcompact-reanchor-YYYY-MM-DD.jsonl` (same daily-file pattern as the dispatcher internal log) with fields: `event`, `wave_id`, `current_step`, `last_verified_develop_sha`, `timestamp`, `status` ("ok" or "warn").
 
@@ -80,7 +81,7 @@ removal_reason: null
 
 1. **No factory-artifacts writes**: The hook is read-only with respect to `factory-artifacts`. Any `git commit`, `git push`, or `git add` to the `factory-artifacts` branch from this hook is a specification violation.
 
-2. **Values sourced from factory-artifacts, not in-context**: `current_wave`, `current_step`, and `last_verified_develop_sha` values in the re-anchor output must be read from `git show factory-artifacts:.factory/STATE.md`, never from the LLM's in-context knowledge. This is the re-anchor's entire purpose: providing authoritative grounding after compaction potentially corrupted in-context state.
+2. **Values sourced from factory-artifacts, not in-context**: `current_cycle:`, `current_step:`, and `last_verified_develop_sha` values in the re-anchor output must be read from `git show factory-artifacts:.factory/STATE.md`, never from the LLM's in-context knowledge. There is no `current_wave:` field in STATE.md — the hook reads `current_cycle:` and `current_step:` and emits those. This is the re-anchor's entire purpose: providing authoritative grounding after compaction potentially corrupted in-context state.
 
 3. **Best-effort and not in CAP-032 guarantee chain**: This hook is explicitly best-effort. It is NOT in the CAP-032 continuity-guarantee chain. The PostCompact hook is the "after the fact" complement to the PreCompact flush. It cannot undo compaction or restore lost context. It can only surface the externally persisted truth so the LLM can re-ground itself. Any design or implementation that depends on this hook for a correctness property is a specification violation (DI-024). If this hook is absent, crashes, or emits incorrect data, the CAP-032 guarantee is unaffected — Part A (HANDOFF.md) and Part B (PreCompact flush) are sufficient.
 
@@ -92,7 +93,7 @@ removal_reason: null
 |----|-------------|-------------------|
 | EC-001 | PostCompact fires; STATE.md on factory-artifacts readable | Re-anchor block emitted; log appended; exit 0 |
 | EC-002 | PostCompact fires; factory-artifacts not accessible (network error) | Emit advisory to stdout: `[PostCompact Re-anchor] WARN: factory-artifacts unreachable; re-anchor skipped`; log entry with status=warn; exit 0 |
-| EC-003 | PostCompact fires; STATE.md on factory-artifacts present but `current_wave` field absent | Emit partial re-anchor with `wave=UNKNOWN`; log warn; exit 0 |
+| EC-003 | PostCompact fires; STATE.md on factory-artifacts present but `current_cycle:` or `current_step:` fields absent (there is no `current_wave:` field — it does not exist) | Emit partial re-anchor with `context=UNKNOWN`; log warn; exit 0 |
 | EC-004 | Hook crashes (set -euo pipefail exit) | on_error=continue; dispatcher exits 0; session continues; plugin.crashed in dispatcher log |
 | EC-005 | PostCompact fires; .factory/logs/ directory does not exist | Attempt to create it; if creation fails, emit advisory to stdout only; exit 0 |
 | EC-006 | Hook tries to commit to factory-artifacts | Specification violation; implementation MUST NOT include any git write commands targeting factory-artifacts |
@@ -102,7 +103,7 @@ removal_reason: null
 
 | Input | Expected Output | Category |
 |-------|----------------|----------|
-| PostCompact event; factory-artifacts STATE.md has wave=3, step="phase-F2", sha="abc...def" | stdout: `[PostCompact Re-anchor] wave=3 step=phase-F2 sha=abc...def`; log entry appended; exit 0 | happy-path |
+| PostCompact event; factory-artifacts STATE.md has `current_cycle: v1.0-example`, `current_step: phase-F2`, `last_verified_develop_sha: abc...def` | stdout: `[PostCompact Re-anchor] context=v1.0-example/phase-F2 sha=abc...def`; log entry appended; exit 0 | happy-path |
 | PostCompact event; factory-artifacts unreachable | stdout advisory WARN; log entry status=warn; exit 0 | unreachable-fail-open |
 | PostCompact event; hook crashes | on_error=continue; exit 0; plugin.crashed log | crash-fail-open |
 | PostCompact event followed by LLM tool call | LLM context includes the re-anchor stdout; LLM uses verified sha/wave/step from that block | re-anchor-visible |

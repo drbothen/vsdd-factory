@@ -2,7 +2,7 @@
 document_type: architecture-decision-record
 level: L3
 adr_id: ADR-026
-version: "1.1"
+version: "1.2"
 status: accepted
 producer: architect
 timestamp: 2026-06-14T00:00:00Z
@@ -24,7 +24,7 @@ superseded_by: null
 decision_status: accepted
 human_gate_required: false
 human_gate_reason: "All open questions from F1 (OQ-18-001 through OQ-18-004) are resolved by LOCKED DECISIONS D1–D5 confirmed by human prior to F2. Harness-version precondition documented. No remaining human-gated questions. Implementation dispatch ready via E-18 story decomposition."
-last_amended: "2026-06-14 (v1.1) — F2 adversarial-pass-1 revision: (F-1) Re-anchored wave-identity to real substrate: HANDOFF.md `wave_id` derives from sprint-state.yaml `current_wave` (product-pipeline context) OR STATE.md `phase:`/`current_step:` (engine-self context); Decision 2 HANDOFF.md schema `wave_id` source clarified to both contexts; precompact-flush.sh reads STATE.md frontmatter `current_cycle:` field for engine-context identification; downstream BC anchor text updated in propagation worklist. (F-2) Reconciled with ADR-025 opt-in lock model: `factory_lock` is absent-by-default; flush lock-renewal step is no-op when `factory_lock` absent in STATE.md; Decision 2 `factory_lock_holder` field is nullable (null OR absent = no lock held, flush may proceed); Decision 6 hermetic-flush lock-renew step annotated with no-op-when-unlocked. (F-3) wave-state.yaml `next_wave_stories` real derivation specified: derives from sprint-state.yaml story `status: pending` OR `status: draft` entries ordered by dependency graph, NOT from a non-existent story `wave:` frontmatter field; empty list = hard error, not silent no-op (SOUL.md #4). (F-4) Bounded timeout_ms added to PreCompact hook registration (timeout_ms = 30000); timeout semantics specified: timeout is treated as `on_error = continue` (fail-open, compaction proceeds); git push failure (exit 2 returned cleanly) is distinct from timeout (no response) and is treated as a blocking failure. (F-5) Harness-version runtime assertion wired to check-state-health skill and SessionStart advisory; specific degrade behavior on pre-v2.1.105 documented honestly. (F-6) PostCompact re-anchor (BC-7.07.002) is EXPLICITLY best-effort and is removed from the CAP-032 continuity-guarantee chain; continuity guarantee rests exclusively on Part A (HANDOFF.md verified) and Part B (PreCompact flush). (F-7) All TOML registration blocks corrected to real registry schema: plugin = `hook-plugins/legacy-bash-adapter.wasm` with full entry fields; tool matcher canonical order `Edit|Write` (where applicable). (F-9) ADR-026 `anchors:` list: SS-08 NOT included because S-18.07 terminology changes target SS-06/SS-08 documentation but the architectural decision itself sits in SS-07 (shell hooks) and SS-04 (plugin ecosystem); explicit no-BC justification for S-18.07 added; S-18.06 `validate-heavy-op-delegation` WASM gate BC deferred — S-18.06 is advisory-only in v1 (no blocking behavior, no BC needed for v1 advisory; product-owner to author BC if v2 promotes to blocking). (F-10) VP-086 allocated: dispatcher exit-2 propagation for PreCompact (BC-1.15.001 PC4); VP-INDEX v2.07→v2.08. (F-11) 83% clamp claim downgraded to MEDIUM-confidence research finding; headroom argument annotated as independent of F-4 bounded-timeout fix; settings.json env-verification note added. (F-15) Prerequisite-verification discipline applied: real fields/artifacts the design depends on are enumerated with existence checks specified. [Prior: 2026-06-14 (v1.0) — Initial ADR authored in F2 spec-evolution phase for E-18 (CAP-032 context-durability). Records architecture decisions for wave-boundary checkpoint/reset (Part A), PreCompact synchronous flush (Part B), and WASM/shell hook split (Part C). Records D3/D4/D5 v2 deferrals explicitly. Closes OQ-18-001 through OQ-18-004.]"
+last_amended: "2026-06-14 (v1.2) — F2 adversarial-pass-2 revision: (F-P2-001) Canonical wave-identity derivation expression authored as a single normative §Wave-Identity Derivation section (all BCs/VPs/DIs cite verbatim; eliminates drift between partial re-anchors). (F-P2-002) VP inputs: path corrected from shorthand `ADR-026.md` to real slug `.factory/specs/architecture/decisions/ADR-026-wave-boundary-checkpoint-reset-and-lossless-intra-wave-compaction.md` across VP-081..VP-086 (TASK 3). VP-081/082/083/085 swept: all `current_wave` references in Preconditions, Invariants, and test-harness fixtures replaced with canonical derivation substrate (see §Wave-Identity Derivation); VP files bumped to v1.2. (F-P2-003) Crash-consistency design for side-channel file: Decision 6 redesigned with append-only side-channel log (`.factory/hooks/precompact-flush-log`) — entries survive hook crash; BC-5.41.003 EC-003 must corroborate against the log, not a single-SHA point file; BC-7.07.001 side-channel write step redesigned as append-only. Exact BC change specs in §Crash-Consistency Design below. (F-P2-004) Terminal-wave discriminator added to Decision 2 and Decision 4: empty `next_wave_stories` AND all stories `merged` or `withdrawn` → EPIC-COMPLETE success path; empty `next_wave_stories` AND stories in other states → hard error (broken sprint-state). BC-5.41.002 EC-001 and BC-6.24.001 must be updated per §Terminal-Wave Discriminator below. [Prior: 2026-06-14 (v1.1) — F2 adversarial-pass-1 revision: (F-1) Re-anchored wave-identity to real substrate; (F-2) Reconciled with ADR-025 opt-in lock model; (F-3) next_wave_stories real derivation specified; (F-4) Bounded timeout_ms=30000; (F-5) Harness-version runtime assertion; (F-6) PostCompact re-anchor best-effort; (F-7) TOML registration corrected; (F-9) SS-08/S-18.06/S-18.07 scope; (F-10) VP-086 allocated; (F-11) 83% clamp MEDIUM-confidence; (F-15) Prerequisite-verification table. [Prior: 2026-06-14 (v1.0) — Initial ADR.]]"
 ---
 
 # ADR-026: Wave-boundary checkpoint+reset and lossless intra-wave compaction
@@ -72,6 +72,40 @@ The design anchors to TWO real substrates depending on pipeline context:
 **No `current_wave:` field is invented.** No `wave:` frontmatter on story files. The design reads the real existing fields.
 
 For the `precompact-flush.sh` hermetic flush (Part B): the hook determines context identification from STATE.md `current_cycle:` + `current_step:` fields (always present). The HANDOFF.md `wave_id` is a logical identifier that the `wave-handoff` skill derives from the sprint-state.yaml wave-group numbering for product pipelines, OR from the cycle pass number (e.g., the engine's `pass-N` in `current_step:`) for the self-referential engine.
+
+---
+
+## Wave-Identity Derivation (Normative — F-P2-001)
+
+This section is the **single canonical expression** of how wave identity is derived. All BCs, VPs, DIs, and test fixtures MUST cite this section verbatim. No other definition is authoritative. Downstream documents must NOT invent a `current_wave:` field on STATE.md — that field does not exist.
+
+### Canonical Derivation
+
+> **Wave identity (wave group index or pass identifier) is derived from real substrate as follows:**
+>
+> - **Product-pipeline context** (products the factory builds — wirerust, jira-cli, engineering-report, etc.): wave identity is the wave-group index derived by the `wave-scheduling` skill from `sprint-state.yaml` dependency-order topological grouping. The ordinal position of the current wave group in that topological sort (position 1 = wave 1, position 2 = wave 2, etc.) is the `wave_id`. No `current_wave:` field exists on STATE.md and no `wave:` frontmatter field exists on story files.
+>
+> - **Self-referential engine context** (vsdd-factory's own STATE.md): wave identity is the `current_step:` pass identifier from STATE.md frontmatter (e.g., `pass-N` in an F5 cycle). The `current_cycle:` field provides the enclosing cycle name. No `current_wave:` field exists on STATE.md.
+>
+> **There is no `current_wave:` field** on STATE.md. Test fixtures that construct a STATE.md MUST NOT include `current_wave:` as a field. Instead:
+>
+> - For product-pipeline tests: parameterize by wave-group ordinal derived from a synthetic `sprint-state.yaml` with `status: pending/draft` entries.
+> - For engine-context tests: parameterize by STATE.md `current_step:` value (e.g., `current_step: "pass-2"`).
+> - For "wave 1 / first wave" discrimination: derive from the **absence of a prior HANDOFF.md** on `factory-artifacts` (no prior handoff → first wave) OR from the wave-group ordinal being 1 in the topological sort.
+
+### Verbatim replacement for all prior `current_wave` references
+
+Any prior text reading "reads `current_wave:` from STATE.md frontmatter" or "STATE.md with `current_wave = N`" MUST be replaced with:
+
+> "reads `current_step:` and `current_cycle:` from STATE.md frontmatter (engine context) OR derives wave-group ordinal from sprint-state.yaml dependency-order topological sort (product-pipeline context) — there is no `current_wave:` field on STATE.md"
+
+For test fixture descriptions, "Setup: STATE.md with `current_wave = N`" MUST become:
+
+> "Setup: STATE.md with `current_step: \"pass-N\"` (engine context) OR synthetic sprint-state.yaml with N-1 stories in `status: merged/withdrawn` preceding current wave group (product-pipeline context)"
+
+For HANDOFF.md `wave_id` field: the value is an integer derived from the above substrate, NOT read from a `current_wave:` field. The anti-fabrication cross-check for `wave_id` is: computed value from `wave-scheduling` topological sort (product) or pass number from `current_step:` (engine) must match the `wave_id` written in HANDOFF.md.
+
+---
 
 ### Confirmed harness capability (F1 research)
 
@@ -174,11 +208,11 @@ stories:
     status: "pending"
     spec_files:
       - ".factory/specs/behavioral-contracts/ss-04/BC-4.XX.001.md"
-      - ".factory/specs/architecture/decisions/ADR-026.md"
+      - ".factory/specs/architecture/decisions/ADR-026-wave-boundary-checkpoint-reset-and-lossless-intra-wave-compaction.md"
 arch_files:
   - ".factory/specs/architecture/ARCH-INDEX.md"
-  - ".factory/specs/architecture/decisions/ADR-025.md"
-  - ".factory/specs/architecture/decisions/ADR-026.md"
+  - ".factory/specs/architecture/decisions/ADR-025-single-writer-factory-locklease-prevent-concurrent-session-races-on-factory-artifacts-orphan-branch.md"
+  - ".factory/specs/architecture/decisions/ADR-026-wave-boundary-checkpoint-reset-and-lossless-intra-wave-compaction.md"
 state_pointer: ".factory/STATE.md"
 ```
 
@@ -418,6 +452,71 @@ This ADR directly addresses the F1 regression risks:
 
 ---
 
+## Crash-Consistency Design for Side-Channel (F-P2-003)
+
+**Problem:** Decision 6 originally emits `precompact_flush_sha` to `.factory/hooks/last-precompact-flush-sha` as a single-SHA point file written AFTER the flush commit lands. If the hook crashes between the `git commit --push` and the `write last-precompact-flush-sha` step, the committed flush is real but the side-channel file is absent. BC-5.41.003 EC-003 then tries to corroborate the PreCompact flush commit's SHA against the side-channel, finds the file absent, and must decide: treat absence as "no flush ever ran" (wrong — the flush DID run and commit) or treat absence as "file not yet written" (correct, but allows a bypass).
+
+**Chosen design: append-only flush log** (production-grade option). This design provides full crash-consistency without requiring atomic filesystem operations:
+
+1. **Side-channel becomes an append-only log**: The file `.factory/hooks/last-precompact-flush-sha` is renamed to `.factory/hooks/precompact-flush-log`. Each successful flush APPENDS a line of the form `<ISO-8601-timestamp> <40-char-SHA> <cycle>/<step>` to the log. Append is performed via `echo "..." >> precompact-flush-log` before the `git push` step. The append (being a local file write) happens BEFORE the network push and BEFORE any crash window from push failure. If the hook crashes after the append but before a git push, the log entry exists with a SHA that does not yet appear in `factory-artifacts` — the corroboration step reads the LAST entry and validates it against `git rev-parse factory-artifacts HEAD`.
+
+2. **BC-5.41.003 corroboration revised**: The exemption corroboration step for `validate-burst-log` and `validate-dispatch-advance` now: (a) reads the last line of `precompact-flush-log` (if the file exists); (b) compares the SHA in that last line against the PreCompact flush commit SHA being evaluated; (c) also validates that the last-line SHA exists as a real commit on `factory-artifacts` via `git cat-file -t <SHA>`. Both checks must pass. If the log is absent, prefix-match alone is sufficient (same as prior behavior for genuine absence).
+
+3. **BC-7.07.001 side-channel write step revised**: PC6 (emit `precompact_flush_sha` to side-channel) is changed from: "Write commit SHA to `.factory/hooks/last-precompact-flush-sha`" to: "Append `<timestamp> <SHA> <cycle>/<step>` to `.factory/hooks/precompact-flush-log` BEFORE the git push step. The append must occur in the same hook execution, on the local filesystem, prior to the push." On hook crash, the appended entry (if present) records the intent; the corroboration step validates the SHA against git history to confirm actual commit.
+
+4. **Retention**: The log is never truncated by the hook. Compaction of the log (keeping only the last N entries) is a maintenance operation, not a hook operation. Initial implementation: unlimited growth (entries are ~100 bytes/line; 1000 flushes ≈ 100KB — acceptable for v1).
+
+**Exact BC change specifications for product-owner:**
+
+- **BC-5.41.003** (validate-burst-log/validate-dispatch-advance exemption):
+  - Postcondition 1, clause (a): Change "must appear in `.factory/hooks/last-precompact-flush-sha`" to "must appear as the SHA field on the last line of `.factory/hooks/precompact-flush-log` AND that SHA must exist as a real commit on `factory-artifacts` (verified via `git cat-file -t <SHA>` returning `commit`)"
+  - Postcondition 1, clause (b): Change "if the side-channel file is genuinely absent" to "if `.factory/hooks/precompact-flush-log` is genuinely absent (verified via `test -f`)"
+  - EC-003: Replace current HEAD/HEAD^ truth table row 4 (`side-channel file exists with different SHA → NOT EXEMPT`) to match the new log semantics: "last line of `precompact-flush-log` exists with SHA that does not match and does not exist as a real commit on factory-artifacts → NOT EXEMPT (SHA corroboration fails)"
+  - Architecture Anchors: replace `.factory/hooks/last-precompact-flush-sha` with `.factory/hooks/precompact-flush-log` throughout
+
+- **BC-7.07.001** (precompact-flush.sh behavioral contract):
+  - PC6 (side-channel emit): Change "Emits `precompact_flush_sha` to side-channel file `.factory/hooks/last-precompact-flush-sha`" to "Appends entry `<ISO-timestamp> <SHA> <cycle>/<step>` to `.factory/hooks/precompact-flush-log` BEFORE the git push step. This write is local filesystem; it precedes the push to establish crash-consistent ordering."
+  - Inv 4 and any test fixture referencing `last-precompact-flush-sha`: replace with `precompact-flush-log`
+  - `[hooks.capabilities.read_file]` and `[hooks.capabilities.write_file]` path_allow: replace `last-precompact-flush-sha` with `precompact-flush-log`
+
+- **BC-5.41.001** (wave-gate HANDOFF.md): The `precompact_flush_sha` hard cross-check (PC5, F-12) references the side-channel file — replace `.factory/hooks/last-precompact-flush-sha` with `.factory/hooks/precompact-flush-log` and update the read semantics to "read last line of log, extract SHA field"
+
+---
+
+## Terminal-Wave Discriminator (F-P2-004)
+
+**Problem:** Decision 2 and Decision 4 currently make empty `next_wave_stories` an unconditional hard error. But the FINAL wave of an epic has no next-wave stories by design — all stories are `merged` or `withdrawn`. The hard error fires on the legitimate final wave, blocking EPIC-COMPLETE.
+
+**Discriminator rule (normative):**
+
+> When `next_wave_stories` is empty (no sprint-state.yaml entries with `status: pending` or `status: draft`), the behavior depends on all other story statuses:
+>
+> - **EPIC-COMPLETE path**: all stories in sprint-state.yaml are in terminal states (`merged` OR `withdrawn`) AND the empty pending/draft set is a true exhaustion → `wave-handoff` MUST declare EPIC-COMPLETE success. The HANDOFF.md is written with `next_wave_stories: []` and a top-level field `epic_status: "complete"`. No `wave-state.yaml` is produced (there is no next wave). No error.
+>
+> - **BROKEN-SPRINT-STATE path**: at least one story in sprint-state.yaml is in a non-terminal state other than `pending` or `draft` (e.g., `partial`, `in-progress`, `blocked`, `unknown`) AND no `pending/draft` stories exist → hard error: `BrokenSprintState: stories in non-terminal, non-pending states exist but no next-wave stories are pending/draft. Update sprint-state.yaml to reflect actual story states.`
+>
+> Terminal states are: `merged`, `withdrawn`. Non-terminal active states are: `pending`, `draft`, `partial`, `in-progress`, `blocked`. Unknown/unrecognized status values are treated as non-terminal for safety.
+
+**HANDOFF.md on EPIC-COMPLETE:** The HANDOFF.md for the final wave:
+- `next_wave_stories: []` (explicitly empty — not absent)
+- `epic_status: "complete"` (new field; optional on non-final waves; required on final wave)
+- All other fields still required and anti-fabrication cross-checked
+- No `wave-state.yaml` is produced. `wave-gate` declares the epic complete and surfaces EPIC-COMPLETE to the operator.
+
+**Exact BC change specifications for product-owner:**
+
+- **BC-5.41.002** (wave-state.yaml manifest):
+  - PC3 (stories list derivation): Add after the HARD ERROR sentence: "Exception — EPIC-COMPLETE path: if `sprint-state.yaml` contains no `pending/draft` entries AND all entries are in terminal states (`merged` or `withdrawn`), `wave-handoff` exits with success and declares EPIC-COMPLETE — no `wave-state.yaml` is written (no next wave). This is NOT an error."
+  - EC-001: Split into two rows:
+    - EC-001a: "No `status: pending/draft` entries; all other stories are `merged` or `withdrawn`" → "EPIC-COMPLETE: wave-handoff exits success; no wave-state.yaml; HANDOFF.md written with `next_wave_stories: []` and `epic_status: complete`"
+    - EC-001b: "No `status: pending/draft` entries; at least one story in a non-terminal state (`partial`, `in-progress`, `blocked`, etc.)" → "BrokenSprintState hard error: non-zero exit; explicit error message naming the non-terminal non-pending stories; no wave-state.yaml; no HANDOFF.md"
+
+- **BC-6.24.001** (rehydrate-wave):
+  - Add EC to edge cases: "EC-004 replacement: `wave-state.yaml` absent because EPIC-COMPLETE was declared on final wave" → "`rehydrate-wave` must not attempt rehydration if it detects EPIC-COMPLETE state from HANDOFF.md. If `/rehydrate-wave` is invoked after EPIC-COMPLETE, the skill surfaces: 'This epic is complete (EPIC-COMPLETE declared in HANDOFF.md). No next wave to rehydrate.' No injection; no error."
+  - Note: the existing EC-004 (`wave-state.yaml stories: []`) should be updated to indicate that a `[]` stories list with `epic_status: complete` in HANDOFF.md is valid on the final wave, not an error.
+
+---
+
 ## v2 Deferrals (explicit, with rationale)
 
 | Deferred Capability | Deferral Reason | Tracking |
@@ -513,5 +612,5 @@ VP-086 is the concrete verification property for BC-1.15.001 PC4 (exit-2 propaga
 - **ADRs composed with:** ADR-019 (async semantics — PreCompact hooks must be `async: false`), ADR-025 (factory lock — flush must renew lock per Decision 11 Mechanism 1 WHEN lock is held; no-op when `factory_lock` absent)
 - **ADRs not conflicting:** ADR-012 (legacy-bash-adapter — shell hooks route through it per established pattern), ADR-014 (Tier 2 WASM migration — new WASM crates follow the native migration path)
 - **Real substrate fields used:** STATE.md `current_cycle:`, STATE.md `phase:`, STATE.md `current_step:`, STATE.md `factory_lock:` (optional), sprint-state.yaml story status entries, STORY-INDEX.md `depends_on:` arrays
-- **VP-INDEX:** v2.07→v2.08 (VP-086 added)
-- **ARCH-INDEX:** v2.28→v2.29 (ADR-026 v1.0→v1.1 amendment recorded)
+- **VP-INDEX:** v2.07→v2.08 (VP-086 added); v2.08→v2.09 (VP-081..VP-085 v1.2 inputs-path fix; VP-081/082/083/085 current_wave sweep)
+- **ARCH-INDEX:** v2.28→v2.29 (ADR-026 v1.0→v1.1); v2.29→v2.30 (ADR-026 v1.1→v1.2 F-P2 revision)

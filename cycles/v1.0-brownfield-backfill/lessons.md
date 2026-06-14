@@ -3015,3 +3015,23 @@ POLICY 14 description and verification_steps updated in policies.yaml same-burst
 **Cites:** D-539; D-537 (prior issue delivery); TD-VSDD-059 (paper-fix detection / tested-helper discipline); D-386 Option C (convergence model); BC-5.39.001 3-CLEAN protocol; CLAUDE.md Canonical Principle Rule 3+4 (fix in scope); CLAUDE.md Agent Routing Table (adversary).
 
 **Closes:** D-539 lessons-capture; issue-169 + issue-176 worktree-identity adversarial-correctness gap; multi-family adversary diversity discipline forward obligation. `[codified]`
+
+---
+
+### L-F2-phantom-field-gate
+
+**Category:** adversarial-convergence + field-removal-verification + closure-gate-discipline + VSDD-process-gap
+
+**(a) A prose-only re-anchor in an ADR does not constitute a field removal — phantom field references in PC/EC/VP tables survive unless EACH site is explicitly swept and a literal-shell closure gate is invoked.** F2 adversarial pass-1 re-anchored ADR-026 away from a phantom `current_wave:` field in its prose rationale sections. However, the Preconditions (PC), Error Cases (EC), and Verification Property (VP) test-fixture tables for VP-081..VP-085 still contained `current_wave:` references at a structural level — struct fields in Rust test fixtures, table cell references, and precondition clauses. The adversary's pass-2 re-read found these surviving instances as BLOCKER/MAJOR findings because they constituted an entire parallel specification substrate that contradicted the ADR prose. **Pattern:** prose re-anchoring and table/fixture sweeping are NON-SUBSTITUTABLE operations. Re-anchoring the narrative does not propagate to structured tables, Rust struct fields, or bats fixture YAML.
+
+**(b) A phantom-field-removal fix MUST be verified with a literal-shell closure gate BEFORE the fix is declared converged.** The S-7.02 cycle-closing checklist analogizes to POLICY 14 leg-4 self-application: just as index-citation changes must self-verify, a field-removal fix must run `grep <removed-field> <affected-files> → 0 matches` as the final verification step in the fix burst. This pass applied that gate inline: the product-owner ran `grep current_wave .factory/specs/` and confirmed 0 load-bearing instances before the commit. This is now the required protocol for any field-removal fix. **Forward obligation (closure-gate protocol):** when a fix removes or re-anchors away from a named field, the fix burst's Dim-2 attestation MUST include literal-shell evidence: `grep -r "<removed-field>" .factory/specs/ → stdout: [0 lines or only negation statements]`. Any matching line that is NOT a negation statement or changelog entry is a closure-gate failure; the fix is not complete.
+
+**(c) The follow-up story for permanent codification (lint/hook gate) should be a draft story, not a tech-debt-register entry, when the enforcement mechanism is machine-checkable.** The Canonical Principle's Rule 3 requires explicit human direction for tech-debt-register deferrals. A phantom-field-removal lint check is implementable in scope: add a `grep <phantom-field>` baseline assertion to the consistency-validator skill's sweep, or as a hook policy. The appropriate deferral vehicle is a draft story (S-18.08) anchored to the E-18 epic, not a vague tech-debt item. This keeps it in the backlog with a concrete spec anchor rather than deferring it to indefinite human re-discovery. The rule: if a process-gap lesson identifies a machine-checkable enforcement mechanism, open a draft story, not a TD register entry.
+
+**Anchors:** D-563 (this burst); F2 adv-pass-2 (root cause analysis: 2 BLOCKER + 4 MAJOR from phantom current_wave: survivors); literal-shell closure gate result: `grep current_wave .factory/specs/` → 0 load-bearing instances; S-18.08 (draft story for permanent lint/hook codification — E-18 epic).
+
+**Cites:** D-563; D-562 (pass-1 partial-fix); S-7.02 (cycle-closing checklist); POLICY 14 leg-4 self-application (index-citation self-verify discipline); CLAUDE.md Canonical Principle Rule 3 (tech-debt-register deferrals require human direction); BC-5.39.001 3-CLEAN protocol.
+
+**Closes:** D-563 process-gap lesson capture; S-7.02 phantom-field-removal verification gate obligation. `[codified]`
+
+**Closes:** D-539 lessons-capture; issue-169 + issue-176 worktree-identity adversarial-correctness gap; multi-family adversary diversity discipline forward obligation. `[codified]`

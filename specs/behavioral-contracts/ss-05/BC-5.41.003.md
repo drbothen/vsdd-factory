@@ -1,11 +1,11 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: product-owner
 timestamp: 2026-06-14T00:00:00Z
-last_amended: "2026-06-14 (v1.1) — F2 pass-1 fix-burst: (F-8) Exemption prefix updated from `^PreCompact flush ` to general `^PreCompact flush ` (per locked convention; BC-7.07.001 commit message now `PreCompact flush <cycle>/<step>` not `PreCompact flush <N>`). PC1 + Inv 1 + Inv 3 updated with new prefix. EC-003 rewritten as concrete HEAD/HEAD^ truth table. Security tightening: exempted commit SHA MUST be corroborated by `.factory/hooks/last-precompact-flush-sha` side-channel file when that file exists, to prevent arbitrary `PreCompact flush` prefix bypass. (DI) TBD-DI replaced with DI-020+DI-025."
+last_amended: "2026-06-14 (v1.2) — F2 pass-2 fix-burst: (F-P2-003 append-log) H1 enriched with corroboration detail (precompact-flush-log append-log last-line + git cat-file -t). PC1 SHA corroboration updated: last-precompact-flush-sha → precompact-flush-log last line + git cat-file -t; stale-entry case (git cat-file -t returns non-commit → treat as absent → prefix match sufficient) added. Inv 1 updated symmetrically. EC-003 truth table: stale-SHA row added (write-before-push crash → EXEMPT). Architecture Anchors updated: last-precompact-flush-sha → precompact-flush-log append-log. [Prior: 2026-06-14 (v1.1) — F2 pass-1 fix-burst: (F-8) Exemption prefix updated from `^PreCompact flush ` to general `^PreCompact flush ` (per locked convention; BC-7.07.001 commit message now `PreCompact flush <cycle>/<step>` not `PreCompact flush <N>`). PC1 + Inv 1 + Inv 3 updated with new prefix. EC-003 rewritten as concrete HEAD/HEAD^ truth table. Security tightening: exempted commit SHA MUST be corroborated by `.factory/hooks/last-precompact-flush-sha` side-channel file when that file exists, to prevent arbitrary `PreCompact flush` prefix bypass. (DI) TBD-DI replaced with DI-020+DI-025.]"
 phase: F2
 inputs:
   - .factory/feature-delta/issue-173/F1-delta-analysis.md
@@ -19,6 +19,7 @@ capability: "CAP-032"
 lifecycle_status: draft
 introduced: v1.0-feature-context-durability-E18
 modified:
+  - "2026-06-14 (v1.2) — F2 pass-2 fix-burst: H1 enriched; PC1+Inv1 side-channel → precompact-flush-log append-log last-line + git cat-file -t; stale-SHA (write-before-push crash → EXEMPT) case added; EC-003 truth table + Architecture Anchors updated."
   - "2026-06-14 (v1.1) — F2 pass-1 fix-burst: prefix updated to general `PreCompact flush ` (removes `wave-<N>` specificity per locked convention); F-8 SHA corroboration against side-channel file; EC-003 HEAD/HEAD^ truth table; TBD-DI replaced with DI-020+DI-025; ADR cite v1.0→v1.1."
 deprecated: null
 deprecated_by: null
@@ -28,7 +29,7 @@ removed: null
 removal_reason: null
 ---
 
-# BC-5.41.003: validate-burst-log and validate-dispatch-advance exempt commits with "PreCompact flush " prefix from MULTI_COMMIT_CHAIN_NOT_ALLOWED
+# BC-5.41.003: validate-burst-log and validate-dispatch-advance exempt commits with "PreCompact flush " prefix from MULTI_COMMIT_CHAIN_NOT_ALLOWED (F-8: SHA corroboration via precompact-flush-log append-log last-line + git cat-file -t)
 
 ## Description
 
@@ -42,7 +43,7 @@ The `validate-burst-log` and `validate-dispatch-advance` WASM/bash hooks impleme
 
 ## Postconditions
 
-1. **Exemption by prefix match + SHA corroboration (F-8)**: Both `validate-burst-log` and `validate-dispatch-advance` treat any commit whose subject matches the pattern `^PreCompact flush ` as lifecycle-orthogonal, BUT ONLY when the commit's SHA can be corroborated against the `.factory/hooks/last-precompact-flush-sha` side-channel file: (a) if the side-channel file exists, the exempted commit's SHA MUST appear in the file (exact match; no partial match); (b) if the side-channel file is genuinely absent (`test -f` returns false), the prefix match alone is sufficient. This prevents an arbitrary agent from authoring a commit with a `PreCompact flush ` subject to bypass TD-VSDD-053 without having actually run the flush hook. Exempt commits are excluded from the HEAD/HEAD^ chain comparison that detects `MULTI_COMMIT_CHAIN_NOT_ALLOWED`.
+1. **Exemption by prefix match + SHA corroboration (F-8)**: Both `validate-burst-log` and `validate-dispatch-advance` treat any commit whose subject matches the pattern `^PreCompact flush ` as lifecycle-orthogonal, BUT ONLY when the commit's SHA can be corroborated against the LAST LINE of the append-log file `.factory/hooks/precompact-flush-log` AND the SHA passes `git cat-file -t <SHA>` returning `commit`: (a) if the append-log exists and its last line is a valid commit SHA (`git cat-file -t` returns `commit`), the exempted commit's SHA MUST equal that last-line SHA (exact match; no partial match); (b) if the last-line SHA is present but `git cat-file -t` does NOT return `commit` (write-before-push crash), treat the log entry as stale and fall through to case (c); (c) if the append-log is genuinely absent (`test -f` returns false), or the last line is empty, the prefix match alone is sufficient for exemption. This prevents an arbitrary agent from authoring a commit with a `PreCompact flush ` subject to bypass TD-VSDD-053 without having actually run the flush hook. Exempt commits are excluded from the HEAD/HEAD^ chain comparison that detects `MULTI_COMMIT_CHAIN_NOT_ALLOWED`.
 
 2. **No false-positive block**: After a `PreCompact flush <N> <timestamp>` commit, a subsequent state-manager burst commit (e.g., `state: advance to phase X`) does NOT trigger `MULTI_COMMIT_CHAIN_NOT_ALLOWED`. The burst dispatch proceeds normally.
 
@@ -54,7 +55,7 @@ The `validate-burst-log` and `validate-dispatch-advance` WASM/bash hooks impleme
 
 ## Invariants
 
-1. **Prefix + SHA corroboration, not subject-based inference alone**: The exemption check has two gates: (1) prefix match: `subject.starts_with("PreCompact flush ")` on the raw commit subject string (`git log --format=%s -1 <SHA>`); (2) when `.factory/hooks/last-precompact-flush-sha` exists: the commit's SHA must match the recorded flush SHA. Both gates must pass (or the file must be genuinely absent) for an exemption to fire. NLP inference, regex over the full commit body, and sentiment analysis are all forbidden.
+1. **Prefix + SHA corroboration, not subject-based inference alone**: The exemption check has three gates: (1) prefix match: `subject.starts_with("PreCompact flush ")` on the raw commit subject string (`git log --format=%s -1 <SHA>`); (2) when `.factory/hooks/precompact-flush-log` exists and its last line is non-empty: read the last line SHA and confirm it via `git cat-file -t <SHA>` returning `commit`; the exempted commit's SHA must equal the last-line SHA; (3) if the log is genuinely absent, empty, or the last-line SHA fails `git cat-file -t` (stale entry), the prefix match alone is sufficient for exemption. NLP inference, regex over the full commit body, and sentiment analysis are all forbidden.
 
 2. **Both hooks must implement the exemption symmetrically**: `validate-burst-log` and `validate-dispatch-advance` are both co-owners of this exemption. An implementation that exempts only one of the two leaves the other as a source of false-positive blocks. Symmetric implementation is MANDATORY.
 
@@ -68,7 +69,7 @@ The `validate-burst-log` and `validate-dispatch-advance` WASM/bash hooks impleme
 |----|-------------|-------------------|
 | EC-001 | `PreCompact flush 2 2026-06-14T00:00:00Z` followed by burst commit | No block; exemption fires; burst proceeds |
 | EC-002 | Two consecutive `PreCompact flush ` commits (rapid double-compaction) | Neither triggers MULTI_COMMIT_CHAIN_NOT_ALLOWED; both are individually exempt |
-| EC-003 | HEAD/HEAD^ truth table — concrete testable cases | HEAD=`PreCompact flush v1.0/S-18.04 ...` (SHA in side-channel); HEAD^=`state: burst-23 Commit D` → EXEMPT (no block). HEAD=`state: burst-24 Commit A`; HEAD^=`PreCompact flush v1.0/S-18.04 ...` (SHA in side-channel) → EXEMPT (HEAD^ is exempt; HEAD is a normal burst). HEAD=`stage 1 backfill`; HEAD^=`stage 2 backfill` → BLOCK (no PreCompact commit involved; normal chain detection). HEAD=`PreCompact flush injected`; HEAD^=`state: burst-X`; side-channel file exists with different SHA → NOT EXEMPT (SHA mismatch; treated as suspicious; chain detection applies normally). HEAD=`PreCompact flush v1.0/S-18.04 ...`; side-channel file genuinely absent → EXEMPT (file absence mechanically verified). |
+| EC-003 | HEAD/HEAD^ truth table — concrete testable cases | HEAD=`PreCompact flush v1.0/S-18.04 ...` (SHA is last line of precompact-flush-log AND git cat-file -t returns commit); HEAD^=`state: burst-23 Commit D` → EXEMPT (no block). HEAD=`state: burst-24 Commit A`; HEAD^=`PreCompact flush v1.0/S-18.04 ...` (SHA corroborated) → EXEMPT (HEAD^ is exempt; HEAD is a normal burst). HEAD=`stage 1 backfill`; HEAD^=`stage 2 backfill` → BLOCK (no PreCompact commit involved; normal chain detection). HEAD=`PreCompact flush injected`; HEAD^=`state: burst-X`; precompact-flush-log last-line SHA is a different SHA (mismatch) → NOT EXEMPT (SHA mismatch; treated as suspicious; chain detection applies normally). HEAD=`PreCompact flush v1.0/S-18.04 ...`; precompact-flush-log genuinely absent → EXEMPT (file absence mechanically verified). HEAD=`PreCompact flush v1.0/S-18.04 ...`; precompact-flush-log last-line SHA present but `git cat-file -t` returns NOT `commit` (write-before-push crash; stale entry) → EXEMPT (stale entry treated as absent; prefix match alone sufficient). |
 | EC-004 | Subject starts with "precompact flush wave-" (lowercase) | NOT exempt; prefix match is case-sensitive. Only `PreCompact flush ` (capitalized) as produced by the canonical hook is exempt. |
 | EC-005 | validate-burst-log implements exemption; validate-dispatch-advance does not | validate-dispatch-advance fires a false-positive block on the burst dispatch. Specification violation — both must be symmetric. |
 
@@ -88,9 +89,10 @@ The `validate-burst-log` and `validate-dispatch-advance` WASM/bash hooks impleme
 
 ## Architecture Anchors
 
-- `plugins/vsdd-factory/hook-plugins/validate-burst-log.wasm` (or bash equivalent) — must be amended with `PreCompact flush ` prefix exemption
-- `plugins/vsdd-factory/hook-plugins/validate-dispatch-advance.wasm` (or bash equivalent) — must be amended symmetrically
-- ADR-026 §Decision 10 — PreCompact flush lifecycle is distinct from state-manager burst lifecycle; exemption rationale
+- `plugins/vsdd-factory/hook-plugins/validate-burst-log.wasm` (or bash equivalent) — must be amended with `PreCompact flush ` prefix exemption + precompact-flush-log last-line + git cat-file -t corroboration
+- `plugins/vsdd-factory/hook-plugins/validate-dispatch-advance.wasm` (or bash equivalent) — must be amended symmetrically; same corroboration logic
+- `.factory/hooks/precompact-flush-log` — append-log written by precompact-flush.sh; each flush appends commit SHA as a new line; hooks read LAST LINE for corroboration; git cat-file -t validates the SHA is a real commit
+- ADR-026 §Decision 10 — PreCompact flush lifecycle is distinct from state-manager burst lifecycle; exemption rationale; append-log design
 
 ## Story Anchor
 

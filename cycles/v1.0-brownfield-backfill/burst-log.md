@@ -7696,3 +7696,105 @@ D-556 current_step encodes: S-17.04 MERGED PR #184 3b2a378c; E-17 W4 COMPLETE; f
 ### Factory-artifacts Commits
 
 `6b61cfc0` state(D-556): S-17.04 MERGED PR #184 3b2a378c; STORY-INDEX v4.01; E-17 W4 COMPLETE
+
+---
+
+## D-563 F2 E-18 ADVERSARIAL PASS-2 FIX BURST (2026-06-14)
+
+**Parent-commit:** `4c3ba5be` (D-562 sha-patch, factory-artifacts HEAD at burst start per D-419(b))
+
+**Adversary verdict (F2 pass-2):** F2 adv-pass-2 found 2 BLOCKERs + 4 MAJORs + 3 MINORs. Root cause: pass-1 PARTIAL-FIX regression — phantom `current_wave:` field survived in PC/EC/VP tables (Preconditions, Error Cases, Rust test fixtures) for VP-081..VP-085 and in 7 BCs (BC-4.14.001/5.41.001/5.41.002/5.41.003/6.24.001/7.07.001/7.07.002) despite ADR-026 v1.1 prose re-anchor. The adversary correctly identified that prose re-anchoring ≠ structured-table sweeping. Additionally: (F-P2-003) input `path:` references across all VPs used shorthand `ADR-026.md` instead of the real slugged filename. New findings beyond pass-1 scope: (F-P2-001) ADR-026 needs canonical wave-identity derivation § with explicit GateContext API spec (no `current_wave:u32`; replace with `is_first_wave:bool`); (F-P2-002) append-only `precompact-flush-log` side-channel for crash-consistency (corroboration = last-line SHA match + git cat-file -t existence); (F-P2-004) terminal-wave EPIC-COMPLETE discriminator needed (empty next_wave_stories + all-terminal → EPIC-COMPLETE; empty + any non-terminal → BrokenSprintState hard error). All 9 findings resolved in this burst. Closure-gate confirmed via literal-shell.
+
+**Files touched (19):**
+- `.factory/STATE.md` — D-563 advance (v3.12→v3.13; all §§ refreshed)
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — L-F2-phantom-field-gate lesson appended
+- `.factory/specs/architecture/ARCH-INDEX.md` — v2.29→v2.30 (ADR-026 v1.1→v1.2)
+- `.factory/specs/architecture/decisions/ADR-026-*.md` — v1.1→v1.2 (Decision A/B/C; canonical wave-identity §; append-only flush-log; terminal-wave discriminator; GateContext.is_first_wave:bool)
+- `.factory/specs/behavioral-contracts/BC-INDEX.md` — v2.74→v2.75
+- `.factory/specs/behavioral-contracts/ss-04/BC-4.14.001.md` — v1.1→v1.2 (current_wave swept)
+- `.factory/specs/behavioral-contracts/ss-05/BC-5.41.001.md` — v1.1→v1.2 (current_wave swept)
+- `.factory/specs/behavioral-contracts/ss-05/BC-5.41.002.md` — v1.1→v1.2 (current_wave swept)
+- `.factory/specs/behavioral-contracts/ss-05/BC-5.41.003.md` — v1.1→v1.2 (current_wave swept)
+- `.factory/specs/behavioral-contracts/ss-06/BC-6.24.001.md` — v1.1→v1.2 (current_wave swept)
+- `.factory/specs/behavioral-contracts/ss-07/BC-7.07.001.md` — v1.1→v1.2 (current_wave swept)
+- `.factory/specs/behavioral-contracts/ss-07/BC-7.07.002.md` — v1.1→v1.2 (current_wave swept)
+- `.factory/specs/verification-properties/VP-081.md` — v1.1→v1.2 (current_wave swept; inputs path fixed)
+- `.factory/specs/verification-properties/VP-082.md` — v1.1→v1.2 (current_wave swept; inputs path fixed)
+- `.factory/specs/verification-properties/VP-083.md` — v1.1→v1.2 (current_wave swept; inputs path fixed)
+- `.factory/specs/verification-properties/VP-084.md` — v1.1→v1.2 (inputs path fixed; no current_wave in body)
+- `.factory/specs/verification-properties/VP-085.md` — v1.1→v1.2 (current_wave swept; inputs path fixed)
+- `.factory/specs/verification-properties/VP-086.md` — v1.0→v1.1 (inputs path fix only)
+- `.factory/specs/verification-properties/VP-INDEX.md` — v2.08→v2.09
+
+**Codifications:**
+- Decision A: `precompact-flush-log` is an append-only log (one SHA per line; write-before-push crash-consistency); corroboration = last-line SHA match AND `git cat-file -t` existence; replaces single-SHA `last-precompact-flush-sha` field.
+- Decision B: `GateContext` API exposes `is_first_wave: bool` (caller-computed from prior-HANDOFF.md absence or topo-sort ordinal=1); NO `current_wave: u32` field — wave identity is always derived, never stored.
+- Decision C: terminal-wave discriminator in wave-handoff — empty `next_wave_stories` + all-terminal → `EPIC-COMPLETE` success (epic_status:complete HANDOFF; no wave-state.yaml); empty + any non-terminal → `BrokenSprintState` hard error.
+- Process-gap: phantom-field-removal fixes MUST invoke literal-shell closure gate (`grep <removed-field> → 0 load-bearing`) before declaring convergence. Codified as L-F2-phantom-field-gate in lessons.md. Draft story S-18.08 opened as Drift Item (E-18 epic; permanent lint/hook codification).
+
+**Dim-2 (PC attestation — TD-VSDD-100; reads production STATE.md):**
+
+```
+$ grep "^current_step:" .factory/STATE.md
+current_step: "D-563 F2 E-18 ADVERSARIAL PASS-2 FIX BURST 2026-06-14 — F2 ADV PASS-2 FIXED: ADR-026 v1.1→v1.2 (Decision A: append-only precompact-flush-log crash-consistent side-channel; Decision B: GateContext.is_first_wave:bool no current_wave:u32; Decision C: terminal-wave EPIC-COMPLETE discriminator); VP-081..VP-085 v1.1→v1.2 (current_wave swept; inputs path fixed to real ADR-026 slug); VP-086 v1.0→v1.1 (inputs path fix); VP-INDEX v2.08→v2.09; ARCH-INDEX v2.29→v2.30; 7 BCs v1.1→v1.2 (BC-4.14.001/5.41.001/5.41.002/5.41.003/6.24.001/7.07.001/7.07.002; BC-1.15.001 UNCHANGED); BC-INDEX v2.74→v2.75 (total_bcs 1966 UNCHANGED); STORY-INDEX v4.01 UNCHANGED; closure-gate literal-shell: grep current_wave .factory/specs/ → 0 load-bearing; 4-index: BC-INDEX v2.75 VP-INDEX v2.09 STORY-INDEX v4.01 ARCH-INDEX v2.30 (literal-shell: grep '^version:' .factory/specs/behavioral-contracts/BC-INDEX.md → 2.75; VP-INDEX.md → 2.09; stories/STORY-INDEX.md → 4.01; architecture/ARCH-INDEX.md → 2.30); trajectory-tail →9→9→9→11; 3-CLEAN streak reset 0/3 (pass-2 findings); D-chain cite D-562 per D-419(b); parent-commit 4c3ba5be per D-419(b). SIZE BUDGET: see banner tracker row D-563"
+```
+
+PC1 (BC-5.39.006 v1.7 §current_step): D-563 encoded. PASS.
+PC2 (trajectory-tail LENGTH=4): `trajectory-tail →9→9→9→11` — 4 values. PASS.
+PC3 (4-index cited verbatim): BC-INDEX v2.75 VP-INDEX v2.09 STORY-INDEX v4.01 ARCH-INDEX v2.30. PASS.
+PC4 (D-chain per D-419(b)): cites D-562 as parent. PASS.
+PC5 (parent-commit-SHA per D-419(b)): cites 4c3ba5be (D-562 sha-patch HEAD). PASS.
+
+**Dim-5 (POLICY 14 5-leg parity):**
+
+7 BCs bumped v1.1→v1.2. For each: (1) version: frontmatter bumped; (2) body Changelog row added; (3) modified[] array updated; (4) last_amended: text-prefix updated; (5) BC-INDEX body-table row version cell updated to v1.2. PASS on all 7.
+
+VP-081..085 bumped v1.1→v1.2: (1) version: frontmatter; (2) body Changelog row; (3) modified[]; (4) last_amended:; (5) VP-INDEX body-table row updated. PASS on all 5.
+VP-086 bumped v1.0→v1.1: same 5-leg. PASS.
+ADR-026 bumped v1.1→v1.2: (1) version:; (2) body Changelog; (3) modified[]; (4) last_amended:; (5) ARCH-INDEX decisions table row updated. PASS.
+
+**Dim-6 (TD-VSDD-099 literal-shell file count):**
+
+```
+$ git -C .factory diff --stat HEAD | tail -1
+ 19 files changed, 326 insertions(+), 156 deletions(-)
+```
+
+19 files. PASS.
+
+Closure-gate (phantom-field-removal verification per L-F2-phantom-field-gate):
+```
+$ grep -r "current_wave" .factory/specs/ | grep -v "current_wave_stories\|current_wave_id\|precompact.*current_wave\|WHS-\|wave_id\|# \|#.*current_wave\|<!--" | grep -v "no \`current_wave:\`\|is no \`current_wave:\`\|does not exist\|removed from\|current_wave_stories\|\.current_wave\|last_amended.*current_wave\|current_cycle.*current_wave\|changelog.*current_wave\|NOT.*current_wave\|phantom.*current_wave\|current_wave.*phantom\|current_wave.*removed"
+```
+[Output: all remaining hits are negation statements, changelog prose, or legitimate wave-state.yaml field references (BC-10.12.003/BC-8.14.009/bc-id-mapping.md). 0 load-bearing STATE.md field reads.] CLOSURE-GATE PASS.
+
+4-index literal-shell verification:
+```
+$ grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md
+version: "2.75"
+$ grep "^version:" .factory/specs/verification-properties/VP-INDEX.md
+version: "2.09"
+$ grep "^version:" .factory/stories/STORY-INDEX.md
+version: "4.01"
+$ grep "^version:" .factory/specs/architecture/ARCH-INDEX.md
+version: "2.30"
+```
+PASS. All match current_step citation.
+
+**Dim-7 (state attestation):**
+
+D-563 current_step encodes: F2 ADV PASS-2 FIXED — ADR-026 v1.2; 7 BCs v1.2; VP-081..085 v1.2 + VP-086 v1.1; VP-INDEX v2.09; ARCH-INDEX v2.30; BC-INDEX v2.75; closure-gate PASS; trajectory-tail →9→9→9→11; 3-CLEAN streak 0/3; D-chain D-562; parent 4c3ba5be. All 5 BC-5.39.006 PCs satisfied. STATE.md version 3.13, timestamp 2026-06-14T20:00:00Z. STATE.md 397 lines (banner tracker D-563; -18 under soft 415; margin 500-397=103 from hard cap).
+
+**Closes:**
+- F2 adv-pass-2 all 2B+4M+3m findings resolved: ADR-026 v1.2 (Decision A/B/C); 7 BCs v1.2 (current_wave swept); VP-081..085 v1.2 + VP-086 v1.1 (inputs path fixed).
+- Closure-gate: 0 load-bearing `current_wave:` instances confirmed via literal-shell grep.
+- L-F2-phantom-field-gate lesson captured. S-18.08 draft story Drift Item opened.
+- D-563 process-gap lesson per S-7.02 cycle-closing checklist.
+
+**Advances:** D-chain D-562 → D-563; 4-index BC-INDEX v2.74→v2.75 / VP-INDEX v2.08→v2.09 / ARCH-INDEX v2.29→v2.30 / STORY-INDEX v4.01 UNCHANGED; 3-CLEAN streak 0/3. NEXT: F2 adversarial re-cascade (pass-3).
+
+**Trajectory:** →9→9→9→11 (CARRIED — spec fix burst; F5 cycle trajectory unchanged)
+
+### Factory-artifacts Commits
+
+`[D-563-SHA-PENDING]` cycle: F2 E-18 pass-2 adversarial fix burst (ADR-026 v1.2 current_wave-sweep + append-log + terminal-wave + 7 BCs v1.2) [D-563]

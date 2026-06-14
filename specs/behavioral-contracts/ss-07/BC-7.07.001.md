@@ -1,11 +1,11 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: product-owner
 timestamp: 2026-06-14T00:00:00Z
-last_amended: "2026-06-14 (v1.1) — F2 pass-1 fix-burst: (F-1) PC1 re-anchored: removes `current_wave:` phantom field reference; hook derives context identity from STATE.md `current_cycle:` + `current_step:` fields. PC4 commit message format updated to `PreCompact flush <cycle>/<step> <ISO-timestamp>` (general prefix per locked convention). Inv 4 commit-message pattern updated to match new format. EC-007 updated to use new message format. (F-2) PC3 + Inv 3 + EC-004 re-anchored: lock-renew is no-op (advisory) when `factory_lock` is absent/null in STATE.md per ADR-025 opt-in model; added EC-009 explicit no-lock-held edge case. (DI) L2 Domain Invariants replaced TBD-DI with DI-021+DI-022+DI-025 per BC→DI lift map."
+last_amended: "2026-06-14 (v1.2) — F2 pass-2 fix-burst: (F-P2-002/003) H1 enriched (F-P2-006): lock-renew when-held/no-op-when-absent, PreCompact flush <cycle>/<step> commit message, append-SHA-to-precompact-flush-log before push. PC8 updated: last-precompact-flush-sha side-channel point-file → precompact-flush-log append-log (SHA as new last line; append must succeed before push; exit 1 on append failure). Architecture Anchors: last-precompact-flush-sha → precompact-flush-log append-log. VP-085 row: phantom current_wave: → current_cycle+current_step; append-SHA-to-precompact-flush-log before push. Test vector: synthetic cycle example to avoid phantom current_cycle value; SHA → appended to precompact-flush-log. [Prior: 2026-06-14 (v1.1) — F2 pass-1 fix-burst: (F-1) PC1 re-anchored: removes `current_wave:` phantom field reference; hook derives context identity from STATE.md `current_cycle:` + `current_step:` fields. PC4 commit message format updated to `PreCompact flush <cycle>/<step> <ISO-timestamp>` (general prefix per locked convention). Inv 4 commit-message pattern updated to match new format. EC-007 updated to use new message format. (F-2) PC3 + Inv 3 + EC-004 re-anchored: lock-renew is no-op (advisory) when `factory_lock` is absent/null in STATE.md per ADR-025 opt-in model; added EC-009 explicit no-lock-held edge case. (DI) L2 Domain Invariants replaced TBD-DI with DI-021+DI-022+DI-025 per BC→DI lift map.]"
 phase: F2
 inputs:
   - .factory/feature-delta/issue-173/F1-delta-analysis.md
@@ -20,6 +20,7 @@ capability: "CAP-032"
 lifecycle_status: draft
 introduced: v1.0-feature-context-durability-E18
 modified:
+  - "2026-06-14 (v1.2) — F2 pass-2 fix-burst: H1 enriched (F-P2-006); PC8 side-channel → precompact-flush-log append-log (last line + append before push + exit 1 on append failure); Arch Anchors updated; VP-085 phantom current_wave: → current_cycle+current_step + append-log; test vector synthetic cycle example."
   - "2026-06-14 (v1.1) — F2 pass-1 fix-burst: PC1 re-anchored current_cycle+current_step (removes phantom current_wave:); PC3+Inv3+EC-004 re-anchored lock-renew as conditional no-op when factory_lock absent/null per ADR-025 opt-in; PC4+Inv4 commit message updated to general PreCompact flush <cycle>/<step> format; EC-007 + test vectors updated; EC-009 no-lock-held edge case added; TBD-DI replaced with DI-021+DI-022+DI-025; ADR cite v1.0→v1.1."
 deprecated: null
 deprecated_by: null
@@ -29,7 +30,7 @@ removed: null
 removal_reason: null
 ---
 
-# BC-7.07.001: precompact-flush.sh fires synchronously on PreCompact; hermetic (STATE.md + git only); renews factory lock; commits to factory-artifacts; blocks (exit 2) only on commit failure; fail-open on crash
+# BC-7.07.001: precompact-flush.sh fires synchronously on PreCompact; hermetic (STATE.md + git only); renews factory lock when held (no-op when absent); commits with `PreCompact flush <cycle>/<step>` message; appends commit SHA to precompact-flush-log before push; blocks (exit 2) only on commit failure; fail-open on crash
 
 ## Description
 
@@ -74,7 +75,7 @@ removal_reason: null
 
 7. **Exit 0 + warn on STATE.md unreadable**: If STATE.md is absent or unreadable, the hook exits 0 (fail-open per ADR-026 Decision 6 `on_error = "continue"` spirit). A warning is written to stderr: `precompact-flush: STATE.md unreadable; flush skipped.`
 
-8. **precompact_flush_sha side-channel file**: After a successful commit, the hook writes the resulting commit SHA (40-char hex) to `.factory/hooks/last-precompact-flush-sha`. This file is read by `wave-handoff` to populate `HANDOFF.md` `precompact_flush_sha` field.
+8. **precompact-flush-log append**: Before git push, the hook APPENDS the resulting commit SHA (40-char hex) as a new line to `.factory/hooks/precompact-flush-log` (creating the file if absent). The append MUST succeed before any push; if the append fails, the hook exits 1 (no push). The last line of this file is read by `wave-handoff` to populate `HANDOFF.md` `precompact_flush_sha` field (BC-5.41.001 PC5). Prior lines are retained as history; only the last line is authoritative.
 
 9. **Hook crash — on_error = "continue"**: If the hook script crashes before emitting an exit code (set -euo pipefail failure, WASM sandbox error), the dispatcher's `on_error = "continue"` setting treats the crash as exit 0. Compaction proceeds. The crash is logged to the dispatcher internal log with `plugin.crashed`.
 
@@ -110,7 +111,7 @@ removal_reason: null
 
 | Input | Expected Output | Category |
 |-------|----------------|----------|
-| PreCompact event; STATE.md readable; `current_cycle: v1.0-feature-context-durability-E18`, `current_step: S-18.04`; pending changes on factory-artifacts | flush commit with msg `PreCompact flush v1.0-feature-context-durability-E18/S-18.04 2026-06-14T...`; exit 0; SHA written to last-precompact-flush-sha | happy-path |
+| PreCompact event; STATE.md readable; `current_cycle: <cycle>`, `current_step: <step>` (synthetic example); pending changes on factory-artifacts | flush commit with msg `PreCompact flush <cycle>/<step> <ISO-timestamp>`; exit 0; SHA appended to precompact-flush-log as new last line | happy-path |
 | PreCompact event; STATE.md readable; `factory_lock:` block absent | lock-renewal skipped; flush commit attempted; exit 0 if commit succeeds | no-lock-held |
 | PreCompact event; STATE.md readable; no pending changes | exit 0; no commit; no SHA file update | clean-state |
 | PreCompact event; STATE.md unreadable | exit 0; warn to stderr | unreadable-state |
@@ -130,7 +131,7 @@ removal_reason: null
 - `plugins/vsdd-factory/hooks/precompact-flush.sh` — NEW shell hook (S-18.04 deliverable); follows `check-factory-commit.sh` family pattern
 - `plugins/vsdd-factory/hooks-registry.toml` — `[[hooks]] event = "PreCompact"` entry for this hook (S-18.04 deliverable)
 - `plugins/vsdd-factory/hooks/factory-lock-write.sh` — existing hook; `renew` subcommand invoked per ADR-025 D11 Mechanism 1
-- `.factory/hooks/last-precompact-flush-sha` — side-channel file; written after each successful flush commit; read by wave-handoff for HANDOFF.md
+- `.factory/hooks/precompact-flush-log` — append-log; commit SHA appended as new line after each successful flush commit (before push); last line is read by wave-handoff for HANDOFF.md `precompact_flush_sha` field
 
 ## Story Anchor
 
@@ -146,7 +147,7 @@ S-18.04 (precompact-flush.sh shell hook + registry; depends_on: S-17.04)
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
 | VP-082 | precompact-flush.sh commits STATE.md + wave state before exiting; blocks (exit 2) on commit failure; no-op when state is clean; renews factory lock per ADR-025 D11 | integration |
-| VP-085 | precompact-flush.sh reads STATE.md+git only; ignores custom_instructions; determines current_wave from STATE.md frontmatter; exits 0 fail-open when STATE.md unreadable | unit-test |
+| VP-085 | precompact-flush.sh reads STATE.md+git only; ignores custom_instructions; determines current context from STATE.md `current_cycle:` + `current_step:` fields (no phantom `current_wave:` field); appends SHA to precompact-flush-log before push; exits 0 fail-open when STATE.md unreadable | unit-test |
 
 ## Traceability
 
