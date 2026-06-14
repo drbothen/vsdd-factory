@@ -7797,4 +7797,4 @@ D-563 current_step encodes: F2 ADV PASS-2 FIXED — ADR-026 v1.2; 7 BCs v1.2; VP
 
 ### Factory-artifacts Commits
 
-`[D-563-SHA-PENDING]` cycle: F2 E-18 pass-2 adversarial fix burst (ADR-026 v1.2 current_wave-sweep + append-log + terminal-wave + 7 BCs v1.2) [D-563]
+`162db956` cycle: F2 E-18 pass-2 adversarial fix burst (ADR-026 v1.2 current_wave-sweep + append-log + terminal-wave + 7 BCs v1.2) [D-563]
