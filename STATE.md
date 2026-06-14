@@ -322,7 +322,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** [D-573 commit SHA — see git -C .factory log -1] (D-573 F2 E-18 adv-pass-12 CLEAN 2026-06-14; prior: `be237a89` D-572 sha-patch; prior-prior: `4296df50` D-572 main)
+- **factory-artifacts HEAD:** `0d70b606` (D-573 F2 E-18 adv-pass-12 CLEAN 2026-06-14; prior: `be237a89` D-572 sha-patch; prior-prior: `4296df50` D-572 main)
 - **develop HEAD:** `7e99f6ef` (PR #186 fix + release.yml sync back-merge 2026-06-13)
 - **main HEAD:** `caf06c68` (rc.21 bot bundle commit 2026-06-13)
 - **v1.0.0-rc.21 tag:** `03054524` (SHIPPED; FULLY IN OPERATOR MARKETPLACE)
