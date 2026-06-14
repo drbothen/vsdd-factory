@@ -3099,3 +3099,21 @@ Every hit must be either: (a) a historical `last_amended:` / `changelog:` / `Pri
 **Cites:** D-567; O-P6-001; TD-VSDD-091; POLICY 19; S-18.08; S-7.02; BC-5.39.001 3-CLEAN; L-F2-sibling-sweep-tree-wide-gate (D-564; extended by sweep-class: BC Traceability rows).
 
 **Closes:** D-567 O-P6-001 process-gap lesson capture; recurring stale-ADR-cite class eliminated by governance (POLICY 19 + stable-anchor convention). S-18.08 scope extended (ADR-cite sweep-completeness gate). `[codified]`
+
+---
+
+### L-F2-payload-only-discriminator-recurrence-gate
+
+**Category:** adversarial-convergence + bc-correctness + VSDD-process-gap + governance-policy
+
+**(a) The payload-only-discriminator drift class recurred in F2 adversarial passes 7 AND 8, constituting a 2nd occurrence of the same root-cause pattern.** F-P7-001 (pass-7) and F-P8-001 (pass-8) both found that the WASM gate's EPIC-COMPLETE discriminator violated the pure-parse invariant by referencing external substrate (pass-7: ADR-026 §Decision 2 prescribed reading the prior HANDOFF.md; pass-8: BC-4.14.001 PC2a conjunct referenced "all story entries have terminal status OR cannot be determined" — a substrate-read judgment). Both findings were in the same BC (BC-4.14.001) and the same discriminator clause (PC2a). **Pattern:** a fix burst that corrects an ADR discriminator definition does not automatically propagate that semantic correction to all BCs that implement it; BC PC bodies can retain stale conjuncts that contradict the corrected ADR even after the ADR fix-burst is complete.
+
+**(b) A 3rd occurrence of this pattern would require mandatory hardening into a machine-checkable gate per S-7.02 cycle-closing checklist.** The 2nd occurrence has been fixed (BC-4.14.001 v1.7 PC2a: sole discriminator is `next_wave_stories: []` PAYLOAD-ONLY; no terminal-state judgment in the WASM gate; terminal-state judgment remains in shell-context BC-5.41.002). To pre-empt a 3rd occurrence: the consistency-validator must verify that for any BC whose Invariant 1 declares "pure-parse / no-filesystem," no PC may reference reading per-entry status from an external substrate (sprint-state.yaml, prior HANDOFF.md, or any git/filesystem read). The discriminator must be payload-only.
+
+**(c) S-18.08 scope extension (O-P8-002 disposition) — consistency-validator pure-parse invariant check.** The existing S-18.08 draft story (lint/hook gate for phantom-field removal and ADR-cite sweep completeness) should include a third gate: when a BC body contains `Invariant 1: pure-parse` or equivalent "no filesystem read" wording, a consistency-validator pass must verify that no PC in that BC references reading substrate fields (sprint-state.yaml entries, prior HANDOFF.md contents, git log, or similar). Machine-checkable: `grep -n "sprint-state\|HANDOFF.md\|git.*log\|git.*cat-file" <BC-with-pure-parse-invariant>` should return 0 load-bearing hits in PC/EC sections (excluding Traceability/Invariant-definition sections).
+
+**Anchors:** D-569 (this burst; F2 pass-8 fix); O-P8-002 process-gap candidate (adversary pass-8); F-P8-001 (MAJOR; PC2a conjunct removed from BC-4.14.001 v1.7); F-P7-001 (prior pass-7 MAJOR; same root class); BC-4.14.001 v1.7 (corrected); S-18.08 (scope-extended).
+
+**Cites:** D-569; O-P8-002; F-P8-001; F-P7-001; D-568 (pass-7 fix); BC-4.14.001 Invariant 1; ADR-026 §Decision 8; S-7.02; S-18.08; BC-5.39.001 3-CLEAN.
+
+**Closes:** D-569 O-P8-002 process-gap codified; 2nd-occurrence payload-only-discriminator drift class recorded; S-18.08 scope extended (pure-parse invariant consistency gate). `[codified]`

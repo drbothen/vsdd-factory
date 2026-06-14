@@ -747,3 +747,17 @@ Key state at D-559 archive:
 - **Open action at archive:** Operator-install verification (RELEASING.md Step 9) pending — that is D-560's closure action.
 
 **This checkpoint superseded by D-560 OPERATOR-INSTALL-VERIFIED BURST 2026-06-13.**
+
+---
+
+## Archived Checkpoint: D-568 F2-E18-ADV-PASS-7-FIX-BURST+COMPACTION-2026-06-14
+
+**Superseded by D-569 F2 E-18 ADV PASS-8 FIX BURST checkpoint.**
+
+- **Status at D-568:** F2 adversarial passes 1-7 FIX BURSTS COMPLETE (D-562..D-568). F2 adversarial re-cascade (pass-8) was NEXT.
+- **ADR-026 v1.6→v1.7**: F-P7-001 MAJOR — EPIC-COMPLETE discriminator PAYLOAD-ONLY. F-P7-002 MAJOR — §Traceability provenance trace completed.
+- **ARCH-INDEX v2.34→v2.35**. STATE.md compacted 435→~370L.
+- **4-index:** BC-INDEX v2.79, VP-INDEX v2.12, STORY-INDEX v4.01, ARCH-INDEX v2.35.
+- **3-CLEAN streak 0/3** (pass-7 ADR-internal only; body converged).
+- **develop HEAD:** `7e99f6ef` / **main HEAD:** `caf06c68` / **factory-artifacts HEAD:** `a5d6f2ff` (D-568 fix+compaction, prior to sha-patch `713016b1`)
+- **D-range:** D-001..D-568
