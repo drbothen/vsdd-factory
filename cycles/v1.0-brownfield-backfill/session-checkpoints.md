@@ -7,7 +7,7 @@ producer: state-manager
 timestamp: 2026-04-26T12:00:00Z
 cycle: v1.0-brownfield-backfill
 inputs: [STATE.md]
-input-hash: "2c777b0"
+input-hash: "0ff8d7c"
 traces_to: STATE.md
 ---
 
