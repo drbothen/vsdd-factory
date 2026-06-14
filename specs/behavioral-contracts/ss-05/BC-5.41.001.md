@@ -1,11 +1,11 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: product-owner
 timestamp: 2026-06-14T00:00:00Z
-last_amended: 2026-06-14
+last_amended: "2026-06-14 (v1.1) — F2 pass-1 fix-burst: (F-1) Precondition 3 re-anchored: phantom `current_wave:` field removed; wave identity derives from sprint-state.yaml dependency-order (product pipelines) or STATE.md `current_step:` (engine). (F-2) Precondition 4 downgraded: factory lock held OR absent; `factory_lock_holder` nullable; Postcondition 2 and anti-fabrication cross-check Postcondition 3 updated for null case. EC-010 (factory_lock absent) added. (F-12) precompact_flush_sha now a HARD cross-check against `.factory/hooks/last-precompact-flush-sha` when that file exists; advisory-override for wave>1 null SHA tightened. (DI) TBD-DI replaced with DI-020+DI-021+DI-023."
 phase: F2
 inputs:
   - .factory/feature-delta/issue-173/F1-delta-analysis.md
@@ -18,7 +18,8 @@ subsystem: "SS-05"
 capability: "CAP-032"
 lifecycle_status: draft
 introduced: v1.0-feature-context-durability-E18
-modified: []
+modified:
+  - "2026-06-14 (v1.1) — F2 pass-1 fix-burst: Precondition 3 re-anchored (sprint-state.yaml/current_step:; no phantom current_wave:); Precondition 4 lock-held-or-absent; PC2 factory_lock_holder nullable; PC3 cross-check updated for null holder; PC5 precompact_flush_sha hard cross-check against last-precompact-flush-sha side-channel; EC-010 factory_lock absent edge case added; TBD-DI replaced with DI-020+DI-021+DI-023; ADR cite v1.0→v1.1."
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -37,8 +38,8 @@ When the `wave-gate` skill is invoked to close wave N (where N > 0), it must pro
 
 1. The `wave-gate` skill is invoked with intent to close wave N (N >= 1).
 2. The `factory-artifacts` orphan branch is accessible via `git`.
-3. `STATE.md` frontmatter is readable and contains a valid `current_wave:` integer field.
-4. The factory lock is held by the invoking session (ADR-025 precondition; `factory_lock.holder` matches invoking session identity per BC-5.40.001 PC4).
+3. Wave identity is determinable from real substrate: for product pipelines, `sprint-state.yaml` wave-group ordering (derived by `wave-scheduling` skill dependency-order); for the self-referential engine, STATE.md frontmatter `current_step:` field. No phantom `current_wave:` frontmatter field is referenced — this field does not exist.
+4. The factory lock is held by the invoking session OR is absent. Lock held: `STATE.md` `factory_lock.holder` matches invoking session identity per BC-5.40.001 PC4. Lock absent: `factory_lock:` block is absent/null in STATE.md — wave-gate may proceed without a lock guard; `factory_lock_holder` field in HANDOFF.md is set to `null`. Both states are valid preconditions for wave-gate invocation.
 5. Harness version >= v2.1.105 (for PreCompact/PostCompact event support in downstream hooks).
 
 ## Postconditions
@@ -54,18 +55,21 @@ When the `wave-gate` skill is invoked to close wave N (where N > 0), it must pro
    - `pending_fixes` — list of objects with `{finding_id, pr_or_issue_ref}` keys (may be empty list)
    - `process_gaps` — list (may be empty)
    - `precompact_flush_sha` — 40-char hex OR explicit `null` (null only permitted for wave_id=1)
-   - `factory_lock_holder` — string matching `factory_lock.holder` in `STATE.md`
+   - `factory_lock_holder` — string matching `factory_lock.holder` in `STATE.md` when lock is held; `null` when `factory_lock:` block is absent or holder is absent/null (lock not held)
 
 3. **Anti-fabrication cross-checks pass**:
    - `wave_id` == `STATE.md` frontmatter `current_wave:` (read from git, not in-context)
    - `last_verified_develop_sha` == output of `git rev-parse origin/develop` at handoff time
    - Each path in `active_bcs` resolves to an existing file under `.factory/specs/behavioral-contracts/`
    - Each `id` in `next_wave_stories` exists in `STORY-INDEX.md`
-   - `factory_lock_holder` == `STATE.md` `factory_lock.holder` (read from git)
+   - `factory_lock_holder` == `STATE.md` `factory_lock.holder` (read from git) when lock is held; null in HANDOFF.md is correct when STATE.md `factory_lock:` block is absent/null
 
 4. **Block on missing/failing fields**: If any required field is absent or any anti-fabrication check fails, `wave-gate` blocks wave close, surfaces the specific failing fields and checks to the operator, and does NOT write a partial `HANDOFF.md`.
 
-5. **`precompact_flush_sha` null semantics**: For wave_id=1, `precompact_flush_sha: null` is valid. For wave_id > 1, `precompact_flush_sha` must be a non-null 40-char hex string (the SHA written by the last `precompact-flush.sh` run in this wave). If no PreCompact flush fired in wave N > 1, the operator must confirm this explicitly; `wave-gate` surfaces a warning but does not hard-block (advisory only for this specific field when wave > 1).
+5. **`precompact_flush_sha` hard cross-check (F-12)**: `wave-gate` MUST cross-check `precompact_flush_sha` against the side-channel file `.factory/hooks/last-precompact-flush-sha`:
+   - **File exists**: `precompact_flush_sha` MUST equal the SHA recorded in `.factory/hooks/last-precompact-flush-sha` (read via literal file system read, not operator attestation). A mismatch or a null `precompact_flush_sha` when the file contains a real SHA is a HARD BLOCK — `wave-gate` rejects the handoff with `PrecompactShaMismatch`. The advisory-override for wave>1 null SHA is removed; fabricated or null SHAs that contradict the side-channel file MUST block.
+   - **File genuinely absent** (verified by `test -f .factory/hooks/last-precompact-flush-sha` returning false): `precompact_flush_sha: null` is permitted for wave_id=1. For wave_id > 1 with no flush file: advisory warning only; operator must confirm no PreCompact fired; `wave-gate` surfaces the warning but does not hard-block (the absence is mechanically verified, not attested).
+   - **Rationale**: An unchecked null SHA on wave>1 is exploitable — an attacker or hallucinating session could write `precompact_flush_sha: null` to bypass the flush guarantee. The side-channel file is the mechanical ground truth.
 
 6. **Commit to factory-artifacts**: After all checks pass, `wave-gate` commits `HANDOFF.md` to the `factory-artifacts` branch with a commit message: `HANDOFF wave-<N> <ISO-timestamp>`.
 
@@ -89,8 +93,10 @@ When the `wave-gate` skill is invoked to close wave N (where N > 0), it must pro
 | EC-002 | `last_verified_develop_sha` mismatch (`git rev-parse` returns different value than operator supplied) | Block with `AntiShabricationFailed: last_verified_develop_sha mismatch`; surface both values to operator |
 | EC-003 | An `active_bcs` path does not resolve to an existing file | Block with `AntiShabricationFailed: BC path not found: <path>`; operator must correct the path |
 | EC-004 | A `next_wave_stories` story ID not found in STORY-INDEX.md | Block with `AntiShabricationFailed: story ID not in STORY-INDEX: <id>` |
-| EC-005 | `factory_lock_holder` does not match `STATE.md` factory_lock.holder | Block; lock mismatch indicates stale handoff data or another holder |
-| EC-006 | `precompact_flush_sha` is null for wave_id > 1 and no flush committed | Advisory warning only; wave may still close if operator confirms no PreCompact fired |
+| EC-005 | `factory_lock_holder` does not match `STATE.md` factory_lock.holder (when lock IS held) | Block; lock mismatch indicates stale handoff data or another holder |
+| EC-006 | `precompact_flush_sha` is null for wave_id > 1; `.factory/hooks/last-precompact-flush-sha` file genuinely absent (mechanically verified) | Advisory warning only; operator must confirm no PreCompact fired; wave-gate does not hard-block |
+| EC-010 | `STATE.md` `factory_lock:` block is absent/null (no lock held) | `factory_lock_holder: null` in HANDOFF.md; wave-gate proceeds without lock validation; this is valid per ADR-025 opt-in model |
+| EC-011 | `precompact_flush_sha: null` in HANDOFF.md but `.factory/hooks/last-precompact-flush-sha` exists with a non-empty SHA | HARD BLOCK: `PrecompactShaMismatch`; operator must populate `precompact_flush_sha` with the SHA from the side-channel file |
 | EC-007 | HANDOFF.md written but `validate-wave-handoff-completeness` gate fails | Wave close is blocked; operator must correct the failing fields |
 | EC-008 | `open_decisions` list is empty | Valid; no open decisions is a legitimate wave-close state |
 | EC-009 | `process_gaps` list is non-empty (carry-forward from issue #171) | Valid; gaps are carried forward explicitly; wave closes after other checks pass |
@@ -139,9 +145,9 @@ S-18.01 (HANDOFF.md schema + wave-handoff skill)
 |-------|-------|
 | L2 Capability | CAP-032 ("Guarantee lossless context-window transitions via wave-boundary checkpoint and PreCompact flush") per capabilities.md §CAP-032 |
 | Capability Anchor Justification | CAP-032 ("Guarantee lossless context-window transitions via wave-boundary checkpoint and PreCompact flush") per capabilities.md §CAP-032 — this BC specifies the verified HANDOFF.md wave-close checkpoint that is the primary cross-wave continuity mechanism (ADR-026 Decision 1 + Decision 2); it directly closes the fabricated-SHA failure class documented in issues #170 and #173 |
-| L2 Domain Invariants | TBD-DI — no existing domain invariant covers wave-boundary checkpoint; new invariant candidate flagged for business-analyst |
+| L2 Domain Invariants | DI-020 (Wave/phase boundary transitions must not lose load-bearing pipeline state — enforced by requiring HANDOFF.md with all 9 fields before wave close); DI-021 (Handoff claims must be cross-checked against verifiable external ground truth — enforced by anti-fabrication cross-checks in PC3, including SHA verification against git and precompact_flush_sha against side-channel file); DI-023 (Wave/phase identity and next-wave story lists derive from real persisted substrate — enforced by wave_id derivation from sprint-state.yaml or STATE.md current_step:, and next_wave_stories from sprint-state.yaml status entries) |
 | Architecture Module | SS-05 (Pipeline Orchestration) — wave-gate and wave-handoff skills live in `plugins/vsdd-factory/skills/` |
-| ADR | ADR-026 v1.0 Decision 2 (HANDOFF.md schema + anti-fabrication cross-checks); Decision 9 (wave-1 no-op); Decision 1 (wave-boundary reset is primary mechanism) |
+| ADR | ADR-026 v1.1 Decision 2 (HANDOFF.md schema + anti-fabrication cross-checks; wave_id from real substrate; factory_lock_holder nullable; precompact_flush_sha hard cross-check against side-channel file); Decision 9 (wave-1 no-op); Decision 1 (wave-boundary reset is primary mechanism) |
 | Stories | S-18.01 |
 | Cycle | v1.0-feature-context-durability-E18 (F2) |
 | Feature | issue #173 / E-18 |

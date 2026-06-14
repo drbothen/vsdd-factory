@@ -1,15 +1,17 @@
 ---
 document_type: vp-index
 level: L4
-version: "2.07"
+version: "2.08"
 status: draft
 producer: state-manager
 timestamp: 2026-05-15T00:00:00Z
-last_amended: "2026-06-14 (v2.07) — E-18 F2 BC propagation pass (architect): VP-081..VP-085 bcs[] frontmatter updated from TBD to real BC IDs per product-owner BC authoring; VP files bumped to v1.1; VP-INDEX version leg advanced 2.06→2.07; Traceability updated (+5 VPs, +4 unique BCs). [Prior: 2026-05-20 (v2.06) — D-497 M3 3M3a-r BC CASCADE CONVERGED at pass-11 (STREAK 2/3 → 3/3 CONVERGED per BC-5.39.001; cure-extension parsimony DEFINITIVELY validated 3 passes; S-7.02 cycle-closing checklist satisfied; 4-index BC v2.49/VP v2.06/STORY v3.53/ARCH v2.15 all 5-leg parity gate-PASS; unblocks 3M3b story elaboration). No VP content changes. D-range D-001..D-497.]"
+last_amended: "2026-06-14 (v2.08) — ADR-026 v1.1 F2 adversarial-pass-1 revision (architect): VP-086 authored — Dispatcher Exit-2 Propagation for PreCompact Block-Intent (BC-1.15.001 PC4; safety; integration; SS-01/SS-04; anchor S-18.00). Closes TBD-VP gap in BC-1.15.001 Traceability (the exit-2 propagation linchpin that if untested renders the entire PreCompact blocking mechanism a silent no-op). total_vps 85→86. Traceability 136 BCs/85 VPs → 136 BCs/86 VPs. Refs: ADR-026 v1.1, issue-173, E-18, BC-1.15.001, F-10. [Prior: 2026-06-14 (v2.07) — E-18 F2 BC propagation pass (architect): VP-081..VP-085 bcs[] frontmatter updated from TBD to real BC IDs per product-owner BC authoring; VP files bumped to v1.1; VP-INDEX version leg advanced 2.06→2.07; Traceability updated (+5 VPs, +4 unique BCs). [Prior: 2026-05-20 (v2.06) — D-497 M3 3M3a-r BC CASCADE CONVERGED at pass-11 (STREAK 2/3 → 3/3 CONVERGED per BC-5.39.001; cure-extension parsimony DEFINITIVELY validated 3 passes; S-7.02 cycle-closing checklist satisfied; 4-index BC v2.49/VP v2.06/STORY v3.53/ARCH v2.15 all 5-leg parity gate-PASS; unblocks 3M3b story elaboration). No VP content changes. D-range D-001..D-497.]]"
 phase: F5
 traces_to: ARCH-INDEX.md
-total_vps: 85
+total_vps: 86
 changelog:
+  - date: 2026-06-14
+    change: "v2.08 (2026-06-14; ADR-026 v1.1 F2 adversarial-pass-1 revision — VP-086 authored: Dispatcher Exit-2 Propagation for PreCompact Block-Intent. BC: BC-1.15.001 PC4. Type: safety. Proof method: integration. Scope: SS-01, SS-04. Anchor story: S-18.00. Closes the TBD-VP gap in BC-1.15.001 §Verification Properties (the safety-critical linchpin: if dispatcher drops exit-2 block-intent on PreCompact, precompact-flush.sh's blocking mechanism is a silent no-op). total_vps 85→86. Traceability 136 BCs/85 VPs → 136 BCs/86 VPs. VP-INDEX v2.07→v2.08. Refs: ADR-026 v1.1, issue-173, E-18, BC-1.15.001, F-10."
   - date: 2026-06-14
     change: "v2.07 (2026-06-14; F2 E-18 context-durability VP delta — 5 new VPs (VP-081..VP-085) for wave-boundary checkpoint/reset and PreCompact flush architecture (ADR-026; issue #173; architect F2). +VP-081 wave-cannot-close-without-verified-handoff (integration; SS-05/06/07; bcs: BC-5.41.001, BC-4.14.001); +VP-082 precompact-flush-commits-before-compaction (integration; SS-07/04; bcs: BC-7.07.001); +VP-083 completeness-gate-no-op-on-wave-1 (unit-test; SS-04; bcs: BC-4.14.001); +VP-084 precompact-flush-lifecycle-distinct-from-burst (integration; SS-05/07; bcs: BC-5.41.003); +VP-085 precompact-flush-hermetic (unit-test; SS-07; bcs: BC-7.07.001). VP files v1.0→v1.1 (bcs[] TBD→resolved; source_bc resolved). total_vps 80→85. BC citations +4 unique (BC-5.41.001, BC-4.14.001, BC-7.07.001, BC-5.41.003); Traceability 132 BCs/80 VPs → 136 BCs/85 VPs. Story Anchors added for VP-081..085 (anchor stories S-18.01/S-18.02/S-18.04; TBD wave per E-18 F3 decomposition). verification-coverage-matrix.md and verification-architecture.md: formally deferred per VP-INDEX preamble; VP-INDEX §Full Index is the authoritative coverage table. Refs: ADR-026 v1.0, issue-173, E-18, BC-5.41.001, BC-4.14.001, BC-7.07.001, BC-5.41.003."
   - date: 2026-05-20
@@ -249,15 +251,15 @@ changelog:
 | Async Semantics VPs | 2 | VP-077..VP-078 |
 | Async Semantics Event Schema VPs | 1 | VP-079 |
 | Hook Plugin Capability VPs | 1 | VP-080 |
-| Context Durability VPs (E-18) | 5 | VP-081..VP-085 |
-| **Total** | **85** | **VP-001..VP-085** |
+| Context Durability VPs (E-18) | 6 | VP-081..VP-086 |
+| **Total** | **86** | **VP-001..VP-086** |
 
 ## Proof Method Breakdown
 
 | Method | Count | VPs |
 |--------|-------|-----|
 | unit-test | 42 | VP-003..014, VP-016..024, VP-026..027, VP-029..032, VP-034..042, VP-044..045, VP-050, VP-052, VP-083, VP-085 |
-| integration | 24 | VP-001, VP-002, VP-025, VP-028, VP-033, VP-043, VP-049, VP-051, VP-058, VP-060, VP-062, VP-063, VP-065, VP-066, VP-067, VP-068, VP-072, VP-073, VP-076, VP-078, VP-079, VP-081, VP-082, VP-084 |
+| integration | 25 | VP-001, VP-002, VP-025, VP-028, VP-033, VP-043, VP-049, VP-051, VP-058, VP-060, VP-062, VP-063, VP-065, VP-066, VP-067, VP-068, VP-072, VP-073, VP-076, VP-078, VP-079, VP-081, VP-082, VP-084, VP-086 |
 | manual | 10 | VP-015, VP-046..048, VP-053..057, VP-064 |
 | static-check | 1 | VP-061 |
 | kani-proof | 4 | VP-070, VP-071, VP-074, VP-077 (upgrade candidates: VP-020, VP-023, VP-042) |
@@ -351,7 +353,8 @@ changelog:
 | [VP-082](VP-082.md) | PreCompact Flush Commits to factory-artifacts Before Compaction Proceeds — precompact-flush.sh commits STATE.md + wave state before exiting; blocks (exit 2) on commit failure; no-op when state is clean; renews factory lock per ADR-025 D11 | safety | integration | SS-07, SS-04 | — | draft |
 | [VP-083](VP-083.md) | Completeness Gate Is No-Op on Wave-1 and HANDOFF.md Absent — validate-wave-handoff-completeness returns Continue unconditionally when current_wave = 1; also no-op on non-HANDOFF.md writes | invariant | unit-test | SS-04 | — | draft |
 | [VP-084](VP-084.md) | PreCompact Flush Commit Is Lifecycle-Distinct From State-Manager Burst Commit — validate-burst-log exempts commits with "PreCompact flush wave-" prefix from MULTI_COMMIT_CHAIN_NOT_ALLOWED detector | invariant | integration | SS-05, SS-07 | — | draft |
-| [VP-085](VP-085.md) | PreCompact Flush Hook Is Hermetic — reads STATE.md+git only; ignores custom_instructions; determines current_wave from STATE.md frontmatter; exits 0 fail-open when STATE.md unreadable | safety | unit-test | SS-07 | — | draft |
+| [VP-085](VP-085.md) | PreCompact Flush Hook Is Hermetic — reads STATE.md+git only; ignores custom_instructions; determines current context from STATE.md current_cycle+current_step; exits 0 fail-open when STATE.md unreadable | safety | unit-test | SS-07 | — | draft |
+| [VP-086](VP-086.md) | Dispatcher Exit-2 Propagation for PreCompact Block-Intent — factory-dispatcher propagates block_intent=true to harness when a PreCompact plugin exits 2; fail-open when on_error=continue and plugin crashes; exits 0 with zero plugins run when no PreCompact plugins registered | safety | integration | SS-01, SS-04 | — | draft |
 
 ## Kani Upgrade Candidates (P0 Priority)
 
@@ -405,10 +408,11 @@ changelog:
 | VP-083 | S-18.02 | E-18 F3 (TBD wave) | VP-083 bcs [BC-4.14.001]; S-18.02 covers wave-1 no-op leg of validate-wave-handoff-completeness (BC-4.14.001 PC1). Unit-test scope only (no integration harness needed for no-op path). |
 | VP-084 | S-18.04 | E-18 F3 (TBD wave) | VP-084 bcs [BC-5.41.003]; S-18.04 implements validate-burst-log PreCompact exemption rule (BC-5.41.003 — "PreCompact flush wave-" prefix exemption from MULTI_COMMIT_CHAIN_NOT_ALLOWED). |
 | VP-085 | S-18.04 | E-18 F3 (TBD wave) | VP-085 bcs [BC-7.07.001]; S-18.04 implements precompact-flush.sh hermetic constraint (BC-7.07.001 hermetic invariant leg — reads STATE.md+git only, ignores custom_instructions). |
+| VP-086 | S-18.00 | E-18 F3 (TBD wave) | VP-086 bcs [BC-1.15.001]; S-18.00 verifies/adds dispatcher routing for PreCompact/PostCompact; VP-086 bats integration test verifies factory-dispatcher propagates exit-2 block-intent on PreCompact to harness (BC-1.15.001 PC4 — the safety-critical linchpin that if untested renders PreCompact flush blocking a silent no-op). ADR-026 v1.1 F-10 closure. |
 
 ## Traceability
 
 - All 18 active domain invariants (DI-001..DI-017, DI-019; DI-018 deferred-not-authored) covered by the verification suite
-- BCs cross-referenced: 136 BC IDs across 85 VPs (net -2: BC-1.10.001/002 retired and dropped from VP-065 coverage in pass-4; +5 BC-4.05.001-005 added with VP-066; +4 BC-4.07.001-004 added with VP-067; +3 BC-4.08.001-003 added with VP-068; +8 D-340 F2 engine discipline: VP-069→BC-4.11.001; VP-070→BC-4.11.001; VP-071→BC-5.39.001/BC-4.10.001; VP-072→BC-4.11.001/BC-6.22.001/BC-4.10.001; +7 D-362 F2-amendment: VP-073→BC-4.12.001; VP-074→BC-4.12.004; VP-075→BC-4.12.002/BC-4.12.005; VP-076→BC-4.12.003; +2 F2-async-semantics: VP-077→BC-1.14.001; VP-078→BC-7.06.001; +1 F2 pass-1 fix burst: VP-079→BC-3.08.001; +2 F-block-ai-attribution-message-file-arm F2: VP-080→BC-7.03.094/BC-7.03.095; +4 E-18 F2 context-durability BC propagation: VP-081→BC-5.41.001/BC-4.14.001; VP-082→BC-7.07.001; VP-083→BC-4.14.001 [shared with VP-081]; VP-084→BC-5.41.003; VP-085→BC-7.07.001 [shared with VP-082]; unique new BCs: BC-5.41.001, BC-4.14.001, BC-7.07.001, BC-5.41.003)
+- BCs cross-referenced: 137 BC IDs across 86 VPs (net -2: BC-1.10.001/002 retired and dropped from VP-065 coverage in pass-4; +5 BC-4.05.001-005 added with VP-066; +4 BC-4.07.001-004 added with VP-067; +3 BC-4.08.001-003 added with VP-068; +8 D-340 F2 engine discipline: VP-069→BC-4.11.001; VP-070→BC-4.11.001; VP-071→BC-5.39.001/BC-4.10.001; VP-072→BC-4.11.001/BC-6.22.001/BC-4.10.001; +7 D-362 F2-amendment: VP-073→BC-4.12.001; VP-074→BC-4.12.004; VP-075→BC-4.12.002/BC-4.12.005; VP-076→BC-4.12.003; +2 F2-async-semantics: VP-077→BC-1.14.001; VP-078→BC-7.06.001; +1 F2 pass-1 fix burst: VP-079→BC-3.08.001; +2 F-block-ai-attribution-message-file-arm F2: VP-080→BC-7.03.094/BC-7.03.095; +4 E-18 F2 context-durability BC propagation: VP-081→BC-5.41.001/BC-4.14.001; VP-082→BC-7.07.001; VP-083→BC-4.14.001 [shared with VP-081]; VP-084→BC-5.41.003; VP-085→BC-7.07.001 [shared with VP-082]; unique new BCs: BC-5.41.001, BC-4.14.001, BC-7.07.001, BC-5.41.003; +1 ADR-026 v1.1 F-10: VP-086→BC-1.15.001 [unique new BC — closes TBD-VP gap in BC-1.15.001 Traceability])
 - Test evidence cited: 46 VPs have specific Rust test references (VP-063 changed from proptest to integration/bats in pass-1)
 - 27 VPs have TBD test evidence (manual or pending CI automation; +4 VP-073..076 feasible-pending-harness; +2 VP-077..078 feasible-pending-harness; +1 VP-079 feasible-pending-harness; +1 VP-080 feasible-pending-harness)

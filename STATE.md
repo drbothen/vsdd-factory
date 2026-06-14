@@ -1,18 +1,18 @@
 ---
 document_type: pipeline-state
 level: ops
-version: "3.11"
+version: "3.12"
 status: draft
 producer: state-manager
-timestamp: 2026-06-14T00:00:00Z
-phase: D-561-F2-E18-CONTEXT-DURABILITY-SPEC-EVOLUTION-COMPLETE-2026-06-14
-last_amended: 2026-06-14 (v3.11) — D-561 F2 E-18 CONTEXT-DURABILITY SPEC EVOLUTION BURST: F1-gate APPROVED (D1–D5 locked); F2 COMPLETE — ADR-026 ACCEPTED (12 decisions); ARCH-INDEX v2.27→v2.28; VP-081..VP-085 authored; VP-INDEX v2.06→v2.07 (total_vps 80→85); 8 BCs authored (BC-1.15.001/5.41.001/5.41.002/5.41.003/4.14.001/6.24.001/7.07.001/7.07.002); BC-INDEX v2.72→v2.73 (total_bcs 1958→1966); capabilities.md v1.3→v1.4 (CAP-032 registered); STORY-INDEX v4.01 UNCHANGED; epic E-18 OPEN; next = F2 spec review gate (consistency-validator + adversary) then F3 story decomposition (S-18.00..S-18.07); D-chain cite D-560 per D-419(b); parent-commit f4a6b065 per D-419(b). [Prior: 2026-06-13 (v3.10) — D-560 OPERATOR-INSTALL-VERIFIED BURST: /plugin update vsdd-factory@claude-mp → operator cache now contains ~/.claude/plugins/cache/claude-mp/vsdd-factory/1.0.0-rc.21/ with plugin.json "version": "1.0.0-rc.21" (registry 132 entries) — VERIFIED; /reload-plugins applied (14 plugins/8 skills/61 agents/4 MCP/1 LSP); RELEASING.md Step 9 PASSED; rc.21 100% COMPLETE end-to-end (source+marketplace+operator-cache all verified); NO remaining release action; next = #173 wave-checkpoint (gate OPEN); 4-index UNCHANGED; D-chain cite D-559 per D-419(b); parent-commit 2c3c3d09 per D-419(b). [Prior: 2026-06-13 (v3.09) — D-559 MARKETPLACE-MERGED CLOSURE BURST: marketplace PR drbothen/claude-mp #13 MERGED by human 2026-06-13; marketplace.json rc.20→rc.21 live on drbothen/claude-mp default branch; v1.0.0-rc.21 FULLY SHIPPED to operator marketplace; plugin count 53→55; operators receive via /plugin update vsdd-factory@claude-mp; closes D-558 pending-marketplace item; next = #173 wave-checkpoint; 4-index UNCHANGED; D-chain cite D-558 per D-419(b); parent-commit 2ab9bef7 per D-419(b). [Prior: 2026-06-13 (v3.08) — D-558 RC21-RELEASE-SHIPPED CLOSING BURST: v1.0.0-rc.21 RELEASED via re-release (PR #185 stale-superseded; 6-class fix cycle PR #186 a431ff47 + re-release PR #188 d3b4e247; release.yml run 27478345756 all jobs PASS; main caf06c68; tag 03054524; develop 7e99f6ef; marketplace PR drbothen/claude-mp #13 OPEN pending human merge); D-chain cite D-557 per D-419(b); parent-commit c447b834 per D-419(b). [Prior: 2026-06-13 (v3.07) — D-557 SESSION-INTERRUPT DURABILITY BURST: rc.21 RELEASE IN-FLIGHT captured; RELEASING.md Steps 1-4 COMPLETE (branch release/v1.0.0-rc.21 off 3b2a378c; CHANGELOG 0302f917; PR #185 OPEN base=main MERGEABLE CI-11/11-GREEN created 2026-06-12T20:39:13Z); Steps 5-9 (merge-gate) PENDING human authorization; develop/main/4-index UNCHANGED; D-chain cite D-556 per D-419(b); parent-commit e828b486 per D-419(b). [Prior: 2026-06-12 (v3.06) — D-556 S-17.04 DELIVERED/MERGED PR #184 3b2a378c: verify-state-timestamp-refresh WASM guard + factory-lock-parse shared crate + CI hardening; CI 10/10 green; pr-reviewer APPROVE 3-cycle; security CLEAN; LOCAL adversary converged 10 Claude passes + Gemini cross-family; D-chain cite D-555; parent 0eb4cc71; develop 60fd0233→3b2a378c; feature branch deleted+verified; STORY-INDEX v4.00→v4.01. [Prior: 2026-06-12 (v3.05) — D-555 S-17.04 v1.6→v1.7 + adversary pass 8+9 cleanup CODIFIED; STORY-INDEX v3.99→v4.00; BC NONE; D-chain cite D-554; parent-commit 406291e0. [Prior: 2026-06-12 (v3.04) — D-554 ADR-025 v1.6 adversary deep-pass-7 P0 WASM env-var dead-code fix + S-17.04 v1.5→v1.6 CODIFIED; ARCH-INDEX v2.26→v2.27; STORY-INDEX v3.98→v3.99; D-chain cite D-553; parent-commit 79c319c9. [Prior: 2026-06-12 (v3.03) — D-553 ADR-025 v1.6 adversary pass 4+5 (deep-probe) build/test-harness corrections + S-17.04 v1.4→v1.5; ARCH-INDEX v2.25→v2.26; STORY-INDEX v3.97→v3.98; D-chain cite D-552; parent-commit aa3cd62f. [Prior: 2026-06-12 (v3.02) — D-552 ADR-025 v1.6 Gemini cross-family adversary pass 2 corrections + S-17.04 v1.3→v1.4; ARCH-INDEX v2.24→v2.25; STORY-INDEX v3.96→v3.97; D-chain cite D-551; parent-commit ce277f92. [Prior: 2026-06-12 (v3.01) — D-551 ADR-025 v1.6 adversary-pass-1 corrections + S-17.04 v1.2→v1.3; ARCH-INDEX v2.23→v2.24; STORY-INDEX v3.95→v3.96; D-chain cite D-550; parent-commit 8f19bab2. [Prior: 2026-06-11 (v3.00) — D-550 ADR-025 v1.5→v1.6 + S-17.04 v1.1→v1.2 REDIRECT; ARCH-INDEX v2.22→v2.23; STORY-INDEX v3.94→v3.95; D-chain cite D-549; parent-commit 29ee394b. [Prior: 2026-06-11 (v2.99) — D-549 SESSION-END DURABILITY BURST: ADR-025 v1.4→v1.5. S-17.04 v1.0→v1.1. ARCH-INDEX v2.22. STORY-INDEX v3.94. OPEN DESIGN DECISION. [Prior: 2026-06-11 (v2.98) — D-548 ADR-025 v1.3→v1.4 + S-17.04 CODIFIED. [Prior: 2026-06-11 (v2.97) — D-547 S-17.03 DELIVERED/MERGED PR #183 60fd0233; BC-6.23.001 ACTIVE; issue #170 CLOSED; E-17 3/3 COMPLETE. [Prior: 2026-06-11 (v2.96) — D-546 S-17.03 v1.1 helpers. [Prior: 2026-06-11 (v2.95) — D-545 S-17.02 MERGED df4f26b8. [Prior: 2026-06-11 (v2.94) — D-544 S-17.01 MERGED c64b46d2. [Prior: 2026-06-10 (v2.93) — D-543 S-17.01 v1.1 helpers. [Prior: 2026-06-10 (v2.92) — D-542 E-17+3 stories. [Prior: 2026-06-10 (v2.91) — D-541 3-BCs. [Prior: 2026-06-10 (v2.90) — D-540 ADR-025 ADOPTED.]]]]]]]]]]]]]]]]]]]]
+timestamp: 2026-06-14T12:00:00Z
+phase: D-562-F2-E18-ADV-PASS-1-FIX-BURST-COMPLETE-2026-06-14
+last_amended: 2026-06-14 (v3.12) — D-562 F2 E-18 ADVERSARIAL PASS-1 FIX BURST: ADR-026 v1.0→v1.1 (re-anchor to current_cycle/current_step substrate; factory_lock:null no-op F-4; timeout_ms=30000 F-4; harness-version assertion F-5; PostCompact best-effort-outside-guarantee F-6; corrected registry TOML F-7; SS-08 reconcile F-9; clamp-confidence F-11; prereq-verification discipline F-15); VP-086 NEW (BC-1.15.001 Traceability gap closure); VP-INDEX v2.07→v2.08 (total_vps 85→86); ARCH-INDEX v2.28→v2.29; invariants.md v1.11→v1.13 (DI-020..DI-025 NEW for CAP-032 + DI-025 prefix-convention align); L2-INDEX v1.0.3→v1.0.4 (DI count 17→25; CAP count corrected 28→32); 8 BCs v1.0→v1.1 (re-anchor + F-2 lock-null + F-8 exemption SHA-corroboration + F-12 handoff-SHA hard cross-check + F-13 H1 parity + DI-020..025 citations + VP-086 cite); BC-INDEX v2.73→v2.74 (total_bcs 1966 UNCHANGED); STORY-INDEX v4.01 UNCHANGED; E-18 OPEN; next = F2 adversarial re-cascade pass-2 → BC-5.39.001 3-CLEAN convergence → F3 story decomposition (S-18.00..S-18.07); D-chain cite D-561 per D-419(b); parent-commit 992c0651 per D-419(b). [Prior: 2026-06-13 (v3.10) — D-560 OPERATOR-INSTALL-VERIFIED BURST: /plugin update vsdd-factory@claude-mp → operator cache now contains ~/.claude/plugins/cache/claude-mp/vsdd-factory/1.0.0-rc.21/ with plugin.json "version": "1.0.0-rc.21" (registry 132 entries) — VERIFIED; /reload-plugins applied (14 plugins/8 skills/61 agents/4 MCP/1 LSP); RELEASING.md Step 9 PASSED; rc.21 100% COMPLETE end-to-end (source+marketplace+operator-cache all verified); NO remaining release action; next = #173 wave-checkpoint (gate OPEN); 4-index UNCHANGED; D-chain cite D-559 per D-419(b); parent-commit 2c3c3d09 per D-419(b). [Prior: 2026-06-13 (v3.09) — D-559 MARKETPLACE-MERGED CLOSURE BURST: marketplace PR drbothen/claude-mp #13 MERGED by human 2026-06-13; marketplace.json rc.20→rc.21 live on drbothen/claude-mp default branch; v1.0.0-rc.21 FULLY SHIPPED to operator marketplace; plugin count 53→55; operators receive via /plugin update vsdd-factory@claude-mp; closes D-558 pending-marketplace item; next = #173 wave-checkpoint; 4-index UNCHANGED; D-chain cite D-558 per D-419(b); parent-commit 2ab9bef7 per D-419(b). [Prior: 2026-06-13 (v3.08) — D-558 RC21-RELEASE-SHIPPED CLOSING BURST: v1.0.0-rc.21 RELEASED via re-release (PR #185 stale-superseded; 6-class fix cycle PR #186 a431ff47 + re-release PR #188 d3b4e247; release.yml run 27478345756 all jobs PASS; main caf06c68; tag 03054524; develop 7e99f6ef; marketplace PR drbothen/claude-mp #13 OPEN pending human merge); D-chain cite D-557 per D-419(b); parent-commit c447b834 per D-419(b). [Prior: 2026-06-13 (v3.07) — D-557 SESSION-INTERRUPT DURABILITY BURST: rc.21 RELEASE IN-FLIGHT captured; RELEASING.md Steps 1-4 COMPLETE (branch release/v1.0.0-rc.21 off 3b2a378c; CHANGELOG 0302f917; PR #185 OPEN base=main MERGEABLE CI-11/11-GREEN created 2026-06-12T20:39:13Z); Steps 5-9 (merge-gate) PENDING human authorization; develop/main/4-index UNCHANGED; D-chain cite D-556 per D-419(b); parent-commit e828b486 per D-419(b). [Prior: 2026-06-12 (v3.06) — D-556 S-17.04 DELIVERED/MERGED PR #184 3b2a378c: verify-state-timestamp-refresh WASM guard + factory-lock-parse shared crate + CI hardening; CI 10/10 green; pr-reviewer APPROVE 3-cycle; security CLEAN; LOCAL adversary converged 10 Claude passes + Gemini cross-family; D-chain cite D-555; parent 0eb4cc71; develop 60fd0233→3b2a378c; feature branch deleted+verified; STORY-INDEX v4.00→v4.01. [Prior: 2026-06-12 (v3.05) — D-555 S-17.04 v1.6→v1.7 + adversary pass 8+9 cleanup CODIFIED; STORY-INDEX v3.99→v4.00; BC NONE; D-chain cite D-554; parent-commit 406291e0. [Prior: 2026-06-12 (v3.04) — D-554 ADR-025 v1.6 adversary deep-pass-7 P0 WASM env-var dead-code fix + S-17.04 v1.5→v1.6 CODIFIED; ARCH-INDEX v2.26→v2.27; STORY-INDEX v3.98→v3.99; D-chain cite D-553; parent-commit 79c319c9. [Prior: 2026-06-12 (v3.03) — D-553 ADR-025 v1.6 adversary pass 4+5 (deep-probe) build/test-harness corrections + S-17.04 v1.4→v1.5; ARCH-INDEX v2.25→v2.26; STORY-INDEX v3.97→v3.98; D-chain cite D-552; parent-commit aa3cd62f. [Prior: 2026-06-12 (v3.02) — D-552 ADR-025 v1.6 Gemini cross-family adversary pass 2 corrections + S-17.04 v1.3→v1.4; ARCH-INDEX v2.24→v2.25; STORY-INDEX v3.96→v3.97; D-chain cite D-551; parent-commit ce277f92. [Prior: 2026-06-12 (v3.01) — D-551 ADR-025 v1.6 adversary-pass-1 corrections + S-17.04 v1.2→v1.3; ARCH-INDEX v2.23→v2.24; STORY-INDEX v3.95→v3.96; D-chain cite D-550; parent-commit 8f19bab2. [Prior: 2026-06-11 (v3.00) — D-550 ADR-025 v1.5→v1.6 + S-17.04 v1.1→v1.2 REDIRECT; ARCH-INDEX v2.22→v2.23; STORY-INDEX v3.94→v3.95; D-chain cite D-549; parent-commit 29ee394b. [Prior: 2026-06-11 (v2.99) — D-549 SESSION-END DURABILITY BURST: ADR-025 v1.4→v1.5. S-17.04 v1.0→v1.1. ARCH-INDEX v2.22. STORY-INDEX v3.94. OPEN DESIGN DECISION. [Prior: 2026-06-11 (v2.98) — D-548 ADR-025 v1.3→v1.4 + S-17.04 CODIFIED. [Prior: 2026-06-11 (v2.97) — D-547 S-17.03 DELIVERED/MERGED PR #183 60fd0233; BC-6.23.001 ACTIVE; issue #170 CLOSED; E-17 3/3 COMPLETE. [Prior: 2026-06-11 (v2.96) — D-546 S-17.03 v1.1 helpers. [Prior: 2026-06-11 (v2.95) — D-545 S-17.02 MERGED df4f26b8. [Prior: 2026-06-11 (v2.94) — D-544 S-17.01 MERGED c64b46d2. [Prior: 2026-06-10 (v2.93) — D-543 S-17.01 v1.1 helpers. [Prior: 2026-06-10 (v2.92) — D-542 E-17+3 stories. [Prior: 2026-06-10 (v2.91) — D-541 3-BCs. [Prior: 2026-06-10 (v2.90) — D-540 ADR-025 ADOPTED.]]]]]]]]]]]]]]]]]]]]
 inputs: []
 input-hash: "[live-state]"
 traces_to: prd.md
 project: vsdd-factory
 mode: brownfield
-current_step: "D-561 F2 E-18 CONTEXT-DURABILITY SPEC EVOLUTION BURST 2026-06-14 — F1-gate APPROVED (D1 E-18/CAP-032; D2 all-in-one-cycle incl S-18.00 dispatcher PreCompact/PostCompact; D3 reset=prompt-human; D4 rehydration=curated wave-state.yaml; D5 threshold=70% CLAUDE_AUTOCOMPACT_PCT_OVERRIDE; harness >=v2.1.105 ON v2.1.177); F2 COMPLETE — ADR-026 ACCEPTED 12-decisions; ARCH-INDEX v2.27→v2.28; VP-081..VP-085 authored; VP-INDEX v2.06→v2.07 (total_vps 80→85; Traceability 132→136 BCs/80→85 VPs); BC-1.15.001+BC-5.41.001+BC-5.41.002+BC-5.41.003+BC-4.14.001+BC-6.24.001+BC-7.07.001+BC-7.07.002 authored; BC-INDEX v2.72→v2.73 (total_bcs 1958→1966); capabilities.md v1.3→v1.4 (CAP-032); STORY-INDEX v4.01 UNCHANGED; 4-index: BC-INDEX v2.73 VP-INDEX v2.07 STORY-INDEX v4.01 ARCH-INDEX v2.28 (literal-shell: grep '^version:' .factory/specs/behavioral-contracts/BC-INDEX.md → 2.73; VP-INDEX.md → 2.07; stories/STORY-INDEX.md → 4.01; architecture/ARCH-INDEX.md → 2.28); trajectory-tail →9→9→9→11; D-chain cite D-560 per D-419(b); parent-commit f4a6b065 per D-419(b). SIZE BUDGET: see banner tracker row D-561"
+current_step: "D-562 F2 E-18 ADVERSARIAL PASS-1 FIX BURST 2026-06-14 — F1-gate APPROVED (D1 E-18/CAP-032; D2 all-in-one-cycle incl S-18.00 dispatcher PreCompact/PostCompact; D3 reset=prompt-human; D4 rehydration=curated wave-state.yaml; D5 threshold=70% CLAUDE_AUTOCOMPACT_PCT_OVERRIDE; harness >=v2.1.105 ON v2.1.177); F2 ADV PASS-1 FIXED — ADR-026 v1.0→v1.1 (re-anchor current_cycle/current_step substrate); VP-086 NEW; VP-INDEX v2.07→v2.08 (total_vps 85→86); ARCH-INDEX v2.28→v2.29; invariants.md v1.11→v1.13 (DI-020..DI-025); L2-INDEX v1.0.3→v1.0.4; 8 BCs v1.0→v1.1; BC-INDEX v2.73→v2.74 (total_bcs 1966 UNCHANGED); STORY-INDEX v4.01 UNCHANGED; 4-index: BC-INDEX v2.74 VP-INDEX v2.08 STORY-INDEX v4.01 ARCH-INDEX v2.29 (literal-shell: grep '^version:' .factory/specs/behavioral-contracts/BC-INDEX.md → 2.74; VP-INDEX.md → 2.08; stories/STORY-INDEX.md → 4.01; architecture/ARCH-INDEX.md → 2.29); trajectory-tail →9→9→9→11; D-chain cite D-561 per D-419(b); parent-commit 992c0651 per D-419(b). SIZE BUDGET: see banner tracker row D-562"
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -65,6 +65,7 @@ dtu_services: []
   D-559-MARKETPLACE-MERGED-RC21-FULLY-SHIPPED-2026-06-13 365 lines (wc-l; marketplace #13 MERGED; rc.21 FULLY SHIPPED to operator marketplace; plugin count 53→55; next #173 wave-checkpoint; 4-index UNCHANGED; STATE.md-only burst; D-559 row added; §1/§3/§4/§5/§8/§9/§10/§11/§12 Session Resume refresh; -50 under soft 415; margin 500-365=135 from hard cap; D-446(c) dual-margin form).
   D-560-OPERATOR-INSTALL-VERIFIED-RC21-100PCT-COMPLETE-2026-06-13 373 lines (wc-l; /plugin update → operator cache 1.0.0-rc.21 VERIFIED; /reload-plugins applied; Step 9 PASSED; rc.21 100% COMPLETE; #173 wave-checkpoint ACTIVE; 4-index UNCHANGED; STATE.md-only burst; D-560 row added; §1/§3/§4/§5/§8/§9/§10/§11/§12 Session Resume refresh; -42 under soft 415; margin 500-373=127 from hard cap; D-446(c) dual-margin form).
   D-561-F2-E18-CONTEXT-DURABILITY-SPEC-EVOLUTION-COMPLETE-2026-06-14 380 lines (wc-l; F2 COMPLETE — ADR-026+8BCs+VP-081..085+CAP-032; ARCH-INDEX v2.28; VP-INDEX v2.07; BC-INDEX v2.73; STORY-INDEX v4.01 UNCHANGED; D-561 row added; §1/§3/§4/§5/§8/§9/§11/§12 Session Resume refresh; -35 under soft 415; margin 500-380=120 from hard cap; D-446(c) dual-margin form).
+  D-562-F2-E18-ADV-PASS-1-FIX-BURST-2026-06-14 TBD lines (wc-l post-commit; F2 adv-pass-1 fixed: ADR-026 v1.1+VP-086+8 BCs v1.1+DI-020..025+ARCH-INDEX v2.29+VP-INDEX v2.08+BC-INDEX v2.74; Drift Item BC-INDEX-reconcile added; D-562 row added; §1/§3/§4/§5/§8/§9/§11/§12 Session Resume refresh; D-446(c) dual-margin form — final count in sha-patch).
 -->
 
 # Pipeline State: vsdd-factory
@@ -80,8 +81,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-06-14 — D-561 F2 E-18 CONTEXT-DURABILITY SPEC EVOLUTION BURST: F1-gate APPROVED; F2 COMPLETE — ADR-026+8BCs+VP-081..085+CAP-032; ARCH-INDEX v2.28; VP-INDEX v2.07; BC-INDEX v2.73 (total_bcs 1966); STORY-INDEX v4.01 UNCHANGED; E-18 epic OPEN; next = F2 spec review gate then F3 story decomposition (S-18.00..S-18.07). |
-| **Current Phase** | D-561 F2 E-18 CONTEXT-DURABILITY 2026-06-14 — F2 spec evolution COMPLETE (ADR-026 ACCEPTED 12-decisions; VP-081..085; 8 BCs; CAP-032). Next: F2 spec review gate (consistency-validator + adversary) → F3 story decomposition (S-18.00..S-18.07). |
+| **Last Updated** | 2026-06-14 — D-562 F2 E-18 ADV PASS-1 FIX BURST: ADR-026 v1.1 (re-anchor); VP-086 NEW; ARCH-INDEX v2.29; VP-INDEX v2.08 (total_vps 86); BC-INDEX v2.74 (total_bcs 1966 unchanged); 8 BCs v1.1; DI-020..025; L2-INDEX v1.0.4; STORY-INDEX v4.01 UNCHANGED; E-18 OPEN; next = F2 adversarial re-cascade (pass-2) → 3-CLEAN → F3 story decomp. |
+| **Current Phase** | D-562 F2 E-18 ADVERSARIAL PASS-1 FIX BURST 2026-06-14 — all F2 adv-pass-1 findings resolved (ADR-026 v1.1 re-anchor; VP-086; 8 BCs v1.1; DI-020..025). Next: F2 adversarial re-cascade (pass-2) toward BC-5.39.001 3-CLEAN convergence → F3 story decomposition (S-18.00..S-18.07). |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Phase Progress
@@ -107,6 +108,7 @@ dtu_services: []
 | D-559 MARKETPLACE-MERGED CLOSURE BURST 2026-06-13 | **COMPLETE** | marketplace PR drbothen/claude-mp #13 MERGED by human; marketplace.json rc.20→rc.21 live on drbothen/claude-mp default branch; v1.0.0-rc.21 FULLY SHIPPED to operator marketplace; plugin count 53→55; operators receive via /plugin update vsdd-factory@claude-mp; closes D-558 pending-marketplace item; next = #173 wave-checkpoint; 4-index UNCHANGED. |
 | D-560 OPERATOR-INSTALL-VERIFIED 2026-06-13 | **COMPLETE** | RELEASING.md Step 9 PASSED — /plugin update vsdd-factory@claude-mp → operator cache ~/.claude/plugins/cache/claude-mp/vsdd-factory/1.0.0-rc.21/ plugin.json "version": "1.0.0-rc.21" VERIFIED (registry 132 entries); /reload-plugins applied (14 plugins/8 skills/61 agents/4 MCP/1 LSP); rc.21 100% COMPLETE end-to-end (source release + marketplace merge + operator-cache install all verified); NO remaining release action; #173 wave-checkpoint gate NOW OPEN; 4-index UNCHANGED. |
 | D-561 F2 E-18 CONTEXT-DURABILITY SPEC EVOLUTION 2026-06-14 | **COMPLETE** | F1-gate APPROVED (D1–D5 locked). F2 COMPLETE: ADR-026 ACCEPTED (12 decisions); ARCH-INDEX v2.27→v2.28; VP-081..VP-085 (VP-INDEX v2.06→v2.07; total_vps 80→85); 8 BCs (BC-INDEX v2.72→v2.73; total_bcs 1958→1966); CAP-032 (capabilities.md v1.4); STORY-INDEX v4.01 UNCHANGED; E-18 OPEN. Next: F2 spec review gate → F3 story decomp (S-18.00..S-18.07). |
+| D-562 F2 E-18 ADVERSARIAL PASS-1 FIX BURST 2026-06-14 | **COMPLETE** | All 3 BLOCKERs + 6 MAJORs + 6 MINORs from adv-pass-1 resolved: ADR-026 v1.0→v1.1 (re-anchor to current_cycle/current_step; factory_lock:null no-op F-4; timeout_ms F-4; harness-version F-5; PostCompact guarantee F-6; TOML F-7; SS-08 F-9; VP-086 alloc F-10; clamp-confidence F-11; prereq F-15); VP-086 NEW; VP-INDEX v2.07→v2.08 (total_vps 85→86); ARCH-INDEX v2.28→v2.29; invariants.md v1.11→v1.13 (DI-020..025); L2-INDEX v1.0.3→v1.0.4; 8 BCs v1.0→v1.1; BC-INDEX v2.73→v2.74 (total_bcs 1966 UNCHANGED); STORY-INDEX v4.01 UNCHANGED. Next: F2 adv re-cascade pass-2 → 3-CLEAN → F3. |
 
 ## Current Phase Steps
 
@@ -122,7 +124,7 @@ dtu_services: []
 |------|--------|----------------------|-------|
 | Subsystem | SS-NN | `specs/architecture/ARCH-INDEX.md` | 10 |
 | Behavioral Contract | BC-S.SS.NNN | `specs/behavioral-contracts/ss-NN/` | 1,966 |
-| Verification Property | VP-NNN | `specs/verification-properties/VP-INDEX.md` | 85 |
+| Verification Property | VP-NNN | `specs/verification-properties/VP-INDEX.md` | 86 |
 | Story | S-N.MM | `stories/S-N.MM-<short>.md` | 105 file-resident + 15 stub IDs (STORY-INDEX v4.01) |
 | Epic | E-N | `stories/epics/E-N-<short>.md` | 18 |
 | ADR | ADR-NNN | `specs/architecture/decisions/ADR-NNN.md` | 26 |
@@ -144,7 +146,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | caf06c68 | rc.21 bot binary bundle commit 2026-06-13; PR #188 merge d3b4e247 underneath; prior: 2a191314 (rc.20 SHIPPED 2026-06-01) |
 | develop | 7e99f6ef | PR #186 fix a431ff47 + release.yml sync-develop back-merge from main 2026-06-13; prior: 3b2a378c (D-556 PR #184 S-17.04 2026-06-12) |
-| factory-artifacts | c0188ea7 | D-561 F2 E-18 spec-evolution burst 2026-06-14; prior: f4a6b065 D-560 sha-patch |
+| factory-artifacts | TBD-D-562-sha-patch | D-562 F2 E-18 adv-pass-1 fix burst 2026-06-14; prior: 992c0651 D-561 sha-patch |
 | v1.0.0-rc.21 (tag) | 03054524 | SHIPPED 2026-06-13; FULLY IN OPERATOR MARKETPLACE (marketplace PR #13 MERGED); annotated tag object; GitHub Release https://github.com/drbothen/vsdd-factory/releases/tag/v1.0.0-rc.21 |
 | v1.0.0-rc.20 (tag) | e9e38286 | SHIPPED 2026-06-01; annotated tag object; GitHub Release prerelease; marketplace PR drbothen/claude-mp #12 squash-merged 862e660d |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28; GitHub Release prerelease 2026-05-28T15:10:56Z; marketplace PR #11 squash-merged |
@@ -155,7 +157,7 @@ dtu_services: []
 | Cycle | Type | Status | Notes |
 |-------|------|--------|-------|
 | F-block-ai-attribution-message-file-arm | feature | F3 COMPLETE — F4 READY | F1+F2+F3 done 2026-05-12; 2 stories ready (S-16.01 5pts PostToolUse HEAD verify, S-16.02 3pts PreToolUse -F arm); E-16 under SS-07/SS-04; milestone v1.0.0-rc.17; BC-7.03.094/095/001, VP-080, ARCH SS-07 v1.3/SS-04 v1.4 registered |
-| v1.0-brownfield-backfill | brownfield | **D-561 2026-06-14; F2 E-18 COMPLETE; develop 7e99f6ef; main caf06c68** | S-15.03 PRIORITY-A COMPLETE D-508; rc.21 100% COMPLETE D-560; E-17 ALL WAVES DELIVERED; ADR-025 v1.6 guard SHIPPED rc.21; **F2 E-18 COMPLETE** (ADR-026 ACCEPTED; 8 BCs; VP-081..085; CAP-032; BC-INDEX v2.73; VP-INDEX v2.07; ARCH-INDEX v2.28; STORY-INDEX v4.01 UNCHANGED); **Next: F2 spec review gate (consistency-validator + adversary) → F3 story decomposition (S-18.00..S-18.07).** |
+| v1.0-brownfield-backfill | brownfield | **D-562 2026-06-14; F2 E-18 ADV PASS-1 FIXED; develop 7e99f6ef; main caf06c68** | S-15.03 PRIORITY-A COMPLETE D-508; rc.21 100% COMPLETE D-560; E-17 ALL WAVES DELIVERED; ADR-025 v1.6 guard SHIPPED rc.21; F2 E-18 SPEC EVOLUTION COMPLETE D-561; **F2 ADV PASS-1 FIXED D-562** (ADR-026 v1.1; VP-086; 8 BCs v1.1; DI-020..025; ARCH-INDEX v2.29; VP-INDEX v2.08; BC-INDEX v2.74; STORY-INDEX v4.01 UNCHANGED); **Next: F2 adversarial re-cascade (pass-2) → 3-CLEAN → F3 story decomposition (S-18.00..S-18.07).** |
 | v1.0-feature-engine-discipline-pass-1 | feature | **PAUSED** | F5 pass-75 adversary complete D-510 2026-05-27; META-LEVEL-30 CANDIDATE-CONFIRMED; trajectory →9→9→9→11 (tick-up from 35-consecutive 9s; 14-day pause cost); 4 structural ACCEPTED-AT-FLOOR per D-386 Option C extension; S-15.17 anchors HIGH-002 cure; L-EDP1-067 captured; BC-INDEX v2.53; STORY-INDEX v3.71. Full-cycle trajectory (75 values ending): →9→9→9→9→11. |
 | v1.0-feature-plugin-async-semantics-pass-1 | feature | CLOSED | All PRs merged; rc.14 shipped |
 
@@ -167,6 +169,7 @@ dtu_services: []
 
 | ID | Decision | Phase | Date |
 |----|----------|-------|------|
+| D-562 | F2 E-18 ADVERSARIAL PASS-1 FIX BURST 2026-06-14 — F1-gate APPROVED (human); F2 adv-pass-1 findings all resolved: ADR-026 v1.0→v1.1 (re-anchor to real substrate current_cycle/current_step + sprint-state.yaml; factory_lock:null no-op F-4; timeout_ms=30000 F-4; harness-version assertion F-5; PostCompact best-effort-outside-guarantee F-6; corrected registry TOML F-7; SS-08 reconcile F-9; VP-086 alloc F-10; clamp-confidence F-11; prereq-verification discipline F-15); VP-086 NEW (BC-1.15.001 Traceability gap); VP-INDEX v2.07→v2.08 (total_vps 85→86); ARCH-INDEX v2.28→v2.29; invariants.md v1.11→v1.13 (DI-020..DI-025 for CAP-032 + DI-025 prefix-convention align); L2-INDEX v1.0.3→v1.0.4 (DI count 17→25; CAP count corrected 28→32); 8 BCs v1.0→v1.1 (re-anchor + lock-null F-2 + exemption SHA-corroboration F-8 + handoff-SHA hard cross-check F-12 + H1 parity F-13 + DI-020..025 citations + VP-086 cite); BC-INDEX v2.73→v2.74 (total_bcs 1966 UNCHANGED; SS counts reflect D-561 actuals); STORY-INDEX v4.01 UNCHANGED; 4-index: BC-INDEX v2.74 / VP-INDEX v2.08 / STORY-INDEX v4.01 / ARCH-INDEX v2.29; D-chain cite D-561 per D-419(b); parent-commit 992c0651 per D-419(b). | feature-mode-f2-adv-pass-1-fix | 2026-06-14 |
 | D-561 | F2 E-18 CONTEXT-DURABILITY SPEC EVOLUTION BURST 2026-06-14 — F1-gate APPROVED by human: D1 new epic E-18 (CAP-032 context-durability); D2 all-in-one-cycle incl S-18.00 dispatcher PreCompact/PostCompact routing; D3 reset=prompt-human (auto-reset v2-deferred); D4 rehydration=curated wave-state.yaml (RAG v2-deferred); D5 threshold 70% CLAUDE_AUTOCOMPACT_PCT_OVERRIDE (per-autonomy v2-deferred); harness >=v2.1.105 confirmed ON v2.1.177. F2 COMPLETE: ADR-026 ACCEPTED (12 decisions; wave-boundary checkpoint/reset + lossless intra-wave compaction; ARCH-INDEX v2.27→v2.28); VP-081..VP-085 authored (VP-INDEX v2.06→v2.07; total_vps 80→85; Traceability 132→136 BCs/80→85 VPs; Story Anchors +5); 8 BCs authored (BC-1.15.001 SS-01 dispatcher PreCompact/PostCompact; BC-5.41.001/002/003 SS-05; BC-4.14.001 SS-04; BC-6.24.001 SS-06; BC-7.07.001/002 SS-07; BC-INDEX v2.72→v2.73; total_bcs 1958→1966); capabilities.md v1.3→v1.4 (CAP-032 registered); STORY-INDEX v4.01 UNCHANGED; E-18 epic OPEN; housekeeping: 13 leftover rc.21 untracked files committed (logs/dispatcher-internal-2026-06-09..13, logs/events-2026-06-09..13, code-delivery/S-17.04/, code-delivery/fix-release-bats-log-isolation/, cycles/v1.0-brownfield-backfill/lock-rust-chokepoint-feasibility.md); also committed: feature-delta/issue-173/F1-delta-analysis.md + feature-delta/research-precompact-gating-2026-06-13.md (F1 research artifacts); 4-index: BC-INDEX v2.73 VP-INDEX v2.07 STORY-INDEX v4.01 ARCH-INDEX v2.28; D-chain cite D-560 per D-419(b); parent-commit f4a6b065 per D-419(b). | feature-mode-f2-spec-evolution | 2026-06-14 |
 | D-560 | OPERATOR-INSTALL VERIFIED — rc.21 100% COMPLETE 2026-06-13 — /plugin update vsdd-factory@claude-mp → operator cache ~/.claude/plugins/cache/claude-mp/vsdd-factory/1.0.0-rc.21/ with plugin.json "version": "1.0.0-rc.21" VERIFIED (registry 132 entries); /reload-plugins applied (14 plugins/8 skills/61 agents/4 MCP/1 LSP); RELEASING.md Step 9 PASSED; closes entire rc.21 release (source release + marketplace merge + operator-cache install ALL verified end-to-end); NO remaining release action; next = #173 wave-checkpoint (gate OPEN — rc.21 marketplace-merged + operator-install-verified BOTH SATISFIED); 4-index UNCHANGED (BC-INDEX v2.72 VP-INDEX v2.06 STORY-INDEX v4.01 ARCH-INDEX v2.27); STATE.md-only burst; D-chain cite D-559 per D-419(b); parent-commit 2c3c3d09 per D-419(b). | release-operator-verified | 2026-06-13 |
 | D-559 | MARKETPLACE-MERGED CLOSURE BURST 2026-06-13 — marketplace PR drbothen/claude-mp #13 MERGED by human; marketplace.json rc.20→rc.21 live on drbothen/claude-mp default branch; v1.0.0-rc.21 FULLY SHIPPED to operator marketplace; plugin count 53→55 (verify-factory-lock + verify-state-timestamp-refresh WASM guards; factory-lock-parse crate; /factory-lock + /factory-unlock skills); operators receive via /plugin update vsdd-factory@claude-mp; closes D-558 pending-marketplace item; 4-index UNCHANGED (BC-INDEX v2.72 VP-INDEX v2.06 STORY-INDEX v4.01 ARCH-INDEX v2.27); STATE.md-only burst; D-chain cite D-558 per D-419(b); parent-commit 2ab9bef7 per D-419(b). | release-shipped-marketplace | 2026-06-13 |
@@ -218,6 +221,7 @@ dtu_services: []
 | **F-P3-007 / F-P4-001 / F-P4-002** | OPEN-DEFERRED 2026-05-17 | STATE.md `phase:` field cap; story v1.1 PC numbering; BC v1.2 changelog phrasing. Anchor: next BC-5.39.006 amendment. |
 | **L-EDP1-067-CANDIDATE-INV-015** | FORWARDED-TO-SK-MCP-001-APPENDIX-D 2026-05-18 | Adversary-fresh-context-must-grep-canonical-source. |
 | **bats-full-suite (linux) not in branch-protection required-status-checks** | OPEN 2026-06-13 — D-558 capture | New ci.yml `bats-full-suite (linux)` job (fix #5 from PR #186) runs but is NOT yet in branch-protection required-status-checks on develop/main. Jobs run but don't hard-gate merges. Follow-up: add to branch-protection settings. Anchor: next maintenance touch or rc cycle. |
+| **BC-INDEX count reconcile (pre-existing; not introduced by E-18)** | OPEN 2026-06-14 — D-562 capture | PRE-EXISTING drift found by consistency-validator during F2 adv-pass-1 review: (1) disk truth = 1970 BC files, BC-INDEX frontmatter total_bcs=1966, BC-INDEX body-summary-table sum=1964 (2-count gap frontmatter↔body; 4-count gap body↔disk); (2) orphan file `BC-2.02.013-host-run-subprocess.md` exists on disk but unregistered in BC-INDEX body; (3) stale subsystem header counts: SS-03 shows 53 vs 56 actual, SS-05 shows 660 vs 659 actual, SS-08 shows 214 vs 218 actual. ORTHOGONAL to E-18 scope; predates D-561. Routing: state-manager (frontmatter/body count reconcile) + product-owner (orphan BC-2.02.013 registration decision). Anchor: dedicated BC-INDEX reconcile burst before or concurrent with F2 re-cascade. |
 
 ## Historical Content
 
@@ -225,7 +229,7 @@ dtu_services: []
 - `cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` | `session-checkpoints.md` | `lessons.md`
 - `cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md` (adversary reviews at `S-12.03/`, `S-12.04/`, `S-12.05/` subdirs)
 
-## Session Resume Checkpoint (2026-06-14 — D-561 F2 E-18 CONTEXT-DURABILITY SPEC EVOLUTION BURST; F2 COMPLETE; next: F2 spec review gate then F3 story decomposition)
+## Session Resume Checkpoint (2026-06-14 — D-562 F2 E-18 ADV PASS-1 FIX BURST COMPLETE; next: F2 adversarial re-cascade pass-2 → 3-CLEAN → F3 story decomposition)
 
 > **SELF-SUFFICIENT RESUME CONTEXT FOR ZERO-CONTEXT NEW SESSION ON A DIFFERENT MACHINE**
 > Read this section alone to resume the orchestrator after full CLEAR, new session, or new machine. All context needed is here.
@@ -233,24 +237,24 @@ dtu_services: []
 
 ### §1. Where We Are
 
-**E-18 CAP-032 context-durability feature mode IN PROGRESS (D-561 2026-06-14). F1-gate APPROVED. F2 spec evolution COMPLETE. F2 spec review gate is NEXT.**
+**E-18 CAP-032 context-durability feature mode IN PROGRESS (D-562 2026-06-14). F1-gate APPROVED. F2 spec evolution COMPLETE (D-561). F2 adversarial pass-1 FIX BURST COMPLETE (D-562). F2 adversarial re-cascade (pass-2) is NEXT.**
 
-F2 summary:
-- F1 decisions locked (D1–D5): D1 new epic E-18 (CAP-032); D2 all-in-one-cycle incl S-18.00 PreCompact/PostCompact routing; D3 reset=prompt-human; D4 rehydration=curated wave-state.yaml; D5 threshold 70% CLAUDE_AUTOCOMPACT_PCT_OVERRIDE.
-- **ADR-026 ACCEPTED** (12 decisions; wave-boundary checkpoint+reset + lossless intra-wave compaction). ARCH-INDEX v2.27→v2.28.
-- **5 VPs authored** (VP-081..VP-085). VP-INDEX v2.06→v2.07. total_vps 80→85.
-- **8 BCs authored** (BC-1.15.001/5.41.001/5.41.002/5.41.003/4.14.001/6.24.001/7.07.001/7.07.002). BC-INDEX v2.72→v2.73. total_bcs 1958→1966.
-- **CAP-032 registered** in capabilities.md v1.4.
-- **STORY-INDEX v4.01 UNCHANGED.** E-18 epic OPEN; S-18.00..S-18.07 stories NOT YET AUTHORED (F3 next).
-- **Next: F2 spec review gate** — consistency-validator cross-doc check + adversary fresh-context review of ADR-026/BCs/VPs. Then F3 story decomposition.
+D-562 fix burst summary:
+- F2 adv-pass-1 found 3 BLOCKERs + 6 MAJORs + 6 MINORs. Human chose RE-ANCHOR to existing substrate. All resolved.
+- **ADR-026 v1.0→v1.1** (re-anchor to current_cycle/current_step + sprint-state.yaml; factory_lock:null no-op; timeout_ms=30000; harness-version assertion; PostCompact best-effort-outside-guarantee; corrected registry TOML; SS-08 reconcile; VP-086 alloc; clamp-confidence; prereq-verification discipline). ARCH-INDEX v2.28→v2.29.
+- **VP-086 NEW** (Dispatcher Exit-2 Propagation for PreCompact Block-Intent; closes BC-1.15.001 Traceability gap). VP-INDEX v2.07→v2.08. total_vps 85→86.
+- **invariants.md v1.11→v1.13** (DI-020..DI-025 for CAP-032 + DI-025 prefix-convention align). **L2-INDEX v1.0.3→v1.0.4** (DI count 17→25; CAP count corrected 28→32).
+- **8 BCs v1.0→v1.1** (re-anchor + lock-null + exemption SHA-corroboration + handoff-SHA hard cross-check + H1 parity + DI-020..025 citations + VP-086 cite). BC-INDEX v2.73→v2.74. total_bcs 1966 UNCHANGED.
+- **STORY-INDEX v4.01 UNCHANGED.** E-18 epic OPEN; S-18.00..S-18.07 NOT YET AUTHORED.
+- **Next: F2 adversarial re-cascade (pass-2)** — fresh-context adversary reads ADR-026 v1.1 + 8 BCs v1.1 + VP-086 + DI-020..025. Targeting BC-5.39.001 3-CLEAN convergence. Then F3 story decomposition.
 
 rc.21 remains FULLY SHIPPED (D-560 2026-06-13 VERIFIED). main caf06c68. develop 7e99f6ef. tag 03054524. Marketplace #13 MERGED.
 
-- **D-range:** D-001..D-561.
+- **D-range:** D-001..D-562.
 - **develop HEAD:** `7e99f6ef` (PR #186 fix + release.yml sync back-merge 2026-06-13).
 - **main HEAD:** `caf06c68` (rc.21 bot bundle commit).
-- **4-index (D-561):** BC-INDEX v2.73, VP-INDEX v2.07, STORY-INDEX v4.01, ARCH-INDEX v2.28.
-- **New BCs (all draft; POL-14 auto-promotion on implementing PR merge):** BC-1.15.001/5.41.001/5.41.002/5.41.003/4.14.001/6.24.001/7.07.001/7.07.002.
+- **4-index (D-562):** BC-INDEX v2.74, VP-INDEX v2.08, STORY-INDEX v4.01, ARCH-INDEX v2.29.
+- **BCs (all draft; POL-14 auto-promotion on implementing PR merge):** BC-1.15.001/5.41.001/5.41.002/5.41.003/4.14.001/6.24.001/7.07.001/7.07.002 (all now at v1.1).
 
 ### §2. Operating Mode
 
@@ -274,7 +278,8 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 - **POLICY 8 v1.3 EC-mirror routing-rule (D-517); bidirectional AC↔PC parity (D-515+D-516); POLICY 5 v1.3.1/v1.3.3/v1.3.4/v1.3.5/v1.3.6 SDK-grounding + sibling-sweep mandates.**
 - **D-537 [process-gap] spec-drift routing:** When TDD fix changes ADR-specified behavior, route architect ADR amendment in SAME burst. Codified ADR-024 v1.2 Process note.
 - **D-539 multi-family adversary obligation:** prompt-contract + shell-logic issues require cross-family AND same-family Claude adversary passes before convergence.
-- **D-561 carry:** F2 E-18 CONTEXT-DURABILITY SPEC EVOLUTION BURST 2026-06-14. F1-gate APPROVED (D1–D5 locked). F2 COMPLETE: ADR-026 ACCEPTED; VP-081..085; 8 BCs; CAP-032; ARCH-INDEX v2.28; VP-INDEX v2.07; BC-INDEX v2.73; STORY-INDEX v4.01 UNCHANGED. E-18 epic OPEN. Next: F2 spec review gate (consistency-validator + adversary) → F3 story decomposition (S-18.00..S-18.07). 4-index: BC-INDEX v2.73 VP-INDEX v2.07 STORY-INDEX v4.01 ARCH-INDEX v2.28. D-chain cite D-560. parent-commit f4a6b065.
+- **D-562 carry:** F2 E-18 ADVERSARIAL PASS-1 FIX BURST 2026-06-14. F1-gate APPROVED (human). All adv-pass-1 findings resolved: ADR-026 v1.1 (re-anchor to current_cycle/current_step); VP-086 NEW; VP-INDEX v2.08 (total_vps 86); ARCH-INDEX v2.29; invariants.md v1.13 (DI-020..025); L2-INDEX v1.0.4; 8 BCs v1.1; BC-INDEX v2.74 (total_bcs 1966 unchanged); STORY-INDEX v4.01 UNCHANGED. E-18 OPEN. Next: F2 adversarial re-cascade (pass-2) → 3-CLEAN → F3 story decomp (S-18.00..S-18.07). 4-index: BC-INDEX v2.74 VP-INDEX v2.08 STORY-INDEX v4.01 ARCH-INDEX v2.29. D-chain cite D-561. parent-commit 992c0651.
+- **D-561 carry:** F2 E-18 CONTEXT-DURABILITY SPEC EVOLUTION BURST 2026-06-14. F1-gate APPROVED (D1–D5 locked). F2 COMPLETE: ADR-026 ACCEPTED; VP-081..085; 8 BCs; CAP-032; ARCH-INDEX v2.28; VP-INDEX v2.07; BC-INDEX v2.73; STORY-INDEX v4.01 UNCHANGED. E-18 epic OPEN.
 - **D-560 carry:** OPERATOR-INSTALL-VERIFIED BURST 2026-06-13. /plugin update vsdd-factory@claude-mp → operator cache 1.0.0-rc.21 VERIFIED (plugin.json + registry 132 entries). /reload-plugins applied (14 plugins/8 skills/61 agents/4 MCP/1 LSP). RELEASING.md Step 9 PASSED. rc.21 100% COMPLETE end-to-end. NO remaining release action.
 - **D-558 carry (prior):** RC21 RELEASE-SHIPPED CLOSING BURST 2026-06-13. v1.0.0-rc.21 RELEASED via re-release after 6-class fix cycle (PR #186 a431ff47 + PR #188 d3b4e247; release.yml run 27478345756 all-PASS). main caf06c68; develop 7e99f6ef; tag 03054524. 4-index UNCHANGED. Process-gap (ci.yml-never-ran-run-all.sh) CLOSED by fix #5 (bats-full-suite(linux) job). bats-full-suite not yet in branch-protection required-checks (Drift Item).
 - **D-556 carry:** S-17.04 MERGED PR #184 3b2a378c 2026-06-12. E-17 ALL 4 WAVES COMPLETE. Feature branch deleted+verified. STORY-INDEX v4.01. ADR-025 v1.6 guard SHIPPED. SHIPPED in rc.21.
@@ -283,7 +288,8 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 ### §4. Tier-A Completed Log (most recent first)
 
-- **D-561 (2026-06-14):** F2 E-18 CONTEXT-DURABILITY SPEC EVOLUTION. F1-gate APPROVED (D1–D5). F2 COMPLETE: ADR-026 ACCEPTED (12 decisions); ARCH-INDEX v2.28; VP-081..085 (VP-INDEX v2.07; total_vps 85); 8 BCs (BC-INDEX v2.73; total_bcs 1966); CAP-032 (capabilities.md v1.4). STORY-INDEX v4.01 UNCHANGED. E-18 OPEN. Next: F2 review gate.
+- **D-562 (2026-06-14):** F2 E-18 ADVERSARIAL PASS-1 FIX BURST. All 3B+6M+6m resolved: ADR-026 v1.1 re-anchor; VP-086 NEW; VP-INDEX v2.08 (total_vps 86); ARCH-INDEX v2.29; invariants.md v1.13 (DI-020..025); L2-INDEX v1.0.4; 8 BCs v1.1; BC-INDEX v2.74 (total_bcs 1966 unchanged). STORY-INDEX v4.01 UNCHANGED. E-18 OPEN. Next: F2 adv re-cascade pass-2.
+- **D-561 (2026-06-14):** F2 E-18 CONTEXT-DURABILITY SPEC EVOLUTION. F1-gate APPROVED (D1–D5). F2 COMPLETE: ADR-026 ACCEPTED (12 decisions); ARCH-INDEX v2.28; VP-081..085 (VP-INDEX v2.07; total_vps 85); 8 BCs (BC-INDEX v2.73; total_bcs 1966); CAP-032 (capabilities.md v1.4). STORY-INDEX v4.01 UNCHANGED. E-18 OPEN.
 - **D-560 (2026-06-13):** OPERATOR-INSTALL-VERIFIED BURST. /plugin update → operator cache 1.0.0-rc.21 VERIFIED (plugin.json + registry 132). /reload-plugins applied (14 plugins/8 skills/61 agents/4 MCP/1 LSP). RELEASING.md Step 9 PASSED. rc.21 100% COMPLETE end-to-end. NO remaining release action. 4-index UNCHANGED.
 - **D-559 (2026-06-13):** MARKETPLACE-MERGED CLOSURE BURST. marketplace #13 MERGED. marketplace.json rc.20→rc.21 live. v1.0.0-rc.21 FULLY SHIPPED. plugin count 53→55. NO open release action. 4-index UNCHANGED.
 - **D-558 (2026-06-13):** RC21 RELEASE-SHIPPED CLOSING BURST. v1.0.0-rc.21 RELEASED via re-release (6-class fix cycle PR #186 a431ff47 + PR #188 d3b4e247; release.yml run 27478345756 all-PASS). main caf06c68; develop 7e99f6ef; tag 03054524. marketplace #13 PENDING human merge at D-558. 4-index UNCHANGED.
@@ -303,7 +309,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 ### §5. Cumulative Codifications
 
 - F5: D-379..D-454 (76 decisions) — `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md`.
-- Brownfield: D-001..D-561 — `cycles/v1.0-brownfield-backfill/decision-log.md`. Latest: **D-561 F2 E-18 CONTEXT-DURABILITY SPEC EVOLUTION BURST 2026-06-14 — F1-gate APPROVED; F2 COMPLETE: ADR-026+8BCs+VP-081..085+CAP-032; ARCH-INDEX v2.28; VP-INDEX v2.07; BC-INDEX v2.73; STORY-INDEX v4.01 UNCHANGED; E-18 OPEN; next F2 spec review gate.**
+- Brownfield: D-001..D-562 — `cycles/v1.0-brownfield-backfill/decision-log.md`. Latest: **D-562 F2 E-18 ADVERSARIAL PASS-1 FIX BURST 2026-06-14 — ADR-026 v1.1 re-anchor; VP-086 NEW; 8 BCs v1.1; DI-020..025; ARCH-INDEX v2.29; VP-INDEX v2.08; BC-INDEX v2.74; STORY-INDEX v4.01 UNCHANGED; next F2 adv re-cascade pass-2.**
 
 ### §6. Cumulative Lessons
 
@@ -318,16 +324,16 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 | Index | Version | Notes |
 |-------|---------|-------|
-| BC-INDEX | v2.73 | D-561: +8 BCs (BC-1.15.001/5.41.001/5.41.002/5.41.003/4.14.001/6.24.001/7.07.001/7.07.002); total_bcs 1958→1966; SS-01 117→118; SS-04 40→41; SS-05 657→660; SS-06 587→588; SS-07 198→200 |
-| VP-INDEX | v2.07 | D-561: +5 VPs (VP-081..085); total_vps 80→85; Traceability 132/80→136/85 BCs/VPs; Story Anchors +5 (S-18.01/S-18.02/S-18.04) |
-| STORY-INDEX | v4.01 | UNCHANGED at D-561. D-556: S-17.04 MERGED PR #184 (E-17 W4 COMPLETE). E-18 stories S-18.00..S-18.07 NOT YET AUTHORED (F3 next). |
-| ARCH-INDEX | v2.28 | D-561: ADR-026 registered (wave-boundary checkpoint/reset + lossless intra-wave compaction; issue #173). Prior v2.27: D-554 ADR-025 v1.6 deep-pass-7 P0 WASM env-dead-code fix. |
+| BC-INDEX | v2.74 | D-562: 8 BCs v1.0→v1.1; total_bcs 1966 UNCHANGED; SS counts carry from D-561 (SS-01 118; SS-04 41; SS-05 660; SS-06 588; SS-07 200). Prior D-561: +8 BCs; total_bcs 1958→1966. |
+| VP-INDEX | v2.08 | D-562: VP-086 NEW (Dispatcher Exit-2 Propagation for PreCompact Block-Intent); total_vps 85→86. Prior D-561: VP-081..085; total_vps 80→85. |
+| STORY-INDEX | v4.01 | UNCHANGED at D-561+D-562. D-556: S-17.04 MERGED PR #184 (E-17 W4 COMPLETE). E-18 stories S-18.00..S-18.07 NOT YET AUTHORED (F3 next). |
+| ARCH-INDEX | v2.29 | D-562: ADR-026 v1.0→v1.1 (re-anchor); version row bumped. Prior D-561 v2.28: ADR-026 v1.0 registered. |
 
-4-index at D-561 (literal-shell verification: `grep "^version:"` on all 4 indexes → BC-INDEX "2.73" / VP-INDEX "2.07" / STORY-INDEX "4.01" / ARCH-INDEX "2.28").
+4-index at D-562 (literal-shell verification: `grep "^version:"` on all 4 indexes → BC-INDEX "2.74" / VP-INDEX "2.08" / STORY-INDEX "4.01" / ARCH-INDEX "2.29").
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** `c0188ea7` (D-561 F2 E-18 spec-evolution burst 2026-06-14; prior: `f4a6b065` D-560 sha-patch)
+- **factory-artifacts HEAD:** `TBD-D-562-sha-patch` (D-562 F2 E-18 adv-pass-1 fix burst 2026-06-14; prior: `992c0651` D-561 sha-patch; prior-prior: `c0188ea7` D-561 spec-evolution burst)
 - **develop HEAD:** `7e99f6ef` (PR #186 fix a431ff47 + release.yml sync back-merge 2026-06-13; prior: `3b2a378c` D-556)
 - **main HEAD:** `caf06c68` (rc.21 bot bundle commit 2026-06-13; prior: `2a191314` rc.20)
 - **v1.0.0-rc.21 tag:** `03054524` (annotated; force-moved to bundle commit; FULLY SHIPPED; marketplace #13 MERGED)
@@ -346,7 +352,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 - **MERGED (E-17 ALL 4 WAVES):** PR #184 3b2a378c S-17.04 + PR #183 60fd0233 S-17.03 + PR #182 df4f26b8 S-17.02 + PR #181 c64b46d2 S-17.01 — ALL SHIPPED in rc.21.
 - **MERGED (prior bugs):** PR #180 0f4793f1 (#169+#176) + PR #179 89fbe2d6 (#130 ADR-024 v1.2) + PR #178 f6ce4b7c (#128) — ALL SHIPPED in rc.21.
 
-### §11. Post-CLEAR/Post-RESET Resume Checklist (zero-context; D-561 refresh)
+### §11. Post-CLEAR/Post-RESET Resume Checklist (zero-context; D-562 refresh)
 
 1. **Verify worktree state:** develop HEAD: `git rev-parse --short origin/develop` → expect `7e99f6ef`. Main HEAD: `git rev-parse --short origin/main` → expect `caf06c68`. Factory: `git -C .factory log -1` + `git -C .factory status` (expect clean; branch factory-artifacts). Feature branches: all E-17 branches DELETED. E-18 in spec phase (no feature branch yet).
 2. **Read §1-§12 this checkpoint** (all of it).
@@ -355,19 +361,20 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 5. **E-10 CASCADE SEALED D-531.** Do NOT resume without engine-surface material change.
 6. **F5 PAUSED** — trajectory →9→9→9→11. Do NOT resume without explicit human direction.
 7. **RC.21 100% COMPLETE D-560.** NO remaining release action. rc.21 CLOSED. Operators receive via `/plugin update vsdd-factory@claude-mp`.
-8. **E-18 F2 COMPLETE D-561.** ADR-026 ACCEPTED. 8 BCs authored (draft). VP-081..085 authored. CAP-032 registered. **Next: F2 spec review gate** (consistency-validator + adversary fresh-context). Do NOT start F3 story decomposition without F2 review gate PASS.
-9. **4-index confirmed D-561:** BC-INDEX v2.73, VP-INDEX v2.07, STORY-INDEX v4.01, ARCH-INDEX v2.28.
+8. **E-18 F2 ADV PASS-1 FIX BURST COMPLETE D-562.** ADR-026 v1.1 re-anchor. VP-086 NEW. 8 BCs v1.1. DI-020..025. ARCH-INDEX v2.29. VP-INDEX v2.08. BC-INDEX v2.74. **Next: F2 adversarial re-cascade (pass-2)** — fresh-context adversary reads revised spec. Targeting BC-5.39.001 3-CLEAN. Do NOT start F3 without 3-CLEAN convergence (or human waiver).
+9. **4-index confirmed D-562:** BC-INDEX v2.74, VP-INDEX v2.08, STORY-INDEX v4.01, ARCH-INDEX v2.29.
 10. **ALL dispatches carry:** TD-VSDD-097-EXT + TD-VSDD-099 + TD-VSDD-100 + POLICY 14 5-leg + verification_step 7 4-index gate + INV-019 (a)/(b)/(c) + adversary grep origin/factory-artifacts + D-449(a) literal-shell Dim-2 + POLICY 8 v1.3 parity + POLICY 5 v1.3.1/v1.3.4/v1.3.5/v1.3.6 + D-537 spec-drift routing + D-539 multi-family adversary.
-11. **Latest decision D-561.** E-18 F2 COMPLETE. F2 spec review gate is NEXT. Then F3 story decomposition S-18.00..S-18.07.
+11. **Latest decision D-562.** F2 adv pass-1 fix burst COMPLETE. F2 adversarial re-cascade (pass-2) is NEXT. Then F3 story decomposition S-18.00..S-18.07.
 
-### §12. Pending Work Items — Strict Resume Ordering (refreshed 2026-06-14 D-561)
+### §12. Pending Work Items — Strict Resume Ordering (refreshed 2026-06-14 D-562)
 
 | Step | Item | Tier | Gate | Status |
 |------|------|------|------|--------|
 | ~~1~~ | ~~rc.21 release end-to-end~~ | ~~release~~ | ~~—~~ | **CLOSED/COMPLETE — D-560 2026-06-13.** |
 | ~~2~~ | ~~E-18 F1 gate~~ | ~~feature~~ | ~~—~~ | **CLOSED — D-561 2026-06-14. F1-gate APPROVED. D1–D5 locked.** |
-| **1** | **#173/E-18 F2 spec review gate** | **feature** | F2 COMPLETE (DONE) | consistency-validator cross-doc check + adversary fresh-context review of ADR-026/BCs/VPs. **START HERE.** |
-| **2** | **#173/E-18 F3 story decomposition** | **feature** | F2 review gate PASS | Author S-18.00..S-18.07. STORY-INDEX v4.01→v4.02+. |
+| ~~3~~ | ~~E-18 F2 adv pass-1 fix burst~~ | ~~feature~~ | ~~—~~ | **CLOSED — D-562 2026-06-14. All 3B+6M+6m resolved. ADR-026 v1.1. VP-086. 8 BCs v1.1.** |
+| **1** | **#173/E-18 F2 adversarial re-cascade (pass-2)** | **feature** | D-562 fix burst DONE | Fresh-context adversary reads ADR-026 v1.1 + 8 BCs v1.1 + VP-086 + DI-020..025. Targeting BC-5.39.001 3-CLEAN. **START HERE.** |
+| **2** | **#173/E-18 F3 story decomposition** | **feature** | F2 3-CLEAN convergence (or human waiver) | Author S-18.00..S-18.07. STORY-INDEX v4.01→v4.02+. |
 | **3** | **#173 wave-checkpoint** | **implementation** | E-18 F3 done OR human re-sequence | State-durability chain stories S-18.01..S-18.05. Blocked on F3 decomposition. |
 | **4** | **#171 deferred-revalidate** | **implementation** | #173 stories done | Deferred-revalidation story |
 | **5** | **#129 canonical-principle** | **implementation** | human-authorize | Ship canonical-principle in plugin |
@@ -377,4 +384,4 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 **[D-414(c) acknowledgment: Section 12 is a non-standard addition for forward-backlog durability.]**
 
-> Previous checkpoint (D-560 OPERATOR-INSTALL-VERIFIED-BURST-2026-06-13) archived to: `cycles/v1.0-brownfield-backfill/session-checkpoints.md`
+> Previous checkpoint (D-561 F2-E18-CONTEXT-DURABILITY-SPEC-EVOLUTION-BURST-2026-06-14) archived to: `cycles/v1.0-brownfield-backfill/session-checkpoints.md`

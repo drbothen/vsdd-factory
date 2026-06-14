@@ -1,11 +1,11 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: product-owner
 timestamp: 2026-06-14T00:00:00Z
-last_amended: 2026-06-14
+last_amended: "2026-06-14 (v1.1) — F2 pass-1 fix-burst: (F-3) PC3 re-anchored: stories list derives from sprint-state.yaml `status: pending` OR `status: draft` entries ordered by dependency graph (not from phantom `wave:` story frontmatter field which does not exist). PC3 'no phantom' mandate explicit. Empty list is HARD ERROR per SOUL.md §4 — Postcondition 3 updated and EC-001 changed from 'valid' to hard block. (DI) TBD-DI replaced with DI-023. TBD-VP retained with justification per report."
 phase: F2
 inputs:
   - .factory/feature-delta/issue-173/F1-delta-analysis.md
@@ -18,7 +18,8 @@ subsystem: "SS-05"
 capability: "CAP-032"
 lifecycle_status: draft
 introduced: v1.0-feature-context-durability-E18
-modified: []
+modified:
+  - "2026-06-14 (v1.1) — F2 pass-1 fix-burst: PC3 stories derivation re-anchored (sprint-state.yaml status:pending/draft + dependency-order; no phantom wave: frontmatter); empty list → HARD ERROR; EC-001 updated; TBD-DI replaced with DI-023; ADR cite v1.0→v1.1."
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -52,7 +53,7 @@ At wave close, alongside HANDOFF.md (BC-5.41.001), the `wave-gate` / `wave-hando
    - `arch_files` — list of architecture file paths always included in rehydration context (ARCH-INDEX.md, directly referenced ADRs)
    - `state_pointer` — literal string `.factory/STATE.md`
 
-3. **Stories list is derived mechanically**: The stories in `wave-state.yaml` are derived from STORY-INDEX.md wave assignments (`wave: <N+1>` in story frontmatter), not from in-context reasoning. Each story's `spec_files` list is derived from that story's `bcs:` frontmatter array (resolved to file paths) and any explicitly declared `arch_deps:` entries.
+3. **Stories list is derived mechanically from real substrate**: The stories in `wave-state.yaml` are derived from `sprint-state.yaml` by selecting entries with `status: pending` OR `status: draft`, then applying the dependency-order graph from STORY-INDEX.md `depends_on:` arrays to produce the wave sequence. This is the SAME algorithm used by the `wave-scheduling` skill's topological sort step. No `wave:` frontmatter field on story files is referenced — that field does not exist. Each story's `spec_files` list is derived from that story's `bcs:` frontmatter array (resolved to file paths) and any explicitly declared `arch_deps:` entries. **Empty stories list is a HARD ERROR**: if `sprint-state.yaml` contains no entries with `status: pending` or `status: draft`, `wave-handoff` MUST abort with a non-zero exit and an explicit error message: "No next-wave stories found in sprint-state.yaml — either this is the final wave (declare epic complete) or sprint-state.yaml needs updating." A silent no-op or an empty `wave-state.yaml` with `stories: []` written silently is a SOUL.md §4 violation (SOUL.md #4: silent failures are forbidden).
 
 4. **No RAG**: The manifest does not use semantic retrieval. Every path in `spec_files` is a literal filesystem path that must resolve on the `factory-artifacts` branch or the working tree. Paths that do not resolve produce a warning at generation time (not a hard block, since some spec files may be in-progress).
 
@@ -70,7 +71,7 @@ At wave close, alongside HANDOFF.md (BC-5.41.001), the `wave-gate` / `wave-hando
 
 2. **Manifest is deterministic given STORY-INDEX.md state**: Two invocations of wave-handoff on the same STORY-INDEX.md state must produce byte-identical `stories` and `arch_files` lists (modulo `generated_at` timestamp and `generated_from_handoff_sha`).
 
-3. **No phantom stories**: Only stories with `wave: <N+1>` in STORY-INDEX.md appear in the manifest. Stories from other waves, stories without wave assignments, or story IDs not present in STORY-INDEX.md must not appear.
+3. **No phantom stories**: Only stories with `status: pending` or `status: draft` in `sprint-state.yaml` appear in the manifest, ordered by the dependency graph. No phantom `wave:` frontmatter field on story files is used — that field does not exist. Stories whose IDs do not appear in STORY-INDEX.md must not appear in the manifest.
 
 4. **RAG exclusion is mandatory**: Any code path that performs semantic vector retrieval over the spec corpus to populate `wave-state.yaml` is a specification violation. The manifest is curated and mechanical.
 
@@ -78,7 +79,7 @@ At wave close, alongside HANDOFF.md (BC-5.41.001), the `wave-gate` / `wave-hando
 
 | ID | Description | Expected Behavior |
 |----|-------------|-------------------|
-| EC-001 | Wave N+1 has no stories in STORY-INDEX.md | `stories: []` is valid; manifest is written with empty stories list; operator warned |
+| EC-001 | `sprint-state.yaml` has no entries with `status: pending` or `status: draft` | HARD ERROR: `wave-handoff` aborts with non-zero exit and explicit error message "No next-wave stories found in sprint-state.yaml — either this is the final wave (declare epic complete) or sprint-state.yaml needs updating."; no `wave-state.yaml` is written; operator must take explicit action |
 | EC-002 | A story's `bcs:` frontmatter references a BC path that does not exist | Warning logged; path included in `spec_files` with `status: missing`; not a hard block |
 | EC-003 | Story has no `spec_files` derivable (no `bcs:` frontmatter, no arch_deps) | Story included in `stories` list with `spec_files: []`; operator warned to add dependencies |
 | EC-004 | `generated_from_handoff_sha` cannot be computed (HANDOFF.md commit not yet visible) | Hard block; wave-state.yaml must not be written without the HANDOFF.md SHA |
@@ -88,9 +89,9 @@ At wave close, alongside HANDOFF.md (BC-5.41.001), the `wave-gate` / `wave-hando
 
 | Input | Expected Output | Category |
 |-------|----------------|----------|
-| STORY-INDEX.md: S-18.02 wave=2, S-18.03 wave=2; wave-handoff invoked for wave 1 | wave-state.yaml: `wave_id: 2`, `stories: [{id: S-18.02, ...}, {id: S-18.03, ...}]` | happy-path |
+| sprint-state.yaml: S-18.02 status=pending, S-18.03 status=draft; STORY-INDEX.md has both; wave-handoff invoked | wave-state.yaml: `wave_id: <next-wave>`, `stories: [{id: S-18.02, ...}, {id: S-18.03, ...}]` (dependency-ordered) | happy-path |
 | S-18.02 bcs: [BC-4.14.001, BC-5.41.001] | S-18.02 spec_files includes `.factory/specs/behavioral-contracts/ss-04/BC-4.14.001.md` and `ss-05/BC-5.41.001.md` | spec-derivation |
-| No wave-2 stories in STORY-INDEX.md | `stories: []`; operator warned; wave-state.yaml written | empty-wave |
+| No `status: pending` or `status: draft` entries in sprint-state.yaml | HARD ERROR; non-zero exit; explicit error message; no wave-state.yaml written | empty-wave-hard-error |
 | wave-state.yaml and HANDOFF.md in same commit | single git commit on factory-artifacts | atomicity |
 
 ## Related BCs
@@ -110,13 +111,13 @@ S-18.01 (HANDOFF.md schema + wave-handoff skill)
 
 ## VP Anchors
 
-TBD-VP — no dedicated VP assigned at F2 for wave-state.yaml production; story-writer assigns at F3.
+TBD-VP — no dedicated VP assigned at F2 for wave-state.yaml production. Justification for deferral: this BC's core atomicity property (wave-state.yaml + HANDOFF.md in a single commit) is already covered by VP-081 (which verifies the wave-gate close preconditions holistically). A separate VP for wave-state.yaml production would overlap VP-081's integration scope. Story-writer and test-writer assign a standalone integration VP at F3 if the BC-5.41.002 tests require a distinct VP ID for traceability. Flagged to architect for VP allocation decision.
 
 ## Verification Properties
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| TBD-VP | wave-state.yaml is produced atomically with HANDOFF.md; stories list derived from STORY-INDEX.md wave assignments; no RAG | integration |
+| TBD-VP | wave-state.yaml is produced atomically with HANDOFF.md in a single commit; stories list derived from sprint-state.yaml `status:pending/draft` entries ordered by dependency graph (no phantom `wave:` field; no RAG); empty list → hard error (non-zero exit, no file written) | integration |
 
 ## Traceability
 
@@ -124,9 +125,9 @@ TBD-VP — no dedicated VP assigned at F2 for wave-state.yaml production; story-
 |-------|-------|
 | L2 Capability | CAP-032 ("Guarantee lossless context-window transitions via wave-boundary checkpoint and PreCompact flush") per capabilities.md §CAP-032 |
 | Capability Anchor Justification | CAP-032 ("Guarantee lossless context-window transitions via wave-boundary checkpoint and PreCompact flush") per capabilities.md §CAP-032 — this BC specifies the curated rehydration manifest that enables deterministic session rehydration after a wave-boundary reset (ADR-026 Decision 4); deterministic rehydration is the direct complement to wave-boundary hard reset, together forming the complete context-durability guarantee |
-| L2 Domain Invariants | TBD-DI — new invariant candidate for wave rehydration determinism |
+| L2 Domain Invariants | DI-023 (Wave/phase identity and next-wave story lists derive from real persisted substrate fields; no phantom fields — enforced by stories derivation from sprint-state.yaml `status:pending/draft` + dependency-order, not from phantom `wave:` story frontmatter; empty list = hard error per SOUL.md §4) |
 | Architecture Module | SS-05 (Pipeline Orchestration) — wave-handoff skill |
-| ADR | ADR-026 v1.0 Decision 4 (wave-state.yaml curated manifest; RAG explicitly deferred) |
+| ADR | ADR-026 v1.1 Decision 4 (wave-state.yaml curated manifest; RAG explicitly deferred; next_wave_stories derived from sprint-state.yaml status:pending/draft entries + dependency-order; empty list = hard error) |
 | Stories | S-18.01 |
 | Cycle | v1.0-feature-context-durability-E18 (F2) |
 | Feature | issue #173 / E-18 |

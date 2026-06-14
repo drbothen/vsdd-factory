@@ -1,11 +1,11 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: product-owner
 timestamp: 2026-06-14T00:00:00Z
-last_amended: 2026-06-14
+last_amended: "2026-06-14 (v1.1) — F2 pass-1 fix-burst: (F-3 consistency) PC1 explicitly mandates git-sourced read from factory-artifacts (no in-context memory fallback); Invariant 1 strengthened to disallow working-tree fallback. (DI) TBD-DI replaced with DI-023. TBD-VP retained with justification per report."
 phase: F2
 inputs:
   - .factory/feature-delta/issue-173/F1-delta-analysis.md
@@ -18,7 +18,8 @@ subsystem: "SS-06"
 capability: "CAP-032"
 lifecycle_status: draft
 introduced: v1.0-feature-context-durability-E18
-modified: []
+modified:
+  - "2026-06-14 (v1.1) — F2 pass-1 fix-burst: PC1 git-source mandate strengthened; working-tree fallback explicitly disallowed; TBD-DI replaced with DI-023; TBD-VP retained with justification; ADR cite v1.0→v1.1."
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -42,7 +43,7 @@ The `rehydrate-wave` skill is invoked at the start of a new session after a wave
 
 ## Postconditions
 
-1. **wave-state.yaml read from git**: The skill fetches `wave-state.yaml` from `factory-artifacts` via `git show factory-artifacts:wave-state.yaml` (or equivalent). It does NOT read from the working tree or from in-context memory.
+1. **wave-state.yaml read from git (exact-list injection)**: The skill fetches `wave-state.yaml` from `factory-artifacts` via `git show factory-artifacts:wave-state.yaml` (or equivalent). It does NOT read from the working tree, from in-context memory, or from a locally cached copy that may be stale. The working-tree path `.factory/wave-state.yaml` (if it exists) is NOT the authoritative source — factory-artifacts branch via git is the only valid source.
 
 2. **Exactly listed specs injected**: The skill reads each path listed in `wave-state.yaml` under `stories[].spec_files` and `arch_files` and presents them as context to the session. The set of injected files is exactly the union of these two lists — no additions, no omissions.
 
@@ -60,7 +61,7 @@ The `rehydrate-wave` skill is invoked at the start of a new session after a wave
 
 ## Invariants
 
-1. **Git-sourced manifest**: `wave-state.yaml` is always read from `factory-artifacts` via git, never from in-context memory or the working tree. This prevents a stale in-memory copy from being used.
+1. **Git-sourced manifest (no working-tree fallback)**: `wave-state.yaml` is always read from `factory-artifacts` via git (`git show factory-artifacts:wave-state.yaml`), never from in-context memory, the working tree, or a locally cached copy. A working-tree `wave-state.yaml` that differs from the branch version is NOT authoritative. This prevents a stale in-memory or locally-edited copy from being used for rehydration.
 
 2. **Exact list semantics**: The injected file set is `Set(stories[*].spec_files) UNION Set(arch_files) UNION {state_pointer}`. Neither subset nor superset is acceptable.
 
@@ -105,13 +106,13 @@ S-18.03 (wave-reset skill + wave-state.yaml scoped rehydration)
 
 ## VP Anchors
 
-TBD-VP — no dedicated VP assigned at F2; story-writer assigns at F3.
+TBD-VP — no dedicated VP assigned at F2. Justification for deferral: the `rehydrate-wave` skill is a read-only context-injection operation with no blocking side-effect. Its verification requires a live factory session (a new session must be started and inspected for context content). This makes it an integration VP that cannot be wired to a unit-level assertion. Story-writer and test-writer assign the VP at F3 after confirming whether a bats test can simulate the rehydration flow or whether it requires a manual session test. Flagged to architect for VP allocation decision.
 
 ## Verification Properties
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| TBD-VP | rehydrate-wave reads wave-state.yaml from factory-artifacts; injects exactly listed files; no stale prior-wave specs; no RAG | integration |
+| TBD-VP | rehydrate-wave reads wave-state.yaml from factory-artifacts via git (not working tree); injects exactly the union of stories[*].spec_files + arch_files + state_pointer; no stale prior-wave specs; no RAG fallback when manifest is present or absent | integration |
 
 ## Traceability
 
@@ -119,9 +120,9 @@ TBD-VP — no dedicated VP assigned at F2; story-writer assigns at F3.
 |-------|-------|
 | L2 Capability | CAP-032 ("Guarantee lossless context-window transitions via wave-boundary checkpoint and PreCompact flush") per capabilities.md §CAP-032 |
 | Capability Anchor Justification | CAP-032 ("Guarantee lossless context-window transitions via wave-boundary checkpoint and PreCompact flush") per capabilities.md §CAP-032 — this BC specifies the rehydration consumption side of the wave-boundary reset mechanism; deterministic injection of exactly the listed specs (and no others) is the guarantee that the new session starts with the correct scope, completing the CAP-032 wave-boundary continuity guarantee begun by HANDOFF.md production (BC-5.41.001) |
-| L2 Domain Invariants | TBD-DI — new invariant candidate for session rehydration determinism |
+| L2 Domain Invariants | DI-023 (Wave/phase identity and next-wave story lists derive from real persisted substrate fields; no phantom fields — enforced by git-sourced manifest read (no working-tree or in-context fallback) and exact-list injection semantics (no additions from RAG or in-context inference)) |
 | Architecture Module | SS-06 (Skill Catalog) — rehydrate-wave skill in `plugins/vsdd-factory/skills/` |
-| ADR | ADR-026 v1.0 Decision 3 (prompt-the-human; operator clears session), Decision 4 (curated wave-state.yaml manifest; RAG deferred) |
+| ADR | ADR-026 v1.1 Decision 3 (prompt-the-human; operator clears session), Decision 4 (curated wave-state.yaml manifest; RAG deferred; reads from factory-artifacts via git; working-tree not authoritative) |
 | Stories | S-18.03 |
 | Cycle | v1.0-feature-context-durability-E18 (F2) |
 | Feature | issue #173 / E-18 |

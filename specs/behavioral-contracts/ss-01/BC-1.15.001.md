@@ -1,11 +1,11 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: product-owner
 timestamp: 2026-06-14T00:00:00Z
-last_amended: 2026-06-14
+last_amended: "2026-06-14 (v1.1) — F2 pass-1 fix-burst: (F-10) TBD-VP replaced with VP-086 (Dispatcher Exit-2 Propagation for PreCompact Block-Intent; ADR-026 v1.1 §VP Allocations). (DI) TBD-DI replaced with DI-020. ADR cite v1.0→v1.1."
 phase: F2
 inputs:
   - .factory/feature-delta/issue-173/F1-delta-analysis.md
@@ -19,7 +19,8 @@ subsystem: "SS-01"
 capability: "CAP-032"
 lifecycle_status: draft
 introduced: v1.0-feature-context-durability-E18
-modified: []
+modified:
+  - "2026-06-14 (v1.1) — F2 pass-1 fix-burst: TBD-VP replaced with VP-086 (F-10); TBD-DI replaced with DI-020; ADR cite v1.0→v1.1."
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -105,13 +106,13 @@ S-18.00 (verification/addition of PreCompact/PostCompact dispatcher routing — 
 
 ## VP Anchors
 
-TBD-VP — no VP explicitly assigned at F2 for this dispatcher routing BC; story-writer and test-writer assign integration test VP at F3.
+- VP-086 — Dispatcher Exit-2 Propagation for PreCompact Block-Intent (allocated in ADR-026 v1.1 §VP Allocations; VP-INDEX v2.07→v2.08)
 
 ## Verification Properties
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| TBD-VP | Dispatcher routes PreCompact event to registered shell plugin and propagates exit-2 block-intent | integration bats test |
+| VP-086 | factory-dispatcher receives a `PreCompact` event; registered plugin exits 2; dispatcher propagates `block_intent=true` to harness; compaction is blocked (on harness >= v2.1.105). On pre-v2.1.105 harness: dispatcher routes normally, exit-2 is visible as stderr but harness does not honour block-intent — this is documented degrade behavior, not a dispatcher failure. | integration bats test |
 
 ## Traceability
 
@@ -119,9 +120,9 @@ TBD-VP — no VP explicitly assigned at F2 for this dispatcher routing BC; story
 |-------|-------|
 | L2 Capability | CAP-032 ("Guarantee lossless context-window transitions via wave-boundary checkpoint and PreCompact flush") per capabilities.md §CAP-032 |
 | Capability Anchor Justification | CAP-032 ("Guarantee lossless context-window transitions via wave-boundary checkpoint and PreCompact flush") per capabilities.md §CAP-032 — this BC specifies the dispatcher-side routing obligation that enables the PreCompact flush (precompact-flush.sh) and PostCompact re-anchor (postcompact-reanchor.sh) hooks to receive harness events; without this routing, E-18 Parts B are non-functional |
-| L2 Domain Invariants | TBD-DI — no existing domain invariant directly covers PreCompact/PostCompact event routing; new invariant candidate flagged for business-analyst |
+| L2 Domain Invariants | DI-020 (Wave/phase boundary transitions must not lose load-bearing pipeline state — the dispatcher's PreCompact routing is a necessary infrastructure enabler: without routing, the flush hook cannot fire, and mid-wave compaction cannot be blocked on flush failure) |
 | Architecture Module | SS-01 (Hook Dispatcher Core) — runtime routing is in `crates/factory-dispatcher/src/invoke.rs` |
-| ADR | ADR-026 v1.0 Decision 11 — S-18.00 dispatcher routing verification/addition |
+| ADR | ADR-026 v1.1 Decision 11 — S-18.00 dispatcher routing verification/addition; VP-086 allocated for exit-2 propagation verification |
 | Stories | S-18.00 |
 | Cycle | v1.0-feature-context-durability-E18 (F2) |
 | Feature | issue #173 / E-18 |

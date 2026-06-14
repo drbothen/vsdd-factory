@@ -1,11 +1,11 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: product-owner
 timestamp: 2026-06-14T00:00:00Z
-last_amended: 2026-06-14
+last_amended: "2026-06-14 (v1.1) — F2 pass-1 fix-burst: (F-1) Precondition 4 re-anchored: `current_wave` field removed; wave-1 no-op now derives from sprint-state.yaml dependency-order wave-group OR STATE.md `current_step:` for engine context. PC3 + PC8 updated to reflect real substrate (no phantom `current_wave:` field). (DI) TBD-DI replaced with DI-020."
 phase: F2
 inputs:
   - .factory/feature-delta/issue-173/F1-delta-analysis.md
@@ -18,7 +18,8 @@ subsystem: "SS-04"
 capability: "CAP-032"
 lifecycle_status: draft
 introduced: v1.0-feature-context-durability-E18
-modified: []
+modified:
+  - "2026-06-14 (v1.1) — F2 pass-1 fix-burst: PC4 + PC3 + PC8 re-anchored to real substrate (sprint-state.yaml wave-group order or STATE.md current_step: for engine context); phantom current_wave: field removed; TBD-DI replaced with DI-020; ADR cite v1.0→v1.1."
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -47,7 +48,7 @@ removal_reason: null
    ```
 2. The plugin WASM binary exists at `plugins/vsdd-factory/hook-plugins/validate-wave-handoff-completeness.wasm`.
 3. The invoking tool call is a Write or Edit targeting `HANDOFF.md` on `factory-artifacts` OR targeting a path that matches `*/HANDOFF.md`.
-4. `STATE.md` frontmatter contains a readable `current_wave:` integer field (used for wave-1 no-op rule).
+4. Wave identity context is determinable from real substrate: for product pipelines, `sprint-state.yaml` wave-group ordering derived by `wave-scheduling` skill; for the self-referential engine, STATE.md frontmatter `current_step:` field. No phantom `current_wave:` field is referenced — this field does not exist on STATE.md. The gate uses the wave-group ordinal from sprint-state.yaml (position 1 = wave 1) or derives first-wave status from the absence of a prior HANDOFF.md on factory-artifacts.
 
 ## Postconditions
 
@@ -59,7 +60,7 @@ removal_reason: null
    ```
    The block message must name ALL failing fields in a single invocation, not just the first.
 
-3. **No-op rule (wave-1)**: When `STATE.md` frontmatter `current_wave` == 1 (or when STATE.md is unreadable), the gate returns `Continue` unconditionally without parsing HANDOFF.md. This prevents friction on the first wave where no prior handoff exists.
+3. **No-op rule (wave-1)**: When the pipeline context is the first wave (wave-group position 1 per sprint-state.yaml dependency order, OR when no prior HANDOFF.md exists on factory-artifacts, OR when wave context cannot be determined), the gate returns `Continue` unconditionally without parsing HANDOFF.md. No phantom `current_wave:` field is read from STATE.md — that field does not exist. This prevents friction on the first wave where no prior handoff exists.
 
 4. **No-op rule (non-HANDOFF.md write)**: When the PostToolUse event's tool call target path does not match `HANDOFF.md` (case-sensitive), the gate returns `Continue` immediately without reading or parsing any file.
 
@@ -69,7 +70,7 @@ removal_reason: null
 
 7. **Field validation scope**: The gate validates field PRESENCE and basic syntactic form only (field key exists; value is non-empty or null only where null is permitted). It does NOT perform anti-fabrication cross-checks against git or filesystem — those are performed by the `wave-handoff` skill (BC-5.41.001). Cross-checks require side effects; the WASM gate is pure-parse per ADR-026 Decision 8.
 
-8. **Wave-1 no-op is unconditional**: Even if `HANDOFF.md` is written with deliberate content on wave 1, the gate does not validate it. Validation only activates on wave > 1 (or when `current_wave` cannot be determined, defaulting to fail-open Continue).
+8. **Wave-1 no-op is unconditional**: Even if `HANDOFF.md` is written with deliberate content on the first wave, the gate does not validate it. Validation only activates when the pipeline is on wave > 1 (or when wave context cannot be determined from real substrate, defaulting to fail-open Continue).
 
 ## Invariants
 
@@ -87,7 +88,7 @@ removal_reason: null
 
 | ID | Description | Expected Behavior |
 |----|-------------|-------------------|
-| EC-001 | HANDOFF.md write targeting `wave-1`; current_wave = 1 | Continue (wave-1 no-op); no validation |
+| EC-001 | HANDOFF.md write on first wave (no prior HANDOFF.md on factory-artifacts; or wave-group position 1 per sprint-state.yaml) | Continue (wave-1 no-op); no validation |
 | EC-002 | HANDOFF.md write; all 9 fields present; current_wave = 2 | Continue; no block |
 | EC-003 | HANDOFF.md write; `last_verified_develop_sha` field missing; current_wave = 2 | HandoffIncomplete: `["last_verified_develop_sha"]` |
 | EC-004 | HANDOFF.md write; `last_verified_develop_sha` present but empty string; current_wave = 2 | HandoffIncomplete: field present but empty is treated as malformed |
@@ -96,17 +97,17 @@ removal_reason: null
 | EC-007 | Edit to `STATE.md` (not HANDOFF.md) | Continue (non-HANDOFF.md no-op); gate fires but immediately returns Continue |
 | EC-008 | Gate crashes (WASM panic) | fail-open Continue; plugin.crashed log; compaction/wave-close not blocked |
 | EC-009 | HANDOFF.md body is 350 lines (over 200-line cap) | Gate parses it; emits advisory warn; validates all fields normally |
-| EC-010 | STATE.md unreadable (current_wave cannot be determined) | fail-open Continue per wave-1 no-op default |
+| EC-010 | Wave context cannot be determined (sprint-state.yaml absent; factory-artifacts unreachable; STATE.md unreadable) | fail-open Continue per wave-1 no-op default |
 | EC-011 | wave-gate invoked with intent to close wave > 1; no HANDOFF.md exists yet | Gate not triggered (no Write to HANDOFF.md occurred); wave-gate skill is responsible for ensuring HANDOFF.md is written before close — the gate validates the write, not the absence |
 
 ## Canonical Test Vectors
 
 | Input | Expected Output | Category |
 |-------|----------------|----------|
-| Write to HANDOFF.md; current_wave=1 | Continue | wave-1-no-op |
-| Write to HANDOFF.md; current_wave=2; all 9 fields present + well-formed | Continue | happy-path |
-| Write to HANDOFF.md; current_wave=2; `wave_id` missing | `HandoffIncomplete: ["wave_id"]`; exit 2 | missing-field-single |
-| Write to HANDOFF.md; current_wave=2; 3 fields missing | `HandoffIncomplete: ["<f1>", "<f2>", "<f3>"]`; exit 2 | missing-field-multiple |
+| Write to HANDOFF.md; first wave (no prior HANDOFF.md on factory-artifacts) | Continue | wave-1-no-op |
+| Write to HANDOFF.md; second wave (prior HANDOFF.md exists on factory-artifacts); all 9 fields present + well-formed | Continue | happy-path |
+| Write to HANDOFF.md; second wave; `wave_id` missing | `HandoffIncomplete: ["wave_id"]`; exit 2 | missing-field-single |
+| Write to HANDOFF.md; second wave; 3 fields missing | `HandoffIncomplete: ["<f1>", "<f2>", "<f3>"]`; exit 2 | missing-field-multiple |
 | Write to STATE.md; any current_wave | Continue (non-HANDOFF.md target) | non-target-no-op |
 | WASM panic during field parse | Continue; `plugin.crashed` in dispatcher log | crash-fail-open |
 | Write to HANDOFF.md; body = 350 lines; all fields present | Continue + advisory warn in plugin.log | over-cap-advisory |
@@ -145,9 +146,9 @@ S-18.02 (validate-wave-handoff-completeness WASM gate crate + registry)
 |-------|-------|
 | L2 Capability | CAP-032 ("Guarantee lossless context-window transitions via wave-boundary checkpoint and PreCompact flush") per capabilities.md §CAP-032 |
 | Capability Anchor Justification | CAP-032 ("Guarantee lossless context-window transitions via wave-boundary checkpoint and PreCompact flush") per capabilities.md §CAP-032 — this BC specifies the WASM completeness gate that enforces HANDOFF.md integrity at write time, preventing a partial or incomplete handoff artifact from being committed and corrupting the wave-boundary continuity guarantee; it directly enforces ADR-026 Decision 8 and Decision 9 |
-| L2 Domain Invariants | TBD-DI — new invariant candidate for handoff completeness enforcement |
+| L2 Domain Invariants | DI-020 (Wave/phase boundary transitions must not lose load-bearing pipeline state — enforced by this gate blocking incomplete HANDOFF.md writes) |
 | Architecture Module | SS-04 (Plugin Ecosystem) — new WASM crate under `crates/hook-plugins/validate-wave-handoff-completeness/` |
-| ADR | ADR-026 v1.0 Decision 8 (WASM for completeness gate; deterministic parse-heavy validation; shell for flush), Decision 9 (no-op on wave-1 / HANDOFF.md absent) |
+| ADR | ADR-026 v1.1 Decision 8 (WASM for completeness gate; deterministic parse-heavy validation; shell for flush), Decision 9 (no-op on wave-1 / HANDOFF.md absent; wave identity from real substrate — sprint-state.yaml wave-group order or factory-artifacts HANDOFF.md presence) |
 | Stories | S-18.02 |
 | Cycle | v1.0-feature-context-durability-E18 (F2) |
 | Feature | issue #173 / E-18 |

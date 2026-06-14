@@ -2,11 +2,11 @@
 document_type: domain-spec-section
 level: L2
 section: invariants
-version: "1.11"
+version: "1.13"
 status: accepted
 producer: business-analyst
 timestamp: 2026-04-25T00:00:00
-last_amended: 2026-05-12
+last_amended: 2026-06-14
 phase: 1.3
 inputs:
   - .factory/phase-0-ingestion/pass-2-domain-model.md
@@ -164,10 +164,54 @@ By design: the override is a debug-build convenience for VP-079 fixture executio
 
 Justification: DI-019 is a domain invariant because the drain-window constant directly bounds user-facing latency for every Claude Code tool call that triggers the dispatcher. Inlining the constant in a single BC file (BC-1.14.001) would make it invisible to sibling BCs (e.g., BC-3.08.001) and VPs (VP-079) that depend on its value for fixture timing. Lifting it to a domain invariant makes the constraint enforceable across all dispatcher subsystems.
 
+## Context-Durability Invariants (CAP-032)
+
+_Authored 2026-06-14 to resolve F-14 (POLICY 2 systematic gap: all 8 E-18 BCs declared TBD-DI). Grounded in ADR-026 v1.1 and CAP-032 (capabilities.md v1.4). DI-020–DI-025 are the invariants the 8 E-18 BCs lift to. BC→DI lift map (for product-owner to replace TBD-DI in each BC): BC-1.15.001→DI-020; BC-5.41.001→DI-020+DI-021+DI-023; BC-5.41.002→DI-023; BC-5.41.003→DI-020+DI-025; BC-4.14.001→DI-020; BC-6.24.001→DI-023; BC-7.07.001→DI-021+DI-022+DI-025; BC-7.07.002→DI-024._
+
+**DI-020 — Wave/phase boundary transitions must not lose load-bearing pipeline state**
+A wave or phase boundary transition (session reset, context compaction, or context clear) must leave all load-bearing pipeline state — verified SHAs, active BC identifiers, open decisions, next-wave story list — durable on the `factory-artifacts` branch before the transition is considered complete. A transition that drops any load-bearing field is a continuity violation, not an acceptable degradation.
+Enforcement owner: SS-05 (wave-gate + wave-handoff skill) for wave-boundary transitions; SS-07 (precompact-flush.sh) for intra-wave PreCompact transitions; SS-04 (validate-wave-handoff-completeness WASM gate) as parse-layer enforcer. BC range: BC-5.41.001, BC-5.41.003, BC-4.14.001, BC-1.15.001.
+Justification: DI-020 is a business invariant because context loss is the root failure class CAP-032 exists to prevent. The invariant covers both failure sub-classes: wave-boundary session reset (Part A, HANDOFF.md) and mid-wave auto-compaction (Part B, PreCompact flush). Source: CAP-032 (capabilities.md §CAP-032); ADR-026 §Decision 1.
+
+CAP-032 covers the context-durability guarantee because it is grounded in the product brief requirement that long autonomous pipeline runs must not lose critical state across session boundaries. The requirement is stated in CAP-032 and referenced in ADR-026 §Context.
+
+**DI-021 — Handoff claims must be cross-checked against verifiable external ground truth, never in-context memory**
+Every field in a wave/phase handoff artifact (`HANDOFF.md`) must derive its value from a verifiable external source — `git rev-parse`, filesystem existence checks, or index-file lookups — and be confirmed via that check at handoff time. A field whose value is inferred from in-context LLM reasoning, harness-summarizer output, or environment variables set by the LLM is fabrication and constitutes a specification violation regardless of whether the value happens to be correct.
+Enforcement owner: SS-05 (wave-handoff skill executes the cross-checks); SS-07 (precompact-flush.sh hermetic read of STATE.md). BC range: BC-5.41.001, BC-7.07.001.
+Justification: DI-021 is a business invariant because the fabricated-SHA failure class (documented in issues #170 and #173) shows that in-context memory assertions cannot be trusted across compaction boundaries. The anti-fabrication rule is the domain's mechanism for eliminating this failure class. Source: CAP-032 (capabilities.md §CAP-032); ADR-026 §Decision 2 (anti-fabrication rule per field); ADR-026 §Context (fabricated-SHA risk).
+
+**DI-022 — The PreCompact flush derives all flushed state exclusively from durable persisted sources**
+The PreCompact flush hook (`precompact-flush.sh`) must read its inputs from STATE.md on the filesystem and from git commands only. It must not read from `custom_instructions`, environment variables set by the LLM, tool-call results visible only to the current context window, or any other in-context mechanism. This hermetic constraint closes the anti-deadlock risk (a flush that requires in-context state to operate would itself be unusable at the moment of compaction when that state is being lost). Lock-renewal before flush commit is a mandatory step; lock-renewal failure is advisory only and must not prevent the flush commit from proceeding.
+Enforcement owner: SS-07 (precompact-flush.sh). BC range: BC-7.07.001.
+Justification: DI-022 is a business invariant because a flush hook that reads in-context state is self-defeating: the hook fires precisely when that state is being discarded. The hermetic constraint is therefore the enabling condition for the flush's correctness guarantee. Source: ADR-026 §Decision 6 hermetic requirement and §Risks Addressed R1 closure.
+
+**DI-023 — Wave/phase identity and next-wave story lists derive from real persisted substrate fields; no phantom fields**
+Wave and phase identity used in handoff artifacts must derive from fields that actually exist in persisted state:
+- For the self-referential engine: `current_cycle:` + `phase:` + `current_step:` fields in STATE.md frontmatter.
+- For product pipelines: the wave-group numbering derived from `sprint-state.yaml` story `status: pending` or `status: draft` entries ordered by the dependency graph produced by the `wave-scheduling` skill.
+
+No phantom `current_wave:` frontmatter field on STATE.md and no `wave:` frontmatter on story files are referenced — these fields do not exist. Session rehydration after a wave-boundary reset reads `wave-state.yaml` from the `factory-artifacts` branch via git; it does not use semantic retrieval (RAG) over the spec corpus. `wave-state.yaml` lists are produced deterministically from STORY-INDEX.md dependency arrays and sprint-state.yaml status entries — two invocations on the same input state must produce the same story and arch-file lists.
+
+An empty `next_wave_stories` list in `wave-handoff` output is a hard error, not a silent no-op (SOUL.md §4).
+Enforcement owner: SS-05 (wave-handoff skill; derives wave_id and next-wave story list from real substrate) and SS-06 (rehydrate-wave skill; reads wave-state.yaml from git, no RAG fallback). BC range: BC-5.41.001 (wave_id source), BC-5.41.002 (stories list derivation + no RAG), BC-6.24.001 (git-sourced manifest + no RAG + exact list semantics).
+Justification: DI-023 is a business invariant because referencing phantom fields produces undefined behavior at implementation time: the field will be absent, causing either silent empty-value usage or a runtime crash. The real-substrate constraint forces the design to anchor to fields that are always present. Source: ADR-026 §Context ("Real state substrate (F-1 / F-15 re-anchor)"); ADR-026 §Decision 2 (wave_id source); ADR-026 §Decision 4 (RAG explicitly deferred; curated manifest is deterministic).
+
+**DI-024 — PostCompact re-anchor is best-effort and carries no correctness guarantee; it is not in the CAP-032 continuity-guarantee chain**
+The PostCompact re-anchor hook (`postcompact-reanchor.sh`) fires after context compaction has already occurred. It reads durable state from `factory-artifacts` and emits a re-anchor summary, but it cannot reverse or prevent compaction. PostCompact is advisory-only in the Claude Code harness: exit codes from a PostCompact hook have no blocking effect on the session regardless of value. The CAP-032 continuity guarantee rests exclusively on two components: (a) wave-boundary HANDOFF.md production and verification (Part A — DI-020, DI-021) and (b) synchronous PreCompact flush before compaction (Part B — DI-020, DI-022). Any design or implementation that depends on PostCompact re-anchor for a correctness property is a specification violation. The PostCompact hook must not commit to `factory-artifacts`; reads are permitted.
+Enforcement owner: SS-07 (postcompact-reanchor.sh; read-only with respect to factory-artifacts). BC range: BC-7.07.002.
+Justification: DI-024 is a business invariant because misrepresenting the PostCompact hook as a correctness guarantee (rather than a convenience re-anchor) would cause implementers and specifiers to omit the necessary Part A and Part B guarantees, relying on a mechanism that cannot block. Source: ADR-026 §Decision 7 ("PostCompact re-anchor: advisory shell hook; cannot block"); ADR-026 §Risks Addressed F-6 closure.
+
+**DI-025 — PreCompact flush commits are lifecycle-orthogonal to state-manager burst commits**
+A `PreCompact flush <cycle>/<step> <ISO-timestamp>` commit on `factory-artifacts` is produced by the PreCompact flush hook (BC-7.07.001) as a harness-event-triggered lifecycle commit, not as part of a state-manager burst (the A/B/C/D/E sequence per TD-VSDD-053). The MULTI_COMMIT_CHAIN_NOT_ALLOWED detector in `validate-burst-log` and `validate-dispatch-advance` must treat any commit whose subject matches the prefix `PreCompact flush ` as exempt from chain detection. The exemption is NOT a bare-prefix match alone: when the side-channel file `.factory/hooks/last-precompact-flush-sha` exists, the detector must additionally corroborate the commit SHA against the SHA recorded in that file before granting the exemption (per BC-5.41.003 EC-003). A commit bearing the `PreCompact flush ` prefix that cannot be corroborated via the side-channel when that file exists is not exempt. The prefix match is case-sensitive on the raw commit subject; it is not NLP inference. The exemption — prefix-match AND side-channel-SHA-corroboration when the side-channel file exists — must be implemented symmetrically in both hooks. A burst-log entry must not cite a PreCompact flush commit as Commit A/B/C/D/E.
+Enforcement owner: SS-05 (validate-burst-log + validate-dispatch-advance apply the exemption); SS-07 (precompact-flush.sh produces the canonical commit message prefix). BC range: BC-5.41.003, BC-7.07.001.
+Justification: DI-025 is a business invariant because the TD-VSDD-053 single-commit-per-burst discipline is a core factory-governance rule. Without an explicit lifecycle boundary, every PreCompact flush commit would produce a false-positive MULTI_COMMIT_CHAIN_NOT_ALLOWED block, making the factory unworkable after any compaction event. The lifecycle boundary is the domain-level rule that keeps both disciplines (durability + governance) simultaneously satisfied. Source: ADR-026 §Decision 10; CAP-032 (capabilities.md §CAP-032); TD-VSDD-053.
+
 ## CHANGELOG
 
 | Version | Date | Change |
 |---------|------|--------|
+| v1.13 | 2026-06-14 | Convention-alignment fix for DI-025: (a) commit-format example updated from `PreCompact flush wave-<N>` to `PreCompact flush <cycle>/<step> <ISO-timestamp>` (ADR-026 v1.1 Decision 10); (b) exempt-prefix corrected from `PreCompact flush wave-` to `PreCompact flush ` (general, no `wave-`); (c) exemption semantics strengthened to prefix-match AND side-channel-SHA-corroboration against `.factory/hooks/last-precompact-flush-sha` when that file exists (BC-5.41.003 EC-003). Invariant intent (lifecycle-orthogonality of flush commits vs burst commits) unchanged. |
+| v1.12 | 2026-06-14 | F-14 fix (POLICY 2 systematic gap — E-18 BCs all declared TBD-DI): authored DI-020 through DI-025 (Context-Durability Invariants for CAP-032). Grounded in ADR-026 v1.1 and CAP-032 (capabilities.md v1.4). New section "Context-Durability Invariants (CAP-032)" added. BC→DI lift map documented in section header. ID Registry DI-NNN range extended to DI-025. |
 | v1.11 | 2026-05-12 | FIX-3 (F2 audit FINDING-004): extended DI-004 and DI-005 Enforcement owner entries with plugin-layer enforcers. DI-004 now cites BC-7.03.094 INV-1 and BC-7.03.095 INV-1 (PostToolUse/PreToolUse fail-open on CAPABILITY_DENIED). DI-005 now cites BC-7.03.094 INV-3 (shell_bypass_acknowledged = false for git binary). Bidirectionality requirement (criterion 74) satisfied. |
 | v1.0 | 2026-04-25 | Initial authoring from domain spec crystallization (Phase 1.3). 17 invariants (DI-001–DI-017). |
 | v1.1 | 2026-05-06 | D-314 F-4 fix: DI-007/008/011/012/013/014/017 amended/refined/superseded per ADR-015. DI-007 amended (debug stream is opt-in). DI-008 reaffirmed (filename pattern unchanged). DI-011 superseded (single-sink eliminates mpsc+try_send). DI-012 superseded (single-sink; per-sink isolation moot). DI-013 refined (warn-and-skip extended to v2 unknown keys per BC-3.05.004). DI-014 updated (schema_version=2 target; hard error on mismatch preserved). DI-017 renamed dispatcher_trace_id → trace_id per ADR-015 v1.7 canonicalization. BC-side L2 citation work (adding DI references to BC-1.12.002/003/004 and BC-3.05.004) deferred to D-315 (PO). |

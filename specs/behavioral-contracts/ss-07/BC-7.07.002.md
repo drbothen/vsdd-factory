@@ -1,11 +1,11 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: product-owner
 timestamp: 2026-06-14T00:00:00Z
-last_amended: 2026-06-14
+last_amended: "2026-06-14 (v1.1) — F2 pass-1 fix-burst: (F-6) Best-effort status made explicit in §Description and §Invariants; NOT in CAP-032 continuity-guarantee chain. (F-13 POLICY 7) H1 title corrected: 'reads compaction summary' removed from H1 because PC7 makes it optional; H1 now accurately describes what postconditions specify. (DI) TBD-DI replaced with DI-024. TBD-VP retained with justification."
 phase: F2
 inputs:
   - .factory/feature-delta/issue-173/F1-delta-analysis.md
@@ -18,7 +18,8 @@ subsystem: "SS-07"
 capability: "CAP-032"
 lifecycle_status: draft
 introduced: v1.0-feature-context-durability-E18
-modified: []
+modified:
+  - "2026-06-14 (v1.1) — F2 pass-1 fix-burst: H1 title corrected (removed 'reads compaction summary' per F-13 POLICY 7 H1↔postcondition parity); §Description + §Invariants updated to state best-effort explicitly (F-6); NOT in CAP-032 guarantee chain; TBD-DI replaced with DI-024; TBD-VP retained with justification; ADR cite v1.0→v1.1."
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -27,25 +28,29 @@ removed: null
 removal_reason: null
 ---
 
-# BC-7.07.002: postcompact-reanchor.sh fires on PostCompact (advisory only; cannot block); reads compaction summary; logs re-anchor confirmation to .factory/logs/; does NOT commit to factory-artifacts
+# BC-7.07.002: postcompact-reanchor.sh fires on PostCompact (advisory only; best-effort; cannot block); emits re-anchor block to stdout from factory-artifacts STATE.md; logs to .factory/logs/; does NOT commit to factory-artifacts
 
 ## Description
 
-`postcompact-reanchor.sh` is an advisory shell hook registered under `event = "PostCompact"` in `hooks-registry.toml`. It fires after the harness has completed context compaction. Its sole purpose is to emit a concise re-anchor block to stdout (visible to the LLM as fresh context) that re-states `current_wave`, `current_step`, and `last_verified_develop_sha` from the `factory-artifacts` branch — not from in-context memory. PostCompact is inherently non-blocking in the Claude Code harness; this hook cannot prevent or reverse compaction regardless of its exit code. It does NOT commit to `factory-artifacts` (commits are the PreCompact flush's responsibility). Its output is purely informational re-anchoring.
+`postcompact-reanchor.sh` is an advisory shell hook registered under `event = "PostCompact"` in `hooks-registry.toml`. It fires after the harness has completed context compaction. Its sole purpose is to emit a concise re-anchor block to stdout (visible to the LLM as fresh context) that re-states `current_step`, `current_cycle`, and `last_verified_develop_sha` from the `factory-artifacts` branch — not from in-context memory. PostCompact is inherently non-blocking in the Claude Code harness; this hook cannot prevent or reverse compaction regardless of its exit code. It does NOT commit to `factory-artifacts` (commits are the PreCompact flush's responsibility). **This hook is explicitly BEST-EFFORT and is NOT part of the CAP-032 continuity-guarantee chain.** The CAP-032 guarantee rests exclusively on Part A (HANDOFF.md) and Part B (PreCompact flush). This hook's failure, crash, or absence has no effect on the CAP-032 guarantee. Its output is purely informational re-anchoring after the fact.
 
 ## Preconditions
 
 1. The hook is registered in `hooks-registry.toml` as:
    ```toml
    [[hooks]]
+   name = "postcompact-reanchor"
    event = "PostCompact"
-   plugin = "legacy-bash-adapter"
-   [hooks.config]
-   script_path = "plugins/vsdd-factory/hooks/postcompact-reanchor.sh"
-   async = false
-   on_error = "continue"
+   plugin = "hook-plugins/legacy-bash-adapter.wasm"
    priority = 100
+   timeout_ms = 10000
+   on_error = "continue"
+   async = false
+
+   [hooks.config]
+   script_path = "hooks/postcompact-reanchor.sh"
    ```
+   (Full capabilities block per ADR-026 §Decision 7 corrected TOML schema.)
 2. The Claude Code harness version >= v2.1.105 (PostCompact event supported).
 3. The dispatcher routes `PostCompact` events to registered plugins (BC-1.15.001 postconditions satisfied).
 4. `factory-artifacts` branch is accessible via `git` for reading STATE.md fields.
@@ -77,7 +82,7 @@ removal_reason: null
 
 2. **Values sourced from factory-artifacts, not in-context**: `current_wave`, `current_step`, and `last_verified_develop_sha` values in the re-anchor output must be read from `git show factory-artifacts:.factory/STATE.md`, never from the LLM's in-context knowledge. This is the re-anchor's entire purpose: providing authoritative grounding after compaction potentially corrupted in-context state.
 
-3. **Advisory nature is by design**: The PostCompact hook is the "after the fact" complement to the PreCompact flush. It cannot undo compaction or restore lost context. It can only surface the externally persisted truth so the LLM can re-ground itself.
+3. **Best-effort and not in CAP-032 guarantee chain**: This hook is explicitly best-effort. It is NOT in the CAP-032 continuity-guarantee chain. The PostCompact hook is the "after the fact" complement to the PreCompact flush. It cannot undo compaction or restore lost context. It can only surface the externally persisted truth so the LLM can re-ground itself. Any design or implementation that depends on this hook for a correctness property is a specification violation (DI-024). If this hook is absent, crashes, or emits incorrect data, the CAP-032 guarantee is unaffected — Part A (HANDOFF.md) and Part B (PreCompact flush) are sufficient.
 
 4. **Log-append is idempotent-safe**: If the log file already contains an entry for the current timestamp (e.g., two rapid PostCompact events), the hook appends rather than overwrites. No deduplication required.
 
@@ -121,13 +126,13 @@ S-18.05 (postcompact-reanchor.sh advisory hook)
 
 ## VP Anchors
 
-TBD-VP — no dedicated VP at F2; PostCompact is advisory and its VP would be a unit-test verifying stdout format and log write behavior.
+TBD-VP — no dedicated VP assigned at F2. Justification for deferral: this hook is explicitly best-effort and not in the CAP-032 guarantee chain (DI-024). A VP for a best-effort advisory hook that carries no correctness guarantee is appropriate to defer — there is no blocking invariant that the VP would guard. A unit-test VP verifying the stdout format and log-write behavior would be appropriate at F3 to prevent silent regressions to the convenience re-anchor behavior. Story-writer assigns at F3. Flagged to architect for final VP allocation decision.
 
 ## Verification Properties
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| TBD-VP | postcompact-reanchor.sh emits re-anchor block to stdout from factory-artifacts STATE.md; appends to .factory/logs/; does NOT commit to factory-artifacts; exits 0 on all paths | unit-test |
+| TBD-VP | postcompact-reanchor.sh emits re-anchor block to stdout from factory-artifacts STATE.md (git-sourced, not in-context); appends to .factory/logs/; does NOT commit or push to factory-artifacts; exits 0 on all paths including crash/factory-artifacts-unreachable | unit-test |
 
 ## Traceability
 
@@ -135,9 +140,9 @@ TBD-VP — no dedicated VP at F2; PostCompact is advisory and its VP would be a 
 |-------|-------|
 | L2 Capability | CAP-032 ("Guarantee lossless context-window transitions via wave-boundary checkpoint and PreCompact flush") per capabilities.md §CAP-032 |
 | Capability Anchor Justification | CAP-032 ("Guarantee lossless context-window transitions via wave-boundary checkpoint and PreCompact flush") per capabilities.md §CAP-032 — this BC specifies the PostCompact re-anchor hook that completes the mid-wave compaction durability story: after compaction, the LLM's in-context understanding of wave/step/SHA may be stale or hallucinated; this hook emits the authoritative externally-persisted values so the LLM can re-ground itself before the next tool call (ADR-026 Decision 7) |
-| L2 Domain Invariants | TBD-DI — PostCompact advisory re-anchor invariant; new invariant candidate |
+| L2 Domain Invariants | DI-024 (PostCompact re-anchor is best-effort and carries no correctness guarantee; it is not in the CAP-032 continuity-guarantee chain — enforced by hook design: cannot block, does not commit, failure has no CAP-032 impact) |
 | Architecture Module | SS-07 (Hook Bash Layer) — shell hook in `plugins/vsdd-factory/hooks/`; registry entry in `hooks-registry.toml` |
-| ADR | ADR-026 v1.0 Decision 7 (PostCompact re-anchor: advisory shell hook; cannot block; re-reads STATE.md pointer; emits re-anchor block) |
+| ADR | ADR-026 v1.1 Decision 7 (PostCompact re-anchor: advisory shell hook; best-effort; cannot block; NOT in CAP-032 guarantee chain; re-reads STATE.md pointer from factory-artifacts; emits re-anchor block; does not commit) |
 | Stories | S-18.05 |
 | Cycle | v1.0-feature-context-durability-E18 (F2) |
 | Feature | issue #173 / E-18 |

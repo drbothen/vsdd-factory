@@ -1,10 +1,11 @@
 ---
 document_type: domain-spec-index
 level: L2
-version: "1.0.3"
+version: "1.0.4"
 status: accepted
 producer: business-analyst
 timestamp: 2026-04-27T00:00:00
+last_amended: 2026-06-14
 phase: 1.3
 inputs:
   - .factory/phase-0-ingestion/pass-8-final-synthesis.md
@@ -49,7 +50,7 @@ workflow management driven by LLM agents.
 | Capabilities | capabilities.md | ~1,200 | product-owner, architect, story-writer | CAP-001..CAP-028 user-facing capability catalog with SS-NN traceability |
 | Edge Cases | edge-cases.md | ~900 | story-writer, test-writer | DEC-001..DEC-018 domain-level exception flows |
 | Domain Events | domain-events.md | ~1,100 | architect, test-writer | DE-001..DE-022 event catalog with producer/consumer/schema |
-| Invariants | invariants.md | ~950 | product-owner, architect | DI-001..DI-017 domain invariants with SS-NN enforcement owner |
+| Invariants | invariants.md | ~1,400 | product-owner, architect | DI-001..DI-025 domain invariants with SS-NN enforcement owner |
 | Glossary | glossary.md | ~800 | all agents | 22 canonical domain terms for ubiquitous language |
 
 ## Cross-References
@@ -68,8 +69,8 @@ workflow management driven by LLM agents.
 
 | ID Format | Count | Section | Range |
 |-----------|-------|---------|-------|
-| CAP-NNN | 28 | capabilities.md | CAP-001..CAP-028 |
-| DI-NNN | 17 | invariants.md | DI-001..DI-017 |
+| CAP-NNN | 32 | capabilities.md | CAP-001..CAP-032 |
+| DI-NNN | 25 | invariants.md | DI-001..DI-025 |
 | DE-NNN | 22 | domain-events.md | DE-001..DE-022 |
 | DEC-NNN | 18 | edge-cases.md | DEC-001..DEC-018 |
 
@@ -81,9 +82,9 @@ workflow management driven by LLM agents.
 | SS-02 | Hook SDK and Plugin ABI | CAP-002, CAP-009 |
 | SS-03 | Event Emission (OTel-Aligned) | CAP-003, CAP-010 |
 | SS-04 | Plugin Ecosystem | CAP-002, CAP-008, CAP-013 |
-| SS-05 | Pipeline Orchestration | CAP-001, CAP-004, CAP-005, CAP-006, CAP-012, CAP-014, CAP-016, CAP-018 |
-| SS-06 | Skill Catalog | CAP-001, CAP-004, CAP-005, CAP-006, CAP-014, CAP-015, CAP-016, CAP-017, CAP-018, CAP-019, CAP-020, CAP-021, CAP-022, CAP-023, CAP-024, CAP-025, CAP-026, CAP-028 |
-| SS-07 | Hook Bash Layer | CAP-008, CAP-013, CAP-027 |
+| SS-05 | Pipeline Orchestration | CAP-001, CAP-004, CAP-005, CAP-006, CAP-012, CAP-014, CAP-016, CAP-018, CAP-032 |
+| SS-06 | Skill Catalog | CAP-001, CAP-004, CAP-005, CAP-006, CAP-014, CAP-015, CAP-016, CAP-017, CAP-018, CAP-019, CAP-020, CAP-021, CAP-022, CAP-023, CAP-024, CAP-025, CAP-026, CAP-028, CAP-032 |
+| SS-07 | Hook Bash Layer | CAP-008, CAP-013, CAP-027, CAP-032 |
 | SS-08 | Templates and Rules | CAP-014, CAP-016, CAP-025 |
 | SS-09 | Configuration and Activation | CAP-007, CAP-028 |
 | SS-10 | CLI Tools and Bin | CAP-003, CAP-010, CAP-027 |
@@ -92,14 +93,15 @@ workflow management driven by LLM agents.
 
 | Priority | Count | CAPs |
 |----------|-------|------|
-| P0 (must-have) | 11 | CAP-001, CAP-002, CAP-003, CAP-007, CAP-008, CAP-009, CAP-010, CAP-013, CAP-014, CAP-016, CAP-028 |
-| P1 (should-have) | 11 | CAP-004, CAP-005, CAP-006, CAP-011, CAP-012, CAP-015, CAP-017, CAP-018, CAP-019, CAP-020, CAP-021 |
-| P2 (nice-to-have) | 6 | CAP-022, CAP-023, CAP-024, CAP-025, CAP-026, CAP-027 |
+| P0 (must-have) | 14 | CAP-001, CAP-002, CAP-003, CAP-007, CAP-008, CAP-009, CAP-010, CAP-013, CAP-014, CAP-016, CAP-028, CAP-029, CAP-031, CAP-032 |
+| P1 (should-have) | 11 | CAP-004, CAP-005, CAP-006, CAP-011, CAP-012, CAP-015, CAP-017, CAP-018, CAP-019, CAP-020, CAP-030 |
+| P2 (nice-to-have) | 7 | CAP-021, CAP-022, CAP-023, CAP-024, CAP-025, CAP-026, CAP-027 |
 
 ## Changelog
 
 | Version | Date | Author | Notes |
 |---------|------|--------|-------|
+| 1.0.4 | 2026-06-14 | business-analyst | F-14 fix (POLICY 2 gap — E-18 BCs TBD-DI): authored DI-020..DI-025 in invariants.md v1.12. ID Registry DI-NNN range updated DI-001..DI-017 → DI-001..DI-025. CAP-NNN count updated 28→32 (CAP-029..CAP-032 already existed in capabilities.md; index count corrected). Priority distribution corrected (P0/P1/P2 now matches capabilities.md content including CAP-029..CAP-032). Subsystem Cross-Walk: CAP-032 added to SS-05, SS-06, SS-07. invariants.md Document Map token estimate updated (~950→~1,400). |
 | 1.0.3 | 2026-05-14 | architect | D-468 F-PASS13-001 closure: corrected citation D-350 → D-466 in v1.0.2 row (D-350 is F5-cycle S-13.01 merge decision; D-466 is brownfield E-10 pass-12 fix burst). |
 | 1.0.2 | 2026-05-13 | architect | D-466 E-10 pass-12 fix burst F-3+F-6 closure (HH-4 regex-alternation discipline): SS-03 subsystem name `Observability Sinks` → `Event Emission (OTel-Aligned)` per POLICY 6 canonical-name SoT (ARCH-INDEX Subsystem Registry). |
 | 1.0.1 | (prior) | business-analyst | Prior version. |
