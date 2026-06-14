@@ -1,11 +1,11 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.5"
+version: "1.6"
 status: draft
 producer: product-owner
 timestamp: 2026-06-14T00:00:00Z
-last_amended: "2026-06-14 (v1.5) — F2 pass-5 fix-burst: (F-P5-003 MAJOR) §Description phantom field eliminated: 'when `current_wave = 1`' replaced with canonical first-wave derivation from PC3 ('when pipeline context is the first wave — wave-group position 1 per sprint-state.yaml OR no prior HANDOFF.md on factory-artifacts'); ADR cite v1.4→v1.5. [Prior: 2026-06-14 (v1.4) — F2 pass-4 fix-burst: (F-P4-003) ADR cite v1.3→v1.4 (cite-only). [Prior: 2026-06-14 (v1.3) — F2 pass-3 fix-burst: ADR cite v1.1→v1.3. [Prior: 2026-06-14 (v1.2) — F2 pass-2 fix-burst: (F-P2-002 BLOCKER) EC-002/003/004/005/006 `current_wave = N` load-bearing references replaced with first-wave detection language (wave-group position per sprint-state.yaml OR absence of prior HANDOFF.md on factory-artifacts); test vector `any current_wave` → `any pipeline context`; VP-083 + VP-081 verification property rows updated to first-wave detection semantics — no phantom `current_wave:` field referenced anywhere in body. [Prior: 2026-06-14 (v1.1) — F2 pass-1 fix-burst: (F-1) Precondition 4 re-anchored: `current_wave` field removed; wave-1 no-op now derives from sprint-state.yaml dependency-order wave-group OR STATE.md `current_step:` for engine context. PC3 + PC8 updated to reflect real substrate (no phantom `current_wave:` field). (DI) TBD-DI replaced with DI-020.]"
+last_amended: "2026-06-14 (v1.6) — F2 pass-6 fix-burst: (F-P6-004 MAJOR) H1 + §Description + PC1 conditional field validation: 'all 9 required fields' → 'all 9 base required fields (+ `epic_status: complete` conditionally required on EPIC-COMPLETE wave)'; PC added: gate detects EPIC-COMPLETE → adds `epic_status` to required set; on non-EPIC-COMPLETE wave, `epic_status` present → `UnexpectedEpicStatus`; EC-012/EC-013/EC-014 added; 3 test vectors added. (E-18) ADR cite convention: v1.5 version token dropped (TD-VSDD-091); stable §Decision anchors adopted. [Prior: 2026-06-14 (v1.5) — F2 pass-5 fix-burst: (F-P5-003 MAJOR) §Description phantom field eliminated: 'when `current_wave = 1`' replaced with canonical first-wave derivation from PC3 ('when pipeline context is the first wave — wave-group position 1 per sprint-state.yaml OR no prior HANDOFF.md on factory-artifacts'); ADR cite v1.4→v1.5. [Prior: 2026-06-14 (v1.4) — F2 pass-4 fix-burst: (F-P4-003) ADR cite v1.3→v1.4 (cite-only). [Prior: 2026-06-14 (v1.3) — F2 pass-3 fix-burst: ADR cite v1.1→v1.3. [Prior: 2026-06-14 (v1.2) — F2 pass-2 fix-burst: (F-P2-002 BLOCKER) EC-002/003/004/005/006 `current_wave = N` load-bearing references replaced with first-wave detection language (wave-group position per sprint-state.yaml OR absence of prior HANDOFF.md on factory-artifacts); test vector `any current_wave` → `any pipeline context`; VP-083 + VP-081 verification property rows updated to first-wave detection semantics — no phantom `current_wave:` field referenced anywhere in body. [Prior: 2026-06-14 (v1.1) — F2 pass-1 fix-burst: (F-1) Precondition 4 re-anchored: `current_wave` field removed; wave-1 no-op now derives from sprint-state.yaml dependency-order wave-group OR STATE.md `current_step:` for engine context. PC3 + PC8 updated to reflect real substrate (no phantom `current_wave:` field). (DI) TBD-DI replaced with DI-020.]"
 phase: F2
 inputs:
   - .factory/feature-delta/issue-173/F1-delta-analysis.md
@@ -19,6 +19,7 @@ capability: "CAP-032"
 lifecycle_status: draft
 introduced: v1.0-feature-context-durability-E18
 modified:
+  - "2026-06-14 (v1.6) — F2 pass-6 fix-burst: (F-P6-004) H1+Description+PC conditional epic_status; EC-012/EC-013/EC-014; 3 test vectors; ADR cite convention: stable §Decision anchors (TD-VSDD-091)."
   - "2026-06-14 (v1.5) — F2 pass-5 fix-burst: (F-P5-003) §Description 'current_wave = 1' phantom → canonical first-wave derivation (wave-group position 1 per sprint-state.yaml OR no prior HANDOFF.md on factory-artifacts); ADR cite v1.4→v1.5."
   - "2026-06-14 (v1.4) — F2 pass-4 fix-burst: (F-P4-003) ADR cite v1.3→v1.4 (cite-only)."
   - "2026-06-14 (v1.3) — F2 pass-3 fix-burst: ADR cite v1.1→v1.3."
@@ -32,11 +33,11 @@ removed: null
 removal_reason: null
 ---
 
-# BC-4.14.001: validate-wave-handoff-completeness WASM gate blocks HandoffIncomplete on PostToolUse HANDOFF.md writes; no-op on wave-1 and non-HANDOFF.md writes
+# BC-4.14.001: validate-wave-handoff-completeness WASM gate blocks HandoffIncomplete on PostToolUse HANDOFF.md writes (9 base required fields + epic_status conditional on EPIC-COMPLETE); no-op on wave-1 and non-HANDOFF.md writes
 
 ## Description
 
-`validate-wave-handoff-completeness` is a native WASM plugin registered as a PostToolUse gate on Write/Edit tool calls that target `HANDOFF.md` on `factory-artifacts`. When fired on a HANDOFF.md write, it validates that all 9 required fields specified in ADR-026 §Decision 2 are syntactically present. It blocks with `HandoffIncomplete` if any field is missing or malformed. It is a strict no-op (returns `Continue`) when the pipeline context is the first wave (wave-group position 1 per sprint-state.yaml dependency order OR no prior HANDOFF.md exists on factory-artifacts) OR when the tool call does not target `HANDOFF.md`. No phantom `current_wave:` field is referenced — that field does not exist on STATE.md. This design follows the established factory WASM gate pattern (ADR-008, ADR-014) — deterministic parse-heavy validation with no filesystem or git side effects.
+`validate-wave-handoff-completeness` is a native WASM plugin registered as a PostToolUse gate on Write/Edit tool calls that target `HANDOFF.md` on `factory-artifacts`. When fired on a HANDOFF.md write, it validates that all 9 base required fields specified in ADR-026 §Decision 2 are syntactically present, and conditionally validates `epic_status: complete` when EPIC-COMPLETE context is detected. It blocks with `HandoffIncomplete` (listing all failing base fields) if any base field is missing or malformed. It blocks with `MissingEpicStatus` if the final wave lacks `epic_status`. It blocks with `UnexpectedEpicStatus` if `epic_status` is present on a non-final wave (malformed HANDOFF.md). It is a strict no-op (returns `Continue`) when the pipeline context is the first wave (wave-group position 1 per sprint-state.yaml dependency order OR no prior HANDOFF.md exists on factory-artifacts) OR when the tool call does not target `HANDOFF.md`. No phantom `current_wave:` field is referenced — that field does not exist on STATE.md. This design follows the established factory WASM gate pattern (ADR-008, ADR-014) — deterministic parse-heavy validation with no filesystem or git side effects.
 
 ## Preconditions
 
@@ -56,13 +57,19 @@ removal_reason: null
 
 ## Postconditions
 
-1. **Happy path — all 9 fields present and syntactically valid**: Gate returns `Continue`. Wave close may proceed. No block.
+1. **Happy path — all 9 base required fields present and syntactically valid (and epic_status conditionally valid)**: Gate returns `Continue`. Wave close may proceed. No block.
 
-2. **HandoffIncomplete — missing or malformed field**: Gate returns `block_intent = true`, exit code 2, with a structured block message naming each missing or malformed field:
+2. **HandoffIncomplete — missing or malformed base field**: Gate returns `block_intent = true`, exit code 2, with a structured block message naming each missing or malformed field:
    ```
    HandoffIncomplete: required fields missing or malformed: [<field1>, <field2>, ...]
    ```
    The block message must name ALL failing fields in a single invocation, not just the first.
+
+2a. **Conditional field validation — `epic_status` (F-P6-004)**: The gate performs conditional validation of the `epic_status` field based on EPIC-COMPLETE context detection:
+   - **EPIC-COMPLETE detection**: the gate determines EPIC-COMPLETE context by parsing the HANDOFF.md payload: if `next_wave_stories: []` (empty list) AND all story entries in the parsed content have terminal status OR cannot be determined (the gate reads the HANDOFF.md content being written, not external state), EPIC-COMPLETE is inferred.
+   - **EPIC-COMPLETE context**: `epic_status` is REQUIRED and MUST equal `complete`. If absent: gate blocks with `MissingEpicStatus` (exit 2). If present but not `complete`: gate blocks with `HandoffIncomplete: epic_status malformed`.
+   - **Non-EPIC-COMPLETE context**: `epic_status` MUST be absent from HANDOFF.md. If present (any value): gate blocks with `UnexpectedEpicStatus` (exit 2): `HandoffIncomplete: unexpected field epic_status on non-final wave`.
+   - **Practical EPIC-COMPLETE heuristic for WASM**: since the gate is pure-parse with no external filesystem access, it uses the HANDOFF.md payload's `next_wave_stories` field as the discriminator: empty list (`[]`) → EPIC-COMPLETE branch; non-empty list → non-EPIC-COMPLETE branch. This is sufficient because wave-gate (BC-5.41.001) is responsible for ensuring the payload is internally consistent before writing.
 
 3. **No-op rule (wave-1)**: When the pipeline context is the first wave (wave-group position 1 per sprint-state.yaml dependency order, OR when no prior HANDOFF.md exists on factory-artifacts, OR when wave context cannot be determined), the gate returns `Continue` unconditionally without parsing HANDOFF.md. No phantom `current_wave:` field is read from STATE.md — that field does not exist. This prevents friction on the first wave where no prior handoff exists.
 
@@ -72,7 +79,7 @@ removal_reason: null
 
 6. **on_error = "continue"**: A gate crash (WASM panic, fuel exhaustion) results in `Continue` (fail-open). Gate crash is logged to the dispatcher internal log with `plugin.crashed` record.
 
-7. **Field validation scope**: The gate validates field PRESENCE and basic syntactic form only (field key exists; value is non-empty or null only where null is permitted). It does NOT perform anti-fabrication cross-checks against git or filesystem — those are performed by the `wave-handoff` skill (BC-5.41.001). Cross-checks require side effects; the WASM gate is pure-parse per ADR-026 Decision 8.
+7. **Field validation scope**: The gate validates field PRESENCE and basic syntactic form only (field key exists; value is non-empty or null only where null is permitted) for all 9 base required fields, plus conditional `epic_status` validation per PC2a. It does NOT perform anti-fabrication cross-checks against git or filesystem — those are performed by the `wave-handoff` skill (BC-5.41.001). Cross-checks require side effects; the WASM gate is pure-parse per ADR-026 §Decision 8.
 
 8. **Wave-1 no-op is unconditional**: Even if `HANDOFF.md` is written with deliberate content on the first wave, the gate does not validate it. Validation only activates when the pipeline is on wave > 1 (or when wave context cannot be determined from real substrate, defaulting to fail-open Continue).
 
@@ -103,6 +110,9 @@ removal_reason: null
 | EC-009 | HANDOFF.md body is 350 lines (over 200-line cap) | Gate parses it; emits advisory warn; validates all fields normally |
 | EC-010 | Wave context cannot be determined (sprint-state.yaml absent; factory-artifacts unreachable; STATE.md unreadable) | fail-open Continue per wave-1 no-op default |
 | EC-011 | wave-gate invoked with intent to close wave > 1; no HANDOFF.md exists yet | Gate not triggered (no Write to HANDOFF.md occurred); wave-gate skill is responsible for ensuring HANDOFF.md is written before close — the gate validates the write, not the absence |
+| EC-012 | HANDOFF.md write on non-final wave includes `epic_status: complete` | Gate blocks with `UnexpectedEpicStatus` (exit 2); `epic_status` MUST be absent on non-final waves (`next_wave_stories` is non-empty) |
+| EC-013 | HANDOFF.md write on EPIC-COMPLETE final wave (`next_wave_stories: []`) is missing `epic_status` | Gate blocks with `MissingEpicStatus` (exit 2); `epic_status: complete` is required on the final wave |
+| EC-014 | HANDOFF.md write on EPIC-COMPLETE final wave with all 9 base fields + `epic_status: complete`; `next_wave_stories: []` | Gate returns `Continue`; all base fields valid + conditional epic_status valid |
 
 ## Canonical Test Vectors
 
@@ -115,6 +125,9 @@ removal_reason: null
 | Write to STATE.md; any pipeline context | Continue (non-HANDOFF.md target) | non-target-no-op |
 | WASM panic during field parse | Continue; `plugin.crashed` in dispatcher log | crash-fail-open |
 | Write to HANDOFF.md; body = 350 lines; all fields present | Continue + advisory warn in plugin.log | over-cap-advisory |
+| Write to HANDOFF.md; non-final wave (`next_wave_stories` non-empty); `epic_status: complete` present | `UnexpectedEpicStatus`; exit 2 | non-final-unexpected-epic-status |
+| Write to HANDOFF.md; EPIC-COMPLETE final wave (`next_wave_stories: []`); all 9 base fields + `epic_status: complete` | Continue; all fields valid | epic-complete-happy-path |
+| Write to HANDOFF.md; EPIC-COMPLETE final wave (`next_wave_stories: []`); all 9 base fields; `epic_status` absent | `MissingEpicStatus`; exit 2 | epic-complete-missing-epic-status |
 
 ## Related BCs
 
@@ -152,7 +165,7 @@ S-18.02 (validate-wave-handoff-completeness WASM gate crate + registry)
 | Capability Anchor Justification | CAP-032 ("Guarantee lossless context-window transitions via wave-boundary checkpoint and PreCompact flush") per capabilities.md §CAP-032 — this BC specifies the WASM completeness gate that enforces HANDOFF.md integrity at write time, preventing a partial or incomplete handoff artifact from being committed and corrupting the wave-boundary continuity guarantee; it directly enforces ADR-026 Decision 8 and Decision 9 |
 | L2 Domain Invariants | DI-020 (Wave/phase boundary transitions must not lose load-bearing pipeline state — enforced by this gate blocking incomplete HANDOFF.md writes) |
 | Architecture Module | SS-04 (Plugin Ecosystem) — new WASM crate under `crates/hook-plugins/validate-wave-handoff-completeness/` |
-| ADR | ADR-026 v1.5 Decision 8 (WASM for completeness gate; deterministic parse-heavy validation; shell for flush), Decision 9 (no-op on wave-1 / HANDOFF.md absent; wave identity from real substrate — sprint-state.yaml wave-group order or factory-artifacts HANDOFF.md presence; no phantom current_wave: field per F-P5-003) |
+| ADR | ADR-026 §Decision 8 (WASM for completeness gate; deterministic parse-heavy validation; shell for flush), §Decision 9 (no-op on wave-1 / HANDOFF.md absent; wave identity from real substrate — sprint-state.yaml wave-group order or factory-artifacts HANDOFF.md presence; no phantom current_wave: field per F-P5-003) |
 | Stories | S-18.02 |
 | Cycle | v1.0-feature-context-durability-E18 (F2) |
 | Feature | issue #173 / E-18 |

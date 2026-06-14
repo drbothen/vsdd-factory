@@ -3063,3 +3063,39 @@ Every hit must be either: (a) a historical `last_amended:` / `changelog:` / `Pri
 **Cites:** D-564; D-563; D-562; L-F2-phantom-field-gate (D-563 closure-gate discipline — reinforced here); S-7.02 (closure-gate checklist); CLAUDE.md Canonical Principle Rule 3 (fix in scope); TD-VSDD-060 (sibling-site sweep on value changes); BC-5.39.001 3-CLEAN protocol.
 
 **Closes:** D-564 process-gap lesson capture; recurring sibling-sweep miss root-cause codification (3-pass pattern). `[codified]`
+
+---
+
+### L-F2-DI-sibling-sweep-unswept-sibling
+
+**Category:** adversarial-convergence + sibling-sweep-discipline + cross-document-propagation + VSDD-process-gap
+
+**(a) A finding that notes a semantic constraint in an ADR (e.g., "WASM plugins cannot exec git") must be propagated to ALL derivative artifacts that codify the same constraint — including domain invariants (DI), not only BCs and VPs.** F2 adversarial pass-4 observation O-P4-004 noted in ADR-026 that WASM plugins read embedded field tokens (no live git exec). The fix burst correctly noted this in ADR-026 body. However, DI-025 in invariants.md still contained two clauses prescribing `git cat-file -t <SHA>` execution inside WASM — a direct contradiction. Pass-5 found F-P5-001 BLOCKER as a result. **Pattern:** when an architectural constraint is updated in an ADR, the propagation sweep MUST include the domain-spec invariants file in addition to BCs, VPs, and capabilities.
+
+**(b) The sweep checklist for ADR amendments must include a 7th class: domain-spec invariants.** The L-F2-sibling-sweep-tree-wide-gate lesson (D-564) established a 6-class sweep requirement. DI-025 violated that lesson because it was not in any of the 6 classes. The 7th class is now mandatory: (7) domain-spec/invariants.md (any DI-NNN that cites the ADR or enforces the same constraint). **Updated sweep checklist:** (1) ADR self, (2) domain-spec/invariants.md, (3) capabilities.md, (4) VP body + VP-INDEX rows, (5) all BCs, (6) index rows, (7) any supporting shell scripts or hooks that implement the constraint.
+
+**Anchors:** D-566 (F2 pass-5 fix burst; DI-025 corrected — WASM static field read semantics); F2 adv-pass-5 F-P5-001 BLOCKER (DI-025 prescribed git exec inside WASM); O-P4-004 (pass-4 observation that triggered this gap); S-18.08 gate rationale REINFORCED (3rd consecutive pass with sibling-sweep miss of a different class).
+
+**Cites:** D-566; D-565 (O-P4-004 origin); L-F2-sibling-sweep-tree-wide-gate (D-564 sweep checklist extended); S-18.08 (draft story); S-7.02 (cycle-closing); BC-5.39.001 3-CLEAN.
+
+**Closes:** D-566 lesson capture; domain-invariant sibling-sweep gap codified as 7th sweep class. `[codified]`
+
+---
+
+### L-F2-ADR-cite-convention-recurring-stale-cite-class
+
+**Category:** adversarial-convergence + bc-traceability-discipline + governance-policy + VSDD-process-gap
+
+**(a) Using a versioned ADR token (`ADR-026 v1.X §Decision N`) as a load-bearing identifier in BC Traceability rows is a recurring defect class that will be flagged in every subsequent adversarial pass until the version token is current.** F2 adversarial passes 3, 4, and 5 all found (among other issues) that BC Traceability ADR cites were version-stale relative to the current ADR version. Each pass forced a batch ADR-cite-version bump across all 8 E-18 BCs. By pass-6, the root cause was recognized as structural: the version token in the cite was volatile, and any ADR amendment would render all BC Traceability rows stale. **Pattern:** volatile version pins in Traceability rows create a mandatory BC-INDEX bump on every ADR amendment, even when the BC's behavioral content is unchanged.
+
+**(b) The correct governance fix is to adopt a stable-anchor form for ADR cites: `ADR-NNN §Decision N` without a version number.** This is the same principle as TD-VSDD-091 (narrative spec content must cite function names + behavioral anchors, not file:NNN line numbers). Applied to ADR cites: the section anchor (`§Decision N`, `§Crash-Consistency Design`) is stable across ADR amendments; the version token is volatile. An informational `(as of vX.Y)` parenthetical is acceptable ONLY if it is syntactically parenthetical and explicitly non-load-bearing. This was codified as POLICY 19 (D-567) and applied tree-wide in the same burst via ADR-026 v1.6 §BC Traceability Cite Convention.
+
+**(c) Fix bursts that amend an ADR MUST sweep ALL BC Traceability rows that cite that ADR and migrate any load-bearing version tokens to stable-anchor form in the SAME burst.** The O-P6-001 process-gap also identified a narrower sibling-miss: the adversary's change-spec block in ADR-026 §F-PX sections names only the BCs being content-changed, but co-named sibling BCs that share the same ADR cite are also stale and need cite migration. The sweep-completeness gate for this class: when a fix burst touches the ADR cite in ANY BC, grep all other BCs that cite the same ADR and migrate the version token in the same burst.
+
+**(d) Disposition — S-18.08 scope extension:** the existing S-18.08 draft story (lint/hook gate for phantom-field removal) should be broadened to include a sweep-completeness gate for ADR-cite migration: the gate must verify that when any BC Traceability ADR cite is migrated, ALL co-citing BCs are swept in the same burst. This is a machine-checkable assertion (`grep "ADR-NNN v[0-9]" .factory/specs/behavioral-contracts/` → 0 matches after a migration burst).
+
+**Anchors:** D-567 (this burst); O-P6-001 (adversary process-gap observation pass-6); ADR-026 v1.6 §BC Traceability Cite Convention; POLICY 19 (adr_version_cite_volatile_pin_prohibition); S-18.08 scope-extension.
+
+**Cites:** D-567; O-P6-001; TD-VSDD-091; POLICY 19; S-18.08; S-7.02; BC-5.39.001 3-CLEAN; L-F2-sibling-sweep-tree-wide-gate (D-564; extended by sweep-class: BC Traceability rows).
+
+**Closes:** D-567 O-P6-001 process-gap lesson capture; recurring stale-ADR-cite class eliminated by governance (POLICY 19 + stable-anchor convention). S-18.08 scope extended (ADR-cite sweep-completeness gate). `[codified]`

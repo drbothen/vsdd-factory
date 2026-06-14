@@ -1,11 +1,11 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.4"
+version: "1.6"
 status: draft
 producer: product-owner
 timestamp: 2026-06-14T00:00:00Z
-last_amended: "2026-06-14 (v1.4) — F2 pass-4 fix-burst: (F-P4-003) ADR cite v1.3→v1.4 (cite-only). [Prior: 2026-06-14 (v1.3) — F2 pass-3 fix-burst: (O-P3-002) PC8 added: EPIC-COMPLETE operator surfacing — when EPIC-COMPLETE triggers (all stories terminal), wave-gate announces completion via stdout with concrete message format before exiting. ADR cite v1.1→v1.3. [Prior: 2026-06-14 (v1.2) — F2 pass-2 fix-burst: (F-P2-001) PC2 wave_id field def updated: phantom `current_wave:` field → derived from sprint-state.yaml topo-sort ordinal (product) or STATE.md current_step: (engine). PC3 anti-fabrication cross-check updated: wave_id matches derived value from sprint-state.yaml/current_step: (no stored current_wave: field). (F-12 append-log) PC5 last-precompact-flush-sha side-channel → precompact-flush-log append-log (last line + git cat-file -t validation); stale-SHA-in-log edge case added (write-before-push crash → skip); EC-006 + EC-011 + Architecture Anchors updated to precompact-flush-log. [Prior: 2026-06-14 (v1.1) — F2 pass-1 fix-burst: (F-1) Precondition 3 re-anchored: phantom `current_wave:` field removed; wave identity derives from sprint-state.yaml dependency-order (product pipelines) or STATE.md `current_step:` (engine). (F-2) Precondition 4 downgraded: factory lock held OR absent; `factory_lock_holder` nullable; Postcondition 2 and anti-fabrication cross-check Postcondition 3 updated for null case. EC-010 (factory_lock absent) added. (F-12) precompact_flush_sha now a HARD cross-check against `.factory/hooks/last-precompact-flush-sha` when that file exists; advisory-override for wave>1 null SHA tightened. (DI) TBD-DI replaced with DI-020+DI-021+DI-023.]"
+last_amended: "2026-06-14 (v1.6) — F2 pass-6 fix-burst: (F-P6-001/002) PC5 stale-SHA case (b) label: 'write-before-push crash' → 'log corruption or truncation' (re-grounding per ADR-026 v1.6 F-P5-002; mechanically impossible write-before-push justification removed); wave-gate is a SHELL skill so it MAY exec git, but canonical corroboration is structured field read (FIELD-2 SHA + FIELD-4 `commit` token from last-line of precompact-flush-log); git-exec is a permitted shell-context capability, NOT the sole method. (F-P6-004) PC2 heading and body: 'All 9 required fields' → 'All 9 base required fields present; `epic_status: complete` additionally required on EPIC-COMPLETE wave (must be ABSENT on non-final waves)'; `epic_status` conditional field added to PC2 list; H1 updated to reflect 9-base+epic_status conditionality; EC-012/EC-013 added (non-final+epic_status → UnexpectedEpicStatus; final+epic_status:complete → Continue; final missing epic_status → MissingEpicStatus). (E-18) ADR cite convention: v1.4 version token dropped per ADR-026 §BC Traceability Cite Convention (TD-VSDD-091 anti-volatile-pin); stable §Decision anchors adopted. [Prior: 2026-06-14 (v1.4) — F2 pass-4 fix-burst: (F-P4-003) ADR cite v1.3→v1.4 (cite-only). [Prior: 2026-06-14 (v1.3) — F2 pass-3 fix-burst: (O-P3-002) PC8 added: EPIC-COMPLETE operator surfacing — when EPIC-COMPLETE triggers (all stories terminal), wave-gate announces completion via stdout with concrete message format before exiting. ADR cite v1.1→v1.3. [Prior: 2026-06-14 (v1.2) — F2 pass-2 fix-burst: (F-P2-001) PC2 wave_id field def updated: phantom `current_wave:` field → derived from sprint-state.yaml topo-sort ordinal (product) or STATE.md current_step: (engine). PC3 anti-fabrication cross-check updated: wave_id matches derived value from sprint-state.yaml/current_step: (no stored current_wave: field). (F-12 append-log) PC5 last-precompact-flush-sha side-channel → precompact-flush-log append-log (last line + git cat-file -t validation); stale-SHA-in-log edge case added (write-before-push crash → skip); EC-006 + EC-011 + Architecture Anchors updated to precompact-flush-log. [Prior: 2026-06-14 (v1.1) — F2 pass-1 fix-burst: (F-1) Precondition 3 re-anchored: phantom `current_wave:` field removed; wave identity derives from sprint-state.yaml dependency-order (product pipelines) or STATE.md `current_step:` (engine). (F-2) Precondition 4 downgraded: factory lock held OR absent; `factory_lock_holder` nullable; Postcondition 2 and anti-fabrication cross-check Postcondition 3 updated for null case. EC-010 (factory_lock absent) added. (F-12) precompact_flush_sha now a HARD cross-check against `.factory/hooks/last-precompact-flush-sha` when that file exists; advisory-override for wave>1 null SHA tightened. (DI) TBD-DI replaced with DI-020+DI-021+DI-023.]"
 phase: F2
 inputs:
   - .factory/feature-delta/issue-173/F1-delta-analysis.md
@@ -19,6 +19,7 @@ capability: "CAP-032"
 lifecycle_status: draft
 introduced: v1.0-feature-context-durability-E18
 modified:
+  - "2026-06-14 (v1.6) — F2 pass-6 fix-burst: (F-P6-001/002) PC5 stale-SHA label corrected + corroboration mechanism documented; (F-P6-004) H1+PC2 field-count 9→9-base+epic_status conditional; EC-012/EC-013 added; ADR cite convention: stable §Decision anchors (TD-VSDD-091)."
   - "2026-06-14 (v1.4) — F2 pass-4 fix-burst: (F-P4-003) ADR cite v1.3→v1.4 (cite-only)."
   - "2026-06-14 (v1.3) — F2 pass-3 fix-burst: PC8 added (EPIC-COMPLETE stdout surfacing per O-P3-002); ADR cite v1.1→v1.3."
   - "2026-06-14 (v1.2) — F2 pass-2 fix-burst: PC2 wave_id phantom-field → derived value (sprint-state.yaml/current_step:); PC3 cross-check updated to derived value; PC5 side-channel file → precompact-flush-log append-log (last line + git cat-file -t); stale-SHA edge case (write-before-push crash); EC-006+EC-011+Arch Anchors updated."
@@ -31,7 +32,7 @@ removed: null
 removal_reason: null
 ---
 
-# BC-5.41.001: wave-gate writes verified HANDOFF.md with all 9 required fields and anti-fabrication cross-checks before declaring wave closed
+# BC-5.41.001: wave-gate writes verified HANDOFF.md with all 9 base required fields (+epic_status on EPIC-COMPLETE wave) and anti-fabrication cross-checks before declaring wave closed
 
 ## Description
 
@@ -47,9 +48,9 @@ When the `wave-gate` skill is invoked to close wave N (where N > 0), it must pro
 
 ## Postconditions
 
-1. **HANDOFF.md written**: A `HANDOFF.md` file is written to the `factory-artifacts` branch root (or `.factory/` path on that branch) containing all 9 required fields specified in ADR-026 §Decision 2.
+1. **HANDOFF.md written**: A `HANDOFF.md` file is written to the `factory-artifacts` branch root (or `.factory/` path on that branch) containing all 9 base required fields specified in ADR-026 §Decision 2 (plus `epic_status: complete` conditionally on the EPIC-COMPLETE wave).
 
-2. **All 9 required fields present**: The following fields are present and non-empty (unless explicitly allowed to be null):
+2. **All 9 base required fields present; `epic_status: complete` additionally required on EPIC-COMPLETE wave**: The following 9 base fields are present and non-empty (unless explicitly allowed to be null):
    - `wave_id` — integer derived from sprint-state.yaml dependency-order topo-sort ordinal (product pipelines) OR STATE.md `current_step:` pass number (engine) — there is no `current_wave:` field
    - `last_verified_develop_sha` — 40-character lowercase hex string
    - `active_bcs` — non-empty list of strings (each a BC file path)
@@ -59,6 +60,7 @@ When the `wave-gate` skill is invoked to close wave N (where N > 0), it must pro
    - `process_gaps` — list (may be empty)
    - `precompact_flush_sha` — 40-char hex OR explicit `null` (null only permitted for wave_id=1)
    - `factory_lock_holder` — string matching `factory_lock.holder` in `STATE.md` when lock is held; `null` when `factory_lock:` block is absent or holder is absent/null (lock not held)
+   - `epic_status` — string `"complete"`; **CONDITIONAL**: required ONLY on the final/EPIC-COMPLETE wave (when all sprint-state.yaml stories have terminal status AND `next_wave_stories: []`); MUST be ABSENT (not `null`, not any value — genuinely absent) on all non-final waves. Presence of `epic_status` on a non-final wave is a malformed HANDOFF.md (causes `UnexpectedEpicStatus` from the validate-wave-handoff-completeness gate).
 
 3. **Anti-fabrication cross-checks pass**:
    - `wave_id` matches the value computed by wave-handoff from sprint-state.yaml topo-sort ordinal (product) or STATE.md `current_step:` (engine) — no `current_wave:` field exists; cross-check is against the derived value, not a stored field
@@ -69,9 +71,9 @@ When the `wave-gate` skill is invoked to close wave N (where N > 0), it must pro
 
 4. **Block on missing/failing fields**: If any required field is absent or any anti-fabrication check fails, `wave-gate` blocks wave close, surfaces the specific failing fields and checks to the operator, and does NOT write a partial `HANDOFF.md`.
 
-5. **`precompact_flush_sha` hard cross-check (F-12)**: `wave-gate` MUST cross-check `precompact_flush_sha` against the append-log file `.factory/hooks/precompact-flush-log` — specifically the LAST LINE of that file. Additionally, the SHA on the last line MUST be verified via `git cat-file -t <SHA>` returning `commit`:
-   - **File exists and last-line SHA is valid**: `precompact_flush_sha` MUST equal the SHA on the LAST LINE of `.factory/hooks/precompact-flush-log` (read via literal file system read, not operator attestation), AND `git cat-file -t <SHA>` must return `commit`. A mismatch or a null `precompact_flush_sha` when the log contains a valid commit SHA is a HARD BLOCK — `wave-gate` rejects the handoff with `PrecompactShaMismatch`. The advisory-override for wave>1 null SHA is removed; fabricated or null SHAs that contradict the log MUST block.
-   - **SHA in log but `git cat-file -t <SHA>` does NOT return `commit`**: write-before-push crash; treat the log entry as stale and skip it; fall through to the genuinely-absent case below.
+5. **`precompact_flush_sha` hard cross-check (F-12)**: `wave-gate` MUST cross-check `precompact_flush_sha` against the append-log file `.factory/hooks/precompact-flush-log` — specifically the LAST LINE of that file. The log line has four space-separated fields: `<ISO-timestamp> <SHA> <cycle>/<step> commit`. The canonical/primary corroboration is a structured field read: wave-gate reads FIELD-2 (the SHA) and FIELD-4 (the `commit` token) from the last line. wave-gate is a SHELL skill and therefore MAY exec `git cat-file -t <SHA>` to independently verify the object type, but this git exec is a permitted shell-context capability, NOT the sole or mandatory method — the FIELD-4 pre-embedded token provides sufficient corroboration (consistent with BC-5.41.003 and DI-025 which specify FIELD-4 as the canonical corroboration for WASM/shell contexts alike):
+   - **File exists; last-line FIELD-4 == `commit` and FIELD-2 SHA is valid**: `precompact_flush_sha` MUST equal FIELD-2 of the LAST LINE of `.factory/hooks/precompact-flush-log` (read via literal filesystem read, not operator attestation). A mismatch or a null `precompact_flush_sha` when the log contains a valid commit SHA is a HARD BLOCK — `wave-gate` rejects the handoff with `PrecompactShaMismatch`. The advisory-override for wave>1 null SHA is removed; fabricated or null SHAs that contradict the log MUST block.
+   - **SHA in log but FIELD-4 is absent, empty, or not the literal string `commit`** (indicating log corruption or truncation): treat the log entry as stale and skip it; fall through to the genuinely-absent case below.
    - **File genuinely absent** (verified by `test -f .factory/hooks/precompact-flush-log` returning false): `precompact_flush_sha: null` is permitted for wave_id=1. For wave_id > 1 with no flush log: advisory warning only; operator must confirm no PreCompact fired; `wave-gate` surfaces the warning but does not hard-block (the absence is mechanically verified, not attested).
    - **Rationale**: An unchecked null SHA on wave>1 is exploitable — an attacker or hallucinating session could write `precompact_flush_sha: null` to bypass the flush guarantee. The side-channel file is the mechanical ground truth.
 
@@ -112,12 +114,17 @@ When the `wave-gate` skill is invoked to close wave N (where N > 0), it must pro
 | EC-007 | HANDOFF.md written but `validate-wave-handoff-completeness` gate fails | Wave close is blocked; operator must correct the failing fields |
 | EC-008 | `open_decisions` list is empty | Valid; no open decisions is a legitimate wave-close state |
 | EC-009 | `process_gaps` list is non-empty (carry-forward from issue #171) | Valid; gaps are carried forward explicitly; wave closes after other checks pass |
+| EC-012 | HANDOFF.md write on non-final wave includes `epic_status: complete` | HARD BLOCK: `UnexpectedEpicStatus`; `epic_status` MUST be absent on non-final waves; wave-gate rejects the handoff |
+| EC-013 | HANDOFF.md write on EPIC-COMPLETE final wave (all stories terminal, `next_wave_stories: []`) is missing `epic_status` | HARD BLOCK: `MissingEpicStatus`; `epic_status: complete` is required on EPIC-COMPLETE waves |
 
 ## Canonical Test Vectors
 
 | Input | Expected Output | Category |
 |-------|----------------|----------|
-| wave-gate close with all 9 fields correct + all cross-checks pass | HANDOFF.md committed to factory-artifacts; wave declared closed | happy-path |
+| wave-gate close (non-final wave) with all 9 base fields correct + all cross-checks pass; `epic_status` absent | HANDOFF.md committed to factory-artifacts; wave declared closed | happy-path-non-final |
+| wave-gate close (EPIC-COMPLETE final wave) with all 9 base fields + `epic_status: complete`; all stories terminal; `next_wave_stories: []` | HANDOFF.md committed; EPIC-COMPLETE stdout announcement; wave declared complete | happy-path-epic-complete |
+| wave-gate close; non-final wave; HANDOFF.md includes `epic_status: complete` | Block; `UnexpectedEpicStatus`; no HANDOFF.md committed | unexpected-epic-status |
+| wave-gate close; EPIC-COMPLETE wave; HANDOFF.md missing `epic_status` | Block; `MissingEpicStatus`; no HANDOFF.md committed | missing-epic-status |
 | wave-gate close; `last_verified_develop_sha` does not match `git rev-parse origin/develop` | Block; error message names the mismatch; no HANDOFF.md committed | anti-fabrication-sha |
 | wave-gate close; `active_bcs` contains path `.factory/specs/behavioral-contracts/BC-99.99.999.md` (non-existent) | Block; error names the missing path; no HANDOFF.md committed | anti-fabrication-fs |
 | wave_id = 1; `precompact_flush_sha: null` | Valid; HANDOFF.md accepted | wave-1-null-sha |
@@ -135,7 +142,7 @@ When the `wave-gate` skill is invoked to close wave N (where N > 0), it must pro
 
 - `plugins/vsdd-factory/skills/wave-gate/SKILL.md` — wave-gate skill; wave-close step extended with HANDOFF.md production obligation
 - `plugins/vsdd-factory/skills/wave-handoff/SKILL.md` — NEW skill that encapsulates HANDOFF.md production logic (S-18.01 deliverable)
-- `.factory/hooks/precompact-flush-log` — append-log written by precompact-flush.sh; wave-gate reads the LAST LINE for `precompact_flush_sha` field and validates the SHA via `git cat-file -t`
+- `.factory/hooks/precompact-flush-log` — append-log written by precompact-flush.sh; wave-gate reads the LAST LINE for `precompact_flush_sha` field; canonical corroboration is FIELD-2 (SHA) + FIELD-4 (`commit` token) from the last line; wave-gate MAY additionally exec `git cat-file -t <SHA>` (shell context permits it) but this is not the sole or mandatory method
 
 ## Story Anchor
 
@@ -159,7 +166,7 @@ S-18.01 (HANDOFF.md schema + wave-handoff skill)
 | Capability Anchor Justification | CAP-032 ("Guarantee lossless context-window transitions via wave-boundary checkpoint and PreCompact flush") per capabilities.md §CAP-032 — this BC specifies the verified HANDOFF.md wave-close checkpoint that is the primary cross-wave continuity mechanism (ADR-026 Decision 1 + Decision 2); it directly closes the fabricated-SHA failure class documented in issues #170 and #173 |
 | L2 Domain Invariants | DI-020 (Wave/phase boundary transitions must not lose load-bearing pipeline state — enforced by requiring HANDOFF.md with all 9 fields before wave close); DI-021 (Handoff claims must be cross-checked against verifiable external ground truth — enforced by anti-fabrication cross-checks in PC3, including SHA verification against git and precompact_flush_sha against side-channel file); DI-023 (Wave/phase identity and next-wave story lists derive from real persisted substrate — enforced by wave_id derivation from sprint-state.yaml or STATE.md current_step:, and next_wave_stories from sprint-state.yaml status entries) |
 | Architecture Module | SS-05 (Pipeline Orchestration) — wave-gate and wave-handoff skills live in `plugins/vsdd-factory/skills/` |
-| ADR | ADR-026 v1.4 Decision 2 (HANDOFF.md schema + anti-fabrication cross-checks; wave_id from real substrate; factory_lock_holder nullable; precompact_flush_sha hard cross-check against side-channel file); Decision 9 (wave-1 no-op); Decision 1 (wave-boundary reset is primary mechanism) |
+| ADR | ADR-026 §Decision 2 (HANDOFF.md schema + anti-fabrication cross-checks; wave_id from real substrate; factory_lock_holder nullable; precompact_flush_sha hard cross-check against side-channel file; 9 base required fields + epic_status conditional on EPIC-COMPLETE wave per v1.6), §Decision 9 (wave-1 no-op), §Decision 1 (wave-boundary reset is primary mechanism) |
 | Stories | S-18.01 |
 | Cycle | v1.0-feature-context-durability-E18 (F2) |
 | Feature | issue #173 / E-18 |

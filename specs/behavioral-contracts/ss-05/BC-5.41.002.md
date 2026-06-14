@@ -1,11 +1,11 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.4"
+version: "1.6"
 status: draft
 producer: product-owner
 timestamp: 2026-06-14T00:00:00Z
-last_amended: "2026-06-14 (v1.4) — F2 pass-4 fix-burst: (F-P4-003) ADR cite v1.3→v1.4 (cite-only). [Prior: 2026-06-14 (v1.3) — F2 pass-3 fix-burst: (O-P3-002) PC7 added: EPIC-COMPLETE operator surfacing — on EPIC-COMPLETE (final wave), wave-handoff announces completion to the operator via stdout with concrete message format before exiting 0. ADR cite v1.1→v1.3. [Prior: 2026-06-14 (v1.2) — F2 pass-2 fix-burst: (F-P2-004) PC3 EPIC-COMPLETE exception added (empty next_wave_stories AND all stories terminal → exit 0, HANDOFF epic_status:complete, no wave-state.yaml); BrokenSprintState hard error retained for empty AND any non-terminal story; EC-001 split into EC-001a (EPIC-COMPLETE) + EC-001b (BrokenSprintState); test vectors updated. [Prior: 2026-06-14 (v1.1) — F2 pass-1 fix-burst: (F-3) PC3 re-anchored: stories list derives from sprint-state.yaml `status: pending` OR `status: draft` entries ordered by dependency graph (not from phantom `wave:` story frontmatter field which does not exist). PC3 'no phantom' mandate explicit. Empty list is HARD ERROR per SOUL.md §4 — Postcondition 3 updated and EC-001 changed from 'valid' to hard block. (DI) TBD-DI replaced with DI-023. TBD-VP retained with justification per report.]"
+last_amended: "2026-06-14 (v1.6) — F2 pass-6 fix-burst: (E-18) ADR cite convention: v1.4 version token dropped per ADR-026 §BC Traceability Cite Convention (TD-VSDD-091 anti-volatile-pin); stable §Decision anchor adopted (cite-only change). [Prior: 2026-06-14 (v1.4) — F2 pass-4 fix-burst: (F-P4-003) ADR cite v1.3→v1.4 (cite-only). [Prior: 2026-06-14 (v1.3) — F2 pass-3 fix-burst: (O-P3-002) PC7 added: EPIC-COMPLETE operator surfacing — on EPIC-COMPLETE (final wave), wave-handoff announces completion to the operator via stdout with concrete message format before exiting 0. ADR cite v1.1→v1.3. [Prior: 2026-06-14 (v1.2) — F2 pass-2 fix-burst: (F-P2-004) PC3 EPIC-COMPLETE exception added (empty next_wave_stories AND all stories terminal → exit 0, HANDOFF epic_status:complete, no wave-state.yaml); BrokenSprintState hard error retained for empty AND any non-terminal story; EC-001 split into EC-001a (EPIC-COMPLETE) + EC-001b (BrokenSprintState); test vectors updated. [Prior: 2026-06-14 (v1.1) — F2 pass-1 fix-burst: (F-3) PC3 re-anchored: stories list derives from sprint-state.yaml `status: pending` OR `status: draft` entries ordered by dependency graph (not from phantom `wave:` story frontmatter field which does not exist). PC3 'no phantom' mandate explicit. Empty list is HARD ERROR per SOUL.md §4 — Postcondition 3 updated and EC-001 changed from 'valid' to hard block. (DI) TBD-DI replaced with DI-023. TBD-VP retained with justification per report.]"
 phase: F2
 inputs:
   - .factory/feature-delta/issue-173/F1-delta-analysis.md
@@ -19,6 +19,7 @@ capability: "CAP-032"
 lifecycle_status: draft
 introduced: v1.0-feature-context-durability-E18
 modified:
+  - "2026-06-14 (v1.6) — F2 pass-6 fix-burst: ADR cite convention: stable §Decision anchor (TD-VSDD-091); cite-only."
   - "2026-06-14 (v1.4) — F2 pass-4 fix-burst: (F-P4-003) ADR cite v1.3→v1.4 (cite-only)."
   - "2026-06-14 (v1.3) — F2 pass-3 fix-burst: PC7 added (EPIC-COMPLETE stdout surfacing per O-P3-002); ADR cite v1.1→v1.3."
   - "2026-06-14 (v1.2) — F2 pass-2 fix-burst: PC3 EPIC-COMPLETE exception (all terminal → exit 0 + HANDOFF epic_status:complete, no wave-state.yaml); EC-001 split EC-001a+EC-001b; test vectors updated."
@@ -142,7 +143,7 @@ TBD-VP — no dedicated VP assigned at F2 for wave-state.yaml production. Justif
 | Capability Anchor Justification | CAP-032 ("Guarantee lossless context-window transitions via wave-boundary checkpoint and PreCompact flush") per capabilities.md §CAP-032 — this BC specifies the curated rehydration manifest that enables deterministic session rehydration after a wave-boundary reset (ADR-026 Decision 4); deterministic rehydration is the direct complement to wave-boundary hard reset, together forming the complete context-durability guarantee |
 | L2 Domain Invariants | DI-023 (Wave/phase identity and next-wave story lists derive from real persisted substrate fields; no phantom fields — enforced by stories derivation from sprint-state.yaml `status:pending/draft` + dependency-order, not from phantom `wave:` story frontmatter; empty list = hard error per SOUL.md §4) |
 | Architecture Module | SS-05 (Pipeline Orchestration) — wave-handoff skill |
-| ADR | ADR-026 v1.4 Decision 4 (wave-state.yaml curated manifest; RAG explicitly deferred; next_wave_stories derived from sprint-state.yaml status:pending/draft entries + dependency-order; empty list = hard error) |
+| ADR | ADR-026 §Decision 4 (wave-state.yaml curated manifest; RAG explicitly deferred; next_wave_stories derived from sprint-state.yaml status:pending/draft entries + dependency-order; empty list = hard error) |
 | Stories | S-18.01 |
 | Cycle | v1.0-feature-context-durability-E18 (F2) |
 | Feature | issue #173 / E-18 |
