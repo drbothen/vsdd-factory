@@ -22,7 +22,7 @@ inputs:
   - .factory/cycles/v1.0-feature-engine-discipline-pass-1/F5-pass-1-fix-plan.md
   - .factory/stories/epics/E-12-engine-governance.md
   - .factory/stories/epics/E-13-artifact-integrity.md
-input-hash: "[pending-recompute]"
+input-hash: "7a1d627"
 ---
 <!-- [process-gap] Frontmatter fields anchor_strategy, depends_on extend the canonical epic-template baseline. Template update tracked separately. -->
 

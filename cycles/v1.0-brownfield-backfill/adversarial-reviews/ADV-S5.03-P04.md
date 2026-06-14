@@ -14,7 +14,7 @@ inputs:
   - .factory/specs/behavioral-contracts/ss-04/BC-4.07.004.md
   - .factory/specs/verification-properties/VP-067.md
   - .factory/specs/verification-properties/VP-INDEX.md
-input-hash: "b4a39f9"
+input-hash: "68803af"
 traces_to: ".factory/specs/prd.md"
 pass: 4
 previous_review: ADV-S5.03-P03.md

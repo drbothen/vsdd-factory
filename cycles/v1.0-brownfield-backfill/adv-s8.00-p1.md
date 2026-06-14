@@ -10,7 +10,7 @@ inputs:
   - .factory/stories/S-8.00-perf-baseline-bc-anchor-verification.md
   - .factory/stories/epics/E-8-native-wasm-migration.md
   - .factory/stories/STORY-INDEX.md
-input-hash: 68f3d16
+input-hash: "c50ae11"
 traces_to: prd.md
 pass: 1
 previous_review: null

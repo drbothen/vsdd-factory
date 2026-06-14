@@ -22,7 +22,7 @@ inputs:
   - plugins/vsdd-factory/tests/integration/E-8-hook-plugins/warn-pending-wave-gate.bats
   - plugins/vsdd-factory/tests/resolver-integration.bats
   - plugins/vsdd-factory/tests/perf-baseline.bats
-input-hash: "[pending-recompute]"
+input-hash: "b9cf3f8"
 traces_to: prd.md
 project: vsdd-factory
 mode: feature

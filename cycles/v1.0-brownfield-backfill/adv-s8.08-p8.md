@@ -12,7 +12,7 @@ inputs:
   - plugins/vsdd-factory/hooks/track-agent-start.sh
   - .factory/specs/behavioral-contracts/ss-07/BC-7.03.079.md
   - .factory/specs/behavioral-contracts/ss-07/BC-7.03.080.md
-input-hash: "e0882ac"
+input-hash: "38d5d6e"
 traces_to: prd.md
 pass: p8
 previous_review: adv-s8.08-p7.md

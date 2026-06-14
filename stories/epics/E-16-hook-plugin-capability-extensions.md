@@ -18,7 +18,7 @@ inputs:
   - .factory/specs/behavioral-contracts/ss-07/BC-7.03.094.md
   - .factory/specs/behavioral-contracts/ss-07/BC-7.03.095.md
   - .factory/specs/verification-properties/VP-080.md
-input-hash: "[pending-recompute]"
+input-hash: "90c150e"
 ---
 
 # Epic E-16: Hook Plugin Capability Extensions — block-ai-attribution message-file arm

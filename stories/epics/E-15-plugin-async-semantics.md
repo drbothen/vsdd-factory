@@ -25,7 +25,7 @@ inputs:
   - .factory/specs/verification-properties/VP-078.md
   - .factory/specs/verification-properties/VP-079.md
   - .factory/specs/domain-spec/invariants.md
-input-hash: "[to-be-computed-by-state-manager]"
+input-hash: "3d920c8"
 ---
 
 # Epic E-15: Plugin Async Semantics — Registry-Layer Partition (single-shot delivery)

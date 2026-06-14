@@ -15,7 +15,7 @@ inputs:
   - plugins/vsdd-factory/hooks-registry.toml
   - plugins/vsdd-factory/hooks/session-learning.sh
   - .factory/cycles/v1.0-brownfield-backfill/adv-s8.06-p4.md
-input-hash: "e441e99"
+input-hash: "1d5fd3f"
 traces_to: prd.md
 story_id: "S-8.06"
 pass_number: 5

@@ -13,7 +13,7 @@ inputs:
   - .factory/specs/behavioral-contracts/ss-07/BC-7.03.083.md
   - plugins/vsdd-factory/hooks-registry.toml
   - crates/hook-sdk/src/host.rs
-input-hash: "c988344"
+input-hash: "18753a3"
 traces_to: prd.md
 pass: p4
 previous_review: adv-s8.04-p3.md

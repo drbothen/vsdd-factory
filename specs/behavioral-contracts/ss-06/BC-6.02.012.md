@@ -7,7 +7,7 @@ producer: "phase-1-4b-agent-8"
 timestamp: 2026-04-25T00:00:00
 phase: 0d
 inputs: [.factory/phase-0-ingestion/pass-3-behavioral-contracts-deep-r1.md]
-input-hash: "TBD"
+input-hash: "a022087"
 traces_to: domain-spec/L2-INDEX.md
 origin: brownfield
 extracted_from: ".factory/phase-0-ingestion/pass-3-behavioral-contracts-deep-r1.md#L181"

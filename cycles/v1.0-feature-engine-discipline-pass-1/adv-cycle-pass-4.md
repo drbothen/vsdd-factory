@@ -16,7 +16,7 @@ inputs:
   - plugins/vsdd-factory/tests/resolver-capability-confinement.bats
   - .github/workflows/ci.yml
   - .github/workflows/release.yml
-input-hash: "[pending-recompute]"
+input-hash: "3ea4506"
 traces_to: prd.md
 pass: 4
 previous_review: adv-cycle-pass-3.md

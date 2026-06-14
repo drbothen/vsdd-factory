@@ -17,7 +17,7 @@ inputs:
   - .factory/stories/S-4.06-routing-tag-enrichment.md
   - .factory/stories/S-4.07-observability-integration-tests.md
   - .factory/specs/prd.md
-input-hash: "8388f56"
+input-hash: "887b09c"
 traces_to: ".factory/specs/prd.md"
 cycle: v1.0-brownfield-backfill
 sub_cycle: wave-2-ss-03-re-anchor

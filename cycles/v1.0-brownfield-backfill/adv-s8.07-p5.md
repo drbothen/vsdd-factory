@@ -18,7 +18,7 @@ inputs:
   - crates/hook-plugins/capture-commit-activity/src/main.rs
   - .factory/specs/behavioral-contracts/ss-07/BC-7.03.091.md
   - .factory/specs/behavioral-contracts/ss-07/BC-7.03.092.md
-input-hash: "e441e99"
+input-hash: "32a03dd"
 traces_to: prd.md
 pass: p5
 previous_review: adv-s8.07-p4.md

@@ -11,7 +11,7 @@ cycle: v1.0-brownfield-backfill
 inputs:
   - .factory/specs/behavioral-contracts/ss-05/BC-5.39.007.md
   - .factory/specs/behavioral-contracts/ss-05/BC-5.39.008.md
-input-hash: "0901064"
+input-hash: "b5cc28f"
 traces_to: STATE.md
 ---
 

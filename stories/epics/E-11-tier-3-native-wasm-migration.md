@@ -26,7 +26,7 @@ inputs:
   - .factory/specs/architecture/SS-07-hook-bash.md
   - .factory/specs/prd.md
   - .factory/stories/STORY-INDEX.md
-input-hash: "TBD"
+input-hash: "6fb36eb"
 ---
 <!-- [process-gap] Frontmatter fields tech_debt_ref, anchor_strategy, depends_on extend the canonical epic-template baseline (same as E-8 v1.9 / E-9 v1.0). Template update tracked as follow-up. -->
 

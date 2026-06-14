@@ -7,7 +7,7 @@ producer: product-owner
 timestamp: 2026-04-25T00:00:00
 phase: 1a
 inputs: [.factory/stories/S-6.01-create-adr-skill.md]
-input-hash: "d81e07b"
+input-hash: "c3f33c5"
 traces_to: .factory/stories/S-6.01-create-adr-skill.md
 origin: greenfield
 extracted_from: ".factory/stories/S-6.01-create-adr-skill.md#AC-8"

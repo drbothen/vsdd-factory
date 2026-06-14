@@ -12,7 +12,7 @@ inputs:
   - plugins/vsdd-factory/hooks-registry.toml
   - crates/factory-dispatcher/src/registry.rs
   - crates/factory-dispatcher/src/partition.rs
-input-hash: "[to-be-computed-by-state-manager]"
+input-hash: "3d920c8"
 traces_to: .factory/specs/prd.md
 origin: greenfield
 extracted_from: null

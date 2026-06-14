@@ -10,7 +10,7 @@ inputs:
   - .factory/STATE.md
   - .factory/cycles/v1.0-brownfield-backfill/s-15.03-wave-m2-wave-3-dispatch.md
   - .factory/cycles/v1.0-brownfield-backfill/architect-m2-2026-05-16.md
-input-hash: "5a2807c"
+input-hash: "24eba9e"
 traces_to: .factory/cycles/v1.0-brownfield-backfill/orchestrator-task-snapshot-2026-05-16-post-s-15.07-ship.md
 supersedes: .factory/cycles/v1.0-brownfield-backfill/orchestrator-task-snapshot-2026-05-16-post-s-15.07-ship.md
 ---

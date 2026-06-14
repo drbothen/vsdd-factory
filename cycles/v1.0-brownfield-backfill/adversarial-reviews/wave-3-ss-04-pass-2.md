@@ -21,7 +21,7 @@ inputs:
   - .factory/specs/behavioral-contracts/BC-INDEX.md
   - .factory/specs/behavioral-contracts/ss-04/BC-4.03.001.md
   - .factory/specs/behavioral-contracts/ss-02/BC-2.01.002.md
-input-hash: "a0e02d7"
+input-hash: "06c4556"
 traces_to: ".factory/specs/prd.md"
 cycle: v1.0-brownfield-backfill
 sub_cycle: wave-3-ss-04-re-anchor

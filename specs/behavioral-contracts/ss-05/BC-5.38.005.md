@@ -7,7 +7,7 @@ producer: product-owner
 timestamp: 2026-04-27T03:00:00Z
 phase: 1a
 inputs: [.factory/stories/S-7.03-tdd-discipline-hardening.md]
-input-hash: "a3187d9"
+input-hash: "6a4fe59"
 traces_to: .factory/stories/S-7.03-tdd-discipline-hardening.md
 origin: brownfield
 extracted_from: ".factory/stories/S-7.03-tdd-discipline-hardening.md#AC-005"

@@ -20,7 +20,7 @@ inputs:
   - .factory/phase-0-ingestion/pass-8-final-synthesis.md
   - .factory/legacy-design-docs/2026-04-24-v1.0-factory-plugin-kit-design.md
   - .factory/stories/ (48 stories, 9 epics)
-input-hash: "c3a9f91"
+input-hash: "185754e"
 traces_to: .factory/specs/domain-spec/L2-INDEX.md
 supplements: []
 # Supplements deferred — PRD body contains summary versions:

@@ -16,7 +16,7 @@ inputs:
   - plugins/vsdd-factory/hooks-registry.toml
   - crates/hook-sdk/src/host.rs
   - .factory/cycles/v1.0-brownfield-backfill/adv-s8.04-p6.md
-input-hash: "e441e99"
+input-hash: "18753a3"
 traces_to: prd.md
 story_id: "S-8.04"
 pass_number: 7

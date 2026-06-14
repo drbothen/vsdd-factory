@@ -18,7 +18,7 @@ inputs:
   - plugins/vsdd-factory/hooks/pr-manager-completion-guard.sh
   - plugins/vsdd-factory/hooks/validate-pr-review-posted.sh
   - plugins/vsdd-factory/hooks/track-agent-stop.sh
-input-hash: "a030493"
+input-hash: "9223291"
 traces_to: prd.md
 pass: p1
 previous_review: none

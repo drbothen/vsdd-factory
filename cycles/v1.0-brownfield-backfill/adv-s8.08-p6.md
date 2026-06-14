@@ -14,7 +14,7 @@ inputs:
   - .factory/specs/behavioral-contracts/ss-07/BC-7.03.080.md
   - .factory/specs/domain-spec/capabilities.md
   - crates/hook-sdk/src/host.rs
-input-hash: "e0882ac"
+input-hash: "38d5d6e"
 traces_to: prd.md
 pass_number: 6
 story_id: S-8.08

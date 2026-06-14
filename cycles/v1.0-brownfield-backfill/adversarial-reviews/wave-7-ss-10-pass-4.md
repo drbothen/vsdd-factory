@@ -19,7 +19,7 @@ inputs:
   - .factory/specs/behavioral-contracts/BC-INDEX.md
   - .factory/policies.yaml
   - .factory/cycles/v1.0-brownfield-backfill/adversarial-reviews/wave-7-ss-10-pass-3.md
-input-hash: "9bbb8ef"
+input-hash: "9945d50"
 traces_to: ".factory/specs/prd.md"
 cycle: v1.0-brownfield-backfill
 sub_cycle: wave-7-ss-10-re-anchor

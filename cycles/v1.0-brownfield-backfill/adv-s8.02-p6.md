@@ -10,7 +10,7 @@ inputs:
   - .factory/stories/S-8.02-native-port-pr-manager-completion-guard.md
   - .factory/cycles/v1.0-brownfield-backfill/adv-s8.02-p5.md
   - .factory/specs/behavioral-contracts/ss-07/BC-7.03.045.md
-input-hash: "e0882ac"
+input-hash: "1c9ed60"
 traces_to: prd.md
 pass: p6
 previous_review: adv-s8.02-p5.md

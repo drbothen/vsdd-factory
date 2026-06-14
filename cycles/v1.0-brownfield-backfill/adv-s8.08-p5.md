@@ -17,7 +17,7 @@ inputs:
   - plugins/vsdd-factory/hooks/track-agent-start.sh
   - plugins/vsdd-factory/hooks-registry.toml
   - .factory/stories/S-8.03-native-port-track-agent-stop.md
-input-hash: "e90faab"
+input-hash: "38d5d6e"
 traces_to: prd.md
 story_id: S-8.08
 pass_number: 5

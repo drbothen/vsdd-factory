@@ -8,7 +8,7 @@ producer: "phase-1-4b-agent-8"
 timestamp: 2026-04-25T00:00:00
 phase: 0d
 inputs: [.factory/phase-0-ingestion/pass-3-deep-skills-batch-3.md]
-input-hash: "TBD"
+input-hash: "fbbdd12"
 traces_to: domain-spec/L2-INDEX.md
 origin: brownfield
 extracted_from: ".factory/phase-0-ingestion/pass-3-deep-skills-batch-3.md#L1781"

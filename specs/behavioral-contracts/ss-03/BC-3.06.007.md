@@ -8,7 +8,7 @@ timestamp: 2026-04-27T00:00:00
 phase: "4.0"
 inputs:
   - .factory/stories/S-4.06-routing-tag-enrichment.md
-input-hash: "4b9819c"
+input-hash: "3531563"
 traces_to: .factory/specs/behavioral-contracts/bc-id-mapping.md
 origin: greenfield
 extracted_from: "S-4.06-routing-tag-enrichment.md:BCs-to-Create"

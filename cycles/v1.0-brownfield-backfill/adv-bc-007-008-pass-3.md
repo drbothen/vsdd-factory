@@ -14,7 +14,7 @@ inputs:
   - .factory/specs/behavioral-contracts/ss-05/BC-5.39.006.md
   - .factory/specs/behavioral-contracts/ss-05/BC-5.39.007.md
   - .factory/specs/behavioral-contracts/ss-05/BC-5.39.008.md
-input-hash: "c28758d"
+input-hash: "78b8646"
 traces_to: STATE.md
 ---
 

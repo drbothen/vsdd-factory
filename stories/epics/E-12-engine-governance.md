@@ -22,7 +22,7 @@ inputs:
   - .factory/specs/architecture/ARCH-INDEX.md
   - .factory/specs/behavioral-contracts/BC-INDEX.md
   - .factory/stories/epics/E-7-process-codification.md
-input-hash: "TBD"
+input-hash: "8c2371a"
 ---
 <!-- [process-gap] Frontmatter fields anchor_strategy, depends_on extend the canonical epic-template baseline (same as E-9 v1.0 / E-11 v1.0). Template update tracked as follow-up. -->
 

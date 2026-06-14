@@ -18,7 +18,7 @@ inputs:
   - .factory/specs/behavioral-contracts/ss-04/BC-4.13.001.md
   - .factory/specs/behavioral-contracts/ss-05/BC-5.40.001.md
   - .factory/specs/behavioral-contracts/ss-06/BC-6.23.001.md
-input-hash: "[pending-recompute]"
+input-hash: "387e9cd"
 ---
 
 # Epic E-17: Factory State Durability and Concurrency — single-writer factory lock/lease

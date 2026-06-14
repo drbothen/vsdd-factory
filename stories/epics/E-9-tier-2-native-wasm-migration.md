@@ -25,7 +25,7 @@ inputs:
   - .factory/specs/architecture/SS-02-hook-sdk.md
   - .factory/stories/epics/E-8-native-wasm-migration.md
   - .factory/architecture/gap-analysis-w16-subprocess.md
-input-hash: "37151a4"
+input-hash: "6e9a16e"
 ---
 <!-- [process-gap] Frontmatter fields tech_debt_ref, anchor_strategy, depends_on extend the canonical epic-template baseline (same as E-8 v1.9). Template update tracked as follow-up. -->
 

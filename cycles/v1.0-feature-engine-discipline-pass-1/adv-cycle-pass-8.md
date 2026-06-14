@@ -14,7 +14,7 @@ inputs:
   - .factory/STATE.md
   - .factory/cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md
   - .factory/cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md
-input-hash: "[pending-recompute]"
+input-hash: "87edb1e"
 traces_to: prd.md
 project: vsdd-factory
 mode: feature

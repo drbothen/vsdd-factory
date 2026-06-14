@@ -9,7 +9,7 @@ phase: 1.4b
 inputs:
   - .factory/phase-0-ingestion/pass-3-deep-skills-batch-2.md
   - .factory/specs/behavioral-contracts/bc-id-mapping.md
-input-hash: TBD
+input-hash: "02eadfa"
 traces_to: domain-spec/L2-INDEX.md
 origin: brownfield
 extracted_from: ".factory/phase-0-ingestion/pass-3-deep-skills-batch-2.md"

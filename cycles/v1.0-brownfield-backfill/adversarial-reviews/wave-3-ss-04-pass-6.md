@@ -22,7 +22,7 @@ inputs:
   - .factory/specs/verification-properties/VP-INDEX.md
   - .factory/specs/verification-properties/VP-038.md
   - .factory/specs/behavioral-contracts/ss-04/BC-4.03.001.md
-input-hash: "97fb6f1"
+input-hash: "06c4556"
 traces_to: ".factory/specs/prd.md"
 cycle: v1.0-brownfield-backfill
 sub_cycle: wave-3-ss-04-re-anchor

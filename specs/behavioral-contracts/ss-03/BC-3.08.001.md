@@ -11,7 +11,7 @@ inputs:
   - .factory/cycles/v1.0-feature-plugin-async-semantics-pass-1/adversary-pass-1.md
   - .factory/specs/behavioral-contracts/ss-01/BC-1.14.001.md
   - .factory/specs/behavioral-contracts/ss-07/BC-7.06.001.md
-input-hash: "[to-be-computed-by-state-manager]"
+input-hash: "d9afab2"
 traces_to: .factory/specs/prd.md
 origin: greenfield
 extracted_from: null

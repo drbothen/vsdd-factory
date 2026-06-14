@@ -22,7 +22,7 @@ inputs:
   - .factory/code-delivery/S-15.17/adv-local-pass-5.md
   - .factory/policies.yaml
   - plugins/vsdd-factory/hooks-registry.toml
-input-hash: "4c34218"
+input-hash: "af6dece"
 traces_to: .factory/cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md
 extracted_from: .factory/cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md
 origin: brownfield

@@ -20,7 +20,7 @@ inputs:
   - .github/workflows/ci.yml
   - .github/workflows/release.yml
   - .gitignore
-input-hash: "[pending-recompute]"
+input-hash: "3ea4506"
 traces_to: prd.md
 project: vsdd-factory
 mode: feature

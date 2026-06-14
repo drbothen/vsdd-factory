@@ -28,7 +28,7 @@ inputs:
   - .factory/specs/verification-properties/VP-015.md
   - .factory/specs/verification-properties/VP-049.md
   - .factory/specs/architecture/ARCH-INDEX.md
-input-hash: "c7c3053"
+input-hash: "a443cfc"
 traces_to: ".factory/specs/prd.md"
 cycle: v1.0-brownfield-backfill
 sub_cycle: wave-6-ss-09-re-anchor

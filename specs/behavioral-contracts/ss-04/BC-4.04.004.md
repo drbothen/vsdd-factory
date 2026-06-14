@@ -9,7 +9,7 @@ phase: 1a
 inputs:
   - .factory/stories/S-5.01-session-start-hook.md
   - .factory/specs/domain-spec/capabilities.md
-input-hash: "5765182"
+input-hash: "4210314"
 traces_to: .factory/specs/prd.md#FR-046
 origin: greenfield
 extracted_from: null

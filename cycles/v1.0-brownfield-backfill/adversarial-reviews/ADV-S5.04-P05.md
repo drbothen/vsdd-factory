@@ -14,7 +14,7 @@ inputs:
   - .factory/specs/verification-properties/VP-068.md
   - .factory/specs/prd.md
   - .factory/specs/behavioral-contracts/BC-INDEX.md
-input-hash: "6784bd2"
+input-hash: "c1b7dd4"
 traces_to: prd.md
 pass: 5
 previous_review: ADV-S5.04-P04.md

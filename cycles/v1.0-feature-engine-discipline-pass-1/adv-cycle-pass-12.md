@@ -15,7 +15,7 @@ inputs:
   - .factory/cycles/v1.0-feature-engine-discipline-pass-1/adv-cycle-pass-11.md
   - .factory/specs/behavioral-contracts/ss-04/BC-4.12.001.md
   - .factory/specs/behavioral-contracts/ss-04/BC-4.12.005.md
-input-hash: "[pending-recompute]"
+input-hash: "24eba9e"
 traces_to: prd.md
 project: vsdd-factory
 mode: feature

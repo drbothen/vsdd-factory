@@ -9,7 +9,7 @@ phase: 1b
 inputs:
   - .factory/specs/architecture/decisions/ADR-015-single-stream-otel-schema.md
   - .factory/stories/epics/E-10-single-stream-otel-event-emission.md
-input-hash: "[pending-recompute]"
+input-hash: "6da47b9"
 traces_to: ADR-015-single-stream-otel-schema.md
 origin: greenfield
 subsystem: "SS-01"

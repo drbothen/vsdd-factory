@@ -15,7 +15,7 @@ inputs:
   - crates/hook-plugins/capture-pr-activity/src/lib.rs
   - crates/hook-sdk/src/host.rs
   - crates/hook-sdk/src/payload.rs
-input-hash: "e0882ac"
+input-hash: "97af269"
 traces_to: prd.md
 story_id: "S-8.05"
 story_version: "1.5"

@@ -15,7 +15,7 @@ inputs:
   - .factory/specs/behavioral-contracts/BC-INDEX.md
   - .factory/specs/verification-properties/VP-INDEX.md
   - .factory/stories/STORY-INDEX.md
-input-hash: "[pending-recompute]"
+input-hash: "24eba9e"
 traces_to: prd.md
 project: vsdd-factory
 mode: feature

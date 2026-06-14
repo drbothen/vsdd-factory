@@ -20,7 +20,7 @@ inputs:
   - .factory/specs/domain-spec/capabilities.md
   - .factory/specs/architecture/ARCH-INDEX.md
   - .factory/policies.yaml
-input-hash: "02d3013"
+input-hash: "490cf00"
 traces_to: ".factory/specs/prd.md"
 cycle: v1.0-brownfield-backfill
 sub_cycle: wave-9-ss-01-straggler-re-anchor
