@@ -1,15 +1,17 @@
 ---
 document_type: vp-index
 level: L4
-version: "2.06"
+version: "2.07"
 status: draft
 producer: state-manager
 timestamp: 2026-05-15T00:00:00Z
-last_amended: "2026-05-20 (v2.06) — D-497 M3 3M3a-r BC CASCADE CONVERGED at pass-11 (STREAK 2/3 → 3/3 CONVERGED per BC-5.39.001; cure-extension parsimony DEFINITIVELY validated 3 passes; S-7.02 cycle-closing checklist satisfied; 4-index BC v2.49/VP v2.06/STORY v3.53/ARCH v2.15 all 5-leg parity gate-PASS; unblocks 3M3b story elaboration). No VP content changes. D-range D-001..D-497. [Prior: 2026-05-20 (v2.05) — D-496 M3 BC cascade pass-10 persisted (verdict CLEAN; 0 findings; SECOND consecutive TRUE CLEAN); STREAK 1/3 → 2/3 SECOND ADVANCE; cure-extension parsimony validated 2 consecutive passes (no INV-021 needed); 4-index BC v2.48/VP v2.05/STORY v3.52/ARCH v2.14 all 5-leg parity gate-PASS; pass-11 dispatch-ready for projected 3-CLEAN convergence at D-497. No VP content changes. D-range D-001..D-496. [Prior: 2026-05-20 (v2.04) — D-495 M3 BC cascade pass-9 persisted (verdict CLEAN; 0 findings; FIRST TRUE CLEAN of cascade); STREAK 0/3 → 1/3 FIRST ADVANCE POST-RESET; D-494 POLICY 14 extension empirically validated; 4-index BC v2.47/VP v2.04/STORY v3.51/ARCH v2.13 all 5-leg parity gate-verified; pass-10 dispatch-ready. No VP content changes. D-range D-001..D-495. [Prior: 2026-05-20 (v2.03) — D-494 M3 BC cascade pass-8 persist+fix+codify; HIGH 1 finding F-BC008P8-001 closed (INV-020 RECURRENCE; BC-INDEX leg-4 gap); STREAK 2/3 → 0/3 RESET; POLICY 14 verification_steps extended with literal-shell 4-index self-application gate; 4-index BC v2.46/VP v2.03/STORY v3.50/ARCH v2.12 all with proper 5-leg parity; pass-9 dispatch-ready. No VP content changes. [Prior: 2026-05-20 (v2.02) — D-493 M3 BC cascade pass-7 persisted (NITPICK; 1 NIT; STREAK 1/3 → 2/3; CRIT=0 sustained 6 passes). No VP content changes. [Prior: 2026-05-20 (v2.01) — D-492 M3 BC cascade pass-6 persisted (verdict NITPICK; 2 NIT findings; STREAK 0/3 → 1/3). No VP content changes.]]]"
+last_amended: "2026-06-14 (v2.07) — E-18 F2 BC propagation pass (architect): VP-081..VP-085 bcs[] frontmatter updated from TBD to real BC IDs per product-owner BC authoring; VP files bumped to v1.1; VP-INDEX version leg advanced 2.06→2.07; Traceability updated (+5 VPs, +4 unique BCs). [Prior: 2026-05-20 (v2.06) — D-497 M3 3M3a-r BC CASCADE CONVERGED at pass-11 (STREAK 2/3 → 3/3 CONVERGED per BC-5.39.001; cure-extension parsimony DEFINITIVELY validated 3 passes; S-7.02 cycle-closing checklist satisfied; 4-index BC v2.49/VP v2.06/STORY v3.53/ARCH v2.15 all 5-leg parity gate-PASS; unblocks 3M3b story elaboration). No VP content changes. D-range D-001..D-497.]"
 phase: F5
 traces_to: ARCH-INDEX.md
-total_vps: 80
+total_vps: 85
 changelog:
+  - date: 2026-06-14
+    change: "v2.07 (2026-06-14; F2 E-18 context-durability VP delta — 5 new VPs (VP-081..VP-085) for wave-boundary checkpoint/reset and PreCompact flush architecture (ADR-026; issue #173; architect F2). +VP-081 wave-cannot-close-without-verified-handoff (integration; SS-05/06/07; bcs: BC-5.41.001, BC-4.14.001); +VP-082 precompact-flush-commits-before-compaction (integration; SS-07/04; bcs: BC-7.07.001); +VP-083 completeness-gate-no-op-on-wave-1 (unit-test; SS-04; bcs: BC-4.14.001); +VP-084 precompact-flush-lifecycle-distinct-from-burst (integration; SS-05/07; bcs: BC-5.41.003); +VP-085 precompact-flush-hermetic (unit-test; SS-07; bcs: BC-7.07.001). VP files v1.0→v1.1 (bcs[] TBD→resolved; source_bc resolved). total_vps 80→85. BC citations +4 unique (BC-5.41.001, BC-4.14.001, BC-7.07.001, BC-5.41.003); Traceability 132 BCs/80 VPs → 136 BCs/85 VPs. Story Anchors added for VP-081..085 (anchor stories S-18.01/S-18.02/S-18.04; TBD wave per E-18 F3 decomposition). verification-coverage-matrix.md and verification-architecture.md: formally deferred per VP-INDEX preamble; VP-INDEX §Full Index is the authoritative coverage table. Refs: ADR-026 v1.0, issue-173, E-18, BC-5.41.001, BC-4.14.001, BC-7.07.001, BC-5.41.003."
   - date: 2026-05-20
     change: "v2.06 (2026-05-20; D-497 state-manager CONVERGENCE DECLARATION burst: M3 3M3a-r BC cascade CONVERGED at pass-11; verdict CLEAN third consecutive; STREAK 2/3 → 3/3 CONVERGED per BC-5.39.001; CRIT=0 sustained 10 passes; HIGH=0 sustained 3 passes; cure-extension parsimony DEFINITIVELY validated 3 consecutive passes; S-7.02 cycle-closing checklist satisfied; 4-index BC v2.49/VP v2.06/STORY v3.53/ARCH v2.15 all 5-leg parity gate-PASS; unblocks 3M3b story elaboration. No VP content changes. D-range D-001..D-497. Refs: D-497, BC-5.39.001 3-CLEAN threshold SATISFIED, S-7.02 satisfied. VP-INDEX v2.05→v2.06."
   - date: 2026-05-20
@@ -247,14 +249,15 @@ changelog:
 | Async Semantics VPs | 2 | VP-077..VP-078 |
 | Async Semantics Event Schema VPs | 1 | VP-079 |
 | Hook Plugin Capability VPs | 1 | VP-080 |
-| **Total** | **80** | **VP-001..VP-080** |
+| Context Durability VPs (E-18) | 5 | VP-081..VP-085 |
+| **Total** | **85** | **VP-001..VP-085** |
 
 ## Proof Method Breakdown
 
 | Method | Count | VPs |
 |--------|-------|-----|
-| unit-test | 40 | VP-003..014, VP-016..024, VP-026..027, VP-029..032, VP-034..042, VP-044..045, VP-050, VP-052 |
-| integration | 21 | VP-001, VP-002, VP-025, VP-028, VP-033, VP-043, VP-049, VP-051, VP-058, VP-060, VP-062, VP-063, VP-065, VP-066, VP-067, VP-068, VP-072, VP-073, VP-076, VP-078, VP-079 |
+| unit-test | 42 | VP-003..014, VP-016..024, VP-026..027, VP-029..032, VP-034..042, VP-044..045, VP-050, VP-052, VP-083, VP-085 |
+| integration | 24 | VP-001, VP-002, VP-025, VP-028, VP-033, VP-043, VP-049, VP-051, VP-058, VP-060, VP-062, VP-063, VP-065, VP-066, VP-067, VP-068, VP-072, VP-073, VP-076, VP-078, VP-079, VP-081, VP-082, VP-084 |
 | manual | 10 | VP-015, VP-046..048, VP-053..057, VP-064 |
 | static-check | 1 | VP-061 |
 | kani-proof | 4 | VP-070, VP-071, VP-074, VP-077 (upgrade candidates: VP-020, VP-023, VP-042) |
@@ -344,6 +347,11 @@ changelog:
 | [VP-078](VP-078.md) | CI Lint Invariant — `on_error = "block"` implies `async = false` in hooks-registry.toml (v1.9: F5 fix-burst-25 — F-P26-001 PluginEntry → RegistryEntry corpus sweep across active-body sites; v1.8: WASM-rule audit — 'bash script or bats test' → 'native WASM plugin per BC-7.06.001 + S-15.01 AC-007'; pre-commit → PostToolUse Edit\|Write; test-fixture annotation added) | safety | integration | SS-07, SS-01 | — | draft |
 | [VP-079](VP-079.md) | Async-Semantics Event Types — Payload Schema Conformance — each of the four async-semantics event types (`plugin.async_block_discarded`, `dispatcher.schema_mismatch`, `dispatcher.registry_invalid`, `plugin.timeout`) conforms to BC-3.08.001 schema (v1.16: F5 fix-burst-16 — SITES array refreshed to reflect live main.rs symbol positions; bats vp079-scenario6 header anchors stabilized per TD-031 (test-writer); F-P17-001 CRIT + F-P17-004 closed) | postcondition | integration | SS-03 | DI-017, DI-019 | draft |
 | [VP-080](VP-080.md) | block-ai-attribution PostToolUse arm: detect_attribution correctly identifies all TV-001..011 patterns in git log HEAD output (v1.1: F2 fix — traces_to corrected to VP-INDEX.md from non-existent verification-architecture.md) | postcondition | proptest | SS-07 | — | draft |
+| [VP-081](VP-081.md) | Wave Cannot Close Without Verified Handoff (wave_id > 1) — validate-wave-handoff-completeness gate blocks wave-gate close-wave step unless HANDOFF.md exists with all required ADR-026 §D2 fields; wave-1 is unconditional no-op | safety | integration | SS-05, SS-06, SS-07 | — | draft |
+| [VP-082](VP-082.md) | PreCompact Flush Commits to factory-artifacts Before Compaction Proceeds — precompact-flush.sh commits STATE.md + wave state before exiting; blocks (exit 2) on commit failure; no-op when state is clean; renews factory lock per ADR-025 D11 | safety | integration | SS-07, SS-04 | — | draft |
+| [VP-083](VP-083.md) | Completeness Gate Is No-Op on Wave-1 and HANDOFF.md Absent — validate-wave-handoff-completeness returns Continue unconditionally when current_wave = 1; also no-op on non-HANDOFF.md writes | invariant | unit-test | SS-04 | — | draft |
+| [VP-084](VP-084.md) | PreCompact Flush Commit Is Lifecycle-Distinct From State-Manager Burst Commit — validate-burst-log exempts commits with "PreCompact flush wave-" prefix from MULTI_COMMIT_CHAIN_NOT_ALLOWED detector | invariant | integration | SS-05, SS-07 | — | draft |
+| [VP-085](VP-085.md) | PreCompact Flush Hook Is Hermetic — reads STATE.md+git only; ignores custom_instructions; determines current_wave from STATE.md frontmatter; exits 0 fail-open when STATE.md unreadable | safety | unit-test | SS-07 | — | draft |
 
 ## Kani Upgrade Candidates (P0 Priority)
 
@@ -392,10 +400,15 @@ changelog:
 | VP-078 | S-15.01 | v1.0-feature-plugin-async-semantics-pass-1 F3 | S-15.01 is the anchor story; VP-078 bats integration harness validates `on_error = "block"` implies `async = false` CI lint invariant across the production hooks-registry.toml |
 | VP-079 | S-15.01 | v1.0-feature-plugin-async-semantics-pass-1 F3 | S-15.01 is the anchor story; VP-079 integration harness verifies payload schema conformance for all four async-semantics event types (plugin.async_block_discarded, dispatcher.schema_mismatch, dispatcher.registry_invalid, plugin.timeout) per BC-3.08.001 |
 | VP-080 | S-16.01 | v1.0-feature-block-ai-attribution-message-file-arm F3 | S-16.01 is the anchor story; VP-080 proptest harness builds detect_attribution proptest at crates/hook-plugins/block-ai-attribution/tests/proptest_detect_attribution.rs verifying 4 properties across all TV-001..011 patterns (1024 cases/run; pure-core function) per BC-7.03.094 |
+| VP-081 | S-18.01, S-18.02 | E-18 F3 (TBD wave) | VP-081 bcs [BC-5.41.001, BC-4.14.001]; S-18.01 implements wave-gate close-wave blocking leg (BC-5.41.001 PC3); S-18.02 implements validate-wave-handoff-completeness WASM gate (BC-4.14.001). Story anchor TBD until E-18 F3 story decomposition. |
+| VP-082 | S-18.04 | E-18 F3 (TBD wave) | VP-082 bcs [BC-7.07.001]; S-18.04 implements precompact-flush.sh behavioral contract (BC-7.07.001 commit-before-compact invariant). Story anchor TBD until E-18 F3 story decomposition. |
+| VP-083 | S-18.02 | E-18 F3 (TBD wave) | VP-083 bcs [BC-4.14.001]; S-18.02 covers wave-1 no-op leg of validate-wave-handoff-completeness (BC-4.14.001 PC1). Unit-test scope only (no integration harness needed for no-op path). |
+| VP-084 | S-18.04 | E-18 F3 (TBD wave) | VP-084 bcs [BC-5.41.003]; S-18.04 implements validate-burst-log PreCompact exemption rule (BC-5.41.003 — "PreCompact flush wave-" prefix exemption from MULTI_COMMIT_CHAIN_NOT_ALLOWED). |
+| VP-085 | S-18.04 | E-18 F3 (TBD wave) | VP-085 bcs [BC-7.07.001]; S-18.04 implements precompact-flush.sh hermetic constraint (BC-7.07.001 hermetic invariant leg — reads STATE.md+git only, ignores custom_instructions). |
 
 ## Traceability
 
 - All 18 active domain invariants (DI-001..DI-017, DI-019; DI-018 deferred-not-authored) covered by the verification suite
-- BCs cross-referenced: 132 BC IDs across 80 VPs (net -2: BC-1.10.001/002 retired and dropped from VP-065 coverage in pass-4; +5 BC-4.05.001-005 added with VP-066; +4 BC-4.07.001-004 added with VP-067; +3 BC-4.08.001-003 added with VP-068; +8 D-340 F2 engine discipline: VP-069→BC-4.11.001; VP-070→BC-4.11.001; VP-071→BC-5.39.001/BC-4.10.001; VP-072→BC-4.11.001/BC-6.22.001/BC-4.10.001; +7 D-362 F2-amendment: VP-073→BC-4.12.001; VP-074→BC-4.12.004; VP-075→BC-4.12.002/BC-4.12.005; VP-076→BC-4.12.003; +2 F2-async-semantics: VP-077→BC-1.14.001; VP-078→BC-7.06.001; +1 F2 pass-1 fix burst: VP-079→BC-3.08.001; +2 F-block-ai-attribution-message-file-arm F2: VP-080→BC-7.03.094/BC-7.03.095)
+- BCs cross-referenced: 136 BC IDs across 85 VPs (net -2: BC-1.10.001/002 retired and dropped from VP-065 coverage in pass-4; +5 BC-4.05.001-005 added with VP-066; +4 BC-4.07.001-004 added with VP-067; +3 BC-4.08.001-003 added with VP-068; +8 D-340 F2 engine discipline: VP-069→BC-4.11.001; VP-070→BC-4.11.001; VP-071→BC-5.39.001/BC-4.10.001; VP-072→BC-4.11.001/BC-6.22.001/BC-4.10.001; +7 D-362 F2-amendment: VP-073→BC-4.12.001; VP-074→BC-4.12.004; VP-075→BC-4.12.002/BC-4.12.005; VP-076→BC-4.12.003; +2 F2-async-semantics: VP-077→BC-1.14.001; VP-078→BC-7.06.001; +1 F2 pass-1 fix burst: VP-079→BC-3.08.001; +2 F-block-ai-attribution-message-file-arm F2: VP-080→BC-7.03.094/BC-7.03.095; +4 E-18 F2 context-durability BC propagation: VP-081→BC-5.41.001/BC-4.14.001; VP-082→BC-7.07.001; VP-083→BC-4.14.001 [shared with VP-081]; VP-084→BC-5.41.003; VP-085→BC-7.07.001 [shared with VP-082]; unique new BCs: BC-5.41.001, BC-4.14.001, BC-7.07.001, BC-5.41.003)
 - Test evidence cited: 46 VPs have specific Rust test references (VP-063 changed from proptest to integration/bats in pass-1)
 - 27 VPs have TBD test evidence (manual or pending CI automation; +4 VP-073..076 feasible-pending-harness; +2 VP-077..078 feasible-pending-harness; +1 VP-079 feasible-pending-harness; +1 VP-080 feasible-pending-harness)
