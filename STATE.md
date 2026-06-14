@@ -156,7 +156,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | caf06c68 | rc.21 bot binary bundle commit 2026-06-13; PR #188 merge d3b4e247 underneath; prior: 2a191314 (rc.20 SHIPPED 2026-06-01) |
 | develop | 7e99f6ef | PR #186 fix a431ff47 + release.yml sync-develop back-merge from main 2026-06-13; prior: 3b2a378c (D-556 PR #184 S-17.04 2026-06-12) |
-| factory-artifacts | 4332e312 | D-566 F2 E-18 adv-pass-5 fix burst 2026-06-14; prior: 146c6758 D-565 adv-pass-4 fix burst (sha-patch fb4b1683) |
+| factory-artifacts | ef7eafe2 | D-567 F2 E-18 adv-pass-6 fix burst + governance 2026-06-14; prior: 4332e312 D-566 adv-pass-5 fix burst (sha-patch 6888b8d6) |
 | v1.0.0-rc.21 (tag) | 03054524 | SHIPPED 2026-06-13; FULLY IN OPERATOR MARKETPLACE (marketplace PR #13 MERGED); annotated tag object; GitHub Release https://github.com/drbothen/vsdd-factory/releases/tag/v1.0.0-rc.21 |
 | v1.0.0-rc.20 (tag) | e9e38286 | SHIPPED 2026-06-01; annotated tag object; GitHub Release prerelease; marketplace PR drbothen/claude-mp #12 squash-merged 862e660d |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28; GitHub Release prerelease 2026-05-28T15:10:56Z; marketplace PR #11 squash-merged |
@@ -374,7 +374,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** 4332e312 (D-566 F2 E-18 adv-pass-5 fix burst 2026-06-14; prior: `146c6758` D-565 adv-pass-4 fix burst sha-patch `fb4b1683`)
+- **factory-artifacts HEAD:** ef7eafe2 (D-567 F2 E-18 adv-pass-6 fix burst + governance 2026-06-14; prior: `4332e312` D-566 adv-pass-5 fix burst sha-patch `6888b8d6`)
 - **develop HEAD:** `7e99f6ef` (PR #186 fix a431ff47 + release.yml sync back-merge 2026-06-13; prior: `3b2a378c` D-556)
 - **main HEAD:** `caf06c68` (rc.21 bot bundle commit 2026-06-13; prior: `2a191314` rc.20)
 - **v1.0.0-rc.21 tag:** `03054524` (annotated; force-moved to bundle commit; FULLY SHIPPED; marketplace #13 MERGED)

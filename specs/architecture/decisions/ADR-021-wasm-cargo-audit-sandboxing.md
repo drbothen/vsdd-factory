@@ -16,7 +16,7 @@ inputs:
   - .factory/specs/architecture/ARCH-INDEX.md
   - .factory/specs/architecture/decisions/ADR-018-wasm-plugin-context-resolvers.md
   - .factory/tech-debt-register.md
-input-hash: "08556e9"
+input-hash: "7230a3a"
 ---
 
 # ADR-021: WASM Plugin Cargo-Audit Integration — Sandboxing Architecture
