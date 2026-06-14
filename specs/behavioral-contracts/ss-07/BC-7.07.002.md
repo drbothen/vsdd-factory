@@ -1,11 +1,11 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.2"
+version: "1.3"
 status: draft
 producer: product-owner
 timestamp: 2026-06-14T00:00:00Z
-last_amended: "2026-06-14 (v1.2) — F2 pass-2 fix-burst: (F-P2-002/009) PC1 stdout template: `wave=<current_wave>` → `context=<current_cycle>/<current_step>` (no phantom current_wave: field; hook derives from STATE.md current_cycle: + current_step:). Inv 2: `current_wave`, `current_step`, `last_verified_develop_sha` → `current_cycle:`, `current_step:`, `last_verified_develop_sha`; explicit statement that current_wave: does not exist. EC-003: `current_wave field absent` → `current_cycle: or current_step: absent`; emit `context=UNKNOWN`. Test vector updated to new stdout format. [Prior: 2026-06-14 (v1.1) — F2 pass-1 fix-burst: (F-6) Best-effort status made explicit in §Description and §Invariants; NOT in CAP-032 continuity-guarantee chain. (F-13 POLICY 7) H1 title corrected: 'reads compaction summary' removed from H1 because PC7 makes it optional; H1 now accurately describes what postconditions specify. (DI) TBD-DI replaced with DI-024. TBD-VP retained with justification.]"
+last_amended: "2026-06-14 (v1.3) — F2 pass-3 fix-burst: ADR cite v1.1→v1.3. [Prior: 2026-06-14 (v1.2) — F2 pass-2 fix-burst: (F-P2-002/009) PC1 stdout template: `wave=<current_wave>` → `context=<current_cycle>/<current_step>` (no phantom current_wave: field; hook derives from STATE.md current_cycle: + current_step:). Inv 2: `current_wave`, `current_step`, `last_verified_develop_sha` → `current_cycle:`, `current_step:`, `last_verified_develop_sha`; explicit statement that current_wave: does not exist. EC-003: `current_wave field absent` → `current_cycle: or current_step: absent`; emit `context=UNKNOWN`. Test vector updated to new stdout format. [Prior: 2026-06-14 (v1.1) — F2 pass-1 fix-burst: (F-6) Best-effort status made explicit in §Description and §Invariants; NOT in CAP-032 continuity-guarantee chain. (F-13 POLICY 7) H1 title corrected: 'reads compaction summary' removed from H1 because PC7 makes it optional; H1 now accurately describes what postconditions specify. (DI) TBD-DI replaced with DI-024. TBD-VP retained with justification.]"
 phase: F2
 inputs:
   - .factory/feature-delta/issue-173/F1-delta-analysis.md
@@ -19,6 +19,7 @@ capability: "CAP-032"
 lifecycle_status: draft
 introduced: v1.0-feature-context-durability-E18
 modified:
+  - "2026-06-14 (v1.3) — F2 pass-3 fix-burst: ADR cite v1.1→v1.3."
   - "2026-06-14 (v1.2) — F2 pass-2 fix-burst: PC1 stdout template + Inv 2 + EC-003 + test vector: phantom current_wave: removed; current_cycle+current_step from STATE.md frontmatter used instead."
   - "2026-06-14 (v1.1) — F2 pass-1 fix-burst: H1 title corrected (removed 'reads compaction summary' per F-13 POLICY 7 H1↔postcondition parity); §Description + §Invariants updated to state best-effort explicitly (F-6); NOT in CAP-032 guarantee chain; TBD-DI replaced with DI-024; TBD-VP retained with justification; ADR cite v1.0→v1.1."
 deprecated: null
@@ -143,7 +144,7 @@ TBD-VP — no dedicated VP assigned at F2. Justification for deferral: this hook
 | Capability Anchor Justification | CAP-032 ("Guarantee lossless context-window transitions via wave-boundary checkpoint and PreCompact flush") per capabilities.md §CAP-032 — this BC specifies the PostCompact re-anchor hook that completes the mid-wave compaction durability story: after compaction, the LLM's in-context understanding of wave/step/SHA may be stale or hallucinated; this hook emits the authoritative externally-persisted values so the LLM can re-ground itself before the next tool call (ADR-026 Decision 7) |
 | L2 Domain Invariants | DI-024 (PostCompact re-anchor is best-effort and carries no correctness guarantee; it is not in the CAP-032 continuity-guarantee chain — enforced by hook design: cannot block, does not commit, failure has no CAP-032 impact) |
 | Architecture Module | SS-07 (Hook Bash Layer) — shell hook in `plugins/vsdd-factory/hooks/`; registry entry in `hooks-registry.toml` |
-| ADR | ADR-026 v1.1 Decision 7 (PostCompact re-anchor: advisory shell hook; best-effort; cannot block; NOT in CAP-032 guarantee chain; re-reads STATE.md pointer from factory-artifacts; emits re-anchor block; does not commit) |
+| ADR | ADR-026 v1.3 Decision 7 (PostCompact re-anchor: advisory shell hook; best-effort; cannot block; NOT in CAP-032 guarantee chain; re-reads STATE.md pointer from factory-artifacts; emits re-anchor block; does not commit) |
 | Stories | S-18.05 |
 | Cycle | v1.0-feature-context-durability-E18 (F2) |
 | Feature | issue #173 / E-18 |

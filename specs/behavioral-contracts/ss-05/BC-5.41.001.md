@@ -1,11 +1,11 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.2"
+version: "1.3"
 status: draft
 producer: product-owner
 timestamp: 2026-06-14T00:00:00Z
-last_amended: "2026-06-14 (v1.2) — F2 pass-2 fix-burst: (F-P2-001) PC2 wave_id field def updated: phantom `current_wave:` field → derived from sprint-state.yaml topo-sort ordinal (product) or STATE.md current_step: (engine). PC3 anti-fabrication cross-check updated: wave_id matches derived value from sprint-state.yaml/current_step: (no stored current_wave: field). (F-12 append-log) PC5 last-precompact-flush-sha side-channel → precompact-flush-log append-log (last line + git cat-file -t validation); stale-SHA-in-log edge case added (write-before-push crash → skip); EC-006 + EC-011 + Architecture Anchors updated to precompact-flush-log. [Prior: 2026-06-14 (v1.1) — F2 pass-1 fix-burst: (F-1) Precondition 3 re-anchored: phantom `current_wave:` field removed; wave identity derives from sprint-state.yaml dependency-order (product pipelines) or STATE.md `current_step:` (engine). (F-2) Precondition 4 downgraded: factory lock held OR absent; `factory_lock_holder` nullable; Postcondition 2 and anti-fabrication cross-check Postcondition 3 updated for null case. EC-010 (factory_lock absent) added. (F-12) precompact_flush_sha now a HARD cross-check against `.factory/hooks/last-precompact-flush-sha` when that file exists; advisory-override for wave>1 null SHA tightened. (DI) TBD-DI replaced with DI-020+DI-021+DI-023.]"
+last_amended: "2026-06-14 (v1.3) — F2 pass-3 fix-burst: (O-P3-002) PC8 added: EPIC-COMPLETE operator surfacing — when EPIC-COMPLETE triggers (all stories terminal), wave-gate announces completion via stdout with concrete message format before exiting. ADR cite v1.1→v1.3. [Prior: 2026-06-14 (v1.2) — F2 pass-2 fix-burst: (F-P2-001) PC2 wave_id field def updated: phantom `current_wave:` field → derived from sprint-state.yaml topo-sort ordinal (product) or STATE.md current_step: (engine). PC3 anti-fabrication cross-check updated: wave_id matches derived value from sprint-state.yaml/current_step: (no stored current_wave: field). (F-12 append-log) PC5 last-precompact-flush-sha side-channel → precompact-flush-log append-log (last line + git cat-file -t validation); stale-SHA-in-log edge case added (write-before-push crash → skip); EC-006 + EC-011 + Architecture Anchors updated to precompact-flush-log. [Prior: 2026-06-14 (v1.1) — F2 pass-1 fix-burst: (F-1) Precondition 3 re-anchored: phantom `current_wave:` field removed; wave identity derives from sprint-state.yaml dependency-order (product pipelines) or STATE.md `current_step:` (engine). (F-2) Precondition 4 downgraded: factory lock held OR absent; `factory_lock_holder` nullable; Postcondition 2 and anti-fabrication cross-check Postcondition 3 updated for null case. EC-010 (factory_lock absent) added. (F-12) precompact_flush_sha now a HARD cross-check against `.factory/hooks/last-precompact-flush-sha` when that file exists; advisory-override for wave>1 null SHA tightened. (DI) TBD-DI replaced with DI-020+DI-021+DI-023.]"
 phase: F2
 inputs:
   - .factory/feature-delta/issue-173/F1-delta-analysis.md
@@ -19,6 +19,7 @@ capability: "CAP-032"
 lifecycle_status: draft
 introduced: v1.0-feature-context-durability-E18
 modified:
+  - "2026-06-14 (v1.3) — F2 pass-3 fix-burst: PC8 added (EPIC-COMPLETE stdout surfacing per O-P3-002); ADR cite v1.1→v1.3."
   - "2026-06-14 (v1.2) — F2 pass-2 fix-burst: PC2 wave_id phantom-field → derived value (sprint-state.yaml/current_step:); PC3 cross-check updated to derived value; PC5 side-channel file → precompact-flush-log append-log (last line + git cat-file -t); stale-SHA edge case (write-before-push crash); EC-006+EC-011+Arch Anchors updated."
   - "2026-06-14 (v1.1) — F2 pass-1 fix-burst: Precondition 3 re-anchored (sprint-state.yaml/current_step:; no phantom current_wave:); Precondition 4 lock-held-or-absent; PC2 factory_lock_holder nullable; PC3 cross-check updated for null holder; PC5 precompact_flush_sha hard cross-check against last-precompact-flush-sha side-channel; EC-010 factory_lock absent edge case added; TBD-DI replaced with DI-020+DI-021+DI-023; ADR cite v1.0→v1.1."
 deprecated: null
@@ -76,6 +77,14 @@ When the `wave-gate` skill is invoked to close wave N (where N > 0), it must pro
 6. **Commit to factory-artifacts**: After all checks pass, `wave-gate` commits `HANDOFF.md` to the `factory-artifacts` branch with a commit message: `HANDOFF wave-<N> <ISO-timestamp>`.
 
 7. **validate-wave-handoff-completeness gate passes**: After writing `HANDOFF.md`, the `validate-wave-handoff-completeness` WASM gate (BC-4.14.001) is invoked as a PostToolUse gate and must return `Continue` before the wave is declared closed.
+
+8. **EPIC-COMPLETE operator surfacing**: When `wave-gate` detects EPIC-COMPLETE (all entries in `sprint-state.yaml` have terminal status — merged, withdrawn, or cancelled — and no pending/draft entries remain), before exiting 0 it MUST write the following message to stdout so the operator is explicitly notified:
+   ```
+   EPIC-COMPLETE: All stories in sprint-state.yaml have reached terminal status.
+   Epic <epic-id> is complete. No next-wave handoff required.
+   HANDOFF.md written with epic_status: complete. wave-state.yaml NOT written.
+   ```
+   Where `<epic-id>` is derived from the cycle identifier in `STATE.md` `current_cycle:` field. A silent exit 0 on EPIC-COMPLETE is a specification violation — the operator must receive explicit confirmation that the epic has ended, not merely the absence of an error.
 
 ## Invariants
 
@@ -149,7 +158,7 @@ S-18.01 (HANDOFF.md schema + wave-handoff skill)
 | Capability Anchor Justification | CAP-032 ("Guarantee lossless context-window transitions via wave-boundary checkpoint and PreCompact flush") per capabilities.md §CAP-032 — this BC specifies the verified HANDOFF.md wave-close checkpoint that is the primary cross-wave continuity mechanism (ADR-026 Decision 1 + Decision 2); it directly closes the fabricated-SHA failure class documented in issues #170 and #173 |
 | L2 Domain Invariants | DI-020 (Wave/phase boundary transitions must not lose load-bearing pipeline state — enforced by requiring HANDOFF.md with all 9 fields before wave close); DI-021 (Handoff claims must be cross-checked against verifiable external ground truth — enforced by anti-fabrication cross-checks in PC3, including SHA verification against git and precompact_flush_sha against side-channel file); DI-023 (Wave/phase identity and next-wave story lists derive from real persisted substrate — enforced by wave_id derivation from sprint-state.yaml or STATE.md current_step:, and next_wave_stories from sprint-state.yaml status entries) |
 | Architecture Module | SS-05 (Pipeline Orchestration) — wave-gate and wave-handoff skills live in `plugins/vsdd-factory/skills/` |
-| ADR | ADR-026 v1.1 Decision 2 (HANDOFF.md schema + anti-fabrication cross-checks; wave_id from real substrate; factory_lock_holder nullable; precompact_flush_sha hard cross-check against side-channel file); Decision 9 (wave-1 no-op); Decision 1 (wave-boundary reset is primary mechanism) |
+| ADR | ADR-026 v1.3 Decision 2 (HANDOFF.md schema + anti-fabrication cross-checks; wave_id from real substrate; factory_lock_holder nullable; precompact_flush_sha hard cross-check against side-channel file); Decision 9 (wave-1 no-op); Decision 1 (wave-boundary reset is primary mechanism) |
 | Stories | S-18.01 |
 | Cycle | v1.0-feature-context-durability-E18 (F2) |
 | Feature | issue #173 / E-18 |

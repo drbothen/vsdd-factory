@@ -1,11 +1,11 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.2"
+version: "1.3"
 status: draft
 producer: product-owner
 timestamp: 2026-06-14T00:00:00Z
-last_amended: "2026-06-14 (v1.2) — F2 pass-2 fix-burst: (F-P2-004/008) EC-EPIC added (final-wave EPIC-COMPLETE: HANDOFF has epic_status:complete, rehydrate-wave reads HANDOFF.md only, must not error on absent wave-state.yaml); EC-004 clarified as non-final context. [Prior: 2026-06-14 (v1.1) — F2 pass-1 fix-burst: (F-3 consistency) PC1 explicitly mandates git-sourced read from factory-artifacts (no in-context memory fallback); Invariant 1 strengthened to disallow working-tree fallback. (DI) TBD-DI replaced with DI-023. TBD-VP retained with justification per report.]"
+last_amended: "2026-06-14 (v1.3) — F2 pass-3 fix-burst: ADR cite v1.1→v1.3. [Prior: 2026-06-14 (v1.2) — F2 pass-2 fix-burst: (F-P2-004/008) EC-EPIC added (final-wave EPIC-COMPLETE: HANDOFF has epic_status:complete, rehydrate-wave reads HANDOFF.md only, must not error on absent wave-state.yaml); EC-004 clarified as non-final context. [Prior: 2026-06-14 (v1.1) — F2 pass-1 fix-burst: (F-3 consistency) PC1 explicitly mandates git-sourced read from factory-artifacts (no in-context memory fallback); Invariant 1 strengthened to disallow working-tree fallback. (DI) TBD-DI replaced with DI-023. TBD-VP retained with justification per report.]"
 phase: F2
 inputs:
   - .factory/feature-delta/issue-173/F1-delta-analysis.md
@@ -19,6 +19,7 @@ capability: "CAP-032"
 lifecycle_status: draft
 introduced: v1.0-feature-context-durability-E18
 modified:
+  - "2026-06-14 (v1.3) — F2 pass-3 fix-burst: ADR cite v1.1→v1.3."
   - "2026-06-14 (v1.2) — F2 pass-2 fix-burst: EC-EPIC (EPIC-COMPLETE final wave; reads HANDOFF.md only; no error on absent wave-state.yaml); EC-004 non-final context clarification."
   - "2026-06-14 (v1.1) — F2 pass-1 fix-burst: PC1 git-source mandate strengthened; working-tree fallback explicitly disallowed; TBD-DI replaced with DI-023; TBD-VP retained with justification; ADR cite v1.0→v1.1."
 deprecated: null
@@ -124,7 +125,7 @@ TBD-VP — no dedicated VP assigned at F2. Justification for deferral: the `rehy
 | Capability Anchor Justification | CAP-032 ("Guarantee lossless context-window transitions via wave-boundary checkpoint and PreCompact flush") per capabilities.md §CAP-032 — this BC specifies the rehydration consumption side of the wave-boundary reset mechanism; deterministic injection of exactly the listed specs (and no others) is the guarantee that the new session starts with the correct scope, completing the CAP-032 wave-boundary continuity guarantee begun by HANDOFF.md production (BC-5.41.001) |
 | L2 Domain Invariants | DI-023 (Wave/phase identity and next-wave story lists derive from real persisted substrate fields; no phantom fields — enforced by git-sourced manifest read (no working-tree or in-context fallback) and exact-list injection semantics (no additions from RAG or in-context inference)) |
 | Architecture Module | SS-06 (Skill Catalog) — rehydrate-wave skill in `plugins/vsdd-factory/skills/` |
-| ADR | ADR-026 v1.1 Decision 3 (prompt-the-human; operator clears session), Decision 4 (curated wave-state.yaml manifest; RAG deferred; reads from factory-artifacts via git; working-tree not authoritative) |
+| ADR | ADR-026 v1.3 Decision 3 (prompt-the-human; operator clears session), Decision 4 (curated wave-state.yaml manifest; RAG deferred; reads from factory-artifacts via git; working-tree not authoritative) |
 | Stories | S-18.03 |
 | Cycle | v1.0-feature-context-durability-E18 (F2) |
 | Feature | issue #173 / E-18 |

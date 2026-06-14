@@ -3035,3 +3035,31 @@ POLICY 14 description and verification_steps updated in policies.yaml same-burst
 **Closes:** D-563 process-gap lesson capture; S-7.02 phantom-field-removal verification gate obligation. `[codified]`
 
 **Closes:** D-539 lessons-capture; issue-169 + issue-176 worktree-identity adversarial-correctness gap; multi-family adversary diversity discipline forward obligation. `[codified]`
+
+---
+
+### L-F2-sibling-sweep-tree-wide-gate
+
+**Category:** adversarial-convergence + sibling-sweep-discipline + closure-gate-discipline + VSDD-process-gap
+
+**(a) A rename/sweep fix that reaches only one class of artifact (BCs) but not sibling artifacts (ADR self, DI, VP body/INDEX rows, capabilities, ARCH-INDEX row) will regress in the next adversarial pass.** F2 adversarial passes 1, 2, and 3 all exhibited the same root cause: an INCOMPLETE-SIBLING-SWEEP. Pass-1 re-anchored ADR-026 prose but not PC/EC/VP tables. Pass-2 swept PC/EC/VP tables and BCs but not ADR-026 Decision 2/6/TOML, DI-025, capabilities.md, nor ARCH-INDEX row. Pass-3 caught these remaining sites. **Pattern:** any rename of a canonical field or file path MUST sweep ALL six classes of artifact simultaneously: (1) ADR self (body text + Decision clauses + TOML path_allow blocks), (2) domain-spec invariants, (3) capabilities, (4) VP body + VP-INDEX rows, (5) all BCs, (6) index rows (ARCH-INDEX, BC-INDEX). A fix is not complete unless ALL six classes are verified.
+
+**(b) A tree-wide literal-shell closure gate is the mandatory backstop.** L-F2-phantom-field-gate (D-563) established that closure gates must be run for field-removal fixes. This lesson EXTENDS that to multi-field sibling sweeps: the gate MUST cover the entire specs tree (`grep -rn <old-value> .factory/specs/`) across ALL three axes of the rename: (1) the old field/path literal, (2) the old enum value (e.g., old terminal state), (3) the old version cite (e.g., ADR-026 v1.1 in BC citation fields). Any hit outside historical changelog rows is a closure-gate failure. The three literal-shell grep commands that closed the D-564 pass-3 gate are the canonical template:
+
+```bash
+grep -rn 'last-precompact-flush-sha' .factory/specs/
+grep -rn 'current_wave' .factory/specs/
+grep -rEn 'flush wave-|ADR-026 v1\.(0|1|2)' .factory/specs/
+```
+
+Every hit must be either: (a) a historical `last_amended:` / `changelog:` / `Prior:` string, or (b) explicit negation prose ("this field does not exist", "the old form is obsolete").
+
+**(c) Rename/sweep fixes that trigger a pass-N regression MUST prompt the fix-burst executor to run tree-wide grep before staging — not after commit.** The three-pass pattern confirms that per-artifact sweeping by memory is unreliable even for the same executor across multiple passes. The only reliable protocol is the tree-wide pre-staging gate described above. Future fix-bursts that involve ANY rename or value-change across the spec corpus MUST run tree-wide grep and paste captured stdout into the burst-log Dim-2 block BEFORE the `git add` step.
+
+**This lesson REINFORCES L-F2-phantom-field-gate** (closure-gate for field-removal) and BROADENS it: the tree-wide gate requirement applies to ALL rename/sweep operations, not only phantom-field removal. The S-18.08 gate rationale is strengthened by three consecutive passes exhibiting the same miss class.
+
+**Anchors:** D-564 (this burst); F2 adv-pass-3 (root cause: 5 BLOCKER + 4 MAJOR from sibling-sweep miss); D-563 (pass-2 partial sweep), D-562 (pass-1 partial sweep); tree-wide closure gate (3 literal-shell sweeps → 0 load-bearing); S-18.08 (draft story for permanent lint/hook codification — E-18 epic).
+
+**Cites:** D-564; D-563; D-562; L-F2-phantom-field-gate (D-563 closure-gate discipline — reinforced here); S-7.02 (closure-gate checklist); CLAUDE.md Canonical Principle Rule 3 (fix in scope); TD-VSDD-060 (sibling-site sweep on value changes); BC-5.39.001 3-CLEAN protocol.
+
+**Closes:** D-564 process-gap lesson capture; recurring sibling-sweep miss root-cause codification (3-pass pattern). `[codified]`

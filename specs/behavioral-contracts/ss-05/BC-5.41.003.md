@@ -1,11 +1,11 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.2"
+version: "1.3"
 status: draft
 producer: product-owner
 timestamp: 2026-06-14T00:00:00Z
-last_amended: "2026-06-14 (v1.2) — F2 pass-2 fix-burst: (F-P2-003 append-log) H1 enriched with corroboration detail (precompact-flush-log append-log last-line + git cat-file -t). PC1 SHA corroboration updated: last-precompact-flush-sha → precompact-flush-log last line + git cat-file -t; stale-entry case (git cat-file -t returns non-commit → treat as absent → prefix match sufficient) added. Inv 1 updated symmetrically. EC-003 truth table: stale-SHA row added (write-before-push crash → EXEMPT). Architecture Anchors updated: last-precompact-flush-sha → precompact-flush-log append-log. [Prior: 2026-06-14 (v1.1) — F2 pass-1 fix-burst: (F-8) Exemption prefix updated from `^PreCompact flush ` to general `^PreCompact flush ` (per locked convention; BC-7.07.001 commit message now `PreCompact flush <cycle>/<step>` not `PreCompact flush <N>`). PC1 + Inv 1 + Inv 3 updated with new prefix. EC-003 rewritten as concrete HEAD/HEAD^ truth table. Security tightening: exempted commit SHA MUST be corroborated by `.factory/hooks/last-precompact-flush-sha` side-channel file when that file exists, to prevent arbitrary `PreCompact flush` prefix bypass. (DI) TBD-DI replaced with DI-020+DI-025.]"
+last_amended: "2026-06-14 (v1.3) — F2 pass-3 fix-burst: ADR cite v1.1→v1.3. [Prior: 2026-06-14 (v1.2) — F2 pass-2 fix-burst: (F-P2-003 append-log) H1 enriched with corroboration detail (precompact-flush-log append-log last-line + git cat-file -t). PC1 SHA corroboration updated: last-precompact-flush-sha → precompact-flush-log last line + git cat-file -t; stale-entry case (git cat-file -t returns non-commit → treat as absent → prefix match sufficient) added. Inv 1 updated symmetrically. EC-003 truth table: stale-SHA row added (write-before-push crash → EXEMPT). Architecture Anchors updated: last-precompact-flush-sha → precompact-flush-log append-log. [Prior: 2026-06-14 (v1.1) — F2 pass-1 fix-burst: (F-8) Exemption prefix updated from `^PreCompact flush ` to general `^PreCompact flush ` (per locked convention; BC-7.07.001 commit message now `PreCompact flush <cycle>/<step>` not `PreCompact flush <N>`). PC1 + Inv 1 + Inv 3 updated with new prefix. EC-003 rewritten as concrete HEAD/HEAD^ truth table. Security tightening: exempted commit SHA MUST be corroborated by `.factory/hooks/last-precompact-flush-sha` side-channel file when that file exists, to prevent arbitrary `PreCompact flush` prefix bypass. (DI) TBD-DI replaced with DI-020+DI-025.]"
 phase: F2
 inputs:
   - .factory/feature-delta/issue-173/F1-delta-analysis.md
@@ -19,6 +19,7 @@ capability: "CAP-032"
 lifecycle_status: draft
 introduced: v1.0-feature-context-durability-E18
 modified:
+  - "2026-06-14 (v1.3) — F2 pass-3 fix-burst: ADR cite v1.1→v1.3."
   - "2026-06-14 (v1.2) — F2 pass-2 fix-burst: H1 enriched; PC1+Inv1 side-channel → precompact-flush-log append-log last-line + git cat-file -t; stale-SHA (write-before-push crash → EXEMPT) case added; EC-003 truth table + Architecture Anchors updated."
   - "2026-06-14 (v1.1) — F2 pass-1 fix-burst: prefix updated to general `PreCompact flush ` (removes `wave-<N>` specificity per locked convention); F-8 SHA corroboration against side-channel file; EC-003 HEAD/HEAD^ truth table; TBD-DI replaced with DI-020+DI-025; ADR cite v1.0→v1.1."
 deprecated: null
@@ -116,7 +117,7 @@ S-18.04 (precompact-flush.sh shell hook + registry; includes validate-burst-log 
 | Capability Anchor Justification | CAP-032 ("Guarantee lossless context-window transitions via wave-boundary checkpoint and PreCompact flush") per capabilities.md §CAP-032 — this BC is a MANDATORY enabler of the PreCompact flush (CAP-032 Part B); without the MULTI_COMMIT_CHAIN exemption, the flush hook would produce commits that block subsequent state-manager bursts, making the flush a production-blocking regression rather than a durability improvement; this BC closes ADR-026 §Decision 10 and F1 regression risk §4.1 R5 |
 | L2 Domain Invariants | DI-020 (Wave/phase boundary transitions must not lose load-bearing pipeline state — this exemption is a mandatory enabler: without it, PreCompact flush commits block subsequent bursts, making durability a production regression); DI-025 (PreCompact flush commits are lifecycle-orthogonal to state-manager burst commits — enforced by the exemption rule and SHA corroboration against side-channel file) |
 | Architecture Module | SS-05 (Pipeline Orchestration) — burst-log and dispatch-advance validation logic is orchestration-layer governance (SS-05 behavioral contract) even though the hook implementations may live in SS-04 WASM or SS-07 bash |
-| ADR | ADR-026 v1.1 Decision 10 (PreCompact flush lifecycle distinct from state-manager burst lifecycle; validate-burst-log + validate-dispatch-advance must exempt commits with `PreCompact flush ` prefix + SHA corroboration against side-channel file; exemption is case-sensitive) |
+| ADR | ADR-026 v1.3 Decision 10 (PreCompact flush lifecycle distinct from state-manager burst lifecycle; validate-burst-log + validate-dispatch-advance must exempt commits with `PreCompact flush ` prefix + SHA corroboration against side-channel file; exemption is case-sensitive) |
 | Stories | S-18.04 |
 | Cycle | v1.0-feature-context-durability-E18 (F2) |
 | Feature | issue #173 / E-18 |
