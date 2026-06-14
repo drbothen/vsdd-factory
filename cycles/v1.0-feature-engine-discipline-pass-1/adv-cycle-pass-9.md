@@ -12,7 +12,7 @@ inputs:
   - .factory/cycles/v1.0-feature-engine-discipline-pass-1/INDEX.md
   - .factory/cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md
   - .factory/cycles/v1.0-feature-engine-discipline-pass-1/adv-cycle-pass-8.md
-input-hash: "006211e"
+input-hash: "2c777b0"
 traces_to: prd.md
 project: vsdd-factory
 mode: feature

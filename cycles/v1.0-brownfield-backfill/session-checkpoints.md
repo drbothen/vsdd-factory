@@ -7,11 +7,27 @@ producer: state-manager
 timestamp: 2026-04-26T12:00:00Z
 cycle: v1.0-brownfield-backfill
 inputs: [STATE.md]
-input-hash: "006211e"
+input-hash: "2c777b0"
 traces_to: STATE.md
 ---
 
 # Session Checkpoints — v1.0-brownfield-backfill
+
+---
+
+## Session Resume Checkpoint (2026-06-14 — D-567 F2 E-18 ADV PASS-6 STATE-MGR BOOKKEEPING BURST COMPLETE; next: F2 adversarial re-cascade pass-7 → 3-CLEAN → F3)
+
+Archived from STATE.md by D-568 F2 adv-pass-7 fix burst + compaction per content-routing rules.
+Primary content preserved in: `git show ef7eafe2:.factory/STATE.md` (D-567 main commit; factory-artifacts HEAD at archive).
+
+Key state at D-567 archive:
+- §1: E-18 F2 passes 1-6 FIX BURSTS COMPLETE (D-562..D-567). POLICY 19 registered (adr_version_cite_volatile_pin_prohibition). VP-084 v1.6 (cite de-versioned per POLICY 19/TD-VSDD-091). VP-INDEX v2.12. 2 lessons appended. O-P6-001 process-gap codified. 3-CLEAN streak 0/3 (pass-6 PO/architect fix bursts not yet adversary-verified). Next was F2 adversarial re-cascade pass-7.
+- §8: 4-index: BC-INDEX v2.79, VP-INDEX v2.12, STORY-INDEX v4.01, ARCH-INDEX v2.34.
+- §9: factory-artifacts HEAD `ef7eafe2` (D-567 F2 E-18 adv-pass-6 fix burst + governance).
+- develop HEAD: `7e99f6ef` / main HEAD: `caf06c68` / tag: `03054524`
+- D-range: D-001..D-567.
+
+**This checkpoint superseded by D-568 F2 ADV PASS-7 FIX BURST + STATE.md COMPACTION 2026-06-14.**
 
 <!-- Archived session resume checkpoints extracted from STATE.md.
      Only the LATEST checkpoint lives in STATE.md.

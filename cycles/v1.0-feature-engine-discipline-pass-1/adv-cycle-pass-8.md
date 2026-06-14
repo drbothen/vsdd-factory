@@ -14,7 +14,7 @@ inputs:
   - .factory/STATE.md
   - .factory/cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md
   - .factory/cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md
-input-hash: "7230a3a"
+input-hash: "7b221b9"
 traces_to: prd.md
 project: vsdd-factory
 mode: feature

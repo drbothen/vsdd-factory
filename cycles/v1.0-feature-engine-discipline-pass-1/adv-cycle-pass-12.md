@@ -15,7 +15,7 @@ inputs:
   - .factory/cycles/v1.0-feature-engine-discipline-pass-1/adv-cycle-pass-11.md
   - .factory/specs/behavioral-contracts/ss-04/BC-4.12.001.md
   - .factory/specs/behavioral-contracts/ss-04/BC-4.12.005.md
-input-hash: "006211e"
+input-hash: "2c777b0"
 traces_to: prd.md
 project: vsdd-factory
 mode: feature
