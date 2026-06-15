@@ -3224,3 +3224,37 @@ This gate MUST run exhaustively across ALL cite sites every spec-touch — not o
 **Cites:** D-587; F-P24-001; F-P24-002; D-572; D-573; VP-082; BC-5.41.003; ADR-026; invariants.md DI-022; S-7.02; BC-5.39.001; E-18; L-F2-subsystem-anchor-sweep (D-584; sibling sweep discipline companion lesson).
 
 **Closes:** D-587 lesson capture; canonical-scope-verification process-gap codified; field-4 (B) reconciliation anchored across invariants.md + VP-082 + BC-5.41.003 + ADR-026 + L2-INDEX. `[codified; process-gap; canonical-scope-boundary]`
+
+---
+
+### L-F2-stale-term-deferral-unsafe
+
+**Category:** adversarial-convergence + stale-term-remediation + deferral-discipline [process-gap]
+
+**(a) Stale-term residue in normative present-tense specification prose MUST be FIXED IN-SCOPE; deferring it as a non-blocking LOW finding is unsafe.** Evidence from F2 E-18 passes 29/30/31: the stale "side-channel" adjective on "precompact-flush-log" was first surfaced as observation O-P29-001 (LOW) and again as finding F-P30-001 (LOW) under the freeze-and-defer strategy applied at pass-30 (streak 2/3 CLEAN). At pass-31, a fresh-context adversary reclassified the SAME normative present-tense residue as a load-bearing MEDIUM finding (F-P31-001) because the present-tense prose implied an architectural property (a "side-channel" is a distinct parallel channel) that contradicted the canonical term ("precompact-flush-log" is an append-only log, not a side-channel). The MEDIUM reclassification RESET the 3-CLEAN streak from 2/3 to 0/3.
+
+**(b) Root-cause pattern: fresh-context adversaries calibrate severity independently.** A deferred LOW finding is NOT guaranteed to stay LOW on the next pass. Fresh adversaries receive no prior-pass severity context and apply the canonical-principle production-grade lens independently. A stale term that one pass considered "cosmetic" (LOW) can be re-classified as "load-bearing" (MEDIUM) by the next fresh adversary if the normative present-tense context makes the stale term architecturally misleading. The 2/3 streak was earned on a package that still contained a known defect — this is structurally fragile.
+
+**(c) Deferral risk matrix for stale-term findings:**
+| Stale-term context | Deferral risk |
+|--------------------|--------------|
+| Historical/changelog prose only | LOW — adversaries typically accept "prior design documented" justification |
+| Comment or non-normative note | MEDIUM — depends on whether adversary reads it as normative |
+| Normative present-tense spec prose (PC, EC, Inv, Property Invariant) | HIGH — must fix in-scope; do not defer |
+| Normative present-tense ADR Decision body | HIGH — must fix in-scope; do not defer |
+
+**(d) Rules derived from this lesson:**
+1. **Never defer stale-term/normative-residue findings.** Fix them in the same burst as their discovery pass. If the architecture change has a companion term change (e.g., "side-channel file" → "precompact-flush-log"), the term change MUST be applied exhaustively to ALL normative present-tense sites before the fix burst closes.
+2. **Stale-term sweeps MUST be exhaustive.** Run a corpus-wide grep for the stale term across all normative files (BCs, VPs, ADRs, invariants.md, domain-spec). Do not assume "only one site" based on the adversary's observation count — fresh adversaries may not enumerate all sites.
+3. **The 3-CLEAN streak is earned on the ENTIRE visible package.** A deferred "cosmetic" finding poisons the package for all subsequent passes. The incremental cost of fixing a stale term in-scope (minutes) is always less than the streak-reset cost (one full adversary pass + re-fix burst + re-pass).
+4. **Strategy correction after streak reset: clear the backlog.** When a streak resets due to a deferred finding re-escalating, the correct recovery is to clear the ENTIRE deferred backlog (all deferred LOWs and observations) before dispatching the next adversary. Passing on a package with known deferred issues is a false economy.
+
+**(e) Mechanical gate candidate (S-18.08 scope).** A stale-term detector could be encoded as a WASM hook or consistency-validator rule: given a list of retired terms (e.g., "side-channel" adjacent to "precompact", "SHA file", "precompact-flush-sha") and the set of normative-present-tense prose files, flag any occurrence as BLOCK (not advisory). This gate was not available during F2 E-18 and the gap is the root cause of the 3-pass deferral cycle. Candidate scope: S-18.08 mechanical stale-term gate, per Drift Item below.
+
+**Drift Items row:** Anchor E-18 F2 pass-31 — stale-term-deferral-unsafe: stale terms in normative present-tense prose MUST be fixed in-scope; sweep must be exhaustive; deferral as LOW is a convergence risk. Candidate S-18.08 mechanical-gate: WASM stale-term detector for retired-terminology list against normative BC/VP/ADR prose; would have blocked F-P31-001 class at its origin (pass-29).
+
+**Anchors:** D-594 (this burst; F2 pass-31 NOT-CLEAN FULL BACKLOG CLEARANCE; strategy correction: clear entire deferred backlog); F-P31-001 (MEDIUM; VP-085 Property Invariant item 3 'append-only side-channel log'→'append-only log'; streak RESET 2/3→0/3); F-P31-002 (MEDIUM; BC-7.07.001 PC8 'SHA file' stale term); F-P30-001 (LOW DEFERRED → re-escalated to F-P31-001 MEDIUM); O-P29-001 (LOW OBS; original stale-term sighting); BC-5.39.001 (3-CLEAN streak rule); ADR-026 v1.18 (§Decision 6 step 5 'append-only side-channel log'→'append-only log' — companion normative site); VP-085 v1.7 (F-P31-001 fix); E-18 (CAP-032 context-durability; GitHub issue #173).
+
+**Cites:** D-594; F-P31-001; F-P31-002; F-P30-001; F-P30-003; O-P29-001; O-P29-002; O-P29-003; BC-5.39.001; VP-085 v1.7; ADR-026 v1.18; BC-7.07.001 v1.9; BC-5.41.001 v1.15; BC-5.41.002 v1.7; E-18; L-F2-canonical-scope-verification (sibling lesson — scope-precise invariant companion).
+
+**Closes:** D-594 lesson capture; stale-term-deferral-unsafe process-gap codified; FULL BACKLOG CLEARANCE strategy validated — package now zero-known-findings for pass-32 dispatch. `[codified; process-gap; stale-term-sweep; deferral-discipline]`

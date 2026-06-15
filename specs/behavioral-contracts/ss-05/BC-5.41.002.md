@@ -1,11 +1,11 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.6"
+version: "1.7"
 status: draft
 producer: product-owner
 timestamp: 2026-06-14T00:00:00Z
-last_amended: "2026-06-14 (v1.6) — F2 pass-6 fix-burst: (E-18) ADR cite convention: v1.4 version token dropped per ADR-026 §BC Traceability Cite Convention (TD-VSDD-091 anti-volatile-pin); stable §Decision anchor adopted (cite-only change). [Prior: 2026-06-14 (v1.4) — F2 pass-4 fix-burst: (F-P4-003) ADR cite v1.3→v1.4 (cite-only). [Prior: 2026-06-14 (v1.3) — F2 pass-3 fix-burst: (O-P3-002) PC7 added: EPIC-COMPLETE operator surfacing — on EPIC-COMPLETE (final wave), wave-handoff announces completion to the operator via stdout with concrete message format before exiting 0. ADR cite v1.1→v1.3. [Prior: 2026-06-14 (v1.2) — F2 pass-2 fix-burst: (F-P2-004) PC3 EPIC-COMPLETE exception added (empty next_wave_stories AND all stories terminal → exit 0, HANDOFF epic_status:complete, no wave-state.yaml); BrokenSprintState hard error retained for empty AND any non-terminal story; EC-001 split into EC-001a (EPIC-COMPLETE) + EC-001b (BrokenSprintState); test vectors updated. [Prior: 2026-06-14 (v1.1) — F2 pass-1 fix-burst: (F-3) PC3 re-anchored: stories list derives from sprint-state.yaml `status: pending` OR `status: draft` entries ordered by dependency graph (not from phantom `wave:` story frontmatter field which does not exist). PC3 'no phantom' mandate explicit. Empty list is HARD ERROR per SOUL.md §4 — Postcondition 3 updated and EC-001 changed from 'valid' to hard block. (DI) TBD-DI replaced with DI-023. TBD-VP retained with justification per report.]"
+last_amended: "2026-06-15 (v1.7) — fix burst (product-owner): (F-P30-003 LOW) §Postconditions PC3 BrokenSprintState-path and §Edge Cases EC-001b: human-readable error message aligned to ADR-026 §Terminal-Wave Discriminator canonical text: 'BrokenSprintState: stories in non-terminal, non-pending states exist but no next-wave stories are pending/draft. Update sprint-state.yaml to reflect actual story states.' (prior text: 'No next-wave stories found in sprint-state.yaml but non-terminal stories exist — sprint-state.yaml needs updating.'). (O-P29-002 LOW intent) §Architecture Anchors: SS-05/SS-06 subsystem-split justification note added. BC-5.41.002 v1.6→v1.7. [Prior: 2026-06-14 (v1.6) — F2 pass-6 fix-burst: (E-18) ADR cite convention: v1.4 version token dropped per ADR-026 §BC Traceability Cite Convention (TD-VSDD-091 anti-volatile-pin); stable §Decision anchor adopted (cite-only change). [Prior: 2026-06-14 (v1.4) — F2 pass-4 fix-burst: (F-P4-003) ADR cite v1.3→v1.4 (cite-only). [Prior: 2026-06-14 (v1.3) — F2 pass-3 fix-burst: (O-P3-002) PC7 added: EPIC-COMPLETE operator surfacing — on EPIC-COMPLETE (final wave), wave-handoff announces completion to the operator via stdout with concrete message format before exiting 0. ADR cite v1.1→v1.3. [Prior: 2026-06-14 (v1.2) — F2 pass-2 fix-burst: (F-P2-004) PC3 EPIC-COMPLETE exception added (empty next_wave_stories AND all stories terminal → exit 0, HANDOFF epic_status:complete, no wave-state.yaml); BrokenSprintState hard error retained for empty AND any non-terminal story; EC-001 split into EC-001a (EPIC-COMPLETE) + EC-001b (BrokenSprintState); test vectors updated. [Prior: 2026-06-14 (v1.1) — F2 pass-1 fix-burst: (F-3) PC3 re-anchored: stories list derives from sprint-state.yaml `status: pending` OR `status: draft` entries ordered by dependency graph (not from phantom `wave:` story frontmatter field which does not exist). PC3 'no phantom' mandate explicit. Empty list is HARD ERROR per SOUL.md §4 — Postcondition 3 updated and EC-001 changed from 'valid' to hard block. (DI) TBD-DI replaced with DI-023. TBD-VP retained with justification per report.]"
 phase: F2
 inputs:
   - .factory/feature-delta/issue-173/F1-delta-analysis.md
@@ -19,6 +19,7 @@ capability: "CAP-032"
 lifecycle_status: draft
 introduced: v1.0-feature-context-durability-E18
 modified:
+  - "2026-06-15 (v1.7) — fix burst (product-owner): (F-P30-003) PC3 + EC-001b: BrokenSprintState human-readable error message aligned to ADR-026 §Terminal-Wave Discriminator canonical text. (O-P29-002) §Architecture Anchors: SS-05/SS-06 split justification note added."
   - "2026-06-14 (v1.6) — F2 pass-6 fix-burst: ADR cite convention: stable §Decision anchor (TD-VSDD-091); cite-only."
   - "2026-06-14 (v1.4) — F2 pass-4 fix-burst: (F-P4-003) ADR cite v1.3→v1.4 (cite-only)."
   - "2026-06-14 (v1.3) — F2 pass-3 fix-burst: PC7 added (EPIC-COMPLETE stdout surfacing per O-P3-002); ADR cite v1.1→v1.3."
@@ -59,7 +60,7 @@ At wave close, alongside HANDOFF.md (BC-5.41.001), the `wave-gate` / `wave-hando
 
 3. **Stories list is derived mechanically from real substrate**: The stories in `wave-state.yaml` are derived from `sprint-state.yaml` by selecting entries with `status: pending` OR `status: draft`, then applying the dependency-order graph from STORY-INDEX.md `depends_on:` arrays to produce the wave sequence. This is the SAME algorithm used by the `wave-scheduling` skill's topological sort step. No `wave:` frontmatter field on story files is referenced — that field does not exist. Each story's `spec_files` list is derived from that story's `bcs:` frontmatter array (resolved to file paths) and any explicitly declared `arch_deps:` entries. **Empty stories list handling — two cases**:
    - **EPIC-COMPLETE exception**: if `sprint-state.yaml` has no entries with `status: pending` or `status: draft` AND all entries have a terminal status (merged, withdrawn, or cancelled), this is the final wave. `wave-handoff` MUST exit 0, write HANDOFF.md with `epic_status: complete` (and `next_wave_stories: []`), and NOT write `wave-state.yaml`. This is a legitimate wave-close.
-   - **BrokenSprintState hard error**: if `sprint-state.yaml` has no entries with `status: pending` or `status: draft` BUT one or more entries have a non-terminal, non-pending status (e.g., `status: in_progress` or a story that is neither merged/withdrawn/cancelled/pending/draft), `wave-handoff` MUST abort with exit 1 and an explicit error message: "No next-wave stories found in sprint-state.yaml but non-terminal stories exist — sprint-state.yaml needs updating." A silent no-op or an empty `wave-state.yaml` with `stories: []` written silently is a SOUL.md §4 violation (SOUL.md #4: silent failures are forbidden).
+   - **BrokenSprintState hard error**: if `sprint-state.yaml` has no entries with `status: pending` or `status: draft` BUT one or more entries have a non-terminal, non-pending status (e.g., `status: in_progress` or a story that is neither merged/withdrawn/cancelled/pending/draft), `wave-handoff` MUST abort with exit 1 and an explicit error message: "BrokenSprintState: stories in non-terminal, non-pending states exist but no next-wave stories are pending/draft. Update sprint-state.yaml to reflect actual story states." A silent no-op or an empty `wave-state.yaml` with `stories: []` written silently is a SOUL.md §4 violation (SOUL.md #4: silent failures are forbidden).
 
 4. **No RAG**: The manifest does not use semantic retrieval. Every path in `spec_files` is a literal filesystem path that must resolve on the `factory-artifacts` branch or the working tree. Paths that do not resolve produce a warning at generation time (not a hard block, since some spec files may be in-progress).
 
@@ -94,7 +95,7 @@ At wave close, alongside HANDOFF.md (BC-5.41.001), the `wave-gate` / `wave-hando
 | ID | Description | Expected Behavior |
 |----|-------------|-------------------|
 | EC-001a | `sprint-state.yaml` has no entries with `status: pending` or `status: draft`; ALL other entries have terminal status (merged, withdrawn, cancelled) — EPIC-COMPLETE | Exit 0; write HANDOFF.md with `epic_status: complete` and `next_wave_stories: []`; do NOT write `wave-state.yaml`; wave declared complete |
-| EC-001b | `sprint-state.yaml` has no entries with `status: pending` or `status: draft`; one or more entries have non-terminal status (e.g., `in_progress`, `in_review`) — BrokenSprintState | HARD ERROR: exit 1; explicit error message "No next-wave stories found in sprint-state.yaml but non-terminal stories exist — sprint-state.yaml needs updating."; no `wave-state.yaml` written; operator must correct sprint-state.yaml |
+| EC-001b | `sprint-state.yaml` has no entries with `status: pending` or `status: draft`; one or more entries have non-terminal status (e.g., `in_progress`, `in_review`) — BrokenSprintState | HARD ERROR: exit 1; explicit error message "BrokenSprintState: stories in non-terminal, non-pending states exist but no next-wave stories are pending/draft. Update sprint-state.yaml to reflect actual story states."; no `wave-state.yaml` written; operator must correct sprint-state.yaml |
 | EC-002 | A story's `bcs:` frontmatter references a BC path that does not exist | Warning logged; path included in `spec_files` with `status: missing`; not a hard block |
 | EC-003 | Story has no `spec_files` derivable (no `bcs:` frontmatter, no arch_deps) | Story included in `stories` list with `spec_files: []`; operator warned to add dependencies |
 | EC-004 | `generated_from_handoff_sha` cannot be computed (HANDOFF.md commit not yet visible) | Hard block; wave-state.yaml must not be written without the HANDOFF.md SHA |
@@ -107,7 +108,7 @@ At wave close, alongside HANDOFF.md (BC-5.41.001), the `wave-gate` / `wave-hando
 | sprint-state.yaml: S-18.02 status=pending, S-18.03 status=draft; STORY-INDEX.md has both; wave-handoff invoked | wave-state.yaml: `wave_id: <next-wave>`, `stories: [{id: S-18.02, ...}, {id: S-18.03, ...}]` (dependency-ordered) | happy-path |
 | S-18.02 bcs: [BC-4.14.001, BC-5.41.001] | S-18.02 spec_files includes `.factory/specs/behavioral-contracts/ss-04/BC-4.14.001.md` and `ss-05/BC-5.41.001.md` | spec-derivation |
 | No `status: pending` or `status: draft` entries in sprint-state.yaml; all entries terminal (merged/withdrawn/cancelled) | Exit 0; HANDOFF.md with `epic_status: complete`; no wave-state.yaml written | epic-complete |
-| No `status: pending` or `status: draft` entries in sprint-state.yaml; one entry `status: in_progress` | HARD ERROR; exit 1; BrokenSprintState error message; no wave-state.yaml written | broken-sprint-state |
+| No `status: pending` or `status: draft` entries in sprint-state.yaml; one entry `status: in_progress` | HARD ERROR; exit 1; "BrokenSprintState: stories in non-terminal, non-pending states exist but no next-wave stories are pending/draft. Update sprint-state.yaml to reflect actual story states."; no wave-state.yaml written | broken-sprint-state |
 | wave-state.yaml and HANDOFF.md in same commit | single git commit on factory-artifacts | atomicity |
 
 ## Related BCs
@@ -120,6 +121,7 @@ At wave close, alongside HANDOFF.md (BC-5.41.001), the `wave-gate` / `wave-hando
 
 - `plugins/vsdd-factory/skills/wave-handoff/SKILL.md` — NEW skill; produces both HANDOFF.md and wave-state.yaml at wave close (S-18.01 deliverable)
 - ADR-026 §Decision 4 — wave-state.yaml schema specification (minimum required fields)
+- **Subsystem SS-05/SS-06 split justification (O-P29-002):** This BC's `subsystem: SS-05` (Pipeline Orchestration) anchors the orchestration LOGIC and contract (wave-close decisions, wave-state.yaml schema, BrokenSprintState/EPIC-COMPLETE discriminator); the skill FILE artifact (`wave-handoff/SKILL.md`) resides in SS-06 (Skill Catalog) per ADR-026 §Deliverables. This split is intentional: the BC governs orchestration behavior; the Architecture Anchors above locate the skill implementation files. SS-05 is the correct subsystem assignment for this behavioral contract.
 
 ## Story Anchor
 
@@ -147,3 +149,15 @@ TBD-VP — no dedicated VP assigned at F2 for wave-state.yaml production. Justif
 | Stories | S-18.01 |
 | Cycle | v1.0-feature-context-durability-E18 (F2) |
 | Feature | issue #173 / E-18 |
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| v1.7 | 2026-06-15 | product-owner | (F-P30-003) PC3 BrokenSprintState-path + EC-001b + canonical test vector `broken-sprint-state`: human-readable error message aligned to ADR-026 §Terminal-Wave Discriminator canonical text. (O-P29-002) §Architecture Anchors: SS-05/SS-06 split justification note added. |
+| v1.6 | 2026-06-14 | product-owner | ADR cite convention: stable §Decision anchor (TD-VSDD-091); cite-only. |
+| v1.4 | 2026-06-14 | product-owner | ADR cite v1.3→v1.4 (cite-only). |
+| v1.3 | 2026-06-14 | product-owner | PC7 added (EPIC-COMPLETE stdout surfacing per O-P3-002); ADR cite v1.1→v1.3. |
+| v1.2 | 2026-06-14 | product-owner | PC3 EPIC-COMPLETE exception (all terminal → exit 0 + HANDOFF epic_status:complete, no wave-state.yaml); EC-001 split EC-001a+EC-001b; test vectors updated. |
+| v1.1 | 2026-06-14 | product-owner | PC3 stories derivation re-anchored (sprint-state.yaml status:pending/draft + dependency-order; no phantom wave: frontmatter); empty list → HARD ERROR; EC-001 updated; TBD-DI replaced with DI-023; ADR cite v1.0→v1.1. |
+| v1.0 | 2026-06-14 | product-owner | Initial creation (E-18 context-durability feature). |
