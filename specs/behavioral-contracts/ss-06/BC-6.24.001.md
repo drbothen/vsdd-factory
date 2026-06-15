@@ -1,11 +1,11 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.7"
+version: "1.8"
 status: draft
 producer: product-owner
 timestamp: 2026-06-14T00:00:00Z
-last_amended: "2026-06-15 (v1.7) — F-P32-006: §VP Anchors TBD-VP placeholder replaced with decided DEFERRED-VP disposition (F3, S-18.03 integration anchor; rehydrate-wave skill not yet built); §Verification Properties TBD-VP row replaced with DEFERRED-VP row with explicit property description and integration(F3) proof method; §Changelog section added (was absent). BC-6.24.001 v1.6→v1.7. [Prior: 2026-06-14 (v1.6) — F2 pass-6 fix-burst: (E-18) ADR cite convention: v1.4 version tokens dropped per ADR-026 §BC Traceability Cite Convention (TD-VSDD-091 anti-volatile-pin); stable §Decision anchors adopted (cite-only change). [Prior: 2026-06-14 (v1.4) — F2 pass-4 fix-burst: (F-P4-003) ADR cite v1.3→v1.4 (cite-only). [Prior: 2026-06-14 (v1.3) — F2 pass-3 fix-burst: ADR cite v1.1→v1.3. [Prior: 2026-06-14 (v1.2) — F2 pass-2 fix-burst: (F-P2-004/008) EC-EPIC added (final-wave EPIC-COMPLETE: HANDOFF has epic_status:complete, rehydrate-wave reads HANDOFF.md only, must not error on absent wave-state.yaml); EC-004 clarified as non-final context. [Prior: 2026-06-14 (v1.1) — F2 pass-1 fix-burst: (F-3 consistency) PC1 explicitly mandates git-sourced read from factory-artifacts (no in-context memory fallback); Invariant 1 strengthened to disallow working-tree fallback. (DI) TBD-DI replaced with DI-023. TBD-VP retained with justification per report.]"
+last_amended: "2026-06-15 (v1.8) — fix burst (product-owner): (F-P33-001 MEDIUM) §Changelog: defensive skip-marker annotation added for v1.5 absence — v1.5 was a coordinated-burst skip (only behaviorally-changed BCs were bumped at the pass-5 F-P5-002/003 burst; only BC-4.14.001 and BC-7.07.001 received behavioral changes that pass); the gap v1.4→v1.6 is intentional, not a lost row. Exhaustive sibling-sweep of all 8 E-18 BCs per F-P33-001 obligation. [Prior: 2026-06-15 (v1.7) — F-P32-006: §VP Anchors TBD-VP placeholder replaced with decided DEFERRED-VP disposition (F3, S-18.03 integration anchor; rehydrate-wave skill not yet built); §Verification Properties TBD-VP row replaced with DEFERRED-VP row with explicit property description and integration(F3) proof method; §Changelog section added (was absent). BC-6.24.001 v1.6→v1.7. [Prior: 2026-06-14 (v1.6) — F2 pass-6 fix-burst: (E-18) ADR cite convention: v1.4 version tokens dropped per ADR-026 §BC Traceability Cite Convention (TD-VSDD-091 anti-volatile-pin); stable §Decision anchors adopted (cite-only change). [Prior: 2026-06-14 (v1.4) — F2 pass-4 fix-burst: (F-P4-003) ADR cite v1.3→v1.4 (cite-only). [Prior: 2026-06-14 (v1.3) — F2 pass-3 fix-burst: ADR cite v1.1→v1.3. [Prior: 2026-06-14 (v1.2) — F2 pass-2 fix-burst: (F-P2-004/008) EC-EPIC added (final-wave EPIC-COMPLETE: HANDOFF has epic_status:complete, rehydrate-wave reads HANDOFF.md only, must not error on absent wave-state.yaml); EC-004 clarified as non-final context. [Prior: 2026-06-14 (v1.1) — F2 pass-1 fix-burst: (F-3 consistency) PC1 explicitly mandates git-sourced read from factory-artifacts (no in-context memory fallback); Invariant 1 strengthened to disallow working-tree fallback. (DI) TBD-DI replaced with DI-023. TBD-VP retained with justification per report.]"
 phase: F2
 inputs:
   - .factory/feature-delta/issue-173/F1-delta-analysis.md
@@ -19,6 +19,7 @@ capability: "CAP-032"
 lifecycle_status: draft
 introduced: v1.0-feature-context-durability-E18
 modified:
+  - "2026-06-15 (v1.8) — fix burst (product-owner): (F-P33-001) §Changelog: defensive skip-marker annotation added for v1.5 absence — coordinated-burst skip (only behaviorally-changed BCs bumped at pass-5 F-P5-002/003 burst); gap v1.4→v1.6 is intentional, not a lost row. Exhaustive 8-BC sibling-sweep per F-P33-001."
   - "2026-06-15 (v1.7) — F-P32-006: §VP Anchors TBD-VP → DEFERRED-VP (F3, S-18.03); §Verification Properties row updated with decided property description + integration(F3) proof method; §Changelog section added."
   - "2026-06-14 (v1.6) — F2 pass-6 fix-burst: ADR cite convention: stable §Decision anchors (TD-VSDD-091); cite-only."
   - "2026-06-14 (v1.4) — F2 pass-4 fix-burst: (F-P4-003) ADR cite v1.3→v1.4 (cite-only)."
@@ -137,8 +138,10 @@ VP allocation: DEFERRED to F3 (story S-18.03 implementation). Rationale: the reh
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| v1.8 | 2026-06-15 | product-owner | (F-P33-001 MEDIUM) §Changelog: defensive skip-marker annotation added for v1.5 absence — v1.5 was a coordinated-burst skip (only behaviorally-changed BCs were bumped at the pass-5 F-P5-002/003 burst; only BC-4.14.001 and BC-7.07.001 received behavioral changes that pass); the jump v1.4→v1.6 is intentional, not a lost row. Exhaustive sibling-sweep of all 8 E-18 BCs per F-P33-001 obligation. |
 | v1.7 | 2026-06-15 | product-owner | (F-P32-006) §VP Anchors TBD-VP placeholder replaced with decided DEFERRED-VP disposition (F3, S-18.03 integration anchor; rehydrate-wave skill not yet built); §Verification Properties TBD-VP row replaced with DEFERRED-VP row with explicit property description and integration(F3) proof method; §Changelog section added. |
 | v1.6 | 2026-06-14 | product-owner | ADR cite convention: stable §Decision anchors (TD-VSDD-091); cite-only. |
+| ~~v1.5~~ | — | — | **[SKIP — coordinated-burst skip (F-P33-001):** v1.5 was not produced for this BC because only behaviorally-changed BCs (BC-4.14.001, BC-7.07.001) were bumped at the pass-5 F-P5-002/003 burst; the jump v1.4→v1.6 is intentional, not a lost row. This row distinguishes a deliberate skip from a lost entry.] |
 | v1.4 | 2026-06-14 | product-owner | ADR cite v1.3→v1.4 (cite-only). |
 | v1.3 | 2026-06-14 | product-owner | ADR cite v1.1→v1.3. |
 | v1.2 | 2026-06-14 | product-owner | EC-EPIC added (EPIC-COMPLETE final wave; rehydrate-wave reads HANDOFF.md only; no error on absent wave-state.yaml); EC-004 non-final context clarification. |
