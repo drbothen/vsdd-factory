@@ -2,11 +2,11 @@
 document_type: domain-spec-section
 level: L2
 section: capabilities
-version: "1.6"
+version: "1.7"
 status: accepted
 producer: business-analyst
 timestamp: 2026-04-25T00:00:00
-last_amended: 2026-06-14
+last_amended: 2026-06-15
 phase: 1.3
 inputs:
   - .factory/phase-0-ingestion/pass-2-domain-model.md
@@ -215,10 +215,11 @@ Source: ADR-026 (issue #173); E-18. (First authored against ADR-026 v1.0 — inf
 
 | Version | Date | Change |
 |---------|------|--------|
-| v1.0 | 2026-04-25 | Initial authoring from domain spec crystallization (Phase 1.3). 28 capabilities (CAP-001–CAP-028). |
-| v1.1 | 2026-05-06 | D-314 F-1/F-2 fix. Authored CAP-029 (P0 — single-stream FileSink; ADR-015 D-15.1) and CAP-030 (P1 — OTel resource enrichment; ADR-015 D-15.2). Marked CAP-003 REWRITTEN per ADR-015 D-15.1 (original description preserved per POLICY 1 append-only). Marked CAP-023 and CAP-024 SUPERSEDED per ADR-015 D-15.1 (original descriptions preserved per POLICY 1 append-only). |
-| v1.3 | 2026-06-10 | D-540 / issue #170. Authored CAP-031 (P0 — single-writer cross-session factory lock/lease; ADR-025 v1.2). Spans SS-04/SS-05/SS-06. |
+| v1.7 | 2026-06-15 | F-P18-O1 cosmetic fix: CHANGELOG display rows reordered into monotonic descending order (newest-first) to prevent a scrambled sequence from masking future missing-row defects. No row content, version number, or date was altered. All versions v1.0–v1.6 confirmed present. |
 | v1.6 | 2026-06-14 | O-P8-001 cite-stability fix (F2 adversarial pass-8): CAP-032 body `Source:` line migrated from volatile-pin `ADR-026 v1.0 (issue #173); E-18.` to stable anchor form `ADR-026 (issue #173); E-18.` with informational non-load-bearing parenthetical per TD-VSDD-091 / POLICY 19 spirit. Changelog row v1.4 historical version mention preserved as authoring-time record (non-normative). |
 | v1.5 | 2026-06-14 | F-P3-005 sibling-sweep fix (F2 adversarial pass-3, E-18): CAP-032 PostCompact re-anchor description updated to remove phantom `current_wave` field. Re-anchor now restates pipeline identity as `current_cycle:` + `current_step:` (engine) or sprint-state.yaml topo-sort wave-group ordinal (product pipelines), sourced from STATE.md on `factory-artifacts`. Explicit normative note added: no `current_wave:` field is emitted or read (DI-023). |
 | v1.4 | 2026-06-14 | F2 E-18 context-durability: Authored CAP-032 (P0 — wave-boundary checkpoint/reset and lossless intra-wave compaction; ADR-026 v1.0; issue #173). Spans SS-01/SS-04/SS-05/SS-06/SS-07. |
+| v1.3 | 2026-06-10 | D-540 / issue #170. Authored CAP-031 (P0 — single-writer cross-session factory lock/lease; ADR-025 v1.2). Spans SS-04/SS-05/SS-06. |
 | v1.2 | 2026-05-06 | D-318 F-1 fix: CAP-030 enumeration corrected to reference ADR-015 D-15.2 authoritatively. Original enumeration preserved as historical record per POLICY 1. Errata note appended to CAP-030 documenting divergence and providing the authoritative 15-field set (`service.name`, `service.namespace`, `service.instance.id`, `service.version`, `deployment.environment.name`, `host.name`, `host.id`, `os.type`, `process.pid`, `vcs.repository.url.full`, `vcs.repository.name`, `vcs.provider.name`, `vcs.owner.name`, `worktree.id`, `schema_url`). |
+| v1.1 | 2026-05-06 | D-314 F-1/F-2 fix. Authored CAP-029 (P0 — single-stream FileSink; ADR-015 D-15.1) and CAP-030 (P1 — OTel resource enrichment; ADR-015 D-15.2). Marked CAP-003 REWRITTEN per ADR-015 D-15.1 (original description preserved per POLICY 1 append-only). Marked CAP-023 and CAP-024 SUPERSEDED per ADR-015 D-15.1 (original descriptions preserved per POLICY 1 append-only). |
+| v1.0 | 2026-04-25 | Initial authoring from domain spec crystallization (Phase 1.3). 28 capabilities (CAP-001–CAP-028). |
