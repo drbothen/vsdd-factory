@@ -1,18 +1,18 @@
 ---
 document_type: pipeline-state
 level: ops
-version: "3.23"
+version: "3.24"
 status: draft
 producer: state-manager
-timestamp: 2026-06-14T23:59:59Z
-phase: D-573-F2-E18-ADV-PASS-12-CLEAN-2026-06-14
-last_amended: 2026-06-14 (v3.23) — D-573 F2 E-18 ADV PASS-12 CLEAN: zero BLOCKER, zero MAJOR, zero load-bearing MEDIUM, zero mis-anchor; adversary independently re-derived full package and declared convergence; NO spec changes; 3-CLEAN streak 0/3→1/3; trajectory P9(0B/0M/1med)→P10(0B/1M/2med)→P11(0B/1M/1med)→P12 CLEAN (1/3); D-chain cite D-572 per D-419(b); parent-commit be237a89 per D-419(b). [Prior: 2026-06-14 (v3.22) — D-572: VP-083 v1.3; VP-081 v1.3; VP-INDEX v2.16; O-P8-002 extended to VP files; 4-index BC v2.81/VP v2.16/STORY v4.01/ARCH v2.37. See decision-log.md SoT.]
+timestamp: 2026-06-14T00:00:00Z
+phase: D-574-F2-E18-ADV-PASS-13-NOT-CLEAN-2026-06-14
+last_amended: 2026-06-14 (v3.24) — D-574 F2 E-18 ADV PASS-13 NOT-CLEAN: 4 findings fixed (F-P13-001 BLOCKER DI-025 FIELD-4-corruption EXEMPT; F-P13-002 MEDIUM VP-082 push-leg cross-doc; F-P13-003 MEDIUM VP-INDEX YAML duplicate-key; F-P13-004 LOW BC-5.41.001 cite convention); 3-CLEAN streak 1/3→0/3 RESET; trajectory P11(0B/1M/1med)→P12 CLEAN(1/3)→P13 NOT-CLEAN(reset 0/3); 4-index BC v2.82/VP v2.17/STORY v4.01/ARCH v2.37; D-chain cite D-573 per D-419(b); parent-commit 0d70b606 per D-419(b). [Prior: 2026-06-14 (v3.23) — D-573: F2 pass-12 CLEAN; 3-CLEAN 0/3→1/3; 4-index BC v2.81/VP v2.16/STORY v4.01/ARCH v2.37 UNCHANGED. See decision-log.md SoT.]
 inputs: []
 input-hash: "[live-state]"
 traces_to: prd.md
 project: vsdd-factory
 mode: brownfield
-current_step: "D-573 F2 E-18 ADV PASS-12 CLEAN 2026-06-14 — F2 ADV PASS-12 RETURNED CLEAN (0B/0M/0 load-bearing MED/0 mis-anchor): adversary independently re-derived full E-18 package and declared convergence; NO spec changes; NO fix burst; 4-index BC-INDEX v2.81 VP-INDEX v2.16 STORY-INDEX v4.01 ARCH-INDEX v2.37 UNCHANGED (literal-shell grep ^version:); trajectory-tail →9→9→9→11; 3-CLEAN streak 0/3→1/3 per BC-5.39.001 (pass-12 CLEAN; need 2 more consecutive clean for convergence); adversary pass-13 NEXT; D-chain cite D-572 per D-419(b); parent-commit be237a89 per D-419(b)"
+current_step: "D-574 F2 E-18 ADV PASS-13 NOT-CLEAN 2026-06-14 — F2 ADV PASS-13 NOT-CLEAN (4 findings): F-P13-001 BLOCKER (DI-025 FIELD-4-corruption EXEMPT; invariants.md v1.17→v1.18); F-P13-002 MEDIUM (VP-082 push-failure Postcondition F cross-doc; VP-082 v1.4→v1.5; VP-INDEX v2.16→v2.17); F-P13-003 MEDIUM (VP-INDEX YAML duplicate-key fix; VP-INDEX v2.17); F-P13-004 LOW (BC-5.41.001 cite convention; v1.6→v1.7); 4-index BC-INDEX v2.82 VP-INDEX v2.17 STORY-INDEX v4.01 ARCH-INDEX v2.37 (literal-shell grep ^version:); trajectory-tail →9→9→11→2; 3-CLEAN streak 1/3→0/3 RESET per BC-5.39.001 (pass-13 NOT-CLEAN; need 3 NEW consecutive clean; adversary pass-14 NEXT with comprehensive consistency-validator sweep FIRST); D-chain cite D-573 per D-419(b); parent-commit 0d70b606 per D-419(b)"
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -60,8 +60,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-06-14 — D-573 F2 E-18 ADV PASS-12 CLEAN: zero BLOCKER/MAJOR/load-bearing-MEDIUM/mis-anchor; adversary declared convergence; NO spec changes; 3-CLEAN streak 0/3→1/3 per BC-5.39.001; 4-index BC v2.81/VP v2.16/STORY v4.01/ARCH v2.37 UNCHANGED; adversary pass-13 NEXT (need 2 more consecutive clean). |
-| **Current Phase** | D-573 F2 E-18 ADV PASS-12 CLEAN 2026-06-14 — F2 adversarial pass-12 (fresh-context) returned CLEAN: 0 BLOCKER, 0 MAJOR, 0 load-bearing MEDIUM, 0 mis-anchor. Adversary independently re-derived full E-18 package and declared convergence. NO spec changes. NO fix burst. 4-index UNCHANGED (BC-INDEX v2.81, VP-INDEX v2.16, STORY-INDEX v4.01, ARCH-INDEX v2.37). 3-CLEAN streak advances 0/3→1/3 per BC-5.39.001. Adversary pass-13 NEXT (need 2 more consecutive clean for convergence). |
+| **Last Updated** | 2026-06-14 — D-574 F2 E-18 ADV PASS-13 NOT-CLEAN: 4 findings fixed (DI-025 EXEMPT; VP-082 push-leg; VP-INDEX YAML; BC-5.41.001 cite); 3-CLEAN streak 1/3→0/3 RESET; 4-index BC v2.82/VP v2.17/STORY v4.01/ARCH v2.37; consistency-validator sweep NEXT then adversary pass-14. |
+| **Current Phase** | D-574 F2 E-18 ADV PASS-13 NOT-CLEAN 2026-06-14 — F2 adversarial pass-13 NOT-CLEAN: 4 findings fixed. invariants.md v1.18 (DI-025 FIELD-4-corruption EXEMPT); BC-5.41.001 v1.7 (F-P13-004 cite convention per POLICY 19); BC-INDEX v2.82; VP-082 v1.5 (F-P13-002 Postcondition F push-failure leg); VP-INDEX v2.17 (F-P13-002 cross-doc sync + F-P13-003 YAML duplicate-key fix). 3-CLEAN streak 1/3→0/3 RESET per BC-5.39.001. NEXT: comprehensive consistency-validator sweep (full E-18 package: BC/ADR/DI/VP-body/VP-INDEX/capabilities) to flush all sibling-sweep gaps, THEN adversary pass-14 (need 3 consecutive clean for convergence). |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Phase Progress
@@ -92,6 +92,7 @@ dtu_services: []
 | **D-571 F2 E-18 ADV PASS-10 FIX BURST 2026-06-14** | **COMPLETE** | BC-4.14.001 v1.7→v1.8 (F-P10-001 MAJOR: wave_id payload-only; EC-010 fail-closed); BC-7.07.001 v1.6→v1.7 (F-P10-002 MEDIUM: git push step; commit/push failure distinguished); VP-082 v1.3→v1.4 (F-P10-003 MEDIUM: Postcondition E); BC-INDEX v2.81; VP-INDEX v2.15 (VP-083/VP-081 payload-only framing); ARCH-INDEX v2.37; O-P8-002 → MANDATORY (3rd occurrence; S-18.08 hard req); 4-index BC v2.81/VP v2.15/STORY v4.01/ARCH v2.37; tree-wide gate PASS; 3-CLEAN 0/3 (pass-10 MAJOR → streak reset). Trajectory P7(0B/2M)→P8(0B/1M)→P9(0B/0M/1MED)→P10(0B/1M/2MED). |
 | **D-572 F2 E-18 ADV PASS-11 FIX BURST 2026-06-14** | **COMPLETE** | VP-083 v1.2→v1.3 (F-P11-001 MAJOR: Property PAYLOAD-ONLY; fail-closed postcondition + wave_id_absent_fails_closed fixture); VP-081 v1.2→v1.3 (F-P11-002 MEDIUM: shell-caller/WASM-gate division clarified; Postcondition E + integration fixture); VP-INDEX v2.15→v2.16 (version cells updated); ADR-026 v1.9 UNCHANGED; capabilities.md UNCHANGED; O-P8-002 gate extended to VP files (L-F2-payload-only-discriminator-recurrence-gate updated; layer-propagation: BC→VP-INDEX→VP-body); tree-wide gate PASS (0 load-bearing; shell-caller attribution explicitly labeled); 4-index BC v2.81/VP v2.16/STORY v4.01/ARCH v2.37; 3-CLEAN 0/3 (pass-11 MAJOR → streak reset). Trajectory P8(0B/1M)→P9(0B/0M/1MED)→P10(0B/1M/2MED)→P11(0B/1M/1MED). |
 | **D-573 F2 E-18 ADV PASS-12 CLEAN 2026-06-14** | **COMPLETE** | Pass-12 (fresh-context) CLEAN: 0 BLOCKER, 0 MAJOR, 0 load-bearing MEDIUM, 0 mis-anchor. Adversary independently re-derived full package; convergence declared. NO spec changes; NO fix burst. 4-index BC v2.81/VP v2.16/STORY v4.01/ARCH v2.37 UNCHANGED. 3-CLEAN streak 0/3→1/3 per BC-5.39.001. Trajectory →P10(0B/1M/2med)→P11(0B/1M/1med)→P12 CLEAN (1/3). |
+| **D-574 F2 E-18 ADV PASS-13 NOT-CLEAN 2026-06-14** | **COMPLETE** | Pass-13 NOT-CLEAN: 4 findings (F-P13-001 BLOCKER DI-025 FIELD-4-corruption EXEMPT; F-P13-002 MEDIUM VP-082 push-leg cross-doc sync; F-P13-003 MEDIUM VP-INDEX YAML duplicate-key; F-P13-004 LOW BC-5.41.001 cite convention). Fixed: invariants.md v1.18; BC-5.41.001 v1.7; BC-INDEX v2.82; VP-082 v1.5; VP-INDEX v2.17. 3-CLEAN streak 1/3→0/3 RESET. Trajectory →P11(0B/1M/1med)→P12 CLEAN(1/3)→P13 NOT-CLEAN(0/3). 4-index BC v2.82/VP v2.17/STORY v4.01/ARCH v2.37. NEXT: consistency-validator sweep (full E-18 package) → adversary pass-14. |
 
 ## Current Phase Steps
 
@@ -129,7 +130,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | caf06c68 | rc.21 bot binary bundle commit 2026-06-13; prior: 2a191314 (rc.20) |
 | develop | 7e99f6ef | PR #186 fix a431ff47 + release.yml sync back-merge 2026-06-13; prior: 3b2a378c (D-556) |
-| factory-artifacts | 4296df50 | D-572 F2 E-18 adv-pass-11 fix burst 2026-06-14 (VP-083/VP-081/VP-INDEX + STATE.md + lessons); prior: 4294b479 D-571 |
+| factory-artifacts | TBD-D574 | D-574 F2 E-18 pass-13 fix burst 2026-06-14 (invariants.md v1.18 + BC-5.41.001 v1.7 + BC-INDEX v2.82 + VP-082 v1.5 + VP-INDEX v2.17 + STATE.md); prior: 0d70b606 D-573 |
 | v1.0.0-rc.21 (tag) | 03054524 | SHIPPED 2026-06-13; FULLY IN OPERATOR MARKETPLACE (marketplace PR #13 MERGED); annotated tag object |
 | v1.0.0-rc.20 (tag) | e9e38286 | SHIPPED 2026-06-01; marketplace PR #12 squash-merged 862e660d |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28 |
@@ -139,7 +140,7 @@ dtu_services: []
 | Cycle | Type | Status | Notes |
 |-------|------|--------|-------|
 | F-block-ai-attribution-message-file-arm | feature | F3 COMPLETE — F4 READY | F1+F2+F3 done 2026-05-12; 2 stories ready; E-16 under SS-07/SS-04; milestone v1.0.0-rc.17 |
-| v1.0-brownfield-backfill | brownfield | **D-573 2026-06-14; F2 E-18 ADV PASS-12 CLEAN; develop 7e99f6ef; main caf06c68** | rc.21 100% COMPLETE D-560; **F2 ADV PASS-12 CLEAN D-573** (pass-12 fresh-context CLEAN: 0B/0M/0 load-bearing MED; NO spec changes; NO fix burst; 4-index BC v2.81/VP v2.16/STORY v4.01/ARCH v2.37 UNCHANGED; **3-CLEAN streak 0/3→1/3**); **Next: adversary pass-13 (need 2 more consecutive clean for BC-5.39.001 3-CLEAN convergence) → then F3 story decomposition (S-18.00..S-18.07+S-18.08).** |
+| v1.0-brownfield-backfill | brownfield | **D-574 2026-06-14; F2 E-18 ADV PASS-13 NOT-CLEAN FIX BURST; develop 7e99f6ef; main caf06c68** | rc.21 100% COMPLETE D-560; **F2 ADV PASS-13 NOT-CLEAN D-574** (4 findings fixed: DI-025 EXEMPT; VP-082 push-leg; VP-INDEX YAML; BC-5.41.001 cite; **3-CLEAN streak 1/3→0/3 RESET**); 4-index BC v2.82/VP v2.17/STORY v4.01/ARCH v2.37; **Next: consistency-validator sweep (full E-18 package) → adversary pass-14 (need 3 consecutive clean for BC-5.39.001 convergence) → F3 story decomposition (S-18.00..S-18.07+S-18.08).** |
 | v1.0-feature-engine-discipline-pass-1 | feature | **PAUSED** | F5 pass-75 adversary complete D-510 2026-05-27; META-LEVEL-30 CANDIDATE-CONFIRMED; trajectory →9→9→9→11. Full-cycle trajectory (75 values ending): →9→9→9→9→11. |
 | v1.0-feature-plugin-async-semantics-pass-1 | feature | CLOSED | All PRs merged; rc.14 shipped |
 
@@ -153,6 +154,7 @@ dtu_services: []
 
 | ID | Decision | Phase | Date |
 |----|----------|-------|------|
+| D-574 | F2 E-18 ADV PASS-13 NOT-CLEAN FIX BURST 2026-06-14 — Pass-13 NOT-CLEAN (4 findings; 3-CLEAN streak 1/3→0/3 RESET). Fixed: (1) F-P13-001 BLOCKER: invariants.md v1.17→v1.18 — DI-025 FIELD-4-corruption outcome corrected from NOT-EXEMPT to EXEMPT (prefix-match-alone). Prior text routed FIELD-4-absent/empty/≠`commit` → "deny the exemption" (NOT-EXEMPT), contradicting BC-5.41.003 PC1 case (b)/(c), Inv1 gate (3), ADR-026 §F-P4-004 EC-003 which all route corruption → stale-entry → prefix-alone → EXEMPT. SHA-mismatch-with-valid-FIELD-4 (anti-forgery) stays NOT-EXEMPT. (2) F-P13-002 MEDIUM: VP-082 v1.4→v1.5 (architect: Postcondition F push-failure added to body; bats skeleton split commit-local/push-network); VP-INDEX v2.16→v2.17 (state-manager cross-doc sync: Full Index VP-082 row description updated with push-failure Postcondition F leg — push failure → exit 2; local commit + log entry retained; retry is push-only per ADR-026 §F-P10-002 + BC-7.07.001 PC6b). (3) F-P13-003 MEDIUM: VP-INDEX YAML structural fix — changelog v1.70/v1.69 entries (formerly sharing one `- date: 2026-05-12` list item with two `change:` keys; YAML duplicate-key violation) corrected to separate `- date:` items; YAML now parses cleanly. (4) F-P13-004 LOW: BC-5.41.001 v1.6→v1.7 (PO: Traceability BC-INDEX cite de-versioned from `per v1.6` to stable `§Decision N` anchor per POLICY 19); BC-INDEX v2.81→v2.82. 4-index: BC-INDEX v2.82 / VP-INDEX v2.17 / STORY-INDEX v4.01 / ARCH-INDEX v2.37 (literal-shell grep ^version:). Trajectory: P11(0B/1M/1med)→P12 CLEAN(1/3)→P13 NOT-CLEAN(2M; streak reset 0/3). NEXT: comprehensive consistency-validator cross-doc sweep (full E-18 package: BC/ADR/DI/VP-body/VP-INDEX/capabilities) to flush remaining sibling-sweep gaps; then adversary pass-14. D-chain cite D-573 per D-419(b); parent-commit 0d70b606 per D-419(b). | feature-mode-f2-adv-pass-13-fix | 2026-06-14 |
 | D-573 | F2 E-18 ADV PASS-12 CLEAN 2026-06-14 — Fresh-context adversarial pass-12 returned CLEAN: zero BLOCKER, zero MAJOR, zero load-bearing MEDIUM, zero mis-anchor. Adversary independently re-derived the full E-18 package (ADR-026 v1.9 + BC-4.14.001 v1.8 + BC-7.07.001 v1.7 + BC-5.41.001/5.41.002/5.41.003/6.24.001/7.07.002 v1.6 + BC-1.15.001 v1.2 + VP-082 v1.4 + VP-083 v1.3 + VP-081 v1.3 + VP-084 v1.6 + VP-085/086 + invariants.md v1.16 + capabilities.md v1.6) and declared convergence. NO spec changes; NO fix burst. 4-index BC-INDEX v2.81 / VP-INDEX v2.16 / STORY-INDEX v4.01 / ARCH-INDEX v2.37 UNCHANGED. 3-CLEAN streak advances 0/3→1/3 per BC-5.39.001. Convergence trajectory P9(0B/0M/1med)→P10(0B/1M/2med)→P11(0B/1M/1med)→P12 CLEAN (1/3). Adversary pass-13 NEXT (need 2 more consecutive clean for 3-CLEAN convergence). D-chain cite D-572 per D-419(b); parent-commit be237a89 per D-419(b). | feature-mode-f2-adv-pass-12-clean | 2026-06-14 |
 | D-572 | F2 E-18 ADV PASS-11 FIX BURST 2026-06-14 — (1) F-P11-001 MAJOR: VP-083 v1.2→v1.3 — Property §1 and all GateContext/fixture comments rewritten to PAYLOAD-ONLY discriminator: `is_first_wave = (payload.wave_id == 1)` computed from HANDOFF payload — NO prior-HANDOFF.md filesystem read, NO sprint-state.yaml topo-sort. Fail-closed postcondition added: `wave_id` ABSENT from payload → gate FAILS CLOSED (proceeds to full validation, blocking with HandoffIncomplete: ['wave_id']); unit-test fixture `wave_id_absent_fails_closed` added to proof harness. VP-INDEX v2.15→v2.16: VP-083 version cell v1.2→v1.3 (row description unchanged — already reflects payload-only and fail-closed from v2.15). (2) F-P11-002 MEDIUM: VP-081 v1.2→v1.3 — Precondition rewritten to clarify division: shell caller (wave-gate/wave-handoff skill, BC-5.41.001) reads real substrate (sprint-state.yaml topo-sort ordinal OR prior HANDOFF.md presence) to derive wave_id and embed it in payload; WASM gate's first-wave determination is PAYLOAD-ONLY (`payload.wave_id == 1`). Integration fixture comments revised to distinguish SHELL CALLER substrate reads from WASM GATE payload reads. Fail-closed Postcondition E added: wave_id ABSENT from payload → HandoffIncomplete. Integration test fixture `test_wave_id_absent_fails_closed` added. VP-INDEX v2.16: VP-081 version cell v1.2→v1.3 (row description unchanged). (3) ADR-026 v1.9 UNCHANGED — verified clean via tree-grep: `grep -rnE 'prior HANDOFF|wave-group ordinal|wave-group position' .factory/specs/verification-properties/ .factory/specs/behavioral-contracts/ss-04/` → 0 load-bearing gate-behavior violations; all hits are shell-caller attribution explicitly labeled or historical changelog. (4) capabilities.md UNCHANGED (shell-hook attribution). (5) O-P8-002 GATE SCOPE EXTENDED TO VP FILES — L-F2-payload-only-discriminator-recurrence-gate updated with layer-propagation (BC→VP-INDEX-row→VP-body) and extended gate scope: S-18.08 consistency-validator must ALSO verify that VP files whose `source_bc`/`bcs[]` include a pure-parse BC do not describe THAT BC's gate behavior via external-substrate reads (`grep -nE 'sprint-state|prior HANDOFF|wave-group ordinal'` in VP Property/Postcondition/fixture sections → 0 load-bearing hits; shell-caller-attribution explicitly labeled is OK). (6) Input-hash propagation: VP-083 + VP-081 updated (65f3f13). (7) TREE-WIDE GATE PASS (literal-shell): `grep -rnE 'prior HANDOFF|wave-group ordinal|wave-group position' .factory/specs/verification-properties/ .factory/specs/behavioral-contracts/ss-04/` → all VP-081 hits are shell-caller-attribution (explicitly labeled "SHELL CALLER substrate" in fixture comments + Precondition body); VP-INDEX `last_amended` hits are historical changelog; BC-4.14.001 hits in `last_amended`/`changelog` entries are historical — 0 load-bearing gate-behavior violations. `grep -rEn 'ADR-026 v1\.[0-9]' .factory/specs/behavioral-contracts/` → 0 live normative hits in BC body sections (all in last_amended/changelog/BC-INDEX changelog). 4-index: BC-INDEX v2.81 / VP-INDEX v2.16 / STORY-INDEX v4.01 / ARCH-INDEX v2.37. (8) CONVERGENCE: trajectory P8(0B/1M)→P9(0B/0M/1MED)→P10(0B/1M/2MED)→P11(0B/1M/1MED). 3-CLEAN streak 0/3: pass-11 has MAJOR (F-P11-001) → streak reset. Pass-12 = next clean-shot. D-chain cite D-571 per D-419(b); parent-commit 4294b479 per D-419(b). | feature-mode-f2-adv-pass-11-fix | 2026-06-14 |
 | D-571 | F2 E-18 ADV PASS-10 FIX BURST 2026-06-14 — (1) F-P10-001 MAJOR: BC-4.14.001 v1.7→v1.8 — wave_id PAYLOAD-ONLY discriminator: gate reads `wave_id` from HANDOFF payload; `is_first_wave = (payload.wave_id == 1)`; wave_id==1 → no-op; wave_id>1 → full validation; wave_id ABSENT → FAILS CLOSED (HandoffIncomplete: ['wave_id']). All sprint-state.yaml/prior-HANDOFF.md/factory-artifacts/wave-context-cannot-be-determined framing removed from gate behavior (Description, PC3, PC4, PC8, Inv3, EC-001..006/010, test vectors, VP-083/VP-081 rows). BC-4.14.001 Invariant 1 pure-parse constraint fully satisfied. BC-INDEX v2.80→v2.81. (2) F-P10-002 MEDIUM: BC-7.07.001 v1.6→v1.7 — explicit `git push` step added to Inv3 canonical execution order (after successful append). PC6 split: git COMMIT failure = LOCAL only (no network) → exit 2, no push, no log entry. New push-failure postcondition (PC6b): git push failure (network/remote) → exit 2; local commit + log entry retained; retry is push-only. EC-003 reattributed to PUSH step. Exit codes {0,2} unchanged. (3) F-P10-003 MEDIUM: VP-082 v1.3→v1.4 — Postcondition E added to VP-082.md body. VP-INDEX v2.14→v2.15: VP-083 Full Index row reframed to payload wave_id discriminator per BC-4.14.001 v1.8; VP-081 Full Index row updated with fail-closed clause. ARCH-INDEX v2.36→v2.37: ADR-026 v1.8→v1.9 amendment row + provenance leg. (4) O-P8-002 ESCALATED TO MANDATORY (3rd occurrence): F-P10-001 is the 3rd occurrence of payload-only-discriminator drift class (F-P7-001 pass-7 + F-P8-001 pass-8 + F-P10-001 pass-10). Per L-F2-payload-only-discriminator-recurrence-gate escalation rule, S-18.08 consistency-validator pure-parse invariant check is MANDATORY (hard requirement). L-F2-payload-only-discriminator-recurrence-gate updated with 3rd-occurrence disposition. (5) TREE-WIDE GATE PASS (literal-shell): sprint-state.yaml/prior-HANDOFF.md in VP-INDEX Full Index VP-083/VP-081 rows = 0 load-bearing; ADR-026 v1.X in BC body = 0 load-bearing; git push in BC-7.07.001 = PRESENT. 4-index: BC-INDEX v2.81 / VP-INDEX v2.15 / STORY-INDEX v4.01 / ARCH-INDEX v2.37. (6) CONVERGENCE: trajectory P7(0B/2M)→P8(0B/1M)→P9(0B/0M/1MED)→P10(0B/1M/2MED). 3-CLEAN streak 0/3: pass-10 has MAJOR → streak reset. Pass-11 = next clean-shot. D-chain cite D-570 per D-419(b); parent-commit 9f0d7053 per D-419(b). | feature-mode-f2-adv-pass-10-fix | 2026-06-14 |
@@ -206,44 +208,57 @@ dtu_services: []
 - `cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` | `session-checkpoints.md` | `lessons.md`
 - `cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md` (adversary reviews at `S-12.03/`, `S-12.04/`, `S-12.05/` subdirs)
 
-## Session Resume Checkpoint (2026-06-14 — D-573 F2 E-18 ADV PASS-12 CLEAN; 3-CLEAN streak 1/3; NO spec changes; next: F2 adversarial pass-13 → 3-CLEAN → F3)
+## Session Resume Checkpoint (2026-06-14 — D-574 F2 E-18 ADV PASS-13 NOT-CLEAN FIX BURST; 3-CLEAN streak 0/3 RESET; next: consistency-validator sweep → adversary pass-14 → 3-CLEAN → F3)
 
-> **SELF-SUFFICIENT RESUME CONTEXT FOR ZERO-CONTEXT NEW SESSION ON A DIFFERENT MACHINE**
-> Read this section alone to resume the orchestrator after full CLEAR, new session, or new machine. All context needed is here.
-> Assumes ZERO prior context. Every decision, directive, and anchor is stated explicitly below.
+> **SELF-SUFFICIENT RESUME CONTEXT FOR ZERO-CONTEXT NEW SESSION OR NEW MACHINE**
+> Read this section alone to resume. Assumes ZERO prior context. All decisions, directives, and anchors stated explicitly.
 
 ### §1. Where We Are
 
-**E-18 CAP-032 context-durability feature mode IN PROGRESS (D-573 2026-06-14). F1-gate APPROVED. F2 spec evolution COMPLETE (D-561). F2 adversarial passes 1-12 COMPLETE (D-562..D-573). F2 adversarial re-cascade (pass-13) is NEXT.**
+**E-18 CAP-032 context-durability (GitHub issue #173) — Feature Mode, Phase F2 (spec evolution) adversarial 3-CLEAN convergence cascade (BC-5.39.001). D-574 2026-06-14.**
 
-D-573 CLEAN pass summary:
-- **Pass-12 (fresh-context) CLEAN**: zero BLOCKER, zero MAJOR, zero load-bearing MEDIUM, zero mis-anchor. Adversary independently re-derived full E-18 package and declared convergence.
-- **NO spec changes; NO fix burst.** All artifacts remain at D-572 versions.
-- **3-CLEAN streak advances 0/3→1/3** per BC-5.39.001. Need 2 more consecutive clean.
-- **Convergence trajectory**: P9(0B/0M/1med)→P10(0B/1M/2med)→P11(0B/1M/1med)→**P12 CLEAN (1/3)**.
-- **4-index UNCHANGED (D-573):** BC-INDEX v2.81, VP-INDEX v2.16, STORY-INDEX v4.01, ARCH-INDEX v2.37.
-- **Next: F2 adversarial pass-13** — fresh-context adversary reads same package: ADR-026 v1.9 + BC-4.14.001 v1.8 + BC-7.07.001 v1.7 + BC-5.41.001/5.41.002/5.41.003/6.24.001/7.07.002 v1.6 + BC-1.15.001 v1.2 + VP-082 v1.4 + VP-083 v1.3 + VP-081 v1.3 (VP-INDEX v2.16) + VP-084 v1.6 + VP-085/086 + invariants.md v1.16 + capabilities.md v1.6. Targeting 3-CLEAN at BC-5.39.001. Then F3 story decomposition (S-18.00..S-18.07+S-18.08).
+F1-gate APPROVED. F2 spec evolution COMPLETE (D-561). F2 adversarial cascade passes 1-13 COMPLETE (D-562..D-574). 13 passes done; pass-12 CLEAN (1/3 streak); pass-13 NOT-CLEAN (4 findings fixed; streak RESET to 0/3).
 
-D-572 fix burst (prior — VP-083 + VP-081 PAYLOAD-ONLY body): VP-083 v1.2→v1.3 (F-P11-001 MAJOR: Property PAYLOAD-ONLY; fail-closed postcondition; fixture); VP-081 v1.2→v1.3 (F-P11-002 MEDIUM: shell-caller/WASM-gate division; Postcondition E; fixture); VP-INDEX v2.15→v2.16; O-P8-002 extended to VP files; 3-CLEAN 0/3 (pass-11 MAJOR → streak reset).
-D-571 fix burst (prior — BC-4.14.001 + BC-7.07.001 + VP-082 + VP-INDEX cross-doc sync): BC-4.14.001 v1.7→v1.8 (F-P10-001 MAJOR: wave_id payload-only; EC-010 fail-closed); BC-7.07.001 v1.6→v1.7 (F-P10-002 MEDIUM: git push step); VP-082 v1.3→v1.4 (F-P10-003 MEDIUM: Postcondition E); BC-INDEX v2.81; VP-INDEX v2.15; ARCH-INDEX v2.37; O-P8-002 → MANDATORY.
-D-570 fix burst (prior — ADR-026 SHA-pinned form): ADR-026 v1.7→v1.8; VP-INDEX v2.13; ARCH-INDEX v2.36.
-D-569 fix burst (prior — BC-4.14.001 payload-only discriminator): BC-4.14.001 v1.6→v1.7; BC-INDEX v2.80.
+**Pass-13 (D-574) fix burst summary:**
+- F-P13-001 BLOCKER: invariants.md v1.17→v1.18 — DI-025 FIELD-4-corruption outcome corrected: field-4 absent/empty/≠`commit` (corruption) → EXEMPT via prefix-match-alone. Prior text incorrectly routed to NOT-EXEMPT (contradicting BC-5.41.003 PC1(b)/(c), Inv1 gate(3), ADR-026 §F-P4-004 EC-003). SHA-mismatch-with-valid-FIELD-4 (anti-forgery) remains NOT-EXEMPT.
+- F-P13-002 MEDIUM: VP-082 v1.4→v1.5 (architect: Postcondition F push-failure added; bats split commit-local/push-network). VP-INDEX v2.16→v2.17 (state-manager cross-doc sync: VP-082 row updated with push-failure leg — push failure → exit 2; local commit + log entry retained; retry push-only per ADR-026 §F-P10-002 + BC-7.07.001 PC6b).
+- F-P13-003 MEDIUM: VP-INDEX YAML structural fix — v1.70/v1.69 changelog entries (duplicate `change:` under one `- date:`) corrected to separate list items; YAML parses cleanly.
+- F-P13-004 LOW: BC-5.41.001 v1.6→v1.7 (Traceability cite de-versioned to stable §Decision N anchor per POLICY 19); BC-INDEX v2.81→v2.82.
 
-rc.21 FULLY SHIPPED (D-560 2026-06-13 VERIFIED). main caf06c68. develop 7e99f6ef. tag 03054524. Marketplace #13 MERGED.
+**3-CLEAN streak: 1/3→0/3 RESET** (pass-13 has findings). Need 3 NEW consecutive clean passes for F2 convergence.
 
-- **D-range:** D-001..D-573.
-- **develop HEAD:** `7e99f6ef` (PR #186 fix + release.yml sync back-merge 2026-06-13).
-- **main HEAD:** `caf06c68` (rc.21 bot bundle commit).
-- **4-index (D-573, UNCHANGED from D-572):** BC-INDEX v2.81, VP-INDEX v2.16, STORY-INDEX v4.01, ARCH-INDEX v2.37.
-- **BCs (all draft; POL-14 auto-promotion on implementing PR merge):** BC-1.15.001 (v1.3); BC-4.14.001 (v1.8); BC-7.07.001 (v1.7); BC-5.41.001/6.24.001/7.07.002 (v1.6); BC-5.41.002 (v1.4+v1.6 mixed); BC-5.41.003 (v1.6); capabilities.md (v1.6). Verify via BC-INDEX v2.81 body.
-- **VPs (D-572):** VP-083 v1.3; VP-081 v1.3; VP-082 v1.4; VP-084 v1.6; VP-085/086 unchanged. Verify via VP-INDEX v2.16 body.
+**Convergence trajectory (last 4 passes per D-433(e)+D-439(c)):** →P11(0B/1M/1med)→P12 CLEAN(1/3)→P13 NOT-CLEAN(0/3).
+
+**4-index at D-574:** BC-INDEX v2.82, VP-INDEX v2.17, STORY-INDEX v4.01, ARCH-INDEX v2.37.
+
+**NEXT ACTION (explicit, in order):**
+1. Run comprehensive consistency-validator cross-doc sweep over FULL E-18 package (BC/ADR/DI/VP-body/VP-INDEX/capabilities) to flush ALL remaining sibling-sweep gaps at once. Recurring failure class: "a fix reaches most artifacts but strands a sibling". Sweep must cover: BC-4.14.001 v1.8 + BC-7.07.001 v1.7 + BC-5.41.001/5.41.002/5.41.003/6.24.001/7.07.002 v1.7/v1.6 + BC-1.15.001 v1.2 + ADR-026 v1.9 + invariants.md v1.18 (DI-020..025) + capabilities.md v1.6 + VP-082 v1.5 + VP-081..086 body + VP-INDEX v2.17 rows + ARCH-INDEX v2.37.
+2. THEN resume adversary cascade at pass-14 (fresh-context; reads same package at D-574 versions).
+3. Need 3 CONSECUTIVE CLEAN passes from pass-14 onward for F2 convergence (BC-5.39.001).
+4. On F2 convergence → human gate → Feature Mode F3 story decomposition (story-writer authors S-18.00..S-18.07 + S-18.08 the codified O-P8-002 gate-story).
+
+**RECURRING LESSON (sibling-sweep):** Every semantic fix must propagate to ALL layers (BC + ADR + DI + VP-body + VP-INDEX row + capabilities). Track via lessons.md L-F2-payload-only-discriminator-recurrence-gate. The recurring detection failure is a single-layer fix that strands siblings.
+
+**Artifact versions at D-574:**
+- ADR-026 v1.9; BC-1.15.001 v1.3; BC-4.14.001 v1.8; BC-7.07.001 v1.7; BC-5.41.001 v1.7; BC-5.41.002 v1.6; BC-5.41.003 v1.6; BC-6.24.001 v1.6; BC-7.07.002 v1.6; VP-081 v1.3; VP-082 v1.5; VP-083 v1.3; VP-084 v1.6; VP-085 v1.3; VP-086 (unchanged); invariants.md v1.18 (DI-020..025); capabilities.md v1.6 (CAP-032); BC-INDEX v2.82; VP-INDEX v2.17; ARCH-INDEX v2.37; STORY-INDEX v4.01.
+
+**Key design facts (so restart agent has them without re-deriving):**
+- wave-1 no-op = `payload.wave_id == 1` (pure-parse WASM; wave_id absent → fail-closed HandoffIncomplete); EPIC-COMPLETE = `payload.next_wave_stories: []`; WASM gate pure-parse (shell wave-handoff derives wave_id from substrate).
+- flush = commit(LOCAL, capture SHA_B) → append-to-log → push(REMOTE); each step failure → exit 2; append-fail → reset --soft SHA_B^ if HEAD==SHA_B else exit 2 (human intervention).
+- push-fail (network/remote after successful local commit + log append) → exit 2; local commit + log entry retained; retry is push-only (no re-commit, no re-append) per ADR-026 §F-P10-002 + BC-7.07.001 PC6b.
+- precompact-flush-log 4 fields: `<ISO-timestamp> <SHA> <cycle>/<step> commit` (field-2=SHA, field-4=`commit` token); WASM reads fields, no git-exec.
+- exemption logic: prefix + field-2 + field-4 all valid → NOT-EXEMPT (anti-forgery); field-4 ≠ `commit` (corruption) → EXEMPT via prefix-alone; field-4 absent/empty = corruption = EXEMPT.
+- HANDOFF: 9 base fields + epic_status conditional 10th; terminal = {merged, withdrawn, cancelled}; factory_lock opt-in default null; PostCompact best-effort outside CAP-032; harness >= v2.1.105; POLICY 19 = stable §Decision N anchor (no version pins in BC cites).
+- O-P8-002 gate MANDATORY (3rd recurrence D-571): for any BC with Invariant 1 pure-parse, consistency-validator must verify VP files with matching `source_bc`/`bcs[]` do NOT describe gate behavior via external-substrate reads.
+
+rc.21 FULLY SHIPPED D-560 (2026-06-13). main caf06c68. develop 7e99f6ef. tag 03054524. Marketplace #13 MERGED.
 
 ### §2. Operating Mode
 
 - vsdd-factory brownfield-onboarding; cycle `v1.0-brownfield-backfill`; self-referential.
-- **E-10 CASCADE FULLY SEALED D-531** (2026-06-01; pass-16 asymptotic-acceptance; resumption gate = engine-surface material change). **Do NOT resume E-10 without material change.**
-- **F5 PAUSED D-386 Option C** (2026-05-13; trajectory →9→9→9→11). **Do NOT resume without explicit human direction.**
-- **S-15.03 PRIORITY-A COMPLETE D-508** (2026-05-27; 11 stories; 40pts). **RC.20 SHIPPED D-528** (2026-06-01). **RC.21 FULLY SHIPPED D-560** (2026-06-13; tag 03054524; marketplace #13 MERGED).
+- **E-10 CASCADE FULLY SEALED D-531** (2026-06-01; pass-16 asymptotic-acceptance). **Do NOT resume E-10 without engine-surface material change.**
+- **F5 PAUSED D-386 Option C** (trajectory →9→9→9→11). **Do NOT resume without explicit human direction.**
+- **S-15.03 PRIORITY-A COMPLETE D-508** (2026-05-27; 11 stories; 40pts). **RC.21 FULLY SHIPPED D-560** (2026-06-13; marketplace #13 MERGED).
 
 ### §3. User Directives (Carry Across CLEAR)
 
@@ -258,23 +273,18 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 - **Adversary MUST grep `origin/develop` or `factory-artifacts`** for literal-shell evidence (NOT stale local main; per L-EDP1-067-CANDIDATE).
 - **Cure-extension parsimony (D-497):** EXTEND existing cure for same-class META-LEVEL recurrence; no new INV-N abstraction.
 - **POLICY 8 v1.3 EC-mirror routing-rule (D-517); bidirectional AC↔PC parity (D-515+D-516); POLICY 5 v1.3.1/v1.3.3/v1.3.4/v1.3.5/v1.3.6 SDK-grounding + sibling-sweep mandates.**
-- **D-537 [process-gap] spec-drift routing:** When TDD fix changes ADR-specified behavior, route architect ADR amendment in SAME burst. Codified ADR-024 v1.2 Process note.
+- **D-537 [process-gap] spec-drift routing:** When TDD fix changes ADR-specified behavior, route architect ADR amendment in SAME burst.
 - **D-539 multi-family adversary obligation:** prompt-contract + shell-logic issues require cross-family AND same-family Claude adversary passes before convergence.
-- **D-573 carry:** F2 E-18 ADV PASS-12 CLEAN 2026-06-14. Pass-12 fresh-context CLEAN: 0B/0M/0 load-bearing MED/0 mis-anchor. NO spec changes; NO fix burst. 4-index BC-INDEX v2.81 VP-INDEX v2.16 STORY-INDEX v4.01 ARCH-INDEX v2.37 UNCHANGED. 3-CLEAN streak 0/3→1/3. Trajectory P12 CLEAN (1/3). Pass-13 NEXT (need 2 more consecutive). D-chain cite D-572. parent-commit be237a89.
-- **D-572 carry:** F2 E-18 ADV PASS-11 FIX BURST 2026-06-14. VP-083 v1.2→v1.3 (F-P11-001 MAJOR: Property PAYLOAD-ONLY body + fail-closed postcondition + fixture). VP-081 v1.2→v1.3 (F-P11-002 MEDIUM: shell-caller/WASM-gate division + Postcondition E + fixture). VP-INDEX v2.15→v2.16 (version cells updated). ADR-026 v1.9 UNCHANGED (tree-grep PASS: 0 load-bearing). O-P8-002 gate extended to VP files (L-F2-payload-only-discriminator-recurrence-gate updated; layer-propagation: BC→VP-INDEX→VP-body). 4-index: BC-INDEX v2.81 VP-INDEX v2.16 STORY-INDEX v4.01 ARCH-INDEX v2.37. Convergence P11(0B/1M/1MED). 3-CLEAN streak 0/3 (pass-11 MAJOR; pass-12 NEXT). D-chain cite D-571. parent-commit 4294b479.
-- **D-571 carry:** F2 E-18 ADV PASS-10 FIX BURST 2026-06-14. BC-4.14.001 v1.7→v1.8 (F-P10-001 MAJOR: wave_id payload-only; EC-010 fail-closed; all sprint-state.yaml/prior-HANDOFF.md framing removed). BC-7.07.001 v1.6→v1.7 (F-P10-002 MEDIUM: git push step; commit=local/push=network failure distinguished). VP-082 v1.3→v1.4 (F-P10-003 MEDIUM: Postcondition E). BC-INDEX v2.81. VP-INDEX v2.15 (VP-083/VP-081 payload-only). ARCH-INDEX v2.37. O-P8-002 MANDATORY (3rd occurrence; S-18.08 hard req). 4-index: BC-INDEX v2.81 VP-INDEX v2.15 STORY-INDEX v4.01 ARCH-INDEX v2.37. Convergence P10(0B/1M/2MED). 3-CLEAN streak 0/3 (pass-10 MAJOR; pass-11 NEXT). D-chain cite D-570. parent-commit 9f0d7053.
-- **D-570 carry:** F2 E-18 ADV PASS-9 FIX BURST 2026-06-14. ADR-026 v1.7→v1.8 (F-P9-001 MEDIUM: §Decision A+§F-P5-002 PC8 SUPERSEDED by §F-P6-006 SHA-pinned form; HEAD~1 tokens replaced). VP-INDEX v2.12→v2.13 (F-P9-002 LOW: VP-082 row completed). ARCH-INDEX v2.35→v2.36. Tree-wide gate PASS (literal-shell: HEAD~1=0 live normative; ADR-026 v1.X in BC=0 load-bearing). 4-index: BC-INDEX v2.80 VP-INDEX v2.13 STORY-INDEX v4.01 ARCH-INDEX v2.36. Convergence P9(0B/0M/1MED). 3-CLEAN streak 0/3 (pass-9 MEDIUM; pass-10 NEXT). D-chain cite D-569. parent-commit a61e0e6e.
-- **D-569 carry:** F2 E-18 ADV PASS-8 FIX BURST 2026-06-14. BC-4.14.001 v1.6→v1.7 (F-P8-001 MAJOR sole: PC2a stale conjunct REMOVED; WASM gate PAYLOAD-ONLY discriminator). BC-INDEX v2.79→v2.80. capabilities.md v1.5→v1.6 (O-P8-001: CAP-032 cite-stability). L-F2-payload-only-discriminator-recurrence-gate (O-P8-002). 4-index: BC-INDEX v2.80 VP-INDEX v2.12 STORY-INDEX v4.01 ARCH-INDEX v2.35. Convergence P8(0B/1M). 3-CLEAN streak 0/3. D-chain cite D-568. parent-commit a5d6f2ff.
-- **D-568 carry:** F2 E-18 ADV PASS-7 FIX BURST + STATE.md COMPACTION 2026-06-14. ADR-026 v1.6→v1.7 (payload-only EPIC-COMPLETE + provenance trace). ARCH-INDEX v2.34→v2.35. STATE.md compacted. 4-index: BC v2.79/VP v2.12/STORY v4.01/ARCH v2.35. Convergence P7(0B/2M). D-chain cite D-567. parent-commit ef7eafe2.
-- **D-567 carry:** F2 E-18 ADV PASS-6 FIX BURST (STATE-MGR BOOKKEEPING) 2026-06-14. POLICY 19 registered. VP-084 v1.5→v1.6. VP-INDEX v2.11→v2.12. 2 lessons. O-P6-001 codified. 4-index: BC v2.79/VP v2.12/STORY v4.01/ARCH v2.34. D-chain cite D-566. parent-commit 4332e312.
-- **D-562 carry:** F2 E-18 ADV PASS-1 FIX BURST 2026-06-14. F1-gate APPROVED (human). ADR-026 v1.1 re-anchor; VP-086 NEW; 8 BCs v1.1; DI-020..025; ARCH-INDEX v2.29; VP-INDEX v2.08; BC-INDEX v2.74.
-- **D-561 carry:** F2 E-18 CONTEXT-DURABILITY SPEC EVOLUTION 2026-06-14. F1-gate APPROVED (D1–D5). ADR-026 ACCEPTED; VP-081..085; 8 BCs; CAP-032; ARCH-INDEX v2.28; VP-INDEX v2.07; BC-INDEX v2.73.
-- **D-560 carry:** OPERATOR-INSTALL-VERIFIED 2026-06-13. rc.21 100% COMPLETE end-to-end. NO remaining release action.
-- **D-556 carry:** S-17.04 MERGED PR #184 3b2a378c 2026-06-12. E-17 ALL 4 WAVES COMPLETE. STORY-INDEX v4.01. SHIPPED in rc.21.
+- **D-574 carry:** F2 E-18 ADV PASS-13 NOT-CLEAN FIX BURST. 4 findings fixed (see §1 above). 3-CLEAN 1/3→0/3 RESET. 4-index BC v2.82/VP v2.17/STORY v4.01/ARCH v2.37. Trajectory P13 NOT-CLEAN (0/3). NEXT: consistency-validator sweep → adversary pass-14 (need 3 NEW consecutive clean). D-chain cite D-573. parent-commit 0d70b606.
+- **D-573 carry:** F2 E-18 ADV PASS-12 CLEAN. Pass-12 CLEAN: 0B/0M/0 load-bearing MED. 3-CLEAN 0/3→1/3. 4-index BC v2.81/VP v2.16/STORY v4.01/ARCH v2.37. D-chain cite D-572. parent-commit be237a89.
+- **D-571 carry:** F2 E-18 ADV PASS-10 FIX BURST. BC-4.14.001 v1.8 (wave_id payload-only; EC-010 fail-closed). BC-7.07.001 v1.7 (push step). VP-082 v1.4 (Postcondition E). BC-INDEX v2.81. VP-INDEX v2.15. ARCH-INDEX v2.37. O-P8-002 MANDATORY. D-chain cite D-570. parent-commit 9f0d7053.
+- **D-560 carry:** OPERATOR-INSTALL-VERIFIED 2026-06-13. rc.21 100% COMPLETE. NO remaining release action.
+- **D-556 carry:** S-17.04 MERGED PR #184 3b2a378c. E-17 ALL 4 WAVES COMPLETE. STORY-INDEX v4.01.
 - **D-541 carry (partial):** VP IDs TBD per TD-VSDD-063. BC-6.23.001 ACTIVE per POL-14.
 
 ### §4. Tier-A Completed Log (most recent first)
 
+- **D-574 (2026-06-14):** F2 E-18 ADV PASS-13 NOT-CLEAN FIX BURST. 4 findings fixed: F-P13-001 BLOCKER (invariants.md v1.18 — DI-025 FIELD-4-corruption EXEMPT); F-P13-002 MEDIUM (VP-082 v1.5 push-leg; VP-INDEX v2.17 cross-doc sync); F-P13-003 MEDIUM (VP-INDEX YAML duplicate-key fixed); F-P13-004 LOW (BC-5.41.001 v1.7 cite convention; BC-INDEX v2.82). 3-CLEAN streak 1/3→0/3 RESET. 4-index: BC v2.82/VP v2.17/STORY v4.01/ARCH v2.37. Trajectory P13 NOT-CLEAN (0/3). NEXT: consistency-validator sweep → adversary pass-14.
 - **D-573 (2026-06-14):** F2 E-18 ADV PASS-12 CLEAN. Pass-12 fresh-context CLEAN: 0B/0M/0 load-bearing MED/0 mis-anchor. NO spec changes; NO fix burst. 4-index BC v2.81/VP v2.16/STORY v4.01/ARCH v2.37 UNCHANGED. 3-CLEAN streak 0/3→1/3. Trajectory P12 CLEAN (1/3). Adversary pass-13 NEXT.
 - **D-572 (2026-06-14):** F2 E-18 ADV PASS-11 FIX BURST. VP-083 v1.3 (F-P11-001 MAJOR: Property body PAYLOAD-ONLY; fail-closed postcondition; fixture). VP-081 v1.3 (F-P11-002 MEDIUM: shell-caller/WASM-gate division; Postcondition E; fixture). VP-INDEX v2.16 (version cells VP-083/VP-081 updated). ADR-026 v1.9 UNCHANGED. O-P8-002 gate extended to VP files (layer-propagation: BC→VP-INDEX→VP-body). 4-index: BC v2.81/VP v2.16/STORY v4.01/ARCH v2.37. Tree-wide gate PASS (0 load-bearing). P11(0B/1M/1MED). 3-CLEAN 0/3 (pass-11 MAJOR; pass-12 = next clean-shot).
 - **D-571 (2026-06-14):** F2 E-18 ADV PASS-10 FIX BURST. BC-4.14.001 v1.8 (F-P10-001 MAJOR: wave_id payload-only; EC-010 fail-closed). BC-7.07.001 v1.7 (F-P10-002 MEDIUM: git push step). VP-082 v1.4 (F-P10-003 MEDIUM: Postcondition E). BC-INDEX v2.81. VP-INDEX v2.15 (VP-083/VP-081 payload-only). ARCH-INDEX v2.37. O-P8-002 → MANDATORY (3rd occurrence; S-18.08 hard req). 4-index: BC v2.81/VP v2.15/STORY v4.01/ARCH v2.37. Tree-wide gate PASS. P10(0B/1M/2MED). 3-CLEAN 0/3 (pass-10 MAJOR; pass-11 = next clean-shot).
@@ -298,7 +308,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 ### §5. Cumulative Codifications
 
 - F5: D-379..D-454 (76 decisions) — `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md`.
-- Brownfield: D-001..D-573 — `cycles/v1.0-brownfield-backfill/decision-log.md`. Latest: **D-573 F2 E-18 ADV PASS-12 CLEAN 2026-06-14 — Pass-12 fresh-context CLEAN (0B/0M/0 load-bearing MED/0 mis-anchor); NO spec changes; 4-index BC v2.81/VP v2.16/STORY v4.01/ARCH v2.37 UNCHANGED; 3-CLEAN streak 0/3→1/3; adversary pass-13 NEXT.**
+- Brownfield: D-001..D-574 — `cycles/v1.0-brownfield-backfill/decision-log.md`. Latest: **D-574 F2 E-18 ADV PASS-13 NOT-CLEAN FIX BURST 2026-06-14 — 4 findings fixed; 3-CLEAN streak 1/3→0/3 RESET; 4-index BC v2.82/VP v2.17/STORY v4.01/ARCH v2.37; consistency-validator sweep → adversary pass-14 NEXT.**
 
 ### §6. Cumulative Lessons
 
@@ -313,16 +323,16 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 | Index | Version | Notes |
 |-------|---------|-------|
-| BC-INDEX | v2.81 | UNCHANGED at D-573 (last changed D-571; BC-4.14.001 v1.8 + BC-7.07.001 v1.7). total_bcs 1966 UNCHANGED. |
-| VP-INDEX | v2.16 | UNCHANGED at D-573 (last changed D-572: VP-083 v1.3 + VP-081 v1.3). total_vps 86 UNCHANGED. |
-| STORY-INDEX | v4.01 | UNCHANGED at D-561..D-573. E-18 stories S-18.00..S-18.08 NOT YET AUTHORED (F3 next after 3-CLEAN). |
-| ARCH-INDEX | v2.37 | UNCHANGED at D-573 (last changed D-571; ADR-026 v1.9 verified clean D-572). |
+| BC-INDEX | v2.82 | Changed D-574 (F-P13-004: BC-5.41.001 v1.7 cite convention). total_bcs 1966 UNCHANGED. |
+| VP-INDEX | v2.17 | Changed D-574 (F-P13-002 cross-doc sync VP-082 push-leg + F-P13-003 YAML fix). total_vps 86 UNCHANGED. |
+| STORY-INDEX | v4.01 | UNCHANGED at D-561..D-574. E-18 stories S-18.00..S-18.08 NOT YET AUTHORED (F3 next after 3-CLEAN). |
+| ARCH-INDEX | v2.37 | UNCHANGED at D-574 (last changed D-571; ADR-026 v1.9 verified clean D-572). |
 
-4-index at D-573 UNCHANGED (NO spec changes at D-573; literal-shell verification carries from D-572: `grep "^version:"` on all 4 indexes → BC-INDEX "2.81" / VP-INDEX "2.16" / STORY-INDEX "4.01" / ARCH-INDEX "2.37").
+4-index at D-574 (literal-shell): `grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md` → "2.82"; `grep "^version:" .factory/specs/verification-properties/VP-INDEX.md` → "2.17"; `grep "^version:" .factory/stories/STORY-INDEX.md` → "4.01"; `grep "^version:" .factory/specs/architecture/ARCH-INDEX.md` → "2.37".
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** `0d70b606` (D-573 F2 E-18 adv-pass-12 CLEAN 2026-06-14; prior: `be237a89` D-572 sha-patch; prior-prior: `4296df50` D-572 main)
+- **factory-artifacts HEAD:** TBD-D574 (D-574 F2 E-18 pass-13 fix burst 2026-06-14; prior: `0d70b606` D-573; prior-prior: `be237a89` D-572 sha-patch)
 - **develop HEAD:** `7e99f6ef` (PR #186 fix + release.yml sync back-merge 2026-06-13)
 - **main HEAD:** `caf06c68` (rc.21 bot bundle commit 2026-06-13)
 - **v1.0.0-rc.21 tag:** `03054524` (SHIPPED; FULLY IN OPERATOR MARKETPLACE)
@@ -336,34 +346,34 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 - **marketplace PR drbothen/claude-mp #13 MERGED** 2026-06-13 — rc.21 FULLY SHIPPED.
 - **RELEASING.md Step 9 VERIFIED (D-560):** operator cache 1.0.0-rc.21 confirmed (plugin.json + 132 entries). rc.21 end-to-end CLOSED.
 
-### §11. Post-CLEAR/Post-RESET Resume Checklist (zero-context; D-572 refresh)
+### §11. Post-CLEAR/Post-RESET Resume Checklist (zero-context; D-574 refresh)
 
-1. **Verify worktree state:** develop HEAD: `git rev-parse --short origin/develop` → expect `7e99f6ef`. Main: `git rev-parse --short origin/main` → expect `caf06c68`. Factory: `git -C .factory log -1` + `git -C .factory status` (expect clean; branch factory-artifacts). E-18 in spec phase (no feature branch yet).
-2. **Read §1-§12 this checkpoint** (all of it).
-3. **Verify trajectory-tail PC4:** `grep "^current_step:" .factory/STATE.md | grep -oE "trajectory-tail [→0-9]+"` → expect `trajectory-tail →9→9→9→11`.
-4. **Verify develop HEAD:** `git rev-parse --short origin/develop` → expect `7e99f6ef`.
-5. **E-10 CASCADE SEALED D-531.** Do NOT resume without engine-surface material change.
-6. **F5 PAUSED** — trajectory →9→9→9→11. Do NOT resume without explicit human direction.
-7. **RC.21 100% COMPLETE D-560.** NO remaining release action. rc.21 CLOSED. Operators: `/plugin update vsdd-factory@claude-mp`.
-8. **E-18 F2 ADV PASS-12 CLEAN D-573.** Pass-12 (fresh-context) CLEAN: 0B/0M/0 load-bearing MED/0 mis-anchor. NO spec changes; NO fix burst. 3-CLEAN streak **1/3** per BC-5.39.001 (need 2 more consecutive). 4-index BC-INDEX v2.81, VP-INDEX v2.16, STORY-INDEX v4.01, ARCH-INDEX v2.37 UNCHANGED. **Next: F2 adversarial pass-13** — fresh-context adversary reads same package (ADR-026 v1.9 + BC-4.14.001 v1.8 + BC-7.07.001 v1.7 + BCs per BC-INDEX v2.81 + VP-082 v1.4 + VP-083 v1.3 + VP-081 v1.3 (VP-INDEX v2.16) + capabilities.md v1.6). Targeting BC-5.39.001 3-CLEAN convergence. Then F3 story decomp (S-18.00..S-18.07+S-18.08).
-9. **4-index confirmed D-573 (UNCHANGED from D-572):** BC-INDEX v2.81, VP-INDEX v2.16, STORY-INDEX v4.01, ARCH-INDEX v2.37.
-10. **ALL dispatches carry:** TD-VSDD-097-EXT + TD-VSDD-099 + TD-VSDD-100 + POLICY 14 5-leg + verification_step 7 4-index gate + INV-019 (a)/(b)/(c) + adversary grep origin/factory-artifacts + D-449(a) literal-shell Dim-2 + POLICY 8 v1.3 parity + POLICY 5 v1.3.1/v1.3.4/v1.3.5/v1.3.6 + D-537 spec-drift routing + D-539 multi-family adversary.
-11. **Latest decision D-573.** F2 adv pass-12 CLEAN (0B/0M/0 load-bearing MED; NO spec changes; 3-CLEAN streak 1/3). F2 adversarial pass-13 is NEXT. Then F3 story decomposition S-18.00..S-18.07+S-18.08.
+1. **Verify worktree state:** `git rev-parse --short origin/develop` → expect `7e99f6ef`. `git rev-parse --short origin/main` → expect `caf06c68`. `git -C .factory log -1` (expect D-574 fix burst commit; branch factory-artifacts; clean status).
+2. **Read §1-§12 this checkpoint** (all of it; D-574 self-sufficient).
+3. **Verify trajectory-tail PC4:** `grep "^current_step:" .factory/STATE.md | grep -oE "trajectory-tail [→0-9]+"` → expect `trajectory-tail →9→9→11→2`.
+4. **E-10 CASCADE SEALED D-531.** Do NOT resume without engine-surface material change.
+5. **F5 PAUSED** — trajectory →9→9→9→11. Do NOT resume without explicit human direction.
+6. **RC.21 100% COMPLETE D-560.** NO remaining release action. Operators: `/plugin update vsdd-factory@claude-mp`.
+7. **E-18 F2 ADV PASS-13 NOT-CLEAN FIX BURST D-574.** 4 findings fixed (see §1). 3-CLEAN streak **0/3 RESET**. 4-index BC v2.82/VP v2.17/STORY v4.01/ARCH v2.37. **NEXT: (a) consistency-validator sweep (full E-18 package) → (b) adversary pass-14 (need 3 consecutive clean) → (c) F3 story decomp (S-18.00..S-18.07+S-18.08).**
+8. **4-index at D-574:** BC-INDEX v2.82, VP-INDEX v2.17, STORY-INDEX v4.01, ARCH-INDEX v2.37.
+9. **ALL dispatches carry:** TD-VSDD-097-EXT + TD-VSDD-099 + TD-VSDD-100 + POLICY 14 5-leg + verification_step 7 4-index gate + INV-019 (a)/(b)/(c) + adversary grep origin/factory-artifacts + D-449(a) literal-shell Dim-2 + POLICY 8 v1.3 parity + POLICY 5 v1.3.1/v1.3.4/v1.3.5/v1.3.6 + D-537 spec-drift routing + D-539 multi-family adversary + O-P8-002 MANDATORY (3rd recurrence).
+10. **Latest decision D-574.** F2 adv pass-13 NOT-CLEAN (4 findings fixed; streak RESET 0/3). Consistency-validator sweep NEXT. Then adversary pass-14 (need 3 consecutive clean). Then F3 S-18.00..S-18.08.
 
-### §12. Pending Work Items — Strict Resume Ordering (refreshed 2026-06-14 D-572)
+### §12. Pending Work Items — Strict Resume Ordering (refreshed 2026-06-14 D-574)
 
 | Step | Item | Tier | Gate | Status |
 |------|------|------|------|--------|
-| ~~1~~-~~prev-2~~ | ~~rc.21 through E-18 F2 adv passes 1-11~~ | ~~—~~ | ~~—~~ | **ALL CLOSED — D-560..D-572 2026-06-13/14.** |
-| **1** | **#173/E-18 F2 adversarial re-cascade (pass-13)** | **feature** | D-573 pass-12 CLEAN; streak 1/3 | Fresh-context adversary reads same package: ADR-026 v1.9 + BC-4.14.001 v1.8 + BC-7.07.001 v1.7 + BC-5.41.001/5.41.002/5.41.003/6.24.001/7.07.002 v1.6 + BC-1.15.001 v1.2 + VP-082 v1.4 + VP-083 v1.3 + VP-081 v1.3 (VP-INDEX v2.16) + VP-084 v1.6 + VP-085/086 + invariants.md v1.16 + capabilities.md v1.6. **3-CLEAN streak 1/3** (pass-12 CLEAN; need 2 more consecutive clean). Convergence trajectory →P10(0B/1M/2med)→P11(0B/1M/1med)→P12 CLEAN (1/3). O-P8-002 MANDATORY + extended to VP files (S-18.08 gate scope covers BCs AND VP files with pure-parse source_bc). Full 3-CLEAN grind in progress (human-directed). Targeting BC-5.39.001 3-CLEAN convergence. **START HERE.** |
-| **2** | **#173/E-18 F3 story decomposition** | **feature** | F2 3-CLEAN convergence (or human waiver) | Author S-18.00..S-18.07+S-18.08 (S-18.08 now ships mandatory O-P8-002 pure-parse invariant gate). STORY-INDEX v4.01→v4.02+. |
-| **3** | **#173 wave-checkpoint** | **implementation** | E-18 F3 done OR human re-sequence | State-durability chain stories S-18.01..S-18.05. Blocked on F3. |
-| **4** | **#171 deferred-revalidate** | **implementation** | #173 stories done | Deferred-revalidation story |
-| **5** | **#129 canonical-principle** | **implementation** | human-authorize | Ship canonical-principle in plugin |
+| ~~1~~-~~prev~~ | ~~rc.21 through E-18 F2 adv passes 1-13~~ | ~~—~~ | ~~—~~ | **ALL CLOSED — D-560..D-574 2026-06-13/14.** |
+| **1** | **#173/E-18 consistency-validator sweep** | **feature** | D-574 pass-13 fix complete | Comprehensive cross-doc sweep: full E-18 package (BC/ADR/DI/VP-body/VP-INDEX/capabilities) to flush sibling-sweep gaps before pass-14. O-P8-002 MANDATORY scope: BCs AND VP files with pure-parse source_bc. **START HERE.** |
+| **2** | **#173/E-18 F2 adversarial re-cascade (pass-14)** | **feature** | Consistency-validator sweep clean | Fresh-context adversary reads package at D-574 versions: ADR-026 v1.9 + BC-4.14.001 v1.8 + BC-7.07.001 v1.7 + BC-5.41.001 v1.7 + BC-5.41.002/5.41.003/6.24.001/7.07.002 v1.6 + BC-1.15.001 v1.2 + VP-082 v1.5 + VP-083 v1.3 + VP-081 v1.3 (VP-INDEX v2.17) + VP-084 v1.6 + VP-085/086 + invariants.md v1.18 + capabilities.md v1.6. **3-CLEAN streak 0/3 (reset)**; need 3 consecutive clean for BC-5.39.001 convergence. |
+| **3** | **#173/E-18 F3 story decomposition** | **feature** | F2 3-CLEAN convergence (or human waiver) | Author S-18.00..S-18.07+S-18.08 (S-18.08 ships mandatory O-P8-002 pure-parse invariant gate). STORY-INDEX v4.01→v4.02+. |
+| **4** | **#173 wave-checkpoint** | **implementation** | E-18 F3 done OR human re-sequence | State-durability chain stories S-18.01..S-18.05. Blocked on F3. |
+| **5** | **#171 deferred-revalidate** | **implementation** | #173 stories done | Deferred-revalidation story. |
+| **6** | **#129 canonical-principle** | **implementation** | human-authorize | Ship canonical-principle in plugin. |
 | ~~prior~~ | ~~TD #74/66/67; S-15.03 PRIORITY-A; E-10 cascade; rc.19+rc.20+rc.21; E-17 4 stories; S-15.17~~ | ~~—~~ | ~~—~~ | **ALL COMPLETE/MERGED/SHIPPED** |
-| **6c** | **F5 pass-76** | **gated** | EXPLICIT human direction | PAUSED D-386 Option C. Do NOT resume. |
-| **7/8** | **UNI-PLUG-001 / SK-MCP-001** | **forward** | human-authorize | PROPOSAL REVIEW-READY |
+| **7c** | **F5 pass-76** | **gated** | EXPLICIT human direction | PAUSED D-386 Option C. Do NOT resume. |
+| **8/9** | **UNI-PLUG-001 / SK-MCP-001** | **forward** | human-authorize | PROPOSAL REVIEW-READY |
 
 **[D-414(c) acknowledgment: Section 12 is a non-standard addition for forward-backlog durability.]**
 
-> Previous checkpoint (D-572 F2-E18-ADV-PASS-11-FIX-BURST-2026-06-14) archived to: `cycles/v1.0-brownfield-backfill/session-checkpoints.md`
+> Previous checkpoint (D-573 F2-E18-ADV-PASS-12-CLEAN-2026-06-14) archived to: `cycles/v1.0-brownfield-backfill/session-checkpoints.md`
