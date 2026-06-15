@@ -1,11 +1,11 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.6"
+version: "1.7"
 status: draft
 producer: product-owner
 timestamp: 2026-06-14T00:00:00Z
-last_amended: "2026-06-14 (v1.6) — F2 pass-6 fix-burst: (E-18) ADR cite convention: v1.4 version tokens dropped per ADR-026 §BC Traceability Cite Convention (TD-VSDD-091 anti-volatile-pin); stable §Decision anchors adopted (cite-only change). [Prior: 2026-06-14 (v1.4) — F2 pass-4 fix-burst: (F-P4-003) ADR cite v1.3→v1.4 (cite-only). [Prior: 2026-06-14 (v1.3) — F2 pass-3 fix-burst: ADR cite v1.1→v1.3. [Prior: 2026-06-14 (v1.2) — F2 pass-2 fix-burst: (F-P2-004/008) EC-EPIC added (final-wave EPIC-COMPLETE: HANDOFF has epic_status:complete, rehydrate-wave reads HANDOFF.md only, must not error on absent wave-state.yaml); EC-004 clarified as non-final context. [Prior: 2026-06-14 (v1.1) — F2 pass-1 fix-burst: (F-3 consistency) PC1 explicitly mandates git-sourced read from factory-artifacts (no in-context memory fallback); Invariant 1 strengthened to disallow working-tree fallback. (DI) TBD-DI replaced with DI-023. TBD-VP retained with justification per report.]"
+last_amended: "2026-06-15 (v1.7) — F-P32-006: §VP Anchors TBD-VP placeholder replaced with decided DEFERRED-VP disposition (F3, S-18.03 integration anchor; rehydrate-wave skill not yet built); §Verification Properties TBD-VP row replaced with DEFERRED-VP row with explicit property description and integration(F3) proof method; §Changelog section added (was absent). BC-6.24.001 v1.6→v1.7. [Prior: 2026-06-14 (v1.6) — F2 pass-6 fix-burst: (E-18) ADR cite convention: v1.4 version tokens dropped per ADR-026 §BC Traceability Cite Convention (TD-VSDD-091 anti-volatile-pin); stable §Decision anchors adopted (cite-only change). [Prior: 2026-06-14 (v1.4) — F2 pass-4 fix-burst: (F-P4-003) ADR cite v1.3→v1.4 (cite-only). [Prior: 2026-06-14 (v1.3) — F2 pass-3 fix-burst: ADR cite v1.1→v1.3. [Prior: 2026-06-14 (v1.2) — F2 pass-2 fix-burst: (F-P2-004/008) EC-EPIC added (final-wave EPIC-COMPLETE: HANDOFF has epic_status:complete, rehydrate-wave reads HANDOFF.md only, must not error on absent wave-state.yaml); EC-004 clarified as non-final context. [Prior: 2026-06-14 (v1.1) — F2 pass-1 fix-burst: (F-3 consistency) PC1 explicitly mandates git-sourced read from factory-artifacts (no in-context memory fallback); Invariant 1 strengthened to disallow working-tree fallback. (DI) TBD-DI replaced with DI-023. TBD-VP retained with justification per report.]"
 phase: F2
 inputs:
   - .factory/feature-delta/issue-173/F1-delta-analysis.md
@@ -19,6 +19,7 @@ capability: "CAP-032"
 lifecycle_status: draft
 introduced: v1.0-feature-context-durability-E18
 modified:
+  - "2026-06-15 (v1.7) — F-P32-006: §VP Anchors TBD-VP → DEFERRED-VP (F3, S-18.03); §Verification Properties row updated with decided property description + integration(F3) proof method; §Changelog section added."
   - "2026-06-14 (v1.6) — F2 pass-6 fix-burst: ADR cite convention: stable §Decision anchors (TD-VSDD-091); cite-only."
   - "2026-06-14 (v1.4) — F2 pass-4 fix-burst: (F-P4-003) ADR cite v1.3→v1.4 (cite-only)."
   - "2026-06-14 (v1.3) — F2 pass-3 fix-burst: ADR cite v1.1→v1.3."
@@ -111,13 +112,13 @@ S-18.03 (wave-reset skill + wave-state.yaml scoped rehydration)
 
 ## VP Anchors
 
-TBD-VP — no dedicated VP assigned at F2. Justification for deferral: the `rehydrate-wave` skill is a read-only context-injection operation with no blocking side-effect. Its verification requires a live factory session (a new session must be started and inspected for context content). This makes it an integration VP that cannot be wired to a unit-level assertion. Story-writer and test-writer assign the VP at F3 after confirming whether a bats test can simulate the rehydration flow or whether it requires a manual session test. Flagged to architect for VP allocation decision.
+VP allocation: DEFERRED to F3 (story S-18.03 implementation). Rationale: the rehydrate-wave skill (S-18.03 deliverable) does not yet exist; a VP harness cannot be authored against an unbuilt implementation vehicle. At F3, test-writer will assign a VP-NNN to cover: (a) the git-sourced manifest read (git show factory-artifacts:wave-state.yaml — bats-testable even without a live Claude session); (b) exact-list injection semantics (union of stories[*].spec_files + arch_files + state_pointer — verifiable by asserting the skill enumerates the correct file set); and (c) EPIC-COMPLETE path (EC-EPIC: reads HANDOFF.md, not wave-state.yaml, when epic_status:complete detected). The context-injection presentation to the LLM may require a manual session test; this will be determined at F3. Interim: no holistic VP covers BC-6.24.001 at this time.
 
 ## Verification Properties
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| TBD-VP | rehydrate-wave reads wave-state.yaml from factory-artifacts via git (not working tree); injects exactly the union of stories[*].spec_files + arch_files + state_pointer; no stale prior-wave specs; no RAG fallback when manifest is present or absent | integration |
+| DEFERRED-VP (F3, S-18.03) | rehydrate-wave reads wave-state.yaml from factory-artifacts via git (not working tree); injects exactly the union of stories[*].spec_files + arch_files + state_pointer; no stale prior-wave specs; hard-blocks with RehydrationError when wave-state.yaml missing; no RAG fallback; EPIC-COMPLETE path: reads HANDOFF.md only when epic_status:complete detected; context-injection presentation may require manual session test at F3 | integration (F3) |
 
 ## Traceability
 
@@ -131,3 +132,15 @@ TBD-VP — no dedicated VP assigned at F2. Justification for deferral: the `rehy
 | Stories | S-18.03 |
 | Cycle | v1.0-feature-context-durability-E18 (F2) |
 | Feature | issue #173 / E-18 |
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| v1.7 | 2026-06-15 | product-owner | (F-P32-006) §VP Anchors TBD-VP placeholder replaced with decided DEFERRED-VP disposition (F3, S-18.03 integration anchor; rehydrate-wave skill not yet built); §Verification Properties TBD-VP row replaced with DEFERRED-VP row with explicit property description and integration(F3) proof method; §Changelog section added. |
+| v1.6 | 2026-06-14 | product-owner | ADR cite convention: stable §Decision anchors (TD-VSDD-091); cite-only. |
+| v1.4 | 2026-06-14 | product-owner | ADR cite v1.3→v1.4 (cite-only). |
+| v1.3 | 2026-06-14 | product-owner | ADR cite v1.1→v1.3. |
+| v1.2 | 2026-06-14 | product-owner | EC-EPIC added (EPIC-COMPLETE final wave; rehydrate-wave reads HANDOFF.md only; no error on absent wave-state.yaml); EC-004 non-final context clarification. |
+| v1.1 | 2026-06-14 | product-owner | PC1 git-source mandate strengthened; working-tree fallback explicitly disallowed; TBD-DI replaced with DI-023; TBD-VP retained with justification; ADR cite v1.0→v1.1. |
+| v1.0 | 2026-06-14 | product-owner | Initial creation (E-18 context-durability feature). |

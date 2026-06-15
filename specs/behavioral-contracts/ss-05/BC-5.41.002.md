@@ -1,11 +1,11 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.7"
+version: "1.8"
 status: draft
 producer: product-owner
 timestamp: 2026-06-14T00:00:00Z
-last_amended: "2026-06-15 (v1.7) — fix burst (product-owner): (F-P30-003 LOW) §Postconditions PC3 BrokenSprintState-path and §Edge Cases EC-001b: human-readable error message aligned to ADR-026 §Terminal-Wave Discriminator canonical text: 'BrokenSprintState: stories in non-terminal, non-pending states exist but no next-wave stories are pending/draft. Update sprint-state.yaml to reflect actual story states.' (prior text: 'No next-wave stories found in sprint-state.yaml but non-terminal stories exist — sprint-state.yaml needs updating.'). (O-P29-002 LOW intent) §Architecture Anchors: SS-05/SS-06 subsystem-split justification note added. BC-5.41.002 v1.6→v1.7. [Prior: 2026-06-14 (v1.6) — F2 pass-6 fix-burst: (E-18) ADR cite convention: v1.4 version token dropped per ADR-026 §BC Traceability Cite Convention (TD-VSDD-091 anti-volatile-pin); stable §Decision anchor adopted (cite-only change). [Prior: 2026-06-14 (v1.4) — F2 pass-4 fix-burst: (F-P4-003) ADR cite v1.3→v1.4 (cite-only). [Prior: 2026-06-14 (v1.3) — F2 pass-3 fix-burst: (O-P3-002) PC7 added: EPIC-COMPLETE operator surfacing — on EPIC-COMPLETE (final wave), wave-handoff announces completion to the operator via stdout with concrete message format before exiting 0. ADR cite v1.1→v1.3. [Prior: 2026-06-14 (v1.2) — F2 pass-2 fix-burst: (F-P2-004) PC3 EPIC-COMPLETE exception added (empty next_wave_stories AND all stories terminal → exit 0, HANDOFF epic_status:complete, no wave-state.yaml); BrokenSprintState hard error retained for empty AND any non-terminal story; EC-001 split into EC-001a (EPIC-COMPLETE) + EC-001b (BrokenSprintState); test vectors updated. [Prior: 2026-06-14 (v1.1) — F2 pass-1 fix-burst: (F-3) PC3 re-anchored: stories list derives from sprint-state.yaml `status: pending` OR `status: draft` entries ordered by dependency graph (not from phantom `wave:` story frontmatter field which does not exist). PC3 'no phantom' mandate explicit. Empty list is HARD ERROR per SOUL.md §4 — Postcondition 3 updated and EC-001 changed from 'valid' to hard block. (DI) TBD-DI replaced with DI-023. TBD-VP retained with justification per report.]"
+last_amended: "2026-06-15 (v1.8) — F-P32-006: §VP Anchors TBD-VP placeholder replaced with decided DEFERRED-VP disposition (F3, S-18.01 integration anchor); §Verification Properties TBD-VP row replaced with DEFERRED-VP row with explicit property description and integration(F3) proof method. BC-5.41.002 v1.7→v1.8. [Prior: 2026-06-15 (v1.7) — fix burst (product-owner): (F-P30-003 LOW) §Postconditions PC3 BrokenSprintState-path and §Edge Cases EC-001b: human-readable error message aligned to ADR-026 §Terminal-Wave Discriminator canonical text: 'BrokenSprintState: stories in non-terminal, non-pending states exist but no next-wave stories are pending/draft. Update sprint-state.yaml to reflect actual story states.' (prior text: 'No next-wave stories found in sprint-state.yaml but non-terminal stories exist — sprint-state.yaml needs updating.'). (O-P29-002 LOW intent) §Architecture Anchors: SS-05/SS-06 subsystem-split justification note added. BC-5.41.002 v1.6→v1.7. [Prior: 2026-06-14 (v1.6) — F2 pass-6 fix-burst: (E-18) ADR cite convention: v1.4 version token dropped per ADR-026 §BC Traceability Cite Convention (TD-VSDD-091 anti-volatile-pin); stable §Decision anchor adopted (cite-only change). [Prior: 2026-06-14 (v1.4) — F2 pass-4 fix-burst: (F-P4-003) ADR cite v1.3→v1.4 (cite-only). [Prior: 2026-06-14 (v1.3) — F2 pass-3 fix-burst: (O-P3-002) PC7 added: EPIC-COMPLETE operator surfacing — on EPIC-COMPLETE (final wave), wave-handoff announces completion to the operator via stdout with concrete message format before exiting 0. ADR cite v1.1→v1.3. [Prior: 2026-06-14 (v1.2) — F2 pass-2 fix-burst: (F-P2-004) PC3 EPIC-COMPLETE exception added (empty next_wave_stories AND all stories terminal → exit 0, HANDOFF epic_status:complete, no wave-state.yaml); BrokenSprintState hard error retained for empty AND any non-terminal story; EC-001 split into EC-001a (EPIC-COMPLETE) + EC-001b (BrokenSprintState); test vectors updated. [Prior: 2026-06-14 (v1.1) — F2 pass-1 fix-burst: (F-3) PC3 re-anchored: stories list derives from sprint-state.yaml `status: pending` OR `status: draft` entries ordered by dependency graph (not from phantom `wave:` story frontmatter field which does not exist). PC3 'no phantom' mandate explicit. Empty list is HARD ERROR per SOUL.md §4 — Postcondition 3 updated and EC-001 changed from 'valid' to hard block. (DI) TBD-DI replaced with DI-023. TBD-VP retained with justification per report.]"
 phase: F2
 inputs:
   - .factory/feature-delta/issue-173/F1-delta-analysis.md
@@ -19,6 +19,7 @@ capability: "CAP-032"
 lifecycle_status: draft
 introduced: v1.0-feature-context-durability-E18
 modified:
+  - "2026-06-15 (v1.8) — F-P32-006: §VP Anchors TBD-VP → DEFERRED-VP (F3, S-18.01); §Verification Properties row updated with decided property description + integration(F3) proof method."
   - "2026-06-15 (v1.7) — fix burst (product-owner): (F-P30-003) PC3 + EC-001b: BrokenSprintState human-readable error message aligned to ADR-026 §Terminal-Wave Discriminator canonical text. (O-P29-002) §Architecture Anchors: SS-05/SS-06 split justification note added."
   - "2026-06-14 (v1.6) — F2 pass-6 fix-burst: ADR cite convention: stable §Decision anchor (TD-VSDD-091); cite-only."
   - "2026-06-14 (v1.4) — F2 pass-4 fix-burst: (F-P4-003) ADR cite v1.3→v1.4 (cite-only)."
@@ -129,13 +130,13 @@ S-18.01 (HANDOFF.md schema + wave-handoff skill)
 
 ## VP Anchors
 
-TBD-VP — no dedicated VP assigned at F2 for wave-state.yaml production. Justification for deferral: this BC's core atomicity property (wave-state.yaml + HANDOFF.md in a single commit) is already covered by VP-081 (which verifies the wave-gate close preconditions holistically). A separate VP for wave-state.yaml production would overlap VP-081's integration scope. Story-writer and test-writer assign a standalone integration VP at F3 if the BC-5.41.002 tests require a distinct VP ID for traceability. Flagged to architect for VP allocation decision.
+VP allocation: DEFERRED to F3 (story S-18.01 implementation). Rationale: BC-5.41.002's testable properties (wave-state.yaml + HANDOFF.md atomicity, stories derived from sprint-state.yaml status:pending/draft entries ordered by dependency graph, BrokenSprintState hard error on non-terminal stories) require a live wave-handoff skill invocation with a real git repo fixture. This is an integration-only property; no unit-level pure function exists to verify it in isolation at F2. Holistic interim coverage: VP-081 covers the wave-gate close preconditions (BC-5.41.001 / BC-4.14.001) at the WASM gate level. A dedicated standalone VP for BC-5.41.002 will be assigned by test-writer at F3 when S-18.01 is elaborated and the wave-handoff skill test vehicle is built.
 
 ## Verification Properties
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| TBD-VP | wave-state.yaml is produced atomically with HANDOFF.md in a single commit; stories list derived from sprint-state.yaml `status:pending/draft` entries ordered by dependency graph (no phantom `wave:` field; no RAG); empty list → hard error (non-zero exit, no file written) | integration |
+| DEFERRED-VP (F3, S-18.01) | wave-state.yaml is produced atomically with HANDOFF.md in a single git commit; stories list derived from sprint-state.yaml status:pending/draft entries ordered by dependency graph (no phantom wave: field; no RAG); BrokenSprintState hard error (exit 1, no file written) when non-terminal stories present but no pending/draft entries; EPIC-COMPLETE exception: no wave-state.yaml written, exit 0, HANDOFF.md with epic_status:complete | integration (F3) |
 
 ## Traceability
 
@@ -154,6 +155,7 @@ TBD-VP — no dedicated VP assigned at F2 for wave-state.yaml production. Justif
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| v1.8 | 2026-06-15 | product-owner | (F-P32-006) §VP Anchors TBD-VP placeholder replaced with decided DEFERRED-VP disposition (F3, S-18.01 integration anchor); §Verification Properties TBD-VP row replaced with DEFERRED-VP row with explicit property description and integration(F3) proof method. |
 | v1.7 | 2026-06-15 | product-owner | (F-P30-003) PC3 BrokenSprintState-path + EC-001b + canonical test vector `broken-sprint-state`: human-readable error message aligned to ADR-026 §Terminal-Wave Discriminator canonical text. (O-P29-002) §Architecture Anchors: SS-05/SS-06 split justification note added. |
 | v1.6 | 2026-06-14 | product-owner | ADR cite convention: stable §Decision anchor (TD-VSDD-091); cite-only. |
 | v1.4 | 2026-06-14 | product-owner | ADR cite v1.3→v1.4 (cite-only). |

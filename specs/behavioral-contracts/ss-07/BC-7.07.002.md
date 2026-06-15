@@ -1,11 +1,11 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.8"
+version: "1.9"
 status: draft
 producer: product-owner
 timestamp: 2026-06-15T00:00:00Z
-last_amended: "2026-06-15 (v1.8) — F-P23-002: §Canonical Test Vectors (re-anchor-visible row): 'sha/wave/step' → 'sha/cycle/step'; §Capability Anchor Justification: 'wave/step/SHA' → 'cycle/step/SHA'. Phantom wave-token residue cleared; consistent with PC1 stdout template `context=<current_cycle>/<current_step> sha=...` (no wave field). [Prior: 2026-06-15 (v1.7) — pass-20 fix-burst: (F-P20-003) PC2 log schema: `wave_id` replaced with `current_cycle`; clarified that log schema derives from same STATE.md frontmatter source as PC1 stdout; no `wave_id` field exists because hook has no source for wave-ordinal data (internal PC consistency fix). [Prior: 2026-06-14 (v1.6) — F2 pass-6 fix-burst: (E-18) ADR cite convention: v1.4 version token dropped per ADR-026 §BC Traceability Cite Convention (TD-VSDD-091 anti-volatile-pin); stable §Decision anchor adopted (cite-only change). [Prior: 2026-06-14 (v1.4) — F2 pass-4 fix-burst: (F-P4-003) ADR cite v1.3→v1.4 (cite-only). [Prior: 2026-06-14 (v1.3) — F2 pass-3 fix-burst: ADR cite v1.1→v1.3. [Prior: 2026-06-14 (v1.2) — F2 pass-2 fix-burst: (F-P2-002/009) PC1 stdout template: `wave=<current_wave>` → `context=<current_cycle>/<current_step>` (no phantom current_wave: field; hook derives from STATE.md current_cycle: + current_step:). Inv 2: `current_wave`, `current_step`, `last_verified_develop_sha` → `current_cycle:`, `current_step:`, `last_verified_develop_sha`; explicit statement that current_wave: does not exist. EC-003: `current_wave field absent` → `current_cycle: or current_step: absent`; emit `context=UNKNOWN`. Test vector updated to new stdout format. [Prior: 2026-06-14 (v1.1) — F2 pass-1 fix-burst: (F-6) Best-effort status made explicit in §Description and §Invariants; NOT in CAP-032 continuity-guarantee chain. (F-13 POLICY 7) H1 title corrected: 'reads compaction summary' removed from H1 because PC7 makes it optional; H1 now accurately describes what postconditions specify. (DI) TBD-DI replaced with DI-024. TBD-VP retained with justification.]"
+last_amended: "2026-06-15 (v1.9) — F-P32-006: §VP Anchors TBD-VP placeholder replaced with decided DEFERRED-VP disposition (F3, S-18.05 integration anchor; postcompact-reanchor.sh not yet built); §Verification Properties TBD-VP row replaced with DEFERRED-VP row with explicit property description and unit-test/bats(F3) proof method. BC-7.07.002 v1.8→v1.9. [Prior: 2026-06-15 (v1.8) — F-P23-002: §Canonical Test Vectors (re-anchor-visible row): 'sha/wave/step' → 'sha/cycle/step'; §Capability Anchor Justification: 'wave/step/SHA' → 'cycle/step/SHA'. Phantom wave-token residue cleared; consistent with PC1 stdout template `context=<current_cycle>/<current_step> sha=...` (no wave field). [Prior: 2026-06-15 (v1.7) — pass-20 fix-burst: (F-P20-003) PC2 log schema: `wave_id` replaced with `current_cycle`; clarified that log schema derives from same STATE.md frontmatter source as PC1 stdout; no `wave_id` field exists because hook has no source for wave-ordinal data (internal PC consistency fix). [Prior: 2026-06-14 (v1.6) — F2 pass-6 fix-burst: (E-18) ADR cite convention: v1.4 version token dropped per ADR-026 §BC Traceability Cite Convention (TD-VSDD-091 anti-volatile-pin); stable §Decision anchor adopted (cite-only change). [Prior: 2026-06-14 (v1.4) — F2 pass-4 fix-burst: (F-P4-003) ADR cite v1.3→v1.4 (cite-only). [Prior: 2026-06-14 (v1.3) — F2 pass-3 fix-burst: ADR cite v1.1→v1.3. [Prior: 2026-06-14 (v1.2) — F2 pass-2 fix-burst: (F-P2-002/009) PC1 stdout template: `wave=<current_wave>` → `context=<current_cycle>/<current_step>` (no phantom current_wave: field; hook derives from STATE.md current_cycle: + current_step:). Inv 2: `current_wave`, `current_step`, `last_verified_develop_sha` → `current_cycle:`, `current_step:`, `last_verified_develop_sha`; explicit statement that current_wave: does not exist. EC-003: `current_wave field absent` → `current_cycle: or current_step: absent`; emit `context=UNKNOWN`. Test vector updated to new stdout format. [Prior: 2026-06-14 (v1.1) — F2 pass-1 fix-burst: (F-6) Best-effort status made explicit in §Description and §Invariants; NOT in CAP-032 continuity-guarantee chain. (F-13 POLICY 7) H1 title corrected: 'reads compaction summary' removed from H1 because PC7 makes it optional; H1 now accurately describes what postconditions specify. (DI) TBD-DI replaced with DI-024. TBD-VP retained with justification.]"
 phase: F2
 inputs:
   - .factory/feature-delta/issue-173/F1-delta-analysis.md
@@ -19,6 +19,7 @@ capability: "CAP-032"
 lifecycle_status: draft
 introduced: v1.0-feature-context-durability-E18
 modified:
+  - "2026-06-15 (v1.9) — F-P32-006: §VP Anchors TBD-VP → DEFERRED-VP (F3, S-18.05); §Verification Properties row updated with decided property description + unit-test/bats(F3) proof method."
   - "2026-06-15 (v1.8) — F-P23-002: §Canonical Test Vectors re-anchor-visible row: 'sha/wave/step' → 'sha/cycle/step'; §Capability Anchor Justification: 'wave/step/SHA' → 'cycle/step/SHA'. Phantom wave-token residue cleared."
   - "2026-06-15 (v1.7) — pass-20 fix-burst: (F-P20-003) PC2 log schema: wave_id → current_cycle; internal PC consistency fix."
   - "2026-06-14 (v1.6) — F2 pass-6 fix-burst: ADR cite convention: stable §Decision anchor (TD-VSDD-091); cite-only."
@@ -132,13 +133,13 @@ S-18.05 (postcompact-reanchor.sh advisory hook)
 
 ## VP Anchors
 
-TBD-VP — no dedicated VP assigned at F2. Justification for deferral: this hook is explicitly best-effort and not in the CAP-032 guarantee chain (DI-024). A VP for a best-effort advisory hook that carries no correctness guarantee is appropriate to defer — there is no blocking invariant that the VP would guard. A unit-test VP verifying the stdout format and log-write behavior would be appropriate at F3 to prevent silent regressions to the convenience re-anchor behavior. Story-writer assigns at F3. Flagged to architect for final VP allocation decision.
+VP allocation: DEFERRED to F3 (story S-18.05 implementation). Rationale: postcompact-reanchor.sh (S-18.05 deliverable) does not yet exist; a VP harness cannot be authored against an unbuilt script. At F3, when S-18.05 is elaborated and the script is built, test-writer MUST assign a dedicated VP-NNN covering: (a) stdout re-anchor block format correctness ('[PostCompact Re-anchor] context=<cycle>/<step> sha=<sha>'; values read from factory-artifacts STATE.md via git, not in-context — PC1); (b) log-write behavior (.factory/logs/postcompact-reanchor-YYYY-MM-DD.jsonl appended with correct fields — PC2); (c) no git commits/push to factory-artifacts on any path (Inv1); (d) exit 0 on all error paths: STATE.md unreachable, git absent, log unwritable, hook crash (PC5/EC-002/EC-004). This is a unit-test VP (bats) with no live-session dependency. A VP for this BC is NOT optional at F3 — the absence of a VP for postcompact-reanchor.sh would leave the silent-regression risk unguarded per DI-024's intent.
 
 ## Verification Properties
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| TBD-VP | postcompact-reanchor.sh emits re-anchor block to stdout from factory-artifacts STATE.md (git-sourced, not in-context); appends to .factory/logs/; does NOT commit or push to factory-artifacts; exits 0 on all paths including crash/factory-artifacts-unreachable | unit-test |
+| DEFERRED-VP (F3, S-18.05) | postcompact-reanchor.sh emits re-anchor block to stdout from factory-artifacts STATE.md (git-sourced, not in-context: current_cycle+current_step+last_verified_develop_sha); appends structured entry to .factory/logs/postcompact-reanchor-YYYY-MM-DD.jsonl; does NOT commit or push to factory-artifacts (Inv1); exits 0 on all paths including factory-artifacts unreachable, STATE.md absent, git absent, log-write failure, hook crash (PC5/EC-002/EC-004/EC-005) | unit-test/bats (F3) |
 
 ## Traceability
 
@@ -152,3 +153,17 @@ TBD-VP — no dedicated VP assigned at F2. Justification for deferral: this hook
 | Stories | S-18.05 |
 | Cycle | v1.0-feature-context-durability-E18 (F2) |
 | Feature | issue #173 / E-18 |
+
+## Changelog
+
+| Version | Date | Author | Change |
+|---------|------|--------|--------|
+| v1.9 | 2026-06-15 | product-owner | (F-P32-006) §VP Anchors TBD-VP placeholder replaced with decided DEFERRED-VP disposition (F3, S-18.05 integration anchor; postcompact-reanchor.sh not yet built); §Verification Properties TBD-VP row replaced with DEFERRED-VP row with explicit property description and unit-test/bats(F3) proof method; §Changelog section added. |
+| v1.8 | 2026-06-15 | product-owner | F-P23-002: §Canonical Test Vectors re-anchor-visible row: 'sha/wave/step' → 'sha/cycle/step'; §Capability Anchor Justification: 'wave/step/SHA' → 'cycle/step/SHA'. Phantom wave-token residue cleared. |
+| v1.7 | 2026-06-15 | product-owner | pass-20 fix-burst: (F-P20-003) PC2 log schema: wave_id → current_cycle; internal PC consistency fix. |
+| v1.6 | 2026-06-14 | product-owner | ADR cite convention: stable §Decision anchor (TD-VSDD-091); cite-only. |
+| v1.4 | 2026-06-14 | product-owner | ADR cite v1.3→v1.4 (cite-only). |
+| v1.3 | 2026-06-14 | product-owner | ADR cite v1.1→v1.3. |
+| v1.2 | 2026-06-14 | product-owner | PC1 stdout template + Inv 2 + EC-003 + test vector: phantom current_wave: removed; current_cycle+current_step from STATE.md frontmatter used instead. |
+| v1.1 | 2026-06-14 | product-owner | H1 title corrected (removed 'reads compaction summary' per F-13 POLICY 7 H1↔postcondition parity); §Description + §Invariants updated to state best-effort explicitly (F-6); NOT in CAP-032 guarantee chain; TBD-DI replaced with DI-024; TBD-VP retained with justification; ADR cite v1.0→v1.1. |
+| v1.0 | 2026-06-14 | product-owner | Initial creation (E-18 context-durability feature). |

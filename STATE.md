@@ -1,18 +1,18 @@
 ---
 document_type: pipeline-state
 level: ops
-version: "3.44"
+version: "3.45"
 status: draft
 producer: state-manager
-timestamp: 2026-06-15T22:00:00Z
-phase: D-594-F2-E18-PASS-31-NOT-CLEAN-FULL-BACKLOG-CLEARANCE-2026-06-15
-last_amended: 2026-06-15 (v3.44) — D-594 F2 E-18 ADV PASS-31 NOT-CLEAN FULL BACKLOG CLEARANCE: streak RESET 2/3→0/3. Strategy correction: cleared ENTIRE deferred backlog (2 MEDIUM + 7 deferred LOW/obs) to restart on zero-known-findings package; deferral proven unsafe (F-P31-001 = deferred O-P29-001/F-P30-001 re-escalated MEDIUM). 4-index: BC-INDEX v2.93 / VP-INDEX v2.26 / STORY-INDEX v4.01 / ARCH-INDEX v2.46. Lesson L-F2-stale-term-deferral-unsafe codified. D-chain cite D-593 per D-419(b); parent-commit 9361bcaf (factory-artifacts HEAD at burst start). [Prior: 2026-06-15 (v3.43) — D-593 F2 E-18 ADV PASS-30 CLEAN — STREAK 2/3. See decision-log.md SoT.]
+timestamp: 2026-06-15T23:00:00Z
+phase: D-595-F2-E18-PASS-32-NOT-CLEAN-FIX-BURST-2026-06-15
+last_amended: 2026-06-15 (v3.45) — D-595 F2 E-18 ADV PASS-32 NOT-CLEAN FIX BURST: 0 BLOCKER, 0 MAJOR, 2 load-bearing MEDIUM (genuinely novel — not stale-term), 4 LOW. ALL fixed in-scope (no-defer). 4-index: BC-INDEX v2.94 / VP-INDEX v2.27 / STORY-INDEX v4.01 / ARCH-INDEX v2.46. D-chain cite D-594 per D-419(b); parent-commit 5354409e (factory-artifacts HEAD at burst start). [Prior: 2026-06-15 (v3.44) — D-594 F2 E-18 ADV PASS-31 NOT-CLEAN FULL BACKLOG CLEARANCE. See decision-log.md SoT.]
 inputs: []
 input-hash: "[live-state]"
 traces_to: prd.md
 project: vsdd-factory
 mode: brownfield
-"D-594 F2 E-18 ADV PASS-31 NOT-CLEAN FULL BACKLOG CLEARANCE 2026-06-15 — Fresh-context adversary pass-31 returned NOT-CLEAN: F-P31-001 MED (VP-085 Property Invariant item 3 'append-only side-channel log'→'append-only log'; 'side-channel' adjective = stale term; normative present-tense residue; recurred O-P29-001/F-P30-001 class — deferred LOW re-escalated MEDIUM; streak RESET 2/3→0/3). F-P31-002 MED (BC-7.07.001 PC8 failure narrative 'no precompact-flush-log SHA file update' → stale SHA-file term). Strategy correction: cleared ENTIRE deferred backlog (2 MEDIUM F-P31-001+F-P31-002 + 7 deferred LOW/obs F-P30-001/002/003 + O-P29-002/003 + F-P27-001/002) to restart on ZERO-KNOWN-FINDINGS package for adversary pass-32. 4-index: BC-INDEX v2.93 / VP-INDEX v2.26 / STORY-INDEX v4.01 / ARCH-INDEX v2.46; L2-INDEX v1.0.9. Lesson L-F2-stale-term-deferral-unsafe codified. STATE.md compacted per D-430(a). Trajectory →P29 CLEAN(1/3)→P30 CLEAN(2/3)→P31 NOT-CLEAN(2med;RESET). NEXT: adversary pass-32 (fresh-context; package now ZERO-KNOWN-FINDINGS — all stale-term classes exhaustively closed). D-chain cite D-593 per D-419(b); parent-commit 9361bcaf per D-419(b)."
+"D-595 F2 E-18 ADV PASS-32 NOT-CLEAN FIX BURST 2026-06-15 — Fresh-context adversary pass-32 NOT-CLEAN: 0 BLOCKER, 0 MAJOR, 2 load-bearing MEDIUM (genuinely NOVEL — not stale-term), 4 LOW. ALL fixed in-scope (no-defer strategy). Fixed: (F-P32-001 MED, load-bearing) BC-4.14.001 v1.13 — PC7 field-validation contract rewritten to distinguish SCALAR fields (empty→malformed per EC-004) from LIST-typed fields (empty list→PRESENT+VALID; next_wave_stories:[] = EPIC-COMPLETE signal per PC2a, NOT malformed; open_decisions/pending_fixes/process_gaps may be empty per BC-5.41.001 PC2) — closes the PC7×PC2a contradiction. (F-P32-002 MED) VP-083 v1.9 — discriminating fixture proves EPIC-COMPLETE branch (Inv3 step 2) fires before wave-1 no-op (step 3); closes test-tautology risk. (F-P32-003 LOW) BC-5.41.001 v1.16 v1.5-skip annotation. (F-P32-004 LOW) VP-086 v1.4 SS-04 reworded (precompact-flush.sh = SHELL hook via legacy-bash-adapter.wasm). (F-P32-005 LOW) BC-7.07.001 v1.10 Inv7 log-pruning deferred to S-18.04 AC-N. (F-P32-006 LOW process-gap) TBD-VP → DECIDED documented-deferral dispositions (BC-5.41.002 v1.8 F3/S-18.01; BC-6.24.001 v1.7 F3/S-18.03; BC-7.07.002 v1.9 F3/S-18.05 MANDATORY per DI-024; BC-6.24.001+BC-7.07.002 gained retroactive §Changelog). 4-index: BC-INDEX v2.94 / VP-INDEX v2.27 / STORY-INDEX v4.01 / ARCH-INDEX v2.46. 3-CLEAN streak remains 0/3 (HUMAN-DIRECTED strict 3-CLEAN). Trajectory →P30 CLEAN(2/3)→P31 NOT-CLEAN(RESET)→P32 NOT-CLEAN(2med/4low;novel PC7 contract gap). NEXT: adversary pass-33 (fresh-context; zero-known-findings). D-chain cite D-594 per D-419(b); parent-commit 5354409e per D-419(b)."
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -82,7 +82,13 @@ dtu_services: []
   Drift Items: 7 deferred-LOW/obs rows CLEARED (all fixed: F-P27-001, F-P27-002, O-P29-001/002/003, F-P30-001/002/003); stale-term-deferral-unsafe codification row added.
   All content preserved via: git show 9361bcaf:.factory/STATE.md (pre-compaction D-593 state).
 
-  D-594-F2-E18-ADV-PASS-31-NOT-CLEAN-FULL-BACKLOG-CLEARANCE-2026-06-15 ~395 lines (wc-l; D-430(a): 1 Phase Progress row D-593 + 1 Decisions row D-593 + 1 §4 entry D-593 archived; 7 Drift Items CLEARED + 1 new row added; +1 Phase Progress row D-594 + D-594 Decisions Log row + §3 D-594 carry + §4 D-594 entry + §1/§5/§6/§8/§9/§10/§11/§12/checkpoint full refresh; D-446(c) dual-margin: 500-395=105 from hard cap; D-446(c) dual-margin form).
+  D-430(a) compaction (D-595 burst 2026-06-15):
+  Phase Progress D-594 (1 row) collapsed to range-reference per D-430(a).
+  Decisions Log D-594 (1 row) archived to range-reference (decision-log.md SoT) per D-430(a).
+  §4 Tier-A Completed Log D-594 (1 entry) archived; kept D-595.
+  All content preserved via: git show 8ae759dd:.factory/STATE.md (pre-compaction D-594 state).
+
+  D-595-F2-E18-ADV-PASS-32-NOT-CLEAN-FIX-BURST-2026-06-15 ~446 lines (wc-l; D-430(a): 1 Phase Progress row D-594 + 1 Decisions row D-594 + 1 §4 entry D-594 archived; +2 Phase Progress rows D-594-archived+D-595 + D-595 Decisions Log rows + §3 D-595 carry + §4 D-595+D-594-archived entries + §1/§5/§8/§9/§10/§11/§12/checkpoint full refresh + 3 new Drift Items rows; D-446(c) dual-margin: 500-446=54 from hard cap; D-446(c) dual-margin form).
 -->
 
 # Pipeline State: vsdd-factory
@@ -98,8 +104,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-06-15 — D-594 F2 E-18 ADV PASS-31 NOT-CLEAN FULL BACKLOG CLEARANCE: streak RESET 2/3→0/3. Strategy correction: cleared ENTIRE deferred backlog (2 MED + 7 LOW/obs). 4-index: BC-INDEX v2.93 / VP-INDEX v2.26 / STORY-INDEX v4.01 / ARCH-INDEX v2.46. Package now zero-known-findings. NEXT: adversary pass-32. |
-| **Current Phase** | D-594 F2 E-18 ADV PASS-31 NOT-CLEAN 2026-06-15 — streak RESET 2/3→0/3 (F-P31-001 MED deferred LOW re-escalated + F-P31-002 MED). FULL BACKLOG CLEARANCE: all 9 deferred items fixed. 4-index: BC v2.93/VP v2.26/STORY v4.01/ARCH v2.46. NEXT: adversary pass-32 (fresh-context; zero-known-findings package). |
+| **Last Updated** | 2026-06-15 — D-595 F2 E-18 ADV PASS-32 NOT-CLEAN FIX BURST: 2 MED (novel PC7 contract gap + EPIC-COMPLETE ordering proof) + 4 LOW. ALL fixed in-scope. 4-index: BC-INDEX v2.94 / VP-INDEX v2.27 / STORY-INDEX v4.01 / ARCH-INDEX v2.46. Streak 0/3. NEXT: adversary pass-33 (zero-known-findings). |
+| **Current Phase** | D-595 F2 E-18 ADV PASS-32 NOT-CLEAN 2026-06-15 — 2 MED (F-P32-001 PC7×PC2a contradiction fixed BC-4.14.001 v1.13; F-P32-002 EPIC-COMPLETE ordering proof VP-083 v1.9) + 4 LOW fixed. Streak 0/3. 4-index: BC v2.94/VP v2.27/STORY v4.01/ARCH v2.46. NEXT: adversary pass-33 (fresh-context; zero-known-findings). |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Phase Progress
@@ -123,7 +129,8 @@ dtu_services: []
 | **D-584..D-588 F2 E-18 ADV PASS-21..25 FIX BURSTS 2026-06-15** | **ARCHIVED 2026-06-15 per D-430(a) D-591** | 5 rows archived; passes 21-25: P21 NOT-CLEAN(2med/1low); P22 CLEAN(1/3 streak); P23 CLEAN(2/3 streak); P24 NOT-CLEAN(RESET 2/3→0/3 comprehensive cleanup ALL 9 findings); P25 NOT-CLEAN(2med/2low). 4-index at D-588: BC v2.90/VP v2.25/STORY v4.01/ARCH v2.44. Full rows: `git show 5f55628b:.factory/STATE.md` lines 97-103. |
 | **D-589..D-592 F2 E-18 ADV PASS-26..29 + STALE-TERM CLASS FLUSH 2026-06-15** | **ARCHIVED 2026-06-15 per D-430(a) D-593** | 4 rows archived; P26 NOT-CLEAN(1med/3obs, BC-7.07.001 v1.8 title-cite-parity class CLOSED); P27 CLEAN(1/3); P28 NOT-CLEAN(RESET, D-591 stale-term class flush BC-5.41.003 v1.7+ADR-026 v1.17); P29 CLEAN(1/3). 4-index at D-592: BC v2.92/VP v2.25/STORY v4.01/ARCH v2.45 (UNCHANGED). Full rows: `git show 3a911cb7:.factory/STATE.md` lines 107-110. |
 | **D-593 F2 E-18 ADV PASS-30 CLEAN — STREAK 2/3 2026-06-15** | **ARCHIVED 2026-06-15 per D-430(a) D-594** | Pass-30 CLEAN: 0B/0M/0 load-bearing MED/0 mis-anchor. Adversary declared 'deep asymptotic convergence.' 3 LOWs deferred (F-P30-001/002/003); 8 deferred LOWs total. 3-CLEAN streak 1/3→2/3. 4-index UNCHANGED: BC v2.92/VP v2.25/STORY v4.01/ARCH v2.45. Full rows: `git show 9361bcaf:.factory/STATE.md` Decisions Log. |
-| **D-594 F2 E-18 ADV PASS-31 NOT-CLEAN FULL BACKLOG CLEARANCE 2026-06-15** | **COMPLETE** | Pass-31 NOT-CLEAN: F-P31-001 MED (VP-085 'side-channel' adjective; deferred LOW re-escalated MEDIUM; streak RESET 2/3→0/3); F-P31-002 MED (BC-7.07.001 'SHA file' stale term). Strategy correction: FULL BACKLOG CLEARANCE — all 9 deferred items fixed (2 MED + 7 LOW/obs). 4-index: BC-INDEX v2.93 / VP-INDEX v2.26 / STORY-INDEX v4.01 / ARCH-INDEX v2.46. Lesson L-F2-stale-term-deferral-unsafe codified. Trajectory →P29 CLEAN(1/3)→P30 CLEAN(2/3)→P31 NOT-CLEAN(2med;RESET). NEXT: adversary pass-32 (zero-known-findings package). |
+| **D-594 F2 E-18 ADV PASS-31 NOT-CLEAN FULL BACKLOG CLEARANCE 2026-06-15** | **ARCHIVED 2026-06-15 per D-430(a) D-595** | Pass-31 NOT-CLEAN: F-P31-001 MED + F-P31-002 MED; streak RESET 2/3→0/3; FULL BACKLOG CLEARANCE (all 9 deferred items fixed); 4-index BC v2.93/VP v2.26. Full rows: decision-log.md SoT. |
+| **D-595 F2 E-18 ADV PASS-32 NOT-CLEAN FIX BURST 2026-06-15** | **COMPLETE** | Pass-32 NOT-CLEAN: F-P32-001 MED (BC-4.14.001 v1.13 PC7×PC2a contract gap — SCALAR vs LIST field discrimination); F-P32-002 MED (VP-083 v1.9 discriminating fixture; EPIC-COMPLETE ordering proof); F-P32-003/004/005/006 LOW (BC-5.41.001 v1.16; VP-086 v1.4 shell-hook-via-adapter; BC-7.07.001 v1.10 Inv7 pruning; 3 BC TBD-VP→DEFERRED-VP-F3). ALL fixed in-scope. 4-index: BC-INDEX v2.94 / VP-INDEX v2.27 / STORY-INDEX v4.01 / ARCH-INDEX v2.46. Streak 0/3. Trajectory →P30 CLEAN(2/3)→P31 NOT-CLEAN(RESET)→P32 NOT-CLEAN(2med/4low). NEXT: adversary pass-33 (fresh-context; zero-known-findings). |
 
 ## Current Phase Steps
 
@@ -161,7 +168,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | caf06c68 | rc.21 bot binary bundle commit 2026-06-13; prior: 2a191314 (rc.20) |
 | develop | 7e99f6ef | PR #186 fix a431ff47 + release.yml sync back-merge 2026-06-13; prior: 3b2a378c (D-556) |
-| factory-artifacts | 8ae759dd | D-594 F2 pass-31 NOT-CLEAN FULL BACKLOG CLEARANCE (streak RESET 0/3; 4-index v2.93/v2.26/v4.01/v2.46); prior: 9361bcaf D-593 pass-30 CLEAN+compaction |
+| factory-artifacts | PENDING-SHA-PATCH | D-595 F2 pass-32 NOT-CLEAN FIX BURST (streak 0/3; 4-index v2.94/v2.27/v4.01/v2.46); prior: 8ae759dd D-594 pass-31 NOT-CLEAN FULL BACKLOG CLEARANCE |
 | v1.0.0-rc.21 (tag) | 03054524 | SHIPPED 2026-06-13; FULLY IN OPERATOR MARKETPLACE (marketplace PR #13 MERGED); annotated tag object |
 | v1.0.0-rc.20 (tag) | e9e38286 | SHIPPED 2026-06-01; marketplace PR #12 squash-merged 862e660d |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28 |
@@ -171,7 +178,7 @@ dtu_services: []
 | Cycle | Type | Status | Notes |
 |-------|------|--------|-------|
 | F-block-ai-attribution-message-file-arm | feature | F3 COMPLETE — F4 READY | F1+F2+F3 done 2026-05-12; 2 stories ready; E-16 under SS-07/SS-04; milestone v1.0.0-rc.17 |
-| v1.0-brownfield-backfill | brownfield | **D-594 2026-06-15; F2 E-18 ADV PASS-31 NOT-CLEAN — STREAK RESET 0/3; develop 7e99f6ef; main caf06c68** | rc.21 100% COMPLETE D-560; D-594 PASS-31 NOT-CLEAN (F-P31-001 MED + F-P31-002 MED; streak RESET 2/3→0/3; FULL BACKLOG CLEARANCE: all 9 deferred items fixed; 4-index BC-INDEX v2.93 / VP-INDEX v2.26 / STORY-INDEX v4.01 / ARCH-INDEX v2.46); trajectory →P29 CLEAN(1/3)→P30 CLEAN(2/3)→P31 NOT-CLEAN(2med;RESET); 3-CLEAN streak **0/3**; package NOW ZERO-KNOWN-FINDINGS; **Next: adversary pass-32 (fresh-context; zero-known-findings package; all stale-term classes exhaustively closed).** |
+| v1.0-brownfield-backfill | brownfield | **D-595 2026-06-15; F2 E-18 ADV PASS-32 NOT-CLEAN — STREAK 0/3; develop 7e99f6ef; main caf06c68** | rc.21 100% COMPLETE D-560; D-595 PASS-32 NOT-CLEAN (F-P32-001 MED BC-4.14.001 v1.13 PC7×PC2a; F-P32-002 MED VP-083 v1.9 EPIC-COMPLETE ordering proof; 4 LOW all fixed; 4-index BC-INDEX v2.94 / VP-INDEX v2.27 / STORY-INDEX v4.01 / ARCH-INDEX v2.46); trajectory →P30 CLEAN(2/3)→P31 NOT-CLEAN(RESET)→P32 NOT-CLEAN(2med/4low;novel PC7 contract gap); 3-CLEAN streak **0/3**; package zero-known-findings; **Next: adversary pass-33 (fresh-context; zero-known-findings package).** |
 | v1.0-feature-engine-discipline-pass-1 | feature | **PAUSED** | F5 pass-75 adversary complete D-510 2026-05-27; META-LEVEL-30 CANDIDATE-CONFIRMED; trajectory →9→9→9→11. Full-cycle trajectory (75 values ending): →9→9→9→9→11. |
 | v1.0-feature-plugin-async-semantics-pass-1 | feature | CLOSED | All PRs merged; rc.14 shipped |
 
@@ -185,7 +192,8 @@ dtu_services: []
 
 | ID | Decision | Phase | Date |
 |----|----------|-------|------|
-| D-594 | F2 E-18 ADV PASS-31 NOT-CLEAN FULL BACKLOG CLEARANCE 2026-06-15 — Pass-31 NOT-CLEAN: F-P31-001 MED (VP-085 Property Invariant item 3 'append-only side-channel log'→'append-only log'; 'side-channel' adjective stale term; normative present-tense residue; deferred O-P29-001/F-P30-001 class re-escalated MEDIUM; streak RESET 2/3→0/3); F-P31-002 MED (BC-7.07.001 PC8 failure-path 'no precompact-flush-log SHA file update' → stale SHA-file term; superseded point-file design; BC-7.07.001 v1.8→v1.9). Strategy correction: FULL BACKLOG CLEARANCE — cleared ENTIRE deferred backlog (2 MEDIUM + 7 deferred LOW/obs: F-P31-001+F-P31-002+F-P30-001/002/003+O-P29-002/003+F-P27-001/002) to restart on ZERO-KNOWN-FINDINGS package; deferral proven unsafe (deferred LOW re-escalated MEDIUM). 4-index: BC-INDEX v2.93 / VP-INDEX v2.26 / STORY-INDEX v4.01 / ARCH-INDEX v2.46; L2-INDEX v1.0.9 UNCHANGED. Lesson L-F2-stale-term-deferral-unsafe codified [process-gap]. STATE.md compacted per D-430(a). Trajectory →P29 CLEAN(1/3)→P30 CLEAN(2/3)→P31 NOT-CLEAN(2med;RESET). NEXT: adversary pass-32 (fresh-context; package now ZERO-KNOWN-FINDINGS: all stale-term classes exhaustively closed). D-chain cite D-593 per D-419(b); parent-commit 9361bcaf per D-419(b). | feature-mode-f2-e18-adv-pass-31-not-clean-full-backlog-clearance | 2026-06-15 |
+| D-595 | F2 E-18 ADV PASS-32 NOT-CLEAN FIX BURST 2026-06-15 — Pass-32 NOT-CLEAN: F-P32-001 MED load-bearing (BC-4.14.001 v1.13 PC7 field-validation contract rewritten — SCALAR fields empty→malformed per EC-004; LIST-typed fields next_wave_stories/open_decisions/pending_fixes/process_gaps empty→PRESENT+VALID; next_wave_stories:[] = EPIC-COMPLETE signal per PC2a NOT malformed; PC7×PC2a contradiction closed); F-P32-002 MED (VP-083 v1.9 discriminating fixture wave_1_epic_complete_blocks_malformed_base_field — proves EPIC-COMPLETE branch fires before wave-1 no-op; test-tautology risk closed); F-P32-003 LOW (BC-5.41.001 v1.16 v1.5-skip annotation); F-P32-004 LOW (VP-086 v1.4 SS-04 reworded: precompact-flush.sh = SHELL hook via legacy-bash-adapter.wasm not native WASM); F-P32-005 LOW (BC-7.07.001 v1.10 Inv7 log-pruning deferred to S-18.04 AC-N per ADR §Crash-Consistency item 4); F-P32-006 LOW process-gap (3 BC TBD-VPs → DECIDED DEFERRED-VP-F3: BC-5.41.002 v1.8 S-18.01; BC-6.24.001 v1.7 S-18.03; BC-7.07.002 v1.9 S-18.05 MANDATORY per DI-024; BC-6.24.001+BC-7.07.002 gained retroactive §Changelog sections). ALL fixed in-scope (no-defer). 4-index: BC-INDEX v2.94 / VP-INDEX v2.27 / STORY-INDEX v4.01 / ARCH-INDEX v2.46. 3-CLEAN streak 0/3. Trajectory →P30 CLEAN(2/3)→P31 NOT-CLEAN(RESET)→P32 NOT-CLEAN(2med/4low;novel PC7 contract gap). NEXT: adversary pass-33 (fresh-context; zero-known-findings). D-chain cite D-594 per D-419(b); parent-commit 5354409e per D-419(b). | feature-mode-f2-e18-adv-pass-32-not-clean-fix-burst | 2026-06-15 |
+| D-594 archived | **ARCHIVED 2026-06-15 per D-430(a) D-595** | D-594 F2 E-18 ADV PASS-31 NOT-CLEAN FULL BACKLOG CLEARANCE: F-P31-001 MED + F-P31-002 MED; streak RESET 2/3→0/3; 9 deferred items fixed; 4-index BC v2.93/VP v2.26. Full rows: `git show 8ae759dd:.factory/STATE.md` Decisions Log. |
 | D-589..D-593 archived | **ARCHIVED 2026-06-15 per D-430(a) D-594** | D-589 pass-26 fix + title-cite-parity-gate upgrade; D-590 pass-27 CLEAN(1/3); D-591 pass-28 NOT-CLEAN + stale-term class flush; D-592 pass-29 CLEAN(1/3); D-593 pass-30 CLEAN(2/3)+compaction. Full rows: `git show 9361bcaf:.factory/STATE.md` Decisions Log. |
 | D-582..D-588 archived | **ARCHIVED 2026-06-15 per D-430(a) D-591** | D-582 pass-19 fix; D-583 pass-20 fix; D-584 pass-21 fix; D-585 pass-22 CLEAN(1/3); D-586 pass-23 CLEAN(2/3)+compaction; D-587 pass-24 NOT-CLEAN(RESET) comprehensive cleanup; D-588 pass-25 fix. Full rows: `git show 5f55628b:.factory/STATE.md` Decisions Log. |
 | D-578..D-581 archived | **ARCHIVED 2026-06-15 per D-430(a) D-586** | D-578 F2 adv-pass-15 fix; D-579 F2 adv-pass-16 fix; D-580 F2 adv-pass-17 fix; D-581 F2 adv-pass-18 fix + compaction. Full rows: decision-log.md SoT. |
@@ -238,6 +246,8 @@ dtu_services: []
 | **F-P27-001 (LOW) ARCH-INDEX ADR-026 changelog §Decision-9-order** | **FIXED D-594** — ARCH-INDEX v2.45→v2.46; ADR-026 v1.16 narrative corrected to stable reference 'see ADR-026 §Decision 9 canonical 5-step order' (non-load-bearing; no behavioral change). |
 | **F-P27-002 (LOW) BC-4.14.001 EC-015/016 undeclared 4th column** | **FIXED D-594** — BC-4.14.001 v1.11→v1.12; EC-015/EC-016 4th column folded into 3-col layout (cosmetic; content unchanged). |
 | **O-P29-001/O-P29-002/O-P29-003 + F-P30-001/F-P30-002/F-P30-003 (LOW deferred)** | **ALL FIXED D-594** — F-P30-001 = O-P29-001 class: VP-085 v1.7 + ADR-026 v1.18 stale 'side-channel' adjective removed; F-P30-002 = O-P29-002: BC-5.41.001 v1.15 PC5 non-null-when-log-absent VALID clarification + SS-05/06 split note; F-P30-003 = O-P29-002: BC-5.41.002 v1.7 BrokenSprintState message aligned to ADR; O-P29-003 = VP-086 v1.3 SS-04 justification strengthened. Package zero-known-findings. |
+| **F-P32-001..F-P32-006 (ALL FIXED D-595)** | **ALL FIXED D-595** — F-P32-001 MED: BC-4.14.001 v1.13 PC7 SCALAR/LIST discrimination fixed. F-P32-002 MED: VP-083 v1.9 discriminating fixture (EPIC-COMPLETE ordering proof). F-P32-003 LOW: BC-5.41.001 v1.16 v1.5-skip annotation. F-P32-004 LOW: VP-086 v1.4 SS-04 shell-hook-via-adapter reword. F-P32-005 LOW: BC-7.07.001 v1.10 Inv7 log-pruning note. F-P32-006 LOW: 3 BC TBD-VPs → DECIDED DEFERRED-VP-F3 (BC-5.41.002 S-18.01; BC-6.24.001 S-18.03; BC-7.07.002 S-18.05 MANDATORY per DI-024). Package zero-known-findings. |
+| **[forward-track] F3 VP obligations (3 TBD-VPs decided as DEFERRED-VP-F3)** | FORWARD-TRACKED — BC-5.41.002 VP: S-18.01 integration anchor; BC-6.24.001 VP: S-18.03 integration anchor; BC-7.07.002 VP: S-18.05 MANDATORY per DI-024 (postcompact-reanchor.sh built at S-18.05). BC-7.07.001 Inv7 log-pruning: S-18.04 AC-N. Anchors: E-18 F3 story decomposition. |
 
 ## Historical Content
 
@@ -245,43 +255,43 @@ dtu_services: []
 - `cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` | `session-checkpoints.md` | `lessons.md`
 - `cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md` (adversary reviews at `S-12.03/`, `S-12.04/`, `S-12.05/` subdirs)
 
-## Session Resume Checkpoint (2026-06-15 — D-594 F2 E-18 ADV PASS-31 NOT-CLEAN FULL BACKLOG CLEARANCE; 4-index: BC-INDEX v2.93/VP-INDEX v2.26/STORY-INDEX v4.01/ARCH-INDEX v2.46; next: adversary pass-32 → fresh-context; package ZERO-KNOWN-FINDINGS; STRICT 3-CLEAN human-directed)
+## Session Resume Checkpoint (2026-06-15 — D-595 F2 E-18 ADV PASS-32 NOT-CLEAN FIX BURST; 4-index: BC-INDEX v2.94/VP-INDEX v2.27/STORY-INDEX v4.01/ARCH-INDEX v2.46; next: adversary pass-33 → fresh-context; package ZERO-KNOWN-FINDINGS; STRICT 3-CLEAN human-directed; streak 0/3)
 
 > **SELF-SUFFICIENT RESUME CONTEXT FOR ZERO-CONTEXT NEW SESSION OR NEW MACHINE**
 > Read this section alone to resume. Assumes ZERO prior context. All decisions, directives, and anchors stated explicitly.
 
 ### §1. Where We Are
 
-**E-18 CAP-032 context-durability (GitHub issue #173) — Feature Mode, Phase F2 (spec evolution) adversarial 3-CLEAN convergence cascade (BC-5.39.001). D-594 2026-06-15.**
+**E-18 CAP-032 context-durability (GitHub issue #173) — Feature Mode, Phase F2 (spec evolution) adversarial 3-CLEAN convergence cascade (BC-5.39.001). D-595 2026-06-15.**
 
-F1-gate APPROVED. F2 spec evolution COMPLETE (D-561). F2 adversarial cascade passes 1-31 COMPLETE (D-562..D-594). Consistency-validator sweep D-575 COMPLETE (CLEAN). Pass-22 CLEAN (1/3 streak); pass-23 CLEAN (2/3 streak); pass-24 NOT-CLEAN (streak RESET; comprehensive cleanup D-587); passes 25-26 NOT-CLEAN; pass-27 CLEAN (1/3 D-590); pass-28 NOT-CLEAN (RESET; D-591 stale-term class flush); pass-29 CLEAN (1/3 D-592); pass-30 CLEAN (2/3 D-593); pass-31 NOT-CLEAN (RESET 2/3→0/3; D-594 FULL BACKLOG CLEARANCE). STATE.md compacted at D-581+D-586+D-591+D-593+D-594 per D-430(a).
+F1-gate APPROVED. F2 spec evolution COMPLETE (D-561). F2 adversarial cascade passes 1-32 COMPLETE (D-562..D-595). Consistency-validator sweep D-575 COMPLETE (CLEAN). Pass-22 CLEAN (1/3); pass-23 CLEAN (2/3); pass-24 NOT-CLEAN (streak RESET; D-587); passes 25-26 NOT-CLEAN; pass-27 CLEAN (1/3 D-590); pass-28 NOT-CLEAN (RESET D-591); pass-29 CLEAN (1/3 D-592); pass-30 CLEAN (2/3 D-593); pass-31 NOT-CLEAN (RESET 2/3→0/3; D-594 FULL BACKLOG CLEARANCE); pass-32 NOT-CLEAN (streak 0/3; D-595 FIX BURST). STATE.md compacted at D-581+D-586+D-591+D-593+D-594 per D-430(a).
 
-**D-594 pass-31 NOT-CLEAN FULL BACKLOG CLEARANCE summary:**
-- Pass-31 NOT-CLEAN: F-P31-001 MED (VP-085 Property Invariant item 3 'append-only side-channel log'→'append-only log'; 'side-channel' adjective stale term; deferred O-P29-001/F-P30-001 class re-escalated MEDIUM; streak RESET 2/3→0/3). F-P31-002 MED (BC-7.07.001 PC8 'no precompact-flush-log SHA file update' stale SHA-file term; BC-7.07.001 v1.8→v1.9).
-- **Strategy correction: FULL BACKLOG CLEARANCE.** Cleared ENTIRE deferred backlog (2 MED + 7 deferred LOW/obs) to restart on zero-known-findings. Deferral proven unsafe: deferred LOW re-escalated MEDIUM, reset streak.
-- 4-index BUMPED: BC-INDEX v2.93 / VP-INDEX v2.26 / STORY-INDEX v4.01 (UNCHANGED) / ARCH-INDEX v2.46. L2-INDEX v1.0.9 UNCHANGED.
-- Lesson L-F2-stale-term-deferral-unsafe codified [process-gap]: stale terms in normative present-tense prose MUST be fixed in-scope; sweeps must be exhaustive; deferral as LOW is convergence-risk.
-- STATE.md compacted per D-430(a): 1 Phase Progress row D-593 + 1 Decisions row D-593 + 1 §4 entry D-593 archived; 7 Drift Items cleared; pre-compaction: git show 9361bcaf.
+**D-595 pass-32 NOT-CLEAN FIX BURST summary:**
+- Pass-32 NOT-CLEAN: F-P32-001 MED load-bearing (BC-4.14.001 v1.13 PC7×PC2a contradiction — SCALAR vs LIST field discrimination); F-P32-002 MED (VP-083 v1.9 discriminating fixture; EPIC-COMPLETE ordering proof); F-P32-003 LOW (BC-5.41.001 v1.16 v1.5-skip annotation); F-P32-004 LOW (VP-086 v1.4 SS-04 reworded: precompact-flush.sh = SHELL hook via legacy-bash-adapter.wasm); F-P32-005 LOW (BC-7.07.001 v1.10 Inv7 log-pruning deferred to S-18.04 AC-N); F-P32-006 LOW process-gap (3 BC TBD-VP → DECIDED DEFERRED-VP-F3: BC-5.41.002 v1.8 S-18.01; BC-6.24.001 v1.7 S-18.03; BC-7.07.002 v1.9 S-18.05 MANDATORY per DI-024).
+- ALL fixed in-scope (no-defer). Package zero-known-findings after this burst.
+- 4-index BUMPED: BC-INDEX v2.94 / VP-INDEX v2.27 / STORY-INDEX v4.01 (UNCHANGED) / ARCH-INDEX v2.46 (UNCHANGED). L2-INDEX v1.0.9 UNCHANGED.
+- D-595 D-430(a) compaction note: D-594 Phase Progress row archived → range-ref; D-594 Decisions Log row archived; D-594 §4 entry archived.
 
-**3-CLEAN streak: 0/3** (package now zero-known-findings; restart cascade fresh).
+**3-CLEAN streak: 0/3** (package now zero-known-findings; all F-P32 findings cleared).
 
-**Convergence trajectory (last 4 passes per D-433(e)+D-439(c)):** →P29 CLEAN(1/3)→P30 CLEAN(2/3)→P31 NOT-CLEAN(2med;RESET).
+**Convergence trajectory (last 4 passes per D-433(e)+D-439(c)):** →P30 CLEAN(2/3)→P31 NOT-CLEAN(RESET)→P32 NOT-CLEAN(2med/4low).
 
-**4-index at D-594:** BC-INDEX v2.93, VP-INDEX v2.26, STORY-INDEX v4.01, ARCH-INDEX v2.46.
+**4-index at D-595:** BC-INDEX v2.94, VP-INDEX v2.27, STORY-INDEX v4.01, ARCH-INDEX v2.46.
 
 **NEXT ACTION (explicit, in order):**
-1. **START HERE: adversary pass-32** (fresh-context; zero-known-findings package — all stale-term classes exhaustively closed; all deferred items fixed). 3-CLEAN streak 0/3. STRICT 3-CLEAN HUMAN-DIRECTED (no spec changes until convergence).
-2. On CLEAN pass-32 → 3-CLEAN streak 1/3 → adversary pass-33 → etc. until 3/3.
+1. **START HERE: adversary pass-33** (fresh-context; zero-known-findings package — PC7 contract reconciled, all TBD-VPs decided, all LOWs cleared). 3-CLEAN streak 0/3. STRICT 3-CLEAN HUMAN-DIRECTED.
+2. On CLEAN pass-33 → 3-CLEAN streak 1/3 → adversary pass-34 → etc. until 3/3.
 3. On 3/3 CLEAN → F2 CONVERGED → human F2 gate approval → Feature Mode F3 story decomposition (story-writer authors S-18.00..S-18.07 + S-18.08 codified O-P8-002 gate-story).
-4. On NOT-CLEAN pass-32 → fix burst → streak stays 0/3 or RESET → continue cascade.
+4. On NOT-CLEAN pass-33 → fix burst → streak stays 0/3 or RESET → continue cascade.
 
 **RECURRING LESSONS (carry):** (1) L-F2-stale-term-deferral-unsafe [process-gap] (D-594; NEW): stale terms in normative present-tense prose MUST be fixed in-scope; exhaustive sweep mandatory; deferral as LOW is convergence-risk (fresh adversary severity independent). (2) L-F2-canonical-scope-verification [process-gap] (D-587): When authoring an invariant constraining a field produced by one agent type and consumed by another, MUST explicitly name scope boundary. Field-4 canonical (B) enshrined. (3) L-F2-subsystem-anchor-sweep [process-gap] (D-584; 2nd recurrence): When any VP scope field or capability Subsystems: line changes, MUST sweep ALL sibling VPs sharing source-BC AND L2-INDEX Cross-Walk rows for affected SS-NN same-burst. (4) L-F2-cross-reference-title-code-sweep [process-gap] (D-582 codified; D-589 UPGRADED; 4th recurrence): For EVERY `VP-NNN — <title>` cite in any BC §VP Anchors / ADR §VP Allocations, grep-based check MUST assert `<title>` equals VP file H1 verbatim. Gate runs exhaustively across ALL sites every spec-touch. S-18.08 MANDATORY scope extension.
 
-**Artifact versions at D-594 (spec edits applied D-594):**
-- **ADR-026 v1.18** (F-P31-001 bonus §Decision 6 step 5 + F-P27-001 §Decision-9-order narrative fix); BC-1.15.001 v1.3; **BC-4.14.001 v1.12** (F-P27-002 EC-015/016 3-col); **BC-5.41.001 v1.15** (F-P30-002 PC5 + O-P29-002 SS split); **BC-5.41.002 v1.7** (F-P30-003 BrokenSprintState + O-P29-002 SS split); **BC-5.41.003 v1.7** (UNCHANGED at D-594); BC-6.24.001 v1.6; **BC-7.07.001 v1.9** (F-P31-002 PC8 SHA-file stale term); BC-7.07.002 v1.8; VP-081 v1.6; VP-082 v1.12; VP-083 v1.8; VP-084 v1.9; **VP-085 v1.7** (F-P31-001 'side-channel' adjective removed); **VP-086 v1.3** (O-P29-003 SS-04 justification); invariants.md v1.20; capabilities.md v1.7; **BC-INDEX v2.93**; **VP-INDEX v2.26**; **ARCH-INDEX v2.46**; STORY-INDEX v4.01; L2-INDEX v1.0.9.
+**Artifact versions at D-595 (spec edits applied D-595):**
+- **ADR-026 v1.18** (UNCHANGED at D-595); BC-1.15.001 v1.3; **BC-4.14.001 v1.13** (F-P32-001 PC7 SCALAR/LIST discrimination); **BC-5.41.001 v1.16** (F-P32-003 v1.5-skip annotation); **BC-5.41.002 v1.8** (F-P32-006 TBD-VP→DEFERRED-VP-F3/S-18.01); **BC-5.41.003 v1.7** (UNCHANGED at D-595); **BC-6.24.001 v1.7** (F-P32-006 TBD-VP→DEFERRED-VP-F3/S-18.03); **BC-7.07.001 v1.10** (F-P32-005 Inv7 log-pruning note); **BC-7.07.002 v1.9** (F-P32-006 TBD-VP→DEFERRED-VP-F3/S-18.05 MANDATORY); VP-081 v1.6; VP-082 v1.12; **VP-083 v1.9** (F-P32-002 discriminating fixture EPIC-COMPLETE ordering proof); VP-084 v1.9; VP-085 v1.7; **VP-086 v1.4** (F-P32-004 SS-04 shell-hook-via-adapter reword); invariants.md v1.20; capabilities.md v1.7; **BC-INDEX v2.94**; **VP-INDEX v2.27**; ARCH-INDEX v2.46; STORY-INDEX v4.01; L2-INDEX v1.0.9.
 
 **Key design facts (so restart agent has them without re-deriving):**
 - wave-1 no-op = `payload.wave_id == 1` (pure-parse WASM; wave_id absent → fail-closed HandoffIncomplete); EPIC-COMPLETE = `payload.next_wave_stories: []`; WASM gate pure-parse (shell wave-handoff derives wave_id from substrate).
+- **PC7 SCALAR/LIST discrimination (D-595 F-P32-001 BC-4.14.001 v1.13):** SCALAR fields (wave_id, epic_status, etc.) empty→malformed per EC-004; LIST-typed fields (next_wave_stories, open_decisions, pending_fixes, process_gaps) empty list→PRESENT+VALID; next_wave_stories:[] = EPIC-COMPLETE signal per PC2a, NOT malformed. EPIC-COMPLETE ordering: branch fires (Inv3 step 2) BEFORE wave-1 no-op (step 3) — discriminating fixture VP-083 v1.9 proves ordering.
 - flush = commit(LOCAL, capture SHA_B) → append-to-log → push(REMOTE); each step failure → exit 2; append-fail → reset --soft SHA_B^ if HEAD==SHA_B else exit 2 (human intervention).
 - push-fail (network/remote after successful local commit + log append) → exit 2; local commit + log entry retained; retry is push-only (no re-commit, no re-append) per ADR-026 §F-P10-002 + BC-7.07.001 PC6b.
 - precompact-flush-log 4 fields: `<ISO-timestamp> <SHA> <cycle>/<step> commit` (field-2=SHA, field-4=`commit` token); WASM reads fields, no git-exec.
@@ -314,14 +324,15 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 - **POLICY 8 v1.3 EC-mirror routing-rule (D-517); bidirectional AC↔PC parity (D-515+D-516); POLICY 5 v1.3.1/v1.3.3/v1.3.4/v1.3.5/v1.3.6 SDK-grounding + sibling-sweep mandates.**
 - **D-537 [process-gap] spec-drift routing:** When TDD fix changes ADR-specified behavior, route architect ADR amendment in SAME burst.
 - **D-539 multi-family adversary obligation:** prompt-contract + shell-logic issues require cross-family AND same-family Claude adversary passes before convergence.
-- **D-594 carry:** F2 E-18 ADV PASS-31 NOT-CLEAN FULL BACKLOG CLEARANCE 2026-06-15. NOT-CLEAN: F-P31-001 MED + F-P31-002 MED. Streak RESET 2/3→0/3. FULL BACKLOG CLEARANCE: all 9 deferred items fixed (2 MED + 7 LOW/obs). 4-index: BC-INDEX v2.93; VP-INDEX v2.26; STORY-INDEX v4.01; ARCH-INDEX v2.46; L2-INDEX v1.0.9 UNCHANGED. Trajectory →P29 CLEAN(1/3)→P30 CLEAN(2/3)→P31 NOT-CLEAN(2med;RESET). NEXT: adversary pass-32 (fresh-context; zero-known-findings package). D-chain cite D-593 per D-419(b). parent-commit 9361bcaf.
+- **D-595 carry:** F2 E-18 ADV PASS-32 NOT-CLEAN FIX BURST 2026-06-15. NOT-CLEAN: F-P32-001 MED (BC-4.14.001 v1.13 PC7×PC2a) + F-P32-002 MED (VP-083 v1.9 ordering proof) + 4 LOW. ALL fixed in-scope. 4-index: BC-INDEX v2.94; VP-INDEX v2.27; STORY-INDEX v4.01; ARCH-INDEX v2.46; L2-INDEX v1.0.9 UNCHANGED. Trajectory →P30 CLEAN(2/3)→P31 NOT-CLEAN(RESET)→P32 NOT-CLEAN(2med/4low;novel PC7 gap). NEXT: adversary pass-33 (fresh-context; zero-known-findings). D-chain cite D-594 per D-419(b). parent-commit 5354409e.
 - **D-560 carry:** OPERATOR-INSTALL-VERIFIED 2026-06-13. rc.21 100% COMPLETE. NO remaining release action.
 - **D-556 carry:** S-17.04 MERGED PR #184 3b2a378c. E-17 ALL 4 WAVES COMPLETE. STORY-INDEX v4.01.
 - **D-541 carry (partial):** VP IDs TBD per TD-VSDD-063. BC-6.23.001 ACTIVE per POL-14.
 
 ### §4. Tier-A Completed Log (most recent first)
 
-- **D-594 (2026-06-15):** F2 E-18 ADV PASS-31 NOT-CLEAN FULL BACKLOG CLEARANCE. Pass-31 NOT-CLEAN: F-P31-001 MED + F-P31-002 MED; streak RESET 2/3→0/3. FULL BACKLOG CLEARANCE: all 9 deferred items fixed. 4-index: BC v2.93/VP v2.26/STORY v4.01/ARCH v2.46. Lesson L-F2-stale-term-deferral-unsafe codified. Trajectory →P29 CLEAN(1/3)→P30 CLEAN(2/3)→P31 NOT-CLEAN(2med;RESET). NEXT: adversary pass-32 (zero-known-findings).
+- **D-595 (2026-06-15):** F2 E-18 ADV PASS-32 NOT-CLEAN FIX BURST. Pass-32 NOT-CLEAN: F-P32-001 MED (BC-4.14.001 v1.13 PC7×PC2a contradiction) + F-P32-002 MED (VP-083 v1.9 EPIC-COMPLETE ordering proof) + 4 LOW. ALL fixed in-scope. 4-index: BC v2.94/VP v2.27/STORY v4.01/ARCH v2.46. Streak 0/3. NEXT: adversary pass-33 (zero-known-findings).
+- **D-594 archived** per D-430(a) D-595 compaction. D-594 pass-31 NOT-CLEAN FULL BACKLOG CLEARANCE. Full entries: `git show 8ae759dd:.factory/STATE.md` §4.
 - **D-593 archived** per D-430(a) D-594 compaction. D-593 pass-30 CLEAN(2/3)+compaction. Full entries: `git show 9361bcaf:.factory/STATE.md` §4.
 - **D-591..D-592 archived** per D-430(a) D-593 compaction. D-591 pass-28 NOT-CLEAN + stale-term class flush; D-592 pass-29 CLEAN(1/3). Full entries: `git show 3a911cb7:.factory/STATE.md` §4.
 - **D-582..D-590 archived** per D-430(a) D-591 compaction. D-582 pass-19; D-583 pass-20; D-584 pass-21; D-585 pass-22 CLEAN(1/3); D-586 pass-23 CLEAN(2/3)+compaction; D-587 pass-24 NOT-CLEAN(RESET)+comprehensive-cleanup; D-588 pass-25 fix; D-589 pass-26 fix+title-cite-parity-upgrade; D-590 pass-27 CLEAN(1/3). Full entries: `git show 5f55628b:.factory/STATE.md` §4.
@@ -338,7 +349,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 ### §5. Cumulative Codifications
 
 - F5: D-379..D-454 (76 decisions) — `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md`.
-- Brownfield: D-001..D-594 — `cycles/v1.0-brownfield-backfill/decision-log.md`. Latest: **D-594 F2 E-18 ADV PASS-31 NOT-CLEAN FULL BACKLOG CLEARANCE 2026-06-15 — Pass-31 NOT-CLEAN (F-P31-001 MED + F-P31-002 MED); streak RESET 2/3→0/3; FULL BACKLOG CLEARANCE (all 9 deferred items fixed); 4-index BC-INDEX v2.93/VP-INDEX v2.26/STORY-INDEX v4.01/ARCH-INDEX v2.46; adversary pass-32 NEXT (fresh-context; zero-known-findings package).**
+- Brownfield: D-001..D-595 — `cycles/v1.0-brownfield-backfill/decision-log.md`. Latest: **D-595 F2 E-18 ADV PASS-32 NOT-CLEAN FIX BURST 2026-06-15 — Pass-32 NOT-CLEAN (F-P32-001 MED BC-4.14.001 v1.13 PC7×PC2a + F-P32-002 MED VP-083 v1.9 ordering proof + 4 LOW); ALL fixed in-scope; streak 0/3; 4-index BC-INDEX v2.94/VP-INDEX v2.27/STORY-INDEX v4.01/ARCH-INDEX v2.46; adversary pass-33 NEXT (fresh-context; zero-known-findings).**
 
 ### §6. Cumulative Lessons
 
@@ -353,61 +364,62 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 | Index | Version | Notes |
 |-------|---------|-------|
-| BC-INDEX | v2.93 | Bumped D-594 (BC-7.07.001 v1.9; BC-4.14.001 v1.12; BC-5.41.001 v1.15; BC-5.41.002 v1.7 version cells synced; FULL BACKLOG CLEARANCE). total_bcs 1966 UNCHANGED. |
-| VP-INDEX | v2.26 | Bumped D-594 (VP-085 v1.7 F-P31-001 stale-term; VP-086 v1.3 O-P29-003 SS-04 justification). total_vps 86 UNCHANGED. |
-| STORY-INDEX | v4.01 | UNCHANGED at D-561..D-594. E-18 stories S-18.00..S-18.08 NOT YET AUTHORED (F3 next after 3-CLEAN convergence). |
-| ARCH-INDEX | v2.46 | Bumped D-594 (ADR-026 v1.18 amendment row; F-P27-001 v1.16 narrative fix). |
-| L2-INDEX | v1.0.9 | UNCHANGED at D-591..D-594. |
+| BC-INDEX | v2.94 | Bumped D-595 (BC-4.14.001 v1.13; BC-5.41.001 v1.16; BC-7.07.001 v1.10; BC-5.41.002 v1.8; BC-6.24.001 v1.7; BC-7.07.002 v1.9 — 6 version cells synced). total_bcs 1966 UNCHANGED. |
+| VP-INDEX | v2.27 | Bumped D-595 (VP-083 v1.9 F-P32-002 discriminating fixture; VP-086 v1.4 F-P32-004 shell-hook-via-adapter reword; F-P32-006 3 TBD-VP → DEFERRED-VP-F3 noted). total_vps 86 UNCHANGED. |
+| STORY-INDEX | v4.01 | UNCHANGED at D-561..D-595. E-18 stories S-18.00..S-18.08 NOT YET AUTHORED (F3 next after 3-CLEAN convergence). |
+| ARCH-INDEX | v2.46 | UNCHANGED at D-595. |
+| L2-INDEX | v1.0.9 | UNCHANGED at D-591..D-595. |
 
-4-index at D-594 (literal-shell): `grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md` → "2.93"; `grep "^version:" .factory/specs/verification-properties/VP-INDEX.md` → "2.26"; `grep "^version:" .factory/stories/STORY-INDEX.md` → "4.01"; `grep "^version:" .factory/specs/architecture/ARCH-INDEX.md` → "2.46"; `grep "^version:" .factory/specs/domain-spec/L2-INDEX.md` → "1.0.9".
+4-index at D-595 (literal-shell): `grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md` → "2.94"; `grep "^version:" .factory/specs/verification-properties/VP-INDEX.md` → "2.27"; `grep "^version:" .factory/stories/STORY-INDEX.md` → "4.01"; `grep "^version:" .factory/specs/architecture/ARCH-INDEX.md` → "2.46"; `grep "^version:" .factory/specs/domain-spec/L2-INDEX.md` → "1.0.9".
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** `8ae759dd` (D-594 F2 pass-31 NOT-CLEAN FULL BACKLOG CLEARANCE 2026-06-15; prior: `9361bcaf` D-593 F2 pass-30 CLEAN + compaction — streak 2/3)
+- **factory-artifacts HEAD:** `PENDING-SHA-PATCH` (D-595 F2 pass-32 NOT-CLEAN FIX BURST 2026-06-15; prior: `8ae759dd` D-594 pass-31 NOT-CLEAN FULL BACKLOG CLEARANCE)
 - **develop HEAD:** `7e99f6ef` (PR #186 fix + release.yml sync back-merge 2026-06-13)
 - **main HEAD:** `caf06c68` (rc.21 bot bundle commit 2026-06-13)
 - **v1.0.0-rc.21 tag:** `03054524` (SHIPPED; FULLY IN OPERATOR MARKETPLACE)
-- **ADR-026 v1.18:** `decisions/ADR-026-wave-boundary-checkpoint-reset-and-lossless-intra-wave-compaction.md` (D-594 F-P31-001 bonus §Decision 6 step 5 'append-only side-channel log'→'append-only log'; F-P27-001 NARRATIVE-FIX v1.16 §Decision-9-order; §Traceability ARCH-INDEX v2.45→v2.46 leg; prior v1.17: D-591 stale-term class flush)
-- **BC-4.14.001 v1.12:** `ss-04/BC-4.14.001.md` (D-594 F-P27-002 EC-015/016 4th-column folded into 3-col; prior v1.11: D-588 F-P25-002 EPIC-COMPLETE carve-out)
-- **BC-5.41.001 v1.15:** `ss-05/BC-5.41.001.md` (D-594 F-P30-002 PC5 non-null-when-log-absent VALID clarification + O-P29-002 SS-05/06 split note; prior v1.14: D-588 F-P25-001 MED typo)
-- **BC-5.41.002 v1.7:** `ss-05/BC-5.41.002.md` (D-594 F-P30-003 BrokenSprintState message aligned to ADR §Decision 3 + O-P29-002 SS-05/06 split note; prior v1.6: pre-D-594)
-- **BC-5.41.003 v1.7:** `ss-05/BC-5.41.003.md` (D-591 stale-term class flush; UNCHANGED at D-594)
-- **BC-7.07.001 v1.9:** `ss-07/BC-7.07.001.md` (D-594 F-P31-002 MED: PC8 failure-path 'no precompact-flush-log SHA file update' stale SHA-file term fixed; prior v1.8: D-589 F-P26-001 VP-085 title-cite-parity)
-- **VP-085 v1.7:** `verification-properties/VP-085.md` (D-594 F-P31-001 MED: Property Invariant item 3 'append-only side-channel log'→'append-only log'; 'side-channel' adjective retired from normative present-tense; prior v1.6: F-P21-003 LOW)
-- **VP-086 v1.3:** `verification-properties/VP-086.md` (D-594 O-P29-003 SS-04 justification strengthened — WASM-attribution rationale explicit; prior v1.2: F2 initial authoring)
-- **VP-082 v1.12:** `verification-properties/VP-082.md` (D-588 F-P25-004 LOW; UNCHANGED at D-594)
-- **VP-083 v1.8:** `verification-properties/VP-083.md` (D-588 F-P25-002 MED CARVE-OUT; UNCHANGED at D-594)
-- **VP-084 v1.9:** `verification-properties/VP-084.md` (D-587 F-P24-003 LOW; UNCHANGED at D-594)
-- **VP-081 v1.6:** `verification-properties/VP-081.md` (F-P21-002 MED; UNCHANGED at D-594)
-- **BC-7.07.002 v1.8:** `ss-07/BC-7.07.002.md` (D-587 F-P23-002 LOW; UNCHANGED at D-594)
-- **L2-INDEX v1.0.9:** `specs/domain-spec/L2-INDEX.md` (UNCHANGED at D-594)
-- **invariants.md v1.20:** `domain-spec/invariants.md` (D-587 DI-022 field-4 (B) canonical; UNCHANGED at D-594)
+- **ADR-026 v1.18:** `decisions/ADR-026-wave-boundary-checkpoint-reset-and-lossless-intra-wave-compaction.md` (D-594 UNCHANGED at D-595)
+- **BC-4.14.001 v1.13:** `ss-04/BC-4.14.001.md` (D-595 F-P32-001 MED PC7 field-validation contract rewritten — SCALAR empty→malformed; LIST-typed next_wave_stories/open_decisions/pending_fixes/process_gaps empty→VALID; PC7×PC2a contradiction closed; prior v1.12: D-594 F-P27-002)
+- **BC-5.41.001 v1.16:** `ss-05/BC-5.41.001.md` (D-595 F-P32-003 LOW v1.5-skip annotation row; prior v1.15: D-594 F-P30-002)
+- **BC-5.41.002 v1.8:** `ss-05/BC-5.41.002.md` (D-595 F-P32-006 TBD-VP → DEFERRED-VP F3/S-18.01; prior v1.7: D-594 F-P30-003)
+- **BC-5.41.003 v1.7:** `ss-05/BC-5.41.003.md` (D-591 stale-term class flush; UNCHANGED at D-595)
+- **BC-6.24.001 v1.7:** `ss-06/BC-6.24.001.md` (D-595 F-P32-006 TBD-VP → DEFERRED-VP F3/S-18.03; retroactive §Changelog added; prior v1.6: D-579 ADR cite convention)
+- **BC-7.07.001 v1.10:** `ss-07/BC-7.07.001.md` (D-595 F-P32-005 LOW Inv7 log-pruning deferred to S-18.04 AC-N; prior v1.9: D-594 F-P31-002 stale SHA-file term)
+- **BC-7.07.002 v1.9:** `ss-07/BC-7.07.002.md` (D-595 F-P32-006 TBD-VP → DEFERRED-VP F3/S-18.05 MANDATORY per DI-024; retroactive §Changelog added; prior v1.8: D-587 F-P23-002)
+- **VP-083 v1.9:** `verification-properties/VP-083.md` (D-595 F-P32-002 MED discriminating fixture wave_1_epic_complete_blocks_malformed_base_field; EPIC-COMPLETE ordering proof; prior v1.8: D-588 F-P25-002)
+- **VP-086 v1.4:** `verification-properties/VP-086.md` (D-595 F-P32-004 LOW SS-04 reworded: precompact-flush.sh = SHELL hook via legacy-bash-adapter.wasm; prior v1.3: D-594 O-P29-003)
+- **VP-085 v1.7:** `verification-properties/VP-085.md` (D-594 F-P31-001 MED stale-term; UNCHANGED at D-595)
+- **VP-082 v1.12:** `verification-properties/VP-082.md` (D-588 F-P25-004 LOW; UNCHANGED at D-595)
+- **VP-084 v1.9:** `verification-properties/VP-084.md` (D-587 F-P24-003 LOW; UNCHANGED at D-595)
+- **VP-081 v1.6:** `verification-properties/VP-081.md` (F-P21-002 MED; UNCHANGED at D-595)
+- **L2-INDEX v1.0.9:** `specs/domain-spec/L2-INDEX.md` (UNCHANGED at D-595)
+- **invariants.md v1.20:** `domain-spec/invariants.md` (D-587 DI-022 field-4 (B) canonical; UNCHANGED at D-595)
 - **VP-081..086 domain_invariants populated:** VP-081 [DI-020,DI-021,DI-023]; VP-082 [DI-021,DI-022,DI-025]; VP-083 [DI-020]; VP-084 [DI-020,DI-025]; VP-085 [DI-021,DI-022,DI-025]; VP-086 [DI-020]
-- **capabilities.md v1.7:** `domain-spec/capabilities.md` (UNCHANGED at D-594)
+- **capabilities.md v1.7:** `domain-spec/capabilities.md` (UNCHANGED at D-595)
 - **ADR-025 v1.6 SHIPPED:** guard at `3b2a378c`; ARCH-INDEX v2.27
 - **S-17.04 story:** `.factory/stories/S-17.04-mid-burst-heartbeat-renewal-wiring.md` v1.7 MERGED; E-17 W4 COMPLETE; PR #184 3b2a378c
 - **Verify on resume:** `git rev-parse --short origin/develop` → expect `7e99f6ef`; `git rev-parse --short origin/main` → expect `caf06c68`
 
 ### §10. PR Status
 
-- **0 open feature PRs. 0 open release PRs. 0 open marketplace PRs. rc.21 100% COMPLETE. E-18 F2 adversarial cascade in progress (no PR yet — pass-30 CLEAN streak 2/3; adversary pass-31 NEXT; F3 follows 3-CLEAN convergence).**
+- **0 open feature PRs. 0 open release PRs. 0 open marketplace PRs. rc.21 100% COMPLETE. E-18 F2 adversarial cascade in progress (no PR yet — D-595 pass-32 NOT-CLEAN; streak 0/3; adversary pass-33 NEXT; F3 follows 3-CLEAN convergence).**
 - **marketplace PR drbothen/claude-mp #13 MERGED** 2026-06-13 — rc.21 FULLY SHIPPED.
 - **RELEASING.md Step 9 VERIFIED (D-560):** operator cache 1.0.0-rc.21 confirmed (plugin.json + 132 entries). rc.21 end-to-end CLOSED.
 
-### §11. Post-CLEAR/Post-RESET Resume Checklist (zero-context; D-594 refresh)
+### §11. Post-CLEAR/Post-RESET Resume Checklist (zero-context; D-595 refresh)
 
-1. **Verify worktree state:** `git rev-parse --short origin/develop` → expect `7e99f6ef`. `git rev-parse --short origin/main` → expect `caf06c68`. `git -C .factory log -1` (expect D-594 F2 pass-31 NOT-CLEAN FULL BACKLOG CLEARANCE 2026-06-15; branch factory-artifacts; clean status).
-2. **Read §1-§12 this checkpoint** (all of it; D-594 self-sufficient).
-3. **Verify 4-index:** `grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md` → "2.93"; ARCH-INDEX → "2.46"; VP-INDEX → "2.26"; STORY-INDEX → "4.01"; L2-INDEX → "1.0.9".
+1. **Verify worktree state:** `git rev-parse --short origin/develop` → expect `7e99f6ef`. `git rev-parse --short origin/main` → expect `caf06c68`. `git -C .factory log -1` (expect D-595 F2 pass-32 NOT-CLEAN FIX BURST 2026-06-15; branch factory-artifacts; clean status).
+2. **Read §1-§12 this checkpoint** (all of it; D-595 self-sufficient).
+3. **Verify 4-index:** `grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md` → "2.94"; ARCH-INDEX → "2.46"; VP-INDEX → "2.27"; STORY-INDEX → "4.01"; L2-INDEX → "1.0.9".
 4. **E-10 CASCADE SEALED D-531.** Do NOT resume without engine-surface material change.
 5. **F5 PAUSED** — trajectory →9→9→9→11. Do NOT resume without explicit human direction.
 6. **RC.21 100% COMPLETE D-560.** NO remaining release action. Operators: `/plugin update vsdd-factory@claude-mp`.
-7. **D-594 F2 E-18 ADV PASS-31 NOT-CLEAN FULL BACKLOG CLEARANCE.** Pass-31 NOT-CLEAN: F-P31-001 MED + F-P31-002 MED; streak RESET 2/3→0/3. FULL BACKLOG CLEARANCE (all 9 deferred items fixed). 4-index: BC v2.93/VP v2.26/STORY v4.01/ARCH v2.46. **NEXT: adversary pass-32 (fresh-context; zero-known-findings package; all stale-term classes closed). STRICT 3-CLEAN human-directed; streak 0/3.**
-8. **4-index at D-594:** BC-INDEX v2.93, VP-INDEX v2.26, STORY-INDEX v4.01, ARCH-INDEX v2.46. L2-INDEX v1.0.9.
-9. **ALL dispatches carry:** TD-VSDD-097-EXT + TD-VSDD-099 + TD-VSDD-100 + POLICY 14 5-leg + verification_step 7 4-index gate + INV-019 (a)/(b)/(c) + adversary grep origin/factory-artifacts + D-449(a) literal-shell Dim-2 + POLICY 8 v1.3 parity + POLICY 5 v1.3.1/v1.3.4/v1.3.5/v1.3.6 + D-537 spec-drift routing + D-539 multi-family adversary + O-P8-002 MANDATORY (3rd recurrence) + **L-F2-cross-reference-title-code-sweep [process-gap] UPGRADED (D-589; 4th recurrence; title-cite-parity gate MANDATORY)** + L-F2-subsystem-anchor-sweep [process-gap] (2nd recurrence) + L-F2-canonical-scope-verification [process-gap] (D-587) + **L-F2-stale-term-deferral-unsafe [process-gap] (D-594 NEW: stale terms in normative prose MUST be fixed in-scope; exhaustive sweep mandatory; S-18.08 WASM stale-term detector candidate)**.
-10. **Latest decision D-594.** F2 pass-31 NOT-CLEAN (F-P31-001+F-P31-002 MED; streak RESET 0/3; FULL BACKLOG CLEARANCE). Adversary pass-32 NEXT (fresh-context; zero-known-findings). On 3/3 CLEAN → human gate → F3 S-18.00..S-18.08.
+7. **D-595 F2 E-18 ADV PASS-32 NOT-CLEAN FIX BURST.** Pass-32 NOT-CLEAN: F-P32-001 MED (BC-4.14.001 v1.13 PC7×PC2a) + F-P32-002 MED (VP-083 v1.9 ordering proof) + 4 LOW. ALL fixed in-scope. 4-index: BC v2.94/VP v2.27/STORY v4.01/ARCH v2.46. **NEXT: adversary pass-33 (fresh-context; zero-known-findings package). STRICT 3-CLEAN human-directed; streak 0/3.**
+8. **4-index at D-595:** BC-INDEX v2.94, VP-INDEX v2.27, STORY-INDEX v4.01, ARCH-INDEX v2.46. L2-INDEX v1.0.9.
+9. **ALL dispatches carry:** TD-VSDD-097-EXT + TD-VSDD-099 + TD-VSDD-100 + POLICY 14 5-leg + verification_step 7 4-index gate + INV-019 (a)/(b)/(c) + adversary grep origin/factory-artifacts + D-449(a) literal-shell Dim-2 + POLICY 8 v1.3 parity + POLICY 5 v1.3.1/v1.3.4/v1.3.5/v1.3.6 + D-537 spec-drift routing + D-539 multi-family adversary + O-P8-002 MANDATORY (3rd recurrence) + **L-F2-cross-reference-title-code-sweep [process-gap] UPGRADED (D-589; 4th recurrence; title-cite-parity gate MANDATORY)** + L-F2-subsystem-anchor-sweep [process-gap] (2nd recurrence) + L-F2-canonical-scope-verification [process-gap] (D-587) + **L-F2-stale-term-deferral-unsafe [process-gap] (D-594: stale terms in normative prose MUST be fixed in-scope; exhaustive sweep mandatory)**.
+10. **Latest decision D-595.** F2 pass-32 NOT-CLEAN (F-P32-001+F-P32-002 MED + 4 LOW; ALL fixed in-scope; streak 0/3). Adversary pass-33 NEXT (fresh-context; zero-known-findings). On 3/3 CLEAN → human gate → F3 S-18.00..S-18.08.
 
-### §12. Pending Work Items — Strict Resume Ordering (refreshed 2026-06-15 D-594)
+### §12. Pending Work Items — Strict Resume Ordering (refreshed 2026-06-15 D-595)
 
 | Step | Item | Tier | Gate | Status |
 |------|------|------|------|--------|
@@ -418,8 +430,9 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 | ~~1m~~ | ~~#173/E-18 F2 adversarial re-cascade (pass-28)~~ | ~~feature~~ | ~~D-590 bookkeeping complete~~ | **DONE D-591 2026-06-15 — NOT-CLEAN (2med); BC-5.41.003 v1.7 + ADR-026 v1.17; streak RESET 1/3→0/3.** |
 | ~~1n~~ | ~~#173/E-18 F2 adversarial re-cascade (pass-29)~~ | ~~feature~~ | ~~D-591 fix burst complete~~ | **DONE D-592 2026-06-15 — CLEAN; 3 LOWs deferred (O-P29-001/002/003); streak 0/3→1/3.** |
 | ~~1o~~ | ~~#173/E-18 F2 adversarial re-cascade (pass-30)~~ | ~~feature~~ | ~~D-592 bookkeeping complete~~ | **DONE D-593 2026-06-15 — CLEAN; 3 LOWs deferred (F-P30-001/002/003); 8 total deferred; streak 1/3→2/3.** |
-| ~~1p~~ | ~~#173/E-18 F2 adversarial re-cascade (pass-31)~~ | ~~feature~~ | ~~D-593 bookkeeping + compaction complete~~ | **DONE D-594 2026-06-15 — NOT-CLEAN (2med: F-P31-001+F-P31-002); streak RESET 2/3→0/3; FULL BACKLOG CLEARANCE: all 9 deferred items fixed; 4-index BC v2.93/VP v2.26/STORY v4.01/ARCH v2.46.** |
-| **1** | **#173/E-18 F2 adversarial re-cascade (pass-32)** | **feature** | D-594 FULL BACKLOG CLEARANCE complete | Fresh-context adversary; package ZERO-KNOWN-FINDINGS (all stale-term classes exhaustively closed; all deferred items fixed). **3-CLEAN streak 0/3**; STRICT 3-CLEAN human-directed. **START HERE.** |
+| ~~1p~~ | ~~#173/E-18 F2 adversarial re-cascade (pass-31)~~ | ~~feature~~ | ~~D-593 bookkeeping + compaction complete~~ | **DONE D-594 2026-06-15 — NOT-CLEAN (2med); streak RESET 2/3→0/3; FULL BACKLOG CLEARANCE (9 items fixed); 4-index BC v2.93/VP v2.26.** |
+| ~~1q~~ | ~~#173/E-18 F2 adversarial re-cascade (pass-32)~~ | ~~feature~~ | ~~D-594 FULL BACKLOG CLEARANCE complete~~ | **DONE D-595 2026-06-15 — NOT-CLEAN (2med: F-P32-001 PC7×PC2a + F-P32-002 EPIC-COMPLETE ordering; 4 LOW); ALL fixed in-scope; 4-index BC v2.94/VP v2.27/STORY v4.01/ARCH v2.46.** |
+| **1** | **#173/E-18 F2 adversarial re-cascade (pass-33)** | **feature** | D-595 fix burst complete | Fresh-context adversary; package ZERO-KNOWN-FINDINGS (PC7 contract reconciled; all TBD-VPs decided; all LOWs cleared). **3-CLEAN streak 0/3**; STRICT 3-CLEAN human-directed. **START HERE.** |
 | **2** | **#173/E-18 F3 story decomposition** | **feature** | F2 3-CLEAN convergence (3/3) | Author S-18.00..S-18.07+S-18.08 (S-18.08 ships mandatory O-P8-002 pure-parse invariant gate). STORY-INDEX v4.01→v4.02+. |
 | **4** | **#173 wave-checkpoint** | **implementation** | E-18 F3 done OR human re-sequence | State-durability chain stories S-18.01..S-18.05. Blocked on F3. |
 | **5** | **#171 deferred-revalidate** | **implementation** | #173 stories done | Deferred-revalidation story. |
@@ -430,4 +443,4 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 **[D-414(c) acknowledgment: Section 12 is a non-standard addition for forward-backlog durability.]**
 
-> Previous checkpoint (D-593 F2-E18-ADV-PASS-30-CLEAN-STREAK-2-3-2026-06-15) archived to: `cycles/v1.0-brownfield-backfill/session-checkpoints.md`
+> Previous checkpoint (D-594 F2-E18-ADV-PASS-31-NOT-CLEAN-FULL-BACKLOG-CLEARANCE-2026-06-15) archived to: `cycles/v1.0-brownfield-backfill/session-checkpoints.md`
