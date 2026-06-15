@@ -3152,3 +3152,34 @@ Every hit must be either: (a) a historical `last_amended:` / `changelog:` / `Pri
 **Cites:** D-582; F-P19-001; F-P19-002; D-577; POLICY 5; S-18.08; S-7.02; BC-5.39.001 3-CLEAN; L-F2-sibling-sweep-tree-wide-gate (D-564).
 
 **Closes:** D-582 lesson capture; cross-reference-title-code-sweep gap codified as POLICY 5 category (i) extension candidate + S-18.08 gate scope extension candidate. Drift Item anchored E-18 F3 (S-18.08-class gate story). `[codified; process-gap; candidate-policy-extension]`
+
+---
+
+### L-F2-subsystem-anchor-sweep
+
+**Category:** adversarial-convergence + sibling-sweep-discipline + subsystem-anchor-propagation + VSDD-process-gap [process-gap]
+
+**(a) When a VP/BC subsystem anchor changes (e.g., a WASM plugin re-anchored SS-07→SS-04) OR a capability's subsystem footprint is referenced, the fix-burst MUST sweep ALL VPs sharing a source BC AND the L2-INDEX Subsystem Cross-Walk AND Document Map — a single-site fix strands siblings.** This pattern has recurred twice in F2 E-18 adversarial passes:
+
+- **Occurrence 1 (F-P16-001 VP-084 → F-P21-002 VP-081 stranded sibling):** D-579 fix burst corrected VP-084 scope SS-05,SS-07→SS-05,SS-04 (validate-burst-log WASM mis-anchor). The fix-burst swept VP-080..086 for "remaining mis-anchors" but VP-081's scope SS-05,SS-06,SS-07 was not correctly evaluated — the comprehensive sibling sweep should have caught VP-081 at the same burst (VP-081 and VP-084 share BC-4.14.001 and BC-5.41.001 as source BCs; both gate via WASM plugins). F-P21-002 (pass-21) found the stranded VP-081 mis-anchor 5 passes later.
+
+- **Occurrence 2 (F-P20-001 Document Map fix → F-P21-001 Cross-Walk stranded):** D-583 fix burst corrected L2-INDEX Document Map capabilities.md CAP range (F-P20-001). The Document Map fix verified the capabilities count was correct but did not trigger a sweep of the Subsystem Cross-Walk table — capabilities.md v1.4 had added CAP-032 to subsystems SS-01, SS-04, SS-05, SS-06, SS-07 (at D-540 / F-14 fix), but the Cross-Walk only received CAP-032 in SS-05, SS-06, SS-07 (missing SS-01 and SS-04). F-P21-001 (pass-21) found the Cross-Walk gap 1 pass later.
+
+**(b) The sweep checklist for any fix that changes a VP/BC subsystem anchor, OR that adds/modifies a capability's Subsystems: line, MUST include a dedicated subsystem-anchor sibling sweep as step zero of the fix burst.** Before composing the fix:
+1. Identify ALL VPs whose `source_bc` or `bcs[]` frontmatter includes ANY BC that declared the affected subsystem(s).
+2. Verify EACH identified VP's `scope:` field matches the WASM-vs-bash determination for that VP's proof harness.
+3. Verify the L2-INDEX Subsystem Cross-Walk row for EACH affected SS-NN lists all CAPs that declare that subsystem in their capabilities.md `Subsystems:` line.
+4. Verify the L2-INDEX Document Map version annotations are consistent with the Cross-Walk.
+5. Run POLICY 14 4-index gate after all bumps.
+
+**(c) Candidate POLICY 5 sibling-sweep category (j) addition: subsystem-anchor cites across VPs-sharing-source-BC + L2-INDEX Cross-Walk/Document Map.** POLICY 5 currently mandates sibling-sweep for: function signatures, constant names, canonical identifier renames, cross-reference title/code/phrase cites (category i). This recurrence class (2 occurrences) warrants adding **category (j): subsystem-anchor changes** — when a VP scope field is corrected or a capability's Subsystems: line is modified, the sweep MUST cover ALL sibling VPs with overlapping source-BC set AND the L2-INDEX Subsystem Cross-Walk rows for ALL affected SS-NN entries. Machine-checkable: after any scope-field change in a VP file, `grep -l "source_bc: \"BC-NNN\|BC-NNN" .factory/specs/verification-properties/VP-*.md` → verify all returned VP files have correct scope; `grep "SS-NN" .factory/specs/domain-spec/L2-INDEX.md` → verify Cross-Walk row lists all capabilities.md-declared CAPs for that SS.
+
+**(d) S-18.08 gate scope extension candidate.** The S-18.08 draft story (lint/hook gate for phantom-field removal and ADR-cite sweep completeness) SHOULD be further extended to include: (i) verification that when any VP scope: field is modified, all sibling VPs in the same BC-cluster are swept in the same burst; (ii) verification that when capabilities.md Subsystems: lines change, the L2-INDEX Subsystem Cross-Walk is swept in the same burst. These are machine-checkable assertions that fit naturally in S-18.08's consistency-validator scope.
+
+**Drift Items row:** Anchor E-18 F3 — subsystem-anchor-sweep sibling-discipline gate story (S-18.08 scope extension or dedicated S-18.NNN). Implementation: consistency-validator check that VP-cluster scope changes trigger Cross-Walk audit.
+
+**Anchors:** D-584 (this burst; 2nd recurrence; F2 pass-21 NOT-CLEAN FIX BURST + SUBSYSTEM-ANCHOR-SWEEP CODIFICATION); F-P21-002 (MEDIUM; VP-081 scope mis-anchor fixed; comprehensive VP-080..086 sweep confirms sole remaining); F-P21-001 (MEDIUM; L2-INDEX Cross-Walk CAP-032 added to SS-01+SS-04; full Cross-Walk audit run); F-P16-001 (pass-16; VP-084 scope fix — occurrence 1); F-P20-001 (pass-20; Document Map fix — occurrence 1 for Cross-Walk vs Document Map); D-579 (D-579 VP-084 fix burst — stranded VP-081 sibling); D-583 (Document Map fix — stranded Cross-Walk); L-F2-sibling-sweep-tree-wide-gate (D-564; foundational sibling-sweep discipline); POLICY 5 v1.3.x sibling-sweep mandates; S-18.08 (scope extension candidate); E-18 F3 (follow-up gate story anchor).
+
+**Cites:** D-584; F-P21-001; F-P21-002; F-P16-001; F-P20-001; D-579; D-583; POLICY 5; S-18.08; S-7.02; BC-5.39.001 3-CLEAN; L-F2-sibling-sweep-tree-wide-gate (D-564); L-F2-cross-reference-title-code-sweep (D-582).
+
+**Closes:** D-584 lesson capture; subsystem-anchor-sweep gap codified as POLICY 5 category (j) extension candidate + S-18.08 gate scope extension candidate. Drift Item anchored E-18 F3. `[codified; process-gap; candidate-policy-extension]`
