@@ -136,7 +136,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | caf06c68 | rc.21 bot binary bundle commit 2026-06-13; prior: 2a191314 (rc.20) |
 | develop | 7e99f6ef | PR #186 fix a431ff47 + release.yml sync back-merge 2026-06-13; prior: 3b2a378c (D-556) |
-| factory-artifacts | 85930d2e | D-588 F2 pass-25 NOT-CLEAN fix burst 2026-06-15 (streak 0/3; BC-INDEX v2.90/VP-INDEX v2.25/ARCH-INDEX v2.44); prior: faba6fd0 D-587 pass-24 NOT-CLEAN comprehensive cleanup + field-4 canonical (B); prior-prior: 193db2a4 D-586 pass-23 CLEAN |
+| factory-artifacts | bca8cdfc | D-589 F2 pass-26 NOT-CLEAN fix burst + title-cite-parity gate upgrade 2026-06-15 (streak 0/3; BC-INDEX v2.91/VP-INDEX v2.25/ARCH-INDEX v2.44); prior: 85930d2e D-588 pass-25 NOT-CLEAN fix burst; prior-prior: faba6fd0 D-587 pass-24 NOT-CLEAN comprehensive cleanup |
 | v1.0.0-rc.21 (tag) | 03054524 | SHIPPED 2026-06-13; FULLY IN OPERATOR MARKETPLACE (marketplace PR #13 MERGED); annotated tag object |
 | v1.0.0-rc.20 (tag) | e9e38286 | SHIPPED 2026-06-01; marketplace PR #12 squash-merged 862e660d |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28 |
@@ -340,7 +340,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** `[SHA-patch pending push — run git -C .factory log -1 --format=%h after commit]` (D-589 F2 pass-26 NOT-CLEAN fix burst 2026-06-15; prior: `85930d2e` D-588 pass-25 NOT-CLEAN fix burst; prior-prior: `faba6fd0` D-587 pass-24 NOT-CLEAN comprehensive cleanup)
+- **factory-artifacts HEAD:** `bca8cdfc` (D-589 F2 pass-26 NOT-CLEAN fix burst + title-cite-parity gate upgrade 2026-06-15; prior: `85930d2e` D-588 pass-25 NOT-CLEAN fix burst; prior-prior: `faba6fd0` D-587 pass-24 NOT-CLEAN comprehensive cleanup)
 - **develop HEAD:** `7e99f6ef` (PR #186 fix + release.yml sync back-merge 2026-06-13)
 - **main HEAD:** `caf06c68` (rc.21 bot bundle commit 2026-06-13)
 - **v1.0.0-rc.21 tag:** `03054524` (SHIPPED; FULLY IN OPERATOR MARKETPLACE)
