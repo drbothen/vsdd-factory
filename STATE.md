@@ -145,7 +145,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | caf06c68 | rc.21 bot binary bundle commit 2026-06-13; prior: 2a191314 (rc.20) |
 | develop | 7e99f6ef | PR #186 fix a431ff47 + release.yml sync back-merge 2026-06-13; prior: 3b2a378c (D-556) |
-| factory-artifacts | e711d12a | D-592 F2 pass-29 CLEAN bookkeeping (streak 1/3; 3 LOWs deferred; 4-index UNCHANGED); prior: 96360b0e D-591 pass-28 NOT-CLEAN fix burst + stale-term class flush; prior-prior: 5f55628b D-590 pass-27 CLEAN bookkeeping |
+| factory-artifacts | 8b4e09d8 | D-592 F2 pass-29 CLEAN bookkeeping (streak 1/3; 3 LOWs deferred; 4-index UNCHANGED); prior: e711d12a D-591 pass-28 NOT-CLEAN fix burst + stale-term class flush; prior-prior: 96360b0e |
 | v1.0.0-rc.21 (tag) | 03054524 | SHIPPED 2026-06-13; FULLY IN OPERATOR MARKETPLACE (marketplace PR #13 MERGED); annotated tag object |
 | v1.0.0-rc.20 (tag) | e9e38286 | SHIPPED 2026-06-01; marketplace PR #12 squash-merged 862e660d |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28 |
@@ -346,7 +346,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** `e711d12a` (D-592 F2 pass-29 CLEAN bookkeeping — streak 1/3 2026-06-15; prior: `96360b0e` D-591 pass-28 NOT-CLEAN fix burst + stale-term class flush; prior-prior: `5f55628b` D-590 pass-27 CLEAN bookkeeping)
+- **factory-artifacts HEAD:** `8b4e09d8` (D-592 F2 pass-29 CLEAN bookkeeping — streak 1/3 2026-06-15; prior: `e711d12a` D-591 pass-28 NOT-CLEAN fix burst + stale-term class flush; prior-prior: `96360b0e` D-590 pass-27 CLEAN bookkeeping)
 - **develop HEAD:** `7e99f6ef` (PR #186 fix + release.yml sync back-merge 2026-06-13)
 - **main HEAD:** `caf06c68` (rc.21 bot bundle commit 2026-06-13)
 - **v1.0.0-rc.21 tag:** `03054524` (SHIPPED; FULLY IN OPERATOR MARKETPLACE)
