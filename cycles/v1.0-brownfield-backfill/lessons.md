@@ -3183,3 +3183,32 @@ Every hit must be either: (a) a historical `last_amended:` / `changelog:` / `Pri
 **Cites:** D-584; F-P21-001; F-P21-002; F-P16-001; F-P20-001; D-579; D-583; POLICY 5; S-18.08; S-7.02; BC-5.39.001 3-CLEAN; L-F2-sibling-sweep-tree-wide-gate (D-564); L-F2-cross-reference-title-code-sweep (D-582).
 
 **Closes:** D-584 lesson capture; subsystem-anchor-sweep gap codified as POLICY 5 category (j) extension candidate + S-18.08 gate scope extension candidate. Drift Item anchored E-18 F3. `[codified; process-gap; candidate-policy-extension]`
+
+---
+
+### L-F2-canonical-scope-verification
+
+**Category:** adversarial-convergence + canonical-scope-reconciliation + field-4-provenance [process-gap]
+
+**(a) When a specification describes a field that can be produced by multiple code paths (shell hook vs. WASM plugin), each code path MUST be independently scoped against the canonical definition before any fix burst declares the field "reconciled."** The field-4 provenance gap (F-P24-001/F-P24-002 MEDIUM) in F2 E-18 pass-24 arose because earlier fix bursts (D-572, D-573) over-corrected: the "no-git-exec" invariant was written as a universal prohibition (canonical option A), when the correct scope is WASM-ONLY (canonical option B). The shell hook (`precompact-flush.sh`) has always been permitted to exec `git cat-file -t SHA_B` at write time — the invariant applies to WASM reads of already-persisted log fields, not to the shell that writes them.
+
+**(b) Root-cause pattern: spec-layer invariants written in scope-imprecise language propagate through 3+ files (invariants.md, VP-082, BC-5.41.003, ADR-026) before the imprecision surfaces under adversarial review.** Once a scope-imprecise invariant is committed, every downstream artifact that cites it inherits the ambiguity. The fix requires a coordinated multi-artifact sweep across all layers that cited the ambiguous formulation:
+1. Domain invariant (invariants.md DI-022) — update to scope-precise language
+2. Verification properties (VP-082 PC-A, VP-084 if affected) — align field description
+3. Behavioral contracts (BC-5.41.003 F-8 note) — align shell vs WASM scope boundary
+4. ADR (ADR-026 Decision 6 step ordering and §VP Allocations table) — align titles and sequencing
+5. L2-INDEX Document Map — version-sync downstream citation
+
+**(c) Prevention heuristic: when authoring an invariant that constrains a field written by one agent type and read by a different agent type (e.g., shell writes / WASM reads), the invariant MUST explicitly name the scope boundary.** Pattern: `"[consumer-type] MUST NOT exec git at read time; [producer-type] MAY exec git at write time"` rather than the scope-ambiguous `"no git-exec for field-4"`. The scope boundary makes the invariant machine-checkable (grep for `git cat-file` in WASM source vs shell source separately).
+
+**(d) Canonical option (B) reconciliation as the F2 E-18 closure.** After 24 adversarial passes on E-18 / CAP-032 context-durability (GitHub issue #173), the field-4 scope boundary is now canonical: shell hook MAY exec `git cat-file -t SHA_B` at write time (or embed literal `commit` token directly; both yield `commit` token in field-4); WASM reads field-4 STATICALLY from persisted log without git-exec; v1.16 BLOCKER scope is WASM-ONLY. This closes the scope-imprecise variant (A) introduced at D-572/D-573 and propagated through 5 adversarial passes before disambiguation (F-P24-001/F-P24-002).
+
+**(e) S-7.02 Defensive Sweep Discipline applicability.** This lesson extends S-7.02 beyond count-propagation to include invariant-scope-propagation: when an invariant's scope changes (e.g., "universal no-git-exec" → "WASM-only no-git-exec"), the same defensive sweep protocol applies — grep for the old scope language across ALL artifacts that cited it, update each site, log in commit message.
+
+**Drift Items row:** Anchor E-18 F3 — canonical-scope-verification discipline gate: when authoring invariants with multi-agent-type scope boundaries (shell vs WASM, producer vs consumer), require explicit scope-boundary language; consistency-validator MAY check for ambiguous constructs ("no-git-exec" without agent-type qualifier in spec prose adjacent to precompact-flush or WASM-hook context).
+
+**Anchors:** D-587 (this burst; F2 pass-24 NOT-CLEAN COMPREHENSIVE CLEANUP; field-4 canonical (B) reconciliation); F-P24-001 (MEDIUM; VP-082 PC-A field-4 provenance ambiguity — canonical (B) confirmed); F-P24-002 (MEDIUM; ADR-026 Decision 6 step-ordering + VP Allocations table); D-572/D-573 (original over-correction introducing scope-imprecise "no-git-exec" universal formulation); BC-5.39.001 3-CLEAN streak RESET 2/3→0/3 at pass-24; S-7.02 (defensive sweep discipline); E-18 (CAP-032 context-durability; GitHub issue #173).
+
+**Cites:** D-587; F-P24-001; F-P24-002; D-572; D-573; VP-082; BC-5.41.003; ADR-026; invariants.md DI-022; S-7.02; BC-5.39.001; E-18; L-F2-subsystem-anchor-sweep (D-584; sibling sweep discipline companion lesson).
+
+**Closes:** D-587 lesson capture; canonical-scope-verification process-gap codified; field-4 (B) reconciliation anchored across invariants.md + VP-082 + BC-5.41.003 + ADR-026 + L2-INDEX. `[codified; process-gap; canonical-scope-boundary]`
