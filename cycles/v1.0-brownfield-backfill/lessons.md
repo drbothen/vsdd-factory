@@ -3127,3 +3127,28 @@ Every hit must be either: (a) a historical `last_amended:` / `changelog:` / `Pri
 **Cites:** D-572; D-571; D-569; O-P8-002; F-P11-001; F-P11-002; F-P10-001; F-P8-001; F-P7-001; D-568 (pass-7 fix); BC-4.14.001 Invariant 1; ADR-026 §Decision 9; S-7.02; S-18.08; BC-5.39.001 3-CLEAN.
 
 **Closes:** D-572 layer-propagation sweep (VP body layer closed; O-P8-002 gate extended to VP files; S-18.08 scope covers BCs + VP files); D-571 O-P8-002 escalated to MANDATORY. `[codified; escalated-to-mandatory; gate-scope-extended-to-vp-files]`
+
+---
+
+### L-F2-cross-reference-title-code-sweep
+
+**Category:** adversarial-convergence + sibling-sweep-discipline + cross-document-propagation + VSDD-process-gap [process-gap]
+
+**(a) When a spec fix changes an artifact's TITLE, ERROR-CODE, or canonical PHRASE, the fix-burst MUST grep tree-wide (.factory/specs/) for the OLD value across cross-referencing sections and sweep ALL stranded sites in the same burst.** Cross-referencing sections include: BC §VP Anchors title cites, ADR §Decision headings, §BC-Traceability tables, and §Risk rows. This class of finding has now recurred 3 times in F2 E-18 adversarial passes:
+- **Occurrence 1 (D-577, F-P14-re-sweep):** ADR-026 §Decision-2 heading retained old framing after a BC title changed; stranded cross-cite found by pass-14 consistency re-sweep.
+- **Occurrence 2 (F-P19-001, pass-19):** BC-4.14.001 and BC-5.41.001 §VP Anchors sections retained the stale VP-083 title ('and HANDOFF.md Absent') after VP-083's H1 was corrected (F-P15-004) in pass-15 fix burst. The fix burst that corrected the VP title did not grep for the OLD title string across BC §VP Anchors sections.
+- **Occurrence 3 (F-P19-002, pass-19):** ADR-026 §Decision 9 heading retained the framing 'HANDOFF.md Absent' after BC-5.41.001's error-code contract was defined in pass-18. The ADR §Decision 9 heading and §BC-Traceability + §Risk F1-R3 rows were not swept when the BC was amended.
+
+**(b) The sweep checklist for any spec fix that changes a TITLE, ERROR-CODE, or canonical PHRASE must include a dedicated cross-reference sweep as step zero of the fix burst.** Before composing the fix, grep `.factory/specs/` for the OLD value (case-insensitive) and enumerate all hits in BC §VP Anchors, ADR §Decision headings, §BC-Traceability tables, and §Risk rows. All stranded sites found MUST be corrected in the same commit as the primary fix. The cross-reference sweep checklist is:
+1. `grep -r "<OLD_TITLE_or_PHRASE>" .factory/specs/` — enumerate all cross-citing artifacts.
+2. For each hit: update the cite to the NEW canonical form.
+3. For each artifact updated: bump its version per POLICY 14 5-leg parity (version, changelog, modified[], last_amended, upstream-index row).
+4. Run POLICY 14 4-index gate after all bumps.
+
+**(c) Candidate scope extension for POLICY 5 sibling-sweep and S-18.08 gate.** POLICY 5 currently mandates sibling-sweep for: (i) function signatures, (ii) constant names, (iii) canonical identifier renames. This recurrence class (3 occurrences) warrants adding **category (i) extension: cross-reference title/code/phrase cites** — when a VP H1, BC error-code, or ADR §Decision heading is changed, the sweep MUST cover BC §VP Anchors, ADR §Decision, §BC-Traceability, and §Risk sections. Machine-checkable: `grep -r "<OLD_VALUE>" .factory/specs/` → 0 hits after fix-burst commit. S-18.08 consistency-validator gate scope SHOULD be extended to include: automated verification that when a VP title or BC error-code is amended, no BC §VP Anchors, ADR §Decision heading, or §Risk row retains the old value.
+
+**Anchors:** D-582 (this burst; 3rd occurrence; F2 pass-19 NOT-CLEAN FIX BURST + CROSS-REF-SWEEP CODIFICATION); F-P19-001 (pass-19 MED: BC-4.14.001 + BC-5.41.001 §VP Anchors stale VP-083 title cite); F-P19-002 (pass-19 MED: ADR-026 §Decision 9 BC↔ADR contradiction); D-577 (occurrence 1: ADR-026 §Decision-2 pass-14 re-sweep); L-F2-sibling-sweep-tree-wide-gate (D-564; foundational sibling-sweep discipline); POLICY 5 v1.3.x sibling-sweep mandates; S-18.08 (draft gate story; scope extension candidate); E-18 F3 (follow-up gate story anchor).
+
+**Cites:** D-582; F-P19-001; F-P19-002; D-577; POLICY 5; S-18.08; S-7.02; BC-5.39.001 3-CLEAN; L-F2-sibling-sweep-tree-wide-gate (D-564).
+
+**Closes:** D-582 lesson capture; cross-reference-title-code-sweep gap codified as POLICY 5 category (i) extension candidate + S-18.08 gate scope extension candidate. Drift Item anchored E-18 F3 (S-18.08-class gate story). `[codified; process-gap; candidate-policy-extension]`
