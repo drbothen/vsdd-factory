@@ -1,11 +1,11 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.3"
+version: "1.4"
 status: draft
 producer: product-owner
 timestamp: 2026-06-14T00:00:00Z
-last_amended: "2026-06-14 (v1.3) — F2 pass-6 fix-burst: (E-18) ADR cite convention: v1.4 version token dropped per ADR-026 §BC Traceability Cite Convention (TD-VSDD-091 anti-volatile-pin); stable §Decision anchor adopted; VP Anchors volatile-version parenthetical removed (cite-only changes). [Prior: 2026-06-14 (v1.2) — F2 pass-4 fix-burst: (F-P4-003) ADR cite v1.1→v1.4 (Decision 11 introduced v1.1, unchanged through v1.4); VP Anchors cite updated to v1.4. Cite-only change. [Prior: 2026-06-14 (v1.1) — F2 pass-1 fix-burst: (F-10) TBD-VP replaced with VP-086 (Dispatcher Exit-2 Propagation for PreCompact Block-Intent; ADR-026 v1.1 §VP Allocations). (DI) TBD-DI replaced with DI-020. ADR cite v1.0→v1.1.]"
+last_amended: "2026-06-15 (v1.4) — F-P34-001 proactive fix: dropped frozen upper-bound 'through v1.6' version token from §VP Anchors and §Traceability ADR cite; replaced with stable-anchor form 'behaviorally stable' per POLICY-19 convention (TD-VSDD-091 anti-volatile-pin; matches sibling E-18 BCs). Cite-only change. [Prior: 2026-06-14 (v1.3) — F2 pass-6 fix-burst: (E-18) ADR cite convention: v1.4 version token dropped per ADR-026 §BC Traceability Cite Convention (TD-VSDD-091 anti-volatile-pin); stable §Decision anchor adopted; VP Anchors volatile-version parenthetical removed (cite-only changes). [Prior: 2026-06-14 (v1.2) — F2 pass-4 fix-burst: (F-P4-003) ADR cite v1.1→v1.4 (Decision 11 introduced v1.1, unchanged through v1.4); VP Anchors cite updated to v1.4. Cite-only change. [Prior: 2026-06-14 (v1.1) — F2 pass-1 fix-burst: (F-10) TBD-VP replaced with VP-086 (Dispatcher Exit-2 Propagation for PreCompact Block-Intent; ADR-026 v1.1 §VP Allocations). (DI) TBD-DI replaced with DI-020. ADR cite v1.0→v1.1.]"
 phase: F2
 inputs:
   - .factory/feature-delta/issue-173/F1-delta-analysis.md
@@ -20,6 +20,7 @@ capability: "CAP-032"
 lifecycle_status: draft
 introduced: v1.0-feature-context-durability-E18
 modified:
+  - "2026-06-15 (v1.4) — F-P34-001 proactive fix: frozen upper-bound 'through v1.6' dropped from §VP Anchors and §Traceability ADR cite; replaced with 'behaviorally stable' per POLICY-19 stable-anchor convention (TD-VSDD-091). Cite-only."
   - "2026-06-14 (v1.3) — F2 pass-6 fix-burst: ADR cite convention: stable §Decision anchor (TD-VSDD-091); VP Anchors volatile-version parenthetical removed; cite-only."
   - "2026-06-14 (v1.2) — F2 pass-4 fix-burst: (F-P4-003) ADR cite v1.1→v1.4 (cite-only; Decision 11 introduced v1.1, unchanged through v1.4); VP Anchors cite v1.1→v1.4."
   - "2026-06-14 (v1.1) — F2 pass-1 fix-burst: TBD-VP replaced with VP-086 (F-10); TBD-DI replaced with DI-020; ADR cite v1.0→v1.1."
@@ -108,7 +109,7 @@ S-18.00 (verification/addition of PreCompact/PostCompact dispatcher routing — 
 
 ## VP Anchors
 
-- VP-086 — Dispatcher Exit-2 Propagation for PreCompact Block-Intent (allocated in ADR-026 §VP Allocations; introduced v1.1, behaviorally unchanged through v1.6; VP-INDEX v2.07→v2.08)
+- VP-086 — Dispatcher Exit-2 Propagation for PreCompact Block-Intent (allocated in ADR-026 §VP Allocations; introduced v1.1, behaviorally stable; VP-INDEX v2.07→v2.08)
 
 ## Verification Properties
 
@@ -124,7 +125,7 @@ S-18.00 (verification/addition of PreCompact/PostCompact dispatcher routing — 
 | Capability Anchor Justification | CAP-032 ("Guarantee lossless context-window transitions via wave-boundary checkpoint and PreCompact flush") per capabilities.md §CAP-032 — this BC specifies the dispatcher-side routing obligation that enables the PreCompact flush (precompact-flush.sh) and PostCompact re-anchor (postcompact-reanchor.sh) hooks to receive harness events; without this routing, E-18 Parts B are non-functional |
 | L2 Domain Invariants | DI-020 (Wave/phase boundary transitions must not lose load-bearing pipeline state — the dispatcher's PreCompact routing is a necessary infrastructure enabler: without routing, the flush hook cannot fire, and mid-wave compaction cannot be blocked on flush failure) |
 | Architecture Module | SS-01 (Hook Dispatcher Core) — runtime routing is in `crates/factory-dispatcher/src/invoke.rs` |
-| ADR | ADR-026 §Decision 11 (dispatcher routing verification/addition for PreCompact/PostCompact events; S-18.00; VP-086 allocated for exit-2 propagation verification — introduced v1.1, behaviorally unchanged through v1.6) |
+| ADR | ADR-026 §Decision 11 (dispatcher routing verification/addition for PreCompact/PostCompact events; S-18.00; VP-086 allocated for exit-2 propagation verification — introduced v1.1, behaviorally stable) |
 | Stories | S-18.00 |
 | Cycle | v1.0-feature-context-durability-E18 (F2) |
 | Feature | issue #173 / E-18 |
