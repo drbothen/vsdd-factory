@@ -46,7 +46,7 @@ dtu_services: []
   D-568-F2-E18-ADV-PASS-7-FIX-BURST+COMPACTION-2026-06-14 ~370 lines (wc-l; D-430(a) compaction: 35 banner entries + 11 decision rows + 12 §3 carries + 7 §4 entries archived; target; D-446(c) dual-margin form).
   D-573-F2-E18-ADV-PASS-12-CLEAN-2026-06-14 ~370 lines (wc-l; STATE.md-only burst; NO spec changes; margin 500-370=130 from hard cap; D-446(c) dual-margin form).
   D-579-F2-E18-ADV-PASS-16-NOT-CLEAN-FIX-BURST-2026-06-15 409 lines (wc-l; D-446(c) dual-margin form).
-  D-580-F2-E18-ADV-PASS-17-NOT-CLEAN-FIX-BURST-2026-06-15 ~TBD lines (wc-l; post-edit; D-446(c) dual-margin form).
+  D-580-F2-E18-ADV-PASS-17-NOT-CLEAN-FIX-BURST-2026-06-15 415 lines (wc-l; SHA-patch follow-up brings total to ~416; D-446(c) dual-margin: 500-415=85 from hard cap; D-446(c) dual-margin form).
 -->
 
 # Pipeline State: vsdd-factory
@@ -138,7 +138,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | caf06c68 | rc.21 bot binary bundle commit 2026-06-13; prior: 2a191314 (rc.20) |
 | develop | 7e99f6ef | PR #186 fix a431ff47 + release.yml sync back-merge 2026-06-13; prior: 3b2a378c (D-556) |
-| factory-artifacts | b539d941 | D-579 F2 pass-16 NOT-CLEAN fix burst 2026-06-15 (VP-082 v1.8 + VP-083 v1.5 + VP-084 v1.7 + VP-085 v1.4 + invariants.md v1.19 + VP-INDEX v2.20 + L2-INDEX v1.0.5 + STATE.md); prior: a37c0548 D-578 artifact commit |
+| factory-artifacts | 70b31e7a | D-580 F2 pass-17 NOT-CLEAN fix burst 2026-06-15 (ADR-026 v1.12 + BC-5.41.001 v1.10 + BC-INDEX v2.85 + ARCH-INDEX v2.40 + STATE.md); prior: b539d941 D-579; prior-prior: a37c0548 D-578 |
 | v1.0.0-rc.21 (tag) | 03054524 | SHIPPED 2026-06-13; FULLY IN OPERATOR MARKETPLACE (marketplace PR #13 MERGED); annotated tag object |
 | v1.0.0-rc.20 (tag) | e9e38286 | SHIPPED 2026-06-01; marketplace PR #12 squash-merged 862e660d |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28 |
@@ -360,7 +360,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** `[SHA-patch pending — D-580 commit]` (D-580 F2 pass-17 NOT-CLEAN fix burst 2026-06-15; prior: `b539d941` D-579; prior-prior: `a37c0548` D-578)
+- **factory-artifacts HEAD:** `70b31e7a` (D-580 F2 pass-17 NOT-CLEAN fix burst 2026-06-15; prior: `b539d941` D-579; prior-prior: `a37c0548` D-578)
 - **develop HEAD:** `7e99f6ef` (PR #186 fix + release.yml sync back-merge 2026-06-13)
 - **main HEAD:** `caf06c68` (rc.21 bot bundle commit 2026-06-13)
 - **v1.0.0-rc.21 tag:** `03054524` (SHIPPED; FULLY IN OPERATOR MARKETPLACE)
