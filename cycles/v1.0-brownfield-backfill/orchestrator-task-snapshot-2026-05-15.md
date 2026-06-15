@@ -8,7 +8,7 @@ phase: section-12-step-3-m1-dispatch-ready
 cycle: brownfield-backfill
 inputs:
   - .factory/STATE.md
-input-hash: "0ff8d7c"
+input-hash: "6ecf12f"
 ---
 
 # Orchestrator Task Snapshot — Session-End 2026-05-15
