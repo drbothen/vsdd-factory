@@ -132,7 +132,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | caf06c68 | rc.21 bot binary bundle commit 2026-06-13; prior: 2a191314 (rc.20) |
 | develop | 7e99f6ef | PR #186 fix a431ff47 + release.yml sync back-merge 2026-06-13; prior: 3b2a378c (D-556) |
-| factory-artifacts | [SHA-patch: see D-449(e)] | D-582 F2 pass-19 NOT-CLEAN fix burst + cross-ref-sweep codification 2026-06-15 (BC-4.14.001 v1.10 + BC-5.41.001 v1.12 + ADR-026 v1.13 + VP-081..086 domain_invariants + BC-INDEX v2.87 + VP-INDEX v2.21 + ARCH-INDEX v2.41 + lessons.md + STATE.md); prior: fa4fbb8e D-581 |
+| factory-artifacts | 152d193f | D-582 F2 pass-19 NOT-CLEAN fix burst + cross-ref-sweep codification 2026-06-15 (BC-4.14.001 v1.10 + BC-5.41.001 v1.12 + ADR-026 v1.13 + VP-081..086 domain_invariants + BC-INDEX v2.87 + VP-INDEX v2.21 + ARCH-INDEX v2.41 + lessons.md + STATE.md); prior: fa4fbb8e D-581 |
 | v1.0.0-rc.21 (tag) | 03054524 | SHIPPED 2026-06-13; FULLY IN OPERATOR MARKETPLACE (marketplace PR #13 MERGED); annotated tag object |
 | v1.0.0-rc.20 (tag) | e9e38286 | SHIPPED 2026-06-01; marketplace PR #12 squash-merged 862e660d |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28 |
@@ -332,7 +332,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** `[SHA-patch: see D-449(e)]` (D-582 F2 pass-19 NOT-CLEAN fix burst + cross-ref-sweep codification 2026-06-15; prior: `fa4fbb8e` D-581; prior-prior: `f95bbd0c` D-580)
+- **factory-artifacts HEAD:** `152d193f` (D-582 F2 pass-19 NOT-CLEAN fix burst + cross-ref-sweep codification 2026-06-15; prior: `fa4fbb8e` D-581; prior-prior: `f95bbd0c` D-580)
 - **develop HEAD:** `7e99f6ef` (PR #186 fix + release.yml sync back-merge 2026-06-13)
 - **main HEAD:** `caf06c68` (rc.21 bot bundle commit 2026-06-13)
 - **v1.0.0-rc.21 tag:** `03054524` (SHIPPED; FULLY IN OPERATOR MARKETPLACE)
