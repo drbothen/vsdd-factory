@@ -1,11 +1,11 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.6"
+version: "1.7"
 status: draft
 producer: product-owner
-timestamp: 2026-06-14T00:00:00Z
-last_amended: "2026-06-14 (v1.6) — F2 pass-6 fix-burst: (E-18) ADR cite convention: v1.4 version token dropped per ADR-026 §BC Traceability Cite Convention (TD-VSDD-091 anti-volatile-pin); stable §Decision anchor adopted (cite-only change). [Prior: 2026-06-14 (v1.4) — F2 pass-4 fix-burst: (F-P4-003) ADR cite v1.3→v1.4 (cite-only). [Prior: 2026-06-14 (v1.3) — F2 pass-3 fix-burst: ADR cite v1.1→v1.3. [Prior: 2026-06-14 (v1.2) — F2 pass-2 fix-burst: (F-P2-002/009) PC1 stdout template: `wave=<current_wave>` → `context=<current_cycle>/<current_step>` (no phantom current_wave: field; hook derives from STATE.md current_cycle: + current_step:). Inv 2: `current_wave`, `current_step`, `last_verified_develop_sha` → `current_cycle:`, `current_step:`, `last_verified_develop_sha`; explicit statement that current_wave: does not exist. EC-003: `current_wave field absent` → `current_cycle: or current_step: absent`; emit `context=UNKNOWN`. Test vector updated to new stdout format. [Prior: 2026-06-14 (v1.1) — F2 pass-1 fix-burst: (F-6) Best-effort status made explicit in §Description and §Invariants; NOT in CAP-032 continuity-guarantee chain. (F-13 POLICY 7) H1 title corrected: 'reads compaction summary' removed from H1 because PC7 makes it optional; H1 now accurately describes what postconditions specify. (DI) TBD-DI replaced with DI-024. TBD-VP retained with justification.]"
+timestamp: 2026-06-15T00:00:00Z
+last_amended: "2026-06-15 (v1.7) — pass-20 fix-burst: (F-P20-003) PC2 log schema: `wave_id` replaced with `current_cycle`; clarified that log schema derives from same STATE.md frontmatter source as PC1 stdout; no `wave_id` field exists because hook has no source for wave-ordinal data (internal PC consistency fix). [Prior: 2026-06-14 (v1.6) — F2 pass-6 fix-burst: (E-18) ADR cite convention: v1.4 version token dropped per ADR-026 §BC Traceability Cite Convention (TD-VSDD-091 anti-volatile-pin); stable §Decision anchor adopted (cite-only change). [Prior: 2026-06-14 (v1.4) — F2 pass-4 fix-burst: (F-P4-003) ADR cite v1.3→v1.4 (cite-only). [Prior: 2026-06-14 (v1.3) — F2 pass-3 fix-burst: ADR cite v1.1→v1.3. [Prior: 2026-06-14 (v1.2) — F2 pass-2 fix-burst: (F-P2-002/009) PC1 stdout template: `wave=<current_wave>` → `context=<current_cycle>/<current_step>` (no phantom current_wave: field; hook derives from STATE.md current_cycle: + current_step:). Inv 2: `current_wave`, `current_step`, `last_verified_develop_sha` → `current_cycle:`, `current_step:`, `last_verified_develop_sha`; explicit statement that current_wave: does not exist. EC-003: `current_wave field absent` → `current_cycle: or current_step: absent`; emit `context=UNKNOWN`. Test vector updated to new stdout format. [Prior: 2026-06-14 (v1.1) — F2 pass-1 fix-burst: (F-6) Best-effort status made explicit in §Description and §Invariants; NOT in CAP-032 continuity-guarantee chain. (F-13 POLICY 7) H1 title corrected: 'reads compaction summary' removed from H1 because PC7 makes it optional; H1 now accurately describes what postconditions specify. (DI) TBD-DI replaced with DI-024. TBD-VP retained with justification.]"
 phase: F2
 inputs:
   - .factory/feature-delta/issue-173/F1-delta-analysis.md
@@ -19,6 +19,7 @@ capability: "CAP-032"
 lifecycle_status: draft
 introduced: v1.0-feature-context-durability-E18
 modified:
+  - "2026-06-15 (v1.7) — pass-20 fix-burst: (F-P20-003) PC2 log schema: wave_id → current_cycle; internal PC consistency fix."
   - "2026-06-14 (v1.6) — F2 pass-6 fix-burst: ADR cite convention: stable §Decision anchor (TD-VSDD-091); cite-only."
   - "2026-06-14 (v1.4) — F2 pass-4 fix-burst: (F-P4-003) ADR cite v1.3→v1.4 (cite-only)."
   - "2026-06-14 (v1.3) — F2 pass-3 fix-burst: ADR cite v1.1→v1.3."
@@ -68,7 +69,7 @@ removal_reason: null
    ```
    The values are read from `factory-artifacts` STATE.md via `git show factory-artifacts:.factory/STATE.md`, NOT from in-context knowledge. Wave identity is derived — not stored as a `current_wave:` field. The hook emits `current_cycle:` and `current_step:` from STATE.md frontmatter; the human can derive the wave/pass ordinal from `current_step:` if needed.
 
-2. **Log written to .factory/logs/**: The hook appends a structured log entry to `.factory/logs/postcompact-reanchor-YYYY-MM-DD.jsonl` (same daily-file pattern as the dispatcher internal log) with fields: `event`, `wave_id`, `current_step`, `last_verified_develop_sha`, `timestamp`, `status` ("ok" or "warn").
+2. **Log written to .factory/logs/**: The hook appends a structured log entry to `.factory/logs/postcompact-reanchor-YYYY-MM-DD.jsonl` (same daily-file pattern as the dispatcher internal log) with fields: `event`, `current_cycle`, `current_step`, `last_verified_develop_sha`, `timestamp`, `status` ("ok" or "warn"). `current_cycle` and `current_step` are read directly from STATE.md frontmatter (same source as PC1's stdout output); there is no `wave_id` field because the hook has no defined source for wave-ordinal data.
 
 3. **Cannot block compaction**: The hook's exit code is ignored by the harness for blocking purposes. PostCompact is advisory-only in the Claude Code harness. The hook MUST NOT rely on exit-code semantics for any correctness guarantee.
 
