@@ -135,7 +135,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | caf06c68 | rc.21 bot binary bundle commit 2026-06-13; prior: 2a191314 (rc.20) |
 | develop | 7e99f6ef | PR #186 fix a431ff47 + release.yml sync back-merge 2026-06-13; prior: 3b2a378c (D-556) |
-| factory-artifacts | c696e796 | D-578 F2 pass-15 NOT-CLEAN fix burst 2026-06-15 (VP-082 v1.7 + ADR-026 v1.11 + VP-081 v1.4 + VP-083 v1.4 + VP-INDEX v2.19 + ARCH-INDEX v2.39 + STATE.md); prior: 5a9bb36e D-578-parent (≡D-577 artifact commit) |
+| factory-artifacts | b539d941 | D-579 F2 pass-16 NOT-CLEAN fix burst 2026-06-15 (VP-082 v1.8 + VP-083 v1.5 + VP-084 v1.7 + VP-085 v1.4 + invariants.md v1.19 + VP-INDEX v2.20 + L2-INDEX v1.0.5 + STATE.md); prior: a37c0548 D-578 artifact commit |
 | v1.0.0-rc.21 (tag) | 03054524 | SHIPPED 2026-06-13; FULLY IN OPERATOR MARKETPLACE (marketplace PR #13 MERGED); annotated tag object |
 | v1.0.0-rc.20 (tag) | e9e38286 | SHIPPED 2026-06-01; marketplace PR #12 squash-merged 862e660d |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28 |
@@ -355,7 +355,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** (D-579 F2 pass-16 NOT-CLEAN fix burst 2026-06-15; prior: `a37c0548` D-579-parent ≡ D-578 artifact commit `c696e796`; prior-prior: `5a9bb36e` D-577)
+- **factory-artifacts HEAD:** `b539d941` (D-579 F2 pass-16 NOT-CLEAN fix burst 2026-06-15; prior: `a37c0548` D-578 artifact commit; prior-prior: `5a9bb36e` D-577)
 - **develop HEAD:** `7e99f6ef` (PR #186 fix + release.yml sync back-merge 2026-06-13)
 - **main HEAD:** `caf06c68` (rc.21 bot bundle commit 2026-06-13)
 - **v1.0.0-rc.21 tag:** `03054524` (SHIPPED; FULLY IN OPERATOR MARKETPLACE)
