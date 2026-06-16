@@ -361,7 +361,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 - **VP-082 v1.12:** `verification-properties/VP-082.md` (D-588 F-P25-004 LOW; UNCHANGED at D-597)
 - **VP-084 v1.9:** `verification-properties/VP-084.md` (D-587 F-P24-003 LOW; UNCHANGED at D-597)
 - **VP-081 v1.7:** `verification-properties/VP-081.md` (D-602 F-P39-001 MED: PC-A HandoffMissing mis-attribution corrected — now explicitly SHELL wave-gate (BC-5.41.001 PC9); WASM NEVER emits HandoffMissing (BC-4.14.001 EC-011); exhaustive grep 41 hits VP-081 PC-A sole defective site; prior v1.6: F-P21-002 MED subsystem mis-anchor)
-- **L2-INDEX v1.0.12:** `specs/domain-spec/L2-INDEX.md` (D-607: Document Map invariants.md v1.21→v1.22 + changelog row; prior v1.0.11: D-603 F-P40-001 MED)
+- **L2-INDEX v1.0.13:** `specs/domain-spec/L2-INDEX.md` (D-616: Document Map invariants.md v1.22→v1.25; prior v1.0.12: D-607 Document Map invariants.md v1.21→v1.22)
 - **invariants.md v1.23:** `domain-spec/invariants.md` (D-612: DI-020 Cited-by += VP-091 per POLICY 2 bidirectional; prior v1.22 D-607: DI-023/024/025 Cited-by complete through VP-090)
 - **VP-081..090 domain_invariants populated:** VP-081 [DI-020,DI-021,DI-023]; VP-082 [DI-021,DI-022,DI-025]; VP-083 [DI-020]; VP-084 [DI-020,DI-025]; VP-085 [DI-021,DI-022,DI-025]; VP-086 [DI-020]; VP-087 [DI-023]; VP-088 [DI-023]; VP-089 [DI-024]; VP-090 [DI-025]
 - **capabilities.md v1.7:** `domain-spec/capabilities.md` (UNCHANGED at D-597)
@@ -371,7 +371,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 ### §10. PR Status
 
-- **0 open feature PRs. 0 open release PRs. 0 open marketplace PRs. rc.21 100% COMPLETE. E-18 F2 FULLY COMPLETE (D-610). E-18 F3 STORY REGISTRATION COMPLETE (D-614; STORY-INDEX v4.02). D-615 FIX WAVE INTEGRATION COMPLETE (STORY-INDEX v4.03; 120 stories). POSTURE: story adversarial 3-CLEAN cascade + consistency audit NEXT, then story-approval human gate.**
+- **0 open feature PRs. 0 open release PRs. 0 open marketplace PRs. rc.21 100% COMPLETE. E-18 F2 FULLY COMPLETE (D-610). E-18 F3 STORY REGISTRATION + PASS-1+PASS-2 FIX WAVES COMPLETE (D-614..D-616; STORY-INDEX v4.04; 120 stories). POSTURE: story adversarial 3-CLEAN cascade + consistency audit NEXT, then story-approval human gate. Tool-fix PR fix/compute-input-hash-multi-input-awk → develop PENDING.**
 - **marketplace PR drbothen/claude-mp #13 MERGED** 2026-06-13 — rc.21 FULLY SHIPPED.
 - **RELEASING.md Step 9 VERIFIED (D-560):** operator cache 1.0.0-rc.21 confirmed (plugin.json + 132 entries). rc.21 end-to-end CLOSED.
 
