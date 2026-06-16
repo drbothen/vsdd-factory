@@ -341,7 +341,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** TBD-D615-SHA (D-615 STORY PASS-1 FIX WAVE INTEGRATION 2026-06-16; prior: `c317da86` D-614 F3 STORY REGISTRATION; prior-prior: `164a3778` D-613)
+- **factory-artifacts HEAD:** `9d8f2d22` (D-615 STORY PASS-1 FIX WAVE INTEGRATION 2026-06-16; prior: `c317da86` D-614 F3 STORY REGISTRATION; prior-prior: `164a3778` D-613)
 - **develop HEAD:** `7e99f6ef` (PR #186 fix + release.yml sync back-merge 2026-06-13)
 - **main HEAD:** `caf06c68` (rc.21 bot bundle commit 2026-06-13)
 - **v1.0.0-rc.21 tag:** `03054524` (SHIPPED; FULLY IN OPERATOR MARKETPLACE)
@@ -376,7 +376,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 - **capabilities.md v1.7:** `domain-spec/capabilities.md` (UNCHANGED at D-597)
 - **ADR-025 v1.6 SHIPPED:** guard at `3b2a378c`; ARCH-INDEX v2.27
 - **S-17.04 story:** `.factory/stories/S-17.04-mid-burst-heartbeat-renewal-wiring.md` v1.7 MERGED; E-17 W4 COMPLETE; PR #184 3b2a378c
-- **Verify on resume:** `git rev-parse --short origin/develop` → expect `7e99f6ef`; `git rev-parse --short origin/main` → expect `caf06c68`; `git -C .factory log -1 --format='%h'` → expect TBD-D615-SHA (D-615 STORY PASS-1 FIX WAVE INTEGRATION HEAD after SHA-patch)
+- **Verify on resume:** `git rev-parse --short origin/develop` → expect `7e99f6ef`; `git rev-parse --short origin/main` → expect `caf06c68`; `git -C .factory log -1 --format='%h'` → expect `9d8f2d22` (D-615 STORY PASS-1 FIX WAVE INTEGRATION HEAD)
 
 ### §10. PR Status
 
