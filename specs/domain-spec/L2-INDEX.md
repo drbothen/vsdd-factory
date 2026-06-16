@@ -1,11 +1,11 @@
 ---
 document_type: domain-spec-index
 level: L2
-version: "1.0.10"
+version: "1.0.11"
 status: accepted
 producer: business-analyst
-timestamp: 2026-06-15T23:00:00Z
-last_amended: 2026-06-15 (v1.0.10) — D-600 F2 E-18 ADV PASS-37 NOT-CLEAN FIX BURST: F-P37-002 MED corrected v1.0.9 changelog mislabel DI-022→DI-025 + F-P24-001→F-P24-002 (invariants.md v1.20 change was to DI-025 field-4 enforcement-owner clause; F-P24-002 was that finding); prior: 2026-06-15 (v1.0.9); prior: 2026-06-15 (v1.0.8)
+timestamp: 2026-06-15T23:59:59Z
+last_amended: 2026-06-15 (v1.0.11) — D-603 F2 E-18 ADV PASS-40 NOT-CLEAN FIX BURST 2026-06-15: F-P40-001 MED (POLICY 2) invariants.md v1.20→v1.21 — added `Cited by: VP-NNN` back-refs to DI-020..025 (DI-019 precedent; VP→DI forward arrays existed but DI→VP reverse not propagated at F-P19-003); completes bidirectional DI↔VP. Document Map updated invariants.md v1.20→v1.21. (O-P40-001 LOW) preamble corrected — CAP-032 DIs trace to Source capability+ADR, not BR-NN. Refs: F-P40-001, O-P40-001, D-603, E-18, issue-173. [Prior: 2026-06-15 (v1.0.10) — D-600 F2 E-18 ADV PASS-37 NOT-CLEAN FIX BURST: F-P37-002 MED corrected v1.0.9 changelog mislabel DI-022→DI-025 + F-P24-001→F-P24-002 (invariants.md v1.20 change was to DI-025 field-4 enforcement-owner clause; F-P24-002 was that finding); prior: 2026-06-15 (v1.0.9); prior: 2026-06-15 (v1.0.8)]
 phase: 1.3
 inputs:
   - .factory/phase-0-ingestion/pass-8-final-synthesis.md
@@ -50,7 +50,7 @@ workflow management driven by LLM agents.
 | Capabilities | capabilities.md v1.7 | ~1,200 | product-owner, architect, story-writer | CAP-001..CAP-032 user-facing capability catalog with SS-NN traceability |
 | Edge Cases | edge-cases.md | ~900 | story-writer, test-writer | DEC-001..DEC-018 domain-level exception flows |
 | Domain Events | domain-events.md | ~1,100 | architect, test-writer | DE-001..DE-022 event catalog with producer/consumer/schema |
-| Invariants | invariants.md v1.20 | ~1,400 | product-owner, architect | DI-001..DI-025 domain invariants with SS-NN enforcement owner |
+| Invariants | invariants.md v1.21 | ~1,400 | product-owner, architect | DI-001..DI-025 domain invariants with SS-NN enforcement owner and `Cited by: VP-NNN` back-refs |
 | Glossary | glossary.md | ~800 | all agents | 22 canonical domain terms for ubiquitous language |
 
 ## Cross-References
@@ -101,6 +101,7 @@ workflow management driven by LLM agents.
 
 | Version | Date | Author | Notes |
 |---------|------|--------|-------|
+| 1.0.11 | 2026-06-15 | state-manager | D-603 F2 E-18 ADV PASS-40 NOT-CLEAN FIX BURST 2026-06-15: (F-P40-001 MED, POLICY 2) invariants.md v1.20→v1.21 — added `Cited by: VP-NNN` back-refs to DI-020..025 completing bidirectional DI↔VP traceability (DI-019 precedent existed; VP→DI forward arrays pre-existing; DI→VP reverse was missing). Mapping: DI-020←VP-081/083/084/086, DI-021←VP-081/082/085, DI-022←VP-082/085, DI-023←VP-081, DI-024←VP-deferred-F3-S-18.05, DI-025←VP-082/084/085. Document Map updated invariants.md v1.20→v1.21. (O-P40-001 LOW) invariants.md preamble corrected — CAP-032 DIs (DI-020..025) trace to Source capability+ADR, not BR-NN business rule. (O-P40-002 LOW) BC-7.07.001 v1.3 changelog superseded-description: NO action — append-only historical record. 4-index UNCHANGED (BC-INDEX v2.99 / VP-INDEX v2.29 / STORY-INDEX v4.01 / ARCH-INDEX v2.47). Refs: F-P40-001, O-P40-001, O-P40-002, D-603, E-18, issue-173. |
 | 1.0.10 | 2026-06-15 | state-manager | D-600 F2 E-18 ADV PASS-37 NOT-CLEAN FIX BURST: F-P37-002 MED — corrected v1.0.9 changelog row mislabel: DI-022→DI-025 and F-P24-001→F-P24-002. The invariants.md v1.20 change was to DI-025 (the field-4/git-cat-file enforcement-owner clause); DI-022 is the hermetic-flush invariant (unrelated). F-P24-002 was the finding that covered the DI-025 field-4 canonical (B) enforcement-owner clause; F-P24-001 was the VP-082 PC-A fix. Refs: F-P37-002, D-600, E-18, issue-173. |
 | 1.0.9 | 2026-06-15 | state-manager | D-587 F2 E-18 ADV PASS-24 NOT-CLEAN COMPREHENSIVE CLEANUP: invariants.md bumped v1.19→v1.20 (DI-025 field-4 canonical (B) reconciliation — shell hook MAY exec `git cat-file -t SHA_B` at write time or embed literal `commit`; WASM reads field-4 STATICALLY from persisted log). Document Map updated invariants.md v1.19→v1.20. Refs: F-P24-002, D-587. |
 | 1.0.8 | 2026-06-15 | state-manager | D-584 F2 E-18 ADV PASS-21 NOT-CLEAN FIX BURST + SUBSYSTEM-ANCHOR-SWEEP CODIFICATION: (F-P21-001 MED) Subsystem Cross-Walk full audit — CAP-032 added to SS-01 and SS-04 rows (capabilities.md declares SS-01, SS-04, SS-05, SS-06, SS-07; Cross-Walk previously only had SS-05, SS-06, SS-07). Comprehensive Cross-Walk audit run vs capabilities.md Subsystems: lines for all 32 CAPs. Additional drift found and fixed: SS-01 row: CAP-001 removed (not in capabilities.md SS-01 set), CAP-003/CAP-013/CAP-023/CAP-024/CAP-029/CAP-030/CAP-032 added. SS-03 row: CAP-029/CAP-030 added (both declare SS-03). SS-04 row: CAP-022/CAP-031/CAP-032 added. SS-05 row: CAP-031 added. SS-06 row: CAP-023/CAP-024 removed (not in capabilities.md SS-06 set for either), CAP-007/CAP-031 added. SS-10 row: CAP-017/CAP-024 added (both declare SS-10). L2-INDEX v1.0.7→v1.0.8. Refs: F-P21-001, D-584, E-18, issue-173. |
