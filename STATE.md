@@ -129,7 +129,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | caf06c68 | rc.21 bot binary bundle commit 2026-06-13; prior: 2a191314 (rc.20) |
 | develop | 7e99f6ef | PR #186 fix a431ff47 + release.yml sync back-merge 2026-06-13; prior: 3b2a378c (D-556) |
-| factory-artifacts | 49ac4355 | D-609 E-18 CONFIRMING-PASS FIX BURST 2026-06-16; BC-7.07.001 v1.12; VP-087/090 v1.2; BC-INDEX v3.01; VP-INDEX v2.32; prior: 75138dbb D-608 SHA-patch |
+| factory-artifacts | b48c526e | D-610 E-18 F2 FULLY COMPLETE / L-F2-no-bypass-on-edit-failure codified 2026-06-16; prior: 9a23df77 D-609 SHA-patch; prior-prior: 49ac4355 D-609 CONFIRMING-PASS FIX BURST |
 | v1.0.0-rc.21 (tag) | 03054524 | SHIPPED 2026-06-13; FULLY IN OPERATOR MARKETPLACE (marketplace PR #13 MERGED); annotated tag object |
 | v1.0.0-rc.20 (tag) | e9e38286 | SHIPPED 2026-06-01; marketplace PR #12 squash-merged 862e660d |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28 |
@@ -326,7 +326,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** `[D-610-SHA-TBD]` (D-610 E-18 F2 FULLY COMPLETE / L-F2-no-bypass-on-edit-failure codified 2026-06-16; prior: `9a23df77` D-609 SHA-patch; prior-prior: `49ac4355` D-609 E-18 CONFIRMING-PASS FIX BURST)
+- **factory-artifacts HEAD:** `b48c526e` (D-610 E-18 F2 FULLY COMPLETE / L-F2-no-bypass-on-edit-failure codified 2026-06-16; prior: `9a23df77` D-609 SHA-patch; prior-prior: `49ac4355` D-609 E-18 CONFIRMING-PASS FIX BURST)
 - **develop HEAD:** `7e99f6ef` (PR #186 fix + release.yml sync back-merge 2026-06-13)
 - **main HEAD:** `caf06c68` (rc.21 bot bundle commit 2026-06-13)
 - **v1.0.0-rc.21 tag:** `03054524` (SHIPPED; FULLY IN OPERATOR MARKETPLACE)
@@ -356,7 +356,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 - **capabilities.md v1.7:** `domain-spec/capabilities.md` (UNCHANGED at D-597)
 - **ADR-025 v1.6 SHIPPED:** guard at `3b2a378c`; ARCH-INDEX v2.27
 - **S-17.04 story:** `.factory/stories/S-17.04-mid-burst-heartbeat-renewal-wiring.md` v1.7 MERGED; E-17 W4 COMPLETE; PR #184 3b2a378c
-- **Verify on resume:** `git rev-parse --short origin/develop` → expect `7e99f6ef`; `git rev-parse --short origin/main` → expect `caf06c68`; `git -C .factory log -1 --format='%h'` → expect D-610 SHA (post SHA-patch commit)
+- **Verify on resume:** `git rev-parse --short origin/develop` → expect `7e99f6ef`; `git rev-parse --short origin/main` → expect `caf06c68`; `git -C .factory log -1 --format='%h'` → expect `[D-610-sha-patch-SHA]` (SHA-patch HEAD)
 
 ### §10. PR Status
 
