@@ -1,18 +1,18 @@
 ---
 document_type: pipeline-state
 level: ops
-version: "3.54"
+version: "3.55"
 status: draft
 producer: state-manager
 timestamp: 2026-06-15T23:59:59Z
-phase: D-604-F2-E18-PASS-41-CLEAN-STREAK-1-3-2026-06-15
-last_amended: 2026-06-15 (v3.54) — D-604 F2 E-18 ADV PASS-41 CLEAN (ZERO FINDINGS) — STREAK 1/3 2026-06-15. Fresh-context adversary pass-41 returned CLEAN with ZERO findings of ANY severity (0 BLOCKER, 0 MAJOR, 0 MEDIUM, 0 LOW, 0 mis-anchor, 0 process-gap) — first zero-findings pass of the entire cascade. Adversary verified ALL behavioral + structural-parity axes including new DI↔VP bidirectional back-refs; declared convergence. 3-CLEAN streak 0/3→1/3 per BC-5.39.001. NOTHING to fix/defer. Package FROZEN (human-directed). 4-index UNCHANGED: BC-INDEX v2.99 / VP-INDEX v2.29 / STORY-INDEX v4.01 / ARCH-INDEX v2.47; L2-INDEX v1.0.11. Trajectory →P39 NOT-CLEAN(RESET)→P40 NOT-CLEAN→P41 CLEAN-ZERO-FINDINGS(1/3). NEXT: adversary pass-42. D-chain cite D-603 per D-419(b); parent-commit 81f240e4 per D-419(b). [Prior: 2026-06-15 (v3.53) — D-603 F2 E-18 ADV PASS-40 NOT-CLEAN FIX BURST. See decision-log.md SoT.]
+phase: D-605-F2-E18-PASS-42-CLEAN-STREAK-2-3-2026-06-15
+last_amended: 2026-06-15 (v3.55) — D-605 F2 E-18 ADV PASS-42 CLEAN — STREAK 2/3 2026-06-15. Fresh-context adversary pass-42 returned CLEAN: 0 BLOCKER, 0 MAJOR, 0 load-bearing MEDIUM, 0 mis-anchor. 2 LOW observations adjudicated NON-DEFECTS: O-1 DI-025 '(as of v1.6)' parenthetical POLICY-19-compliant non-load-bearing informational addendum (NOT fixed: de-versioning unnecessary, policy expressly permits it); O-2 capabilities.md 28-CAP subsystem-drift sweep OUT of E-18 perimeter (CAP-032 row clean; cross-ref pre-existing engine-wide item). 3-CLEAN streak 1/3→2/3 per BC-5.39.001. NO spec changes; 4-index UNCHANGED (BC v2.99/VP v2.29/STORY v4.01/ARCH v2.47; L2-INDEX v1.0.11). D-chain cite D-604 per D-419(b); parent-commit 88993db1 per D-419(b). [Prior: 2026-06-15 (v3.54) — D-604 F2 E-18 ADV PASS-41 CLEAN (ZERO FINDINGS) — STREAK 1/3 2026-06-15. See decision-log.md SoT.]
 inputs: []
 input-hash: "[live-state]"
 traces_to: prd.md
 project: vsdd-factory
 mode: brownfield
-"D-604 F2 E-18 ADV PASS-41 CLEAN (ZERO FINDINGS) — STREAK 1/3 2026-06-15 — Fresh-context adversary pass-41 returned CLEAN with ZERO findings of ANY severity (0 BLOCKER, 0 MAJOR, 0 MEDIUM, 0 LOW, 0 mis-anchor, 0 process-gap) — the cleanest pass of the cascade and first zero-findings pass. Adversary independently re-derived ALL behavioral axes (PC7 scalar/list, payload-only EPIC-COMPLETE derivation, 5-step eval order, field-4 canonical-B, wave-agnostic three-state null rule, HandoffMissing/HandoffIncomplete disjoint, commit→append→push + SHA-pinned concurrent-commit guard) AND ALL structural-parity axes (8 BC H1↔INDEX titles, subsystem anchoring, VP scope unions, NEW bidirectional DI↔VP back-refs vs forward domain_invariants arrays, VP-INDEX arithmetic, L2-INDEX/capabilities/4-index quad) and found no contradiction, gap, mis-anchor, or policy violation; declared convergence. NOTHING to fix/defer. 3-CLEAN streak 0/3→1/3 per BC-5.39.001. NO spec changes; 4-index UNCHANGED (BC-INDEX v2.99/VP-INDEX v2.29/STORY-INDEX v4.01/ARCH-INDEX v2.47; L2-INDEX v1.0.11). Trajectory →P39 NOT-CLEAN(RESET)→P40 NOT-CLEAN→P41 CLEAN-ZERO-FINDINGS(1/3). NEXT: adversary pass-42 (fresh-context; SAME frozen package; need 2 more consecutive CLEAN for convergence → F2 human gate → F3). D-chain cite D-603 per D-419(b); parent-commit 81f240e4 per D-419(b)."
+"D-605 F2 E-18 ADV PASS-42 CLEAN — STREAK 2/3 2026-06-15 — Fresh-context adversary pass-42 returned CLEAN: 0 BLOCKER, 0 MAJOR, 0 load-bearing MEDIUM, 0 mis-anchor. 2 LOW observations adjudicated NON-DEFECTS: O-1 (DI-025 '(as of v1.6)' parenthetical — POLICY-19-compliant non-load-bearing informational addendum, NOT fixed: de-versioning unnecessary, policy expressly permits it); O-2 (capabilities.md 28-CAP subsystem-drift sweep — OUT of E-18 perimeter; CAP-032 row clean; cross-ref to pre-existing engine-wide CAP/BC-INDEX-count drift tracking, NOT E-18 F2 scope). All behavioral + structural-parity axes re-verified consistent (2nd consecutive clean on frozen package). 3-CLEAN streak 1/3→2/3 per BC-5.39.001. NO spec changes; 4-index UNCHANGED (BC v2.99/VP v2.29/STORY v4.01/ARCH v2.47; L2-INDEX v1.0.11). Trajectory →P40 NOT-CLEAN→P41 CLEAN-ZERO-FINDINGS(1/3)→P42 CLEAN(2/3). NEXT: adversary pass-43 (fresh-context; SAME frozen package; CLEAN → 3/3 = F2 CONVERGED → pre-gate adjudication of O-1/O-2 → F2 human-approval gate → F3 story decomposition S-18.00..S-18.07+S-18.08). D-chain cite D-604 per D-419(b); parent-commit 88993db1 per D-419(b)."
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -36,25 +36,12 @@ dtu_services: []
   D-594 (2026-06-15): 1 PP + 1 Dec + 1 §4 entry + 7 Drift rows CLEARED. SoT: git show 9361bcaf:.factory/STATE.md.
   D-595 (2026-06-15): 1 PP + 1 Dec + 1 §4 entry. SoT: git show 8ae759dd:.factory/STATE.md.
 
-  D-430(a) compaction (D-596 burst 2026-06-15):
-  Phase Progress D-595 (1 row) collapsed to range-reference per D-430(a).
-  Decisions Log D-595 (1 row) archived to range-reference (decision-log.md SoT) per D-430(a).
-  §4 Tier-A Completed Log D-595 (1 entry) archived; kept D-596.
-  Banner history D-532..D-595 collapsed to 8-line summary (this burst) per D-430(a).
-  All content preserved via: git show a46b67af:.factory/STATE.md (pre-compaction D-595 state).
-
-  D-596-F2-E18-ADV-PASS-33-NOT-CLEAN-FIX-BURST-COMPACTION-2026-06-15 ~395 lines (wc-l; D-430(a): 1 Phase Progress row D-595 + 1 Decisions row D-595 + 1 §4 entry D-595 archived; +1 Phase Progress row D-596 + D-596 Decisions Log row + §3 D-596 carry + §4 D-596+D-595-archived entries + §1/§5/§8/§9/§10/§11/§12/checkpoint full refresh; D-446(c) dual-margin: 500-395=105 from hard cap; D-446(c) dual-margin form).
-
-  D-598-F2-E18-ADV-PASS-35-NOT-CLEAN-FIX-BURST-2026-06-15 ~421 lines pre-compaction (wc-l; D-430(a): Phase Progress D-597 row archived (content now in range-reference pointing git show 58a1cfe0); Decisions Log D-597 row archived to decision-log.md SoT; §4 D-597 entry archived; +1 Phase Progress D-598 row + D-598 Decisions Log row + §3 D-598 carry + §4 D-598 entry + §1/§5/§6/§8/§9/§10/§11/§12/checkpoint full refresh + 4 new Drift rows; D-446(c) dual-margin: 500-421=79 from hard cap).
-
-  D-599-F2-E18-ADV-PASS-36-NOT-CLEAN-FIX-BURST-COMPACTION-2026-06-15 ~390 lines post-compaction (wc-l; D-430(a): Phase Progress D-598 row archived (content now in range-reference); Decisions Log D-598 row archived to decision-log.md SoT; §4 D-598 entry archived; +1 Phase Progress D-599 row + D-599 Decisions Log row + §3 D-599 carry + §4 D-599 entry + §1/§5/§6/§8/§9/§10/§11/§12/checkpoint full refresh; D-446(c) dual-margin: 500-390=110 from hard cap).
-  D-600-F2-E18-ADV-PASS-37-NOT-CLEAN-FIX-BURST-2026-06-15 ~430 lines post-update (wc-l; D-430(a): Phase Progress D-599 row archived (range-reference git show b1c2b7e0); Decisions Log D-599 row archived; §4 D-599 entry archived; +D-600 Phase Progress row + D-600 Decisions Log row + §3 D-600 carry + §4 D-600 entry + 3 new Drift rows (F-P37-001/002/003) + §1/§5/§6/§8/§9/§10/§11/§12/checkpoint full refresh; D-446(c) dual-margin: 500-430=70 from hard cap).
-
-  D-601-F2-E18-ADV-PASS-38-CLEAN-STREAK-1-3-2026-06-15 ~405 lines post-compaction (wc-l; D-430(a): Phase Progress D-600 row archived (range-reference git show 2cdc70c7); Decisions Log D-600 row archived + D-598-archived/D-597-archived rows collapsed to range-reference; §4 D-600 entry archived; +D-601 Phase Progress row + D-601 Decisions Log row + §4 D-601 entry + §1/§5/§6/§8/§9/§10/§11/§12/checkpoint full refresh; L-F2-index-quad-cite-reflects-last-bump convention note appended to lessons.md; D-446(c) dual-margin: 500-405=95 from hard cap).
-
-  D-603-F2-E18-ADV-PASS-40-NOT-CLEAN-FIX-BURST-2026-06-15 (wc-l; D-430(a): Phase Progress D-601+D-602 rows collapsed to range-reference (content at git show c53b42a1:.factory/STATE.md); Decisions Log D-600..D-602 rows collapsed to range-reference; §4 D-600..D-602 entries collapsed; +D-603 Phase Progress row + D-603 Decisions Log row + §4 D-603 entry + §1/§5/§6/§8/§9/§10/§11/§12/checkpoint full refresh; invariants.md v1.21 + L2-INDEX v1.0.11; D-446(c) dual-margin).
+  D-430(a) compaction history D-596..D-603 COLLAPSED to range-reference 2026-06-15 D-605:
+  D-596 ~395 lines (git show a46b67af); D-598 ~421 lines (git show 58a1cfe0→archived); D-599 ~390 lines (git show b1c2b7e0); D-600 ~430 lines (git show 2cdc70c7); D-601 ~405 lines; D-603 (git show c53b42a1). Full compaction notes per burst preserved in factory-artifacts git log.
 
   D-604-F2-E18-ADV-PASS-41-CLEAN-STREAK-1-3-2026-06-15 (wc-l; D-430(a): Phase Progress D-601..D-603 rows collapsed to range-reference (content at git show 81f240e4:.factory/STATE.md); Decisions Log D-600..D-603 rows collapsed to range-reference; §4 D-600..D-603 entries collapsed; +D-604 Phase Progress row + D-604 Decisions Log row + §4 D-604 entry + §1/§5/§6/§8/§9/§10/§11/§12/checkpoint full refresh; 4-index UNCHANGED; D-446(c) dual-margin).
+
+  D-605-F2-E18-ADV-PASS-42-CLEAN-STREAK-2-3-2026-06-15 (wc-l; D-430(a): Phase Progress D-601..D-604 rows collapsed to range-reference (content at git show 88993db1:.factory/STATE.md); Decisions Log D-600..D-604 rows collapsed to range-reference; §4 D-600..D-604 entries collapsed; +D-605 Phase Progress row + D-605 Decisions Log row + §4 D-605 entry + §1/§3/§5/§8/§9/§10/§11/§12/checkpoint full refresh; 4-index UNCHANGED; D-446(c) dual-margin).
 -->
 
 # Pipeline State: vsdd-factory
@@ -70,8 +57,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-06-15 — D-604 F2 E-18 ADV PASS-41 CLEAN (ZERO FINDINGS) — STREAK 1/3. First zero-findings pass of the entire cascade. Adversary verified ALL axes (behavioral + structural-parity, DI↔VP bidirectional). 3-CLEAN streak 0/3→1/3. Package FROZEN. 4-index: BC v2.99/VP v2.29/STORY v4.01/ARCH v2.47 (UNCHANGED). L2-INDEX v1.0.11. NEXT: adversary pass-42 (fresh-context; frozen package; streak 1/3; 2 more CLEAN needed). |
-| **Current Phase** | D-604 F2 E-18 ADV PASS-41 CLEAN (ZERO FINDINGS) 2026-06-15 — STREAK 1/3. 0 BLOCKER/MAJOR/MEDIUM/LOW/mis-anchor/process-gap. Package FROZEN (human-directed). 4-index: BC v2.99/VP v2.29/STORY v4.01/ARCH v2.47 (UNCHANGED). L2-INDEX v1.0.11. NEXT: adversary pass-42 (fresh-context; frozen package; need 2 more CLEAN for convergence → F2 human gate → F3). |
+| **Last Updated** | 2026-06-15 — D-605 F2 E-18 ADV PASS-42 CLEAN — STREAK 2/3. 0 BLOCKER/MAJOR/load-bearing MED/mis-anchor. 2 LOW obs adjudicated NON-DEFECTS (O-1 POLICY-19-compliant; O-2 out-of-perimeter). Streak 1/3→2/3. Package FROZEN. 4-index: BC v2.99/VP v2.29/STORY v4.01/ARCH v2.47 (UNCHANGED). L2-INDEX v1.0.11. NEXT: adversary pass-43 (fresh-context; frozen; 1 more CLEAN for convergence → F2 human gate → F3). |
+| **Current Phase** | D-605 F2 E-18 ADV PASS-42 CLEAN 2026-06-15 — STREAK 2/3. 0 BLOCKER/MAJOR/load-bearing MED/mis-anchor. 2 LOW obs NON-DEFECTS. Package FROZEN (human-directed). 4-index: BC v2.99/VP v2.29/STORY v4.01/ARCH v2.47 (UNCHANGED). L2-INDEX v1.0.11. NEXT: adversary pass-43 (fresh-context; frozen; CLEAN → 3/3 → F2 CONVERGED → human gate → F3). |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Phase Progress
@@ -102,8 +89,8 @@ dtu_services: []
 | **D-598 F2 E-18 ADV PASS-35 NOT-CLEAN FIX BURST + ANNOTATION LESSON 2026-06-15** | **ARCHIVED per D-599** | Pass-35 NOT-CLEAN: 0B/0M; 2 MEDIUM self-inflicted; 2 LOW. Streak RESET 1/3→0/3. F-P35-001 BC-5.41.003 v1.8 §Changelog; F-P35-002 4-BC de-enumerated. L-F2-annotation-must-be-self-contained codified. 4-index BC v2.97. Full rows: `git show 7d4b600b:.factory/STATE.md` Phase Progress. |
 | **D-599 F2 E-18 ADV PASS-36 NOT-CLEAN FIX BURST + ENUMERATE-AND-COUNT GATE + COMPACTION 2026-06-15** | **ARCHIVED per D-600** | Pass-36 NOT-CLEAN (1 MEDIUM self-inflicted; BC-1.15.001 v1.5 §Changelog; TRUE-EXHAUSTIVE all-8; enumerate-count gate; streak 0/3; 4-index BC v2.98/ARCH v2.46). Full: `git show b1c2b7e0:.factory/STATE.md` Phase Progress. |
 | **D-600 F2 E-18 ADV PASS-37 NOT-CLEAN FIX BURST 2026-06-15** | **ARCHIVED per D-430(a) D-601** | Pass-37 NOT-CLEAN: 2 MEDIUM genuine latent (F-P37-001 ADR-026 v1.19 SS-01; F-P37-002 L2-INDEX v1.0.10 DI-025); 1 LOW F-P37-003 ADJUDICATED PRESERVED-HISTORY; streak 0/3; ARCH-INDEX v2.47/L2-INDEX v1.0.10. Full: `git show 2cdc70c7:.factory/STATE.md` Phase Progress. |
-| **D-601..D-603 F2 E-18 ADV PASS-38..40 2026-06-15** | **ARCHIVED per D-604** | P-38 CLEAN(1/3); P-39 NOT-CLEAN RESET(VP-081 v1.7; BC-5.41.002 v1.11); P-40 NOT-CLEAN(1 MED F-P40-001 invariants.md v1.21 DI↔VP back-refs POLICY 2; 2 LOW; L2-INDEX v1.0.11; streak 0/3). 4-index: BC v2.99/VP v2.29/STORY v4.01/ARCH v2.47. Full: `git show 81f240e4:.factory/STATE.md` Phase Progress. |
-| **D-604 F2 E-18 ADV PASS-41 CLEAN (ZERO FINDINGS) — STREAK 1/3 2026-06-15** | **COMPLETE** | Pass-41 CLEAN: 0 BLOCKER, 0 MAJOR, 0 MEDIUM, 0 LOW, 0 mis-anchor, 0 process-gap — first zero-findings pass. Adversary verified ALL behavioral + structural-parity axes (DI↔VP bidirectional, PC7, EPIC-COMPLETE, 5-step eval order, HandoffMissing/HandoffIncomplete disjoint). Package FROZEN. 3-CLEAN streak 0/3→1/3. 4-index UNCHANGED: BC v2.99/VP v2.29/STORY v4.01/ARCH v2.47; L2-INDEX v1.0.11. Trajectory →P39 NOT-CLEAN(RESET)→P40 NOT-CLEAN→P41 CLEAN-ZERO-FINDINGS(1/3). NEXT: adversary pass-42. |
+| **D-601..D-604 F2 E-18 ADV PASS-38..41 2026-06-15** | **ARCHIVED per D-605** | P-38 CLEAN(1/3); P-39 NOT-CLEAN RESET(VP-081 v1.7; BC-5.41.002 v1.11); P-40 NOT-CLEAN(1 MED F-P40-001 invariants.md v1.21 DI↔VP back-refs; L2-INDEX v1.0.11; streak 0/3); P-41 CLEAN ZERO-FINDINGS(1/3; first zero-findings pass; package FROZEN; 4-index BC v2.99/VP v2.29/STORY v4.01/ARCH v2.47). Full: `git show 88993db1:.factory/STATE.md` Phase Progress. |
+| **D-605 F2 E-18 ADV PASS-42 CLEAN — STREAK 2/3 2026-06-15** | **COMPLETE** | Pass-42 CLEAN: 0 BLOCKER, 0 MAJOR, 0 load-bearing MEDIUM, 0 mis-anchor. 2 LOW obs adjudicated NON-DEFECTS (O-1 DI-025 POLICY-19-compliant; O-2 28-CAP drift out-of-perimeter). 3-CLEAN streak 1/3→2/3. Package FROZEN. 4-index UNCHANGED: BC v2.99/VP v2.29/STORY v4.01/ARCH v2.47; L2-INDEX v1.0.11. Trajectory →P40 NOT-CLEAN→P41 CLEAN-ZERO-FINDINGS(1/3)→P42 CLEAN(2/3). NEXT: adversary pass-43. |
 
 ## Current Phase Steps
 
@@ -141,7 +128,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | caf06c68 | rc.21 bot binary bundle commit 2026-06-13; prior: 2a191314 (rc.20) |
 | develop | 7e99f6ef | PR #186 fix a431ff47 + release.yml sync back-merge 2026-06-13; prior: 3b2a378c (D-556) |
-| factory-artifacts | 2104c8de | D-604 F2 pass-41 CLEAN (ZERO FINDINGS) — STREAK 1/3 (package FROZEN; 4-index BC v2.99/VP v2.29/STORY v4.01/ARCH v2.47 UNCHANGED; L2-INDEX v1.0.11); prior: 81f240e4 D-603 SHA-patch; prior-prior: dfda6224 D-603 pass-40 NOT-CLEAN FIX BURST |
+| factory-artifacts | TBD-POST-PUSH | D-605 F2 pass-42 CLEAN — STREAK 2/3 (package FROZEN; 4-index BC v2.99/VP v2.29/STORY v4.01/ARCH v2.47 UNCHANGED; L2-INDEX v1.0.11); prior: 88993db1 D-604 SHA-patch; prior-prior: 2104c8de D-604 pass-41 CLEAN ZERO-FINDINGS |
 | v1.0.0-rc.21 (tag) | 03054524 | SHIPPED 2026-06-13; FULLY IN OPERATOR MARKETPLACE (marketplace PR #13 MERGED); annotated tag object |
 | v1.0.0-rc.20 (tag) | e9e38286 | SHIPPED 2026-06-01; marketplace PR #12 squash-merged 862e660d |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28 |
@@ -151,7 +138,7 @@ dtu_services: []
 | Cycle | Type | Status | Notes |
 |-------|------|--------|-------|
 | F-block-ai-attribution-message-file-arm | feature | F3 COMPLETE — F4 READY | F1+F2+F3 done 2026-05-12; 2 stories ready; E-16 under SS-07/SS-04; milestone v1.0.0-rc.17 |
-| v1.0-brownfield-backfill | brownfield | **D-604 2026-06-15; F2 E-18 ADV PASS-41 CLEAN (ZERO FINDINGS) — STREAK 1/3; develop 7e99f6ef; main caf06c68** | rc.21 100% COMPLETE D-560; D-604 PASS-41 CLEAN ZERO-FINDINGS (0 BLOCKER/MAJOR/MEDIUM/LOW/mis-anchor/process-gap; first zero-findings pass; package FROZEN; 4-index BC-INDEX v2.99 / VP-INDEX v2.29 / STORY-INDEX v4.01 / ARCH-INDEX v2.47 UNCHANGED; L2-INDEX v1.0.11); trajectory →P39 NOT-CLEAN(RESET)→P40 NOT-CLEAN→P41 CLEAN-ZERO-FINDINGS(1/3); 3-CLEAN streak **1/3**; **Next: adversary pass-42 (fresh-context; SAME frozen package; need 2 more CLEAN; on 3/3 → F2 CONVERGED → F2 human-approval gate → F3 story decomposition S-18.00..S-18.07+S-18.08).** |
+| v1.0-brownfield-backfill | brownfield | **D-605 2026-06-15; F2 E-18 ADV PASS-42 CLEAN — STREAK 2/3; develop 7e99f6ef; main caf06c68** | rc.21 100% COMPLETE D-560; D-605 PASS-42 CLEAN (0 BLOCKER/MAJOR/load-bearing MED/mis-anchor; 2 LOW obs NON-DEFECTS: O-1 POLICY-19-compliant, O-2 out-of-perimeter; package FROZEN; 4-index BC-INDEX v2.99 / VP-INDEX v2.29 / STORY-INDEX v4.01 / ARCH-INDEX v2.47 UNCHANGED; L2-INDEX v1.0.11); trajectory →P40 NOT-CLEAN→P41 CLEAN-ZERO-FINDINGS(1/3)→P42 CLEAN(2/3); 3-CLEAN streak **2/3**; **Next: adversary pass-43 (fresh-context; SAME frozen package; on CLEAN → 3/3 → F2 CONVERGED → pre-gate O-1/O-2 adjudication → F2 human-approval gate → F3 story decomposition S-18.00..S-18.07+S-18.08). Package FROZEN.** |
 | v1.0-feature-engine-discipline-pass-1 | feature | **PAUSED** | F5 pass-75 adversary complete D-510 2026-05-27; META-LEVEL-30 CANDIDATE-CONFIRMED; trajectory →9→9→9→11. Full-cycle trajectory (75 values ending): →9→9→9→9→11. |
 | v1.0-feature-plugin-async-semantics-pass-1 | feature | CLOSED | All PRs merged; rc.14 shipped |
 
@@ -165,8 +152,8 @@ dtu_services: []
 
 | ID | Decision | Phase | Date |
 |----|----------|-------|------|
-| D-604 | F2 E-18 ADV PASS-41 CLEAN (ZERO FINDINGS) — STREAK 1/3 2026-06-15 — Fresh-context adversary pass-41 returned CLEAN with ZERO findings of ANY severity (0 BLOCKER, 0 MAJOR, 0 MEDIUM, 0 LOW, 0 mis-anchor, 0 process-gap) — the cleanest pass of the cascade and first zero-findings pass. Adversary independently re-derived ALL behavioral axes (PC7 scalar/list, payload-only EPIC-COMPLETE derivation, 5-step eval order, field-4 canonical-B, wave-agnostic three-state null rule, HandoffMissing/HandoffIncomplete disjoint, commit→append→push + SHA-pinned concurrent-commit guard) AND ALL structural-parity axes (8 BC H1↔INDEX titles, subsystem anchoring, VP scope unions, NEW bidirectional DI↔VP back-refs vs forward domain_invariants arrays, VP-INDEX arithmetic, L2-INDEX/capabilities/4-index quad) and found no contradiction, gap, mis-anchor, or policy violation; declared convergence. NOTHING to fix/defer. 3-CLEAN streak 0/3→1/3 per BC-5.39.001. NO spec changes; 4-index UNCHANGED (BC-INDEX v2.99/VP-INDEX v2.29/STORY-INDEX v4.01/ARCH-INDEX v2.47; L2-INDEX v1.0.11). Trajectory →P39 NOT-CLEAN(RESET)→P40 NOT-CLEAN→P41 CLEAN-ZERO-FINDINGS(1/3). NEXT: adversary pass-42 (fresh-context; SAME frozen package; need 2 more consecutive CLEAN for convergence → F2 human gate → F3 story decomposition S-18.00..S-18.07+S-18.08). D-chain cite D-603 per D-419(b); parent-commit 81f240e4 per D-419(b). | feature-mode-f2-e18-adv-pass-41-clean-streak-1-3 | 2026-06-15 |
-| D-600..D-603 archived | **ARCHIVED 2026-06-15 per D-430(a) D-604** | D-600 pass-37 NOT-CLEAN (ADR-026 v1.19 SS-01; L2-INDEX v1.0.10); D-601 pass-38 CLEAN(1/3); D-602 pass-39 NOT-CLEAN RESET(VP-081 v1.7; BC-5.41.002 v1.11); D-603 pass-40 NOT-CLEAN(1 MED F-P40-001 invariants.md v1.21 DI↔VP back-refs; 2 LOW; L2-INDEX v1.0.11; streak 0/3). 4-index BC v2.99/VP v2.29/STORY v4.01/ARCH v2.47. Full rows: `git show 81f240e4:.factory/STATE.md` Decisions Log. |
+| D-605 | F2 E-18 ADV PASS-42 CLEAN — STREAK 2/3 2026-06-15 — Fresh-context adversary pass-42 returned CLEAN: 0 BLOCKER, 0 MAJOR, 0 load-bearing MEDIUM, 0 mis-anchor. 2 LOW observations adjudicated NON-DEFECTS: O-1 (DI-025 '(as of v1.6)' parenthetical — POLICY-19-compliant non-load-bearing informational addendum, NOT fixed: de-versioning unnecessary, policy expressly permits it); O-2 (capabilities.md 28-CAP subsystem-drift sweep — OUT of E-18 perimeter; CAP-032 row clean; cross-ref to pre-existing engine-wide CAP/BC-INDEX-count drift tracking, NOT E-18 F2 scope). All behavioral + structural-parity axes re-verified consistent (2nd consecutive clean on frozen package). 3-CLEAN streak 1/3→2/3 per BC-5.39.001. NO spec changes; 4-index UNCHANGED (BC v2.99/VP v2.29/STORY v4.01/ARCH v2.47; L2-INDEX v1.0.11). Trajectory →P40 NOT-CLEAN→P41 CLEAN-ZERO-FINDINGS(1/3)→P42 CLEAN(2/3). NEXT: adversary pass-43 (fresh-context; SAME frozen package; CLEAN → 3/3 = F2 CONVERGED → pre-gate adjudication of O-1/O-2 → F2 human-approval gate → F3 story decomposition S-18.00..S-18.07+S-18.08). D-chain cite D-604 per D-419(b); parent-commit 88993db1 per D-419(b). | feature-mode-f2-e18-adv-pass-42-clean-streak-2-3 | 2026-06-15 |
+| D-600..D-604 archived | **ARCHIVED 2026-06-15 per D-430(a) D-605** | D-600 pass-37 NOT-CLEAN (ADR-026 v1.19; L2-INDEX v1.0.10); D-601 pass-38 CLEAN(1/3); D-602 pass-39 NOT-CLEAN RESET(VP-081 v1.7; BC-5.41.002 v1.11); D-603 pass-40 NOT-CLEAN(1 MED F-P40-001 invariants.md v1.21; L2-INDEX v1.0.11; streak 0/3); D-604 pass-41 CLEAN ZERO-FINDINGS(1/3; streak 0/3→1/3; package FROZEN; 4-index BC v2.99/VP v2.29/STORY v4.01/ARCH v2.47). Full rows: `git show 88993db1:.factory/STATE.md` Decisions Log. |
 | D-582..D-599 archived | **ARCHIVED 2026-06-15 per D-430(a) D-594..D-601** | D-582..D-599: passes 19-36 fix bursts; D-594 FULL-BACKLOG-CLEARANCE; D-595 pass-32; D-596 pass-33; D-597 pass-34 CLEAN(1/3); D-598 pass-35 NOT-CLEAN; D-599 pass-36 NOT-CLEAN+ENUMERATE-COUNT-GATE. All rows: decision-log.md SoT. |
 | D-413..D-581 archived | **COMPACTED 2026-06-15 per D-430(a) D-599** | D-413..D-498 (36 rows); D-499..D-509 (11 rows); D-510+D-522+D-525+D-526; D-527..D-548; D-549..D-581 (F2 adv passes 1-18 + pre-pass-14 sweep). All rows: decision-log.md SoT. Pre-D-413: `git show 20cb8e1c`. |
 
@@ -199,7 +186,7 @@ dtu_services: []
 | **O-PASS16-002 header stale doc-comment** | OPEN 2026-06-08 | validate-trajectory-tail-cell-completeness stale function header. Cosmetic; next spec-touch. |
 | **VP-087 DEFERRED (null-SHA hard-block VP)** | DEFERRED 2026-06-15 — D-580 observation | No adversary coverage finding; BC test vectors (wave-1-null-sha-log-present-hard-block in BC-5.41.001 v1.10) cover the null-SHA hard-block path for any wave_id. If a future adversary pass flags missing VP coverage, create VP-087 at that time. Anchor: E-18 F3 story decomposition. |
 | **bats-full-suite not in branch-protection required-status-checks** | OPEN 2026-06-13 — D-558 capture | New ci.yml `bats-full-suite (linux)` job runs but NOT in branch-protection required-checks. Follow-up: add to branch-protection settings. |
-| **BC-INDEX count reconcile (pre-existing)** | OPEN 2026-06-14 — D-562 capture | disk truth = 1970 BC files, BC-INDEX frontmatter total_bcs=1966; orphan BC-2.02.013; stale SS header counts. Routing: state-manager + product-owner. Anchor: dedicated BC-INDEX reconcile burst. |
+| **BC-INDEX count reconcile (pre-existing) + O-2 CAP/BC-INDEX drift** | OPEN 2026-06-14 — D-562 capture; O-2 cross-referenced D-605 | disk truth = 1970 BC files, BC-INDEX frontmatter total_bcs=1966; orphan BC-2.02.013; stale SS header counts. O-2 (D-605 pass-42 LOW obs): capabilities.md 28-CAP subsystem-drift sweep adjudicated OUT of E-18 perimeter; CAP-032 row clean; pre-existing engine-wide engine-CAP/BC-INDEX-count drift. NOT a D-605 E-18 F2 finding. Routing: state-manager + product-owner. Anchor: dedicated BC-INDEX reconcile burst. |
 | **S-18.08 phantom-field-removal lint gate** | DRAFT-PENDING-AUTHORING 2026-06-14 — D-563 capture | L-F2-phantom-field-gate lesson (D-563): permanent enforcement story. Anchor: E-18 epic, F3 story decomposition. |
 | **[process-gap] BC-Precondition registry-block shape validator gate** | OPEN 2026-06-15 — D-576 capture | BC-4.14.001 F-P14-002 class: bare logical name in `plugin=` (missing `name=` + canonical WASM path). Single-instance corrected in-spec; NO automated validator gate detects this class. Deferred to E-18 F3 story decomposition as a candidate validator-gate story (alongside S-18.08-class gate stories). Anchor: E-18 F3. |
 | **[process-gap] Cross-reference title/code/phrase sweep gate + title-cite-parity gate** | CODIFIED D-582; UPGRADED D-589 (4th recurrence; class CLOSED) | L-F2-cross-reference-title-code-sweep UPGRADED (D-589 4th recurrence: F-P26-001 BC-7.07.001 VP-085 truncated cite; D-589 ran FIRST exhaustive all-8-BC sweep → class CLOSED). Reactive one-site-at-a-time fixing insufficient (4 recurrences: F-P19-001 BC-4.14.001, F-P19-001-sibling BC-5.41.001, F-P22-001/F-P25-003 ADR, F-P26-001 BC-7.07.001). MECHANICAL GATE NOW MANDATORY: for EVERY `VP-NNN — <title>` cite in any BC §VP Anchors / §Traceability AND ADR §VP Allocations, grep-based check MUST assert `<title>` equals VP file H1 verbatim. Gate runs exhaustively across ALL cite sites every spec-touch. Anchor: S-18.08 consistency-validator MANDATORY scope extension. |
@@ -228,38 +215,41 @@ dtu_services: []
 - `cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` | `session-checkpoints.md` | `lessons.md`
 - `cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md` (adversary reviews at `S-12.03/`, `S-12.04/`, `S-12.05/` subdirs)
 
-## Session Resume Checkpoint (2026-06-15 — D-604 F2 E-18 ADV PASS-41 CLEAN ZERO-FINDINGS — STREAK 1/3; 4-index: BC-INDEX v2.99/VP-INDEX v2.29/STORY-INDEX v4.01/ARCH-INDEX v2.47 UNCHANGED; L2-INDEX v1.0.11; streak 1/3; NEXT: adversary pass-42 → fresh-context; STRICT 3-CLEAN human-directed; package FROZEN)
+## Session Resume Checkpoint (2026-06-15 — D-605 F2 E-18 ADV PASS-42 CLEAN — STREAK 2/3; 4-index: BC-INDEX v2.99/VP-INDEX v2.29/STORY-INDEX v4.01/ARCH-INDEX v2.47 UNCHANGED; L2-INDEX v1.0.11; streak 2/3; NEXT: adversary pass-43 → fresh-context; STRICT 3-CLEAN human-directed; package FROZEN)
 
 > **SELF-SUFFICIENT RESUME CONTEXT FOR ZERO-CONTEXT NEW SESSION OR NEW MACHINE**
 > Read this section alone to resume. Assumes ZERO prior context. All decisions, directives, and anchors stated explicitly.
 
 ### §1. Where We Are
 
-**E-18 CAP-032 context-durability (GitHub issue #173) — Feature Mode, Phase F2 (spec evolution) adversarial 3-CLEAN convergence cascade (BC-5.39.001). D-604 2026-06-15.**
+**E-18 CAP-032 context-durability (GitHub issue #173) — Feature Mode, Phase F2 (spec evolution) adversarial 3-CLEAN convergence cascade (BC-5.39.001). D-605 2026-06-15.**
 
-F1-gate APPROVED. F2 spec evolution COMPLETE (D-561). F2 adversarial cascade passes 1-41 COMPLETE (D-562..D-604). Consistency-validator sweep D-575 COMPLETE (CLEAN). Pass-22 CLEAN (1/3); pass-23 CLEAN (2/3); pass-24 NOT-CLEAN (streak RESET; D-587); passes 25-26 NOT-CLEAN; pass-27 CLEAN (1/3 D-590); pass-28 NOT-CLEAN (RESET D-591); pass-29 CLEAN (1/3 D-592); pass-30 CLEAN (2/3 D-593); pass-31 NOT-CLEAN (RESET 2/3→0/3; D-594 FULL BACKLOG CLEARANCE); pass-32 NOT-CLEAN (streak 0/3; D-595); pass-33 NOT-CLEAN (streak 0/3; D-596); pass-34 CLEAN (streak 1/3; D-597); pass-35 NOT-CLEAN (streak RESET; D-598); pass-36 NOT-CLEAN (streak 0/3; D-599); pass-37 NOT-CLEAN (streak 0/3; D-600 — 2 genuine latent MEDIUM); pass-38 CLEAN (streak 1/3; D-601); pass-39 NOT-CLEAN (streak RESET 1/3→0/3; D-602); pass-40 NOT-CLEAN (streak 0/3; D-603 — 1 MED POLICY-2 back-ref); pass-41 CLEAN (streak 1/3; D-604 — ZERO FINDINGS — first zero-findings pass). STATE.md compacted at D-581+D-586+D-591+D-593+D-594+D-596+D-599+D-601+D-603+D-604 per D-430(a).
+F1-gate APPROVED. F2 spec evolution COMPLETE (D-561). F2 adversarial cascade passes 1-42 COMPLETE (D-562..D-605). Consistency-validator sweep D-575 COMPLETE (CLEAN). Pass-22 CLEAN (1/3); pass-23 CLEAN (2/3); pass-24 NOT-CLEAN (streak RESET; D-587); passes 25-26 NOT-CLEAN; pass-27 CLEAN (1/3 D-590); pass-28 NOT-CLEAN (RESET D-591); pass-29 CLEAN (1/3 D-592); pass-30 CLEAN (2/3 D-593); pass-31 NOT-CLEAN (RESET 2/3→0/3; D-594 FULL BACKLOG CLEARANCE); pass-32 NOT-CLEAN (streak 0/3; D-595); pass-33 NOT-CLEAN (streak 0/3; D-596); pass-34 CLEAN (streak 1/3; D-597); pass-35 NOT-CLEAN (streak RESET; D-598); pass-36 NOT-CLEAN (streak 0/3; D-599); pass-37 NOT-CLEAN (streak 0/3; D-600 — 2 genuine latent MEDIUM); pass-38 CLEAN (streak 1/3; D-601); pass-39 NOT-CLEAN (streak RESET 1/3→0/3; D-602); pass-40 NOT-CLEAN (streak 0/3; D-603 — 1 MED POLICY-2 back-ref); pass-41 CLEAN (streak 1/3; D-604 — ZERO FINDINGS — first zero-findings pass); pass-42 CLEAN (streak 2/3; D-605 — 2 LOW obs NON-DEFECTS). STATE.md compacted at D-581+D-586+D-591+D-593+D-594+D-596+D-599+D-601+D-603+D-604+D-605 per D-430(a).
 
-**D-604 pass-41 CLEAN summary:**
-- Pass-41 CLEAN: 0 BLOCKER, 0 MAJOR, 0 MEDIUM, 0 LOW, 0 mis-anchor, 0 process-gap — the cleanest pass of the entire cascade; first zero-findings pass. Streak 0/3→1/3.
-- Adversary independently re-derived ALL behavioral axes (PC7 scalar/list, payload-only EPIC-COMPLETE derivation, 5-step eval order, field-4 canonical-B, wave-agnostic three-state null rule, HandoffMissing/HandoffIncomplete disjoint, commit→append→push + SHA-pinned concurrent-commit guard) AND ALL structural-parity axes (8 BC H1↔INDEX titles, subsystem anchoring, VP scope unions, NEW bidirectional DI↔VP back-refs vs forward domain_invariants arrays, VP-INDEX arithmetic, L2-INDEX/capabilities/4-index quad).
-- NOTHING to fix/defer. Package FROZEN (human-directed). 4-index UNCHANGED: BC-INDEX v2.99; VP-INDEX v2.29; STORY-INDEX v4.01; ARCH-INDEX v2.47. L2-INDEX v1.0.11.
+**D-605 pass-42 CLEAN summary:**
+- Pass-42 CLEAN: 0 BLOCKER, 0 MAJOR, 0 load-bearing MEDIUM, 0 mis-anchor. Streak 1/3→2/3.
+- 2 LOW observations adjudicated NON-DEFECTS: O-1 (DI-025 '(as of v1.6)' parenthetical — POLICY-19-compliant informational addendum; NOT fixed; de-versioning unnecessary; policy expressly permits it); O-2 (capabilities.md 28-CAP subsystem-drift sweep — OUT of E-18 perimeter; CAP-032 row clean; pre-existing engine-wide item; NOT E-18 F2 scope).
+- Neither observation fixable in-scope without falsehood (O-1) or scope expansion (O-2). Both NON-BLOCKING for streak continuation.
+- Package FROZEN (human-directed). 4-index UNCHANGED: BC-INDEX v2.99; VP-INDEX v2.29; STORY-INDEX v4.01; ARCH-INDEX v2.47. L2-INDEX v1.0.11.
 
-**3-CLEAN streak: 1/3** (HUMAN-DIRECTED strict 3-CLEAN).
+**3-CLEAN streak: 2/3** (HUMAN-DIRECTED strict 3-CLEAN).
 
-**Convergence trajectory (last 4 passes per D-433(e)+D-439(c)):** →P39 NOT-CLEAN(RESET)→P40 NOT-CLEAN→P41 CLEAN-ZERO-FINDINGS(1/3).
+**Convergence trajectory (last 4 passes per D-433(e)+D-439(c)):** →P40 NOT-CLEAN→P41 CLEAN-ZERO-FINDINGS(1/3)→P42 CLEAN(2/3).
 
-**4-index at D-604:** BC-INDEX v2.99, VP-INDEX v2.29, STORY-INDEX v4.01, ARCH-INDEX v2.47 (UNCHANGED). L2-INDEX v1.0.11.
+**4-index at D-605:** BC-INDEX v2.99, VP-INDEX v2.29, STORY-INDEX v4.01, ARCH-INDEX v2.47 (UNCHANGED). L2-INDEX v1.0.11.
+
+**Drift Items — O-2 cross-reference:** O-2 (capabilities.md 28-CAP subsystem-drift sweep) is a pre-existing engine-wide tracking item (see Drift Items §: BC-INDEX count reconcile). NOT a D-605 E-18 finding. Not fixed in-scope.
 
 **NEXT ACTION (explicit, in order):**
-1. **START HERE: adversary pass-42** (fresh-context; SAME frozen package; streak 1/3; DI↔VP bidirectional complete). STRICT 3-CLEAN HUMAN-DIRECTED.
-2. On CLEAN pass-42 → 3-CLEAN streak 2/3 → adversary pass-43 → on 3/3 CLEAN → F2 CONVERGED.
-3. On 3/3 CLEAN → F2 CONVERGED → pre-gate cleanup of any leaveable items → F2 human gate approval → Feature Mode F3 story decomposition (story-writer authors S-18.00..S-18.07 + S-18.08 codified O-P8-002 gate-story).
-4. On NOT-CLEAN pass-42 → fix burst → streak RESET → continue cascade.
+1. **START HERE: adversary pass-43** (fresh-context; SAME frozen package; streak 2/3; DI↔VP bidirectional complete). STRICT 3-CLEAN HUMAN-DIRECTED.
+2. On CLEAN pass-43 → 3-CLEAN streak 3/3 = F2 CONVERGED → pre-gate adjudication of O-1/O-2 (neither blocks convergence; O-1 POLICY-19-compliant; O-2 out-of-perimeter) → F2 human-approval gate.
+3. On F2 human gate APPROVED → Feature Mode F3 story decomposition (story-writer authors S-18.00..S-18.07 + S-18.08 codified O-P8-002 gate-story).
+4. On NOT-CLEAN pass-43 → fix burst → streak RESET → continue cascade.
 
 **RECURRING LESSONS (carry):** (1) L-F2-stale-term-deferral-unsafe [process-gap] (D-594): stale terms in normative prose MUST be fixed in-scope; deferral as LOW is convergence-risk. (2) L-F2-canonical-scope-verification [process-gap] (D-587): When authoring an invariant for multi-agent-type scope boundary, MUST name the scope explicitly. Field-4 canonical (B) enshrined. (3) L-F2-subsystem-anchor-sweep [process-gap] (D-584; 2nd recurrence): When VP scope/capability Subsystems: line changes, sweep ALL sibling VPs + L2-INDEX Cross-Walk same-burst. (4) L-F2-cross-reference-title-code-sweep [process-gap] (D-582/D-589 UPGRADED; 4th recurrence): For EVERY `VP-NNN — <title>` cite in BC §VP Anchors / ADR §VP Allocations, grep-based check MUST assert title equals VP H1 verbatim. Exhaustive across ALL sites. S-18.08 MANDATORY. (5) L-F2-annotation-must-be-self-contained [process-gap] (D-598): annotation text MUST NOT enumerate sibling BC IDs; structural-parity sweeps MUST VERIFY §Changelog EXISTS before attesting exhaustive coverage. (6) L-F2-exhaustive-sweep-enumerate-and-count [process-gap] (D-599 NEW): cohort sweeps MUST enumerate all N files AND capture per-file grep stdout; subset-scoping FORBIDDEN — false-green generator; enumerate-count gate MANDATORY for ALL cohort structural assertions; S-18.08 MANDATORY scope extension. (7) L-F2-prior-chain-append-only-history [adjudication D-600]: nested [Prior:] chains in last_amended frontmatter are FAITHFUL HISTORICAL RECORDS (POLICY 1 append-only); NOT retroactively rewritten even when the content they reference was factually incorrect at time-of-writing. The LIVE last_amended head is the authoritative state; [Prior:] is immutable archaeological record. Do NOT re-flag [Prior:] residue as a new finding if the live/current text is correct. (8) L-F2-index-quad-cite-reflects-last-bump [convention D-601]: 4-index self-cited quad in any index's changelog reflects the index state AS OF THAT INDEX'S OWN LAST BUMP; an untouched index correctly retains its prior quad — per-pass lag is EXPECTED, NOT a propagation gap; "fixing" it would inject false history; adversary MUST treat quad-lag on untouched indices as benign.
 
-**Artifact versions at D-604 (UNCHANGED from D-603 — package FROZEN):**
-- **ADR-026 v1.19** (D-600; UNCHANGED at D-604); **BC-1.15.001 v1.5** (D-599; UNCHANGED at D-604); **BC-4.14.001 v1.13** (UNCHANGED at D-604); **BC-5.41.001 v1.17** (UNCHANGED at D-604); **BC-5.41.002 v1.11** (D-602; UNCHANGED at D-604); **BC-5.41.003 v1.8** (UNCHANGED at D-604); **BC-6.24.001 v1.9** (UNCHANGED at D-604); **BC-7.07.001 v1.10** (UNCHANGED at D-604); **BC-7.07.002 v1.11** (UNCHANGED at D-604); **VP-081 v1.7** (D-602; UNCHANGED at D-604); VP-082 v1.12; **VP-083 v1.10** (UNCHANGED at D-604); VP-084 v1.9; VP-085 v1.7; **VP-086 v1.4** (UNCHANGED at D-604); **invariants.md v1.21** (D-603; UNCHANGED at D-604 — DI↔VP bidirectional complete); capabilities.md v1.7; **BC-INDEX v2.99** (D-602; UNCHANGED at D-604); **VP-INDEX v2.29** (D-602; UNCHANGED at D-604); **ARCH-INDEX v2.47** (UNCHANGED at D-604); STORY-INDEX v4.01 (UNCHANGED at D-604); **L2-INDEX v1.0.11** (D-603; UNCHANGED at D-604).
+**Artifact versions at D-605 (UNCHANGED from D-603 — package FROZEN):**
+- ADR-026 v1.19; BC-1.15.001 v1.5; BC-4.14.001 v1.13; BC-5.41.001 v1.17; BC-5.41.002 v1.11; BC-5.41.003 v1.8; BC-6.24.001 v1.9; BC-7.07.001 v1.10; BC-7.07.002 v1.11; VP-081 v1.7; VP-082 v1.12; VP-083 v1.10; VP-084 v1.9; VP-085 v1.7; VP-086 v1.4; invariants.md v1.21 (DI↔VP bidirectional complete); capabilities.md v1.7; BC-INDEX v2.99; VP-INDEX v2.29; ARCH-INDEX v2.47; STORY-INDEX v4.01; L2-INDEX v1.0.11. ALL UNCHANGED at D-605 (package FROZEN).
 
 **Key design facts (so restart agent has them without re-deriving):**
 - wave-1 no-op = `payload.wave_id == 1` (pure-parse WASM; wave_id absent → fail-closed HandoffIncomplete); EPIC-COMPLETE = `payload.next_wave_stories: []`; WASM gate pure-parse (shell wave-handoff derives wave_id from substrate).
@@ -272,7 +262,7 @@ F1-gate APPROVED. F2 spec evolution COMPLETE (D-561). F2 adversarial cascade pas
 - O-P8-002 gate MANDATORY (3rd recurrence D-571): for any BC with Invariant 1 pure-parse, consistency-validator must verify VP files with matching `source_bc`/`bcs[]` do NOT describe gate behavior via external-substrate reads.
 - **STALE-TERM RULE (D-594 L-F2-stale-term-deferral-unsafe):** 'side-channel' adjective on precompact-flush-log is RETIRED. Canonical term is 'precompact-flush-log (append-only log)'. Historical-rationale prose retains 'side-channel' only for documenting the OLD superseded point-file design. No normative present-tense sites should remain.
 
-rc.21 FULLY SHIPPED D-560 (2026-06-13). main caf06c68. develop 7e99f6ef. tag 03054524. Marketplace #13 MERGED. D-604 pass-41 CLEAN (ZERO FINDINGS); streak 1/3.
+rc.21 FULLY SHIPPED D-560 (2026-06-13). main caf06c68. develop 7e99f6ef. tag 03054524. Marketplace #13 MERGED. D-605 pass-42 CLEAN; streak 2/3.
 
 ### §2. Operating Mode
 
@@ -296,22 +286,22 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 - **POLICY 8 v1.3 EC-mirror routing-rule (D-517); bidirectional AC↔PC parity (D-515+D-516); POLICY 5 v1.3.1/v1.3.3/v1.3.4/v1.3.5/v1.3.6 SDK-grounding + sibling-sweep mandates.**
 - **D-537 [process-gap] spec-drift routing:** When TDD fix changes ADR-specified behavior, route architect ADR amendment in SAME burst.
 - **D-539 multi-family adversary obligation:** prompt-contract + shell-logic issues require cross-family AND same-family Claude adversary passes before convergence.
-- **D-604 carry:** F2 E-18 ADV PASS-41 CLEAN (ZERO FINDINGS) — STREAK 1/3 2026-06-15. CLEAN: 0 BLOCKER, 0 MAJOR, 0 MEDIUM, 0 LOW, 0 mis-anchor, 0 process-gap — first zero-findings pass. Streak 0/3→1/3. Package FROZEN. 4-index: BC-INDEX v2.99; VP-INDEX v2.29; STORY-INDEX v4.01; ARCH-INDEX v2.47 (UNCHANGED); L2-INDEX v1.0.11. Trajectory →P39 NOT-CLEAN(RESET)→P40 NOT-CLEAN→P41 CLEAN-ZERO-FINDINGS(1/3). NEXT: adversary pass-42 (fresh-context; frozen; 2 more CLEAN needed). D-chain cite D-603 per D-419(b). parent-commit 81f240e4.
+- **D-605 carry:** F2 E-18 ADV PASS-42 CLEAN — STREAK 2/3 2026-06-15. CLEAN: 0 BLOCKER, 0 MAJOR, 0 load-bearing MEDIUM, 0 mis-anchor. 2 LOW obs NON-DEFECTS (O-1 POLICY-19-compliant; O-2 out-of-perimeter). Streak 1/3→2/3. Package FROZEN. 4-index: BC-INDEX v2.99; VP-INDEX v2.29; STORY-INDEX v4.01; ARCH-INDEX v2.47 (UNCHANGED); L2-INDEX v1.0.11. Trajectory →P40 NOT-CLEAN→P41 CLEAN-ZERO-FINDINGS(1/3)→P42 CLEAN(2/3). NEXT: adversary pass-43 (fresh-context; frozen; CLEAN → 3/3 → F2 CONVERGED → pre-gate O-1/O-2 → human gate → F3). D-chain cite D-604 per D-419(b). parent-commit 88993db1.
 - **D-560 carry:** OPERATOR-INSTALL-VERIFIED 2026-06-13. rc.21 100% COMPLETE. NO remaining release action.
 - **D-556 carry:** S-17.04 MERGED PR #184 3b2a378c. E-17 ALL 4 WAVES COMPLETE. STORY-INDEX v4.01.
 - **D-541 carry (partial):** VP IDs TBD per TD-VSDD-063. BC-6.23.001 ACTIVE per POL-14.
 
 ### §4. Tier-A Completed Log (most recent first)
 
-- **D-604 (2026-06-15):** F2 E-18 ADV PASS-41 CLEAN (ZERO FINDINGS) — STREAK 1/3. 0 BLOCKER, 0 MAJOR, 0 MEDIUM, 0 LOW, 0 mis-anchor, 0 process-gap — first zero-findings pass of the cascade. Package FROZEN. Streak 0/3→1/3. 4-index: BC v2.99/VP v2.29/STORY v4.01/ARCH v2.47 (UNCHANGED). L2-INDEX v1.0.11. NEXT: adversary pass-42 (fresh-context; frozen; 2 more CLEAN needed for convergence → F2 human gate → F3).
-- **D-600..D-603 archived** per D-430(a) D-604. D-600 pass-37 NOT-CLEAN (ADR-026 v1.19; L2-INDEX v1.0.10); D-601 pass-38 CLEAN(1/3); D-602 pass-39 NOT-CLEAN RESET(VP-081 v1.7; BC-5.41.002 v1.11); D-603 pass-40 NOT-CLEAN(1 MED F-P40-001 invariants.md v1.21 DI↔VP back-refs; 2 LOW; L2-INDEX v1.0.11; streak 0/3). Full: `git show 81f240e4:.factory/STATE.md` §4.
+- **D-605 (2026-06-15):** F2 E-18 ADV PASS-42 CLEAN — STREAK 2/3. 0 BLOCKER, 0 MAJOR, 0 load-bearing MEDIUM, 0 mis-anchor. 2 LOW obs NON-DEFECTS (O-1 POLICY-19-compliant; O-2 out-of-perimeter). Streak 1/3→2/3. Package FROZEN. 4-index: BC v2.99/VP v2.29/STORY v4.01/ARCH v2.47 (UNCHANGED). L2-INDEX v1.0.11. NEXT: adversary pass-43 (fresh-context; frozen; 1 more CLEAN → 3/3 → F2 CONVERGED → human gate → F3).
+- **D-600..D-604 archived** per D-430(a) D-605. D-600..D-603: passes 37-40 (mix of NOT-CLEAN + CLEAN); D-604 pass-41 CLEAN ZERO-FINDINGS(1/3; first zero-findings pass; package FROZEN; 4-index UNCHANGED). Full: `git show 88993db1:.factory/STATE.md` §4.
 - **D-562..D-599 archived** per D-430(a) D-596..D-601 compactions. F2 adv passes 1-36 (D-562..D-599). Full entries: `git show 2cdc70c7:.factory/STATE.md` §4 and earlier SHAs per prior checkpoints.
 - **D-531..D-561 archived** per prior compaction bursts. E-10 CASCADE SEALED D-531; rc.20 SHIPPED D-528; rc.21 SHIPPED D-558+D-559; operator-install verified D-560; F2 E-18 spec evolution COMPLETE D-561. Full: decision-log.md SoT.
 
 ### §5. Cumulative Codifications
 
 - F5: D-379..D-454 (76 decisions) — `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md`.
-- Brownfield: D-001..D-604 — `cycles/v1.0-brownfield-backfill/decision-log.md`. Latest: **D-604 F2 E-18 ADV PASS-41 CLEAN (ZERO FINDINGS) — STREAK 1/3 2026-06-15 — Pass-41 CLEAN (0 BLOCKER/MAJOR/MEDIUM/LOW/mis-anchor/process-gap; first zero-findings pass; streak 0/3→1/3; package FROZEN); 4-index BC-INDEX v2.99/VP-INDEX v2.29/STORY-INDEX v4.01/ARCH-INDEX v2.47 (UNCHANGED); L2-INDEX v1.0.11; adversary pass-42 NEXT (fresh-context; frozen; 2 more CLEAN needed).**
+- Brownfield: D-001..D-605 — `cycles/v1.0-brownfield-backfill/decision-log.md`. Latest: **D-605 F2 E-18 ADV PASS-42 CLEAN — STREAK 2/3 2026-06-15 — Pass-42 CLEAN (0 BLOCKER/MAJOR/load-bearing MED/mis-anchor; 2 LOW obs NON-DEFECTS; streak 1/3→2/3; package FROZEN); 4-index BC-INDEX v2.99/VP-INDEX v2.29/STORY-INDEX v4.01/ARCH-INDEX v2.47 (UNCHANGED); L2-INDEX v1.0.11; adversary pass-43 NEXT (fresh-context; frozen; 1 more CLEAN → F2 CONVERGED → human gate → F3).**
 
 ### §6. Cumulative Lessons
 
@@ -326,17 +316,17 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 | Index | Version | Notes |
 |-------|---------|-------|
-| BC-INDEX | v2.99 | UNCHANGED at D-604. Last bumped D-602 (BC-5.41.002 v1.11 status tokens). total_bcs 1966 UNCHANGED. |
-| VP-INDEX | v2.29 | UNCHANGED at D-604. Last bumped D-602 (VP-081 v1.7 HandoffMissing→SHELL attribution). |
-| STORY-INDEX | v4.01 | UNCHANGED at D-604. E-18 stories S-18.00..S-18.08 NOT YET AUTHORED (F3 next after 3-CLEAN convergence). |
-| ARCH-INDEX | v2.47 | UNCHANGED at D-604. Last bumped D-600 (ADR-026 v1.19 SS-01 scope added). |
-| L2-INDEX | v1.0.11 | Bumped D-603; UNCHANGED at D-604 (package FROZEN). DI↔VP back-refs complete (invariants.md v1.21). |
+| BC-INDEX | v2.99 | UNCHANGED at D-605. Last bumped D-602 (BC-5.41.002 v1.11 status tokens). total_bcs 1966 UNCHANGED. |
+| VP-INDEX | v2.29 | UNCHANGED at D-605. Last bumped D-602 (VP-081 v1.7 HandoffMissing→SHELL attribution). |
+| STORY-INDEX | v4.01 | UNCHANGED at D-605. E-18 stories S-18.00..S-18.08 NOT YET AUTHORED (F3 next after 3-CLEAN convergence). |
+| ARCH-INDEX | v2.47 | UNCHANGED at D-605. Last bumped D-600 (ADR-026 v1.19 SS-01 scope added). |
+| L2-INDEX | v1.0.11 | Bumped D-603; UNCHANGED at D-605 (package FROZEN). DI↔VP back-refs complete (invariants.md v1.21). |
 
-4-index at D-604 (literal-shell confirmed UNCHANGED): `grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md` → "2.99"; `grep "^version:" .factory/specs/verification-properties/VP-INDEX.md` → "2.29"; `grep "^version:" .factory/stories/STORY-INDEX.md` → "4.01"; `grep "^version:" .factory/specs/architecture/ARCH-INDEX.md` → "2.47"; `grep "^version:" .factory/specs/domain-spec/L2-INDEX.md` → "1.0.11".
+4-index at D-605 (literal-shell confirmed UNCHANGED): `grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md` → "2.99"; `grep "^version:" .factory/specs/verification-properties/VP-INDEX.md` → "2.29"; `grep "^version:" .factory/stories/STORY-INDEX.md` → "4.01"; `grep "^version:" .factory/specs/architecture/ARCH-INDEX.md` → "2.47"; `grep "^version:" .factory/specs/domain-spec/L2-INDEX.md` → "1.0.11".
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** `2104c8de` (D-604 F2 pass-41 CLEAN ZERO-FINDINGS STREAK-1/3 2026-06-15; prior: `81f240e4` D-603 SHA-patch; prior-prior: `dfda6224` D-603 pass-40 NOT-CLEAN FIX BURST)
+- **factory-artifacts HEAD:** TBD-POST-PUSH (D-605 F2 pass-42 CLEAN STREAK-2/3 2026-06-15; prior: `88993db1` D-604 SHA-patch; prior-prior: `2104c8de` D-604 pass-41 CLEAN ZERO-FINDINGS)
 - **develop HEAD:** `7e99f6ef` (PR #186 fix + release.yml sync back-merge 2026-06-13)
 - **main HEAD:** `caf06c68` (rc.21 bot bundle commit 2026-06-13)
 - **v1.0.0-rc.21 tag:** `03054524` (SHIPPED; FULLY IN OPERATOR MARKETPLACE)
@@ -365,22 +355,22 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 ### §10. PR Status
 
-- **0 open feature PRs. 0 open release PRs. 0 open marketplace PRs. rc.21 100% COMPLETE. E-18 F2 adversarial cascade in progress (D-604 pass-41 CLEAN ZERO-FINDINGS; streak 1/3; adversary pass-42 NEXT on same frozen package; F3 follows 3-CLEAN convergence).**
+- **0 open feature PRs. 0 open release PRs. 0 open marketplace PRs. rc.21 100% COMPLETE. E-18 F2 adversarial cascade in progress (D-605 pass-42 CLEAN; streak 2/3; adversary pass-43 NEXT on same frozen package; F3 follows 3-CLEAN convergence).**
 - **marketplace PR drbothen/claude-mp #13 MERGED** 2026-06-13 — rc.21 FULLY SHIPPED.
 - **RELEASING.md Step 9 VERIFIED (D-560):** operator cache 1.0.0-rc.21 confirmed (plugin.json + 132 entries). rc.21 end-to-end CLOSED.
 
-### §11. Post-CLEAR/Post-RESET Resume Checklist (zero-context; D-604 refresh)
+### §11. Post-CLEAR/Post-RESET Resume Checklist (zero-context; D-605 refresh)
 
-1. **Verify worktree state:** `git rev-parse --short origin/develop` → expect `7e99f6ef`. `git rev-parse --short origin/main` → expect `caf06c68`. `git -C .factory log -1` (expect D-604 F2 pass-41 CLEAN ZERO-FINDINGS 2026-06-15; branch factory-artifacts; clean status).
-2. **Read §1-§12 this checkpoint** (all of it; D-604 self-sufficient).
-3. **Verify 4-index:** `grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md` → "2.99"; ARCH-INDEX → "2.47"; VP-INDEX → "2.29"; STORY-INDEX → "4.01"; L2-INDEX → "1.0.11". ALL UNCHANGED at D-604 (package FROZEN). 4-index proper UNCHANGED. L2-INDEX bumped at D-603.
+1. **Verify worktree state:** `git rev-parse --short origin/develop` → expect `7e99f6ef`. `git rev-parse --short origin/main` → expect `caf06c68`. `git -C .factory log -1` (expect D-605 F2 pass-42 CLEAN STREAK-2/3 2026-06-15; branch factory-artifacts; clean status).
+2. **Read §1-§12 this checkpoint** (all of it; D-605 self-sufficient).
+3. **Verify 4-index:** `grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md` → "2.99"; ARCH-INDEX → "2.47"; VP-INDEX → "2.29"; STORY-INDEX → "4.01"; L2-INDEX → "1.0.11". ALL UNCHANGED at D-605 (package FROZEN). L2-INDEX bumped at D-603; unchanged D-604/D-605.
 4. **E-10 CASCADE SEALED D-531.** Do NOT resume without engine-surface material change.
 5. **F5 PAUSED** — trajectory →9→9→9→11. Do NOT resume without explicit human direction.
 6. **RC.21 100% COMPLETE D-560.** NO remaining release action. Operators: `/plugin update vsdd-factory@claude-mp`.
-7. **D-604 F2 E-18 ADV PASS-41 CLEAN (ZERO FINDINGS).** Pass-41 CLEAN: 0 BLOCKER, 0 MAJOR, 0 MEDIUM, 0 LOW, 0 mis-anchor, 0 process-gap — first zero-findings pass. Streak 0/3→1/3. Package FROZEN. **NEXT: adversary pass-42 (fresh-context; frozen package; streak 1/3; 2 more CLEAN needed; STRICT 3-CLEAN human-directed).**
-8. **4-index at D-604:** BC-INDEX v2.99, VP-INDEX v2.29, STORY-INDEX v4.01, ARCH-INDEX v2.47 (UNCHANGED). L2-INDEX v1.0.11 (bumped D-603; UNCHANGED at D-604).
+7. **D-605 F2 E-18 ADV PASS-42 CLEAN.** 0 BLOCKER, 0 MAJOR, 0 load-bearing MEDIUM, 0 mis-anchor. 2 LOW obs NON-DEFECTS. Streak 1/3→2/3. Package FROZEN. **NEXT: adversary pass-43 (fresh-context; frozen package; streak 2/3; 1 more CLEAN needed; STRICT 3-CLEAN human-directed). O-1/O-2 are non-blocking non-defects (O-1 POLICY-19-compliant; O-2 out-of-perimeter).**
+8. **4-index at D-605:** BC-INDEX v2.99, VP-INDEX v2.29, STORY-INDEX v4.01, ARCH-INDEX v2.47 (UNCHANGED). L2-INDEX v1.0.11 (bumped D-603; UNCHANGED at D-604/D-605).
 9. **ALL dispatches carry:** TD-VSDD-097-EXT + TD-VSDD-099 + TD-VSDD-100 + POLICY 14 5-leg + verification_step 7 4-index gate + INV-019 (a)/(b)/(c) + adversary grep origin/factory-artifacts + D-449(a) literal-shell Dim-2 + POLICY 8 v1.3 parity + POLICY 5 v1.3.1/v1.3.4/v1.3.5/v1.3.6 + D-537 spec-drift routing + D-539 multi-family adversary + O-P8-002 MANDATORY (3rd recurrence) + **L-F2-cross-reference-title-code-sweep [process-gap] UPGRADED (D-589; 4th recurrence; title-cite-parity gate MANDATORY)** + L-F2-subsystem-anchor-sweep [process-gap] (2nd recurrence) + L-F2-canonical-scope-verification [process-gap] (D-587) + **L-F2-stale-term-deferral-unsafe [process-gap] (D-594: stale terms in normative prose MUST be fixed in-scope; exhaustive sweep mandatory)** + **L-F2-annotation-must-be-self-contained [process-gap] (D-598: annotation text must not enumerate sibling BC IDs; structural-parity sweeps must verify §Changelog EXISTS)** + **L-F2-exhaustive-sweep-enumerate-and-count [process-gap] (D-599 NEW: cohort sweeps MUST enumerate all N files + per-file grep stdout; subset-scoping FORBIDDEN; enumerate-count gate MANDATORY for ALL cohort structural assertions)** + **L-F2-prior-chain-append-only-history [adjudication D-600: nested [Prior:] chains are POLICY 1 immutable history; NOT re-flaggable if live text is correct]** + **L-F2-index-quad-cite-reflects-last-bump [convention D-601: 4-index quad-lag on untouched indices is EXPECTED; adversary MUST treat as benign; fixing it = false history injection]**.
-10. **Latest decision D-604.** F2 pass-41 CLEAN ZERO-FINDINGS (streak 1/3; package FROZEN; 4-index UNCHANGED; L2-INDEX v1.0.11). Adversary pass-42 NEXT (fresh-context; frozen; streak 1/3). On 3/3 CLEAN → pre-gate cleanup → human F2 gate → F3 S-18.00..S-18.08.
+10. **Latest decision D-605.** F2 pass-42 CLEAN (streak 2/3; package FROZEN; 4-index UNCHANGED; L2-INDEX v1.0.11). Adversary pass-43 NEXT (fresh-context; frozen; streak 2/3). On 3/3 CLEAN → pre-gate O-1/O-2 adjudication → human F2 gate → F3 S-18.00..S-18.08.
 
 ### §12. Pending Work Items — Strict Resume Ordering (refreshed 2026-06-15 D-599)
 
@@ -401,7 +391,8 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 | ~~1u..1x~~ | ~~#173/E-18 F2 adversarial re-cascade (passes 36-39)~~ | ~~feature~~ | ~~D-598..D-601 complete~~ | **ALL DONE D-599..D-602 2026-06-15.** Full rows: prior §12 (archived at `git show c53b42a1:.factory/STATE.md` §12). |
 | ~~1y~~ | ~~#173/E-18 F2 adversarial re-cascade (pass-40)~~ | ~~feature~~ | ~~D-602 NOT-CLEAN fix burst complete~~ | **DONE D-603 2026-06-15 — NOT-CLEAN (0B/0M; 1 MED F-P40-001 invariants.md v1.21 DI↔VP back-refs POLICY 2; 2 LOW; streak 0/3; L2-INDEX v1.0.11; 4-index UNCHANGED).** |
 | ~~1z~~ | ~~#173/E-18 F2 adversarial re-cascade (pass-41)~~ | ~~feature~~ | ~~D-603 NOT-CLEAN fix burst complete~~ | **DONE D-604 2026-06-15 — CLEAN (ZERO FINDINGS; 0B/0M/0MED/0LOW/0mis-anchor/0process-gap; first zero-findings pass; streak 0/3→1/3; package FROZEN; 4-index UNCHANGED).** |
-| **1** | **#173/E-18 F2 adversarial re-cascade (pass-42)** | **feature** | D-604 CLEAN (streak 1/3) | Fresh-context adversary; SAME frozen package; streak 1/3; 2 more CLEAN needed for convergence. STRICT 3-CLEAN human-directed. **START HERE.** |
+| ~~1~~ | ~~#173/E-18 F2 adversarial re-cascade (pass-42)~~ | ~~feature~~ | ~~D-604 CLEAN (streak 1/3)~~ | **DONE D-605 2026-06-15 — CLEAN (0B/0M/0LBM/0mis-anchor; 2 LOW obs NON-DEFECTS: O-1 POLICY-19-compliant; O-2 out-of-perimeter); streak 1/3→2/3; package FROZEN; 4-index UNCHANGED.** |
+| **1** | **#173/E-18 F2 adversarial re-cascade (pass-43)** | **feature** | D-605 CLEAN (streak 2/3) | Fresh-context adversary; SAME frozen package; streak 2/3; 1 more CLEAN needed for convergence. On CLEAN → 3/3 → F2 CONVERGED → pre-gate O-1/O-2 adjudication → F2 human gate → F3. STRICT 3-CLEAN human-directed. **START HERE.** |
 | **2** | **#173/E-18 F3 story decomposition** | **feature** | F2 3-CLEAN convergence (3/3) | Author S-18.00..S-18.07+S-18.08 (S-18.08 ships mandatory O-P8-002 pure-parse invariant gate). STORY-INDEX v4.01→v4.02+. |
 | **4** | **#173 wave-checkpoint** | **implementation** | E-18 F3 done OR human re-sequence | State-durability chain stories S-18.01..S-18.05. Blocked on F3. |
 | **5** | **#171 deferred-revalidate** | **implementation** | #173 stories done | Deferred-revalidation story. |
@@ -412,4 +403,4 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 **[D-414(c) acknowledgment: Section 12 is a non-standard addition for forward-backlog durability.]**
 
-> Previous checkpoint (D-603 F2-E18-ADV-PASS-40-NOT-CLEAN-FIX-BURST-2026-06-15) archived to: `cycles/v1.0-brownfield-backfill/session-checkpoints.md`
+> Previous checkpoint (D-604 F2-E18-ADV-PASS-41-CLEAN-ZERO-FINDINGS-STREAK-1-3-2026-06-15) archived to: `cycles/v1.0-brownfield-backfill/session-checkpoints.md`
