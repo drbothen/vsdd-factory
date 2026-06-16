@@ -131,7 +131,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | caf06c68 | rc.21 bot binary bundle commit 2026-06-13; prior: 2a191314 (rc.20) |
 | develop | 7e99f6ef | PR #186 fix a431ff47 + release.yml sync back-merge 2026-06-13; prior: 3b2a378c (D-556) |
-| factory-artifacts | [D-599 SHA — see post-push SHA-patch] | D-599 F2 pass-36 NOT-CLEAN FIX BURST (BC-1.15.001 v1.5 §Changelog; 4-index BC v2.98/VP v2.28/STORY v4.01/ARCH v2.46; streak 0/3; enumerate-count gate codified); prior: 7d4b600b D-598 pass-35 NOT-CLEAN |
+| factory-artifacts | b1c2b7e0 | D-599 F2 pass-36 NOT-CLEAN FIX BURST (BC-1.15.001 v1.5 §Changelog; 4-index BC v2.98/VP v2.28/STORY v4.01/ARCH v2.46; streak 0/3; enumerate-count gate codified); prior: 7d4b600b D-598 pass-35 NOT-CLEAN |
 | v1.0.0-rc.21 (tag) | 03054524 | SHIPPED 2026-06-13; FULLY IN OPERATOR MARKETPLACE (marketplace PR #13 MERGED); annotated tag object |
 | v1.0.0-rc.20 (tag) | e9e38286 | SHIPPED 2026-06-01; marketplace PR #12 squash-merged 862e660d |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28 |
