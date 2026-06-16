@@ -368,3 +368,73 @@ EOF
 @test "check-input-drift documents when to skip Step 6" {
   grep -q "When to skip Step 6" "$PLUGIN_ROOT/skills/check-input-drift/SKILL.md"
 }
+
+# ===== repo-root-relative path resolution (POLICY 18: engine paths as inputs) =====
+
+@test "compute-input-hash: repo-root-relative input (plugins/…) resolves and contributes to hash" {
+  # Simulates an artifact whose inputs: list includes a repo-root-relative engine
+  # path (e.g., plugins/vsdd-factory/skills/…/SKILL.md).  The file is placed at
+  # the repo-root-relative path inside WORK, and the artifact lives under .factory/.
+  mkdir -p "$WORK/.factory/specs"
+  mkdir -p "$WORK/plugins/vsdd-factory/skills/my-skill"
+  echo "# My Skill" > "$WORK/plugins/vsdd-factory/skills/my-skill/SKILL.md"
+  echo "# Product Brief" > "$WORK/.factory/specs/product-brief.md"
+
+  cat > "$WORK/.factory/specs/story.md" << 'EOF'
+---
+document_type: story
+inputs:
+  - product-brief.md
+  - plugins/vsdd-factory/skills/my-skill/SKILL.md
+input-hash: "[md5]"
+---
+EOF
+
+  # --resolve must report all inputs FOUND, not MISSING
+  run "$BIN" "$WORK/.factory/specs/story.md" --resolve 2>&1
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"all 2 inputs resolved"* ]]
+
+  # hash must be computable (7 chars)
+  hash=$("$BIN" "$WORK/.factory/specs/story.md")
+  [[ "${#hash}" -eq 7 ]]
+}
+
+@test "compute-input-hash: repo-root-relative input changes hash when SKILL.md changes" {
+  mkdir -p "$WORK/.factory/specs"
+  mkdir -p "$WORK/plugins/vsdd-factory/skills/my-skill"
+  echo "# My Skill v1" > "$WORK/plugins/vsdd-factory/skills/my-skill/SKILL.md"
+
+  cat > "$WORK/.factory/specs/story.md" << 'EOF'
+---
+document_type: story
+inputs:
+  - plugins/vsdd-factory/skills/my-skill/SKILL.md
+input-hash: "[md5]"
+---
+EOF
+
+  hash1=$("$BIN" "$WORK/.factory/specs/story.md")
+  echo "# My Skill v2 — content changed" > "$WORK/plugins/vsdd-factory/skills/my-skill/SKILL.md"
+  hash2=$("$BIN" "$WORK/.factory/specs/story.md")
+
+  [ "$hash1" != "$hash2" ]
+}
+
+@test "compute-input-hash: truly-missing repo-root-relative path surfaces MISSING, not silently skipped" {
+  mkdir -p "$WORK/.factory/specs"
+
+  cat > "$WORK/.factory/specs/story.md" << 'EOF'
+---
+document_type: story
+inputs:
+  - plugins/vsdd-factory/skills/nonexistent-skill/SKILL.md
+input-hash: "[md5]"
+---
+EOF
+
+  run "$BIN" "$WORK/.factory/specs/story.md" --resolve 2>&1
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"MISSING"* ]]
+  [[ "$output" == *"nonexistent-skill"* ]]
+}
