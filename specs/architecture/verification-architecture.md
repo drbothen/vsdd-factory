@@ -43,7 +43,7 @@ subsystems_affected:
 
 ## §1 Provable Properties Catalog
 
-All 90 verification properties, organized by subsystem. Each VP entry states: title,
+All 91 verification properties, organized by subsystem. Each VP entry states: title,
 proof method, BC postcondition/invariant anchor, and current status.
 
 > **VP count invariant:** This catalog lists exactly 91 VPs (VP-001..VP-091) across

@@ -1,16 +1,16 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: product-owner
 timestamp: 2026-06-16T00:00:00Z
-last_amended: "2026-06-16 (v1.0) — initial authoring (product-owner): BC-4.15.001 created per F3 OQ-4 human directive; advisory-only validate-heavy-op-delegation WASM gate; pure-parse PreToolUse pattern matching on Bash tool calls; advisory DelegationRecommended finding emitted to stderr + plugin.log on match; never blocks; non-Bash no-op; registry-configurable pattern list with v1 default set; DI-020 preventive-advisory anchor; §Future Mode blocking-promotion sketch (non-normative); ADR-026 §Decision 12 + §Decision 8; CAP-032; S-18.06; VP-091."
+last_amended: "2026-06-16 (v1.1) — micro-fix (product-owner): §Verification Properties VP-091 proof_method corrected from 'unit-test + integration' to 'unit-test' to match canonical VP-091 frontmatter + VP-INDEX classification. No behavioral content changed."
 phase: F3
 inputs:
   - .factory/specs/architecture/decisions/ADR-026-wave-boundary-checkpoint-reset-and-lossless-intra-wave-compaction.md
   - .factory/specs/domain-spec/capabilities.md
-input-hash: "TBD"
+input-hash: "0a64afe"
 traces_to: .factory/specs/prd.md
 origin: greenfield
 extracted_from: null
@@ -18,7 +18,7 @@ subsystem: "SS-04"
 capability: "CAP-032"
 lifecycle_status: draft
 introduced: v1.0-feature-context-durability-E18
-modified: []
+modified: ["1.1"]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -157,7 +157,7 @@ S-18.06 (validate-heavy-op-delegation WASM gate crate + registry; advisory mode)
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-091 | validate-heavy-op-delegation returns Continue under all conditions (match, no-match, crash); emits `DelegationRecommended` advisory to both stderr and plugin.log on first pattern match; emits nothing on no-match; is a no-op on non-Bash tool calls; performs no filesystem, subprocess, or context reads | unit-test + integration |
+| VP-091 | validate-heavy-op-delegation returns Continue under all conditions (match, no-match, crash); emits `DelegationRecommended` advisory to both stderr and plugin.log on first pattern match; emits nothing on no-match; is a no-op on non-Bash tool calls; performs no filesystem, subprocess, or context reads | unit-test |
 
 ## Traceability
 
@@ -176,6 +176,7 @@ S-18.06 (validate-heavy-op-delegation WASM gate crate + registry; advisory mode)
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| v1.1 | 2026-06-16 | product-owner | Micro-fix: §Verification Properties VP-091 proof_method corrected from "unit-test + integration" to "unit-test" to match canonical VP-091 frontmatter + VP-INDEX classification. No behavioral content changed. |
 | v1.0 | 2026-06-16 | product-owner | Initial creation per F3 OQ-4 human directive. Advisory-only validate-heavy-op-delegation WASM gate (ADR-026 §Decision 12 + §Decision 8; CAP-032; S-18.06). Pure-parse Invariant 1; never-blocks Invariant 2; first-match deterministic Invariant 3; command_preview ≤120-char Invariant 4. PC-A/PC-B/PC-C/PC-D postconditions. PC1 canonical TOML registry block (name + plugin + PreToolUse + tool=Bash + on_error=continue + async=false + timeout_ms=5000 + [hooks.config] patterns v1 defaults). PC-B dual-channel advisory (stderr nudge B-1 + plugin.log structured record B-2; code: DelegationRecommended). EC-001..EC-013 edge cases. 13-row test vector table. DI-020 preventive-advisory anchor (OQ-4.4 adopted). §Future Mode blocking-promotion non-normative sketch. |
 
 ---
