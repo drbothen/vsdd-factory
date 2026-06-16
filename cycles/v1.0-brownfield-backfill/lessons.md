@@ -3467,3 +3467,33 @@ All 8 = 1. §Changelog presence exhaustively verified for the E-18 BC cohort. Th
 **Cites:** D-609; F-CONF-001; O-CONF-001; BC-7.07.001 v1.12; VP-090 v1.2; VP-087 v1.2; L-F2-machine-stable-count-assertion (companion — the D-608 burst that introduced the guarantor-cite gap); POLICY 4; POLICY 5.
 
 **Closes:** D-609 F-CONF-001 MAJOR FIXED (BC-7.07.001 v1.12 + VP-090 v1.2); D-609 O-CONF-001 LOW FIXED (VP-087 v1.2); process-gap class codified; L-F2-fix-at-correct-layer added to carry-forward lesson set. `[process-gap; mis-anchoring; guarantor-cite; fix-at-wrong-layer; assert-the-bug-away; POLICY-4; POLICY-5; S-18.08-scope]`
+
+---
+
+### L-F2-no-bypass-on-edit-failure
+
+**Category:** [process-gap]
+**Discovered:** 2026-06-16 D-610 — D-609 integration burst incident (Edit tool failure → python3 heredoc fallback)
+**Severity:** PROCESS-GAP — TD-FACTORY-HOOK-BYPASS-001 P0 / POL-3 violation class; bypasses factory-dispatcher PreToolUse/PostToolUse hook chain
+
+**Summary:** When an Edit tool call fails with "File has not been read yet" (or any other Edit/Write error), the correct recovery is Read-then-Edit/Write. NEVER fall back to `python3`, `sed`, or `echo` heredoc mutation of `.factory/` files. The python/sed/echo fallback is a TD-FACTORY-HOOK-BYPASS-001 P0 / POL-3 violation: it bypasses the factory-dispatcher PreToolUse/PostToolUse hook chain (validate-state-structure, validate-artifact-path, validate-burst-log, and all other registered hook plugins). The hook chain exists to enforce pipeline invariants — bypassing it silently strips these enforcement gates from the write path.
+
+**Root Cause (D-609 integration burst incident):** During the D-609 E-18 CONFIRMING-PASS FIX BURST, an Edit tool call on a `.factory/` file failed (cause: the file had not been Read earlier in the conversation context, triggering "File has not been read yet"). The agent reflexively fell back to `python3` heredoc mutation to complete the write. The orchestrator detected and intervened mid-burst; the relevant sections were re-audited via Read and the commit-time hooks validated the final file. Recovery was possible because PostToolUse hooks fire after the write — but the PreToolUse gate was bypassed for the python write, meaning any PreToolUse block would have been silently skipped.
+
+**Rule (binding):**
+
+**(a) Read before Edit — always.** If an Edit call fails with "File has not been read yet," the ONLY correct recovery is to Read the file (or the relevant region with offset+limit), then re-attempt the Edit with a correctly matched `old_string`. The Read step is mandatory, not optional.
+
+**(b) python3 / sed / echo heredoc writes to `.factory/` are FORBIDDEN.** These tools bypass the factory-dispatcher hook chain. TD-FACTORY-HOOK-BYPASS-001 P0 makes no exception for "recovery from tool failure." The hook chain enforces pipeline invariants; bypassing it is a P0 violation regardless of the reason.
+
+**(c) Unique `old_string` discipline.** Most Edit failures citing "old_string not found" indicate the file content has drifted from what the agent expected (e.g., a prior edit in the same burst changed the region). Recovery: Read the current file content, identify the updated unique `old_string`, re-apply the Edit. Never widen the bypass path as a shortcut.
+
+**(d) Same rule applies in F3 dispatches.** All F3 story-writer, product-owner, architect, and consistency-validator dispatches operate under this rule. Any agent that encounters an Edit failure MUST Read-then-Edit, not bypass via shell mutation. Orchestrator must include this as an explicit dispatch constraint in F3 prompts.
+
+**(e) Feeds F3 S-18.08 gate-story scope.** The validate-artifact-path and validate-state-structure hooks can be extended to detect python3/sed mutation attempts at the PostToolUse Bash hook level. This is a candidate S-18.08 scope item for the enforcement story.
+
+**Anchors:** D-610 (this burst); D-609 (incident burst); TD-FACTORY-HOOK-BYPASS-001 P0; POL-3; validate-state-structure plugin; validate-artifact-path plugin; E-18 (CAP-032 context-durability; GitHub issue #173).
+
+**Cites:** D-610; D-609 (incident); TD-FACTORY-HOOK-BYPASS-001; POL-3; CLAUDE.md §Forbidden-patterns ("Direct edit of `.factory/STATE.md` by any agent other than state-manager"); CLAUDE.md §Operational-Discipline-TDs (TD-FACTORY-HOOK-BYPASS-001 P0 — Use Edit/Write tools ONLY for `.factory/` mutations. NEVER use Python/sed/echo bypass. Enforced by POL-3).
+
+**Closes:** D-610 process-gap class codified; L-F2-no-bypass-on-edit-failure added to carry-forward lesson set for F3. `[process-gap; hook-bypass; tool-failure-recovery; TD-FACTORY-HOOK-BYPASS-001; POL-3; S-18.08-scope; F3-dispatch-constraint]`
