@@ -3605,3 +3605,39 @@ All 8 = 1. §Changelog presence exhaustively verified for the E-18 BC cohort. Th
 **Cites:** D-616; POLICY 18; CLAUDE.md §Canonical-Principle Rule 1 (no silent defects).
 
 **Closes:** D-616 process-gap class codified; L-F2-input-hash-tool-trust added to carry-forward lesson set for F3. `[process-gap; tool-defect; input-hash; collision-detection; compute-input-hash; awk; resolver; POLICY-18; E-18]`
+
+---
+
+### L-F2-statemd-banner-wcl-each-burst
+
+**Category:** [process-gap]
+**Discovered:** 2026-06-16 D-617 — STATE.md SIZE BUDGET banner block repair (D-609..D-616 missing entries detected by CI bats-full-suite run 27649845315)
+**Severity:** PROCESS-GAP — structural CI breakage; ALL develop PRs red-lit while bats-full-suite (linux) CI job fails
+
+**Summary:** Every state-manager STATE.md burst (Commit-E) MUST append a canonical `N lines (wc-l; ...)` entry to the SIZE BUDGET HTML-comment block with a LEADING integer line-count N matching `wc -l .factory/STATE.md` at the time of that commit. The `validate-state-structure` WASM hook's `extract_banner_line_count` function scans the banner block for the LAST `N lines (wc-l<terminator>` entry and compares N to the actual newline count. If the last entry is absent (D-610..D-616 omitted entries) OR malformed (D-609 had `(wc-l;` with no leading digit), the function returns `None` and the hook reports "no SIZE BUDGET banner found" — blocking any STATE.md write AND causing the `bats-full-suite (linux)` CI job's `pass-real-state-md-snapshot` bats test to fail. This red-lights ALL develop PRs.
+
+**Root Cause (D-609..D-616 incident):** Bursts D-610..D-616 each updated STATE.md but did not append banner entries. The D-609 burst added a banner entry but omitted the leading integer (wrote `(wc-l;` rather than `410 lines (wc-l;`). The PostToolUse `validate-state-structure` hook validates STATE.md at write-time but does NOT enforce that the FINAL line-count entry matches the post-write actual count — it validates whatever the last entry claims at the moment of the write, which may be stale if the entry was already present from a prior burst. The `pass-real-state-md-snapshot` bats test is the authoritative gate that verifies the live file, and it runs only in CI (not per-write). Detection delay: 7 bursts.
+
+**Rule (binding):**
+
+**(a) Append a new banner entry at Commit-E of every STATE.md fix burst.** After all content changes are finalized and before committing, run:
+```bash
+wc -l .factory/STATE.md
+```
+Then append a line inside the `<!-- STATE.md SIZE BUDGET ... -->` block (before the closing `-->`) in the form:
+```
+  N lines (wc-l; D-NNN: <one-line burst description>).
+```
+where N is the exact `wc -l` output (count of newlines in the file).
+
+**(b) The leading integer MUST precede `lines (wc-l`.** The extractor looks for the byte sequence ` lines (wc-l` (space before `lines`) and then walks BACKWARD to collect preceding ASCII digits. If no digit precedes the space, `scan_for_last_wc_l` returns `None`. The correct form is `425 lines (wc-l; ...)`, NOT `(wc-l; ...) 425 lines`.
+
+**(c) The LAST entry in the banner is the authoritative claim.** If multiple entries exist (historical log of past bursts), the extractor returns the last one. Always append — never edit prior entries (POLICY 1 append-only history).
+
+**(d) "STATE.md SIZE BUDGET" MUST NOT appear in frontmatter prose.** The `extract_banner_block` function finds the FIRST occurrence of `STATE.md SIZE BUDGET` in the file and then scans backwards for `<!--`. If this string appears in `last_amended:` or any frontmatter field before the HTML comment, the scan finds no `<!--` before it and returns `None`, causing the same failure. Use abbreviated forms like `banner-block repair` or `SIZE-BUDGET` in frontmatter prose.
+
+**Anchors:** D-617 (this repair burst); D-609..D-616 (missing/malformed entries); PR #189 CI bats-full-suite run 27649845315; `crates/hook-plugins/validate-state-structure/src/lib.rs` `extract_banner_line_count` + `scan_for_last_wc_l` + `extract_banner_block`.
+
+**Cites:** D-617; D-421(c)+D-422(c)+D-446(c); BC-5.39.005; validate-state-structure WASM hook; bats `pass-real-state-md-snapshot`.
+
+**Closes:** D-617 process-gap codified; L-F2-statemd-banner-wcl-each-burst added to carry-forward lesson set. `[process-gap; banner; wc-l; validate-state-structure; bats; CI; STATE.md; Commit-E]`
