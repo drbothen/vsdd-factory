@@ -2,12 +2,13 @@
 document_type: architecture-section
 level: L4
 section: verification-coverage-matrix
-version: "1.0"
+version: "1.1"
 status: draft
 producer: architect
 timestamp: 2026-06-16T00:00:00Z
-last_amended: "2026-06-16 (v1.0) — F2 gate decision: initial creation as a full production-grade architecture deliverable. Sources: VP-INDEX.md v2.29 (86 VPs) + VP-087..VP-090 (4 new E-18 VPs, unstaged). POST-INTEGRATION totals: total_vps=90, unit-test=44, integration=27, manual=10, static-check=1, kani-proof=4, proptest=4. Every VP assigned to its authoritative module per VP-INDEX.md scope column and VP file frontmatter. Authored per F2 gate human directive that deferred architecture derived-views be materialized now."
+last_amended: "2026-06-16 (v1.1) — D-612 INTEGRATION BURST (state-manager POLICY 9 propagation): VP-091 added to SS-04 module table (unit-test; SS-04; DI-020; BC-4.15.001 — validate-heavy-op-delegation always-Continue advisory gate). SS-04 subtotal U 3→4, row total 12→13. Grand Total U 44→45, row total 90→91. Per-tool arithmetic 4+4+45+27+10+1=91 VERIFIED. Per-subsystem row-sum 31+5+14+13+12+4+11+1=91 VERIFIED. [Prior: 2026-06-16 (v1.0) — F2 gate decision: initial creation as a full production-grade architecture deliverable. Sources: VP-INDEX.md v2.29 (86 VPs) + VP-087..VP-090 (4 new E-18 VPs, unstaged). POST-INTEGRATION totals: total_vps=90, unit-test=44, integration=27, manual=10, static-check=1, kani-proof=4, proptest=4. Every VP assigned to its authoritative module per VP-INDEX.md scope column and VP file frontmatter. Authored per F2 gate human directive that deferred architecture derived-views be materialized now.]"
 modified:
+  - "2026-06-16 (v1.1) — D-612 VP-091 added to SS-04 module; SS-04 U 3→4, total 12→13; grand total 90→91"
   - "2026-06-16 (v1.0 initial creation)"
 traces_to: VP-INDEX.md
 subsystems_affected:
@@ -36,7 +37,7 @@ subsystems_affected:
 > their additional subsystem affiliations are noted in the Subsystems column.
 >
 > **Grand-total arithmetic invariant:** Each VP is counted exactly once in the grand-
-> total row. The per-tool column sums (K+P+U+I+M+S) must equal 90. This invariant
+> total row. The per-tool column sums (K+P+U+I+M+S) must equal 91. This invariant
 > must be verified on every update to this document.
 
 ## §Changelog
@@ -156,7 +157,8 @@ where SS-01 or SS-05 is listed first (see assignment notes in §2).
 | VP-072 | artifact-path-registry.yaml Single Source of Truth | SS-04 | | | | ✓ | | |
 | VP-076 | Resolver-Capability Confinement | SS-04 | | | | ✓ | | |
 | VP-083 | Completeness Gate Is No-Op on Wave-1 or Non-HANDOFF.md Writes | SS-04 | | | ✓ | | | |
-| **SS-04 subtotal** | | | **2** | **1** | **3** | **6** | **0** | **0** |
+| VP-091 | validate-heavy-op-delegation Emits DelegationRecommended Advisory (Never Blocks) | SS-04 | | | ✓ | | | |
+| **SS-04 subtotal** | | | **2** | **1** | **4** | **6** | **0** | **0** |
 
 ---
 
@@ -270,28 +272,28 @@ rationale below documents the reasoning applied when scope order determines prim
 ## §3 Grand Totals
 
 Each VP counted exactly once in the row for its primary subsystem. The grand-total
-per-tool column sums equal 90 (total_vps POST-INTEGRATION).
+per-tool column sums equal 91 (total_vps POST-INTEGRATION).
 
 | Subsystem | K | P | U | I | M | S | Row Total |
 |-----------|---|---|---|---|---|---|-----------|
 | SS-01 | 2 | 1 | 22 | 6 | 0 | 0 | 31 |
 | SS-02 | 0 | 0 | 5 | 0 | 0 | 0 | 5 |
 | SS-03 | 0 | 0 | 11 | 3 | 0 | 0 | 14 |
-| SS-04 | 2 | 1 | 3 | 6 | 0 | 0 | 12 |
+| SS-04 | 2 | 1 | 4 | 6 | 0 | 0 | 13 |
 | SS-05 | 0 | 0 | 0 | 5 | 6 | 1 | 12 |
 | SS-06 | 0 | 1 | 0 | 3 | 0 | 0 | 4 |
 | SS-07 | 0 | 1 | 3 | 4 | 3 | 0 | 11 |
 | SS-09 | 0 | 0 | 0 | 0 | 1 | 0 | 1 |
-| **Grand Total** | **4** | **4** | **44** | **27** | **10** | **1** | **90** |
+| **Grand Total** | **4** | **4** | **45** | **27** | **10** | **1** | **91** |
 
-**Per-tool arithmetic check:** 4 + 4 + 44 + 27 + 10 + 1 = **90** ✓
+**Per-tool arithmetic check:** 4 + 4 + 45 + 27 + 10 + 1 = **91** ✓
 
-**Per-subsystem row-sum check:** 31 + 5 + 14 + 12 + 12 + 4 + 11 + 1 = **90** ✓
+**Per-subsystem row-sum check:** 31 + 5 + 14 + 13 + 12 + 4 + 11 + 1 = **91** ✓
 
 **Per-tool column matches VP-INDEX.md POST-INTEGRATION targets:**
 - kani-proof: **4** ✓ (VP-070, VP-071, VP-074, VP-077)
 - proptest: **4** ✓ (VP-059, VP-069, VP-075, VP-080)
-- unit-test: **44** ✓ (42 from VP-INDEX v2.29 + VP-089 + VP-090)
+- unit-test: **45** ✓ (42 from VP-INDEX v2.29 + VP-089 + VP-090 + VP-091)
 - integration: **27** ✓ (25 from VP-INDEX v2.29 + VP-087 + VP-088)
 - manual: **10** ✓ (unchanged from VP-INDEX v2.29)
 - static-check: **1** ✓ (unchanged from VP-INDEX v2.29)
@@ -300,4 +302,4 @@ per-tool column sums equal 90 (total_vps POST-INTEGRATION).
 VP-014, VP-016..024, VP-026..027, VP-050, VP-052), I=6 (VP-001, VP-002, VP-025,
 VP-051, VP-073, VP-086), M=0, S=0. Row sum = 2+1+22+6+0+0 = **31** ✓
 
-All 90 VPs are accounted for with no omissions and no double-counts.
+All 91 VPs are accounted for with no omissions and no double-counts.

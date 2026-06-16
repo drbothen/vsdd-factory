@@ -2,12 +2,13 @@
 document_type: architecture-section
 level: L4
 section: verification-architecture
-version: "1.1"
+version: "1.2"
 status: draft
 producer: architect
 timestamp: 2026-06-16T00:00:00Z
-last_amended: "2026-06-16 (v1.1) — fix burst (architect): FINDING-1 (MINOR) + O-D607-003 — removed SS-08 from subsystems_affected frontmatter; SS-08 has zero VPs in this document's body (consistent with sibling verification-coverage-matrix.md which correctly omits SS-08). Frontmatter now matches body. [Prior: 2026-06-16 (v1.0) — F2 gate decision: initial creation as a full production-grade architecture deliverable. Sources: VP-INDEX.md v2.29 (86 VPs) + VP-087..VP-090 (4 new E-18 VPs, unstaged). POST-INTEGRATION totals: total_vps=90, unit-test=44, integration=27, manual=10, static-check=1, kani-proof=4, proptest=4. Authored per F2 gate human directive that deferred architecture derived-views be materialized now.]"
+last_amended: "2026-06-16 (v1.2) — D-612 INTEGRATION BURST (state-manager POLICY 9 propagation): VP-091 added to §SS-04 Provable Properties Catalog (unit-test; DI-020; validate-heavy-op-delegation always-Continue advisory gate; BC-4.15.001; S-18.06). §3 Proof Method Coverage Totals: unit-test 44→45; Total 90→91. §1 VP count invariant note updated 90→91. [Prior: 2026-06-16 (v1.1) — fix burst (architect): FINDING-1 (MINOR) + O-D607-003 — removed SS-08 from subsystems_affected frontmatter; SS-08 has zero VPs in this document's body (consistent with sibling verification-coverage-matrix.md which correctly omits SS-08). Frontmatter now matches body. [Prior: 2026-06-16 (v1.0) — F2 gate decision: initial creation as a full production-grade architecture deliverable. Sources: VP-INDEX.md v2.29 (86 VPs) + VP-087..VP-090 (4 new E-18 VPs, unstaged). POST-INTEGRATION totals: total_vps=90, unit-test=44, integration=27, manual=10, static-check=1, kani-proof=4, proptest=4. Authored per F2 gate human directive that deferred architecture derived-views be materialized now.]]"
 modified:
+  - "2026-06-16 (v1.2) — D-612 VP-091 added to SS-04 catalog; unit-test 44→45; total 90→91"
   - "2026-06-16 (v1.1) — removed SS-08 from subsystems_affected (zero VPs in body; aligns with verification-coverage-matrix.md)"
   - "2026-06-16 (v1.0 initial creation)"
 traces_to: VP-INDEX.md
@@ -34,6 +35,7 @@ subsystems_affected:
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| v1.2 | 2026-06-16 | state-manager | D-612 POLICY 9 propagation: VP-091 added to SS-04 Provable Properties Catalog (unit-test; DI-020; BC-4.15.001; S-18.06 — validate-heavy-op-delegation always-Continue advisory gate). §3 unit-test 44→45; Total 90→91. §1 VP count invariant updated 90→91. |
 | v1.1 | 2026-06-16 | architect | FINDING-1 (MINOR) + O-D607-003 — removed SS-08 from `subsystems_affected` frontmatter. SS-08 has zero VPs in this document's §1 body; sibling verification-coverage-matrix.md correctly omits SS-08. Frontmatter now matches body content. |
 | v1.0 | 2026-06-16 | architect | Initial creation — F2 gate decision. Sources: VP-INDEX.md v2.29 (86 VPs) + VP-087..VP-090 (4 new E-18 VPs). POST-INTEGRATION totals: total_vps=90, unit-test=44, integration=27, manual=10, static-check=1, kani-proof=4, proptest=4. |
 
@@ -44,8 +46,8 @@ subsystems_affected:
 All 90 verification properties, organized by subsystem. Each VP entry states: title,
 proof method, BC postcondition/invariant anchor, and current status.
 
-> **VP count invariant:** This catalog lists exactly 90 VPs (VP-001..VP-090) across
-> all subsystems. The per-method totals in §3 must sum to 90.
+> **VP count invariant:** This catalog lists exactly 91 VPs (VP-001..VP-091) across
+> all subsystems. The per-method totals in §3 must sum to 91.
 
 ---
 
@@ -135,6 +137,7 @@ proof method, BC postcondition/invariant anchor, and current status.
 | VP-072 | artifact-path-registry.yaml Single Source of Truth | integration | — | draft |
 | VP-076 | Resolver-Capability Confinement | integration | DI-004 | draft |
 | VP-083 | Completeness Gate Is No-Op on Wave-1 or Non-HANDOFF.md Writes | unit-test | DI-020 | draft |
+| VP-091 | validate-heavy-op-delegation Emits DelegationRecommended Advisory on Pattern-Matching Bash Commands and Returns Continue in All Cases (Never Blocks) | unit-test | DI-020 | draft |
 
 ---
 
@@ -235,19 +238,19 @@ fixtures to arbitrary generated inputs.
 
 ## §3 Proof Method Coverage Totals
 
-> **Arithmetic invariant:** per-method counts must sum to total_vps (90).
+> **Arithmetic invariant:** per-method counts must sum to total_vps (91).
 > These totals must equal the VP-INDEX.md §Proof Method Breakdown totals.
 > Source of truth: VP-INDEX.md. If VP-INDEX and this table diverge, VP-INDEX wins.
 
 | Proof Method | Count | VP IDs |
 |-------------|-------|--------|
-| unit-test | 44 | VP-003..014, VP-016..024, VP-026..027, VP-029..032, VP-034..042, VP-044..045, VP-050, VP-052, VP-083, VP-085, VP-089, VP-090 |
+| unit-test | 45 | VP-003..014, VP-016..024, VP-026..027, VP-029..032, VP-034..042, VP-044..045, VP-050, VP-052, VP-083, VP-085, VP-089, VP-090, VP-091 |
 | integration | 27 | VP-001, VP-002, VP-025, VP-028, VP-033, VP-043, VP-049, VP-051, VP-058, VP-060, VP-062, VP-063, VP-065, VP-066, VP-067, VP-068, VP-072, VP-073, VP-076, VP-078, VP-079, VP-081, VP-082, VP-084, VP-086, VP-087, VP-088 |
 | manual | 10 | VP-015, VP-046..048, VP-053..057, VP-064 |
 | static-check | 1 | VP-061 |
 | kani-proof | 4 | VP-070, VP-071, VP-074, VP-077 |
 | proptest | 4 | VP-059, VP-069, VP-075, VP-080 |
-| **Total** | **90** | **VP-001..VP-090** |
+| **Total** | **91** | **VP-001..VP-091** |
 
 ---
 
