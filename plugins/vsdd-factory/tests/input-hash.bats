@@ -438,3 +438,27 @@ EOF
   [[ "$output" == *"MISSING"* ]]
   [[ "$output" == *"nonexistent-skill"* ]]
 }
+
+# ===== security: path-traversal rejection (CWE-22) =====
+
+@test "compute-input-hash: path-traversal input (..) is rejected as MISSING, not resolved" {
+  # SEC-001: inputs containing '..' must be surfaced as MISSING with a warning,
+  # never resolved against REPO_ROOT or any search base.
+  mkdir -p "$WORK/.factory/specs"
+  echo "# Sensitive content" > "$WORK/sensitive.md"
+
+  cat > "$WORK/.factory/specs/traversal-artifact.md" << 'EOF'
+---
+document_type: bc
+inputs:
+  - ../../sensitive.md
+input-hash: "[md5]"
+---
+EOF
+
+  run "$BIN" "$WORK/.factory/specs/traversal-artifact.md" --resolve 2>&1
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"MISSING"* || "$output" == *"traversal"* || "$output" == *".."* ]]
+  # Must NOT have resolved to the sensitive file
+  [[ "$output" != *"all"*"inputs resolved"* ]]
+}

@@ -253,6 +253,13 @@ _resolve_one() {
   # Final fallback: try the input path as-is relative to the repository root.
   # This covers repo-root-relative engine paths (e.g., plugins/vsdd-factory/skills/…)
   # that cannot be found inside .factory/.
+  # Assumption: no directory component above the vsdd-factory repo root is named
+  # ".factory"; the ${FILE%%/.factory/*} pattern would anchor at the wrong level
+  # if, e.g., the user's home directory were ~/.factory/… (extremely unlikely in
+  # practice; the sentinel file CLAUDE.md at the repo root disambiguates in edge
+  # cases during development).  Path-traversal inputs ('..' sequences) are
+  # rejected before this point, so REPO_ROOT/$input_file is bounded to
+  # legitimate repo-relative paths.
   if [[ -n "$REPO_ROOT" ]] && [[ -f "$REPO_ROOT/$input_file" ]]; then
     echo "$REPO_ROOT/$input_file"
     return 0
@@ -296,6 +303,15 @@ _expand_glob() {
 
 while IFS= read -r input_file; do
   [[ -z "$input_file" ]] && continue
+
+  # Reject path-traversal sequences (CWE-22).  Legitimate factory inputs never
+  # use '..' — they rely on the search-base hierarchy in _resolve_one instead.
+  if [[ "$input_file" == *..* ]]; then
+    echo "compute-input-hash: rejected path traversal in input: $input_file" >&2
+    MISSING=$((MISSING + 1))
+    MISSING_FILES="${MISSING_FILES:+$MISSING_FILES, }$input_file"
+    continue
+  fi
 
   # Detect glob or directory inputs and expand them
   if [[ "$input_file" == *"*"* ]] || [[ "$input_file" == */ ]]; then
