@@ -3433,3 +3433,37 @@ All 8 = 1. §Changelog presence exhaustively verified for the E-18 BC cohort. Th
 **Cites:** D-608; F-D607-001; F-D607-003; VP-088 v1.1; VP-090 v1.1; VP-083 v1.9 (F-P32-002 — tautology-hardening pattern that F-D607-002 mirrors for VP-087); L-F2-exhaustive-sweep-enumerate-and-count (companion: cohort sweeps must enumerate all N files + capture per-file stdout; machine-stable-count extends same principle to count assertions).
 
 **Closes:** D-608 F-D607-003 LOW FIXED (VP-088 v1.1); D-608 F-D607-001 MEDIUM LOAD-BEARING FIXED (VP-090 v1.1); process-gap class codified; L-F2-machine-stable-count-assertion added to carry-forward lesson set. `[process-gap; count-assertion; machine-stable-signal; false-green; harness-discipline; S-18.08-scope]`
+
+---
+
+### L-F2-fix-at-correct-layer
+
+**Category:** [process-gap]
+**Discovered:** 2026-06-16 D-609 — E-18 CONFIRMING adversary pass (F-CONF-001 MAJOR finding; confirming-pass returned NOT-CLEAN)
+**Severity:** PROCESS-GAP — "fix-at-wrong-layer" / assert-the-bug-away anti-pattern; VP cites a guarantee the cited guarantor does not actually make
+
+**Summary:** When a VP fix adds a precondition that depends on an upstream guarantee (e.g., "precompact-flush-log entries are always newline-terminated"), the guarantee MUST exist at the cited guarantor artifact (BC/ADR) before the VP is closed. Do NOT close a VP finding by citing a property the guarantor does not yet make — this is the "fix-at-wrong-layer" anti-pattern (also: assert-the-bug-away). Establish the guarantee at the owning artifact first, then cite it in the VP.
+
+**Root Cause (D-609 / F-CONF-001 MAJOR):** VP-090 v1.1 (D-608 fix for F-D607-001 MEDIUM) added a newline-termination precondition to §0 and cited `BC-7.07.001 PC8/Inv3` as the guarantor. However, BC-7.07.001 PC8/Inv3 at v1.11 did not contain an explicit newline-termination obligation — the append semantics were specified by format only; a conforming `printf '%s'` (no trailing newline) would have satisfied the prior wording. The VP fix stated a guarantee the BC did not make. The confirming adversary detected this MISANCHORING as F-CONF-001 MAJOR load-bearing.
+
+**Fix chain (D-609):** (1) product-owner added explicit newline-termination postcondition to BC-7.07.001 PC8 + Inv3 step 7 (v1.12, additive only) — establishing the guarantee at the owning artifact. (2) architect tightened VP-090 §0 cite from `BC-7.07.001 PC8/Inv3` to `BC-7.07.001 PC8 newline-termination clause / Inv3 step 7` (v1.2) — citation now resolves to a real guarantee. Correct fix-order: guarantor first, then VP cite.
+
+**Companion finding (D-609 / O-CONF-001 LOW):** VP-087 v1.1 §3 used set-complement phrasing ("a story that is neither merged/withdrawn/cancelled/pending/draft") that paraphrased ADR-026 §Terminal-Wave Discriminator rather than BC-5.41.002 EC-001b. The text was attributed to EC-001b, but EC-001b does not contain the set-complement language — ADR-026 §Terminal-Wave Discriminator does. Fix (VP-087 v1.2): re-attribute to ADR-026 §Terminal-Wave Discriminator; paraphrase EC-001b accurately. Same root class: citing a guarantee/source that does not contain the cited content.
+
+**Rule (binding):**
+
+**(a) Guarantee first, cite second.** Before a VP may cite a BC Precondition/Invariant or ADR §Section as the guarantor of a property, that property MUST appear explicitly in the cited artifact. "Will be fixed in the same burst" is NOT sufficient — the guarantor must be written first.
+
+**(b) The "fix-at-wrong-layer" pattern is ALWAYS a MAJOR finding.** If an adversary detects that a VP precondition cites a guarantee absent from the named BC/ADR, the finding is load-bearing regardless of how the VP body reads. The VP cannot be clean if its foundation is unsubstantiated.
+
+**(c) Applies to POLICY 4 / POLICY 5 mis-anchoring.** This class is a specific instance of cross-document mis-anchoring under POLICY 4 (behavioral-spine consistency) and POLICY 5 (verification-property grounding). A VP that cites a non-existent guarantee creates a ghost anchor — the verification property is formally sound but its precondition is ungrounded.
+
+**(d) Confirming-pass discipline.** A confirming adversary pass EXISTS precisely to catch this class. The fix-burst (D-608) architect resolved the VP finding but did not establish the upstream guarantee — the confirming pass (D-609) detected the residual gap. This is the confirming pass working as designed, NOT a duplicate finding.
+
+**(e) Feeds forward to F3 S-18.08 gate-story scope.** The consistency-validator must include a gate check: for every `guarantor:` cite in a VP §Preconditions section, verify that the cited BC/ADR section contains the named clause (or a semantically equivalent obligation). A cite that resolves to a section containing no newline-termination language while claiming to guarantee newline-termination is an automatic BLOCKER.
+
+**Anchors:** D-609 (this burst); F-CONF-001 (VP-090 v1.1 guarantor cite absent from BC-7.07.001 v1.11 PC8/Inv3; MAJOR load-bearing); O-CONF-001 (VP-087 v1.1 §3 attribution mismatch; LOW); BC-7.07.001 v1.12 (additive newline-termination PC established at guarantor); VP-090 v1.2 (guarantor cite tightened); VP-087 v1.2 (attribution corrected); E-18 (CAP-032 context-durability; GitHub issue #173).
+
+**Cites:** D-609; F-CONF-001; O-CONF-001; BC-7.07.001 v1.12; VP-090 v1.2; VP-087 v1.2; L-F2-machine-stable-count-assertion (companion — the D-608 burst that introduced the guarantor-cite gap); POLICY 4; POLICY 5.
+
+**Closes:** D-609 F-CONF-001 MAJOR FIXED (BC-7.07.001 v1.12 + VP-090 v1.2); D-609 O-CONF-001 LOW FIXED (VP-087 v1.2); process-gap class codified; L-F2-fix-at-correct-layer added to carry-forward lesson set. `[process-gap; mis-anchoring; guarantor-cite; fix-at-wrong-layer; assert-the-bug-away; POLICY-4; POLICY-5; S-18.08-scope]`
