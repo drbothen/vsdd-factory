@@ -3290,3 +3290,58 @@ Rule 2 — **Structural-parity sweeps MUST VERIFY the section EXISTS before clai
 **Cites:** D-598; D-596; F-P35-001; F-P35-002; F-P33-001; BC-5.41.003 v1.8; BC-5.41.001 v1.17; BC-5.41.002 v1.10; BC-6.24.001 v1.9; BC-7.07.002 v1.11; BC-5.39.001; L-F2-stale-term-deferral-unsafe (companion — deferral escalation; D-594); L-F2-cross-reference-title-code-sweep (companion — exhaustive-sweep discipline; D-582); E-18; S-18.08 (candidate gate scope extension).
 
 **Closes:** D-598 lesson capture; annotation-must-be-self-contained process-gap codified; skip-marker premise-error class permanently closed via de-enumeration (canonical self-contained form now in all 4 BCs); BC-5.41.003 §Changelog structural gap closed (F-P35-001); streak reset 1/3→0/3; adversary pass-36 NEXT. `[codified; process-gap; annotation-discipline; sibling-sweep-hygiene]`
+
+---
+
+### L-F2-exhaustive-sweep-enumerate-and-count
+
+**Category:** adversarial-convergence + sweep-discipline + false-green-prevention [process-gap]
+
+**(a) Any 'exhaustive sweep' attestation MUST include the literal enumeration of all N target files AND the per-file grep stdout as captured evidence.** Subset-scoping — sweeping only the BCs being amended in the current burst — is FORBIDDEN and produces false-exhaustive claims. Evidence: F-P33-001 (pass-33) attested "exhaustive 8-BC sweep; class CLOSED" but scoped only to the BCs being amended at that burst (BC-5.41.001, BC-5.41.002, BC-6.24.001, BC-7.07.002), leaving BC-5.41.003 (caught at pass-35 F-P35-001) and then BC-1.15.001 (caught at pass-36 F-P36-001) without the §Changelog section — two consecutive self-inflicted sibling-sweep misses from false-exhaustive attestations across 3 successive passes.
+
+**(b) Root-cause: the "8-BC cohort" is a fixed, named set (BC-1.15.001, BC-4.14.001, BC-5.41.001, BC-5.41.002, BC-5.41.003, BC-6.24.001, BC-7.07.001, BC-7.07.002).** A sweep that does not explicitly list all 8 and capture per-file output for each is a partial sweep, regardless of how many were amended in the triggering burst. The correct sweep evidence is:
+```
+grep -c '^## Changelog' \
+  .factory/specs/behavioral-contracts/ss-01/BC-1.15.001.md \
+  .factory/specs/behavioral-contracts/ss-04/BC-4.14.001.md \
+  .factory/specs/behavioral-contracts/ss-05/BC-5.41.001.md \
+  .factory/specs/behavioral-contracts/ss-05/BC-5.41.002.md \
+  .factory/specs/behavioral-contracts/ss-05/BC-5.41.003.md \
+  .factory/specs/behavioral-contracts/ss-06/BC-6.24.001.md \
+  .factory/specs/behavioral-contracts/ss-07/BC-7.07.001.md \
+  .factory/specs/behavioral-contracts/ss-07/BC-7.07.002.md
+```
+All 8 outputs must be `1` before attesting "exhaustive §Changelog coverage for all 8 E-18 BCs."
+
+**(c) Verified exhaustive output (D-599 burst — first TRUE-EXHAUSTIVE run across all 8):**
+```
+ss-01/BC-1.15.001.md:1
+ss-04/BC-4.14.001.md:1
+ss-05/BC-5.41.001.md:1
+ss-05/BC-5.41.002.md:1
+ss-05/BC-5.41.003.md:1
+ss-06/BC-6.24.001.md:1
+ss-07/BC-7.07.001.md:1
+ss-07/BC-7.07.002.md:1
+```
+All 8 = 1. §Changelog presence exhaustively verified for the E-18 BC cohort. This is the first attestation in the F2 E-18 cascade that satisfies the rule stated in this lesson.
+
+**(d) RULE: a sweep that does not enumerate its N inputs and report the per-input count is a false-green generator (CI-as-Code positive-coverage axis).** The adversary cannot distinguish "we checked all 8 and none need fixing" from "we checked 4 and the other 4 are unknown" when the sweep attestation omits the file list. False-green attestations create the appearance of convergence while leaving the BC cohort incompletely validated — exactly the root cause behind F-P35-001 and F-P36-001 (both caught after the sweep was declared "CLOSED").
+
+**(e) Mechanical gate: for cohort sweeps, capture `grep -c <pattern>` stdout for EACH file in the cohort; all-N must satisfy the expected value before attesting exhaustive.** This gate applies to ALL cohort-level structural properties, not just §Changelog:
+- §Changelog presence: `grep -c '^## Changelog' <each-of-8-BCs>` — all must be 1
+- §VP Anchors presence: `grep -c '^## VP Anchors' <each-of-8-BCs>` — all must be 1
+- §Traceability presence: `grep -c '^## Traceability' <each-of-8-BCs>` — all must be 1
+- Skip-marker presence (when added): `grep -c 'skip-marker' <each-of-8-BCs>` — all must be ≥1
+
+**(f) This lesson extends the sibling-sweep family.** L-F2-annotation-must-be-self-contained (D-598) established that structural-parity sweeps must verify the §Changelog section EXISTS before claiming exhaustive coverage. This lesson operationalizes that rule into a mechanical gate protocol: enumerate all N files explicitly, capture per-file grep count, attest only when all-N satisfy the predicate. The two lessons together close the root cause behind the 4th consecutive self-inflicted sibling-miss class (F-P36-001).
+
+**(g) Candidate S-18.08 gate scope (MANDATORY).** A consistency-validator check should enforce: when a sweep attestation claims "all N BCs in cohort C satisfy property P," verify that the attestation includes literal N-file enumeration with per-file grep output. If the attestation is narrative-only ("exhaustive sweep run") without captured stdout, BLOCK with message "cohort sweep attestation lacks per-file evidence (L-F2-exhaustive-sweep-enumerate-and-count)." This gate targets the false-green generation mechanism at its origin — attestation without evidence.
+
+**Drift Items note:** Anchor E-18 F3 — exhaustive-sweep-enumerate-and-count: cohort sweeps must enumerate all N inputs and capture per-file grep stdout; subset-scoping is forbidden. Candidate S-18.08 gate scope extension (MANDATORY): consistency-validator blocks sweep attestations lacking per-file evidence. Root cause behind F-P35-001 + F-P36-001 (2 consecutive self-inflicted misses from same false-exhaustive-attestation pattern).
+
+**Anchors:** D-599 (this burst; F2 pass-36 NOT-CLEAN FIX BURST; BC-1.15.001 v1.4→v1.5 §Changelog added; TRUE-EXHAUSTIVE sweep across all 8 E-18 BCs — first verified); F-P36-001 (MEDIUM; BC-1.15.001 v1.4→v1.5 — §Changelog structurally absent; 4th consecutive self-inflicted sibling-miss); F-P35-001 (MEDIUM; BC-5.41.003 v1.7→v1.8 — §Changelog structurally absent; 3rd self-inflicted sibling-miss); F-P33-001 (MED; original "8-BC sweep CLOSED" false-exhaustive attestation at D-596); BC-5.39.001 (3-CLEAN streak rule; 0/3; pass-37 NEXT); E-18 (CAP-032 context-durability; GitHub issue #173); L-F2-annotation-must-be-self-contained (D-598; structural-parity-sweeps-must-verify-section-EXISTS companion lesson).
+
+**Cites:** D-599; D-598; D-596; F-P36-001; F-P35-001; F-P33-001; BC-1.15.001 v1.5; BC-5.41.003 v1.8; BC-5.39.001; L-F2-annotation-must-be-self-contained (D-598); L-F2-sibling-sweep-tree-wide-gate (D-564; foundational); S-7.02 (defensive sweep discipline); S-18.08 (candidate gate scope extension; MANDATORY); E-18.
+
+**Closes:** D-599 lesson capture; exhaustive-sweep-enumerate-and-count process-gap codified; §Changelog presence exhaustively verified for all 8 E-18 BCs with literal per-file evidence (first TRUE-EXHAUSTIVE run in F2 cascade); root cause of F-P35-001 + F-P36-001 class permanently gated by per-file-count protocol; streak 0/3; adversary pass-37 NEXT. `[codified; process-gap; sweep-discipline; false-green-prevention; enumerate-and-count-gate]`
