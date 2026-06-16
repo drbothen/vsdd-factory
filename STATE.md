@@ -1,18 +1,18 @@
 ---
 document_type: pipeline-state
 level: ops
-version: "3.63"
+version: "3.64"
 status: draft
 producer: state-manager
-timestamp: 2026-06-16T09:00:00Z
-phase: D-613-E18-BC4.15.001-v1.1-CLEANUP-BURST-2026-06-16
-last_amended: "2026-06-16 (v3.63) — D-613 INTEGRATION + CLEANUP BURST: BC-4.15.001 v1.0→v1.1 integrated (proof_method micro-fix; input-hash TBD→0a64afe). BC-INDEX v3.02→v3.03 (total_bcs UNCHANGED 1967). Parity fixes: verification-coverage-matrix.md body §Changelog v1.1 row added; ARCH-INDEX changelog: array v2.50 entry added; verification-architecture.md §1 'All 90'→'All 91' stale prose fixed. D-576 [process-gap] BC-precondition registry-block-shape validator gate CONFIRMED tracked in S-18.08/S-18.09 scope. POSTURE: BC-4.15.001 spec addition COMPLETE & VALIDATED (D-613); S-7.01 Spec-First Gate SATISFIED for S-18.06. F3 story authoring (11 stories: S-18.00..S-18.09) NOW UNBLOCKED — START HERE. 4-index: BC-INDEX v3.03/VP-INDEX v2.33/STORY-INDEX v4.01/ARCH-INDEX v2.50. [Prior: 2026-06-16 (v3.62) — D-612 INTEGRATION BURST: BC-4.15.001 v1.0 + VP-091 v1.0 + ADR-026 v1.20 registered. See decision-log.md SoT.]"
+timestamp: 2026-06-16T00:00:00Z
+phase: D-614-E18-F3-STORY-REGISTRATION-2026-06-16
+last_amended: "2026-06-16 (v3.64) — D-614 F3 STORY REGISTRATION: 11 stories S-18.00..S-18.09 registered in STORY-INDEX v4.01→v4.02; input-hashes computed (no TBD); BC coverage {BC-1.15.001, BC-4.14.001, BC-4.15.001, BC-5.41.001, BC-5.41.002, BC-5.41.003, BC-6.24.001, BC-7.07.001, BC-7.07.002}; VP coverage VP-081..VP-091; DAG/7-wave confirmed; story_count 108→119; total points 347+→431+. POSTURE: story adversarial 3-CLEAN cascade + consistency audit NEXT, then story-approval human gate. 4-index: BC-INDEX v3.03/VP-INDEX v2.33/STORY-INDEX v4.02/ARCH-INDEX v2.50. [Prior: 2026-06-16 (v3.63) — D-613 INTEGRATION + CLEANUP BURST: BC-4.15.001 v1.0→v1.1 integrated (proof_method micro-fix; input-hash TBD→0a64afe). BC-INDEX v3.02→v3.03 (total_bcs UNCHANGED 1967). Parity fixes: verification-coverage-matrix.md body §Changelog v1.1 row added; ARCH-INDEX changelog: array v2.50 entry added; verification-architecture.md §1 'All 90'→'All 91' stale prose fixed. D-576 [process-gap] BC-precondition registry-block-shape validator gate CONFIRMED tracked in S-18.08/S-18.09 scope. POSTURE: BC-4.15.001 spec addition COMPLETE & VALIDATED (D-613); S-7.01 Spec-First Gate SATISFIED for S-18.06. F3 story authoring NOW UNBLOCKED. 4-index: BC-INDEX v3.03/VP-INDEX v2.33/STORY-INDEX v4.01/ARCH-INDEX v2.50. [Prior: 2026-06-16 (v3.62) — D-612 INTEGRATION BURST: BC-4.15.001 v1.0 + VP-091 v1.0 + ADR-026 v1.20 registered. See decision-log.md SoT.]]"
 inputs: []
 input-hash: "[live-state]"
 traces_to: prd.md
 project: vsdd-factory
 mode: brownfield
-"D-613 INTEGRATION + CLEANUP BURST 2026-06-16. BC-4.15.001 v1.0→v1.1 integrated (proof_method micro-fix; input-hash 0a64afe). BC-INDEX v3.03 (total_bcs 1967) / VP-INDEX v2.33 (total_vps 91) / ARCH-INDEX v2.50. Parity fixes: verification-coverage-matrix.md body §Changelog v1.1 row; ARCH-INDEX changelog: v2.50 entry; verification-architecture.md '90'→'91' prose. POSTURE: BC-4.15.001 COMPLETE & VALIDATED (D-613); S-7.01 Spec-First Gate SATISFIED. F3 story authoring NOW UNBLOCKED — START HERE. 4-index: BC-INDEX v3.03/VP-INDEX v2.33/STORY-INDEX v4.01/ARCH-INDEX v2.50/L2-INDEX v1.0.12."
+"D-614 F3 STORY REGISTRATION 2026-06-16. 11 stories S-18.00..S-18.09 registered STORY-INDEX v4.02; input-hashes computed; BC/VP coverage confirmed; DAG/7-wave. story_count 108→119; 431+ pts. 4-index: BC-INDEX v3.03/VP-INDEX v2.33/STORY-INDEX v4.02/ARCH-INDEX v2.50/L2-INDEX v1.0.12. POSTURE: story adversarial 3-CLEAN + consistency NEXT — START HERE."
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -57,8 +57,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-06-16 — D-613 INTEGRATION + CLEANUP BURST. BC-4.15.001 v1.0→v1.1 (proof_method micro-fix; input-hash 0a64afe). BC-INDEX v3.03 (1967 BCs). Parity: verification-coverage-matrix.md body §Changelog v1.1 row; ARCH-INDEX changelog v2.50 entry; verification-architecture.md §1 '90'→'91'. POSTURE: BC-4.15.001 COMPLETE & VALIDATED (D-613). F3 story authoring NOW UNBLOCKED — START HERE. |
-| **Current Phase** | D-613 CLEANUP BURST COMPLETE 2026-06-16. BC-4.15.001 v1.1. 4-index: BC v3.03/VP v2.33/STORY v4.01/ARCH v2.50. **POSTURE: BC-4.15.001 spec addition COMPLETE & VALIDATED (D-613); S-7.01 Spec-First Gate SATISFIED for S-18.06. F3 story authoring (11 stories: S-18.00..S-18.09) NOW UNBLOCKED — START HERE.** |
+| **Last Updated** | 2026-06-16 — D-614 F3 STORY REGISTRATION. 11 stories S-18.00..S-18.09 registered in STORY-INDEX v4.02; input-hashes computed; BC/VP coverage confirmed; DAG/7-wave. POSTURE: story adversarial 3-CLEAN cascade + consistency audit NEXT, then story-approval human gate. |
+| **Current Phase** | D-614 F3 STORY REGISTRATION COMPLETE 2026-06-16. STORY-INDEX v4.02 (119 stories; 431+ pts). 4-index: BC v3.03/VP v2.33/STORY v4.02/ARCH v2.50. **POSTURE: F3 stories authored & integrated (D-614); story-level adversarial 3-CLEAN cascade + consistency audit NEXT — START HERE.** |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Phase Progress
@@ -91,9 +91,8 @@ dtu_services: []
 | **D-600 F2 E-18 ADV PASS-37 NOT-CLEAN FIX BURST 2026-06-15** | **ARCHIVED per D-430(a) D-601** | Pass-37 NOT-CLEAN: 2 MEDIUM genuine latent (F-P37-001 ADR-026 v1.19 SS-01; F-P37-002 L2-INDEX v1.0.10 DI-025); 1 LOW F-P37-003 ADJUDICATED PRESERVED-HISTORY; streak 0/3; ARCH-INDEX v2.47/L2-INDEX v1.0.10. Full: `git show 2cdc70c7:.factory/STATE.md` Phase Progress. |
 | **D-601..D-606 F2 E-18 ADV PASS-38..43 2026-06-15** | **ARCHIVED per D-607** | P-38 CLEAN(1/3); P-39 NOT-CLEAN RESET; P-40 NOT-CLEAN; P-41 CLEAN ZERO-FINDINGS(1/3; FROZEN); P-42 CLEAN(2/3); P-43 CLEAN(3/3)-CONVERGED; BC-5.39.001 satisfied; 4-index UNCHANGED BC v2.99/VP v2.29/STORY v4.01/ARCH v2.47. Full: `git show c4ed73bf:.factory/STATE.md` Phase Progress. |
 | **D-607..D-609 F2 E-18 integration + 2 confirming-pass fix bursts 2026-06-16** | **ARCHIVED per D-610** | D-607: spec-completion integration (VP-087..090 + arch docs + 4 BCs; BC-INDEX v3.00/VP-INDEX v2.30/ARCH-INDEX v2.48). D-608: delta-pass NOT-CLEAN fix (VP-087/088/090 v1.1 + verification-architecture.md v1.1; VP-INDEX v2.31/ARCH-INDEX v2.49). D-609: CONFIRMING NOT-CLEAN fix (BC-7.07.001 v1.12 additive LF clause; VP-087/090 v1.2; BC-INDEX v3.01/VP-INDEX v2.32). L-F2-machine-stable-count-assertion + L-F2-fix-at-correct-layer codified. Full rows above. |
-| **D-613 INTEGRATION + CLEANUP BURST 2026-06-16 — BC-4.15.001 v1.1 + parity fixes** | **COMPLETE** | BC-4.15.001 v1.0→v1.1 (proof_method micro-fix; input-hash 0a64afe). BC-INDEX v3.02→v3.03 (total_bcs UNCHANGED 1967). verification-coverage-matrix.md body §Changelog v1.1 row added. ARCH-INDEX changelog: v2.50 entry added. verification-architecture.md §1 'All 90'→'All 91' stale prose fixed. D-576 [process-gap] CONFIRMED in S-18.08/S-18.09 scope. POSTURE: BC-4.15.001 COMPLETE & VALIDATED (D-613); S-7.01 Spec-First Gate SATISFIED; F3 story authoring NOW UNBLOCKED. |
-| **D-612 INTEGRATION BURST 2026-06-16** | **COMPLETE** | BC-4.15.001 v1.0 + VP-091 v1.0 + ADR-026 v1.20 registered. BC-INDEX v3.02 (1967 BCs; SS-04 42). VP-INDEX v2.33 (91 VPs). verification-architecture.md v1.2 / verification-coverage-matrix.md v1.1 / invariants.md v1.23 (DI-020 Cited-by += VP-091) / ARCH-INDEX v2.50. |
-| **D-611 E-18 F3 DECOMPOSITION PLAN APPROVED (human gate) 2026-06-16** | **COMPLETE — BC-4.15.001 INTEGRATED D-612, VALIDATED D-613** | 11 stories: S-18.00..S-18.09. BC-4.15.001 COMPLETE & VALIDATED (D-613). F3 story authoring NOW UNBLOCKED — START HERE. |
+| **D-614 E-18 F3 STORY REGISTRATION 2026-06-16** | **COMPLETE** | 11 stories S-18.00..S-18.09 registered in STORY-INDEX v4.01→v4.02; input-hashes computed; full BC/VP coverage confirmed; DAG/7-wave schedule. POSTURE: story-level adversarial 3-CLEAN + consistency audit NEXT, then story-approval human gate. |
+| **D-611..D-613 INTEGRATION BURST SERIES 2026-06-16 — BC-4.15.001 v1.1 COMPLETE** | **ARCHIVED per D-430(a)** | D-611 F3 plan APPROVED; D-612 BC-4.15.001 v1.0+VP-091+ADR-026 v1.20 integrated; D-613 BC-4.15.001 v1.0→v1.1+parity fixes. BC-INDEX v3.03 (1967 BCs). S-7.01 Spec-First Gate SATISFIED. Full rows: decision-log.md SoT. |
 | **D-610 E-18 CONFIRMING adversary pass (round 2) CLEAN 2026-06-16** | **COMPLETE** | ARCHIVED per D-430(a) D-611. CLEAN — zero BLOCKER/MAJOR/load-bearing-MEDIUM/mis-anchor; 1 cosmetic obs non-actionable. Delta loop DONE (D-607→D-608→D-609→D-610). E-18 F2 FULLY COMPLETE. L-F2-no-bypass-on-edit-failure codified. 4-index BC v3.01/VP v2.32/STORY v4.01/ARCH v2.49. Full: decision-log.md SoT. |
 
 ## Current Phase Steps
@@ -111,17 +110,17 @@ dtu_services: []
 | Subsystem | SS-NN | `specs/architecture/ARCH-INDEX.md` | 10 |
 | Behavioral Contract | BC-S.SS.NNN | `specs/behavioral-contracts/ss-NN/` | 1,967 (BC-INDEX v3.03) |
 | Verification Property | VP-NNN | `specs/verification-properties/VP-INDEX.md` | 91 |
-| Story | S-N.MM | `stories/S-N.MM-<short>.md` | 105 file-resident + 15 stub IDs (STORY-INDEX v4.01) |
+| Story | S-N.MM | `stories/S-N.MM-<short>.md` | 116 file-resident + 15 stub IDs (STORY-INDEX v4.02) |
 | Epic | E-N | `stories/epics/E-N-<short>.md` | 18 |
 | ADR | ADR-NNN | `specs/architecture/decisions/ADR-NNN.md` | 26 |
 
 ## Story Status
 
-105 file-resident + 15 unauthored stub IDs = 120 stories registered.
+116 file-resident + 15 unauthored stub IDs = 131 stories registered (11 E-18 stories added D-614).
 
 - **Merged (78):** Includes S-17.01 (PR #181 c64b46d2) + S-17.02 (PR #182 df4f26b8) + S-17.03 (PR #183 60fd0233) + S-17.04 (PR #184 3b2a378c). Full ledger: `cycles/v1.0-brownfield-backfill/merged-stories-ledger.md`
 - **In-Flight (0):** —
-- **Draft (29 file-resident):** S-5.07; S-10.09; S-11.00; S-14.01..S-14.09 (E-14); S-15.02; S-15.03; S-16.01..S-16.02 (E-16); and others
+- **Draft (40 file-resident):** S-5.07; S-10.09; S-11.00; S-14.01..S-14.09 (E-14); S-15.02; S-15.03; S-16.01..S-16.02 (E-16); S-18.00..S-18.09 (E-18; 11 new); and others
 - **Partial (2):** S-2.05 (hook-sdk-publish); S-3.04 (emit-event-host-function) — superseded by ADR-015
 - **Unauthored stub IDs (15):** S-9.01..S-9.07 (W-16); S-11.01..S-11.08 (E-11 W-17 Tier 3)
 - **Withdrawn (1):** S-9.30
@@ -132,7 +131,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | caf06c68 | rc.21 bot binary bundle commit 2026-06-13; prior: 2a191314 (rc.20) |
 | develop | 7e99f6ef | PR #186 fix a431ff47 + release.yml sync back-merge 2026-06-13; prior: 3b2a378c (D-556) |
-| factory-artifacts | 164a3778 | D-613 CLEANUP BURST 2026-06-16 BC-4.15.001-v1.1-parity-fixes; prior: 2f28715b D-612 INTEGRATION BURST; prior-prior: bf327933 D-611 E-18 F3 decomposition plan APPROVED |
+| factory-artifacts | [D-614-SHA-TBD] | D-614 F3 STORY REGISTRATION 2026-06-16 (SHA-patch follow-up per D-447(c)); prior: 164a3778 D-613 CLEANUP BURST; prior-prior: 2f28715b D-612 |
 | v1.0.0-rc.21 (tag) | 03054524 | SHIPPED 2026-06-13; FULLY IN OPERATOR MARKETPLACE (marketplace PR #13 MERGED); annotated tag object |
 | v1.0.0-rc.20 (tag) | e9e38286 | SHIPPED 2026-06-01; marketplace PR #12 squash-merged 862e660d |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28 |
@@ -142,7 +141,7 @@ dtu_services: []
 | Cycle | Type | Status | Notes |
 |-------|------|--------|-------|
 | F-block-ai-attribution-message-file-arm | feature | F3 COMPLETE — F4 READY | F1+F2+F3 done 2026-05-12; 2 stories ready; E-16 under SS-07/SS-04; milestone v1.0.0-rc.17 |
-| v1.0-brownfield-backfill | brownfield | **D-613 2026-06-16; BC-4.15.001 v1.1 VALIDATED; F3 story authoring NOW UNBLOCKED — START HERE; develop 7e99f6ef; main caf06c68** | rc.21 100% COMPLETE D-560; D-606 PASS-43 3-CLEAN CONVERGED; D-607 F2 integration; D-608/D-609/D-610 delta fix + confirming passes COMPLETE; D-611 F3 plan APPROVED; D-612 INTEGRATION BURST COMPLETE; **D-613 CLEANUP BURST COMPLETE — BC-4.15.001 v1.1 (micro-fix; input-hash 0a64afe); BC-INDEX v3.03 (1967 BCs); parity fixes applied. BC-4.15.001 spec addition COMPLETE & VALIDATED. S-7.01 Spec-First Gate SATISFIED for S-18.06. F3 story authoring (11 stories S-18.00..S-18.09) NOW UNBLOCKED — START HERE.** |
+| v1.0-brownfield-backfill | brownfield | **D-614 2026-06-16; E-18 F3 stories REGISTERED (STORY-INDEX v4.02; 119 stories; 431+ pts); story adversarial 3-CLEAN + consistency NEXT; develop 7e99f6ef; main caf06c68** | rc.21 100% COMPLETE D-560; D-606 PASS-43 3-CLEAN CONVERGED; D-607..D-613 F2+integration+cleanup COMPLETE; D-611 F3 plan APPROVED; BC-4.15.001 VALIDATED D-613; **D-614 F3 STORY REGISTRATION COMPLETE — 11 stories S-18.00..S-18.09 registered; all input-hashes computed; BC/VP coverage confirmed; DAG/7-wave confirmed. POSTURE: story adversarial 3-CLEAN cascade + consistency audit NEXT — START HERE.** |
 | v1.0-feature-engine-discipline-pass-1 | feature | **PAUSED** | F5 pass-75 adversary complete D-510 2026-05-27; META-LEVEL-30 CANDIDATE-CONFIRMED; trajectory →9→9→9→11. Full-cycle trajectory (75 values ending): →9→9→9→9→11. |
 | v1.0-feature-plugin-async-semantics-pass-1 | feature | CLOSED | All PRs merged; rc.14 shipped |
 
@@ -156,10 +155,9 @@ dtu_services: []
 
 | ID | Decision | Phase | Date |
 |----|----------|-------|------|
-| D-613 | INTEGRATION + CLEANUP BURST 2026-06-16 — BC-4.15.001 v1.0→v1.1 integration + parity fixes (adversary CLEAN + consistency CLEAN; 4 MINOR + 2 LOW fixed in-scope). (1) BC-4.15.001 v1.1: proof_method micro-fix ('unit-test + integration'→'unit-test'); input-hash TBD→0a64afe. (2) verification-coverage-matrix.md body §Changelog v1.1 row added (POLICY 17 frontmatter↔body parity; completing already-committed v1.1). (3) ARCH-INDEX changelog: v2.50 entry added (POLICY 17; completing already-committed v2.50). (4) verification-architecture.md §1 'All 90'→'All 91' stale prose fixed (completing already-committed v1.2 edit). (5) BC-INDEX v3.02→v3.03 (BC-4.15.001 version cell v1.0→v1.1; total_bcs UNCHANGED 1967). D-576 [process-gap] BC-Precondition registry-block-shape validator gate CONFIRMED already tracked in S-18.08/S-18.09 gate-story scope (decomposition plan Part 5 item 8) — no new follow-up needed. POSTURE: BC-4.15.001 spec addition COMPLETE & VALIDATED (D-613); S-7.01 Spec-First Gate SATISFIED for S-18.06. F3 story authoring (11 stories: S-18.00..S-18.09) NOW UNBLOCKED — START HERE. 4-index: BC-INDEX v3.03/VP-INDEX v2.33/STORY-INDEX v4.01/ARCH-INDEX v2.50. D-chain cite D-612 per D-419(b); parent-commit 2f28715b per D-419(b). | feature-mode-e18-bc4.15.001-v1.1-cleanup | 2026-06-16 |
-| D-612 | INTEGRATION BURST 2026-06-16 — BC-4.15.001 v1.0 + VP-091 v1.0 + ADR-026 v1.19→v1.20 registered across all indexes per D-612 human directive (spec-first gate satisfied). BC-INDEX v3.01→v3.02 (SS-04 BC row added; total_bcs 1966→1967; SS-04 count 41→42). VP-INDEX v2.32→v2.33 (VP-091 Full Index row added; total_vps 90→91; unit-test 44→45; §Summary E-18 row 10→11; §Story Anchors VP-091→S-18.06). verification-architecture.md v1.1→v1.2 (VP-091 row in SS-04 catalog; §3 unit-test 44→45, Total 90→91; §1 invariant updated). verification-coverage-matrix.md v1.0→v1.1 (VP-091 row in SS-04 table; SS-04 U 3→4, rows 12→13; Grand Total U 44→45, total 90→91). invariants.md v1.22→v1.23 (DI-020 Cited-by += VP-091 per POLICY 2 bidirectional). ARCH-INDEX v2.49→v2.50 (ADR-026 v1.20 provenance leg). capabilities.md CONFIRMED UNCHANGED. 4-index: BC-INDEX v3.02/VP-INDEX v2.33/STORY-INDEX v4.01/ARCH-INDEX v2.50. | feature-mode-e18-bc4.15.001-integration-burst | 2026-06-16 |
-| D-611 | E-18 F3 DECOMPOSITION PLAN APPROVED (human gate) 2026-06-16 — 11 stories planned: S-18.00 (dispatcher PreCompact/PostCompact routing + check-harness-version.sh; SS-01; BC-1.15.001; VP-086); S-18.01 (HANDOFF.md + wave-handoff skill/wave-state.yaml atomic; SS-05/06; BC-5.41.001/BC-5.41.002; VP-081/VP-087); S-18.02 (validate-wave-handoff-completeness WASM gate; SS-04; BC-4.14.001; VP-081/VP-083); S-18.03 (rehydrate-wave skill; SS-06; BC-6.24.001; VP-088; Wave 4 OQ-1 defaulted conservative); S-18.04a (precompact-flush.sh core; SS-07; BC-7.07.001; VP-082/VP-085); S-18.04b (validate-burst-log/dispatch-advance exemption + prune helper; SS-07; BC-5.41.003; VP-084/VP-090; depends on S-18.04a); S-18.05 (postcompact-reanchor.sh; SS-07; BC-7.07.002; VP-089); S-18.06 (validate-heavy-op-delegation WASM; SS-04; BC-4.15.001 NEW; VP TBD — must be authored; was advisory-no-BC; human chose author-a-BC); S-18.07 (terminology disambiguation docs; SS-06/08; no BC); S-18.08 (O-P8-002 pure-parse invariant gate story; SS-05/08); S-18.09 (F2 process-gap lesson gate checks; SS-05/08; L-F2 machine-stable-count / fix-at-correct-layer / no-bypass-on-edit-failure / exhaustive-sweep / title-cite-parity / stale-term / registry-block-shape). Human boundary decisions: (a) S-18.04 SPLIT into .04a/.04b; (b) S-18.08 SPLIT into .08+.09; (c) S-18.06 gets BC-4.15.001 real BC; (d) OQ-1 defaulted S-18.03 Wave 4 conservative; (e) OQ-5 defaulted check-harness-version.sh → S-18.00. POSTURE: Story authoring GATED on BC-4.15.001 spec addition per S-7.01 Spec-First Gate. NEXT: architect designs BC-4.15.001 → product-owner authors → integrate → validate; then author 11 story files → story adversarial 3-CLEAN + consistency → story-approval human gate. 4-index UNCHANGED BC-INDEX v3.01/VP-INDEX v2.32/STORY-INDEX v4.01/ARCH-INDEX v2.49/L2-INDEX v1.0.12. D-chain cite D-610 per D-419(b); parent-commit b48c526e per D-419(b). | feature-mode-e18-f3-decomposition-plan-approved | 2026-06-16 |
-| D-610 archived | **ARCHIVED per D-430(a) D-611** | E-18 CONFIRMING adversary pass (round 2) CLEAN. CLEAN — zero BLOCKER/MAJOR; delta loop DONE (D-607→D-608→D-609→D-610); E-18 F2 FULLY COMPLETE; L-F2-no-bypass-on-edit-failure codified. Full row: decision-log.md SoT. |
+| D-614 | E-18 F3 STORY REGISTRATION 2026-06-16 — 11 stories S-18.00..S-18.09 registered in STORY-INDEX v4.01→v4.02; input-hashes computed (no TBD); BC coverage {BC-1.15.001, BC-4.14.001, BC-4.15.001, BC-5.41.001, BC-5.41.002, BC-5.41.003, BC-6.24.001, BC-7.07.001, BC-7.07.002}; VP coverage VP-081..VP-091; DAG/7-wave schedule confirmed. D-chain cite D-613 per D-419(b); parent-commit 164a3778 per D-419(b). POSTURE: F3 stories authored & integrated; story-level adversarial 3-CLEAN cascade + consistency audit NEXT, then story-approval human gate. 4-index: BC-INDEX v3.03/VP-INDEX v2.33/STORY-INDEX v4.02/ARCH-INDEX v2.50. | feature-mode-e18-f3-story-registration | 2026-06-16 |
+| D-611..D-613 archived | **ARCHIVED per D-430(a)** | D-611 F3 plan APPROVED (11 stories); D-612 BC-4.15.001 v1.0+VP-091+ADR-026 v1.20 integration; D-613 BC-4.15.001 v1.0→v1.1+parity fixes (BC-INDEX v3.03; S-7.01 Gate SATISFIED). Full rows: decision-log.md SoT. |
+| D-610 archived | **ARCHIVED per D-430(a) D-611** | E-18 CONFIRMING adversary pass (round 2) CLEAN. Full row: decision-log.md SoT. |
 | D-607..D-609 archived | **ARCHIVED per D-430(a) D-610** | D-607 F2 spec-completion INTEGRATION BURST; D-608 delta re-validation FIX BURST; D-609 CONFIRMING-PASS FIX BURST (BC-INDEX v3.01/VP-INDEX v2.32). Full rows: decision-log.md SoT. |
 | D-600..D-606 archived | **ARCHIVED 2026-06-15/16 per D-430(a)** | D-600 pass-37 NOT-CLEAN; D-601..D-606 passes 38-43 (CONVERGED 3/3 D-606). Full rows: `git show c4ed73bf:.factory/STATE.md` Decisions Log; decision-log.md SoT. |
 | D-582..D-599 archived | **ARCHIVED 2026-06-15 per D-430(a) D-594..D-601** | D-582..D-599: passes 19-36 fix bursts; D-594 FULL-BACKLOG-CLEARANCE; D-595 pass-32; D-596 pass-33; D-597 pass-34 CLEAN(1/3); D-598 pass-35 NOT-CLEAN; D-599 pass-36 NOT-CLEAN+ENUMERATE-COUNT-GATE. All rows: decision-log.md SoT. |
@@ -224,29 +222,28 @@ dtu_services: []
 - `cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` | `session-checkpoints.md` | `lessons.md`
 - `cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md` (adversary reviews at `S-12.03/`, `S-12.04/`, `S-12.05/` subdirs)
 
-## Session Resume Checkpoint (2026-06-16 — D-613 CLEANUP BURST COMPLETE; 4-index: BC-INDEX v3.03/VP-INDEX v2.33/STORY-INDEX v4.01/ARCH-INDEX v2.50; L2-INDEX v1.0.12; POSTURE: F3 story authoring NOW UNBLOCKED — START HERE)
+## Session Resume Checkpoint (2026-06-16 — D-614 F3 STORY REGISTRATION COMPLETE; 4-index: BC-INDEX v3.03/VP-INDEX v2.33/STORY-INDEX v4.02/ARCH-INDEX v2.50; L2-INDEX v1.0.12; POSTURE: story adversarial 3-CLEAN + consistency audit NEXT — START HERE)
 
 > **SELF-SUFFICIENT RESUME CONTEXT FOR ZERO-CONTEXT NEW SESSION OR NEW MACHINE**
 > Read this section alone to resume. Assumes ZERO prior context. All decisions, directives, and anchors stated explicitly.
 
 ### §1. Where We Are
 
-**E-18 CAP-032 context-durability (GitHub issue #173) — Feature Mode, Phase F3 (story decomposition). D-613 2026-06-16. CLEANUP BURST COMPLETE. BC-4.15.001 spec addition COMPLETE & VALIDATED. S-7.01 Spec-First Gate SATISFIED for S-18.06. F3 story authoring NOW UNBLOCKED.**
+**E-18 CAP-032 context-durability (GitHub issue #173) — Feature Mode, Phase F3 (story decomposition). D-614 2026-06-16. F3 STORY REGISTRATION COMPLETE. All 11 stories authored + registered in STORY-INDEX v4.02. Input-hashes computed. BC/VP coverage confirmed.**
 
-F1-gate APPROVED. F2 spec evolution COMPLETE (D-561). F2 adversarial cascade passes 1-43 COMPLETE (D-562..D-606). D-607..D-610 integration + delta fix + confirming pass COMPLETE 2026-06-16. D-611 F3 decomposition plan APPROVED. D-612 BC-4.15.001 + VP-091 + ADR-026 v1.20 integration COMPLETE. D-613 BC-4.15.001 v1.1 + parity fixes COMPLETE.
+F1-gate APPROVED. F2 spec evolution COMPLETE (D-561). F2 adversarial cascade passes 1-43 COMPLETE (D-562..D-606). D-607..D-613 integration + delta fix + confirming pass + BC-4.15.001 COMPLETE. D-611 F3 decomposition plan APPROVED. D-614 F3 story registration COMPLETE.
 
-**D-613 CLEANUP BURST summary (adversary CLEAN + consistency CLEAN; 4 MINOR + 2 LOW fixed in-scope):**
-- BC-4.15.001 v1.0→v1.1 (proof_method micro-fix 'unit-test + integration'→'unit-test'; input-hash TBD→0a64afe).
-- verification-coverage-matrix.md body §Changelog v1.1 row added (POLICY 17 parity; completing already-committed v1.1).
-- ARCH-INDEX changelog: v2.50 YAML entry added (POLICY 17 parity; completing already-committed v2.50).
-- verification-architecture.md §1 'All 90'→'All 91' stale prose fixed (completing already-committed v1.2 edit).
-- BC-INDEX v3.02→v3.03 (BC-4.15.001 version cell v1.0→v1.1; total_bcs UNCHANGED 1967).
-- D-576 [process-gap] CONFIRMED tracked in S-18.08/S-18.09 scope — no new follow-up needed.
+**D-614 F3 STORY REGISTRATION summary:**
+- 11 stories S-18.00..S-18.09 registered in STORY-INDEX v4.01→v4.02.
+- Input-hashes computed for all 11 (POLICY 18): S-18.00=8afdaef; S-18.01=46799d0; S-18.02=69dcbd9; S-18.03=228714d; S-18.04a=1880388; S-18.04b=ee7c532; S-18.05=a5e0c22; S-18.06=5a8ab0d; S-18.07=4d60e4a; S-18.08=69dcbd9; S-18.09=69dcbd9.
+- BC coverage: {BC-1.15.001, BC-4.14.001, BC-4.15.001, BC-5.41.001, BC-5.41.002, BC-5.41.003, BC-6.24.001, BC-7.07.001, BC-7.07.002} — all 9 required BCs covered.
+- VP coverage: VP-081..VP-091 — all 11 VPs covered.
+- DAG 7-wave schedule confirmed (no cycles).
 
-**4-index at D-613:** BC-INDEX v3.03, VP-INDEX v2.33, STORY-INDEX v4.01, ARCH-INDEX v2.50. L2-INDEX v1.0.12.
+**4-index at D-614:** BC-INDEX v3.03, VP-INDEX v2.33, STORY-INDEX v4.02, ARCH-INDEX v2.50. L2-INDEX v1.0.12.
 
 **NEXT ACTION:**
-1. **Author 11 story files** (S-18.00..S-18.09) — START HERE. Story adversarial 3-CLEAN + consistency → story-approval human gate. STORY-INDEX v4.01→v4.02+ after stories authored.
+1. **Story adversarial 3-CLEAN cascade + consistency audit** — START HERE. Then story-approval human gate before F4 TDD dispatch.
 
 **RECURRING LESSONS (carry):** (1) L-F2-stale-term-deferral-unsafe [process-gap] (D-594): stale terms in normative prose MUST be fixed in-scope; deferral as LOW is convergence-risk. (2) L-F2-canonical-scope-verification [process-gap] (D-587): When authoring an invariant for multi-agent-type scope boundary, MUST name the scope explicitly. Field-4 canonical (B) enshrined. (3) L-F2-subsystem-anchor-sweep [process-gap] (D-584; 2nd recurrence): When VP scope/capability Subsystems: line changes, sweep ALL sibling VPs + L2-INDEX Cross-Walk same-burst. (4) L-F2-cross-reference-title-code-sweep [process-gap] (D-582/D-589 UPGRADED; 4th recurrence): For EVERY `VP-NNN — <title>` cite in BC §VP Anchors / ADR §VP Allocations, grep-based check MUST assert title equals VP H1 verbatim. Exhaustive across ALL sites. S-18.08 MANDATORY. (5) L-F2-annotation-must-be-self-contained [process-gap] (D-598): annotation text MUST NOT enumerate sibling BC IDs; structural-parity sweeps MUST VERIFY §Changelog EXISTS before attesting exhaustive coverage. (6) L-F2-exhaustive-sweep-enumerate-and-count [process-gap] (D-599 NEW): cohort sweeps MUST enumerate all N files AND capture per-file grep stdout; subset-scoping FORBIDDEN — false-green generator; enumerate-count gate MANDATORY for ALL cohort structural assertions; S-18.08 MANDATORY scope extension. (7) L-F2-prior-chain-append-only-history [adjudication D-600]: nested [Prior:] chains in last_amended frontmatter are FAITHFUL HISTORICAL RECORDS (POLICY 1 append-only); NOT retroactively rewritten even when the content they reference was factually incorrect at time-of-writing. The LIVE last_amended head is the authoritative state; [Prior:] is immutable archaeological record. Do NOT re-flag [Prior:] residue as a new finding if the live/current text is correct. (8) L-F2-index-quad-cite-reflects-last-bump [convention D-601]: 4-index self-cited quad in any index's changelog reflects the index state AS OF THAT INDEX'S OWN LAST BUMP; an untouched index correctly retains its prior quad — per-pass lag is EXPECTED, NOT a propagation gap; "fixing" it would inject false history; adversary MUST treat quad-lag on untouched indices as benign. (9) L-F2-deferred-table-semantics [process-gap D-606]: consistency/perimeter audit MUST read table HEADING and COLUMN semantics before classifying a missing-file reference as BLOCKER; ARCH-INDEX §Future Sections (Deferred) with "Deferred File | Covered By" columns = intentional documented deferrals whose content lives in the Covered-By file; the correct gate check is whether the Covered-By file exists and covers the domain — NOT whether the deferred file itself exists. (10) L-F2-machine-stable-count-assertion [process-gap D-608]: VP proof harnesses MUST use machine-stable signals (sentinel lines, JSON arrays, exit codes) for count/structure assertions; NOT presentation-coupled regexes like grep-c '^  - '; the correct pattern is a sentinel line INJECTED_FILE_COUNT=<n> written by the injector and asserted by the harness, or JSON array length; feeds F3 S-18.08 gate-story scope. (11) L-F2-fix-at-correct-layer [process-gap D-609]: when a VP fix adds a precondition that depends on an upstream guarantee (BC/ADR clause), the guarantee MUST exist at the cited guarantor BEFORE the VP cites it — do NOT close a VP finding by citing a property the guarantor does not yet make (fix-at-wrong-layer / assert-the-bug-away; POLICY 4/5 mis-anchoring); establish the guarantee at the owning artifact first; root: F-CONF-001 MAJOR VP-090 v1.1 cited non-existent LF clause in BC-7.07.001 v1.11; fix: BC-7.07.001 v1.12 + VP-090 v1.2 + VP-087 v1.2; feeds F3 S-18.08 guarantor-cite verification gate scope.
 
@@ -288,7 +285,8 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 - **POLICY 8 v1.3 EC-mirror routing-rule (D-517); bidirectional AC↔PC parity (D-515+D-516); POLICY 5 v1.3.1/v1.3.3/v1.3.4/v1.3.5/v1.3.6 SDK-grounding + sibling-sweep mandates.**
 - **D-537 [process-gap] spec-drift routing:** When TDD fix changes ADR-specified behavior, route architect ADR amendment in SAME burst.
 - **D-539 multi-family adversary obligation:** prompt-contract + shell-logic issues require cross-family AND same-family Claude adversary passes before convergence.
-- **D-613 carry:** CLEANUP BURST 2026-06-16. BC-4.15.001 v1.0→v1.1 (proof_method micro-fix; input-hash 0a64afe). BC-INDEX v3.03 (1967 BCs). Parity: verification-coverage-matrix.md body §Changelog v1.1 row; ARCH-INDEX changelog v2.50 entry; verification-architecture.md §1 '90'→'91'. D-576 [process-gap] CONFIRMED in S-18.08/S-18.09 scope. POSTURE: BC-4.15.001 COMPLETE & VALIDATED; S-7.01 Spec-First Gate SATISFIED for S-18.06. F3 story authoring NOW UNBLOCKED — START HERE. 4-index: BC v3.03/VP v2.33/STORY v4.01/ARCH v2.50. D-chain cite D-612; parent-commit 2f28715b.
+- **D-614 carry:** F3 STORY REGISTRATION 2026-06-16. 11 stories S-18.00..S-18.09 registered STORY-INDEX v4.02. Input-hashes computed (no TBD). BC coverage {1.15.001,4.14.001,4.15.001,5.41.001,5.41.002,5.41.003,6.24.001,7.07.001,7.07.002}. VP coverage VP-081..VP-091. DAG/7-wave confirmed. story_count 108→119; 431+ pts. POSTURE: story adversarial 3-CLEAN + consistency NEXT — START HERE. 4-index: BC v3.03/VP v2.33/STORY v4.02/ARCH v2.50. D-chain cite D-613; parent-commit 164a3778.
+- **D-613 carry:** CLEANUP BURST 2026-06-16. BC-4.15.001 v1.0→v1.1 (proof_method micro-fix; input-hash 0a64afe). BC-INDEX v3.03 (1967 BCs). Parity: verification-coverage-matrix.md body §Changelog v1.1 row; ARCH-INDEX changelog v2.50 entry; verification-architecture.md §1 '90'→'91'. D-576 CONFIRMED in S-18.08/S-18.09. POSTURE: BC-4.15.001 COMPLETE & VALIDATED; S-7.01 Spec-First Gate SATISFIED. 4-index: BC v3.03/VP v2.33/STORY v4.01/ARCH v2.50. D-chain cite D-612; parent-commit 2f28715b.
 - **D-612 carry:** INTEGRATION BURST 2026-06-16. BC-4.15.001 v1.0 + VP-091 v1.0 + ADR-026 v1.20 registered. S-7.01 Spec-First Gate SATISFIED. 4-index: BC v3.02/VP v2.33/STORY v4.01/ARCH v2.50/L2 v1.0.12. POSTURE: VALIDATED at D-613. D-chain cite D-611; parent-commit bf327933.
 - **D-611 carry:** E-18 F3 DECOMPOSITION PLAN APPROVED (human gate) 2026-06-16. 11 stories S-18.00..S-18.09. Human boundary decisions: (a) S-18.04 SPLIT .04a/.04b; (b) S-18.08 SPLIT .08+.09; (c) S-18.06 BC-4.15.001 real BC (NOT advisory-no-BC); (d) OQ-1 S-18.03 Wave 4 conservative; (e) OQ-5 check-harness-version.sh → S-18.00. BC-4.15.001 INTEGRATED D-612. D-chain cite D-610; parent-commit b48c526e.
 - **D-610 carry:** E-18 CONFIRMING adversary pass (round 2) CLEAN 2026-06-16. Zero BLOCKER/MAJOR/load-bearing-MEDIUM/mis-anchor. Delta loop DONE (D-607→D-608→D-609→D-610). E-18 F2 FULLY COMPLETE. L-F2-no-bypass-on-edit-failure codified. 4-index UNCHANGED BC v3.01/VP v2.32/STORY v4.01/ARCH v2.49/L2 v1.0.12. D-chain cite D-609; parent-commit 49ac4355.
@@ -299,7 +297,8 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 ### §4. Tier-A Completed Log (most recent first)
 
-- **D-613 (2026-06-16):** CLEANUP BURST. BC-4.15.001 v1.0→v1.1 (micro-fix; input-hash 0a64afe). BC-INDEX v3.03 (1967 BCs). Parity: verification-coverage-matrix.md body §Changelog v1.1; ARCH-INDEX changelog: v2.50; verification-architecture.md §1 '90'→'91'. D-576 CONFIRMED in S-18.08/S-18.09. POSTURE: BC-4.15.001 COMPLETE & VALIDATED; F3 story authoring NOW UNBLOCKED.
+- **D-614 (2026-06-16):** F3 STORY REGISTRATION. 11 stories S-18.00..S-18.09 registered STORY-INDEX v4.02; input-hashes computed; BC/VP coverage confirmed; DAG/7-wave confirmed; story_count 108→119; 431+ pts. POSTURE: story adversarial 3-CLEAN + consistency NEXT.
+- **D-613 (2026-06-16) archived:** CLEANUP BURST. BC-4.15.001 v1.0→v1.1 (micro-fix). BC-INDEX v3.03. Parity fixes. POSTURE: BC-4.15.001 VALIDATED; F3 authoring UNBLOCKED. Full row: decision-log.md SoT.
 - **D-612 (2026-06-16):** INTEGRATION BURST. BC-4.15.001 v1.0 + VP-091 v1.0 + ADR-026 v1.20 registered. BC-INDEX v3.02 (1967 BCs; SS-04 42). VP-INDEX v2.33 (91 VPs; unit-test 45). verification-architecture.md v1.2. verification-coverage-matrix.md v1.1. invariants.md v1.23 (DI-020 Cited-by += VP-091). ARCH-INDEX v2.50. S-7.01 Spec-First Gate SATISFIED.
 - **D-611 (2026-06-16):** E-18 F3 decomposition plan APPROVED (human gate). 11 stories S-18.00..S-18.09. Human decisions: (a) S-18.04 SPLIT .04a/.04b; (b) S-18.08 SPLIT .08+.09; (c) S-18.06 BC-4.15.001 real BC; (d) OQ-1 S-18.03 Wave 4; (e) OQ-5 check-harness-version.sh → S-18.00. BC-4.15.001 integrated D-612. Prior 4-index UNCHANGED BC v3.01/VP v2.32/STORY v4.01/ARCH v2.49.
 - **D-610 (2026-06-16):** E-18 CONFIRMING adversary pass (round 2) CLEAN. Zero BLOCKER/MAJOR/load-bearing-MEDIUM/mis-anchor; 1 cosmetic obs non-actionable. Delta loop DONE. E-18 F2 FULLY COMPLETE. L-F2-no-bypass-on-edit-failure [process-gap] codified. 4-index UNCHANGED BC v3.01/VP v2.32/STORY v4.01/ARCH v2.49.
@@ -310,7 +309,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 ### §5. Cumulative Codifications
 
 - F5: D-379..D-454 (76 decisions) — `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md`.
-- Brownfield: D-001..D-613 — `cycles/v1.0-brownfield-backfill/decision-log.md`. Latest: **D-613 CLEANUP BURST 2026-06-16 — BC-4.15.001 v1.1 (micro-fix; input-hash 0a64afe); BC-INDEX v3.03 (1967 BCs); parity fixes; D-576 CONFIRMED in S-18.08/S-18.09; POSTURE: BC-4.15.001 COMPLETE & VALIDATED; F3 story authoring NOW UNBLOCKED — START HERE.**
+- Brownfield: D-001..D-614 — `cycles/v1.0-brownfield-backfill/decision-log.md`. Latest: **D-614 F3 STORY REGISTRATION 2026-06-16 — 11 stories S-18.00..S-18.09 registered; STORY-INDEX v4.02; input-hashes computed; BC/VP coverage confirmed; story adversarial 3-CLEAN + consistency NEXT.**
 
 ### §6. Cumulative Lessons
 
@@ -327,15 +326,15 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 |-------|---------|-------|
 | BC-INDEX | v3.03 | Bumped D-613. BC-4.15.001 v1.0→v1.1 (proof_method micro-fix; input-hash 0a64afe). total_bcs UNCHANGED 1967. [D-612: BC-4.15.001 v1.0 added; total_bcs 1966→1967; SS-04 41→42.] |
 | VP-INDEX | v2.33 | Bumped D-612. VP-091 v1.0 added (unit-test; SS-04; DI-020; S-18.06; draft). total_vps 90→91. §Proof Method Breakdown unit-test 44→45 / integration 27 / manual 10 / static-check 1 / kani-proof 4 / proptest 4 = 91. |
-| STORY-INDEX | v4.01 | UNCHANGED. E-18 F3 plan APPROVED D-611 (11 stories S-18.00..S-18.09). BC-4.15.001 integrated D-612. Stories NOT YET AUTHORED — validate (adversary + consistency) next. |
+| STORY-INDEX | v4.02 | Bumped D-614. 11 stories S-18.00..S-18.09 registered (E-18 CAP-032); input-hashes computed; story_count 108→119; total points 347+→431+. POSTURE: story adversarial 3-CLEAN + consistency NEXT. |
 | ARCH-INDEX | v2.50 | Bumped D-612. ADR-026 v1.19→v1.20 provenance leg added (§Decision 12 'no-BC in v1' corrected; §Deliverables S-18.06 updated). |
 | L2-INDEX | v1.0.12 | UNCHANGED at D-612. (Bumped D-607: invariants.md v1.21→v1.22 back-refs per POLICY 2; Document Map updated.) |
 
-4-index at D-613 (literal-shell): `grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md` → "3.03"; `grep "^version:" .factory/specs/verification-properties/VP-INDEX.md` → "2.33"; `grep "^version:" .factory/stories/STORY-INDEX.md` → "4.01"; `grep "^version:" .factory/specs/architecture/ARCH-INDEX.md` → "2.50"; `grep "^version:" .factory/specs/domain-spec/L2-INDEX.md` → "1.0.12".
+4-index at D-614 (literal-shell): `grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md` → "3.03"; `grep "^version:" .factory/specs/verification-properties/VP-INDEX.md` → "2.33"; `grep "^version:" .factory/stories/STORY-INDEX.md` → "4.02"; `grep "^version:" .factory/specs/architecture/ARCH-INDEX.md` → "2.50"; `grep "^version:" .factory/specs/domain-spec/L2-INDEX.md` → "1.0.12".
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** `164a3778` (D-613 CLEANUP BURST 2026-06-16; prior: `2f28715b` D-612 INTEGRATION BURST; prior-prior: `bf327933` D-611 E-18 F3 decomposition plan APPROVED)
+- **factory-artifacts HEAD:** `[D-614-SHA-TBD]` (D-614 F3 STORY REGISTRATION 2026-06-16; prior: `164a3778` D-613 CLEANUP BURST; prior-prior: `2f28715b` D-612 INTEGRATION BURST)
 - **develop HEAD:** `7e99f6ef` (PR #186 fix + release.yml sync back-merge 2026-06-13)
 - **main HEAD:** `caf06c68` (rc.21 bot bundle commit 2026-06-13)
 - **v1.0.0-rc.21 tag:** `03054524` (SHIPPED; FULLY IN OPERATOR MARKETPLACE)
@@ -368,26 +367,26 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 - **capabilities.md v1.7:** `domain-spec/capabilities.md` (UNCHANGED at D-597)
 - **ADR-025 v1.6 SHIPPED:** guard at `3b2a378c`; ARCH-INDEX v2.27
 - **S-17.04 story:** `.factory/stories/S-17.04-mid-burst-heartbeat-renewal-wiring.md` v1.7 MERGED; E-17 W4 COMPLETE; PR #184 3b2a378c
-- **Verify on resume:** `git rev-parse --short origin/develop` → expect `7e99f6ef`; `git rev-parse --short origin/main` → expect `caf06c68`; `git -C .factory log -1 --format='%h'` → expect `164a3778` (D-613 CLEANUP BURST HEAD after SHA-patch)
+- **Verify on resume:** `git rev-parse --short origin/develop` → expect `7e99f6ef`; `git rev-parse --short origin/main` → expect `caf06c68`; `git -C .factory log -1 --format='%h'` → expect `[D-614-SHA-TBD]` (D-614 F3 STORY REGISTRATION HEAD after SHA-patch)
 
 ### §10. PR Status
 
-- **0 open feature PRs. 0 open release PRs. 0 open marketplace PRs. rc.21 100% COMPLETE. E-18 F2 FULLY COMPLETE (D-610). E-18 F3 DECOMPOSITION PLAN APPROVED (D-611). POSTURE: Story authoring GATED on BC-4.15.001 (S-7.01 Spec-First Gate). NEXT: architect designs BC-4.15.001 → product-owner authors → integrate → validate → author 11 story files → story adversarial 3-CLEAN + consistency → story-approval human gate.**
+- **0 open feature PRs. 0 open release PRs. 0 open marketplace PRs. rc.21 100% COMPLETE. E-18 F2 FULLY COMPLETE (D-610). E-18 F3 STORY REGISTRATION COMPLETE (D-614; STORY-INDEX v4.02). POSTURE: story adversarial 3-CLEAN cascade + consistency audit NEXT, then story-approval human gate.**
 - **marketplace PR drbothen/claude-mp #13 MERGED** 2026-06-13 — rc.21 FULLY SHIPPED.
 - **RELEASING.md Step 9 VERIFIED (D-560):** operator cache 1.0.0-rc.21 confirmed (plugin.json + 132 entries). rc.21 end-to-end CLOSED.
 
 ### §11. Post-CLEAR/Post-RESET Resume Checklist (zero-context; D-613 refresh)
 
-1. **Verify worktree state:** `git rev-parse --short origin/develop` → expect `7e99f6ef`. `git rev-parse --short origin/main` → expect `caf06c68`. `git -C .factory log -1` (expect D-613 CLEANUP BURST; branch factory-artifacts; clean status).
+1. **Verify worktree state:** `git rev-parse --short origin/develop` → expect `7e99f6ef`. `git rev-parse --short origin/main` → expect `caf06c68`. `git -C .factory log -1` (expect D-614 F3 STORY REGISTRATION; branch factory-artifacts; clean status).
 2. **Read §1-§12 this checkpoint** (all of it; D-610 self-sufficient).
 3. **Verify 4-index:** `grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md` → "3.03"; ARCH-INDEX → "2.50"; VP-INDEX → "2.33"; STORY-INDEX → "4.01"; L2-INDEX → "1.0.12".
 4. **E-10 CASCADE SEALED D-531.** Do NOT resume without engine-surface material change.
 5. **F5 PAUSED** — trajectory →9→9→9→11. Do NOT resume without explicit human direction.
 6. **RC.21 100% COMPLETE D-560.** NO remaining release action. Operators: `/plugin update vsdd-factory@claude-mp`.
-7. **D-613 CLEANUP BURST COMPLETE 2026-06-16.** BC-4.15.001 v1.1 (proof_method micro-fix; input-hash 0a64afe). BC-INDEX v3.03 (1967 BCs). Parity fixes applied (verification-coverage-matrix.md body §Changelog; ARCH-INDEX changelog: v2.50; verification-architecture.md §1 '90'→'91'). D-576 CONFIRMED in S-18.08/S-18.09 scope. 4-index: BC-INDEX v3.03/VP-INDEX v2.33/STORY-INDEX v4.01/ARCH-INDEX v2.50. **POSTURE: BC-4.15.001 spec addition COMPLETE & VALIDATED (D-613); S-7.01 Spec-First Gate SATISFIED for S-18.06. F3 story authoring (11 stories: S-18.00..S-18.09) NOW UNBLOCKED — START HERE.**
-8. **4-index at D-613:** BC-INDEX v3.03 (total_bcs 1967), VP-INDEX v2.33 (total_vps 91), STORY-INDEX v4.01, ARCH-INDEX v2.50. L2-INDEX v1.0.12. invariants.md v1.23 (DI-020..025 Cited-by complete through VP-091). BC-7.07.001 v1.12. VP-087/090 v1.2. **BC-4.15.001 v1.1**. VP-091 v1.0.
-9. **ALL dispatches carry:** TD-VSDD-097-EXT + TD-VSDD-099 + TD-VSDD-100 + POLICY 14 5-leg + verification_step 7 4-index gate + INV-019 (a)/(b)/(c) + adversary grep origin/factory-artifacts + D-449(a) literal-shell Dim-2 + POLICY 8 v1.3 parity + POLICY 5 v1.3.1/v1.3.4/v1.3.5/v1.3.6 + D-537 spec-drift routing + D-539 multi-family adversary + O-P8-002 MANDATORY (3rd recurrence) + **L-F2-cross-reference-title-code-sweep [process-gap] UPGRADED (D-589; 4th recurrence; title-cite-parity gate MANDATORY)** + L-F2-subsystem-anchor-sweep [process-gap] + L-F2-canonical-scope-verification [process-gap] (D-587) + **L-F2-stale-term-deferral-unsafe [process-gap] (D-594)** + **L-F2-annotation-must-be-self-contained [process-gap] (D-598)** + **L-F2-exhaustive-sweep-enumerate-and-count [process-gap] (D-599)** + **L-F2-prior-chain-append-only-history [adjudication D-600]** + **L-F2-index-quad-cite-reflects-last-bump [convention D-601]** + **L-F2-deferred-table-semantics [process-gap D-606]** + **L-F2-machine-stable-count-assertion [process-gap D-608]** + **L-F2-fix-at-correct-layer [process-gap D-609]** + **L-F2-no-bypass-on-edit-failure [process-gap D-610: MANDATORY for ALL F3 dispatches]** + **D-611 F3 plan: 11 stories approved; S-7.01 Spec-First Gate SATISFIED (D-613); story map in §12**.
-10. **Latest decision D-613.** CLEANUP BURST complete. BC-4.15.001 v1.1 (proof_method micro-fix; input-hash 0a64afe). BC-INDEX v3.03 (1967 BCs). Parity fixes complete. 4-index BC v3.03/VP v2.33/ARCH v2.50. **POSTURE: BC-4.15.001 COMPLETE & VALIDATED. F3 story authoring NOW UNBLOCKED — START HERE (11 stories: S-18.00..S-18.09).**
+7. **D-614 F3 STORY REGISTRATION COMPLETE 2026-06-16.** 11 stories S-18.00..S-18.09 registered in STORY-INDEX v4.02. Input-hashes: S-18.00=8afdaef; S-18.01=46799d0; S-18.02=69dcbd9; S-18.03=228714d; S-18.04a=1880388; S-18.04b=ee7c532; S-18.05=a5e0c22; S-18.06=5a8ab0d; S-18.07=4d60e4a; S-18.08=69dcbd9; S-18.09=69dcbd9. BC/VP coverage confirmed. DAG/7-wave confirmed. **POSTURE: story adversarial 3-CLEAN cascade + consistency audit NEXT — START HERE.**
+8. **4-index at D-614:** BC-INDEX v3.03 (total_bcs 1967), VP-INDEX v2.33 (total_vps 91), STORY-INDEX v4.02 (119 stories; 431+ pts), ARCH-INDEX v2.50. L2-INDEX v1.0.12. invariants.md v1.23 (DI-020..025 Cited-by complete through VP-091). BC-7.07.001 v1.12. VP-087/090 v1.2. BC-4.15.001 v1.1. VP-091 v1.0.
+9. **ALL dispatches carry:** TD-VSDD-097-EXT + TD-VSDD-099 + TD-VSDD-100 + POLICY 14 5-leg + verification_step 7 4-index gate + INV-019 (a)/(b)/(c) + adversary grep origin/factory-artifacts + D-449(a) literal-shell Dim-2 + POLICY 8 v1.3 parity + POLICY 5 v1.3.1/v1.3.4/v1.3.5/v1.3.6 + D-537 spec-drift routing + D-539 multi-family adversary + O-P8-002 MANDATORY (3rd recurrence) + **L-F2-cross-reference-title-code-sweep [process-gap] UPGRADED (D-589; 4th recurrence; title-cite-parity gate MANDATORY)** + L-F2-subsystem-anchor-sweep [process-gap] + L-F2-canonical-scope-verification [process-gap] (D-587) + **L-F2-stale-term-deferral-unsafe [process-gap] (D-594)** + **L-F2-annotation-must-be-self-contained [process-gap] (D-598)** + **L-F2-exhaustive-sweep-enumerate-and-count [process-gap] (D-599)** + **L-F2-prior-chain-append-only-history [adjudication D-600]** + **L-F2-index-quad-cite-reflects-last-bump [convention D-601]** + **L-F2-deferred-table-semantics [process-gap D-606]** + **L-F2-machine-stable-count-assertion [process-gap D-608]** + **L-F2-fix-at-correct-layer [process-gap D-609]** + **L-F2-no-bypass-on-edit-failure [process-gap D-610: MANDATORY for ALL F3 dispatches]** + **D-614 F3 stories REGISTERED; story map in §12**.
+10. **Latest decision D-614.** F3 STORY REGISTRATION complete. STORY-INDEX v4.02 (119 stories; 431+ pts). 4-index BC v3.03/VP v2.33/STORY v4.02/ARCH v2.50. **POSTURE: story adversarial 3-CLEAN + consistency NEXT — START HERE.**
 
 ### §12. Pending Work Items — Strict Resume Ordering (refreshed 2026-06-16 D-613)
 
@@ -403,8 +402,9 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 | **2a-confirm** | **#173/E-18 CONFIRMING adversary pass (round 1)** | **feature** | D-608 COMPLETE | **DONE 2026-06-16 D-609.** Confirming pass NOT-CLEAN (F-CONF-001 MAJOR + O-CONF-001 LOW). Fix burst: BC-7.07.001 v1.12 + VP-087/090 v1.2. BC-INDEX v3.01 / VP-INDEX v2.32. L-F2-fix-at-correct-layer codified. E-18 F2 delta-fix round-2 COMPLETE. |
 | ~~**2a-confirm-2**~~ | ~~**#173/E-18 CONFIRMING adversary pass (round 2)**~~ | ~~feature~~ | ~~D-609 COMPLETE~~ | **DONE 2026-06-16 D-610.** CLEAN — zero BLOCKER/MAJOR/load-bearing-MEDIUM/mis-anchor; 1 cosmetic obs non-actionable. Delta loop DONE. E-18 F2 FULLY COMPLETE. L-F2-no-bypass-on-edit-failure [process-gap] codified. |
 | **2b-gate** | **BC-4.15.001 spec addition (S-7.01 Spec-First Gate)** | **feature** | D-613 | **DONE 2026-06-16 D-613.** BC-4.15.001 v1.1 + parity fixes complete. Adversary CLEAN + consistency CLEAN. Gate satisfied. **F3 story authoring NOW UNBLOCKED — START HERE.** |
-| **2b** | **#173/E-18 F3 story decomposition** | **feature** | **UNBLOCKED D-613** | Plan APPROVED D-611. 11 stories: S-18.00, S-18.01, S-18.02, S-18.03, S-18.04a, S-18.04b, S-18.05, S-18.06, S-18.07, S-18.08, S-18.09. **START HERE** → story adversarial 3-CLEAN + consistency → story-approval human gate. STORY-INDEX v4.01→v4.02+. |
-| **4** | **#173 wave-checkpoint** | **implementation** | E-18 F3 done OR human re-sequence | State-durability chain stories S-18.01..S-18.05. Blocked on F3. |
+| **2b** | **#173/E-18 F3 story registration** | **feature** | **COMPLETE D-614** | Plan APPROVED D-611. 11 stories S-18.00..S-18.09 authored + registered STORY-INDEX v4.02. Input-hashes computed. BC/VP/DAG confirmed. **NEXT: story adversarial 3-CLEAN + consistency → story-approval human gate — START HERE.** |
+| **2c** | **#173/E-18 story adversarial 3-CLEAN + consistency + human-approval gate** | **feature** | D-614 COMPLETE | Story adversarial cascade (3-CLEAN per BC-5.39.001) + consistency-validator audit + story-approval human gate → F4 TDD dispatch. **START HERE.** |
+| **4** | **#173 wave-checkpoint** | **implementation** | E-18 F3 + story-approval done | State-durability chain stories S-18.01..S-18.05. Blocked on F3 story-approval gate. |
 | **5** | **#171 deferred-revalidate** | **implementation** | #173 stories done | Deferred-revalidation story. |
 | **6** | **#129 canonical-principle** | **implementation** | human-authorize | Ship canonical-principle in plugin. |
 | ~~prior~~ | ~~TD #74/66/67; S-15.03 PRIORITY-A; E-10 cascade; rc.19+rc.20+rc.21; E-17 4 stories; S-15.17~~ | ~~—~~ | ~~—~~ | **ALL COMPLETE/MERGED/SHIPPED** |
@@ -412,5 +412,4 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 | **8/9** | **UNI-PLUG-001 / SK-MCP-001** | **forward** | human-authorize | PROPOSAL REVIEW-READY |
 
 **[D-414(c) acknowledgment: Section 12 is a non-standard addition for forward-backlog durability.]**
-
-> Previous checkpoint (D-612 INTEGRATION-BURST-2026-06-16) archived to: `cycles/v1.0-brownfield-backfill/session-checkpoints.md`
+> Previous checkpoint (D-613 CLEANUP-BURST-2026-06-16) archived to: `cycles/v1.0-brownfield-backfill/session-checkpoints.md`
