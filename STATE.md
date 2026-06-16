@@ -131,7 +131,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | caf06c68 | rc.21 bot binary bundle commit 2026-06-13; prior: 2a191314 (rc.20) |
 | develop | 7e99f6ef | PR #186 fix a431ff47 + release.yml sync back-merge 2026-06-13; prior: 3b2a378c (D-556) |
-| factory-artifacts | bf327933 | D-611 E-18 F3 decomposition plan APPROVED 2026-06-16; prior: f89cbedf D-610 SHA-patch-2; prior-prior: b48c526e D-610 E-18 F2 FULLY COMPLETE |
+| factory-artifacts | 2f28715b | D-612 INTEGRATION BURST 2026-06-16 BC-4.15.001+VP-091+ADR-026-v1.20; prior: bf327933 D-611 E-18 F3 decomposition plan APPROVED; prior-prior: f89cbedf D-610 SHA-patch-2 |
 | v1.0.0-rc.21 (tag) | 03054524 | SHIPPED 2026-06-13; FULLY IN OPERATOR MARKETPLACE (marketplace PR #13 MERGED); annotated tag object |
 | v1.0.0-rc.20 (tag) | e9e38286 | SHIPPED 2026-06-01; marketplace PR #12 squash-merged 862e660d |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28 |
@@ -330,7 +330,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** pending D-612 burst commit (prior: `bf327933` D-611 E-18 F3 decomposition plan APPROVED 2026-06-16; prior-prior: `f89cbedf` D-610 SHA-patch-2)
+- **factory-artifacts HEAD:** `2f28715b` (D-612 INTEGRATION BURST 2026-06-16; prior: `bf327933` D-611 E-18 F3 decomposition plan APPROVED; prior-prior: `f89cbedf` D-610 SHA-patch-2)
 - **develop HEAD:** `7e99f6ef` (PR #186 fix + release.yml sync back-merge 2026-06-13)
 - **main HEAD:** `caf06c68` (rc.21 bot bundle commit 2026-06-13)
 - **v1.0.0-rc.21 tag:** `03054524` (SHIPPED; FULLY IN OPERATOR MARKETPLACE)
@@ -363,7 +363,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 - **capabilities.md v1.7:** `domain-spec/capabilities.md` (UNCHANGED at D-597)
 - **ADR-025 v1.6 SHIPPED:** guard at `3b2a378c`; ARCH-INDEX v2.27
 - **S-17.04 story:** `.factory/stories/S-17.04-mid-burst-heartbeat-renewal-wiring.md` v1.7 MERGED; E-17 W4 COMPLETE; PR #184 3b2a378c
-- **Verify on resume:** `git rev-parse --short origin/develop` → expect `7e99f6ef`; `git rev-parse --short origin/main` → expect `caf06c68`; `git -C .factory log -1 --format='%h'` → expect D-612 burst HEAD (SHA-patch pending post-commit update)
+- **Verify on resume:** `git rev-parse --short origin/develop` → expect `7e99f6ef`; `git rev-parse --short origin/main` → expect `caf06c68`; `git -C .factory log -1 --format='%h'` → expect `2f28715b` (D-612 integration burst HEAD after SHA-patch)
 
 ### §10. PR Status
 
