@@ -135,7 +135,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | caf06c68 | rc.21 bot binary bundle commit 2026-06-13; prior: 2a191314 (rc.20) |
 | develop | 7e99f6ef | PR #186 fix a431ff47 + release.yml sync back-merge 2026-06-13; prior: 3b2a378c (D-556) |
-| factory-artifacts | 07a6178e | D-607 F2 spec-completion integration burst; 4-index BC v3.00/VP v2.30/STORY v4.01/ARCH v2.48; L2-INDEX v1.0.12; prior: c4ed73bf D-606 F2 pass-43 CLEAN 3/3 CONVERGED |
+| factory-artifacts | 7ca0d454 | D-608 E-18 delta re-validation FIX BURST; VP-087/088/090 v1.1 + verification-architecture.md v1.1; VP-INDEX v2.31; ARCH-INDEX v2.49; prior: 07a6178e D-607 F2 spec-completion integration burst |
 | v1.0.0-rc.21 (tag) | 03054524 | SHIPPED 2026-06-13; FULLY IN OPERATOR MARKETPLACE (marketplace PR #13 MERGED); annotated tag object |
 | v1.0.0-rc.20 (tag) | e9e38286 | SHIPPED 2026-06-01; marketplace PR #12 squash-merged 862e660d |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28 |
@@ -333,7 +333,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** `[D-608-SHA-PENDING]` (D-608 E-18 delta re-validation FIX BURST 2026-06-16; prior: `07a6178e` D-607 F2 spec-completion integration burst; prior-prior: `c4ed73bf` D-606 F2 pass-43 CLEAN 3/3 CONVERGED)
+- **factory-artifacts HEAD:** `7ca0d454` (D-608 E-18 delta re-validation FIX BURST 2026-06-16; prior: `07a6178e` D-607 F2 spec-completion integration burst; prior-prior: `c4ed73bf` D-606 F2 pass-43 CLEAN 3/3 CONVERGED)
 - **develop HEAD:** `7e99f6ef` (PR #186 fix + release.yml sync back-merge 2026-06-13)
 - **main HEAD:** `caf06c68` (rc.21 bot bundle commit 2026-06-13)
 - **v1.0.0-rc.21 tag:** `03054524` (SHIPPED; FULLY IN OPERATOR MARKETPLACE)
@@ -363,7 +363,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 - **capabilities.md v1.7:** `domain-spec/capabilities.md` (UNCHANGED at D-597)
 - **ADR-025 v1.6 SHIPPED:** guard at `3b2a378c`; ARCH-INDEX v2.27
 - **S-17.04 story:** `.factory/stories/S-17.04-mid-burst-heartbeat-renewal-wiring.md` v1.7 MERGED; E-17 W4 COMPLETE; PR #184 3b2a378c
-- **Verify on resume:** `git rev-parse --short origin/develop` → expect `7e99f6ef`; `git rev-parse --short origin/main` → expect `caf06c68`; `git -C .factory log -1 --format='%h'` → expect D-608 burst SHA (see factory-artifacts HEAD above; SHA-patch follow-up will backfill)
+- **Verify on resume:** `git rev-parse --short origin/develop` → expect `7e99f6ef`; `git rev-parse --short origin/main` → expect `caf06c68`; `git -C .factory log -1 --format='%h'` → expect `7ca0d454` (D-608 SHA-patch follow-up)
 
 ### §10. PR Status
 
