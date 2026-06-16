@@ -167,12 +167,15 @@ INPUTS=$(awk '
     in_arr=1
     next
   }
-  fm==1 && in_arr && /^  *- / {
+  fm==1 && in_arr {
+    # Detect end of inputs: block BEFORE sub() modifies $0.
+    # A line that is not a list item (does not start with optional spaces then -)
+    # signals the next top-level YAML key and ends the block.
+    if (!/^  *- /) { exit }
     sub(/^  *- */, "")
     gsub(/["'"'"' \t]/, "")
     print
   }
-  fm==1 && in_arr && /^[^ -]/ { exit }
 ' "$FILE" | grep -v '^$' || true)
 
 if [[ -z "$INPUTS" ]]; then

@@ -185,6 +185,80 @@ EOF
   [[ "${#output}" -eq 7 ]]
 }
 
+# ===== regression: multi-input block parsing (bug: only first input hashed) =====
+
+@test "compute-input-hash: multi-line inputs: block hashes ALL inputs, not just first" {
+  # Regression for the awk sub()-before-exit bug: after sub() strips '  - ',
+  # the path starts with '.' which matched /^[^ -]/ and caused early exit.
+  # Two artifacts sharing the same first input but differing in second input
+  # MUST produce different hashes.
+  echo "# Shared first input" > "$WORK/.factory/specs/domain-spec/shared.md"
+  echo "# Second input A" > "$WORK/.factory/specs/domain-spec/second-a.md"
+  echo "# Second input B" > "$WORK/.factory/specs/domain-spec/second-b.md"
+
+  cat > "$WORK/.factory/specs/behavioral-contracts/artifact-a.md" << 'EOF'
+---
+document_type: bc
+inputs:
+  - domain-spec/shared.md
+  - domain-spec/second-a.md
+input-hash: "[md5]"
+---
+EOF
+
+  cat > "$WORK/.factory/specs/behavioral-contracts/artifact-b.md" << 'EOF'
+---
+document_type: bc
+inputs:
+  - domain-spec/shared.md
+  - domain-spec/second-b.md
+input-hash: "[md5]"
+---
+EOF
+
+  hash_a=$("$BIN" "$WORK/.factory/specs/behavioral-contracts/artifact-a.md")
+  hash_b=$("$BIN" "$WORK/.factory/specs/behavioral-contracts/artifact-b.md")
+
+  [ "$hash_a" != "$hash_b" ]
+}
+
+@test "compute-input-hash: single-input multi-line inputs: block is stable" {
+  echo "# Only input" > "$WORK/.factory/specs/domain-spec/only.md"
+
+  cat > "$WORK/.factory/specs/behavioral-contracts/single.md" << 'EOF'
+---
+document_type: bc
+inputs:
+  - domain-spec/only.md
+input-hash: "[md5]"
+---
+EOF
+
+  hash1=$("$BIN" "$WORK/.factory/specs/behavioral-contracts/single.md")
+  hash2=$("$BIN" "$WORK/.factory/specs/behavioral-contracts/single.md")
+  [ "$hash1" = "$hash2" ]
+  [[ "${#hash1}" -eq 7 ]]
+}
+
+@test "compute-input-hash: missing input in multi-line block is surfaced, not silently skipped" {
+  echo "# Good input" > "$WORK/.factory/specs/domain-spec/good.md"
+
+  cat > "$WORK/.factory/specs/behavioral-contracts/partial.md" << 'EOF'
+---
+document_type: bc
+inputs:
+  - domain-spec/good.md
+  - domain-spec/nonexistent.md
+input-hash: "[md5]"
+---
+EOF
+
+  run "$BIN" "$WORK/.factory/specs/behavioral-contracts/partial.md" --resolve 2>&1
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"MISSING"* ]]
+  [[ "$output" == *"nonexistent.md"* ]]
+}
+
 # ===== hooks/validate-input-hash.sh =====
 
 @test "input-hash hook: blocks when hash is placeholder" {
