@@ -2,12 +2,13 @@
 document_type: architecture-section
 level: L4
 section: verification-architecture
-version: "1.0"
+version: "1.1"
 status: draft
 producer: architect
 timestamp: 2026-06-16T00:00:00Z
-last_amended: "2026-06-16 (v1.0) — F2 gate decision: initial creation as a full production-grade architecture deliverable. Sources: VP-INDEX.md v2.29 (86 VPs) + VP-087..VP-090 (4 new E-18 VPs, unstaged). POST-INTEGRATION totals: total_vps=90, unit-test=44, integration=27, manual=10, static-check=1, kani-proof=4, proptest=4. Authored per F2 gate human directive that deferred architecture derived-views be materialized now."
+last_amended: "2026-06-16 (v1.1) — fix burst (architect): FINDING-1 (MINOR) + O-D607-003 — removed SS-08 from subsystems_affected frontmatter; SS-08 has zero VPs in this document's body (consistent with sibling verification-coverage-matrix.md which correctly omits SS-08). Frontmatter now matches body. [Prior: 2026-06-16 (v1.0) — F2 gate decision: initial creation as a full production-grade architecture deliverable. Sources: VP-INDEX.md v2.29 (86 VPs) + VP-087..VP-090 (4 new E-18 VPs, unstaged). POST-INTEGRATION totals: total_vps=90, unit-test=44, integration=27, manual=10, static-check=1, kani-proof=4, proptest=4. Authored per F2 gate human directive that deferred architecture derived-views be materialized now.]"
 modified:
+  - "2026-06-16 (v1.1) — removed SS-08 from subsystems_affected (zero VPs in body; aligns with verification-coverage-matrix.md)"
   - "2026-06-16 (v1.0 initial creation)"
 traces_to: VP-INDEX.md
 subsystems_affected:
@@ -18,7 +19,6 @@ subsystems_affected:
   - SS-05
   - SS-06
   - SS-07
-  - SS-08
   - SS-09
 ---
 
@@ -34,6 +34,7 @@ subsystems_affected:
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| v1.1 | 2026-06-16 | architect | FINDING-1 (MINOR) + O-D607-003 — removed SS-08 from `subsystems_affected` frontmatter. SS-08 has zero VPs in this document's §1 body; sibling verification-coverage-matrix.md correctly omits SS-08. Frontmatter now matches body content. |
 | v1.0 | 2026-06-16 | architect | Initial creation — F2 gate decision. Sources: VP-INDEX.md v2.29 (86 VPs) + VP-087..VP-090 (4 new E-18 VPs). POST-INTEGRATION totals: total_vps=90, unit-test=44, integration=27, manual=10, static-check=1, kani-proof=4, proptest=4. |
 
 ---

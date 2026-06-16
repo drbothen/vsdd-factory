@@ -3401,3 +3401,35 @@ All 8 = 1. §Changelog presence exhaustively verified for the E-18 BC cohort. Th
 **Cites:** D-606; D-561 (VP-080 v1.1 traces_to correction); ARCH-INDEX v2.47; VP-INDEX v2.29; VP-080 v1.1; E-18; BC-5.39.001; L-F2-subsystem-anchor-sweep (companion — read structural context before classifying missing anchors); L-F2-stale-term-deferral-unsafe (companion — do NOT reclassify or re-defer what has already been architect-adjudicated).
 
 **Closes:** D-606 L-F2-deferred-table-semantics codified; E-18 F2 adversarial cascade 3-CLEAN CONVERGED (pass-41 ZERO-FINDINGS → pass-42 CLEAN → pass-43 CLEAN); pre-gate audit FALSE POSITIVE adjudicated; Drift Item recorded; AWAITING F2 HUMAN-APPROVAL GATE. `[process-gap; gate-audit; table-semantics; false-positive; deferred-sections; convergence-milestone]`
+
+---
+
+### L-F2-machine-stable-count-assertion
+
+**Category:** [process-gap]
+**Discovered:** 2026-06-16 D-608 — E-18 delta re-validation FIX BURST (adversary delta-pass finding F-D607-003 LOW; consistency-validator FINDING-1 MINOR)
+**Severity:** PROCESS-GAP — false-green vector; silently allows count assertion to pass even when output rendering changes make the probe inaccurate
+
+**Summary:** VP proof harnesses MUST assert counts or file-list sizes against a machine-stable enumeration signal (e.g., a sentinel line emitted by the skill, a JSON array length, or a process exit code), NOT against a presentation-coupled prose-list regex such as `grep -c '^  - '` over human-readable output. Presentation-coupled regexes are false-green generators: if the skill changes its output format (indentation, bullet style, section heading), the grep silently produces an incorrect count while the assertion still passes.
+
+**Root Cause (D-608 / F-D607-003):** VP-088 v1.0 §2 specified that the proof harness verify exact-list injection by running `grep -c '^  - '` over the human-readable context block produced by the `rehydrate-wave` skill. This couples the count assertion to the skill's presentation formatting. If the skill emits bullets with different indentation or switches to a JSON list, the count changes silently and the assertion becomes false-green. The fix (VP-088 v1.1) requires the rehydrate-wave skill to emit a machine-stable sentinel line `INJECTED_FILE_COUNT=<n>` in its stdout and the harness to assert against that sentinel.
+
+**Companion finding (D-608 / F-D607-001):** VP-090 v1.0 §1/§2 omitted the newline-terminated-line precondition for the '>1000 entry' trigger in precompact-flush-log pruning. A file without a trailing newline produces a line-count that is off-by-one relative to the entry count. The fix (VP-090 v1.1) adds an explicit newline-termination precondition to §0, PC1, and the boundary fixture in §2, with BC-7.07.001 PC8/Inv3 cited as the guarantor of newline-termination in the append-only log.
+
+**Generalizes:** F-D607-003 (VP-088 v1.0 grep-count probe); F-D607-001 (VP-090 v1.0 boundary-count off-by-one). Both are instances of the same class: count or structure assertions against a probe that is not decoupled from presentation formatting or filesystem line-ending conventions.
+
+**Rule (binding for all future VP proof harness authoring):**
+
+**(a) Machine-stable signal required for count assertions.** When a VP proof harness must assert that exactly N files, entries, or items were processed, the assertion MUST be grounded in one of: (1) a sentinel line emitted by the skill/script with a stable format (e.g., `INJECTED_FILE_COUNT=N` on stdout); (2) a JSON or structured-data output parsed with a schema-aware tool (jq, yq); (3) a process exit code encoding the count; (4) a file whose line count is guaranteed by a specified invariant (newline-termination + one-entry-per-line precondition named in the VP and enforced by the skill).
+
+**(b) Presentation-coupled probes are FORBIDDEN as load-bearing assertions.** `grep -c '^  - '` (or similar indentation/bullet-style-sensitive patterns) over human-readable prose output is acceptable as a diagnostic aid but MUST NOT be the sole evidence for a pass/fail decision. Any VP bats fixture using such a probe MUST be flagged for machine-stable migration before the story ships.
+
+**(c) Preconditions for boundary-arithmetic assertions MUST be stated explicitly.** When a VP property involves a numeric threshold (e.g., '>1000 entries triggers pruning'), all preconditions that affect the count interpretation MUST be named in the VP §0 Preconditions section — especially file-format invariants (newline-termination, one-record-per-line, no blank lines). The VP MUST cite the spec artifact that guarantees those preconditions hold.
+
+**(d) Feeds forward to F3 story S-18.08.** The gate-story for E-18 implementation (S-18.08) MUST include acceptance criteria requiring: (i) rehydrate-wave skill emits `INJECTED_FILE_COUNT=<n>` sentinel; (ii) precompact-flush-prune.sh outputs a machine-stable PRUNE_RESULT sentinel or exit code indicating actual entry count before and after prune; (iii) VP-088 and VP-090 bats harnesses pass against the sentinel-based assertions only.
+
+**Anchors:** D-608 (this burst); F-D607-003 (VP-088 v1.0 grep-count probe LOW); F-D607-001 (VP-090 v1.0 boundary-count missing newline precondition MEDIUM LOAD-BEARING); VP-088 v1.1 (machine-stable sentinel fix); VP-090 v1.1 (newline-termination precondition fix); S-18.08 (mandatory scope extension); E-18 (CAP-032 context-durability; GitHub issue #173).
+
+**Cites:** D-608; F-D607-001; F-D607-003; VP-088 v1.1; VP-090 v1.1; VP-083 v1.9 (F-P32-002 — tautology-hardening pattern that F-D607-002 mirrors for VP-087); L-F2-exhaustive-sweep-enumerate-and-count (companion: cohort sweeps must enumerate all N files + capture per-file stdout; machine-stable-count extends same principle to count assertions).
+
+**Closes:** D-608 F-D607-003 LOW FIXED (VP-088 v1.1); D-608 F-D607-001 MEDIUM LOAD-BEARING FIXED (VP-090 v1.1); process-gap class codified; L-F2-machine-stable-count-assertion added to carry-forward lesson set. `[process-gap; count-assertion; machine-stable-signal; false-green; harness-discipline; S-18.08-scope]`
