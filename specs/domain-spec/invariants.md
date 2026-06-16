@@ -2,11 +2,11 @@
 document_type: domain-spec-section
 level: L2
 section: invariants
-version: "1.23"
+version: "1.24"
 status: accepted
 producer: business-analyst
 timestamp: 2026-04-25T00:00:00
-last_amended: 2026-06-16 (v1.23 — D-612 INTEGRATION BURST: DI-020 Cited by += VP-091 (BC-4.15.001 validate-heavy-op-delegation WASM gate; domain_invariants: [DI-020]; S-18.06). POLICY 2 bidirectional DI→VP traceability maintained.)
+last_amended: 2026-06-16 (v1.24 — D-615 E-18 STORY PASS-1 FIX WAVE INTEGRATION BURST: DI-020 Cited by += VP-092 (BC-6.25.001 check-state-health CLAUDE_AUTOCOMPACT_PCT_OVERRIDE advisory check; domain_invariants: [DI-020]; S-18.10; advisory-only; never blocks; pure settings.json read; upholds DI-020 by ensuring autocompact threshold configuration is visible to the pipeline operator). POLICY 2 bidirectional DI→VP traceability maintained. [Prior: v1.23 — D-612 INTEGRATION BURST: DI-020 Cited by += VP-091 (BC-4.15.001 validate-heavy-op-delegation WASM gate; domain_invariants: [DI-020]; S-18.06). POLICY 2 bidirectional DI→VP traceability maintained.])
 phase: 1.3
 inputs:
   - .factory/phase-0-ingestion/pass-2-domain-model.md
@@ -174,7 +174,7 @@ _Authored 2026-06-14 to resolve F-14 (POLICY 2 systematic gap: all 8 E-18 BCs de
 A wave or phase boundary transition (session reset, context compaction, or context clear) must leave all load-bearing pipeline state — verified SHAs, active BC identifiers, open decisions, next-wave story list — durable on the `factory-artifacts` branch before the transition is considered complete. A transition that drops any load-bearing field is a continuity violation, not an acceptable degradation.
 Enforcement owner: SS-05 (wave-gate + wave-handoff skill) for wave-boundary transitions; SS-07 (precompact-flush.sh) for intra-wave PreCompact transitions; SS-04 (validate-wave-handoff-completeness WASM gate) as parse-layer enforcer. BC range: BC-5.41.001, BC-5.41.003, BC-4.14.001, BC-1.15.001.
 Justification: DI-020 is a business invariant because context loss is the root failure class CAP-032 exists to prevent. The invariant covers both failure sub-classes: wave-boundary session reset (Part A, HANDOFF.md) and mid-wave auto-compaction (Part B, PreCompact flush). Source: CAP-032 (capabilities.md §CAP-032); ADR-026 §Decision 1.
-**Cited by:** VP-081 (domain_invariants: [DI-020, DI-021, DI-023] — handoff-completeness gate preserves wave-closure state), VP-083 (domain_invariants: [DI-020] — no-op gate preserves wave-closure state invariant unchanged), VP-084 (domain_invariants: [DI-020, DI-025] — burst-log exemption preserves wave-lifecycle distinction), VP-086 (domain_invariants: [DI-020] — dispatcher exit-2 propagation preserves wave-closure safety), VP-091 (domain_invariants: [DI-020] — validate-heavy-op-delegation advisory gate operates within context-durability contract; pure-parse, never blocks, never accesses external state; upholds DI-020 by design).
+**Cited by:** VP-081 (domain_invariants: [DI-020, DI-021, DI-023] — handoff-completeness gate preserves wave-closure state), VP-083 (domain_invariants: [DI-020] — no-op gate preserves wave-closure state invariant unchanged), VP-084 (domain_invariants: [DI-020, DI-025] — burst-log exemption preserves wave-lifecycle distinction), VP-086 (domain_invariants: [DI-020] — dispatcher exit-2 propagation preserves wave-closure safety), VP-091 (domain_invariants: [DI-020] — validate-heavy-op-delegation advisory gate operates within context-durability contract; pure-parse, never blocks, never accesses external state; upholds DI-020 by design), VP-092 (domain_invariants: [DI-020] — check-state-health verifies CLAUDE_AUTOCOMPACT_PCT_OVERRIDE in settings.json and emits advisory if absent or value exceeds 80; advisory-only check; never blocks; ensures autocompact threshold configuration is visible to the pipeline operator; upholds DI-020 by making context-window boundary configuration observable and auditable).
 
 CAP-032 covers the context-durability guarantee because it is grounded in the product brief requirement that long autonomous pipeline runs must not lose critical state across session boundaries. The requirement is stated in CAP-032 and referenced in ADR-026 §Context.
 

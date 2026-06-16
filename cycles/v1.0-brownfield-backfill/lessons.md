@@ -3497,3 +3497,55 @@ All 8 = 1. §Changelog presence exhaustively verified for the E-18 BC cohort. Th
 **Cites:** D-610; D-609 (incident); TD-FACTORY-HOOK-BYPASS-001; POL-3; CLAUDE.md §Forbidden-patterns ("Direct edit of `.factory/STATE.md` by any agent other than state-manager"); CLAUDE.md §Operational-Discipline-TDs (TD-FACTORY-HOOK-BYPASS-001 P0 — Use Edit/Write tools ONLY for `.factory/` mutations. NEVER use Python/sed/echo bypass. Enforced by POL-3).
 
 **Closes:** D-610 process-gap class codified; L-F2-no-bypass-on-edit-failure added to carry-forward lesson set for F3. `[process-gap; hook-bypass; tool-failure-recovery; TD-FACTORY-HOOK-BYPASS-001; POL-3; S-18.08-scope; F3-dispatch-constraint]`
+
+---
+
+### L-F2-cross-story-claim-verification
+
+**Category:** [process-gap]
+**Discovered:** 2026-06-16 D-615 — E-18 story pass-1 fix wave (story-writer cross-story claim review)
+**Severity:** PROCESS-GAP — silent spec-consistency defect class; uncaught claims propagate to index rows and traceability matrices
+
+**Summary:** When a story-writer authors a story that makes claims about ANOTHER story (e.g., "S-18.04a covers VP-085" or "S-18.02 owns BC-4.14.001"), those claims MUST be verified against the ACTUAL acceptance criteria and file-structure sections of the referenced story — not inferred from the story's title or epic membership. Cross-story claims that are not verified can introduce phantom-VP and phantom-BC traceability entries that pass index integration but fail adversarial or consistency-validator review.
+
+**Root Cause (E-18 pass-1 incident):** Multiple E-18 stories contained cross-story traceability claims in their Traceability sections that did not resolve to actual ACs or Invariants in the cited stories. For example, a story claimed "VP-085 verified by S-18.04a via AC-003" but AC-003 in S-18.04a covered a different behavioral dimension. The story-writer inferred the cross-story link from epic-level VP allocation notes in ADR-026 §VP Allocations rather than from the actual AC text in the cross-referenced story.
+
+**Rule (binding):**
+
+**(a) Cross-story PC/Inv cite verification is mandatory.** Before asserting "Story X covers VP-NNN via AC-M" or "Story X owns BC-N.NN.NNN", the story-writer MUST read the Acceptance Criteria section of Story X and confirm AC-M's text aligns with VP-NNN's stated properties or BC-N.NN.NNN's preconditions.
+
+**(b) ADR-level VP allocation notes are architectural intent, not story-level verification.** ADR §VP Allocations tables assign VPs to stories at the planning level. Story-level Traceability sections must verify the assignment is realized in the story's actual ACs, not merely inherit the ADR allocation.
+
+**(c) Cross-story claims discovered during integration must be fixed in the same burst.** If an integration burst finds a cross-story claim that cannot be verified (because the referenced AC does not exist or covers different behavior), the story-writer must amend the claiming story's Traceability section in the same burst. Filing it as a finding-for-later is a defer-pattern violation.
+
+**Anchors:** D-615 (this burst); E-18 story pass-1 fix wave; ADR-026 §VP Allocations; CLAUSE-POL-005 (BC H1 verbatim traceability); POLICY 2 (bidirectional traceability DI→VP).
+
+**Cites:** D-615; CLAUDE.md §Canonical-Principle Rule 4 (AI-built defects are the AI's responsibility to fix in scope); CLAUDE.md §Companion-Principle (correct agent routing for spec defects).
+
+**Closes:** D-615 process-gap class codified; L-F2-cross-story-claim-verification added to carry-forward lesson set for F3. `[process-gap; cross-story-traceability; story-writer-discipline; VP-verification; E-18]`
+
+---
+
+### L-F2-story-pc-cite-verbatim
+
+**Category:** [process-gap]
+**Discovered:** 2026-06-16 D-615 — E-18 story pass-1 fix wave (AC↔PC realignment review)
+**Severity:** PROCESS-GAP — phantom-precondition defect class; non-existent PC headings in Traceability sections produce phantom traceability that is unverifiable
+
+**Summary:** Every Traceability section entry of the form "PC3 — <description>" or "Inv2 — <description>" in a story MUST resolve to an actual Precondition or Invariant heading in the cited BC. Story-writers must read the cited BC's PC/Inv section before writing the Traceability row, not infer PC/Inv IDs from the story's behavioral description.
+
+**Root Cause (E-18 pass-1 incident):** Multiple E-18 stories cited PCs and Invariants in their Traceability sections using IDs that did not exist in the cited BCs. For example, a story cited "BC-5.41.001 PC7 — wave_id derives from real sprint-state.yaml fields" but BC-5.41.001 had only PC1..PC6 (no PC7 in v1.8). The story-writer constructed the PC ID from the behavioral description rather than checking the BC's actual PC enumeration.
+
+**Rule (binding):**
+
+**(a) PC/Inv IDs in Traceability must resolve to real headings.** Before writing "BC-N.NN.NNN PC-M" in a Traceability section, open the BC file and confirm PC-M (or Inv-M) exists as an actual heading or bullet in that BC's Preconditions or Invariants section.
+
+**(b) If a story behavior maps to a PC that doesn't exist, DO NOT invent a PC ID.** Either: (i) cite the closest real PC with a clarifying note, (ii) cite the BC's Invariant section if the behavior is better expressed there, or (iii) flag the gap to the product-owner for a BC amendment to add the missing PC.
+
+**(c) Phantom PC cites are NOT caught by current index integration.** BC-INDEX and STORY-INDEX only track which BCs a story covers, not which PCs. Phantom PCs propagate silently until adversarial review or consistency-validator audit. Prevention (story-writer verification discipline) is the only gate at authoring time.
+
+**Anchors:** D-615 (this burst); E-18 story pass-1 fix wave; BC-5.41.001 (PC1..PC6; no PC7); POLICY 7 (BC H1 verbatim cite).
+
+**Cites:** D-615; CLAUSE-POL-005 (BC H1 verbatim traceability); CLAUDE.md §Canonical-Principle Rule 4.
+
+**Closes:** D-615 process-gap class codified; L-F2-story-pc-cite-verbatim added to carry-forward lesson set for F3. `[process-gap; phantom-pc; story-traceability; story-writer-discipline; BC-PC-verification; E-18]`
