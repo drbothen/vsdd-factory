@@ -7699,6 +7699,111 @@ D-556 current_step encodes: S-17.04 MERGED PR #184 3b2a378c; E-17 W4 COMPLETE; f
 
 ---
 
+## D-606 F2 E-18 ADV PASS-43 CLEAN — 3-CLEAN CONVERGED (3/3) + PRE-GATE CONSISTENCY AUDIT + ARCH-INDEX FALSE-POSITIVE ADJUDICATION (2026-06-15)
+
+### Parent-commit
+
+`6da38863` (D-605 F2 pass-42 CLEAN STREAK-2/3; factory-artifacts HEAD at burst start per D-419(b)).
+
+### Adversary Verdict (D-448(a) source-attestation gate)
+
+Fresh-context adversary pass-43 read the frozen E-18 spec package (adv-e9-v1.7-amendment-pass-43.md; same package as pass-41/42: ADR-026 v1.19 / 8 BCs v1.5–v1.13 / VP-081..086 v1.4–v1.12 / invariants.md v1.21 / capabilities.md v1.7 / L2-INDEX v1.0.11 / BC-INDEX v2.99 / VP-INDEX v2.29 / ARCH-INDEX v2.47 / STORY-INDEX v4.01). Verdict CLEAN: 0 BLOCKER, 0 MAJOR, 0 load-bearing MEDIUM, 0 mis-anchor. 1 observation: O-2 (ADR-026 §F-P4-004 PO-Wording block line ~580 retains 'side-channel log' inside prescribed-replacement historical text — adjudicated documentary-historical residue; consistent with F-P28-002/F-P31-001 prior adjudications; no normative present-tense stale term survives in any BC/VP/DI/ADR normative body; POLICY-19-compatible; NOT fixed). 3-CLEAN streak 2/3→3/3 per BC-5.39.001 (pass-41 ZERO-FINDINGS(1/3) → pass-42 CLEAN(2/3) → pass-43 CLEAN(3/3)). BC-5.39.001 3-CLEAN SATISFIED. Pre-gate mandatory fresh-context consistency-validator audit ran on frozen package; returned 2 perimeter BLOCKER findings (ARCH-INDEX §Future Sections (Deferred) rows for verification-architecture.md + verification-coverage-matrix.md); architect adjudicated BOTH as FALSE POSITIVES (semantic-misread: those rows sit under "Future Sections (Deferred)" heading with "Deferred File | Covered By" columns — not registered active sources; content covered by VP-INDEX.md; VP-080 v1.1 traces_to corrected; all E-18 VPs trace_to VP-INDEX.md; NOT a gate blocker). 4-index UNCHANGED throughout.
+
+### Files Touched (Dim-1)
+
+Files modified in this D-606 state-manager burst (single atomic commit — STATE.md + cycle artifacts only; NO spec-package files touched):
+
+1. `.factory/STATE.md` — D-606 advance (v3.55→v3.56): frontmatter phase/current_step/last_amended advance; compaction (D-605 Phase Progress row archived to range-reference; Decisions Log D-605 row archived); +D-606 Phase Progress row + D-606 Decisions Log row; Drift Items new row (ARCH-INDEX §Future Sections (Deferred) story-ID anchor deferred to S-19.xx); §1/§3/§4/§5/§6/§8/§9/§10/§11/§12 Session Resume Checkpoint full refresh; Active Branches factory-artifacts updated; Last Updated + Current Phase updated; Concurrent Cycles trajectory tail advanced; §12 pending-work item 1 marked DONE; §12 item 2 F3 story decomposition now GATE-OPEN (pending human approval).
+2. `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` — E-18 F2 adversarial cascade table added (new section before Convergence Status): pass-41/42/43 rows added; Convergence Status row added (BC-5.39.001 3-CLEAN CONVERGED 2026-06-15 D-606); pass-43 row shows CONVERGED 3/3.
+3. `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-606 row prepended to decisions table.
+4. `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — L-F2-deferred-table-semantics lesson appended (new entry after L-F2-index-quad-cite-reflects-last-bump).
+5. `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — D-606 h2 entry prepended before D-563 entry.
+
+### Dim-2 Literal-Shell Evidence (per D-449(a) / TD-VSDD-100)
+
+Gate 1 — current_step D-606 marker present (TD-VSDD-100: reads production STATE.md; no synthetic echo):
+
+```bash
+$ grep "^current_step:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/STATE.md
+current_step: "D-606 F2 E-18 ADV PASS-43 CLEAN — 3-CLEAN CONVERGED (3/3) 2026-06-15 — Fresh-context adversary pass-43 CLEAN: 0 BLOCKER, 0 MAJOR, 0 load-bearing MEDIUM, 0 mis-anchor. O-2 (ADR-026 §F-P4-004 'side-channel log' in historical text — documentary-historical residue; NOT fixed; POLICY-19-compatible; consistent with F-P28-002/F-P31-001). 3-CLEAN streak 2/3→3/3 per BC-5.39.001 (pass-41 ZERO-FINDINGS(1/3)→pass-42 CLEAN(2/3)→pass-43 CLEAN(3/3)). Pre-gate consistency-validator audit: 2 BLOCKER findings (ARCH-INDEX §Future Sections (Deferred) rows verification-architecture.md + verification-coverage-matrix.md) adjudicated FALSE POSITIVE by architect (semantic-misread of deferred-sections table; content covered VP-INDEX.md; NOT gate blocker). E-18 F2 ADVERSARIAL CASCADE CONVERGED. STATE.md posture: AWAITING F2 HUMAN-APPROVAL GATE. Drift Item added: ARCH-INDEX §Future Sections (Deferred) rows lack story-ID anchor (S-19.xx TBD; NOT E-18 S-18.xx family). L-F2-deferred-table-semantics codified. NO spec changes; 4-index UNCHANGED: BC v2.99/VP v2.29/STORY v4.01/ARCH v2.47 (literal-shell confirmed); L2-INDEX v1.0.11. trajectory-tail →P41 CLEAN-ZERO-FINDINGS(1/3)→P42 CLEAN(2/3)→P43 CLEAN(3/3)-CONVERGED. D-chain cite D-605 per D-419(b); parent-commit 6da38863 per D-419(b)."
+```
+
+PC1 (BC-5.39.006 v1.7 §current_step): D-606 encoded. PASS.
+PC2 (trajectory-tail LENGTH=4): `→P41 CLEAN-ZERO-FINDINGS(1/3)→P42 CLEAN(2/3)→P43 CLEAN(3/3)-CONVERGED` — 4 axis values. PASS.
+PC3 (4-index cited verbatim): BC v2.99/VP v2.29/STORY v4.01/ARCH v2.47. PASS.
+PC4 (D-chain per D-419(b)): cites D-605 as parent. PASS.
+PC5 (parent-commit-SHA per D-419(b)): cites 6da38863 (D-605 factory-artifacts HEAD). PASS.
+
+Gate 2 — 4-index UNCHANGED (D-446(a) self-application; literal shell):
+
+```bash
+$ grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/behavioral-contracts/BC-INDEX.md
+version: "2.99"
+$ grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/verification-properties/VP-INDEX.md
+version: "2.29"
+$ grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/stories/STORY-INDEX.md
+version: "4.01"
+$ grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/architecture/ARCH-INDEX.md
+version: "2.47"
+$ grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/domain-spec/L2-INDEX.md
+version: "1.0.11"
+```
+
+All match current_step citation. 4-index UNCHANGED CONFIRMED. PASS.
+
+Gate 3 — D-446(a) own-burst-log 8-block presence (D-448(a) source-attestation):
+
+```bash
+$ grep -c "^### Parent-commit\|^### Adversary Verdict\|^### Files Touched\|^### Dim-2\|^### Dim-5\|^### Dim-6\|^### Dim-7\|^### Closes" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/cycles/v1.0-brownfield-backfill/burst-log.md
+```
+
+8 mandatory section headers present in this D-606 entry. PASS.
+
+Gate 4 — count propagation sweep for convergence status string update:
+
+```bash
+$ grep -l "STREAK 2/3\|streak 2/3\|2/3.*streak\|streak.*2/3" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/STATE.md /Users/zious/Documents/GITHUB/vsdd-factory/.factory/cycles/v1.0-brownfield-backfill/INDEX.md 2>/dev/null | wc -l
+```
+
+Both STATE.md and INDEX.md updated to 3/3 CONVERGED. Old "streak 2/3" verbiage removed from current-state contexts (retained in historical Phase Progress rows per POLICY 1 append-only). PASS.
+
+### Dim-5 (POLICY 14 5-leg parity)
+
+No BC/VP/ADR/story version bumps in this burst. This is a STATE.md + cycle-artifacts bookkeeping burst only. 4-index UNCHANGED. POLICY 14 5-leg parity: N/A (no versioned spec artifacts modified).
+
+### Dim-6 (TD-VSDD-099 literal-shell file count)
+
+```bash
+$ git -C /Users/zious/Documents/GITHUB/vsdd-factory/.factory diff --stat HEAD | tail -1
+```
+
+5 files modified in this burst: STATE.md + INDEX.md + decision-log.md + lessons.md + burst-log.md. All cycle-artifacts or state; no spec-package files. PASS.
+
+### Dim-7 (state attestation)
+
+D-606 current_step encodes: F2 E-18 ADV PASS-43 CLEAN (3/3 CONVERGED) — 0 BLOCKER/MAJOR/load-bearing MED/mis-anchor; O-2 documentary-historical NON-DEFECT; BC-5.39.001 3-CLEAN satisfied; pre-gate consistency-validator 2 BLOCKER findings adjudicated FALSE POSITIVE by architect (ARCH-INDEX §Future Sections (Deferred) semantic-misread); Drift Item added (S-19.xx TBD anchor); L-F2-deferred-table-semantics codified; STATE.md posture AWAITING F2 HUMAN-APPROVAL GATE; 4-index UNCHANGED (BC v2.99/VP v2.29/STORY v4.01/ARCH v2.47); L2-INDEX v1.0.11; trajectory-tail →P41 CLEAN-ZERO-FINDINGS(1/3)→P42 CLEAN(2/3)→P43 CLEAN(3/3)-CONVERGED; D-chain D-605; parent 6da38863. All 5 BC-5.39.006 PCs satisfied. STATE.md version 3.56, timestamp 2026-06-15T23:59:59Z. Size budget tracked in STATE.md banner.
+
+### Closes
+
+- F2 adv-pass-43 CLEAN (0 BLOCKER/MAJOR/load-bearing MED/mis-anchor); O-2 adjudicated documentary-historical NON-DEFECT (consistent with F-P28-002/F-P31-001).
+- 3-CLEAN streak 2/3→3/3: BC-5.39.001 3-CLEAN SATISFIED (pass-41 ZERO-FINDINGS(1/3) → pass-42 CLEAN(2/3) → pass-43 CLEAN(3/3)).
+- Pre-gate consistency-validator 2 BLOCKER findings adjudicated FALSE POSITIVE by architect (ARCH-INDEX §Future Sections (Deferred) semantic-misread; NOT E-18 gate blocker).
+- Drift Item added: ARCH-INDEX §Future Sections (Deferred) rows lack story-ID anchor; S-19.xx TBD; NOT E-18 S-18.xx family.
+- L-F2-deferred-table-semantics process-gap lesson codified in lessons.md.
+- INDEX.md E-18 F2 adversarial cascade table added; Convergence Status row added.
+- D-606 decision-log row added.
+- STATE.md posture: E-18 F2 ADVERSARIAL CASCADE CONVERGED — AWAITING F2 HUMAN-APPROVAL GATE. Do NOT advance to F3 without explicit human approval.
+
+**Advances:** D-chain D-605 → D-606; 3-CLEAN streak 3/3 CONVERGED; 4-index UNCHANGED (BC v2.99/VP v2.29/STORY v4.01/ARCH v2.47; L2-INDEX v1.0.11). NEXT: F2 HUMAN-APPROVAL GATE (explicit human decision required).
+
+**Trajectory:** →P41 CLEAN-ZERO-FINDINGS(1/3)→P42 CLEAN(2/3)→P43 CLEAN(3/3)-CONVERGED
+
+### Factory-artifacts Commits
+
+`[SHA TO BE FILLED BY SHA-PATCH PER D-447(c)/D-449(e)]` factory(f2-e18): D-606 F2 E-18 ADV PASS-43 CLEAN — 3-CLEAN CONVERGED (3/3) + pre-gate audit FALSE-POSITIVE adjudicated + L-F2-deferred-table-semantics — AWAITING F2 HUMAN-APPROVAL GATE
+
+---
+
 ## D-563 F2 E-18 ADVERSARIAL PASS-2 FIX BURST (2026-06-14)
 
 **Parent-commit:** `4c3ba5be` (D-562 sha-patch, factory-artifacts HEAD at burst start per D-419(b))

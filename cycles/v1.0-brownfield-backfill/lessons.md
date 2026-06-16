@@ -3367,3 +3367,37 @@ All 8 = 1. §Changelog presence exhaustively verified for the E-18 BC cohort. Th
 **Cites:** D-601; F-P38-001; D-600 (prior burst; ARCH-INDEX v2.46→v2.47 bumped; VP-INDEX/BC-INDEX untouched); BC-5.39.001; L-F2-prior-chain-append-only-history (D-600; companion — append-only history; don't rewrite historical records).
 
 **Closes:** D-601 convention-note capture; L-F2-index-quad-cite-reflects-last-bump codified to prevent future re-flagging of benign quad-lag; pass-38 CLEAN; streak 0/3→1/3; adversary pass-39 NEXT. `[codified; convention; bookkeeping; quad-lag-benign; adversarial-convergence]`
+
+---
+
+### L-F2-deferred-table-semantics
+
+**Category:** [process-gap]
+**Discovered:** 2026-06-15 D-606 — pre-gate consistency-validator audit during E-18 F2 CONVERGED state
+**Severity:** PROCESS-GAP — causes false BLOCKER classification at gate audits; prevented from degrading convergence status by architect adjudication
+
+**Summary:** A consistency or perimeter audit MUST read a table's HEADING and COLUMN semantics before classifying a missing-file reference as a BLOCKER. ARCH-INDEX's "Future Sections (Deferred)" table with columns "Deferred File | Covered By" documents intentional deferrals whose content lives in a separate authoritative file named in the "Covered By" column. A file listed under that heading that does not exist on disk is NOT a broken anchor — it is an intentional deferral with a coverage pointer. Classifying it as a BLOCKER "registered-but-absent file" is a semantic-misread of the table structure.
+
+**Root Cause (D-606):** The pre-gate consistency-validator audit ran fresh-context on the frozen E-18 spec package. It returned 2 BLOCKER perimeter findings: ARCH-INDEX v2.47 §Document Map registers `verification-architecture.md` and `verification-coverage-matrix.md` as artifacts that do not exist on disk. The auditor read the rows as "registered source files required to exist" rather than "intentionally deferred files with coverage statements."
+
+**Architect Adjudication (D-606):** The two rows sit under the ARCH-INDEX "Future Sections (Deferred)" heading with columns "Deferred File | Covered By" — NOT under any heading implying mandatory existence. They are intentional documented deferrals. Content is covered by VP-INDEX.md (named in the "Covered By" column). VP-080 v1.1 already corrected its traces_to from the non-existent verification-architecture.md to VP-INDEX.md. All E-18 VPs (VP-081..086) correctly trace_to VP-INDEX.md. POLICY 9 arithmetic is self-contained in VP-INDEX. No broken link exists in the E-18 verification chain. BOTH findings are a single semantic-misread FALSE POSITIVE. System-level-deferred. NOT an E-18 F2 gate blocker. E-18 3-CLEAN convergence STANDS.
+
+**Correct behavior for future auditors:**
+
+**(a) Always read the table heading before classifying rows.** A row under "Future Sections (Deferred)" with a "Covered By" column is a deferral declaration, not a requirement that the file exists now.
+
+**(b) The "Covered By" column names the real authority.** When a table row says "verification-architecture.md | VP-INDEX.md", it means: this section was deferred; its content now lives in VP-INDEX.md. Verify VP-INDEX.md exists and covers the relevant domain — do NOT require the deferred file to exist.
+
+**(c) Gate-blocking a deliberately deferred artifact is not a deference audit; it is a structure-comprehension failure.** Auditors must distinguish: (i) "registered active source that should exist on disk" vs (ii) "intentionally deferred placeholder with coverage already relocated." Only class (i) warrants a BLOCKER.
+
+**(d) Propagation check:** When a future adversary encounters ARCH-INDEX §Future Sections (Deferred) rows, the correct gate check is: does the "Covered By" file exist AND does it cover the relevant domain? If yes → PASS. If the "Covered By" file is missing OR does not cover the domain → BLOCKER (real, not false positive).
+
+**(e) Cross-reference with POLICY 9:** VP allocations and verification-architecture relationships are tracked in VP-INDEX.md. The former "verification-architecture.md" concept was consolidated into VP-INDEX.md during E-18 F2 spec evolution. VP-080 v1.1 is the canonical artifact that documents this consolidation; its traces_to field names VP-INDEX.md as authoritative.
+
+**Tracked deferral (Canonical Principle Rule 3):** ARCH-INDEX §Future Sections (Deferred) rows for verification-architecture.md + verification-coverage-matrix.md lack a story-ID anchor. Architect-adjudicated pre-existing intentional deferral (content covered by VP-INDEX.md; NOT an E-18 gate blocker). ACTION: assign a real system-level story ID (architect suggests S-19.xx slot, NOT the S-18.xx E-18 family) at the next system-level/maintenance planning, then annotate the two ARCH-INDEX rows [DEFERRED: <id>]. Owner: architect (authoring if materialized) + state-manager (index sync). Recorded in STATE.md Drift Items.
+
+**Anchors:** D-606 (this burst; E-18 F2 ADV PASS-43 CLEAN 3/3 CONVERGED; pre-gate consistency audit + architect adjudication); pre-gate consistency-validator audit (2026-06-15; 2 BLOCKER FALSE POSITIVES adjudicated by architect); ARCH-INDEX v2.47 §Future Sections (Deferred) (verification-architecture.md / verification-coverage-matrix.md rows; "Deferred File | Covered By" heading); VP-INDEX.md (the authoritative "Covered By" target; VP-080 v1.1 traces_to corrected D-561); VP-081..086 all trace_to VP-INDEX.md; E-18 (CAP-032 context-durability; GitHub issue #173); BC-5.39.001 (3-CLEAN satisfied: pass-41/42/43).
+
+**Cites:** D-606; D-561 (VP-080 v1.1 traces_to correction); ARCH-INDEX v2.47; VP-INDEX v2.29; VP-080 v1.1; E-18; BC-5.39.001; L-F2-subsystem-anchor-sweep (companion — read structural context before classifying missing anchors); L-F2-stale-term-deferral-unsafe (companion — do NOT reclassify or re-defer what has already been architect-adjudicated).
+
+**Closes:** D-606 L-F2-deferred-table-semantics codified; E-18 F2 adversarial cascade 3-CLEAN CONVERGED (pass-41 ZERO-FINDINGS → pass-42 CLEAN → pass-43 CLEAN); pre-gate audit FALSE POSITIVE adjudicated; Drift Item recorded; AWAITING F2 HUMAN-APPROVAL GATE. `[process-gap; gate-audit; table-semantics; false-positive; deferred-sections; convergence-milestone]`
