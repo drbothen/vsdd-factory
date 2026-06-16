@@ -1,18 +1,18 @@
 ---
 document_type: pipeline-state
 level: ops
-version: "3.56"
+version: "3.57"
 status: draft
 producer: state-manager
-timestamp: 2026-06-15T23:59:59Z
-phase: D-606-F2-E18-PASS-43-CLEAN-3-CLEAN-CONVERGED-2026-06-15
-last_amended: 2026-06-15 (v3.56) — D-606 F2 E-18 ADV PASS-43 CLEAN — 3-CLEAN CONVERGED (3/3) 2026-06-15. Fresh-context adversary pass-43 returned CLEAN: 0 BLOCKER, 0 MAJOR, 0 load-bearing MEDIUM, 0 mis-anchor. O-2 (ADR-026 §F-P4-004 'side-channel log' in historical text) adjudicated documentary-historical residue per F-P28-002/F-P31-001 precedent; NOT fixed; POLICY-19-compatible. BC-5.39.001 3-CLEAN satisfied: pass-41 ZERO-FINDINGS(1/3)→pass-42 CLEAN(2/3)→pass-43 CLEAN(3/3). Pre-gate consistency-validator 2 BLOCKER findings adjudicated FALSE POSITIVE by architect (ARCH-INDEX §Future Sections (Deferred) semantic-misread; content covered VP-INDEX.md; NOT gate blocker). Drift Item added: ARCH-INDEX §Future Sections (Deferred) rows lack story-ID anchor (S-19.xx TBD). L-F2-deferred-table-semantics lesson codified. STATE.md posture: AWAITING F2 HUMAN-APPROVAL GATE. 4-index UNCHANGED (BC v2.99/VP v2.29/STORY v4.01/ARCH v2.47; L2-INDEX v1.0.11). D-chain cite D-605 per D-419(b); parent-commit 6da38863 per D-419(b). [Prior: 2026-06-15 (v3.55) — D-605 F2 E-18 ADV PASS-42 CLEAN — STREAK 2/3 2026-06-15. See decision-log.md SoT.]
+timestamp: 2026-06-16T00:00:00Z
+phase: D-607-F2-E18-SPEC-COMPLETION-INTEGRATION-BURST-2026-06-16
+last_amended: "2026-06-16 (v3.57) — D-607 F2 E-18 spec-completion INTEGRATION BURST 2026-06-16. Human-directed at F2 gate: 4 new VPs (VP-087..VP-090) specified, 2 architecture derived-view docs materialized (verification-architecture.md v1.0 + verification-coverage-matrix.md v1.0), 4 BCs wired DEFERRED-VP→active VP (BC-5.41.002→VP-087; BC-6.24.001→VP-088; BC-7.07.002→VP-089; BC-7.07.001 Inv7→VP-090). 4-index bumped: BC-INDEX v3.00 / VP-INDEX v2.30 / STORY-INDEX v4.01 UNCHANGED / ARCH-INDEX v2.48. L2-INDEX v1.0.12. invariants.md v1.22 DI-023/024/025 Cited-by back-refs complete per POLICY 2. ARCH-INDEX §Future Sections (Deferred) verification-architecture.md + verification-coverage-matrix.md rows REMOVED (files materialized; D-606 Drift Item RESOLVED). D-chain cite D-606 per D-419(b); parent-commit c4ed73bf per D-419(b). [Prior: 2026-06-15 (v3.56) — D-606 F2 E-18 ADV PASS-43 CLEAN — 3-CLEAN CONVERGED (3/3) 2026-06-15. See decision-log.md SoT.]"
 inputs: []
 input-hash: "[live-state]"
 traces_to: prd.md
 project: vsdd-factory
 mode: brownfield
-"D-606 F2 E-18 ADV PASS-43 CLEAN — 3-CLEAN CONVERGED (3/3) 2026-06-15 — Fresh-context adversary pass-43 CLEAN: 0 BLOCKER, 0 MAJOR, 0 load-bearing MEDIUM, 0 mis-anchor. O-2 (ADR-026 §F-P4-004 'side-channel log' in historical text — documentary-historical residue; NOT fixed; POLICY-19-compatible; consistent with F-P28-002/F-P31-001). 3-CLEAN streak 2/3→3/3 per BC-5.39.001 (pass-41 ZERO-FINDINGS(1/3)→pass-42 CLEAN(2/3)→pass-43 CLEAN(3/3)). Pre-gate consistency-validator audit: 2 BLOCKER findings (ARCH-INDEX §Future Sections (Deferred) rows verification-architecture.md + verification-coverage-matrix.md) adjudicated FALSE POSITIVE by architect (semantic-misread of deferred-sections table; content covered VP-INDEX.md; NOT gate blocker). E-18 F2 ADVERSARIAL CASCADE CONVERGED. STATE.md posture: AWAITING F2 HUMAN-APPROVAL GATE. Drift Item added: ARCH-INDEX §Future Sections (Deferred) rows lack story-ID anchor (S-19.xx TBD; NOT E-18 S-18.xx family). L-F2-deferred-table-semantics codified. NO spec changes; 4-index UNCHANGED: BC v2.99/VP v2.29/STORY v4.01/ARCH v2.47 (literal-shell confirmed); L2-INDEX v1.0.11. trajectory-tail →P41 CLEAN-ZERO-FINDINGS(1/3)→P42 CLEAN(2/3)→P43 CLEAN(3/3)-CONVERGED. D-chain cite D-605 per D-419(b); parent-commit 6da38863 per D-419(b)."
+"D-607 F2 E-18 spec-completion INTEGRATION BURST 2026-06-16 — Human-directed at F2 gate: 4 new VPs (VP-087..VP-090) specified + 2 architecture derived-view docs materialized (verification-architecture.md v1.0 + verification-coverage-matrix.md v1.0) + 4 BCs wired DEFERRED-VP→active VP (BC-5.41.002→VP-087; BC-6.24.001→VP-088; BC-7.07.002→VP-089; BC-7.07.001 Inv7→VP-090). VP-INDEX v2.30 (total_vps 86→90). BC-INDEX v3.00 (4 BC version bumps; total_bcs UNCHANGED 1966). ARCH-INDEX v2.48 (verification docs moved from §Future Deferred to §Document Map; D-606 Drift Item RESOLVED). invariants.md v1.22 (DI-023/024/025 Cited-by back-refs per POLICY 2). L2-INDEX v1.0.12. STORY-INDEX v4.01 UNCHANGED. POSTURE: F2 INTEGRATION COMPLETE. Next: F3 story decomposition. D-chain cite D-606 per D-419(b); parent-commit c4ed73bf."
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -44,6 +44,8 @@ dtu_services: []
   D-605-F2-E18-ADV-PASS-42-CLEAN-STREAK-2-3-2026-06-15 (wc-l; D-430(a): Phase Progress D-601..D-604 rows collapsed to range-reference (content at git show 88993db1:.factory/STATE.md); Decisions Log D-600..D-604 rows collapsed to range-reference; §4 D-600..D-604 entries collapsed; +D-605 Phase Progress row + D-605 Decisions Log row + §4 D-605 entry + §1/§3/§5/§8/§9/§10/§11/§12/checkpoint full refresh; 4-index UNCHANGED; D-446(c) dual-margin).
 
   D-606-F2-E18-PASS-43-CLEAN-3-CLEAN-CONVERGED-2026-06-15 (wc-l; D-430(a): Phase Progress D-601..D-605 rows collapsed to range-reference (content at git show 6da38863:.factory/STATE.md); Decisions Log D-600..D-605 rows collapsed to range-reference; §4 D-600..D-605 entries collapsed; +D-606 Phase Progress row + D-606 Decisions Log row + §4 D-606 entry + Drift Items new row + §1/§3/§5/§6/§8/§9/§10/§11/§12/checkpoint full refresh; 4-index UNCHANGED; D-446(c) dual-margin).
+
+  D-607-F2-E18-SPEC-COMPLETION-INTEGRATION-BURST-2026-06-16 (wc-l; D-430(a): Phase Progress D-601..D-606 rows collapsed to range-reference (content at git show c4ed73bf:.factory/STATE.md); Decisions Log D-600..D-606 rows collapsed; +D-607 Phase Progress row + D-607 Decisions Log row + §4 D-607 entry + Drift Item D-606 RESOLVED + §1/§3/§5/§8/§9/§10/§11/§12/checkpoint full refresh; 4-index BC v3.00/VP v2.30/ARCH v2.48 bumped; L2-INDEX v1.0.12; D-446(c) dual-margin).
 -->
 
 # Pipeline State: vsdd-factory
@@ -59,8 +61,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-06-15 — D-606 F2 E-18 ADV PASS-43 CLEAN — 3-CLEAN CONVERGED (3/3). BC-5.39.001 satisfied: pass-41 ZERO-FINDINGS(1/3)→pass-42 CLEAN(2/3)→pass-43 CLEAN(3/3). O-2 NON-DEFECT (ADR-026 historical). Pre-gate consistency audit FALSE POSITIVE (architect adj). Drift Item: ARCH-INDEX §Future Sections (Deferred) S-19.xx anchor TBD. L-F2-deferred-table-semantics codified. 4-index: BC v2.99/VP v2.29/STORY v4.01/ARCH v2.47 (UNCHANGED). L2-INDEX v1.0.11. POSTURE: AWAITING F2 HUMAN-APPROVAL GATE → F3 story decomposition S-18.00..S-18.08 on gate approval. |
-| **Current Phase** | D-606 F2 E-18 ADV PASS-43 CLEAN 2026-06-15 — 3-CLEAN CONVERGED (3/3) per BC-5.39.001. 0 BLOCKER/MAJOR/load-bearing MED/mis-anchor. O-2 NON-DEFECT. Pre-gate audit FALSE POSITIVE (architect adj). Package FROZEN. 4-index: BC v2.99/VP v2.29/STORY v4.01/ARCH v2.47 (UNCHANGED). L2-INDEX v1.0.11. E-18 F2 ADVERSARIAL CASCADE CONVERGED. **AWAITING F2 HUMAN-APPROVAL GATE.** On approval → F3 story decomposition (story-writer S-18.00..S-18.08). |
+| **Last Updated** | 2026-06-16 — D-607 F2 E-18 spec-completion INTEGRATION BURST. 4 VPs (VP-087..VP-090) specified; 2 arch docs materialized; 4 BCs wired DEFERRED-VP→active. BC-INDEX v3.00 / VP-INDEX v2.30 / ARCH-INDEX v2.48 / L2-INDEX v1.0.12. D-606 Drift Item RESOLVED. POSTURE: F2 INTEGRATION COMPLETE → F3 story decomposition (story-writer S-18.00..S-18.08). |
+| **Current Phase** | D-607 F2 E-18 spec-completion INTEGRATION BURST 2026-06-16. Human-directed: VP-087..090 + verification-architecture.md v1.0 + verification-coverage-matrix.md v1.0 + 4 BC DEFERRED-VP→active. 4-index: BC v3.00/VP v2.30/STORY v4.01/ARCH v2.48. L2-INDEX v1.0.12. **F2 INTEGRATION COMPLETE. Next: F3 story decomposition (story-writer dispatched).** |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Phase Progress
@@ -91,8 +93,8 @@ dtu_services: []
 | **D-598 F2 E-18 ADV PASS-35 NOT-CLEAN FIX BURST + ANNOTATION LESSON 2026-06-15** | **ARCHIVED per D-599** | Pass-35 NOT-CLEAN: 0B/0M; 2 MEDIUM self-inflicted; 2 LOW. Streak RESET 1/3→0/3. F-P35-001 BC-5.41.003 v1.8 §Changelog; F-P35-002 4-BC de-enumerated. L-F2-annotation-must-be-self-contained codified. 4-index BC v2.97. Full rows: `git show 7d4b600b:.factory/STATE.md` Phase Progress. |
 | **D-599 F2 E-18 ADV PASS-36 NOT-CLEAN FIX BURST + ENUMERATE-AND-COUNT GATE + COMPACTION 2026-06-15** | **ARCHIVED per D-600** | Pass-36 NOT-CLEAN (1 MEDIUM self-inflicted; BC-1.15.001 v1.5 §Changelog; TRUE-EXHAUSTIVE all-8; enumerate-count gate; streak 0/3; 4-index BC v2.98/ARCH v2.46). Full: `git show b1c2b7e0:.factory/STATE.md` Phase Progress. |
 | **D-600 F2 E-18 ADV PASS-37 NOT-CLEAN FIX BURST 2026-06-15** | **ARCHIVED per D-430(a) D-601** | Pass-37 NOT-CLEAN: 2 MEDIUM genuine latent (F-P37-001 ADR-026 v1.19 SS-01; F-P37-002 L2-INDEX v1.0.10 DI-025); 1 LOW F-P37-003 ADJUDICATED PRESERVED-HISTORY; streak 0/3; ARCH-INDEX v2.47/L2-INDEX v1.0.10. Full: `git show 2cdc70c7:.factory/STATE.md` Phase Progress. |
-| **D-601..D-605 F2 E-18 ADV PASS-38..42 2026-06-15** | **ARCHIVED per D-606** | P-38 CLEAN(1/3); P-39 NOT-CLEAN RESET; P-40 NOT-CLEAN; P-41 CLEAN ZERO-FINDINGS(1/3; FROZEN); P-42 CLEAN(2/3; 2 LOW NON-DEFECTS). Full: `git show 6da38863:.factory/STATE.md` Phase Progress. |
-| **D-606 F2 E-18 ADV PASS-43 CLEAN — 3-CLEAN CONVERGED (3/3) 2026-06-15** | **COMPLETE** | Pass-43 CLEAN: 0 BLOCKER, 0 MAJOR, 0 load-bearing MEDIUM, 0 mis-anchor. O-2 (ADR-026 §F-P4-004 historical) NON-DEFECT per F-P28-002/F-P31-001. BC-5.39.001 3-CLEAN satisfied (pass-41 ZERO-FINDINGS(1/3)→pass-42 CLEAN(2/3)→pass-43 CLEAN(3/3)). Pre-gate consistency audit 2 BLOCKER findings adjudicated FALSE POSITIVE by architect (ARCH-INDEX §Future Sections (Deferred) semantic-misread). Drift Item: S-19.xx anchor TBD. L-F2-deferred-table-semantics codified. 4-index UNCHANGED: BC v2.99/VP v2.29/STORY v4.01/ARCH v2.47; L2-INDEX v1.0.11. E-18 F2 CONVERGED. **AWAITING F2 HUMAN-APPROVAL GATE.** |
+| **D-601..D-606 F2 E-18 ADV PASS-38..43 2026-06-15** | **ARCHIVED per D-607** | P-38 CLEAN(1/3); P-39 NOT-CLEAN RESET; P-40 NOT-CLEAN; P-41 CLEAN ZERO-FINDINGS(1/3; FROZEN); P-42 CLEAN(2/3); P-43 CLEAN(3/3)-CONVERGED; BC-5.39.001 satisfied; 4-index UNCHANGED BC v2.99/VP v2.29/STORY v4.01/ARCH v2.47. Full: `git show c4ed73bf:.factory/STATE.md` Phase Progress. |
+| **D-607 F2 E-18 spec-completion INTEGRATION BURST 2026-06-16** | **COMPLETE** | Human-directed at F2 gate: VP-087..090 specified + verification-architecture.md v1.0 + verification-coverage-matrix.md v1.0 materialized + 4 BCs wired DEFERRED-VP→active. VP-INDEX v2.30 (90 VPs). BC-INDEX v3.00. ARCH-INDEX v2.48. invariants.md v1.22 (DI↔VP complete). L2-INDEX v1.0.12. D-606 Drift Item RESOLVED. **F2 INTEGRATION COMPLETE. Next: F3 story decomposition.** |
 
 ## Current Phase Steps
 
@@ -108,7 +110,7 @@ dtu_services: []
 |------|--------|----------------------|-------|
 | Subsystem | SS-NN | `specs/architecture/ARCH-INDEX.md` | 10 |
 | Behavioral Contract | BC-S.SS.NNN | `specs/behavioral-contracts/ss-NN/` | 1,966 |
-| Verification Property | VP-NNN | `specs/verification-properties/VP-INDEX.md` | 86 |
+| Verification Property | VP-NNN | `specs/verification-properties/VP-INDEX.md` | 90 |
 | Story | S-N.MM | `stories/S-N.MM-<short>.md` | 105 file-resident + 15 stub IDs (STORY-INDEX v4.01) |
 | Epic | E-N | `stories/epics/E-N-<short>.md` | 18 |
 | ADR | ADR-NNN | `specs/architecture/decisions/ADR-NNN.md` | 26 |
@@ -130,7 +132,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | caf06c68 | rc.21 bot binary bundle commit 2026-06-13; prior: 2a191314 (rc.20) |
 | develop | 7e99f6ef | PR #186 fix a431ff47 + release.yml sync back-merge 2026-06-13; prior: 3b2a378c (D-556) |
-| factory-artifacts | c4ed73bf | D-606 F2 pass-43 CLEAN — 3-CLEAN CONVERGED (3/3); AWAITING F2 HUMAN-APPROVAL GATE; 4-index BC v2.99/VP v2.29/STORY v4.01/ARCH v2.47 UNCHANGED; L2-INDEX v1.0.11; prior: 6da38863 D-605 pass-42 CLEAN STREAK-2/3 |
+| factory-artifacts | PENDING-SHA-PATCH | D-607 F2 spec-completion integration burst; 4-index BC v3.00/VP v2.30/STORY v4.01/ARCH v2.48; L2-INDEX v1.0.12; prior: c4ed73bf D-606 F2 pass-43 CLEAN 3/3 CONVERGED |
 | v1.0.0-rc.21 (tag) | 03054524 | SHIPPED 2026-06-13; FULLY IN OPERATOR MARKETPLACE (marketplace PR #13 MERGED); annotated tag object |
 | v1.0.0-rc.20 (tag) | e9e38286 | SHIPPED 2026-06-01; marketplace PR #12 squash-merged 862e660d |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28 |
@@ -140,7 +142,7 @@ dtu_services: []
 | Cycle | Type | Status | Notes |
 |-------|------|--------|-------|
 | F-block-ai-attribution-message-file-arm | feature | F3 COMPLETE — F4 READY | F1+F2+F3 done 2026-05-12; 2 stories ready; E-16 under SS-07/SS-04; milestone v1.0.0-rc.17 |
-| v1.0-brownfield-backfill | brownfield | **D-606 2026-06-15; F2 E-18 ADV PASS-43 CLEAN — 3-CLEAN CONVERGED (3/3); AWAITING F2 HUMAN-APPROVAL GATE; develop 7e99f6ef; main caf06c68** | rc.21 100% COMPLETE D-560; D-606 PASS-43 CLEAN (0 BLOCKER/MAJOR/load-bearing MED/mis-anchor; O-2 NON-DEFECT documentary-historical; BC-5.39.001 3-CLEAN: pass-41 ZERO-FINDINGS(1/3)→pass-42 CLEAN(2/3)→pass-43 CLEAN(3/3); package FROZEN; 4-index BC-INDEX v2.99 / VP-INDEX v2.29 / STORY-INDEX v4.01 / ARCH-INDEX v2.47 UNCHANGED; L2-INDEX v1.0.11); pre-gate consistency audit FALSE POSITIVE (architect adj; ARCH-INDEX §Future Sections (Deferred) semantic-misread); trajectory →P41 CLEAN-ZERO-FINDINGS(1/3)→P42 CLEAN(2/3)→P43 CLEAN(3/3)-CONVERGED; **E-18 F2 ADVERSARIAL CASCADE CONVERGED. AWAITING F2 HUMAN-APPROVAL GATE. On approval → F3 story decomposition S-18.00..S-18.07+S-18.08 (story-writer dispatch). Do NOT advance to F3 without explicit human approval.** |
+| v1.0-brownfield-backfill | brownfield | **D-607 2026-06-16; F2 E-18 INTEGRATION COMPLETE; develop 7e99f6ef; main caf06c68** | rc.21 100% COMPLETE D-560; D-606 PASS-43 CLEAN 3-CLEAN CONVERGED; D-607 F2 spec-completion INTEGRATION BURST (human-directed: VP-087..090 + verification-architecture.md v1.0 + verification-coverage-matrix.md v1.0 + 4 BCs DEFERRED-VP→active; 4-index BC v3.00/VP v2.30/STORY v4.01/ARCH v2.48; L2-INDEX v1.0.12; D-606 Drift Item RESOLVED). **F2 INTEGRATION COMPLETE. Next: F3 story decomposition S-18.00..S-18.08 (story-writer dispatch).** |
 | v1.0-feature-engine-discipline-pass-1 | feature | **PAUSED** | F5 pass-75 adversary complete D-510 2026-05-27; META-LEVEL-30 CANDIDATE-CONFIRMED; trajectory →9→9→9→11. Full-cycle trajectory (75 values ending): →9→9→9→9→11. |
 | v1.0-feature-plugin-async-semantics-pass-1 | feature | CLOSED | All PRs merged; rc.14 shipped |
 
@@ -154,8 +156,8 @@ dtu_services: []
 
 | ID | Decision | Phase | Date |
 |----|----------|-------|------|
-| D-606 | F2 E-18 ADV PASS-43 CLEAN — 3-CLEAN CONVERGED (3/3) 2026-06-15 — Fresh-context adversary pass-43 CLEAN: 0 BLOCKER, 0 MAJOR, 0 load-bearing MEDIUM, 0 mis-anchor. O-2 (ADR-026 §F-P4-004 'side-channel log' in historical text) adjudicated documentary-historical NON-DEFECT per F-P28-002/F-P31-001; NOT fixed; POLICY-19-compatible. BC-5.39.001 3-CLEAN satisfied: pass-41 ZERO-FINDINGS(1/3)→pass-42 CLEAN(2/3)→pass-43 CLEAN(3/3). Pre-gate consistency-validator 2 BLOCKER findings adjudicated FALSE POSITIVE by architect (ARCH-INDEX §Future Sections (Deferred) rows for verification-architecture.md + verification-coverage-matrix.md — semantic-misread of deferred-sections table; content covered VP-INDEX.md; NOT gate blocker). Drift Item added: ARCH-INDEX §Future Sections (Deferred) rows lack story-ID anchor (S-19.xx TBD). L-F2-deferred-table-semantics codified. E-18 F2 CONVERGED. STATE.md posture: AWAITING F2 HUMAN-APPROVAL GATE. 4-index UNCHANGED (BC v2.99/VP v2.29/STORY v4.01/ARCH v2.47; L2-INDEX v1.0.11). D-chain cite D-605 per D-419(b); parent-commit 6da38863 per D-419(b). | feature-mode-f2-e18-adv-pass-43-clean-3-clean-converged | 2026-06-15 |
-| D-600..D-605 archived | **ARCHIVED 2026-06-15 per D-430(a) D-606** | D-600 pass-37 NOT-CLEAN; D-601 pass-38 CLEAN(1/3); D-602 pass-39 NOT-CLEAN RESET; D-603 pass-40 NOT-CLEAN; D-604 pass-41 CLEAN ZERO-FINDINGS(1/3; FROZEN); D-605 pass-42 CLEAN(2/3; 2 LOW NON-DEFECTS). Full rows: `git show 6da38863:.factory/STATE.md` Decisions Log. |
+| D-607 | F2 E-18 spec-completion INTEGRATION BURST 2026-06-16 — Human-directed at F2 gate: 4 new VPs (VP-087..VP-090) specified (integration: VP-087 SS-05 DI-023 BC-5.41.002; VP-088 SS-06 DI-023 BC-6.24.001; VP-089 SS-07 DI-024 BC-7.07.002; VP-090 SS-07 DI-025 BC-7.07.001 Inv7). verification-architecture.md v1.0 + verification-coverage-matrix.md v1.0 materialized. 4 BCs wired DEFERRED-VP→active VP. VP-INDEX v2.29→v2.30 (total_vps 86→90). BC-INDEX v2.99→v3.00 (4 BC version bumps; total_bcs UNCHANGED 1966). ARCH-INDEX v2.47→v2.48 (verification docs moved from §Future Deferred to §Document Map; D-606 Drift Item RESOLVED). invariants.md v1.21→v1.22 (DI-023/024/025 Cited-by back-refs per POLICY 2). L2-INDEX v1.0.11→v1.0.12. STORY-INDEX v4.01 UNCHANGED. D-chain cite D-606 per D-419(b); parent-commit c4ed73bf per D-419(b). | feature-mode-f2-e18-spec-completion-integration-burst | 2026-06-16 |
+| D-600..D-606 archived | **ARCHIVED 2026-06-15/16 per D-430(a) D-607** | D-600 pass-37 NOT-CLEAN; D-601 pass-38 CLEAN(1/3); D-602 pass-39 NOT-CLEAN RESET; D-603 pass-40 NOT-CLEAN; D-604 pass-41 CLEAN ZERO-FINDINGS(1/3; FROZEN); D-605 pass-42 CLEAN(2/3; 2 LOW NON-DEFECTS); D-606 pass-43 CLEAN(3/3)-CONVERGED. Full rows: `git show c4ed73bf:.factory/STATE.md` Decisions Log. |
 | D-582..D-599 archived | **ARCHIVED 2026-06-15 per D-430(a) D-594..D-601** | D-582..D-599: passes 19-36 fix bursts; D-594 FULL-BACKLOG-CLEARANCE; D-595 pass-32; D-596 pass-33; D-597 pass-34 CLEAN(1/3); D-598 pass-35 NOT-CLEAN; D-599 pass-36 NOT-CLEAN+ENUMERATE-COUNT-GATE. All rows: decision-log.md SoT. |
 | D-413..D-581 archived | **COMPACTED 2026-06-15 per D-430(a) D-599** | D-413..D-498 (36 rows); D-499..D-509 (11 rows); D-510+D-522+D-525+D-526; D-527..D-548; D-549..D-581 (F2 adv passes 1-18 + pre-pass-14 sweep). All rows: decision-log.md SoT. Pre-D-413: `git show 20cb8e1c`. |
 
@@ -188,7 +190,7 @@ dtu_services: []
 | **O-PASS16-002 header stale doc-comment** | OPEN 2026-06-08 | validate-trajectory-tail-cell-completeness stale function header. Cosmetic; next spec-touch. |
 | **VP-087 DEFERRED (null-SHA hard-block VP)** | DEFERRED 2026-06-15 — D-580 observation | No adversary coverage finding; BC test vectors (wave-1-null-sha-log-present-hard-block in BC-5.41.001 v1.10) cover the null-SHA hard-block path for any wave_id. If a future adversary pass flags missing VP coverage, create VP-087 at that time. Anchor: E-18 F3 story decomposition. |
 | **bats-full-suite not in branch-protection required-status-checks** | OPEN 2026-06-13 — D-558 capture | New ci.yml `bats-full-suite (linux)` job runs but NOT in branch-protection required-checks. Follow-up: add to branch-protection settings. |
-| **[system-level deferral] ARCH-INDEX §Future Sections (Deferred) rows lack story-ID anchor** | OPEN 2026-06-15 — D-606 capture; architect-adjudicated pre-existing intentional deferral | ARCH-INDEX v2.47 §Document Map has a "Future Sections (Deferred)" table listing verification-architecture.md (Covered By: VP-INDEX.md) and verification-coverage-matrix.md (Covered By: VP-INDEX.md). These rows lack a concrete story-ID anchor. Content is covered by VP-INDEX.md (VP-080 v1.1 traces_to corrected; all E-18 VPs trace_to VP-INDEX.md). Architect adjudicated: NOT an E-18 F2 gate blocker. ACTION: assign a real system-level story ID (architect suggests S-19.xx slot; NOT the S-18.xx E-18 family) at next system-level/maintenance planning, then annotate the two ARCH-INDEX rows [DEFERRED: <id>]. Owner: architect (authoring if materialized) + state-manager (index sync). |
+| **[system-level deferral] ARCH-INDEX §Future Sections (Deferred) rows — verification-architecture.md + verification-coverage-matrix.md** | **RESOLVED 2026-06-16 — D-607** | Both files materialized per D-607 F2 gate human directive. ARCH-INDEX v2.48: both rows REMOVED from §Future Sections (Deferred) and ADDED to §Document Map as active registered documents. Story-ID anchor question moot — files are materialized. D-606 Drift Item CLOSED. |
 | **BC-INDEX count reconcile (pre-existing) + O-2 CAP/BC-INDEX drift** | OPEN 2026-06-14 — D-562 capture; O-2 cross-referenced D-605 | disk truth = 1970 BC files, BC-INDEX frontmatter total_bcs=1966; orphan BC-2.02.013; stale SS header counts. O-2 (D-605 pass-42 LOW obs): capabilities.md 28-CAP subsystem-drift sweep adjudicated OUT of E-18 perimeter; CAP-032 row clean; pre-existing engine-wide engine-CAP/BC-INDEX-count drift. NOT a D-605 E-18 F2 finding. Routing: state-manager + product-owner. Anchor: dedicated BC-INDEX reconcile burst. |
 | **S-18.08 phantom-field-removal lint gate** | DRAFT-PENDING-AUTHORING 2026-06-14 — D-563 capture | L-F2-phantom-field-gate lesson (D-563): permanent enforcement story. Anchor: E-18 epic, F3 story decomposition. |
 | **[process-gap] BC-Precondition registry-block shape validator gate** | OPEN 2026-06-15 — D-576 capture | BC-4.14.001 F-P14-002 class: bare logical name in `plugin=` (missing `name=` + canonical WASM path). Single-instance corrected in-spec; NO automated validator gate detects this class. Deferred to E-18 F3 story decomposition as a candidate validator-gate story (alongside S-18.08-class gate stories). Anchor: E-18 F3. |
@@ -218,43 +220,35 @@ dtu_services: []
 - `cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` | `session-checkpoints.md` | `lessons.md`
 - `cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md` (adversary reviews at `S-12.03/`, `S-12.04/`, `S-12.05/` subdirs)
 
-## Session Resume Checkpoint (2026-06-15 — D-606 F2 E-18 ADV PASS-43 CLEAN — 3-CLEAN CONVERGED (3/3); 4-index: BC-INDEX v2.99/VP-INDEX v2.29/STORY-INDEX v4.01/ARCH-INDEX v2.47 UNCHANGED; L2-INDEX v1.0.11; CONVERGED; AWAITING F2 HUMAN-APPROVAL GATE)
+## Session Resume Checkpoint (2026-06-16 — D-607 F2 E-18 spec-completion INTEGRATION BURST; 4-index: BC-INDEX v3.00/VP-INDEX v2.30/STORY-INDEX v4.01/ARCH-INDEX v2.48; L2-INDEX v1.0.12; F2 INTEGRATION COMPLETE; NEXT: F3 story decomposition)
 
 > **SELF-SUFFICIENT RESUME CONTEXT FOR ZERO-CONTEXT NEW SESSION OR NEW MACHINE**
 > Read this section alone to resume. Assumes ZERO prior context. All decisions, directives, and anchors stated explicitly.
 
 ### §1. Where We Are
 
-**E-18 CAP-032 context-durability (GitHub issue #173) — Feature Mode, Phase F2 (spec evolution) adversarial 3-CLEAN convergence cascade (BC-5.39.001). D-606 2026-06-15. CASCADE CONVERGED. AWAITING F2 HUMAN-APPROVAL GATE.**
+**E-18 CAP-032 context-durability (GitHub issue #173) — Feature Mode, Phase F2 (spec evolution) COMPLETE. D-607 2026-06-16. F2 INTEGRATION BURST DONE. NEXT: F3 story decomposition (story-writer S-18.00..S-18.08).**
 
-F1-gate APPROVED. F2 spec evolution COMPLETE (D-561). F2 adversarial cascade passes 1-43 COMPLETE (D-562..D-606). Consistency-validator sweep D-575 COMPLETE (CLEAN). Pass-22 CLEAN (1/3); pass-23 CLEAN (2/3); pass-24 NOT-CLEAN (streak RESET; D-587); passes 25-26 NOT-CLEAN; pass-27 CLEAN (1/3 D-590); pass-28 NOT-CLEAN (RESET D-591); pass-29 CLEAN (1/3 D-592); pass-30 CLEAN (2/3 D-593); pass-31 NOT-CLEAN (RESET 2/3→0/3; D-594 FULL BACKLOG CLEARANCE); pass-32 NOT-CLEAN (streak 0/3; D-595); pass-33 NOT-CLEAN (streak 0/3; D-596); pass-34 CLEAN (streak 1/3; D-597); pass-35 NOT-CLEAN (streak RESET; D-598); pass-36 NOT-CLEAN (streak 0/3; D-599); pass-37 NOT-CLEAN (streak 0/3; D-600 — 2 genuine latent MEDIUM); pass-38 CLEAN (streak 1/3; D-601); pass-39 NOT-CLEAN (streak RESET 1/3→0/3; D-602); pass-40 NOT-CLEAN (streak 0/3; D-603 — 1 MED POLICY-2 back-ref); pass-41 CLEAN (streak 1/3; D-604 — ZERO FINDINGS — first zero-findings pass); pass-42 CLEAN (streak 2/3; D-605 — 2 LOW obs NON-DEFECTS); pass-43 CLEAN (streak 3/3; D-606 — CONVERGED). STATE.md compacted at D-581+D-586+D-591+D-593+D-594+D-596+D-599+D-601+D-603+D-604+D-605+D-606 per D-430(a).
+F1-gate APPROVED. F2 spec evolution COMPLETE (D-561). F2 adversarial cascade passes 1-43 COMPLETE (D-562..D-606). 3-CLEAN streak satisfied (pass-41/42/43 per BC-5.39.001; D-606). D-607 F2 spec-completion INTEGRATION BURST COMPLETE 2026-06-16.
 
-**D-606 pass-43 CLEAN summary:**
-- Pass-43 CLEAN: 0 BLOCKER, 0 MAJOR, 0 load-bearing MEDIUM, 0 mis-anchor. Streak 2/3→3/3. BC-5.39.001 3-CLEAN SATISFIED.
-- O-2: ADR-026 §F-P4-004 PO-Wording block retains 'side-channel log' inside prescribed-replacement historical text — adjudicated documentary-historical residue per F-P28-002/F-P31-001 precedent; POLICY-19-compatible; NOT fixed.
-- Pre-gate mandatory fresh-context consistency-validator audit ran; returned 2 BLOCKER perimeter findings (ARCH-INDEX §Future Sections (Deferred) rows for verification-architecture.md + verification-coverage-matrix.md). Architect adjudicated BOTH as FALSE POSITIVES: those rows sit under "Future Sections (Deferred)" heading with "Deferred File | Covered By" columns — intentional documented deferrals, NOT registered active sources; content covered by VP-INDEX.md; VP-080 v1.1 traces_to corrected; all E-18 VPs (VP-081..086) trace_to VP-INDEX.md; NOT an E-18 F2 gate blocker. E-18 3-CLEAN convergence STANDS.
-- Tracked deferral: ARCH-INDEX §Future Sections (Deferred) rows lack story-ID anchor. S-19.xx slot TBD (NOT S-18.xx E-18 family). Recorded in Drift Items.
-- L-F2-deferred-table-semantics lesson codified: consistency/perimeter audit MUST read table HEADING and COLUMN semantics before classifying missing-file as BLOCKER.
-- Package FROZEN (human-directed). 4-index UNCHANGED: BC-INDEX v2.99; VP-INDEX v2.29; STORY-INDEX v4.01; ARCH-INDEX v2.47. L2-INDEX v1.0.11.
+**D-607 integration burst summary:**
+- Human-directed at F2 gate: 4 new VPs (VP-087..VP-090) specified + 2 architecture derived-view docs materialized + 4 BCs wired DEFERRED-VP→active.
+- VP-INDEX v2.30 (total_vps 86→90; unit-test 44 / integration 27 / manual 10 / static-check 1 / kani-proof 4 / proptest 4 = 90).
+- BC-INDEX v3.00 (BC-5.41.002 v1.12 / BC-6.24.001 v1.10 / BC-7.07.002 v1.12 / BC-7.07.001 v1.11; total_bcs UNCHANGED 1966).
+- ARCH-INDEX v2.48 (verification-architecture.md + verification-coverage-matrix.md moved from §Future Deferred to §Document Map; D-606 Drift Item RESOLVED).
+- invariants.md v1.22 (DI-023/024/025 Cited-by back-refs per POLICY 2; bidirectional DI↔VP traceability complete through VP-090).
+- L2-INDEX v1.0.12 (Document Map invariants.md v1.21→v1.22 cite updated).
+- STORY-INDEX v4.01 UNCHANGED.
 
-**3-CLEAN streak: 3/3 CONVERGED** (BC-5.39.001 SATISFIED per HUMAN-DIRECTED strict 3-CLEAN).
-
-**Convergence trajectory (last 4 passes per D-433(e)+D-439(c)):** →P41 CLEAN-ZERO-FINDINGS(1/3)→P42 CLEAN(2/3)→P43 CLEAN(3/3)-CONVERGED.
-
-**4-index at D-605:** BC-INDEX v2.99, VP-INDEX v2.29, STORY-INDEX v4.01, ARCH-INDEX v2.47 (UNCHANGED). L2-INDEX v1.0.11.
-
-**Drift Items — O-2 cross-reference:** O-2 (capabilities.md 28-CAP subsystem-drift sweep) is a pre-existing engine-wide tracking item (see Drift Items §: BC-INDEX count reconcile). NOT a D-605 E-18 finding. Not fixed in-scope.
+**4-index at D-607:** BC-INDEX v3.00, VP-INDEX v2.30, STORY-INDEX v4.01, ARCH-INDEX v2.48. L2-INDEX v1.0.12.
 
 **NEXT ACTION (explicit, in order):**
-1. **START HERE: adversary pass-43** (fresh-context; SAME frozen package; streak 2/3; DI↔VP bidirectional complete). STRICT 3-CLEAN HUMAN-DIRECTED.
-2. On CLEAN pass-43 → 3-CLEAN streak 3/3 = F2 CONVERGED → pre-gate adjudication of O-1/O-2 (neither blocks convergence; O-1 POLICY-19-compliant; O-2 out-of-perimeter) → F2 human-approval gate.
-3. On F2 human gate APPROVED → Feature Mode F3 story decomposition (story-writer authors S-18.00..S-18.07 + S-18.08 codified O-P8-002 gate-story).
-4. On NOT-CLEAN pass-43 → fix burst → streak RESET → continue cascade.
+1. **F3 story decomposition** — story-writer authors S-18.00..S-18.07 + S-18.08 (mandatory O-P8-002 pure-parse invariant gate story).
 
 **RECURRING LESSONS (carry):** (1) L-F2-stale-term-deferral-unsafe [process-gap] (D-594): stale terms in normative prose MUST be fixed in-scope; deferral as LOW is convergence-risk. (2) L-F2-canonical-scope-verification [process-gap] (D-587): When authoring an invariant for multi-agent-type scope boundary, MUST name the scope explicitly. Field-4 canonical (B) enshrined. (3) L-F2-subsystem-anchor-sweep [process-gap] (D-584; 2nd recurrence): When VP scope/capability Subsystems: line changes, sweep ALL sibling VPs + L2-INDEX Cross-Walk same-burst. (4) L-F2-cross-reference-title-code-sweep [process-gap] (D-582/D-589 UPGRADED; 4th recurrence): For EVERY `VP-NNN — <title>` cite in BC §VP Anchors / ADR §VP Allocations, grep-based check MUST assert title equals VP H1 verbatim. Exhaustive across ALL sites. S-18.08 MANDATORY. (5) L-F2-annotation-must-be-self-contained [process-gap] (D-598): annotation text MUST NOT enumerate sibling BC IDs; structural-parity sweeps MUST VERIFY §Changelog EXISTS before attesting exhaustive coverage. (6) L-F2-exhaustive-sweep-enumerate-and-count [process-gap] (D-599 NEW): cohort sweeps MUST enumerate all N files AND capture per-file grep stdout; subset-scoping FORBIDDEN — false-green generator; enumerate-count gate MANDATORY for ALL cohort structural assertions; S-18.08 MANDATORY scope extension. (7) L-F2-prior-chain-append-only-history [adjudication D-600]: nested [Prior:] chains in last_amended frontmatter are FAITHFUL HISTORICAL RECORDS (POLICY 1 append-only); NOT retroactively rewritten even when the content they reference was factually incorrect at time-of-writing. The LIVE last_amended head is the authoritative state; [Prior:] is immutable archaeological record. Do NOT re-flag [Prior:] residue as a new finding if the live/current text is correct. (8) L-F2-index-quad-cite-reflects-last-bump [convention D-601]: 4-index self-cited quad in any index's changelog reflects the index state AS OF THAT INDEX'S OWN LAST BUMP; an untouched index correctly retains its prior quad — per-pass lag is EXPECTED, NOT a propagation gap; "fixing" it would inject false history; adversary MUST treat quad-lag on untouched indices as benign. (9) L-F2-deferred-table-semantics [process-gap D-606]: consistency/perimeter audit MUST read table HEADING and COLUMN semantics before classifying a missing-file reference as BLOCKER; ARCH-INDEX §Future Sections (Deferred) with "Deferred File | Covered By" columns = intentional documented deferrals whose content lives in the Covered-By file; the correct gate check is whether the Covered-By file exists and covers the domain — NOT whether the deferred file itself exists.
 
-**Artifact versions at D-605 (UNCHANGED from D-603 — package FROZEN):**
-- ADR-026 v1.19; BC-1.15.001 v1.5; BC-4.14.001 v1.13; BC-5.41.001 v1.17; BC-5.41.002 v1.11; BC-5.41.003 v1.8; BC-6.24.001 v1.9; BC-7.07.001 v1.10; BC-7.07.002 v1.11; VP-081 v1.7; VP-082 v1.12; VP-083 v1.10; VP-084 v1.9; VP-085 v1.7; VP-086 v1.4; invariants.md v1.21 (DI↔VP bidirectional complete); capabilities.md v1.7; BC-INDEX v2.99; VP-INDEX v2.29; ARCH-INDEX v2.47; STORY-INDEX v4.01; L2-INDEX v1.0.11. ALL UNCHANGED at D-605 (package FROZEN).
+**Artifact versions at D-607 (updated from D-606):**
+- ADR-026 v1.19; BC-1.15.001 v1.5; BC-4.14.001 v1.13; BC-5.41.001 v1.17; BC-5.41.002 **v1.12** (D-607); BC-5.41.003 v1.8; BC-6.24.001 **v1.10** (D-607); BC-7.07.001 **v1.11** (D-607); BC-7.07.002 **v1.12** (D-607); VP-081 v1.7; VP-082 v1.12; VP-083 v1.10; VP-084 v1.9; VP-085 v1.7; VP-086 v1.4; **VP-087 v1.0** (D-607); **VP-088 v1.0** (D-607); **VP-089 v1.0** (D-607); **VP-090 v1.0** (D-607); invariants.md **v1.22** (D-607; DI-023/024/025 Cited-by complete); capabilities.md v1.7; BC-INDEX **v3.00** (D-607); VP-INDEX **v2.30** (D-607); ARCH-INDEX **v2.48** (D-607); STORY-INDEX v4.01; L2-INDEX **v1.0.12** (D-607). **verification-architecture.md v1.0 + verification-coverage-matrix.md v1.0 MATERIALIZED D-607.**
 
 **Key design facts (so restart agent has them without re-deriving):**
 - wave-1 no-op = `payload.wave_id == 1` (pure-parse WASM; wave_id absent → fail-closed HandoffIncomplete); EPIC-COMPLETE = `payload.next_wave_stories: []`; WASM gate pure-parse (shell wave-handoff derives wave_id from substrate).
@@ -291,22 +285,22 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 - **POLICY 8 v1.3 EC-mirror routing-rule (D-517); bidirectional AC↔PC parity (D-515+D-516); POLICY 5 v1.3.1/v1.3.3/v1.3.4/v1.3.5/v1.3.6 SDK-grounding + sibling-sweep mandates.**
 - **D-537 [process-gap] spec-drift routing:** When TDD fix changes ADR-specified behavior, route architect ADR amendment in SAME burst.
 - **D-539 multi-family adversary obligation:** prompt-contract + shell-logic issues require cross-family AND same-family Claude adversary passes before convergence.
-- **D-606 carry:** F2 E-18 ADV PASS-43 CLEAN — 3-CLEAN CONVERGED (3/3) 2026-06-15. CLEAN: 0 BLOCKER, 0 MAJOR, 0 load-bearing MEDIUM, 0 mis-anchor. O-2 NON-DEFECT (ADR-026 §F-P4-004 historical). BC-5.39.001 3-CLEAN SATISFIED (pass-41/42/43). Pre-gate consistency audit FALSE POSITIVE (architect adj; ARCH-INDEX §Future Sections (Deferred)). Drift Item: S-19.xx anchor TBD. L-F2-deferred-table-semantics codified. Package FROZEN. 4-index UNCHANGED: BC-INDEX v2.99; VP-INDEX v2.29; STORY-INDEX v4.01; ARCH-INDEX v2.47; L2-INDEX v1.0.11. POSTURE: AWAITING F2 HUMAN-APPROVAL GATE. D-chain cite D-605 per D-419(b). parent-commit 6da38863.
+- **D-607 carry:** F2 E-18 spec-completion INTEGRATION BURST 2026-06-16. VP-087..090 specified. verification-architecture.md v1.0 + verification-coverage-matrix.md v1.0 materialized. 4 BCs wired DEFERRED-VP→active. 4-index: BC-INDEX v3.00; VP-INDEX v2.30; STORY-INDEX v4.01; ARCH-INDEX v2.48; L2-INDEX v1.0.12. D-606 Drift Item RESOLVED. POSTURE: F2 INTEGRATION COMPLETE. Next: F3 story decomposition. D-chain cite D-606; parent-commit c4ed73bf.
 - **D-560 carry:** OPERATOR-INSTALL-VERIFIED 2026-06-13. rc.21 100% COMPLETE. NO remaining release action.
 - **D-556 carry:** S-17.04 MERGED PR #184 3b2a378c. E-17 ALL 4 WAVES COMPLETE. STORY-INDEX v4.01.
 - **D-541 carry (partial):** VP IDs TBD per TD-VSDD-063. BC-6.23.001 ACTIVE per POL-14.
 
 ### §4. Tier-A Completed Log (most recent first)
 
-- **D-606 (2026-06-15):** F2 E-18 ADV PASS-43 CLEAN — 3-CLEAN CONVERGED (3/3). 0 BLOCKER, 0 MAJOR, 0 load-bearing MEDIUM, 0 mis-anchor. O-2 NON-DEFECT (ADR-026 §F-P4-004 historical; F-P28-002/F-P31-001 precedent). BC-5.39.001 3-CLEAN: pass-41(1/3)→pass-42(2/3)→pass-43(3/3). Pre-gate audit FALSE POSITIVE (architect adj). Drift Item added (S-19.xx anchor TBD). L-F2-deferred-table-semantics codified. Package FROZEN. 4-index: BC v2.99/VP v2.29/STORY v4.01/ARCH v2.47 (UNCHANGED). L2-INDEX v1.0.11. POSTURE: AWAITING F2 HUMAN-APPROVAL GATE.
-- **D-600..D-605 archived** per D-430(a) D-606. D-600..D-603: passes 37-40; D-604 pass-41 ZERO-FINDINGS(1/3; FROZEN); D-605 pass-42 CLEAN(2/3; 2 LOW NON-DEFECTS). Full: `git show 6da38863:.factory/STATE.md` §4.
+- **D-607 (2026-06-16):** F2 E-18 spec-completion INTEGRATION BURST. Human-directed: VP-087..090 specified + verification-architecture.md v1.0 + verification-coverage-matrix.md v1.0 materialized + 4 BCs DEFERRED-VP→active. VP-INDEX v2.30 (90 VPs). BC-INDEX v3.00. ARCH-INDEX v2.48. L2-INDEX v1.0.12. D-606 Drift Item RESOLVED. F2 INTEGRATION COMPLETE. Next: F3 story decomposition.
+- **D-600..D-606 archived** per D-430(a) D-607. D-600..D-603: passes 37-40; D-604 pass-41 ZERO-FINDINGS(1/3; FROZEN); D-605 pass-42 CLEAN(2/3); D-606 pass-43 CLEAN(3/3)-CONVERGED. Full: `git show c4ed73bf:.factory/STATE.md` §4.
 - **D-562..D-599 archived** per D-430(a) D-596..D-601 compactions. F2 adv passes 1-36 (D-562..D-599). Full entries: `git show 2cdc70c7:.factory/STATE.md` §4 and earlier SHAs per prior checkpoints.
 - **D-531..D-561 archived** per prior compaction bursts. E-10 CASCADE SEALED D-531; rc.20 SHIPPED D-528; rc.21 SHIPPED D-558+D-559; operator-install verified D-560; F2 E-18 spec evolution COMPLETE D-561. Full: decision-log.md SoT.
 
 ### §5. Cumulative Codifications
 
 - F5: D-379..D-454 (76 decisions) — `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md`.
-- Brownfield: D-001..D-606 — `cycles/v1.0-brownfield-backfill/decision-log.md`. Latest: **D-606 F2 E-18 ADV PASS-43 CLEAN — 3-CLEAN CONVERGED (3/3) 2026-06-15 — Pass-43 CLEAN (0 BLOCKER/MAJOR/load-bearing MED/mis-anchor; O-2 NON-DEFECT; BC-5.39.001 satisfied; pre-gate audit FALSE POSITIVE architect-adj; Drift Item S-19.xx TBD; L-F2-deferred-table-semantics codified); 4-index BC-INDEX v2.99/VP-INDEX v2.29/STORY-INDEX v4.01/ARCH-INDEX v2.47 (UNCHANGED); L2-INDEX v1.0.11; E-18 F2 CONVERGED; AWAITING F2 HUMAN-APPROVAL GATE.**
+- Brownfield: D-001..D-607 — `cycles/v1.0-brownfield-backfill/decision-log.md`. Latest: **D-607 F2 E-18 spec-completion INTEGRATION BURST 2026-06-16 — VP-087..090 specified; verification-architecture.md v1.0 + verification-coverage-matrix.md v1.0 materialized; 4 BCs DEFERRED-VP→active; 4-index BC-INDEX v3.00/VP-INDEX v2.30/STORY-INDEX v4.01/ARCH-INDEX v2.48 (L2-INDEX v1.0.12); D-606 Drift Item RESOLVED; F2 INTEGRATION COMPLETE; Next: F3 story decomposition.**
 
 ### §6. Cumulative Lessons
 
@@ -321,61 +315,65 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 | Index | Version | Notes |
 |-------|---------|-------|
-| BC-INDEX | v2.99 | UNCHANGED at D-605. Last bumped D-602 (BC-5.41.002 v1.11 status tokens). total_bcs 1966 UNCHANGED. |
-| VP-INDEX | v2.29 | UNCHANGED at D-605. Last bumped D-602 (VP-081 v1.7 HandoffMissing→SHELL attribution). |
-| STORY-INDEX | v4.01 | UNCHANGED at D-605. E-18 stories S-18.00..S-18.08 NOT YET AUTHORED (F3 next after 3-CLEAN convergence). |
-| ARCH-INDEX | v2.47 | UNCHANGED at D-605. Last bumped D-600 (ADR-026 v1.19 SS-01 scope added). |
-| L2-INDEX | v1.0.11 | Bumped D-603; UNCHANGED at D-605 (package FROZEN). DI↔VP back-refs complete (invariants.md v1.21). |
+| BC-INDEX | v3.00 | Bumped D-607. BC-5.41.002 v1.12 / BC-6.24.001 v1.10 / BC-7.07.002 v1.12 / BC-7.07.001 v1.11 (4 VPs wired). total_bcs UNCHANGED 1966. |
+| VP-INDEX | v2.30 | Bumped D-607. VP-087..VP-090 added (total_vps 86→90). §Proof Method Breakdown unit-test 44 / integration 27 / manual 10 / static-check 1 / kani-proof 4 / proptest 4 = 90. |
+| STORY-INDEX | v4.01 | UNCHANGED. E-18 stories S-18.00..S-18.08 NOT YET AUTHORED (F3 next). |
+| ARCH-INDEX | v2.48 | Bumped D-607. verification-architecture.md + verification-coverage-matrix.md moved from §Future Deferred to §Document Map. D-606 Drift Item RESOLVED. |
+| L2-INDEX | v1.0.12 | Bumped D-607 (invariants.md v1.21→v1.22 back-refs per POLICY 2; Document Map updated). |
 
-4-index at D-606 (literal-shell confirmed UNCHANGED): `grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md` → "2.99"; `grep "^version:" .factory/specs/verification-properties/VP-INDEX.md` → "2.29"; `grep "^version:" .factory/stories/STORY-INDEX.md` → "4.01"; `grep "^version:" .factory/specs/architecture/ARCH-INDEX.md` → "2.47"; `grep "^version:" .factory/specs/domain-spec/L2-INDEX.md` → "1.0.11".
+4-index at D-607 (literal-shell confirmed): `grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md` → "3.00"; `grep "^version:" .factory/specs/verification-properties/VP-INDEX.md` → "2.30"; `grep "^version:" .factory/stories/STORY-INDEX.md` → "4.01"; `grep "^version:" .factory/specs/architecture/ARCH-INDEX.md` → "2.48"; `grep "^version:" .factory/specs/domain-spec/L2-INDEX.md` → "1.0.12".
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** `c4ed73bf` (D-606 F2 pass-43 CLEAN 3/3 CONVERGED 2026-06-15; prior: `6da38863` D-605 pass-42 CLEAN STREAK-2/3; prior-prior: `88993db1` D-604 SHA-patch)
+- **factory-artifacts HEAD:** `PENDING-SHA-PATCH` (D-607 F2 spec-completion integration burst 2026-06-16; prior: `c4ed73bf` D-606 F2 pass-43 CLEAN 3/3 CONVERGED; prior-prior: `6da38863` D-605 pass-42 CLEAN STREAK-2/3)
 - **develop HEAD:** `7e99f6ef` (PR #186 fix + release.yml sync back-merge 2026-06-13)
 - **main HEAD:** `caf06c68` (rc.21 bot bundle commit 2026-06-13)
 - **v1.0.0-rc.21 tag:** `03054524` (SHIPPED; FULLY IN OPERATOR MARKETPLACE)
 - **ADR-026 v1.19:** `decisions/ADR-026-wave-boundary-checkpoint-reset-and-lossless-intra-wave-compaction.md` (D-600 F-P37-001 MED: SS-01 added to anchors: + subsystems_affected:; §SS-08 Scope Clarification extended; §Traceability corrected)
 - **BC-4.14.001 v1.13:** `ss-04/BC-4.14.001.md` (D-595 F-P32-001 MED PC7 field-validation contract rewritten — SCALAR empty→malformed; LIST-typed next_wave_stories/open_decisions/pending_fixes/process_gaps empty→VALID; PC7×PC2a contradiction closed; prior v1.12: D-594 F-P27-002)
 - **BC-5.41.001 v1.17:** `ss-05/BC-5.41.001.md` (D-598 F-P35-002 MEDIUM: v1.5-skip-marker de-enumerated — removed false 'only BC-4.14.001+BC-7.07.001 changed' claim; self-contained local-fact wording; prior v1.16: D-595 F-P32-003 LOW)
-- **BC-5.41.002 v1.11:** `ss-05/BC-5.41.002.md` (D-602 F-P39-002 LOW: status tokens in_progress→in-progress canonical hyphenated per ADR §Terminal-Wave enum; in_review→blocked; exhaustive grep: sole normative site; prior v1.10: D-598 F-P35-002 MEDIUM v1.5-skip-marker de-enumerated)
+- **BC-5.41.002 v1.12:** `ss-05/BC-5.41.002.md` (D-607 VP-087 wired: integration proof, SS-05, DI-023; DEFERRED-VP resolved to VP-087; prior v1.11: D-602 F-P39-002 LOW status tokens)
 - **BC-1.15.001 v1.5:** `ss-01/BC-1.15.001.md` (D-599 F-P36-001 MEDIUM: §Changelog section added — was structurally absent; POLICY 17 body-section type-parity gap; 6 rows reconstructed from modified[] v1.0..v1.5; no skip-marker needed; TRUE-EXHAUSTIVE 8-BC sweep all=1; BC-INDEX cell updated v1.4→v1.5; prior v1.4: D-597 F-P34-001 LOW)
 - **BC-5.41.003 v1.8:** `ss-05/BC-5.41.003.md` (D-598 F-P35-001 MEDIUM: §Changelog section added — was structurally absent; type-parity gap POLICY 17; 9 rows transcribed from modified[]; v1.5 real F-P5-002 row, no skip-marker; prior v1.7: D-591 stale-term class flush)
-- **BC-6.24.001 v1.9:** `ss-06/BC-6.24.001.md` (D-598 F-P35-002 MEDIUM: v1.5-skip-marker de-enumerated — same de-enumeration; prior v1.8: D-596 F-P33-001 MED v1.5-skip-marker added)
-- **BC-7.07.001 v1.10:** `ss-07/BC-7.07.001.md` (D-595 F-P32-005 LOW Inv7 log-pruning; UNCHANGED at D-597)
-- **BC-7.07.002 v1.11:** `ss-07/BC-7.07.002.md` (D-598 F-P35-002 MEDIUM: v1.5-skip-marker de-enumerated — same de-enumeration; prior v1.10: D-596 F-P33-001 MED v1.5-skip-marker added)
+- **BC-6.24.001 v1.10:** `ss-06/BC-6.24.001.md` (D-607 VP-088 wired: integration proof, SS-06, DI-023; DEFERRED-VP resolved to VP-088; prior v1.9: D-598 F-P35-002 MEDIUM v1.5-skip-marker de-enumerated)
+- **BC-7.07.001 v1.11:** `ss-07/BC-7.07.001.md` (D-607 VP-090 wired for Inv7: unit-test proof, SS-07, DI-025; pruning-deferred-S-18.04 resolved to VP-090; prior v1.10: D-595 F-P32-005 LOW Inv7 note)
+- **BC-7.07.002 v1.12:** `ss-07/BC-7.07.002.md` (D-607 VP-089 wired: unit-test proof, SS-07, DI-024; DEFERRED-VP resolved to VP-089; prior v1.11: D-598 F-P35-002 MEDIUM v1.5-skip-marker de-enumerated)
 - **VP-083 v1.10:** `verification-properties/VP-083.md` (D-597 F-P34-002 LOW: proof-harness preamble note pinning EPIC-COMPLETE derivation to handoff_content.next_wave_stories==[] not is_first_wave; POLICY-11 tautology-risk closed; prior v1.9: D-595 F-P32-002 MED discriminating fixture)
-- **VP-086 v1.4:** `verification-properties/VP-086.md` (D-595 F-P32-004 LOW; UNCHANGED at D-597)
+- **VP-086 v1.4:** `verification-properties/VP-086.md` (D-595 F-P32-004 LOW; UNCHANGED at D-607)
+- **VP-087 v1.0:** `verification-properties/VP-087.md` (D-607 F2 gate: integration proof, SS-05, DI-023, BC-5.41.002; wave-state.yaml atomic production + real-substrate stories derivation)
+- **VP-088 v1.0:** `verification-properties/VP-088.md` (D-607 F2 gate: integration proof, SS-06, DI-023, BC-6.24.001; rehydrate-wave reads wave-state.yaml from factory-artifacts via git, no RAG fallback)
+- **VP-089 v1.0:** `verification-properties/VP-089.md` (D-607 F2 gate: unit-test proof, SS-07, DI-024, BC-7.07.002; postcompact-reanchor.sh best-effort advisory; commit-free; exits 0 on all error paths)
+- **VP-090 v1.0:** `verification-properties/VP-090.md` (D-607 F2 gate: unit-test proof, SS-07, DI-025, BC-7.07.001 Inv7; precompact-flush-prune.sh preserves last-line invariant + suffix-only prune)
 - **VP-085 v1.7:** `verification-properties/VP-085.md` (D-594 F-P31-001 MED stale-term; UNCHANGED at D-597)
 - **VP-082 v1.12:** `verification-properties/VP-082.md` (D-588 F-P25-004 LOW; UNCHANGED at D-597)
 - **VP-084 v1.9:** `verification-properties/VP-084.md` (D-587 F-P24-003 LOW; UNCHANGED at D-597)
 - **VP-081 v1.7:** `verification-properties/VP-081.md` (D-602 F-P39-001 MED: PC-A HandoffMissing mis-attribution corrected — now explicitly SHELL wave-gate (BC-5.41.001 PC9); WASM NEVER emits HandoffMissing (BC-4.14.001 EC-011); exhaustive grep 41 hits VP-081 PC-A sole defective site; prior v1.6: F-P21-002 MED subsystem mis-anchor)
-- **L2-INDEX v1.0.11:** `specs/domain-spec/L2-INDEX.md` (D-603 F-P40-001 MED: Document Map invariants.md v1.20→v1.21 + changelog row; prior: D-600 F-P37-002 MED v1.0.10)
-- **invariants.md v1.21:** `domain-spec/invariants.md` (D-603 F-P40-001 MED: DI-020..025 `Cited by: VP-NNN` back-refs added; bidirectional DI↔VP traceability complete; DI-019 precedent followed)
-- **VP-081..086 domain_invariants populated:** VP-081 [DI-020,DI-021,DI-023]; VP-082 [DI-021,DI-022,DI-025]; VP-083 [DI-020]; VP-084 [DI-020,DI-025]; VP-085 [DI-021,DI-022,DI-025]; VP-086 [DI-020]
+- **L2-INDEX v1.0.12:** `specs/domain-spec/L2-INDEX.md` (D-607: Document Map invariants.md v1.21→v1.22 + changelog row; prior v1.0.11: D-603 F-P40-001 MED)
+- **invariants.md v1.22:** `domain-spec/invariants.md` (D-607: DI-023 Cited-by += VP-087+VP-088; DI-024 Cited-by += VP-089 (DEFERRED-VP disposition resolved); DI-025 Cited-by += VP-090; bidirectional DI↔VP traceability complete through VP-090; prior v1.21: D-603 F-P40-001 MED DI-020..025)
+- **VP-081..090 domain_invariants populated:** VP-081 [DI-020,DI-021,DI-023]; VP-082 [DI-021,DI-022,DI-025]; VP-083 [DI-020]; VP-084 [DI-020,DI-025]; VP-085 [DI-021,DI-022,DI-025]; VP-086 [DI-020]; VP-087 [DI-023]; VP-088 [DI-023]; VP-089 [DI-024]; VP-090 [DI-025]
 - **capabilities.md v1.7:** `domain-spec/capabilities.md` (UNCHANGED at D-597)
 - **ADR-025 v1.6 SHIPPED:** guard at `3b2a378c`; ARCH-INDEX v2.27
 - **S-17.04 story:** `.factory/stories/S-17.04-mid-burst-heartbeat-renewal-wiring.md` v1.7 MERGED; E-17 W4 COMPLETE; PR #184 3b2a378c
-- **Verify on resume:** `git rev-parse --short origin/develop` → expect `7e99f6ef`; `git rev-parse --short origin/main` → expect `caf06c68`
+- **Verify on resume:** `git rev-parse --short origin/develop` → expect `7e99f6ef`; `git rev-parse --short origin/main` → expect `caf06c68`; `git -C .factory log -1 --format='%H'` → expect D-607 burst SHA (see SHA-patch follow-up)
 
 ### §10. PR Status
 
-- **0 open feature PRs. 0 open release PRs. 0 open marketplace PRs. rc.21 100% COMPLETE. E-18 F2 adversarial cascade CONVERGED (D-606 pass-43 CLEAN; streak 3/3; AWAITING F2 HUMAN-APPROVAL GATE; F3 story decomposition follows gate approval).**
+- **0 open feature PRs. 0 open release PRs. 0 open marketplace PRs. rc.21 100% COMPLETE. E-18 F2 adversarial cascade CONVERGED (D-606) + F2 integration burst COMPLETE (D-607). Next: F3 story decomposition (story-writer S-18.00..S-18.08).**
 - **marketplace PR drbothen/claude-mp #13 MERGED** 2026-06-13 — rc.21 FULLY SHIPPED.
 - **RELEASING.md Step 9 VERIFIED (D-560):** operator cache 1.0.0-rc.21 confirmed (plugin.json + 132 entries). rc.21 end-to-end CLOSED.
 
-### §11. Post-CLEAR/Post-RESET Resume Checklist (zero-context; D-606 refresh)
+### §11. Post-CLEAR/Post-RESET Resume Checklist (zero-context; D-607 refresh)
 
-1. **Verify worktree state:** `git rev-parse --short origin/develop` → expect `7e99f6ef`. `git rev-parse --short origin/main` → expect `caf06c68`. `git -C .factory log -1` (expect D-606 F2 pass-43 CLEAN 3/3 CONVERGED 2026-06-15; branch factory-artifacts; clean status).
-2. **Read §1-§12 this checkpoint** (all of it; D-606 self-sufficient).
-3. **Verify 4-index:** `grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md` → "2.99"; ARCH-INDEX → "2.47"; VP-INDEX → "2.29"; STORY-INDEX → "4.01"; L2-INDEX → "1.0.11". ALL UNCHANGED at D-606 (package FROZEN throughout cascade).
+1. **Verify worktree state:** `git rev-parse --short origin/develop` → expect `7e99f6ef`. `git rev-parse --short origin/main` → expect `caf06c68`. `git -C .factory log -1` (expect D-607 F2 spec-completion integration burst 2026-06-16; branch factory-artifacts; clean status).
+2. **Read §1-§12 this checkpoint** (all of it; D-607 self-sufficient).
+3. **Verify 4-index:** `grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md` → "3.00"; ARCH-INDEX → "2.48"; VP-INDEX → "2.30"; STORY-INDEX → "4.01"; L2-INDEX → "1.0.12".
 4. **E-10 CASCADE SEALED D-531.** Do NOT resume without engine-surface material change.
 5. **F5 PAUSED** — trajectory →9→9→9→11. Do NOT resume without explicit human direction.
 6. **RC.21 100% COMPLETE D-560.** NO remaining release action. Operators: `/plugin update vsdd-factory@claude-mp`.
-7. **D-606 E-18 F2 ADVERSARIAL CASCADE CONVERGED (3/3 per BC-5.39.001).** Pass-43 CLEAN: 0 BLOCKER, 0 MAJOR, 0 load-bearing MEDIUM, 0 mis-anchor. O-2 NON-DEFECT (ADR-026 §F-P4-004 historical; F-P28-002/F-P31-001 precedent). Pre-gate consistency audit FALSE POSITIVE (architect adj; ARCH-INDEX §Future Sections (Deferred) semantic-misread; NOT gate blocker). **POSTURE: AWAITING F2 HUMAN-APPROVAL GATE. Do NOT advance to F3 without explicit human approval.**
-8. **4-index at D-606:** BC-INDEX v2.99, VP-INDEX v2.29, STORY-INDEX v4.01, ARCH-INDEX v2.47 (UNCHANGED throughout frozen cascade). L2-INDEX v1.0.11 (bumped D-603; UNCHANGED D-604/D-605/D-606).
-9. **ALL dispatches carry:** TD-VSDD-097-EXT + TD-VSDD-099 + TD-VSDD-100 + POLICY 14 5-leg + verification_step 7 4-index gate + INV-019 (a)/(b)/(c) + adversary grep origin/factory-artifacts + D-449(a) literal-shell Dim-2 + POLICY 8 v1.3 parity + POLICY 5 v1.3.1/v1.3.4/v1.3.5/v1.3.6 + D-537 spec-drift routing + D-539 multi-family adversary + O-P8-002 MANDATORY (3rd recurrence) + **L-F2-cross-reference-title-code-sweep [process-gap] UPGRADED (D-589; 4th recurrence; title-cite-parity gate MANDATORY)** + L-F2-subsystem-anchor-sweep [process-gap] (2nd recurrence) + L-F2-canonical-scope-verification [process-gap] (D-587) + **L-F2-stale-term-deferral-unsafe [process-gap] (D-594: stale terms in normative prose MUST be fixed in-scope; exhaustive sweep mandatory)** + **L-F2-annotation-must-be-self-contained [process-gap] (D-598: annotation text must not enumerate sibling BC IDs; structural-parity sweeps must verify §Changelog EXISTS)** + **L-F2-exhaustive-sweep-enumerate-and-count [process-gap] (D-599 NEW: cohort sweeps MUST enumerate all N files + per-file grep stdout; subset-scoping FORBIDDEN; enumerate-count gate MANDATORY for ALL cohort structural assertions)** + **L-F2-prior-chain-append-only-history [adjudication D-600: nested [Prior:] chains are POLICY 1 immutable history; NOT re-flaggable if live text is correct]** + **L-F2-index-quad-cite-reflects-last-bump [convention D-601: 4-index quad-lag on untouched indices is EXPECTED; adversary MUST treat as benign; fixing it = false history injection]** + **L-F2-deferred-table-semantics [process-gap D-606: consistency/perimeter audit MUST read table HEADING+COLUMN semantics before classifying missing-file as BLOCKER; §Future Sections (Deferred) with 'Covered By' column = intentional deferrals NOT broken anchors]**.
-10. **Latest decision D-606.** F2 pass-43 CLEAN (streak 3/3 CONVERGED; BC-5.39.001 SATISFIED; package FROZEN; 4-index UNCHANGED; L2-INDEX v1.0.11). Pre-gate audit FALSE POSITIVE (architect adj). **AWAITING F2 HUMAN-APPROVAL GATE. On gate approval → F3 story decomposition (story-writer S-18.00..S-18.07+S-18.08).**
+7. **D-607 F2 INTEGRATION COMPLETE.** VP-087..090 specified; verification-architecture.md v1.0 + verification-coverage-matrix.md v1.0 materialized; 4 BCs wired DEFERRED-VP→active VP. D-606 Drift Item (ARCH-INDEX §Future Sections verification docs) RESOLVED. **POSTURE: F2 INTEGRATION COMPLETE. NEXT: F3 story decomposition (story-writer S-18.00..S-18.08).**
+8. **4-index at D-607:** BC-INDEX v3.00, VP-INDEX v2.30, STORY-INDEX v4.01, ARCH-INDEX v2.48. L2-INDEX v1.0.12. invariants.md v1.22 (DI-023/024/025 Cited-by complete through VP-090).
+9. **ALL dispatches carry:** TD-VSDD-097-EXT + TD-VSDD-099 + TD-VSDD-100 + POLICY 14 5-leg + verification_step 7 4-index gate + INV-019 (a)/(b)/(c) + adversary grep origin/factory-artifacts + D-449(a) literal-shell Dim-2 + POLICY 8 v1.3 parity + POLICY 5 v1.3.1/v1.3.4/v1.3.5/v1.3.6 + D-537 spec-drift routing + D-539 multi-family adversary + O-P8-002 MANDATORY (3rd recurrence) + **L-F2-cross-reference-title-code-sweep [process-gap] UPGRADED (D-589; 4th recurrence; title-cite-parity gate MANDATORY)** + L-F2-subsystem-anchor-sweep [process-gap] (2nd recurrence) + L-F2-canonical-scope-verification [process-gap] (D-587) + **L-F2-stale-term-deferral-unsafe [process-gap] (D-594: stale terms in normative prose MUST be fixed in-scope; exhaustive sweep mandatory)** + **L-F2-annotation-must-be-self-contained [process-gap] (D-598)** + **L-F2-exhaustive-sweep-enumerate-and-count [process-gap] (D-599: cohort sweeps MUST enumerate all N files + per-file grep stdout; subset-scoping FORBIDDEN)** + **L-F2-prior-chain-append-only-history [adjudication D-600]** + **L-F2-index-quad-cite-reflects-last-bump [convention D-601]** + **L-F2-deferred-table-semantics [process-gap D-606: consistency/perimeter audit MUST read table HEADING+COLUMN semantics before classifying missing-file as BLOCKER]**.
+10. **Latest decision D-607.** F2 spec-completion integration burst COMPLETE. 4-index BC v3.00/VP v2.30/ARCH v2.48 bumped. **F3 story decomposition next (story-writer S-18.00..S-18.07+S-18.08).**
 
 ### §12. Pending Work Items — Strict Resume Ordering (refreshed 2026-06-15 D-599)
 
@@ -398,7 +396,8 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 | ~~1z~~ | ~~#173/E-18 F2 adversarial re-cascade (pass-41)~~ | ~~feature~~ | ~~D-603 NOT-CLEAN fix burst complete~~ | **DONE D-604 2026-06-15 — CLEAN (ZERO FINDINGS; 0B/0M/0MED/0LOW/0mis-anchor/0process-gap; first zero-findings pass; streak 0/3→1/3; package FROZEN; 4-index UNCHANGED).** |
 | ~~1~~ | ~~#173/E-18 F2 adversarial re-cascade (pass-42)~~ | ~~feature~~ | ~~D-604 CLEAN (streak 1/3)~~ | **DONE D-605 2026-06-15 — CLEAN (0B/0M/0LBM/0mis-anchor; 2 LOW obs NON-DEFECTS: O-1 POLICY-19-compliant; O-2 out-of-perimeter); streak 1/3→2/3; package FROZEN; 4-index UNCHANGED.** |
 | ~~1~~ | ~~#173/E-18 F2 adversarial re-cascade (pass-43)~~ | ~~feature~~ | ~~D-605 CLEAN (streak 2/3)~~ | **DONE D-606 2026-06-15 — CLEAN (0B/0M/0LBM/0mis-anchor; O-2 NON-DEFECT documentary-historical; 3-CLEAN streak 2/3→3/3 CONVERGED; BC-5.39.001 SATISFIED; pre-gate audit FALSE POSITIVE architect-adj; Drift Item added; L-F2-deferred-table-semantics codified).** |
-| **2** | **#173/E-18 F3 story decomposition** | **feature** | **F2 HUMAN-APPROVAL GATE (AWAITING)** | Author S-18.00..S-18.07+S-18.08 (S-18.08 ships mandatory O-P8-002 pure-parse invariant gate). STORY-INDEX v4.01→v4.02+. **GATE-OPEN pending explicit human F2 approval.** |
+| **2a** | **#173/E-18 F2 spec-completion integration burst** | **feature** | D-607 | **DONE 2026-06-16 D-607.** VP-087..090 + verification-architecture.md v1.0 + verification-coverage-matrix.md v1.0 + 4 BCs wired. 4-index BC v3.00/VP v2.30/ARCH v2.48 bumped. D-606 Drift Item RESOLVED. |
+| **2b** | **#173/E-18 F3 story decomposition** | **feature** | F2 integration COMPLETE (D-607) | Author S-18.00..S-18.07+S-18.08 (S-18.08 ships mandatory O-P8-002 pure-parse invariant gate). STORY-INDEX v4.01→v4.02+. **GATE-OPEN. Dispatch story-writer.** |
 | **4** | **#173 wave-checkpoint** | **implementation** | E-18 F3 done OR human re-sequence | State-durability chain stories S-18.01..S-18.05. Blocked on F3. |
 | **5** | **#171 deferred-revalidate** | **implementation** | #173 stories done | Deferred-revalidation story. |
 | **6** | **#129 canonical-principle** | **implementation** | human-authorize | Ship canonical-principle in plugin. |
@@ -408,4 +407,4 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 **[D-414(c) acknowledgment: Section 12 is a non-standard addition for forward-backlog durability.]**
 
-> Previous checkpoint (D-605 F2-E18-ADV-PASS-42-CLEAN-STREAK-2-3-2026-06-15) archived to: `cycles/v1.0-brownfield-backfill/session-checkpoints.md`
+> Previous checkpoint (D-606 F2-E18-ADV-PASS-43-CLEAN-3-CLEAN-CONVERGED-2026-06-15) archived to: `cycles/v1.0-brownfield-backfill/session-checkpoints.md`
