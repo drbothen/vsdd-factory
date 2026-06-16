@@ -7800,7 +7800,7 @@ D-606 current_step encodes: F2 E-18 ADV PASS-43 CLEAN (3/3 CONVERGED) — 0 BLOC
 
 ### Factory-artifacts Commits
 
-`[SHA TO BE FILLED BY SHA-PATCH PER D-447(c)/D-449(e)]` factory(f2-e18): D-606 F2 E-18 ADV PASS-43 CLEAN — 3-CLEAN CONVERGED (3/3) + pre-gate audit FALSE-POSITIVE adjudicated + L-F2-deferred-table-semantics — AWAITING F2 HUMAN-APPROVAL GATE
+`c4ed73bf` factory(f2-e18): D-606 F2 E-18 ADV PASS-43 CLEAN — 3-CLEAN CONVERGED (3/3) + pre-gate audit FALSE-POSITIVE adjudicated + L-F2-deferred-table-semantics — AWAITING F2 HUMAN-APPROVAL GATE
 
 ---
 
