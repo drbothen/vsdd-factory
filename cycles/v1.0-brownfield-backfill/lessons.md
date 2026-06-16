@@ -3345,3 +3345,25 @@ All 8 = 1. §Changelog presence exhaustively verified for the E-18 BC cohort. Th
 **Cites:** D-599; D-598; D-596; F-P36-001; F-P35-001; F-P33-001; BC-1.15.001 v1.5; BC-5.41.003 v1.8; BC-5.39.001; L-F2-annotation-must-be-self-contained (D-598); L-F2-sibling-sweep-tree-wide-gate (D-564; foundational); S-7.02 (defensive sweep discipline); S-18.08 (candidate gate scope extension; MANDATORY); E-18.
 
 **Closes:** D-599 lesson capture; exhaustive-sweep-enumerate-and-count process-gap codified; §Changelog presence exhaustively verified for all 8 E-18 BCs with literal per-file evidence (first TRUE-EXHAUSTIVE run in F2 cascade); root cause of F-P35-001 + F-P36-001 class permanently gated by per-file-count protocol; streak 0/3; adversary pass-37 NEXT. `[codified; process-gap; sweep-discipline; false-green-prevention; enumerate-and-count-gate]`
+
+---
+
+### L-F2-index-quad-cite-reflects-last-bump
+
+**Category:** adversarial-convergence + bookkeeping-convention + propagation-discipline [convention]
+
+**(a) The 4-index self-cited quad in any index's changelog/last_amended (e.g., "BC-INDEX vA / VP-INDEX vB / ARCH-INDEX vC") reflects the 4-index state AS OF THAT INDEX'S OWN LAST BUMP, not live HEAD.** In a sequential single-commit-per-burst model, an index not touched in a later burst correctly retains its prior quad — this is EXPECTED per-pass lag, NOT a propagation gap, and MUST NOT be "fixed."
+
+**(b) Updating an untouched index's quad to a version it did not participate in would be false.** If ARCH-INDEX is bumped at D-600 (v2.46→v2.47) but VP-INDEX and BC-INDEX are not touched at D-600, their changelog rows still cite the 4-index state as of their own prior bumps (BC-INDEX v2.98 at D-599; VP-INDEX v2.28 at D-597). Those citations accurately record what the world looked like at the moment of each index's own last change.
+
+**(c) Adversary passes MUST treat quad-lag on untouched indices as benign.** A finding that VP-INDEX cites ARCH-INDEX v2.46 while ARCH-INDEX is now at v2.47 is NOT a propagation gap — it is the expected and correct result of sequential single-commit-per-burst bookkeeping. Flagging this as a defect (and "fixing" it by updating untouched indices to reference a version they didn't participate in) would inject false history into those indices' changelogs.
+
+**(d) Per-pass adjudication precedent (D-601, pass-38 F-P38-001):** Fresh-context adversary pass-38 flagged VP-INDEX/L2-INDEX citing the 4-index ARCH-INDEX quad as v2.46 while ARCH-INDEX is v2.47. The adversary self-adjudicated this as NON-DEFECT after recognizing the per-pass-lag convention. No fix was possible or warranted; package remained FROZEN. This is the canonical precedent for this class.
+
+**(e) Rule statement:** For any index file's changelog/last_amended quad-cite: the cited version of each peer-index reflects the state of that peer AS OF THE CITING INDEX'S OWN LAST MODIFICATION. If a peer index advanced after the citing index was last touched, the citing index's quad correctly trails. The authoritative live versions are always the HEAD values of each index file, not any cross-cited quad.
+
+**Anchors:** D-601 (this burst; F2 E-18 ADV PASS-38 CLEAN; streak 0/3→1/3; F-P38-001 adjudicated NON-DEFECT — VP-INDEX/L2-INDEX quad cites ARCH-INDEX v2.46 is EXPECTED per-pass lag); F-P38-001 (LOW observation; ARCH-INDEX v2.47 vs quad-cite v2.46 in VP-INDEX/L2-INDEX — adversary self-adjudicated non-defect); BC-5.39.001 (3-CLEAN streak rule; 0/3→1/3); E-18 (CAP-032 context-durability; GitHub issue #173).
+
+**Cites:** D-601; F-P38-001; D-600 (prior burst; ARCH-INDEX v2.46→v2.47 bumped; VP-INDEX/BC-INDEX untouched); BC-5.39.001; L-F2-prior-chain-append-only-history (D-600; companion — append-only history; don't rewrite historical records).
+
+**Closes:** D-601 convention-note capture; L-F2-index-quad-cite-reflects-last-bump codified to prevent future re-flagging of benign quad-lag; pass-38 CLEAN; streak 0/3→1/3; adversary pass-39 NEXT. `[codified; convention; bookkeeping; quad-lag-benign; adversarial-convergence]`
