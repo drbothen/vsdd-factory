@@ -269,6 +269,11 @@ _resolve_one() {
 }
 
 # --- Helper: expand glob/directory input to sorted file list ---
+# Note: _expand_glob searches .factory/-relative bases only (artifact dir,
+# parent, factory sub-dirs).  Repo-root-relative engine paths that use glob
+# syntax (e.g., plugins/vsdd-factory/skills/*/SKILL.md) are NOT supported —
+# use an explicit list of single-file inputs instead.  Single-file engine
+# paths resolve correctly via _resolve_one's REPO_ROOT fallback.
 _expand_glob() {
   local pattern="$1"
   local stripped="${pattern#.factory/}"
@@ -305,8 +310,11 @@ while IFS= read -r input_file; do
   [[ -z "$input_file" ]] && continue
 
   # Reject path-traversal sequences (CWE-22).  Legitimate factory inputs never
-  # use '..' — they rely on the search-base hierarchy in _resolve_one instead.
-  if [[ "$input_file" == *..* ]]; then
+  # use '..' path components — they rely on the search-base hierarchy instead.
+  # The regex matches '..' as a standalone path component (anchored at start,
+  # between slashes, or at end) to avoid false-positives on filenames that
+  # contain double-dots in non-component positions (e.g., 'v1..2-spec.md').
+  if [[ "$input_file" =~ (^|/)\.\.(/|$) ]]; then
     echo "compute-input-hash: rejected path traversal in input: $input_file" >&2
     MISSING=$((MISSING + 1))
     MISSING_FILES="${MISSING_FILES:+$MISSING_FILES, }$input_file"

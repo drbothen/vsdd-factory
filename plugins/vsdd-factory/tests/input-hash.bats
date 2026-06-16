@@ -222,6 +222,42 @@ EOF
   [ "$hash_a" != "$hash_b" ]
 }
 
+@test "compute-input-hash: three-item inputs: block — all three items contribute to hash (CR-006)" {
+  # Belt-and-suspenders: the 2-item test proves item 2 is read; this proves item 3
+  # is also read (i.e., the fix is not accidentally limited to exactly 2 items).
+  echo "# Input 1" > "$WORK/.factory/specs/domain-spec/item1.md"
+  echo "# Input 2" > "$WORK/.factory/specs/domain-spec/item2.md"
+  echo "# Input 3 variant A" > "$WORK/.factory/specs/domain-spec/item3a.md"
+  echo "# Input 3 variant B" > "$WORK/.factory/specs/domain-spec/item3b.md"
+
+  cat > "$WORK/.factory/specs/behavioral-contracts/three-a.md" << 'EOF'
+---
+document_type: bc
+inputs:
+  - domain-spec/item1.md
+  - domain-spec/item2.md
+  - domain-spec/item3a.md
+input-hash: "[md5]"
+---
+EOF
+
+  cat > "$WORK/.factory/specs/behavioral-contracts/three-b.md" << 'EOF'
+---
+document_type: bc
+inputs:
+  - domain-spec/item1.md
+  - domain-spec/item2.md
+  - domain-spec/item3b.md
+input-hash: "[md5]"
+---
+EOF
+
+  hash_a=$("$BIN" "$WORK/.factory/specs/behavioral-contracts/three-a.md")
+  hash_b=$("$BIN" "$WORK/.factory/specs/behavioral-contracts/three-b.md")
+
+  [ "$hash_a" != "$hash_b" ]
+}
+
 @test "compute-input-hash: single-input multi-line inputs: block is stable" {
   echo "# Only input" > "$WORK/.factory/specs/domain-spec/only.md"
 
@@ -378,7 +414,7 @@ EOF
   mkdir -p "$WORK/.factory/specs"
   mkdir -p "$WORK/plugins/vsdd-factory/skills/my-skill"
   echo "# My Skill" > "$WORK/plugins/vsdd-factory/skills/my-skill/SKILL.md"
-  echo "# Product Brief" > "$WORK/.factory/specs/product-brief.md"
+  # product-brief.md is created by setup(); no need to recreate here
 
   cat > "$WORK/.factory/specs/story.md" << 'EOF'
 ---
@@ -458,7 +494,10 @@ EOF
 
   run "$BIN" "$WORK/.factory/specs/traversal-artifact.md" --resolve 2>&1
   [ "$status" -eq 1 ]
-  [[ "$output" == *"MISSING"* || "$output" == *"traversal"* || "$output" == *".."* ]]
-  # Must NOT have resolved to the sensitive file
+  # Each assertion is independent — all three must hold (CR-002: no OR-disjunction
+  # that masks whether the explicit rejection message fires).
+  [[ "$output" == *"rejected path traversal"* ]]
+  [[ "$output" == *"MISSING"* ]]
+  # Must NOT report resolution success
   [[ "$output" != *"all"*"inputs resolved"* ]]
 }
