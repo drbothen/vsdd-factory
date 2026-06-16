@@ -241,7 +241,7 @@ fixtures to arbitrary generated inputs.
 
 ## §3 Proof Method Coverage Totals
 
-> **Arithmetic invariant:** per-method counts must sum to total_vps (91).
+> **Arithmetic invariant:** per-method counts must sum to total_vps (92).
 > These totals must equal the VP-INDEX.md §Proof Method Breakdown totals.
 > Source of truth: VP-INDEX.md. If VP-INDEX and this table diverge, VP-INDEX wins.
 

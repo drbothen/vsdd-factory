@@ -3549,3 +3549,59 @@ All 8 = 1. §Changelog presence exhaustively verified for the E-18 BC cohort. Th
 **Cites:** D-615; CLAUSE-POL-005 (BC H1 verbatim traceability); CLAUDE.md §Canonical-Principle Rule 4.
 
 **Closes:** D-615 process-gap class codified; L-F2-story-pc-cite-verbatim added to carry-forward lesson set for F3. `[process-gap; phantom-pc; story-traceability; story-writer-discipline; BC-PC-verification; E-18]`
+
+---
+
+### L-F2-fix-wave-must-sweep-downstream
+
+**Category:** [process-gap]
+**Discovered:** 2026-06-16 D-616 — E-18 story pass-2 fix wave (post-mortem of D-615 fix wave)
+**Severity:** PROCESS-GAP — incomplete fix-wave sweep; downstream artifact staleness propagates silently past the claiming burst
+
+**Summary:** A fix wave that changes story-file frontmatter MUST sweep ALL downstream references in the SAME burst — STORY-INDEX rows, VP-file `anchor_story` frontmatter, BC `§Stories`/`§Story-Anchor` body sections — and an index changelog claiming a fix is a paper-fix (TD-VSDD-059) unless the source artifact actually changed.
+
+**Root Cause (D-615 incident):** D-615 fix wave changed story file frontmatter (subsystems, wave) and updated STORY-INDEX §DAG notes, but left STORY-INDEX body-row subsystem columns stale (SS-08 remained), left VP-082/084/085/090 `anchor_story: "S-18.04"` instead of correcting to S-18.04a/S-18.04b, and left input-hashes in STORY-INDEX body rows stale. The D-615 INDEX changelog said "F-002 anchor fixes: BC-7.07.001 story-anchor S-18.04→S-18.04a; BC-5.41.003 story-anchor S-18.04→S-18.04b" — this was a paper-fix because the BC-INDEX body cells already had S-18.04a/04b (from an earlier burst), but the VP FILE frontmatter `anchor_story` fields were the real stale artifact and were not updated.
+
+**Rule (binding):**
+
+**(a) STORY-INDEX body rows are downstream of story-file frontmatter.** Any change to a story-file `subsystems:` or `wave:` field MUST be propagated to the matching STORY-INDEX body row in the same burst. A body row showing SS-08 when the story file shows SS-06 is a silently propagated defect that will not be caught until an adversarial or consistency pass.
+
+**(b) VP file `anchor_story` fields are downstream of story-ID changes.** Any rename/split of a story (e.g., S-18.04 → S-18.04a + S-18.04b) MUST sweep all VP files that cited the old story ID. VP-INDEX §Story Anchors table is NOT sufficient — the VP FILE frontmatter `anchor_story:` field is also authoritative and must match.
+
+**(c) Index changelog claiming a fix is a paper-fix unless the source file changed.** If the INDEX says "BC story-anchor corrected" but the BC file frontmatter has been correct since a prior burst, the real stale artifact is elsewhere. Adversary must verify the claimed closure by checking the actual source file, not just the INDEX changelog.
+
+**(d) POLICY 18 input-hash changes MUST cascade to STORY-INDEX body rows.** When the compute-input-hash tool produces corrected hashes, both story-file frontmatter AND STORY-INDEX body row `input-hash` cells MUST be updated in the same burst.
+
+**Anchors:** D-616 (this burst); D-615 (incident burst); E-18 story pass-2 fix wave; TD-VSDD-059 (paper-fix detection); POLICY 18 (input-hash discipline).
+
+**Cites:** D-616; D-615; TD-VSDD-059; POLICY 18; CLAUDE.md §Canonical-Principle Rule 4.
+
+**Closes:** D-616 process-gap class codified; L-F2-fix-wave-must-sweep-downstream added to carry-forward lesson set for F3. `[process-gap; incomplete-sweep; story-index; vp-anchor_story; input-hash; downstream-propagation; E-18]`
+
+---
+
+### L-F2-input-hash-tool-trust
+
+**Category:** [process-gap]
+**Discovered:** 2026-06-16 D-616 — E-18 story pass-2 fix wave (compute-input-hash awk+resolver bug investigation)
+**Severity:** PROCESS-GAP — silent tool defect; collision across distinct-input artifacts is a tool-defect signal, not coincidence
+
+**Summary:** POLICY 18 input-hash was a silent no-op for multi-input artifacts. The `compute-input-hash` tool had an awk bug that hashed only the first listed input file; the repo-root path resolver also failed to resolve `.factory/`-prefixed paths. Re-running a broken tool reproduces the wrong hash — a collision across distinct-input artifacts is a tool-defect signal, not coincidence. Fixed in D-616 (devops, branch `fix/compute-input-hash-multi-input-awk`, commits ea6cf1af + 5b0d5e5c, PR→develop PENDING). Verify tool correctness (distinct inputs → distinct hashes) before trusting `--check`.
+
+**Root Cause (D-614/D-615 incident):** S-18.02, S-18.08, and S-18.09 all had input-hash `69dcbd9` despite having different input file sets. The shared collision value was the hash of the FIRST input of each set (BC-4.14.001.md for all three). The tool's awk pipeline used `print $0` to concatenate all file contents but the resolver failed on `.factory/` prefix paths, silently reducing to single-file mode for any artifact with more than one input where the additional inputs use project-root paths. The collision was internally consistent (running the tool again reproduced the same wrong value) and was therefore undetected by `--check`.
+
+**Rule (binding):**
+
+**(a) Collision across distinct-input artifacts is a tool-defect signal.** If two or more stories with different input file sets produce the same input-hash, this MUST be treated as a tool failure and investigated before the hashes are committed. Coincidental collision of full SHA-7 values is astronomically improbable; any such collision is practically certain to be a bug.
+
+**(b) Tool correctness verification before `--check` trust.** After any compute-input-hash fix, run the tool against at least 3 stories with fully distinct input sets and confirm no collisions before treating the tool's `--check` output as authoritative.
+
+**(c) Re-running a broken tool is not a fix.** When `--check` reports mismatch after a fix, the correct action is to re-run the FIXED tool binary (not the prior installed version). Version the tool binary explicitly so it is clear which tool version produced which hash batch.
+
+**(d) Input-hash TBD is a soft gate only at authoring time.** At integration time (D-616), any remaining `TBD` input-hashes are a BLOCKER for integration. No story may be integrated to STORY-INDEX without a non-TBD input-hash if the tool is operational.
+
+**Anchors:** D-616 (this burst and tool fix); D-614/D-615 (incident bursts where collisions were committed); E-18 story pass-2 fix wave; POLICY 18; branch `fix/compute-input-hash-multi-input-awk`.
+
+**Cites:** D-616; POLICY 18; CLAUDE.md §Canonical-Principle Rule 1 (no silent defects).
+
+**Closes:** D-616 process-gap class codified; L-F2-input-hash-tool-trust added to carry-forward lesson set for F3. `[process-gap; tool-defect; input-hash; collision-detection; compute-input-hash; awk; resolver; POLICY-18; E-18]`

@@ -547,3 +547,30 @@ Adversary assessment after pass-7: trajectory dropped to 9 (first sub-11 since p
 1. **Pass-8 adversary dispatch** (DIAGNOSTIC) — fresh-context adversary on (BC-5.39.009 v1.7 + S-15.17 v1.8). Adversary MUST specifically verify: (1) POLICY 5 v1.3.5 self-application — PO+story-writer cited parent-commit SHA f5bf4082; (2) adversary replay of Part A enumeration boundary (are all 5 historical categories correctly scoped?); (3) if trajectory <9 with NO new META → convergence plausible; if ≥9 OR new META → SEAL adjudication.
 2. **If 3-CLEAN achieved:** remove-uncertainty → per-story-delivery dispatch for S-15.17.
 3. **If SEAL required:** Human adjudication on SEAL vs continue.
+
+---
+
+## D-616 — E-18 STORY PASS-2 FIX WAVE INTEGRATION (2026-06-16)
+
+**Decision:** E-18 story pass-2 fix wave integration burst. Resolves compute-input-hash awk+resolver bug across all E-18 story files; sweeps all downstream references in same burst per L-F2-fix-wave-must-sweep-downstream.
+
+**Context:** D-615 registered S-18.10 and normalized S-18.00..S-18.09. Prior to D-615, compute-input-hash awk bug hashed only the FIRST listed input file (not all inputs), and the resolver failed on `.factory/`-prefixed paths. This produced hash collision: S-18.02, S-18.08, and S-18.09 all showed `69dcbd9` (hash of BC-4.14.001.md, the first input of each). devops fixed the bug in branch `fix/compute-input-hash-multi-input-awk` (commits ea6cf1af + 5b0d5e5c; PR→develop PENDING).
+
+**Actions taken:**
+- All 12 E-18 story file `input-hash:` fields updated: S-18.00=e5bc551; S-18.01=1b4ea21; S-18.02=fd98182; S-18.03=ba7f736; S-18.04a=449dcc4; S-18.04b=026bb4c; S-18.05=df32db5; S-18.06=cf37976; S-18.07=698e6cb; S-18.08=747b3eb; S-18.09=0f747df; S-18.10=aa7d723. Collision resolved.
+- BC-6.25.001 `input-hash: "TBD"` → `input-hash: "2d42b26"`.
+- STORY-INDEX SS-08 row sweep: S-18.07 SS-06+SS-08→SS-06; S-18.08 SS-05+SS-08→SS-06+SS-05; S-18.09 SS-05+SS-08→SS-05.
+- S-18.10 wave 6→7; W7={S-18.08, S-18.09, S-18.10}; W6=S-18.07 only.
+- VP anchor_story corrected: VP-082/085 `"S-18.04"`→`"S-18.04a"`; VP-084/090 `"S-18.04"`→`"S-18.04b"`.
+- verification-architecture.md: `total_vps (91)`→`total_vps (92)`.
+- BC-INDEX v3.04→v3.05 (BC-7.07.001 v1.13 cell; BC-5.41.003 v1.9 cell).
+- VP-INDEX v2.34→v2.35 (anchor_story corrections noted in last_amended).
+- STORY-INDEX v4.03→v4.04 (12 hash rows + SS-08 sweep + wave corrections).
+- L2-INDEX v1.0.12→v1.0.13 (Document Map invariants.md cite v1.22→v1.25).
+- 2 lessons: L-F2-fix-wave-must-sweep-downstream + L-F2-input-hash-tool-trust.
+
+**4-index post-burst:** BC-INDEX v3.05 / VP-INDEX v2.35 / STORY-INDEX v4.04 / ARCH-INDEX v2.51 (UNCHANGED). L2-INDEX v1.0.13.
+
+**D-chain cite:** D-615. **Parent-commit:** 9d8f2d22.
+
+**Posture:** E-18 story pass-2 fix wave COMPLETE. story adversarial 3-CLEAN cascade + consistency audit NEXT. Tool-fix PR fix/compute-input-hash-multi-input-awk → develop must be merged (pr-manager).
