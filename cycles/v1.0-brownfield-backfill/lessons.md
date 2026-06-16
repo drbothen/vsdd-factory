@@ -3258,3 +3258,35 @@ This gate MUST run exhaustively across ALL cite sites every spec-touch — not o
 **Cites:** D-594; F-P31-001; F-P31-002; F-P30-001; F-P30-003; O-P29-001; O-P29-002; O-P29-003; BC-5.39.001; VP-085 v1.7; ADR-026 v1.18; BC-7.07.001 v1.9; BC-5.41.001 v1.15; BC-5.41.002 v1.7; E-18; L-F2-canonical-scope-verification (sibling lesson — scope-precise invariant companion).
 
 **Closes:** D-594 lesson capture; stale-term-deferral-unsafe process-gap codified; FULL BACKLOG CLEARANCE strategy validated — package now zero-known-findings for pass-32 dispatch. `[codified; process-gap; stale-term-sweep; deferral-discipline]`
+
+---
+
+### L-F2-annotation-must-be-self-contained
+
+**Category:** adversarial-convergence + annotation-discipline + sibling-sweep-hygiene [process-gap]
+
+**(a) Documentary annotation/marker text MUST be SELF-CONTAINED — never embed an enumerated factual claim (e.g., "only BC-X and BC-Y changed") that can be stale or wrong.** Evidence: the F-P33-001 v1.5-skip-marker sweep (pass-33) added identical text to BC-5.41.001, BC-5.41.002, BC-6.24.001, and BC-7.07.002 claiming "only BC-4.14.001 and BC-7.07.001 received behavioral changes at the pass-5 burst." That enumeration was a false premise — BC-5.41.003 DID receive a behavioral change at v1.5 (F-P5-002 re-grounding). A fresh-context adversary at pass-35 caught this false premise (F-P35-002 MEDIUM), resetting the 3-CLEAN streak from 1/3 to 0/3. The orchestrator supplied the marker text; the sweep applied it verbatim across 4 BCs without verifying the premise.
+
+**(b) Root-cause: two compounding errors.**
+1. **Premise-error propagation:** The skip-marker text assumed "only BC-4.14.001 and BC-7.07.001 changed at pass-5" but did not verify this against BC-5.41.003's own history. A sibling-sweep that applies orchestrator-authored marker text verbatim without independent verification of the factual claims in that text is unsafe — the orchestrator's knowledge of the burst scope can be incomplete.
+2. **Structural parity gap not caught by sweep:** The same pass-33 sibling-sweep claimed exhaustive 8-BC coverage ("8-BC sweep; class CLOSED"), but BC-5.41.003 lacked the §Changelog section needed to HOST a skip-marker. The sweep verified presence of v1.5-skip-markers across 4 BCs but did not verify that ALL 8 BCs had the structural §Changelog section. A fresh adversary at pass-35 found the missing §Changelog (F-P35-001 MEDIUM).
+
+**(c) Two-part rule:**
+
+Rule 1 — **Marker/annotation text must state the LOCAL fact only.** Canonical self-contained form: "This BC received no behavioral change at the [burst/pass N] coordinated burst; the version gap [vX→vY] is deliberate." Do NOT enumerate sibling BC IDs that changed — that is a cross-BC factual claim that can be wrong. The local fact (this BC changed/did not change) is verifiable per-file; the enumeration of siblings is not.
+
+Rule 2 — **Structural-parity sweeps MUST VERIFY the section EXISTS before claiming exhaustive coverage.** If a sweep claims "all 8 BCs have §Changelog" or "class CLOSED," the sweep MUST have confirmed the structural section (the target hosting container) exists in each sibling, not just confirmed the sub-content inside the section. F-P33-001 closed a "skip-marker class" but did not verify that all 8 sibling BCs had a §Changelog to host any marker — the structural gap (BC-5.41.003 missing §Changelog entirely) was the root cause of F-P35-001.
+
+**(d) This lesson extends and deepens two prior lessons.** L-F2-stale-term-deferral-unsafe taught that normative-prose residue deferred as LOW will re-escalate at subsequent passes. L-F2-cross-reference-title-code-sweep taught that sibling sweeps must be exhaustive at every cite site. This lesson adds: sweeps that apply AUTHOR-SUPPLIED TEXT (not just version-bump changes) must independently verify (a) the structural container exists, and (b) any factual enumeration in the text is true at the time of application.
+
+**(e) Fix-induces-finding pattern (3rd self-inflicted reset).** Both F-P35-001 and F-P35-002 were direct side-effects of the F-P33-001 skip-marker sweep. This is the 3rd consecutive streak reset caused by a fix-induced finding class (F-P32-001 class at pass-32; F-P33-001 class at pass-33; F-P33-001 sweep false-premise at pass-35). Pattern: each sweep that closes a class must independently verify it has not introduced a new factual error class in the text applied.
+
+**(f) Mechanical gate candidate (S-18.08 scope).** A consistency-validator gate could enforce: for any BC carrying a skip-marker annotation in §Changelog, grep the annotation text for BC-ID enumerations (pattern `BC-[0-9]+\.[0-9]+\.[0-9]+`); if found, BLOCK with message "skip-marker annotation enumerates sibling BC IDs — use self-contained local-fact form only (L-F2-annotation-must-be-self-contained)." This gate would have blocked F-P35-002 at the write-time of the D-596 skip-marker sweep.
+
+**Drift Items row:** Anchor E-18 F3 — annotation-must-be-self-contained: structural-parity sweeps must verify the §Changelog section EXISTS before claiming exhaustive coverage; marker/annotation text must not enumerate sibling BC IDs. Candidate S-18.08 gate scope extension: consistency-validator checks skip-marker annotations for cross-BC enumeration (BC-ID enumeration in annotation text = BLOCK). Extends L-F2-stale-term-deferral-unsafe + L-F2-cross-reference-title-code-sweep.
+
+**Anchors:** D-598 (this burst; F2 pass-35 NOT-CLEAN FIX BURST; 2 MEDIUM self-inflicted; streak 1/3→0/3 RESET); F-P35-001 (MEDIUM; BC-5.41.003 v1.7→v1.8 — §Changelog section was structurally absent; type-parity gap per POLICY 17; 9 rows transcribed from modified[]); F-P35-002 (MEDIUM; BC-5.41.001 v1.17/BC-5.41.002 v1.10/BC-6.24.001 v1.9/BC-7.07.002 v1.11 — v1.5 skip-marker de-enumerated; false premise "only BC-4.14.001 and BC-7.07.001 changed at pass-5" removed; BC-5.41.003 DID change at v1.5 per F-P5-002); F-P33-001 (the original sweep whose marker text carried the false premise); BC-5.39.001 (3-CLEAN streak rule; 1/3→0/3 RESET); E-18 (CAP-032 context-durability; GitHub issue #173); D-596 (F-P33-001 sweep that applied the enumerated skip-marker text).
+
+**Cites:** D-598; D-596; F-P35-001; F-P35-002; F-P33-001; BC-5.41.003 v1.8; BC-5.41.001 v1.17; BC-5.41.002 v1.10; BC-6.24.001 v1.9; BC-7.07.002 v1.11; BC-5.39.001; L-F2-stale-term-deferral-unsafe (companion — deferral escalation; D-594); L-F2-cross-reference-title-code-sweep (companion — exhaustive-sweep discipline; D-582); E-18; S-18.08 (candidate gate scope extension).
+
+**Closes:** D-598 lesson capture; annotation-must-be-self-contained process-gap codified; skip-marker premise-error class permanently closed via de-enumeration (canonical self-contained form now in all 4 BCs); BC-5.41.003 §Changelog structural gap closed (F-P35-001); streak reset 1/3→0/3; adversary pass-36 NEXT. `[codified; process-gap; annotation-discipline; sibling-sweep-hygiene]`
