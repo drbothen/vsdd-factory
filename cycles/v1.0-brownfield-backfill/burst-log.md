@@ -8884,4 +8884,4 @@ $ grep -nc "FIRST CLEAN\|pass-10 CLEAN\|streak 1/3\|1/3" \
 
 ### Factory-artifacts Commits
 
-[SHA to be filled in after push]
+`5e5e8bdb` state(D-628): PASS-10 VERDICT CORRECTION — D-448(a) source-attestation parity restore; NOT-CLEAN/0/3 corrected; D-628 codified; 1 lesson; pass-11 NEXT
