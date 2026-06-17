@@ -8006,3 +8006,140 @@ D-chain D-618 → D-619; 4-index BC-INDEX v3.05→v3.06 / VP-INDEX v2.35 UNCHANG
 ### Factory-artifacts Commits
 
 `fa883af4` state(D-619): BC-INDEX COUNT RECONCILE BURST — total_bcs 1968→1972; BC-INDEX v3.05→v3.06; Drift Item D-562 RESOLVED
+
+---
+
+## D-620 — E-18 STORY PASS-3 INDEX SYNC BURST (2026-06-17)
+
+### Parent-commit
+
+`a828686b` state(D-619): BC-INDEX COUNT RECONCILE BURST SHA-patch — factory-artifacts HEAD update (D-619 Commit-E SHA)
+
+### Adversary Verdict
+
+Pass-3 adversary (`adv-cycle-pass-3.md`) delivered NOT-CLEAN. Part A findings relevant to this burst:
+
+- **F-SP3-001 (BLOCKER):** S-18.09 wave intra-dep violation — S-18.09 depends_on S-18.08 (W7) but was incorrectly placed in W7 itself; STORY-INDEX table and DAG delivery note placed S-18.08 + S-18.09 in same wave, preventing sequential execution. BLOCKER reset streak to 0/3.
+- **M-001 (MINOR):** S-18.04b STORY-INDEX "Subsystems" cell showed "SS-07" only; story frontmatter has `subsystems: [SS-04, SS-05, SS-07]`; index table was a lossy projection omitting SS-04 and SS-05.
+- **M-002 (MINOR):** E-18 DAG wave-schedule note listed wrong groupings: W6 contained S-18.07+S-18.10, W7 contained S-18.08+S-18.09 — should be W6: S-18.07; W7: S-18.08+S-18.10; W8: S-18.09 (8-wave schedule).
+- **M-003 (MINOR):** E-18 intro subsystems line listed "SS-01/04/05/06/07/08" — no E-18 story has SS-08; correct union is SS-01/04/05/06/07.
+- **ME-001 (META):** VP-092 Story Anchors cell said "E-18 F3 (wave 6)" but anchor_story=S-18.10 has `wave: 7` in frontmatter (wave 6→7 was fixed in D-616 story file but VP-INDEX cell not updated).
+- **L-001 (LATENT):** VP-081/083/086/087/088/089 Story Anchors cells said "E-18 F3 (TBD wave)" — TBD wave cells for stories whose wave frontmatter was now known; VP-082/085 said "wave 3" but anchor_story=S-18.04a has `wave: 2`.
+
+Fix burst addresses all six findings. Streak reset to 0/3; pass-4 adversary NEXT.
+
+### Files Touched
+
+- `.factory/stories/STORY-INDEX.md` — v4.04→v4.05; S-18.04b subsystems SS-07→SS-04+SS-05+SS-07; S-18.09 wave cell wave 7→wave 8; E-18 intro SS-08 removed (→SS-01/04/05/06/07); DAG 7-wave→8-wave rebuild; delivery note W8 added; epic count 18→19
+- `.factory/specs/verification-properties/VP-INDEX.md` — v2.35→v2.36; 9 VP-INDEX Story Anchors wave cells corrected (VP-081 TBD→wave 2/3; VP-082 wave 3→wave 2; VP-083 TBD→wave 3; VP-085 wave 3→wave 2; VP-086 TBD→wave 1; VP-087 TBD→wave 2; VP-088 TBD→wave 4; VP-089 TBD→wave 3; VP-092 wave 6→wave 7)
+- `.factory/STATE.md` — v3.69→v3.70; D-620 Decisions Log row; §1/§3/§4/§5/§8/§9/§11/§12 updated; Identifier Conventions epic count 18→19; Session Resume Checkpoint refreshed; STORY-INDEX v4.05 + VP-INDEX v2.36 rows; SIZE BUDGET banner D-620 entry
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-620 block appended after D-619
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — this entry (D-620)
+- `.factory/stories/epics/E-18-factory-context-durability.md` — created by story-writer (pre-burst); registered as new untracked file in git status
+
+Story files updated by story-writer leg (pre-burst; confirmed in git status):
+`.factory/stories/S-18.00..S-18.10` (all 12 E-18 story files)
+
+### Codifications
+
+**D-620:** E-18 story pass-3 index-sync burst. STORY-INDEX v4.04→v4.05: S-18.09 wave 7→8 (F-SP3-001 BLOCKER — depends_on S-18.08 W7; intra-wave dep violation); S-18.04b subsystems SS-07→[SS-04,SS-05,SS-07] (M-001 frontmatter ground truth); E-18 DAG rebuild 7-wave→8-wave (M-002; W6: S-18.07; W7: S-18.08+S-18.10; W8: S-18.09); E-18 intro subsystems SS-08 removed (M-003). VP-INDEX v2.35→v2.36: 9 VP wave cells corrected from anchor_story→story.wave ground truth (VP-081 TBD→wave 2/3; VP-082 wave 3→wave 2; VP-083 TBD→wave 3; VP-085 wave 3→wave 2; VP-086 TBD→wave 1; VP-087 TBD→wave 2; VP-088 TBD→wave 4; VP-089 TBD→wave 3; VP-092 wave 6→wave 7 [ME-001]). STATE.md v3.70: epic count 18→19; 4-index row advances. Streak reset 0/3; pass-4 adversary NEXT.
+
+### Dim-2 — Mechanical Gate Attestations (D-449(a) literal shell)
+
+**Gate 1 — VP-INDEX wave cells post-fix (9 VPs):**
+
+```
+$ grep -E "^\| VP-081 |\| VP-082 |\| VP-083 |\| VP-085 |\| VP-086 |\| VP-087 |\| VP-088 |\| VP-089 |\| VP-092 " .factory/specs/verification-properties/VP-INDEX.md | grep -oE "E-18 F3 \(wave [^)]+\)"
+E-18 F3 (wave 2/3)
+E-18 F3 (wave 2)
+E-18 F3 (wave 3)
+E-18 F3 (wave 2)
+E-18 F3 (wave 1)
+E-18 F3 (wave 2)
+E-18 F3 (wave 4)
+E-18 F3 (wave 3)
+E-18 F3 (wave 7)
+```
+
+9 wave cells — no "TBD wave" present. VP-081=wave 2/3; VP-082=wave 2; VP-083=wave 3; VP-085=wave 2; VP-086=wave 1; VP-087=wave 2; VP-088=wave 4; VP-089=wave 3; VP-092=wave 7.
+
+**Gate 2 — STORY-INDEX S-18.04b subsystems and S-18.09 wave:**
+
+```
+$ grep -E "^\| S-18\.04b " .factory/stories/STORY-INDEX.md | grep -oE "subsystems [^;]+"
+subsystems SS-04, SS-05, SS-07
+
+$ grep -E "^\| S-18\.09 " .factory/stories/STORY-INDEX.md | grep -oE "wave [0-9]+"
+wave 8
+```
+
+S-18.04b has SS-04+SS-05+SS-07 (M-001 closed). S-18.09 is in wave 8 (F-SP3-001 BLOCKER closed).
+
+**Gate 3 — VP-INDEX version and total_vps UNCHANGED:**
+
+```
+$ grep -E "^version:|^total_vps:" .factory/specs/verification-properties/VP-INDEX.md
+version: "2.36"
+total_vps: 92
+```
+
+VP-INDEX v2.36; total_vps 92 UNCHANGED (no VPs added/removed; wave cells only).
+
+**Gate 4 — STORY-INDEX version:**
+
+```
+$ grep "^version:" .factory/stories/STORY-INDEX.md
+version: "4.05"
+```
+
+STORY-INDEX v4.05 confirmed.
+
+### Dim-5 — Production-Grade Attestation
+
+- No MVP-pattern deferrals introduced. All 6 pass-3 findings (F-SP3-001 BLOCKER + M-001 + M-002 + M-003 + ME-001 + L-001) addressed in-scope.
+- Wave cell resolution used two-step ground-truth lookup: (1) `anchor_story:` from VP file frontmatter via literal grep, (2) `wave:` from the anchor story's frontmatter. No narrative inference.
+- S-18.09 wave 7→8 change cascaded correctly to STORY-INDEX table + DAG delivery note + commentary.
+- E-18 epic count 18→19 corrected in STATE.md Identifier Conventions (was stale since D-614; identified during this burst).
+- BC-INDEX untouched (v3.06; total_bcs 1972 UNCHANGED per task constraint).
+
+### Dim-6 — Count Verification (literal shell)
+
+```
+$ grep -cE "^\| VP-[0-9]+" .factory/specs/verification-properties/VP-INDEX.md
+42
+```
+
+42 table rows in VP-INDEX catalog (body table). `total_vps: 92` in frontmatter — the 42 rows represent VP-081..VP-092 section plus earlier sections; frontmatter is authoritative per POLICY 1. No new VPs added; no VPs removed. total_vps 92 UNCHANGED.
+
+```
+$ grep -cE "^\| S-[0-9]" .factory/stories/STORY-INDEX.md
+120
+```
+
+120 story rows confirmed (story_count 120 UNCHANGED; no new stories added in this burst).
+
+### Dim-7 — Findings Closure
+
+| Finding | Class | Status | Resolution |
+|---------|-------|--------|------------|
+| F-SP3-001 | BLOCKER | CLOSED | S-18.09 wave 7→8 in STORY-INDEX table + DAG; depends_on S-18.08 (W7) satisfied |
+| M-001 | MINOR | CLOSED | S-18.04b subsystems SS-07→SS-04+SS-05+SS-07 (frontmatter ground truth) |
+| M-002 | MINOR | CLOSED | E-18 DAG rebuilt 7-wave→8-wave; W6:S-18.07; W7:S-18.08+S-18.10; W8:S-18.09 |
+| M-003 | MINOR | CLOSED | E-18 intro "SS-01/04/05/06/07/08" → "SS-01/04/05/06/07" (no story has SS-08) |
+| ME-001 | META | CLOSED | VP-092 Story Anchors wave 6→wave 7 (anchor_story=S-18.10; frontmatter wave=7) |
+| L-001 | LATENT | CLOSED | VP-081/082/083/085/086/087/088/089 wave cells corrected from anchor_story ground truth |
+
+Streak: 0/3 (reset by F-SP3-001 BLOCKER). Pass-4 adversary NEXT.
+
+### Closes
+
+- F-SP3-001 BLOCKER (S-18.09 intra-wave dep violation)
+- M-001 (S-18.04b subsystems index cell)
+- M-002 (E-18 DAG wave-schedule incorrect grouping)
+- M-003 (E-18 intro SS-08 phantom subsystem)
+- ME-001 (VP-092 wave cell stale: wave 6→wave 7)
+- L-001 (VP-081/082/083/085/086/087/088/089 TBD-or-wrong wave cells)
+
+### Factory-artifacts Commits
+
+`(pending — D-620 Commit-E SHA assigned at push)`

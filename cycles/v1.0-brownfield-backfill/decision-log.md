@@ -634,3 +634,38 @@ grep -E '^[|] (\[BC-|~~\[BC-)' .factory/specs/behavioral-contracts/BC-INDEX.md |
 **D-chain cite:** D-618. **Parent-commit:** 0bf5cc7a (D-618 SHA-patch).
 
 **Posture:** BC-INDEX COUNT RECONCILE COMPLETE. Drift Item D-562 RESOLVED. story adversarial 3-CLEAN cascade + consistency audit NEXT — START HERE.
+
+---
+
+### D-620 — E-18 STORY PASS-3 INDEX SYNC BURST (2026-06-17)
+
+**Context:** E-18 story adversarial pass-3 identified consistency findings (ME-001, F-SP3-001, L-001, M-001, M-002, M-003) requiring index synchronization. This is the state-manager leg of the pass-3 fix burst. Story-writer already updated 12 E-18 story files and created the E-18 epic file. This burst: STORY-INDEX + VP-INDEX + STATE.md bookkeeping.
+
+**Findings addressed:**
+- **F-SP3-001 BLOCKER (S-18.09 wave cell):** S-18.09 `wave: 8` in story frontmatter but STORY-INDEX cell said `wave 7`. BLOCKER — intra-wave dep on S-18.08 which is W7; S-18.09 depends_on S-18.08 so must be W8+. Fix: STORY-INDEX S-18.09 wave 7→8.
+- **M-001 (S-18.04b subsystems):** S-18.04b story frontmatter has `subsystems: [SS-04, SS-05, SS-07]` but STORY-INDEX said `subsystems SS-07` only. Fix: STORY-INDEX S-18.04b cell updated.
+- **M-002 (DAG wave-schedule):** Was "7 waves: W6: S-18.07, S-18.10; W7: S-18.08, S-18.09". After D-616 (S-18.10 W7) and F-SP3-001 (S-18.09 W8) the correct 8-wave schedule is: W1: S-18.00; W2: S-18.01, S-18.04a; W3: S-18.02, S-18.04b, S-18.05; W4: S-18.03; W5: S-18.06; W6: S-18.07; W7: S-18.08, S-18.10; W8: S-18.09. Fix: DAG line and delivery note updated.
+- **M-003 (E-18 intro subsystems):** E-18 intro said "SS-01/04/05/06/07/08" but no E-18 story has SS-08 after D-616 sweep. Fix: corrected to "SS-01/04/05/06/07".
+- **ME-001 (VP-092 wave cell):** VP-092 "Story Anchors" said "E-18 F3 (wave 6)" but S-18.10 is wave 7. Fix: VP-INDEX cell updated.
+- **L-001 (VP-081/083/086/087/088/089 TBD wave cells; VP-082/085 wrong wave 3):** Instruction: read VP file `anchor_story:` frontmatter as ground truth; look up that story's `wave:` frontmatter; set VP-INDEX cell accordingly. Evidence (literal grep):
+  - VP-081: anchor_story="S-18.01, S-18.02" → S-18.01 wave 2, S-18.02 wave 3 → "wave 2/3"
+  - VP-082: anchor_story="S-18.04a" → S-18.04a wave 2 → "wave 2" (was "wave 3")
+  - VP-083: anchor_story="S-18.02" → S-18.02 wave 3 → "wave 3"
+  - VP-085: anchor_story="S-18.04a" → S-18.04a wave 2 → "wave 2" (was "wave 3")
+  - VP-086: anchor_story="S-18.00" → S-18.00 wave 1 → "wave 1"
+  - VP-087: anchor_story="S-18.01" → S-18.01 wave 2 → "wave 2"
+  - VP-088: anchor_story="S-18.03" → S-18.03 wave 4 → "wave 4"
+  - VP-089: anchor_story="S-18.05" → S-18.05 wave 3 → "wave 3"
+  - VP-092: anchor_story="S-18.10" → S-18.10 wave 7 → "wave 7" (ME-001)
+
+**Actions taken:**
+- `STORY-INDEX.md` v4.04→v4.05: S-18.04b subsystems; S-18.09 wave 7→8; E-18 intro "SS-01/04/05/06/07/08"→"SS-01/04/05/06/07"; DAG wave-schedule 7-wave→8-wave; delivery note W8; commentary note updated
+- `VP-INDEX.md` v2.35→v2.36: 9 Story Anchors wave cells corrected (VP-081/082/083/085/086/087/088/089/092)
+- `STATE.md` v3.69→v3.70: D-620 added Decisions Log; Identifier Conventions epic count 18→19; §8 4-index VP-INDEX v2.36/STORY-INDEX v4.05; Current Phase/Last Updated; Concurrent Cycles; §1/§3/§4/§5/§8/§9/§11/§12 updated; Active Branches D-620 note; SIZE BUDGET banner entry appended
+- `decision-log.md` D-620 block appended (this entry)
+
+**4-index post-burst:** BC-INDEX v3.06 (UNCHANGED) / VP-INDEX v2.36 / STORY-INDEX v4.05 / ARCH-INDEX v2.51 (UNCHANGED). L2-INDEX v1.0.13 (UNCHANGED).
+
+**D-chain cite:** D-619. **Parent-commit:** a828686b (D-619 SHA-patch).
+
+**Posture:** E-18 STORY PASS-3 INDEX SYNC COMPLETE. 3-CLEAN streak 0/3 (pass-3 NOT-CLEAN → fix-burst). Pass-4 adversary dispatch + consistency re-verify NEXT — START HERE.
