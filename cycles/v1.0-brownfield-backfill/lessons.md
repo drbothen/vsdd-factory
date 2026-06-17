@@ -4239,3 +4239,27 @@ Filing a P4 TD for a deferred observation without a concrete anchor is forbidden
 **Consequence if violated:** Fixing a perimeter artifact mid-streak resets the streak counter to 0/3. The fresh-context adversary at pass-(N+1) reads a different package than at pass-N, making the CLEAN verdict inapplicable. All streak progress is lost.
 
 **Cites:** D-631; BC-5.39.001 (3-CLEAN convergence protocol); D-604/D-605/D-606 (F2-cascade frozen-package precedent); adv-e18-story-pass-12.md (O-P12-1 deferred); consistency-e18-story-pass-12.md (C-P12-001/C-P12-002 deferred); E-18 story cascade streak 1/3.
+
+---
+
+## L-E18-changelog-attestation-and-sibling-sweep-index-prose
+
+**Date:** 2026-06-17
+**Tags:** [process-gap] [codified]
+**Anchors:** D-632, D-448(a), TD-VSDD-060, S-18.08/S-18.09 gate scope, C-P13-001
+
+**Lesson (codified):** A changelog entry MUST describe a change that was ACTUALLY performed in the same burst. A changelog row claiming an edit that was not made is a false attestation — same anti-fabrication family as the D-627 verdict mis-record class. When a BC/VP clause label is promoted or renamed (e.g., `(B-1)` → `PC-B-B1`), EVERY downstream description site must be swept in the same burst, not just the version cell. TD-VSDD-060 sibling-sweep discipline extends to index §Full Index description columns (and any other prose that normatively references the label), not only the index version cells and the BC/VP file itself.
+
+**Root cause (D-632, pass-13):** During D-625, BC-4.15.001 v1.2 promoted `(B-1)` and `(B-2)` to canonical subsection headings `PC-B-B1` and `PC-B-B2`. VP-091.md v1.1 was correctly updated. VP-INDEX version was bumped to v2.37 and the changelog entry claimed "VP-091 Full Index description note updated to record v1.1 label-sync." However, the VP-INDEX §Full Index description column for VP-091 was never actually edited — it still contained the pre-v1.2 labels. The false changelog claim went undetected until pass-13.
+
+**Failure mechanism:** TD-VSDD-060 sibling-sweep was applied to the BC file (BC-4.15.001), the VP body file (VP-091.md), and the 4-index version cells — but NOT to the index description prose column. The description column is a normative reference site (it tells readers which label to use when interpreting the VP property). Stale labels in that column are unresolvable against the current canonical BC.
+
+**Gate (codified):** After any BC/VP clause label rename or promotion, the fix-burst MUST sweep:
+1. The BC/VP file body (primary source)
+2. ALL index description columns (§Full Index rows in VP-INDEX, BC-INDEX) that reference the renamed label in normative prose
+3. ALL story AC cells (STORY-INDEX) that cite the renamed label
+4. The changelog-array top row MUST accurately describe all changes performed (O-P10-1 mechanical gate extended: changelog content fidelity, not just version-number parity)
+
+**Consequence if violated:** A false changelog claim passes undetected until the next fresh-context consistency-validator pass, which will identify the stale normative label as an unresolvable reference. The streak resets to 0/3 and a fix burst must be applied before pass-N+1.
+
+**Cites:** D-632; C-P13-001 (VP-INDEX VP-091 stale labels + false changelog claim); D-625 (violation origin burst); TD-VSDD-060 (sibling-site sweep); D-448(a) (source-attestation gate); O-P10-1 (changelog-parity mechanical gate); BC-4.15.001 v1.2; VP-091.md v1.1; VP-INDEX v2.38.

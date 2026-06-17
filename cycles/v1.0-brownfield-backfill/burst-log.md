@@ -9079,3 +9079,114 @@ ARCH-INDEX.md:version: "2.54"
 
 - `65ac2b2a` state(D-631): E-18 STORY PASS-12 CLEAN — first legitimate CLEAN pass; streak 0/3→1/3
 - `d033b6bb` state(D-631-sha-patch): SHA-patch 65ac2b2a — Active Branches + burst-log Factory-artifacts Commits
+
+---
+
+## D-632 — E-18 STORY PASS-13 NOT-CLEAN FIX BURST (2026-06-17)
+
+**Orchestrated by:** orchestrator
+**Executed by:** state-manager
+**Parent-commit:** e89727ef (D-631 SHA-patch HEAD)
+**D-ref:** D-632
+
+### Adversary Verdict (pass-13)
+
+Adversary pass-13 CLEAN. 0 BLOCKER, 0 MAJOR, 0 load-bearing MEDIUM, 0 mis-anchor, 0 LOW. 2 observations re-confirmed from pass-12: O-P13-1 [process-gap] `;`-delimited compound-cite blind spot in S-18.09 AC-008 (DEFERRED S-18.09 F4 TDD implementation; same as O-P12-1); O-P13-2 [stale-cite] ARCH-INDEX "per BC-INDEX v3.06" annotation (DEFERRED next ARCH-INDEX version bump; same as C-P12-001). Pass-12 closures verified: F-P11-001 BLOCKER regex fix VERIFIED CLOSED; all pass-10 closures + O-P10-1 gate VERIFIED CLOSED. See `adv-e18-story-pass-13.md`.
+
+Consistency-validator pass-13 INCONSISTENT — C-P13-001 MEDIUM: VP-INDEX VP-091 §Full Index description column retains stale pre-v1.2 labels `(B-1)` and `(B-2)`; BC-4.15.001 v1.2 + VP-091.md v1.1 use canonical `PC-B-B1`/`PC-B-B2`; the D-625 VP-INDEX v2.37 changelog entry falsely claimed "VP-091 Full Index description note updated to record v1.1 label-sync" — the body was never edited. 10 other checks PASS. See `consistency-e18-story-pass-13.md`.
+
+Combined verdict per BC-5.39.001: NOT-CLEAN. Streak RESET 1/3 → 0/3.
+
+### Dim-2 (Mechanical Gates — Literal Shell Execution Evidence per D-449(a))
+
+**Gate 1 — O-P10-1: VP-INDEX frontmatter version == changelog-array top row version:**
+
+```
+$ grep "^version:" .factory/specs/verification-properties/VP-INDEX.md | head -1
+version: "2.38"
+
+$ grep -A3 "^changelog:" .factory/specs/verification-properties/VP-INDEX.md | head -3
+  - date: 2026-06-17
+    change: "v2.38 (2026-06-17; D-632 E-18 STORY PASS-13 FIX BURST ...)"
+```
+
+Stdout confirms: frontmatter version "2.38" == changelog top row "v2.38". O-P10-1 PASS.
+
+**Gate 2 — Stale-label cleared: VP-091 Full Index row body contains no normative `(B-1)` or `(B-2)`:**
+
+```
+$ awk '/^\| \[VP-091\]/{found=1} found{print; exit}' .factory/specs/verification-properties/VP-INDEX.md | grep -oE "(PC-B-B1|PC-B-B2)"
+PC-B-B1
+PC-B-B2
+PC-B-B1
+PC-B-B2
+```
+
+Stdout confirms: normative VP-091 row uses `PC-B-B1` and `PC-B-B2` exclusively (the `(B-1)` and `(B-2)` tokens that appear in the same row are inside historical `v1.1 (D-625):` and `(C-P13-001 D-632: stale (B-1)→...)` changelog narration, not in the current-state description).
+
+**Gate 3 — D-448(a): Burst-log Adversary verdict faithfully matches adv-e18-story-pass-13.md Part A finding set:**
+
+```
+$ grep "^BLOCKER\|^MAJOR\|^MEDIUM\|^Observations\|^Verdict:" .factory/cycles/v1.0-brownfield-backfill/adv-e18-story-pass-13.md | head -10
+Verdict: CLEAN
+BLOCKER: 0
+MAJOR: 0
+MEDIUM (load-bearing): 0
+Mis-anchor: 0
+LOW: 0
+Observations: 2 (re-confirmed deferred from pass-12)
+```
+
+Stdout confirms: 0 BLOCKER/MAJOR/load-bearing MEDIUM/mis-anchor/LOW; 2 obs re-confirmed. Burst-log Adversary verdict text above is source-attestation faithful. PASS.
+
+**Gate 4 — 4-index at D-632 (VP bumped; BC/STORY/ARCH unchanged):**
+
+```
+$ grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md .factory/specs/verification-properties/VP-INDEX.md .factory/stories/STORY-INDEX.md .factory/specs/architecture/ARCH-INDEX.md
+BC-INDEX.md:version: "3.07"
+VP-INDEX.md:version: "2.38"
+STORY-INDEX.md:version: "4.13"
+ARCH-INDEX.md:version: "2.54"
+```
+
+4-index: BC v3.07/VP v2.38/STORY v4.13/ARCH v2.54. PASS.
+
+### Dim-5 (Files Touched)
+
+- `.factory/cycles/v1.0-brownfield-backfill/adv-e18-story-pass-13.md` — NEW: pass-13 adversary review persisted (CLEAN; 2 obs re-confirmed deferred; pass-12 closures verified)
+- `.factory/cycles/v1.0-brownfield-backfill/consistency-e18-story-pass-13.md` — NEW: pass-13 consistency-validator report persisted (INCONSISTENT; C-P13-001 MEDIUM stale labels + false changelog; 10 checks PASS)
+- `.factory/specs/verification-properties/VP-INDEX.md` — v2.37→v2.38: VP-091 §Full Index description `(B-1)`→`PC-B-B1` + `(B-2)`→`PC-B-B2`; changelog-array top row v2.38 appended; false v2.37 changelog claim corrected in last_amended; TD-VSDD-060 sibling-sweep extended to index description prose
+- `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` — pass-13 row added (NOT-CLEAN/INCONSISTENT/0/3 RESET); Convergence Status updated ("pass-12 CLEAN (1/3); pass-13 NOT-CLEAN (C-P13-001 VP-INDEX label drift; streak reset 0/3); pass-14 NEXT; package re-frozen after VP-INDEX fix")
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-632 6-column row + Appendix rationale added
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — L-E18-changelog-attestation-and-sibling-sweep-index-prose [process-gap] [codified] appended
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — D-632 8-block entry added (this entry)
+- `.factory/STATE.md` — v3.81→v3.82; phase/current_step → D-632; banner wc-l 418; Phase Progress E-18 STORY cascade pass-13 row added; Concurrent Cycles row updated; Decisions Log D-632 row; §8 VP-INDEX v2.38; Identifier Conventions VP-INDEX cite; §9 Critical Anchors factory-artifacts TBD; Session Resume Checkpoint updated; POSTURE: pass-14 fresh-context re-verify NEXT; package re-FROZEN; streak 0/3
+
+**Files NOT touched (E-18 package re-FROZEN — only VP-INDEX fix burst, rest preserved):**
+- 12 E-18 stories (S-18.00..S-18.10) — UNTOUCHED
+- E-18 epic (epics/E-18-context-durability-cap-032.md) — UNTOUCHED
+- BC-4.15.001 — UNTOUCHED
+- VP-091.md — UNTOUCHED (body was already correct; only VP-INDEX §Full Index description cell was stale)
+- BC-INDEX.md — UNTOUCHED (version remains v3.07)
+- STORY-INDEX.md — UNTOUCHED (version remains v4.13)
+- ARCH-INDEX.md — UNTOUCHED (version remains v2.54)
+
+### Dim-6 (Codifications)
+
+- D-632 codified in decision-log.md (this burst): E-18 STORY PASS-13 NOT-CLEAN FIX BURST — adv CLEAN; consistency INCONSISTENT (C-P13-001 VP-INDEX VP-091 stale labels + false v2.37 changelog); streak RESET 1/3→0/3; VP-INDEX v2.37→v2.38 FIXED
+- L-E18-changelog-attestation-and-sibling-sweep-index-prose [process-gap] [codified] appended to lessons.md: a changelog entry MUST describe a change that was ACTUALLY performed; TD-VSDD-060 sibling-sweep extends to index §Full Index description columns, not only version cells; root: D-625 false attestation; anchor C-P13-001 / D-448(a) / O-P10-1
+
+### Dim-7 (Streak Status)
+
+3-CLEAN streak: **0/3 (RESET)**. Package re-FROZEN after VP-INDEX v2.38 fix. Pass-14 fresh-context adversary + consistency re-verify NEXT (orchestrator-dispatched). Streak target: 3/3. Then story-approval human gate before F4 TDD dispatch.
+
+### Closes
+
+- C-P13-001 MEDIUM FIXED: VP-INDEX VP-091 §Full Index description column `(B-1)`→`PC-B-B1` + `(B-2)`→`PC-B-B2`; VP-INDEX v2.37→v2.38; false v2.37 changelog claim corrected; O-P10-1 parity gate PASS
+- O-P13-1 ADJUDICATED-DEFERRED: S-18.09 AC-008 `;`-split blind spot → S-18.09 F4 TDD implementation anchor (same as O-P12-1)
+- O-P13-2 ADJUDICATED-DEFERRED: ARCH-INDEX "per BC-INDEX v3.06" stale cite → next ARCH-INDEX version bump sweep (same as C-P12-001)
+
+### Factory-artifacts Commits
+
+- TBD-D632-COMMIT state(D-632): E-18 STORY PASS-13 NOT-CLEAN FIX BURST — VP-INDEX v2.37→v2.38 (VP-091 stale labels fixed; false changelog corrected); streak RESET 1/3→0/3; pass-14 NEXT
+- TBD-D632-SHA-PATCH state(D-632-sha-patch): SHA-patch TBD-D632-COMMIT — Active Branches + burst-log Factory-artifacts Commits
