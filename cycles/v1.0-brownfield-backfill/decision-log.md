@@ -1152,3 +1152,26 @@ Pass-13 reveals a false-attestation defect in the D-625 fix burst. During D-625,
 **Lesson codified:** TD-VSDD-060 sibling-sweep discipline extends beyond version cells to ALL downstream sites where a renamed/promoted clause label appears in descriptive prose — including §Full Index description columns in VP-INDEX and BC-INDEX. A changelog entry MUST faithfully describe the changes ACTUALLY performed in the same burst.
 
 **Streak reset:** The pass-13 NOT-CLEAN verdict resets the 3-CLEAN streak from 1/3 to 0/3. The D-632 VP-INDEX v2.38 fix is the ONLY perimeter change in this burst. The package is re-frozen after this fix. Pass-14 is dispatched against the corrected VP-INDEX v2.38 perimeter.
+
+---
+
+## D-633 — E-18 STORY PASS-14 CLEAN — STREAK 1/3 (RESTART AFTER PASS-13 RESET)
+
+**Date:** 2026-06-17
+**Phase:** E-18-story-cascade-pass-14
+**Decision:** E-18 STORY PASS-14 CLEAN — streak advances 0/3 → 1/3 (restart after pass-13 reset by C-P13-001); package FROZEN; D-632 VP-INDEX fix confirmed complete by both fresh-context reviewers (adversary + consistency-validator); 2 observations remain adjudicated-deferred. 4-index UNCHANGED: BC v3.07/VP v2.38/STORY v4.13/ARCH v2.54. Pass-15 NEXT. Parent-commit: 8d81c97f (D-632 SHA-patch HEAD).
+**Parent-commit:** 8d81c97f (D-632 SHA-patch HEAD)
+
+| ID | Decision | Phase | Date |
+|----|----------|-------|------|
+| D-633 | E-18 STORY PASS-14 CLEAN 2026-06-17 — streak 0/3→1/3 (restart after pass-13 reset by C-P13-001); adversary pass-14 CLEAN (0 BLOCKER/0 MAJOR/0 load-bearing MEDIUM/0 mis-anchor/0 LOW; 2 observations re-confirmed deferred: O-P14-1 `;`-split blind spot DEFERRED S-18.09 F4 TDD; O-P14-2 ARCH-INDEX stale cite DEFERRED next ARCH-INDEX bump); consistency-validator CONSISTENT (11/11 checks PASS; zero new findings; C-P13-001 fully closed — VP-INDEX VP-091 `PC-B-B1`/`PC-B-B2` canonical labels confirmed); combined CLEAN per BC-5.39.001; D-632 VP-INDEX v2.38 fix VERIFIED complete by both fresh-context reviewers; full AC↔PC hand-trace of all 12 stories resolves. Package FROZEN; no perimeter content changes in this burst. 4-index UNCHANGED: BC v3.07/VP v2.38/STORY v4.13/ARCH v2.54/L2 v1.0.13. Pass-15 fresh-context adversary + consistency-validator dispatch NEXT (orchestrator-dispatched). | E-18-story-cascade-pass-14 | 2026-06-17 |
+
+**Appendix — D-633 Rationale**
+
+Pass-14 is the first CLEAN pass following the D-632 VP-INDEX v2.38 fix (C-P13-001 closure). The streak restarts at 1/3 after the pass-13 reset.
+
+**D-632 fix verification:** The adversary and consistency-validator independently confirmed that VP-INDEX v2.38 VP-091 §Full Index description column now correctly reads `PC-B-B1` (stderr channel) and `PC-B-B2` (plugin.log channel) — consistent with BC-4.15.001 v1.2 and VP-091.md v1.1. No stale `(B-1)` / `(B-2)` labels remain in any normative VP-INDEX row. The O-P10-1 mechanical gate (VP-INDEX frontmatter version == changelog-array top row) PASSES: v2.38 == v2.38.
+
+**Package freeze discipline maintained:** Per BC-5.39.001 and the L-F2-3clean-streak-requires-frozen-package lesson, a CLEAN pass records verdict + advances streak ONLY. The 2 re-confirmed deferred observations (O-P14-1 `;`-split blind spot, O-P14-2 ARCH-INDEX stale cite) are deferred with concrete future anchors. No perimeter content edits were made in this burst.
+
+**3-CLEAN streak status:** 0/3 → 1/3. Two more consecutive CLEAN passes required for convergence per BC-5.39.001.

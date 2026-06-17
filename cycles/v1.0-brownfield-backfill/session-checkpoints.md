@@ -774,3 +774,15 @@ Summary of D-629 checkpoint (archived reference):
 - 4-index: BC v3.07/VP v2.37/STORY v4.13/ARCH v2.54/L2 v1.0.13. Streak 0/3.
 - develop HEAD: `c000b06f` / main HEAD: `caf06c68` / factory-artifacts HEAD: `bc5bf1d6` (D-629 SHA-patch)
 - D-range: D-001..D-629
+
+---
+
+## D-632 Checkpoint (archived 2026-06-17 by D-633)
+
+**Superseded by D-633 E-18 STORY PASS-14 CLEAN checkpoint (STATE.md §Session Resume Checkpoint).**
+
+Summary of D-632 checkpoint (archived reference):
+- E-18 STORY PASS-13 NOT-CLEAN FIX BURST COMPLETE. Adv CLEAN; consistency INCONSISTENT (C-P13-001 MEDIUM: VP-INDEX VP-091 stale `(B-1)`/`(B-2)` labels + false v2.37 changelog). Streak RESET 1/3→0/3. VP-INDEX v2.37→v2.38 FIXED. L-E18-changelog-attestation-and-sibling-sweep-index-prose [codified].
+- 4-index: BC v3.07/VP v2.38/STORY v4.13/ARCH v2.54/L2 v1.0.13. Package re-FROZEN.
+- develop HEAD: `c000b06f` / main HEAD: `caf06c68` / factory-artifacts HEAD: `8d81c97f` (D-632 SHA-patch-3 HEAD)
+- D-range: D-001..D-632
