@@ -7903,3 +7903,106 @@ D-563 current_step encodes: F2 ADV PASS-2 FIXED — ADR-026 v1.2; 7 BCs v1.2; VP
 ### Factory-artifacts Commits
 
 `162db956` cycle: F2 E-18 pass-2 adversarial fix burst (ADR-026 v1.2 current_wave-sweep + append-log + terminal-wave + 7 BCs v1.2) [D-563]
+
+---
+
+## D-619 BC-INDEX COUNT RECONCILE BURST (2026-06-17)
+
+### Parent Commit
+
+`0bf5cc7a` — D-618 SHA-patch: Active Branches + §9 factory-artifacts HEAD per D-447(c)/D-449(e)
+
+### Adversary Verdict
+
+Not applicable — this burst is a human-directed bookkeeping reconcile (BLOCKER B-001 pre-burst), not an adversarial fix burst. Fresh-context consistency audit surfaced the internal count disagreement as BLOCKER B-001 (BC-INDEX frontmatter total_bcs vs Summary Total vs catalog vs disk all disagreed). Human directive: fix FIRST before E-18 cascade continues.
+
+### Files Touched
+
+- `.factory/specs/behavioral-contracts/BC-INDEX.md` — frontmatter `total_bcs` + `version` + `last_amended` + `changelog` entry; Summary table 6 rows (BC-1/BC-3/BC-5/BC-7/BC-8/Total); subsystem headers SS-01/SS-03/SS-07
+- `.factory/STATE.md` — frontmatter version/phase/last_amended/banner; Last Updated + Current Phase table rows; §8 BC-INDEX row; 4-index literal-shell attestation line; Drift Item D-562 RESOLVED; D-619 Decisions Log entry; Concurrent Cycles brownfield row; banner wc-l entry
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-619 block appended
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — this entry
+
+### Codifications (D-619)
+
+**Counting rule (D-619):** Per POLICY 1 (append-only), ALL catalog entries including withdrawn rows count toward `total_bcs` and per-subsystem Summary rows. Withdrawn BCs (e.g., BC-2.02.013) remain allocated IDs and are not excluded from counts.
+
+**BC-2.02.013 characterization corrected:** Prior Drift Item label "orphan BC-2.02.013" was incorrect. BC-2.02.013 is a legitimately-withdrawn BC (2026-05-03, ADR-014 D-9.2) preserved as audit trail per POLICY 1. Not an orphan.
+
+**Process-gap:** `total_bcs` and Summary counts are not auto-recounted on BC add/withdraw. Every add/withdraw must update: (1) frontmatter `total_bcs`, (2) Summary per-subsystem row, (3) Summary Total row, (4) subsystem section header. Feeds S-18.08/S-18.09 gate-story scope.
+
+### Dim-2 — Mechanical Gates (D-449(a) literal-shell)
+
+**Gate 1 — Catalog↔disk parity:**
+```bash
+find .factory/specs/behavioral-contracts -name 'BC-*.md' -type f | grep -v BC-INDEX | grep -oE 'BC-[0-9]+\.[0-9]+\.[0-9]+' | sort -u | wc -l
+→ 1972
+```
+
+**Gate 2 — Per-prefix catalog row count (active+withdrawn):**
+```bash
+grep -E '^[|] (\[BC-|~~\[BC-)' .factory/specs/behavioral-contracts/BC-INDEX.md | grep -oE 'BC-[0-9]+\.[0-9]+\.[0-9]+' | sort -u | sed 's/\(BC-[0-9]*\)\..*/\1/' | sort | uniq -c
+→ 117 BC-1 / 26 BC-2 / 56 BC-3 / 42 BC-4 / 655 BC-5 / 589 BC-6 / 201 BC-7 / 222 BC-8 / 6 BC-9 / 58 BC-10
+```
+
+**Gate 3 — Summary total arithmetic check:**
+```bash
+python3 -c "print(117+26+56+42+655+589+201+222+6+58)"
+→ 1972
+```
+
+**Gate 4 — frontmatter total_bcs post-edit:**
+```bash
+python3 -c "
+import re
+with open('.factory/specs/behavioral-contracts/BC-INDEX.md','r') as f: c=f.read()
+m=re.match(r'^---\n(.*?)\n---',c,re.DOTALL)
+for l in m.group(1).split('\n'):
+    if l.startswith('total_bcs'): print(l)
+"
+→ total_bcs: 1972
+```
+
+**Gate 5 — Summary table Total row post-edit:**
+```bash
+grep '^\*\*Total\*\*' .factory/specs/behavioral-contracts/BC-INDEX.md
+→ | **Total** | | **1972** | |
+```
+
+**Gate 6 — BC-INDEX version post-edit:**
+```bash
+grep '^version:' .factory/specs/behavioral-contracts/BC-INDEX.md
+→ version: "3.06"
+```
+
+### Dim-5 — Counting Rule Attestation
+
+Counting rule: all catalog entries (active + withdrawn per POLICY 1 append-only) are counted. Withdrawn row BC-2.02.013 counted in BC-2 subsystem total and global total. This rule applies going forward to all `total_bcs` and Summary updates.
+
+### Dim-6 — Before → After
+
+| Field | Before | After |
+|-------|--------|-------|
+| frontmatter total_bcs | 1968 | 1972 |
+| Summary Total | 1966 | 1972 |
+| BC-1 Summary | 118 | 117 |
+| BC-3 Summary | 53 | 56 |
+| BC-5 Summary | 660 | 655 |
+| BC-7 Summary | 200 | 201 |
+| BC-8 Summary | 214 | 222 |
+| BC-INDEX version | 3.05 | 3.06 |
+| Drift Item D-562 | OPEN | RESOLVED |
+
+### Dim-7 — Drift Item Closure
+
+Drift Item "BC-INDEX count reconcile (pre-existing) + O-2 CAP/BC-INDEX drift" (D-562 capture, BLOCKER B-001): **RESOLVED**. Catalog=disk=frontmatter=Summary=1972. BC-2.02.013 characterization corrected from "orphan" to "legitimately-withdrawn audit-trail BC per POLICY 1."
+
+### Advances
+
+D-chain D-618 → D-619; 4-index BC-INDEX v3.05→v3.06 / VP-INDEX v2.35 UNCHANGED / ARCH-INDEX v2.51 UNCHANGED / STORY-INDEX v4.04 UNCHANGED; Drift Item D-562 CLOSED. NEXT: story adversarial 3-CLEAN + consistency audit.
+
+**Trajectory:** →9→9→9→11 (CARRIED — count-reconcile burst; F5 cycle trajectory unchanged)
+
+### Factory-artifacts Commits
+
+TBD (pending commit)

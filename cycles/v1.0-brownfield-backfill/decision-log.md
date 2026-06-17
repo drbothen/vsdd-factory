@@ -574,3 +574,63 @@ Adversary assessment after pass-7: trajectory dropped to 9 (first sub-11 since p
 **D-chain cite:** D-615. **Parent-commit:** 9d8f2d22.
 
 **Posture:** E-18 story pass-2 fix wave COMPLETE. story adversarial 3-CLEAN cascade + consistency audit NEXT. Tool-fix PR fix/compute-input-hash-multi-input-awk → develop must be merged (pr-manager).
+
+---
+
+## D-619 — BC-INDEX COUNT RECONCILE BURST (2026-06-17)
+
+**Decision:** Execute BC-INDEX count reconcile burst to resolve BLOCKER B-001 (pre-existing engine-wide BC-INDEX internal count drift, tracked as Drift Item since D-562). Human-directed: fix FIRST before E-18 cascade continues.
+
+**Context:** BC-INDEX frontmatter `total_bcs: 1968`, Summary Total `1966`, and per-subsystem Summary rows all disagreed with catalog and disk. Catalog and disk agreed: 1972 unique BC IDs (1971 active + 1 withdrawn BC-2.02.013). The Drift Item label "orphan BC-2.02.013" was incorrect: BC-2.02.013 is a legitimately-withdrawn BC preserved as audit trail per POLICY 1 append-only. Multiple per-subsystem Summary rows were stale from prior manual updates not being kept in sync.
+
+**Counting rule established (D-619):** Per POLICY 1 (append-only — retired/withdrawn IDs stay in the index and remain allocated), the counting rule for `total_bcs` and per-subsystem Summary counts is: **ALL catalog entries including withdrawn rows count.** Withdrawn rows must NOT be excluded from per-subsystem counts or from the total. This is the canonical rule going forward.
+
+**Literal-shell evidence (per POLICY 5 / D-449(a)):**
+
+```
+# Disk count
+find .factory/specs/behavioral-contracts -name 'BC-*.md' -type f | grep -v BC-INDEX | grep -oE 'BC-[0-9]+\.[0-9]+\.[0-9]+' | sort -u | wc -l
+→ 1972
+
+# Catalog active rows
+grep -E '^[|] \[BC-' .factory/specs/behavioral-contracts/BC-INDEX.md | grep -oE 'BC-[0-9]+\.[0-9]+\.[0-9]+' | sort -u | wc -l
+→ 1971
+
+# Catalog withdrawn rows
+grep -n '^| ~~\[BC-' .factory/specs/behavioral-contracts/BC-INDEX.md
+→ Line 589: | ~~[BC-2.02.013]...~~ | ... withdrawn 2026-05-03 ...
+
+# Per-prefix catalog totals (active + withdrawn)
+grep -E '^[|] (\[BC-|~~\[BC-)' .factory/specs/behavioral-contracts/BC-INDEX.md | grep -oE 'BC-[0-9]+\.[0-9]+\.[0-9]+' | sort -u | sed 's/\(BC-[0-9]*\)\..*/\1/' | sort | uniq -c
+→  117 BC-1  26 BC-2  56 BC-3  42 BC-4  655 BC-5  589 BC-6  201 BC-7  222 BC-8  6 BC-9  58 BC-10
+→  Total: 117+26+56+42+655+589+201+222+6+58 = 1972
+```
+
+**Actions taken:**
+- `BC-INDEX.md` frontmatter `total_bcs: 1968` → `1972`
+- `BC-INDEX.md` frontmatter `version: "3.05"` → `"3.06"`
+- `BC-INDEX.md` Summary table: BC-1 `118` → `117`; BC-3 `53` → `56`; BC-5 `660` → `655`; BC-7 `200` → `201`; BC-8 `214` → `222`; Total `1966` → `1972`
+- `BC-INDEX.md` subsystem headers: SS-01 `118 BCs (114 active; 2 retired; 1 directory-mismatch from ss-07/)` → `117 BCs`; SS-03 `53 BCs` → `56 BCs`; SS-07 `200 BCs` → `201 BCs`
+- `BC-INDEX.md` changelog: v3.06 entry prepended; last_amended updated
+- `STATE.md` Drift Item D-562: OPEN → RESOLVED; corrected "orphan BC-2.02.013" characterization
+- `STATE.md` D-619 added to Decisions Log; 4-index BC-INDEX row updated v3.05→v3.06; phase/banner/last_amended/version/Current Phase/Last Updated/Concurrent Cycles updated
+- `decision-log.md` D-619 block appended (this entry)
+- `burst-log.md` D-619 burst entry appended (next)
+
+**Process-gap lesson (D-619):** `total_bcs` and Summary counts are not auto-recounted when a BC is added or withdrawn. Every BC add/withdraw must manually update: (1) frontmatter `total_bcs`, (2) Summary table per-subsystem row, (3) Summary table Total row, (4) subsystem section header. This gap feeds the S-18.08/S-18.09 gate-story scope (automated count verification).
+
+**Before → After:**
+- `total_bcs`: 1968 → 1972
+- Summary Total: 1966 → 1972
+- BC-1 Summary: 118 → 117
+- BC-3 Summary: 53 → 56
+- BC-5 Summary: 660 → 655
+- BC-7 Summary: 200 → 201
+- BC-8 Summary: 214 → 222
+- BC-INDEX version: v3.05 → v3.06
+
+**4-index post-burst:** BC-INDEX v3.06 / VP-INDEX v2.35 (UNCHANGED) / STORY-INDEX v4.04 (UNCHANGED) / ARCH-INDEX v2.51 (UNCHANGED). L2-INDEX v1.0.13 (UNCHANGED).
+
+**D-chain cite:** D-618. **Parent-commit:** 0bf5cc7a (D-618 SHA-patch).
+
+**Posture:** BC-INDEX COUNT RECONCILE COMPLETE. Drift Item D-562 RESOLVED. story adversarial 3-CLEAN cascade + consistency audit NEXT — START HERE.
