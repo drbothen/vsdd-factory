@@ -9077,4 +9077,5 @@ ARCH-INDEX.md:version: "2.54"
 
 ### Factory-artifacts Commits
 
-(to be filled with actual SHA after commit)
+- `65ac2b2a` state(D-631): E-18 STORY PASS-12 CLEAN — first legitimate CLEAN pass; streak 0/3→1/3
+- SHA-patch: TBD-D631-SHA-patch (updating Active Branches + Factory-artifacts Commits with 65ac2b2a)
