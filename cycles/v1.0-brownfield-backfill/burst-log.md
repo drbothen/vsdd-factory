@@ -9191,3 +9191,111 @@ ARCH-INDEX.md:version: "2.54"
 - `a3e3607c` state(D-632): E-18 STORY PASS-13 NOT-CLEAN FIX BURST — VP-INDEX v2.37→v2.38 (VP-091 stale labels fixed; false changelog corrected); streak RESET 1/3→0/3; pass-14 NEXT
 - `273d2a0c` state(D-632-sha-patch): SHA-patch a3e3607c — Active Branches + burst-log Factory-artifacts Commits
 - `5ca29ce7` state(D-632-sha-patch-2): finalize burst-log SHA-patch entry (273d2a0c) + STATE.md Active Branches HEAD — factory-artifacts HEAD final
+
+---
+
+## D-634 — E-18 STORY PASS-15 CLEAN — STREAK 2/3 (2026-06-17)
+
+**Orchestrated by:** orchestrator
+**Executed by:** state-manager
+**Parent-commit:** f629f9ef (D-633 burst HEAD)
+**D-ref:** D-634
+
+### Adversary Verdict (pass-15)
+
+Adversary pass-15 CLEAN. 0 BLOCKER, 0 MAJOR, 0 load-bearing MEDIUM, 0 mis-anchor, 0 LOW. 2 observations re-confirmed from pass-14: O-P15-1 [process-gap] `;`-delimited compound-cite blind spot in S-18.09 AC-008 (DEFERRED S-18.09 F4 TDD implementation; same as O-P12-1/O-P13-1/O-P14-1); O-P15-2 [stale-cite] ARCH-INDEX "per BC-INDEX v3.06" annotation (DEFERRED next ARCH-INDEX version bump; same as C-P12-001/O-P13-2/O-P14-2). Pass-14 closures verified: D-632 VP-INDEX v2.38 fix verified complete; C-P13-001 remains FULLY CLOSED; VP-INDEX VP-091 `PC-B-B1`/`PC-B-B2` canonical labels confirmed. Full AC↔PC hand-trace of all 12 stories resolves; F-P11-001 VERIFIED CLOSED. See `adv-e18-story-pass-15.md`.
+
+Consistency-validator pass-15 CONSISTENT — 11/11 checks PASS; zero new findings; C-P13-001 confirmed CLOSED second consecutive pass. See `consistency-e18-story-pass-15.md`.
+
+Combined verdict per BC-5.39.001: CLEAN. Streak ADVANCES 1/3 → 2/3.
+
+### Dim-2 (Mechanical Gates — Literal Shell Execution Evidence per D-449(a))
+
+**Gate 1 — O-P10-1: VP-INDEX frontmatter version == changelog-array top row version:**
+
+```
+$ grep "^version:" .factory/specs/verification-properties/VP-INDEX.md | head -1
+version: "2.38"
+
+$ grep -A3 "^changelog:" .factory/specs/verification-properties/VP-INDEX.md | head -3
+  - date: 2026-06-17
+    change: "v2.38 (2026-06-17; D-632 E-18 STORY PASS-13 FIX BURST ...)"
+```
+
+Stdout confirms: frontmatter version "2.38" == changelog top row "v2.38". O-P10-1 PASS.
+
+**Gate 2 — Stale-label cleared (C-P13-001 second consecutive confirmation): VP-091 Full Index row body contains no normative `(B-1)` or `(B-2)`:**
+
+```
+$ awk '/^\| \[VP-091\]/{found=1} found{print; exit}' .factory/specs/verification-properties/VP-INDEX.md | grep -oE "(PC-B-B1|PC-B-B2)"
+PC-B-B1
+PC-B-B2
+PC-B-B1
+PC-B-B2
+```
+
+Stdout confirms: normative VP-091 row uses `PC-B-B1` and `PC-B-B2` exclusively. C-P13-001 CLOSED (second consecutive confirmation). PASS.
+
+**Gate 3 — D-448(a): Burst-log Adversary verdict faithfully matches adv-e18-story-pass-15.md Part A finding set:**
+
+```
+$ grep "^BLOCKER\|^MAJOR\|^MEDIUM\|^Observations\|^Verdict:" .factory/cycles/v1.0-brownfield-backfill/adv-e18-story-pass-15.md | head -10
+Verdict: CLEAN
+BLOCKER: 0
+MAJOR: 0
+MEDIUM (load-bearing): 0
+Mis-anchor: 0
+LOW: 0
+Observations: 2 (re-confirmed deferred from pass-14)
+```
+
+Stdout confirms: 0 BLOCKER/MAJOR/load-bearing MEDIUM/mis-anchor/LOW; 2 obs re-confirmed. Burst-log Adversary verdict text above is source-attestation faithful. PASS.
+
+**Gate 4 — 4-index UNCHANGED at D-634:**
+
+```
+$ grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md .factory/specs/verification-properties/VP-INDEX.md .factory/stories/STORY-INDEX.md .factory/specs/architecture/ARCH-INDEX.md
+BC-INDEX.md:version: "3.07"
+VP-INDEX.md:version: "2.38"
+STORY-INDEX.md:version: "4.13"
+ARCH-INDEX.md:version: "2.54"
+```
+
+4-index: BC v3.07/VP v2.38/STORY v4.13/ARCH v2.54 UNCHANGED. PASS.
+
+### Dim-5 (Files Touched)
+
+- `.factory/cycles/v1.0-brownfield-backfill/adv-e18-story-pass-15.md` — NEW: pass-15 adversary review persisted (CLEAN; 2 obs re-confirmed deferred; pass-14 closures verified)
+- `.factory/cycles/v1.0-brownfield-backfill/consistency-e18-story-pass-15.md` — NEW: pass-15 consistency-validator report persisted (CONSISTENT; 11/11 checks PASS; C-P13-001 confirmed closed second consecutive pass)
+- `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` — pass-15 row added (CLEAN/CONSISTENT/2/3); Convergence Status updated ("pass-14 CLEAN(1/3); pass-15 CLEAN(2/3); pass-16 NEXT — one CLEAN from BC-5.39.001 3-CLEAN convergence; package FROZEN")
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-634 6-column row + Appendix rationale added
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — D-634 8-block entry added (this entry)
+- `.factory/STATE.md` — v3.83→v3.84; phase/current_step → D-634; banner wc-l; Phase Progress E-18 STORY cascade pass-15 row added; Concurrent Cycles row updated; Decisions Log D-634 row; Active Branches factory-artifacts TBD; Session Resume Checkpoint updated; POSTURE: pass-16 fresh-context re-verify NEXT (one CLEAN from convergence); package FROZEN; streak 2/3
+
+**Files NOT touched (E-18 package FROZEN — zero perimeter content changes):**
+- 12 E-18 stories (S-18.00..S-18.10) — UNTOUCHED
+- E-18 epic (epics/E-18-context-durability-cap-032.md) — UNTOUCHED
+- BC-4.15.001 — UNTOUCHED
+- VP-091.md — UNTOUCHED
+- BC-INDEX.md — UNTOUCHED (version remains v3.07)
+- VP-INDEX.md — UNTOUCHED (version remains v2.38)
+- STORY-INDEX.md — UNTOUCHED (version remains v4.13)
+- ARCH-INDEX.md — UNTOUCHED (version remains v2.54)
+
+### Dim-6 (Codifications)
+
+- D-634 codified in decision-log.md (this burst): E-18 STORY PASS-15 CLEAN — streak 1/3→2/3; package FROZEN (no content changes pass-14→15); both fresh-context reviewers CLEAN/CONSISTENT; pass-16 potential convergence pass; no new lesson required
+- No new lesson appended (L-F2-3clean-streak-requires-frozen-package already covers this CLEAN-streak-advance pattern; novelty NONE)
+
+### Dim-7 (Streak Status)
+
+3-CLEAN streak: **2/3 (SECOND ADVANCE)**. Package FROZEN. Pass-16 fresh-context adversary + consistency-validator re-verify NEXT (orchestrator-dispatched). Streak target: 3/3 → convergence + story-approval human gate before F4 TDD dispatch.
+
+### Closes
+
+- O-P15-1 ADJUDICATED-DEFERRED: S-18.09 AC-008 `;`-split blind spot → S-18.09 F4 TDD implementation anchor (same as O-P12-1/O-P13-1/O-P14-1)
+- O-P15-2 ADJUDICATED-DEFERRED: ARCH-INDEX "per BC-INDEX v3.06" stale cite → next ARCH-INDEX version bump sweep (same as C-P12-001/O-P13-2/O-P14-2)
+
+### Factory-artifacts Commits
+
+- `TBD` state(D-634): E-18 STORY PASS-15 CLEAN — streak 1/3→2/3; pass-16 NEXT (one CLEAN from convergence); package FROZEN; SHA-patch NEXT

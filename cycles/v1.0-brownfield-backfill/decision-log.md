@@ -1175,3 +1175,26 @@ Pass-14 is the first CLEAN pass following the D-632 VP-INDEX v2.38 fix (C-P13-00
 **Package freeze discipline maintained:** Per BC-5.39.001 and the L-F2-3clean-streak-requires-frozen-package lesson, a CLEAN pass records verdict + advances streak ONLY. The 2 re-confirmed deferred observations (O-P14-1 `;`-split blind spot, O-P14-2 ARCH-INDEX stale cite) are deferred with concrete future anchors. No perimeter content edits were made in this burst.
 
 **3-CLEAN streak status:** 0/3 → 1/3. Two more consecutive CLEAN passes required for convergence per BC-5.39.001.
+
+---
+
+## D-634 — E-18 STORY PASS-15 CLEAN — STREAK 2/3
+
+**Date:** 2026-06-17
+**Phase:** E-18-story-cascade-pass-15
+**Decision:** E-18 STORY PASS-15 CLEAN — streak advances 1/3 → 2/3; package FROZEN (frozen since pass-14; no content changes pass-14→15); both fresh-context reviewers CLEAN/CONSISTENT; pass-16 is the potential convergence pass. No new lesson required. Parent-commit: f629f9ef (D-633 burst HEAD).
+**Parent-commit:** f629f9ef (D-633 burst HEAD)
+
+| ID | Decision | Phase | Date |
+|----|----------|-------|------|
+| D-634 | E-18 STORY PASS-15 CLEAN 2026-06-17 — streak 1/3→2/3; adversary pass-15 CLEAN (0 BLOCKER/0 MAJOR/0 load-bearing MEDIUM/0 mis-anchor/0 LOW; 2 observations re-confirmed deferred: O-P15-1 `;`-split blind spot DEFERRED S-18.09 F4 TDD; O-P15-2 ARCH-INDEX stale cite DEFERRED next ARCH-INDEX bump); consistency-validator CONSISTENT (11/11 checks PASS; zero new findings; C-P13-001 confirmed CLOSED second consecutive pass — VP-INDEX VP-091 `PC-B-B1`/`PC-B-B2` canonical labels confirmed); combined CLEAN per BC-5.39.001; full AC↔PC hand-trace of all 12 stories resolves. Package FROZEN (no content changes pass-14→15); zero perimeter content changes. 4-index UNCHANGED: BC v3.07/VP v2.38/STORY v4.13/ARCH v2.54/L2 v1.0.13. Pass-16 fresh-context adversary + consistency-validator dispatch NEXT (orchestrator-dispatched) — one CLEAN from BC-5.39.001 3-CLEAN convergence. | E-18-story-cascade-pass-15 | 2026-06-17 |
+
+**Appendix — D-634 Rationale**
+
+Pass-15 is the second consecutive CLEAN pass following the D-632 VP-INDEX v2.38 fix. The streak advances to 2/3. One more consecutive CLEAN pass required for BC-5.39.001 convergence.
+
+**Novelty assessment:** NONE. The adversary found zero new findings. The 2 re-confirmed observations are the same items carried since pass-12 (O-P15-1 = O-P12-1/O-P13-1/O-P14-1; O-P15-2 = C-P12-001/O-P13-2/O-P14-2), each with a concrete future anchor unchanged from prior passes. No new lesson required — L-F2-3clean-streak-requires-frozen-package already covers this pattern.
+
+**Package freeze discipline maintained:** Per BC-5.39.001 and the L-F2-3clean-streak-requires-frozen-package lesson, a CLEAN pass records verdict + advances streak ONLY. Zero perimeter content edits. The 2 adjudicated-deferred observations remain deferred with concrete future anchors (S-18.09 F4 TDD; next ARCH-INDEX bump).
+
+**3-CLEAN streak status:** 1/3 → 2/3. One more consecutive CLEAN pass required for convergence per BC-5.39.001. Package remains FROZEN.
