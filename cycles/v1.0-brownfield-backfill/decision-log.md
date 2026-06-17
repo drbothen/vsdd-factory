@@ -1055,3 +1055,24 @@ D-627's physical fix work was correct — the changelog-array rows were properly
 **Consequence of the mis-record:** The streak was falsely advanced from 0/3 to 1/3, which would have caused pass-11 to be treated as "one pass from 2/3" rather than the correct "first pass from 0/3." If undetected, this would have caused the 3-CLEAN convergence gate to fire one pass early — a convergence integrity violation.
 
 **Lesson codified (L-entry appended to lessons.md):** "State-manager MUST persist the adversary's literal returned verdict (D-448(a) source-attestation parity). A pass that finds findings is NOT-CLEAN and resets the streak to 0/3 EVEN IF the same burst fixes them. Conflating 'findings fixed' with 'pass CLEAN' falsely inflates the 3-CLEAN streak and corrupts the convergence gate. Gate: burst-log/INDEX/STATE streak value must equal the adversary review file's verdict-derived streak."
+
+## D-629 — E-18 STORY PASS-11 FIX BURST
+
+**Date:** 2026-06-17
+**Phase:** E-18-story-pass-11-fix
+**Decision:** F-P11-001 BLOCKER (AC-008 RAW_LABEL extraction regex character class `[^ )+-]+` excludes `-`, truncating hyphenated labels) CLOSED — S-18.09 v1.10→v1.11: regex changed to `[^ )]+` in both grep invocations. Consistency-validator pass-11 CONSISTENT (no findings). STORY-INDEX v4.12→v4.13 (S-18.09 cell v1.10→v1.11). 4-index: BC-INDEX/VP-INDEX/ARCH-INDEX UNCHANGED; STORY-INDEX v4.13. Streak: 0/3 (pass-11 NOT-CLEAN). Pass-12 re-verify NEXT. 1 lesson appended (L-F2-negated-character-class-hyphen-exclusion). Parent-commit: f8022598 (D-628 SHA-patch HEAD).
+**Parent-commit:** f8022598 (D-628 SHA-patch HEAD)
+
+| ID | Decision | Phase | Date |
+|----|----------|-------|------|
+| D-629 | E-18 STORY PASS-11 FIX BURST 2026-06-17 — Pass-11 adversary returned NOT-CLEAN: F-P11-001 BLOCKER (S-18.09 AC-008 RAW_LABEL extraction regex `[^ )+-]+` excluded `-` in negated character class, truncating `PC-B-B1` → `PC`, `PC-A` → `P`; produced five known-false FAIL outputs on S-18.06 hyphenated PC headers; gate bats `assert_success` + `refute_output --partial "FAIL"` contract structurally unpassable). Pass-11 consistency-validator returned CONSISTENT (no findings). D-629 FIX: S-18.09 v1.11 — regex `[^ )+-]+` → `[^ )]+` in both grep invocations. Literal shell verification: `echo "postcondition PC-B-B1 — desc" | grep -oiE "(precondition|postcondition|invariant) [^ )]+" | grep -oE " [^ )]+$" | tr -d ' '` → `PC-B-B1` (correct; old regex yielded `PC`). STORY-INDEX v4.12→v4.13 (S-18.09 cell v1.10→v1.11). 4-index: BC-INDEX v3.07 / VP-INDEX v2.37 / STORY-INDEX v4.13 / ARCH-INDEX v2.54. STATE.md v3.78→v3.79. Streak: 0/3 (pass-11 NOT-CLEAN; BC-5.39.001). 1 lesson: L-F2-negated-character-class-hyphen-exclusion [codified]. POSTURE: pass-12 re-verify NEXT — START HERE. | E-18-story-pass-11-fix | 2026-06-17 |
+
+**Appendix — D-629 Rationale**
+
+F-P11-001 is a character-class authoring error introduced in v1.9 (F-P9-002 compound-cite redesign). The pattern `[^ )+-]+` was intended to exclude space, `)`, and `+` (the compound-split delimiter). However, in POSIX ERE negated character classes, `-` positioned between two characters (`+` and `]`) is treated as a literal hyphen exclusion, not as a range-boundary indicator. The range `+-]` has no valid ascending-range interpretation (ASCII `+` = 43, `]` = 93 but that range includes many characters; `)` = 41 so `)+` is also not a range). Implementations consistently treat `[^ )+-]` as: exclude space (0x20), exclude `)` (0x29), exclude `+` (0x2B), exclude `-` (0x2D).
+
+The consequence: any label containing a hyphen is truncated at the first `-`. For `PC-B-B1`, first grep matches `postcondition PC` (stops at `-`), second grep extracts ` PC`, tr yields `PC`. The `_resolve_clause` letter-form check `^PC-[A-Z]` receives `PC` — no leading `PC-[A-Z]` → falls through to numeric with NORM_LABEL=`PC`. The clause-existence check `grep -cE "^PC\. "` against BC-4.15.001 §Postconditions yields 0 (BC uses `**PC-A**` bold-heading form, not `^PC.` bare numbering). Gate outputs: `FAIL: S-18.06...md cites BC-4.15.001 postcondition PC-B-B1 (normalized: PC) but clause not found`.
+
+The fix `[^ )]+` excludes only space and `)`. The `+` compound-split delimiter is absent from label tokens (segments are split on `+` before RAW_LABEL extraction, so the remaining segment text cannot contain a bare `+`). No inadvertent cross-segment boundary consumption occurs.
+
+**Lesson codified (L-entry appended to lessons.md):** "POSIX ERE negated character classes: a `-` between two non-first/non-last characters is a literal hyphen, NOT a range indicator. `[^ )+-]+` excludes space, `)`, `+`, AND `-` — producing truncation of any hyphenated token. When the intent is 'match anything except space and `)`, use `[^ )]+`. Verify character-class behavior against the actual token forms in the spec (e.g., PC-B-B1, PC-A) before committing gate snippets. Applicable to any AC-008-style compound-cite gate.'"

@@ -8885,3 +8885,82 @@ $ grep -nc "FIRST CLEAN\|pass-10 CLEAN\|streak 1/3\|1/3" \
 ### Factory-artifacts Commits
 
 `5e5e8bdb` state(D-628): PASS-10 VERDICT CORRECTION — D-448(a) source-attestation parity restore; NOT-CLEAN/0/3 corrected; D-628 codified; 1 lesson; pass-11 NEXT
+`f8022598` state(D-628-SHA-patch): Active Branches factory-artifacts SHA-patch → 5e5e8bdb; burst-log D-628 Factory-artifacts Commits line updated
+
+## D-629 — E-18 STORY PASS-11 FIX BURST (2026-06-17)
+
+**Parent-commit:** f8022598 (D-628 SHA-patch HEAD)
+
+### Dim-1 (Adversary Verdict)
+
+Adversary pass-11 verdict: NOT-CLEAN. 1 BLOCKER (F-P11-001), 0 MAJOR, 0 load-bearing MEDIUM, 0 LOW, 1 observation (O-P11-1).
+
+**F-P11-001 (BLOCKER):** AC-008 RAW_LABEL extraction regex character class `[^ )+-]+` excluded `-` (literal hyphen between `+` and `]` in POSIX ERE negated class), truncating `PC-B-B1` → `PC`, `PC-A` → `P`. Produced 5 known-false FAIL outputs on S-18.06 AC headers (PC-B-B1, PC-B-B2, PC-A, PC-D, PC-C), making the gate bats `assert_success` + `refute_output --partial "FAIL"` contract structurally unpassable.
+
+**O-P11-1:** STORY-INDEX v4.12 while other indexes' D-625 rows cite v4.10; D-448(b) exempt; informational only.
+
+Consistency-validator pass-11 verdict: CONSISTENT. No findings.
+
+3-CLEAN streak: RESET 0/3 (pass-11 NOT-CLEAN). D-629 fix burst applied. Pass-12 re-verify NEXT.
+
+Source attestation (D-448(a)): adv-e18-story-pass-11.md Part A faithfully described above. consistency-e18-story-pass-11.md CONSISTENT verdict faithfully recorded.
+
+### Dim-2 (Mechanical Gates — D-449(a) literal-shell with captured stdout)
+
+**Gate 1 — Verify regex fix in S-18.09 v1.11 (F-P11-001 fix site):**
+
+```
+$ grep -n '\[\^ )' /Users/zious/Documents/GITHUB/vsdd-factory/.factory/stories/S-18.09-f2-process-gap-lesson-gate-checks.md
+```
+
+Expected: lines containing `[^ )]+` (old `[^ )+-]+` gone). Actual stdout:
+
+```
+401:        "(precondition|postcondition|invariant) [^ )]+" \
+403:        | grep -oE " [^ )]+$" | tr -d ' ')
+```
+
+Two occurrences of `[^ )]+` — correct. Zero occurrences of `[^ )+-]+` — old pattern removed. PASS.
+
+**Gate 2 — Hand-trace: hyphenated label extraction with new regex:**
+
+```
+$ echo "postcondition PC-B-B1 — some description" | grep -oiE "(precondition|postcondition|invariant) [^ )]+" | grep -oE " [^ )]+$" | tr -d ' '
+PC-B-B1
+```
+
+Label `PC-B-B1` fully preserved (not truncated). PASS.
+
+**Gate 3 — Own burst-log 8-block gate (D-446(a)):**
+
+Sections present: Parent-commit ✓ / Adversary verdict ✓ / Files touched ✓ / Codifications ✓ / Dim-2 ✓ / Dim-5 ✓ / Dim-6 ✓ / Dim-7 ✓ / Closes ✓ / Factory-artifacts Commits ✓. PASS.
+
+### Dim-5 (Files Touched)
+
+- `.factory/stories/S-18.09-f2-process-gap-lesson-gate-checks.md` — v1.10→v1.11: RAW_LABEL regex `[^ )+-]+` → `[^ )]+` (both grep invocations); frontmatter version + last_amended + modified[] + Changelog table updated
+- `.factory/stories/STORY-INDEX.md` — v4.12→v4.13: S-18.09 cell updated `story v1.10 → v1.11 — pass-11 fix burst`; last_amended updated with D-629 entry
+- `.factory/cycles/v1.0-brownfield-backfill/adv-e18-story-pass-11.md` — NEW: pass-11 adversary review persisted (NOT-CLEAN; F-P11-001 BLOCKER; O-P11-1 obs; Part C closure note)
+- `.factory/cycles/v1.0-brownfield-backfill/consistency-e18-story-pass-11.md` — NEW: pass-11 consistency-validator report persisted (CONSISTENT; all 7 checks PASS)
+- `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` — pass-11 row added (NOT-CLEAN/CONSISTENT/0/3); pass-10 closures note added; Convergence Status narrative updated; Convergence Status bullet updated to pass-11/D-629
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-629 block added (6-column row + Appendix rationale)
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — D-628 Factory-artifacts Commits SHA-patch line added; D-629 8-block entry added (this entry)
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — L-F2-negated-character-class-hyphen-exclusion [process-gap] [codified] appended
+- `.factory/STATE.md` — v3.78→v3.79; phase/current_step → D-629; banner wc-l; Phase Progress + Concurrent Cycles + Decisions Log D-629 row; Session Resume Checkpoint updated
+
+### Dim-6 (Codifications)
+
+- D-629 codified in decision-log.md (this burst)
+- L-F2-negated-character-class-hyphen-exclusion [process-gap] [codified] appended to lessons.md: POSIX ERE negated char class `-` between non-first/non-last is literal hyphen exclusion; `[^ )+-]+` truncates PC-B-B1→PC; use `[^ )]+` when hyphenated labels are in scope
+
+### Dim-7 (Streak Status)
+
+3-CLEAN streak: 0/3 (pass-11 NOT-CLEAN — F-P11-001 BLOCKER found; D-629 fix burst applied). Pass-12 adversary + consistency re-verify NEXT — START HERE. Streak target: 3/3. Then story-approval human gate before F4 TDD dispatch.
+
+### Closes
+
+- F-P11-001 BLOCKER CLOSED: S-18.09 v1.11 RAW_LABEL regex `[^ )+-]+` → `[^ )]+`
+- O-P11-1 obs: no fix required (D-448(b) exempt; informational)
+
+### Factory-artifacts Commits
+
+`[SHA-PATCH]` state(D-629): E-18 STORY PASS-11 FIX BURST — F-P11-001 BLOCKER RAW_LABEL regex closed; S-18.09 v1.11; STORY-INDEX v4.13; 1 lesson; pass-12 NEXT

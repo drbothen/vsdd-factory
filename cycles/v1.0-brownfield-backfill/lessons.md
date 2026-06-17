@@ -4171,3 +4171,21 @@ done
 **Consequence if missed:** Early convergence gate fire — the 3-CLEAN gate would trigger one pass early, causing the cascade to declare convergence when it has not actually achieved three consecutive clean passes.
 
 **Cites:** D-628; D-448(a); D-627 (violation instance); BC-5.39.001 (3-CLEAN convergence protocol); S-18.09 (anchor cascade); adv-e18-story-pass-10.md; consistency-e18-story-pass-10.md; INDEX.md E-18 story cascade table.
+
+---
+
+### L-F2-negated-character-class-hyphen-exclusion
+
+**Tags:** [process-gap] [codified]
+
+**Summary:** POSIX ERE negated character class `[^ )+-]+` excludes `-` (literal hyphen between `+` and `]`), not a range — truncating hyphenated token labels at the first hyphen.
+
+**Lesson (codified):** In POSIX ERE, a `-` between two non-first/non-last characters in a negated character class is a literal hyphen exclusion, NOT a range indicator. The class `[^ )+-]` excludes: space, `)`, `+`, and `-`. This is NOT the same as `[^ )+]` (which excludes only space, `)`, and `+`). When an AC gate snippet needs to capture hyphenated labels like `PC-B-B1`, `PC-A`, `INV-1`, etc., the character class MUST NOT include `-`. Use `[^ )]+` (exclude space and `)` only) when the intent is "match any non-space, non-close-paren token."
+
+**Root cause (D-629, F-P11-001):** S-18.09 v1.9 introduced the compound-cite extraction redesign (F-P9-002). The RAW_LABEL extraction used `[^ )+-]+` intending to exclude the compound-split delimiter `+` and the clause-terminator `)`. The `-` was accidentally included in the negated set, silently truncating every hyphenated label. The bug survived passes 9 and 10 because prior reviews focused on extraction scope (fences, AC-section), not label-extraction grammar.
+
+**Gate (codified):** Before committing any AC gate snippet that extracts clause labels from text (e.g., `PC-B-B1`, `PC-A`, `INV-1`), run a literal shell hand-trace against a real example token: `echo "postcondition PC-B-B1" | grep -oiE "(precondition|postcondition|invariant) [^ )]+" | grep -oE " [^ )]+$" | tr -d ' '` must return `PC-B-B1`, not `PC`. If it returns a truncated result, the character class excludes `-`.
+
+**Consequence if missed:** Five known-false FAIL outputs on real in-scope E-18 story (S-18.06) AC headers. Gate bats `assert_success` + `refute_output --partial "FAIL"` contract permanently unpassable while S-18.06 is in the scan set. AC-008 centerpiece gate structurally broken.
+
+**Cites:** D-629; F-P11-001; S-18.09 v1.11 (fix site); S-18.06 (false-positive FAIL site, 5 AC headers PC-B-B1/PC-B-B2/PC-A/PC-D/PC-C); BC-4.15.001 (cited BC with letter-label postconditions); AC-008 compound-cite gate.
