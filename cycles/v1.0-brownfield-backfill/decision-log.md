@@ -873,3 +873,65 @@ Sum = 117+26+56+42+655+589+201+222+6+58 = 1,972 VERIFIED matches BC-INDEX v3.06 
 **D-chain cite:** D-624. **Parent-commit:** 22e57c90 (D-624 Commit-E/SHA-patch HEAD).
 
 **Posture:** E-18 STORY PASS-8 FIX BURST COMPLETE. 3-CLEAN streak 0/3 (pass-8 NOT-CLEAN → fix-burst). Pass-9 adversary dispatch + consistency re-verify NEXT — START HERE.
+
+---
+
+## D-626
+
+**Date:** 2026-06-17
+**Phase:** E-18-pass9-fix-burst
+**Decision:** E-18 STORY PASS-9 FIX BURST — BC-INDEX v3.07 changelog-array parity repair; S-18.06 v1.5 BC cite propagation; S-18.09 v1.9 compound-cite + AC-section scope; STORY-INDEX v4.11.
+
+### 6-Column Row
+
+| ID | Decision | Phase | Date | Refs | Closes |
+|----|----------|-------|------|------|--------|
+| D-626 | E-18 STORY PASS-9 FIX BURST 2026-06-17 — BC-INDEX v3.07 changelog-array parity repair (F-P9-001 MAJOR: D-625 burst advanced version+last_amended but missed changelog-array leg — partial-fix regression in index-sync leg); S-18.06 v1.4→v1.5: BC-4.15.001 v1.1→v1.2 cite propagation in story body (C-P9-001 MAJOR: PO bump at D-625 did not propagate to citing story body in same burst — POLICY 8 cross-artifact version-cite propagation gap); S-18.09 v1.8→v1.9: compound-cite extraction global-match (F-P9-002 MED load-bearing: AC-008 gate extracted only first BC cite per line; spec requires all cites; EC-009 broken-second-cite fixture added) + AC-section scope explicit (F-P9-003 LOW). STORY-INDEX v4.10→v4.11: S-18.06 v1.5 + S-18.09 v1.9 version-cell syncs (POLICY 14 parity). BC-INDEX/VP-INDEX/ARCH-INDEX UNCHANGED (v3.07/v2.37/v2.54). adv-e18-story-pass-9.md (NOT-CLEAN) + consistency-e18-story-pass-9.md (INCONSISTENT) CREATED. INDEX.md pass-9 row added; Convergence Status updated (streak 0/3; pass-10 NEXT; D-range D-614..D-626). 3 lessons: L-F2-index-sync-leg-partial-fix-regression [process-gap] [codified] (anchor S-18.08/S-18.09); L-F2-cross-artifact-version-cite-propagation [process-gap] [codified] (anchor S-18.06); L-F2-gate-cardinality-completeness [process-gap] [codified] (anchor S-18.09). 3-CLEAN streak 0/3 (pass-9 NOT-CLEAN); pass-10 NEXT. Parent-commit: f5c16953 (D-625 Commit-E/SHA-patch HEAD). | E-18-pass9-fix-burst | 2026-06-17 | D-625, F-P9-001/002/003, C-P9-001, POLICY 8, POLICY 14, E-18, BC-4.15.001 v1.2, S-18.06 v1.5, S-18.09 v1.9 | F-P9-001 MAJOR (BC-INDEX changelog-array parity repair); C-P9-001 MAJOR (S-18.06 BC cite propagation); F-P9-002 MED load-bearing (S-18.09 compound-cite global-match + EC-009); F-P9-003 LOW (S-18.09 AC-section scope) |
+
+### Appendix Prose
+
+**Finding F-P9-001 (MAJOR) — BC-INDEX v3.07 changelog-array parity repair:**
+
+The D-625 fix burst bumped BC-INDEX `version:` from v3.06 to v3.07 and updated `last_amended:` correspondingly (legs 1 and 4 of POLICY 14 parity). However the `changelog:` YAML array (leg 5 for structured index files) was not updated — no v3.07 entry was inserted. The topmost array entry remained v3.06. This is a class of partial-fix regression: the version number was advanced without completing the associated changelog-array entry.
+
+**Cure:** State-manager self-checklist must verify changelog-array row presence for every own version bump. After any state-manager burst that increments an index's `version:` frontmatter key, a literal-shell check `grep -c "v<NEW_VERSION>" <INDEX>` must return ≥ 1 match in the changelog array before committing.
+
+**Finding C-P9-001 (MAJOR) — S-18.06 BC-4.15.001 v1.1→v1.2 cite drift:**
+
+The product-owner bumped BC-4.15.001 from v1.1 to v1.2 in the D-625 burst. S-18.06 story body cites BC-4.15.001 v1.1 in its AC acceptance criteria traceability section. POLICY 8 requires that when a BC version bumps, all citing artifacts in the same burst must be updated to the new cite. The D-625 burst omitted S-18.06. The consistency-validator detected this at pass-9 as C-P9-001.
+
+**Cure:** Whenever a BC version bumps, an exhaustive citer-grep must be run on every story file that cites the BC by version (e.g., `grep -rl "BC-4.15.001 v1.1" .factory/stories/`) and all citing stories must be updated in the same burst.
+
+**Finding F-P9-002 (MEDIUM load-bearing) — Gate cardinality-completeness:**
+
+The AC-008 compound-cite extraction gate in S-18.09 v1.8 used first-match-per-line semantics rather than global-match (all cites per line) as the spec required. This is the gate-cardinality-completeness class: the gate checked a subset of what the spec mandated, creating a latent false-GREEN for any line with two or more BC cites. The EC-009 fixture (broken-second-cite scenario) was absent from the test vectors.
+
+**Cure:** Gate specs must explicitly state cardinality: "extract ALL occurrences" vs "extract first occurrence." The EC-009 fixture (line with correct first cite + broken second cite) must fail the gate.
+
+**Finding F-P9-003 (LOW) — AC-section scope underspecified:**
+
+The AC-section extraction definition in S-18.09 v1.8 did not state the heading-level scope (H2 vs H3). Fixed by adding explicit scope note: "AC section = text between `## Acceptance Criteria` H2 heading and the next H2 heading."
+
+**3-CLEAN streak:** Pass-9 NOT-CLEAN → streak 0/3. Pass-10 = NEXT.
+
+**Lessons codified:**
+- **L-F2-index-sync-leg-partial-fix-regression [process-gap] [codified]:** A version bump on an index file must move ALL parity legs including the changelog-array row. The D-625 burst moved frontmatter version + last_amended but not the changelog array — a 4-of-5 partial-fix. Cure: state-manager self-checklist requiring changelog-array presence check on every own version bump. Anchor S-18.08/S-18.09.
+- **L-F2-cross-artifact-version-cite-propagation [process-gap] [codified]:** When a BC version bumps (PO agent), ALL story bodies citing that BC by version must be updated in the same burst (POLICY 8). The D-625 PO bump BC-4.15.001 v1.1→v1.2 was not propagated to S-18.06 body. Cure: exhaustive citer-grep on every BC version bump before committing. Anchor S-18.06.
+- **L-F2-gate-cardinality-completeness [process-gap] [codified]:** Gates must check ALL items matching a spec pattern (e.g., ALL BC cites per line), not just the first match. A gate that checks only first-match is a latent false-GREEN generator when multi-cite lines exist. Cure: gate spec must state cardinality explicitly; test vectors MUST include a multi-cite fixture where the first cite passes and the second fails (EC-009 class). Anchor S-18.09.
+
+**Actions taken:**
+- `BC-INDEX.md` v3.07 UNCHANGED — changelog-array v3.07 entry ADDED (parity repair; version stays v3.07)
+- `STORY-INDEX.md` v4.10→v4.11: S-18.06 v1.5 + S-18.09 v1.9 version-cell syncs; frontmatter version/last_amended bumped
+- `adv-e18-story-pass-9.md` CREATED: adversary pass-9 review (NOT-CLEAN; F-P9-001 MAJOR, F-P9-002 MED load-bearing, F-P9-003 LOW)
+- `consistency-e18-story-pass-9.md` CREATED: consistency report pass-9 (INCONSISTENT; C-P9-001 MAJOR)
+- `INDEX.md` E-18 STORY cascade section: pass-8 row de-bolded; pass-9 row added; pass-8 closures note added; Convergence Status updated (pass-9 NOT-CLEAN; streak 0/3; pass-10 NEXT; D-range D-614..D-626)
+- `decision-log.md` D-626 block appended (this entry)
+- `lessons.md` 3 lesson entries appended
+- `burst-log.md` D-626 burst entry appended (D-444(c) 8 blocks)
+- `STATE.md` v3.75→v3.76: D-626 frontmatter + Decisions Log + banner entry; 4-index BC-INDEX v3.07 / VP-INDEX v2.37 / STORY-INDEX v4.11 / ARCH-INDEX v2.54; POSTURE pass-10; Session Resume Checkpoint updated
+
+**4-index post-burst:** BC-INDEX v3.07 / VP-INDEX v2.37 / STORY-INDEX v4.11 / ARCH-INDEX v2.54. L2-INDEX v1.0.13 (UNCHANGED).
+
+**D-chain cite:** D-625. **Parent-commit:** f5c16953 (D-625 Commit-E/SHA-patch HEAD).
+
+**Posture:** E-18 STORY PASS-9 FIX BURST COMPLETE. 3-CLEAN streak 0/3 (pass-9 NOT-CLEAN → fix-burst). Pass-10 adversary dispatch + consistency re-verify NEXT — START HERE.

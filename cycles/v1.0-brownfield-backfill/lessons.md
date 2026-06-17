@@ -4039,3 +4039,61 @@ done
 **Cites:** D-625; F-P8-003; D-619 (prior BC-INDEX count reconcile); ARCH-INDEX v2.54 §Subsystem Registry; BC-INDEX v3.06 §Summary; POLICY 1 (append-only, withdrawn count); POLICY 14 (body edit requires version bump); S-18.08/S-18.09.
 
 **Closes:** F-P8-003 fixed; ARCH-INDEX row-sum-equals-Total invariant restored; L-F2-arch-index-subsystem-row-vs-total-drift codified. `[process-gap; codified; ARCH-INDEX; subsystem-row; BC-count; drift; row-sum-total; literal-shell; gate; pass-8; F-P8-003; D-625]`
+
+---
+
+## L-F2-index-sync-leg-partial-fix-regression
+
+**Date:** 2026-06-17
+**Tags:** [process-gap] [codified]
+**Anchors:** D-626, F-P9-001, S-18.08, S-18.09, BC-INDEX v3.07
+
+**Lesson:** A version bump on a structured index file (BC-INDEX, VP-INDEX, ARCH-INDEX, STORY-INDEX) must move ALL parity legs including the changelog-array row. The D-625 E-18 STORY PASS-8 FIX BURST moved legs 1 (frontmatter `version:`) and 4 (`last_amended:` text-prefix) of POLICY 14 for BC-INDEX, but omitted leg 5 (the `changelog:` YAML array entry), leaving v3.07 visible in the frontmatter but absent from the array body.
+
+**Class:** Partial-fix regression in the index-sync leg itself — the very fix (version bump) introduced a secondary gap (missing changelog row). Discovered by adversary at pass-9 as F-P9-001 MAJOR.
+
+**Cure:**
+**(a)** State-manager self-checklist must include: after any version bump on a structured index file, run `grep -c "v<NEW_VERSION>" <INDEX_FILE>` and verify return ≥ 1 in the changelog array before staging.
+**(b)** The check must be literal-shell with captured stdout (per D-449(a) / META-LEVEL-24 discipline) — not a narrative claim of "verified."
+**(c)** The changelog-array entry must be inserted in descending-version order (newest at top) with content mirroring the `last_amended:` head text.
+
+**Cites:** D-626; F-P9-001; D-625 (the partial fix); BC-INDEX v3.07; POLICY 14 (5-leg parity); D-449(a) (literal-shell discipline).
+
+---
+
+## L-F2-cross-artifact-version-cite-propagation
+
+**Date:** 2026-06-17
+**Tags:** [process-gap] [codified]
+**Anchors:** D-626, C-P9-001, S-18.06, BC-4.15.001 v1.2
+
+**Lesson:** When a BC version bumps in a fix burst (PO agent), ALL story bodies that cite that BC by explicit version string (e.g., `BC-4.15.001 v1.1`) must be updated to the new version in the SAME burst per POLICY 8. The D-625 burst bumped BC-4.15.001 from v1.1 to v1.2 but did not propagate the cite update to S-18.06, which cites BC-4.15.001 in its AC traceability section. The consistency-validator caught this at pass-9 as C-P9-001.
+
+**Class:** Cross-artifact version-cite propagation gap. The PO action (BC version bump) creates a downstream obligation for all citing story files, but the obligation was not swept.
+
+**Cure:**
+**(a)** Before committing any fix burst that includes a BC version bump, run an exhaustive citer-grep: `grep -rl "BC-X.YY.ZZZ v<OLD_VERSION>" .factory/stories/` and update every hit to the new version in the same burst.
+**(b)** The citer-grep must be literal-shell with captured stdout.
+**(c)** BC-INDEX catalog-row version cells count as a citer and must also be updated (covered by POLICY 14 leg 5 — body-table cells); this lesson focuses on story body text cites which are outside the standard 5-leg checklist.
+
+**Cites:** D-626; C-P9-001; S-18.06 v1.5; BC-4.15.001 v1.2; D-625 (the D-625 PO bump that triggered the gap); POLICY 8.
+
+---
+
+## L-F2-gate-cardinality-completeness
+
+**Date:** 2026-06-17
+**Tags:** [process-gap] [codified]
+**Anchors:** D-626, F-P9-002, S-18.09, EC-009
+
+**Lesson:** A gate spec that claims to check "all X items" must use global-match extraction (extract all occurrences) not first-match-per-line extraction. The S-18.09 v1.8 AC-008 compound-cite gate used first-match-per-line semantics: `grep -oE 'BC-[0-9]+\.[0-9]+\.[0-9]+' | head -1` style. When a line contains multiple BC cites (e.g., `BC-4.15.001 v1.2, BC-5.41.001 v1.17`), the gate passed as long as the first cite resolved — silently ignoring subsequent cites on the same line. Discovered by adversary at pass-9 as F-P9-002 MEDIUM load-bearing.
+
+**Class:** Gate cardinality-completeness gap. The gate's logical cardinality (first-match) was weaker than the spec's stated cardinality (all matches). The EC-009 fixture (broken-second-cite scenario) was absent from the test vectors.
+
+**Cure:**
+**(a)** Gate specs must explicitly state cardinality: "check FIRST occurrence" vs "check ALL occurrences." If cardinality is omitted, default assumption is ALL.
+**(b)** For any all-occurrence gate, use global-match extraction: `grep -oE '<pattern>'` (without `| head -1`) or `awk` with `{while(match($0,/PATTERN/)){...}}` global iteration.
+**(c)** Test vectors MUST include a fixture where the first occurrence passes but a subsequent occurrence fails (EC-009 class for compound-cite gates). This fixture would have caught F-P9-002 before pass-9.
+**(d)** The fixture EC-009 (broken-second-cite) must be added to S-18.09 test vectors for the AC-008 gate.
+
+**Cites:** D-626; F-P9-002; S-18.09 v1.9; EC-009; AC-008 compound-cite gate; POLICY 8.

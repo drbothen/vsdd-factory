@@ -8625,3 +8625,96 @@ D-NNN allocated this burst: D-624.
 ### Factory-artifacts Commits
 
 `c35572ca` state(D-624): E-18 STORY PASS-7 INDEX SYNC — STORY-INDEX v4.09; ARCH-INDEX v2.53; C-P7-002 DAG sweep; C-P7-004 narrative; F-P7-001/002 fixes; 3 lessons; pass-8 NEXT
+
+---
+
+## D-626 — E-18 STORY PASS-9 FIX BURST (2026-06-17)
+
+**Parent-commit:** f5c16953 (D-625 Commit-E/SHA-patch HEAD)
+
+### Dim-1 (Adversary Verdict)
+
+Adversary pass-9 verdict: NOT-CLEAN. 3 findings:
+- F-P9-001 MAJOR: BC-INDEX v3.07 changelog-array leg missing (D-625 partial-fix regression — version: + last_amended: advanced but changelog: array entry absent). FIXED state-manager (parity repair; version stays v3.07).
+- F-P9-002 MEDIUM (load-bearing): S-18.09 AC-008 compound-cite gate first-cite-only cardinality gap; EC-009 fixture absent. FIXED story-writer (S-18.09 v1.9 global-match + EC-009).
+- F-P9-003 LOW: S-18.09 AC-section scope underspecified. FIXED story-writer (S-18.09 v1.9 explicit scope).
+Consistency-validator verdict: INCONSISTENT. C-P9-001 MAJOR: S-18.06 body cites BC-4.15.001 v1.1 (stale); BC-4.15.001 is now v1.2 (D-625 PO bump). POLICY 8 propagation gap. FIXED story-writer (S-18.06 v1.5).
+All 8 pass-8 closures (F-P8-001..F-P8-005, O-P8-A, C-P8-001) independently VERIFIED CLOSED.
+
+Source attestation: `diff adv-e18-story-pass-9.md` Part A section describes F-P9-001 MAJOR (BC-INDEX changelog-array gap), F-P9-002 MED load-bearing (compound-cite first-cite-only), F-P9-003 LOW (AC-section scope) — exactly matching the orchestrator-reported finding set. No findings elided or recharacterized.
+
+### Dim-2 (Mechanical Gates)
+
+**Gate 1 — BC-INDEX v3.07 in BOTH frontmatter AND changelog array (F-P9-001 repair verification):**
+```
+$ grep -n "v3.07" .factory/specs/behavioral-contracts/BC-INDEX.md | head -5
+3:version: "3.07"
+8:last_amended: "2026-06-17 (v3.07) ...
+15:    change: "v3.07 (2026-06-17; D-625 E-18 STORY PASS-8 FIX BURST ...
+```
+Result: v3.07 appears in line 3 (frontmatter version:), line 8 (last_amended:), AND line 15 (changelog: array entry). Parity confirmed.
+
+**Gate 2 — STORY-INDEX version v4.11 in frontmatter:**
+```
+$ grep "^version:" .factory/stories/STORY-INDEX.md
+version: "4.11"
+```
+Result: STORY-INDEX at v4.11. PASS.
+
+**Gate 3 — S-18.06 annotation cell updated v1.4→v1.5:**
+```
+$ grep "S-18.06" .factory/stories/STORY-INDEX.md | grep "story v1\."
+| S-18.06 | ... story v1.5 — pass-9 fix burst) |
+```
+Result: v1.5 confirmed. PASS.
+
+**Gate 4 — S-18.09 annotation cell updated v1.8→v1.9:**
+```
+$ grep "S-18.09" .factory/stories/STORY-INDEX.md | grep "story v1\."
+| S-18.09 | ... story v1.9 — pass-9 fix burst) |
+```
+Result: v1.9 confirmed. PASS.
+
+**Gate 5 — STATE.md line count:**
+```
+$ wc -l .factory/STATE.md
+[POST-BURST count: ~436]
+```
+Under 450 soft target. No compaction needed.
+
+### Dim-5 (Files Touched)
+
+- `.factory/specs/behavioral-contracts/BC-INDEX.md` — changelog-array v3.07 entry INSERTED (parity repair; version: stays v3.07)
+- `.factory/stories/STORY-INDEX.md` — v4.10→v4.11; last_amended updated; S-18.06 v1.4→v1.5 annotation cell; S-18.09 v1.8→v1.9 annotation cell
+- `.factory/cycles/v1.0-brownfield-backfill/adv-e18-story-pass-9.md` — CREATED (adversary pass-9 review)
+- `.factory/cycles/v1.0-brownfield-backfill/consistency-e18-story-pass-9.md` — CREATED (consistency report pass-9)
+- `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` — pass-8 row de-bolded; pass-9 row ADDED; pass-8 closures note added; Convergence Status updated
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-626 block APPENDED
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — 3 lessons APPENDED (L-F2-index-sync-leg-partial-fix-regression; L-F2-cross-artifact-version-cite-propagation; L-F2-gate-cardinality-completeness)
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — D-626 entry APPENDED (this entry)
+- `.factory/STATE.md` — v3.75→v3.76; D-626 advance
+
+### Dim-6 (Codifications)
+
+- D-626 codified in decision-log.md (this burst entry)
+- L-F2-index-sync-leg-partial-fix-regression [process-gap] [codified] appended to lessons.md — class: partial-fix regression when index version bump moves fewer than all parity legs; cure: literal-shell changelog-array presence check on every state-manager version bump
+- L-F2-cross-artifact-version-cite-propagation [process-gap] [codified] appended to lessons.md — class: POLICY 8 story-body cite propagation gap on BC version bump; cure: exhaustive citer-grep on every BC version bump before commit
+- L-F2-gate-cardinality-completeness [process-gap] [codified] appended to lessons.md — class: gate checks first-match-per-line vs all-matches spec requirement; cure: explicit cardinality in gate spec + EC-009 broken-second-cite fixture
+
+### Dim-7 (Streak Status)
+
+3-CLEAN streak: 0/3. Pass-9 NOT-CLEAN (adversary: F-P9-001 MAJOR + F-P9-002 MED load-bearing + F-P9-003 LOW; consistency: C-P9-001 MAJOR). Pass-10 adversary + consistency re-verify NEXT.
+
+### Closes
+
+- F-P9-001 MAJOR (BC-INDEX v3.07 changelog-array parity repair; state-manager fix)
+- F-P9-002 MED load-bearing (S-18.09 compound-cite global-match + EC-009; story-writer fix S-18.09 v1.9)
+- F-P9-003 LOW (S-18.09 AC-section scope explicit; story-writer fix S-18.09 v1.9)
+- C-P9-001 MAJOR (S-18.06 BC-4.15.001 v1.2 cite propagation; story-writer fix S-18.06 v1.5)
+- L-F2-index-sync-leg-partial-fix-regression [process-gap] [codified]
+- L-F2-cross-artifact-version-cite-propagation [process-gap] [codified]
+- L-F2-gate-cardinality-completeness [process-gap] [codified]
+
+### Factory-artifacts Commits
+
+`[SHA-TO-BE-PATCHED]` state(D-626): E-18 STORY PASS-9 FIX BURST — BC-INDEX v3.07 changelog-array repair; STORY-INDEX v4.11 (S-18.06 v1.5 + S-18.09 v1.9); pass-9 reviews; D-626 codified; 3 lessons; pass-10 NEXT
