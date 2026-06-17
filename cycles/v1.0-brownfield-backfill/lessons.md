@@ -4151,3 +4151,23 @@ done
 **(d)** This rule extends the existing sibling-sweep-across-indexes class discipline (TD-VSDD-060) to index-internal structural elements (changelog array), not just cross-index version cite propagation.
 
 **Cites:** D-627; F-P10-001; F-P10-004; D-626 (partial repair that triggered the recurrence); BC-INDEX; VP-INDEX; ARCH-INDEX; POLICY 14 (5-leg parity); TD-VSDD-060 (sibling-site sweep); S-18.08; S-18.09.
+
+---
+
+## L-F2-source-attestation-parity-verdict-not-fix
+
+**Date:** 2026-06-17
+**Tags:** [process-gap] [codified]
+**Anchors:** D-628, D-448(a), S-18.09, BC-5.39.001, E-18-pass-10
+
+**Lesson:** State-manager MUST persist the adversary's literal returned verdict (D-448(a) source-attestation parity). A pass that finds findings is NOT-CLEAN and resets the 3-CLEAN streak to 0/3 EVEN IF the same burst fixes those findings. Applying a fix does not retroactively make the finding-pass clean. Conflating "findings fixed" with "pass CLEAN" falsely inflates the 3-CLEAN streak and corrupts the convergence gate.
+
+**Root cause (D-628):** D-627 wrote the post-fix state (CLEAN) into `adv-e18-story-pass-10.md` instead of the pre-fix state (NOT-CLEAN with 1 BLOCKER + 2 MEDIUM + 1 LOW). The adversary review file MUST record what the adversary found, not the post-fix verification. Post-fix verification belongs in Part C (closure note), not Part A (findings + verdict).
+
+**Gate (codified):** burst-log Dim-1 adversary verdict paragraph AND the Dim-7 streak value AND the INDEX.md pass row AND STATE.md streak references MUST all equal the value derived from the adversary review file's Part A verdict — NOT from the post-fix verification result. Gate: if adv-*.md Part A verdict is NOT-CLEAN, then all downstream streak cites MUST read 0/3 (reset), not 1/3.
+
+**Class:** Source-attestation parity violation (D-448(a)). A finding-pass can only advance the 3-CLEAN streak if Part A verdict is CLEAN or NITPICK (per BC-5.39.001). NOT-CLEAN resets the streak unconditionally, regardless of whether the same burst fixes the findings.
+
+**Consequence if missed:** Early convergence gate fire — the 3-CLEAN gate would trigger one pass early, causing the cascade to declare convergence when it has not actually achieved three consecutive clean passes.
+
+**Cites:** D-628; D-448(a); D-627 (violation instance); BC-5.39.001 (3-CLEAN convergence protocol); S-18.09 (anchor cascade); adv-e18-story-pass-10.md; consistency-e18-story-pass-10.md; INDEX.md E-18 story cascade table.

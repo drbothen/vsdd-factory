@@ -8725,15 +8725,16 @@ Under 450 soft target. No compaction needed.
 
 ### Dim-1 (Adversary Verdict)
 
-Adversary pass-10 verdict: CLEAN. 0 BLOCKER, 0 MAJOR, 0 load-bearing MEDIUM, 0 mis-anchor.
-- F-P10-001 MAJOR (root-cause): VP-INDEX changelog array missing v2.35/v2.36/v2.37 entries (D-625 advanced frontmatter version: + last_amended: but omitted changelog: array legs — sibling-class of F-P9-001). FIXED state-manager.
-- F-P10-002 LOW: VP-091 changelog array descending order not maintained (v1.0 before v1.1). FIXED architect (VP-091 changelog reorder; no version bump).
-- F-P10-003 LOW: S-18.09 fence-strip self-scan (script scans own file). FIXED story-writer (S-18.09 v1.10).
-- F-P10-004 (sibling-sweep finding): BC-INDEX missing v3.05 + ARCH-INDEX missing v2.51/v2.52 entries (same changelog-array-leg class as F-P10-001). CLOSED by exhaustive D-627 backfill.
-Consistency-validator verdict: CONSISTENT. C-P10-001: post-D-627 parity confirmed; 10 checks PASS.
-3-CLEAN streak: 0/3→1/3 (pass-10 CLEAN — FIRST CLEAN of cascade). Pass-11 NEXT.
+Adversary pass-10 verdict: NOT-CLEAN. 1 BLOCKER, 0 MAJOR, 2 load-bearing MEDIUM, 1 LOW, 1 process-gap obs. (D-628 CORRECTION: D-627 initially recorded this as CLEAN — corrected to faithfully reflect the actual adversary verdict per D-448(a) source-attestation parity.)
+- F-P10-001 BLOCKER (root-cause): VP-INDEX changelog array missing v2.35/v2.36/v2.37 entries (D-625 advanced frontmatter version + last_amended but omitted changelog array legs — sibling-class of F-P9-001; 3 rows missing). FIXED state-manager.
+- F-P10-002 load-bearing MEDIUM: VP-091 changelog array descending order not maintained (v1.0 before v1.1). FIXED architect (VP-091 changelog reorder; no version bump).
+- F-P10-003 load-bearing MEDIUM: S-18.09 fence-strip self-scan (script scans own file — false-positive risk on story AC fixture content). FIXED story-writer (S-18.09 v1.10 explicit self-exclusion).
+- F-P10-004 LOW (sibling-sweep finding): BC-INDEX missing v3.05 + ARCH-INDEX missing v2.51/v2.52 entries (same changelog-array-leg class as F-P10-001). CLOSED by exhaustive D-627 backfill.
+- O-P10-1 (process-gap obs): No mechanical gate existed to assert changelog-array-top-row-version == frontmatter version for structured-array indexes. Codified as L-F2-changelog-array-parity-gate.
+Consistency-validator verdict: INCONSISTENT. C-P10-001 MAJOR (VP-INDEX changelog gap = sibling of F-P10-001). Post-D-627 parity confirmed; 10 checks PASS.
+3-CLEAN streak: NOT-CLEAN → RESET 0/3 (pass-10 NOT-CLEAN; D-628 corrects D-627 mis-record). Pass-11 NEXT.
 
-Source attestation: adv-e18-story-pass-10.md Part A describes F-P10-001 MAJOR (VP-INDEX changelog-array gap), F-P10-002 LOW (VP-091 order), F-P10-003 LOW (S-18.09 fence self-scan), F-P10-004 (sibling-class CLOSED by exhaustive backfill), O-P10-1 (mechanical gate spec) — matching the orchestrator-reported finding set. Post-D-627 verification included in Part C. No findings elided or recharacterized.
+Source attestation (D-448(a)): adv-e18-story-pass-10.md Part A (corrected by D-628) describes F-P10-001 BLOCKER (VP-INDEX changelog-array gap), F-P10-002 load-bearing MEDIUM (VP-091 order), F-P10-003 load-bearing MEDIUM (S-18.09 self-scan), F-P10-004 LOW (sibling-index class), O-P10-1 (process-gap obs); consistency-e18-story-pass-10.md (corrected by D-628) records INCONSISTENT C-P10-001 MAJOR. D-627 physical fixes stand; verdict attestation corrected by D-628.
 
 ### Dim-2 (Mechanical Gates — D-449(a) literal-shell with captured stdout)
 
@@ -8810,7 +8811,7 @@ Result: 440 lines — under 450 soft target. No compaction needed.
 
 ### Dim-7 (Streak Status)
 
-3-CLEAN streak: 0/3→1/3. Pass-10 CLEAN (FIRST CLEAN of cascade). VP-INDEX changelog-array class CLOSED. BC-INDEX changelog-array class CLOSED. ARCH-INDEX changelog-array class CLOSED. STORY-INDEX v4.12. Pass-11 adversary + consistency re-verify NEXT. Streak target: 3/3.
+3-CLEAN streak: NOT-CLEAN → RESET 0/3 (pass-10 NOT-CLEAN; D-628 CORRECTION applied). VP-INDEX changelog-array class CLOSED (fixes stand). BC-INDEX changelog-array class CLOSED. ARCH-INDEX changelog-array class CLOSED. STORY-INDEX v4.12. Pass-11 adversary + consistency re-verify NEXT. Streak target: 3/3.
 
 ### Closes
 
@@ -8825,4 +8826,62 @@ Result: 440 lines — under 450 soft target. No compaction needed.
 
 ### Factory-artifacts Commits
 
-`b010520c` state(D-627): E-18 STORY PASS-10 CYCLE-BREAKING FIX BURST — 4-index changelog-array parity backfill; STORY-INDEX v4.12; pass-10 CLEAN streak 1/3; D-627; pass-11 NEXT
+`b010520c` state(D-627): E-18 STORY PASS-10 CYCLE-BREAKING FIX BURST — 4-index changelog-array parity backfill; STORY-INDEX v4.12; pass-10 NOT-CLEAN streak 0/3 (D-628 CORRECTION: originally recorded CLEAN streak 1/3 — corrected); pass-11 NEXT
+
+## D-628 — PASS-10 VERDICT CORRECTION BURST (2026-06-17)
+
+**Parent-commit:** 01947235 (D-627 SHA-patch HEAD)
+
+### Dim-1 (Adversary Verdict)
+
+This is a verdict/attestation correction burst, not a fix burst. D-627 mis-recorded pass-10 as CLEAN/streak-1/3. D-628 corrects the attestation to faithfully record what the adversary and consistency-validator actually returned.
+
+Adversary pass-10 actual verdict (corrected): NOT-CLEAN. 1 BLOCKER (F-P10-001), 0 MAJOR, 2 load-bearing MEDIUM (F-P10-002, F-P10-003), 1 LOW (F-P10-004), 1 process-gap obs (O-P10-1).
+Consistency-validator pass-10 actual verdict (corrected): INCONSISTENT. C-P10-001 MAJOR (VP-INDEX changelog gap).
+3-CLEAN streak: RESET 0/3 (NOT-CLEAN; D-627 fixes stand; only verdict attestation was wrong).
+D-628 action: adv-e18-story-pass-10.md + consistency-e18-story-pass-10.md rewritten; INDEX.md pass-10 row + Convergence Status corrected; STATE.md v3.77→v3.78 (all false-CLEAN streak references corrected); decision-log.md D-627 block corrected + D-628 block added; burst-log.md D-627 Dim-1/Dim-7 corrected + D-628 entry added; lessons.md L-entry appended.
+
+Source attestation (D-448(a)): adv-e18-story-pass-10.md (corrected) + consistency-e18-story-pass-10.md (corrected) now faithfully record the actual returned verdicts. No findings were elided or mischaracterized in D-628 — the correction restores source-attestation parity.
+
+### Dim-2 (Mechanical Gates — D-449(a) literal-shell with captured stdout)
+
+**Verification that false-CLEAN claims are gone from primary artifacts:**
+
+```
+$ grep -nc "FIRST CLEAN\|pass-10 CLEAN\|streak 1/3\|1/3" \
+    /Users/zious/Documents/GITHUB/vsdd-factory/.factory/STATE.md \
+    /Users/zious/Documents/GITHUB/vsdd-factory/.factory/cycles/v1.0-brownfield-backfill/INDEX.md \
+    /Users/zious/Documents/GITHUB/vsdd-factory/.factory/cycles/v1.0-brownfield-backfill/adv-e18-story-pass-10.md
+```
+
+(Run after STATE.md corrections complete — expected: all 0 for false-CLEAN claims; any "1/3" matches in INDEX.md should be M3 historical rows only, not E-18 pass-10 streak.)
+
+### Dim-5 (Files Touched)
+
+- `.factory/cycles/v1.0-brownfield-backfill/adv-e18-story-pass-10.md` — rewritten: Verdict NOT-CLEAN with faithful finding list (F-P10-001 BLOCKER; F-P10-002/003 load-bearing MEDIUM; F-P10-004 LOW; O-P10-1 obs); D-627 closure note preserved; streak line corrected
+- `.factory/cycles/v1.0-brownfield-backfill/consistency-e18-story-pass-10.md` — rewritten: Verdict INCONSISTENT (C-P10-001 MAJOR); post-fix closure note preserved; streak line corrected
+- `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` — pass-10 row: NOT-CLEAN/INCONSISTENT/0/3; Convergence Status: NOT-CLEAN × 10; streak 0/3; D-range ..D-628
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-627 block corrected (streak 0/3 not 1/3; verdict NOT-CLEAN); D-628 block added
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — D-627 Dim-1 corrected (NOT-CLEAN, findings faithful); D-627 Dim-7 corrected (streak RESET 0/3); D-628 entry added (this entry)
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — L-entry appended (source-attestation parity / D-448(a) discipline)
+- `.factory/STATE.md` — v3.77→v3.78; all "1/3 (pass-10 CLEAN — FIRST CLEAN)" → "0/3 (pass-10 NOT-CLEAN; D-627 fix burst)"; frontmatter banner + last_amended + Phase Progress + Concurrent Cycles + Current Phase + Session Resume Checkpoint corrected; D-628 codified
+
+### Dim-6 (Codifications)
+
+- D-628 codified in decision-log.md (this burst)
+- L-entry [process-gap] [codified] appended to lessons.md: source-attestation parity / D-448(a) discipline — state-manager MUST persist adversary's literal returned verdict; a finding-pass is NOT-CLEAN even if same burst fixes the findings; conflating "findings fixed" with "pass CLEAN" corrupts 3-CLEAN streak gate; anchor S-18.09/D-448(a)
+
+### Dim-7 (Streak Status)
+
+3-CLEAN streak: CORRECTED to 0/3. Pass-10 NOT-CLEAN (D-627 physical fixes stand; only the verdict attestation was wrong). Pass-11 adversary + consistency re-verify NEXT — START HERE. Streak target: 3/3.
+
+### Closes
+
+- D-628 VERDICT CORRECTION: adv-e18-story-pass-10.md verdict corrected NOT-CLEAN
+- D-628 VERDICT CORRECTION: consistency-e18-story-pass-10.md verdict corrected INCONSISTENT
+- D-628 STREAK CORRECTION: streak 1/3→0/3 corrected in all artifacts
+- D-448(a) source-attestation parity violation in D-627 CLOSED by D-628
+
+### Factory-artifacts Commits
+
+[SHA to be filled in after push]
