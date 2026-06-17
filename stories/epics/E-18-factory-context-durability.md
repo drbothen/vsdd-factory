@@ -1,7 +1,7 @@
 ---
 document_type: epic
 epic_id: "E-18"
-version: "v1.1"
+version: "v1.2"
 status: draft
 title: "Factory Context Durability — wave-boundary checkpoint, PreCompact flush, and lossless intra-wave compaction (issue #173)"
 prd_capabilities: [CAP-032]
@@ -152,7 +152,7 @@ Topological order: W1→W2→W3→W4→W5→W6→W7→W8. No cycles. Acyclic con
 
 | BC ID | Title | Story |
 |-------|-------|-------|
-| BC-1.15.001 | Dispatcher routes PreCompact and PostCompact harness events (harness >= v2.1.105) | S-18.00 |
+| BC-1.15.001 | Dispatcher routes PreCompact and PostCompact harness events to registered plugins (harness >= v2.1.105) | S-18.00 |
 | BC-5.41.001 | wave-handoff skill — HANDOFF.md write + wave-state.yaml production | S-18.01 |
 | BC-5.41.002 | wave-gate skill — HANDOFF.md presence validation + wave close | S-18.01 |
 | BC-4.14.001 | validate-wave-handoff-completeness WASM gate | S-18.02 |
@@ -181,5 +181,6 @@ Topological order: W1→W2→W3→W4→W5→W6→W7→W8. No cycles. Acyclic con
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| v1.2 | 2026-06-17 | story-writer | (F3/O-P4-002 completion) BC-1.15.001 title in Behavioral Contract Traceability table completed to full BC H1 verbatim: added missing "to registered plugins" → "Dispatcher routes PreCompact and PostCompact harness events to registered plugins (harness >= v2.1.105)". Editorial policy note: the OTHER 9 BC titles in this table are intentionally-abbreviated editorial summaries (tolerated per F-SP3-006 adjudication) — only BC-1.15.001 receives verbatim treatment because it was singled out by O-P4-002 for strict H1 alignment. |
 | v1.1 | 2026-06-17 | story-writer | (F-P4-002 MAJOR) Line 110: wave-4 backward dependency prose corrected — S-18.03 blocks S-18.06/S-18.07 (not depends on). (O-P4-001 LOW) Line 37: volatile ADR-026 version token de-versioned — "v1.5" → "§Decisions" per POLICY 19/TD-VSDD-091 anti-volatile-pin. (O-P4-002 LOW) BC-1.15.001 title in traceability table corrected to match BC H1 verbatim: "PostCompact and PreCompact hook events" → "PreCompact and PostCompact harness events (harness >= v2.1.105)". |
 | v1.0 | 2026-06-16 | story-writer | Initial creation (story-side fix burst M-005). E-18 context-durability epic for issue #173; ADR-026; D-576 codified. 12 stories S-18.00..S-18.10 spanning SS-01/04/05/06/07. 8 waves; 89 pts. CAP-032 anchor. |

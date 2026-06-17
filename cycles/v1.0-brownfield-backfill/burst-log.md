@@ -8231,3 +8231,99 @@ Streak: 0/3 (reset by F-P4-001+F-P4-002 MAJOR findings). Pass-5 adversary NEXT.
 ### Factory-artifacts Commits
 
 `b26ef433` state(D-621): E-18 STORY PASS-4 INDEX SYNC — STORY-INDEX v4.06; AC↔PC parity gate
+
+---
+
+## D-622 Pass-5 Fix Burst — E-18 STORY PASS-5 INDEX SYNC (2026-06-17)
+
+### Parent-commit
+
+`8ce58ef6` state(D-621): SHA-patch — factory-artifacts HEAD b26ef433 (D-621 Commit-E)
+
+### Adversary Verdict
+
+Pass-5 adversary verdict: **NOT-CLEAN**. Findings: F-P5-001 MED (stale BC cite in STORY-INDEX body version annotation — a story version cell referenced a BC version number that had since been superseded by a subsequent pass fix burst; stale cite was not updated when the BC was re-versioned). Consistency-validator verdict: **INCONSISTENT**. F1: S-18.07 STORY-INDEX title cell read "...SKILL.md cross-references" but story frontmatter title was "...cross-references in SKILL.md files" (word-order divergence). F2: S-18.08 STORY-INDEX title cell missing " in bodies" suffix present in story frontmatter title. F3: (consistency observation addressed as class). F4: ARCH-INDEX §Document Map annotations for verification-architecture.md and verification-coverage-matrix.md cited v1.2/91 and v1.1/91 respectively, but actual files were at v1.3/92 and v1.2/92 following the D-615 VP-092 propagation burst (D-615 propagation gap not previously closed in ARCH-INDEX). 3-CLEAN streak RESET 0/3. Pass-6 = NEXT.
+
+### Files Touched
+
+- `.factory/stories/STORY-INDEX.md` — v4.06→v4.07 (story version cells: S-18.03 v1.3; S-18.04a v1.3; S-18.05 v1.3; S-18.07 v1.3+F1-title verbatim fix; S-18.08 v1.3+F2-title ' in bodies' restored; S-18.09 v1.5; S-18.10 v1.3; E-18 epic heading v1.1→v1.2; version + timestamp + last_amended bumped to v4.07)
+- `.factory/specs/architecture/ARCH-INDEX.md` — v2.51→v2.52 (§Document Map: verification-architecture.md annotation v1.2/91→v1.3/92; verification-coverage-matrix.md annotation v1.1/91→v1.2/92; grand-total invariant annotation (91)→(92); version + timestamp + last_amended bumped to v2.52)
+- `.factory/STATE.md` — v3.71→v3.72 (D-622 frontmatter + Decisions Log; §1/§3/§4/§5/§8/§9/§10/§11/§12 refresh; POSTURE pass-6 NEXT; Session Resume Checkpoint updated; SIZE BUDGET banner D-622 entry appended)
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-622 block appended
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — L-F2-index-cell-and-version-cite-sibling-sweep appended
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — D-622 burst entry appended (this entry)
+
+### Codifications
+
+- **D-622:** E-18 story cascade pass-5 verdict + index-sync fix. 3-CLEAN streak 0/3 (pass-5 NOT-CLEAN → fix-burst). STORY-INDEX v4.07; ARCH-INDEX v2.52. Pass-6 = NEXT.
+- **L-F2-index-cell-and-version-cite-sibling-sweep [process-gap]:** STORY-INDEX title cells and ARCH-INDEX §Document Map version-cite annotations drift across adversary passes when story files and architecture files re-version. Instance fixes caused streak resets in F1/F2/F4 on pass-5. Class fix: exhaustive title-sweep (grep frontmatter '^title:' vs STORY-INDEX cell verbatim) + exhaustive annotation-sweep (grep '^version:' actual artifact vs ARCH-INDEX annotation). Tagged [codified] with anchor S-18.08 (gate scope for automated enforcement).
+
+### Dim-2 — PC Attestation (literal shell)
+
+```
+$ grep "^current_step:" .factory/STATE.md
+current_step: "D-622-E18-PASS5-INDEX-SYNC-2026-06-17"
+
+$ grep "^version:" .factory/stories/STORY-INDEX.md
+version: "4.07"
+
+$ grep "^version:" .factory/specs/architecture/ARCH-INDEX.md
+version: "2.52"
+
+$ grep "^version:" .factory/specs/architecture/verification-architecture.md
+version: "1.3"
+
+$ grep "^version:" .factory/specs/architecture/verification-coverage-matrix.md
+version: "1.2"
+```
+
+STATE.md current_step reflects D-622 E-18 pass-5 index sync. STORY-INDEX v4.07 confirmed. ARCH-INDEX v2.52 confirmed. verification-architecture.md v1.3 (92 VPs) confirmed; verification-coverage-matrix.md v1.2 (92 VPs) confirmed — ARCH-INDEX annotations now accurate (F4 closed). Production artifacts read via literal grep.
+
+### Dim-5 — Production-Grade Attestation
+
+- No MVP-pattern deferrals. All pass-5 findings (F-P5-001 MED + consistency F1/F2/F3/F4) addressed in-scope as comprehensive class sweep.
+- F1+F2 were instance fixes but triggered exhaustive class-level 12-story title sweep (all 12 stories: 10 PASS, 2 fixed — S-18.07 and S-18.08).
+- F4 (ARCH-INDEX stale VP-count annotation) was a D-615 propagation gap — closed by sweeping both annotation cells in ARCH-INDEX §Document Map against actual file versions.
+- L-F2-index-cell-and-version-cite-sibling-sweep codified as [codified] class lesson with S-18.08 gate anchor — automated gate candidate in E-18 story-approval hold-until-automated.
+- VP-INDEX/BC-INDEX UNCHANGED (no VP/BC files modified in this burst).
+- POLICY 14 5-leg parity: STORY-INDEX — (1) version 4.07; (2) body Changelog row added; (3) modified[] array updated; (4) last_amended text-prefix prepended; (5) upstream-index cells updated (STORY-INDEX IS the upstream index). ARCH-INDEX — (1) version 2.52; (2) body Changelog row added; (3) modified[] array updated; (4) last_amended text-prefix prepended; (5) upstream reference via ARCH-INDEX itself (document map annotations corrected).
+
+### Dim-6 — Count Verification (literal shell)
+
+```
+$ grep -c "^| S-[0-9]" .factory/stories/STORY-INDEX.md
+161
+
+$ grep "^version:" .factory/stories/STORY-INDEX.md
+version: "4.07"
+
+$ grep -n "^| S-18\." .factory/stories/STORY-INDEX.md | wc -l
+12
+```
+
+161 lines starting with `| S-[0-9]` in STORY-INDEX (includes embedded history strings). Direct table-row grep for E-18 stories confirms 12 rows (structure unchanged from D-621). STORY-INDEX v4.07 confirmed. 12 E-18 story rows intact. story_count UNCHANGED at 120.
+
+### Dim-7 — Findings Closure
+
+| Finding | Class | Status | Resolution |
+|---------|-------|--------|------------|
+| F-P5-001 | MED | CLOSED | Stale BC cite in story version annotation corrected; 12-story sweep applied |
+| F1 (consistency) | INCONSISTENT | CLOSED | S-18.07 STORY-INDEX title cell synced verbatim to frontmatter: "cross-references in SKILL.md files" |
+| F2 (consistency) | INCONSISTENT | CLOSED | S-18.08 STORY-INDEX title cell restored " in bodies" suffix from frontmatter verbatim |
+| F3 (consistency) | INCONSISTENT | CLOSED | Class addressed via exhaustive title sweep (10 PASS confirmed; no additional titles mismatched) |
+| F4 (consistency) | INCONSISTENT | CLOSED | ARCH-INDEX §Document Map verification-architecture.md v1.3/92 + verification-coverage-matrix.md v1.2/92 (D-615 propagation gap) |
+
+Streak: 0/3 (reset by F-P5-001 MED + F1/F2/F3/F4 consistency findings). Pass-6 adversary NEXT.
+
+### Closes
+
+- F-P5-001 MED (stale BC cite in STORY-INDEX version annotation)
+- F1 INCONSISTENT (S-18.07 title cell verbatim mismatch)
+- F2 INCONSISTENT (S-18.08 title cell " in bodies" missing)
+- F3 INCONSISTENT (class — exhaustive sweep 10 PASS)
+- F4 INCONSISTENT (ARCH-INDEX §Document Map stale VP-count annotations — D-615 propagation gap closed)
+- L-F2-index-cell-and-version-cite-sibling-sweep [process-gap] [codified] with anchor S-18.08
+
+### Factory-artifacts Commits
+
+`[D-622-SHA — update after push]` state(D-622): E-18 STORY PASS-5 INDEX SYNC — STORY-INDEX v4.07; ARCH-INDEX v2.52; F1/F2/F4 fixes

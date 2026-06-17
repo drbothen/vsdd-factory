@@ -3674,3 +3674,52 @@ where N is the exact `wc -l` output (count of newlines in the file).
 **Cites:** D-621; S-18.09 AC-008; POLICY 5 v1.3.3 (sibling sweep mandate); CLAUDE.md §Canonical-Principle Rule 4 (AI-built defects are AI's responsibility to fix); O-P4-004.
 
 **Closes:** O-P4-004 process-gap class escalation satisfied; L-F2-ac-pc-parity-sibling-sweep codified and added to carry-forward lesson set; [codified] anchor = S-18.09 AC-008. `[process-gap; AC-PC-parity; sibling-sweep; traces-to; BC-postcondition; S-18.09; AC-008; E-18; pass-4]`
+
+---
+
+### L-F2-index-cell-and-version-cite-sibling-sweep
+
+**Category:** [process-gap]
+**Discovered:** 2026-06-17 D-622 — E-18 story adversarial pass-5 (F1/F2 consistency INCONSISTENT + F4 ARCH-INDEX §Document Map stale VP-counts; recurring across multiple passes)
+**Severity:** PROCESS-GAP — structural drift class; instance-scoped fixes caused 3 distinct streak resets across passes; class fix required exhaustive sweep protocol + gate candidates
+
+**Summary:** STORY-INDEX title cells and ARCH-INDEX §Document Map version-cite annotations drift from ground truth across adversary passes when story files and architecture documents re-version. Each prior instance-scoped fix corrected the reported cell but did not sweep siblings. Pass-5 found: (F1) S-18.07 title word-order reversal; (F2) S-18.08 missing " in bodies" suffix; (F4) ARCH-INDEX annotations for verification-architecture.md and verification-coverage-matrix.md citing v1.2/91 and v1.1/91 while actual files were at v1.3/92 and v1.2/92 following D-615. The F4 gap had been present since the D-615 burst (VP-092 added, verification files versioned) with ARCH-INDEX §Document Map annotation not updated.
+
+**Root Cause (class):** Two independent drift mechanisms:
+1. **Title drift:** STORY-INDEX title cells are manually maintained. When story authors revise a frontmatter `title:` during story versioning (e.g., moving a qualification phrase to a different position), the index cell is not automatically updated. STORY-INDEX cells are often copied from an earlier version of the title and then diverge.
+2. **Annotation drift:** ARCH-INDEX §Document Map annotation cells (e.g., "v1.2 (D-612 VP-091 added; Total 91)") are manually updated only when the state-manager explicitly sweeps the index for the changed document. Bursts that version a document but do not dispatch state-manager to update ARCH-INDEX leave stale annotations.
+
+**Rule (binding):**
+
+**(a) Every STORY-INDEX version bump on a story MUST verify title cell verbatim.** The comparison protocol: `grep '^title:' <story-file>` → strip "S-XX.XX: " prefix if present → compare verbatim to STORY-INDEX body cell. Any divergence is a defect, not a style choice. The strip-prefix convention is confirmed per S-17.04 precedent.
+
+**(b) Every architecture document version bump MUST sweep ARCH-INDEX §Document Map.** When a burst versions verification-architecture.md, verification-coverage-matrix.md, or any other document cited in ARCH-INDEX §Document Map, the annotation cell MUST be updated in the same burst. "Same burst" means the same state-manager commit that records the version bump.
+
+**(c) The sweep is class-scoped, not file-scoped.** When a pass-N adversary finds one stale title or one stale annotation, the fix burst MUST sweep ALL STORY-INDEX title cells (grep all 12 E-18 story frontmatters) AND ALL ARCH-INDEX §Document Map annotation cells (grep each cited document's `^version:`) in the same burst. Fixing only the reported instance and declaring done is a false-closure under the class.
+
+**(d) Verification protocol — title sweep:**
+1. For each story in the epic: `grep '^title:' <story-file>` to get the authoritative title.
+2. Strip "S-XX.XX: " prefix if present.
+3. Locate the story's STORY-INDEX row and extract the title cell text.
+4. Assert: cell text equals stripped frontmatter title verbatim (including capitalization, punctuation, word order).
+
+**(e) Verification protocol — ARCH-INDEX annotation sweep:**
+1. For each document cited in ARCH-INDEX §Document Map: `grep '^version:' <cited-file>`.
+2. Locate the document's ARCH-INDEX §Document Map annotation cell.
+3. Assert: the annotation cites the correct version (and VP counts where applicable).
+4. Any divergence is a defect to be closed in the same burst.
+
+**(f) Mandatory candidate gates (resolution anchor S-18.08):** The class fix is codified as two candidate automated gates for S-18.08 (pure-parse invariant consistency gate):
+- **(a)** STORY-INDEX-title == frontmatter-title parity check (pure-parse: read story frontmatter + STORY-INDEX; no external substrate).
+- **(b)** ARCH-INDEX §Document Map version-cite == artifact `^version:` check (pure-parse: read both files; no external substrate).
+Both gate candidates are pure-parse and consistent with S-18.08's BC invariant. Tagged as [codified] with anchor S-18.08.
+
+**(g) Until S-18.08 gate is implemented:** The sweep MUST be performed manually at every state-manager index-sync burst for any epic under active adversarial review. No pass may declare its index-sync COMPLETE without the sweep attestation.
+
+**Resolution:** Pass-5 fix burst included exhaustive 12-story title sweep (10 PASS; S-18.07 + S-18.08 fixed) and ARCH-INDEX §Document Map full annotation sweep (both stale cells corrected). Lesson tagged [codified] with anchor **S-18.08**.
+
+**Anchors:** D-622 (this burst); D-615 (propagation gap origin for F4); S-18.08 (gate anchor — automated enforcement candidate); F-P5-001 MED (stale BC cite), F1/F2/F4 consistency (adversary findings that triggered class escalation); S-18.07 F1 (title word-order); S-18.08 F2 (title suffix); verification-architecture.md + verification-coverage-matrix.md F4 (ARCH-INDEX annotation).
+
+**Cites:** D-622; S-18.08; POLICY 5 v1.3.3 (sibling sweep mandate); POLICY 14 5-leg (version bump parity — annotation sweeps are part of leg 5); CLAUDE.md §Canonical-Principle Rule 4 (AI-built defects AI's responsibility); F-P5-001 MED; F1/F2/F4 consistency findings.
+
+**Closes:** F1/F2/F4 consistency findings satisfied; L-F2-index-cell-and-version-cite-sibling-sweep codified and added to carry-forward lesson set; [codified] anchor = S-18.08. `[process-gap; index-cell; version-cite; title-drift; annotation-drift; sibling-sweep; STORY-INDEX; ARCH-INDEX; S-18.08; E-18; pass-5]`

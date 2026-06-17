@@ -699,3 +699,34 @@ grep -E '^[|] (\[BC-|~~\[BC-)' .factory/specs/behavioral-contracts/BC-INDEX.md |
 **D-chain cite:** D-620. **Parent-commit:** e12a6b35 (D-620 SHA-patch).
 
 **Posture:** E-18 STORY PASS-4 INDEX SYNC COMPLETE. 3-CLEAN streak RESET 0/3 (pass-4 NOT-CLEAN → fix-burst). Pass-5 adversary dispatch + consistency re-verify NEXT — START HERE.
+
+---
+
+### D-622 — E-18 STORY PASS-5 INDEX SYNC BURST (2026-06-17)
+
+**Context:** E-18 story adversarial pass-5 findings resolved by story-writer (F-P5-001 MED stale BC cite) and consistency-validator (F1/F2/F3/F4 INCONSISTENT: STORY-INDEX title cell mismatches + ARCH-INDEX §Document Map stale VP-count annotations). This is the state-manager index-sync leg (runs LAST per POLICY 3). Story-writer already updated story version cells in 7 E-18 story files (S-18.03/04a/05/07/08/09/10). This burst: STORY-INDEX title sweep + version cells + ARCH-INDEX document-map annotation update + STATE.md bookkeeping + lesson codification.
+
+**Pass-5 adversary verdict:** NOT-CLEAN. Findings:
+- **F-P5-001 MED:** Stale BC cite in STORY-INDEX story version annotation — a cell referenced a superseded BC version number not updated when the BC re-versioned in a prior burst.
+- **F1 (consistency INCONSISTENT):** S-18.07 STORY-INDEX title cell read "...SKILL.md cross-references" but story frontmatter title was "...cross-references in SKILL.md files" (word-order divergence introduced during F3 story registration).
+- **F2 (consistency INCONSISTENT):** S-18.08 STORY-INDEX title cell missing " in bodies" suffix present in story frontmatter title verbatim.
+- **F3 (consistency INCONSISTENT):** Same title-drift class — addressed via exhaustive 12-story sweep (10 remaining stories confirmed PASS).
+- **F4 (consistency INCONSISTENT):** ARCH-INDEX §Document Map: verification-architecture.md annotation cited v1.2/91 VPs but actual file was v1.3/92 VPs; verification-coverage-matrix.md annotation cited v1.1/91 VPs but actual file was v1.2/92 VPs. D-615 propagation gap: D-615 bumped both files but ARCH-INDEX annotation was not updated.
+
+**3-CLEAN streak:** Pass-5 NOT-CLEAN → streak RESET 0/3. Pass-6 = NEXT.
+
+**Lesson codified:** L-F2-index-cell-and-version-cite-sibling-sweep [process-gap] — STORY-INDEX title cells and ARCH-INDEX §Document Map version-cite annotations drift when stories/BCs re-version across adversary passes; instance fixes cause recurring streak resets; class fix = exhaustive title-sweep (grep frontmatter '^title:' vs STORY-INDEX cell verbatim) + exhaustive annotation-sweep (grep '^version:' actual artifact vs ARCH-INDEX annotation). Tagged [codified] with anchor S-18.08 (candidate automated gate for E-18 story-approval hold-until-automated).
+
+**Actions taken:**
+- `STORY-INDEX.md` v4.06→v4.07: story version cells S-18.03/04a/05 v1.3; S-18.07 v1.3+F1-title (verbatim fix: "SKILL.md cross-references"→"cross-references in SKILL.md files"); S-18.08 v1.3+F2-title (' in bodies' restored); S-18.09 v1.5; S-18.10 v1.3; E-18 epic heading v1.1→v1.2; exhaustive 12-story title sweep (2 fixed: F1/F2; 10 PASS); version + timestamp + last_amended bumped
+- `ARCH-INDEX.md` v2.51→v2.52: §Document Map annotation corrections — verification-architecture.md v1.2/91→v1.3/92; verification-coverage-matrix.md v1.1/91→v1.2/92; grand-total invariant annotation (91 VPs)→(92 VPs); version + timestamp + last_amended bumped
+- `STATE.md` v3.71→v3.72: D-622 frontmatter + Decisions Log; §1/§3/§4/§5/§8/§9/§10/§11/§12 refreshed; Session Resume Checkpoint updated to D-622/POSTURE pass-6; SIZE BUDGET banner entry appended (421 lines)
+- `decision-log.md` D-622 block appended (this entry)
+- `lessons.md` L-F2-index-cell-and-version-cite-sibling-sweep appended
+- `burst-log.md` D-622 burst entry appended (D-444(c) 8 blocks complete)
+
+**4-index post-burst:** BC-INDEX v3.06 (UNCHANGED) / VP-INDEX v2.36 (UNCHANGED) / STORY-INDEX v4.07 / ARCH-INDEX v2.52. L2-INDEX v1.0.13 (UNCHANGED).
+
+**D-chain cite:** D-621. **Parent-commit:** 8ce58ef6 (D-621 SHA-patch).
+
+**Posture:** E-18 STORY PASS-5 INDEX SYNC COMPLETE. 3-CLEAN streak RESET 0/3 (pass-5 NOT-CLEAN → fix-burst). Pass-6 adversary dispatch + consistency re-verify NEXT — START HERE.
