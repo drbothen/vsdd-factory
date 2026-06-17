@@ -8230,4 +8230,4 @@ Streak: 0/3 (reset by F-P4-001+F-P4-002 MAJOR findings). Pass-5 adversary NEXT.
 
 ### Factory-artifacts Commits
 
-_SHA to be filled in after commit_
+`b26ef433` state(D-621): E-18 STORY PASS-4 INDEX SYNC — STORY-INDEX v4.06; AC↔PC parity gate
