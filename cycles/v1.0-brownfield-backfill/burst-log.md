@@ -9387,4 +9387,4 @@ $ grep "429 lines" .factory/STATE.md
 
 ### Factory-artifacts Commits
 
-- TBD (SHA-patch follow-up after git commit + push)
+- `aebcf9a1` state(D-635): E-18 STORY CASCADE BC-5.39.001 3-CLEAN CONVERGED — streak 2/3→3/3; S-7.02 checklist SATISFIED; AWAITING STORY-APPROVAL HUMAN GATE
