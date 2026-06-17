@@ -8825,4 +8825,4 @@ Result: 440 lines — under 450 soft target. No compaction needed.
 
 ### Factory-artifacts Commits
 
-TBD — commit SHA to be updated via SHA-patch after push
+`b010520c` state(D-627): E-18 STORY PASS-10 CYCLE-BREAKING FIX BURST — 4-index changelog-array parity backfill; STORY-INDEX v4.12; pass-10 CLEAN streak 1/3; D-627; pass-11 NEXT
