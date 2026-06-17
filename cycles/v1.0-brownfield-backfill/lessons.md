@@ -3921,3 +3921,121 @@ Both gate candidates are pure-parse and consistent with S-18.08's BC invariant. 
 **Cites:** D-624; C-P7-001 BLOCKER; L-F2-index-cell-and-version-cite-sibling-sweep (sibling class from pass-5/D-622); POLICY 3 (state-manager runs LAST); TD-VSDD-060.
 
 **Closes:** C-P7-001 BLOCKER closed; L-F2-catalog-row-vs-summary-drift codified. `[process-gap; codified; catalog-row; summary-drift; version-cite; VP-086; STORY-INDEX; annotation; pass-7; C-P7-001; D-624]`
+
+---
+
+## L-F2-gate-rewrite-introduces-regression [process-gap] [codified]
+
+**Pass:** E-18 Story Cascade Pass-8 (D-625)
+**Severity class:** BLOCKER (F-P8-001)
+**Filed:** 2026-06-17
+
+**Pattern:** A gate specification rewrite intended to fix a previous finding introduced a new regression. The pass-7 fix of F-P7-001 (silent-inert gate — no FAIL exit path) required rewriting the S-18.09 AC-008 awk extraction gate. The rewrite used awk inclusive-range syntax `/^## Postconditions/,/^## /`. This was verified only against the original finding's test vector (FAIL exit path present) but not against a hand-traced PASS case. The range-collapse bug (see L-F2-awk-inclusive-range-collapse) was not detected because the test vectors for the PRIOR finding did not include the PASS case that would expose the collapse.
+
+**Root cause:** Gate rewrite validation stopped at "the previous finding is now fixed" without independently verifying the new gate logic is correct for BOTH pass and fail inputs. A regression is possible any time the gate logic is structurally rewritten (not merely appended to).
+
+**Class:** Gate-rewrite-introduces-regression — any gate-spec change that rewrites the extraction or discrimination logic (not just adds an exit clause) creates a new regression surface. The regression is orthogonal to the original finding's fix — it is a NEW defect in the new logic.
+
+**Rule (binding):**
+
+**(a) Every gate-spec change that rewrites extraction or discrimination logic MUST be verified against both a hand-traced PASS case AND a hand-traced FAIL case against the rewritten logic.** Verifying only against the prior finding's test vectors is insufficient — those vectors are designed to expose the prior defect, not the new implementation.
+
+**(b) For awk, sed, grep, and regex-based gate logic:** trace through the logic manually with a small representative input before committing. Construct one input that should PASS (gate finds no violation, exits 0) and one that should FAIL (gate finds violation, exits non-zero). Both traces MUST succeed.
+
+**(c) The story-writer or agent authoring the gate-spec rewrite is responsible for this verification.** The adversary catches escapes; the author prevents them.
+
+**(d) Commit message for gate-spec rewrites MUST note:** "Hand-traced PASS case: [input sketch] → [expected output]. Hand-traced FAIL case: [input sketch] → [expected output]."
+
+**Resolution:** story-writer rewrote AC-008 gate using flag-form awk in S-18.09 v1.8, which correctly handles both PASS (no violation) and FAIL (violation found) cases without range-collapse.
+
+**Anchors:** D-625 (this burst); F-P8-001 BLOCKER; S-18.09 v1.8 AC-008.
+
+**Cites:** D-625; F-P8-001; L-F2-awk-inclusive-range-collapse (companion lesson); S-18.09 v1.8; CLAUDE.md Self-Audit Checklist ("did I rationalize any decision with MVP / for now?").
+
+**Closes:** F-P8-001 BLOCKER fix verified; L-F2-gate-rewrite-introduces-regression codified. `[process-gap; codified; gate-rewrite; regression; awk; test-vectors; PASS-case; FAIL-case; pass-8; F-P8-001; D-625]`
+
+---
+
+## L-F2-awk-inclusive-range-collapse [process-gap] [codified]
+
+**Pass:** E-18 Story Cascade Pass-8 (D-625)
+**Severity class:** BLOCKER (F-P8-001 root-cause mechanism)
+**Filed:** 2026-06-17
+
+**Pattern:** awk inclusive-range syntax `/start/,/end/` collapses to a SINGLE-LINE MATCH when the start pattern also satisfies the end pattern. Example: `/^## Postconditions/,/^## /` — the line `## Postconditions` satisfies `/^## Postconditions/` (opens the range) AND `/^## /` (closes the range) simultaneously. The range opens and closes on the same line, producing a one-line output of only the section heading. Any content below the heading is never captured.
+
+**Root cause:** awk inclusive-range `/start/,/end/` is evaluated per-line. On the START line: if the line also matches END, the range opens AND closes atomically on that line. The range never extends to subsequent lines. This is standard awk behavior — not a bug — but is a footgun when the start pattern is a prefix of the end pattern (as happens with Markdown heading levels: `^## SectionName` matches both `^## SectionName` and `^## `).
+
+**Class:** awk-inclusive-range-collapse — applies to any Markdown section extraction where the start heading pattern is a prefix of or matches the end pattern. Common instances:
+- `/^## Section/,/^## /` — collapses; `^## Section` matches `^## `
+- `/^### Subheading/,/^### /` — collapses; same structure
+- `/^# Title/,/^# /` — collapses; same structure
+
+**Cure (flag-form awk):**
+```awk
+/^## Postconditions/{p=1} /^## / && p && !/^## Postconditions/{p=0} p{print}
+```
+This correctly:
+1. Sets flag `p=1` on the start heading line
+2. Clears flag `p=0` on any subsequent `^## ` heading that is NOT the start heading
+3. Prints lines while `p` is set
+
+General form:
+```awk
+/^START_PATTERN/{p=1} /^END_PATTERN/ && p && !/^START_PATTERN/{p=0} p{print}
+```
+
+**Rule (binding):**
+
+**(a) NEVER use awk inclusive-range `/start/,/end/` for Markdown section extraction when start matches a prefix of end.** Use flag-form awk instead.
+
+**(b) Any existing gate that uses awk inclusive-range for Markdown section extraction MUST be verified for range-collapse at the next opportunity.** The presence of `^##` in both start and end patterns is a red-flag indicator.
+
+**(c) When writing a new awk section extractor:** hand-trace the first line of the target section against both the start and end patterns. If the first line matches BOTH, the range will collapse — use flag-form awk.
+
+**Resolution:** S-18.09 v1.8 AC-008 awk rewritten to flag-form by story-writer (pass-8 fix burst D-625).
+
+**Anchors:** D-625 (this burst); F-P8-001 BLOCKER; S-18.09 v1.8 AC-008.
+
+**Cites:** D-625; F-P8-001; L-F2-gate-rewrite-introduces-regression (parent lesson); S-18.09 v1.8; awk inclusive-range POSIX specification.
+
+**Closes:** F-P8-001 root-cause mechanism documented; L-F2-awk-inclusive-range-collapse codified. `[process-gap; codified; awk; inclusive-range; collapse; Markdown; section-extraction; flag-form; pass-8; F-P8-001; D-625]`
+
+---
+
+## L-F2-arch-index-subsystem-row-vs-total-drift [process-gap] [codified]
+
+**Pass:** E-18 Story Cascade Pass-8 (D-625)
+**Severity class:** MEDIUM load-bearing (F-P8-003)
+**Filed:** 2026-06-17
+
+**Pattern:** ARCH-INDEX Subsystem Registry rows carry per-subsystem BC counts (SS-01..SS-10 with individual BC totals). These rows drift from the BC-INDEX ground truth because there is no mechanism that automatically updates per-subsystem row counts when BCs are added to BC-INDEX. The D-619 BC-INDEX COUNT RECONCILE burst updated BC-INDEX Summary table and Total (1,966→1,972) but did NOT propagate the per-subsystem row count deltas to ARCH-INDEX. By pass-8, ARCH-INDEX rows summed to 1,949 while both the ARCH-INDEX Total annotation and BC-INDEX Total showed 1,972 — a 23-BC discrepancy across 6 subsystems (SS-03 +3; SS-04 +3; SS-05 +3; SS-06 +3; SS-07 +3; SS-08 +8).
+
+**Root cause:** ARCH-INDEX §Subsystem Registry is a denormalized view of BC-INDEX §Summary table. When BCs are added, BC-INDEX is updated (the source of truth), but ARCH-INDEX is updated only for the Total annotation (which was done by the architect) without updating the per-subsystem breakdown rows. The per-row update has no automated gate enforcing row-sum == Total.
+
+**Class:** Arch-index-subsystem-row-vs-total-drift — a compound drift pattern where (a) the ARCH-INDEX Total annotation matches BC-INDEX Total but (b) the per-subsystem rows sum to a different value. The row-sum-equals-Total invariant is violated silently.
+
+**Rule (binding):**
+
+**(a) ARCH-INDEX §Subsystem Registry per-subsystem BC-count rows MUST be updated in the same burst as any BC-INDEX Total change.** If BC-INDEX gains N new BCs in subsystem SS-XX, ARCH-INDEX SS-XX row MUST be updated with +N and a D-NNN reconcile annotation.
+
+**(b) After any burst that adds BCs, a literal-shell per-subsystem count gate MUST be run before committing:**
+```bash
+for N in 1 2 3 4 5 6 7 8 9 10; do
+  count=$(grep -c "^\| \[BC-${N}\." .factory/specs/behavioral-contracts/BC-INDEX.md || true)
+  echo "SS-0${N}: ${count}"
+done
+```
+(Plus withdrawn-BC adjustment for SS-02 which has one withdrawn BC counted per D-619/POLICY 1.)
+
+**(c) Row-sum MUST equal ARCH-INDEX Total annotation MUST equal BC-INDEX Total.** A discrepancy between any two of these three is a BLOCKER for the burst.
+
+**(d) Responsibility:** state-manager owns ARCH-INDEX per-subsystem rows as part of 4-index maintenance (consistent with D-619 count reconcile precedent). When the architect updates the Total annotation only, state-manager MUST sweep the per-row breakdown in the same burst.
+
+**Resolution:** state-manager reconciled ARCH-INDEX §Subsystem Registry rows to BC-INDEX v3.06 ground truth in D-625 fix burst. Literal-shell per-subsystem counts verified sum = 1,972.
+
+**Anchors:** D-625 (this burst); F-P8-003 MEDIUM load-bearing; ARCH-INDEX v2.54.
+
+**Cites:** D-625; F-P8-003; D-619 (prior BC-INDEX count reconcile); ARCH-INDEX v2.54 §Subsystem Registry; BC-INDEX v3.06 §Summary; POLICY 1 (append-only, withdrawn count); POLICY 14 (body edit requires version bump); S-18.08/S-18.09.
+
+**Closes:** F-P8-003 fixed; ARCH-INDEX row-sum-equals-Total invariant restored; L-F2-arch-index-subsystem-row-vs-total-drift codified. `[process-gap; codified; ARCH-INDEX; subsystem-row; BC-count; drift; row-sum-total; literal-shell; gate; pass-8; F-P8-003; D-625]`

@@ -1,11 +1,11 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: product-owner
 timestamp: 2026-06-16T00:00:00Z
-last_amended: "2026-06-16 (v1.1) — micro-fix (product-owner): §Verification Properties VP-091 proof_method corrected from 'unit-test + integration' to 'unit-test' to match canonical VP-091 frontmatter + VP-INDEX classification. No behavioral content changed."
+last_amended: "2026-06-17 (v1.2) — fix-burst (product-owner): (F-P8-002/C-P8-001 BLOCKER) §Postconditions PC-B sub-bullets (B-1)/(B-2) promoted to formally-labeled sub-clause headings **PC-B-B1** and **PC-B-B2** so S-18.09 AC-008 gate can resolve PC-B-B1/PC-B-B2 citation tokens; Invariant 4 body citation tokens updated from (PC-B-1)/(PC-B-2) to PC-B-B1/PC-B-B2; §Changelog new row v1.2 added. [Prior: 2026-06-16 (v1.1) — micro-fix (product-owner): §Verification Properties VP-091 proof_method corrected from 'unit-test + integration' to 'unit-test' to match canonical VP-091 frontmatter + VP-INDEX classification. No behavioral content changed.]"
 phase: F3
 inputs:
   - .factory/specs/architecture/decisions/ADR-026-wave-boundary-checkpoint-reset-and-lossless-intra-wave-compaction.md
@@ -18,7 +18,7 @@ subsystem: "SS-04"
 capability: "CAP-032"
 lifecycle_status: draft
 introduced: v1.0-feature-context-durability-E18
-modified: ["1.1"]
+modified: ["1.1", "1.2"]
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -71,16 +71,18 @@ The Bash command string does not match any pattern in the configured list. The g
 **PC-B — Pattern match:**
 The Bash command string matches at least one configured pattern (first-match wins). The gate returns `Continue`. In addition, BOTH of the following advisory emissions MUST occur:
 
-- **(B-1) Stderr emission:** A human/LLM-visible nudge message is written to stderr. The message MUST convey that the command is a heavy operation and delegation to a sub-agent or worktree is recommended. Minimum content: matched pattern, a `command_preview` (first ≤120 characters of the command string — truncated with `…` if the command exceeds 120 characters), and the advisory recommendation text. The gate MUST NOT write to stdout (stdout is part of the dispatcher's tool-result channel).
+**PC-B-B1 — Stderr emission:**
+A human/LLM-visible nudge message is written to stderr. The message MUST convey that the command is a heavy operation and delegation to a sub-agent or worktree is recommended. Minimum content: matched pattern, a `command_preview` (first ≤120 characters of the command string — truncated with `…` if the command exceeds 120 characters), and the advisory recommendation text. The gate MUST NOT write to stdout (stdout is part of the dispatcher's tool-result channel).
 
-- **(B-2) plugin.log structured record:** A structured advisory record is emitted to the dispatcher's `plugin.log` channel with the following fields:
+**PC-B-B2 — plugin.log structured record:**
+A structured advisory record is emitted to the dispatcher's `plugin.log` channel with the following fields:
   - `level: warn`
   - `code: DelegationRecommended`
   - `matched_pattern`: the exact pattern string from the list that triggered the match
   - `command_preview`: the first ≤120 characters of the command string (truncated with `…` if longer)
   - `message`: human-readable delegation recommendation string
 
-Both emissions (B-1 and B-2) are REQUIRED on a pattern match. A gate that emits only to one channel is a specification violation.
+Both emissions (PC-B-B1 and PC-B-B2) are REQUIRED on a pattern match. A gate that emits only to one channel is a specification violation.
 
 **PC-C — Gate crash (WASM panic, fuel exhaustion, ABI violation):**
 The gate fails open: the dispatcher returns `Continue` per `on_error = "continue"`. The dispatcher records a `plugin.crashed` event in its internal log. The Bash tool call proceeds unblocked. The crash does not suppress any in-flight tool execution.
@@ -96,7 +98,7 @@ The `tool` filter in the registry entry (`tool = "Bash"`) prevents the dispatche
 
 3. **First-match; deterministic pattern evaluation:** Patterns are evaluated in the order they appear in the `[hooks.config] patterns` list. The gate stops at the first matching pattern and emits the advisory. Only one `DelegationRecommended` advisory is emitted per invocation, regardless of how many patterns would match the command string. Pattern matching is substring containment (case-sensitive): a pattern P matches command C if `C.contains(P)`. The matching logic is deterministic — given the same command string and the same pattern list, the gate produces the same output on every invocation.
 
-4. **command_preview ≤120-character truncation is invariant:** The `command_preview` field in BOTH the stderr message (PC-B-1) and the plugin.log record (PC-B-2) MUST be truncated to ≤120 characters. If the full command string is ≤120 characters, the preview equals the full command string. If the full command string exceeds 120 characters, the preview is the first 120 characters followed by the ellipsis character `…` (U+2026). This truncation is applied identically in both emission channels.
+4. **command_preview ≤120-character truncation is invariant:** The `command_preview` field in BOTH the stderr message (PC-B-B1) and the plugin.log record (PC-B-B2) MUST be truncated to ≤120 characters. If the full command string is ≤120 characters, the preview equals the full command string. If the full command string exceeds 120 characters, the preview is the first 120 characters followed by the ellipsis character `…` (U+2026). This truncation is applied identically in both emission channels.
 
 ## Edge Cases
 
@@ -176,6 +178,7 @@ S-18.06 (validate-heavy-op-delegation WASM gate crate + registry; advisory mode)
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| v1.2 | 2026-06-17 | product-owner | (F-P8-002/C-P8-001 BLOCKER) §Postconditions PC-B sub-bullets (B-1)/(B-2) promoted to formally-labeled sub-clause headings **PC-B-B1 — Stderr emission:** and **PC-B-B2 — plugin.log structured record:** so that citation tokens `PC-B-B1` and `PC-B-B2` are gate-resolvable as bold headings in the Postconditions section (S-18.09 AC-008 gate regex `(^|\*\*)PC-B-B1(\*\*|[: ])` now matches). Invariant 4 body updated from `(PC-B-1)/(PC-B-2)` to `(PC-B-B1)/(PC-B-B2)`. Final `Both emissions` sentence updated from `(B-1 and B-2)` to `(PC-B-B1 and PC-B-B2)`. No behavioral content changed. |
 | v1.1 | 2026-06-16 | product-owner | Micro-fix: §Verification Properties VP-091 proof_method corrected from "unit-test + integration" to "unit-test" to match canonical VP-091 frontmatter + VP-INDEX classification. No behavioral content changed. |
 | v1.0 | 2026-06-16 | product-owner | Initial creation per F3 OQ-4 human directive. Advisory-only validate-heavy-op-delegation WASM gate (ADR-026 §Decision 12 + §Decision 8; CAP-032; S-18.06). Pure-parse Invariant 1; never-blocks Invariant 2; first-match deterministic Invariant 3; command_preview ≤120-char Invariant 4. PC-A/PC-B/PC-C/PC-D postconditions. PC1 canonical TOML registry block (name + plugin + PreToolUse + tool=Bash + on_error=continue + async=false + timeout_ms=5000 + [hooks.config] patterns v1 defaults). PC-B dual-channel advisory (stderr nudge B-1 + plugin.log structured record B-2; code: DelegationRecommended). EC-001..EC-013 edge cases. 13-row test vector table. DI-020 preventive-advisory anchor (OQ-4.4 adopted). §Future Mode blocking-promotion non-normative sketch. |
 

@@ -815,3 +815,61 @@ grep -E '^[|] (\[BC-|~~\[BC-)' .factory/specs/behavioral-contracts/BC-INDEX.md |
 **D-chain cite:** D-623. **Parent-commit:** ff1927c6 (D-623 Commit-E/SHA-patch HEAD).
 
 **Posture:** E-18 STORY PASS-7 INDEX SYNC COMPLETE. 3-CLEAN streak 0/3 (pass-7 NOT-CLEAN → fix-burst). Pass-8 adversary dispatch + consistency re-verify NEXT — START HERE.
+
+---
+
+### D-625 — E-18 STORY PASS-8 FIX BURST (2026-06-17)
+
+**Context:** E-18 story adversarial pass-8 (NOT-CLEAN: F-P8-001 BLOCKER + F-P8-002 BLOCKER + F-P8-003 MED load-bearing + O-P8-A obs + F-P8-004 MED + F-P8-005 MED) and consistency-validator pass-8 (INCONSISTENT: C-P8-001 = F-P8-002) findings. Story-writer fixed S-18.09 v1.8 (awk gate rewrite with flag-form, accumulator reset, ss-%02d format, withdrawn carve-out). Product-owner fixed BC-4.15.001 v1.2 (PC-B-B1/PC-B-B2 promoted to citable subsection headings). Architect fixed VP-091 v1.1 (label sync). This state-manager burst: ARCH-INDEX subsystem-row BC-count reconcile (F-P8-003) + 4-index syncs + reviews persist + INDEX.md pass-8 row + decision-log + lessons + STATE.md. State-manager runs LAST (POLICY 3).
+
+**Pass-8 adversary verdict:** NOT-CLEAN. Findings:
+- **F-P8-001 BLOCKER:** S-18.09 AC-008 awk gate rewrite from pass-7 introduced range-collapse regression — `/^## Postconditions/,/^## /` collapses when start pattern matches end pattern simultaneously (single-line match). Gate permanently FALSE-RED. Fixed by story-writer (S-18.09 v1.8: awk flag-form rewrite).
+- **F-P8-002 BLOCKER:** BC-4.15.001 PC-B-B1/PC-B-B2 referenced as citable anchors in S-18.09 AC-008 gate but not promoted to subsection headings in BC-4.15.001 v1.1. Fixed by product-owner (BC-4.15.001 v1.2: `#### PC-B-B1` and `#### PC-B-B2` headings added).
+- **F-P8-003 MEDIUM (load-bearing):** ARCH-INDEX Subsystem Registry per-subsystem BC counts sum to 1,949 but Total annotation and BC-INDEX v3.06 ground truth = 1,972. Row-sum-equals-Total invariant violated. Fixed by state-manager (this burst): literal-shell per-subsystem count via `grep -c '^| [BC-N.' BC-INDEX.md` for each N; SS-03 53→56; SS-04 39→42; SS-05 652→655; SS-06 586→589; SS-07 198→201; SS-08 214→222; verified sum = 1,972. ARCH-INDEX v2.53→v2.54 POLICY 14 parity.
+- **O-P8-A OBS:** AC-007 accumulator reset missing from test harness skeleton. Fixed proactively by story-writer.
+- **F-P8-004 MEDIUM:** AC-008 scope statement missing withdrawn BC carve-out. Fixed by story-writer (S-18.09 v1.8: "active BCs (status != withdrawn)" language added).
+- **F-P8-005 MEDIUM:** AC-005 subsystem directory pattern `ss-%d` does not match canonical zero-padded `ss-%02d`. Fixed by story-writer (S-18.09 v1.8: `ss-%02d` format).
+
+**Consistency-validator pass-8 verdict:** INCONSISTENT. Findings:
+- **C-P8-001 (= F-P8-002):** BC-4.15.001 PC-B-B1/B2 labels unresolvable. Fixed by product-owner (BC-4.15.001 v1.2).
+
+**Literal-shell per-subsystem BC-count gate (POLICY 15):**
+```
+SS-01: grep -c '^| \[BC-1\.' .factory/specs/behavioral-contracts/BC-INDEX.md → 117
+SS-02: grep -c '^| \[BC-2\.' BC-INDEX.md → 25 (active) + 1 withdrawn (~~[BC-2.02.013]~~) = 26
+SS-03: grep -c '^| \[BC-3\.' BC-INDEX.md → 56
+SS-04: grep -c '^| \[BC-4\.' BC-INDEX.md → 42
+SS-05: grep -c '^| \[BC-5\.' BC-INDEX.md → 655
+SS-06: grep -c '^| \[BC-6\.' BC-INDEX.md → 589
+SS-07: grep -c '^| \[BC-7\.' BC-INDEX.md → 201
+SS-08: grep -c '^| \[BC-8\.' BC-INDEX.md → 222
+SS-09: grep -c '^| \[BC-9\.' BC-INDEX.md → 6
+SS-10: grep -c '^| \[BC-10\.' BC-INDEX.md → 58
+Sum = 117+26+56+42+655+589+201+222+6+58 = 1,972 VERIFIED matches BC-INDEX v3.06 Total
+```
+
+**3-CLEAN streak:** Pass-8 NOT-CLEAN → streak 0/3. Pass-9 = NEXT.
+
+**Lessons codified:**
+- **L-F2-gate-rewrite-introduces-regression [process-gap] [codified]:** Rewriting a gate specification (e.g., awk range rewrite) introduces a new regression risk that is NOT caught by testing against the prior finding's test vectors alone. Every gate-spec change MUST be verified by hand-tracing both a PASS case and a FAIL case against the rewritten logic before committing. Anchored S-18.09 AC-008 pass-8 regression.
+- **L-F2-awk-inclusive-range-collapse [process-gap] [codified]:** awk inclusive-range `/start/,/end/` collapses to a single-line match when the start pattern ALSO matches the end pattern (e.g., `/^## Postconditions/,/^## /` — `## Postconditions` matches both patterns simultaneously → range opens and closes on the same line). Cure: use flag-form awk: `/^## Start/{p=1} /^## / && p && !/^## Start/{p=0} p{print}`. Applies to any Markdown section extraction where the start heading pattern is a prefix of the end pattern. Anchored S-18.09 AC-008 awk rewrite.
+- **L-F2-arch-index-subsystem-row-vs-total-drift [process-gap] [codified]:** ARCH-INDEX Subsystem Registry per-subsystem BC-count rows are NOT automatically updated when BCs are added to BC-INDEX. The D-619 count reconcile updated BC-INDEX Summary table but did not propagate per-row deltas to ARCH-INDEX. The row-sum-equals-Total gate should be enforced mechanically. Cure: whenever BC-INDEX Total changes, sweep ARCH-INDEX per-subsystem rows in the same burst; literal-shell per-subsystem count gate required. Anchored S-18.08/S-18.09 ARCH-INDEX drift (23-BC delta across 6 subsystems at D-625 reconcile).
+
+**Actions taken:**
+- `adv-e18-story-pass-8.md` CREATED: adversary pass-8 review (NOT-CLEAN; F-P8-001..F-P8-005 + O-P8-A)
+- `consistency-e18-story-pass-8.md` CREATED: consistency report pass-8 (INCONSISTENT; C-P8-001 = F-P8-002)
+- `ARCH-INDEX.md` v2.53→v2.54: §Subsystem Registry SS-03/04/05/06/07/08 BC counts reconciled to BC-INDEX v3.06 ground truth; literal-shell sum verified 1,972; frontmatter version/last_amended bumped; changelog v2.54 entry added
+- `BC-INDEX.md` v3.06→v3.07: BC-4.15.001 row version cell updated v1.1→v1.2; frontmatter version/last_amended bumped (POLICY 14 parity for body edit)
+- `VP-INDEX.md` v2.36→v2.37: VP-091 Full Index row version note updated v1.0→v1.1 (label-sync); frontmatter version/last_amended bumped
+- `STORY-INDEX.md` v4.09→v4.10: S-18.09 version-cell sync story v1.7→v1.8; frontmatter version/last_amended bumped
+- `INDEX.md` E-18 STORY cascade section: pass-8 row added; pass-7 row de-bolded; pass-7 closures note added; Convergence Status updated (pass-8 NOT-CLEAN; streak 0/3; pass-9 NEXT; 4-index BC v3.07/VP v2.37/STORY v4.10/ARCH v2.54; D-range D-614..D-625)
+- `decision-log.md` D-625 block appended (this entry)
+- `lessons.md` 3 lesson entries appended
+- `burst-log.md` D-625 burst entry appended (D-444(c) 8 blocks)
+- `STATE.md` v3.74→v3.75: D-625 frontmatter + Decisions Log + banner entry; 4-index BC-INDEX v3.07 / VP-INDEX v2.37 / STORY-INDEX v4.10 / ARCH-INDEX v2.54; POSTURE pass-9; Session Resume Checkpoint updated
+
+**4-index post-burst:** BC-INDEX v3.07 / VP-INDEX v2.37 / STORY-INDEX v4.10 / ARCH-INDEX v2.54. L2-INDEX v1.0.13 (UNCHANGED).
+
+**D-chain cite:** D-624. **Parent-commit:** 22e57c90 (D-624 Commit-E/SHA-patch HEAD).
+
+**Posture:** E-18 STORY PASS-8 FIX BURST COMPLETE. 3-CLEAN streak 0/3 (pass-8 NOT-CLEAN → fix-burst). Pass-9 adversary dispatch + consistency re-verify NEXT — START HERE.
