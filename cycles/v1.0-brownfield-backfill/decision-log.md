@@ -773,3 +773,45 @@ grep -E '^[|] (\[BC-|~~\[BC-)' .factory/specs/behavioral-contracts/BC-INDEX.md |
 **D-chain cite:** D-622. **Parent-commit:** 7a9a3dae (D-622 SHA-patch).
 
 **Posture:** E-18 STORY PASS-6 INDEX SYNC COMPLETE. 3-CLEAN streak 0/3 (pass-6 NOT-CLEAN → fix-burst). Pass-7 adversary dispatch + consistency re-verify NEXT — START HERE.
+
+---
+
+### D-624 — E-18 STORY PASS-7 INDEX SYNC BURST (2026-06-17)
+
+**Context:** E-18 story adversarial pass-7 (NOT-CLEAN: F-P7-001 MAJOR + F-P7-002 LOW + O-P7-001 obs) and consistency-validator pass-7 (INCONSISTENT: C-P7-001..C-P7-005) findings resolved by story-writer (S-18.08 v1.5 WARN→FAIL; S-18.09 v1.7 AC-008 silent-inert gate fix with explicit FAIL exit path) and architect (verification-architecture.md v1.4 bump; ARCH-INDEX body BC-count text update 1,949/v1.84→1,972/v3.06). This is the state-manager index-sync leg (runs LAST per POLICY 3). This burst: STORY-INDEX 9-story version sync + C-P7-002 bidirectional-blocks sweep + C-P7-004 line 190 narrative + C-P7-001 VP-086 cite + ARCH-INDEX POLICY 14 parity restore + STATE.md bookkeeping + lessons codification.
+
+**Pass-7 adversary verdict:** NOT-CLEAN. Findings:
+- **F-P7-001 MAJOR:** S-18.09 AC-008 gate is silent-inert — no FAIL exit path specified. A gate that can find violations but always exits 0 is structurally inert; it can report but cannot block TDD red-gate discipline. Fixed by story-writer (S-18.09 v1.7: explicit exit non-zero clause added to AC-008).
+- **F-P7-002 LOW:** S-18.08 WARN vs FAIL ambiguity — consistency-validator scan acceptance criteria did not explicitly state exit non-zero on violation. Fixed by story-writer (S-18.08 v1.5: FAIL exit path made explicit).
+- **O-P7-001 OBSERVATION:** bats fatal-path contract documentation pattern — non-actionable; not fixed.
+
+**Consistency-validator pass-7 verdict:** INCONSISTENT. Findings:
+- **C-P7-001 BLOCKER:** VP-086 catalog-row drift — S-18.00 STORY-INDEX annotation carried bare `VP-086` without current version cite. VP-INDEX v2.36 shows VP-086 at v1.4. Fixed: state-manager added `VP-086 (v1.4)` cite to S-18.00 STORY-INDEX annotation (STORY-INDEX v4.09).
+- **C-P7-002 BLOCKER:** Bidirectional DAG blocks sweep incomplete — 4 STORY-INDEX Blocks cells stale after story-writer added `depends_on:` entries in story frontmatter but STORY-INDEX not synced: S-18.00 missing S-18.05; S-18.04a missing S-18.03+S-18.07; S-18.04b missing S-18.03+S-18.07; S-18.07 missing S-18.10. Fixed: state-manager swept all 4 cells (STORY-INDEX v4.09).
+- **C-P7-003 MAJOR:** ARCH-INDEX body BC-count text edited by architect (1,949/v1.84→1,972/v3.06) without version bump — POLICY 14 5-leg quintuple parity violated: no frontmatter `version:` advance, no body changelog entry, no `last_amended:` update. Fixed: state-manager bumped ARCH-INDEX v2.52→v2.53 with full POLICY 14 5-leg parity + §Document Map verification-architecture.md annotation updated v1.3→v1.4 (architect bumped va.md to v1.4 in pass-7 burst).
+- **C-P7-004 MED:** STORY-INDEX line 190 stale narrative "99 stories across 17 epics (E-0 through E-16)" — actual count is 120 stories across 19 epics (E-0 through E-18). Fixed: state-manager updated to "120 stories across 19 epics (E-0 through E-18)" with E-17/E-18 addition notes.
+- **C-P7-005 MED:** S-18.09 AC-008 WARN vs FAIL consistency echo of F-P7-001 — fixed by story-writer (S-18.09 v1.7).
+
+**3-CLEAN streak:** Pass-7 NOT-CLEAN → streak 0/3. Pass-8 = NEXT.
+
+**Lessons codified:**
+- **L-F2-silent-inert-validator-class [process-gap] [codified]:** A gate that can find violations but always exits 0 is structurally silent-inert — it can report but cannot enforce TDD red-gate discipline. Every acceptance criteria gate specification MUST include an explicit exit non-zero clause when any violation is detected. Class fix = review ALL validator/gate ACs for FAIL exit path before adversary dispatch. Anchored S-18.09 AC-008 scope.
+- **L-F2-bidirectional-dag-sweep-incompleteness [process-gap] [codified]:** When story-writer adds a `depends_on:` entry to a story file, the STORY-INDEX Blocks cell for the referenced story MUST be updated in the same burst (bidirectional DAG invariant). Partial fixes (updating story frontmatter without index) cause recurring streak resets. Class fix = enumerate all `depends_on:` delta entries and sweep ALL reverse Blocks cells before committing. Anchored C-P7-002.
+- **L-F2-catalog-row-vs-summary-drift [process-gap] [codified]:** STORY-INDEX annotation cells (BCs column) must carry current VP/BC version cites. Drift occurs when a VP or BC re-versions during an adversary cascade but the index annotation cell is not simultaneously updated. Class fix = sweep all index annotation cells for any VP/BC that was re-versioned in the same burst, same-burst. Anchored C-P7-001 (VP-086 v1.3→v1.4 in pass-7 burst; S-18.00 annotation not updated).
+
+**Actions taken:**
+- `adv-e18-story-pass-7.md` CREATED: adversary pass-7 review (NOT-CLEAN; F-P7-001 MAJOR + F-P7-002 LOW + O-P7-001 obs)
+- `consistency-e18-story-pass-7.md` CREATED: consistency report pass-7 (INCONSISTENT; C-P7-001..C-P7-005)
+- `STORY-INDEX.md` v4.08→v4.09: 9 story version cells synced (S-18.00 v1.2→v1.3; S-18.03 v1.4→v1.5; S-18.04a v1.4→v1.5; S-18.04b v1.5→v1.6; S-18.05 v1.4→v1.5; S-18.06 v1.3→v1.4; S-18.07 v1.4→v1.5; S-18.08 v1.4→v1.5; S-18.09 v1.6→v1.7); C-P7-002 bidirectional-blocks sweep (S-18.00 adds S-18.05; S-18.04a adds S-18.03+S-18.07; S-18.04b adds S-18.03+S-18.07; S-18.07 adds S-18.10); C-P7-004 line 190 narrative updated (99→120 stories; 17→19 epics; E-17/E-18 notes added); C-P7-001 VP-086 v1.4 cite added to S-18.00 annotation; frontmatter version/last_amended bumped
+- `ARCH-INDEX.md` v2.52→v2.53: POLICY 14 5-leg parity restored (C-P7-003); §Document Map verification-architecture.md annotation v1.3→v1.4; body changelog v2.53 entry appended; frontmatter version/last_amended bumped
+- `INDEX.md` E-18 STORY cascade section: pass-7 row added + Convergence Status updated (pass-7 NOT-CLEAN; streak 0/3; pass-8 NEXT; 4-index BC v3.06/VP v2.36/STORY v4.09/ARCH v2.53)
+- `decision-log.md` D-624 block appended (this entry)
+- `lessons.md` 3 lesson entries appended
+- `burst-log.md` D-624 burst entry appended (D-444(c) 8 blocks)
+- `STATE.md` v3.73→v3.74: D-624 frontmatter + Decisions Log + banner entry; 4-index STORY-INDEX v4.09 + ARCH-INDEX v2.53; POSTURE pass-8; Session Resume Checkpoint updated
+
+**4-index post-burst:** BC-INDEX v3.06 (UNCHANGED) / VP-INDEX v2.36 (UNCHANGED) / STORY-INDEX v4.09 / ARCH-INDEX v2.53. L2-INDEX v1.0.13 (UNCHANGED).
+
+**D-chain cite:** D-623. **Parent-commit:** ff1927c6 (D-623 Commit-E/SHA-patch HEAD).
+
+**Posture:** E-18 STORY PASS-7 INDEX SYNC COMPLETE. 3-CLEAN streak 0/3 (pass-7 NOT-CLEAN → fix-burst). Pass-8 adversary dispatch + consistency re-verify NEXT — START HERE.

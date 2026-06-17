@@ -2,12 +2,13 @@
 document_type: architecture-section
 level: L4
 section: verification-architecture
-version: "1.3"
+version: "1.4"
 status: draft
 producer: architect
-timestamp: 2026-06-16T00:00:00Z
-last_amended: "2026-06-16 (v1.3) — D-615 E-18 STORY PASS-1 FIX WAVE INTEGRATION BURST (state-manager POLICY 9 propagation): VP-092 added to §SS-06 Provable Properties Catalog (unit-test; DI-020; check-state-health CLAUDE_AUTOCOMPACT_PCT_OVERRIDE advisory check; BC-6.25.001; S-18.10). §3 Proof Method Coverage Totals: unit-test 45→46; Total 91→92. §1 VP count invariant note updated 91→92. [Prior: 2026-06-16 (v1.2) — D-612 INTEGRATION BURST (state-manager POLICY 9 propagation): VP-091 added to §SS-04 Provable Properties Catalog (unit-test; DI-020; validate-heavy-op-delegation always-Continue advisory gate; BC-4.15.001; S-18.06). §3 Proof Method Coverage Totals: unit-test 44→45; Total 90→91. §1 VP count invariant note updated 90→91. [Prior: 2026-06-16 (v1.1) — fix burst (architect): FINDING-1 (MINOR) + O-D607-003 — removed SS-08 from subsystems_affected frontmatter; SS-08 has zero VPs in this document's body (consistent with sibling verification-coverage-matrix.md which correctly omits SS-08). Frontmatter now matches body. [Prior: 2026-06-16 (v1.0) — F2 gate decision: initial creation as a full production-grade architecture deliverable. Sources: VP-INDEX.md v2.29 (86 VPs) + VP-087..VP-090 (4 new E-18 VPs, unstaged). POST-INTEGRATION totals: total_vps=90, unit-test=44, integration=27, manual=10, static-check=1, kani-proof=4, proptest=4. Authored per F2 gate human directive that deferred architecture derived-views be materialized now.]]"
+timestamp: 2026-06-17T00:00:00Z
+last_amended: "2026-06-17 (v1.4) — C-P7-001 fix burst (architect): VP-086 row added to §SS-01 Provable Properties Catalog — was present in §3 integration list and §Risk Mitigations but absent from §1 catalog body (91 unique VP IDs vs 92 total). VP-086: Dispatcher Exit-2 Propagation for PreCompact Block-Intent; integration; BC-1.15.001 PC4; SS-01/SS-04; anchor S-18.00. §1 VP count invariant unchanged at 92 (catalog now reflects actual count). [Prior: 2026-06-16 (v1.3) — D-615 E-18 STORY PASS-1 FIX WAVE INTEGRATION BURST (state-manager POLICY 9 propagation): VP-092 added to §SS-06 Provable Properties Catalog (unit-test; DI-020; check-state-health CLAUDE_AUTOCOMPACT_PCT_OVERRIDE advisory check; BC-6.25.001; S-18.10). §3 Proof Method Coverage Totals: unit-test 45→46; Total 91→92. §1 VP count invariant note updated 91→92. [Prior: 2026-06-16 (v1.2) — D-612 INTEGRATION BURST (state-manager POLICY 9 propagation): VP-091 added to §SS-04 Provable Properties Catalog (unit-test; DI-020; validate-heavy-op-delegation always-Continue advisory gate; BC-4.15.001; S-18.06). §3 Proof Method Coverage Totals: unit-test 44→45; Total 90→91. §1 VP count invariant note updated 90→91. [Prior: 2026-06-16 (v1.1) — fix burst (architect): FINDING-1 (MINOR) + O-D607-003 — removed SS-08 from subsystems_affected frontmatter; SS-08 has zero VPs in this document's body (consistent with sibling verification-coverage-matrix.md which correctly omits SS-08). Frontmatter now matches body. [Prior: 2026-06-16 (v1.0) — F2 gate decision: initial creation as a full production-grade architecture deliverable. Sources: VP-INDEX.md v2.29 (86 VPs) + VP-087..VP-090 (4 new E-18 VPs, unstaged). POST-INTEGRATION totals: total_vps=90, unit-test=44, integration=27, manual=10, static-check=1, kani-proof=4, proptest=4. Authored per F2 gate human directive that deferred architecture derived-views be materialized now.]]"
 modified:
+  - "2026-06-17 (v1.4) — C-P7-001 VP-086 row added to SS-01 Provable Properties Catalog (missing from §1 body; present in §3 and §Risk Mitigations); catalog count now 92 unique VP IDs"
   - "2026-06-16 (v1.3) — D-615 VP-092 added to SS-06 catalog; unit-test 45→46; total 91→92"
   - "2026-06-16 (v1.2) — D-612 VP-091 added to SS-04 catalog; unit-test 44→45; total 90→91"
   - "2026-06-16 (v1.1) — removed SS-08 from subsystems_affected (zero VPs in body; aligns with verification-coverage-matrix.md)"
@@ -36,6 +37,7 @@ subsystems_affected:
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| v1.4 | 2026-06-17 | architect | C-P7-001 fix: VP-086 row added to SS-01 Provable Properties Catalog — was present in §3 integration list and §Risk Mitigations but absent from §1 catalog body (91 unique VP IDs vs declared total 92). VP-086: Dispatcher Exit-2 Propagation for PreCompact Block-Intent; integration; BC-1.15.001 PC4 (exit-2 block-intent propagated to harness); SS-01/SS-04; anchor S-18.00. Catalog now enumerates all 92 VPs. §3 totals and §1 count invariant (92) unchanged — §3 integration list already included VP-086. |
 | v1.3 | 2026-06-16 | state-manager | D-615 POLICY 9 propagation: VP-092 added to SS-06 Provable Properties Catalog (unit-test; DI-020; BC-6.25.001; S-18.10 — check-state-health CLAUDE_AUTOCOMPACT_PCT_OVERRIDE advisory check; never blocks; PC1 absent→ADVISORY; PC2 >80→ADVISORY; PC3 <=80→PASS). §3 unit-test 45→46; Total 91→92. §1 VP count invariant updated 91→92. |
 | v1.2 | 2026-06-16 | state-manager | D-612 POLICY 9 propagation: VP-091 added to SS-04 Provable Properties Catalog (unit-test; DI-020; BC-4.15.001; S-18.06 — validate-heavy-op-delegation always-Continue advisory gate). §3 unit-test 44→45; Total 90→91. §1 VP count invariant updated 90→91. |
 | v1.1 | 2026-06-16 | architect | FINDING-1 (MINOR) + O-D607-003 — removed SS-08 from `subsystems_affected` frontmatter. SS-08 has zero VPs in this document's §1 body; sibling verification-coverage-matrix.md correctly omits SS-08. Frontmatter now matches body content. |
@@ -87,6 +89,7 @@ proof method, BC postcondition/invariant anchor, and current status.
 | VP-074 | Resolver-Error Isolation — resolver crash, trap, or timeout must not propagate to dispatcher | kani-proof | DI-002 | draft |
 | VP-075 | Context-Injection Determinism — same resolver input always produces same output | proptest | — | draft |
 | VP-077 | Dispatcher Partition Correctness (6 properties) | kani-proof | — | draft |
+| VP-086 | Dispatcher Exit-2 Propagation for PreCompact Block-Intent | integration | BC-1.15.001 PC4 | draft |
 
 ---
 

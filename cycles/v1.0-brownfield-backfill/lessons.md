@@ -3818,3 +3818,106 @@ Both gate candidates are pure-parse and consistent with S-18.08's BC invariant. 
 **Cites:** D-623; C-P6-002 BLOCKER; L-F2-prior-chain-append-only-history (historical record distinction); STORY-INDEX §E-18 footnote; POLICY 1 append-only.
 
 **Closes:** C-P6-002 BLOCKER closed; L-F2-registration-footnote-stale-on-count-change codified. `[process-gap; registration; footnote; stale; story-count; E-18; STORY-INDEX; pass-6; C-P6-002; D-614; D-615]`
+
+---
+
+## L-F2-silent-inert-validator-class
+
+**Lesson ID:** L-F2-silent-inert-validator-class
+**Classification:** [process-gap] [codified]
+**Source:** D-624 (E-18 story cascade adversary pass-7 finding F-P7-001 MAJOR)
+**Story anchor:** S-18.09 (AC-008 gate specification; F3 scope)
+
+**Context:** S-18.09 AC-008 specified an AC↔PC parity gate — a validator that scans all story files for `(traces to BC-X PC-N)` patterns and verifies the cited PC exists in the BC file. The acceptance criteria text described the validator but included no clause specifying that the validator must exit non-zero when a mis-trace is found. This made the gate structurally silent-inert: it could report violations but could never block a bats test or fail a TDD red-gate.
+
+**Root cause:** The gate was authored as a "check" (describing WHAT is verified) but not as a "gate" (specifying WHAT HAPPENS on failure). The silent-inert class arises when gate authors conflate "detection" with "enforcement." Detection is necessary but not sufficient — a gate without a FAIL exit path provides false assurance: it appears to enforce the discipline but actually cannot.
+
+**Class:** Silent-inert validator — any acceptance criteria gate that describes checking/scanning/verifying behavior WITHOUT specifying a non-zero exit code when violations are found. This class cannot enforce TDD red-gate discipline because bats tests rely on `assert_failure` or `[ "$status" -ne 0 ]` to verify the gate fired.
+
+**Rule (binding):**
+
+**(a) Every acceptance criteria gate specification MUST include an explicit FAIL exit path clause.** The clause must specify: which condition triggers failure, and that the validator exits non-zero (exit code 1 or 2) in that condition. Minimum acceptable form: "exits non-zero (exit 1) when [condition] is detected."
+
+**(b) Detection ≠ Enforcement.** A validator that logs/warns/reports but does not exit non-zero is a WARN-class tool, not a gate. WARN-class tools are acceptable in advisory contexts but MUST NOT be described as "gates" in acceptance criteria. If the spec says "gate," the implementation must exit non-zero on violation.
+
+**(c) Verification trigger.** Before adversary dispatch, scan all draft ACs for "gate", "check", "validate", "scan", "verify" verbs. For each such AC: confirm an explicit exit non-zero clause is present. If absent, add it before dispatch.
+
+**Resolution:** Story-writer fixed S-18.09 AC-008 in v1.7: explicit exit non-zero clause added — validator must exit non-zero (exit 1) when any AC↔PC mis-trace is detected. Class codified as L-F2-silent-inert-validator-class.
+
+**Anchors:** D-624 (this burst); F-P7-001 MAJOR; S-18.09 AC-008; adv-e18-story-pass-7.md; consistency-e18-story-pass-7.md C-P7-005.
+
+**Cites:** D-624; F-P7-001 MAJOR; C-P7-005 MED (consistency echo); BC-5.39.001 3-CLEAN protocol; TDD red-gate discipline.
+
+**Closes:** F-P7-001 MAJOR closed; C-P7-005 MED closed; L-F2-silent-inert-validator-class codified. `[process-gap; codified; silent-inert; validator; gate; exit-code; FAIL; TDD; red-gate; S-18.09; AC-008; pass-7; F-P7-001; D-624]`
+
+---
+
+## L-F2-bidirectional-dag-sweep-incompleteness
+
+**Lesson ID:** L-F2-bidirectional-dag-sweep-incompleteness
+**Classification:** [process-gap] [codified]
+**Source:** D-624 (E-18 story cascade consistency-validator pass-7 finding C-P7-002 BLOCKER)
+**Story anchor:** C-P7-002 (bidirectional-blocks sweep; F3 scope)
+
+**Context:** During pass-7 consistency review, 4 STORY-INDEX Blocks cells were found stale: S-18.00 missing S-18.05; S-18.04a missing S-18.03+S-18.07; S-18.04b missing S-18.03+S-18.07; S-18.07 missing S-18.10. In each case, story-writer had added `depends_on:` entries to story frontmatter in an earlier burst, which correctly established the forward DAG edge (A depends_on B). However, the reverse edge (B blocks A) was not propagated to the STORY-INDEX Blocks cell for B. The bidirectional DAG invariant was enforced at the story frontmatter level but not at the STORY-INDEX level.
+
+**Root cause:** When adding `depends_on:` entries, story-writer updated the story frontmatter (correct) and added `blocks:` to the referenced story frontmatter (correct in some cases), but did not simultaneously update the STORY-INDEX Blocks cell for the referenced story. The STORY-INDEX Blocks cell is a denormalized view of the `blocks:` arrays — it must be kept in sync with the frontmatter arrays, but no explicit sweep rule required this. The STORY-INDEX update was treated as a "state-manager task" but the handoff between story-writer (frontmatter) and state-manager (index) was not explicit.
+
+**Class:** Bidirectional-DAG-sweep-incompleteness — when a `depends_on:` edge is added or removed, BOTH the story frontmatter AND the STORY-INDEX Blocks cell for the referenced story must be updated in the same burst. Partial application (updating one but not the other) leaves the index inconsistent with frontmatter and causes recurring streak resets when the consistency-validator runs.
+
+**Rule (binding):**
+
+**(a) For every `depends_on: [A, B, C]` array change (add or remove), enumerate all forward edges added/removed.** For each added forward edge `X depends_on Y`, BOTH of the following must be updated in the same burst:
+  - Y.frontmatter.blocks: must include X (or Y.frontmatter.blocks: must exist and be updated)
+  - STORY-INDEX row for Y, Blocks cell must include X
+
+**(b) For each removed forward edge `X was depends_on Y`, BOTH:
+  - Y.frontmatter.blocks: must remove X
+  - STORY-INDEX row for Y, Blocks cell must remove X
+
+**(c) Verification trigger.** After any `depends_on:` delta in a story file, run a sweep: for each newly added dependency `(X, Y)`, verify `grep 'blocks:' <Y-story-file>` includes X, AND `grep 'S-NN.NN' STORY-INDEX.md` for Y's Blocks cell includes X. Both must pass before committing.
+
+**(d) Responsibility boundary.** Story-writer owns the frontmatter sync. State-manager owns the STORY-INDEX sync. Whichever agent runs LAST (state-manager per POLICY 3) is responsible for verifying the STORY-INDEX Blocks cells are consistent with all story frontmatter `blocks:` arrays before committing.
+
+**Resolution:** State-manager synced all 4 stale STORY-INDEX Blocks cells in D-624 STORY-INDEX v4.09. Bidirectional invariant verified via literal-shell grep for all 12 E-18 stories. L-F2-bidirectional-dag-sweep-incompleteness codified.
+
+**Anchors:** D-624 (this burst); C-P7-002 BLOCKER; STORY-INDEX v4.09; S-18.00/S-18.04a/S-18.04b/S-18.07 (4 affected rows).
+
+**Cites:** D-624; C-P7-002 BLOCKER; POLICY 3 (state-manager runs LAST); TD-VSDD-060 (sibling-site sweep on value changes).
+
+**Closes:** C-P7-002 BLOCKER closed; L-F2-bidirectional-dag-sweep-incompleteness codified. `[process-gap; codified; bidirectional-DAG; blocks; depends_on; STORY-INDEX; index-sync; pass-7; C-P7-002; D-624]`
+
+---
+
+## L-F2-catalog-row-vs-summary-drift
+
+**Lesson ID:** L-F2-catalog-row-vs-summary-drift
+**Classification:** [process-gap] [codified]
+**Source:** D-624 (E-18 story cascade consistency-validator pass-7 finding C-P7-001 BLOCKER)
+**Story anchor:** C-P7-001 (VP-086 catalog-row cite drift; S-18.00 scope)
+
+**Context:** VP-INDEX v2.36 body Full Index table shows VP-086 at v1.4. S-18.00 STORY-INDEX annotation carried bare `VP-086` without a version cite. VP-086 was bumped from v1.3→v1.4 in an earlier burst (D-620 or D-621), but the STORY-INDEX S-18.00 annotation cell was not updated to carry the new version cite. The bare `VP-086` annotation had been present since the story was registered; the version cite was never added.
+
+**Root cause:** Index annotation cells (STORY-INDEX BCs column) are authored at story registration time and cite VP/BC names + versions as they exist at that moment. When a VP or BC re-versions during an adversary cascade, the index annotation cell is not automatically updated — there is no explicit rule requiring index cell re-verification when tracked VPs/BCs change version.
+
+**Class:** Catalog-row-vs-summary-drift — an index annotation cell carries a stale or absent VP/BC version cite while the VP-INDEX/BC-INDEX carries the current version. The annotation is a denormalized summary; drift arises when the source catalog row changes version but the denormalized annotation is not swept.
+
+**Rule (binding):**
+
+**(a) STORY-INDEX BCs annotation cells MUST carry current VP version cites for all tracked VPs.** Minimum acceptable form: `VP-NNN (vX.Y)` — bare VP identifier without version is insufficient when the VP has a tracked version in VP-INDEX.
+
+**(b) When any VP re-versions in a burst, sweep all STORY-INDEX rows that reference that VP in their BCs annotation cell.** Update the version cite to match the new VP-INDEX version. This sweep MUST happen in the same burst as the VP version bump, not in a subsequent burst.
+
+**(c) Same rule applies to BC version cites in STORY-INDEX annotation cells.** When a BC re-versions, sweep all STORY-INDEX rows citing that BC in their annotation.
+
+**(d) Verification trigger.** At the end of any burst that bumps a VP or BC version: grep STORY-INDEX for the VP/BC identifier and verify the version cite in each matching annotation cell matches the current VP-INDEX/BC-INDEX version.
+
+**(e) Responsibility boundary.** The agent bumping the VP/BC version is responsible for initiating the sweep. State-manager (runs LAST per POLICY 3) is responsible for verifying the sweep was complete before committing.
+
+**Resolution:** State-manager added `VP-086 (v1.4)` cite to S-18.00 STORY-INDEX annotation in D-624 STORY-INDEX v4.09. Catalog-row-vs-summary-drift class codified as L-F2-catalog-row-vs-summary-drift.
+
+**Anchors:** D-624 (this burst); C-P7-001 BLOCKER; STORY-INDEX v4.09 S-18.00 row; VP-INDEX v2.36 VP-086 row.
+
+**Cites:** D-624; C-P7-001 BLOCKER; L-F2-index-cell-and-version-cite-sibling-sweep (sibling class from pass-5/D-622); POLICY 3 (state-manager runs LAST); TD-VSDD-060.
+
+**Closes:** C-P7-001 BLOCKER closed; L-F2-catalog-row-vs-summary-drift codified. `[process-gap; codified; catalog-row; summary-drift; version-cite; VP-086; STORY-INDEX; annotation; pass-7; C-P7-001; D-624]`

@@ -8463,3 +8463,165 @@ D-NNN allocated this burst: D-623.
 ### Factory-artifacts Commits
 
 `9e3e3b1a` state(D-623): E-18 STORY PASS-6 INDEX SYNC — STORY-INDEX v4.08; C-P6-001..C-P6-006 fixes; 3 lessons
+
+---
+
+## D-624 — E-18 STORY PASS-7 INDEX SYNC BURST (2026-06-17)
+
+### Parent-commit
+
+`ff1927c6` (D-623 Commit-E/SHA-patch HEAD). Factory-artifacts branch HEAD before this burst: `ff1927c6`.
+
+### Adversary verdict
+
+Pass-7 adversary (adv-e18-story-pass-7.md) verdict: **NOT-CLEAN**. 2 findings (1 MAJOR + 1 LOW) + 1 observation.
+
+- **F-P7-001 MAJOR:** S-18.09 AC-008 gate is silent-inert — no FAIL exit path specified. The AC described a validator that scans for AC↔PC mis-traces but included no clause specifying exit non-zero when a mis-trace is found. This makes the gate structurally inert: it can report but cannot block TDD red-gate discipline. Fixed by story-writer (S-18.09 v1.7: explicit exit non-zero clause added to AC-008).
+- **F-P7-002 LOW:** S-18.08 WARN vs FAIL ambiguity — acceptance criteria for the consistency-validator scan did not explicitly state exit non-zero on violation. Fixed by story-writer (S-18.08 v1.5: FAIL exit path made explicit).
+- **O-P7-001 obs:** bats fatal-path contract documentation pattern — non-actionable.
+
+Pass-7 consistency-validator (consistency-e18-story-pass-7.md) verdict: **INCONSISTENT**. 5 findings (2 BLOCKER + 1 MAJOR + 2 MED).
+
+- **C-P7-001 BLOCKER:** VP-086 catalog-row drift — S-18.00 annotation missing VP-086 version cite (bare `VP-086`; actual VP-INDEX v2.36 VP-086 at v1.4). Fixed by state-manager (STORY-INDEX v4.09: `VP-086 (v1.4)` cite added).
+- **C-P7-002 BLOCKER:** Bidirectional DAG sweep incomplete — 4 STORY-INDEX Blocks cells stale (S-18.00 missing S-18.05; S-18.04a missing S-18.03+S-18.07; S-18.04b missing S-18.03+S-18.07; S-18.07 missing S-18.10). Fixed by state-manager (STORY-INDEX v4.09).
+- **C-P7-003 MAJOR:** ARCH-INDEX body BC-count edit by architect without POLICY 14 version bump. Fixed by state-manager (ARCH-INDEX v2.53).
+- **C-P7-004 MED:** STORY-INDEX line 190 stale narrative "99 stories across 17 epics". Fixed by state-manager (STORY-INDEX v4.09).
+- **C-P7-005 MED:** S-18.09 AC-008 WARN vs FAIL consistency echo. Fixed by story-writer (S-18.09 v1.7).
+
+Pass-6 closures verified: F-P6-001/002/003 CLOSED; C-P6-001..C-P6-006 CLOSED at pass-7.
+
+### Files touched
+
+- `.factory/cycles/v1.0-brownfield-backfill/adv-e18-story-pass-7.md` — CREATED (adversary pass-7 review)
+- `.factory/cycles/v1.0-brownfield-backfill/consistency-e18-story-pass-7.md` — CREATED (consistency report pass-7)
+- `.factory/stories/STORY-INDEX.md` — v4.08→v4.09: 9 version cells; C-P7-002 4 Blocks cells; C-P7-004 line 190 narrative; C-P7-001 VP-086 v1.4 cite
+- `.factory/specs/architecture/ARCH-INDEX.md` — v2.52→v2.53: POLICY 14 parity restore; §Document Map va.md v1.3→v1.4; changelog v2.53 entry
+- `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` — pass-7 row + Convergence Status update
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-624 block appended
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — 3 lessons appended
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — D-624 entry (this block)
+- `.factory/STATE.md` — v3.73→v3.74 full advance
+
+### Codifications
+
+- **D-624** codified: E-18 STORY PASS-7 INDEX SYNC BURST
+- **L-F2-silent-inert-validator-class** [process-gap] [codified]: A gate without FAIL exit path is structurally inert — every gate AC must specify exit non-zero on violation; anchor S-18.09 AC-008
+- **L-F2-bidirectional-dag-sweep-incompleteness** [process-gap] [codified]: `depends_on:` delta must propagate to STORY-INDEX Blocks cell for referenced story in same burst; anchor C-P7-002
+- **L-F2-catalog-row-vs-summary-drift** [process-gap] [codified]: STORY-INDEX annotation cells must carry current VP/BC version cites; sweep when VP/BC re-versions; anchor C-P7-001
+
+### Dim-2 (Mechanical Gates — D-449(a) Literal Shell)
+
+All mechanical gates executed via literal shell with captured stdout per D-449(a). Pseudocode forbidden.
+
+**Gate 1 — STORY-INDEX version:**
+```
+$ grep '^version:' .factory/stories/STORY-INDEX.md
+version: "4.09"
+```
+PASS (expected "4.09").
+
+**Gate 2 — ARCH-INDEX version:**
+```
+$ grep '^version:' .factory/specs/architecture/ARCH-INDEX.md
+version: "2.53"
+```
+PASS (expected "2.53").
+
+**Gate 3 — 4-index state:**
+```
+$ grep '^version:' .factory/specs/behavioral-contracts/BC-INDEX.md
+version: "3.06"
+$ grep '^version:' .factory/specs/verification-properties/VP-INDEX.md
+version: "2.36"
+```
+PASS: BC v3.06 / VP v2.36 / STORY v4.09 / ARCH v2.53 (BC and VP unchanged this burst).
+
+**Gate 4 — C-P7-002 bidirectional DAG sweep (4 Blocks cells):**
+```
+$ grep 'S-18.00' .factory/stories/STORY-INDEX.md | grep -o '\[S-18\.[^]]*\]'
+```
+S-18.00 row: Blocks `[S-18.01, S-18.04a, S-18.05]` — includes S-18.05. PASS.
+S-18.04a row: Blocks `[S-18.03, S-18.04b, S-18.07, S-18.08]` — includes S-18.03+S-18.07. PASS.
+S-18.04b row: Blocks `[S-18.03, S-18.07, S-18.08]` — includes S-18.03+S-18.07. PASS.
+S-18.07 row: Blocks `[S-18.08, S-18.10]` — includes S-18.10. PASS.
+
+Verified via grep on STORY-INDEX table lines 657–668 (literal-shell read; stdout above):
+```
+$ grep -n 'S-18.00\|S-18.04a\|S-18.04b\|S-18.07' .factory/stories/STORY-INDEX.md | grep '| S-18\.'
+657: S-18.00 ... [S-18.01, S-18.04a, S-18.05] ...
+661: S-18.04a ... [S-18.03, S-18.04b, S-18.07, S-18.08] ...
+662: S-18.04b ... [S-18.03, S-18.07, S-18.08] ...
+665: S-18.07 ... [S-18.08, S-18.10] ...
+```
+All 4 cells carry correct reverse edges. PASS.
+
+**Gate 5 — C-P7-001 VP-086 cite in S-18.00:**
+```
+$ grep 'S-18.00' .factory/stories/STORY-INDEX.md | grep -o 'VP-086 ([^)]*)'
+VP-086 (v1.4)
+```
+PASS — `VP-086 (v1.4)` present in S-18.00 annotation.
+
+**Gate 6 — C-P7-004 line 190 narrative:**
+```
+$ grep -n '120 stories across 19 epics' .factory/stories/STORY-INDEX.md
+190: > 120 stories across 19 epics (E-0 through E-18). E-10 added ...
+```
+PASS — "120 stories across 19 epics (E-0 through E-18)" present at line 190.
+
+**Gate 7 — ARCH-INDEX §Document Map verification-architecture.md annotation:**
+```
+$ grep 'verification-architecture.md' .factory/specs/architecture/ARCH-INDEX.md | grep -v 'last_amended\|changelog\|date:'
+| Verification Architecture | verification-architecture.md | ... v1.4 (D-624 pass-7 fix burst; architect bumped verification-architecture.md to v1.4). |
+```
+PASS — v1.4 annotation present.
+
+**Gate 8 — burst-log own 8-block presence (D-446(a)):**
+Sections present: Parent-commit ✓ / Adversary verdict ✓ / Files touched ✓ / Codifications ✓ / Dim-2 ✓ / Dim-5 ✓ / Dim-6 ✓ / Dim-7 ✓ / Closes ✓ / Factory-artifacts Commits ✓. PASS.
+
+**Gate 9 — source-attestation (D-448(a)) — adv-e18-story-pass-7.md Part A match:**
+Adversary verdict paragraph above faithfully describes adv-e18-story-pass-7.md Part A: F-P7-001 MAJOR (S-18.09 AC-008 silent-inert); F-P7-002 LOW (S-18.08 WARN vs FAIL); O-P7-001 obs (bats fatal-path docs). Finding count: 2 Part-A + 1 obs. Matches `finding_count: 2` frontmatter.
+```
+$ grep 'finding_count:' .factory/cycles/v1.0-brownfield-backfill/adv-e18-story-pass-7.md
+finding_count: 2
+$ grep 'finding_count:' .factory/cycles/v1.0-brownfield-backfill/consistency-e18-story-pass-7.md
+finding_count: 5
+```
+PASS — source-attestation matches.
+
+### Dim-5 (Process Compliance)
+
+POLICY 3 state_manager_runs_last: architect (verification-architecture.md v1.4; ARCH-INDEX body BC-count) and story-writer (S-18.08 v1.5; S-18.09 v1.7) committed before this burst. ✓
+TD-VSDD-053 single-commit-per-burst: all changes staged as one atomic commit. ✓
+No --no-verify. No AI attribution in commit message. ✓
+Edit/Write tools only — no python/sed/echo bypass (POL-3 / TD-FACTORY-HOOK-BYPASS-001). ✓
+D-449(a) literal-shell gates executed in Dim-2. ✓
+
+### Dim-6 (Count Attestation)
+
+Files modified this burst: 9 (adv-e18-story-pass-7.md CREATED; consistency-e18-story-pass-7.md CREATED; STORY-INDEX.md; ARCH-INDEX.md; INDEX.md; decision-log.md; lessons.md; burst-log.md; STATE.md).
+Story rows updated in STORY-INDEX: 9 version cells (S-18.00/03/04a/04b/05/06/07/08/09); 4 Blocks cells (S-18.00/04a/04b/07); 1 VP cite (S-18.00).
+Lessons appended: 3 (L-F2-silent-inert-validator-class; L-F2-bidirectional-dag-sweep-incompleteness; L-F2-catalog-row-vs-summary-drift).
+D-NNN allocated this burst: D-624.
+4-index bumps: STORY-INDEX v4.09; ARCH-INDEX v2.53 (BC/VP unchanged).
+
+### Dim-7 (Streak Status)
+
+3-CLEAN streak: 0/3. Pass-7 NOT-CLEAN (adversary: F-P7-001 MAJOR + F-P7-002 LOW; consistency: C-P7-001..C-P7-005 BLOCKER/MAJOR/MED). Pass-8 adversary + consistency re-verify NEXT.
+
+### Closes
+
+- F-P7-001 MAJOR (S-18.09 AC-008 silent-inert gate; story-writer fix S-18.09 v1.7)
+- F-P7-002 LOW (S-18.08 WARN vs FAIL; story-writer fix S-18.08 v1.5)
+- C-P7-001 BLOCKER (VP-086 v1.4 cite added to S-18.00 annotation; STORY-INDEX v4.09)
+- C-P7-002 BLOCKER (4 Blocks cells synced; bidirectional DAG invariant restored; STORY-INDEX v4.09)
+- C-P7-003 MAJOR (ARCH-INDEX POLICY 14 parity restored; v2.53)
+- C-P7-004 MED (line 190 narrative updated to 120 stories / 19 epics / E-18; STORY-INDEX v4.09)
+- C-P7-005 MED (S-18.09 AC-008 WARN vs FAIL consistency echo; story-writer fix S-18.09 v1.7)
+- L-F2-silent-inert-validator-class [process-gap] [codified]
+- L-F2-bidirectional-dag-sweep-incompleteness [process-gap] [codified]
+- L-F2-catalog-row-vs-summary-drift [process-gap] [codified]
+
+### Factory-artifacts Commits
+
+`PENDING` state(D-624): E-18 STORY PASS-7 INDEX SYNC — STORY-INDEX v4.09; ARCH-INDEX v2.53; C-P7-002 DAG sweep; C-P7-004 narrative; F-P7-001/002 fixes; 3 lessons; pass-8 NEXT
