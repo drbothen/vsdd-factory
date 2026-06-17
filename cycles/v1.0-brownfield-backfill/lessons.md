@@ -3641,3 +3641,36 @@ where N is the exact `wc -l` output (count of newlines in the file).
 **Cites:** D-617; D-421(c)+D-422(c)+D-446(c); BC-5.39.005; validate-state-structure WASM hook; bats `pass-real-state-md-snapshot`.
 
 **Closes:** D-617 process-gap codified; L-F2-statemd-banner-wcl-each-burst added to carry-forward lesson set. `[process-gap; banner; wc-l; validate-state-structure; bats; CI; STATE.md; Commit-E]`
+
+---
+
+### L-F2-ac-pc-parity-sibling-sweep
+
+**Category:** [process-gap]
+**Discovered:** 2026-06-17 D-621 — E-18 story adversarial pass-4 (O-P4-004 process-gap finding; recurring across S-18.02 pass-3, S-18.04a pass-3, S-18.04b pass-4)
+**Severity:** PROCESS-GAP — structural defect class; instance-scoped fixes caused 3-recurrence across passes; class fix required exhaustive 12-story sweep + mandatory gate
+
+**Summary:** AC↔PC mis-trace (a story AC's `traces to BC-X PC-N` reference pointing to a wrong or non-existent postcondition number in the cited BC) recurred across S-18.02 (pass-3), S-18.04a (pass-3), and S-18.04b (pass-4). Each prior fix was instance-scoped: the adversary found one AC with a wrong PC reference, the story-writer corrected that AC, but did not sweep siblings. The class fix required (a) an exhaustive sweep of all 12 E-18 story files checking EVERY `(traces to BC-X PC-N / INV-N)` parenthetical against the referenced BC's actual §Postconditions / §Invariants section, and (b) a mandatory automated gate to prevent future regressions.
+
+**Root Cause (pass-3/pass-4 recurrence):** S-18.04b pass-3 fixed F-SP3-003 (AC-005 traces-to correction) but did not sweep the sibling ACs in the same story (AC-002/003/004 remained with wrong PC references). Pass-4 found F-P4-001 MAJOR on those ACs. The same class existed in S-18.02 and S-18.04a. The pattern: when a BC has numbered Postconditions AND Invariants, authors confuse PC numbers with INV numbers and cite the wrong section clause.
+
+**Rule (binding):**
+
+**(a) AC↔PC parity sweep is class-scoped, not instance-scoped.** When an adversary finds one AC with a wrong `traces to BC-X PC-N` reference, the fix burst MUST sweep ALL ACs in that story AND all sibling stories in the same epic that share any BC with the affected story. Correcting only the reported AC and declaring done is a false-closure.
+
+**(b) Verification protocol for AC↔PC parity:** For each AC containing `traces to BC-X PC-N`, verify:
+1. `BC-X` has a §Postconditions section.
+2. `PC-N` exists as a numbered heading or row in that section (exact number, not off-by-one).
+3. The PC description is semantically consistent with what the AC is testing.
+
+**(c) Mandatory automated gate (resolution anchor S-18.09 AC-008):** The class fix is codified as **S-18.09 AC-008** — a machine-checkable assertion that EVERY `(traces to BC-X PC-N / INV-N)` parenthetical in E-18 story bodies resolves to a real numbered clause in the cited BC. This gate is now part of S-18.09's mandatory Red Gate test table. The gate runs as part of the E-18 F4 TDD delivery for S-18.09 and provides a post-delivery regression guard.
+
+**(d) Instance discovery does not satisfy class closure.** A pass that finds 0 NEW instances of this class does NOT mean the class is closed unless the automated gate (AC-008 or equivalent) has been implemented and is passing. Until S-18.09 is merged, this class must be manually swept at every adversary pass.
+
+**Resolution:** Pass-4 fix burst included exhaustive 12-story sweep of all E-18 story files. S-18.09 v1.4 adds AC-008 as the permanent gate. Lesson tagged `[codified]` with anchor **S-18.09 AC-008**.
+
+**Anchors:** D-621 (this burst); D-620 (pass-3 fix burst, prior instance); S-18.09 AC-008 (gate anchor — permanent enforcement); O-P4-004 (adversary observation that triggered class escalation); F-P4-001 MAJOR (pass-4 finding on S-18.04b); S-18.02 pass-3 / S-18.04a pass-3 / S-18.04b pass-4 (3-recurrence chain).
+
+**Cites:** D-621; S-18.09 AC-008; POLICY 5 v1.3.3 (sibling sweep mandate); CLAUDE.md §Canonical-Principle Rule 4 (AI-built defects are AI's responsibility to fix); O-P4-004.
+
+**Closes:** O-P4-004 process-gap class escalation satisfied; L-F2-ac-pc-parity-sibling-sweep codified and added to carry-forward lesson set; [codified] anchor = S-18.09 AC-008. `[process-gap; AC-PC-parity; sibling-sweep; traces-to; BC-postcondition; S-18.09; AC-008; E-18; pass-4]`

@@ -8143,3 +8143,91 @@ Streak: 0/3 (reset by F-SP3-001 BLOCKER). Pass-4 adversary NEXT.
 ### Factory-artifacts Commits
 
 `a5aaeea5` state(D-620): E-18 STORY PASS-3 INDEX SYNC — STORY-INDEX v4.05; VP-INDEX v2.36; 9 VP wave cells; epic count 19
+
+---
+
+## D-621 Pass-4 Fix Burst — E-18 STORY PASS-4 INDEX SYNC (2026-06-17)
+
+### Parent-commit
+
+`e12a6b35` state(D-620): SHA-patch — factory-artifacts HEAD a5aaeea5 (D-620 Commit-E)
+
+### Adversary Verdict
+
+Pass-4 adversary verdict: **NOT-CLEAN**. Findings: F-P4-001 MAJOR + F-P4-002 MAJOR (S-18.04b AC↔PC mis-traces in AC-002/003/004; exhaustive sibling sweep applied) + F-P4-003 MEDIUM + F-P4-004 MEDIUM (S-18.09 stale wave reference + AC-count/task updates) + O-P4-001 LOW + O-P4-002 LOW (addressed in-scope) + O-P4-004 PROCESS-GAP (recurring AC↔PC mis-trace class across S-18.02/S-18.04a/S-18.04b; class fix = exhaustive 12-story sweep + mandatory gate S-18.09 AC-008). 3-CLEAN streak RESET 0/3. Pass-5 = NEXT.
+
+### Files Touched
+
+- `.factory/stories/STORY-INDEX.md` — v4.05→v4.06 (S-18.04b story v1.4 annotation; S-18.09 title `, AC↔PC parity gate` suffix + story v1.4; E-18 epic heading v1.0→v1.1; version + last_amended bumped)
+- `.factory/STATE.md` — v3.70→v3.71 (D-621 Decisions Log; §1/§3/§4/§5/§8/§9/§11/§12 refresh; POSTURE pass-5 NEXT; banner wc-l appended)
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-621 block appended
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — L-F2-ac-pc-parity-sibling-sweep appended
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — D-621 burst entry appended (this entry)
+
+### Codifications
+
+- **D-621:** E-18 story cascade pass-4 verdict. 3-CLEAN streak 0/3 (pass-4 NOT-CLEAN → fix-burst). STORY-INDEX v4.06. pass-5 = NEXT.
+- **L-F2-ac-pc-parity-sibling-sweep [process-gap]:** Recurring AC↔PC mis-trace class closed at class level by exhaustive 12-story sweep + mandatory gate S-18.09 AC-008. Tagged [codified] with anchor S-18.09 AC-008.
+
+### Dim-2 — PC Attestation (literal shell)
+
+```
+$ grep "^current_step:" .factory/STATE.md
+current_step: "D-621-E18-PASS4-INDEX-SYNC-2026-06-17"
+
+$ grep "^version:" .factory/stories/STORY-INDEX.md
+version: "4.06"
+```
+
+STATE.md current_step reflects D-621 E-18 pass-4 index sync. STORY-INDEX v4.06 confirmed. Production artifacts read via literal grep.
+
+### Dim-5 — Production-Grade Attestation
+
+- No MVP-pattern deferrals. All pass-4 findings (F-P4-001 MAJOR + F-P4-002 MAJOR + F-P4-003 MED + F-P4-004 MED + O-P4-001/002 LOW + O-P4-004 process-gap) addressed in-scope.
+- AC↔PC mis-trace class fixed at class level (12-story sweep) not instance level.
+- S-18.09 AC-008 codified as permanent gate — resolves O-P4-004 process-gap at structural level.
+- Lesson L-F2-ac-pc-parity-sibling-sweep tagged [codified] with S-18.09 AC-008 anchor per Cycle-Closing Checklist process-gap requirement.
+- VP-INDEX/BC-INDEX/ARCH-INDEX UNCHANGED (no VP/BC/arch files modified by story-writer in this burst).
+
+### Dim-6 — Count Verification (literal shell)
+
+```
+$ grep -c "^| S-[0-9]" .factory/stories/STORY-INDEX.md
+161
+
+$ grep "^version:" .factory/stories/STORY-INDEX.md
+version: "4.06"
+
+$ grep -n "^| S-18\." .factory/stories/STORY-INDEX.md | wc -l
+12
+```
+
+161 lines starting with `| S-[0-9]` in STORY-INDEX (includes lines embedded in last_amended history embedded strings). Direct table-row grep for E-18 stories confirms 12 rows (lines 657-668; structure unchanged). STORY-INDEX v4.06 confirmed.
+
+### Dim-7 — Findings Closure
+
+| Finding | Class | Status | Resolution |
+|---------|-------|--------|------------|
+| F-P4-001 | MAJOR | CLOSED | S-18.04b AC-002/003/004 PC traces corrected; exhaustive 12-story sibling sweep |
+| F-P4-002 | MAJOR | CLOSED | Related AC↔PC mis-trace corrected in sibling sweep |
+| F-P4-003 | MEDIUM | CLOSED | S-18.09 stale "wave 7" text corrected to wave 8 |
+| F-P4-004 | MEDIUM | CLOSED | S-18.09 AC-count + tasks updated for AC-008 addition |
+| O-P4-001 | LOW | CLOSED | Addressed in-scope per production-grade default |
+| O-P4-002 | LOW | CLOSED | Addressed in-scope per production-grade default |
+| O-P4-004 | PROCESS-GAP | CLOSED | Class escalated → S-18.09 AC-008 mandatory gate + L-F2-ac-pc-parity-sibling-sweep codified [codified] |
+
+Streak: 0/3 (reset by F-P4-001+F-P4-002 MAJOR findings). Pass-5 adversary NEXT.
+
+### Closes
+
+- F-P4-001 MAJOR (S-18.04b AC↔PC mis-traces exhaustive sweep)
+- F-P4-002 MAJOR (sibling class AC↔PC mis-trace)
+- F-P4-003 MEDIUM (S-18.09 stale wave reference)
+- F-P4-004 MEDIUM (S-18.09 AC/task updates)
+- O-P4-001 LOW (in-scope fix)
+- O-P4-002 LOW (in-scope fix)
+- O-P4-004 PROCESS-GAP (class → S-18.09 AC-008 gate + L-F2-ac-pc-parity-sibling-sweep [codified])
+
+### Factory-artifacts Commits
+
+_SHA to be filled in after commit_

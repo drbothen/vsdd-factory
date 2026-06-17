@@ -669,3 +669,33 @@ grep -E '^[|] (\[BC-|~~\[BC-)' .factory/specs/behavioral-contracts/BC-INDEX.md |
 **D-chain cite:** D-619. **Parent-commit:** a828686b (D-619 SHA-patch).
 
 **Posture:** E-18 STORY PASS-3 INDEX SYNC COMPLETE. 3-CLEAN streak 0/3 (pass-3 NOT-CLEAN → fix-burst). Pass-4 adversary dispatch + consistency re-verify NEXT — START HERE.
+
+---
+
+### D-621 — E-18 STORY PASS-4 INDEX SYNC BURST (2026-06-17)
+
+**Context:** E-18 story adversarial pass-4 findings resolved by story-writer (F-P4-001 MAJOR + F-P4-002 MAJOR + F-P4-003 MEDIUM + F-P4-004 MEDIUM + O-P4-001 LOW + O-P4-002 LOW + O-P4-004 process-gap). This is the state-manager index-sync leg (runs LAST per POLICY 3). Story-writer already updated 3 E-18 story files (S-18.04b v1.3→v1.4, S-18.09 v1.3→v1.4, and related siblings). This burst: STORY-INDEX + STATE.md bookkeeping + lesson codification.
+
+**Pass-4 adversary verdict:** NOT-CLEAN. Findings:
+- **F-P4-001 MAJOR:** S-18.04b — AC-002/003/004 traces to wrong BC postconditions (PC2/PC3/PC4 instead of PC1 cases). Exhaustive sibling sweep (12 stories) applied.
+- **F-P4-002 MAJOR:** Additional AC↔PC mis-trace (related to F-P4-001 sibling class).
+- **F-P4-003 MEDIUM:** S-18.09 narrative stale — referred to "wave 7" after the wave-8 fix from pass-3; text corrected.
+- **F-P4-004 MEDIUM:** S-18.09 AC-count / task updates missed from pass-3 wave correction.
+- **O-P4-001 LOW, O-P4-002 LOW:** Observation-tier; addressed in-scope per production-grade default.
+- **O-P4-004 PROCESS-GAP:** Recurring AC↔PC mis-trace class across S-18.02/S-18.04a/S-18.04b. Instance fixes alone insufficient; class fix required = mandatory AC↔PC parity gate (S-18.09 AC-008). Lesson codified as L-F2-ac-pc-parity-sibling-sweep.
+
+**3-CLEAN streak:** Pass-4 NOT-CLEAN → streak RESET 0/3. Pass-5 = NEXT.
+
+**Lesson codified:** L-F2-ac-pc-parity-sibling-sweep [process-gap] — recurring AC↔PC mis-trace class across E-18 stories resolved at class level by exhaustive 12-story sweep + mandatory AC↔PC parity bats gate (S-18.09 AC-008). Tagged [codified] with S-18.09 AC-008 anchor.
+
+**Actions taken:**
+- `STORY-INDEX.md` v4.05→v4.06: S-18.04b BCs cell — added `story v1.4` annotation (F-P4-001 AC↔PC mis-traces corrected; exhaustive sibling sweep); S-18.09 title field — appended `, AC↔PC parity gate`; S-18.09 BCs cell — added `story v1.4` + `AC-008 AC↔PC parity gate added; closes O-P4-004 process gap`; E-18 epic heading v1.0→v1.1
+- `STATE.md` v3.70→v3.71: D-621 Decisions Log; §1/§3/§4/§5/§8/§9/§11/§12 refreshed; 4-index STORY-INDEX v4.06; POSTURE pass-5 NEXT; SIZE BUDGET banner entry appended
+- `decision-log.md` D-621 block appended (this entry)
+- `lessons.md` L-F2-ac-pc-parity-sibling-sweep appended
+
+**4-index post-burst:** BC-INDEX v3.06 (UNCHANGED) / VP-INDEX v2.36 (UNCHANGED) / STORY-INDEX v4.06 / ARCH-INDEX v2.51 (UNCHANGED). L2-INDEX v1.0.13 (UNCHANGED).
+
+**D-chain cite:** D-620. **Parent-commit:** e12a6b35 (D-620 SHA-patch).
+
+**Posture:** E-18 STORY PASS-4 INDEX SYNC COMPLETE. 3-CLEAN streak RESET 0/3 (pass-4 NOT-CLEAN → fix-burst). Pass-5 adversary dispatch + consistency re-verify NEXT — START HERE.
