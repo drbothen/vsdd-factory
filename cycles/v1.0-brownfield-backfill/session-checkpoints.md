@@ -761,3 +761,16 @@ Key state at D-559 archive:
 - **3-CLEAN streak 0/3** (pass-7 ADR-internal only; body converged).
 - **develop HEAD:** `7e99f6ef` / **main HEAD:** `caf06c68` / **factory-artifacts HEAD:** `a5d6f2ff` (D-568 fix+compaction, prior to sha-patch `713016b1`)
 - **D-range:** D-001..D-568
+
+---
+
+## D-629 Checkpoint (archived 2026-06-17 by D-630)
+
+**Superseded by D-630 ATTESTATION CORRECTION checkpoint (STATE.md §Session Resume Checkpoint).**
+
+Summary of D-629 checkpoint (archived reference):
+- E-18 STORY PASS-11 FIX BURST COMPLETE. F-P11-001 BLOCKER CLOSED: S-18.09 v1.11 RAW_LABEL regex `[^ )+-]+` → `[^ )]+`. STORY-INDEX v4.12→v4.13.
+- **Note (D-630):** The D-629 checkpoint claimed "pass-11 NOT-CLEAN" as a fresh-context adversary pass. D-630 corrects: D-629 = interstitial state-manager fix burst (NOT a counted fresh-context review pass). The finding (F-P11-001) and fix (S-18.09 v1.11) are real and stand.
+- 4-index: BC v3.07/VP v2.37/STORY v4.13/ARCH v2.54/L2 v1.0.13. Streak 0/3.
+- develop HEAD: `c000b06f` / main HEAD: `caf06c68` / factory-artifacts HEAD: `bc5bf1d6` (D-629 SHA-patch)
+- D-range: D-001..D-629

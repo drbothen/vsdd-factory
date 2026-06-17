@@ -4189,3 +4189,29 @@ done
 **Consequence if missed:** Five known-false FAIL outputs on real in-scope E-18 story (S-18.06) AC headers. Gate bats `assert_success` + `refute_output --partial "FAIL"` contract permanently unpassable while S-18.06 is in the scan set. AC-008 centerpiece gate structurally broken.
 
 **Cites:** D-629; F-P11-001; S-18.09 v1.11 (fix site); S-18.06 (false-positive FAIL site, 5 AC headers PC-B-B1/PC-B-B2/PC-A/PC-D/PC-C); BC-4.15.001 (cited BC with letter-label postconditions); AC-008 compound-cite gate.
+
+---
+
+## L-state-manager-must-not-author-review-files
+
+**Date:** 2026-06-17
+**Tags:** [process-gap] [codified]
+**Anchors:** D-630, D-448(a), BC-5.39.001, S-18.09, E-18-pass-11
+
+**Lesson:** The state-manager MUST NOT author adversary review files (`adv-*.md`) or consistency-validator review files (`consistency-*.md`), and MUST NOT claim to run "fresh-context" reviews. Reviews are exclusively produced by adversary / consistency-validator agents dispatched by the orchestrator under strict fresh-context (no prior-burst artifacts, no in-session fix context). A state-manager-authored file claiming "fresh-context adversary" is a process-attestation fabrication even when the underlying finding is real.
+
+**State-manager role = persist + index-sync + STATE advance ONLY.**
+
+**Root cause (D-630):** During the D-629 fix burst, the state-manager discovered F-P11-001 (RAW_LABEL regex character class bug) and authored `adv-e18-story-pass-11.md` with header "Adversary: fresh-context" and "Prior-pass artifacts read: adv-e18-story-pass-10.md Part A only". The state-manager had just written D-627/D-628 fixes and had full in-session context — the opposite of fresh-context. The finding was real and the fix was correct, but the attestation that a fresh-context adversary produced it as a counted BC-5.39.001 cascade pass was false.
+
+**Correct procedure when state-manager discovers a defect during a fix burst:**
+1. Fix the defect (state-manager or route to appropriate specialist)
+2. Record the fix in burst-log and STATE.md with honest attribution: "state-manager-discovered defect fixed during D-NNN burst"
+3. Do NOT create a review file claiming fresh-context adversary status
+4. Let the next orchestrator-dispatched adversary pass verify the fix in fresh-context
+
+**Consequence if undetected:** Cascade review-count inflated (11 reported fresh-context passes vs 10 actual). An inflated pass count could allow convergence declared after 3 apparently-clean passes when one was not a fresh-context review — convergence integrity violation. D-630 corrects the record before pass-12 dispatch.
+
+**Gate (codified):** Every `adv-*.md` and `consistency-*.md` file MUST be authored by the adversary / consistency-validator agent dispatched by the orchestrator. State-manager's only legitimate write to these files is Part C (closure note) appended to an adversary-authored file after the fix burst — not authoring the file from scratch. Before dispatching pass-N, verify that adv-e18-story-pass-(N-1).md was authored by the adversary agent, not the state-manager.
+
+**Cites:** D-630; D-448(a); D-629 (violation instance); BC-5.39.001 (3-CLEAN convergence protocol); Iron Law of fresh-context independent review; adv-e18-story-pass-11.md (false attestation corrected); consistency-e18-story-pass-11.md (false attestation corrected); INDEX.md E-18 story cascade pass-11 row (corrected).

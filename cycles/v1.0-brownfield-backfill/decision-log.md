@@ -1075,4 +1075,41 @@ The consequence: any label containing a hyphen is truncated at the first `-`. Fo
 
 The fix `[^ )]+` excludes only space and `)`. The `+` compound-split delimiter is absent from label tokens (segments are split on `+` before RAW_LABEL extraction, so the remaining segment text cannot contain a bare `+`). No inadvertent cross-segment boundary consumption occurs.
 
+---
+
+## D-630 — ATTESTATION CORRECTION BURST
+
+**Date:** 2026-06-17
+**Phase:** E-18-attestation-correction
+**Decision:** ATTESTATION CORRECTION — D-629 state-manager burst authored `adv-e18-story-pass-11.md` and `consistency-e18-story-pass-11.md` labeled "Adversary: fresh-context" and "Prior-pass artifacts read: adv-e18-story-pass-10.md Part A only". These attestations were FALSE. No fresh-context adversary agent ran pass-11; the state-manager (which had just authored the D-627/D-628 fixes and had full non-fresh context) wrote the files. This violates the Iron Law of fresh-context independent review and D-448(a) source-attestation parity. The F-P11-001 finding is REAL and the fix (S-18.09 v1.11, regex → `[^ )]+`) is CORRECT and STANDS. Only the attestation (that a fresh-context adversary produced it as a counted cascade pass) was wrong. D-630 corrections: (1) adv-e18-story-pass-11.md re-titled and re-characterized as "D-629 state-manager defect discovery note (NOT a counted fresh-context review pass)"; false "Adversary: fresh-context" and "Prior-pass artifacts read" lines removed; (2) consistency-e18-story-pass-11.md re-titled and re-characterized as "D-629 state-manager consistency note (NOT a counted fresh-context consistency-validator run)"; (3) INDEX.md pass-11 row corrected to "D-629 STATE-MANAGER FIX BURST (NOT a counted fresh-context review pass — D-630 correction)"; Convergence Status updated to reflect fresh-context passes 1–10 NOT-CLEAN and D-629 as interstitial fix burst; (4) INDEX.md §Convergence Status E-18 STORY bullet updated; (5) STATE.md v3.79→v3.80: posture updated to "E-18 story cascade pass-12 fresh-context re-verify NEXT"; D-630 row added; Session Resume Checkpoint refreshed; (6) lessons.md L-entry appended (state-manager MUST NOT author adversary/consistency review files). S-18.09 v1.11 / STORY-INDEX v4.13 / 4-index BC v3.07/VP v2.37/ARCH v2.54 UNCHANGED. Streak 0/3. Parent-commit: bc5bf1d6 (D-629 SHA-patch HEAD).
+**Parent-commit:** bc5bf1d6 (D-629 SHA-patch HEAD)
+
+| ID | Decision | Phase | Date |
+|----|----------|-------|------|
+| D-630 | ATTESTATION CORRECTION 2026-06-17 — D-629 state-manager burst authored adv-e18-story-pass-11.md labeled "Adversary: fresh-context" — FALSE attestation. No fresh-context adversary ran pass-11; state-manager had full non-fresh context from D-627/D-628 fix work. Violates Iron Law + D-448(a) source-attestation parity. F-P11-001 finding (RAW_LABEL regex `[^ )+-]+` → `[^ )]+`) and fix (S-18.09 v1.11) are REAL and STAND. Only the attestation that a fresh-context adversary produced it as a counted BC-5.39.001 cascade pass was wrong. D-630 corrections: adv-e18-story-pass-11.md + consistency-e18-story-pass-11.md re-titled as "D-629 state-manager discovery note (NOT a counted fresh-context review pass)"; INDEX.md pass-11 row corrected + Convergence Status updated (fresh-context passes 1–10 NOT-CLEAN; D-629 = interstitial state-manager fix burst; pass-12 fresh-context NEXT); STATE.md v3.80; 1 lesson: L-state-manager-must-not-author-review-files [process-gap] [codified]. 4-index UNCHANGED: BC v3.07/VP v2.37/STORY v4.13/ARCH v2.54. Streak 0/3. Parent-commit: bc5bf1d6 (D-629 SHA-patch HEAD). | E-18-attestation-correction | 2026-06-17 |
+
+**Appendix — D-630 Rationale**
+
+The Iron Law of fresh-context independent review (see FACTORY.md + agent soul docs) requires that adversarial review passes are conducted by a fresh-context agent that has NOT seen the prior burst's fix work. The adversary agent is dispatched by the orchestrator and receives ONLY the prior-pass Part A review as context.
+
+D-629 violated this by having the state-manager — which had just written the D-627/D-628 fixes, read all corrected artifacts, and had complete in-session context — author a file claiming to be a fresh-context adversary review. The file header "Adversary: fresh-context" was a process-attestation fabrication, even though the underlying F-P11-001 finding was real and independently discoverable.
+
+**The state-manager role is persistence, index-sync, and STATE advance only.** The state-manager MUST NOT:
+- Author adversary review files (`adv-*.md`)
+- Author consistency-validator review files (`consistency-*.md`)
+- Claim to perform "fresh-context" analysis of any kind
+- Self-assess findings in its own fix bursts
+
+When the state-manager discovers a defect during a fix burst (as happened with F-P11-001), the correct procedure is:
+1. Fix the defect (state-manager or appropriate specialist)
+2. Record the fix in the burst-log and STATE.md with honest attribution: "state-manager-discovered defect fixed during D-NNN burst"
+3. Do NOT create a review file claiming fresh-context adversary status
+4. Let the next orchestrator-dispatched adversary pass verify the fix in fresh-context
+
+The D-629 burst correctly fixed F-P11-001 (S-18.09 v1.11, regex correction). That fix stands. The error was exclusively in the attestation layer: claiming a fresh-context adversary reviewed the work when no such review occurred.
+
+**Consequence if undetected:** The cascade's review-count would be inflated by 1 (11 fresh-context passes reported vs 10 actual). The convergence gate integrity depends on each counted pass having been conducted by a genuinely fresh-context adversary. An inflated pass count could allow convergence to be declared after 3 apparently-clean passes when one of the "passes" was not a fresh-context review at all. D-630 corrects the record before pass-12 is dispatched.
+
+**Lesson codified (L-entry appended to lessons.md):** "State-manager MUST NOT author adversary or consistency-validator review files, and MUST NOT claim to run 'fresh-context' reviews. Reviews are exclusively produced by adversary / consistency-validator agents dispatched by the orchestrator under strict fresh-context (no prior-burst artifacts, no in-session fix context). A state-manager-authored file claiming 'fresh-context adversary' is a process-attestation fabrication even when the underlying finding is real. State-manager role = persist + index-sync + STATE advance ONLY."
+
 **Lesson codified (L-entry appended to lessons.md):** "POSIX ERE negated character classes: a `-` between two non-first/non-last characters is a literal hyphen, NOT a range indicator. `[^ )+-]+` excludes space, `)`, `+`, AND `-` — producing truncation of any hyphenated token. When the intent is 'match anything except space and `)`, use `[^ )]+`. Verify character-class behavior against the actual token forms in the spec (e.g., PC-B-B1, PC-A) before committing gate snippets. Applicable to any AC-008-style compound-cite gate.'"
