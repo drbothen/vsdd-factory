@@ -8326,4 +8326,4 @@ Streak: 0/3 (reset by F-P5-001 MED + F1/F2/F3/F4 consistency findings). Pass-6 a
 
 ### Factory-artifacts Commits
 
-`[D-622-SHA — update after push]` state(D-622): E-18 STORY PASS-5 INDEX SYNC — STORY-INDEX v4.07; ARCH-INDEX v2.52; F1/F2/F4 fixes
+`46c707d5` state(D-622): E-18 STORY PASS-5 INDEX SYNC — STORY-INDEX v4.07; ARCH-INDEX v2.52; F1/F2/F4 fixes

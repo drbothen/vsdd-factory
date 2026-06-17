@@ -338,7 +338,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** `[D-622-SHA — update after push]` (D-622 E-18 STORY PASS-5 INDEX SYNC BURST 2026-06-17; prior: `b26ef433` D-621 Commit-E / SHA-patch `8ce58ef6`)
+- **factory-artifacts HEAD:** `46c707d5` (D-622 E-18 STORY PASS-5 INDEX SYNC BURST 2026-06-17; prior: `b26ef433` D-621 Commit-E / SHA-patch `8ce58ef6`)
 - **develop HEAD:** `c000b06f` (PR #189 compute-input-hash fix SQUASH-MERGED 2026-06-16; prior: `7e99f6ef` PR #186 fix 2026-06-13)
 - **main HEAD:** `caf06c68` (rc.21 bot bundle commit 2026-06-13; UNCHANGED)
 - **v1.0.0-rc.21 tag:** `03054524` (SHIPPED; FULLY IN OPERATOR MARKETPLACE)
@@ -373,7 +373,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 - **capabilities.md v1.7:** `domain-spec/capabilities.md` (UNCHANGED at D-597)
 - **ADR-025 v1.6 SHIPPED:** guard at `3b2a378c`; ARCH-INDEX v2.27
 - **S-17.04 story:** `.factory/stories/S-17.04-mid-burst-heartbeat-renewal-wiring.md` v1.7 MERGED; E-17 W4 COMPLETE; PR #184 3b2a378c
-- **Verify on resume:** `git rev-parse --short origin/develop` → expect `c000b06f`; `git rev-parse --short origin/main` → expect `caf06c68`; `git -C .factory log -1 --format='%h'` → expect `b26ef433` (D-621 Commit-E) or later SHA-patch
+- **Verify on resume:** `git rev-parse --short origin/develop` → expect `c000b06f`; `git rev-parse --short origin/main` → expect `caf06c68`; `git -C .factory log -1 --format='%h'` → expect `46c707d5` (D-622 Commit-E) or later SHA-patch
 
 ### §10. PR Status
 
