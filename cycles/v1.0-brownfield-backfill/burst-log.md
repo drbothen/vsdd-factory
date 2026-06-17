@@ -9188,5 +9188,5 @@ ARCH-INDEX.md:version: "2.54"
 
 ### Factory-artifacts Commits
 
-- TBD-D632-COMMIT state(D-632): E-18 STORY PASS-13 NOT-CLEAN FIX BURST — VP-INDEX v2.37→v2.38 (VP-091 stale labels fixed; false changelog corrected); streak RESET 1/3→0/3; pass-14 NEXT
-- TBD-D632-SHA-PATCH state(D-632-sha-patch): SHA-patch TBD-D632-COMMIT — Active Branches + burst-log Factory-artifacts Commits
+- `a3e3607c` state(D-632): E-18 STORY PASS-13 NOT-CLEAN FIX BURST — VP-INDEX v2.37→v2.38 (VP-091 stale labels fixed; false changelog corrected); streak RESET 1/3→0/3; pass-14 NEXT
+- TBD-D632-SHA-PATCH state(D-632-sha-patch): SHA-patch a3e3607c — Active Branches + burst-log Factory-artifacts Commits
