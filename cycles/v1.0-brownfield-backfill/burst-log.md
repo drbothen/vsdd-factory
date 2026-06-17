@@ -9298,4 +9298,4 @@ ARCH-INDEX.md:version: "2.54"
 
 ### Factory-artifacts Commits
 
-- `TBD` state(D-634): E-18 STORY PASS-15 CLEAN — streak 1/3→2/3; pass-16 NEXT (one CLEAN from convergence); package FROZEN; SHA-patch NEXT
+- `e92b8aed` state(D-634): E-18 STORY PASS-15 CLEAN — streak 1/3→2/3; pass-16 NEXT (one CLEAN from convergence); package FROZEN
