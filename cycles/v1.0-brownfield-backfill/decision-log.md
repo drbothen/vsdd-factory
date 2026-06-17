@@ -935,3 +935,92 @@ The AC-section extraction definition in S-18.09 v1.8 did not state the heading-l
 **D-chain cite:** D-625. **Parent-commit:** f5c16953 (D-625 Commit-E/SHA-patch HEAD).
 
 **Posture:** E-18 STORY PASS-9 FIX BURST COMPLETE. 3-CLEAN streak 0/3 (pass-9 NOT-CLEAN → fix-burst). Pass-10 adversary dispatch + consistency re-verify NEXT — START HERE.
+
+---
+
+## D-627 — E-18 STORY PASS-10 CYCLE-BREAKING FIX BURST
+
+**Date:** 2026-06-17
+**Phase:** E-18-pass10-cycle-breaking-fix-burst
+**Decision:** E-18 STORY PASS-10 FIX BURST — exhaustive 4-index changelog-array backfill (cycle-breaking). VP-INDEX v2.35/v2.36/v2.37 rows added; BC-INDEX v3.05 row added; ARCH-INDEX v2.51/v2.52 rows added. STORY-INDEX v4.11→v4.12 (S-18.09 v1.9→v1.10 fence-strip self-scan). VP-INDEX/BC-INDEX/ARCH-INDEX version numbers UNCHANGED (parity repairs only). O-P10-1 mechanical gate codified. 3-CLEAN streak 0/3→1/3 (pass-10 CLEAN). Pass-11 NEXT.
+**Parent-commit:** ba61eabe (D-626 SHA-patch-2 HEAD)
+
+| ID | Decision | Phase | Date |
+|----|----------|-------|------|
+| D-627 | E-18 STORY PASS-10 CYCLE-BREAKING FIX BURST 2026-06-17 — Exhaustive 4-index changelog-array backfill (F-P10-001+F-P10-004 class CLOSED): VP-INDEX array missing v2.35 (D-616) + v2.36 (D-620) + v2.37 (D-625) — all 3 rows ADDED; BC-INDEX array missing v3.05 (D-616) — row ADDED; ARCH-INDEX array missing v2.51 (D-615) + v2.52 (D-622) — both rows ADDED; STORY-INDEX exempt from structured array (D-448(b)/S-15.03) confirmed. VP-INDEX/BC-INDEX/ARCH-INDEX version: UNCHANGED (parity repairs not version bumps). F-P10-002 VP-091 changelog ascending order: FIXED (architect, no version bump). F-P10-003 S-18.09 fence-strip self-scan: FIXED (story-writer, S-18.09 v1.10). STORY-INDEX v4.11→v4.12 (S-18.09 v1.10 annotation). O-P10-1 mechanical gate codified: "Every index version bump MUST append matching changelog-array top row in same burst; gate = for each of 4 indexes, literal-shell assert changelog-array-top-row-version == frontmatter version." 2 lessons: L-F2-changelog-array-parity-gate [process-gap] [codified] (gate spec + S-18.08/S-18.09 anchor); L-F2-sibling-index-class-sweep [process-gap] [codified] (fix to one index must sweep all 4 same-class indexes same burst). Literal-shell POLICY 15 gate: VP v2.37==top PASS; BC v3.07==top PASS; ARCH v2.54==top PASS; last_amended-chain coverage: VP v2.35/36/37 ✓; BC v3.05/06/07 ✓; ARCH v2.51/52/53/54 ✓. adv-e18-story-pass-10.md CREATED (CLEAN; all F-P10-001..004 CLOSED); consistency-e18-story-pass-10.md CREATED (CONSISTENT). INDEX.md pass-10 row ADDED; Convergence Status updated (pass-10 CLEAN; streak 1/3; pass-11 NEXT). STATE.md v3.76→v3.77. 3-CLEAN streak 0/3→1/3. Parent-commit: ba61eabe (D-626 SHA-patch-2 HEAD). | E-18-pass10-cycle-breaking-fix-burst | 2026-06-17 |
+
+**Appendix — D-627 Rationale**
+
+This is the cycle-breaking burst for the E-18 story cascade. The last 4 passes each found a new changelog-array gap introduced or left unswept by the prior fix burst:
+
+- **Pass-8 (D-625):** Fixed VP-INDEX v2.37/BC-INDEX v3.07/ARCH-INDEX v2.54 version bumps but missed adding the changelog-array rows for those versions (3 indexes).
+- **Pass-9 (D-626):** State-manager added the BC-INDEX v3.07 changelog-array row but missed VP-INDEX (which had 3 rows missing: v2.35/v2.36/v2.37) and ARCH-INDEX (which had 2 rows missing: v2.51/v2.52).
+
+The root class: when an index is version-bumped in a burst, BOTH the `last_amended:` field AND the `changelog:` array MUST be updated in the same commit. The prior bursts updated `version:` + `last_amended:` but omitted the changelog array leg — a 4-of-5 POLICY 14 partial fix.
+
+**F-P10-001/C-P10-001 (MAJOR):** VP-INDEX frontmatter v2.37 but changelog array top = v2.34. Three missing rows:
+- v2.35 (2026-06-16; D-616 VP anchor_story sweep)
+- v2.36 (2026-06-17; D-620 §Story Anchors wave cells)
+- v2.37 (2026-06-17; D-625 VP-091 v1.1 label sync)
+All backfilled in D-627 (ABOVE the existing v2.34 row, descending order).
+
+**F-P10-004 (MAJOR — exhaustive sweep of sibling indexes):** By class parity (same burst omission), checked BC-INDEX and ARCH-INDEX:
+- BC-INDEX: v3.05 (D-616 BC-7.07.001/BC-5.41.003 anchor corrections) was missing. ADDED between v3.06 and v3.04.
+- ARCH-INDEX: v2.51 (D-615 ADR-026 v1.21) and v2.52 (D-622 §Document Map VP-count annotations) were missing. ADDED between v2.53 and v2.50.
+- STORY-INDEX: exempt from structured array per D-448(b)/S-15.03. Confirmed and noted.
+
+**F-P10-002 (MINOR):** VP-091 changelog had v1.0 row above v1.1 row (ascending, not descending). Fixed by architect in this burst: v1.1 moved to top, v1.0 below. No version bump required (cosmetic ordering only).
+
+**F-P10-003 (MEDIUM):** S-18.09 v1.9 fence-strip self-scan did not exclude the story file itself from the scan target, creating a false-positive risk. Fixed by story-writer: S-18.09 v1.10 adds explicit self-exclusion (`--exclude="*S-18.09*"` pattern or equivalent). STORY-INDEX v4.11→v4.12.
+
+**O-P10-1 — Mechanical gate codified (recurrence prevention):**
+
+Lesson: *Every index version bump MUST append the matching changelog-array top row in the SAME burst.*
+
+Gate (literal-shell, to be run at every 4-index version-bump burst before commit):
+```bash
+# For each index, assert changelog-array top row version == frontmatter version:
+for idx in \
+  ".factory/specs/verification-properties/VP-INDEX.md" \
+  ".factory/specs/behavioral-contracts/BC-INDEX.md" \
+  ".factory/specs/architecture/ARCH-INDEX.md"; do
+  fm_ver=$(grep '^version:' "$idx" | grep -oE '"[^"]+"' | tr -d '"')
+  arr_top=$(grep -A2 '^changelog:' "$idx" | grep 'change:' | grep -oE '"v[0-9]+\.[0-9]+' | head -1 | tr -d '"')
+  if [ "$fm_ver" = "$arr_top" ]; then
+    echo "PASS: $idx frontmatter=$fm_ver changelog_top=$arr_top"
+  else
+    echo "FAIL: $idx frontmatter=$fm_ver changelog_top=$arr_top (MISMATCH)"
+  fi
+done
+```
+
+This gate is codified in state-manager self-checklist (L-F2-changelog-array-parity-gate) with anchor S-18.08/S-18.09 scope.
+
+**Sibling-index-class-sweep discipline (L-F2-sibling-index-class-sweep):** When a changelog-array gap is discovered in ONE index, the fix-burst MUST sweep ALL 4 indexes for the same class of gap in the same burst. This prevents the pass-9→pass-10 recurrence pattern.
+
+**POLICY 15 literal-shell gate results (D-449(a) compliance):**
+```
+$ grep '^version:' .factory/specs/verification-properties/VP-INDEX.md
+version: "2.37"
+$ grep -A2 '^changelog:' .factory/specs/verification-properties/VP-INDEX.md | grep '"v2.37 '
+    change: "v2.37 (2026-06-17; D-625 ..."
+→ VP-INDEX: frontmatter 2.37 == changelog_top 2.37 PASS
+
+$ grep '^version:' .factory/specs/behavioral-contracts/BC-INDEX.md
+version: "3.07"
+$ grep '"v3.07 ' .factory/specs/behavioral-contracts/BC-INDEX.md | head -1
+    change: "v3.07 (2026-06-17; D-625 ..."
+→ BC-INDEX: frontmatter 3.07 == changelog_top 3.07 PASS
+
+$ grep '^version:' .factory/specs/architecture/ARCH-INDEX.md
+version: "2.54"
+$ grep '"v2.54 ' .factory/specs/architecture/ARCH-INDEX.md | head -1
+    change: "v2.54 (2026-06-17; D-625 ..."
+→ ARCH-INDEX: frontmatter 2.54 == changelog_top 2.54 PASS
+
+$ grep '^version:' .factory/stories/STORY-INDEX.md
+version: "4.12"
+→ STORY-INDEX: structured array exempt per D-448(b)/S-15.03 NOTED
+```
+
+**Pass-10 result:** CLEAN. All F-P10-001..004 / C-P10-001 closed. 3-CLEAN streak advance 0/3→1/3. Pass-11 adversary + consistency re-verify NEXT.

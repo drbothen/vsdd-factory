@@ -8718,3 +8718,111 @@ Under 450 soft target. No compaction needed.
 ### Factory-artifacts Commits
 
 `8654ebb6` state(D-626): E-18 STORY PASS-9 FIX BURST — BC-INDEX v3.07 changelog-array repair; STORY-INDEX v4.11 (S-18.06 v1.5 + S-18.09 v1.9); pass-9 reviews; D-626 codified; 3 lessons; pass-10 NEXT
+
+## D-627 — E-18 STORY PASS-10 CYCLE-BREAKING FIX BURST (2026-06-17)
+
+**Parent-commit:** 032e70f3 (D-626 SHA-patch HEAD)
+
+### Dim-1 (Adversary Verdict)
+
+Adversary pass-10 verdict: CLEAN. 0 BLOCKER, 0 MAJOR, 0 load-bearing MEDIUM, 0 mis-anchor.
+- F-P10-001 MAJOR (root-cause): VP-INDEX changelog array missing v2.35/v2.36/v2.37 entries (D-625 advanced frontmatter version: + last_amended: but omitted changelog: array legs — sibling-class of F-P9-001). FIXED state-manager.
+- F-P10-002 LOW: VP-091 changelog array descending order not maintained (v1.0 before v1.1). FIXED architect (VP-091 changelog reorder; no version bump).
+- F-P10-003 LOW: S-18.09 fence-strip self-scan (script scans own file). FIXED story-writer (S-18.09 v1.10).
+- F-P10-004 (sibling-sweep finding): BC-INDEX missing v3.05 + ARCH-INDEX missing v2.51/v2.52 entries (same changelog-array-leg class as F-P10-001). CLOSED by exhaustive D-627 backfill.
+Consistency-validator verdict: CONSISTENT. C-P10-001: post-D-627 parity confirmed; 10 checks PASS.
+3-CLEAN streak: 0/3→1/3 (pass-10 CLEAN — FIRST CLEAN of cascade). Pass-11 NEXT.
+
+Source attestation: adv-e18-story-pass-10.md Part A describes F-P10-001 MAJOR (VP-INDEX changelog-array gap), F-P10-002 LOW (VP-091 order), F-P10-003 LOW (S-18.09 fence self-scan), F-P10-004 (sibling-class CLOSED by exhaustive backfill), O-P10-1 (mechanical gate spec) — matching the orchestrator-reported finding set. Post-D-627 verification included in Part C. No findings elided or recharacterized.
+
+### Dim-2 (Mechanical Gates — D-449(a) literal-shell with captured stdout)
+
+**O-P10-1 POLICY 15 Parity Gate — changelog-array top row version == frontmatter version for all 3 structured-array indexes:**
+
+```
+$ grep "^version:" .factory/specs/verification-properties/VP-INDEX.md
+version: "2.37"
+$ grep -A2 "^changelog:" .factory/specs/verification-properties/VP-INDEX.md | head -4
+changelog:
+  - date: 2026-06-17
+    change: "v2.37 (2026-06-17; D-625 E-18 STORY PASS-8 FIX BURST ...
+```
+Result: VP-INDEX frontmatter v2.37 == changelog top row v2.37. PASS.
+
+```
+$ grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md
+version: "3.07"
+$ grep -A2 "^changelog:" .factory/specs/behavioral-contracts/BC-INDEX.md | head -4
+changelog:
+  - date: 2026-06-17
+    change: "v3.07 (2026-06-17; D-625 E-18 STORY PASS-8 FIX BURST ...
+```
+Result: BC-INDEX frontmatter v3.07 == changelog top row v3.07. PASS.
+
+```
+$ grep "^version:" .factory/specs/architecture/ARCH-INDEX.md
+version: "2.54"
+$ grep -A2 "^changelog:" .factory/specs/architecture/ARCH-INDEX.md | head -4
+changelog:
+  - date: 2026-06-17
+    change: "v2.54 (2026-06-17; D-625 E-18 STORY PASS-8 FIX BURST ...
+```
+Result: ARCH-INDEX frontmatter v2.54 == changelog top row v2.54. PASS.
+
+**STORY-INDEX exemption (D-448(b)/S-15.03):** STORY-INDEX uses last_amended prose changelog — NOT structured array. Exempt from O-P10-1 gate. Confirmed documented.
+
+**STORY-INDEX version gate:**
+```
+$ grep "^version:" .factory/stories/STORY-INDEX.md
+version: "4.12"
+```
+Result: STORY-INDEX at v4.12. PASS.
+
+**STATE.md size gate:**
+```
+$ wc -l .factory/STATE.md
+440
+```
+Result: 440 lines — under 450 soft target. No compaction needed.
+
+### Dim-5 (Files Touched)
+
+- `.factory/specs/verification-properties/VP-INDEX.md` — changelog array: v2.37/v2.36/v2.35 rows INSERTED above v2.34 (F-P10-001 parity repair; frontmatter version UNCHANGED v2.37)
+- `.factory/specs/behavioral-contracts/BC-INDEX.md` — changelog array: v3.05 row INSERTED between v3.06 and v3.04 (sibling-class gap repair; frontmatter version UNCHANGED v3.07)
+- `.factory/specs/architecture/ARCH-INDEX.md` — changelog array: v2.52 and v2.51 rows INSERTED between v2.53 and v2.50 (sibling-class gap repair; frontmatter version UNCHANGED v2.54)
+- `.factory/stories/STORY-INDEX.md` — v4.11→v4.12; last_amended D-627 prefix; S-18.09 annotation v1.9→v1.10 (F-P10-003 fence-strip fix)
+- `.factory/specs/verification-properties/VP-091.md` — changelog reorder: v1.1 row moved to top (F-P10-002 descending order; no version bump; architect fix)
+- `.factory/stories/S-18.09-f2-process-gap-lesson-gate-checks.md` — v1.9→v1.10 (story-writer fence-strip self-scan fix)
+- `.factory/cycles/v1.0-brownfield-backfill/adv-e18-story-pass-10.md` — CREATED (adversary pass-10 review; CLEAN verdict)
+- `.factory/cycles/v1.0-brownfield-backfill/consistency-e18-story-pass-10.md` — CREATED (consistency report pass-10; CONSISTENT verdict)
+- `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` — pass-9 row de-bolded; pass-10 row ADDED (CLEAN; streak 1/3; pass-11 NEXT); pass-9 closures note; Convergence Status updated (D-range D-614..D-627)
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-627 block APPENDED
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — 2 lessons APPENDED (L-F2-changelog-array-parity-gate; L-F2-sibling-index-class-sweep)
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — D-627 entry APPENDED (this entry)
+- `.factory/STATE.md` — v3.76→v3.77; D-627 advance; STORY-INDEX v4.12; streak 1/3; pass-11 NEXT
+
+### Dim-6 (Codifications)
+
+- D-627 codified in decision-log.md (this burst entry)
+- L-F2-changelog-array-parity-gate [process-gap] [codified] appended to lessons.md — class: every index version bump must append matching changelog-array top row in same burst; cure: literal-shell gate asserting changelog-array-top-row-version == frontmatter version for each of 3 structured-array indexes; anchor D-627/S-18.08/S-18.09
+- L-F2-sibling-index-class-sweep [process-gap] [codified] appended to lessons.md — class: gap found in one structured-array index triggers exhaustive sweep of all 3 same burst; instance-scoped repair (D-626: BC-INDEX only) = 4th recurrence; cure: explicit class-sweep procedure; anchor D-627/S-18.08/S-18.09
+- O-P10-1 mechanical gate spec codified in decision-log.md D-627 Appendix (literal-shell bash gate for every future index version-bump commit)
+
+### Dim-7 (Streak Status)
+
+3-CLEAN streak: 0/3→1/3. Pass-10 CLEAN (FIRST CLEAN of cascade). VP-INDEX changelog-array class CLOSED. BC-INDEX changelog-array class CLOSED. ARCH-INDEX changelog-array class CLOSED. STORY-INDEX v4.12. Pass-11 adversary + consistency re-verify NEXT. Streak target: 3/3.
+
+### Closes
+
+- F-P10-001 MAJOR (VP-INDEX changelog-array v2.35/v2.36/v2.37 ADDED; state-manager parity repair)
+- F-P10-002 LOW (VP-091 changelog reorder; architect fix; no version bump)
+- F-P10-003 LOW (S-18.09 v1.10 fence-strip self-scan; story-writer fix)
+- F-P10-004 sibling-class (BC-INDEX v3.05 + ARCH-INDEX v2.51/v2.52 ADDED; exhaustive sibling sweep)
+- C-P10-001 (post-D-627 parity confirmed; 10 consistency checks PASS)
+- L-F2-changelog-array-parity-gate [process-gap] [codified]
+- L-F2-sibling-index-class-sweep [process-gap] [codified]
+- O-P10-1 mechanical gate codified in D-627 Appendix
+
+### Factory-artifacts Commits
+
+TBD — commit SHA to be updated via SHA-patch after push

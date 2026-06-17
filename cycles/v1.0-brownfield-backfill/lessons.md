@@ -4097,3 +4097,57 @@ done
 **(d)** The fixture EC-009 (broken-second-cite) must be added to S-18.09 test vectors for the AC-008 gate.
 
 **Cites:** D-626; F-P9-002; S-18.09 v1.9; EC-009; AC-008 compound-cite gate; POLICY 8.
+
+---
+
+## L-F2-changelog-array-parity-gate
+
+**Date:** 2026-06-17
+**Tags:** [process-gap] [codified]
+**Anchors:** D-627, F-P10-001, F-P10-004, O-P10-1, S-18.08, S-18.09
+
+**Lesson:** Every index version bump MUST append the matching changelog-array top row in the SAME burst. The D-625/D-626 fix bursts advanced `version:` + `last_amended:` but omitted the `changelog:` array leg — a 4-of-5 POLICY 14 partial fix. The adversary caught this gap at pass-9 (BC-INDEX) and pass-10 (VP-INDEX + ARCH-INDEX sibling sweep).
+
+**Class:** Changelog-array parity gap. The `changelog:` YAML array is a mandatory fifth leg of POLICY 14, alongside `version:` (frontmatter), `last_amended:` (frontmatter), body-table version cell, and STORY-INDEX annotation cell. Omitting it creates a detectable drift: frontmatter `version:` > changelog array top-row version.
+
+**Cure:**
+**(a)** State-manager self-checklist: before every factory-artifacts commit that bumps an index version, run the literal-shell parity gate:
+```bash
+for idx in \
+  ".factory/specs/verification-properties/VP-INDEX.md" \
+  ".factory/specs/behavioral-contracts/BC-INDEX.md" \
+  ".factory/specs/architecture/ARCH-INDEX.md"; do
+  fm_ver=$(grep '^version:' "$idx" | grep -oE '"[^"]+"' | tr -d '"')
+  arr_top=$(grep -A2 '^changelog:' "$idx" | grep 'change:' | grep -oE '"v[0-9]+\.[0-9]+' | head -1 | tr -d '"')
+  if [ "$fm_ver" = "$arr_top" ]; then
+    echo "PASS: $(basename $idx) frontmatter=$fm_ver changelog_top=$arr_top"
+  else
+    echo "FAIL: $(basename $idx) frontmatter=$fm_ver changelog_top=$arr_top (MISMATCH)"
+  fi
+done
+```
+**(b)** Any FAIL output blocks the commit. No exceptions.
+**(c)** STORY-INDEX is exempt from structured array per D-448(b)/S-15.03; gate skips STORY-INDEX.
+**(d)** Gate is a candidate for automation in S-18.08/S-18.09 scope (consistency-validator or state-manager pre-commit hook).
+
+**Cites:** D-627; F-P10-001; F-P10-004; O-P10-1; BC-INDEX v3.05/BC-INDEX v3.07; VP-INDEX v2.35/v2.36/v2.37; ARCH-INDEX v2.51/v2.52; POLICY 14 (5-leg parity); D-448(b); S-15.03; S-18.08; S-18.09.
+
+---
+
+## L-F2-sibling-index-class-sweep
+
+**Date:** 2026-06-17
+**Tags:** [process-gap] [codified]
+**Anchors:** D-627, F-P10-004, O-P10-1, S-18.08, S-18.09
+
+**Lesson:** When a changelog-array gap is discovered in ONE index file, the fix-burst MUST sweep ALL 4 indexes for the same class of gap in the same burst. The D-626 fix burst closed the BC-INDEX changelog-array gap (F-P9-001) but did not sweep VP-INDEX and ARCH-INDEX for the same class. The same gap existed in VP-INDEX (3 missing rows) and ARCH-INDEX (2 missing rows) — discovered at pass-10 as F-P10-001 and F-P10-004.
+
+**Class:** Sibling-index-class-sweep incompleteness. The pass-9 fix was a 1-of-3-index repair when all 3 were affected by the same root cause. The root cause was the D-625 burst omitting changelog-array rows across all 3 indexes that received version bumps in that burst.
+
+**Cure:**
+**(a)** When fixing ANY finding that is class-defined by its index artifact type (BC-INDEX, VP-INDEX, ARCH-INDEX), the fix-burst MUST sweep ALL 3 structured-array indexes before declaring the class closed. STORY-INDEX is exempt.
+**(b)** The sweep is not just a check — it is a fix. Any gap found must be remediated in the same burst.
+**(c)** The class is "closed" only when the POLICY 15 literal-shell gate passes for ALL 3 indexes simultaneously.
+**(d)** This rule extends the existing sibling-sweep-across-indexes class discipline (TD-VSDD-060) to index-internal structural elements (changelog array), not just cross-index version cite propagation.
+
+**Cites:** D-627; F-P10-001; F-P10-004; D-626 (partial repair that triggered the recurrence); BC-INDEX; VP-INDEX; ARCH-INDEX; POLICY 14 (5-leg parity); TD-VSDD-060 (sibling-site sweep); S-18.08; S-18.09.
