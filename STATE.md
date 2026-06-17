@@ -138,7 +138,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | caf06c68 | rc.21 bot binary bundle commit 2026-06-13; prior: 2a191314 (rc.20) |
 | develop | c000b06f | PR #189 compute-input-hash fix SQUASH-MERGED 2026-06-16; prior: 7e99f6ef (PR #186 fix 2026-06-13) |
-| factory-artifacts | f2729dfb | D-618 STATE.md durability + resume refresh 2026-06-16 (Commit-E); prior: 938b0f90 D-617-sha-patch; prior-prior: cea9e0a6 D-617 Commit-E |
+| factory-artifacts | fa883af4 | D-619 BC-INDEX COUNT RECONCILE BURST 2026-06-17; prior: f2729dfb D-618 STATE.md durability + resume refresh (Commit-E) |
 | v1.0.0-rc.21 (tag) | 03054524 | SHIPPED 2026-06-13; FULLY IN OPERATOR MARKETPLACE (marketplace PR #13 MERGED); annotated tag object |
 | v1.0.0-rc.20 (tag) | e9e38286 | SHIPPED 2026-06-01; marketplace PR #12 squash-merged 862e660d |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28 |
@@ -325,7 +325,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** `f2729dfb` (D-618 STATE.md durability + resume refresh 2026-06-16 Commit-E; prior: `938b0f90` D-617-sha-patch; prior-prior: `cea9e0a6` D-617 Commit-E)
+- **factory-artifacts HEAD:** `fa883af4` (D-619 BC-INDEX COUNT RECONCILE BURST 2026-06-17; prior: `f2729dfb` D-618 Commit-E)
 - **develop HEAD:** `c000b06f` (PR #189 compute-input-hash fix SQUASH-MERGED 2026-06-16; prior: `7e99f6ef` PR #186 fix 2026-06-13)
 - **main HEAD:** `caf06c68` (rc.21 bot bundle commit 2026-06-13; UNCHANGED)
 - **v1.0.0-rc.21 tag:** `03054524` (SHIPPED; FULLY IN OPERATOR MARKETPLACE)
@@ -360,7 +360,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 - **capabilities.md v1.7:** `domain-spec/capabilities.md` (UNCHANGED at D-597)
 - **ADR-025 v1.6 SHIPPED:** guard at `3b2a378c`; ARCH-INDEX v2.27
 - **S-17.04 story:** `.factory/stories/S-17.04-mid-burst-heartbeat-renewal-wiring.md` v1.7 MERGED; E-17 W4 COMPLETE; PR #184 3b2a378c
-- **Verify on resume:** `git rev-parse --short origin/develop` → expect `c000b06f`; `git rev-parse --short origin/main` → expect `caf06c68`; `git -C .factory log -1 --format='%h'` → expect `f2729dfb` (D-618 Commit-E) or later SHA-patch
+- **Verify on resume:** `git rev-parse --short origin/develop` → expect `c000b06f`; `git rev-parse --short origin/main` → expect `caf06c68`; `git -C .factory log -1 --format='%h'` → expect `fa883af4` (D-619 Commit-E) or later SHA-patch
 
 ### §10. PR Status
 
@@ -370,7 +370,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 ### §11. Post-CLEAR/Post-RESET Resume Checklist (zero-context; D-618 refresh)
 
-1. **Verify worktree state:** `git rev-parse --short origin/develop` → expect `c000b06f`. `git rev-parse --short origin/main` → expect `caf06c68`. `git -C .factory log -1` (expect D-618 Commit-E HEAD or SHA-patch; branch factory-artifacts; clean status).
+1. **Verify worktree state:** `git rev-parse --short origin/develop` → expect `c000b06f`. `git rev-parse --short origin/main` → expect `caf06c68`. `git -C .factory log -1` (expect D-619 Commit-E `fa883af4` HEAD or SHA-patch; branch factory-artifacts; clean status).
 2. **Read §1-§12 this checkpoint** (all of it; D-618 self-sufficient).
 3. **Verify 4-index:** `grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md` → "3.06"; ARCH-INDEX → "2.51"; VP-INDEX → "2.35"; STORY-INDEX → "4.04"; L2-INDEX → "1.0.13".
 4. **E-10 CASCADE SEALED D-531.** Do NOT resume without engine-surface material change.
