@@ -8462,4 +8462,4 @@ D-NNN allocated this burst: D-623.
 
 ### Factory-artifacts Commits
 
-`PENDING-SHA` state(D-623): E-18 STORY PASS-6 INDEX SYNC — STORY-INDEX v4.08; C-P6-001..C-P6-006 fixes; 3 lessons
+`9e3e3b1a` state(D-623): E-18 STORY PASS-6 INDEX SYNC — STORY-INDEX v4.08; C-P6-001..C-P6-006 fixes; 3 lessons
