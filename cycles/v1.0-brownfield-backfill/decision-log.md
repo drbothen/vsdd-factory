@@ -730,3 +730,46 @@ grep -E '^[|] (\[BC-|~~\[BC-)' .factory/specs/behavioral-contracts/BC-INDEX.md |
 **D-chain cite:** D-621. **Parent-commit:** 8ce58ef6 (D-621 SHA-patch).
 
 **Posture:** E-18 STORY PASS-5 INDEX SYNC COMPLETE. 3-CLEAN streak RESET 0/3 (pass-5 NOT-CLEAN → fix-burst). Pass-6 adversary dispatch + consistency re-verify NEXT — START HERE.
+
+---
+
+### D-623 — E-18 STORY PASS-6 INDEX SYNC BURST (2026-06-17)
+
+**Context:** E-18 story adversarial pass-6 (NOT-CLEAN: F-P6-001 MED + F-P6-002/003 LOW + O-P6-001..004 process-gaps) and consistency-validator pass-6 (INCONSISTENT: C-P6-001..C-P6-006) findings resolved by product-owner (C-P6-005: epic BC summary semantic-inversion; epic v1.3) and story-writer (10 story files bumped: S-18.01/02/03/04a/04b/05/06/07/08/09). This is the state-manager index-sync leg (runs LAST per POLICY 3). This burst: STORY-INDEX all-12-story sweep + Depends-On/Blocks corrections + E-18 footnote + epic version + STATE.md bookkeeping + lessons codification.
+
+**Pass-6 adversary verdict:** NOT-CLEAN. Findings:
+- **F-P6-001 MED:** S-18.08 changelog sibling-sweep miss — when 4 sibling stories received cosmetic changelog reorder in pass-5, the 5th sibling (S-18.08) was missed. S-7.01 partial-fix class (O-P6-001 process-gap). Fixed by story-writer.
+- **F-P6-002 LOW:** Observation-tier low; fixed by story-writer in-scope.
+- **F-P6-003 LOW:** Observation-tier low; fixed by story-writer in-scope.
+- **O-P6-001 PROCESS-GAP:** S-7.01 sibling-sweep applied to 4 of 5 siblings only — class fix = L-F2-s7-sibling-sweep-partial-class lesson.
+- **O-P6-002/003/004 OBSERVATIONS:** Minor; addressed in-scope.
+- **Pass-5 findings F-P5-001/F1/F2/F4 all verified CLOSED.**
+
+**Consistency-validator pass-6 verdict:** INCONSISTENT. Findings:
+- **C-P6-001 BLOCKER:** Title-prefix class — 6 story STORY-INDEX cells had `S-18.NN:` prefix; story-writer removed from frontmatter but STORY-INDEX cells not yet synced. Verbatim sweep: all 12 confirmed PASS after sync.
+- **C-P6-002 BLOCKER:** STORY-INDEX E-18 footnote stale — "11 stories / 84 pts / 7-wave / VP-081..VP-091 / SS-06,08 / 11 input-hashes / 9 BCs" from D-614; corrected to "12 stories / 89 pts / 8-wave / VP-081..VP-092 / correct per-story subsystems / 12 input-hashes / 10 BCs" (D-614→D-615 propagation gap; L-F2-registration-footnote-stale-on-count-change).
+- **C-P6-003 BLOCKER:** Dep asymmetry S-18.06↔S-18.07 — story-writer added S-18.06 to S-18.07 frontmatter `depends_on:` but STORY-INDEX cell not updated. Fixed: S-18.07 Depends-On now `[S-18.03, S-18.04a, S-18.04b, S-18.05, S-18.06]`.
+- **C-P6-004 BLOCKER:** Missing version annotations — 11 stories bumped but STORY-INDEX cells lacked explicit version annotations. All 12 stories now carry `story vN.M` annotation.
+- **C-P6-005 MAJOR:** Epic BC summary semantic-inversion in E-18 epic body — BC-5.41.001/002 summaries had behavioral direction swapped. GENUINE semantic defect; missed by 43 F2 adversary passes + 5 story passes. Fixed by product-owner (epic v1.3). Gate candidate: epic-traceability-summary↔BC-H1 directional-match gate (L-F2-epic-traceability-gate-candidate; anchor S-18.08/S-18.09).
+- **C-P6-006 MEDIUM:** Blocks convention — S-18.08 depends on S-18.01/02/03/04a/04b/06; those stories must list S-18.08 in their `blocks:` per direct-successor convention. Story-writer added to frontmatter. STORY-INDEX Blocks cells updated for 6 stories.
+
+**3-CLEAN streak:** Pass-6 NOT-CLEAN → streak 0/3. Pass-7 = NEXT.
+
+**Lessons codified:**
+- **L-F2-s7-sibling-sweep-partial-class [process-gap]:** S-7.01 sibling-sweep applied partially (4 of 5 siblings); 5th sibling missed. Class fix = enumerate ALL siblings before declaring sweep done. Enumerate-and-count gate (POLICY 5 v1.3.3) applies to changelog-reorder sweeps.
+- **L-F2-epic-traceability-gate-candidate [codified]:** Fresh-context consistency-validator caught semantic-inversion in epic BC summaries missed by 43 F2 + 5 story passes. Epic-body BC summary direction MUST match BC-H1. Gate candidate: epic-summary↔BC-H1 directional match. Anchored S-18.08/S-18.09 scope.
+- **L-F2-registration-footnote-stale-on-count-change [process-gap]:** Registration footnote (STORY-INDEX E-18 footnote) not swept when story count changed 11→12 (D-614→D-615). Cure: sweep ALL registration footnotes when story_count changes for affected epic, same-burst.
+
+**Actions taken:**
+- `STORY-INDEX.md` v4.07→v4.08: all 12 story BCs cells carry explicit version annotation; S-18.07 Depends-On adds S-18.06; S-18.01/02/03/04a/04b/06 Blocks cells add S-18.08; E-18 epic heading v1.2→v1.3; E-18 footnote corrected (12 stories/89 pts/8-wave/VP-081..VP-092/10 BCs/12 input-hashes/correct subsystems); frontmatter version/last_amended bumped
+- `STATE.md` v3.72→v3.73: D-623 frontmatter + Decisions Log + banner entry; §1 NEXT ACTION + §3 D-623 carry; 4-index STORY-INDEX v4.08; POSTURE pass-7; Session Resume Checkpoint updated
+- `decision-log.md` D-623 block appended (this entry)
+- `lessons.md` 3 lesson entries appended
+- `INDEX.md` E-18 STORY cascade section: pass-6 row added + Convergence Status updated
+- `burst-log.md` D-623 burst entry appended (D-444(c) 8 blocks)
+
+**4-index post-burst:** BC-INDEX v3.06 (UNCHANGED) / VP-INDEX v2.36 (UNCHANGED) / STORY-INDEX v4.08 / ARCH-INDEX v2.52 (UNCHANGED). L2-INDEX v1.0.13 (UNCHANGED).
+
+**D-chain cite:** D-622. **Parent-commit:** 7a9a3dae (D-622 SHA-patch).
+
+**Posture:** E-18 STORY PASS-6 INDEX SYNC COMPLETE. 3-CLEAN streak 0/3 (pass-6 NOT-CLEAN → fix-burst). Pass-7 adversary dispatch + consistency re-verify NEXT — START HERE.

@@ -3723,3 +3723,98 @@ Both gate candidates are pure-parse and consistent with S-18.08's BC invariant. 
 **Cites:** D-622; S-18.08; POLICY 5 v1.3.3 (sibling sweep mandate); POLICY 14 5-leg (version bump parity — annotation sweeps are part of leg 5); CLAUDE.md §Canonical-Principle Rule 4 (AI-built defects AI's responsibility); F-P5-001 MED; F1/F2/F4 consistency findings.
 
 **Closes:** F1/F2/F4 consistency findings satisfied; L-F2-index-cell-and-version-cite-sibling-sweep codified and added to carry-forward lesson set; [codified] anchor = S-18.08. `[process-gap; index-cell; version-cite; title-drift; annotation-drift; sibling-sweep; STORY-INDEX; ARCH-INDEX; S-18.08; E-18; pass-5]`
+
+---
+
+## L-F2-s7-sibling-sweep-partial-class
+
+**Lesson ID:** L-F2-s7-sibling-sweep-partial-class
+**Classification:** [process-gap]
+**Source:** D-623 (E-18 story cascade pass-6 adversary finding O-P6-001 / F-P6-001 MED)
+**Story anchor:** S-18.08 (gate scope for automated sibling-sweep enforcement)
+
+**Context:** During pass-5 fix burst (D-622), a cosmetic changelog-reorder was applied to 4 of 5 sibling stories (S-18.03, S-18.04a, S-18.05, S-18.04b). The 5th sibling (S-18.08) was missed. This triggered F-P6-001 MED at pass-6 adversary review (S-7.01 sibling-sweep class).
+
+**Root cause:** The sweep was defined by scanning "the stories that had their version bumped in this pass" rather than "the entire sibling cohort sharing the same structural change." Partial-scope sweeps produce false-green for the sweep attestation while leaving one or more siblings in the defective state.
+
+**Class (S-7.01 partial-fix):** Any cosmetic change that applies to a cohort (changelog reorder, terminology update, formatting normalization) MUST enumerate the cohort exhaustively BEFORE applying. The number of siblings found MUST equal the expected cohort size. If the size is uncertain, grep for the pattern across all candidate files and capture stdout (enumerate-and-count discipline per L-F2-exhaustive-sweep-enumerate-and-count).
+
+**Rule (binding):**
+
+**(a) Enumerate-before-sweep.** For any cohort-scoped change (changelog reorder, terminology sweep, structural normalization): `grep -rn '<pattern>' .factory/stories/S-18.*.md` to enumerate ALL affected files BEFORE applying the change. Assert the count equals the expected cohort size.
+
+**(b) Capture stdout for attestation.** The enumeration grep output MUST appear in the burst-log Dim-2 attestation. Narrative "applied to all N siblings" without captured grep stdout is a false-attestation under D-449(a).
+
+**(c) This class is distinct from missing-sibling sweep (L-F2-cross-reference-title-code-sweep).** That lesson covers VP/BC title cite parity; this lesson covers cohort structural-normalization sweeps. Both require enumerate-and-count.
+
+**Resolution:** Pass-6 fix burst: story-writer applied changelog reorder to S-18.08 (the missed 5th sibling). F-P6-001 MED closed. L-F2-s7-sibling-sweep-partial-class codified.
+
+**Anchors:** D-623 (this burst); O-P6-001 [process-gap]; F-P6-001 MED; S-18.08 (missed sibling); L-F2-exhaustive-sweep-enumerate-and-count (enumerate-count gate).
+
+**Cites:** D-623; S-7.01 defensive-sweep discipline; POLICY 5 v1.3.3 sibling-sweep mandate; L-F2-exhaustive-sweep-enumerate-and-count (D-599); D-449(a) literal-shell stdout requirement; F-P6-001 MED.
+
+**Closes:** F-P6-001 MED closed; O-P6-001 [process-gap] codified. `[process-gap; sibling-sweep; partial-fix; enumerate-count; changelog; S-18.08; E-18; pass-6; S-7.01]`
+
+---
+
+## L-F2-epic-traceability-gate-candidate
+
+**Lesson ID:** L-F2-epic-traceability-gate-candidate
+**Classification:** [codified]
+**Source:** D-623 (E-18 story cascade consistency-validator pass-6 finding C-P6-005 MAJOR)
+**Story anchor:** S-18.08 and/or S-18.09 (gate scope for epic-traceability-summary↔BC-H1 directional-match)
+
+**Context:** Consistency-validator pass-6 found a GENUINE semantic inversion in the E-18 epic body: BC-5.41.001 and BC-5.41.002 summaries in the epic's §BC Coverage had their behavioral-direction swapped (the description said the opposite of what the BC actually requires). This defect was present from D-611 F3 plan authoring and survived 43 F2 adversary passes and 5 E-18 story cascade adversary passes without detection. It was caught by the consistency-validator's fresh-context "perimeter audit" (checking whether the epic's registered BC summaries directionally match the BC H1 title and Invariants).
+
+**Root cause:** Epic bodies summarize BCs in paragraph/list form. These summaries are prose paraphrases, not mechanical extracts. Paraphrases can invert behavioral direction (e.g., "validates X is present" vs. "validates X is absent") without triggering any grep-based consistency check currently in use. The adversary focuses on story-level BC postconditions; the consistency-validator focuses on BC field-level consistency; neither role was explicitly tasked with "does the epic summary match BC H1 direction?"
+
+**Significance:** A fresh-context adversary audit over 43 passes + 5 story passes (48 total) failed to catch a MAJOR semantic inversion. This demonstrates that EPIC-level summary prose is a high-defect-density zone that requires a dedicated directional-match gate.
+
+**Gate candidate (binding):**
+
+**(a) Epic-summary↔BC-H1 directional match.** For each BC listed in an epic's §BC Coverage (or equivalent): assert that the epic's prose description of the BC's behavior DIRECTIONALLY MATCHES the BC H1 title (subject → condition → effect direction). A paraphrase that inverts the subject or the condition-effect relationship is a BLOCKER.
+
+**(b) Gate classification.** This is a pure-parse gate: read epic body + BC H1. No external substrate required. Consistent with S-18.08's BC invariant (pure-parse WASM gate scope).
+
+**(c) Scope.** The gate MUST cover all epics in the story-index that are under active adversarial review or have been authored since the last directional-match audit.
+
+**(d) Interim protocol (until S-18.08/S-18.09 gate implemented).** The consistency-validator MUST include a directional-match check for epic BC summaries in every pass on a story cascade. This is not a new axiom — it extends the existing "is-the-perimeter-right" audit that caught C-P6-005.
+
+**Resolution:** Product-owner fixed BC-5.41.001/002 summaries in epic body (epic v1.3). Consistency-validator confirmed corrected. L-F2-epic-traceability-gate-candidate tagged [codified] with anchor S-18.08/S-18.09.
+
+**Anchors:** D-623 (this burst); C-P6-005 MAJOR (consistency-validator finding); E-18 epic v1.2→v1.3 (product-owner fix); S-18.08 + S-18.09 (gate scope candidates); BC-5.41.001; BC-5.41.002.
+
+**Cites:** D-623; C-P6-005 MAJOR; consistency-validator (fresh-context perimeter audit); CLAUDE.md §Canonical-Principle Rule 4; S-18.08; S-18.09.
+
+**Closes:** C-P6-005 MAJOR closed; L-F2-epic-traceability-gate-candidate [codified] anchored to S-18.08/S-18.09. `[codified; epic; traceability; semantic-inversion; BC-summary; directional-match; E-18; S-18.08; S-18.09; pass-6; C-P6-005]`
+
+---
+
+## L-F2-registration-footnote-stale-on-count-change
+
+**Lesson ID:** L-F2-registration-footnote-stale-on-count-change
+**Classification:** [process-gap]
+**Source:** D-623 (E-18 story cascade consistency-validator pass-6 finding C-P6-002 BLOCKER)
+**Story anchor:** S-18.08 (gate scope for registration-footnote sweep)
+
+**Context:** STORY-INDEX E-18 registration footnote (line ~701) was not swept when story count changed from 11→12 stories (D-614 story registration → D-615 S-18.10 addition). The footnote still showed "11 stories / 84 pts / 7-wave / VP-081..VP-091 / SS-06,08 / 11 input-hashes / 9 BCs" through passes 1–6. The delivery notes (lines 670–674) were correctly updated at each pass, but the footnote was not part of the sweep scope.
+
+**Root cause:** The "registration footnote" (a summary note at the bottom of the epic's footnote chain, format `***E-NN... — N stories: ...`) is maintained separately from the per-story delivery notes and wave schedule. No explicit rule required the footnote to be swept when story count changed. The footnote is treated as "initial registration prose" rather than "live delivery status."
+
+**Class:** Stale-registration-prose — text authored at story registration (D-614) that was not flagged for re-verification when the registration itself changed (D-615 S-18.10 addition). This is a special case of the "static commentary treated as immutable when it should be versioned" anti-pattern.
+
+**Rule (binding):**
+
+**(a) When story_count changes (add or withdraw story from an epic), sweep ALL registration footnotes for the affected epic in the same burst.** The footnote must reflect: current story count, current total pts, current wave count, current VP range, current per-story subsystem union, current input-hash count, current BC count.
+
+**(b) Registration footnotes are NOT immutable historical records.** They are live status summaries (unlike the `[Prior:]` chains in `last_amended` which ARE historical and append-only per L-F2-prior-chain-append-only-history). When the epic grows, the footnote MUST be updated.
+
+**(c) Verification trigger.** Any burst that adds or withdraws a story from an epic MUST include an explicit "registration footnote sweep" step.
+
+**Resolution:** Pass-6 fix burst corrected the E-18 footnote to reflect current state (12 stories / 89 pts / 8-wave / VP-081..VP-092 / correct per-story subsystems / 12 input-hashes / 10 BCs; ADR-026 v1.21; D-611/D-614/D-615 reference). L-F2-registration-footnote-stale-on-count-change codified.
+
+**Anchors:** D-623 (this burst); C-P6-002 BLOCKER; D-614 (story registration, 11 stories); D-615 (S-18.10 addition, count → 12); STORY-INDEX line ~701 (E-18 footnote).
+
+**Cites:** D-623; C-P6-002 BLOCKER; L-F2-prior-chain-append-only-history (historical record distinction); STORY-INDEX §E-18 footnote; POLICY 1 append-only.
+
+**Closes:** C-P6-002 BLOCKER closed; L-F2-registration-footnote-stale-on-count-change codified. `[process-gap; registration; footnote; stale; story-count; E-18; STORY-INDEX; pass-6; C-P6-002; D-614; D-615]`

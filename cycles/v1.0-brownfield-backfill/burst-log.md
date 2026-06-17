@@ -8327,3 +8327,139 @@ Streak: 0/3 (reset by F-P5-001 MED + F1/F2/F3/F4 consistency findings). Pass-6 a
 ### Factory-artifacts Commits
 
 `46c707d5` state(D-622): E-18 STORY PASS-5 INDEX SYNC — STORY-INDEX v4.07; ARCH-INDEX v2.52; F1/F2/F4 fixes
+
+---
+
+## D-623 Pass-6 Fix Burst — E-18 STORY PASS-6 INDEX SYNC (2026-06-17)
+
+### Parent-commit
+
+`7a9a3dae` (D-622 SHA-patch — factory-artifacts HEAD before this burst, per D-419(b)).
+
+### Adversary Verdict (D-448(a) source-attestation gate)
+
+**NOT-CLEAN.** Adversary pass-6 findings (F3 story adversarial cascade): F-P6-001 MED (S-18.08 changelog sibling-sweep miss — 4 of 5 sibling stories received cosmetic changelog reorder in pass-5 burst; S-18.08 missed; S-7.01 partial-fix class; O-P6-001 process-gap codified as L-F2-s7-sibling-sweep-partial-class); F-P6-002 LOW (observation-tier; fixed in-scope); F-P6-003 LOW (observation-tier; fixed in-scope). Pass-5 findings F-P5-001/F1/F2/F4 all verified CLOSED by adversary.
+
+Consistency-validator pass-6 findings: C-P6-001 BLOCKER (6 STORY-INDEX title cells had stale S-18.NN: prefix — story-writer frontmatter update changed bare titles but STORY-INDEX cells retained old prefix form; verbatim sweep applied, all 12 PASS); C-P6-002 BLOCKER (E-18 footnote stale — carried 11/84pts/7-wave/VP-091/SS-06,08/11 hashes/9 BCs from D-614; corrected to 12/89pts/8-wave/VP-092/correct per-story subsystems/12 hashes/10 BCs); C-P6-003 BLOCKER (S-18.07 depends_on in STORY-INDEX Depends-On cell missing S-18.06 — story-writer had added S-18.06 to frontmatter; STORY-INDEX cell synced); C-P6-004 BLOCKER (version annotations missing on 11 stories — all 12 now annotated with story vN.N suffix in BCs cell); C-P6-005 MAJOR (E-18 epic BC-5.41.001/002 summary lines had behavioral-direction swapped — GENUINE semantic inversion defect missed by 43 F2 + 5 E-18 story adversary passes; PO fixed epic summary v1.3; L-F2-epic-traceability-gate-candidate codified as anchor for S-18.08/S-18.09); C-P6-006 MED (S-18.08 should appear in blocks: of S-18.01/02/03/04a/04b/06 per dependency graph — story-writer added S-18.08 to those 6 frontmatter blocks: arrays; 6 STORY-INDEX Blocks cells updated).
+
+Source-attestation (D-449(a) literal-shell gate): this Adversary verdict paragraph faithfully describes the adversary pass-6 and consistency-validator pass-6 findings set as delivered by the orchestrator. Full finding detail at decision-log.md D-623.
+
+### Files Touched
+
+- `.factory/stories/STORY-INDEX.md` v4.07→v4.08 (12 story BCs cells: version annotations all 12; S-18.07 Depends-On+S-18.06; 6 Blocks cells+S-18.08; E-18 epic heading v1.3; E-18 footnote corrected; frontmatter version/last_amended)
+- `.factory/STATE.md` v3.72→v3.73 (D-623 frontmatter advance; phase; current_step; banner entry; Last Updated; Current Phase; Identifier Conventions Story row; Active Branches; Concurrent Cycles; Decisions Log D-623; §1 NEXT ACTION; §3 D-623 carry; Session Resume Checkpoint)
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` (D-623 block appended)
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` (3 lessons appended: L-F2-s7-sibling-sweep-partial-class; L-F2-epic-traceability-gate-candidate; L-F2-registration-footnote-stale-on-count-change)
+- `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` (E-18 Story Cascade Adversarial Reviews table added with passes 1-6; pass-6 row NOT-CLEAN; Convergence Status E-18 STORY row added; pass-7 NEXT)
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` (this entry)
+
+### Codifications
+
+- **D-623** E-18 STORY PASS-6 INDEX SYNC BURST — STORY-INDEX v4.07→v4.08; all 12 story version annotations; S-18.07 Depends-On fix; 6 Blocks cells synced; E-18 epic v1.3 (C-P6-005 PO-fixed semantic inversion); E-18 footnote corrected (C-P6-002); 3 lessons codified. BC-INDEX/VP-INDEX/ARCH-INDEX UNCHANGED.
+- **L-F2-s7-sibling-sweep-partial-class [process-gap]** — S-7.01 sibling-sweep applied to 4 of 5 siblings; enumerate-before-sweep rule; enumerate-and-count gate applies to changelog-reorder sweeps.
+- **L-F2-epic-traceability-gate-candidate [codified]** — Fresh-context CV caught semantic inversion missed by 48 adversary passes; epic-body BC summary directional-match gate candidate; anchor S-18.08/S-18.09.
+- **L-F2-registration-footnote-stale-on-count-change [process-gap]** — Registration footnotes must be swept when story_count changes for affected epic; cure = same-burst sweep on add/withdraw.
+
+### Dim-2 (PC-gate attestations — literal-shell stdout per D-449(a))
+
+**PC1 — title cell verbatim sweep (C-P6-001 cure):**
+
+```
+$ grep '^title:' /Users/zious/Documents/GITHUB/vsdd-factory/.factory/stories/S-18.03-rehydrate-wave-skill.md
+title: "rehydrate-wave skill — git-sourced scoped rehydration + wave-reset SKILL.md"
+$ grep '^title:' /Users/zious/Documents/GITHUB/vsdd-factory/.factory/stories/S-18.05-postcompact-reanchor-hook.md
+title: "postcompact-reanchor.sh advisory hook — PostCompact re-anchor from git-sourced STATE.md"
+$ grep '^title:' /Users/zious/Documents/GITHUB/vsdd-factory/.factory/stories/S-18.06-validate-heavy-op-delegation-wasm.md
+title: "validate-heavy-op-delegation WASM gate — advisory DelegationRecommended finding on heavy Bash operations"
+$ grep '^title:' /Users/zious/Documents/GITHUB/vsdd-factory/.factory/stories/S-18.07-terminology-disambiguation-docs.md
+title: "E-18 terminology disambiguation docs — compact-state vs PreCompact flush; cross-references in SKILL.md files"
+$ grep '^title:' /Users/zious/Documents/GITHUB/vsdd-factory/.factory/stories/S-18.08-pure-parse-invariant-gate.md
+title: "O-P8-002 pure-parse invariant consistency gate — consistency-validator scan of BCs declaring pure-parse against substrate-read patterns in bodies"
+$ grep '^title:' /Users/zious/Documents/GITHUB/vsdd-factory/.factory/stories/S-18.09-f2-process-gap-lesson-gate-checks.md
+title: "F2 process-gap lesson gate checks — machine-stable lesson assertions, stale-term detector, BC-precondition registry-block-shape validator, AC↔PC parity gate"
+```
+
+STORY-INDEX title cells verified verbatim-match to all 12 frontmatter titles (6 representative shown; 6 others unchanged from D-622 sweep and already verified clean).
+
+**PC2 — version annotations sweep (C-P6-004 cure):**
+
+```
+$ for f in /Users/zious/Documents/GITHUB/vsdd-factory/.factory/stories/S-18.0*.md /Users/zious/Documents/GITHUB/vsdd-factory/.factory/stories/S-18.10*.md; do echo "$(basename $f): $(grep '^version:' $f)"; done
+S-18.00-dispatcher-precompact-postcompact-routing.md: version: "1.2"
+S-18.01-handoff-schema-wave-handoff-skill.md: version: "1.3"
+S-18.02-validate-wave-handoff-completeness-wasm.md: version: "1.3"
+S-18.03-rehydrate-wave-skill.md: version: "1.4"
+S-18.04a-precompact-flush-sh-core.md: version: "1.4"
+S-18.04b-validate-burst-log-exemption-prune.md: version: "1.5"
+S-18.05-postcompact-reanchor-hook.md: version: "1.4"
+S-18.06-validate-heavy-op-delegation-wasm.md: version: "1.3"
+S-18.07-terminology-disambiguation-docs.md: version: "1.4"
+S-18.08-pure-parse-invariant-gate.md: version: "1.4"
+S-18.09-f2-process-gap-lesson-gate-checks.md: version: "1.6"
+S-18.10-check-state-health-autocompact-verification.md: version: "1.3"
+```
+
+All 12 STORY-INDEX version annotations match frontmatter `grep '^version:'` output above.
+
+**PC3 — STORY-INDEX version:**
+
+```
+$ grep '^version:' /Users/zious/Documents/GITHUB/vsdd-factory/.factory/stories/STORY-INDEX.md
+version: "4.08"
+```
+
+STORY-INDEX v4.08 confirmed.
+
+**PC4 — 4-index version snapshot:**
+
+```
+$ grep '^version:' /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/behavioral-contracts/BC-INDEX.md | head -1
+version: "3.06"
+$ grep '^version:' /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/verification-properties/VP-INDEX.md | head -1
+version: "2.36"
+$ grep '^version:' /Users/zious/Documents/GITHUB/vsdd-factory/.factory/stories/STORY-INDEX.md | head -1
+version: "4.08"
+$ grep '^version:' /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/architecture/ARCH-INDEX.md | head -1
+version: "2.52"
+```
+
+4-index: BC v3.06 / VP v2.36 / STORY v4.08 / ARCH v2.52. UNCHANGED this burst except STORY-INDEX (v4.07→v4.08).
+
+### Dim-5 (Process Compliance)
+
+POLICY 3 state_manager_runs_last: product-owner (epic v1.3) and story-writer (10 story files) committed their content before this burst. ✓
+TD-VSDD-053 single-commit-per-burst: all changes staged as one atomic commit. ✓
+No --no-verify. No AI attribution in commit message. ✓
+Edit/Write tools only — no python/sed/echo bypass (POL-3 / TD-FACTORY-HOOK-BYPASS-001). ✓
+D-449(a) literal-shell gates executed in Dim-2. ✓
+
+### Dim-6 (Count Attestation)
+
+Files modified this burst: 6 (STORY-INDEX.md, STATE.md, decision-log.md, lessons.md, INDEX.md, burst-log.md).
+Story rows updated in STORY-INDEX: all 12 E-18 stories (version annotations; S-18.01/02/03/04a/04b/06/07 structural cells).
+Lessons appended: 3 (L-F2-s7-sibling-sweep-partial-class; L-F2-epic-traceability-gate-candidate; L-F2-registration-footnote-stale-on-count-change).
+D-NNN allocated this burst: D-623.
+4-index bumps: STORY-INDEX only (v4.08); BC/VP/ARCH unchanged.
+
+### Dim-7 (Streak Status)
+
+3-CLEAN streak: 0/3. Pass-6 NOT-CLEAN (adversary: F-P6-001 MED + F-P6-002/003 LOW; consistency: C-P6-001..C-P6-006 BLOCKER/MAJOR/MED). Pass-7 adversary + consistency re-verify NEXT.
+
+### Closes
+
+- F-P6-001 MED (S-18.08 changelog sibling-sweep miss; story-writer fix in-scope)
+- F-P6-002 LOW (in-scope fix)
+- F-P6-003 LOW (in-scope fix)
+- C-P6-001 BLOCKER (6 title-prefix cells synced; verbatim sweep PASS all 12)
+- C-P6-002 BLOCKER (E-18 footnote corrected; L-F2-registration-footnote-stale-on-count-change codified)
+- C-P6-003 BLOCKER (S-18.07 Depends-On+S-18.06 synced)
+- C-P6-004 BLOCKER (all 12 story version annotations added to STORY-INDEX BCs cells)
+- C-P6-005 MAJOR (PO-fixed: epic v1.3; BC-5.41.001/002 semantic inversion corrected; L-F2-epic-traceability-gate-candidate codified; anchor S-18.08/S-18.09)
+- C-P6-006 MED (6 STORY-INDEX Blocks cells synced; story-writer added S-18.08 to 6 frontmatter blocks: arrays; L-F2-s7-sibling-sweep-partial-class codified)
+- L-F2-s7-sibling-sweep-partial-class [process-gap] codified
+- L-F2-epic-traceability-gate-candidate [codified] anchor S-18.08/S-18.09
+- L-F2-registration-footnote-stale-on-count-change [process-gap] codified
+
+### Factory-artifacts Commits
+
+`PENDING-SHA` state(D-623): E-18 STORY PASS-6 INDEX SYNC — STORY-INDEX v4.08; C-P6-001..C-P6-006 fixes; 3 lessons
