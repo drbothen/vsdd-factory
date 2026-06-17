@@ -8963,4 +8963,4 @@ Sections present: Parent-commit ✓ / Adversary verdict ✓ / Files touched ✓ 
 
 ### Factory-artifacts Commits
 
-`[SHA-PATCH]` state(D-629): E-18 STORY PASS-11 FIX BURST — F-P11-001 BLOCKER RAW_LABEL regex closed; S-18.09 v1.11; STORY-INDEX v4.13; 1 lesson; pass-12 NEXT
+`aff49b06` state(D-629): E-18 STORY PASS-11 FIX BURST — F-P11-001 BLOCKER RAW_LABEL regex closed; S-18.09 v1.11; STORY-INDEX v4.13; 1 lesson; pass-12 NEXT
