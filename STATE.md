@@ -137,7 +137,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | caf06c68 | rc.21 bot binary bundle commit 2026-06-13; prior: 2a191314 (rc.20) |
 | develop | c000b06f | PR #189 compute-input-hash fix SQUASH-MERGED 2026-06-16; prior: 7e99f6ef (PR #186 fix 2026-06-13) |
-| factory-artifacts | D-618-SHA | D-618 STATE.md durability + resume refresh 2026-06-16 (SHA-patch follow-up per D-447(c)/D-449(e)); prior: 938b0f90 D-617-sha-patch; prior-prior: cea9e0a6 D-617 Commit-E |
+| factory-artifacts | f2729dfb | D-618 STATE.md durability + resume refresh 2026-06-16 (Commit-E); prior: 938b0f90 D-617-sha-patch; prior-prior: cea9e0a6 D-617 Commit-E |
 | v1.0.0-rc.21 (tag) | 03054524 | SHIPPED 2026-06-13; FULLY IN OPERATOR MARKETPLACE (marketplace PR #13 MERGED); annotated tag object |
 | v1.0.0-rc.20 (tag) | e9e38286 | SHIPPED 2026-06-01; marketplace PR #12 squash-merged 862e660d |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28 |
@@ -322,7 +322,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** D-618-SHA (D-618 STATE.md durability + resume refresh 2026-06-16 Commit-E; SHA-patch follow-up per D-447(c)/D-449(e); prior: `938b0f90` D-617-sha-patch; prior-prior: `cea9e0a6` D-617 Commit-E)
+- **factory-artifacts HEAD:** `f2729dfb` (D-618 STATE.md durability + resume refresh 2026-06-16 Commit-E; prior: `938b0f90` D-617-sha-patch; prior-prior: `cea9e0a6` D-617 Commit-E)
 - **develop HEAD:** `c000b06f` (PR #189 compute-input-hash fix SQUASH-MERGED 2026-06-16; prior: `7e99f6ef` PR #186 fix 2026-06-13)
 - **main HEAD:** `caf06c68` (rc.21 bot bundle commit 2026-06-13; UNCHANGED)
 - **v1.0.0-rc.21 tag:** `03054524` (SHIPPED; FULLY IN OPERATOR MARKETPLACE)
@@ -357,7 +357,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 - **capabilities.md v1.7:** `domain-spec/capabilities.md` (UNCHANGED at D-597)
 - **ADR-025 v1.6 SHIPPED:** guard at `3b2a378c`; ARCH-INDEX v2.27
 - **S-17.04 story:** `.factory/stories/S-17.04-mid-burst-heartbeat-renewal-wiring.md` v1.7 MERGED; E-17 W4 COMPLETE; PR #184 3b2a378c
-- **Verify on resume:** `git rev-parse --short origin/develop` → expect `c000b06f`; `git rev-parse --short origin/main` → expect `caf06c68`; `git -C .factory log -1 --format='%h'` → expect D-618 HEAD (Commit-E) or later SHA-patch
+- **Verify on resume:** `git rev-parse --short origin/develop` → expect `c000b06f`; `git rev-parse --short origin/main` → expect `caf06c68`; `git -C .factory log -1 --format='%h'` → expect `f2729dfb` (D-618 Commit-E) or later SHA-patch
 
 ### §10. PR Status
 
