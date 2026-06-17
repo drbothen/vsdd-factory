@@ -150,7 +150,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | caf06c68 | rc.21 bot binary bundle commit 2026-06-13; prior: 2a191314 (rc.20) |
 | develop | c000b06f | PR #189 compute-input-hash fix SQUASH-MERGED 2026-06-16; prior: 7e99f6ef (PR #186 fix 2026-06-13) |
-| factory-artifacts | [D-630-SHA pending] | D-630 ATTESTATION CORRECTION 2026-06-17 (HEAD); prior: bc5bf1d6 D-629-SHA-patch |
+| factory-artifacts | cd0fa4ed | D-630 ATTESTATION CORRECTION 2026-06-17 (HEAD); prior: bc5bf1d6 D-629-SHA-patch |
 | v1.0.0-rc.21 (tag) | 03054524 | SHIPPED 2026-06-13; FULLY IN OPERATOR MARKETPLACE (marketplace PR #13 MERGED); annotated tag object |
 | v1.0.0-rc.20 (tag) | e9e38286 | SHIPPED 2026-06-01; marketplace PR #12 squash-merged 862e660d |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28 |
@@ -369,7 +369,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** `[D-630-SHA — pending SHA-patch after commit]` (D-630 ATTESTATION CORRECTION 2026-06-17; prior: `bc5bf1d6` D-629 SHA-patch)
+- **factory-artifacts HEAD:** `cd0fa4ed` (D-630 ATTESTATION CORRECTION 2026-06-17; prior: `bc5bf1d6` D-629 SHA-patch)
 - **develop HEAD:** `c000b06f` (PR #189 compute-input-hash fix SQUASH-MERGED 2026-06-16; prior: `7e99f6ef` PR #186 fix 2026-06-13)
 - **main HEAD:** `caf06c68` (rc.21 bot bundle commit 2026-06-13; UNCHANGED)
 - **v1.0.0-rc.21 tag:** `03054524` (SHIPPED; FULLY IN OPERATOR MARKETPLACE)
