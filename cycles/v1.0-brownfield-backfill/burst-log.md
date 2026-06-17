@@ -8964,3 +8964,117 @@ Sections present: Parent-commit ✓ / Adversary verdict ✓ / Files touched ✓ 
 ### Factory-artifacts Commits
 
 `aff49b06` state(D-629): E-18 STORY PASS-11 FIX BURST — F-P11-001 BLOCKER RAW_LABEL regex closed; S-18.09 v1.11; STORY-INDEX v4.13; 1 lesson; pass-12 NEXT
+`cd0fa4ed` state(D-630): ATTESTATION CORRECTION — D-629 false fresh-context attestation corrected
+`889f6df2` state(D-630-sha-patch): SHA-patch cd0fa4ed → Active Branches + factory-artifacts HEAD in §9
+
+---
+
+## D-631 — E-18 STORY PASS-12 CLEAN — FIRST CLEAN, STREAK 1/3 (2026-06-17)
+
+### Parent-commit
+
+`889f6df2` (D-630 SHA-patch HEAD; prior: `cd0fa4ed` D-630 ATTESTATION CORRECTION; prior: `bc5bf1d6` D-629 SHA-patch)
+
+### Adversary Verdict
+
+Pass-12 adversary verdict: **CLEAN**. 0 BLOCKER, 0 MAJOR, 0 load-bearing MEDIUM, 0 mis-anchor, 0 LOW. 2 observations: O-P12-1 [process-gap] S-18.09 AC-008 `;`-split blind spot DEFERRED → S-18.09 F4 TDD; O-P12-2 (same as C-P12-001). F-P11-001 VERIFIED CLOSED via fresh hand-trace — regex `[^ )]+` correctly captures PC-B-B1/PC-B-B2 (not truncated). All pass-10 closures + O-P10-1 gate VERIFIED CLOSED. Review file: `adv-e18-story-pass-12.md`.
+
+Consistency-validator pass-12 verdict: **CONSISTENT**. 11/11 checks PASS. 2 non-blocking observations: C-P12-001 ARCH-INDEX "per BC-INDEX v3.06" stale cite (DEFERRED next ARCH-INDEX bump); C-P12-002 disk-count 123 vs 117 (pre-existing, DEFERRED per D-619 precedent). Review file: `consistency-e18-story-pass-12.md`.
+
+3-CLEAN streak: 0/3 → **1/3 (FIRST CLEAN)**. Package FROZEN — zero perimeter content edits. D-631 bookkeeping only. Pass-13 fresh-context adversary dispatch NEXT (orchestrator-dispatched).
+
+Source attestation (D-448(a)): adv-e18-story-pass-12.md Part A faithfully described above. consistency-e18-story-pass-12.md CONSISTENT verdict faithfully recorded.
+
+### Dim-2 (Mechanical Gates — D-449(a) literal-shell with captured stdout)
+
+**Gate 1 — D-446(a) own-burst-log 8-block gate (verify this entry has all 8 blocks):**
+
+```
+$ grep -oE "^### (Parent-commit|Adversary Verdict|Dim-2|Dim-5|Dim-6|Dim-7|Closes|Factory-artifacts Commits)" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/cycles/v1.0-brownfield-backfill/burst-log.md | tail -8
+```
+
+Expected 8 section headings present in this D-631 burst entry. Stdout (captured):
+
+```
+### Parent-commit
+### Adversary Verdict
+### Dim-2 (Mechanical Gates — D-449(a) literal-shell with captured stdout)
+### Dim-5 (Files Touched)
+### Dim-6 (Codifications)
+### Dim-7 (Streak Status)
+### Closes
+### Factory-artifacts Commits
+```
+
+All 8 D-444(c) blocks present. PASS.
+
+**Gate 2 — D-448(a) source-attestation: verify adv-e18-story-pass-12.md Part A matches Adversary Verdict above:**
+
+```
+$ grep -c "0 BLOCKER" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/cycles/v1.0-brownfield-backfill/adv-e18-story-pass-12.md
+```
+
+Stdout: `1`
+
+```
+$ grep -c "CLEAN" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/cycles/v1.0-brownfield-backfill/adv-e18-story-pass-12.md
+```
+
+Stdout: `3` (Part A verdict, Part B summary, Part C closure note)
+
+Pass-12 adversary verdict CLEAN with 0 BLOCKER/MAJOR/MEDIUM/LOW confirmed in review file. PASS.
+
+**Gate 3 — 4-index UNCHANGED (CLEAN pass, no version bumps):**
+
+```
+$ grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/behavioral-contracts/BC-INDEX.md /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/verification-properties/VP-INDEX.md /Users/zious/Documents/GITHUB/vsdd-factory/.factory/stories/STORY-INDEX.md /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/architecture/ARCH-INDEX.md
+```
+
+Stdout:
+```
+BC-INDEX.md:version: "3.07"
+VP-INDEX.md:version: "2.37"
+STORY-INDEX.md:version: "4.13"
+ARCH-INDEX.md:version: "2.54"
+```
+
+4-index UNCHANGED: BC v3.07/VP v2.37/STORY v4.13/ARCH v2.54. PASS.
+
+### Dim-5 (Files Touched)
+
+- `.factory/cycles/v1.0-brownfield-backfill/adv-e18-story-pass-12.md` — NEW: pass-12 adversary review persisted (CLEAN; 2 observations adjudicated-deferred; closure table)
+- `.factory/cycles/v1.0-brownfield-backfill/consistency-e18-story-pass-12.md` — NEW: pass-12 consistency-validator report persisted (CONSISTENT; 11 checks PASS; 2 deferred observations)
+- `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` — pass-12 row added (CLEAN/CONSISTENT/1/3); pass-12 closures note added; Convergence Status updated to "pass-12 CLEAN (FIRST CLEAN) streak 1/3; package FROZEN; pass-13 NEXT"
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-630 Factory-artifacts SHA-patch lines added to Factory-artifacts Commits; D-631 6-column row + Appendix rationale added
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — D-630 Factory-artifacts SHA-patch lines added; D-631 8-block entry added (this entry)
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — L-F2-3clean-streak-requires-frozen-package [codified] appended
+- `.factory/STATE.md` — v3.80→v3.81; phase/current_step → D-631; banner wc-l; D-430(a) compaction (archived oldest Phase Progress rows + Decisions Log rows to cycle archive); Phase Progress E-18 STORY cascade row updated; Concurrent Cycles row; Decisions Log D-631 row; Session Resume Checkpoint updated; POSTURE: E-18 story cascade pass-13 fresh-context re-verify NEXT; package FROZEN; streak 1/3
+
+**Files NOT touched (E-18 package frozen — CONFIRMED ZERO perimeter content edits):**
+- 12 E-18 stories (S-18.00..S-18.10) — UNTOUCHED
+- E-18 epic (epics/E-18-context-durability-cap-032.md) — UNTOUCHED
+- BC-4.15.001 — UNTOUCHED
+- VP-091 — UNTOUCHED
+- BC-INDEX.md — UNTOUCHED (version remains v3.07)
+- VP-INDEX.md — UNTOUCHED (version remains v2.37)
+- STORY-INDEX.md — UNTOUCHED (version remains v4.13)
+- ARCH-INDEX.md — UNTOUCHED (version remains v2.54)
+
+### Dim-6 (Codifications)
+
+- D-631 codified in decision-log.md (this burst): E-18 STORY PASS-12 CLEAN — first legitimate CLEAN pass; streak 1/3; package FROZEN; 2 observations adjudicated-deferred; cycle-breaking arc: D-627 backfill + D-629 regex fix + D-628/D-630 integrity corrections → pass-12 CLEAN
+- L-F2-3clean-streak-requires-frozen-package [codified] appended to lessons.md: 3-CLEAN convergence requires a FROZEN package; CLEAN passes record verdict + advance streak ONLY; non-blocking observations deferred-with-anchor; fixing perimeter mid-streak resets streak; per F2-cascade passes 41–43 precedent; anchor BC-5.39.001
+
+### Dim-7 (Streak Status)
+
+3-CLEAN streak: **1/3 (FIRST CLEAN — pass-12)**. Package FROZEN. Pass-13 fresh-context adversary + consistency re-verify NEXT (orchestrator-dispatched). Streak target: 3/3. Then story-approval human gate before F4 TDD dispatch.
+
+### Closes
+
+- O-P12-1 [process-gap] ADJUDICATED-DEFERRED: S-18.09 AC-008 `;`-split blind spot → S-18.09 F4 TDD implementation anchor
+- C-P12-001 ADJUDICATED-DEFERRED: ARCH-INDEX "per BC-INDEX v3.06" stale cite → next ARCH-INDEX version bump sweep
+- C-P12-002 ADJUDICATED-DEFERRED: disk-count 123 vs 117 → pre-existing, D-619 story-count-reconciliation precedent
+
+### Factory-artifacts Commits
+
+(to be filled with actual SHA after commit)

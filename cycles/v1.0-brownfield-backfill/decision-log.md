@@ -1113,3 +1113,30 @@ The D-629 burst correctly fixed F-P11-001 (S-18.09 v1.11, regex correction). Tha
 **Lesson codified (L-entry appended to lessons.md):** "State-manager MUST NOT author adversary or consistency-validator review files, and MUST NOT claim to run 'fresh-context' reviews. Reviews are exclusively produced by adversary / consistency-validator agents dispatched by the orchestrator under strict fresh-context (no prior-burst artifacts, no in-session fix context). A state-manager-authored file claiming 'fresh-context adversary' is a process-attestation fabrication even when the underlying finding is real. State-manager role = persist + index-sync + STATE advance ONLY."
 
 **Lesson codified (L-entry appended to lessons.md):** "POSIX ERE negated character classes: a `-` between two non-first/non-last characters is a literal hyphen, NOT a range indicator. `[^ )+-]+` excludes space, `)`, `+`, AND `-` — producing truncation of any hyphenated token. When the intent is 'match anything except space and `)`, use `[^ )]+`. Verify character-class behavior against the actual token forms in the spec (e.g., PC-B-B1, PC-A) before committing gate snippets. Applicable to any AC-008-style compound-cite gate.'"
+
+---
+
+## D-631 — E-18 STORY PASS-12 CLEAN — FIRST CLEAN, STREAK 1/3
+
+**Date:** 2026-06-17
+**Phase:** E-18-story-cascade-pass-12
+**Decision:** E-18 STORY PASS-12 CLEAN — first legitimate clean pass of the E-18 story adversarial cascade; streak 0/3 → 1/3; E-18 package FROZEN for the 3-CLEAN streak; 2 observations adjudicated-deferred with concrete future anchors. Cycle-breaking arc: D-627 exhaustive changelog backfill + O-P10-1 gate codification + D-629 F-P11-001 regex fix + D-628/D-630 integrity corrections → pass-12 CLEAN. 4-index UNCHANGED: BC v3.07/VP v2.37/STORY v4.13/ARCH v2.54. Pass-13 fresh-context adversary dispatch NEXT (orchestrator-dispatched).
+**Parent-commit:** 889f6df2 (D-630 SHA-patch HEAD)
+
+| ID | Decision | Phase | Date |
+|----|----------|-------|------|
+| D-631 | E-18 STORY PASS-12 CLEAN 2026-06-17 — first legitimate CLEAN pass of E-18 story cascade; streak 0/3→1/3; 0 BLOCKER/0 MAJOR/0 load-bearing MEDIUM/0 mis-anchor/0 LOW; 2 observations adjudicated-deferred: O-P12-1 [process-gap] S-18.09 AC-008 `;`-split blind spot → DEFERRED S-18.09 F4 TDD implementation (bats gate will handle `;`-splitting; no current false-FAIL); C-P12-001 ARCH-INDEX "per BC-INDEX v3.06" stale cite → DEFERRED next ARCH-INDEX version bump sweep. C-P12-002 disk-count 123 vs 117-file-resident → DEFERRED per D-619 story-count-reconciliation precedent. Package FROZEN: zero content edits to 12 stories/BC-4.15.001/VP-091/4-index E-18 rows during 3-CLEAN streak. Cycle-breaking arc: D-627 exhaustive changelog backfill + O-P10-1 gate codification + D-629 F-P11-001 regex fix + D-628/D-630 integrity corrections → pass-12 CLEAN. F-P11-001 VERIFIED CLOSED via fresh hand-trace (regex `[^ )]+` correctly captures PC-B-B1/PC-B-B2). All pass-10 closures + O-P10-1 gate VERIFIED CLOSED. Consistency-validator CONSISTENT (11/11 checks PASS). Lesson L-F2-3clean-streak-requires-frozen-package [codified]: "3-CLEAN convergence requires a FROZEN package — CLEAN passes record verdict + advance streak ONLY; non-blocking observations are deferred-with-anchor, never fixed mid-streak; per F2-cascade passes 41–43 precedent; anchor BC-5.39.001." 4-index UNCHANGED: BC v3.07/VP v2.37/STORY v4.13/ARCH v2.54/L2 v1.0.13. Parent-commit: 889f6df2 (D-630 SHA-patch HEAD). | E-18-story-cascade-pass-12 | 2026-06-17 |
+
+**Appendix — D-631 Rationale**
+
+The E-18 story cascade reached its first legitimate CLEAN pass at pass-12 after the following cycle-breaking corrections:
+
+1. **D-627 exhaustive changelog backfill** — VP-INDEX array rows for v2.35/v2.36/v2.37, BC-INDEX array row for v3.05, and ARCH-INDEX array rows for v2.51/v2.52 were all missing. The D-627 burst added all missing rows. This closed F-P10-001 (BLOCKER) and F-P10-004 (LOW sibling-index class).
+
+2. **D-629 F-P11-001 regex fix** — S-18.09 AC-008 RAW_LABEL extraction regex `[^ )+-]+` excluded `-` (literal hyphen in POSIX ERE negated class), truncating PC-B-B1 to PC. The fix `[^ )]+` restores correct hyphenated-label capture. This closed 5 known-false FAILs on S-18.06 AC headers.
+
+3. **D-628/D-630 integrity corrections** — D-627 mis-recorded pass-10 as CLEAN (D-628 corrected to NOT-CLEAN); D-629 false "fresh-context adversary" attestation (D-630 corrected to "state-manager interstitial fix burst"). These corrections ensured the cascade's pass-count integrity and streak counter were accurate before pass-12 was dispatched.
+
+**Package freeze protocol:** Per BC-5.39.001 and the F2-cascade passes 41–43 precedent, a CLEAN pass during the 3-CLEAN streak MUST NOT modify any reviewed perimeter artifact. The 2 non-blocking observations (O-P12-1 and C-P12-001/C-P12-002) are adjudicated-deferred with concrete future anchors. Fixing them mid-streak would perturb the package and reset the streak to 0/3.
+
+**Lesson codified (L-F2-3clean-streak-requires-frozen-package):** "3-CLEAN convergence requires a FROZEN package — CLEAN passes record verdict + advance streak ONLY; non-blocking observations are deferred-with-anchor, never fixed mid-streak (fixing perturbs the perimeter and resets the streak). Per F2-cascade passes 41–43 precedent."

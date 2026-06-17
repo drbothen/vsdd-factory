@@ -4215,3 +4215,27 @@ done
 **Gate (codified):** Every `adv-*.md` and `consistency-*.md` file MUST be authored by the adversary / consistency-validator agent dispatched by the orchestrator. State-manager's only legitimate write to these files is Part C (closure note) appended to an adversary-authored file after the fix burst — not authoring the file from scratch. Before dispatching pass-N, verify that adv-e18-story-pass-(N-1).md was authored by the adversary agent, not the state-manager.
 
 **Cites:** D-630; D-448(a); D-629 (violation instance); BC-5.39.001 (3-CLEAN convergence protocol); Iron Law of fresh-context independent review; adv-e18-story-pass-11.md (false attestation corrected); consistency-e18-story-pass-11.md (false attestation corrected); INDEX.md E-18 story cascade pass-11 row (corrected).
+
+---
+
+## L-F2-3clean-streak-requires-frozen-package
+
+**Date:** 2026-06-17
+**Tags:** [codified] [process-gap]
+**Anchors:** D-631, BC-5.39.001, F2-cascade passes 41–43 (D-604/D-605/D-606), E-18-story-pass-12
+
+**Lesson (codified):** 3-CLEAN convergence requires a FROZEN package. Once a CLEAN pass is achieved, the reviewed perimeter (stories, BCs, VPs, index E-18-relevant rows) MUST NOT be modified during the streak. CLEAN passes record verdict and advance the streak counter ONLY. Non-blocking observations discovered during a CLEAN pass are deferred-with-anchor — they are NOT fixed mid-streak. Fixing perimeter content during the streak perturbs the package and resets the streak to 0/3, requiring the adversary to re-review from scratch.
+
+**Root cause (D-631, pass-12):** Two non-blocking observations (O-P12-1: S-18.09 AC-008 `;`-split blind spot; C-P12-001: ARCH-INDEX stale cite "per BC-INDEX v3.06") were discovered during pass-12. Per the frozen-package protocol, these are deferred with concrete future anchors (S-18.09 F4 TDD implementation; next ARCH-INDEX bump) rather than fixed in-burst. The package state is untouched; the streak advances.
+
+**Precedent:** F2-cascade passes 41–43 (D-604/D-605/D-606) established the same protocol. Pass-41 was the first zero-findings pass; the E-18 F2 spec package was declared FROZEN by human direction at D-604. Passes 42 and 43 each found observations (O-1, O-2) but made zero perimeter content changes. Streak 0/3→1/3→2/3→3/3 CONVERGED (BC-5.39.001 satisfied). The key discipline: "CLEAN passes record and advance only; defer observations with anchors."
+
+**Gate (codified):** When a CLEAN pass produces observations, each observation MUST be either:
+1. Adjudicated NON-DEFECT (not actionable; no anchor needed), OR
+2. Adjudicated DEFERRED with a CONCRETE future anchor (specific story ID or ARCH-INDEX bump event; NOT "later" or "next cycle")
+
+Filing a P4 TD for a deferred observation without a concrete anchor is forbidden (Canonical Principle Rule 3). The anchor must be a real story ID or identified event that will actually occur.
+
+**Consequence if violated:** Fixing a perimeter artifact mid-streak resets the streak counter to 0/3. The fresh-context adversary at pass-(N+1) reads a different package than at pass-N, making the CLEAN verdict inapplicable. All streak progress is lost.
+
+**Cites:** D-631; BC-5.39.001 (3-CLEAN convergence protocol); D-604/D-605/D-606 (F2-cascade frozen-package precedent); adv-e18-story-pass-12.md (O-P12-1 deferred); consistency-e18-story-pass-12.md (C-P12-001/C-P12-002 deferred); E-18 story cascade streak 1/3.
