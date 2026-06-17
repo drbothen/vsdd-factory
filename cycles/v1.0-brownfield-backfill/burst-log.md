@@ -8717,4 +8717,4 @@ Under 450 soft target. No compaction needed.
 
 ### Factory-artifacts Commits
 
-`[SHA-TO-BE-PATCHED]` state(D-626): E-18 STORY PASS-9 FIX BURST — BC-INDEX v3.07 changelog-array repair; STORY-INDEX v4.11 (S-18.06 v1.5 + S-18.09 v1.9); pass-9 reviews; D-626 codified; 3 lessons; pass-10 NEXT
+`8654ebb6` state(D-626): E-18 STORY PASS-9 FIX BURST — BC-INDEX v3.07 changelog-array repair; STORY-INDEX v4.11 (S-18.06 v1.5 + S-18.09 v1.9); pass-9 reviews; D-626 codified; 3 lessons; pass-10 NEXT
