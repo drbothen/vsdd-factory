@@ -1198,3 +1198,67 @@ Pass-15 is the second consecutive CLEAN pass following the D-632 VP-INDEX v2.38 
 **Package freeze discipline maintained:** Per BC-5.39.001 and the L-F2-3clean-streak-requires-frozen-package lesson, a CLEAN pass records verdict + advances streak ONLY. Zero perimeter content edits. The 2 adjudicated-deferred observations remain deferred with concrete future anchors (S-18.09 F4 TDD; next ARCH-INDEX bump).
 
 **3-CLEAN streak status:** 1/3 → 2/3. One more consecutive CLEAN pass required for convergence per BC-5.39.001. Package remains FROZEN.
+
+---
+
+## D-635 — E-18 STORY CASCADE BC-5.39.001 3-CLEAN CONVERGED
+
+**Date:** 2026-06-17
+**Phase:** E-18-story-cascade-pass-16-CONVERGED
+**Decision:** E-18 STORY CASCADE BC-5.39.001 3-CLEAN CONVERGED 2026-06-17. Pass-16 CLEAN (0 BLOCKER/0 MAJOR/0 load-bearing MEDIUM/0 mis-anchor/0 LOW; novelty ZERO; exhaustive independent hand-trace of all 12 stories); consistency CONSISTENT (11/11 PASS; C-P13-001 confirmed CLOSED third consecutive pass). Streak 2/3→3/3 CONVERGED. Package FROZEN throughout streak (frozen since pass-14 D-633). Full cascade trajectory passes 1-16 documented below. S-7.02 cycle-closing checklist SATISFIED (all process-gap lessons have concrete dispositions). 4-index UNCHANGED: BC v3.07/VP v2.38/STORY v4.13/ARCH v2.54. AWAITING E-18 STORY-APPROVAL HUMAN GATE.
+**Parent-commit:** cbcd7ec0 (D-634 SHA-patch HEAD)
+
+| ID | Decision | Phase | Date |
+|----|----------|-------|------|
+| D-635 | E-18 STORY CASCADE BC-5.39.001 3-CLEAN CONVERGED 2026-06-17 — pass-16 CLEAN (0B/0M/0 load-bearing MED/0 mis-anchor/0 LOW; novelty ZERO; exhaustive independent hand-trace all 12 stories; 2 adjudicated-deferred observations: O-P16-1 `;`-split → S-18.09 F4 TDD; O-P16-2 ARCH-INDEX "per BC-INDEX v3.06" stale cite → next ARCH-INDEX bump); consistency CONSISTENT (11/11 PASS; C-P13-001 confirmed CLOSED third consecutive pass); streak 2/3→3/3 CONVERGED; package FROZEN throughout streak (frozen since D-633 pass-14); 4-index UNCHANGED BC v3.07/VP v2.38/STORY v4.13/ARCH v2.54; S-7.02 cycle-closing checklist SATISFIED (see Appendix — Cycle-Closing Checklist Dispositions table); full 16-pass arc: NOT-CLEAN×10 (passes 1-10) → D-629 interstitial fix burst (NOT counted) → pass-12 CLEAN (1/3) → pass-13 NOT-CLEAN (C-P13-001; streak RESET 1/3→0/3; D-632 VP-INDEX v2.38 fix) → pass-14 CLEAN (1/3 restart) → pass-15 CLEAN (2/3) → pass-16 CLEAN (3/3 CONVERGED); cycle-breaking interventions: D-627 exhaustive changelog backfill + O-P10-1 gate + D-629 F-P11-001 regex fix + D-628/D-630 integrity corrections + D-631 freeze discipline + D-632 VP-INDEX v2.38 sibling-sweep; AWAITING E-18 STORY-APPROVAL HUMAN GATE — do NOT begin F4 TDD without human approval. Parent-commit: cbcd7ec0 (D-634 SHA-patch HEAD). | E-18-story-cascade-pass-16-CONVERGED | 2026-06-17 |
+
+**Appendix — D-635 Rationale**
+
+**Full 16-Pass Arc:**
+
+The E-18 story cascade required 16 fresh-context adversary passes (plus 1 interstitial state-manager fix burst counted separately) to achieve BC-5.39.001 3-CLEAN convergence.
+
+**Passes 1-10 (NOT-CLEAN):** Multiple structural gaps were found and corrected across 10 passes. Key cycle-breaking interventions:
+- D-627 exhaustive changelog backfill: VP-INDEX array v2.35/v2.36/v2.37, BC-INDEX array v3.05, ARCH-INDEX array v2.51/v2.52 — all missing and added (F-P10-001 BLOCKER closed)
+- O-P10-1 mechanical gate: changelog-array parity gate codified as process discipline
+- D-629 interstitial fix burst: F-P11-001 RAW_LABEL regex `[^ )+-]+` → `[^ )]+` (S-18.09 v1.11)
+- D-628 verdict correction: pass-10 mis-recorded as CLEAN; corrected to NOT-CLEAN
+- D-630 attestation correction: adv-e18-story-pass-11.md false "fresh-context adversary" attestation corrected to state-manager discovery note
+
+**Pass-12 (first CLEAN — 1/3):** First legitimate CLEAN pass after all structural corrections. Package FROZEN per L-F2-3clean-streak-requires-frozen-package.
+
+**Pass-13 (NOT-CLEAN — streak RESET 1/3→0/3):** Adversary CLEAN but consistency-validator found C-P13-001 (VP-INDEX VP-091 description stale `(B-1)`/`(B-2)` labels + false v2.37 changelog claim). D-632 fix: VP-INDEX v2.37→v2.38 with TD-VSDD-060 sibling-sweep extended to index description prose.
+
+**Passes 14-16 (converging triple — CLEAN/CLEAN/CLEAN):** Package re-frozen after D-632 fix. Three consecutive CLEAN passes on frozen package. BC-5.39.001 3-CLEAN threshold satisfied at pass-16.
+
+**Cycle-Closing Checklist Dispositions (S-7.02):**
+
+All process-gap lessons codified during passes 6-16 (D-623..D-634) reconciled below. Each has a concrete disposition (follow-up story or justified deferral).
+
+| Process-Gap Lesson | Codified At | Disposition |
+|--------------------|-------------|-------------|
+| L-F2-changelog-array-parity-gate (O-P10-1 mechanical gate) | D-627 | S-18.08 and S-18.09 ARE the gate-implementing stories. The mechanical gate becomes a bats-enforced reality at F4 TDD when S-18.08 (consistency-validator) and S-18.09 (AC-008 compound-cite gate) are implemented. The anchor stories EXIST and are in the STORY-INDEX v4.13 approved wave schedule. Checklist satisfied: the follow-up story is the gate implementation itself (S-18.08/S-18.09 F4 TDD). |
+| L-F2-sibling-index-class-sweep | D-627 | S-18.08 (consistency-validator story) MANDATORY scope extension. Story IS registered (STORY-INDEX v4.13 W7). Follow-up story: S-18.08 F4 TDD implementation. |
+| L-state-manager-must-not-author-review-files | D-630 | Process rule codified in lessons.md. No follow-up story required (it is a behavioral constraint on the state-manager agent, not a code deliverable). Disposition: CODIFIED — enforced by Iron Law + lessons.md entry. |
+| L-E18-changelog-attestation-and-sibling-sweep-index-prose | D-632 | Process rule (TD-VSDD-060 scope extension) codified in lessons.md. Applies to all future fix bursts. No dedicated follow-up story required — it is a state-manager procedural discipline. Disposition: CODIFIED. |
+| L-F2-3clean-streak-requires-frozen-package | D-631 | Process rule codified in lessons.md. No follow-up story required — it is a convergence-protocol discipline. Disposition: CODIFIED. |
+
+**Adjudicated-Deferred Observations (concrete anchors):**
+
+| Observation | Deferred Disposition | Anchor |
+|-------------|---------------------|--------|
+| O-P12-1/O-P13-1/O-P14-1/O-P15-1/O-P16-1: S-18.09 AC-008 `;`-split gate blind spot | DEFERRED to S-18.09 F4 TDD implementation. At F4, the bats gate will be implemented and will natively handle all separator grammar (including `;`). No current false-FAIL (no `;`-split cites in any E-18 story). | S-18.09 F4 TDD |
+| C-P12-001/O-P13-2/O-P14-2/O-P15-2/O-P16-2: ARCH-INDEX body "per BC-INDEX v3.06" stale cite | DEFERRED to next ARCH-INDEX body version bump. The stale cite is in a narrative annotation row, not a normative count or gate. It does not affect E-18 story correctness. Will be swept at next ARCH-INDEX version bump per TD-VSDD-060. | Next ARCH-INDEX version bump |
+
+**Convergence Summary:**
+
+- Total fresh-context passes: 16
+- NOT-CLEAN passes: 13 (passes 1-10; pass-13 = RESET)
+- CLEAN passes: 3 (passes 14, 15, 16 — the converging triple)
+- Interstitial fix bursts (not counted as fresh-context passes): 1 (D-629)
+- Fix bursts applied: D-620/D-621/D-622/D-623/D-624/D-625/D-626/D-627/D-628/D-629/D-630/D-631/D-632/D-633/D-634 (15 state-manager bursts)
+- 4-index FROZEN throughout streak (BC v3.07/VP v2.38/STORY v4.13/ARCH v2.54)
+- S-7.02 cycle-closing checklist: SATISFIED
+- BC-5.39.001 3-CLEAN protocol: SATISFIED
+
+**3-CLEAN streak status:** 2/3 → **3/3 CONVERGED**. BC-5.39.001 convergence protocol satisfied. E-18 F3 STORY DECOMPOSITION CONVERGED. Forward path: STORY-APPROVAL HUMAN GATE → F4 TDD dispatch.

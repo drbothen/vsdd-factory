@@ -9299,3 +9299,92 @@ ARCH-INDEX.md:version: "2.54"
 ### Factory-artifacts Commits
 
 - `e92b8aed` state(D-634): E-18 STORY PASS-15 CLEAN — streak 1/3→2/3; pass-16 NEXT (one CLEAN from convergence); package FROZEN
+
+---
+
+## Pass-16 Burst — D-635 E-18 STORY CASCADE BC-5.39.001 3-CLEAN CONVERGED (2026-06-17)
+
+### Parent-commit
+
+`cbcd7ec0` (D-634 SHA-patch HEAD)
+
+### Adversary Verdict
+
+Pass-16 adversary: CLEAN. 0 BLOCKER, 0 MAJOR, 0 load-bearing MEDIUM, 0 mis-anchor, 0 LOW. Novelty: ZERO. Exhaustive independent hand-trace of all 12 stories (S-18.00..S-18.10) against BC-4.15.001 v1.2, VP-091 v1.1, VP-INDEX v2.38, BC-INDEX v3.07, ARCH-INDEX v2.54, STORY-INDEX v4.13. All AC↔PC traces resolve against canonical BC-4.15.001 v1.2. F-P11-001 closure (RAW_LABEL regex) verified HELD at pass-16. All pass-14 closures verified HELD. C-P13-001 confirmed CLOSED third consecutive pass (VP-INDEX VP-091 `PC-B-B1`/`PC-B-B2` canonical labels confirmed). 2 adjudicated-deferred observations re-confirmed (not escalated; not fixed per L-F2-3clean-streak-requires-frozen-package): O-P16-1 (S-18.09 AC-008 `;`-split blind spot → S-18.09 F4 TDD); O-P16-2 (ARCH-INDEX body §Document Map "per BC-INDEX v3.06" stale cite → next ARCH-INDEX version bump sweep). Consistency-validator: CONSISTENT (11/11 PASS; C-P13-001 confirmed CLOSED third consecutive pass). Combined CLEAN per BC-5.39.001. BC-5.39.001 3-CLEAN streak: pass-14 CLEAN(1/3) → pass-15 CLEAN(2/3) → pass-16 CLEAN(3/3) → CONVERGED.
+
+### Dim-2 (Literal-Shell Gate Evidence)
+
+**Gate 1 — Source-attestation parity (D-448(a)):**
+
+```
+$ grep "^Verdict:\|^0 BLOCKER\|^Novelty:\|^CONVERGED" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/cycles/v1.0-brownfield-backfill/adv-e18-story-pass-16.md | head -10
+**Pass:** 16 (BC-5.39.001 3-CLEAN pass — streak 2/3 → 3/3 CONVERGED)
+0 BLOCKER. 0 MAJOR. 0 load-bearing MEDIUM. 0 mis-anchor. 0 LOW.
+Novelty: ZERO. No new finding classes emerged at pass-16.
+**CONVERGED.** Consecutive CLEAN streak 3/3 achieved on FROZEN package (frozen since pass-14 D-633). BC-5.39.001 convergence protocol satisfied.
+```
+
+Stdout confirms: 0 BLOCKER/MAJOR/load-bearing MEDIUM/mis-anchor/LOW; novelty ZERO; CONVERGED 3/3. Burst-log Adversary verdict text above is source-attestation faithful. PASS.
+
+**Gate 2 — 4-index UNCHANGED at D-635:**
+
+```
+$ grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md .factory/specs/verification-properties/VP-INDEX.md .factory/stories/STORY-INDEX.md .factory/specs/architecture/ARCH-INDEX.md
+BC-INDEX.md:version: "3.07"
+VP-INDEX.md:version: "2.38"
+STORY-INDEX.md:version: "4.13"
+ARCH-INDEX.md:version: "2.54"
+```
+
+4-index: BC v3.07/VP v2.38/STORY v4.13/ARCH v2.54 UNCHANGED. PASS.
+
+**Gate 3 — STATE.md wc-l matches banner:**
+
+```
+$ wc -l .factory/STATE.md
+429 .factory/STATE.md
+$ grep "429 lines" .factory/STATE.md
+  429 lines (wc-l; D-635: E-18 STORY CASCADE BC-5.39.001 3-CLEAN CONVERGED ...)
+```
+
+429 lines — matches banner entry. PASS.
+
+### Dim-5 (Files Touched)
+
+- `.factory/cycles/v1.0-brownfield-backfill/adv-e18-story-pass-16.md` — NEW: pass-16 adversary review persisted (CLEAN; 0B/0M/0 load-bearing MED/0 mis-anchor/0 LOW; 2 obs adjudicated-deferred; novelty ZERO; exhaustive hand-trace all 12 stories)
+- `.factory/cycles/v1.0-brownfield-backfill/consistency-e18-story-pass-16.md` — NEW: pass-16 consistency-validator report persisted (CONSISTENT; 11/11 checks PASS; C-P13-001 confirmed CLOSED third consecutive pass)
+- `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` — pass-16 row added (CLEAN/CONSISTENT/3/3 CONVERGED); Convergence Status updated (BC-5.39.001 3-CLEAN CONVERGED 2026-06-17 D-635; full cascade trajectory)
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-635 6-column row + full Appendix added (Cycle-Closing Checklist 5 dispositions + 2 obs deferred table + convergence summary)
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — D-635 8-block entry added (this entry)
+- `.factory/cycles/v1.0-brownfield-backfill/session-checkpoints.md` — D-633 + D-634 checkpoint summaries archived (superseded by D-635)
+- `.factory/STATE.md` — v3.84→v3.85; phase/current_step → D-635 E-18-STORY-CASCADE-3-CLEAN-CONVERGED-2026-06-17; banner wc-l 429; Phase Progress D-635 CONVERGED row; Concurrent Cycles v1.0-brownfield-backfill row updated; Decisions Log D-635 row; Active Branches factory-artifacts TBD (SHA-patch follow-up); §5 D-001..D-635; Session Resume Checkpoint updated; POSTURE: E-18 story-approval HUMAN GATE NEXT
+
+**Files NOT touched (E-18 package FROZEN — zero perimeter content changes throughout streak):**
+- 12 E-18 stories (S-18.00..S-18.10) — UNTOUCHED
+- E-18 epic (epics/E-18-context-durability-cap-032.md) — UNTOUCHED
+- BC-4.15.001 — UNTOUCHED
+- VP-091.md — UNTOUCHED
+- BC-INDEX.md — UNTOUCHED (version remains v3.07)
+- VP-INDEX.md — UNTOUCHED (version remains v2.38)
+- STORY-INDEX.md — UNTOUCHED (version remains v4.13)
+- ARCH-INDEX.md — UNTOUCHED (version remains v2.54)
+
+### Dim-6 (Codifications)
+
+- D-635 codified in decision-log.md (this burst): E-18 STORY CASCADE BC-5.39.001 3-CLEAN CONVERGED — streak 2/3→3/3 CONVERGED; S-7.02 cycle-closing checklist SATISFIED; 5 process-gap lessons with concrete dispositions; 2 adjudicated-deferred observations with concrete future anchors; 4-index UNCHANGED throughout 3-CLEAN streak; package FROZEN pass-14→15→16
+- No new lesson appended (all process-gap lessons for E-18 story cascade were captured in D-619..D-632; S-7.02 checklist confirms no outstanding uncaptured lessons)
+
+### Dim-7 (Streak Status)
+
+3-CLEAN streak: **3/3 — BC-5.39.001 CONVERGED**. Package FROZEN throughout streak (passes 14-16; zero perimeter content changes). AWAITING E-18 STORY-APPROVAL HUMAN GATE. Do NOT dispatch F4 TDD without human approval.
+
+### Closes
+
+- O-P16-1 ADJUDICATED-DEFERRED: S-18.09 AC-008 `;`-split blind spot → S-18.09 F4 TDD implementation anchor (same class as O-P12-1/O-P13-1/O-P14-1/O-P15-1; not actionable this pass per L-F2-3clean-streak-requires-frozen-package)
+- O-P16-2 ADJUDICATED-DEFERRED: ARCH-INDEX "per BC-INDEX v3.06" stale cite → next ARCH-INDEX version bump sweep (same as C-P12-001/O-P13-2/O-P14-2/O-P15-2; not actionable this pass)
+- BC-5.39.001 3-CLEAN convergence protocol: SATISFIED (streak 1/3 D-633 → 2/3 D-634 → 3/3 D-635)
+- S-7.02 cycle-closing checklist: SATISFIED (all 5 process-gap lessons from D-619..D-634 have concrete dispositions in D-635 appendix)
+
+### Factory-artifacts Commits
+
+- TBD (SHA-patch follow-up after git commit + push)

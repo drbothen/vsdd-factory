@@ -786,3 +786,27 @@ Summary of D-632 checkpoint (archived reference):
 - 4-index: BC v3.07/VP v2.38/STORY v4.13/ARCH v2.54/L2 v1.0.13. Package re-FROZEN.
 - develop HEAD: `c000b06f` / main HEAD: `caf06c68` / factory-artifacts HEAD: `8d81c97f` (D-632 SHA-patch-3 HEAD)
 - D-range: D-001..D-632
+
+---
+
+## D-633 Checkpoint (archived 2026-06-17 by D-634)
+
+**Superseded by D-634 E-18 STORY PASS-15 CLEAN checkpoint (STATE.md §Session Resume Checkpoint).**
+
+Summary of D-633 checkpoint (archived reference):
+- E-18 STORY PASS-14 CLEAN — streak restart 0/3→1/3. Adv CLEAN; consistency CONSISTENT (C-P13-001 fully closed first consecutive pass). Package FROZEN (zero perimeter changes). 2 obs adjudicated-deferred: O-P14-1 (`;`-split→S-18.09 F4 TDD), O-P14-2 (ARCH-INDEX stale cite→next ARCH-INDEX bump). L-F2-3clean-streak-requires-frozen-package [codified].
+- 4-index: BC v3.07/VP v2.38/STORY v4.13/ARCH v2.54/L2 v1.0.13. Package FROZEN.
+- develop HEAD: `c000b06f` / main HEAD: `caf06c68` / factory-artifacts HEAD: `f629f9ef` (D-633 SHA-patch HEAD)
+- D-range: D-001..D-633
+
+---
+
+## D-634 Checkpoint (archived 2026-06-17 by D-635)
+
+**Superseded by D-635 E-18 STORY CASCADE BC-5.39.001 3-CLEAN CONVERGED checkpoint (STATE.md §Session Resume Checkpoint).**
+
+Summary of D-634 checkpoint (archived reference):
+- E-18 STORY PASS-15 CLEAN — streak 1/3→2/3. Adv CLEAN (0B/0M/0 load-bearing MED/0 mis-anchor/0 LOW; 2 obs re-confirmed deferred: O-P15-1 `;`-split→S-18.09 F4 TDD; O-P15-2 ARCH-INDEX stale cite→next ARCH-INDEX bump). Consistency CONSISTENT (11/11 PASS; zero new findings; C-P13-001 confirmed CLOSED second consecutive pass). Combined CLEAN per BC-5.39.001. Package FROZEN; no novelty; no new lesson.
+- 4-index: BC v3.07/VP v2.38/STORY v4.13/ARCH v2.54/L2 v1.0.13. Package FROZEN.
+- develop HEAD: `c000b06f` / main HEAD: `caf06c68` / factory-artifacts HEAD: `e92b8aed` (D-634 SHA-patch HEAD)
+- D-range: D-001..D-634
