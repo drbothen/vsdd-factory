@@ -6,7 +6,7 @@
 #
 #   TC-AC001: PreCompact + exit-0 plugin → plugins_run=1, exit 0
 #   TC-AC002: PostCompact + exit-2 plugin + on_error=block → exit 0 (advisory-only)
-#             THIS IS THE BLOCKER (F-002): currently exits 2 (BUG)
+#             (historical Red Gate: the no-op dispatcher exited 2 here; delivered is_advisory_only() suppression in main.rs now exits 0 — GREEN)
 #   TC-AC003: PreCompact with no registered plugins → sync_plugins=0, exit 0
 #   TC-AC004: PreCompact + exit-2 plugin + on_error=block → exit 2 (block_intent=true)
 #   TC-AC005a: PreCompact + crash plugin + on_error=block → exit 2 (fail-closed)
@@ -21,10 +21,10 @@
 # BC:    BC-1.15.001 PC1/PC2/PC3/PC4/PC5 (PreCompact/PostCompact routing)
 # VP:    VP-086 (Dispatcher Exit-2 Propagation for PreCompact Block-Intent)
 #
-# RED GATE:
-#   TC-AC002 FAILS against current code: PostCompact exit-2 + on_error=block
-#   causes the dispatcher to exit 2 instead of 0 (advisory-only violation,
-#   BC-1.15.001 PC2 / F-002 BLOCKER).
+# RED GATE (historical — S-18.00 is now implemented and all tests pass GREEN):
+#   TC-AC002 historically failed against the no-op code: PostCompact exit-2 + on_error=block
+#   caused the dispatcher to exit 2 instead of 0 (advisory-only violation,
+#   BC-1.15.001 PC2 / F-002 BLOCKER). Delivered is_advisory_only() gate in main.rs closes this.
 #
 # All tests skip gracefully if the dispatcher binary is not built or if
 # legacy-bash-adapter.wasm is not present.
@@ -238,9 +238,8 @@ _run_dispatcher() {
 # TC-AC002: PostCompact + exit-2 plugin + on_error=block → exit 0 (advisory-only)
 # BC-1.15.001 PC2 (AC-002) — BLOCKER F-002
 #
-# RED GATE: This test FAILS against current code.
-# Current behavior: dispatcher exits 2 (bug — PostCompact should never block).
-# Expected behavior: dispatcher exits 0 (advisory-only, block_intent suppressed).
+# (historical: failed at Red Gate against the no-op impl — dispatcher exited 2 instead of 0;
+# now GREEN against the delivered is_advisory_only() suppression in main.rs which exits 0.)
 # ---------------------------------------------------------------------------
 
 @test "TC-AC002: PostCompact exit-2 plugin with on_error=block must not block (advisory-only)" {
@@ -249,12 +248,13 @@ _run_dispatcher() {
 
   _run_dispatcher '{"event_name":"PostCompact","tool_name":"","session_id":"tc-ac002","tool_input":{}}'
 
-  # BLOCKER F-002: PostCompact must be advisory-only.
+  # BLOCKER F-002 (historical — delivered and GREEN): PostCompact must be advisory-only.
   # The dispatcher MUST exit 0 even though the plugin exits 2 and on_error=block.
   # BC-1.15.001 PC2: "PostCompact dispatch invokes registered plugins and propagates
   # exit codes, but NEVER sets block_intent=true regardless of plugin exit code."
   #
-  # This test FAILS against the current no-op implementation (exits 2 instead of 0).
+  # (historical: this test failed against the no-op implementation which exited 2 instead of 0;
+  # is_advisory_only() gate in main.rs now suppresses block_intent for PostCompact — GREEN.)
   [ "$status" -eq 0 ]
 
   # The dispatcher must NOT contain block_intent=true in its output.

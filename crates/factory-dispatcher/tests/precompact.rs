@@ -8,42 +8,43 @@
 //!
 //! ## AC→test traceability
 //!
-//! | Test | AC | BC clause | Red Gate condition |
+//! | Test | AC | BC clause | Red Gate condition (historical — all GREEN as of S-18.00) |
 //! |------|----|-----------|--------------------|
-//! | test_BC_1_15_001_event_type_enum_has_precompact_postcompact | AC-006 | INV1 | is_advisory_only() doesn't exist yet |
-//! | test_BC_1_15_001_parse_event_type_precompact | AC-006 | INV1 | is_advisory_only() doesn't exist yet |
-//! | test_BC_1_15_001_parse_event_type_postcompact | AC-006 | INV1 | is_advisory_only() doesn't exist yet |
+//! | test_BC_1_15_001_event_type_enum_has_precompact_postcompact | AC-006 | INV1 | (historical) is_advisory_only() was absent in no-op stub → compile failure; now delivered GREEN |
+//! | test_BC_1_15_001_parse_event_type_precompact | AC-006 | INV1 | (historical) is_advisory_only() was absent → compile failure; now delivered GREEN |
+//! | test_BC_1_15_001_parse_event_type_postcompact | AC-006 | INV1 | (historical) is_advisory_only() was absent → compile failure; now delivered GREEN |
 //! | test_BC_1_15_001_precompact_routes_to_registered_plugins | AC-001 | PC1 | match_plugins routes "PreCompact" → assert |
-//! | test_BC_1_15_001_postcompact_is_advisory_only_event_type | AC-002 | PC2 | EventType::is_advisory_only() absent |
-//! | test_BC_1_15_001_precompact_is_not_advisory_only_event_type | AC-002 | PC2 | EventType::is_advisory_only() absent |
-//! | test_BC_1_15_001_postcompact_advisory_only | AC-002 | PC2 | EventType::is_advisory_only() absent |
+//! | test_BC_1_15_001_postcompact_is_advisory_only_event_type | AC-002 | PC2 | (historical) EventType::is_advisory_only() was absent → compile failure; now delivered GREEN |
+//! | test_BC_1_15_001_precompact_is_not_advisory_only_event_type | AC-002 | PC2 | (historical) EventType::is_advisory_only() was absent → compile failure; now delivered GREEN |
+//! | test_BC_1_15_001_postcompact_advisory_only | AC-002 | PC2 | (historical) EventType::is_advisory_only() was absent → compile failure; now delivered GREEN |
 //! | test_BC_1_15_001_precompact_no_plugins_noop | AC-003 | PC3 | match_plugins returns empty |
-//! | test_BC_1_15_001_precompact_exit2_sets_block_intent | AC-004 | PC4 | aggregator + is_advisory_only() |
-//! | test_BC_1_15_001_postcompact_exit2_no_block | EC-002 | PC2 | is_advisory_only() absent |
+//! | test_BC_1_15_001_precompact_exit2_sets_block_intent | AC-004 | PC4 | (historical) aggregator + is_advisory_only() absent → compile failure; now delivered GREEN |
+//! | test_BC_1_15_001_postcompact_exit2_no_block | EC-002 | PC2 | (historical) is_advisory_only() was absent → compile failure; now delivered GREEN |
 //! | test_BC_1_15_001_precompact_on_error_block_crash_blocks | AC-005 | PC5 | aggregator on_error |
 //! | test_BC_1_15_001_precompact_on_error_continue_crash_no_block | EC-004 | PC5 | aggregator on_error |
 //! | test_BC_1_15_001_precompact_multi_plugin_one_exit2_blocks | EC-001 | PC4 | aggregator |
-//! | test_BC_1_15_001_precompact_async_plugin_scheduled_asynchronously | AC-007 | INV2 | parse + is_advisory_only() |
-//! | test_BC_1_15_001_aggregator_supports_precompact_block_semantics | VP-086 | PC4 | already passes — aggregator is implemented |
-//! | test_BC_1_15_001_postcompact_advisory_aggregation_contract | AC-002 | PC2 | already passes — documents is_advisory_only() contract |
+//! | test_BC_1_15_001_precompact_async_plugin_scheduled_asynchronously | AC-007 | INV2 | (historical) parse + is_advisory_only() absent → compile failure; now delivered GREEN |
+//! | test_BC_1_15_001_aggregator_supports_precompact_block_semantics | VP-086 | PC4 | passed at Red Gate — aggregator was already implemented |
+//! | test_BC_1_15_001_postcompact_advisory_aggregation_contract | AC-002 | PC2 | passed at Red Gate — documents is_advisory_only() contract |
 //!
-//! ## Red Gate guarantee
+//! ## Red Gate guarantee (historical — S-18.00 delivered; all tests GREEN)
 //!
-//! Tests that call `EventType::is_advisory_only()` FAIL TO COMPILE because that method
-//! does not exist in the no-op stub implementation. The compile failure IS the Red Gate
-//! for AC-002/PC2 (PostCompact advisory semantics).
+//! At Red Gate, tests that called `EventType::is_advisory_only()` FAILED TO COMPILE
+//! because that method did not exist in the no-op stub implementation. The compile
+//! failure WAS the Red Gate for AC-002/PC2 (PostCompact advisory semantics).
 //!
-//! Tests that assert routing behavior via `match_plugins` use REAL production code and
-//! assert observable outcomes (matched plugin counts, event type mapping). These fail
-//! only if the routing is broken — they are NOT vacuous.
+//! Tests that assert routing behavior via `match_plugins` used REAL production code and
+//! asserted observable outcomes (matched plugin counts, event type mapping). Those
+//! failed only if the routing was broken — they were NOT vacuous.
 //!
-//! The binary-level Red Gate for AC-002/PC2 is in the VP-086 bats harness:
+//! The binary-level Red Gate for AC-002/PC2 was in the VP-086 bats harness:
 //! `plugins/vsdd-factory/tests/precompact-routing.bats`. Those tests assert the
-//! dispatcher binary exits 0 for PostCompact exit-2 events, which FAILS against the
-//! current no-op implementation (exits 2 instead).
+//! dispatcher binary exits 0 for PostCompact exit-2 events; they historically failed
+//! against the no-op implementation (which exited 2 instead) and now pass GREEN
+//! against the delivered is_advisory_only() suppression in main.rs.
 //!
 //! POLICY 11 self-check: every test below either
-//!   (a) calls a method that does not exist (`is_advisory_only`) → compile failure, OR
+//!   (a) calls is_advisory_only() → would cause compile failure if method were removed, OR
 //!   (b) asserts a specific value on production code output → runtime assertion failure
 //!       if the contract is violated.
 //! No test is a bare function call with zero assertions.
