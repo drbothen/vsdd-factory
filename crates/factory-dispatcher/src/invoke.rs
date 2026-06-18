@@ -15,9 +15,11 @@
 //! fallback that silently discards PreCompact/PostCompact is a specification
 //! violation.
 //!
-//! The dispatch routing arms for PreCompact/PostCompact are stubbed with
-//! `todo!()` per S-18.00 Red Gate discipline (BC-5.38.001). The implementer
-//! (`vsdd-factory:implementer`) will wire the real routing in the next TDD step.
+//! PreCompact/PostCompact routing runs through `main.rs → execute_tiers`. The
+//! block-intent decision for PostCompact is suppressed by
+//! `EventType::from_event_str().is_advisory_only()` (BC-1.15.001 PC2).
+//! `dispatch_precompact` and `dispatch_postcompact` are intentional public symbol
+//! anchors for the routing arms; the complete dispatch path lives in main.rs.
 
 use std::time::Instant;
 
@@ -40,9 +42,9 @@ use crate::host::{HostContext, setup_linker};
 // fallback path that silently discards PreCompact/PostCompact is a
 // specification violation (BC-1.15.001 INV1).
 //
-// The dispatch routing helpers `dispatch_precompact` and `dispatch_postcompact`
-// are `todo!()` stubs (S-18.00 Red Gate; BC-5.38.001). The implementer wires
-// the real routing once the Red Gate tests are in place (next TDD step).
+// The complete dispatch path for PreCompact/PostCompact runs through
+// main.rs → execute_tiers. `dispatch_precompact` and `dispatch_postcompact`
+// are public symbol anchors for the routing arms (BC-1.15.001 PC1/PC2/PC3/PC4/PC5).
 // ---------------------------------------------------------------------------
 
 /// Closed enum of harness event types the dispatcher routes.
@@ -63,7 +65,7 @@ use crate::host::{HostContext, setup_linker};
 ///
 /// `EventType` can be round-tripped from the `event_name` / `event` string
 /// fields in the harness payload and hooks-registry.toml via
-/// [`EventType::from_event_str`] (stub, S-18.00) and [`EventType::as_str`].
+/// [`EventType::from_event_str`] and [`EventType::as_str`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub enum EventType {
