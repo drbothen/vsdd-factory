@@ -160,10 +160,11 @@ main() {
         "$STATE_MD_PATH" \
         "1"
 
-      # Stage HANDOFF.md
-      _git_wt add HANDOFF.md
-
-      # Remove stale wave-state.yaml from the commit tree if it exists (F-008 / AC-012)
+      # Remove stale wave-state.yaml from the commit tree if it exists (F-008 / AC-012).
+      # This staging step must happen BEFORE commit_to_artifacts so the deletion is
+      # included in the `git diff --cached` check (EC-015 guard) that commit_to_artifacts
+      # performs. commit_to_artifacts only stages the files passed to it (HANDOFF.md);
+      # the wave-state.yaml deletion is pre-staged here and persists through the commit.
       if git -C "$ARTIFACTS_WT" ls-files --error-unmatch wave-state.yaml >/dev/null 2>&1; then
         _git_wt rm wave-state.yaml
       elif [ -f "${ARTIFACTS_WT}/wave-state.yaml" ]; then
@@ -171,20 +172,12 @@ main() {
         rm -f "${ARTIFACTS_WT}/wave-state.yaml"
       fi
 
-      local iso_ts
-      iso_ts="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-
-      # EC-015 idempotent re-invocation guard:
-      # When a byte-identical HANDOFF.md was already committed (same-input re-run),
-      # `git add` stages no change and `git commit` exits non-zero ("nothing to commit").
-      # Under `set -euo pipefail` the script would abort BEFORE the mandatory AC-012
-      # EPIC-COMPLETE announcement. Detect an empty staged diff and skip the commit,
-      # but unconditionally emit the announcement and exit 0.
-      if _git_wt diff --cached --quiet; then
-        :   # nothing staged — idempotent re-invocation; treat as success
-      else
-        _git_wt commit -m "HANDOFF wave-${wave_id} ${iso_ts}" > /dev/null
-      fi
+      # Route commit through commit_to_artifacts (single-commit + EC-015 idempotency guard).
+      # F-P11-004: consolidates the EC-015 empty-staged-diff guard into ONE place so
+      # the EPIC-COMPLETE path and the has-next-wave path share the same guard logic.
+      # commit_to_artifacts stages HANDOFF.md (idempotent after pre-staging above),
+      # then checks diff --cached --quiet before committing.
+      commit_to_artifacts "$ARTIFACTS_WT" "$wave_id" HANDOFF.md > /dev/null
 
       # Canonical EPIC-COMPLETE stdout message per BC-5.41.002 PC7 / BC-5.41.001 PC8
       local epic_id
