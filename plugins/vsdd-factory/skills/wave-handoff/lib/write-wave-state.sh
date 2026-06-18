@@ -79,20 +79,51 @@ write_wave_state() {
       in_wave_set["$psid"]=1
     done
 
-    # Locate the "Depends-On" column index by reading the header row.
-    # Header row format: | Story ID | Title | Epic | Points | Priority | Depends-On | ...
-    # Count which pipe-delimited field contains "Depends-On" (1-based, ignoring leading |).
+    # Locate the "Depends-On" column index by reading the header row of the
+    # in-wave epic's table — NOT the first "| Story ID" header in the file.
+    #
+    # Production STORY-INDEX.md contains MULTIPLE epic tables with heterogeneous
+    # headers: early epics (E-0, E-1 …) use "Depends On" (space, 7 columns) while
+    # E-18+ use "Depends-On" (hyphen, 9 columns).  Using `grep -m1 '| Story ID'`
+    # picks the FIRST table (E-0, spaced header) instead of the in-wave epic table.
+    #
+    # Fix (F-P5-001/F-P5-002):
+    #   1. Find the first in-wave story data row in STORY-INDEX.md (by story ID).
+    #   2. Scan BACKWARDS from that line to find the nearest preceding "| Story ID |"
+    #      header row — this is the header of the in-wave epic's table.
+    #   3. Normalize header cell text before comparison: collapse "Depends On" (space)
+    #      to "Depends-On" (hyphen) so both variants are accepted.
     local depends_on_col=0
-    local header_line
-    header_line="$(grep -m1 '| Story ID' "$story_index_path" || true)"
+    local header_line=""
+
+    # Step 1: find the line number of the first in-wave story row in STORY-INDEX.md.
+    local first_inwave_lineno=0
+    local p_id
+    for p_id in "${!in_wave_set[@]}"; do
+      local lineno
+      lineno="$(grep -n "[|].*${p_id}.*[|]" "$story_index_path" 2>/dev/null | grep -v 'Story ID\|---' | head -1 | cut -d: -f1 || true)"
+      if [ -n "$lineno" ] && [ "$lineno" -gt 0 ]; then
+        if [ "$first_inwave_lineno" -eq 0 ] || [ "$lineno" -lt "$first_inwave_lineno" ]; then
+          first_inwave_lineno="$lineno"
+        fi
+      fi
+    done
+
+    # Step 2: scan backwards from that line to find the nearest "| Story ID" header.
+    if [ "$first_inwave_lineno" -gt 0 ]; then
+      header_line="$(head -n "$first_inwave_lineno" "$story_index_path" | grep '| Story ID' | tail -1 || true)"
+    fi
+
     if [ -n "$header_line" ]; then
       local col_idx=0
       local IFS_bak="$IFS"
       IFS='|'
       local col
       for col in $header_line; do
+        # Step 3: normalize "Depends On" (space-separated) to "Depends-On" (hyphen)
+        # before comparison so both header variants are accepted.
         local trimmed_col
-        trimmed_col="$(echo "$col" | tr -d ' \t')"
+        trimmed_col="$(echo "$col" | tr -d ' \t' | sed 's/DependsOn/Depends-On/')"
         col_idx=$(( col_idx + 1 ))
         if [ "$trimmed_col" = "Depends-On" ]; then
           depends_on_col=$col_idx
