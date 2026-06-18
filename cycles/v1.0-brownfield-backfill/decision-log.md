@@ -1288,3 +1288,37 @@ ARCH-INDEX body §Subsystem Registry annotation corrected: "per BC-INDEX v3.06" 
 
 **Package perturbation note:**
 D-636 perturbs 2 perimeter artifacts (S-18.09 v1.12 + ARCH-INDEX v2.55) that were FROZEN throughout the D-633/D-634/D-635 streak. Per D-635 adjudicated-deferral rationale, these fixes were scope-safe: neither introduces new behavioral spec changes (S-18.09 extends a gate separator set from {+} to {+,;,,}; ARCH-INDEX corrects a non-normative version cite). A single CONFIRMING fresh-context pass (adversary + consistency-validator) will verify before F4 TDD dispatch. Record 3-CLEAN streak as "3/3 converged; D-636 cleanup re-confirm pending".
+
+---
+
+## D-637 — E-18 D-636 CONFIRMING PASS CLEAN; convergence re-confirmed on post-cleanup package; F4 TDD AUTHORIZED
+
+**Date:** 2026-06-17
+**Phase:** E-18-deferral-cleanup-confirming-pass
+**Decision:** D-636 confirming pass CLEAN/CONSISTENT — convergence re-confirmed on post-D-636 package; both deferred items closed and confirmed; E-18 F3 story decomposition fully complete and human-approved; **F4 TDD implementation AUTHORIZED** (wave-by-wave from W1 S-18.00).
+**Parent-commit:** 1b1f7e26 (D-636 SHA-patch HEAD)
+
+| ID | Decision | Phase | Date |
+|----|----------|-------|------|
+| D-637 | E-18 D-636 CONFIRMING PASS CLEAN — orchestrator-dispatched fresh-context adversary + consistency-validator both confirm ZERO regression from D-636 deferral-cleanup. Adversary: 0 BLOCKER/0 MAJOR/0 load-bearing MED/0 mis-anchor/0 LOW/0 obs; exhaustive hand-trace all 12 E-18 stories — no over-split regression from `tr '+;,' '\n'` (S-18.04a AC-009 `6b`+`5` both resolve; EC-010 REDs correctly on `;`-joined `postcondition 99`); ARCH-INDEX v2.55 cite parity-clean; 4-index BC v3.07/VP v2.38/STORY v4.14/ARCH v2.55 CONSISTENT. Consistency-validator: 11/11 checks PASS; O-P12-1 CONFIRMED CLOSED; C-P12-001/O-P16-2 CONFIRMED CLOSED; C-P13-001 CONFIRMED CLOSED (4th consecutive confirmation). Both Cycle-Closing-Checklist deferred items from D-635 confirmed closed: (1) O-P12-1 → S-18.09 v1.12 multi-separator split — no regression; (2) O-P16-2/C-P12-001 → ARCH-INDEX v2.55 body cite correction — consistent. E-18 F3 story decomposition FULLY COMPLETE + human-approved + D-636 cleanup confirmed. **F4 TDD implementation AUTHORIZED — wave-by-wave delivery from W1 (S-18.00); per-story-delivery flow (stub-architect → test-writer Red Gate → implementer TDD → LOCAL adversary 3-CLEAN → demo-recorder → pr-manager 9-step → merge)**. D-range D-614..D-637. Parent-commit: 1b1f7e26 (D-636 SHA-patch HEAD). | E-18-deferral-cleanup-confirming-pass | 2026-06-17 |
+
+**Appendix — D-637 Rationale**
+
+The D-636 confirming pass ran as a single orchestrator-dispatched burst with two fresh-context agents (adversary + consistency-validator) per the D-636 stated protocol. Both agents read only the current package state (no prior cascade context) per the Iron Law.
+
+**Adversary confirming pass result (CLEAN):**
+- No over-split regression from the `tr '+;,' '\n'` multi-separator change in S-18.09 v1.12. Exhaustive hand-trace across all 12 E-18 stories confirmed:
+  - S-18.04a AC-009: `6b` and `5` segments resolve correctly after `;`-split.
+  - EC-010 fixture: `postcondition 99` second clause correctly REDs (BC-7.07.001 has no `^99\.` PC).
+  - All other stories: no `;`- or `,`-containing cites that would over-split.
+- ARCH-INDEX v2.55 cite correction is non-normative; no behavioral change.
+- 4-index parity confirmed: all four changelog-array top rows match frontmatter versions.
+
+**Consistency-validator confirming pass result (CONSISTENT):**
+- 11/11 consistency checks PASS.
+- STORY-INDEX v4.14 title-cell and version-cell for S-18.09 match frontmatter v1.12.
+- ARCH-INDEX v2.55 body cite "per BC-INDEX v3.07" matches BC-INDEX current version v3.07.
+- C-P13-001 (VP-INDEX VP-091 label drift) confirmed CLOSED for the 4th consecutive check.
+
+**Authorization basis:**
+Per the D-636 stated protocol: "on CLEAN → F4 TDD wave-by-wave from W1 (S-18.00)". Both confirming-pass agents returned CLEAN/CONSISTENT with 0 findings. Human-approved E-18 story package + D-636 cleanup confirmed. F4 TDD is AUTHORIZED per BC-5.39.001 3-CLEAN convergence + D-635 story-approval human gate + D-637 confirming pass CLEAN.
