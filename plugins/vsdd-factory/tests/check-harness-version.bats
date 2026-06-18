@@ -1,18 +1,15 @@
 #!/usr/bin/env bats
 # check-harness-version.bats — Red Gate bats tests for S-18.00 AC-008 / BC-1.15.001 INV3.
 #
-# Covers the 2 bats integration cases from S-18.00 Red Gate Test Table:
+# Covers the 2 bats integration cases from S-18.00 (both now GREEN):
 #
 #   test_harness_version_check_passes (AC-008 / INV3):
 #     check-harness-version.sh must exit 0 when harness >= v2.1.105.
-#     Red Gate: stub exits 1 unconditionally → test FAILS at Red Gate.
+#     Delivered: real version detection; exits 0 when CLAUDE_CODE_VERSION >= threshold.
 #
 #   test_harness_version_check_advisory_on_missing (AC-008 / INV3 / EC-005):
 #     check-harness-version.sh must exit 1 (advisory) when harness version
-#     cannot be determined. Red Gate: stub exits 1 → BUT the test verifies
-#     that the exit-1 is emitted with the correct advisory message, not the
-#     stub's "not yet implemented" message. Therefore it fails with the wrong
-#     message text — a genuine Red Gate failure.
+#     cannot be determined. Delivered: exits 1 with advisory message per BC-1.15.001 INV3.
 #
 # Story: S-18.00 — Dispatcher PreCompact/PostCompact Routing + check-harness-version.sh
 # BC:    BC-1.15.001 INV3 — Harness-version precondition is non-blocking at dispatcher level
@@ -23,14 +20,12 @@
 #   EC-005: check-harness-version.sh cannot determine harness version → exits 1 (advisory)
 #   EC-006: harness below v2.1.105 → exits 1 (advisory); non-blocking
 #
-# RED GATE strategy:
-#   The stub script (plugins/vsdd-factory/hooks/check-harness-version.sh) exits 1
-#   unconditionally with message "stub not yet implemented". The tests are designed to:
-#   1. test_harness_version_check_passes: call the script in a harness-present environment
-#      and assert exit 0 — fails because stub always exits 1.
-#   2. test_harness_version_check_advisory_on_missing: assert the specific ADVISORY message
-#      format ("check-harness-version: harness version undeterminable") — fails because the
-#      stub emits the wrong message ("stub not yet implemented").
+# RED GATE strategy (historical — S-18.00 is now implemented and all tests pass GREEN):
+#   At Red Gate the stub script exited 1 unconditionally. The tests were designed to:
+#   1. test_harness_version_check_passes: assert exit 0 — failed because stub always exited 1.
+#   2. test_harness_version_check_advisory_on_missing: assert the ADVISORY message format —
+#      failed because the stub emitted "not yet implemented" instead of the real advisory.
+#   The real implementation in hooks/check-harness-version.sh satisfies both assertions.
 #
 # Both tests are load-bearing: they exercise the real script, not a self-constructed value.
 #
@@ -63,8 +58,7 @@ teardown() {
 # ---------------------------------------------------------------------------
 
 # Verify the check-harness-version.sh script exists and is executable.
-# Unlike WASM-based tests, the script is committed as a stub (exits 1 unconditionally)
-# so we do NOT gracefully skip when it is absent — absence is a hard failure here.
+# The script must be present and executable — absence is a hard failure here.
 _require_script() {
   if [ ! -f "$SCRIPT" ]; then
     echo "FAIL: check-harness-version.sh not found at: $SCRIPT"
@@ -92,10 +86,7 @@ _require_script() {
 # production version per BC-1.15.001 §Preconditions: "confirmed in production:
 # v2.1.177 per F1 delta analysis").
 #
-# RED GATE: The stub exits 1 unconditionally regardless of environment.
-# Exit-0 assertion FAILS — correct Red Gate failure.
-#
-# After the implementer wires real harness-version detection, this test becomes GREEN.
+# Delivered implementation exits 0 when CLAUDE_CODE_VERSION >= v2.1.105 (AC-008).
 # ---------------------------------------------------------------------------
 
 @test "test_harness_version_check_passes" {
@@ -111,21 +102,18 @@ _require_script() {
   run env CLAUDE_CODE_VERSION="2.1.177" bash "$SCRIPT" 2>&1
 
   # Must exit 0 — harness >= v2.1.105 (advisory version check passed).
-  # RED GATE FAILURE: stub exits 1 unconditionally → this assertion fails.
   [ "$status" -eq 0 ] || {
     echo "FAIL: expected exit 0 (harness version check passed) but got status=$status"
     echo "CLAUDE_CODE_VERSION was set to 2.1.177 (>= threshold v2.1.105)"
-    echo "RED GATE: stub exits 1 unconditionally — implementer must wire real version detection."
     echo "AC-008: script exits 0 when harness reports claude-code >= v2.1.105"
     echo "BC-1.15.001 INV3: harness-version precondition check"
     echo "Output: $output"
     return 1
   }
 
-  # Verify the script does NOT emit the stub's "not yet implemented" message.
-  # This guards against a false-positive if the exit code check somehow passes.
+  # Verify the script does not emit a stub/placeholder message (regression guard).
   [[ "$output" != *"stub not yet implemented"* ]] || {
-    echo "FAIL: script emitted stub message — real implementation not yet wired."
+    echo "FAIL: script emitted stub placeholder message — regression detected."
     echo "Output: $output"
     return 1
   }
@@ -148,12 +136,8 @@ _require_script() {
 # simulating a pre-v2.1.105 harness or an environment where the version is
 # undeterminable.
 #
-# RED GATE: The stub exits 1 with the WRONG message ("stub not yet implemented").
-# The test asserts the CORRECT advisory message format, which the stub does not emit.
-# Message content assertion FAILS — correct Red Gate failure.
-#
-# After the implementer wires real version detection, the script will emit the
-# correct advisory message when the version is undeterminable.
+# Delivered implementation exits 1 with the correct advisory message when version
+# is undeterminable (AC-008 / EC-005). The message content assertion is load-bearing.
 # ---------------------------------------------------------------------------
 
 @test "test_harness_version_check_advisory_on_missing" {
@@ -165,8 +149,7 @@ _require_script() {
   run env -u CLAUDE_CODE_VERSION -u CLAUDE_VERSION bash "$SCRIPT" 2>&1
 
   # Must exit 1 — harness version undeterminable; advisory (non-blocking).
-  # The stub exits 1 as well, so this assertion will PASS for the exit code.
-  # The load-bearing Red Gate assertion is the message check below.
+  # The load-bearing assertion is the message check below.
   [ "$status" -eq 1 ] || {
     echo "FAIL: expected exit 1 (advisory — version undeterminable) but got status=$status"
     echo "AC-008: exits 1 (advisory) if harness version cannot be determined or is below threshold"
@@ -177,20 +160,15 @@ _require_script() {
     return 1
   }
 
-  # The advisory message must match the real implementation's format.
-  # The stub emits "stub not yet implemented" which does NOT match.
-  # This is the load-bearing Red Gate assertion:
-  #   - Stub message: "check-harness-version: stub not yet implemented (S-18.00 Red Gate)"
-  #   - Required message pattern: advisory text explaining version undeterminable
-  #     (not the stub placeholder).
-  #
+  # The advisory message must match the delivered implementation's format.
   # BC-1.15.001 INV3: the script must emit an informative advisory message, not a
-  # developer-facing stub note, when it cannot determine the harness version.
+  # developer-facing placeholder, when it cannot determine the harness version.
+  # This guard also prevents regression back to stub behaviour.
   [[ "$output" != *"stub not yet implemented"* ]] || {
-    echo "FAIL: script emitted stub placeholder message — real implementation not yet wired."
-    echo "The real implementation must emit an advisory message explaining the version check"
-    echo "outcome, not the developer placeholder 'stub not yet implemented'."
-    echo "RED GATE: stub message detected — AC-008 / BC-1.15.001 INV3 not yet satisfied."
+    echo "FAIL: script emitted stub placeholder message — regression detected."
+    echo "The implementation must emit an advisory message explaining the version check"
+    echo "outcome, not a developer placeholder."
+    echo "AC-008 / BC-1.15.001 INV3 not satisfied."
     echo "Output: $output"
     return 1
   }
@@ -207,15 +185,15 @@ _require_script() {
 }
 
 # ---------------------------------------------------------------------------
-# Registry assertion test — check-harness-version stub entry in hooks-registry.toml
+# Registry assertion test — check-harness-version entry in hooks-registry.toml
 #
 # AC-008 / BC-1.15.001 INV3: "check-harness-version.sh is registered as a
 # PreCompact plugin with on_error=continue."
 #
-# Story T-7 (S-18.00): "Add stub hooks-registry.toml entries for check-harness-version
+# Story T-7 (S-18.00): "Add hooks-registry.toml entry for check-harness-version
 # (PreCompact, legacy-bash-adapter.wasm, on_error=continue, priority=50)"
 #
-# This test inspects the production hooks-registry.toml and verifies the stub entry
+# This test inspects the production hooks-registry.toml and verifies the entry
 # is present with the correct shape. It does NOT require the dispatcher binary or any
 # WASM artifact — it is a pure grep/awk structural test.
 #
@@ -225,8 +203,7 @@ _require_script() {
 #   on_error = "continue"   (BC-1.15.001 INV3: dispatcher continues even on non-zero exit)
 #   priority = 50           (S-18.00 T-7)
 #
-# RED GATE: The entry MUST exist (added by stub-architect at commit 36cff71f).
-# This test verifies the shape is correct per BC-1.15.001 INV3 + S-18.00 T-7.
+# Entry added by stub-architect at commit 36cff71f; real script wired at S-18.00 TDD green.
 # ---------------------------------------------------------------------------
 
 @test "test_check_harness_version_registry_entry_has_correct_shape" {

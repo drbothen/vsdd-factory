@@ -1236,7 +1236,7 @@ path_allow = [".factory/STATE.md"]
 # Advisory-only (on_error=continue): dispatcher continues even if the check fails.
 # Registered as PreCompact per BC-1.15.001 INV3 and AC-008.
 # Never sets block_intent — that is reserved for precompact-flush.sh (S-18.04a).
-# S-18.00 stub: real implementation wired after Red Gate tests pass (TDD green step).
+# check-harness-version: real implementation in hooks/check-harness-version.sh (S-18.00; PreCompact advisory, on_error=continue).
 
 [[hooks]]
 name = "check-harness-version"
