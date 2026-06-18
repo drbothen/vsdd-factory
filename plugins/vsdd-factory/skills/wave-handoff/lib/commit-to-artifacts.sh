@@ -24,11 +24,16 @@ commit_to_artifacts() {
 
   local commit_msg="HANDOFF wave-${wave_id} ${iso_ts}"
 
-  # Stage all provided files using git -C path discipline
+  # Stage the provided files first (so they are included even if not yet tracked)
   local f
   for f in "${files_to_add[@]}"; do
     git -C "$artifacts_wt" add "$f"
   done
+
+  # Stage all remaining tracked modifications and untracked files so the committed
+  # tree exactly matches the working tree — guarantees a clean worktree after commit
+  # (VP-087 atomicity: working tree must agree with committed branch state).
+  git -C "$artifacts_wt" add -A
 
   # Create a single atomic commit with the exact message format
   git -C "$artifacts_wt" \

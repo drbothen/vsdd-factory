@@ -24,6 +24,10 @@ get_last_verified_develop_sha() {
 #   1. Log genuinely absent: returns "null"
 #   2. Log present but FIELD-4 != "commit": returns "null" (corrupt/stale)
 #   3. Log present + FIELD-4 == "commit": returns FIELD-2 SHA
+#
+# If FORCE_PRECOMPACT_SHA env var is set (test injection), the caller must compare
+# the forced value against the log-derived value. Hard-blocks (exits 1 with
+# PrecompactShaMismatch) are handled by the caller (write_handoff), not here.
 get_precompact_flush_sha() {
   local flush_log="$1"
 
@@ -50,6 +54,17 @@ get_precompact_flush_sha() {
   field2="$(echo "$last_line" | awk '{print $2}')"
   echo "$field2"
   return 0
+}
+
+# _log_has_valid_commit <flush_log_path>
+# Returns 0 (true) if the log file exists and its last line has FIELD-4 == "commit".
+# Returns 1 otherwise.
+_log_has_valid_commit() {
+  local flush_log="$1"
+  [ -f "$flush_log" ] || return 1
+  local field4
+  field4="$(tail -1 "$flush_log" | awk '{print $4}')"
+  [ "$field4" = "commit" ]
 }
 
 # check_active_bcs <bc_dir>
@@ -115,8 +130,28 @@ write_handoff() {
   bc_files="$(check_active_bcs "$bc_dir")"
 
   # Get precompact_flush_sha (three-state rule)
+  # If FORCE_PRECOMPACT_SHA is set (test injection), use it directly.
+  # If the log has a valid commit AND the forced value differs (or is null),
+  # hard-block with PrecompactShaMismatch per BC-5.41.001 PC5 / EC-011.
   local precompact_sha
-  precompact_sha="$(get_precompact_flush_sha "$flush_log")"
+  local force_sha="${FORCE_PRECOMPACT_SHA:-}"
+  if [ -n "$force_sha" ]; then
+    # Test injection: cross-check forced value against the log
+    if _log_has_valid_commit "$flush_log"; then
+      # Log is present and valid — the forced value must agree with the log SHA
+      local log_sha
+      log_sha="$(get_precompact_flush_sha "$flush_log")"
+      if [ "$force_sha" != "$log_sha" ]; then
+        echo "ERROR: PrecompactShaMismatch — FORCE_PRECOMPACT_SHA='${force_sha}' conflicts with precompact-flush-log SHA '${log_sha}' (log has valid commit)" >&2
+        exit 1
+      fi
+      precompact_sha="$log_sha"
+    else
+      precompact_sha="$force_sha"
+    fi
+  else
+    precompact_sha="$(get_precompact_flush_sha "$flush_log")"
+  fi
 
   # Get factory_lock_holder from STATE.md
   local factory_lock_holder="null"

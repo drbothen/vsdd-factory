@@ -68,6 +68,37 @@ _git_wt() {
 }
 
 # ---------------------------------------------------------------------------
+# _get_prior_handoff_sha — find the most-recent prior "HANDOFF wave-" commit
+# on the factory-artifacts branch, returning its SHA or the literal "null"
+# when no such commit exists (wave 1 case).
+# Per AC-014 v1.4 / BC-5.41.002 PC2: generated_from_handoff_sha in wave-state.yaml
+# MUST be the SHA of the prior HANDOFF commit, NOT the SHA of the commit that
+# will contain the current wave-state.yaml (cryptographic fixed-point — infeasible).
+# ---------------------------------------------------------------------------
+_get_prior_handoff_sha() {
+  local sha
+  sha="$(git -C "$ARTIFACTS_WT" log --grep='^HANDOFF wave-' -n1 --format='%H' 2>/dev/null || true)"
+  if [ -n "$sha" ]; then
+    echo "$sha"
+  else
+    echo "null"
+  fi
+}
+
+# ---------------------------------------------------------------------------
+# _get_epic_id — extract current_cycle from STATE.md frontmatter for EPIC-COMPLETE
+# canonical message (BC-5.41.002 PC7 / BC-5.41.001 PC8).
+# ---------------------------------------------------------------------------
+_get_epic_id() {
+  local state_md="$1"
+  local epic_id=""
+  if [ -f "$state_md" ]; then
+    epic_id="$(grep -E '^current_cycle:' "$state_md" | head -1 | awk '{print $2}' | tr -d '"')"
+  fi
+  echo "${epic_id:-unknown}"
+}
+
+# ---------------------------------------------------------------------------
 # Main orchestration
 # ---------------------------------------------------------------------------
 
@@ -92,6 +123,8 @@ main() {
 
     epic-complete)
       # EPIC-COMPLETE: write HANDOFF.md with epic_status: complete. No wave-state.yaml.
+      # Per F-008 / BC-5.41.002 PC3: if wave-state.yaml pre-exists on factory-artifacts,
+      # remove it so the resulting commit tree has no stale wave-state.yaml.
       write_handoff \
         "${ARTIFACTS_WT}/HANDOFF.md" \
         "$wave_id" \
@@ -100,13 +133,28 @@ main() {
         "$STATE_MD_PATH" \
         "1"
 
+      # Stage HANDOFF.md
+      _git_wt add HANDOFF.md
+
+      # Remove stale wave-state.yaml from the commit tree if it exists (F-008 / AC-012)
+      if git -C "$ARTIFACTS_WT" ls-files --error-unmatch wave-state.yaml >/dev/null 2>&1; then
+        _git_wt rm wave-state.yaml
+      elif [ -f "${ARTIFACTS_WT}/wave-state.yaml" ]; then
+        # Untracked working-tree copy — just remove it so it won't be staged
+        rm -f "${ARTIFACTS_WT}/wave-state.yaml"
+      fi
+
       local iso_ts
       iso_ts="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
-      _git_wt add HANDOFF.md
       _git_wt commit -m "HANDOFF wave-${wave_id} ${iso_ts}" > /dev/null
 
-      echo "EPIC-COMPLETE: all stories in terminal state"
+      # Canonical EPIC-COMPLETE stdout message per BC-5.41.002 PC7 / BC-5.41.001 PC8
+      local epic_id
+      epic_id="$(_get_epic_id "$STATE_MD_PATH")"
+      echo "EPIC-COMPLETE: All stories in sprint-state.yaml have reached terminal status."
+      echo "Epic ${epic_id} is now complete."
+      echo "HANDOFF.md committed to factory-artifacts with epic_status: complete."
       exit 0
       ;;
 
@@ -118,7 +166,13 @@ main() {
         story_pairs+=("${NEXT_WAVE_STORY_IDS[$i]}:${NEXT_WAVE_STORY_STATUSES[$i]}")
       done
 
-      # Write HANDOFF.md
+      # Step 3: Find prior HANDOFF commit SHA BEFORE writing any files or committing.
+      # This SHA goes into generated_from_handoff_sha in wave-state.yaml (AC-014 v1.4).
+      # Must be captured before the atomic commit because the commit will become the new HEAD.
+      local prior_handoff_sha
+      prior_handoff_sha="$(_get_prior_handoff_sha)"
+
+      # Step 4: Write HANDOFF.md with final content
       write_handoff \
         "${ARTIFACTS_WT}/HANDOFF.md" \
         "$wave_id" \
@@ -128,46 +182,19 @@ main() {
         "0" \
         "${story_pairs[@]+"${story_pairs[@]}"}"
 
-      local iso_ts
-      iso_ts="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-      local commit_msg="HANDOFF wave-${wave_id} ${iso_ts}"
-      local parent
-      parent="$(_git_wt rev-parse HEAD)"
-
-      # Write wave-state.yaml with parent SHA as initial placeholder.
-      # We will update it to the actual commit SHA after computing it below.
+      # Step 5: Write wave-state.yaml with final content, using prior_handoff_sha.
+      # The content written here is EXACTLY what will be committed — no post-hoc patches.
       write_wave_state \
         "${ARTIFACTS_WT}/wave-state.yaml" \
         "$wave_id" \
-        "$parent" \
+        "$prior_handoff_sha" \
         "$SPRINT_STATE_YAML" \
+        "$ARTIFACTS_WT" \
         "${story_pairs[@]+"${story_pairs[@]}"}"
 
-      # Stage both files for the atomic commit
-      _git_wt add HANDOFF.md wave-state.yaml
-
-      # Compute the commit SHA using commit-tree (does NOT advance HEAD or branch ref).
-      # The resulting commit object contains HANDOFF.md + wave-state.yaml (with parent SHA).
-      local tree commit_sha
-      tree="$(_git_wt write-tree)"
-      commit_sha="$(_git_wt commit-tree "$tree" -p "$parent" -m "$commit_msg")"
-
-      # Update the FILESYSTEM wave-state.yaml to reference commit_sha.
-      # The committed blob retains the parent SHA, but the working-tree file (which is what
-      # tests and agents read) now has commit_sha — satisfying AC-014 at the consumption layer.
-      local tmp_file
-      tmp_file="$(mktemp)"
-      awk -v sha="$commit_sha" '
-        /^generated_from_handoff_sha:/ { print "generated_from_handoff_sha: " sha; next }
-        { print }
-      ' "${ARTIFACTS_WT}/wave-state.yaml" > "$tmp_file"
-      mv "$tmp_file" "${ARTIFACTS_WT}/wave-state.yaml"
-
-      # Advance the factory-artifacts branch ref to commit_sha.
-      # This is a single atomic operation — no additional commits are made.
-      # The commit object (commit_sha) contains both HANDOFF.md and wave-state.yaml.
-      # The filesystem wave-state.yaml reflects the final commit_sha for consumers.
-      _git_wt update-ref HEAD "$commit_sha"
+      # Step 6: Atomic single commit of both files via commit_to_artifacts helper.
+      # Both files are staged and committed in one git commit (BC-5.41.002 PC6 / AC-017).
+      commit_to_artifacts "$ARTIFACTS_WT" "$wave_id" HANDOFF.md wave-state.yaml > /dev/null
 
       exit 0
       ;;
