@@ -2,13 +2,13 @@
 # wave-handoff.bats — Red Gate tests for the wave-handoff skill
 #
 # Story:   S-18.01 — HANDOFF.md Schema + wave-handoff Skill; wave-state.yaml Atomic Production
-# BCs:     BC-5.41.001 v1.17 (HANDOFF.md with 9 base required fields + anti-fabrication cross-checks)
+# BCs:     BC-5.41.001 v1.18 (HANDOFF.md with 9 base required fields + anti-fabrication cross-checks)
 #          BC-5.41.002 v1.13 (wave-state.yaml curated manifest; BrokenSprintState; atomicity;
 #                              AC-014 clarified: generated_from_handoff_sha = PRIOR HANDOFF commit SHA)
 # VPs:     VP-081 (Wave cannot close without verified HANDOFF.md)
 #          VP-087 (atomicity + real-substrate derivation + BrokenSprintState)
 #
-# RED GATE discipline: every test MUST FAIL against the implementation at d59ffa97 for the
+# RED GATE discipline: every test MUST FAIL against the implementation at 91a6d6a4 for the
 # RIGHT REASON — not build errors, but assertion failures on the COMMITTED artifact.
 #
 # POLICY 11 compliance: no test merely invokes the skill and asserts "no error".
@@ -20,6 +20,14 @@
 #   git -C <repo> show <branch>:<file>
 # NOT the working-tree file. The working tree may differ from the committed blob
 # (the current impl awk-patches the working tree AFTER committing via update-ref).
+#
+# ADR-027 FIXTURE DISCIPLINE (F-S1801-P3-001): the factory-artifacts worktree temp dir
+# (ARTIFACTS_WT = $WORK/factory-wt) mirrors the production layout where the factory-
+# artifacts orphan branch IS mounted as .factory/ — i.e., specs live directly at
+# $ARTIFACTS_WT/specs/..., hooks at $ARTIFACTS_WT/hooks/..., stories at
+# $ARTIFACTS_WT/stories/..., with NO nested .factory/ subdirectory inside ARTIFACTS_WT.
+# The skill receives --bc-dir $ARTIFACTS_WT/specs/behavioral-contracts (explicit arg;
+# the skill does NOT derive BC_DIR from $ARTIFACTS_WT with an additional .factory/ prefix).
 #
 # No jq dependency. No Python. POSIX bash + awk + grep + git.
 
@@ -71,28 +79,33 @@ setup() {
   mkdir -p "$ARTIFACTS_WT"
   git -C "$WORK" worktree add -q "$ARTIFACTS_WT" factory-artifacts
 
-  # Step 6: create fixture directories in the artifacts worktree
-  mkdir -p "$ARTIFACTS_WT/.factory/hooks"
-  mkdir -p "$ARTIFACTS_WT/.factory/specs/behavioral-contracts/ss-05"
-  mkdir -p "$ARTIFACTS_WT/.factory/specs/architecture/decisions"
-  mkdir -p "$ARTIFACTS_WT/.factory/stories"
+  # Step 6: create fixture directories in the artifacts worktree.
+  # ADR-027 production layout: no nested .factory/ inside ARTIFACTS_WT.
+  # Specs live directly at $ARTIFACTS_WT/specs/..., hooks at $ARTIFACTS_WT/hooks/...
+  # This mirrors production where ARTIFACTS_WT = .factory (the worktree root itself).
+  mkdir -p "$ARTIFACTS_WT/hooks"
+  mkdir -p "$ARTIFACTS_WT/specs/behavioral-contracts/ss-05"
+  mkdir -p "$ARTIFACTS_WT/specs/architecture/decisions"
+  mkdir -p "$ARTIFACTS_WT/stories"
 
   # Create a real BC file so active_bcs check can resolve at least one entry
   echo "# BC-5.41.001 stub" \
-    > "$ARTIFACTS_WT/.factory/specs/behavioral-contracts/ss-05/BC-5.41.001.md"
+    > "$ARTIFACTS_WT/specs/behavioral-contracts/ss-05/BC-5.41.001.md"
 
   # Create real architecture files for arch_files path resolution (F-S1801-P1-004)
-  echo "# ARCH-INDEX" > "$ARTIFACTS_WT/.factory/specs/architecture/ARCH-INDEX.md"
-  echo "# ADR-026" > "$ARTIFACTS_WT/.factory/specs/architecture/decisions/ADR-026-wave-boundary-checkpoint-reset-and-lossless-intra-wave-compaction.md"
-  echo "# ADR-025" > "$ARTIFACTS_WT/.factory/specs/architecture/decisions/ADR-025-single-writer-factory-locklease-prevent-concurrent-session-races-on-factory-artifacts-orphan-branch.md"
+  echo "# ARCH-INDEX" > "$ARTIFACTS_WT/specs/architecture/ARCH-INDEX.md"
+  echo "# ADR-026" > "$ARTIFACTS_WT/specs/architecture/decisions/ADR-026-wave-boundary-checkpoint-reset-and-lossless-intra-wave-compaction.md"
+  echo "# ADR-025" > "$ARTIFACTS_WT/specs/architecture/decisions/ADR-025-single-writer-factory-locklease-prevent-concurrent-session-races-on-factory-artifacts-orphan-branch.md"
 
   # Create STORY-INDEX.md with S-18.02 and S-18.03 entries (F-S1801-P1-005)
-  cat > "$ARTIFACTS_WT/.factory/stories/STORY-INDEX.md" << 'EOF'
+  # Default: S-18.02 depends_on nothing; S-18.03 depends_on S-18.02.
+  # Used by topo-sort tests — STORY-INDEX.md is the depends_on source per BC-5.41.002 PC3.
+  cat > "$ARTIFACTS_WT/stories/STORY-INDEX.md" << 'EOF'
 # STORY-INDEX
-| ID | Title | Status |
-|----|-------|--------|
-| S-18.02 | Stub story 02 | pending |
-| S-18.03 | Stub story 03 | draft |
+| ID | Title | depends_on | Status |
+|----|-------|------------|--------|
+| S-18.02 | Stub story 02 | | pending |
+| S-18.03 | Stub story 03 | S-18.02 | draft |
 EOF
 
   # Write a default sprint-state.yaml (happy-path: pending + draft story)
@@ -163,20 +176,22 @@ EOF
 }
 
 # Run the skill with standard arguments pointing at our hermetic fixtures.
+# ADR-027 two-arg invocation model: --bc-dir is passed explicitly as
+# $ARTIFACTS_WT/specs/behavioral-contracts (no extra .factory/ prefix added by the skill).
 _run_skill() {
   run bash -c "
     export ARTIFACTS_WT='${ARTIFACTS_WT}'
     export SPRINT_STATE_YAML='${WORK}/sprint-state.yaml'
     export STATE_MD_PATH='${WORK}/STATE.md'
-    export BC_DIR='${ARTIFACTS_WT}/.factory/specs/behavioral-contracts'
-    export PRECOMPACT_FLUSH_LOG='${ARTIFACTS_WT}/.factory/hooks/precompact-flush-log'
+    export BC_DIR='${ARTIFACTS_WT}/specs/behavioral-contracts'
+    export PRECOMPACT_FLUSH_LOG='${ARTIFACTS_WT}/hooks/precompact-flush-log'
     export GIT_DIR='${WORK}/.git'
     export FACTORY_REPO='${WORK}'
     '${SKILL}' \
       --artifacts-worktree '${ARTIFACTS_WT}' \
       --sprint-state '${WORK}/sprint-state.yaml' \
       --state-md '${WORK}/STATE.md' \
-      --bc-dir '${ARTIFACTS_WT}/.factory/specs/behavioral-contracts' \
+      --bc-dir '${ARTIFACTS_WT}/specs/behavioral-contracts' \
       2>&1
   "
 }
@@ -338,23 +353,23 @@ _artifact_last_commit_files() {
 
 @test "test_active_bcs_empty_dir_causes_hard_error" {
   # Remove all BC files from the fixture BC dir
-  rm -rf "$ARTIFACTS_WT/.factory/specs/behavioral-contracts"
-  mkdir -p "$ARTIFACTS_WT/.factory/specs/behavioral-contracts"
+  rm -rf "$ARTIFACTS_WT/specs/behavioral-contracts"
+  mkdir -p "$ARTIFACTS_WT/specs/behavioral-contracts"
 
   # Skill must exit 1 (hard error per AC-004 / EC-007)
   run bash -c "
     export ARTIFACTS_WT='${ARTIFACTS_WT}'
     export SPRINT_STATE_YAML='${WORK}/sprint-state.yaml'
     export STATE_MD_PATH='${WORK}/STATE.md'
-    export BC_DIR='${ARTIFACTS_WT}/.factory/specs/behavioral-contracts'
-    export PRECOMPACT_FLUSH_LOG='${ARTIFACTS_WT}/.factory/hooks/precompact-flush-log'
+    export BC_DIR='${ARTIFACTS_WT}/specs/behavioral-contracts'
+    export PRECOMPACT_FLUSH_LOG='${ARTIFACTS_WT}/hooks/precompact-flush-log'
     export GIT_DIR='${WORK}/.git'
     export FACTORY_REPO='${WORK}'
     '${SKILL}' \
       --artifacts-worktree '${ARTIFACTS_WT}' \
       --sprint-state '${WORK}/sprint-state.yaml' \
       --state-md '${WORK}/STATE.md' \
-      --bc-dir '${ARTIFACTS_WT}/.factory/specs/behavioral-contracts' \
+      --bc-dir '${ARTIFACTS_WT}/specs/behavioral-contracts' \
       2>&1
   "
   [ "$status" -eq 1 ] || {
@@ -389,7 +404,7 @@ _artifact_last_commit_files() {
 
 @test "test_precompact_flush_sha_three_state_rule" {
   # --- EC-001: log absent → precompact_flush_sha: null ---
-  rm -f "$ARTIFACTS_WT/.factory/hooks/precompact-flush-log"
+  rm -f "$ARTIFACTS_WT/hooks/precompact-flush-log"
   _run_skill
 
   [ -f "$ARTIFACTS_WT/HANDOFF.md" ] || {
@@ -408,7 +423,7 @@ _artifact_last_commit_files() {
 
   # --- EC-002: log present but FIELD-4 != "commit" → null ---
   echo "2026-06-17T12:00:00Z aabbcc1122334455667788990011aabbccdd1122 cycle/pass-2 pushed" \
-    > "$ARTIFACTS_WT/.factory/hooks/precompact-flush-log"
+    > "$ARTIFACTS_WT/hooks/precompact-flush-log"
   _run_skill
 
   [ -f "$ARTIFACTS_WT/HANDOFF.md" ] || {
@@ -428,7 +443,7 @@ _artifact_last_commit_files() {
   # --- EC-003: log present + FIELD-4=commit + valid FIELD-2 → SHA value ---
   local expected_sha="aabbccddeeff00112233445566778899aabbccdd"
   echo "2026-06-17T12:00:00Z ${expected_sha} cycle/pass-2 commit" \
-    > "$ARTIFACTS_WT/.factory/hooks/precompact-flush-log"
+    > "$ARTIFACTS_WT/hooks/precompact-flush-log"
   _run_skill
 
   [ -f "$ARTIFACTS_WT/HANDOFF.md" ] || {
@@ -470,7 +485,7 @@ _artifact_last_commit_files() {
   # HANDOFF.md precompact_flush_sha == log SHA. ---
   local log_sha="aabbccddeeff00112233445566778899aabbccdd"
   echo "2026-06-18T00:00:00Z ${log_sha} cycle/pass-2 commit" \
-    > "$ARTIFACTS_WT/.factory/hooks/precompact-flush-log"
+    > "$ARTIFACTS_WT/hooks/precompact-flush-log"
 
   _run_skill
 
@@ -501,21 +516,21 @@ _artifact_last_commit_files() {
   # PrecompactShaMismatch. This drives the REAL production guard — no env hatch. ---
   local malformed_sha="deadbeef"
   echo "2026-06-18T00:00:01Z ${malformed_sha} cycle/pass-2 commit" \
-    > "$ARTIFACTS_WT/.factory/hooks/precompact-flush-log"
+    > "$ARTIFACTS_WT/hooks/precompact-flush-log"
 
   # Run without FORCE_PRECOMPACT_SHA — real invocation contract
   run bash -c "
     export ARTIFACTS_WT='${ARTIFACTS_WT}'
     export SPRINT_STATE_YAML='${WORK}/sprint-state.yaml'
     export STATE_MD_PATH='${WORK}/STATE.md'
-    export BC_DIR='${ARTIFACTS_WT}/.factory/specs/behavioral-contracts'
-    export PRECOMPACT_FLUSH_LOG='${ARTIFACTS_WT}/.factory/hooks/precompact-flush-log'
+    export BC_DIR='${ARTIFACTS_WT}/specs/behavioral-contracts'
+    export PRECOMPACT_FLUSH_LOG='${ARTIFACTS_WT}/hooks/precompact-flush-log'
     export FACTORY_REPO='${WORK}'
     '${SKILL}' \
       --artifacts-worktree '${ARTIFACTS_WT}' \
       --sprint-state '${WORK}/sprint-state.yaml' \
       --state-md '${WORK}/STATE.md' \
-      --bc-dir '${ARTIFACTS_WT}/.factory/specs/behavioral-contracts' \
+      --bc-dir '${ARTIFACTS_WT}/specs/behavioral-contracts' \
       2>&1
   "
 
@@ -549,11 +564,16 @@ _artifact_last_commit_files() {
 
 # ---------------------------------------------------------------------------
 # test_epic_complete_canonical_stdout_message
-# F-S1801-P1-007 / BC-5.41.002 PC7 / BC-5.41.001 PC8
-# When EPIC-COMPLETE, stdout must contain the CANONICAL multi-line message from
-# BC-5.41.002 PC7, including the <epic-id> derived from STATE.md current_cycle.
-# The current impl emits a one-liner "EPIC-COMPLETE: all stories in terminal state"
-# which does NOT match the canonical 3-line form.
+# F-S1801-P1-007 / F-S1801-P3-003 / BC-5.41.002 PC7 / BC-5.41.001 PC8 v1.18
+# When EPIC-COMPLETE, stdout must contain ALL THREE canonical lines VERBATIM per
+# BC-5.41.001 PC8 v1.18 ≡ BC-5.41.002 PC7 (reconciled at v1.18):
+#   Line 1: "EPIC-COMPLETE: All stories in sprint-state.yaml have reached terminal status."
+#   Line 2: "Epic <epic-id> is complete. No wave-state.yaml written for next wave."
+#   Line 3: "HANDOFF.md committed to factory-artifacts with epic_status: complete."
+# Where <epic-id> is derived from STATE.md current_cycle.
+# The current impl (91a6d6a4) emits line 2 as "Epic <epic-id> is now complete." which
+# is missing "No wave-state.yaml written for next wave." and has "is now" not "is".
+# This test asserts the full verbatim line 2 — REDs against the current implementation.
 # ---------------------------------------------------------------------------
 
 @test "test_epic_complete_canonical_stdout_message" {
@@ -564,15 +584,15 @@ _artifact_last_commit_files() {
     export ARTIFACTS_WT='${ARTIFACTS_WT}'
     export SPRINT_STATE_YAML='${WORK}/sprint-state.yaml'
     export STATE_MD_PATH='${WORK}/STATE.md'
-    export BC_DIR='${ARTIFACTS_WT}/.factory/specs/behavioral-contracts'
-    export PRECOMPACT_FLUSH_LOG='${ARTIFACTS_WT}/.factory/hooks/precompact-flush-log'
+    export BC_DIR='${ARTIFACTS_WT}/specs/behavioral-contracts'
+    export PRECOMPACT_FLUSH_LOG='${ARTIFACTS_WT}/hooks/precompact-flush-log'
     export GIT_DIR='${WORK}/.git'
     export FACTORY_REPO='${WORK}'
     '${SKILL}' \
       --artifacts-worktree '${ARTIFACTS_WT}' \
       --sprint-state '${WORK}/sprint-state.yaml' \
       --state-md '${WORK}/STATE.md' \
-      --bc-dir '${ARTIFACTS_WT}/.factory/specs/behavioral-contracts' \
+      --bc-dir '${ARTIFACTS_WT}/specs/behavioral-contracts' \
       2>&1
   "
 
@@ -582,7 +602,7 @@ _artifact_last_commit_files() {
     false
   }
 
-  # Must contain line 1: "EPIC-COMPLETE: All stories in sprint-state.yaml have reached terminal status."
+  # Must contain line 1 VERBATIM (BC-5.41.001 PC8 / BC-5.41.002 PC7)
   echo "$output" | grep -qF "EPIC-COMPLETE: All stories in sprint-state.yaml have reached terminal status." || {
     echo "FAIL: canonical EPIC-COMPLETE line 1 missing." >&2
     echo "Expected: 'EPIC-COMPLETE: All stories in sprint-state.yaml have reached terminal status.'" >&2
@@ -590,16 +610,24 @@ _artifact_last_commit_files() {
     false
   }
 
-  # Must contain line 2 with the epic-id derived from STATE.md current_cycle.
-  # STATE.md has current_cycle: "v1.0-feature-context-durability-E18" → epic-id = v1.0-feature-context-durability-E18
-  echo "$output" | grep -qF "v1.0-feature-context-durability-E18" || {
-    echo "FAIL: canonical EPIC-COMPLETE line 2 missing epic-id from STATE.md current_cycle." >&2
-    echo "Expected output to contain 'v1.0-feature-context-durability-E18'" >&2
+  # Must contain line 2 VERBATIM per BC-5.41.001 PC8 v1.18 / BC-5.41.002 PC7.
+  # STATE.md has current_cycle: "v1.0-feature-context-durability-E18"
+  # canonical: "Epic v1.0-feature-context-durability-E18 is complete. No wave-state.yaml written for next wave."
+  # The current impl (91a6d6a4) emits: "Epic v1.0-feature-context-durability-E18 is now complete."
+  # which is WRONG — "is now" vs "is", and "No wave-state.yaml written for next wave." is absent.
+  # This assertion REDs the current implementation.
+  echo "$output" | grep -qF "Epic v1.0-feature-context-durability-E18 is complete. No wave-state.yaml written for next wave." || {
+    echo "FAIL (F-S1801-P3-003): canonical EPIC-COMPLETE line 2 wrong or missing." >&2
+    echo "Expected verbatim: 'Epic v1.0-feature-context-durability-E18 is complete. No wave-state.yaml written for next wave.'" >&2
+    echo "BC-5.41.001 PC8 v1.18 / BC-5.41.002 PC7 canonical text requires:" >&2
+    echo "  'Epic <epic-id> is complete. No wave-state.yaml written for next wave.'" >&2
+    echo "Current impl (91a6d6a4) emits 'Epic <epic-id> is now complete.' — 'is now' is wrong," >&2
+    echo "  and 'No wave-state.yaml written for next wave.' is absent." >&2
     echo "Actual output: $output" >&2
     false
   }
 
-  # Must contain line 3: "HANDOFF.md committed to factory-artifacts with epic_status: complete."
+  # Must contain line 3 VERBATIM (BC-5.41.001 PC8 / BC-5.41.002 PC7)
   echo "$output" | grep -qF "HANDOFF.md committed to factory-artifacts with epic_status: complete." || {
     echo "FAIL: canonical EPIC-COMPLETE line 3 missing." >&2
     echo "Expected: 'HANDOFF.md committed to factory-artifacts with epic_status: complete.'" >&2
@@ -625,15 +653,15 @@ _artifact_last_commit_files() {
     export ARTIFACTS_WT='${ARTIFACTS_WT}'
     export SPRINT_STATE_YAML='${WORK}/sprint-state.yaml'
     export STATE_MD_PATH='${WORK}/STATE.md'
-    export BC_DIR='${ARTIFACTS_WT}/.factory/specs/behavioral-contracts'
-    export PRECOMPACT_FLUSH_LOG='${ARTIFACTS_WT}/.factory/hooks/precompact-flush-log'
+    export BC_DIR='${ARTIFACTS_WT}/specs/behavioral-contracts'
+    export PRECOMPACT_FLUSH_LOG='${ARTIFACTS_WT}/hooks/precompact-flush-log'
     export GIT_DIR='${WORK}/.git'
     export FACTORY_REPO='${WORK}'
     '${SKILL}' \
       --artifacts-worktree '${ARTIFACTS_WT}' \
       --sprint-state '${WORK}/sprint-state.yaml' \
       --state-md '${WORK}/STATE.md' \
-      --bc-dir '${ARTIFACTS_WT}/.factory/specs/behavioral-contracts' \
+      --bc-dir '${ARTIFACTS_WT}/specs/behavioral-contracts' \
       2>&1
   "
 
@@ -696,15 +724,15 @@ _artifact_last_commit_files() {
     export ARTIFACTS_WT='${ARTIFACTS_WT}'
     export SPRINT_STATE_YAML='${WORK}/sprint-state.yaml'
     export STATE_MD_PATH='${WORK}/STATE.md'
-    export BC_DIR='${ARTIFACTS_WT}/.factory/specs/behavioral-contracts'
-    export PRECOMPACT_FLUSH_LOG='${ARTIFACTS_WT}/.factory/hooks/precompact-flush-log'
+    export BC_DIR='${ARTIFACTS_WT}/specs/behavioral-contracts'
+    export PRECOMPACT_FLUSH_LOG='${ARTIFACTS_WT}/hooks/precompact-flush-log'
     export GIT_DIR='${WORK}/.git'
     export FACTORY_REPO='${WORK}'
     '${SKILL}' \
       --artifacts-worktree '${ARTIFACTS_WT}' \
       --sprint-state '${WORK}/sprint-state.yaml' \
       --state-md '${WORK}/STATE.md' \
-      --bc-dir '${ARTIFACTS_WT}/.factory/specs/behavioral-contracts' \
+      --bc-dir '${ARTIFACTS_WT}/specs/behavioral-contracts' \
       2>&1
   "
 
@@ -859,14 +887,21 @@ _artifact_last_commit_files() {
     false
   }
 
-  # Assert the factory-artifacts worktree is clean (no uncommitted changes)
-  local porcelain_output
-  porcelain_output="$(git -C "$ARTIFACTS_WT" status --porcelain)"
-  [ -z "$porcelain_output" ] || {
-    echo "FAIL: factory-artifacts worktree is dirty after skill run." >&2
-    echo "git status --porcelain output:" >&2
-    echo "$porcelain_output" >&2
-    echo "The working-tree must match the committed tree after the atomic commit." >&2
+  # Assert no MODIFIED or STAGED tracked changes in the factory-artifacts worktree.
+  # Untracked files (e.g., fixture spec directories: specs/, stories/) are intentionally
+  # not staged by the narrow-staging commit (ADR-027 discipline). We check only for
+  # modified or staged tracked file changes: lines NOT starting with '??' in porcelain output.
+  # The original bug: impl awk-patched working-tree files AFTER committing → those tracked
+  # files (HANDOFF.md, wave-state.yaml) show as modified ('M') after the commit.
+  # That path is what we assert against here.
+  local modified_output
+  modified_output="$(git -C "$ARTIFACTS_WT" status --porcelain | grep -v '^??' || true)"
+  [ -z "$modified_output" ] || {
+    echo "FAIL: factory-artifacts worktree has modified or staged tracked files after skill run." >&2
+    echo "git status --porcelain (tracked changes only):" >&2
+    echo "$modified_output" >&2
+    echo "HANDOFF.md and wave-state.yaml must match the committed tree after the atomic commit." >&2
+    echo "Post-commit awk-patching of working-tree files leaves them in a modified state." >&2
     false
   }
 }
@@ -990,20 +1025,20 @@ _artifact_last_commit_files() {
   mkdir -p "$ARTIFACTS_WT2"
   git -C "$WORK2" worktree add -q "$ARTIFACTS_WT2" factory-artifacts
 
-  mkdir -p "$ARTIFACTS_WT2/.factory/hooks"
-  mkdir -p "$ARTIFACTS_WT2/.factory/specs/behavioral-contracts/ss-05"
-  mkdir -p "$ARTIFACTS_WT2/.factory/specs/architecture/decisions"
-  mkdir -p "$ARTIFACTS_WT2/.factory/stories"
-  echo "# BC-5.41.001 stub" > "$ARTIFACTS_WT2/.factory/specs/behavioral-contracts/ss-05/BC-5.41.001.md"
-  echo "# ARCH-INDEX" > "$ARTIFACTS_WT2/.factory/specs/architecture/ARCH-INDEX.md"
-  echo "# ADR-026" > "$ARTIFACTS_WT2/.factory/specs/architecture/decisions/ADR-026-wave-boundary-checkpoint-reset-and-lossless-intra-wave-compaction.md"
-  echo "# ADR-025" > "$ARTIFACTS_WT2/.factory/specs/architecture/decisions/ADR-025-single-writer-factory-locklease-prevent-concurrent-session-races-on-factory-artifacts-orphan-branch.md"
-  cat > "$ARTIFACTS_WT2/.factory/stories/STORY-INDEX.md" << 'EOF'
+  mkdir -p "$ARTIFACTS_WT2/hooks"
+  mkdir -p "$ARTIFACTS_WT2/specs/behavioral-contracts/ss-05"
+  mkdir -p "$ARTIFACTS_WT2/specs/architecture/decisions"
+  mkdir -p "$ARTIFACTS_WT2/stories"
+  echo "# BC-5.41.001 stub" > "$ARTIFACTS_WT2/specs/behavioral-contracts/ss-05/BC-5.41.001.md"
+  echo "# ARCH-INDEX" > "$ARTIFACTS_WT2/specs/architecture/ARCH-INDEX.md"
+  echo "# ADR-026" > "$ARTIFACTS_WT2/specs/architecture/decisions/ADR-026-wave-boundary-checkpoint-reset-and-lossless-intra-wave-compaction.md"
+  echo "# ADR-025" > "$ARTIFACTS_WT2/specs/architecture/decisions/ADR-025-single-writer-factory-locklease-prevent-concurrent-session-races-on-factory-artifacts-orphan-branch.md"
+  cat > "$ARTIFACTS_WT2/stories/STORY-INDEX.md" << 'EOF'
 # STORY-INDEX
-| ID | Title | Status |
-|----|-------|--------|
-| S-18.02 | Stub story 02 | pending |
-| S-18.03 | Stub story 03 | draft |
+| ID | Title | depends_on | Status |
+|----|-------|------------|--------|
+| S-18.02 | Stub story 02 | | pending |
+| S-18.03 | Stub story 03 | S-18.02 | draft |
 EOF
 
   local sprint2="$WORK2/sprint-state.yaml"
@@ -1031,15 +1066,15 @@ EOF
     export ARTIFACTS_WT="${ARTIFACTS_WT2}"
     export SPRINT_STATE_YAML="${sprint2}"
     export STATE_MD_PATH="${statemd2}"
-    export BC_DIR="${ARTIFACTS_WT2}/.factory/specs/behavioral-contracts"
-    export PRECOMPACT_FLUSH_LOG="${ARTIFACTS_WT2}/.factory/hooks/precompact-flush-log"
+    export BC_DIR="${ARTIFACTS_WT2}/specs/behavioral-contracts"
+    export PRECOMPACT_FLUSH_LOG="${ARTIFACTS_WT2}/hooks/precompact-flush-log"
     export GIT_DIR="${WORK2}/.git"
     export FACTORY_REPO="${WORK2}"
     "${SKILL}" \
       --artifacts-worktree "${ARTIFACTS_WT2}" \
       --sprint-state "${sprint2}" \
       --state-md "${statemd2}" \
-      --bc-dir "${ARTIFACTS_WT2}/.factory/specs/behavioral-contracts" \
+      --bc-dir "${ARTIFACTS_WT2}/specs/behavioral-contracts" \
       2>&1
   )" || wave1_exit_code=$?
 
@@ -1164,7 +1199,7 @@ EOF
 
   # Each story ID must appear in STORY-INDEX.md (anti-fabrication per BC-5.41.001 PC3)
   local story_index_content
-  story_index_content="$(cat "$ARTIFACTS_WT/.factory/stories/STORY-INDEX.md")"
+  story_index_content="$(cat "$ARTIFACTS_WT/stories/STORY-INDEX.md")"
   local bad_ids=""
   while IFS= read -r sid; do
     [ -z "$sid" ] && continue
@@ -1225,15 +1260,15 @@ EOF
     export ARTIFACTS_WT='${ARTIFACTS_WT}'
     export SPRINT_STATE_YAML='${WORK}/sprint-state.yaml'
     export STATE_MD_PATH='${WORK}/STATE.md'
-    export BC_DIR='${ARTIFACTS_WT}/.factory/specs/behavioral-contracts'
-    export PRECOMPACT_FLUSH_LOG='${ARTIFACTS_WT}/.factory/hooks/precompact-flush-log'
+    export BC_DIR='${ARTIFACTS_WT}/specs/behavioral-contracts'
+    export PRECOMPACT_FLUSH_LOG='${ARTIFACTS_WT}/hooks/precompact-flush-log'
     export GIT_DIR='${WORK}/.git'
     export FACTORY_REPO='${WORK}'
     '${SKILL}' \
       --artifacts-worktree '${ARTIFACTS_WT}' \
       --sprint-state '${WORK}/sprint-state.yaml' \
       --state-md '${WORK}/STATE.md' \
-      --bc-dir '${ARTIFACTS_WT}/.factory/specs/behavioral-contracts' \
+      --bc-dir '${ARTIFACTS_WT}/specs/behavioral-contracts' \
       2>&1
   "
 
@@ -1280,15 +1315,15 @@ EOF
     export ARTIFACTS_WT='${ARTIFACTS_WT}'
     export SPRINT_STATE_YAML='${WORK}/sprint-state.yaml'
     export STATE_MD_PATH='${WORK}/STATE.md'
-    export BC_DIR='${ARTIFACTS_WT}/.factory/specs/behavioral-contracts'
-    export PRECOMPACT_FLUSH_LOG='${ARTIFACTS_WT}/.factory/hooks/precompact-flush-log'
+    export BC_DIR='${ARTIFACTS_WT}/specs/behavioral-contracts'
+    export PRECOMPACT_FLUSH_LOG='${ARTIFACTS_WT}/hooks/precompact-flush-log'
     export GIT_DIR='${WORK}/.git'
     export FACTORY_REPO='${WORK}'
     '${SKILL}' \
       --artifacts-worktree '${ARTIFACTS_WT}' \
       --sprint-state '${WORK}/sprint-state.yaml' \
       --state-md '${WORK}/STATE.md' \
-      --bc-dir '${ARTIFACTS_WT}/.factory/specs/behavioral-contracts' \
+      --bc-dir '${ARTIFACTS_WT}/specs/behavioral-contracts' \
       2>&1
   "
 
@@ -1465,14 +1500,14 @@ EOF
     export ARTIFACTS_WT='${ARTIFACTS_WT}'
     export SPRINT_STATE_YAML='${WORK}/sprint-state.yaml'
     export STATE_MD_PATH='${WORK}/STATE.md'
-    export BC_DIR='${ARTIFACTS_WT}/.factory/specs/behavioral-contracts'
-    export PRECOMPACT_FLUSH_LOG='${ARTIFACTS_WT}/.factory/hooks/precompact-flush-log'
+    export BC_DIR='${ARTIFACTS_WT}/specs/behavioral-contracts'
+    export PRECOMPACT_FLUSH_LOG='${ARTIFACTS_WT}/hooks/precompact-flush-log'
     export FACTORY_REPO='${WORK}'
     '${SKILL}' \
       --artifacts-worktree '${ARTIFACTS_WT}' \
       --sprint-state '${WORK}/sprint-state.yaml' \
       --state-md '${WORK}/STATE.md' \
-      --bc-dir '${ARTIFACTS_WT}/.factory/specs/behavioral-contracts' \
+      --bc-dir '${ARTIFACTS_WT}/specs/behavioral-contracts' \
       2>&1
   "
 
@@ -1536,15 +1571,15 @@ EOF
     export ARTIFACTS_WT='${ARTIFACTS_WT}'
     export SPRINT_STATE_YAML='${WORK}/sprint-state.yaml'
     export STATE_MD_PATH='${WORK}/STATE.md'
-    export BC_DIR='${ARTIFACTS_WT}/.factory/specs/behavioral-contracts'
-    export PRECOMPACT_FLUSH_LOG='${ARTIFACTS_WT}/.factory/hooks/precompact-flush-log'
+    export BC_DIR='${ARTIFACTS_WT}/specs/behavioral-contracts'
+    export PRECOMPACT_FLUSH_LOG='${ARTIFACTS_WT}/hooks/precompact-flush-log'
     export GIT_DIR='${WORK}/.git'
     export FACTORY_REPO='${WORK}'
     '${SKILL}' \
       --artifacts-worktree '${ARTIFACTS_WT}' \
       --sprint-state '${WORK}/sprint-state.yaml' \
       --state-md '${WORK}/STATE.md' \
-      --bc-dir '${ARTIFACTS_WT}/.factory/specs/behavioral-contracts' \
+      --bc-dir '${ARTIFACTS_WT}/specs/behavioral-contracts' \
       2>&1
   "
 
@@ -1569,6 +1604,355 @@ EOF
   # wave-state.yaml must NOT be written
   [ ! -f "$ARTIFACTS_WT/wave-state.yaml" ] || {
     echo "FAIL: wave-state.yaml written when sprint-state.yaml absent (EPIC-COMPLETE path)" >&2
+    false
+  }
+}
+
+# ---------------------------------------------------------------------------
+# test_BC_5_41_002_F_P3_001_story_index_read_from_adr027_path
+# F-S1801-P3-001 / ADR-027 Decision 3 / BC-5.41.001 PC3 anti-fabrication / VP-087
+# ADR-027 canonical wiring: ARTIFACTS_WT is the factory-artifacts worktree root.
+# In production ARTIFACTS_WT = .factory. The fixture mirrors this: spec files live
+# directly at $ARTIFACTS_WT/specs/..., stories at $ARTIFACTS_WT/stories/..., with
+# NO nested .factory/ subdirectory inside ARTIFACTS_WT.
+#
+# The skill's write-wave-state.sh reads STORY-INDEX.md from
+#   ${artifacts_wt}/.factory/stories/STORY-INDEX.md  (hardcoded .factory/ prefix)
+# In the ADR-027 fixture, that path does NOT exist. The actual STORY-INDEX.md is at
+#   ${artifacts_wt}/stories/STORY-INDEX.md
+#
+# BC-5.41.001 PC3 anti-fabrication: story IDs in wave-state.yaml MUST be cross-checked
+# against STORY-INDEX.md. When the skill cannot find STORY-INDEX.md (wrong path), it
+# silently skips the cross-check — a SOUL.md §4 silent failure.
+#
+# RED gate: plant a fabricated story ID (S-99.99) in sprint-state.yaml that does NOT
+# exist in STORY-INDEX.md ($ARTIFACTS_WT/stories/STORY-INDEX.md). Assert the skill
+# exits 1 with AntiFabricationFailed — if the skill reads STORY-INDEX.md from the
+# correct ADR-027 path, it detects the phantom ID and hard-errors. If it reads from the
+# wrong hardcoded .factory/ path (91a6d6a4), the file is absent → anti-fabrication silently
+# skips → skill exits 0 → this test fails (WRONG exit code).
+# ---------------------------------------------------------------------------
+
+@test "test_BC_5_41_002_F_P3_001_story_index_read_from_adr027_path" {
+  # STORY-INDEX.md (at $ARTIFACTS_WT/stories/STORY-INDEX.md) contains S-18.02 and S-18.03.
+  # S-99.99 is NOT in STORY-INDEX.md — it is a fabricated phantom story ID.
+  cat > "$WORK/sprint-state.yaml" << 'EOF'
+stories:
+  - id: S-99.99
+    status: pending
+EOF
+
+  run bash -c "
+    export ARTIFACTS_WT='${ARTIFACTS_WT}'
+    export SPRINT_STATE_YAML='${WORK}/sprint-state.yaml'
+    export STATE_MD_PATH='${WORK}/STATE.md'
+    export BC_DIR='${ARTIFACTS_WT}/specs/behavioral-contracts'
+    export PRECOMPACT_FLUSH_LOG='${ARTIFACTS_WT}/hooks/precompact-flush-log'
+    export GIT_DIR='${WORK}/.git'
+    export FACTORY_REPO='${WORK}'
+    '${SKILL}' \
+      --artifacts-worktree '${ARTIFACTS_WT}' \
+      --sprint-state '${WORK}/sprint-state.yaml' \
+      --state-md '${WORK}/STATE.md' \
+      --bc-dir '${ARTIFACTS_WT}/specs/behavioral-contracts' \
+      2>&1
+  "
+
+  # Must exit 1 — S-99.99 is not in STORY-INDEX.md → AntiFabricationFailed
+  # If the skill reads STORY-INDEX.md from the CORRECT ADR-027 path
+  #   ($ARTIFACTS_WT/stories/STORY-INDEX.md), it finds the file, checks S-99.99,
+  #   doesn't find it, and hard-errors.
+  # If the skill reads from the WRONG hardcoded path
+  #   ($ARTIFACTS_WT/.factory/stories/STORY-INDEX.md — which doesn't exist in the
+  #   ADR-027 fixture), the `if [ -f ... ]` guard silently skips → skill exits 0
+  #   without detecting the phantom ID.
+  # Current impl (91a6d6a4) uses the wrong hardcoded .factory/ path → exits 0 here.
+  [ "$status" -eq 1 ] || {
+    echo "FAIL (F-S1801-P3-001): skill exited ${status}, expected 1 (AntiFabricationFailed)." >&2
+    echo "" >&2
+    echo "Fabricated story ID S-99.99 is NOT in STORY-INDEX.md." >&2
+    echo "BC-5.41.001 PC3 anti-fabrication requires the skill to hard-error on phantom story IDs." >&2
+    echo "" >&2
+    echo "ADR-027 path discipline: STORY-INDEX.md is at:" >&2
+    echo "  ${ARTIFACTS_WT}/stories/STORY-INDEX.md  (ADR-027 correct path)" >&2
+    echo "Current impl (91a6d6a4) reads from:" >&2
+    echo "  ${ARTIFACTS_WT}/.factory/stories/STORY-INDEX.md  (hardcoded wrong path, does not exist)" >&2
+    echo "The absent file causes anti-fabrication to silently skip → phantom ID S-99.99 passes." >&2
+    echo "" >&2
+    echo "Actual output: $output" >&2
+    false
+  }
+
+  # Error output must mention AntiFabricationFailed or S-99.99
+  echo "$output" | grep -qiE "(AntiFabricationFailed|S-99\.99|not found in STORY-INDEX)" || {
+    echo "FAIL (F-S1801-P3-001): skill exited 1 but output doesn't mention AntiFabricationFailed." >&2
+    echo "Expected error mentioning AntiFabricationFailed or S-99.99 or 'not found in STORY-INDEX'" >&2
+    echo "Actual output: $output" >&2
+    false
+  }
+
+  # Positive side-check: STORY-INDEX.md must exist at ADR-027 path (fixture sanity)
+  [ -f "$ARTIFACTS_WT/stories/STORY-INDEX.md" ] || {
+    echo "FAIL (F-S1801-P3-001): fixture STORY-INDEX.md missing at ${ARTIFACTS_WT}/stories/STORY-INDEX.md" >&2
+    echo "This is a fixture setup error, not an impl error." >&2
+    false
+  }
+}
+
+# ---------------------------------------------------------------------------
+# test_BC_5_41_002_F_P3_002_stories_topological_order_in_committed_blob
+# F-S1801-P3-002 / BC-5.41.002 PC3 / VP-087
+# The stories list in the COMMITTED wave-state.yaml must be ordered by the
+# dependency graph from STORY-INDEX.md depends_on: arrays — not by the order
+# they appear in sprint-state.yaml.
+#
+# Fixture: sprint-state.yaml lists stories in REVERSE dependency order:
+#   - id: S-18.03   status: draft    (depends_on S-18.02 per STORY-INDEX.md)
+#   - id: S-18.02   status: pending  (no dependency — must come first)
+# STORY-INDEX.md declares: S-18.03 depends_on S-18.02
+# Correct topo order: S-18.02 first, then S-18.03
+#
+# REDs the current implementation which uses file-order (sprint-state.yaml order)
+# rather than dependency-graph topological order: S-18.03 appears first in
+# sprint-state.yaml → current impl emits S-18.03 first in wave-state.yaml
+# → this test fails the order assertion.
+#
+# Assert via COMMITTED blob (git show factory-artifacts:wave-state.yaml).
+# ---------------------------------------------------------------------------
+
+@test "test_BC_5_41_002_F_P3_002_stories_topological_order_in_committed_blob" {
+  # Write sprint-state.yaml in REVERSE dependency order (S-18.03 first, S-18.02 second).
+  # STORY-INDEX.md (set up in setup()) declares S-18.03 depends_on S-18.02.
+  cat > "$WORK/sprint-state.yaml" << 'EOF'
+stories:
+  - id: S-18.03
+    status: draft
+  - id: S-18.02
+    status: pending
+EOF
+
+  _run_skill
+
+  [ "$status" -eq 0 ] || {
+    echo "FAIL: skill exited ${status}, expected 0. Output: $output" >&2
+    false
+  }
+
+  # Read the COMMITTED blob (VP-087 proof harness — not working-tree file)
+  git -C "$WORK" show factory-artifacts:wave-state.yaml >/dev/null 2>&1 || {
+    echo "FAIL: wave-state.yaml not in committed factory-artifacts tree" >&2
+    false
+  }
+
+  local committed_content
+  committed_content="$(git -C "$WORK" show factory-artifacts:wave-state.yaml)"
+
+  # Extract the story IDs in the order they appear in the committed blob
+  # Lines matching "  - id: S-" under the stories: block
+  local ordered_ids
+  ordered_ids="$(echo "$committed_content" | grep -E '^\s+-\s+id:\s+S-' | awk '{print $NF}')"
+
+  # Correct topo order: S-18.02 (no deps) must appear BEFORE S-18.03 (depends_on S-18.02)
+  local first_id second_id
+  first_id="$(echo "$ordered_ids" | sed -n '1p')"
+  second_id="$(echo "$ordered_ids" | sed -n '2p')"
+
+  [ "$first_id" = "S-18.02" ] || {
+    echo "FAIL (F-S1801-P3-002): topological sort failed." >&2
+    echo "  Expected first story: S-18.02 (no dependencies)" >&2
+    echo "  Got first story:      '${first_id}'" >&2
+    echo "" >&2
+    echo "  STORY-INDEX.md declares: S-18.03 depends_on S-18.02" >&2
+    echo "  sprint-state.yaml order: S-18.03 first, S-18.02 second (REVERSE of correct order)" >&2
+    echo "  BC-5.41.002 PC3 requires stories be ordered by dependency graph, not file order." >&2
+    echo "" >&2
+    echo "  Current impl (91a6d6a4) uses sprint-state.yaml file order directly → S-18.03 first." >&2
+    echo "  This REDs the topological sort requirement." >&2
+    echo "" >&2
+    echo "  Committed wave-state.yaml stories section:" >&2
+    echo "$committed_content" | grep -A 10 "^stories:" >&2
+    false
+  }
+
+  [ "$second_id" = "S-18.03" ] || {
+    echo "FAIL (F-S1801-P3-002): expected second story to be S-18.03, got '${second_id}'" >&2
+    echo "  Committed wave-state.yaml stories section:" >&2
+    echo "$committed_content" | grep -A 10 "^stories:" >&2
+    false
+  }
+}
+
+# ---------------------------------------------------------------------------
+# test_BC_5_41_001_F_P3_003_epic_complete_all_three_lines_verbatim
+# F-S1801-P3-003 / BC-5.41.001 PC8 v1.18 ≡ BC-5.41.002 PC7 (verbatim-identical after v1.18)
+# EPIC-COMPLETE stdout must contain ALL THREE canonical lines VERBATIM.
+# Each line is asserted separately so failure points to the exact deviation.
+#
+# Canonical three-line format (BC-5.41.001 PC8 v1.18 / BC-5.41.002 PC7):
+#   Line 1: "EPIC-COMPLETE: All stories in sprint-state.yaml have reached terminal status."
+#   Line 2: "Epic <epic-id> is complete. No wave-state.yaml written for next wave."
+#   Line 3: "HANDOFF.md committed to factory-artifacts with epic_status: complete."
+#
+# Current impl (91a6d6a4) emits line 2 as:
+#   "Epic <epic-id> is now complete."
+# which deviates on two counts:
+#   (a) "is now complete." vs "is complete." — extra "now"
+#   (b) "No wave-state.yaml written for next wave." absent entirely
+#
+# This test asserts line 2 verbatim — REDs against 91a6d6a4.
+# ---------------------------------------------------------------------------
+
+@test "test_BC_5_41_001_F_P3_003_epic_complete_all_three_lines_verbatim" {
+  _write_sprint_state_all_terminal
+  _write_state_md "4"
+
+  run bash -c "
+    export ARTIFACTS_WT='${ARTIFACTS_WT}'
+    export SPRINT_STATE_YAML='${WORK}/sprint-state.yaml'
+    export STATE_MD_PATH='${WORK}/STATE.md'
+    export BC_DIR='${ARTIFACTS_WT}/specs/behavioral-contracts'
+    export PRECOMPACT_FLUSH_LOG='${ARTIFACTS_WT}/hooks/precompact-flush-log'
+    export GIT_DIR='${WORK}/.git'
+    export FACTORY_REPO='${WORK}'
+    '${SKILL}' \
+      --artifacts-worktree '${ARTIFACTS_WT}' \
+      --sprint-state '${WORK}/sprint-state.yaml' \
+      --state-md '${WORK}/STATE.md' \
+      --bc-dir '${ARTIFACTS_WT}/specs/behavioral-contracts' \
+      2>&1
+  "
+
+  # Must exit 0 on EPIC-COMPLETE
+  [ "$status" -eq 0 ] || {
+    echo "FAIL (F-S1801-P3-003): skill exited ${status} on EPIC-COMPLETE, expected 0." >&2
+    echo "Output: $output" >&2
+    false
+  }
+
+  # --- Line 1 VERBATIM ---
+  echo "$output" | grep -qF \
+    "EPIC-COMPLETE: All stories in sprint-state.yaml have reached terminal status." || {
+    echo "FAIL (F-S1801-P3-003 line 1): canonical EPIC-COMPLETE line 1 missing or wrong." >&2
+    echo "Expected verbatim: 'EPIC-COMPLETE: All stories in sprint-state.yaml have reached terminal status.'" >&2
+    echo "Actual output: $output" >&2
+    false
+  }
+
+  # --- Line 2 VERBATIM (BC-5.41.001 PC8 v1.18 / BC-5.41.002 PC7 canonical text) ---
+  # STATE.md current_cycle = "v1.0-feature-context-durability-E18"
+  # Canonical: "Epic v1.0-feature-context-durability-E18 is complete. No wave-state.yaml written for next wave."
+  # Current impl (91a6d6a4) emits: "Epic v1.0-feature-context-durability-E18 is now complete."
+  #   Deviation 1: "is now complete" vs "is complete"
+  #   Deviation 2: "No wave-state.yaml written for next wave." is absent
+  echo "$output" | grep -qF \
+    "Epic v1.0-feature-context-durability-E18 is complete. No wave-state.yaml written for next wave." || {
+    echo "FAIL (F-S1801-P3-003 line 2): canonical EPIC-COMPLETE line 2 wrong or missing." >&2
+    echo "Expected verbatim: 'Epic v1.0-feature-context-durability-E18 is complete. No wave-state.yaml written for next wave.'" >&2
+    echo "BC-5.41.001 PC8 v1.18 / BC-5.41.002 PC7 canonical line 2 template:" >&2
+    echo "  'Epic <epic-id> is complete. No wave-state.yaml written for next wave.'" >&2
+    echo "Current impl (91a6d6a4) emits: 'Epic <epic-id> is now complete.'" >&2
+    echo "  Deviation 1: 'is now complete' (extra 'now')" >&2
+    echo "  Deviation 2: 'No wave-state.yaml written for next wave.' is absent" >&2
+    echo "Actual output: $output" >&2
+    false
+  }
+
+  # --- Line 3 VERBATIM ---
+  echo "$output" | grep -qF \
+    "HANDOFF.md committed to factory-artifacts with epic_status: complete." || {
+    echo "FAIL (F-S1801-P3-003 line 3): canonical EPIC-COMPLETE line 3 missing or wrong." >&2
+    echo "Expected verbatim: 'HANDOFF.md committed to factory-artifacts with epic_status: complete.'" >&2
+    echo "Actual output: $output" >&2
+    false
+  }
+}
+
+# ---------------------------------------------------------------------------
+# test_BC_5_41_001_F_P3_004_last_verified_sha_cwd_independent
+# F-S1801-P3-004 / BC-5.41.001 PC3 / ADR-027 Decision 1
+# last_verified_develop_sha in HANDOFF.md must resolve correctly even when the
+# skill is invoked from an UNRELATED cwd (not the artifacts worktree, not the
+# main repo — e.g., /tmp or any directory with no git repo).
+#
+# The skill must use `git -C "$ARTIFACTS_WT"` (or an explicit repo path via
+# FACTORY_REPO / git -C) to resolve origin/develop — NOT a bare
+# `git rev-parse origin/develop` which is cwd-dependent and would fail or
+# return wrong results when cwd has no git repo.
+#
+# Current impl (91a6d6a4) in write-handoff.sh get_last_verified_develop_sha():
+#   if FACTORY_REPO is set: git -C "$factory_repo" rev-parse origin/develop  ✓ (cwd-independent)
+#   else: git rev-parse origin/develop                                         ✗ (cwd-dependent)
+# This test invokes the skill WITHOUT FACTORY_REPO and with cwd=/tmp.
+# The bare `git rev-parse origin/develop` in /tmp will fail (no git repo) → exit non-zero.
+#
+# REDs the fallback path (bare git rev-parse) in get_last_verified_develop_sha when
+# FACTORY_REPO is not set and cwd is not a git repo.
+#
+# Assert: skill exits 0 AND the committed HANDOFF.md contains a valid 40-char hex SHA
+# matching the fixture's origin/develop ref.
+# ---------------------------------------------------------------------------
+
+@test "test_BC_5_41_001_F_P3_004_last_verified_sha_cwd_independent" {
+  local fixture_develop_sha
+  fixture_develop_sha="$(git -C "$WORK" rev-parse origin/develop)"
+
+  # Invoke skill from /tmp (unrelated cwd, definitely no git repo there).
+  # FACTORY_REPO is NOT set — forces the bare `git rev-parse origin/develop` fallback.
+  # Note: ARTIFACTS_WT and all explicit paths are absolute, so the skill can resolve them
+  # correctly IF it uses -C flags. Only the develop SHA lookup depends on cwd.
+  run bash -c "
+    cd /tmp
+    export ARTIFACTS_WT='${ARTIFACTS_WT}'
+    export SPRINT_STATE_YAML='${WORK}/sprint-state.yaml'
+    export STATE_MD_PATH='${WORK}/STATE.md'
+    export BC_DIR='${ARTIFACTS_WT}/specs/behavioral-contracts'
+    export PRECOMPACT_FLUSH_LOG='${ARTIFACTS_WT}/hooks/precompact-flush-log'
+    '${SKILL}' \
+      --artifacts-worktree '${ARTIFACTS_WT}' \
+      --sprint-state '${WORK}/sprint-state.yaml' \
+      --state-md '${WORK}/STATE.md' \
+      --bc-dir '${ARTIFACTS_WT}/specs/behavioral-contracts' \
+      2>&1
+  "
+  # Note: FACTORY_REPO and GIT_DIR intentionally NOT exported here.
+  # The skill must resolve origin/develop via git -C ARTIFACTS_WT or equivalent.
+
+  # Must exit 0 — a cwd-independent implementation succeeds from /tmp
+  [ "$status" -eq 0 ] || {
+    echo "FAIL (F-S1801-P3-004): skill exited ${status} when invoked from /tmp without FACTORY_REPO." >&2
+    echo "Expected exit 0: skill must resolve origin/develop via git -C ARTIFACTS_WT (cwd-independent)." >&2
+    echo "Current impl (91a6d6a4) has a bare 'git rev-parse origin/develop' fallback in" >&2
+    echo "  get_last_verified_develop_sha() when FACTORY_REPO is unset — this fails in /tmp" >&2
+    echo "  because /tmp has no git repository." >&2
+    echo "Actual output: $output" >&2
+    false
+  }
+
+  # Read committed HANDOFF.md blob (VP-087 proof harness — not working-tree file)
+  git -C "$WORK" show factory-artifacts:HANDOFF.md >/dev/null 2>&1 || {
+    echo "FAIL (F-S1801-P3-004): HANDOFF.md not committed to factory-artifacts." >&2
+    false
+  }
+
+  local committed_sha
+  committed_sha="$(git -C "$WORK" show factory-artifacts:HANDOFF.md \
+    | grep "^last_verified_develop_sha:" | awk '{print $2}')"
+
+  # Must be a valid 40-char hex SHA
+  echo "$committed_sha" | grep -qE '^[0-9a-f]{40}$' || {
+    echo "FAIL (F-S1801-P3-004): last_verified_develop_sha in committed HANDOFF.md" >&2
+    echo "  '${committed_sha}' is not a 40-char lowercase hex SHA." >&2
+    echo "  When skill is invoked from /tmp without FACTORY_REPO, get_last_verified_develop_sha" >&2
+    echo "  must still resolve origin/develop correctly via git -C ARTIFACTS_WT." >&2
+    false
+  }
+
+  # Must match the fixture's origin/develop SHA exactly
+  [ "$committed_sha" = "$fixture_develop_sha" ] || {
+    echo "FAIL (F-S1801-P3-004): last_verified_develop_sha in committed HANDOFF.md" >&2
+    echo "  '${committed_sha}' != fixture origin/develop '${fixture_develop_sha}'" >&2
+    echo "  The skill must resolve origin/develop from the fixture repo (via git -C ARTIFACTS_WT" >&2
+    echo "  or git -C WORK), not from cwd=/tmp (which has no git repo)." >&2
     false
   }
 }
