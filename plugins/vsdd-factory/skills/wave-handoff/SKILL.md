@@ -49,7 +49,7 @@ All four of the following arguments are mandatory. The skill hard-errors
 | `--artifacts-worktree <path>` | `ARTIFACTS_WT` | `.factory` | Root of the factory-artifacts worktree. `HANDOFF.md` and `wave-state.yaml` are written here; git commit targets `git -C "$ARTIFACTS_WT"`. |
 | `--sprint-state <path>` | `SPRINT_STATE_YAML` | `.factory/stories/sprint-state.yaml` | Path to `sprint-state.yaml`; used for story classification, wave derivation, and next-wave story enumeration. |
 | `--state-md <path>` | `STATE_MD_PATH` | `.factory/STATE.md` | Path to `STATE.md`; used for `factory_lock_holder` and fallback `wave_id` derivation from `current_step: "pass-N"`. |
-| `--bc-dir <path>` | `BC_DIR` | `.factory/specs/behavioral-contracts` | Directory scanned (recursively) for active BC `.md` files; populates `active_bcs` in `HANDOFF.md`. |
+| `--bc-dir <path>` | `BC_DIR` | `<ARTIFACTS_WT>/specs/behavioral-contracts` | Directory scanned (recursively) for active BC `.md` files; populates `active_bcs` in `HANDOFF.md`. See production invocation example above for the concrete path. |
 
 ## Optional Arguments
 
