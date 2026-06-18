@@ -3413,3 +3413,165 @@ EOF
     false
   }
 }
+
+# ---------------------------------------------------------------------------
+# test_BC_5_41_001_F_P8_001_no_partial_handoff_on_anti_fabrication_failure
+# F-P8-001 / BC-5.41.001 PC4 / BLOCKER
+# When next_wave_stories contains a phantom ID (not in STORY-INDEX.md), the
+# anti-fabrication check in write_wave_state exits 1 with AntiFabricationFailed.
+# BC-5.41.001 PC4 requires: "If any required field is absent or any anti-fabrication
+# check fails, wave-gate blocks wave close … and does NOT write a partial HANDOFF.md."
+#
+# BUG: In the has-next-wave path, write_handoff writes HANDOFF.md to the working
+# tree BEFORE write_wave_state runs the STORY-INDEX cross-check. A phantom ID
+# makes write_wave_state exit 1 — but HANDOFF.md is already written, leaving a
+# partial artifact and a dirty worktree.
+#
+# Red assertions (must fail before fix, pass after):
+#   (a) exit status 1
+#   (b) HANDOFF.md must NOT be present in working tree
+#   (c) worktree must be clean (git status --porcelain shows no HANDOFF.md entry)
+#
+# Red proof: current code writes HANDOFF.md BEFORE write_wave_state runs.
+# ---------------------------------------------------------------------------
+
+@test "test_BC_5_41_001_F_P8_001_no_partial_handoff_on_anti_fabrication_failure" {
+  # sprint-state.yaml with a phantom next-wave story ID (not in STORY-INDEX.md)
+  cat > "$WORK/sprint-state.yaml" << 'EOF'
+stories:
+  - id: S-99.99
+    status: pending
+EOF
+
+  # STORY-INDEX.md (set up in setup()) does NOT contain S-99.99
+  # Confirm fixture sanity: STORY-INDEX.md must exist at the ADR-027 path
+  [ -f "$ARTIFACTS_WT/stories/STORY-INDEX.md" ] || {
+    echo "FIXTURE ERROR: STORY-INDEX.md missing at ${ARTIFACTS_WT}/stories/STORY-INDEX.md" >&2
+    false
+  }
+
+  run bash -c "
+    export ARTIFACTS_WT='${ARTIFACTS_WT}'
+    export SPRINT_STATE_YAML='${WORK}/sprint-state.yaml'
+    export STATE_MD_PATH='${WORK}/STATE.md'
+    export BC_DIR='${ARTIFACTS_WT}/specs/behavioral-contracts'
+    export PRECOMPACT_FLUSH_LOG='${ARTIFACTS_WT}/hooks/precompact-flush-log'
+    export GIT_DIR='${WORK}/.git'
+    export FACTORY_REPO='${WORK}'
+    '${SKILL}' \
+      --artifacts-worktree '${ARTIFACTS_WT}' \
+      --sprint-state '${WORK}/sprint-state.yaml' \
+      --state-md '${WORK}/STATE.md' \
+      --bc-dir '${ARTIFACTS_WT}/specs/behavioral-contracts' \
+      2>&1
+  "
+
+  # (a) Must exit 1 — anti-fabrication fails on phantom S-99.99
+  [ "$status" -eq 1 ] || {
+    echo "FAIL (F-P8-001 a): skill exited ${status}, expected 1 (AntiFabricationFailed)." >&2
+    echo "  Phantom ID S-99.99 is NOT in STORY-INDEX.md; skill must exit 1." >&2
+    echo "  Actual output: $output" >&2
+    false
+  }
+
+  # (b) HANDOFF.md must NOT be present — no partial artifact written before validation
+  # BC-5.41.001 PC4: "does NOT write a partial HANDOFF.md"
+  [ ! -f "$ARTIFACTS_WT/HANDOFF.md" ] || {
+    echo "FAIL (F-P8-001 b): HANDOFF.md was written to working tree before anti-fabrication check." >&2
+    echo "  BC-5.41.001 PC4 requires: no partial HANDOFF.md on anti-fabrication failure." >&2
+    echo "" >&2
+    echo "  ROOT CAUSE (F-P8-001): In the has-next-wave path, write_handoff runs BEFORE" >&2
+    echo "  write_wave_state. write_wave_state exits 1 on AntiFabricationFailed — but" >&2
+    echo "  HANDOFF.md is already written to the working tree." >&2
+    echo "" >&2
+    echo "  FIX: Perform next_wave_stories anti-fabrication validation in a pre-flight step" >&2
+    echo "  in main() BEFORE calling write_handoff. All story IDs must resolve in STORY-INDEX.md" >&2
+    echo "  before any file is written." >&2
+    false
+  }
+
+  # (c) Worktree must be clean — no HANDOFF.md in git status output
+  local wt_status
+  wt_status="$(git -C "$ARTIFACTS_WT" status --porcelain 2>/dev/null | grep 'HANDOFF.md' || true)"
+  [ -z "$wt_status" ] || {
+    echo "FAIL (F-P8-001 c): worktree is dirty — HANDOFF.md appears in git status --porcelain:" >&2
+    echo "  ${wt_status}" >&2
+    echo "  The partial HANDOFF.md write must not occur before validation." >&2
+    false
+  }
+}
+
+# ---------------------------------------------------------------------------
+# test_BC_5_41_001_F_P8_002_story_index_absent_hard_errors_on_nonempty_stories
+# F-P8-002 / BC-5.41.001 PC3 / BC-5.41.002 PC2 precond 2 / MEDIUM
+# When STORY-INDEX.md is absent and next_wave_stories is non-empty (has-next-wave),
+# the per-story anti-fabrication cross-check is silently skipped because the
+# guard is `if [ -f "$story_index_path" ]; then ... fi` with no `else`.
+#
+# BC-5.41.002 PC2 precondition 2 declares STORY-INDEX.md "current and accessible";
+# its absence at wave-close with non-empty story IDs is a block condition.
+# SOUL.md §4 silent-failure: every story ID passes when STORY-INDEX is absent.
+#
+# Red assertion: has-next-wave invocation with STORY-INDEX.md removed → must exit
+# non-zero with a named error (StoryIndexMissing or AntiFabricationFailed).
+#
+# Red proof: current code silently skips the cross-check when the file is absent,
+# so the skill exits 0 with fabrication unchecked.
+# ---------------------------------------------------------------------------
+
+@test "test_BC_5_41_001_F_P8_002_story_index_absent_hard_errors_on_nonempty_stories" {
+  # Default sprint-state (pending + draft stories) set up by setup()
+  # Remove STORY-INDEX.md to trigger the absent-file path
+  rm -f "$ARTIFACTS_WT/stories/STORY-INDEX.md"
+
+  # Confirm STORY-INDEX.md is truly absent (fixture sanity)
+  [ ! -f "$ARTIFACTS_WT/stories/STORY-INDEX.md" ] || {
+    echo "FIXTURE ERROR: STORY-INDEX.md still exists after removal" >&2
+    false
+  }
+
+  run bash -c "
+    export ARTIFACTS_WT='${ARTIFACTS_WT}'
+    export SPRINT_STATE_YAML='${WORK}/sprint-state.yaml'
+    export STATE_MD_PATH='${WORK}/STATE.md'
+    export BC_DIR='${ARTIFACTS_WT}/specs/behavioral-contracts'
+    export PRECOMPACT_FLUSH_LOG='${ARTIFACTS_WT}/hooks/precompact-flush-log'
+    export GIT_DIR='${WORK}/.git'
+    export FACTORY_REPO='${WORK}'
+    '${SKILL}' \
+      --artifacts-worktree '${ARTIFACTS_WT}' \
+      --sprint-state '${WORK}/sprint-state.yaml' \
+      --state-md '${WORK}/STATE.md' \
+      --bc-dir '${ARTIFACTS_WT}/specs/behavioral-contracts' \
+      2>&1
+  "
+
+  # Must exit non-zero — absent STORY-INDEX.md with non-empty story IDs is a block condition
+  # BC-5.41.002 PC2 precondition 2: STORY-INDEX.md must be "current and accessible"
+  [ "$status" -ne 0 ] || {
+    echo "FAIL (F-P8-002): skill exited 0 when STORY-INDEX.md is absent." >&2
+    echo "" >&2
+    echo "  BUG (F-P8-002): The anti-fabrication guard is guarded by 'if [ -f story_index_path ]'" >&2
+    echo "  with NO else clause. When STORY-INDEX.md is absent, the entire anti-fabrication" >&2
+    echo "  cross-check is silently skipped — every story ID passes unchecked." >&2
+    echo "" >&2
+    echo "  BC-5.41.002 PC2 precondition 2 declares STORY-INDEX.md 'current and accessible'." >&2
+    echo "  Its absence at wave-close with non-empty next_wave_stories is a hard block condition." >&2
+    echo "  SOUL.md §4: silent failure is forbidden." >&2
+    echo "" >&2
+    echo "  FIX: When story_pairs is non-empty AND story_index_path does NOT exist," >&2
+    echo "  hard-error with StoryIndexMissing (or AntiFabricationFailed) and exit 1." >&2
+    echo "  Guard on story_pairs non-empty: empty next-wave (EPIC-COMPLETE) needs no index." >&2
+    echo "" >&2
+    echo "  Actual output: $output" >&2
+    false
+  }
+
+  # Error output must mention the named error or the cause
+  echo "$output" | grep -qiE "(StoryIndexMissing|AntiFabricationFailed|STORY-INDEX|story.index)" || {
+    echo "FAIL (F-P8-002): skill exited non-zero but output does not identify the cause." >&2
+    echo "  Expected: mention of StoryIndexMissing, AntiFabricationFailed, or STORY-INDEX" >&2
+    echo "  Actual output: $output" >&2
+    false
+  }
+}
