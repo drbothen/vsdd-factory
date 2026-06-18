@@ -8,8 +8,6 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep
 
 # Wave Handoff
 
-<!-- S-18.01 scaffold — stub skeleton only. Implementation in TDD green step. -->
-
 Produce HANDOFF.md and wave-state.yaml atomically on the factory-artifacts branch at
 wave close, satisfying BC-5.41.001 (HANDOFF.md with 9 base required fields +
 anti-fabrication cross-checks) and BC-5.41.002 (wave-state.yaml with 6 required
