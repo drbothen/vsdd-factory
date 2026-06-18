@@ -174,7 +174,17 @@ main() {
       local iso_ts
       iso_ts="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
-      _git_wt commit -m "HANDOFF wave-${wave_id} ${iso_ts}" > /dev/null
+      # EC-015 idempotent re-invocation guard:
+      # When a byte-identical HANDOFF.md was already committed (same-input re-run),
+      # `git add` stages no change and `git commit` exits non-zero ("nothing to commit").
+      # Under `set -euo pipefail` the script would abort BEFORE the mandatory AC-012
+      # EPIC-COMPLETE announcement. Detect an empty staged diff and skip the commit,
+      # but unconditionally emit the announcement and exit 0.
+      if _git_wt diff --cached --quiet; then
+        :   # nothing staged — idempotent re-invocation; treat as success
+      else
+        _git_wt commit -m "HANDOFF wave-${wave_id} ${iso_ts}" > /dev/null
+      fi
 
       # Canonical EPIC-COMPLETE stdout message per BC-5.41.002 PC7 / BC-5.41.001 PC8
       local epic_id

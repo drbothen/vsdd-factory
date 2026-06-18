@@ -33,6 +33,16 @@ commit_to_artifacts() {
     git -C "$artifacts_wt" add -- "$f"
   done
 
+  # EC-015 idempotent guard: when all staged files are byte-identical to the
+  # previously committed versions (re-run of identical content), `git diff --cached`
+  # reports empty and `git commit` would exit non-zero ("nothing to commit").
+  # Detect this and skip the commit. Callers handle the idempotent case themselves.
+  if git -C "$artifacts_wt" diff --cached --quiet; then
+    # Nothing new to commit — return current HEAD as the "commit SHA"
+    git -C "$artifacts_wt" rev-parse HEAD
+    return 0
+  fi
+
   # Create a single atomic commit with the exact message format
   git -C "$artifacts_wt" \
     -c user.email="${GIT_AUTHOR_EMAIL:-ci@vsdd-factory}" \
