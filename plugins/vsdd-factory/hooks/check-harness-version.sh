@@ -69,10 +69,29 @@ if [ -z "$VERSION_STRING" ]; then
 fi
 
 # ---------------------------------------------------------------------------
+# Guard: reject implausibly long version strings (SEC-001)
+# ---------------------------------------------------------------------------
+if [ "${#VERSION_STRING}" -gt 64 ]; then
+    echo "check-harness-version: version string too long (${#VERSION_STRING} bytes); cannot parse version; advisory" >&2
+    exit 1
+fi
+
+# ---------------------------------------------------------------------------
 # Parse and compare
 # ---------------------------------------------------------------------------
 # Strip leading 'v' if present (e.g. "v2.1.177" → "2.1.177")
 _clean_version="${VERSION_STRING#v}"
+
+# Guard: reject pre-release versions (SEC-002)
+# Pre-release versions (e.g. "2.1.105-beta.1") are semantically below the GA
+# release per semver, so they do not satisfy the minimum version requirement.
+case "$_clean_version" in
+    *-*)
+        echo "check-harness-version: harness v${_clean_version} is a pre-release version; treating as below threshold; advisory" >&2
+        exit 1
+        ;;
+esac
+
 _major=$(echo "$_clean_version" | cut -d. -f1)
 _minor=$(echo "$_clean_version" | cut -d. -f2)
 _patch=$(echo "$_clean_version" | cut -d. -f3 | grep -oE '^[0-9]+' || echo "0")
