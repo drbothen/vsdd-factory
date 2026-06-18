@@ -53,7 +53,22 @@ write_wave_state() {
   # The old `grep -q "$sid" "$story_index_path"` was unanchored with '.' wildcard,
   # so phantom "S-18.1" matched real "S-18.10" via substring — defeating PC3/INV3.
   # Fix: escape dots in the ID and anchor to "| <id> |" column boundaries.
+  #
+  # F-P8-002 fix: when story_pairs is non-empty and STORY-INDEX.md is absent,
+  # hard-error with StoryIndexMissing — do NOT silently skip anti-fabrication.
+  # BC-5.41.002 PC2 precondition 2: STORY-INDEX.md must be "current and accessible"
+  # at wave-close when next_wave_stories is non-empty. SOUL.md §4 forbids silent
+  # failure; every story ID passing unchecked when the index file is absent is a
+  # silent-fabrication risk. Guard on story_pairs non-empty: EPIC-COMPLETE (empty
+  # story_pairs) needs no index file.
   # ---------------------------------------------------------------------------
+  if [ "${#story_pairs[@]}" -gt 0 ] && [ ! -f "$story_index_path" ]; then
+    echo "ERROR: StoryIndexMissing — STORY-INDEX.md not found at '${story_index_path}'" >&2
+    echo "  BC-5.41.002 PC2 precondition 2: STORY-INDEX.md must be current and accessible at wave-close." >&2
+    echo "  Cannot perform anti-fabrication cross-check on next_wave_stories without STORY-INDEX.md." >&2
+    exit 1
+  fi
+
   local pair
   for pair in "${story_pairs[@]}"; do
     local sid="${pair%%:*}"

@@ -203,6 +203,41 @@ main() {
         story_pairs+=("${NEXT_WAVE_STORY_IDS[$i]}:${NEXT_WAVE_STORY_STATUSES[$i]}")
       done
 
+      # Step 2b: Pre-flight anti-fabrication validation — BEFORE writing any files.
+      # BC-5.41.001 PC4: "If any required field is absent or any anti-fabrication check
+      # fails, wave-gate blocks wave close … and does NOT write a partial HANDOFF.md."
+      #
+      # F-P8-001 fix: validate ALL next_wave_stories IDs against STORY-INDEX.md here,
+      # before calling write_handoff in Step 4. The old ordering (write_handoff first,
+      # then write_wave_state which performs the check) left a partial HANDOFF.md on disk
+      # when write_wave_state exited 1 on AntiFabricationFailed.
+      #
+      # F-P8-002 is also handled here: if story_pairs is non-empty and STORY-INDEX.md is
+      # absent, hard-error (StoryIndexMissing) before writing any file.
+      #
+      # ADR-027 path discipline: ARTIFACTS_WT is the worktree root; STORY-INDEX lives at
+      # $ARTIFACTS_WT/stories/STORY-INDEX.md (no nested .factory/ prefix).
+      local preflight_story_index="${ARTIFACTS_WT}/stories/STORY-INDEX.md"
+      if [ "${#story_pairs[@]}" -gt 0 ] && [ ! -f "$preflight_story_index" ]; then
+        echo "ERROR: StoryIndexMissing — STORY-INDEX.md not found at '${preflight_story_index}'" >&2
+        echo "  BC-5.41.002 PC2 precondition 2: STORY-INDEX.md must be current and accessible at wave-close." >&2
+        echo "  Cannot perform anti-fabrication cross-check on next_wave_stories without STORY-INDEX.md." >&2
+        exit 1
+      fi
+      local preflight_pair
+      for preflight_pair in "${story_pairs[@]}"; do
+        local preflight_sid="${preflight_pair%%:*}"
+        if [ -f "$preflight_story_index" ]; then
+          local preflight_escaped_sid
+          preflight_escaped_sid="$(printf '%s' "$preflight_sid" | sed 's/\./\\./g')"
+          if ! grep -qE "\| *${preflight_escaped_sid} *\|" "$preflight_story_index"; then
+            echo "ERROR: AntiFabricationFailed — story ID '${preflight_sid}' not found in STORY-INDEX.md" >&2
+            echo "  Pre-flight validation failed: no file was written." >&2
+            exit 1
+          fi
+        fi
+      done
+
       # Step 3: Find prior HANDOFF commit SHA BEFORE writing any files or committing.
       # This SHA goes into generated_from_handoff_sha in wave-state.yaml (AC-014 v1.4).
       # Must be captured before the atomic commit because the commit will become the new HEAD.
