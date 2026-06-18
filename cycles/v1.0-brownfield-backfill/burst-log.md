@@ -9617,4 +9617,4 @@ $ grep "^version:" \
 
 ### Factory-artifacts Commits
 
-- SHA-TBD artifacts(D-642): E-18 F4 Wave 2 S-18.01 LOCAL cascade passes 9 (CLEAN, 1/3) + 10 (NOT-CLEAN, reset 0/3) fix burst; BC-5.41.001 v1.21; BC-INDEX v3.12; 3 lessons; streak 0/3; pass-11 NEXT
+- cab770f0 artifacts(D-642): E-18 F4 Wave 2 S-18.01 LOCAL cascade passes 9 (CLEAN, 1/3) + 10 (NOT-CLEAN, reset 0/3) fix burst; BC-5.41.001 v1.21; BC-INDEX v3.12; 3 lessons; streak 0/3; pass-11 NEXT

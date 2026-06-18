@@ -148,7 +148,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | caf06c68 | rc.21 bot binary bundle commit 2026-06-13; prior: 2a191314 (rc.20) |
 | develop | b025d31d | S-18.00 PR #191 SQUASH-MERGED 2026-06-18; prior: c000b06f (PR #189 compute-input-hash fix 2026-06-16) |
-| factory-artifacts | SHA-TBD | D-642 LOCAL cascade passes 9+10 fix burst HEAD (prior: f9142334 D-641 HEAD) |
+| factory-artifacts | cab770f0 | D-642 LOCAL cascade passes 9+10 fix burst HEAD (prior: f9142334 D-641 HEAD) |
 | feature/S-18.01 | ff1d054e | S-18.01 WIP; LOCAL cascade passes 9 (CLEAN, 1/3) + 10 (NOT-CLEAN, reset 0/3) fixed; pass-11 NEXT |
 | v1.0.0-rc.21 (tag) | 03054524 | SHIPPED 2026-06-13; FULLY IN OPERATOR MARKETPLACE (marketplace PR #13 MERGED); annotated tag object |
 | v1.0.0-rc.20 (tag) | e9e38286 | SHIPPED 2026-06-01; marketplace PR #12 squash-merged 862e660d |
