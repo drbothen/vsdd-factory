@@ -4409,3 +4409,69 @@ Run assertions as: `yq '.stories | length' output.yaml` → expected count; `yq 
 **Consequence if violated:** A skill that produces structurally-valid but semantically-empty output will pass all preamble-only assertions. The downstream consumer (the orchestrator reading wave-state.yaml to determine which stories to dispatch) will receive an empty story list and dispatch nothing — a silent wave skip with no error signal.
 
 **Cites:** D-639; S-18.01 LOCAL adversary passes 1-3; write-wave-state.sh stories-field assertions; BC-5.41.002 PC3 (wave-state.yaml stories field); POLICY 11 (observable output assertions required); F-S1801-P5-001 (downstream symptom of this root cause).
+
+---
+
+## L-S18-harness-env-override-masks-production-default
+
+**Date:** 2026-06-18
+**Tags:** [process-gap] [codified]
+**Anchors:** D-640, S-18.01, write-wave-state.sh, PRECOMPACT_FLUSH_LOG, bats harness, BC-5.41.001 PC7, F-P6-005
+
+**Lesson (codified):** A bats test harness that unconditionally exports an environment variable (e.g., `export PRECOMPACT_FLUSH_LOG=/tmp/test.log`) will mask the production default for that variable in ALL tests in the file, including tests whose purpose is to verify the production-default-invocation path. This creates a class of false passes where the skill under test never exercises its own default-parameter resolution logic.
+
+**Root cause (S-18.01 pass-6):** The write-wave-state.sh test harness unconditionally set `PRECOMPACT_FLUSH_LOG` at file scope, masking the broken production default (a hardcoded `.factory/.factory/precompact-flush-log` double-nesting path per ADR-027). All tests passed even though the default path was wrong, because the harness always supplied the correct path via env override.
+
+**Gate (codified):** For any skill that reads a configuration value from an environment variable with a production default: (1) At least one test MUST invoke the skill WITHOUT setting the environment variable, and (2) That test MUST verify the skill resolves the default path correctly. The test name SHOULD be `test_<skill>_production_default_<field>`. Harness preamble exports for test isolation are acceptable ONLY if every export is accompanied by a corresponding no-export test for the same variable.
+
+**S-7.02 confirmation:** Process-gap lesson for the S-7.02 Cycle-Closing-Checklist. Cycle is NOT converging this burst (streak 0/3); S-7.02 confirmation deferred to eventual convergence (≥3-CLEAN streak).
+
+**Disposition:** Forward-story S-18.08 (harness-env-override detection gate; grep for unconditional `export <ENV_VAR>` at harness preamble without corresponding no-export test). Anchor: E-18 F4.
+
+**Consequence if violated:** A skill with a broken production default path will pass all tests that rely on harness env injection. The defect surfaces only when the skill runs outside the test harness (in production or manual invocation) and the env var is absent.
+
+**Cites:** D-640; S-18.01 LOCAL adversary pass-6 finding F-P6-005; write-wave-state.sh PRECOMPACT_FLUSH_LOG default path; ADR-027 §ARTIFACTS_WT discipline; BC-5.41.001 PC7 (atomic commit path); F-S1801-P6-005.
+
+---
+
+## L-S18-test-comment-vs-impl-drift
+
+**Date:** 2026-06-18
+**Tags:** [process-gap] [codified]
+**Anchors:** D-640, S-18.01, write-wave-state.sh, test rationale comments, O-1 observation
+
+**Lesson (codified):** Test rationale comments that describe WHY a test is structured a certain way (e.g., "# This test verifies that the DRY_RUN guard prevents actual git commits") become stale when the implementation changes and that mechanism is removed or replaced. Stale rationale comments describe behavior the code no longer exhibits, misleading future readers and creating false impressions during adversarial review.
+
+**Root cause (S-18.01 pass-7 O-1):** After the DRY_RUN guard was removed and replaced with proper bats process substitution, rationale comments in 3+ test blocks still referenced the DRY_RUN mechanism. The adversary noted these as stale references (O-1 process-gap) that could mislead fresh-context reviewers into believing a removed control path was still present.
+
+**Gate (codified):** When any implementation change removes or replaces a mechanism that test comments describe, fix-burst MUST include a grep sweep for ALL comments referencing the removed mechanism across the entire test file. Run: `grep -n "DRY_RUN\|<removed-mechanism>" <test-file>` and refresh every stale comment in the same commit. The adversary must not encounter rationale comments describing non-existent implementation paths.
+
+**S-7.02 confirmation:** Process-gap lesson for the S-7.02 Cycle-Closing-Checklist. Cycle is NOT converging this burst (streak 0/3); S-7.02 confirmation deferred to eventual convergence (≥3-CLEAN streak).
+
+**Disposition:** Forward-story S-18.08 (stale-comment detection gate; grep for comments referencing removed mechanism tokens after implementation fix). Anchor: E-18 F4.
+
+**Consequence if violated:** Future adversaries reviewing the test file will encounter comments describing removed implementation paths, potentially wasting investigation time on a mechanism that no longer exists, or (worse) concluding that the removed mechanism is a security concern that must be explicitly re-added.
+
+**Cites:** D-640; S-18.01 LOCAL adversary pass-7 observation O-1; write-wave-state.sh DRY_RUN comment sweep; TD-VSDD-060 sibling-site sweep discipline (applies to test comments as well as production code).
+
+---
+
+## L-S18-spec-prose-must-not-imply-unintended-filter
+
+**Date:** 2026-06-18
+**Tags:** [process-gap] [codified]
+**Anchors:** D-640, S-18.01, BC-5.41.002 PC2, generated_from_handoff_sha, F-P7-001 LOW
+
+**Lesson (codified):** BC postcondition prose that describes a field's value using a relative description (e.g., "the most recent HANDOFF.md commit") will be misread by fresh-context reviewers as implying a filtering operation (e.g., `git log --grep="HANDOFF"`) that the implementation does NOT perform. When the operative definition is a simple `git rev-parse HEAD`, the spec prose MUST state that directly rather than characterizing WHAT the HEAD commit typically contains.
+
+**Root cause (S-18.01 pass-7):** BC-5.41.002 PC2 originally described `generated_from_handoff_sha` as "the most recent HANDOFF.md commit that already exists on factory-artifacts BEFORE the current wave-close atomic commit." The phrase "most recent HANDOFF.md commit" reads as a filtered `git log` search for commits containing HANDOFF.md, not as a plain `git rev-parse HEAD`. A fresh-context adversary (F-P7-001) correctly identified this as a potential misread: if interleaved commits (e.g., a BC fix commit, a STATE.md commit) land on factory-artifacts between wave closes, HEAD would point to those commits, not the last HANDOFF.md commit — making the spec behavior diverge from the implementation if the spec were interpreted literally as a filtered search.
+
+**Gate (codified):** When authoring BC postcondition prose for a field populated by a git command: (1) State the EXACT command used (e.g., "`git -C <ARTIFACTS_WT> rev-parse HEAD`") rather than describing the typical commit content. (2) If the field "happens to be" the HANDOFF.md commit in normal operation but is NOT filtered to be so, state this explicitly: "normally this is the prior HANDOFF.md commit, but it is NOT filtered by commit message — any interleaved commits contribute to HEAD." (3) Disambiguate operational reality from filtering intent.
+
+**S-7.02 confirmation:** Process-gap lesson for the S-7.02 Cycle-Closing-Checklist. Cycle is NOT converging this burst (streak 0/3); S-7.02 confirmation deferred to eventual convergence (≥3-CLEAN streak).
+
+**Disposition:** Forward: S-18.08 (spec-prose precision gate — check BC postcondition prose for implicit filter language). Anchor: E-18 F4.
+
+**Consequence if violated:** Implementers reading the BC may implement a filtered `git log` search instead of plain `git rev-parse HEAD`, causing the implementation to break when factory-artifacts contains interleaved non-HANDOFF commits between wave closes (a normal operational scenario).
+
+**Cites:** D-640; S-18.01 LOCAL adversary pass-7 finding F-P7-001 LOW; BC-5.41.002 PC2 v1.13→v1.14 clarity refinement; AC-014 generated_from_handoff_sha semantics; ADR-026 §Decision 4.

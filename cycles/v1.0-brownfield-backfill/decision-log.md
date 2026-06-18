@@ -1351,6 +1351,41 @@ BC-5.39.001 3-CLEAN streak: passes 9/10/11 all CLEAN/CONSISTENT. PR #191 squash-
 
 ---
 
+## D-640 — E-18 F4 Wave 2 (S-18.01) LOCAL cascade passes 6+7 fix burst; BC-5.41.001 v1.19 + BC-5.41.002 v1.14 + S-18.01 v1.7; 3 process-gap lessons
+
+**Date:** 2026-06-18
+**Phase:** E-18-F4-wave2-S18.01-local-cascade-pass6-7
+**Decision:** Single-commit fix burst (TD-VSDD-053) recording LOCAL adversary passes 6 and 7 findings and all parity legs. Both passes NOT-CLEAN; all findings fixed in worktree feature/S-18.01; spec documents bumped to reflect F-P7-001/F-P7-002 adjudications by PO and story-writer. Package re-FROZEN after this burst. 3-CLEAN streak remains 0/3. NEXT: LOCAL adversary pass-8 (fresh context).
+**Parent-commit:** f5a6ec59 (D-639 SHA-patch HEAD)
+
+| ID | Decision | Phase | Date |
+|----|----------|-------|------|
+| D-640 | E-18 F4 Wave 2 (S-18.01) LOCAL cascade passes 6+7 fix burst 2026-06-18. Pass-6 NOT-CLEAN (4 findings): (1) F-P6-001 BLOCKER — ADR-027 double-nesting: production default PRECOMPACT_FLUSH_LOG path was `.factory/.factory/precompact-flush-log` instead of `.factory/precompact-flush-log`; fixed code commit a075a30a; also closed F-P6-005 process-gap (harness unconditionally exported PRECOMPACT_FLUSH_LOG masking broken default; production-default-invocation test added). (2) F-P6-002/003 MEDIUM — unanchored topo-sort grep and anti-fabrication grep: rewritten with field-2 positional extraction + boundary anchoring. (3) F-P6-004 LOW — AC-016 arch_files derivation from anchored ADR refs: implemented in-scope, confirmed completable. Pass-7 NOT-CLEAN (3 findings): (1) F-P7-001 LOW — BC-5.41.002 PC2 `generated_from_handoff_sha` "most recent HANDOFF.md commit" phrase implies message-filter not present in impl; PO clarified PC2 first sentence to state `git -C <ARTIFACTS_WT> rev-parse HEAD` directly; BC-5.41.002 v1.13→v1.14; BC-INDEX v3.09→v3.10 catalog annotation. (2) F-P7-002 MEDIUM — EPIC-COMPLETE path aborted before AC-012 announcement when HANDOFF.md content byte-identical to prior commit (empty-diff guard missing); code commit 3b755ca6; BC-5.41.001 v1.18→v1.19 (EC-015 added); BC-INDEX v3.10 catalog annotation. (3) F-P7-003 MEDIUM — `derive_wave_id()` ignored `sprint_state_yaml` arg; code commit 851bdb8b. O-1 process-gap: stale test comments referencing removed DRY_RUN mechanism refreshed. S-18.01 story v1.6→v1.7: EC-015 mirrored from BC-5.41.001 v1.19; traces AC-012. BC-INDEX v3.09→v3.10. STORY-INDEX v4.16→v4.17. 3 [process-gap] lessons: L-S18-harness-env-override-masks-production-default; L-S18-test-comment-vs-impl-drift; L-S18-spec-prose-must-not-imply-unintended-filter. S-7.02 Cycle-Closing-Checklist confirmation deferred to convergence (streak 0/3). 4-index: BC v3.10 / VP v2.38 / STORY v4.17 / ARCH v2.56. | E-18-F4-wave2-S18.01-local-cascade-pass6-7 | 2026-06-18 |
+
+**Appendix — D-640 Rationale**
+
+**Pass-6 (NOT-CLEAN) findings and resolutions:**
+
+F-P6-001 BLOCKER — ADR-027 double-nesting: The production default for `PRECOMPACT_FLUSH_LOG` in `write-wave-state.sh` was `.factory/.factory/precompact-flush-log` (double-nested under the ARTIFACTS_WT worktree root). ADR-027 §ARTIFACTS_WT discipline requires `${ARTIFACTS_WT}/hooks/precompact-flush-log` with no additional `.factory/` prefix. Code commit a075a30a fixed the default. F-P6-005 process-gap: The bats harness unconditionally exported `PRECOMPACT_FLUSH_LOG=/tmp/test.log`, masking the broken default path so all tests passed. A production-default-invocation test was added to catch this class of harness override mask.
+
+F-P6-002/003 MEDIUM — Unanchored grep patterns in topo-sort and anti-fabrication checks: `grep "S-18"` without field anchoring could match story annotations, BC references, or comment lines. Rewritten with positional field-2 extraction via `awk '{print $2}'` and boundary anchoring `^| S-[0-9]`.
+
+F-P6-004 LOW — AC-016 arch_files derivation: The skill derived `arch_files` from a hardcoded list rather than from anchored ADR references in the story's `spec_files`. Fixed to derive from `bcs:` frontmatter array resolution with explicit ADR scanning.
+
+**Pass-7 (NOT-CLEAN) findings and resolutions:**
+
+F-P7-001 LOW — BC-5.41.002 PC2 spec clarity: The phrase "most recent HANDOFF.md commit" in PC2 `generated_from_handoff_sha` definition was read by a fresh-context adversary as implying `git log --grep="HANDOFF"` filtering. The correct implementation is plain `git -C <ARTIFACTS_WT> rev-parse HEAD` with no commit-message filtering. PO clarified the first sentence to state this directly. No behavioral change — this was always the intended semantics (per v1.13's correct sequence: write+validate HANDOFF.md → capture prior_handoff_sha = current HEAD → generate wave-state.yaml → atomic commit).
+
+F-P7-002 MEDIUM — EPIC-COMPLETE empty-diff guard: When `wave-handoff` is re-invoked with byte-identical HANDOFF.md content (e.g., session resume after a completed wave-close), `git commit` would fail with "nothing to commit." The original code path attempted the commit unconditionally and would abort before reaching the PC8/AC-012 3-line EPIC-COMPLETE stdout announcement. EC-015 added to BC-5.41.001 v1.19: after staging, detect empty diff via `git -C <ARTIFACTS_WT> diff --cached --quiet`; if empty, skip the commit but STILL emit the announcement and exit 0. Code commit 3b755ca6.
+
+F-P7-003 MEDIUM — `derive_wave_id()` ignored its `sprint_state_yaml` argument: The function accepted the path as a parameter but internally read from a hardcoded `${ARTIFACTS_WT}/sprint-state.yaml`, making the parameter vestigial. Callers that passed a different path (e.g., in tests) were silently ignored. Fixed to use the passed argument. Code commit 851bdb8b.
+
+O-1 process-gap — Stale test comments: After DRY_RUN guard removal in a prior burst, rationale comments in 3+ test blocks still referenced the DRY_RUN mechanism. All stale comments refreshed in the same code commit as F-P7-003.
+
+**Why streak remains 0/3:** Pass-5 was NOT-CLEAN (topo-sort BLOCKER). Pass-6 was NOT-CLEAN (4 findings). Pass-7 was NOT-CLEAN (3 findings). Three consecutive CLEAN passes required for convergence per BC-5.39.001. Package re-FROZEN after this burst; pass-8 dispatched fresh-context.
+
+---
+
 ## D-639 — E-18 F4 Wave 2 (S-18.01) DURABLE PAUSE; session clear; spec adjudications committed
 
 **Date:** 2026-06-18
