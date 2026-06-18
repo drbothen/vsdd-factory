@@ -95,6 +95,8 @@ on_error = "block"
 }
 
 /// A minimal registry TOML with one PostCompact plugin (on_error=block is the adversarial case).
+/// Defined for completeness; used as a documentation fixture for PostCompact registry shape.
+#[allow(dead_code)]
 fn postcompact_registry_toml() -> &'static str {
     r#"
 schema_version = 2

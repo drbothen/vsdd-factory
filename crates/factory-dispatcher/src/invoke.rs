@@ -102,6 +102,23 @@ impl EventType {
         }
     }
 
+    /// Returns `true` if this event type is advisory-only at the harness level,
+    /// meaning the dispatcher MUST NOT propagate `block_intent=true` regardless
+    /// of plugin exit codes or `on_error` settings.
+    ///
+    /// # BC-1.15.001 PC2 (S-18.00)
+    ///
+    /// `PostCompact` is the only advisory-only event type. The harness does not
+    /// honour `block_intent` on PostCompact; attempting to set it would be a
+    /// specification violation.
+    ///
+    /// All other event types (`PreToolUse`, `PostToolUse`, `PreCompact`, `Other`)
+    /// return `false` — they support block-intent propagation via `on_error=block`
+    /// and exit-code 2 semantics.
+    pub fn is_advisory_only(&self) -> bool {
+        matches!(self, EventType::PostCompact)
+    }
+
     /// Parse an event-name string from the harness payload or hooks-registry.toml
     /// into an `EventType` variant.
     ///

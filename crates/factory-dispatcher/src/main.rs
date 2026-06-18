@@ -574,8 +574,21 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
         })
         .collect();
     let aggregate_code = aggregate_exit_code(&sync_agg_results) as i32;
+
+    // BC-1.15.001 PC2 (S-18.00): PostCompact is advisory-only at the harness level.
+    // The dispatcher MUST NOT propagate block_intent=true for PostCompact events
+    // regardless of plugin exit codes or on_error settings.
+    // Route through the closed EventType enum (Architecture Compliance Rule: no string
+    // matching at the block-intent decision point — F-S1800-P1-003).
+    let event_is_advisory_only =
+        factory_dispatcher::invoke::EventType::from_event_str(&payload.event_name)
+            .is_advisory_only();
+
     // Combine: advisory-block (stdout JSON, summary.exit_code) OR WASI-block (exit_code==2+Block).
-    let final_exit_code = if summary.exit_code == 2 || aggregate_code == 2 {
+    // For advisory-only events (PostCompact), suppress block_intent — always exit 0.
+    let final_exit_code = if event_is_advisory_only {
+        0
+    } else if summary.exit_code == 2 || aggregate_code == 2 {
         2
     } else {
         0
@@ -583,13 +596,19 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
 
     // TD #71: when block_intent is true, surface blocking_plugins and block_reason
     // in the summary line so operators don't have to grep the internal log.
+    //
+    // BC-1.15.001 PC2 (S-18.00): reported block_intent reflects the final decision
+    // after advisory-only suppression. For PostCompact events, final_exit_code is
+    // always 0 (advisory-only), so block_intent is always false in the output line —
+    // it accurately describes the harness-visible outcome, not the raw plugin verdict.
+    let reported_block_intent = final_exit_code == 2;
     if final_exit_code == 2 {
         let (blocking_names, block_reason) = extract_block_info(&summary.per_plugin_results);
         eprintln!(
             "  plugins_run={} total_ms={} block_intent={} exit_code={} blocking_plugins={} block_reason=\"{}\"",
             summary.per_plugin_results.len(),
             summary.total_elapsed_ms,
-            summary.block_intent,
+            reported_block_intent,
             final_exit_code,
             blocking_names,
             block_reason,
@@ -599,7 +618,7 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
             "  plugins_run={} total_ms={} block_intent={} exit_code={}",
             summary.per_plugin_results.len(),
             summary.total_elapsed_ms,
-            summary.block_intent,
+            reported_block_intent,
             final_exit_code,
         );
     }
