@@ -80,6 +80,9 @@ GATE_HOOKS=(
     validate-count-propagation validate-red-ratio
     update-cargo-audit-cache
     check-harness-version
+    # S-18.00: bats test fixture stubs — test-only helpers, not dispatcher hook plugins.
+    stub-exit0
+    stub-exit2
   )
 
   # On-disk: every hooks/*.sh basename without extension, minus the
