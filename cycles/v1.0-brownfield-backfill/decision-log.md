@@ -1348,3 +1348,29 @@ S-18.00 is the first F4 TDD delivery of E-18 Wave 1. The story covered PreCompac
 **Security MEDIUMs (2):** security-reviewer flagged (1) missing version-string length guard (unbounded input to version parser) and (2) pre-release suffix not rejected (v1.0.0-alpha accepted as valid). Both fixed in pass-11; pr-reviewer APPROVED; security re-pass: 0 CRITICAL/0 HIGH.
 
 BC-5.39.001 3-CLEAN streak: passes 9/10/11 all CLEAN/CONSISTENT. PR #191 squash-merged by pr-manager. POL-14 auto-promotion triggered post-merge per POLICY 14 (behavioral_contracts: [BC-1.15.001] in S-18.00 frontmatter).
+
+---
+
+## D-639 — E-18 F4 Wave 2 (S-18.01) DURABLE PAUSE; session clear; spec adjudications committed
+
+**Date:** 2026-06-18
+**Phase:** E-18-F4-wave2-S18.01-durable-pause
+**Decision:** DURABLE PAUSE burst before session clear. Three uncommitted spec adjudications (ADR-027, BC-5.41.001 v1.18, BC-5.41.002 v1.13, S-18.01 v1.6) persisted to factory-artifacts. 4-index synced. Session Resume Checkpoint refreshed with exact cascade position (LOCAL adversary 0/3 streak; pass-5 NOT-CLEAN F-S1801-P5-001 BLOCKER; NEXT ACTION: topo-sort fix). 3 [process-gap] lessons codified. STATE.md compacted. D-639 is a state-manager bookkeeping burst only — no spec content changes, all spec changes were authored prior.
+**Parent-commit:** 9f8398f7 (D-638 burst HEAD)
+
+| ID | Decision | Phase | Date |
+|----|----------|-------|------|
+| D-639 | E-18 F4 Wave 2 (S-18.01) DURABLE PAUSE 2026-06-18 — session clear; persist all uncommitted spec adjudications. (1) ADR-027 NEW: factory-artifacts worktree path discipline for shell skills — ARTIFACTS_WT = `.factory` (worktree root), NOT double-nested `.factory/.factory/`; two-arg invocation model for sprint-state.yaml + STATE.md; bats fixture places files directly under `$ARTIFACTS_WT/...`; sibling stories S-18.04a + S-18.05 follow same convention; RESOLVES F-S1801-P3-001 BLOCKER; ARCH-INDEX v2.56 (architect-authored prior). (2) BC-5.41.001 v1.18: PC8 EPIC-COMPLETE stdout canonical 3-line text reconciled to match BC-5.41.002 PC7; BC-INDEX v3.09 catalog annotation updated. (3) BC-5.41.002 v1.13: PC2 `generated_from_handoff_sha` clarified — field is the prior verified HANDOFF.md commit SHA already on factory-artifacts BEFORE the current wave-close atomic commit (NOT the SHA of the commit being created; cryptographic fixed-point infeasible); correct sequence: write+validate HANDOFF.md → capture prior_handoff_sha = current factory-artifacts HEAD → generate wave-state.yaml → atomic commit; EC-004 revised: null valid for wave 1 (no prior HANDOFF.md commit); RESOLVES self-referential SHA fixed-point contradiction; BC-INDEX v3.09 annotation updated. (4) S-18.01 v1.6: §Canonical Wiring Contract section added; AC-012 updated with verbatim 3-line EPIC-COMPLETE stdout announcement; AC-014 clarified: `generated_from_handoff_sha` = `git -C <factory-artifacts-worktree> rev-parse HEAD` BEFORE atomic commit, null for wave 1, MUST NOT be SHA of commit being created; Architecture Compliance Rules extended with path-discipline, git-commit-discipline, hermetic-bats-fixture-contract; canonical path summary table added; STORY-INDEX v4.16 annotation updated. STATE.md compacted + Session Resume Checkpoint refreshed (11 sections; cascade position: LOCAL 0/3 streak; pass-5 F-S1801-P5-001 BLOCKER OPEN; NEXT: implementer topo-sort fix). 3 [process-gap] lessons codified: L-S18-fixture-fidelity-must-mirror-production-multi-table-format; L-S18-gamed-guard-env-hatch; L-S18-weak-assertion-header-vs-body. 4-index: BC v3.09 / VP v2.38 / STORY v4.16 / ARCH v2.56. | E-18-F4-wave2-S18.01-durable-pause | 2026-06-18 |
+
+**Appendix — D-639 Rationale**
+
+**Context:** The E-18 F4 Wave 2 S-18.01 LOCAL adversary cascade is at pass-5 NOT-CLEAN with one BLOCKER open (F-S1801-P5-001). Three passes (1-3) produced 3 BLOCKERs covering ADR-027 path contradiction, BC spec inconsistencies, and fixture-fidelity. Passes 4-5 were remediation passes. Pass-5 produced a fresh-context BLOCKER in the topo-sort of `write-wave-state.sh`: the `grep -m1 '| Story ID'` pattern finds the first epic table header in STORY-INDEX (E-0 7-col `Depends On` space-delimited) instead of the E-18 table (9-col `Depends-On` hyphen-delimited), causing the topo-sort to fail.
+
+**Why a DURABLE PAUSE burst (not just clear and continue):**
+Three spec adjudication files (ADR-027, BC-5.41.001 v1.18, BC-5.41.002 v1.13, S-18.01 v1.6) existed on disk in the `.factory/` worktree but had never been committed to factory-artifacts. A session clear without this commit would lose all architect/PO adjudication work from passes 3-5. This burst commits them durably.
+
+**NEXT ACTION on resume (feature/S-18.01 worktree: .worktrees/S-18.01):**
+Dispatch implementer to fix `write-wave-state.sh` topo-sort:
+1. Locate the correct epic table by matching in-wave story IDs (not `grep -m1 '| Story ID'` which finds the first epic's table).
+2. Normalize dependency-column header to tolerate both `Depends On` (space, E-0 7-col) and `Depends-On` (hyphen, E-18 9-col).
+Then dispatch LOCAL adversary pass-6.

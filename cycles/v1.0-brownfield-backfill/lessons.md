@@ -4340,3 +4340,72 @@ Zero hits is the gate-pass criterion. Running the grep on only the primary imple
 **Consequence if violated:** Stale stub/todo!/Red-Gate comments cause fresh-context adversaries to believe unimplemented code is still pending, triggering false BLOCKER findings that reset the 3-CLEAN streak. Each recurrence costs a full adversary pass + fix burst. Over a 3-pass window, this can extend a story's LOCAL cascade by 2-4 additional bursts.
 
 **Cites:** D-638; TD-VSDD-059 (paper-fix detection); stub-architect role; S-18.00 LOCAL adversary passes 9/10/11; BC-5.39.001 (3-CLEAN convergence); S-18.08 gate-story candidate.
+
+---
+
+## L-S18-fixture-fidelity-must-mirror-production-multi-table-format
+
+**Date:** 2026-06-18
+**Tags:** [process-gap] [codified]
+**Anchors:** D-639, S-18.01, F-S1801-P5-001, write-wave-state.sh, STORY-INDEX multi-table, BC-5.39.001
+**Closes:** F-S1801-P5-001 root cause diagnosis (fix in implementer dispatch on resume)
+
+**Lesson (codified):** Bats fixtures for skills that parse index files (STORY-INDEX, BC-INDEX, ARCH-INDEX) MUST mirror the production file format exactly — including multi-table structure when the production file contains multiple epic tables. A fixture that contains only a single well-formed table will pass all topo-sort tests even when the production parsing logic is broken for multi-table files. The STORY-INDEX used in E-18 F4 tests had a single E-18 table; production STORY-INDEX has both E-0 (line 217, 7-col `Depends On` with space) and E-18 (line 655, 9-col `Depends-On` with hyphen) tables. The `grep -m1 '| Story ID'` pattern stops at E-0's header, extracting the wrong column index for dependency extraction — the bug is invisible with a single-table fixture.
+
+**Root cause (F-S1801-P5-001):** `write-wave-state.sh` topo-sort uses `grep -m1 '| Story ID'` to find the dependency column header. With STORY-INDEX's two-epic structure, `-m1` stops at the E-0 table (first match, wrong table for E-18 stories). The E-0 table has a 7-column schema with `Depends On` (space) at column 7; the E-18 table has a 9-column schema with `Depends-On` (hyphen) at column 6. The fixture used in passes 1-4 contained only the E-18 table, so the parser found the correct header and appeared to work.
+
+**Gate (codified):** For any skill that parses STORY-INDEX (or any multi-table index), the bats fixture MUST include:
+1. At minimum 2 epic tables, with the target epic's table NOT first.
+2. Both column-header spelling variants (`Depends On` and `Depends-On`) present across the fixtures.
+3. A story ID collision check to ensure the parser finds the correct table (not the first table with a matching header).
+
+**Disposition:** Implementer fix on resume: locate correct epic table by matching in-wave story IDs; normalize `Depends.On` header to handle both spellings. Forward gate story: S-18.08 (automated fixture-fidelity validator class).
+
+**Consequence if violated:** A skill that parses a multi-table index with single-table fixtures will appear to work in all bats tests but fail silently in production when the real index contains multiple epics. The failure is non-obvious: the topo-sort produces empty or wrong dependency lists, causing wave-state.yaml to omit real dependencies (or include phantom ones from the wrong table's dependency column).
+
+**Cites:** D-639; S-18.01 LOCAL adversary pass-5 finding F-S1801-P5-001; write-wave-state.sh topo-sort; STORY-INDEX E-0 table (line ~217) vs E-18 table (line ~655); BC-5.39.001 (3-CLEAN convergence).
+
+---
+
+## L-S18-gamed-guard-env-hatch
+
+**Date:** 2026-06-18
+**Tags:** [process-gap] [codified]
+**Anchors:** D-639, S-18.01, F-S1801-P4-001, write-wave-state.sh, DRY_RUN guard, bats fixture
+
+**Lesson (codified):** A guard environment variable intended to make production code skip a destructive operation (e.g., `DRY_RUN=1` skipping `git commit`) creates a bats test env-hatch: every bats test that sets `DRY_RUN=1` effectively gates the test on a path that production never takes. If the guard is set unconditionally in the test harness, the test becomes a dead-letter gate — it exercises the pre-commit validation logic but never tests the actual commit path. This is a variant of the gamed-Red-Gate pattern (L-S18-gamed-red-gate, D-638).
+
+**Root cause (F-S1801-P4-001):** `write-wave-state.sh` had a `DRY_RUN=1` env var that skipped the `git commit` step. The bats test suite set `DRY_RUN=1` globally, so all tests exercised only the pre-commit path. The BC-5.41.001/BC-5.41.002 postconditions require the atomic commit to actually happen; the tests asserted on validation output but never verified that a commit was created on factory-artifacts.
+
+**Gate (codified):** For any skill that performs a git operation (commit, push, tag), the test suite MUST include at least one test that verifies the git operation actually executed (e.g., `git -C $ARTIFACTS_WT log -1 --format='%s'` matches the expected commit message). DRY_RUN guards are permitted for non-commit validation tests but MUST NOT be set for the final integration test that covers the commit path.
+
+**Disposition:** Forward-story S-18.08 (guard-env-hatch detection gate; grep for `DRY_RUN` unconditional set in test harness preamble). Anchor: E-18 F4.
+
+**Consequence if violated:** A skill with a global DRY_RUN guard in its test suite will pass 3-CLEAN convergence while its production commit path has never been executed. The defect surfaces only when the skill runs in a real wave-close context and the atomic commit fails or produces wrong output.
+
+**Cites:** D-639; S-18.01 LOCAL adversary pass-4 finding F-S1801-P4-001; write-wave-state.sh DRY_RUN guard; BC-5.41.001 PC7 (atomic commit required); L-S18-gamed-red-gate (D-638 parent class).
+
+---
+
+## L-S18-weak-assertion-header-vs-body
+
+**Date:** 2026-06-18
+**Tags:** [process-gap] [codified]
+**Anchors:** D-639, S-18.01, write-wave-state.sh, STORY-INDEX topo-sort, bats assertions, POLICY 11
+
+**Lesson (codified):** A test that asserts only on a header or preamble line (e.g., `grep "^wave_id:" output.yaml`) without asserting on dependent body fields (e.g., `stories:` list contents) will pass even when the body is empty or incorrectly populated. This creates a class of weak assertions where the contract's most important postcondition (that the wave contains the correct stories in topological order) is not verified. POLICY 11 (tests must assert observable output) requires that assertions cover the full behavioral postcondition, not just the structural preamble.
+
+**Root cause (S-18.01 passes 1-3):** The initial test suite for `write-wave-state.sh` asserted `grep "^wave_id: 2" wave-state.yaml` and `grep "^epic_id: E-18" wave-state.yaml` but did not assert on the `stories:` field contents or the topological ordering of stories. Tests passed even when the topo-sort produced an empty list (because no stories were extracted from the wrong table header).
+
+**Gate (codified):** For any skill that produces a structured output file (YAML, JSON, TOML), the test suite MUST assert on:
+1. The PRESENCE and correct VALUE of every mandatory field (not just header fields).
+2. The CONTENTS of list fields (e.g., stories: contains exactly the expected story IDs).
+3. ORDER-SENSITIVE assertions where the contract specifies ordering (e.g., topological order: no story appears before its dependency).
+
+Run assertions as: `yq '.stories | length' output.yaml` → expected count; `yq '.stories[0]' output.yaml` → expected first story.
+
+**Disposition:** Forward-story S-18.08 (assertion-completeness validator gate; grep for YAML field assertion coverage). Anchor: E-18 F4.
+
+**Consequence if violated:** A skill that produces structurally-valid but semantically-empty output will pass all preamble-only assertions. The downstream consumer (the orchestrator reading wave-state.yaml to determine which stories to dispatch) will receive an empty story list and dispatch nothing — a silent wave skip with no error signal.
+
+**Cites:** D-639; S-18.01 LOCAL adversary passes 1-3; write-wave-state.sh stories-field assertions; BC-5.41.002 PC3 (wave-state.yaml stories field); POLICY 11 (observable output assertions required); F-S1801-P5-001 (downstream symptom of this root cause).
