@@ -97,8 +97,8 @@ _require_script() {
   # The implementer's real script must detect this version and exit 0.
   #
   # If the script queries CLAUDE_CODE_VERSION env var, this provides the answer.
-  # If it uses a different mechanism (claude --version, etc.), the implementer must
-  # document the detection method and this test may need a different fixture.
+  # If it uses a different mechanism (claude --version, etc.), the detection method
+  # is documented in hooks/check-harness-version.sh — delivered and GREEN.
   run env CLAUDE_CODE_VERSION="2.1.177" bash "$SCRIPT" 2>&1
 
   # Must exit 0 — harness >= v2.1.105 (advisory version check passed).

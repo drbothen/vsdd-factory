@@ -152,19 +152,21 @@ on_error = "continue"
 // ---------------------------------------------------------------------------
 // AC-006 / BC-1.15.001 INV1 — EventType enum structural + advisory-only contract
 //
-// Red Gate condition: `EventType::is_advisory_only()` does not exist in the
-// no-op stub. Tests that call it FAIL TO COMPILE — the compile failure IS the
-// Red Gate for AC-002/PC2 (PostCompact advisory semantics).
+// (historical Red-Gate record) At Red Gate, `EventType::is_advisory_only()` did not
+// exist in the no-op stub. Tests that called it FAILED TO COMPILE — the compile
+// failure WAS the Red Gate for AC-002/PC2 (PostCompact advisory semantics).
 //
-// The implementer MUST add `is_advisory_only(&self) -> bool` to EventType,
+// The implementer ADDED `is_advisory_only(&self) -> bool` to EventType (invoke.rs),
 // returning true for PostCompact and false for PreCompact/PreToolUse/PostToolUse.
+// Now delivered and GREEN.
 // ---------------------------------------------------------------------------
 
 /// BC-1.15.001 INV1 — `EventType::PreCompact` and `EventType::PostCompact` must exist
 /// as first-class enum variants AND must be classified correctly by `is_advisory_only()`.
 ///
-/// Red Gate: `EventType::is_advisory_only()` does not exist → compile failure.
-/// After implementation: PreCompact must NOT be advisory-only; PostCompact MUST be.
+/// (historical Red Gate) `EventType::is_advisory_only()` was absent in the no-op stub →
+/// compile failure. Now delivered (invoke.rs) — GREEN.
+/// PreCompact is NOT advisory-only; PostCompact IS — both verified below.
 #[test]
 fn test_BC_1_15_001_event_type_enum_has_precompact_postcompact() {
     // Structural check: these pattern matches compile iff the variants exist.
@@ -180,9 +182,9 @@ fn test_BC_1_15_001_event_type_enum_has_precompact_postcompact() {
     assert_eq!(parsed_pre, EventType::PreCompact);
     assert_eq!(parsed_post, EventType::PostCompact);
 
-    // BC-1.15.001 PC2 advisory-only contract (load-bearing Red Gate assertion).
-    // is_advisory_only() must exist and return correct values. This method is
-    // absent in the no-op stub → compile failure at Red Gate.
+    // BC-1.15.001 PC2 advisory-only contract (load-bearing assertion).
+    // is_advisory_only() exists and returns correct values. (historical: this method was
+    // absent in the no-op stub → compile failure at Red Gate; now delivered GREEN.)
     assert!(
         !pre.is_advisory_only(),
         "PreCompact must NOT be advisory-only: it supports block_intent=true (BC-1.15.001 PC1/PC4)"
@@ -195,7 +197,8 @@ fn test_BC_1_15_001_event_type_enum_has_precompact_postcompact() {
 
 /// BC-1.15.001 INV1 — `parse_event_type("PreCompact")` must NOT be advisory-only.
 ///
-/// Red Gate: `EventType::is_advisory_only()` absent → compile failure.
+/// (historical Red Gate) `EventType::is_advisory_only()` was absent → compile failure;
+/// now delivered (invoke.rs) — GREEN.
 #[test]
 fn test_BC_1_15_001_parse_event_type_precompact() {
     let event_type = parse_event_type("PreCompact");
@@ -212,7 +215,8 @@ fn test_BC_1_15_001_parse_event_type_precompact() {
 
 /// BC-1.15.001 INV1 — `parse_event_type("PostCompact")` must be advisory-only.
 ///
-/// Red Gate: `EventType::is_advisory_only()` absent → compile failure.
+/// (historical Red Gate) `EventType::is_advisory_only()` was absent → compile failure;
+/// now delivered (invoke.rs) — GREEN.
 #[test]
 fn test_BC_1_15_001_parse_event_type_postcompact() {
     let event_type = parse_event_type("PostCompact");
@@ -230,17 +234,18 @@ fn test_BC_1_15_001_parse_event_type_postcompact() {
 // ---------------------------------------------------------------------------
 // AC-002 / BC-1.15.001 PC2 — PostCompact is advisory-only
 //
-// These tests verify the is_advisory_only() method on EventType. They FAIL
-// TO COMPILE at Red Gate because the method does not exist in the no-op stub.
+// These tests verify the is_advisory_only() method on EventType. (historical: they
+// FAILED TO COMPILE at Red Gate because the method did not exist in the no-op stub;
+// now delivered (invoke.rs) — all GREEN.)
 // ---------------------------------------------------------------------------
 
 /// BC-1.15.001 PC2 (AC-002) — `EventType::PostCompact` must report is_advisory_only() = true.
 ///
-/// This is the UNIT-LEVEL Red Gate for F-002 (PostCompact advisory suppression).
+/// This is the UNIT-LEVEL gate for F-002 (PostCompact advisory suppression).
 ///
-/// Red Gate: `is_advisory_only()` absent → compile failure.
-/// After implementation: must return true for PostCompact, ensuring the dispatch
-/// path in main.rs can call `event_type.is_advisory_only()` to suppress block_intent.
+/// (historical Red Gate) `is_advisory_only()` was absent → compile failure.
+/// Now delivered (invoke.rs): returns true for PostCompact, enabling the dispatch
+/// path in main.rs to call `event_type.is_advisory_only()` to suppress block_intent — GREEN.
 #[test]
 fn test_BC_1_15_001_postcompact_is_advisory_only_event_type() {
     // The dispatch path in main.rs MUST check event_type.is_advisory_only()
@@ -256,7 +261,8 @@ fn test_BC_1_15_001_postcompact_is_advisory_only_event_type() {
 
 /// BC-1.15.001 PC2 (AC-002) — `EventType::PreCompact` must NOT be advisory-only.
 ///
-/// Red Gate: `is_advisory_only()` absent → compile failure.
+/// (historical Red Gate) `is_advisory_only()` was absent → compile failure;
+/// now delivered (invoke.rs) — GREEN.
 #[test]
 fn test_BC_1_15_001_precompact_is_not_advisory_only_event_type() {
     assert!(
@@ -271,7 +277,8 @@ fn test_BC_1_15_001_precompact_is_not_advisory_only_event_type() {
 /// The advisory-only flag is specific to PostCompact. PreToolUse and PostToolUse
 /// have their own semantics; this test verifies the flag is PostCompact-specific.
 ///
-/// Red Gate: `is_advisory_only()` absent → compile failure.
+/// (historical Red Gate) `is_advisory_only()` was absent → compile failure;
+/// now delivered (invoke.rs) — GREEN.
 #[test]
 fn test_BC_1_15_001_postcompact_advisory_only() {
     // BC-1.15.001 PC2: PostCompact is the ONLY event type in the dispatcher
@@ -390,9 +397,9 @@ fn test_BC_1_15_001_precompact_no_plugins_registered_noop() {
 /// EventType::PreCompact.is_advisory_only() == false ensures the dispatcher
 /// DOES NOT suppress this block.
 ///
-/// Red Gate: `is_advisory_only()` absent → compile failure.
-/// After implementation: the combination of aggregator + is_advisory_only() false
-/// ensures the dispatch path correctly propagates block_intent=true.
+/// (historical Red Gate) `is_advisory_only()` was absent → compile failure.
+/// Now delivered: the combination of aggregator + is_advisory_only() == false
+/// correctly propagates block_intent=true — GREEN.
 #[test]
 fn test_BC_1_15_001_precompact_exit2_sets_block_intent() {
     // Unit-level: aggregator returns 2 for exit-2 + on_error=Block.
@@ -462,8 +469,9 @@ fn test_BC_1_15_001_precompact_multi_plugin_one_exit2_blocks() {
 /// suppress block_intent for PostCompact. This test verifies the advisory-only
 /// flag is set, which is a PRECONDITION for correct dispatch behavior.
 ///
-/// Red Gate: `is_advisory_only()` absent → compile failure.
-/// Binary-level Red Gate is in precompact-routing.bats TC-AC002.
+/// (historical Red Gate) `is_advisory_only()` was absent → compile failure;
+/// now delivered (invoke.rs) — GREEN.
+/// Binary-level verification is in precompact-routing.bats TC-AC002.
 #[test]
 fn test_BC_1_15_001_postcompact_exit2_no_block() {
     // PostCompact must be advisory-only regardless of plugin exit code.
@@ -477,9 +485,9 @@ fn test_BC_1_15_001_postcompact_exit2_no_block() {
     );
 
     // Verify that even if a PostCompact plugin exits 2 with on_error=Block,
-    // the aggregator itself would return 2 — but the dispatch path MUST suppress it
-    // because is_advisory_only() is true. The implementer must NOT pass PostCompact
-    // results through aggregate_exit_code with on_error=Block.
+    // the aggregator itself would return 2 — but the dispatch path suppresses it
+    // because is_advisory_only() is true. The delivered implementation does NOT pass
+    // PostCompact results through aggregate_exit_code with on_error=Block (main.rs:583-595).
     let adversarial_results = vec![AggregatorResult {
         exit_code: 2,
         on_error: OnError::Block,
@@ -560,7 +568,8 @@ fn test_BC_1_15_001_precompact_on_error_continue_crash_no_block() {
 /// string (precondition for async partition classification) AND that the advisory-only
 /// contract is consistent with async routing.
 ///
-/// Red Gate: `is_advisory_only()` absent → compile failure.
+/// (historical Red Gate) `is_advisory_only()` was absent → compile failure;
+/// now delivered (invoke.rs) — GREEN.
 #[test]
 fn test_BC_1_15_001_precompact_async_plugin_scheduled_asynchronously() {
     // parse_event_type must recognise PreCompact for the partition module to
