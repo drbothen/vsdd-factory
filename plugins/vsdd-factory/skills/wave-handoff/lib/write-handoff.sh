@@ -23,11 +23,11 @@ get_last_verified_develop_sha() {
 # Implements the three-state rule (BC-5.41.001 PC5):
 #   1. Log genuinely absent: returns "null"
 #   2. Log present but FIELD-4 != "commit": returns "null" (corrupt/stale)
-#   3. Log present + FIELD-4 == "commit": returns FIELD-2 SHA
+#   3. Log present + FIELD-4 == "commit" + valid 40-char hex FIELD-2: returns FIELD-2 SHA
 #
-# If FORCE_PRECOMPACT_SHA env var is set (test injection), the caller must compare
-# the forced value against the log-derived value. Hard-blocks (exits 1 with
-# PrecompactShaMismatch) are handled by the caller (write_handoff), not here.
+# EC-011: log present + FIELD-4 == "commit" + FIELD-2 NOT valid 40-char hex:
+#   exits 1 with "PrecompactShaMismatch" — the log claims a commit but the SHA
+#   cannot be trusted. Hard-block, never silently write a bad value.
 get_precompact_flush_sha() {
   local flush_log="$1"
 
@@ -49,22 +49,16 @@ get_precompact_flush_sha() {
     return 0
   fi
 
-  # State 3: log present + FIELD-4 == "commit" → return FIELD-2
+  # State 3: log present + FIELD-4 == "commit" — validate FIELD-2 is 40-char lowercase hex
   local field2
   field2="$(echo "$last_line" | awk '{print $2}')"
+  if ! echo "$field2" | grep -qE '^[0-9a-f]{40}$'; then
+    echo "ERROR: PrecompactShaMismatch — precompact-flush-log FIELD-4=commit but FIELD-2='${field2}' is not a valid 40-char lowercase hex SHA; the log claims a commit but the SHA cannot be trusted" >&2
+    exit 1
+  fi
+
   echo "$field2"
   return 0
-}
-
-# _log_has_valid_commit <flush_log_path>
-# Returns 0 (true) if the log file exists and its last line has FIELD-4 == "commit".
-# Returns 1 otherwise.
-_log_has_valid_commit() {
-  local flush_log="$1"
-  [ -f "$flush_log" ] || return 1
-  local field4
-  field4="$(tail -1 "$flush_log" | awk '{print $4}')"
-  [ "$field4" = "commit" ]
 }
 
 # check_active_bcs <bc_dir>
@@ -129,37 +123,31 @@ write_handoff() {
   local bc_files
   bc_files="$(check_active_bcs "$bc_dir")"
 
-  # Get precompact_flush_sha (three-state rule)
-  # If FORCE_PRECOMPACT_SHA is set (test injection), use it directly.
-  # If the log has a valid commit AND the forced value differs (or is null),
-  # hard-block with PrecompactShaMismatch per BC-5.41.001 PC5 / EC-011.
+  # Get precompact_flush_sha (three-state rule + EC-011 validation).
+  # get_precompact_flush_sha will exit 1 with PrecompactShaMismatch if the log
+  # claims a commit but FIELD-2 is not valid 40-char hex.
   local precompact_sha
-  local force_sha="${FORCE_PRECOMPACT_SHA:-}"
-  if [ -n "$force_sha" ]; then
-    # Test injection: cross-check forced value against the log
-    if _log_has_valid_commit "$flush_log"; then
-      # Log is present and valid — the forced value must agree with the log SHA
-      local log_sha
-      log_sha="$(get_precompact_flush_sha "$flush_log")"
-      if [ "$force_sha" != "$log_sha" ]; then
-        echo "ERROR: PrecompactShaMismatch — FORCE_PRECOMPACT_SHA='${force_sha}' conflicts with precompact-flush-log SHA '${log_sha}' (log has valid commit)" >&2
-        exit 1
-      fi
-      precompact_sha="$log_sha"
-    else
-      precompact_sha="$force_sha"
-    fi
-  else
-    precompact_sha="$(get_precompact_flush_sha "$flush_log")"
-  fi
+  precompact_sha="$(get_precompact_flush_sha "$flush_log")"
 
-  # Get factory_lock_holder from STATE.md
+  # Get factory_lock_holder from STATE.md (BC-5.40.001 canonical shape).
+  # Handles both inline scalar form: `factory_lock: "holder-name"` / `factory_lock: null`
+  # and block-with-.holder form:
+  #   factory_lock:
+  #     holder: some-holder
   local factory_lock_holder="null"
   if [ -f "$state_md" ]; then
     local lock_val
+    # Inline scalar form (most common): extract value on same line as factory_lock:
     lock_val="$(grep -E '^factory_lock:' "$state_md" | head -1 | awk '{print $2}' | tr -d '"')"
     if [ -n "$lock_val" ] && [ "$lock_val" != "null" ]; then
       factory_lock_holder="$lock_val"
+    elif [ -z "$lock_val" ] || [ "$lock_val" = "null" ]; then
+      # Block form: look for indented `.holder:` key immediately following `factory_lock:`
+      local holder_val
+      holder_val="$(awk '/^factory_lock:/{found=1; next} found && /^\s+holder:/{print $2; exit} found && /^[a-zA-Z]/{exit}' "$state_md" | tr -d '"')"
+      if [ -n "$holder_val" ] && [ "$holder_val" != "null" ]; then
+        factory_lock_holder="$holder_val"
+      fi
     fi
   fi
 

@@ -184,9 +184,12 @@ main() {
 
       # Step 5: Write wave-state.yaml with final content, using prior_handoff_sha.
       # The content written here is EXACTLY what will be committed — no post-hoc patches.
+      # BC-5.41.002 PC2: wave-state.yaml describes the NEXT wave, so its wave_id is
+      # the current wave_id + 1 (HANDOFF.md keeps the current/closing wave_id).
+      local next_wave_id=$(( wave_id + 1 ))
       write_wave_state \
         "${ARTIFACTS_WT}/wave-state.yaml" \
-        "$wave_id" \
+        "$next_wave_id" \
         "$prior_handoff_sha" \
         "$SPRINT_STATE_YAML" \
         "$ARTIFACTS_WT" \

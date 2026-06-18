@@ -129,6 +129,9 @@ classify_stories() {
 # Returns the integer wave_id via stdout.
 # Derived from STATE.md current_step: "pass-N" → extracts N.
 # MUST NOT read any current_wave: field — that field does not exist.
+# BC-5.41.001 PC2 anti-fabrication: wave_id MUST be derived from a real substrate.
+# A silent numeric literal fallback is forbidden — it would fabricate a wave_id.
+# If no real derivation substrate is available, exits 1 with an explicit error.
 derive_wave_id() {
   local sprint_state_yaml="$1"
   local state_md="$2"
@@ -143,7 +146,9 @@ derive_wave_id() {
     fi
   fi
 
-  # Fallback: wave 1 if STATE.md absent or unparseable
-  echo "1"
-  return 0
+  # No valid wave_id substrate found — hard error per BC-5.41.001 PC2 anti-fabrication.
+  # A silent fallback to any numeric literal would fabricate a wave_id with no basis.
+  echo "ERROR: NoWaveIdSubstrate — cannot derive wave_id: STATE.md has no 'pass-N' current_step." \
+    "Ensure STATE.md frontmatter contains current_step: \"pass-N\" where N is the wave number." >&2
+  exit 1
 }

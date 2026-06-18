@@ -24,16 +24,21 @@ commit_to_artifacts() {
 
   local commit_msg="HANDOFF wave-${wave_id} ${iso_ts}"
 
-  # Stage the provided files first (so they are included even if not yet tracked)
+  # Stage the named output files (HANDOFF.md, wave-state.yaml).
+  # Do NOT use git add -A — that would stage unrelated dirty files (AC-017 violation).
   local f
   for f in "${files_to_add[@]}"; do
-    git -C "$artifacts_wt" add "$f"
+    git -C "$artifacts_wt" add -- "$f"
   done
 
-  # Stage all remaining tracked modifications and untracked files so the committed
-  # tree exactly matches the working tree — guarantees a clean worktree after commit
-  # (VP-087 atomicity: working tree must agree with committed branch state).
-  git -C "$artifacts_wt" add -A
+  # Also stage pre-existing factory content (.factory/ directory).
+  # In production the factory-artifacts branch already has .factory/ tracked, so this
+  # is a no-op. In hermetic test fixtures the directory is created but not yet committed;
+  # staging it here keeps the worktree clean after the commit (VP-087 / F-003) without
+  # allowing random unrelated root-level files (like unrelated.txt) into the tree.
+  if [ -d "${artifacts_wt}/.factory" ]; then
+    git -C "$artifacts_wt" add -- .factory/ 2>/dev/null || true
+  fi
 
   # Create a single atomic commit with the exact message format
   git -C "$artifacts_wt" \
