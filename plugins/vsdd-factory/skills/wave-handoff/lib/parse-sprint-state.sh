@@ -156,6 +156,8 @@ derive_wave_id() {
     local _completed_waves=0 _in_terminal_run=0 _found_next_wave=0
     local _has_entries=0
 
+    local _post_boundary_terminal=0
+
     while IFS= read -r _line; do
       if echo "$_line" | grep -qE '^\s+-\s+id:\s+\S+'; then
         # Process previous entry before starting new one
@@ -164,6 +166,11 @@ derive_wave_id() {
           if _is_terminal "$_current_status"; then
             if [ "$_found_next_wave" -eq 0 ]; then
               _in_terminal_run=1
+            else
+              # Terminal entry AFTER a pending/draft entry — the file-order==wave-order
+              # precondition cannot be verified. Record the violation; we will hard-error
+              # after the scan completes (O-P8-001 / SOUL.md §4 fail-loud).
+              _post_boundary_terminal=1
             fi
           elif _is_next_wave "$_current_status"; then
             if [ "$_in_terminal_run" -eq 1 ]; then
@@ -187,6 +194,9 @@ derive_wave_id() {
       if _is_terminal "$_current_status"; then
         if [ "$_found_next_wave" -eq 0 ]; then
           _in_terminal_run=1
+        else
+          # Terminal entry AFTER a pending/draft entry — same post-boundary violation
+          _post_boundary_terminal=1
         fi
       elif _is_next_wave "$_current_status"; then
         if [ "$_in_terminal_run" -eq 1 ]; then
@@ -195,6 +205,19 @@ derive_wave_id() {
         fi
         _found_next_wave=1
       fi
+    fi
+
+    # O-P8-001 guard: a terminal entry appeared after a pending/draft entry.
+    # This means the file-order==wave-order precondition is violated and the
+    # leading-run ordinal would be wrong. Fail loud with a NAMED error rather
+    # than silently returning a wrong wave_id (SOUL.md §4 / BC-5.41.001 PC2).
+    if [ "$_post_boundary_terminal" -eq 1 ]; then
+      echo "ERROR: WaveOrderUnverifiable — sprint-state.yaml contains a terminal entry" \
+        "after a pending/draft entry (post-boundary terminal pattern)." >&2
+      echo "  The leading-run wave_id model requires sprint-state entries to be ordered" \
+        "by wave (completed-wave terminal stories before current-wave pending/draft stories)." >&2
+      echo "  Reorder sprint-state.yaml so terminal entries precede pending/draft entries." >&2
+      exit 1
     fi
 
     if [ "$_has_entries" -eq 1 ] && ( [ "$_found_next_wave" -eq 1 ] || [ "$_completed_waves" -gt 0 ] || [ "$_in_terminal_run" -eq 1 ] ); then
