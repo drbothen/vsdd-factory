@@ -1351,6 +1351,35 @@ BC-5.39.001 3-CLEAN streak: passes 9/10/11 all CLEAN/CONSISTENT. PR #191 squash-
 
 ---
 
+## D-641 — E-18 F4 Wave 2 S-18.01 LOCAL cascade pass-8 fix burst + O-P8-001 research disposition; BC-5.41.001 v1.20 + S-18.01 v1.8; 3 lessons
+
+**Date:** 2026-06-18
+**Phase:** E-18-F4-wave2-S18.01-local-cascade-pass8
+**Decision:** Single-commit fix burst (TD-VSDD-053) recording LOCAL adversary pass-8 findings + O-P8-001 research disposition and all parity legs. Pass-8 NOT-CLEAN (2 findings + 3 observations, ALL fixed/disposed). Package re-FROZEN after this burst. 3-CLEAN streak remains 0/3. NEXT: LOCAL adversary pass-9 (fresh context).
+**Parent-commit:** 2b4a28d8 (D-640 SHA-patch HEAD)
+
+| ID | Decision | Phase | Date |
+|----|----------|-------|------|
+| D-641 | E-18 F4 Wave 2 S-18.01 LOCAL cascade pass-8 fix burst + O-P8-001 research disposition 2026-06-18. Pass-8 NOT-CLEAN (2 findings + 3 observations): (1) F-P8-001 BLOCKER — partial HANDOFF.md on has-next-wave anti-fabrication failure (BC-5.41.001 PC4): PRE-FLIGHT validation must run before any write_handoff call; fixed via pre-flight validation before write_handoff (worktree commit 2b0902c2); honors "no partial output" contract (PC4). (2) F-P8-002 MEDIUM — STORY-INDEX absent silently skipped (anti-fabrication SOUL.md #4 violation): StoryIndexMissing hard-error added (worktree commit 2b0902c2). (3) O-P8-002 [process-gap] — SKILL.md exit codes incomplete: NoWaveIdSubstrate + StoryIndexMissing added; downstream-gate codes annotated (worktree commit c0793f18). (4) O-P8-001 — wave_id derivation fragility (leading-contiguous-terminal-run relies on file-order == wave-order invariant): research-agent validated (CONTEXT-DEPENDENT — sound for VSDD barrier invariant; latent file-order fragility); disposition = note-in-spec-as-intended + in-scope hardening: BC-5.41.001 v1.20 explicit preconditions P-WAVE-BARRIER-INVARIANT + P-SPRINT-STATE-WAVE-ORDER + derive_wave_id WaveOrderUnverifiable fail-loud guard (worktree commit 539e6dab); Kahn-DAG-level derivation documented as design boundary NOT deferred work, NO TD entry. BC-5.41.001 v1.19→v1.20 (product-owner). S-18.01 v1.7→v1.8 (story-writer: BC version cites updated). (5) O-P8-003 — noted, no action (EPIC-COMPLETE commit-message wave number from ordinal is correct). 3 lessons codified: L-S18-validate-before-write (F-P8-001); L-S18-absent-ground-truth-must-hard-block (F-P8-002); L-S18-implicit-invariant-needs-explicit-precondition-and-guard (O-P8-001). BC-INDEX v3.10→v3.11; STORY-INDEX v4.17→v4.18. S-7.02 Cycle-Closing-Checklist confirmation deferred to convergence (streak 0/3). 4-index: BC v3.11 / VP v2.38 / STORY v4.18 / ARCH v2.56. | E-18-F4-wave2-S18.01-local-cascade-pass8 | 2026-06-18 |
+
+**Appendix — D-641 Rationale**
+
+**Pass-8 (NOT-CLEAN) findings and resolutions:**
+
+F-P8-001 BLOCKER — Partial HANDOFF.md on has-next-wave anti-fabrication failure: BC-5.41.001 PC4 ("MUST validate HANDOFF.md fields before committing") was violated because `write_handoff` was called before the anti-fabrication cross-checks ran. If the cross-check failed, HANDOFF.md was partially written but uncommitted, leaving the worktree in a dirty state. Fixed by restructuring to run all PRE-FLIGHT validation (anti-fabrication, field checks) before any file write, then writing HANDOFF.md atomically after all checks pass. Worktree commit 2b0902c2.
+
+F-P8-002 MEDIUM — STORY-INDEX absent silently skipped: When STORY-INDEX.md was not found on the factory-artifacts worktree, the code silently returned `wave_id = 1` and `stories = []` without surfacing the missing file as an error. This violates SOUL.md #4 (no silent failures; partial output forbidden). Fixed: StoryIndexMissing hard-error propagated (exit 2) when STORY-INDEX is absent. Worktree commit 2b0902c2.
+
+O-P8-002 [process-gap] — SKILL.md exit codes incomplete: The SKILL.md documented the primary happy-path exit codes but was missing `NoWaveIdSubstrate` (returned when no usable wave-ordinal substrate exists) and `StoryIndexMissing` (new hard-error above). Downstream-gate error codes were also not annotated. Added in worktree commit c0793f18 alongside the O-P8-002 disposition.
+
+O-P8-001 — wave_id derivation fragility (research-agent validated): The `derive_wave_id` leading-contiguous-terminal-run algorithm assumes file-order in STORY-INDEX equals wave-order (P-SPRINT-STATE-WAVE-ORDER). The research-agent confirmed this is CONTEXT-DEPENDENT: sound given the VSDD wave-gate barrier invariant (P-WAVE-BARRIER-INVARIANT, enforced by `validate-wave-gate-completeness` and `validate-wave-gate-prerequisite` hooks), but fragile if story rows are manually reordered. Disposition: document as intended design under explicit named preconditions (not a defect, not a TD entry), and add a `WaveOrderUnverifiable` fail-loud guard at the derivation call site. BC-5.41.001 v1.20 adds P-WAVE-BARRIER-INVARIANT + P-SPRINT-STATE-WAVE-ORDER as explicit named preconditions in PC2; the Kahn-DAG-level order-free derivation is documented as a future design evolution boundary (not deferred work). Worktree commit 539e6dab.
+
+O-P8-003 — EPIC-COMPLETE commit-message wave number from ordinal: noted by adversary, disposition = no action. The commit message wave number is derived from the ordinal correctly; no behavioral correction needed.
+
+**Why streak remains 0/3:** Passes 1-7 all NOT-CLEAN (various BLOCKERs/MEDIUMs). Pass-8 NOT-CLEAN (F-P8-001 BLOCKER + F-P8-002 MEDIUM). Three consecutive CLEAN passes required per BC-5.39.001. Package re-FROZEN; pass-9 dispatched fresh-context.
+
+---
+
 ## D-640 — E-18 F4 Wave 2 (S-18.01) LOCAL cascade passes 6+7 fix burst; BC-5.41.001 v1.19 + BC-5.41.002 v1.14 + S-18.01 v1.7; 3 process-gap lessons
 
 **Date:** 2026-06-18

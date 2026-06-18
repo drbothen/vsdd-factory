@@ -9388,3 +9388,107 @@ $ grep "429 lines" .factory/STATE.md
 ### Factory-artifacts Commits
 
 - `aebcf9a1` state(D-635): E-18 STORY CASCADE BC-5.39.001 3-CLEAN CONVERGED — streak 2/3→3/3; S-7.02 checklist SATISFIED; AWAITING STORY-APPROVAL HUMAN GATE
+
+---
+
+## D-641 — E-18 F4 Wave 2 S-18.01 LOCAL cascade pass-8 fix burst + O-P8-001 research disposition (2026-06-18)
+
+### Parent-commit
+
+`2b4a28d8` (D-640 SHA-patch HEAD)
+
+### Adversary Verdict
+
+Pass-8 adversary: NOT-CLEAN. 1 BLOCKER, 1 MEDIUM, 0 LOW. 3 observations (O-P8-001 CONTEXT-DEPENDENT; O-P8-002 process-gap; O-P8-003 noted/no-action). ALL findings fixed / observations disposed:
+
+- **F-P8-001 BLOCKER** — BC-5.41.001 PC4 violation: `write_handoff` called before anti-fabrication cross-check validation; partial HANDOFF.md left on worktree on failure. Fix: pre-flight validation before any file write (worktree commit 2b0902c2).
+- **F-P8-002 MEDIUM** — STORY-INDEX absent silently skipped (SOUL.md #4 violation): StoryIndexMissing hard-error propagated as exit 2 (worktree commit 2b0902c2).
+- **O-P8-002 [process-gap]** — SKILL.md exit codes incomplete: NoWaveIdSubstrate + StoryIndexMissing added; downstream-gate codes annotated (worktree commit c0793f18).
+- **O-P8-001 CONTEXT-DEPENDENT** — wave_id derivation fragility: research-agent validated (sound under P-WAVE-BARRIER-INVARIANT; latent file-order fragility if rows reordered). Disposition: BC-5.41.001 v1.20 explicit preconditions + WaveOrderUnverifiable fail-loud guard (worktree commit 539e6dab). Full Kahn-DAG derivation documented as design boundary, NOT deferred work, NO TD entry.
+- **O-P8-003** — EPIC-COMPLETE commit-message wave number from ordinal is correct; no action.
+
+3-CLEAN streak: **0/3** (pass-8 NOT-CLEAN; package re-FROZEN).
+
+### Dim-2 (Literal-Shell Gate Evidence)
+
+**Gate 1 — 4-index parity after D-641 (literal-shell):**
+
+```
+$ grep "^version:" \
+  .factory/specs/behavioral-contracts/BC-INDEX.md \
+  .factory/specs/verification-properties/VP-INDEX.md \
+  .factory/stories/STORY-INDEX.md \
+  .factory/specs/architecture/ARCH-INDEX.md
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.11"
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.38"
+.factory/stories/STORY-INDEX.md:version: "4.18"
+.factory/specs/architecture/ARCH-INDEX.md:version: "2.56"
+```
+
+4-index: BC v3.11 / VP v2.38 / STORY v4.18 / ARCH v2.56. VP-INDEX and ARCH-INDEX unchanged (no VP or ARCH changes this burst). PASS.
+
+**Gate 2 — POLICY 14 five-leg parity sweep for BC-5.41.001 v1.20:**
+
+```
+$ grep "^version:\|^last_amended:" \
+  .factory/specs/behavioral-contracts/ss-05/BC-5.41.001.md | head -2
+version: "1.20"
+last_amended: "2026-06-18 (v1.20) — explicit named preconditions..."
+```
+
+Leg (1) version: frontmatter — v1.20 CONFIRMED. Leg (2) body Changelog row — v1.20 row present in BC-5.41.001.md §Changelog (product-owner). Leg (3) modified[] array — updated in BC-5.41.001.md frontmatter (product-owner). Leg (4) last_amended: text-prefix — present. Leg (5) BC-INDEX catalog row version cell — v1.20 appended this burst. PASS.
+
+**Gate 3 — POLICY 14 five-leg parity sweep for S-18.01 v1.8:**
+
+```
+$ grep "^version:\|^last_amended:" \
+  .factory/stories/S-18.01-handoff-schema-wave-handoff-skill.md | head -2
+version: "1.8"
+last_amended: "2026-06-18 (v1.8) — sync BC-5.41.001 v1.20 + BC-5.41.002 v1.14..."
+```
+
+Leg (1) version: frontmatter — v1.8 CONFIRMED. Leg (2) body Changelog row — present (story-writer). Leg (3) modified[] array — updated (story-writer). Leg (4) last_amended: text-prefix — present. Leg (5) STORY-INDEX catalog row — v1.8 annotation updated this burst. PASS.
+
+**Gate 4 — own burst-log 8-block presence (D-446(a)):**
+
+8 mandatory D-444(c) blocks present in this entry: Parent-commit PRESENT, Adversary Verdict PRESENT, Dim-2 PRESENT, Dim-5 PRESENT, Dim-6 PRESENT, Dim-7 PRESENT, Closes PRESENT, Factory-artifacts Commits PRESENT. PASS.
+
+### Dim-5 (Files Touched)
+
+- `.factory/specs/behavioral-contracts/ss-05/BC-5.41.001.md` — MODIFIED: v1.19→v1.20 (product-owner, in worktree before this burst): explicit preconditions P-WAVE-BARRIER-INVARIANT + P-SPRINT-STATE-WAVE-ORDER; algorithm documented; design boundary documented.
+- `.factory/stories/S-18.01-handoff-schema-wave-handoff-skill.md` — MODIFIED: v1.7→v1.8 (story-writer, in worktree before this burst): BC version cites updated (BC-5.41.001→v1.20; BC-5.41.002→v1.14).
+- `.factory/code-delivery/S-18.01/research-O-P8-001-wave-ordinal.md` — NEW: research-agent O-P8-001 wave-ordinal fragility validation findings.
+- `.factory/specs/behavioral-contracts/BC-INDEX.md` — MODIFIED: v3.10→v3.11 (state-manager): BC-5.41.001 catalog row v1.20 appended; changelog-array top row added; version/last_amended updated.
+- `.factory/stories/STORY-INDEX.md` — MODIFIED: v4.17→v4.18 (state-manager): S-18.01 catalog row v1.8 annotation + pass-8 status; version/last_amended updated.
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — MODIFIED: D-641 6-column row + full Appendix added.
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — MODIFIED: 3 lessons added (L-S18-validate-before-write, L-S18-absent-ground-truth-must-hard-block, L-S18-implicit-invariant-needs-explicit-precondition-and-guard).
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — MODIFIED: D-641 8-block entry added (this entry).
+- `.factory/STATE.md` — MODIFIED: v3.90→v3.91; frontmatter advanced; banner updated; Phase Progress D-641 row; Active Branches factory-artifacts SHA (SHA-patch follow-up); Concurrent Cycles row; Decisions Log D-641 row; Session Resume Checkpoint updated.
+- `.factory/logs/dispatcher-internal-2026-06-18.jsonl` + `.factory/logs/events-2026-06-18.jsonl` — log files (excluded from parity sweep per normal discipline).
+
+**Files NOT touched (VP-INDEX v2.38 + ARCH-INDEX v2.56 unchanged):**
+- VP-INDEX.md — UNTOUCHED (no VP changes this burst)
+- ARCH-INDEX.md — UNTOUCHED (no architecture changes this burst)
+- BC-5.41.002.md — UNTOUCHED (already at v1.14 from D-640)
+
+### Dim-6 (Codifications)
+
+- D-641 codified in decision-log.md (this burst): E-18 F4 Wave 2 S-18.01 LOCAL cascade pass-8 NOT-CLEAN fix burst + O-P8-001 research disposition; BC-5.41.001 v1.20; S-18.01 v1.8; BC-INDEX v3.11; STORY-INDEX v4.18; 3 lessons; streak 0/3; pass-9 NEXT.
+- 3 [process-gap] lessons codified in lessons.md: L-S18-validate-before-write (F-P8-001); L-S18-absent-ground-truth-must-hard-block (F-P8-002); L-S18-implicit-invariant-needs-explicit-precondition-and-guard (O-P8-001).
+- ADVISORY (non-blocking): bats full suite shows 4 pre-existing NON-wave-handoff failures (check-harness-version, precompact-routing, regression-v1.0, pass-real-state-md-snapshot) — dispatcher/harness infra, unrelated to S-18.01; wave-handoff suite 42/42 green. Flag for CI/PR gate.
+
+### Dim-7 (Streak Status)
+
+3-CLEAN streak: **0/3** (pass-8 NOT-CLEAN; F-P8-001 BLOCKER + F-P8-002 MEDIUM all fixed). Package re-FROZEN after this burst. NEXT: LOCAL adversary pass-9 (fresh context).
+
+### Closes
+
+- F-P8-001 BLOCKER: partial HANDOFF.md anti-fabrication failure — PRE-FLIGHT before write_handoff (worktree commit 2b0902c2). CLOSED.
+- F-P8-002 MEDIUM: STORY-INDEX absent silent-skip → StoryIndexMissing hard-error (worktree commit 2b0902c2). CLOSED.
+- O-P8-002 [process-gap]: SKILL.md exit codes — NoWaveIdSubstrate + StoryIndexMissing added (worktree commit c0793f18). CLOSED.
+- O-P8-001 CONTEXT-DEPENDENT: BC-5.41.001 v1.20 explicit preconditions + WaveOrderUnverifiable guard (worktree commit 539e6dab) + research-agent validation. CLOSED (design boundary documented, NOT deferred).
+- O-P8-003: noted, no action. CLOSED.
+
+### Factory-artifacts Commits
+
+- TBD (SHA-patch follow-up per D-419(b)+D-420(d) convention)

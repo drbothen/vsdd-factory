@@ -4475,3 +4475,69 @@ Run assertions as: `yq '.stories | length' output.yaml` → expected count; `yq 
 **Consequence if violated:** Implementers reading the BC may implement a filtered `git log` search instead of plain `git rev-parse HEAD`, causing the implementation to break when factory-artifacts contains interleaved non-HANDOFF commits between wave closes (a normal operational scenario).
 
 **Cites:** D-640; S-18.01 LOCAL adversary pass-7 finding F-P7-001 LOW; BC-5.41.002 PC2 v1.13→v1.14 clarity refinement; AC-014 generated_from_handoff_sha semantics; ADR-026 §Decision 4.
+
+---
+
+## L-S18-validate-before-write
+
+**Date:** 2026-06-18
+**Tags:** [process-gap] [codified]
+**Anchors:** D-641, S-18.01, BC-5.41.001 PC4, F-P8-001 BLOCKER
+
+**Lesson (codified):** Anti-fabrication / precondition validation MUST run before any artifact write to honor "no partial output" contracts (BC-5.41.001 PC4). Calling `write_handoff` before the cross-check validation allows partial file creation that leaves the worktree dirty on failure — a partial output forbidden by PC4.
+
+**Root cause (S-18.01 pass-8):** F-P8-001 BLOCKER: `write_handoff` was called first, then anti-fabrication checks ran. If the check failed, HANDOFF.md existed on disk in a partially-written state. Fix: restructure to run ALL pre-flight validation (anti-fabrication, field checks) before any file write; write HANDOFF.md only after all checks pass atomically.
+
+**Gate (codified):** For any shell skill with a "no partial output" PC: (1) ALL validation runs BEFORE any `echo`/`printf`/`tee` writes to artifact files. (2) File writes are the LAST step in the happy path, not intermediate steps interspersed with checks. (3) If validation fails mid-sequence, NO artifact file should exist (clean failure).
+
+**S-7.02 confirmation:** Process-gap lesson for the S-7.02 Cycle-Closing-Checklist. Cycle is NOT converging this burst (streak 0/3); S-7.02 confirmation deferred to eventual convergence (≥3-CLEAN streak).
+
+**Disposition:** Forward: S-18.08 (pre-flight-validation-before-write gate as a WASM hook precondition check). Anchor: E-18 F4.
+
+**Consequence if violated:** Failed wave-gate runs leave partial HANDOFF.md artifacts on factory-artifacts worktree, requiring manual cleanup and potentially confusing subsequent wave-gate invocations that find a stale partial file.
+
+**Cites:** D-641; S-18.01 LOCAL adversary pass-8 finding F-P8-001 BLOCKER; BC-5.41.001 PC4; SOUL.md #4.
+
+---
+
+## L-S18-absent-ground-truth-must-hard-block
+
+**Date:** 2026-06-18
+**Tags:** [process-gap] [codified]
+**Anchors:** D-641, S-18.01, SOUL.md #4, F-P8-002 MEDIUM
+
+**Lesson (codified):** A missing source-of-truth (STORY-INDEX) MUST hard-block, not silent-skip. SOUL.md #4 ("no silent failures") requires that the absence of a required input file propagates as an explicit error (hard exit 2), never as a silent "best effort" default return.
+
+**Root cause (S-18.01 pass-8):** F-P8-002 MEDIUM: When STORY-INDEX.md was absent from the factory-artifacts worktree, `derive_wave_id` silently returned `wave_id = 1` and `stories = []` as if it were wave 1. This masked the missing file and allowed the wave-gate to proceed with fabricated data — a SOUL.md #4 violation.
+
+**Gate (codified):** For any shell skill that reads a source-of-truth index file (STORY-INDEX, BC-INDEX, VP-INDEX): (1) Check for file existence BEFORE attempting to parse. (2) If absent → emit `ERROR: <filename> not found at <path>` and exit 2. (3) NO fallback to default values. (4) Error message MUST name the file and path so the operator can diagnose.
+
+**S-7.02 confirmation:** Process-gap lesson for the S-7.02 Cycle-Closing-Checklist. Cycle is NOT converging this burst (streak 0/3); S-7.02 confirmation deferred to eventual convergence (≥3-CLEAN streak).
+
+**Disposition:** Forward: S-18.08 (absent-index hard-block gate as WASM hook pattern). Anchor: E-18 F4.
+
+**Consequence if violated:** Silent `Vec::new()` / default returns when a required file is missing allow fabricated "success" that propagates incorrect wave-id derivations into downstream commits, corrupting wave-state.yaml with phantom wave ordinals.
+
+**Cites:** D-641; S-18.01 LOCAL adversary pass-8 finding F-P8-002 MEDIUM; SOUL.md #4; BC-5.41.001 PC3 anti-fabrication.
+
+---
+
+## L-S18-implicit-invariant-needs-explicit-precondition-and-guard
+
+**Date:** 2026-06-18
+**Tags:** [process-gap] [codified]
+**Anchors:** D-641, S-18.01, BC-5.41.001 PC2, O-P8-001, P-WAVE-BARRIER-INVARIANT, P-SPRINT-STATE-WAVE-ORDER
+
+**Lesson (codified):** Models relying on implicit invariants (wave-gate barrier, file-order == wave-order) MUST document explicit named preconditions AND add a fail-loud guard, rather than silently returning a wrong result when the invariant breaks. Research-agent validation is the recommended disposition path for "is this brittle?" observations.
+
+**Root cause (S-18.01 pass-8):** O-P8-001: The `derive_wave_id` leading-contiguous-terminal-run algorithm was sound under VSDD's wave-gate barrier invariant but would silently return the wrong wave ordinal if story rows were manually reordered in STORY-INDEX (violating the file-order assumption). The algorithm was correct-under-invariants but the invariants were undocumented and there was no guard to detect their violation.
+
+**Gate (codified):** (1) When an algorithm's correctness depends on an invariant maintained by external mechanisms (hook gates, human discipline), NAME the invariant explicitly as a precondition in the BC prose (e.g., P-WAVE-BARRIER-INVARIANT, P-SPRINT-STATE-WAVE-ORDER). (2) Add a fail-loud guard at the call site that exits non-zero with `WaveOrderUnverifiable` (or equivalent) if the invariant cannot be confirmed. (3) Document "Kahn-DAG-level derivation" or similar as a design evolution boundary — NOT as deferred work — when the full invariant-free solution is known but not required under current constraints. (4) Use research-agent validation to confirm "context-dependent" observations before committing to full redesign vs. documented boundary.
+
+**S-7.02 confirmation:** Process-gap lesson for the S-7.02 Cycle-Closing-Checklist. Cycle is NOT converging this burst (streak 0/3); S-7.02 confirmation deferred to eventual convergence (≥3-CLEAN streak).
+
+**Disposition:** The design boundary is documented in BC-5.41.001 v1.20 PC2 under P-WAVE-BARRIER-INVARIANT and P-SPRINT-STATE-WAVE-ORDER. No TD entry required; no future-story anchor required (the Kahn-DAG evolution is optional, not mandatory). Anchor: E-18 F4 for the WaveOrderUnverifiable guard (implemented worktree commit 539e6dab).
+
+**Consequence if violated:** Algorithms with undocumented preconditions fail silently in scenarios that violate those preconditions, producing wrong outputs that downstream consumers treat as correct. Fresh-context adversaries correctly flag this as a brittle anti-fabrication gap.
+
+**Cites:** D-641; S-18.01 LOCAL adversary pass-8 observation O-P8-001; BC-5.41.001 PC2 v1.19→v1.20 preconditions; research-O-P8-001-wave-ordinal.md; worktree commit 539e6dab.
