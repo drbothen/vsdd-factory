@@ -9491,4 +9491,4 @@ Leg (1) version: frontmatter — v1.8 CONFIRMED. Leg (2) body Changelog row — 
 
 ### Factory-artifacts Commits
 
-- TBD (SHA-patch follow-up per D-419(b)+D-420(d) convention)
+- `f9142334` artifacts(D-641): E-18 F4 Wave 2 S-18.01 LOCAL cascade pass-8 fix burst + O-P8-001 research disposition
