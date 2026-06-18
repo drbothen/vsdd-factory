@@ -68,21 +68,43 @@ _git_wt() {
 }
 
 # ---------------------------------------------------------------------------
-# _get_prior_handoff_sha — find the most-recent prior "HANDOFF wave-" commit
-# on the factory-artifacts branch, returning its SHA or the literal "null"
-# when no such commit exists (wave 1 case).
-# Per AC-014 v1.4 / BC-5.41.002 PC2: generated_from_handoff_sha in wave-state.yaml
-# MUST be the SHA of the prior HANDOFF commit, NOT the SHA of the commit that
-# will contain the current wave-state.yaml (cryptographic fixed-point — infeasible).
+# _get_prior_handoff_sha — return the factory-artifacts HEAD SHA captured
+# immediately before the atomic commit (per AC-014 v1.4 / BC-5.41.002 PC2).
+#
+# Operative definition: generated_from_handoff_sha = `git -C ARTIFACTS_WT rev-parse HEAD`
+# at the moment the skill is invoked, i.e., the current HEAD of the factory-artifacts
+# branch before the atomic commit creates a new HEAD.
+#
+# "null" is returned when HEAD is the orphan root (no parent commit exists — wave 1):
+#   git rev-parse HEAD succeeds on orphan branches (returns the init commit), but
+#   wave-1 is characterised by the factory-artifacts branch having only its init commit
+#   and no prior HANDOFF — we detect this by checking whether the prior HEAD commit
+#   message starts with "factory-artifacts init" or similar orphan-root patterns.
+#   For robustness: use rev-list depth to detect orphan-root (depth == 1 meaning the
+#   init commit is the only commit on the branch).
 # ---------------------------------------------------------------------------
 _get_prior_handoff_sha() {
-  local sha
-  sha="$(git -C "$ARTIFACTS_WT" log --grep='^HANDOFF wave-' -n1 --format='%H' 2>/dev/null || true)"
-  if [ -n "$sha" ]; then
-    echo "$sha"
-  else
+  # Check if the factory-artifacts branch has any commits at all
+  local head_sha
+  head_sha="$(git -C "$ARTIFACTS_WT" rev-parse HEAD 2>/dev/null || true)"
+  if [ -z "$head_sha" ]; then
     echo "null"
+    return 0
   fi
+
+  # Count commits on factory-artifacts to detect orphan-root (wave-1 case).
+  # When there is only the init commit (depth=1), treat as wave-1 → null.
+  local depth
+  depth="$(git -C "$ARTIFACTS_WT" rev-list --count HEAD 2>/dev/null || echo "0")"
+  if [ "$depth" -le 1 ]; then
+    echo "null"
+    return 0
+  fi
+
+  # Return the current HEAD SHA — this is the value BEFORE the atomic commit runs.
+  # Per BC-5.41.002 PC2 / AC-014 v1.4: captures the prior state of factory-artifacts
+  # regardless of whether HEAD points to a HANDOFF commit or any other commit.
+  echo "$head_sha"
 }
 
 # ---------------------------------------------------------------------------

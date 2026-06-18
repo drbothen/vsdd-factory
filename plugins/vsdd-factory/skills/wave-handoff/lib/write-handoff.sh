@@ -159,12 +159,21 @@ write_handoff() {
     fi
   fi
 
-  # Build active_bcs YAML list
+  # Build active_bcs YAML list as resolvable paths relative to artifacts_wt.
+  # BC-5.41.001 PC4 / VP-087: entries must be file paths, not bare BC-X.XX.XXX ids.
+  # artifacts_wt is the worktree root; bc_dir is always $artifacts_wt/specs/behavioral-contracts/...
+  # Resolve each absolute bc file path to a path relative to the artifacts_wt root.
+  local artifacts_wt_for_bcs="${ARTIFACTS_WT:-}"
   local active_bcs_yaml
   active_bcs_yaml="$(echo "$bc_files" | while IFS= read -r f; do
-    local base
-    base="$(basename "$f" .md)"
-    echo "  - $base"
+    [ -z "$f" ] && continue
+    # Make path relative to ARTIFACTS_WT if possible
+    if [ -n "$artifacts_wt_for_bcs" ]; then
+      local rel_path="${f#${artifacts_wt_for_bcs}/}"
+      echo "  - ${rel_path}"
+    else
+      echo "  - $f"
+    fi
   done)"
 
   # Build next_wave_stories YAML
