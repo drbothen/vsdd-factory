@@ -65,7 +65,7 @@ classify_stories() {
 
   while IFS= read -r line; do
     # Match "  - id: <value>" (story block start)
-    if echo "$line" | grep -qE '^\s+-\s+id:\s+\S+'; then
+    if echo "$line" | grep -qE '^[[:space:]]+-[[:space:]]+id:[[:space:]]+[^[:space:]]+'; then
       # Save previous story if we have a complete pair
       if [ -n "$current_id" ] && [ -n "$current_status" ]; then
         has_any_story=1
@@ -83,7 +83,7 @@ classify_stories() {
       current_id="$(echo "$line" | awk '{print $NF}')"
       current_status=""
     # Match "    status: <value>"
-    elif echo "$line" | grep -qE '^\s+status:\s+\S+'; then
+    elif echo "$line" | grep -qE '^[[:space:]]+status:[[:space:]]+[^[:space:]]+'; then
       current_status="$(echo "$line" | awk '{print $NF}')"
     fi
   done < "$sprint_state_yaml"
@@ -159,7 +159,7 @@ derive_wave_id() {
     local _post_boundary_terminal=0
 
     while IFS= read -r _line; do
-      if echo "$_line" | grep -qE '^\s+-\s+id:\s+\S+'; then
+      if echo "$_line" | grep -qE '^[[:space:]]+-[[:space:]]+id:[[:space:]]+[^[:space:]]+'; then
         # Process previous entry before starting new one
         if [ -n "$_current_id" ] && [ -n "$_current_status" ]; then
           _has_entries=1
@@ -183,7 +183,7 @@ derive_wave_id() {
         fi
         _current_id="$(echo "$_line" | awk '{print $NF}')"
         _current_status=""
-      elif echo "$_line" | grep -qE '^\s+status:\s+\S+'; then
+      elif echo "$_line" | grep -qE '^[[:space:]]+status:[[:space:]]+[^[:space:]]+'; then
         _current_status="$(echo "$_line" | awk '{print $NF}')"
       fi
     done < "$sprint_state_yaml"
