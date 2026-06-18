@@ -1230,3 +1230,30 @@ async = false
 
 [hooks.capabilities.read_file]
 path_allow = [".factory/STATE.md"]
+
+# ---------- PreCompact (S-18.00) ----------
+# check-harness-version: verify Claude Code harness >= v2.1.105 before compaction.
+# Advisory-only (on_error=continue): dispatcher continues even if the check fails.
+# Registered as PreCompact per BC-1.15.001 INV3 and AC-008.
+# Never sets block_intent — that is reserved for precompact-flush.sh (S-18.04a).
+# S-18.00 stub: real implementation wired after Red Gate tests pass (TDD green step).
+
+[[hooks]]
+name = "check-harness-version"
+event = "PreCompact"
+plugin = "hook-plugins/legacy-bash-adapter.wasm"
+priority = 50
+timeout_ms = 5000
+on_error = "continue"
+async = false
+
+[hooks.config]
+script_path = "hooks/check-harness-version.sh"
+
+[hooks.capabilities]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT"]
+
+[hooks.capabilities.exec_subprocess]
+binary_allow = ["bash"]
+shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT"]

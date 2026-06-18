@@ -5,6 +5,16 @@
 //! hold. S-1.2 defines the types; S-1.5 consumes capabilities during
 //! plugin instantiation; S-2.2 auto-generates the file from the existing
 //! v0.79.x hooks.json.
+//!
+//! ## S-18.00: PreCompact / PostCompact event-string parsing
+//!
+//! The [`parse_event_type`] function parses the `event` string field from a
+//! `[[hooks]]` entry in hooks-registry.toml into the typed [`crate::invoke::EventType`]
+//! enum (BC-1.15.001 INV1). `"PreCompact"` and `"PostCompact"` are valid event strings
+//! that MUST NOT produce `RegistryError::UnknownEvent`.
+//!
+//! The implementation is stubbed with `todo!()` per S-18.00 Red Gate discipline
+//! (BC-5.38.001). The implementer wires the real parse once Red Gate tests are in place.
 
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
@@ -435,6 +445,39 @@ impl Registry {
         }
         Ok(())
     }
+}
+
+// ---------------------------------------------------------------------------
+// S-18.00: event-string → EventType parsing (BC-1.15.001 INV1)
+//
+// `parse_event_type` is the registry-side bridge from the TOML `event` string
+// field to the typed `EventType` enum in `invoke.rs`. `"PreCompact"` and
+// `"PostCompact"` MUST parse without `RegistryError::UnknownEvent`
+// (BC-1.15.001 Architecture Anchors).
+//
+// The function is a `todo!()` stub per S-18.00 Red Gate discipline (BC-5.38.001).
+//
+// Self-check (BC-5.38.005 invariant 1): "If I include this real implementation,
+// will the test for this function pass trivially without any implementer work?"
+// Yes — a real implementation would trivially satisfy all registry-parsing
+// Red Gate tests before the implementer wires the routing arms. Body is `todo!()`.
+// ---------------------------------------------------------------------------
+
+/// Parse the `event` string from a hooks-registry.toml `[[hooks]]` entry into
+/// the typed [`crate::invoke::EventType`] enum.
+///
+/// `"PreCompact"` and `"PostCompact"` are valid event strings and MUST NOT produce
+/// an error (BC-1.15.001 Architecture Anchors). Unknown event strings return
+/// `EventType::Other` rather than an error so future harness event types do not
+/// cause registry-load failures (fail-open for novel event types).
+///
+/// # S-18.00 stub (BC-5.38.001)
+///
+/// Self-check (BC-5.38.005 invariant 1): "If I include this real implementation,
+/// will the test for this function pass trivially without any implementer work?"
+/// Yes. Body is `todo!()`.
+pub fn parse_event_type(_event: &str) -> crate::invoke::EventType {
+    todo!("S-18.00 parse_event_type — Red Gate stub; implementer wires after tests are red")
 }
 
 #[cfg(test)]

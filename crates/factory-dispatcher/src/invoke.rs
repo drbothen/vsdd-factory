@@ -6,6 +6,18 @@
 //! fuel consumption) happens synchronously. The per-invocation timeout
 //! is honored by the shared [`EpochTicker`]; each invocation just sets
 //! its own deadline before calling `_start`.
+//!
+//! ## S-18.00: EventType enum
+//!
+//! [`EventType`] is the closed enum of Claude Code harness event types that the
+//! dispatcher recognises. It enumerates `PreToolUse`, `PostToolUse`, `PreCompact`,
+//! and `PostCompact` as first-class variants (BC-1.15.001 INV1). An unknown-event
+//! fallback that silently discards PreCompact/PostCompact is a specification
+//! violation.
+//!
+//! The dispatch routing arms for PreCompact/PostCompact are stubbed with
+//! `todo!()` per S-18.00 Red Gate discipline (BC-5.38.001). The implementer
+//! (`vsdd-factory:implementer`) will wire the real routing in the next TDD step.
 
 use std::time::Instant;
 
@@ -18,6 +30,130 @@ use wasmtime_wasi::{DirPerms, FilePerms, I32Exit, WasiCtxBuilder};
 
 use crate::engine::timeout_ms_to_epochs;
 use crate::host::{HostContext, setup_linker};
+
+// ---------------------------------------------------------------------------
+// S-18.00: EventType enum (BC-1.15.001 INV1)
+//
+// Closed enum of harness event types the dispatcher recognises. All event
+// types — including PreCompact and PostCompact added by S-18.00 — MUST be
+// enumerated here rather than handled via string fallback. An unknown-event
+// fallback path that silently discards PreCompact/PostCompact is a
+// specification violation (BC-1.15.001 INV1).
+//
+// The dispatch routing helpers `dispatch_precompact` and `dispatch_postcompact`
+// are `todo!()` stubs (S-18.00 Red Gate; BC-5.38.001). The implementer wires
+// the real routing once the Red Gate tests are in place (next TDD step).
+// ---------------------------------------------------------------------------
+
+/// Closed enum of harness event types the dispatcher routes.
+///
+/// Adding a new event type to the Claude Code harness protocol requires a
+/// new variant here — string-fallback dispatch is a specification violation
+/// per BC-1.15.001 INV1.
+///
+/// # S-18.00 additions
+///
+/// `PreCompact` and `PostCompact` are added as first-class variants alongside
+/// the existing `PreToolUse` and `PostToolUse` (BC-1.15.001 INV1).
+/// `PostCompact` is advisory-only at the harness level: the dispatcher
+/// propagates exit codes but never sets `block_intent=true` for PostCompact
+/// (BC-1.15.001 PC2).
+///
+/// # Serde
+///
+/// `EventType` can be round-tripped from the `event_name` / `event` string
+/// fields in the harness payload and hooks-registry.toml via
+/// [`EventType::from_event_str`] (stub, S-18.00) and [`EventType::as_str`].
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "PascalCase")]
+pub enum EventType {
+    /// Claude Code pre-tool-use hook event (gates tool execution).
+    PreToolUse,
+    /// Claude Code post-tool-use hook event (advisory / observability).
+    PostToolUse,
+    /// Claude Code pre-compact hook event (gates context compaction).
+    /// Introduced in harness >= v2.1.105. Block-intent propagation is
+    /// supported (BC-1.15.001 PC1/PC4).
+    PreCompact,
+    /// Claude Code post-compact hook event (advisory-only; no block-intent).
+    /// Introduced in harness >= v2.1.105 (BC-1.15.001 PC2).
+    PostCompact,
+    /// Other harness events not enumerated above (session lifecycle, etc.).
+    /// The dispatcher routes these identically to `PostToolUse` semantics
+    /// (advisory, no block-intent) unless a future story adds a specific arm.
+    Other,
+}
+
+impl EventType {
+    /// Convert this variant to the canonical event-name string used in
+    /// hooks-registry.toml `event` fields and harness payload `event_name` fields.
+    ///
+    /// # GREEN-BY-DESIGN
+    ///
+    /// Pure match on enum variants; zero branching beyond pattern, no I/O,
+    /// no helpers. Body ≤ 3 lines per variant. BC-5.38.002 criteria all satisfied.
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            EventType::PreToolUse => "PreToolUse",
+            EventType::PostToolUse => "PostToolUse",
+            EventType::PreCompact => "PreCompact",
+            EventType::PostCompact => "PostCompact",
+            EventType::Other => "Other",
+        }
+    }
+
+    /// Parse an event-name string from the harness payload or hooks-registry.toml
+    /// into an `EventType` variant.
+    ///
+    /// Returns `EventType::Other` for unrecognised event names so the dispatcher
+    /// never silently drops an unknown event — callers can inspect `EventType::Other`
+    /// and handle gracefully.
+    ///
+    /// # S-18.00 stub
+    ///
+    /// Self-check (BC-5.38.005 invariant 1): "If I include this real implementation,
+    /// will the test for this function pass trivially without any implementer work?"
+    /// Yes — a full `from_event_str` implementation would make the
+    /// `test_event_type_enum_has_precompact_postcompact` and registry-parsing tests
+    /// pass immediately without the implementer wiring the dispatch arms. Therefore
+    /// this body is `todo!()` per BC-5.38.001. The implementer promotes this stub
+    /// once the Red Gate test suite is in place.
+    pub fn from_event_str(_event: &str) -> Self {
+        todo!("S-18.00 EventType::from_event_str — stub for Red Gate; implementer wires dispatch")
+    }
+}
+
+/// Dispatch a `PreCompact` event to a set of matched plugins.
+///
+/// PreCompact supports block-intent propagation: a plugin that exits 2
+/// causes the dispatcher to return `block_intent=true` (BC-1.15.001 PC1/PC4).
+/// On-error semantics mirror PreToolUse (BC-1.15.001 PC5).
+///
+/// # S-18.00 todo!() stub (BC-5.38.001)
+///
+/// Self-check (BC-5.38.005 invariant 1): "If I include this real
+/// implementation, will the test for this function pass trivially without
+/// any implementer work?" Yes — providing real routing logic here would
+/// make the Red Gate tests pass before the test-writer has a chance to
+/// drive the implementation. Body is `todo!()`.
+pub fn dispatch_precompact() {
+    todo!("S-18.00 PreCompact routing — Red Gate stub; wired by implementer after tests are red")
+}
+
+/// Dispatch a `PostCompact` event to a set of matched plugins.
+///
+/// PostCompact is advisory-only at the harness level: the dispatcher
+/// propagates plugin exit codes but NEVER sets `block_intent=true`
+/// regardless of plugin exit code (BC-1.15.001 PC2).
+///
+/// # S-18.00 todo!() stub (BC-5.38.001)
+///
+/// Self-check (BC-5.38.005 invariant 1): "If I include this real
+/// implementation, will the test for this function pass trivially without
+/// any implementer work?" Yes. Body is `todo!()`.
+pub fn dispatch_postcompact() {
+    todo!("S-18.00 PostCompact routing — Red Gate stub; wired by implementer after tests are red")
+}
 
 /// Outcome of a single `invoke_plugin` call.
 ///
