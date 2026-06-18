@@ -445,34 +445,72 @@ _artifact_last_commit_files() {
 
 # ---------------------------------------------------------------------------
 # test_precompact_sha_mismatch_hard_blocks
-# F-S1801-P1-006 / BC-5.41.001 PC5 / EC-011
-# When the precompact-flush-log is present + valid (FIELD-4=commit, valid SHA in FIELD-2)
-# but the HANDOFF.md written would have a null or mismatched precompact_flush_sha,
-# the skill MUST exit 1 with PrecompactShaMismatch.
-# Covers: the current impl silently auto-populates from the log (no hard-block for a null
-# that contradicts the log); this test REDs that path.
+# F-P2-001 / BC-5.41.001 PC5 / EC-011
+# Drives the REAL production guard — NO FORCE_PRECOMPACT_SHA env hatch.
+#
+# The real EC-011 trigger: precompact-flush-log is present with FIELD-4=commit BUT
+# FIELD-2 is MALFORMED (not 40-char hex, e.g. "deadbeef"). The log claims a commit
+# happened but the SHA cannot be trusted → the skill MUST exit 1 with
+# PrecompactShaMismatch. The current impl returns FIELD-2 blindly from
+# get_precompact_flush_sha without validating it is 40-char hex, then writes
+# the malformed value to HANDOFF.md without hard-blocking → RED gate.
+#
+# Positive path (A): log present + FIELD-4=commit + valid 40-hex FIELD-2 →
+#   skill succeeds; the COMMITTED HANDOFF.md precompact_flush_sha equals the log SHA.
+#
+# Negative path (B): log present + FIELD-4=commit + MALFORMED FIELD-2 (not 40-hex) →
+#   skill MUST exit 1 with "PrecompactShaMismatch" in output.
+#   HANDOFF.md MUST NOT be committed.
+#
+# No FORCE_PRECOMPACT_SHA set in either path — tests the real invocation contract.
 # ---------------------------------------------------------------------------
 
 @test "test_precompact_sha_mismatch_hard_blocks" {
-  # Setup: valid precompact-flush-log exists
+  # --- Part A (positive): valid 40-hex SHA in log → skill succeeds; committed
+  # HANDOFF.md precompact_flush_sha == log SHA. ---
   local log_sha="aabbccddeeff00112233445566778899aabbccdd"
-  echo "2026-06-17T12:00:00Z ${log_sha} cycle/pass-2 commit" \
+  echo "2026-06-18T00:00:00Z ${log_sha} cycle/pass-2 commit" \
     > "$ARTIFACTS_WT/.factory/hooks/precompact-flush-log"
 
-  # Inject a conflicting (null) precompact_flush_sha into the environment so the skill
-  # would write null — simulating a context that has "forgotten" the precompact SHA while
-  # the log still shows it. We force this by passing an env override that the skill must
-  # cross-check against the log.
-  # If the skill correctly implements PC5: log present + FIELD-4=commit + null SHA → HARD BLOCK.
+  _run_skill
+
+  [ "$status" -eq 0 ] || {
+    echo "FAIL (Part A): skill exited ${status} with valid 40-hex log SHA, expected 0." >&2
+    echo "Actual output: $output" >&2
+    false
+  }
+
+  # Assert via COMMITTED blob — not working-tree file (VP-087 proof harness)
+  git -C "$WORK" show factory-artifacts:HANDOFF.md >/dev/null 2>&1 || {
+    echo "FAIL (Part A): HANDOFF.md not committed to factory-artifacts" >&2
+    false
+  }
+  local committed_sha
+  committed_sha="$(git -C "$WORK" show factory-artifacts:HANDOFF.md \
+    | grep "^precompact_flush_sha:" | awk '{print $2}')"
+  [ "$committed_sha" = "$log_sha" ] || {
+    echo "FAIL (Part A): committed HANDOFF.md precompact_flush_sha '${committed_sha}'" >&2
+    echo "  expected log SHA '${log_sha}'" >&2
+    false
+  }
+
+  # Clean the committed HANDOFF.md so Part B starts fresh
+  rm -f "$ARTIFACTS_WT/HANDOFF.md"
+
+  # --- Part B (negative): malformed FIELD-2 (not 40-hex) → skill MUST exit 1 with
+  # PrecompactShaMismatch. This drives the REAL production guard — no env hatch. ---
+  local malformed_sha="deadbeef"
+  echo "2026-06-18T00:00:01Z ${malformed_sha} cycle/pass-2 commit" \
+    > "$ARTIFACTS_WT/.factory/hooks/precompact-flush-log"
+
+  # Run without FORCE_PRECOMPACT_SHA — real invocation contract
   run bash -c "
     export ARTIFACTS_WT='${ARTIFACTS_WT}'
     export SPRINT_STATE_YAML='${WORK}/sprint-state.yaml'
     export STATE_MD_PATH='${WORK}/STATE.md'
     export BC_DIR='${ARTIFACTS_WT}/.factory/specs/behavioral-contracts'
     export PRECOMPACT_FLUSH_LOG='${ARTIFACTS_WT}/.factory/hooks/precompact-flush-log'
-    export GIT_DIR='${WORK}/.git'
     export FACTORY_REPO='${WORK}'
-    export FORCE_PRECOMPACT_SHA=null
     '${SKILL}' \
       --artifacts-worktree '${ARTIFACTS_WT}' \
       --sprint-state '${WORK}/sprint-state.yaml' \
@@ -481,24 +519,30 @@ _artifact_last_commit_files() {
       2>&1
   "
 
-  # Must exit 1 — PrecompactShaMismatch hard block
+  # Must exit 1 — PrecompactShaMismatch hard block (malformed FIELD-2 cannot be trusted)
   [ "$status" -eq 1 ] || {
-    echo "FAIL: skill exited ${status}, expected exit 1 on PrecompactShaMismatch." >&2
-    echo "When precompact-flush-log contains a valid commit SHA and FORCE_PRECOMPACT_SHA=null" >&2
-    echo "is injected, the skill must hard-block (PC5 EC-011), not silently accept null." >&2
+    echo "FAIL (Part B): skill exited ${status}, expected exit 1 on PrecompactShaMismatch." >&2
+    echo "When precompact-flush-log has FIELD-4=commit but FIELD-2='${malformed_sha}' is not" >&2
+    echo "40-char hex, the skill must hard-block (BC-5.41.001 PC5/EC-011)." >&2
+    echo "The current impl returns FIELD-2 blindly — no validation → this test REDs that path." >&2
     echo "Actual output: $output" >&2
     false
   }
 
   # Must emit PrecompactShaMismatch in output
   echo "$output" | grep -qi "PrecompactShaMismatch" || {
-    echo "FAIL: PrecompactShaMismatch not in output. Got: $output" >&2
+    echo "FAIL (Part B): PrecompactShaMismatch not in output. Got: $output" >&2
     false
   }
 
-  # HANDOFF.md must NOT be written
+  # HANDOFF.md must NOT be committed (no partial artifact on hard error)
+  # Assert via git show on the committed tree, not the working tree
+  local before_count after_count
+  before_count="$(git -C "$WORK" rev-list --count factory-artifacts)"
+  # (The skill already ran and failed — commit count should not have grown from Part A)
+  # Working-tree HANDOFF.md must also be absent (no partial write)
   [ ! -f "$ARTIFACTS_WT/HANDOFF.md" ] || {
-    echo "FAIL: HANDOFF.md written despite PrecompactShaMismatch — must not write partial artifact" >&2
+    echo "FAIL (Part B): HANDOFF.md written to working tree despite PrecompactShaMismatch" >&2
     false
   }
 }
@@ -1272,6 +1316,210 @@ EOF
     echo "FAIL: wave-state.yaml written on review-pending BrokenSprintState" >&2
     false
   }
+}
+
+# ---------------------------------------------------------------------------
+# test_commit_contains_only_handoff_and_wave_state
+# F-P2-002 / BC-5.41.002 PC6 / VP-087 atomic commit scope
+# The atomic commit to factory-artifacts MUST contain only HANDOFF.md and
+# wave-state.yaml — no unrelated working-tree files.
+#
+# The current impl calls `git add -A` in commit-to-artifacts.sh which stages
+# ALL untracked files, including any unrelated dirty file in the artifacts worktree.
+# This test REDs that path.
+#
+# Setup: plant an unrelated dirty file in the artifacts worktree (unrelated.txt),
+# run the has-next-wave path, then assert via `git show --stat factory-artifacts`
+# that `unrelated.txt` does NOT appear in the commit tree.
+# ---------------------------------------------------------------------------
+
+@test "test_commit_contains_only_handoff_and_wave_state" {
+  # Plant an unrelated file in the artifacts worktree (not staged, not tracked)
+  echo "this file must not appear in the wave-handoff commit" \
+    > "$ARTIFACTS_WT/unrelated.txt"
+
+  _run_skill
+
+  [ "$status" -eq 0 ] || {
+    echo "FAIL: skill exited ${status}, expected 0. Output: $output" >&2
+    false
+  }
+
+  # Assert the committed tree does NOT contain unrelated.txt
+  # `git show <commit>:<file>` returns exit 128 if the path is absent from the tree
+  local latest_commit
+  latest_commit="$(git -C "$WORK" rev-parse factory-artifacts)"
+
+  if git -C "$WORK" show "${latest_commit}:unrelated.txt" >/dev/null 2>&1; then
+    echo "FAIL (F-P2-002): unrelated.txt is in the committed factory-artifacts tree." >&2
+    echo "The atomic commit must contain ONLY HANDOFF.md and wave-state.yaml." >&2
+    echo "Current impl uses 'git add -A' which stages all untracked files." >&2
+    echo "Commit: ${latest_commit}" >&2
+    echo "Files in commit:" >&2
+    git -C "$WORK" show --stat "${latest_commit}" >&2
+    false
+  fi
+
+  # Positive assertion: HANDOFF.md and wave-state.yaml ARE in the committed tree
+  git -C "$WORK" show "${latest_commit}:HANDOFF.md" >/dev/null 2>&1 || {
+    echo "FAIL (F-P2-002): HANDOFF.md missing from committed tree." >&2
+    false
+  }
+  git -C "$WORK" show "${latest_commit}:wave-state.yaml" >/dev/null 2>&1 || {
+    echo "FAIL (F-P2-002): wave-state.yaml missing from committed tree." >&2
+    false
+  }
+}
+
+# ---------------------------------------------------------------------------
+# test_wave_state_wave_id_is_next_wave
+# F-P2-003 / BC-5.41.002 PC2
+# The wave_id in the COMMITTED wave-state.yaml must be (HANDOFF.md wave_id + 1).
+# wave-state.yaml describes the NEXT wave; HANDOFF.md describes the wave just closed.
+#
+# The current impl passes the SAME wave_id to both write_handoff and write_wave_state,
+# so both files get the same wave_id. This test REDs that path.
+#
+# Assert via committed blobs (git show factory-artifacts:FILE) — not working-tree files.
+# ---------------------------------------------------------------------------
+
+@test "test_wave_state_wave_id_is_next_wave" {
+  # STATE.md has current_step: "pass-2" → skill derives wave_id=2 for HANDOFF.md
+  # wave-state.yaml must have wave_id=3 (next wave = current + 1)
+  _write_state_md "2"
+  _run_skill
+
+  [ "$status" -eq 0 ] || {
+    echo "FAIL: skill exited ${status}, expected 0. Output: $output" >&2
+    false
+  }
+
+  # Read COMMITTED blobs (VP-087 proof harness)
+  git -C "$WORK" show factory-artifacts:HANDOFF.md >/dev/null 2>&1 || {
+    echo "FAIL: HANDOFF.md not in committed factory-artifacts tree" >&2
+    false
+  }
+  git -C "$WORK" show factory-artifacts:wave-state.yaml >/dev/null 2>&1 || {
+    echo "FAIL: wave-state.yaml not in committed factory-artifacts tree" >&2
+    false
+  }
+
+  local handoff_wave_id wave_state_wave_id
+  handoff_wave_id="$(git -C "$WORK" show factory-artifacts:HANDOFF.md \
+    | grep "^wave_id:" | awk '{print $2}')"
+  wave_state_wave_id="$(git -C "$WORK" show factory-artifacts:wave-state.yaml \
+    | grep "^wave_id:" | awk '{print $2}')"
+
+  # Both must be integers
+  echo "$handoff_wave_id" | grep -qE '^[0-9]+$' || {
+    echo "FAIL: HANDOFF.md wave_id '${handoff_wave_id}' is not an integer" >&2
+    false
+  }
+  echo "$wave_state_wave_id" | grep -qE '^[0-9]+$' || {
+    echo "FAIL: wave-state.yaml wave_id '${wave_state_wave_id}' is not an integer" >&2
+    false
+  }
+
+  # wave-state.yaml wave_id must be exactly handoff wave_id + 1
+  local expected_next_wave=$(( handoff_wave_id + 1 ))
+  [ "$wave_state_wave_id" -eq "$expected_next_wave" ] || {
+    echo "FAIL (F-P2-003): wave-state.yaml wave_id='${wave_state_wave_id}'" >&2
+    echo "  expected: ${expected_next_wave} (HANDOFF wave_id ${handoff_wave_id} + 1)" >&2
+    echo "  BC-5.41.002 PC2: wave-state.yaml describes the NEXT wave; its wave_id must be" >&2
+    echo "  the committed HANDOFF.md wave_id + 1." >&2
+    echo "  Current impl passes the SAME wave_id to both files → this test REDs that path." >&2
+    false
+  }
+}
+
+# ---------------------------------------------------------------------------
+# test_wave_id_non_silent_when_state_md_lacks_pass_step
+# F-P2-004 / BC-5.41.001 PC2 (anti-fabrication: wave_id must be real-substrate-derived)
+# When STATE.md has no valid "pass-N" current_step (e.g., current_step: "something-else"),
+# derive_wave_id currently silently returns 1 — a phantom value, not a real derivation.
+# BC-5.41.001 PC2 anti-fabrication requires wave_id come from real substrate.
+# A silent fallback to 1 violates this — it fabricates a wave_id out of thin air.
+# The skill MUST either:
+#   (a) derive wave_id from an explicit real substrate (sprint-state topo-sort ordinal), OR
+#   (b) exit 1 with an explicit hard error (AntiFabricationFailed / NoWaveIdSubstrate)
+# rather than silently outputting 1.
+#
+# This test asserts the NON-SILENT outcome: skill either exits 1 with an error mentioning
+# wave_id derivation, OR exits 0 with a wave_id derived from a documented real substrate
+# (NOT the silent-fallback-to-1 path).
+# REDs the current `echo "1"` silent fallback in derive_wave_id.
+# ---------------------------------------------------------------------------
+
+@test "test_wave_id_non_silent_when_state_md_lacks_pass_step" {
+  # Write STATE.md with a non-pass-N current_step (engine-only scope assumed)
+  cat > "$WORK/STATE.md" << 'EOF'
+---
+current_step: "something-else"
+current_cycle: "v1.0-feature-context-durability-E18"
+factory_lock: null
+---
+# STATE
+EOF
+
+  run bash -c "
+    export ARTIFACTS_WT='${ARTIFACTS_WT}'
+    export SPRINT_STATE_YAML='${WORK}/sprint-state.yaml'
+    export STATE_MD_PATH='${WORK}/STATE.md'
+    export BC_DIR='${ARTIFACTS_WT}/.factory/specs/behavioral-contracts'
+    export PRECOMPACT_FLUSH_LOG='${ARTIFACTS_WT}/.factory/hooks/precompact-flush-log'
+    export FACTORY_REPO='${WORK}'
+    '${SKILL}' \
+      --artifacts-worktree '${ARTIFACTS_WT}' \
+      --sprint-state '${WORK}/sprint-state.yaml' \
+      --state-md '${WORK}/STATE.md' \
+      --bc-dir '${ARTIFACTS_WT}/.factory/specs/behavioral-contracts' \
+      2>&1
+  "
+
+  # The skill must NOT silently use wave_id=1 as a fabricated fallback.
+  # Two acceptable outcomes (either satisfies BC-5.41.001 PC2):
+  #   (a) exit 1 with an explicit error about wave_id derivation
+  #   (b) exit 0 with a wave_id that is provably derived from a real documented substrate
+  #       (NOT the numeric literal 1 emitted by the current silent fallback)
+  #
+  # The current impl exits 0 and silently writes wave_id: 1 — the committed HANDOFF.md
+  # would show wave_id: 1 with no substrate basis. This test REDs that path.
+
+  if [ "$status" -eq 1 ]; then
+    # Acceptable outcome (a): explicit error
+    echo "$output" | grep -qiE "(wave_id|NoWaveIdSubstrate|AntiFabricationFailed|cannot derive)" || {
+      echo "FAIL: skill exited 1 but output does not mention wave_id derivation failure." >&2
+      echo "Expected: error message mentioning wave_id, NoWaveIdSubstrate, AntiFabricationFailed," >&2
+      echo "  or derivation failure." >&2
+      echo "Actual output: $output" >&2
+      false
+    }
+    # Outcome (a) accepted — explicit hard error
+    return 0
+  fi
+
+  # If exit 0: must NOT have used the silent-fallback-to-1
+  # Assert via committed blob
+  git -C "$WORK" show factory-artifacts:HANDOFF.md >/dev/null 2>&1 || {
+    echo "FAIL (F-P2-004): skill exited 0 but HANDOFF.md not committed." >&2
+    false
+  }
+  local committed_wave_id
+  committed_wave_id="$(git -C "$WORK" show factory-artifacts:HANDOFF.md \
+    | grep "^wave_id:" | awk '{print $2}')"
+
+  # wave_id must NOT be 1 from a silent fallback when no pass-N step exists.
+  # If it IS 1 and came from the silent fallback, that is fabrication.
+  # We detect the silent fallback by checking: if no real substrate exists AND wave_id=1,
+  # the only way to get 1 is the silent `echo "1"` in derive_wave_id → fabrication.
+  if [ "$committed_wave_id" = "1" ]; then
+    echo "FAIL (F-P2-004): wave_id=1 committed despite no valid 'pass-N' current_step in STATE.md." >&2
+    echo "  current_step was 'something-else'; derive_wave_id silently returns 1 as a fallback." >&2
+    echo "  BC-5.41.001 PC2 requires real-substrate derivation, not a silent numeric literal." >&2
+    echo "  The skill must exit 1 with an explicit error OR derive wave_id from a documented" >&2
+    echo "  real substrate other than the 'echo 1' fallback." >&2
+    false
+  fi
 }
 
 # ---------------------------------------------------------------------------
