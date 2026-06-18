@@ -153,7 +153,7 @@ main() {
       local epic_id
       epic_id="$(_get_epic_id "$STATE_MD_PATH")"
       echo "EPIC-COMPLETE: All stories in sprint-state.yaml have reached terminal status."
-      echo "Epic ${epic_id} is now complete."
+      echo "Epic ${epic_id} is complete. No wave-state.yaml written for next wave."
       echo "HANDOFF.md committed to factory-artifacts with epic_status: complete."
       exit 0
       ;;

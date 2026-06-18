@@ -5,16 +5,24 @@
 # BC-5.41.001 PC1–PC9 | S-18.01
 set -euo pipefail
 
-# get_last_verified_develop_sha <factory_repo>
+# get_last_verified_develop_sha
 # Returns 40-char lowercase hex SHA via stdout from `git rev-parse origin/develop`.
-# Uses FACTORY_REPO env var (the hermetic fixture repo path) if provided,
-# otherwise uses the repo containing the artifacts worktree.
+# Resolution order (ADR-027 cwd-independent discipline / F-S1801-P3-004):
+#   1. FACTORY_REPO env var (explicit repo path — used by hermetic test fixtures)
+#   2. ARTIFACTS_WT env var via git -C (factory-artifacts worktree; git resolves to
+#      the parent repo which has the origin/develop ref — cwd-independent)
+# MUST NOT use a bare `git rev-parse origin/develop` (cwd-dependent; fails from /tmp).
 # MUST NOT be hardcoded or derived from cache (BC-5.41.001 INV4).
 get_last_verified_develop_sha() {
   local factory_repo="${FACTORY_REPO:-}"
   if [ -n "$factory_repo" ]; then
     git -C "$factory_repo" rev-parse origin/develop
+  elif [ -n "${ARTIFACTS_WT:-}" ]; then
+    # Resolve via the artifacts worktree — git -C resolves through the worktree link
+    # back to the parent repo which has the origin/develop remote ref.
+    git -C "$ARTIFACTS_WT" rev-parse origin/develop
   else
+    # Last resort: bare call (only works if cwd is inside a git repo with origin/develop)
     git rev-parse origin/develop
   fi
 }

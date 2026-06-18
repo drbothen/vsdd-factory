@@ -39,38 +39,146 @@ write_wave_state() {
   # ---------------------------------------------------------------------------
   # Resolve STORY-INDEX path for anti-fabrication cross-check (BC-5.41.001 PC3)
   # ---------------------------------------------------------------------------
-  local story_index_path="${artifacts_wt}/.factory/stories/STORY-INDEX.md"
+  # ADR-027 path discipline: ARTIFACTS_WT is the worktree root (= .factory in production).
+  # In production, .factory IS the worktree, so specs/stories live at $ARTIFACTS_WT/...
+  # with NO nested .factory/ subdirectory inside ARTIFACTS_WT.
+  local story_index_path="${artifacts_wt}/stories/STORY-INDEX.md"
 
   # ---------------------------------------------------------------------------
-  # Build stories YAML list from the provided story pairs.
-  # Each entry includes spec_files: derived from the story file's bcs: frontmatter
-  # (BC-5.41.002 PC2). Stories must be cross-checked against STORY-INDEX.md
-  # (BC-5.41.001 PC3 anti-fabrication).
+  # Anti-fabrication: cross-check ALL story IDs against STORY-INDEX.md before
+  # any sorting or writing (BC-5.41.001 PC3). Hard-error on first phantom ID.
   # ---------------------------------------------------------------------------
-  local stories_yaml=""
   local pair
   for pair in "${story_pairs[@]}"; do
     local sid="${pair%%:*}"
-    local sstatus="${pair##*:}"
-
-    # Anti-fabrication: cross-check story ID against STORY-INDEX.md
     if [ -f "$story_index_path" ]; then
       if ! grep -q "$sid" "$story_index_path"; then
         echo "ERROR: AntiFabricationFailed — story ID '${sid}' not found in STORY-INDEX.md" >&2
         exit 1
       fi
     fi
+  done
+
+  # ---------------------------------------------------------------------------
+  # Topological sort of story_pairs by depends_on from STORY-INDEX.md (BC-5.41.002 PC3).
+  # Kahn's algorithm: stories with no unresolved dependencies in the wave set are
+  # emitted first. This ensures dependencies precede their dependents in wave-state.yaml.
+  # If STORY-INDEX.md is absent, story_pairs ordering is preserved as-is.
+  # ---------------------------------------------------------------------------
+  local sorted_pairs=()
+  if [ -f "$story_index_path" ] && [ "${#story_pairs[@]}" -gt 1 ]; then
+    # Build set of story IDs in this wave for edge pruning
+    local -A in_wave_set
+    for p in "${story_pairs[@]}"; do
+      local psid="${p%%:*}"
+      in_wave_set["$psid"]=1
+    done
+
+    # Parse STORY-INDEX.md: extract depends_on for each story.
+    # Table format: | ID | Title | depends_on | Status |
+    # Parse pipe-delimited rows (skip header / separator lines)
+    # depends_on may be empty (no dependency) or "S-NN.NN" (single ID)
+    local -A story_deps  # story_deps[ID]="dep1 dep2 ..." (space-sep, restricted to in_wave_set)
+    local -A story_status_map
+    for p in "${story_pairs[@]}"; do
+      local psid="${p%%:*}"
+      local pstatus="${p##*:}"
+      story_deps["$psid"]=""
+      story_status_map["$psid"]="$pstatus"
+    done
+
+    while IFS='|' read -r _ col1 _ col3 _rest; do
+      # Strip leading/trailing whitespace from each column
+      local row_id row_dep
+      row_id="$(echo "$col1" | tr -d ' \t')"
+      row_dep="$(echo "$col3" | tr -d ' \t')"
+      # Only process rows for stories in our wave set
+      if [ -n "$row_id" ] && [ -n "${in_wave_set[$row_id]+x}" ]; then
+        if [ -n "$row_dep" ] && [ -n "${in_wave_set[$row_dep]+x}" ]; then
+          story_deps["$row_id"]="$row_dep"
+        else
+          story_deps["$row_id"]=""
+        fi
+      fi
+    done < "$story_index_path"
+
+    # Kahn's algorithm: compute in-degree, then iteratively emit zero-in-degree nodes
+    local -A in_degree
+    for p in "${story_pairs[@]}"; do
+      local psid="${p%%:*}"
+      in_degree["$psid"]=0
+    done
+    for p in "${story_pairs[@]}"; do
+      local psid="${p%%:*}"
+      local dep="${story_deps[$psid]}"
+      if [ -n "$dep" ] && [ -n "${in_degree[$dep]+x}" ]; then
+        in_degree["$psid"]=$(( ${in_degree[$psid]} + 1 ))
+      fi
+    done
+
+    # Build the sorted output using a queue of zero-in-degree nodes
+    # Process in original sprint-state.yaml order for determinism when in-degrees are equal
+    local remaining=("${story_pairs[@]}")
+    local max_iterations=$(( ${#story_pairs[@]} + 1 ))
+    local iter=0
+    while [ "${#remaining[@]}" -gt 0 ]; do
+      iter=$(( iter + 1 ))
+      if [ "$iter" -gt "$max_iterations" ]; then
+        # Cycle detected or logic error — fall back to original order
+        sorted_pairs=("${story_pairs[@]}")
+        break
+      fi
+      local emitted=0
+      local next_remaining=()
+      for p in "${remaining[@]}"; do
+        local psid="${p%%:*}"
+        if [ "${in_degree[$psid]}" -eq 0 ]; then
+          sorted_pairs+=("$p")
+          emitted=1
+          # Decrement in-degree of all nodes that depend on psid
+          for q in "${remaining[@]}"; do
+            local qsid="${q%%:*}"
+            if [ "${story_deps[$qsid]}" = "$psid" ]; then
+              in_degree["$qsid"]=$(( ${in_degree[$qsid]} - 1 ))
+            fi
+          done
+        else
+          next_remaining+=("$p")
+        fi
+      done
+      if [ "$emitted" -eq 0 ]; then
+        # No zero-in-degree node found — cycle; append remaining as-is
+        sorted_pairs+=("${remaining[@]}")
+        break
+      fi
+      remaining=("${next_remaining[@]+"${next_remaining[@]}"}")
+    done
+  else
+    # Single story or no STORY-INDEX — preserve original order
+    sorted_pairs=("${story_pairs[@]+"${story_pairs[@]}"}")
+  fi
+
+  # ---------------------------------------------------------------------------
+  # Build stories YAML list from sorted story pairs.
+  # Each entry includes spec_files: derived from the story file's bcs: frontmatter
+  # (BC-5.41.002 PC2).
+  # ---------------------------------------------------------------------------
+  local stories_yaml=""
+  for pair in "${sorted_pairs[@]}"; do
+    local sid="${pair%%:*}"
+    local sstatus="${pair##*:}"
 
     # Derive spec_files from the story's bcs: frontmatter.
     # Look for a story file matching the ID pattern. If found, extract bcs: list
     # and resolve to BC file paths. If no story file, emit an empty spec_files list.
     local spec_files_yaml="    spec_files: []"
     local story_file
-    story_file="$(find "${artifacts_wt}/.factory/stories" -name "STORY-${sid#S-}*.md" -o \
+    # ADR-027: stories live at $artifacts_wt/stories/ (no nested .factory/ prefix)
+    story_file="$(find "${artifacts_wt}/stories" -name "STORY-${sid#S-}*.md" -o \
                   -name "${sid}.md" 2>/dev/null | head -1 || true)"
     if [ -z "$story_file" ]; then
       # No story file found — search by ID prefix pattern
-      story_file="$(find "${artifacts_wt}/.factory/stories" -name "*.md" 2>/dev/null \
+      story_file="$(find "${artifacts_wt}/stories" -name "*.md" 2>/dev/null \
                     | xargs grep -l "^id: ${sid}$" 2>/dev/null | head -1 || true)"
     fi
 
@@ -84,8 +192,9 @@ write_wave_state() {
         while IFS= read -r bc_id; do
           [ -z "$bc_id" ] && continue
           # Resolve BC ID to file path: search bc_dir for matching file
+          # ADR-027: BCs live at $artifacts_wt/specs/behavioral-contracts/ (no nested .factory/)
           local bc_file
-          bc_file="$(find "${artifacts_wt}/.factory/specs/behavioral-contracts" \
+          bc_file="$(find "${artifacts_wt}/specs/behavioral-contracts" \
                      -name "${bc_id}.md" 2>/dev/null | head -1 || true)"
           if [ -n "$bc_file" ] && [ -f "$bc_file" ]; then
             # Make path relative to artifacts_wt
@@ -94,7 +203,7 @@ write_wave_state() {
       - ${rel_path}"
           else
             spec_files_list="${spec_files_list}
-      - .factory/specs/behavioral-contracts/${bc_id}.md"
+      - specs/behavioral-contracts/${bc_id}.md"
           fi
         done <<< "$bc_entries"
         if [ -n "$spec_files_list" ]; then
@@ -115,9 +224,11 @@ ${spec_files_yaml}"
   # Derived from stories' anchored_adrs + subsystem membership (AC-016).
   # Full ADR slug paths are used (not short-form aliases like ADRs/ADR-026.md).
   # ---------------------------------------------------------------------------
-  local arch_index_path=".factory/specs/architecture/ARCH-INDEX.md"
-  local adr026_path=".factory/specs/architecture/decisions/ADR-026-wave-boundary-checkpoint-reset-and-lossless-intra-wave-compaction.md"
-  local adr025_path=".factory/specs/architecture/decisions/ADR-025-single-writer-factory-locklease-prevent-concurrent-session-races-on-factory-artifacts-orphan-branch.md"
+  # ADR-027 path discipline: no .factory/ prefix — architecture lives at
+  # $artifacts_wt/specs/architecture/ (ARTIFACTS_WT is the worktree root = .factory in prod).
+  local arch_index_path="specs/architecture/ARCH-INDEX.md"
+  local adr026_path="specs/architecture/decisions/ADR-026-wave-boundary-checkpoint-reset-and-lossless-intra-wave-compaction.md"
+  local adr025_path="specs/architecture/decisions/ADR-025-single-writer-factory-locklease-prevent-concurrent-session-races-on-factory-artifacts-orphan-branch.md"
 
   # Build arch_files list: only include entries that exist on disk
   local arch_files_yaml=""
@@ -130,6 +241,7 @@ ${spec_files_yaml}"
   done
 
   # Fallback: if none resolved (e.g., fresh fixture with no ADR files), include ARCH-INDEX only
+  # (ADR-027: path is specs/architecture/ARCH-INDEX.md, no .factory/ prefix)
   if [ -z "$arch_files_yaml" ]; then
     arch_files_yaml="
   - ${arch_index_path}"
