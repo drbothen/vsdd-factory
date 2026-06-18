@@ -49,7 +49,12 @@ done
 : "${BC_DIR:?ERROR: --bc-dir or BC_DIR is required}"
 
 if [ -z "$PRECOMPACT_FLUSH_LOG" ]; then
-  PRECOMPACT_FLUSH_LOG="${ARTIFACTS_WT}/.factory/hooks/precompact-flush-log"
+  # ADR-027 Decision 1: ARTIFACTS_WT is the factory-artifacts worktree root (= .factory
+  # in production). The precompact-flush-log lives directly at $ARTIFACTS_WT/hooks/precompact-flush-log,
+  # NOT at $ARTIFACTS_WT/.factory/hooks/precompact-flush-log (which would be double-nested
+  # and FORBIDDEN by ADR-027 Decision 1). With ARTIFACTS_WT=.factory this resolves correctly
+  # to .factory/hooks/precompact-flush-log per SKILL.md and S-18.01 §File Structure table.
+  PRECOMPACT_FLUSH_LOG="${ARTIFACTS_WT}/hooks/precompact-flush-log"
 fi
 
 # Unset GIT_DIR if set — tests inject GIT_DIR pointing to the fixture repo root,

@@ -47,12 +47,23 @@ write_wave_state() {
   # ---------------------------------------------------------------------------
   # Anti-fabrication: cross-check ALL story IDs against STORY-INDEX.md before
   # any sorting or writing (BC-5.41.001 PC3). Hard-error on first phantom ID.
+  #
+  # F-P6-003 fix: anchor the grep to the Story-ID column (pipe-delimited field-2)
+  # using escaped regex so the search is an exact field match, not a substring.
+  # The old `grep -q "$sid" "$story_index_path"` was unanchored with '.' wildcard,
+  # so phantom "S-18.1" matched real "S-18.10" via substring — defeating PC3/INV3.
+  # Fix: escape dots in the ID and anchor to "| <id> |" column boundaries.
   # ---------------------------------------------------------------------------
   local pair
   for pair in "${story_pairs[@]}"; do
     local sid="${pair%%:*}"
     if [ -f "$story_index_path" ]; then
-      if ! grep -q "$sid" "$story_index_path"; then
+      # Escape regex metacharacters in sid (primarily '.' in IDs like S-18.04a).
+      local escaped_sid
+      escaped_sid="$(printf '%s' "$sid" | sed 's/\./\\./g')"
+      # Anchor to Story-ID column: match "| <sid> |" with optional whitespace,
+      # ensuring we match only the field-2 cell content exactly.
+      if ! grep -qE "\| *${escaped_sid} *\|" "$story_index_path"; then
         echo "ERROR: AntiFabricationFailed — story ID '${sid}' not found in STORY-INDEX.md" >&2
         exit 1
       fi
@@ -97,11 +108,28 @@ write_wave_state() {
     local header_line=""
 
     # Step 1: find the line number of the first in-wave story row in STORY-INDEX.md.
+    #
+    # F-P6-002 fix: use field-2 positional anchor (not substring grep) to locate
+    # the story ID in the Story-ID column exclusively. The old pattern
+    #   grep -n "[|].*${p_id}.*[|]"
+    # matched p_id ANYWHERE in the row — including OTHER stories' Blocks or
+    # Depends-On cross-reference cells (e.g. S-99.01 Blocks=[S-18.02]). This caused
+    # first_inwave_lineno to point into the wrong epic table, producing the wrong
+    # header → wrong Depends-On column index → topo-sort degrades to file order.
+    #
+    # Fix: match only rows where awk field-2 (trimmed) equals the story ID exactly.
+    # awk -F'|' '$2 ~ /^ *<id> *$/' is equivalent to checking that the Story ID
+    # column cell contains exactly <id> (whitespace-trimmed). Escape regex metacharacters
+    # (e.g. '.' in story IDs like S-18.04a) so the match is literal not wildcard.
     local first_inwave_lineno=0
     local p_id
     for p_id in "${!in_wave_set[@]}"; do
       local lineno
-      lineno="$(grep -n "[|].*${p_id}.*[|]" "$story_index_path" 2>/dev/null | grep -v 'Story ID\|---' | head -1 | cut -d: -f1 || true)"
+      # Escape regex special chars in p_id (particularly '.' → '\.')
+      local escaped_id
+      escaped_id="$(printf '%s' "$p_id" | sed 's/\./\\./g')"
+      lineno="$(awk -F'|' -v id="${escaped_id}" 'NR && $2 ~ /^ *[^ ]/ && $2 ~ "^ *" id " *$" { print NR; exit }' \
+        "$story_index_path" 2>/dev/null || true)"
       if [ -n "$lineno" ] && [ "$lineno" -gt 0 ]; then
         if [ "$first_inwave_lineno" -eq 0 ] || [ "$lineno" -lt "$first_inwave_lineno" ]; then
           first_inwave_lineno="$lineno"
@@ -344,6 +372,60 @@ ${spec_files_yaml}"
     arch_files_yaml="
   - ${arch_index_path}"
   fi
+
+  # ---------------------------------------------------------------------------
+  # AC-016 / BC-5.41.002 PC5 bullet 4: augment arch_files with ADRs declared in
+  # each next-wave story's anchored_adrs: frontmatter array.
+  #
+  # For each story in sorted_pairs, read its anchored_adrs: frontmatter entries.
+  # For each entry (a filename or slug like "ADR-027-<slug>.md"), find the file
+  # under $artifacts_wt/specs/architecture/decisions/ and add its relative path
+  # to arch_files if it exists on disk and is not already in the list.
+  # This implements the "not hardcoded" requirement of AC-016.
+  # ---------------------------------------------------------------------------
+  for pair in "${sorted_pairs[@]}"; do
+    local asid="${pair%%:*}"
+    # Find the story file (same logic as spec_files resolution above)
+    local astory_file=""
+    astory_file="$(find "${artifacts_wt}/stories" -name "${asid}-*.md" -o \
+                  -name "${asid}.md" 2>/dev/null | head -1 || true)"
+    if [ -z "$astory_file" ]; then
+      astory_file="$(find "${artifacts_wt}/stories" -name "*.md" 2>/dev/null \
+                    | xargs grep -l "^story_id: ${asid}$" 2>/dev/null | head -1 || true)"
+    fi
+    [ -n "$astory_file" ] && [ -f "$astory_file" ] || continue
+
+    # Extract anchored_adrs: frontmatter array entries (lines like "  - <slug>")
+    local adr_entries
+    adr_entries="$(awk '/^anchored_adrs:/{found=1; next} found && /^  - /{print $2} found && /^[a-zA-Z]/{exit}' \
+                  "$astory_file" 2>/dev/null || true)"
+    [ -n "$adr_entries" ] || continue
+
+    while IFS= read -r adr_entry; do
+      [ -z "$adr_entry" ] && continue
+      # adr_entry may be a bare filename like "ADR-027-<slug>.md" or just "ADR-027".
+      # Search for the file under specs/architecture/decisions/ using glob.
+      local adr_file=""
+      # Try exact filename match first
+      if [ -f "${artifacts_wt}/specs/architecture/decisions/${adr_entry}" ]; then
+        adr_file="${artifacts_wt}/specs/architecture/decisions/${adr_entry}"
+      else
+        # Try prefix match: "ADR-027" matches "ADR-027-<slug>.md"
+        adr_file="$(find "${artifacts_wt}/specs/architecture/decisions" \
+                    -name "${adr_entry}*.md" 2>/dev/null | head -1 || true)"
+      fi
+      [ -n "$adr_file" ] && [ -f "$adr_file" ] || continue
+
+      # Compute path relative to artifacts_wt
+      local adr_rel_path="${adr_file#${artifacts_wt}/}"
+
+      # Add to arch_files if not already present (dedup)
+      if ! echo "$arch_files_yaml" | grep -qF "  - ${adr_rel_path}"; then
+        arch_files_yaml="${arch_files_yaml}
+  - ${adr_rel_path}"
+      fi
+    done <<< "$adr_entries"
+  done
 
   # ---------------------------------------------------------------------------
   # Write wave-state.yaml with all 6 required fields.

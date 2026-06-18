@@ -2700,3 +2700,416 @@ EOF
     false
   }
 }
+
+# ---------------------------------------------------------------------------
+# test_BC_5_41_001_F_P6_001_production_default_flush_log_path
+# F-P6-001 / BC-5.41.001 PC5 / EC-011 / ADR-027 Decision 1
+# BLOCKER: when PRECOMPACT_FLUSH_LOG is NOT set by the caller (minimal production
+# invocation — only --artifacts-worktree supplied), the skill must default to
+# ${ARTIFACTS_WT}/hooks/precompact-flush-log  (ADR-027 no-double-nesting).
+#
+# The current default (before this fix) is:
+#   ${ARTIFACTS_WT}/.factory/hooks/precompact-flush-log
+# With production ARTIFACTS_WT = .factory this resolves to:
+#   .factory/.factory/hooks/precompact-flush-log  (ADR-027 FORBIDDEN double-nesting)
+#
+# Production effect: log never found → precompact_flush_sha: null written
+# unconditionally, defeating EC-011/PC5 anti-fabrication hard-block.
+#
+# RED gate (before fix): invokes skill WITHOUT exporting PRECOMPACT_FLUSH_LOG,
+# plants flush log at CORRECT path ${ARTIFACTS_WT}/hooks/precompact-flush-log,
+# asserts committed HANDOFF.md precompact_flush_sha == log SHA.
+# Current broken default reads from the DOUBLE-NESTED wrong path → log not found
+# → precompact_flush_sha: null → assertion "not null" FAILS.
+#
+# After fix: default corrected to ${ARTIFACTS_WT}/hooks/precompact-flush-log
+# → log found at correct path → SHA read correctly → test passes.
+# ---------------------------------------------------------------------------
+
+@test "test_BC_5_41_001_F_P6_001_production_default_flush_log_path" {
+  local log_sha="aabb1122334455667788990011aabbccddeeff00"
+
+  # Plant the flush log at the ADR-027-correct path (no double-nesting)
+  echo "2026-06-18T12:00:00Z ${log_sha} cycle/pass-6 commit" \
+    > "$ARTIFACTS_WT/hooks/precompact-flush-log"
+
+  # Invoke skill WITHOUT exporting PRECOMPACT_FLUSH_LOG — minimal production invocation.
+  # This forces the skill to use its built-in default path.
+  # ADR-027 correct default: ${ARTIFACTS_WT}/hooks/precompact-flush-log
+  # Broken default (before fix): ${ARTIFACTS_WT}/.factory/hooks/precompact-flush-log
+  run bash -c "
+    export ARTIFACTS_WT='${ARTIFACTS_WT}'
+    export SPRINT_STATE_YAML='${WORK}/sprint-state.yaml'
+    export STATE_MD_PATH='${WORK}/STATE.md'
+    export BC_DIR='${ARTIFACTS_WT}/specs/behavioral-contracts'
+    export GIT_DIR='${WORK}/.git'
+    export FACTORY_REPO='${WORK}'
+    '${SKILL}' \
+      --artifacts-worktree '${ARTIFACTS_WT}' \
+      --sprint-state '${WORK}/sprint-state.yaml' \
+      --state-md '${WORK}/STATE.md' \
+      --bc-dir '${ARTIFACTS_WT}/specs/behavioral-contracts' \
+      2>&1
+  "
+  # Note: --precompact-flush-log NOT passed; PRECOMPACT_FLUSH_LOG NOT exported.
+  # The skill must default to ${ARTIFACTS_WT}/hooks/precompact-flush-log.
+
+  # Must exit 0
+  [ "$status" -eq 0 ] || {
+    echo "FAIL (F-P6-001): skill exited ${status}, expected 0." >&2
+    echo "Output: $output" >&2
+    false
+  }
+
+  # Read the COMMITTED blob (VP-087 proof harness)
+  git -C "$WORK" show factory-artifacts:HANDOFF.md >/dev/null 2>&1 || {
+    echo "FAIL (F-P6-001): HANDOFF.md not committed to factory-artifacts" >&2
+    false
+  }
+
+  local committed_sha
+  committed_sha="$(git -C "$WORK" show factory-artifacts:HANDOFF.md \
+    | grep "^precompact_flush_sha:" | awk '{print $2}')"
+
+  # precompact_flush_sha must NOT be null — the log was planted at the correct path
+  [ "$committed_sha" != "null" ] || {
+    echo "FAIL (F-P6-001): precompact_flush_sha is 'null' when flush log exists at ADR-027 correct path." >&2
+    echo "  Log planted at: ${ARTIFACTS_WT}/hooks/precompact-flush-log" >&2
+    echo "  Log SHA: ${log_sha}" >&2
+    echo "" >&2
+    echo "  ROOT CAUSE (F-P6-001): skill default is '${ARTIFACTS_WT}/.factory/hooks/precompact-flush-log'" >&2
+    echo "  (double-nested — ADR-027 FORBIDDEN). In production where ARTIFACTS_WT=.factory," >&2
+    echo "  this resolves to .factory/.factory/hooks/precompact-flush-log which never exists." >&2
+    echo "  Fix: default to '\${ARTIFACTS_WT}/hooks/precompact-flush-log' (no .factory/ prefix)." >&2
+    echo "" >&2
+    echo "  SKILL.md documents the correct path as '.factory/hooks/precompact-flush-log'" >&2
+    echo "  (= \${ARTIFACTS_WT}/hooks/precompact-flush-log with ARTIFACTS_WT=.factory)." >&2
+    echo "  S-18.01 §File Structure canonical table: '\${ARTIFACTS_WT}/hooks/precompact-flush-log'." >&2
+    false
+  }
+
+  # precompact_flush_sha must equal the log SHA
+  [ "$committed_sha" = "$log_sha" ] || {
+    echo "FAIL (F-P6-001): committed precompact_flush_sha '${committed_sha}' != log SHA '${log_sha}'" >&2
+    false
+  }
+}
+
+# ---------------------------------------------------------------------------
+# test_BC_5_41_002_F_P6_002_inwave_row_detection_unaffected_by_cross_refs
+# F-P6-002 / BC-5.41.002 PC3 / VP-087
+# MEDIUM: The topo-sort Step 1 uses `grep -n "[|].*${p_id}.*[|]"` to locate the
+# first in-wave story data row in STORY-INDEX.md. This pattern:
+#   (a) Has `.` as wildcard (matches any char, not literal dot)
+#   (b) Matches story ID anywhere in the row — including in OTHER stories' Blocks
+#       or Depends-On cells that cross-reference the in-wave ID.
+#
+# Failure mode: if an out-of-wave story in a DIFFERENT epic table has S-18.02
+# (an in-wave ID) in its Blocks column, the grep selects THAT row (which is in
+# the wrong epic's table) as first_inwave_lineno. The backwards scan then finds
+# the WRONG header → wrong column index → deps empty → topo-sort degrades.
+#
+# RED fixture: add an E-99 table ABOVE the E-18 table whose S-99.01 row has
+# S-18.02 in its Blocks column. The unanchored grep picks S-99.01 (wrong row)
+# instead of S-18.02 (correct row). The backwards scan finds E-99's header →
+# wrong column index → Kahn's degrades to file-order → sprint-state reversed
+# → S-18.03 appears first → assertion S-18.02-first FAILS.
+#
+# After fix: grep is anchored to field-2 (Story ID column) exact match so the
+# cross-reference in S-99.01's Blocks cell does NOT trigger a match.
+# ---------------------------------------------------------------------------
+
+@test "test_BC_5_41_002_F_P6_002_inwave_row_detection_unaffected_by_cross_refs" {
+  # Rewrite STORY-INDEX.md to add an E-99 table ABOVE E-18 whose S-99.01 row
+  # cross-references S-18.02 in its Blocks column.
+  #
+  # Critical: E-99 uses a 7-COLUMN header with NO "Depends-On" column — only
+  # "Blocks" in column 6. This ensures that when the unanchored grep selects
+  # S-99.01's row (because its Blocks cell contains "[S-18.02, S-18.04a]"),
+  # the backwards scan finds the E-99 header which has NO "Depends-On" column →
+  # depends_on_col stays 0 → dep-loading guard `[ depends_on_col -gt 0 ]` is
+  # false → all deps empty → Kahn degrades to sprint-state file order.
+  #
+  # If the E-99 table used the same 9-col format as E-18, both tables would have
+  # "Depends-On" in column 6, and the wrong header would accidentally give the
+  # right column index (masking the bug). Using 7 columns for E-99 avoids this.
+  cat > "$ARTIFACTS_WT/stories/STORY-INDEX.md" << 'EOF'
+---
+document_type: story-index
+level: ops
+version: "1.0"
+status: current
+---
+
+# STORY-INDEX
+
+## Epic E-0 — Infrastructure Prep (spaced Depends On; 7 columns)
+
+| Story ID | Title | Epic | Points | Priority | Depends On | Status |
+|----------|-------|------|--------|----------|------------|--------|
+| S-0.01 | bump-version.sh | E-0 | 2 | P0 | -- | merged |
+| S-0.02 | Release workflow | E-0 | 2 | P0 | S-0.01 | merged |
+
+## Epic E-99 — Out-of-wave Epic (7 columns; NO Depends-On; cross-references S-18.02 in Blocks col-6)
+
+| Story ID | Title | Epic | Points | Priority | Blocks | Status |
+|----------|-------|------|--------|----------|--------|--------|
+| S-99.01 | some other story | E-99 | 3 | P2 | [S-18.02, S-18.04a] | merged |
+
+## Epic E-18 — Wave Handoff (hyphenated Depends-On; 9 columns)
+
+| Story ID | Title | Epic | Points | Priority | Depends-On | Blocks | Status | BCs |
+|----------|-------|------|--------|----------|-----------|--------|--------|-----|
+| S-18.02 | Validate wave handoff completeness | E-18 | 8 | P0 | [] | [S-18.03] | draft | [BC-4.14.001] |
+| S-18.03 | Rehydrate wave skill | E-18 | 8 | P1 | [S-18.02] | [S-18.04a] | draft | [BC-6.24.001] |
+| S-18.04a | Multi-dep diamond story | E-18 | 5 | P1 | [S-18.02, S-18.03] | [] | draft | [] |
+EOF
+
+  # Sprint-state in REVERSE dependency order: S-18.03 first, S-18.02 second.
+  # If the grep correctly anchors to field-2 (Story ID column), the S-18.02 data row
+  # in E-18 is found → correct header → correct topo order (S-18.02 first).
+  # If the grep is unanchored, the S-99.01 Blocks cross-reference matches first →
+  # E-99 header is found → wrong column → topo degrades to file order → S-18.03 first.
+  cat > "$WORK/sprint-state.yaml" << 'EOF'
+stories:
+  - id: S-18.03
+    status: draft
+  - id: S-18.02
+    status: pending
+EOF
+
+  _run_skill
+
+  [ "$status" -eq 0 ] || {
+    echo "FAIL (F-P6-002): skill exited ${status}, expected 0. Output: $output" >&2
+    false
+  }
+
+  # Assert via COMMITTED blob (VP-087 proof harness)
+  git -C "$WORK" show factory-artifacts:wave-state.yaml >/dev/null 2>&1 || {
+    echo "FAIL (F-P6-002): wave-state.yaml not in committed factory-artifacts tree" >&2
+    false
+  }
+
+  local committed_content
+  committed_content="$(git -C "$WORK" show factory-artifacts:wave-state.yaml)"
+
+  local ordered_ids
+  ordered_ids="$(echo "$committed_content" | grep -E '^\s+-\s+id:\s+S-' | awk '{print $NF}')"
+
+  local first_id second_id
+  first_id="$(echo "$ordered_ids" | sed -n '1p')"
+  second_id="$(echo "$ordered_ids" | sed -n '2p')"
+
+  # S-18.02 must be first — it is the root node (Depends-On: [] in E-18 table).
+  # If the unanchored grep matched the S-99.01 cross-reference row, first_inwave_lineno
+  # points into E-99 section → E-99 header found → wrong column → Kahn's degrades →
+  # S-18.03 appears first (sprint-state file order).
+  [ "$first_id" = "S-18.02" ] || {
+    echo "FAIL (F-P6-002): topo-sort failed due to cross-reference row matching." >&2
+    echo "  Expected first story: S-18.02 (Depends-On: [] in E-18 table)" >&2
+    echo "  Got first story:      '${first_id}'" >&2
+    echo "" >&2
+    echo "  ROOT CAUSE (F-P6-002): grep -n '[|].*S-18.02.*[|]' is unanchored — it matches" >&2
+    echo "  S-99.01's Blocks cell '[S-18.02, S-18.04a]' BEFORE the actual S-18.02 data row." >&2
+    echo "  first_inwave_lineno points into E-99 section → backwards scan finds E-99 header" >&2
+    echo "  → wrong Depends-On column → all deps empty → Kahn degrades to file order." >&2
+    echo "  Fix: anchor grep to field-2 (Story ID column) exact match." >&2
+    echo "" >&2
+    echo "  Committed wave-state.yaml stories section:" >&2
+    echo "$committed_content" | grep -A 10 "^stories:" >&2
+    false
+  }
+
+  [ "$second_id" = "S-18.03" ] || {
+    echo "FAIL (F-P6-002): expected second story S-18.03, got '${second_id}'" >&2
+    echo "  Committed stories order: ${ordered_ids}" >&2
+    false
+  }
+}
+
+# ---------------------------------------------------------------------------
+# test_BC_5_41_001_F_P6_003_anti_fabrication_anchored_no_substring_collision
+# F-P6-003 / BC-5.41.001 PC3 / BC-5.41.002 INV3 / VP-087
+# MEDIUM: the anti-fabrication grep `grep -q "$sid" "$story_index_path"` is
+# unanchored with `.` as wildcard. A phantom ID like "S-18.1" matches "S-18.10"
+# because "S.18.1" (dot = any char) matches the substring "S-18.1" in "S-18.10".
+# This defeats BC-5.41.001 PC3/INV3 existence guarantee.
+#
+# RED fixture: STORY-INDEX.md contains S-18.10 (a real ID) but NOT S-18.1 (a
+# phantom). sprint-state.yaml requests S-18.1 (phantom). The unanchored grep
+# matches S-18.10 → anti-fabrication passes → skill exits 0 → FAIL.
+#
+# After fix: grep anchored on the Story-ID column with pipe-field boundaries
+# so "S-18.1" only matches the literal "| S-18.1 |" cell, not "| S-18.10 |".
+# ---------------------------------------------------------------------------
+
+@test "test_BC_5_41_001_F_P6_003_anti_fabrication_anchored_no_substring_collision" {
+  # STORY-INDEX.md: contains S-18.10 but NOT S-18.1.
+  # S-18.1 is a phantom ID that is a proper substring of the real S-18.10.
+  # Unanchored grep -q "S-18.1" matches S-18.10 → anti-fabrication silently passes.
+  # Anchored grep (field-2 exact) only matches "| S-18.1 |" → S-18.1 not found → exit 1.
+  cat > "$ARTIFACTS_WT/stories/STORY-INDEX.md" << 'EOF'
+---
+document_type: story-index
+level: ops
+version: "1.0"
+status: current
+---
+
+# STORY-INDEX
+
+## Epic E-18 — Wave Handoff (9 columns)
+
+| Story ID | Title | Epic | Points | Priority | Depends-On | Blocks | Status | BCs |
+|----------|-------|------|--------|----------|-----------|--------|--------|-----|
+| S-18.10 | Some story with S-18.10 ID | E-18 | 3 | P1 | [] | [] | draft | [] |
+EOF
+
+  # Request S-18.1 — a phantom ID (substring of the real S-18.10)
+  cat > "$WORK/sprint-state.yaml" << 'EOF'
+stories:
+  - id: S-18.1
+    status: pending
+EOF
+
+  run bash -c "
+    export ARTIFACTS_WT='${ARTIFACTS_WT}'
+    export SPRINT_STATE_YAML='${WORK}/sprint-state.yaml'
+    export STATE_MD_PATH='${WORK}/STATE.md'
+    export BC_DIR='${ARTIFACTS_WT}/specs/behavioral-contracts'
+    export PRECOMPACT_FLUSH_LOG='${ARTIFACTS_WT}/hooks/precompact-flush-log'
+    export GIT_DIR='${WORK}/.git'
+    export FACTORY_REPO='${WORK}'
+    '${SKILL}' \
+      --artifacts-worktree '${ARTIFACTS_WT}' \
+      --sprint-state '${WORK}/sprint-state.yaml' \
+      --state-md '${WORK}/STATE.md' \
+      --bc-dir '${ARTIFACTS_WT}/specs/behavioral-contracts' \
+      2>&1
+  "
+
+  # Must exit 1 — S-18.1 is NOT in STORY-INDEX.md (S-18.10 is, but S-18.1 is not).
+  # Unanchored grep -q "S-18.1" would match S-18.10 → exit 0 (WRONG — silently passes phantom).
+  # Anchored grep (field-2 "| S-18.1 |") correctly finds no match → exit 1 (CORRECT).
+  [ "$status" -eq 1 ] || {
+    echo "FAIL (F-P6-003): skill exited ${status}, expected 1 (AntiFabricationFailed)." >&2
+    echo "  Phantom ID 'S-18.1' is NOT in STORY-INDEX.md; S-18.10 IS." >&2
+    echo "" >&2
+    echo "  ROOT CAUSE (F-P6-003): anti-fabrication grep is unanchored with '.' wildcard:" >&2
+    echo "    grep -q \"\$sid\" \"\$story_index_path\"" >&2
+    echo "  'S-18.1' unanchored matches the substring 'S-18.1' in 'S-18.10'." >&2
+    echo "  The anti-fabrication guard passes silently → phantom S-18.1 proceeds to wave-state." >&2
+    echo "" >&2
+    echo "  Fix: anchor on the Story-ID column with pipe-field boundaries:" >&2
+    echo "    grep -qE \"\| *\${sid//./\\.} *\|\" (escape dots + pipe anchors)" >&2
+    echo "" >&2
+    echo "  Actual output: $output" >&2
+    false
+  }
+
+  # Error output must mention AntiFabricationFailed or S-18.1
+  echo "$output" | grep -qiE "(AntiFabricationFailed|S-18\.1|not found in STORY-INDEX)" || {
+    echo "FAIL (F-P6-003): skill exited 1 but output doesn't identify anti-fabrication." >&2
+    echo "Expected mention of AntiFabricationFailed, S-18.1, or 'not found in STORY-INDEX'" >&2
+    echo "Actual output: $output" >&2
+    false
+  }
+}
+
+# ---------------------------------------------------------------------------
+# test_BC_5_41_002_F_P6_004_arch_files_augmented_from_story_anchored_adrs
+# F-P6-004 / BC-5.41.002 PC4 + PC5 / AC-016 / S-18.01 §Acceptance Criteria
+# LOW: arch_files MUST include ADRs declared in each next-wave story's
+# anchored_adrs: frontmatter array (BC-5.41.002 PC5 bullet 4: "Any ADR directly
+# referenced by a story in stories[].spec_files"; AC-016: "derived from the
+# stories' anchored_adrs and subsystem membership, not hardcoded").
+#
+# Current code: write-wave-state.sh arch_files block only emits the fixed
+# minimum 3 files (ARCH-INDEX + ADR-026 + ADR-025). It does NOT read
+# anchored_adrs: from story files. The doc comment claims derivation from
+# anchored_adrs + subsystem membership (AC-016) but the code never reads
+# the anchored_adrs: frontmatter array from story files.
+#
+# RED fixture: create a story file S-18.02 with anchored_adrs: [ADR-027] and
+# plant ADR-027 at its canonical path. Assert the COMMITTED wave-state.yaml
+# arch_files includes the ADR-027 path. The current impl never reads
+# anchored_adrs: → ADR-027 absent from arch_files → test FAILS.
+#
+# After fix: skill reads anchored_adrs: from each wave story file and adds any
+# ADR paths that exist on disk to arch_files.
+# ---------------------------------------------------------------------------
+
+@test "test_BC_5_41_002_F_P6_004_arch_files_augmented_from_story_anchored_adrs" {
+  # Plant ADR-027 at its canonical path under ARTIFACTS_WT/specs/architecture/decisions/
+  local adr027_filename="ADR-027-factory-artifacts-path-discipline-no-double-nested-factory-worktree.md"
+  local adr027_rel="specs/architecture/decisions/${adr027_filename}"
+  echo "# ADR-027 path discipline" > "${ARTIFACTS_WT}/${adr027_rel}"
+
+  # Rewrite S-18.02 story file to declare anchored_adrs: [ADR-027]
+  # (the ADR slug, which the skill must resolve to the full filename)
+  # In production story files, anchored_adrs: lists ADR slugs like "ADR-027"
+  # which the skill must resolve to the full file path under specs/architecture/decisions/.
+  cat > "$ARTIFACTS_WT/stories/S-18.02-validate-wave-handoff-completeness-wasm.md" << EOF
+---
+document_type: story
+level: implementation
+story_id: S-18.02
+epic_id: "E-18"
+version: "1.0"
+title: "Validate wave handoff completeness WASM gate"
+status: draft
+behavioral_contracts:
+  - BC-4.14.001
+verification_properties:
+  - VP-081
+anchored_adrs:
+  - ${adr027_filename}
+---
+# S-18.02 fixture with anchored_adrs
+EOF
+
+  _run_skill
+
+  [ "$status" -eq 0 ] || {
+    echo "FAIL (F-P6-004): skill exited ${status}, expected 0. Output: $output" >&2
+    false
+  }
+
+  # Read the COMMITTED blob (VP-087 proof harness)
+  git -C "$WORK" show factory-artifacts:wave-state.yaml >/dev/null 2>&1 || {
+    echo "FAIL (F-P6-004): wave-state.yaml not in committed factory-artifacts tree" >&2
+    false
+  }
+
+  local committed_content
+  committed_content="$(git -C "$WORK" show factory-artifacts:wave-state.yaml)"
+
+  # The committed arch_files must contain the ADR-027 path (derived from S-18.02's anchored_adrs)
+  echo "$committed_content" | grep -q "${adr027_rel}" || {
+    echo "FAIL (F-P6-004): arch_files in COMMITTED wave-state.yaml does not contain ADR-027 path." >&2
+    echo "  Expected path in arch_files: ${adr027_rel}" >&2
+    echo "" >&2
+    echo "  ROOT CAUSE (F-P6-004): write-wave-state.sh arch_files block only emits the 3-file" >&2
+    echo "  minimum set (ARCH-INDEX + ADR-026 + ADR-025). It does NOT read anchored_adrs: from" >&2
+    echo "  story files. The doc comment claims derivation from anchored_adrs + subsystem" >&2
+    echo "  membership (AC-016) but the code never reads the anchored_adrs: frontmatter array." >&2
+    echo "" >&2
+    echo "  BC-5.41.002 PC5 bullet 4: 'Any ADR directly referenced by a story in" >&2
+    echo "  stories[].spec_files'. AC-016: 'derived from the stories anchored_adrs and" >&2
+    echo "  subsystem membership, not hardcoded'." >&2
+    echo "" >&2
+    echo "  Story S-18.02 declares: anchored_adrs: [${adr027_filename}]" >&2
+    echo "  ADR-027 planted at: ${ARTIFACTS_WT}/${adr027_rel}" >&2
+    echo "" >&2
+    echo "  Committed arch_files section:" >&2
+    echo "$committed_content" | grep -A 10 "^arch_files:" >&2
+    false
+  }
+
+  # The 3-file minimum set must still be present (regression guard)
+  echo "$committed_content" | grep -q "specs/architecture/ARCH-INDEX.md" || {
+    echo "FAIL (F-P6-004): arch_files minimum set missing ARCH-INDEX.md" >&2
+    false
+  }
+}
