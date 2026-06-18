@@ -127,16 +127,89 @@ classify_stories() {
 
 # derive_wave_id <sprint_state_yaml_path> <state_md_path>
 # Returns the integer wave_id via stdout.
-# Derived from STATE.md current_step: "pass-N" → extracts N.
+# Two derivation substrates (in priority order):
+#   PRIMARY   — sprint-state.yaml ordinal (product pipelines):
+#                 present + parseable with entries → count completed terminal waves,
+#                 return 1 + that count as the current wave number.
+#                 A wave is a consecutive group of terminal stories before the first
+#                 pending/draft story. Each group = one completed wave.
+#                 If all stories are terminal (epic-complete), the wave_id is still
+#                 derived as 1 + terminal_group_count (the wave we just completed).
+#   FALLBACK  — STATE.md current_step: "pass-N" (engine/maintenance pipelines):
+#                 when sprint-state.yaml is absent or yields no wave-inferable entries,
+#                 extract integer N from current_step.
+# Neither substrate → exit 1 with NoWaveIdSubstrate.
 # MUST NOT read any current_wave: field — that field does not exist.
 # BC-5.41.001 PC2 anti-fabrication: wave_id MUST be derived from a real substrate.
 # A silent numeric literal fallback is forbidden — it would fabricate a wave_id.
-# If no real derivation substrate is available, exits 1 with an explicit error.
 derive_wave_id() {
   local sprint_state_yaml="$1"
   local state_md="$2"
 
-  # Primary: extract pass number from STATE.md current_step: "pass-N"
+  # PRIMARY: sprint-state.yaml ordinal (product pipelines)
+  # Compute wave_id from the sequential structure of the sprint-state entries.
+  # Algorithm: scan entries in file order; count transitions from terminal → pending/draft.
+  # Each contiguous block of terminal stories before the first pending/draft block
+  # represents one completed wave. Current wave_id = completed_terminal_waves + 1.
+  if [ -f "$sprint_state_yaml" ]; then
+    local _current_id="" _current_status=""
+    local _completed_waves=0 _in_terminal_run=0 _found_next_wave=0
+    local _has_entries=0
+
+    while IFS= read -r _line; do
+      if echo "$_line" | grep -qE '^\s+-\s+id:\s+\S+'; then
+        # Process previous entry before starting new one
+        if [ -n "$_current_id" ] && [ -n "$_current_status" ]; then
+          _has_entries=1
+          if _is_terminal "$_current_status"; then
+            if [ "$_found_next_wave" -eq 0 ]; then
+              _in_terminal_run=1
+            fi
+          elif _is_next_wave "$_current_status"; then
+            if [ "$_in_terminal_run" -eq 1 ]; then
+              # Transition: terminal run → pending/draft → completed another wave
+              _completed_waves=$(( _completed_waves + 1 ))
+              _in_terminal_run=0
+            fi
+            _found_next_wave=1
+          fi
+        fi
+        _current_id="$(echo "$_line" | awk '{print $NF}')"
+        _current_status=""
+      elif echo "$_line" | grep -qE '^\s+status:\s+\S+'; then
+        _current_status="$(echo "$_line" | awk '{print $NF}')"
+      fi
+    done < "$sprint_state_yaml"
+
+    # Process the last entry
+    if [ -n "$_current_id" ] && [ -n "$_current_status" ]; then
+      _has_entries=1
+      if _is_terminal "$_current_status"; then
+        if [ "$_found_next_wave" -eq 0 ]; then
+          _in_terminal_run=1
+        fi
+      elif _is_next_wave "$_current_status"; then
+        if [ "$_in_terminal_run" -eq 1 ]; then
+          _completed_waves=$(( _completed_waves + 1 ))
+          _in_terminal_run=0
+        fi
+        _found_next_wave=1
+      fi
+    fi
+
+    if [ "$_has_entries" -eq 1 ] && ( [ "$_found_next_wave" -eq 1 ] || [ "$_completed_waves" -gt 0 ] || [ "$_in_terminal_run" -eq 1 ] ); then
+      # If there is a terminal run with no pending/draft after it, that run completes a wave
+      if [ "$_in_terminal_run" -eq 1 ] && [ "$_found_next_wave" -eq 0 ]; then
+        _completed_waves=$(( _completed_waves + 1 ))
+      fi
+      # current wave = 1 + completed waves (or 1 if no completed waves and we have pending/draft)
+      local _ordinal=$(( _completed_waves + 1 ))
+      echo "$_ordinal"
+      return 0
+    fi
+  fi
+
+  # FALLBACK: extract pass number from STATE.md current_step: "pass-N"
   if [ -f "$state_md" ]; then
     local step_val
     step_val="$(grep -E '^current_step:' "$state_md" | head -1 | awk '{print $2}' | tr -d '"')"
@@ -148,7 +221,7 @@ derive_wave_id() {
 
   # No valid wave_id substrate found — hard error per BC-5.41.001 PC2 anti-fabrication.
   # A silent fallback to any numeric literal would fabricate a wave_id with no basis.
-  echo "ERROR: NoWaveIdSubstrate — cannot derive wave_id: STATE.md has no 'pass-N' current_step." \
-    "Ensure STATE.md frontmatter contains current_step: \"pass-N\" where N is the wave number." >&2
+  echo "ERROR: NoWaveIdSubstrate — cannot derive wave_id: neither sprint-state.yaml ordinal" \
+    "nor STATE.md 'pass-N' current_step provides a real derivation substrate." >&2
   exit 1
 }
