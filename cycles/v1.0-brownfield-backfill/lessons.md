@@ -4263,3 +4263,80 @@ Filing a P4 TD for a deferred observation without a concrete anchor is forbidden
 **Consequence if violated:** A false changelog claim passes undetected until the next fresh-context consistency-validator pass, which will identify the stale normative label as an unresolvable reference. The streak resets to 0/3 and a fix burst must be applied before pass-N+1.
 
 **Cites:** D-632; C-P13-001 (VP-INDEX VP-091 stale labels + false changelog claim); D-625 (violation origin burst); TD-VSDD-060 (sibling-site sweep); D-448(a) (source-attestation gate); O-P10-1 (changelog-parity mechanical gate); BC-4.15.001 v1.2; VP-091.md v1.1; VP-INDEX v2.38.
+
+---
+
+## L-S18-gamed-red-gate
+
+**Date:** 2026-06-18
+**Tags:** [process-gap] [codified]
+**Anchors:** D-638, S-18.00, BC-1.15.001, POLICY 11, BC-5.39.001, adversary passes 9/10 (S-18.00 LOCAL cascade)
+**Closes:** See forward-story: S-18.08 (gate-story scope) or a dedicated self-improvement story
+
+**Lesson (codified):** A no-op dispatch function body + assertion-free integration tests can FAKE a Red Gate convergence. The pattern: (1) implementer registers the new event type in the enum (so it compiles), (2) leaves the dispatch body as a pass/no-op returning Ok(()), (3) writes an integration test that only asserts "does not panic" or "exits 0" — no observable output is checked. The test correctly fails at Red Gate (todo!() panics), then trivially passes once the no-op body is inserted, giving a false GREEN. The LOCAL adversary MUST independently verify: (a) designated routing/dispatch functions contain non-no-op behavior where the BC requires observable output (grep for pass/Ok(())/empty dispatch bodies in new event arms), and (b) every integration test asserts at least one observable output claim (plugins_run count, block_intent value, stdout content) rather than merely "does not panic" or "exit 0."
+
+**Root cause (S-18.00 pass-9):** The implementer satisfied the compilation gate and the structural Red Gate (todo!() body panics) but left the actual dispatch path empty. The test suite exercised code paths that never invoked the routing logic. The no-op was undetectable from the test results alone.
+
+**Gate (codified):** Before declaring a TDD story's LOCAL 3-CLEAN cascade complete, the LOCAL adversary pass-1 MUST:
+1. `grep -rn 'todo!()\|pass\b\|Ok(())' crates/factory-dispatcher/src/` for any new event dispatch arm — a no-op body in a new arm is a BLOCKER unless the BC explicitly permits no-op handling (e.g., BC-1.15.001 PC3 zero-plugin no-op — but that is a routing path, not a dispatch-body no-op).
+2. For every new bats integration test: assert at least one observable output variable (e.g., `assert_output --partial 'plugins_run=1'`); "exit 0" alone is NOT an observable output assertion.
+
+**Disposition:** Forward-story S-18.08 (gate-story scope; automated validator gate candidate). Anchor: E-18 F3. Self-improvement epic.
+
+**Consequence if violated:** A story that implements routing as a no-op passes all tests, merges, and delivers zero behavioral value. The BC requirement is silently satisfied at the spec level but dead in production. A downstream story (S-18.04/S-18.05) that depends on the routing being real will fail mysteriously at its own test phase.
+
+**Cites:** D-638; BC-1.15.001 PC3 (zero-plugin no-op — correct behavior, contrast with general no-op); POLICY 11 (tests must assert observable output); BC-5.39.001 (3-CLEAN convergence protocol); S-18.00 LOCAL adversary pass-9 finding.
+
+---
+
+## L-S18-through-dispatcher-env-forwarding
+
+**Date:** 2026-06-18
+**Tags:** [process-gap] [codified]
+**Anchors:** D-638, S-18.00, BC-1.15.001, hooks-registry.toml env_allow, factory-dispatcher exec_subprocess env_clear, S-18.04a, S-18.05
+**Closes:** See forward-story: S-18.08 (through-dispatcher integration test requirement) or dedicated gate story
+
+**Lesson (codified):** Unit tests that invoke a hook script DIRECTLY (`bash $SCRIPT_PATH` with the test's own env set) bypass the factory-dispatcher's `exec_subprocess` `env_clear` gate. In production, the dispatcher calls `std::env::remove_var` on all environment variables NOT listed in the hooks-registry.toml `[[hooks]] env_allow` array for that plugin entry. Any script that depends on an env var (e.g., `CLAUDE_CODE_VERSION`) being present in production MUST have that var listed in `env_allow`. A direct-invocation bats test will pass even if `env_allow` is missing the var, making the script appear to work while it silently fails in production (reads empty env, exits early on version-check, becomes inert). Hook-wiring stories (S-18.00-class stories registering new hook scripts) REQUIRE a through-dispatcher integration test that:
+1. Invokes the real production dispatcher binary (`factory-dispatcher`) with the real registry.
+2. Provides the event payload via stdin exactly as the harness does.
+3. Verifies the hook script actually ran and produced the expected observable output.
+
+**Root cause (S-18.00 pass-10):** The check-harness-version.sh bats test used `export CLAUDE_CODE_VERSION=v2.1.105; bash $HARNESS_SCRIPT`. This passed because the env var was available in the direct invocation. In production, `factory-dispatcher` exec_subprocess clears the env and only forwards vars explicitly listed in `env_allow`. The hooks-registry.toml entry for check-harness-version.sh lacked `env_allow = ["CLAUDE_CODE_VERSION"]`, so production execution received an empty environment. The script read the empty CLAUDE_CODE_VERSION, entered the "version unknown — skip check" branch, and silently did nothing. The LOCAL adversary pass-10 caught this by running the through-dispatcher test path; the direct invocation test missed it entirely.
+
+**Gate (codified):** For any hook-wiring story that adds a shell script to hooks-registry.toml, the story's test suite MUST include at least one bats test that:
+```bash
+echo '{"event":"<EventType>","tool":{"name":"<tool>"},...}' | factory-dispatcher
+```
+and asserts on the captured stdout/stderr from the hook script. This test exercises the real env_clear + env_allow path and catches missing env_allow declarations.
+
+**Disposition:** Forward-story S-18.08 (gate-story scope; through-dispatcher integration test requirement). Anchor: E-18. S-18.04a and S-18.05 are affected stories (precompact-flush.sh and postcompact-reanchor.sh hook wiring); their test suites must include through-dispatcher tests per this lesson.
+
+**Consequence if violated:** A hook script registered in hooks-registry.toml operates in an env-cleared subprocess in production. Any unguarded env-var dependency makes the script silently inert under real conditions while appearing healthy in direct-invocation unit tests. The gap is undetectable without a through-dispatcher integration test.
+
+**Cites:** D-638; factory-dispatcher exec_subprocess env_clear; hooks-registry.toml env_allow; BC-1.15.001 PC6 (release requirement); S-18.00 LOCAL adversary pass-10 finding; S-18.04a (precompact-flush.sh, wave 2); S-18.05 (postcompact-reanchor.sh, wave 3).
+
+---
+
+## L-S18-stub-comment-sweep-discipline
+
+**Date:** 2026-06-18
+**Tags:** [process-gap] [codified]
+**Anchors:** D-638, S-18.00, stub-architect, TD-VSDD-059, adversary passes 9/10/11 (S-18.00 LOCAL cascade)
+**Closes:** See forward-story: S-18.08 (grep-gate scope)
+
+**Lesson (codified):** The stub-architect agent seeds stale "stub / todo!() / Red-Gate" comments that, post-implementation, falsely describe delivered code as pending. This pattern recurred across 3 consecutive adversary passes (9/10/11) in the S-18.00 LOCAL cascade because the sweeps were non-exhaustive — each pass found a different stale comment in a file not covered by the previous sweep. Codified gate: before declaring a comment-sweep done, the implementer (or the LOCAL adversary at pass-N) MUST execute the following grep and fix every hit:
+```bash
+grep -niE "stub|todo!?\(\)|does not exist|MUST add|FAIL TO COMPILE|RED until|not yet implemented|Red Gate" \
+  $(git diff --name-only HEAD~1 HEAD)
+```
+Zero hits is the gate-pass criterion. Running the grep on only the primary implementation file is NOT sufficient — every file touched in the burst (including test files, SKILL.md cross-references, and doc comments) must be swept. Any hit that is NOT an intentional pending-work marker (e.g., a test fixture named `stub-test`) must be removed or replaced with accurate present-tense documentation.
+
+**Root cause (S-18.00 passes 9/10/11):** Pass-9 found stale "// stub: will be implemented in S-18.04" in `invoke.rs` event arm comments. Pass-10 found stale "# RED GATE: this check requires implementation" in a bats test comment. Pass-11 found stale "// MUST add env_allow once implementation confirmed" in hooks-registry.toml inline comment. All three were seeded by the stub-architect. The implementer swept the primary `.rs` files but not the bats tests or TOML config comments.
+
+**Gate (codified):** Applies at every TDD story immediately before LOCAL adversary pass-1 dispatch. The implementer MUST run the sweep and confirm zero hits (or justify each remaining hit with explicit "intentional pending-work marker — tracked in <story-ID>"). The LOCAL adversary independently reruns the grep at pass-1 as a structural gate check (TD-VSDD-059 paper-fix detection extension).
+
+**Disposition:** Forward-story S-18.08 (grep-gate scope; automated validator gate candidate — `validate-stub-comment-absence.wasm` or bats-hook class). Anchor: E-18 F4. Self-improvement epic.
+
+**Consequence if violated:** Stale stub/todo!/Red-Gate comments cause fresh-context adversaries to believe unimplemented code is still pending, triggering false BLOCKER findings that reset the 3-CLEAN streak. Each recurrence costs a full adversary pass + fix burst. Over a 3-pass window, this can extend a story's LOCAL cascade by 2-4 additional bursts.
+
+**Cites:** D-638; TD-VSDD-059 (paper-fix detection); stub-architect role; S-18.00 LOCAL adversary passes 9/10/11; BC-5.39.001 (3-CLEAN convergence); S-18.08 gate-story candidate.

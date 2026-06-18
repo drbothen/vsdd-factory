@@ -1322,3 +1322,29 @@ The D-636 confirming pass ran as a single orchestrator-dispatched burst with two
 
 **Authorization basis:**
 Per the D-636 stated protocol: "on CLEAN → F4 TDD wave-by-wave from W1 (S-18.00)". Both confirming-pass agents returned CLEAN/CONSISTENT with 0 findings. Human-approved E-18 story package + D-636 cleanup confirmed. F4 TDD is AUTHORIZED per BC-5.39.001 3-CLEAN convergence + D-635 story-approval human gate + D-637 confirming pass CLEAN.
+
+---
+
+**ID:** D-638
+**Date:** 2026-06-18
+**Phase:** S-18.00-post-merge
+**Decision:** S-18.00 POST-MERGE burst — POL-14 BC auto-promotion (BC-1.15.001 draft→active), story status transition (S-18.00 draft→merged), 4-index update, 3 process-gap lessons codified. develop HEAD advanced to b025d31d.
+**Parent-commit:** dbab876c (D-637 burst HEAD)
+
+| ID | Decision | Phase | Date |
+|----|----------|-------|------|
+| D-638 | S-18.00 POST-MERGE 2026-06-18 — PR #191 squash-merged to develop at b025d31d. POL-14 BC auto-promotion: BC-1.15.001 (in S-18.00 behavioral_contracts frontmatter) promoted draft→active; BC-1.15.001 v1.5→v1.6 (status + lifecycle_status + modified[] + §Changelog row); BC-INDEX v3.07→v3.08 (catalog row status→active, v1.6 annotation, changelog-array top row, last_amended); literal-shell gate PASS: `grep '^version:\|^status:\|^lifecycle_status:' .factory/specs/behavioral-contracts/ss-01/BC-1.15.001.md` → v1.6/active/active. STORY-INDEX v4.14→v4.15: S-18.00 row status draft→merged (story v1.3→v1.4 annotation; PR #191 b025d31d). S-18.00 story file v1.3→v1.4 (status draft→merged; last_amended updated). develop HEAD c000b06f→b025d31d (Active Branches table + §9 Critical Anchors). Story Status: Merged 78→79, Draft 41→40. Concurrent Cycles + Current Phase + Session Resume Checkpoint all updated (POSTURE: E-18 F4 Wave 2). 3 process-gap lessons codified: L-S18-gamed-red-gate (no-op dispatch + assertion-free tests fake Red Gate; anchor S-18.00; forward-story S-18.08); L-S18-through-dispatcher-env-forwarding (unit test with direct bash invocation bypasses env_clear; hook-wiring stories need through-dispatcher integration test; anchor S-18.00; forward-story TBD S-18.08-class gate); L-S18-stub-comment-sweep-discipline (stub/todo!/Red-Gate comments persist post-implementation; grep-gate mandatory before declaring sweep done; anchor S-18.00; forward-story S-18.08). Worktree .worktrees/S-18.00 + branch feature/S-18.00 exist pending devops-engineer cleanup. S-18.01/S-18.04a/S-18.05 unblocked. 4-index: BC v3.08/VP v2.38/STORY v4.15/ARCH v2.55. | S-18.00-post-merge | 2026-06-18 |
+
+**Appendix — D-638 Rationale**
+
+S-18.00 is the first F4 TDD delivery of E-18 Wave 1. The story covered PreCompact/PostCompact dispatcher routing verification + check-harness-version.sh. The LOCAL adversary 3-CLEAN cascade (passes 9/10/11) caught three notable issues before merge:
+
+**BLOCKER 1 — Gamed Red Gate (no-op dispatch functions):** The initial implementer submission registered PreCompact/PostCompact events in the dispatcher event enum but left the actual dispatch path as a no-op. The integration tests asserted "does not panic" rather than observable routing behavior. This satisfied the Red Gate (todo!() panics → no-op body passes assertion-free test) while delivering zero behavioral value. Adversary pass-9 caught this; pass-10 confirmed the fix. Lesson: L-S18-gamed-red-gate codified.
+
+**BLOCKER 2 — PC2 Advisory-Suppression Unenforced:** BC-1.15.001 PC2 requires PostCompact advisory-only semantics (no block_intent propagation). The initial implementation silently suppressed the advisory finding log entry instead of surfacing it. Caught by adversary pass-9, fixed before pass-10.
+
+**MAJOR — check-harness-version.sh Inert in Production:** The bats unit test invoked `check-harness-version.sh` directly with `CLAUDE_CODE_VERSION=...` env set. However, the factory-dispatcher `invoke.rs` `exec_subprocess` logic calls `env::remove_var` for all vars not in `hooks-registry.toml` `env_allow`. The hooks-registry.toml entry for check-harness-version.sh did not list `CLAUDE_CODE_VERSION` in `env_allow`, so the production execution received an empty env and the script always exited early as "version unknown." The through-dispatcher bats test (using real dispatcher binary + real registry) caught this in pass-10; the unit test with direct invocation missed it. Lesson: L-S18-through-dispatcher-env-forwarding codified.
+
+**Security MEDIUMs (2):** security-reviewer flagged (1) missing version-string length guard (unbounded input to version parser) and (2) pre-release suffix not rejected (v1.0.0-alpha accepted as valid). Both fixed in pass-11; pr-reviewer APPROVED; security re-pass: 0 CRITICAL/0 HIGH.
+
+BC-5.39.001 3-CLEAN streak: passes 9/10/11 all CLEAN/CONSISTENT. PR #191 squash-merged by pr-manager. POL-14 auto-promotion triggered post-merge per POLICY 14 (behavioral_contracts: [BC-1.15.001] in S-18.00 frontmatter).

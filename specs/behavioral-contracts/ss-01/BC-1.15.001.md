@@ -1,11 +1,11 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.5"
-status: draft
+version: "1.6"
+status: active
 producer: product-owner
 timestamp: 2026-06-14T00:00:00Z
-last_amended: "2026-06-15 (v1.5) — F-P36-001: §Changelog section added — was structurally absent (POLICY 17 body-section parity gap with sibling E-18 BCs); rows reconstructed from modified[] frontmatter; no skip-marker needed (no v1.5+ history gap at creation). [Prior: 2026-06-15 (v1.4) — F-P34-001 proactive fix: dropped frozen upper-bound 'through v1.6' version token from §VP Anchors and §Traceability ADR cite; replaced with stable-anchor form 'behaviorally stable' per POLICY-19 convention (TD-VSDD-091 anti-volatile-pin; matches sibling E-18 BCs). Cite-only change. [Prior: 2026-06-14 (v1.3) — F2 pass-6 fix-burst: (E-18) ADR cite convention: v1.4 version token dropped per ADR-026 §BC Traceability Cite Convention (TD-VSDD-091 anti-volatile-pin); stable §Decision anchor adopted; VP Anchors volatile-version parenthetical removed (cite-only changes). [Prior: 2026-06-14 (v1.2) — F2 pass-4 fix-burst: (F-P4-003) ADR cite v1.1→v1.4 (Decision 11 introduced v1.1, unchanged through v1.4); VP Anchors cite updated to v1.4. Cite-only change. [Prior: 2026-06-14 (v1.1) — F2 pass-1 fix-burst: (F-10) TBD-VP replaced with VP-086 (Dispatcher Exit-2 Propagation for PreCompact Block-Intent; ADR-026 v1.1 §VP Allocations). (DI) TBD-DI replaced with DI-020. ADR cite v1.0→v1.1.]"
+last_amended: "2026-06-18 (v1.6) — POL-14 BC auto-promotion: S-18.00 merged PR #191 (squash SHA b025d31d) to develop; BC-1.15.001 promoted draft→active per POLICY 14. No behavioral changes to spec content. [Prior: 2026-06-15 (v1.5) — F-P36-001: §Changelog section added — was structurally absent (POLICY 17 body-section parity gap with sibling E-18 BCs); rows reconstructed from modified[] frontmatter; no skip-marker needed (no v1.5+ history gap at creation). [Prior: 2026-06-15 (v1.4) — F-P34-001 proactive fix: dropped frozen upper-bound 'through v1.6' version token from §VP Anchors and §Traceability ADR cite; replaced with stable-anchor form 'behaviorally stable' per POLICY-19 convention (TD-VSDD-091 anti-volatile-pin; matches sibling E-18 BCs). Cite-only change. [Prior: 2026-06-14 (v1.3) — F2 pass-6 fix-burst: (E-18) ADR cite convention: v1.4 version token dropped per ADR-026 §BC Traceability Cite Convention (TD-VSDD-091 anti-volatile-pin); stable §Decision anchor adopted; VP Anchors volatile-version parenthetical removed (cite-only changes). [Prior: 2026-06-14 (v1.2) — F2 pass-4 fix-burst: (F-P4-003) ADR cite v1.1→v1.4 (Decision 11 introduced v1.1, unchanged through v1.4); VP Anchors cite updated to v1.4. Cite-only change. [Prior: 2026-06-14 (v1.1) — F2 pass-1 fix-burst: (F-10) TBD-VP replaced with VP-086 (Dispatcher Exit-2 Propagation for PreCompact Block-Intent; ADR-026 v1.1 §VP Allocations). (DI) TBD-DI replaced with DI-020. ADR cite v1.0→v1.1.]"
 phase: F2
 inputs:
   - .factory/feature-delta/issue-173/F1-delta-analysis.md
@@ -17,9 +17,10 @@ origin: greenfield
 extracted_from: null
 subsystem: "SS-01"
 capability: "CAP-032"
-lifecycle_status: draft
+lifecycle_status: active
 introduced: v1.0-feature-context-durability-E18
 modified:
+  - "2026-06-18 (v1.6) — POL-14 BC auto-promotion: S-18.00 merged PR #191 (squash SHA b025d31d); status draft→active; lifecycle_status draft→active. No behavioral changes."
   - "2026-06-15 (v1.5) — F-P36-001: §Changelog section added — was structurally absent (POLICY 17 body-section parity gap with sibling E-18 BCs); rows reconstructed from modified[] frontmatter; no skip-marker needed."
   - "2026-06-15 (v1.4) — F-P34-001 proactive fix: frozen upper-bound 'through v1.6' dropped from §VP Anchors and §Traceability ADR cite; replaced with 'behaviorally stable' per POLICY-19 stable-anchor convention (TD-VSDD-091). Cite-only."
   - "2026-06-14 (v1.3) — F2 pass-6 fix-burst: ADR cite convention: stable §Decision anchor (TD-VSDD-091); VP Anchors volatile-version parenthetical removed; cite-only."
@@ -135,6 +136,7 @@ S-18.00 (verification/addition of PreCompact/PostCompact dispatcher routing — 
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| v1.6 | 2026-06-18 | state-manager | POL-14 BC auto-promotion: S-18.00 merged PR #191 (squash SHA b025d31d) to develop; status draft→active; lifecycle_status draft→active. No behavioral changes to spec content. D-638. |
 | v1.5 | 2026-06-15 | product-owner | (F-P36-001) §Changelog section added — was structurally absent (POLICY 17 body-section parity gap with sibling E-18 BCs); rows reconstructed from modified[] frontmatter; no skip-marker needed (no v1.5+ history gap at creation). |
 | v1.4 | 2026-06-15 | product-owner | (F-P34-001) Frozen upper-bound 'through v1.6' dropped from §VP Anchors and §Traceability ADR cite; replaced with 'behaviorally stable' per POLICY-19 stable-anchor convention (TD-VSDD-091). Cite-only. |
 | v1.3 | 2026-06-14 | product-owner | F2 pass-6 fix-burst: ADR cite convention: stable §Decision anchor adopted (TD-VSDD-091 anti-volatile-pin); VP Anchors volatile-version parenthetical removed; cite-only. |
