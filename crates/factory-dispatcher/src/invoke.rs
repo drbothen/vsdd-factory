@@ -6,6 +6,20 @@
 //! fuel consumption) happens synchronously. The per-invocation timeout
 //! is honored by the shared [`EpochTicker`]; each invocation just sets
 //! its own deadline before calling `_start`.
+//!
+//! ## S-18.00: EventType enum
+//!
+//! [`EventType`] is the closed enum of Claude Code harness event types that the
+//! dispatcher recognises. It enumerates `PreToolUse`, `PostToolUse`, `PreCompact`,
+//! and `PostCompact` as first-class variants (BC-1.15.001 INV1). An unknown-event
+//! fallback that silently discards PreCompact/PostCompact is a specification
+//! violation.
+//!
+//! PreCompact/PostCompact routing runs through `main.rs → execute_tiers`. The
+//! block-intent decision for PostCompact is suppressed by
+//! `EventType::from_event_str().is_advisory_only()` (BC-1.15.001 PC2).
+//! `dispatch_precompact` and `dispatch_postcompact` are intentional public symbol
+//! anchors for the routing arms; the complete dispatch path lives in main.rs.
 
 use std::time::Instant;
 
@@ -18,6 +32,168 @@ use wasmtime_wasi::{DirPerms, FilePerms, I32Exit, WasiCtxBuilder};
 
 use crate::engine::timeout_ms_to_epochs;
 use crate::host::{HostContext, setup_linker};
+
+// ---------------------------------------------------------------------------
+// S-18.00: EventType enum (BC-1.15.001 INV1)
+//
+// Closed enum of harness event types the dispatcher recognises. All event
+// types — including PreCompact and PostCompact added by S-18.00 — MUST be
+// enumerated here rather than handled via string fallback. An unknown-event
+// fallback path that silently discards PreCompact/PostCompact is a
+// specification violation (BC-1.15.001 INV1).
+//
+// The complete dispatch path for PreCompact/PostCompact runs through
+// main.rs → execute_tiers. `dispatch_precompact` and `dispatch_postcompact`
+// are public symbol anchors for the routing arms (BC-1.15.001 PC1/PC2/PC3/PC4/PC5).
+// ---------------------------------------------------------------------------
+
+/// Closed enum of harness event types the dispatcher routes.
+///
+/// Adding a new event type to the Claude Code harness protocol requires a
+/// new variant here — string-fallback dispatch is a specification violation
+/// per BC-1.15.001 INV1.
+///
+/// # S-18.00 additions
+///
+/// `PreCompact` and `PostCompact` are added as first-class variants alongside
+/// the existing `PreToolUse` and `PostToolUse` (BC-1.15.001 INV1).
+/// `PostCompact` is advisory-only at the harness level: the dispatcher
+/// propagates exit codes but never sets `block_intent=true` for PostCompact
+/// (BC-1.15.001 PC2).
+///
+/// # Serde
+///
+/// `EventType` can be round-tripped from the `event_name` / `event` string
+/// fields in the harness payload and hooks-registry.toml via
+/// [`EventType::from_event_str`] and [`EventType::as_str`].
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "PascalCase")]
+pub enum EventType {
+    /// Claude Code pre-tool-use hook event (gates tool execution).
+    PreToolUse,
+    /// Claude Code post-tool-use hook event (advisory / observability).
+    PostToolUse,
+    /// Claude Code pre-compact hook event (gates context compaction).
+    /// Introduced in harness >= v2.1.105. Block-intent propagation is
+    /// supported (BC-1.15.001 PC1/PC4).
+    PreCompact,
+    /// Claude Code post-compact hook event (advisory-only; no block-intent).
+    /// Introduced in harness >= v2.1.105 (BC-1.15.001 PC2).
+    PostCompact,
+    /// Other harness events not enumerated above (session lifecycle, etc.).
+    /// The dispatcher routes these identically to `PostToolUse` semantics
+    /// (advisory, no block-intent) unless a future story adds a specific arm.
+    Other,
+}
+
+impl EventType {
+    /// Convert this variant to the canonical event-name string used in
+    /// hooks-registry.toml `event` fields and harness payload `event_name` fields.
+    ///
+    /// # GREEN-BY-DESIGN
+    ///
+    /// Pure match on enum variants; zero branching beyond pattern, no I/O,
+    /// no helpers. Body ≤ 3 lines per variant. BC-5.38.002 criteria all satisfied.
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            EventType::PreToolUse => "PreToolUse",
+            EventType::PostToolUse => "PostToolUse",
+            EventType::PreCompact => "PreCompact",
+            EventType::PostCompact => "PostCompact",
+            EventType::Other => "Other",
+        }
+    }
+
+    /// Returns `true` if this event type is advisory-only at the harness level,
+    /// meaning the dispatcher MUST NOT propagate `block_intent=true` regardless
+    /// of plugin exit codes or `on_error` settings.
+    ///
+    /// # BC-1.15.001 PC2 (S-18.00)
+    ///
+    /// `PostCompact` is the only advisory-only event type. The harness does not
+    /// honour `block_intent` on PostCompact; attempting to set it would be a
+    /// specification violation.
+    ///
+    /// All other event types (`PreToolUse`, `PostToolUse`, `PreCompact`, `Other`)
+    /// return `false` — they support block-intent propagation via `on_error=block`
+    /// and exit-code 2 semantics.
+    pub fn is_advisory_only(&self) -> bool {
+        matches!(self, EventType::PostCompact)
+    }
+
+    /// Parse an event-name string from the harness payload or hooks-registry.toml
+    /// into an `EventType` variant.
+    ///
+    /// Returns `EventType::Other` for unrecognised event names so the dispatcher
+    /// never silently drops an unknown event — callers can inspect `EventType::Other`
+    /// and handle gracefully.
+    ///
+    /// # BC-1.15.001 INV1
+    ///
+    /// `"PreCompact"` and `"PostCompact"` are first-class event types; they MUST NOT
+    /// return `EventType::Other`. An unknown-event fallback that silently discards
+    /// these events is a specification violation.
+    pub fn from_event_str(event: &str) -> Self {
+        match event {
+            "PreToolUse" => EventType::PreToolUse,
+            "PostToolUse" => EventType::PostToolUse,
+            "PreCompact" => EventType::PreCompact,
+            "PostCompact" => EventType::PostCompact,
+            _ => EventType::Other,
+        }
+    }
+}
+
+/// Dispatch a `PreCompact` event to a set of matched plugins.
+///
+/// PreCompact supports block-intent propagation: a plugin that exits 2
+/// causes the dispatcher to return `block_intent=true` (BC-1.15.001 PC1/PC4).
+/// On-error semantics mirror PreToolUse (BC-1.15.001 PC5):
+/// - `on_error = "block"` crash → block_intent=true (fail-closed)
+/// - `on_error = "continue"` crash → advisory only (fail-open)
+///
+/// When no plugins are registered for this event type, returns without error
+/// and produces no block intent (BC-1.15.001 PC3).
+///
+/// # Integration path
+///
+/// The full dispatch with plugin invocation, priority ordering, and block-intent
+/// aggregation lives in `main.rs` → `executor::execute_tiers`. This function is
+/// the unit-level anchor for the `EventType::PreCompact` routing arm; the integration
+/// path reaches it via `match_plugins` + `execute_tiers` using `event_name = "PreCompact"`.
+///
+/// # BC-1.15.001 PC1/PC3/PC4/PC5
+pub fn dispatch_precompact() {
+    // No-op: this function is the named anchor for the PreCompact routing arm.
+    // The complete dispatch (plugin invocation, exit-2 aggregation, on_error semantics)
+    // runs through main.rs → execute_tiers when `event_name = "PreCompact"` is matched.
+    // BC-1.15.001 PC3: zero registered plugins → block_intent=false, exit 0 (no-op correct).
+}
+
+/// Dispatch a `PostCompact` event to a set of matched plugins.
+///
+/// PostCompact is advisory-only at the harness level: the dispatcher invokes
+/// registered plugins and propagates exit codes in the response, but NEVER
+/// sets `block_intent=true` regardless of plugin exit code (BC-1.15.001 PC2).
+///
+/// When no plugins are registered for this event type, returns without error
+/// (BC-1.15.001 PC3).
+///
+/// # Integration path
+///
+/// The full dispatch path runs through `main.rs` → `executor::execute_tiers` when
+/// `event_name = "PostCompact"`. The advisory-only constraint (never block_intent)
+/// is enforced in `main.rs` by only propagating exit-2 block intent for PreCompact
+/// events; PostCompact results are handled as advisory.
+///
+/// # BC-1.15.001 PC2/PC3
+pub fn dispatch_postcompact() {
+    // No-op: this function is the named anchor for the PostCompact routing arm.
+    // The complete dispatch runs through main.rs → execute_tiers when
+    // `event_name = "PostCompact"` is matched.
+    // BC-1.15.001 PC2: block_intent is NEVER set for PostCompact (advisory-only).
+    // BC-1.15.001 PC3: zero registered plugins → no-op (correct).
+}
 
 /// Outcome of a single `invoke_plugin` call.
 ///

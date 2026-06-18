@@ -70,6 +70,9 @@ NATIVE_PORTED_HOOKS=(
 POST_HISTORICAL_SCRIPTS=(
   validate-count-propagation
   validate-red-ratio
+  # S-18.00: PreCompact hook — uses PreCompact event type not present in the
+  # historical hooks.json snapshot; registered directly in hooks-registry.toml.
+  check-harness-version
 )
 
 # Utility scripts under hooks/ that are NOT hook plugins and must NEVER be

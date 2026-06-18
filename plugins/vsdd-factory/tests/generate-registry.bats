@@ -79,6 +79,7 @@ GATE_HOOKS=(
     update-wave-state-on-merge validate-pr-review-posted warn-pending-wave-gate
     validate-count-propagation validate-red-ratio
     update-cargo-audit-cache
+    check-harness-version
   )
 
   # On-disk: every hooks/*.sh basename without extension, minus the
