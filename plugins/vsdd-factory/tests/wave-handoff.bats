@@ -3683,3 +3683,143 @@ EOF
     false
   }
 }
+
+# ---------------------------------------------------------------------------
+# test_BC_5_41_001_O_P10_001_factory_lock_inline_scalar_in_committed_blob
+# O-P10-001 / BC-5.41.001 PC3 (factory_lock_holder field)
+#
+# When STATE.md factory_lock is a non-null INLINE SCALAR (e.g., factory_lock: "holder-name"),
+# the committed HANDOFF.md blob must carry factory_lock_holder: holder-name (not null).
+#
+# All current fixtures use factory_lock: null. This test exercises the inline scalar
+# non-null code path in write-handoff.sh get_factory_lock_holder().
+#
+# Production-faithful STATE.md fixture: `factory_lock: "session-abc123"` (quoted scalar).
+# Assert on the committed blob (POLICY 11 — not working-tree file).
+# ---------------------------------------------------------------------------
+
+@test "test_BC_5_41_001_O_P10_001_factory_lock_inline_scalar_in_committed_blob" {
+  # Write STATE.md with a non-null inline-scalar factory_lock value
+  cat > "$WORK/STATE.md" << 'EOF'
+---
+current_step: "pass-2"
+current_cycle: "v1.0-feature-context-durability-E18"
+factory_lock: "session-abc123"
+---
+# STATE
+EOF
+
+  _run_skill
+
+  [ "$status" -eq 0 ] || {
+    echo "FAIL (O-P10-001 inline): skill exited ${status}, expected 0. Output: $output" >&2
+    false
+  }
+
+  # Assert via COMMITTED blob (POLICY 11 — not working-tree file)
+  git -C "$WORK" show factory-artifacts:HANDOFF.md >/dev/null 2>&1 || {
+    echo "FAIL (O-P10-001 inline): HANDOFF.md not committed to factory-artifacts" >&2
+    false
+  }
+
+  local committed_content
+  committed_content="$(git -C "$WORK" show factory-artifacts:HANDOFF.md)"
+
+  # factory_lock_holder must be present
+  echo "$committed_content" | grep -q "^factory_lock_holder:" || {
+    echo "FAIL (O-P10-001 inline): factory_lock_holder field missing from committed HANDOFF.md" >&2
+    false
+  }
+
+  # factory_lock_holder must equal the inline-scalar value (without quotes)
+  local holder_val
+  holder_val="$(echo "$committed_content" | grep "^factory_lock_holder:" | awk '{print $2}')"
+  [ "$holder_val" = "session-abc123" ] || {
+    echo "FAIL (O-P10-001 inline): factory_lock_holder in committed HANDOFF.md" >&2
+    echo "  expected: 'session-abc123' (from STATE.md factory_lock: \"session-abc123\")" >&2
+    echo "  got:      '${holder_val}'" >&2
+    echo "" >&2
+    echo "  BC-5.41.001 PC3: factory_lock_holder must reflect the real lock state from STATE.md." >&2
+    echo "  Inline scalar form: factory_lock: \"holder-name\" → factory_lock_holder: holder-name" >&2
+    false
+  }
+}
+
+# ---------------------------------------------------------------------------
+# test_BC_5_41_001_O_P10_001_factory_lock_block_form_in_committed_blob
+# O-P10-001 / BC-5.41.001 PC3 (factory_lock_holder field)
+#
+# When STATE.md factory_lock is a non-null BLOCK FORM (factory_lock:\n  holder: x),
+# the committed HANDOFF.md blob must carry factory_lock_holder: x (not null).
+#
+# This exercises the block-form awk parse path in write-handoff.sh.
+# The block form uses two lines:
+#   factory_lock:
+#     holder: <holder-name>
+#
+# Bug found during O-P10-001 investigation: the original awk pattern used `\s`
+# (non-POSIX in awk) which silently fails on macOS/BSD awk. The fixed pattern
+# uses `[[:space:]]` (POSIX). This test REDs the old \s pattern and passes the fix.
+#
+# Production-faithful fixture: inline factory_lock: null on its own is the common
+# case; the block form appears when the factory is locked with metadata.
+# Assert on the committed blob (POLICY 11 — not working-tree file).
+# ---------------------------------------------------------------------------
+
+@test "test_BC_5_41_001_O_P10_001_factory_lock_block_form_in_committed_blob" {
+  # Write STATE.md with a non-null BLOCK FORM factory_lock
+  cat > "$WORK/STATE.md" << 'EOF'
+---
+current_step: "pass-2"
+current_cycle: "v1.0-feature-context-durability-E18"
+factory_lock:
+  holder: block-holder-xyz
+  acquired_at: "2026-06-18T00:00:00Z"
+  reason: "active session"
+---
+# STATE
+EOF
+
+  _run_skill
+
+  [ "$status" -eq 0 ] || {
+    echo "FAIL (O-P10-001 block): skill exited ${status}, expected 0. Output: $output" >&2
+    false
+  }
+
+  # Assert via COMMITTED blob (POLICY 11 — not working-tree file)
+  git -C "$WORK" show factory-artifacts:HANDOFF.md >/dev/null 2>&1 || {
+    echo "FAIL (O-P10-001 block): HANDOFF.md not committed to factory-artifacts" >&2
+    false
+  }
+
+  local committed_content
+  committed_content="$(git -C "$WORK" show factory-artifacts:HANDOFF.md)"
+
+  # factory_lock_holder must be present
+  echo "$committed_content" | grep -q "^factory_lock_holder:" || {
+    echo "FAIL (O-P10-001 block): factory_lock_holder field missing from committed HANDOFF.md" >&2
+    false
+  }
+
+  # factory_lock_holder must equal the block-form holder value (not null)
+  local holder_val
+  holder_val="$(echo "$committed_content" | grep "^factory_lock_holder:" | awk '{print $2}')"
+  [ "$holder_val" = "block-holder-xyz" ] || {
+    echo "FAIL (O-P10-001 block): factory_lock_holder in committed HANDOFF.md" >&2
+    echo "  expected: 'block-holder-xyz' (from STATE.md block-form factory_lock.holder)" >&2
+    echo "  got:      '${holder_val}'" >&2
+    echo "" >&2
+    echo "  BC-5.41.001 PC3: factory_lock_holder must reflect the real lock state from STATE.md." >&2
+    echo "  Block form:" >&2
+    echo "    factory_lock:"  >&2
+    echo "      holder: block-holder-xyz" >&2
+    echo "  → factory_lock_holder: block-holder-xyz  (not null)" >&2
+    echo "" >&2
+    echo "  ROOT CAUSE (O-P10-001): write-handoff.sh awk pattern used non-POSIX \\s which" >&2
+    echo "  silently fails on macOS/BSD awk — the holder line is never matched, producing" >&2
+    echo "  factory_lock_holder: null despite the lock being held." >&2
+    echo "  Fix: awk pattern changed from /^\\s+holder:/ to /^[[:space:]]+holder:/ (POSIX)." >&2
+    false
+  }
+}

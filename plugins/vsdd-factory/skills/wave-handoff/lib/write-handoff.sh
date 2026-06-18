@@ -152,7 +152,7 @@ write_handoff() {
     elif [ -z "$lock_val" ] || [ "$lock_val" = "null" ]; then
       # Block form: look for indented `.holder:` key immediately following `factory_lock:`
       local holder_val
-      holder_val="$(awk '/^factory_lock:/{found=1; next} found && /^\s+holder:/{print $2; exit} found && /^[a-zA-Z]/{exit}' "$state_md" | tr -d '"')"
+      holder_val="$(awk '/^factory_lock:/{found=1; next} found && /^[[:space:]]+holder:/{print $2; exit} found && /^[a-zA-Z]/{exit}' "$state_md" | tr -d '"')"
       if [ -n "$holder_val" ] && [ "$holder_val" != "null" ]; then
         factory_lock_holder="$holder_val"
       fi
