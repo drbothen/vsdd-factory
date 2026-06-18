@@ -80,13 +80,13 @@ _git_wt() {
 # at the moment the skill is invoked, i.e., the current HEAD of the factory-artifacts
 # branch before the atomic commit creates a new HEAD.
 #
-# "null" is returned when HEAD is the orphan root (no parent commit exists — wave 1):
-#   git rev-parse HEAD succeeds on orphan branches (returns the init commit), but
-#   wave-1 is characterised by the factory-artifacts branch having only its init commit
-#   and no prior HANDOFF — we detect this by checking whether the prior HEAD commit
-#   message starts with "factory-artifacts init" or similar orphan-root patterns.
-#   For robustness: use rev-list depth to detect orphan-root (depth == 1 meaning the
-#   init commit is the only commit on the branch).
+# "null" is returned for wave 1 (no prior HANDOFF commit exists):
+#   Wave 1 is detected by checking the rev-list depth of factory-artifacts HEAD.
+#   Depth == 1 means only the orphan-root init commit exists on the branch and no
+#   prior HANDOFF wave commit has been made yet → return "null".
+#   This is the BC-5.41.002 PC2 "HEAD before commit" semantics: the prior-SHA field
+#   in wave-state.yaml records the HEAD that existed before the current wave's commit,
+#   not the SHA of the commit we are about to create.
 # ---------------------------------------------------------------------------
 _get_prior_handoff_sha() {
   # Check if the factory-artifacts branch has any commits at all
