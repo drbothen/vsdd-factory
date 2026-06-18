@@ -139,7 +139,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | caf06c68 | rc.21 bot binary bundle commit 2026-06-13; prior: 2a191314 (rc.20) |
 | develop | c000b06f | PR #189 compute-input-hash fix SQUASH-MERGED 2026-06-16; prior: 7e99f6ef (PR #186 fix 2026-06-13) |
-| factory-artifacts | 24346555 | D-636 burst HEAD (prior: aebcf9a1 D-635 burst; prior: e92b8aed D-634 SHA-patch) |
+| factory-artifacts | dbab876c | D-637 burst HEAD (prior: 1b1f7e26 D-636 SHA-patch; prior: 24346555 D-636 burst) |
 | v1.0.0-rc.21 (tag) | 03054524 | SHIPPED 2026-06-13; FULLY IN OPERATOR MARKETPLACE (marketplace PR #13 MERGED); annotated tag object |
 | v1.0.0-rc.20 (tag) | e9e38286 | SHIPPED 2026-06-01; marketplace PR #12 squash-merged 862e660d |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28 |
@@ -355,7 +355,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** `1b1f7e26` (D-636 SHA-patch HEAD; prior: `24346555` D-636 burst; prior: `aebcf9a1` D-635 burst)
+- **factory-artifacts HEAD:** `dbab876c` (D-637 burst HEAD; prior: `1b1f7e26` D-636 SHA-patch; prior: `24346555` D-636 burst)
 - **develop HEAD:** `c000b06f` (PR #189 compute-input-hash fix SQUASH-MERGED 2026-06-16; prior: `7e99f6ef` PR #186 fix 2026-06-13)
 - **main HEAD:** `caf06c68` (rc.21 bot bundle commit 2026-06-13; UNCHANGED)
 - **v1.0.0-rc.21 tag:** `03054524` (SHIPPED; FULLY IN OPERATOR MARKETPLACE)
@@ -390,7 +390,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 - **capabilities.md v1.7:** `domain-spec/capabilities.md` (UNCHANGED at D-597)
 - **ADR-025 v1.6 SHIPPED:** guard at `3b2a378c`; ARCH-INDEX v2.27
 - **S-17.04 story:** `.factory/stories/S-17.04-mid-burst-heartbeat-renewal-wiring.md` v1.7 MERGED; E-17 W4 COMPLETE; PR #184 3b2a378c
-- **Verify on resume:** `git rev-parse --short origin/develop` → expect `c000b06f`; `git rev-parse --short origin/main` → expect `caf06c68`; `git -C .factory log -1 --format='%h'` → expect `1b1f7e26` (D-636 SHA-patch) or later
+- **Verify on resume:** `git rev-parse --short origin/develop` → expect `c000b06f`; `git rev-parse --short origin/main` → expect `caf06c68`; `git -C .factory log -1 --format='%h'` → expect `dbab876c` (D-637 burst) or later
 
 ### §10. PR Status
 
