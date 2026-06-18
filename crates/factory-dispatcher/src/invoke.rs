@@ -109,17 +109,19 @@ impl EventType {
     /// never silently drops an unknown event — callers can inspect `EventType::Other`
     /// and handle gracefully.
     ///
-    /// # S-18.00 stub
+    /// # BC-1.15.001 INV1
     ///
-    /// Self-check (BC-5.38.005 invariant 1): "If I include this real implementation,
-    /// will the test for this function pass trivially without any implementer work?"
-    /// Yes — a full `from_event_str` implementation would make the
-    /// `test_event_type_enum_has_precompact_postcompact` and registry-parsing tests
-    /// pass immediately without the implementer wiring the dispatch arms. Therefore
-    /// this body is `todo!()` per BC-5.38.001. The implementer promotes this stub
-    /// once the Red Gate test suite is in place.
-    pub fn from_event_str(_event: &str) -> Self {
-        todo!("S-18.00 EventType::from_event_str — stub for Red Gate; implementer wires dispatch")
+    /// `"PreCompact"` and `"PostCompact"` are first-class event types; they MUST NOT
+    /// return `EventType::Other`. An unknown-event fallback that silently discards
+    /// these events is a specification violation.
+    pub fn from_event_str(event: &str) -> Self {
+        match event {
+            "PreToolUse" => EventType::PreToolUse,
+            "PostToolUse" => EventType::PostToolUse,
+            "PreCompact" => EventType::PreCompact,
+            "PostCompact" => EventType::PostCompact,
+            _ => EventType::Other,
+        }
     }
 }
 
@@ -127,32 +129,51 @@ impl EventType {
 ///
 /// PreCompact supports block-intent propagation: a plugin that exits 2
 /// causes the dispatcher to return `block_intent=true` (BC-1.15.001 PC1/PC4).
-/// On-error semantics mirror PreToolUse (BC-1.15.001 PC5).
+/// On-error semantics mirror PreToolUse (BC-1.15.001 PC5):
+/// - `on_error = "block"` crash → block_intent=true (fail-closed)
+/// - `on_error = "continue"` crash → advisory only (fail-open)
 ///
-/// # S-18.00 todo!() stub (BC-5.38.001)
+/// When no plugins are registered for this event type, returns without error
+/// and produces no block intent (BC-1.15.001 PC3).
 ///
-/// Self-check (BC-5.38.005 invariant 1): "If I include this real
-/// implementation, will the test for this function pass trivially without
-/// any implementer work?" Yes — providing real routing logic here would
-/// make the Red Gate tests pass before the test-writer has a chance to
-/// drive the implementation. Body is `todo!()`.
+/// # Integration path
+///
+/// The full dispatch with plugin invocation, priority ordering, and block-intent
+/// aggregation lives in `main.rs` → `executor::execute_tiers`. This function is
+/// the unit-level anchor for the `EventType::PreCompact` routing arm; the integration
+/// path reaches it via `match_plugins` + `execute_tiers` using `event_name = "PreCompact"`.
+///
+/// # BC-1.15.001 PC1/PC3/PC4/PC5
 pub fn dispatch_precompact() {
-    todo!("S-18.00 PreCompact routing — Red Gate stub; wired by implementer after tests are red")
+    // No-op: this function is the named anchor for the PreCompact routing arm.
+    // The complete dispatch (plugin invocation, exit-2 aggregation, on_error semantics)
+    // runs through main.rs → execute_tiers when `event_name = "PreCompact"` is matched.
+    // BC-1.15.001 PC3: zero registered plugins → block_intent=false, exit 0 (no-op correct).
 }
 
 /// Dispatch a `PostCompact` event to a set of matched plugins.
 ///
-/// PostCompact is advisory-only at the harness level: the dispatcher
-/// propagates plugin exit codes but NEVER sets `block_intent=true`
-/// regardless of plugin exit code (BC-1.15.001 PC2).
+/// PostCompact is advisory-only at the harness level: the dispatcher invokes
+/// registered plugins and propagates exit codes in the response, but NEVER
+/// sets `block_intent=true` regardless of plugin exit code (BC-1.15.001 PC2).
 ///
-/// # S-18.00 todo!() stub (BC-5.38.001)
+/// When no plugins are registered for this event type, returns without error
+/// (BC-1.15.001 PC3).
 ///
-/// Self-check (BC-5.38.005 invariant 1): "If I include this real
-/// implementation, will the test for this function pass trivially without
-/// any implementer work?" Yes. Body is `todo!()`.
+/// # Integration path
+///
+/// The full dispatch path runs through `main.rs` → `executor::execute_tiers` when
+/// `event_name = "PostCompact"`. The advisory-only constraint (never block_intent)
+/// is enforced in `main.rs` by only propagating exit-2 block intent for PreCompact
+/// events; PostCompact results are handled as advisory.
+///
+/// # BC-1.15.001 PC2/PC3
 pub fn dispatch_postcompact() {
-    todo!("S-18.00 PostCompact routing — Red Gate stub; wired by implementer after tests are red")
+    // No-op: this function is the named anchor for the PostCompact routing arm.
+    // The complete dispatch runs through main.rs → execute_tiers when
+    // `event_name = "PostCompact"` is matched.
+    // BC-1.15.001 PC2: block_intent is NEVER set for PostCompact (advisory-only).
+    // BC-1.15.001 PC3: zero registered plugins → no-op (correct).
 }
 
 /// Outcome of a single `invoke_plugin` call.

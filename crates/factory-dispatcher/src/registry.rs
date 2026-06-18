@@ -471,13 +471,13 @@ impl Registry {
 /// `EventType::Other` rather than an error so future harness event types do not
 /// cause registry-load failures (fail-open for novel event types).
 ///
-/// # S-18.00 stub (BC-5.38.001)
+/// # BC-1.15.001 INV1
 ///
-/// Self-check (BC-5.38.005 invariant 1): "If I include this real implementation,
-/// will the test for this function pass trivially without any implementer work?"
-/// Yes. Body is `todo!()`.
-pub fn parse_event_type(_event: &str) -> crate::invoke::EventType {
-    todo!("S-18.00 parse_event_type — Red Gate stub; implementer wires after tests are red")
+/// Delegates to [`crate::invoke::EventType::from_event_str`] — single source of
+/// truth for event-string → enum mapping. The registry side bridges the typed
+/// enum into the TOML `event` string field without introducing a second dispatch table.
+pub fn parse_event_type(event: &str) -> crate::invoke::EventType {
+    crate::invoke::EventType::from_event_str(event)
 }
 
 #[cfg(test)]
