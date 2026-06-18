@@ -54,17 +54,27 @@ None.
 | 0 | Success — HANDOFF.md (and wave-state.yaml for non-EPIC-COMPLETE) written and committed |
 | 1 | BrokenSprintState — non-terminal stories present but no pending/draft entries |
 | 1 | Hard field error — required field absent or anti-fabrication check failed |
-| 1 | PrecompactShaMismatch — precompact-flush-log present+valid but SHA mismatch or null |
+| 1 | PrecompactShaMismatch — precompact-flush-log present+valid but SHA mismatch or malformed |
+| 1 | NoWaveIdSubstrate — neither sprint-state ordinal nor STATE.md pass-N yields a wave_id |
+| 1 | StoryIndexMissing — STORY-INDEX.md absent at wave-close with non-empty next_wave_stories |
 | 1 | active_bcs empty at wave close |
 | 1 | Atomic commit failure — git push to factory-artifacts failed |
 
 ## Error Codes (canonical)
 
 - `BrokenSprintState` — sprint-state.yaml has non-terminal stories but no pending/draft entries
-- `AntiFabricationFailed` — a field cross-check against external ground truth failed
-- `PrecompactShaMismatch` — precompact_flush_sha null/wrong when precompact-flush-log is present+valid
-- `UnexpectedEpicStatus` — epic_status present on a non-final wave
-- `MissingEpicStatus` — epic_status absent on an EPIC-COMPLETE wave
+- `AntiFabricationFailed` — a field cross-check against external ground truth failed (emitted by
+  pre-flight validation in `main()` and by `write_wave_state` in `lib/write-wave-state.sh`)
+- `StoryIndexMissing` — STORY-INDEX.md absent at wave-close when next_wave_stories is non-empty;
+  emitted by pre-flight in `main()` and by `write_wave_state` (BC-5.41.002 PC2 precondition 2)
+- `PrecompactShaMismatch` — precompact_flush_sha null/wrong when precompact-flush-log is present+valid;
+  emitted by `lib/write-handoff.sh`
+- `NoWaveIdSubstrate` — neither sprint-state ordinal nor STATE.md current_step yields a wave_id;
+  emitted by `lib/parse-sprint-state.sh` `derive_wave_id()`
+- `UnexpectedEpicStatus` — epic_status present on a non-final wave; emitted by the downstream WASM
+  gate (S-18.02), NOT by this skill
+- `MissingEpicStatus` — epic_status absent on an EPIC-COMPLETE wave; emitted by the downstream WASM
+  gate (S-18.02), NOT by this skill
 
 ## Forbidden Dependencies
 
