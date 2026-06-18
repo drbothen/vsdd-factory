@@ -97,18 +97,29 @@ setup() {
   echo "# ADR-026" > "$ARTIFACTS_WT/specs/architecture/decisions/ADR-026-wave-boundary-checkpoint-reset-and-lossless-intra-wave-compaction.md"
   echo "# ADR-025" > "$ARTIFACTS_WT/specs/architecture/decisions/ADR-025-single-writer-factory-locklease-prevent-concurrent-session-races-on-factory-artifacts-orphan-branch.md"
 
-  # Create STORY-INDEX.md in PRODUCTION 9-column format.
-  # Production header: | Story ID | Title | Epic | Points | Priority | Depends-On | Blocks | Status | BCs |
-  # Depends-On column uses bracketed lists: [] for no deps, [S-X.Y] for single dep,
-  # [S-X.Y, S-X.Z] for multi-dep (diamond case).
+  # Create STORY-INDEX.md in MULTI-TABLE production shape (F-P5-001/F-P5-002 regression fixture).
   #
-  # Fixture stories:
+  # The REAL production STORY-INDEX.md (23+ epic tables) has heterogeneous headers:
+  #   - Early epic tables (E-0, E-1, E-2 …) use SPACED "Depends On" (7-column format, no Blocks/BCs)
+  #   - E-18+ tables use HYPHENATED "Depends-On" (9-column format, with Blocks and BCs)
+  #
+  # The production bug (F-P5-001): the parser's `grep -m1 '| Story ID'` picks the FIRST
+  # matching table header — the E-0 table at the top, which uses "Depends On" (space).
+  # The parser then scans that header for "Depends-On" (hyphen) and finds nothing →
+  # depends_on_col stays 0 → the dep-loading guard `[ "$depends_on_col" -gt 0 ]` is false
+  # → all story deps are empty → Kahn's algorithm degrades to sprint-state file-order.
+  #
+  # This fixture mirrors that production shape:
+  #   LEADING TABLE: E-0 style — "Depends On" (SPACE, 7 columns), unrelated S-0.* stories
+  #   LATER TABLE:   E-18       — "Depends-On" (HYPHEN, 9 columns), the S-18.* in-wave stories
+  #
+  # The correct implementation must find the table that CONTAINS the in-wave story IDs
+  # (S-18.*), not the first "| Story ID" match.  It must also tolerate both header variants.
+  #
+  # Fixture stories in E-18 table:
   #   S-18.02 — no dependencies (root of DAG)
   #   S-18.03 — depends on [S-18.02] (single dep)
   #   S-18.04a — depends on [S-18.02, S-18.03] (multi-dep diamond; exercises column-6 multi-dep parsing)
-  #
-  # The STORY-INDEX parser must read column 6 (Depends-On) from this production format,
-  # not a bespoke "depends_on" column. Fixture mismatch here is the root cause of F-P4-001.
   cat > "$ARTIFACTS_WT/stories/STORY-INDEX.md" << 'EOF'
 ---
 document_type: story-index
@@ -119,7 +130,14 @@ status: current
 
 # STORY-INDEX
 
-## Epic E-18 — Wave Handoff (fixture)
+## Epic E-0 — Infrastructure Prep (leading table; spaced Depends On; 7 columns)
+
+| Story ID | Title | Epic | Points | Priority | Depends On | Status |
+|----------|-------|------|--------|----------|------------|--------|
+| S-0.01 | bump-version.sh prerelease support | E-0 | 2 | P0 | -- | merged |
+| S-0.02 | Release workflow prerelease handling | E-0 | 2 | P0 | S-0.01 | merged |
+
+## Epic E-18 — Wave Handoff (hyphenated Depends-On; 9 columns)
 
 | Story ID | Title | Epic | Points | Priority | Depends-On | Blocks | Status | BCs |
 |----------|-------|------|--------|----------|-----------|--------|--------|-----|
@@ -2374,6 +2392,223 @@ EOF
     echo "Actual output: $output" >&2
     false
   }
+}
+
+# ---------------------------------------------------------------------------
+# test_BC_5_41_002_F_P5_001_multi_table_story_index_correct_table_selected
+# F-P5-001 / BC-5.41.002 PC3 / VP-087
+# STORY-INDEX.md contains MULTIPLE "| Story ID" tables with DIFFERENT header formats:
+#   TABLE 1 (E-0): "Depends On" (SPACE, 7 columns) — unrelated S-0.* stories
+#   TABLE 2 (E-18): "Depends-On" (HYPHEN, 9 columns) — the in-wave S-18.* stories
+#
+# The parser MUST find the table that contains the in-wave story IDs, NOT the
+# first "| Story ID" match (which is the unrelated E-0 table).
+#
+# ROOT CAUSE of production bug: `grep -m1 '| Story ID' STORY-INDEX.md` returns the
+# E-0 table header. The parser then scans that header for "Depends-On" (hyphen) and
+# finds nothing (E-0 uses "Depends On" space) → depends_on_col=0 → dep-loading guard
+# `[ "$depends_on_col" -gt 0 ]` is false → all deps empty → Kahn's algorithm degrades
+# to sprint-state file-order.
+#
+# This test asserts the correct behaviour:
+#   - sprint-state.yaml lists S-18.03 FIRST (reverse dependency order)
+#   - STORY-INDEX.md E-18 table: S-18.02 has Depends-On: [] (root); S-18.03 has [S-18.02]
+#   - Correct topo order: S-18.02 first, then S-18.03
+#   - COMMITTED wave-state.yaml must have S-18.02 first (F-P5-001 closure)
+#
+# RED against dafafa67:
+#   grep -m1 picks the E-0 spaced-header → Depends-On not found → file-order preserved
+#   → S-18.03 appears first in committed blob → assertion `first_id = S-18.02` FAILS.
+#
+# Assert via COMMITTED blob (git show factory-artifacts:wave-state.yaml).
+# ---------------------------------------------------------------------------
+
+@test "test_BC_5_41_002_F_P5_001_multi_table_story_index_correct_table_selected" {
+  # Sprint-state in REVERSE dependency order: S-18.03 first, S-18.02 second.
+  # The E-18 table declares S-18.03 depends on S-18.02 → correct topo order is S-18.02 first.
+  # The current impl picks the E-0 spaced-header table → deps all empty → file-order preserved
+  # → S-18.03 appears first in committed blob → this test REDs.
+  cat > "$WORK/sprint-state.yaml" << 'EOF'
+stories:
+  - id: S-18.03
+    status: draft
+  - id: S-18.02
+    status: pending
+EOF
+
+  _run_skill
+
+  [ "$status" -eq 0 ] || {
+    echo "FAIL (F-P5-001): skill exited ${status}, expected 0. Output: $output" >&2
+    false
+  }
+
+  # Assert via COMMITTED blob (VP-087 proof harness — not working-tree file)
+  git -C "$WORK" show factory-artifacts:wave-state.yaml >/dev/null 2>&1 || {
+    echo "FAIL (F-P5-001): wave-state.yaml not in committed factory-artifacts tree" >&2
+    false
+  }
+
+  local committed_content
+  committed_content="$(git -C "$WORK" show factory-artifacts:wave-state.yaml)"
+
+  # Extract story IDs in the order they appear in the committed blob
+  local ordered_ids
+  ordered_ids="$(echo "$committed_content" | grep -E '^\s+-\s+id:\s+S-' | awk '{print $NF}')"
+
+  local first_id second_id
+  first_id="$(echo "$ordered_ids" | sed -n '1p')"
+  second_id="$(echo "$ordered_ids" | sed -n '2p')"
+
+  # S-18.02 must appear FIRST — it is the root node (Depends-On: [] in E-18 table).
+  # The parser must locate the E-18 table (the table that contains S-18.* rows),
+  # NOT the first "| Story ID" match (E-0 spaced-header table).
+  [ "$first_id" = "S-18.02" ] || {
+    echo "FAIL (F-P5-001): multi-table topo-sort failed — wrong table selected." >&2
+    echo "  Expected first story: S-18.02 (Depends-On: [] in E-18 hyphen-header table)" >&2
+    echo "  Got first story:      '${first_id}'" >&2
+    echo "" >&2
+    echo "  STORY-INDEX.md fixture has TWO 'Story ID' tables:" >&2
+    echo "    TABLE 1 (E-0): '| Story ID | ... | Depends On | Status |'  (SPACE, 7-col, unrelated S-0.* rows)" >&2
+    echo "    TABLE 2 (E-18): '| Story ID | ... | Depends-On | Blocks | Status | BCs |' (HYPHEN, 9-col, S-18.*)" >&2
+    echo "" >&2
+    echo "  ROOT CAUSE (F-P5-001): parser uses 'grep -m1 | Story ID' → picks E-0 spaced-header." >&2
+    echo "  The E-0 header has 'Depends On' (space), not 'Depends-On' (hyphen)." >&2
+    echo "  Parser scans E-0 header for 'Depends-On' → not found → depends_on_col=0." >&2
+    echo "  Dep-loading guard '[ depends_on_col -gt 0 ]' is false → all deps empty." >&2
+    echo "  Kahn's algorithm degrades to sprint-state file-order → S-18.03 appears first." >&2
+    echo "" >&2
+    echo "  The correct implementation must find the table containing the in-wave S-18.* story IDs" >&2
+    echo "  (the E-18 hyphen-header table), not the first '| Story ID' match." >&2
+    echo "" >&2
+    echo "  Committed wave-state.yaml stories section:" >&2
+    echo "$committed_content" | grep -A 10 "^stories:" >&2
+    echo "" >&2
+    echo "  sprint-state.yaml order: S-18.03 first, S-18.02 second (REVERSE of correct topo order)" >&2
+    false
+  }
+
+  [ "$second_id" = "S-18.03" ] || {
+    echo "FAIL (F-P5-001): expected second story to be S-18.03, got '${second_id}'" >&2
+    echo "  Committed wave-state.yaml stories section:" >&2
+    echo "$committed_content" | grep -A 10 "^stories:" >&2
+    false
+  }
+}
+
+# ---------------------------------------------------------------------------
+# test_BC_5_41_002_F_P5_002_multi_table_header_variant_hyphen_tolerated
+# F-P5-002 / BC-5.41.002 PC3 / VP-087
+# STORY-INDEX.md has a LEADING spaced-header table (E-0: "Depends On") BEFORE the
+# E-18 hyphenated-header table ("Depends-On").  The topo-sort must correctly parse
+# the multi-dep diamond (S-18.04a depends on BOTH S-18.02 and S-18.03) using the
+# E-18 table's hyphen-header "Depends-On" column.
+#
+# This test extends F-P5-001 to the diamond case to ensure the header-variant
+# tolerance is not a single-dep fluke.  It also confirms that stories from the
+# LEADING E-0 table (S-0.01, S-0.02) do NOT appear in wave-state.yaml — they are
+# not in the sprint-state and the anti-fabrication guard must not be tripped by
+# the fixture E-0 rows being in the same STORY-INDEX.md file.
+#
+# sprint-state: S-18.04a, S-18.03, S-18.02 (fully reversed — diamond apex first)
+# E-18 table deps: S-18.02 → []; S-18.03 → [S-18.02]; S-18.04a → [S-18.02, S-18.03]
+# Correct topo order: S-18.02, S-18.03, S-18.04a
+#
+# RED against dafafa67:
+#   grep -m1 picks the E-0 spaced-header → depends_on_col=0 → file-order preserved
+#   → S-18.04a appears first in committed blob → assertion `first_id = S-18.02` FAILS.
+#
+# Assert via COMMITTED blob (git show factory-artifacts:wave-state.yaml).
+# ---------------------------------------------------------------------------
+
+@test "test_BC_5_41_002_F_P5_002_multi_table_header_variant_hyphen_tolerated" {
+  # Sprint-state in FULLY REVERSED dependency order: S-18.04a first (diamond apex),
+  # S-18.03 second (depends on root), S-18.02 last (root — should be first in topo order).
+  cat > "$WORK/sprint-state.yaml" << 'EOF'
+stories:
+  - id: S-18.04a
+    status: draft
+  - id: S-18.03
+    status: draft
+  - id: S-18.02
+    status: pending
+EOF
+
+  _run_skill
+
+  [ "$status" -eq 0 ] || {
+    echo "FAIL (F-P5-002): skill exited ${status}, expected 0. Output: $output" >&2
+    false
+  }
+
+  # Assert via COMMITTED blob (VP-087 proof harness)
+  git -C "$WORK" show factory-artifacts:wave-state.yaml >/dev/null 2>&1 || {
+    echo "FAIL (F-P5-002): wave-state.yaml not in committed factory-artifacts tree" >&2
+    false
+  }
+
+  local committed_content
+  committed_content="$(git -C "$WORK" show factory-artifacts:wave-state.yaml)"
+
+  # Extract story IDs in the order they appear in the committed blob
+  local ordered_ids
+  ordered_ids="$(echo "$committed_content" | grep -E '^\s+-\s+id:\s+S-' | awk '{print $NF}')"
+
+  local first_id second_id third_id
+  first_id="$(echo "$ordered_ids" | sed -n '1p')"
+  second_id="$(echo "$ordered_ids" | sed -n '2p')"
+  third_id="$(echo "$ordered_ids" | sed -n '3p')"
+
+  # S-18.02 must be first (root; Depends-On: [] in E-18 hyphen-header table)
+  [ "$first_id" = "S-18.02" ] || {
+    echo "FAIL (F-P5-002): multi-table diamond topo-sort failed — wrong table / header variant." >&2
+    echo "  Expected first story: S-18.02 (Depends-On: [] — root node in E-18 hyphen table)" >&2
+    echo "  Got first story:      '${first_id}'" >&2
+    echo "" >&2
+    echo "  STORY-INDEX.md fixture has TWO 'Story ID' tables:" >&2
+    echo "    TABLE 1 (E-0): '| Story ID | ... | Depends On | Status |'  (SPACE, 7-col)" >&2
+    echo "    TABLE 2 (E-18): '| Story ID | ... | Depends-On | Blocks | Status | BCs |' (HYPHEN, 9-col)" >&2
+    echo "" >&2
+    echo "  E-18 table deps (Depends-On column, hyphenated header):" >&2
+    echo "    S-18.02  Depends-On: []                 (level 0 — root)" >&2
+    echo "    S-18.03  Depends-On: [S-18.02]           (level 1)" >&2
+    echo "    S-18.04a Depends-On: [S-18.02, S-18.03]  (level 2 — diamond apex)" >&2
+    echo "  sprint-state order: S-18.04a, S-18.03, S-18.02 (fully reversed)" >&2
+    echo "  Correct topo order: S-18.02, S-18.03, S-18.04a" >&2
+    echo "" >&2
+    echo "  ROOT CAUSE (F-P5-002): parser uses 'grep -m1 | Story ID' → picks E-0 spaced-header." >&2
+    echo "  E-0 header has 'Depends On' (space) → 'Depends-On' (hyphen) not found → depends_on_col=0." >&2
+    echo "  Dep-loading skipped → all deps empty → file-order preserved → S-18.04a appears first." >&2
+    echo "" >&2
+    echo "  Committed wave-state.yaml stories section:" >&2
+    echo "$committed_content" | grep -A 15 "^stories:" >&2
+    false
+  }
+
+  # S-18.03 must be second (depends on S-18.02 only)
+  [ "$second_id" = "S-18.03" ] || {
+    echo "FAIL (F-P5-002): expected second story S-18.03, got '${second_id}'" >&2
+    echo "  Committed stories order: ${ordered_ids}" >&2
+    false
+  }
+
+  # S-18.04a must be third (depends on both S-18.02 and S-18.03 — diamond apex)
+  [ "$third_id" = "S-18.04a" ] || {
+    echo "FAIL (F-P5-002): expected third story S-18.04a (diamond apex), got '${third_id}'" >&2
+    echo "  Committed stories order: ${ordered_ids}" >&2
+    false
+  }
+
+  # Anti-contamination: the committed blob must NOT contain E-0 stories (S-0.01, S-0.02)
+  # They appear in the leading E-0 table in STORY-INDEX.md but are NOT in sprint-state.
+  # If the anti-fabrication guard is confused by the leading table rows, it might allow them.
+  echo "$committed_content" | grep -qE 'id:\s+S-0\.' && {
+    echo "FAIL (F-P5-002): committed wave-state.yaml contains E-0 stories (S-0.*)" >&2
+    echo "  E-0 stories (S-0.01, S-0.02) are in the leading STORY-INDEX.md table but NOT" >&2
+    echo "  in sprint-state.yaml. The committed blob must only contain sprint-state stories." >&2
+    false
+  }
+  true
 }
 
 # ---------------------------------------------------------------------------
