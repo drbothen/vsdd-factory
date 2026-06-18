@@ -141,7 +141,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | caf06c68 | rc.21 bot binary bundle commit 2026-06-13; prior: 2a191314 (rc.20) |
 | develop | b025d31d | S-18.00 PR #191 SQUASH-MERGED 2026-06-18; prior: c000b06f (PR #189 compute-input-hash fix 2026-06-16) |
-| factory-artifacts | [D-638-SHA] | D-638 POST-MERGE burst HEAD (prior: dbab876c D-637 burst HEAD) |
+| factory-artifacts | 9f8398f7 | D-638 POST-MERGE burst HEAD (prior: dbab876c D-637 burst HEAD) |
 | v1.0.0-rc.21 (tag) | 03054524 | SHIPPED 2026-06-13; FULLY IN OPERATOR MARKETPLACE (marketplace PR #13 MERGED); annotated tag object |
 | v1.0.0-rc.20 (tag) | e9e38286 | SHIPPED 2026-06-01; marketplace PR #12 squash-merged 862e660d |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28 |
@@ -396,7 +396,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 - **capabilities.md v1.7:** `domain-spec/capabilities.md` (UNCHANGED at D-597)
 - **ADR-025 v1.6 SHIPPED:** guard at `3b2a378c`; ARCH-INDEX v2.27
 - **S-17.04 story:** `.factory/stories/S-17.04-mid-burst-heartbeat-renewal-wiring.md` v1.7 MERGED; E-17 W4 COMPLETE; PR #184 3b2a378c
-- **Verify on resume:** `git rev-parse --short origin/develop` → expect `b025d31d`; `git rev-parse --short origin/main` → expect `caf06c68`; `git -C .factory log -1 --format='%h'` → expect D-638 burst SHA (or later)
+- **Verify on resume:** `git rev-parse --short origin/develop` → expect `b025d31d`; `git rev-parse --short origin/main` → expect `caf06c68`; `git -C .factory log -1 --format='%h'` → expect `9f8398f7` (D-638 burst) or later
 
 ### §10. PR Status
 
