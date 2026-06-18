@@ -3823,3 +3823,136 @@ EOF
     false
   }
 }
+
+# ---------------------------------------------------------------------------
+# test_BC_5_41_001_F_P11_001_bsd_portability_no_pcre_classes_in_grep_sed
+# F-P11-001 / TD-VSDD-060 sibling-sweep
+# Portability guard: ALL shell scripts under skills/wave-handoff/ MUST NOT use
+# BSD-incompatible PCRE shorthand classes (\s, \S, \d, \D, \w, \W, \b) inside
+# grep or sed patterns, and MUST NOT use grep -P / --perl-regexp.
+#
+# These tokens behave as literal characters under BSD grep (macOS /usr/bin/grep),
+# causing silent misclassification — e.g., `  - id: S-18.02` never matches
+# `^\s+-\s+id:\s+\S+` on macOS, so classify_stories returns epic-complete instead
+# of has-next-wave (SOUL.md §4 silent failure).
+#
+# Red Gate: parse-sprint-state.sh currently has 4 offending grep -qE patterns
+# with \s/\S — this test FAILS now. It PASSES after the sibling-sweep fix.
+#
+# Platform-independent static scan: detects the source-code defect regardless of
+# the OS running CI (Linux or macOS). Closes the recurrence class, not just the
+# named instances.
+# ---------------------------------------------------------------------------
+
+@test "test_BC_5_41_001_F_P11_001_bsd_portability_no_pcre_classes_in_grep_sed" {
+  local wave_handoff_skill_dir
+  wave_handoff_skill_dir="$(cd "${BATS_TEST_DIRNAME}/../skills/wave-handoff" && pwd)"
+
+  # Collect all .sh files under wave-handoff (main + lib/)
+  local sh_files=()
+  while IFS= read -r f; do
+    sh_files+=("$f")
+  done < <(find "$wave_handoff_skill_dir" -name "*.sh" -type f | sort)
+
+  local violations=()
+
+  for f in "${sh_files[@]}"; do
+    local rel="${f#${wave_handoff_skill_dir}/}"
+
+    # Scan for PCRE shorthand classes inside grep or sed argument strings.
+    # Strategy: look for the literal backslash-letter sequences that are
+    # BSD-incompatible when used as regex operators.
+    # We search for: \s \S \d \D \w \W \b (as regex tokens, not escaped shell vars)
+    # Patterns: the backslash appears literally in the grep/sed argument.
+    #
+    # Use grep -n to get line numbers for diagnostic output.
+    local hits
+    hits="$(grep -nE "(grep|sed).*(['\"])[^'\"]*\\\\[sSdDwWb][^'\"]*\2" "$f" 2>/dev/null || true)"
+    if [ -n "$hits" ]; then
+      while IFS= read -r hit; do
+        violations+=("${rel}: ${hit}")
+      done <<< "$hits"
+    fi
+
+    # Also detect grep -P or grep --perl-regexp (GNU-only)
+    local phits
+    phits="$(grep -nE "grep[[:space:]]+(-[a-zA-Z]*P|--perl-regexp)" "$f" 2>/dev/null || true)"
+    if [ -n "$phits" ]; then
+      while IFS= read -r hit; do
+        violations+=("${rel}: ${hit}")
+      done <<< "$phits"
+    fi
+  done
+
+  if [ "${#violations[@]}" -gt 0 ]; then
+    echo "FAIL (F-P11-001): BSD-incompatible PCRE shorthand classes found in wave-handoff scripts." >&2
+    echo "Replace \\s → [[:space:]], \\S → [^[:space:]], \\d → [[:digit:]], \\w → [[:alnum:]_]," >&2
+    echo "and remove grep -P / --perl-regexp. Use grep -E (ERE) with POSIX bracket classes." >&2
+    echo "Violations:" >&2
+    local v
+    for v in "${violations[@]}"; do
+      echo "  ${v}" >&2
+    done
+    false
+  fi
+}
+
+# ---------------------------------------------------------------------------
+# test_BC_5_41_001_F_P11_001_bsd_classify_stories_has_next_wave
+# F-P11-001 behavioral regression
+# When sprint-state.yaml contains a story with status: pending (has-next-wave),
+# classify_stories() MUST set CLASSIFY_RESULT=has-next-wave, NOT epic-complete.
+#
+# Red Gate: on BSD grep, \s/\S in parse-sprint-state.sh never match the story
+# lines → has_any_story stays 0 → CLASSIFY_RESULT=epic-complete (wrong).
+# On GNU grep (Linux CI), this test passes even before the fix because \s works.
+# The portability-guard test above catches the static defect on any platform.
+# This test catches the behavioral regression on macOS.
+#
+# Assert by running the full skill with a has-next-wave sprint-state and verifying
+# wave-state.yaml IS written (EPIC-COMPLETE must NOT be triggered).
+# ---------------------------------------------------------------------------
+
+@test "test_BC_5_41_001_F_P11_001_bsd_classify_stories_has_next_wave" {
+  # Default fixture has S-18.02 (pending) + S-18.03 (draft) → has-next-wave
+  _write_sprint_state_pending
+
+  _run_skill
+
+  # Skill must exit 0
+  [ "$status" -eq 0 ] || {
+    echo "FAIL (F-P11-001 behavioral): skill exited ${status}, expected 0." >&2
+    echo "  With a has-next-wave sprint-state, the skill must not treat it as epic-complete." >&2
+    echo "  BSD grep \\s/\\S match literal 's'/'S' — story lines are never matched →" >&2
+    echo "  has_any_story=0 → classify_stories returns epic-complete SILENTLY." >&2
+    echo "Actual output: $output" >&2
+    false
+  }
+
+  # wave-state.yaml MUST be committed (not EPIC-COMPLETE)
+  git -C "$WORK" show factory-artifacts:wave-state.yaml >/dev/null 2>&1 || {
+    echo "FAIL (F-P11-001 behavioral): wave-state.yaml not committed." >&2
+    echo "  classify_stories returned epic-complete instead of has-next-wave." >&2
+    echo "  Check: parse-sprint-state.sh grep patterns use \\s/\\S which do not" >&2
+    echo "  match on BSD grep — 'has_any_story' stays 0 → epic-complete branch taken." >&2
+    echo "Skill output: $output" >&2
+    false
+  }
+
+  # stdout must NOT contain EPIC-COMPLETE
+  echo "$output" | grep -qi "EPIC-COMPLETE" && {
+    echo "FAIL (F-P11-001 behavioral): stdout contains EPIC-COMPLETE but sprint-state has pending stories." >&2
+    echo "  Expected: has-next-wave path (wave-state.yaml written, no EPIC-COMPLETE message)." >&2
+    echo "Actual output: $output" >&2
+    false
+  }
+
+  # wave-state.yaml committed blob must contain S-18.02 (pending story)
+  local committed_content
+  committed_content="$(git -C "$WORK" show factory-artifacts:wave-state.yaml)"
+  echo "$committed_content" | grep -q "S-18.02" || {
+    echo "FAIL (F-P11-001 behavioral): S-18.02 missing from committed wave-state.yaml." >&2
+    echo "  The pending story S-18.02 from sprint-state.yaml must appear in wave-state.yaml." >&2
+    false
+  }
+}
