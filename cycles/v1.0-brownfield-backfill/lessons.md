@@ -4607,3 +4607,69 @@ Run assertions as: `yq '.stories | length' output.yaml` → expected count; `yq 
 **Consequence if violated:** Future implementers add `lifecycle_status: active` filtering to `active_bcs` population, silently excluding draft/withdrawn BCs from HANDOFF.md. This makes HANDOFF.md `active_bcs` a lifecycle-filtered subset rather than the full corpus, which either: (a) causes anti-fabrication false negatives (partial list passes existence check but is semantically incomplete), or (b) causes anti-fabrication false positives (filtered path not found because only non-active BCs have that path). Either failure mode is silent.
 
 **Cites:** D-642; S-18.01 LOCAL adversary pass-10 observation O-P10-002; BC-5.41.001 PC2 v1.20→v1.21 `active_bcs` clarity note; product-owner disposition A.
+
+---
+
+## L-S18-sibling-sweep-must-cross-file-and-tool
+
+**Date:** 2026-06-18
+**Tags:** [process-gap] [codified]
+**Anchors:** D-643, S-18.01, F-P11-001 BLOCKER, TD-VSDD-060, feature/S-18.01 commits a25824b2/feea27d2
+
+**Lesson (codified):** When applying a regex character-class portability fix (e.g., `\s`→`[[:space:]]`), the TD-VSDD-060 sibling-sweep discipline MUST extend across ALL files AND ALL shell tools (awk, grep, sed, etc.) that share the defect class — not just the file where the defect was originally found. A portability fix that only touches one file/tool while leaving the same pattern in sibling files/tools is an incomplete fix. The O-P10-001 awk fix in write-handoff.sh was correct but was not swept to grep -E callsites in parse-sprint-state.sh, leaving 4 callsites with `\s`/`\S` that silently misclassified wave state on macOS.
+
+**Root cause (S-18.01 pass-11):** F-P11-001 BLOCKER: The pass-10 fix of `\s`→`[[:space:]]` in write-handoff.sh (awk context) was applied correctly but not swept to grep -E callsites in parse-sprint-state.sh. The resulting behavior on macOS BSD grep was a SOUL.md #4 silent-failure: has-next-wave stories were misclassified as EPIC-COMPLETE because the `\s` pattern matched a literal `s` character rather than whitespace.
+
+**Gate (codified):** For any portability-class fix (`\s`/`\S`, `\t`/`\n` in POSIX tools, `sed -E` vs `sed -r`, `date -d` vs `date -r`, `find -regex`, `tail -n+N`): (1) Run a repo-wide grep for ALL occurrences of the non-POSIX pattern across ALL `.sh` files. (2) Fix every occurrence in the SAME commit. (3) Add or update a portability-guard bats test asserting no remaining uses of the forbidden pattern in project shell files. (4) This sweep is a BLOCKER gate — incomplete portability fixes are themselves BLOCKERs for subsequent passes.
+
+**S-7.02 confirmation:** Process-gap lesson for the S-7.02 Cycle-Closing-Checklist. Cycle is NOT converging this burst (streak 0/3 after pass-11 reset); S-7.02 confirmation deferred to eventual convergence (≥3-CLEAN streak).
+
+**Disposition:** Fix applied: 4 POSIX replacements in parse-sprint-state.sh + portability-guard test + behavioral macOS-path test (feature/S-18.01 commits a25824b2 + feea27d2). Anchor: E-18 F4 S-18.01.
+
+**Consequence if violated:** Platform-specific silent misclassifications produce incorrect HANDOFF.md values (wrong wave state, incorrect EPIC-COMPLETE signaling) that pass all tests on Linux CI while corrupting wave state on macOS developer environments and macOS CI runners.
+
+**Cites:** D-643; S-18.01 LOCAL adversary pass-11 finding F-P11-001 BLOCKER; TD-VSDD-060 sibling-site sweep; feature/S-18.01 commits a25824b2 (BSD-portability grep fixes) + feea27d2 (portability-guard test + behavioral test).
+
+---
+
+## L-S18-bsd-gnu-portability-needs-ci-leg
+
+**Date:** 2026-06-18
+**Tags:** [process-gap] [codified]
+**Anchors:** D-643, S-18.01, F-P11-002 MEDIUM [process-gap], feature/S-18.01 commit c99b8a1f
+
+**Lesson (codified):** Shell skills that target BSD/macOS environments (via the factory-dispatcher on developer macOS machines or macOS CI runners) require a macOS CI leg to provide structural BSD-vs-GNU coverage. A Linux-only CI configuration is structurally incapable of surfacing BSD-vs-GNU divergences in grep `\s`, sed -E behavior, date -u formatting, find syntax, and tail -n+N. Without a macOS CI leg, BSD-incompatible patterns can pass all CI checks and ship to macOS environments where they silently fail.
+
+**Root cause (S-18.01 pass-11):** F-P11-002 MEDIUM [process-gap]: The wave-handoff.bats suite ran only on ubuntu-latest. The `\s`/`\S` BSD incompatibility in parse-sprint-state.sh that caused F-P11-001 would have been caught by a macOS bats run. The Linux-only CI configuration was not a deliberate decision — it was a process omission (the macOS runner was not added when the ubuntu runner was configured).
+
+**Gate (codified):** Any shell skill that: (1) runs on macOS developer environments, OR (2) is invoked by the factory-dispatcher which ships for darwin-arm64/darwin-x86_64, MUST have at minimum one macOS CI runner in its bats test job. The ubuntu and macos runners should be configured as a matrix. Platform-specific test failures are BLOCKER CI failures — the macOS job must be required in branch-protection status checks before merge.
+
+**S-7.02 confirmation:** Process-gap lesson for the S-7.02 Cycle-Closing-Checklist. Cycle is NOT converging this burst (streak 0/3 after pass-11 reset); S-7.02 confirmation deferred to eventual convergence (≥3-CLEAN streak).
+
+**Disposition:** Fix applied: blocking `bats-wave-handoff-macos` CI job added to ci.yml (feature/S-18.01 commit c99b8a1f). ADVISORY: branch-protection required-status-checks contexts may need updating before PR merge — flag for PR review. wave-handoff suite 46/46 green on both runners. Anchor: E-18 F4 S-18.01.
+
+**Consequence if violated:** BSD-incompatible shell patterns (grep `\s`, sed -E extensions, date -u, find -regex, tail -n+N) ship to production macOS environments undetected, producing silent behavior divergences that corrupt factory state (wave misclassification, incorrect HANDOFF.md fields, wrong git operations) only on macOS.
+
+**Cites:** D-643; S-18.01 LOCAL adversary pass-11 finding F-P11-002 MEDIUM; feature/S-18.01 commit c99b8a1f (macOS CI job); pre-existing TD entry: bats-full-suite not in branch-protection required-status-checks.
+
+---
+
+## L-S18-adr-worked-example-must-match-decision
+
+**Date:** 2026-06-18
+**Tags:** [codified]
+**Anchors:** D-643, ADR-027 v1.1, F-P11-003 MEDIUM
+
+**Lesson (codified):** An ADR's worked example, §Notes annotations, and §Consequences description MUST NOT contradict the ADR's own normative Decisions section. An ADR that describes a forbidden pattern in its examples — even as "illustration" — will mislead future implementers into adopting the exact pattern the Decision prohibits. The normative decision is the single source of truth; examples must faithfully demonstrate the normative pattern, not an alternative that happens to work in some contexts.
+
+**Root cause (S-18.01 pass-11):** F-P11-003 MEDIUM: ADR-027 Decision 1 normatively states that `${ARTIFACTS_WT}/.factory/...` double-nesting is FORBIDDEN. However, ADR-027 §Decision 3 contained a "Note" describing bats fixtures that placed files under `$ARTIFACTS_WT/.factory/...` for test isolation — precisely the double-nesting pattern Decision 1 prohibits. The §Consequences section also described this double-nesting approach. A fresh-context implementer writing bats tests for an E-18 shell skill would follow the §Decision 3 Note example and produce double-nested fixtures that trigger ADR-027 violations in production.
+
+**Gate (codified):** When reviewing or authoring an ADR: (1) Every example, Note annotation, and §Consequences description MUST be checked against the normative Decision clauses in the SAME ADR. (2) Any example showing a path, command, or data structure MUST be consistent with the Decision that governs it. (3) A "Note for testing" or "bats fixture example" that contradicts the normative Decision is a MEDIUM-class finding — it corrupts the ADR's informational function for implementers. (4) When fixing an ADR contradiction, update both the Note AND the §Consequences section in the SAME amendment.
+
+**S-7.02 confirmation:** Cycle is NOT converging this burst (streak 0/3 after pass-11 reset); S-7.02 confirmation deferred to eventual convergence (≥3-CLEAN streak).
+
+**Disposition:** Fix applied: ADR-027 v1.0→v1.1 — §Decision 3 Note corrected to no-nesting fixture layout; §Consequences updated (architect). ARCH-INDEX v2.56→v2.57 (state-manager POLICY 14 parity). Anchor: E-18 F4 S-18.01.
+
+**Consequence if violated:** Implementers follow ADR examples in good faith and implement the forbidden pattern, creating double-nested path bugs (`${ARTIFACTS_WT}/.factory/...`) that silently resolve to non-existent paths in production environments, causing silent-failure contract violations (SOUL.md #4) that only surface when the skill is run against a real factory-artifacts worktree.
+
+**Cites:** D-643; ADR-027 v1.0→v1.1 F-P11-003 MEDIUM; S-18.01 LOCAL adversary pass-11; ARCH-INDEX v2.56→v2.57.

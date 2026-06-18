@@ -2,7 +2,7 @@
 document_type: architecture-decision-record
 level: L3
 adr_id: ADR-027
-version: "1.0"
+version: "1.1"
 status: accepted
 producer: architect
 timestamp: 2026-06-18T00:00:00Z
@@ -21,7 +21,7 @@ superseded_by: null
 decision_status: accepted
 human_gate_required: false
 human_gate_reason: "Architectural wiring decision resolves a BLOCKER finding (F-S1801-P3-001) in the S-18.01 LOCAL adversary pass. All paths are verifiable against the live git worktree list. No open questions remain."
-last_amended: "2026-06-18 (v1.0) — initial authoring by architect resolving F-S1801-P3-001 BLOCKER."
+last_amended: "2026-06-18 (v1.1) — F-P11-003 correction: §Decision 3 Note and §Consequences corrected to describe the no-nesting fixture layout ($ARTIFACTS_WT/specs/... and --bc-dir $ARTIFACTS_WT/specs/behavioral-contracts), matching the committed wave-handoff.bats fixture. Prior v1.0 text incorrectly described the forbidden $ARTIFACTS_WT/.factory/... double-nesting in these two passages."
 ---
 
 # ADR-027: factory-artifacts worktree path discipline for shell skills and bats fixtures
@@ -120,7 +120,7 @@ Bats fixtures for E-18 skills MUST be restructured to NOT nest a `.factory/` sub
 
 **Rationale:** The prior fixture pattern (nesting `.factory/` inside `$ARTIFACTS_WT`) allowed `${ARTIFACTS_WT}/.factory/…` paths to resolve inside the fixture even though they would produce `.factory/.factory/…` in production. This masked the contradiction. The corrected fixture makes the test environment faithfully reflect the production layout.
 
-**Note on the S-18.01 worktree bats file (`wave-handoff.bats`):** The fixture in the S-18.01 development worktree already follows the corrected pattern — it uses `ARTIFACTS_WT=$WORK/factory-wt` and places fixture spec files directly under `$ARTIFACTS_WT/.factory/specs/…`. This fixture's nesting is deliberate for test isolation and is correct for the two-arg invocation model: the skill receives `--artifacts-worktree $ARTIFACTS_WT` and `--bc-dir $ARTIFACTS_WT/.factory/specs/behavioral-contracts`. The production equivalent is `--artifacts-worktree .factory` and `--bc-dir .factory/specs/behavioral-contracts`. Both resolve consistently because `BC_DIR` is passed explicitly — the skill does not derive it from `$ARTIFACTS_WT` with an additional `.factory/` prefix.
+**Note on the S-18.01 worktree bats file (`wave-handoff.bats`):** The fixture in the S-18.01 development worktree follows the corrected pattern — it uses `ARTIFACTS_WT=$WORK/factory-wt` and places fixture spec files directly under `$ARTIFACTS_WT/specs/…` (NO nested `.factory/` inside ARTIFACTS_WT). The `_run_skill` helper passes `--artifacts-worktree $ARTIFACTS_WT` and `--bc-dir $ARTIFACTS_WT/specs/behavioral-contracts`. The production equivalent is `--artifacts-worktree .factory` and `--bc-dir .factory/specs/behavioral-contracts`. Both resolve consistently because `BC_DIR` is passed explicitly — the skill does not derive it from `$ARTIFACTS_WT` with an additional `.factory/` prefix. Using `$ARTIFACTS_WT/.factory/…` paths in either the fixture or the skill would produce the forbidden double-nesting (`.factory/.factory/…` in production) and is prohibited by Decision 1.
 
 ### Decision 4 — S-18.04a (precompact-flush.sh) and S-18.05 (postcompact-reanchor.sh): same convention
 
@@ -154,7 +154,7 @@ S-18.05 has no path-discipline conflict because its only factory-artifacts inter
 
 ### Negative / Trade-offs
 
-- **Bats fixture refactor required for S-18.01.** If any existing test fixture places files under `$ARTIFACTS_WT/.factory/…`, it must be corrected to place them under `$ARTIFACTS_WT/…` directly. The S-18.01 development worktree fixture (`wave-handoff.bats`) uses the two-arg model and is already internally consistent (it passes `--bc-dir $ARTIFACTS_WT/.factory/specs/behavioral-contracts`, which within the fixture context is correct because the fixture creates that nesting). The implementer must ensure the skill interprets `--bc-dir` literally (does not prepend `$ARTIFACTS_WT/` to it again).
+- **Bats fixture layout is settled for S-18.01.** The committed `wave-handoff.bats` fixture places files directly at `$ARTIFACTS_WT/specs/…`, `$ARTIFACTS_WT/hooks/…`, and `$ARTIFACTS_WT/stories/…` — no nested `.factory/` subdirectory inside ARTIFACTS_WT. It passes `--bc-dir $ARTIFACTS_WT/specs/behavioral-contracts` explicitly. Any future fixture for E-18 sibling stories must follow the same no-nesting layout. If an existing fixture is ever found to place files under `$ARTIFACTS_WT/.factory/…`, that fixture contains the forbidden double-nesting and must be corrected. The implementer must ensure the skill interprets `--bc-dir` literally (does not prepend `$ARTIFACTS_WT/` to it again).
 
 ---
 
