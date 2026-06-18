@@ -1262,3 +1262,29 @@ All process-gap lessons codified during passes 6-16 (D-623..D-634) reconciled be
 - BC-5.39.001 3-CLEAN protocol: SATISFIED
 
 **3-CLEAN streak status:** 2/3 → **3/3 CONVERGED**. BC-5.39.001 convergence protocol satisfied. E-18 F3 STORY DECOMPOSITION CONVERGED. Forward path: STORY-APPROVAL HUMAN GATE → F4 TDD dispatch.
+
+---
+
+## D-636 — E-18 DEFERRAL-CLEANUP BURST (post-D-635-convergence, pre-F4, human-directed)
+
+**Date:** 2026-06-17
+**Phase:** E-18-deferral-cleanup
+**Decision:** E-18 DEFERRAL-CLEANUP BURST — human directed; both Cycle-Closing-Checklist deferred items closed before F4 TDD begins.
+**Parent-commit:** 41591548 (D-635 SHA-patch HEAD)
+
+| ID | Decision | Phase | Date |
+|----|----------|-------|------|
+| D-636 | E-18 DEFERRAL-CLEANUP BURST (post-D-635-convergence, pre-F4, human-directed): O-P12-1 CLOSED — S-18.09 v1.11→v1.12: AC-008 clause-separator set extended `tr '+' '\n'` → `tr '+;,' '\n'`; `;` and `,` now treated as independent segment separators alongside `+`; EC-010 added (`;`-joined broken-second-clause fixture proves gate REDs on mis-numbered `99`); hand-trace PASS (S-18.04a AC-009 both `6b` and `5` resolve correctly after split); STORY-INDEX v4.13→v4.14. ARCH-INDEX stale-cite CLOSED — O-P16-2/C-P12-001 resolved: ARCH-INDEX body "per BC-INDEX v3.06" corrected to "per BC-INDEX v3.07" (count 1,972 unchanged and correct); ARCH-INDEX v2.54→v2.55 (POLICY 14 5-leg parity + O-P10-1 changelog-array top row v2.55 appended). Both Cycle-Closing-Checklist deferred items now resolved. Note: this perturbs the post-D-635 frozen package at 2 perimeter artifacts (S-18.09 + ARCH-INDEX) → a single CONFIRMING fresh-context pass (orchestrator-dispatched adversary + consistency) will verify no regression before F4 TDD begins. Final 4-index: BC v3.07 / VP v2.38 / STORY v4.14 / ARCH v2.55. | E-18-deferral-cleanup | 2026-06-17 |
+
+**Appendix — D-636 Rationale**
+
+Both deferred observations from D-635 Cycle-Closing Checklist are closed in this single burst per human direction (Zious, 2026-06-17):
+
+**O-P12-1 / O-P13-1 / O-P14-1 / O-P15-1 / O-P16-1 CLOSED:**
+S-18.09 AC-008 clause-separator set extended from `+`-only to `+`, `;`, and `,`. The split command changed from `tr '+' '\n'` to `tr '+;,' '\n'`. This closes the latent false-GREEN where a cite like `postcondition 6b — push failure exit 2; postcondition 5 — push success exit 0` was treated as one segment; the `;`-separated second clause was never independently extracted and verified. EC-010 added: a `;`-joined compound cite with `postcondition 99` on the second clause proves the gate REDs (BC-7.07.001 has no `^99\.` line in §Postconditions). Story v1.11→v1.12. STORY-INDEX v4.13→v4.14.
+
+**O-P16-2 / C-P12-001 CLOSED:**
+ARCH-INDEX body §Subsystem Registry annotation corrected: "per BC-INDEX v3.06" → "per BC-INDEX v3.07". The count 1,972 was already correct; only the version cite was stale (BC-INDEX advanced to v3.07 at D-625 but the ARCH-INDEX body annotation was not swept at that time — TD-VSDD-060 sibling-sweep process gap). ARCH-INDEX v2.54→v2.55. O-P10-1 mechanical gate: frontmatter version v2.55 == changelog-array top row v2.55 VERIFIED.
+
+**Package perturbation note:**
+D-636 perturbs 2 perimeter artifacts (S-18.09 v1.12 + ARCH-INDEX v2.55) that were FROZEN throughout the D-633/D-634/D-635 streak. Per D-635 adjudicated-deferral rationale, these fixes were scope-safe: neither introduces new behavioral spec changes (S-18.09 extends a gate separator set from {+} to {+,;,,}; ARCH-INDEX corrects a non-normative version cite). A single CONFIRMING fresh-context pass (adversary + consistency-validator) will verify before F4 TDD dispatch. Record 3-CLEAN streak as "3/3 converged; D-636 cleanup re-confirm pending".
