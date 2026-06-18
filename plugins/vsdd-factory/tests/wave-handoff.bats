@@ -97,15 +97,92 @@ setup() {
   echo "# ADR-026" > "$ARTIFACTS_WT/specs/architecture/decisions/ADR-026-wave-boundary-checkpoint-reset-and-lossless-intra-wave-compaction.md"
   echo "# ADR-025" > "$ARTIFACTS_WT/specs/architecture/decisions/ADR-025-single-writer-factory-locklease-prevent-concurrent-session-races-on-factory-artifacts-orphan-branch.md"
 
-  # Create STORY-INDEX.md with S-18.02 and S-18.03 entries (F-S1801-P1-005)
-  # Default: S-18.02 depends_on nothing; S-18.03 depends_on S-18.02.
-  # Used by topo-sort tests — STORY-INDEX.md is the depends_on source per BC-5.41.002 PC3.
+  # Create STORY-INDEX.md in PRODUCTION 9-column format.
+  # Production header: | Story ID | Title | Epic | Points | Priority | Depends-On | Blocks | Status | BCs |
+  # Depends-On column uses bracketed lists: [] for no deps, [S-X.Y] for single dep,
+  # [S-X.Y, S-X.Z] for multi-dep (diamond case).
+  #
+  # Fixture stories:
+  #   S-18.02 — no dependencies (root of DAG)
+  #   S-18.03 — depends on [S-18.02] (single dep)
+  #   S-18.04a — depends on [S-18.02, S-18.03] (multi-dep diamond; exercises column-6 multi-dep parsing)
+  #
+  # The STORY-INDEX parser must read column 6 (Depends-On) from this production format,
+  # not a bespoke "depends_on" column. Fixture mismatch here is the root cause of F-P4-001.
   cat > "$ARTIFACTS_WT/stories/STORY-INDEX.md" << 'EOF'
+---
+document_type: story-index
+level: ops
+version: "1.0"
+status: current
+---
+
 # STORY-INDEX
-| ID | Title | depends_on | Status |
-|----|-------|------------|--------|
-| S-18.02 | Stub story 02 | | pending |
-| S-18.03 | Stub story 03 | S-18.02 | draft |
+
+## Epic E-18 — Wave Handoff (fixture)
+
+| Story ID | Title | Epic | Points | Priority | Depends-On | Blocks | Status | BCs |
+|----------|-------|------|--------|----------|-----------|--------|--------|-----|
+| S-18.02 | Validate wave handoff completeness | E-18 | 8 | P0 | [] | [S-18.03] | draft | [BC-4.14.001] |
+| S-18.03 | Rehydrate wave skill | E-18 | 8 | P1 | [S-18.02] | [S-18.04a] | draft | [BC-6.24.001] |
+| S-18.04a | Multi-dep diamond story | E-18 | 5 | P1 | [S-18.02, S-18.03] | [] | draft | [] |
+EOF
+
+  # Create production-shaped story files with slug suffix names and
+  # behavioral_contracts: frontmatter key (not bcs:), story_id: (not id:).
+  # These mirror the real .factory/stories/S-NN.NN-<slug>.md files.
+  # The wave-handoff skill must read behavioral_contracts: to populate spec_files:
+  # in wave-state.yaml. A fixture with bcs: or no frontmatter exercises the wrong path.
+  cat > "$ARTIFACTS_WT/stories/S-18.02-validate-wave-handoff-completeness-wasm.md" << 'EOF'
+---
+document_type: story
+level: implementation
+story_id: S-18.02
+epic_id: "E-18"
+version: "1.0"
+title: "Validate wave handoff completeness WASM gate"
+status: draft
+behavioral_contracts:
+  - BC-4.14.001
+verification_properties:
+  - VP-081
+  - VP-083
+---
+# S-18.02 fixture
+EOF
+
+  cat > "$ARTIFACTS_WT/stories/S-18.03-rehydrate-wave-skill.md" << 'EOF'
+---
+document_type: story
+level: implementation
+story_id: S-18.03
+epic_id: "E-18"
+version: "1.0"
+title: "Rehydrate wave skill"
+status: draft
+behavioral_contracts:
+  - BC-6.24.001
+verification_properties:
+  - VP-088
+---
+# S-18.03 fixture
+EOF
+
+  cat > "$ARTIFACTS_WT/stories/S-18.04a-multi-dep-diamond-story.md" << 'EOF'
+---
+document_type: story
+level: implementation
+story_id: S-18.04a
+epic_id: "E-18"
+version: "1.0"
+title: "Multi-dep diamond story"
+status: draft
+behavioral_contracts:
+  - BC-7.07.001
+verification_properties:
+  - VP-082
+---
+# S-18.04a fixture
 EOF
 
   # Write a default sprint-state.yaml (happy-path: pending + draft story)
@@ -1034,11 +1111,56 @@ _artifact_last_commit_files() {
   echo "# ADR-026" > "$ARTIFACTS_WT2/specs/architecture/decisions/ADR-026-wave-boundary-checkpoint-reset-and-lossless-intra-wave-compaction.md"
   echo "# ADR-025" > "$ARTIFACTS_WT2/specs/architecture/decisions/ADR-025-single-writer-factory-locklease-prevent-concurrent-session-races-on-factory-artifacts-orphan-branch.md"
   cat > "$ARTIFACTS_WT2/stories/STORY-INDEX.md" << 'EOF'
+---
+document_type: story-index
+level: ops
+version: "1.0"
+status: current
+---
+
 # STORY-INDEX
-| ID | Title | depends_on | Status |
-|----|-------|------------|--------|
-| S-18.02 | Stub story 02 | | pending |
-| S-18.03 | Stub story 03 | S-18.02 | draft |
+
+## Epic E-18 — Wave Handoff (fixture wave-1 null case)
+
+| Story ID | Title | Epic | Points | Priority | Depends-On | Blocks | Status | BCs |
+|----------|-------|------|--------|----------|-----------|--------|--------|-----|
+| S-18.02 | Validate wave handoff completeness | E-18 | 8 | P0 | [] | [S-18.03] | draft | [BC-4.14.001] |
+| S-18.03 | Rehydrate wave skill | E-18 | 8 | P1 | [S-18.02] | [] | draft | [BC-6.24.001] |
+EOF
+
+  # Production-shaped story files for WORK2 (wave-1 null case)
+  cat > "$ARTIFACTS_WT2/stories/S-18.02-validate-wave-handoff-completeness-wasm.md" << 'EOF'
+---
+document_type: story
+level: implementation
+story_id: S-18.02
+epic_id: "E-18"
+version: "1.0"
+title: "Validate wave handoff completeness WASM gate"
+status: draft
+behavioral_contracts:
+  - BC-4.14.001
+verification_properties:
+  - VP-081
+---
+# S-18.02 fixture wave-1
+EOF
+
+  cat > "$ARTIFACTS_WT2/stories/S-18.03-rehydrate-wave-skill.md" << 'EOF'
+---
+document_type: story
+level: implementation
+story_id: S-18.03
+epic_id: "E-18"
+version: "1.0"
+title: "Rehydrate wave skill"
+status: draft
+behavioral_contracts:
+  - BC-6.24.001
+verification_properties:
+  - VP-088
+---
+# S-18.03 fixture wave-1
 EOF
 
   local sprint2="$WORK2/sprint-state.yaml"
@@ -1722,7 +1844,17 @@ EOF
 
 @test "test_BC_5_41_002_F_P3_002_stories_topological_order_in_committed_blob" {
   # Write sprint-state.yaml in REVERSE dependency order (S-18.03 first, S-18.02 second).
-  # STORY-INDEX.md (set up in setup()) declares S-18.03 depends_on S-18.02.
+  # STORY-INDEX.md (set up in setup()) declares — in 9-column production format:
+  #   S-18.02  Depends-On: []        (root node)
+  #   S-18.03  Depends-On: [S-18.02] (depends on root)
+  #
+  # The Depends-On column is column 6 in the production 9-column header:
+  #   | Story ID | Title | Epic | Points | Priority | Depends-On | Blocks | Status | BCs |
+  #
+  # The current impl (91a6d6a4) reads the synthetic depends_on column (column 3 of the
+  # old 4-column fixture), which no longer exists in the production format. Reading
+  # the wrong column yields empty deps for all stories → topo-sort degrades to file order.
+  # With sprint-state.yaml listing S-18.03 first, the committed blob emits S-18.03 first.
   cat > "$WORK/sprint-state.yaml" << 'EOF'
 stories:
   - id: S-18.03
@@ -1752,22 +1884,27 @@ EOF
   local ordered_ids
   ordered_ids="$(echo "$committed_content" | grep -E '^\s+-\s+id:\s+S-' | awk '{print $NF}')"
 
-  # Correct topo order: S-18.02 (no deps) must appear BEFORE S-18.03 (depends_on S-18.02)
+  # Correct topo order: S-18.02 (no deps per Depends-On column [] in production STORY-INDEX)
+  # must appear BEFORE S-18.03 (Depends-On: [S-18.02] in production STORY-INDEX).
   local first_id second_id
   first_id="$(echo "$ordered_ids" | sed -n '1p')"
   second_id="$(echo "$ordered_ids" | sed -n '2p')"
 
   [ "$first_id" = "S-18.02" ] || {
-    echo "FAIL (F-S1801-P3-002): topological sort failed." >&2
-    echo "  Expected first story: S-18.02 (no dependencies)" >&2
+    echo "FAIL (F-S1801-P3-002 / F-P4-001): topological sort failed." >&2
+    echo "  Expected first story: S-18.02 (Depends-On: [] in production 9-col STORY-INDEX)" >&2
     echo "  Got first story:      '${first_id}'" >&2
     echo "" >&2
-    echo "  STORY-INDEX.md declares: S-18.03 depends_on S-18.02" >&2
+    echo "  Production STORY-INDEX.md (9-col format, column 6 = Depends-On):" >&2
+    echo "    S-18.02  Depends-On: []         (root — no deps)" >&2
+    echo "    S-18.03  Depends-On: [S-18.02]  (depends on S-18.02)" >&2
     echo "  sprint-state.yaml order: S-18.03 first, S-18.02 second (REVERSE of correct order)" >&2
     echo "  BC-5.41.002 PC3 requires stories be ordered by dependency graph, not file order." >&2
     echo "" >&2
-    echo "  Current impl (91a6d6a4) uses sprint-state.yaml file order directly → S-18.03 first." >&2
-    echo "  This REDs the topological sort requirement." >&2
+    echo "  ROOT CAUSE (F-P4-001): current impl reads the old synthetic 4-col STORY-INDEX" >&2
+    echo "  depends_on column (col 3) which no longer exists in the production 9-col format." >&2
+    echo "  Reading wrong column yields empty deps → topo-sort degrades to sprint-state file order." >&2
+    echo "  This REDs the topological sort requirement on production-shaped fixtures." >&2
     echo "" >&2
     echo "  Committed wave-state.yaml stories section:" >&2
     echo "$committed_content" | grep -A 10 "^stories:" >&2
@@ -1775,9 +1912,381 @@ EOF
   }
 
   [ "$second_id" = "S-18.03" ] || {
-    echo "FAIL (F-S1801-P3-002): expected second story to be S-18.03, got '${second_id}'" >&2
+    echo "FAIL (F-S1801-P3-002 / F-P4-001): expected second story to be S-18.03, got '${second_id}'" >&2
     echo "  Committed wave-state.yaml stories section:" >&2
     echo "$committed_content" | grep -A 10 "^stories:" >&2
+    false
+  }
+}
+
+# ---------------------------------------------------------------------------
+# test_BC_5_41_002_F_P4_001_topo_sort_multi_dep_and_populated_spec_files
+# F-P4-001 (topo-sort) + F-P4-001 (spec_files) / BC-5.41.002 PC3 + PC2
+#
+# Part A — Multi-dep diamond topo-sort:
+#   sprint-state lists S-18.04a first, S-18.03 second, S-18.02 third (all reversed).
+#   Production STORY-INDEX.md (9-col, column 6 Depends-On):
+#     S-18.02  Depends-On: []                → level 0 (root)
+#     S-18.03  Depends-On: [S-18.02]         → level 1
+#     S-18.04a Depends-On: [S-18.02, S-18.03] → level 2 (multi-dep diamond apex)
+#   Correct topo order: S-18.02, S-18.03, S-18.04a.
+#   Current impl reads column 3 (old synthetic format) → all Depends-On empty →
+#   sprint-state file order preserved → S-18.04a first → test REDs.
+#
+# Part B — spec_files POPULATED (not just key present):
+#   Each story entry in committed wave-state.yaml must have spec_files: with at least
+#   one entry derived from the story file's behavioral_contracts: frontmatter key.
+#   Story files named S-NN.NN-<slug>.md with story_id: and behavioral_contracts: are
+#   in the fixture. Current impl derives spec_files via bcs: key (wrong key) or via
+#   a glob that expects bare S-NN.NN.md filenames (wrong pattern) → yields empty list.
+#   BC-5.41.002 PC2 requires spec_files: to be a POPULATED list.
+# ---------------------------------------------------------------------------
+
+@test "test_BC_5_41_002_F_P4_001_topo_sort_multi_dep_and_populated_spec_files" {
+  # --- Part A: multi-dep diamond topo-sort ---
+  # sprint-state in fully reversed dependency order
+  cat > "$WORK/sprint-state.yaml" << 'EOF'
+stories:
+  - id: S-18.04a
+    status: draft
+  - id: S-18.03
+    status: draft
+  - id: S-18.02
+    status: pending
+EOF
+
+  _run_skill
+
+  [ "$status" -eq 0 ] || {
+    echo "FAIL (F-P4-001 Part A): skill exited ${status}, expected 0. Output: $output" >&2
+    false
+  }
+
+  # Read the COMMITTED blob
+  git -C "$WORK" show factory-artifacts:wave-state.yaml >/dev/null 2>&1 || {
+    echo "FAIL (F-P4-001 Part A): wave-state.yaml not in committed factory-artifacts tree" >&2
+    false
+  }
+
+  local committed_content
+  committed_content="$(git -C "$WORK" show factory-artifacts:wave-state.yaml)"
+
+  # Extract story IDs in committed order
+  local ordered_ids
+  ordered_ids="$(echo "$committed_content" | grep -E '^\s+-\s+id:\s+S-' | awk '{print $NF}')"
+
+  local first_id second_id third_id
+  first_id="$(echo "$ordered_ids" | sed -n '1p')"
+  second_id="$(echo "$ordered_ids" | sed -n '2p')"
+  third_id="$(echo "$ordered_ids" | sed -n '3p')"
+
+  # S-18.02 must be first (root; Depends-On: [] in production 9-col STORY-INDEX col 6)
+  [ "$first_id" = "S-18.02" ] || {
+    echo "FAIL (F-P4-001 topo-sort diamond): expected first=S-18.02 (root), got '${first_id}'" >&2
+    echo "" >&2
+    echo "  Production STORY-INDEX.md (9-col, Depends-On in column 6):" >&2
+    echo "    S-18.02  Depends-On: []                 (level 0 — root)" >&2
+    echo "    S-18.03  Depends-On: [S-18.02]           (level 1)" >&2
+    echo "    S-18.04a Depends-On: [S-18.02, S-18.03]  (level 2 — diamond apex)" >&2
+    echo "  sprint-state order: S-18.04a, S-18.03, S-18.02 (fully reversed)" >&2
+    echo "  Correct topo order: S-18.02, S-18.03, S-18.04a" >&2
+    echo "" >&2
+    echo "  ROOT CAUSE: impl reads old 4-col synthetic STORY-INDEX column 3 (depends_on)" >&2
+    echo "  which is now column 6 (Depends-On) in the production 9-col format." >&2
+    echo "  Wrong column → empty deps for all → file order preserved → S-18.04a appears first." >&2
+    echo "" >&2
+    echo "  Committed stories order: ${ordered_ids}" >&2
+    false
+  }
+
+  # S-18.03 must be second (depends on S-18.02 only)
+  [ "$second_id" = "S-18.03" ] || {
+    echo "FAIL (F-P4-001 topo-sort diamond): expected second=S-18.03, got '${second_id}'" >&2
+    echo "  Committed stories order: ${ordered_ids}" >&2
+    false
+  }
+
+  # S-18.04a must be third (depends on both S-18.02 and S-18.03)
+  [ "$third_id" = "S-18.04a" ] || {
+    echo "FAIL (F-P4-001 topo-sort diamond): expected third=S-18.04a, got '${third_id}'" >&2
+    echo "  Committed stories order: ${ordered_ids}" >&2
+    false
+  }
+
+  # --- Part B: spec_files POPULATED in committed blob ---
+  # Each story entry must have spec_files: with ≥1 entry derived from behavioral_contracts:
+  # in the story file (e.g., S-18.02-validate-wave-handoff-completeness-wasm.md has BC-4.14.001).
+  # The current impl either reads bcs: (wrong key) or globs S-NN.NN.md (wrong pattern)
+  # → spec_files: key present but empty list [] → this test REDs that path.
+  #
+  # Parse committed blob: for each story block (id: S-XX), assert spec_files: has ≥1 entry.
+  # A populated spec_files: looks like:
+  #   spec_files:
+  #     - specs/behavioral-contracts/ss-05/BC-5.41.001.md
+  # An empty spec_files: looks like:
+  #   spec_files: []
+  # or spec_files: with no indented list items before the next story key.
+
+  local missing_populated_spec_files=""
+  local current_id=""
+  local spec_files_populated=0
+  local in_spec_files=0
+
+  while IFS= read -r line; do
+    # Detect story id line
+    if echo "$line" | grep -qE '^\s+-\s+id:\s+S-'; then
+      # Close previous story block check
+      if [ -n "$current_id" ] && [ "$spec_files_populated" -eq 0 ]; then
+        missing_populated_spec_files="${missing_populated_spec_files} ${current_id}"
+      fi
+      current_id="$(echo "$line" | awk '{print $NF}')"
+      spec_files_populated=0
+      in_spec_files=0
+    elif echo "$line" | grep -qE '^\s+spec_files:'; then
+      in_spec_files=1
+      # Check if spec_files is on one line as empty list: "spec_files: []"
+      if echo "$line" | grep -qE 'spec_files:\s*\[\]'; then
+        spec_files_populated=0
+        in_spec_files=0
+      fi
+    elif [ "$in_spec_files" -eq 1 ]; then
+      if echo "$line" | grep -qE '^\s+-\s+'; then
+        # Found an entry under spec_files
+        spec_files_populated=1
+        in_spec_files=0
+      elif echo "$line" | grep -qE '^[[:space:]]+[a-z_]'; then
+        # Next key — left spec_files without finding entries
+        in_spec_files=0
+      fi
+    fi
+  done <<< "$committed_content"
+
+  # Check last story block
+  if [ -n "$current_id" ] && [ "$spec_files_populated" -eq 0 ]; then
+    missing_populated_spec_files="${missing_populated_spec_files} ${current_id}"
+  fi
+
+  [ -z "$missing_populated_spec_files" ] || {
+    echo "FAIL (F-P4-001 spec_files populated): stories missing POPULATED spec_files: in committed blob:" >&2
+    echo "  ${missing_populated_spec_files}" >&2
+    echo "" >&2
+    echo "  BC-5.41.002 PC2 requires spec_files: to be a POPULATED list derived from" >&2
+    echo "  the story file's behavioral_contracts: frontmatter key." >&2
+    echo "  Story files are named S-NN.NN-<slug>.md (production naming convention)" >&2
+    echo "  and contain: behavioral_contracts: [BC-X.XX.XXX, ...]" >&2
+    echo "" >&2
+    echo "  ROOT CAUSE (F-P4-001): impl reads bcs: key (wrong — production uses behavioral_contracts:)" >&2
+    echo "  OR globs for S-NN.NN.md (wrong pattern — production files are S-NN.NN-<slug>.md)." >&2
+    echo "  Either failure produces empty spec_files: [] in the committed blob." >&2
+    echo "" >&2
+    echo "  Committed wave-state.yaml stories section:" >&2
+    echo "$committed_content" | grep -A 20 "^stories:" >&2
+    false
+  }
+}
+
+# ---------------------------------------------------------------------------
+# test_BC_5_41_002_F_P4_002_generated_from_handoff_sha_is_rev_parse_head_not_grep
+# F-P4-002 / BC-5.41.002 PC2 / AC-014 v1.4
+# generated_from_handoff_sha must equal `git -C "$ARTIFACTS_WT" rev-parse HEAD`
+# captured IMMEDIATELY BEFORE the atomic commit (the prior HANDOFF commit SHA).
+# It must NOT be derived by `git log --grep HANDOFF` or similar heuristics that
+# walk back past an intervening non-HANDOFF commit.
+#
+# Setup: create a prior HANDOFF commit on factory-artifacts, then interleave a
+# NON-HANDOFF commit (e.g., "chore: add README") as the new HEAD before invoking
+# the skill. The non-HANDOFF commit HEAD is what `rev-parse HEAD` returns.
+#
+# Assertions:
+#   (A) generated_from_handoff_sha in COMMITTED blob equals the non-HANDOFF commit SHA
+#       (i.e., the actual factory-artifacts HEAD at invocation time).
+#   (B) generated_from_handoff_sha is NOT equal to the prior HANDOFF commit SHA
+#       (which `git log --grep HANDOFF` would return — wrong heuristic).
+#
+# REDs the current `git log --grep` heuristic which walks back past the
+# intervening non-HANDOFF commit to find the "last HANDOFF commit".
+# Per BC-5.41.002 PC2 / AC-014 v1.4: the value is `git rev-parse HEAD` of the
+# factory-artifacts branch captured immediately before the atomic commit.
+# ---------------------------------------------------------------------------
+
+@test "test_BC_5_41_002_F_P4_002_generated_from_handoff_sha_is_rev_parse_head_not_grep" {
+  # Step 1: create a prior HANDOFF commit on factory-artifacts
+  echo "prior_handoff: true" > "$ARTIFACTS_WT/HANDOFF.md"
+  git -C "$ARTIFACTS_WT" add HANDOFF.md
+  git -C "$ARTIFACTS_WT" -c user.email="test@example.com" -c user.name="Test" \
+    commit -q -m "HANDOFF wave-1 2026-06-01T00:00:00Z"
+  local prior_handoff_sha
+  prior_handoff_sha="$(git -C "$WORK" rev-parse factory-artifacts)"
+
+  # Remove working-tree HANDOFF.md so the skill writes a fresh one
+  rm -f "$ARTIFACTS_WT/HANDOFF.md"
+
+  # Step 2: INTERLEAVE a non-HANDOFF commit on factory-artifacts.
+  # This commit makes the factory-artifacts HEAD different from the last HANDOFF commit.
+  # git log --grep=HANDOFF would walk back past this to find the prior_handoff_sha.
+  # rev-parse HEAD would return THIS commit's SHA.
+  echo "readme: added" > "$ARTIFACTS_WT/README-fixture.md"
+  git -C "$ARTIFACTS_WT" add README-fixture.md
+  git -C "$ARTIFACTS_WT" -c user.email="test@example.com" -c user.name="Test" \
+    commit -q -m "chore: add README for fixture test"
+  local non_handoff_head_sha
+  non_handoff_head_sha="$(git -C "$WORK" rev-parse factory-artifacts)"
+
+  # Sanity: the two SHAs must differ (interleaving worked)
+  [ "$non_handoff_head_sha" != "$prior_handoff_sha" ] || {
+    echo "FAIL (fixture sanity): non-HANDOFF HEAD SHA equals prior HANDOFF SHA — interleaving failed" >&2
+    false
+  }
+
+  # Step 3: invoke the skill; factory-artifacts HEAD is non_handoff_head_sha
+  _run_skill
+
+  [ "$status" -eq 0 ] || {
+    echo "FAIL (F-P4-002): skill exited ${status}, expected 0. Output: $output" >&2
+    false
+  }
+
+  # Read the COMMITTED blob (VP-087 proof harness)
+  git -C "$WORK" show factory-artifacts:wave-state.yaml >/dev/null 2>&1 || {
+    echo "FAIL (F-P4-002): wave-state.yaml not in committed factory-artifacts tree" >&2
+    false
+  }
+
+  local committed_content
+  committed_content="$(git -C "$WORK" show factory-artifacts:wave-state.yaml)"
+
+  local gen_sha
+  gen_sha="$(echo "$committed_content" | grep "^generated_from_handoff_sha:" | awk '{print $2}')"
+
+  # Must be a 40-char hex SHA
+  echo "$gen_sha" | grep -qE '^[0-9a-f]{40}$' || {
+    echo "FAIL (F-P4-002): generated_from_handoff_sha '${gen_sha}' is not 40-char hex" >&2
+    false
+  }
+
+  # (A) Must equal the non-HANDOFF commit HEAD SHA (rev-parse HEAD at invocation time)
+  # This is the CORRECT value per BC-5.41.002 PC2 / AC-014 v1.4.
+  [ "$gen_sha" = "$non_handoff_head_sha" ] || {
+    echo "FAIL (F-P4-002 assertion A): generated_from_handoff_sha in committed blob:" >&2
+    echo "  got:      '${gen_sha}'" >&2
+    echo "  expected: '${non_handoff_head_sha}' (factory-artifacts rev-parse HEAD at invocation)" >&2
+    echo "" >&2
+    echo "  BC-5.41.002 PC2 / AC-014 v1.4: generated_from_handoff_sha = git rev-parse HEAD" >&2
+    echo "  captured immediately before the atomic commit." >&2
+    echo "  The HEAD at invocation time is the non-HANDOFF 'chore: add README' commit." >&2
+    echo "" >&2
+    echo "  ROOT CAUSE (F-P4-002): impl uses git log --grep=HANDOFF which walks back past" >&2
+    echo "  the interleaved non-HANDOFF commit to find prior_handoff_sha='${prior_handoff_sha}'." >&2
+    echo "  That is WRONG per spec — rev-parse HEAD is the correct derivation." >&2
+    false
+  }
+
+  # (B) Must NOT equal the prior HANDOFF SHA (which --grep would return)
+  [ "$gen_sha" != "$prior_handoff_sha" ] || {
+    echo "FAIL (F-P4-002 assertion B): generated_from_handoff_sha equals the prior HANDOFF SHA." >&2
+    echo "  got:              '${gen_sha}'" >&2
+    echo "  prior_handoff_sha: '${prior_handoff_sha}'" >&2
+    echo "" >&2
+    echo "  This is the value git log --grep=HANDOFF would return — the wrong heuristic." >&2
+    echo "  The factory-artifacts HEAD at invocation time was the non-HANDOFF commit" >&2
+    echo "  '${non_handoff_head_sha}' — that is the correct value." >&2
+    false
+  }
+}
+
+# ---------------------------------------------------------------------------
+# test_BC_5_41_001_F_P4_003_active_bcs_entries_resolve_as_paths
+# F-P4-003 / BC-5.41.001 PC4 / VP-087
+# Every entry in active_bcs: in the COMMITTED HANDOFF.md blob must be a resolvable
+# PATH under ${ARTIFACTS_WT}/specs/behavioral-contracts/ — NOT a bare BC-X.XX.XXX id.
+#
+# The production consumer (wave-state validator) resolves active_bcs entries as file
+# paths. If the skill emits bare IDs (e.g., "BC-5.41.001"), the validator cannot find
+# the file without an additional lookup step — this violates VP-087 real-substrate
+# derivation and BC-5.41.001 PC4.
+#
+# The fixture places BC-5.41.001.md at:
+#   ${ARTIFACTS_WT}/specs/behavioral-contracts/ss-05/BC-5.41.001.md
+# A correct active_bcs entry would be:
+#   - specs/behavioral-contracts/ss-05/BC-5.41.001.md
+# A bare-id entry would be:
+#   - BC-5.41.001
+#
+# Assertion: every active_bcs list entry in the COMMITTED HANDOFF.md blob, when
+# treated as a path relative to ARTIFACTS_WT, must resolve to an existing file.
+# REDs the current impl which emits bare IDs (just the filename stem, no directory path).
+# ---------------------------------------------------------------------------
+
+@test "test_BC_5_41_001_F_P4_003_active_bcs_entries_resolve_as_paths" {
+  _run_skill
+
+  [ "$status" -eq 0 ] || {
+    echo "FAIL (F-P4-003): skill exited ${status}, expected 0. Output: $output" >&2
+    false
+  }
+
+  # Read committed HANDOFF.md blob (VP-087 proof harness — not working-tree file)
+  git -C "$WORK" show factory-artifacts:HANDOFF.md >/dev/null 2>&1 || {
+    echo "FAIL (F-P4-003): HANDOFF.md not in committed factory-artifacts tree" >&2
+    false
+  }
+
+  local handoff_content
+  handoff_content="$(git -C "$WORK" show factory-artifacts:HANDOFF.md)"
+
+  # Extract active_bcs entries from the committed HANDOFF.md blob
+  # Parse lines between "^active_bcs:" and the next top-level key
+  local in_active_bcs=0
+  local bare_ids=""
+  local unresolved_paths=""
+  while IFS= read -r line; do
+    if echo "$line" | grep -q "^active_bcs:"; then
+      in_active_bcs=1
+      continue
+    fi
+    # Stop at next top-level key (no leading spaces + matches word chars)
+    if [ "$in_active_bcs" -eq 1 ] && echo "$line" | grep -qE '^[a-z_]'; then
+      in_active_bcs=0
+    fi
+    if [ "$in_active_bcs" -eq 1 ] && echo "$line" | grep -qE '^\s+-\s+'; then
+      local entry
+      entry="$(echo "$line" | sed 's/^[[:space:]]*-[[:space:]]*//')"
+
+      # A bare ID like "BC-5.41.001" has no directory separator
+      if echo "$entry" | grep -qE '^BC-[0-9]'; then
+        bare_ids="${bare_ids}\n  BARE_ID: '${entry}' (missing path prefix like specs/behavioral-contracts/...)"
+      else
+        # Treat as path relative to ARTIFACTS_WT
+        local abs_path="${ARTIFACTS_WT}/${entry}"
+        if [ ! -f "$abs_path" ]; then
+          unresolved_paths="${unresolved_paths}\n  UNRESOLVED: '${entry}' (not found at ${abs_path})"
+        fi
+      fi
+    fi
+  done <<< "$handoff_content"
+
+  [ -z "$bare_ids" ] || {
+    echo "FAIL (F-P4-003): active_bcs in COMMITTED HANDOFF.md contains BARE IDs (not paths):" >&2
+    printf "%b\n" "$bare_ids" >&2
+    echo "" >&2
+    echo "  BC-5.41.001 PC4 + VP-087: active_bcs entries must be resolvable file paths under" >&2
+    echo "  \${ARTIFACTS_WT}/specs/behavioral-contracts/, not bare BC-X.XX.XXX identifiers." >&2
+    echo "  Example correct entry: 'specs/behavioral-contracts/ss-05/BC-5.41.001.md'" >&2
+    echo "" >&2
+    echo "  ROOT CAUSE (F-P4-003): current impl emits just the filename stem from glob output," >&2
+    echo "  stripping the directory path component. The committed active_bcs list has bare IDs" >&2
+    echo "  instead of relative paths — the consumer cannot resolve them without an extra lookup." >&2
+    echo "" >&2
+    echo "  Committed HANDOFF.md active_bcs section:" >&2
+    echo "$handoff_content" | grep -A 10 "^active_bcs:" >&2
+    false
+  }
+
+  [ -z "$unresolved_paths" ] || {
+    echo "FAIL (F-P4-003): active_bcs in COMMITTED HANDOFF.md contains unresolvable paths:" >&2
+    printf "%b\n" "$unresolved_paths" >&2
+    echo "" >&2
+    echo "  Each path must resolve to an existing file under \${ARTIFACTS_WT}." >&2
     false
   }
 }
