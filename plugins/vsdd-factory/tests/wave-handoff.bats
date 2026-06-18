@@ -3113,3 +3113,242 @@ EOF
     false
   }
 }
+
+# ---------------------------------------------------------------------------
+# test_BC_5_41_001_F_P7_002_epic_complete_idempotent_rerun_exits_0_with_announcement
+# F-P7-002 / BC-5.41.001 PC8 / EC-015 (idempotent re-invocation)
+# MEDIUM: When the EPIC-COMPLETE path is invoked a SECOND time with an identical
+# HANDOFF.md already committed (byte-identical re-stage), `git commit` exits
+# non-zero ("nothing to commit"). Under `set -euo pipefail` the script aborts
+# BEFORE the mandated AC-012 3-line EPIC-COMPLETE announcement.
+#
+# EC-015 (new): after staging, detect empty staged diff and treat as idempotent
+# success — skip the commit but STILL emit the canonical AC-012 EPIC-COMPLETE
+# 3-line announcement and exit 0.
+#
+# Bug reproduced by:
+#   1. Run the skill once in EPIC-COMPLETE state — succeeds, commits.
+#   2. Remove working-tree HANDOFF.md so the skill rewrites it (same content).
+#   3. Run again — `git add` stages a byte-identical file, `git commit` finds
+#      nothing to commit, exits non-zero, script aborts under pipefail.
+#
+# Red test: assert the SECOND invocation exits 0 AND emits all 3 canonical
+# EPIC-COMPLETE lines. Must fail before the EC-015 guard (abort/non-zero exit
+# with no announcement) and pass after.
+# ---------------------------------------------------------------------------
+
+@test "test_BC_5_41_001_F_P7_002_epic_complete_idempotent_rerun_exits_0_with_announcement" {
+  # Set up EPIC-COMPLETE: all stories in terminal status
+  _write_sprint_state_all_terminal
+  _write_state_md "5"
+
+  # First invocation — succeeds, commits HANDOFF.md with epic_status: complete
+  run bash -c "
+    export ARTIFACTS_WT='${ARTIFACTS_WT}'
+    export SPRINT_STATE_YAML='${WORK}/sprint-state.yaml'
+    export STATE_MD_PATH='${WORK}/STATE.md'
+    export BC_DIR='${ARTIFACTS_WT}/specs/behavioral-contracts'
+    export PRECOMPACT_FLUSH_LOG='${ARTIFACTS_WT}/hooks/precompact-flush-log'
+    export GIT_DIR='${WORK}/.git'
+    export FACTORY_REPO='${WORK}'
+    '${SKILL}' \
+      --artifacts-worktree '${ARTIFACTS_WT}' \
+      --sprint-state '${WORK}/sprint-state.yaml' \
+      --state-md '${WORK}/STATE.md' \
+      --bc-dir '${ARTIFACTS_WT}/specs/behavioral-contracts' \
+      2>&1
+  "
+  [ "$status" -eq 0 ] || {
+    echo "FAIL (F-P7-002 first run): skill exited ${status}, expected 0." >&2
+    echo "Output: $output" >&2
+    false
+  }
+
+  # Capture commit count after first run
+  local after_first_count
+  after_first_count="$(git -C "$WORK" rev-list --count factory-artifacts)"
+
+  # Remove working-tree HANDOFF.md so the skill rewrites it on the second run.
+  # The content produced will be byte-identical (same sprint-state, same STATE.md)
+  # — so `git add HANDOFF.md` stages a no-change, and `git commit` finds
+  # "nothing to commit" → exits non-zero → script aborts under pipefail
+  # BEFORE emitting the EPIC-COMPLETE announcement (the bug).
+  rm -f "$ARTIFACTS_WT/HANDOFF.md"
+
+  # Second invocation — this is the idempotent re-run
+  run bash -c "
+    export ARTIFACTS_WT='${ARTIFACTS_WT}'
+    export SPRINT_STATE_YAML='${WORK}/sprint-state.yaml'
+    export STATE_MD_PATH='${WORK}/STATE.md'
+    export BC_DIR='${ARTIFACTS_WT}/specs/behavioral-contracts'
+    export PRECOMPACT_FLUSH_LOG='${ARTIFACTS_WT}/hooks/precompact-flush-log'
+    export GIT_DIR='${WORK}/.git'
+    export FACTORY_REPO='${WORK}'
+    '${SKILL}' \
+      --artifacts-worktree '${ARTIFACTS_WT}' \
+      --sprint-state '${WORK}/sprint-state.yaml' \
+      --state-md '${WORK}/STATE.md' \
+      --bc-dir '${ARTIFACTS_WT}/specs/behavioral-contracts' \
+      2>&1
+  "
+
+  # Must exit 0 — idempotent re-invocation must succeed (EC-015)
+  [ "$status" -eq 0 ] || {
+    echo "FAIL (F-P7-002 second run): skill exited ${status} on idempotent re-invocation, expected 0." >&2
+    echo "" >&2
+    echo "BUG (F-P7-002): EPIC-COMPLETE path stages a byte-identical HANDOFF.md (no change)." >&2
+    echo "  'git commit' exits non-zero (nothing to commit) — under set -euo pipefail the" >&2
+    echo "  script aborts BEFORE the mandatory AC-012 EPIC-COMPLETE announcement is emitted." >&2
+    echo "  EC-015 fix: detect empty staged diff and treat as idempotent success — skip the" >&2
+    echo "  commit but still emit the canonical 3-line announcement and exit 0." >&2
+    echo "" >&2
+    echo "Actual output: $output" >&2
+    false
+  }
+
+  # Must emit ALL THREE canonical EPIC-COMPLETE lines (AC-012 / BC-5.41.001 PC8)
+  # Line 1:
+  echo "$output" | grep -qF \
+    "EPIC-COMPLETE: All stories in sprint-state.yaml have reached terminal status." || {
+    echo "FAIL (F-P7-002): canonical EPIC-COMPLETE line 1 missing on idempotent re-run." >&2
+    echo "Expected: 'EPIC-COMPLETE: All stories in sprint-state.yaml have reached terminal status.'" >&2
+    echo "Actual output: $output" >&2
+    false
+  }
+
+  # Line 2 (STATE.md current_cycle = "v1.0-feature-context-durability-E18"):
+  echo "$output" | grep -qF \
+    "Epic v1.0-feature-context-durability-E18 is complete. No wave-state.yaml written for next wave." || {
+    echo "FAIL (F-P7-002): canonical EPIC-COMPLETE line 2 missing on idempotent re-run." >&2
+    echo "Expected: 'Epic v1.0-feature-context-durability-E18 is complete. No wave-state.yaml written for next wave.'" >&2
+    echo "Actual output: $output" >&2
+    false
+  }
+
+  # Line 3:
+  echo "$output" | grep -qF \
+    "HANDOFF.md committed to factory-artifacts with epic_status: complete." || {
+    echo "FAIL (F-P7-002): canonical EPIC-COMPLETE line 3 missing on idempotent re-run." >&2
+    echo "Expected: 'HANDOFF.md committed to factory-artifacts with epic_status: complete.'" >&2
+    echo "Actual output: $output" >&2
+    false
+  }
+
+  # No new commit must be created (idempotent: nothing changed)
+  local after_second_count
+  after_second_count="$(git -C "$WORK" rev-list --count factory-artifacts)"
+  [ "$after_second_count" -eq "$after_first_count" ] || {
+    echo "FAIL (F-P7-002): idempotent re-run created a new commit (delta=$((after_second_count - after_first_count)))." >&2
+    echo "EC-015: when staged diff is empty, skip the commit (no new commit must be created)." >&2
+    false
+  }
+}
+
+# ---------------------------------------------------------------------------
+# test_BC_5_41_001_F_P7_003_derive_wave_id_from_sprint_state_ordinal
+# F-P7-003 / BC-5.41.001 PC2 / AC-002
+# MEDIUM: derive_wave_id($1=sprint_state_yaml, $2=state_md) ignores its $1 arg.
+# The sprint-state-ordinal path — the PRIMARY path for product pipelines — is
+# unimplemented. Only the STATE.md current_step fallback is coded.
+#
+# Behavior to implement (PRIMARY path):
+#   When sprint-state.yaml is present and parseable with entries, compute current
+#   wave number = 1 + (number of fully-terminal waves). A wave is fully-terminal
+#   when ALL its stories are in terminal status (merged/withdrawn/cancelled).
+#   The current wave number is the number of the first wave with any pending/draft
+#   stories.
+#
+# Red test: sprint-state.yaml with wave-1 stories all terminal (merged) and wave-2
+# stories pending/draft. STATE.md is absent (no pass-N). Assert derive_wave_id
+# returns 2 from sprint-state ordinal, INDEPENDENT of STATE.md.
+#
+# With the current implementation (only STATE.md path implemented), absent STATE.md
+# → NoWaveIdSubstrate exit 1 — never reaches the sprint-state ordinal path.
+# After the fix: derive_wave_id reads the sprint-state FIRST and returns 2.
+#
+# Wave assignment in this fixture:
+#   Wave 1: S-18.02 (merged), S-18.03 (cancelled) — both terminal → wave 1 complete
+#   Wave 2: S-18.04 (pending), S-18.05 (draft)    — pending/draft → current wave = 2
+# ---------------------------------------------------------------------------
+
+@test "test_BC_5_41_001_F_P7_003_derive_wave_id_from_sprint_state_ordinal" {
+  # Sprint-state: wave-1 stories terminal, wave-2 stories pending/draft.
+  # The derive_wave_id sprint-state-ordinal path MUST return 2.
+  # STATE.md is intentionally absent — forces the implementation to use the
+  # sprint-state-ordinal path (PRIMARY) rather than the STATE.md fallback.
+  cat > "$WORK/sprint-state.yaml" << 'EOF'
+stories:
+  - id: S-18.02
+    status: merged
+  - id: S-18.03
+    status: cancelled
+  - id: S-18.04
+    status: pending
+  - id: S-18.05
+    status: draft
+EOF
+
+  # Remove STATE.md entirely — if the sprint-state-ordinal path is not implemented,
+  # derive_wave_id falls through to the STATE.md branch which finds no file and
+  # exits 1 with NoWaveIdSubstrate. After the fix, the sprint-state ordinal path
+  # runs first and returns 2 before ever checking STATE.md.
+  rm -f "$WORK/STATE.md"
+
+  run bash -c "
+    export ARTIFACTS_WT='${ARTIFACTS_WT}'
+    export SPRINT_STATE_YAML='${WORK}/sprint-state.yaml'
+    export STATE_MD_PATH='${WORK}/STATE.md'
+    export BC_DIR='${ARTIFACTS_WT}/specs/behavioral-contracts'
+    export PRECOMPACT_FLUSH_LOG='${ARTIFACTS_WT}/hooks/precompact-flush-log'
+    export GIT_DIR='${WORK}/.git'
+    export FACTORY_REPO='${WORK}'
+    '${SKILL}' \
+      --artifacts-worktree '${ARTIFACTS_WT}' \
+      --sprint-state '${WORK}/sprint-state.yaml' \
+      --state-md '${WORK}/STATE.md' \
+      --bc-dir '${ARTIFACTS_WT}/specs/behavioral-contracts' \
+      2>&1
+  "
+
+  # Must exit 0 — wave-2 stories exist so this is a has-next-wave scenario
+  [ "$status" -eq 0 ] || {
+    echo "FAIL (F-P7-003): skill exited ${status}, expected 0." >&2
+    echo "" >&2
+    echo "BUG (F-P7-003): derive_wave_id ignores its sprint_state_yaml argument." >&2
+    echo "  The sprint-state-ordinal path (PRIMARY for product pipelines) is unimplemented." >&2
+    echo "  Current code only reads STATE.md current_step: 'pass-N'." >&2
+    echo "  With STATE.md absent, it exits 1 with NoWaveIdSubstrate — never reaching the" >&2
+    echo "  sprint-state-ordinal path that should return 2." >&2
+    echo "" >&2
+    echo "  Sprint-state fixture:" >&2
+    echo "    S-18.02 merged, S-18.03 cancelled  (wave-1: all terminal)" >&2
+    echo "    S-18.04 pending, S-18.05 draft      (wave-2: current)" >&2
+    echo "  Expected wave_id: 2 (derived from sprint-state ordinal, no STATE.md needed)" >&2
+    echo "" >&2
+    echo "  Actual output: $output" >&2
+    false
+  }
+
+  # Read the COMMITTED blob and assert wave_id = 2
+  git -C "$WORK" show factory-artifacts:HANDOFF.md >/dev/null 2>&1 || {
+    echo "FAIL (F-P7-003): HANDOFF.md not committed to factory-artifacts." >&2
+    false
+  }
+
+  local committed_wave_id
+  committed_wave_id="$(git -C "$WORK" show factory-artifacts:HANDOFF.md \
+    | grep "^wave_id:" | awk '{print $2}')"
+
+  # wave_id must be 2 — derived from sprint-state ordinal (1 terminal wave + 1 = 2)
+  [ "$committed_wave_id" = "2" ] || {
+    echo "FAIL (F-P7-003): committed HANDOFF.md wave_id='${committed_wave_id}', expected 2." >&2
+    echo "" >&2
+    echo "  The sprint-state-ordinal derivation: 1 fully-terminal wave (wave-1: S-18.02+S-18.03)" >&2
+    echo "  + 1 = current wave 2. This must be derived from sprint-state.yaml WITHOUT STATE.md." >&2
+    echo "" >&2
+    echo "  If wave_id is some other value, the implementation used a different (incorrect)" >&2
+    echo "  substrate. If the skill exited non-zero (handled above), the PRIMARY sprint-state" >&2
+    echo "  ordinal path is simply not implemented." >&2
+    false
+  }
+}
