@@ -4541,3 +4541,69 @@ Run assertions as: `yq '.stories | length' output.yaml` → expected count; `yq 
 **Consequence if violated:** Algorithms with undocumented preconditions fail silently in scenarios that violate those preconditions, producing wrong outputs that downstream consumers treat as correct. Fresh-context adversaries correctly flag this as a brittle anti-fabrication gap.
 
 **Cites:** D-641; S-18.01 LOCAL adversary pass-8 observation O-P8-001; BC-5.41.001 PC2 v1.19→v1.20 preconditions; research-O-P8-001-wave-ordinal.md; worktree commit 539e6dab.
+
+---
+
+## L-S18-untested-branch-hid-silent-failure
+
+**Date:** 2026-06-18
+**Tags:** [process-gap] [codified]
+**Anchors:** D-642, S-18.01, O-P10-001, feature/S-18.01 commits 3f63eb92/ff1d054e
+
+**Lesson (codified):** An untested code branch (even a LOW-priority observation target) can mask a silent-failure defect that is actually MEDIUM severity. O-P10-001 flagged the factory_lock held-lock parse path as having zero fixture coverage — this was classified LOW. When tests were added, they UNCOVERED a real silent-failure: the block-form `factory_lock` awk pattern used non-POSIX `\s` which BSD/macOS awk interprets as a literal `s`, causing `factory_lock_holder` to silently return null for ALL held locks. The classification "LOW observation" masked a MEDIUM silent-failure. Every parse branch (including optional or rarely-hit fields) requires a discriminating production-faithful fixture before it can be characterized as LOW.
+
+**Root cause (S-18.01 pass-10):** O-P10-001: The held-lock parse branch for block-form `factory_lock:` YAML (multi-line key: value form) had zero test fixtures. The awk pattern used `\s` (non-POSIX) which silently fails on BSD awk (macOS), returning empty string instead of matching whitespace. All invocations of `write-handoff.sh` on macOS that run with a held factory lock were silently emitting `factory_lock_holder: null` in HANDOFF.md, violating BC-5.41.001 PC2 anti-fabrication contract.
+
+**Gate (codified):** For every `parse_*` or `read_*` function that reads a field from YAML/structured text: (1) Add a fixture that provides a production-faithful populated example for EVERY code path including optional/rarely-hit fields. (2) Assert the parsed value equals the expected non-null output — not just that the command succeeds. (3) Use POSIX-compliant character class syntax in awk (`[[:space:]]`, `[[:alnum:]]`) not GNU/Perl extensions (`\s`, `\w`, `\d`) which BSD awk silently misinterprets as literal characters.
+
+**S-7.02 confirmation:** Process-gap lesson for the S-7.02 Cycle-Closing-Checklist. Cycle is NOT converging this burst (streak 0/3 after pass-10 reset); S-7.02 confirmation deferred to eventual convergence (≥3-CLEAN streak).
+
+**Disposition:** Fix applied: `[[:space:]]` replacing `\s` in held-lock awk pattern (feature/S-18.01 commit ff1d054e). Tests added for held-lock parse branch. Anchor: E-18 F4 S-18.01.
+
+**Consequence if violated:** Shell skills parsing YAML fields with optional block-form structure silently emit null for populated fields on BSD/macOS awk, producing HANDOFF.md artifacts with fabricated null values that downstream consumers treat as correct, violating anti-fabrication contracts without any error signal.
+
+**Cites:** D-642; S-18.01 LOCAL adversary pass-10 observation O-P10-001; BC-5.41.001 PC2 anti-fabrication; feature/S-18.01 commits 3f63eb92 (tests added) + ff1d054e (awk non-POSIX `\s` fix).
+
+---
+
+## L-S18-skill-doc-contract-must-match-entrypoint
+
+**Date:** 2026-06-18
+**Tags:** [process-gap] [codified]
+**Anchors:** D-642, S-18.01, F-P10-001 MEDIUM, feature/S-18.01 commits 3f63eb92/203cf262
+
+**Lesson (codified):** SKILL.md invocation contract MUST document the actual required/optional arguments the entrypoint parses, including all `:?`-required (bash positional required) parameters. A "None/None" contract that contradicts the entrypoint is a spec-compliance defect. The invocation contract is part of the behavioral contract surface; a fresh-context adversary reading SKILL.md to understand the skill's interface CANNOT learn the real required args if SKILL.md omits them.
+
+**Root cause (S-18.01 pass-10):** F-P10-001 MEDIUM: The SKILL.md §Usage / invocation contract section listed no required arguments, but the `write-handoff.sh` entrypoint parsed (and required via `:?`) 4 positional arguments: `ARTIFACTS_WT`, `SPRINT_STATE_YAML`, `STATE_MD`, and `BC_DIR`. A caller following SKILL.md would invoke the skill with no arguments and receive a bash `:?` error. This was a spec-compliance BLOCKER-class defect (entrypoint contract directly contradicted by SKILL.md).
+
+**Gate (codified):** For every shell skill with a SKILL.md: (1) The §Usage / Invocation section MUST list all positional arguments with their names, types, required/optional status, and description. (2) The set of `:?`-required positional variables in the entrypoint script is the authoritative required-args list. (3) SKILL.md must be updated in the SAME commit as any entrypoint argument change — never let them diverge. (4) A fresh-context reader should be able to correctly invoke the skill from SKILL.md alone.
+
+**S-7.02 confirmation:** Process-gap lesson for the S-7.02 Cycle-Closing-Checklist. Cycle is NOT converging this burst (streak 0/3 after pass-10 reset); S-7.02 confirmation deferred to eventual convergence (≥3-CLEAN streak).
+
+**Disposition:** Fix applied: SKILL.md §Usage updated with all 4 required CLI args (feature/S-18.01 commits 3f63eb92 + 203cf262). Anchor: E-18 F4 S-18.01.
+
+**Consequence if violated:** Callers following SKILL.md cannot successfully invoke the skill. CI integrations, orchestrator dispatches, and human operators all hit `:?` bash errors. The defect is invisible until the skill is actually invoked with the real arg set — which may not happen until integration testing.
+
+**Cites:** D-642; S-18.01 LOCAL adversary pass-10 finding F-P10-001 MEDIUM; S-18.01 §Architecture Compliance Rules; feature/S-18.01 commits 3f63eb92 (arg documentation) + 203cf262 (SKILL.md contract correction).
+
+---
+
+## L-S18-field-name-semantics-need-explicit-spec-note
+
+**Date:** 2026-06-18
+**Tags:** [process-gap] [codified]
+**Anchors:** D-642, S-18.01, O-P10-002, BC-5.41.001 PC2 v1.21
+
+**Lesson (codified):** A field name that implies a filter (e.g., `active_bcs` implying only BCs with `lifecycle_status: active`) over an existence-only implementation needs an explicit spec note to prevent a future wrong lifecycle filter from being introduced. The name "active" in a field is a semantic signal that engineers will interpret as requiring lifecycle filtering unless the spec explicitly contradicts this. The explicit note must be in the normative BC body (not just comments or test vectors) to govern implementer behavior.
+
+**Root cause (S-18.01 pass-10):** O-P10-002: The `active_bcs` field in BC-5.41.001 PC2 listed `active_bcs` as a field name without specifying whether "active" meant lifecycle-filtered or existence-only. A fresh-context adversary correctly flagged that the name creates an ambiguity — an implementer could reasonably add `lifecycle_status: active` filtering, which would EXCLUDE draft and withdrawn BCs, producing a truncated HANDOFF.md `active_bcs` list that fails the anti-fabrication completeness check. The fix is a clarity note in PC2, not a behavioral change (the semantics were already existence-only in the implementation).
+
+**Gate (codified):** When authoring a BC field whose name implies a semantic filter (status-typed prefix like "active", "draft", "pending", "approved"), MUST add an explicit inline note in the normative PC prose clarifying: (1) the actual filter semantics (existence-only vs. lifecycle-filtered), (2) the correct implementation method (e.g., `find -name '*.md'`), and (3) what a future lifecycle-filter would require (explicit postcondition amendment). This prevents a "naming implies behavior" trap for future implementers.
+
+**S-7.02 confirmation:** Process-gap lesson for the S-7.02 Cycle-Closing-Checklist. Cycle is NOT converging this burst (streak 0/3 after pass-10 reset); S-7.02 confirmation deferred to eventual convergence (≥3-CLEAN streak).
+
+**Disposition:** BC-5.41.001 v1.21 PC2 `active_bcs` field definition expanded with explicit existence-only semantics note (product-owner; O-P10-002 disposition A). Anchor: E-18 F4 S-18.01.
+
+**Consequence if violated:** Future implementers add `lifecycle_status: active` filtering to `active_bcs` population, silently excluding draft/withdrawn BCs from HANDOFF.md. This makes HANDOFF.md `active_bcs` a lifecycle-filtered subset rather than the full corpus, which either: (a) causes anti-fabrication false negatives (partial list passes existence check but is semantically incomplete), or (b) causes anti-fabrication false positives (filtered path not found because only non-active BCs have that path). Either failure mode is silent.
+
+**Cites:** D-642; S-18.01 LOCAL adversary pass-10 observation O-P10-002; BC-5.41.001 PC2 v1.20→v1.21 `active_bcs` clarity note; product-owner disposition A.

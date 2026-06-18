@@ -1351,6 +1351,41 @@ BC-5.39.001 3-CLEAN streak: passes 9/10/11 all CLEAN/CONSISTENT. PR #191 squash-
 
 ---
 
+## D-642 — E-18 F4 Wave 2 S-18.01 LOCAL cascade passes 9 (CLEAN, 1/3) + 10 (NOT-CLEAN, reset 0/3) fix burst; BC-5.41.001 v1.21; BC-INDEX v3.12; 3 lessons
+
+**Date:** 2026-06-18
+**Phase:** E-18-F4-wave2-S18.01-local-cascade-pass9-10
+**Decision:** Single-commit fix burst (TD-VSDD-053) recording LOCAL adversary cascade passes 9 (CLEAN, streak 0/3→1/3) and 10 (NOT-CLEAN, streak RESET 1/3→0/3) and all parity legs. Pass-9 CLEAN — zero within-story BLOCKER/MEDIUM; 3 observations adjudicated (O-P9-001 cross-story INTEGRATION-deferred; O-P9-002 MOOT; O-P9-003 no-action). Pass-10 NOT-CLEAN — F-P10-001 MEDIUM (SKILL.md contract omitted 4 required CLI args) + O-P10-001 LOW (held-lock parse untested; UNCOVERED REAL SILENT-FAILURE: non-POSIX `\s` in BSD awk → null for ALL held locks; fixed to `[[:space:]]`) + O-P10-002 (active_bcs semantics → PO disposition A: BC-5.41.001 v1.21 clarity note) + O-P10-003/004 no-action. Package re-FROZEN after this burst. 3-CLEAN streak 0/3 (reset by pass-10). 3 lessons codified. BC-INDEX v3.12. STORY-INDEX v4.18 UNCHANGED. VP-INDEX v2.38 + ARCH-INDEX v2.56 UNCHANGED. feature/S-18.01 now at ff1d054e (3 code commits: 3f63eb92 SKILL.md args + test stubs; 203cf262 SKILL.md contract fix; ff1d054e awk non-POSIX `\s` → `[[:space:]]`). NEXT: LOCAL adversary pass-11 (fresh context).
+**Parent-commit:** f9142334 (D-641 SHA-patch HEAD)
+
+| ID | Decision | Phase | Date |
+|----|----------|-------|------|
+| D-642 | E-18 F4 Wave 2 S-18.01 LOCAL cascade passes 9 (CLEAN, 1/3) + 10 (NOT-CLEAN, reset 0/3) fix burst 2026-06-18. Pass-9 CLEAN (0 BLOCKER/0 MEDIUM/0 LOW; 3 observations adjudicated): O-P9-001 production sprint-state.yaml legacy format (cross-story INTEGRATION pattern; not a within-story defect; NOT a streak-resetter; DEFERRED to wave-scheduling regen); O-P9-002 quoted-ID adversary concern ADJUDICATED MOOT (canonical sprint-state format is unquoted per BC-5.41.002 §Canonical Test Vectors + decompose-stories template; optional defensive hardening, no action); O-P9-003 generated_from_handoff_sha depth heuristic vs EC-004 wording (spec-internal residue, no action). Package FROZEN; 4-index unchanged at pass-9. Streak 0/3→1/3. Pass-10 NOT-CLEAN (1 MEDIUM finding + 2 actionable observations): F-P10-001 MEDIUM — SKILL.md invocation contract omitted the 4 required CLI args mandated by S-18.01 §Architecture Compliance Rules + §File Structure (ARTIFACTS_WT, SPRINT_STATE_YAML, STATE_MD, BC_DIR); a fresh-context caller cannot invoke correctly; FIXED in SKILL.md (commits 3f63eb92/203cf262). O-P10-001 LOW — factory_lock held-lock parse branch had zero fixture coverage; tests added (commit 3f63eb92) AND UNCOVERED A REAL SILENT-FAILURE DEFECT: block-form `factory_lock` awk pattern used non-POSIX `\s` (BSD/macOS awk → literal `s`), so `factory_lock_holder` was silently null for ALL held locks → FIXED to `[[:space:]]` (commit ff1d054e). O-P10-002 — active_bcs existence-only vs name: PO disposition A — spec-compliant + clarity note (BC-5.41.001 v1.21 PC2 existence-only semantics note added). O-P10-003/004 — no action required. Streak RESET 1/3→0/3 (pass-10 NOT-CLEAN by F-P10-001 MEDIUM). 3 lessons: L-S18-untested-branch-hid-silent-failure (O-P10-001); L-S18-skill-doc-contract-must-match-entrypoint (F-P10-001); L-S18-field-name-semantics-need-explicit-spec-note (O-P10-002). BC-5.41.001 v1.20→v1.21; BC-INDEX v3.11→v3.12. STORY-INDEX v4.18 UNCHANGED; VP-INDEX v2.38 UNCHANGED; ARCH-INDEX v2.56 UNCHANGED. feature/S-18.01 @ ff1d054e. 3-CLEAN streak 0/3; package re-FROZEN; NEXT: LOCAL adversary pass-11. 4-index: BC v3.12/VP v2.38/STORY v4.18/ARCH v2.56. | E-18-F4-wave2-S18.01-local-cascade-pass9-10 | 2026-06-18 |
+
+**Appendix — D-642 Rationale**
+
+**Pass-9 (CLEAN) observations:**
+
+O-P9-001 — Production sprint-state.yaml legacy format: Fresh-context adversary observed that existing production sprint-state.yaml files may use a legacy story-status format (e.g., `status: "in_progress"` hyphenated vs older underscore form). This is a cross-story INTEGRATION concern — it affects the overall wave-scheduling regen story, not the within-story S-18.01 contracts specifically. Since S-18.01's own test vectors use the canonical format per BC-5.41.002 §Canonical Test Vectors, this is not a within-story defect. Disposition: INTEGRATION-deferred to wave-scheduling regen; NOT a streak-resetter.
+
+O-P9-002 — Quoted-ID concern: Adversary flagged that quoted string IDs (e.g., `id: "S-18.01"` vs unquoted `id: S-18.01`) in sprint-state.yaml might cause parse divergence. Adjudicated MOOT: the canonical sprint-state.yaml format per BC-5.41.002 §Canonical Test Vectors and the decompose-stories template uses unquoted IDs. Optional defensive hardening (quote-stripping in the parser) is acceptable but not required by the spec. No action.
+
+O-P9-003 — generated_from_handoff_sha depth heuristic: Adversary noted that BC-5.41.001 EC-004's wording about `null` for wave 1 could conflict with the `generated_from_handoff_sha` definition in BC-5.41.002 PC2 under a specific reading. This is a spec-internal residue from the v1.13 wording evolution. The semantics are consistent: null is valid for wave 1 (no prior HANDOFF.md), not null only when a prior HANDOFF.md exists. No action required — wording is acceptable under the established reading.
+
+**Pass-10 (NOT-CLEAN) findings and resolutions:**
+
+F-P10-001 MEDIUM — SKILL.md invocation contract omitted required CLI args: The SKILL.md §Usage section listed "No arguments / No required env vars" which directly contradicts the `write-handoff.sh` entrypoint that uses bash `${VAR:?}` syntax for 4 required positional arguments: `ARTIFACTS_WT` (path to factory-artifacts worktree), `SPRINT_STATE_YAML` (path to sprint-state.yaml), `STATE_MD` (path to STATE.md), `BC_DIR` (path to BC directory). Per S-18.01 §Architecture Compliance Rules and §File Structure, the invocation contract MUST document all required arguments. A caller following SKILL.md would invoke with no args and receive a bash `:?` error. Fixed by updating SKILL.md with all 4 required args, their types, and descriptions (commits 3f63eb92 + 203cf262).
+
+O-P10-001 LOW (escalated to MEDIUM-effective via uncovered real defect) — factory_lock held-lock parse branch untested: The adversary flagged zero fixture coverage for the block-form `factory_lock:` YAML parsing in `write-handoff.sh`. Tests were added (commit 3f63eb92), and the tests FAILED, uncovering a real silent-failure defect: the awk pattern for parsing multi-line `factory_lock:` blocks used `\s` as a whitespace class, which is a non-POSIX GNU/Perl extension. BSD awk (default on macOS) interprets `\s` as a literal `s` character, so the pattern never matched, causing `factory_lock_holder` to silently return empty/null for ALL held locks. In production, any invocation of `write-handoff.sh` while the factory_lock was held would produce HANDOFF.md with `factory_lock_holder: null` — an anti-fabrication violation per BC-5.41.001 PC3. Fixed to POSIX-compliant `[[:space:]]` (commit ff1d054e). This finding demonstrates why "LOW observation" classification for untested branches is unsafe: the coverage gap masked a behavioral defect that would have been MEDIUM if it had been reported as a finding directly.
+
+O-P10-002 — active_bcs name vs. existence-only semantics: PO disposition A accepted: BC-5.41.001 v1.21 adds an explicit clarity note to PC2 stating that `active_bcs` semantics are existence-only (all BC `.md` files resolvable in bc-dir via `find -name '*.md'`), NOT lifecycle-filtered. "Active" in the name means present in the corpus at handoff time. PC3 cross-check remains file-existence-only. Future lifecycle filtering requires explicit postcondition amendment. No behavioral change.
+
+O-P10-003, O-P10-004 — no action required (see adv-s18.01-local-pass-10.md for details).
+
+**Why streak resets to 0/3:** Pass-9 was CLEAN (first CLEAN, streak 0/3→1/3). Pass-10 was NOT-CLEAN (F-P10-001 MEDIUM). Per BC-5.39.001, ANY finding (BLOCKER or MEDIUM) resets the streak to 0/3. Streak resets 1/3→0/3. Three consecutive CLEAN passes required for convergence.
+
+---
+
 ## D-641 — E-18 F4 Wave 2 S-18.01 LOCAL cascade pass-8 fix burst + O-P8-001 research disposition; BC-5.41.001 v1.20 + S-18.01 v1.8; 3 lessons
 
 **Date:** 2026-06-18

@@ -9492,3 +9492,129 @@ Leg (1) version: frontmatter — v1.8 CONFIRMED. Leg (2) body Changelog row — 
 ### Factory-artifacts Commits
 
 - `f9142334` artifacts(D-641): E-18 F4 Wave 2 S-18.01 LOCAL cascade pass-8 fix burst + O-P8-001 research disposition
+
+---
+
+## D-642 — E-18 F4 Wave 2 S-18.01 LOCAL cascade passes 9 + 10 fix burst; BC-5.41.001 v1.21; BC-INDEX v3.12; 3 lessons (2026-06-18)
+
+### Parent-commit
+
+`f9142334` (D-641 SHA-patch HEAD)
+
+### Adversary Verdict
+
+**Pass-9 adversary: CLEAN.** 0 BLOCKER, 0 MEDIUM, 0 LOW. 3 observations (all adjudicated/deferred — do NOT reset streak):
+
+- **O-P9-001** — Production sprint-state.yaml legacy format: cross-story INTEGRATION concern (not a within-story S-18.01 defect). Disposition: DEFERRED to wave-scheduling regen. NOT a streak-resetter.
+- **O-P9-002** — Quoted-ID adversary concern: ADJUDICATED MOOT. Canonical sprint-state format is unquoted per BC-5.41.002 §Canonical Test Vectors + decompose-stories template. Optional defensive hardening only; no action required.
+- **O-P9-003** — generated_from_handoff_sha depth heuristic vs EC-004 wording: spec-internal residue from v1.13 wording evolution; consistent under established reading. No action.
+
+3-CLEAN streak after pass-9: **1/3** (0/3→1/3). Package FROZEN between passes.
+
+**Pass-10 adversary: NOT-CLEAN.** 1 MEDIUM finding + 2 actionable observations + 2 no-action observations. Streak RESET 1/3→**0/3**.
+
+- **F-P10-001 MEDIUM** — SKILL.md invocation contract omitted the 4 required CLI args (`ARTIFACTS_WT`, `SPRINT_STATE_YAML`, `STATE_MD`, `BC_DIR`) mandated by S-18.01 §Architecture Compliance Rules + §File Structure. A caller following SKILL.md would hit bash `:?` errors. FIXED: SKILL.md §Usage updated with all 4 required args (commits 3f63eb92 + 203cf262).
+- **O-P10-001 LOW** — factory_lock held-lock parse branch had zero fixture coverage. Tests added → UNCOVERED REAL SILENT-FAILURE: block-form `factory_lock` awk pattern used non-POSIX `\s` (BSD/macOS awk → literal `s`), so `factory_lock_holder` silently returned null for ALL held locks in production. FIXED: `[[:space:]]` replacing `\s` (commit ff1d054e). Effective severity: MEDIUM (real behavioral defect; LOW classification was based on untested-only observation, which masked the defect).
+- **O-P10-002** — `active_bcs` name implies lifecycle filter, but semantics are existence-only. PO Disposition A: clarity note added to BC-5.41.001 v1.21 PC2. No behavioral change.
+- **O-P10-003**, **O-P10-004** — noted, no action required.
+
+3-CLEAN streak after pass-10: **0/3** (RESET by F-P10-001 MEDIUM). Package re-FROZEN.
+
+### Dim-2 (Literal-Shell Gate Evidence)
+
+**Gate 1 — POLICY 15 BC-INDEX v3.12 parity (frontmatter version == changelog-array top row):**
+
+```
+$ awk 'NR==4' /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/behavioral-contracts/BC-INDEX.md
+version: "3.12"
+$ awk 'NR>=15 && NR<=16' /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/behavioral-contracts/BC-INDEX.md
+  - date: 2026-06-18
+    change: "v3.12 (2026-06-18; D-642 E-18 F4 Wave 2 S-18.01 LOCAL cascade passes 9 (CLEAN, 1/3) + 10...
+```
+
+Frontmatter version "3.12" == changelog-array top row "v3.12". PASS.
+
+**Gate 2 — BC-5.41.001 catalog row v1.21 annotation present:**
+
+```
+$ awk '/^\| \[BC-5\.41\.001\]/' /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/behavioral-contracts/BC-INDEX.md | grep -o 'v1\.21'
+v1.21
+```
+
+Catalog row includes v1.21. PASS.
+
+**Gate 3 — BC-5.41.001 frontmatter version == v1.21:**
+
+```
+$ grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/behavioral-contracts/ss-05/BC-5.41.001.md | head -1
+version: "1.21"
+```
+
+BC-5.41.001 frontmatter v1.21. PASS.
+
+**Gate 4 — 4-index parity after D-642 (literal-shell):**
+
+```
+$ grep "^version:" \
+  .factory/specs/behavioral-contracts/BC-INDEX.md \
+  .factory/specs/verification-properties/VP-INDEX.md \
+  .factory/stories/STORY-INDEX.md \
+  .factory/specs/architecture/ARCH-INDEX.md
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.12"
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.38"
+.factory/stories/STORY-INDEX.md:version: "4.18"
+.factory/specs/architecture/ARCH-INDEX.md:version: "2.56"
+```
+
+4-index: BC v3.12 / VP v2.38 / STORY v4.18 / ARCH v2.56. VP-INDEX and ARCH-INDEX and STORY-INDEX unchanged (no VP/ARCH/STORY body changes this burst). PASS.
+
+**Gate 5 — own burst-log 8-block presence (D-446(a)):**
+
+8 mandatory D-444(c) blocks present in this entry: Parent-commit PRESENT, Adversary Verdict PRESENT, Dim-2 PRESENT, Dim-5 PRESENT, Dim-6 PRESENT, Dim-7 PRESENT, Closes PRESENT, Factory-artifacts Commits PRESENT. PASS.
+
+**Gate 6 — source-attestation parity (D-448(a)): Adversary Verdict paragraph describes adv-s18.01-local-pass-9.md and adv-s18.01-local-pass-10.md Part A finding sets.** Pass-9: 0 BLOCKER/0 MEDIUM/0 LOW; 3 obs all adjudicated/deferred — faithful. Pass-10: F-P10-001 MEDIUM SKILL.md contract + O-P10-001 LOW held-lock untested (real defect uncovered) + O-P10-002 + O-P10-003/004 no-action — faithful. PASS.
+
+### Dim-5 (Files Touched)
+
+- `.factory/specs/behavioral-contracts/ss-05/BC-5.41.001.md` — MODIFIED: v1.20→v1.21 (product-owner, in worktree before this burst): PC2 `active_bcs` existence-only semantics clarity note added; O-P10-002 disposition A.
+- `.factory/specs/behavioral-contracts/BC-INDEX.md` — MODIFIED: v3.11→v3.12 (state-manager): BC-5.41.001 catalog row v1.21 appended; changelog-array top row v3.12 added; version/last_amended updated.
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — MODIFIED: D-642 6-column row + full Appendix added.
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — MODIFIED: 3 lessons added (L-S18-untested-branch-hid-silent-failure, L-S18-skill-doc-contract-must-match-entrypoint, L-S18-field-name-semantics-need-explicit-spec-note).
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — MODIFIED: D-642 8-block entry added (this entry).
+- `.factory/STATE.md` — MODIFIED: frontmatter advanced; banner updated; Phase Progress D-642 row; Active Branches factory-artifacts + feature/S-18.01 SHAs; Concurrent Cycles row; Decisions Log D-642 row; Session Resume Checkpoint updated.
+- `.factory/logs/dispatcher-internal-2026-06-18.jsonl` + `.factory/logs/events-2026-06-18.jsonl` — log files (excluded from parity sweep per normal discipline).
+
+**Files NOT touched this burst (by state-manager):**
+- STORY-INDEX.md — UNTOUCHED (no story body change; S-18.01 stays v1.8)
+- VP-INDEX.md — UNTOUCHED (no VP changes)
+- ARCH-INDEX.md — UNTOUCHED (no architecture changes)
+- BC-5.41.002.md — UNTOUCHED (already at v1.14 from D-640)
+
+**Code changes (by implementer on feature/S-18.01 — NOT factory-artifacts):**
+- commit 3f63eb92: SKILL.md §Usage initial arg documentation + held-lock test stubs
+- commit 203cf262: SKILL.md §Usage contract correction (all 4 required args + descriptions)
+- commit ff1d054e: `write-handoff.sh` awk `\s` → `[[:space:]]` non-POSIX fix + held-lock parse tests passing
+
+### Dim-6 (Codifications)
+
+- D-642 codified in decision-log.md (this burst): E-18 F4 Wave 2 S-18.01 LOCAL cascade passes 9 (CLEAN, 1/3) + 10 (NOT-CLEAN, reset 0/3); BC-5.41.001 v1.21; BC-INDEX v3.12; 3 lessons; streak 0/3; pass-11 NEXT.
+- 3 [process-gap] lessons codified in lessons.md: L-S18-untested-branch-hid-silent-failure (O-P10-001 → real MEDIUM defect uncovered); L-S18-skill-doc-contract-must-match-entrypoint (F-P10-001 MEDIUM); L-S18-field-name-semantics-need-explicit-spec-note (O-P10-002).
+- ADVISORY (non-blocking): worktree bats full suite shows pre-existing NON-wave-handoff failures (dispatcher/harness infra: check-harness-version, precompact-routing, regression-v1.0, pass-real-state-md-snapshot) — unrelated to S-18.01; wave-handoff suite 44/44 green (updated from 42/42 after held-lock + SKILL.md tests added). Flag for CI/PR gate.
+
+### Dim-7 (Streak Status)
+
+3-CLEAN streak: **0/3** after pass-10 (RESET by F-P10-001 MEDIUM). Pass-9 was CLEAN (1/3). Package re-FROZEN after this burst. NEXT: LOCAL adversary pass-11 (fresh context).
+
+### Closes
+
+- F-P10-001 MEDIUM: SKILL.md contract omitted 4 required CLI args → SKILL.md §Usage updated with all 4 required args (commits 3f63eb92 + 203cf262). CLOSED.
+- O-P10-001 LOW (real defect): factory_lock held-lock awk non-POSIX `\s` → null for ALL held locks → fixed to `[[:space:]]` (commit ff1d054e) + held-lock test fixtures added (commit 3f63eb92). CLOSED.
+- O-P10-002: active_bcs existence-only vs name → PO disposition A (BC-5.41.001 v1.21 clarity note). CLOSED.
+- O-P10-003, O-P10-004: noted, no action. CLOSED.
+- O-P9-001: INTEGRATION-deferred to wave-scheduling regen. CLOSED (deferred with anchor).
+- O-P9-002: ADJUDICATED MOOT. CLOSED.
+- O-P9-003: no action. CLOSED.
+
+### Factory-artifacts Commits
+
+- SHA-TBD artifacts(D-642): E-18 F4 Wave 2 S-18.01 LOCAL cascade passes 9 (CLEAN, 1/3) + 10 (NOT-CLEAN, reset 0/3) fix burst; BC-5.41.001 v1.21; BC-INDEX v3.12; 3 lessons; streak 0/3; pass-11 NEXT
