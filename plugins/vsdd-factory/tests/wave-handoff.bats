@@ -3575,3 +3575,111 @@ EOF
     false
   }
 }
+
+# ---------------------------------------------------------------------------
+# test_BC_5_41_001_O_P8_001_derive_wave_id_file_order_fragility_fail_loud
+# O-P8-001 / BC-5.41.001 PC2 (anti-fabrication / SOUL.md §4 fail-loud)
+#
+# derive_wave_id uses a leading-contiguous-terminal-run model that relies on the
+# precondition: sprint-state.yaml entries are ordered by wave (wave-1 stories
+# before wave-2 stories, etc.). When this precondition is violated — a terminal
+# entry appears AFTER a pending/draft entry — the algorithm silently returns a
+# WRONG ordinal instead of failing loud.
+#
+# Concrete fragility:
+#   Correct order:  [S-1.01 merged, S-2.01 pending]  → ordinal 2  (correct)
+#   Wrong order:    [S-2.01 pending, S-1.01 merged]  → ordinal 1  (WRONG — silent)
+#
+# The detectable violation signature (with only statuses + file order):
+#   A terminal entry appears AFTER _found_next_wave=1, i.e., after we have already
+#   seen at least one pending/draft entry. This is the interleaved pattern
+#   [pending, terminal] which cannot be safely interpreted under the
+#   file-order==wave-order precondition. It indicates the precondition is violated.
+#
+# Note: mixed terminal/non-terminal WITHIN the current wave is legal — the detectable
+# pathology is a terminal entry appearing after a pending/draft entry, not merely
+# having both terminal and pending entries coexist (which is normal same-wave mixing).
+# This test uses the minimal distinguishing input: [pending, terminal] with nothing
+# before the pending entry — so the terminal after pending is unambiguously post-boundary.
+#
+# Production-grade requirement (SOUL.md §4): MUST NOT silently return a wrong ordinal.
+# Must exit non-zero with a NAMED error (WaveOrderUnverifiable or NonContiguousWaveState).
+#
+# Red proof: current derive_wave_id in parse-sprint-state.sh (lines 145-227) has no
+# post-boundary terminal detection guard. For [S-2.01 pending, S-1.01 merged], it sets
+# _found_next_wave=1 when it sees the pending entry, then when it sees the terminal entry
+# _in_terminal_run stays 0 (because _found_next_wave=1), producing _completed_waves=0,
+# _found_next_wave=1 → ordinal = 1. This is returned silently — no error emitted.
+# ---------------------------------------------------------------------------
+
+@test "test_BC_5_41_001_O_P8_001_derive_wave_id_file_order_fragility_fail_loud" {
+  # Out-of-order sprint-state: pending entry appears BEFORE a terminal entry.
+  # This is the minimal distinguishing fixture: one pending then one terminal,
+  # with no terminal entries before the pending entry.
+  # Under correct file-order semantics: terminal entries should precede pending entries
+  # (completed wave comes before next wave). This arrangement is unambiguously wrong.
+  #
+  # Use fixture story IDs that ARE in STORY-INDEX.md (set up by setup()) so the
+  # pre-flight anti-fabrication check passes. The test specifically targets the
+  # wave_id derivation fragility (Step 1), not the anti-fabrication check (Step 2b).
+  # S-18.02 (pending) then S-18.03 (merged/terminal) — both are in STORY-INDEX.md.
+  cat > "$WORK/sprint-state.yaml" << 'EOF'
+stories:
+  - id: S-18.02
+    status: pending
+  - id: S-18.03
+    status: merged
+EOF
+
+  # Remove STATE.md to force derive_wave_id to use the sprint-state PRIMARY path.
+  # (If STATE.md fallback fires, the test would mask the fragility.)
+  rm -f "$WORK/STATE.md"
+
+  run bash -c "
+    export ARTIFACTS_WT='${ARTIFACTS_WT}'
+    export SPRINT_STATE_YAML='${WORK}/sprint-state.yaml'
+    export STATE_MD_PATH='${WORK}/STATE.md'
+    export BC_DIR='${ARTIFACTS_WT}/specs/behavioral-contracts'
+    export PRECOMPACT_FLUSH_LOG='${ARTIFACTS_WT}/hooks/precompact-flush-log'
+    export GIT_DIR='${WORK}/.git'
+    export FACTORY_REPO='${WORK}'
+    '${SKILL}' \
+      --artifacts-worktree '${ARTIFACTS_WT}' \
+      --sprint-state '${WORK}/sprint-state.yaml' \
+      --state-md '${WORK}/STATE.md' \
+      --bc-dir '${ARTIFACTS_WT}/specs/behavioral-contracts' \
+      2>&1
+  "
+
+  # Must exit non-zero (exit 1) — the post-boundary terminal entry is detectable
+  # and must trigger a named hard error rather than a silent wrong ordinal.
+  # BC-5.41.001 PC2 anti-fabrication: wave_id MUST be derived from a real substrate.
+  # SOUL.md §4: silent failure that returns a wrong ordinal is forbidden.
+  [ "$status" -ne 0 ] || {
+    echo "FAIL (O-P8-001): skill exited 0 with out-of-order sprint-state [pending, terminal]." >&2
+    echo "" >&2
+    echo "  BUG (O-P8-001): derive_wave_id in parse-sprint-state.sh has no guard for the" >&2
+    echo "  post-boundary terminal pattern. When a terminal entry appears after a pending/draft" >&2
+    echo "  entry (i.e., _found_next_wave=1 when we see the terminal), the algorithm silently" >&2
+    echo "  sets _in_terminal_run=0 and ignores that terminal — producing a WRONG ordinal." >&2
+    echo "" >&2
+    echo "  Correct order  [terminal, pending]: ordinal=2 (1 completed wave + 1)" >&2
+    echo "  Wrong order    [pending, terminal]: ordinal=1 (0 completed waves + 1) — WRONG" >&2
+    echo "" >&2
+    echo "  The file-order==wave-order precondition is violated but no error is emitted." >&2
+    echo "  Fix: detect terminal-after-pending and exit 1 with WaveOrderUnverifiable." >&2
+    echo "" >&2
+    echo "  Actual output: $output" >&2
+    false
+  }
+
+  # Must emit a NAMED error identifying the ordering violation
+  # Accepts: WaveOrderUnverifiable OR NonContiguousWaveState (either naming is acceptable)
+  echo "$output" | grep -qiE "(WaveOrderUnverifiable|NonContiguousWaveState|wave.order|order.*unverif|unverif.*order|post.boundary|terminal.*after.*pending|pending.*before.*terminal)" || {
+    echo "FAIL (O-P8-001): skill exited non-zero but error output does not identify the cause." >&2
+    echo "  Expected: mention of WaveOrderUnverifiable, NonContiguousWaveState, or wave ordering" >&2
+    echo "  A named error is required so the caller knows HOW to remediate (reorder sprint-state)." >&2
+    echo "  Actual output: $output" >&2
+    false
+  }
+}
