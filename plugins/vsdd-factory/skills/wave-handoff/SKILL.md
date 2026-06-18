@@ -16,25 +16,46 @@ fields derived from sprint-state.yaml — no RAG).
 ## Invocation Contract
 
 ```
-/wave-handoff
+/wave-handoff \
+  --artifacts-worktree <path> \
+  --sprint-state <path> \
+  --state-md <path> \
+  --bc-dir <path> \
+  [--precompact-flush-log <path>]
 ```
 
-No arguments required. All inputs are read from the real substrate:
-- `.factory/stories/sprint-state.yaml` — story states, wave derivation
-- `git rev-parse origin/develop` — `last_verified_develop_sha`
-- `.factory/STATE.md` — `factory_lock_holder`, fallback `wave_id` derivation
-- `.factory/specs/behavioral-contracts/` — `active_bcs` path resolution
-- `.factory/stories/STORY-INDEX.md` — `next_wave_stories` story ID validation
-- `.factory/hooks/precompact-flush-log` — `precompact_flush_sha` (three-state rule)
+All four required arguments must be supplied explicitly (or via env-var fallbacks;
+see below). No field may be hardcoded or supplied from in-context memory
+(BC-5.41.001 INV1). All inputs are derived from external ground truth at invocation
+time.
+
+Production invocation example (all paths relative to repo root):
+
+```
+/wave-handoff \
+  --artifacts-worktree .factory \
+  --sprint-state .factory/stories/sprint-state.yaml \
+  --state-md .factory/STATE.md \
+  --bc-dir .factory/specs/behavioral-contracts
+```
 
 ## Required Arguments
 
-None. All field values are derived from external ground truth at invocation time.
-No field may be hardcoded or supplied from in-context memory (BC-5.41.001 INV1).
+All four of the following arguments are mandatory. The skill hard-errors
+(`exit 1`) if any is absent and the corresponding env-var fallback is also unset.
+
+| Argument | Env-var fallback | Production path | Purpose |
+|----------|-----------------|-----------------|---------|
+| `--artifacts-worktree <path>` | `ARTIFACTS_WT` | `.factory` | Root of the factory-artifacts worktree. `HANDOFF.md` and `wave-state.yaml` are written here; git commit targets `git -C "$ARTIFACTS_WT"`. |
+| `--sprint-state <path>` | `SPRINT_STATE_YAML` | `.factory/stories/sprint-state.yaml` | Path to `sprint-state.yaml`; used for story classification, wave derivation, and next-wave story enumeration. |
+| `--state-md <path>` | `STATE_MD_PATH` | `.factory/STATE.md` | Path to `STATE.md`; used for `factory_lock_holder` and fallback `wave_id` derivation from `current_step: "pass-N"`. |
+| `--bc-dir <path>` | `BC_DIR` | `.factory/specs/behavioral-contracts` | Directory scanned (recursively) for active BC `.md` files; populates `active_bcs` in `HANDOFF.md`. |
 
 ## Optional Arguments
 
-None.
+| Argument | Env-var fallback | Default | Purpose |
+|----------|-----------------|---------|---------|
+| `--precompact-flush-log <path>` | `PRECOMPACT_FLUSH_LOG` | `${ARTIFACTS_WT}/hooks/precompact-flush-log` | Path to the precompact flush log; used for the three-state `precompact_flush_sha` rule (BC-5.41.001 PC5). |
 
 ## Behavior Overview
 
