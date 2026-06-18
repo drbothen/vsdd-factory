@@ -1251,9 +1251,9 @@ async = false
 script_path = "hooks/check-harness-version.sh"
 
 [hooks.capabilities]
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "CLAUDE_CODE_VERSION", "CLAUDE_VERSION"]
 
 [hooks.capabilities.exec_subprocess]
 binary_allow = ["bash"]
 shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "CLAUDE_CODE_VERSION", "CLAUDE_VERSION"]
