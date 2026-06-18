@@ -1,15 +1,26 @@
 #!/usr/bin/env bats
-# check-harness-version.bats — Red Gate bats tests for S-18.00 AC-008 / BC-1.15.001 INV3.
+# check-harness-version.bats — Integration tests for S-18.00 AC-008 / BC-1.15.001 INV3.
 #
-# Covers the 2 bats integration cases from S-18.00 (both now GREEN):
+# Covers 3 tests (all GREEN):
 #
 #   test_harness_version_check_passes (AC-008 / INV3):
-#     check-harness-version.sh must exit 0 when harness >= v2.1.105.
-#     Delivered: real version detection; exits 0 when CLAUDE_CODE_VERSION >= threshold.
+#     check-harness-version.sh must exit 0 when CLAUDE_CODE_VERSION >= v2.1.105.
+#     Direct script invocation (unit-level). Delivered: real version detection.
 #
 #   test_harness_version_check_advisory_on_missing (AC-008 / INV3 / EC-005):
 #     check-harness-version.sh must exit 1 (advisory) when harness version
-#     cannot be determined. Delivered: exits 1 with advisory message per BC-1.15.001 INV3.
+#     cannot be determined. Direct script invocation. Delivered: exits 1 with advisory.
+#
+#   test_check_harness_version_registry_entry_has_correct_shape (AC-008 / INV3):
+#     Production hooks-registry.toml entry has PreCompact + on_error=continue + priority=50.
+#     Pure grep/awk structural test.
+#
+#   TC-ENV-001 (F-S1800-P7-001 regression guard):
+#     THROUGH-DISPATCHER env-forwarding test. Exercises the REAL production path by
+#     pointing CLAUDE_PLUGIN_ROOT at the real plugins/vsdd-factory directory so the
+#     dispatcher reads the actual hooks-registry.toml env_allow. Asserts plugin.completed
+#     with exit_code:0 through the dispatcher's exec_subprocess env-clear gate.
+#     GREEN against the production fix (afbb0d4c); goes RED if env_allow regresses.
 #
 # Story: S-18.00 — Dispatcher PreCompact/PostCompact Routing + check-harness-version.sh
 # BC:    BC-1.15.001 INV3 — Harness-version precondition is non-blocking at dispatcher level
@@ -19,18 +30,6 @@
 # Edge Cases exercised:
 #   EC-005: check-harness-version.sh cannot determine harness version → exits 1 (advisory)
 #   EC-006: harness below v2.1.105 → exits 1 (advisory); non-blocking
-#
-# RED GATE strategy (historical — S-18.00 is now implemented and all tests pass GREEN):
-#   At Red Gate the stub script exited 1 unconditionally. The tests were designed to:
-#   1. test_harness_version_check_passes: assert exit 0 — failed because stub always exited 1.
-#   2. test_harness_version_check_advisory_on_missing: assert the ADVISORY message format —
-#      failed because the stub emitted "not yet implemented" instead of the real advisory.
-#   The real implementation in hooks/check-harness-version.sh satisfies both assertions.
-#
-# Both tests are load-bearing: they exercise the real script, not a self-constructed value.
-#
-# Invocation pattern: direct script invocation (no dispatcher needed for these unit-level
-# bats tests). The script is a bash hook; it reads environment for harness version detection.
 #
 # File location: plugins/vsdd-factory/tests/check-harness-version.bats
 # (FLAT path — discovered by run-all.sh `tests/*.bats` glob)
@@ -272,130 +271,107 @@ _require_script() {
 }
 
 # ---------------------------------------------------------------------------
-# TC-ENV-001 (F-S1800-P7-001 / F-S1800-P8-001 Red Gate):
+# TC-ENV-001 (F-S1800-P7-001 regression guard):
 #   THROUGH-DISPATCHER env-forwarding test for check-harness-version.
 #
-# DEFECT: hooks-registry.toml [hooks.capabilities.exec_subprocess] env_allow
-# omits CLAUDE_CODE_VERSION and CLAUDE_VERSION. The dispatcher does env_clear()
-# then re-adds only the listed env_allow names before spawning the subprocess.
-# Therefore check-harness-version.sh NEVER sees the version vars and ALWAYS
-# exits 1 ("undeterminable") in production, even when the harness exports a
-# supported version. Existing tests miss this because they invoke the script
-# DIRECTLY via `env CLAUDE_CODE_VERSION=... bash $SCRIPT`, bypassing the
-# dispatcher env-clear gate.
+# This test validates the ACTUAL production registry's env_allow so it couples
+# directly to the production fix (commit afbb0d4c). It does NOT use a hardcoded
+# fixture — it points CLAUDE_PLUGIN_ROOT at the real plugins/vsdd-factory
+# directory so the dispatcher reads the production hooks-registry.toml.
 #
-# This test exercises the REAL production path:
-#   harness-env → dispatcher process → exec_subprocess env-clear + env_allow
-#   filter → bash check-harness-version.sh → exit code observable in dispatcher log
+# The production fix (afbb0d4c) added CLAUDE_CODE_VERSION and CLAUDE_VERSION to
+# both [hooks.capabilities] env_allow and [hooks.capabilities.exec_subprocess]
+# env_allow in the real registry entry (lines 1254 and 1259). With that fix in
+# place, the dispatcher forwards CLAUDE_CODE_VERSION through the exec_subprocess
+# env-clear gate and the script exits 0 (supported version). This test is GREEN
+# against the fixed production registry.
 #
-# RED GATE ASSERTION: asserts plugin.completed with exit_code:0 — this MUST FAIL
-# against current wiring because env_allow strips CLAUDE_CODE_VERSION, so the
-# script exits 1, producing plugin.completed with exit_code:1.
+# Genuine regression guard: if anyone removes CLAUDE_CODE_VERSION from the real
+# registry's env_allow, this test immediately goes RED — because CLAUDE_PLUGIN_ROOT
+# points at the real production registry, not a frozen copy.
 #
-# After the implementer adds CLAUDE_CODE_VERSION and CLAUDE_VERSION to env_allow
-# in hooks-registry.toml (both [hooks.capabilities] and
-# [hooks.capabilities.exec_subprocess] sections), the script will see the version
-# and exit 0, and this test will turn GREEN.
+# Production path exercised:
+#   harness-env (CLAUDE_CODE_VERSION=2.1.177)
+#   → dispatcher process (reads real hooks-registry.toml via CLAUDE_PLUGIN_ROOT)
+#   → exec_subprocess env-clear + env_allow filter
+#   → bash check-harness-version.sh (from real hooks/check-harness-version.sh)
+#   → exit 0 (version >= v2.1.105)
+#   → observable in dispatcher internal log: plugin.completed exit_code:0
 #
-# Registry shape: mirrors the ACTUAL production registry entry at
-# hooks-registry.toml:1241-1259 with the exec_subprocess env_allow defect
-# preserved (not fixed) — this is the defect the test must catch.
+# Log isolation: VSDD_LOG_DIR is set to $WORK/.factory/logs so the dispatcher
+# internal log is written to the temp workdir (not the production .factory/logs).
+# CLAUDE_PROJECT_DIR is also $WORK so Level-C log resolution doesn't produce
+# a .factory/logs inside the real repo.
 #
-# Finding: F-S1800-P7-001 / F-S1800-P8-001 (two independent LOCAL adversaries)
+# Finding: F-S1800-P7-001 (closed by production fix afbb0d4c)
 # BC: BC-1.15.001 INV3 (harness-version check is non-blocking but must detect)
 # AC: AC-008 (exits 0 if harness >= v2.1.105)
 # VP: VP-086 (dispatcher binary-level harness; exec_subprocess env-forwarding)
 # ---------------------------------------------------------------------------
 
-# Helper: require the dispatcher binary and adapter WASM are present.
+# Helper: require the dispatcher binary, adapter WASM, and real hook script.
 # Mirrors the _require_artifacts() pattern from precompact-routing.bats.
 _require_dispatcher_artifacts() {
   if [ ! -x "$DISPATCHER" ]; then
     skip "dispatcher binary not built — run: cargo build --release -p factory-dispatcher"
   fi
-  if [ ! -f "$WORK/hook-plugins/legacy-bash-adapter.wasm" ]; then
-    skip "legacy-bash-adapter.wasm not present — build hook-plugins or copy to hook-plugins/"
+  if [ ! -f "$ADAPTER_WASM" ]; then
+    skip "legacy-bash-adapter.wasm not present — build hook-plugins"
   fi
-  if [ ! -f "$WORK/hooks/check-harness-version.sh" ]; then
+  if [ ! -f "$SCRIPT" ]; then
     skip "check-harness-version.sh not found — S-18.00 implementation required"
   fi
 }
 
-# Helper: write a registry that mirrors the ACTUAL production entry shape for
-# check-harness-version, preserving the defective env_allow (no CLAUDE_CODE_VERSION).
-# This is the shape that MUST trigger the Red Gate failure.
-_write_defective_env_allow_registry() {
-  cat > "$WORK/hooks-registry.toml" <<'EOF'
-schema_version = 2
-
-[[hooks]]
-name = "check-harness-version"
-event = "PreCompact"
-plugin = "hook-plugins/legacy-bash-adapter.wasm"
-priority = 50
-timeout_ms = 5000
-on_error = "continue"
-async = false
-
-[hooks.config]
-script_path = "hooks/check-harness-version.sh"
-
-[hooks.capabilities]
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT"]
-
-[hooks.capabilities.exec_subprocess]
-binary_allow = ["bash"]
-shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT"]
-EOF
-}
-
-@test "TC-ENV-001 (Red Gate): check-harness-version sees CLAUDE_CODE_VERSION through dispatcher env-clear gate" {
+@test "TC-ENV-001: check-harness-version sees CLAUDE_CODE_VERSION through real production registry env_allow" {
   _require_dispatcher_artifacts
 
-  # Write the registry with the DEFECTIVE env_allow (current production shape:
-  # CLAUDE_CODE_VERSION and CLAUDE_VERSION absent from env_allow).
-  # This is intentional — the test must catch the env-clear bug.
-  _write_defective_env_allow_registry
-
-  # Export CLAUDE_CODE_VERSION into the DISPATCHER PROCESS environment.
-  # The dispatcher does env_clear() then re-adds only env_allow names before
-  # spawning the subprocess. With the current defective env_allow, this var
-  # is stripped — the script never sees it and exits 1 (advisory).
+  # Point CLAUDE_PLUGIN_ROOT at the REAL production plugin root so the dispatcher
+  # reads the actual hooks-registry.toml (with the fixed env_allow at lines 1254
+  # and 1259 per commit afbb0d4c). The real hooks/ and hook-plugins/ subdirectories
+  # are resolved relative to CLAUDE_PLUGIN_ROOT, so the production script and WASM
+  # are used directly — no copying, no frozen fixture.
   #
-  # The test asserts the script reaches exit-0 (version check passed).
-  # RED GATE: this assertion MUST FAIL against current wiring.
-  # After env_allow is fixed (implementer adds CLAUDE_CODE_VERSION + CLAUDE_VERSION),
-  # the script will see 2.1.177 >= 2.1.105 and exit 0 → test turns GREEN.
+  # The dispatcher is run with CWD set to the real plugin root so that the
+  # resolvers-registry.toml's relative WASM path (hook-plugins/vsdd-context-resolvers.wasm)
+  # resolves correctly — the resolver loader calls path.canonicalize() against CWD.
+  #
+  # VSDD_LOG_DIR and CLAUDE_PROJECT_DIR are set to $WORK so the internal log is
+  # written to the isolated temp directory (not the real .factory/logs).
+  local real_plugin_root="$REPO_ROOT/plugins/vsdd-factory"
+
   run env \
     CLAUDE_CODE_VERSION="2.1.177" \
     VSDD_LOG_DIR="$WORK/.factory/logs" \
-    CLAUDE_PLUGIN_ROOT="$WORK" \
+    CLAUDE_PLUGIN_ROOT="$real_plugin_root" \
     CLAUDE_PROJECT_DIR="$WORK" \
-    bash -c "printf '%s' '{\"event_name\":\"PreCompact\",\"tool_name\":\"\",\"session_id\":\"tc-env-001\",\"tool_input\":{}}' | '$DISPATCHER'" 2>&1
+    bash -c "cd '$real_plugin_root' && printf '%s' '{\"event_name\":\"PreCompact\",\"tool_name\":\"\",\"session_id\":\"tc-env-001\",\"tool_input\":{}}' | '$DISPATCHER'" 2>&1
 
-  # The dispatcher itself exits 0 (on_error=continue suppresses block even if
-  # the script exits 1). We cannot use $status to distinguish. Instead we must
-  # inspect the internal log: plugin.completed with exit_code:0 proves the
-  # script reached the "version supported" path through the real env-clear gate.
+  # The dispatcher itself exits 0 (on_error=continue suppresses block even when
+  # the script exits 1). We cannot use $status to distinguish pass vs advisory.
+  # Instead we inspect the internal log: plugin.completed with exit_code:0 proves
+  # the script reached the "version supported" path through the real env-clear gate.
   local log
   log="$(ls "$WORK/.factory/logs/dispatcher-internal-"*.jsonl 2>/dev/null | head -1)"
 
   [ -n "$log" ] || {
     echo "FAIL: dispatcher did not write an internal log — was the dispatcher invoked correctly?"
     echo "DISPATCHER=$DISPATCHER"
+    echo "CLAUDE_PLUGIN_ROOT=$real_plugin_root"
     echo "WORK=$WORK"
     echo "Output: $output"
     return 1
   }
 
-  # Verify the plugin was actually invoked (not silently skipped).
-  # This guards against the test becoming a no-op if routing fails.
+  # Verify the plugin was actually invoked (not silently skipped due to routing failure).
+  # This guards against the test becoming a no-op if the registry path is wrong.
   local invoked
   invoked="$(grep -c '"type":"plugin.invoked"' "$log" || true)"
   [ "$invoked" -ge 1 ] || {
     echo "FAIL: check-harness-version plugin was not invoked — registry routing failed."
     echo "Expected plugin.invoked event in internal log."
+    echo "CLAUDE_PLUGIN_ROOT=$real_plugin_root"
+    echo "Verify hooks-registry.toml is present there and the check-harness-version entry exists."
     echo "Log: $log"
     echo "Log contents:"
     cat "$log"
@@ -403,34 +379,34 @@ EOF
     return 1
   }
 
-  # Core Red Gate assertion: plugin.completed with exit_code:0 proves the script
-  # saw CLAUDE_CODE_VERSION and exited with "version supported" (exit 0).
+  # Core assertion: plugin.completed with exit_code:0 proves the script saw
+  # CLAUDE_CODE_VERSION=2.1.177 (>= threshold v2.1.105) through the dispatcher's
+  # exec_subprocess env-clear + env_allow gate, and exited with "version supported".
   #
-  # With DEFECTIVE env_allow (current wiring): script exits 1 → exit_code:1 →
-  # this assertion FAILS (Red Gate).
+  # This test is GREEN because the production registry (commit afbb0d4c) includes
+  # CLAUDE_CODE_VERSION in both env_allow arrays.
   #
-  # With FIXED env_allow (after implementer adds the vars): script sees 2.1.177
-  # >= 2.1.105 → exits 0 → exit_code:0 → this assertion PASSES (Green).
+  # Regression: if CLAUDE_CODE_VERSION is removed from the real registry's env_allow,
+  # this test goes RED — the script falls through to advisory exit-1, producing
+  # exit_code:1 in the log, and the grep below finds zero matches.
   local plugin_exit_zero
   plugin_exit_zero="$(grep -c '"type":"plugin.completed".*"exit_code":0' "$log" || true)"
 
   [ "$plugin_exit_zero" -ge 1 ] || {
-    echo "FAIL (Red Gate): check-harness-version exited non-zero through the dispatcher."
+    echo "FAIL: check-harness-version exited non-zero through the dispatcher."
     echo ""
-    echo "This means CLAUDE_CODE_VERSION was stripped by the exec_subprocess env-clear gate."
-    echo "The script could not see the version and fell through to the advisory exit-1 path."
+    echo "CLAUDE_CODE_VERSION=2.1.177 was exported into the dispatcher process but the"
+    echo "script could not see it — the exec_subprocess env-clear gate stripped it."
     echo ""
-    echo "Root cause (F-S1800-P7-001 / F-S1800-P8-001):"
-    echo "  [hooks.capabilities.exec_subprocess] env_allow does NOT include CLAUDE_CODE_VERSION"
-    echo "  or CLAUDE_VERSION. The dispatcher strips all env vars not in env_allow before"
-    echo "  spawning the bash subprocess. Result: script always exits 1 in production."
+    echo "This means CLAUDE_CODE_VERSION and/or CLAUDE_VERSION is MISSING from the"
+    echo "production registry's env_allow (regression against commit afbb0d4c)."
     echo ""
-    echo "Fix (implementer): add CLAUDE_CODE_VERSION and CLAUDE_VERSION to both"
-    echo "  [hooks.capabilities] env_allow AND [hooks.capabilities.exec_subprocess] env_allow"
-    echo "  in plugins/vsdd-factory/hooks-registry.toml (around line 1254 and 1259)."
+    echo "Registry read: $real_plugin_root/hooks-registry.toml"
+    echo "  Check [hooks.capabilities] env_allow and [hooks.capabilities.exec_subprocess]"
+    echo "  env_allow for the check-harness-version entry (~line 1254 and 1259)."
+    echo "  Both arrays must include CLAUDE_CODE_VERSION and CLAUDE_VERSION."
     echo ""
-    echo "CLAUDE_CODE_VERSION exported into dispatcher: 2.1.177 (>= threshold v2.1.105)"
-    echo "Expected: plugin.completed with exit_code:0 (script reached supported-version path)"
+    echo "Expected: plugin.completed with exit_code:0 (version supported path)"
     echo "Actual: no plugin.completed with exit_code:0 found in log"
     echo ""
     echo "Log entries:"
