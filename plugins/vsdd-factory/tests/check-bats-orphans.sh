@@ -22,6 +22,24 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 BATS_DIR="$SCRIPT_DIR"
 HOOKS_DIR="$(cd "$SCRIPT_DIR/../hooks" && pwd)"
 
+# Hook names that are test-only fixtures (live in tests/fixtures/, not hooks/).
+# Bats tests reference them as `hooks/<name>.sh` because they are created
+# dynamically inside $WORK/hooks/ at test runtime — the real files are NOT
+# in hooks/ and must NOT be treated as orphan references.
+TEST_FIXTURE_NAMES=(
+  stub-exit0
+  stub-exit2
+)
+
+is_test_fixture() {
+  local name="$1"
+  local f
+  for f in "${TEST_FIXTURE_NAMES[@]}"; do
+    [[ "$name" == "$f.sh" ]] && return 0
+  done
+  return 1
+}
+
 orphans_found=0
 
 while IFS= read -r bats_file; do
@@ -33,6 +51,10 @@ while IFS= read -r bats_file; do
     # Extract just the <name>.sh portion from the match
     hook_name="$(printf '%s' "$match" | grep -oE 'hooks/[A-Za-z0-9_-]+\.sh' | sed 's|hooks/||' | head -1)"
     [ -z "$hook_name" ] && continue
+
+    # Skip known test-fixture hooks that live in tests/fixtures/ rather than
+    # hooks/ — they are created dynamically in $WORK/hooks/ at test runtime.
+    is_test_fixture "$hook_name" && continue
 
     hook_path="$HOOKS_DIR/$hook_name"
     if [ ! -f "$hook_path" ]; then

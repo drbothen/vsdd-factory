@@ -281,7 +281,7 @@ _require_script() {
 #
 # The production fix (afbb0d4c) added CLAUDE_CODE_VERSION and CLAUDE_VERSION to
 # both [hooks.capabilities] env_allow and [hooks.capabilities.exec_subprocess]
-# env_allow in the real registry entry (lines 1254 and 1259). With that fix in
+# env_allow arrays in the real registry's check-harness-version entry. With that fix in
 # place, the dispatcher forwards CLAUDE_CODE_VERSION through the exec_subprocess
 # env-clear gate and the script exits 0 (supported version). This test is GREEN
 # against the fixed production registry.
@@ -327,8 +327,8 @@ _require_dispatcher_artifacts() {
   _require_dispatcher_artifacts
 
   # Point CLAUDE_PLUGIN_ROOT at the REAL production plugin root so the dispatcher
-  # reads the actual hooks-registry.toml (with the fixed env_allow at lines 1254
-  # and 1259 per commit afbb0d4c). The real hooks/ and hook-plugins/ subdirectories
+  # reads the actual hooks-registry.toml (with the fixed env_allow per commit afbb0d4c).
+  # The real hooks/ and hook-plugins/ subdirectories
   # are resolved relative to CLAUDE_PLUGIN_ROOT, so the production script and WASM
   # are used directly — no copying, no frozen fixture.
   #
@@ -402,8 +402,8 @@ _require_dispatcher_artifacts() {
     echo "production registry's env_allow (regression against commit afbb0d4c)."
     echo ""
     echo "Registry read: $real_plugin_root/hooks-registry.toml"
-    echo "  Check [hooks.capabilities] env_allow and [hooks.capabilities.exec_subprocess]"
-    echo "  env_allow for the check-harness-version entry (~line 1254 and 1259)."
+    echo "  Check the [hooks.capabilities] env_allow and [hooks.capabilities.exec_subprocess]"
+    echo "  env_allow arrays for the 'check-harness-version' entry."
     echo "  Both arrays must include CLAUDE_CODE_VERSION and CLAUDE_VERSION."
     echo ""
     echo "Expected: plugin.completed with exit_code:0 (version supported path)"

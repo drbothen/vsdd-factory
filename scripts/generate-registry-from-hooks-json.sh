@@ -83,9 +83,6 @@ POST_HISTORICAL_SCRIPTS=(
 # validate-policies-schema WASM hook to read. It is not a dispatcher hook.
 NON_HOOK_SCRIPTS=(
   update-cargo-audit-cache
-  # S-18.00: bats test fixture stubs — test-only helpers, not dispatcher hook plugins.
-  stub-exit0
-  stub-exit2
 )
 
 # Allow-list of hook basenames that MUST block on plugin error rather
