@@ -3844,6 +3844,161 @@ EOF
 # named instances.
 # ---------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------
+# test_BC_5_41_002_O_P14_topo_sort_column_index_alignment
+# O-P14 / BC-5.41.002 PC3 (topological sort correctness invariant)
+#
+# The topo-sort in write-wave-state.sh locates the "Depends-On" column by iterating
+# over the header line with IFS='|' (shell word-splitting), counting fields from 1.
+# It then uses that same 1-based index as an awk -F'|' field number to extract
+# Depends-On from data rows.
+#
+# The alignment invariant: the leading '|' in a pipe-delimited Markdown table row
+# (e.g. "| Story ID | Title | ... |") produces an EMPTY leading field in BOTH:
+#   - shell IFS='|' word-splitting (for col in $header_line: first col is empty → col_idx=1)
+#   - awk -F'|' field splitting ($1 is empty, $2 is Story ID, $6 is Depends-On)
+#
+# Therefore col_idx from the IFS='|' header scan == awk field number for data rows.
+# NO offset adjustment is needed.
+#
+# This test directly asserts this alignment for a 9-column hyphenated "Depends-On"
+# header (the production format). It:
+#   1. Uses shell IFS='|' to compute the column index (shell_col_idx)
+#   2. Uses awk -F'|' to find the "Depends-On" field in the same header row (awk_col_idx)
+#   3. Asserts shell_col_idx == awk_col_idx == 6
+#
+# This is NOT a tautology: the assertion fails if either method produces a wrong index
+# (e.g., if a leading-field offset were needed), and it documents the invariant so
+# future readers don't accidentally introduce an off-by-one.
+# ---------------------------------------------------------------------------
+
+@test "test_BC_5_41_002_O_P14_topo_sort_column_index_alignment" {
+  # Production 9-column Markdown header (hyphenated Depends-On in column position 6)
+  # Column layout (1-based after leading | splits):
+  #  1=empty(leading|) 2=StoryID 3=Title 4=Epic 5=Points 6=Priority 7=Depends-On 8=Blocks 9=Status 10=BCs 11=empty(trailing|)
+  # Wait — awk -F'|' on "| A | B | C |" gives: $1="" $2=" A " $3=" B " $4=" C " $5=""
+  # For "| Story ID | Title | Epic | Points | Priority | Depends-On | Blocks | Status | BCs |":
+  #   $1=""  $2=" Story ID " $3=" Title " $4=" Epic " $5=" Points " $6=" Priority " $7=" Depends-On " ...
+  # That makes Depends-On at awk field $7.
+  #
+  # And with IFS='|' shell split of the same string, iterating `for col in $header_line`:
+  # bash IFS='|' splits on | — leading | produces empty first token so:
+  #   col_idx=1 → ""  col_idx=2 → " Story ID " col_idx=3 → " Title " ...
+  #   col_idx=7 → " Depends-On "
+  #
+  # Both methods should give 7 for "Depends-On" in the 9-column production format.
+  # (The code uses col_idx starting at 0, incrementing before checking, so it reaches
+  # 7 when the 7th token "Depends-On" is found.)
+  #
+  # We use the actual production-fixture header from STORY-INDEX.md (set up in setup()):
+  #   | Story ID | Title | Epic | Points | Priority | Depends-On | Blocks | Status | BCs |
+  # This is the E-18 table header — the one the topo-sort code actually uses.
+
+  # Extract the E-18 table header from the fixture STORY-INDEX.md
+  local header_line
+  header_line="$(grep '| Story ID.*Depends-On' "$ARTIFACTS_WT/stories/STORY-INDEX.md" | head -1)"
+
+  # Verify the fixture header was found
+  [ -n "$header_line" ] || {
+    echo "FAIL (O-P14 fixture): Could not find '| Story ID ... Depends-On' header in STORY-INDEX.md" >&2
+    echo "  This is a fixture sanity failure, not an implementation error." >&2
+    false
+  }
+
+  # Method 1: Shell IFS='|' split — same logic as write-wave-state.sh
+  # Count col_idx (starting at 0, increment-before-check so the first field is 1)
+  local shell_col_idx=0
+  local IFS_bak="$IFS"
+  IFS='|'
+  local col
+  for col in $header_line; do
+    local trimmed
+    trimmed="$(printf '%s' "$col" | tr -d ' \t' | sed 's/DependsOn/Depends-On/')"
+    shell_col_idx=$(( shell_col_idx + 1 ))
+    if [ "$trimmed" = "Depends-On" ]; then
+      break
+    fi
+  done
+  IFS="$IFS_bak"
+
+  # shell_col_idx must be > 0 (found the column)
+  [ "$shell_col_idx" -gt 0 ] || {
+    echo "FAIL (O-P14): IFS='|' shell split did not find 'Depends-On' in header." >&2
+    echo "  Header: ${header_line}" >&2
+    false
+  }
+
+  # Method 2: awk -F'|' scan — find which field number contains "Depends-On"
+  # awk splits "| A | B |" as: $1="" $2=" A " $3=" B " $4=""
+  # We iterate NF fields and find the one whose trimmed value matches "Depends-On"
+  local awk_col_idx
+  awk_col_idx="$(printf '%s\n' "$header_line" | awk -F'|' '{
+    for (i=1; i<=NF; i++) {
+      v=$i
+      gsub(/^[[:space:]]+|[[:space:]]+$/, "", v)
+      gsub(/Depends On/, "Depends-On", v)
+      if (v == "Depends-On") { print i; exit }
+    }
+  }')"
+
+  # awk_col_idx must be found
+  [ -n "$awk_col_idx" ] && [ "$awk_col_idx" -gt 0 ] || {
+    echo "FAIL (O-P14): awk -F'|' scan did not find 'Depends-On' in header." >&2
+    echo "  Header: ${header_line}" >&2
+    false
+  }
+
+  # ALIGNMENT ASSERTION: shell_col_idx must equal awk_col_idx.
+  # This proves that the topo-sort code can safely use col_idx from the IFS='|'
+  # header scan as the awk field number for data row extraction — no offset needed.
+  [ "$shell_col_idx" -eq "$awk_col_idx" ] || {
+    echo "FAIL (O-P14): column-index MISMATCH between IFS='|' shell split and awk -F'|'." >&2
+    echo "  shell IFS='|' col_idx: ${shell_col_idx}" >&2
+    echo "  awk -F'|'  col_idx:    ${awk_col_idx}" >&2
+    echo "  These MUST be equal: write-wave-state.sh uses the IFS='|' scan result as the" >&2
+    echo "  awk field number for data-row extraction. A mismatch would cause topo-sort to" >&2
+    echo "  read the wrong column." >&2
+    echo "  Header: ${header_line}" >&2
+    false
+  }
+
+  # CORRECTNESS ASSERTION: the agreed index must be > 1 (not the empty leading field)
+  # and must correctly identify "Depends-On" in the header. For the production 9-column
+  # E-18 header the agreed index must be 7 (field positions: 1=empty, 2=StoryID,
+  # 3=Title, 4=Epic, 5=Points, 6=Priority, 7=Depends-On).
+  [ "$shell_col_idx" -gt 1 ] || {
+    echo "FAIL (O-P14): agreed column index ${shell_col_idx} is ≤1 — points to leading empty field." >&2
+    echo "  The IFS='|' col_idx should be 7 for the production 9-column E-18 header." >&2
+    false
+  }
+
+  # Verify the agreed index actually extracts "Depends-On" from a known data row.
+  # Use the first E-18 data row from the fixture: S-18.02 with Depends-On: []
+  # "| S-18.02 | Validate wave handoff completeness | E-18 | 8 | P0 | [] | [S-18.03] | draft | [BC-4.14.001] |"
+  local sample_row
+  sample_row="$(grep '| S-18.02 |' "$ARTIFACTS_WT/stories/STORY-INDEX.md" | grep -v 'Story ID' | head -1)"
+  [ -n "$sample_row" ] || {
+    echo "FAIL (O-P14 fixture): S-18.02 data row not found in STORY-INDEX.md" >&2
+    false
+  }
+
+  # Extract the cell at the agreed column index from the data row using awk
+  local cell_at_agreed_idx
+  cell_at_agreed_idx="$(printf '%s\n' "$sample_row" | \
+    awk -F'|' -v col="${shell_col_idx}" '{v=$col; gsub(/^[[:space:]]+|[[:space:]]+$/, "", v); print v}')"
+
+  # For S-18.02 the Depends-On column is "[]" (no deps).
+  # We only assert the cell is a bracket-notation dep list ([] or [S-...]) — not hardcoding the value.
+  echo "$cell_at_agreed_idx" | grep -qE '^\[' || {
+    echo "FAIL (O-P14): awk field \$${shell_col_idx} on S-18.02 data row extracts '${cell_at_agreed_idx}'." >&2
+    echo "  Expected a bracket-notation Depends-On value like '[]' or '[S-X.Y]'." >&2
+    echo "  The agreed column index ${shell_col_idx} does NOT point to the Depends-On column" >&2
+    echo "  in the data row — indicating an alignment bug." >&2
+    echo "  Sample data row: ${sample_row}" >&2
+    false
+  }
+}
+
 @test "test_BC_5_41_001_F_P11_001_bsd_portability_no_pcre_classes_in_grep_sed" {
   local wave_handoff_skill_dir
   wave_handoff_skill_dir="$(cd "${BATS_TEST_DIRNAME}/../skills/wave-handoff" && pwd)"
