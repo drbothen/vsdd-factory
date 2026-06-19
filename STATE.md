@@ -393,7 +393,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** `[D-651-SHA — update after commit]` (D-651 S-18.02 POST-MERGE HEAD; prior: `e764123d` D-650 checkpoint-hardening HEAD)
+- **factory-artifacts HEAD:** `49061aa7` (D-651 S-18.02 POST-MERGE HEAD; prior: `e764123d` D-650 checkpoint-hardening HEAD)
 - **develop HEAD:** `bd6e50ce` (S-18.02 PR #195 SQUASH-MERGED 2026-06-19; prior: `8b26a0fe` S-18.01 PR #193 SQUASH-MERGED 2026-06-19)
 - **main HEAD:** `caf06c68` (rc.21 bot bundle commit 2026-06-13; UNCHANGED)
 - **v1.0.0-rc.21 tag:** `03054524` (SHIPPED; FULLY IN OPERATOR MARKETPLACE)
