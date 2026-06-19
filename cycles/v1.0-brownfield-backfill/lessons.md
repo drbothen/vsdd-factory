@@ -4717,3 +4717,27 @@ Run assertions as: `yq '.stories | length' output.yaml` → expected count; `yq 
 **Consequence if violated:** Attempting to converge a shell skill with cross-platform requirements on fewer than ~8–12 adversary passes is unlikely to surface the silent-failure / portability class — those defects require a fresh-context adversary who probes BSD semantics explicitly. Shallow cascades (< 5 passes) on complex shell skills will systematically miss this class, producing production failures on macOS/BSD environments.
 
 **Cites:** D-645; BC-5.39.001 3-CLEAN streak 3/3 CONVERGED; feature/S-18.01 @ c99b8a1f; BC-5.41.001 v1.21; BC-5.41.002 v1.14; ADR-027 v1.1; S-18.01 v1.9; L-S18-sibling-sweep-must-cross-file-and-tool (D-643); passes 1–15 arc.
+
+---
+
+## L-S18-macos-ci-leg-caught-runtime-portability-the-static-lint-missed
+
+**Date:** 2026-06-19
+**Tags:** [process-gap] [portability] [ci]
+**Anchors:** D-648, PR #193, E-18 F4 Wave 2 S-18.01, +4 CI portability fixes
+
+**Lesson (codified):** The LOCAL adversary cascade's static portability-lint guard (L-S18-sibling-sweep-must-cross-file-and-tool, D-643) correctly identified and fixed BSD-incompatible `\s`/`\S` in grep/awk callsites across all files. However, the cascade's static analysis scope did NOT cover runtime portability issues that only manifest at execution: (1) `local -A` associative arrays require bash 4+ (bash 3.2 is the system default on macOS); (2) global `IFS=` mutations in shell functions are flagged by SAST tools (ifs-tampering) and can produce unexpected cross-platform behavior; (3) Python runtime dependencies (PyYAML) must be declared and installed in CI with PEP 668 compatibility (`--break-system-packages` or virtual env). The macOS CI leg (added at pass-11 as fix F-P11-002) subsequently caught ALL FOUR of these issues during the PR CI gate — AFTER the LOCAL cascade had converged at 3-CLEAN.
+
+**Root cause:** Static lint coverage (grep-class portability) and runtime execution coverage (bash-version-feature availability, IFS mutation, Python runtime deps) are distinct checks. A 15-pass LOCAL adversary cascade with static analysis is insufficient to surface runtime portability issues — only an actual execution on the target platform catches them. The macOS CI leg is therefore load-bearing, not redundant.
+
+**Gate (codified):** The portability discipline for shell skills MUST extend beyond POSIX character-class regex checks to include:
+
+1. **Bash-version-feature gating:** Any script using associative arrays (`declare -A`, `local -A`), `mapfile`/`readarray`, `[[ ... =~ ... ]]` with named groups, or other bash 4+ features MUST either (a) begin with `#!/usr/bin/env bash` + an explicit `if [[ "${BASH_VERSINFO[0]}" -lt 4 ]]; then echo ... exit 1; fi` guard, or (b) restrict to POSIX sh + POSIX-compatible tools. Absence of such a guard when bash 4+ features are used is a MEDIUM finding per the portability discipline.
+2. **IFS-mutation avoidance:** `IFS=<delim>` assignments inside functions MUST be scoped with `local IFS=...` or replaced with `awk -F'<delim>'` / `IFS='<delim>' read -ra arr` one-liner patterns. Global IFS mutation that persists across function calls is a SAST flag (ifs-tampering) and a portability risk.
+3. **Runtime-dependency declaration:** Python dependencies required by shell scripts (e.g., `python3 -c "import yaml"`) MUST be declared in CI configuration with a `pip install` step. On PEP 668 systems, `pip install --break-system-packages` or a virtual environment is required. Absence of declaration = silent CI failure on dependency-locked environments.
+
+**S-7.02 note:** This lesson captures a class NOT representable by the static adversary cascade alone — it requires runtime execution evidence. The correct enforcement mechanism is the macOS CI leg itself. This lesson vindicates the F-P11-002 CI-leg fix as load-bearing infrastructure, not a cosmetic CI addition.
+
+**Consequence if violated:** Shell skills that pass static portability lint and LOCAL adversary convergence can still fail at PR CI on macOS (and production on macOS operator environments) if runtime portability issues are not surfaced. Each missed class adds at least one CI-blocking fix iteration post-cascade. The 4-fix pattern in PR #193 (2b40dfd5 + ea7328ac + aaa8da8a + 3fe11ea1) illustrates the cost of not catching these classes earlier.
+
+**Cites:** D-648; PR #193; 2b40dfd5 (IFS→awk); ea7328ac (bash3.2 local-A guard + brew bash); aaa8da8a/3fe11ea1 (PyYAML PEP 668); F-P11-002 macOS CI leg (D-643); L-S18-sibling-sweep-must-cross-file-and-tool (D-643); E-18 F4 S-18.01 local cascade passes 1–15 CONVERGED.
