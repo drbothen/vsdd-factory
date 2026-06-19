@@ -121,10 +121,8 @@ pending_fixes: []
 process_gaps: []
 ";
     let ctx = GateContext {
-        is_first_wave: false,
         file_path: "factory-artifacts/HANDOFF.md".to_string(),
         handoff_content: Some(yaml.to_string()),
-        close_wave_mode: false,
     };
     let result = check_handoff_completeness(&ctx);
 
@@ -248,12 +246,11 @@ open_decisions: []
 pending_fixes: []
 process_gaps: []
 ";
-    // is_first_wave=false: absent wave_id is NOT treated as wave-1 (fail-closed per PC8).
+    // F-A005: wave_id absent is detected by parsing the content inside
+    // check_handoff_completeness. No external is_first_wave flag needed.
     let ctx = GateContext {
-        is_first_wave: false,
         file_path: "factory-artifacts/HANDOFF.md".to_string(),
         handoff_content: Some(yaml.to_string()),
-        close_wave_mode: false,
     };
     let result = check_handoff_completeness(&ctx);
 
@@ -309,11 +306,11 @@ open_decisions: []
 pending_fixes: []
 process_gaps: []
 ";
+    // F-A005: wave_id=0 is parsed from content; 0 != 1 so step 3 no-op
+    // does not fire; step 4/5 validation catches wave_id=0 as malformed.
     let ctx = GateContext {
-        is_first_wave: false, // wave_id=0 != 1; not treated as wave-1
         file_path: "factory-artifacts/HANDOFF.md".to_string(),
         handoff_content: Some(yaml.to_string()),
-        close_wave_mode: false,
     };
     let result = check_handoff_completeness(&ctx);
 

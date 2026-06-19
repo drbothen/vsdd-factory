@@ -370,10 +370,8 @@ fn fixture_wave2_over_200_lines() -> String {
 
 fn make_non_handoff_ctx(file_path: &str) -> GateContext {
     GateContext {
-        is_first_wave: false,
         file_path: file_path.to_string(),
         handoff_content: None, // non-HANDOFF.md → no content needed
-        close_wave_mode: false,
     }
 }
 
@@ -381,12 +379,14 @@ fn make_non_handoff_ctx(file_path: &str) -> GateContext {
 // Helper: construct a HANDOFF.md GateContext for wave_id > 1.
 // ---------------------------------------------------------------------------
 
-fn make_handoff_ctx(is_first_wave: bool, content: String) -> GateContext {
+fn make_handoff_ctx(_is_first_wave: bool, content: String) -> GateContext {
+    // F-A005: is_first_wave removed from GateContext; wave identity is derived
+    // from the parsed wave_id in handoff_content inside check_handoff_completeness.
+    // The parameter is retained in the helper signature to avoid rewriting all
+    // call sites (the test-writer owns assertion semantics; mechanical update only).
     GateContext {
-        is_first_wave,
         file_path: "factory-artifacts/HANDOFF.md".to_string(),
         handoff_content: Some(content),
-        close_wave_mode: false,
     }
 }
 
@@ -522,10 +522,8 @@ fn ac_002_epic_complete_unexpected_epic_status_on_nonfinal_blocks() {
 #[test]
 fn ac_003_wave_id_1_noop_when_not_epic_complete() {
     let ctx = GateContext {
-        is_first_wave: true,
         file_path: "factory-artifacts/HANDOFF.md".to_string(),
         handoff_content: Some(fixture_wave1_not_epic_complete()),
-        close_wave_mode: false,
     };
     let result = check_handoff_completeness(&ctx);
     assert_eq!(
@@ -632,10 +630,8 @@ fn ac_004_null_allowed_for_nullable_scalars() {
 #[test]
 fn ac_005_wave_id_absent_fails_closed() {
     let ctx = GateContext {
-        is_first_wave: false, // absent wave_id → is_first_wave=false (fail-closed)
         file_path: "factory-artifacts/HANDOFF.md".to_string(),
         handoff_content: Some(fixture_wave_id_absent()),
-        close_wave_mode: false,
     };
     let result = check_handoff_completeness(&ctx);
     assert!(
@@ -785,10 +781,8 @@ fn ac_009_handoff_missing_never_emitted_by_wasm_gate() {
     // Minimal YAML: only wave_id present (>1 to trigger full validation), all else missing.
     let yaml = "wave_id: 2\n";
     let ctx = GateContext {
-        is_first_wave: false,
         file_path: "factory-artifacts/HANDOFF.md".to_string(),
         handoff_content: Some(yaml.to_string()),
-        close_wave_mode: false,
     };
     let result = check_handoff_completeness(&ctx);
     // Must produce a block.
@@ -828,10 +822,8 @@ fn ac_010_five_step_eval_order_step2_before_step3() {
     // Step 2 (EPIC-COMPLETE) fires before step 3 (wave-1 no-op).
     // With all fields valid → Continue (EP-015 single-wave EPIC-COMPLETE happy path).
     let ctx = GateContext {
-        is_first_wave: true,
         file_path: "factory-artifacts/HANDOFF.md".to_string(),
         handoff_content: Some(fixture_wave1_epic_complete_valid_epic_status()),
-        close_wave_mode: false,
     };
     let result = check_handoff_completeness(&ctx);
     assert_eq!(
@@ -866,10 +858,8 @@ fn ac_010_five_step_eval_order_step2_before_step3() {
 #[test]
 fn ac_011_vp083_fp32_002_wave1_epic_complete_malformed_base() {
     let ctx = GateContext {
-        is_first_wave: true,
         file_path: "factory-artifacts/HANDOFF.md".to_string(),
         handoff_content: Some(fixture_vp083_discriminating_wave1_epic_complete_malformed_base()),
-        close_wave_mode: false,
     };
     let result = check_handoff_completeness(&ctx);
     assert!(
@@ -1040,7 +1030,7 @@ fn helper_is_epic_complete_false_when_next_wave_stories_nonempty() {
 #[test]
 fn helper_validate_base_fields_happy_path() {
     let yaml = fixture_wave2_all_fields_present();
-    let result = validate_base_fields(&yaml, false);
+    let result = validate_base_fields(&yaml);
     assert!(
         result.is_ok(),
         "validate_base_fields must not error on valid YAML"
@@ -1057,7 +1047,7 @@ fn helper_validate_base_fields_happy_path() {
 #[test]
 fn helper_validate_base_fields_reports_empty_vec_on_success() {
     let yaml = fixture_wave3_all_fields_present();
-    let result = validate_base_fields(&yaml, false);
+    let result = validate_base_fields(&yaml);
     assert!(
         result.is_ok(),
         "validate_base_fields must not error on wave_id=3 valid YAML"
@@ -1114,10 +1104,8 @@ pending_fixes: []
 process_gaps: []
 ";
     let ctx = GateContext {
-        is_first_wave: false,
         file_path: "factory-artifacts/HANDOFF.md".to_string(),
         handoff_content: Some(yaml.to_string()),
-        close_wave_mode: false,
     };
     let result = check_handoff_completeness(&ctx);
     assert!(
@@ -1153,10 +1141,8 @@ process_gaps: []
 #[test]
 fn vp_083_wave_1_no_op_not_epic_complete() {
     let ctx = GateContext {
-        is_first_wave: true,
         file_path: "factory-artifacts/HANDOFF.md".to_string(),
         handoff_content: Some(fixture_wave1_not_epic_complete()),
-        close_wave_mode: false,
     };
     let result = check_handoff_completeness(&ctx);
     assert_eq!(
@@ -1174,10 +1160,8 @@ fn vp_083_wave_1_no_op_not_epic_complete() {
 fn vp_083_non_handoff_write_is_noop_regardless_of_wave() {
     // wave_id > 1 context, but path is not HANDOFF.md → no-op.
     let ctx = GateContext {
-        is_first_wave: false,
         file_path: "factory-artifacts/lessons.md".to_string(),
         handoff_content: None,
-        close_wave_mode: false,
     };
     let result = check_handoff_completeness(&ctx);
     assert_eq!(
@@ -1222,10 +1206,8 @@ process_gaps: []
     // wave_id=0 cannot be the first wave (0 is not a positive integer), so
     // is_first_wave=false (fail-closed). The gate must treat wave_id:0 as malformed.
     let ctx = GateContext {
-        is_first_wave: false,
         file_path: "factory-artifacts/HANDOFF.md".to_string(),
         handoff_content: Some(yaml.to_string()),
-        close_wave_mode: false,
     };
     let result = check_handoff_completeness(&ctx);
     assert!(
@@ -1269,10 +1251,8 @@ pending_fixes: []
 process_gaps: []
 ";
     let ctx = GateContext {
-        is_first_wave: false,
         file_path: "factory-artifacts/HANDOFF.md".to_string(),
         handoff_content: Some(yaml.to_string()),
-        close_wave_mode: false,
     };
     let result = check_handoff_completeness(&ctx);
     assert!(
@@ -1418,10 +1398,8 @@ pending_fixes: []
 process_gaps: []
 ";
     let ctx = GateContext {
-        is_first_wave: false,
         file_path: "factory-artifacts/HANDOFF.md".to_string(),
         handoff_content: Some(yaml.to_string()),
-        close_wave_mode: false,
     };
     let result = check_handoff_completeness(&ctx);
     assert!(
@@ -1533,12 +1511,12 @@ open_decisions: []
 pending_fixes: []
 process_gaps: []
 ";
-    // is_first_wave=false: absent wave_id is NOT treated as wave-1 (fail-closed per PC8).
+    // F-A005: wave_id absent is detected by parsing the content, not from an
+    // external is_first_wave flag. Absent wave_id → wave_id key not in mapping →
+    // parsed_wave_id returns None → fail-closed path (step 5 per INV3).
     let ctx = GateContext {
-        is_first_wave: false,
         file_path: "factory-artifacts/HANDOFF.md".to_string(),
         handoff_content: Some(yaml.to_string()),
-        close_wave_mode: false,
     };
     let result = check_handoff_completeness(&ctx);
     assert!(

@@ -15,7 +15,10 @@
 //! 1. Non-HANDOFF.md target → no-op (Continue). AC-001 / PC4.
 //! 2. `next_wave_stories: []` (EPIC-COMPLETE) → validate `epic_status: complete`. AC-002 / PC2a.
 //! 3. `wave_id == 1` AND NOT EPIC-COMPLETE → no-op (Continue). AC-003 / PC3.
-//! 4. `wave_id > 1` → full validation of all 9 base required fields. AC-004 / PC7.
+//!    Returns Continue WITHOUT inspecting `epic_status` — `UnexpectedEpicStatus` does
+//!    NOT fire here (F-A003 / BC-4.14.001 INV3 / ADR-026 §Decision 9 v1.16).
+//! 4. `wave_id > 1` → full validation of all 9 base required fields;
+//!    `UnexpectedEpicStatus` evaluated HERE (not at step 3). AC-004 / PC7.
 //! 5. `wave_id` absent → fail-closed (Continue is NOT returned). AC-005 / PC3+PC8.
 //!
 //! # Architecture compliance
@@ -31,6 +34,12 @@
 //! - No dependency on `crates/factory-dispatcher` (would create circular dep).
 //! - `wave_id` must be a positive integer (>= 1); 0 and negative values are
 //!   MALFORMED per BC-4.14.001 PC7 / EC-017.
+//! - YAML is parsed ONCE per invocation and threaded through helpers (F-A006).
+//!   A YAML parse error blocks with `HandoffIncomplete: YAML parse error: <msg>`
+//!   BEFORE the wave-1 no-op short-circuit (EC-001): malformed YAML never
+//!   silently continues.
+//! - `UnexpectedEpicStatus` fires ONLY at step 4 (wave_id>1 writes). It does NOT
+//!   fire at step 3 (wave_id==1 no-op path) per BC-4.14.001 INV3 / F-A003.
 
 use vsdd_hook_sdk::{HookPayload, HookResult};
 
@@ -53,27 +62,19 @@ pub const MAX_BYTES: u32 = 524_288;
 /// Decouples the pure gate logic from the WASM dispatcher protocol so the
 /// evaluation function can be unit-tested without a WASM runtime.
 ///
-/// `is_first_wave` is computed PAYLOAD-ONLY by the caller before invoking
-/// `check_handoff_completeness`: `is_first_wave = (payload.wave_id == 1)`.
-/// A missing `wave_id` is represented as `is_first_wave = false` (absent
-/// `wave_id` is NOT treated as wave-1 — fail-closed per BC-4.14.001 PC3/PC8).
+/// Wave-1 identity is derived PAYLOAD-ONLY inside `check_handoff_completeness`
+/// by parsing `wave_id` from `handoff_content` (F-A005). No external `is_first_wave`
+/// flag is needed — the pure core computes it from the payload content, eliminating
+/// the mis-wiring vector identified in VP-083 F-P34-002.
 ///
 /// `handoff_content` holds the raw YAML string being validated, or `None`
 /// when the tool call did not target a HANDOFF.md path (non-HANDOFF.md no-op).
-///
-/// `close_wave_mode` is always unused by the pure gate (the gate is a pure
-/// PostToolUse write-time check). Retained for struct-literal compatibility in
-/// call sites that set it to `false`.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GateContext {
-    /// Derived from `payload.wave_id == 1` (payload-only; BC-4.14.001 PC3).
-    pub is_first_wave: bool,
     /// Absolute or relative path of the file being written/edited.
     pub file_path: String,
     /// Raw YAML content being written. `None` signals non-HANDOFF.md target.
     pub handoff_content: Option<String>,
-    /// Always `false`; unused by the pure gate. Retained for call-site compatibility.
-    pub close_wave_mode: bool,
 }
 
 /// Result of the pure gate evaluation.
@@ -84,7 +85,8 @@ pub struct GateContext {
 /// `Block.code` carries the machine-readable error code:
 /// - `"HandoffIncomplete"` — one or more required base fields are missing or malformed.
 /// - `"MissingEpicStatus"` — EPIC-COMPLETE write is missing `epic_status: complete`.
-/// - `"UnexpectedEpicStatus"` — non-final wave write includes `epic_status` (forbidden).
+/// - `"UnexpectedEpicStatus"` — non-final wave write (wave_id>1) includes `epic_status`
+///   (forbidden). NOT emitted at step 3 (wave_id==1 no-op) per F-A003.
 ///
 /// `Block.message` carries the human-readable message listing all failing fields
 /// in deterministic ADR-026 §D2 schema order (BC-4.14.001 INV2, INV4).
@@ -145,17 +147,20 @@ const LIST_FIELDS: &[&str] = &[
 ///
 /// Step 1: Non-HANDOFF.md target → `GateResult::Continue` (no-op).
 /// Step 2: EPIC-COMPLETE detection (`next_wave_stories: []`) → validate
-///         `epic_status: complete` and base scalar fields; return appropriate
-///         `GateResult`.
+///         `epic_status: complete` and base fields; return appropriate `GateResult`.
 /// Step 3: `wave_id == 1` AND NOT EPIC-COMPLETE → `GateResult::Continue` (no-op).
-/// Step 4: `wave_id > 1` → full validation of all 9 base required fields.
+///         Returns Continue WITHOUT inspecting `epic_status`. `UnexpectedEpicStatus`
+///         does NOT fire here (F-A003 / BC-4.14.001 INV3 v1.16 adjudication).
+/// Step 4: `wave_id > 1` → full validation of all 9 base required fields;
+///         `UnexpectedEpicStatus` evaluated HERE (not between step 2 and step 3).
 /// Step 5: `wave_id` absent → fail-closed (full validation runs; at minimum
 ///         `HandoffIncomplete: [wave_id]`).
 ///
-/// EPIC-COMPLETE is derived from `handoff_content.next_wave_stories == []`
-/// (payload-parse), NOT from `ctx.is_first_wave`. `is_first_wave` MUST NOT
-/// short-circuit the EPIC-COMPLETE branch (step 2 precedes step 3 per INV3;
-/// F-P34-002 clarifying note in VP-083).
+/// YAML is parsed ONCE (F-A006 / EC-001). A parse error blocks with
+/// `HandoffIncomplete: YAML parse error: <msg>` BEFORE any no-op short-circuit.
+///
+/// Wave-1 identity is derived from the parsed `wave_id` field (F-A005 /
+/// BC-4.14.001 PC3): the caller does not need to set `is_first_wave` externally.
 ///
 /// All validation is performed on the in-memory YAML parse result only (INV1).
 /// No filesystem, git, or sprint-state.yaml access is performed.
@@ -179,19 +184,72 @@ pub fn check_handoff_completeness(ctx: &GateContext) -> GateResult {
         emit_over_200_line_advisory(line_count);
     }
 
-    // Step 2: EPIC-COMPLETE detection (payload-parse only, per INV1 / PC2a).
+    // F-A006: Parse YAML ONCE. Surface parse errors BEFORE the wave-1 no-op
+    // short-circuit (EC-001). A malformed YAML payload must NEVER silently
+    // return Continue via `unwrap_or(false)` fallbacks on a parse error.
+    let parsed = match serde_norway::from_str::<serde_norway::Value>(content) {
+        Ok(v) => v,
+        Err(e) => {
+            return GateResult::Block {
+                code: "HandoffIncomplete",
+                message: format!("HandoffIncomplete: YAML parse error: {e}"),
+            };
+        }
+    };
+
+    // Step 2: EPIC-COMPLETE detection (from pre-parsed value, per INV1 / PC2a).
     // EPIC-COMPLETE = next_wave_stories: [] in the HANDOFF.md payload.
     // Step 2 precedes step 3 — even wave_id==1 goes through EPIC-COMPLETE path.
-    let epic_complete = is_epic_complete(content).unwrap_or(false);
+    let epic_complete = mapping_is_epic_complete(&parsed);
 
     if epic_complete {
         // Step 2 EPIC-COMPLETE branch: validate epic_status, THEN full base fields.
-        return validate_epic_complete_handoff(content);
+        return validate_epic_complete_handoff(&parsed);
     }
 
-    // Check for UnexpectedEpicStatus: non-EPIC-COMPLETE wave with epic_status present.
-    // This check runs BEFORE the wave-1 no-op step.
-    if has_epic_status_field(content) {
+    // Step 3: wave_id == 1 AND NOT EPIC-COMPLETE → no-op (PC3 / INV3 step 3).
+    //
+    // F-A003 (BC-4.14.001 v1.16 / ADR-026 §Decision 9): This step returns
+    // Continue WITHOUT inspecting epic_status. A wave_id:1 + non-EPIC-COMPLETE +
+    // epic_status:present payload returns Continue here. The UnexpectedEpicStatus
+    // check does NOT fire at step 3 — it is a step-4 check for wave_id>1 writes.
+    //
+    // F-A005: Wave-1 identity is derived from the parsed wave_id (not from an
+    // external is_first_wave flag). `parsed_wave_id` returns `Some(Ok(1))` when
+    // wave_id is the integer 1.
+    let wave_id_val = parsed_wave_id(&parsed);
+    if let Some(Ok(1)) = wave_id_val {
+        return GateResult::Continue;
+    }
+
+    // Steps 4 & 5: wave_id > 1, wave_id malformed (0/negative/non-integer),
+    // or wave_id absent → full validation.
+    //
+    // F-A003: UnexpectedEpicStatus is evaluated HERE (step 4 / INV3), not
+    // between step 2 and step 3.
+    //
+    // F-A004: when wave_id is present-but-invalid (0, negative, non-integer)
+    // and is the only failing field, the gate emits the exact BC-specified
+    // message: "HandoffIncomplete: wave_id must be a positive integer"
+    // (not the generic multi-field list format).
+    validate_step4_or_5(&parsed)
+}
+
+// ---------------------------------------------------------------------------
+// Step 4/5 validation (wave_id>1 or absent/malformed)
+// ---------------------------------------------------------------------------
+
+/// Run step 4/5 validation from a pre-parsed YAML value.
+///
+/// Called after step 3 short-circuit check determines wave_id != 1.
+/// Covers:
+///   - wave_id > 1 (step 4): full base-field validation + UnexpectedEpicStatus check.
+///   - wave_id malformed (0/-1/non-int, step 5a): wave_id fails as malformed scalar.
+///   - wave_id absent (step 5): full validation includes wave_id as missing.
+fn validate_step4_or_5(parsed: &serde_norway::Value) -> GateResult {
+    // F-A003: UnexpectedEpicStatus at step 4. epic_status must be absent on
+    // non-final waves reaching this step (wave_id>1 or malformed/absent).
+    if mapping_has_epic_status(parsed) {
         return GateResult::Block {
             code: "UnexpectedEpicStatus",
             message: "HandoffIncomplete: unexpected field epic_status on non-final wave"
@@ -199,62 +257,57 @@ pub fn check_handoff_completeness(ctx: &GateContext) -> GateResult {
         };
     }
 
-    // Step 3: wave_id == 1 AND NOT EPIC-COMPLETE → no-op (PC3 / INV3 step 3).
-    if ctx.is_first_wave {
+    let failing = collect_failing_base_fields(parsed);
+
+    if failing.is_empty() {
         return GateResult::Continue;
     }
 
-    // Steps 4 & 5: wave_id > 1 OR wave_id absent → full validation.
-    // When wave_id is absent, is_first_wave = false (fail-closed per PC3/PC8).
-    // Full validation will catch missing wave_id and any other missing fields.
-    run_full_base_validation(content)
-}
-
-/// Execute full 9-base-field validation and return a GateResult.
-fn run_full_base_validation(content: &str) -> GateResult {
-    let failing = match validate_base_fields(content, false) {
-        Ok(fields) => fields,
-        Err(parse_err) => {
-            // YAML parse error — fail-closed: surface the parse error message
-            // (EC-001) so callers see the actual failure instead of a generic
-            // all-9-fields message.
-            return GateResult::Block {
-                code: "HandoffIncomplete",
-                message: format!("HandoffIncomplete: YAML parse error: {parse_err}"),
-            };
-        }
-    };
-
-    if failing.is_empty() {
-        GateResult::Continue
-    } else {
-        GateResult::Block {
+    // F-A004 (BC-4.14.001 PC7 / EC-017): when wave_id is the sole failing field
+    // AND it is present-but-invalid (not absent), emit the exact canonical message.
+    if failing == ["wave_id"]
+        && parsed
+            .as_mapping()
+            .map(|m| m.contains_key("wave_id"))
+            .unwrap_or(false)
+    {
+        // wave_id key present but value not a positive integer (0, -1, non-int).
+        return GateResult::Block {
             code: "HandoffIncomplete",
-            message: format!(
-                "HandoffIncomplete: required fields missing or malformed: [{}]",
-                failing.join(", ")
-            ),
-        }
+            message: "HandoffIncomplete: wave_id must be a positive integer".to_string(),
+        };
+    }
+
+    GateResult::Block {
+        code: "HandoffIncomplete",
+        message: format!(
+            "HandoffIncomplete: required fields missing or malformed: [{}]",
+            failing.join(", ")
+        ),
     }
 }
 
-/// Validate an EPIC-COMPLETE HANDOFF.md write.
+// ---------------------------------------------------------------------------
+// EPIC-COMPLETE branch (step 2)
+// ---------------------------------------------------------------------------
+
+/// Validate an EPIC-COMPLETE HANDOFF.md write (step 2).
 ///
 /// Per BC-4.14.001 PC2a + ADR-026 §Decision 9:
-/// 1. Validate `epic_status: complete` (MissingEpicStatus or HandoffIncomplete).
-/// 2. If valid, continue to full 9-base-field validation (augments, not replaces).
-fn validate_epic_complete_handoff(content: &str) -> GateResult {
+/// 1. Validate `epic_status: complete`. If absent → MissingEpicStatus.
+///    If present but not "complete" → HandoffIncomplete: epic_status malformed.
+/// 2. If epic_status valid → continue to full 9-base-field validation.
+///    This augments (does NOT replace) base-field validation.
+fn validate_epic_complete_handoff(parsed: &serde_norway::Value) -> GateResult {
     // Check epic_status presence and value.
-    match get_epic_status_value(content) {
+    match mapping_epic_status_value(parsed) {
         None => {
-            // epic_status absent → MissingEpicStatus.
             return GateResult::Block {
                 code: "MissingEpicStatus",
                 message: "HandoffIncomplete: epic_status required on EPIC-COMPLETE wave (next_wave_stories: [])".to_string(),
             };
         }
         Some(status) if status.trim() != "complete" => {
-            // epic_status present but not "complete" → HandoffIncomplete: epic_status malformed.
             return GateResult::Block {
                 code: "HandoffIncomplete",
                 message: "HandoffIncomplete: epic_status malformed — must be 'complete'"
@@ -268,15 +321,7 @@ fn validate_epic_complete_handoff(content: &str) -> GateResult {
     }
 
     // Full 9-base-field validation (EPIC-COMPLETE augments, does not replace).
-    let failing = match validate_base_fields(content, true) {
-        Ok(fields) => fields,
-        Err(parse_err) => {
-            return GateResult::Block {
-                code: "HandoffIncomplete",
-                message: format!("HandoffIncomplete: YAML parse error: {parse_err}"),
-            };
-        }
-    };
+    let failing = collect_failing_base_fields(parsed);
 
     if failing.is_empty() {
         GateResult::Continue
@@ -309,9 +354,6 @@ fn validate_epic_complete_handoff(content: &str) -> GateResult {
 /// test harnesses, permission failures, timeout), the gate FAILS OPEN and
 /// returns `HookResult::Continue`. This is consistent with the sibling plugin
 /// `validate-burst-log` and the VP-083 no-false-positive invariant.
-///
-/// Maps `GateResult::Continue` → `HookResult::Continue`.
-/// Maps `GateResult::Block { .. }` → `HookResult::block_with_fix(...)`.
 ///
 /// # Fail-open on crash (BC-4.14.001 PC6)
 ///
@@ -364,22 +406,11 @@ pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
         }
     };
 
-    // Extract wave_id from YAML content to compute is_first_wave (PAYLOAD-ONLY per PC3/PC8).
-    let is_first_wave = if let Some(ref content) = handoff_content {
-        extract_wave_id(content)
-            .ok()
-            .flatten()
-            .map(|id| id == 1)
-            .unwrap_or(false) // absent wave_id → NOT treated as wave-1 (fail-closed)
-    } else {
-        false
-    };
-
+    // F-A005: GateContext no longer carries is_first_wave — the pure core
+    // derives wave identity from the parsed wave_id in handoff_content.
     let ctx = GateContext {
-        is_first_wave,
         file_path,
         handoff_content,
-        close_wave_mode: false,
     };
 
     match check_handoff_completeness(&ctx) {
@@ -394,7 +425,7 @@ pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
 }
 
 // ---------------------------------------------------------------------------
-// YAML parse helpers (pure; WASM fuel-budget conscious)
+// YAML parse helpers (public; used by tests and by the pure core)
 // ---------------------------------------------------------------------------
 
 /// Parse the HANDOFF.md YAML string and extract the `wave_id` field as an
@@ -442,31 +473,6 @@ pub fn is_epic_complete(yaml_str: &str) -> Result<bool, String> {
     }
 }
 
-/// Check whether `epic_status` key is present in the YAML mapping.
-///
-/// Used to detect `UnexpectedEpicStatus` on non-final waves.
-fn has_epic_status_field(yaml_str: &str) -> bool {
-    let Ok(value) = serde_norway::from_str::<serde_norway::Value>(yaml_str) else {
-        return false;
-    };
-    value
-        .as_mapping()
-        .map(|m| m.contains_key("epic_status"))
-        .unwrap_or(false)
-}
-
-/// Get the string value of `epic_status` from the YAML mapping, if present.
-///
-/// Returns `None` if the key is absent. Returns `Some(String)` with the
-/// string value if present. Returns `None` if the value is not a string
-/// (which would fall through to HandoffIncomplete: malformed).
-fn get_epic_status_value(yaml_str: &str) -> Option<String> {
-    let value: serde_norway::Value = serde_norway::from_str(yaml_str).ok()?;
-    let mapping = value.as_mapping()?;
-    let v = mapping.get("epic_status")?;
-    v.as_str().map(|s| s.to_string())
-}
-
 /// Validate all 9 base required fields per ADR-026 §Decision 2 schema.
 ///
 /// Returns a `Vec<String>` of failing field names in deterministic schema order
@@ -482,17 +488,15 @@ fn get_epic_status_value(yaml_str: &str) -> Option<String> {
 ///   `pending_fixes`, `process_gaps`): key must exist; value must be a
 ///   syntactically-valid list. Empty list (`[]`) is VALID (NOT malformed).
 ///
-/// The `_epic_complete` parameter is retained for call-site compatibility but
-/// is unused: `epic_status` validation is handled upstream in
-/// `validate_epic_complete_handoff` before this function is called, so no
-/// conditional behaviour is needed here.
-pub fn validate_base_fields(yaml_str: &str, _epic_complete: bool) -> Result<Vec<String>, String> {
+/// Note (F-A005): the legacy `_epic_complete` parameter has been removed.
+/// `epic_status` validation is handled upstream in `validate_epic_complete_handoff`
+/// before this function is called, so no conditional behaviour is needed here.
+pub fn validate_base_fields(yaml_str: &str) -> Result<Vec<String>, String> {
     let value: serde_norway::Value = serde_norway::from_str(yaml_str).map_err(|e| e.to_string())?;
 
     let mapping = match value.as_mapping() {
         Some(m) => m,
         None => {
-            // If not a mapping, all base fields are missing.
             return Ok(BASE_FIELDS_ORDERED.iter().map(|f| f.to_string()).collect());
         }
     };
@@ -500,13 +504,83 @@ pub fn validate_base_fields(yaml_str: &str, _epic_complete: bool) -> Result<Vec<
     let mut failing = Vec::new();
 
     for &field in BASE_FIELDS_ORDERED {
-        let is_valid = validate_field(field, mapping);
-        if !is_valid {
+        if !validate_field(field, mapping) {
             failing.push(field.to_string());
         }
     }
 
     Ok(failing)
+}
+
+// ---------------------------------------------------------------------------
+// Internal helpers operating on pre-parsed serde_norway::Value
+// (avoids repeated parses; WASM fuel-budget conscious)
+// ---------------------------------------------------------------------------
+
+/// Determine EPIC-COMPLETE from a pre-parsed value.
+///
+/// `next_wave_stories: []` (empty sequence) → EPIC-COMPLETE.
+fn mapping_is_epic_complete(value: &serde_norway::Value) -> bool {
+    let Some(mapping) = value.as_mapping() else {
+        return false;
+    };
+    match mapping.get("next_wave_stories") {
+        None => false,
+        Some(v) => v.as_sequence().map(|s| s.is_empty()).unwrap_or(false),
+    }
+}
+
+/// Extract `wave_id` from a pre-parsed value.
+///
+/// Returns `Some(Ok(n))` for a valid integer, `Some(Err(_))` for a present
+/// but non-integer value, and `None` when the key is absent.
+fn parsed_wave_id(value: &serde_norway::Value) -> Option<Result<i64, String>> {
+    let mapping = value.as_mapping()?;
+    let v = mapping.get("wave_id")?;
+    match v.as_i64() {
+        Some(n) => Some(Ok(n)),
+        None => Some(Err(format!("wave_id field is not an integer: {v:?}"))),
+    }
+}
+
+/// Check whether `epic_status` key is present in the pre-parsed YAML mapping.
+///
+/// Used at step 4 (wave_id>1 path) to detect `UnexpectedEpicStatus` per
+/// BC-4.14.001 INV3 / F-A003 adjudication (v1.16). NOT called at step 3.
+fn mapping_has_epic_status(value: &serde_norway::Value) -> bool {
+    value
+        .as_mapping()
+        .map(|m| m.contains_key("epic_status"))
+        .unwrap_or(false)
+}
+
+/// Get the string value of `epic_status` from the pre-parsed YAML mapping.
+///
+/// Returns `None` if the key is absent or the value is not a string.
+fn mapping_epic_status_value(value: &serde_norway::Value) -> Option<String> {
+    let mapping = value.as_mapping()?;
+    let v = mapping.get("epic_status")?;
+    v.as_str().map(|s| s.to_string())
+}
+
+/// Collect all failing base field names from a pre-parsed value.
+///
+/// Returns field names in deterministic ADR-026 §D2 schema order.
+fn collect_failing_base_fields(value: &serde_norway::Value) -> Vec<String> {
+    let mapping = match value.as_mapping() {
+        Some(m) => m,
+        None => {
+            return BASE_FIELDS_ORDERED.iter().map(|f| f.to_string()).collect();
+        }
+    };
+
+    let mut failing = Vec::new();
+    for &field in BASE_FIELDS_ORDERED {
+        if !validate_field(field, mapping) {
+            failing.push(field.to_string());
+        }
+    }
+    failing
 }
 
 /// Validate a single field in a YAML mapping.
@@ -530,8 +604,6 @@ fn validate_field(field: &str, mapping: &serde_norway::Mapping) -> bool {
         } else if let Some(s) = value.as_str() {
             !s.is_empty()
         } else {
-            // Numeric or other non-string, non-null value: accept for wave_id
-            // but field is not wave_id here (nullable fields are string-or-null).
             false
         }
     } else {
@@ -542,7 +614,6 @@ fn validate_field(field: &str, mapping: &serde_norway::Mapping) -> bool {
         if field == "wave_id" {
             value.as_i64().map(|n| n >= 1).unwrap_or(false)
         } else {
-            // Non-empty string required.
             value.as_str().map(|s| !s.is_empty()).unwrap_or(false)
         }
     }
