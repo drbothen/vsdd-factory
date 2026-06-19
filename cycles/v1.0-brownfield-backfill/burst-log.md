@@ -9702,7 +9702,8 @@ ARCH v2.57 UNCHANGED — PASS
 
 ### Factory-artifacts Commits
 
-- [SHA TBD — this burst's commit] artifacts(D-645): E-18 F4 W2 S-18.01 LOCAL cascade BC-5.39.001 3-CLEAN CONVERGED (passes 13/14/15); S-7.02 SATISFIED; 1 convergence lesson; deferred-obs dispositions; NEXT: cleanup burst + confirming pass + HUMAN GATE
+- e50b94ad artifacts(D-645): E-18 F4 W2 S-18.01 LOCAL cascade BC-5.39.001 3-CLEAN CONVERGED (passes 13/14/15); S-7.02 SATISFIED; 1 convergence lesson; deferred-obs dispositions; NEXT: cleanup burst + confirming pass + HUMAN GATE
+- [D-645-SHA-PATCH] artifacts(D-645): SHA-patch Active Branches + §9 anchors + burst-log Factory-artifacts placeholder → e50b94ad
 
 **Gate 5 — own burst-log 8-block presence (D-446(a)):**
 
