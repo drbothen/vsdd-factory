@@ -159,7 +159,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | caf06c68 | rc.21 bot binary bundle commit 2026-06-13; prior: 2a191314 (rc.20) |
 | develop | 8b26a0fe | S-18.01 PR #193 SQUASH-MERGED 2026-06-19; prior: b025d31d (S-18.00 PR #191 2026-06-18) |
-| factory-artifacts | [D-649-SHA] | D-649 deferred-items anchoring HEAD (prior: b3137666 D-648 SHA-patch HEAD; prior: 8517d643 D-648 post-merge burst HEAD) |
+| factory-artifacts | 2503fbf0 | D-649 deferred-items anchoring HEAD (prior: b3137666 D-648 SHA-patch HEAD; prior: 8517d643 D-648 post-merge burst HEAD) |
 | v1.0.0-rc.21 (tag) | 03054524 | SHIPPED 2026-06-13; FULLY IN OPERATOR MARKETPLACE (marketplace PR #13 MERGED); annotated tag object |
 | v1.0.0-rc.20 (tag) | e9e38286 | SHIPPED 2026-06-01; marketplace PR #12 squash-merged 862e660d |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28 |
@@ -384,7 +384,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** `[D-649-SHA]` (D-649 deferred-items anchoring HEAD; prior: `b3137666` D-648 SHA-patch HEAD; prior: `8517d643` D-648 post-merge burst HEAD)
+- **factory-artifacts HEAD:** `2503fbf0` (D-649 deferred-items anchoring HEAD; prior: `b3137666` D-648 SHA-patch HEAD; prior: `8517d643` D-648 post-merge burst HEAD)
 - **develop HEAD:** `8b26a0fe` (S-18.01 PR #193 SQUASH-MERGED 2026-06-19; prior: `b025d31d` S-18.00 PR #191 SQUASH-MERGED 2026-06-18)
 - **main HEAD:** `caf06c68` (rc.21 bot bundle commit 2026-06-13; UNCHANGED)
 - **v1.0.0-rc.21 tag:** `03054524` (SHIPPED; FULLY IN OPERATOR MARKETPLACE)
