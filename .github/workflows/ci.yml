@@ -643,7 +643,7 @@ jobs:
         # Neither suite uses yq, the Rust toolchain, or the dispatcher binary.
         run: |
           brew install bats-core jq bash
-          pip3 install --quiet pyyaml
+          pip3 install --quiet --break-system-packages pyyaml
 
       - name: Configure git identity
         # wave-handoff.bats creates hermetic git repos in temp dirs and makes commits
