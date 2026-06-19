@@ -158,7 +158,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | caf06c68 | rc.21 bot binary bundle commit 2026-06-13; prior: 2a191314 (rc.20) |
 | develop | b025d31d | S-18.00 PR #191 SQUASH-MERGED 2026-06-18; prior: c000b06f (PR #189 compute-input-hash fix 2026-06-16) |
-| factory-artifacts | [SHA-PATCH-PENDING] | D-647 confirming-pass-clean cascade-fully-closed burst HEAD (prior: 3d8cd945 D-646 SHA-patch HEAD; prior: 5d71a1e3 D-646 deferral-cleanup burst HEAD) |
+| factory-artifacts | 2cca30fb | D-647 confirming-pass-clean cascade-fully-closed burst HEAD (prior: 3d8cd945 D-646 SHA-patch HEAD; prior: 5d71a1e3 D-646 deferral-cleanup burst HEAD) |
 | feature/S-18.01 | dd516e0e | S-18.01 cascade FULLY CLOSED (D-647 confirming CLEAN); PAUSED awaiting HUMAN GATE before demo/PR/merge |
 | v1.0.0-rc.21 (tag) | 03054524 | SHIPPED 2026-06-13; FULLY IN OPERATOR MARKETPLACE (marketplace PR #13 MERGED); annotated tag object |
 | v1.0.0-rc.20 (tag) | e9e38286 | SHIPPED 2026-06-01; marketplace PR #12 squash-merged 862e660d |
@@ -383,7 +383,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** `[SHA-PATCH-PENDING]` (D-647 confirming-pass-clean cascade-fully-closed burst HEAD; prior: `3d8cd945` D-646 SHA-patch HEAD; prior: `5d71a1e3` D-646 deferral-cleanup burst HEAD)
+- **factory-artifacts HEAD:** `2cca30fb` (D-647 confirming-pass-clean cascade-fully-closed burst HEAD; prior: `3d8cd945` D-646 SHA-patch HEAD; prior: `5d71a1e3` D-646 deferral-cleanup burst HEAD)
 - **develop HEAD:** `b025d31d` (S-18.00 PR #191 SQUASH-MERGED 2026-06-18; prior: `c000b06f` PR #189 compute-input-hash fix 2026-06-16)
 - **main HEAD:** `caf06c68` (rc.21 bot bundle commit 2026-06-13; UNCHANGED)
 - **v1.0.0-rc.21 tag:** `03054524` (SHIPPED; FULLY IN OPERATOR MARKETPLACE)
@@ -419,7 +419,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 - **ADR-025 v1.6 SHIPPED:** guard at `3b2a378c`; ARCH-INDEX v2.27
 - **S-17.04 story:** `.factory/stories/S-17.04-mid-burst-heartbeat-renewal-wiring.md` v1.7 MERGED; E-17 W4 COMPLETE; PR #184 3b2a378c
 - **ADR-027 v1.0:** `specs/architecture/decisions/ADR-027-factory-artifacts-worktree-path-discipline-for-shell-skills.md` (D-639 architect-authored: ARTIFACTS_WT = `.factory` worktree root; two-arg invocation model; bats fixture places files under `$ARTIFACTS_WT/...` not `$ARTIFACTS_WT/.factory/...`; accepted 2026-06-18; SS-05/SS-06/SS-07; RESOLVES F-S1801-P3-001 BLOCKER)
-- **Verify on resume:** `git rev-parse --short origin/develop` → expect `b025d31d`; `git rev-parse --short origin/main` → expect `caf06c68`; `git -C .factory log -1 --format='%h'` → expect SHA-PATCH of D-647 burst (D-647 confirming-pass-clean cascade-fully-closed burst HEAD)
+- **Verify on resume:** `git rev-parse --short origin/develop` → expect `b025d31d`; `git rev-parse --short origin/main` → expect `caf06c68`; `git -C .factory log -1 --format='%h'` → expect `2cca30fb` (D-647 confirming-pass-clean cascade-fully-closed burst HEAD)
 
 ### §10. PR Status
 
