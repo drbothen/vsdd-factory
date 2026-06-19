@@ -158,22 +158,18 @@ write_wave_state() {
     fi
 
     if [ -n "$header_line" ]; then
-      local col_idx=0
-      local IFS_bak="$IFS"
-      IFS='|'
-      local col
-      for col in $header_line; do
-        # Step 3: normalize "Depends On" (space-separated) to "Depends-On" (hyphen)
-        # before comparison so both header variants are accepted.
-        local trimmed_col
-        trimmed_col="$(echo "$col" | tr -d ' \t' | sed 's/DependsOn/Depends-On/')"
-        col_idx=$(( col_idx + 1 ))
-        if [ "$trimmed_col" = "Depends-On" ]; then
-          depends_on_col=$col_idx
-          break
-        fi
-      done
-      IFS="$IFS_bak"
+      # Step 3: locate the "Depends-On" column index using awk -F'|' to avoid
+      # global IFS mutation (SAST SEC-IFS-001 / bash.lang.security.ifs-tampering).
+      # awk normalizes "Depends On" (space) → "Depends-On" (hyphen) before comparison.
+      depends_on_col="$(echo "$header_line" | awk -F'|' '{
+        for (i = 1; i <= NF; i++) {
+          col = $i
+          gsub(/[[:space:]]/, "", col)
+          gsub(/DependsOn/, "Depends-On", col)
+          if (col == "Depends-On") { print i; exit }
+        }
+      }')"
+      depends_on_col="${depends_on_col:-0}"
     fi
 
     # Initialize story_deps for all stories in the wave (space-separated dep IDs,
@@ -211,12 +207,12 @@ write_wave_state() {
         local deps_content
         deps_content="$(echo "$row_deps_raw" | tr -d '[]' )"
         local dep_list=""
+        # Split on comma using IFS-scoped read -ra to avoid global IFS mutation
+        # (SAST SEC-IFS-001 / bash.lang.security.ifs-tampering).
+        local -a dep_array
+        IFS=',' read -ra dep_array <<< "$deps_content"
         local dep_entry
-        # Split on comma
-        local IFS_bak2="$IFS"
-        IFS=','
-        for dep_entry in $deps_content; do
-          IFS="$IFS_bak2"
+        for dep_entry in "${dep_array[@]}"; do
           local dep_id
           dep_id="$(echo "$dep_entry" | tr -d ' \t')"
           [ -z "$dep_id" ] && continue
@@ -224,7 +220,6 @@ write_wave_state() {
             dep_list="${dep_list}${dep_id} "
           fi
         done
-        IFS="$IFS_bak2"
 
         story_deps["$row_id"]="$(echo "$dep_list" | tr -s ' ' | sed 's/ *$//')"
       done < "$story_index_path"
