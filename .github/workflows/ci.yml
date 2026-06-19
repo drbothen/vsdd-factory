@@ -634,10 +634,12 @@ jobs:
       - uses: actions/checkout@v6
 
       - name: Install tools
-        # bats and jq are the only runtime requirements for wave-handoff.bats and
-        # wave-gate-hooks.bats. Neither suite uses yq, the Rust toolchain, or the
-        # dispatcher binary. Using Homebrew (pre-installed on macos-latest runners).
-        run: brew install bats-core jq
+        # bats, jq, and bash are the runtime requirements for wave-handoff.bats and
+        # wave-gate-hooks.bats. bash >= 4 is required for associative arrays (declare -A
+        # / local -A) used in write-wave-state.sh. macOS ships bash 3.2; Homebrew bash 5
+        # provides the required version. Neither suite uses yq, the Rust toolchain, or the
+        # dispatcher binary.
+        run: brew install bats-core jq bash
 
       - name: Configure git identity
         # wave-handoff.bats creates hermetic git repos in temp dirs and makes commits
@@ -652,7 +654,11 @@ jobs:
         # macOS/BSD as well as Linux. Running these suites on BSD grep/sed/awk/date
         # catches POSIX divergence (e.g., grep -E '\s' → BSD literal 's' vs GNU
         # whitespace class) before it reaches operators running on macOS/BSD.
+        # PATH is extended to pick up Homebrew bash 5 (required for declare -A in
+        # write-wave-state.sh) ahead of the macOS system bash 3.2.
         shell: bash
         run: |
+          export PATH="$(brew --prefix bash)/bin:$PATH"
+          bash --version | head -1
           bats plugins/vsdd-factory/tests/wave-handoff.bats
           bats plugins/vsdd-factory/tests/wave-gate-hooks.bats

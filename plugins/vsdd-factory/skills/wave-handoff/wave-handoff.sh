@@ -4,6 +4,16 @@
 # BC-5.41.001 + BC-5.41.002 | S-18.01
 set -euo pipefail
 
+# Require bash 4+ for associative arrays (declare -A / local -A in write-wave-state.sh).
+# macOS ships bash 3.2; Homebrew bash 5 is required. Install with: brew install bash
+if [ "${BASH_VERSINFO[0]:-0}" -lt 4 ]; then
+  echo "ERROR: wave-handoff requires bash >= 4.0 (associative arrays)." >&2
+  echo "  Current bash: ${BASH_VERSION:-unknown}" >&2
+  echo "  On macOS: install Homebrew bash with 'brew install bash' and ensure it is on PATH" >&2
+  echo "  before /bin/bash (e.g., export PATH=\"\$(brew --prefix bash)/bin:\$PATH\")" >&2
+  exit 1
+fi
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # shellcheck source=lib/parse-sprint-state.sh
