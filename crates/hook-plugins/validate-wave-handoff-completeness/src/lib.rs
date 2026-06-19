@@ -35,7 +35,7 @@
 //! - `wave_id` must be a positive integer (>= 1); 0 and negative values are
 //!   MALFORMED per BC-4.14.001 PC7 / EC-017.
 //! - YAML is parsed ONCE per invocation and threaded through helpers (F-A006).
-//!   A YAML parse error blocks with `HandoffIncomplete: YAML parse error: <msg>`
+//!   A YAML parse error blocks with `HandoffIncomplete: YAML parse error at line L, column C`
 //!   BEFORE the wave-1 no-op short-circuit (EC-001): malformed YAML never
 //!   silently continues.
 //! - `UnexpectedEpicStatus` fires ONLY at step 4 (wave_id>1 writes). It does NOT
@@ -157,7 +157,8 @@ const LIST_FIELDS: &[&str] = &[
 ///         `HandoffIncomplete: [wave_id]`).
 ///
 /// YAML is parsed ONCE (F-A006 / EC-001). A parse error blocks with
-/// `HandoffIncomplete: YAML parse error: <msg>` BEFORE any no-op short-circuit.
+/// `HandoffIncomplete: YAML parse error at line L, column C` (or generic form
+/// when location unavailable) BEFORE any no-op short-circuit.
 ///
 /// Wave-1 identity is derived from the parsed `wave_id` field (F-A005 /
 /// BC-4.14.001 PC3): the caller does not need to set `is_first_wave` externally.
@@ -170,8 +171,10 @@ pub fn check_handoff_completeness(ctx: &GateContext) -> GateResult {
         return GateResult::Continue;
     }
 
-    // The content must be present when path is HANDOFF.md.
-    // If somehow None, treat as empty string (no fields → fail-closed).
+    // None is unreachable from on_post_tool_use (always produces Some or
+    // returns early), but IS reachable from test-only GateContext constructors.
+    // Treat as empty string → YAML parse of "" → all base fields fail → Block
+    // (fail-closed).
     let content = match &ctx.handoff_content {
         Some(c) => c.as_str(),
         None => "",
@@ -190,9 +193,22 @@ pub fn check_handoff_completeness(ctx: &GateContext) -> GateResult {
     let parsed = match serde_norway::from_str::<serde_norway::Value>(content) {
         Ok(v) => v,
         Err(e) => {
+            // SEC-001 (CWE-209): surface line/column only — not raw YAML token
+            // content, which could leak sensitive HANDOFF.md field values via
+            // `serde_norway::Error` Display output.
+            // `serde_norway::Error::location()` returns `Option<Location>` with
+            // `.line()` / `.column()` accessors (serde_norway 0.9.42 error.rs).
+            let message = match e.location() {
+                Some(loc) => format!(
+                    "HandoffIncomplete: YAML parse error at line {}, column {}",
+                    loc.line(),
+                    loc.column()
+                ),
+                None => "HandoffIncomplete: YAML parse error (malformed YAML)".to_string(),
+            };
             return GateResult::Block {
                 code: "HandoffIncomplete",
-                message: format!("HandoffIncomplete: YAML parse error: {e}"),
+                message,
             };
         }
     };
@@ -409,7 +425,12 @@ pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
     // Fail-open on any read error (CapabilityDenied in unit harness,
     // permission failure, timeout) per VP-083 no-false-positive invariant and
     // BC-4.14.001 PC6.
-    let handoff_content = match host::read_file(&file_path, MAX_BYTES, 2000) {
+    // Timeout budget: read_file gets 4000ms, leaving ~1000ms margin for YAML
+    // parse within the 5000ms outer registry timeout (hooks-registry.toml
+    // `timeout_ms = 5000`). Sibling validate-burst-log uses 2000ms read /
+    // 3000ms parse split; this plugin uses 4000ms read to handle larger
+    // HANDOFF.md payloads while still preserving a parse margin.
+    let handoff_content = match host::read_file(&file_path, MAX_BYTES, 4000) {
         Ok(bytes) => match String::from_utf8(bytes) {
             Ok(s) => Some(s),
             Err(e) => {
