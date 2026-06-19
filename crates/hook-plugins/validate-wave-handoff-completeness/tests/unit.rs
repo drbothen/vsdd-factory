@@ -923,15 +923,23 @@ fn ac_012_body_over_200_lines_emits_advisory_but_continues() {
     );
 }
 
-/// AC-012 / PC5 / INV5: emit_over_200_line_advisory is called with the line count.
-/// Since it calls a host log function (todo!()), this panics on the stub.
-/// Tests that the function signature accepts a usize and is callable.
+/// AC-012 / PC5 / INV5: emit_over_200_line_advisory accepts a line count and
+/// returns normally (side-effect-only advisory helper — no panic, no block).
+/// The correct green behavior is to call `host::log_warn` and return `()`.
+/// Because `host::log_warn` side effects are not observable in a Rust unit test,
+/// asserting clean return (no panic, no value) is the appropriate assertion here.
+/// The behavioral block/continue coverage is already carried by
+/// `ac_012_body_over_200_lines_emits_advisory_but_continues`, which goes through
+/// `check_handoff_completeness` and asserts `GateResult::Continue`.
 /// Red Gate: panics at todo!() in emit_over_200_line_advisory.
 #[test]
-#[should_panic(expected = "S-18.02")]
 fn ac_012_emit_over_200_line_advisory_fires_on_201_lines() {
-    // This must panic with todo!() until the implementer fills in the body.
+    // When correctly implemented, this must return without panicking.
+    // Calling with a value clearly above the 200-line threshold (AC-012/PC5/INV5).
     emit_over_200_line_advisory(201);
+    // If we reach here, the function returned normally — correct behavior.
+    // Also exercise a boundary value above the cap.
+    emit_over_200_line_advisory(350);
 }
 
 // ---------------------------------------------------------------------------
