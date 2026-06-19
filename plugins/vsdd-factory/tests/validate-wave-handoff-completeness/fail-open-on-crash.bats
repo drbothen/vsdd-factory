@@ -67,6 +67,11 @@ _require_dispatcher_and_wasm() {
 
 _write_test_registry() {
   # Minimal registry using on_error="continue" (matching production AC-013).
+  # The read_file capability block is required: the WASM gate calls
+  # host::read_file to read the full on-disk HANDOFF.md (F-001 fix).
+  # Without it, the dispatcher denies the read and the gate fails-open on
+  # every HANDOFF.md write — making Scenario B (incomplete HANDOFF.md → exit 2)
+  # unreachable. path_allow matches the production registry entry.
   cat > "$WORK/hooks-registry.toml" << 'TOML'
 schema_version = 2
 
@@ -77,6 +82,11 @@ tool = "Edit|Write"
 plugin = "hook-plugins/validate-wave-handoff-completeness.wasm"
 timeout_ms = 5000
 on_error = "continue"
+
+[hooks.capabilities.read_file]
+path_allow = [
+  ".factory/HANDOFF.md",
+]
 TOML
 }
 

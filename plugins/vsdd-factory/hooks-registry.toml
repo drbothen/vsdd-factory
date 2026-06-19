@@ -588,6 +588,11 @@ timeout_ms = 5000
 on_error = "continue"
 async = false
 
+[hooks.capabilities.read_file]
+path_allow = [
+  ".factory/HANDOFF.md",
+]
+
 # ---------- PreToolUse ----------
 
 [[hooks]]
