@@ -3913,6 +3913,116 @@ EOF
 # wave-state.yaml IS written (EPIC-COMPLETE must NOT be triggered).
 # ---------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------
+# test_BC_5_41_002_O_P15_001_unresolved_spec_file_warns_on_stderr
+# O-P15-001 / BC-5.41.002 EC-002 (unresolved BC path advisory)
+#
+# When a story's behavioral_contracts: frontmatter references a BC ID whose .md file
+# does NOT exist on disk in $ARTIFACTS_WT/specs/behavioral-contracts/, the skill must:
+#   (a) STILL include the constructed fallback path in spec_files as a plain string
+#       (no schema change — spec_files remains a plain-string list per PC2).
+#   (b) Emit an ADVISORY WARNING to stderr naming the unresolved path:
+#       "WARNING: spec_file path does not resolve on disk: <path>"
+#
+# The current implementation SILENTLY emits the constructed path with no stderr
+# warning. This test REDs that: it asserts the warning on stderr, which is absent
+# before the fix.
+#
+# Fixture: story S-18.02 declares behavioral_contracts: [BC-MISSING.001] — a BC ID
+# whose file does NOT exist in the fixture's bc directory. The skill must emit the
+# WARNING to stderr AND include the path in the committed wave-state.yaml spec_files.
+#
+# Assert via COMMITTED blob for the path presence (POLICY 11).
+# ---------------------------------------------------------------------------
+
+@test "test_BC_5_41_002_O_P15_001_unresolved_spec_file_warns_on_stderr" {
+  # Create a story file referencing a BC that does NOT exist on disk.
+  # BC-MISSING.001.md will not be planted in the fixture bc directory.
+  cat > "$ARTIFACTS_WT/stories/S-18.02-validate-wave-handoff-completeness-wasm.md" << 'EOF'
+---
+document_type: story
+level: implementation
+story_id: S-18.02
+epic_id: "E-18"
+version: "1.0"
+title: "Validate wave handoff completeness WASM gate"
+status: draft
+behavioral_contracts:
+  - BC-MISSING.001
+verification_properties:
+  - VP-081
+---
+# S-18.02 fixture with missing BC
+EOF
+
+  # Run with stderr captured separately so we can assert on it.
+  # The skill must:
+  #   (a) exit 0 (unresolved BC is advisory, not a hard block — EC-002)
+  #   (b) emit WARNING on stderr about the unresolved path
+  #   (c) committed wave-state.yaml includes the fallback path in spec_files
+  run bash -c "
+    export ARTIFACTS_WT='${ARTIFACTS_WT}'
+    export SPRINT_STATE_YAML='${WORK}/sprint-state.yaml'
+    export STATE_MD_PATH='${WORK}/STATE.md'
+    export BC_DIR='${ARTIFACTS_WT}/specs/behavioral-contracts'
+    export PRECOMPACT_FLUSH_LOG='${ARTIFACTS_WT}/hooks/precompact-flush-log'
+    export GIT_DIR='${WORK}/.git'
+    export FACTORY_REPO='${WORK}'
+    '${SKILL}' \
+      --artifacts-worktree '${ARTIFACTS_WT}' \
+      --sprint-state '${WORK}/sprint-state.yaml' \
+      --state-md '${WORK}/STATE.md' \
+      --bc-dir '${ARTIFACTS_WT}/specs/behavioral-contracts' \
+      2>&1
+  "
+
+  # (a) Must exit 0 — unresolved BC path is advisory (EC-002), not a hard block
+  [ "$status" -eq 0 ] || {
+    echo "FAIL (O-P15-001 a): skill exited ${status}, expected 0." >&2
+    echo "  Unresolved BC-MISSING.001 path is advisory (EC-002) — must not hard-block." >&2
+    echo "  Actual output: $output" >&2
+    false
+  }
+
+  # (b) Output (which includes stderr via 2>&1) MUST contain the WARNING line.
+  # The warning format: "WARNING: spec_file path does not resolve on disk: <path>"
+  # where <path> is "specs/behavioral-contracts/BC-MISSING.001.md"
+  echo "$output" | grep -q "WARNING: spec_file path does not resolve on disk:" || {
+    echo "FAIL (O-P15-001 b): advisory WARNING line missing from output." >&2
+    echo "  Expected substring: 'WARNING: spec_file path does not resolve on disk:'" >&2
+    echo "  When a story's behavioral_contracts: entry cannot be resolved to an existing" >&2
+    echo "  file on disk, write-wave-state.sh must emit this advisory warning to stderr." >&2
+    echo "  The current implementation silently emits the fallback path with no warning." >&2
+    echo "  Actual output: $output" >&2
+    false
+  }
+
+  # The warning must name the specific unresolved path
+  echo "$output" | grep -qF "specs/behavioral-contracts/BC-MISSING.001.md" || {
+    echo "FAIL (O-P15-001 b path): WARNING line does not name the unresolved path." >&2
+    echo "  Expected the warning to contain 'specs/behavioral-contracts/BC-MISSING.001.md'" >&2
+    echo "  Actual output: $output" >&2
+    false
+  }
+
+  # (c) Committed wave-state.yaml MUST still contain the fallback path in spec_files
+  # (plain-string list per PC2 — no schema change, path is included regardless)
+  git -C "$WORK" show factory-artifacts:wave-state.yaml >/dev/null 2>&1 || {
+    echo "FAIL (O-P15-001 c): wave-state.yaml not committed to factory-artifacts." >&2
+    false
+  }
+  local committed_content
+  committed_content="$(git -C "$WORK" show factory-artifacts:wave-state.yaml)"
+  echo "$committed_content" | grep -qF "specs/behavioral-contracts/BC-MISSING.001.md" || {
+    echo "FAIL (O-P15-001 c): committed wave-state.yaml does not contain fallback path for BC-MISSING.001." >&2
+    echo "  spec_files must still include the constructed path as a plain string" >&2
+    echo "  even when the file does not exist on disk (EC-002: advisory, not hard block)." >&2
+    echo "  Committed spec_files section:" >&2
+    echo "$committed_content" | grep -A 10 "^stories:" >&2
+    false
+  }
+}
+
 @test "test_BC_5_41_001_F_P11_001_bsd_classify_stories_has_next_wave" {
   # Default fixture has S-18.02 (pending) + S-18.03 (draft) → has-next-wave
   _write_sprint_state_pending
