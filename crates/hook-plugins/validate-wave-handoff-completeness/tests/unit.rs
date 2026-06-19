@@ -1434,7 +1434,10 @@ process_gaps: []
             message.contains("HandoffIncomplete") || message.contains("last_verified_develop_sha"),
             "Block message must mention HandoffIncomplete or last_verified_develop_sha, got: {message}"
         );
-        assert_eq!(*code, "HandoffIncomplete", "Block code must be HandoffIncomplete, got: {code}");
+        assert_eq!(
+            *code, "HandoffIncomplete",
+            "Block code must be HandoffIncomplete, got: {code}"
+        );
     }
 }
 
