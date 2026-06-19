@@ -1351,6 +1351,29 @@ BC-5.39.001 3-CLEAN streak: passes 9/10/11 all CLEAN/CONSISTENT. PR #191 squash-
 
 ---
 
+## D-644 — E-18 F4 Wave 2 S-18.01 LOCAL cascade pass-12 CLEAN + O-P12-001 body-cite sweep; STORY-INDEX v4.19; streak reset 0/3; 1 lesson
+
+**Date:** 2026-06-18
+**Phase:** E-18-F4-wave2-S18.01-local-cascade-pass12
+**Decision:** Single-commit fix burst (TD-VSDD-053) recording LOCAL adversary cascade pass-12 (CLEAN verdict) and closing O-P12-001 body-cite parity gap. Pass-12 adversary verdict CLEAN (novelty LOW; implementation converged across all axes). However pass-12 surfaced O-P12-001 (LOW spec-parity): stale `BC-5.41.001 v1.20` body cite in S-18.01 story vs current BC-5.41.001 v1.21 — a POLICY 5 body-cells-cite-current defect introduced in burst D-642 when BC-5.41.001 bumped to v1.21 without dispatching story-writer to sweep dependent story body cites. Because closing O-P12-001 required a PACKAGE EDIT (S-18.01 v1.8→v1.9), the FROZEN-package requirement of BC-5.39.001 means the 3-CLEAN streak does NOT carry pass-12 forward: streak RESET to 0/3 on the newly-edited package. O-P12-002 (LOW bats header comment version tokens) = non-load-bearing per TD-VSDD-091, no action. Package re-FROZEN after this burst at S-18.01 v1.9. STORY-INDEX v4.18→v4.19 (S-18.01 row annotation v1.8→v1.9). BC-INDEX v3.12 / VP-INDEX v2.38 / ARCH-INDEX v2.57 UNCHANGED. 1 lesson codified: L-S18-bc-bump-must-sweep-dependent-story-body-cites. NEXT: LOCAL adversary pass-13 (fresh context; reads S-18.01 v1.9 package).
+**Parent-commit:** 0880ea6f (D-643 SHA-patch HEAD)
+
+| ID | Decision | Phase | Date |
+|----|----------|-------|------|
+| D-644 | E-18 F4 Wave 2 S-18.01 LOCAL cascade pass-12 CLEAN + O-P12-001 body-cite sweep 2026-06-18 — Pass-12 adversary verdict CLEAN (novelty LOW; implementation converged across all axes). O-P12-001 LOW [spec-parity]: stale `BC-5.41.001 v1.20` body cite in S-18.01 story vs current v1.21; POLICY 5 body-cells-cite-current violated; root cause: D-642 burst bumped BC-5.41.001 v1.20→v1.21 without dispatching story-writer to sweep dependent story body cites in same burst; FIXED: S-18.01 v1.8→v1.9 (story-writer body cite swept v1.20→v1.21); STORY-INDEX v4.18→v4.19 (state-manager POLICY 14 parity row annotation v1.8→v1.9). O-P12-002 LOW (bats header comment version tokens): non-load-bearing per TD-VSDD-091; no action. Because closing O-P12-001 required a package edit, BC-5.39.001 FROZEN-package requirement means streak does NOT carry: streak RESET 0/3. Package re-FROZEN at S-18.01 v1.9. BC-INDEX v3.12 / VP-INDEX v2.38 / ARCH-INDEX v2.57 UNCHANGED. 1 lesson: L-S18-bc-bump-must-sweep-dependent-story-body-cites ([process-gap]). NEXT: LOCAL adversary pass-13. 4-index: BC v3.12 / VP v2.38 / STORY v4.19 / ARCH v2.57. | E-18-F4-wave2-S18.01-local-cascade-pass12 | 2026-06-18 |
+
+**Appendix — D-644 Rationale**
+
+**Pass-12 (CLEAN) adversary verdict:** The pass-12 adversary reviewed the S-18.01 LOCAL cascade package at feature/S-18.01 @ c99b8a1f. Verdict CLEAN: no BLOCKER, no MEDIUM, no load-bearing LOW. Novelty LOW (no new behavioral class discovered). Implementation converged across all axes: BSD-portability (`[[:space:]]`/`[^[:space:]]` replacements), macOS CI leg, ADR-027 fixture clarity, EPIC-COMPLETE routing. Two observations surfaced:
+
+O-P12-001 LOW [spec-parity] — Stale BC-5.41.001 version cite in S-18.01 story body: The S-18.01 story body referenced `BC-5.41.001 v1.20` in multiple places. BC-5.41.001 had been bumped to v1.21 in burst D-642 (active_bcs semantics clarity note per O-P10-002 PO disposition A). The D-642 burst did not dispatch story-writer to sweep dependent story body cites in the same burst, leaving S-18.01 with a stale cite that violates POLICY 5 body-cells-cite-current. Root cause: the D-642 burst correctly updated BC-INDEX catalog row and frontmatter but omitted the downstream story-body sweep. Remediation: story-writer swept S-18.01 body cite v1.20→v1.21 in this burst (S-18.01 v1.8→v1.9).
+
+O-P12-002 LOW — bats header comment version tokens: Some bats test file header comments still referenced an older version token. Non-load-bearing per TD-VSDD-091 (narrative spec content MUST NOT cite `file.rs:NNN` line numbers, but cosmetic comment version tokens in bats headers are non-normative). No action.
+
+**Why streak RESET to 0/3 (not 1/3):** Per BC-5.39.001, 3-CLEAN convergence requires a FROZEN package. Pass-12 itself was CLEAN (valid streak increment under a frozen package). However, O-P12-001 required a package edit (S-18.01 v1.8→v1.9) to close. Closing a finding via package edit AFTER a CLEAN pass perturbs the perimeter: the package the adversary reviewed (v1.8 @ c99b8a1f) is no longer the candidate package. The fresh adversary for pass-13 must review the post-edit package (v1.9). The streak therefore resets to 0/3 on the new package. This is the same accounting applied at passes 9→10 (D-642: pass-9 CLEAN 1/3 → pass-10 NOT-CLEAN reset 0/3). Per L-F2-3clean-streak-requires-frozen-package: the streak counts CLEAN passes on a continuously FROZEN package; any package edit resets the counter.
+
+---
+
 ## D-643 — E-18 F4 Wave 2 S-18.01 LOCAL cascade pass-11 NOT-CLEAN fix burst; ARCH-INDEX v2.57 (ADR-027 v1.1); 3 lessons
 
 **Date:** 2026-06-18

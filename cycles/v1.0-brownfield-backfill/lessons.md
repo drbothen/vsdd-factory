@@ -4673,3 +4673,25 @@ Run assertions as: `yq '.stories | length' output.yaml` → expected count; `yq 
 **Consequence if violated:** Implementers follow ADR examples in good faith and implement the forbidden pattern, creating double-nested path bugs (`${ARTIFACTS_WT}/.factory/...`) that silently resolve to non-existent paths in production environments, causing silent-failure contract violations (SOUL.md #4) that only surface when the skill is run against a real factory-artifacts worktree.
 
 **Cites:** D-643; ADR-027 v1.0→v1.1 F-P11-003 MEDIUM; S-18.01 LOCAL adversary pass-11; ARCH-INDEX v2.56→v2.57.
+
+---
+
+## L-S18-bc-bump-must-sweep-dependent-story-body-cites
+
+**Date:** 2026-06-18
+**Tags:** [process-gap] [codified]
+**Anchors:** D-644, O-P12-001, BC-5.41.001 v1.20→v1.21 (D-642), S-18.01 v1.8→v1.9, POLICY 5, POLICY 8
+
+**Lesson (codified):** When a BC version bumps mid-burst (any BC version increment), the orchestrator MUST dispatch story-writer in the SAME burst to sweep ALL dependent story-body BC version cites. POLICY 5 (body-cells-cite-current) requires that every BC cite in a story body reflects the current BC version. POLICY 8 (propagation) requires that a BC version bump propagate atomically to all downstream references in the same burst. A BC bump that updates only BC-INDEX catalog rows and frontmatter but does NOT sweep citing story bodies is an incomplete POLICY 8 propagation.
+
+**Root cause (S-18.01 pass-12 O-P12-001):** Burst D-642 bumped BC-5.41.001 v1.20→v1.21 (O-P10-002 PO disposition A: active_bcs semantics clarity note). The D-642 burst correctly updated BC-INDEX v3.11→v3.12 (catalog row annotation). However, D-642 did NOT dispatch story-writer to sweep S-18.01 story body cites. S-18.01 body continued to cite `BC-5.41.001 v1.20` after the BC was at v1.21. The pass-12 adversary caught this as O-P12-001 LOW spec-parity defect. Because the fix required a package edit (S-18.01 v1.8→v1.9), the 3-CLEAN streak was reset to 0/3 on the newly-edited package — a direct cycle-cost from the omitted same-burst sweep.
+
+**Gate (mandatory from D-644):** After ANY BC version increment, before committing the fix burst: (1) `grep -rn "BC-N.NN.NNN" .factory/stories/` to enumerate all story files citing the bumped BC; (2) For each citing story, check that the body cite version matches the new BC version; (3) If stale, dispatch story-writer in the SAME burst to update the body cite; (4) Update the STORY-INDEX annotation for the affected story row in the same burst (POLICY 14 parity). This sweep must cover ALL story bodies, not just the primary story under development.
+
+**S-7.02 confirmation (D-644):** Cycle is NOT converging this burst (streak reset 0/3 due to post-pass package edit). S-7.02 confirmation deferred to eventual convergence.
+
+**Disposition:** Fix applied: S-18.01 v1.8→v1.9 (story-writer body BC-5.41.001 cite swept v1.20→v1.21); STORY-INDEX v4.18→v4.19 (state-manager POLICY 14 parity). Anchor: E-18 F4 S-18.01; BC version-bump discipline.
+
+**Consequence if violated:** BC body-cite drift accumulates across cascades, surfacing as LOW spec-parity observations that require post-CLEAN package edits — resetting the 3-CLEAN streak and extending the convergence timeline by at least one pass per missed sweep. If multiple stories cite the bumped BC, each missed sweep adds another potential streak reset.
+
+**Cites:** D-644; O-P12-001; BC-5.41.001 v1.20→v1.21 D-642; S-18.01 v1.8→v1.9; POLICY 5 body-cells-cite-current; POLICY 8 propagation; BC-5.39.001 3-CLEAN streak.
