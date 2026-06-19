@@ -37,6 +37,7 @@ members = [
     "crates/hook-plugins/validate-stable-anchors",
     "crates/hook-plugins/validate-policies-schema",
     "crates/hook-plugins/validate-trajectory-tail-cell-completeness",
+    "crates/hook-plugins/validate-wave-handoff-completeness",
     "crates/sink-core",
     "crates/sink-file",
     "crates/sink-otel-grpc",
