@@ -1941,3 +1941,170 @@ fn test_BC_4_14_001_completely_invalid_yaml_blocks_with_yaml_parse_error() {
         );
     }
 }
+
+// ---------------------------------------------------------------------------
+// F-NEW-01 (MEDIUM) — EPIC-COMPLETE + epic_status present-but-non-string →
+// HandoffIncomplete with "epic_status malformed", NOT MissingEpicStatus.
+//
+// BC-4.14.001 v1.16 PC2a mandates:
+//   "If present but not `complete`: gate blocks with
+//    HandoffIncomplete: epic_status malformed"
+// A present-but-non-string value (e.g., epic_status: 5, epic_status: [complete])
+// is "present but not complete" — the value cannot equal the string "complete",
+// so the gate must emit HandoffIncomplete with "epic_status malformed".
+//
+// Current bug: mapping_epic_status_value returns None for non-string values
+// (v.as_str() returns None), causing the None arm to fire and emit
+// MissingEpicStatus instead of HandoffIncomplete.
+//
+// Would-fail-before-fix evidence: the gate returns
+//   Block { code: "MissingEpicStatus", .. }
+// instead of
+//   Block { code: "HandoffIncomplete", message contains "epic_status malformed" }
+// ---------------------------------------------------------------------------
+
+/// Canonical base fixture for EPIC-COMPLETE wave_id=2 with all 9 base fields
+/// valid but epic_status overridden to a given raw YAML value string.
+///
+/// `epic_status_raw` is injected verbatim as the YAML value (e.g., "5", "[complete]",
+/// "true"), without surrounding quotes. Caller is responsible for quoting if needed.
+fn fixture_epic_complete_wave2_with_epic_status_value(epic_status_raw: &str) -> String {
+    format!(
+        "\
+wave_id: 2
+last_verified_develop_sha: cc112233aabb
+precompact_flush_sha: null
+factory_lock_holder: null
+active_bcs:
+  - BC-5.41.001
+next_wave_stories: []
+open_decisions: []
+pending_fixes: []
+process_gaps: []
+epic_status: {epic_status_raw}
+"
+    )
+}
+
+/// F-NEW-01 / BC-4.14.001 PC2a:
+/// EPIC-COMPLETE write (next_wave_stories: []) with epic_status: 5 (integer, not string)
+/// must block with HandoffIncomplete and message containing "epic_status malformed".
+///
+/// A present-but-non-string value is "present but not complete" per BC-4.14.001 PC2a.
+/// The gate must NOT emit MissingEpicStatus (the key is present; the value is just wrong type).
+///
+/// RED GATE: current impl — mapping_epic_status_value calls v.as_str() which returns
+/// None for an integer value, causing the None arm to fire → MissingEpicStatus.
+/// Expected: Block { code: "HandoffIncomplete", message contains "epic_status malformed" }.
+/// Actual before fix: Block { code: "MissingEpicStatus", .. }.
+#[test]
+fn test_BC_4_14_001_epic_status_present_non_string_blocks_malformed() {
+    // epic_status: 5 — integer value, not a string. Key is present in the mapping.
+    let yaml = fixture_epic_complete_wave2_with_epic_status_value("5");
+    let ctx = GateContext {
+        file_path: "factory-artifacts/HANDOFF.md".to_string(),
+        handoff_content: Some(yaml),
+    };
+    let result = check_handoff_completeness(&ctx);
+    assert!(
+        matches!(
+            result,
+            GateResult::Block {
+                code: "HandoffIncomplete",
+                ..
+            }
+        ),
+        "F-NEW-01/BC-4.14.001-PC2a: EPIC-COMPLETE with epic_status:5 (integer, present-but-\
+        non-string) must block with HandoffIncomplete (not MissingEpicStatus — the key IS \
+        present; the value is not the string 'complete'). Got: {result:?}"
+    );
+    if let GateResult::Block { code, message } = &result {
+        assert_ne!(
+            *code, "MissingEpicStatus",
+            "F-NEW-01/BC-4.14.001-PC2a: code must NOT be MissingEpicStatus when epic_status \
+            key is present (even if value is non-string). Got code: {code}"
+        );
+        assert!(
+            message.contains("epic_status malformed"),
+            "F-NEW-01/BC-4.14.001-PC2a: block message must contain \"epic_status malformed\" \
+            for a present-but-non-string epic_status value. Got: {message}"
+        );
+    }
+}
+
+/// F-NEW-01 variant / BC-4.14.001 PC2a:
+/// EPIC-COMPLETE write with epic_status: [complete] (a YAML sequence, not a string)
+/// must block with HandoffIncomplete and message containing "epic_status malformed".
+///
+/// A sequence value is parsed as a YAML list, not a string. v.as_str() returns None,
+/// so the current code treats it as absent (MissingEpicStatus). BC-4.14.001 PC2a
+/// mandates HandoffIncomplete with "epic_status malformed" for any non-string value.
+///
+/// RED GATE: Block { code: "MissingEpicStatus" } before fix;
+/// Block { code: "HandoffIncomplete", message "epic_status malformed" } after fix.
+#[test]
+fn test_BC_4_14_001_epic_status_present_list_value_blocks_malformed() {
+    // epic_status: [complete] — YAML sequence, not a string.
+    // The key is present; the value is a list containing the string "complete".
+    // This is distinct from the string "complete" and must be treated as malformed.
+    let yaml = fixture_epic_complete_wave2_with_epic_status_value("[complete]");
+    let ctx = GateContext {
+        file_path: "factory-artifacts/HANDOFF.md".to_string(),
+        handoff_content: Some(yaml),
+    };
+    let result = check_handoff_completeness(&ctx);
+    assert!(
+        matches!(
+            result,
+            GateResult::Block {
+                code: "HandoffIncomplete",
+                ..
+            }
+        ),
+        "F-NEW-01-variant/BC-4.14.001-PC2a: EPIC-COMPLETE with epic_status:[complete] \
+        (list value, present-but-non-string) must block with HandoffIncomplete \
+        (not MissingEpicStatus). Got: {result:?}"
+    );
+    if let GateResult::Block { code, message } = &result {
+        assert_ne!(
+            *code, "MissingEpicStatus",
+            "F-NEW-01-variant/BC-4.14.001-PC2a: code must NOT be MissingEpicStatus when \
+            epic_status key is present with a list value. Got code: {code}"
+        );
+        assert!(
+            message.contains("epic_status malformed"),
+            "F-NEW-01-variant/BC-4.14.001-PC2a: block message must contain \
+            \"epic_status malformed\" for epic_status:[complete] (list, not string). \
+            Got: {message}"
+        );
+    }
+}
+
+/// F-NEW-01 regression guard / BC-4.14.001 PC2a:
+/// EPIC-COMPLETE write with epic_status ABSENT (key not in mapping) must still
+/// produce MissingEpicStatus — the absent-epic_status path must NOT be disturbed
+/// by the F-NEW-01 fix.
+///
+/// This test ensures the fix for present-but-non-string does not accidentally
+/// reroute the absent-key path to HandoffIncomplete.
+///
+/// GREEN: this test should PASS before the fix (code currently returns MissingEpicStatus
+/// for absent epic_status — which is correct). It must remain GREEN after the fix.
+#[test]
+fn test_BC_4_14_001_epic_status_absent_still_blocks_missing_epic_status() {
+    // Absent epic_status on EPIC-COMPLETE (next_wave_stories: []) → MissingEpicStatus.
+    let ctx = make_handoff_ctx(false, fixture_epic_complete_wave2_missing_epic_status());
+    let result = check_handoff_completeness(&ctx);
+    assert!(
+        matches!(
+            result,
+            GateResult::Block {
+                code: "MissingEpicStatus",
+                ..
+            }
+        ),
+        "F-NEW-01 regression guard: EPIC-COMPLETE with epic_status ABSENT must still \
+        block with MissingEpicStatus (not HandoffIncomplete). The F-NEW-01 fix must only \
+        affect present-but-non-string values, not the absent-key path. Got: {result:?}"
+    );
+}
