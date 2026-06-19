@@ -47,6 +47,10 @@ setup() {
   WORK="$(mktemp -d)"
   mkdir -p "$WORK/hook-plugins"
   mkdir -p "$WORK/.factory/logs"
+  # .factory/HANDOFF.md is the production write path (per S-18.01 SKILL.md) and
+  # the path_allow in the test registry.  Create the directory so per-scenario
+  # setup can write the fixture file here without repeating the mkdir.
+  mkdir -p "$WORK/.factory"
 }
 
 teardown() {
@@ -90,33 +94,53 @@ path_allow = [
 TOML
 }
 
+_write_fixture_incomplete_handoff() {
+  # Write a HANDOFF.md to disk with wave_id=2 but missing last_verified_develop_sha.
+  # The gate reads the on-disk file via host::read_file (path_allow = .factory/HANDOFF.md).
+  # With a missing required scalar field the gate must block (exit 2).
+  cat > "$WORK/.factory/HANDOFF.md" << 'YAML'
+wave_id: 2
+active_bcs: []
+next_wave_stories:
+  - id: S-19.01
+    status: pending
+open_decisions: []
+pending_fixes: []
+process_gaps: []
+YAML
+  # last_verified_develop_sha, precompact_flush_sha, and factory_lock_holder are absent.
+}
+
 _write_envelope_incomplete_handoff() {
-  # Write HANDOFF.md with wave_id=2 but missing last_verified_develop_sha.
-  # This SHOULD trigger a validation block (exit 2) when the plugin runs
-  # normally. If the plugin crashes, on_error="continue" means exit 0.
+  # PostToolUse Write envelope whose file_path matches the path_allow entry
+  # (.factory/HANDOFF.md) so the dispatcher grants the read_file capability and
+  # the gate can read the on-disk fixture written by _write_fixture_incomplete_handoff.
   printf '{
     "event_name": "PostToolUse",
     "tool_name": "Write",
     "session_id": "ac-013-fail-open-test",
     "dispatcher_trace_id": "ac-013-trace",
     "tool_input": {
-      "file_path": "factory-artifacts/HANDOFF.md",
-      "content": "wave_id: 2\nactive_bcs: []\nnext_wave_stories: []\n"
+      "file_path": ".factory/HANDOFF.md",
+      "content": "wave_id: 2\nactive_bcs: []\nnext_wave_stories:\n  - id: S-19.01\n    status: pending\nopen_decisions: []\npending_fixes: []\nprocess_gaps: []\n"
     },
     "tool_response": {"exit_code": 0}
   }'
 }
 
 _write_envelope_non_handoff() {
-  # Write to a file that must NOT match the gate (path_is_handoff check).
-  # After F-003 fix, "xHANDOFF.md" must be a no-op → exit 0.
+  # Write to a file whose filename is NOT exactly "HANDOFF.md" (path_is_handoff
+  # uses path-component-strict matching after F-003 fix).  The gate must
+  # return Continue (exit 0) immediately without reading any file.
+  # Using .factory/xHANDOFF.md — same directory, different filename — so the
+  # test cannot accidentally pass because the path_allow prefix is denied.
   printf '{
     "event_name": "PostToolUse",
     "tool_name": "Write",
     "session_id": "ac-013-non-handoff-test",
     "dispatcher_trace_id": "ac-013-non-handoff-trace",
     "tool_input": {
-      "file_path": "factory-artifacts/xHANDOFF.md",
+      "file_path": ".factory/xHANDOFF.md",
       "content": "wave_id: 2\n"
     },
     "tool_response": {"exit_code": 0}
@@ -164,6 +188,12 @@ _write_envelope_non_handoff() {
   _require_dispatcher_and_wasm
   _write_test_registry
   cp "$WASM_PLUGIN" "$WORK/hook-plugins/"
+
+  # Write the fixture file to disk BEFORE running the dispatcher so the gate
+  # can read it via host::read_file.  The fixture has wave_id=2 but is missing
+  # last_verified_develop_sha, precompact_flush_sha, and factory_lock_holder —
+  # all required by AC-004 / BC-4.14.001 PC7.
+  _write_fixture_incomplete_handoff
 
   local envelope
   envelope="$(_write_envelope_incomplete_handoff)"
@@ -230,9 +260,13 @@ _write_envelope_non_handoff() {
   _write_test_registry
   cp "$WASM_PLUGIN" "$WORK/hook-plugins/"
 
-  # Step 1: Write a complete, valid HANDOFF.md to the WORK directory.
-  local handoff_path="$WORK/factory-artifacts/HANDOFF.md"
-  mkdir -p "$WORK/factory-artifacts"
+  # Step 1: Write a complete, valid HANDOFF.md to $WORK/.factory/HANDOFF.md.
+  # This path MUST agree with:
+  #   (a) the registry path_allow = [".factory/HANDOFF.md"] (resolved under
+  #       CLAUDE_PROJECT_DIR=$WORK → $WORK/.factory/HANDOFF.md), AND
+  #   (b) the Edit envelope "path" field below.
+  # Using $WORK/.factory/ (already created in setup()) — NOT factory-artifacts/.
+  local handoff_path="$WORK/.factory/HANDOFF.md"
   cat > "$handoff_path" << 'YAML'
 wave_id: 2
 last_verified_develop_sha: abc123def456
@@ -251,7 +285,9 @@ YAML
   # Step 2: Send an Edit envelope where new_string is only a fragment.
   # A real Edit call provides only the replacement text for old_string,
   # not the full file. Before F-001, the gate read new_string → block.
-  # After F-001, the gate reads the full on-disk file → Continue.
+  # After F-001, the gate reads the full on-disk file via host::read_file
+  # (using path_allow-granted capability) → sees complete content → Continue.
+  # The "path" field must match the on-disk file and the path_allow entry.
   local envelope
   envelope=$(printf '{
     "event_name": "PostToolUse",
