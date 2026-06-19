@@ -295,16 +295,39 @@ fn validate_step4_or_5(parsed: &serde_norway::Value) -> GateResult {
 ///
 /// Per BC-4.14.001 PC2a + ADR-026 §Decision 9:
 /// 1. Validate `epic_status: complete`. If absent → MissingEpicStatus.
-///    If present but not "complete" → HandoffIncomplete: epic_status malformed.
+///    If present but value is non-string OR string != "complete" →
+///    HandoffIncomplete: epic_status malformed.
 /// 2. If epic_status valid → continue to full 9-base-field validation.
 ///    This augments (does NOT replace) base-field validation.
 fn validate_epic_complete_handoff(parsed: &serde_norway::Value) -> GateResult {
-    // Check epic_status presence and value.
+    // Check epic_status key presence first (F-NEW-01 / BC-4.14.001 PC2a):
+    // - Key ABSENT → MissingEpicStatus.
+    // - Key PRESENT, value is non-string → HandoffIncomplete (epic_status malformed).
+    //   mapping_epic_status_value returns None for both absent and non-string values,
+    //   so we must gate on key presence to distinguish the two cases.
+    // - Key PRESENT, value is string != "complete" → HandoffIncomplete (epic_status malformed).
+    // - Key PRESENT, value is "complete" → valid; continue to base-field validation.
+    let key_present = parsed
+        .as_mapping()
+        .map(|m| m.contains_key("epic_status"))
+        .unwrap_or(false);
+
+    if !key_present {
+        return GateResult::Block {
+            code: "MissingEpicStatus",
+            message: "HandoffIncomplete: epic_status required on EPIC-COMPLETE wave (next_wave_stories: [])".to_string(),
+        };
+    }
+
+    // Key is present; now check the value.
     match mapping_epic_status_value(parsed) {
         None => {
+            // Key present but value is not a string (e.g., integer, list, bool).
+            // Per BC-4.14.001 PC2a, this is "present but not complete" → malformed.
             return GateResult::Block {
-                code: "MissingEpicStatus",
-                message: "HandoffIncomplete: epic_status required on EPIC-COMPLETE wave (next_wave_stories: [])".to_string(),
+                code: "HandoffIncomplete",
+                message: "HandoffIncomplete: epic_status malformed — must be 'complete'"
+                    .to_string(),
             };
         }
         Some(status) if status.trim() != "complete" => {
