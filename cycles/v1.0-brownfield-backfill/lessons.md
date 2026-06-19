@@ -4695,3 +4695,25 @@ Run assertions as: `yq '.stories | length' output.yaml` → expected count; `yq 
 **Consequence if violated:** BC body-cite drift accumulates across cascades, surfacing as LOW spec-parity observations that require post-CLEAN package edits — resetting the 3-CLEAN streak and extending the convergence timeline by at least one pass per missed sweep. If multiple stories cite the bumped BC, each missed sweep adds another potential streak reset.
 
 **Cites:** D-644; O-P12-001; BC-5.41.001 v1.20→v1.21 D-642; S-18.01 v1.8→v1.9; POLICY 5 body-cells-cite-current; POLICY 8 propagation; BC-5.39.001 3-CLEAN streak.
+
+---
+
+## L-S18-cascade-converged-after-15-passes-deep-adversary-surfaces-cross-platform-silent-failure-class
+
+**Date:** 2026-06-18
+**Tags:** [codified] [convergence]
+**Anchors:** D-645, BC-5.39.001, E-18 F4 Wave 2 S-18.01, passes 1–15
+
+**Lesson (codified):** A deep LOCAL adversary cascade (15 passes) on a shell skill surfaces defect classes that shallow review misses. The S-18.01 cascade found real BLOCKERs through pass-11 — specifically a cross-platform silent-failure class (BSD-incompatible `\s`/`\S` in `grep -E`, silently misclassifying EPIC-COMPLETE status on macOS) — before decaying to three consecutive CLEAN passes. This trajectory is characteristic of shell skills with platform-sensitive behavior: initial passes surface spec inconsistencies and design ambiguities; mid-cascade passes surface implementation gaps and silent-failure paths; late passes surface only low-severity documentary observations that are non-load-bearing under TD-VSDD-091.
+
+**Root cause (cascade arc):** The cascade found 11 NOT-CLEAN passes before reaching CLEAN. Key defect classes discovered in order: (1) spec/architectural ambiguity (ADR-027 path discipline, BC-5.41.001/002 PC clarifications — passes 1–5); (2) implementation correctness gaps (unanchored grep, DRY_RUN bypass, topo-sort multi-epic, EC-015 idempotency — passes 6–7); (3) robustness/error-propagation gaps (PRE-FLIGHT validation ordering, StoryIndexMissing hard-error, O-P8-001 precondition documentation — pass 8); (4) cross-platform silent-failure (BSD grep `\s`/`\S`, macOS CI leg missing, SKILL.md contract gaps — passes 10–11); (5) body-cite parity (POLICY 5/8 BC version cite propagation — pass 12 post-CLEAN cleanup). Passes 13–15 were CLEAN with only low-severity observations that either (a) do not require package edits (TD-VSDD-091 documentary) or (b) require cross-story PO reconciliation (EC-002 schema tension).
+
+**Gate (codified):** For shell skills with cross-platform behavioral requirements (darwin-arm64 + linux-x86_64), the adversary cascade MUST include explicit BSD-portability probing across all callsites — not just the callsite fixed most recently. The L-S18-sibling-sweep-must-cross-file-and-tool lesson (D-643) addresses this class: when a portability fix is applied to one callsite, all sibling callsites in all files must be swept before declaring the class closed. Failure to sweep siblings produces a pass-11-class BLOCKER on the first fresh-context pass after the partial fix.
+
+**S-7.02 confirmation (D-645):** BC-5.39.001 3-CLEAN streak 3/3 CONVERGED. All 16 process-gap lessons from this cascade accounted for: 13 fixed-in-scope, 3 codified. S-7.02 checklist SATISFIED. See D-645 Appendix for full per-lesson disposition table.
+
+**Disposition:** Convergence recorded. Post-convergence posture: deferral-cleanup burst (O-P13-001/O-P14-001/O-P15-001/O-P9-001 anchor) + confirming fresh-context pass + human gate before demo/PR/merge. Anchor: E-18 F4 S-18.01.
+
+**Consequence if violated:** Attempting to converge a shell skill with cross-platform requirements on fewer than ~8–12 adversary passes is unlikely to surface the silent-failure / portability class — those defects require a fresh-context adversary who probes BSD semantics explicitly. Shallow cascades (< 5 passes) on complex shell skills will systematically miss this class, producing production failures on macOS/BSD environments.
+
+**Cites:** D-645; BC-5.39.001 3-CLEAN streak 3/3 CONVERGED; feature/S-18.01 @ c99b8a1f; BC-5.41.001 v1.21; BC-5.41.002 v1.14; ADR-027 v1.1; S-18.01 v1.9; L-S18-sibling-sweep-must-cross-file-and-tool (D-643); passes 1–15 arc.

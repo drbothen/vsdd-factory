@@ -1527,3 +1527,70 @@ Dispatch implementer to fix `write-wave-state.sh` topo-sort:
 1. Locate the correct epic table by matching in-wave story IDs (not `grep -m1 '| Story ID'` which finds the first epic's table).
 2. Normalize dependency-column header to tolerate both `Depends On` (space, E-0 7-col) and `Depends-On` (hyphen, E-18 9-col).
 Then dispatch LOCAL adversary pass-6.
+
+---
+
+## D-645 — E-18 F4 Wave 2 S-18.01 LOCAL adversary cascade BC-5.39.001 3-CLEAN CONVERGED (passes 13/14/15)
+
+**Date:** 2026-06-18
+**Phase:** E-18-F4-wave2-S18.01-local-cascade-3clean-converged
+**Decision:** E-18 F4 Wave 2 S-18.01 LOCAL adversary cascade reached BC-5.39.001 3-CLEAN convergence across passes 13, 14, and 15. Package frozen throughout (feature/S-18.01 @ c99b8a1f; S-18.01 v1.9; BC-5.41.001 v1.21; BC-5.41.002 v1.14; ADR-027 v1.1). STORY-INDEX v4.19→v4.20 (state-manager cascade-state bookkeeping: S-18.01 row annotation updated to CONVERGED posture). BC-INDEX/VP-INDEX/ARCH-INDEX UNCHANGED. 4-index: BC v3.12 / VP v2.38 / STORY v4.20 / ARCH v2.57. PO/story-writer/implementer made zero changes this burst — pure cascade-state recording. No adversary review files authored by state-manager (L-state-manager-must-not-author-review-files; D-630).
+**Parent-commit:** 5fd5cdd3 (D-644 SHA-patch HEAD)
+
+| ID | Decision | Phase | Date |
+|----|----------|-------|------|
+| D-645 | E-18 F4 Wave 2 S-18.01 LOCAL adversary cascade BC-5.39.001 3-CLEAN CONVERGED 2026-06-18 — Pass-13 CLEAN (streak 0/3→1/3): fresh-context adversary hand-traced all 13 axes; zero defects requiring a package edit. Pure observation O-P13-001 LOW: bats header comments cite stale BC version tokens — non-load-bearing per TD-VSDD-091, no package edit required. Pass-14 CLEAN (streak 1/3→2/3): zero defects requiring a package edit. Observations: topo-sort column-index alignment (test-guarded and correct, but fragile to refactor; O-P14-001 LOW); `find` glob pattern (non-load-bearing; no edit). Pass-15 CLEAN (streak 2/3→3/3 CONVERGED): convergence-candidate pass; adversary specifically attempted to break topo-sort column-index alignment and BSD-portability claims and could break neither. Observation O-P15-001 LOW: BC-5.41.002 EC-002 says unresolved BC paths should log warning + `status: missing`, but impl includes the path silently; `status: missing` is in schema tension with PC2 (plain path-string list) — spec-reconciliation refinement needed, no package edit this pass. 3-CLEAN streak: 3/3 CONVERGED. Package FROZEN throughout passes 13→15 (feature/S-18.01 @ c99b8a1f unchanged). S-7.02 Cycle-Closing-Checklist SATISFIED (see Appendix). STORY-INDEX v4.19→v4.20 (cascade-state bookkeeping). BC/VP/ARCH UNCHANGED. 4-index: BC v3.12 / VP v2.38 / STORY v4.20 / ARCH v2.57. Deferred observations recorded with dispositions: O-P9-001 (cross-story anchor S-18.03/wave-scheduling wave); O-P13-001 LOW (TD-VSDD-091-exempt documentary cleanup); O-P14-001 topo-index-fragility (cleanup-burst candidate); O-P15-001 (PO+implementer post-convergence cleanup). NEXT POSTURE: post-convergence deferral-cleanup burst (O-P13-001/O-P14-001/O-P15-001 close-or-anchor + O-P9-001 anchoring) + CONFIRMING fresh-context pass, THEN per-story-delivery Step 5+ (demo-recorder per-AC → push feature/S-18.01 → pr-manager 9-step PR cycle → merge). AWAITING ORCHESTRATOR/HUMAN GATE before demo/PR/merge. ADVISORY: (1) pre-existing NON-wave-handoff bats failures (dispatcher/harness infra) must be triaged before/at S-18.01 PR CI gate; (2) bats-wave-handoff-macos CI job in feature branch — flag at PR review; (3) feature/S-18.01 not yet pushed to origin. | E-18-F4-wave2-S18.01-local-cascade-3clean-converged | 2026-06-18 |
+
+**Appendix — D-645 Full Pass Trajectory and S-7.02 Satisfaction**
+
+**Full pass trajectory (passes 1–15):**
+
+Pass-1 NOT-CLEAN (BLOCKER F-S1801-P1-001: ADR-027 path contradiction), Pass-2 NOT-CLEAN (BLOCKER: fixture double-nesting; DRY_RUN guard gamed), Pass-3 NOT-CLEAN (BLOCKER: path discipline per ADR-027), Pass-4 NOT-CLEAN (post-DURABLE-PAUSE spec adjudications; BC-5.41.001/002 v1.18/v1.13; ADR-027 v1.0), Pass-5 NOT-CLEAN (BLOCKER F-S1801-P5-001: topo-sort multi-epic table grep -m1 finds wrong epic), Pass-6 NOT-CLEAN (4 findings: ADR-027 double-nesting in PRECOMPACT_FLUSH_LOG path + harness env-masking + unanchored grep + AC-016 arch_files; ALL FIXED), Pass-7 NOT-CLEAN (3 findings: BC-5.41.002 PC2 clarity + EC-015 idempotent EPIC-COMPLETE + derive_wave_id ignored arg; ALL FIXED), Pass-8 NOT-CLEAN (F-P8-001 BLOCKER PRE-FLIGHT + F-P8-002 MEDIUM StoryIndexMissing + O-P8-001 BC-5.41.001 v1.20; ALL FIXED), Pass-9 CLEAN (0B/0M/3 obs; streak 0→1/3; O-P9-001 INTEGRATION-deferred), Pass-10 NOT-CLEAN (F-P10-001 MEDIUM SKILL.md contract + O-P10-001 REAL awk `\s` silent-failure; ALL FIXED; streak RESET 0/3), Pass-11 NOT-CLEAN (F-P11-001 BLOCKER BSD grep `\s`/`\S` + F-P11-002 MED macOS CI + F-P11-003 MED ADR-027 + F-P11-004 MED EPIC-COMPLETE consolidation + O-P11-002 LOW; ALL FIXED; streak 0/3), Pass-12 CLEAN (novelty LOW; O-P12-001 body-cite LOW closed post-pass; streak RESET 0/3 due to post-pass package edit per BC-5.39.001 FROZEN-package rule), Pass-13 CLEAN (0B/0M; O-P13-001 LOW TD-VSDD-091-exempt; streak 0/3→1/3), Pass-14 CLEAN (0B/0M; O-P14-001 LOW topo-index-fragility observation; streak 1/3→2/3), Pass-15 CLEAN — CONVERGED (0B/0M; O-P15-001 LOW EC-002 schema tension; streak 2/3→3/3).
+
+**S-7.02 Cycle-Closing-Checklist satisfaction:**
+
+Per the mandatory S-7.02 checklist, each process-gap lesson from this cascade is accounted for:
+
+| Process-gap lesson | ID | Disposition |
+|---|---|---|
+| harness-env-override-masks-production-default | L-S18-harness-env-override-masks-production-default | fixed-in-scope D-640 |
+| test-comment-vs-impl-drift | L-S18-test-comment-vs-impl-drift | fixed-in-scope D-640 |
+| spec-prose-must-not-imply-unintended-filter | L-S18-spec-prose-must-not-imply-unintended-filter | fixed-in-scope D-640 |
+| validate-before-write | L-S18-validate-before-write | fixed-in-scope D-641 |
+| absent-ground-truth-must-hard-block | L-S18-absent-ground-truth-must-hard-block | fixed-in-scope D-641 |
+| implicit-invariant-needs-explicit-precondition-and-guard | L-S18-implicit-invariant-needs-explicit-precondition-and-guard | fixed-in-scope D-641 |
+| untested-branch-hid-silent-failure | L-S18-untested-branch-hid-silent-failure | fixed-in-scope D-642 |
+| skill-doc-contract-must-match-entrypoint | L-S18-skill-doc-contract-must-match-entrypoint | fixed-in-scope D-642 |
+| field-name-semantics-need-explicit-spec-note | L-S18-field-name-semantics-need-explicit-spec-note | fixed-in-scope D-642 |
+| sibling-sweep-must-cross-file-and-tool | L-S18-sibling-sweep-must-cross-file-and-tool | fixed-in-scope D-643 (4 BSD grep callsites + portability-guard test) |
+| bsd-gnu-portability-needs-ci-leg | L-S18-bsd-gnu-portability-needs-ci-leg | fixed-in-scope D-643 (macOS CI job added) |
+| adr-worked-example-must-match-decision | L-S18-adr-worked-example-must-match-decision | fixed-in-scope D-643 (ADR-027 v1.0→v1.1) |
+| bc-bump-must-sweep-dependent-story-body-cites | L-S18-bc-bump-must-sweep-dependent-story-body-cites | fixed-in-scope D-644 (S-18.01 v1.8→v1.9 body-cite sweep) |
+| fixture-fidelity-must-mirror-production-multi-table-format | L-S18-fixture-fidelity-must-mirror-production-multi-table-format | [codified] D-639; no post-convergence code change needed (lesson is discipline gate) |
+| gamed-guard-env-hatch | L-S18-gamed-guard-env-hatch | [codified] D-639; discipline gate codified |
+| weak-assertion-header-vs-body | L-S18-weak-assertion-header-vs-body | [codified] D-639; discipline gate codified |
+
+All 16 process-gap lessons: 13 fixed-in-scope + 3 codified. S-7.02 SATISFIED.
+
+**Deferred observations — dispositions:**
+
+- **O-P9-001** (integration cross-story): production `sprint-state.yaml` uses legacy count-summary schema, not the per-story `- id:/status:` format the skill consumes. The `wave-scheduling` skill regenerates sprint-state in the correct consumed format. Disposition: justified cross-story deferral — anchored to the wave-scheduling/wave-boundary story in E-18 pipeline (S-18.03 rehydrate-wave or the wave-scheduling skill path that rebuilds sprint-state.yaml; the exact story delivering the `wave-scheduling` regeneration function must be confirmed by the orchestrator at that story's dispatch). Not a defect in S-18.01 — S-18.01 reads sprint-state as written by the `wave-scheduling` skill.
+- **O-P13-001** (LOW): bats header comments cite stale BC version tokens — non-load-bearing per TD-VSDD-091. Disposition: optional comment-hygiene cleanup; defer to post-convergence deferral-cleanup burst or bundle into a maintenance pass.
+- **O-P14-001** (OBS): topo-sort column-index alignment (`IFS='|'` header vs `awk -F'|'` column-index) is test-guarded and behaviorally correct, but would be fragile if the STORY-INDEX column order changed. A unit assertion verifying the IFS header ↔ awk column-index alignment would de-fragilize. Disposition: cleanup-burst candidate; add assertion in same burst that O-P13-001 cleanup occurs, or defer to S-18.09 gate-story scope.
+- **O-P15-001** (LOW): BC-5.41.002 EC-002 says unresolved BC paths should log warning + `status: missing`, but implementation includes the path silently. `status: missing` field is in schema tension with PC2 (plain path-string list format). Disposition: needs product-owner to reconcile EC-002 (`status: missing` field) vs PC2 (plain path-string output schema), THEN implementer to add the advisory warning if reconciled. Recorded as post-convergence cleanup item, routed PO-first then implementer. Anchor: post-D-645 cleanup burst + PO BC-5.41.002 amendment if EC-002 is confirmed load-bearing.
+
+**Why passes 13–15 were not recorded per-burst at time of cascade:**
+
+Passes 13, 14, and 15 were observed CLEAN sequentially during a session that concluded at convergence. Per the state-manager Content Routing Rules, all three CLEAN pass verdicts are batched into this single D-645 convergence recording burst. This is standard BC-5.39.001 streak-completion recording — individual CLEAN-pass state-manager bursts that produce no spec changes would create unnecessary `factory-artifacts` commits; the single-commit-per-convergence recording pattern (when all three passes are CLEAN and the package was frozen) is the correct practice.
+
+**NEXT POSTURE on resume:**
+1. Post-convergence deferral-cleanup burst: close O-P13-001 (comment hygiene if desired), O-P14-001 (add column-index alignment assertion), anchor O-P9-001 to wave-scheduling story.
+2. PO consultation for O-P15-001 EC-002 vs PC2 schema tension.
+3. CONFIRMING fresh-context pass (per D-635→D-636→D-637 pattern).
+4. If CONFIRMING CLEAN: per-story-delivery Step 5+ (demo-recorder per-AC → push feature/S-18.01 → pr-manager 9-step PR cycle → merge).
+5. AWAITING ORCHESTRATOR/HUMAN GATE before demo/PR/merge.
+
+**ADVISORIES (carry forward):**
+1. Pre-existing NON-wave-handoff bats failures (dispatcher/harness infra: check-harness-version, precompact-routing, regression-v1.0, pass-real-state-md-snapshot) — must be triaged before/at the S-18.01 PR CI gate; unrelated to S-18.01 skill.
+2. The `bats-wave-handoff-macos` CI job is bundled in feature/S-18.01 branch (c99b8a1f) — flag at PR review; branch-protection contexts may need updating.
+3. feature/S-18.01 not yet pushed to origin — orchestrator handles push before PR.

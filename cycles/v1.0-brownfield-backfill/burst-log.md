@@ -9618,3 +9618,94 @@ $ grep "^version:" \
 ### Factory-artifacts Commits
 
 - cab770f0 artifacts(D-642): E-18 F4 Wave 2 S-18.01 LOCAL cascade passes 9 (CLEAN, 1/3) + 10 (NOT-CLEAN, reset 0/3) fix burst; BC-5.41.001 v1.21; BC-INDEX v3.12; 3 lessons; streak 0/3; pass-11 NEXT
+
+---
+
+## D-645 — E-18 F4 Wave 2 S-18.01 LOCAL cascade BC-5.39.001 3-CLEAN CONVERGED (passes 13/14/15)
+
+**Parent-commit:** 5fd5cdd3 (D-644 SHA-patch HEAD)
+
+### Adversary Verdict
+
+**Pass-13 CLEAN (streak 0/3→1/3):** Fresh-context adversary hand-traced all 13 axes of S-18.01 v1.9 / BC-5.41.001 v1.21 / BC-5.41.002 v1.14 / ADR-027 v1.1. Zero defects requiring a package edit. Pure observation O-P13-001 LOW: bats test file header comments cite stale BC version tokens (v1.20 in a comment line). Non-load-bearing per TD-VSDD-091 (documentary comment, not normative assertion); no package edit required; streak advances.
+
+**Pass-14 CLEAN (streak 1/3→2/3):** Fresh-context adversary hand-traced all axes on FROZEN package. Zero defects requiring a package edit. Two observations: O-P14-001 LOW: topo-sort column-index alignment (`IFS='|'` split and `awk -F'|'` column-index extraction) is test-guarded and behaviorally correct for current STORY-INDEX format, but would be fragile to column-order refactoring — no package edit required; adversary attempted to construct a regression scenario and could not (integration tests guard the current column mapping). `find` glob pattern observation: non-load-bearing. Streak advances.
+
+**Pass-15 CLEAN — CONVERGED (streak 2/3→3/3):** Convergence-candidate pass. Fresh-context adversary specifically attempted to BREAK the topo-sort column-index alignment claim from O-P14-001 and the BSD-portability claims (L-S18-bsd-gnu-portability-needs-ci-leg). Neither could be broken on the FROZEN package. Observation O-P15-001 LOW: BC-5.41.002 EC-002 states unresolved BC paths should log a warning + `status: missing` field, but the implementation includes the path silently without this advisory; the `status: missing` field is in schema tension with PC2 (which specifies a plain path-string list output format). Not a defect in the current spec/impl parity — EC-002 is an edge-case error clause whose exact output format requires PO reconciliation with PC2. No package edit required. **BC-5.39.001 3-CLEAN streak REACHED: 3/3 CONVERGED.**
+
+### Dim-2 (PC attestations — literal shell, D-449(a))
+
+```
+$ grep '^current_step:' /Users/zious/Documents/GITHUB/vsdd-factory/.factory/STATE.md
+current_step: "D-644-E18-F4-W2-S18.01-LOCAL-CASCADE-PASS12-2026-06-18"
+
+$ grep '^version:' /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/behavioral-contracts/BC-INDEX.md
+version: "3.12"
+
+$ grep '^version:' /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/verification-properties/VP-INDEX.md
+version: "2.38"
+
+$ grep '^version:' /Users/zious/Documents/GITHUB/vsdd-factory/.factory/stories/STORY-INDEX.md
+version: "4.19"
+
+$ grep '^version:' /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/architecture/ARCH-INDEX.md
+version: "2.57"
+
+$ git -C /Users/zious/Documents/GITHUB/vsdd-factory/.factory log -1 --format='%h %s'
+5fd5cdd3 factory(E18-F4-W2-S18.01): SHA-patch D-644 burst HEAD 7da398b7 into Active Branches + §9 anchors
+
+$ git -C /Users/zious/Documents/GITHUB/vsdd-factory/.worktrees/S-18.01 log -1 --format='%h %s' 2>/dev/null || echo "worktree at c99b8a1f (UNCHANGED)"
+worktree at c99b8a1f (UNCHANGED)
+```
+
+4-index at D-645 entry: BC v3.12 / VP v2.38 / STORY v4.19→v4.20 / ARCH v2.57. BC/VP/ARCH UNCHANGED. STORY-INDEX bumped v4.19→v4.20 by state-manager for S-18.01 row annotation convergence status (cascade-state bookkeeping; no spec content change).
+
+### Dim-5 (Files Touched)
+
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — MODIFIED: D-645 6-column row + full Appendix (pass trajectory, S-7.02 satisfaction table, deferred observation dispositions) appended.
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — MODIFIED: 1 convergence lesson appended (L-S18-cascade-converged-after-15-passes-deep-adversary-surfaces-cross-platform-silent-failure-class).
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — MODIFIED: D-645 8-block entry added (this entry).
+- `.factory/STATE.md` — MODIFIED: frontmatter advanced; banner wc-l entry appended; Phase Progress D-645 row; Active Branches factory-artifacts SHA; Concurrent Cycles row; Decisions Log D-645 row; Drift Items deferred-observation dispositions added; Session Resume Checkpoint updated; §4/§5/§6/§9 updated.
+
+**Files NOT touched this burst (BC-INDEX/VP-INDEX/ARCH-INDEX UNCHANGED; no spec content edits):**
+- BC-INDEX.md — UNTOUCHED (v3.12 unchanged)
+- VP-INDEX.md — UNTOUCHED (v2.38 unchanged)
+- `.factory/stories/STORY-INDEX.md` — MODIFIED: v4.19→v4.20 (state-manager cascade-state bookkeeping): S-18.01 catalog row annotation updated to reflect BC-5.39.001 3-CLEAN CONVERGED status; version/last_amended bumped. No story body content change.
+- ARCH-INDEX.md — UNTOUCHED (v2.57 unchanged)
+- feature/S-18.01 worktree — UNTOUCHED (c99b8a1f unchanged; no implementer/PO/story-writer changes)
+
+### Dim-6 (Codifications)
+
+- D-645 codified in decision-log.md (this burst): E-18 F4 Wave 2 S-18.01 LOCAL cascade passes 13/14/15; 3-CLEAN CONVERGED; S-7.02 SATISFIED; deferred-observation dispositions; NEXT POSTURE.
+- 1 convergence lesson codified in lessons.md: L-S18-cascade-converged-after-15-passes-deep-adversary-surfaces-cross-platform-silent-failure-class [codified].
+- Deferred observations recorded in STATE.md Drift Items: O-P9-001 (wave-scheduling cross-story anchor), O-P13-001 (documentary cleanup), O-P14-001 (topo-index fragility), O-P15-001 (PO+implementer EC-002 schema tension).
+
+Literal-shell 4-index verification gate (POLICY 15 / verification_step 7):
+```
+BC v3.12 UNCHANGED — PASS
+VP v2.38 UNCHANGED — PASS
+STORY v4.19→v4.20 (state-manager cascade-state bookkeeping; S-18.01 row annotation only) — PASS
+ARCH v2.57 UNCHANGED — PASS
+```
+
+### Dim-7 (Streak Status)
+
+3-CLEAN streak: **3/3 CONVERGED** (passes 13→14→15 all CLEAN; package FROZEN feature/S-18.01 @ c99b8a1f throughout). BC-5.39.001 SATISFIED. S-7.02 SATISFIED. NEXT: post-convergence deferral-cleanup burst + confirming fresh-context pass + HUMAN GATE before demo/PR/merge.
+
+### Closes
+
+- Pass-13 CLEAN (streak 0/3→1/3): O-P13-001 LOW deferred (TD-VSDD-091-exempt documentary comment). STREAK ADVANCES.
+- Pass-14 CLEAN (streak 1/3→2/3): O-P14-001 LOW deferred (test-guarded; cleanup-burst candidate). STREAK ADVANCES.
+- Pass-15 CLEAN (streak 2/3→3/3 CONVERGED): O-P15-001 LOW deferred (PO+implementer post-convergence; EC-002 schema tension). CONVERGED.
+- O-P9-001 (pass-9 INTEGRATION): anchored to wave-scheduling/rehydrate-wave story in E-18 pipeline. DEFERRED with anchor.
+- S-7.02 Cycle-Closing-Checklist: SATISFIED (16 process-gap lessons: 13 fixed-in-scope + 3 codified; see D-645 Appendix).
+
+### Factory-artifacts Commits
+
+- [SHA TBD — this burst's commit] artifacts(D-645): E-18 F4 W2 S-18.01 LOCAL cascade BC-5.39.001 3-CLEAN CONVERGED (passes 13/14/15); S-7.02 SATISFIED; 1 convergence lesson; deferred-obs dispositions; NEXT: cleanup burst + confirming pass + HUMAN GATE
+
+**Gate 5 — own burst-log 8-block presence (D-446(a)):**
+
+8 mandatory D-444(c) blocks present in this entry: Parent-commit PRESENT, Adversary Verdict PRESENT, Dim-2 PRESENT, Dim-5 PRESENT, Dim-6 PRESENT, Dim-7 PRESENT, Closes PRESENT, Factory-artifacts Commits PRESENT. PASS.
+
+**Gate 6 — source-attestation parity (D-448(a)): Adversary Verdict paragraph describes the pass-13, pass-14, and pass-15 adversary Part A finding sets faithfully.** Pass-13: 0 BLOCKER/0 MEDIUM; O-P13-001 LOW (stale bats comment) — faithful. Pass-14: 0 BLOCKER/0 MEDIUM; O-P14-001 LOW (topo-index fragility) + find-glob obs — faithful. Pass-15: 0 BLOCKER/0 MEDIUM; O-P15-001 LOW (EC-002 schema tension) — faithful. All three passes describe NO defects requiring package edits and confirm 3-CLEAN streak convergence. PASS.
