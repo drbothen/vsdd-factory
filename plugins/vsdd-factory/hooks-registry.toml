@@ -569,6 +569,30 @@ binary_allow = ["bash", "jq"]
 shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
 env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID"]
 
+# ---------- validate-wave-handoff-completeness (PostToolUse, Write|Edit) ----------
+# BC-4.14.001 §Precondition 1 / AC-014: PostToolUse gate that validates
+# HANDOFF.md completeness on every Write/Edit tool call. Blocks with
+# HandoffIncomplete when required ADR-026 §D2 fields are missing or malformed.
+# on_error = "continue": WASM crash → fail-open Continue (BC-4.14.001 PC6).
+# async = false: synchronous gate; block must be returned before Claude proceeds.
+# timeout_ms = 5000: per ADR-026 §Decision 8 WASM completeness gate spec.
+# S-18.02 deliverable — E-18 context-durability feature (issue #173).
+
+[[hooks]]
+name = "validate-wave-handoff-completeness"
+event = "PostToolUse"
+tool = "Write|Edit"
+plugin = "hook-plugins/validate-wave-handoff-completeness.wasm"
+priority = 450
+timeout_ms = 5000
+on_error = "continue"
+async = false
+
+[hooks.capabilities.read_file]
+path_allow = [
+  ".factory/HANDOFF.md",
+]
+
 # ---------- PreToolUse ----------
 
 [[hooks]]
