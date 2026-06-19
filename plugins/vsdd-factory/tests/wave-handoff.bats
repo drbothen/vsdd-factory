@@ -1,9 +1,9 @@
 #!/usr/bin/env bats
 # wave-handoff.bats — Red Gate tests for the wave-handoff skill
 #
-# Story:   S-18.01 — HANDOFF.md Schema + wave-handoff Skill; wave-state.yaml Atomic Production
-# BCs:     BC-5.41.001 v1.18 (HANDOFF.md with 9 base required fields + anti-fabrication cross-checks)
-#          BC-5.41.002 v1.13 (wave-state.yaml curated manifest; BrokenSprintState; atomicity;
+# Story:   S-18.01 v1.9 — HANDOFF.md Schema + wave-handoff Skill; wave-state.yaml Atomic Production
+# BCs:     BC-5.41.001 v1.21 (HANDOFF.md with 9 base required fields + anti-fabrication cross-checks)
+#          BC-5.41.002 v1.15 (wave-state.yaml curated manifest; BrokenSprintState; atomicity;
 #                              AC-014 clarified: generated_from_handoff_sha = PRIOR HANDOFF commit SHA)
 # VPs:     VP-081 (Wave cannot close without verified HANDOFF.md)
 #          VP-087 (atomicity + real-substrate derivation + BrokenSprintState)
