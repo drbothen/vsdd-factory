@@ -49,7 +49,7 @@
 //! | `vp_083_non_handoff_write_is_noop_regardless_of_wave` | VP-083 | PC4 | RED (todo!) |
 //!
 //! Note: test_on_error_continue_crash_is_fail_open (AC-013) lives in
-//! `plugins/vsdd-factory/tests/validate-wave-handoff-completeness.bats`.
+//! `plugins/vsdd-factory/tests/validate-wave-handoff-completeness/` (bats subdirectory).
 //! AC-014 (hooks-registry.toml entry) is verified by the devops-engineer
 //! story task T-8, not by Rust unit tests.
 
@@ -625,7 +625,7 @@ fn ac_004_null_allowed_for_nullable_scalars() {
 
 /// AC-005 / PC3+PC8+INV3 step 5 / EC-010: wave_id field is ABSENT from payload →
 /// gate FAILS CLOSED. Must block with HandoffIncomplete naming wave_id.
-/// Absent wave_id is NOT treated as wave-1 (is_first_wave=false).
+/// Absent wave_id is NOT treated as wave-1 (fail-closed per PC8).
 /// VP-081 postcondition E coverage.
 /// Red Gate: panics at todo!() in check_handoff_completeness.
 #[test]
@@ -836,7 +836,7 @@ fn ac_010_five_step_eval_order_step2_before_step3() {
 }
 
 // ---------------------------------------------------------------------------
-// AC-011 — VP-083 F-P32-002 discriminating fixture (INV3 + VP-083 v1.9/v1.10)
+// AC-011 — VP-083 F-P32-002 discriminating fixture (INV3 + VP-083)
 // ---------------------------------------------------------------------------
 
 /// AC-011 / INV3 / VP-083 F-P32-002: DISCRIMINATING fixture proving EPIC-COMPLETE
@@ -1183,7 +1183,7 @@ fn vp_083_non_handoff_write_is_noop_regardless_of_wave() {
 // malformed and must produce Block { code: "HandoffIncomplete" }.
 // ---------------------------------------------------------------------------
 
-/// F-002 / BC-4.14.001 PC7+EC-017: wave_id: 0 in a wave>1 context (is_first_wave=false)
+/// F-002 / BC-4.14.001 PC7+EC-017: wave_id: 0 is not a positive integer and
 /// must block with HandoffIncomplete. The block message must mention "wave_id".
 ///
 /// RED GATE: current impl uses `as_i64().is_some()` for wave_id validation,
@@ -1205,7 +1205,7 @@ pending_fixes: []
 process_gaps: []
 ";
     // wave_id=0 cannot be the first wave (0 is not a positive integer), so
-    // is_first_wave=false (fail-closed). The gate must treat wave_id:0 as malformed.
+    // wave_id:0 is not a positive integer (PC7/EC-017). The gate must treat it as malformed.
     let ctx = GateContext {
         file_path: "factory-artifacts/HANDOFF.md".to_string(),
         handoff_content: Some(yaml.to_string()),
@@ -1511,9 +1511,9 @@ process_gaps: []
 /// BC-4.14.001 PC3/PC8/EC-010.
 ///
 /// Re-pointed from on_post_tool_use (which fails-open via host::read_file in
-/// the non-WASM unit harness) to the pure core. is_first_wave=false correctly
-/// represents absent wave_id per the PC8 fail-closed convention. I/O-shell
-/// coverage is carried by bats scenario C (fail-open-on-crash.bats).
+/// the non-WASM unit harness) to the pure core. Absent wave_id is detected by
+/// content parsing (PC8 fail-closed convention). I/O-shell coverage is carried
+/// by bats scenario C (fail-open-on-crash.bats).
 ///
 /// BC-4.14.001 PC3 / PC8 / EC-010 / VP-081 Postcondition E.
 #[test]
@@ -1530,8 +1530,8 @@ open_decisions: []
 pending_fixes: []
 process_gaps: []
 ";
-    // F-A005: wave_id absent is detected by parsing the content, not from an
-    // external is_first_wave flag. Absent wave_id → wave_id key not in mapping →
+    // F-A005: wave_id absent is detected by parsing the content.
+    // Absent wave_id → wave_id key not in mapping →
     // parsed_wave_id returns None → fail-closed path (step 5 per INV3).
     let ctx = GateContext {
         file_path: "factory-artifacts/HANDOFF.md".to_string(),

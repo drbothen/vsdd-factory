@@ -239,10 +239,9 @@ process_gaps: []
 /// Full validation runs; blocks with HandoffIncomplete listing wave_id.
 ///
 /// Re-pointed from on_post_tool_use to the pure decision core
-/// `check_handoff_completeness`. is_first_wave=false correctly encodes absent
-/// wave_id per the PC8 fail-closed convention (caller of check_handoff_completeness
-/// must set is_first_wave=false when wave_id is absent). I/O-shell coverage is
-/// carried by bats scenario C (fail-open-on-crash.bats).
+/// `check_handoff_completeness`. Absent wave_id is detected by content parsing
+/// per the PC8 fail-closed convention (F-A005). I/O-shell coverage is carried
+/// by bats scenario C (fail-open-on-crash.bats).
 ///
 /// This test also validates the VP-INDEX VP-081 Full Index row which advertises
 /// fail-closed behavior for absent wave_id.
@@ -304,7 +303,7 @@ process_gaps: []
 /// exercise the production validate_field logic directly. wave_id=0 fails the
 /// `n >= 1` positive-integer check in validate_field.
 ///
-/// is_first_wave=false: wave_id=0 is not wave-1 (0 != 1). The pure core then
+/// wave_id=0 is not wave-1 (0 != 1, and 0 is not a positive integer). The pure core
 /// runs full base validation which catches wave_id=0 as malformed.
 ///
 /// BC-4.14.001 PC7 / EC-017 / VP-081.
