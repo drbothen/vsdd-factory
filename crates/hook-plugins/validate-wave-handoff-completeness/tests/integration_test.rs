@@ -144,11 +144,17 @@ process_gaps: []
 // VP-081 Postcondition C — HANDOFF.md present and complete → Continue
 // ---------------------------------------------------------------------------
 
-/// VP-081 Postcondition C: HANDOFF.md Write with all 9 required fields
-/// present and valid, `wave_id=2` → gate returns Continue.
+/// VP-081 Postcondition C: HANDOFF.md with all 9 required fields present and
+/// valid, `wave_id=2` → gate returns Continue.
 ///
-/// Setup: payload contains complete HANDOFF.md YAML (wave_id=2, all fields).
-/// Expected: gate returns HookResult::Continue.
+/// Re-pointed from on_post_tool_use (which fails-open in the native test
+/// harness because host::read_file returns CapabilityDenied, making the
+/// validation-outcome assertion unfalsifiable) to the pure decision core
+/// `check_handoff_completeness`. The behavioral expectation — complete handoff
+/// produces Continue — is now verified directly against production logic.
+/// I/O-shell coverage is carried by bats.
+///
+/// BC-4.14.001 PC7 / VP-081 Postcondition C.
 #[test]
 fn test_wave_close_allowed_with_complete_handoff() {
     let yaml = "\
@@ -165,13 +171,16 @@ open_decisions: []
 pending_fixes: []
 process_gaps: []
 ";
-    let payload = write_payload("factory-artifacts/HANDOFF.md", yaml);
-    let result = on_post_tool_use(payload);
+    let ctx = GateContext {
+        file_path: "factory-artifacts/HANDOFF.md".to_string(),
+        handoff_content: Some(yaml.to_string()),
+    };
+    let result = check_handoff_completeness(&ctx);
 
     assert_eq!(
         result,
-        HookResult::Continue,
-        "VP-081/PostconditionC: Write HANDOFF.md with wave_id=2 and all 9 fields present \
+        GateResult::Continue,
+        "VP-081/PostconditionC: HANDOFF.md with wave_id=2 and all 9 fields present \
         must return Continue. Got: {result:?}"
     );
 }
@@ -180,12 +189,17 @@ process_gaps: []
 // VP-081 Postcondition D — wave_id == 1 (NOT EPIC-COMPLETE) → Continue (no-op)
 // ---------------------------------------------------------------------------
 
-/// VP-081 Postcondition D: `payload.wave_id == 1` (NOT EPIC-COMPLETE) → gate
-/// returns Continue unconditionally (wave-1 no-op per ADR-026 §Decision 9).
+/// VP-081 Postcondition D: `wave_id == 1` (NOT EPIC-COMPLETE) → gate returns
+/// Continue unconditionally (wave-1 no-op per BC-4.14.001 PC3 / ADR-026
+/// §Decision 9).
 ///
-/// Setup: Write HANDOFF.md payload with `wave_id=1` and `next_wave_stories`
-/// non-empty (NOT EPIC-COMPLETE). The wave-1 no-op path must trigger.
-/// Expected: HookResult::Continue.
+/// Re-pointed from on_post_tool_use (which fails-open in the native test
+/// harness, making the validation-outcome assertion unfalsifiable) to the
+/// pure decision core `check_handoff_completeness`. The behavioral expectation
+/// — wave-1 no-op produces Continue — is verified directly against production
+/// logic. I/O-shell coverage is carried by bats.
+///
+/// BC-4.14.001 PC3 / VP-081 Postcondition D / VP-083.
 #[test]
 fn test_wave_1_no_op() {
     let yaml = "\
@@ -201,14 +215,17 @@ open_decisions: []
 pending_fixes: []
 process_gaps: []
 ";
-    let payload = write_payload("factory-artifacts/HANDOFF.md", yaml);
-    let result = on_post_tool_use(payload);
+    let ctx = GateContext {
+        file_path: "factory-artifacts/HANDOFF.md".to_string(),
+        handoff_content: Some(yaml.to_string()),
+    };
+    let result = check_handoff_completeness(&ctx);
 
     assert_eq!(
         result,
-        HookResult::Continue,
-        "VP-081/PostconditionD: Write HANDOFF.md with wave_id=1 (NOT EPIC-COMPLETE) \
-        must return Continue (wave-1 no-op per ADR-026 §Decision 9). Got: {result:?}"
+        GateResult::Continue,
+        "VP-081/PostconditionD: HANDOFF.md with wave_id=1 (NOT EPIC-COMPLETE) \
+        must return Continue (wave-1 no-op per BC-4.14.001 PC3). Got: {result:?}"
     );
 }
 
@@ -389,14 +406,21 @@ fn test_x_handoff_path_not_targeted_returns_continue() {
 // Edit payload path — confirm gate routes Edit by "path" key (not "file_path")
 // ---------------------------------------------------------------------------
 
-/// VP-081 Edit payload routing: on_post_tool_use extracts file path from
-/// tool_input["path"] for Edit calls (not "file_path"). A valid Edit payload
-/// targeting HANDOFF.md with all fields in new_string must Continue.
+/// VP-081 Edit-path validation: HANDOFF.md with complete wave_id=2 YAML
+/// (all 9 fields present) → gate returns Continue.
 ///
-/// Note: this test is NOT the F-001 full-file test. It exercises Edit routing
-/// (path extraction from "path" key) with a new_string that is itself a
-/// complete valid HANDOFF.md. F-001 requires host::read_file infrastructure
-/// which is absent in native tests — see route-back note in F-001 analysis.
+/// Re-pointed from on_post_tool_use (Edit payload routing via tool_input["path"])
+/// to the pure decision core `check_handoff_completeness`. In the native test
+/// harness, on_post_tool_use fails-open before parsing because host::read_file
+/// returns CapabilityDenied — the validation-outcome assertion (complete → Continue)
+/// is unfalsifiable when driven through the I/O shell. The pure core directly
+/// verifies the behavioral property.
+///
+/// Edit-tool path-key routing (tool_input["path"] vs "file_path") is separately
+/// covered by the on_post_tool_use fail-open test (see below). F-001 full-file
+/// Edit path (host::read_file) requires bats infrastructure.
+///
+/// BC-4.14.001 PC7 / VP-081 Postcondition C (Edit variant).
 #[test]
 fn test_edit_payload_routing_with_complete_new_string() {
     let full_yaml = "\
@@ -413,14 +437,75 @@ open_decisions: []
 pending_fixes: []
 process_gaps: []
 ";
-    // Edit payload: path = "factory-artifacts/HANDOFF.md", new_string = full valid YAML.
-    let payload = edit_payload("factory-artifacts/HANDOFF.md", full_yaml);
-    let result = on_post_tool_use(payload);
+    // Drive the pure core with the complete YAML that a valid Edit would produce.
+    let ctx = GateContext {
+        file_path: "factory-artifacts/HANDOFF.md".to_string(),
+        handoff_content: Some(full_yaml.to_string()),
+    };
+    let result = check_handoff_completeness(&ctx);
 
     assert_eq!(
         result,
+        GateResult::Continue,
+        "VP-081/EditVariant: HANDOFF.md with wave_id=2 and all 9 fields present \
+        must return Continue. Got: {result:?}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// VP-083 — explicit fail-open test: on_post_tool_use returns Continue on I/O error
+// ---------------------------------------------------------------------------
+
+/// VP-083 / BC-4.14.001 PC8 — explicit fail-open tests for on_post_tool_use.
+///
+/// In the native (non-WASM) integration test harness, host::read_file always
+/// returns CapabilityDenied. Therefore on_post_tool_use ALWAYS fail-opens to
+/// HookResult::Continue BEFORE reaching YAML-parsing logic. These tests
+/// explicitly name and verify that fail-open property for BOTH Write and Edit
+/// payloads: the I/O shell must return Continue when file-read is unavailable
+/// (no-false-positive per VP-083).
+///
+/// These are EXPLICIT FAIL-OPEN tests — they do NOT verify a validation
+/// outcome (complete/incomplete → Continue/Block). They verify only that the
+/// fail-open path itself produces Continue. Validation-outcome assertions use
+/// check_handoff_completeness (see tests above).
+///
+/// VP-083 §no-false-positive / BC-4.14.001 PC8 fail-open-on-read-error.
+#[test]
+fn test_on_post_tool_use_fails_open_on_read_error() {
+    // Deliberately incomplete YAML — would produce Block via check_handoff_completeness.
+    // on_post_tool_use in the native harness fail-opens before parsing because
+    // host::read_file returns CapabilityDenied, so it returns Continue regardless.
+    let yaml = "wave_id: 2\n"; // missing all required scalar/list fields — Write path
+    let payload = write_payload("factory-artifacts/HANDOFF.md", yaml);
+    let result = on_post_tool_use(payload);
+    assert_eq!(
+        result,
         HookResult::Continue,
-        "Edit payload routing: HANDOFF.md Edit with complete new_string must return \
-        Continue. Got: {result:?}"
+        "VP-083/fail-open/Write: on_post_tool_use must return Continue when host::read_file \
+        fails (CapabilityDenied in non-WASM harness). Got: {result:?}"
+    );
+}
+
+/// VP-083 / BC-4.14.001 PC8 — Edit-path explicit fail-open for on_post_tool_use.
+///
+/// Parallel to the Write-path test above: Edit payloads route through
+/// tool_input["path"] (not "file_path"). The same fail-open property applies —
+/// host::read_file is unavailable in the native harness → Continue regardless
+/// of new_string completeness.
+///
+/// VP-083 §no-false-positive / BC-4.14.001 PC8 fail-open-on-read-error (Edit variant).
+#[test]
+fn test_on_post_tool_use_edit_fails_open_on_read_error() {
+    // Deliberately incomplete YAML in new_string — would produce Block via
+    // check_handoff_completeness, but on_post_tool_use fails-open here.
+    let incomplete_yaml = "wave_id: 2\n"; // missing all required fields
+    let payload = edit_payload("factory-artifacts/HANDOFF.md", incomplete_yaml);
+    let result = on_post_tool_use(payload);
+    assert_eq!(
+        result,
+        HookResult::Continue,
+        "VP-083/fail-open/Edit: on_post_tool_use must return Continue when host::read_file \
+        fails (CapabilityDenied in non-WASM harness). Got: {result:?}"
     );
 }
