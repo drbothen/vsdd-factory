@@ -156,7 +156,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | caf06c68 | rc.21 bot binary bundle commit 2026-06-13; prior: 2a191314 (rc.20) |
 | develop | b025d31d | S-18.00 PR #191 SQUASH-MERGED 2026-06-18; prior: c000b06f (PR #189 compute-input-hash fix 2026-06-16) |
-| factory-artifacts | TBD-SHA-PATCH | D-646 deferral-cleanup burst HEAD (prior: e50b94ad D-645 3-CLEAN CONVERGED recording burst HEAD) |
+| factory-artifacts | 5d71a1e3 | D-646 deferral-cleanup burst HEAD (prior: e50b94ad D-645 3-CLEAN CONVERGED recording burst HEAD) |
 | feature/S-18.01 | dd516e0e | S-18.01 deferral-cleanup COMPLETE (O-P13-001/O-P14/O-P15-001 CLOSED; O-P9-001 ANCHORED); AWAITING confirming pass + HUMAN GATE |
 | v1.0.0-rc.21 (tag) | 03054524 | SHIPPED 2026-06-13; FULLY IN OPERATOR MARKETPLACE (marketplace PR #13 MERGED); annotated tag object |
 | v1.0.0-rc.20 (tag) | e9e38286 | SHIPPED 2026-06-01; marketplace PR #12 squash-merged 862e660d |
@@ -379,7 +379,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** TBD-SHA-PATCH (D-646 deferral-cleanup burst HEAD; prior: `e50b94ad` D-645 3-CLEAN CONVERGED recording burst HEAD; prior: `5fd5cdd3` D-644 SHA-patch HEAD)
+- **factory-artifacts HEAD:** `5d71a1e3` (D-646 deferral-cleanup burst HEAD; prior: `e50b94ad` D-645 3-CLEAN CONVERGED recording burst HEAD; prior: `5fd5cdd3` D-644 SHA-patch HEAD)
 - **develop HEAD:** `b025d31d` (S-18.00 PR #191 SQUASH-MERGED 2026-06-18; prior: `c000b06f` PR #189 compute-input-hash fix 2026-06-16)
 - **main HEAD:** `caf06c68` (rc.21 bot bundle commit 2026-06-13; UNCHANGED)
 - **v1.0.0-rc.21 tag:** `03054524` (SHIPPED; FULLY IN OPERATOR MARKETPLACE)
