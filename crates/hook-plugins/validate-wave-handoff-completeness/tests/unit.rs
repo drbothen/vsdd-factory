@@ -1552,3 +1552,340 @@ fn make_write_payload(file_path: &str, content: &str) -> vsdd_hook_sdk::HookPayl
     });
     serde_json::from_value(json).expect("HookPayload fixture must deserialize")
 }
+
+// ---------------------------------------------------------------------------
+// F-A003 discriminating tests (BC-4.14.001 v1.16 / ADR-026 §Decision 9)
+//
+// BC-4.14.001 INV3 v1.16: step 3 (wave_id==1 no-op) returns Continue WITHOUT
+// inspecting epic_status. UnexpectedEpicStatus is a step-4 check (wave_id>1
+// only). A wave_id:1 + non-EPIC-COMPLETE payload with epic_status present
+// MUST return Continue — not UnexpectedEpicStatus.
+//
+// The canonical test vector for this case is named
+// `wave-id-1-non-epic-complete-epic-status-present` in BC-4.14.001 v1.16.
+//
+// The contrasting wave_id:2 test pins that UnexpectedEpicStatus DOES fire
+// for wave_id > 1 + non-EPIC-COMPLETE + epic_status present.
+//
+// Would-fail-before-fix evidence: before the F-A003 fix, the
+// UnexpectedEpicStatus check was evaluated before the wave_id==1 no-op
+// short-circuit. A wave_id:1 + epic_status:complete payload would have
+// returned Block { code: "UnexpectedEpicStatus" } instead of Continue.
+// ---------------------------------------------------------------------------
+
+/// F-A003 / BC-4.14.001 v1.16 / ADR-026 §Decision 9:
+/// wave_id:1 + next_wave_stories NON-empty (NOT EPIC-COMPLETE) + epic_status:complete
+/// present → check_handoff_completeness returns Continue.
+///
+/// Canonical test vector: `wave-id-1-non-epic-complete-epic-status-present`
+/// (BC-4.14.001 v1.16).
+///
+/// Step 3 (wave_id==1 no-op) fires BEFORE the UnexpectedEpicStatus check
+/// (step 4). The gate short-circuits to Continue at step 3 WITHOUT
+/// inspecting epic_status. UnexpectedEpicStatus does NOT fire at wave_id==1
+/// per BC-4.14.001 INV3 v1.16 adjudication / F-A003.
+///
+/// Discriminating: before F-A003 fix, this would return
+/// Block { code: "UnexpectedEpicStatus" }.
+#[test]
+fn test_BC_4_14_001_wave1_non_epic_complete_epic_status_present_continues() {
+    // wave_id:1 + next_wave_stories non-empty (NOT EPIC-COMPLETE) + epic_status present.
+    // This is the canonical F-A003 test vector from BC-4.14.001 v1.16.
+    let yaml = "\
+wave_id: 1
+last_verified_develop_sha: abc123def456
+precompact_flush_sha: null
+factory_lock_holder: null
+active_bcs:
+  - BC-4.14.001
+next_wave_stories:
+  - id: S-02.01
+    status: pending
+open_decisions: []
+pending_fixes: []
+process_gaps: []
+epic_status: complete
+";
+    let ctx = GateContext {
+        file_path: "factory-artifacts/HANDOFF.md".to_string(),
+        handoff_content: Some(yaml.to_string()),
+    };
+    let result = check_handoff_completeness(&ctx);
+    assert_eq!(
+        result,
+        GateResult::Continue,
+        "F-A003/BC-4.14.001-v1.16/INV3: wave_id:1 + non-EPIC-COMPLETE + epic_status:complete \
+        present must return Continue. Step 3 (wave-1 no-op) fires before the \
+        UnexpectedEpicStatus check (step 4). UnexpectedEpicStatus must NOT fire at \
+        wave_id==1 per BC-4.14.001 INV3 / ADR-026 §Decision 9 v1.16. Got: {result:?}"
+    );
+}
+
+/// F-A003 contrasting test / BC-4.14.001 INV3 step 4:
+/// wave_id:2 + next_wave_stories NON-empty (NOT EPIC-COMPLETE) + epic_status:complete
+/// present → Block { code: "UnexpectedEpicStatus" }.
+///
+/// Pins that UnexpectedEpicStatus DOES fire at step 4 (wave_id>1) when
+/// epic_status is present on a non-final wave, confirming the asymmetry
+/// between step 3 (wave_id==1, no UnexpectedEpicStatus) and step 4
+/// (wave_id>1, UnexpectedEpicStatus evaluated).
+///
+/// This contrasting test ensures the F-A003 Continue result above is not
+/// caused by a bug that suppresses UnexpectedEpicStatus entirely.
+#[test]
+fn test_BC_4_14_001_wave2_non_epic_complete_epic_status_present_blocks_unexpected() {
+    // wave_id:2 + next_wave_stories non-empty (NOT EPIC-COMPLETE) + epic_status present.
+    // Step 4 runs (wave_id>1); UnexpectedEpicStatus fires because epic_status
+    // is present on a non-final wave.
+    let yaml = "\
+wave_id: 2
+last_verified_develop_sha: abc123def456
+precompact_flush_sha: null
+factory_lock_holder: null
+active_bcs:
+  - BC-4.14.001
+next_wave_stories:
+  - id: S-03.01
+    status: pending
+open_decisions: []
+pending_fixes: []
+process_gaps: []
+epic_status: complete
+";
+    let ctx = GateContext {
+        file_path: "factory-artifacts/HANDOFF.md".to_string(),
+        handoff_content: Some(yaml.to_string()),
+    };
+    let result = check_handoff_completeness(&ctx);
+    assert!(
+        matches!(
+            result,
+            GateResult::Block {
+                code: "UnexpectedEpicStatus",
+                ..
+            }
+        ),
+        "F-A003 contrast/BC-4.14.001-INV3-step4: wave_id:2 + non-EPIC-COMPLETE + \
+        epic_status:complete present must Block with UnexpectedEpicStatus. \
+        UnexpectedEpicStatus fires at step 4 (wave_id>1) but NOT at step 3 \
+        (wave_id==1). Got: {result:?}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// F-A004 exact-message tests (BC-4.14.001 PC7 / EC-017)
+//
+// BC-4.14.001 PC7 / EC-017: when wave_id is present-but-invalid (0, -1) and
+// is the SOLE failing field, the gate must emit the exact canonical message:
+//   "HandoffIncomplete: wave_id must be a positive integer"
+// (not a generic multi-field list format).
+//
+// The existing F-002 tests in this file verify that wave_id:0 / wave_id:-1
+// produce Block { code: "HandoffIncomplete" } and that `message.contains("wave_id")`.
+// These new tests TIGHTEN that assertion to require the exact canonical
+// substring "must be a positive integer" (BC-4.14.001 PC7 / EC-017).
+//
+// Would-fail-before-fix evidence: before the F-A004 fix, wave_id:0 / -1 with
+// all other fields valid was not handled by the sole-failing-field special case
+// — the gate emitted a generic list message like
+// "HandoffIncomplete: required fields missing or malformed: [wave_id]",
+// which does NOT contain the required canonical substring.
+// ---------------------------------------------------------------------------
+
+/// F-A004 / BC-4.14.001 PC7 / EC-017:
+/// wave_id:0 + all other 8 base fields valid → Block message must contain
+/// the EXACT canonical substring "must be a positive integer".
+///
+/// Discriminating: the generic list format
+/// "HandoffIncomplete: required fields missing or malformed: [wave_id]"
+/// does NOT satisfy this assertion. Only the exact canonical F-A004 message
+/// passes.
+#[test]
+fn test_BC_4_14_001_wave_id_zero_exact_message_must_be_positive_integer() {
+    // wave_id:0 is the sole failing field; all other 8 base fields are valid.
+    // The gate must emit the exact canonical PC7/EC-017 message.
+    let yaml = "\
+wave_id: 0
+last_verified_develop_sha: abc123def456
+precompact_flush_sha: null
+factory_lock_holder: null
+active_bcs:
+  - BC-4.14.001
+next_wave_stories:
+  - id: S-19.01
+    status: pending
+open_decisions: []
+pending_fixes: []
+process_gaps: []
+";
+    let ctx = GateContext {
+        file_path: "factory-artifacts/HANDOFF.md".to_string(),
+        handoff_content: Some(yaml.to_string()),
+    };
+    let result = check_handoff_completeness(&ctx);
+    assert!(
+        matches!(
+            result,
+            GateResult::Block {
+                code: "HandoffIncomplete",
+                ..
+            }
+        ),
+        "F-A004/PC7/EC-017: wave_id:0 must block with HandoffIncomplete. Got: {result:?}"
+    );
+    if let GateResult::Block { message, .. } = &result {
+        assert!(
+            message.contains("must be a positive integer"),
+            "F-A004/BC-4.14.001-PC7/EC-017: block message must contain the exact canonical \
+            substring \"must be a positive integer\" (not just \"wave_id\"). \
+            Generic list format does not satisfy this requirement. Got: {message}"
+        );
+    }
+}
+
+/// F-A004 / BC-4.14.001 PC7 / EC-017:
+/// wave_id:-1 + all other 8 base fields valid → Block message must contain
+/// the EXACT canonical substring "must be a positive integer".
+///
+/// Mirrors the wave_id:0 case above for the negative-value boundary.
+#[test]
+fn test_BC_4_14_001_wave_id_negative_one_exact_message_must_be_positive_integer() {
+    // wave_id:-1 is the sole failing field; all other 8 base fields are valid.
+    let yaml = "\
+wave_id: -1
+last_verified_develop_sha: deadbeef0102
+precompact_flush_sha: null
+factory_lock_holder: null
+active_bcs: []
+next_wave_stories:
+  - id: S-19.01
+    status: pending
+open_decisions: []
+pending_fixes: []
+process_gaps: []
+";
+    let ctx = GateContext {
+        file_path: "factory-artifacts/HANDOFF.md".to_string(),
+        handoff_content: Some(yaml.to_string()),
+    };
+    let result = check_handoff_completeness(&ctx);
+    assert!(
+        matches!(
+            result,
+            GateResult::Block {
+                code: "HandoffIncomplete",
+                ..
+            }
+        ),
+        "F-A004/PC7/EC-017: wave_id:-1 must block with HandoffIncomplete. Got: {result:?}"
+    );
+    if let GateResult::Block { message, .. } = &result {
+        assert!(
+            message.contains("must be a positive integer"),
+            "F-A004/BC-4.14.001-PC7/EC-017: block message must contain the exact canonical \
+            substring \"must be a positive integer\" (not just \"wave_id\"). \
+            Generic list format does not satisfy this requirement. Got: {message}"
+        );
+    }
+}
+
+// ---------------------------------------------------------------------------
+// F-A006 malformed-YAML tests (EC-001 / BC-4.14.001 INV / lib.rs doc §F-A006)
+//
+// BC-4.14.001 / lib.rs: YAML is parsed ONCE (F-A006). A YAML parse error
+// blocks with `HandoffIncomplete: YAML parse error: <msg>` BEFORE the
+// wave-1 no-op short-circuit (EC-001). Malformed YAML must NEVER silently
+// return Continue via the wave-1 no-op path.
+//
+// Would-fail-before-fix evidence: before F-A006, the YAML was parsed
+// lazily inside each helper (e.g., extract_wave_id, is_epic_complete) with
+// `unwrap_or(false)` fallbacks. A malformed payload would have caused
+// all helpers to return their fallback values, resulting in:
+//   - is_epic_complete → false (not EPIC-COMPLETE)
+//   - parsed_wave_id → error treated as wave_id absent → full validation runs
+//   ... OR, in some code paths, the wave-1 no-op was reached if the error
+//   caused the wrong branch to be taken. After F-A006, the gate parses YAML
+//   once at the top and returns Block immediately on parse error — before
+//   any no-op short-circuit can fire.
+// ---------------------------------------------------------------------------
+
+/// F-A006 / EC-001 / BC-4.14.001:
+/// A HANDOFF.md whose content is structurally malformed YAML →
+/// check_handoff_completeness returns Block with a message containing
+/// "YAML parse error".
+///
+/// The malformed content is designed so that if YAML parsing were skipped
+/// or errors were silently swallowed (pre-F-A006 behavior), the gate might
+/// return Continue. The F-A006 fix requires the gate to surface the parse
+/// error as Block BEFORE any wave-id-based no-op short-circuit.
+///
+/// Note: "wave_id: 1" is embedded in the YAML preamble to make this test
+/// clearly target the wave-1 code path — if parsing succeeds, wave-1 no-op
+/// would fire. The unparseable tail ensures parsing fails, so the gate must
+/// return Block with a YAML parse error rather than the wave-1 Continue.
+#[test]
+fn test_BC_4_14_001_malformed_yaml_blocks_with_yaml_parse_error() {
+    // YAML with a structurally invalid sequence that cannot be parsed:
+    // the colon-inside-unquoted-key pattern generates a parse error in serde_norway.
+    // The "wave_id: 1" prefix is intentional: it would trigger the wave-1 no-op
+    // if parsing succeeded. Since parsing fails, the gate must block with
+    // "YAML parse error" BEFORE reaching the wave-1 no-op.
+    let yaml = "wave_id: 1\nmalformed: [unclosed bracket\n";
+    let ctx = GateContext {
+        file_path: "factory-artifacts/HANDOFF.md".to_string(),
+        handoff_content: Some(yaml.to_string()),
+    };
+    let result = check_handoff_completeness(&ctx);
+    assert!(
+        matches!(
+            result,
+            GateResult::Block {
+                code: "HandoffIncomplete",
+                ..
+            }
+        ),
+        "F-A006/EC-001: malformed YAML in HANDOFF.md must block with HandoffIncomplete \
+        (not silently Continue via wave-1 no-op). YAML parse error must surface BEFORE \
+        any wave-id-based short-circuit. Got: {result:?}"
+    );
+    if let GateResult::Block { message, .. } = &result {
+        assert!(
+            message.contains("YAML parse error"),
+            "F-A006/EC-001: block message must contain \"YAML parse error\" for unparseable \
+            content (F-A006 requires parse error to surface explicitly, not be swallowed). \
+            Got: {message}"
+        );
+    }
+}
+
+/// F-A006 / EC-001 variant: completely unparseable content (not just a bad value)
+/// → Block with "YAML parse error". Verifies the same gate behavior for a
+/// content string that is entirely invalid YAML (not just a partially-formed doc).
+#[test]
+fn test_BC_4_14_001_completely_invalid_yaml_blocks_with_yaml_parse_error() {
+    // Content that is not valid YAML at all.
+    let yaml = "}{[}::: not yaml\n\t@\x00invalid\n";
+    let ctx = GateContext {
+        file_path: "factory-artifacts/HANDOFF.md".to_string(),
+        handoff_content: Some(yaml.to_string()),
+    };
+    let result = check_handoff_completeness(&ctx);
+    assert!(
+        matches!(
+            result,
+            GateResult::Block {
+                code: "HandoffIncomplete",
+                ..
+            }
+        ),
+        "F-A006/EC-001 variant: completely invalid YAML must block with HandoffIncomplete. \
+        Got: {result:?}"
+    );
+    if let GateResult::Block { message, .. } = &result {
+        assert!(
+            message.contains("YAML parse error"),
+            "F-A006/EC-001 variant: block message must contain \"YAML parse error\" for \
+            completely invalid content. Got: {message}"
+        );
+    }
+}
