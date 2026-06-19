@@ -56,8 +56,9 @@
 
 use validate_wave_handoff_completeness::{
     GateContext, GateResult, check_handoff_completeness, emit_over_200_line_advisory,
-    extract_wave_id, is_epic_complete, path_is_handoff, validate_base_fields,
+    extract_wave_id, is_epic_complete, on_post_tool_use, path_is_handoff, validate_base_fields,
 };
+use vsdd_hook_sdk::HookResult;
 
 // ---------------------------------------------------------------------------
 // Fixtures — canonical HANDOFF.md YAML strings for use across tests.
@@ -1185,4 +1186,364 @@ fn vp_083_non_handoff_write_is_noop_regardless_of_wave() {
         "VP-083/§2: non-HANDOFF.md write must return Continue regardless of wave, \
         got: {result:?}"
     );
+}
+
+// ---------------------------------------------------------------------------
+// F-002 (BLOCKER) — wave_id:0 and wave_id:-1 must block (BC-4.14.001 v1.15 PC7 + EC-017 + story EC-002)
+//
+// Current bug: validate_field checks `as_i64().is_some()`, which returns
+// Some(0) for wave_id:0 and Some(-1) for wave_id:-1, so both incorrectly
+// pass through as valid. Per BC-4.14.001 PC7 / EC-017 / story EC-002,
+// wave_id must be a POSITIVE integer (>= 1). Zero and negative values are
+// malformed and must produce Block { code: "HandoffIncomplete" }.
+// ---------------------------------------------------------------------------
+
+/// F-002 / BC-4.14.001 PC7+EC-017: wave_id: 0 in a wave>1 context (is_first_wave=false)
+/// must block with HandoffIncomplete. The block message must mention "wave_id".
+///
+/// RED GATE: current impl uses `as_i64().is_some()` for wave_id validation,
+/// which accepts 0 as a valid integer — returns Continue instead of Block.
+#[test]
+fn test_BC_4_14_001_wave_id_zero_blocks_handoff_incomplete() {
+    let yaml = "\
+wave_id: 0
+last_verified_develop_sha: abc123def456
+precompact_flush_sha: null
+factory_lock_holder: null
+active_bcs:
+  - BC-4.14.001
+next_wave_stories:
+  - id: S-19.01
+    status: pending
+open_decisions: []
+pending_fixes: []
+process_gaps: []
+";
+    // wave_id=0 cannot be the first wave (0 is not a positive integer), so
+    // is_first_wave=false (fail-closed). The gate must treat wave_id:0 as malformed.
+    let ctx = GateContext {
+        is_first_wave: false,
+        file_path: "factory-artifacts/HANDOFF.md".to_string(),
+        handoff_content: Some(yaml.to_string()),
+        close_wave_mode: false,
+    };
+    let result = check_handoff_completeness(&ctx);
+    assert!(
+        matches!(
+            result,
+            GateResult::Block {
+                code: "HandoffIncomplete",
+                ..
+            }
+        ),
+        "F-002/PC7/EC-017: wave_id:0 must block with HandoffIncomplete (zero is not a \
+        positive integer); current impl returns Continue because as_i64().is_some() \
+        accepts 0. Got: {result:?}"
+    );
+    if let GateResult::Block { message, .. } = &result {
+        assert!(
+            message.contains("wave_id"),
+            "HandoffIncomplete block message must name 'wave_id' as the malformed field, \
+            got: {message}"
+        );
+    }
+}
+
+/// F-002 / BC-4.14.001 PC7+EC-017: wave_id: -1 must block with HandoffIncomplete.
+/// Negative wave_id is not a positive integer and must be rejected.
+///
+/// RED GATE: current impl uses `as_i64().is_some()` which accepts -1.
+#[test]
+fn test_BC_4_14_001_wave_id_negative_one_blocks_handoff_incomplete() {
+    let yaml = "\
+wave_id: -1
+last_verified_develop_sha: deadbeef0102
+precompact_flush_sha: null
+factory_lock_holder: null
+active_bcs: []
+next_wave_stories:
+  - id: S-19.01
+    status: pending
+open_decisions: []
+pending_fixes: []
+process_gaps: []
+";
+    let ctx = GateContext {
+        is_first_wave: false,
+        file_path: "factory-artifacts/HANDOFF.md".to_string(),
+        handoff_content: Some(yaml.to_string()),
+        close_wave_mode: false,
+    };
+    let result = check_handoff_completeness(&ctx);
+    assert!(
+        matches!(
+            result,
+            GateResult::Block {
+                code: "HandoffIncomplete",
+                ..
+            }
+        ),
+        "F-002/PC7/EC-017: wave_id:-1 must block with HandoffIncomplete (negative is not a \
+        positive integer); current impl accepts -1 via as_i64().is_some(). Got: {result:?}"
+    );
+    if let GateResult::Block { message, .. } = &result {
+        assert!(
+            message.contains("wave_id"),
+            "HandoffIncomplete block message must name 'wave_id' for negative value, \
+            got: {message}"
+        );
+    }
+}
+
+// ---------------------------------------------------------------------------
+// F-003 (MAJOR) — path_is_handoff must use path-component-strict matching,
+// not bare ends_with("HANDOFF.md").
+//
+// Current bug: `file_path.ends_with("HANDOFF.md")` also matches:
+//   - "foo/MY-HANDOFF.md"   (suffix matches because ends_with is substring-level)
+//   - "xHANDOFF.md"         (single char prefix, file name component != HANDOFF.md)
+//   - "foo/WAVE-HANDOFF.md" (file name = WAVE-HANDOFF.md, not HANDOFF.md)
+//   - "MYHANDOFF.md"        (no separator between prefix and HANDOFF.md)
+//
+// The correct implementation must check that the LAST PATH COMPONENT (file name)
+// is exactly "HANDOFF.md", using std::path::Path::file_name().
+// ---------------------------------------------------------------------------
+
+/// F-003 / BC-4.14.001 PC4: path_is_handoff must NOT match "xHANDOFF.md".
+/// The file name component is "xHANDOFF.md", which is not exactly "HANDOFF.md".
+///
+/// RED GATE: current `ends_with("HANDOFF.md")` returns true for this input.
+#[test]
+fn test_BC_4_14_001_path_is_handoff_xhandoff_does_not_match() {
+    assert!(
+        !path_is_handoff("xHANDOFF.md"),
+        "F-003/PC4: 'xHANDOFF.md' must NOT match — file name is 'xHANDOFF.md', not \
+        'HANDOFF.md'. Current ends_with returns true (false positive). Bug: path-component \
+        match required per BC-4.14.001 PC4."
+    );
+}
+
+/// F-003 / BC-4.14.001 PC4: path_is_handoff must NOT match "foo/MY-HANDOFF.md".
+/// The file name component is "MY-HANDOFF.md", not "HANDOFF.md".
+///
+/// RED GATE: current `ends_with("HANDOFF.md")` returns true (MY-HANDOFF.md ends with HANDOFF.md).
+#[test]
+fn test_BC_4_14_001_path_is_handoff_my_handoff_does_not_match() {
+    assert!(
+        !path_is_handoff("foo/MY-HANDOFF.md"),
+        "F-003/PC4: 'foo/MY-HANDOFF.md' must NOT match — file name is 'MY-HANDOFF.md', not \
+        'HANDOFF.md'. Current ends_with returns true (false positive). Bug: path-component \
+        match required per BC-4.14.001 PC4."
+    );
+}
+
+/// F-003 / BC-4.14.001 PC4: path_is_handoff must NOT match "foo/WAVE-HANDOFF.md".
+/// The file name component is "WAVE-HANDOFF.md", not "HANDOFF.md".
+///
+/// RED GATE: current `ends_with("HANDOFF.md")` returns true.
+#[test]
+fn test_BC_4_14_001_path_is_handoff_wave_handoff_does_not_match() {
+    assert!(
+        !path_is_handoff("foo/WAVE-HANDOFF.md"),
+        "F-003/PC4: 'foo/WAVE-HANDOFF.md' must NOT match — file name is 'WAVE-HANDOFF.md'. \
+        Current ends_with returns true (false positive). Bug: path-component match required."
+    );
+}
+
+/// F-003 positive regression: canonical paths that SHOULD match still match.
+/// These must continue to pass after the path-component fix.
+///
+/// This test verifies no regression in the positive path.
+/// It currently passes against the stub (GREEN-BY-DESIGN for positive cases).
+#[test]
+fn test_BC_4_14_001_path_is_handoff_canonical_paths_still_match() {
+    assert!(
+        path_is_handoff("factory-artifacts/HANDOFF.md"),
+        "factory-artifacts/HANDOFF.md must match"
+    );
+    assert!(path_is_handoff("HANDOFF.md"), "bare HANDOFF.md must match");
+    assert!(
+        path_is_handoff("/some/deep/path/HANDOFF.md"),
+        "/some/deep/path/HANDOFF.md must match"
+    );
+    assert!(
+        path_is_handoff("foo/HANDOFF.md"),
+        "foo/HANDOFF.md must match"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// F-005 (MAJOR) — VP-081 integration harness tests driving on_post_tool_use
+// end-to-end with a full HookPayload.
+//
+// These tests call on_post_tool_use (the WASM gate entry point) with
+// constructed HookPayload objects and assert on HookResult, exercising the
+// full Write/Edit dispatch path.
+//
+// Note on Edit payload (F-001 related): on_post_tool_use currently extracts
+// content from tool_input["new_string"] for Edit calls. This is a fragment,
+// not the full file — the correct fix requires host::read_file. Since the
+// non-WASM stub always returns CapabilityDenied for host::read_file, the
+// test for the Edit full-file acquisition path (F-001) cannot be validated
+// in pure Rust unit tests without a host shim. See F-001 route-back below.
+// The integration tests here cover Write payloads (tool_input["content"])
+// and confirm the gate logic end-to-end.
+// ---------------------------------------------------------------------------
+
+/// VP-081 proof-harness skeleton: test_wave_close_blocked_missing_sha_field.
+///
+/// Drives on_post_tool_use with a Write payload for HANDOFF.md where
+/// wave_id=2 but last_verified_develop_sha is absent. Gate must block.
+///
+/// RED GATE: passes if check_handoff_completeness is fully implemented.
+/// Fails against any stub / todo!() in the gate chain.
+#[test]
+fn test_wave_close_blocked_missing_sha_field() {
+    let yaml = "\
+wave_id: 2
+precompact_flush_sha: null
+factory_lock_holder: null
+active_bcs: []
+next_wave_stories:
+  - id: S-19.01
+    status: pending
+open_decisions: []
+pending_fixes: []
+process_gaps: []
+";
+    let payload = make_write_payload("factory-artifacts/HANDOFF.md", yaml);
+    let result = on_post_tool_use(payload);
+    assert!(
+        matches!(result, HookResult::Block { .. }),
+        "VP-081/test_wave_close_blocked_missing_sha_field: Write HANDOFF.md with wave_id=2 \
+        and missing last_verified_develop_sha must produce Block. Got: {result:?}"
+    );
+    if let HookResult::Block { reason } = &result {
+        assert!(
+            reason.contains("HandoffIncomplete") || reason.contains("last_verified_develop_sha"),
+            "Block reason must mention HandoffIncomplete or last_verified_develop_sha, got: {reason}"
+        );
+    }
+}
+
+/// VP-081 proof-harness skeleton: test_wave_close_allowed_with_complete_handoff.
+///
+/// Drives on_post_tool_use with a Write payload for HANDOFF.md where
+/// wave_id=2 and all 9 required fields are present. Gate must Continue.
+///
+/// RED GATE: currently passes (all 9 fields valid → Continue). But this test
+/// also validates the full on_post_tool_use dispatch path.
+#[test]
+fn test_wave_close_allowed_with_complete_handoff() {
+    let yaml = "\
+wave_id: 2
+last_verified_develop_sha: abc123def456
+precompact_flush_sha: null
+factory_lock_holder: null
+active_bcs:
+  - BC-4.14.001
+next_wave_stories:
+  - id: S-19.01
+    status: pending
+open_decisions: []
+pending_fixes: []
+process_gaps: []
+";
+    let payload = make_write_payload("factory-artifacts/HANDOFF.md", yaml);
+    let result = on_post_tool_use(payload);
+    assert_eq!(
+        result,
+        HookResult::Continue,
+        "VP-081/test_wave_close_allowed_with_complete_handoff: Write HANDOFF.md with wave_id=2 \
+        and all 9 fields present must return Continue. Got: {result:?}"
+    );
+}
+
+/// VP-081 proof-harness skeleton: test_wave_1_no_op.
+///
+/// Drives on_post_tool_use with a Write payload for HANDOFF.md where
+/// wave_id=1 and next_wave_stories is non-empty (NOT EPIC-COMPLETE).
+/// Gate must return Continue (wave-1 no-op per BC-4.14.001 PC3).
+///
+/// RED GATE: currently passes (wave-1 no-op is implemented).
+#[test]
+fn test_wave_1_no_op() {
+    let yaml = "\
+wave_id: 1
+last_verified_develop_sha: 1122334455aa
+precompact_flush_sha: null
+factory_lock_holder: null
+active_bcs: []
+next_wave_stories:
+  - id: S-02.01
+    status: pending
+open_decisions: []
+pending_fixes: []
+process_gaps: []
+";
+    let payload = make_write_payload("factory-artifacts/HANDOFF.md", yaml);
+    let result = on_post_tool_use(payload);
+    assert_eq!(
+        result,
+        HookResult::Continue,
+        "VP-081/test_wave_1_no_op: Write HANDOFF.md with wave_id=1 (NOT EPIC-COMPLETE) \
+        must return Continue (wave-1 no-op per BC-4.14.001 PC3). Got: {result:?}"
+    );
+}
+
+/// VP-081 proof-harness skeleton: test_wave_id_absent_fails_closed.
+///
+/// Drives on_post_tool_use with a Write payload for HANDOFF.md where
+/// wave_id field is absent from the payload. Gate must fail closed (Block).
+/// Absent wave_id is NOT treated as wave-1 per BC-4.14.001 PC3/PC8/EC-010.
+///
+/// RED GATE: currently passes (fail-closed is implemented for absent wave_id).
+#[test]
+fn test_wave_id_absent_fails_closed() {
+    let yaml = "\
+last_verified_develop_sha: abc123def456
+precompact_flush_sha: null
+factory_lock_holder: null
+active_bcs: []
+next_wave_stories:
+  - id: S-19.01
+    status: pending
+open_decisions: []
+pending_fixes: []
+process_gaps: []
+";
+    let payload = make_write_payload("factory-artifacts/HANDOFF.md", yaml);
+    let result = on_post_tool_use(payload);
+    assert!(
+        matches!(result, HookResult::Block { .. }),
+        "VP-081/test_wave_id_absent_fails_closed: Write HANDOFF.md with wave_id absent \
+        must produce Block (fail-closed per BC-4.14.001 PC3/PC8/EC-010). Got: {result:?}"
+    );
+    if let HookResult::Block { reason } = &result {
+        assert!(
+            reason.contains("HandoffIncomplete") || reason.contains("wave_id"),
+            "Block reason must mention HandoffIncomplete or wave_id, got: {reason}"
+        );
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Helper: construct a Write-tool HookPayload for a given HANDOFF.md path and content.
+// ---------------------------------------------------------------------------
+
+fn make_write_payload(file_path: &str, content: &str) -> vsdd_hook_sdk::HookPayload {
+    let json = serde_json::json!({
+        "event_name": "PostToolUse",
+        "tool_name": "Write",
+        "session_id": "integration-test-session",
+        "dispatcher_trace_id": "integration-test-trace",
+        "tool_input": {
+            "file_path": file_path,
+            "content": content
+        },
+        "tool_response": {
+            "exit_code": 0
+        }
+    });
+    serde_json::from_value(json).expect("HookPayload fixture must deserialize")
 }
