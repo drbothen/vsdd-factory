@@ -1392,11 +1392,17 @@ fn test_BC_4_14_001_path_is_handoff_canonical_paths_still_match() {
 
 /// VP-081 proof-harness skeleton: test_wave_close_blocked_missing_sha_field.
 ///
-/// Drives on_post_tool_use with a Write payload for HANDOFF.md where
-/// wave_id=2 but last_verified_develop_sha is absent. Gate must block.
+/// Exercises the pure decision core `check_handoff_completeness` with a
+/// GateContext for HANDOFF.md where wave_id=2 but last_verified_develop_sha
+/// is absent. Gate must block.
 ///
-/// RED GATE: passes if check_handoff_completeness is fully implemented.
-/// Fails against any stub / todo!() in the gate chain.
+/// Re-pointed from on_post_tool_use (which fails-open via host::read_file in
+/// the non-WASM unit harness) to the pure core so the behavioral expectation
+/// (Block on missing scalar field) is verified directly against production
+/// logic. I/O-shell coverage is carried by bats scenario B
+/// (fail-open-on-crash.bats).
+///
+/// BC-4.14.001 PC7 / VP-081 Postcondition B.
 #[test]
 fn test_wave_close_blocked_missing_sha_field() {
     let yaml = "\
@@ -1411,18 +1417,24 @@ open_decisions: []
 pending_fixes: []
 process_gaps: []
 ";
-    let payload = make_write_payload("factory-artifacts/HANDOFF.md", yaml);
-    let result = on_post_tool_use(payload);
+    let ctx = GateContext {
+        is_first_wave: false,
+        file_path: "factory-artifacts/HANDOFF.md".to_string(),
+        handoff_content: Some(yaml.to_string()),
+        close_wave_mode: false,
+    };
+    let result = check_handoff_completeness(&ctx);
     assert!(
-        matches!(result, HookResult::Block { .. }),
-        "VP-081/test_wave_close_blocked_missing_sha_field: Write HANDOFF.md with wave_id=2 \
+        matches!(result, GateResult::Block { .. }),
+        "VP-081/test_wave_close_blocked_missing_sha_field: HANDOFF.md with wave_id=2 \
         and missing last_verified_develop_sha must produce Block. Got: {result:?}"
     );
-    if let HookResult::Block { reason } = &result {
+    if let GateResult::Block { code, message } = &result {
         assert!(
-            reason.contains("HandoffIncomplete") || reason.contains("last_verified_develop_sha"),
-            "Block reason must mention HandoffIncomplete or last_verified_develop_sha, got: {reason}"
+            message.contains("HandoffIncomplete") || message.contains("last_verified_develop_sha"),
+            "Block message must mention HandoffIncomplete or last_verified_develop_sha, got: {message}"
         );
+        assert_eq!(*code, "HandoffIncomplete", "Block code must be HandoffIncomplete, got: {code}");
     }
 }
 
@@ -1493,11 +1505,17 @@ process_gaps: []
 
 /// VP-081 proof-harness skeleton: test_wave_id_absent_fails_closed.
 ///
-/// Drives on_post_tool_use with a Write payload for HANDOFF.md where
-/// wave_id field is absent from the payload. Gate must fail closed (Block).
-/// Absent wave_id is NOT treated as wave-1 per BC-4.14.001 PC3/PC8/EC-010.
+/// Exercises the pure decision core `check_handoff_completeness` with a
+/// GateContext for HANDOFF.md where wave_id field is absent. Gate must
+/// fail closed (Block). Absent wave_id is NOT treated as wave-1 per
+/// BC-4.14.001 PC3/PC8/EC-010.
 ///
-/// RED GATE: currently passes (fail-closed is implemented for absent wave_id).
+/// Re-pointed from on_post_tool_use (which fails-open via host::read_file in
+/// the non-WASM unit harness) to the pure core. is_first_wave=false correctly
+/// represents absent wave_id per the PC8 fail-closed convention. I/O-shell
+/// coverage is carried by bats scenario C (fail-open-on-crash.bats).
+///
+/// BC-4.14.001 PC3 / PC8 / EC-010 / VP-081 Postcondition E.
 #[test]
 fn test_wave_id_absent_fails_closed() {
     let yaml = "\
@@ -1512,17 +1530,23 @@ open_decisions: []
 pending_fixes: []
 process_gaps: []
 ";
-    let payload = make_write_payload("factory-artifacts/HANDOFF.md", yaml);
-    let result = on_post_tool_use(payload);
+    // is_first_wave=false: absent wave_id is NOT treated as wave-1 (fail-closed per PC8).
+    let ctx = GateContext {
+        is_first_wave: false,
+        file_path: "factory-artifacts/HANDOFF.md".to_string(),
+        handoff_content: Some(yaml.to_string()),
+        close_wave_mode: false,
+    };
+    let result = check_handoff_completeness(&ctx);
     assert!(
-        matches!(result, HookResult::Block { .. }),
-        "VP-081/test_wave_id_absent_fails_closed: Write HANDOFF.md with wave_id absent \
+        matches!(result, GateResult::Block { .. }),
+        "VP-081/test_wave_id_absent_fails_closed: HANDOFF.md with wave_id absent \
         must produce Block (fail-closed per BC-4.14.001 PC3/PC8/EC-010). Got: {result:?}"
     );
-    if let HookResult::Block { reason } = &result {
+    if let GateResult::Block { message, .. } = &result {
         assert!(
-            reason.contains("HandoffIncomplete") || reason.contains("wave_id"),
-            "Block reason must mention HandoffIncomplete or wave_id, got: {reason}"
+            message.contains("HandoffIncomplete") || message.contains("wave_id"),
+            "Block message must mention HandoffIncomplete or wave_id, got: {message}"
         );
     }
 }
