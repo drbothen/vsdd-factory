@@ -380,11 +380,9 @@ fn make_non_handoff_ctx(file_path: &str) -> GateContext {
 // Helper: construct a HANDOFF.md GateContext for wave_id > 1.
 // ---------------------------------------------------------------------------
 
-fn make_handoff_ctx(_is_first_wave: bool, content: String) -> GateContext {
+fn make_handoff_ctx(content: String) -> GateContext {
     // F-A005: is_first_wave removed from GateContext; wave identity is derived
     // from the parsed wave_id in handoff_content inside check_handoff_completeness.
-    // The parameter is retained in the helper signature to avoid rewriting all
-    // call sites (the test-writer owns assertion semantics; mechanical update only).
     GateContext {
         file_path: "factory-artifacts/HANDOFF.md".to_string(),
         handoff_content: Some(content),
@@ -461,7 +459,7 @@ fn ac_001_state_md_write_is_noop() {
 /// Red Gate: panics at todo!() in check_handoff_completeness.
 #[test]
 fn ac_002_epic_complete_valid_epic_status_continues() {
-    let ctx = make_handoff_ctx(false, fixture_epic_complete_wave2_valid());
+    let ctx = make_handoff_ctx(fixture_epic_complete_wave2_valid());
     let result = check_handoff_completeness(&ctx);
     assert_eq!(
         result,
@@ -475,7 +473,7 @@ fn ac_002_epic_complete_valid_epic_status_continues() {
 /// Red Gate: panics at todo!() in check_handoff_completeness.
 #[test]
 fn ac_002_epic_complete_missing_epic_status_blocks() {
-    let ctx = make_handoff_ctx(false, fixture_epic_complete_wave2_missing_epic_status());
+    let ctx = make_handoff_ctx(fixture_epic_complete_wave2_missing_epic_status());
     let result = check_handoff_completeness(&ctx);
     assert!(
         matches!(
@@ -495,10 +493,7 @@ fn ac_002_epic_complete_missing_epic_status_blocks() {
 /// Red Gate: panics at todo!() in check_handoff_completeness.
 #[test]
 fn ac_002_epic_complete_unexpected_epic_status_on_nonfinal_blocks() {
-    let ctx = make_handoff_ctx(
-        false,
-        fixture_non_epic_complete_with_unexpected_epic_status(),
-    );
+    let ctx = make_handoff_ctx(fixture_non_epic_complete_with_unexpected_epic_status());
     let result = check_handoff_completeness(&ctx);
     assert!(
         matches!(
@@ -543,7 +538,7 @@ fn ac_003_wave_id_1_noop_when_not_epic_complete() {
 /// Red Gate: panics at todo!() in check_handoff_completeness.
 #[test]
 fn ac_004_wave_id_gt1_full_validation_all_fields_present() {
-    let ctx = make_handoff_ctx(false, fixture_wave2_all_fields_present());
+    let ctx = make_handoff_ctx(fixture_wave2_all_fields_present());
     let result = check_handoff_completeness(&ctx);
     assert_eq!(
         result,
@@ -557,7 +552,7 @@ fn ac_004_wave_id_gt1_full_validation_all_fields_present() {
 /// Red Gate: panics at todo!() in check_handoff_completeness.
 #[test]
 fn ac_004_wave_id_gt1_missing_scalar_field_blocks() {
-    let ctx = make_handoff_ctx(false, fixture_wave2_missing_sha());
+    let ctx = make_handoff_ctx(fixture_wave2_missing_sha());
     let result = check_handoff_completeness(&ctx);
     assert!(
         matches!(
@@ -584,7 +579,7 @@ fn ac_004_wave_id_gt1_missing_scalar_field_blocks() {
 /// Red Gate: panics at todo!() in check_handoff_completeness.
 #[test]
 fn ac_004_empty_scalar_malformed_blocks() {
-    let ctx = make_handoff_ctx(false, fixture_wave2_empty_sha());
+    let ctx = make_handoff_ctx(fixture_wave2_empty_sha());
     let result = check_handoff_completeness(&ctx);
     assert!(
         matches!(
@@ -610,7 +605,7 @@ fn ac_004_empty_scalar_malformed_blocks() {
 /// Red Gate: panics at todo!() in check_handoff_completeness.
 #[test]
 fn ac_004_null_allowed_for_nullable_scalars() {
-    let ctx = make_handoff_ctx(false, fixture_wave2_null_precompact_sha());
+    let ctx = make_handoff_ctx(fixture_wave2_null_precompact_sha());
     let result = check_handoff_completeness(&ctx);
     assert_eq!(
         result,
@@ -666,7 +661,7 @@ fn ac_005_wave_id_absent_fails_closed() {
 /// Red Gate: panics at todo!() in check_handoff_completeness.
 #[test]
 fn ac_006_all_failing_fields_named_in_one_message() {
-    let ctx = make_handoff_ctx(false, fixture_wave2_multiple_missing_fields());
+    let ctx = make_handoff_ctx(fixture_wave2_multiple_missing_fields());
     let result = check_handoff_completeness(&ctx);
     assert!(
         matches!(
@@ -705,7 +700,7 @@ fn ac_006_all_failing_fields_named_in_one_message() {
 /// Red Gate: panics at todo!() in check_handoff_completeness.
 #[test]
 fn ac_007_empty_list_is_valid_for_list_fields() {
-    let ctx = make_handoff_ctx(false, fixture_wave2_empty_list_field());
+    let ctx = make_handoff_ctx(fixture_wave2_empty_list_field());
     let result = check_handoff_completeness(&ctx);
     assert_eq!(
         result,
@@ -719,7 +714,7 @@ fn ac_007_empty_list_is_valid_for_list_fields() {
 /// Red Gate: panics at todo!() in check_handoff_completeness.
 #[test]
 fn ac_007_missing_list_field_is_invalid() {
-    let ctx = make_handoff_ctx(false, fixture_wave2_missing_list_field());
+    let ctx = make_handoff_ctx(fixture_wave2_missing_list_field());
     let result = check_handoff_completeness(&ctx);
     assert!(
         matches!(
@@ -905,7 +900,7 @@ fn ac_012_body_over_200_lines_emits_advisory_but_continues() {
         line_count > 200,
         "test fixture must exceed 200 lines, got {line_count} lines"
     );
-    let ctx = make_handoff_ctx(false, content);
+    let ctx = make_handoff_ctx(content);
     let result = check_handoff_completeness(&ctx);
     assert_eq!(
         result,
@@ -1071,7 +1066,7 @@ fn helper_validate_base_fields_reports_empty_vec_on_success() {
 /// Red Gate: panics at todo!() in check_handoff_completeness.
 #[test]
 fn vp_081_wave_close_blocked_missing_sha_field() {
-    let ctx = make_handoff_ctx(false, fixture_wave2_missing_sha());
+    let ctx = make_handoff_ctx(fixture_wave2_missing_sha());
     let result = check_handoff_completeness(&ctx);
     assert!(
         matches!(
@@ -1371,7 +1366,7 @@ fn test_BC_4_14_001_path_is_handoff_canonical_paths_still_match() {
 // and confirm the gate logic end-to-end.
 // ---------------------------------------------------------------------------
 
-/// VP-081 proof-harness skeleton: test_wave_close_blocked_missing_sha_field.
+/// VP-081 proof-harness skeleton: test_wave_close_blocked_missing_sha_field_pure_core.
 ///
 /// Exercises the pure decision core `check_handoff_completeness` with a
 /// GateContext for HANDOFF.md where wave_id=2 but last_verified_develop_sha
@@ -1384,8 +1379,10 @@ fn test_BC_4_14_001_path_is_handoff_canonical_paths_still_match() {
 /// (fail-open-on-crash.bats).
 ///
 /// BC-4.14.001 PC7 / VP-081 Postcondition B.
+/// Named with `_pure_core` suffix to distinguish from the canonical VP-081
+/// proof harness in `tests/integration_test.rs`.
 #[test]
-fn test_wave_close_blocked_missing_sha_field() {
+fn test_wave_close_blocked_missing_sha_field_pure_core() {
     let yaml = "\
 wave_id: 2
 precompact_flush_sha: null
@@ -1420,7 +1417,7 @@ process_gaps: []
     }
 }
 
-/// VP-081 proof-harness skeleton: test_wave_close_allowed_with_complete_handoff.
+/// VP-081 proof-harness skeleton: test_wave_close_allowed_with_complete_handoff_pure_core.
 ///
 /// Exercises the pure decision core `check_handoff_completeness` with a
 /// GateContext for HANDOFF.md where wave_id=2 and all 9 required fields are
@@ -1433,8 +1430,10 @@ process_gaps: []
 /// against production logic. I/O-shell coverage is carried by bats.
 ///
 /// BC-4.14.001 PC7 / VP-081 Postcondition C.
+/// Named with `_pure_core` suffix to distinguish from the canonical VP-081
+/// proof harness in `tests/integration_test.rs`.
 #[test]
-fn test_wave_close_allowed_with_complete_handoff() {
+fn test_wave_close_allowed_with_complete_handoff_pure_core() {
     let yaml = "\
 wave_id: 2
 last_verified_develop_sha: abc123def456
@@ -1462,7 +1461,7 @@ process_gaps: []
     );
 }
 
-/// VP-081 proof-harness skeleton: test_wave_1_no_op.
+/// VP-081 proof-harness skeleton: test_wave_1_no_op_pure_core.
 ///
 /// Exercises the pure decision core `check_handoff_completeness` with a
 /// GateContext for HANDOFF.md where wave_id=1 and next_wave_stories is
@@ -1475,8 +1474,10 @@ process_gaps: []
 /// directly against production logic. I/O-shell coverage is carried by bats.
 ///
 /// BC-4.14.001 PC3 / VP-081 Postcondition D / VP-083.
+/// Named with `_pure_core` suffix to distinguish from the canonical VP-081
+/// proof harness in `tests/integration_test.rs`.
 #[test]
-fn test_wave_1_no_op() {
+fn test_wave_1_no_op_pure_core() {
     let yaml = "\
 wave_id: 1
 last_verified_develop_sha: 1122334455aa
@@ -1503,7 +1504,7 @@ process_gaps: []
     );
 }
 
-/// VP-081 proof-harness skeleton: test_wave_id_absent_fails_closed.
+/// VP-081 proof-harness skeleton: test_wave_id_absent_fails_closed_pure_core.
 ///
 /// Exercises the pure decision core `check_handoff_completeness` with a
 /// GateContext for HANDOFF.md where wave_id field is absent. Gate must
@@ -1516,8 +1517,10 @@ process_gaps: []
 /// by bats scenario C (fail-open-on-crash.bats).
 ///
 /// BC-4.14.001 PC3 / PC8 / EC-010 / VP-081 Postcondition E.
+/// Named with `_pure_core` suffix to distinguish from the canonical VP-081
+/// proof harness in `tests/integration_test.rs`.
 #[test]
-fn test_wave_id_absent_fails_closed() {
+fn test_wave_id_absent_fails_closed_pure_core() {
     let yaml = "\
 last_verified_develop_sha: abc123def456
 precompact_flush_sha: null
@@ -1565,11 +1568,14 @@ process_gaps: []
 ///
 /// Validation-outcome assertions must use check_handoff_completeness (the pure
 /// core) rather than on_post_tool_use in the native harness. See
-/// test_wave_close_allowed_with_complete_handoff and test_wave_1_no_op above.
+/// test_wave_close_allowed_with_complete_handoff_pure_core and
+/// test_wave_1_no_op_pure_core above.
 ///
 /// VP-083 §no-false-positive / BC-4.14.001 PC8 fail-open-on-read-error.
+/// Named with `_pure_core` suffix to distinguish from the canonical VP-081
+/// proof harness in `tests/integration_test.rs`.
 #[test]
-fn test_on_post_tool_use_fails_open_on_read_error() {
+fn test_on_post_tool_use_fails_open_on_read_error_pure_core() {
     // Deliberately incomplete YAML — would produce Block via check_handoff_completeness.
     // However, on_post_tool_use in the native harness fail-opens before parsing
     // because host::read_file returns CapabilityDenied, so it returns Continue.
@@ -2093,7 +2099,7 @@ fn test_BC_4_14_001_epic_status_present_list_value_blocks_malformed() {
 #[test]
 fn test_BC_4_14_001_epic_status_absent_still_blocks_missing_epic_status() {
     // Absent epic_status on EPIC-COMPLETE (next_wave_stories: []) → MissingEpicStatus.
-    let ctx = make_handoff_ctx(false, fixture_epic_complete_wave2_missing_epic_status());
+    let ctx = make_handoff_ctx(fixture_epic_complete_wave2_missing_epic_status());
     let result = check_handoff_completeness(&ctx);
     assert!(
         matches!(
