@@ -20,11 +20,17 @@
 //!
 //! # Architecture compliance
 //!
-//! - Pure-parse: no filesystem access, no process spawning (BC-4.14.001 INV1).
+//! - Uses `host::read_file` in `on_post_tool_use` to acquire the FULL written
+//!   file content after every Edit or Write. Fail-open on read failure (VP-083
+//!   no-false-positive invariant; BC-4.14.001 PC6).
+//! - Pure-parse core (`check_handoff_completeness`): no filesystem access, no
+//!   process spawning (BC-4.14.001 INV1).
 //! - `#[deny(warnings)]` via workspace `[lints]` (`-- -D warnings` in CI).
 //! - No `unwrap()` or `expect()` in non-test code paths.
 //! - No `regex` crate — stay within WASM fuel budget.
 //! - No dependency on `crates/factory-dispatcher` (would create circular dep).
+//! - `wave_id` must be a positive integer (>= 1); 0 and negative values are
+//!   MALFORMED per BC-4.14.001 PC7 / EC-017.
 
 use vsdd_hook_sdk::{HookPayload, HookResult};
 
@@ -55,8 +61,9 @@ pub const MAX_BYTES: u32 = 524_288;
 /// `handoff_content` holds the raw YAML string being validated, or `None`
 /// when the tool call did not target a HANDOFF.md path (non-HANDOFF.md no-op).
 ///
-/// `close_wave_mode` is reserved for integration callers; at the unit level
-/// it is always `false` (the gate is a pure PostToolUse write-time check).
+/// `close_wave_mode` is always unused by the pure gate (the gate is a pure
+/// PostToolUse write-time check). Retained for struct-literal compatibility in
+/// call sites that set it to `false`.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GateContext {
     /// Derived from `payload.wave_id == 1` (payload-only; BC-4.14.001 PC3).
@@ -65,7 +72,7 @@ pub struct GateContext {
     pub file_path: String,
     /// Raw YAML content being written. `None` signals non-HANDOFF.md target.
     pub handoff_content: Option<String>,
-    /// Reserved; always `false` in unit tests.
+    /// Always `false`; unused by the pure gate. Retained for call-site compatibility.
     pub close_wave_mode: bool,
 }
 
@@ -207,14 +214,13 @@ pub fn check_handoff_completeness(ctx: &GateContext) -> GateResult {
 fn run_full_base_validation(content: &str) -> GateResult {
     let failing = match validate_base_fields(content, false) {
         Ok(fields) => fields,
-        Err(_) => {
-            // YAML parse error — fail-closed: report all 9 fields as missing.
+        Err(parse_err) => {
+            // YAML parse error — fail-closed: surface the parse error message
+            // (EC-001) so callers see the actual failure instead of a generic
+            // all-9-fields message.
             return GateResult::Block {
                 code: "HandoffIncomplete",
-                message: format!(
-                    "HandoffIncomplete: required fields missing or malformed: [{}]",
-                    BASE_FIELDS_ORDERED.join(", ")
-                ),
+                message: format!("HandoffIncomplete: YAML parse error: {parse_err}"),
             };
         }
     };
@@ -262,17 +268,12 @@ fn validate_epic_complete_handoff(content: &str) -> GateResult {
     }
 
     // Full 9-base-field validation (EPIC-COMPLETE augments, does not replace).
-    // epic_complete=true so validate_base_fields skips the epic_status check
-    // (it's already validated above).
     let failing = match validate_base_fields(content, true) {
         Ok(fields) => fields,
-        Err(_) => {
+        Err(parse_err) => {
             return GateResult::Block {
                 code: "HandoffIncomplete",
-                message: format!(
-                    "HandoffIncomplete: required fields missing or malformed: [{}]",
-                    BASE_FIELDS_ORDERED.join(", ")
-                ),
+                message: format!("HandoffIncomplete: YAML parse error: {parse_err}"),
             };
         }
     };
@@ -298,8 +299,16 @@ fn validate_epic_complete_handoff(content: &str) -> GateResult {
 /// the pure 5-step gate.
 ///
 /// Extracts `file_path` from `payload.tool_input["file_path"]` (Write) or
-/// `payload.tool_input["path"]` (Edit), and `content` from
-/// `payload.tool_input["content"]` (Write) or the diff+file read (Edit).
+/// `payload.tool_input["path"]` (Edit), then reads the **full** on-disk file
+/// content via `host::read_file` to validate the complete HANDOFF.md (not just
+/// the fragment carried in `new_string` for Edit calls).
+///
+/// ## Read-failure handling (VP-083 / BC-4.14.001 PC6)
+///
+/// If `host::read_file` returns an error (e.g., `CapabilityDenied` in non-WASM
+/// test harnesses, permission failures, timeout), the gate FAILS OPEN and
+/// returns `HookResult::Continue`. This is consistent with the sibling plugin
+/// `validate-burst-log` and the VP-083 no-false-positive invariant.
 ///
 /// Maps `GateResult::Continue` → `HookResult::Continue`.
 /// Maps `GateResult::Block { .. }` → `HookResult::block_with_fix(...)`.
@@ -311,6 +320,8 @@ fn validate_epic_complete_handoff(content: &str) -> GateResult {
 /// in non-test code — all error paths return `HookResult::Continue` or a
 /// `HookResult::block_with_fix(...)`.
 pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
+    use vsdd_hook_sdk::host;
+
     // Extract file_path: Write uses "file_path", Edit uses "path".
     let file_path = payload
         .tool_input
@@ -320,23 +331,38 @@ pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
         .unwrap_or("")
         .to_string();
 
-    // Short-circuit on non-HANDOFF.md path to avoid content extraction cost.
+    // Short-circuit on non-HANDOFF.md path (path-component-strict guard).
     if !path_is_handoff(&file_path) {
         return HookResult::Continue;
     }
 
-    // Extract content: Write uses "content", Edit uses "new_string" or "content".
-    let handoff_content = payload
-        .tool_input
-        .get("content")
-        .and_then(|v| v.as_str())
-        .or_else(|| {
-            payload
-                .tool_input
-                .get("new_string")
-                .and_then(|v| v.as_str())
-        })
-        .map(|s| s.to_string());
+    // Read the FULL on-disk content via host::read_file.
+    // This correctly handles Edit calls where tool_input["new_string"] is only
+    // a fragment of the file. After the write completes, the on-disk file
+    // contains the complete HANDOFF.md that we must validate.
+    //
+    // Fail-open on any read error (CapabilityDenied in unit harness,
+    // permission failure, timeout) per VP-083 no-false-positive invariant and
+    // BC-4.14.001 PC6.
+    let handoff_content = match host::read_file(&file_path, MAX_BYTES, 2000) {
+        Ok(bytes) => match String::from_utf8(bytes) {
+            Ok(s) => Some(s),
+            Err(e) => {
+                host::log_warn(&format!(
+                    "[validate-wave-handoff-completeness] UTF-8 decode failure reading \
+                    {file_path}: {e} — failing open (Continue)"
+                ));
+                return HookResult::Continue;
+            }
+        },
+        Err(e) => {
+            host::log_warn(&format!(
+                "[validate-wave-handoff-completeness] host::read_file failed for \
+                {file_path}: {e:?} — failing open (Continue)"
+            ));
+            return HookResult::Continue;
+        }
+    };
 
     // Extract wave_id from YAML content to compute is_first_wave (PAYLOAD-ONLY per PC3/PC8).
     let is_first_wave = if let Some(ref content) = handoff_content {
@@ -450,15 +476,16 @@ fn get_epic_status_value(yaml_str: &str) -> Option<String> {
 /// - SCALAR fields (`wave_id`, `last_verified_develop_sha`,
 ///   `precompact_flush_sha`, `factory_lock_holder`): key must exist; value
 ///   must be non-empty string OR null only where schema permits null
-///   (`precompact_flush_sha`, `factory_lock_holder`).
+///   (`precompact_flush_sha`, `factory_lock_holder`). `wave_id` must be a
+///   positive integer (>= 1) per BC-4.14.001 PC7 / EC-017.
 /// - LIST fields (`active_bcs`, `next_wave_stories`, `open_decisions`,
 ///   `pending_fixes`, `process_gaps`): key must exist; value must be a
 ///   syntactically-valid list. Empty list (`[]`) is VALID (NOT malformed).
 ///
-/// Also validates `epic_status` conditional field per PC2a when `epic_complete`
-/// is true. (When called from `validate_epic_complete_handoff`, epic_complete
-/// is true but epic_status validation is already done — this function does not
-/// re-validate epic_status when epic_complete=true.)
+/// The `_epic_complete` parameter is retained for call-site compatibility but
+/// is unused: `epic_status` validation is handled upstream in
+/// `validate_epic_complete_handoff` before this function is called, so no
+/// conditional behaviour is needed here.
 pub fn validate_base_fields(yaml_str: &str, _epic_complete: bool) -> Result<Vec<String>, String> {
     let value: serde_norway::Value = serde_norway::from_str(yaml_str).map_err(|e| e.to_string())?;
 
@@ -509,10 +536,11 @@ fn validate_field(field: &str, mapping: &serde_norway::Mapping) -> bool {
         }
     } else {
         // Non-nullable scalar (wave_id, last_verified_develop_sha):
-        // - wave_id: integer
-        // - last_verified_develop_sha: non-empty string
+        // - wave_id: positive integer (>= 1); 0 and negatives are malformed per
+        //   BC-4.14.001 PC7 / EC-017.
+        // - last_verified_develop_sha: non-empty string.
         if field == "wave_id" {
-            value.as_i64().is_some()
+            value.as_i64().map(|n| n >= 1).unwrap_or(false)
         } else {
             // Non-empty string required.
             value.as_str().map(|s| !s.is_empty()).unwrap_or(false)
@@ -520,29 +548,26 @@ fn validate_field(field: &str, mapping: &serde_norway::Mapping) -> bool {
     }
 }
 
-/// Check whether the target file path matches the HANDOFF.md pattern.
+/// Check whether the target file path's file-name component is exactly `HANDOFF.md`.
 ///
-/// Returns `true` iff the path ends with `HANDOFF.md` (case-sensitive match
-/// per BC-4.14.001 PC4). No filesystem access is performed.
+/// Uses path-component-strict matching (`std::path::Path::file_name()`) rather
+/// than `ends_with`, preventing false-positive fires on paths like
+/// `foo/WAVE-HANDOFF.md`, `xHANDOFF.md`, or `foo/MY-HANDOFF.md` where
+/// `ends_with("HANDOFF.md")` would also return `true`.
 ///
-/// # BC-5.38.001 / GREEN-BY-DESIGN check
+/// Returns `true` iff the final path component is exactly `HANDOFF.md`
+/// (case-sensitive per BC-4.14.001 PC4). No filesystem access is performed.
 ///
-/// This function has zero branching beyond a single `str::ends_with` call,
-/// no I/O, no calls to non-trivial helpers, and a body ≤ 3 lines. It satisfies all
-/// four GREEN-BY-DESIGN criteria (BC-5.38.002):
-///   1. Zero branching (single `ends_with` — no `if`/`match`/`?`/`unwrap`)
-///   2. No I/O
-///   3. No calls to non-trivial helpers
-///   4. Body ≤ 3 lines
+/// Returns `false` if the path has no file-name component (e.g., `/`).
 ///
-/// Per BC-5.38.002 GREEN-BY-DESIGN protocol and BC-5.38.005 self-check:
-/// "If I include this real implementation, will the test for this function
-/// pass trivially without any implementer work?" — YES for any test that
-/// exercises `path_is_handoff`. This function is included as a real body
-/// because it is correct-by-construction; it is listed in the stub commit
-/// report under GREEN-BY-DESIGN.
+/// # BC trace
+/// BC-4.14.001 PC4 — hook only activates on HANDOFF.md writes.
+/// Mirrors the pattern used by sibling `validate-burst-log::is_burst_log_target`.
 pub fn path_is_handoff(file_path: &str) -> bool {
-    file_path.ends_with("HANDOFF.md")
+    std::path::Path::new(file_path)
+        .file_name()
+        .and_then(|n| n.to_str())
+        == Some("HANDOFF.md")
 }
 
 /// Emit a 200-line advisory warning via the host log.
