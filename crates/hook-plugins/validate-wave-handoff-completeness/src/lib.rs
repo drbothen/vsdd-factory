@@ -251,7 +251,8 @@ fn validate_epic_complete_handoff(content: &str) -> GateResult {
             // epic_status present but not "complete" → HandoffIncomplete: epic_status malformed.
             return GateResult::Block {
                 code: "HandoffIncomplete",
-                message: "HandoffIncomplete: epic_status malformed — must be 'complete'".to_string(),
+                message: "HandoffIncomplete: epic_status malformed — must be 'complete'"
+                    .to_string(),
             };
         }
         Some(_) => {
@@ -377,8 +378,7 @@ pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
 /// Returns `Some(n)` when `wave_id` is a valid integer.
 /// Returns an error string when the YAML is malformed.
 pub fn extract_wave_id(yaml_str: &str) -> Result<Option<i64>, String> {
-    let value: serde_norway::Value =
-        serde_norway::from_str(yaml_str).map_err(|e| e.to_string())?;
+    let value: serde_norway::Value = serde_norway::from_str(yaml_str).map_err(|e| e.to_string())?;
 
     let mapping = match value.as_mapping() {
         Some(m) => m,
@@ -400,8 +400,7 @@ pub fn extract_wave_id(yaml_str: &str) -> Result<Option<i64>, String> {
 /// (empty list) in the parsed YAML. Non-empty `next_wave_stories` or absent
 /// `next_wave_stories` → NOT EPIC-COMPLETE. (BC-4.14.001 PC2a)
 pub fn is_epic_complete(yaml_str: &str) -> Result<bool, String> {
-    let value: serde_norway::Value =
-        serde_norway::from_str(yaml_str).map_err(|e| e.to_string())?;
+    let value: serde_norway::Value = serde_norway::from_str(yaml_str).map_err(|e| e.to_string())?;
 
     let mapping = match value.as_mapping() {
         Some(m) => m,
@@ -460,21 +459,14 @@ fn get_epic_status_value(yaml_str: &str) -> Option<String> {
 /// is true. (When called from `validate_epic_complete_handoff`, epic_complete
 /// is true but epic_status validation is already done — this function does not
 /// re-validate epic_status when epic_complete=true.)
-pub fn validate_base_fields(
-    yaml_str: &str,
-    _epic_complete: bool,
-) -> Result<Vec<String>, String> {
-    let value: serde_norway::Value =
-        serde_norway::from_str(yaml_str).map_err(|e| e.to_string())?;
+pub fn validate_base_fields(yaml_str: &str, _epic_complete: bool) -> Result<Vec<String>, String> {
+    let value: serde_norway::Value = serde_norway::from_str(yaml_str).map_err(|e| e.to_string())?;
 
     let mapping = match value.as_mapping() {
         Some(m) => m,
         None => {
             // If not a mapping, all base fields are missing.
-            return Ok(BASE_FIELDS_ORDERED
-                .iter()
-                .map(|f| f.to_string())
-                .collect());
+            return Ok(BASE_FIELDS_ORDERED.iter().map(|f| f.to_string()).collect());
         }
     };
 

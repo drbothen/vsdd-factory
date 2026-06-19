@@ -55,8 +55,8 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use validate_wave_handoff_completeness::{
-    check_handoff_completeness, emit_over_200_line_advisory, extract_wave_id, is_epic_complete,
-    path_is_handoff, validate_base_fields, GateContext, GateResult,
+    GateContext, GateResult, check_handoff_completeness, emit_over_200_line_advisory,
+    extract_wave_id, is_epic_complete, path_is_handoff, validate_base_fields,
 };
 
 // ---------------------------------------------------------------------------
@@ -416,10 +416,7 @@ fn ac_001_path_is_handoff_green_by_design() {
         path_is_handoff("factory-artifacts/HANDOFF.md"),
         "factory-artifacts/HANDOFF.md must match"
     );
-    assert!(
-        path_is_handoff("HANDOFF.md"),
-        "bare HANDOFF.md must match"
-    );
+    assert!(path_is_handoff("HANDOFF.md"), "bare HANDOFF.md must match");
     assert!(
         path_is_handoff("/some/deep/path/HANDOFF.md"),
         "deep path must match"
@@ -496,7 +493,10 @@ fn ac_002_epic_complete_missing_epic_status_blocks() {
 /// Red Gate: panics at todo!() in check_handoff_completeness.
 #[test]
 fn ac_002_epic_complete_unexpected_epic_status_on_nonfinal_blocks() {
-    let ctx = make_handoff_ctx(false, fixture_non_epic_complete_with_unexpected_epic_status());
+    let ctx = make_handoff_ctx(
+        false,
+        fixture_non_epic_complete_with_unexpected_epic_status(),
+    );
     let result = check_handoff_completeness(&ctx);
     assert!(
         matches!(
@@ -755,7 +755,10 @@ fn ac_008_is_epic_complete_pure_parse() {
     // Supplying a YAML string with next_wave_stories: [] — should detect EPIC-COMPLETE.
     let yaml = "next_wave_stories: []\n";
     let result = is_epic_complete(yaml);
-    assert!(result.is_ok(), "is_epic_complete must not error on valid YAML");
+    assert!(
+        result.is_ok(),
+        "is_epic_complete must not error on valid YAML"
+    );
     assert!(
         result.unwrap(),
         "is_epic_complete must return true when next_wave_stories is empty list"
@@ -941,7 +944,10 @@ fn ac_012_emit_over_200_line_advisory_fires_on_201_lines() {
 fn helper_extract_wave_id_returns_some_for_valid_wave() {
     let yaml = "wave_id: 3\nlast_verified_develop_sha: abc\n";
     let result = extract_wave_id(yaml);
-    assert!(result.is_ok(), "extract_wave_id must not error on valid YAML");
+    assert!(
+        result.is_ok(),
+        "extract_wave_id must not error on valid YAML"
+    );
     assert_eq!(
         result.unwrap(),
         Some(3),
@@ -956,7 +962,10 @@ fn helper_extract_wave_id_returns_some_for_valid_wave() {
 fn helper_extract_wave_id_returns_none_when_absent() {
     let yaml = "last_verified_develop_sha: abc\n";
     let result = extract_wave_id(yaml);
-    assert!(result.is_ok(), "extract_wave_id must not error when field absent");
+    assert!(
+        result.is_ok(),
+        "extract_wave_id must not error when field absent"
+    );
     assert_eq!(
         result.unwrap(),
         None,
@@ -986,7 +995,10 @@ fn helper_extract_wave_id_errors_on_malformed_yaml() {
 fn helper_is_epic_complete_true_when_next_wave_stories_empty() {
     let yaml = "next_wave_stories: []\n";
     let result = is_epic_complete(yaml);
-    assert!(result.is_ok(), "is_epic_complete must not error on valid YAML");
+    assert!(
+        result.is_ok(),
+        "is_epic_complete must not error on valid YAML"
+    );
     assert!(
         result.unwrap(),
         "is_epic_complete must return true for next_wave_stories: []"
@@ -999,7 +1011,10 @@ fn helper_is_epic_complete_true_when_next_wave_stories_empty() {
 fn helper_is_epic_complete_false_when_next_wave_stories_nonempty() {
     let yaml = "next_wave_stories:\n  - id: S-02.01\n    status: pending\n";
     let result = is_epic_complete(yaml);
-    assert!(result.is_ok(), "is_epic_complete must not error on valid YAML");
+    assert!(
+        result.is_ok(),
+        "is_epic_complete must not error on valid YAML"
+    );
     assert!(
         !result.unwrap(),
         "is_epic_complete must return false when next_wave_stories is non-empty"
