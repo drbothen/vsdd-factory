@@ -194,3 +194,75 @@ _write_envelope_non_handoff() {
   # No blocking plugin for a path-level no-op.
   [[ "$output" != *"blocking_plugins="* ]]
 }
+
+# ---------------------------------------------------------------------------
+# Scenario D: F-001 Edit-path — on-disk complete HANDOFF.md + Edit fragment → Continue
+#
+# Validates the F-001 fix: on_post_tool_use reads the full on-disk file via
+# host::read_file rather than using tool_input["new_string"] (a fragment).
+#
+# Setup:
+#   1. Write a complete, valid HANDOFF.md to disk (all 9 fields present).
+#   2. Send an Edit PostToolUse envelope with "new_string" containing only a
+#      fragment (a single incomplete field) — as a real Edit would deliver.
+#   3. Because the gate now reads the full on-disk file, it sees the complete
+#      content and returns Continue (no block).
+#
+# If the gate incorrectly validated tool_input["new_string"] instead of reading
+# the disk file (the pre-F-001 bug), it would see the incomplete fragment and
+# produce Block exit 2.
+#
+# AC-001 / BC-4.14.001 INV1: validates that Edit path is gated on the full file.
+# ---------------------------------------------------------------------------
+
+@test "F-001 LIVE: Edit HANDOFF.md with complete on-disk file and fragment new_string → Continue exit 0" {
+  _require_dispatcher_and_wasm
+  _write_test_registry
+  cp "$WASM_PLUGIN" "$WORK/hook-plugins/"
+
+  # Step 1: Write a complete, valid HANDOFF.md to the WORK directory.
+  local handoff_path="$WORK/factory-artifacts/HANDOFF.md"
+  mkdir -p "$WORK/factory-artifacts"
+  cat > "$handoff_path" << 'YAML'
+wave_id: 2
+last_verified_develop_sha: abc123def456
+precompact_flush_sha: null
+factory_lock_holder: null
+active_bcs:
+  - BC-4.14.001
+next_wave_stories:
+  - id: S-19.01
+    status: pending
+open_decisions: []
+pending_fixes: []
+process_gaps: []
+YAML
+
+  # Step 2: Send an Edit envelope where new_string is only a fragment.
+  # A real Edit call provides only the replacement text for old_string,
+  # not the full file. Before F-001, the gate read new_string → block.
+  # After F-001, the gate reads the full on-disk file → Continue.
+  local envelope
+  envelope=$(printf '{
+    "event_name": "PostToolUse",
+    "tool_name": "Edit",
+    "session_id": "f-001-edit-path-test",
+    "dispatcher_trace_id": "f-001-edit-trace",
+    "tool_input": {
+      "path": "%s",
+      "old_string": "wave_id: 2",
+      "new_string": "wave_id: 2"
+    },
+    "tool_response": {"exit_code": 0}
+  }' "$handoff_path")
+
+  run bash -c "printf '%s' '$envelope' | CLAUDE_PLUGIN_ROOT='$WORK' CLAUDE_PROJECT_DIR='$WORK' '$DISPATCHER' 2>&1 >/dev/null"
+
+  # Exit 0: gate reads full on-disk file (complete HANDOFF.md) → Continue.
+  # If exit 2: gate still reads new_string fragment instead of disk file
+  # (F-001 not fixed), or disk write is not visible to host::read_file.
+  [ "$status" -eq 0 ]
+
+  # No blocking plugin: the gate must have returned Continue.
+  [[ "$output" != *"blocking_plugins="* ]]
+}
