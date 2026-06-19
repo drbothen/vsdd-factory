@@ -634,12 +634,16 @@ jobs:
       - uses: actions/checkout@v6
 
       - name: Install tools
-        # bats, jq, and bash are the runtime requirements for wave-handoff.bats and
-        # wave-gate-hooks.bats. bash >= 4 is required for associative arrays (declare -A
-        # / local -A) used in write-wave-state.sh. macOS ships bash 3.2; Homebrew bash 5
-        # provides the required version. Neither suite uses yq, the Rust toolchain, or the
-        # dispatcher binary.
-        run: brew install bats-core jq bash
+        # bats, jq, bash, and PyYAML are the runtime requirements for wave-handoff.bats
+        # and wave-gate-hooks.bats:
+        #   bash >= 4: associative arrays (declare -A / local -A) in write-wave-state.sh;
+        #              macOS ships bash 3.2, Homebrew bash 5 provides the required version.
+        #   PyYAML: validate-wave-gate-prerequisite.sh uses 'import yaml' for YAML parsing
+        #           (documented requirement in hook header); absent on macOS runners.
+        # Neither suite uses yq, the Rust toolchain, or the dispatcher binary.
+        run: |
+          brew install bats-core jq bash
+          pip3 install --quiet pyyaml
 
       - name: Configure git identity
         # wave-handoff.bats creates hermetic git repos in temp dirs and makes commits
