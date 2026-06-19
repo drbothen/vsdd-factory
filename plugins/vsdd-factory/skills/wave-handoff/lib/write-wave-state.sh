@@ -343,8 +343,10 @@ write_wave_state() {
             spec_files_list="${spec_files_list}
       - ${rel_path}"
           else
+            local unresolved_path="specs/behavioral-contracts/${bc_id}.md"
+            echo "WARNING: spec_file path does not resolve on disk: ${unresolved_path}" >&2
             spec_files_list="${spec_files_list}
-      - specs/behavioral-contracts/${bc_id}.md"
+      - ${unresolved_path}"
           fi
         done <<< "$bc_entries"
         if [ -n "$spec_files_list" ]; then
