@@ -1,12 +1,12 @@
 ---
 document_type: pipeline-state
 level: ops
-version: "4.01"
+version: "4.02"
 status: draft
 producer: state-manager
 timestamp: 2026-06-19T00:00:00Z
 phase: D-651-S18.02-POST-MERGE-2026-06-19
-last_amended: "2026-06-19 (v4.01) — D-651 S-18.02 POST-MERGE burst (state-manager): BC-4.14.001 POL-14 draft→active (v1.17); S-18.02 draft→merged (v1.10) PR #195 squash bd6e50ce 2026-06-19; BC-INDEX v3.17→v3.18; STORY-INDEX v4.30→v4.31; merged 62→63; draft 23→22; develop HEAD bd6e50ce; §8 4-index BC v3.18/VP v2.40/STORY v4.31/ARCH v2.57; E-18 F4 Wave 3 COMPLETE (S-18.02 delivered); S-18.08 unblocked (S-18.01+S-18.02 both merged); LOCAL adversarial cascade BC-5.39.001 3-CLEAN CONVERGED (12 passes); S-7.02 SATISFIED. S-7.02 cycle-close dispositions: F-S1802-02 ANCHORED S-18.13; WASM-deploy cdylib-vs-bin lesson recorded; O-1/O-2 adjudicated-deferred. ORCHESTRATOR PAUSED. [Prior: 2026-06-19 (v4.00) — D-650 checkpoint-hardening durability burst (state-manager): Active Branches factory-artifacts SHA 2503fbf0→3d2dd3dd (D-649 SHA-patch HEAD); §8 STORY-INDEX row v4.22→v4.23 + story_count 120→122 + Merged 79→80; §8 4-index gate prose STORY-INDEX cite 4.22→4.23; §9 Verify on resume [D-649-SHA]→3d2dd3dd; SIZE BUDGET D-649+D-650 wc-l entries appended; no 4-index version changes; ORCHESTRATOR PAUSED posture UNCHANGED. [Prior: 2026-06-19 (v3.99) — D-649 S-18.01 cascade deferred-items anchoring burst: S-18.11 + S-18.12 registered DRAFT; STORY-INDEX v4.22→v4.23; story_count 120→122; E-18 12→14 stories; ORCHESTRATOR PAUSED.]"
+last_amended: "2026-06-19 (v4.02) — durability-hardening burst (state-manager): Active Branches factory-artifacts SHA e764123d→0b7c5e10 (D-651 SHA-patch HEAD); §9 factory-artifacts HEAD 070bc56e→0b7c5e10; §9 develop SHA 8b26a0fe→bd6e50ce; §9 Verify-on-resume develop bd6e50ce + factory-artifacts 0b7c5e10; §1 develop inline SHA corrected 8b26a0fe→bd6e50ce; §1 Option B text corrected (Wave 2 done; S-18.08 unblocked); §5 garbled text fixed (dispositions recorded.UDGET→dispositions recorded;); §10 PR Status garbled text fixed + develop HEAD 8b26a0fe→bd6e50ce; §11 checklist item 1 factory-artifacts SHA corrected; SIZE BUDGET D-651 wc-l entry appended (479 lines); frontmatter v4.01→v4.02. ORCHESTRATOR PAUSED posture UNCHANGED. [Prior: 2026-06-19 (v4.01) — D-651 S-18.02 POST-MERGE burst (state-manager): BC-4.14.001 POL-14 draft→active (v1.17); S-18.02 draft→merged (v1.10) PR #195 squash bd6e50ce 2026-06-19; BC-INDEX v3.17→v3.18; STORY-INDEX v4.30→v4.31; merged 62→63; draft 23→22; develop HEAD bd6e50ce; §8 4-index BC v3.18/VP v2.40/STORY v4.31/ARCH v2.57; E-18 F4 Wave 3 COMPLETE (S-18.02 delivered); S-18.08 unblocked (S-18.01+S-18.02 both merged); LOCAL adversarial cascade BC-5.39.001 3-CLEAN CONVERGED (12 passes); S-7.02 SATISFIED. S-7.02 cycle-close dispositions: F-S1802-02 ANCHORED S-18.13; WASM-deploy cdylib-vs-bin lesson recorded; O-1/O-2 adjudicated-deferred. ORCHESTRATOR PAUSED.]"
 inputs: []
 input-hash: "[live-state]"
 traces_to: prd.md
@@ -68,6 +68,7 @@ dtu_services: []
   469 lines (wc-l; D-649: S-18.01 CASCADE DEFERRED-ANCHORING burst — S-18.11 + S-18.12 DRAFT registered; STORY-INDEX v4.22→v4.23; story_count 120→122; E-18 12→14 stories; Drift Items re-pointed; ORCHESTRATOR PAUSED; BC-INDEX/VP-INDEX/ARCH-INDEX UNCHANGED; D-649 codified; 54 lines over soft-target 415; 31 lines under hard-cap 500).
   474 lines (wc-l; D-650: checkpoint-hardening durability burst — Active Branches factory-artifacts SHA 2503fbf0→3d2dd3dd corrected; §8 STORY-INDEX v4.22→v4.23 corrected; §9 Verify on resume SHA placeholder resolved; SIZE BUDGET D-649+D-650 wc-l appended; Decisions Log D-650 row added; frontmatter v3.99→v4.00; no 4-index version changes; ORCHESTRATOR PAUSED; 59 lines over soft-target 415; 26 lines under hard-cap 500).
   427 lines (wc-l; D-639: E-18 F4 Wave 2 DURABLE PAUSE — ADR-027 + BC-5.41.001 v1.18 + BC-5.41.002 v1.13 + S-18.01 v1.6 committed; BC-INDEX v3.09/STORY-INDEX v4.16/ARCH-INDEX v2.56; 3 process-gap lessons codified; §1 historical summary compacted; Identifier Conventions + Decisions Log + §3..§6 + Phase Progress updated; 12 lines over soft-target 415; 73 lines under hard-cap 500).
+  479 lines (wc-l; D-651 durability-hardening burst — Active Branches/§9/§11 factory-artifacts SHA e764123d→0b7c5e10 (SHA-patch HEAD); develop SHA 8b26a0fe→bd6e50ce; Option B text corrected (Wave 2 done); §5 garbled text fixed; §10 PR Status garbled text fixed; §1 develop SHA corrected; Verify-on-resume SHAs corrected; 64 lines over soft-target 415; 21 lines under hard-cap 500).
 -->
 
 # Pipeline State: vsdd-factory
@@ -161,7 +162,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | caf06c68 | rc.21 bot binary bundle commit 2026-06-13; prior: 2a191314 (rc.20) |
 | develop | bd6e50ce | S-18.02 PR #195 SQUASH-MERGED 2026-06-19; prior: 8b26a0fe (S-18.01 PR #193 2026-06-19) |
-| factory-artifacts | e764123d | D-650 checkpoint-hardening HEAD (current); prior: 3d2dd3dd D-649 SHA-patch HEAD; prior: 2503fbf0 D-649 deferred-anchoring burst HEAD |
+| factory-artifacts | 0b7c5e10 | D-651 SHA-patch HEAD (current); prior: 070bc56e D-651 final burst; prior: e764123d D-650 checkpoint-hardening HEAD |
 | v1.0.0-rc.21 (tag) | 03054524 | SHIPPED 2026-06-13; FULLY IN OPERATOR MARKETPLACE (marketplace PR #13 MERGED); annotated tag object |
 | v1.0.0-rc.20 (tag) | e9e38286 | SHIPPED 2026-06-01; marketplace PR #12 squash-merged 862e660d |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28 |
@@ -272,7 +273,7 @@ E-18 STORY CASCADE BC-5.39.001 3-CLEAN CONVERGED at D-635. D-636 closed both Cyc
 2. **S-7.02 CYCLE-CLOSE DISPOSITIONS RECORDED (D-651):** (a) F-S1802-02 [process-gap] ANCHORED S-18.13 (wave-handoff bash-write vs Write-tool-mediated write; fix story S-18.13 DRAFT); (b) WASM-deploy cdylib-vs-bin lesson: deploy MUST select hyphen/bin artifact, NOT underscore cdylib (75-byte empty); caught by direct artifact verification; lesson codified; (c) O-1 + O-2 adjudicated-deferred (no action)..23; story_count 122; E-18 14 stories.
 3. **NEXT-WHEN-RESUMED options (DO NOT execute until human directs):**
    - **Option A:** Deliver E-18 F4 Wave 4 (S-18.03 rehydrate-wave skill + S-18.13 Write-tool fix). S-18.13 REQUIRES PO amend BC-5.41.001 + architect amend ADR-026 §Decision 8 (write-path constraint) FIRST.
-   - **Option B:** Deliver E-18 F4 Wave 2 remaining (S-18.04a precompact-flush.sh core) — prerequisite for Waves 3+4+7.
+   - **Option B:** Deliver S-18.08 (now unblocked by S-18.01+S-18.02 merge; Wave 7 DAG position still requires W4+W5+W6 to complete before S-18.08 can begin).
    - **Option C:** Schedule/deliver S-18.11 + S-18.12. REQUIRES PO BC authorship FIRST per spec-first gate S-7.01.
 4. **S-18.08 UNBLOCKED on S-18.01+S-18.02** (both now merged). Wave 7 DAG position requires S-18.03+S-18.04a+S-18.04b+S-18.05+S-18.06+S-18.07 to also deliver before S-18.08 can begin.
 
@@ -291,7 +292,7 @@ E-18 STORY CASCADE BC-5.39.001 3-CLEAN CONVERGED at D-635. D-636 closed both Cyc
   ```
 - STALE-TERM RULE: 'side-channel' RETIRED; canonical = 'precompact-flush-log (append-only log)'.
 
-rc.21 FULLY SHIPPED D-560 (2026-06-13). main caf06c68. develop 8b26a0fe (S-18.01 MERGED D-648 2026-06-19). tag 03054524. Marketplace #13 MERGED.
+rc.21 FULLY SHIPPED D-560 (2026-06-13). main caf06c68. develop bd6e50ce (S-18.02 MERGED D-651 2026-06-19). tag 03054524. Marketplace #13 MERGED.
 
 ### §2. Operating Mode
 
@@ -368,7 +369,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 ### §5. Cumulative Codifications
 
 - F5: D-379..D-454 (76 decisions) — `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md`.
-- Brownfield: D-001..D-651 — `cycles/v1.0-brownfield-backfill/decision-log.md`. Latest: **D-651 S-18.02 POST-MERGE burst 2026-06-19 — BC-4.14.001 v1.17 active (POL-14); S-18.02 merged PR #195 bd6e50ce; BC-INDEX v3.18/STORY-INDEX v4.31; E-18 F4 Wave 3 COMPLETE; S-18.08 unblocked; S-7.02 SATISFIED; dispositions recorded.UDGET wc-l; ORCHESTRATOR PAUSED. Prior D-649: S-18.11 + S-18.12 DRAFT registered; STORY-INDEX v4.23; story_count 122. — RESUME HERE.**
+- Brownfield: D-001..D-651 — `cycles/v1.0-brownfield-backfill/decision-log.md`. Latest: **D-651 S-18.02 POST-MERGE burst 2026-06-19 — BC-4.14.001 v1.17 active (POL-14); S-18.02 merged PR #195 bd6e50ce; BC-INDEX v3.18/STORY-INDEX v4.31; E-18 F4 Wave 3 COMPLETE; S-18.08 unblocked; S-7.02 SATISFIED; dispositions recorded; ORCHESTRATOR PAUSED. Prior D-649: S-18.11 + S-18.12 DRAFT registered; STORY-INDEX v4.23; story_count 122. — RESUME HERE.**
 
 ### §6. Cumulative Lessons
 
@@ -393,7 +394,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** `070bc56e` (D-651 final cleanup HEAD; prior: `49061aa7` D-651 main burst; prior: `e764123d` D-650 checkpoint-hardening HEAD)
+- **factory-artifacts HEAD:** `0b7c5e10` (D-651 SHA-patch HEAD; prior: `070bc56e` D-651 final burst; prior: `e764123d` D-650 checkpoint-hardening HEAD)
 - **develop HEAD:** `bd6e50ce` (S-18.02 PR #195 SQUASH-MERGED 2026-06-19; prior: `8b26a0fe` S-18.01 PR #193 SQUASH-MERGED 2026-06-19)
 - **main HEAD:** `caf06c68` (rc.21 bot bundle commit 2026-06-13; UNCHANGED)
 - **v1.0.0-rc.21 tag:** `03054524` (SHIPPED; FULLY IN OPERATOR MARKETPLACE)
@@ -429,17 +430,17 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 - **ADR-025 v1.6 SHIPPED:** guard at `3b2a378c`; ARCH-INDEX v2.27
 - **S-17.04 story:** `.factory/stories/S-17.04-mid-burst-heartbeat-renewal-wiring.md` v1.7 MERGED; E-17 W4 COMPLETE; PR #184 3b2a378c
 - **ADR-027 v1.0:** `specs/architecture/decisions/ADR-027-factory-artifacts-worktree-path-discipline-for-shell-skills.md` (D-639 architect-authored: ARTIFACTS_WT = `.factory` worktree root; two-arg invocation model; bats fixture places files under `$ARTIFACTS_WT/...` not `$ARTIFACTS_WT/.factory/...`; accepted 2026-06-18; SS-05/SS-06/SS-07; RESOLVES F-S1801-P3-001 BLOCKER)
-- **Verify on resume:** `git rev-parse --short origin/develop` → expect `8b26a0fe`; `git rev-parse --short origin/main` → expect `caf06c68`; `git -C .factory log -1 --format='%h'` → expect `e764123d` (D-650 checkpoint-hardening burst HEAD)
+- **Verify on resume:** `git rev-parse --short origin/develop` → expect `bd6e50ce`; `git rev-parse --short origin/main` → expect `caf06c68`; `git -C .factory log -1 --format='%h'` → expect `0b7c5e10` (D-651 SHA-patch HEAD)
 
 ### §10. PR Status
 
-- **0 open feature PRs. 0 open release PRs. 0 open marketplace PRs. rc.21 100% COMPLETE. E-18 F4 TDD W1 COMPLETE: S-18.00 MERGED PR #191 squash b025d31d 2026-06-18 (D-638). E-18 F4 W2 S-18.01 MERGED PR #193 squash 8b26a0fe 2026-06-19 (D-648). E-18 F4 W3 S-18.02 MERGED PR #195 squash bd6e50ce 2026-06-19 (D-651; 3-CLEAN CONVERGED 12 passes). feature/S-18.02 DELETED (remote deleted per PR merge). D-649: S-1R #193 squash 8b26a0fe 2026-06-19 (D-648; 3-CLEAN CONVERGED D-645 + deferral-cleanup D-646 + confirming CLEAN D-647 + post-merge D-648). D-649: S-18.11/S-18.12 DRAFT registered. BC-5.41.001 + BC-5.41.002 active (POL-14). develop HEAD 8b26a0fe. S-18.02/S-18.08 UNBLOCKED. POSTURE: PAUSED per human directive. Next: Wave 3 S-18.02 OR PO BC authorship for S-18.11/S-18.12. — RESUME HERE.**
+- **0 open feature PRs. 0 open release PRs. 0 open marketplace PRs. rc.21 100% COMPLETE. E-18 F4 TDD W1 COMPLETE: S-18.00 MERGED PR #191 squash b025d31d 2026-06-18 (D-638). E-18 F4 W2 COMPLETE: S-18.01 MERGED PR #193 squash 8b26a0fe 2026-06-19 (D-648; 3-CLEAN CONVERGED D-645 + deferral-cleanup D-646 + confirming CLEAN D-647 + post-merge D-648). E-18 F4 W3 COMPLETE: S-18.02 MERGED PR #195 squash bd6e50ce 2026-06-19 (D-651; 3-CLEAN CONVERGED 12 passes). feature/S-18.02 DELETED (remote deleted per PR merge). D-649: S-18.11/S-18.12 DRAFT registered. BC-5.41.001 + BC-5.41.002 + BC-4.14.001 active (POL-14). develop HEAD bd6e50ce. S-18.08 UNBLOCKED (S-18.01+S-18.02 both merged; Wave 7 DAG position requires W4+W5+W6 first). POSTURE: PAUSED per human directive. Next: Wave 4 (S-18.03+S-18.13) OR PO BC authorship for S-18.11/S-18.12 first. — RESUME HERE.**
 - **marketplace PR drbothen/claude-mp #13 MERGED** 2026-06-13 — rc.21 FULLY SHIPPED.
 - **RELEASING.md Step 9 VERIFIED (D-560):** operator cache 1.0.0-rc.21 confirmed (plugin.json + 132 entries). rc.21 end-to-end CLOSED.
 
 ### §11. Post-CLEAR/Post-RESET Resume Checklist (zero-context; D-639 refresh)
 
-1. **Verify worktree state:** `git rev-parse --short origin/develop` → expect `bd6e50ce`. `git rev-parse --short origin/main` → expect `caf06c68`. `git -C .factory log -1` (expect D-651 S-18.02 post-merge burst HEAD after push; branch factory-artifacts; clean status). feature/S-18.01 MERGED. feature/S-18.02 MERGED PR #195 bd6e50ce (deleted). worktrees .worktrees/S-18.01/.worktrees/S-18.02 cleanup pending devops-engineer.
+1. **Verify worktree state:** `git rev-parse --short origin/develop` → expect `bd6e50ce`. `git rev-parse --short origin/main` → expect `caf06c68`. `git -C .factory log -1 --format='%h'` → expect `0b7c5e10` (D-651 SHA-patch HEAD; branch factory-artifacts; clean status). feature/S-18.01 MERGED. feature/S-18.02 MERGED PR #195 bd6e50ce (deleted). worktrees .worktrees/S-18.01/.worktrees/S-18.02 cleanup pending devops-engineer.
 2. **Read §1-§12 this checkpoint** (all of it; D-651 self-sufficient).
 3. **Verify 4-index:** `grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md` → "3.18"; ARCH-INDEX → "2.57"; VP-INDEX → "2.40"; STORY-INDEX → "4.31"; L2-INDEX → "1.0.13".
 4. **E-10 CASCADE SEALED D-531.** Do NOT resume without engine-surface material change.
