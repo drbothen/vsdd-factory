@@ -9886,7 +9886,7 @@ Source-attestation: Adversary Verdict paragraph names F-SP13-P2-001 HIGH, F-SP13
 
 ### Factory-artifacts Commits
 
-(To be populated with commit SHA after push — see D-655 commit below)
+66ac4e29 — state(D-655): S-18.13 spec-cascade LOCAL pass-2 NOT-CLEAN REMEDIATED — story-writer precision fixes v1.3→v1.4; STORY-INDEX v4.33; streak 0/3; pass-3 NEXT (pushed to factory-artifacts 2026-06-19)
 
 **Gate D-446(a) — own burst-log 8-block presence:**
 
