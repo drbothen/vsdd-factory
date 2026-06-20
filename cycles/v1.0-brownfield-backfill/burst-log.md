@@ -9710,3 +9710,86 @@ ARCH v2.57 UNCHANGED — PASS
 8 mandatory D-444(c) blocks present in this entry: Parent-commit PRESENT, Adversary Verdict PRESENT, Dim-2 PRESENT, Dim-5 PRESENT, Dim-6 PRESENT, Dim-7 PRESENT, Closes PRESENT, Factory-artifacts Commits PRESENT. PASS.
 
 **Gate 6 — source-attestation parity (D-448(a)): Adversary Verdict paragraph describes the pass-13, pass-14, and pass-15 adversary Part A finding sets faithfully.** Pass-13: 0 BLOCKER/0 MEDIUM; O-P13-001 LOW (stale bats comment) — faithful. Pass-14: 0 BLOCKER/0 MEDIUM; O-P14-001 LOW (topo-index fragility) + find-glob obs — faithful. Pass-15: 0 BLOCKER/0 MEDIUM; O-P15-001 LOW (EC-002 schema tension) — faithful. All three passes describe NO defects requiring package edits and confirm 3-CLEAN streak convergence. PASS.
+
+---
+
+## D-654 — S-18.13 spec-cascade LOCAL pass-1 NOT-CLEAN fix burst
+
+**Date:** 2026-06-19
+**Phase:** S-18.13-spec-cascade-LOCAL-pass-1-fix
+
+### Parent-commit
+
+744f013a (D-653 S-18.13 SPEC-EVOLUTION HEAD)
+
+### Adversary Verdict (pass-1)
+
+**VERDICT: NOT-CLEAN.** F-SP13-P1-001 BLOCKER (POLICY 14 ADR-026 body-propagation gap): ADR-026 v1.22 frontmatter correct; ADR-026 body §Changelog top row stuck at v1.21 (v1.22 row not written); §Traceability ARCH-INDEX v2.57→v2.58 provenance leg absent from body (ARCH-INDEX catalog row falsely claimed "leg appended"). All other cascade axes CLEAN: BC-5.41.001 v1.23 (PC10/EC-016/test-vector write-tool-enforcement) CLEAN; S-18.13 v1.3 (input-hash 7d6acdc, ACs trace to BCs) CLEAN; 4-index parity (BC v3.19/VP v2.40/STORY v4.32/ARCH v2.58) CLEAN. Consistency-validator VERDICT: CONSISTENT (9/9 PASS) with noted [process-gap]: CHECK 1 verified ARCH-INDEX legs but did not independently check ADR body §Changelog row — allowed CONSISTENT verdict despite real body gap (adversary caught what validator missed). 3 advisory observations ALL NO-ACTION: (a) EC-003↔EC-016 naming coherent; (b) AC-003 byte-identity testable; (c) PC10 ordering coherent.
+
+### Dim-2 (Attestations — literal-shell)
+
+**4-index parity gate (POLICY 15 / verification_step 7 / D-449(a) literal-shell):**
+
+```bash
+$ grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md
+version: "3.19"
+$ grep "^version:" .factory/specs/verification-properties/VP-INDEX.md
+version: "2.40"
+$ grep "^version:" .factory/stories/STORY-INDEX.md
+version: "4.32"
+$ grep "^version:" .factory/specs/architecture/ARCH-INDEX.md
+version: "2.58"
+```
+
+BC v3.19 UNCHANGED — PASS. VP v2.40 UNCHANGED — PASS. STORY v4.32 UNCHANGED — PASS. ARCH v2.58 UNCHANGED — PASS. 4-index UNCHANGED from D-653. No version bump required (ADR body-only fix; ARCH-INDEX v2.58 already reflects v2.57→v2.58 transition from D-653; body fix makes existing claim true).
+
+**ADR-026 body fix verification (D-449(a) literal-shell):**
+
+```bash
+$ grep -m1 "| v1.22" .factory/specs/architecture/decisions/ADR-026-wave-boundary-checkpoint-reset-and-lossless-intra-wave-compaction.md
+| v1.22 | 2026-06-19 | architect | §Decision 8 amended — HANDOFF.md Write-tool write-path constraint added (F-S1802-02 / S-18.13)...
+$ grep "v2.57.*v2.58" .factory/specs/architecture/decisions/ADR-026-wave-boundary-checkpoint-reset-and-lossless-intra-wave-compaction.md | tail -1
+...v2.57→v2.58 (ADR-026 v1.21→v1.22 §Decision 8 Write-tool write-path constraint)
+```
+
+§Changelog v1.22 row PRESENT — PASS. §Traceability v2.57→v2.58 provenance leg PRESENT — PASS.
+
+### Dim-5 (Files Touched)
+
+- `.factory/specs/architecture/decisions/ADR-026-wave-boundary-checkpoint-reset-and-lossless-intra-wave-compaction.md` — MODIFIED: §Changelog v1.22 row added as top row; §Traceability ARCH-INDEX line v2.57→v2.58 provenance leg appended (architect). Frontmatter version v1.22 UNCHANGED (was already correct from D-653).
+- `.factory/STATE.md` — MODIFIED: frontmatter v4.04→v4.05 + phase/last_amended/current_step updated; SIZE BUDGET D-654 wc-l entry appended; D-654 Decisions Log row added; §1 NEXT ACTION updated (pass-1 REMEDIATED, pass-2 NEXT); §3 D-654 carry added; Session Resume Checkpoint heading updated; Project Metadata Current Phase + Last Updated updated; Concurrent Cycles brownfield row updated.
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — MODIFIED: D-654 6-column row + full Appendix SoT block (pass-1 verdict, fix, 4-index gate, process-gap disposition) appended.
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — MODIFIED: D-654 8-block entry added (this entry).
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — MODIFIED: L-SP13-consistency-validator-must-check-adr-own-body-changelog-row [codified] appended.
+
+**Files NOT touched this burst:** BC-INDEX.md (v3.19 unchanged); VP-INDEX.md (v2.40 unchanged); STORY-INDEX.md (v4.32 unchanged); ARCH-INDEX.md (v2.58 unchanged — body fix makes existing ARCH-INDEX claim true without requiring version increment); BC-5.41.001.md (unchanged); S-18.13.md (unchanged).
+
+### Dim-6 (Codifications)
+
+- D-654 codified in decision-log.md: S-18.13 spec-cascade LOCAL pass-1 NOT-CLEAN; F-SP13-P1-001 BLOCKER FIXED; adversary + consistency-validator verdicts transcribed faithfully; 3 NO-ACTION observations; streak 0/3; process-gap disposition.
+- 1 process-gap lesson codified: L-SP13-consistency-validator-must-check-adr-own-body-changelog-row-not-only-arch-index-legs [process-gap] [policy-14] [codified]. Disposition: justified deferral anchored to consistency-validator skill self-improvement story.
+- ADR-026 body fix committed: §Changelog v1.22 row + §Traceability ARCH-INDEX v2.57→v2.58 provenance leg. Makes prior D-653 ARCH-INDEX "leg appended" claim TRUE.
+
+Literal-shell 4-index verification gate: BC v3.19 UNCHANGED — PASS. VP v2.40 UNCHANGED — PASS. STORY v4.32 UNCHANGED — PASS. ARCH v2.58 UNCHANGED — PASS. (See Dim-2 for captured stdout.)
+
+### Dim-7 (Streak Status)
+
+3-CLEAN streak: **0/3** (pass-1 NOT-CLEAN; F-SP13-P1-001 BLOCKER found and FIXED this burst). Package: ADR-026 v1.22 body (§Changelog + §Traceability FIXED) + BC-5.41.001 v1.23 + S-18.13 v1.3. Pass-2 fresh-context adversary + consistency-validator NEXT. BC-5.39.001 streak counter = 0/3.
+
+### Closes
+
+- F-SP13-P1-001 BLOCKER (ADR-026 POLICY 14 body-propagation gap): CLOSED — §Changelog v1.22 row added; §Traceability ARCH-INDEX v2.57→v2.58 leg added.
+- OBS-1/OBS-2/OBS-3 (3 advisory observations): ALL NO-ACTION — adjudicated and recorded in D-654 decision-log SoT.
+- [process-gap] L-SP13-consistency-validator-must-check-adr-own-body-changelog-row: CODIFIED; DEFERRED with anchor (consistency-validator skill self-improvement story, outside S-18.13 scope).
+
+### Factory-artifacts Commits
+
+[D-654 commit SHA — to be updated by SHA-patch after push per D-419(b)+D-420(d) convention]
+
+**Gate D-446(a) — own burst-log 8-block presence:**
+
+8 mandatory D-444(c) blocks present: Parent-commit PRESENT, Adversary Verdict PRESENT, Dim-2 PRESENT, Dim-5 PRESENT, Dim-6 PRESENT, Dim-7 PRESENT, Closes PRESENT, Factory-artifacts Commits PRESENT. PASS.
+
+**Gate D-448(a) — source-attestation parity:**
+
+Adversary Verdict paragraph faithfully describes the pass-1 finding set: F-SP13-P1-001 BLOCKER (ADR body §Changelog row missing + §Traceability leg missing); all other axes CLEAN; consistency-validator CONSISTENT with noted [process-gap]; 3 advisory observations ALL NO-ACTION. Verdicts transcribed from actual reviewer outputs (adversary and consistency-validator agents ran with fresh context per D-630 lesson L-state-manager-must-not-author-review-files). PASS.

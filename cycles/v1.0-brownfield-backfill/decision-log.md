@@ -1655,4 +1655,71 @@ Passes 13, 14, and 15 were observed CLEAN sequentially during a session that con
 
 | ID | Decision | Phase | Date |
 |----|----------|-------|------|
+| D-654 | S-18.13 spec-cascade LOCAL pass-1 NOT-CLEAN fix burst 2026-06-19 — F-SP13-P1-001 BLOCKER FIXED (ADR-026 POLICY 14 body-propagation gap): ADR-026 body §Changelog v1.22 row + §Traceability ARCH-INDEX v2.57→v2.58 provenance leg committed (architect); prior false "leg appended" claim now TRUE. Adversary VERDICT NOT-CLEAN (F-SP13-P1-001 ONLY; all other axes CLEAN: BC-5.41.001 v1.23, S-18.13 v1.3, 4-index parity verified). Consistency-validator VERDICT CONSISTENT (9/9 PASS; [process-gap]: CHECK 1 verified ARCH-INDEX legs but did NOT independently check ADR body §Changelog top row — see L-SP13-consistency-validator-must-check-adr-own-body-changelog-row). 3 NO-ACTION advisory observations: (a) EC-003↔EC-016 naming coherent (postcondition vs error-code naming convention consistent with BC-5.41.001 pattern); (b) AC-003 byte-identity testable (test-vector write-tool-enforcement covers the observable behavior); (c) PC10 ordering coherent (ordering among PCs is logical and does not create contradiction). Streak 0/3; pass-2 fresh-context adversary + consistency-validator NEXT. 4-index UNCHANGED BC v3.19/VP v2.40/STORY v4.32/ARCH v2.58. Parent-commit: 744f013a (D-653 HEAD). Process-gap disposition: follow-up self-improvement story — see L-SP13 lesson for routing (S-7.02 justified deferral anchored to consistency-validator skill self-improvement scope). | S-18.13-spec-cascade-LOCAL-pass-1-fix | 2026-06-19 |
 | D-653 | S-18.13 SPEC-EVOLUTION burst (F2 spec-first for E-18 F4 Wave-4): ADR-026 v1.22 §Decision 8 Write-tool write-path constraint + BC-5.41.001 v1.23 PC10/EC-016 + S-18.13 v1.3 ready; closes spec-amendment obligation for F-S1802-02; spec LOCAL adversarial 3-CLEAN cascade NEXT, then TDD. 4-index: BC v3.19/VP v2.40/STORY v4.32/ARCH v2.58. | spec-evolution | 2026-06-19 |
+
+---
+
+## D-654 — S-18.13 spec-cascade LOCAL pass-1 NOT-CLEAN fix burst
+
+**Date:** 2026-06-19
+**Phase:** S-18.13-spec-cascade-LOCAL-pass-1-fix
+**Decision:** S-18.13 spec-cascade LOCAL pass-1 ran with fresh-context reviewers. Adversary VERDICT: NOT-CLEAN — F-SP13-P1-001 BLOCKER (POLICY 14 ADR-026 body-propagation gap: v1.22 frontmatter but body §Changelog stuck at v1.21 + missing ARCH-INDEX provenance leg + false "leg appended" claim in ARCH-INDEX catalog row). All other axes CLEAN: BC-5.41.001 v1.23 (PC10/EC-016/test-vector write-tool-enforcement), S-18.13 v1.3 (input-hash 7d6acdc, all ACs trace to BCs), 4-index parity (BC v3.19/VP v2.40/STORY v4.32/ARCH v2.58 consistent across all indexes). Consistency-validator VERDICT: CONSISTENT (9/9 PASS). [Process-gap] in consistency-validator: its CHECK 1 verified ARCH-INDEX provenance legs, but did NOT independently check the ADR file's own body §Changelog top row — the gap that the adversary caught. This is a discovered limitation in the consistency-validator's POLICY 14 ADR check protocol (see L-SP13-consistency-validator-must-check-adr-own-body-changelog-row). 3 advisory observations, all adjudicated NO-ACTION: (a) EC-003↔EC-016 naming coherent — the existing BC-5.41.001 pattern uses EC-NNN for error codes and EC-NNN as postcondition alias; consistent with prior art; no action needed. (b) AC-003 byte-identity testable — the test-vector write-tool-enforcement added in S-18.13 v1.3 covers the observable behavior at AC-003; the observation that it is also byte-identity testable is informational; no action needed. (c) PC10 ordering coherent — PC10 is the final precondition in BC-5.41.001; its position is logical (all prior preconditions must be satisfied before the Write-tool write is attempted); no contradiction with prior PCs. Fix (same burst, D-654): architect committed ADR-026 body §Changelog v1.22 row + §Traceability ARCH-INDEX v2.57→v2.58 provenance leg. This makes the prior false ARCH-INDEX catalog row "leg appended" claim TRUE. Frontmatter version v1.22 was already correct — unchanged. 4-index UNCHANGED: BC v3.19/VP v2.40/STORY v4.32/ARCH v2.58 (no index version bump needed; ARCH-INDEX v2.58 already reflected the v2.57→v2.58 transition in its frontmatter from D-653; the ADR body fix makes the ARCH-INDEX claim accurate). Streak 0/3. Pass-2 fresh-context adversary + consistency-validator NEXT (package: ADR-026 v1.22 body FIXED + BC-5.41.001 v1.23 + S-18.13 v1.3).
+**Parent-commit:** 744f013a (D-653 HEAD)
+
+### Adversary Verdict (pass-1)
+
+**F-SP13-P1-001 BLOCKER:** POLICY 14 ADR body-propagation gap. ADR-026 frontmatter `version: "1.22"` + `last_amended: "2026-06-19 (v1.22) ..."` correctly reflected the v1.22 amendment, but the body §Changelog table top row was still at v1.21 (the v1.22 row had not been written), and the §Traceability ARCH-INDEX list did not contain the `v2.57→v2.58` provenance leg. The ARCH-INDEX v2.58 catalog row (committed in D-653) stated "§Traceability ARCH-INDEX v2.57→v2.58 provenance leg appended" — but this was FALSE because the leg had not been written to the ADR body. POLICY 14 requires 5-leg quintuple parity on all version bumps: (1) frontmatter version, (2) body §Changelog row, (3) modified[] array, (4) last_amended text-prefix, (5) upstream-index body-table cells. Legs (2) and (5-partial) were missing.
+
+**BC-5.41.001 v1.23 — CLEAN.** PC10 Write-tool obligation and EC-016 HandoffWriteToolUnavailable properly authored; test vector write-tool-enforcement traces AC-001/AC-002/AC-003; no contradictions found.
+
+**S-18.13 v1.3 — CLEAN.** Status draft→ready; ACs trace to BCs; input-hash 7d6acdc; spec-first gate satisfied.
+
+**4-index parity — CLEAN.** BC v3.19/VP v2.40/STORY v4.32/ARCH v2.58 consistent across BC-INDEX, VP-INDEX, STORY-INDEX, ARCH-INDEX. No stale cites found.
+
+**Advisory observations (3 total, ALL NO-ACTION):**
+- (OBS-1) EC-003↔EC-016 naming coherent: "EC-003" is a postcondition code in BC-5.41.001 while "EC-016" is an error code in S-18.13; the apparent name-space collision is non-existent because they operate in different documents with different code-space semantics. No action needed.
+- (OBS-2) AC-003 byte-identity testable: the test-vector write-tool-enforcement covers the observable postcondition. No additional test needed for byte-identity assertion since the behavioral invariant (Write tool must be used) is what the test verifies. No action needed.
+- (OBS-3) PC10 ordering coherent: PC10's position as final precondition in BC-5.41.001 is logical; no ordering contradiction with PC1-PC9. No action needed.
+
+### Consistency-Validator Verdict (pass-1)
+
+**VERDICT: CONSISTENT (9/9 PASS)**
+
+CHECK 1 (POLICY 14 ADR parity): PASS — verified ARCH-INDEX provenance legs present for ADR-026 v1.22. **[process-gap]:** CHECK 1 verified the ARCH-INDEX catalog row (which stated "leg appended") but did NOT open the ADR file itself to verify that the §Changelog body row had been written. This allowed the validator to return CONSISTENT while the adversary found a real POLICY 14 gap in the ADR body. The adversary's fresh-context approach (reading the ADR file directly) caught what the consistency-validator's ARCH-INDEX-leg-centric check missed.
+
+CHECK 2-9: All PASS (BC-INDEX v3.19 consistent; VP-INDEX v2.40 consistent; STORY-INDEX v4.32 consistent; S-18.13 v1.3 BC citations consistent with BC-INDEX; ADR-026 frontmatter version consistent with ARCH-INDEX catalog row version cite; no broken cross-document references found).
+
+### Fix Applied
+
+Architect committed ADR-026 body changes in working-tree (staged in D-654 burst):
+- §Changelog table: v1.22 row added as top row (standard POLICY 14 top-row convention)
+- §Traceability ARCH-INDEX line: `v2.57→v2.58 (ADR-026 v1.21→v1.22 §Decision 8 Write-tool write-path constraint)` provenance leg appended
+
+No frontmatter version change (v1.22 was already correct). No ARCH-INDEX version bump (v2.58 was already correct — the D-653 ARCH-INDEX already recorded the transition; the ADR body fix makes the existing ARCH-INDEX claim true).
+
+### 4-Index Parity Gate (literal-shell, D-449(a))
+
+```
+$ grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md
+version: "3.19"
+BC v3.19 — UNCHANGED from D-653 — PASS
+
+$ grep "^version:" .factory/specs/verification-properties/VP-INDEX.md
+version: "2.40"
+VP v2.40 — UNCHANGED from D-653 — PASS
+
+$ grep "^version:" .factory/stories/STORY-INDEX.md
+version: "4.32"
+STORY v4.32 — UNCHANGED from D-653 — PASS
+
+$ grep "^version:" .factory/specs/architecture/ARCH-INDEX.md
+version: "2.58"
+ARCH v2.58 — UNCHANGED from D-653 — PASS
+```
+
+4-index UNCHANGED: BC v3.19/VP v2.40/STORY v4.32/ARCH v2.58. POLICY 14 4-index gate SATISFIED (no version bump required for ADR body-only fix; ARCH-INDEX v2.58 already reflected the v2.57→v2.58 transition from D-653; the body fix makes the existing ARCH-INDEX claim accurate without requiring a further version increment).
+
+### Process-Gap Disposition (S-7.02)
+
+[process-gap] L-SP13-consistency-validator-must-check-adr-own-body-changelog-row codified (see lessons.md). Disposition: **Justified deferral** — the fix requires modifying the consistency-validator skill's POLICY 14 ADR check protocol to additionally open and verify the ADR file's own body §Changelog top row (not just ARCH-INDEX legs). This is a skill self-improvement task scoped to the consistency-validator skill. The deferral is justified because: (1) the current consistency-validator skill returned correct results for all non-ADR-body checks; (2) the ADR body gap was caught by the adversary (correct fallback); (3) fixing the consistency-validator skill requires a dedicated skill-improvement story or PR that is outside the scope of this cascade fix burst. Future anchor: consistency-validator skill self-improvement story (to be registered when E-18 S-18.11/S-18.12 pattern of post-cascade follow-up stories is established). Per D-430(a) discipline: this is a NEW skill-scope item, not an in-scope fix for the current S-18.13 cascade burst.

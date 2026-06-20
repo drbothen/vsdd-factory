@@ -4741,3 +4741,29 @@ Run assertions as: `yq '.stories | length' output.yaml` → expected count; `yq 
 **Consequence if violated:** Shell skills that pass static portability lint and LOCAL adversary convergence can still fail at PR CI on macOS (and production on macOS operator environments) if runtime portability issues are not surfaced. Each missed class adds at least one CI-blocking fix iteration post-cascade. The 4-fix pattern in PR #193 (2b40dfd5 + ea7328ac + aaa8da8a + 3fe11ea1) illustrates the cost of not catching these classes earlier.
 
 **Cites:** D-648; PR #193; 2b40dfd5 (IFS→awk); ea7328ac (bash3.2 local-A guard + brew bash); aaa8da8a/3fe11ea1 (PyYAML PEP 668); F-P11-002 macOS CI leg (D-643); L-S18-sibling-sweep-must-cross-file-and-tool (D-643); E-18 F4 S-18.01 local cascade passes 1–15 CONVERGED.
+
+---
+
+## L-SP13-consistency-validator-must-check-adr-own-body-changelog-row-not-only-arch-index-legs
+
+**Date:** 2026-06-19
+**Tags:** [process-gap] [policy-14] [consistency-validation]
+**Anchors:** D-654, F-SP13-P1-001, S-18.13 spec-cascade LOCAL pass-1, POLICY 14
+
+**Lesson (codified):** The consistency-validator's POLICY 14 ADR check protocol verifies upstream-index provenance legs (ARCH-INDEX catalog row claims) but does NOT independently open the ADR file's own body §Changelog table to verify that the top row matches the frontmatter version. This asymmetry allowed the consistency-validator to return CONSISTENT (9/9 PASS) on S-18.13 pass-1 while a real POLICY 14 body-propagation gap existed in ADR-026: the ADR frontmatter correctly showed `version: "1.22"` and the ARCH-INDEX catalog row stated "§Traceability ARCH-INDEX v2.57→v2.58 provenance leg appended," but the ADR body §Changelog table top row had not been updated to v1.22 and the §Traceability leg had not been written. The adversary (fresh-context, reading the ADR file directly) caught what the consistency-validator missed.
+
+**Root cause:** The consistency-validator's CHECK 1 for POLICY 14 ADR parity reads the ARCH-INDEX catalog row to verify provenance legs, then trusts the ARCH-INDEX claim as ground truth. It does not cross-reference back to the ADR body itself to independently confirm the §Changelog and §Traceability sections. This is a trusting-the-index anti-pattern: the index row claimed "leg appended" (false), and the consistency-validator accepted the claim without verification against the primary artifact.
+
+**Gate (codified):** The consistency-validator's POLICY 14 ADR version-bump check MUST include:
+
+1. **ADR body §Changelog top row check:** Open the ADR file directly. Verify that the first data row in the §Changelog table has a Version column matching the frontmatter `version:` field. If the top row does not match the frontmatter version, this is a BLOCKER (POLICY 14 body-propagation gap — same class as F-SP13-P1-001).
+2. **ADR body §Traceability ARCH-INDEX leg check:** Open the ADR file directly. Verify that the §Traceability `ARCH-INDEX:` line contains a provenance entry whose "from" version matches the prior ARCH-INDEX version and whose "to" version matches the current ARCH-INDEX version. If the ARCH-INDEX catalog row claims "leg appended" but the leg is absent in the ADR body, this is a BLOCKER.
+3. **ARCH-INDEX cross-check (existing):** Verify that the ARCH-INDEX catalog row's `last_amended` description correctly describes the ADR change (no false claims). If the ARCH-INDEX catalog row description makes a claim about the ADR body (e.g., "§Traceability leg appended"), that claim must be verified against the ADR body, not accepted at face value.
+
+These three checks together implement a bidirectional verification: index→ADR AND ADR→index.
+
+**Disposition:** Justified deferral with concrete anchor. The fix requires modifying the consistency-validator skill's POLICY 14 ADR check protocol (adding the ADR body open + §Changelog row check + §Traceability leg presence check). This is a skill self-improvement task outside the scope of the S-18.13 cascade. Anchored to: consistency-validator skill self-improvement story (to be registered as a follow-up story in E-18 or the next pipeline improvement wave). The adversary cascade remains the correct fallback — fresh-context adversary reading primary artifacts directly catches this class. Until the consistency-validator is updated, the adversary pass remains load-bearing for POLICY 14 ADR body verification.
+
+**Consequence if violated:** Consistency-validator returns CONSISTENT on POLICY 14 violations in ADR body §Changelog and §Traceability sections. The adversary (if dispatched fresh-context) will catch these gaps, but this adds one fix burst to every cascade where an ADR version bump occurs. In a multi-pass spec cascade, each unnecessary fix burst resets the 3-CLEAN streak (BC-5.39.001), extending convergence by at least one pass pair (adversary + fix). The S-18.13 pass-1 case demonstrated: one undetected ADR body gap = one NOT-CLEAN verdict = streak stays at 0/3.
+
+**Cites:** D-654; F-SP13-P1-001; ADR-026 v1.22; BC-5.39.001 3-CLEAN streak; POLICY 14 quintuple parity; consistency-validator CHECK 1; S-18.13 spec-cascade LOCAL pass-1.
