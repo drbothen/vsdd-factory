@@ -9895,3 +9895,103 @@ Source-attestation: Adversary Verdict paragraph names F-SP13-P2-001 HIGH, F-SP13
 **Gate D-448(a) — source-attestation parity:**
 
 Adversary Verdict paragraph faithfully describes the pass-2 finding set: F-SP13-P2-001 HIGH (adversary premise corrected by architect — AGENT-ORCHESTRATED skill; PC10 implementable without BC/ADR amendment; story-level mechanism-precision fix); F-SP13-P2-002 MEDIUM (AC-003 oracle re-anchored to golden fixture); [process-gap] gate-inert-on-bash-producer observation anchored. Consistency-validator CONSISTENT (9/9 PASS). Verdicts transcribed from actual reviewer outputs (adversary and consistency-validator ran fresh-context; D-630 lesson L-state-manager-must-not-author-review-files complied with). PASS.
+
+---
+
+## D-656 — S-18.13 RESTRUCTURE REDESIGN (pass-3 NOT-CLEAN REMEDIATED) — 2026-06-19
+
+### Parent-commit
+
+66ac4e29 (D-655 HEAD; SHA-patch c764ceb4)
+
+### Adversary Verdict (pass-3)
+
+Pass-3 adversary ran fresh-context. Verdict: NOT-CLEAN.
+
+- **F-SP13-P3-001 CRITICAL:** PC10 Write-tool obligation not implementable against monolithic bash `main "$@"` producer. `wave-handoff.sh` ends in `main "$@"` — fully bash-controlled, no agent seam. D-655 "agent-orchestrated two-file mechanism" premise was FALSE (architect inferred from SKILL.md `allowed-tools: [Write]` without reading actual entrypoint). VALID.
+- **F-SP13-P3-002 HIGH:** S-18.13 v1.4 §Scope/Tasks tasks T-1..T-5 prescribe changes impossible to implement as written (follow from F-SP13-P3-001 root cause). VALID.
+- **F-SP13-P3-003 MEDIUM:** validate-wave-handoff-completeness gate crate missing from S-18.02. FALSE POSITIVE — adversary read stale local develop 8b26a0fe; crate EXISTS on origin/develop bd6e50ce (S-18.02 PR #195 squash-merged).
+
+**Human decision:** RESTRUCTURE. Architect re-designed to four-step agent-orchestrated emit→Write→commit flow. D-655 determination was WRONG. See D-656 decision-log.md SoT block.
+
+### Dim-2 (Attestation / Mechanical Gates)
+
+**D-444(a) current_step gate (literal-shell):**
+
+```bash
+$ grep "^current_step:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/STATE.md
+current_step: "D-656-S18.13-RESTRUCTURE-REDESIGN-2026-06-19"
+```
+
+Output: `current_step: "D-656-S18.13-RESTRUCTURE-REDESIGN-2026-06-19"` — PASS (non-empty, non-D-655 value, verbatim).
+
+**D-446(a) 8-block gate (literal-shell, run pre-commit on this entry):**
+
+```bash
+$ grep -c "### Parent-commit\|### Adversary Verdict\|### Dim-2\|### Dim-5\|### Dim-6\|### Dim-7\|### Closes\|### Factory-artifacts Commits" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/cycles/v1.0-brownfield-backfill/burst-log.md
+```
+
+Count includes D-655 entry blocks + D-656 entry blocks. D-656 entry has all 8 blocks present by construction. 8-block presence for THIS entry: PASS (all 8 headings present in this block).
+
+**D-448(a) source-attestation parity gate (literal-shell):**
+
+```bash
+$ grep -c "F-SP13-P3-001\|F-SP13-P3-002\|F-SP13-P3-003" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/cycles/v1.0-brownfield-backfill/burst-log.md
+```
+
+All three pass-3 finding IDs present in Adversary Verdict paragraph above. Adversary Verdict faithfully describes pass-3 finding set matching adv-sp13-pass-3 review (F-SP13-P3-001 CRITICAL VALID, F-SP13-P3-002 HIGH VALID, F-SP13-P3-003 MEDIUM FALSE POSITIVE). PASS.
+
+**4-index parity gate (literal-shell, D-449(a)):**
+
+```bash
+$ grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/behavioral-contracts/BC-INDEX.md
+version: "3.20"
+BC v3.20 — BUMPED from v3.19 — PASS
+
+$ grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/verification-properties/VP-INDEX.md
+version: "2.40"
+VP v2.40 — UNCHANGED — PASS
+
+$ grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/stories/STORY-INDEX.md
+version: "4.34"
+STORY v4.34 — BUMPED from v4.33 — PASS
+
+$ grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/architecture/ARCH-INDEX.md
+version: "2.59"
+ARCH v2.59 — BUMPED from v2.58 — PASS
+```
+
+### Dim-5 (Files Touched)
+
+- `.factory/STATE.md` — v4.06→v4.07: SIZE BUDGET compacted (D-641..D-655 collapsed per D-430(a)); banner updated; frontmatter phase/current_step/version/last_amended advanced; Last Updated + Current Phase updated; Identifier Conventions BC-INDEX v3.20/STORY-INDEX v4.34/ARCH-INDEX v2.59 updated; Story Status S-18.13 v1.5 10pts +BC-5.41.002 updated; Concurrent Cycles brownfield row updated; Decisions Log D-656 row added; §3 D-656 carry added; §4 D-656 Tier-A entry added; Session Resume Checkpoint heading + §1 refreshed.
+- `.factory/specs/architecture/decisions/ADR-026-wave-boundary-checkpoint-reset-and-lossless-intra-wave-compaction.md` — v1.22→v1.23: §Decision 8 rewritten to four-step agent-orchestrated emit→Write→commit flow; HandoffFileAbsent EC-017 added; §Traceability ARCH-INDEX v2.58→v2.59 provenance leg appended.
+- `.factory/specs/behavioral-contracts/ss-05/BC-5.41.001.md` — v1.23→v1.24: PC10 updated to four-step agent-orchestrated mechanism; EC-017 HandoffFileAbsent added; modified[]/last_amended/version/changelog v1.24 row updated.
+- `.factory/specs/behavioral-contracts/ss-05/BC-5.41.002.md` — v1.16→v1.17: PC6 atomicity-boundary clarifying note (single commit across agent-Write/bash-commit boundary) added; modified[]/last_amended/version/changelog v1.17 row updated.
+- `.factory/stories/S-18.13-wave-handoff-write-tool-path-gate-trigger-fix.md` — v1.4→v1.5: §Scope/Tasks rewritten to 4-file restructure + 1 new fixture dir; AC-005 atomicity (traces BC-5.41.002 PC6); EC-017 HandoffFileAbsent; behavioral_contracts [BC-5.41.001]→[BC-5.41.001, BC-5.41.002]; points 5→10; effort_class multi-day; estimated_days 2; status UNCHANGED ready; modified[]/last_amended/version/changelog v1.5 row updated.
+- `.factory/specs/architecture/ARCH-INDEX.md` — v2.58→v2.59: version/last_amended/changelog array prepended v2.59 entry; ADR-026 catalog row appended v1.23 amendment annotation.
+- `.factory/specs/behavioral-contracts/BC-INDEX.md` — v3.19→v3.20: version/last_amended/changelog array prepended v3.20 entry; BC-5.41.001 catalog row annotation v1.23→v1.23|v1.24; BC-5.41.002 catalog row annotation v1.16→v1.16|v1.17.
+- `.factory/stories/STORY-INDEX.md` — v4.33→v4.34: version/last_amended/changelog array prepended v4.34 entry; S-18.13 catalog row: points 5→10, behavioral_contracts +BC-5.41.002, version annotation v1.4→v1.5.
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-656 SoT block appended.
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — D-656 burst entry appended (this entry).
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — L-SP13-architect-must-read-actual-entrypoint-not-allowed-tools + L-SP13-stale-local-develop-causes-false-positive-adversary-findings appended.
+
+### Dim-6 (Codifications)
+
+- D-656 codified in decision-log.md SoT block: S-18.13 RESTRUCTURE REDESIGN; pass-3 NOT-CLEAN; F-SP13-P3-001 CRITICAL + F-SP13-P3-002 HIGH VALID (REMEDIATED via four-step agent-orchestrated emit→Write→commit redesign); F-SP13-P3-003 FALSE POSITIVE (stale local develop). ROOT CAUSE: D-655 architect determination was WRONG (SKILL.md `allowed-tools` ≠ actual bash `main "$@"` entrypoint behavior). Human decision: RESTRUCTURE.
+- L-SP13-architect-must-read-actual-entrypoint-not-allowed-tools [codified]: architect must read actual entrypoint (`main "$@"`), not infer from SKILL.md `allowed-tools` metadata. `allowed-tools` is a capability declaration, not an implementation guarantee.
+- L-SP13-stale-local-develop-causes-false-positive-adversary-findings [codified]: adversary MUST verify local develop is current with origin/develop before code-reading review. Stale local develop → false-positive findings for code that exists on origin. Extends §3 directive "Adversary MUST grep `origin/develop`" (L-EDP1-067-CANDIDATE corollary).
+- 4-index parity: BC-INDEX v3.20/VP-INDEX v2.40/STORY-INDEX v4.34/ARCH-INDEX v2.59. All literal-shell verified.
+
+### Dim-7 (Streak Status)
+
+3-CLEAN streak: **0/3** (pass-3 NOT-CLEAN; F-SP13-P3-001 CRITICAL + F-SP13-P3-002 HIGH VALID, both REMEDIATED this burst via RESTRUCTURE REDESIGN; F-SP13-P3-003 FALSE POSITIVE, no fix needed). Package: S-18.13 v1.5 (RESTRUCTURE REDESIGN — four-step agent-orchestrated emit→Write→commit flow) + ADR-026 v1.23 + BC-5.41.001 v1.24 + BC-5.41.002 v1.17. Pass-4 fresh-context adversary + consistency-validator NEXT. BC-5.39.001 streak counter = 0/3.
+
+### Closes
+
+- F-SP13-P3-001 CRITICAL (PC10 Write-tool not implementable vs monolithic bash producer): REMEDIATED — four-step agent-orchestrated emit→Write→commit redesign; ADR-026 v1.23 §Decision 8 + BC-5.41.001 v1.24 PC10 + S-18.13 v1.5 §Scope/Tasks.
+- F-SP13-P3-002 HIGH (S-18.13 v1.4 design tasks impossible as written): REMEDIATED — S-18.13 v1.5 §Scope/Tasks rewritten to correct restructure design.
+- F-SP13-P3-003 MEDIUM (gate crate missing): FALSE POSITIVE — no fix; disposed as stale-develop artifact.
+
+### Factory-artifacts Commits
+
+(SHA to be filled in via SHA-patch follow-up per D-447(c)+D-449(e) after `git -C .factory commit` completes)

@@ -4793,3 +4793,62 @@ These three checks together implement a bidirectional verification: index→ADR 
 **Consequence if violated:** New skills that write artifacts to factory-artifacts via bash redirection, when paired with PostToolUse WASM gates, will have silently inert gates in production. The gate will appear to work in unit tests (if the tests mock PostToolUse events) but will never fire on the actual write path. The bug may not surface until an adversary pass specifically tests the end-to-end dispatch chain with the actual skill invocation.
 
 **Cites:** D-655; F-SP13-P2-observation; F-S1802-02; S-18.13 spec-cascade LOCAL pass-2; S-18.02; ADR-026 §Decision 8; hooks-registry.toml PostToolUse gate semantics; BC-5.39.001 3-CLEAN streak.
+
+---
+
+## L-SP13-architect-must-read-actual-entrypoint-not-allowed-tools
+
+**ID:** L-SP13-architect-must-read-actual-entrypoint-not-allowed-tools
+**Class:** [process-gap]
+**Source:** D-656, F-SP13-P3-001 CRITICAL, S-18.13 spec-cascade LOCAL pass-3
+**Date:** 2026-06-19
+
+**Anchors:** D-656, F-SP13-P3-001, D-655, S-18.13 spec-cascade LOCAL pass-3, ADR-026 §Decision 8
+
+**Lesson (codified):** When an architect or any spec author determines "implementability" of a mechanism involving a specific script or skill entry point, they MUST read the actual entry point code — not infer from metadata annotations. SKILL.md `allowed-tools: [Write]` records what the agent is permitted to call; it does NOT mean the skill's bash script invokes the Write tool. The bash script `main "$@"` controls execution fully; the agent never gets to call Write mid-script.
+
+**Root cause:** D-655 architect determination was WRONG. The architect inferred "agent-orchestrated" from SKILL.md `allowed-tools: [Write]` (metadata annotation) without reading `wave-handoff.sh`'s actual entry point `main "$@"`. The script is a fully bash-controlled monolith: `main` dispatches all logic internally with no agent seam. The `allowed-tools` annotation is a CAPABILITY declaration (the skill MAY use Write), not an IMPLEMENTATION guarantee (the skill DOES use Write at this code path).
+
+**Rule:** Before declaring "this mechanism is implementable" or "the Write tool is called here," the architect MUST:
+1. Read the actual entry point (the `main` function, the `run()` function, or the top-level dispatch logic).
+2. Identify whether there is an agent seam (a point where bash returns control to the agent) or whether bash fully controls execution from invocation to exit.
+3. If bash fully controls execution, the agent cannot interpose Write tool calls mid-execution. Any mechanism requiring the agent to call Write mid-script is NOT implementable without architectural restructure.
+
+**Anti-pattern:** "SKILL.md says `allowed-tools: [Write]` therefore the agent uses Write to write HANDOFF.md." This is an inference from metadata, not a code read.
+
+**Correct pattern:** Read `wave-handoff.sh`'s `main "$@"` → observe that `write_handoff()` is called from `main` via `process_wave()` → conclude: the Write tool call would need to be inserted at the bash function level, which is architecturally impossible without restructuring the call graph so the agent controls the write step.
+
+**Consequence if violated:** Downstream spec (story, BC, ADR) will prescribe a mechanism that cannot be implemented. The adversary will find this as CRITICAL on the next fresh-context pass (as happened: D-655 architect determination → D-656 F-SP13-P3-001 CRITICAL). The fix is always a full restructure burst at higher cost than would have been required if the correct design was produced in the first instance.
+
+**Cites:** D-656; D-655; F-SP13-P3-001 CRITICAL; S-18.13; ADR-026 §Decision 8; wave-handoff.sh `main "$@"`; SKILL.md `allowed-tools`.
+
+---
+
+## L-SP13-stale-local-develop-causes-false-positive-adversary-findings
+
+**ID:** L-SP13-stale-local-develop-causes-false-positive-adversary-findings
+**Class:** [process-gap]
+**Source:** D-656, F-SP13-P3-003 FALSE POSITIVE, S-18.13 spec-cascade LOCAL pass-3
+**Date:** 2026-06-19
+
+**Anchors:** D-656, F-SP13-P3-003, S-18.13 spec-cascade LOCAL pass-3, origin/develop bd6e50ce, local develop 8b26a0fe
+
+**Lesson (codified):** Before dispatching a code-reading adversary review pass (any LOCAL or PR-level spec-cascade pass that reads source code), the adversary MUST verify its local develop branch is current with origin/develop. Stale local develop causes false-positive findings about "missing" code that actually exists on origin but not on the stale local checkout.
+
+**Root cause:** F-SP13-P3-003 MEDIUM ("S-18.02 gate crate validate-wave-handoff-completeness missing") was a FALSE POSITIVE. The adversary read local develop at 8b26a0fe (one commit behind origin). The gate crate `validate-wave-handoff-completeness` was introduced by S-18.02 PR #195 squash-merged to origin/develop at bd6e50ce. The adversary's local checkout did not include this commit, so the crate appeared absent.
+
+**Rule:** Before reading any source file during an adversary or consistency-validator review:
+1. Run `git -C <develop-worktree> fetch origin`.
+2. Run `git -C <develop-worktree> log --oneline origin/develop -5` to confirm local HEAD matches origin/develop HEAD.
+3. If local is behind: `git -C <develop-worktree> pull --ff-only`.
+4. Only then read code from the worktree.
+
+**Alternative (for agents without a mounted develop worktree):** Use `git show origin/develop:<path>` to read files directly from origin/develop without relying on local checkout currency.
+
+**Active directive (from CLAUDE.md):** "Adversary MUST grep `origin/develop` or `factory-artifacts` for literal-shell evidence (NOT stale local main; per L-EDP1-067-CANDIDATE)." This extends to: adversary MUST also NOT read stale local develop. Origin-side reads are canonical.
+
+**Consequence if violated:** False-positive findings consume a fix burst slot, write an erroneous D-NNN decision block, and waste one cascade pass count. In this case F-SP13-P3-003 added no code changes but added noise to the audit trail and required explicit false-positive disposition in D-656.
+
+**Mitigation already active:** §3 User Directives carry "Adversary MUST grep `origin/develop`..." (from L-EDP1-067-CANDIDATE). This lesson adds the corollary: MUST NOT read stale local checkout for source code during adversary review.
+
+**Cites:** D-656; F-SP13-P3-003 FALSE POSITIVE; S-18.13 spec-cascade LOCAL pass-3; origin/develop bd6e50ce; local develop 8b26a0fe; L-EDP1-067-CANDIDATE; §3 User Directives.

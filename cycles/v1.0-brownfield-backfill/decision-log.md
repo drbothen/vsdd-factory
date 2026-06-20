@@ -1773,3 +1773,74 @@ ARCH v2.58 — UNCHANGED — PASS
 ```
 
 **Streak:** 0/3 (pass-2 NOT-CLEAN; F-SP13-P2-001 HIGH + F-SP13-P2-002 MEDIUM found and fixed this burst). Pass-3 fresh-context adversary + consistency-validator NEXT. Package: S-18.13 v1.4 (precision-corrected two-file mechanism + AC-003 golden fixture oracle) + ADR-026 v1.22 + BC-5.41.001 v1.23 (all UNCHANGED this burst).
+
+---
+
+## D-656 — S-18.13 RESTRUCTURE REDESIGN (pass-3 NOT-CLEAN REMEDIATED) — 2026-06-19
+
+**Decision ID:** D-656
+**Phase:** S-18.13-spec-cascade-LOCAL-pass-3-RESTRUCTURE-REDESIGN
+**Date:** 2026-06-19
+**Parent-commit:** 66ac4e29 (D-655 HEAD; SHA-patch c764ceb4)
+
+### Context
+
+S-18.13 spec LOCAL adversarial cascade (BC-5.39.001 3-CLEAN protocol). Pass-3 dispatched fresh-context after D-655 pass-2 NOT-CLEAN remediation. The adversary read the package (S-18.13 v1.4 + ADR-026 v1.22 + BC-5.41.001 v1.23) with no prior context.
+
+### Pass-3 Adversary Findings
+
+**F-SP13-P3-001 CRITICAL — PC10 Write-tool path not implementable against monolithic bash producer:**
+
+- **VALID.** S-18.13 v1.4 §Scope/Tasks describes the skill as "agent-orchestrated two-file mechanism" with T-2 "refactor write-handoff.sh `write_handoff()` to emit assembled HANDOFF.md payload to stdout." However, `wave-handoff.sh` ends in `main "$@"` — the script is fully bash-controlled with no agent seam. The agent (SKILL.md) dispatches `bash wave-handoff.sh` and the bash function `main` drives all logic. There is no mechanism for bash to redirect stdout mid-execution and have the AGENT invoke the Write tool on that output. The v1.4 design premise was FALSE: the Write-tool PostToolUse gate cannot fire if the Write tool is never called.
+
+- **ROOT CAUSE:** D-655 architect determination was WRONG. The architect inferred "agent-orchestrated" from SKILL.md `allowed-tools: [Write]` without reading the actual wave-handoff.sh entrypoint `main "$@"`. The `allowed-tools` annotation records what the SKILL permits the agent to use — it does NOT mean the skill's bash script calls the Write tool. The bash script calls `main "$@"` and fully controls execution; the agent never gets to invoke Write mid-script.
+
+**F-SP13-P3-002 HIGH — S-18.13 v1.4 four-step redesign tasks are impossible to implement as written:**
+
+- **VALID.** Follows from F-SP13-P3-001. Tasks T-1 through T-5 in S-18.13 v1.4 prescribe changes to `write_handoff()` function output routing and SKILL.md agent-step additions. But the function is called from bash `main "$@"` — there is no agent mid-flight to insert a Write tool call. The implementation path does not exist.
+
+**F-SP13-P3-003 MEDIUM — S-18.02 gate crate validate-wave-handoff-completeness missing:**
+
+- **FALSE POSITIVE.** The adversary read stale local develop (8b26a0fe, one commit behind). The gate crate `validate-wave-handoff-completeness` EXISTS on origin/develop (bd6e50ce, S-18.02 squash-merged PR #195). No finding; adversary local develop was not ff'd before review. Root: failure to `git fetch && git -C <develop-worktree> pull --ff-only` before code-reading review pass.
+
+### Human Decision (D-656)
+
+**RESTRUCTURE:** The correct fix is a genuine architectural restructure. The skill must be redesigned so that the agent (not bash) controls HANDOFF.md writing. The four-step agent-orchestrated emit→Write→commit flow:
+
+1. **`--emit-handoff` subcommand:** `wave-handoff.sh --emit-handoff` assembles the HANDOFF.md payload and emits it to stdout. No disk write. No commit. Pure compute.
+2. **Agent Write tool step:** The SKILL.md gains a new numbered agent step: capture `--emit-handoff` stdout output, then invoke the Write tool to write `${ARTIFACTS_WT}/HANDOFF.md`. The PostToolUse `validate-wave-handoff-completeness` gate fires at this step (triggered by Write to HANDOFF.md path).
+3. **`--emit-wave-state` subcommand:** `wave-handoff.sh --emit-wave-state` writes wave-state.yaml to disk (bash-driven; no agent Write needed; no PostToolUse gate for wave-state.yaml).
+4. **`--commit` subcommand:** `wave-handoff.sh --commit` stages both HANDOFF.md and wave-state.yaml and creates ONE atomic git commit. Fail-loud-no-fallback: if HANDOFF.md absent at commit time → HandoffFileAbsent EC-017; if Write tool unavailable → HandoffWriteToolUnavailable (checked at agent-step level in SKILL.md).
+
+This design correctly separates the agent-controlled write (HANDOFF.md via Write tool, gated) from the bash-driven commit (atomic, both files staged together).
+
+### Files Modified
+
+- **ADR-026-wave-boundary-checkpoint-reset-and-lossless-intra-wave-compaction.md** v1.22→v1.23: §Decision 8 rewritten to four-step agent-orchestrated emit→Write→commit control flow. `--emit-handoff` / `--emit-wave-state` / `--commit` subcommand decomposition. HandoffFileAbsent EC-017 added. §Traceability ARCH-INDEX v2.58→v2.59 provenance leg appended.
+- **BC-5.41.001.md** v1.23→v1.24: PC10 updated to four-step agent-orchestrated mechanism. EC-017 HandoffFileAbsent added. modified[] + last_amended + version bumped. Changelog v1.24 row appended.
+- **BC-5.41.002.md** v1.16→v1.17: PC6 atomicity-boundary clarifying note added (single commit across agent-Write/bash-commit boundary; commit must stage both files atomically). modified[] + last_amended + version bumped. Changelog v1.17 row appended.
+- **S-18.13-wave-handoff-write-tool-path-gate-trigger-fix.md** v1.4→v1.5: §Scope/Tasks rewritten to 4-file restructure + 1 new fixture dir. AC-005 atomicity added (traces BC-5.41.002 PC6). EC-017 HandoffFileAbsent added. behavioral_contracts updated to [BC-5.41.001, BC-5.41.002]. points 5→10. effort_class multi-day. estimated_days 2. status UNCHANGED ready. modified[] + last_amended + version bumped. Changelog v1.5 row appended.
+
+### 4-Index Parity Gate (literal-shell, D-449(a))
+
+```
+$ grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md
+version: "3.20"
+BC v3.20 — BUMPED from v3.19 — PASS (BC-5.41.001 v1.24 + BC-5.41.002 v1.17 rows updated)
+
+$ grep "^version:" .factory/specs/verification-properties/VP-INDEX.md
+version: "2.40"
+VP v2.40 — UNCHANGED — PASS
+
+$ grep "^version:" .factory/stories/STORY-INDEX.md
+version: "4.34"
+STORY v4.34 — BUMPED from v4.33 — PASS (S-18.13 v1.5 10pts +BC-5.41.002 row updated)
+
+$ grep "^version:" .factory/specs/architecture/ARCH-INDEX.md
+version: "2.59"
+ARCH v2.59 — BUMPED from v2.58 — PASS (ADR-026 v1.23 catalog row annotation + provenance leg)
+```
+
+### Streak
+
+0/3 (pass-3 NOT-CLEAN; F-SP13-P3-001 CRITICAL + F-SP13-P3-002 HIGH VALID, both REMEDIATED this burst; F-SP13-P3-003 FALSE POSITIVE, no fix needed). Package: S-18.13 v1.5 (RESTRUCTURE REDESIGN) + ADR-026 v1.23 + BC-5.41.001 v1.24 + BC-5.41.002 v1.17. Pass-4 fresh-context adversary + consistency-validator NEXT.
