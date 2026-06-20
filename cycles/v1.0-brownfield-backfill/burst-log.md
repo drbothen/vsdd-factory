@@ -9784,7 +9784,7 @@ Literal-shell 4-index verification gate: BC v3.19 UNCHANGED — PASS. VP v2.40 U
 
 ### Factory-artifacts Commits
 
-[D-654 commit SHA — to be updated by SHA-patch after push per D-419(b)+D-420(d) convention]
+1ca27f59 — state(D-654): S-18.13 spec-cascade LOCAL pass-1 NOT-CLEAN fix — ADR-026 body §Changelog v1.22 row + §Traceability v2.57→v2.58 leg COMMITTED; streak 0/3; pass-2 NEXT (pushed to factory-artifacts 2026-06-19)
 
 **Gate D-446(a) — own burst-log 8-block presence:**
 
