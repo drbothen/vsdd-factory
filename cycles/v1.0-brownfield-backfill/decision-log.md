@@ -1907,3 +1907,53 @@ S-18.13 spec-evolution LOCAL spec-cascade BC-5.39.001 3-CLEAN CONVERGED. Passes 
 ### NEXT
 
 S-18.13 TDD per-story delivery (per-story-delivery flow). Package FROZEN at ADR-026 v1.24 / BC-5.41.001 v1.26 / BC-5.41.002 v1.19 / S-18.13 v1.8.
+
+---
+
+## D-663 — S-18.13 POST-MERGE burst — PR #196 squash 70664e02 to develop — 2026-06-20
+
+### Decision
+
+S-18.13 (wave-handoff Write-tool gate-trigger restructure) MERGED via PR #196 squash-merge to develop at 70664e02 (2026-06-20). F-S1802-02 CLOSED: validate-wave-handoff-completeness PostToolUse gate now fires in production on HANDOFF.md Write tool calls. BC-5.41.001 v1.26 + BC-5.41.002 v1.19 confirmed active (amended during S-18.13 spec-cascade; POL-14 lifecycle promotion already recorded at D-648 for both BCs; S-18.13 amendments constitute behavioral-content updates, NOT lifecycle transitions — no draft→active re-promotion needed; status remains active). S-18.13 story lifecycle draft→merged (status: merged; PR #196 squash 70664e02 2026-06-20). develop HEAD advanced bd6e50ce→70664e02.
+
+### Rationale
+
+F-S1802-02 was the originating finding anchored in D-652: the wave-handoff SKILL wrote HANDOFF.md via bash redirection (`} > "$output_path"`), which bypassed the agent Write-tool Write event and therefore the PostToolUse validate-wave-handoff-completeness gate never fired. S-18.13 restructured the skill to the four-step agent-orchestrated emit→Write→commit flow specified in ADR-026 §Decision 8 (D-656). The security review (9df466e9) added 5 defensive input-validation hardening fixes: YAML-injection allowlists for factory_lock_holder and current_status/current_id, ARTIFACTS_WT realpath path-traversal guard, and wave_id [1,9999] bounds check. All merged in the squash commit 70664e02.
+
+### Implementation Summary
+
+- LOCAL implementation adversarial cascade: 3-CLEAN CONVERGED (passes 3/4/5). Pass-1 fixed F-S1813-IMPL-P1-001 (real AC-002 gate-firing test; prior used mocked gate) and F-S1813-IMPL-P1-002 (legacy bash-redirect vector in write_handoff — removed). Pass-1 also closed 3 LOW hygiene findings. Passes 3/4/5 all CLEAN.
+- Security review: 5 findings fixed (commit 9df466e9): (1) factory_lock_holder field allowlist [a-zA-Z0-9_-] to prevent YAML injection; (2) current_status pattern guard [a-z0-9_-] to prevent injection; (3) current_id pattern guard [a-zA-Z0-9._-]; (4) ARTIFACTS_WT realpath + boundary check to prevent path-traversal; (5) wave_id bounds [1,9999].
+
+### S-7.02 Process-Gap Lessons Codified
+
+Per the orchestrator's instruction to confirm lessons codified during the S-18.13 LOCAL implementation cascade:
+
+1. **AC-002 INFRASTRUCTURE-GAP-was-not-legitimate:** The F-S1813-IMPL-P1-001 finding revealed that the initial AC-002 bats test used a mocked gate call rather than the real PostToolUse event path. This was an infrastructure gap (gate-trigger testing requires an agent harness, not a bare bats invocation), not a legitimate implementation defect. The fix replaced the mocked test with a direct invocation test that exercises the real gate-firing code path without an agent harness. Lesson: when gate tests fail with "infrastructure" rationale, verify whether the test infrastructure can be adapted before classifying as untestable.
+2. **Legacy-main bash-redirect sibling-site lesson:** F-S1813-IMPL-P1-002 found that `write_handoff()` retained the original `} > "$output_path"` bash redirect. This is the exact anti-pattern that S-18.13 was designed to eliminate. Sibling-site sweep obligation: when refactoring a write-path (bash-redirect→Write-tool), grep ALL functions in the same file for the banned pattern before declaring the refactor complete.
+3. **|exit-$? set-e-propagation lesson:** The `--emit-handoff | agent_write_tool; exit $?` pipe pattern does not propagate the emitter's non-zero exit under set -e because the emitter runs in a subshell; the pipe exit code is the consumer's. Correct pattern: capture stdout to a variable with `$()` subshell capture and check the exit code explicitly.
+
+### [process-gap] Security-hardening spec-codification disposition
+
+The security-review input-validation hardening (factory_lock_holder allowlist, current_status/current_id pattern guards, ARTIFACTS_WT realpath guard, wave_id [1,9999] bounds) was added at implementation level in 9df466e9. These guards are NOT explicitly codified in BC-5.41.001/BC-5.41.002 postconditions.
+
+**DISPOSITION: implementation-level-acceptable with rationale.** The security hardening is defensive programming (CWE-20 input validation) on fields whose valid value domains are already implied by the specs (e.g., factory_lock_holder is a string identifier, wave_id is a positive integer). Elevating these to explicit BC postconditions would constitute behavioral contract amendments requiring spec-first gate re-convergence (BC-5.39.001 3-CLEAN). The fixes do not change the behavior for well-formed inputs (which all production callers use). Adding PC-level codification would anchor a follow-up adversary re-cascade that exceeds the risk benefit. **However:** if a future adversary pass flags the absence of explicit postconditions for these guards as a BLOCKER, the adjudication at that time should amend BC-5.41.001 PC (new PC for input-validation preconditions). This disposition does NOT add a tech-debt-register entry (human direction not given; no concrete future dependency); it records the in-scope adjudication for the record.
+
+### 4-Index
+
+- BC-INDEX v3.23 (UNCHANGED — BC-5.41.001 v1.26 / BC-5.41.002 v1.19 lifecycle_status already active; no row annotation change needed for merge event)
+- VP-INDEX v2.40 (UNCHANGED)
+- STORY-INDEX v4.39 (BUMPED — S-18.13 ready→merged; merged_count 63→64)
+- ARCH-INDEX v2.60 (UNCHANGED)
+
+### Parent-commit
+
+2c0ef179 (D-662 SHA-patch HEAD; factory-artifacts)
+
+### develop HEAD
+
+70664e02 (S-18.13 PR #196 squash-merged 2026-06-20; prior: bd6e50ce S-18.02)
+
+### NEXT
+
+S-18.04a (precompact-flush.sh Core; BC-7.07.001; deps S-18.00 + S-17.04 both merged; P0; READY per Wave-4 plan D-662 §1 Step 2).
