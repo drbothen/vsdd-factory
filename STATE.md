@@ -143,7 +143,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | caf06c68 | rc.21 bot binary bundle commit 2026-06-13; prior: 2a191314 (rc.20) |
 | develop | 70664e02 | S-18.13 PR #196 SQUASH-MERGED 2026-06-20; prior: bd6e50ce (S-18.02 PR #195 2026-06-19) |
-| factory-artifacts | 4e7ed592 | D-668 E-18 WASM-pivot pivot-marker burst (SHA-patch pending); prior: 1538873c D-667 SHA-patch HEAD; prior: a0adb135 D-667 S-18.04a LOCAL post-fix pass NOT-CLEAN |
+| factory-artifacts | b30f50da | D-668 SHA-patch HEAD (b30f50da); D-668 pivot-marker burst 4e7ed592; prior: 1538873c D-667 SHA-patch HEAD |
 | v1.0.0-rc.21 (tag) | 03054524 | SHIPPED 2026-06-13; FULLY IN OPERATOR MARKETPLACE (marketplace PR #13 MERGED); annotated tag object |
 | v1.0.0-rc.20 (tag) | e9e38286 | SHIPPED 2026-06-01; marketplace PR #12 squash-merged 862e660d |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28 |
@@ -353,7 +353,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** `4e7ed592` D-668 E-18 WASM-pivot pivot-marker burst (SHA-patch pending; prior: `1538873c` D-667 SHA-patch HEAD; prior: `a0adb135` D-667 S-18.04a LOCAL post-fix pass NOT-CLEAN)
+- **factory-artifacts HEAD:** `b30f50da` D-668 SHA-patch (prior: `4e7ed592` D-668 pivot-marker burst; prior: `1538873c` D-667 SHA-patch HEAD)
 - **develop HEAD:** `70664e02` (S-18.13 PR #196 SQUASH-MERGED 2026-06-20; prior: `bd6e50ce` S-18.02 PR #195 2026-06-19)
 - **main HEAD:** `caf06c68` (rc.21 bot bundle commit 2026-06-13; UNCHANGED)
 - **v1.0.0-rc.21 tag:** `03054524` (SHIPPED; FULLY IN OPERATOR MARKETPLACE)
