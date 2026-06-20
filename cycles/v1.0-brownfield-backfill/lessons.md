@@ -4767,3 +4767,29 @@ These three checks together implement a bidirectional verification: index→ADR 
 **Consequence if violated:** Consistency-validator returns CONSISTENT on POLICY 14 violations in ADR body §Changelog and §Traceability sections. The adversary (if dispatched fresh-context) will catch these gaps, but this adds one fix burst to every cascade where an ADR version bump occurs. In a multi-pass spec cascade, each unnecessary fix burst resets the 3-CLEAN streak (BC-5.39.001), extending convergence by at least one pass pair (adversary + fix). The S-18.13 pass-1 case demonstrated: one undetected ADR body gap = one NOT-CLEAN verdict = streak stays at 0/3.
 
 **Cites:** D-654; F-SP13-P1-001; ADR-026 v1.22; BC-5.39.001 3-CLEAN streak; POLICY 14 quintuple parity; consistency-validator CHECK 1; S-18.13 spec-cascade LOCAL pass-1.
+
+---
+
+### L-SP13-gate-inert-on-bash-producer-class
+
+**Tags:** [process-gap] [hooks-registry] [bash-producer] [write-tool] [gate-inertness]
+**Anchors:** D-655, F-SP13-P2-observation, S-18.13 spec-cascade LOCAL pass-2, S-18.02, ADR-026 §Decision 8
+
+**Lesson (codified):** A PostToolUse Write|Edit WASM gate registered in hooks-registry.toml is silently inert for any artifact produced via bash redirection. The PostToolUse event fires only when the Claude Code Write or Edit tool is invoked by the agent; bash redirection (`} > file`, `echo ... > file`, `cat > file`, `tee`) emits no PostToolUse event and therefore bypasses the gate entirely. This is the root cause of the original F-S1802-02 finding (S-18.02 gate was dead code in production because write-handoff.sh used bash redirection). S-18.13 fixes the specific HANDOFF.md instance. The general class remains ungated.
+
+**Root cause:** ADR-026 §Decision 8 constrained the gate's hook registration (PostToolUse on Write|Edit) and defined what HANDOFF.md MUST contain (BC-5.41.001 PC10), but did NOT include a governance constraint requiring the HANDOFF.md *producer's* write path to use the Write tool. The gate and the producer were specified independently, creating an integration gap that only manifests at runtime when the PostToolUse event never fires.
+
+**Gate class (codified):** The "gate-inert-on-bash-producer" class describes any situation where:
+1. A hooks-registry.toml entry registers a WASM gate on `tool = "Write|Edit"` PostToolUse events for a specific file.
+2. The skill or script that produces that file uses bash redirection (`>`, `>>`, `tee`, `cat >`) instead of the Claude Code Write tool.
+3. Result: the gate is registered correctly, passes all unit tests (which may mock the PostToolUse event), but is silently never invoked on the production write path.
+
+**General remedy:** A governance check (CI assertion or policy rule) that: for every PostToolUse gate entry in hooks-registry.toml with `tool = "Write|Edit"` targeting a specific artifact, the skill(s) responsible for producing that artifact must invoke the Write or Edit tool (not bash redirection) as their primary write path. This can be implemented as:
+- A CI grep that scans skill files for bash-redirect patterns paired with artifact paths that are also named in hooks-registry.toml gate entries.
+- OR a POLICY addition (e.g., POLICY N): "Artifact producers paired with PostToolUse gates MUST use the Write/Edit tool as the primary write mechanism. Bash redirection is FORBIDDEN as a primary write path for any artifact governed by a PostToolUse WASM gate."
+
+**Disposition (S-7.02):** Justified deferral with concrete anchor. S-18.13 fixes the load-bearing HANDOFF.md instance. The governance check requires a CI/hook change outside S-18.13 scope. Anchored to: a new follow-up story to be registered as part of the E-18 post-cascade deferred-items burst (analogous to S-18.11/S-18.12 pattern — observed at cascade pass close, anchored in same deferred-items burst, story registered before cascade moves to F4 TDD). Until the governance check exists, the adversary cascade and D-655 process-gap lesson serve as the detection mechanism.
+
+**Consequence if violated:** New skills that write artifacts to factory-artifacts via bash redirection, when paired with PostToolUse WASM gates, will have silently inert gates in production. The gate will appear to work in unit tests (if the tests mock PostToolUse events) but will never fire on the actual write path. The bug may not surface until an adversary pass specifically tests the end-to-end dispatch chain with the actual skill invocation.
+
+**Cites:** D-655; F-SP13-P2-observation; F-S1802-02; S-18.13 spec-cascade LOCAL pass-2; S-18.02; ADR-026 §Decision 8; hooks-registry.toml PostToolUse gate semantics; BC-5.39.001 3-CLEAN streak.

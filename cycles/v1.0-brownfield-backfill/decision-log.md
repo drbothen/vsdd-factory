@@ -1723,3 +1723,53 @@ ARCH v2.58 — UNCHANGED from D-653 — PASS
 ### Process-Gap Disposition (S-7.02)
 
 [process-gap] L-SP13-consistency-validator-must-check-adr-own-body-changelog-row codified (see lessons.md). Disposition: **Justified deferral** — the fix requires modifying the consistency-validator skill's POLICY 14 ADR check protocol to additionally open and verify the ADR file's own body §Changelog top row (not just ARCH-INDEX legs). This is a skill self-improvement task scoped to the consistency-validator skill. The deferral is justified because: (1) the current consistency-validator skill returned correct results for all non-ADR-body checks; (2) the ADR body gap was caught by the adversary (correct fallback); (3) fixing the consistency-validator skill requires a dedicated skill-improvement story or PR that is outside the scope of this cascade fix burst. Future anchor: consistency-validator skill self-improvement story (to be registered when E-18 S-18.11/S-18.12 pattern of post-cascade follow-up stories is established). Per D-430(a) discipline: this is a NEW skill-scope item, not an in-scope fix for the current S-18.13 cascade burst.
+
+---
+
+## D-655 — S-18.13 spec-cascade LOCAL pass-2 NOT-CLEAN fix burst
+
+**Date:** 2026-06-19
+**Phase:** S-18.13-spec-cascade-LOCAL-pass-2-fix
+**Parent-commit:** 1ca27f59 (D-654 HEAD; SHA-patch 2d9579bc)
+
+**Decision:** S-18.13 spec-cascade LOCAL pass-2 ran with fresh-context reviewers. Adversary VERDICT: NOT-CLEAN — 2 findings + 1 [process-gap] observation:
+
+- **F-SP13-P2-001 HIGH (PC10 Write-tool vs producer architecture):** The story v1.3 §Scope stated "one-line change in write-handoff.sh" and T-2 described a single-file modification. The adversary correctly identified this as architecturally incorrect: the wave-handoff skill is AGENT-ORCHESTRATED (SKILL.md `allowed-tools` includes Write; the body is numbered agent steps, not a monolithic bash invocation). Write-tool invocation in an agent-orchestrated skill requires TWO file changes: (a) write-handoff.sh `write_handoff()` changed to emit assembled payload to stdout (remove `} > "$output_path"` bash-redirect); (b) SKILL.md gains a new numbered agent step instructing the agent to capture the stdout payload and invoke the Claude Code Write tool with destination `${ARTIFACTS_WT}/HANDOFF.md`.
+
+  **Architect investigation (same burst):** Confirmed adversary's architectural frame was CORRECT — the skill IS agent-orchestrated. However, the adversary's sub-claim that "PC10 is not implementable without BC/ADR amendment" was WRONG. The architect reviewed SKILL.md `allowed-tools` and confirmed Write is already listed; the skill body already uses numbered agent steps; no architectural departure from ADR-026 §Decision 8 is required. BC-5.41.002 PC6 atomicity is preserved (wave-state.yaml continues bash-produced; the single `commit_to_artifacts` git commit already co-commits both files). No BC amendment needed. No ADR amendment needed. The finding reduced to a story-level mechanism-precision fix (story-writer scope).
+
+  **Fix applied (story-writer, this burst):** S-18.13 v1.3→v1.4: §Scope rewritten to accurate two-file mechanism; T-2 expanded to T-2a (write-handoff.sh stdout-emit) + T-2b (SKILL.md Write-tool agent step); implementation sequence updated; File Structure Requirements: SKILL.md added as MODIFY target. POLICY 14 five-leg parity applied.
+
+- **F-SP13-P2-002 MEDIUM (AC-003 oracle self-contradiction):** AC-003 v1.3 anchored the byte-identity oracle to "the previous bash-redirect implementation" — but this story's T-2 DELETES the bash-redirect path. The oracle is therefore unavailable at test time (the baseline is gone before the test can capture it). Self-referential oracle failure.
+
+  **Fix applied (story-writer, this burst):** AC-003 re-anchored to a frozen golden fixture committed BEFORE implementation: T-4 gains sub-task T-4a (capture HANDOFF.md output from the CURRENT bash-redirect path using standard input fixtures; commit to `plugins/vsdd-factory/tests/fixtures/wave-handoff-golden/` BEFORE implementing T-2). The golden fixture is captured from the unmodified baseline and serves as the cross-version regression oracle. T-4a must precede T-2a per the updated implementation sequence.
+
+- **[process-gap] observation (gate-inert-on-bash-producer class):** The adversary noted that any Write|Edit PostToolUse WASM gate is silently inert for artifacts produced via bash redirection — the gate registration is correct but the hook event never fires. S-18.13 fixes the specific HANDOFF.md instance. The general class (any future bash-redirected artifact producer paired with a PostToolUse gate) remains ungated.
+
+  **Disposition (S-7.02):** Follow-up self-improvement story anchored. The general remedy is a governance check: a CI assertion or policy rule that any PostToolUse Write|Edit gate entry in hooks-registry.toml must have a corroborated agent-Write producer (i.e., the skill that writes the file must use the Write/Edit tool, not bash redirection). This is an E-18 or self-improvement epic candidate. Anchored to: a new follow-up story to be registered as part of the E-18 post-cascade deferred-items burst (analogous to S-18.11/S-18.12 pattern). Justified deferral: S-18.13 fixes the load-bearing instance; the governance gate requires a CI/hook change outside S-18.13 scope.
+
+**Consistency-validator VERDICT (pass-2):** CONSISTENT (9/9 PASS) — all checks passed including ADR-026 body §Changelog v1.22 row (now present after D-654 fix) and ARCH-INDEX v2.58 provenance leg (already confirmed present). The D-654 process-gap (consistency-validator failing to independently check ADR body §Changelog rows) did NOT recur in pass-2 because the D-654 fix (architect committing the ADR body §Changelog row) made the body correct; the consistency-validator's ARCH-INDEX leg check found the state consistent.
+
+**Fix summary:** STORY-INDEX v4.32→v4.33 (S-18.13 catalog row version annotation v1.3→v1.4; story_count UNCHANGED 123; E-18 tally UNCHANGED 15). BC-INDEX/VP-INDEX/ARCH-INDEX UNCHANGED (no BC/VP/ADR change this burst; architect confirmed no amendment needed for F-SP13-P2-001).
+
+**4-index parity gate (literal-shell, run pre-commit):**
+
+```
+$ grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md
+version: "3.19"
+BC v3.19 — UNCHANGED — PASS
+
+$ grep "^version:" .factory/specs/verification-properties/VP-INDEX.md
+version: "2.40"
+VP v2.40 — UNCHANGED — PASS
+
+$ grep "^version:" .factory/stories/STORY-INDEX.md
+version: "4.33"
+STORY v4.33 — BUMPED from v4.32 — PASS
+
+$ grep "^version:" .factory/specs/architecture/ARCH-INDEX.md
+version: "2.58"
+ARCH v2.58 — UNCHANGED — PASS
+```
+
+**Streak:** 0/3 (pass-2 NOT-CLEAN; F-SP13-P2-001 HIGH + F-SP13-P2-002 MEDIUM found and fixed this burst). Pass-3 fresh-context adversary + consistency-validator NEXT. Package: S-18.13 v1.4 (precision-corrected two-file mechanism + AC-003 golden fixture oracle) + ADR-026 v1.22 + BC-5.41.001 v1.23 (all UNCHANGED this burst).
