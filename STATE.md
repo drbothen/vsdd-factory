@@ -1,19 +1,19 @@
 ---
 document_type: pipeline-state
 level: ops
-version: "4.16"
+version: "4.17"
 status: draft
 producer: state-manager
 timestamp: 2026-06-20T02:00:00Z
-phase: D-665-ORCHESTRATOR-RESUME-2026-06-20
-last_amended: "2026-06-20 (v4.16) — D-665 ORCHESTRATOR RESUME burst: posture PAUSED→ACTIVE per human directive. Autonomy = STOP-BEFORE-PR-MERGE (deliver each story through LOCAL 3-CLEAN + demo + PR create + CI green, then await explicit human merge approval per story). S-18.04a delivery BEGINNING. 4-index UNCHANGED: BC-INDEX v3.23 / VP-INDEX v2.40 / STORY-INDEX v4.39 / ARCH-INDEX v2.60. [Prior: v4.15 D-664 DURABLE PAUSE 2026-06-20.]"
+phase: D-666-S18.04a-LOCAL-pass1-spec-anchor-remediation-2026-06-20
+last_amended: "2026-06-20 (v4.17) — D-666 S-18.04a LOCAL pass-1 NOT-CLEAN spec-anchor remediation: BC-7.07.001 v1.13→v1.14 (factory-lock-write.sh hooks/→bin/ anchor correction; F-PF1-001 BLOCKER); story S-18.04a v1.5→v1.6; BC-INDEX v3.23→v3.24; STORY-INDEX v4.39→v4.40; VP-INDEX v2.40 UNCHANGED; ARCH-INDEX v2.60 UNCHANGED. BC-5.39.001 streak 0/3; code remediation F-PF1-001..006 in flight on feature/S-18.04a. [Prior: v4.16 D-665 ORCHESTRATOR RESUME 2026-06-20.]"
 inputs: []
 input-hash: "[live-state]"
 traces_to: prd.md
 project: vsdd-factory
 mode: brownfield
 "D-665 ORCHESTRATOR RESUME 2026-06-20 (D-665). posture PAUSED→ACTIVE per human directive. Autonomy directive: STOP-BEFORE-PR-MERGE — deliver each story through LOCAL 3-CLEAN + demo + PR create + CI green, then await explicit human merge approval per story. S-18.04a delivery BEGINNING (precompact-flush.sh Core; BC-7.07.001; P0; 13pts; deps met). Resume order: S-18.04a→S-18.04b→S-18.03. 4-index UNCHANGED: BC v3.23/VP v2.40/STORY v4.39/ARCH v2.60. Parent-commit: f7bb8bbc (D-664 SHA-patch HEAD)."
-current_step: "D-665-ORCHESTRATOR-RESUME-2026-06-20"
+current_step: "D-666-S18.04a-LOCAL-pass1-spec-anchor-remediation-2026-06-20"
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -62,6 +62,7 @@ dtu_services: []
   397 lines (wc-l; D-663 S-18.13 POST-MERGE burst — S-18.13 ready→merged PR #196 70664e02; F-S1802-02 CLOSED; BC-5.41.001 v1.26 + BC-5.41.002 v1.19 confirmed active; develop bd6e50ce→70664e02; STORY-INDEX v4.39 merged_count 63→64; D-663 Decision row recorded; 4-index BC v3.23/VP v2.40/STORY v4.39/ARCH v2.60; 18 lines under soft-target 415; 103 lines under hard-cap 500).
   401 lines (wc-l; D-664 DURABLE PAUSE burst — ORCHESTRATOR PAUSED per human directive at clean checkpoint post-S-18.13; D-664 Decision row + resume-order S-18.04a→S-18.04b→S-18.03 recorded in §1/banner/§4/§5/§10/§11/§12; 4-index UNCHANGED BC v3.23/VP v2.40/STORY v4.39/ARCH v2.60; 14 lines under soft-target 415; 99 lines under hard-cap 500).
   405 lines (wc-l; D-665 ORCHESTRATOR RESUME burst — posture PAUSED→ACTIVE; D-665 autonomy=STOP-BEFORE-PR-MERGE directive recorded in §1/banner/§3/§4/§5/§10/§11/§12/checkpoint; 4-index UNCHANGED BC v3.23/VP v2.40/STORY v4.39/ARCH v2.60; 10 lines under soft-target 415; 95 lines under hard-cap 500).
+  407 lines (wc-l; D-666 S-18.04a LOCAL pass-1 NOT-CLEAN spec-anchor remediation burst — BC-7.07.001 v1.14 + story v1.6 annotation; D-666 decision row; 4-index BC v3.24/VP v2.40/STORY v4.40/ARCH v2.60; §1/§3/§4/§5/§8/§9/§10/§11/§12 updated; 8 lines under soft-target 415; 93 lines under hard-cap 500).
 -->
 
 # Pipeline State: vsdd-factory
@@ -77,8 +78,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-06-20 — D-665 ORCHESTRATOR RESUME per human directive. posture PAUSED→ACTIVE. Autonomy=STOP-BEFORE-PR-MERGE. S-18.04a delivery BEGINNING. develop 70664e02. ACTIVE. |
-| **Current Phase** | **ORCHESTRATOR ACTIVE per human directive (D-665 2026-06-20). posture PAUSED→ACTIVE. Autonomy directive: STOP-BEFORE-PR-MERGE (deliver each story through LOCAL 3-CLEAN + demo + PR create + CI green, then await explicit human merge approval per story).** S-18.04a (precompact-flush.sh Core; BC-7.07.001; P0; 13pts) delivery BEGINNING. develop HEAD 70664e02. BC-5.41.001 v1.26 + BC-5.41.002 v1.19 active. STORY-INDEX v4.39 (merged 64; story_count 123). 4-index: BC v3.23/VP v2.40/STORY v4.39/ARCH v2.60. **POSTURE: ACTIVE — NEXT: S-18.04a TDD delivery.** |
+| **Last Updated** | 2026-06-20 — D-666 S-18.04a LOCAL pass-1 NOT-CLEAN spec-anchor remediation. BC-7.07.001 v1.14 (factory-lock-write.sh hooks/→bin/ anchor). S-18.04a v1.6. BC-INDEX v3.24 / STORY-INDEX v4.40. Code remediation in flight on feature/S-18.04a. |
+| **Current Phase** | **S-18.04a LOCAL cascade pass-1 NOT-CLEAN (D-666 2026-06-20). Streak 0/3.** F-PF1-001 BLOCKER (dead lock-renewal via bare PATH) + 5 more findings (F-PF1-002..006). Spec root-cause REMEDIATED: BC-7.07.001 v1.13→v1.14 + story v1.5→v1.6 (factory-lock-write.sh hooks/→bin/ anchor corrected; canonical bash-prefixed bin/ invocation). Code remediation F-PF1-001..006 in flight on feature/S-18.04a (separate worktree). 4-index: BC v3.24/VP v2.40/STORY v4.40/ARCH v2.60. **POSTURE: ACTIVE per D-665. Autonomy=STOP-BEFORE-PR-MERGE. NEXT: code remediation → LOCAL pass-2.** |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Phase Progress
@@ -116,15 +117,15 @@ dtu_services: []
 | Type | Format | Authoritative Source | Count |
 |------|--------|----------------------|-------|
 | Subsystem | SS-NN | `specs/architecture/ARCH-INDEX.md` | 10 |
-| Behavioral Contract | BC-S.SS.NNN | `specs/behavioral-contracts/ss-NN/` | 1,972 (BC-INDEX v3.23) |
+| Behavioral Contract | BC-S.SS.NNN | `specs/behavioral-contracts/ss-NN/` | 1,972 (BC-INDEX v3.24) |
 | Verification Property | VP-NNN | `specs/verification-properties/VP-INDEX.md` | 92 (VP-INDEX v2.40) |
-| Story | S-N.MM | `stories/S-N.MM-<short>.md` | 119 file-resident + 15 stub IDs (STORY-INDEX v4.39; S-18.11/S-18.12 DRAFT added D-649; S-18.13 MERGED PR #196 70664e02 D-663; S-18.00 merged D-638; S-18.01 merged D-648; S-18.02 merged D-651) |
+| Story | S-N.MM | `stories/S-N.MM-<short>.md` | 119 file-resident + 15 stub IDs (STORY-INDEX v4.40; S-18.11/S-18.12 DRAFT added D-649; S-18.13 MERGED PR #196 70664e02 D-663; S-18.00 merged D-638; S-18.01 merged D-648; S-18.02 merged D-651) |
 | Epic | E-N | `stories/epics/E-N-<short>.md` | 19 |
 | ADR | ADR-NNN | `specs/architecture/decisions/ADR-NNN.md` | 27 |
 
 ## Story Status
 
-119 file-resident + 15 unauthored stub IDs = 134 stories registered (15 E-18 stories; S-18.13 MERGED PR #196 70664e02 D-663; S-18.11/S-18.12 DRAFT added D-649; S-18.10 added D-615; input-hashes corrected D-616; STORY-INDEX v4.39 D-663; S-18.00 MERGED PR #191 b025d31d; S-18.01 MERGED PR #193 8b26a0fe; S-18.02 MERGED PR #195 bd6e50ce).
+119 file-resident + 15 unauthored stub IDs = 134 stories registered (15 E-18 stories; S-18.13 MERGED PR #196 70664e02 D-663; S-18.11/S-18.12 DRAFT added D-649; S-18.10 added D-615; input-hashes corrected D-616; STORY-INDEX v4.40 D-666 (S-18.04a annotation v1.6); S-18.00 MERGED PR #191 b025d31d; S-18.01 MERGED PR #193 8b26a0fe; S-18.02 MERGED PR #195 bd6e50ce).
 
 - **Merged (82):** Includes S-17.01 (PR #181 c64b46d2) + S-17.02 (PR #182 df4f26b8) + S-17.03 (PR #183 60fd0233) + S-17.04 (PR #184 3b2a378c) + S-18.00 (PR #191 b025d31d 2026-06-18) + S-18.01 (PR #193 8b26a0fe 2026-06-19) + S-18.02 (PR #195 bd6e50ce 2026-06-19) + S-18.13 (PR #196 70664e02 2026-06-20). Full ledger: `cycles/v1.0-brownfield-backfill/merged-stories-ledger.md`
 - **In-Flight (0):** —
@@ -150,7 +151,7 @@ dtu_services: []
 | Cycle | Type | Status | Notes |
 |-------|------|--------|-------|
 | F-block-ai-attribution-message-file-arm | feature | F3 COMPLETE — F4 READY | F1+F2+F3 done 2026-05-12; 2 stories ready; E-16 under SS-07/SS-04; milestone v1.0.0-rc.17 |
-| v1.0-brownfield-backfill | brownfield | **D-665 2026-06-20; ORCHESTRATOR ACTIVE per human directive; posture PAUSED→ACTIVE; Autonomy=STOP-BEFORE-PR-MERGE; S-18.04a delivery BEGINNING; Wave-4: 1 of 4 delivered; story_count 123; 4-index BC v3.23/VP v2.40/STORY v4.39/ARCH v2.60** | rc.21 100% COMPLETE D-560; D-619..D-665; develop 70664e02; main caf06c68. **POSTURE: ACTIVE — NEXT: S-18.04a TDD delivery.** |
+| v1.0-brownfield-backfill | brownfield | **D-666 2026-06-20; S-18.04a LOCAL pass-1 NOT-CLEAN; spec-anchor REMEDIATED; code remediation in flight on feature/S-18.04a; streak 0/3; Wave-4: 1 of 4 delivered; story_count 123; 4-index BC v3.24/VP v2.40/STORY v4.40/ARCH v2.60** | rc.21 100% COMPLETE D-560; D-619..D-666; develop 70664e02; main caf06c68. **POSTURE: ACTIVE — NEXT: code remediation → S-18.04a LOCAL pass-2.** |
 | v1.0-feature-engine-discipline-pass-1 | feature | **PAUSED** | F5 pass-75 adversary complete D-510 2026-05-27; META-LEVEL-30 CANDIDATE-CONFIRMED; trajectory →9→9→9→11. Full-cycle trajectory (75 values ending): →9→9→9→9→11. |
 | v1.0-feature-plugin-async-semantics-pass-1 | feature | CLOSED | All PRs merged; rc.14 shipped |
 
@@ -160,6 +161,7 @@ dtu_services: []
 
 | ID | Decision | Phase | Date |
 |----|----------|-------|------|
+| D-666 | S-18.04a LOCAL cascade pass-1 NOT-CLEAN + spec-anchor remediation 2026-06-20 — adversary found F-PF1-001 BLOCKER (dead lock-renewal: factory-lock-write.sh invoked by bare PATH name; real location bin/ not hooks/) + F-PF1-002 BLOCKER (registry exec capability gap) + F-PF1-003 MAJOR (git add -A over-staging) + F-PF1-004 MAJOR (brittle SHA_B reparse) + F-PF1-005 MINOR (chmod .git/objects hermetic drift) + F-PF1-006 MINOR (malformed-frontmatter message); spec root-cause: BC-7.07.001/story cited helper in hooks/; corrected BC v1.13→v1.14 (product-owner) + story v1.5→v1.6 (story-writer) + canonical bash-prefixed bin/ invocation; code remediation in flight on feature/S-18.04a; BC-5.39.001 streak 0/3; BC-INDEX v3.23→v3.24; STORY-INDEX v4.39→v4.40; VP-INDEX v2.40/ARCH-INDEX v2.60 UNCHANGED. Parent-commit: 8b1306d1 (D-665 SHA-patch HEAD). | S-18.04a-LOCAL-pass-1-NOT-CLEAN-spec-anchor | 2026-06-20 |
 | D-665 | ORCHESTRATOR RESUME per human directive 2026-06-20 — posture PAUSED→ACTIVE. Autonomy directive: STOP-BEFORE-PR-MERGE (deliver each story through LOCAL 3-CLEAN + demo + PR create + CI green, then await explicit human merge approval per story; re-applies per story). S-18.04a delivery BEGINNING (precompact-flush.sh Core; BC-7.07.001; P0; 13pts; F3-spec-converged; deps S-18.00+S-17.04 both merged — READY; likely straight to TDD). Resume order: S-18.04a→S-18.04b→S-18.03. 4-index UNCHANGED: BC v3.23/VP v2.40/STORY v4.39/ARCH v2.60. Parent-commit: f7bb8bbc (D-664 SHA-patch HEAD). | D-665-ORCHESTRATOR-RESUME | 2026-06-20 |
 | D-664 | ORCHESTRATOR DURABLE PAUSE per human directive 2026-06-20 — clean checkpoint post-S-18.13 delivery (D-663). Wave-4: 1 of 4 delivered. Resume order S-18.04a (precompact-flush.sh Core; BC-7.07.001; P0; 13pts; F3-spec-converged; deps S-18.00+S-17.04 both merged — READY; likely straight to TDD) → S-18.04b (PreCompact exemption+prune; BC-5.41.003; P0; 8pts; dep S-18.04a) → S-18.03 (rehydrate-wave skill; BC-6.24.001/VP-088; P1; 8pts; deps S-18.04a+S-18.04b). No work in flight; no open worktree; develop 70664e02; local develop ff'd; all worktrees clean. 4-index UNCHANGED: BC v3.23/VP v2.40/STORY v4.39/ARCH v2.60. Parent-commit: d0a53944 (D-663 SHA-patch HEAD). | D-664-DURABLE-PAUSE | 2026-06-20 |
 | D-663 | S-18.13 POST-MERGE 2026-06-20 — PR #196 squash 70664e02 to develop 2026-06-20. F-S1802-02 CLOSED (validate-wave-handoff-completeness PostToolUse gate fires in production). BC-5.41.001 v1.26 + BC-5.41.002 v1.19 confirmed active (already promoted D-648; S-18.13 amendments do not change lifecycle_status). S-18.13 ready→merged. STORY-INDEX v4.38→v4.39 (merged_count 63→64). develop bd6e50ce→70664e02. merged-stories-ledger +S-18.13. LOCAL impl adversarial 3-CLEAN CONVERGED (passes 3/4/5); security review 5 findings fixed (9df466e9: YAML-injection allowlists + ARTIFACTS_WT path-traversal guard + wave_id [1,9999] bounds). Security-hardening spec-codification: implementation-level-acceptable (defensive CWE-20 guards; valid-domain implied by specs; no behavioral change for well-formed inputs; follow-up BC amendment only if future adversary flags). NEXT: S-18.04a (precompact-flush.sh Core; P0; deps met). Parent-commit: 2c0ef179 (D-662 SHA-patch HEAD). | S-18.13-POST-MERGE | 2026-06-20 |
@@ -226,7 +228,7 @@ dtu_services: []
 - `cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` | `session-checkpoints.md` | `lessons.md`
 - `cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md` (adversary reviews at `S-12.03/`, `S-12.04/`, `S-12.05/` subdirs)
 
-## Session Resume Checkpoint (2026-06-20 — D-665 ORCHESTRATOR RESUME; posture PAUSED→ACTIVE per human directive; Autonomy=STOP-BEFORE-PR-MERGE; S-18.04a delivery BEGINNING; S-18.13 MERGED PR #196 squash 70664e02; F-S1802-02 CLOSED; BC-5.41.001 v1.26 + BC-5.41.002 v1.19 active; 4-index: BC-INDEX v3.23/VP-INDEX v2.40/STORY-INDEX v4.39/ARCH-INDEX v2.60; develop HEAD 70664e02)
+## Session Resume Checkpoint (2026-06-20 — D-666 S-18.04a LOCAL pass-1 NOT-CLEAN spec-anchor remediation; BC-7.07.001 v1.14; story v1.6; BC-INDEX v3.24/VP-INDEX v2.40/STORY-INDEX v4.40/ARCH-INDEX v2.60; streak 0/3; code remediation in flight on feature/S-18.04a; develop HEAD 70664e02)
 
 > **SELF-SUFFICIENT RESUME CONTEXT FOR ZERO-CONTEXT NEW SESSION OR NEW MACHINE**
 > Read this section alone to resume. Assumes ZERO prior context. All decisions, directives, and anchors stated explicitly.
@@ -241,7 +243,7 @@ E-18 STORY CASCADE BC-5.39.001 3-CLEAN CONVERGED at D-635. D-636 closed both Cyc
 
 **D-561..D-638 SUMMARY (ARCHIVED — see decision-log.md SoT):** F2 spec COMPLETE D-561→D-610; F3 story decomposition 3-CLEAN CONVERGED D-635; D-636 deferral-cleanup; D-637 CLEAN confirming; D-638 S-18.00 POST-MERGE. 4-index at D-638: BC v3.08/VP v2.38/STORY v4.15/ARCH v2.55. All 12 E-18 input-hashes: S-18.00=e5bc551; S-18.01=1b4ea21; S-18.02=fd98182; S-18.03=ba7f736; S-18.04a=449dcc4; S-18.04b=026bb4c; S-18.05=df32db5; S-18.06=cf37976; S-18.07=698e6cb; S-18.08=747b3eb; S-18.09=0f747df; S-18.10=aa7d723.
 
-**NEXT ACTION: ORCHESTRATOR ACTIVE per human directive (D-665). Autonomy=STOP-BEFORE-PR-MERGE. E-18 F4 Wave-4 COMPLETE (S-18.13 MERGED PR #196 70664e02; F-S1802-02 CLOSED). S-18.04a TDD delivery BEGINNING (precompact-flush.sh Core; BC-7.07.001; P0; 13pts; deps met). ORDER: S-18.04a→S-18.04b→S-18.03.**
+**NEXT ACTION: ORCHESTRATOR ACTIVE per human directive (D-665). Autonomy=STOP-BEFORE-PR-MERGE. D-666 S-18.04a LOCAL pass-1 NOT-CLEAN REMEDIATED (spec-anchor only: BC-7.07.001 v1.14 + story v1.6). Code remediation F-PF1-001..006 IN FLIGHT on feature/S-18.04a (separate worktree). BC-5.39.001 streak 0/3. NEXT: code remediation complete → LOCAL pass-2. ORDER: S-18.04a→S-18.04b→S-18.03.**
 
 1. **D-663 S-18.13 POST-MERGE COMPLETE (2026-06-20):** PR #196 squash 70664e02 to develop. F-S1802-02 CLOSED. BC-5.41.001 v1.26 + BC-5.41.002 v1.19 confirmed active. STORY-INDEX v4.39 (merged 64). develop HEAD 70664e02. LOCAL impl 3-CLEAN CONVERGED passes 3/4/5; security review 5 findings fixed 9df466e9. Security-hardening spec-codification: impl-level-acceptable.
 2. **D-664 DURABLE PAUSE (2026-06-20):** ORCHESTRATOR PAUSED per human directive at clean checkpoint post-S-18.13. Wave-4: 1 of 4 delivered. No work in flight; no open worktree; develop 70664e02; local develop ff'd; all worktrees clean.
@@ -321,7 +323,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 ### §5. Cumulative Codifications
 
 - F5: D-379..D-454 (76 decisions) — `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md`.
-- Brownfield: D-001..D-665 — `cycles/v1.0-brownfield-backfill/decision-log.md`. Latest: **D-665 ORCHESTRATOR RESUME 2026-06-20 — posture PAUSED→ACTIVE; autonomy=STOP-BEFORE-PR-MERGE; S-18.04a delivery BEGINNING; develop 70664e02. POSTURE: ACTIVE.**
+- Brownfield: D-001..D-666 — `cycles/v1.0-brownfield-backfill/decision-log.md`. Latest: **D-666 S-18.04a LOCAL pass-1 NOT-CLEAN + spec-anchor remediation 2026-06-20 — BC-7.07.001 v1.14 + story v1.6; BC-INDEX v3.24/STORY-INDEX v4.40; code remediation in flight on feature/S-18.04a; streak 0/3.**
 
 ### §6. Cumulative Lessons
 
@@ -336,17 +338,17 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 | Index | Version | Notes |
 |-------|---------|-------|
-| BC-INDEX | v3.23 | Bumped D-660. BC-5.41.001 catalog row version annotation v1.25→v1.26 (C-SP13-P10-001 §Story Anchor +S-18.13). H1 titles UNCHANGED (POLICY 7). total_bcs UNCHANGED 1,972. [D-658: v3.22; D-657: v3.21; D-656: v3.20; D-653: v3.19; D-651: v3.18.] |
+| BC-INDEX | v3.24 | Bumped D-666. BC-7.07.001 catalog row version annotation v1.13→v1.14 (D-666 F-PF1-001 — factory-lock-write.sh hooks/→bin/ anchor correction). H1 titles UNCHANGED (POLICY 7). total_bcs UNCHANGED 1,972. [D-660: v3.23; D-658: v3.22; D-657: v3.21; D-656: v3.20.] |
 | VP-INDEX | v2.40 | Bumped D-651 area (S-18.02 LOCAL cascade). VP-083 v1.10→v1.11 (F-S1802-M1 harness refresh; is_first_wave eliminated by F-A005); VP-081 v1.7→v1.8 (sibling sweep); VP-083 clause-label corrections C-P8-001. total_vps UNCHANGED 92. |
-| STORY-INDEX | v4.39 | Bumped D-663. S-18.13 ready→merged (PR #196 squash 70664e02 2026-06-20); merged_count 63→64. story_count UNCHANGED 123. [D-660: v4.38; D-659: v4.37; D-658: v4.36; D-657: v4.35.] |
+| STORY-INDEX | v4.40 | Bumped D-666. S-18.04a catalog row annotation v1.5→v1.6 (D-666 F-PF1-001 spec-anchor remediation). story_count UNCHANGED 123; E-18 tally UNCHANGED 15. [D-663: v4.39; D-660: v4.38; D-659: v4.37; D-658: v4.36.] |
 | ARCH-INDEX | v2.60 | Bumped D-657. SS-03/04/05/06/07/08 subsystem BC-counts reconciled. Count 1,972 UNCHANGED. |
 | L2-INDEX | v1.0.13 | Bumped D-616. Document Map invariants.md v1.22→v1.25. UNCHANGED at D-651. |
 
-4-index at D-663 (literal-shell POLICY 15 gate): `grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md` → "3.23" (UNCHANGED); `grep "^version:" .factory/specs/verification-properties/VP-INDEX.md` → "2.40" (UNCHANGED); `grep "^version:" .factory/stories/STORY-INDEX.md` → "4.39" (bumped D-663: S-18.13 ready→merged; merged_count 63→64); `grep "^version:" .factory/specs/architecture/ARCH-INDEX.md` → "2.60" (UNCHANGED); `grep "^version:" .factory/specs/domain-spec/L2-INDEX.md` → "1.0.13" (UNCHANGED). Parity confirmed: BC-INDEX v3.23 / VP-INDEX v2.40 / STORY-INDEX v4.39 / ARCH-INDEX v2.60.
+4-index at D-666 (literal-shell POLICY 15 gate): `grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md` → "3.24" (bumped D-666: BC-7.07.001 v1.14 annotation); `grep "^version:" .factory/specs/verification-properties/VP-INDEX.md` → "2.40" (UNCHANGED); `grep "^version:" .factory/stories/STORY-INDEX.md` → "4.40" (bumped D-666: S-18.04a v1.6 annotation); `grep "^version:" .factory/specs/architecture/ARCH-INDEX.md` → "2.60" (UNCHANGED); `grep "^version:" .factory/specs/domain-spec/L2-INDEX.md` → "1.0.13" (UNCHANGED). Parity confirmed: BC-INDEX v3.24 / VP-INDEX v2.40 / STORY-INDEX v4.40 / ARCH-INDEX v2.60.
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** `8f468385` (D-665 ORCHESTRATOR RESUME burst; prior: `f7bb8bbc` D-664 SHA-patch; prior: `fc539768` D-664 DURABLE PAUSE burst)
+- **factory-artifacts HEAD:** pending D-666 commit (prior: `8b1306d1` D-665 SHA-patch; prior: `8f468385` D-665 ORCHESTRATOR RESUME burst)
 - **develop HEAD:** `70664e02` (S-18.13 PR #196 SQUASH-MERGED 2026-06-20; prior: `bd6e50ce` S-18.02 PR #195 2026-06-19)
 - **main HEAD:** `caf06c68` (rc.21 bot bundle commit 2026-06-13; UNCHANGED)
 - **v1.0.0-rc.21 tag:** `03054524` (SHIPPED; FULLY IN OPERATOR MARKETPLACE)
@@ -360,7 +362,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 ### §10. PR Status
 
-- **0 open feature PRs. 0 open release PRs. 0 open marketplace PRs. rc.21 100% COMPLETE. E-18 F4 W1 COMPLETE: S-18.00 MERGED PR #191 squash b025d31d 2026-06-18 (D-638). E-18 F4 W2 COMPLETE: S-18.01 MERGED PR #193 squash 8b26a0fe 2026-06-19 (D-648). E-18 F4 W3 COMPLETE: S-18.02 MERGED PR #195 squash bd6e50ce 2026-06-19 (D-651). E-18 F4 W4 COMPLETE: S-18.13 MERGED PR #196 squash 70664e02 2026-06-20 (D-663; F-S1802-02 CLOSED). BC-5.41.001 + BC-5.41.002 + BC-4.14.001 active (POL-14). develop HEAD 70664e02. S-18.08 UNBLOCKED (Wave 7 DAG still requires W5+W6 first). POSTURE: ACTIVE per human directive (D-665). Autonomy=STOP-BEFORE-PR-MERGE. NEXT: S-18.04a TDD delivery.**
+- **0 open feature PRs. 0 open release PRs. 0 open marketplace PRs. rc.21 100% COMPLETE. E-18 F4 W1 COMPLETE: S-18.00 MERGED PR #191 squash b025d31d 2026-06-18 (D-638). E-18 F4 W2 COMPLETE: S-18.01 MERGED PR #193 squash 8b26a0fe 2026-06-19 (D-648). E-18 F4 W3 COMPLETE: S-18.02 MERGED PR #195 squash bd6e50ce 2026-06-19 (D-651). E-18 F4 W4 COMPLETE: S-18.13 MERGED PR #196 squash 70664e02 2026-06-20 (D-663; F-S1802-02 CLOSED). BC-5.41.001 + BC-5.41.002 + BC-4.14.001 active (POL-14). develop HEAD 70664e02. S-18.08 UNBLOCKED (Wave 7 DAG still requires W5+W6 first). POSTURE: ACTIVE per human directive (D-665). Autonomy=STOP-BEFORE-PR-MERGE. D-666 S-18.04a LOCAL pass-1 spec-anchor REMEDIATED. 4-index BC v3.24/VP v2.40/STORY v4.40/ARCH v2.60. NEXT: code remediation → S-18.04a LOCAL pass-2.**
 - **marketplace PR drbothen/claude-mp #13 MERGED** 2026-06-13 — rc.21 FULLY SHIPPED.
 - **RELEASING.md Step 9 VERIFIED (D-560):** operator cache 1.0.0-rc.21 confirmed (plugin.json + 132 entries). rc.21 end-to-end CLOSED.
 
@@ -368,14 +370,14 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 1. **Verify worktree state:** `git rev-parse --short origin/develop` → expect `70664e02`. `git rev-parse --short origin/main` → expect `caf06c68`. `git -C .factory log -1 --format='%h'` → D-663 burst HEAD (use `git -C .factory log -1`). feature/S-18.01 MERGED. feature/S-18.02 MERGED PR #195 bd6e50ce (deleted). feature/S-18.13 MERGED PR #196 70664e02 (deleted). worktrees cleanup pending devops-engineer.
 2. **Read §1-§12 this checkpoint** (all of it; D-651 self-sufficient).
-3. **Verify 4-index:** `grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md` → "3.23"; ARCH-INDEX → "2.60"; VP-INDEX → "2.40"; STORY-INDEX → "4.39"; L2-INDEX → "1.0.13".
+3. **Verify 4-index:** `grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md` → "3.24"; ARCH-INDEX → "2.60"; VP-INDEX → "2.40"; STORY-INDEX → "4.40"; L2-INDEX → "1.0.13".
 4. **E-10 CASCADE SEALED D-531.** Do NOT resume without engine-surface material change.
 5. **F5 PAUSED** — trajectory →9→9→9→11. Do NOT resume without explicit human direction.
 6. **RC.21 100% COMPLETE D-560.** NO remaining release action. Operators: `/plugin update vsdd-factory@claude-mp`.
-7. **D-665 ORCHESTRATOR RESUME BURST 2026-06-20.** posture PAUSED→ACTIVE per human directive. Autonomy=STOP-BEFORE-PR-MERGE (deliver each story through LOCAL 3-CLEAN + demo + PR create + CI green, then await explicit human merge approval per story). S-18.04a delivery BEGINNING (precompact-flush.sh Core; BC-7.07.001; P0; 13pts; deps met). develop HEAD 70664e02. 4-index UNCHANGED: BC v3.23/VP v2.40/STORY v4.39/ARCH v2.60. [Prior D-664 DURABLE PAUSE 2026-06-20: PAUSED at clean checkpoint post-S-18.13. Prior D-652 RESUME 2026-06-19: ACTIVE→PAUSED→ACTIVE chain within Wave-4; S-18.13 spec-first delivery plan.] **POSTURE: ACTIVE.**
-8. **4-index at D-663:** BC-INDEX v3.23 (total_bcs 1,972; UNCHANGED), VP-INDEX v2.40 (total_vps 92; UNCHANGED), STORY-INDEX v4.39 (story_count 123; E-18 15 stories; merged 64; S-18.13 ready→merged PR #196 70664e02), ARCH-INDEX v2.60 (UNCHANGED). L2-INDEX v1.0.13. BC-4.14.001 v1.17 (active; POL-14 promoted). BC-5.41.001 v1.26 (active; confirmed D-663; S-18.13 spec-cascade amendments; POL-14 lifecycle already active per D-648). BC-5.41.002 v1.19 (active; confirmed D-663; same). S-18.13 v1.8 (merged PR #196 70664e02 2026-06-20; F-S1802-02 CLOSED). S-18.01 v1.11 (merged). S-18.02 v1.10 (merged). ADR-026 v1.24. ADR-027 v1.1. BC-1.15.001 v1.6 (active). BC-4.15.001 v1.2. VP-091 v1.1. VP-086 v1.4.
+7. **D-666 S-18.04a LOCAL pass-1 NOT-CLEAN spec-anchor remediation 2026-06-20.** BC-7.07.001 v1.13→v1.14 (F-PF1-001: factory-lock-write.sh hooks/→bin/ anchor corrected). S-18.04a v1.5→v1.6. BC-INDEX v3.24/STORY-INDEX v4.40. Code remediation F-PF1-001..006 in flight on feature/S-18.04a. BC-5.39.001 streak 0/3. [Prior D-665 ORCHESTRATOR RESUME 2026-06-20: PAUSED→ACTIVE; S-18.04a delivery BEGINNING.] **POSTURE: ACTIVE. NEXT: code remediation → LOCAL pass-2.**
+8. **4-index at D-666:** BC-INDEX v3.24 (total_bcs 1,972; bumped D-666 BC-7.07.001 v1.14 annotation), VP-INDEX v2.40 (total_vps 92; UNCHANGED), STORY-INDEX v4.40 (story_count 123; E-18 15 stories; merged 64; S-18.04a annotation v1.6), ARCH-INDEX v2.60 (UNCHANGED). L2-INDEX v1.0.13. BC-7.07.001 v1.14 (draft; F-PF1-001 spec-anchor remediation; code remediation in flight). BC-4.14.001 v1.17 (active; POL-14 promoted). BC-5.41.001 v1.26 (active; confirmed D-663). BC-5.41.002 v1.19 (active; confirmed D-663). S-18.13 v1.8 (merged PR #196 70664e02 2026-06-20; F-S1802-02 CLOSED). S-18.04a v1.6 (draft; LOCAL cascade pass-1 NOT-CLEAN streak 0/3). ADR-026 v1.24. ADR-027 v1.1. BC-1.15.001 v1.6 (active). BC-4.15.001 v1.2. VP-091 v1.1. VP-086 v1.4.
 9. **ALL dispatches carry:** TD-VSDD-097-EXT + TD-VSDD-099 + TD-VSDD-100 + POLICY 14 5-leg + verification_step 7 4-index gate + INV-019 (a)/(b)/(c) + adversary grep origin/factory-artifacts + D-449(a) literal-shell Dim-2 + POLICY 8 v1.3 parity + POLICY 5 v1.3.1/v1.3.4/v1.3.5/v1.3.6 + D-537 spec-drift routing + D-539 multi-family adversary + O-P8-002 MANDATORY (3rd recurrence) + L-F2-no-bypass-on-edit-failure (D-610: MANDATORY ALL F4 dispatches) + L-F2-statemd-banner-wcl-each-burst (D-617: every burst MUST append wc-l entry to SIZE BUDGET block before commit) + **L-S18-bc-bump-must-sweep-dependent-story-body-cites (D-644: BC version bump → same-burst dependent-story body-cite sweep; POLICY 5+8 mandatory)** + **L-S18-cascade-converged-after-15-passes-deep-adversary-surfaces-cross-platform-silent-failure-class (D-645: deep cascade on shell skill surfaces cross-platform silent-failure class; adversary MUST probe BSD-portability across ALL callsites; S-7.02 SATISFIED before convergence declared)** + **L-S18-sibling-sweep-must-cross-file-and-tool (D-643: portability fix MUST sweep ALL files AND tools; `\s`/`\S` grep -E class is BLOCKER until ALL callsites fixed)** + **L-S18-bsd-gnu-portability-needs-ci-leg (D-643: macOS CI leg mandatory for any shell skill targeting darwin)** + **L-S18-adr-worked-example-must-match-decision (D-643: ADR examples MUST NOT contradict normative Decisions)** + **L-S18-untested-branch-hid-silent-failure (D-642)** + **L-S18-skill-doc-contract-must-match-entrypoint (D-642)** + **L-S18-field-name-semantics-need-explicit-spec-note (D-642)** + **L-S18-validate-before-write (D-641)** + **L-S18-absent-ground-truth-must-hard-block (D-641)** + **L-S18-implicit-invariant-needs-explicit-precondition-and-guard (D-641)** + **L-S18-harness-env-override-masks-production-default (D-640)** + **L-S18-test-comment-vs-impl-drift (D-640)** + **L-S18-spec-prose-must-not-imply-unintended-filter (D-640)** + L-S18-fixture-fidelity/gamed-guard/weak-assertion (D-639) + L-S18-gamed-red-gate/dispatcher-env/stub-comment (D-638) + D-636..D-646 carries (see §3 for full text).
-10. **Latest decision D-665.** ORCHESTRATOR RESUME 2026-06-20: posture PAUSED→ACTIVE per human directive. Autonomy=STOP-BEFORE-PR-MERGE (deliver each story through LOCAL 3-CLEAN + demo + PR create + CI green, then await explicit human merge approval per story; re-applies per story). S-18.04a delivery BEGINNING (precompact-flush.sh Core; BC-7.07.001; P0; 13pts; deps met). Resume order: S-18.04a→S-18.04b→S-18.03. 4-index UNCHANGED: BC v3.23/VP v2.40/STORY v4.39/ARCH v2.60. **POSTURE: ACTIVE — NEXT: S-18.04a TDD delivery.**
+10. **Latest decision D-666.** S-18.04a LOCAL pass-1 NOT-CLEAN + spec-anchor remediation 2026-06-20: BC-7.07.001 v1.13→v1.14 (F-PF1-001: factory-lock-write.sh hooks/→bin/ anchor corrected; canonical bash-prefixed bin/ invocation); S-18.04a v1.5→v1.6; BC-5.39.001 streak 0/3; code remediation F-PF1-001..006 in flight on feature/S-18.04a (separate worktree). BC-INDEX v3.24/STORY-INDEX v4.40; VP-INDEX v2.40/ARCH-INDEX v2.60 UNCHANGED. **POSTURE: ACTIVE — NEXT: code remediation → S-18.04a LOCAL pass-2.**
 
 ### §12. Pending Work Items — Strict Resume Ordering (refreshed 2026-06-16 D-618)
 
@@ -393,7 +395,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 | **2b-gate** | **BC-4.15.001 spec addition (S-7.01 Spec-First Gate)** | **feature** | D-613 | **DONE 2026-06-16 D-613.** BC-4.15.001 v1.1 + parity fixes complete. Adversary CLEAN + consistency CLEAN. Gate satisfied. **F3 story authoring NOW UNBLOCKED — START HERE.** |
 | **2b** | **#173/E-18 F3 story registration + fix wave** | **feature** | **COMPLETE D-614/D-615/D-616** | Plan APPROVED D-611. 11 stories S-18.00..S-18.09 registered STORY-INDEX v4.02 (D-614). D-615 fix wave: S-18.10 added; STORY-INDEX v4.03. D-616 fix wave: input-hashes recomputed (awk bug fixed); SS-08 sweep; VP anchor_story; S-18.10 W6→W7; STORY-INDEX v4.04; 4-index BC v3.05/VP v2.35/STORY v4.04/ARCH v2.51. Tool-fix PR→develop PENDING. **NEXT: story adversarial 3-CLEAN + consistency → story-approval human gate — START HERE.** |
 | **2c** | **#173/E-18 story adversarial 3-CLEAN cascade + consistency + human-approval gate + D-636 deferral-cleanup + D-637 confirming pass** | **feature** | **BC-5.39.001 3-CLEAN CONVERGED D-635; D-636 cleanup CONFIRMED CLEAN D-637; F4 TDD AUTHORIZED** | D-635 pass-16 CLEAN/CONSISTENT (streak 2/3→3/3 CONVERGED; S-7.02 SATISFIED). D-636 deferral-cleanup COMPLETE (O-P12-1 CLOSED; ARCH-INDEX stale cite CLOSED). D-637 confirming pass CLEAN/CONSISTENT (11/11 PASS; 0 findings; O-P12-1/C-P12-001/O-P16-2 CONFIRMED CLOSED). **E-18 F3 FULLY COMPLETE. F4 TDD AUTHORIZED. COMPLETE.** |
-| **3a** | **#173/E-18 F4 TDD W1+W2+W3+W4 DONE — S-18.13 MERGED PR #196 70664e02** | **implementation** | **D-663 COMPLETE; D-665 ACTIVE** | S-18.00 MERGED D-638. S-18.01 MERGED PR #193 8b26a0fe (D-648). S-18.02 MERGED PR #195 bd6e50ce (D-651). **S-18.13 MERGED PR #196 squash 70664e02 to develop 2026-06-20 (D-663). F-S1802-02 CLOSED. LOCAL impl 3-CLEAN CONVERGED passes 3/4/5. Security review 5 fixes 9df466e9. E-18 F4 Wave 4 COMPLETE.** develop HEAD 70664e02. 4-index BC v3.23/VP v2.40/STORY v4.39/ARCH v2.60. **POSTURE: ACTIVE per human directive (D-665). Autonomy=STOP-BEFORE-PR-MERGE. NEXT: S-18.04a TDD delivery.** |
+| **3a** | **#173/E-18 F4 TDD W1+W2+W3+W4 DONE — S-18.13 MERGED PR #196 70664e02; S-18.04a LOCAL cascade pass-1 IN PROGRESS** | **implementation** | **D-663 COMPLETE; D-666 ACTIVE** | S-18.00 MERGED D-638. S-18.01 MERGED PR #193 8b26a0fe (D-648). S-18.02 MERGED PR #195 bd6e50ce (D-651). S-18.13 MERGED PR #196 squash 70664e02 to develop 2026-06-20 (D-663). **D-666 S-18.04a LOCAL pass-1 NOT-CLEAN: F-PF1-001 BLOCKER (factory-lock-write.sh hooks/→bin/) + 5 more. Spec REMEDIATED: BC-7.07.001 v1.14 + story v1.6. Code remediation in flight on feature/S-18.04a. BC-5.39.001 streak 0/3.** 4-index BC v3.24/VP v2.40/STORY v4.40/ARCH v2.60. **POSTURE: ACTIVE per human directive (D-665). Autonomy=STOP-BEFORE-PR-MERGE. NEXT: code remediation → LOCAL pass-2.** |
 | **4** | **#173 wave-checkpoint** | **implementation** | E-18 F3 + story-approval done | State-durability chain stories S-18.02..S-18.10. Wave 3 NEXT (S-18.02, S-18.08). |
 | **5** | **#171 deferred-revalidate** | **implementation** | #173 stories done | Deferred-revalidation story. |
 | **6** | **#129 canonical-principle** | **implementation** | human-authorize | Ship canonical-principle in plugin. |
