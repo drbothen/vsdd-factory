@@ -10080,4 +10080,4 @@ ARCH v2.60 — UNCHANGED — PASS
 
 ### Factory-artifacts Commits
 
-[D-661 commit SHA — see `git -C .factory log -1 --format='%h %s'` after push]
+- `d7e823fd` (factory-artifacts) — state(D-661): S-18.13 spec-cascade 3-CLEAN CONVERGED — passes 11/12/13 CLEAN; package FROZEN ADR v1.24/BC-5.41.001 v1.26/BC-5.41.002 v1.19/S-18.13 v1.8; S-7.02 SATISFIED; 4-index UNCHANGED BC v3.23/VP v2.40/STORY v4.38/ARCH v2.60
