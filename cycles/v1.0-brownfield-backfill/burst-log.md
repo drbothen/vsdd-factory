@@ -9994,4 +9994,4 @@ ARCH v2.59 — BUMPED from v2.58 — PASS
 
 ### Factory-artifacts Commits
 
-(SHA to be filled in via SHA-patch follow-up per D-447(c)+D-449(e) after `git -C .factory commit` completes)
+57143484 — state(D-656): S-18.13 RESTRUCTURE REDESIGN pass-3 NOT-CLEAN REMEDIATED — ADR-026 v1.23 + BC-5.41.001 v1.24 + BC-5.41.002 v1.17 + S-18.13 v1.5 (10pts; +BC-5.41.002); 4-index BC v3.20/VP v2.40/STORY v4.34/ARCH v2.59; streak 0/3; pass-4 NEXT (pushed to factory-artifacts 2026-06-19)
