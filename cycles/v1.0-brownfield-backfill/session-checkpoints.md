@@ -810,3 +810,11 @@ Summary of D-634 checkpoint (archived reference):
 - 4-index: BC v3.07/VP v2.38/STORY v4.13/ARCH v2.54/L2 v1.0.13. Package FROZEN.
 - develop HEAD: `c000b06f` / main HEAD: `caf06c68` / factory-artifacts HEAD: `e92b8aed` (D-634 SHA-patch HEAD)
 - D-range: D-001..D-634
+
+---
+
+Summary of D-662 checkpoint (archived from STATE.md 2026-06-20):
+- D-662 D-430(a) COMPACTION + S-18.13 TDD per-story delivery STARTED. STATE.md compacted to ≤415 lines. S-18.13 spec-cascade BC-5.39.001 3-CLEAN CONVERGED D-661 (passes 11/12/13 CLEAN; streak 3/3 CONVERGED). Package FROZEN: ADR-026 v1.24 / BC-5.41.001 v1.26 / BC-5.41.002 v1.19 / S-18.13 v1.8 (ready; 10pts; input-hash 7d6acdc). feature/S-18.13 worktree created off origin/develop bd6e50ce by devops; TDD per-story delivery STARTED. S-7.02 SATISFIED (D-661): 6 process-gap lessons codified; 4 LOW obs dispositioned. O-SP13-EC017-msg RESOLVE-AT-TDD.
+- 4-index: BC v3.23/VP v2.40/STORY v4.38/ARCH v2.60. L2-INDEX v1.0.13.
+- develop HEAD: `bd6e50ce` (S-18.02 PR #195 SQUASH-MERGED 2026-06-19) / main HEAD: `caf06c68` / factory-artifacts HEAD: `2c0ef179` (D-662 SHA-patch HEAD)
+- D-range: D-001..D-662
