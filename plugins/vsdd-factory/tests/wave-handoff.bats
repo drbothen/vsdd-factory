@@ -270,27 +270,6 @@ factory_lock: null
 EOF
 }
 
-# Run the skill with standard arguments pointing at our hermetic fixtures.
-# ADR-027 two-arg invocation model: --bc-dir is passed explicitly as
-# $ARTIFACTS_WT/specs/behavioral-contracts (no extra .factory/ prefix added by the skill).
-_run_skill() {
-  run bash -c "
-    export ARTIFACTS_WT='${ARTIFACTS_WT}'
-    export SPRINT_STATE_YAML='${WORK}/sprint-state.yaml'
-    export STATE_MD_PATH='${WORK}/STATE.md'
-    export BC_DIR='${ARTIFACTS_WT}/specs/behavioral-contracts'
-    export PRECOMPACT_FLUSH_LOG='${ARTIFACTS_WT}/hooks/precompact-flush-log'
-    export GIT_DIR='${WORK}/.git'
-    export FACTORY_REPO='${WORK}'
-    '${SKILL}' \
-      --artifacts-worktree '${ARTIFACTS_WT}' \
-      --sprint-state '${WORK}/sprint-state.yaml' \
-      --state-md '${WORK}/STATE.md' \
-      --bc-dir '${ARTIFACTS_WT}/specs/behavioral-contracts' \
-      2>&1
-  "
-}
-
 # _run_skill_subcommands — drives the agent-orchestrated 3-step subcommand flow:
 #   --emit-handoff (stdout → harness writes HANDOFF.md) → --emit-wave-state → --commit
 # Sets $status and $output just like _run_skill did (via run bash -c).
@@ -5197,6 +5176,70 @@ EOF
     echo "  of HANDOFF.md as primary or fallback. F-S1813-IMPL-P1-002 requires hard-error." >&2
     echo "  Matches found:" >&2
     echo "$redirect_matches" >&2
+    false
+  }
+}
+
+# ---------------------------------------------------------------------------
+# test_S18_13_no_subcommand_hard_errors
+# O-S1813-IMPL-P2-003 / POLICY 11
+# Invoking wave-handoff.sh with required args but NO subcommand flag (empty SUBCOMMAND)
+# MUST exit 1 and output must contain the deprecation message:
+#   "monolithic wave-handoff invocation is removed"
+# This covers the "" dispatch arm in the case statement (hard-error path).
+# ---------------------------------------------------------------------------
+
+@test "test_S18_13_no_subcommand_hard_errors" {
+  # Invoke the skill with all required args but no --emit-handoff / --emit-wave-state / --commit flag.
+  # The dispatch case arm for "" must exit 1 with the deprecation message.
+  run bash -c "
+    '${SKILL}' \
+      --artifacts-worktree '${ARTIFACTS_WT}' \
+      --sprint-state '${WORK}/sprint-state.yaml' \
+      --state-md '${WORK}/STATE.md' \
+      --bc-dir '${ARTIFACTS_WT}/specs/behavioral-contracts' \
+      2>&1
+  "
+
+  # Must exit 1
+  [ "$status" -eq 1 ] || {
+    echo "FAIL: expected exit 1 when no subcommand given, got exit ${status}" >&2
+    echo "Output: $output" >&2
+    false
+  }
+
+  # Output must contain the deprecation message from the empty-subcommand hard-error arm.
+  echo "$output" | grep -q "monolithic wave-handoff invocation is removed" || {
+    echo "FAIL: output does not contain 'monolithic wave-handoff invocation is removed'" >&2
+    echo "Actual output: $output" >&2
+    false
+  }
+}
+
+# ---------------------------------------------------------------------------
+# test_S18_13_unknown_subcommand_hard_errors
+# O-S1813-IMPL-P2-003 / POLICY 11
+# Invoking wave-handoff.sh with an unrecognised subcommand flag (e.g. --bogus)
+# MUST exit 1 (unknown-argument arm fires during arg parsing, before the dispatch).
+# ---------------------------------------------------------------------------
+
+@test "test_S18_13_unknown_subcommand_hard_errors" {
+  # Invoke the skill with all required args plus an unrecognised flag.
+  # The while-loop unknown-argument arm exits 1 with "unknown argument".
+  run bash -c "
+    '${SKILL}' \
+      --artifacts-worktree '${ARTIFACTS_WT}' \
+      --sprint-state '${WORK}/sprint-state.yaml' \
+      --state-md '${WORK}/STATE.md' \
+      --bc-dir '${ARTIFACTS_WT}/specs/behavioral-contracts' \
+      --bogus \
+      2>&1
+  "
+
+  # Must exit 1
+  [ "$status" -eq 1 ] || {
+    echo "FAIL: expected exit 1 for unknown subcommand --bogus, got exit ${status}" >&2
+    echo "Output: $output" >&2
     false
   }
 }
