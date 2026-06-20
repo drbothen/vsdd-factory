@@ -63,7 +63,7 @@ dtu_services: []
   401 lines (wc-l; D-664 DURABLE PAUSE burst — ORCHESTRATOR PAUSED per human directive at clean checkpoint post-S-18.13; D-664 Decision row + resume-order S-18.04a→S-18.04b→S-18.03 recorded in §1/banner/§4/§5/§10/§11/§12; 4-index UNCHANGED BC v3.23/VP v2.40/STORY v4.39/ARCH v2.60; 14 lines under soft-target 415; 99 lines under hard-cap 500).
   405 lines (wc-l; D-665 ORCHESTRATOR RESUME burst — posture PAUSED→ACTIVE; D-665 autonomy=STOP-BEFORE-PR-MERGE directive recorded in §1/banner/§3/§4/§5/§10/§11/§12/checkpoint; 4-index UNCHANGED BC v3.23/VP v2.40/STORY v4.39/ARCH v2.60; 10 lines under soft-target 415; 95 lines under hard-cap 500).
   407 lines (wc-l; D-666 S-18.04a LOCAL pass-1 NOT-CLEAN spec-anchor remediation burst — BC-7.07.001 v1.14 + story v1.6 annotation; D-666 decision row; 4-index BC v3.24/VP v2.40/STORY v4.40/ARCH v2.60; §1/§3/§4/§5/§8/§9/§10/§11/§12 updated; 8 lines under soft-target 415; 93 lines under hard-cap 500).
-  ~410 lines (wc-l; D-667 S-18.04a LOCAL post-fix adversary pass NOT-CLEAN burst — story v1.7 Red Gate rows; D-667 decision row; STORY-INDEX v4.41; BC/VP/ARCH unchanged; §1/§3/§4/§5/§8/§9/§10/§11/§12 updated; ~5 lines under soft-target 415; ~90 lines under hard-cap 500).
+  409 lines (wc-l; D-667 S-18.04a LOCAL post-fix adversary pass NOT-CLEAN burst — story v1.7 Red Gate rows; D-667 decision row; STORY-INDEX v4.41; BC/VP/ARCH unchanged; §1/§3/§4/§5/§8/§9/§10/§11/§12 updated; 6 lines under soft-target 415; 91 lines under hard-cap 500).
 -->
 
 # Pipeline State: vsdd-factory
