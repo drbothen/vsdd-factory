@@ -4219,53 +4219,349 @@ EOF
 }
 
 # ---------------------------------------------------------------------------
-# test_BC_5_41_001_PC10_S18_13_AC002_postuse_gate_fires_on_handoff_write
-# AC-002 / BC-5.41.001 PC10 — PostToolUse validate-wave-handoff-completeness
-# gate fires when the agent invokes the Write tool to write HANDOFF.md.
+# test_BC_5_41_001_PC10_S18_13_AC002_postuse_gate_fires_positive
+# AC-002 (positive case) / BC-5.41.001 PC10 — PostToolUse
+# validate-wave-handoff-completeness gate fires on a Write to .factory/HANDOFF.md
+# with a COMPLETE, well-formed HANDOFF.md (all 9 base fields present and valid).
 #
-# INFRASTRUCTURE-GAP: The bats suite invokes wave-handoff.sh as a direct bash
-# subprocess. Direct bash invocation emits NO PostToolUse events — the
-# factory-dispatcher is NOT running in this test context. Genuine gate-firing
-# verification requires either:
-#   (a) Dispatcher-integration test: drive the claude harness in a sandbox
-#       session, verify dispatcher-internal-<date>.jsonl logs a PostToolUse
-#       event for the HANDOFF.md Write call.
-#   (b) Mock PostToolUse event injection: directly invoke the WASM gate with
-#       a synthesized PostToolUse payload and assert it fires (not a no-op).
+# Test approach: mock PostToolUse injection (AC-002 option b) — synthesize a
+# PostToolUse Write envelope for .factory/HANDOFF.md and feed it through the
+# real factory-dispatcher binary against the production-shaped hooks-registry.
+# This is the same pattern as fail-open-on-crash.bats Scenarios B and D.
 #
-# Per AC-002 test strategy (S-18.13 v1.8), a grep-on-SKILL.md substitution
-# is a STRUCTURAL assertion, not a gate-firing verification, and is labeled as
-# such. The production-grade gate-firing test cannot be implemented within
-# the current hermetic bats infrastructure.
+# Expected outcome: gate fires, inspects the on-disk file, finds it valid →
+#   exit 0, NO blocking_plugins=validate-wave-handoff-completeness in output.
 #
-# This test implements the labeled structural assertion (fallback) per AC-002
-# and is explicitly marked INFRASTRUCTURE-GAP to flag the gap to the orchestrator.
+# Skip condition: skips when dispatcher binary or WASM plugin are not compiled.
+#   Skip is gated (conditional) so the test RUNS when binaries are present.
 # ---------------------------------------------------------------------------
 
-@test "test_BC_5_41_001_PC10_S18_13_AC002_postuse_gate_fires_on_handoff_write" {
-  # INFRASTRUCTURE-GAP: Real gate-firing verification requires dispatcher-integration
-  # test or mock PostToolUse injection. The current hermetic bats suite cannot
-  # produce PostToolUse events from direct bash invocations.
-  #
-  # Structural assertion (fallback, labeled as such per AC-002):
-  # SKILL.md must contain a step that instructs the agent to invoke the Write
-  # tool (not a bash redirect) to write HANDOFF.md. The presence of this step
-  # in SKILL.md is a NECESSARY (but not sufficient) condition for the gate to fire.
-  # The RED GATE fires here because SKILL.md currently has no Write tool step.
-  skip "INFRASTRUCTURE-GAP: PostToolUse gate-firing cannot be verified in hermetic bats without dispatcher integration. Structural assertion follows. Flag: AC-002 requires dispatcher-integration test or mock PostToolUse injection per S-18.13 v1.8 §AC-002 test strategy. The implementer (T-3) must pursue the production-grade approach."
+@test "test_BC_5_41_001_PC10_S18_13_AC002_postuse_gate_fires_positive" {
+  local repo_root
+  repo_root="$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)"
+  local dispatcher="${repo_root}/target/release/factory-dispatcher"
+  local wasm_plugin="${repo_root}/plugins/vsdd-factory/hook-plugins/validate-wave-handoff-completeness.wasm"
 
+  # Skip only if binaries are not compiled — NOT an unconditional skip.
+  if [ ! -x "$dispatcher" ]; then
+    skip "dispatcher binary not built -- run: cargo build --release -p factory-dispatcher"
+  fi
+  if [ ! -f "$wasm_plugin" ]; then
+    skip "validate-wave-handoff-completeness.wasm not built -- implement S-18.02 tasks T-4..T-7"
+  fi
+
+  # Build a hermetic test directory independent of the wave-handoff.bats WORK dir.
+  local ac002_work
+  ac002_work="$(mktemp -d)"
+  mkdir -p "${ac002_work}/.factory/logs"
+  mkdir -p "${ac002_work}/hook-plugins"
+  cp "$wasm_plugin" "${ac002_work}/hook-plugins/"
+
+  # Production-shaped test registry: on_error="continue", same path_allow as
+  # hooks-registry.toml production entry.  The read_file capability block is
+  # required so the WASM gate can call host::read_file to read the on-disk
+  # HANDOFF.md (F-001 fix pattern from fail-open-on-crash.bats).
+  cat > "${ac002_work}/hooks-registry.toml" << 'TOML'
+schema_version = 2
+
+[[hooks]]
+name = "validate-wave-handoff-completeness"
+event = "PostToolUse"
+tool = "Edit|Write"
+plugin = "hook-plugins/validate-wave-handoff-completeness.wasm"
+timeout_ms = 5000
+on_error = "continue"
+
+[hooks.capabilities.read_file]
+path_allow = [
+  ".factory/HANDOFF.md",
+]
+TOML
+
+  # Write a COMPLETE, well-formed HANDOFF.md — all 9 base required fields present
+  # (BC-5.41.001 v1.26: wave_id, last_verified_develop_sha, active_bcs,
+  #  next_wave_stories, open_decisions, pending_fixes, process_gaps,
+  #  precompact_flush_sha, factory_lock_holder).
+  # last_verified_develop_sha must be 40-char hex per BC-5.41.001 PC3.
+  cat > "${ac002_work}/.factory/HANDOFF.md" << 'YAML'
+wave_id: 2
+last_verified_develop_sha: abc123def456abc123def456abc123def456abcd
+active_bcs:
+  - specs/behavioral-contracts/ss-05/BC-5.41.001.md
+next_wave_stories:
+  - id: S-19.01
+    status: pending
+open_decisions: []
+pending_fixes: []
+process_gaps: []
+precompact_flush_sha: null
+factory_lock_holder: null
+YAML
+
+  # Synthesize a PostToolUse Write envelope for .factory/HANDOFF.md.
+  # The gate reads the on-disk file via host::read_file (not tool_input.content),
+  # so the content field is a stub — the on-disk file above is what the gate sees.
+  # file_path must match path_allow = ".factory/HANDOFF.md" for the capability grant.
+  # Use bats `run` to capture exit code in $status and output in $output.
+  run bash -c "printf '%s' '{
+    \"event_name\": \"PostToolUse\",
+    \"tool_name\": \"Write\",
+    \"session_id\": \"ac-002-positive-test\",
+    \"dispatcher_trace_id\": \"ac-002-positive-trace\",
+    \"tool_input\": {
+      \"file_path\": \".factory/HANDOFF.md\",
+      \"content\": \"wave_id: 2\"
+    },
+    \"tool_response\": {\"exit_code\": 0}
+  }' | CLAUDE_PLUGIN_ROOT='${ac002_work}' CLAUDE_PROJECT_DIR='${ac002_work}' '$dispatcher' 2>&1"
+
+  rm -rf "${ac002_work}"
+
+  # Gate must return exit 0 (gate fired, validated, allowed — no block).
+  [ "$status" -eq 0 ] || {
+    echo "FAIL (AC-002 positive): expected exit 0 for complete HANDOFF.md, got ${status}." >&2
+    echo "A complete HANDOFF.md with all 9 required base fields must be allowed by the gate." >&2
+    echo "Output: ${output}" >&2
+    false
+  }
+
+  # Must NOT have blocking_plugins=validate-wave-handoff-completeness (gate did not block).
+  [[ "$output" != *"blocking_plugins=validate-wave-handoff-completeness"* ]] || {
+    echo "FAIL (AC-002 positive): gate blocked a complete HANDOFF.md — must allow it." >&2
+    echo "blocking_plugins= must NOT appear for a valid payload." >&2
+    echo "Output: ${output}" >&2
+    false
+  }
+}
+
+# ---------------------------------------------------------------------------
+# test_BC_5_41_001_PC10_S18_13_AC002_postuse_gate_fires_negative
+# AC-002 (negative case) / BC-5.41.001 PC10 — PostToolUse
+# validate-wave-handoff-completeness gate fires on a Write to .factory/HANDOFF.md
+# with an INCOMPLETE HANDOFF.md (missing required fields).
+#
+# This is the POLICY 11 load-bearing assertion: the gate genuinely inspects
+# the HANDOFF.md content — it is not a no-op. An unconditional-skip test cannot
+# prove the gate runs at all. This test proves the gate blocks bad payloads,
+# completing the behavioral triangle: present→allow, absent→block.
+#
+# Expected outcome: gate fires, inspects the on-disk file, finds it missing
+# required fields → exit 2, blocking_plugins=validate-wave-handoff-completeness.
+#
+# Skip condition: skips when dispatcher binary or WASM plugin are not compiled.
+# ---------------------------------------------------------------------------
+
+@test "test_BC_5_41_001_PC10_S18_13_AC002_postuse_gate_fires_negative" {
+  local repo_root
+  repo_root="$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)"
+  local dispatcher="${repo_root}/target/release/factory-dispatcher"
+  local wasm_plugin="${repo_root}/plugins/vsdd-factory/hook-plugins/validate-wave-handoff-completeness.wasm"
+
+  if [ ! -x "$dispatcher" ]; then
+    skip "dispatcher binary not built -- run: cargo build --release -p factory-dispatcher"
+  fi
+  if [ ! -f "$wasm_plugin" ]; then
+    skip "validate-wave-handoff-completeness.wasm not built -- implement S-18.02 tasks T-4..T-7"
+  fi
+
+  local ac002_work
+  ac002_work="$(mktemp -d)"
+  mkdir -p "${ac002_work}/.factory/logs"
+  mkdir -p "${ac002_work}/hook-plugins"
+  cp "$wasm_plugin" "${ac002_work}/hook-plugins/"
+
+  cat > "${ac002_work}/hooks-registry.toml" << 'TOML'
+schema_version = 2
+
+[[hooks]]
+name = "validate-wave-handoff-completeness"
+event = "PostToolUse"
+tool = "Edit|Write"
+plugin = "hook-plugins/validate-wave-handoff-completeness.wasm"
+timeout_ms = 5000
+on_error = "continue"
+
+[hooks.capabilities.read_file]
+path_allow = [
+  ".factory/HANDOFF.md",
+]
+TOML
+
+  # Write an INCOMPLETE HANDOFF.md — missing last_verified_develop_sha,
+  # precompact_flush_sha, and factory_lock_holder (3 of 9 required fields absent).
+  # The gate must detect these absences and block with HandoffIncomplete.
+  cat > "${ac002_work}/.factory/HANDOFF.md" << 'YAML'
+wave_id: 2
+active_bcs: []
+next_wave_stories:
+  - id: S-19.01
+    status: pending
+open_decisions: []
+pending_fixes: []
+process_gaps: []
+YAML
+  # last_verified_develop_sha, precompact_flush_sha, factory_lock_holder are absent.
+
+  # Use bats `run` to capture exit code in $status and output in $output.
+  run bash -c "printf '%s' '{
+    \"event_name\": \"PostToolUse\",
+    \"tool_name\": \"Write\",
+    \"session_id\": \"ac-002-negative-test\",
+    \"dispatcher_trace_id\": \"ac-002-negative-trace\",
+    \"tool_input\": {
+      \"file_path\": \".factory/HANDOFF.md\",
+      \"content\": \"wave_id: 2\"
+    },
+    \"tool_response\": {\"exit_code\": 0}
+  }' | CLAUDE_PLUGIN_ROOT='${ac002_work}' CLAUDE_PROJECT_DIR='${ac002_work}' '$dispatcher' 2>&1"
+
+  rm -rf "${ac002_work}"
+
+  # Gate must return exit 2 (block) when HANDOFF.md is missing required fields.
+  # POLICY 11: this assertion proves the gate genuinely inspects content — not a no-op.
+  [ "$status" -eq 2 ] || {
+    echo "FAIL (AC-002 negative): expected exit 2 (block) for incomplete HANDOFF.md, got ${status}." >&2
+    echo "An incomplete HANDOFF.md (missing last_verified_develop_sha, precompact_flush_sha," >&2
+    echo "factory_lock_holder) MUST be blocked by the validate-wave-handoff-completeness gate." >&2
+    echo "If exit 0: the gate is a no-op (not inspecting content) — AC-002 BC is violated." >&2
+    echo "Output: ${output}" >&2
+    false
+  }
+
+  # The blocking plugin name must appear in output (confirms gate identity).
+  [[ "$output" == *"blocking_plugins=validate-wave-handoff-completeness"* ]] || {
+    echo "FAIL (AC-002 negative): blocking_plugins=validate-wave-handoff-completeness not in output." >&2
+    echo "The gate must identify itself as the blocking plugin for HandoffIncomplete." >&2
+    echo "Output: ${output}" >&2
+    false
+  }
+}
+
+# ---------------------------------------------------------------------------
+# test_BC_5_41_001_PC10_S18_13_AC002_postuse_gate_path_linkage
+# AC-002 (linkage assertion) / BC-5.41.001 PC10 — the SKILL.md S2 Write-tool
+# target path component (HANDOFF.md) must match the gate's path_allow entry
+# (.factory/HANDOFF.md) in hooks-registry.toml so the Write→gate linkage
+# cannot silently break on a path-component mismatch.
+#
+# Three-part assertion:
+#   (i)  SKILL.md must reference the Write tool step for HANDOFF.md (structural).
+#   (ii) hooks-registry.toml path_allow for validate-wave-handoff-completeness
+#        must end with "HANDOFF.md" (path-component-strict linkage).
+#   (iii) A Write to a path that does NOT match (e.g., HANDOFF_SHOULD_NOT_MATCH.md)
+#         must NOT trigger the gate (exit 0, no blocking_plugins) — confirming
+#         path-component-strict matching is in effect.
+#
+# Part (i) is a static check (no dispatcher needed).
+# Parts (ii) and (iii) require dispatcher/WASM for the live path.
+# Part (iii) is gated by _require_dispatcher_and_wasm equivalently.
+# ---------------------------------------------------------------------------
+
+@test "test_BC_5_41_001_PC10_S18_13_AC002_postuse_gate_path_linkage" {
+  local repo_root
+  repo_root="$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)"
+  local plugin_root="${repo_root}/plugins/vsdd-factory"
   local skill_md="${SKILL_DIR}/SKILL.md"
+  local production_registry="${plugin_root}/hooks-registry.toml"
 
-  # Structural assertion: SKILL.md must contain a Write tool step for HANDOFF.md.
-  # After T-2c, SKILL.md has genuine numbered agent steps including:
-  #   S2 (Agent Write tool): write captured payload to ${ARTIFACTS_WT}/HANDOFF.md
-  # This is a structural oracle only — it does NOT verify the gate actually fires.
+  # --- Part (i): SKILL.md structural assertion (no binary needed) ---
+  # SKILL.md must contain a step instructing the agent to use the Write tool
+  # for HANDOFF.md. This is a NECESSARY structural precondition for gate linkage:
+  # if the skill uses bash redirection instead of the Write tool, the gate never fires.
   grep -qiE "(Write tool|Write.*HANDOFF|S2.*Write)" "$skill_md" 2>/dev/null || {
-    echo "FAIL (AC-002 structural oracle — INFRASTRUCTURE-GAP): SKILL.md does not contain" >&2
-    echo "  a Write tool step for HANDOFF.md." >&2
-    echo "  After T-2c, SKILL.md must be rewritten from 'Behavior Overview' to genuine" >&2
-    echo "  numbered agent steps per ADR-026 §Decision 8." >&2
-    echo "  This is a STRUCTURAL assertion only — not a gate-firing verification." >&2
+    echo "FAIL (AC-002 linkage part i): SKILL.md does not reference the Write tool for HANDOFF.md." >&2
+    echo "  SKILL.md step S2 must instruct the agent to use the Write tool (not bash redirection)" >&2
+    echo "  to write the HANDOFF.md payload. Without this, the PostToolUse gate cannot fire." >&2
+    echo "  BC-5.41.001 PC10 §S2: 'Write the captured payload to HANDOFF.md using the Claude" >&2
+    echo "  Code Write tool. Do NOT use bash redirection.'" >&2
+    false
+  }
+
+  # --- Part (ii): production registry path_allow ends with HANDOFF.md ---
+  # The path_allow entry for validate-wave-handoff-completeness must include
+  # ".factory/HANDOFF.md" so that a Write to that path grants the read_file
+  # capability and the gate can inspect the file contents.
+  local path_allow_value
+  path_allow_value=$(awk '
+    /^name = "validate-wave-handoff-completeness"$/ { in_hook=1 }
+    in_hook && /^\[\[hooks\]\]/ && !first { in_hook=0 }
+    in_hook && /path_allow/ { found_pa=1 }
+    found_pa && /HANDOFF\.md/ { print; exit }
+  ' "$production_registry")
+
+  [ -n "$path_allow_value" ] || {
+    echo "FAIL (AC-002 linkage part ii): hooks-registry.toml path_allow for" >&2
+    echo "  validate-wave-handoff-completeness does not contain 'HANDOFF.md'." >&2
+    echo "  Without this path_allow entry, a Write to .factory/HANDOFF.md will NOT" >&2
+    echo "  grant the read_file capability to the gate, breaking the linkage." >&2
+    false
+  }
+
+  # --- Part (iii): non-HANDOFF.md path does NOT trigger gate (live, gated) ---
+  local dispatcher="${repo_root}/target/release/factory-dispatcher"
+  local wasm_plugin="${plugin_root}/hook-plugins/validate-wave-handoff-completeness.wasm"
+
+  if [ ! -x "$dispatcher" ] || [ ! -f "$wasm_plugin" ]; then
+    # Parts (i) and (ii) already executed. Part (iii) requires binaries.
+    skip "dispatcher/wasm not built; parts i+ii passed statically -- part iii skipped"
+  fi
+
+  local ac002_work
+  ac002_work="$(mktemp -d)"
+  mkdir -p "${ac002_work}/.factory/logs"
+  mkdir -p "${ac002_work}/hook-plugins"
+  cp "$wasm_plugin" "${ac002_work}/hook-plugins/"
+
+  cat > "${ac002_work}/hooks-registry.toml" << 'TOML'
+schema_version = 2
+
+[[hooks]]
+name = "validate-wave-handoff-completeness"
+event = "PostToolUse"
+tool = "Edit|Write"
+plugin = "hook-plugins/validate-wave-handoff-completeness.wasm"
+timeout_ms = 5000
+on_error = "continue"
+
+[hooks.capabilities.read_file]
+path_allow = [
+  ".factory/HANDOFF.md",
+]
+TOML
+
+  # Send a Write envelope to a path that contains "HANDOFF" but is NOT exactly
+  # ".factory/HANDOFF.md" (path-component-strict matching per F-003 fix).
+  # The gate must NOT fire — exit 0, no blocking_plugins.
+  # Use bats `run` to capture exit code in $status and output in $output.
+  run bash -c "printf '%s' '{
+    \"event_name\": \"PostToolUse\",
+    \"tool_name\": \"Write\",
+    \"session_id\": \"ac-002-linkage-test\",
+    \"dispatcher_trace_id\": \"ac-002-linkage-trace\",
+    \"tool_input\": {
+      \"file_path\": \".factory/HANDOFF_SHOULD_NOT_MATCH.md\",
+      \"content\": \"wave_id: 2\"
+    },
+    \"tool_response\": {\"exit_code\": 0}
+  }' | CLAUDE_PLUGIN_ROOT='${ac002_work}' CLAUDE_PROJECT_DIR='${ac002_work}' '$dispatcher' 2>&1"
+
+  rm -rf "${ac002_work}"
+
+  # Must exit 0: non-HANDOFF.md path must not trigger the gate.
+  [ "$status" -eq 0 ] || {
+    echo "FAIL (AC-002 linkage part iii): expected exit 0 for non-HANDOFF.md path, got ${status}." >&2
+    echo "  Path '.factory/HANDOFF_SHOULD_NOT_MATCH.md' must NOT trigger the gate." >&2
+    echo "  The gate uses path-component-strict matching (F-003 fix): only the exact" >&2
+    echo "  filename 'HANDOFF.md' triggers validation." >&2
+    echo "  Output: ${output}" >&2
+    false
+  }
+
+  # No blocking plugin for a non-HANDOFF.md path.
+  [[ "$output" != *"blocking_plugins="* ]] || {
+    echo "FAIL (AC-002 linkage part iii): blocking_plugins appeared for non-HANDOFF.md path." >&2
+    echo "  The gate must be a no-op for paths that are not exactly '.factory/HANDOFF.md'." >&2
+    echo "  Output: ${output}" >&2
     false
   }
 }
