@@ -155,7 +155,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | caf06c68 | rc.21 bot binary bundle commit 2026-06-13; prior: 2a191314 (rc.20) |
 | develop | bd6e50ce | S-18.02 PR #195 SQUASH-MERGED 2026-06-19; prior: 8b26a0fe (S-18.01 PR #193 2026-06-19) |
-| factory-artifacts | a23942cc | D-657 pass-5 NOT-CLEAN REMEDIATED HEAD (current); prior: e6fc3c87 D-656 SHA-patch; prior: 57143484 D-656 HEAD |
+| factory-artifacts | 57c73282 | D-658 pass-6 NOT-CLEAN REMEDIATED HEAD (current); prior: a23942cc D-657 HEAD; prior: da2da59a D-657 SHA-patch |
 | v1.0.0-rc.21 (tag) | 03054524 | SHIPPED 2026-06-13; FULLY IN OPERATOR MARKETPLACE (marketplace PR #13 MERGED); annotated tag object |
 | v1.0.0-rc.20 (tag) | e9e38286 | SHIPPED 2026-06-01; marketplace PR #12 squash-merged 862e660d |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28 |
