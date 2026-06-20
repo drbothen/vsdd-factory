@@ -57,16 +57,59 @@ All four of the following arguments are mandatory. The skill hard-errors
 |----------|-----------------|---------|---------|
 | `--precompact-flush-log <path>` | `PRECOMPACT_FLUSH_LOG` | `${ARTIFACTS_WT}/hooks/precompact-flush-log` | Path to the precompact flush log; used for the three-state `precompact_flush_sha` rule (BC-5.41.001 PC5). |
 
-## Behavior Overview
+## Agent Steps (ADR-026 §Decision 8 — agent-orchestrated subcommand model)
 
-1. Parse sprint-state.yaml — derive `wave_id`, classify stories by terminal/pending/draft/broken state
-2. Detect EPIC-COMPLETE (all stories terminal) or BrokenSprintState (non-terminal, non-pending/draft)
-3. Gather all 9 base HANDOFF.md fields with anti-fabrication cross-checks
-4. Write HANDOFF.md (with `epic_status: complete` on EPIC-COMPLETE wave only)
-5. On non-EPIC-COMPLETE wave: write wave-state.yaml with 6 required fields
-6. Commit HANDOFF.md + wave-state.yaml atomically to factory-artifacts
-   - Commit message: `HANDOFF wave-<N> <ISO-timestamp>` (exact format per BC-5.41.001 INV1)
-7. On EPIC-COMPLETE: emit stdout announcement; do NOT write wave-state.yaml
+These are GENUINE execution steps for the agent. The agent invokes each Bash subcommand in
+sequence. The Write tool step (S2) is what causes the PostToolUse
+`validate-wave-handoff-completeness` gate to fire.
+
+**S1 (Bash — emit-handoff):**
+```
+bash wave-handoff.sh \
+  --artifacts-worktree <ARTIFACTS_WT> \
+  --sprint-state <SPRINT_STATE_YAML> \
+  --state-md <STATE_MD_PATH> \
+  --bc-dir <BC_DIR> \
+  --emit-handoff
+```
+Assembles the complete HANDOFF.md payload with full anti-fabrication cross-checks and emits
+it to stdout. No file is written to disk. Capture the stdout output for S2.
+
+**S2 (Agent Write tool — HANDOFF.md):**
+Write the captured payload to `${ARTIFACTS_WT}/HANDOFF.md` using the Claude Code Write tool.
+This is the step that causes the PostToolUse `validate-wave-handoff-completeness` gate to fire.
+Do NOT use bash redirection to write HANDOFF.md — the Write tool call is mandatory.
+
+**S3 (Agent verifies):**
+Confirm the written file content is byte-identical to the `--emit-handoff` payload before
+proceeding. If the content differs, surface a hard error identifying the discrepancy and do
+not proceed to S4/S5.
+
+**S4 (Bash — emit-wave-state, skip on EPIC-COMPLETE):**
+```
+bash wave-handoff.sh \
+  --artifacts-worktree <ARTIFACTS_WT> \
+  --sprint-state <SPRINT_STATE_YAML> \
+  --state-md <STATE_MD_PATH> \
+  --bc-dir <BC_DIR> \
+  --emit-wave-state
+```
+Writes wave-state.yaml to `${ARTIFACTS_WT}/wave-state.yaml` via bash. On EPIC-COMPLETE
+(all stories terminal), this step exits 0 without writing wave-state.yaml — skip to S5.
+
+**S5 (Bash — commit):**
+```
+bash wave-handoff.sh \
+  --artifacts-worktree <ARTIFACTS_WT> \
+  --sprint-state <SPRINT_STATE_YAML> \
+  --state-md <STATE_MD_PATH> \
+  --bc-dir <BC_DIR> \
+  --commit
+```
+Creates ONE atomic git commit on factory-artifacts. On HAS-NEXT-WAVE, stages both
+HANDOFF.md (written by S2 Write tool) and wave-state.yaml (written by S4) in a single
+commit. On EPIC-COMPLETE, stages HANDOFF.md alone and removes any stale wave-state.yaml.
+Aborts with `HandoffFileAbsent` if HANDOFF.md is absent (EC-017).
 
 ## Exit Codes
 
@@ -85,13 +128,17 @@ All four of the following arguments are mandatory. The skill hard-errors
 
 - `BrokenSprintState` — sprint-state.yaml has non-terminal stories but no pending/draft entries
 - `AntiFabricationFailed` — a field cross-check against external ground truth failed (emitted by
-  pre-flight validation in `main()` and by `write_wave_state` in `lib/write-wave-state.sh`)
+  pre-flight validation in `cmd_emit_handoff()` and by `write_wave_state` in `lib/write-wave-state.sh`)
 - `StoryIndexMissing` — STORY-INDEX.md absent at wave-close when next_wave_stories is non-empty;
-  emitted by pre-flight in `main()` and by `write_wave_state` (BC-5.41.002 PC2 precondition 2)
+  emitted by pre-flight in `cmd_emit_handoff()` and by `write_wave_state` (BC-5.41.002 PC2 precondition 2)
 - `PrecompactShaMismatch` — precompact_flush_sha null/wrong when precompact-flush-log is present+valid;
   emitted by `lib/write-handoff.sh`
 - `NoWaveIdSubstrate` — neither sprint-state ordinal nor STATE.md current_step yields a wave_id;
   emitted by `lib/parse-sprint-state.sh` `derive_wave_id()`
+- `HandoffWriteToolUnavailable` — `HANDOFF_WRITE_TOOL_UNAVAILABLE=1` env set or Write tool is
+  unavailable; `--emit-handoff` hard-errors and MUST NOT fall back to bash redirection (BC-5.41.001 EC-016)
+- `HandoffFileAbsent` — `--commit` invoked but HANDOFF.md absent at `${ARTIFACTS_WT}/HANDOFF.md`;
+  aborting atomic commit (BC-5.41.001 EC-017); fires on both HAS-NEXT-WAVE and EPIC-COMPLETE paths
 - `UnexpectedEpicStatus` — epic_status present on a non-final wave; emitted by the downstream WASM
   gate (S-18.02), NOT by this skill
 - `MissingEpicStatus` — epic_status absent on an EPIC-COMPLETE wave; emitted by the downstream WASM

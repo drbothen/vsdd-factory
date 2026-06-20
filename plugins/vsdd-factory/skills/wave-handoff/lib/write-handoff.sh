@@ -93,33 +93,36 @@ check_active_bcs() {
   return 0
 }
 
-# write_handoff <output_path> <wave_id> <next_wave_story_ids_array_ref> <next_wave_story_statuses_array_ref> <bc_dir> <flush_log> <state_md> <is_epic_complete>
-# Writes HANDOFF.md to <output_path> with all 9 base required fields.
-# On EPIC-COMPLETE wave: additionally writes epic_status: complete, next_wave_stories: [].
+# write_handoff <wave_id> <bc_dir> <flush_log_path> <state_md_path> <is_epic_complete> [story_pairs...]
+# Emits HANDOFF.md payload to STDOUT with all 9 base required fields.
+# On EPIC-COMPLETE wave: additionally emits epic_status: complete, next_wave_stories: [].
 # Hard errors if any required field is absent or any cross-check fails (BC-5.41.001 PC4).
+# BC-5.41.001 PC10: MUST NOT write HANDOFF.md to disk via bash redirection.
+# The caller (--emit-handoff subcommand) captures stdout and the agent writes via Write tool.
 #
 # Parameters (positional):
-#   $1 output_path
-#   $2 wave_id
-#   $3 bc_dir
-#   $4 flush_log_path
-#   $5 state_md_path
-#   $6 is_epic_complete ("1" or "0")
-#   $7+ space-separated "id:status" pairs for next_wave_stories (empty if epic-complete)
+#   $1 wave_id
+#   $2 bc_dir
+#   $3 flush_log_path
+#   $4 state_md_path
+#   $5 is_epic_complete ("1" or "0")
+#   $6+ space-separated "id:status" pairs for next_wave_stories (empty if epic-complete)
 write_handoff() {
-  local output_path="$1"
-  local wave_id="$2"
-  local bc_dir="$3"
-  local flush_log="$4"
-  local state_md="$5"
-  local is_epic_complete="$6"
-  shift 6
+  local wave_id="$1"
+  local bc_dir="$2"
+  local flush_log="$3"
+  local state_md="$4"
+  local is_epic_complete="$5"
+  shift 5
   # Remaining args are "id:status" pairs
   local story_pairs=("$@")
 
   # Gather fields
+  # NOTE: || exit $? is required because set -e does NOT propagate through nested
+  # command substitutions. Without it, a failing subcommand inside $(cmd) is silently
+  # swallowed and the caller sees exit 0.
   local develop_sha
-  develop_sha="$(get_last_verified_develop_sha)"
+  develop_sha="$(get_last_verified_develop_sha)" || exit $?
 
   # Validate SHA is 40-char hex
   if ! echo "$develop_sha" | grep -qE '^[0-9a-f]{40}$'; then
@@ -129,13 +132,13 @@ write_handoff() {
 
   # Get active BCs (hard errors if empty)
   local bc_files
-  bc_files="$(check_active_bcs "$bc_dir")"
+  bc_files="$(check_active_bcs "$bc_dir")" || exit $?
 
   # Get precompact_flush_sha (three-state rule + EC-011 validation).
   # get_precompact_flush_sha will exit 1 with PrecompactShaMismatch if the log
   # claims a commit but FIELD-2 is not valid 40-char hex.
   local precompact_sha
-  precompact_sha="$(get_precompact_flush_sha "$flush_log")"
+  precompact_sha="$(get_precompact_flush_sha "$flush_log")" || exit $?
 
   # Get factory_lock_holder from STATE.md (BC-5.40.001 canonical shape).
   # Handles both inline scalar form: `factory_lock: "holder-name"` / `factory_lock: null`
@@ -196,26 +199,24 @@ write_handoff() {
     fi
   fi
 
-  # Write HANDOFF.md
-  {
-    echo "wave_id: ${wave_id}"
-    echo "last_verified_develop_sha: ${develop_sha}"
-    echo "active_bcs:"
-    echo "$active_bcs_yaml"
-    if [ "$is_epic_complete" = "1" ]; then
-      echo "next_wave_stories: []"
-    else
-      echo "next_wave_stories:${next_wave_yaml}"
-    fi
-    echo "open_decisions: []"
-    echo "pending_fixes: []"
-    echo "process_gaps: []"
-    echo "precompact_flush_sha: ${precompact_sha}"
-    echo "factory_lock_holder: ${factory_lock_holder}"
-    if [ "$is_epic_complete" = "1" ]; then
-      echo "epic_status: complete"
-    fi
-  } > "$output_path"
+  # Emit HANDOFF.md payload to stdout (BC-5.41.001 PC10: no bash redirect; agent writes via Write tool)
+  echo "wave_id: ${wave_id}"
+  echo "last_verified_develop_sha: ${develop_sha}"
+  echo "active_bcs:"
+  echo "$active_bcs_yaml"
+  if [ "$is_epic_complete" = "1" ]; then
+    echo "next_wave_stories: []"
+  else
+    echo "next_wave_stories:${next_wave_yaml}"
+  fi
+  echo "open_decisions: []"
+  echo "pending_fixes: []"
+  echo "process_gaps: []"
+  echo "precompact_flush_sha: ${precompact_sha}"
+  echo "factory_lock_holder: ${factory_lock_holder}"
+  if [ "$is_epic_complete" = "1" ]; then
+    echo "epic_status: complete"
+  fi
 
   return 0
 }
