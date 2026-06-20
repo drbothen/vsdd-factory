@@ -59,6 +59,7 @@ dtu_services: []
   445 lines (wc-l; D-638: S-18.00 POST-MERGE burst — BC-1.15.001 POL-14 promotion; S-18.00 merged; develop b025d31d; 4-index BC v3.08/VP v2.38/STORY v4.15/ARCH v2.55; 3 lessons codified; 30 lines over soft-target 415; 55 lines under hard-cap 500).
   D-641..D-655 SIZE BUDGET COLLAPSED 2026-06-19 per D-430(a) (16 entries; range 427..499 lines; git show c764ceb4:.factory/STATE.md for last pre-compaction state D-655).
   ~489 lines (wc-l; D-656 S-18.13 RESTRUCTURE REDESIGN — F-SP13-P3-001 CRITICAL + F-SP13-P3-002 HIGH REMEDIATED; ADR-026 v1.23 + BC-5.41.001 v1.24 + BC-5.41.002 v1.17 + S-18.13 v1.5 (10pts; +BC-5.41.002); 4-index BC v3.20/VP v2.40/STORY v4.34/ARCH v2.59; streak 0/3; pass-4 NEXT; ~74 lines over soft-target 415; ~11 lines under hard-cap 500).
+  491 lines (wc-l; D-657 S-18.13 spec-cascade pass-5 NOT-CLEAN fix burst — F-SP13-P5-001 CRITICAL REMEDIATED EPIC-COMPLETE carve-out; ADR-026 v1.24 + BC-5.41.001 v1.25 + BC-5.41.002 v1.18 + S-18.13 v1.6; 4-index BC v3.21/VP v2.40/STORY v4.35/ARCH v2.60; streak RESET 1/3→0/3; pass-6 NEXT; SHA-patch a23942cc; 76 lines over soft-target 415; 9 lines under hard-cap 500).
 -->
 
 # Pipeline State: vsdd-factory
@@ -153,7 +154,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | caf06c68 | rc.21 bot binary bundle commit 2026-06-13; prior: 2a191314 (rc.20) |
 | develop | bd6e50ce | S-18.02 PR #195 SQUASH-MERGED 2026-06-19; prior: 8b26a0fe (S-18.01 PR #193 2026-06-19) |
-| factory-artifacts | [D-657-HEAD] | D-657 pass-5 NOT-CLEAN REMEDIATED HEAD (current); prior: e6fc3c87 D-656 SHA-patch; prior: 57143484 D-656 HEAD |
+| factory-artifacts | a23942cc | D-657 pass-5 NOT-CLEAN REMEDIATED HEAD (current); prior: e6fc3c87 D-656 SHA-patch; prior: 57143484 D-656 HEAD |
 | v1.0.0-rc.21 (tag) | 03054524 | SHIPPED 2026-06-13; FULLY IN OPERATOR MARKETPLACE (marketplace PR #13 MERGED); annotated tag object |
 | v1.0.0-rc.20 (tag) | e9e38286 | SHIPPED 2026-06-01; marketplace PR #12 squash-merged 862e660d |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28 |
@@ -406,7 +407,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** `8de54605` (D-651 durability-hardening HEAD; prior: `0b7c5e10` D-651 SHA-patch; prior: `070bc56e` D-651 final burst)
+- **factory-artifacts HEAD:** `a23942cc` (D-657 pass-5 NOT-CLEAN REMEDIATED HEAD; prior: `e6fc3c87` D-656 SHA-patch; prior: `8de54605` D-651 durability-hardening HEAD)
 - **develop HEAD:** `bd6e50ce` (S-18.02 PR #195 SQUASH-MERGED 2026-06-19; prior: `8b26a0fe` S-18.01 PR #193 SQUASH-MERGED 2026-06-19)
 - **main HEAD:** `caf06c68` (rc.21 bot bundle commit 2026-06-13; UNCHANGED)
 - **v1.0.0-rc.21 tag:** `03054524` (SHIPPED; FULLY IN OPERATOR MARKETPLACE)
@@ -442,7 +443,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 - **ADR-025 v1.6 SHIPPED:** guard at `3b2a378c`; ARCH-INDEX v2.27
 - **S-17.04 story:** `.factory/stories/S-17.04-mid-burst-heartbeat-renewal-wiring.md` v1.7 MERGED; E-17 W4 COMPLETE; PR #184 3b2a378c
 - **ADR-027 v1.0:** `specs/architecture/decisions/ADR-027-factory-artifacts-worktree-path-discipline-for-shell-skills.md` (D-639 architect-authored: ARTIFACTS_WT = `.factory` worktree root; two-arg invocation model; bats fixture places files under `$ARTIFACTS_WT/...` not `$ARTIFACTS_WT/.factory/...`; accepted 2026-06-18; SS-05/SS-06/SS-07; RESOLVES F-S1801-P3-001 BLOCKER)
-- **Verify on resume:** `git rev-parse --short origin/develop` → expect `bd6e50ce`; `git rev-parse --short origin/main` → expect `caf06c68`; `git -C .factory log -1 --format='%h'` → expect `8de54605` (D-651 durability-hardening HEAD)
+- **Verify on resume:** `git rev-parse --short origin/develop` → expect `bd6e50ce`; `git rev-parse --short origin/main` → expect `caf06c68`; `git -C .factory log -1 --format='%h'` → expect `a23942cc` (D-657 pass-5 NOT-CLEAN REMEDIATED HEAD)
 
 ### §10. PR Status
 
@@ -452,7 +453,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 ### §11. Post-CLEAR/Post-RESET Resume Checklist (zero-context; D-639 refresh)
 
-1. **Verify worktree state:** `git rev-parse --short origin/develop` → expect `bd6e50ce`. `git rev-parse --short origin/main` → expect `caf06c68`. `git -C .factory log -1 --format='%h'` → expect `8de54605` (D-651 durability-hardening HEAD; branch factory-artifacts; clean status). feature/S-18.01 MERGED. feature/S-18.02 MERGED PR #195 bd6e50ce (deleted). worktrees .worktrees/S-18.01/.worktrees/S-18.02 cleanup pending devops-engineer.
+1. **Verify worktree state:** `git rev-parse --short origin/develop` → expect `bd6e50ce`. `git rev-parse --short origin/main` → expect `caf06c68`. `git -C .factory log -1 --format='%h'` → expect `a23942cc` (D-657 pass-5 NOT-CLEAN REMEDIATED HEAD; branch factory-artifacts; clean status). feature/S-18.01 MERGED. feature/S-18.02 MERGED PR #195 bd6e50ce (deleted). worktrees .worktrees/S-18.01/.worktrees/S-18.02 cleanup pending devops-engineer.
 2. **Read §1-§12 this checkpoint** (all of it; D-651 self-sufficient).
 3. **Verify 4-index:** `grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md` → "3.18"; ARCH-INDEX → "2.57"; VP-INDEX → "2.40"; STORY-INDEX → "4.31"; L2-INDEX → "1.0.13".
 4. **E-10 CASCADE SEALED D-531.** Do NOT resume without engine-surface material change.
