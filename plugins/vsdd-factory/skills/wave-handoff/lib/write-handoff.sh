@@ -162,6 +162,12 @@ write_handoff() {
     fi
   fi
 
+  # Validate lock holder value is safe for YAML interpolation (CWE-116 explicit guard)
+  if [[ -n "${factory_lock_holder:-}" ]] && ! [[ "$factory_lock_holder" =~ ^[a-zA-Z0-9:._/-]+$ ]]; then
+    echo "ERROR: factory_lock_holder contains unsafe characters for YAML output: '$factory_lock_holder'" >&2
+    exit 1
+  fi
+
   # Build active_bcs YAML list as resolvable paths relative to artifacts_wt.
   # BC-5.41.001 PC4 / VP-087: entries must be file paths, not bare BC-X.XX.XXX ids.
   # artifacts_wt is the worktree root; bc_dir is always $artifacts_wt/specs/behavioral-contracts/...

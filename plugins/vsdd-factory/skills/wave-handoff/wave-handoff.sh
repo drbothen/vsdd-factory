@@ -66,6 +66,29 @@ done
 : "${STATE_MD_PATH:?ERROR: --state-md or STATE_MD_PATH is required}"
 : "${BC_DIR:?ERROR: --bc-dir or BC_DIR is required}"
 
+# Validate ARTIFACTS_WT is an accessible git worktree (CWE-73 explicit guard).
+# Canonicalization via GNU realpath -e (Linux only) — BSD realpath on macOS resolves
+# /var → /private/var which breaks the relative-path stripping in write-handoff.sh.
+# We intentionally skip symlink resolution on platforms where it causes path drift.
+if realpath --version >/dev/null 2>&1; then
+  # GNU realpath is available (-e checks existence; exits non-zero if path absent)
+  _resolved_awt="$(realpath -e "$ARTIFACTS_WT" 2>/dev/null)" || {
+    echo "ERROR: ARTIFACTS_WT path does not exist: '$ARTIFACTS_WT'" >&2
+    exit 1
+  }
+  ARTIFACTS_WT="$_resolved_awt"
+else
+  # BSD/macOS: existence check only — do NOT call realpath (symlink resolution drift)
+  [ -d "$ARTIFACTS_WT" ] || {
+    echo "ERROR: ARTIFACTS_WT path does not exist or is not a directory: '$ARTIFACTS_WT'" >&2
+    exit 1
+  }
+fi
+git -C "$ARTIFACTS_WT" rev-parse --git-dir >/dev/null 2>&1 || {
+  echo "ERROR: ARTIFACTS_WT is not a git repository: '$ARTIFACTS_WT'" >&2
+  exit 1
+}
+
 if [ -z "$PRECOMPACT_FLUSH_LOG" ]; then
   # ADR-027 Decision 1: ARTIFACTS_WT is the factory-artifacts worktree root (= .factory
   # in production). The precompact-flush-log lives directly at $ARTIFACTS_WT/hooks/precompact-flush-log,
@@ -152,6 +175,8 @@ _get_epic_id() {
 # ---------------------------------------------------------------------------
 cmd_emit_handoff() {
   # EC-016: fail loud if Write tool is marked unavailable (BC-5.41.001 EC-016)
+  # HANDOFF_WRITE_TOOL_UNAVAILABLE is an internal harness flag for testing EC-016.
+  # It is NOT a user-facing configuration variable. Do not set this in production.
   if [ "${HANDOFF_WRITE_TOOL_UNAVAILABLE:-0}" = "1" ]; then
     echo "HandoffWriteToolUnavailable: HANDOFF.md must be written via the Write tool (Claude Code native tool call); bash redirection is forbidden. Ensure the Write tool is available in the current harness context." >&2
     exit 1
