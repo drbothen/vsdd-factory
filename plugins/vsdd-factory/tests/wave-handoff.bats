@@ -291,6 +291,57 @@ _run_skill() {
   "
 }
 
+# _run_skill_subcommands — drives the agent-orchestrated 3-step subcommand flow:
+#   --emit-handoff (stdout → harness writes HANDOFF.md) → --emit-wave-state → --commit
+# Sets $status and $output just like _run_skill did (via run bash -c).
+# BC-5.41.001 PC10 / ADR-026 §Decision 8.
+_run_skill_subcommands() {
+  run bash -c "
+    set -euo pipefail
+    _skill='${SKILL}'
+    _awt='${ARTIFACTS_WT}'
+    _ss='${WORK}/sprint-state.yaml'
+    _sm='${WORK}/STATE.md'
+    _bc='${ARTIFACTS_WT}/specs/behavioral-contracts'
+    _pfl='${ARTIFACTS_WT}/hooks/precompact-flush-log'
+
+    # Step 1: emit HANDOFF.md payload to stdout (no disk write by skill)
+    handoff_stdout=\"\$(\"\$_skill\" \
+      --artifacts-worktree \"\$_awt\" \
+      --sprint-state \"\$_ss\" \
+      --state-md \"\$_sm\" \
+      --bc-dir \"\$_bc\" \
+      --emit-handoff \
+      2>&1)\"
+    emit_exit=\$?
+    if [ \"\$emit_exit\" -ne 0 ]; then
+      echo \"\$handoff_stdout\"
+      exit \"\$emit_exit\"
+    fi
+
+    # Step 2: test harness writes HANDOFF.md (simulates agent Write tool)
+    printf '%s\n' \"\$handoff_stdout\" > \"\${_awt}/HANDOFF.md\"
+
+    # Step 3: write wave-state.yaml (skipped silently on EPIC-COMPLETE)
+    \"\$_skill\" \
+      --artifacts-worktree \"\$_awt\" \
+      --sprint-state \"\$_ss\" \
+      --state-md \"\$_sm\" \
+      --bc-dir \"\$_bc\" \
+      --emit-wave-state \
+      2>&1 || exit \$?
+
+    # Step 4: atomic commit
+    \"\$_skill\" \
+      --artifacts-worktree \"\$_awt\" \
+      --sprint-state \"\$_ss\" \
+      --state-md \"\$_sm\" \
+      --bc-dir \"\$_bc\" \
+      --commit \
+      2>&1 || exit \$?
+  "
+}
+
 # Count commits on factory-artifacts branch
 _artifact_commit_count() {
   git -C "$WORK" rev-list --count factory-artifacts
@@ -309,7 +360,7 @@ _artifact_last_commit_files() {
 # ---------------------------------------------------------------------------
 
 @test "test_handoff_writes_all_9_base_fields" {
-  _run_skill
+  _run_skill_subcommands
 
   # File must exist in the factory-artifacts worktree
   [ -f "$ARTIFACTS_WT/HANDOFF.md" ] || {
@@ -341,7 +392,7 @@ _artifact_last_commit_files() {
 # ---------------------------------------------------------------------------
 
 @test "test_wave_id_derived_from_sprint_state_not_phantom" {
-  _run_skill
+  _run_skill_subcommands
 
   [ -f "$ARTIFACTS_WT/HANDOFF.md" ] || {
     echo "FAIL: HANDOFF.md not written" >&2
@@ -381,7 +432,7 @@ _artifact_last_commit_files() {
 # ---------------------------------------------------------------------------
 
 @test "test_last_verified_sha_is_40char_hex" {
-  _run_skill
+  _run_skill_subcommands
 
   [ -f "$ARTIFACTS_WT/HANDOFF.md" ] || {
     echo "FAIL: HANDOFF.md not written" >&2
@@ -422,7 +473,7 @@ _artifact_last_commit_files() {
 @test "test_active_bcs_nonempty_or_hard_error" {
   # First verify the happy path: BC dir has a file → skill must succeed and
   # write active_bcs with at least one entry.
-  _run_skill
+  _run_skill_subcommands
 
   [ -f "$ARTIFACTS_WT/HANDOFF.md" ] || {
     echo "FAIL: HANDOFF.md not written (happy path)" >&2
@@ -465,6 +516,7 @@ _artifact_last_commit_files() {
       --sprint-state '${WORK}/sprint-state.yaml' \
       --state-md '${WORK}/STATE.md' \
       --bc-dir '${ARTIFACTS_WT}/specs/behavioral-contracts' \
+      --emit-handoff \
       2>&1
   "
   [ "$status" -eq 1 ] || {
@@ -500,7 +552,7 @@ _artifact_last_commit_files() {
 @test "test_precompact_flush_sha_three_state_rule" {
   # --- EC-001: log absent → precompact_flush_sha: null ---
   rm -f "$ARTIFACTS_WT/hooks/precompact-flush-log"
-  _run_skill
+  _run_skill_subcommands
 
   [ -f "$ARTIFACTS_WT/HANDOFF.md" ] || {
     echo "FAIL (EC-001): HANDOFF.md not written when log absent" >&2
@@ -519,7 +571,7 @@ _artifact_last_commit_files() {
   # --- EC-002: log present but FIELD-4 != "commit" → null ---
   echo "2026-06-17T12:00:00Z aabbcc1122334455667788990011aabbccdd1122 cycle/pass-2 pushed" \
     > "$ARTIFACTS_WT/hooks/precompact-flush-log"
-  _run_skill
+  _run_skill_subcommands
 
   [ -f "$ARTIFACTS_WT/HANDOFF.md" ] || {
     echo "FAIL (EC-002): HANDOFF.md not written when log FIELD-4 != commit" >&2
@@ -539,7 +591,7 @@ _artifact_last_commit_files() {
   local expected_sha="aabbccddeeff00112233445566778899aabbccdd"
   echo "2026-06-17T12:00:00Z ${expected_sha} cycle/pass-2 commit" \
     > "$ARTIFACTS_WT/hooks/precompact-flush-log"
-  _run_skill
+  _run_skill_subcommands
 
   [ -f "$ARTIFACTS_WT/HANDOFF.md" ] || {
     echo "FAIL (EC-003): HANDOFF.md not written when log valid" >&2
@@ -582,7 +634,7 @@ _artifact_last_commit_files() {
   echo "2026-06-18T00:00:00Z ${log_sha} cycle/pass-2 commit" \
     > "$ARTIFACTS_WT/hooks/precompact-flush-log"
 
-  _run_skill
+  _run_skill_subcommands
 
   [ "$status" -eq 0 ] || {
     echo "FAIL (Part A): skill exited ${status} with valid 40-hex log SHA, expected 0." >&2
@@ -626,6 +678,7 @@ _artifact_last_commit_files() {
       --sprint-state '${WORK}/sprint-state.yaml' \
       --state-md '${WORK}/STATE.md' \
       --bc-dir '${ARTIFACTS_WT}/specs/behavioral-contracts' \
+      --emit-handoff \
       2>&1
   "
 
@@ -676,19 +729,29 @@ _artifact_last_commit_files() {
   _write_state_md "3"
 
   run bash -c "
-    export ARTIFACTS_WT='${ARTIFACTS_WT}'
-    export SPRINT_STATE_YAML='${WORK}/sprint-state.yaml'
-    export STATE_MD_PATH='${WORK}/STATE.md'
-    export BC_DIR='${ARTIFACTS_WT}/specs/behavioral-contracts'
-    export PRECOMPACT_FLUSH_LOG='${ARTIFACTS_WT}/hooks/precompact-flush-log'
-    export GIT_DIR='${WORK}/.git'
-    export FACTORY_REPO='${WORK}'
+    set -euo pipefail
+    handoff_stdout=\"\$('${SKILL}' \
+      --artifacts-worktree '${ARTIFACTS_WT}' \
+      --sprint-state '${WORK}/sprint-state.yaml' \
+      --state-md '${WORK}/STATE.md' \
+      --bc-dir '${ARTIFACTS_WT}/specs/behavioral-contracts' \
+      --emit-handoff \
+      2>&1)\"
+    emit_exit=\$?
+    if [ \"\$emit_exit\" -ne 0 ]; then echo \"\$handoff_stdout\"; exit \"\$emit_exit\"; fi
+    printf '%s\n' \"\$handoff_stdout\" > '${ARTIFACTS_WT}/HANDOFF.md'
     '${SKILL}' \
       --artifacts-worktree '${ARTIFACTS_WT}' \
       --sprint-state '${WORK}/sprint-state.yaml' \
       --state-md '${WORK}/STATE.md' \
       --bc-dir '${ARTIFACTS_WT}/specs/behavioral-contracts' \
-      2>&1
+      --emit-wave-state 2>&1 || exit \$?
+    '${SKILL}' \
+      --artifacts-worktree '${ARTIFACTS_WT}' \
+      --sprint-state '${WORK}/sprint-state.yaml' \
+      --state-md '${WORK}/STATE.md' \
+      --bc-dir '${ARTIFACTS_WT}/specs/behavioral-contracts' \
+      --commit 2>&1 || exit \$?
   "
 
   # Must exit 0
@@ -744,21 +807,7 @@ _artifact_last_commit_files() {
 @test "test_epic_complete_no_wave_state_written" {
   _write_sprint_state_all_terminal
 
-  run bash -c "
-    export ARTIFACTS_WT='${ARTIFACTS_WT}'
-    export SPRINT_STATE_YAML='${WORK}/sprint-state.yaml'
-    export STATE_MD_PATH='${WORK}/STATE.md'
-    export BC_DIR='${ARTIFACTS_WT}/specs/behavioral-contracts'
-    export PRECOMPACT_FLUSH_LOG='${ARTIFACTS_WT}/hooks/precompact-flush-log'
-    export GIT_DIR='${WORK}/.git'
-    export FACTORY_REPO='${WORK}'
-    '${SKILL}' \
-      --artifacts-worktree '${ARTIFACTS_WT}' \
-      --sprint-state '${WORK}/sprint-state.yaml' \
-      --state-md '${WORK}/STATE.md' \
-      --bc-dir '${ARTIFACTS_WT}/specs/behavioral-contracts' \
-      2>&1
-  "
+  _run_skill_subcommands
 
   # Must exit 0 on EPIC-COMPLETE
   [ "$status" -eq 0 ] || {
@@ -815,21 +864,7 @@ _artifact_last_commit_files() {
 
   _write_sprint_state_all_terminal
 
-  run bash -c "
-    export ARTIFACTS_WT='${ARTIFACTS_WT}'
-    export SPRINT_STATE_YAML='${WORK}/sprint-state.yaml'
-    export STATE_MD_PATH='${WORK}/STATE.md'
-    export BC_DIR='${ARTIFACTS_WT}/specs/behavioral-contracts'
-    export PRECOMPACT_FLUSH_LOG='${ARTIFACTS_WT}/hooks/precompact-flush-log'
-    export GIT_DIR='${WORK}/.git'
-    export FACTORY_REPO='${WORK}'
-    '${SKILL}' \
-      --artifacts-worktree '${ARTIFACTS_WT}' \
-      --sprint-state '${WORK}/sprint-state.yaml' \
-      --state-md '${WORK}/STATE.md' \
-      --bc-dir '${ARTIFACTS_WT}/specs/behavioral-contracts' \
-      2>&1
-  "
+  _run_skill_subcommands
 
   # Must exit 0
   [ "$status" -eq 0 ] || {
@@ -862,7 +897,7 @@ _artifact_last_commit_files() {
 # ---------------------------------------------------------------------------
 
 @test "test_wave_state_has_6_required_fields_in_committed_blob" {
-  _run_skill
+  _run_skill_subcommands
 
   # Assert the committed blob exists (not just the working-tree file)
   git -C "$WORK" show factory-artifacts:wave-state.yaml >/dev/null 2>&1 || {
@@ -894,7 +929,7 @@ _artifact_last_commit_files() {
 @test "test_wave_state_stories_from_sprint_state_only_in_committed_blob" {
   # sprint-state has S-18.02 (pending) and S-18.03 (draft)
   _write_sprint_state_pending
-  _run_skill
+  _run_skill_subcommands
 
   # Read the COMMITTED blob
   git -C "$WORK" show factory-artifacts:wave-state.yaml >/dev/null 2>&1 || {
@@ -938,7 +973,7 @@ _artifact_last_commit_files() {
   local before_count
   before_count="$(_artifact_commit_count)"
 
-  _run_skill
+  _run_skill_subcommands
 
   local after_count
   after_count="$(_artifact_commit_count)"
@@ -975,7 +1010,7 @@ _artifact_last_commit_files() {
 # ---------------------------------------------------------------------------
 
 @test "test_worktree_clean_after_commit" {
-  _run_skill
+  _run_skill_subcommands
 
   [ "$status" -eq 0 ] || {
     echo "FAIL: skill exited ${status}, expected 0. Output: $output" >&2
@@ -1010,7 +1045,7 @@ _artifact_last_commit_files() {
 # ---------------------------------------------------------------------------
 
 @test "test_commit_message_format" {
-  _run_skill
+  _run_skill_subcommands
 
   # Get the most recent commit message on factory-artifacts
   local msg
@@ -1057,7 +1092,7 @@ _artifact_last_commit_files() {
   # Remove the HANDOFF.md from worktree so the skill writes a fresh one
   rm -f "$ARTIFACTS_WT/HANDOFF.md"
 
-  _run_skill
+  _run_skill_subcommands
 
   [ "$status" -eq 0 ] || {
     echo "FAIL (Part A): skill exited ${status}. Output: $output" >&2
@@ -1203,19 +1238,32 @@ EOF
   local wave1_exit_code=0
   local wave1_output
   wave1_output="$(
-    export ARTIFACTS_WT="${ARTIFACTS_WT2}"
-    export SPRINT_STATE_YAML="${sprint2}"
-    export STATE_MD_PATH="${statemd2}"
-    export BC_DIR="${ARTIFACTS_WT2}/specs/behavioral-contracts"
-    export PRECOMPACT_FLUSH_LOG="${ARTIFACTS_WT2}/hooks/precompact-flush-log"
-    export GIT_DIR="${WORK2}/.git"
-    export FACTORY_REPO="${WORK2}"
+    set -euo pipefail
+    _handoff_stdout="$("${SKILL}" \
+      --artifacts-worktree "${ARTIFACTS_WT2}" \
+      --sprint-state "${sprint2}" \
+      --state-md "${statemd2}" \
+      --bc-dir "${ARTIFACTS_WT2}/specs/behavioral-contracts" \
+      --emit-handoff \
+      2>&1)"
+    _emit_exit=$?
+    if [ "${_emit_exit}" -ne 0 ]; then
+      echo "${_handoff_stdout}"
+      exit "${_emit_exit}"
+    fi
+    printf '%s\n' "${_handoff_stdout}" > "${ARTIFACTS_WT2}/HANDOFF.md"
     "${SKILL}" \
       --artifacts-worktree "${ARTIFACTS_WT2}" \
       --sprint-state "${sprint2}" \
       --state-md "${statemd2}" \
       --bc-dir "${ARTIFACTS_WT2}/specs/behavioral-contracts" \
-      2>&1
+      --emit-wave-state 2>&1 || exit $?
+    "${SKILL}" \
+      --artifacts-worktree "${ARTIFACTS_WT2}" \
+      --sprint-state "${sprint2}" \
+      --state-md "${statemd2}" \
+      --bc-dir "${ARTIFACTS_WT2}/specs/behavioral-contracts" \
+      --commit 2>&1 || exit $?
   )" || wave1_exit_code=$?
 
   # Capture committed blob BEFORE cleanup
@@ -1259,7 +1307,7 @@ EOF
 # ---------------------------------------------------------------------------
 
 @test "test_arch_files_paths_resolve_on_disk" {
-  _run_skill
+  _run_skill_subcommands
 
   [ "$status" -eq 0 ] || {
     echo "FAIL: skill exited ${status}. Output: $output" >&2
@@ -1317,7 +1365,7 @@ EOF
 # ---------------------------------------------------------------------------
 
 @test "test_stories_have_spec_files_and_resolve_story_index" {
-  _run_skill
+  _run_skill_subcommands
 
   [ "$status" -eq 0 ] || {
     echo "FAIL: skill exited ${status}. Output: $output" >&2
@@ -1397,18 +1445,12 @@ EOF
   _write_sprint_state_in_progress
 
   run bash -c "
-    export ARTIFACTS_WT='${ARTIFACTS_WT}'
-    export SPRINT_STATE_YAML='${WORK}/sprint-state.yaml'
-    export STATE_MD_PATH='${WORK}/STATE.md'
-    export BC_DIR='${ARTIFACTS_WT}/specs/behavioral-contracts'
-    export PRECOMPACT_FLUSH_LOG='${ARTIFACTS_WT}/hooks/precompact-flush-log'
-    export GIT_DIR='${WORK}/.git'
-    export FACTORY_REPO='${WORK}'
     '${SKILL}' \
       --artifacts-worktree '${ARTIFACTS_WT}' \
       --sprint-state '${WORK}/sprint-state.yaml' \
       --state-md '${WORK}/STATE.md' \
       --bc-dir '${ARTIFACTS_WT}/specs/behavioral-contracts' \
+      --emit-handoff \
       2>&1
   "
 
@@ -1452,18 +1494,12 @@ EOF
   _write_sprint_state_review_pending
 
   run bash -c "
-    export ARTIFACTS_WT='${ARTIFACTS_WT}'
-    export SPRINT_STATE_YAML='${WORK}/sprint-state.yaml'
-    export STATE_MD_PATH='${WORK}/STATE.md'
-    export BC_DIR='${ARTIFACTS_WT}/specs/behavioral-contracts'
-    export PRECOMPACT_FLUSH_LOG='${ARTIFACTS_WT}/hooks/precompact-flush-log'
-    export GIT_DIR='${WORK}/.git'
-    export FACTORY_REPO='${WORK}'
     '${SKILL}' \
       --artifacts-worktree '${ARTIFACTS_WT}' \
       --sprint-state '${WORK}/sprint-state.yaml' \
       --state-md '${WORK}/STATE.md' \
       --bc-dir '${ARTIFACTS_WT}/specs/behavioral-contracts' \
+      --emit-handoff \
       2>&1
   "
 
@@ -1513,7 +1549,7 @@ EOF
   echo "this file must not appear in the wave-handoff commit" \
     > "$ARTIFACTS_WT/unrelated.txt"
 
-  _run_skill
+  _run_skill_subcommands
 
   [ "$status" -eq 0 ] || {
     echo "FAIL: skill exited ${status}, expected 0. Output: $output" >&2
@@ -1562,7 +1598,7 @@ EOF
   # STATE.md has current_step: "pass-2" → skill derives wave_id=2 for HANDOFF.md
   # wave-state.yaml must have wave_id=3 (next wave = current + 1)
   _write_state_md "2"
-  _run_skill
+  _run_skill_subcommands
 
   [ "$status" -eq 0 ] || {
     echo "FAIL: skill exited ${status}, expected 0. Output: $output" >&2
@@ -1638,20 +1674,7 @@ factory_lock: null
 # STATE
 EOF
 
-  run bash -c "
-    export ARTIFACTS_WT='${ARTIFACTS_WT}'
-    export SPRINT_STATE_YAML='${WORK}/sprint-state.yaml'
-    export STATE_MD_PATH='${WORK}/STATE.md'
-    export BC_DIR='${ARTIFACTS_WT}/specs/behavioral-contracts'
-    export PRECOMPACT_FLUSH_LOG='${ARTIFACTS_WT}/hooks/precompact-flush-log'
-    export FACTORY_REPO='${WORK}'
-    '${SKILL}' \
-      --artifacts-worktree '${ARTIFACTS_WT}' \
-      --sprint-state '${WORK}/sprint-state.yaml' \
-      --state-md '${WORK}/STATE.md' \
-      --bc-dir '${ARTIFACTS_WT}/specs/behavioral-contracts' \
-      2>&1
-  "
+  _run_skill_subcommands
 
   # The skill must NOT silently use wave_id=1 as a fabricated fallback.
   # Two acceptable outcomes (either satisfies BC-5.41.001 PC2):
@@ -1722,21 +1745,7 @@ EOF
 @test "test_sprint_state_absent_treated_as_epic_complete" {
   rm -f "$WORK/sprint-state.yaml"
 
-  run bash -c "
-    export ARTIFACTS_WT='${ARTIFACTS_WT}'
-    export SPRINT_STATE_YAML='${WORK}/sprint-state.yaml'
-    export STATE_MD_PATH='${WORK}/STATE.md'
-    export BC_DIR='${ARTIFACTS_WT}/specs/behavioral-contracts'
-    export PRECOMPACT_FLUSH_LOG='${ARTIFACTS_WT}/hooks/precompact-flush-log'
-    export GIT_DIR='${WORK}/.git'
-    export FACTORY_REPO='${WORK}'
-    '${SKILL}' \
-      --artifacts-worktree '${ARTIFACTS_WT}' \
-      --sprint-state '${WORK}/sprint-state.yaml' \
-      --state-md '${WORK}/STATE.md' \
-      --bc-dir '${ARTIFACTS_WT}/specs/behavioral-contracts' \
-      2>&1
-  "
+  _run_skill_subcommands
 
   # Must exit 0 (absent sprint-state = empty = EPIC-COMPLETE)
   [ "$status" -eq 0 ] || {
@@ -1798,18 +1807,12 @@ stories:
 EOF
 
   run bash -c "
-    export ARTIFACTS_WT='${ARTIFACTS_WT}'
-    export SPRINT_STATE_YAML='${WORK}/sprint-state.yaml'
-    export STATE_MD_PATH='${WORK}/STATE.md'
-    export BC_DIR='${ARTIFACTS_WT}/specs/behavioral-contracts'
-    export PRECOMPACT_FLUSH_LOG='${ARTIFACTS_WT}/hooks/precompact-flush-log'
-    export GIT_DIR='${WORK}/.git'
-    export FACTORY_REPO='${WORK}'
     '${SKILL}' \
       --artifacts-worktree '${ARTIFACTS_WT}' \
       --sprint-state '${WORK}/sprint-state.yaml' \
       --state-md '${WORK}/STATE.md' \
       --bc-dir '${ARTIFACTS_WT}/specs/behavioral-contracts' \
+      --emit-handoff \
       2>&1
   "
 
@@ -1895,7 +1898,7 @@ stories:
     status: pending
 EOF
 
-  _run_skill
+  _run_skill_subcommands
 
   [ "$status" -eq 0 ] || {
     echo "FAIL: skill exited ${status}, expected 0. Output: $output" >&2
@@ -1987,7 +1990,7 @@ stories:
     status: pending
 EOF
 
-  _run_skill
+  _run_skill_subcommands
 
   [ "$status" -eq 0 ] || {
     echo "FAIL (F-P4-001 Part A): skill exited ${status}, expected 0. Output: $output" >&2
@@ -2171,7 +2174,7 @@ EOF
   }
 
   # Step 3: invoke the skill; factory-artifacts HEAD is non_handoff_head_sha
-  _run_skill
+  _run_skill_subcommands
 
   [ "$status" -eq 0 ] || {
     echo "FAIL (F-P4-002): skill exited ${status}, expected 0. Output: $output" >&2
@@ -2250,7 +2253,7 @@ EOF
 # ---------------------------------------------------------------------------
 
 @test "test_BC_5_41_001_F_P4_003_active_bcs_entries_resolve_as_paths" {
-  _run_skill
+  _run_skill_subcommands
 
   [ "$status" -eq 0 ] || {
     echo "FAIL (F-P4-003): skill exited ${status}, expected 0. Output: $output" >&2
@@ -2347,21 +2350,7 @@ EOF
   _write_sprint_state_all_terminal
   _write_state_md "4"
 
-  run bash -c "
-    export ARTIFACTS_WT='${ARTIFACTS_WT}'
-    export SPRINT_STATE_YAML='${WORK}/sprint-state.yaml'
-    export STATE_MD_PATH='${WORK}/STATE.md'
-    export BC_DIR='${ARTIFACTS_WT}/specs/behavioral-contracts'
-    export PRECOMPACT_FLUSH_LOG='${ARTIFACTS_WT}/hooks/precompact-flush-log'
-    export GIT_DIR='${WORK}/.git'
-    export FACTORY_REPO='${WORK}'
-    '${SKILL}' \
-      --artifacts-worktree '${ARTIFACTS_WT}' \
-      --sprint-state '${WORK}/sprint-state.yaml' \
-      --state-md '${WORK}/STATE.md' \
-      --bc-dir '${ARTIFACTS_WT}/specs/behavioral-contracts' \
-      2>&1
-  "
+  _run_skill_subcommands
 
   # Must exit 0 on EPIC-COMPLETE
   [ "$status" -eq 0 ] || {
@@ -2450,7 +2439,7 @@ stories:
     status: pending
 EOF
 
-  _run_skill
+  _run_skill_subcommands
 
   [ "$status" -eq 0 ] || {
     echo "FAIL (F-P5-001): skill exited ${status}, expected 0. Output: $output" >&2
@@ -2548,7 +2537,7 @@ stories:
     status: pending
 EOF
 
-  _run_skill
+  _run_skill_subcommands
 
   [ "$status" -eq 0 ] || {
     echo "FAIL (F-P5-002): skill exited ${status}, expected 0. Output: $output" >&2
@@ -2658,22 +2647,34 @@ EOF
   # FACTORY_REPO is NOT set — forces the bare `git rev-parse origin/develop` fallback.
   # Note: ARTIFACTS_WT and all explicit paths are absolute, so the skill can resolve them
   # correctly IF it uses -C flags. Only the develop SHA lookup depends on cwd.
+  # Note: FACTORY_REPO and GIT_DIR intentionally NOT exported here.
+  # The skill must resolve origin/develop via git -C ARTIFACTS_WT or equivalent.
   run bash -c "
+    set -euo pipefail
     cd /tmp
-    export ARTIFACTS_WT='${ARTIFACTS_WT}'
-    export SPRINT_STATE_YAML='${WORK}/sprint-state.yaml'
-    export STATE_MD_PATH='${WORK}/STATE.md'
-    export BC_DIR='${ARTIFACTS_WT}/specs/behavioral-contracts'
-    export PRECOMPACT_FLUSH_LOG='${ARTIFACTS_WT}/hooks/precompact-flush-log'
+    handoff_stdout=\"\$('${SKILL}' \
+      --artifacts-worktree '${ARTIFACTS_WT}' \
+      --sprint-state '${WORK}/sprint-state.yaml' \
+      --state-md '${WORK}/STATE.md' \
+      --bc-dir '${ARTIFACTS_WT}/specs/behavioral-contracts' \
+      --emit-handoff \
+      2>&1)\"
+    emit_exit=\$?
+    if [ \"\$emit_exit\" -ne 0 ]; then echo \"\$handoff_stdout\"; exit \"\$emit_exit\"; fi
+    printf '%s\n' \"\$handoff_stdout\" > '${ARTIFACTS_WT}/HANDOFF.md'
     '${SKILL}' \
       --artifacts-worktree '${ARTIFACTS_WT}' \
       --sprint-state '${WORK}/sprint-state.yaml' \
       --state-md '${WORK}/STATE.md' \
       --bc-dir '${ARTIFACTS_WT}/specs/behavioral-contracts' \
-      2>&1
+      --emit-wave-state 2>&1 || exit \$?
+    '${SKILL}' \
+      --artifacts-worktree '${ARTIFACTS_WT}' \
+      --sprint-state '${WORK}/sprint-state.yaml' \
+      --state-md '${WORK}/STATE.md' \
+      --bc-dir '${ARTIFACTS_WT}/specs/behavioral-contracts' \
+      --commit 2>&1 || exit \$?
   "
-  # Note: FACTORY_REPO and GIT_DIR intentionally NOT exported here.
-  # The skill must resolve origin/develop via git -C ARTIFACTS_WT or equivalent.
 
   # Must exit 0 — a cwd-independent implementation succeeds from /tmp
   [ "$status" -eq 0 ] || {
@@ -2751,22 +2752,36 @@ EOF
   # This forces the skill to use its built-in default path.
   # ADR-027 correct default: ${ARTIFACTS_WT}/hooks/precompact-flush-log
   # Broken default (before fix): ${ARTIFACTS_WT}/.factory/hooks/precompact-flush-log
+  # Note: --precompact-flush-log NOT passed; PRECOMPACT_FLUSH_LOG NOT exported.
+  # The skill must default to ${ARTIFACTS_WT}/hooks/precompact-flush-log.
   run bash -c "
+    set -euo pipefail
     export ARTIFACTS_WT='${ARTIFACTS_WT}'
-    export SPRINT_STATE_YAML='${WORK}/sprint-state.yaml'
-    export STATE_MD_PATH='${WORK}/STATE.md'
-    export BC_DIR='${ARTIFACTS_WT}/specs/behavioral-contracts'
     export GIT_DIR='${WORK}/.git'
     export FACTORY_REPO='${WORK}'
+    handoff_stdout=\"\$('${SKILL}' \
+      --artifacts-worktree '${ARTIFACTS_WT}' \
+      --sprint-state '${WORK}/sprint-state.yaml' \
+      --state-md '${WORK}/STATE.md' \
+      --bc-dir '${ARTIFACTS_WT}/specs/behavioral-contracts' \
+      --emit-handoff \
+      2>&1)\"
+    emit_exit=\$?
+    if [ \"\$emit_exit\" -ne 0 ]; then echo \"\$handoff_stdout\"; exit \"\$emit_exit\"; fi
+    printf '%s\n' \"\$handoff_stdout\" > '${ARTIFACTS_WT}/HANDOFF.md'
     '${SKILL}' \
       --artifacts-worktree '${ARTIFACTS_WT}' \
       --sprint-state '${WORK}/sprint-state.yaml' \
       --state-md '${WORK}/STATE.md' \
       --bc-dir '${ARTIFACTS_WT}/specs/behavioral-contracts' \
-      2>&1
+      --emit-wave-state 2>&1 || exit \$?
+    '${SKILL}' \
+      --artifacts-worktree '${ARTIFACTS_WT}' \
+      --sprint-state '${WORK}/sprint-state.yaml' \
+      --state-md '${WORK}/STATE.md' \
+      --bc-dir '${ARTIFACTS_WT}/specs/behavioral-contracts' \
+      --commit 2>&1 || exit \$?
   "
-  # Note: --precompact-flush-log NOT passed; PRECOMPACT_FLUSH_LOG NOT exported.
-  # The skill must default to ${ARTIFACTS_WT}/hooks/precompact-flush-log.
 
   # Must exit 0
   [ "$status" -eq 0 ] || {
@@ -2892,7 +2907,7 @@ stories:
     status: pending
 EOF
 
-  _run_skill
+  _run_skill_subcommands
 
   [ "$status" -eq 0 ] || {
     echo "FAIL (F-P6-002): skill exited ${status}, expected 0. Output: $output" >&2
@@ -2988,18 +3003,12 @@ stories:
 EOF
 
   run bash -c "
-    export ARTIFACTS_WT='${ARTIFACTS_WT}'
-    export SPRINT_STATE_YAML='${WORK}/sprint-state.yaml'
-    export STATE_MD_PATH='${WORK}/STATE.md'
-    export BC_DIR='${ARTIFACTS_WT}/specs/behavioral-contracts'
-    export PRECOMPACT_FLUSH_LOG='${ARTIFACTS_WT}/hooks/precompact-flush-log'
-    export GIT_DIR='${WORK}/.git'
-    export FACTORY_REPO='${WORK}'
     '${SKILL}' \
       --artifacts-worktree '${ARTIFACTS_WT}' \
       --sprint-state '${WORK}/sprint-state.yaml' \
       --state-md '${WORK}/STATE.md' \
       --bc-dir '${ARTIFACTS_WT}/specs/behavioral-contracts' \
+      --emit-handoff \
       2>&1
   "
 
@@ -3083,7 +3092,7 @@ anchored_adrs:
 # S-18.02 fixture with anchored_adrs
 EOF
 
-  _run_skill
+  _run_skill_subcommands
 
   [ "$status" -eq 0 ] || {
     echo "FAIL (F-P6-004): skill exited ${status}, expected 0. Output: $output" >&2
@@ -3157,21 +3166,7 @@ EOF
   _write_state_md "5"
 
   # First invocation — succeeds, commits HANDOFF.md with epic_status: complete
-  run bash -c "
-    export ARTIFACTS_WT='${ARTIFACTS_WT}'
-    export SPRINT_STATE_YAML='${WORK}/sprint-state.yaml'
-    export STATE_MD_PATH='${WORK}/STATE.md'
-    export BC_DIR='${ARTIFACTS_WT}/specs/behavioral-contracts'
-    export PRECOMPACT_FLUSH_LOG='${ARTIFACTS_WT}/hooks/precompact-flush-log'
-    export GIT_DIR='${WORK}/.git'
-    export FACTORY_REPO='${WORK}'
-    '${SKILL}' \
-      --artifacts-worktree '${ARTIFACTS_WT}' \
-      --sprint-state '${WORK}/sprint-state.yaml' \
-      --state-md '${WORK}/STATE.md' \
-      --bc-dir '${ARTIFACTS_WT}/specs/behavioral-contracts' \
-      2>&1
-  "
+  _run_skill_subcommands
   [ "$status" -eq 0 ] || {
     echo "FAIL (F-P7-002 first run): skill exited ${status}, expected 0." >&2
     echo "Output: $output" >&2
@@ -3190,21 +3185,7 @@ EOF
   rm -f "$ARTIFACTS_WT/HANDOFF.md"
 
   # Second invocation — this is the idempotent re-run
-  run bash -c "
-    export ARTIFACTS_WT='${ARTIFACTS_WT}'
-    export SPRINT_STATE_YAML='${WORK}/sprint-state.yaml'
-    export STATE_MD_PATH='${WORK}/STATE.md'
-    export BC_DIR='${ARTIFACTS_WT}/specs/behavioral-contracts'
-    export PRECOMPACT_FLUSH_LOG='${ARTIFACTS_WT}/hooks/precompact-flush-log'
-    export GIT_DIR='${WORK}/.git'
-    export FACTORY_REPO='${WORK}'
-    '${SKILL}' \
-      --artifacts-worktree '${ARTIFACTS_WT}' \
-      --sprint-state '${WORK}/sprint-state.yaml' \
-      --state-md '${WORK}/STATE.md' \
-      --bc-dir '${ARTIFACTS_WT}/specs/behavioral-contracts' \
-      2>&1
-  "
+  _run_skill_subcommands
 
   # Must exit 0 — idempotent re-invocation must succeed (EC-015)
   [ "$status" -eq 0 ] || {
@@ -3356,19 +3337,29 @@ EOF
   rm -f "$WORK/STATE.md"
 
   run bash -c "
-    export ARTIFACTS_WT='${ARTIFACTS_WT}'
-    export SPRINT_STATE_YAML='${WORK}/sprint-state.yaml'
-    export STATE_MD_PATH='${WORK}/STATE.md'
-    export BC_DIR='${ARTIFACTS_WT}/specs/behavioral-contracts'
-    export PRECOMPACT_FLUSH_LOG='${ARTIFACTS_WT}/hooks/precompact-flush-log'
-    export GIT_DIR='${WORK}/.git'
-    export FACTORY_REPO='${WORK}'
+    set -euo pipefail
+    handoff_stdout=\"\$('${SKILL}' \
+      --artifacts-worktree '${ARTIFACTS_WT}' \
+      --sprint-state '${WORK}/sprint-state.yaml' \
+      --state-md '${WORK}/STATE.md' \
+      --bc-dir '${ARTIFACTS_WT}/specs/behavioral-contracts' \
+      --emit-handoff \
+      2>&1)\"
+    emit_exit=\$?
+    if [ \"\$emit_exit\" -ne 0 ]; then echo \"\$handoff_stdout\"; exit \"\$emit_exit\"; fi
+    printf '%s\n' \"\$handoff_stdout\" > '${ARTIFACTS_WT}/HANDOFF.md'
     '${SKILL}' \
       --artifacts-worktree '${ARTIFACTS_WT}' \
       --sprint-state '${WORK}/sprint-state.yaml' \
       --state-md '${WORK}/STATE.md' \
       --bc-dir '${ARTIFACTS_WT}/specs/behavioral-contracts' \
-      2>&1
+      --emit-wave-state 2>&1 || exit \$?
+    '${SKILL}' \
+      --artifacts-worktree '${ARTIFACTS_WT}' \
+      --sprint-state '${WORK}/sprint-state.yaml' \
+      --state-md '${WORK}/STATE.md' \
+      --bc-dir '${ARTIFACTS_WT}/specs/behavioral-contracts' \
+      --commit 2>&1 || exit \$?
   "
 
   # Must exit 0 — wave-2 stories exist so this is a has-next-wave scenario
@@ -3451,18 +3442,12 @@ EOF
   }
 
   run bash -c "
-    export ARTIFACTS_WT='${ARTIFACTS_WT}'
-    export SPRINT_STATE_YAML='${WORK}/sprint-state.yaml'
-    export STATE_MD_PATH='${WORK}/STATE.md'
-    export BC_DIR='${ARTIFACTS_WT}/specs/behavioral-contracts'
-    export PRECOMPACT_FLUSH_LOG='${ARTIFACTS_WT}/hooks/precompact-flush-log'
-    export GIT_DIR='${WORK}/.git'
-    export FACTORY_REPO='${WORK}'
     '${SKILL}' \
       --artifacts-worktree '${ARTIFACTS_WT}' \
       --sprint-state '${WORK}/sprint-state.yaml' \
       --state-md '${WORK}/STATE.md' \
       --bc-dir '${ARTIFACTS_WT}/specs/behavioral-contracts' \
+      --emit-handoff \
       2>&1
   "
 
@@ -3531,18 +3516,12 @@ EOF
   }
 
   run bash -c "
-    export ARTIFACTS_WT='${ARTIFACTS_WT}'
-    export SPRINT_STATE_YAML='${WORK}/sprint-state.yaml'
-    export STATE_MD_PATH='${WORK}/STATE.md'
-    export BC_DIR='${ARTIFACTS_WT}/specs/behavioral-contracts'
-    export PRECOMPACT_FLUSH_LOG='${ARTIFACTS_WT}/hooks/precompact-flush-log'
-    export GIT_DIR='${WORK}/.git'
-    export FACTORY_REPO='${WORK}'
     '${SKILL}' \
       --artifacts-worktree '${ARTIFACTS_WT}' \
       --sprint-state '${WORK}/sprint-state.yaml' \
       --state-md '${WORK}/STATE.md' \
       --bc-dir '${ARTIFACTS_WT}/specs/behavioral-contracts' \
+      --emit-handoff \
       2>&1
   "
 
@@ -3636,18 +3615,12 @@ EOF
   rm -f "$WORK/STATE.md"
 
   run bash -c "
-    export ARTIFACTS_WT='${ARTIFACTS_WT}'
-    export SPRINT_STATE_YAML='${WORK}/sprint-state.yaml'
-    export STATE_MD_PATH='${WORK}/STATE.md'
-    export BC_DIR='${ARTIFACTS_WT}/specs/behavioral-contracts'
-    export PRECOMPACT_FLUSH_LOG='${ARTIFACTS_WT}/hooks/precompact-flush-log'
-    export GIT_DIR='${WORK}/.git'
-    export FACTORY_REPO='${WORK}'
     '${SKILL}' \
       --artifacts-worktree '${ARTIFACTS_WT}' \
       --sprint-state '${WORK}/sprint-state.yaml' \
       --state-md '${WORK}/STATE.md' \
       --bc-dir '${ARTIFACTS_WT}/specs/behavioral-contracts' \
+      --emit-handoff \
       2>&1
   "
 
@@ -3709,7 +3682,7 @@ factory_lock: "session-abc123"
 # STATE
 EOF
 
-  _run_skill
+  _run_skill_subcommands
 
   [ "$status" -eq 0 ] || {
     echo "FAIL (O-P10-001 inline): skill exited ${status}, expected 0. Output: $output" >&2
@@ -3780,7 +3753,7 @@ factory_lock:
 # STATE
 EOF
 
-  _run_skill
+  _run_skill_subcommands
 
   [ "$status" -eq 0 ] || {
     echo "FAIL (O-P10-001 block): skill exited ${status}, expected 0. Output: $output" >&2
@@ -4110,26 +4083,12 @@ verification_properties:
 # S-18.02 fixture with missing BC
 EOF
 
-  # Run with stderr captured separately so we can assert on it.
+  # Run with all subcommands; stderr is merged via 2>&1 in each step.
   # The skill must:
   #   (a) exit 0 (unresolved BC is advisory, not a hard block — EC-002)
-  #   (b) emit WARNING on stderr about the unresolved path
+  #   (b) emit WARNING on stderr about the unresolved path (captured from --emit-wave-state)
   #   (c) committed wave-state.yaml includes the fallback path in spec_files
-  run bash -c "
-    export ARTIFACTS_WT='${ARTIFACTS_WT}'
-    export SPRINT_STATE_YAML='${WORK}/sprint-state.yaml'
-    export STATE_MD_PATH='${WORK}/STATE.md'
-    export BC_DIR='${ARTIFACTS_WT}/specs/behavioral-contracts'
-    export PRECOMPACT_FLUSH_LOG='${ARTIFACTS_WT}/hooks/precompact-flush-log'
-    export GIT_DIR='${WORK}/.git'
-    export FACTORY_REPO='${WORK}'
-    '${SKILL}' \
-      --artifacts-worktree '${ARTIFACTS_WT}' \
-      --sprint-state '${WORK}/sprint-state.yaml' \
-      --state-md '${WORK}/STATE.md' \
-      --bc-dir '${ARTIFACTS_WT}/specs/behavioral-contracts' \
-      2>&1
-  "
+  _run_skill_subcommands
 
   # (a) Must exit 0 — unresolved BC path is advisory (EC-002), not a hard block
   [ "$status" -eq 0 ] || {
@@ -4877,7 +4836,7 @@ EOF
   # Default fixture has S-18.02 (pending) + S-18.03 (draft) → has-next-wave
   _write_sprint_state_pending
 
-  _run_skill
+  _run_skill_subcommands
 
   # Skill must exit 0
   [ "$status" -eq 0 ] || {
@@ -4913,6 +4872,35 @@ EOF
   echo "$committed_content" | grep -q "S-18.02" || {
     echo "FAIL (F-P11-001 behavioral): S-18.02 missing from committed wave-state.yaml." >&2
     echo "  The pending story S-18.02 from sprint-state.yaml must appear in wave-state.yaml." >&2
+    false
+  }
+}
+
+# ---------------------------------------------------------------------------
+# test_BC_5_41_001_PC10_S18_13_AC001_sibling_site_no_bash_redirect_in_wave_handoff
+# AC-001-SIBLING / F-S1813-IMPL-P1-002 — wave-handoff.sh MUST NOT contain
+# any bash redirection of HANDOFF.md (> "${ARTIFACTS_WT}/HANDOFF.md" or variants).
+# Oracle: grep for '>' redirect patterns targeting HANDOFF.md must return 0 matches.
+# This sibling oracle closes the gap that AC-001(a) only checks write-handoff.sh
+# but not wave-handoff.sh where the legacy main() also had bash redirects.
+# ---------------------------------------------------------------------------
+
+@test "test_BC_5_41_001_PC10_S18_13_AC001_sibling_site_no_bash_redirect_in_wave_handoff" {
+  local wave_handoff_sh
+  wave_handoff_sh="${SKILL_DIR}/wave-handoff.sh"
+
+  # Grep for any bash redirect targeting HANDOFF.md in wave-handoff.sh.
+  # Patterns: > ...HANDOFF.md, >> ...HANDOFF.md, or tee ...HANDOFF.md
+  local redirect_matches
+  redirect_matches="$(grep -nE '>+[[:space:]]*"?\$\{ARTIFACTS_WT\}/HANDOFF\.md|tee[[:space:]].*HANDOFF\.md' "$wave_handoff_sh" 2>/dev/null || true)"
+
+  [ -z "$redirect_matches" ] || {
+    echo "FAIL (AC-001-SIBLING): bash redirect to HANDOFF.md found in wave-handoff.sh" >&2
+    echo "  The monolithic main() in wave-handoff.sh MUST NOT write HANDOFF.md via bash" >&2
+    echo "  redirection. BC-5.41.001 PC10 / §Forbidden Dependencies forbid bash redirection" >&2
+    echo "  of HANDOFF.md as primary or fallback. F-S1813-IMPL-P1-002 requires hard-error." >&2
+    echo "  Matches found:" >&2
+    echo "$redirect_matches" >&2
     false
   }
 }

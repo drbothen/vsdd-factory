@@ -177,8 +177,6 @@ main() {
         "$PRECOMPACT_FLUSH_LOG" \
         "$STATE_MD_PATH" \
         "1")" || exit $?
-      printf '%s\n' "$handoff_content" > "${ARTIFACTS_WT}/HANDOFF.md"
-
       # Remove stale wave-state.yaml from the commit tree if it exists (F-008 / AC-012).
       # This staging step must happen BEFORE commit_to_artifacts so the deletion is
       # included in the `git diff --cached` check (EC-015 guard) that commit_to_artifacts
@@ -268,8 +266,6 @@ main() {
         "$STATE_MD_PATH" \
         "0" \
         "${story_pairs[@]+"${story_pairs[@]}"}")" || exit $?
-      printf '%s\n' "$handoff_content" > "${ARTIFACTS_WT}/HANDOFF.md"
-
       # Step 5: Write wave-state.yaml with final content, using prior_handoff_sha.
       # The content written here is EXACTLY what will be committed — no post-hoc patches.
       # BC-5.41.002 PC2: wave-state.yaml describes the NEXT wave, so its wave_id is
@@ -324,7 +320,7 @@ cmd_emit_handoff() {
 
   case "$classification" in
     broken-sprint-state)
-      echo "BrokenSprintState: stories in non-terminal, non-pending states exist but no next-wave stories are pending/draft." >&2
+      echo "BrokenSprintState: stories in non-terminal, non-pending states exist but no next-wave stories are pending/draft. Update sprint-state.yaml to reflect actual story states." >&2
       exit 1
       ;;
     epic-complete)
@@ -510,9 +506,8 @@ case "$SUBCOMMAND" in
     cmd_commit
     ;;
   "")
-    # Legacy monolithic mode (no subcommand): preserves backward compatibility
-    # for existing tests and invocations that call wave-handoff.sh without a subcommand.
-    main
+    echo "ERROR: monolithic wave-handoff invocation is removed; use the agent-orchestrated subcommands: --emit-handoff → (agent Write HANDOFF.md) → --emit-wave-state → --commit (see SKILL.md / ADR-026 §Decision 8)." >&2
+    exit 1
     ;;
   *)
     echo "ERROR: unknown subcommand '$SUBCOMMAND'" >&2
