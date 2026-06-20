@@ -350,7 +350,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** `[D-667 commit SHA — see git -C .factory log -1]` D-667 S-18.04a LOCAL post-fix pass NOT-CLEAN (prior: `c0466c40` D-666 S-18.04a LOCAL pass-1 spec-anchor remediation; prior: `8b1306d1` D-665 SHA-patch)
+- **factory-artifacts HEAD:** `a0adb135` D-667 S-18.04a LOCAL post-fix pass NOT-CLEAN (prior: `c0466c40` D-666 S-18.04a LOCAL pass-1 spec-anchor remediation; prior: `8b1306d1` D-665 SHA-patch)
 - **develop HEAD:** `70664e02` (S-18.13 PR #196 SQUASH-MERGED 2026-06-20; prior: `bd6e50ce` S-18.02 PR #195 2026-06-19)
 - **main HEAD:** `caf06c68` (rc.21 bot bundle commit 2026-06-13; UNCHANGED)
 - **v1.0.0-rc.21 tag:** `03054524` (SHIPPED; FULLY IN OPERATOR MARKETPLACE)
