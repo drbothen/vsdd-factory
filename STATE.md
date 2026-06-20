@@ -137,7 +137,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | caf06c68 | rc.21 bot binary bundle commit 2026-06-13; prior: 2a191314 (rc.20) |
 | develop | bd6e50ce | S-18.02 PR #195 SQUASH-MERGED 2026-06-19; prior: 8b26a0fe (S-18.01 PR #193 2026-06-19) |
-| factory-artifacts | d7e823fd | D-661 S-18.13 spec-cascade 3-CLEAN CONVERGED HEAD (current); prior: f563f628 D-660 SHA-patch; prior: 8cd3d3a6 D-660 HEAD |
+| factory-artifacts | d45ef11e | D-662 D-430(a) COMPACTION + TDD-START HEAD (current); prior: 79fab302 D-661 SHA-patch; prior: d7e823fd D-661 HEAD |
 | v1.0.0-rc.21 (tag) | 03054524 | SHIPPED 2026-06-13; FULLY IN OPERATOR MARKETPLACE (marketplace PR #13 MERGED); annotated tag object |
 | v1.0.0-rc.20 (tag) | e9e38286 | SHIPPED 2026-06-01; marketplace PR #12 squash-merged 862e660d |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28 |
@@ -336,7 +336,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** `79fab302` (D-661 SHA-patch HEAD / D-662 parent-commit; prior: `d7e823fd` D-661 HEAD; prior: `8cd3d3a6` D-659 HEAD; prior: `ba577c03` D-659 SHA-patch)
+- **factory-artifacts HEAD:** `d45ef11e` (D-662 COMPACTION + TDD-START HEAD; prior: `79fab302` D-661 SHA-patch; prior: `d7e823fd` D-661 HEAD; prior: `8cd3d3a6` D-659 HEAD)
 - **develop HEAD:** `bd6e50ce` (S-18.02 PR #195 SQUASH-MERGED 2026-06-19; prior: `8b26a0fe` S-18.01 PR #193 SQUASH-MERGED 2026-06-19)
 - **main HEAD:** `caf06c68` (rc.21 bot bundle commit 2026-06-13; UNCHANGED)
 - **v1.0.0-rc.21 tag:** `03054524` (SHIPPED; FULLY IN OPERATOR MARKETPLACE)
@@ -356,7 +356,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 ### §11. Post-CLEAR/Post-RESET Resume Checklist (zero-context; D-639 refresh)
 
-1. **Verify worktree state:** `git rev-parse --short origin/develop` → expect `bd6e50ce`. `git rev-parse --short origin/main` → expect `caf06c68`. `git -C .factory log -1 --format='%h'` → expect `a225bbc4` (D-659 pass-8 NOT-CLEAN REMEDIATED HEAD; branch factory-artifacts; clean status). feature/S-18.01 MERGED. feature/S-18.02 MERGED PR #195 bd6e50ce (deleted). worktrees .worktrees/S-18.01/.worktrees/S-18.02 cleanup pending devops-engineer.
+1. **Verify worktree state:** `git rev-parse --short origin/develop` → expect `bd6e50ce`. `git rev-parse --short origin/main` → expect `caf06c68`. `git -C .factory log -1 --format='%h'` → expect `d45ef11e` (D-659 pass-8 NOT-CLEAN REMEDIATED HEAD; branch factory-artifacts; clean status). feature/S-18.01 MERGED. feature/S-18.02 MERGED PR #195 bd6e50ce (deleted). worktrees .worktrees/S-18.01/.worktrees/S-18.02 cleanup pending devops-engineer.
 2. **Read §1-§12 this checkpoint** (all of it; D-651 self-sufficient).
 3. **Verify 4-index:** `grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md` → "3.23"; ARCH-INDEX → "2.60"; VP-INDEX → "2.40"; STORY-INDEX → "4.38"; L2-INDEX → "1.0.13".
 4. **E-10 CASCADE SEALED D-531.** Do NOT resume without engine-surface material change.
