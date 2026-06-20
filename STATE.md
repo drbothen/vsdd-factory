@@ -140,7 +140,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | caf06c68 | rc.21 bot binary bundle commit 2026-06-13; prior: 2a191314 (rc.20) |
 | develop | 70664e02 | S-18.13 PR #196 SQUASH-MERGED 2026-06-20; prior: bd6e50ce (S-18.02 PR #195 2026-06-19) |
-| factory-artifacts | fc539768 | D-664 DURABLE PAUSE burst HEAD; prior: de5e146f D-663 POST-MERGE; prior: 2c0ef179 D-662 SHA-patch |
+| factory-artifacts | 8f468385 | D-665 ORCHESTRATOR RESUME burst HEAD; prior: f7bb8bbc D-664 SHA-patch; prior: fc539768 D-664 DURABLE PAUSE burst |
 | v1.0.0-rc.21 (tag) | 03054524 | SHIPPED 2026-06-13; FULLY IN OPERATOR MARKETPLACE (marketplace PR #13 MERGED); annotated tag object |
 | v1.0.0-rc.20 (tag) | e9e38286 | SHIPPED 2026-06-01; marketplace PR #12 squash-merged 862e660d |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28 |
@@ -346,7 +346,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** `fc539768` (D-664 DURABLE PAUSE burst; prior: `de5e146f` D-663 POST-MERGE burst; prior: `2c0ef179` D-662 SHA-patch)
+- **factory-artifacts HEAD:** `8f468385` (D-665 ORCHESTRATOR RESUME burst; prior: `f7bb8bbc` D-664 SHA-patch; prior: `fc539768` D-664 DURABLE PAUSE burst)
 - **develop HEAD:** `70664e02` (S-18.13 PR #196 SQUASH-MERGED 2026-06-20; prior: `bd6e50ce` S-18.02 PR #195 2026-06-19)
 - **main HEAD:** `caf06c68` (rc.21 bot bundle commit 2026-06-13; UNCHANGED)
 - **v1.0.0-rc.21 tag:** `03054524` (SHIPPED; FULLY IN OPERATOR MARKETPLACE)
@@ -356,7 +356,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 - **BC-5.41.002 v1.19:** `ss-05/BC-5.41.002.md` (D-658 POLICY-8 back-reference gap closed: §Traceability Stories row updated S-18.01→S-18.01, S-18.13; §Story Anchor updated to add S-18.13 (PC6 atomicity, EPIC-COMPLETE single-file commit arm). Prior v1.18: D-657 PC6 EPIC-COMPLETE single-file explicitly permitted. Prior v1.16: D-648 POL-14 lifecycle promotion lifecycle_status draft→active.)
 - **Older anchors (BC-1.15.001 v1.5..VP-090 v1.2, VP-081..VP-085, L2-INDEX v1.0.13, ADR-025 v1.6, S-17.04 v1.7):** see `cycles/v1.0-brownfield-backfill/decision-log.md` D-580..D-615 blocks for full version history and rationale.
 - **ADR-027 v1.0:** `specs/architecture/decisions/ADR-027-factory-artifacts-worktree-path-discipline-for-shell-skills.md` (D-639 architect-authored: ARTIFACTS_WT = `.factory` worktree root; two-arg invocation model; bats fixture places files under `$ARTIFACTS_WT/...` not `$ARTIFACTS_WT/.factory/...`; accepted 2026-06-18; SS-05/SS-06/SS-07; RESOLVES F-S1801-P3-001 BLOCKER)
-- **Verify on resume:** `git rev-parse --short origin/develop` → expect `70664e02`; `git rev-parse --short origin/main` → expect `caf06c68`; `git -C .factory log -1 --format='%h %s'` → D-664 DURABLE PAUSE burst HEAD (run at resume time)
+- **Verify on resume:** `git rev-parse --short origin/develop` → expect `70664e02`; `git rev-parse --short origin/main` → expect `caf06c68`; `git -C .factory log -1 --format='%h %s'` → D-665 ORCHESTRATOR RESUME burst HEAD (run at resume time)
 
 ### §10. PR Status
 
