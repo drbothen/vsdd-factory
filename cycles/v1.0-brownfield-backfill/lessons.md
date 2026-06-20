@@ -4852,3 +4852,35 @@ These three checks together implement a bidirectional verification: index→ADR 
 **Mitigation already active:** §3 User Directives carry "Adversary MUST grep `origin/develop`..." (from L-EDP1-067-CANDIDATE). This lesson adds the corollary: MUST NOT read stale local checkout for source code during adversary review.
 
 **Cites:** D-656; F-SP13-P3-003 FALSE POSITIVE; S-18.13 spec-cascade LOCAL pass-3; origin/develop bd6e50ce; local develop 8b26a0fe; L-EDP1-067-CANDIDATE; §3 User Directives.
+
+---
+
+## L-SP13-bc-anchor-add-must-sweep-sibling-bc-stories-and-indexes (2026-06-19; D-658; [process-gap])
+
+**Category:** POLICY 8 bidirectional traceability — back-reference propagation on BC anchor addition.
+
+**Trigger:** S-18.13 spec-cascade LOCAL pass-6 NOT-CLEAN. F-SP13-P6-002 + F-SP13-P6-003 found that D-656 added BC-5.41.002 to S-18.13's `behavioral_contracts` array but did NOT: (a) update BC-5.41.002 body §Traceability Stories row to include S-18.13, (b) update BC-5.41.002 §Story Anchor to include S-18.13, (c) update BC-INDEX.md Stories cells for BC-5.41.002 (and BC-5.41.001, which shares the pattern) to include S-18.13, (d) update STORY-INDEX.md BC-coverage summary for BC-5.41.002 to include S-18.13. D-656 DID correctly sweep BC-5.41.001 sibling for the same gap but missed BC-5.41.002, which was the newly-added BC in that same burst.
+
+**Rule:** When a story adds a BC to its `behavioral_contracts:` frontmatter array, the SAME burst MUST:
+1. In the BC's body §Traceability table **Stories** row: add the story ID.
+2. In the BC's body **§Story Anchor** section: add the story ID with parenthetical identifying the AC(s) that trace to this BC.
+3. In **BC-INDEX.md** Stories column for that BC row: add the story ID.
+4. In **BC-INDEX.md** Stories column for ALL SIBLING BCs that the story also exercises (i.e., BCs already in the `behavioral_contracts` array before this burst): verify Stories cell and add the story ID if not already present.
+5. In **STORY-INDEX.md** BC-coverage summary: update the `BC-X.XX.XXX (stories)` entry for the newly-added BC to include the new story ID.
+
+The failure mode is: the burst author sweeps the FIRST BC that was already in `behavioral_contracts` (BC-5.41.001 in this case) but misses the NEWLY-ADDED BC (BC-5.41.002) and all 3 index propagation sites.
+
+**Corollary — D-656 vs D-658 comparison:** D-656 added BC-5.41.002 to S-18.13 `behavioral_contracts`. D-656 back-referenced S-18.13 in BC-5.41.001 (correct, since it was already in behavioral_contracts and had been swept), but did not back-reference in BC-5.41.002 (the newly-added BC — the one most needing the sweep). This is the REVERSE of the expected error: authors tend to sweep the OLD entries and miss the NEW one.
+
+**S-7.02 defensive sweep discipline (post-burst gate):** After any burst that modifies a story's `behavioral_contracts:` array, run:
+```bash
+# For each BC in behavioral_contracts array:
+grep -l "S-XX.XX" .factory/specs/behavioral-contracts/ss-*/BC-*.md   # verify Stories row
+grep "BC-XX.XX.XXX" .factory/stories/STORY-INDEX.md | grep "BC coverage"  # verify BC-coverage
+grep "BC-XX.XX.XXX.*Stories" .factory/specs/behavioral-contracts/BC-INDEX.md  # verify BC-INDEX
+```
+Any miss in these 3 grep checks is a POLICY 8 propagation gap.
+
+**Closes:** F-SP13-P6-001 (BC-5.41.002 body back-ref); F-SP13-P6-002 (BC-INDEX Stories cells); F-SP13-P6-003 (STORY-INDEX BC-coverage summary).
+
+**Cites:** D-658; F-SP13-P6-001; F-SP13-P6-002; F-SP13-P6-003; POLICY 8 v1.3 bidirectional traceability; S-18.13; BC-5.41.002 v1.19; BC-INDEX v3.22; STORY-INDEX v4.36.
