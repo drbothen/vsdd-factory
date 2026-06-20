@@ -414,7 +414,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** `a23942cc` (D-657 pass-5 NOT-CLEAN REMEDIATED HEAD; prior: `e6fc3c87` D-656 SHA-patch; prior: `8de54605` D-651 durability-hardening HEAD)
+- **factory-artifacts HEAD:** `a225bbc4` (D-659 pass-8 NOT-CLEAN REMEDIATED HEAD; prior: `4d467ae7` D-658 SHA-patch; prior: `a23942cc` D-657 HEAD)
 - **develop HEAD:** `bd6e50ce` (S-18.02 PR #195 SQUASH-MERGED 2026-06-19; prior: `8b26a0fe` S-18.01 PR #193 SQUASH-MERGED 2026-06-19)
 - **main HEAD:** `caf06c68` (rc.21 bot bundle commit 2026-06-13; UNCHANGED)
 - **v1.0.0-rc.21 tag:** `03054524` (SHIPPED; FULLY IN OPERATOR MARKETPLACE)
@@ -450,7 +450,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 - **ADR-025 v1.6 SHIPPED:** guard at `3b2a378c`; ARCH-INDEX v2.27
 - **S-17.04 story:** `.factory/stories/S-17.04-mid-burst-heartbeat-renewal-wiring.md` v1.7 MERGED; E-17 W4 COMPLETE; PR #184 3b2a378c
 - **ADR-027 v1.0:** `specs/architecture/decisions/ADR-027-factory-artifacts-worktree-path-discipline-for-shell-skills.md` (D-639 architect-authored: ARTIFACTS_WT = `.factory` worktree root; two-arg invocation model; bats fixture places files under `$ARTIFACTS_WT/...` not `$ARTIFACTS_WT/.factory/...`; accepted 2026-06-18; SS-05/SS-06/SS-07; RESOLVES F-S1801-P3-001 BLOCKER)
-- **Verify on resume:** `git rev-parse --short origin/develop` → expect `bd6e50ce`; `git rev-parse --short origin/main` → expect `caf06c68`; `git -C .factory log -1 --format='%h'` → expect `a23942cc` (D-657 pass-5 NOT-CLEAN REMEDIATED HEAD)
+- **Verify on resume:** `git rev-parse --short origin/develop` → expect `bd6e50ce`; `git rev-parse --short origin/main` → expect `caf06c68`; `git -C .factory log -1 --format='%h'` → expect `a225bbc4` (D-659 pass-8 NOT-CLEAN REMEDIATED HEAD)
 
 ### §10. PR Status
 
@@ -460,7 +460,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 ### §11. Post-CLEAR/Post-RESET Resume Checklist (zero-context; D-639 refresh)
 
-1. **Verify worktree state:** `git rev-parse --short origin/develop` → expect `bd6e50ce`. `git rev-parse --short origin/main` → expect `caf06c68`. `git -C .factory log -1 --format='%h'` → expect `a23942cc` (D-657 pass-5 NOT-CLEAN REMEDIATED HEAD; branch factory-artifacts; clean status). feature/S-18.01 MERGED. feature/S-18.02 MERGED PR #195 bd6e50ce (deleted). worktrees .worktrees/S-18.01/.worktrees/S-18.02 cleanup pending devops-engineer.
+1. **Verify worktree state:** `git rev-parse --short origin/develop` → expect `bd6e50ce`. `git rev-parse --short origin/main` → expect `caf06c68`. `git -C .factory log -1 --format='%h'` → expect `a225bbc4` (D-659 pass-8 NOT-CLEAN REMEDIATED HEAD; branch factory-artifacts; clean status). feature/S-18.01 MERGED. feature/S-18.02 MERGED PR #195 bd6e50ce (deleted). worktrees .worktrees/S-18.01/.worktrees/S-18.02 cleanup pending devops-engineer.
 2. **Read §1-§12 this checkpoint** (all of it; D-651 self-sufficient).
 3. **Verify 4-index:** `grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md` → "3.22"; ARCH-INDEX → "2.60"; VP-INDEX → "2.40"; STORY-INDEX → "4.37"; L2-INDEX → "1.0.13".
 4. **E-10 CASCADE SEALED D-531.** Do NOT resume without engine-surface material change.
