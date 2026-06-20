@@ -1844,3 +1844,66 @@ ARCH v2.59 — BUMPED from v2.58 — PASS (ADR-026 v1.23 catalog row annotation 
 ### Streak
 
 0/3 (pass-3 NOT-CLEAN; F-SP13-P3-001 CRITICAL + F-SP13-P3-002 HIGH VALID, both REMEDIATED this burst; F-SP13-P3-003 FALSE POSITIVE, no fix needed). Package: S-18.13 v1.5 (RESTRUCTURE REDESIGN) + ADR-026 v1.23 + BC-5.41.001 v1.24 + BC-5.41.002 v1.17. Pass-4 fresh-context adversary + consistency-validator NEXT.
+
+---
+
+## D-661 — S-18.13 spec-evolution LOCAL spec-cascade BC-5.39.001 3-CLEAN CONVERGED — 2026-06-20
+
+**Decision ID:** D-661
+**Phase:** S-18.13-spec-cascade-LOCAL-3-CLEAN-CONVERGED
+**Date:** 2026-06-20
+**Parent-commit:** f563f628 (D-660 SHA-patch HEAD)
+
+### Summary
+
+S-18.13 spec-evolution LOCAL spec-cascade BC-5.39.001 3-CLEAN CONVERGED. Passes 11/12/13 all CLEAN/CONSISTENT. Streak 3/3 CONVERGED. Package FROZEN throughout (no spec edits between passes 11/12/13). S-7.02 cycle-close checklist SATISFIED.
+
+### Cascade Arc (13 passes)
+
+- **P1** ADR-026 body §Changelog v1.22 POLICY 14 propagation gap — D-654 fix
+- **P2** S-18.13 mechanism-precision (false adversary premise re: bash-only) — D-655 fix
+- **P3** F-SP13-P3-001 CRITICAL PC10 not implementable vs bash producer; F-SP13-P3-002 HIGH; F-SP13-P3-003 FALSE POSITIVE — D-656 RESTRUCTURE REDESIGN (four-step agent-orchestrated flow)
+- **P4** CLEAN (streak 1/3) — pass-4 fresh-context
+- **P5** F-SP13-P5-001 CRITICAL EPIC-COMPLETE carve-out — D-657 fix
+- **P6** POLICY 8 back-reference propagation gaps — D-658 fix
+- **P7** CLEAN (streak 1/3; 1 LOW obs O-SP13-P7-001) — pass-7 fresh-context
+- **P8** C-SP13-P8-001 MAJOR BC-5.41.002 stale-cite — D-659 fix
+- **P9** CLEAN (streak 1/3; O-SP13-P9-001 LOW non-blocking)
+- **P10** F-SP13-P10-001 MEDIUM ADR §Decision 8 version tokens; C-SP13-P10-001 MAJOR BC-5.41.001 §Story Anchor asymmetry — D-660 fix
+- **P11** CLEAN/CONSISTENT (streak 0/3→1/3)
+- **P12** CLEAN/CONSISTENT (streak 1/3→2/3)
+- **P13** CLEAN/CONSISTENT — CONVERGED (streak 2/3→3/3 per BC-5.39.001)
+
+### Package at Convergence (FROZEN)
+
+- ADR-026 v1.24
+- BC-5.41.001 v1.26
+- BC-5.41.002 v1.19
+- S-18.13 v1.8 (status: ready; input-hash: 7d6acdc; 10pts; [BC-5.41.001, BC-5.41.002])
+
+### 4-Index (UNCHANGED this burst)
+
+- BC-INDEX v3.23 (UNCHANGED)
+- VP-INDEX v2.40 (UNCHANGED)
+- STORY-INDEX v4.38 (UNCHANGED)
+- ARCH-INDEX v2.60 (UNCHANGED)
+
+### S-7.02 Deferred LOW Observation Dispositions
+
+1. **O-SP13-EC017-msg (LOW; recurred P7/P13):** BC-5.41.001 EC-017 HAS-NEXT-WAVE arm leaves the exact stderr string for the wave-state.yaml-absent sub-case unpinned. DISPOSITION: RESOLVE-AT-TDD — spec fully pins the behavior (fail-loud, abort before git add/commit, no partial commit); implementer/test-writer pins the exact wave-state.yaml-absent error string during S-18.13 TDD and asserts it. NOT a deferred-WORK defect (behavior is complete). Anchor: S-18.13 TDD (test-writer T-3/implementer).
+2. **O-SP13-adr-illustrative-stepcount (LOW; P9/P11):** ADR-026 §Decision 8 illustrative "Canonical SKILL.md step structure" block shows 5 steps (adds --parse-sprint-state Step 1) vs the binding normative 4-step flow. DISPOSITION: NO-ACTION — illustrative/non-normative block; the binding normative flow is 4-step and the story matches it; no implementer ambiguity.
+3. **O-SP13-path-allow (LOW; P9/P10/P12):** gate read_file path_allow=[".factory/HANDOFF.md"] is production-anchored (ARTIFACTS_WT=.factory). DISPOSITION: NO-ACTION — out of S-18.13 perimeter (S-18.02 gate property); production invocation always uses .factory; AC-002 already handles test-sandbox path alignment.
+4. **O-SP13-empty-vp-di (LOW; P12):** S-18.13 verification_properties:[] / domain_invariants:[] empty. DISPOSITION: NO-ACTION — write-path restructure exercises existing PCs; introduces no new VP/DI; acceptable as authored (no POLICY 9 violation).
+
+### S-7.02 Cycle-Close Lessons Confirmed Codified
+
+- L-SP13-consistency-validator-must-check-adr-own-body-changelog-row (D-654) — IN lessons.md
+- L-SP13-architect-must-read-actual-entrypoint-not-allowed-tools (D-656) — IN lessons.md
+- L-SP13-stale-local-develop-causes-false-positive-adversary-findings (D-656) — IN lessons.md
+- L-SP13-bc-anchor-add-must-sweep-sibling-bc-stories-and-indexes (D-658) — IN lessons.md
+- L-S18-bc-bump-must-sweep-dependent-story-body-cites 2nd-occurrence note (D-659) — IN lessons.md
+- L-SP13-adr-cite-volatile-pin-drift-drop-version-token (D-660) — APPENDED lessons.md this burst
+
+### NEXT
+
+S-18.13 TDD per-story delivery (per-story-delivery flow). Package FROZEN at ADR-026 v1.24 / BC-5.41.001 v1.26 / BC-5.41.002 v1.19 / S-18.13 v1.8.

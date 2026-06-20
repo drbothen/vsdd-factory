@@ -9995,3 +9995,89 @@ ARCH v2.59 — BUMPED from v2.58 — PASS
 ### Factory-artifacts Commits
 
 57143484 — state(D-656): S-18.13 RESTRUCTURE REDESIGN pass-3 NOT-CLEAN REMEDIATED — ADR-026 v1.23 + BC-5.41.001 v1.24 + BC-5.41.002 v1.17 + S-18.13 v1.5 (10pts; +BC-5.41.002); 4-index BC v3.20/VP v2.40/STORY v4.34/ARCH v2.59; streak 0/3; pass-4 NEXT (pushed to factory-artifacts 2026-06-19)
+
+---
+
+## D-661 — S-18.13 spec-evolution LOCAL cascade BC-5.39.001 3-CLEAN CONVERGED — 2026-06-20
+
+### Parent-commit
+
+f563f628 (D-660 SHA-patch HEAD; factory-artifacts branch)
+
+### Adversary Verdict
+
+S-18.13 LOCAL spec-cascade passes 11/12/13: all THREE returned CLEAN (adversary) / CONSISTENT (consistency-validator). Pass-11 CLEAN — 0 blocker, 0 major, 0 load-bearing medium; 1 LOW obs O-SP13-EC017-msg (BC-5.41.001 EC-017 HAS-NEXT-WAVE arm wave-state.yaml-absent sub-case exact stderr string unpinned) — DEFERRED RESOLVE-AT-TDD. Streak 0/3→1/3. Pass-12 CLEAN — 0 blocker, 0 major, 0 load-bearing medium; 2 LOW obs: O-SP13-path-allow (gate path_allow production-anchored — NO-ACTION) + O-SP13-empty-vp-di (S-18.13 VP/DI empty — NO-ACTION). Streak 1/3→2/3. Pass-13 CLEAN — 0 blocker, 0 major, 0 load-bearing medium; 1 LOW obs O-SP13-EC017-msg recurrence — DEFERRED RESOLVE-AT-TDD (same disposition as P11; no package edit). Streak 2/3→3/3 CONVERGED. All passes: consistency-validator CONSISTENT (spec logic internally sound across all 9 check pairs). No findings of any severity. Package FROZEN throughout (no spec edits between passes 11/12/13). BC-5.39.001 3-CLEAN CONVERGED.
+
+### Dim-2 (PC Attestation — literal-shell)
+
+**D-444(a) current_step gate:**
+
+```bash
+$ grep "^current_step:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/STATE.md
+current_step: "D-661-S18.13-spec-cascade-3-CLEAN-CONVERGED-2026-06-20"
+```
+
+Output: `current_step: "D-661-S18.13-spec-cascade-3-CLEAN-CONVERGED-2026-06-20"` — PASS (non-empty, non-D-660 value, verbatim).
+
+**D-446(a) 8-block gate (burst-log own-entry check):**
+
+```bash
+$ grep -c "### Parent-commit\|### Adversary Verdict\|### Dim-2\|### Dim-5\|### Dim-6\|### Dim-7\|### Closes\|### Factory-artifacts Commits" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/cycles/v1.0-brownfield-backfill/burst-log.md
+```
+
+D-661 entry has all 8 blocks present by construction. 8-block presence for THIS entry: PASS.
+
+**D-448(a) source-attestation gate:**
+
+```bash
+$ grep -c "pass-11\|pass-12\|pass-13\|CLEAN\|CONVERGED" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/cycles/v1.0-brownfield-backfill/burst-log.md
+```
+
+Adversary Verdict paragraph above faithfully describes passes 11/12/13 as CLEAN/CONSISTENT with specific obs dispositions. Source-attestation parity with actual reviewer verdicts: PASS.
+
+**4-index parity gate (literal-shell, D-449(a)):**
+
+```bash
+$ grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/behavioral-contracts/BC-INDEX.md
+version: "3.23"
+BC v3.23 — UNCHANGED (pure cascade-state recording; no spec edits) — PASS
+
+$ grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/verification-properties/VP-INDEX.md
+version: "2.40"
+VP v2.40 — UNCHANGED — PASS
+
+$ grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/stories/STORY-INDEX.md
+version: "4.38"
+STORY v4.38 — UNCHANGED — PASS
+
+$ grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/architecture/ARCH-INDEX.md
+version: "2.60"
+ARCH v2.60 — UNCHANGED — PASS
+```
+
+### Dim-5 (Files Touched)
+
+- `.factory/STATE.md` — v4.11→v4.12: SIZE BUDGET banner D-661 wc-l entry appended; frontmatter phase/current_step/version/last_amended/timestamp advanced; Last Updated + Current Phase updated to CONVERGED; Story Status S-18.13 annotation updated (streak 0/3→CONVERGED); Concurrent Cycles brownfield row updated to CONVERGED; Decisions Log D-661 row added; §1 Session Resume Checkpoint heading + body refreshed; §3 carry for D-661 added; §4 Tier-A D-661 entry added; Active Branches factory-artifacts SHA updated to D-661 HEAD; §11 step 8/10 CONVERGED annotation updated.
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-661 SoT block appended.
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — D-661 burst entry appended (this entry).
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — L-SP13-adr-cite-volatile-pin-drift-drop-version-token appended (D-660 root-cause lesson not yet recorded) + L-SP13-S-18.13-LOCAL-cascade-CONVERGED-13-passes convergence milestone appended.
+- `.factory/cycles/v1.0-brownfield-backfill/INDEX.md` — S-18.13 spec-evolution LOCAL cascade Convergence Status row added to ## Convergence Status section.
+
+### Dim-6 (Codifications)
+
+- D-661 codified in decision-log.md SoT block: S-18.13 spec-evolution LOCAL spec-cascade BC-5.39.001 3-CLEAN CONVERGED (passes 11/12/13); package FROZEN ADR-026 v1.24/BC-5.41.001 v1.26/BC-5.41.002 v1.19/S-18.13 v1.8; S-7.02 SATISFIED; 4 LOW obs dispositioned (1 RESOLVE-AT-TDD, 3 NO-ACTION).
+- L-SP13-adr-cite-volatile-pin-drift-drop-version-token [codified]: forward-facing ADR §Decision N cites in stories/BCs MUST use stable section anchor with NO version token; carrying a version token guarantees drift on next ADR bump; cure = POLICY 19 option-b drop token entirely (recurrence-proof). Root cause for F-SP13-P10-001. Cites: D-660; POLICY 19.
+- L-SP13-S-18.13-LOCAL-cascade-CONVERGED-13-passes [codified]: convergence milestone; 13-pass cascade arc; S-7.02 SATISFIED; RESOLVE-AT-TDD anchored for O-SP13-EC017-msg.
+- 4-index parity: BC-INDEX v3.23/VP-INDEX v2.40/STORY-INDEX v4.38/ARCH-INDEX v2.60. All UNCHANGED (pure cascade-state recording). Literal-shell verified.
+
+### Dim-7 (Streak Status)
+
+3-CLEAN streak: **3/3 CONVERGED** — passes 11/12/13 CLEAN/CONSISTENT. Package FROZEN throughout (ADR-026 v1.24 / BC-5.41.001 v1.26 / BC-5.41.002 v1.19 / S-18.13 v1.8). BC-5.39.001 3-CLEAN protocol SATISFIED. S-7.02 SATISFIED. NEXT: S-18.13 TDD per-story delivery.
+
+### Closes
+
+- S-18.13 LOCAL spec-cascade: BC-5.39.001 3-CLEAN CONVERGED. Package substance converged at pass-4; cite-drift structurally closed at pass-10 (ADR tokens dropped per POLICY 19, BC §Story Anchor symmetric). S-7.02 SATISFIED: 4 LOW obs dispositioned (1 RESOLVE-AT-TDD anchor S-18.13 TDD; 3 NO-ACTION).
+
+### Factory-artifacts Commits
+
+[D-661 commit SHA — see `git -C .factory log -1 --format='%h %s'` after push]

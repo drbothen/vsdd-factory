@@ -4886,3 +4886,59 @@ Any miss in these 3 grep checks is a POLICY 8 propagation gap.
 **Closes:** F-SP13-P6-001 (BC-5.41.002 body back-ref); F-SP13-P6-002 (BC-INDEX Stories cells); F-SP13-P6-003 (STORY-INDEX BC-coverage summary).
 
 **Cites:** D-658; F-SP13-P6-001; F-SP13-P6-002; F-SP13-P6-003; POLICY 8 v1.3 bidirectional traceability; S-18.13; BC-5.41.002 v1.19; BC-INDEX v3.22; STORY-INDEX v4.36.
+
+---
+
+## L-SP13-adr-cite-volatile-pin-drift-drop-version-token (2026-06-20; D-660; [process-gap])
+
+**Category:** POLICY 19 anti-volatile-pin — forward-facing ADR §Decision cite version-token drift.
+
+**Trigger:** S-18.13 spec-cascade LOCAL pass-10 NOT-CLEAN. F-SP13-P10-001 MEDIUM: S-18.13 v1.7 still carried ADR §Decision 8 forward-facing cites with version tokens `(v1.23)` / `(v1.24)` in multiple locations (§Originating Finding, §Scope S5 note, AC-004, T-1, T-2c, implementation-sequence, §File Structure Requirements SKILL.md MODIFY row). The D-660 v1.6 burst's cite sweep was incomplete — 5+ occurrences survived. The version tokens became stale as soon as ADR-026 bumped in D-657 (v1.23→v1.24); any future ADR bump repeats the drift.
+
+**Rule:** Forward-facing ADR §Decision N cites in stories and BCs MUST use stable section anchor with NO version token. Example:
+
+- **Correct (POLICY 19 option-b):** `ADR-026 §Decision 8`
+- **Incorrect (drift-liable):** `ADR-026 §Decision 8 (v1.23)` or `ADR-026 §Decision 8 v1.24`
+
+**Two cure options:**
+- **(option-a) Update the token on each ADR bump:** High maintenance; guarantees recurrence on next ADR bump unless same-burst sweep is always exhaustive. Recurrence-liable.
+- **(option-b) Drop the token entirely:** Zero-maintenance; the section anchor is stable; no recurrence possible. Recurrence-proof. **PREFERRED.**
+
+**Exception:** Historical changelog entries that cite specific PAST versions (e.g., "BC-5.41.001 v1.23 PC10 was amended per ADR-026 v1.23 §Decision 8") remain valid and are explicitly exempt — those are immutable audit-trail entries pointing at a past state, not forward-facing design traces.
+
+**Exhaustive sweep requirement:** When dropping tokens from S-18.13, the sweep must cover ALL occurrences across the full story body. A partial sweep (missing §Originating Finding, §Scope notes, individual AC/T/implementation-sequence paragraphs) leaves stale tokens that recur at the next adversary pass.
+
+**Root cause confirmed via P10 (recurrence after P6 partial sweep):** D-656 attempted a cite sweep during the RESTRUCTURE REDESIGN but missed occurrences in non-normative/narrative locations. D-660 closed all remaining occurrences exhaustively via POLICY 19 option-b (token drop).
+
+**S-7.02 disposition:** NO-ACTION obs O-SP13-adr-illustrative-stepcount (recurred P9/P11) is distinguished from this finding: the illustrative step-count block is non-normative; this finding (F-SP13-P10-001) addresses normative forward-facing cites. No overlap.
+
+**Cites:** D-660; F-SP13-P10-001; POLICY 19 anti-volatile-pin; S-18.13 v1.7→v1.8; ADR-026 §Decision 8; D-656 (partial-sweep root cause); BC-5.39.001 3-CLEAN streak RESET.
+
+---
+
+## L-SP13-S-18.13-LOCAL-cascade-CONVERGED-13-passes (2026-06-20; D-661; [convergence])
+
+**Category:** Convergence milestone — S-18.13 spec-evolution LOCAL spec-cascade BC-5.39.001 3-CLEAN.
+
+**Trigger:** S-18.13 spec-cascade passes 11/12/13 all CLEAN/CONSISTENT. Streak 3/3 CONVERGED per BC-5.39.001. S-7.02 cycle-close checklist SATISFIED.
+
+**Arc summary (13 passes; 10 NOT-CLEAN fix bursts before convergence window):**
+- Passes 1-3: structural/foundational fixes (POLICY 14 gap → mechanism-precision → CRITICAL RESTRUCTURE REDESIGN)
+- Pass 4: CLEAN (1/3) — first substantive convergence signal
+- Pass 5: CRITICAL relapse (EPIC-COMPLETE carve-out missed in REDESIGN)
+- Pass 6: POLICY 8 back-reference propagation gaps (newly-added BC not swept)
+- Pass 7: CLEAN (1/3) — second substantive signal
+- Pass 8: MAJOR consistency gap (stale BC cite due to P6 BC bump without story sweep)
+- Pass 9: CLEAN (1/3)
+- Pass 10: MEDIUM + MAJOR cite-drift (ADR volatile-pin tokens; BC §Story Anchor asymmetry)
+- Passes 11-13: THREE CONSECUTIVE CLEAN/CONSISTENT — CONVERGED
+
+**Defect-class trajectory:** P1-P3 structural/foundational → P4 CLEAN → P5 CRITICAL (carve-out) → P6 POLICY 8 propagation → P7 CLEAN → P8 stale-cite class → P9 CLEAN → P10 cite-drift class → P11/P12/P13 CLEAN CONVERGED.
+
+**Key process-gap observations:** The cascade required 13 passes (vs S-18.01's 15-pass cascade) because the REDESIGN at P3 eliminated the implementability blocker early, but introduced new propagation obligations (POLICY 8 back-references, EPIC-COMPLETE carve-out) that required 3 additional fix bursts (P5/P6/P8). The converging 3-CLEAN window was only achievable after BOTH the cite-drift class (volatile-pin tokens) AND the consistency asymmetry (BC §Story Anchor) were fully closed in P10.
+
+**S-7.02 SATISFIED:** 6 process-gap lessons codified across the cascade arc. 4 LOW observations dispositioned (1 RESOLVE-AT-TDD, 3 NO-ACTION).
+
+**4-index at convergence:** BC-INDEX v3.23 / VP-INDEX v2.40 / STORY-INDEX v4.38 / ARCH-INDEX v2.60. ALL UNCHANGED this burst (pure cascade-state recording).
+
+**Cites:** D-661; D-653..D-660 (full cascade arc); BC-5.39.001 3-CLEAN protocol; S-7.02 cycle-closing checklist; S-18.13 v1.8 READY.
