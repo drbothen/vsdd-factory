@@ -34,6 +34,8 @@ SPRINT_STATE_YAML="${SPRINT_STATE_YAML:-}"
 STATE_MD_PATH="${STATE_MD_PATH:-}"
 BC_DIR="${BC_DIR:-}"
 PRECOMPACT_FLUSH_LOG="${PRECOMPACT_FLUSH_LOG:-}"
+# Subcommand mode: --emit-handoff | --emit-wave-state | --commit | "" (legacy monolithic)
+SUBCOMMAND="${SUBCOMMAND:-}"
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -47,6 +49,12 @@ while [ $# -gt 0 ]; do
       BC_DIR="$2"; shift 2 ;;
     --precompact-flush-log)
       PRECOMPACT_FLUSH_LOG="$2"; shift 2 ;;
+    --emit-handoff)
+      SUBCOMMAND="--emit-handoff"; shift ;;
+    --emit-wave-state)
+      SUBCOMMAND="--emit-wave-state"; shift ;;
+    --commit)
+      SUBCOMMAND="--commit"; shift ;;
     *)
       echo "ERROR: unknown argument '$1'" >&2
       exit 1 ;;
@@ -57,6 +65,29 @@ done
 : "${SPRINT_STATE_YAML:?ERROR: --sprint-state or SPRINT_STATE_YAML is required}"
 : "${STATE_MD_PATH:?ERROR: --state-md or STATE_MD_PATH is required}"
 : "${BC_DIR:?ERROR: --bc-dir or BC_DIR is required}"
+
+# Validate ARTIFACTS_WT is an accessible git worktree (CWE-73 explicit guard).
+# Canonicalization via GNU realpath -e (Linux only) — BSD realpath on macOS resolves
+# /var → /private/var which breaks the relative-path stripping in write-handoff.sh.
+# We intentionally skip symlink resolution on platforms where it causes path drift.
+if realpath --version >/dev/null 2>&1; then
+  # GNU realpath is available (-e checks existence; exits non-zero if path absent)
+  _resolved_awt="$(realpath -e "$ARTIFACTS_WT" 2>/dev/null)" || {
+    echo "ERROR: ARTIFACTS_WT path does not exist: '$ARTIFACTS_WT'" >&2
+    exit 1
+  }
+  ARTIFACTS_WT="$_resolved_awt"
+else
+  # BSD/macOS: existence check only — do NOT call realpath (symlink resolution drift)
+  [ -d "$ARTIFACTS_WT" ] || {
+    echo "ERROR: ARTIFACTS_WT path does not exist or is not a directory: '$ARTIFACTS_WT'" >&2
+    exit 1
+  }
+fi
+git -C "$ARTIFACTS_WT" rev-parse --git-dir >/dev/null 2>&1 || {
+  echo "ERROR: ARTIFACTS_WT is not a git repository: '$ARTIFACTS_WT'" >&2
+  exit 1
+}
 
 if [ -z "$PRECOMPACT_FLUSH_LOG" ]; then
   # ADR-027 Decision 1: ARTIFACTS_WT is the factory-artifacts worktree root (= .factory
@@ -136,15 +167,25 @@ _get_epic_id() {
 }
 
 # ---------------------------------------------------------------------------
-# Main orchestration
+# Subcommand: --emit-handoff
+# Assembles the complete HANDOFF.md payload with full anti-fabrication cross-checks
+# and emits it to stdout. NO file written to disk. NO git commit.
+# BC-5.41.001 PC10: The agent then invokes the Write tool to write HANDOFF.md.
+# EC-016: HANDOFF_WRITE_TOOL_UNAVAILABLE=1 → hard error, no bash-redirect fallback.
 # ---------------------------------------------------------------------------
+cmd_emit_handoff() {
+  # EC-016: fail loud if Write tool is marked unavailable (BC-5.41.001 EC-016)
+  # HANDOFF_WRITE_TOOL_UNAVAILABLE is an internal harness flag for testing EC-016.
+  # It is NOT a user-facing configuration variable. Do not set this in production.
+  if [ "${HANDOFF_WRITE_TOOL_UNAVAILABLE:-0}" = "1" ]; then
+    echo "HandoffWriteToolUnavailable: HANDOFF.md must be written via the Write tool (Claude Code native tool call); bash redirection is forbidden. Ensure the Write tool is available in the current harness context." >&2
+    exit 1
+  fi
 
-main() {
-  # Step 1: Derive wave_id from STATE.md current_step (no phantom current_wave: field)
+  # Derive wave_id and classify stories
   local wave_id
   wave_id="$(derive_wave_id "$SPRINT_STATE_YAML" "$STATE_MD_PATH")"
 
-  # Step 2: Classify stories — sets CLASSIFY_RESULT + global arrays (must run in current shell)
   NEXT_WAVE_STORY_IDS=()
   NEXT_WAVE_STORY_STATUSES=()
   BROKEN_STORY_IDS=()
@@ -157,110 +198,94 @@ main() {
       echo "BrokenSprintState: stories in non-terminal, non-pending states exist but no next-wave stories are pending/draft. Update sprint-state.yaml to reflect actual story states." >&2
       exit 1
       ;;
-
     epic-complete)
-      # EPIC-COMPLETE: write HANDOFF.md with epic_status: complete. No wave-state.yaml.
-      # Per F-008 / BC-5.41.002 PC3: if wave-state.yaml pre-exists on factory-artifacts,
-      # remove it so the resulting commit tree has no stale wave-state.yaml.
+      # EPIC-COMPLETE: emit HANDOFF.md payload with epic_status: complete to stdout
       write_handoff \
-        "${ARTIFACTS_WT}/HANDOFF.md" \
         "$wave_id" \
         "$BC_DIR" \
         "$PRECOMPACT_FLUSH_LOG" \
         "$STATE_MD_PATH" \
         "1"
-
-      # Remove stale wave-state.yaml from the commit tree if it exists (F-008 / AC-012).
-      # This staging step must happen BEFORE commit_to_artifacts so the deletion is
-      # included in the `git diff --cached` check (EC-015 guard) that commit_to_artifacts
-      # performs. commit_to_artifacts only stages the files passed to it (HANDOFF.md);
-      # the wave-state.yaml deletion is pre-staged here and persists through the commit.
-      if git -C "$ARTIFACTS_WT" ls-files --error-unmatch wave-state.yaml >/dev/null 2>&1; then
-        _git_wt rm wave-state.yaml
-      elif [ -f "${ARTIFACTS_WT}/wave-state.yaml" ]; then
-        # Untracked working-tree copy — just remove it so it won't be staged
-        rm -f "${ARTIFACTS_WT}/wave-state.yaml"
-      fi
-
-      # Route commit through commit_to_artifacts (single-commit + EC-015 idempotency guard).
-      # F-P11-004: consolidates the EC-015 empty-staged-diff guard into ONE place so
-      # the EPIC-COMPLETE path and the has-next-wave path share the same guard logic.
-      # commit_to_artifacts stages HANDOFF.md (idempotent after pre-staging above),
-      # then checks diff --cached --quiet before committing.
-      commit_to_artifacts "$ARTIFACTS_WT" "$wave_id" HANDOFF.md > /dev/null
-
-      # Canonical EPIC-COMPLETE stdout message per BC-5.41.002 PC7 / BC-5.41.001 PC8
-      local epic_id
-      epic_id="$(_get_epic_id "$STATE_MD_PATH")"
-      echo "EPIC-COMPLETE: All stories in sprint-state.yaml have reached terminal status."
-      echo "Epic ${epic_id} is complete. No wave-state.yaml written for next wave."
-      echo "HANDOFF.md committed to factory-artifacts with epic_status: complete."
-      exit 0
       ;;
-
     has-next-wave)
-      # Build story pairs array from classified arrays
+      # Build story pairs
       local story_pairs=()
       local i
       for i in "${!NEXT_WAVE_STORY_IDS[@]}"; do
         story_pairs+=("${NEXT_WAVE_STORY_IDS[$i]}:${NEXT_WAVE_STORY_STATUSES[$i]}")
       done
 
-      # Step 2b: Pre-flight anti-fabrication validation — BEFORE writing any files.
-      # BC-5.41.001 PC4: "If any required field is absent or any anti-fabrication check
-      # fails, wave-gate blocks wave close … and does NOT write a partial HANDOFF.md."
-      #
-      # F-P8-001 fix: validate ALL next_wave_stories IDs against STORY-INDEX.md here,
-      # before calling write_handoff in Step 4. The old ordering (write_handoff first,
-      # then write_wave_state which performs the check) left a partial HANDOFF.md on disk
-      # when write_wave_state exited 1 on AntiFabricationFailed.
-      #
-      # F-P8-002 is also handled here: if story_pairs is non-empty and STORY-INDEX.md is
-      # absent, hard-error (StoryIndexMissing) before writing any file.
-      #
-      # ADR-027 path discipline: ARTIFACTS_WT is the worktree root; STORY-INDEX lives at
-      # $ARTIFACTS_WT/stories/STORY-INDEX.md (no nested .factory/ prefix).
+      # Pre-flight anti-fabrication validation
       local preflight_story_index="${ARTIFACTS_WT}/stories/STORY-INDEX.md"
       if [ "${#story_pairs[@]}" -gt 0 ] && [ ! -f "$preflight_story_index" ]; then
         echo "ERROR: StoryIndexMissing — STORY-INDEX.md not found at '${preflight_story_index}'" >&2
-        echo "  BC-5.41.002 PC2 precondition 2: STORY-INDEX.md must be current and accessible at wave-close." >&2
-        echo "  Cannot perform anti-fabrication cross-check on next_wave_stories without STORY-INDEX.md." >&2
         exit 1
       fi
       local preflight_pair
-      for preflight_pair in "${story_pairs[@]}"; do
+      for preflight_pair in "${story_pairs[@]+"${story_pairs[@]}"}"; do
         local preflight_sid="${preflight_pair%%:*}"
         if [ -f "$preflight_story_index" ]; then
           local preflight_escaped_sid
           preflight_escaped_sid="$(printf '%s' "$preflight_sid" | sed 's/\./\\./g')"
           if ! grep -qE "\| *${preflight_escaped_sid} *\|" "$preflight_story_index"; then
             echo "ERROR: AntiFabricationFailed — story ID '${preflight_sid}' not found in STORY-INDEX.md" >&2
-            echo "  Pre-flight validation failed: no file was written." >&2
             exit 1
           fi
         fi
       done
 
-      # Step 3: Find prior HANDOFF commit SHA BEFORE writing any files or committing.
-      # This SHA goes into generated_from_handoff_sha in wave-state.yaml (AC-014 v1.4).
-      # Must be captured before the atomic commit because the commit will become the new HEAD.
-      local prior_handoff_sha
-      prior_handoff_sha="$(_get_prior_handoff_sha)"
-
-      # Step 4: Write HANDOFF.md with final content
+      # Emit HANDOFF.md payload to stdout (no disk write)
       write_handoff \
-        "${ARTIFACTS_WT}/HANDOFF.md" \
         "$wave_id" \
         "$BC_DIR" \
         "$PRECOMPACT_FLUSH_LOG" \
         "$STATE_MD_PATH" \
         "0" \
         "${story_pairs[@]+"${story_pairs[@]}"}"
+      ;;
+    *)
+      echo "ERROR: unexpected classification result: $classification" >&2
+      exit 1
+      ;;
+  esac
+}
 
-      # Step 5: Write wave-state.yaml with final content, using prior_handoff_sha.
-      # The content written here is EXACTLY what will be committed — no post-hoc patches.
-      # BC-5.41.002 PC2: wave-state.yaml describes the NEXT wave, so its wave_id is
-      # the current wave_id + 1 (HANDOFF.md keeps the current/closing wave_id).
+# ---------------------------------------------------------------------------
+# Subcommand: --emit-wave-state
+# Writes wave-state.yaml to ${ARTIFACTS_WT}/wave-state.yaml via bash.
+# Skipped (exits 0 silently) on EPIC-COMPLETE (BC-5.41.002 PC3 EPIC-COMPLETE exception).
+# ---------------------------------------------------------------------------
+cmd_emit_wave_state() {
+  # Derive wave_id and classify
+  local wave_id
+  wave_id="$(derive_wave_id "$SPRINT_STATE_YAML" "$STATE_MD_PATH")"
+
+  NEXT_WAVE_STORY_IDS=()
+  NEXT_WAVE_STORY_STATUSES=()
+  BROKEN_STORY_IDS=()
+  CLASSIFY_RESULT=""
+  classify_stories "$SPRINT_STATE_YAML"
+  local classification="$CLASSIFY_RESULT"
+
+  case "$classification" in
+    broken-sprint-state)
+      echo "BrokenSprintState: stories in non-terminal, non-pending states exist." >&2
+      exit 1
+      ;;
+    epic-complete)
+      # EPIC-COMPLETE: skip wave-state.yaml (BC-5.41.002 PC3)
+      exit 0
+      ;;
+    has-next-wave)
+      local story_pairs=()
+      local i
+      for i in "${!NEXT_WAVE_STORY_IDS[@]}"; do
+        story_pairs+=("${NEXT_WAVE_STORY_IDS[$i]}:${NEXT_WAVE_STORY_STATUSES[$i]}")
+      done
+
+      local prior_handoff_sha
+      prior_handoff_sha="$(_get_prior_handoff_sha)"
+
       local next_wave_id=$(( wave_id + 1 ))
       write_wave_state \
         "${ARTIFACTS_WT}/wave-state.yaml" \
@@ -269,14 +294,7 @@ main() {
         "$SPRINT_STATE_YAML" \
         "$ARTIFACTS_WT" \
         "${story_pairs[@]+"${story_pairs[@]}"}"
-
-      # Step 6: Atomic single commit of both files via commit_to_artifacts helper.
-      # Both files are staged and committed in one git commit (BC-5.41.002 PC6 / AC-017).
-      commit_to_artifacts "$ARTIFACTS_WT" "$wave_id" HANDOFF.md wave-state.yaml > /dev/null
-
-      exit 0
       ;;
-
     *)
       echo "ERROR: unexpected classification result: $classification" >&2
       exit 1
@@ -284,4 +302,90 @@ main() {
   esac
 }
 
-main "$@"
+# ---------------------------------------------------------------------------
+# Subcommand: --commit
+# Creates ONE atomic git commit via commit_to_artifacts.
+# Two-arm conditional (BC-5.41.001 PC10 step 4 / EC-017):
+#   HAS-NEXT-WAVE: verifies BOTH HANDOFF.md + wave-state.yaml present; stages both.
+#   EPIC-COMPLETE: verifies HANDOFF.md present only; removes stale wave-state.yaml; stages HANDOFF.md alone.
+# HandoffFileAbsent hard-abort if HANDOFF.md is absent on either path (EC-017).
+# ---------------------------------------------------------------------------
+cmd_commit() {
+  # Derive wave_id and classify to determine which arm to use
+  local wave_id
+  wave_id="$(derive_wave_id "$SPRINT_STATE_YAML" "$STATE_MD_PATH")"
+
+  NEXT_WAVE_STORY_IDS=()
+  NEXT_WAVE_STORY_STATUSES=()
+  BROKEN_STORY_IDS=()
+  CLASSIFY_RESULT=""
+  classify_stories "$SPRINT_STATE_YAML"
+  local classification="$CLASSIFY_RESULT"
+
+  # EC-017: verify HANDOFF.md is present on disk (both arms require it)
+  if [ ! -f "${ARTIFACTS_WT}/HANDOFF.md" ]; then
+    echo "HandoffFileAbsent: HANDOFF.md not found at ${ARTIFACTS_WT}/HANDOFF.md before commit; aborting atomic commit" >&2
+    exit 1
+  fi
+
+  case "$classification" in
+    broken-sprint-state)
+      echo "BrokenSprintState: cannot commit — stories in non-terminal, non-pending states." >&2
+      exit 1
+      ;;
+    epic-complete)
+      # EPIC-COMPLETE arm: stage HANDOFF.md alone; remove stale wave-state.yaml
+      # wave-state.yaml absence is expected and correct on this path (NOT an error)
+      if git -C "$ARTIFACTS_WT" ls-files --error-unmatch wave-state.yaml >/dev/null 2>&1; then
+        _git_wt rm wave-state.yaml
+      elif [ -f "${ARTIFACTS_WT}/wave-state.yaml" ]; then
+        rm -f "${ARTIFACTS_WT}/wave-state.yaml"
+      fi
+
+      commit_to_artifacts "$ARTIFACTS_WT" "$wave_id" HANDOFF.md > /dev/null
+
+      local epic_id
+      epic_id="$(_get_epic_id "$STATE_MD_PATH")"
+      echo "EPIC-COMPLETE: All stories in sprint-state.yaml have reached terminal status."
+      echo "Epic ${epic_id} is complete. No wave-state.yaml written for next wave."
+      echo "HANDOFF.md committed to factory-artifacts with epic_status: complete."
+      ;;
+    has-next-wave)
+      # HAS-NEXT-WAVE arm: verify BOTH files present before staging
+      if [ ! -f "${ARTIFACTS_WT}/wave-state.yaml" ]; then
+        echo "HandoffFileAbsent: wave-state.yaml not found at ${ARTIFACTS_WT}/wave-state.yaml before commit; aborting atomic commit" >&2
+        exit 1
+      fi
+
+      # Single atomic commit of both files (BC-5.41.002 PC6)
+      commit_to_artifacts "$ARTIFACTS_WT" "$wave_id" HANDOFF.md wave-state.yaml > /dev/null
+      ;;
+    *)
+      echo "ERROR: unexpected classification result: $classification" >&2
+      exit 1
+      ;;
+  esac
+}
+
+# ---------------------------------------------------------------------------
+# Dispatch: subcommand or legacy monolithic main()
+# ---------------------------------------------------------------------------
+case "$SUBCOMMAND" in
+  --emit-handoff)
+    cmd_emit_handoff
+    ;;
+  --emit-wave-state)
+    cmd_emit_wave_state
+    ;;
+  --commit)
+    cmd_commit
+    ;;
+  "")
+    echo "ERROR: monolithic wave-handoff invocation is removed; use the agent-orchestrated subcommands: --emit-handoff → (agent Write HANDOFF.md) → --emit-wave-state → --commit (see SKILL.md / ADR-026 §Decision 8)." >&2
+    exit 1
+    ;;
+  *)
+    echo "ERROR: unknown subcommand '$SUBCOMMAND'" >&2
+    exit 1
+    ;;
+esac

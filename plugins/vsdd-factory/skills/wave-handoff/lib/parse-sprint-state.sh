@@ -81,10 +81,23 @@ classify_stories() {
         fi
       fi
       current_id="$(echo "$line" | awk '{print $NF}')"
+      # Validate story id matches expected pattern (CWE-116 explicit guard)
+      if ! [[ "$current_id" =~ ^S-[0-9]+\.[0-9a-zA-Z._-]+$ ]]; then
+        echo "ERROR: parse-sprint-state: story id '$current_id' does not match expected pattern S-NNN.NNN" >&2
+        exit 1
+      fi
       current_status=""
     # Match "    status: <value>"
     elif echo "$line" | grep -qE '^[[:space:]]+status:[[:space:]]+[^[:space:]]+'; then
       current_status="$(echo "$line" | awk '{print $NF}')"
+      # Validate status is from the known allowlist (CWE-116 explicit guard)
+      case "$current_status" in
+        merged|withdrawn|cancelled|pending|draft|in-progress|review-pending|ready|complete|blocked) : ;;
+        *)
+          echo "ERROR: parse-sprint-state: unknown story status '$current_status' — not in allowlist" >&2
+          exit 1
+          ;;
+      esac
     fi
   done < "$sprint_state_yaml"
 
@@ -182,9 +195,22 @@ derive_wave_id() {
           fi
         fi
         _current_id="$(echo "$_line" | awk '{print $NF}')"
+        # Validate story id matches expected pattern (CWE-116 explicit guard)
+        if ! [[ "$_current_id" =~ ^S-[0-9]+\.[0-9a-zA-Z._-]+$ ]]; then
+          echo "ERROR: parse-sprint-state: story id '$_current_id' does not match expected pattern S-NNN.NNN" >&2
+          exit 1
+        fi
         _current_status=""
       elif echo "$_line" | grep -qE '^[[:space:]]+status:[[:space:]]+[^[:space:]]+'; then
         _current_status="$(echo "$_line" | awk '{print $NF}')"
+        # Validate status is from the known allowlist (CWE-116 explicit guard)
+        case "$_current_status" in
+          merged|withdrawn|cancelled|pending|draft|in-progress|review-pending|ready|complete|blocked) : ;;
+          *)
+            echo "ERROR: parse-sprint-state: unknown story status '$_current_status' — not in allowlist" >&2
+            exit 1
+            ;;
+        esac
       fi
     done < "$sprint_state_yaml"
 
@@ -227,6 +253,11 @@ derive_wave_id() {
       fi
       # current wave = 1 + completed waves (or 1 if no completed waves and we have pending/draft)
       local _ordinal=$(( _completed_waves + 1 ))
+      # Validate wave_id is a sane positive integer (CWE-20 explicit guard)
+      if ! [[ "$_ordinal" =~ ^[0-9]+$ ]] || [ "$_ordinal" -lt 1 ] || [ "$_ordinal" -gt 9999 ]; then
+        echo "ERROR: derived wave_id '$_ordinal' is not a valid positive integer in range [1, 9999]" >&2
+        exit 1
+      fi
       echo "$_ordinal"
       return 0
     fi
@@ -237,7 +268,14 @@ derive_wave_id() {
     local step_val
     step_val="$(grep -E '^current_step:' "$state_md" | head -1 | awk '{print $2}' | tr -d '"')"
     if echo "$step_val" | grep -qE '^pass-[0-9]+$'; then
-      echo "$step_val" | grep -oE '[0-9]+'
+      local _fallback_ordinal
+      _fallback_ordinal="$(echo "$step_val" | grep -oE '[0-9]+')"
+      # Validate wave_id is a sane positive integer (CWE-20 explicit guard)
+      if ! [[ "$_fallback_ordinal" =~ ^[0-9]+$ ]] || [ "$_fallback_ordinal" -lt 1 ] || [ "$_fallback_ordinal" -gt 9999 ]; then
+        echo "ERROR: derived wave_id '$_fallback_ordinal' is not a valid positive integer in range [1, 9999]" >&2
+        exit 1
+      fi
+      echo "$_fallback_ordinal"
       return 0
     fi
   fi
