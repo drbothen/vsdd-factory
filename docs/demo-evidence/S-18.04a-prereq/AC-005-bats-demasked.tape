@@ -1,5 +1,5 @@
-Output AC-006-bats-demasked.gif
-Output AC-006-bats-demasked.webm
+Output AC-005-bats-demasked.gif
+Output AC-005-bats-demasked.webm
 
 Set FontFamily "Menlo"
 Set FontSize 14
