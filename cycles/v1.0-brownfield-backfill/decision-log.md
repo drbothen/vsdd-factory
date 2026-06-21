@@ -2134,7 +2134,7 @@ Parity confirmed PASS: BC-INDEX v3.28 / VP-INDEX v2.40 / STORY-INDEX v4.45 / ARC
 
 ### Parent-commit
 
-(Commit D of this burst — factory-artifacts HEAD prior to Commit E)
+1ff7e693 (D-672 burst HEAD; factory-artifacts — single-commit per TD-VSDD-053)
 
 ### develop HEAD
 
