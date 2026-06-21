@@ -2254,3 +2254,83 @@ Parity confirmed PASS: BC-INDEX v3.29 / VP-INDEX v2.40 / STORY-INDEX v4.47 / ARC
 ### NEXT
 
 confirm PR #198 CI green then await human merge approval (stop-before-merge gate); then S-18.04a native WASM TDD; autonomy STOP-BEFORE-PR-MERGE holds.
+
+---
+
+## D-675 — DURABLE PAUSE for clear/resume (2026-06-21)
+
+**Phase:** D-675-DURABLE-PAUSE-PR198-approved-merge-pending-S18.04a-WASM-TDD-next-2026-06-21
+
+**Date:** 2026-06-21
+
+### Summary
+
+POSTURE PAUSED per human directive for session clear/resume.
+
+### PR #198 Status
+
+PR #198 (feature/S-18.04a-prereq → develop) is OPEN, MERGEABLE, APPROVED, CI-GREEN:
+- validate: SUCCESS
+- cargo-host (×2 matrix): SUCCESS
+- build-dispatcher (×5 matrix): SUCCESS
+- bats-full-suite: SUCCESS
+- semgrep: SUCCESS
+- LOCAL adversary: CLEAN
+- Fresh-eyes pr-reviewer: APPROVE
+- Human: merge-APPROVED
+- PR #198 head: 07158e16
+
+Merge did NOT execute this session due to a transient classifier-infra outage.
+
+### Resume Actions (strict ordering)
+
+**RESUME ACTION #1 (CRITICAL — do FIRST on resume; human ALREADY APPROVED; do NOT re-ask):**
+Execute the approved squash-merge of PR #198:
+```
+gh pr merge 198 --squash --delete-branch
+```
+(via pr-manager). Then POST-MERGE BURST:
+- STORY-INDEX: S-18.04a-prereq status draft→merged + merged_count++
+- develop_head reconcile: 997c8c1e → merge SHA
+- POL-14: BC-2.02.011 already lifecycle_status active — NO promotion needed
+- Devops worktree cleanup: remove .worktrees/S-18.04a-prereq + local branch
+
+**RESUME ACTION #2:** S-18.04a native WASM TDD (SPEC CONVERGED D-672):
+- Target: `crates/hook-plugins/precompact-flush` + `crates/factory-lock`
+- BC-7.07.001 v1.18, ADR-028 v1.3
+- Key behaviors: runtime `git worktree list --porcelain` discovery + canonicalize-mount assertion (DURABILITY DEGRADED on mismatch); uniform `git -C <wt>` on ALL git subprocesses; `git add -A` staging; SHA_B = git rev-parse HEAD; SHA-pinned concurrent-commit guard (3a reset / 3b no-reset+human-intervention / reset-failure); commit msg `PreCompact flush <cycle>/<step> <ISO>`; log read-modify-write (read-absent-as-empty) `\n`-terminated 4-field append; native renew_lock (TTL 2700s, expires_at YYYY-MM-DDTHH:MM:SSZ, NoOp-on-identical, malformed-fence-without-lock→NoOp bash parity); env_allow=[HOME,GIT_CONFIG_GLOBAL,XDG_CONFIG_HOME,PATH,SSH_AUTH_SOCK], binary_allow=[git]; registry stanza native (hook-plugins/precompact-flush.wasm)
+- cargo unit + bats Red Gate → LOCAL adversary 3-CLEAN → demo → PR → human merge gate (stop-before-merge)
+
+**RESUME ACTION #3+:** S-18.04b (validate-burst-log/validate-dispatch-advance PreCompact exemption + prune; WASM crates). S-18.03 (rehydrate-wave SKILL — NOT a hook; UNAFFECTED by WASM pivot).
+
+### Journey Context (this session)
+
+D-664 PAUSE→resumed (D-665); began S-18.04a as bash → HUMAN PIVOT (D-668) to native WASM, supersede bash; architect ADR-028 (v1.0→v1.3 across 3 spec-convergence rounds D-666/D-667/D-669/D-670/D-671/D-672); round-2 found write_file path-resolution concern → architect SPIKE confirmed FALSE-blocker (production invoke.rs already cwd-rooted; write_file.rs is unit-test facade) → spawned prereq story S-18.04a-prereq; spec CONVERGED D-672; prereq delivered (Red Gate→impl→LOCAL CLEAN→demo→PR #198) D-673/D-674; CI orphan-hook-ref flake fixed; PR #198 approved+green; merge pending (infra). Bash worktree feature/S-18.04a RETIRED (D-668 superseded). Duplicate PR #197 CLOSED.
+
+### 4-Index
+
+- BC-INDEX v3.29 (UNCHANGED)
+- VP-INDEX v2.40 (UNCHANGED)
+- STORY-INDEX v4.47 (UNCHANGED)
+- ARCH-INDEX v2.64 (UNCHANGED)
+
+### Autonomy
+
+STOP-BEFORE-PR-MERGE (D-665) still holds on every story.
+
+### Current SHAs (verify with git rev-parse on resume)
+
+- develop: 997c8c1e (pre-merge; advances after PR #198 merge)
+- factory-artifacts: D-675 burst SHA (run `git -C .factory log -1 --format='%h'` after commit)
+- main: caf06c68
+- PR #198 head: 07158e16
+
+### Parent-commit
+
+0fce9e3f (D-674 SHA-patch HEAD; factory-artifacts — single-commit per TD-VSDD-053)
+
+### NEXT
+
+RESUME ACTION #1: `gh pr merge 198 --squash --delete-branch` (via pr-manager; human ALREADY APPROVED).
+RESUME ACTION #2: S-18.04a native WASM TDD.
+RESUME ACTION #3+: S-18.04b → S-18.03.

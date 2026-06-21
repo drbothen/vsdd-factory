@@ -818,3 +818,15 @@ Summary of D-662 checkpoint (archived from STATE.md 2026-06-20):
 - 4-index: BC v3.23/VP v2.40/STORY v4.38/ARCH v2.60. L2-INDEX v1.0.13.
 - develop HEAD: `bd6e50ce` (S-18.02 PR #195 SQUASH-MERGED 2026-06-19) / main HEAD: `caf06c68` / factory-artifacts HEAD: `2c0ef179` (D-662 SHA-patch HEAD)
 - D-range: D-001..D-662
+
+---
+
+## Archived Checkpoint: D-674 (S-18.04a-prereq-CI-orphan-fix-AC006-reattribution-2026-06-20)
+
+Archived from STATE.md on 2026-06-21 when D-675 DURABLE PAUSE checkpoint replaced it.
+
+Summary of D-674 checkpoint (archived from STATE.md 2026-06-21):
+- D-674 S-18.04a-prereq CI orphan-hook-ref fix + AC-006 Rust integration test re-attribution. PR #198 CI 'check-bats-orphans' lint failed on redundant TC-AC006-CWD-ENV bats test (synthetic hooks/stub-write-probe.sh orphan). Implementer removed redundant env-propagation test (af91700a pushed; check-bats-orphans clean, bats 10/10, cargo green). Story-writer re-attributed AC-006 cwd-rooting proof to Rust integration test test_BC_2_02_011_invariant_3_relative_path_resolves_via_linker (crates/factory-dispatcher/tests/host_write_file_integration.rs; authoritative; sets distinct ctx.cwd/ctx.plugin_root; asserts .factory/ write lands under cwd not plugin_root). AC-005 bats distinct-roots de-masking retained unchanged. Prereq story v1.1→v1.2. STORY-INDEX v4.47. BC/VP/ARCH UNCHANGED. Duplicate PR #197 closed. PR #198 CI re-running after af91700a. POSTURE: ACTIVE. NEXT: confirm PR #198 CI green + human merge approval (stop-before-merge) then S-18.04a WASM TDD.
+- 4-index: BC v3.29/VP v2.40/STORY v4.47/ARCH v2.64. L2-INDEX v1.0.13.
+- develop HEAD: `997c8c1e` (external merge post-S-18.13; D-673 reconcile) / main HEAD: `caf06c68` / factory-artifacts HEAD: `0fce9e3f` (D-674 SHA-patch HEAD)
+- D-range: D-001..D-674
