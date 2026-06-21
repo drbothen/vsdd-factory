@@ -145,7 +145,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | caf06c68 | rc.21 bot binary bundle commit 2026-06-13; prior: 2a191314 (rc.20) |
 | develop | 70664e02 | S-18.13 PR #196 SQUASH-MERGED 2026-06-20; prior: bd6e50ce (S-18.02 PR #195 2026-06-19) |
-| factory-artifacts | D-671-pending | D-671 round-2 design-fix + S-18.04a-prereq + index fixes (commit pending); prior HEAD: dac15bde (D-670 design-fix HEAD) |
+| factory-artifacts | 2e658db7 | D-671 round-2 design-fix + S-18.04a-prereq + index fixes (2e658db7); prior: dac15bde (D-670 design-fix HEAD) |
 | v1.0.0-rc.21 (tag) | 03054524 | SHIPPED 2026-06-13; FULLY IN OPERATOR MARKETPLACE (marketplace PR #13 MERGED); annotated tag object |
 | v1.0.0-rc.20 (tag) | e9e38286 | SHIPPED 2026-06-01; marketplace PR #12 squash-merged 862e660d |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28 |
