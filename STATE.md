@@ -150,7 +150,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | caf06c68 | rc.21 bot binary bundle commit 2026-06-13; prior: 2a191314 (rc.20) |
 | develop | 997c8c1e | external merge post-S-18.13; prior: 70664e02 (S-18.13 PR #196 SQUASH-MERGED 2026-06-20; D-673 reconcile) |
-| factory-artifacts | 1daa50a3 | D-674 burst (S-18.04a-prereq CI orphan-ref fix + AC-006 re-attribution + STORY-INDEX v4.47); prior: 42dd12bf (D-673 SHA-patch) |
+| factory-artifacts | 0d7c74ba | D-675 DURABLE PAUSE burst (POSTURE PAUSED; PR #198 APPROVED merge-pending; Session Checkpoint D-675); prior: 0fce9e3f (D-674 SHA-patch) |
 | v1.0.0-rc.21 (tag) | 03054524 | SHIPPED 2026-06-13; FULLY IN OPERATOR MARKETPLACE (marketplace PR #13 MERGED); annotated tag object |
 | v1.0.0-rc.20 (tag) | e9e38286 | SHIPPED 2026-06-01; marketplace PR #12 squash-merged 862e660d |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28 |
@@ -348,7 +348,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** `0fce9e3f` (D-674 SHA-patch HEAD — pre-D-675 commit; D-675 DURABLE PAUSE burst will update this after commit; prior: `1daa50a3` D-674 main commit)
+- **factory-artifacts HEAD:** `0d7c74ba` (D-675 DURABLE PAUSE burst: POSTURE PAUSED; PR #198 APPROVED merge-pending; prior: `0fce9e3f` D-674 SHA-patch)
 - **develop HEAD:** `997c8c1e` (external merge post-S-18.13; D-673 reconcile; prior: `70664e02` S-18.13 PR #196 2026-06-20)
 - **main HEAD:** `caf06c68` (rc.21 bot bundle commit 2026-06-13; UNCHANGED)
 - **v1.0.0-rc.21 tag:** `03054524` (SHIPPED; FULLY IN OPERATOR MARKETPLACE)
@@ -361,7 +361,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 - **ADR-028 v1.3:** `specs/architecture/decisions/ADR-028-e18-precompact-flush-native-wasm-migration.md` (D-672 ROUND-3 FINAL: F-R3-001 mount canonicalize split-tree guard; F-R3-002 scan-region Decision 14; F-R3-003 staging add -A Decision 15 EC-008; F-R3-005 NoOp-identical Decision 16; F-R3-006 wrong-branch RedGate Decision 17; F-R3-007 committer note Decision 18; CV-002 Decision-4 forward-ref; SPEC CONVERGENCE ACCEPTED)
 - **BC-7.07.001 v1.18:** `ss-07/BC-7.07.001.md` (D-672: A12-A15+CV-003 added — A12 mount canonicalize assertion; A13 scan-region; A14 wrong-branch RedGate; A15 NoOp-identical; CV-003 CLOSED; SPEC CONVERGENCE ACCEPTED)
 - **S-18.04a v1.11:** `stories/S-18.04a-precompact-flush-sh-core.md` (D-672: B14-B18 story ACs for F-R3 closures; ROUND-3 FINAL CONVERGED)
-- **Verify on resume:** `git rev-parse origin/develop` → expect `997c8c1eef7a679cc462924eb7870bb5d1b0ec7e` (pre-merge; advances after PR #198 merge); `git rev-parse --short origin/main` → expect `caf06c68`; `git -C .factory log -1 --format='%h %s'` → expect D-675 DURABLE PAUSE commit SHA
+- **Verify on resume:** `git rev-parse origin/develop` → expect `997c8c1eef7a679cc462924eb7870bb5d1b0ec7e` (pre-merge; advances after PR #198 merge); `git rev-parse --short origin/main` → expect `caf06c68`; `git -C .factory log -1 --format='%h %s'` → expect `0d7c74ba state: D-675 DURABLE PAUSE...`
 
 ### §10. PR Status
 
@@ -371,7 +371,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 ### §11. Post-CLEAR/Post-RESET Resume Checklist (zero-context; D-639 refresh)
 
-1. **Verify worktree state:** `git rev-parse origin/develop` → expect `997c8c1eef7a679cc462924eb7870bb5d1b0ec7e` (pre-merge; changes after PR #198 merge). `git rev-parse --short origin/main` → expect `caf06c68`. `git -C .factory log -1 --format='%h %s'` → expect D-675 DURABLE PAUSE commit. feature/S-18.04a-prereq OPEN PR #198 (APPROVED CI-GREEN; merge-pending; RESUME ACTION #1). feature/S-18.01 MERGED. feature/S-18.02 MERGED PR #195 bd6e50ce (deleted). feature/S-18.13 MERGED PR #196 70664e02 (deleted). worktrees cleanup pending devops-engineer post-PR-198-merge.
+1. **Verify worktree state:** `git rev-parse origin/develop` → expect `997c8c1eef7a679cc462924eb7870bb5d1b0ec7e` (pre-merge; changes after PR #198 merge). `git rev-parse --short origin/main` → expect `caf06c68`. `git -C .factory log -1 --format='%h %s'` → expect `0d7c74ba state: D-675 DURABLE PAUSE...`. feature/S-18.04a-prereq OPEN PR #198 (APPROVED CI-GREEN; merge-pending; RESUME ACTION #1). feature/S-18.01 MERGED. feature/S-18.02 MERGED PR #195 bd6e50ce (deleted). feature/S-18.13 MERGED PR #196 70664e02 (deleted). worktrees cleanup pending devops-engineer post-PR-198-merge.
 2. **Read §1-§12 this checkpoint** (all of it; D-651 self-sufficient).
 3. **Verify 4-index:** `grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md` → "3.29"; ARCH-INDEX → "2.64"; VP-INDEX → "2.40"; STORY-INDEX → "4.47"; L2-INDEX → "1.0.13".
 4. **E-10 CASCADE SEALED D-531.** Do NOT resume without engine-surface material change.
