@@ -2143,3 +2143,58 @@ Parity confirmed PASS: BC-INDEX v3.28 / VP-INDEX v2.40 / STORY-INDEX v4.45 / ARC
 ### NEXT
 
 S-18.04a WASM RE-SPEC CONVERGED (D-672, ADR-028 v1.3); NEXT: deliver S-18.04a-prereq (write_file.rs cwd alignment, blocks S-18.04a) via TDD then S-18.04a native WASM TDD; autonomy STOP-BEFORE-PR-MERGE holds.
+
+---
+
+## D-673 — S-18.04a-prereq BC amendment + LOCAL-clean — 2026-06-20
+
+### Decision
+
+D-673 S-18.04a-prereq BC amendment + LOCAL-clean — BC-2.02.011 v1.2→v1.3 (invariant 3 + PC5 plugin_root→ctx.cwd; parity with read_file.rs::resolve_for_read and production invoke.rs write_file path; ADR-028 §Decision 8); prereq impl green on feature/S-18.04a-prereq (write_file.rs cwd-rooting + bats de-masking); LOCAL adversary CLEAN (2 minors F-1 bats-relabel/F-2 frontmatter-cleanup fixed in-scope); BC-INDEX v3.28→v3.29; S-18.04a-prereq v1.0→v1.1 (F-2 cleanup; STORY-INDEX v4.45→v4.46); develop_head reconciled 70664e02→997c8c1e; VP-INDEX v2.40/ARCH-INDEX v2.64 UNCHANGED; 4-index BC v3.29/VP v2.40/STORY v4.46/ARCH v2.64; NEXT = prereq demo + PR (stop-before-merge gate) then S-18.04a native WASM TDD.
+
+### Rationale
+
+The S-18.04a-prereq implementation on feature/S-18.04a-prereq was confirmed green (cargo test + bats passing). The LOCAL adversary pass returned 2 minor findings:
+- F-1 (bats-relabel): test label in precompact-routing.bats referred to old path-domain description; corrected to reflect ctx.cwd semantics. Fixed in-scope.
+- F-2 (frontmatter-cleanup): story frontmatter retained a stale YAML comment block `# BC status: pending PO authorship...` that was accurate at story creation (D-671) but became stale after BC-2.02.011 was amended to v1.3. Removed in-scope; story bumped v1.0→v1.1.
+
+BC-2.02.011 was amended from v1.2 to v1.3 by the product-owner per ADR-028 §Decision 8:
+- Invariant 3: corrected path-resolution base from `plugin_root` to `ctx.cwd` (CLAUDE_PROJECT_DIR), mirroring `read_file.rs::resolve_for_read` (S-8.07 fix) and production `invoke.rs` write_file path.
+- Postcondition 5: corrected the "relative path cannot be resolved within" clause from stale `ctx.plugin_root` to `ctx.cwd` (CLAUDE_PROJECT_DIR).
+
+The prior `plugin_root` claim in invariant 3 was a stale unit-test facade artifact: production `invoke.rs` has always used `ctx.cwd` for write_file path resolution; only the unit-test helper in `write_file.rs::prepare()` was using `plugin_root`. S-18.04a-prereq aligns the unit-test facade and the BC spec to production semantics.
+
+develop HEAD reconciled: external merge committed to origin/develop post-S-18.13 (SHA 997c8c1e), advancing past 70664e02. Active Branches table and session checkpoint updated to reflect actual remote state.
+
+### Finding Closures
+
+- F-1 (bats-relabel): precompact-routing.bats test description corrected in-scope on feature/S-18.04a-prereq.
+- F-2 (frontmatter-cleanup): S-18.04a-prereq story frontmatter stale YAML comment block removed; story v1.0→v1.1 (quintuple parity: frontmatter version, body Changelog row, modified[] array, last_amended text-prefix, STORY-INDEX catalog row).
+
+### 4-Index
+
+- BC-INDEX v3.29 (BUMPED — BC-2.02.011 v1.3 catalog row annotation appended; POLICY 14 5-leg parity)
+- VP-INDEX v2.40 (UNCHANGED)
+- STORY-INDEX v4.46 (BUMPED — S-18.04a-prereq row annotation v1.0→v1.1; POLICY 14 5-leg parity)
+- ARCH-INDEX v2.64 (UNCHANGED)
+
+Literal-shell POLICY 15 4-index gate output (captured 2026-06-20):
+```
+grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md → version: "3.29" (BUMPED)
+grep "^version:" .factory/specs/verification-properties/VP-INDEX.md → version: "2.40" (UNCHANGED)
+grep "^version:" .factory/stories/STORY-INDEX.md → version: "4.46" (BUMPED)
+grep "^version:" .factory/specs/architecture/ARCH-INDEX.md → version: "2.64" (UNCHANGED)
+```
+Parity confirmed PASS: BC-INDEX v3.29 / VP-INDEX v2.40 / STORY-INDEX v4.46 / ARCH-INDEX v2.64.
+
+### Parent-commit
+
+db680894 (D-672 SHA-patch HEAD; factory-artifacts — single-commit per TD-VSDD-053)
+
+### develop HEAD
+
+997c8c1e (external merge post-S-18.13; D-673 reconcile)
+
+### NEXT
+
+prereq demo + PR (stop-before-merge gate) then S-18.04a native WASM TDD; autonomy STOP-BEFORE-PR-MERGE holds.
