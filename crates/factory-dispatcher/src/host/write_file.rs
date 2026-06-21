@@ -202,6 +202,97 @@ mod tests {
     use super::*;
     use crate::host::test_support::*;
 
+    /// test_BC_2_02_011_resolves_relative_path_under_cwd_not_plugin_root
+    ///
+    /// Red Gate test for AC-004 / BC-2.02.011 invariant 3.
+    ///
+    /// Asserts that `prepare()` resolves a relative path (`.factory/STATE.md`)
+    /// under `ctx.cwd` (CLAUDE_PROJECT_DIR), NOT `ctx.plugin_root`
+    /// (CLAUDE_PLUGIN_ROOT), when the two are set to distinct directories.
+    ///
+    /// Symmetry intent: mirrors `read_file.rs::resolve_for_read`'s cwd-rooted
+    /// resolution — write_file must use the same base as read_file, as the
+    /// production invoke.rs already does (lines ~778-784).
+    ///
+    /// Red Gate condition:
+    ///   FAILS before fix: `prepare()` calls `resolve_for_write(path, &ctx.plugin_root)`
+    ///   and `path_allowed(..., &ctx.plugin_root)`, so the write lands under
+    ///   `plugin_root/.factory/STATE.md`, not `cwd/.factory/STATE.md`.
+    ///   PASSES after fix: `prepare()` calls `resolve_for_write(path, &ctx.cwd)`
+    ///   and `path_allowed(..., &ctx.cwd)`, so the write lands under `cwd/.factory/STATE.md`.
+    ///
+    /// Traces to: BC-2.02.011 invariant 3; ADR-028 §Decision 8 F-NW2-003; S-18.04a-prereq AC-004.
+    #[test]
+    fn test_BC_2_02_011_resolves_relative_path_under_cwd_not_plugin_root() {
+        let cwd_dir = tempfile::tempdir().unwrap();
+        let plugin_root_dir = tempfile::tempdir().unwrap();
+
+        // Precondition: the two roots must be distinct directories.
+        assert_ne!(
+            cwd_dir.path(),
+            plugin_root_dir.path(),
+            "test setup: cwd and plugin_root must be distinct for this test to be non-tautological"
+        );
+
+        // Create .factory/ under cwd so the write target's parent exists.
+        let cwd_factory = cwd_dir.path().join(".factory");
+        std::fs::create_dir_all(&cwd_factory).unwrap();
+
+        // Create .factory/ under plugin_root so that — under the CURRENT stale
+        // code — the plugin_root-rooted path_allow check can canonicalize and
+        // the stale write would land there. Without this dir the stale code
+        // would get CAPABILITY_DENIED due to the prefix's canonicalize() failing.
+        let plugin_root_factory = plugin_root_dir.path().join(".factory");
+        std::fs::create_dir_all(&plugin_root_factory).unwrap();
+
+        // Build a context with cwd != plugin_root.
+        // path_allow uses a relative prefix ".factory/" which must resolve under
+        // ctx.cwd (correct) or ctx.plugin_root (stale bug).
+        let mut ctx = context_with_caps(allow_write(&[".factory/"]));
+        ctx.cwd = cwd_dir.path().to_path_buf();
+        ctx.plugin_root = plugin_root_dir.path().to_path_buf();
+
+        // Write a relative path. The correct behavior (matching invoke.rs + read_file.rs)
+        // is that this resolves to cwd/.factory/STATE.md.
+        let result = prepare(&ctx, ".factory/STATE.md", b"hello cwd", 1024);
+
+        // The write must succeed (allowlist check must pass against cwd-rooted prefix).
+        assert!(
+            result.is_ok(),
+            "BC-2.02.011 invariant 3: prepare() must succeed when path is within \
+             the cwd-rooted path_allow prefix; got: {:?}",
+            result
+        );
+
+        // Assert the file was written under cwd, not plugin_root.
+        let expected_path = cwd_dir.path().join(".factory/STATE.md");
+        assert!(
+            expected_path.exists(),
+            "BC-2.02.011 invariant 3: relative path '.factory/STATE.md' must resolve \
+             under ctx.cwd ({:?}), but file was not found there. \
+             Likely the stale code resolved it under ctx.plugin_root instead.",
+            cwd_dir.path()
+        );
+
+        // Assert the file was NOT written under plugin_root (would indicate the stale bug).
+        let stale_path = plugin_root_dir.path().join(".factory/STATE.md");
+        assert!(
+            !stale_path.exists(),
+            "BC-2.02.011 invariant 3: relative path must NOT resolve under ctx.plugin_root \
+             ({:?}); write_file.rs is using the stale plugin_root-rooted resolution instead \
+             of ctx.cwd. This is the stale unit-test facade bug that S-18.04a-prereq fixes.",
+            plugin_root_dir.path()
+        );
+
+        // Verify the correct content was written.
+        let content = std::fs::read(&expected_path).unwrap();
+        assert_eq!(
+            content,
+            b"hello cwd",
+            "BC-2.02.011 invariant 3: file content under ctx.cwd must match what was written"
+        );
+    }
+
     #[test]
     fn denies_when_no_capability_block() {
         let ctx = bare_context();
