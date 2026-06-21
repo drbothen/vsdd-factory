@@ -13,6 +13,10 @@
 #   TC-AC005b: PreCompact + exit-2 plugin + on_error=continue → exit 0 (fail-open)
 #   TC-EC001: Two PreCompact plugins; one exits 2 → exit 2 (single exit-2 sufficient)
 #   TC-AC006: Unknown event type handled; does not crash dispatcher
+#   TC-AC006-CWD-ENV: Dispatcher propagates CLAUDE_PROJECT_DIR (distinct from CLAUDE_PLUGIN_ROOT)
+#             into the dispatched subprocess environment (env-var propagation only;
+#             host write_file cwd-rooting is covered by Rust tests in write_file.rs +
+#             host_write_file_integration.rs)
 #
 # VP-086 property: "factory-dispatcher receives a PreCompact event; registered
 # plugin exits 2; dispatcher propagates block_intent=true to harness."
@@ -428,19 +432,31 @@ _run_dispatcher() {
 }
 
 # ---------------------------------------------------------------------------
-# TC-AC006-CWD: Subprocess write via CLAUDE_PROJECT_DIR lands under PROJECT_DIR
-# S-18.04a-prereq AC-006 / BC-2.02.011 invariant 3
+# TC-AC006-CWD-ENV: Dispatcher propagates CLAUDE_PROJECT_DIR (distinct from
+# CLAUDE_PLUGIN_ROOT) into the dispatched subprocess environment.
+# S-18.04a-prereq AC-006 / ADR-028 §Decision 8
 #
-# Verifies that when CLAUDE_PLUGIN_ROOT != CLAUDE_PROJECT_DIR, a subprocess
-# that writes to $CLAUDE_PROJECT_DIR/.factory/ writes to the project directory
-# (ctx.cwd = CLAUDE_PROJECT_DIR), NOT to the plugin root directory (WORK).
+# Scope: this test verifies env-var propagation only.  The subprocess writes
+# to the ABSOLUTE path ${CLAUDE_PROJECT_DIR}/.factory/cwd-probe.txt — so the
+# file landing under PROJECT_DIR proves that the dispatcher passed
+# CLAUDE_PROJECT_DIR correctly into the subprocess environment, NOT that the
+# host write_file function resolves relative paths under cwd.
+#
+# Host write_file cwd-rooting (BC-2.02.011 invariant 3) is covered separately
+# at the Rust level by:
+#   - Unit test:       test_BC_2_02_011_resolves_relative_path_under_cwd_not_plugin_root
+#                      (crates/factory-dispatcher/src/host/write_file.rs)
+#   - Integration test: test_BC_2_02_011_invariant_3_relative_path_resolves_via_linker
+#                      (crates/factory-dispatcher/tests/host_write_file_integration.rs)
+# Both Rust tests use distinct plugin_root vs cwd roots, so this bats test
+# does not duplicate or substitute for them.
 #
 # Red Gate condition (S-18.04a-prereq):
-#   FAILS before fix: equal roots ($WORK == $WORK) mask the distinction —
-#     probe would land under $WORK/.factory/ even with wrong routing.
-#   PASSES after fix: distinct roots ($PROJECT_DIR subdir of $WORK) —
-#     probe lands under $PROJECT_DIR/.factory/ only if CLAUDE_PROJECT_DIR
-#     is passed correctly to the subprocess.
+#   FAILS before fix: if CLAUDE_PROJECT_DIR were not propagated (or were set
+#     equal to WORK) the probe would land under WORK/.factory/ instead.
+#   PASSES after fix: distinct roots ($PROJECT_DIR subdir of $WORK) — probe
+#     lands under $PROJECT_DIR/.factory/ only if CLAUDE_PROJECT_DIR is
+#     correctly passed to the subprocess.
 # ---------------------------------------------------------------------------
 
 # Write a registry with ONE PreCompact plugin that has env_allow for
@@ -467,21 +483,22 @@ script_path = "hooks/stub-write-probe.sh"
 EOF
 }
 
-@test "TC-AC006-CWD: subprocess write via CLAUDE_PROJECT_DIR lands under PROJECT_DIR not WORK" {
+@test "TC-AC006-CWD-ENV: dispatcher propagates distinct CLAUDE_PROJECT_DIR env var to subprocess" {
   _require_artifacts
   _write_precompact_write_probe_registry
 
-  _run_dispatcher '{"event_name":"PreCompact","tool_name":"","session_id":"tc-ac006-cwd","tool_input":{}}'
+  _run_dispatcher '{"event_name":"PreCompact","tool_name":"","session_id":"tc-ac006-cwd-env","tool_input":{}}'
 
   # Dispatcher must exit 0 (stub exits 0).
   [ "$status" -eq 0 ]
 
-  # The probe file must exist under PROJECT_DIR/.factory/ (cwd = CLAUDE_PROJECT_DIR).
-  # This is the non-tautological assertion: with distinct roots, if CLAUDE_PROJECT_DIR
-  # were wrong (equal to WORK) the file would land under WORK/.factory/ instead.
+  # The probe file must exist under PROJECT_DIR/.factory/.
+  # The stub writes to the ABSOLUTE path ${CLAUDE_PROJECT_DIR}/.factory/cwd-probe.txt,
+  # so the file landing here proves CLAUDE_PROJECT_DIR was propagated correctly
+  # into the subprocess environment (env-var propagation, not write_file cwd-rooting).
   [ -f "$PROJECT_DIR/.factory/cwd-probe.txt" ]
 
   # Assert the probe did NOT land under WORK/.factory/ (which would indicate
-  # that CLAUDE_PROJECT_DIR was incorrectly set equal to WORK — the stale bug).
+  # that CLAUDE_PROJECT_DIR was incorrectly set equal to WORK — the bug under test).
   [ ! -f "$WORK/.factory/cwd-probe.txt" ]
 }
