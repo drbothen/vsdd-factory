@@ -2085,3 +2085,61 @@ dac15bde (D-670 spec re-convergence design-fix HEAD; factory-artifacts)
 ### NEXT
 
 Final adversary+consistency convergence gate on round-2 package (ADR-028 v1.2 + BC-7.07.001 v1.17 + S-18.04a v1.10), then deliver S-18.04a-prereq (write_file cwd fix), then native-WASM TDD for S-18.04a. Autonomy=STOP-BEFORE-PR-MERGE still holds.
+
+---
+
+## D-672 — S-18.04a native-WASM spec-re-convergence ROUND 3 FINAL design-fix — 2026-06-20
+
+### Decision
+
+D-672 S-18.04a native-WASM spec-re-convergence ROUND 3 FINAL design-fix — adversary 0 blocker/3 major (design sound) + consistency drifts RESOLVED; ADR-028 v1.2→v1.3 (F-R3-001 mount canonicalize split-tree guard; F-R3-002 scan-region Decision 14; F-R3-003 staging add -A Decision 15 EC-008 reconciled; F-R3-005 NoOp-identical Decision 16; F-R3-006 wrong-branch RedGate Decision 17; F-R3-007 committer note; CV-001..006 fixed incl. S-18.04a depends_on +prereq); BC-7.07.001 v1.17→v1.18; S-18.04a v1.10→v1.11; 4-index BC v3.28/VP v2.40/STORY v4.45/ARCH v2.64; SPEC CONVERGENCE ACCEPTED per D-386 Option C (0 blockers, decaying findings, sound design) — proceeding to implementation: S-18.04a-prereq THEN S-18.04a native WASM TDD; NO further spec-review round.
+
+### Rationale
+
+Round-3 adversary review of the full S-18.04a spec package (ADR-028 v1.2 + BC-7.07.001 v1.17 + S-18.04a v1.10) returned 0 blockers and 3 major findings. The D-386 Option C convergence criterion (0 blockers, decaying major count across passes, design structurally sound) is satisfied. The 3 majors (F-R3-001..003, F-R3-005..007) were design-elaboration gaps, not design defects: mount canonicalize behavior on split-tree scenarios (Decision 14), scan-region boundary semantics (Decision 14), staging `add -A` reconciled with EC-008 (Decision 15), NoOp-identical path behavior (Decision 16), wrong-branch detection as Red Gate (Decision 17), committer identity handling (Decision 18). CV-001..006 consistency drifts also resolved: S-18.04a-prereq row corrected (depends_on spurious S-17.04 removed; Title set to verbatim H1). No further spec-review round is warranted.
+
+### F-R3 Finding Closures
+
+- F-R3-001 (mount canonicalize split-tree guard): ADR-028 v1.3 Decision 14 adds canonicalize-after-mount step; split-tree guard explicitly documented.
+- F-R3-002 (scan-region Decision 14): ADR-028 v1.3 Decision 14 specifies scan-region boundaries from canonicalized mount path.
+- F-R3-003 (staging add -A Decision 15 EC-008 reconciled): ADR-028 v1.3 Decision 15 clarifies `git add -A` applies only to STATE.md; EC-008 preserved.
+- F-R3-005 (NoOp-identical Decision 16): ADR-028 v1.3 Decision 16 codifies NoOp-identical path: identical content detected pre-commit → skip commit → log NoOp.
+- F-R3-006 (wrong-branch RedGate Decision 17): ADR-028 v1.3 Decision 17 adds wrong-branch detection as RedGate; BC-7.07.001 v1.18 A14 adds Red Gate AC.
+- F-R3-007 (committer note Decision 18): ADR-028 v1.3 Decision 18 documents committer identity resolution.
+
+### Consistency CV-001..006 Closures
+
+- CV-001 (STORY-INDEX S-18.04a-prereq Title mismatch): SM-7 FIXED — Title set to verbatim H1 'write_file.rs cwd alignment + BC-2.02.011 §Inv3 + bats equal-roots fix' per POLICY 7.
+- CV-002 (ADR-028 Decision-4 forward-ref): ADR-028 v1.3 adds cross-reference from Decision 14 to Decision 4.
+- CV-003 (BC-7.07.001 scan-region gap): BC-7.07.001 v1.18 A12-A15 adds ACs for mount canonicalize, scan-region, NoOp-identical, wrong-branch.
+- CV-004 (STORY-INDEX S-18.04a-prereq depends_on spurious S-17.04): SM-6 FIXED — removed S-17.04 from depends_on → [S-18.00] (story frontmatter authoritative).
+- CV-005 (S-18.04a story B14-B18 new ACs): S-18.04a v1.11 adds corresponding story ACs for F-R3 closures.
+- CV-006 (ARCH-INDEX ADR-028 row annotation): SM-8 FIXED — ARCH-INDEX v2.64 ADR-028 row annotated with v1.3 + F-R3 closures.
+
+### 4-Index
+
+- BC-INDEX v3.28 (BUMPED — BC-7.07.001 v1.18 annotation; POLICY 14 5-leg parity)
+- VP-INDEX v2.40 (UNCHANGED)
+- STORY-INDEX v4.45 (BUMPED — S-18.04a-prereq row Title+depends_on SM-6/7 FIXED; S-18.04a v1.11 annotation; POLICY 14 5-leg parity)
+- ARCH-INDEX v2.64 (BUMPED — ADR-028 v1.3 row annotation SM-8; POLICY 14 5-leg parity)
+
+Literal-shell POLICY 15 4-index gate output (captured 2026-06-20):
+```
+grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md → version: "3.28" (BUMPED)
+grep "^version:" .factory/specs/verification-properties/VP-INDEX.md → version: "2.40" (UNCHANGED)
+grep "^version:" .factory/stories/STORY-INDEX.md → version: "4.45" (BUMPED)
+grep "^version:" .factory/specs/architecture/ARCH-INDEX.md → version: "2.64" (BUMPED)
+```
+Parity confirmed PASS: BC-INDEX v3.28 / VP-INDEX v2.40 / STORY-INDEX v4.45 / ARCH-INDEX v2.64.
+
+### Parent-commit
+
+(Commit D of this burst — factory-artifacts HEAD prior to Commit E)
+
+### develop HEAD
+
+70664e02 (S-18.13 PR #196 squash-merged 2026-06-20; UNCHANGED)
+
+### NEXT
+
+S-18.04a WASM RE-SPEC CONVERGED (D-672, ADR-028 v1.3); NEXT: deliver S-18.04a-prereq (write_file.rs cwd alignment, blocks S-18.04a) via TDD then S-18.04a native WASM TDD; autonomy STOP-BEFORE-PR-MERGE holds.
