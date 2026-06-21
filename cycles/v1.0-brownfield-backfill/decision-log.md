@@ -2023,3 +2023,65 @@ All 4-index versions confirmed PASS.
 ### NEXT
 
 Re-run fresh adversary+consistency spec convergence gate on amended package (ADR-028 v1.1 + BC-7.07.001 v1.16 + S-18.04a v1.9), then native-WASM TDD re-implementation. Autonomy=STOP-BEFORE-PR-MERGE still holds.
+
+---
+
+## D-671 — S-18.04a native-WASM spec re-convergence ROUND-2 design-fix + S-18.04a-prereq story — 2026-06-20
+
+### Decision
+
+D-671 S-18.04a native-WASM spec re-convergence ROUND-2 design-fix: write_file 'blocker' from round-1 review (D-670 ADR-028 v1.1) resolved as FALSE — production invoke.rs is cwd-rooted (verified); no capability/ABI/release-blocker. Prereq micro-story S-18.04a-prereq v1.0 created to fix: (1) write_file.rs unit-test facade incorrectly using absolute path instead of cwd-rooted; (2) BC-2.02.011 staleness referencing old path convention; (3) bats equal-roots masking that hid the facade gap. F-NW2-004 committer-identity, F-NW2-005 renew_lock pure RenewOutcome signature, F-NW2-006 malformed-fence NoOp parity, F-NW2-007 NoOp clean-state, F-NW2-008 read-absent-as-empty, F-NW2-009 DURABILITY DEGRADED advisory: ALL RESOLVED. Consistency ISSUE-1..6: ALL FIXED. ADR-028 v1.1→v1.2 (architect). BC-7.07.001 v1.16→v1.17 (product-owner). S-18.04a v1.9→v1.10 (story-writer). 4-index: BC v3.27/VP v2.40/STORY v4.44/ARCH v2.63.
+
+### Rationale
+
+The D-670 round-1 design-fix produced ADR-028 v1.1. A second adversary+consistency gate on the amended spec package returned NOT-CLEAN with findings F-NW2-004..009 and consistency ISSUE-1..6. The write_file 'blocker' claimed in round-1 was a false positive: production invoke.rs routes write_file calls cwd-rooted (not absolute-path), so the WASM plugin's write_file.rs behavior is correct for production. The gap is only in: (a) the unit-test facade which hardcodes absolute path, masking the correct production behavior; (b) BC-2.02.011 which documented the old path convention; (c) bats fixtures with equal-roots that don't distinguish the gap. The prereq story S-18.04a-prereq fixes these three test-fidelity gaps without any behavioral change to the plugin. This unblocks S-18.04a TDD once prereq is delivered.
+
+### F-NW2 Finding Closures
+
+- F-NW2-004 (committer-identity): write_file.rs unit-test used hardcoded committer; fixed in ADR-028 v1.2 + story v1.10.
+- F-NW2-005 (renew_lock pure RenewOutcome): ADR-028 v1.2 clarifies renew_lock() returns pure RenewOutcome, not Result; BC-7.07.001 v1.17 aligned.
+- F-NW2-006 (malformed-fence NoOp parity): ADR-028 v1.2 + S-18.04a v1.10 ensure malformed-fence returns NoOp with clean state.
+- F-NW2-007 (NoOp clean-state): RESOLVED in ADR-028 v1.2 — NoOp paths documented as leaving precompact-flush-log unmodified.
+- F-NW2-008 (read-absent-as-empty): ADR-028 v1.2 codifies read-absent-as-empty semantic for precompact-flush-log.
+- F-NW2-009 (DURABILITY DEGRADED advisory): S-18.04a v1.10 adds advisory test vectors; ADR-028 v1.2 documents degraded-mode behavior.
+
+### Consistency ISSUE-1..6 Closures
+
+- ISSUE-1: ARCH-INDEX v2.61 historical changelog-body 4-index cite corrected: was BC-INDEX v3.24/STORY-INDEX v4.40 (stale pre-D-669); now BC-INDEX v3.25 / VP-INDEX v2.40 / STORY-INDEX v4.42 / ARCH-INDEX v2.61 (actual D-669 state). FIXED in ARCH-INDEX v2.63 changelog body.
+- ISSUE-2..6: Additional consistency gaps resolved in ADR-028 v1.2 body and index rows.
+
+### S-18.04a-prereq Story
+
+New prerequisite story S-18.04a-prereq v1.0 created (story-writer):
+- Title: write_file cwd alignment prereq — write_file.rs facade fix to cwd-rooted invocation + BC-2.02.011 staleness fix + bats equal-roots de-masking
+- Epic: E-18; Points: 3; Priority: P0; Status: draft
+- Subsystems: SS-04, SS-07; BC: BC-2.02.011; blocks S-18.04a; no new capability/ABI/release-blocker
+- Wave: prerequisite-before-S-18.04a (W0-prereq in E-18 DAG)
+
+### 4-Index
+
+- BC-INDEX v3.27 (BUMPED — BC-7.07.001 v1.17 annotation + POLICY 14 5-leg parity)
+- VP-INDEX v2.40 (UNCHANGED)
+- STORY-INDEX v4.44 (BUMPED — S-18.04a-prereq row ADDED; story_count 123→124; E-18 tally 15→16; S-18.04a v1.10 annotation)
+- ARCH-INDEX v2.63 (BUMPED — ISSUE-1 v2.61 cite FIXED; ADR-028 v1.2 row; v2.63 changelog row)
+
+Literal-shell POLICY 15 4-index gate output (captured 2026-06-20):
+```
+grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md → version: "3.27" (BUMPED)
+grep "^version:" .factory/specs/verification-properties/VP-INDEX.md → version: "2.40" (UNCHANGED)
+grep "^version:" .factory/stories/STORY-INDEX.md → version: "4.44" (BUMPED)
+grep "^version:" .factory/specs/architecture/ARCH-INDEX.md → version: "2.63" (BUMPED)
+```
+Parity confirmed PASS: BC-INDEX v3.27 / VP-INDEX v2.40 / STORY-INDEX v4.44 / ARCH-INDEX v2.63.
+
+### Parent-commit
+
+dac15bde (D-670 spec re-convergence design-fix HEAD; factory-artifacts)
+
+### develop HEAD
+
+70664e02 (S-18.13 PR #196 squash-merged 2026-06-20; UNCHANGED)
+
+### NEXT
+
+Final adversary+consistency convergence gate on round-2 package (ADR-028 v1.2 + BC-7.07.001 v1.17 + S-18.04a v1.10), then deliver S-18.04a-prereq (write_file cwd fix), then native-WASM TDD for S-18.04a. Autonomy=STOP-BEFORE-PR-MERGE still holds.

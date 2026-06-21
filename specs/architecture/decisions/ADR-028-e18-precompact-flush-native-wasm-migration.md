@@ -2,7 +2,7 @@
 document_type: architecture-decision-record
 level: L3
 adr_id: ADR-028
-version: "1.1"
+version: "1.2"
 status: accepted
 producer: architect
 timestamp: 2026-06-20T00:00:00Z
@@ -19,14 +19,14 @@ superseded_by: null
 decision_status: accepted
 human_gate_required: false
 human_gate_reason: "Two explicit human decisions provided: (1) runtime git worktree discovery strategy; (2) native WASM lock renewal eliminating bash dependency. Both decisions are self-contained and implementable without further human input. All design work required for native renewal is resolved in this ADR."
-last_amended: "2026-06-20 (v1.1) — Adversarial review remediation (architect): F-NW-001 [BLOCKER] PATH+SSH_AUTH_SOCK added to env_allow; GIT_SSH_COMMAND assessed; Red Gate added for real git push to local bare remote. F-NW-002 [BLOCKER] path_allow domain vs worktree discovery clarified: discovered absolute path used ONLY for git -C argument; host read_file/write_file always use .factory/-relative paths gated by path_allow; canonical invariant documented (discovered-worktree == <cwd>/.factory). F-NW-003 [BLOCKER] uniform git -C mandate: ALL git subprocesses must use git -C <discovered-worktree-abs-path>; bare git commands without -C are forbidden; canonical 11-step execution order updated. F-NW-005 [MAJOR] parse-result→renew-outcome mapping fully specified: Ok(None) → no-op; Ok(Some valid) → update expires_at; Err(malformed) → advisory warn + proceed; no-frontmatter STATE.md → Ok(None) (skip, no advisory); Red Gate added. F-NW-004 [MAJOR] renew fidelity divergence resolved: renew_lock() returns Err on malformed (library faithfulness preserved); precompact-flush CALLER downgrades Err to advisory + proceeds (hook fail-open preserved); contradiction in semantic-faithfulness table removed. F-NW-007 [MAJOR] log-append concurrency assessed: write_file is full-overwrite (read-modify-write, NOT OS-atomic append); single-writer guarantee documented (dispatcher synchronous + factory-lock gate); bounded data-loss window stated; NO dispatcher host-API change required (grounded-documentation path). F-NW-008 [MAJOR] expires_at format pinned: EXACTLY YYYY-MM-DDTHH:MM:SSZ (UTC, second precision, Z suffix — NOT chrono default rfc3339 +00:00 / sub-seconds). F-NW-009 [MINOR] CRLF + file mode: native crates/factory-lock normalizes to LF-only output; file mode not applicable (host write_file creates/overwrites with platform defaults; no chmod). ADR traceability stale cites replaced with stable anchors per POLICY 19 (TD-VSDD-091). ADR-028 v1.0→v1.1. [Prior: 2026-06-20 (v1.0) — Initial authoring (architect; human decisions incorporated: runtime git worktree discovery; native lock renewal binary_allow=[\"git\"] only; shared crate `crates/factory-lock` for reusable renewal logic; ordering confirmation in 11-step canonical order; BC-7.07.001/S-18.04a amendment instructions produced).]"
+last_amended: "2026-06-20 (v1.2) — Consolidated design-fix pass (architect): F-NW2-001/002/003 write_file.rs path-domain corrected — production host write_file (invoke.rs lines 746-800) resolves relative paths under ctx.cwd=CLAUDE_PROJECT_DIR (matching read_file.rs lines 83-89); write_file.rs::prepare() resolves under plugin_root BUT is ONLY used by its own unit tests; shipped plugins confirm native WASM is viable WITHOUT a dispatcher release; PREREQUISITE micro-story (S-18.04a-prereq) required to align write_file.rs::resolve_for_write to ctx.cwd + amend BC-2.02.011 invariant 3 + fix precompact-routing.bats equal-roots masking (exact change surface in §Decision 8). F-NW2-004 committer identity: rely on HOME/GIT_CONFIG_GLOBAL for global git identity (GIT_AUTHOR/COMMITTER vars NOT added to env_allow); Red Gate for commit-identity documented. F-NW2-005 renew_lock() signature pinned to pure content-in/content-out `renew_lock(&str) -> Result<RenewOutcome, LockError>` (RenewOutcome::NoOp|Renewed(String)); path-based form struck from AC-018. F-NW2-006 malformed-fence parity: renew_lock() adds factory_lock: presence pre-check so lock-absent-with-malformed-fence -> Ok(NoOp) (bash parity); Err(Malformed) reserved for fence-malformed-AND-lock-present; BC PC3/EC-004 updated; Red Gate added. F-NW2-007 empty-commit vs renew-nonempty: if RenewOutcome::NoOp AND no other changes -> INV5 clean-state exit 0 (never force empty commit); renew-makes-nonempty applies only when RenewOutcome::Renewed; test vector added. F-NW2-008 read_file on absent file -> CAPABILITY_DENIED; AC-007 specifies read error treated as EMPTY prior content for log-append (first-flush Red Gate added). F-NW2-009 worktree-discovery posture: discovery failure is fail-open exit 0 BUT with LOUD advisory so silently-disabled-durability session is visible; BC PC4/AC-017 updated. Consistency fixes: AC-011 bare git steps 5/6/7/10 corrected (B7); phantom F-NW-010 label replaced with stable anchor (B8); BC-7.07.001 Traceability §Decision refs corrected (A7). ADR-028 v1.1→v1.2. [Prior: 2026-06-20 (v1.1) — Adversarial review remediation (architect): F-NW-001 PATH+SSH_AUTH_SOCK added to env_allow; GIT_SSH_COMMAND assessed; Red Gate added for real git push to local bare remote. F-NW-002 [BLOCKER] path_allow domain vs worktree discovery clarified: discovered absolute path used ONLY for git -C argument; host read_file/write_file always use .factory/-relative paths gated by path_allow; canonical invariant documented (discovered-worktree == <cwd>/.factory). F-NW-003 [BLOCKER] uniform git -C mandate: ALL git subprocesses must use git -C <discovered-worktree-abs-path>; bare git commands without -C are forbidden; canonical 11-step execution order updated. F-NW-005 [MAJOR] parse-result→renew-outcome mapping fully specified: Ok(None) → no-op; Ok(Some valid) → update expires_at; Err(malformed) → advisory warn + proceed; no-frontmatter STATE.md → Ok(None) (skip, no advisory); Red Gate added. F-NW-004 [MAJOR] renew fidelity divergence resolved: renew_lock() returns Err on malformed (library faithfulness preserved); precompact-flush CALLER downgrades Err to advisory + proceeds (hook fail-open preserved); contradiction in semantic-faithfulness table removed. F-NW-007 [MAJOR] log-append concurrency assessed: write_file is full-overwrite (read-modify-write, NOT OS-atomic append); single-writer guarantee documented (dispatcher synchronous + factory-lock gate); bounded data-loss window stated; NO dispatcher host-API change required (grounded-documentation path). F-NW-008 [MAJOR] expires_at format pinned: EXACTLY YYYY-MM-DDTHH:MM:SSZ (UTC, second precision, Z suffix — NOT chrono default rfc3339 +00:00 / sub-seconds). F-NW-009 [MINOR] CRLF + file mode: native crates/factory-lock normalizes to LF-only output; file mode not applicable (host write_file creates/overwrites with platform defaults; no chmod). ADR traceability stale cites replaced with stable anchors per POLICY 19 (TD-VSDD-091). ADR-028 v1.0→v1.1. [Prior: 2026-06-20 (v1.0) — Initial authoring (architect; human decisions incorporated: runtime git worktree discovery; native lock renewal binary_allow=[\"git\"] only; shared crate `crates/factory-lock` for reusable renewal logic; ordering confirmation in 11-step canonical order; BC-7.07.001/S-18.04a amendment instructions produced).]"
 ---
 
 # ADR-028: E-18 precompact-flush native WASM migration — runtime worktree discovery and native lock renewal
 
 ## Status
 
-**ACCEPTED — 2026-06-20 (v1.0). Amended 2026-06-20 (v1.1) — adversarial review remediation.**
+**ACCEPTED — 2026-06-20 (v1.0). Amended 2026-06-20 (v1.1) — adversarial review remediation. Amended 2026-06-20 (v1.2) — consolidated design-fix pass.**
 
 This ADR codifies two human-directed decisions for the S-18.04a native WASM migration of the
 `precompact-flush` hook plugin:
@@ -42,6 +42,7 @@ This ADR is the authoritative design reference for S-18.04a when the precompact-
 
 | Version | Date | Change |
 |---------|------|--------|
+| v1.2 | 2026-06-20 | Consolidated design-fix pass: F-NW2-001/002/003 write_file.rs path-domain false-blocker corrected + PREREQUISITE micro-story (S-18.04a-prereq) specified; F-NW2-004 committer identity under env_clear resolved (rely on HOME/GIT_CONFIG_GLOBAL); F-NW2-005 renew_lock() pure content signature pinned + path-based form struck; F-NW2-006 malformed-fence parity via factory_lock: presence pre-check in renew_lock(); F-NW2-007 empty-commit vs renew-nonempty precedence; F-NW2-008 read_file absent-file → treat-as-empty-for-log-append; F-NW2-009 worktree-discovery loud advisory posture. Consistency fixes: AC-011 bare git steps B7; phantom F-NW-010 label B8; BC-7.07.001 Traceability §Decision refs A7. |
 | v1.1 | 2026-06-20 | Adversarial review remediation: F-NW-001 env_allow PATH+SSH_AUTH_SOCK; F-NW-002 path_allow domain clarification + canonical .factory/ mount invariant; F-NW-003 uniform git -C mandate; F-NW-004 renew_lock() Err semantics + caller-downgrade; F-NW-005 parse-result→renew-outcome mapping; F-NW-007 log-append concurrency grounded-documentation; F-NW-008 expires_at format exact contract; F-NW-009 CRLF + file mode native contract. Stale traceability version tokens replaced with stable POLICY 19 anchors. Amendment instructions for PO/story-writer/state-manager produced. |
 | v1.0 | 2026-06-20 | Initial authoring (architect; two human decisions: runtime worktree discovery + native lock renewal). |
 
@@ -515,6 +516,403 @@ the implementer understands the semantics of `read_file` + `write_file` for log 
 
 ---
 
+### Decision 8 (new) — PREREQUISITE correctness fix: align write_file.rs to cwd (F-NW2-001/002/003)
+
+**Background — false blocker resolved:**
+
+A spike confirmed that the "write_file blocker" previously discussed is FALSE for production: the
+production plugin invocation path in `crates/factory-dispatcher/src/invoke.rs` (lines 746-800)
+implements `write_file` with relative paths resolved under `ctx.cwd = CLAUDE_PROJECT_DIR` (the
+main repo root). This matches `read_file.rs` (lines 83-89: `resolve_for_read` uses `ctx.cwd`).
+Shipped plugins (`regression-gate`, `update-wave-state-on-merge`) already write `.factory/` files
+via this cwd-rooted production path in production. Native WASM migration is viable without any
+dispatcher host-ABI change or release.
+
+**The actual defect:**
+
+`crates/factory-dispatcher/src/host/write_file.rs::resolve_for_write()` (line 111-117) resolves
+relative paths under `plugin_root` rather than `ctx.cwd`. This function is called by `prepare()`
+which is used ONLY in unit tests within `write_file.rs` itself — the production dispatcher uses
+the inline implementation in `invoke.rs`. The defect is therefore a unit-test facade inconsistency,
+not a production blocker. However, it creates two risks:
+
+1. **BC-2.02.011 invariant 3 is stale**: it claims write_file joins with `ctx.plugin_root` (from
+   the unit-test facade), but production uses `ctx.cwd`. The invariant is incorrect.
+2. **precompact-routing.bats equal-roots masking**: at line 216, the bats test sets
+   `CLAUDE_PLUGIN_ROOT='$WORK' CLAUDE_PROJECT_DIR='$WORK'` — both roots equal the same
+   directory. This means the precompact flush positive-flush Red Gate
+   (`test_flush_completes_via_git_only_positive`) does NOT exercise the distinction between the
+   `write_file.rs` plugin_root path and the `invoke.rs` cwd path — both resolve to the same
+   files. The test is tautological with respect to path resolution.
+
+**PREREQUISITE deliverable (S-18.04a-prereq):**
+
+This prerequisite MUST ship as its own PR and be merged before S-18.04a begins implementation.
+It contains no native WASM plugin code — only correctness fixes to existing code and specs.
+
+Suggested story ID: `S-18.04a-prereq` (blocking S-18.04a). Scope:
+
+**(a) align `write_file.rs::resolve_for_write` to `ctx.cwd`:**
+
+In `crates/factory-dispatcher/src/host/write_file.rs`, replace the `prepare()` function's path
+resolution to match `invoke.rs` production semantics:
+
+```rust
+// Change `prepare()` signature to accept cwd:
+fn prepare(ctx: &HostContext, path: &str, contents: &[u8], max_bytes: u32) -> Result<(), i32> {
+    // ...
+    // Replace:
+    let resolved = resolve_for_write(Path::new(path), &ctx.plugin_root);
+    // With:
+    let resolved = resolve_for_write(Path::new(path), &ctx.cwd);
+    // ...
+    // Replace allowlist check:
+    if !path_allowed(&resolved, &caps.path_allow, &ctx.plugin_root) {
+    // With:
+    if !path_allowed(&resolved, &caps.path_allow, &ctx.cwd) {
+}
+
+// Change `resolve_for_write` to accept the cwd base:
+fn resolve_for_write(path: &Path, base: &Path) -> PathBuf {
+    if path.is_absolute() { path.to_path_buf() } else { base.join(path) }
+}
+```
+
+Update the doc comment on `resolve_for_write` to reflect `base` = `ctx.cwd` (matching
+`read_file.rs::resolve_for_read`). Update unit tests to set `ctx.cwd` instead of
+`ctx.plugin_root` for the path prefix.
+
+**(b) amend BC-2.02.011 invariant 3:**
+
+Current text (stale): "Relative `path` values are joined with `ctx.plugin_root`."
+Correct text: "Relative `path` values are joined with `ctx.cwd` (`CLAUDE_PROJECT_DIR`),
+mirroring `resolve_for_read` as of S-8.07. The `plugin_root`-rooted resolution in
+`write_file.rs::prepare()` was a unit-test facade bug; production `invoke.rs` has always
+used `ctx.cwd`. S-18.04a-prereq aligns the unit-test facade to production semantics."
+
+**(c) fix precompact-routing.bats line 216 (equal-roots masking):**
+
+Change the `_run_dispatcher()` helper to use DISTINCT directories for plugin root and project dir:
+
+```bash
+# Before (line 216 — tautological, both roots equal):
+run bash -c "printf '%s' '$envelope' | CLAUDE_PLUGIN_ROOT='$WORK' CLAUDE_PROJECT_DIR='$WORK' '$DISPATCHER' 2>&1"
+
+# After (non-tautological — project dir is a subdirectory):
+PROJECT_DIR="$WORK/project"
+mkdir -p "$PROJECT_DIR"
+run bash -c "printf '%s' '$envelope' | CLAUDE_PLUGIN_ROOT='$WORK' CLAUDE_PROJECT_DIR='$PROJECT_DIR' '$DISPATCHER' 2>&1"
+```
+
+This makes the precompact flush positive-flush Red Gate (`test_flush_completes_via_git_only_positive`)
+genuinely exercise the cwd write path rather than coincidentally passing because both roots are equal.
+All path_allow entries in the test registry must be updated to absolute paths or paths relative to
+`$PROJECT_DIR` accordingly.
+
+**Why this is a BLOCKING prerequisite for S-18.04a:**
+
+S-18.04a's `test_flush_completes_via_git_only_positive` Red Gate (renamed from tautological
+`test_bats_tautology_positive_flush_completion` per B8) asserts that the native plugin writes
+`.factory/hooks/precompact-flush-log` via host `write_file`. This assertion is non-tautological
+only when `CLAUDE_PLUGIN_ROOT != CLAUDE_PROJECT_DIR`. If S-18.04a ships without the bats fix,
+the test passes vacuously under equal-roots and will not catch a regression where write_file
+accidentally uses plugin_root.
+
+**No dispatcher release required:** S-18.04a-prereq is a Rust source change + bats test fix.
+It does not change the dispatcher's ABI, wire protocol, or published hook-sdk interface. It does
+not require a new release tag before native WASM plugin development begins — it only needs to
+land on `develop` and be tested before S-18.04a branches.
+
+---
+
+### Decision 9 (new) — `renew_lock()` pure content-in/content-out signature with factory_lock: presence pre-check (F-NW2-005/006)
+
+**Binding signature:**
+
+```rust
+pub enum RenewOutcome {
+    /// Lock was absent (or no frontmatter present with no lock) — STATE.md unchanged.
+    NoOp,
+    /// Lock was held and expires_at was updated. Contains the new full STATE.md content.
+    Renewed(String),
+}
+
+pub fn renew_lock(state_md_content: &str) -> Result<RenewOutcome, LockError>
+```
+
+The prior v1.1 text allowed an alternative `renew_lock(&Path)` / `renew_lock(&factory_artifacts_path)`
+path-based form. This is **STRUCK**. The only acceptable signature is the pure content-in/content-out
+form above. Callers (the `precompact-flush` plugin) own the read_file and write_file operations;
+`crates/factory-lock` stays pure (no `std::fs` calls, no host I/O — compatible with WASM hermetic
+model). This also means `crates/factory-lock` cannot depend on `std::fs` and remains `no_std`-friendly.
+
+**factory_lock: presence pre-check (F-NW2-006 — bash parity):**
+
+`crates/factory-lock-parse::parse_factory_lock()` returns `Err(MalformedLockBlock)` when the
+STATE.md content starts with `---\n` (opening fence present) but has no closing `---` delimiter —
+EVEN IF there is no `factory_lock:` block in the frontmatter. This diverges from bash
+`factory-lock-write.sh renew`, which checks `factory_lock:` presence first (awk search for
+`factory_lock:` between frontmatter fences) and silently exits 0 if absent — the fence shape
+is never checked for the "absent lock" early-exit path.
+
+`renew_lock()` MUST add a `factory_lock:` presence pre-check BEFORE calling `parse_factory_lock()`:
+
+```rust
+pub fn renew_lock(state_md_content: &str) -> Result<RenewOutcome, LockError> {
+    // Step 1: Pre-check — is factory_lock: present at all?
+    // Scan the frontmatter region for the `factory_lock:` key.
+    // If absent → Ok(NoOp) regardless of fence shape (bash parity).
+    if !has_factory_lock_key(state_md_content) {
+        return Ok(RenewOutcome::NoOp);
+    }
+    // Step 2: Parse the full frontmatter (fence-aware).
+    // If fence is malformed AND lock key IS present → Err(Malformed).
+    let lock_state = parse_factory_lock(state_md_content)?;
+    // Step 3: If lock is null/absent despite key being present → NoOp.
+    let held = match lock_state {
+        None => return Ok(RenewOutcome::NoOp),
+        Some(ls) => ls,
+    };
+    // Step 4: Update expires_at, return Renewed(new_content).
+    // ...
+    Ok(RenewOutcome::Renewed(new_content))
+}
+```
+
+The `has_factory_lock_key()` helper scans for the literal string `factory_lock:` within the
+frontmatter region (lines between first `---\n` and next `\n---\n` or EOF). If the frontmatter
+is malformed (no closing fence), the scan looks between `---\n` and EOF. If `factory_lock:`
+is not found, return `Ok(NoOp)` immediately — no call to `parse_factory_lock()`.
+
+**Updated Err(Malformed) semantics:**
+
+`Err(LockError::Malformed)` is returned ONLY when `factory_lock:` IS present in the frontmatter
+AND the block is malformed (missing field, empty field, missing closing fence after the lock key
+is present). This is the exact bash parity: bash only errors out (exit 1 `RenewalMissed`) when
+the lock BLOCK is present but missing `expires_at`.
+
+**Updated parse-result → renew-outcome mapping (supersedes v1.1 F-NW-005 mapping):**
+
+| State | `has_factory_lock_key()` | `parse_factory_lock()` | `renew_lock()` returns |
+|-------|--------------------------|------------------------|------------------------|
+| No frontmatter (no `---\n` prefix) | false | n/a | `Ok(NoOp)` |
+| Frontmatter present, no closing fence, NO lock key | false | n/a | `Ok(NoOp)` |
+| Frontmatter present, no closing fence, lock key present | true | `Err(Malformed)` | `Err(Malformed)` |
+| Frontmatter present, closing fence, no `factory_lock:` key | false | n/a | `Ok(NoOp)` |
+| Frontmatter present, `factory_lock:` null/absent | true | `Ok(None)` | `Ok(NoOp)` |
+| Frontmatter present, valid lock with all three fields | true | `Ok(Some(lock))` | `Ok(Renewed(content))` |
+| Frontmatter present, lock key present but malformed | true | `Err(Malformed)` | `Err(Malformed)` |
+
+**Red Gate requirement (F-NW2-006):**
+
+Add to S-18.04a Red Gate Test Table:
+
+```
+test_renew_lock_malformed_fence_no_lock_key_returns_noop
+File: crates/factory-lock/tests/renew.rs
+Input: STATE.md with opening `---\n` fence but no closing `---` and no `factory_lock:` key
+Expected: Ok(RenewOutcome::NoOp) — NO advisory emitted
+Red Gate: Compile error (crate not implemented); would fail if Err(Malformed) returned
+```
+
+---
+
+### Decision 10 (new) — Committer identity under env_clear (F-NW2-004)
+
+**Analysis:**
+
+`exec_subprocess` runs with `env_clear` followed by re-injection of only the names in `env_allow`
+(see `crates/factory-dispatcher/src/host/exec_subprocess.rs` lines 242-250). The current
+`env_allow` for git is:
+
+```toml
+env_allow = ["HOME", "GIT_CONFIG_GLOBAL", "XDG_CONFIG_HOME", "PATH", "SSH_AUTH_SOCK"]
+```
+
+For `git commit` to succeed, git must resolve a committer identity (`user.name` + `user.email`).
+Git resolves identity in the following precedence order:
+
+1. `GIT_AUTHOR_NAME` / `GIT_COMMITTER_NAME` / `GIT_AUTHOR_EMAIL` / `GIT_COMMITTER_EMAIL`
+   environment variables (highest priority — per-commit override).
+2. `user.name` / `user.email` in git config files (`~/.gitconfig`, `$GIT_CONFIG_GLOBAL`,
+   `$XDG_CONFIG_HOME/git/config`).
+3. OS-level `gecos` / hostname fallback (if git is compiled with this fallback enabled).
+
+**Decision:**
+
+`GIT_AUTHOR_NAME`, `GIT_AUTHOR_EMAIL`, `GIT_COMMITTER_NAME`, `GIT_COMMITTER_EMAIL` are NOT
+added to `env_allow`. The production-grade default relies on the operator's global git identity
+configured in `~/.gitconfig` or `$GIT_CONFIG_GLOBAL`. This is the correct posture because:
+
+- `HOME` is already in `env_allow`. When git resolves `~/.gitconfig`, it expands `~` using
+  `HOME`. With `HOME` re-injected, git can find the global config.
+- `GIT_CONFIG_GLOBAL` and `XDG_CONFIG_HOME` are also in `env_allow`, covering non-standard
+  config locations.
+- Factory operations already require a properly configured git environment (git push to remote
+  requires SSH credentials); committer identity is a baseline requirement that operators must
+  have configured.
+- Adding `GIT_AUTHOR_*` / `GIT_COMMITTER_*` to `env_allow` would expose any session-level
+  identity override to the plugin, which is unnecessary.
+
+**Documented precondition:**
+
+The operator MUST have `user.name` and `user.email` configured in `~/.gitconfig` or a file
+reachable via `GIT_CONFIG_GLOBAL`. If identity is not configured, `git commit` exits non-zero
+with `Author identity unknown` — the plugin treats this as AC-005b commit-failure → exit 2
+(block compaction). This is the correct production fail-safe: a mis-configured environment should
+block the flush rather than emit an empty or mis-attributed commit.
+
+**Red Gate requirement (F-NW2-004):**
+
+Add to S-18.04a Red Gate Test Table:
+
+```
+test_git_commit_succeeds_with_global_identity_via_home
+File: plugins/vsdd-factory/tests/precompact-flush-native.bats
+ACs: AC-005, AC-017
+Description: Test fixture creates a temp $HOME with a .gitconfig containing user.name and user.email.
+  Dispatcher is invoked with HOME pointing to this temp dir (HOME in env_allow).
+  Assert: git commit exits 0; commit SHA is non-empty; author identity matches .gitconfig.
+Red Gate: Plugin not yet compiled; test setup not yet implemented.
+```
+
+---
+
+### Decision 11 (new) — empty-commit vs renew-nonempty precedence (F-NW2-007)
+
+**Precedence rule:**
+
+INV5 ("empty commit is forbidden") is evaluated AFTER the `renew_lock()` call, using the
+post-renewal STATE.md content as the baseline for `git diff --cached` semantics. The precedence
+is:
+
+1. Renew step runs → produces `RenewOutcome::NoOp` (lock absent) or `RenewOutcome::Renewed(new_content)`.
+2. If `RenewOutcome::Renewed`: write updated STATE.md via `host::write_file` → the git staging
+   area will include the renewal change → flush commit is non-empty (INV3a: "renew makes nonempty").
+3. If `RenewOutcome::NoOp`: STATE.md not written → check `git -C <wt> diff --cached` for
+   any other staged changes.
+   - If no changes: INV5 clean-state → exit 0 silently (do NOT force a commit).
+   - If changes exist: proceed to commit.
+
+**Byte-identical renewal guard:**
+
+If two PreCompact flushes fire within the same wall-clock second AND the lock was held both
+times, the first flush renews `expires_at = T` and commits. The second flush also computes
+`expires_at = T` (same second). After `renew_lock()`, the STATE.md content is byte-identical
+to the committed content (both flushes compute the same `T`). `git -C <wt> diff --cached`
+after `git add -u` shows no diff → INV5 clean-state → exit 0 (no empty commit forced).
+
+This is the correct behavior: forcing a commit with no content change would produce an empty
+commit that clutters the factory-artifacts history. The previous v1.1 text implied that renew
+ALWAYS makes the commit non-empty — this was an overstatement. INV3a is now refined:
+"Renewal makes the commit non-empty IF AND ONLY IF `renew_lock()` returns
+`RenewOutcome::Renewed` and the new expires_at differs from the committed expires_at."
+
+**Test vector (add to BC-7.07.001 §Canonical Test Vectors):**
+
+| Input | Expected Output | Category |
+|-------|----------------|----------|
+| PreCompact event; STATE.md readable; factory_lock: absent; no pending factory-artifacts changes | exit 0; no commit; no precompact-flush-log line appended (`RenewOutcome::NoOp` + clean state) | no-lock-clean-state |
+
+---
+
+### Decision 12 (new) — read_file on absent/non-existent file for log-append (F-NW2-008)
+
+**Problem:**
+
+`host::read_file` (both `read_file.rs::prepare` and `invoke.rs` production path) calls
+`canonicalize()` on the target path to validate the allowlist. `canonicalize()` fails on
+non-existent files (returns `Err(NotFound)`), which causes `path_allowed()` to return `false`,
+and `read_file` returns `CAPABILITY_DENIED (-1)`. This means the FIRST flush (when
+`.factory/hooks/precompact-flush-log` does not exist yet) will receive a `CAPABILITY_DENIED`
+from `read_file` on the log path.
+
+**Resolution for log-append (AC-007):**
+
+A `read_file` error on the precompact-flush-log path — including `CAPABILITY_DENIED` on a
+non-existent file — MUST be treated as EMPTY prior content (empty byte string `""`), NOT as
+an append failure. The plugin concatenates `"" + new_entry\n` and calls `write_file` (which
+supports creating new files, per BC-2.02.011 EC-005 and `write_file.rs::resolve_path_for_allowlist`
+which handles non-existent file creation).
+
+This mirrors the behavior of `regression-gate`'s "any read error → no prior state" pattern.
+It is NOT a silent failure: the plugin is intentionally handling the "file does not exist" case
+as an empty baseline, which is the correct semantic for an append-create operation.
+
+**What is NOT treated as empty:**
+
+Only the log-append read is treated as empty-on-error. Errors from `read_file` on STATE.md
+(the primary state file) are treated as AC-002 (STATE.md unreadable → exit 0 + warn to stderr).
+Do not generalize the empty-on-error treatment to STATE.md reads.
+
+**SHA-pinned reset guard interaction:**
+
+The sha-pinned reset guard (INV3 step 9) fires on APPEND FAILURE — i.e., when `write_file`
+returns an error AFTER a successful `read_file` (or empty-baseline). If `read_file` returns
+CAPABILITY_DENIED (non-existent file), the plugin proceeds with the empty baseline and calls
+`write_file`. If `write_file` then fails (e.g., parent directory doesn't exist), THAT is the
+append failure that triggers the reset guard. The `read_file` CAPABILITY_DENIED on the
+non-existent log file is NOT itself an append failure.
+
+**Red Gate requirement (F-NW2-008):**
+
+```
+test_first_flush_with_absent_log_appends_successfully
+File: crates/hook-plugins/precompact-flush/tests/integration.rs
+AC: AC-007
+Description: Fixture has no precompact-flush-log file. PreCompact event fires.
+  Assert: plugin exits 0; precompact-flush-log is created with exactly one LF-terminated
+  4-field entry. No advisory emitted for the absent log.
+Red Gate: Compile error; would fail if read_file CAPABILITY_DENIED propagated as append failure.
+```
+
+---
+
+### Decision 13 (new) — worktree-discovery failure posture: fail-open with LOUD advisory (F-NW2-009)
+
+**Context:**
+
+Two distinct failure cases arise during worktree discovery:
+
+1. **`git worktree list --porcelain` command itself fails** — e.g., git binary not found,
+   env_allow insufficient, or git process crashes. This is an ENVIRONMENT problem.
+2. **Command succeeds but factory-artifacts branch is not listed** — the git command ran, but
+   the factory-artifacts worktree is not mounted. This is a CONFIGURATION problem.
+
+Both cases currently map to `exit 0 + advisory warning` (BC-7.07.001 PC7 / PC4 / BC-7.07.001
+INV3 step 1 fail-open). This is correct for the `on_error = "continue"` contract — we must
+not block compaction when we can't determine whether there is anything to flush.
+
+**However, silent skip is dangerous.** If a session silently skips every PreCompact flush
+because the worktree discovery fails (e.g., due to a PATH issue introduced in a config change),
+the durability guarantee is silently disabled. The next compaction proceeds with no prior flush,
+and STATE.md changes are lost.
+
+**Revised posture — LOUD advisory:**
+
+The advisory message MUST be structured and unambiguous enough that a human reading the session
+log immediately recognizes that durability is degraded. The messages MUST be:
+
+- For case 1 (git command failed): `precompact-flush: DURABILITY DEGRADED — git worktree list
+  command failed (exit <N>); factory-artifacts worktree cannot be discovered; flush SKIPPED
+  this compaction event. Check PATH/git configuration.`
+- For case 2 (command succeeded, no factory-artifacts stanza found): `precompact-flush:
+  DURABILITY DEGRADED — factory-artifacts branch not found in git worktree list output;
+  flush SKIPPED this compaction event. Ensure the factory-artifacts worktree is mounted at
+  .factory/ (run: git worktree add .factory factory-artifacts).`
+
+Both messages are written to stderr with the prefix `precompact-flush: DURABILITY DEGRADED`
+(uppercase) so they are findable in logs and session history.
+
+**Impact on BC-7.07.001 PC4 / AC-017:**
+
+BC-7.07.001 PC4 text should add: "If discovery fails (command error OR no stanza found), the
+plugin exits 0 with a DURABILITY DEGRADED advisory to stderr (see §Decision 13 message format).
+The exit-0 fail-open is maintained per on_error=continue; the LOUD advisory ensures the
+degraded state is detectable."
+
+---
+
 ## BC-6.23.001 and S-17.04 Amendment Assessment
 
 **BC-6.23.001 (factory-lock skill acquire/release behaviors):** No amendment required. BC-6.23.001
@@ -689,6 +1087,235 @@ Add to S-18.04a §Traceability table:
 
 ---
 
+### (a-v1.2) Product-owner: BC-7.07.001 amendments (v1.2 additions)
+
+These amendments supplement the v1.1 amendments (A1–A6) already applied in BC-7.07.001 v1.16.
+
+**Amendment A7 — Traceability: §Decision references corrected (consistency ISSUE-5/6)**
+
+In the BC-7.07.001 Traceability table, the ADR rows for §Decision 3/4/5 cite the ADR-028
+decision by their NOW-SHIFTED numbers. In ADR-028 v1.2, the numbering is:
+
+- §Decision 3 = Uniform `git -C <worktree>` (formerly "Decision 3 — Uniform git -C"; unchanged)
+- §Decision 4 = Shared crate `crates/factory-lock` (formerly "Decision 3 — Code structure"; renumbered in v1.0)
+- §Decision 5 = Native renew precedes git add (formerly "Decision 4 — Canonical execution order"; renumbered in v1.0)
+
+The BC-7.07.001 Traceability §ADR row currently reads:
+```
+ADR-028 §Decision 3 (uniform git -C) | AC-004, AC-005, AC-006, AC-008, AC-009
+ADR-028 §Decision 4 (shared crate crates/factory-lock) | AC-018, Architecture Mapping
+ADR-028 §Decision 5 (native renew precedes git add) | AC-011 step 4
+```
+
+Verify these row §Decision numbers match the ADR-028 v1.2 numbering above (§Decision 3/4/5).
+If any row cites a stale number (e.g., "§Decision 2" for shared-crate or "§Decision 3" for
+renew-precedes-add from the original v1.0 before the renumbering), update to the numbers
+above. Use stable anchor form `ADR-028 §Decision N (description)` per TD-VSDD-091
+(POLICY 19 anti-volatile-pin — no file:line cites).
+
+Also update the Traceability "Architecture Module" row:
+- Current: "SS-07 (Hook Bash Layer) — ... ADR-028 native stanza"
+- No change needed: the module text is already behavior-anchored, not version-pinned.
+
+**Amendment A8 — PC3 + EC-004: factory_lock: presence pre-check (F-NW2-006)**
+
+Update BC-7.07.001 PC3 to reflect the `factory_lock:` presence pre-check in `renew_lock()`:
+
+> `crates/factory-lock::renew_lock()` performs a `factory_lock:` key presence pre-check before
+> invoking the full fence-aware parser. If `factory_lock:` is NOT present in the frontmatter
+> (regardless of fence shape), `renew_lock()` returns `Ok(RenewOutcome::NoOp)` immediately —
+> this matches bash `factory-lock-write.sh renew`'s behavior of silently exiting 0 when the
+> lock key is absent. `Err(LockError::Malformed)` is returned ONLY when `factory_lock:` IS
+> present but the block is malformed. The hook caller treats `Err` as advisory (fail-open per
+> §EC-004). `Ok(RenewOutcome::NoOp)` is returned both for lock-absent and for
+> lock-key-absent-with-malformed-fence, preserving bash parity.
+
+Update EC-004 to add:
+> Note: `renew_lock()` returns `Err(Malformed)` ONLY when the `factory_lock:` key IS present
+> but the block is malformed. If the key is absent (even in malformed-fence frontmatter),
+> `renew_lock()` returns `Ok(RenewOutcome::NoOp)` — distinguishable from `Err(Malformed)`.
+
+**Amendment A9 — PC4 / Discovery failure: LOUD advisory message format (F-NW2-009)**
+
+In BC-7.07.001 PC4, add:
+
+> If worktree discovery fails — either because the `git worktree list --porcelain` subprocess
+> exits non-zero (environment/git error) OR because the output contains no stanza with
+> `branch refs/heads/factory-artifacts` (configuration error) — the plugin exits 0 (fail-open
+> per `on_error = continue`) but MUST write a DURABILITY DEGRADED advisory to stderr:
+>
+> - Git command failed: `precompact-flush: DURABILITY DEGRADED — git worktree list command
+>   failed (exit <N>); factory-artifacts worktree cannot be discovered; flush SKIPPED this
+>   compaction event. Check PATH/git configuration.`
+> - Factory-artifacts not found: `precompact-flush: DURABILITY DEGRADED — factory-artifacts
+>   branch not found in git worktree list output; flush SKIPPED this compaction event. Ensure
+>   the factory-artifacts worktree is mounted at .factory/ (run: git worktree add .factory
+>   factory-artifacts).`
+>
+> The LOUD advisory (uppercase DURABILITY DEGRADED prefix) distinguishes this from a normal
+> no-op (clean state) and ensures a human reading session logs can identify a silently-disabled
+> durability session.
+
+**Amendment A10 — INV3 step 3: RenewOutcome::NoOp vs Renewed precedence (F-NW2-007)**
+
+Update BC-7.07.001 INV3 step 3 / INV3a to reflect Decision 11:
+
+> (3) check `factory_lock:` block — if `renew_lock()` returns `Ok(RenewOutcome::NoOp)` (key
+> absent OR lock null/absent): skip step 4 (no write_file call; no-op); proceed to step 5.
+> If `Ok(RenewOutcome::Renewed(content))`: proceed to step 4 (write renewed STATE.md).
+> If `Err(Malformed)`: advisory warn; skip step 4; proceed to step 5.
+>
+> (5) `git -C <wt> add -u` — stages only tracked files. IMPORTANT: if step 3 returned
+> `RenewOutcome::NoOp` AND step 5 shows no staged changes (`git -C <wt> diff --cached`
+> is empty), the plugin MUST apply INV5 (exit 0; no empty commit) rather than forcing a
+> commit. The empty-commit guard checks post-add staging, not pre-renewal staging.
+
+Update INV3a:
+> `crates/factory-lock::renew_lock()` returns `RenewOutcome::Renewed(content)` ONLY when the
+> lock was held AND `expires_at` was actually updated. If the lock was absent (returns
+> `RenewOutcome::NoOp`), no write_file call is made and the staging area is unchanged by the
+> renewal step. Therefore "renew makes the flush commit non-empty" is conditional: it applies
+> ONLY when `RenewOutcome::Renewed` — not when `NoOp`. INV5 must be evaluated after `git add`
+> using `git diff --cached`, not before.
+
+Add canonical test vector to §Canonical Test Vectors table:
+```
+| Input: STATE.md readable; factory_lock: absent; no pending factory-artifacts changes
+| Expected: exit 0; no commit; no precompact-flush-log line appended (NoOp + clean state)
+| Category: no-lock-clean-state
+```
+
+**Amendment A11 — AC-018 path-based form struck (F-NW2-005)**
+
+In BC-7.07.001 PC4 (the precondition text and Architecture Anchors), replace any reference to
+`crates/factory-lock::renew_lock(&factory_artifacts_path)` or `renew_lock(&Path)` with the
+pure content form:
+
+> The renewal function signature is `pub fn renew_lock(state_md_content: &str) -> Result<RenewOutcome, LockError>`.
+> The PLUGIN owns the `host::read_file` and `host::write_file` calls; `crates/factory-lock` is
+> a pure library with no `std::fs` or I/O dependencies. This makes `crates/factory-lock`
+> WASM-hermetic (no filesystem syscalls inside the crate itself).
+
+---
+
+### (b-v1.2) Story-writer: S-18.04a amendments (v1.2 additions)
+
+These amendments supplement the v1.1 amendments (B1–B6) already applied in S-18.04a v1.9.
+
+**Amendment B7 — AC-011: fix bare git commands in canonical order summary (consistency ISSUE-2)**
+
+In AC-011 §canonical execution order steps 5, 6, 7, 10, the summary list uses bare `git` without
+`-C <wt>`. The correct forms are:
+
+```
+Step 5:  exec_subprocess("git", &["-C", &wt, "add", "-u"])                              — was: exec_subprocess("git", &["add", "-u"])
+Step 6:  exec_subprocess("git", &["-C", &wt, "commit", "-m", msg])                      — was: exec_subprocess("git", &["commit", "-m", msg])
+Step 7:  SHA_B = exec_subprocess("git", &["-C", &wt, "rev-parse", "HEAD"])               — was: exec_subprocess("git", &["rev-parse", "HEAD"])
+Step 10: exec_subprocess("git", &["-C", &wt, "push", "origin", "factory-artifacts"])    — was: exec_subprocess("git", &["push", "origin", "factory-artifacts"])
+```
+
+Replace all four bare-git forms with the `-C <wt>` forms above. The existing note at the bottom
+of AC-011 ("ALL git subprocesses except the initial `git worktree list --porcelain` MUST use
+`-C <wt>`") remains correct as-is; the summary steps must now also be consistent with it.
+
+**Amendment B8 — Red Gate row: replace phantom F-NW-010 label with stable anchor (consistency ISSUE-4)**
+
+In the Red Gate Test Table, the final row currently has:
+
+```
+| `test_flush_completes_via_git_only_positive` | ... | BC-7.07.001 §INV3 F-NW-010 (POSITIVE flush completion ...) |
+```
+
+The label `F-NW-010` is a phantom (no corresponding finding was formally numbered F-NW-010 in
+ADR-028 v1.0 or v1.1). Replace the BC clause text with a stable behavioral anchor:
+
+```
+BC-7.07.001 §INV3 (positive-flush-completion: assert BOTH (a) commit SHA exists on
+factory-artifacts AND (b) precompact-flush-log entry with that SHA is appended; NOT merely
+absence-of-bash-subprocess; ADR-028 §Decision 3 F-NW-001 env_allow + §Decision 8 bats non-tautological)
+```
+
+Do NOT use `F-NW-010` anywhere in the spec. Use the stable `§INV3 positive-flush-completion`
+anchor instead.
+
+**Amendment B9 — AC-017: LOUD advisory message format (F-NW2-009)**
+
+In AC-017, update the failure-mode advisory text:
+
+```
+If the git worktree list command exits non-zero:
+  Write to stderr: "precompact-flush: DURABILITY DEGRADED — git worktree list command failed
+  (exit <N>); factory-artifacts worktree cannot be discovered; flush SKIPPED this compaction
+  event. Check PATH/git configuration." Exit 0 (fail-open).
+
+If no stanza with branch refs/heads/factory-artifacts is found:
+  Write to stderr: "precompact-flush: DURABILITY DEGRADED — factory-artifacts branch not
+  found in git worktree list output; flush SKIPPED this compaction event. Ensure the
+  factory-artifacts worktree is mounted at .factory/ (run: git worktree add .factory
+  factory-artifacts)." Exit 0 (fail-open).
+```
+
+Replace the prior single-message advisory format in AC-017 with these two distinct messages.
+The DURABILITY DEGRADED prefix (uppercase) is mandatory.
+
+**Amendment B10 — AC-018: path-based form struck; RenewOutcome enum added (F-NW2-005)**
+
+Replace the AC-018 renew_lock() call form `crates/factory-lock::renew_lock(&factory_artifacts_path)`
+with:
+
+> `crates/factory-lock::renew_lock(state_md_content: &str)` — pure content-in/content-out.
+> The plugin reads STATE.md via `host::read_file` (→ `state_md_content`), calls `renew_lock()`,
+> and based on the result:
+> - `Ok(RenewOutcome::NoOp)` → no write_file call; STATE.md unchanged; proceed to git add.
+> - `Ok(RenewOutcome::Renewed(new_content))` → call `host::write_file(".factory/STATE.md", new_content)`;
+>   proceed to git add.
+> - `Err(LockError::Malformed)` → advisory warn to stderr; no write_file call; proceed to git add
+>   (fail-open per EC-004).
+
+Remove any text suggesting a path-based `renew_lock(&Path)` form.
+
+**Amendment B11 — AC-007: absent log read → empty baseline (F-NW2-008)**
+
+In AC-007, add:
+
+> If `host::read_file` on `.factory/hooks/precompact-flush-log` returns an error (including
+> `CAPABILITY_DENIED` when the file does not yet exist — `read_file` requires the file to exist
+> for `canonicalize()` to succeed), the plugin MUST treat the error as EMPTY prior content
+> (`""`). The new entry is concatenated to `""` and written via `host::write_file` (which
+> supports creating new files per BC-2.02.011 EC-005). This is NOT a failure; it is the
+> intended first-flush behavior. Do NOT treat a `read_file` error on the log path as an append
+> failure (which would trigger the SHA-pinned reset guard).
+
+**Amendment B12 — AC-011: RenewOutcome::NoOp + INV5 interaction (F-NW2-007)**
+
+In AC-011 step 3, update:
+
+> Check `factory_lock:` block via `renew_lock(state_md_content)`:
+> - `Ok(RenewOutcome::NoOp)` → skip step 4 (no write_file); proceed to step 5 (git add)
+> - `Ok(RenewOutcome::Renewed(content))` → proceed to step 4 (write_file with content)
+> - `Err(Malformed)` → advisory warn; skip step 4; proceed to step 5
+
+In AC-011 step 5 note, add:
+
+> After `git -C <wt> add -u`, check for staged changes via `git -C <wt> diff --cached`. If
+> there are no staged changes AND step 3 returned `RenewOutcome::NoOp`, apply INV5 (exit 0
+> clean-state; do NOT commit). If step 3 returned `RenewOutcome::Renewed`, the renewal write
+> guarantees at least the STATE.md change is staged; INV5 does not apply.
+
+**Amendment B13 — New Red Gate rows (F-NW2-004/006/007/008/009)**
+
+Add to the Red Gate Test Table:
+
+| Test name | File | AC | BC clause | Red Gate condition |
+|-----------|------|----|-----------|-------------------|
+| `test_git_commit_succeeds_with_global_identity_via_home` | `plugins/vsdd-factory/tests/precompact-flush-native.bats` | AC-005, AC-017 | ADR-028 §Decision 10 F-NW2-004 (committer identity via HOME/.gitconfig; GIT_AUTHOR/COMMITTER vars absent from env_allow) | Plugin not yet compiled; test fixture not yet implemented |
+| `test_renew_lock_malformed_fence_no_lock_key_returns_noop` | `crates/factory-lock/tests/renew.rs` | AC-018 | ADR-028 §Decision 9 F-NW2-006 (malformed fence + no factory_lock key → Ok(NoOp); bash parity) | Compile error; would fail if Err(Malformed) returned |
+| `test_no_lock_clean_state_exits_0_no_commit` | `crates/hook-plugins/precompact-flush/tests/integration.rs` | AC-005, AC-011, AC-018 | ADR-028 §Decision 11 F-NW2-007 (RenewOutcome::NoOp + clean state → exit 0, no commit forced) | Compile error; would fail if empty commit created |
+| `test_first_flush_with_absent_log_appends_successfully` | `crates/hook-plugins/precompact-flush/tests/integration.rs` | AC-007 | ADR-028 §Decision 12 F-NW2-008 (read_file CAPABILITY_DENIED on absent log → empty baseline; log created with one entry) | Compile error; would fail if read_file error treated as append failure |
+| `test_worktree_discovery_failure_emits_durability_degraded` | `crates/hook-plugins/precompact-flush/tests/integration.rs` | AC-017 | ADR-028 §Decision 13 F-NW2-009 (discovery failure → exit 0 + stderr DURABILITY DEGRADED prefix; NOT silent) | Compile error; would fail if advisory omitted or quiet |
+
+---
+
 ### (c) State-manager: index parity drifts
 
 These are state-manager-domain fixes (index title/version parity). Architect specifies; state-manager
@@ -721,14 +1348,36 @@ BC-7.07.001: precompact-flush native WASM plugin fires synchronously on PreCompa
 ```
 If the BC-INDEX row does not match verbatim, update it. If it already matches, no action needed.
 
-**Index fix SM-4 — ARCH-INDEX ADR-028 row version cell**
+**Index fix SM-4 — ARCH-INDEX ADR-028 row version cell (v1.2 update)**
 
-The ARCH-INDEX Architecture Decisions table currently shows ADR-028 at version `v1.0` (implicit
-in the row text "ACCEPTED 2026-06-20; ADR-028 v1.0"). Update the row's version reference to
-`v1.1` in the ARCH-INDEX table to reflect this amendment. Also update ARCH-INDEX `last_amended`
-and `changelog` with the v2.62 entry per POLICY 14 5-leg parity (version bump is state-manager
-domain, not architect domain — architect only edits the ADR file itself; the ARCH-INDEX provenance
-leg is state-manager's Commit D responsibility).
+The ARCH-INDEX Architecture Decisions table currently shows ADR-028 at version `v1.1` (per the
+v2.62 update from D-670). Update the row's version reference to `v1.2` in the ARCH-INDEX table
+to reflect this v1.2 amendment. Also update ARCH-INDEX `version`, `last_amended`, and
+`changelog` with a v2.63 entry per POLICY 14 5-leg parity. The changelog entry should read:
+"v2.63 — ADR-028 row updated v1.1→v1.2 (architect: F-NW2-001..009 consolidated design-fix pass;
+write_file.rs path-domain false-blocker corrected; PREREQUISITE micro-story S-18.04a-prereq
+specified; renew_lock() pure content signature; malformed-fence parity; empty-commit precedence;
+read_file absent-as-empty; LOUD advisory; consistency fixes A7/B7/B8)."
+The version bump is state-manager domain, not architect domain.
+
+**Note on ARCH-INDEX v2.62 historical changelog body (consistency ISSUE-1):**
+
+The D-670 burst (v2.62) historical body in ARCH-INDEX already cites `BC-INDEX v3.26 / STORY-INDEX
+v4.43 / ARCH-INDEX v2.62` — this was the correction applied in D-670 and is ALREADY correct.
+No further correction to the v2.62 historical entry is needed.
+
+**Index fix SM-5 — PREREQUISITE micro-story S-18.04a-prereq registration**
+
+State-manager adds a new story catalog row to STORY-INDEX for `S-18.04a-prereq`:
+
+```
+| S-18.04a-prereq | write_file.rs cwd alignment + BC-2.02.011 §Inv3 + bats equal-roots fix |
+  PENDING | 3 pts | SS-01,SS-02 | blocks: S-18.04a | ADR-028 §Decision 8 |
+```
+
+Story ID is `S-18.04a-prereq`. It blocks S-18.04a. Story-writer creates the full story file;
+this catalog row is state-manager's domain (index update). The story is 3 points, track:
+maintenance, phase: F3 (or feature depending on current cycle).
 
 ---
 
@@ -743,17 +1392,25 @@ leg is state-manager's Commit D responsibility).
   actual mount path is read from git's authoritative worktree registry at runtime.
 - **Native renewal fidelity.** The Rust implementation of `renew_lock()` mirrors `factory-lock-write.sh
   renew` semantics precisely: preserve `holder` + `locked_at`; update `expires_at = now + 2700s`
-  in EXACTLY `YYYY-MM-DDTHH:MM:SSZ` format; no-op when lock absent; `Err` on malformed (library
-  layer); fail-open advisory at hook caller layer.
+  in EXACTLY `YYYY-MM-DDTHH:MM:SSZ` format; no-op when lock absent or lock key absent (including
+  malformed-fence case per Decision 9 bash-parity pre-check); `Err` on malformed-AND-lock-present
+  (library layer); fail-open advisory at hook caller layer.
 - **Shared crate reusable.** `crates/factory-lock` can be used by future native WASM plugins
-  needing lock operations.
+  needing lock operations. Pure content-in/content-out signature is WASM-hermetic (no std::fs).
 - **Standing ADR-014 policy satisfied.** Native WASM migration closes the legacy-bash-adapter
   technical debt for the PreCompact hook.
 - **Uniform git -C discipline.** All git subprocesses explicitly scoped to the factory-artifacts
   worktree; no risk of accidentally operating on the main repo.
+- **No dispatcher release required.** Production write_file in invoke.rs is already cwd-rooted.
+  Native WASM migration can proceed without a new dispatcher ABI version or release tag.
+- **Durability degradation is visible.** LOUD advisory (DURABILITY DEGRADED prefix) on worktree
+  discovery failure ensures silently-disabled flush sessions are detectable in logs.
 
 ### Negative / Trade-offs
 
+- **PREREQUISITE micro-story (S-18.04a-prereq) required before S-18.04a.** Three mechanical
+  fixes must land first: write_file.rs::resolve_for_write alignment, BC-2.02.011 invariant 3
+  correction, and precompact-routing.bats equal-roots fix. Estimated 3 points; small but blocking.
 - **Log-append is read-modify-write, not atomic.** `host::write_file` is a full overwrite. A
   theoretical race between `precompact-flush` and `precompact-flush-prune.sh` in concurrent
   sessions could lose a log entry. Mitigated by: factory-lock serializes typical usage; log is
@@ -763,10 +1420,13 @@ leg is state-manager's Commit D responsibility).
   for non-executable files).
 - **New crate `crates/factory-lock` must be authored.** Frontmatter-boundary-aware YAML surgery
   in Rust requires careful parsing. Mitigation: unit tests over the full matrix of frontmatter
-  shapes.
+  shapes, including the factory_lock: key presence pre-check edge cases.
 - **`bash factory-lock-write.sh renew` remains in production for skill callers.** Two code paths
   now implement renewal (bash script + Rust crate). They must remain semantically synchronized.
   Mitigation: the Rust `renew_lock()` unit tests use the same semantic table as the bash script.
+- **Committer identity is a precondition, not a capability.** git commit fails with `Author
+  identity unknown` if the operator's ~/.gitconfig is not configured. This is a deployment
+  precondition, not a plugin bug; the fail-safe is correct (exit 2 blocks compaction).
 
 ---
 
@@ -778,12 +1438,18 @@ leg is state-manager's Commit D responsibility).
 | bash exec in WASM sandbox expands attack surface | Decision 2: `binary_allow = ["git"]` only; renewal is native Rust |
 | git push fails silently due to missing PATH or SSH_AUTH_SOCK | Decision 1 (v1.1): `PATH` + `SSH_AUTH_SOCK` added to `env_allow`; Red Gate bats test with local bare remote |
 | git subprocesses operating on main repo instead of factory-artifacts | Decision 3: uniform `git -C <wt>` on ALL git subprocesses |
-| Native renew diverges semantically from bash script renew | Decision 4 (F-NW-004): library returns Err on malformed (faithful); caller downgrades Err to advisory (fail-open); semantic faithfulness table in ADR; unit tests validate contract |
-| `expires_at` format diverges from bash output (e.g., chrono rfc3339 vs Z-suffix) | Decision 2 (F-NW-008): format pinned to `YYYY-MM-DDTHH:MM:SSZ`; Red Gate test for exact format |
+| Native renew diverges semantically from bash script renew | Decision 4 (v1.1): library returns Err on malformed (faithful); caller downgrades Err to advisory; Decision 9 (v1.2): bash parity for malformed-fence + no-lock-key case via presence pre-check |
+| `expires_at` format diverges from bash output (e.g., chrono rfc3339 vs Z-suffix) | Decision 2 (v1.1): format pinned to `YYYY-MM-DDTHH:MM:SSZ`; Red Gate test for exact format |
 | Log append race between flush and prune (concurrent sessions) | Decision 7: grounded-documentation; factory-lock serializes typical usage; no dispatcher change needed |
-| Rust frontmatter surgery corrupts body content of STATE.md | Shared crate must be frontmatter-boundary-aware; unit tests include body-content edge cases |
-| `expires_at` not included in flush commit (ordering defect) | Decision 5: native renew (step 4) MUST precede git add (step 5) |
-| No-frontmatter STATE.md causes panic or unexpected advisory during renew | Decision 2 (F-NW-005): Ok(None) for no-frontmatter; skip renewal silently |
+| Rust frontmatter surgery corrupts body content of STATE.md | Shared crate must be frontmatter-boundary-aware; unit tests include body-content edge cases and presence pre-check |
+| `expires_at` not included in flush commit (ordering defect) | Decision 5: native renew MUST precede git add |
+| No-frontmatter STATE.md causes unexpected advisory during renew | Decision 9 (v1.2): `has_factory_lock_key()` pre-check returns `Ok(NoOp)` for no-frontmatter; no parse attempted |
+| Malformed-fence + no lock key emits spurious Err (diverges from bash parity) | Decision 9 (v1.2): presence pre-check catches factory_lock: absent before fence parse; Ok(NoOp) returned |
+| Empty commit forced when RenewOutcome::NoOp + clean state | Decision 11 (v1.2): INV5 evaluated post-git-add; NoOp + no-staged-changes → exit 0 clean-state |
+| First flush fails because read_file returns CAPABILITY_DENIED on absent log | Decision 12 (v1.2): read_file error on log path treated as empty baseline; write_file creates file |
+| Silently-disabled durability goes undetected in session logs | Decision 13 (v1.2): LOUD advisory (DURABILITY DEGRADED prefix) on worktree discovery failure |
+| git commit fails due to missing committer identity in env_clear sandbox | Decision 10 (v1.2): HOME (→ ~/.gitconfig) in env_allow provides committer identity; documented precondition |
+| write_file.rs unit-test facade inconsistency hides production behavior | Decision 8 (v1.2): PREREQUISITE S-18.04a-prereq aligns write_file.rs::resolve_for_write to ctx.cwd; fixes BC-2.02.011 Inv3; fixes bats equal-roots masking |
 
 ---
 
@@ -817,8 +1483,11 @@ leg is state-manager's Commit D responsibility).
 | Capability | CAP-032 | Context-durability feature; E-18 |
 | Shell script | `plugins/vsdd-factory/bin/factory-lock-write.sh` | Canonical renew semantics source; native implementation must be faithful |
 | Host source | `crates/factory-dispatcher/src/host/exec_subprocess.rs` | `env_clear()` + `env_allow` re-injection (lines 242–247); `cwd` = `CLAUDE_PROJECT_DIR` |
-| Host source | `crates/factory-dispatcher/src/host/write_file.rs` | `std::fs::write` full-overwrite semantics; path_allow domain |
-| Host source | `crates/factory-dispatcher/src/main.rs` | `base_host_ctx.cwd = ENV_PROJECT_DIR` (~line 303) |
+| Host source | `crates/factory-dispatcher/src/host/write_file.rs` | Unit-test facade: `prepare()` uses `plugin_root` (stale — to be aligned to `ctx.cwd` in S-18.04a-prereq); production path is `invoke.rs` (cwd-rooted) |
+| Host source | `crates/factory-dispatcher/src/invoke.rs` | Production `write_file` impl (lines 746-800): resolves relative paths under `ctx.cwd = CLAUDE_PROJECT_DIR`; path_allow also rooted at cwd |
+| Host source | `crates/factory-dispatcher/src/main.rs` | `base_host_ctx.cwd = ENV_PROJECT_DIR` (~line 303); `base_host_ctx.plugin_root` from `ENV_PLUGIN_ROOT` (~line 313) |
+| Bash script | `plugins/vsdd-factory/bin/factory-lock-write.sh` lines 337-347 | Bash renew pre-checks `factory_lock:` key presence (awk) before fence-aware parse; silently exits 0 when key absent; authoritative semantic reference for `renew_lock()` parity |
+| Bats test | `plugins/vsdd-factory/tests/precompact-routing.bats` line 216 | Equal-roots masking defect: `CLAUDE_PLUGIN_ROOT=$WORK CLAUDE_PROJECT_DIR=$WORK`; to be fixed in S-18.04a-prereq |
 | Parse crate | `crates/factory-lock-parse/src/lib.rs` | `parse_factory_lock()` return taxonomy: `Ok(None)` / `Ok(Some)` / `Err(MalformedLockBlock)` |
 | Subsystem | SS-04 | Plugin Ecosystem (WASM plugin crate; shared library crate) |
 | Subsystem | SS-07 | Hook Bash Layer (registry stanza; migration from bash hook) |
