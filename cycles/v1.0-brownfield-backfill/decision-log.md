@@ -1964,3 +1964,62 @@ The security-review input-validation hardening (factory_lock_holder allowlist, c
 ### NEXT
 
 S-18.04a (precompact-flush.sh Core; BC-7.07.001; deps S-18.00 + S-17.04 both merged; P0; READY per Wave-4 plan D-662 §1 Step 2).
+
+---
+
+## D-670 — S-18.04a native-WASM SPEC RE-CONVERGENCE design-fix — 2026-06-20
+
+### Decision
+
+S-18.04a native-WASM SPEC RE-CONVERGENCE design-fix (D-670): adversary+consistency NOT-CLEAN gate on D-669 re-spec package RESOLVED. 3 blockers (F-NW-001 push-auth env_allow PATH+SSH_AUTH_SOCK; F-NW-002 worktree-path/path_allow domain; F-NW-003 uniform git -C); 5 majors (F-NW-004 renew_lock Err/caller-downgrade; F-NW-005 parse mapping; F-NW-006 BC-INDEX title drift; F-NW-007 log-append single-writer grounding [no dispatcher change]; F-NW-008 expires_at format pin); consistency drifts SM-1..SM-4 (index title/parity). ALL RESOLVED. ADR-028 v1.0→v1.1 (architect). BC-7.07.001 v1.15→v1.16 (product-owner: verbatim H1 per POLICY 7). S-18.04a v1.8→v1.9 (+6 Red Gate; story-writer). SM-1 FIXED: STORY-INDEX S-18.04a catalog row title `precompact-flush.sh Core` → `precompact-flush Native WASM Plugin Core`. SM-2 FIXED: STORY-INDEX E-18 narrative `precompact-flush.sh core` → `precompact-flush Native WASM Plugin Core`. SM-3 FIXED: BC-INDEX BC-7.07.001 catalog row description updated verbatim from BC H1 (stale bash-era `precompact-flush.sh fires synchronously...` description replaced; now `precompact-flush native WASM plugin fires synchronously...renews factory lock natively when held via crates/factory-lock::renew_lock()`; POLICY 7 compliance restored). SM-4 FIXED: ARCH-INDEX v2.61 historical 4-index cite retroactively corrected from stale `BC-INDEX v3.24 / VP-INDEX v2.40 / STORY-INDEX v4.40` (pre-D-669 values) to actual D-669 state `BC-INDEX v3.25 / VP-INDEX v2.40 / STORY-INDEX v4.42 / ARCH-INDEX v2.61`. 4-index: BC v3.26/VP v2.40/STORY v4.43/ARCH v2.62.
+
+### Rationale
+
+The D-669 native-WASM re-spec burst produced the ADR-028 v1.0 ACCEPTED decision. A fresh adversary+consistency gate on the amended spec package (ADR-028 v1.0 + BC-7.07.001 v1.15 + S-18.04a v1.8) returned NOT-CLEAN with 8 findings. The architect, product-owner, and story-writer produced pre-placed edits in the working tree (ADR-028 v1.1, BC-7.07.001 v1.16, S-18.04a v1.9). The state-manager is responsible for: (1) fixing the 4 index title/parity drifts SM-1..SM-4 that the consistency-validator flagged; (2) bumping BC-INDEX/STORY-INDEX/ARCH-INDEX versions with full POLICY 14 5-leg parity; (3) allocating this D-670 decision record; (4) updating STATE.md; (5) committing all as ONE atomic commit per TD-VSDD-053. VP-INDEX unchanged at v2.40 (no VP changes in this burst).
+
+### F-NW-006 SM-3 Root Cause
+
+BC-INDEX catalog row for BC-7.07.001 retained the pre-WASM-pivot bash-era description from D-669 re-spec burst. The D-669 burst updated the version annotation cell (v1.14→v1.15) but did not update the Description cell to match the new verbatim H1 title per POLICY 7. F-NW-006 was the adversary's direct finding. SM-3 was the consistency-validator's independent finding of the same drift. Fixed in this burst by state-manager updating the Description cell to the verbatim H1 from BC-7.07.001 v1.16.
+
+### SM-4 Root Cause
+
+The D-669 burst added a new v2.61 changelog row to ARCH-INDEX citing `BC-INDEX v3.24 / VP-INDEX v2.40 / STORY-INDEX v4.40` — the 4-index values from BEFORE D-669. At time of D-669 burst commit, BC-INDEX was v3.25 and STORY-INDEX was v4.42 (both bumped during D-669). The stale cite was a copy-paste from the in-flight re-spec work that did not refresh the 4-index values. Retroactive correction is the correct action per L-F2-prior-chain-append-only-history DISPOSITION: the v2.61 row is still within the current burst's responsibility (the v2.61 cite was newly authored in D-669; it was not a deeper historical record that should be preserved per POLICY 1).
+
+### Implementation Summary
+
+All 4 SM drift fixes applied by state-manager to index files:
+- BC-INDEX.md: v3.25→v3.26; last_amended; changelog[] new v3.26 row; body BC-7.07.001 catalog row description updated verbatim from H1 (SM-3).
+- STORY-INDEX.md: v4.42→v4.43; last_amended; S-18.04a catalog row title (SM-1); E-18 narrative (SM-2); annotation v1.8→v1.9.
+- ARCH-INDEX.md: v2.61→v2.62; last_amended; changelog[] new v2.62 row; v2.61 row embedded historical cite corrected from BC-INDEX v3.24/STORY-INDEX v4.40 → BC-INDEX v3.25/STORY-INDEX v4.42 (SM-4); ADR-028 body table row v1.0→v1.1 (pre-placed by architect).
+- VP-INDEX: UNCHANGED at v2.40.
+
+### 4-Index
+
+- BC-INDEX v3.26 (BUMPED — SM-3 catalog row + v1.16 annotation + POLICY 14 5-leg parity)
+- VP-INDEX v2.40 (UNCHANGED)
+- STORY-INDEX v4.43 (BUMPED — SM-1/SM-2 title/narrative + v1.9 annotation)
+- ARCH-INDEX v2.62 (BUMPED — SM-4 historical cite corrected + v2.62 row + ADR-028 v1.1 row annotation)
+
+Literal-shell POLICY 15 4-index gate output (captured 2026-06-20):
+```
+/Users/zious/.../BC-INDEX.md:version: "3.26"
+/Users/zious/.../VP-INDEX.md:version: "2.40"
+/Users/zious/.../ARCH-INDEX.md:version: "2.62"
+/Users/zious/.../BC-INDEX.md:version: "3.26"
+/Users/zious/.../VP-INDEX.md:version: "2.40"
+/Users/zious/.../STORY-INDEX.md:version: "4.43"
+/Users/zious/.../ARCH-INDEX.md:version: "2.62"
+```
+All 4-index versions confirmed PASS.
+
+### Parent-commit
+
+194b49d3 (D-669 re-spec burst HEAD; factory-artifacts)
+
+### develop HEAD
+
+70664e02 (S-18.13 PR #196 squash-merged 2026-06-20; UNCHANGED)
+
+### NEXT
+
+Re-run fresh adversary+consistency spec convergence gate on amended package (ADR-028 v1.1 + BC-7.07.001 v1.16 + S-18.04a v1.9), then native-WASM TDD re-implementation. Autonomy=STOP-BEFORE-PR-MERGE still holds.
