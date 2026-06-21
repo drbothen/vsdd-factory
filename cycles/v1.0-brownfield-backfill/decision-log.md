@@ -2198,3 +2198,59 @@ db680894 (D-672 SHA-patch HEAD; factory-artifacts — single-commit per TD-VSDD-
 ### NEXT
 
 prereq demo + PR (stop-before-merge gate) then S-18.04a native WASM TDD; autonomy STOP-BEFORE-PR-MERGE holds.
+
+---
+
+## D-674 — S-18.04a-prereq CI orphan-hook-ref fix + AC-006 re-attribution — 2026-06-20
+
+### Decision
+
+D-674 S-18.04a-prereq CI orphan-hook-ref fix — PR #198 CI 'check-bats-orphans' lint failed on redundant TC-AC006-CWD-ENV bats test (synthetic hooks/stub-write-probe.sh orphan); implementer removed the redundant env-propagation test (commit af91700a, pushed; check-bats-orphans clean, bats 10/10, cargo green); story-writer re-attributed AC-006 cwd-rooting proof to Rust integration test test_BC_2_02_011_invariant_3_relative_path_resolves_via_linker (crates/factory-dispatcher/tests/host_write_file_integration.rs; authoritative: sets distinct ctx.cwd/ctx.plugin_root, asserts .factory/-relative write lands under cwd not plugin_root via host write_file linker path); prereq story v1.1→v1.2; STORY-INDEX v4.46→v4.47; duplicate PR #197 closed; PR #198 CI re-running; next = confirm PR #198 green then human merge approval (stop-before-merge).
+
+### Rationale
+
+PR #198 (feature/S-18.04a-prereq) CI failed on the 'check-bats-orphans' lint gate. The TC-AC006-CWD-ENV bats test that was removed referenced a synthetic hook script hooks/stub-write-probe.sh that was never committed (and should not be — it was a test-only fabrication). The bats orphan-reference lint correctly flagged this as a broken reference.
+
+Root cause: the originally-planned TC-AC006-CWD-ENV bats test was designed to exercise CLAUDE_PROJECT_DIR env propagation into the dispatcher subprocess, but AC-006's actual coverage goal is verifying that the host write_file function resolves relative paths under ctx.cwd not ctx.plugin_root. This is not what a bats env-propagation test exercises — the bats test would have verified subprocess environment propagation, which is already covered by the existing distinct-roots setup in AC-005's _run_dispatcher() helper.
+
+The authoritative and non-redundant proof is the Rust integration test test_BC_2_02_011_invariant_3_relative_path_resolves_via_linker:
+- Sets ctx.cwd and ctx.plugin_root to DISTINCT temporary directories.
+- Issues a .factory/-relative write via the host write_file linker path.
+- Asserts the resolved write path starts_with ctx.cwd, NOT ctx.plugin_root.
+- FAILS before AC-001 fix (prepare() used &ctx.plugin_root); PASSES after (prepare() uses &ctx.cwd).
+
+This is the correct vehicle for AC-006 — it tests the actual host function resolution logic, not subprocess env propagation. AC-005 retains the bats distinct-roots de-masking (CLAUDE_PLUGIN_ROOT != CLAUDE_PROJECT_DIR in _run_dispatcher()). Removing TC-AC006-CWD-ENV does not reduce coverage; it eliminates a test that exercised a different property than AC-006 specified and carried a broken synthetic artifact reference.
+
+### Story Changes
+
+- S-18.04a-prereq v1.1→v1.2 (POLICY 14 quintuple parity: frontmatter version, body Changelog row, modified[] array, last_amended text-prefix, STORY-INDEX catalog row annotation).
+- AC-006 prose and Red Gate Test Table updated: Rust integration test is now the AC-006 vehicle; bats TC-AC006-CWD-ENV removed; File Structure Requirements updated.
+- Tasks T-8 updated; no behavioral change to any other AC or implementation strategy.
+
+### 4-Index
+
+- BC-INDEX v3.29 (UNCHANGED)
+- VP-INDEX v2.40 (UNCHANGED)
+- STORY-INDEX v4.47 (BUMPED — S-18.04a-prereq catalog row annotation v1.1→v1.2; POLICY 14 5-leg parity)
+- ARCH-INDEX v2.64 (UNCHANGED)
+
+Literal-shell POLICY 15 4-index gate output (captured 2026-06-20):
+```
+grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md → version: "3.29" (UNCHANGED)
+grep "^version:" .factory/specs/verification-properties/VP-INDEX.md → version: "2.40" (UNCHANGED)
+grep "^version:" .factory/stories/STORY-INDEX.md → version: "4.47" (BUMPED)
+grep "^version:" .factory/specs/architecture/ARCH-INDEX.md → version: "2.64" (UNCHANGED)
+```
+Parity confirmed PASS: BC-INDEX v3.29 / VP-INDEX v2.40 / STORY-INDEX v4.47 / ARCH-INDEX v2.64.
+
+### Parent-commit
+
+42dd12bf (D-673 SHA-patch HEAD; factory-artifacts — single-commit per TD-VSDD-053)
+
+### develop HEAD
+
+997c8c1e (external merge post-S-18.13; D-673 reconcile; UNCHANGED from D-673)
+
+### NEXT
+
+confirm PR #198 CI green then await human merge approval (stop-before-merge gate); then S-18.04a native WASM TDD; autonomy STOP-BEFORE-PR-MERGE holds.
