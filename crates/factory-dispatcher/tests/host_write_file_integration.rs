@@ -384,17 +384,20 @@ fn test_BC_2_02_011_timeout_ms_zero_accepted_abi_stability() {
 // test_BC_2_02_011_invariant_3_relative_path_resolves_via_linker
 // ---------------------------------------------------------------------------
 
-/// BC-2.02.011 invariant 3: relative paths are joined with
-/// `ctx.plugin_root` on the host side.  This test exercises the full
-/// linker path (not just `prepare` directly) to verify the
-/// `path_allowed` + `resolve_for_write` logic works end-to-end when
-/// the guest sends a relative path.
+/// BC-2.02.011 invariant 3: relative paths are joined with `ctx.cwd`
+/// (`CLAUDE_PROJECT_DIR`) on the host side, mirroring `resolve_for_read`
+/// as of S-8.07. S-18.04a-prereq aligns this integration test to the
+/// corrected semantics (previously used `ctx.plugin_root` — stale bug).
+/// This test exercises the full linker path (not just `prepare` directly)
+/// to verify the `path_allowed` + `resolve_for_write` logic works end-to-end
+/// when the guest sends a relative path.
 #[test]
 fn test_BC_2_02_011_invariant_3_relative_path_resolves_via_linker() {
-    let dir = tempfile::tempdir().expect("tempdir");
-    let dir_str = dir.path().to_str().unwrap().to_string();
+    let cwd_dir = tempfile::tempdir().expect("cwd tempdir");
+    let plugin_root_dir = tempfile::tempdir().expect("plugin_root tempdir");
 
-    // Allow the entire temp dir (relative allowlist entry ".")
+    // Allow the entire temp cwd dir (relative allowlist entry ".")
+    // resolved under ctx.cwd — not ctx.plugin_root (S-18.04a-prereq fix).
     let mut ctx = bare_context();
     ctx.capabilities = Capabilities {
         write_file: Some(WriteFileCaps {
@@ -403,7 +406,8 @@ fn test_BC_2_02_011_invariant_3_relative_path_resolves_via_linker() {
         }),
         ..Default::default()
     };
-    ctx.plugin_root = dir.path().to_path_buf();
+    ctx.cwd = cwd_dir.path().to_path_buf();
+    ctx.plugin_root = plugin_root_dir.path().to_path_buf();
 
     let (engine, linker) = engine_and_linker();
     let module = Module::new(&engine, WAT_WRITE_FILE).expect("WAT_WRITE_FILE should parse");
@@ -415,7 +419,7 @@ fn test_BC_2_02_011_invariant_3_relative_path_resolves_via_linker() {
         .get_memory(&mut store, "memory")
         .expect("memory export");
 
-    // Relative path "rel.txt" should resolve to <plugin_root>/rel.txt
+    // Relative path "rel.txt" should resolve to <cwd>/rel.txt (BC-2.02.011 invariant 3).
     let path_bytes = b"rel.txt";
     let contents = b"relative";
     write_bytes_to_memory(&mut store, &memory, 0, path_bytes);
@@ -442,17 +446,22 @@ fn test_BC_2_02_011_invariant_3_relative_path_resolves_via_linker() {
     assert_eq!(
         result,
         codes::OK,
-        "relative path must resolve to plugin_root/rel.txt (BC-2.02.011 invariant 3)"
+        "relative path must resolve to ctx.cwd/rel.txt (BC-2.02.011 invariant 3)"
     );
 
-    let written_path = dir.path().join("rel.txt");
+    let written_path = cwd_dir.path().join("rel.txt");
     assert_eq!(
-        std::fs::read(&written_path).expect("file must exist after successful write"),
+        std::fs::read(&written_path)
+            .expect("file must exist at cwd/rel.txt after successful write"),
         b"relative",
-        "contents at resolved path must match (BC-2.02.011 invariant 3)"
+        "contents at cwd-resolved path must match (BC-2.02.011 invariant 3)"
     );
 
-    drop(dir_str); // suppress unused-var warning
+    // Confirm the stale path (under plugin_root) was NOT written.
+    assert!(
+        !plugin_root_dir.path().join("rel.txt").exists(),
+        "file must NOT be written under ctx.plugin_root (BC-2.02.011 invariant 3)"
+    );
 }
 
 // ---------------------------------------------------------------------------

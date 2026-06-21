@@ -42,7 +42,12 @@ setup() {
   DISPATCHER="$REPO_ROOT/target/release/factory-dispatcher"
   ADAPTER_WASM="$REPO_ROOT/plugins/vsdd-factory/hook-plugins/legacy-bash-adapter.wasm"
   WORK="$(mktemp -d)"
+  # PROJECT_DIR is a distinct subdirectory of WORK — CLAUDE_PLUGIN_ROOT=$WORK,
+  # CLAUDE_PROJECT_DIR=$PROJECT_DIR so path-domain tests are non-tautological
+  # (S-18.04a-prereq AC-005: distinct roots required per ADR-028 §Decision 8).
+  PROJECT_DIR="$WORK/project"
   mkdir -p "$WORK/.factory/logs" "$WORK/hook-plugins" "$WORK/hooks"
+  mkdir -p "$PROJECT_DIR/.factory"
 
   # Copy legacy-bash-adapter.wasm into WORK's hook-plugins directory
   # so registry plugin paths resolve correctly.
@@ -65,7 +70,17 @@ exit 2
 STUB_EOF
   chmod +x "$WORK/hooks/stub-exit2.sh"
 
-  export CLAUDE_PROJECT_DIR="$WORK"
+  # stub-write-probe.sh: writes a probe file under $CLAUDE_PROJECT_DIR/.factory/
+  # to verify that the dispatcher routes ctx.cwd = CLAUDE_PROJECT_DIR correctly
+  # (S-18.04a-prereq AC-006).
+  cat > "$WORK/hooks/stub-write-probe.sh" <<'STUB_EOF'
+#!/usr/bin/env bash
+echo "cwd-probe" > "${CLAUDE_PROJECT_DIR}/.factory/cwd-probe.txt"
+exit 0
+STUB_EOF
+  chmod +x "$WORK/hooks/stub-write-probe.sh"
+
+  export CLAUDE_PROJECT_DIR="$PROJECT_DIR"
 }
 
 teardown() {
@@ -211,9 +226,11 @@ EOF
 
 # Run the dispatcher with a given JSON envelope.
 # Captures combined stdout+stderr into $output; sets $status.
+# CLAUDE_PLUGIN_ROOT=$WORK (plugin directory), CLAUDE_PROJECT_DIR=$PROJECT_DIR
+# (project directory — a distinct subdirectory of WORK per S-18.04a-prereq AC-005).
 _run_dispatcher() {
   local envelope="$1"
-  run bash -c "printf '%s' '$envelope' | CLAUDE_PLUGIN_ROOT='$WORK' CLAUDE_PROJECT_DIR='$WORK' '$DISPATCHER' 2>&1"
+  run bash -c "printf '%s' '$envelope' | CLAUDE_PLUGIN_ROOT='$WORK' CLAUDE_PROJECT_DIR='$PROJECT_DIR' '$DISPATCHER' 2>&1"
 }
 
 # ---------------------------------------------------------------------------
@@ -408,4 +425,63 @@ _run_dispatcher() {
   # sync_plugins=1 proves the routing matched (INV1: PostCompact is first-class enum variant).
   [ "$status" -eq 0 ]
   [[ "$output" == *"sync_plugins=1"* ]]
+}
+
+# ---------------------------------------------------------------------------
+# TC-AC006-CWD: Subprocess write via CLAUDE_PROJECT_DIR lands under PROJECT_DIR
+# S-18.04a-prereq AC-006 / BC-2.02.011 invariant 3
+#
+# Verifies that when CLAUDE_PLUGIN_ROOT != CLAUDE_PROJECT_DIR, a subprocess
+# that writes to $CLAUDE_PROJECT_DIR/.factory/ writes to the project directory
+# (ctx.cwd = CLAUDE_PROJECT_DIR), NOT to the plugin root directory (WORK).
+#
+# Red Gate condition (S-18.04a-prereq):
+#   FAILS before fix: equal roots ($WORK == $WORK) mask the distinction —
+#     probe would land under $WORK/.factory/ even with wrong routing.
+#   PASSES after fix: distinct roots ($PROJECT_DIR subdir of $WORK) —
+#     probe lands under $PROJECT_DIR/.factory/ only if CLAUDE_PROJECT_DIR
+#     is passed correctly to the subprocess.
+# ---------------------------------------------------------------------------
+
+# Write a registry with ONE PreCompact plugin that has env_allow for
+# CLAUDE_PROJECT_DIR and PATH so stub-write-probe.sh can use the env var.
+_write_precompact_write_probe_registry() {
+  cat > "$WORK/hooks-registry.toml" <<EOF
+schema_version = 2
+
+[[hooks]]
+name = "precompact-write-probe"
+event = "PreCompact"
+plugin = "hook-plugins/legacy-bash-adapter.wasm"
+timeout_ms = 5000
+on_error = "block"
+
+[hooks.capabilities.exec_subprocess]
+binary_allow = ["bash"]
+shell_bypass_acknowledged = "yes"
+cwd_allow = ["."]
+env_allow = ["CLAUDE_PROJECT_DIR", "PATH"]
+
+[hooks.config]
+script_path = "hooks/stub-write-probe.sh"
+EOF
+}
+
+@test "TC-AC006-CWD: subprocess write via CLAUDE_PROJECT_DIR lands under PROJECT_DIR not WORK" {
+  _require_artifacts
+  _write_precompact_write_probe_registry
+
+  _run_dispatcher '{"event_name":"PreCompact","tool_name":"","session_id":"tc-ac006-cwd","tool_input":{}}'
+
+  # Dispatcher must exit 0 (stub exits 0).
+  [ "$status" -eq 0 ]
+
+  # The probe file must exist under PROJECT_DIR/.factory/ (cwd = CLAUDE_PROJECT_DIR).
+  # This is the non-tautological assertion: with distinct roots, if CLAUDE_PROJECT_DIR
+  # were wrong (equal to WORK) the file would land under WORK/.factory/ instead.
+  [ -f "$PROJECT_DIR/.factory/cwd-probe.txt" ]
+
+  # Assert the probe did NOT land under WORK/.factory/ (which would indicate
+  # that CLAUDE_PROJECT_DIR was incorrectly set equal to WORK — the stale bug).
+  [ ! -f "$WORK/.factory/cwd-probe.txt" ]
 }

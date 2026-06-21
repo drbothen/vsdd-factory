@@ -78,10 +78,10 @@ fn prepare(ctx: &HostContext, path: &str, contents: &[u8], max_bytes: u32) -> Re
         codes::CAPABILITY_DENIED
     })?;
 
-    let resolved = resolve_for_write(Path::new(path), &ctx.plugin_root);
+    let resolved = resolve_for_write(Path::new(path), &ctx.cwd);
 
     // Postcondition 1: path allowlist + traversal denial.
-    if !path_allowed(&resolved, &caps.path_allow, &ctx.plugin_root) {
+    if !path_allowed(&resolved, &caps.path_allow, &ctx.cwd) {
         emit_denial(ctx, path, "path_not_allowed", Some(&resolved));
         return Err(codes::CAPABILITY_DENIED);
     }
@@ -105,14 +105,18 @@ fn prepare(ctx: &HostContext, path: &str, contents: &[u8], max_bytes: u32) -> Re
     })
 }
 
-/// Mirror of `read_file::resolve_for_read`: absolute paths pass through;
-/// relative paths are joined with `plugin_root`.
+/// Resolve a path for writing. Absolute paths pass through unchanged;
+/// relative paths are resolved under `base` = `ctx.cwd` (`CLAUDE_PROJECT_DIR`),
+/// mirroring `resolve_for_read` as of S-8.07. The prior `plugin_root`-rooted
+/// resolution in `prepare()` was a unit-test facade bug; production `invoke.rs`
+/// has always used `ctx.cwd`. S-18.04a-prereq aligns the unit-test facade to
+/// production semantics.
 /// BC-2.02.011 invariant 3.
-fn resolve_for_write(path: &Path, plugin_root: &Path) -> PathBuf {
+fn resolve_for_write(path: &Path, base: &Path) -> PathBuf {
     if path.is_absolute() {
         path.to_path_buf()
     } else {
-        plugin_root.join(path)
+        base.join(path)
     }
 }
 
@@ -155,7 +159,10 @@ fn resolve_path_for_allowlist(target: &Path) -> Option<PathBuf> {
 ///
 /// Paths are canonicalized before the prefix comparison to defeat `..`
 /// traversal attacks (BC-2.02.011 EC-001 / invariant 6).
-pub(crate) fn path_allowed(resolved: &Path, allow: &[String], plugin_root: &Path) -> bool {
+///
+/// `base` is `ctx.cwd` (`CLAUDE_PROJECT_DIR`); relative allowlist entries are
+/// expanded under `base`, matching the resolution semantics of `resolve_for_write`.
+pub(crate) fn path_allowed(resolved: &Path, allow: &[String], base: &Path) -> bool {
     // Canonicalize the target path to remove any `..` components.
     // If canonicalization fails (e.g. parent doesn't exist), deny.
     let canon_resolved = match resolve_path_for_allowlist(resolved) {
@@ -167,7 +174,7 @@ pub(crate) fn path_allowed(resolved: &Path, allow: &[String], plugin_root: &Path
         let pref_path = if Path::new(pref).is_absolute() {
             PathBuf::from(pref)
         } else {
-            plugin_root.join(pref)
+            base.join(pref)
         };
         // Canonicalize the allowlist prefix as well so both sides are
         // in the same canonical form.
@@ -287,8 +294,7 @@ mod tests {
         // Verify the correct content was written.
         let content = std::fs::read(&expected_path).unwrap();
         assert_eq!(
-            content,
-            b"hello cwd",
+            content, b"hello cwd",
             "BC-2.02.011 invariant 3: file content under ctx.cwd must match what was written"
         );
     }
@@ -303,9 +309,11 @@ mod tests {
     #[test]
     fn writes_allowed_file() {
         let dir = tempfile::tempdir().unwrap();
+        let plugin_root_dir = tempfile::tempdir().unwrap();
         let file = dir.path().join("ok.txt");
         let mut ctx = context_with_caps(allow_write(&[dir.path().to_str().unwrap()]));
-        ctx.plugin_root = dir.path().to_path_buf();
+        ctx.cwd = dir.path().to_path_buf();
+        ctx.plugin_root = plugin_root_dir.path().to_path_buf();
         prepare(&ctx, file.to_str().unwrap(), b"hello", 1024).unwrap();
         assert_eq!(std::fs::read(&file).unwrap(), b"hello");
     }
@@ -322,9 +330,11 @@ mod tests {
     #[test]
     fn rejects_content_exceeding_max_bytes() {
         let dir = tempfile::tempdir().unwrap();
+        let plugin_root_dir = tempfile::tempdir().unwrap();
         let file = dir.path().join("big.txt");
         let mut ctx = context_with_caps(allow_write(&[dir.path().to_str().unwrap()]));
-        ctx.plugin_root = dir.path().to_path_buf();
+        ctx.cwd = dir.path().to_path_buf();
+        ctx.plugin_root = plugin_root_dir.path().to_path_buf();
         let data = vec![0u8; 2048];
         let err = prepare(&ctx, file.to_str().unwrap(), &data, 512).unwrap_err();
         assert_eq!(err, codes::OUTPUT_TOO_LARGE);
@@ -336,9 +346,11 @@ mod tests {
     fn writes_empty_contents_creates_file() {
         // BC-2.02.011 EC-005: empty slice → file created/truncated to zero bytes.
         let dir = tempfile::tempdir().unwrap();
+        let plugin_root_dir = tempfile::tempdir().unwrap();
         let file = dir.path().join("empty.txt");
         let mut ctx = context_with_caps(allow_write(&[dir.path().to_str().unwrap()]));
-        ctx.plugin_root = dir.path().to_path_buf();
+        ctx.cwd = dir.path().to_path_buf();
+        ctx.plugin_root = plugin_root_dir.path().to_path_buf();
         prepare(&ctx, file.to_str().unwrap(), b"", 1024).unwrap();
         assert_eq!(std::fs::read(&file).unwrap(), b"");
     }
@@ -347,9 +359,11 @@ mod tests {
     fn rejects_missing_parent_directory() {
         // BC-2.02.011 EC-006 / postcondition 5.
         let dir = tempfile::tempdir().unwrap();
+        let plugin_root_dir = tempfile::tempdir().unwrap();
         let no_parent = dir.path().join("nonexistent-subdir/out.txt");
         let mut ctx = context_with_caps(allow_write(&[dir.path().to_str().unwrap()]));
-        ctx.plugin_root = dir.path().to_path_buf();
+        ctx.cwd = dir.path().to_path_buf();
+        ctx.plugin_root = plugin_root_dir.path().to_path_buf();
         let err = prepare(&ctx, no_parent.to_str().unwrap(), b"x", 1024).unwrap_err();
         assert_eq!(err, codes::INTERNAL_ERROR);
     }
