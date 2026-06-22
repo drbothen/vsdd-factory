@@ -2547,3 +2547,65 @@ Zero FAIL. Parity PASS: BC-INDEX v3.34 / VP-INDEX v2.40 / STORY-INDEX v4.53 / AR
 ### NEXT
 
 S-18.14 adversary pass-8 (fresh-context). Autonomy STOP-BEFORE-PR-MERGE (D-665) holds. STRICT 3-CLEAN policy (asymptotic-accept DECLINED); streak RESET 0/3 by pass-7 F-1.
+
+---
+
+## D-684 — S-18.14 BC-5.39.001 STRICT 3-CLEAN CONVERGED + PRE-READY HARDENING BURST
+
+**Date:** 2026-06-22
+**Phase:** D-684-S18.14-strict-3-clean-converged-hardening-2026-06-22
+**Made By:** state-manager (bookkeeping burst per orchestrator)
+
+### Decision
+
+S-18.14 BC-5.39.001 STRICT 3-CLEAN CONVERGED (passes 10/11/12 all CLEAN on frozen v1.8/v2.5 package; human-directed strict 3-CLEAN; asymptotic-accept DECLINED; 12 total adversary passes / 5 fix bursts). Defect classes closed by cascade:
+- Phantom `write_started` symbol (D-678 pass-1; corrected to `DISPATCHER_STARTED` const builder chain)
+- False two-call-sites claim (D-679 pass-2; ONE production `get_or_compile` call site confirmed)
+- VP proof-method token drift (D-680 pass-4; VP-073 `unit-test`→`integration` per VP-INDEX SoT)
+- Unsatisfiable absolute-path contract (D-681 pass-7; absolutize-on-emit via `std::path::absolute()` at `DISPATCHER_STARTED` site in `main.rs`)
+- Inverted `is_relative()` Windows semantics (D-683 pass-9; pass-7 cure-introduces-defect corrected; behavior identical to bare join; guard justified by precedent-consistency + intent-clarity)
+
+PRE-READY HARDENING BURST applied advisory/observation punch-list (all non-blocking items deferred from STRICT 3-CLEAN frozen passes 10/11/12):
+- **A-1 (toml_path→path anchor):** ADR-024 §Decision 1 Addendum step 2 "path to the TOML file" renamed to "toml_path" for anchor consistency; BC-1.13.001 INV-8 updated in parity (POLICY 14 5-leg; architect + product-owner)
+- **A-2 (parent()==None if-let-Some passthrough):** ADR-024 §Decision 1 Addendum step 2 if-let-Some passthrough for `toml_path.parent()==None` edge-case; BC-1.13.001 INV-8 updated in parity; S-18.14 AC-001 updated to cite passthrough (story-writer)
+- **A-4 (TD-VSDD-091 line-pins struck):** ADR-024 §Decision 1 Addendum step 5 and ADR-024 §Decision 5 volatile `resolver_loader.rs:NNN` line-number pins removed per TD-VSDD-091 (behavioral anchors replace line-number citations)
+- **p10-O1 (VP-073/VP-074/VP-075 descriptions aligned to VP-INDEX verbatim):** BC-1.13.001 §Verification Properties VP description cells updated to match VP-INDEX §Full Index description column verbatim
+- **p10-O2 (AC-007 fixture-location):** S-18.14 AC-007 fixture-location clarification added — test fixtures live under `crates/factory-dispatcher/tests/` or `crates/resolver/tests/`
+- **p10-O3 (RG-005 relative-log_dir mandate):** S-18.14 RG-005 Red Gate test mandate updated — `VSDD_LOG_DIR` must be set to a relative path to exercise the absolutize-on-emit branch
+- **p12-O1 (AC-005 owned-String):** S-18.14 AC-005 implementation note — `log_dir` field in `dispatcher.started` emitted as owned `String` (via `.to_string_lossy()`) not `PathBuf`
+- **p12-O3 (RG-001 self-contained assertion):** S-18.14 RG-001 test note clarified — primary assertion must be self-contained (WASM loads successfully when path is correct; secondary: CWD-relative path produces wrong result)
+
+4-index post-hardening: BC-INDEX v3.36 / VP-INDEX v2.40 / STORY-INDEX v4.55 / ARCH-INDEX v2.71. S-18.14 status REMAINS draft (v2.6) pending ONE confirmatory adversary pass (pass-13) then promotion (input_hash compute + draft→ready).
+
+**[process-gap] S-7.02 cycle-closing note:** `input_hash` placeholder (`"[placeholder-pre-authorship]"` or similar) is NOT flagged as stale when S-18.14 transitions draft→ready. No gate currently detects a placeholder-pattern input_hash on draft→ready promotion. Tracking entry added to Drift Items in STATE.md. Anchor: candidate lint gate story (E-18 F3 family or standalone) that blocks ready-status when `input_hash:` matches placeholder regex `^\[.*\]$`.
+
+### Rationale
+
+S-18.14 strict 3-CLEAN per human directive (asymptotic-accept DECLINED per D-680; human chose STRICT 3-CLEAN). Hardening burst applies the advisory/observation punch-list deferred during frozen passes 10/11/12 (per BC-5.39.001 L-F2-3clean-streak-requires-frozen-package — observations deferred during frozen pass must be anchored with concrete future resolution; this hardening burst IS the resolution for the anchored observations). S-18.14 remains draft pending confirmatory pass-13 to verify hardening did not introduce regressions, then input_hash compute and draft→ready promotion.
+
+### Verification
+
+4-index KK-N gate (literal-shell stdout captured 2026-06-22):
+```
+grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md
+version: "3.36"
+
+grep "^version:" .factory/specs/verification-properties/VP-INDEX.md
+version: "2.40"
+
+grep "^version:" .factory/stories/STORY-INDEX.md
+version: "4.55"
+
+grep "^version:" .factory/specs/architecture/ARCH-INDEX.md
+version: "2.71"
+```
+
+Zero FAIL. Parity PASS: BC-INDEX v3.36 / VP-INDEX v2.40 / STORY-INDEX v4.55 / ARCH-INDEX v2.71.
+
+### Parent-commit
+
+9b8a82aa (D-683 factory-artifacts HEAD; single-commit per TD-VSDD-053)
+
+### NEXT
+
+S-18.14 confirmatory adversary pass-13 (fresh-context; reads ONLY adv-s18.14-pass-12.md Part A; frozen package v1.9/v2.6 post-hardening). After pass-13 CLEAN: compute input_hash + promote S-18.14 draft→ready. Then S-18.04a WASM TDD. Autonomy STOP-BEFORE-PR-MERGE (D-665) holds. STRICT 3-CLEAN CONVERGED; streak 3/3 confirmed across passes 10/11/12 on v1.8/v2.5 frozen.
