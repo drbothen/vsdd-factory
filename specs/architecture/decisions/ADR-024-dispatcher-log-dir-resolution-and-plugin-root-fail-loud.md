@@ -2,12 +2,12 @@
 document_type: architecture-decision-record
 level: L3
 adr_id: ADR-024
-version: "1.4"
+version: "1.5"
 status: accepted
 producer: architect
 timestamp: 2026-06-09T00:00:00Z
 amended: 2026-06-22T00:00:00Z
-amendment_reason: "v1.4 (S-18.14 pass-1 adversary fix burst): (F-1 MAJOR POLICY 5) §Decision 5 §Purity Boundary corrected — phantom `InternalLog::write_started` method reference replaced with correct anchors: emission is `InternalEvent::now(DISPATCHER_STARTED)` builder chain emitted via `internal_log.write(...)` in `main.rs`; const name `DISPATCHER_STARTED` defined in `internal_log.rs`; no method named `write_started` exists in the dispatcher source. (F-5 ADVISORY POLICY 6) SS-04 subsystem-set advisory RESOLVED NO: ADR-024 subsystem set remains SS-01/SS-03/SS-07 — production fix scope is dispatcher core (SS-01), event emission (SS-03), and hook bash layer (SS-07); SS-04 (Plugin Ecosystem) appears in story/VP scope as the integration test vehicle (WASM test harness), not as a production component modified by this ADR; rationale inline in §Decision 5 SS-04 note. [Prior: v1.3 2026-06-22 S-18.14 spec-evolution (D-676): Decision 1 Addendum — resolver WASM plugin path resolution; Decision 5 — dispatcher.started log_dir observability. v1.2 2026-06-10: (C2-CRIT-2/C2-HIGH-1) Decision 3 dedup hash input tightened; (C2-CRIT-1/C2-HIGH-2) Decision 4 guard corrected; process-gap note added. v1.1 2026-06-09: pass-1 adversary amendments (level-count prose, Level E, LOW-1 control flow). v1.0 2026-06-09 initial acceptance.]"
+amendment_reason: "v1.5 (S-18.14 pass-2 adversary fix burst): (F-1 MAJOR POLICY 5) §Decision 1 Addendum step 5 corrected — false 'two call sites' claim removed; ground truth: exactly ONE production `get_or_compile` call site exists in `load_registry` (TD-VSDD-060 sibling-sweep confirmed); the `fail_closed: true`/`fail_closed: false` divergence is in the post-call error `match`, not at separate call sites; step 5 rewritten to state single-call-site fact and mirror the `registry.rs::resolve_plugin_paths` / BC-1.01.004 precedent; cross-reference to that proven pattern added in Why-CWD-relative-was-wrong rationale. [Prior: v1.4 2026-06-22 S-18.14 pass-1 adversary fix burst: §Decision 5 §Purity Boundary phantom `InternalLog::write_started` corrected; SS-04 advisory resolved NO. v1.3 2026-06-22 S-18.14 spec-evolution (D-676): Decision 1 Addendum — resolver WASM plugin path resolution; Decision 5 — dispatcher.started log_dir observability. v1.2 2026-06-10: (C2-CRIT-2/C2-HIGH-1) Decision 3 dedup hash input tightened; (C2-CRIT-1/C2-HIGH-2) Decision 4 guard corrected; process-gap note added. v1.1 2026-06-09: pass-1 adversary amendments (level-count prose, Level E, LOW-1 control flow). v1.0 2026-06-09 initial acceptance.]"
 title: "ADR-024: Dispatcher log-dir worktree-aware resolution, CLAUDE_PLUGIN_ROOT fail-loud contract, resolver WASM plugin path resolution, internal-error dedup, and destructive-guard shadow exception"
 traces_to: .factory/specs/architecture/ARCH-INDEX.md
 anchors:
@@ -178,8 +178,15 @@ In `resolver_loader::load_registry`:
    `get_or_compile` for WASM compilation and to `path.canonicalize()` for filesystem
    existence validation.
 4. If `entry.plugin` is already absolute, pass it through unchanged.
-5. This resolution MUST be applied at EVERY call site to `get_or_compile` within
-   `load_registry`, for both `fail_closed: true` and `fail_closed: false` code paths.
+5. There is a SINGLE `get_or_compile` call site in `load_registry`. The path-join
+   (`toml_path.parent().join(&entry.plugin)`) MUST precede that single call so the
+   resolved absolute path feeds both the `fail_closed: true` and `fail_closed: false`
+   error-handling arms identically; the `fail_closed` divergence is in the post-call
+   error `match`, not at separate call sites. The proven precedent to mirror is
+   `registry.rs::resolve_plugin_paths` (which already does `base.join(&entry.plugin)`
+   with `base = path.parent()` for hooks-registry.toml, governed by BC-1.01.004).
+   TD-VSDD-060 sibling-sweep confirms no second production `get_or_compile` call site
+   exists.
 
 **Why CWD-relative was wrong:**
 
@@ -192,6 +199,11 @@ the base is the TOML's own parent directory. Using CWD as the base yields a path
 that does not exist, causing `path.canonicalize()` to return `Err(ENOENT)`, which the
 dispatcher surfaces as `resolver.load_error`. This is the root cause of the 8,560
 `resolver.load_error` / 0 successful loads observed empirically since rc.21.
+
+This is the resolvers-registry analogue of the hooks-registry path resolution contract
+already implemented in `registry.rs::resolve_plugin_paths` (BC-1.01.004): that function
+uses `base = path.parent()` and `base.join(&entry.plugin)` for hooks-registry.toml
+entries. The fix to `resolver_loader::load_registry` mirrors that proven pattern exactly.
 
 **Purity boundary note:**
 
@@ -748,3 +760,4 @@ verification mechanism.
 | 1.2 | 2026-06-09 | architect | Pass-2 adversary review amendments: (C2-CRIT-2/C2-HIGH-1) Decision 3 hash input changed from "first 256 bytes of message_json_value" (JSON repr, fixed byte slice) to "bounded_prefix(Value::as_str(), N=4096)" (raw string value, char-boundary-safe, 4096-byte ceiling) — simultaneously fixes char-boundary panic, JSON-quote false-collision, and unbounded hashing cost; accepted residual tradeoff: messages differing only after byte 4096 dedup to same hash (pathological, accepted); (C2-CRIT-1/C2-HIGH-2) Decision 4 guard predicate replaced: v1.1 substring predicate removed and replaced with lexical path-normalization predicate — tokenize targets, normalize `.`/`..` components, allow only when ALL `.factory`-bearing tokens normalize to strictly inside `.factory/.factory/`, conservative `..`-adjacent reject rule added; full allow/block matrix added; "structurally impossible" security-analysis claim retracted; nested-shadow over-block and traversal under-protect both fixed; (process-gap) Process note added recording spec-drift routing obligation; (C2-HIGH-3) Decision 4 testing obligation note added for `main.rs` doc-comment seven-level assertion; (C2-MED-1/MED-2) Decision 3 testing obligation note added for `internal_log.rs` dedup test doc-block regrounding. |
 | 1.3 | 2026-06-22 | architect | S-18.14 spec-evolution (D-676): (1) Decision 1 Addendum — Resolver WASM plugin path resolution: relative `plugin` paths in `resolvers-registry.toml` MUST resolve against `toml_path.parent()` (= `CLAUDE_PLUGIN_ROOT`) NOT process CWD; applies to `load_registry` and all `get_or_compile` call sites in `resolver_loader`; root cause of 8,560 `resolver.load_error` / 0 successful loads since rc.21; unit test obligation specified (distinguish TOML-parent-relative vs CWD-relative); release dependency documented; (2) Decision 5 — `log_dir` observability: `dispatcher.started` event payload MUST include `log_dir` field from `InternalLog::log_dir()`; no new computation required; test obligation added; (3) `resolver_loader.rs` added to Files to change table; ADR-018 and S-18.14 added to anchors. |
 | 1.4 | 2026-06-22 | architect | S-18.14 pass-1 adversary fix burst: (F-1 MAJOR POLICY 5) §Decision 5 §Purity Boundary corrected — phantom `InternalLog::write_started` method reference removed and replaced with correct source anchors: `DISPATCHER_STARTED` const (defined in `internal_log.rs`) emitted via `InternalEvent::now(DISPATCHER_STARTED)` builder chain called via `internal_log.write(...)` in `main.rs`; no method named `write_started` exists — verified by `grep write_started crates/factory-dispatcher/src` → zero matches; TD-VSDD-091-compliant behavioral anchors used throughout. (F-5 ADVISORY POLICY 6) SS-04 subsystem-set advisory RESOLVED NO: ADR-024 subsystem set retained as SS-01/SS-03/SS-07; SS-04 scope belongs to story/VP test-vehicle (integration test WASM harness), not to the production components governed by this ADR; SS-04 rationale note added to §Decision 5. |
+| 1.5 | 2026-06-22 | architect | S-18.14 pass-2 adversary fix burst: (F-1 MAJOR POLICY 5) §Decision 1 Addendum step 5 corrected — removed false "two call sites" claim; ground truth verified by `grep -n get_or_compile crates/factory-dispatcher/src/resolver_loader.rs` → exactly ONE production call site in `load_registry` (~line 361); the second occurrence (~line 1057) is inside `#[cfg(test)]`; the `fail_closed: true`/`fail_closed: false` divergence is in the post-call error `match`, not at separate call sites; step 5 rewritten to state single-call-site fact; proven precedent cross-reference added — `registry.rs::resolve_plugin_paths` (BC-1.01.004) already applies `base = path.parent()` + `base.join(&entry.plugin)` for hooks-registry.toml; BC-1.01.004 precedent cross-reference added to Why-CWD-relative-was-wrong rationale; TD-VSDD-060 sibling-sweep attestation embedded. |
