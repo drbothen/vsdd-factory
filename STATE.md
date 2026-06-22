@@ -151,7 +151,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | caf06c68 | rc.21 bot binary bundle commit 2026-06-13; prior: 2a191314 (rc.20) |
 | develop | 1e81f2c8 | PR #199 chore gitignore squash-merged 2026-06-22 (D-677); prior: 40cd18ae (PR #198 D-676) |
-| factory-artifacts | **pending-D-688** | D-688 S-18.14 pass-21 FIX BURST exhaustive residue sweep (S-18.14 v2.10; STORY-INDEX v4.59; BC/ADR/ARCH/BC-INDEX UNCHANGED; F-1 POLICY 4 §Decision mis-anchor + O-1 CLOSED; 5-class sweep ZERO; pass-22 NEXT); prior: 4d24257e (D-687) |
+| factory-artifacts | a79b27b2 | D-688 S-18.14 pass-21 FIX BURST exhaustive residue sweep (S-18.14 v2.10; STORY-INDEX v4.59; BC/ADR/ARCH/BC-INDEX UNCHANGED; F-1 POLICY 4 §Decision mis-anchor + O-1 CLOSED; 5-class sweep ZERO; pass-22 NEXT); prior: 4d24257e (D-687) |
 | v1.0.0-rc.21 (tag) | 03054524 | SHIPPED 2026-06-13; FULLY IN OPERATOR MARKETPLACE (marketplace PR #13 MERGED); annotated tag object |
 | v1.0.0-rc.20 (tag) | e9e38286 | SHIPPED 2026-06-01; marketplace PR #12 squash-merged 862e660d |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28 |
@@ -389,7 +389,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** `pending-D-688` D-688 S-18.14 pass-21 FIX BURST exhaustive residue sweep (S-18.14 v2.10; STORY-INDEX v4.59; BC/ADR/ARCH/BC-INDEX UNCHANGED; F-1 POLICY 4 §Decision mis-anchor + O-1 CLOSED; 5-class sweep ZERO; pass-22 NEXT); prior: `4d24257e` D-687 S-18.14 pass-18 FIX BURST
+- **factory-artifacts HEAD:** `a79b27b2` D-688 S-18.14 pass-21 FIX BURST exhaustive residue sweep (S-18.14 v2.10; STORY-INDEX v4.59; BC/ADR/ARCH/BC-INDEX UNCHANGED; F-1 POLICY 4 §Decision mis-anchor + O-1 CLOSED; 5-class sweep ZERO; pass-22 NEXT); prior: `4d24257e` D-687 S-18.14 pass-18 FIX BURST
 - **develop HEAD:** `1e81f2c8` (PR #199 chore gitignore squash-merged 2026-06-22 D-677; prior: `40cd18ae` PR #198 D-676)
 - **main HEAD:** `caf06c68` (rc.21 bot bundle commit 2026-06-13; UNCHANGED)
 - **v1.0.0-rc.21 tag:** `03054524` (SHIPPED; FULLY IN OPERATOR MARKETPLACE)
@@ -402,7 +402,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 - **ADR-028 v1.3:** `specs/architecture/decisions/ADR-028-e18-precompact-flush-native-wasm-migration.md` (D-672 ROUND-3 FINAL: F-R3-001 mount canonicalize split-tree guard; F-R3-002 scan-region Decision 14; F-R3-003 staging add -A Decision 15 EC-008; F-R3-005 NoOp-identical Decision 16; F-R3-006 wrong-branch RedGate Decision 17; F-R3-007 committer note Decision 18; CV-002 Decision-4 forward-ref; SPEC CONVERGENCE ACCEPTED)
 - **BC-7.07.001 v1.18:** `ss-07/BC-7.07.001.md` (D-672: A12-A15+CV-003 added — A12 mount canonicalize assertion; A13 scan-region; A14 wrong-branch RedGate; A15 NoOp-identical; CV-003 CLOSED; SPEC CONVERGENCE ACCEPTED)
 - **S-18.04a v1.11:** `stories/S-18.04a-precompact-flush-sh-core.md` (D-672: B14-B18 story ACs for F-R3 closures; ROUND-3 FINAL CONVERGED)
-- **Verify on resume:** `git rev-parse --short origin/develop` → expect `1e81f2c8` (PR #199 chore gitignore merged D-677; UNCHANGED through D-688); `git rev-parse --short origin/main` → expect `caf06c68`; `git -C .factory log -1 --format='%h %s'` → expect D-688 S-18.14 pass-21 residue sweep commit
+- **Verify on resume:** `git rev-parse --short origin/develop` → expect `1e81f2c8` (PR #199 chore gitignore merged D-677; UNCHANGED through D-688); `git rev-parse --short origin/main` → expect `caf06c68`; `git -C .factory log -1 --format='%h %s'` → expect `a79b27b2 state(D-688): S-18.14 pass-21 FIX BURST exhaustive residue sweep`
 
 ### §10. PR Status
 
