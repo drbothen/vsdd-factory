@@ -315,7 +315,7 @@ impl ResolverLoader {
         let mut seen_context_keys: HashSet<String> = HashSet::new();
 
         // EC-009: zero [[resolvers]] entries ≡ absent file — valid, no error.
-        for entry in parsed.resolvers {
+        for mut entry in parsed.resolvers {
             // F-P4-003: reject empty name / context_key — both are required non-empty identifiers.
             // An empty name would produce an unresolvable needs_context key; an empty context_key
             // would write to an anonymous plugin_config key which is never readable.
@@ -350,6 +350,16 @@ impl ResolverLoader {
                         entry.name
                     ),
                 });
+            }
+
+            // INV-8 fix (S-18.14): resolve relative plugin paths against the TOML
+            // parent directory (CLAUDE_PLUGIN_ROOT), not the process CWD.
+            // Mirrors registry.rs::resolve_plugin_paths pattern (BC-1.01.004).
+            // None arm (bare-component TOML path with no parent): pass through unchanged.
+            if let Some(base) = path.parent()
+                && entry.plugin.is_relative()
+            {
+                entry.plugin = base.join(&entry.plugin);
             }
 
             // Compile the module (mtime-cached on subsequent loads).

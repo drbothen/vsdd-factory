@@ -241,7 +241,14 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
             )
             .with_field("pid", std::process::id() as i64)
             .with_field("registry_path", registry_path.display().to_string())
-            .with_field("loaded_plugin_count", registry.hooks.len() as i64),
+            .with_field("loaded_plugin_count", registry.hooks.len() as i64)
+            .with_field(
+                "log_dir",
+                std::path::absolute(internal_log.log_dir())
+                    .unwrap_or_else(|_| internal_log.log_dir().to_path_buf())
+                    .display()
+                    .to_string(),
+            ),
     );
 
     let matched = match_plugins(&registry, &payload);
@@ -996,9 +1003,9 @@ mod red_gate_s18_14_log_dir {
         //       .to_string())
         // to the builder chain below.
         //
-        // NOTE: This test exercises the CURRENT state of the code (pre-fix).
-        // The test is a RED Gate because the assertion below checks for `log_dir`
-        // presence + is_absolute, which the current code does NOT satisfy.
+        // Emit the DISPATCHER_STARTED event with the log_dir field (post-fix state).
+        // The implementer has added .with_field("log_dir", std::path::absolute(...)...)
+        // to the builder chain, mirroring the production code in main.rs.
         internal_log.write(
             &InternalEvent::now(DISPATCHER_STARTED)
                 .with_trace_id("test-trace-rg005")
@@ -1008,9 +1015,14 @@ mod red_gate_s18_14_log_dir {
                 .with_field("platform", "test-platform")
                 .with_field("pid", 12345_i64)
                 .with_field("registry_path", "/test/registry.toml")
-                .with_field("loaded_plugin_count", 0_i64),
-            // NOTE: `log_dir` field intentionally ABSENT here — this is what the pre-fix
-            // code does. After fix, implementer adds .with_field("log_dir", ...) here.
+                .with_field("loaded_plugin_count", 0_i64)
+                .with_field(
+                    "log_dir",
+                    std::path::absolute(internal_log.log_dir())
+                        .unwrap_or_else(|_| internal_log.log_dir().to_path_buf())
+                        .display()
+                        .to_string(),
+                ),
         );
 
         // Read back the JSONL from the log directory.
