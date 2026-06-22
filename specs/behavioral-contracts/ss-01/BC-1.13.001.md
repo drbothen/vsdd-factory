@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.2"
+version: "1.3"
 status: draft
 producer: product-owner
 timestamp: 2026-05-07T00:00:00Z
@@ -9,6 +9,7 @@ phase: 1a
 inputs:
   - .factory/cycles/v1.0-feature-engine-discipline-pass-1/F1-platform-amendment-delta-analysis.md
   - .factory/cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md
+  - .factory/specs/architecture/decisions/ADR-024-dispatcher-log-dir-resolution-and-plugin-root-fail-loud.md
 input-hash: "4a88bec"
 traces_to: .factory/cycles/v1.0-feature-engine-discipline-pass-1/F1-platform-amendment-delta-analysis.md
 origin: greenfield
@@ -17,7 +18,8 @@ subsystem: "SS-01"
 capability: "CAP-002"
 lifecycle_status: active
 introduced: v1.0-feature-engine-discipline-pass-1
-modified: []
+modified:
+  - "2026-06-22 (v1.3) — S-18.14 spec-evolution (D-676 / ADR-024 v1.3): INV-8 (resolver WASM path resolution base must be TOML parent dir); PC-9 (successful load when artifacts present at TOML-parent-relative path); PC-10 (log_dir field in dispatcher.started payload — placed here because no dedicated dispatcher.started payload BC exists; ADR-024 Decision 5); EC-010 (relative WASM path exists at PLUGIN_ROOT but not CWD → must load successfully). ADR Reference updated to cite ADR-024 v1.3. Changelog and Architecture Anchors extended."
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -26,7 +28,7 @@ removed: null
 removal_reason: null
 bc_id: BC-1.13.001
 section: "1.13"
-last_amended: 2026-05-10
+last_amended: "2026-06-22"
 ---
 
 # BC-1.13.001: Dispatcher MUST load `resolvers-registry.toml` at startup and inject resolver context into `plugin_config` before each hook dispatch
@@ -98,6 +100,26 @@ be unaffected.
    `plugin_config` — including all resolver outputs — as its `plugin_config` field. The hook
    plugin has no visibility into whether its `plugin_config` was enriched by resolvers or came
    entirely from the static registry config.
+9. **PC-9 (Successful load when artifacts present):** When `resolvers-registry.toml` is present
+   and valid and the referenced WASM artifacts exist at TOML-parent-relative paths, the dispatcher
+   MUST load all declared resolvers with zero `resolver.load_error` events for any declared
+   resolver. A `resolver.load_error` for a resolver whose WASM file exists at the TOML-parent-
+   relative path is a specification violation. (Anchor: see INV-8 below; root-cause fix for the
+   empirically observed 8,560 `resolver.load_error` / 0 successful loads since rc.21.)
+10. **PC-10 (`log_dir` observability in `dispatcher.started`):** The `dispatcher.started` event
+    payload MUST include a `log_dir` string field whose value is the absolute path to the
+    dispatcher's internal log directory for this invocation, populated from `InternalLog::log_dir()`
+    — the accessor already present on the `InternalLog` struct. The field is emitted
+    unconditionally on every startup, is NOT optional, is NOT behind a feature flag, and MUST
+    NOT be null or empty. The value is the fully-resolved absolute path produced by the seven-level
+    resolution algorithm in ADR-024 Decision 1.
+    > **Placement note:** No dedicated `dispatcher.started`-payload BC exists in the SS-01 catalog
+    > (BC-1.06.007 and BC-1.06.009 govern brownfield `InternalLog` JSONL envelope shape; BC-1.12.001
+    > cites `dispatcher.started` only as a test-vector example of lifecycle routing). This
+    > postcondition is placed here because ADR-024 Decision 5 is architecturally coupled to the
+    > resolver-platform startup path (same `main.rs` startup sequence), and S-18.14 is the
+    > implementing story. If a dedicated `dispatcher.started` payload BC is authored in a future
+    > cycle, PC-10 should migrate there; cite this BC as the origin in that migration.
 
 ## Invariants
 
@@ -128,6 +150,24 @@ be unaffected.
    `hooks-registry.toml`. The two files have different schemas, different lifecycle roles
    (pre-dispatch data providers vs. event handlers), and are versioned independently. The
    dispatcher loads both files at startup.
+8. **INV-8 (Resolver WASM path resolution base):** Relative `plugin` paths in
+   `resolvers-registry.toml` (e.g., `plugin = "hook-plugins/vsdd-context-resolvers.wasm"`)
+   MUST be resolved against the TOML file's parent directory — which equals `CLAUDE_PLUGIN_ROOT`
+   at runtime — NOT against the dispatcher's process working directory (CWD). Absolute `plugin`
+   paths pass through unchanged (no re-joining). The resolution MUST be applied in
+   `resolver_loader::load_registry` at every call site to `get_or_compile`, for both
+   `fail_closed: true` and `fail_closed: false` code paths. A `resolver.load_error` for a
+   resolver whose WASM file exists at the correct TOML-parent-relative path is a violation of
+   this invariant and MUST be treated as a regression.
+   > **Why CWD-relative is wrong:** The dispatcher is invoked by the Claude Code hook
+   > infrastructure with CWD set to the host project directory (e.g., `/Users/<user>/project/`).
+   > WASM plugin files live under `CLAUDE_PLUGIN_ROOT` (e.g.,
+   > `~/.claude/plugins/cache/claude-mp/vsdd-factory/<version>/`). A relative path from the
+   > TOML resolves correctly only when the base is the TOML's own parent directory. CWD as
+   > base yields a path that does not exist, causing `path.canonicalize()` to return `Err(ENOENT)`
+   > — the root cause of 8,560 `resolver.load_error` / 0 successful loads observed since rc.21.
+   > (Anchor: `resolver_loader::load_registry` joins `toml_path.parent()` with `entry.plugin`
+   > before `get_or_compile`; function-name anchor per TD-VSDD-091.)
 
 ## Edge Cases
 
@@ -142,6 +182,7 @@ be unaffected.
 | EC-007 | Two hooks in the same dispatch share the same `needs_context` resolver | Each hook's dispatch independently invokes the resolver (no cross-hook caching per OD-4). Each invocation creates a fresh `Store`. |
 | EC-008 | `resolvers-registry.toml` has zero `[[resolvers]]` entries | Equivalent to absent file: zero resolvers configured. Valid state; not an error. |
 | EC-009 | Resolver returns `None` for its `value` field | Key is NOT written to `plugin_config`. The key is absent from the hook's `plugin_config`. The hook must treat the absent key as appropriate for its logic. |
+| EC-010 | `resolvers-registry.toml` present; `plugin` path relative (e.g., `hook-plugins/vsdd-context-resolvers.wasm`); WASM file exists at `CLAUDE_PLUGIN_ROOT/<rel>` but NOT at `<CWD>/<rel>` | Resolver MUST load successfully (TOML-parent-relative resolution per INV-8 wins). Zero `resolver.load_error` events for this resolver. The CWD-relative path's non-existence is irrelevant. A CWD-relative resolution attempt that produces `path.canonicalize()` `Err(ENOENT)` is the bug that INV-8 and PC-9 are designed to prevent. |
 
 ## Canonical Test Vectors
 
@@ -155,6 +196,8 @@ be unaffected.
 | Resolver returns value | `wave_context` registered; returns `{stories: [...]}` | `["wave_context"]` | `plugin_config["wave_context"] = {stories: [...]}`. |
 | TOML parse error | Malformed TOML | — | Startup fails; `resolver.load_error` emitted. |
 | Unknown resolver name | `foo` not registered | `["foo"]` | `resolver.not_found`; dispatch proceeds without context. |
+| Relative WASM path; file at PLUGIN_ROOT, absent at CWD | `wave_context` registered with relative path; WASM exists at TOML-parent dir, not at process CWD | `["wave_context"]` | Resolver loads successfully (zero `resolver.load_error`); context injected into `plugin_config`. CWD non-existence irrelevant. (Witnesses INV-8 / PC-9 / EC-010.) |
+| `dispatcher.started` event | Dispatcher starts with valid `resolvers-registry.toml` | — | `dispatcher.started` event payload includes `log_dir` string field (non-empty absolute path) populated from `InternalLog::log_dir()`. (Witnesses PC-10.) |
 
 ## Verification Properties
 
@@ -180,7 +223,7 @@ be unaffected.
 | Architecture Module | `crates/factory-dispatcher/src/resolver.rs` (ContextResolver trait, ResolverRegistry); `crates/factory-dispatcher/src/resolver_loader.rs` (WASM module loading + mtime-cache); `crates/factory-dispatcher/src/executor.rs` (pre-dispatch resolver invocation); `crates/factory-dispatcher/src/main.rs` (resolvers-registry.toml load at startup); `crates/factory-dispatcher/src/registry.rs` (RegistryEntry.needs_context field) |
 | Stories | S-12.03, S-12.04, S-12.06, S-12.08 |
 | FR | FR-RESOLVER-001 (factory-agnostic runtime context injection for hooks via sandboxed WASM-plugin resolvers) |
-| ADR Reference | ADR-018 (WASM-plugin Context Resolvers — Design and Layering) — codifies the separate registry, factory-agnostic dispatcher, and explicit-registration decisions (OD-1 through OD-6) that this BC encodes as behavioral contracts. |
+| ADR Reference | ADR-018 (WASM-plugin Context Resolvers — Design and Layering) — codifies the separate registry, factory-agnostic dispatcher, and explicit-registration decisions (OD-1 through OD-6) that this BC encodes as behavioral contracts. ADR-024 v1.3 §Decision 1 Addendum (Resolver WASM plugin path resolution) — establishes that relative `plugin` paths MUST resolve against `toml_path.parent()`, not CWD; functional anchor is `resolver_loader::load_registry` (TD-VSDD-091). ADR-024 v1.3 §Decision 5 (`log_dir` observability) — contracts that `dispatcher.started` payload MUST include `log_dir` from `InternalLog::log_dir()`; see PC-10. |
 
 ## Related BCs
 
@@ -189,16 +232,18 @@ be unaffected.
 - BC-4.12.003 — composes with (resolver capability model — capability declarations are read at registry-load time)
 - BC-4.12.004 — composes with (resolver error and crash isolation — error handling for failed resolver invocations)
 - BC-4.12.005 — composes with (context-injection merging contract — defines how resolver outputs are merged into `plugin_config`)
-- BC-1.12.001 — sibling (dispatcher startup and registry loading — this BC extends startup with the resolver registry step)
+- BC-1.12.001 — sibling (dispatcher startup and registry loading — this BC extends startup with the resolver registry step; PC-10 `log_dir` in `dispatcher.started` is also anchored here because BC-1.12.001 contracts that lifecycle events route to `events-*.jsonl`)
 
 ## Architecture Anchors
 
-- `/Users/jmagady/Dev/vsdd-factory/crates/factory-dispatcher/src/resolver.rs` — ContextResolver trait, ResolverRegistry, ResolverInput, ResolverOutput, ResolverError types
-- `/Users/jmagady/Dev/vsdd-factory/crates/factory-dispatcher/src/resolver_loader.rs` — WASM module compilation + mtime-cache
-- `/Users/jmagady/Dev/vsdd-factory/crates/factory-dispatcher/src/executor.rs` — pre-dispatch resolver invocation step (between registry lookup and invoke_plugin)
-- `/Users/jmagady/Dev/vsdd-factory/crates/factory-dispatcher/src/registry.rs` — RegistryEntry.needs_context field (`#[serde(default)]`)
-- `/Users/jmagady/Dev/vsdd-factory/plugins/vsdd-factory/resolvers-registry.toml` — resolver registration file (NEW; distinct from hooks-registry.toml)
-- `/Users/jmagady/Dev/vsdd-factory/.factory/specs/architecture/decisions/ADR-018-wasm-plugin-context-resolvers.md` — design decision
+- `crates/factory-dispatcher/src/resolver.rs` — ContextResolver trait, ResolverRegistry, ResolverInput, ResolverOutput, ResolverError types
+- `crates/factory-dispatcher/src/resolver_loader.rs` — WASM module compilation + mtime-cache; **INV-8 change site**: `load_registry` MUST join `toml_path.parent()` with `entry.plugin` for relative paths before passing to `get_or_compile` and `path.canonicalize()`; applies to ALL `get_or_compile` call sites in this file (both `fail_closed: true` and `fail_closed: false` paths)
+- `crates/factory-dispatcher/src/executor.rs` — pre-dispatch resolver invocation step (between registry lookup and invoke_plugin)
+- `crates/factory-dispatcher/src/registry.rs` — RegistryEntry.needs_context field (`#[serde(default)]`)
+- `crates/factory-dispatcher/src/main.rs` — **PC-10 change site**: `InternalLog::write_started` call MUST include `log_dir` field from `InternalLog::log_dir()` in the `dispatcher.started` payload (ADR-024 Decision 5); also the startup entry point that calls `load_registry` where INV-8 path resolution begins
+- `plugins/vsdd-factory/resolvers-registry.toml` — resolver registration file (distinct from hooks-registry.toml)
+- `.factory/specs/architecture/decisions/ADR-018-wasm-plugin-context-resolvers.md` — design decision (OD-1 through OD-6)
+- `.factory/specs/architecture/decisions/ADR-024-dispatcher-log-dir-resolution-and-plugin-root-fail-loud.md` — v1.3 Decision 1 Addendum (TOML-parent-relative path resolution) and Decision 5 (`log_dir` in `dispatcher.started`)
 
 ## Story Anchor
 
@@ -214,6 +259,7 @@ S-12.03 (ContextResolver trait + ResolverRegistry in-memory) and S-12.04 (WASM r
 
 | Version | Date | Description |
 |---------|------|-------------|
+| 1.3 | 2026-06-22 | S-18.14 spec-evolution (D-676 / ADR-024 v1.3): (1) INV-8 — Resolver WASM path resolution base MUST be TOML file's parent directory (`CLAUDE_PLUGIN_ROOT` at runtime), NOT process CWD; absolute paths pass through unchanged; applies to ALL `get_or_compile` call sites in `resolver_loader`; root cause of 8,560 `resolver.load_error` / 0 successful loads since rc.21. (2) PC-9 — Successful load when artifacts present at TOML-parent-relative paths; zero `resolver.load_error` for any declared resolver is the spec. (3) PC-10 — `dispatcher.started` event payload MUST include `log_dir` string field from `InternalLog::log_dir()`; unconditional; non-empty; absolute path (ADR-024 Decision 5). Placed here because no dedicated `dispatcher.started`-payload BC exists in the SS-01 catalog; see PC-10 placement note for migration guidance. (4) EC-010 — Relative WASM exists at PLUGIN_ROOT but not CWD → must load successfully. (5) Architecture Anchors updated: path-anchors migrated from absolute user-local paths to repo-relative paths (TD-VSDD-091); `resolver_loader.rs` INV-8 change site and `main.rs` PC-10 change site documented. (6) ADR Reference extended with ADR-024 v1.3 §Decision 1 Addendum and §Decision 5 cites. |
 | 1.2 | 2026-05-10 | Pass-4 fix-burst: canonical key wave-context → wave_context per BC-4.12.005 PC7 / S-12.07 v1.2 / ADR-018. EC-004 and Canonical Test Vectors truth table (rows 150-154) updated to use underscore form throughout. Added missing `extracted_from: null` frontmatter field (greenfield artifact). |
 | 1.1 | 2026-05-09 | F-P45-001 — Traceability Stories row propagated from BC-INDEX v1.57: S-12.03, S-12.04 → S-12.03, S-12.04, S-12.06, S-12.08. BC-INDEX was updated in fix-burst-39 (v1.55) to add S-12.06 + S-12.08; body was not updated in that burst. Refs: F-P45-001, fix-burst-42. |
 | 1.0 | 2026-05-07 | Initial authoring (product-owner; F2-amendment phase of v1.0-feature-engine-discipline-pass-1). Encodes architectural decisions OD-1 through OD-6 (user-authorized per D-361). PC1 Critical Constraint explicitly states "absent resolvers-registry.toml = zero resolvers, NOT a startup error" per orchestrator directive and F1-amendment R-PLAT-005 regression risk mitigation. Factory-agnostic dispatcher invariant encodes D-361 generality requirement. |

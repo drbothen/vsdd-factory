@@ -2,13 +2,13 @@
 document_type: architecture-decision-record
 level: L3
 adr_id: ADR-024
-version: "1.2"
+version: "1.3"
 status: accepted
 producer: architect
 timestamp: 2026-06-09T00:00:00Z
-amended: 2026-06-09T00:00:00Z
-amendment_reason: "Pass-2 adversary review (issue #130): (C2-CRIT-2/C2-HIGH-1) amend Decision 3 dedup hash input from '256-byte JSON repr' to 'bounded raw Value::as_str() at 4096-byte char-safe ceiling' — eliminates char-boundary panic, JSON-quote false-collision, and unbounded hashing cost; (C2-CRIT-1/C2-HIGH-2) amend Decision 4 guard from substring predicate to lexical path-normalization predicate with explicit allow/block matrix — fixes traversal under-protect (.factory/.factory/../specs wrongly allowed) and nested-shadow over-block (.factory/.factory/.factory wrongly blocked), retracts 'structurally impossible' security-analysis claim; (process-gap) add Process note recording spec-drift routing obligation."
-title: "ADR-024: Dispatcher log-dir worktree-aware resolution, CLAUDE_PLUGIN_ROOT fail-loud contract, internal-error dedup, and destructive-guard shadow exception"
+amended: 2026-06-22T00:00:00Z
+amendment_reason: "S-18.14 spec-evolution (D-676): add §Decision 1 subsection 'Resolver WASM plugin path resolution' — contracts that relative `plugin` paths in resolvers-registry.toml MUST be resolved against the TOML file's parent directory (CLAUDE_PLUGIN_ROOT), NOT process CWD; apply to all call sites of `load_registry` and `get_or_compile` in `resolver_loader`; cite behavioral anchors (function names, not line numbers per TD-VSDD-091); note operator-cache release dependency; add §Decision 5 resolver `log_dir` observability: `dispatcher.started` payload MUST include `log_dir` field populated from `InternalLog::log_dir()`. v1.3 supersedes v1.2 on resolver path resolution (previously unspecified gap). [Prior: v1.2 2026-06-10 Pass-2 adversary review amendments: (C2-CRIT-2/C2-HIGH-1) amend Decision 3 dedup hash input from '256-byte JSON repr' to 'bounded raw Value::as_str() at 4096-byte char-safe ceiling'; (C2-CRIT-1/C2-HIGH-2) amend Decision 4 guard from substring predicate to lexical path-normalization predicate with explicit allow/block matrix; (process-gap) add Process note recording spec-drift routing obligation.]"
+title: "ADR-024: Dispatcher log-dir worktree-aware resolution, CLAUDE_PLUGIN_ROOT fail-loud contract, resolver WASM plugin path resolution, internal-error dedup, and destructive-guard shadow exception"
 traces_to: .factory/specs/architecture/ARCH-INDEX.md
 anchors:
   - SS-01
@@ -16,8 +16,10 @@ anchors:
   - SS-07
   - ADR-001
   - ADR-007
+  - ADR-018
   - ADR-020
   - issue-130
+  - S-18.14
 subsystem: "SS-01"
 supersedes: null
 superseded_by: null
@@ -26,14 +28,15 @@ human_gate_required: false
 human_gate_reason: "No sealed BCs modified. All decisions are within architect scope: dispatcher path-resolution algorithm, env-var contract, internal log behavior, and guard predicate narrowing."
 ---
 
-# ADR-024: Dispatcher log-dir worktree-aware resolution, CLAUDE_PLUGIN_ROOT fail-loud contract, internal-error dedup, and destructive-guard shadow exception
+# ADR-024: Dispatcher log-dir worktree-aware resolution, CLAUDE_PLUGIN_ROOT fail-loud contract, resolver WASM plugin path resolution, internal-error dedup, and destructive-guard shadow exception
 
 ## Status
 
-**ACCEPTED.** This ADR resolves all four open architecture questions from issue #130
-("dispatcher creates recursive `.factory/.factory/logs/` shadow"). It is the design
-dependency that gates the test-writer (Red Gate test stubs) and implementer (TDD green
-cycle). No human authorization gate — all decisions are within architect scope.
+**ACCEPTED.** v1.2 resolved all four open architecture questions from issue #130
+("dispatcher creates recursive `.factory/.factory/logs/` shadow"). v1.3 extends the ADR
+with Decision 1 subsection on resolver WASM plugin path resolution (S-18.14 spec-evolution,
+HIGH defect: 8,560 `resolver.load_error` events / 0 successful loads) and Decision 5 on
+`log_dir` observability. No human authorization gate — all decisions are within architect scope.
 
 ## Context
 
@@ -150,6 +153,117 @@ The seven-level precedence order below replaces the current two-branch
 
 Track visited `(st_dev, st_ino)` pairs via `std::fs::symlink_metadata`. If a path has
 already been seen, break the walk and fall through to level E.
+
+---
+
+## Decision 1 Addendum — Resolver WASM plugin path resolution (v1.3)
+
+### Decision
+
+Relative `plugin` paths in `resolvers-registry.toml` (e.g.,
+`plugin = "hook-plugins/vsdd-context-resolvers.wasm"`) MUST be resolved against the
+TOML file's parent directory — which equals `CLAUDE_PLUGIN_ROOT` at runtime — NOT
+against the dispatcher's process working directory (CWD).
+
+**Behavioral contract (function-name anchors per TD-VSDD-091):**
+
+In `resolver_loader::load_registry`:
+
+1. After parsing `resolvers-registry.toml`, the function obtains `toml_path.parent()` —
+   the directory containing the TOML file.
+2. For each resolver entry, if `entry.plugin` is a relative path (i.e.,
+   `Path::new(&entry.plugin).is_absolute()` is `false`), the absolute path MUST be
+   constructed as `toml_parent.join(&entry.plugin)`.
+3. The joined absolute path — NOT the bare relative string — is what is passed to
+   `get_or_compile` for WASM compilation and to `path.canonicalize()` for filesystem
+   existence validation.
+4. If `entry.plugin` is already absolute, pass it through unchanged.
+5. This resolution MUST be applied at EVERY call site to `get_or_compile` within
+   `load_registry`, for both `fail_closed: true` and `fail_closed: false` code paths.
+
+**Why CWD-relative was wrong:**
+
+The dispatcher is invoked by the Claude Code hook infrastructure. At hook invocation time,
+the process CWD is the host project directory (e.g., `/Users/<user>/project/`). The WASM
+plugin files live under `CLAUDE_PLUGIN_ROOT` (e.g.,
+`~/.claude/plugins/cache/claude-mp/vsdd-factory/<version>/`). A relative path
+`hook-plugins/vsdd-context-resolvers.wasm` from the TOML resolves correctly only when
+the base is the TOML's own parent directory. Using CWD as the base yields a path
+that does not exist, causing `path.canonicalize()` to return `Err(ENOENT)`, which the
+dispatcher surfaces as `resolver.load_error`. This is the root cause of the 8,560
+`resolver.load_error` / 0 successful loads observed empirically since rc.21.
+
+**Purity boundary note:**
+
+`load_registry` is an effectful-shell function (reads filesystem). The path-joining step
+`toml_parent.join(&entry.plugin)` is a pure computation (no I/O) and is freely
+unit-testable with an absolute synthetic TOML path.
+
+**Relationship to Decision 2 (`CLAUDE_PLUGIN_ROOT` fail-loud contract):**
+
+Decision 2 governs the hooks-registry path when `CLAUDE_PLUGIN_ROOT` is absent. This
+addendum governs how the resolver WASM paths within an already-loaded
+`resolvers-registry.toml` are interpreted. The two decisions are complementary: Decision 2
+handles registry-not-found; this addendum handles wasm-within-registry-not-found.
+
+**Release dependency (operator-cache):**
+
+Per CLAUDE.md "Dispatcher binary discipline", the fix to `resolver_loader.rs` must be
+RELEASED (rc tag + cross-platform binary build via `.github/workflows/release.yml`) to
+reach the operator-level cache at
+`~/.claude/plugins/cache/claude-mp/vsdd-factory/<version>/`. Develop-branch edits do not
+affect the cached dispatcher binary consumed by the running Claude Code harness. A release
+MUST be cut after S-18.14 merges.
+
+**Test obligation (S-18.14):**
+
+Unit test in `crates/factory-dispatcher/` (or `crates/context-resolvers/`):
+
+1. Construct a synthetic `resolvers-registry.toml` with a relative `plugin` path (e.g.,
+   `plugin = "hook-plugins/vsdd-context-resolvers.wasm"`).
+2. Call `load_registry` with an ABSOLUTE path to the synthetic TOML (e.g.,
+   `/tmp/test-root/resolvers-registry.toml`), simulating `CLAUDE_PLUGIN_ROOT/resolvers-registry.toml`.
+3. Assert the resolved WASM path is `/tmp/test-root/hook-plugins/vsdd-context-resolvers.wasm`
+   (TOML-parent-relative), NOT `<process CWD>/hook-plugins/vsdd-context-resolvers.wasm`.
+4. Assert that a CWD-relative resolution would produce a DIFFERENT path, proving the test
+   distinguishes the old (buggy) behavior from the new (correct) behavior.
+
+---
+
+## Decision 5 — `log_dir` field in `dispatcher.started` event (v1.3)
+
+### Decision
+
+The `dispatcher.started` event payload MUST include a `log_dir` field whose value is the
+absolute path to the directory where the dispatcher writes its internal log for this
+invocation.
+
+**Behavioral contract:**
+
+- The `log_dir` value is populated from `InternalLog::log_dir()` — the accessor that
+  already exists on the `InternalLog` struct (no new computation required).
+- The field is emitted unconditionally on every `dispatcher.started` event. It is NOT
+  optional, NOT behind a feature flag.
+- The value is the resolved absolute path (the same path produced by Decision 1's
+  seven-level precedence order after it has resolved to its final value).
+
+**Rationale:**
+
+Without `log_dir` in `dispatcher.started`, operators cannot determine where to find the
+dispatcher's internal event log without tracing through the seven-level resolution algorithm
+manually. This is a low-effort, high-value observability improvement: the accessor already
+exists, the only change is wiring it into the started payload.
+
+**Purity boundary:**
+
+`dispatcher.started` is emitted once per dispatcher invocation in `InternalLog::write_started`.
+Wiring `log_dir()` into that call is an effectful-shell operation (reads from the already-
+resolved `PathBuf` stored on `InternalLog`). No new filesystem I/O is required.
+
+**Test obligation:**
+
+The existing `dispatcher.started` event test MUST assert that the emitted JSON contains a
+`log_dir` string field whose value is the directory path (not empty, not null).
 
 ---
 
@@ -548,8 +662,9 @@ unbounded cost in adversarial input scenarios violates the production-grade defa
 
 | File | Change |
 |------|--------|
-| `crates/factory-dispatcher/src/main.rs` | Replace `resolve_log_dir()` (lines 669–674 + TODO comment 661–668); update `plugin_root` defaulting at 267–269 and 307–310; update `resolve_registry_path()` error message at 655–659 |
-| `crates/factory-dispatcher/src/internal_log.rs` | Add `seen_errors: Mutex<HashSet<u64>>` field to `InternalLog`; update `write_inner` with dedup check |
+| `crates/factory-dispatcher/src/main.rs` | Replace `resolve_log_dir()` (seven-level A–G per Decision 1); update `plugin_root` defaulting at `CLAUDE_PLUGIN_ROOT`-absent sites; update `resolve_registry_path()` error message; wire `InternalLog::log_dir()` into `dispatcher.started` payload (Decision 5) |
+| `crates/factory-dispatcher/src/resolver_loader.rs` | In `load_registry` and at all `get_or_compile` call sites: resolve relative `entry.plugin` paths against `toml_path.parent()` before passing to `get_or_compile` / `path.canonicalize()` (Decision 1 Addendum) |
+| `crates/factory-dispatcher/src/internal_log.rs` | Add `seen_errors: Mutex<HashSet<u64>>` field to `InternalLog`; update `write_inner` with dedup check; expose `log_dir()` accessor if not already present |
 | `plugins/vsdd-factory/hooks/destructive-command-guard.sh` | Add shadow exception inside the `.factory/`-recursive-delete loop (lines 73–90) and inside the find-delete guard (lines 148–158) |
 
 ### Process note — spec-drift routing obligation
@@ -615,3 +730,4 @@ verification mechanism.
 | 1.0 | 2026-06-09 | architect | Initial acceptance. Closes all four architecture questions from issue #130. |
 | 1.1 | 2026-06-09 | architect | Pass-1 adversary review amendments: (M-1) corrected level-count prose from "five-level" to "seven-level" throughout; (L-2) added Level E (cwd child `.factory` directory check) between old Level D and old Level E (git), renumbered old E→F and old F→G, eliminates git subprocess for dominant repo-root invocation pattern; (LOW-1) added explicit control-flow intent for `CLAUDE_PLUGIN_ROOT`-absent: degraded-continue (Tier 1, empty plugin set, exit 0) with Tier 1 check occurring BEFORE `resolve_registry_path()` call, making the two tiers mutually exclusive. |
 | 1.2 | 2026-06-09 | architect | Pass-2 adversary review amendments: (C2-CRIT-2/C2-HIGH-1) Decision 3 hash input changed from "first 256 bytes of message_json_value" (JSON repr, fixed byte slice) to "bounded_prefix(Value::as_str(), N=4096)" (raw string value, char-boundary-safe, 4096-byte ceiling) — simultaneously fixes char-boundary panic, JSON-quote false-collision, and unbounded hashing cost; accepted residual tradeoff: messages differing only after byte 4096 dedup to same hash (pathological, accepted); (C2-CRIT-1/C2-HIGH-2) Decision 4 guard predicate replaced: v1.1 substring predicate removed and replaced with lexical path-normalization predicate — tokenize targets, normalize `.`/`..` components, allow only when ALL `.factory`-bearing tokens normalize to strictly inside `.factory/.factory/`, conservative `..`-adjacent reject rule added; full allow/block matrix added; "structurally impossible" security-analysis claim retracted; nested-shadow over-block and traversal under-protect both fixed; (process-gap) Process note added recording spec-drift routing obligation; (C2-HIGH-3) Decision 4 testing obligation note added for `main.rs` doc-comment seven-level assertion; (C2-MED-1/MED-2) Decision 3 testing obligation note added for `internal_log.rs` dedup test doc-block regrounding. |
+| 1.3 | 2026-06-22 | architect | S-18.14 spec-evolution (D-676): (1) Decision 1 Addendum — Resolver WASM plugin path resolution: relative `plugin` paths in `resolvers-registry.toml` MUST resolve against `toml_path.parent()` (= `CLAUDE_PLUGIN_ROOT`) NOT process CWD; applies to `load_registry` and all `get_or_compile` call sites in `resolver_loader`; root cause of 8,560 `resolver.load_error` / 0 successful loads since rc.21; unit test obligation specified (distinguish TOML-parent-relative vs CWD-relative); release dependency documented; (2) Decision 5 — `log_dir` observability: `dispatcher.started` event payload MUST include `log_dir` field from `InternalLog::log_dir()`; no new computation required; test obligation added; (3) `resolver_loader.rs` added to Files to change table; ADR-018 and S-18.14 added to anchors. |
