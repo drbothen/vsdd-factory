@@ -42,7 +42,12 @@ setup() {
   DISPATCHER="$REPO_ROOT/target/release/factory-dispatcher"
   ADAPTER_WASM="$REPO_ROOT/plugins/vsdd-factory/hook-plugins/legacy-bash-adapter.wasm"
   WORK="$(mktemp -d)"
+  # PROJECT_DIR is a distinct subdirectory of WORK — CLAUDE_PLUGIN_ROOT=$WORK,
+  # CLAUDE_PROJECT_DIR=$PROJECT_DIR so path-domain tests are non-tautological
+  # (S-18.04a-prereq AC-005: distinct roots required per ADR-028 §Decision 8).
+  PROJECT_DIR="$WORK/project"
   mkdir -p "$WORK/.factory/logs" "$WORK/hook-plugins" "$WORK/hooks"
+  mkdir -p "$PROJECT_DIR/.factory"
 
   # Copy legacy-bash-adapter.wasm into WORK's hook-plugins directory
   # so registry plugin paths resolve correctly.
@@ -65,7 +70,7 @@ exit 2
 STUB_EOF
   chmod +x "$WORK/hooks/stub-exit2.sh"
 
-  export CLAUDE_PROJECT_DIR="$WORK"
+  export CLAUDE_PROJECT_DIR="$PROJECT_DIR"
 }
 
 teardown() {
@@ -211,9 +216,11 @@ EOF
 
 # Run the dispatcher with a given JSON envelope.
 # Captures combined stdout+stderr into $output; sets $status.
+# CLAUDE_PLUGIN_ROOT=$WORK (plugin directory), CLAUDE_PROJECT_DIR=$PROJECT_DIR
+# (project directory — a distinct subdirectory of WORK per S-18.04a-prereq AC-005).
 _run_dispatcher() {
   local envelope="$1"
-  run bash -c "printf '%s' '$envelope' | CLAUDE_PLUGIN_ROOT='$WORK' CLAUDE_PROJECT_DIR='$WORK' '$DISPATCHER' 2>&1"
+  run bash -c "printf '%s' '$envelope' | CLAUDE_PLUGIN_ROOT='$WORK' CLAUDE_PROJECT_DIR='$PROJECT_DIR' '$DISPATCHER' 2>&1"
 }
 
 # ---------------------------------------------------------------------------
@@ -409,3 +416,4 @@ _run_dispatcher() {
   [ "$status" -eq 0 ]
   [[ "$output" == *"sync_plugins=1"* ]]
 }
+
