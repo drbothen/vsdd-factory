@@ -4,6 +4,12 @@ node_modules/
 
 # VSDD infrastructure — factory worktree lives on factory-artifacts orphan branch
 .factory/
+
+# Repo-root logs/ holds misrouted runtime dispatcher logs. Their canonical home
+# is .factory/logs/ on the factory-artifacts worktree branch. Ignoring here
+# prevents stray JSONL files (e.g. logs/dispatcher-internal-YYYY-MM-DD.jsonl)
+# from leaking onto develop via index conflicts.
+logs/
 # Reference codebases — cloned for brownfield-ingest analysis, never committed to main
 .reference/
 # Subagent isolation worktrees — created by Agent(isolation: "worktree") and
