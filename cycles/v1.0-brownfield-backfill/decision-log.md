@@ -2609,3 +2609,162 @@ Zero FAIL. Parity PASS: BC-INDEX v3.36 / VP-INDEX v2.40 / STORY-INDEX v4.55 / AR
 ### NEXT
 
 S-18.14 confirmatory adversary pass-13 (fresh-context; reads ONLY adv-s18.14-pass-12.md Part A; frozen package v1.9/v2.6 post-hardening). After pass-13 CLEAN: compute input_hash + promote S-18.14 draft→ready. Then S-18.04a WASM TDD. Autonomy STOP-BEFORE-PR-MERGE (D-665) holds. STRICT 3-CLEAN CONVERGED; streak 3/3 confirmed across passes 10/11/12 on v1.8/v2.5 frozen.
+
+---
+
+## D-685 — S-18.14 confirmatory-pass-13 FIX BURST — 2026-06-22
+
+**Date:** 2026-06-22
+**Phase:** D-685-S18.14-confirmatory-pass-13-fix-burst-2026-06-22
+**Made By:** state-manager (bookkeeping burst per orchestrator)
+
+### Decision
+
+S-18.14 adversarial confirmatory pass-13 NOT-CLEAN. Two MAJOR POLICY 19 findings closed:
+- **F-1 (MAJOR POLICY 19):** BC-1.13.001 PC-10 body contained `§Decision 5 v1.7` — a stale volatile ADR-version pin that was latent during 3-CLEAN passes 10/11/12 (frozen package; not re-examined during frozen streak). Exhaustive sibling-sweep also caught a second normative pin in BC-1.13.001 Architecture Anchors: `ADR-024 §Decision 5 v1.7` → `ADR-024 §Decision 5` (stable form). Both removed. BC-1.13.001 v1.9→v1.10; BC-INDEX v3.36→v3.37 (product-owner).
+- **F-2 (MAJOR POLICY 19):** S-18.14 Architecture Rule 2 heading contained `ADR-024 v1.9 Decision 1 Addendum` — a volatile ADR-version pin INTRODUCED by the D-684 hardening burst (the hardening burst added the `v1.9` token to the heading when it added the toml_path anchor). Exhaustive POLICY 5/19 sibling-sweep confirmed zero further normative ADR-version-pins in S-18.14, BC-1.13.001, or ADR-024. BC-1.13.001 v1.10 cite propagated. S-18.14 v2.6→v2.7; STORY-INDEX v4.55→v4.56 (story-writer). ARCH-INDEX v2.71 UNCHANGED.
+
+[O-2 process-gap] ADR/BC-version pin lint is MISSING from the pre-ready hardening checklist. TD-VSDD-091 sweeps line-number pins (`file.rs:NNN`) but NOT ADR/BC-version pins (`ADR-NNN vX.Y` / `§Decision N vX.Y`) in normative bodies. F-2 was INTRODUCED by a D-684 burst that claimed TD-VSDD-091 compliance. Recurring class (F-3 D-678 pass-1, D-685 pass-13, recurrence risk). Drift Item added to STATE.md. Candidate fix: extend POLICY 19 lint / pre-ready gate with dual-word-order regex covering forward and inverse forms. Anchor: E-18 F3 self-improvement epic.
+
+Prior 3-CLEAN convergence (passes 10/11/12) INVALIDATED by latent F-1. Streak reset 0/3. Pass-14 fresh-context NEXT. S-18.14 REMAINS draft; develop_head 1e81f2c8 UNCHANGED.
+
+4-index: BC-INDEX v3.37 / VP-INDEX v2.40 / STORY-INDEX v4.56 / ARCH-INDEX v2.71.
+
+### Rationale
+
+Confirmatory pass-13 found findings latent during the frozen 3-CLEAN streak (passes 10/11/12) — both findings are in the class introduced or overlooked by the D-684 hardening burst itself. The latent F-1 volatile pin and the F-2 introduced-by-hardening volatile pin invalidate the prior streak. STRICT 3-CLEAN requires a clean package; latent POLICY 19 violations reset the streak. Re-run from pass-14 on the corrected v1.10/v2.7 frozen package.
+
+### Verification
+
+4-index KK-N gate (literal-shell stdout captured 2026-06-22):
+```
+grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md
+version: "3.37"
+
+grep "^version:" .factory/specs/verification-properties/VP-INDEX.md
+version: "2.40"
+
+grep "^version:" .factory/stories/STORY-INDEX.md
+version: "4.56"
+
+grep "^version:" .factory/specs/architecture/ARCH-INDEX.md
+version: "2.71"
+```
+
+Zero FAIL. Parity PASS: BC-INDEX v3.37 / VP-INDEX v2.40 / STORY-INDEX v4.56 / ARCH-INDEX v2.71.
+
+### Parent-commit
+
+e4192477 (D-684 factory-artifacts HEAD per b56f1123 SHA-patch; single-commit per TD-VSDD-053)
+
+### NEXT
+
+S-18.14 adversary pass-14 (fresh-context; frozen package v1.10/v2.7; STRICT 3-CLEAN re-run; streak 0/3). Autonomy STOP-BEFORE-PR-MERGE (D-665) holds.
+
+---
+
+## D-686 — S-18.14 pass-16 FIX BURST — 2026-06-22
+
+**Date:** 2026-06-22
+**Phase:** D-686-S18.14-pass-16-fix-burst-2026-06-22
+**Made By:** state-manager (bookkeeping burst per orchestrator)
+
+### Decision
+
+S-18.14 adversarial pass-16 NOT-CLEAN. Two MAJOR findings closed:
+- **F-1 (MAJOR POLICY 19):** BC-1.13.001:294 contained inverse-word-order ADR-version pin `v1.3 Decision` — this survived the D-685 exhaustive sweep because D-685 used a single-word-order regex (`ADR-[0-9]+ v[0-9]` forward form only) that missed the inverse form (`v1.3 Decision`). Broad dual-word-order sweep confirmed zero residual. BC-1.13.001 v1.10→v1.11; BC-INDEX v3.37→v3.38 (product-owner). Note: the D-685 false attestation "dual-word-order sweep zero residual" was INCORRECT — the prior v1.10 attestation did NOT run a true dual-word-order sweep and said so falsely. v1.11 corrects this.
+- **F-2 (MAJOR POLICY 4):** STORY-INDEX S-18.14 row contained `CAP-032` capability mis-anchor (should be `CAP-002`). This was an epic-inherited mislabel (CAP-032 was already incorrect in the pre-spec-authorship stub). Sibling-check confirmed S-18.14 isolated — no other E-18 story had the same mis-anchor. BC-1.13.001 v1.11 cite propagated. S-18.14 v2.7→v2.8; STORY-INDEX v4.56→v4.57 (story-writer). ARCH-INDEX v2.71 UNCHANGED.
+
+[O-2 process-gap] REINFORCED: BOTH word-orders must be covered in POLICY 19 lint — broad pattern `v[0-9]+\.[0-9]+ *(Decision|Addendum|§)|ADR-[0-9]+ v[0-9]+\.[0-9]+|§Decision [0-9]+ v[0-9]+\.[0-9]+` outside exempt sections (changelog rows, last_amended:, modified: array, AC-SoT tables). Recurring class: F-3 D-678 (pass-1), D-685 (pass-13), D-686 (pass-16). Drift Item updated in STATE.md.
+
+4-index: BC-INDEX v3.38 / VP-INDEX v2.40 / STORY-INDEX v4.57 / ARCH-INDEX v2.71. Passes 14/15 CLEAN but pass-16 found 2 fresh MAJOR → streak RESET 0/3. Pass-17 fresh-context NEXT. S-18.14 REMAINS draft; develop_head 1e81f2c8 UNCHANGED.
+
+### Rationale
+
+Pass-16 found two MAJOR findings despite passes 14/15 being CLEAN. The inverse-word-order F-1 demonstrates the incomplete single-word-order sweep from D-685. The CAP mis-anchor F-2 was an inherited stub mislabel not caught by earlier passes. Both are correctness defects requiring fix before 3-CLEAN convergence can be claimed. Streak reset to 0/3; re-run required.
+
+### Verification
+
+4-index KK-N gate (literal-shell stdout captured 2026-06-22):
+```
+grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md
+version: "3.38"
+
+grep "^version:" .factory/specs/verification-properties/VP-INDEX.md
+version: "2.40"
+
+grep "^version:" .factory/stories/STORY-INDEX.md
+version: "4.57"
+
+grep "^version:" .factory/specs/architecture/ARCH-INDEX.md
+version: "2.71"
+```
+
+Zero FAIL. Parity PASS: BC-INDEX v3.38 / VP-INDEX v2.40 / STORY-INDEX v4.57 / ARCH-INDEX v2.71.
+
+### Parent-commit
+
+af4b77d7 (D-685 SHA-patch factory-artifacts HEAD; single-commit per TD-VSDD-053)
+
+### NEXT
+
+S-18.14 adversary pass-17 (fresh-context; frozen package v1.11/v2.8; STRICT 3-CLEAN re-run; streak 0/3). Autonomy STOP-BEFORE-PR-MERGE (D-665) holds.
+
+---
+
+## D-687 — S-18.14 pass-18 FIX BURST — 2026-06-22
+
+**Date:** 2026-06-22
+**Phase:** D-687-S18.14-pass-18-fix-burst-2026-06-22
+**Made By:** state-manager (bookkeeping burst per orchestrator)
+
+### Decision
+
+S-18.14 pass-18 FIX BURST — closing pass-18 finding F-1 (MAJOR POLICY 5) + O-1 (LOW).
+
+**F-1 (MAJOR POLICY 5 — phantom-signature / phantom-paramlist):** BC-1.13.001 INV-8 contained the signature `pub fn load_registry(&self, path: &Path, ...)` — the trailing `, ...` falsely implied additional parameters beyond `path: &Path`. Ground truth: `resolver_loader.rs:281-284` has exactly ONE parameter `path: &Path`. The `, ...` is a phantom-paramlist defect — the ellipsis was carried from an earlier broad-pattern reference and never corrected. Corrected to `pub fn load_registry(&self, path: &Path) -> Result<...>` (exact one-param list; `Result<...>` is return-type elision, not a paramlist ellipsis). Phantom-paramlist sweep `grep -n ', \.\.\.)' BC-1.13.001.md` → zero normative `, ...`-in-paramlist occurrences remaining.
+
+Files changed:
+- ADR-024 v1.9→v1.10: §Decision 1 Addendum step 1 phantom `, ...` removed; corrected citation is `pub fn load_registry(&self, path: &Path) -> Result<...>` (exact one-param list; architect)
+- ARCH-INDEX v2.71→v2.72: ADR-024 row annotation updated to v1.10; O-1 cross-cell consistency fix noted (POLICY 14 5-leg parity; architect)
+- BC-1.13.001 v1.11→v1.12: INV-8 signature corrected — `pub fn load_registry(&self, path: &Path, ...)` → `pub fn load_registry(&self, path: &Path) -> Result<...>`; changelog row 1.12 added with phantom-paramlist sweep stdout (product-owner)
+- BC-INDEX v3.38→v3.39: BC-1.13.001 v1.12 row annotation (total_bcs UNCHANGED 1,972; product-owner)
+- S-18.14 v2.8→v2.9: Story already clean — phantom-paramlist sweep found zero normative `, ...`-in-paramlist sites; sole occurrence `.with_field("log_dir", ...)` is method-call ellipsis, explicitly excluded. BC-1.13.001 v1.11→v1.12 cite propagated per POLICY 8/14 leg-5 (story-writer)
+- STORY-INDEX v4.57→v4.58: S-18.14 row annotation — BC-1.13.001 v1.11→v1.12; S-18.14 v2.8→v2.9 (story-writer)
+
+**O-1 (LOW — cross-cell consistency):** ARCH-INDEX:511 v1.3 row summary segment contained `toml_path.parent()` — this was a residual reference to the pre-v1.9 ADR-024 term (before D-684 renamed `path` to `toml_path` in §Decision 1 Addendum step 2). The ADR-024 v1.9 correction of `toml_path.parent()` → `path.parent()` in the Decision body was not propagated to the ARCH-INDEX summary segment, leaving a cross-cell inconsistency. Corrected: `toml_path.parent()` → `path.parent()` in the v1.3 row summary segment. (ARCH-INDEX v2.71→v2.72; architect — same bump covers both F-1 and O-1.)
+
+**D-430(a) COMPACTION this burst:** SIZE BUDGET HTML-comment block D-675..D-686 entries (12 lines) collapsed to 2-line range-reference; §4 Tier-A D-675..D-678 entries (4 bullets) collapsed to 1 archive-reference bullet. STATE.md size: ~459 lines pre-compaction → ~430 lines post-compaction.
+
+4-index: BC-INDEX v3.39 / VP-INDEX v2.40 / STORY-INDEX v4.58 / ARCH-INDEX v2.72. STRICT 3-CLEAN per human (3rd reaffirmation post-Level-3); passes 14/15/17 CLEAN-streak-interrupted; pass-18 fresh MAJOR (phantom signature) → streak RESET 0/3. Pass-19 fresh-context NEXT. S-18.14 REMAINS draft; develop_head UNCHANGED 1e81f2c8. Parent-commit: d5fbdc65 (D-686 SHA-patch factory-artifacts HEAD). Autonomy STOP-BEFORE-PR-MERGE (D-665) holds.
+
+### Rationale
+
+Pass-18 adversary found a fresh MAJOR POLICY 5 finding — the phantom-paramlist trailing `, ...` in BC-1.13.001 INV-8 is a correctness defect: it implies the function accepts additional parameters that do not exist in the implementation. The ground truth is one-parameter. This is a spec accuracy issue (POLICY 5: spec must accurately describe implementation). STRICT 3-CLEAN policy requires every MAJOR to be resolved before streak can continue. O-1 is a low-priority cross-cell consistency defect (same ADR-024 row, same ARCH-INDEX bump, zero additional work). D-430(a) compaction was overdue (459 lines → ~430 lines; under 440 target post-compaction).
+
+### Verification
+
+4-index KK-N gate (literal-shell stdout captured 2026-06-22):
+```
+grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md
+version: "3.39"
+
+grep "^version:" .factory/specs/verification-properties/VP-INDEX.md
+version: "2.40"
+
+grep "^version:" .factory/stories/STORY-INDEX.md
+version: "4.58"
+
+grep "^version:" .factory/specs/architecture/ARCH-INDEX.md
+version: "2.72"
+```
+
+Zero FAIL. Parity PASS: BC-INDEX v3.39 / VP-INDEX v2.40 / STORY-INDEX v4.58 / ARCH-INDEX v2.72.
+
+### Parent-commit
+
+d5fbdc65 (D-686 SHA-patch factory-artifacts HEAD; single-commit per TD-VSDD-053)
+
+### NEXT
+
+S-18.14 adversary pass-19 (fresh-context; reads ONLY adv-s18.14-pass-18.md Part A; frozen package v1.12/v2.9; STRICT 3-CLEAN re-run; streak 0/3). After eventual 3-CLEAN convergence: compute input_hash + promote S-18.14 draft→ready → S-18.04a WASM TDD. Autonomy STOP-BEFORE-PR-MERGE (D-665) holds.
