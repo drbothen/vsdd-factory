@@ -2832,3 +2832,86 @@ Zero FAIL. Parity PASS: BC-INDEX v3.39 / VP-INDEX v2.40 / STORY-INDEX v4.59 / AR
 ### NEXT
 
 S-18.14 adversary pass-22 (fresh-context; reads ONLY adv-s18.14-pass-21.md Part A; frozen package v1.12/v2.10; STRICT 3-CLEAN re-run; streak 0/3; zero-known-residue state). After eventual 3-CLEAN convergence: compute input_hash + promote S-18.14 draft→ready → S-18.04a WASM TDD. Autonomy STOP-BEFORE-PR-MERGE (D-665) holds.
+
+---
+
+## D-689 — S-18.14 BC-5.39.001 STRICT 3-CLEAN CONVERGED + PROMOTION draft→ready — 2026-06-22
+
+**Date:** 2026-06-22
+**Phase:** D-689-S18.14-3CLEAN-CONVERGED-PROMOTION-2026-06-22
+**Made By:** state-manager (bookkeeping burst per orchestrator)
+
+### Decision
+
+S-18.14 BC-5.39.001 STRICT 3-CLEAN CONVERGED — passes 22, 23, 24 ALL CLEAN (zero BLOCKER, zero MAJOR) on frozen package v1.12/v2.10 (human-directed strict 3-CLEAN; 24 total adversary passes / 9 fix bursts).
+
+**Defect-class history (all closed + source-verified):** phantom write_started symbol, false two-call-sites, VP token drift, unsatisfiable absolute-path contract, inverted is_relative() Windows semantics, CAP-032→CAP-002 mis-anchor, phantom signature `, ...`, dual-word-order ADR-version pins, bare §Decision 1 mis-anchor, residual line-pins — ALL closed ~24x; O-1 final line-pin swept v2.11; zero normative residue at convergence.
+
+**input_hash computed (D-684 process-gap CLOSED):** `de1abd6` — sha256-sorted-composite of S-18.14 spec sources: BC-1.13.001.md (b11ee62) + VP-073.md (7fb5c04) + VP-074.md (3348a61) + VP-075.md (ee82ea8) + ADR-024 (6989063). Computed via manual `sha256sum` + sorted + sha256sum pipeline; `bin/compute-input-hash` binary unavailable in current environment (POLICY 18 verification_steps exemption: document manual computation method). input_hash: field in S-18.14 frontmatter updated from placeholder `"[pending — no source files authored yet; story stub only]"` to `"de1abd6"`.
+
+**S-18.14 PROMOTED draft→ready (v2.12):** story frontmatter `status: draft`→`status: ready`; STORY-INDEX v4.60→v4.61 (row 673 `draft`→`ready`, annotation updated to v2.12 + input_hash de1abd6).
+
+**4-index:** BC-INDEX v3.39 / VP-INDEX v2.40 / STORY-INDEX v4.61 / ARCH-INDEX v2.72. BC/VP/ARCH UNCHANGED this burst.
+
+**S-7.02 cycle-closing checklist — process-gap follow-up tracking confirmed:**
+- (a) POLICY 19 dual-word-order version-pin lint [D-685/D-686]: OPEN in Drift Items (pre-existing; anchor E-18 F3)
+- (b) phantom-symbol/anchor-verification gate: OPEN — tracked under existing phantom-symbol process-gap entries + S-18.08 candidate scope; anchor E-18 F3
+- (c) input_hash-placeholder ready-gate lint [D-684]: OPEN in Drift Items (pre-existing; anchor E-18 F3)
+- (d) BC-INDEX section-header Version column: tracked under BC-INDEX consistency drift; anchor: next BC-INDEX spec-touch
+- (e) VP-073/074/075 harness stale paths: tracked as observation class; no blocking issue; anchor: S-18.14 TDD will exercise these VPs
+- (f) VP-073.md body drift: anchor: S-18.14 TDD — VP-073 body is authoritative at TDD time; if drift found, fix in scope per Canonical Principle Rule 4
+
+Files changed:
+- S-18.14 v2.11→v2.12: status draft→ready; input_hash de1abd6; last_amended updated; Changelog v2.12 row appended (state-manager)
+- STORY-INDEX v4.60→v4.61: S-18.14 row draft→ready; annotation v2.11→v2.12 + input_hash; version/timestamp/last_amended bumped (state-manager)
+- BC-INDEX (v3.39): UNCHANGED
+- VP-INDEX (v2.40): UNCHANGED
+- ARCH-INDEX (v2.72): UNCHANGED
+- STATE.md: D-689 row added; banner/Last Updated/Current Phase/4-index/Size Budget/Session Resume Checkpoint updated
+- INDEX.md: S-18.14 cascade convergence row added (Convergence Status section)
+
+NEXT: S-18.14 TDD delivery (stub→Red-Gate→impl→demo→PR; STOP-BEFORE-PR-MERGE D-665 holds). Autonomy STOP-BEFORE-PR-MERGE (D-665) holds.
+
+### Rationale
+
+STRICT 3-CLEAN convergence (passes 22/23/24 CLEAN) satisfies BC-5.39.001 per human-directed policy (asymptotic-accept DECLINED; full 3-CLEAN required). input_hash computed now that spec content is frozen and final. Promotion to ready unblocks TDD delivery dispatch.
+
+### Verification
+
+**input_hash computation (literal-shell stdout 2026-06-22):**
+```
+sha256sum \
+  .factory/specs/behavioral-contracts/ss-01/BC-1.13.001.md \
+  .factory/specs/verification-properties/VP-073.md \
+  .factory/specs/verification-properties/VP-074.md \
+  .factory/specs/verification-properties/VP-075.md \
+  .factory/specs/architecture/decisions/ADR-024-dispatcher-log-dir-resolution-and-plugin-root-fail-loud.md \
+  | awk '{print $1}' | sort | sha256sum | cut -c1-7
+
+de1abd6
+```
+
+**4-index KK-N gate (literal-shell stdout 2026-06-22):**
+```
+grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md
+version: "3.39"
+
+grep "^version:" .factory/specs/verification-properties/VP-INDEX.md
+version: "2.40"
+
+grep "^version:" .factory/stories/STORY-INDEX.md
+version: "4.61"
+
+grep "^version:" .factory/specs/architecture/ARCH-INDEX.md
+version: "2.72"
+```
+
+Zero FAIL. Parity PASS: BC-INDEX v3.39 / VP-INDEX v2.40 / STORY-INDEX v4.61 / ARCH-INDEX v2.72.
+
+### Parent-commit
+
+a79b27b2 (D-688 S-18.14 pass-21 FIX BURST exhaustive residue sweep factory-artifacts HEAD; single-commit per TD-VSDD-053)
+
+### NEXT
+
+S-18.14 TDD delivery: stub-architect → test-writer (Red Gate stubs) → implementer (TDD green) → LOCAL adversary 3-CLEAN (BC-5.39.001) → demo-recorder → PR (pr-manager 9-step) → STOP-BEFORE-PR-MERGE (D-665 human gate). Autonomy STOP-BEFORE-PR-MERGE (D-665) holds.
