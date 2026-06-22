@@ -2768,3 +2768,67 @@ d5fbdc65 (D-686 SHA-patch factory-artifacts HEAD; single-commit per TD-VSDD-053)
 ### NEXT
 
 S-18.14 adversary pass-19 (fresh-context; reads ONLY adv-s18.14-pass-18.md Part A; frozen package v1.12/v2.9; STRICT 3-CLEAN re-run; streak 0/3). After eventual 3-CLEAN convergence: compute input_hash + promote S-18.14 draft→ready → S-18.04a WASM TDD. Autonomy STOP-BEFORE-PR-MERGE (D-665) holds.
+
+## D-688 — S-18.14 pass-21 FIX BURST (exhaustive residue sweep) — 2026-06-22
+
+**Date:** 2026-06-22
+**Phase:** D-688-S18.14-pass-21-residue-sweep-2026-06-22
+**Made By:** state-manager (bookkeeping burst per orchestrator)
+
+### Decision
+
+S-18.14 pass-21 FIX BURST — closing pass-21 findings F-1 (MAJOR POLICY 4) + O-1 (POLICY 1) + confirming comprehensive 5-class residue sweep = ZERO normative residue.
+
+**F-1 (MAJOR POLICY 4 — STORY-INDEX anchor precision / adversary-subjectivity oscillation):** STORY-INDEX row 673 (S-18.14) contained the bare mis-anchor `ADR-024 §Decision 1` in its annotation cell. The correct normative reference is `ADR-024 §Decision 1 Addendum + §Decision 5` (the story traces to both the path-resolution addendum and the log_dir emission decision). Pass-19 flagged this as LOW (borderline anchor-hygiene observation); pass-21 escalated to MAJOR — a recognized adversary-subjectivity oscillation on borderline anchor-hygiene findings. The fix is clear regardless of severity classification: bare `§Decision 1` must become `§Decision 1 Addendum + §Decision 5` to precisely anchor both behavioral obligations. Sibling-check confirmed S-18.14 is the only story with this citation; no other story rows affected.
+
+**O-1 (POLICY 1 — Changelog row monotonic reorder):** In the S-18.14 story file, the Changelog entry for v2.6 was positioned between v2.7 and v2.8 rows (non-monotonic order from prior burst insertion). Repositioned between v2.5 and v2.7 to restore monotonic descending order. No content change — purely structural reorder for readability and POLICY 1 append-only-with-order compliance.
+
+**Comprehensive 5-class residue sweep (exhaustive; performed story-writer + story context):**
+- Class 1 (bare `ADR-024 §Decision 1` without Addendum in normative body): 0 hits in S-18.14 story, ADR-024, BC-1.13.001, ARCH-INDEX row after F-1 fix
+- Class 2 (volatile ADR-version pins, both word-orders: `ADR-NNN v[0-9]` / `v[0-9] Decision`): 0 normative hits (changelog/history rows excluded per POLICY 19)
+- Class 3 (phantom `, ...`-paramlist in normative body): 0 hits; sole occurrence `.with_field("log_dir", ...)` is method-call ellipsis, explicitly excluded
+- Class 4 (phantom `toml_path` binding in normative body): 0 hits (corrected by D-687/D-684)
+- Class 5 (CAP anchor): CAP-002 confirmed in STORY-INDEX row, no CAP-032 in normative story body
+
+All 5 classes: ZERO normative residue confirmed.
+
+Files changed:
+- S-18.14 v2.9→v2.10: F-1 STORY-INDEX row annotation ADR-cite corrected; O-1 Changelog v2.6 row repositioned monotonic; 5-class sweep results documented in last_amended (story-writer)
+- STORY-INDEX v4.58→v4.59: S-18.14 row 673 annotation — `ADR-024 §Decision 1` → `ADR-024 §Decision 1 Addendum + §Decision 5`; S-18.14 v2.9→v2.10; version/last_amended bumped (story-writer)
+- BC-1.13.001 (v1.12): UNCHANGED this burst
+- ADR-024 (v1.10): UNCHANGED this burst
+- ARCH-INDEX (v2.72): UNCHANGED this burst
+- BC-INDEX (v3.39): UNCHANGED this burst
+
+4-index: BC-INDEX v3.39 / VP-INDEX v2.40 / STORY-INDEX v4.59 / ARCH-INDEX v2.72. STRICT 3-CLEAN per human (Level-3 reaffirmed 3×); 21 passes / 9 fix bursts; pass-22 fresh-context NEXT from zero-known-residue state. S-18.14 REMAINS draft; develop_head UNCHANGED 1e81f2c8. Parent-commit: 4d24257e (D-687 factory-artifacts HEAD). Autonomy STOP-BEFORE-PR-MERGE (D-665) holds.
+
+### Rationale
+
+Pass-21 adversary found a MAJOR POLICY 4 finding — adversary-subjectivity oscillation class (pass-19 classified LOW, pass-21 MAJOR on the same bare §Decision anchor). The fix is unambiguously correct regardless of severity: `ADR-024 §Decision 1 Addendum + §Decision 5` is the accurate dual-decision anchor for S-18.14's two behavioral obligations (resolver WASM path resolution + log_dir emission). The comprehensive 5-class sweep was dispatched to eliminate any residual that might generate further oscillation findings. Zero residue confirmed across all 5 classes. The exhaustive sweep, combined with zero-normative-residue status, positions pass-22 as the cleanest possible fresh-context start.
+
+### Verification
+
+4-index KK-N gate (literal-shell stdout captured 2026-06-22):
+```
+grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md
+version: "3.39"
+
+grep "^version:" .factory/specs/verification-properties/VP-INDEX.md
+version: "2.40"
+
+grep "^version:" .factory/stories/STORY-INDEX.md
+version: "4.59"
+
+grep "^version:" .factory/specs/architecture/ARCH-INDEX.md
+version: "2.72"
+```
+
+Zero FAIL. Parity PASS: BC-INDEX v3.39 / VP-INDEX v2.40 / STORY-INDEX v4.59 / ARCH-INDEX v2.72.
+
+### Parent-commit
+
+4d24257e (D-687 S-18.14 pass-18 FIX BURST factory-artifacts HEAD; single-commit per TD-VSDD-053)
+
+### NEXT
+
+S-18.14 adversary pass-22 (fresh-context; reads ONLY adv-s18.14-pass-21.md Part A; frozen package v1.12/v2.10; STRICT 3-CLEAN re-run; streak 0/3; zero-known-residue state). After eventual 3-CLEAN convergence: compute input_hash + promote S-18.14 draft→ready → S-18.04a WASM TDD. Autonomy STOP-BEFORE-PR-MERGE (D-665) holds.
