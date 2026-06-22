@@ -2,12 +2,12 @@
 document_type: architecture-decision-record
 level: L3
 adr_id: ADR-024
-version: "1.3"
+version: "1.4"
 status: accepted
 producer: architect
 timestamp: 2026-06-09T00:00:00Z
 amended: 2026-06-22T00:00:00Z
-amendment_reason: "S-18.14 spec-evolution (D-676): add §Decision 1 subsection 'Resolver WASM plugin path resolution' — contracts that relative `plugin` paths in resolvers-registry.toml MUST be resolved against the TOML file's parent directory (CLAUDE_PLUGIN_ROOT), NOT process CWD; apply to all call sites of `load_registry` and `get_or_compile` in `resolver_loader`; cite behavioral anchors (function names, not line numbers per TD-VSDD-091); note operator-cache release dependency; add §Decision 5 resolver `log_dir` observability: `dispatcher.started` payload MUST include `log_dir` field populated from `InternalLog::log_dir()`. v1.3 supersedes v1.2 on resolver path resolution (previously unspecified gap). [Prior: v1.2 2026-06-10 Pass-2 adversary review amendments: (C2-CRIT-2/C2-HIGH-1) amend Decision 3 dedup hash input from '256-byte JSON repr' to 'bounded raw Value::as_str() at 4096-byte char-safe ceiling'; (C2-CRIT-1/C2-HIGH-2) amend Decision 4 guard from substring predicate to lexical path-normalization predicate with explicit allow/block matrix; (process-gap) add Process note recording spec-drift routing obligation.]"
+amendment_reason: "v1.4 (S-18.14 pass-1 adversary fix burst): (F-1 MAJOR POLICY 5) §Decision 5 §Purity Boundary corrected — phantom `InternalLog::write_started` method reference replaced with correct anchors: emission is `InternalEvent::now(DISPATCHER_STARTED)` builder chain emitted via `internal_log.write(...)` in `main.rs`; const name `DISPATCHER_STARTED` defined in `internal_log.rs`; no method named `write_started` exists in the dispatcher source. (F-5 ADVISORY POLICY 6) SS-04 subsystem-set advisory RESOLVED NO: ADR-024 subsystem set remains SS-01/SS-03/SS-07 — production fix scope is dispatcher core (SS-01), event emission (SS-03), and hook bash layer (SS-07); SS-04 (Plugin Ecosystem) appears in story/VP scope as the integration test vehicle (WASM test harness), not as a production component modified by this ADR; rationale inline in §Decision 5 SS-04 note. [Prior: v1.3 2026-06-22 S-18.14 spec-evolution (D-676): Decision 1 Addendum — resolver WASM plugin path resolution; Decision 5 — dispatcher.started log_dir observability. v1.2 2026-06-10: (C2-CRIT-2/C2-HIGH-1) Decision 3 dedup hash input tightened; (C2-CRIT-1/C2-HIGH-2) Decision 4 guard corrected; process-gap note added. v1.1 2026-06-09: pass-1 adversary amendments (level-count prose, Level E, LOW-1 control flow). v1.0 2026-06-09 initial acceptance.]"
 title: "ADR-024: Dispatcher log-dir worktree-aware resolution, CLAUDE_PLUGIN_ROOT fail-loud contract, resolver WASM plugin path resolution, internal-error dedup, and destructive-guard shadow exception"
 traces_to: .factory/specs/architecture/ARCH-INDEX.md
 anchors:
@@ -256,9 +256,25 @@ exists, the only change is wiring it into the started payload.
 
 **Purity boundary:**
 
-`dispatcher.started` is emitted once per dispatcher invocation in `InternalLog::write_started`.
-Wiring `log_dir()` into that call is an effectful-shell operation (reads from the already-
-resolved `PathBuf` stored on `InternalLog`). No new filesystem I/O is required.
+`dispatcher.started` is emitted once per dispatcher invocation via the
+`InternalEvent::now(DISPATCHER_STARTED)` builder chain, emitted via
+`internal_log.write(...)` in `main.rs`. (`DISPATCHER_STARTED` is the
+`"dispatcher.started"` string constant defined in `internal_log.rs`. No method named
+`write_started` exists in the dispatcher source — TD-VSDD-091 requires function-name
+anchors, not phantom method references.) Wiring `log_dir()` into that call is an
+effectful-shell operation (reads from the already-resolved `PathBuf` stored on
+`InternalLog`). No new filesystem I/O is required.
+
+**SS-04 subsystem scope note (F-5 advisory resolution):**
+
+This ADR's subsystem set is SS-01 (dispatcher core), SS-03 (event emission), and SS-07
+(hook bash layer). SS-04 (Plugin Ecosystem) is NOT added. The S-18.14 story and
+VP-073/074/075 include SS-04 because the integration test vehicle for this story is a
+WASM hook plugin — that test vehicle lives in the plugin ecosystem (SS-04). However,
+the production change governed by this ADR touches only `main.rs`, `internal_log.rs`,
+`resolver_loader.rs`, and `destructive-command-guard.sh` — all SS-01/SS-03/SS-07
+production components. The ADR documents architectural decisions for the production
+components; the test-vehicle scope is owned by the story and VPs, not the ADR.
 
 **Test obligation:**
 
@@ -731,3 +747,4 @@ verification mechanism.
 | 1.1 | 2026-06-09 | architect | Pass-1 adversary review amendments: (M-1) corrected level-count prose from "five-level" to "seven-level" throughout; (L-2) added Level E (cwd child `.factory` directory check) between old Level D and old Level E (git), renumbered old E→F and old F→G, eliminates git subprocess for dominant repo-root invocation pattern; (LOW-1) added explicit control-flow intent for `CLAUDE_PLUGIN_ROOT`-absent: degraded-continue (Tier 1, empty plugin set, exit 0) with Tier 1 check occurring BEFORE `resolve_registry_path()` call, making the two tiers mutually exclusive. |
 | 1.2 | 2026-06-09 | architect | Pass-2 adversary review amendments: (C2-CRIT-2/C2-HIGH-1) Decision 3 hash input changed from "first 256 bytes of message_json_value" (JSON repr, fixed byte slice) to "bounded_prefix(Value::as_str(), N=4096)" (raw string value, char-boundary-safe, 4096-byte ceiling) — simultaneously fixes char-boundary panic, JSON-quote false-collision, and unbounded hashing cost; accepted residual tradeoff: messages differing only after byte 4096 dedup to same hash (pathological, accepted); (C2-CRIT-1/C2-HIGH-2) Decision 4 guard predicate replaced: v1.1 substring predicate removed and replaced with lexical path-normalization predicate — tokenize targets, normalize `.`/`..` components, allow only when ALL `.factory`-bearing tokens normalize to strictly inside `.factory/.factory/`, conservative `..`-adjacent reject rule added; full allow/block matrix added; "structurally impossible" security-analysis claim retracted; nested-shadow over-block and traversal under-protect both fixed; (process-gap) Process note added recording spec-drift routing obligation; (C2-HIGH-3) Decision 4 testing obligation note added for `main.rs` doc-comment seven-level assertion; (C2-MED-1/MED-2) Decision 3 testing obligation note added for `internal_log.rs` dedup test doc-block regrounding. |
 | 1.3 | 2026-06-22 | architect | S-18.14 spec-evolution (D-676): (1) Decision 1 Addendum — Resolver WASM plugin path resolution: relative `plugin` paths in `resolvers-registry.toml` MUST resolve against `toml_path.parent()` (= `CLAUDE_PLUGIN_ROOT`) NOT process CWD; applies to `load_registry` and all `get_or_compile` call sites in `resolver_loader`; root cause of 8,560 `resolver.load_error` / 0 successful loads since rc.21; unit test obligation specified (distinguish TOML-parent-relative vs CWD-relative); release dependency documented; (2) Decision 5 — `log_dir` observability: `dispatcher.started` event payload MUST include `log_dir` field from `InternalLog::log_dir()`; no new computation required; test obligation added; (3) `resolver_loader.rs` added to Files to change table; ADR-018 and S-18.14 added to anchors. |
+| 1.4 | 2026-06-22 | architect | S-18.14 pass-1 adversary fix burst: (F-1 MAJOR POLICY 5) §Decision 5 §Purity Boundary corrected — phantom `InternalLog::write_started` method reference removed and replaced with correct source anchors: `DISPATCHER_STARTED` const (defined in `internal_log.rs`) emitted via `InternalEvent::now(DISPATCHER_STARTED)` builder chain called via `internal_log.write(...)` in `main.rs`; no method named `write_started` exists — verified by `grep write_started crates/factory-dispatcher/src` → zero matches; TD-VSDD-091-compliant behavioral anchors used throughout. (F-5 ADVISORY POLICY 6) SS-04 subsystem-set advisory RESOLVED NO: ADR-024 subsystem set retained as SS-01/SS-03/SS-07; SS-04 scope belongs to story/VP test-vehicle (integration test WASM harness), not to the production components governed by this ADR; SS-04 rationale note added to §Decision 5. |

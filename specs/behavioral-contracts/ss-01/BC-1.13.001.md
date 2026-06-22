@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.3"
+version: "1.4"
 status: draft
 producer: product-owner
 timestamp: 2026-05-07T00:00:00Z
@@ -20,6 +20,7 @@ lifecycle_status: active
 introduced: v1.0-feature-engine-discipline-pass-1
 modified:
   - "2026-06-22 (v1.3) — S-18.14 spec-evolution (D-676 / ADR-024 v1.3): INV-8 (resolver WASM path resolution base must be TOML parent dir); PC-9 (successful load when artifacts present at TOML-parent-relative path); PC-10 (log_dir field in dispatcher.started payload — placed here because no dedicated dispatcher.started payload BC exists; ADR-024 Decision 5); EC-010 (relative WASM path exists at PLUGIN_ROOT but not CWD → must load successfully). ADR Reference updated to cite ADR-024 v1.3. Changelog and Architecture Anchors extended."
+  - "2026-06-22 (v1.4) — S-18.14 fix-burst adversary pass-1: F-1 phantom-symbol fix (Architecture Anchors §PC-10 change site: replaced non-existent `InternalLog::write_started` with correct anchor — `InternalEvent::now(DISPATCHER_STARTED)` builder chain emitted via `internal_log.write(...)` in `main.rs`; `InternalLog::log_dir()` accessor in `internal_log.rs` §324); F-2 S-18.14 story anchor added to §Traceability Stories, §Story Anchor, and BC-INDEX; F-3 ADR version tokens dropped from §Traceability ADR Reference (POLICY 19); F-6 VP-074 proof-method token aligned to `kani-proof` (POLICY 9)."
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -28,7 +29,7 @@ removed: null
 removal_reason: null
 bc_id: BC-1.13.001
 section: "1.13"
-last_amended: "2026-06-22"
+last_amended: "2026-06-22 (v1.4) — S-18.14 fix-burst adversary pass-1: F-1 phantom-symbol in Architecture Anchors §PC-10 change site; F-2 S-18.14 story anchor (Traceability + Story Anchor + BC-INDEX); F-3 ADR version tokens dropped (POLICY 19); F-6 VP-074 kani-proof token (POLICY 9)"
 ---
 
 # BC-1.13.001: Dispatcher MUST load `resolvers-registry.toml` at startup and inject resolver context into `plugin_config` before each hook dispatch
@@ -204,7 +205,7 @@ be unaffected.
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
 | VP-073 | Resolver-load purity — loading a `.wasm` resolver artifact is deterministic and has no observable side effects at load time | unit-test (integration test of resolver module compilation) |
-| VP-074 | Resolver-error isolation — a resolver crash or trap does not propagate to the dispatcher process | kani (pure error-classification logic) + integration test (trap injection) |
+| VP-074 | Resolver-error isolation — a resolver crash or trap does not propagate to the dispatcher process | kani-proof (pure error-classification logic); + integration test (trap injection) [non-authoritative annotation] |
 | VP-075 | Context-injection determinism — identical `ResolverInput` yields identical `ResolverOutput` | proptest (200 trials, 5s timeout) |
 | (unit-test) | Absent `resolvers-registry.toml` yields zero resolvers and no startup error | Rust unit test |
 | (unit-test) | `needs_context = []` skips resolver invocation (zero overhead path) | Rust unit test (assert resolver mock not called) |
@@ -221,9 +222,9 @@ be unaffected.
 | Secondary Capability Reference | CAP-009 ("Author and publish WASM hook plugins using the Rust SDK") per capabilities.md §CAP-009 — resolver plugins are authored using the SDK's `resolver-authoring` feature flag (BC-4.12.002); CAP-009 governs the SDK surface used by resolver authors. |
 | L2 Domain Invariants | none |
 | Architecture Module | `crates/factory-dispatcher/src/resolver.rs` (ContextResolver trait, ResolverRegistry); `crates/factory-dispatcher/src/resolver_loader.rs` (WASM module loading + mtime-cache); `crates/factory-dispatcher/src/executor.rs` (pre-dispatch resolver invocation); `crates/factory-dispatcher/src/main.rs` (resolvers-registry.toml load at startup); `crates/factory-dispatcher/src/registry.rs` (RegistryEntry.needs_context field) |
-| Stories | S-12.03, S-12.04, S-12.06, S-12.08 |
+| Stories | S-12.03, S-12.04, S-12.06, S-12.08, S-18.14 |
 | FR | FR-RESOLVER-001 (factory-agnostic runtime context injection for hooks via sandboxed WASM-plugin resolvers) |
-| ADR Reference | ADR-018 (WASM-plugin Context Resolvers — Design and Layering) — codifies the separate registry, factory-agnostic dispatcher, and explicit-registration decisions (OD-1 through OD-6) that this BC encodes as behavioral contracts. ADR-024 v1.3 §Decision 1 Addendum (Resolver WASM plugin path resolution) — establishes that relative `plugin` paths MUST resolve against `toml_path.parent()`, not CWD; functional anchor is `resolver_loader::load_registry` (TD-VSDD-091). ADR-024 v1.3 §Decision 5 (`log_dir` observability) — contracts that `dispatcher.started` payload MUST include `log_dir` from `InternalLog::log_dir()`; see PC-10. |
+| ADR Reference | ADR-018 (WASM-plugin Context Resolvers — Design and Layering) — codifies the separate registry, factory-agnostic dispatcher, and explicit-registration decisions (OD-1 through OD-6) that this BC encodes as behavioral contracts. ADR-024 §Decision 1 Addendum (Resolver WASM plugin path resolution) — establishes that relative `plugin` paths MUST resolve against `toml_path.parent()`, not CWD; functional anchor is `resolver_loader::load_registry` (TD-VSDD-091). ADR-024 §Decision 5 (`log_dir` observability) — contracts that `dispatcher.started` payload MUST include `log_dir` from `InternalLog::log_dir()`; see PC-10. |
 
 ## Related BCs
 
@@ -240,14 +241,14 @@ be unaffected.
 - `crates/factory-dispatcher/src/resolver_loader.rs` — WASM module compilation + mtime-cache; **INV-8 change site**: `load_registry` MUST join `toml_path.parent()` with `entry.plugin` for relative paths before passing to `get_or_compile` and `path.canonicalize()`; applies to ALL `get_or_compile` call sites in this file (both `fail_closed: true` and `fail_closed: false` paths)
 - `crates/factory-dispatcher/src/executor.rs` — pre-dispatch resolver invocation step (between registry lookup and invoke_plugin)
 - `crates/factory-dispatcher/src/registry.rs` — RegistryEntry.needs_context field (`#[serde(default)]`)
-- `crates/factory-dispatcher/src/main.rs` — **PC-10 change site**: `InternalLog::write_started` call MUST include `log_dir` field from `InternalLog::log_dir()` in the `dispatcher.started` payload (ADR-024 Decision 5); also the startup entry point that calls `load_registry` where INV-8 path resolution begins
+- `crates/factory-dispatcher/src/main.rs` — **PC-10 change site**: the `InternalEvent::now(DISPATCHER_STARTED)` builder chain emitted via `internal_log.write(...)` MUST include a `.with_field("log_dir", ...)` call populated from `InternalLog::log_dir()` (the accessor at `internal_log.rs` `pub fn log_dir(&self) -> &Path`) per ADR-024 §Decision 5; `InternalLog::write_started` does NOT exist — the correct write path is `internal_log.write(&InternalEvent::now(DISPATCHER_STARTED). ...)`; also the startup entry point that calls `load_registry` where INV-8 path resolution begins
 - `plugins/vsdd-factory/resolvers-registry.toml` — resolver registration file (distinct from hooks-registry.toml)
 - `.factory/specs/architecture/decisions/ADR-018-wasm-plugin-context-resolvers.md` — design decision (OD-1 through OD-6)
 - `.factory/specs/architecture/decisions/ADR-024-dispatcher-log-dir-resolution-and-plugin-root-fail-loud.md` — v1.3 Decision 1 Addendum (TOML-parent-relative path resolution) and Decision 5 (`log_dir` in `dispatcher.started`)
 
 ## Story Anchor
 
-S-12.03 (ContextResolver trait + ResolverRegistry in-memory) and S-12.04 (WASM resolver loading + lifecycle) — v1.0-feature-engine-discipline-pass-1 F3-amendment decomposition.
+S-12.03 (ContextResolver trait + ResolverRegistry in-memory) and S-12.04 (WASM resolver loading + lifecycle) — v1.0-feature-engine-discipline-pass-1 F3-amendment decomposition. S-18.14 (resolver WASM path-resolution fix + log_dir observability) — S-18 engine-discipline wave.
 
 ## VP Anchors
 
@@ -259,6 +260,7 @@ S-12.03 (ContextResolver trait + ResolverRegistry in-memory) and S-12.04 (WASM r
 
 | Version | Date | Description |
 |---------|------|-------------|
+| 1.4 | 2026-06-22 | S-18.14 fix-burst adversary pass-1 (F-1/F-2/F-3/F-6): (F-1) Architecture Anchors §PC-10 change site: replaced phantom symbol `InternalLog::write_started` (non-existent) with correct anchor — `InternalEvent::now(DISPATCHER_STARTED)` builder chain emitted via `internal_log.write(...)` in `main.rs`; `InternalLog::log_dir()` accessor confirmed at `internal_log.rs` `pub fn log_dir(&self) -> &Path` (line 324). (F-2) S-18.14 added to all three story-anchor sites: §Traceability Stories row, §Story Anchor, and BC-INDEX body cell. (F-3) ADR version tokens `v1.3` dropped from §Traceability ADR Reference cites — `ADR-024 §Decision 1 Addendum (Resolver WASM plugin path resolution)` and `ADR-024 §Decision 5` (POLICY 19). (F-6) VP-074 proof-method token aligned from bare `kani` to `kani-proof` per VP-INDEX authoritative token; non-authoritative `+ integration test (trap injection)` annotation retained explicitly labeled. |
 | 1.3 | 2026-06-22 | S-18.14 spec-evolution (D-676 / ADR-024 v1.3): (1) INV-8 — Resolver WASM path resolution base MUST be TOML file's parent directory (`CLAUDE_PLUGIN_ROOT` at runtime), NOT process CWD; absolute paths pass through unchanged; applies to ALL `get_or_compile` call sites in `resolver_loader`; root cause of 8,560 `resolver.load_error` / 0 successful loads since rc.21. (2) PC-9 — Successful load when artifacts present at TOML-parent-relative paths; zero `resolver.load_error` for any declared resolver is the spec. (3) PC-10 — `dispatcher.started` event payload MUST include `log_dir` string field from `InternalLog::log_dir()`; unconditional; non-empty; absolute path (ADR-024 Decision 5). Placed here because no dedicated `dispatcher.started`-payload BC exists in the SS-01 catalog; see PC-10 placement note for migration guidance. (4) EC-010 — Relative WASM exists at PLUGIN_ROOT but not CWD → must load successfully. (5) Architecture Anchors updated: path-anchors migrated from absolute user-local paths to repo-relative paths (TD-VSDD-091); `resolver_loader.rs` INV-8 change site and `main.rs` PC-10 change site documented. (6) ADR Reference extended with ADR-024 v1.3 §Decision 1 Addendum and §Decision 5 cites. |
 | 1.2 | 2026-05-10 | Pass-4 fix-burst: canonical key wave-context → wave_context per BC-4.12.005 PC7 / S-12.07 v1.2 / ADR-018. EC-004 and Canonical Test Vectors truth table (rows 150-154) updated to use underscore form throughout. Added missing `extracted_from: null` frontmatter field (greenfield artifact). |
 | 1.1 | 2026-05-09 | F-P45-001 — Traceability Stories row propagated from BC-INDEX v1.57: S-12.03, S-12.04 → S-12.03, S-12.04, S-12.06, S-12.08. BC-INDEX was updated in fix-burst-39 (v1.55) to add S-12.06 + S-12.08; body was not updated in that burst. Refs: F-P45-001, fix-burst-42. |
