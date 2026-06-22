@@ -2,12 +2,12 @@
 document_type: architecture-decision-record
 level: L3
 adr_id: ADR-024
-version: "1.6"
+version: "1.7"
 status: accepted
 producer: architect
 timestamp: 2026-06-09T00:00:00Z
 amended: 2026-06-22T00:00:00Z
-amendment_reason: "v1.6 (S-18.14 pass-4 adversary fix burst): (F-2 ADVISORY POLICY 5) §Consequences §Files-to-change table resolver_loader.rs row corrected — stale plural 'at all `get_or_compile` call sites' language swept for consistency with v1.5 single-call-site correction; reworded to 'In `load_registry`: resolve relative `entry.plugin` paths against `toml_path.parent()` before the single production `get_or_compile` call so the resolved absolute path feeds both `fail_closed` arms identically (Decision 1 Addendum)'; sibling-sweep grep confirmed no other residual plural call-site framings in normative body text. [Prior: v1.5 2026-06-22 S-18.14 pass-2 adversary fix burst: (F-1 MAJOR POLICY 5) §Decision 1 Addendum step 5 corrected — false 'two call sites' claim removed; ground truth: exactly ONE production `get_or_compile` call site exists in `load_registry` (TD-VSDD-060 sibling-sweep confirmed); the `fail_closed: true`/`fail_closed: false` divergence is in the post-call error `match`, not at separate call sites; step 5 rewritten to state single-call-site fact and mirror the `registry.rs::resolve_plugin_paths` / BC-1.01.004 precedent; cross-reference to that proven pattern added in Why-CWD-relative-was-wrong rationale. v1.4 2026-06-22 S-18.14 pass-1 adversary fix burst: §Decision 5 §Purity Boundary phantom `InternalLog::write_started` corrected; SS-04 advisory resolved NO. v1.3 2026-06-22 S-18.14 spec-evolution (D-676): Decision 1 Addendum — resolver WASM plugin path resolution; Decision 5 — dispatcher.started log_dir observability. v1.2 2026-06-10: (C2-CRIT-2/C2-HIGH-1) Decision 3 dedup hash input tightened; (C2-CRIT-1/C2-HIGH-2) Decision 4 guard corrected; process-gap note added. v1.1 2026-06-09: pass-1 adversary amendments (level-count prose, Level E, LOW-1 control flow). v1.0 2026-06-09 initial acceptance.]"
+amendment_reason: "v1.7 (S-18.14 pass-7 adversary fix burst): (F-1 MAJOR POLICY 5) §Decision 5 Behavioral Contract — 'absolute path' guarantee was unsatisfiable: Decision 5 previously stated log_dir 'is the resolved absolute path' but InternalLog::log_dir() is a verbatim accessor returning the stored PathBuf (no absoluteness normalization); multiple resolution branches in resolve_log_dir_from_params can return relative paths (Level A with relative VSDD_LOG_DIR, Level B with relative FACTORY_ROOT, Level C/D with relative project_dir, Level G cwd fallback via unwrap_or_else(|_| PathBuf::from('.'))); to make-it-true (option a, production-grade default) §Decision 5 now mandates absolutization at the emission site in main.rs where the DISPATCHER_STARTED builder chain is assembled — caller absolutizes via std::path::absolute(internal_log.log_dir()) (stable Rust 1.79, toolchain 1.95.0) or portable fallback if absolute() returns Err; InternalLog::log_dir() remains a verbatim accessor unchanged; Decision 1 Addendum — explicit is_relative() guard requirement made normative in step 2 to mirror registry.rs::resolve_plugin_paths precedent on Windows cross-platform correctness (PathBuf::join absolute-replacement semantics differ on Windows; explicit is_relative() guard is required, not reliance on join semantics alone). [Prior: v1.6 2026-06-22 S-18.14 pass-4 adversary fix burst: (F-2 ADVISORY POLICY 5) §Consequences §Files-to-change table resolver_loader.rs row corrected — stale plural 'at all `get_or_compile` call sites' language swept for consistency with v1.5 single-call-site correction; reworded to 'In `load_registry`: resolve relative `entry.plugin` paths against `toml_path.parent()` before the single production `get_or_compile` call so the resolved absolute path feeds both `fail_closed` arms identically (Decision 1 Addendum)'; sibling-sweep grep confirmed no other residual plural call-site framings in normative body text. v1.5 2026-06-22 S-18.14 pass-2 adversary fix burst: (F-1 MAJOR POLICY 5) §Decision 1 Addendum step 5 corrected — false 'two call sites' claim removed; ground truth: exactly ONE production `get_or_compile` call site exists in `load_registry` (TD-VSDD-060 sibling-sweep confirmed); the `fail_closed: true`/`fail_closed: false` divergence is in the post-call error `match`, not at separate call sites; step 5 rewritten to state single-call-site fact and mirror the `registry.rs::resolve_plugin_paths` / BC-1.01.004 precedent; cross-reference to that proven pattern added in Why-CWD-relative-was-wrong rationale. v1.4 2026-06-22 S-18.14 pass-1 adversary fix burst: §Decision 5 §Purity Boundary phantom `InternalLog::write_started` corrected; SS-04 advisory resolved NO. v1.3 2026-06-22 S-18.14 spec-evolution (D-676): Decision 1 Addendum — resolver WASM plugin path resolution; Decision 5 — dispatcher.started log_dir observability. v1.2 2026-06-10: (C2-CRIT-2/C2-HIGH-1) Decision 3 dedup hash input tightened; (C2-CRIT-1/C2-HIGH-2) Decision 4 guard corrected; process-gap note added. v1.1 2026-06-09: pass-1 adversary amendments (level-count prose, Level E, LOW-1 control flow). v1.0 2026-06-09 initial acceptance.]"
 title: "ADR-024: Dispatcher log-dir worktree-aware resolution, CLAUDE_PLUGIN_ROOT fail-loud contract, resolver WASM plugin path resolution, internal-error dedup, and destructive-guard shadow exception"
 traces_to: .factory/specs/architecture/ARCH-INDEX.md
 anchors:
@@ -171,13 +171,18 @@ In `resolver_loader::load_registry`:
 
 1. After parsing `resolvers-registry.toml`, the function obtains `toml_path.parent()` —
    the directory containing the TOML file.
-2. For each resolver entry, if `entry.plugin` is a relative path (i.e.,
-   `Path::new(&entry.plugin).is_absolute()` is `false`), the absolute path MUST be
-   constructed as `toml_parent.join(&entry.plugin)`.
+2. For each resolver entry, the implementer MUST check `entry.plugin.is_relative()`
+   explicitly (do NOT rely solely on `PathBuf::join` absolute-replacement semantics).
+   On Windows, a rooted-but-not-absolute path (e.g. `\foo\bar`) causes `join` to
+   replace the base, but `Path::is_absolute()` returns `false` for it — making the
+   `is_relative()` guard the only portable discriminant. The proven precedent
+   `registry.rs::resolve_plugin_paths` already applies this guard: `if entry.plugin.is_relative()`.
+   Implementers MUST mirror that pattern exactly. If `entry.plugin.is_relative()` is
+   `true`, the absolute path MUST be constructed as `toml_parent.join(&entry.plugin)`.
 3. The joined absolute path — NOT the bare relative string — is what is passed to
    `get_or_compile` for WASM compilation and to `path.canonicalize()` for filesystem
    existence validation.
-4. If `entry.plugin` is already absolute, pass it through unchanged.
+4. If `entry.plugin.is_relative()` is `false` (already absolute), pass it through unchanged.
 5. There is a SINGLE `get_or_compile` call site in `load_registry`. The path-join
    (`toml_path.parent().join(&entry.plugin)`) MUST precede that single call so the
    resolved absolute path feeds both the `fail_closed: true` and `fail_closed: false`
@@ -242,22 +247,60 @@ Unit test in `crates/factory-dispatcher/` (or `crates/context-resolvers/`):
 
 ---
 
-## Decision 5 — `log_dir` field in `dispatcher.started` event (v1.3)
+## Decision 5 — `log_dir` field in `dispatcher.started` event (v1.3, amended v1.7)
 
 ### Decision
 
 The `dispatcher.started` event payload MUST include a `log_dir` field whose value is the
-absolute path to the directory where the dispatcher writes its internal log for this
-invocation.
+**absolutized** path to the directory where the dispatcher writes its internal log for
+this invocation.
 
 **Behavioral contract:**
 
-- The `log_dir` value is populated from `InternalLog::log_dir()` — the accessor that
-  already exists on the `InternalLog` struct (no new computation required).
+- The `log_dir` value is derived from `InternalLog::log_dir()` — the verbatim accessor
+  that returns `&self.log_dir` (a `&Path` reference to the stored `PathBuf`).
+  `InternalLog::log_dir()` is NOT modified; it remains a verbatim accessor with no
+  absoluteness normalization.
+- Before setting the `log_dir` field in the `DISPATCHER_STARTED` builder chain in
+  `main.rs`, the caller MUST absolutize the path. The absolutization site is the
+  `main.rs` emission site — NOT inside `InternalLog::log_dir()`.
+- **Absolutization mechanism** (MSRV 1.95.0; `std::path::absolute()` stable since 1.79):
+
+  ```rust
+  // Preferred — idiomatic Rust 1.79+ API:
+  let log_dir_abs = std::path::absolute(internal_log.log_dir())
+      .unwrap_or_else(|_| internal_log.log_dir().to_path_buf());
+
+  // Portable fallback (equivalent behavior, explicit guard):
+  // let p = internal_log.log_dir();
+  // let log_dir_abs = if p.is_relative() {
+  //     std::env::current_dir()
+  //         .map(|cwd| cwd.join(p))
+  //         .unwrap_or_else(|_| p.to_path_buf())
+  // } else {
+  //     p.to_path_buf()
+  // };
+  ```
+
+  Either form is acceptable. The implementer MUST choose one and use it consistently.
+  `std::path::absolute()` is preferred as it is the idiomatic stable API. The
+  `unwrap_or_else` fallback emits the verbatim (possibly relative) path rather than
+  panicking if CWD is inaccessible — preserving the dispatcher's non-panicking contract.
 - The field is emitted unconditionally on every `dispatcher.started` event. It is NOT
   optional, NOT behind a feature flag.
-- The value is the resolved absolute path (the same path produced by Decision 1's
-  seven-level precedence order after it has resolved to its final value).
+- The value MUST be an absolute path. The whole observability purpose of this field
+  (PC-10: allow operators to locate the internal log without tracing through the
+  seven-level resolution algorithm) is defeated if the emitted path is relative.
+
+**Why absolutization at the emission site, not inside `InternalLog::log_dir()`:**
+
+`InternalLog::log_dir()` is a simple verbatim accessor used by integration tests and
+by `write_inner` (which calls `fs::create_dir_all(&self.log_dir)` — the OS resolves
+relative paths correctly at I/O time). Adding absolutization inside the accessor would
+change the return type contract (introducing a `Result<PathBuf, io::Error>`) or add
+a hidden CWD dependency to what is currently a pure getter. Keeping the accessor verbatim
+and absolutizing at the single emission site is the correct purity boundary: the
+observability emission is the effectful-shell callsite that legitimately reads CWD.
 
 **Rationale:**
 
@@ -762,3 +805,4 @@ verification mechanism.
 | 1.4 | 2026-06-22 | architect | S-18.14 pass-1 adversary fix burst: (F-1 MAJOR POLICY 5) §Decision 5 §Purity Boundary corrected — phantom `InternalLog::write_started` method reference removed and replaced with correct source anchors: `DISPATCHER_STARTED` const (defined in `internal_log.rs`) emitted via `InternalEvent::now(DISPATCHER_STARTED)` builder chain called via `internal_log.write(...)` in `main.rs`; no method named `write_started` exists — verified by `grep write_started crates/factory-dispatcher/src` → zero matches; TD-VSDD-091-compliant behavioral anchors used throughout. (F-5 ADVISORY POLICY 6) SS-04 subsystem-set advisory RESOLVED NO: ADR-024 subsystem set retained as SS-01/SS-03/SS-07; SS-04 scope belongs to story/VP test-vehicle (integration test WASM harness), not to the production components governed by this ADR; SS-04 rationale note added to §Decision 5. |
 | 1.5 | 2026-06-22 | architect | S-18.14 pass-2 adversary fix burst: (F-1 MAJOR POLICY 5) §Decision 1 Addendum step 5 corrected — removed false "two call sites" claim; ground truth verified by `grep -n get_or_compile crates/factory-dispatcher/src/resolver_loader.rs` → exactly ONE production call site in `load_registry` (~line 361); the second occurrence (~line 1057) is inside `#[cfg(test)]`; the `fail_closed: true`/`fail_closed: false` divergence is in the post-call error `match`, not at separate call sites; step 5 rewritten to state single-call-site fact; proven precedent cross-reference added — `registry.rs::resolve_plugin_paths` (BC-1.01.004) already applies `base = path.parent()` + `base.join(&entry.plugin)` for hooks-registry.toml; BC-1.01.004 precedent cross-reference added to Why-CWD-relative-was-wrong rationale; TD-VSDD-060 sibling-sweep attestation embedded. |
 | 1.6 | 2026-06-22 | architect | S-18.14 pass-4 adversary fix burst: (F-2 ADVISORY POLICY 5) §Consequences §Files-to-change table `resolver_loader.rs` row corrected — stale plural "at all `get_or_compile` call sites" language not swept by v1.5; reworded to: "In `load_registry`: resolve relative `entry.plugin` paths against `toml_path.parent()` before the single production `get_or_compile` call so the resolved absolute path feeds both `fail_closed` arms identically (Decision 1 Addendum)." Sibling-sweep grep (`grep -n "all.*call site\|both.*call site\|at all.*get_or_compile\|all.*get_or_compile"`) → lines 10/761/763 are historical-record or meta-description text, not normative body; line 694 was the sole normative stale site and is now corrected. |
+| 1.7 | 2026-06-22 | architect | S-18.14 pass-7 adversary fix burst: (F-1 MAJOR POLICY 5) Decision 5 "absolute path" guarantee made satisfiable — ground truth: `InternalLog::log_dir()` is a verbatim accessor (returns `&self.log_dir` with no normalization); multiple resolution branches in `resolve_log_dir_from_params` return relative paths (Level A with relative `VSDD_LOG_DIR`, Level B with relative `FACTORY_ROOT`, Level G `unwrap_or_else(|_| PathBuf::from("."))` CWD fallback); chose option (a) make-it-true over option (b) weaken-contract: absolutization MUST occur at the emission site in `main.rs` where the `DISPATCHER_STARTED` builder chain is assembled; absolutization mechanism specified: `std::path::absolute(internal_log.log_dir())` (stable Rust 1.79, toolchain 1.95.0) with `unwrap_or_else` fallback to verbatim path (non-panicking contract preserved); `InternalLog::log_dir()` remains unchanged (verbatim accessor); rationale for emission-site placement (not inside accessor) documented in §Purity Boundary. Decision 1 Addendum step 2 explicit `is_relative()` guard made normative: implementer MUST check `entry.plugin.is_relative()` explicitly — NOT rely on `PathBuf::join` absolute-replacement semantics alone — because Windows rooted-but-not-absolute paths (`\foo`) cause `join` replacement but `is_absolute()` returns false; proven precedent `registry.rs::resolve_plugin_paths` already applies explicit `if entry.plugin.is_relative()` guard (BC-1.01.004); step 4 updated to match. |

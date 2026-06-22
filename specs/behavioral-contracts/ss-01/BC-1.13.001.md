@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.6"
+version: "1.7"
 status: draft
 producer: product-owner
 timestamp: 2026-05-07T00:00:00Z
@@ -23,6 +23,7 @@ modified:
   - "2026-06-22 (v1.4) — S-18.14 fix-burst adversary pass-1: F-1 phantom-symbol fix (Architecture Anchors §PC-10 change site: replaced non-existent `InternalLog::write_started` with correct anchor — `InternalEvent::now(DISPATCHER_STARTED)` builder chain emitted via `internal_log.write(...)` in `main.rs`; `InternalLog::log_dir()` accessor in `internal_log.rs` §324); F-2 S-18.14 story anchor added to §Traceability Stories, §Story Anchor, and BC-INDEX; F-3 ADR version tokens dropped from §Traceability ADR Reference (POLICY 19); F-6 VP-074 proof-method token aligned to `kani-proof` (POLICY 9)."
   - "2026-06-22 (v1.5) — S-18.14 fix-burst adversary pass-2: F-1 INV-8 single-call-site correction (false 'two call sites / both fail_closed arms' claim replaced with ground-truth: exactly ONE production `get_or_compile` call site at line 361 of `resolver_loader.rs`; line 1057 is inside `#[cfg(test)]`; TD-VSDD-060 sibling-sweep confirms no second production call site); F-2 BC-1.01.004 sibling cross-reference added to §Related BCs (same path-join contract for hooks-registry.toml via `registry.rs::resolve_plugin_paths`; INV-8 is the resolvers-registry analogue) and EC-010 idempotent-absolute-passthrough guarantee cross-referenced to BC-1.01.004 EC-001 / EC-002."
   - "2026-06-22 (v1.6) — S-18.14 fix-burst adversary pass-4: F-1 VP-073 proof-method token corrected from `unit-test (integration test of resolver module compilation)` to authoritative `integration (resolver module compilation test)` per VP-INDEX Full Index line 408 and Proof Method Breakdown (POLICY 9 VP-INDEX-SoT). VP-075 sibling-sweep: token `proptest (200 trials, 5s timeout)` base-token `proptest` matches VP-INDEX (`proptest`) — no change needed."
+  - "2026-06-22 (v1.7) — S-18.14 fix-burst adversary pass-7: F-1 PC-10 absolute-path guarantee made satisfiable — updated to state that `log_dir` is absolutized at `DISPATCHER_STARTED` emission time in `main.rs` via `std::path::absolute(internal_log.log_dir())` with verbatim-path fallback when CWD is inaccessible, per ADR-024 §Decision 5 v1.7; the `InternalLog::log_dir()` accessor stays verbatim (absolutization is NOT in the accessor). PC-10 canonical test vector and EC-F references updated to be consistent with absolutized value. O-3 INV-8 explicit is_relative() guard made normative: implementer MUST use explicit `entry.plugin.is_relative()` guard before `toml_path.parent().join(...)` (mirroring `registry.rs::resolve_plugin_paths`) — NOT relying solely on `PathBuf::join` absolute-replacement semantics — because on Windows a rooted-but-not-absolute path (`\\foo`) passes `PathBuf::join` replacement yet `is_absolute()` is false; `is_relative()` is the only portable discriminant (Windows is a release target). EC-010 idempotent-absolute-passthrough cross-ref to BC-1.01.004 EC-001/EC-002 preserved."
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -31,7 +32,7 @@ removed: null
 removal_reason: null
 bc_id: BC-1.13.001
 section: "1.13"
-last_amended: "2026-06-22 (v1.6) — S-18.14 fix-burst adversary pass-4: F-1 VP-073 proof-method token → `integration (resolver module compilation test)` (was `unit-test (...)`); VP-075 sibling-sweep: `proptest` token correct — no change"
+last_amended: "2026-06-22 (v1.7) — S-18.14 fix-burst adversary pass-7: F-1 PC-10 absolutized at DISPATCHER_STARTED emission in main.rs via std::path::absolute(...) with verbatim fallback (ADR-024 §Decision 5 v1.7); INV-8 explicit is_relative() guard normative (Windows portability — rooted-but-not-absolute path portability)"
 ---
 
 # BC-1.13.001: Dispatcher MUST load `resolvers-registry.toml` at startup and inject resolver context into `plugin_config` before each hook dispatch
@@ -110,12 +111,17 @@ be unaffected.
    relative path is a specification violation. (Anchor: see INV-8 below; root-cause fix for the
    empirically observed 8,560 `resolver.load_error` / 0 successful loads since rc.21.)
 10. **PC-10 (`log_dir` observability in `dispatcher.started`):** The `dispatcher.started` event
-    payload MUST include a `log_dir` string field whose value is the absolute path to the
-    dispatcher's internal log directory for this invocation, populated from `InternalLog::log_dir()`
-    — the accessor already present on the `InternalLog` struct. The field is emitted
-    unconditionally on every startup, is NOT optional, is NOT behind a feature flag, and MUST
-    NOT be null or empty. The value is the fully-resolved absolute path produced by the seven-level
-    resolution algorithm in ADR-024 Decision 1.
+    payload MUST include a `log_dir` string field whose value is the resolved log directory
+    **absolutized at emission time** in `main.rs` at the `DISPATCHER_STARTED` emission site —
+    NOT in the `InternalLog::log_dir()` accessor (which stays verbatim). The absolutization is
+    performed via `std::path::absolute(internal_log.log_dir())` with a verbatim-path fallback
+    (`unwrap_or_else(|_| internal_log.log_dir().to_path_buf())`) when CWD is inaccessible, per
+    ADR-024 §Decision 5 v1.7. Functional anchors: `std::path::absolute`, `DISPATCHER_STARTED`
+    (event name constant), `InternalLog::log_dir()` (path accessor, stays verbatim). The field
+    is emitted unconditionally on every startup, is NOT optional, is NOT behind a feature flag,
+    is NEVER null or empty, and is absolute whenever CWD is accessible (the common case); on
+    the rare CWD-inaccessible fallback the value equals whatever `InternalLog::log_dir()` returns
+    verbatim (which may itself be absolute depending on how it was constructed).
     > **Placement note:** No dedicated `dispatcher.started`-payload BC exists in the SS-01 catalog
     > (BC-1.06.007 and BC-1.06.009 govern brownfield `InternalLog` JSONL envelope shape; BC-1.12.001
     > cites `dispatcher.started` only as a test-vector example of lifecycle routing). This
@@ -158,13 +164,24 @@ be unaffected.
    MUST be resolved against the TOML file's parent directory — which equals `CLAUDE_PLUGIN_ROOT`
    at runtime — NOT against the dispatcher's process working directory (CWD). Absolute `plugin`
    paths pass through unchanged (no re-joining). There is a SINGLE `get_or_compile` call site
-   in `load_registry`. The path-join (`toml_path.parent().join(&entry.plugin)`) MUST precede
-   that single call so the resolved absolute path feeds both the `fail_closed: true` and
-   `fail_closed: false` error-handling arms identically; the `fail_closed` divergence is in the
-   post-call error `match`, not at separate call sites. TD-VSDD-060 sibling-sweep confirms no
-   second production call site (`resolver_loader.rs` line 1057 is inside `#[cfg(test)]`).
-   A `resolver.load_error` for a resolver whose WASM file exists at the correct
-   TOML-parent-relative path is a violation of this invariant and MUST be treated as a regression.
+   in `load_registry`. **The implementer MUST use an explicit `entry.plugin.is_relative()` guard
+   before `toml_path.parent().join(&entry.plugin)` — mirroring `registry.rs::resolve_plugin_paths`
+   — rather than relying solely on `PathBuf::join` absolute-replacement semantics.** The reason
+   is Windows portability: a rooted-but-not-absolute path (e.g., `\foo`) causes `PathBuf::join`
+   to replace the base (correct behavior), yet `is_absolute()` returns `false` for such paths on
+   Windows — meaning the `PathBuf::join` replacement path would silently omit the re-join for
+   paths that are absolute but test as not-absolute. `is_relative()` is the portable discriminant:
+   `is_relative()` is false for both absolute paths AND rooted-but-not-absolute paths on Windows,
+   making it the only guard that correctly identifies all paths that should pass through unchanged.
+   Windows is a supported release target. The path-join (`toml_path.parent().join(&entry.plugin)`)
+   MUST precede the single `get_or_compile` call so the resolved absolute path feeds both the
+   `fail_closed: true` and `fail_closed: false` error-handling arms identically; the `fail_closed`
+   divergence is in the post-call error `match`, not at separate call sites. TD-VSDD-060
+   sibling-sweep confirms no second production call site (`resolver_loader.rs` line 1057 is
+   inside `#[cfg(test)]`). A `resolver.load_error` for a resolver whose WASM file exists at the
+   correct TOML-parent-relative path is a violation of this invariant and MUST be treated as a
+   regression. EC-010's idempotent-absolute-passthrough guarantee (see below) cross-references
+   BC-1.01.004 EC-001/EC-002 and MUST be preserved by any INV-8 fix.
    > **Why CWD-relative is wrong:** The dispatcher is invoked by the Claude Code hook
    > infrastructure with CWD set to the host project directory (e.g., `/Users/<user>/project/`).
    > WASM plugin files live under `CLAUDE_PLUGIN_ROOT` (e.g.,
@@ -203,7 +220,8 @@ be unaffected.
 | TOML parse error | Malformed TOML | — | Startup fails; `resolver.load_error` emitted. |
 | Unknown resolver name | `foo` not registered | `["foo"]` | `resolver.not_found`; dispatch proceeds without context. |
 | Relative WASM path; file at PLUGIN_ROOT, absent at CWD | `wave_context` registered with relative path; WASM exists at TOML-parent dir, not at process CWD | `["wave_context"]` | Resolver loads successfully (zero `resolver.load_error`); context injected into `plugin_config`. CWD non-existence irrelevant. (Witnesses INV-8 / PC-9 / EC-010.) |
-| `dispatcher.started` event | Dispatcher starts with valid `resolvers-registry.toml` | — | `dispatcher.started` event payload includes `log_dir` string field (non-empty absolute path) populated from `InternalLog::log_dir()`. (Witnesses PC-10.) |
+| `dispatcher.started` event | Dispatcher starts with valid `resolvers-registry.toml`; CWD accessible | — | `dispatcher.started` event payload includes `log_dir` string field whose value is an absolute path — produced by `std::path::absolute(internal_log.log_dir())` at the `DISPATCHER_STARTED` emission site in `main.rs`; field is non-empty. (Witnesses PC-10; absolutization is at emission time, NOT in `InternalLog::log_dir()` accessor.) |
+| `dispatcher.started` event (CWD inaccessible) | Dispatcher starts; CWD not accessible (e.g., deleted between process start and `DISPATCHER_STARTED` emission) | — | `dispatcher.started` event payload includes `log_dir` string field whose value is the verbatim return of `InternalLog::log_dir()` (fallback path, may or may not be absolute). Field is non-empty. (Witnesses PC-10 verbatim-fallback arm.) |
 
 ## Verification Properties
 
@@ -244,10 +262,10 @@ be unaffected.
 ## Architecture Anchors
 
 - `crates/factory-dispatcher/src/resolver.rs` — ContextResolver trait, ResolverRegistry, ResolverInput, ResolverOutput, ResolverError types
-- `crates/factory-dispatcher/src/resolver_loader.rs` — WASM module compilation + mtime-cache; **INV-8 change site**: `load_registry` MUST join `toml_path.parent()` with `entry.plugin` for relative paths before the SINGLE production `get_or_compile` call (the `fail_closed: true` / `fail_closed: false` divergence is in the post-call error `match`, not at separate call sites; TD-VSDD-060 sibling-sweep confirms no second production call site); the resolved absolute path then feeds `path.canonicalize()`
+- `crates/factory-dispatcher/src/resolver_loader.rs` — WASM module compilation + mtime-cache; **INV-8 change site**: `load_registry` MUST use an explicit `entry.plugin.is_relative()` guard before `toml_path.parent().join(&entry.plugin)` (mirroring `registry.rs::resolve_plugin_paths`; NOT relying on `PathBuf::join` absolute-replacement alone — see INV-8 for Windows rooted-but-not-absolute portability rationale); the path-join MUST precede the SINGLE production `get_or_compile` call (the `fail_closed: true` / `fail_closed: false` divergence is in the post-call error `match`, not at separate call sites; TD-VSDD-060 sibling-sweep confirms no second production call site); the resolved absolute path then feeds `path.canonicalize()`
 - `crates/factory-dispatcher/src/executor.rs` — pre-dispatch resolver invocation step (between registry lookup and invoke_plugin)
 - `crates/factory-dispatcher/src/registry.rs` — RegistryEntry.needs_context field (`#[serde(default)]`)
-- `crates/factory-dispatcher/src/main.rs` — **PC-10 change site**: the `InternalEvent::now(DISPATCHER_STARTED)` builder chain emitted via `internal_log.write(...)` MUST include a `.with_field("log_dir", ...)` call populated from `InternalLog::log_dir()` (the accessor at `internal_log.rs` `pub fn log_dir(&self) -> &Path`) per ADR-024 §Decision 5; `InternalLog::write_started` does NOT exist — the correct write path is `internal_log.write(&InternalEvent::now(DISPATCHER_STARTED). ...)`; also the startup entry point that calls `load_registry` where INV-8 path resolution begins
+- `crates/factory-dispatcher/src/main.rs` — **PC-10 change site**: the `InternalEvent::now(DISPATCHER_STARTED)` builder chain emitted via `internal_log.write(...)` MUST include a `.with_field("log_dir", ...)` call populated from `std::path::absolute(internal_log.log_dir()).unwrap_or_else(|_| internal_log.log_dir().to_path_buf())` — absolutization happens HERE at the emission site, NOT inside `InternalLog::log_dir()` (the accessor stays verbatim); functional anchors: `std::path::absolute`, `DISPATCHER_STARTED`, `InternalLog::log_dir()` per ADR-024 §Decision 5 v1.7 (TD-VSDD-091 function-name anchors). Also the startup entry point that calls `load_registry` where INV-8 path resolution begins. **INV-8 change site**: `load_registry` must use an explicit `entry.plugin.is_relative()` guard before `toml_path.parent().join(&entry.plugin)` (mirroring `registry.rs::resolve_plugin_paths`) — see INV-8 for Windows portability rationale.
 - `plugins/vsdd-factory/resolvers-registry.toml` — resolver registration file (distinct from hooks-registry.toml)
 - `.factory/specs/architecture/decisions/ADR-018-wasm-plugin-context-resolvers.md` — design decision (OD-1 through OD-6)
 - `.factory/specs/architecture/decisions/ADR-024-dispatcher-log-dir-resolution-and-plugin-root-fail-loud.md` — v1.3 Decision 1 Addendum (TOML-parent-relative path resolution) and Decision 5 (`log_dir` in `dispatcher.started`)
@@ -266,6 +284,7 @@ S-12.03 (ContextResolver trait + ResolverRegistry in-memory) and S-12.04 (WASM r
 
 | Version | Date | Description |
 |---------|------|-------------|
+| 1.7 | 2026-06-22 | S-18.14 fix-burst adversary pass-7 (F-1 + O-3→normative): (F-1) PC-10 absolute-path guarantee made satisfiable — `log_dir` field value is absolutized at `DISPATCHER_STARTED` emission time in `main.rs` via `std::path::absolute(internal_log.log_dir()).unwrap_or_else(|_| internal_log.log_dir().to_path_buf())`; `InternalLog::log_dir()` accessor stays verbatim (absolutization NOT in accessor); per ADR-024 §Decision 5 v1.7; functional anchors: `std::path::absolute`, `DISPATCHER_STARTED`, `InternalLog::log_dir()`. PC-10 canonical test vector split into two rows: CWD-accessible (emits absolute path) and CWD-inaccessible (verbatim fallback). Architecture Anchors `main.rs` entry updated with emission-site absolutization details. (O-3→normative) INV-8 explicit `is_relative()` guard made normative: implementer MUST use `entry.plugin.is_relative()` before `toml_path.parent().join(...)` (mirroring `registry.rs::resolve_plugin_paths`) rather than relying solely on `PathBuf::join` absolute-replacement — Windows rooted-but-not-absolute path (`\foo`) causes `is_absolute()=false` yet `PathBuf::join` replaces base, so `is_relative()` is the only portable discriminant; Windows is a release target. Architecture Anchors `resolver_loader.rs` entry updated. EC-010 idempotent-absolute-passthrough cross-ref to BC-1.01.004 EC-001/EC-002 preserved. |
 | 1.6 | 2026-06-22 | S-18.14 fix-burst adversary pass-4 (F-1): VP-073 proof-method token in §Verification Properties corrected from `unit-test (integration test of resolver module compilation)` to authoritative `integration (resolver module compilation test) [non-authoritative annotation]` per VP-INDEX Full Index row 408 and Proof Method Breakdown (POLICY 9 VP-INDEX-SoT). This is the missed sibling of pass-1's VP-074 `kani`→`kani-proof` fix. VP-075 sibling-sweep: base token `proptest` in `proptest (200 trials, 5s timeout)` matches VP-INDEX `proptest` — no change required. |
 | 1.5 | 2026-06-22 | S-18.14 fix-burst adversary pass-2 (F-1/F-2): (F-1) INV-8 single-call-site correction — false "two call sites / both fail_closed arms as separate call sites" claim replaced with ground truth: exactly ONE production `get_or_compile` call site in `load_registry`; `fail_closed` divergence is in the post-call error `match`, not at separate call sites; TD-VSDD-060 sibling-sweep confirms `resolver_loader.rs` line 1057 is inside `#[cfg(test)]`. Architecture Anchors `resolver_loader.rs` entry updated to match. (F-2) BC-1.01.004 ("Relative plugin paths resolve against registry file's parent directory") added to §Related BCs as sibling — same path-join contract for `hooks-registry.toml` via `registry.rs::resolve_plugin_paths`; INV-8 is the resolvers-registry analogue. EC-010 extended with idempotent-absolute-passthrough cross-reference citing BC-1.01.004 EC-001 and EC-002 verbatim. |
 | 1.4 | 2026-06-22 | S-18.14 fix-burst adversary pass-1 (F-1/F-2/F-3/F-6): (F-1) Architecture Anchors §PC-10 change site: replaced phantom symbol `InternalLog::write_started` (non-existent) with correct anchor — `InternalEvent::now(DISPATCHER_STARTED)` builder chain emitted via `internal_log.write(...)` in `main.rs`; `InternalLog::log_dir()` accessor confirmed at `internal_log.rs` `pub fn log_dir(&self) -> &Path` (line 324). (F-2) S-18.14 added to all three story-anchor sites: §Traceability Stories row, §Story Anchor, and BC-INDEX body cell. (F-3) ADR version tokens `v1.3` dropped from §Traceability ADR Reference cites — `ADR-024 §Decision 1 Addendum (Resolver WASM plugin path resolution)` and `ADR-024 §Decision 5` (POLICY 19). (F-6) VP-074 proof-method token aligned from bare `kani` to `kani-proof` per VP-INDEX authoritative token; non-authoritative `+ integration test (trap injection)` annotation retained explicitly labeled. |

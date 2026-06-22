@@ -2492,3 +2492,55 @@ e706c625 (D-679 factory-artifacts HEAD; single-commit per TD-VSDD-053)
 ### NEXT
 
 S-18.14 adversary pass-5 (fresh-context). Autonomy STOP-BEFORE-PR-MERGE (D-665) holds.
+
+## D-681 — S-18.14 adversary pass-7 FIX BURST — 2026-06-22
+
+**Phase:** D-681-S18.14-adv-pass-7-fix-burst
+
+**Date:** 2026-06-22
+
+### Summary
+
+F-1 (MAJOR POLICY 5 — Decision 5 'absolute path' guarantee was unsatisfiable: `InternalLog::log_dir()` is a verbatim accessor returning the stored PathBuf with no absoluteness normalization; multiple resolution branches in `resolve_log_dir_from_params` can return relative paths (Level A with relative `VSDD_LOG_DIR`, Level B with relative `FACTORY_ROOT`, Level C/D with relative `project_dir`, Level G `cwd` fallback via `unwrap_or_else(|_| PathBuf::from('.'))`); FIXED via option-a absolutize-on-emit at main.rs `DISPATCHER_STARTED` builder chain site — caller absolutizes via `std::path::absolute(internal_log.log_dir())` (stable Rust 1.79, toolchain MSRV 1.95.0 confirmed) with verbatim fallback if `absolute()` returns `Err`; `InternalLog::log_dir()` remains a verbatim accessor unchanged; ADR-024 §Decision 5 v1.7 updated; ARCH-INDEX v2.68→v2.69 row annotation; architect). O-3 (explicit `is_relative()` guard normative in ADR-024 §Decision 1 Addendum step 2 — mirrors `registry.rs::resolve_plugin_paths` precedent; Windows cross-platform correctness: `PathBuf::join` absolute-replacement semantics differ on Windows; explicit `is_relative()` guard is required, not reliance on join semantics alone; O-3 made normative in ADR-024 v1.7 and BC-1.13.001 INV-8; ARCH-INDEX v2.69 row). BC-1.13.001 v1.6→v1.7 (F-1 PC-10 absolutize-on-emit guarantee added; PC-10 now includes two-row TV: `resolve_log_dir_from_params` returns relative → `log_dir` field in `dispatcher.started` event is absolute; `INV-8` updated with explicit `is_relative()` guard normative requirement; BC-INDEX v3.33→v3.34 row annotation; product-owner). S-18.14 v2.3→v2.4 (AC-005 absolutize-on-emit semantics added; RG-005 now discriminating: RED when absolutize absent, GREEN when present via `std::path::absolute()`; AC-001 updated with explicit `is_relative()` guard normative; BC-1.13.001 v1.7 cite swept per POLICY 8+14; ADR-024 v1.7 cite; story-writer); STORY-INDEX v4.52→v4.53 row annotation. Advisories O-1/O-2 assessed as non-findings (no substantive gap). Streak: passes 5-6 were CLEAN but pass-7 found fresh F-1 MAJOR (log_dir-observability side) — streak RESET 0/3 per STRICT 3-CLEAN policy. Pass-8 fresh-context NEXT.
+
+### Findings Summary
+
+| ID | Severity | Class | Status |
+|----|----------|-------|--------|
+| F-1 | MAJOR | POLICY 5 — spec-vs-code: absolute-path guarantee unsatisfiable | CLOSED — ADR-024 v1.7 + BC-1.13.001 v1.7 + S-18.14 v2.4 |
+| O-3 | OBSERVATION | is_relative() guard Windows portability | MADE NORMATIVE — ADR-024 v1.7 + BC-1.13.001 INV-8 v1.7 |
+| O-1 | OBSERVATION | non-finding | ASSESSED closed — no change |
+| O-2 | OBSERVATION | non-finding | ASSESSED closed — no change |
+
+### 4-Index
+
+- BC-INDEX v3.34 (bumped — BC-1.13.001 v1.7 row annotation; PC-10 absolutize-on-emit)
+- VP-INDEX v2.40 (UNCHANGED)
+- STORY-INDEX v4.53 (bumped — S-18.14 v2.4; AC-005/RG-005 absolutize; is_relative() guard normative; BC v1.7 cite swept)
+- ARCH-INDEX v2.69 (bumped — ADR-024 v1.7 row annotation; absolutize-on-emit mandate; is_relative() guard normative)
+
+### Literal-Shell KK-N Gate (POLICY 14 / D-449(a))
+
+```
+grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md
+version: "3.34"
+
+grep "^version:" .factory/specs/verification-properties/VP-INDEX.md
+version: "2.40"
+
+grep "^version:" .factory/stories/STORY-INDEX.md
+version: "4.53"
+
+grep "^version:" .factory/specs/architecture/ARCH-INDEX.md
+version: "2.69"
+```
+
+Zero FAIL. Parity PASS: BC-INDEX v3.34 / VP-INDEX v2.40 / STORY-INDEX v4.53 / ARCH-INDEX v2.69.
+
+### Parent-commit
+
+4541dabd (D-680 factory-artifacts HEAD; single-commit per TD-VSDD-053)
+
+### NEXT
+
+S-18.14 adversary pass-8 (fresh-context). Autonomy STOP-BEFORE-PR-MERGE (D-665) holds. STRICT 3-CLEAN policy (asymptotic-accept DECLINED); streak RESET 0/3 by pass-7 F-1.
