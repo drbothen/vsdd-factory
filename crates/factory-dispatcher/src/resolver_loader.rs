@@ -969,6 +969,346 @@ pub fn empty() -> ResolverRegistry {
 }
 
 // ---------------------------------------------------------------------------
+// Red Gate tests — S-18.14 (BC-1.13.001 INV-8 / PC-9 / PC-10)
+//
+// These tests MUST FAIL before the implementation fix and MUST PASS after.
+// RG-001, RG-003 are the primary INV-8 RED gates.
+// RG-002 is a regression guard (may pass before+after).
+// RG-006 is a production-fixture integration test (skip-guarded if WASM absent).
+// ---------------------------------------------------------------------------
+
+#[cfg(test)]
+mod red_gate_s18_14 {
+    use super::*;
+    use crate::engine::build_engine;
+    use tempfile::TempDir;
+
+    /// Return a minimal compilable WASM module via WAT.
+    ///
+    /// Uses the same pattern as `plugin_loader.rs::minimal_wat`. The module
+    /// only needs to compile (load_registry compiles modules but does not
+    /// instantiate or call `resolve()` during registry loading itself).
+    fn minimal_resolver_wasm() -> Vec<u8> {
+        let wat = r#"
+            (module
+              (memory (export "memory") 1)
+              (func (export "_start")))
+        "#;
+        wat::parse_str(wat).expect("minimal WAT fixture should parse")
+    }
+
+    /// Write a valid compilable WASM artifact to `path`.
+    fn write_wasm_to(path: &std::path::Path) {
+        std::fs::write(path, minimal_resolver_wasm()).unwrap();
+    }
+
+    /// Write a `resolvers-registry.toml` with a single resolver entry
+    /// whose `plugin` is a RELATIVE path (e.g. `hook-plugins/test-resolver.wasm`).
+    fn write_registry_toml(toml_path: &std::path::Path, relative_plugin: &str) {
+        let content = format!(
+            r#"schema_version = 1
+
+[[resolvers]]
+name = "test_resolver"
+plugin = "{relative_plugin}"
+context_key = "test_context"
+"#
+        );
+        std::fs::write(toml_path, content).unwrap();
+    }
+
+    /// Write a `resolvers-registry.toml` with `fail_closed = false` and a
+    /// RELATIVE plugin path.
+    fn write_registry_toml_fail_open(toml_path: &std::path::Path, relative_plugin: &str) {
+        let content = format!(
+            r#"schema_version = 1
+
+[[resolvers]]
+name = "test_resolver_fo"
+plugin = "{relative_plugin}"
+context_key = "test_context_fo"
+fail_closed = false
+"#
+        );
+        std::fs::write(toml_path, content).unwrap();
+    }
+
+    // ------------------------------------------------------------------
+    // RG-001 — INV-8 PRIMARY RED GATE
+    //
+    // `load_registry` with a RELATIVE `plugin` path resolves against the
+    // TOML file's parent directory (TOML-parent), NOT the process CWD.
+    //
+    // Setup:
+    //   - WASM artifact placed at <TOML-parent>/hook-plugins/test-resolver.wasm
+    //   - WASM artifact ABSENT at <CWD>/hook-plugins/test-resolver.wasm
+    //   - resolvers-registry.toml's `plugin` = "hook-plugins/test-resolver.wasm" (relative)
+    //
+    // Before fix: `get_or_compile` receives `"hook-plugins/test-resolver.wasm"` relative
+    //   to CWD → path.canonicalize() returns Err(ENOENT) → load_registry returns Err/LoadWarning.
+    // After fix: `get_or_compile` receives `<TOML-parent>/hook-plugins/test-resolver.wasm`
+    //   (absolute) → compilation succeeds → Ok with no warnings.
+    //
+    // This is the load-bearing RED Gate for BC-1.13.001 INV-8 (POLICY 11).
+    //
+    // Covers AC-001, AC-002, AC-003.
+    // ------------------------------------------------------------------
+    #[test]
+    fn test_BC_1_13_001_load_registry_resolves_relative_plugin_against_toml_parent() {
+        let relative = "hook-plugins/test-resolver.wasm";
+
+        // Build a tempdir that will serve as the TOML parent.
+        // Structure:
+        //   <toml_parent>/resolvers-registry.toml  (the TOML file)
+        //   <toml_parent>/hook-plugins/test-resolver.wasm  (WASM at TOML-parent-relative path)
+        let toml_parent_dir: TempDir = tempfile::tempdir().expect("tempdir");
+        let hook_plugins_dir = toml_parent_dir.path().join("hook-plugins");
+        std::fs::create_dir_all(&hook_plugins_dir).unwrap();
+        let wasm_at_toml_parent = hook_plugins_dir.join("test-resolver.wasm");
+        write_wasm_to(&wasm_at_toml_parent);
+
+        let toml_path = toml_parent_dir.path().join("resolvers-registry.toml");
+        write_registry_toml(&toml_path, relative);
+
+        // SECONDARY SANITY-CHECK ASSERTION (AC-002 / absorbed from former RG-004):
+        // Confirm the WASM is ABSENT at <CWD>/<relative>, making this test self-contained
+        // and not reliant on environmental assumptions.
+        assert!(
+            !std::env::current_dir().unwrap().join(relative).exists(),
+            "WASM must be absent at CWD-relative path for the test to discriminate \
+             path-resolution-base correctly; found it at CWD/{relative}"
+        );
+
+        // Path-difference sanity: TOML-parent-relative resolution differs from CWD-relative.
+        let toml_parent = toml_parent_dir.path();
+        let toml_parent_resolved = toml_parent.join(relative);
+        let cwd_resolved = std::env::current_dir().unwrap().join(relative);
+        assert_ne!(
+            toml_parent_resolved, cwd_resolved,
+            "TOML-parent-relative and CWD-relative must differ for this test to be discriminating"
+        );
+
+        // PRIMARY RED-GATE ASSERTION (POLICY 11):
+        // Call load_registry with the absolute TOML path. The WASM exists only at
+        // <TOML-parent>/hook-plugins/, NOT at <CWD>/hook-plugins/.
+        //
+        // Before fix: returns Err(IoError) because get_or_compile canonicalizes the
+        //   relative path against CWD → ENOENT.
+        // After fix: returns Ok((registry, [])) because path is joined with TOML parent
+        //   before passing to get_or_compile.
+        let engine = build_engine().expect("build_engine");
+        let loader = ResolverLoader::new(engine);
+
+        let result = loader.load_registry(&toml_path);
+
+        let (registry, warnings) = result.expect(
+            "load_registry with RELATIVE plugin path at TOML-parent-relative location \
+             should return Ok after the INV-8 fix — currently FAILS (RED Gate RG-001)",
+        );
+
+        assert!(
+            warnings.is_empty(),
+            "Expected zero LoadWarnings after fix (all resolvers should load successfully), \
+             got: {warnings:?}"
+        );
+
+        assert_eq!(
+            registry.len(),
+            1,
+            "Expected exactly 1 registered resolver; got {}",
+            registry.len()
+        );
+    }
+
+    // ------------------------------------------------------------------
+    // RG-002 — REGRESSION GUARD (absolute path passthrough)
+    //
+    // When `entry.plugin` is ALREADY ABSOLUTE, `load_registry` must still
+    // succeed (idempotent-absolute-passthrough per BC-1.01.004 EC-001/EC-002).
+    // This test may pass both before and after the fix; it is a regression
+    // guard, NOT the primary INV-8 RED gate.
+    //
+    // Covers AC-001.
+    // ------------------------------------------------------------------
+    #[test]
+    fn test_BC_1_13_001_load_registry_absolute_plugin_path_passes_through() {
+        let dir: TempDir = tempfile::tempdir().expect("tempdir");
+        let hook_plugins_dir = dir.path().join("hook-plugins");
+        std::fs::create_dir_all(&hook_plugins_dir).unwrap();
+        let wasm_abs_path = hook_plugins_dir.join("abs-resolver.wasm");
+        write_wasm_to(&wasm_abs_path);
+
+        // Write the TOML with an ABSOLUTE path (not relative).
+        let toml_path = dir.path().join("resolvers-registry.toml");
+        let abs_str = wasm_abs_path.display().to_string();
+        let content = format!(
+            r#"schema_version = 1
+
+[[resolvers]]
+name = "abs_resolver"
+plugin = "{abs_str}"
+context_key = "abs_context"
+"#
+        );
+        std::fs::write(&toml_path, content).unwrap();
+
+        let engine = build_engine().expect("build_engine");
+        let loader = ResolverLoader::new(engine);
+
+        let (registry, warnings) = loader
+            .load_registry(&toml_path)
+            .expect("absolute plugin path should always load regardless of CWD or TOML location");
+
+        assert!(
+            warnings.is_empty(),
+            "Absolute path load should produce no warnings; got: {warnings:?}"
+        );
+        assert_eq!(
+            registry.len(),
+            1,
+            "Expected 1 resolver registered for absolute path; got {}",
+            registry.len()
+        );
+    }
+
+    // ------------------------------------------------------------------
+    // RG-003 — INV-8 RED GATE for fail_closed: false path
+    //
+    // When `fail_closed = false` and the WASM exists at TOML-parent-relative
+    // path (but NOT at CWD), the resolver must load successfully with no
+    // LoadWarning. Before the fix, the entry is skipped with a LoadWarning
+    // because the CWD-relative resolution produces ENOENT → fail-open skips it.
+    // After the fix, the TOML-parent-relative path is used → success, no warning.
+    //
+    // Covers AC-004.
+    // ------------------------------------------------------------------
+    #[test]
+    fn test_BC_1_13_001_load_registry_fail_closed_false_toml_parent_relative_resolves() {
+        let relative = "hook-plugins/fo-resolver.wasm";
+
+        let toml_parent_dir: TempDir = tempfile::tempdir().expect("tempdir");
+        let hook_plugins_dir = toml_parent_dir.path().join("hook-plugins");
+        std::fs::create_dir_all(&hook_plugins_dir).unwrap();
+        let wasm_at_toml_parent = hook_plugins_dir.join("fo-resolver.wasm");
+        write_wasm_to(&wasm_at_toml_parent);
+
+        let toml_path = toml_parent_dir.path().join("resolvers-registry.toml");
+        write_registry_toml_fail_open(&toml_path, relative);
+
+        // Confirm the WASM is absent at CWD-relative path.
+        assert!(
+            !std::env::current_dir().unwrap().join(relative).exists(),
+            "WASM must be absent at CWD-relative path for RG-003 to discriminate correctly"
+        );
+
+        let engine = build_engine().expect("build_engine");
+        let loader = ResolverLoader::new(engine);
+
+        let result = loader.load_registry(&toml_path);
+
+        // Before fix: returns Ok with a LoadWarning (the entry was skipped because
+        //   the CWD-relative path produced ENOENT and fail_closed=false → skip+warn).
+        // After fix: returns Ok with NO warnings (TOML-parent-relative path succeeds).
+        let (registry, warnings) = result.expect(
+            "load_registry with fail_closed=false and WASM at TOML-parent-relative location \
+             should return Ok — currently FAILS or returns LoadWarning (RED Gate RG-003)",
+        );
+
+        assert!(
+            warnings.is_empty(),
+            "fail_closed=false with WASM at TOML-parent-relative path should produce \
+             ZERO warnings after fix (pre-fix produces a LoadWarning for the skipped entry); \
+             got: {warnings:?}"
+        );
+
+        assert_eq!(
+            registry.len(),
+            1,
+            "Expected 1 resolver registered after fail_closed=false fix; got {}",
+            registry.len()
+        );
+    }
+
+    // ------------------------------------------------------------------
+    // RG-006 — Production-fixture integration test (skip-guarded)
+    //
+    // Tests that `load_registry` with the real `vsdd-context-resolvers.wasm`
+    // artifact returns a registry containing the `wave_context` resolver with
+    // no warnings. Skip-guarded if the WASM is not yet built (mirrors the
+    // skip pattern in `test_wave_context_resolver_wasm_injects_context`).
+    //
+    // The TOML is written at `plugins/vsdd-factory/` (the workspace directory
+    // where the real `hook-plugins/` sibling lives) so that
+    // `path.parent().join("hook-plugins/vsdd-context-resolvers.wasm")` resolves
+    // to the real artifact per AC-007.
+    //
+    // Covers AC-007.
+    // ------------------------------------------------------------------
+    #[test]
+    fn test_BC_1_13_001_load_registry_wave_context_production_fixture() {
+        let workspace_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .parent() // crates/
+            .unwrap()
+            .parent() // workspace root
+            .unwrap();
+        let wasm_path =
+            workspace_root.join("plugins/vsdd-factory/hook-plugins/vsdd-context-resolvers.wasm");
+
+        if !wasm_path.exists() {
+            eprintln!(
+                "SKIP: vsdd-context-resolvers.wasm not found at {}; \
+                 build the workspace first to run RG-006",
+                wasm_path.display()
+            );
+            return;
+        }
+
+        // Write the TOML at plugins/vsdd-factory/ so path.parent() resolves to
+        // plugins/vsdd-factory/ — the directory that contains hook-plugins/.
+        let plugin_dir = workspace_root.join("plugins/vsdd-factory");
+        let toml_path = plugin_dir.join("resolvers-registry-rg006-test.toml");
+        let content = r#"schema_version = 1
+
+[[resolvers]]
+name = "wave_context"
+plugin = "hook-plugins/vsdd-context-resolvers.wasm"
+context_key = "wave_context"
+path_allow = [".factory/"]
+"#;
+        std::fs::write(&toml_path, content).expect("write test TOML");
+
+        // Ensure cleanup on test exit.
+        struct Cleanup(std::path::PathBuf);
+        impl Drop for Cleanup {
+            fn drop(&mut self) {
+                let _ = std::fs::remove_file(&self.0);
+            }
+        }
+        let _cleanup = Cleanup(toml_path.clone());
+
+        let engine = build_engine().expect("build_engine");
+        let loader = ResolverLoader::new(engine);
+
+        let result = loader.load_registry(&toml_path);
+        let (registry, warnings) = result.expect(
+            "load_registry with production vsdd-context-resolvers.wasm at TOML-parent-relative \
+             path should succeed after INV-8 fix (RG-006)",
+        );
+
+        assert!(
+            warnings.is_empty(),
+            "Production-fixture load should have zero warnings; got: {warnings:?}"
+        );
+        assert_eq!(
+            registry.len(),
+            1,
+            "Expected 1 resolver (wave_context) registered; got {}",
+            registry.len()
+        );
+    }
+}
+
+// ---------------------------------------------------------------------------
 // Integration tests — resolver WASI linker + WaveContextResolver
 // ---------------------------------------------------------------------------
 

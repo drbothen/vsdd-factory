@@ -926,3 +926,147 @@ mod tests_issue_130 {
         );
     }
 }
+
+// ---------------------------------------------------------------------------
+// Red Gate tests — S-18.14 PC-10 (BC-1.13.001 PC-10)
+//
+// RG-005: `dispatcher.started` event MUST include a non-empty `log_dir` field
+// whose value is ABSOLUTE.
+//
+// DISCRIMINATION REQUIREMENT (RG-005 spec, p10-O3): The test constructs
+// `InternalLog` with a RELATIVE `log_dir` under a controlled accessible CWD
+// (so the pre-fix verbatim relative path fails `is_absolute()` and the
+// post-fix absolutized path passes `is_absolute()`). Using an absolute tempdir
+// path as `log_dir` would pass `is_absolute()` trivially without exercising
+// the absolutize-on-emit fix — that form is FORBIDDEN as the primary gate.
+//
+// Before fix: `dispatcher.started` JSON has NO `log_dir` key at all.
+//   → assert fails on `log_dir` key absence.
+// After fix: `dispatcher.started` JSON HAS `log_dir` key with an absolute path.
+//   → both assertions pass.
+// ---------------------------------------------------------------------------
+#[cfg(test)]
+mod red_gate_s18_14_log_dir {
+    #![allow(clippy::expect_used, clippy::unwrap_used)]
+    use factory_dispatcher::internal_log::{DISPATCHER_STARTED, InternalEvent, InternalLog};
+    use std::path::{Path, PathBuf};
+    use std::sync::Arc;
+
+    /// Emit a `dispatcher.started` event exactly as `main.rs` currently does
+    /// (WITHOUT `log_dir` — the pre-fix state), then read back the JSONL and
+    /// assert that the `log_dir` key IS present and is_absolute.
+    ///
+    /// This test is RED before the fix because the current code does not include
+    /// `log_dir` in the `DISPATCHER_STARTED` event builder chain at all.
+    ///
+    /// After the fix (implementer adds `.with_field("log_dir", std::path::absolute(...)...)`
+    /// to the builder chain in `main.rs`), this test turns GREEN.
+    ///
+    /// Covers AC-005, AC-006 (BC-1.13.001 PC-10).
+    #[test]
+    fn test_BC_1_13_001_dispatcher_started_event_log_dir_absolutized_at_emission() {
+        // Use a relative log_dir path ("rel/logs") to discriminate correctly.
+        // After the fix, std::path::absolute("rel/logs") returns CWD/"rel/logs" (absolute).
+        // Using an absolute tempdir log_dir would pass is_absolute() trivially — FORBIDDEN.
+        let relative_log_dir = PathBuf::from("rel/logs");
+
+        // Set CWD to a controlled accessible tempdir so std::path::absolute resolves
+        // "rel/logs" relative to a known path (the tempdir), not the arbitrary test-runner CWD.
+        let cwd_dir = tempfile::tempdir().expect("tempdir for CWD control");
+        std::env::set_current_dir(cwd_dir.path()).expect("set_current_dir");
+
+        // Construct InternalLog with the RELATIVE log_dir.
+        // The log_dir() accessor returns &Path("rel/logs") verbatim (relative, not absolute).
+        let internal_log = Arc::new(InternalLog::new(relative_log_dir.clone()));
+
+        // Confirm the log_dir() accessor is still relative (the accessor must NOT absolutize).
+        assert!(
+            internal_log.log_dir().is_relative(),
+            "InternalLog::log_dir() accessor must return the verbatim relative path \
+             (absolutization must happen at the emission site in main.rs, not in the accessor)"
+        );
+
+        // Emit the DISPATCHER_STARTED event exactly as main.rs currently does:
+        // WITHOUT the `log_dir` field (current pre-fix state).
+        //
+        // After the fix, the implementer ADDS:
+        //   .with_field("log_dir", std::path::absolute(internal_log.log_dir())
+        //       .unwrap_or_else(|_| internal_log.log_dir().to_path_buf())
+        //       .display()
+        //       .to_string())
+        // to the builder chain below.
+        //
+        // NOTE: This test exercises the CURRENT state of the code (pre-fix).
+        // The test is a RED Gate because the assertion below checks for `log_dir`
+        // presence + is_absolute, which the current code does NOT satisfy.
+        internal_log.write(
+            &InternalEvent::now(DISPATCHER_STARTED)
+                .with_trace_id("test-trace-rg005")
+                .with_session_id("test-session-rg005")
+                .with_field("dispatcher_version", "0.0.1")
+                .with_field("host_abi_version", 1_i64)
+                .with_field("platform", "test-platform")
+                .with_field("pid", 12345_i64)
+                .with_field("registry_path", "/test/registry.toml")
+                .with_field("loaded_plugin_count", 0_i64),
+            // NOTE: `log_dir` field intentionally ABSENT here — this is what the pre-fix
+            // code does. After fix, implementer adds .with_field("log_dir", ...) here.
+        );
+
+        // Read back the JSONL from the log directory.
+        // The InternalLog writes to <log_dir>/dispatcher-internal-YYYY-MM-DD.jsonl.
+        // Since log_dir is relative, the actual write goes to CWD/rel/logs/...
+        let log_dir_abs = cwd_dir.path().join(&relative_log_dir);
+
+        // Find the written JSONL file.
+        let jsonl_file = std::fs::read_dir(&log_dir_abs)
+            .expect("log_dir should exist after write")
+            .filter_map(|e| e.ok())
+            .find(|e| {
+                e.file_name()
+                    .to_string_lossy()
+                    .starts_with("dispatcher-internal-")
+            })
+            .expect("should find a dispatcher-internal-*.jsonl file in log_dir")
+            .path();
+
+        let content = std::fs::read_to_string(&jsonl_file).expect("read JSONL file");
+
+        // Parse the first (and only) line as JSON.
+        let line = content
+            .lines()
+            .next()
+            .expect("JSONL must have at least one line");
+        let event: serde_json::Value =
+            serde_json::from_str(line).expect("JSONL line must be valid JSON");
+
+        // PRIMARY RED-GATE ASSERTION (AC-005):
+        // The `log_dir` key MUST be present in the `dispatcher.started` event payload.
+        // Before fix: this assertion FAILS because the current code does not include `log_dir`.
+        // After fix: this assertion PASSES because the implementer adds the field.
+        let log_dir_value = event
+            .get("log_dir")
+            .expect(
+                "dispatcher.started event MUST include 'log_dir' field (BC-1.13.001 PC-10) — \
+                 currently ABSENT (RED Gate RG-005)",
+            )
+            .as_str()
+            .expect("log_dir field must be a string");
+
+        assert!(
+            !log_dir_value.is_empty(),
+            "log_dir field must be non-empty (BC-1.13.001 PC-10)"
+        );
+
+        // ABSOLUTIZE ASSERTION (RG-005 discrimination requirement):
+        // The emitted log_dir value must be ABSOLUTE.
+        // Before fix: even if the field were present, it would be the verbatim relative path
+        //   "rel/logs" (not absolute) — so this assertion would also fail.
+        // After fix: std::path::absolute("rel/logs") produces <CWD>/rel/logs (absolute).
+        assert!(
+            Path::new(log_dir_value).is_absolute(),
+            "log_dir field value must be an absolute path (BC-1.13.001 PC-10 absolutize-on-emit); \
+             got: {log_dir_value:?} (relative path means absolutize-on-emit fix is not applied)"
+        );
+    }
+}
