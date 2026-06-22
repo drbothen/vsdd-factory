@@ -2335,3 +2335,160 @@ STOP-BEFORE-PR-MERGE (D-665) still holds on every story.
 RESUME ACTION #1: `gh pr merge 198 --squash --delete-branch` (via pr-manager; human ALREADY APPROVED).
 RESUME ACTION #2: S-18.04a native WASM TDD.
 RESUME ACTION #3+: S-18.04b → S-18.03.
+
+---
+
+## D-676 — PR #198 post-merge burst + S-18.14 stub — 2026-06-22
+
+**Phase:** D-676-PR198-POST-MERGE
+
+**Date:** 2026-06-22
+
+### Summary
+
+PR #198 (feature/S-18.04a-prereq → develop) squash-merged 40cd18ae to develop. S-18.04a-prereq status draft→merged; merged_count 82→83; develop_head 997c8c1e→40cd18ae. POL-14: BC-2.02.011 lifecycle_status already active (D-673) — NO promotion executed. PR #199 (`chore: gitignore repo-root runtime dispatcher logs`) OPEN targeting develop — recorded in Active Branches + PR Status. S-18.14 new draft story stub registered: DEFECT-2 HIGH code (resolver_loader::load_registry resolves relative WASM paths against process CWD instead of CLAUDE_PLUGIN_ROOT; 8,560 resolver.load_error events empirical; fails open; fix = join relative entry.plugin with path.parent() of TOML path; ADR-024 touch; unit test obligation; release-gated). story_count 124→125; E-18 tally 16→17. STORY-INDEX v4.48 bumped.
+
+### 4-Index
+
+- BC-INDEX v3.29 (UNCHANGED)
+- VP-INDEX v2.40 (UNCHANGED)
+- STORY-INDEX v4.48 (bumped — story_count 124→125; S-18.14 stub registered)
+- ARCH-INDEX v2.64 (UNCHANGED)
+
+### Parent-commit
+
+0d7c74ba (D-675 DURABLE PAUSE HEAD; factory-artifacts — single-commit per TD-VSDD-053)
+
+### NEXT
+
+D-677 S-18.14 spec-authorship burst.
+
+---
+
+## D-677 — S-18.14 spec-authorship burst — 2026-06-22
+
+**Phase:** D-677-S18.14-spec-authorship-complete
+
+**Date:** 2026-06-22
+
+### Summary
+
+ADR-024 v1.2→v1.3 (architect; Decision 1 Addendum: resolver WASM plugin path resolution MUST resolve relative `plugin` paths against toml_path.parent() = CLAUDE_PLUGIN_ROOT, NOT process CWD; root cause of 8,560 resolver.load_error / 0 successful loads since rc.21; Decision 5: `dispatcher.started` event MUST include `log_dir` field). ARCH-INDEX v2.64→v2.65. BC-1.13.001 v1.2→v1.3 (product-owner; INV-8/PC-9/PC-10/EC-010; ADR-024 v1.3 cross-refs). BC-INDEX v3.29→v3.30. S-18.14 v1.0→v2.0 (story-writer; 7 ACs, 6 Red Gates, behavioral_contracts:[BC-1.13.001]; S-7.01 gate satisfied). STORY-INDEX v4.48→v4.49 (VP-073/VP-074/VP-075 wired). develop_head 40cd18ae→1e81f2c8 (PR #199 squash-merged to develop). D-677 Decisions Log row; Session Checkpoint refreshed.
+
+### 4-Index
+
+- BC-INDEX v3.30 (bumped — BC-1.13.001 v1.2→v1.3 row annotation)
+- VP-INDEX v2.40 (UNCHANGED; VP-073/074/075 confirmed real)
+- STORY-INDEX v4.49 (bumped — S-18.14 v2.0; VP cols populated)
+- ARCH-INDEX v2.65 (bumped — ADR-024 v1.3 POLICY 14 5-leg parity)
+
+### Parent-commit
+
+b3f0f97e (D-676 factory-artifacts HEAD; single-commit per TD-VSDD-053)
+
+### NEXT
+
+D-678 S-18.14 adversary pass-1 FIX BURST.
+
+---
+
+## D-678 — S-18.14 adversary pass-1 FIX BURST — 2026-06-22
+
+**Phase:** D-678-S18.14-adv-pass-1-fix-burst
+
+**Date:** 2026-06-22
+
+### Summary
+
+F-1 MAJOR POLICY 5 (phantom InternalLog::write_started method reference in ADR-024 §Decision 5 + BC-1.13.001 Architecture Anchors §PC-10 corrected to `DISPATCHER_STARTED` const in `internal_log.rs` emitted via `InternalEvent::now(DISPATCHER_STARTED)` builder chain in `internal_log.write(...)` in `main.rs`). F-2 MAJOR C-SP13-P10-001 (S-18.14 story anchor propagation gap: BC-1.13.001 §Traceability Stories row + §Story Anchor row BOTH updated; BC-INDEX Stories cell added for BC-1.13.001). F-3 POLICY 19 VIOLATION (BC-1.13.001 v1.4 drops ADR version tokens from normative forward cites). F-4 POLICY 11 (RG-004 `test_write_started_populates_log_dir` tautological — demoted from Red Gate Test Table to inline ACs; Red Gate count 6→5). F-5 ADVISORY POLICY 6 RESOLVED NO (SS-04 advisory; ADR-024 subsystem set remains SS-01/SS-03/SS-07). F-6 VP-074 proof-method token corrected to `kani-proof` per VP-INDEX catalog. 4-index: BC-INDEX v3.30→v3.31; STORY-INDEX v4.49→v4.50; ARCH-INDEX v2.65→v2.66; VP-INDEX v2.40 UNCHANGED. Streak 0/3; pass-2 fresh-context NEXT.
+
+### 4-Index
+
+- BC-INDEX v3.31 (bumped — BC-1.13.001 v1.4 row annotation; Stories cell added)
+- VP-INDEX v2.40 (UNCHANGED)
+- STORY-INDEX v4.50 (bumped — S-18.14 v2.1; RG count 6→5; VP-074 kani-proof)
+- ARCH-INDEX v2.66 (bumped — ADR-024 v1.4 row annotation; POLICY 14 5-leg parity)
+
+### Parent-commit
+
+909ef9a5 (D-677 factory-artifacts HEAD; single-commit per TD-VSDD-053)
+
+### NEXT
+
+D-679 S-18.14 adversary pass-2 FIX BURST.
+
+---
+
+## D-679 — S-18.14 adversary pass-2 FIX BURST — 2026-06-22
+
+**Phase:** D-679-S18.14-adv-pass-2-fix-burst
+
+**Date:** 2026-06-22
+
+### Summary
+
+F-1 (false 'two call sites' claim in §Decision 1 Addendum step 5 corrected: ground truth — exactly ONE production `get_or_compile` call site exists in `load_registry` (~`resolver_loader.rs:361`); line 1057 is inside `#[cfg(test)]`; TD-VSDD-060 sibling-sweep confirms no second production call site; the `fail_closed: true`/`fail_closed: false` divergence is in the post-call error `match`, not at separate call sites; step 5 rewritten; BC-1.01.004/`registry.rs::resolve_plugin_paths` precedent cross-reference added; ADR-024 v1.4→v1.5; ARCH-INDEX v2.66→v2.67; BC-1.13.001 INV-8 Architecture Anchors updated to match; BC-1.13.001 v1.4→v1.5; BC-INDEX v3.31→v3.32). F-2 (BC-1.01.004 sibling cross-reference added to BC-1.13.001 §Related BCs; EC-010 extended with idempotent-absolute-passthrough guarantee; S-18.14 ref-impl pointer added; POLICY 4). F-4 (RG-001 load-bearing vs secondary assertion clarified — POLICY 11 re-fire prevention). F-5 (BC-INDEX header Version-column, pre-existing index-wide) DEFERRED to standalone hygiene burst (out of S-18.14 scope). 4-index BC v3.32/VP v2.40/STORY v4.51/ARCH v2.67; pass-1 fixes held; streak 0/3; pass-3 fresh-context NEXT.
+
+### 4-Index
+
+- BC-INDEX v3.32 (bumped — BC-1.13.001 v1.5 row annotation; F-1/F-2 corrections)
+- VP-INDEX v2.40 (UNCHANGED)
+- STORY-INDEX v4.51 (bumped — S-18.14 v2.2 annotation; F-1/F-2/F-4 corrections; BC v1.5 cite propagated)
+- ARCH-INDEX v2.67 (bumped — ADR-024 v1.5 row annotation; F-1 false 'two call sites' CLOSED)
+
+### Parent-commit
+
+8c903922 (D-678 factory-artifacts HEAD; single-commit per TD-VSDD-053)
+
+### NEXT
+
+D-680 S-18.14 adversary pass-4 FIX BURST (pass-3 was CLEAN; pass-4 found F-1 MAJOR + F-2+F-3 ADVISORY).
+
+---
+
+## D-680 — S-18.14 adversary pass-4 FIX BURST — 2026-06-22
+
+**Phase:** D-680-S18.14-adv-pass-4-fix-burst
+
+**Date:** 2026-06-22
+
+### Summary
+
+F-1 (MAJOR POLICY 9 — VP-073 proof-method specified as `unit-test` in BC-1.13.001 §Verification Properties row but VP-INDEX catalog entry for VP-073 specifies `integration`; sibling-sweep gap from pass-1 D-678 VP-074 fix that swept VP-074 but missed VP-073; BC-1.13.001 v1.5→v1.6 VP-073 row proof-method corrected to `integration`; VP-075 confirmed `integration` — no change needed; BC-INDEX v3.32→v3.33 row annotation; product-owner). F-2 (ADVISORY POLICY 5 — ADR-024 §Consequences + §Files-to-change `resolver_loader.rs` row still contained stale plural 'at all `get_or_compile` call sites' framing inconsistent with v1.5 Decision 1 Addendum single-call-site correction; reworded to single-production-call-site framing; sibling-sweep grep confirmed no other normative plural call-site framings in ADR-024 body; ADR-024 v1.5→v1.6; ARCH-INDEX v2.67→v2.68 row annotation; architect). F-3 (ADVISORY — RG-001 test fixture obligation: valid-WASM binary must be embedded in test fixtures using `wat::parse_str` / minimal WAT pattern to avoid relying on external files; S-18.14 v2.2→v2.3 RG-001 fixture note added; STORY-INDEX v4.51→v4.52 row annotation; story-writer). STRICT 3-CLEAN per human directive (asymptotic-accept DECLINED). Passes 1-3 fixes held; pass-3 WAS CLEAN but pass-4 found 1 MAJOR + 2 ADVISORY — streak RESET 0/3; pass-5 fresh-context NEXT.
+
+### Convergence Policy
+
+STRICT 3-CLEAN (human-directed). Asymptotic-accept DECLINED for S-18.14 cascade. Three consecutive CLEAN passes required for convergence acceptance. Pass-3 was CLEAN (streak 1/3 under normal counting but reset to 0/3 by pass-4 finding). Pass-5 is the next pass dispatched.
+
+### 4-Index
+
+- BC-INDEX v3.33 (bumped — BC-1.13.001 v1.6 row annotation; VP-073 proof-method fix)
+- VP-INDEX v2.40 (UNCHANGED; VP-073 proof-method confirmed `integration` in catalog — no bump needed)
+- STORY-INDEX v4.52 (bumped — S-18.14 v2.3; F-1 VP-073; F-3 RG-001 fixture note; BC v1.6 cite)
+- ARCH-INDEX v2.68 (bumped — ADR-024 v1.6 row annotation; F-2 ADVISORY stale 'all call sites' swept)
+
+### Literal-Shell KK-N Gate (POLICY 14 / D-449(a))
+
+```
+grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md
+version: "3.33"
+
+grep "^version:" .factory/specs/verification-properties/VP-INDEX.md
+version: "2.40"
+
+grep "^version:" .factory/stories/STORY-INDEX.md
+version: "4.52"
+
+grep "^version:" .factory/specs/architecture/ARCH-INDEX.md
+version: "2.68"
+```
+
+Zero FAIL. Parity PASS: BC-INDEX v3.33 / VP-INDEX v2.40 / STORY-INDEX v4.52 / ARCH-INDEX v2.68.
+
+### Parent-commit
+
+e706c625 (D-679 factory-artifacts HEAD; single-commit per TD-VSDD-053)
+
+### NEXT
+
+S-18.14 adversary pass-5 (fresh-context). Autonomy STOP-BEFORE-PR-MERGE (D-665) holds.

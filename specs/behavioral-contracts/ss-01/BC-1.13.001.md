@@ -1,7 +1,7 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.5"
+version: "1.6"
 status: draft
 producer: product-owner
 timestamp: 2026-05-07T00:00:00Z
@@ -22,6 +22,7 @@ modified:
   - "2026-06-22 (v1.3) — S-18.14 spec-evolution (D-676 / ADR-024 v1.3): INV-8 (resolver WASM path resolution base must be TOML parent dir); PC-9 (successful load when artifacts present at TOML-parent-relative path); PC-10 (log_dir field in dispatcher.started payload — placed here because no dedicated dispatcher.started payload BC exists; ADR-024 Decision 5); EC-010 (relative WASM path exists at PLUGIN_ROOT but not CWD → must load successfully). ADR Reference updated to cite ADR-024 v1.3. Changelog and Architecture Anchors extended."
   - "2026-06-22 (v1.4) — S-18.14 fix-burst adversary pass-1: F-1 phantom-symbol fix (Architecture Anchors §PC-10 change site: replaced non-existent `InternalLog::write_started` with correct anchor — `InternalEvent::now(DISPATCHER_STARTED)` builder chain emitted via `internal_log.write(...)` in `main.rs`; `InternalLog::log_dir()` accessor in `internal_log.rs` §324); F-2 S-18.14 story anchor added to §Traceability Stories, §Story Anchor, and BC-INDEX; F-3 ADR version tokens dropped from §Traceability ADR Reference (POLICY 19); F-6 VP-074 proof-method token aligned to `kani-proof` (POLICY 9)."
   - "2026-06-22 (v1.5) — S-18.14 fix-burst adversary pass-2: F-1 INV-8 single-call-site correction (false 'two call sites / both fail_closed arms' claim replaced with ground-truth: exactly ONE production `get_or_compile` call site at line 361 of `resolver_loader.rs`; line 1057 is inside `#[cfg(test)]`; TD-VSDD-060 sibling-sweep confirms no second production call site); F-2 BC-1.01.004 sibling cross-reference added to §Related BCs (same path-join contract for hooks-registry.toml via `registry.rs::resolve_plugin_paths`; INV-8 is the resolvers-registry analogue) and EC-010 idempotent-absolute-passthrough guarantee cross-referenced to BC-1.01.004 EC-001 / EC-002."
+  - "2026-06-22 (v1.6) — S-18.14 fix-burst adversary pass-4: F-1 VP-073 proof-method token corrected from `unit-test (integration test of resolver module compilation)` to authoritative `integration (resolver module compilation test)` per VP-INDEX Full Index line 408 and Proof Method Breakdown (POLICY 9 VP-INDEX-SoT). VP-075 sibling-sweep: token `proptest (200 trials, 5s timeout)` base-token `proptest` matches VP-INDEX (`proptest`) — no change needed."
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -30,7 +31,7 @@ removed: null
 removal_reason: null
 bc_id: BC-1.13.001
 section: "1.13"
-last_amended: "2026-06-22 (v1.5) — S-18.14 fix-burst adversary pass-2: F-1 INV-8 single-call-site correction (ONE production get_or_compile call site; TD-VSDD-060 sibling-sweep); F-2 BC-1.01.004 sibling cross-reference added to Related BCs + EC-010 idempotent-absolute-passthrough guarantee"
+last_amended: "2026-06-22 (v1.6) — S-18.14 fix-burst adversary pass-4: F-1 VP-073 proof-method token → `integration (resolver module compilation test)` (was `unit-test (...)`); VP-075 sibling-sweep: `proptest` token correct — no change"
 ---
 
 # BC-1.13.001: Dispatcher MUST load `resolvers-registry.toml` at startup and inject resolver context into `plugin_config` before each hook dispatch
@@ -208,7 +209,7 @@ be unaffected.
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-073 | Resolver-load purity — loading a `.wasm` resolver artifact is deterministic and has no observable side effects at load time | unit-test (integration test of resolver module compilation) |
+| VP-073 | Resolver-load purity — loading a `.wasm` resolver artifact is deterministic and has no observable side effects at load time | integration (resolver module compilation test) [non-authoritative annotation; authoritative token: `integration` per VP-INDEX] |
 | VP-074 | Resolver-error isolation — a resolver crash or trap does not propagate to the dispatcher process | kani-proof (pure error-classification logic); + integration test (trap injection) [non-authoritative annotation] |
 | VP-075 | Context-injection determinism — identical `ResolverInput` yields identical `ResolverOutput` | proptest (200 trials, 5s timeout) |
 | (unit-test) | Absent `resolvers-registry.toml` yields zero resolvers and no startup error | Rust unit test |
@@ -265,6 +266,7 @@ S-12.03 (ContextResolver trait + ResolverRegistry in-memory) and S-12.04 (WASM r
 
 | Version | Date | Description |
 |---------|------|-------------|
+| 1.6 | 2026-06-22 | S-18.14 fix-burst adversary pass-4 (F-1): VP-073 proof-method token in §Verification Properties corrected from `unit-test (integration test of resolver module compilation)` to authoritative `integration (resolver module compilation test) [non-authoritative annotation]` per VP-INDEX Full Index row 408 and Proof Method Breakdown (POLICY 9 VP-INDEX-SoT). This is the missed sibling of pass-1's VP-074 `kani`→`kani-proof` fix. VP-075 sibling-sweep: base token `proptest` in `proptest (200 trials, 5s timeout)` matches VP-INDEX `proptest` — no change required. |
 | 1.5 | 2026-06-22 | S-18.14 fix-burst adversary pass-2 (F-1/F-2): (F-1) INV-8 single-call-site correction — false "two call sites / both fail_closed arms as separate call sites" claim replaced with ground truth: exactly ONE production `get_or_compile` call site in `load_registry`; `fail_closed` divergence is in the post-call error `match`, not at separate call sites; TD-VSDD-060 sibling-sweep confirms `resolver_loader.rs` line 1057 is inside `#[cfg(test)]`. Architecture Anchors `resolver_loader.rs` entry updated to match. (F-2) BC-1.01.004 ("Relative plugin paths resolve against registry file's parent directory") added to §Related BCs as sibling — same path-join contract for `hooks-registry.toml` via `registry.rs::resolve_plugin_paths`; INV-8 is the resolvers-registry analogue. EC-010 extended with idempotent-absolute-passthrough cross-reference citing BC-1.01.004 EC-001 and EC-002 verbatim. |
 | 1.4 | 2026-06-22 | S-18.14 fix-burst adversary pass-1 (F-1/F-2/F-3/F-6): (F-1) Architecture Anchors §PC-10 change site: replaced phantom symbol `InternalLog::write_started` (non-existent) with correct anchor — `InternalEvent::now(DISPATCHER_STARTED)` builder chain emitted via `internal_log.write(...)` in `main.rs`; `InternalLog::log_dir()` accessor confirmed at `internal_log.rs` `pub fn log_dir(&self) -> &Path` (line 324). (F-2) S-18.14 added to all three story-anchor sites: §Traceability Stories row, §Story Anchor, and BC-INDEX body cell. (F-3) ADR version tokens `v1.3` dropped from §Traceability ADR Reference cites — `ADR-024 §Decision 1 Addendum (Resolver WASM plugin path resolution)` and `ADR-024 §Decision 5` (POLICY 19). (F-6) VP-074 proof-method token aligned from bare `kani` to `kani-proof` per VP-INDEX authoritative token; non-authoritative `+ integration test (trap injection)` annotation retained explicitly labeled. |
 | 1.3 | 2026-06-22 | S-18.14 spec-evolution (D-676 / ADR-024 v1.3): (1) INV-8 — Resolver WASM path resolution base MUST be TOML file's parent directory (`CLAUDE_PLUGIN_ROOT` at runtime), NOT process CWD; absolute paths pass through unchanged; applies to ALL `get_or_compile` call sites in `resolver_loader`; root cause of 8,560 `resolver.load_error` / 0 successful loads since rc.21. (2) PC-9 — Successful load when artifacts present at TOML-parent-relative paths; zero `resolver.load_error` for any declared resolver is the spec. (3) PC-10 — `dispatcher.started` event payload MUST include `log_dir` string field from `InternalLog::log_dir()`; unconditional; non-empty; absolute path (ADR-024 Decision 5). Placed here because no dedicated `dispatcher.started`-payload BC exists in the SS-01 catalog; see PC-10 placement note for migration guidance. (4) EC-010 — Relative WASM exists at PLUGIN_ROOT but not CWD → must load successfully. (5) Architecture Anchors updated: path-anchors migrated from absolute user-local paths to repo-relative paths (TD-VSDD-091); `resolver_loader.rs` INV-8 change site and `main.rs` PC-10 change site documented. (6) ADR Reference extended with ADR-024 v1.3 §Decision 1 Addendum and §Decision 5 cites. |
