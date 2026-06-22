@@ -1,19 +1,19 @@
 ---
 document_type: pipeline-state
 level: ops
-version: "4.32"
+version: "4.33"
 status: draft
 producer: state-manager
-timestamp: 2026-06-22T00:00:00Z
-phase: D-681-S18.14-adv-pass-7-fix-burst-BC3.34-VP2.40-STORY4.53-ARCH2.69-2026-06-22
-last_amended: "2026-06-22 (v4.32) — D-681 S-18.14 adversary pass-7 FIX BURST: ADR-024 v1.6→v1.7 (F-1 MAJOR POLICY 5 — Decision 5 'absolute path' guarantee unsatisfiable; absolutize-on-emit at DISPATCHER_STARTED via std::path::absolute() MSRV 1.95.0; O-3 is_relative() guard normative; architect); ARCH-INDEX v2.68→v2.69; BC-1.13.001 v1.6→v1.7 (F-1 PC-10 absolutize-on-emit two-row TV; INV-8 is_relative() guard normative; product-owner); BC-INDEX v3.33→v3.34; S-18.14 v2.3→v2.4 (AC-005 absolutize semantics; RG-005 discriminating; AC-001 is_relative() normative; BC v1.7 cite swept; story-writer); STORY-INDEX v4.52→v4.53; D-681 codified; STRICT 3-CLEAN; passes 5-6 CLEAN but pass-7 fresh F-1 MAJOR — streak RESET 0/3; pass-8 fresh-context NEXT. 4-index: BC-INDEX v3.34 / VP-INDEX v2.40 / STORY-INDEX v4.53 / ARCH-INDEX v2.69. [Prior: v4.31 D-680 S-18.14 adversary pass-4 FIX BURST: ADR-024 v1.6; BC-1.13.001 v1.6; BC-INDEX v3.33; S-18.14 v2.3; STORY-INDEX v4.52; ARCH-INDEX v2.68; streak 0/3.]"
+timestamp: 2026-06-22T01:00:00Z
+phase: D-682-develop-head-SHA-drift-correction-2026-06-22
+last_amended: "2026-06-22 (v4.33) — D-682 develop_head SHA-drift correction: D-681 SHA-patch regressed Active Branches develop 1e81f2c8→40cd18ae; actual origin/develop=1e81f2c8 (PR #199 D-677); sibling-sweep of 9 locations in STATE.md; D-682 decision row added; 4-index UNCHANGED BC v3.34/VP v2.40/STORY v4.53/ARCH v2.69. [Prior: v4.32 D-681 S-18.14 adversary pass-7 FIX BURST: ADR-024 v1.7; BC-1.13.001 v1.7; BC-INDEX v3.34; S-18.14 v2.4; STORY-INDEX v4.53; ARCH-INDEX v2.69; streak 0/3.]"
 inputs: []
 input-hash: "[live-state]"
 traces_to: prd.md
 project: vsdd-factory
 mode: brownfield
-"D-681 2026-06-22. S-18.14 adv pass-7 FIX BURST: ADR-024 v1.7 + ARCH-INDEX v2.69; BC-1.13.001 v1.7 + BC-INDEX v3.34; S-18.14 v2.4 + STORY-INDEX v4.53; 4-index BC v3.34/VP v2.40/STORY v4.53/ARCH v2.69; STRICT 3-CLEAN; streak 0/3; pass-8 NEXT. develop 40cd18ae. Autonomy STOP-BEFORE-PR-MERGE (D-665) holds."
-current_step: "D-681-S18.14-adv-pass-7-fix-burst-BC3.34-VP2.40-STORY4.53-ARCH2.69-2026-06-22"
+"D-682 2026-06-22. develop_head SHA-drift correction — D-681 regressed Active Branches develop 1e81f2c8→40cd18ae; actual origin/develop=1e81f2c8 (PR #199 chore gitignore D-677); restored to 1e81f2c8 with sibling-sweep; 4-index UNCHANGED BC v3.34/VP v2.40/STORY v4.53/ARCH v2.69; S-18.14 STRICT 3-CLEAN streak 0/3 pass-8 in flight. Autonomy STOP-BEFORE-PR-MERGE (D-665) holds."
+current_step: "D-682-develop-head-SHA-drift-correction-2026-06-22"
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -78,6 +78,7 @@ dtu_services: []
   ~431 lines (wc-l; D-679 S-18.14 adv pass-2 fix burst — ADR-024 v1.5+ARCH-INDEX v2.67+BC-1.13.001 v1.5+BC-INDEX v3.32+S-18.14 v2.2+STORY-INDEX v4.51; D-679 Decisions Log row; 4-index BC v3.32/VP v2.40/STORY v4.51/ARCH v2.67; Session Checkpoint refreshed; streak 0/3; ~16 lines over soft-target 415; ~69 lines under hard-cap 500).
   432 lines (wc-l; D-680 S-18.14 adv pass-4 fix burst — ADR-024 v1.6+ARCH-INDEX v2.68+BC-1.13.001 v1.6+BC-INDEX v3.33+S-18.14 v2.3+STORY-INDEX v4.52; D-680 Decisions Log row; 4-index BC v3.33/VP v2.40/STORY v4.52/ARCH v2.68; STRICT 3-CLEAN policy recorded; Session Checkpoint refreshed; streak 0/3; 17 lines over soft-target 415; 68 lines under hard-cap 500).
   438 lines (wc-l; D-681 S-18.14 adv pass-7 fix burst — ADR-024 v1.7+ARCH-INDEX v2.69+BC-1.13.001 v1.7+BC-INDEX v3.34+S-18.14 v2.4+STORY-INDEX v4.53; D-681 Decisions Log row + §1 item 1 + §3 carry + §4 entry + §5/§8/§9/§11/§12 updated; Session Checkpoint refreshed; 4-index BC v3.34/VP v2.40/STORY v4.53/ARCH v2.69; streak 0/3; 23 lines over soft-target 415; 62 lines under hard-cap 500).
+  440 lines (wc-l; D-682 develop_head SHA-drift correction — D-681 SHA-patch regressed Active Branches develop 1e81f2c8→40cd18ae; actual origin/develop=1e81f2c8 (PR #199 D-677); sibling-sweep 9 locations; D-682 decision row added; 4-index UNCHANGED BC v3.34/VP v2.40/STORY v4.53/ARCH v2.69; streak 0/3 S-18.14 pass-8 in flight; 25 lines over soft-target 415; 60 lines under hard-cap 500).
 -->
 
 # Pipeline State: vsdd-factory
@@ -93,8 +94,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-06-22 — D-681 S-18.14 ADV PASS-7 FIX BURST: ADR-024 v1.6→v1.7 (F-1 MAJOR POLICY 5 — Decision 5 'absolute path' guarantee unsatisfiable; absolutize-on-emit at DISPATCHER_STARTED via std::path::absolute() MSRV 1.95.0; O-3 is_relative() guard normative; architect); ARCH-INDEX v2.68→v2.69; BC-1.13.001 v1.6→v1.7 (F-1 PC-10 absolutize-on-emit guarantee + two-row TV; INV-8 is_relative() guard normative; product-owner); BC-INDEX v3.33→v3.34; S-18.14 v2.3→v2.4 (AC-005 absolutize semantics; RG-005 discriminating RED→GREEN; AC-001 is_relative() normative; BC v1.7 cite swept; story-writer); STORY-INDEX v4.52→v4.53; 4-index BC v3.34/VP v2.40/STORY v4.53/ARCH v2.69; STRICT 3-CLEAN; passes 5-6 CLEAN but pass-7 fresh F-1 MAJOR — streak RESET 0/3; pass-8 NEXT. Autonomy STOP-BEFORE-PR-MERGE (D-665) holds. |
-| **Current Phase** | **D-681 S-18.14 ADV PASS-7 FIX BURST (2026-06-22). POSTURE: ACTIVE. S-18.14 spec-adversarial cascade IN PROGRESS (pass-7 NOT-CLEAN; F-1 MAJOR POLICY 5 'absolute path' guarantee unsatisfiable CLOSED; O-3 is_relative() guard made normative; passes 5-6 CLEAN but pass-7 reset streak; STRICT 3-CLEAN per human directive; streak 0/3; pass-8 fresh-context NEXT). 4-index BC v3.34/VP v2.40/STORY v4.53/ARCH v2.69. NEXT ACTION: S-18.14 adversary pass-8 (fresh-context). Autonomy STOP-BEFORE-PR-MERGE (D-665) still holds.** |
+| **Last Updated** | 2026-06-22 — D-682 develop_head SHA-drift correction: D-681 SHA-patch regressed Active Branches develop 1e81f2c8→40cd18ae; actual origin/develop=1e81f2c8 (PR #199 chore gitignore squash-merged D-677); sibling-sweep applied across 9 STATE.md locations; D-682 decision row added; 4-index UNCHANGED BC v3.34/VP v2.40/STORY v4.53/ARCH v2.69; S-18.14 STRICT 3-CLEAN streak 0/3 pass-8 in flight. Autonomy STOP-BEFORE-PR-MERGE (D-665) holds. |
+| **Current Phase** | **D-682 develop_head SHA-drift correction (2026-06-22). POSTURE: ACTIVE. D-681 SHA-patch regressed develop HEAD to 40cd18ae; corrected to 1e81f2c8 (origin/develop actual). S-18.14 spec-adversarial cascade IN PROGRESS (STRICT 3-CLEAN; streak 0/3; pass-8 fresh-context NEXT). 4-index BC v3.34/VP v2.40/STORY v4.53/ARCH v2.69. NEXT ACTION: S-18.14 adversary pass-8 (fresh-context). Autonomy STOP-BEFORE-PR-MERGE (D-665) still holds.** |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Phase Progress
@@ -155,7 +156,7 @@ dtu_services: []
 | Branch / Tag | SHA | Notes |
 |--------------|-----|-------|
 | main | caf06c68 | rc.21 bot binary bundle commit 2026-06-13; prior: 2a191314 (rc.20) |
-| develop | 40cd18ae | PR #198 S-18.04a-prereq SQUASH-MERGED 2026-06-22 (D-676); prior: 997c8c1e (D-673 reconcile) |
+| develop | 1e81f2c8 | PR #199 chore gitignore squash-merged 2026-06-22 (D-677); prior: 40cd18ae (PR #198 D-676) |
 | factory-artifacts | e7660518 | D-681 S-18.14 adv pass-7 fix burst (ADR-024 v1.7; BC-1.13.001 v1.7; S-18.14 v2.4; BC-INDEX v3.34; STORY-INDEX v4.53; ARCH-INDEX v2.69; 4-index BC v3.34/VP v2.40/STORY v4.53/ARCH v2.69); prior: 4541dabd (D-680) |
 | v1.0.0-rc.21 (tag) | 03054524 | SHIPPED 2026-06-13; FULLY IN OPERATOR MARKETPLACE (marketplace PR #13 MERGED); annotated tag object |
 | v1.0.0-rc.20 (tag) | e9e38286 | SHIPPED 2026-06-01; marketplace PR #12 squash-merged 862e660d |
@@ -166,7 +167,7 @@ dtu_services: []
 | Cycle | Type | Status | Notes |
 |-------|------|--------|-------|
 | F-block-ai-attribution-message-file-arm | feature | F3 COMPLETE — F4 READY | F1+F2+F3 done 2026-05-12; 2 stories ready; E-16 under SS-07/SS-04; milestone v1.0.0-rc.17 |
-| v1.0-brownfield-backfill | brownfield | **D-681 2026-06-22; POSTURE ACTIVE — S-18.14 adv pass-7 FIX BURST; STRICT 3-CLEAN; streak 0/3; 4-index BC v3.34/VP v2.40/STORY v4.53/ARCH v2.69; develop 40cd18ae; NEXT: S-18.14 pass-8 fresh-context** | rc.21 100% COMPLETE D-560; D-619..D-681; develop 40cd18ae; main caf06c68. **Autonomy STOP-BEFORE-PR-MERGE (D-665) holds.** |
+| v1.0-brownfield-backfill | brownfield | **D-682 2026-06-22; POSTURE ACTIVE — develop_head SHA-drift correction (D-681 regressed 1e81f2c8→40cd18ae; restored); STRICT 3-CLEAN; streak 0/3; 4-index BC v3.34/VP v2.40/STORY v4.53/ARCH v2.69; develop 1e81f2c8; NEXT: S-18.14 pass-8 fresh-context** | rc.21 100% COMPLETE D-560; D-619..D-682; develop 1e81f2c8; main caf06c68. **Autonomy STOP-BEFORE-PR-MERGE (D-665) holds.** |
 | v1.0-feature-engine-discipline-pass-1 | feature | **PAUSED** | F5 pass-75 adversary complete D-510 2026-05-27; META-LEVEL-30 CANDIDATE-CONFIRMED; trajectory →9→9→9→11. Full-cycle trajectory (75 values ending): →9→9→9→9→11. |
 | v1.0-feature-plugin-async-semantics-pass-1 | feature | CLOSED | All PRs merged; rc.14 shipped |
 
@@ -176,6 +177,7 @@ dtu_services: []
 
 | ID | Decision | Phase | Date |
 |----|----------|-------|------|
+| D-682 | STATE.md develop_head SHA-drift correction 2026-06-22 — D-681 (e7660518) SHA-patch regressed Active Branches develop row from 1e81f2c8→40cd18ae; actual origin/develop HEAD = 1e81f2c8 (PR #199 `chore: gitignore repo-root runtime dispatcher logs` squash-merged 2026-06-22 per D-677); D-677 correctly set develop_head 40cd18ae→1e81f2c8 in its own burst; D-681 SHA-patch silently regressed it back to 40cd18ae; sibling-sweep applied to: Active Branches develop row, Concurrent Cycles develop cite, §1 develop HEAD, §9 Critical Anchors develop HEAD, Session Resume Checkpoint header + §1 text + §1 item-10 + §9 Verify-on-resume + §11 item-1; frontmatter banner; 4-index UNCHANGED BC v3.34/VP v2.40/STORY v4.53/ARCH v2.69; S-18.14 STRICT 3-CLEAN streak 0/3 pass-8 in flight. | D-682-develop-head-SHA-drift-correction | 2026-06-22 |
 | D-681 | S-18.14 adversary pass-7 FIX BURST 2026-06-22 — F-1 (MAJOR POLICY 5 — Decision 5 'absolute path' guarantee unsatisfiable: `InternalLog::log_dir()` is a verbatim accessor; multiple `resolve_log_dir_from_params` branches return relative paths; FIXED option-a absolutize-on-emit via `std::path::absolute(internal_log.log_dir())` at main.rs `DISPATCHER_STARTED` builder chain; MSRV 1.95.0; verbatim fallback; `InternalLog::log_dir()` unchanged; ADR-024 §Decision 5 v1.7; architect) + O-3 (explicit `is_relative()` guard normative in ADR-024 §Decision 1 Addendum step 2 + BC-1.13.001 INV-8 v1.7; Windows cross-platform correctness) CLOSED; BC-1.13.001 v1.6→v1.7 (PC-10 absolutize-on-emit + two-row TV; INV-8 is_relative() normative; BC-INDEX v3.33→v3.34; product-owner); S-18.14 v2.3→v2.4 (AC-005 absolutize semantics; RG-005 discriminating RED→GREEN; AC-001 is_relative() normative; BC v1.7 cite swept; story-writer); STORY-INDEX v4.52→v4.53; ARCH-INDEX v2.68→v2.69; O-1/O-2 non-findings; 4-index BC v3.34/VP v2.40/STORY v4.53/ARCH v2.69; STRICT 3-CLEAN; passes 5-6 CLEAN but pass-7 fresh MAJOR — streak RESET 0/3; pass-8 fresh-context NEXT. Parent-commit: 4541dabd (D-680 factory-artifacts HEAD). | D-681-S18.14-adv-pass-7-fix-burst | 2026-06-22 |
 | D-680 | S-18.14 adversary pass-4 FIX BURST 2026-06-22 — F-1 (MAJOR POLICY 9 — VP-073 proof-method specified as `unit-test` in BC-1.13.001 §Verification Properties row but VP-INDEX catalog entry for VP-073 specifies `integration`; sibling-sweep gap from pass-1 D-678 VP-074 proof-method fix that swept VP-074 but missed VP-073; BC-1.13.001 v1.5→v1.6 VP-073 row proof-method corrected to `integration`; VP-075 confirmed matching `integration` — no change needed; BC-INDEX v3.32→v3.33 row annotation; product-owner) + F-2 (ADVISORY POLICY 5 — ADR-024 §Consequences + §Files-to-change `resolver_loader.rs` row still contained stale plural 'at all `get_or_compile` call sites' framing inconsistent with v1.5 Decision 1 Addendum single-call-site correction; reworded to single-production-call-site framing; sibling-sweep grep confirmed no other normative plural call-site framings in ADR-024 body; ADR-024 v1.5→v1.6; ARCH-INDEX v2.67→v2.68 row annotation; architect) + F-3 (ADVISORY — RG-001 test fixture obligation: valid-WASM binary must be embedded in test fixtures using `wat::parse_str` / minimal WAT pattern to avoid relying on external files; S-18.14 v2.2→v2.3 RG-001 fixture note added; STORY-INDEX v4.51→v4.52 row annotation; story-writer) CLOSED; 4-index BC v3.33/VP v2.40/STORY v4.52/ARCH v2.68; STRICT 3-CLEAN per human directive (asymptotic-accept DECLINED); passes 1-3 fixes held; pass-3 WAS CLEAN but pass-4 found 1 MAJOR + 2 ADVISORY — streak RESET 0/3; pass-5 fresh-context NEXT. Parent-commit: e706c625 (D-679 factory-artifacts HEAD). | D-680-S18.14-adv-pass-4-fix-burst | 2026-06-22 |
 | D-679 | S-18.14 adversary pass-2 FIX BURST 2026-06-22 — F-1 (false 'two call sites' claim in §Decision 1 Addendum step 5 corrected: ground truth — exactly ONE production `get_or_compile` call site exists in `load_registry` (~`resolver_loader.rs:361`); line 1057 is inside `#[cfg(test)]`; TD-VSDD-060 sibling-sweep confirms no second production call site; the `fail_closed: true`/`fail_closed: false` divergence is in the post-call error `match`, not at separate call sites; step 5 rewritten; BC-1.01.004/`registry.rs::resolve_plugin_paths` precedent cross-reference added; ADR-024 v1.4→v1.5; ARCH-INDEX v2.66→v2.67; BC-1.13.001 INV-8 Architecture Anchors updated to match; BC-1.13.001 v1.4→v1.5; BC-INDEX v3.31→v3.32) + F-2 (BC-1.01.004 sibling cross-reference added to BC-1.13.001 §Related BCs — same path-join contract for hooks-registry.toml via `registry.rs::resolve_plugin_paths`; INV-8 is the resolvers-registry analogue; EC-010 extended with idempotent-absolute-passthrough guarantee citing BC-1.01.004 EC-001/EC-002; S-18.14 ref-impl pointer added to Previous Story Intelligence; POLICY 4) + F-4 (RG-001 load-bearing vs secondary assertion clarified — primary assertion: WASM loads successfully when TOML-parent-relative path is correct; secondary: CWD-relative path produces different wrong result — POLICY 11 re-fire prevention) CLOSED; F-5 (BC-INDEX header Version-column, pre-existing index-wide) DEFERRED to standalone hygiene burst (out of S-18.14 scope per adversary); 4-index BC v3.32/VP v2.40/STORY v4.51/ARCH v2.67; pass-1 fixes held; streak 0/3; pass-3 fresh-context NEXT. Parent-commit: 8c903922 (D-678 factory-artifacts HEAD). | D-679-S18.14-adv-pass-2-fix-burst | 2026-06-22 |
@@ -253,7 +255,7 @@ dtu_services: []
 - `cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` | `session-checkpoints.md` | `lessons.md`
 - `cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md` (adversary reviews at `S-12.03/`, `S-12.04/`, `S-12.05/` subdirs)
 
-## Session Resume Checkpoint (2026-06-22 — D-681 S-18.14 ADV PASS-7 FIX BURST; BC-1.13.001 v1.7; ADR-024 v1.7; S-18.14 v2.4; 4-index BC v3.34/VP v2.40/STORY v4.53/ARCH v2.69; develop HEAD 40cd18ae; STRICT 3-CLEAN; streak 0/3)
+## Session Resume Checkpoint (2026-06-22 — D-682 develop_head SHA-drift correction; D-681 S-18.14 ADV PASS-7 FIX BURST; BC-1.13.001 v1.7; ADR-024 v1.7; S-18.14 v2.4; 4-index BC v3.34/VP v2.40/STORY v4.53/ARCH v2.69; develop HEAD 1e81f2c8; STRICT 3-CLEAN; streak 0/3)
 
 > **SELF-SUFFICIENT RESUME CONTEXT FOR ZERO-CONTEXT NEW SESSION OR NEW MACHINE**
 > Read this section alone to resume. Assumes ZERO prior context. All decisions, directives, and anchors stated explicitly.
@@ -262,7 +264,7 @@ dtu_services: []
 
 **POSTURE: ACTIVE (D-681 S-18.14 ADV PASS-7 FIX BURST 2026-06-22).**
 
-**E-18 CAP-032 context-durability (GitHub issue #173) — F4 TDD Wave 1 COMPLETE (S-18.00 MERGED D-638) + Wave 2 (S-18.01 MERGED PR #193 8b26a0fe D-648) + Wave 3 (S-18.02 MERGED PR #195 bd6e50ce D-651) + Wave 4a (S-18.13 MERGED PR #196 70664e02 D-663) + Wave W0-prereq (S-18.04a-prereq MERGED PR #198 40cd18ae D-676). 4-index: BC v3.34/VP v2.40/STORY v4.53/ARCH v2.69. develop HEAD 40cd18ae. ADR count 28. BC-5.41.001 v1.26 + BC-5.41.002 v1.19 + BC-4.14.001 v1.17 + BC-2.02.011 + BC-1.13.001 all active (POL-14). SPEC CONVERGENCE ACCEPTED D-672. S-18.14 v2.4 D-681 (ADV PASS-7 FIX BURST: BC-1.13.001 v1.7; ADR-024 v1.7; 5 Red Gates; F-1 MAJOR POLICY 5 absolutize-on-emit CLOSED; O-3 is_relative() guard normative CLOSED; O-1/O-2 non-findings; STRICT 3-CLEAN; passes 5-6 CLEAN; pass-7 reset streak 0/3). CONVERGENCE POLICY: STRICT 3-CLEAN (human-directed; asymptotic-accept DECLINED for S-18.14 cascade).**
+**E-18 CAP-032 context-durability (GitHub issue #173) — F4 TDD Wave 1 COMPLETE (S-18.00 MERGED D-638) + Wave 2 (S-18.01 MERGED PR #193 8b26a0fe D-648) + Wave 3 (S-18.02 MERGED PR #195 bd6e50ce D-651) + Wave 4a (S-18.13 MERGED PR #196 70664e02 D-663) + Wave W0-prereq (S-18.04a-prereq MERGED PR #198 40cd18ae D-676). 4-index: BC v3.34/VP v2.40/STORY v4.53/ARCH v2.69. develop HEAD 1e81f2c8. ADR count 28. BC-5.41.001 v1.26 + BC-5.41.002 v1.19 + BC-4.14.001 v1.17 + BC-2.02.011 + BC-1.13.001 all active (POL-14). SPEC CONVERGENCE ACCEPTED D-672. S-18.14 v2.4 D-681 (ADV PASS-7 FIX BURST: BC-1.13.001 v1.7; ADR-024 v1.7; 5 Red Gates; F-1 MAJOR POLICY 5 absolutize-on-emit CLOSED; O-3 is_relative() guard normative CLOSED; O-1/O-2 non-findings; STRICT 3-CLEAN; passes 5-6 CLEAN; pass-7 reset streak 0/3). CONVERGENCE POLICY: STRICT 3-CLEAN (human-directed; asymptotic-accept DECLINED for S-18.14 cascade).**
 
 **CURRENT: S-18.14 adversarial spec cascade PASS-7 CLOSED (NOT-CLEAN; F-1 MAJOR POLICY 5 Decision-5 'absolute path' guarantee unsatisfiable → fixed absolutize-on-emit via std::path::absolute() at DISPATCHER_STARTED site; O-3 is_relative() guard made normative; O-1/O-2 non-findings; passes 5-6 were CLEAN; pass-7 reset streak 0/3). NEXT ACTION: S-18.14 adversary pass-8 (fresh-context; reads ONLY adv-s18.14-pass-7.md Part A; DO NOT show prior-pass fix changes before dispatch). After S-18.14 spec-cascade STRICT 3-CLEAN: S-18.04a WASM TDD (BC-7.07.001 v1.18; ADR-028 v1.3; crates/hook-plugins/precompact-flush + crates/factory-lock). Key behaviors: runtime `git worktree list --porcelain` discovery + canonicalize-mount assertion; uniform `git -C <wt>` on ALL git subprocesses; `git add -A` staging; SHA_B = git rev-parse HEAD; SHA-pinned concurrent-commit guard (3a reset / 3b no-reset+human / reset-failure); commit msg `PreCompact flush <cycle>/<step> <ISO>`; log read-modify-write `\n`-terminated 4-field append; native renew_lock (TTL 2700s, expires_at YYYY-MM-DDTHH:MM:SSZ, NoOp-on-identical); env_allow=[HOME,GIT_CONFIG_GLOBAL,XDG_CONFIG_HOME,PATH,SSH_AUTH_SOCK], binary_allow=[git]. Cargo unit + bats Red Gate → LOCAL adversary 3-CLEAN → demo → PR → human merge gate (stop-before-merge holds).**
 
@@ -284,7 +286,7 @@ dtu_services: []
    - **Step 1a — PR #199 (chore: logs/ gitignore) MERGED 1e81f2c8 D-677:** DONE.
    - **Step 2 — S-18.04b (dep S-18.04a):** PreCompact exemption + prune WASM. Unblocks after S-18.04a merged.
    - **Step 3 — S-18.03 (deps S-18.04a + S-18.04b):** rehydrate-wave SKILL (BC-6.24.001/VP-088; 8pts).
-10. **develop HEAD:** 40cd18ae (PR #198 S-18.04a-prereq squash-merged 2026-06-22 D-676; prior: 997c8c1e D-673).
+10. **develop HEAD:** 1e81f2c8 (PR #199 chore gitignore squash-merged 2026-06-22 D-677; prior: 40cd18ae PR #198 D-676).
 
 **Key design facts (S-18.04a):**
 - flush = commit(LOCAL, SHA_B) → append-to-log → push(REMOTE); each step failure → exit 2.
@@ -375,7 +377,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 ### §9. Critical Anchors
 
 - **factory-artifacts HEAD:** `e7660518` D-681 S-18.14 adv pass-7 fix burst (ADR-024 v1.7; BC-1.13.001 v1.7; S-18.14 v2.4; BC-INDEX v3.34; STORY-INDEX v4.53; ARCH-INDEX v2.69); prior: `4541dabd` D-680 adv-pass-4 fix burst
-- **develop HEAD:** `40cd18ae` (PR #198 S-18.04a-prereq SQUASH-MERGED 2026-06-22 D-676; prior: `997c8c1e` D-673)
+- **develop HEAD:** `1e81f2c8` (PR #199 chore gitignore squash-merged 2026-06-22 D-677; prior: `40cd18ae` PR #198 D-676)
 - **main HEAD:** `caf06c68` (rc.21 bot bundle commit 2026-06-13; UNCHANGED)
 - **v1.0.0-rc.21 tag:** `03054524` (SHIPPED; FULLY IN OPERATOR MARKETPLACE)
 - **BC-4.15.001 v1.2/VP-091 v1.1/BC-6.25.001 v1.0/VP-092 v1.0/ADR-026 v1.21:** See decision-log.md D-612/D-615 blocks. invariants.md v1.24 (D-615).
@@ -387,7 +389,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 - **ADR-028 v1.3:** `specs/architecture/decisions/ADR-028-e18-precompact-flush-native-wasm-migration.md` (D-672 ROUND-3 FINAL: F-R3-001 mount canonicalize split-tree guard; F-R3-002 scan-region Decision 14; F-R3-003 staging add -A Decision 15 EC-008; F-R3-005 NoOp-identical Decision 16; F-R3-006 wrong-branch RedGate Decision 17; F-R3-007 committer note Decision 18; CV-002 Decision-4 forward-ref; SPEC CONVERGENCE ACCEPTED)
 - **BC-7.07.001 v1.18:** `ss-07/BC-7.07.001.md` (D-672: A12-A15+CV-003 added — A12 mount canonicalize assertion; A13 scan-region; A14 wrong-branch RedGate; A15 NoOp-identical; CV-003 CLOSED; SPEC CONVERGENCE ACCEPTED)
 - **S-18.04a v1.11:** `stories/S-18.04a-precompact-flush-sh-core.md` (D-672: B14-B18 story ACs for F-R3 closures; ROUND-3 FINAL CONVERGED)
-- **Verify on resume:** `git rev-parse --short origin/develop` → expect `40cd18ae` (PR #198 S-18.04a-prereq merged D-676); `git rev-parse --short origin/main` → expect `caf06c68`; `git -C .factory log -1 --format='%h %s'` → expect `e7660518 state: D-681 S-18.14 adv pass-7 fix burst...`
+- **Verify on resume:** `git rev-parse --short origin/develop` → expect `1e81f2c8` (PR #199 chore gitignore merged D-677; prior: `40cd18ae` PR #198 D-676); `git rev-parse --short origin/main` → expect `caf06c68`; `git -C .factory log -1 --format='%h %s'` → expect D-682 factory-artifacts commit
 
 ### §10. PR Status
 
@@ -399,7 +401,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 ### §11. Post-CLEAR/Post-RESET Resume Checklist (zero-context; D-639 refresh)
 
-1. **Verify worktree state:** `git rev-parse --short origin/develop` → expect `40cd18ae` (PR #198 S-18.04a-prereq merged 2026-06-22 D-676). `git rev-parse --short origin/main` → expect `caf06c68`. `git -C .factory log -1 --format='%h %s'` → expect D-681 factory-artifacts commit. feature/S-18.04a-prereq MERGED PR #198 40cd18ae (deleted). S-18.14 v2.4 adv-pass-7-fix (BC-1.13.001 v1.7; ADR-024 v1.7; 5 Red Gates; STRICT 3-CLEAN; streak 0/3). feature/S-18.01 MERGED. feature/S-18.02 MERGED PR #195 bd6e50ce (deleted). feature/S-18.13 MERGED PR #196 70664e02 (deleted).
+1. **Verify worktree state:** `git rev-parse --short origin/develop` → expect `1e81f2c8` (PR #199 chore gitignore merged 2026-06-22 D-677; prior: `40cd18ae` PR #198 D-676). `git rev-parse --short origin/main` → expect `caf06c68`. `git -C .factory log -1 --format='%h %s'` → expect D-682 factory-artifacts commit. feature/S-18.04a-prereq MERGED PR #198 40cd18ae (deleted). S-18.14 v2.4 adv-pass-7-fix (BC-1.13.001 v1.7; ADR-024 v1.7; 5 Red Gates; STRICT 3-CLEAN; streak 0/3). feature/S-18.01 MERGED. feature/S-18.02 MERGED PR #195 bd6e50ce (deleted). feature/S-18.13 MERGED PR #196 70664e02 (deleted).
 2. **Read §1-§12 this checkpoint** (all of it; D-651 self-sufficient).
 3. **Verify 4-index:** `grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md` → "3.34"; ARCH-INDEX → "2.69"; VP-INDEX → "2.40"; STORY-INDEX → "4.53"; L2-INDEX → "1.0.13".
 4. **E-10 CASCADE SEALED D-531.** Do NOT resume without engine-surface material change.
