@@ -1578,19 +1578,16 @@ mod tests {
             "| D-689 | some row |\n",
         );
         let violations = validate_state_md(content);
-        // Must have at least one violation: missing 4-index cites (D-439(b))
-        // AND missing trajectory-tail (D-451(c)).
-        assert!(
-            !violations.is_empty(),
-            "F5 current_step without index cites and trajectory-tail \
-             must produce violations; got none"
-        );
         let descs: Vec<&str> = violations.iter().map(|v| v.description.as_str()).collect();
+        // Check 1: 4-index version citations (D-439(b)) must fire.
         assert!(
-            descs
-                .iter()
-                .any(|d| d.contains("BC-INDEX v") || d.contains("trajectory-tail")),
-            "violations must cite missing index cites or trajectory-tail; got: {descs:?}"
+            descs.iter().any(|d| d.contains("BC-INDEX v")),
+            "F5 cycle: missing 4-index cites (D-439(b)) must produce a violation; got: {descs:?}"
+        );
+        // Check 2: trajectory-tail LENGTH=4 (D-451(c)) must fire independently.
+        assert!(
+            descs.iter().any(|d| d.contains("trajectory-tail")),
+            "F5 cycle: missing trajectory-tail (D-451(c)) must produce a violation; got: {descs:?}"
         );
     }
 
