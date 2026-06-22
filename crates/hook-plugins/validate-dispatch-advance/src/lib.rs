@@ -560,7 +560,7 @@ fn scan_max_d_nnn(s: &str) -> u64 {
 /// requirements apply ONLY to the F5 engine-discipline cycle
 /// (`v1.0-feature-engine-discipline-pass-1`). This helper enables the gate
 /// check in `validate_state_md`.
-fn extract_current_cycle<'a>(content: &'a str) -> Option<&'a str> {
+fn extract_current_cycle(content: &str) -> Option<&str> {
     // Strip BOM if present.
     let content = content.trim_start_matches('\u{feff}');
     let after_open = content.strip_prefix("---")?;
@@ -621,7 +621,7 @@ fn is_f5_cycle(current_cycle: Option<&str>) -> bool {
     // Conservative: if cycle is unknown (None), apply F5 checks to avoid
     // silently disabling them on a genuinely-F5 state file that is missing
     // the current_cycle: field.
-    current_cycle.map_or(true, |c| c == F5_CYCLE_ID)
+    current_cycle.is_none_or(|c| c == F5_CYCLE_ID)
 }
 
 /// Orchestrate all STATE.md validation checks.
