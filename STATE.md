@@ -152,7 +152,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | caf06c68 | rc.21 bot binary bundle commit 2026-06-13; prior: 2a191314 (rc.20) |
 | develop | 1e81f2c8 | PR #199 chore: gitignore SQUASH-MERGED 2026-06-22 (D-677); prior: 40cd18ae (PR #198 S-18.04a-prereq D-676) |
-| factory-artifacts | (D-677 HEAD — see §9) | D-677 S-18.14 spec-authorship burst (ADR-024 v1.3; BC-1.13.001 v1.3; S-18.14 v2.0; PR #199 MERGED; Session Checkpoint D-677); prior: b3f0f97e (D-676) |
+| factory-artifacts | 909ef9a5 | D-677 S-18.14 spec-authorship burst (ADR-024 v1.3; BC-1.13.001 v1.3; S-18.14 v2.0; PR #199 MERGED; Session Checkpoint D-677); prior: b3f0f97e (D-676) |
 | v1.0.0-rc.21 (tag) | 03054524 | SHIPPED 2026-06-13; FULLY IN OPERATOR MARKETPLACE (marketplace PR #13 MERGED); annotated tag object |
 | v1.0.0-rc.20 (tag) | e9e38286 | SHIPPED 2026-06-01; marketplace PR #12 squash-merged 862e660d |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28 |
@@ -358,7 +358,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** post-commit (D-677 spec-authorship burst; prior: `b3f0f97e` D-676 post-merge burst) — run `git -C .factory log -1 --format='%h %s'` for actual SHA
+- **factory-artifacts HEAD:** `909ef9a5` (D-677 S-18.14 spec-authorship burst 2026-06-22; prior: `b3f0f97e` D-676 post-merge burst)
 - **develop HEAD:** `1e81f2c8` (PR #199 chore: gitignore SQUASH-MERGED 2026-06-22 D-677; prior: `40cd18ae` PR #198 S-18.04a-prereq D-676)
 - **main HEAD:** `caf06c68` (rc.21 bot bundle commit 2026-06-13; UNCHANGED)
 - **v1.0.0-rc.21 tag:** `03054524` (SHIPPED; FULLY IN OPERATOR MARKETPLACE)
