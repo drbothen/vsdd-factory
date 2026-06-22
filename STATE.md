@@ -153,7 +153,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | caf06c68 | rc.21 bot binary bundle commit 2026-06-13; prior: 2a191314 (rc.20) |
 | develop | 1e81f2c8 | PR #199 chore: gitignore SQUASH-MERGED 2026-06-22 (D-677); prior: 40cd18ae (PR #198 S-18.04a-prereq D-676) |
-| factory-artifacts | TBD-D678 | D-678 S-18.14 adv pass-1 fix burst (ADR-024 v1.4; BC-1.13.001 v1.4; S-18.14 v2.1; BC-INDEX v3.31; STORY-INDEX v4.50; ARCH-INDEX v2.66; 4-index BC v3.31/VP v2.40/STORY v4.50/ARCH v2.66); prior: 909ef9a5 (D-677) |
+| factory-artifacts | 8c903922 | D-678 S-18.14 adv pass-1 fix burst (ADR-024 v1.4; BC-1.13.001 v1.4; S-18.14 v2.1; BC-INDEX v3.31; STORY-INDEX v4.50; ARCH-INDEX v2.66; 4-index BC v3.31/VP v2.40/STORY v4.50/ARCH v2.66); prior: 909ef9a5 (D-677) |
 | v1.0.0-rc.21 (tag) | 03054524 | SHIPPED 2026-06-13; FULLY IN OPERATOR MARKETPLACE (marketplace PR #13 MERGED); annotated tag object |
 | v1.0.0-rc.20 (tag) | e9e38286 | SHIPPED 2026-06-01; marketplace PR #12 squash-merged 862e660d |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28 |
@@ -363,7 +363,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** TBD-D678 (D-678 S-18.14 adv pass-1 fix burst 2026-06-22; prior: `909ef9a5` D-677 spec-authorship burst)
+- **factory-artifacts HEAD:** 8c903922 (D-678 S-18.14 adv pass-1 fix burst 2026-06-22; prior: `909ef9a5` D-677 spec-authorship burst)
 - **develop HEAD:** `1e81f2c8` (PR #199 chore: gitignore SQUASH-MERGED 2026-06-22 D-677; prior: `40cd18ae` PR #198 S-18.04a-prereq D-676)
 - **main HEAD:** `caf06c68` (rc.21 bot bundle commit 2026-06-13; UNCHANGED)
 - **v1.0.0-rc.21 tag:** `03054524` (SHIPPED; FULLY IN OPERATOR MARKETPLACE)
