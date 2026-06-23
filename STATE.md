@@ -127,7 +127,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | caf06c68 | rc.21 bot binary bundle commit 2026-06-13; prior: 2a191314 (rc.20) |
 | develop | dfc76844 | PR #201 `feat(S-18.14): dispatcher resolver WASM path fix + log_dir observability` squash-merged 2026-06-23 (D-692; S-18.14 + 5 disclosed bundled fixes); prior: dbf37dbd (PR #200 D-690) |
-| factory-artifacts | TBD-this-burst | D-692 POST-MERGE BURST (S-18.14 merged; BC-1.13.001 active; S-4.11 registered; Session Resume updated); prior: 0c2b878f (D-691 DURABLE PAUSE REFINEMENT) |
+| factory-artifacts | 198028e6 | D-692 POST-MERGE BURST (S-18.14 merged; BC-1.13.001 active; S-4.11 registered; Session Resume updated); prior: 0c2b878f (D-691 DURABLE PAUSE REFINEMENT) |
 | v1.0.0-rc.21 (tag) | 03054524 | SHIPPED 2026-06-13; FULLY IN OPERATOR MARKETPLACE (marketplace PR #13 MERGED); annotated tag object |
 | v1.0.0-rc.20 (tag) | e9e38286 | SHIPPED 2026-06-01; marketplace PR #12 squash-merged 862e660d |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28 |
@@ -356,7 +356,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** see `git -C .factory log -1 --format='%h %s'` (D-692 POST-MERGE BURST = this burst; prior D-691 = `0c2b878f`)
+- **factory-artifacts HEAD:** see `git -C .factory log -1 --format='%h %s'` (D-692 POST-MERGE BURST = `198028e6`; prior D-691 = `0c2b878f`)
 - **develop HEAD:** `dfc76844` (PR #201 S-18.14 squash-merged 2026-06-23 D-692; prior: `dbf37dbd` PR #200 D-690)
 - **main HEAD:** `caf06c68` (rc.21 bot bundle commit 2026-06-13; UNCHANGED)
 - **v1.0.0-rc.21 tag:** `03054524` (SHIPPED; FULLY IN OPERATOR MARKETPLACE)
