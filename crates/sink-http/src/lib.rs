@@ -502,12 +502,6 @@ pub struct HttpSink {
     /// dead because `self.dlq_writer` is not directly dereffed after `new()`.
     #[allow(dead_code)]
     dlq_writer: Option<Arc<DlqWriter>>,
-    // NOTE: sleep_mode is stored here so it outlives `new_with_observability`
-    // and can be read by callers of `new_with_recording_sleeper`. The worker
-    // thread receives a clone at spawn time and never touches `self.sleep_mode`
-    // again — this field is only retained for test inspection purposes.
-    #[allow(dead_code)]
-    sleep_mode: SleepMode,
 }
 
 impl HttpSink {
@@ -629,7 +623,6 @@ impl HttpSink {
             worker: Mutex::new(Some(handle)),
             shared,
             dlq_writer,
-            sleep_mode,
         })
     }
 
