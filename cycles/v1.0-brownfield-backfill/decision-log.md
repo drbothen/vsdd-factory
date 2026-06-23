@@ -2915,3 +2915,55 @@ a79b27b2 (D-688 S-18.14 pass-21 FIX BURST exhaustive residue sweep factory-artif
 ### NEXT
 
 S-18.14 TDD delivery: stub-architect → test-writer (Red Gate stubs) → implementer (TDD green) → LOCAL adversary 3-CLEAN (BC-5.39.001) → demo-recorder → PR (pr-manager 9-step) → STOP-BEFORE-PR-MERGE (D-665 human gate). Autonomy STOP-BEFORE-PR-MERGE (D-665) holds.
+
+---
+
+## D-692 — PR #201 (S-18.14) post-merge STATE burst — 2026-06-23
+
+**Decision:** PR #201 (feature/S-18.14 → develop) squash-merged to develop at commit `dfc76844` on 2026-06-23T17:00:01Z. Post-merge burst executed.
+
+**Context:** RA-1 (surface for human approval) and RA-2 (merge + post-merge burst) complete. RA-3 (S-18.04a WASM TDD) is next. PR #201 bundled S-18.14 (primary story) plus 5 disclosed extra fixes (human-approved "keep bundled + disclose" decision 2026-06-23):
+- windows-x64 Red Gate TOML-fixture escaping (da65e8ee)
+- validate-state-structure SIZE BUDGET HTML-comment-block walk F-P5-006 (175ab890)
+- sink-http BC-3.07.001 backoff deflake via SleepMode injection (a2036d13)
+- bats-linux cargo-cache bust (f1e532e3/63715c1f)
+- dead sleep_mode field removal NIT-2 (174b6d63)
+
+NIT-1 (AC-007 jitter-uncorrelation hard-assert strengthen) deferred to S-4.11 (human-approved deferral 2026-06-23; test-only; no spec impact; anchored to S-4.11 story file).
+
+**Process-gap codified:** D-691 pause recorded 'CI 12/12 GREEN' while build-dispatcher (windows-x64) was still building; it later FAILED. On resume two further CI failures surfaced. Lesson: a 'CI green' attestation MUST require ALL required matrix legs in a TERMINAL state (every required check completed=success), not merely the legs that had finished at snapshot time. Recorded as L-BB-premature-ci-green-attestation below. Anchored to follow-up gate improvement (Drift Item added to STATE.md).
+
+**Actions taken:**
+- S-18.14 story status ready→merged; PR #201 dfc76844 2026-06-23 added to merged-stories-ledger.md
+- S-18.02 (PR #195 bd6e50ce) and S-18.04a-prereq (PR #198 40cd18ae) backfilled to merged-stories-ledger.md (missing from prior ledger entries)
+- merged_count 83→84; story_count 121→122 (S-4.11 registered)
+- POL-14 auto-promotion: BC-1.13.001 draft→active (BC-INDEX v3.39→v3.40; BC file lifecycle_status already `active` from prior burst — BC-INDEX row corrected to match)
+- S-4.11 registered in STORY-INDEX (draft; deferred NIT-1; E-4; 2pt; P2; BC-3.07.001; story v1.0)
+- develop HEAD updated: dbf37dbd→dfc76844
+- POSTURE: ACTIVE (continuing to RA-3 = S-18.04a WASM TDD); STOP-BEFORE-PR-MERGE (D-665) still holds for next PR
+- 4-index: BC-INDEX v3.40 / VP-INDEX v2.40 / STORY-INDEX v4.62 / ARCH-INDEX v2.72
+
+**4-index gate (literal-shell stdout 2026-06-23):**
+```
+grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md
+version: "3.40"
+
+grep "^version:" .factory/specs/verification-properties/VP-INDEX.md
+version: "2.40"
+
+grep "^version:" .factory/stories/STORY-INDEX.md
+version: "4.62"
+
+grep "^version:" .factory/specs/architecture/ARCH-INDEX.md
+version: "2.72"
+```
+
+Zero FAIL. Parity PASS: BC-INDEX v3.40 / VP-INDEX v2.40 / STORY-INDEX v4.62 / ARCH-INDEX v2.72.
+
+### Parent-commit
+
+0c2b878f (D-691 DURABLE PAUSE REFINEMENT burst factory-artifacts HEAD; single-commit per TD-VSDD-053)
+
+### NEXT
+
+RA-3: S-18.04a WASM TDD (S-18.04a v1.11 SPEC CONVERGED D-672; BC-7.07.001 v1.18; ADR-028 v1.3; crates/hook-plugins/precompact-flush + crates/factory-lock). STOP-BEFORE-PR-MERGE (D-665) holds for next PR. Recommend cutting rc release after S-18.14 merge (release-gated fix — note from S-18.14 story body).

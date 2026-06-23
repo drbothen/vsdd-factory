@@ -825,6 +825,13 @@ Summary of D-662 checkpoint (archived from STATE.md 2026-06-20):
 
 Archived from STATE.md on 2026-06-21 when D-675 DURABLE PAUSE checkpoint replaced it.
 
+Summary of D-691 checkpoint (archived from STATE.md 2026-06-23 by D-692 post-merge burst):
+- D-691 DURABLE PAUSE REFINEMENT 2026-06-22: PR #201 (S-18.14, feature/S-18.14 @ 881f1f1f) review cascade COMPLETED — security PASS (0 CRITICAL/0 HIGH; 5 LOW accepted) / code-review APPROVE (CR-001/002/003 fixed @ 881f1f1f) / pr-reviewer APPROVE (cycle 2; 1 NIT RG-005 deferred-acceptable) / CI 12/12 GREEN. PR #201 MERGE-PENDING (STOP-BEFORE-PR-MERGE D-665). D-430(a) compaction applied. develop_head dbf37dbd UNCHANGED. POSTURE: PAUSED. RESUME: RA-1 surface PR #201 for human merge approval; RA-2 merge + post-merge burst; RA-3 S-18.04a WASM TDD.
+- 4-index: BC v3.39/VP v2.40/STORY v4.61/ARCH v2.72. L2-INDEX v1.0.13.
+- develop HEAD: `dbf37dbd` (PR #200 CI-fix; D-690) / main HEAD: `caf06c68` / factory-artifacts HEAD: `0c2b878f` (D-691 DURABLE PAUSE REFINEMENT burst)
+- D-range: D-001..D-691
+---
+
 Summary of D-674 checkpoint (archived from STATE.md 2026-06-21):
 - D-674 S-18.04a-prereq CI orphan-hook-ref fix + AC-006 Rust integration test re-attribution. PR #198 CI 'check-bats-orphans' lint failed on redundant TC-AC006-CWD-ENV bats test (synthetic hooks/stub-write-probe.sh orphan). Implementer removed redundant env-propagation test (af91700a pushed; check-bats-orphans clean, bats 10/10, cargo green). Story-writer re-attributed AC-006 cwd-rooting proof to Rust integration test test_BC_2_02_011_invariant_3_relative_path_resolves_via_linker (crates/factory-dispatcher/tests/host_write_file_integration.rs; authoritative; sets distinct ctx.cwd/ctx.plugin_root; asserts .factory/ write lands under cwd not plugin_root). AC-005 bats distinct-roots de-masking retained unchanged. Prereq story v1.1→v1.2. STORY-INDEX v4.47. BC/VP/ARCH UNCHANGED. Duplicate PR #197 closed. PR #198 CI re-running after af91700a. POSTURE: ACTIVE. NEXT: confirm PR #198 CI green + human merge approval (stop-before-merge) then S-18.04a WASM TDD.
 - 4-index: BC v3.29/VP v2.40/STORY v4.47/ARCH v2.64. L2-INDEX v1.0.13.

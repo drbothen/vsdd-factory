@@ -4942,3 +4942,30 @@ Any miss in these 3 grep checks is a POLICY 8 propagation gap.
 **4-index at convergence:** BC-INDEX v3.23 / VP-INDEX v2.40 / STORY-INDEX v4.38 / ARCH-INDEX v2.60. ALL UNCHANGED this burst (pure cascade-state recording).
 
 **Cites:** D-661; D-653..D-660 (full cascade arc); BC-5.39.001 3-CLEAN protocol; S-7.02 cycle-closing checklist; S-18.13 v1.8 READY.
+
+---
+
+## L-BB-premature-ci-green-attestation
+
+**Date:** 2026-06-23
+**Tags:** [process-gap] [ci] [attestation]
+**Anchors:** D-691, D-692, PR #201, S-18.14
+
+**Lesson (codified):** A 'CI green' attestation recorded in a PAUSE checkpoint (D-691 recorded 'CI 12/12 GREEN') MUST require ALL required matrix legs to be in a TERMINAL state (completed=success) at the time of attestation — not merely the legs that had completed at the snapshot moment. During D-691 the build-dispatcher (windows-x64) job was still building when the pause was recorded; it later FAILED. On resume, two further CI failures surfaced before final merge.
+
+**Root cause:** The pause attestation was formed from a poll of CI status at a point-in-time when some required jobs were still `in_progress`. The attestation conflated "all completed jobs pass" with "all required jobs pass" — an incorrect equivalence when jobs are still running.
+
+**Gate (codified):** A 'CI green' attestation used as a MERGE-READY or PAUSE-CHECKPOINT signal MUST be formed ONLY after:
+1. All required checks listed in the branch-protection required-status-checks are in a TERMINAL state (`completed` GitHub status).
+2. All terminal states are `success` (or `skipped` for explicitly skipped legs where skipping is expected).
+3. The attestation timestamp is at or after the LAST required check reached a terminal state.
+
+Concretely: `gh pr checks <PR>` must show every required leg as `pass` (not `pending` or `in_progress`) before the 'CI green' attestation is written into STATE.md or any pause checkpoint.
+
+**Recommended gate improvement:** A follow-up drift item / small story: a pause/merge-ready attestation helper that enumerates all required checks' terminal state via `gh pr checks` before allowing the attestation string to be recorded. Anchored in STATE.md Drift Items (D-692 Drift Item: [process-gap] CI-green-attestation gate story).
+
+**Consequence if violated:** Pause checkpoints that claim 'CI N/N GREEN' while jobs are still running mislead the next-session resume — the resume agent sees a passed gate and may proceed toward merge without re-verifying. This caused at least 2 extra CI failure cycles and extended the total PR delivery timeline for S-18.14.
+
+**S-7.02 note:** This process-gap is anchored to a concrete follow-up (Drift Item + candidate story). It is NOT a tech-debt-register entry — the deferral is justified by requiring a gate story to be specced with proper BC authorship before implementation.
+
+**Cites:** D-691 DURABLE PAUSE REFINEMENT; D-692 post-merge burst; PR #201 (S-18.14); S-18.14 merged dfc76844 2026-06-23.
