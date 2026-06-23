@@ -1281,3 +1281,33 @@ env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT
 binary_allow = ["bash"]
 shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
 env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "CLAUDE_CODE_VERSION", "CLAUDE_VERSION"]
+
+# ---------- precompact-flush native WASM plugin (S-18.04a) ----------
+# Commits STATE.md to factory-artifacts branch BEFORE compaction proceeds.
+# Native WASM — no bash, no shell_bypass_acknowledged (ADR-028 §Decision 2).
+# binary_allow = ["git"] ONLY — PATH + SSH_AUTH_SOCK required for git push over SSH
+# (dispatcher env_clear requires explicit re-injection per F-NW-001).
+# priority = 100: fires AFTER check-harness-version (priority 50) so harness version
+# is validated before the flush commit is attempted.
+# on_error = "continue": fail-open per BC-7.07.001 INV6 (crash → advisory, not block).
+# async = false: PreCompact hooks MUST fire synchronously (ADR-019 + BC-7.07.001 §PC1).
+# (traces to AC-001 / BC-7.07.001 §Precondition 1 / ADR-028 §Decision 1)
+
+[[hooks]]
+name = "precompact-flush"
+event = "PreCompact"
+plugin = "hook-plugins/precompact-flush.wasm"
+priority = 100
+timeout_ms = 30000
+on_error = "continue"
+async = false
+
+[hooks.capabilities.read_file]
+path_allow = [".factory/"]
+
+[hooks.capabilities.write_file]
+path_allow = [".factory/"]
+
+[hooks.capabilities.exec_subprocess]
+binary_allow = ["git"]
+env_allow = ["HOME", "GIT_CONFIG_GLOBAL", "XDG_CONFIG_HOME", "PATH", "SSH_AUTH_SOCK"]

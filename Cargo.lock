@@ -967,6 +967,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "factory-lock"
+version = "0.0.1"
+dependencies = [
+ "chrono",
+ "factory-lock-parse",
+]
+
+[[package]]
 name = "factory-lock-parse"
 version = "0.0.1"
 dependencies = [
@@ -2268,6 +2276,18 @@ version = "0.0.1"
 dependencies = [
  "regex",
  "serde_json",
+ "vsdd-hook-sdk",
+]
+
+[[package]]
+name = "precompact-flush"
+version = "0.0.1"
+dependencies = [
+ "chrono",
+ "factory-lock",
+ "serde",
+ "serde_json",
+ "serde_norway",
  "vsdd-hook-sdk",
 ]
 

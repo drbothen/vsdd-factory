@@ -44,6 +44,8 @@ members = [
     "crates/sink-http",
     "crates/sink-datadog",
     "crates/sink-honeycomb",
+    "crates/factory-lock",
+    "crates/hook-plugins/precompact-flush",
 ]
 
 [workspace.package]
