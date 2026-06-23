@@ -133,6 +133,36 @@ pub fn renew_lock(_state_md_content: &str) -> Result<RenewOutcome, LockError> {
     todo!()
 }
 
+/// Injectable clock variant of `renew_lock` for testability (TDD Red Gate stub).
+///
+/// Identical semantics to `renew_lock`, but accepts a `now_fn` closure that
+/// returns the current UTC time as a `YYYY-MM-DDTHH:MM:SSZ`-formatted string.
+/// This enables deterministic testing of the byte-identical expires_at guard
+/// (ADR-028 §Decision 16 F-R3-005) without relying on wall-clock timing.
+///
+/// The implementer MUST implement this as the core of `renew_lock`, with
+/// `renew_lock` delegating to `renew_lock_with_now(content, || Utc::now()...)`.
+///
+/// # Test usage
+///
+/// ```rust
+/// // Test the NoOp path when now + 2700s exactly matches existing expires_at
+/// let fixed_now = "2026-06-22T12:00:00Z"; // 2026-06-22T12:00:00Z + 2700s = 2026-06-22T12:45:00Z
+/// let expires_at_matches = "2026-06-22T12:45:00Z";
+/// let content = make_state_md_with_expires_at(expires_at_matches);
+/// let result = renew_lock_with_now(&content, || fixed_now.to_string()... + 2700s);
+/// assert!(matches!(result, Ok(RenewOutcome::NoOp)));
+/// ```
+pub fn renew_lock_with_now<F>(
+    _state_md_content: &str,
+    _now_fn: F,
+) -> Result<RenewOutcome, LockError>
+where
+    F: Fn() -> chrono::DateTime<chrono::Utc>,
+{
+    todo!()
+}
+
 /// Check whether the `factory_lock:` key appears in the frontmatter.
 ///
 /// Presence pre-check used by `renew_lock()` BEFORE calling `parse_factory_lock()`.

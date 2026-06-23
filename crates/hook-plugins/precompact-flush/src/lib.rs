@@ -202,3 +202,39 @@ pub fn is_diff_empty(_git_diff_cached_output: &str) -> bool {
 pub fn run_plugin(_payload: vsdd_hook_sdk::HookPayload) -> vsdd_hook_sdk::HookResult {
     todo!()
 }
+
+/// Injectable variant of `run_plugin` for unit testing (TDD Red Gate stub).
+///
+/// Accepts mock closures for host I/O so that the effectful plugin logic can be
+/// exercised without a WASM runtime. The implementer MUST implement this function
+/// as the testable core of the plugin, with `run_plugin` delegating to it via
+/// the real host bindings.
+///
+/// # Parameters
+///
+/// - `payload` — the PreCompact hook payload (contains event_name, session_id, etc.)
+/// - `read_file` — mock for `host::read_file(path) -> Result<String, String>`
+/// - `write_file` — mock for `host::write_file(path, content) -> Result<(), String>`
+/// - `exec_subprocess` — mock for `host::exec_subprocess(binary, args) -> Result<(exit_code: i32, stdout: String, stderr: String), String>`
+///
+/// # Canonical execution order
+///
+/// Same as `run_plugin` — all 12 steps of BC-7.07.001 INV3 / AC-011 apply.
+///
+/// # Return value
+///
+/// Same as `run_plugin` — `HookResult::Continue` on success, `HookResult::Block`
+/// on commit/push/append failure.
+pub fn run_plugin_with_mock<RF, WF, ES>(
+    _payload: vsdd_hook_sdk::HookPayload,
+    _read_file: RF,
+    _write_file: WF,
+    _exec_subprocess: ES,
+) -> vsdd_hook_sdk::HookResult
+where
+    RF: Fn(&str) -> Result<String, String>,
+    WF: Fn(&str, &str) -> Result<(), String>,
+    ES: Fn(&str, &[&str]) -> Result<(i32, String, String), String>,
+{
+    todo!()
+}

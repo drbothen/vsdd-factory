@@ -1,6 +1,15 @@
 // Test code: expect() and unwrap() are acceptable per AC-010 (non-test code only).
 // format!("{x}") useless-format lint suppressed for test readability consistency.
-#![allow(clippy::expect_used, clippy::unwrap_used, clippy::useless_format)]
+// unused_imports: some HookResult imports are used conditionally in assertions.
+// clippy::panic: panic! is used in mock closures to assert invariants about call order.
+#![allow(
+    clippy::expect_used,
+    clippy::unwrap_used,
+    clippy::useless_format,
+    clippy::panic,
+    unused_imports,
+    unused_variables
+)]
 //! Red Gate integration tests for precompact-flush (S-18.04a T-2).
 //!
 //! All tests in this file correspond to rows in the Red Gate Test Table in
@@ -10,9 +19,16 @@
 //! # Test strategy
 //!
 //! Pure-logic functions in `precompact_flush` are tested directly (no WASM
-//! runtime needed). The `run_plugin` effectful function is tested via `catch_unwind`
-//! confirming the Red Gate (todo!() panics). After stub implementation, these will
-//! use injectable host mock closures.
+//! runtime needed). These tests import and call the pure functions exported
+//! from `precompact_flush::` (lib.rs); they fail because all pure functions
+//! contain `todo!()`.
+//!
+//! Effectful `run_plugin` tests use `run_plugin_with_mock` — an injectable
+//! variant that the implementer must add to lib.rs (see MockHostContext below).
+//! These tests define the expected injectable API surface the implementer must
+//! create. All tests fail now because `run_plugin_with_mock` does not yet exist
+//! (compile error on missing symbol is the Red Gate) OR because `run_plugin`
+//! still contains `todo!()`.
 //!
 //! # BC / ADR traces
 //!
@@ -25,26 +41,6 @@ use precompact_flush::{
     build_log_entry, decide_append_failure_action, is_diff_empty, parse_state_context,
     parse_worktree_list,
 };
-use vsdd_hook_sdk::HookPayload;
-
-// ---------------------------------------------------------------------------
-// Test fixture helper
-// ---------------------------------------------------------------------------
-
-/// Construct a minimal `HookPayload` for unit testing from JSON.
-#[allow(clippy::expect_used)]
-fn make_precompact_payload() -> HookPayload {
-    serde_json::from_str(
-        r#"{
-            "event_name": "PreCompact",
-            "tool_name": "",
-            "session_id": "test-session-001",
-            "dispatcher_trace_id": "test-trace-001"
-        }"#,
-    )
-    // expect() is acceptable in test code per AC-010 (non-test code only).
-    .expect("test fixture must parse")
-}
 
 // ---------------------------------------------------------------------------
 // Sample fixtures
@@ -71,6 +67,26 @@ factory_lock:
 ---
 
 # STATE.md body
+"#;
+
+#[allow(dead_code)]
+const STATE_MD_NO_LOCK: &str = r#"---
+current_cycle: v1.0-test-cycle
+current_step: stub-phase/S-18.04a
+---
+
+# STATE.md body — no factory_lock
+"#;
+
+const STATE_MD_MALFORMED_LOCK: &str = r#"---
+current_cycle: v1.0-test-cycle
+current_step: stub-phase/S-18.04a
+factory_lock:
+  holder: agent@example.com
+  locked_at: 2026-06-01T10:00:00Z
+---
+
+# STATE.md — factory_lock: present, expires_at missing → Malformed
 "#;
 
 // ---------------------------------------------------------------------------
@@ -129,6 +145,35 @@ fn test_commit_message_has_exact_prefix() {
     assert!(
         msg.starts_with(COMMIT_PREFIX),
         "commit message must start with '{COMMIT_PREFIX}', got: {msg}"
+    );
+}
+
+/// Commit message must contain cycle/step in the format `<cycle>/<step>`.
+#[test]
+fn test_commit_message_contains_cycle_slash_step() {
+    let ctx = StateContext {
+        current_cycle: "v1.0-test-cycle".to_string(),
+        current_step: "phase3/S-18.04a".to_string(),
+    };
+    let msg = build_commit_message(&ctx, "2026-06-22T12:00:00Z");
+    assert!(
+        msg.contains("v1.0-test-cycle/phase3/S-18.04a"),
+        "commit message must contain cycle/step: {msg}"
+    );
+}
+
+/// Commit message must contain the ISO-8601 timestamp.
+#[test]
+fn test_commit_message_contains_timestamp() {
+    let ctx = StateContext {
+        current_cycle: "v1.0-test-cycle".to_string(),
+        current_step: "stub-phase/S-18.04a".to_string(),
+    };
+    let ts = "2026-06-22T12:00:00Z";
+    let msg = build_commit_message(&ctx, ts);
+    assert!(
+        msg.contains(ts),
+        "commit message must contain timestamp {ts}: {msg}"
     );
 }
 
@@ -234,9 +279,31 @@ fn test_decide_append_failure_action_noreset_on_diverged() {
 }
 
 // ---------------------------------------------------------------------------
+// Red Gate: AC-008 — reset failure leads to exit 2 (step 4 path)
+// ---------------------------------------------------------------------------
+
+/// Red Gate: test_reset_failure_blocks_exit_2
+///
+/// Traces to: AC-008 / BC-7.07.001 PC8 step 4
+/// (when HEAD==SHA_B → reset is attempted; the CALLER is responsible for exiting 2
+/// if the reset itself fails. This test verifies the action enum signals the reset.)
+#[test]
+fn test_reset_failure_blocks_exit_2() {
+    let sha_b = "resetme123456";
+    let action = decide_append_failure_action(sha_b, sha_b);
+    assert!(
+        matches!(action, AppendFailureAction::ResetSafe { .. }),
+        "SHA_B == CURRENT_HEAD must return ResetSafe (reset will be attempted by caller)"
+    );
+}
+
+// ---------------------------------------------------------------------------
 // Red Gate: AC-005 — INV5 diff-empty check helpers
 // ---------------------------------------------------------------------------
 
+/// Clean-state check: empty diff output is recognized as empty.
+///
+/// Traces to: AC-005 / BC-7.07.001 INV5 (empty commit forbidden; exit 0 on clean state)
 #[test]
 fn test_is_diff_empty_true_for_empty_output() {
     assert!(
@@ -245,6 +312,9 @@ fn test_is_diff_empty_true_for_empty_output() {
     );
 }
 
+/// Non-empty diff output is recognized as non-empty.
+///
+/// Traces to: AC-005 / BC-7.07.001 INV5
 #[test]
 fn test_is_diff_empty_false_for_nonempty_output() {
     assert!(
@@ -254,20 +324,33 @@ fn test_is_diff_empty_false_for_nonempty_output() {
 }
 
 // ---------------------------------------------------------------------------
-// Red Gate: AC-016 — log pruning not invoked by flush
+// Red Gate: AC-016 — log pruning not invoked by flush (structural invariant)
 // ---------------------------------------------------------------------------
 
 /// Red Gate: test_log_pruning_not_invoked_by_flush
 ///
 /// Traces to: AC-016 / BC-7.07.001 INV7 (log pruning deferred to S-18.04b)
 ///
-/// Structural: no prune/truncate/rewrite function is exported by this crate.
-/// The adversary review enforces this invariant on the implementation.
-/// This test documents the invariant and anchors the Red Gate row.
+/// Structural invariant: the precompact_flush plugin NEVER truncates or rewrites
+/// the log. Log pruning is exclusively `precompact-flush-prune.sh` (S-18.04b).
+///
+/// After implementation, `parse_worktree_list` with a non-factory-artifacts input
+/// must return `None` — verifying the pure function works without side effects.
+/// Before implementation (todo!() stubs), parse_worktree_list panics → Red Gate.
+///
+/// The test fails now because parse_worktree_list is `todo!()`.
 #[test]
 fn test_log_pruning_not_invoked_by_flush() {
-    // No pruning function exists in this crate.
-    // The todo!() stub in run_plugin means any invocation is a Red Gate failure.
+    // parse_worktree_list is a pure function that must NOT prune the log.
+    // It must return None for empty input (structural invariant: no pruning).
+    // With todo!() stubs, this panics → Red Gate confirmed.
+    // After implementation: returns None for empty input (no pruning side-effect).
+    let result = parse_worktree_list("");
+    assert!(
+        result.is_none(),
+        "parse_worktree_list on empty input must return None (no factory-artifacts found); \
+        this also confirms no log pruning is embedded in the pure state machine"
+    );
 }
 
 // ---------------------------------------------------------------------------
@@ -277,8 +360,12 @@ fn test_log_pruning_not_invoked_by_flush() {
 /// Red Gate: test_no_lock_clean_state_exits_0_no_commit
 ///
 /// Traces to: AC-005 / AC-011 / AC-018 / ADR-028 §Decision 11 F-NW2-007
+/// (RenewOutcome::NoOp + no staged changes → exit 0, no commit forced; INV5 clean-state)
 #[test]
 fn test_no_lock_clean_state_exits_0_no_commit() {
+    // Empty diff must be recognized as clean state (INV5 guard).
+    // is_diff_empty("") must return true after implementation.
+    // With todo!() stubs, this panics — Red Gate confirmed.
     assert!(
         is_diff_empty(""),
         "empty diff + NoOp lock state must trigger INV5 clean-state exit 0"
@@ -292,12 +379,14 @@ fn test_no_lock_clean_state_exits_0_no_commit() {
 /// Red Gate: test_first_flush_with_absent_log_appends_successfully
 ///
 /// Traces to: AC-007 / ADR-028 §Decision 12 F-NW2-008
+/// (read_file CAPABILITY_DENIED on absent log → empty baseline → concatenate + write)
 #[test]
 fn test_first_flush_with_absent_log_appends_successfully() {
     let ctx = StateContext {
         current_cycle: "v1.0-test-cycle".to_string(),
         current_step: "stub-phase/S-18.04a".to_string(),
     };
+    // build_log_entry is a pure function — if it works, empty baseline + entry is valid.
     let entry = build_log_entry("2026-06-22T12:00:00Z", "firstsha123", &ctx);
     // Concatenated to "" as baseline — must produce a valid LF-terminated entry.
     let combined = format!("{entry}");
@@ -315,6 +404,7 @@ fn test_first_flush_with_absent_log_appends_successfully() {
 /// Red Gate: test_worktree_discovery_failure_emits_durability_degraded
 ///
 /// Traces to: AC-017 / ADR-028 §Decision 13 F-NW2-009
+/// (factory-artifacts not found in worktree list → None returned → caller emits advisory)
 #[test]
 fn test_worktree_discovery_failure_emits_durability_degraded() {
     let no_factory_output = "worktree /repo\nHEAD abc123\nbranch refs/heads/main\n\n";
@@ -332,15 +422,76 @@ fn test_worktree_discovery_failure_emits_durability_degraded() {
 /// Red Gate: test_worktree_mount_mismatch_emits_durability_degraded
 ///
 /// Traces to: AC-017 / ADR-028 §Decision 1 F-R3-001
+/// (canonicalize(discovered) != canonicalize(<cwd>/.factory) → DURABILITY DEGRADED + exit 0)
+///
+/// When run_plugin_with_mock is called with a cwd that does NOT match the
+/// discovered factory-artifacts worktree path (after canonicalization), the plugin
+/// must return HookResult::Continue (exit 0, fail-open) and NOT proceed with flush.
+///
+/// This test fails now because run_plugin_with_mock panics (todo!() stub).
 #[test]
 fn test_worktree_mount_mismatch_emits_durability_degraded() {
+    use vsdd_hook_sdk::HookResult;
+
+    // Build a worktree list that returns /some/other/path/.factory,
+    // but the plugin's cwd will be /repo (so cwd/.factory = /repo/.factory).
+    // The canonicalize assertion must detect the mismatch and emit DURABILITY DEGRADED.
+    //
+    // We can't inject cwd directly without a cwd-injectable run_plugin_with_mock_and_cwd,
+    // so this test relies on the mock exec_subprocess returning a worktree path
+    // that differs from what cwd+".factory" would be. The implementer must use
+    // ctx.cwd (from HookPayload or env) to compute the expected path.
+    //
+    // Structural verification: WorktreeDiscovery::PathMismatch is the correct
+    // variant for this case, and the plugin must exit Continue (fail-open).
     let mismatch = WorktreeDiscovery::PathMismatch {
         discovered: "/some/other/path/.factory".to_string(),
         expected: "/repo/.factory".to_string(),
     };
     assert!(
         matches!(mismatch, WorktreeDiscovery::PathMismatch { .. }),
-        "PathMismatch variant must be constructible"
+        "PathMismatch variant must be constructible with discovered + expected fields"
+    );
+
+    // The effectful path: run_plugin_with_mock must return Continue on mismatch.
+    // With a worktree list pointing to /some/other/path/.factory but cwd=/repo,
+    // canonicalize(/some/other/path/.factory) != canonicalize(/repo/.factory).
+    // The plugin must detect this and return Continue (DURABILITY DEGRADED advisory).
+    //
+    // Test uses todo!() stub → panics. Red Gate: the test will FAIL because run_plugin_with_mock
+    // panics (the stub assertion `result.is_err()` in old form was vacuous; now we assert
+    // the actual expected behavior which the todo!() prevents).
+    let payload = make_payload();
+    let mismatch_worktree = "worktree /repo\nHEAD abc123\nbranch refs/heads/develop\n\nworktree /some/other/path/.factory\nHEAD 000aaa\nbranch refs/heads/factory-artifacts\n\n";
+
+    let result = precompact_flush::run_plugin_with_mock(
+        payload,
+        |path| {
+            if path == ".factory/STATE.md" {
+                Ok(make_state_md("v1.0-test-cycle", "stub-phase"))
+            } else {
+                Err("CAPABILITY_DENIED".to_string())
+            }
+        },
+        |_path, _content| panic!("write_file must NOT be called on path mismatch"),
+        {
+            let mw = mismatch_worktree.to_string();
+            move |bin, args| {
+                assert_eq!(bin, "git");
+                if args == ["worktree", "list", "--porcelain"] {
+                    // Return a path that mismatches cwd/.factory
+                    return Ok((0, mw.clone(), String::new()));
+                }
+                panic!("no other git commands should run after DURABILITY DEGRADED; got: {args:?}");
+            }
+        },
+    );
+
+    assert_eq!(
+        result,
+        HookResult::Continue,
+        "AC-017 F-R3-001: path mismatch must return Continue (exit 0, fail-open) \
+        with DURABILITY DEGRADED advisory to stderr; got: {result:?}"
     );
 }
 
@@ -351,6 +502,7 @@ fn test_worktree_mount_mismatch_emits_durability_degraded() {
 /// Red Gate: test_flush_captures_untracked_new_factory_file
 ///
 /// Traces to: AC-004 / AC-011 / ADR-028 §Decision 15 F-R3-003
+/// (git add -A captures new untracked .factory/ files; add -u would silently omit them)
 #[test]
 fn test_flush_captures_untracked_new_factory_file() {
     let diff_with_new_file = "diff --git a/.factory/new-file.md b/.factory/new-file.md\n\
@@ -358,148 +510,686 @@ fn test_flush_captures_untracked_new_factory_file() {
         index 0000000..abc1234\n";
     assert!(
         !is_diff_empty(diff_with_new_file),
-        "git add -A must stage new untracked files; diff must not be empty"
+        "git add -A must stage new untracked files; diff must not be empty after staging"
     );
 }
 
 // ---------------------------------------------------------------------------
-// Red Gate: AC-008 — reset failure blocks exit 2 on reset step failure
-// ---------------------------------------------------------------------------
-
-/// Red Gate: test_reset_failure_blocks_exit_2
-///
-/// Traces to: AC-008 / BC-7.07.001 PC8 step 4
-#[test]
-fn test_reset_failure_blocks_exit_2() {
-    let sha_b = "resetme123456";
-    let action = decide_append_failure_action(sha_b, sha_b);
-    assert!(
-        matches!(action, AppendFailureAction::ResetSafe { .. }),
-        "SHA_B == CURRENT_HEAD must return ResetSafe (reset will be attempted)"
-    );
-}
-
-// ---------------------------------------------------------------------------
-// Red Gate: run_plugin effectful tests (confirm Red Gate via todo!() panic)
+// Red Gate: effectful run_plugin tests via injectable MockHostContext
 // ---------------------------------------------------------------------------
 //
-// All tests below call run_plugin which contains todo!(). The panic proves the
-// Red Gate is active. After implementation (T-6..T-9), these tests will be
-// replaced with injectable mock host calls that exercise the actual behavior.
+// The following tests cover AC-002, AC-003, AC-005b, AC-006, AC-009, AC-013.
+// They require `run_plugin_with_mock` — an injectable variant of `run_plugin`
+// that the implementer MUST add to lib.rs. The injectable function accepts
+// mock closures for host::read_file, host::write_file, and host::exec_subprocess.
+//
+// The implementer signature must be:
+//
+// ```rust
+// pub fn run_plugin_with_mock<RF, WF, ES>(
+//     payload: HookPayload,
+//     read_file: RF,
+//     write_file: WF,
+//     exec_subprocess: ES,
+// ) -> HookResult
+// where
+//     RF: Fn(&str) -> Result<String, String>,
+//     WF: Fn(&str, &str) -> Result<(), String>,
+//     ES: Fn(&str, &[&str]) -> Result<(i32, String, String), String>,
+// ```
+//
+// Until this symbol exists, these tests fail to compile — which IS the Red Gate.
+// After implementation, the tests exercise the actual behavior.
+//
+// NOTE: If the compiler reports "cannot find function `run_plugin_with_mock`"
+// that IS the expected Red Gate failure mode for these tests (compile error).
+
+// The tests use a helper to build a mock worktree list output.
+fn worktree_list_for(path: &str) -> String {
+    format!(
+        "worktree /repo\nHEAD abc123\nbranch refs/heads/develop\n\nworktree {path}\nHEAD 000aaa\nbranch refs/heads/factory-artifacts\n\n"
+    )
+}
+
+// Build a mock STATE.md with given cycle/step.
+fn make_state_md(cycle: &str, step: &str) -> String {
+    format!("---\ncurrent_cycle: {cycle}\ncurrent_step: {step}\n---\n\n# STATE.md\n")
+}
+
+// Build a mock STATE.md with a held lock.
+fn make_state_md_with_lock(cycle: &str, step: &str) -> String {
+    format!(
+        "---\ncurrent_cycle: {cycle}\ncurrent_step: {step}\nfactory_lock:\n  holder: agent@example.com\n  locked_at: 2026-06-01T10:00:00Z\n  expires_at: 2020-01-01T00:00:00Z\n---\n\n# STATE.md with lock\n"
+    )
+}
+
+// Build a mock STATE.md with a malformed lock (missing expires_at).
+fn make_state_md_malformed_lock() -> String {
+    STATE_MD_MALFORMED_LOCK.to_string()
+}
+
+/// Red Gate: test_no_state_md_is_noop
+///
+/// Traces to: AC-002 / BC-7.07.001 PC7 (STATE.md unreadable → exit 0 + warn)
+///
+/// When host::read_file(".factory/STATE.md") fails, run_plugin must:
+/// - Return HookResult::Continue (exit 0, fail-open)
+/// - NOT commit, NOT push, NOT append to log
+///
+/// This test fails now because run_plugin_with_mock does not exist (compile error).
+#[test]
+fn test_no_state_md_is_noop() {
+    use vsdd_hook_sdk::HookResult;
+    let payload = make_payload();
+
+    // Inject: read_file always fails (STATE.md unreadable)
+    let result = precompact_flush::run_plugin_with_mock(
+        payload,
+        |_path| Err("file not found".to_string()),
+        |_path, _content| panic!("write_file must NOT be called when STATE.md unreadable"),
+        |_bin, _args| panic!("exec_subprocess must NOT be called when STATE.md unreadable"),
+    );
+
+    assert_eq!(
+        result,
+        HookResult::Continue,
+        "AC-002: STATE.md unreadable must return Continue (exit 0), not Block"
+    );
+}
+
+/// Red Gate: test_precompact_flush_creates_local_commit
+///
+/// Traces to: AC-005 / BC-7.07.001 PC4 (factory-artifacts commit)
+///
+/// With valid STATE.md, no lock, and pending changes, run_plugin must:
+/// - Call git add -A
+/// - Call git commit with the canonical message
+/// - Capture SHA_B
+/// - Append to precompact-flush-log
+/// - Call git push
+/// - Return HookResult::Continue
+#[test]
+fn test_precompact_flush_creates_local_commit() {
+    use std::cell::RefCell;
+    use std::rc::Rc;
+    use vsdd_hook_sdk::HookResult;
+
+    let payload = make_payload();
+    let wt_path = "/tmp/test-factory-artifacts";
+    let worktree_output = worktree_list_for(wt_path);
+    let state_content = make_state_md("v1.0-test-cycle", "stub-phase/S-18.04a");
+    let commit_called = Rc::new(RefCell::new(false));
+    let commit_called_clone = Rc::clone(&commit_called);
+
+    let result = precompact_flush::run_plugin_with_mock(
+        payload,
+        {
+            let sc = state_content.clone();
+            move |path| {
+                if path == ".factory/STATE.md" {
+                    Ok(sc.clone())
+                } else {
+                    // precompact-flush-log absent → empty baseline
+                    Err("CAPABILITY_DENIED: file not found".to_string())
+                }
+            }
+        },
+        |_path, _content| Ok(()),
+        {
+            let wt = wt_path.to_string();
+            move |bin, args| {
+                assert_eq!(bin, "git", "only git subprocess is allowed");
+                // git worktree list --porcelain
+                if args == ["worktree", "list", "--porcelain"] {
+                    return Ok((0, worktree_list_for(&wt), String::new()));
+                }
+                // git -C <wt> add -A
+                if args.contains(&"-C") && args.contains(&"add") {
+                    return Ok((0, String::new(), String::new()));
+                }
+                // git -C <wt> diff --cached
+                if args.contains(&"-C") && args.contains(&"diff") {
+                    // Return non-empty diff to trigger commit
+                    return Ok((
+                        0,
+                        "diff --git a/STATE.md b/STATE.md\n".to_string(),
+                        String::new(),
+                    ));
+                }
+                // git -C <wt> commit -m <msg>
+                if args.contains(&"-C") && args.contains(&"commit") {
+                    *commit_called_clone.borrow_mut() = true;
+                    return Ok((0, String::new(), String::new()));
+                }
+                // git -C <wt> rev-parse HEAD
+                if args.contains(&"-C") && args.contains(&"rev-parse") {
+                    return Ok((0, "deadbeef1234567890ab".to_string(), String::new()));
+                }
+                // git -C <wt> push origin factory-artifacts
+                if args.contains(&"-C") && args.contains(&"push") {
+                    return Ok((0, String::new(), String::new()));
+                }
+                Ok((0, String::new(), String::new()))
+            }
+        },
+    );
+
+    assert!(
+        *commit_called.borrow(),
+        "AC-005: git commit must have been called with pending changes"
+    );
+    assert_eq!(
+        result,
+        HookResult::Continue,
+        "AC-009: successful push must return Continue (exit 0)"
+    );
+}
+
+/// Red Gate: test_git_commit_failure_exits_2_no_push_no_log
+///
+/// Traces to: AC-005b / BC-7.07.001 PC6 (git commit LOCAL failure → exit 2; no log; no push)
+#[test]
+fn test_git_commit_failure_exits_2_no_push_no_log() {
+    use vsdd_hook_sdk::HookResult;
+
+    let payload = make_payload();
+    let wt_path = "/tmp/test-factory-artifacts";
+    let worktree_output = worktree_list_for(wt_path);
+    let state_content = make_state_md("v1.0-test-cycle", "stub-phase/S-18.04a");
+
+    let result = precompact_flush::run_plugin_with_mock(
+        payload,
+        {
+            let sc = state_content.clone();
+            move |path| {
+                if path == ".factory/STATE.md" {
+                    Ok(sc.clone())
+                } else {
+                    Err("CAPABILITY_DENIED: file not found".to_string())
+                }
+            }
+        },
+        |_path, _content| panic!("write_file must NOT be called after commit failure"),
+        {
+            let wt = wt_path.to_string();
+            let wl = worktree_output.clone();
+            move |bin, args| {
+                assert_eq!(bin, "git");
+                if args == ["worktree", "list", "--porcelain"] {
+                    return Ok((0, wl.clone(), String::new()));
+                }
+                if args.contains(&"-C") && args.contains(&"add") {
+                    return Ok((0, String::new(), String::new()));
+                }
+                if args.contains(&"-C") && args.contains(&"diff") {
+                    return Ok((
+                        0,
+                        "diff --git a/STATE.md b/STATE.md\n".to_string(),
+                        String::new(),
+                    ));
+                }
+                if args.contains(&"-C") && args.contains(&"commit") {
+                    // Simulate git commit failure
+                    return Ok((1, String::new(), "error: commit failed".to_string()));
+                }
+                panic!(
+                    "push/rev-parse must NOT be called after commit failure; got args: {args:?}"
+                );
+            }
+        },
+    );
+
+    assert!(
+        matches!(result, HookResult::Block { .. }),
+        "AC-005b: git commit failure must return Block (exit 2), got: {result:?}"
+    );
+}
+
+/// Red Gate: test_sha_b_captured_after_commit_before_append
+///
+/// Traces to: AC-006 / BC-7.07.001 PC8 (SHA_B capture MUST precede append)
+///
+/// Verifies that rev-parse HEAD is called between commit and log append.
+#[test]
+fn test_sha_b_captured_after_commit_before_append() {
+    use std::cell::RefCell;
+    use std::rc::Rc;
+    use vsdd_hook_sdk::HookResult;
+
+    let payload = make_payload();
+    let wt_path = "/tmp/test-factory-artifacts";
+    let worktree_output = worktree_list_for(wt_path);
+    let state_content = make_state_md("v1.0-test-cycle", "stub-phase/S-18.04a");
+
+    // Track call order: commit → rev-parse → write_file(log)
+    let call_order: Rc<RefCell<Vec<&'static str>>> = Rc::new(RefCell::new(Vec::new()));
+    let order_exec = Rc::clone(&call_order);
+    let order_write = Rc::clone(&call_order);
+
+    let result = precompact_flush::run_plugin_with_mock(
+        payload,
+        {
+            let sc = state_content.clone();
+            move |path| {
+                if path == ".factory/STATE.md" {
+                    Ok(sc.clone())
+                } else {
+                    Err("CAPABILITY_DENIED: file not found".to_string())
+                }
+            }
+        },
+        move |path, _content| {
+            if path.contains("precompact-flush-log") {
+                order_write.borrow_mut().push("write_log");
+            }
+            Ok(())
+        },
+        {
+            let wt = wt_path.to_string();
+            let wl = worktree_output.clone();
+            move |bin, args| {
+                assert_eq!(bin, "git");
+                if args == ["worktree", "list", "--porcelain"] {
+                    return Ok((0, wl.clone(), String::new()));
+                }
+                if args.contains(&"-C") && args.contains(&"add") {
+                    return Ok((0, String::new(), String::new()));
+                }
+                if args.contains(&"-C") && args.contains(&"diff") {
+                    return Ok((
+                        0,
+                        "diff --git a/STATE.md b/STATE.md\n".to_string(),
+                        String::new(),
+                    ));
+                }
+                if args.contains(&"-C") && args.contains(&"commit") {
+                    order_exec.borrow_mut().push("commit");
+                    return Ok((0, String::new(), String::new()));
+                }
+                if args.contains(&"-C") && args.contains(&"rev-parse") {
+                    order_exec.borrow_mut().push("rev-parse");
+                    return Ok((0, "sha_b_value_123".to_string(), String::new()));
+                }
+                if args.contains(&"-C") && args.contains(&"push") {
+                    return Ok((0, String::new(), String::new()));
+                }
+                Ok((0, String::new(), String::new()))
+            }
+        },
+    );
+
+    let order = call_order.borrow();
+    // commit must appear before rev-parse, and rev-parse must appear before write_log
+    let commit_pos = order
+        .iter()
+        .position(|&s| s == "commit")
+        .expect("AC-006: git commit must have been called");
+    let revparse_pos = order
+        .iter()
+        .position(|&s| s == "rev-parse")
+        .expect("AC-006: git rev-parse HEAD must have been called");
+    let writelog_pos = order
+        .iter()
+        .position(|&s| s == "write_log")
+        .expect("AC-006: precompact-flush-log must have been written");
+
+    assert!(
+        commit_pos < revparse_pos,
+        "AC-006: rev-parse must come AFTER commit; order: {order:?}"
+    );
+    assert!(
+        revparse_pos < writelog_pos,
+        "AC-006: write_log must come AFTER rev-parse (SHA_B must be captured before append); order: {order:?}"
+    );
+    let _ = result;
+}
 
 /// Red Gate: test_push_failure_exits_2_with_retry_message
 ///
-/// Traces to: AC-009 / BC-7.07.001 PC6b
+/// Traces to: AC-009 / BC-7.07.001 PC6b (push failure → exit 2; local commit + log retained)
 #[test]
 fn test_push_failure_exits_2_with_retry_message() {
-    let payload = make_precompact_payload();
-    let result = std::panic::catch_unwind(move || precompact_flush::run_plugin(payload));
-    assert!(
-        result.is_err(),
-        "stub must panic (todo!) — Red Gate confirmed for push-failure path"
+    use vsdd_hook_sdk::HookResult;
+
+    let payload = make_payload();
+    let wt_path = "/tmp/test-factory-artifacts";
+    let worktree_output = worktree_list_for(wt_path);
+    let state_content = make_state_md("v1.0-test-cycle", "stub-phase/S-18.04a");
+
+    let result = precompact_flush::run_plugin_with_mock(
+        payload,
+        {
+            let sc = state_content.clone();
+            move |path| {
+                if path == ".factory/STATE.md" {
+                    Ok(sc.clone())
+                } else {
+                    Err("CAPABILITY_DENIED: file not found".to_string())
+                }
+            }
+        },
+        |_path, _content| Ok(()), // write_file succeeds (log appended)
+        {
+            let wt = wt_path.to_string();
+            let wl = worktree_output.clone();
+            move |bin, args| {
+                assert_eq!(bin, "git");
+                if args == ["worktree", "list", "--porcelain"] {
+                    return Ok((0, wl.clone(), String::new()));
+                }
+                if args.contains(&"-C") && args.contains(&"add") {
+                    return Ok((0, String::new(), String::new()));
+                }
+                if args.contains(&"-C") && args.contains(&"diff") {
+                    return Ok((
+                        0,
+                        "diff --git a/STATE.md b/STATE.md\n".to_string(),
+                        String::new(),
+                    ));
+                }
+                if args.contains(&"-C") && args.contains(&"commit") {
+                    return Ok((0, String::new(), String::new()));
+                }
+                if args.contains(&"-C") && args.contains(&"rev-parse") {
+                    return Ok((0, "push_fail_sha_123".to_string(), String::new()));
+                }
+                if args.contains(&"-C") && args.contains(&"push") {
+                    // Simulate push failure
+                    return Ok((1, String::new(), "error: failed to push".to_string()));
+                }
+                Ok((0, String::new(), String::new()))
+            }
+        },
     );
+
+    assert!(
+        matches!(result, HookResult::Block { .. }),
+        "AC-009: push failure must return Block (exit 2), got: {result:?}"
+    );
+    if let HookResult::Block { reason } = &result {
+        assert!(
+            reason.contains("push") || reason.contains("retry"),
+            "AC-009: block message must mention push/retry, got: {reason}"
+        );
+    }
 }
 
 /// Red Gate: test_push_success_exits_0
 ///
-/// Traces to: AC-009 / BC-7.07.001 PC5
+/// Traces to: AC-009 / BC-7.07.001 PC5 (push success → exit 0)
 #[test]
 fn test_push_success_exits_0() {
-    let payload = make_precompact_payload();
-    let result = std::panic::catch_unwind(move || precompact_flush::run_plugin(payload));
-    assert!(
-        result.is_err(),
-        "stub must panic (todo!) — Red Gate confirmed for push-success path"
+    use vsdd_hook_sdk::HookResult;
+
+    let payload = make_payload();
+    let wt_path = "/tmp/test-factory-artifacts";
+    let worktree_output = worktree_list_for(wt_path);
+    let state_content = make_state_md("v1.0-test-cycle", "stub-phase/S-18.04a");
+
+    let result = precompact_flush::run_plugin_with_mock(
+        payload,
+        {
+            let sc = state_content.clone();
+            move |path| {
+                if path == ".factory/STATE.md" {
+                    Ok(sc.clone())
+                } else {
+                    Err("CAPABILITY_DENIED: file not found".to_string())
+                }
+            }
+        },
+        |_path, _content| Ok(()),
+        {
+            let wl = worktree_output.clone();
+            move |bin, args| {
+                assert_eq!(bin, "git");
+                if args == ["worktree", "list", "--porcelain"] {
+                    return Ok((0, wl.clone(), String::new()));
+                }
+                if args.contains(&"-C") && args.contains(&"add") {
+                    return Ok((0, String::new(), String::new()));
+                }
+                if args.contains(&"-C") && args.contains(&"diff") {
+                    return Ok((
+                        0,
+                        "diff --git a/STATE.md b/STATE.md\n".to_string(),
+                        String::new(),
+                    ));
+                }
+                if args.contains(&"-C") && args.contains(&"commit") {
+                    return Ok((0, String::new(), String::new()));
+                }
+                if args.contains(&"-C") && args.contains(&"rev-parse") {
+                    return Ok((0, "success_sha_abc123".to_string(), String::new()));
+                }
+                if args.contains(&"-C") && args.contains(&"push") {
+                    return Ok((0, String::new(), String::new())); // push succeeds
+                }
+                Ok((0, String::new(), String::new()))
+            }
+        },
+    );
+
+    assert_eq!(
+        result,
+        HookResult::Continue,
+        "AC-009: push success must return Continue (exit 0)"
     );
 }
 
 /// Red Gate: test_lock_held_renews_before_commit
 ///
-/// Traces to: AC-003 / BC-7.07.001 PC3
+/// Traces to: AC-003 / BC-7.07.001 PC3 (lock renewal conditional when held)
+///
+/// When STATE.md has a held lock, run_plugin must call write_file to update
+/// the renewed STATE.md BEFORE calling git add/commit.
 #[test]
 fn test_lock_held_renews_before_commit() {
-    let payload = make_precompact_payload();
-    let result = std::panic::catch_unwind(move || precompact_flush::run_plugin(payload));
+    use std::cell::RefCell;
+    use std::rc::Rc;
+    use vsdd_hook_sdk::HookResult;
+
+    let payload = make_payload();
+    let wt_path = "/tmp/test-factory-artifacts";
+    let worktree_output = worktree_list_for(wt_path);
+    let state_content = make_state_md_with_lock("v1.0-test-cycle", "stub-phase/S-18.04a");
+
+    let write_file_called_for_state = Rc::new(RefCell::new(false));
+    let write_called_clone = Rc::clone(&write_file_called_for_state);
+
+    let _result = precompact_flush::run_plugin_with_mock(
+        payload,
+        {
+            let sc = state_content.clone();
+            move |path| {
+                if path == ".factory/STATE.md" {
+                    Ok(sc.clone())
+                } else {
+                    Err("CAPABILITY_DENIED: file not found".to_string())
+                }
+            }
+        },
+        move |path, _content| {
+            if path == ".factory/STATE.md" {
+                *write_called_clone.borrow_mut() = true;
+            }
+            Ok(())
+        },
+        {
+            let wl = worktree_output.clone();
+            move |bin, args| {
+                assert_eq!(bin, "git");
+                if args == ["worktree", "list", "--porcelain"] {
+                    return Ok((0, wl.clone(), String::new()));
+                }
+                if args.contains(&"-C") {
+                    return Ok((
+                        0,
+                        "diff --git a/STATE.md b/STATE.md\n".to_string(),
+                        String::new(),
+                    ));
+                }
+                Ok((0, "success_sha".to_string(), String::new()))
+            }
+        },
+    );
+
     assert!(
-        result.is_err(),
-        "stub must panic (todo!) — Red Gate confirmed for lock-renewal path"
+        *write_file_called_for_state.borrow(),
+        "AC-003: write_file must be called for STATE.md renewal when lock is held"
     );
 }
 
 /// Red Gate: test_lock_renewal_failure_is_advisory_not_exit_2
 ///
-/// Traces to: AC-013 / BC-7.07.001 PC3
+/// Traces to: AC-013 / BC-7.07.001 PC3 (lock renewal failure = advisory; flush proceeds; NOT exit 2)
+///
+/// When renew_lock() returns Err(Malformed), the plugin must write an advisory to stderr
+/// and proceed with flush commit — NOT exit 2.
 #[test]
 fn test_lock_renewal_failure_is_advisory_not_exit_2() {
-    let payload = make_precompact_payload();
-    let result = std::panic::catch_unwind(move || precompact_flush::run_plugin(payload));
-    assert!(
-        result.is_err(),
-        "stub must panic (todo!) — Red Gate confirmed for renewal-failure-advisory path"
+    use vsdd_hook_sdk::HookResult;
+
+    let payload = make_payload();
+    let wt_path = "/tmp/test-factory-artifacts";
+    let worktree_output = worktree_list_for(wt_path);
+    // Malformed lock (factory_lock: present, expires_at absent)
+    let state_content = make_state_md_malformed_lock();
+
+    let result = precompact_flush::run_plugin_with_mock(
+        payload,
+        {
+            let sc = state_content.clone();
+            move |path| {
+                if path == ".factory/STATE.md" {
+                    Ok(sc.clone())
+                } else {
+                    Err("CAPABILITY_DENIED: file not found".to_string())
+                }
+            }
+        },
+        |_path, _content| Ok(()),
+        {
+            let wl = worktree_output.clone();
+            move |bin, args| {
+                assert_eq!(bin, "git");
+                if args == ["worktree", "list", "--porcelain"] {
+                    return Ok((0, wl.clone(), String::new()));
+                }
+                if args.contains(&"-C") && args.contains(&"add") {
+                    return Ok((0, String::new(), String::new()));
+                }
+                if args.contains(&"-C") && args.contains(&"diff") {
+                    return Ok((
+                        0,
+                        "diff --git a/STATE.md b/STATE.md\n".to_string(),
+                        String::new(),
+                    ));
+                }
+                if args.contains(&"-C") && args.contains(&"commit") {
+                    return Ok((0, String::new(), String::new()));
+                }
+                if args.contains(&"-C") && args.contains(&"rev-parse") {
+                    return Ok((0, "malformed_lock_sha".to_string(), String::new()));
+                }
+                if args.contains(&"-C") && args.contains(&"push") {
+                    return Ok((0, String::new(), String::new()));
+                }
+                Ok((0, String::new(), String::new()))
+            }
+        },
+    );
+
+    // AC-013: malformed lock must NOT cause exit 2 — flush proceeds to Continue
+    assert_eq!(
+        result,
+        HookResult::Continue,
+        "AC-013: lock renewal Err(Malformed) must be advisory only; flush must succeed; \
+        expected Continue (exit 0), got: {result:?}"
     );
 }
 
 /// Red Gate: test_caller_downgrades_renew_err_to_advisory
 ///
 /// Traces to: AC-013 / ADR-028 §Decision 2 F-NW-004
+/// (hook caller downgrades renew_lock() Err to advisory warning; proceeds to commit; does NOT exit 2)
+///
+/// This is a behavioral twin of test_lock_renewal_failure_is_advisory_not_exit_2
+/// focused on the "caller downgrade" language from the BC.
 #[test]
 fn test_caller_downgrades_renew_err_to_advisory() {
-    let payload = make_precompact_payload();
-    let result = std::panic::catch_unwind(move || precompact_flush::run_plugin(payload));
-    assert!(
-        result.is_err(),
-        "stub must panic (todo!) — Red Gate confirmed"
+    use vsdd_hook_sdk::HookResult;
+
+    let payload = make_payload();
+    let wt_path = "/tmp/test-factory-artifacts";
+    let worktree_output = worktree_list_for(wt_path);
+    let state_content = make_state_md_malformed_lock();
+
+    let result = precompact_flush::run_plugin_with_mock(
+        payload,
+        {
+            let sc = state_content.clone();
+            move |path| {
+                if path == ".factory/STATE.md" {
+                    Ok(sc.clone())
+                } else {
+                    Err("CAPABILITY_DENIED: file not found".to_string())
+                }
+            }
+        },
+        |_path, _content| Ok(()),
+        {
+            let wl = worktree_output.clone();
+            move |bin, args| {
+                assert_eq!(bin, "git");
+                if args == ["worktree", "list", "--porcelain"] {
+                    return Ok((0, wl.clone(), String::new()));
+                }
+                if args.contains(&"-C") && args.contains(&"add") {
+                    return Ok((0, String::new(), String::new()));
+                }
+                if args.contains(&"-C") && args.contains(&"diff") {
+                    return Ok((
+                        0,
+                        "diff --git a/STATE.md b/STATE.md\n".to_string(),
+                        String::new(),
+                    ));
+                }
+                if args.contains(&"-C") && args.contains(&"commit") {
+                    return Ok((0, String::new(), String::new()));
+                }
+                if args.contains(&"-C") && args.contains(&"rev-parse") {
+                    return Ok((0, "downgrade_sha_abc".to_string(), String::new()));
+                }
+                if args.contains(&"-C") && args.contains(&"push") {
+                    return Ok((0, String::new(), String::new()));
+                }
+                Ok((0, String::new(), String::new()))
+            }
+        },
+    );
+
+    // F-NW-004: Err downgraded to advisory; plugin continues to flush commit
+    assert_eq!(
+        result,
+        HookResult::Continue,
+        "F-NW-004: renew_lock() Err must be downgraded to advisory; \
+        flush must proceed; expected Continue, got: {result:?}"
     );
 }
 
-/// Red Gate: test_git_commit_failure_exits_2_no_push_no_log
-///
-/// Traces to: AC-005b / BC-7.07.001 PC6
-#[test]
-fn test_git_commit_failure_exits_2_no_push_no_log() {
-    let payload = make_precompact_payload();
-    let result = std::panic::catch_unwind(move || precompact_flush::run_plugin(payload));
-    assert!(
-        result.is_err(),
-        "stub must panic (todo!) — Red Gate confirmed for git-commit-failure path"
-    );
-}
+// ---------------------------------------------------------------------------
+// Helper: build a test HookPayload
+// ---------------------------------------------------------------------------
 
-/// Red Gate: test_sha_b_captured_after_commit_before_append
-///
-/// Traces to: AC-006 / BC-7.07.001 PC8
-#[test]
-fn test_sha_b_captured_after_commit_before_append() {
-    let payload = make_precompact_payload();
-    let result = std::panic::catch_unwind(move || precompact_flush::run_plugin(payload));
-    assert!(
-        result.is_err(),
-        "stub must panic (todo!) — Red Gate confirmed for SHA_B-capture ordering"
-    );
-}
-
-/// Red Gate: test_precompact_flush_creates_local_commit
-///
-/// Traces to: AC-005 / BC-7.07.001 PC4
-#[test]
-fn test_precompact_flush_creates_local_commit() {
-    let payload = make_precompact_payload();
-    let result = std::panic::catch_unwind(move || precompact_flush::run_plugin(payload));
-    assert!(
-        result.is_err(),
-        "stub must panic (todo!) — Red Gate confirmed for local-commit path"
-    );
-}
-
-/// Red Gate: test_no_state_md_is_noop
-///
-/// Traces to: AC-002 / BC-7.07.001 PC7
-#[test]
-fn test_no_state_md_is_noop() {
-    let payload = make_precompact_payload();
-    let result = std::panic::catch_unwind(move || precompact_flush::run_plugin(payload));
-    assert!(
-        result.is_err(),
-        "stub must panic (todo!) — Red Gate confirmed for no-STATE.md path"
-    );
+fn make_payload() -> vsdd_hook_sdk::HookPayload {
+    serde_json::from_str(
+        r#"{
+            "event_name": "PreCompact",
+            "tool_name": "",
+            "session_id": "test-session-001",
+            "dispatcher_trace_id": "test-trace-001"
+        }"#,
+    )
+    .expect("test fixture must parse")
 }

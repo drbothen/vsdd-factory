@@ -17,7 +17,7 @@
 //! - ADR-028 §Decision 16 F-R3-005 (byte-identical expires_at → NoOp)
 //! - BC-5.40.001 §Invariant 2 (expires_at Z-suffix second-precision format)
 
-use factory_lock::{LockError, RenewOutcome, renew_lock};
+use factory_lock::{LockError, RenewOutcome, renew_lock, renew_lock_with_now};
 
 // ---------------------------------------------------------------------------
 // Helpers — shared STATE.md frontmatter fixtures
@@ -311,37 +311,40 @@ fn test_renew_lock_malformed_fence_no_lock_key_returns_noop() {
 /// to existing expires_at → Ok(RenewOutcome::NoOp); no write_file call;
 /// spurious renewal suppressed)
 ///
-/// This test uses a future expires_at value that is equal to what `now + 2700s`
-/// would compute to the second. In practice this is hard to hit exactly, so the
-/// test instead verifies the function signature behavior by setting expires_at to
-/// a value that is already far in the future (1 year) and checking the result.
+/// Uses `renew_lock_with_now` to inject a fixed "now" clock so the test is
+/// deterministic regardless of wall-clock time.
 ///
-/// NOTE: a strict byte-identical test requires controlling `Utc::now()` — the
-/// implementer must inject the clock. This Red Gate version tests the observable
-/// property: if the existing expires_at is already far-future and the recomputed
-/// value would match (injected clock), the function returns NoOp. The implementer
-/// must use dependency injection or a testable clock abstraction.
+/// The fixture sets `expires_at = now + 2700s` (computed from the injected now).
+/// `renew_lock_with_now` must detect the byte-identical recomputation and return
+/// `Ok(RenewOutcome::NoOp)` — the spurious renewal guard (F-R3-005).
 ///
-/// Stub will return todo!() — Red Gate fails.
+/// Stub will return todo!() — Red Gate fails (panics).
 #[test]
 fn test_renew_noop_on_byte_identical_expires_at() {
-    // This test is designed to verify the NoOp path when expires_at is byte-identical.
-    // With the todo!() stub, renew_lock() will panic — confirming the Red Gate.
-    // After implementation with an injectable clock, the test fixture will set
-    // now = some_fixed_time and expires_at = format(some_fixed_time + 2700s),
-    // asserting NoOp is returned.
-    //
-    // For now this asserts the stub panics (todo!) proving the Red Gate is red.
-    let result = std::panic::catch_unwind(|| {
-        let content = LOCK_HELD_TEMPLATE.replace("{expires_at}", "2099-01-01T00:00:00Z");
-        let _ = renew_lock(&content);
-    });
-    // If the stub returns todo!() (panics), the test sees panic — Red Gate confirmed.
-    // If stub is somehow implemented wrong and returns without panic, the test
-    // would need additional assertions. The primary Red Gate enforcement is that
-    // todo!() panics.
+    use chrono::{Duration, TimeZone, Utc};
+
+    // Fixed "now" timestamp: 2026-06-22T12:00:00Z
+    let fixed_now = Utc.with_ymd_and_hms(2026, 6, 22, 12, 0, 0).unwrap();
+    // expires_at = now + 2700s = 2026-06-22T12:45:00Z (exactly matching what renew would compute)
+    let expected_expires_at = (fixed_now + Duration::seconds(2700))
+        .format("%Y-%m-%dT%H:%M:%SZ")
+        .to_string();
+    assert_eq!(
+        expected_expires_at, "2026-06-22T12:45:00Z",
+        "test fixture sanity: expected_expires_at must be 2700s after fixed_now"
+    );
+
+    // Build STATE.md with expires_at = exact byte-identical value
+    let content = LOCK_HELD_TEMPLATE.replace("{expires_at}", &expected_expires_at);
+
+    // Call renew_lock_with_now with injected clock returning fixed_now
+    let result = renew_lock_with_now(&content, move || fixed_now);
+
+    // F-R3-005: byte-identical expires_at must produce NoOp (no spurious renewal)
     assert!(
-        result.is_err(),
-        "stub must panic (todo!) — Red Gate confirms no implementation"
+        matches!(result, Ok(RenewOutcome::NoOp)),
+        "F-R3-005: byte-identical expires_at must return Ok(NoOp); \
+        recomputed expires_at == existing expires_at → spurious renewal suppressed; \
+        got: {result:?}"
     );
 }
