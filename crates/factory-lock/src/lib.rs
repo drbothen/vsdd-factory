@@ -30,6 +30,7 @@
 // Allow the BC-based test naming convention workspace-wide.
 #![cfg_attr(not(kani), allow(unexpected_cfgs))]
 
+use chrono::{DateTime, Duration, Utc};
 use factory_lock_parse as flp;
 
 // ---------------------------------------------------------------------------
@@ -129,38 +130,57 @@ pub struct FactoryLock {
 /// Returns `Err(LockError::Malformed)` ONLY when `factory_lock:` key IS present AND
 /// the block is malformed. The caller must downgrade to an advisory warning and
 /// proceed with flush (EC-012 / ADR-028 §Decision 9).
-pub fn renew_lock(_state_md_content: &str) -> Result<RenewOutcome, LockError> {
-    todo!()
+pub fn renew_lock(state_md_content: &str) -> Result<RenewOutcome, LockError> {
+    renew_lock_with_now(state_md_content, Utc::now)
 }
 
-/// Injectable clock variant of `renew_lock` for testability (TDD Red Gate stub).
+/// Injectable clock variant of `renew_lock` for testability.
 ///
 /// Identical semantics to `renew_lock`, but accepts a `now_fn` closure that
-/// returns the current UTC time as a `YYYY-MM-DDTHH:MM:SSZ`-formatted string.
+/// returns the current UTC time as a `chrono::DateTime<chrono::Utc>`.
 /// This enables deterministic testing of the byte-identical expires_at guard
 /// (ADR-028 §Decision 16 F-R3-005) without relying on wall-clock timing.
 ///
-/// The implementer MUST implement this as the core of `renew_lock`, with
-/// `renew_lock` delegating to `renew_lock_with_now(content, || Utc::now()...)`.
-///
-/// # Test usage
-///
-/// ```rust
-/// // Test the NoOp path when now + 2700s exactly matches existing expires_at
-/// let fixed_now = "2026-06-22T12:00:00Z"; // 2026-06-22T12:00:00Z + 2700s = 2026-06-22T12:45:00Z
-/// let expires_at_matches = "2026-06-22T12:45:00Z";
-/// let content = make_state_md_with_expires_at(expires_at_matches);
-/// let result = renew_lock_with_now(&content, || fixed_now.to_string()... + 2700s);
-/// assert!(matches!(result, Ok(RenewOutcome::NoOp)));
-/// ```
-pub fn renew_lock_with_now<F>(
-    _state_md_content: &str,
-    _now_fn: F,
-) -> Result<RenewOutcome, LockError>
+/// `renew_lock` delegates to this with `|| Utc::now()`.
+pub fn renew_lock_with_now<F>(state_md_content: &str, now_fn: F) -> Result<RenewOutcome, LockError>
 where
-    F: Fn() -> chrono::DateTime<chrono::Utc>,
+    F: Fn() -> DateTime<Utc>,
 {
-    todo!()
+    // Step 1: presence pre-check — bash parity (F-NW2-006 / ADR-028 §Decision 9).
+    // If factory_lock: key is NOT present (regardless of fence shape), return NoOp.
+    if !has_factory_lock_key(state_md_content) {
+        return Ok(RenewOutcome::NoOp);
+    }
+
+    // Step 2: parse the factory_lock block.
+    let lock_state = match flp::parse_factory_lock(state_md_content) {
+        Ok(Some(ls)) => ls,
+        Ok(None) => {
+            // Key was present but lock is null/absent holder → NoOp.
+            return Ok(RenewOutcome::NoOp);
+        }
+        Err(flp::LockParseError::MalformedLockBlock(msg)) => {
+            return Err(LockError::Malformed(msg));
+        }
+    };
+
+    // Step 3: compute new expires_at = now + 2700s, formatted as YYYY-MM-DDTHH:MM:SSZ.
+    // MUST use format("%Y-%m-%dT%H:%M:%SZ") — NOT to_rfc3339() (AC-018 F-NW-008).
+    let new_expires_at = (now_fn() + Duration::seconds(2700))
+        .format("%Y-%m-%dT%H:%M:%SZ")
+        .to_string();
+
+    // Step 4: spurious renewal guard — if byte-identical, return NoOp (F-R3-005).
+    if new_expires_at == lock_state.expires_at {
+        return Ok(RenewOutcome::NoOp);
+    }
+
+    // Step 5: rewrite expires_at in the frontmatter, preserving holder and locked_at.
+    // CRLF normalization: replace \r\n with \n first (F-NW-009).
+    let normalized = state_md_content.replace("\r\n", "\n");
+    let new_content = rewrite_expires_at(&normalized, &new_expires_at);
+
+    Ok(RenewOutcome::Renewed(new_content))
 }
 
 /// Check whether the `factory_lock:` key appears in the frontmatter.
@@ -170,34 +190,97 @@ where
 /// the lock key → NoOp (not Malformed). Only a present key with a malformed block
 /// yields `Err(Malformed)` (F-NW2-006 / ADR-028 §Decision 9).
 ///
-/// Scans only the frontmatter region (between opening `---` and closing `---` fences).
-/// Returns `true` if any line starts with `factory_lock:` (with optional trailing
-/// whitespace / colon-only) inside the frontmatter.
-pub fn has_factory_lock_key(_state_md_content: &str) -> bool {
-    todo!()
+/// Scans lines in the "open frontmatter region" (after the opening `---` line,
+/// until the closing `---` line or end of content). Per ADR-028 §Decision 14 F-R3-002,
+/// awk open-region semantics apply: the scan continues even if there is no closing `---`,
+/// so `factory_lock:` in the "body region" (after an unclosed `---`) is still found.
+pub fn has_factory_lock_key(state_md_content: &str) -> bool {
+    // Normalize CRLF.
+    let normalized;
+    let content = if state_md_content.contains('\r') {
+        normalized = state_md_content.replace("\r\n", "\n");
+        normalized.as_str()
+    } else {
+        state_md_content
+    };
+
+    // Must start with `---\n` to have a frontmatter region.
+    let after_open = match content.strip_prefix("---\n") {
+        Some(rest) => rest,
+        None => return false,
+    };
+
+    // Scan all lines in the open region (awk open-region semantics: no closing `---` required).
+    // This matches bash parity: the region ends at the closing `---` fence if present,
+    // but the scan does not require the fence to close (F-R3-002 / ADR-028 §Decision 14).
+    for line in after_open.lines() {
+        if line == "---" {
+            // Closing fence found — stop scanning.
+            break;
+        }
+        // Check if this line starts with `factory_lock:` (with optional trailing content).
+        if line == "factory_lock:" || line.starts_with("factory_lock:") {
+            return true;
+        }
+    }
+    false
+}
+
+/// Rewrite the `expires_at:` sub-field inside the `factory_lock:` block.
+///
+/// Finds the first occurrence of `  expires_at:` (2-space indent) and replaces
+/// its value. Content before and after is preserved byte-for-byte.
+///
+/// Internal helper for `renew_lock_with_now`.
+fn rewrite_expires_at(content: &str, new_expires_at: &str) -> String {
+    let mut result = String::with_capacity(content.len() + 32);
+    let mut in_factory_lock = false;
+    let mut expires_at_rewritten = false;
+
+    for line in content.split_inclusive('\n') {
+        let trimmed = line.trim_end_matches('\n').trim_end_matches('\r');
+
+        if trimmed == "factory_lock:" || trimmed.starts_with("factory_lock:") {
+            in_factory_lock = true;
+            result.push_str(line);
+            continue;
+        }
+
+        if in_factory_lock && !expires_at_rewritten {
+            // Look for `  expires_at:` with exactly 2-space indent.
+            if trimmed.starts_with("  expires_at:") {
+                // Replace value while preserving leading whitespace and any trailing newline.
+                let has_lf = line.ends_with('\n');
+                result.push_str(&format!("  expires_at: {new_expires_at}"));
+                if has_lf {
+                    result.push('\n');
+                }
+                expires_at_rewritten = true;
+                continue;
+            }
+            // Exit factory_lock block on non-indented, non-empty line.
+            if !trimmed.is_empty() && !trimmed.starts_with(' ') {
+                in_factory_lock = false;
+            }
+        }
+
+        result.push_str(line);
+    }
+
+    result
 }
 
 /// Acquire the factory lock in STATE.md frontmatter content.
 ///
 /// Pure content-in/content-out; no `std::fs`.
 /// Intended for S-18.04b and related lock-management stories.
-///
-/// # Parameters
-///
-/// - `state_md_content` — current STATE.md content as a string.
-/// - `holder` — email of the agent acquiring the lock.
-/// - `locked_at` — ISO-8601 timestamp (YYYY-MM-DDTHH:MM:SSZ) of acquisition.
-/// - `expires_at` — ISO-8601 timestamp (YYYY-MM-DDTHH:MM:SSZ) of expiry.
-///
-/// Returns `Ok(new_content)` with the `factory_lock:` block written, or
-/// `Err(LockError::Malformed)` if existing frontmatter is unrecoverably malformed.
 pub fn acquire_lock(
     _state_md_content: &str,
     _holder: &str,
     _locked_at: &str,
     _expires_at: &str,
 ) -> Result<String, LockError> {
-    todo!()
+    todo!("acquire_lock: scoped to S-18.04b")
 }
 
 /// Clear the factory lock in STATE.md frontmatter content.
@@ -205,11 +288,8 @@ pub fn acquire_lock(
 /// Pure content-in/content-out; no `std::fs`.
 /// Removes the `factory_lock:` block (or nulls `holder`) so subsequent
 /// `renew_lock()` calls return `Ok(RenewOutcome::NoOp)`.
-///
-/// Returns `Ok(new_content)` with the lock cleared, or `Err(LockError::Malformed)`
-/// if the frontmatter is unrecoverably malformed.
 pub fn clear_lock(_state_md_content: &str) -> Result<String, LockError> {
-    todo!()
+    todo!("clear_lock: scoped to S-18.04b")
 }
 
 // ---------------------------------------------------------------------------

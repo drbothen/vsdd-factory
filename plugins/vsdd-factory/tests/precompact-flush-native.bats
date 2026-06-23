@@ -73,9 +73,13 @@ setup() {
   #   $WORK/hook-plugins/       — WASM plugin directory
   #   $WORK/project/            — project root (CLAUDE_PROJECT_DIR)
   #   $WORK/project/.factory/   — factory-artifacts worktree mount (distinct from $WORK/.factory)
+  #                               NOTE: $PROJECT_DIR/.factory is NOT pre-created here;
+  #                               git worktree add requires the target directory to not exist
+  #                               (or be empty). The factory-artifacts branch content provides
+  #                               .factory/hooks/ via a .gitkeep so write_file can create the log.
   mkdir -p "$WORK/.factory/logs"
   mkdir -p "$WORK/hook-plugins"
-  mkdir -p "$PROJECT_DIR/.factory/hooks"
+  mkdir -p "$PROJECT_DIR"
 
   # Copy precompact-flush.wasm into WORK's hook-plugins/ if it exists.
   if [ -f "$PRECOMPACT_WASM" ]; then
@@ -165,7 +169,12 @@ _run_dispatcher() {
 _init_git_fixture() {
   MAIN_REPO="$WORK/main-repo"
   BARE_REMOTE="$WORK/bare-remote.git"
-  FACTORY_ARTS="$PROJECT_DIR/.factory"
+  # FACTORY_ARTS is the project directory where the factory-artifacts worktree is mounted.
+  # Files from the factory-artifacts branch are checked out at FACTORY_ARTS root, so
+  # branch-path ".factory/STATE.md" → $FACTORY_ARTS/.factory/STATE.md (= $PROJECT_DIR/.factory/STATE.md).
+  # CLAUDE_PROJECT_DIR also equals $PROJECT_DIR, so the plugin's relative read/write of
+  # ".factory/STATE.md" resolves to $PROJECT_DIR/.factory/STATE.md.  All consistent.
+  FACTORY_ARTS="$PROJECT_DIR"
 
   # Configure git identity in a temp HOME so tests don't need system gitconfig.
   FAKE_HOME="$WORK/home"
@@ -179,18 +188,25 @@ _init_git_fixture() {
 GITCFG
 
   # 1. Create the bare remote
-  git init --bare "$BARE_REMOTE" >/dev/null 2>&1
+  # Use HOME="$FAKE_HOME" so git uses defaultBranch=develop from $FAKE_HOME/.gitconfig.
+  HOME="$FAKE_HOME" git init --bare "$BARE_REMOTE" >/dev/null 2>&1
 
   # 2. Create the main repo (develop branch)
-  git -C /tmp init "$MAIN_REPO" >/dev/null 2>&1 || git init "$MAIN_REPO" >/dev/null 2>&1
+  # HOME="$FAKE_HOME" ensures defaultBranch=develop is honoured at init time.
+  HOME="$FAKE_HOME" git init "$MAIN_REPO" >/dev/null 2>&1
   git -c user.name="Test Agent" -c user.email="test@factory.local" \
     -C "$MAIN_REPO" commit --allow-empty -m "init develop" >/dev/null 2>&1
   git -C "$MAIN_REPO" remote add origin "$BARE_REMOTE" >/dev/null 2>&1
 
-  # 3. Create the factory-artifacts branch in the bare remote
+  # 3. Create the factory-artifacts branch in the bare remote.
+  #    The factory-artifacts branch is mounted as a worktree at $FACTORY_ARTS (= $PROJECT_DIR).
+  #    Branch-relative paths ".factory/STATE.md" and ".factory/hooks/.gitkeep" land at
+  #    $PROJECT_DIR/.factory/STATE.md and $PROJECT_DIR/.factory/hooks/.gitkeep respectively —
+  #    exactly where CLAUDE_PROJECT_DIR-relative plugin I/O expects them.
   git -C "$MAIN_REPO" checkout -b factory-artifacts >/dev/null 2>&1
-  # Create a minimal STATE.md on factory-artifacts
-  mkdir -p "$MAIN_REPO/.factory"
+  # Create .factory/ content directly in MAIN_REPO working tree while on factory-artifacts.
+  # After commit + checkout develop, MAIN_REPO working tree will no longer have these files.
+  mkdir -p "$MAIN_REPO/.factory/hooks"
   cat > "$MAIN_REPO/.factory/STATE.md" <<'STATEMD'
 ---
 document_type: state
@@ -201,8 +217,9 @@ current_step: test-phase/S-18.04a-bats
 
 # STATE (bats test fixture)
 STATEMD
+  touch "$MAIN_REPO/.factory/hooks/.gitkeep"
   git -c user.name="Test Agent" -c user.email="test@factory.local" \
-    -C "$MAIN_REPO" add ".factory/STATE.md" >/dev/null 2>&1
+    -C "$MAIN_REPO" add ".factory" >/dev/null 2>&1
   git -c user.name="Test Agent" -c user.email="test@factory.local" \
     -C "$MAIN_REPO" commit -m "init factory-artifacts" >/dev/null 2>&1
   git -C "$MAIN_REPO" push origin factory-artifacts >/dev/null 2>&1
@@ -210,8 +227,9 @@ STATEMD
   # 4. Switch main-repo back to develop
   git -C "$MAIN_REPO" checkout develop >/dev/null 2>&1
 
-  # 5. Mount factory-artifacts as worktree at $PROJECT_DIR/.factory
-  mkdir -p "$(dirname "$FACTORY_ARTS")"
+  # 5. Mount factory-artifacts as worktree at $PROJECT_DIR (= $FACTORY_ARTS).
+  #    $PROJECT_DIR already exists (created by setup) and is empty, so git worktree add
+  #    succeeds without needing to create it.
   git -C "$MAIN_REPO" worktree add "$FACTORY_ARTS" factory-artifacts >/dev/null 2>&1
 
   # 6. Verify the worktree is mounted correctly
