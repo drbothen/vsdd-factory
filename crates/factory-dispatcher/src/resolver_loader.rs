@@ -16,6 +16,7 @@
 //! - BC-4.12.004 — resolver crash isolation (trap → ResolverError::Trap)
 //! - BC-4.12.005 PC6 — duplicate context_key is a registry-load error
 //! - BC-1.13.001 — dispatcher pre-dispatch injection contract (absent-file)
+//! - BC-1.13.001 INV-8 — TOML-parent-relative WASM path resolution for resolver entries (S-18.14 fix)
 //! - ADR-018 — WASM-plugin Context Resolvers design
 //! - S-12.04 — this story
 
@@ -355,10 +356,18 @@ impl ResolverLoader {
             // INV-8 fix (S-18.14): resolve relative plugin paths against the TOML
             // parent directory (CLAUDE_PLUGIN_ROOT), not the process CWD.
             // Mirrors registry.rs::resolve_plugin_paths pattern (BC-1.01.004).
-            // None arm (bare-component TOML path with no parent): pass through unchanged.
+            //
+            // When the TOML path has no directory component (bare filename, e.g. "registry.toml"),
+            // path.parent() returns Some("") — an empty base. base.join(plugin) then equals plugin
+            // itself (join with empty base is a no-op), leaving entry.plugin unchanged.
+            // Path::parent() returns None only for the empty path "" itself, which cannot be a valid TOML path.
             if let Some(base) = path.parent()
                 && entry.plugin.is_relative()
             {
+                // Note: when base is "" (bare-filename TOML path, parent=Some("")), join is a no-op.
+                // Do NOT add an `!base.as_os_str().is_empty()` guard here — the current behavior
+                // (empty base join = passthrough) is correct and intentional. Adding that guard would
+                // break the bare-filename case by routing it to the wrong arm.
                 entry.plugin = base.join(&entry.plugin);
             }
 
