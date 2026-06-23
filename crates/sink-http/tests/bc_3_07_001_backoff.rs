@@ -663,10 +663,16 @@ async fn test_BC_3_07_001_4xx_no_backoff() {
         "4xx must produce exactly 1 HTTP attempt (no retry); got {hits}"
     );
 
-    // No sleep: elapsed must be far under the 500ms base backoff.
+    // No sleep: elapsed must be well under the 500ms base backoff.
+    // The deterministic signal is attempt count == 1 above (proves no retry / no
+    // backoff sleep occurred). The timing bound here is belt-and-suspenders: a
+    // no-sleep path + generous CI overhead is still far below the 500ms base sleep
+    // that a real retry would add, matching the +300ms CI-overhead allowance used
+    // by the 2-sleep sibling test (test_BC_3_07_001_wall_clock_delay_attempt1).
     assert!(
-        elapsed < Duration::from_millis(200),
-        "4xx must produce no backoff sleep; elapsed={elapsed:?} (base=500ms would be present)"
+        elapsed < Duration::from_millis(450),
+        "4xx must produce no backoff sleep; elapsed={elapsed:?} \
+         (base=500ms sleep would push well past 450ms; CI overhead allowance 450ms)"
     );
 
     // Failure recorded immediately.

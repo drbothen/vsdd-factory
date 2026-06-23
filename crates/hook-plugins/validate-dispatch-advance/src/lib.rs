@@ -544,6 +544,86 @@ fn scan_max_d_nnn(s: &str) -> u64 {
     max
 }
 
+/// Extract the `current_cycle:` frontmatter value from YAML frontmatter.
+///
+/// Uses the same scanning strategy as `extract_current_step`: anchors to the
+/// opening `---` delimiter and scans for `current_cycle:` within the first
+/// frontmatter block, returning the trimmed value (with optional surrounding
+/// quotes stripped).
+///
+/// Returns `None` if the frontmatter block is absent or `current_cycle:` is
+/// not present. Fail-open: callers treat `None` as "unknown cycle" and apply
+/// the conservative (F5-applicable) check set.
+///
+/// # BC trace
+/// D-439(b)/D-451(c) F5-scope gate — 4-index-citation + trajectory-tail
+/// requirements apply ONLY to the F5 engine-discipline cycle
+/// (`v1.0-feature-engine-discipline-pass-1`). This helper enables the gate
+/// check in `validate_state_md`.
+fn extract_current_cycle(content: &str) -> Option<&str> {
+    // Strip BOM if present.
+    let content = content.trim_start_matches('\u{feff}');
+    let after_open = content.strip_prefix("---")?;
+    let body_start = after_open
+        .strip_prefix('\n')
+        .or_else(|| after_open.strip_prefix("\r\n"))
+        .unwrap_or(after_open);
+
+    // Find the closing `---` delimiter.
+    let mut fm_end = None;
+    let mut offset = 0usize;
+    for line in body_start.lines() {
+        if line == "---" {
+            fm_end = Some(offset);
+            break;
+        }
+        offset += line.len() + 1;
+    }
+    let fm_body = match fm_end {
+        Some(end) => {
+            if body_start.is_char_boundary(end) {
+                &body_start[..end]
+            } else {
+                body_start.get(..end)?
+            }
+        }
+        None => body_start,
+    };
+
+    // Scan frontmatter body for the `current_cycle:` key.
+    for line in fm_body.lines() {
+        let trimmed = line.trim_start();
+        let prefix = "current_cycle:";
+        if let Some(rest) = trimmed.strip_prefix(prefix) {
+            let value = rest.trim();
+            let value = value
+                .strip_prefix('\'')
+                .and_then(|v| v.strip_suffix('\''))
+                .or_else(|| value.strip_prefix('"').and_then(|v| v.strip_suffix('"')))
+                .unwrap_or(value);
+            return Some(value);
+        }
+    }
+    None
+}
+
+/// The sole F5 engine-discipline cycle identifier for which 4-index-citation
+/// and trajectory-tail checks apply (D-439(b) + D-451(c) F5-scope).
+const F5_CYCLE_ID: &str = "v1.0-feature-engine-discipline-pass-1";
+
+/// Returns `true` when `current_cycle` is the F5 engine-discipline cycle —
+/// the only cycle for which D-439(b) 4-index-citation + D-451(c)
+/// trajectory-tail checks are required.
+///
+/// All other cycles (e.g. `v1.0-brownfield-backfill`) use bare dispatch-step
+/// labels for `current_step:` and MUST NOT be subjected to these checks.
+fn is_f5_cycle(current_cycle: Option<&str>) -> bool {
+    // Conservative: if cycle is unknown (None), apply F5 checks to avoid
+    // silently disabling them on a genuinely-F5 state file that is missing
+    // the current_cycle: field.
+    current_cycle.is_none_or(|c| c == F5_CYCLE_ID)
+}
+
 /// Orchestrate all STATE.md validation checks.
 ///
 /// Extracts `current_step:` value, runs all 4 checks, accumulates non-None
@@ -555,8 +635,24 @@ fn scan_max_d_nnn(s: &str) -> u64 {
 /// skip is observable in dispatcher telemetry. This is consistent with the
 /// read-error path which also produces Continue + log_warn.
 ///
+/// # Cycle-identity gate (D-439(b)/D-451(c) F5-scope)
+///
+/// `check_index_version_cites` and `check_trajectory_tail_length` are gated
+/// on the F5 engine-discipline cycle (`v1.0-feature-engine-discipline-pass-1`).
+/// Brownfield and other cycles use bare dispatch-step labels for `current_step:`
+/// (e.g. `D-689-S18.14-3CLEAN-CONVERGED-PROMOTION-2026-06-22`) which do not
+/// contain 4-index cites or trajectory-tail markers — running these checks
+/// unconditionally produces false-positive blocks on every correct brownfield
+/// STATE.md write. The gate reads `current_cycle:` from frontmatter; if absent,
+/// the conservative path (apply F5 checks) is taken to prevent silently
+/// disabling checks on a genuine F5 state file.
+///
+/// `check_forbidden_meta_commentary` and `check_d_chain_currency` run
+/// unconditionally for all cycles.
+///
 /// # BC trace
-/// BC-5.39.006 v1.1 postcondition 1/6/7; invariant 7/9; F-P1-004.
+/// BC-5.39.006 v1.1 postcondition 1/6/7; invariant 7/9; F-P1-004;
+/// D-439(b)/D-451(c) F5-scope gate.
 pub fn validate_state_md(content: &str) -> Vec<Violation> {
     let current_step = match extract_current_step(content) {
         Some(v) => v,
@@ -567,16 +663,29 @@ pub fn validate_state_md(content: &str) -> Vec<Violation> {
         }
     };
 
+    // Determine whether F5-only checks apply (D-439(b)/D-451(c) F5-scope gate).
+    let current_cycle = extract_current_cycle(content);
+    let apply_f5_checks = is_f5_cycle(current_cycle);
+
     let mut violations: Vec<Violation> = Vec::new();
 
-    // check_forbidden_meta_commentary returns Vec — extend (F-P1-012 multi-pattern).
+    // check_forbidden_meta_commentary runs unconditionally for all cycles.
     violations.extend(check_forbidden_meta_commentary(current_step));
-    if let Some(v) = check_index_version_cites(current_step) {
-        violations.push(v);
+
+    // 4-index-citation and trajectory-tail checks are F5-cycle-specific.
+    // D-439(b) + D-451(c): required ONLY when current_cycle is the F5
+    // engine-discipline cycle. Brownfield current_step labels omit these
+    // markers by design.
+    if apply_f5_checks {
+        if let Some(v) = check_index_version_cites(current_step) {
+            violations.push(v);
+        }
+        if let Some(v) = check_trajectory_tail_length(current_step) {
+            violations.push(v);
+        }
     }
-    if let Some(v) = check_trajectory_tail_length(current_step) {
-        violations.push(v);
-    }
+
+    // D-chain currency check runs unconditionally for all cycles.
     if let Some(v) = check_d_chain_currency(content, current_step) {
         violations.push(v);
     }
@@ -1423,6 +1532,100 @@ mod tests {
         let content = "---\ncurrent_step: 'pass 74—D-382..D-477 →9→9→9→9'\n---\nbody\n";
         // Must not panic; correctness of returned value tested by implementer.
         let _ = extract_current_step(content);
+    }
+
+    // -- Cycle-identity gate (D-439(b)/D-451(c) F5-scope) --
+
+    /// Brownfield cycle must NOT trigger 4-index-cite or trajectory-tail violations.
+    ///
+    /// Synthetic STATE.md with `current_cycle: v1.0-brownfield-backfill` and a
+    /// bare dispatch-step `current_step:` label (D-689 form) plus a valid D-689
+    /// body reference.  validate_state_md must return ZERO violations — the
+    /// 4-index-cite and trajectory-tail checks are F5-only per D-439(b)/D-451(c).
+    ///
+    /// This is the primary RED→GREEN guard for the D-439(b)/D-451(c) F5-scope gate
+    /// fix. Before the fix it fails with two violations (missing index cites +
+    /// missing trajectory-tail prefix); after the fix it passes.
+    #[test]
+    fn test_brownfield_current_step_no_false_positive() {
+        let content = concat!(
+            "---\n",
+            "current_cycle: v1.0-brownfield-backfill\n",
+            "current_step: \"D-689-S18.14-3CLEAN-CONVERGED-PROMOTION-2026-06-22\"\n",
+            "---\n",
+            "| D-689 | some decision row |\n",
+        );
+        let violations = validate_state_md(content);
+        assert!(
+            violations.is_empty(),
+            "brownfield current_step must produce ZERO violations (D-439(b)/D-451(c) \
+             F5-only gate); violations found: {violations:?}"
+        );
+    }
+
+    /// F5 cycle still enforces 4-index-cite AND trajectory-tail.
+    ///
+    /// Synthetic STATE.md with `current_cycle: v1.0-feature-engine-discipline-pass-1`
+    /// and a bare dispatch-step label (missing 4-index cites + trajectory-tail)
+    /// must produce violations — confirming the gate does NOT disable F5 checks.
+    #[test]
+    fn test_f5_cycle_still_enforces_index_and_trajectory_checks() {
+        let content = concat!(
+            "---\n",
+            "current_cycle: v1.0-feature-engine-discipline-pass-1\n",
+            "current_step: \"D-689-some-f5-step\"\n",
+            "---\n",
+            "| D-689 | some row |\n",
+        );
+        let violations = validate_state_md(content);
+        let descs: Vec<&str> = violations.iter().map(|v| v.description.as_str()).collect();
+        // Check 1: 4-index version citations (D-439(b)) must fire.
+        assert!(
+            descs.iter().any(|d| d.contains("BC-INDEX v")),
+            "F5 cycle: missing 4-index cites (D-439(b)) must produce a violation; got: {descs:?}"
+        );
+        // Check 2: trajectory-tail LENGTH=4 (D-451(c)) must fire independently.
+        assert!(
+            descs.iter().any(|d| d.contains("trajectory-tail")),
+            "F5 cycle: missing trajectory-tail (D-451(c)) must produce a violation; got: {descs:?}"
+        );
+    }
+
+    /// extract_current_cycle returns the bare cycle value from frontmatter.
+    #[test]
+    fn test_extract_current_cycle_brownfield() {
+        let content = "---\ncurrent_cycle: v1.0-brownfield-backfill\ncurrent_step: 'x'\n---\n";
+        assert_eq!(
+            extract_current_cycle(content),
+            Some("v1.0-brownfield-backfill")
+        );
+    }
+
+    /// extract_current_cycle returns the F5 cycle id from frontmatter.
+    #[test]
+    fn test_extract_current_cycle_f5() {
+        let content =
+            "---\ncurrent_cycle: v1.0-feature-engine-discipline-pass-1\ncurrent_step: 'x'\n---\n";
+        assert_eq!(
+            extract_current_cycle(content),
+            Some("v1.0-feature-engine-discipline-pass-1")
+        );
+    }
+
+    /// extract_current_cycle returns None when field is absent.
+    #[test]
+    fn test_extract_current_cycle_absent() {
+        let content = "---\ncurrent_step: 'x'\n---\n";
+        assert_eq!(extract_current_cycle(content), None);
+    }
+
+    /// is_f5_cycle is conservative: None (unknown cycle) → true (apply F5 checks).
+    #[test]
+    fn test_is_f5_cycle_none_is_conservative() {
+        assert!(
+            is_f5_cycle(None),
+            "unknown cycle must default to applying F5 checks (conservative)"
+        );
     }
 
     // -- Production false-positive regression (AC-21 preemptive; S-15.09 lesson) --
