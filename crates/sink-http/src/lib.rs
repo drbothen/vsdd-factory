@@ -31,6 +31,7 @@ use sink_core::{
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
 use std::thread::JoinHandle;
+use std::time::Duration;
 use tokio::sync::mpsc;
 
 /// Default total attempts for 5xx batches (1 initial + retries) when no RetryConfig is set.
@@ -87,6 +88,71 @@ impl SplitMix64 {
         // (two sinks started in the same nanosecond still diverge).
         let stack_addr = &nanos as *const u64 as u64;
         Self::new(nanos ^ stack_addr ^ 0xcafe_f00d_dead_beef)
+    }
+}
+
+// ── BackoffSleeper abstraction (deterministic-test injection) ─────────────────
+//
+// Abstracts the `tokio::time::sleep` call in the retry loop so tests can inject
+// a `RecordingSleepLog` that records sleep durations and returns immediately —
+// making all backoff-related assertions fully deterministic without relying on
+// wall-clock elapsed time.
+//
+// Design: a `SleepMode` enum discriminates between the production path (real
+// tokio::time::sleep) and the recording path (instant return + duration logged).
+// The enum is passed into `worker_loop` / `post_batch` as a `&SleepMode` so no
+// boxing is needed. This is "wiring not redesign" per CLAUDE.md Standing Rule 3 §4.
+
+/// Shared sleep-duration log returned by [`RecordingSleepLog::new`].
+///
+/// The worker thread appends to it; the test thread reads it after flush.
+///
+/// This type is `#[doc(hidden)]` — test-support API only.
+#[doc(hidden)]
+#[derive(Clone, Default)]
+pub struct RecordingSleepLog(Arc<Mutex<Vec<Duration>>>);
+
+impl RecordingSleepLog {
+    /// Create a new, empty sleep log.
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Snapshot the recorded sleep durations in call order.
+    pub fn recorded_sleeps(&self) -> Vec<Duration> {
+        self.0.lock().unwrap_or_else(|p| p.into_inner()).clone()
+    }
+}
+
+/// Controls how the retry loop performs its backoff sleep.
+///
+/// `SleepMode::Real` is the production path; `SleepMode::Recording` is the
+/// test-injection path that records sleep requests and returns immediately.
+///
+/// `#[doc(hidden)]` — callers use [`HttpSink::new_with_recording_sleeper`].
+#[doc(hidden)]
+#[derive(Clone, Default)]
+pub enum SleepMode {
+    /// Delegate to `tokio::time::sleep` (production default).
+    #[default]
+    Real,
+    /// Record the sleep duration, then return immediately (test injection).
+    Recording(RecordingSleepLog),
+}
+
+impl SleepMode {
+    /// Perform the sleep (real or simulated), awaiting appropriately.
+    async fn sleep(&self, duration: Duration) {
+        match self {
+            SleepMode::Real => tokio::time::sleep(duration).await,
+            SleepMode::Recording(log) => {
+                log.0
+                    .lock()
+                    .unwrap_or_else(|p| p.into_inner())
+                    .push(duration);
+                // Return immediately — no actual sleep.
+            }
+        }
     }
 }
 
@@ -436,6 +502,12 @@ pub struct HttpSink {
     /// dead because `self.dlq_writer` is not directly dereffed after `new()`.
     #[allow(dead_code)]
     dlq_writer: Option<Arc<DlqWriter>>,
+    // NOTE: sleep_mode is stored here so it outlives `new_with_observability`
+    // and can be read by callers of `new_with_recording_sleeper`. The worker
+    // thread receives a clone at spawn time and never touches `self.sleep_mode`
+    // again — this field is only retained for test inspection purposes.
+    #[allow(dead_code)]
+    sleep_mode: SleepMode,
 }
 
 impl HttpSink {
@@ -473,6 +545,31 @@ impl HttpSink {
         error_tx: Option<mpsc::Sender<SinkErrorEvent>>,
         dlq_writer: Option<Arc<DlqWriter>>,
     ) -> anyhow::Result<Self> {
+        Self::new_internal(config, error_tx, dlq_writer, SleepMode::Real)
+    }
+
+    /// Test-support constructor: injects a [`RecordingSleepLog`] so that tests can
+    /// assert on sleep durations rather than measuring wall-clock elapsed time.
+    ///
+    /// All backoff sleeps that would normally invoke `tokio::time::sleep` are
+    /// instead recorded into `sleep_log` and return immediately, making the tests
+    /// fully deterministic. The `sleep_log` can be read after `flush()` completes.
+    ///
+    /// `#[doc(hidden)]` — this is a test-support API, not a production interface.
+    #[doc(hidden)]
+    pub fn new_with_recording_sleeper(
+        config: HttpSinkConfig,
+        sleep_log: RecordingSleepLog,
+    ) -> anyhow::Result<Self> {
+        Self::new_internal(config, None, None, SleepMode::Recording(sleep_log))
+    }
+
+    fn new_internal(
+        config: HttpSinkConfig,
+        error_tx: Option<mpsc::Sender<SinkErrorEvent>>,
+        dlq_writer: Option<Arc<DlqWriter>>,
+        sleep_mode: SleepMode,
+    ) -> anyhow::Result<Self> {
         let (tx, rx) = mpsc::channel::<Message>(config.queue_depth.max(1));
         let sink_name_for_shared = if config.common.name.is_empty() {
             "<unnamed>".to_owned()
@@ -486,6 +583,8 @@ impl HttpSink {
         let worker_retry = config.retry.clone();
         // Clone the DLQ writer Arc for the worker thread (S-4.05 Task 4).
         let worker_dlq: Option<Arc<DlqWriter>> = dlq_writer.as_ref().map(Arc::clone);
+        // Clone the sleep mode for the worker thread (test injection or real).
+        let worker_sleep_mode = sleep_mode.clone();
 
         let handle = std::thread::Builder::new()
             .name(format!("sink-http:{}", config.common.name))
@@ -518,6 +617,7 @@ impl HttpSink {
                     worker_retry,
                     &mut rng,
                     worker_dlq,
+                    &worker_sleep_mode,
                 ));
             })
             .map_err(|e| anyhow::anyhow!("failed to spawn sink-http worker thread: {e}"))?;
@@ -529,6 +629,7 @@ impl HttpSink {
             worker: Mutex::new(Some(handle)),
             shared,
             dlq_writer,
+            sleep_mode,
         })
     }
 
@@ -665,6 +766,7 @@ impl Drop for HttpSink {
 /// The `dlq_writer` parameter is an optional DLQ writer for retry-exhausted
 /// events (S-4.05 Task 4). When `Some`, all events in a batch that exhaust all
 /// retries are written to the DLQ file.
+#[allow(clippy::too_many_arguments)]
 async fn worker_loop(
     mut rx: mpsc::Receiver<Message>,
     url: String,
@@ -673,6 +775,7 @@ async fn worker_loop(
     retry: Option<RetryConfig>,
     rng: &mut SplitMix64,
     dlq_writer: Option<Arc<DlqWriter>>,
+    sleep_mode: &SleepMode,
 ) {
     let client = reqwest::Client::new();
     let mut buffer: Vec<SinkEvent> = Vec::new();
@@ -694,6 +797,7 @@ async fn worker_loop(
                         retry.as_ref(),
                         rng,
                         dlq_writer.as_deref(),
+                        sleep_mode,
                     )
                     .await;
                 }
@@ -715,6 +819,7 @@ async fn worker_loop(
             retry.as_ref(),
             rng,
             dlq_writer.as_deref(),
+            sleep_mode,
         )
         .await;
     }
@@ -744,6 +849,7 @@ async fn post_batch(
     retry: Option<&RetryConfig>,
     rng: &mut SplitMix64,
     dlq_writer: Option<&DlqWriter>,
+    sleep_mode: &SleepMode,
 ) {
     let body = match serde_json::to_string(&batch) {
         Ok(b) => b,
@@ -803,7 +909,7 @@ async fn post_batch(
                                 attempt_index,
                                 jitter_ms,
                             );
-                            tokio::time::sleep(std::time::Duration::from_millis(delay_ms)).await;
+                            sleep_mode.sleep(Duration::from_millis(delay_ms)).await;
                         }
                         continue;
                     }
@@ -859,7 +965,7 @@ async fn post_batch(
                             attempt_index,
                             jitter_ms,
                         );
-                        tokio::time::sleep(std::time::Duration::from_millis(delay_ms)).await;
+                        sleep_mode.sleep(Duration::from_millis(delay_ms)).await;
                     }
                     continue;
                 }
