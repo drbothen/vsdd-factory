@@ -557,9 +557,13 @@ jobs:
 
       - name: Cache cargo
         # Pinned to commit SHA for security (TD #74); resolves to v2.9.1.
+        # shared-key suffix -v2: busts stale cache that held a pre-F-P5-003
+        # validate-state-structure.wasm binary (built before the banner-block-scoped
+        # scan fix); without the suffix, the cache hit restores the old artifact and
+        # bats pass-real-state-md-snapshot fails with "no SIZE BUDGET banner found".
         uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4  # v2.9.1
         with:
-          shared-key: bats-full-suite-linux
+          shared-key: bats-full-suite-linux-v2
           cache-on-failure: true
 
       - name: Build factory-dispatcher (release)
