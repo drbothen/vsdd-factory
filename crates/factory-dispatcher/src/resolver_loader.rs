@@ -1158,16 +1158,36 @@ fail_closed = false
         write_wasm_to(&wasm_abs_path);
 
         // Write the TOML with an ABSOLUTE path (not relative).
+        //
+        // IMPORTANT: use TOML *literal* strings (single-quoted) for the plugin
+        // path, NOT basic (double-quoted) strings.  Basic strings interpret
+        // backslash escape sequences; on Windows, a path like
+        // `C:\Users\RUNNER~1\...` causes the TOML parser to interpret `\U` as
+        // an 8-digit Unicode escape and fail with "invalid unicode 8-digit hex
+        // code".  Literal strings treat every character as-is, including `\`,
+        // so they round-trip correctly on all platforms.
         let toml_path = dir.path().join("resolvers-registry.toml");
         let abs_str = wasm_abs_path.display().to_string();
-        let content = format!(
-            r#"schema_version = 1
 
-[[resolvers]]
-name = "abs_resolver"
-plugin = "{abs_str}"
-context_key = "abs_context"
-"#
+        // Cross-platform regression guard: verify that the path string we are
+        // about to embed in TOML parses correctly when it contains a backslash.
+        // On Windows `abs_str` will naturally contain backslashes; on
+        // macOS/Linux we synthesise a sentinel to ensure this codepath is
+        // exercised on every platform and CI runner.
+        let sentinel_with_backslash = r"C:\Users\Sentinel\hook-plugins\sentinel.wasm";
+        let sentinel_toml = format!("value = '{sentinel_with_backslash}'\n");
+        let parsed: toml::Value =
+            toml::from_str(&sentinel_toml).expect("literal-string TOML with backslash must parse");
+        assert_eq!(
+            parsed["value"].as_str().unwrap(),
+            sentinel_with_backslash,
+            "TOML literal string must round-trip a Windows path with backslashes unchanged"
+        );
+
+        // Use literal strings (single-quoted) so that backslashes in `abs_str`
+        // are never misinterpreted as TOML escape sequences.
+        let content = format!(
+            "schema_version = 1\n\n[[resolvers]]\nname = \"abs_resolver\"\nplugin = '{abs_str}'\ncontext_key = \"abs_context\"\n"
         );
         std::fs::write(&toml_path, content).unwrap();
 
