@@ -57,6 +57,13 @@ pub const HOST_ABI_VERSION: u32 = 1;
 /// rendered the validator silently inert against the real production target.
 ///
 /// F-P5-002: raise from 65536 to 524288.
+/// F-P5-003: banner-block-scoped scanning added in `extract_banner_line_count` — the
+///   wc-l pattern is now searched only within the `<!-- STATE.md SIZE BUDGET ... -->`
+///   block rather than the full document, preventing body-prose false matches on
+///   `N lines (wc-l)` occurrences in Phase Progress rows or compaction history notes.
+///   This fix is load-bearing for the `pass-real-state-md-snapshot` bats test
+///   (F-P2-002): pre-F-P5-003 WASM builds incorrectly reported "no SIZE BUDGET banner
+///   found" against a STATE.md that contains a valid banner.
 pub const MAX_BYTES_STATE_MD: u32 = 524_288;
 
 // ---------------------------------------------------------------------------
