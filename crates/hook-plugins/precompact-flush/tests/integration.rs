@@ -496,6 +496,77 @@ fn test_worktree_mount_mismatch_emits_durability_degraded() {
 }
 
 // ---------------------------------------------------------------------------
+// F-002 coverage: AC-017 — path NOT ending in /.factory triggers split-tree guard
+// ---------------------------------------------------------------------------
+
+/// Red Gate: test_worktree_path_not_ending_in_factory_triggers_mismatch_advisory
+///
+/// Traces to: AC-017 / ADR-028 §Decision 5 F-R3-001
+/// (split-tree guard MUST fire for paths that do NOT end with "/.factory",
+/// not just for paths that do end with "/.factory" but point to a different directory)
+///
+/// AC-017 canonicalize assertion is NOT limited to paths ending with "/.factory".
+/// A discovered path like `/tmp/elsewhere` (not ending with `/.factory`) is
+/// categorically wrong: it would commit factory-artifacts into a random location.
+/// The plugin MUST detect this dangerous case, emit DURABILITY DEGRADED advisory,
+/// and exit 0 (fail-open) — NO commit, NO push.
+///
+/// This test FAILS against the current code, which gates the mismatch check on
+/// `wt_path.ends_with("/.factory")` (lib.rs line 449), causing it to skip the
+/// check entirely for non-`.factory` paths and proceed to a dangerous flush.
+///
+/// After the implementer un-gates the canonicalize assertion to cover ALL discovered
+/// paths (not just those ending with "/.factory"), this test passes.
+#[test]
+fn test_worktree_path_not_ending_in_factory_triggers_mismatch_advisory() {
+    use vsdd_hook_sdk::HookResult;
+
+    let payload = make_payload();
+
+    // Worktree list returns a path that does NOT end with "/.factory".
+    // This is categorically wrong regardless of what <cwd>/.factory resolves to.
+    let bad_path_worktree = "worktree /repo\nHEAD abc123\nbranch refs/heads/develop\n\n\
+        worktree /tmp/elsewhere\nHEAD 000aaa\nbranch refs/heads/factory-artifacts\n\n";
+
+    let result = precompact_flush::run_plugin_with_mock(
+        payload,
+        |path| {
+            if path == ".factory/STATE.md" {
+                Ok(make_state_md("v1.0-test-cycle", "stub-phase"))
+            } else {
+                Err("CAPABILITY_DENIED".to_string())
+            }
+        },
+        |_path, _content| {
+            panic!("write_file must NOT be called when split-tree guard fires (non-/.factory path)")
+        },
+        {
+            let bpw = bad_path_worktree.to_string();
+            move |bin, args| {
+                assert_eq!(bin, "git");
+                if args == ["worktree", "list", "--porcelain"] {
+                    return Ok((0, bpw.clone(), String::new()));
+                }
+                // If the split-tree guard does NOT fire, the plugin will proceed to
+                // git add / diff / commit / push — those calls prove the guard failed.
+                panic!(
+                    "AC-017 F-R3-001: no git commit/push/add/diff should run after \
+                    split-tree guard detects non-/.factory path; got args: {args:?}"
+                );
+            }
+        },
+    );
+
+    assert_eq!(
+        result,
+        HookResult::Continue,
+        "AC-017 F-R3-001: discovered path not ending in '/.factory' must return Continue \
+        (exit 0, fail-open) with DURABILITY DEGRADED advisory; current code skips this check \
+        because it gates on ends_with('/.factory'); got: {result:?}"
+    );
+}
+
+// ---------------------------------------------------------------------------
 // Red Gate: AC-004 / AC-011 — untracked file captured by add -A (F-R3-003)
 // ---------------------------------------------------------------------------
 
@@ -571,25 +642,73 @@ fn make_state_md_malformed_lock() -> String {
 /// Red Gate: test_no_state_md_is_noop
 ///
 /// Traces to: AC-002 / BC-7.07.001 PC7 (STATE.md unreadable → exit 0 + warn)
+/// Traces to: BC-7.07.001 INV3 + AC-011 (canonical execution order: step 1 = worktree
+/// discovery via `git worktree list --porcelain`, step 2 = STATE.md read).
 ///
-/// When host::read_file(".factory/STATE.md") fails, run_plugin must:
-/// - Return HookResult::Continue (exit 0, fail-open)
-/// - NOT commit, NOT push, NOT append to log
+/// Under the canonical INV3 order, when STATE.md is unreadable the plugin must:
+/// 1. Run `git worktree list --porcelain` (step 1 ALWAYS runs first — discovery).
+/// 2. Attempt to read STATE.md (step 2); on failure → emit AC-002 warning and exit 0.
+/// 3. NOT call `git commit`, NOT call `git push`.
 ///
-/// This test fails now because run_plugin_with_mock does not exist (compile error).
+/// Alignment note: the current implementation wrongly reads STATE.md before discovery.
+/// This test therefore asserts the SPEC-CORRECT behavior and FAILS against the current
+/// code (which short-circuits exec_subprocess on STATE.md read failure, so `git worktree
+/// list` is never called). The implementer must reorder steps to make this test green.
+///
+/// This test fails because: current code never calls exec_subprocess when STATE.md
+/// read fails (the panic in exec_subprocess fires, marking the test RED). Once the
+/// implementer puts discovery first, exec_subprocess is called for `git worktree list`
+/// and the panic for commit/push no longer fires.
 #[test]
 fn test_no_state_md_is_noop() {
+    use std::cell::RefCell;
+    use std::rc::Rc;
     use vsdd_hook_sdk::HookResult;
+
     let payload = make_payload();
 
-    // Inject: read_file always fails (STATE.md unreadable)
+    // Track whether discovery was called (INV3: discovery must run before STATE.md read).
+    let discovery_called = Rc::new(RefCell::new(false));
+    let discovery_called_clone = Rc::clone(&discovery_called);
+
+    // Inject:
+    //   exec_subprocess: ONLY `git worktree list --porcelain` is allowed (step 1 discovery).
+    //                    commit / push / rev-parse / add / diff must NOT be called.
+    //   read_file:       always fails (STATE.md unreadable — triggers AC-002 exit 0).
+    //   write_file:      must NOT be called.
     let result = precompact_flush::run_plugin_with_mock(
         payload,
         |_path| Err("file not found".to_string()),
         |_path, _content| panic!("write_file must NOT be called when STATE.md unreadable"),
-        |_bin, _args| panic!("exec_subprocess must NOT be called when STATE.md unreadable"),
+        move |bin, args| {
+            assert_eq!(bin, "git");
+            if args == ["worktree", "list", "--porcelain"] {
+                // Step 1 discovery: allowed. Record that it was called.
+                *discovery_called_clone.borrow_mut() = true;
+                return Ok((
+                    0,
+                    "worktree /repo\nHEAD abc123\nbranch refs/heads/develop\n\n\
+                     worktree /repo/.factory\nHEAD 000aaa\nbranch refs/heads/factory-artifacts\n\n"
+                        .to_string(),
+                    String::new(),
+                ));
+            }
+            // Any other subprocess call (add, diff, commit, push, rev-parse) is forbidden.
+            panic!(
+                "AC-002 / INV3: no git command other than 'worktree list' should run when \
+                STATE.md is unreadable; got args: {args:?}"
+            );
+        },
     );
 
+    // INV3 assertion: worktree discovery (step 1) must have been called.
+    assert!(
+        *discovery_called.borrow(),
+        "BC-7.07.001 INV3: step 1 (git worktree list --porcelain) must run before STATE.md read; \
+        was NOT called — this is the RED gate catching the wrong execution order in current code"
+    );
+
+    // AC-002 assertion: result must be Continue (exit 0, fail-open).
     assert_eq!(
         result,
         HookResult::Continue,
@@ -977,12 +1096,110 @@ fn test_push_success_exits_0() {
     );
 }
 
+/// Red Gate: test_diff_cached_error_is_fail_open_not_spurious_commit
+///
+/// Traces to: AC-005 / BC-7.07.001 INV5 (clean-state exit 0 guard)
+/// F-004 coverage: git diff --cached subprocess failure → fail-open (exit 0, no commit).
+///
+/// When step 3 returned NoOp (no lock renewal) AND `exec_subprocess("git diff --cached")`
+/// itself fails (returns `Err(...)` — subprocess cannot be spawned), the plugin MUST
+/// fail-open (exit 0, surface the error to stderr) rather than fabricating a "non-empty"
+/// sentinel result and proceeding to `git commit`.
+///
+/// The defect (current code lib.rs lines 535-542):
+/// ```rust
+/// Err(e) => {
+///     eprintln!("... failing: {}; proceeding with commit.", e);
+///     "non-empty".to_string()  // ← fabricated sentinel causes spurious commit
+/// }
+/// ```
+/// A spurious commit on a worktree that may be clean violates INV5.
+///
+/// Production-grade behavior: fail-open (exit 0 + surface error), NOT fabricate
+/// "non-empty" → commit. This test FAILS against the current code because the
+/// `Err(_)` arm returns `"non-empty"`, which makes the plugin proceed to
+/// `git commit` — triggering the panic below.
+#[test]
+fn test_diff_cached_error_is_fail_open_not_spurious_commit() {
+    use vsdd_hook_sdk::HookResult;
+
+    let payload = make_payload();
+    let wt_path = "/tmp/test-factory-artifacts";
+
+    let result = precompact_flush::run_plugin_with_mock(
+        payload,
+        |path| {
+            if path == ".factory/STATE.md" {
+                // NoOp lock state (no factory_lock block → renew_lock returns NoOp)
+                Ok(make_state_md("v1.0-test-cycle", "stub-phase/S-18.04a"))
+            } else {
+                Err("CAPABILITY_DENIED: file not found".to_string())
+            }
+        },
+        |_path, _content| {
+            panic!("write_file must NOT be called on diff subprocess-failure path (fail-open)")
+        },
+        {
+            let wt = wt_path.to_string();
+            move |bin, args| {
+                assert_eq!(bin, "git");
+                if args == ["worktree", "list", "--porcelain"] {
+                    return Ok((0, worktree_list_for(&wt), String::new()));
+                }
+                if args.contains(&"-C") && args.contains(&"add") {
+                    return Ok((0, String::new(), String::new()));
+                }
+                if args.contains(&"-C") && args.contains(&"diff") {
+                    // Simulate subprocess failure — exec_subprocess itself cannot run
+                    // (e.g., binary not found, sandbox denial). This is the Err(_) path
+                    // that causes the current code to fabricate "non-empty" sentinel.
+                    return Err(
+                        "exec_subprocess: CAPABILITY_DENIED: git not in binary_allow".to_string(),
+                    );
+                }
+                // If the plugin proceeds to commit despite the diff subprocess failure,
+                // this panic fires — proving the fabricated-sentinel defect.
+                if args.contains(&"-C") && args.contains(&"commit") {
+                    panic!(
+                        "AC-005 INV5 F-004: git commit must NOT be called when \
+                        exec_subprocess('git diff --cached') fails; \
+                        current code Err arm fabricates 'non-empty' sentinel and proceeds to \
+                        commit — INV5 violation (spurious commit on potentially clean worktree)"
+                    );
+                }
+                Ok((0, String::new(), String::new()))
+            }
+        },
+    );
+
+    // Fail-open: exit 0 (Continue), NOT Block (exit 2).
+    assert_eq!(
+        result,
+        HookResult::Continue,
+        "AC-005 INV5 F-004: exec_subprocess failure for 'git diff --cached' must return \
+        Continue (fail-open, exit 0), not Block; \
+        current code fabricates 'non-empty' and commits spuriously; got: {result:?}"
+    );
+}
+
 /// Red Gate: test_lock_held_renews_before_commit
 ///
 /// Traces to: AC-003 / BC-7.07.001 PC3 (lock renewal conditional when held)
+/// F-005: renewal MUST precede git add (canonically specified ordering).
 ///
-/// When STATE.md has a held lock, run_plugin must call write_file to update
-/// the renewed STATE.md BEFORE calling git add/commit.
+/// When STATE.md has a held lock, run_plugin must:
+/// 1. Call write_file(".factory/STATE.md", renewed_content)  ← renewal step
+/// 2. Call git add -A                                         ← staging step
+/// in that order. `write_file(STATE.md)` position MUST be < `git add` position.
+///
+/// The original test only checked that write_file was called at all — it did NOT
+/// verify ordering. This strengthened version tracks call order and asserts the
+/// renewal-before-add invariant mandated by AC-003 / ADR-028 §Decision 5.
+///
+/// Per-command mock responses are realistic:
+///   - git rev-parse → SHA-shaped string
+///   - git diff      → diff text (non-empty, triggers commit path)
+///   - all others    → empty stdout
 #[test]
 fn test_lock_held_renews_before_commit() {
     use std::cell::RefCell;
@@ -994,8 +1211,11 @@ fn test_lock_held_renews_before_commit() {
     let worktree_output = worktree_list_for(wt_path);
     let state_content = make_state_md_with_lock("v1.0-test-cycle", "stub-phase/S-18.04a");
 
-    let write_file_called_for_state = Rc::new(RefCell::new(false));
-    let write_called_clone = Rc::clone(&write_file_called_for_state);
+    // Track call order: "write_state" appears when write_file(".factory/STATE.md") is called;
+    // "git_add" appears when exec_subprocess("git", [..., "add", ...]) is called.
+    let call_order: Rc<RefCell<Vec<&'static str>>> = Rc::new(RefCell::new(Vec::new()));
+    let order_write = Rc::clone(&call_order);
+    let order_exec = Rc::clone(&call_order);
 
     let _result = precompact_flush::run_plugin_with_mock(
         payload,
@@ -1011,7 +1231,7 @@ fn test_lock_held_renews_before_commit() {
         },
         move |path, _content| {
             if path == ".factory/STATE.md" {
-                *write_called_clone.borrow_mut() = true;
+                order_write.borrow_mut().push("write_state");
             }
             Ok(())
         },
@@ -1022,21 +1242,56 @@ fn test_lock_held_renews_before_commit() {
                 if args == ["worktree", "list", "--porcelain"] {
                     return Ok((0, wl.clone(), String::new()));
                 }
-                if args.contains(&"-C") {
+                if args.contains(&"-C") && args.contains(&"add") {
+                    order_exec.borrow_mut().push("git_add");
+                    return Ok((0, String::new(), String::new()));
+                }
+                if args.contains(&"-C") && args.contains(&"diff") {
+                    // Non-empty diff: triggers commit path.
                     return Ok((
                         0,
                         "diff --git a/STATE.md b/STATE.md\n".to_string(),
                         String::new(),
                     ));
                 }
-                Ok((0, "success_sha".to_string(), String::new()))
+                if args.contains(&"-C") && args.contains(&"commit") {
+                    return Ok((0, String::new(), String::new()));
+                }
+                if args.contains(&"-C") && args.contains(&"rev-parse") {
+                    // Realistic SHA-shaped string (not diff text).
+                    return Ok((
+                        0,
+                        "aabbccddeeff00112233445566778899aabbccdd".to_string(),
+                        String::new(),
+                    ));
+                }
+                if args.contains(&"-C") && args.contains(&"push") {
+                    return Ok((0, String::new(), String::new()));
+                }
+                Ok((0, String::new(), String::new()))
             }
         },
     );
 
+    let order = call_order.borrow();
+
+    // AC-003 assertion 1: write_file(STATE.md) must have been called.
+    let write_pos = order
+        .iter()
+        .position(|&s| s == "write_state")
+        .expect("AC-003: write_file must be called for STATE.md renewal when lock is held");
+
+    // F-005 assertion 2: git add must have been called.
+    let add_pos = order
+        .iter()
+        .position(|&s| s == "git_add")
+        .expect("AC-003: git add must be called after STATE.md renewal");
+
+    // F-005 assertion 3: renewal MUST precede git add (the critical ordering invariant).
     assert!(
-        *write_file_called_for_state.borrow(),
-        "AC-003: write_file must be called for STATE.md renewal when lock is held"
+        write_pos < add_pos,
+        "AC-003 / ADR-028 §Decision 5: write_file(STATE.md) renewal (pos {write_pos}) \
+        MUST precede git add -A (pos {add_pos}); order: {order:?}"
     );
 }
 
