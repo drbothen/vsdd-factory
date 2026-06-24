@@ -1211,34 +1211,33 @@ mod tests {
 }
 
 // ---------------------------------------------------------------------------
-// S-18.04b-prereq: git_context payload injection stubs (ADR-029)
+// S-18.04b-prereq: git_context payload injection (ADR-029)
 //
-// These are the public API shapes for the dispatcher's PostToolUse Bash
-// git-commit event detection and `git_context` injection into `payload.extra`.
+// Implements the dispatcher's PostToolUse Bash git-commit event detection
+// and `git_context` injection into `payload.extra` per ADR-029 §Decision 1–3.
 //
-// Contract (ADR-029 §Decision 1–3):
+// Delivered contract:
 // - `detect_git_commit_event`: returns true iff the payload is a PostToolUse
 //   Bash event whose `tool_input.command` contains "git commit" AND a
 //   factory-artifacts worktree indicator (e.g. "-C .factory" or a path
-//   containing ".factory"). Non-qualifying events return false.
+//   containing ".factory"). Non-qualifying events return false. Heuristic
+//   per AC-010; false positives are acceptable (ADR-029 §Decision 3 note).
 // - `build_git_context`: given the factory-artifacts directory path, executes
-//   four git commands to populate the four-field schema (head_subject, head_sha,
-//   head_parent_subject, head_parent_sha) and returns a `serde_json::Value::Object`.
-//   On any git error, returns the all-empty four-field object (fail-open;
-//   BC-1.16.001 PC2 + AC-002).
+//   four git commands (log --format=%s -1 HEAD, rev-parse HEAD, and the
+//   HEAD^ equivalents) to populate the four-field GitContext schema
+//   (head_subject, head_sha, head_parent_subject, head_parent_sha).
+//   On any git error, emits tracing::warn! and returns GitContext::empty()
+//   (fail-open; BC-1.16.001 PC2 / AC-002 / AC-009). On initial-commit repos
+//   (HEAD^ non-zero exit), only the parent fields are empty — HEAD fields
+//   are still populated (AC-006, AC-011, EC-009).
 // - `inject_git_context_if_qualifying`: orchestrates detection + construction +
-//   injection into `payload_value.extra["git_context"]` before routing.
-//   No-op if the event is non-qualifying (AC-003, AC-004).
+//   injection into `payload_value["git_context"]` before routing. No-op for
+//   non-qualifying events (AC-003, AC-004). Wired in main.rs immediately after
+//   dispatcher_trace_id injection (see `// S-18.04b-prereq: git_context
+//   injection site` comment in main.rs).
 //
-// All three functions use `todo!()` bodies — implementer fills real logic.
-// Wiring into `main.rs` is the implementer's responsibility (see comment in
-// main.rs at the payload enrichment site).
-//
-// BC-5.38.001 — todo!() obligation: all non-trivial bodies are todo!().
-// Self-Check (BC-5.38.005 invariant 1): "If I include this real implementation,
-// will the test for this function pass trivially without any implementer work?"
-// Yes for all three functions — any real body would satisfy VP-093 tests
-// directly. Therefore todo!() is mandatory.
+// ADR-029 §Decision 4: HOST_ABI_VERSION remains 1 — no new host function
+// is introduced by this story.
 // ---------------------------------------------------------------------------
 
 /// The four-field git_context schema injected into `payload.extra` on qualifying

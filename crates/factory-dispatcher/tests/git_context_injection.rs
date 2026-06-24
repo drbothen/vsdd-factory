@@ -5,17 +5,17 @@
 //! Tests for `git_context` schema completeness and HOST_ABI_VERSION invariance
 //! per the story's Red Gate Test Table (AC-005, AC-006 / BC-1.16.001 INV5 / ADR-029 §Decision 4).
 //!
-//! # RED GATE status
+//! # Test status
 //!
-//! All tests in this file are RED GATE tests. They FAIL against the stub because
+//! All tests in this file are GREEN (S-18.04b-prereq fully delivered).
 //! `detect_git_commit_event`, `build_git_context`, and `inject_git_context_if_qualifying`
-//! in `crates/factory-dispatcher/src/invoke.rs` have `todo!()` bodies. Tests flip
-//! GREEN after the implementer fills the `todo!()` bodies (S-18.04b-prereq T-1 through T-7).
+//! in `crates/factory-dispatcher/src/invoke.rs` are fully implemented per ADR-029 §Decision 1–3.
+//! Tests T-1 through T-7 pass against the real implementation.
 //!
 //! # Test coverage
 //!
 //! - `test_host_abi_version_unchanged` (AC-005 / BC-1.16.001 PC5 / ADR-029 §Decision 4):
-//!   Verifies HOST_ABI_VERSION = 1 (green-by-design; passes against stubs).
+//!   Verifies HOST_ABI_VERSION = 1 (green-by-design; compile-time constant).
 //!
 //! - `test_git_context_schema_four_fields_present` (AC-006 / BC-1.16.001 INV5):
 //!   Verifies `GitContext::to_json()` produces a JSON object with exactly four
@@ -46,8 +46,8 @@ use factory_dispatcher::payload::HookPayload;
 
 // ---------------------------------------------------------------------------
 // AC-005 / BC-1.16.001 PC5 / ADR-029 §Decision 4
-// GREEN-BY-DESIGN: HOST_ABI_VERSION is a compile-time constant; this test
-// passes against the stub (the constant is already 1 and must not change).
+// GREEN-BY-DESIGN: HOST_ABI_VERSION is a compile-time constant (= 1).
+// S-18.04b-prereq does not introduce a new host function; ABI bump forbidden.
 // ---------------------------------------------------------------------------
 
 /// Verify `HOST_ABI_VERSION` = 1 — no new host function introduced by
@@ -56,7 +56,7 @@ use factory_dispatcher::payload::HookPayload;
 /// # GREEN-BY-DESIGN
 ///
 /// Pure constant comparison; zero branching, no I/O, no helpers, 2 lines.
-/// BC-5.38.002 criteria satisfied. This test is GREEN even against the stub.
+/// BC-5.38.002 criteria satisfied.
 #[test]
 fn test_host_abi_version_unchanged() {
     assert_eq!(
@@ -68,18 +68,15 @@ fn test_host_abi_version_unchanged() {
 
 // ---------------------------------------------------------------------------
 // AC-006 / BC-1.16.001 INV5 (four-field completeness)
-// RED GATE: GitContext::to_json() stub test. Will pass once to_json() is
-// implemented (GREEN-BY-DESIGN for GitContext::empty() + to_json()).
+// GitContext::to_json() schema contract (GREEN-BY-DESIGN — pure object
+// construction; all four string fields present and non-null).
 // ---------------------------------------------------------------------------
 
 /// Verify `GitContext::to_json()` produces an object with exactly four string
 /// fields matching the ADR-029 §Decision 2 schema.
 ///
-/// # RED GATE
-///
-/// `GitContext::to_json()` is GREEN-BY-DESIGN (pure object construction, ≤8 lines),
-/// but the schema-completeness assertion below requires all four fields to be
-/// present as strings. This test gates the full schema contract.
+/// `GitContext::to_json()` is GREEN-BY-DESIGN (pure object construction, ≤8 lines).
+/// The schema-completeness assertion verifies all four fields are present as strings.
 ///
 /// The test for `GitContext::empty()` (which returns all `""`) verifies that the
 /// fail-open sentinel satisfies the four-field requirement (AC-006 / AC-011).
@@ -149,11 +146,9 @@ fn test_git_context_schema_four_fields_present() {
 /// # GREEN-BY-DESIGN
 ///
 /// `GitContext::empty()` is GREEN-BY-DESIGN (pure struct construction, ≤7 lines).
-/// `to_json()` is also GREEN-BY-DESIGN. This test passes against the stub because
-/// both functions are real implementations (not todo!()). Self-check (BC-5.38.005
-/// invariant 1): "If I include this real implementation, will the test pass trivially
-/// without implementer work?" Yes — the test is for the fail-open sentinel path,
-/// which is correct-by-construction. Classified GREEN-BY-DESIGN.
+/// `to_json()` is also GREEN-BY-DESIGN. Both functions are pure struct construction
+/// with no I/O. Self-check (BC-5.38.005 invariant 1): "Is the test for the fail-open
+/// sentinel path, which is correct-by-construction?" Yes — classified GREEN-BY-DESIGN.
 #[test]
 fn test_git_context_empty_satisfies_four_field_schema() {
     let ctx = GitContext::empty();
@@ -186,17 +181,16 @@ fn test_git_context_empty_satisfies_four_field_schema() {
 
 // ---------------------------------------------------------------------------
 // AC-001, AC-010 / BC-1.16.001 PC1 (detection of qualifying events)
-// RED GATE: todo!() in detect_git_commit_event causes test to FAIL (panic).
+// detect_git_commit_event: positive path — PostToolUse Bash with "git commit"
+// and ".factory" indicator returns true (heuristic per AC-010).
 // ---------------------------------------------------------------------------
 
 /// Verify `detect_git_commit_event` returns `true` for a qualifying PostToolUse
 /// Bash event with "git commit" and ".factory" in the command (AC-001 / AC-010).
 ///
-/// # RED GATE
-///
-/// `detect_git_commit_event` body is `todo!()` — this test FAILS (panics) until
-/// the implementer fills in T-1. Do NOT add `#[should_panic]` — the test must
-/// remain RED against stubs and GREEN after implementation.
+/// `detect_git_commit_event` checks event_name == "PostToolUse", tool_name == "Bash",
+/// command contains "git" + " commit" + ".factory" (heuristic per AC-010). Returns
+/// true for qualifying events; test verifies the positive detection path (T-1).
 #[test]
 fn test_detect_git_commit_event_qualifying() {
     let payload_bytes = br#"{
@@ -208,7 +202,6 @@ fn test_detect_git_commit_event_qualifying() {
     }"#;
     let payload = HookPayload::from_bytes(payload_bytes).unwrap();
 
-    // RED GATE: panics with todo!() until T-1 is implemented.
     let result = detect_git_commit_event(&payload);
     assert!(
         result,
@@ -218,16 +211,15 @@ fn test_detect_git_commit_event_qualifying() {
 
 // ---------------------------------------------------------------------------
 // AC-003, AC-012 / BC-1.16.001 PC3 (no injection on git push)
-// RED GATE: todo!() in detect_git_commit_event causes test to FAIL (panic).
+// detect_git_commit_event: non-qualifying push — ".factory" present but no
+// " commit" subcommand token → returns false (AC-012).
 // ---------------------------------------------------------------------------
 
 /// Verify `detect_git_commit_event` returns `false` for git push (non-qualifying;
 /// AC-003 / AC-012 / BC-1.16.001 EC-004).
 ///
-/// # RED GATE
-///
-/// `detect_git_commit_event` body is `todo!()` — this test FAILS (panics) until
-/// the implementer fills in T-1.
+/// The command contains ".factory" but lacks " commit" as a git subcommand token;
+/// detection correctly rejects it (T-1 non-qualifying push path).
 #[test]
 fn test_detect_git_commit_event_non_qualifying_push() {
     let payload_bytes = br#"{
@@ -239,7 +231,6 @@ fn test_detect_git_commit_event_non_qualifying_push() {
     }"#;
     let payload = HookPayload::from_bytes(payload_bytes).unwrap();
 
-    // RED GATE: panics with todo!() until T-1 is implemented.
     let result = detect_git_commit_event(&payload);
     assert!(
         !result,
@@ -249,16 +240,15 @@ fn test_detect_git_commit_event_non_qualifying_push() {
 
 // ---------------------------------------------------------------------------
 // AC-004, AC-008 / BC-1.16.001 PC4 (no injection on non-Bash tool)
-// RED GATE: todo!() in detect_git_commit_event causes test to FAIL (panic).
+// detect_git_commit_event: non-Bash short-circuit — tool_name != "Bash"
+// returns false without inspecting tool_input.command (AC-004 / AC-008).
 // ---------------------------------------------------------------------------
 
 /// Verify `detect_git_commit_event` returns `false` for a PostToolUse Edit event
 /// (tool_name = "Edit" — must not inspect command at all; AC-004 / AC-008).
 ///
-/// # RED GATE
-///
-/// `detect_git_commit_event` body is `todo!()` — this test FAILS (panics) until
-/// the implementer fills in T-1.
+/// The implementation returns false immediately on non-Bash tool_name without
+/// inspecting tool_input.command. Test verifies non-Bash short-circuit path (T-1).
 #[test]
 fn test_detect_git_commit_event_non_qualifying_edit_tool() {
     let payload_bytes = br#"{
@@ -270,7 +260,6 @@ fn test_detect_git_commit_event_non_qualifying_edit_tool() {
     }"#;
     let payload = HookPayload::from_bytes(payload_bytes).unwrap();
 
-    // RED GATE: panics with todo!() until T-1 is implemented.
     let result = detect_git_commit_event(&payload);
     assert!(
         !result,
@@ -280,24 +269,21 @@ fn test_detect_git_commit_event_non_qualifying_edit_tool() {
 
 // ---------------------------------------------------------------------------
 // AC-002, AC-009 / BC-1.16.001 PC2 (fail-open on git error)
-// RED GATE: todo!() in build_git_context causes test to FAIL (panic).
+// build_git_context: non-git directory → emits tracing::warn! and returns
+// GitContext::empty() (fail-open; BC-1.16.001 PC2 / INV3).
 // ---------------------------------------------------------------------------
 
 /// Verify `build_git_context` returns all-empty `GitContext` when the factory_dir
 /// is not a git repository (fail-open; AC-002 / AC-009 / BC-1.16.001 INV3).
 ///
 /// Uses a temporary directory that is NOT a git repo to simulate the error path.
-///
-/// # RED GATE
-///
-/// `build_git_context` body is `todo!()` — this test FAILS (panics) until the
-/// implementer fills in T-2+T-3+T-4.
+/// The implementation emits tracing::warn! on the git failure and returns
+/// GitContext::empty() (all four fields ""). Test verifies the fail-open path (T-2).
 #[test]
 fn test_build_git_context_fail_open_on_bad_dir() {
     let tmp = tempfile::tempdir().unwrap();
     let non_git_dir = tmp.path();
 
-    // RED GATE: panics with todo!() until T-2 is implemented.
     let ctx = build_git_context(non_git_dir);
 
     // Post-implementation: must be all-empty GitContext.
@@ -310,16 +296,15 @@ fn test_build_git_context_fail_open_on_bad_dir() {
 
 // ---------------------------------------------------------------------------
 // AC-003 / BC-1.16.001 PC3 (no mutation on non-qualifying events)
-// RED GATE: todo!() in inject_git_context_if_qualifying causes test to FAIL.
+// inject_git_context_if_qualifying: non-qualifying event (Edit) → payload_value
+// is not mutated; "git_context" key is absent (AC-003 / AC-004).
 // ---------------------------------------------------------------------------
 
 /// Verify `inject_git_context_if_qualifying` does not mutate `payload_value` when
 /// the event is non-qualifying (Edit tool; AC-003 / AC-004 / BC-1.16.001 PC3/PC4).
 ///
-/// # RED GATE
-///
-/// `inject_git_context_if_qualifying` body is `todo!()` — this test FAILS (panics)
-/// until the implementer fills in T-5.
+/// The implementation returns immediately without mutation when
+/// detect_git_commit_event returns false. Test verifies the no-op path (T-5).
 #[test]
 fn test_inject_git_context_if_qualifying_non_qualifying_noop() {
     let payload_bytes = br#"{
@@ -335,10 +320,9 @@ fn test_inject_git_context_if_qualifying_non_qualifying_noop() {
 
     let tmp = tempfile::tempdir().unwrap();
 
-    // RED GATE: panics with todo!() until T-5 is implemented.
     inject_git_context_if_qualifying(&payload, &mut payload_value, tmp.path());
 
-    // Post-implementation: payload_value must be unchanged for non-qualifying events.
+    // Payload_value must be unchanged for non-qualifying events.
     assert_eq!(
         payload_value, payload_before,
         "inject_git_context_if_qualifying must not mutate payload_value for non-qualifying events"
@@ -351,12 +335,9 @@ fn test_inject_git_context_if_qualifying_non_qualifying_noop() {
 
 // ---------------------------------------------------------------------------
 // AC-001 / BC-1.16.001 PC1 (inject_git_context_if_qualifying positive path)
-// RED GATE: todo!() in inject_git_context_if_qualifying causes test to FAIL.
-//
-// This test covers the POSITIVE injection path: a qualifying PostToolUse Bash
-// event → payload_value is mutated with git_context key containing the four-field
-// schema. Complements test_inject_git_context_if_qualifying_non_qualifying_noop
-// (which only tests the noop/negative path).
+// inject_git_context_if_qualifying: qualifying PostToolUse Bash event →
+// payload_value is mutated with "git_context" key (four-field JSON object).
+// Complements the no-op test above (which covers non-qualifying events).
 //
 // Uses a temporary non-git directory for factory_dir so build_git_context fails
 // open (all-empty GitContext) — the test focuses on WIRING (is git_context key
@@ -368,16 +349,14 @@ fn test_inject_git_context_if_qualifying_non_qualifying_noop() {
 /// `payload_value` when the event IS qualifying (PostToolUse Bash git-commit
 /// targeting .factory). Verifies the positive injection path.
 ///
-/// # RED GATE
-///
-/// `inject_git_context_if_qualifying` body is `todo!()` — this test FAILS (panics)
-/// until the implementer fills in T-5. A no-op implementation that never injects
-/// will cause the `has("git_context")` assertion to fail after the panic is resolved.
+/// The implementation detects the qualifying event, builds git_context via
+/// build_git_context (fail-open from non-git tmpdir → all-empty fields), and
+/// inserts "git_context" as a JSON object into payload_value (T-5 positive path).
 ///
 /// # NON-TAUTOLOGY
 ///
 /// The test asserts `git_context` IS present in payload_value.get("git_context").
-/// A noop implementation leaves it absent → assertion fails.
+/// A noop implementation would leave it absent → assertion fails.
 /// A partial implementation that only handles the noop path → same failure.
 #[test]
 fn test_BC_1_16_001_inject_qualifying_mutates_payload_value() {
@@ -396,10 +375,9 @@ fn test_BC_1_16_001_inject_qualifying_mutates_payload_value() {
     // (all-empty). Focus: is git_context key injected at all?
     let tmp = tempfile::tempdir().unwrap();
 
-    // RED GATE: panics with todo!() until T-5 is implemented.
     inject_git_context_if_qualifying(&payload, &mut payload_value, tmp.path());
 
-    // Post-implementation: git_context MUST be present in payload_value.
+    // git_context MUST be present in payload_value.
     // (fail-open from non-git dir → all-empty values, but key must be present.)
     let git_ctx = payload_value
         .get("git_context")
@@ -434,7 +412,7 @@ fn test_BC_1_16_001_inject_qualifying_mutates_payload_value() {
 // ---------------------------------------------------------------------------
 // AC-010 / BC-1.16.001 INV4 (heuristic: no .factory indicator → non-qualifying)
 // EC-007 / EC-008: command with "git commit" substring but no .factory indicator
-// RED GATE: todo!() in detect_git_commit_event causes test to FAIL.
+// → detect_git_commit_event returns false (heuristic requires both signals).
 // ---------------------------------------------------------------------------
 
 /// Verify `detect_git_commit_event` returns `false` when the command contains
@@ -442,12 +420,7 @@ fn test_BC_1_16_001_inject_qualifying_mutates_payload_value() {
 ///
 /// The heuristic requires BOTH "git commit" AND a `.factory` indicator.
 /// A command like `git commit -m "..."` targeting the develop branch (no .factory)
-/// must NOT qualify. A command like `echo "git commit is idempotent"` also must not.
-///
-/// # RED GATE
-///
-/// `detect_git_commit_event` body is `todo!()` — this test FAILS (panics) until
-/// the implementer fills in T-1.
+/// does not qualify. The implementation correctly rejects it (T-1 heuristic path).
 #[test]
 fn test_BC_1_16_001_detect_no_factory_indicator_non_qualifying() {
     // Command has "git commit" but no ".factory" indicator → non-qualifying (EC-007).
@@ -460,7 +433,6 @@ fn test_BC_1_16_001_detect_no_factory_indicator_non_qualifying() {
     }"#;
     let payload = HookPayload::from_bytes(payload_bytes).unwrap();
 
-    // RED GATE: panics with todo!() until T-1 is implemented.
     let result = detect_git_commit_event(&payload);
     assert!(
         !result,
@@ -471,10 +443,9 @@ fn test_BC_1_16_001_detect_no_factory_indicator_non_qualifying() {
 /// Verify `detect_git_commit_event` returns `false` for an echo command that
 /// contains "git commit" as a substring but has no `.factory` indicator (EC-008).
 ///
-/// # RED GATE
-///
-/// `detect_git_commit_event` body is `todo!()` — this test FAILS (panics) until
-/// the implementer fills in T-1.
+/// The implementation requires both " commit" as a git subcommand token AND
+/// ".factory" as a worktree indicator. An echo with neither is correctly rejected
+/// (T-1 heuristic non-qualifying path).
 #[test]
 fn test_BC_1_16_001_detect_echo_git_commit_substring_non_qualifying() {
     // EC-008: echo command containing "git commit" as a substring, no .factory indicator.
@@ -487,7 +458,6 @@ fn test_BC_1_16_001_detect_echo_git_commit_substring_non_qualifying() {
     }"#;
     let payload = HookPayload::from_bytes(payload_bytes).unwrap();
 
-    // RED GATE: panics with todo!() until T-1 is implemented.
     let result = detect_git_commit_event(&payload);
     assert!(
         !result,
@@ -497,8 +467,8 @@ fn test_BC_1_16_001_detect_echo_git_commit_substring_non_qualifying() {
 
 // ---------------------------------------------------------------------------
 // AC-006, AC-011 / BC-1.16.001 INV5 / EC-003 / EC-009
-// (build_git_context on real initial-commit repo — empty parent fields)
-// RED GATE: todo!() in build_git_context causes test to FAIL.
+// build_git_context on real single-commit repo: HEAD fields populated,
+// HEAD^ parent fields are empty string (not null; initial commit has no parent).
 // ---------------------------------------------------------------------------
 
 /// Verify `build_git_context` on a real single-commit git repository returns:
@@ -507,20 +477,15 @@ fn test_BC_1_16_001_detect_echo_git_commit_substring_non_qualifying() {
 /// - `head_parent_subject` = "" (empty string, NOT null, NOT absent)
 /// - `head_parent_sha` = "" (empty string, NOT null, NOT absent)
 ///
-/// This tests the EC-003 / EC-009 initial-commit edge case. The HEAD^ non-zero
-/// exit code must NOT trigger a general fail-open (which would also zero out
-/// head_subject/head_sha); only the parent fields are empty.
-///
-/// # RED GATE
-///
-/// `build_git_context` body is `todo!()` — this test FAILS (panics) until the
-/// implementer fills in T-2+T-3+T-4.
+/// This tests the EC-003 / EC-009 initial-commit edge case. The implementation
+/// treats HEAD^ non-zero exit as a non-error (initial commit has no parent) —
+/// only the parent fields are empty; HEAD fields are still populated (T-2/T-3/T-4).
 ///
 /// # NON-TAUTOLOGY
 ///
 /// The test asserts `head_sha` is a non-empty 40-char hex string. An all-empty
 /// fail-open (from a general git error) would produce `head_sha = ""`, failing
-/// the regex assertion. This distinguishes the initial-commit path from fail-open.
+/// the assertion. This distinguishes the initial-commit path from the fail-open path.
 #[test]
 fn test_BC_1_16_001_build_git_context_initial_commit_empty_parent_fields() {
     use std::process::Command;
@@ -574,7 +539,6 @@ fn test_BC_1_16_001_build_git_context_initial_commit_empty_parent_fields() {
     .trim()
     .to_string();
 
-    // RED GATE: panics with todo!() until T-2+T-3+T-4 are implemented.
     let ctx = build_git_context(repo_dir);
 
     // HEAD fields must be populated (initial commit exists).
