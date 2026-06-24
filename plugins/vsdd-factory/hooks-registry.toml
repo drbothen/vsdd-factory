@@ -880,18 +880,13 @@ path_allow = ["plugins/vsdd-factory/config/artifact-path-registry.yaml"]
 # and Dim-1 cardinality parity (D-432(e)+D-448(d)(i)).
 # File-pattern enforcement is in-plugin via path-component-strict Path::file_name guard (matches exactly "burst-log.md").
 # S-15.11 M2 Wave-2.
-# S-18.04b-prereq (ADR-029 §Decision 1): chain-detection trigger updated from
-# "Edit|Write" to "Bash" so the gate fires on the PostToolUse Bash git-commit
-# event rather than stale Edit/Write file-write events. The WASM plugin reads
-# `git_context` from `payload.extra` (injected by the dispatcher) instead of
-# calling exec_subprocess directly (BC-1.16.001 INV1 / ADR-029 §Decision 3).
-# NOTE: the exec_subprocess call removal from validate-burst-log WASM source
-# is S-18.04b's responsibility — this entry only updates the trigger.
+# NOTE: Edit|Write→Bash trigger flip (ADR-029 §Decision 1) is deferred to
+# S-18.04b when this WASM plugin consumes git_context from payload.extra.
 
 [[hooks]]
 name = "validate-burst-log"
 event = "PostToolUse"
-tool = "Bash"
+tool = "Edit|Write"
 plugin = "hook-plugins/validate-burst-log.wasm"
 priority = 152
 timeout_ms = 5000
@@ -970,18 +965,13 @@ path_allow = [
 # No file_pattern field: registry schema does not support it per architect
 # Q5/Q6 canonical lock. File-pattern enforcement is in-plugin via
 # path-component-strict is_state_md_target + is_index_md_target guards.
-# S-18.04b-prereq (ADR-029 §Decision 1): chain-detection trigger updated from
-# "Edit|Write" to "Bash" so the gate fires on the PostToolUse Bash git-commit
-# event rather than stale Edit/Write file-write events. The WASM plugin reads
-# `git_context` from `payload.extra` (injected by the dispatcher) instead of
-# calling exec_subprocess directly (BC-1.16.001 INV1 / ADR-029 §Decision 3).
-# NOTE: the exec_subprocess call removal from validate-dispatch-advance WASM
-# source is S-18.04b's responsibility — this entry only updates the trigger.
+# NOTE: Edit|Write→Bash trigger flip (ADR-029 §Decision 1) is deferred to
+# S-18.04b when this WASM plugin consumes git_context from payload.extra.
 
 [[hooks]]
 name = "validate-dispatch-advance"
 event = "PostToolUse"
-tool = "Bash"
+tool = "Edit|Write"
 plugin = "hook-plugins/validate-dispatch-advance.wasm"
 priority = 154
 timeout_ms = 5000

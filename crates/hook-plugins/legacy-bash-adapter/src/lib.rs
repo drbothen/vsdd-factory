@@ -215,6 +215,7 @@ mod tests {
             subagent_name: None,
             last_assistant_message: None,
             result: None,
+            extra: std::collections::HashMap::new(),
         }
     }
 

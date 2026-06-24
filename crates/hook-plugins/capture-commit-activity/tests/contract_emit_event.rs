@@ -31,6 +31,7 @@ fn git_commit_payload_with_branch(branch: &str, sha: &str) -> HookPayload {
         subagent_name: None,
         last_assistant_message: None,
         result: None,
+        extra: std::collections::HashMap::new(),
     }
 }
 
@@ -129,6 +130,7 @@ fn test_BC_4_03_001_emit_not_called_for_non_commit_command() {
         subagent_name: None,
         last_assistant_message: None,
         result: None,
+        extra: std::collections::HashMap::new(),
     };
     let emit_called = std::cell::Cell::new(false);
     let _ = commit_hook_logic(
@@ -205,6 +207,7 @@ fn test_TV_003_canonical_commit_made_schema() {
         subagent_name: None,
         last_assistant_message: None,
         result: None,
+        extra: std::collections::HashMap::new(),
     };
 
     let sha = "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2";
