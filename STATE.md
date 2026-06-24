@@ -129,7 +129,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | caf06c68 | rc.21 bot binary bundle commit 2026-06-13; prior: 2a191314 (rc.20) |
 | develop | b0bc4ffd | PR #249 `feat(S-18.04a): precompact-flush native WASM plugin core` squash-merged 2026-06-24 (D-693; S-18.04a + dispatcher-core cwd canonicalize + SEC-004 ACCEPTED); prior: dfc76844 (PR #201 D-692) |
-| factory-artifacts | TBD-D-694 | D-694 GOVERNANCE BURST (ADR-029 ACCEPTED; BC-1.16.001+VP-093 NEW; S-18.04b-prereq NEW; BC-5.41.003 v2.0; 4-index BC v3.42/VP v2.41/STORY v4.64/ARCH v2.73); prior: b6026a66 (D-693) |
+| factory-artifacts | b23fa2b6 | D-694 GOVERNANCE BURST (ADR-029 ACCEPTED; BC-1.16.001+VP-093 NEW; S-18.04b-prereq NEW; BC-5.41.003 v2.0; 4-index BC v3.42/VP v2.41/STORY v4.64/ARCH v2.73); prior: b6026a66 (D-693) |
 | v1.0.0-rc.21 (tag) | 03054524 | SHIPPED 2026-06-13; FULLY IN OPERATOR MARKETPLACE (marketplace PR #13 MERGED); annotated tag object |
 | v1.0.0-rc.20 (tag) | e9e38286 | SHIPPED 2026-06-01; marketplace PR #12 squash-merged 862e660d |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28 |
@@ -351,7 +351,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** see `git -C .factory log -1 --format='%h %s'` (D-694 GOVERNANCE BURST — SHA TBD post-commit; prior D-693 = `b6026a66`; prior D-692 = `198028e6`)
+- **factory-artifacts HEAD:** see `git -C .factory log -1 --format='%h %s'` (D-694 GOVERNANCE BURST = `b23fa2b6`; prior D-693 = `b6026a66`; prior D-692 = `198028e6`)
 - **develop HEAD:** `b0bc4ffd` UNCHANGED (D-694 governance-only; PR #249 S-18.04a squash-merged 2026-06-24 D-693; prior: `dfc76844` PR #201 D-692)
 - **main HEAD:** `caf06c68` (rc.21 bot bundle commit 2026-06-13; UNCHANGED)
 - **v1.0.0-rc.21 tag:** `03054524` (SHIPPED; FULLY IN OPERATOR MARKETPLACE)
