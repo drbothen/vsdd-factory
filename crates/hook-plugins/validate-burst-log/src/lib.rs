@@ -394,6 +394,108 @@ fn is_numbered_list_item(s: &str) -> bool {
 }
 
 // ---------------------------------------------------------------------------
+// PreCompact flush exemption (BC-5.41.003 + S-18.04b)
+// ---------------------------------------------------------------------------
+
+/// The exact commit subject prefix produced by `precompact-flush.sh`.
+///
+/// Matches the value of `COMMIT_PREFIX` in `crates/hook-plugins/precompact-flush/src/lib.rs`.
+/// Case-sensitive; no substring match; no regex. BC-5.41.003 invariant 3.
+pub const PRECOMPACT_FLUSH_PREFIX: &str = "PreCompact flush ";
+
+/// Determine whether a commit is exempt from the MULTI_COMMIT_CHAIN_NOT_ALLOWED
+/// detector under the PreCompact flush exemption (BC-5.41.003 PC1 three-case logic).
+///
+/// Three-case logic (BC-5.41.003 PC1):
+///
+/// - Case (a): log exists, last line FIELD-4 == `commit`, SHA matches FIELD-2 → exempt.
+/// - Case (b): log exists but last line FIELD-4 absent/empty/non-`commit` → treat
+///   as stale/corrupted; fall through to case (c).
+/// - Case (c): log absent or last line empty → prefix-match alone is sufficient.
+///
+/// SHA-mismatch with valid FIELD-4=`commit` is NOT exempt (BC-5.41.003 INV1).
+///
+/// # Parameters
+/// - `commit_subject`: the raw commit subject (first line of `git log --format=%s`).
+/// - `commit_sha`: the SHA of the commit being evaluated.
+/// - `flush_log_content`: `Some(last_line_of_log)` when the log file exists and has
+///   at least one line; `None` when the log is absent or empty.
+///
+/// # Returns
+/// `true` if the commit is exempt from chain detection; `false` otherwise.
+///
+/// # BC trace
+/// BC-5.41.003 PC1 cases (a)/(b)/(c); INV1; AC-001/AC-002/AC-003/AC-004; AC-005; AC-008.
+///
+/// # Self-check (BC-5.38.005 invariant 1)
+/// "If I include this real implementation, will the test for this function pass trivially
+/// without any implementer work?" — YES: the 3-case logic is non-trivial (branching,
+/// field parsing, SHA comparison). Body is `todo!()` per BC-5.38.001.
+pub fn is_precompact_flush_exempt(
+    commit_subject: &str,
+    commit_sha: &str,
+    flush_log_content: Option<&str>,
+) -> bool {
+    todo!(
+        "S-18.04b stub: implement 3-case PreCompact flush exemption \
+         (BC-5.41.003 PC1); cases (a)/(b)/(c); SHA corroboration via FIELD-4+FIELD-2; \
+         prefix={:?}; sha={:?}; log_present={}",
+        commit_subject,
+        commit_sha,
+        flush_log_content.is_some()
+    )
+}
+
+/// Check whether the HEAD and HEAD^ commit subjects form a `MULTI_COMMIT_CHAIN_NOT_ALLOWED`
+/// pattern (TD-VSDD-053), with the PreCompact flush exemption applied (BC-5.41.003).
+///
+/// A chain violation is triggered when BOTH of the following hold:
+/// 1. `head_subject` contains a sentinel word (`backfill`, `Stage 1`, `Stage 2`).
+/// 2. `head_parent_subject` contains a sentinel word.
+///
+/// The exemption: if either commit is exempt under `is_precompact_flush_exempt`, the
+/// chain comparison is skipped (no violation). The exemption is checked symmetrically for
+/// both HEAD and HEAD^ (BC-5.41.003 INV1 — both hooks must implement identically).
+///
+/// # Parameters
+/// - `head_subject`: commit subject of HEAD.
+/// - `head_sha`: SHA of HEAD.
+/// - `head_parent_subject`: commit subject of HEAD^.
+/// - `head_parent_sha`: SHA of HEAD^.
+/// - `flush_log_content`: last line of `.factory/hooks/precompact-flush-log`, or `None`.
+///
+/// # Returns
+/// `Some(Violation)` with `MULTI_COMMIT_CHAIN_NOT_ALLOWED` message if a violation is
+/// detected; `None` if no violation (or exemption applies).
+///
+/// # BC trace
+/// BC-5.41.003; BC-5.39.004 INV4; TD-VSDD-053.
+///
+/// # Self-check (BC-5.38.005 invariant 1)
+/// "If I include this real implementation, will the test for this function pass trivially
+/// without any implementer work?" — YES: non-trivial branching + sentinel scanning +
+/// exemption delegation. Body is `todo!()` per BC-5.38.001.
+pub fn check_multi_commit_chain(
+    head_subject: &str,
+    head_sha: &str,
+    head_parent_subject: &str,
+    head_parent_sha: &str,
+    flush_log_content: Option<&str>,
+) -> Option<Violation> {
+    todo!(
+        "S-18.04b stub: implement MULTI_COMMIT_CHAIN_NOT_ALLOWED check with \
+         PreCompact flush exemption (BC-5.41.003 + TD-VSDD-053); \
+         head={:?}; head_sha={:?}; head_parent={:?}; head_parent_sha={:?}; \
+         log_present={}",
+        head_subject,
+        head_sha,
+        head_parent_subject,
+        head_parent_sha,
+        flush_log_content.is_some()
+    )
+}
+
+// ---------------------------------------------------------------------------
 // Block message formatting
 // ---------------------------------------------------------------------------
 
