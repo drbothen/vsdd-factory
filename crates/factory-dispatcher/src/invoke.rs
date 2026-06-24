@@ -1474,13 +1474,22 @@ pub fn build_git_context(factory_dir: &std::path::Path) -> GitContext {
 /// is injected into `payload_value` and before `ExecutorInputs` is constructed.
 /// See the `// S-18.04b-prereq: git_context injection site` comment in main.rs.
 pub fn inject_git_context_if_qualifying(
-    _original_payload: &crate::payload::HookPayload,
-    _payload_value: &mut serde_json::Value,
-    _factory_dir: &std::path::Path,
+    original_payload: &crate::payload::HookPayload,
+    payload_value: &mut serde_json::Value,
+    factory_dir: &std::path::Path,
 ) {
-    todo!(
-        "S-18.04b-prereq T-5: wire detect + build + inject; call detect_git_commit_event, \
-         then build_git_context(factory_dir), then insert into payload_value[\"git_context\"] \
-         (ADR-029 §Decision 2; BC-1.16.001 PC1; AC-001)"
-    )
+    // Step 1: detection — if non-qualifying, return immediately without mutation (AC-003, AC-004).
+    if !detect_git_commit_event(original_payload) {
+        return;
+    }
+
+    // Step 2: build git_context (fail-open: git errors produce GitContext::empty()).
+    let git_ctx = build_git_context(factory_dir);
+
+    // Step 3: inject into payload_value["git_context"] (rides in the extra flatten map).
+    // No new named HookPayload field — git_context is a top-level key in the JSON value
+    // (deserialized into HookPayload.extra via #[serde(flatten)]). AC-005.
+    if let Some(map) = payload_value.as_object_mut() {
+        map.insert("git_context".to_string(), git_ctx.to_json());
+    }
 }
