@@ -1053,14 +1053,28 @@ fn test_push_failure_exits_2_with_retry_message() {
 /// Red Gate: test_push_success_exits_0
 ///
 /// Traces to: AC-009 / BC-7.07.001 PC5 (push success → exit 0)
+///
+/// Traverses the FULL flush path: discovery → guard pass → STATE.md read →
+/// renew (NoOp) → add → diff non-empty → commit → rev-parse → log write →
+/// push SUCCESS → exit 0.  Asserts both the final HookResult::Continue AND
+/// that the push mock was actually invoked (positive-coverage assertion so this
+/// test cannot silently regress to vacuous).
 #[test]
 fn test_push_success_exits_0() {
+    use std::cell::RefCell;
+    use std::rc::Rc;
     use vsdd_hook_sdk::HookResult;
 
     let payload = make_payload();
-    let wt_path = "/tmp/test-factory-artifacts";
-    let worktree_output = worktree_list_for(wt_path);
+    // AC-017: path must end with /.factory and match <cwd>/.factory exactly
+    // so the Tier-1 suffix check and Tier-2 raw-string fallback both pass and
+    // the plugin traverses the full flush path instead of short-circuiting.
+    let wt_path = worktree_path_for_test_cwd();
     let state_content = make_state_md("v1.0-test-cycle", "stub-phase/S-18.04a");
+
+    // Positive-coverage: track that push was actually invoked.
+    let push_called = Rc::new(RefCell::new(false));
+    let push_called_clone = Rc::clone(&push_called);
 
     let result = precompact_flush::run_plugin_with_mock(
         payload,
@@ -1076,11 +1090,11 @@ fn test_push_success_exits_0() {
         },
         |_path, _content| Ok(()),
         {
-            let wl = worktree_output.clone();
+            let wt = wt_path.clone();
             move |bin, args| {
                 assert_eq!(bin, "git");
                 if args == ["worktree", "list", "--porcelain"] {
-                    return Ok((0, wl.clone(), String::new()));
+                    return Ok((0, worktree_list_for(&wt), String::new()));
                 }
                 if args.contains(&"-C") && args.contains(&"add") {
                     return Ok((0, String::new(), String::new()));
@@ -1099,11 +1113,22 @@ fn test_push_success_exits_0() {
                     return Ok((0, "success_sha_abc123".to_string(), String::new()));
                 }
                 if args.contains(&"-C") && args.contains(&"push") {
+                    // Record that push was actually invoked (positive-coverage).
+                    *push_called_clone.borrow_mut() = true;
                     return Ok((0, String::new(), String::new())); // push succeeds
                 }
                 Ok((0, String::new(), String::new()))
             }
         },
+    );
+
+    // Positive-coverage assertion: push must have been invoked.
+    // Without this assertion the test would be vacuous if AC-017 short-circuits
+    // before reaching the push step.
+    assert!(
+        *push_called.borrow(),
+        "AC-009: git push must have been invoked on the full happy path; \
+        if push_called is false the test never traversed past the AC-017 mount guard"
     );
 
     assert_eq!(
@@ -1136,12 +1161,28 @@ fn test_push_success_exits_0() {
 /// "non-empty" → commit. This test FAILS against the current code because the
 /// `Err(_)` arm returns `"non-empty"`, which makes the plugin proceed to
 /// `git commit` — triggering the panic below.
+///
+/// The test traverses the full flush path up to the diff step (discovery → guard
+/// pass → STATE.md read → renew NoOp → add → diff Err). The panic in the commit
+/// arm is the positive-coverage assertion — it fires if and only if git commit is
+/// reached, proving the F-004 fix is genuine (not vacuous). If AC-017 had
+/// short-circuited before the diff step, the diff mock would never be reached and
+/// the test result would be vacuous Continue for the WRONG reason.
 #[test]
 fn test_diff_cached_error_is_fail_open_not_spurious_commit() {
+    use std::cell::RefCell;
+    use std::rc::Rc;
     use vsdd_hook_sdk::HookResult;
 
     let payload = make_payload();
-    let wt_path = "/tmp/test-factory-artifacts";
+    // AC-017: path must end with /.factory and match <cwd>/.factory exactly
+    // so the Tier-1 suffix check and Tier-2 raw-string fallback both pass and
+    // the plugin traverses the full flush path to the diff step.
+    let wt_path = worktree_path_for_test_cwd();
+
+    // Positive-coverage: track that diff was actually invoked (proves the guard passed).
+    let diff_called = Rc::new(RefCell::new(false));
+    let diff_called_clone = Rc::clone(&diff_called);
 
     let result = precompact_flush::run_plugin_with_mock(
         payload,
@@ -1157,7 +1198,7 @@ fn test_diff_cached_error_is_fail_open_not_spurious_commit() {
             panic!("write_file must NOT be called on diff subprocess-failure path (fail-open)")
         },
         {
-            let wt = wt_path.to_string();
+            let wt = wt_path.clone();
             move |bin, args| {
                 assert_eq!(bin, "git");
                 if args == ["worktree", "list", "--porcelain"] {
@@ -1167,26 +1208,40 @@ fn test_diff_cached_error_is_fail_open_not_spurious_commit() {
                     return Ok((0, String::new(), String::new()));
                 }
                 if args.contains(&"-C") && args.contains(&"diff") {
+                    // Record that diff was reached (proves AC-017 guard passed).
+                    *diff_called_clone.borrow_mut() = true;
                     // Simulate subprocess failure — exec_subprocess itself cannot run
                     // (e.g., binary not found, sandbox denial). This is the Err(_) path
-                    // that causes the current code to fabricate "non-empty" sentinel.
+                    // that the F-004 fix handles by failing-open instead of fabricating
+                    // a "non-empty" sentinel.
                     return Err(
                         "exec_subprocess: CAPABILITY_DENIED: git not in binary_allow".to_string(),
                     );
                 }
                 // If the plugin proceeds to commit despite the diff subprocess failure,
-                // this panic fires — proving the fabricated-sentinel defect.
+                // this panic fires — this IS the positive-coverage assertion proving
+                // the F-004 fix is real. A vacuous test (AC-017 short-circuit) would
+                // never reach this arm, so the panic can never fire vacuously.
                 if args.contains(&"-C") && args.contains(&"commit") {
                     panic!(
                         "AC-005 INV5 F-004: git commit must NOT be called when \
                         exec_subprocess('git diff --cached') fails; \
-                        current code Err arm fabricates 'non-empty' sentinel and proceeds to \
-                        commit — INV5 violation (spurious commit on potentially clean worktree)"
+                        if this fires, the F-004 Err arm still fabricates a 'non-empty' \
+                        sentinel and proceeds to commit — INV5 violation"
                     );
                 }
                 Ok((0, String::new(), String::new()))
             }
         },
+    );
+
+    // Positive-coverage assertion: diff must have been reached, proving the
+    // AC-017 guard passed and the test genuinely exercises the F-004 code path.
+    assert!(
+        *diff_called.borrow(),
+        "F-004: git diff --cached mock was never reached; \
+        AC-017 mount guard must have short-circuited — check that wt_path matches \
+        worktree_path_for_test_cwd()"
     );
 
     // Fail-open: exit 0 (Continue), NOT Block (exit 2).
@@ -1195,7 +1250,8 @@ fn test_diff_cached_error_is_fail_open_not_spurious_commit() {
         HookResult::Continue,
         "AC-005 INV5 F-004: exec_subprocess failure for 'git diff --cached' must return \
         Continue (fail-open, exit 0), not Block; \
-        current code fabricates 'non-empty' and commits spuriously; got: {result:?}"
+        if this fails, the F-004 Err arm still fabricates 'non-empty' and commits spuriously; \
+        got: {result:?}"
     );
 }
 
@@ -1319,15 +1375,29 @@ fn test_lock_held_renews_before_commit() {
 ///
 /// When renew_lock() returns Err(Malformed), the plugin must write an advisory to stderr
 /// and proceed with flush commit — NOT exit 2.
+///
+/// This test traverses the FULL flush path: discovery → guard pass → STATE.md read
+/// with malformed lock → renew_lock Err(Malformed) advisory → add → diff non-empty →
+/// commit → rev-parse → log write → push → exit 0.  Asserts both the final
+/// HookResult::Continue AND that git commit was actually invoked (proving the flush
+/// proceeded past the advisory rather than short-circuiting).
 #[test]
 fn test_lock_renewal_failure_is_advisory_not_exit_2() {
+    use std::cell::RefCell;
+    use std::rc::Rc;
     use vsdd_hook_sdk::HookResult;
 
     let payload = make_payload();
-    let wt_path = "/tmp/test-factory-artifacts";
-    let worktree_output = worktree_list_for(wt_path);
+    // AC-017: path must end with /.factory and match <cwd>/.factory exactly
+    // so the Tier-1 suffix check and Tier-2 raw-string fallback both pass and
+    // the plugin traverses the full flush path past the advisory.
+    let wt_path = worktree_path_for_test_cwd();
     // Malformed lock (factory_lock: present, expires_at absent)
     let state_content = make_state_md_malformed_lock();
+
+    // Positive-coverage: track that commit was actually invoked after the advisory.
+    let commit_called = Rc::new(RefCell::new(false));
+    let commit_called_clone = Rc::clone(&commit_called);
 
     let result = precompact_flush::run_plugin_with_mock(
         payload,
@@ -1343,11 +1413,11 @@ fn test_lock_renewal_failure_is_advisory_not_exit_2() {
         },
         |_path, _content| Ok(()),
         {
-            let wl = worktree_output.clone();
+            let wt = wt_path.clone();
             move |bin, args| {
                 assert_eq!(bin, "git");
                 if args == ["worktree", "list", "--porcelain"] {
-                    return Ok((0, wl.clone(), String::new()));
+                    return Ok((0, worktree_list_for(&wt), String::new()));
                 }
                 if args.contains(&"-C") && args.contains(&"add") {
                     return Ok((0, String::new(), String::new()));
@@ -1360,6 +1430,8 @@ fn test_lock_renewal_failure_is_advisory_not_exit_2() {
                     ));
                 }
                 if args.contains(&"-C") && args.contains(&"commit") {
+                    // Record that commit was reached (proves flush proceeded past advisory).
+                    *commit_called_clone.borrow_mut() = true;
                     return Ok((0, String::new(), String::new()));
                 }
                 if args.contains(&"-C") && args.contains(&"rev-parse") {
@@ -1371,6 +1443,14 @@ fn test_lock_renewal_failure_is_advisory_not_exit_2() {
                 Ok((0, String::new(), String::new()))
             }
         },
+    );
+
+    // Positive-coverage assertion: commit must have been invoked, proving the flush
+    // proceeded past the Err(Malformed) advisory rather than exiting early.
+    assert!(
+        *commit_called.borrow(),
+        "AC-013: git commit must have been called when renew_lock() returns Err(Malformed); \
+        the advisory must not cause the flush to exit early — flush must proceed to commit"
     );
 
     // AC-013: malformed lock must NOT cause exit 2 — flush proceeds to Continue
@@ -1389,14 +1469,29 @@ fn test_lock_renewal_failure_is_advisory_not_exit_2() {
 ///
 /// This is a behavioral twin of test_lock_renewal_failure_is_advisory_not_exit_2
 /// focused on the "caller downgrade" language from the BC.
+///
+/// This test traverses the FULL flush path: discovery → guard pass → STATE.md read
+/// with malformed lock → renew_lock Err(Malformed) downgraded to advisory → add →
+/// diff non-empty → commit → rev-parse → log write → push → exit 0.  Asserts both
+/// the final HookResult::Continue AND that git push was actually invoked (proving the
+/// flush proceeded end-to-end past the downgraded advisory).
 #[test]
 fn test_caller_downgrades_renew_err_to_advisory() {
+    use std::cell::RefCell;
+    use std::rc::Rc;
     use vsdd_hook_sdk::HookResult;
 
     let payload = make_payload();
-    let wt_path = "/tmp/test-factory-artifacts";
-    let worktree_output = worktree_list_for(wt_path);
+    // AC-017: path must end with /.factory and match <cwd>/.factory exactly
+    // so the Tier-1 suffix check and Tier-2 raw-string fallback both pass and
+    // the plugin traverses the full flush path past the downgraded advisory.
+    let wt_path = worktree_path_for_test_cwd();
     let state_content = make_state_md_malformed_lock();
+
+    // Positive-coverage: track that push was actually invoked after the downgraded advisory,
+    // proving the flush ran end-to-end (not just to commit).
+    let push_called = Rc::new(RefCell::new(false));
+    let push_called_clone = Rc::clone(&push_called);
 
     let result = precompact_flush::run_plugin_with_mock(
         payload,
@@ -1412,11 +1507,11 @@ fn test_caller_downgrades_renew_err_to_advisory() {
         },
         |_path, _content| Ok(()),
         {
-            let wl = worktree_output.clone();
+            let wt = wt_path.clone();
             move |bin, args| {
                 assert_eq!(bin, "git");
                 if args == ["worktree", "list", "--porcelain"] {
-                    return Ok((0, wl.clone(), String::new()));
+                    return Ok((0, worktree_list_for(&wt), String::new()));
                 }
                 if args.contains(&"-C") && args.contains(&"add") {
                     return Ok((0, String::new(), String::new()));
@@ -1435,11 +1530,21 @@ fn test_caller_downgrades_renew_err_to_advisory() {
                     return Ok((0, "downgrade_sha_abc".to_string(), String::new()));
                 }
                 if args.contains(&"-C") && args.contains(&"push") {
+                    // Record that push was reached (proves flush ran end-to-end).
+                    *push_called_clone.borrow_mut() = true;
                     return Ok((0, String::new(), String::new()));
                 }
                 Ok((0, String::new(), String::new()))
             }
         },
+    );
+
+    // Positive-coverage assertion: push must have been invoked, proving the flush
+    // ran end-to-end past the Err(Malformed) downgrade (not just exiting at advisory).
+    assert!(
+        *push_called.borrow(),
+        "F-NW-004: git push must have been called when renew_lock() Err is downgraded to advisory; \
+        the downgrade must not abort the flush — full flush path must execute through to push"
     );
 
     // F-NW-004: Err downgraded to advisory; plugin continues to flush commit
