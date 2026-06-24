@@ -28,11 +28,6 @@ vsdd-hook-sdk = { path = "../../hook-sdk" }
 # factory-lock: native lock renewal (renew_lock, RenewOutcome, LockError).
 # Dependency direction: precompact-flush → factory-lock → factory-lock-parse (no cycles).
 factory-lock = { path = "../../factory-lock" }
-# serde + serde_norway: YAML frontmatter parse for current_cycle + current_step fields
-# from STATE.md (AC-005 BC-7.07.001 PC1). serde_norway is the workspace-blessed
-# maintained fork of serde_yaml (see workspace Cargo.toml for rationale).
-serde = { workspace = true }
-serde_norway = { workspace = true }
 # chrono: UTC ISO-8601 timestamps for the log entry and commit message.
 # Use chrono::Utc::now().format("%Y-%m-%dT%H:%M:%SZ") — NOT to_rfc3339() (AC-018 F-NW-008).
 chrono = { workspace = true }

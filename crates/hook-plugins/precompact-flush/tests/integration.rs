@@ -511,12 +511,11 @@ fn test_worktree_mount_mismatch_emits_durability_degraded() {
 /// The plugin MUST detect this dangerous case, emit DURABILITY DEGRADED advisory,
 /// and exit 0 (fail-open) — NO commit, NO push.
 ///
-/// This test FAILS against the current code, which gates the mismatch check on
-/// `wt_path.ends_with("/.factory")` (lib.rs line 449), causing it to skip the
-/// check entirely for non-`.factory` paths and proceed to a dangerous flush.
-///
-/// After the implementer un-gates the canonicalize assertion to cover ALL discovered
-/// paths (not just those ending with "/.factory"), this test passes.
+/// This test verifies that `run_plugin_with_mock` returns `HookResult::Continue`
+/// (exit 0, fail-open) when the discovered factory-artifacts worktree path does not
+/// end with `"/.factory"`. The AC-017 canonicalize assertion covers ALL discovered
+/// paths, regardless of suffix, ensuring the split-tree guard fires before any
+/// commit or push is attempted.
 #[test]
 fn test_worktree_path_not_ending_in_factory_triggers_mismatch_advisory() {
     use vsdd_hook_sdk::HookResult;
@@ -662,15 +661,10 @@ fn make_state_md_malformed_lock() -> String {
 /// 2. Attempt to read STATE.md (step 2); on failure → emit AC-002 warning and exit 0.
 /// 3. NOT call `git commit`, NOT call `git push`.
 ///
-/// Alignment note: the current implementation wrongly reads STATE.md before discovery.
-/// This test therefore asserts the SPEC-CORRECT behavior and FAILS against the current
-/// code (which short-circuits exec_subprocess on STATE.md read failure, so `git worktree
-/// list` is never called). The implementer must reorder steps to make this test green.
-///
-/// This test fails because: current code never calls exec_subprocess when STATE.md
-/// read fails (the panic in exec_subprocess fires, marking the test RED). Once the
-/// implementer puts discovery first, exec_subprocess is called for `git worktree list`
-/// and the panic for commit/push no longer fires.
+/// This test verifies that `run_plugin_with_mock` calls `exec_subprocess` for
+/// `git worktree list --porcelain` (step 1) before attempting the STATE.md read
+/// (step 2), and that a STATE.md read failure produces `HookResult::Continue`
+/// (exit 0, fail-open) without invoking any further git commands (add/diff/commit/push).
 #[test]
 fn test_no_state_md_is_noop() {
     use std::cell::RefCell;
@@ -1148,24 +1142,15 @@ fn test_push_success_exits_0() {
 /// fail-open (exit 0, surface the error to stderr) rather than fabricating a "non-empty"
 /// sentinel result and proceeding to `git commit`.
 ///
-/// The defect (current code lib.rs lines 535-542):
-/// ```rust
-/// Err(e) => {
-///     eprintln!("... failing: {}; proceeding with commit.", e);
-///     "non-empty".to_string()  // ← fabricated sentinel causes spurious commit
-/// }
-/// ```
-/// A spurious commit on a worktree that may be clean violates INV5.
-///
-/// Production-grade behavior: fail-open (exit 0 + surface error), NOT fabricate
-/// "non-empty" → commit. This test FAILS against the current code because the
-/// `Err(_)` arm returns `"non-empty"`, which makes the plugin proceed to
-/// `git commit` — triggering the panic below.
+/// Production-grade behavior (verified by this test): `exec_subprocess` failure on
+/// `git diff --cached` returns `HookResult::Continue` (exit 0, fail-open) without
+/// invoking `git commit`. The INV5 invariant — no spurious empty commit on a worktree
+/// that may be clean — is satisfied.
 ///
 /// The test traverses the full flush path up to the diff step (discovery → guard
 /// pass → STATE.md read → renew NoOp → add → diff Err). The panic in the commit
 /// arm is the positive-coverage assertion — it fires if and only if git commit is
-/// reached, proving the F-004 fix is genuine (not vacuous). If AC-017 had
+/// reached, proving the F-004 path is genuine (not vacuous). If AC-017 had
 /// short-circuited before the diff step, the diff mock would never be reached and
 /// the test result would be vacuous Continue for the WRONG reason.
 #[test]

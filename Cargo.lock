@@ -2285,9 +2285,7 @@ version = "0.0.1"
 dependencies = [
  "chrono",
  "factory-lock",
- "serde",
  "serde_json",
- "serde_norway",
  "vsdd-hook-sdk",
 ]
 
