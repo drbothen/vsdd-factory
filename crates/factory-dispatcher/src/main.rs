@@ -375,11 +375,16 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
     // proceeds normally (BC-1.16.001 PC2 / AC-002). Non-qualifying events are skipped
     // without mutation (AC-003, AC-004).
     //
-    // TODO(S-18.04b-prereq): uncomment when implementer fills inject_git_context_if_qualifying:
-    // let factory_dir = base_host_ctx.cwd.join(".factory");
-    // factory_dispatcher::invoke::inject_git_context_if_qualifying(
-    //     &payload, &mut payload_value, &factory_dir,
-    // );
+    // S-18.04b-prereq: inject git_context on qualifying PostToolUse Bash git-commit events.
+    // factory_dir is derived from CLAUDE_PROJECT_DIR (base_host_ctx.cwd) + ".factory".
+    // The call is fail-open: git errors produce all-empty git_context (BC-1.16.001 PC2).
+    // Non-qualifying events are skipped without mutation (AC-003, AC-004).
+    let factory_dir = base_host_ctx.cwd.join(".factory");
+    factory_dispatcher::invoke::inject_git_context_if_qualifying(
+        &payload,
+        &mut payload_value,
+        &factory_dir,
+    );
 
     // Clone the event queue Arc before moving base_host_ctx into
     // ExecutorInputs. All plugin contexts share this Arc (every clone
