@@ -2,12 +2,13 @@
 document_type: architecture-section
 level: L4
 section: verification-coverage-matrix
-version: "1.2"
+version: "1.3"
 status: draft
 producer: architect
-timestamp: 2026-06-16T00:00:00Z
-last_amended: "2026-06-16 (v1.2) — D-615 E-18 STORY PASS-1 FIX WAVE INTEGRATION BURST (state-manager POLICY 9 propagation): VP-092 added to SS-06 module table (unit-test; SS-06; DI-020; BC-6.25.001 — check-state-health CLAUDE_AUTOCOMPACT_PCT_OVERRIDE advisory check; never blocks). SS-06 subtotal U 0→1, row total 4→5. Grand Total U 45→46, row total 91→92. Per-tool arithmetic 4+4+46+27+10+1=92 VERIFIED. Per-subsystem row-sum 31+5+14+13+12+5+11+1=92 VERIFIED. [Prior: 2026-06-16 (v1.1) — D-612 INTEGRATION BURST (state-manager POLICY 9 propagation): VP-091 added to SS-04 module table (unit-test; SS-04; DI-020; BC-4.15.001 — validate-heavy-op-delegation always-Continue advisory gate). SS-04 subtotal U 3→4, row total 12→13. Grand Total U 44→45, row total 90→91. Per-tool arithmetic 4+4+45+27+10+1=91 VERIFIED. Per-subsystem row-sum 31+5+14+13+12+4+11+1=91 VERIFIED. [Prior: 2026-06-16 (v1.0) — F2 gate decision: initial creation as a full production-grade architecture deliverable. Sources: VP-INDEX.md v2.29 (86 VPs) + VP-087..VP-090 (4 new E-18 VPs, unstaged). POST-INTEGRATION totals: total_vps=90, unit-test=44, integration=27, manual=10, static-check=1, kani-proof=4, proptest=4. Every VP assigned to its authoritative module per VP-INDEX.md scope column and VP file frontmatter. Authored per F2 gate human directive that deferred architecture derived-views be materialized now.]"
+timestamp: 2026-06-24T00:00:00Z
+last_amended: "2026-06-24 (v1.3) — S-18.04b-prereq BC authoring burst (architect POLICY 9 propagation): VP-093 added to SS-01 module table (integration; SS-01; DI-020, DI-025; BC-1.16.001 — dispatcher git_context injection on PostToolUse Bash git-commit events; four-field completeness; fail-open on git error; no injection on non-qualifying events). SS-01 subtotal I 6→7, row total 31→32. Grand Total I 27→28, row total 92→93. Per-tool arithmetic 4+4+46+28+10+1=93 VERIFIED. Per-subsystem row-sum 32+5+14+13+12+5+11+1=93 VERIFIED. [Prior: 2026-06-16 (v1.2) — D-615 E-18 STORY PASS-1 FIX WAVE INTEGRATION BURST (state-manager POLICY 9 propagation): VP-092 added to SS-06 module table (unit-test; SS-06; DI-020; BC-6.25.001 — check-state-health CLAUDE_AUTOCOMPACT_PCT_OVERRIDE advisory check; never blocks). SS-06 subtotal U 0→1, row total 4→5. Grand Total U 45→46, row total 91→92. Per-tool arithmetic 4+4+46+27+10+1=92 VERIFIED. Per-subsystem row-sum 31+5+14+13+12+5+11+1=92 VERIFIED. [Prior: 2026-06-16 (v1.1) — D-612 INTEGRATION BURST (state-manager POLICY 9 propagation): VP-091 added to SS-04 module table (unit-test; SS-04; DI-020; BC-4.15.001 — validate-heavy-op-delegation always-Continue advisory gate). SS-04 subtotal U 3→4, row total 12→13. Grand Total U 44→45, row total 90→91. Per-tool arithmetic 4+4+45+27+10+1=91 VERIFIED. Per-subsystem row-sum 31+5+14+13+12+4+11+1=91 VERIFIED. [Prior: 2026-06-16 (v1.0) — F2 gate decision: initial creation as a full production-grade architecture deliverable. Sources: VP-INDEX.md v2.29 (86 VPs) + VP-087..VP-090 (4 new E-18 VPs, unstaged). POST-INTEGRATION totals: total_vps=90, unit-test=44, integration=27, manual=10, static-check=1, kani-proof=4, proptest=4. Every VP assigned to its authoritative module per VP-INDEX.md scope column and VP file frontmatter. Authored per F2 gate human directive that deferred architecture derived-views be materialized now.]]"
 modified:
+  - "2026-06-24 (v1.3) — VP-093 added to SS-01 module; SS-01 I 6→7, total 31→32; grand total 92→93"
   - "2026-06-16 (v1.2) — D-615 VP-092 added to SS-06 module; SS-06 U 0→1, total 4→5; grand total 91→92"
   - "2026-06-16 (v1.1) — D-612 VP-091 added to SS-04 module; SS-04 U 3→4, total 12→13; grand total 90→91"
   - "2026-06-16 (v1.0 initial creation)"
@@ -38,13 +39,14 @@ subsystems_affected:
 > their additional subsystem affiliations are noted in the Subsystems column.
 >
 > **Grand-total arithmetic invariant:** Each VP is counted exactly once in the grand-
-> total row. The per-tool column sums (K+P+U+I+M+S) must equal 92. This invariant
+> total row. The per-tool column sums (K+P+U+I+M+S) must equal 93. This invariant
 > must be verified on every update to this document.
 
 ## §Changelog
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| v1.3 | 2026-06-24 | architect | S-18.04b-prereq POLICY 9 propagation: VP-093 added to SS-01 module table (integration; SS-01; DI-020, DI-025; BC-1.16.001 — dispatcher git_context injection on PostToolUse Bash git-commit events; four-field injection; fail-open on git error; no injection on non-qualifying events; exec-free WASM boundary; HOST_ABI_VERSION unchanged; anchor S-18.04b-prereq). SS-01 subtotal I 6→7, row total 31→32. Grand Total I 27→28, row total 92→93. Per-tool arithmetic 4+4+46+28+10+1=93 VERIFIED. Per-subsystem row-sum 32+5+14+13+12+5+11+1=93 VERIFIED. |
 | v1.2 | 2026-06-16 | state-manager | D-615 POLICY 9 propagation: VP-092 added to SS-06 module table (unit-test; SS-06; DI-020; BC-6.25.001 — check-state-health CLAUDE_AUTOCOMPACT_PCT_OVERRIDE advisory check; never blocks; PC1 absent→ADVISORY; PC2 >80→ADVISORY; PC3 <=80→PASS). SS-06 subtotal U 0→1, row total 4→5. Grand Total U 45→46, row total 91→92. Per-tool arithmetic 4+4+46+27+10+1=92 VERIFIED. Per-subsystem row-sum 31+5+14+13+12+5+11+1=92 VERIFIED. |
 | v1.1 | 2026-06-16 | state-manager | D-612 POLICY 9 propagation: VP-091 added to SS-04 module table (unit-test; SS-04; DI-020; BC-4.15.001 — validate-heavy-op-delegation always-Continue advisory gate). SS-04 subtotal U 3→4, row total 12→13. Grand Total U 44→45, row total 90→91. Per-tool arithmetic 4+4+45+27+10+1=91 VERIFIED. Per-subsystem row-sum 31+5+14+13+12+4+11+1=91 VERIFIED. |
 | v1.0 | 2026-06-16 | architect | Initial creation — F2 gate decision. Sources: VP-INDEX.md v2.29 (86 VPs) + VP-087..VP-090 (4 new E-18 VPs). POST-INTEGRATION totals: total_vps=90, unit-test=44, integration=27, manual=10, static-check=1, kani-proof=4, proptest=4. |
@@ -102,7 +104,8 @@ VP-086 per assignment notes in §2 below).
 | VP-075 | Context-Injection Determinism | SS-01, SS-04 | | ✓ | | | | |
 | VP-077 | Dispatcher Partition Correctness (6 properties) | SS-01 | ✓ | | | | | |
 | VP-086 | Dispatcher Exit-2 Propagation for PreCompact Block-Intent | SS-01, SS-04 | | | | ✓ | | |
-| **SS-01 subtotal** | | | **2** | **1** | **22** | **6** | **0** | **0** |
+| VP-093 | Dispatcher Injects git_context Into payload.extra on PostToolUse Bash git-commit Events; Fail-Open on Git Error | SS-01 | | | | ✓ | | |
+| **SS-01 subtotal** | | | **2** | **1** | **22** | **7** | **0** | **0** |
 
 ---
 
@@ -276,11 +279,11 @@ rationale below documents the reasoning applied when scope order determines prim
 ## §3 Grand Totals
 
 Each VP counted exactly once in the row for its primary subsystem. The grand-total
-per-tool column sums equal 92 (total_vps POST-INTEGRATION).
+per-tool column sums equal 93 (total_vps POST-INTEGRATION).
 
 | Subsystem | K | P | U | I | M | S | Row Total |
 |-----------|---|---|---|---|---|---|-----------|
-| SS-01 | 2 | 1 | 22 | 6 | 0 | 0 | 31 |
+| SS-01 | 2 | 1 | 22 | 7 | 0 | 0 | 32 |
 | SS-02 | 0 | 0 | 5 | 0 | 0 | 0 | 5 |
 | SS-03 | 0 | 0 | 11 | 3 | 0 | 0 | 14 |
 | SS-04 | 2 | 1 | 4 | 6 | 0 | 0 | 13 |
@@ -288,22 +291,22 @@ per-tool column sums equal 92 (total_vps POST-INTEGRATION).
 | SS-06 | 0 | 1 | 1 | 3 | 0 | 0 | 5 |
 | SS-07 | 0 | 1 | 3 | 4 | 3 | 0 | 11 |
 | SS-09 | 0 | 0 | 0 | 0 | 1 | 0 | 1 |
-| **Grand Total** | **4** | **4** | **46** | **27** | **10** | **1** | **92** |
+| **Grand Total** | **4** | **4** | **46** | **28** | **10** | **1** | **93** |
 
-**Per-tool arithmetic check:** 4 + 4 + 46 + 27 + 10 + 1 = **92** ✓
+**Per-tool arithmetic check:** 4 + 4 + 46 + 28 + 10 + 1 = **93** ✓
 
-**Per-subsystem row-sum check:** 31 + 5 + 14 + 13 + 12 + 5 + 11 + 1 = **92** ✓
+**Per-subsystem row-sum check:** 32 + 5 + 14 + 13 + 12 + 5 + 11 + 1 = **93** ✓
 
 **Per-tool column matches VP-INDEX.md POST-INTEGRATION targets:**
 - kani-proof: **4** ✓ (VP-070, VP-071, VP-074, VP-077)
 - proptest: **4** ✓ (VP-059, VP-069, VP-075, VP-080)
 - unit-test: **46** ✓ (42 from VP-INDEX v2.29 + VP-089 + VP-090 + VP-091 + VP-092)
-- integration: **27** ✓ (25 from VP-INDEX v2.29 + VP-087 + VP-088)
+- integration: **28** ✓ (25 from VP-INDEX v2.29 + VP-087 + VP-088 + VP-093)
 - manual: **10** ✓ (unchanged from VP-INDEX v2.29)
 - static-check: **1** ✓ (unchanged from VP-INDEX v2.29)
 
 **SS-01 row detail:** K=2 (VP-074, VP-077), P=1 (VP-075), U=22 (VP-003..010,
-VP-014, VP-016..024, VP-026..027, VP-050, VP-052), I=6 (VP-001, VP-002, VP-025,
-VP-051, VP-073, VP-086), M=0, S=0. Row sum = 2+1+22+6+0+0 = **31** ✓
+VP-014, VP-016..024, VP-026..027, VP-050, VP-052), I=7 (VP-001, VP-002, VP-025,
+VP-051, VP-073, VP-086, VP-093), M=0, S=0. Row sum = 2+1+22+7+0+0 = **32** ✓
 
-All 92 VPs are accounted for with no omissions and no double-counts.
+All 93 VPs are accounted for with no omissions and no double-counts.

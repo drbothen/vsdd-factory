@@ -2,12 +2,13 @@
 document_type: architecture-section
 level: L4
 section: verification-architecture
-version: "1.4"
+version: "1.5"
 status: draft
 producer: architect
-timestamp: 2026-06-17T00:00:00Z
-last_amended: "2026-06-17 (v1.4) — C-P7-001 fix burst (architect): VP-086 row added to §SS-01 Provable Properties Catalog — was present in §3 integration list and §Risk Mitigations but absent from §1 catalog body (91 unique VP IDs vs 92 total). VP-086: Dispatcher Exit-2 Propagation for PreCompact Block-Intent; integration; BC-1.15.001 PC4; SS-01/SS-04; anchor S-18.00. §1 VP count invariant unchanged at 92 (catalog now reflects actual count). [Prior: 2026-06-16 (v1.3) — D-615 E-18 STORY PASS-1 FIX WAVE INTEGRATION BURST (state-manager POLICY 9 propagation): VP-092 added to §SS-06 Provable Properties Catalog (unit-test; DI-020; check-state-health CLAUDE_AUTOCOMPACT_PCT_OVERRIDE advisory check; BC-6.25.001; S-18.10). §3 Proof Method Coverage Totals: unit-test 45→46; Total 91→92. §1 VP count invariant note updated 91→92. [Prior: 2026-06-16 (v1.2) — D-612 INTEGRATION BURST (state-manager POLICY 9 propagation): VP-091 added to §SS-04 Provable Properties Catalog (unit-test; DI-020; validate-heavy-op-delegation always-Continue advisory gate; BC-4.15.001; S-18.06). §3 Proof Method Coverage Totals: unit-test 44→45; Total 90→91. §1 VP count invariant note updated 90→91. [Prior: 2026-06-16 (v1.1) — fix burst (architect): FINDING-1 (MINOR) + O-D607-003 — removed SS-08 from subsystems_affected frontmatter; SS-08 has zero VPs in this document's body (consistent with sibling verification-coverage-matrix.md which correctly omits SS-08). Frontmatter now matches body. [Prior: 2026-06-16 (v1.0) — F2 gate decision: initial creation as a full production-grade architecture deliverable. Sources: VP-INDEX.md v2.29 (86 VPs) + VP-087..VP-090 (4 new E-18 VPs, unstaged). POST-INTEGRATION totals: total_vps=90, unit-test=44, integration=27, manual=10, static-check=1, kani-proof=4, proptest=4. Authored per F2 gate human directive that deferred architecture derived-views be materialized now.]]"
+timestamp: 2026-06-24T00:00:00Z
+last_amended: "2026-06-24 (v1.5) — S-18.04b-prereq BC authoring burst (architect): VP-093 added to §SS-01 Provable Properties Catalog (integration; DI-020, DI-025; BC-1.16.001 PC1/PC2/PC3/PC4/PC5/INV1/INV2/INV3/INV5; anchor S-18.04b-prereq — dispatcher git_context injection on PostToolUse Bash git-commit events; exec-free WASM boundary; fail-open on git error). §3 Proof Method Coverage Totals: integration 27→28; Total 92→93. §1 VP count invariant updated 92→93. [Prior: 2026-06-17 (v1.4) — C-P7-001 fix burst (architect): VP-086 row added to §SS-01 Provable Properties Catalog — was present in §3 integration list and §Risk Mitigations but absent from §1 catalog body (91 unique VP IDs vs 92 total). VP-086: Dispatcher Exit-2 Propagation for PreCompact Block-Intent; integration; BC-1.15.001 PC4; SS-01/SS-04; anchor S-18.00. §1 VP count invariant unchanged at 92 (catalog now reflects actual count). [Prior: 2026-06-16 (v1.3) — D-615 E-18 STORY PASS-1 FIX WAVE INTEGRATION BURST (state-manager POLICY 9 propagation): VP-092 added to §SS-06 Provable Properties Catalog (unit-test; DI-020; check-state-health CLAUDE_AUTOCOMPACT_PCT_OVERRIDE advisory check; BC-6.25.001; S-18.10). §3 Proof Method Coverage Totals: unit-test 45→46; Total 91→92. §1 VP count invariant note updated 91→92. [Prior: 2026-06-16 (v1.2) — D-612 INTEGRATION BURST (state-manager POLICY 9 propagation): VP-091 added to §SS-04 Provable Properties Catalog (unit-test; DI-020; validate-heavy-op-delegation always-Continue advisory gate; BC-4.15.001; S-18.06). §3 Proof Method Coverage Totals: unit-test 44→45; Total 90→91. §1 VP count invariant note updated 90→91. [Prior: 2026-06-16 (v1.1) — fix burst (architect): FINDING-1 (MINOR) + O-D607-003 — removed SS-08 from subsystems_affected frontmatter; SS-08 has zero VPs in this document's body (consistent with sibling verification-coverage-matrix.md which correctly omits SS-08). Frontmatter now matches body. [Prior: 2026-06-16 (v1.0) — F2 gate decision: initial creation as a full production-grade architecture deliverable. Sources: VP-INDEX.md v2.29 (86 VPs) + VP-087..VP-090 (4 new E-18 VPs, unstaged). POST-INTEGRATION totals: total_vps=90, unit-test=44, integration=27, manual=10, static-check=1, kani-proof=4, proptest=4. Authored per F2 gate human directive that deferred architecture derived-views be materialized now.]]"
 modified:
+  - "2026-06-24 (v1.5) — VP-093 added to SS-01 catalog; integration 27→28; total 92→93"
   - "2026-06-17 (v1.4) — C-P7-001 VP-086 row added to SS-01 Provable Properties Catalog (missing from §1 body; present in §3 and §Risk Mitigations); catalog count now 92 unique VP IDs"
   - "2026-06-16 (v1.3) — D-615 VP-092 added to SS-06 catalog; unit-test 45→46; total 91→92"
   - "2026-06-16 (v1.2) — D-612 VP-091 added to SS-04 catalog; unit-test 44→45; total 90→91"
@@ -37,6 +38,7 @@ subsystems_affected:
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| v1.5 | 2026-06-24 | architect | S-18.04b-prereq POLICY 9 propagation: VP-093 added to §SS-01 Provable Properties Catalog (integration; DI-020, DI-025; BC-1.16.001 PC1/PC2/PC3/PC4/PC5/INV1/INV2/INV3/INV5; S-18.04b-prereq — dispatcher git_context injection on PostToolUse Bash git-commit events; four-field completeness; fail-open on git error; no injection on non-qualifying events; exec-free WASM boundary; HOST_ABI_VERSION unchanged). §3 integration 27→28; Total 92→93. §1 VP count invariant updated 92→93. |
 | v1.4 | 2026-06-17 | architect | C-P7-001 fix: VP-086 row added to SS-01 Provable Properties Catalog — was present in §3 integration list and §Risk Mitigations but absent from §1 catalog body (91 unique VP IDs vs declared total 92). VP-086: Dispatcher Exit-2 Propagation for PreCompact Block-Intent; integration; BC-1.15.001 PC4 (exit-2 block-intent propagated to harness); SS-01/SS-04; anchor S-18.00. Catalog now enumerates all 92 VPs. §3 totals and §1 count invariant (92) unchanged — §3 integration list already included VP-086. |
 | v1.3 | 2026-06-16 | state-manager | D-615 POLICY 9 propagation: VP-092 added to SS-06 Provable Properties Catalog (unit-test; DI-020; BC-6.25.001; S-18.10 — check-state-health CLAUDE_AUTOCOMPACT_PCT_OVERRIDE advisory check; never blocks; PC1 absent→ADVISORY; PC2 >80→ADVISORY; PC3 <=80→PASS). §3 unit-test 45→46; Total 91→92. §1 VP count invariant updated 91→92. |
 | v1.2 | 2026-06-16 | state-manager | D-612 POLICY 9 propagation: VP-091 added to SS-04 Provable Properties Catalog (unit-test; DI-020; BC-4.15.001; S-18.06 — validate-heavy-op-delegation always-Continue advisory gate). §3 unit-test 44→45; Total 90→91. §1 VP count invariant updated 90→91. |
@@ -50,8 +52,8 @@ subsystems_affected:
 All 92 verification properties, organized by subsystem. Each VP entry states: title,
 proof method, BC postcondition/invariant anchor, and current status.
 
-> **VP count invariant:** This catalog lists exactly 92 VPs (VP-001..VP-092) across
-> all subsystems. The per-method totals in §3 must sum to 92.
+> **VP count invariant:** This catalog lists exactly 93 VPs (VP-001..VP-093) across
+> all subsystems. The per-method totals in §3 must sum to 93.
 
 ---
 
@@ -90,6 +92,7 @@ proof method, BC postcondition/invariant anchor, and current status.
 | VP-075 | Context-Injection Determinism — same resolver input always produces same output | proptest | — | draft |
 | VP-077 | Dispatcher Partition Correctness (6 properties) | kani-proof | — | draft |
 | VP-086 | Dispatcher Exit-2 Propagation for PreCompact Block-Intent | integration | BC-1.15.001 PC4 | draft |
+| VP-093 | Dispatcher Injects git_context Into payload.extra on PostToolUse Bash git-commit Events; Fail-Open on Git Error; No Injection on Non-Qualifying Events | integration | BC-1.16.001 PC1/PC2/PC3/PC4/PC5/INV1/INV2/INV3/INV5 | draft |
 
 ---
 
@@ -244,19 +247,19 @@ fixtures to arbitrary generated inputs.
 
 ## §3 Proof Method Coverage Totals
 
-> **Arithmetic invariant:** per-method counts must sum to total_vps (92).
+> **Arithmetic invariant:** per-method counts must sum to total_vps (93).
 > These totals must equal the VP-INDEX.md §Proof Method Breakdown totals.
 > Source of truth: VP-INDEX.md. If VP-INDEX and this table diverge, VP-INDEX wins.
 
 | Proof Method | Count | VP IDs |
 |-------------|-------|--------|
 | unit-test | 46 | VP-003..014, VP-016..024, VP-026..027, VP-029..032, VP-034..042, VP-044..045, VP-050, VP-052, VP-083, VP-085, VP-089, VP-090, VP-091, VP-092 |
-| integration | 27 | VP-001, VP-002, VP-025, VP-028, VP-033, VP-043, VP-049, VP-051, VP-058, VP-060, VP-062, VP-063, VP-065, VP-066, VP-067, VP-068, VP-072, VP-073, VP-076, VP-078, VP-079, VP-081, VP-082, VP-084, VP-086, VP-087, VP-088 |
+| integration | 28 | VP-001, VP-002, VP-025, VP-028, VP-033, VP-043, VP-049, VP-051, VP-058, VP-060, VP-062, VP-063, VP-065, VP-066, VP-067, VP-068, VP-072, VP-073, VP-076, VP-078, VP-079, VP-081, VP-082, VP-084, VP-086, VP-087, VP-088, VP-093 |
 | manual | 10 | VP-015, VP-046..048, VP-053..057, VP-064 |
 | static-check | 1 | VP-061 |
 | kani-proof | 4 | VP-070, VP-071, VP-074, VP-077 |
 | proptest | 4 | VP-059, VP-069, VP-075, VP-080 |
-| **Total** | **92** | **VP-001..VP-092** |
+| **Total** | **93** | **VP-001..VP-093** |
 
 ---
 

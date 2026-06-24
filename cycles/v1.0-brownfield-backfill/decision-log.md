@@ -2970,6 +2970,67 @@ S-18.04b (PreCompact exemption + prune; BC-5.41.003; P0; 8pts; depends_on S-18.0
 
 ---
 
+## D-694 — S-18.04b re-architecture GOVERNANCE burst — ADR-029 dispatcher git_context injection — 2026-06-24
+
+**Decision:** LOCAL adversary pass on S-18.04b (validate-burst-log / validate-dispatch-advance PreCompact Exemption + precompact-flush-prune.sh) surfaced finding F-2: BC-5.41.003 required WASM hook to call `exec_subprocess(git log)` to inspect HEAD/HEAD^ commit subjects, violating the WASM sandbox exec-free constraint. Architect adjudicated; human chose Option A: dispatcher (host) injects git_context payload into hook input on PostToolUse Bash git-commit events targeting factory-artifacts worktree. WASM plugins read `payload.extra.git_context` instead of calling exec_subprocess. Option B (allow exec_subprocess in WASM for git-only calls) rejected — would create a precedent eroding the exec-free boundary. Option C (skip the SHA corroboration feature) rejected — production-grade default forbids capability deferral.
+
+**Context:** S-18.04b BC-5.41.003 v1.9 spec cited exec_subprocess as the WASM mechanism for reading HEAD/HEAD^ subjects (F-2 ADR gap). Re-architecture required: new micro-story S-18.04b-prereq (dispatcher git_context injection, ADR-029), new BC-1.16.001, new VP-093, ADR-029 authored. S-18.04b v1.7 re-wired to depends_on S-18.04b-prereq; BC-5.41.003 updated v1.9→v2.0 (exec-free WASM via git_context field). Governance-only burst — develop branch unchanged at b0bc4ffd.
+
+**Option A details (human-approved):**
+- Dispatcher (host) execs git on PostToolUse Bash git-commit events where target path is the factory-artifacts worktree
+- Injects `git_context: {head_subject, head_sha, head_parent_subject, head_parent_sha}` into payload.extra
+- WASM plugins read `payload.extra.git_context` — no exec_subprocess calls needed
+- Fail-open on git error: if git exec fails, git_context is omitted; WASM plugin treats absent field as no-commit-chain context (non-blocking)
+- Captured in ADR-029 (`decisions/ADR-029-dispatcher-git-context-payload-injection.md`)
+
+**Governance artifacts created this burst:**
+- ADR-029: `specs/architecture/decisions/ADR-029-dispatcher-git-context-payload-injection.md` (new)
+- BC-1.16.001 v1.0: `specs/behavioral-contracts/ss-01/BC-1.16.001.md` (new; SS-01; CAP-032; S-18.04b-prereq)
+- BC-5.41.003 v2.0: updated — exec-free WASM via git_context injection per ADR-029 (title extended; SS-05)
+- VP-093 v1.0: `specs/verification-properties/VP-093.md` (new; SS-01; DI-020, DI-025; source_bc: BC-1.16.001)
+- VP-INDEX v2.41: total_vps 92→93; VP-093 row added
+- verification-architecture.md v1.5: VP-093 propagated (POLICY 9)
+- verification-coverage-matrix.md v1.3: VP-093 propagated (POLICY 9)
+- S-18.04b-prereq v1.0: `stories/S-18.04b-prereq-dispatcher-git-context-injection.md` (new; P0; 5pts; depends_on [S-18.00]; blocks [S-18.04b])
+- S-18.04b v1.7: depends_on [S-18.04a, S-18.04b-prereq]; re-arch pending STOP-BEFORE-PR-MERGE D-665
+- STORY-INDEX v4.64: story_count 122→123; S-18.04b-prereq row added
+- BC-INDEX v3.42: total_bcs 1972→1973; BC-1.16.001 row added; SS-01 count 117→118; BC-5.41.003 row updated
+- ARCH-INDEX v2.73: SS-01 BC count 117→118; Total BCs 1972→1973; ADR-029 row confirmed
+
+**4-index gate (literal-shell stdout 2026-06-24):**
+```
+grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md
+version: "3.42"
+
+grep "^version:" .factory/specs/verification-properties/VP-INDEX.md
+version: "2.41"
+
+grep "^version:" .factory/stories/STORY-INDEX.md
+version: "4.64"
+
+grep "^version:" .factory/specs/architecture/ARCH-INDEX.md
+version: "2.73"
+```
+
+Parity PASS: BC-INDEX v3.42 / VP-INDEX v2.41 / STORY-INDEX v4.64 / ARCH-INDEX v2.73.
+
+**Actions taken:**
+- story_count 122→123 (S-18.04b-prereq NEW); VP count 92→93 (VP-093 NEW); BC count 1972→1973 (BC-1.16.001 NEW); ADR count 28→29 (ADR-029 NEW)
+- 4-index: BC-INDEX v3.42 / VP-INDEX v2.41 / STORY-INDEX v4.64 / ARCH-INDEX v2.73
+- develop HEAD unchanged: b0bc4ffd (governance-only burst)
+- STOP-BEFORE-PR-MERGE (D-665) holds for all resulting code PRs
+- POSTURE: ACTIVE — next action: deliver S-18.04b-prereq (dispatcher git_context injection implementation), then re-commence S-18.04b
+
+### Parent-commit
+
+See `git -C .factory log -1 --format='%h %s'` (D-693 post-merge burst; TD-VSDD-053 single-commit)
+
+### NEXT
+
+S-18.04b-prereq (dispatcher git_context injection; BC-1.16.001; VP-093; ADR-029; P0; 5pts; depends_on S-18.00 — MET): implement dispatcher-side git_context injection. Then S-18.04b (re-wired; now depends_on S-18.04b-prereq). STOP-BEFORE-PR-MERGE (D-665) holds for each code PR.
+
+---
+
 ## D-692 — PR #201 (S-18.14) post-merge STATE burst — 2026-06-23
 
 **Decision:** PR #201 (feature/S-18.14 → develop) squash-merged to develop at commit `dfc76844` on 2026-06-23T17:00:01Z. Post-merge burst executed.
