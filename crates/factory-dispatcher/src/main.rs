@@ -311,6 +311,21 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
         .map(PathBuf::from)
         .ok()
         .filter(|p| !p.as_os_str().is_empty())
+        // Canonicalize the project directory to resolve OS-level symlinks
+        // (e.g., macOS /var → /private/var). This ensures host::cwd() returns
+        // the same physical path that `git worktree list --porcelain` reports,
+        // preventing false-positive DURABILITY DEGRADED from Tier 2 path-mismatch
+        // checks in precompact-flush and similar plugins. Canonicalize failure is
+        // non-fatal: fall back to the raw path (better than no cwd at all).
+        //
+        // SEC-004 TOCTOU ACCEPTED: the canonicalize call here resolves symlinks at
+        // dispatcher startup, but the resolved path is used as a label (host::cwd()
+        // for path-comparison in plugins), not for filesystem access. Any TOCTOU
+        // window between canonicalize and plugin use is therefore inconsequential:
+        // the worst outcome is a false-positive DURABILITY DEGRADED advisory (fail-open).
+        // This is explicitly accepted under the same-user local trust model; the
+        // `unwrap_or(p)` fallback is fail-safe (raw path beats no path at all).
+        .map(|p| p.canonicalize().unwrap_or(p))
         .or_else(|| std::env::current_dir().ok())
         .unwrap_or_else(|| PathBuf::from("."));
     // ADR-024 Decision 2: CLAUDE_PLUGIN_ROOT already checked above (Tier-1 vs Tier-2).
