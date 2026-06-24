@@ -883,14 +883,46 @@ pub fn is_precompact_flush_exempt(
     commit_sha: &str,
     flush_log_content: Option<&str>,
 ) -> bool {
-    todo!(
-        "S-18.04b stub: implement 3-case PreCompact flush exemption \
-         (BC-5.41.003 PC1); cases (a)/(b)/(c); SHA corroboration via FIELD-4+FIELD-2; \
-         prefix={:?}; sha={:?}; log_present={}",
-        commit_subject,
-        commit_sha,
-        flush_log_content.is_some()
-    )
+    // Step 0: prefix match (case-sensitive, exact). BC-5.41.003 INV3.
+    if !commit_subject.starts_with(PRECOMPACT_FLUSH_PREFIX) {
+        return false;
+    }
+
+    // Step 1: examine log content.
+    match flush_log_content {
+        None => {
+            // Case (c): log absent → prefix-match alone is sufficient. AC-002.
+            true
+        }
+        Some(last_line) => {
+            // Parse the 4-field log line: <ISO-timestamp> <SHA> <cycle>/<step> <type>
+            // Fields are space-separated; we need FIELD-2 (SHA) and FIELD-4 (type token).
+            let mut fields = last_line.split_whitespace();
+            let _field1 = fields.next(); // ISO-timestamp
+            let field2_sha = fields.next(); // SHA
+            let _field3 = fields.next(); // cycle/step
+            let field4_type = fields.next(); // type token ("commit" or absent/corrupt)
+
+            match field4_type {
+                Some("commit") => {
+                    // Case (a): log valid, FIELD-4=commit. SHA must match. AC-001/AC-004.
+                    match field2_sha {
+                        Some(log_sha) => log_sha == commit_sha,
+                        None => {
+                            // FIELD-4=commit but FIELD-2 absent — treat as corrupted.
+                            // Case (b) → case (c): prefix-match-only. AC-003.
+                            true
+                        }
+                    }
+                }
+                _ => {
+                    // Case (b): FIELD-4 absent, empty, or non-"commit" → treat as stale.
+                    // Fall through to case (c): prefix-match-only exemption. AC-003.
+                    true
+                }
+            }
+        }
+    }
 }
 
 /// Check whether the HEAD and HEAD^ commit subjects form a `MULTI_COMMIT_CHAIN_NOT_ALLOWED`
@@ -929,17 +961,44 @@ pub fn check_multi_commit_chain(
     head_parent_sha: &str,
     flush_log_content: Option<&str>,
 ) -> Option<Violation> {
-    todo!(
-        "S-18.04b stub: implement MULTI_COMMIT_CHAIN_NOT_ALLOWED check with \
-         PreCompact flush exemption (BC-5.41.003 + TD-VSDD-053); \
-         head={:?}; head_sha={:?}; head_parent={:?}; head_parent_sha={:?}; \
-         log_present={}",
-        head_subject,
-        head_sha,
-        head_parent_subject,
-        head_parent_sha,
-        flush_log_content.is_some()
-    )
+    // If either commit is exempt under the PreCompact flush exemption,
+    // skip the chain comparison entirely. BC-5.41.003 PC1.
+    if is_precompact_flush_exempt(head_subject, head_sha, flush_log_content) {
+        return None;
+    }
+    if is_precompact_flush_exempt(head_parent_subject, head_parent_sha, flush_log_content) {
+        return None;
+    }
+
+    // TD-VSDD-053 chain detector: MULTI_COMMIT_CHAIN_NOT_ALLOWED fires when both
+    // HEAD and HEAD^ contain a sentinel word.
+    let head_has_sentinel = contains_sentinel(head_subject);
+    let parent_has_sentinel = contains_sentinel(head_parent_subject);
+
+    if head_has_sentinel && parent_has_sentinel {
+        Some(Violation {
+            description: format!(
+                "MULTI_COMMIT_CHAIN_NOT_ALLOWED — HEAD and HEAD^ both contain chain-sentinel words; \
+                 HEAD: {:?}; HEAD^: {:?}; TD-VSDD-053",
+                head_subject, head_parent_subject
+            ),
+            cited_raw: format!("HEAD={head_subject:?}; HEAD^={head_parent_subject:?}"),
+        })
+    } else {
+        None
+    }
+}
+
+/// Returns `true` if `subject` contains any TD-VSDD-053 sentinel word.
+///
+/// Sentinels: "backfill", "Stage 1", "Stage 2" (case-insensitive for "backfill";
+/// case-sensitive for "Stage N" per existing convention).
+///
+/// # BC trace
+/// TD-VSDD-053 (single-commit-per-burst chain detector).
+fn contains_sentinel(subject: &str) -> bool {
+    let lower = subject.to_lowercase();
+    lower.contains("backfill") || subject.contains("Stage 1") || subject.contains("Stage 2")
 }
 
 // ---------------------------------------------------------------------------
@@ -1024,6 +1083,9 @@ pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
         }
     };
 
+    // Collect violations from all active gates.
+    let mut all_violations: Vec<Violation> = Vec::new();
+
     if is_state_md_target(&file_path) {
         // STATE.md arm.
         let content = match host::read_file(&file_path, MAX_BYTES, 2000) {
@@ -1062,12 +1124,7 @@ pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
             return HookResult::Continue;
         }
 
-        let violations = validate_state_md(&content);
-        if violations.is_empty() {
-            HookResult::Continue
-        } else {
-            emit_block(HOOK_NAME, &violations)
-        }
+        all_violations.extend(validate_state_md(&content));
     } else if is_index_md_target(&file_path) {
         // INDEX.md arm.
         let content = match host::read_file(&file_path, MAX_BYTES, 2000) {
@@ -1096,16 +1153,146 @@ pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
             }
         };
 
-        let violations = validate_index_md(&content);
-        if violations.is_empty() {
-            HookResult::Continue
-        } else {
-            emit_block(HOOK_NAME, &violations)
-        }
+        all_violations.extend(validate_index_md(&content));
     } else {
-        // Not a target path — continue without action.
-        HookResult::Continue
+        // Not a STATE.md or INDEX.md target — continue without file-content validation.
+        // The PreCompact flush chain check (below) still runs for all factory writes.
     }
+
+    // PreCompact flush chain exemption check (BC-5.41.003 + S-18.04b).
+    //
+    // Runs for all PostToolUse Edit/Write events reaching this hook (not scoped
+    // to STATE.md or INDEX.md alone). Fail-open: if git/log reads fail, no
+    // violation is emitted. BC-5.41.003 F-8: reads precompact-flush-log via
+    // host::read_file; does NOT exec `git cat-file -t` for SHA corroboration.
+    if let Some(chain_violation) = check_factory_artifacts_chain() {
+        all_violations.push(chain_violation);
+    }
+
+    if all_violations.is_empty() {
+        HookResult::Continue
+    } else {
+        emit_block(HOOK_NAME, &all_violations)
+    }
+}
+
+/// Read the precompact-flush-log and check for a MULTI_COMMIT_CHAIN violation
+/// in the factory-artifacts git repo (BC-5.41.003 wiring).
+///
+/// Returns `Some(Violation)` if a chain is detected and neither commit is exempt.
+/// Returns `None` on any error (fail-open per BC-5.39.006 invariant 9).
+///
+/// # BC trace
+/// BC-5.41.003 PC1 + PC2 + PC3; TD-VSDD-053.
+fn check_factory_artifacts_chain() -> Option<Violation> {
+    use vsdd_hook_sdk::host;
+
+    // Step 1: Determine factory-artifacts worktree path as <cwd>/.factory.
+    let cwd = host::cwd();
+    if cwd.is_empty() {
+        host::log_warn(
+            "[validate-dispatch-advance] host::cwd() returned empty — skipping chain check",
+        );
+        return None;
+    }
+    let factory_dir = format!("{cwd}/.factory");
+
+    // Step 2: Read precompact-flush-log (BC-5.41.003 F-8 — read_file, not git cat-file).
+    let flush_log_path = format!("{factory_dir}/hooks/precompact-flush-log");
+    let flush_log_last_line: Option<String> = match host::read_file(&flush_log_path, 4096, 500) {
+        Ok(bytes) => String::from_utf8(bytes).ok().and_then(|s| {
+            s.lines()
+                .rev()
+                .find(|l| !l.trim().is_empty())
+                .map(|l| l.to_string())
+        }),
+        Err(_) => {
+            // Log absent or unreadable — case (c): prefix-match-only exemption applies.
+            None
+        }
+    };
+
+    // Step 3: Get HEAD commit subject from factory-artifacts via exec_subprocess.
+    let head_result = host::exec_subprocess(
+        "git",
+        &["-C", &factory_dir, "log", "--format=%s", "-1", "HEAD"],
+        &[],
+        2000,
+        4096,
+    );
+    let head_subject = match head_result {
+        Ok(r) if r.exit_code == 0 => String::from_utf8(r.stdout)
+            .unwrap_or_default()
+            .trim()
+            .to_string(),
+        _ => {
+            // Git not available or factory-artifacts not a git repo — skip chain check (fail-open).
+            return None;
+        }
+    };
+
+    // Step 4: Get HEAD^ commit subject.
+    let parent_result = host::exec_subprocess(
+        "git",
+        &["-C", &factory_dir, "log", "--format=%s", "-1", "HEAD^"],
+        &[],
+        2000,
+        4096,
+    );
+    let head_parent_subject = match parent_result {
+        Ok(r) if r.exit_code == 0 => String::from_utf8(r.stdout)
+            .unwrap_or_default()
+            .trim()
+            .to_string(),
+        _ => {
+            // Could be initial commit (no HEAD^) — skip chain check (fail-open).
+            return None;
+        }
+    };
+
+    if head_subject.is_empty() || head_parent_subject.is_empty() {
+        return None;
+    }
+
+    // Step 5: Get HEAD SHA for corroboration.
+    let head_sha_result = host::exec_subprocess(
+        "git",
+        &["-C", &factory_dir, "rev-parse", "HEAD"],
+        &[],
+        2000,
+        256,
+    );
+    let head_sha = match head_sha_result {
+        Ok(r) if r.exit_code == 0 => String::from_utf8(r.stdout)
+            .unwrap_or_default()
+            .trim()
+            .to_string(),
+        _ => String::new(),
+    };
+
+    let head_parent_sha_result = host::exec_subprocess(
+        "git",
+        &["-C", &factory_dir, "rev-parse", "HEAD^"],
+        &[],
+        2000,
+        256,
+    );
+    let head_parent_sha = match head_parent_sha_result {
+        Ok(r) if r.exit_code == 0 => String::from_utf8(r.stdout)
+            .unwrap_or_default()
+            .trim()
+            .to_string(),
+        _ => String::new(),
+    };
+
+    // Step 6: Apply exemption check + chain detection (BC-5.41.003 PC1+PC2+PC3).
+    check_multi_commit_chain(
+        &head_subject,
+        &head_sha,
+        &head_parent_subject,
+        &head_parent_sha,
+        flush_log_last_line.as_deref(),
+    )
 }
 
 // ---------------------------------------------------------------------------

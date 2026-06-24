@@ -2,7 +2,7 @@
 # precompact-flush-prune.sh — prune precompact-flush-log when entry count > 1000
 #
 # USAGE
-#   precompact-flush-prune.sh
+#   precompact-flush-prune.sh <log-file-path>
 #
 # CONTRACT (VP-090 + AC-009..AC-013)
 #
@@ -48,18 +48,68 @@
 #     - Registration in hooks-registry.toml
 #     - Invocation from precompact-flush.sh
 #
-# STUB STATUS
-#   S-18.04b stub skeleton. Functional implementation is NOT provided here.
-#   The Red Gate bats tests (plugins/vsdd-factory/tests/precompact-flush-prune.bats)
-#   MUST FAIL against this stub. The implementer fills in the body at T-8..T-11.
-#
 set -euo pipefail
 
 # ---------------------------------------------------------------------------
-# S-18.04b STUB: No functional implementation below this line.
-# The implementer replaces this stub with the real implementation per T-8..T-11.
-# All bats Red Gate tests for precompact-flush-prune.sh will FAIL against this stub.
+# Arguments
 # ---------------------------------------------------------------------------
 
-echo "precompact-flush-prune: stub not implemented (S-18.04b T-8..T-11)" >&2
-exit 1
+if [ "$#" -ne 1 ]; then
+  echo "usage: precompact-flush-prune.sh <log-file-path>" >&2
+  exit 1
+fi
+
+LOG_FILE="$1"
+
+# ---------------------------------------------------------------------------
+# AC-013 boundary: empty file is a no-op exit 0.
+# An empty file has no entries to prune; not a structural violation.
+# ---------------------------------------------------------------------------
+
+file_size=$(wc -c < "$LOG_FILE")
+if [ "$file_size" -eq 0 ]; then
+  exit 0
+fi
+
+# ---------------------------------------------------------------------------
+# AC-009 / VP-090 §0: structural precondition — file must end with \n.
+# Read the last byte and check it is 0x0a (newline).
+# ---------------------------------------------------------------------------
+
+# Use `tail -c 1 | od` for portability (od is POSIX; xxd may not be present).
+last_byte_hex=$(tail -c 1 "$LOG_FILE" | od -An -tx1 | tr -d ' \n')
+
+if [ "$last_byte_hex" != "0a" ]; then
+  echo "precompact-flush-log structural violation: file must end with newline before pruning" >&2
+  exit 1
+fi
+
+# ---------------------------------------------------------------------------
+# AC-010 / VP-090 §1: count lines and prune if count > 1000.
+# ---------------------------------------------------------------------------
+
+line_count=$(wc -l < "$LOG_FILE")
+
+if [ "$line_count" -le 1000 ]; then
+  # Threshold not met — no prune needed. AC-013 boundary.
+  exit 0
+fi
+
+# Count exceeds 1000: prune to the last 500 lines. AC-010.
+# Write to a temp file in the SAME directory for atomic rename. AC-011.
+log_dir="$(dirname "$LOG_FILE")"
+tmp_file="$(mktemp "$log_dir/.precompact-flush-prune.XXXXXX")"
+
+# Ensure temp file is removed on failure (set -e will exit; trap cleans up).
+trap 'rm -f "$tmp_file"' EXIT
+
+# Write last 500 lines to temp file. AC-011: last line is preserved.
+tail -n 500 "$LOG_FILE" > "$tmp_file"
+
+# Atomic rename (POSIX mv on same filesystem). AC-011.
+mv "$tmp_file" "$LOG_FILE"
+
+# Disable trap now that rename succeeded.
+trap - EXIT
+
+exit 0

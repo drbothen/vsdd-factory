@@ -880,8 +880,8 @@ path_allow = ["plugins/vsdd-factory/config/artifact-path-registry.yaml"]
 # and Dim-1 cardinality parity (D-432(e)+D-448(d)(i)).
 # File-pattern enforcement is in-plugin via path-component-strict Path::file_name guard (matches exactly "burst-log.md").
 # S-15.11 M2 Wave-2.
-# NOTE: Edit|Write→Bash trigger flip (ADR-029 §Decision 1) is deferred to
-# S-18.04b when this WASM plugin consumes git_context from payload.extra.
+# S-18.04b: added exec_subprocess (git) and .factory/hooks path_allow for
+# PreCompact flush exemption check (BC-5.41.003 / check_factory_artifacts_chain).
 
 [[hooks]]
 name = "validate-burst-log"
@@ -895,7 +895,11 @@ on_error = "continue"
 [hooks.capabilities.read_file]
 path_allow = [
   ".factory/cycles",
+  ".factory/hooks",
 ]
+
+[hooks.capabilities.exec_subprocess]
+binary_allow = ["git"]
 
 # ---------- validate-index-cite-refresh (PostToolUse, Edit|Write) ----------
 # BC-5.39.003: blocks stale 4-index version cites in ARCH-INDEX.md and
@@ -965,8 +969,8 @@ path_allow = [
 # No file_pattern field: registry schema does not support it per architect
 # Q5/Q6 canonical lock. File-pattern enforcement is in-plugin via
 # path-component-strict is_state_md_target + is_index_md_target guards.
-# NOTE: Edit|Write→Bash trigger flip (ADR-029 §Decision 1) is deferred to
-# S-18.04b when this WASM plugin consumes git_context from payload.extra.
+# S-18.04b: added exec_subprocess (git) for PreCompact flush exemption check
+# (BC-5.41.003 / check_factory_artifacts_chain). .factory path_allow already covers .factory/hooks.
 
 [[hooks]]
 name = "validate-dispatch-advance"
@@ -981,6 +985,9 @@ on_error = "continue"
 path_allow = [
   ".factory",
 ]
+
+[hooks.capabilities.exec_subprocess]
+binary_allow = ["git"]
 
 # ---------- validate-closes-completeness (PostToolUse, Edit|Write) ----------
 # BC-5.39.007 Phase 1+2: blocks missing **Closes:** lines in lessons.md entries
