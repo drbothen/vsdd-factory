@@ -297,6 +297,102 @@ fn test_reset_failure_blocks_exit_2() {
     );
 }
 
+/// Effectful test: test_reset_failure_block_reason_is_accurate
+///
+/// Traces to: AC-008 / BC-7.07.001 PC8 step 4 (adversary pass-4 L-1)
+///
+/// When the log append fails AND HEAD==SHA_B (reset is attempted) AND the
+/// `git reset --soft SHA_B^` itself exits non-zero, the returned Block { reason }
+/// MUST describe the reset failure — NOT the success-path "orphan commit reverted"
+/// message. This assertion is load-bearing (TD-VSDD-059): the incorrect success-path
+/// text was previously returned in both sub-cases, falsely claiming the orphan was
+/// reverted when the reset actually failed.
+#[test]
+fn test_reset_failure_block_reason_is_accurate() {
+    use vsdd_hook_sdk::HookResult;
+
+    let payload = make_payload();
+    // AC-017: path must end with /.factory and match <cwd>/.factory exactly.
+    let wt_path = worktree_path_for_test_cwd();
+    let state_content = make_state_md("v1.0-test-cycle", "stub-phase/S-18.04a");
+
+    let result = precompact_flush::run_plugin_with_mock(
+        payload,
+        {
+            let sc = state_content.clone();
+            move |path| {
+                if path == ".factory/STATE.md" {
+                    Ok(sc.clone())
+                } else {
+                    // precompact-flush-log absent → empty baseline for first read;
+                    // write_file will fail (simulating the append failure).
+                    Err("CAPABILITY_DENIED: file not found".to_string())
+                }
+            }
+        },
+        {
+            move |path, _content| {
+                if path.contains("precompact-flush-log") {
+                    // Simulate log append failure.
+                    Err("write_file: CAPABILITY_DENIED".to_string())
+                } else {
+                    Ok(())
+                }
+            }
+        },
+        {
+            let wt = wt_path.clone();
+            move |bin, args| {
+                assert_eq!(bin, "git");
+                if args == ["worktree", "list", "--porcelain"] {
+                    return Ok((0, worktree_list_for(&wt), String::new()));
+                }
+                if args.contains(&"-C") && args.contains(&"add") {
+                    return Ok((0, String::new(), String::new()));
+                }
+                if args.contains(&"-C") && args.contains(&"diff") {
+                    return Ok((
+                        0,
+                        "diff --git a/STATE.md b/STATE.md\n".to_string(),
+                        String::new(),
+                    ));
+                }
+                if args.contains(&"-C") && args.contains(&"commit") {
+                    return Ok((0, String::new(), String::new()));
+                }
+                if args.contains(&"-C") && args.contains(&"rev-parse") {
+                    // Both calls return the same SHA so HEAD==SHA_B → ResetSafe path.
+                    return Ok((0, "resetfail_sha_abc123".to_string(), String::new()));
+                }
+                if args.contains(&"-C") && args.contains(&"reset") {
+                    // Simulate git reset --soft SHA_B^ failing (exit 1).
+                    return Ok((1, String::new(), "error: reset failed".to_string()));
+                }
+                Ok((0, String::new(), String::new()))
+            }
+        },
+    );
+
+    // Must block (exit 2) in both reset-success and reset-failure sub-cases.
+    assert!(
+        matches!(result, HookResult::Block { .. }),
+        "AC-008 step 4: reset failure must still return Block (exit 2); got: {result:?}"
+    );
+    // The Block reason MUST describe the reset failure, NOT the success-path text.
+    if let HookResult::Block { reason } = &result {
+        assert!(
+            reason.contains("reset failed") || reason.contains("manual intervention"),
+            "AC-008 step 4 (adversary pass-4 L-1): Block reason must describe reset failure, \
+            not the success-path 'orphan commit reverted' text; got: {reason}"
+        );
+        assert!(
+            !reason.contains("orphan commit reverted"),
+            "AC-008 step 4 (adversary pass-4 L-1): Block reason must NOT claim the orphan was \
+            reverted when the reset itself failed; got: {reason}"
+        );
+    }
+}
+
 // ---------------------------------------------------------------------------
 // Red Gate: AC-005 — INV5 diff-empty check helpers
 // ---------------------------------------------------------------------------

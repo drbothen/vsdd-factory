@@ -675,6 +675,13 @@ where
                             orphan commit reverted (SHA_B={}); blocking compaction.",
                             sb
                         );
+                        HookResult::Block {
+                            reason: format!(
+                                "precompact-flush: SHA append to precompact-flush-log failed; \
+                                orphan commit reverted (SHA_B={}); blocking compaction.",
+                                sb
+                            ),
+                        }
                     }
                     _ => {
                         eprintln!(
@@ -682,14 +689,15 @@ where
                             human intervention required (SHA_B={}).",
                             sb
                         );
+                        HookResult::Block {
+                            reason: format!(
+                                "precompact-flush: SHA append to precompact-flush-log failed \
+                                AND orphan-commit reset failed (SHA_B={}); \
+                                manual intervention required; compaction blocked.",
+                                sb
+                            ),
+                        }
                     }
-                }
-                HookResult::Block {
-                    reason: format!(
-                        "precompact-flush: SHA append to precompact-flush-log failed; \
-                        orphan commit reverted (SHA_B={}); blocking compaction.",
-                        sha_b
-                    ),
                 }
             }
             AppendFailureAction::NoResetHumanIntervention {
