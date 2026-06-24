@@ -1386,12 +1386,63 @@ pub fn detect_git_commit_event(payload: &crate::payload::HookPayload) -> bool {
 /// commit. This is NOT a general git error — commands 1 and 2 (HEAD) must still
 /// be populated normally. Only `head_parent_subject` and `head_parent_sha` are
 /// set to `""` (not null, not absent).
-pub fn build_git_context(_factory_dir: &std::path::Path) -> GitContext {
-    todo!(
-        "S-18.04b-prereq T-2+T-3+T-4: execute git log/rev-parse for HEAD and HEAD^; \
-         handle initial-commit (HEAD^ non-zero); fail-open on git error with tracing::warn! \
-         (ADR-029 §Decision 3; BC-1.16.001 PC2)"
-    )
+pub fn build_git_context(factory_dir: &std::path::Path) -> GitContext {
+    // Helper: run a git command and return trimmed stdout, or Err on failure.
+    let run_git = |args: &[&str]| -> Result<String, String> {
+        let output = std::process::Command::new("git")
+            .args(args)
+            .current_dir(factory_dir)
+            .output()
+            .map_err(|e| format!("git exec failed: {e}"))?;
+        if output.status.success() {
+            Ok(String::from_utf8_lossy(&output.stdout).trim().to_string())
+        } else {
+            Err(format!(
+                "git {} exited {}: {}",
+                args.join(" "),
+                output.status,
+                String::from_utf8_lossy(&output.stderr).trim()
+            ))
+        }
+    };
+
+    // Step 1: HEAD subject (log --format=%s -1 HEAD).
+    let head_subject = match run_git(&["log", "--format=%s", "-1", "HEAD"]) {
+        Ok(s) => s,
+        Err(e) => {
+            tracing::warn!(
+                factory_dir = %factory_dir.display(),
+                error = %e,
+                "build_git_context: git log HEAD failed; fail-open with empty git_context"
+            );
+            return GitContext::empty();
+        }
+    };
+
+    // Step 2: HEAD SHA (rev-parse HEAD).
+    let head_sha = match run_git(&["rev-parse", "HEAD"]) {
+        Ok(s) => s,
+        Err(e) => {
+            tracing::warn!(
+                factory_dir = %factory_dir.display(),
+                error = %e,
+                "build_git_context: git rev-parse HEAD failed; fail-open with empty git_context"
+            );
+            return GitContext::empty();
+        }
+    };
+
+    // Steps 3+4: HEAD^ subject and SHA. Non-zero exit on initial commit is expected;
+    // it is NOT a general git error — only the parent fields are empty (AC-006, AC-011, EC-009).
+    let head_parent_subject = run_git(&["log", "--format=%s", "-1", "HEAD^"]).unwrap_or_default();
+    let head_parent_sha = run_git(&["rev-parse", "HEAD^"]).unwrap_or_default();
+
+    GitContext {
+        head_subject,
+        head_sha,
+        head_parent_subject,
+        head_parent_sha,
+    }
 }
 
 /// Orchestrate git_context detection, construction, and injection into
