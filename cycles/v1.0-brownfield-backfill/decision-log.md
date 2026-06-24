@@ -3017,6 +3017,39 @@ See `git -C .factory log -1 --format='%h %s'` (D-694 GOVERNANCE BURST; TD-VSDD-0
 
 Re-run S-18.04b-prereq LOCAL adversary with fresh context after this governance fix (governance artifacts now correct: ADR-029 v1.1, story v1.1, ARCH-INDEX v2.74, STORY-INDEX v4.65). Then proceed to PR per story lifecycle. STOP-BEFORE-PR-MERGE (D-665) holds.
 
+### D-695 follow-on — S-18.04b-prereq LOCAL adversary pass-2 doc-accuracy fixes — 2026-06-24
+
+**Findings closed this follow-on:**
+
+- **F-1 (MEDIUM, doc-accuracy):** Stale `todo!()` stub banner in `invoke.rs` doc-comments and test doc-comments referencing the un-implemented stub state. The implementer (commit 3fb689d5 on feature/S-18.04b-prereq) refreshed `invoke.rs` to reflect the implemented logic. No behavioral AC changed.
+- **F-2 (MEDIUM, doc-accuracy / story traceability):** Red Gate Test Table row for `test_host_abi_version_unchanged` cited non-existent file `crates/factory-dispatcher/tests/abi_version.rs`. Actual file is `crates/factory-dispatcher/tests/git_context_injection.rs`. Story v1.1→v1.2 corrects the mis-anchor. STORY-INDEX v4.65→v4.66.
+
+**Actions taken:**
+- S-18.04b-prereq story v1.1→v1.2 (story-writer; F-2 mis-anchor corrected; `last_amended` annotation added)
+- STORY-INDEX v4.65→v4.66 (S-18.04b-prereq row updated to story v1.2; `last_amended` bumped)
+- Implementation at 3fb689d5 on feature/S-18.04b-prereq confirmed GREEN (F-1 invoke.rs doc refresh; code unchanged behaviorally)
+- No BC/VP/ARCH-INDEX changes; story_count UNCHANGED 123
+- 4-index: BC-INDEX v3.42 UNCHANGED / VP-INDEX v2.41 UNCHANGED / STORY-INDEX v4.65→v4.66 / ARCH-INDEX v2.74 UNCHANGED
+
+**4-index gate (literal-shell stdout 2026-06-24):**
+```
+grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md
+version: "3.42"
+
+grep "^version:" .factory/specs/verification-properties/VP-INDEX.md
+version: "2.41"
+
+grep "^version:" .factory/stories/STORY-INDEX.md
+version: "4.66"
+
+grep "^version:" .factory/specs/architecture/ARCH-INDEX.md
+version: "2.74"
+```
+
+Parity PASS: BC-INDEX v3.42 / VP-INDEX v2.41 / STORY-INDEX v4.66 / ARCH-INDEX v2.74.
+
+**NEXT:** Re-run S-18.04b-prereq LOCAL adversary FRESH (governance corrected in D-695; doc-accuracy corrected in follow-on; implementation GREEN 3fb689d5). STOP-BEFORE-PR-MERGE (D-665) holds.
+
 ---
 
 ## D-694 — S-18.04b re-architecture GOVERNANCE burst — ADR-029 dispatcher git_context injection — 2026-06-24
