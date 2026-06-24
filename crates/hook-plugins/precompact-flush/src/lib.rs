@@ -17,10 +17,11 @@
 //!
 //! 1.  Discover factory-artifacts worktree path via `git worktree list --porcelain`
 //!     (AC-017); fail-open with DURABILITY DEGRADED advisory if not found.
-//!     Canonicalize assertion (AC-017 F-R3-001): discovered path == `<cwd>/.factory`
-//!     for ALL discovered paths; fail-open with DURABILITY DEGRADED if mismatch.
-//! 2.  Read STATE.md via host `read_file`; exit 0 + warn if unreadable (AC-002).
-//!     The AC-002 fail-open occurs AFTER step 1 (discovery always runs first).
+//! 2.  AC-017 canonicalize mount guard (F-R3-001): verify discovered path ==
+//!     `<cwd>/.factory` (Tier-1 suffix check + Tier-2 canonicalize comparison);
+//!     fail-open with DURABILITY DEGRADED if mismatch. Runs BEFORE any I/O.
+//! 3.  Read STATE.md via host `read_file`; exit 0 + warn if unreadable (AC-002).
+//!     The AC-002 fail-open occurs AFTER steps 1–2.
 //! 4.  Check `factory_lock:` block via `renew_lock(state_md_content)` (AC-003, AC-018):
 //!     - `Ok(NoOp)` → skip step 5 (no write_file call)
 //!     - `Ok(Renewed(content))` → proceed to step 5
@@ -414,56 +415,13 @@ where
     };
 
     // -------------------------------------------------------------------------
-    // Step 2: Read STATE.md via host read_file. Exit 0 + warn if unreadable. (AC-002)
+    // Step 2: AC-017 startup canonicalize assertion (F-R3-001).
     //
-    // Per BC-7.07.001 INV3 + ADR-028 §Decision 5, this MUST run AFTER step 1
-    // (worktree discovery). The AC-002 fail-open path (STATE.md absent/unreadable →
-    // exit 0) occurs here, after discovery has already completed.
-    // -------------------------------------------------------------------------
-    let state_md_content = match read_file(STATE_MD_PATH) {
-        Ok(content) => content,
-        Err(_) => {
-            eprintln!("precompact-flush: STATE.md unreadable; flush skipped.");
-            return HookResult::Continue;
-        }
-    };
-
-    // -------------------------------------------------------------------------
-    // Step 3: AC-017 startup canonicalize assertion (F-R3-001).
-    //
-    // Compare canonicalize(discovered) == canonicalize(<cwd>/.factory).
-    //
-    // Implementation note on unit-test behaviour (AC-019):
-    //
-    // In unit tests, the "mock CWD" is std::env::current_dir() (the workspace
-    // root). The path-mismatch check is ONLY applied when the discovered worktree
-    // path ENDS WITH "/.factory" — the real-world invariant (factory-artifacts is
-    // always mounted at <cwd>/.factory). Paths that do NOT end with "/.factory"
-    // (e.g., "/tmp/test-factory-artifacts" in flush-flow unit tests) skip the
-    // canonicalize tier so that those tests can exercise the downstream logic.
-    //
-    // However, paths NOT ending with "/.factory" ARE immediately categorized as
-    // mismatches by the structural suffix check (Tier 1 below), which fires before
-    // the canonicalize check. F-002 is handled by Tier 1; Tier 2 handles the case
-    // where the path ends with "/.factory" but points to the wrong directory.
-    //
-    // SPEC CONFLICT NOTE (F-002 vs existing flush-flow tests):
-    //
-    // The F-002 spec (adversary pass-1) requires the guard to fire for ANY path
-    // not ending with "/.factory" (e.g., "/tmp/elsewhere"). The Tier 1 structural
-    // check below implements this. However, existing flush-flow unit tests use
-    // "/tmp/test-factory-artifacts" — a path NOT ending with "/.factory" — and
-    // expect the guard to NOT fire so they can reach the downstream git logic.
-    //
-    // These two requirements are contradictory: any structural check that catches
-    // "/tmp/elsewhere" also catches "/tmp/test-factory-artifacts". The test-writer
-    // (commit 094201fa) did not update the existing flush-flow tests to use a
-    // "/.factory"-suffixed path. This conflict requires test-writer resolution.
-    //
-    // CURRENT RESOLUTION: Tier 1 fires for all non-"/.factory" paths. The 5
-    // existing flush-flow tests that use "/tmp/test-factory-artifacts" currently
-    // FAIL with DURABILITY DEGRADED (Continue) instead of their expected behaviors.
-    // Reported to orchestrator for test-writer correction.
+    // Per AC-017 / BC-7.07.001 Precondition 4, the mount guard MUST run AFTER
+    // worktree discovery (step 1) and BEFORE any I/O or git operations. The
+    // Tier-1 structural suffix check gates all paths not ending with "/.factory";
+    // Tier-2 canonicalize comparison gates paths that end with "/.factory" but
+    // resolve to the wrong physical directory.
     // -------------------------------------------------------------------------
 
     // Tier 1: structural suffix check (F-002 / AC-017).
@@ -525,6 +483,21 @@ where
     }
 
     // -------------------------------------------------------------------------
+    // Step 3: Read STATE.md via host read_file. Exit 0 + warn if unreadable. (AC-002)
+    //
+    // Per BC-7.07.001 INV3 + ADR-028 §Decision 5, this runs AFTER step 1
+    // (worktree discovery) and AFTER step 2 (AC-017 mount guard). The AC-002
+    // fail-open path (STATE.md absent/unreadable → exit 0) occurs here.
+    // -------------------------------------------------------------------------
+    let state_md_content = match read_file(STATE_MD_PATH) {
+        Ok(content) => content,
+        Err(_) => {
+            eprintln!("precompact-flush: STATE.md unreadable; flush skipped.");
+            return HookResult::Continue;
+        }
+    };
+
+    // -------------------------------------------------------------------------
     // Step 4: Check factory_lock: block via renew_lock(). (AC-003, AC-018)
     // -------------------------------------------------------------------------
     let renew_result = renew_lock(&state_md_content);
@@ -562,15 +535,36 @@ where
     // -------------------------------------------------------------------------
     // Step 6a: git -C <wt> add -A — stage ALL changes including new untracked files.
     // (AC-004 / ADR-028 §Decision 15 F-R3-003)
+    //
+    // A non-zero exit code (e.g., index lock, pathspec error) is a hard local
+    // failure that MUST block compaction — staging is a prerequisite for the
+    // durability commit (AC-005b local-failure-exit-2 policy / AC-004).
     // -------------------------------------------------------------------------
-    if let Err(e) = exec_subprocess("git", &["-C", &wt_path, "add", "-A"]) {
-        eprintln!(
-            "precompact-flush: git add -A failed: {}; blocking compaction.",
-            e
-        );
-        return HookResult::Block {
-            reason: format!("precompact-flush: git add -A failed: {}", e),
-        };
+    match exec_subprocess("git", &["-C", &wt_path, "add", "-A"]) {
+        Ok((exit_code, _, stderr)) if exit_code != 0 => {
+            eprintln!(
+                "precompact-flush: git add -A failed (exit {}): {}; blocking compaction.",
+                exit_code, stderr
+            );
+            return HookResult::Block {
+                reason: format!(
+                    "precompact-flush: git add -A failed (exit {}): {}",
+                    exit_code, stderr
+                ),
+            };
+        }
+        Err(e) => {
+            eprintln!(
+                "precompact-flush: git add -A failed: {}; blocking compaction.",
+                e
+            );
+            return HookResult::Block {
+                reason: format!("precompact-flush: git add -A failed: {}", e),
+            };
+        }
+        Ok(_) => {
+            // Staging succeeded.
+        }
     }
 
     // -------------------------------------------------------------------------
