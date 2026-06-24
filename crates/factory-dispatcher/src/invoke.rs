@@ -1209,3 +1209,203 @@ mod tests {
         }
     }
 }
+
+// ---------------------------------------------------------------------------
+// S-18.04b-prereq: git_context payload injection stubs (ADR-029)
+//
+// These are the public API shapes for the dispatcher's PostToolUse Bash
+// git-commit event detection and `git_context` injection into `payload.extra`.
+//
+// Contract (ADR-029 §Decision 1–3):
+// - `detect_git_commit_event`: returns true iff the payload is a PostToolUse
+//   Bash event whose `tool_input.command` contains "git commit" AND a
+//   factory-artifacts worktree indicator (e.g. "-C .factory" or a path
+//   containing ".factory"). Non-qualifying events return false.
+// - `build_git_context`: given the factory-artifacts directory path, executes
+//   four git commands to populate the four-field schema (head_subject, head_sha,
+//   head_parent_subject, head_parent_sha) and returns a `serde_json::Value::Object`.
+//   On any git error, returns the all-empty four-field object (fail-open;
+//   BC-1.16.001 PC2 + AC-002).
+// - `inject_git_context_if_qualifying`: orchestrates detection + construction +
+//   injection into `payload_value.extra["git_context"]` before routing.
+//   No-op if the event is non-qualifying (AC-003, AC-004).
+//
+// All three functions use `todo!()` bodies — implementer fills real logic.
+// Wiring into `main.rs` is the implementer's responsibility (see comment in
+// main.rs at the payload enrichment site).
+//
+// BC-5.38.001 — todo!() obligation: all non-trivial bodies are todo!().
+// Self-Check (BC-5.38.005 invariant 1): "If I include this real implementation,
+// will the test for this function pass trivially without any implementer work?"
+// Yes for all three functions — any real body would satisfy VP-093 tests
+// directly. Therefore todo!() is mandatory.
+// ---------------------------------------------------------------------------
+
+/// The four-field git_context schema injected into `payload.extra` on qualifying
+/// PostToolUse Bash git-commit events (ADR-029 §Decision 2).
+///
+/// All fields are `String`. Empty string means the field could not be populated
+/// (e.g. `head_parent_sha` when factory-artifacts has only one commit).
+/// The dispatcher MUST NOT use `null` — empty string is the sentinel per AC-006.
+///
+/// This struct is `pub` so integration tests can construct expected values and
+/// compare against the injected `serde_json::Value::Object`.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct GitContext {
+    /// Subject line of HEAD commit in the factory-artifacts worktree.
+    pub head_subject: String,
+    /// Full 40-character SHA of HEAD commit.
+    pub head_sha: String,
+    /// Subject line of HEAD^ commit. Empty string if HEAD^ does not exist
+    /// (initial commit case — AC-006, AC-011).
+    pub head_parent_subject: String,
+    /// Full 40-character SHA of HEAD^ commit. Empty string if HEAD^ does not
+    /// exist (initial commit case).
+    pub head_parent_sha: String,
+}
+
+impl GitContext {
+    /// Return the all-empty `GitContext` used as the fail-open sentinel
+    /// (BC-1.16.001 PC2 / AC-002 / AC-009).
+    ///
+    /// # GREEN-BY-DESIGN
+    ///
+    /// Pure field initialisation; zero branching, no I/O, no helpers, 7 lines.
+    /// Body is trivial struct construction only — BC-5.38.002 criteria all satisfied.
+    pub fn empty() -> Self {
+        Self {
+            head_subject: String::new(),
+            head_sha: String::new(),
+            head_parent_subject: String::new(),
+            head_parent_sha: String::new(),
+        }
+    }
+
+    /// Serialize this context to a `serde_json::Value::Object` suitable for
+    /// insertion into `payload.extra["git_context"]` (ADR-029 §Decision 2).
+    ///
+    /// # GREEN-BY-DESIGN
+    ///
+    /// Builds a JSON object from the four string fields; zero branching,
+    /// no I/O, no non-trivial helpers, body ≤ 8 lines. BC-5.38.002 satisfied.
+    pub fn to_json(&self) -> serde_json::Value {
+        let mut map = serde_json::Map::with_capacity(4);
+        map.insert(
+            "head_subject".to_string(),
+            serde_json::Value::String(self.head_subject.clone()),
+        );
+        map.insert(
+            "head_sha".to_string(),
+            serde_json::Value::String(self.head_sha.clone()),
+        );
+        map.insert(
+            "head_parent_subject".to_string(),
+            serde_json::Value::String(self.head_parent_subject.clone()),
+        );
+        map.insert(
+            "head_parent_sha".to_string(),
+            serde_json::Value::String(self.head_parent_sha.clone()),
+        );
+        serde_json::Value::Object(map)
+    }
+}
+
+/// Detect whether a hook payload qualifies for `git_context` injection
+/// (ADR-029 §Decision 1 + §Decision 3; BC-1.16.001 PC3/PC4; AC-003/AC-004/AC-010).
+///
+/// Returns `true` iff ALL of:
+/// 1. `payload.event_name == "PostToolUse"` (AC-004: non-PostToolUse events never qualify).
+/// 2. `payload.tool_name == "Bash"` (AC-004: Edit/Write/Agent never qualify).
+/// 3. `payload.tool_input.command` contains `"git commit"` as a substring (AC-010).
+/// 4. `payload.tool_input.command` contains `".factory"` as an indicator of the
+///    factory-artifacts worktree (AC-010 heuristic; minimises spurious injection).
+///
+/// # Implementer notes
+///
+/// - Check `tool_name` BEFORE inspecting `tool_input.command` (AC-004: non-Bash events
+///   MUST NOT have their command inspected at all).
+/// - False positives (e.g. `echo "git commit"` with `.factory` path in args) are
+///   acceptable per ADR-029 §Decision 3 Negative consequence note: `git_context` will
+///   be valid git state (whatever HEAD of factory-artifacts is), and WASM plugins treat
+///   valid-but-irrelevant context as "pass" (fail-open).
+/// - Detection is heuristic (AC-010); exactness is not required.
+pub fn detect_git_commit_event(_payload: &crate::payload::HookPayload) -> bool {
+    todo!(
+        "S-18.04b-prereq T-1: detect PostToolUse Bash event with 'git commit' \
+         and '.factory' indicator in tool_input.command (ADR-029 §Decision 1+3)"
+    )
+}
+
+/// Execute the four git commands against the factory-artifacts worktree at
+/// `factory_dir` and return a populated `GitContext` (ADR-029 §Decision 3).
+///
+/// Commands executed (in order):
+/// 1. `git -C <factory_dir> log --format=%s -1 HEAD` → `head_subject`
+/// 2. `git -C <factory_dir> rev-parse HEAD` → `head_sha`
+/// 3. `git -C <factory_dir> log --format=%s -1 HEAD^` → `head_parent_subject`
+///    (empty string if HEAD^ does not exist — exit non-zero)
+/// 4. `git -C <factory_dir> rev-parse HEAD^` → `head_parent_sha`
+///    (empty string if HEAD^ does not exist — exit non-zero)
+///
+/// # Fail-open contract (BC-1.16.001 PC2 / AC-002 / AC-009)
+///
+/// On ANY git command failure (non-zero exit, git binary not found, I/O error,
+/// permission denied), the function MUST:
+/// 1. Emit `tracing::warn!` describing the failure.
+/// 2. Return `GitContext::empty()` (all four fields `""`).
+///
+/// The dispatcher MUST NOT block, abort, or fail-closed on a git error.
+///
+/// # Initial commit handling (AC-006, AC-011, EC-009)
+///
+/// Commands 3 and 4 (HEAD^) exit non-zero when factory-artifacts has only one
+/// commit. This is NOT a general git error — commands 1 and 2 (HEAD) must still
+/// be populated normally. Only `head_parent_subject` and `head_parent_sha` are
+/// set to `""` (not null, not absent).
+pub fn build_git_context(_factory_dir: &std::path::Path) -> GitContext {
+    todo!(
+        "S-18.04b-prereq T-2+T-3+T-4: execute git log/rev-parse for HEAD and HEAD^; \
+         handle initial-commit (HEAD^ non-zero); fail-open on git error with tracing::warn! \
+         (ADR-029 §Decision 3; BC-1.16.001 PC2)"
+    )
+}
+
+/// Orchestrate git_context detection, construction, and injection into
+/// `payload_value` before it is routed to registered plugins.
+///
+/// # Contract (ADR-029 §Decision 1–3; BC-1.16.001 PC1–PC6)
+///
+/// 1. Call `detect_git_commit_event(&original_payload)` to determine if this
+///    PostToolUse Bash event is a qualifying git-commit event.
+/// 2. If non-qualifying: return immediately without mutating `payload_value`
+///    (AC-003, AC-004 — no injection on non-qualifying events).
+/// 3. If qualifying: call `build_git_context(factory_dir)` to obtain the four-field context,
+///    inject `git_context` as a `serde_json::Value::Object` into `payload_value` at key
+///    `"git_context"` (rides in the `extra` flatten map — ADR-029 §Decision 2 / AC-005),
+///    with all four fields present as strings; null fields are forbidden (AC-006, AC-011).
+///
+/// # Arguments
+///
+/// - `original_payload`: the parsed `HookPayload` (used for detection only).
+/// - `payload_value`: the mutable `serde_json::Value` that will be passed to
+///   `ExecutorInputs` — injection mutates this value in place.
+/// - `factory_dir`: path to the factory-artifacts worktree (typically
+///   `<CLAUDE_PROJECT_DIR>/.factory`; derived from `CLAUDE_PROJECT_DIR` env var
+///   at the call site in `main.rs`).
+///
+/// # Wiring site
+///
+/// This function is called in `main.rs` immediately after `dispatcher_trace_id`
+/// is injected into `payload_value` and before `ExecutorInputs` is constructed.
+/// See the `// S-18.04b-prereq: git_context injection site` comment in main.rs.
+pub fn inject_git_context_if_qualifying(
+    _original_payload: &crate::payload::HookPayload,
+    _payload_value: &mut serde_json::Value,
+    _factory_dir: &std::path::Path,
+) {
+    todo!(
+        "S-18.04b-prereq T-5: wire detect + build + inject; call detect_git_commit_event, \
+         then build_git_context(factory_dir), then insert into payload_value[\"git_context\"] \
+         (ADR-029 §Decision 2; BC-1.16.001 PC1; AC-001)"
+    )
+}

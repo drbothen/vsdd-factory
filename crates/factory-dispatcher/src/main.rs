@@ -360,6 +360,27 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
         );
     }
 
+    // S-18.04b-prereq: git_context injection site (ADR-029 §Decision 1–3).
+    //
+    // The implementer wires `factory_dispatcher::invoke::inject_git_context_if_qualifying`
+    // here, after `dispatcher_trace_id` is injected above and before `ExecutorInputs` is
+    // built below. On qualifying PostToolUse Bash git-commit events targeting the
+    // factory-artifacts worktree, this call injects `git_context` (four string fields:
+    // head_subject, head_sha, head_parent_subject, head_parent_sha) into `payload_value`
+    // so downstream plugins can read it from `payload.extra["git_context"]` without
+    // calling exec_subprocess themselves (BC-1.16.001 INV1 exec-free WASM boundary).
+    //
+    // Derivation of `factory_dir` (implementer): `base_host_ctx.cwd.join(".factory")`.
+    // The injection is fail-open: git errors produce all-empty git_context and dispatch
+    // proceeds normally (BC-1.16.001 PC2 / AC-002). Non-qualifying events are skipped
+    // without mutation (AC-003, AC-004).
+    //
+    // TODO(S-18.04b-prereq): uncomment when implementer fills inject_git_context_if_qualifying:
+    // let factory_dir = base_host_ctx.cwd.join(".factory");
+    // factory_dispatcher::invoke::inject_git_context_if_qualifying(
+    //     &payload, &mut payload_value, &factory_dir,
+    // );
+
     // Clone the event queue Arc before moving base_host_ctx into
     // ExecutorInputs. All plugin contexts share this Arc (every clone
     // of HostContext shares the same Mutex<Vec<_>>), so draining it
