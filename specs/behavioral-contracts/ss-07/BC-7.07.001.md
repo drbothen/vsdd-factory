@@ -18,7 +18,7 @@ origin: greenfield
 extracted_from: null
 subsystem: "SS-07"
 capability: "CAP-032"
-lifecycle_status: draft
+lifecycle_status: active
 introduced: v1.0-feature-context-durability-E18
 modified:
   - "2026-06-20 (v1.18) — (ADR-028 v1.3; F-R3-001/003/005/007 + CV-003) A12: PC4 startup canonicalize assertion added (canonicalize(discovered)==canonicalize(cwd/.factory)); MISMATCH→DURABILITY DEGRADED advisory + exit 0 (split-tree guard); non-standard-mount support STRUCK. A13: INV3 step 5 + INV3a + PC3 git add -u → add -A (captures new untracked .factory/ files; EC-008 reclassified LOW — committed partial > lost new; factory-lock serializes). A14: INV3a + PC3 NoOp-on-identical-expires_at added — renew_lock() returns NoOp when recomputed expires_at byte-identical to existing (same wall-clock second; ADR-028 §Decision 16). A15: Committer-identity informational note added after Precondition 6 — plugin does NOT validate committer==holder; acceptable because factory-lock serializes single-session; git commit exits non-zero if identity unconfigured (ADR-028 §Decision 18). CV-003: PC8 absent-log→empty-baseline note added — read_file CAPABILITY_DENIED on non-existent log = EMPTY prior content; write_file creates file; NOT an append failure; does NOT trigger SHA-pinned reset guard (ADR-028 §Decision 12). Behavioral PCs/INVs/ECs otherwise preserved."

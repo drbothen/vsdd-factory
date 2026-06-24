@@ -2918,6 +2918,58 @@ S-18.14 TDD delivery: stub-architect → test-writer (Red Gate stubs) → implem
 
 ---
 
+## D-693 — PR #249 (S-18.04a) post-merge STATE burst — 2026-06-24
+
+**Decision:** PR #249 (feature/S-18.04a → develop) squash-merged to develop at commit `b0bc4ffd23d81bbd616a6e9c40925238d71c3f5f` on 2026-06-24T11:28:49Z. Post-merge burst executed.
+
+**Context:** S-18.04a (precompact-flush Native WASM Plugin Core) delivers BC-7.07.001; 19 ACs; VP-082/VP-085; CAP-032. Branch feature/S-18.04a deleted after merge. STOP-BEFORE-PR-MERGE (D-665) gate was honoured — human merge approval received.
+
+**Bundled scope disclosed (human-acknowledged):**
+- (a) Dispatcher-core change: `factory-dispatcher/src/main.rs` now canonicalizes `CLAUDE_PROJECT_DIR` into `host_ctx.cwd` (shared-runtime fix; independently fixes macOS AC-017 mount-guard false-positive triggered by symlink/alias paths). Independently verified regression-free.
+- (b) SEC-004 TOCTOU risk ACCEPTED with in-code rationale comment — same-user local trust model + fail-safe fallback; human-acknowledged risk acceptance.
+
+**Process-gap lesson codified (D-693):**
+WASM hook stories MUST build the REAL `.wasm` artifact and run the bats integration suite BEFORE declaring TDD green. During S-18.04a, all mocked unit tests passed and TDD was considered green, but the bats suite was running against a 75-byte placeholder `.wasm`. Building the real `.wasm` exposed two integration bugs that mocked unit tests structurally could not catch:
+1. `git worktree list` called without `-C` in the WASM sandbox (wrong cwd); fix: `git -C <path> worktree list --porcelain`.
+2. macOS `canonicalize()` returning a different path for a symlinked project dir (mount-guard false-positive; fix: canonicalize cwd during startup and compare).
+Lesson recorded as `L-BB-wasm-bats-gate-before-green`. Drift Item added to STATE.md anchored to S-18.04b's verification plan or a CI/pre-PR check.
+
+**Actions taken:**
+- S-18.04a story status draft→merged; PR #249 b0bc4ffd 2026-06-24 added to merged-stories-ledger.md
+- merged_count 84→85; story_count UNCHANGED 122 file-resident
+- POL-14 auto-promotion: BC-7.07.001 draft→active (BC-INDEX v3.40→v3.41; BC file lifecycle_status updated)
+- S-18.03, S-18.04b, S-18.07, S-18.08 now unblocked (depends_on S-18.04a satisfied)
+- develop HEAD updated: dfc76844→b0bc4ffd
+- POSTURE: ACTIVE — next story per wave order is S-18.04b (PreCompact exemption + prune) or S-18.03 (both now unblocked); STOP-BEFORE-PR-MERGE (D-665) still holds for next PR
+- 4-index: BC-INDEX v3.41 / VP-INDEX v2.40 / STORY-INDEX v4.63 / ARCH-INDEX v2.72
+
+**4-index gate (literal-shell stdout 2026-06-24):**
+```
+grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md
+version: "3.41"
+
+grep "^version:" .factory/specs/verification-properties/VP-INDEX.md
+version: "2.40"
+
+grep "^version:" .factory/stories/STORY-INDEX.md
+version: "4.63"
+
+grep "^version:" .factory/specs/architecture/ARCH-INDEX.md
+version: "2.72"
+```
+
+Zero FAIL. Parity PASS: BC-INDEX v3.41 / VP-INDEX v2.40 / STORY-INDEX v4.63 / ARCH-INDEX v2.72.
+
+### Parent-commit
+
+198028e6 (D-692 POST-MERGE BURST (S-18.14 merged; BC-1.13.001 active; S-4.11 registered; Session Resume updated) factory-artifacts HEAD; single-commit per TD-VSDD-053)
+
+### NEXT
+
+S-18.04b (PreCompact exemption + prune; BC-5.41.003; P0; 8pts; depends_on S-18.04a — NOW MET) or S-18.03 (rehydrate-wave skill; BC-6.24.001; P1; depends_on S-18.04a+S-18.04b — S-18.04a NOW MET; S-18.04b still needed). Both unblocked. STOP-BEFORE-PR-MERGE (D-665) holds for next PR. Drift Item for wasm-bats-gate-before-green anchored to S-18.04b verification plan.
+
+---
+
 ## D-692 — PR #201 (S-18.14) post-merge STATE burst — 2026-06-23
 
 **Decision:** PR #201 (feature/S-18.14 → develop) squash-merged to develop at commit `dfc76844` on 2026-06-23T17:00:01Z. Post-merge burst executed.

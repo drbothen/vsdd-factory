@@ -57,3 +57,4 @@ All Tier A (5), Tier B.0 (1), Tier B.x (8), most Tier C (6 of 7), Tier D (1), pl
 | S-18.02 | #195 | bd6e50ce | 2026-06-19 |
 | S-18.04a-prereq | #198 | 40cd18ae | 2026-06-22 |
 | S-18.14 | #201 | dfc76844 | 2026-06-23 |
+| S-18.04a | #249 | b0bc4ffd | 2026-06-24 |
