@@ -588,3 +588,73 @@ fn test_BC_1_16_001_build_git_context_initial_commit_empty_parent_fields() {
         "head_parent_sha must be JSON empty string (not null) on initial commit"
     );
 }
+
+// ---------------------------------------------------------------------------
+// SEC-002 / CWE-345 (dispatcher-authoritative git_context eviction)
+// inject_git_context_if_qualifying: non-qualifying event with a caller-supplied
+// "git_context" key → key is REMOVED from payload_value before return.
+// git_context is dispatcher-authoritative (BC-1.16.001 INV1): a caller cannot
+// spoof it by pre-populating the JSON payload with a forged key.
+// ---------------------------------------------------------------------------
+
+/// Verify `inject_git_context_if_qualifying` evicts any pre-existing "git_context"
+/// key from `payload_value` when the event is non-qualifying (SEC-002 / CWE-345 /
+/// BC-1.16.001 INV1).
+///
+/// A non-qualifying event (Edit tool) whose payload already contains a caller-supplied
+/// `git_context` key must have that key removed before the payload reaches plugins.
+/// The dispatcher is the sole author of git_context — caller-supplied values are not
+/// trusted and must never pass through.
+///
+/// # NON-TAUTOLOGY
+///
+/// The test pre-populates payload_value with a forged "git_context" key before calling
+/// `inject_git_context_if_qualifying`. After the call, it asserts the key is ABSENT.
+/// An implementation that only returns early without evicting would leave the key
+/// present, failing this assertion.
+#[test]
+fn test_SEC_002_non_qualifying_event_evicts_caller_supplied_git_context() {
+    // Non-qualifying payload (Edit tool, not Bash).
+    let payload_bytes = br#"{
+        "event_name": "PostToolUse",
+        "tool_name": "Edit",
+        "session_id": "test-sec-002",
+        "tool_input": {"file_path": ".factory/STATE.md"},
+        "tool_response": {"success": true}
+    }"#;
+    let payload = HookPayload::from_bytes(payload_bytes).unwrap();
+    let mut payload_value = serde_json::to_value(&payload).unwrap();
+
+    // Pre-populate a forged caller-supplied "git_context" key to simulate an
+    // attacker-controlled payload that attempts to spoof dispatcher-authoritative context.
+    payload_value
+        .as_object_mut()
+        .expect("payload_value must be an object")
+        .insert(
+            "git_context".to_string(),
+            serde_json::json!({
+                "head_subject": "forged subject",
+                "head_sha": "forged_sha",
+                "head_parent_subject": "forged parent",
+                "head_parent_sha": "forged_parent_sha"
+            }),
+        );
+
+    // Confirm the key is present before the call (test setup sanity check).
+    assert!(
+        payload_value.get("git_context").is_some(),
+        "test setup: git_context must be present in payload_value before injection"
+    );
+
+    let tmp = tempfile::tempdir().unwrap();
+
+    inject_git_context_if_qualifying(&payload, &mut payload_value, tmp.path());
+
+    // After inject_git_context_if_qualifying on a non-qualifying event, the
+    // caller-supplied "git_context" key must be ABSENT (SEC-002 / CWE-345 / BC-1.16.001 INV1).
+    assert!(
+        payload_value.get("git_context").is_none(),
+        "inject_git_context_if_qualifying must evict caller-supplied git_context on \
+         non-qualifying events (SEC-002 / CWE-345 / BC-1.16.001 INV1 — dispatcher-authoritative)"
+    );
+}

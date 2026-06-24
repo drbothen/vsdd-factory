@@ -313,6 +313,12 @@ _setup_factory_git_repo() {
   _require_adapter
   _require_jq
 
+  # CR-005: precondition — FACTORY_DIR must NOT be a git repo when this test runs.
+  # If setup() were ever changed to pre-initialise a git repo in FACTORY_DIR, this test
+  # would start testing the qualifying-injection path (VP-093-A) rather than the
+  # fail-open path (VP-093-B). The assertion below catches that setup drift immediately.
+  [ ! -d "$FACTORY_DIR/.git" ]
+
   # Do NOT initialise a git repo in FACTORY_DIR — git commands will fail with non-zero exit.
   # The dispatcher must still exit 0 (fail-open; AC-009 / BC-1.16.001 INV3).
   _write_posttooluse_capture_registry

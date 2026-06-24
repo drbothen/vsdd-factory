@@ -1210,35 +1210,7 @@ mod tests {
     }
 }
 
-// ---------------------------------------------------------------------------
 // S-18.04b-prereq: git_context payload injection (ADR-029)
-//
-// Implements the dispatcher's PostToolUse Bash git-commit event detection
-// and `git_context` injection into `payload.extra` per ADR-029 §Decision 1–3.
-//
-// Delivered contract:
-// - `detect_git_commit_event`: returns true iff the payload is a PostToolUse
-//   Bash event whose `tool_input.command` contains "git commit" AND a
-//   factory-artifacts worktree indicator (e.g. "-C .factory" or a path
-//   containing ".factory"). Non-qualifying events return false. Heuristic
-//   per AC-010; false positives are acceptable (ADR-029 §Decision 3 note).
-// - `build_git_context`: given the factory-artifacts directory path, executes
-//   four git commands (log --format=%s -1 HEAD, rev-parse HEAD, and the
-//   HEAD^ equivalents) to populate the four-field GitContext schema
-//   (head_subject, head_sha, head_parent_subject, head_parent_sha).
-//   On any git error, emits tracing::warn! and returns GitContext::empty()
-//   (fail-open; BC-1.16.001 PC2 / AC-002 / AC-009). On initial-commit repos
-//   (HEAD^ non-zero exit), only the parent fields are empty — HEAD fields
-//   are still populated (AC-006, AC-011, EC-009).
-// - `inject_git_context_if_qualifying`: orchestrates detection + construction +
-//   injection into `payload_value["git_context"]` before routing. No-op for
-//   non-qualifying events (AC-003, AC-004). Wired in main.rs immediately after
-//   dispatcher_trace_id injection (see `// S-18.04b-prereq: git_context
-//   injection site` comment in main.rs).
-//
-// ADR-029 §Decision 4: HOST_ABI_VERSION remains 1 — no new host function
-// is introduced by this story.
-// ---------------------------------------------------------------------------
 
 /// The four-field git_context schema injected into `payload.extra` on qualifying
 /// PostToolUse Bash git-commit events (ADR-029 §Decision 2).
@@ -1288,24 +1260,12 @@ impl GitContext {
     /// Builds a JSON object from the four string fields; zero branching,
     /// no I/O, no non-trivial helpers, body ≤ 8 lines. BC-5.38.002 satisfied.
     pub fn to_json(&self) -> serde_json::Value {
-        let mut map = serde_json::Map::with_capacity(4);
-        map.insert(
-            "head_subject".to_string(),
-            serde_json::Value::String(self.head_subject.clone()),
-        );
-        map.insert(
-            "head_sha".to_string(),
-            serde_json::Value::String(self.head_sha.clone()),
-        );
-        map.insert(
-            "head_parent_subject".to_string(),
-            serde_json::Value::String(self.head_parent_subject.clone()),
-        );
-        map.insert(
-            "head_parent_sha".to_string(),
-            serde_json::Value::String(self.head_parent_sha.clone()),
-        );
-        serde_json::Value::Object(map)
+        serde_json::json!({
+            "head_subject": self.head_subject,
+            "head_sha": self.head_sha,
+            "head_parent_subject": self.head_parent_subject,
+            "head_parent_sha": self.head_parent_sha,
+        })
     }
 }
 
@@ -1356,18 +1316,21 @@ pub fn detect_git_commit_event(payload: &crate::payload::HookPayload) -> bool {
         Some(c) => c,
         None => return false,
     };
+    // CR-001: A command such as `git -C .factory commit -m "force commit"` contains
+    // " commit" twice; this is acceptable — it is still a qualifying git-commit event.
+    // False positives are spec-sanctioned per ADR-029 §Decision 3.
     command.contains("git") && command.contains(" commit") && command.contains(".factory")
 }
 
 /// Execute the four git commands against the factory-artifacts worktree at
 /// `factory_dir` and return a populated `GitContext` (ADR-029 §Decision 3).
 ///
-/// Commands executed (in order):
-/// 1. `git -C <factory_dir> log --format=%s -1 HEAD` → `head_subject`
-/// 2. `git -C <factory_dir> rev-parse HEAD` → `head_sha`
-/// 3. `git -C <factory_dir> log --format=%s -1 HEAD^` → `head_parent_subject`
+/// Commands executed (in order) via `Command::new("git").current_dir(factory_dir)`:
+/// 1. `git log --format=%s -1 HEAD` → `head_subject`
+/// 2. `git rev-parse HEAD` → `head_sha`
+/// 3. `git log --format=%s -1 HEAD^` → `head_parent_subject`
 ///    (empty string if HEAD^ does not exist — exit non-zero)
-/// 4. `git -C <factory_dir> rev-parse HEAD^` → `head_parent_sha`
+/// 4. `git rev-parse HEAD^` → `head_parent_sha`
 ///    (empty string if HEAD^ does not exist — exit non-zero)
 ///
 /// # Fail-open contract (BC-1.16.001 PC2 / AC-002 / AC-009)
@@ -1386,6 +1349,11 @@ pub fn detect_git_commit_event(payload: &crate::payload::HookPayload) -> bool {
 /// be populated normally. Only `head_parent_subject` and `head_parent_sha` are
 /// set to `""` (not null, not absent).
 pub fn build_git_context(factory_dir: &std::path::Path) -> GitContext {
+    // SEC-001 (CWE-117): Strip ASCII control characters from any git-derived string
+    // before it is used in a tracing field. JSON payload values (via serde) are already
+    // safe; only the tracing log emission path requires sanitization.
+    let sanitize_for_log = |s: &str| -> String { s.chars().filter(|c| !c.is_control()).collect() };
+
     // Helper: run a git command and return trimmed stdout, or Err on failure.
     let run_git = |args: &[&str]| -> Result<String, String> {
         let output = std::process::Command::new("git")
@@ -1400,7 +1368,8 @@ pub fn build_git_context(factory_dir: &std::path::Path) -> GitContext {
                 "git {} exited {}: {}",
                 args.join(" "),
                 output.status,
-                String::from_utf8_lossy(&output.stderr).trim()
+                // Sanitize stderr for log safety (SEC-001/CWE-117): only tracing path.
+                sanitize_for_log(String::from_utf8_lossy(&output.stderr).trim())
             ))
         }
     };
@@ -1409,6 +1378,7 @@ pub fn build_git_context(factory_dir: &std::path::Path) -> GitContext {
     let head_subject = match run_git(&["log", "--format=%s", "-1", "HEAD"]) {
         Ok(s) => s,
         Err(e) => {
+            // e is already sanitized (control chars stripped in run_git error path).
             tracing::warn!(
                 factory_dir = %factory_dir.display(),
                 error = %e,
@@ -1477,8 +1447,13 @@ pub fn inject_git_context_if_qualifying(
     payload_value: &mut serde_json::Value,
     factory_dir: &std::path::Path,
 ) {
-    // Step 1: detection — if non-qualifying, return immediately without mutation (AC-003, AC-004).
+    // Step 1: detection — if non-qualifying, evict any caller-supplied "git_context"
+    // key and return. git_context is dispatcher-authoritative (BC-1.16.001 INV1 /
+    // SEC-002 / CWE-345): a caller-supplied key must not pass through to plugins.
     if !detect_git_commit_event(original_payload) {
+        if let Some(map) = payload_value.as_object_mut() {
+            map.remove("git_context");
+        }
         return;
     }
 
