@@ -622,6 +622,18 @@ fn worktree_list_for(path: &str) -> String {
     )
 }
 
+/// Return the worktree path that satisfies the AC-017 canonicalize guard in unit tests.
+///
+/// `run_plugin_with_mock` uses `std::env::current_dir()` as the mock CWD.  The
+/// Tier-1 structural suffix check requires the discovered path to end with
+/// `"/.factory"`, and the Tier-2 fallback (raw-string comparison, triggered when
+/// the path doesn't exist on disk) requires it to equal `<cwd>/.factory` exactly.
+/// This helper returns that value so flush-flow tests can satisfy both tiers.
+fn worktree_path_for_test_cwd() -> String {
+    let cwd = std::env::current_dir().expect("current_dir must be available in test environment");
+    format!("{}/.factory", cwd.display())
+}
+
 // Build a mock STATE.md with given cycle/step.
 fn make_state_md(cycle: &str, step: &str) -> String {
     format!("---\ncurrent_cycle: {cycle}\ncurrent_step: {step}\n---\n\n# STATE.md\n")
@@ -734,8 +746,10 @@ fn test_precompact_flush_creates_local_commit() {
     use vsdd_hook_sdk::HookResult;
 
     let payload = make_payload();
-    let wt_path = "/tmp/test-factory-artifacts";
-    let worktree_output = worktree_list_for(wt_path);
+    // AC-017: wt_path must equal <std::env::current_dir()>/.factory so the
+    // Tier-1 suffix check and Tier-2 raw-string fallback both pass.
+    let wt_path = worktree_path_for_test_cwd();
+    let worktree_output = worktree_list_for(&wt_path);
     let state_content = make_state_md("v1.0-test-cycle", "stub-phase/S-18.04a");
     let commit_called = Rc::new(RefCell::new(false));
     let commit_called_clone = Rc::clone(&commit_called);
@@ -812,8 +826,9 @@ fn test_git_commit_failure_exits_2_no_push_no_log() {
     use vsdd_hook_sdk::HookResult;
 
     let payload = make_payload();
-    let wt_path = "/tmp/test-factory-artifacts";
-    let worktree_output = worktree_list_for(wt_path);
+    // AC-017: path must end with /.factory and match <cwd>/.factory exactly.
+    let wt_path = worktree_path_for_test_cwd();
+    let worktree_output = worktree_list_for(&wt_path);
     let state_content = make_state_md("v1.0-test-cycle", "stub-phase/S-18.04a");
 
     let result = precompact_flush::run_plugin_with_mock(
@@ -876,8 +891,9 @@ fn test_sha_b_captured_after_commit_before_append() {
     use vsdd_hook_sdk::HookResult;
 
     let payload = make_payload();
-    let wt_path = "/tmp/test-factory-artifacts";
-    let worktree_output = worktree_list_for(wt_path);
+    // AC-017: path must end with /.factory and match <cwd>/.factory exactly.
+    let wt_path = worktree_path_for_test_cwd();
+    let worktree_output = worktree_list_for(&wt_path);
     let state_content = make_state_md("v1.0-test-cycle", "stub-phase/S-18.04a");
 
     // Track call order: commit → rev-parse → write_file(log)
@@ -971,8 +987,9 @@ fn test_push_failure_exits_2_with_retry_message() {
     use vsdd_hook_sdk::HookResult;
 
     let payload = make_payload();
-    let wt_path = "/tmp/test-factory-artifacts";
-    let worktree_output = worktree_list_for(wt_path);
+    // AC-017: path must end with /.factory and match <cwd>/.factory exactly.
+    let wt_path = worktree_path_for_test_cwd();
+    let worktree_output = worktree_list_for(&wt_path);
     let state_content = make_state_md("v1.0-test-cycle", "stub-phase/S-18.04a");
 
     let result = precompact_flush::run_plugin_with_mock(
@@ -1207,8 +1224,9 @@ fn test_lock_held_renews_before_commit() {
     use vsdd_hook_sdk::HookResult;
 
     let payload = make_payload();
-    let wt_path = "/tmp/test-factory-artifacts";
-    let worktree_output = worktree_list_for(wt_path);
+    // AC-017: path must end with /.factory and match <cwd>/.factory exactly.
+    let wt_path = worktree_path_for_test_cwd();
+    let worktree_output = worktree_list_for(&wt_path);
     let state_content = make_state_md_with_lock("v1.0-test-cycle", "stub-phase/S-18.04a");
 
     // Track call order: "write_state" appears when write_file(".factory/STATE.md") is called;

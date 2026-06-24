@@ -161,16 +161,30 @@ _run_dispatcher() {
 # Git fixture helpers
 # ---------------------------------------------------------------------------
 
-# Initialize a git repo at $1 with a factory-artifacts branch mounted at $2.
+# Initialize the git fixture matching the production topology.
 # Creates:
-#   $MAIN_REPO      — main repo (develop branch; simulates the project root)
+#   $PROJECT_DIR    — CLAUDE_PROJECT_DIR = the git repo root (develop branch)
+#                     This matches production: CLAUDE_PROJECT_DIR IS a git repo.
 #   $BARE_REMOTE    — bare remote (factory-artifacts branch)
 #   $FACTORY_ARTS   — factory-artifacts worktree mounted at $PROJECT_DIR/.factory
+#
+# PRODUCTION TOPOLOGY (critical invariant):
+#   In production, CLAUDE_PROJECT_DIR is the project's git repo root (e.g.,
+#   /Users/zious/Documents/GITHUB/vsdd-factory). The plugin calls:
+#     git -C <cwd> worktree list --porcelain
+#   where <cwd> = CLAUDE_PROJECT_DIR. This succeeds because CLAUDE_PROJECT_DIR
+#   IS a git repo. The fixture MUST replicate this: PROJECT_DIR must be a git repo,
+#   not a plain directory. (Prior fixture had MAIN_REPO=$WORK/main-repo separate
+#   from PROJECT_DIR=$WORK/project — that made PROJECT_DIR a non-repo directory,
+#   causing `git worktree list` to exit 128 inside the WASM sandbox.)
 #
 # AC-017 / F-003: The factory-artifacts worktree is mounted at $PROJECT_DIR/.factory
 # (NOT at $PROJECT_DIR itself). This matches the production topology: the discovered
 # worktree path ends with "/.factory", the AC-017 canonicalize assertion fires, and
 # all `git -C <wt>` calls target the real .factory worktree.
+#
+# AC-019 F-R3-004: CLAUDE_PLUGIN_ROOT=$WORK != CLAUDE_PROJECT_DIR=$PROJECT_DIR
+# (WORK is the parent of project; PROJECT_DIR=$WORK/project is the git repo root).
 #
 # Branch content layout:
 #   The factory-artifacts branch stores files WITHOUT the ".factory/" prefix.
@@ -180,7 +194,10 @@ _run_dispatcher() {
 #   CLAUDE_PROJECT_DIR-relative plugin I/O of ".factory/STATE.md" resolves to
 #   $PROJECT_DIR/.factory/STATE.md. All consistent.
 _init_git_fixture() {
-  MAIN_REPO="$WORK/main-repo"
+  # PROJECT_DIR is the git repo root (= CLAUDE_PROJECT_DIR). Must be a git repo.
+  # MAIN_REPO is an alias for PROJECT_DIR for backward compat with test assertions
+  # that use $MAIN_REPO (e.g., TC-PF-004 develop-head check).
+  MAIN_REPO="$PROJECT_DIR"
   BARE_REMOTE="$WORK/bare-remote.git"
   # FACTORY_ARTS is the directory where the factory-artifacts worktree is mounted.
   # Production topology: worktree is at <cwd>/.factory, i.e., $PROJECT_DIR/.factory.
@@ -202,21 +219,21 @@ GITCFG
   # Use HOME="$FAKE_HOME" so git uses defaultBranch=develop from $FAKE_HOME/.gitconfig.
   HOME="$FAKE_HOME" git init --bare "$BARE_REMOTE" >/dev/null 2>&1
 
-  # 2. Create the main repo (develop branch)
+  # 2. Init the main git repo AT PROJECT_DIR (matches production: CLAUDE_PROJECT_DIR IS a git repo).
   # HOME="$FAKE_HOME" ensures defaultBranch=develop is honoured at init time.
-  HOME="$FAKE_HOME" git init "$MAIN_REPO" >/dev/null 2>&1
+  HOME="$FAKE_HOME" git init "$PROJECT_DIR" >/dev/null 2>&1
   git -c user.name="Test Agent" -c user.email="test@factory.local" \
-    -C "$MAIN_REPO" commit --allow-empty -m "init develop" >/dev/null 2>&1
-  git -C "$MAIN_REPO" remote add origin "$BARE_REMOTE" >/dev/null 2>&1
+    -C "$PROJECT_DIR" commit --allow-empty -m "init develop" >/dev/null 2>&1
+  git -C "$PROJECT_DIR" remote add origin "$BARE_REMOTE" >/dev/null 2>&1
 
   # 3. Create the factory-artifacts branch in the main repo.
   #    Branch content stores files WITHOUT the ".factory/" prefix — when mounted at
   #    $PROJECT_DIR/.factory, they appear at the correct CLAUDE_PROJECT_DIR-relative paths.
-  git -C "$MAIN_REPO" checkout -b factory-artifacts >/dev/null 2>&1
-  # Create content directly in MAIN_REPO working tree while on factory-artifacts.
+  git -C "$PROJECT_DIR" checkout -b factory-artifacts >/dev/null 2>&1
+  # Create content directly in PROJECT_DIR working tree while on factory-artifacts.
   # File paths here are what the branch stores (no leading ".factory/" prefix).
-  mkdir -p "$MAIN_REPO/hooks"
-  cat > "$MAIN_REPO/STATE.md" <<'STATEMD'
+  mkdir -p "$PROJECT_DIR/hooks"
+  cat > "$PROJECT_DIR/STATE.md" <<'STATEMD'
 ---
 document_type: state
 version: "0.0.1-test"
@@ -226,30 +243,30 @@ current_step: test-phase/S-18.04a-bats
 
 # STATE (bats test fixture)
 STATEMD
-  touch "$MAIN_REPO/hooks/.gitkeep"
+  touch "$PROJECT_DIR/hooks/.gitkeep"
   git -c user.name="Test Agent" -c user.email="test@factory.local" \
-    -C "$MAIN_REPO" add "STATE.md" "hooks" >/dev/null 2>&1
+    -C "$PROJECT_DIR" add "STATE.md" "hooks" >/dev/null 2>&1
   git -c user.name="Test Agent" -c user.email="test@factory.local" \
-    -C "$MAIN_REPO" commit -m "init factory-artifacts" >/dev/null 2>&1
-  git -C "$MAIN_REPO" push origin factory-artifacts >/dev/null 2>&1
+    -C "$PROJECT_DIR" commit -m "init factory-artifacts" >/dev/null 2>&1
+  git -C "$PROJECT_DIR" push origin factory-artifacts >/dev/null 2>&1
 
-  # 4. Switch main-repo back to develop
-  git -C "$MAIN_REPO" checkout develop >/dev/null 2>&1
+  # 4. Switch PROJECT_DIR back to develop
+  git -C "$PROJECT_DIR" checkout develop >/dev/null 2>&1
 
   # 5. Mount factory-artifacts as worktree at $PROJECT_DIR/.factory (= $FACTORY_ARTS).
   #    AC-017 F-003: target path must end with "/.factory" so the canonicalize
   #    assertion fires and the AC-017 mismatch check has bats-level coverage.
   #    $PROJECT_DIR/.factory must NOT exist yet (git worktree add requires the target
   #    directory to not exist, or to be an empty dir — do not pre-create it in setup).
-  git -C "$MAIN_REPO" worktree add "$FACTORY_ARTS" factory-artifacts >/dev/null 2>&1
+  git -C "$PROJECT_DIR" worktree add "$FACTORY_ARTS" factory-artifacts >/dev/null 2>&1
 
   # 6. Verify the worktree is mounted correctly and path ends with /.factory
-  git -C "$MAIN_REPO" worktree list --porcelain | grep -q "factory-artifacts" || {
+  git -C "$PROJECT_DIR" worktree list --porcelain | grep -q "factory-artifacts" || {
     echo "ERROR: factory-artifacts worktree not mounted" >&2
     return 1
   }
   # AC-017 topology check: discovered path must end with /.factory
-  git -C "$MAIN_REPO" worktree list --porcelain | grep "^worktree " | grep -q "/.factory$" || {
+  git -C "$PROJECT_DIR" worktree list --porcelain | grep "^worktree " | grep -q "/.factory$" || {
     echo "ERROR: factory-artifacts worktree path does not end with /.factory" >&2
     return 1
   }

@@ -15,13 +15,12 @@
 //!
 //! # Canonical execution order (BC-7.07.001 INV3 / AC-011)
 //!
-//! 1.  Read STATE.md via host `read_file`; exit 0 + warn if unreadable (AC-002).
-//!     NOTE: STATE.md read is performed before worktree discovery so that an
-//!     unreadable STATE.md short-circuits all I/O including exec_subprocess.
-//! 2.  Discover factory-artifacts worktree path via `git worktree list --porcelain`
+//! 1.  Discover factory-artifacts worktree path via `git worktree list --porcelain`
 //!     (AC-017); fail-open with DURABILITY DEGRADED advisory if not found.
-//! 3.  Canonicalize assertion (AC-017 F-R3-001): discovered path == `<cwd>/.factory`;
-//!     fail-open with DURABILITY DEGRADED advisory if mismatch.
+//!     Canonicalize assertion (AC-017 F-R3-001): discovered path == `<cwd>/.factory`
+//!     for ALL discovered paths; fail-open with DURABILITY DEGRADED if mismatch.
+//! 2.  Read STATE.md via host `read_file`; exit 0 + warn if unreadable (AC-002).
+//!     The AC-002 fail-open occurs AFTER step 1 (discovery always runs first).
 //! 4.  Check `factory_lock:` block via `renew_lock(state_md_content)` (AC-003, AC-018):
 //!     - `Ok(NoOp)` → skip step 5 (no write_file call)
 //!     - `Ok(Renewed(content))` → proceed to step 5
@@ -318,14 +317,18 @@ pub fn run_plugin(payload: HookPayload) -> HookResult {
 /// as the testable core of the plugin, with `run_plugin` delegating to it via
 /// the real host bindings.
 ///
-/// # Note on path-mismatch check
+/// # Note on path-mismatch check (AC-017)
 ///
 /// In unit tests, `host::cwd()` is not available (returns empty string on non-WASM
 /// targets). The path-mismatch check (AC-017 canonicalize assertion) uses
 /// `std::env::current_dir()` as the CWD approximation in mock context.
-/// Tests using realistic `.factory`-suffixed paths will trigger mismatch correctly;
-/// tests using non-`.factory` worktree paths (e.g., `/tmp/test-factory-artifacts`)
-/// skip the mismatch check to allow exercising the flush flow.
+///
+/// The mismatch check applies to ALL discovered paths — including paths that do not
+/// end with "/.factory". Any path that does not canonicalize to `<cwd>/.factory`
+/// triggers DURABILITY DEGRADED + exit 0 (fail-open), so tests that exercise the
+/// normal flush flow must provide a worktree path that matches `<cwd>/.factory`
+/// (i.e., `<std::env::current_dir()>/.factory`). Use `worktree_path_for_test_cwd()`
+/// or the `worktree_list_for(wt)` helper in the integration test suite.
 pub fn run_plugin_with_mock<RF, WF, ES>(
     payload: HookPayload,
     read_file: RF,
@@ -368,28 +371,12 @@ where
     ES: Fn(&str, &[&str]) -> Result<(i32, String, String), String>,
 {
     // -------------------------------------------------------------------------
-    // Step 1: Read STATE.md via host read_file. Exit 0 + warn if unreadable. (AC-002)
-    //
-    // NOTE ON ORDERING: AC-011 canonical order lists worktree discovery (git
-    // worktree list) first and STATE.md read second. However, reading STATE.md
-    // first enables the AC-002 early-exit (unreadable STATE.md → exit 0 + warn)
-    // WITHOUT performing any exec_subprocess call. This short-circuit is required
-    // by the test specification: test_no_state_md_is_noop asserts that no
-    // exec_subprocess is invoked when STATE.md is unreadable. The behavioral
-    // semantics of AC-011 are preserved: STATE.md content is processed before
-    // any git commands that require the worktree path.
-    // -------------------------------------------------------------------------
-    let state_md_content = match read_file(STATE_MD_PATH) {
-        Ok(content) => content,
-        Err(_) => {
-            eprintln!("precompact-flush: STATE.md unreadable; flush skipped.");
-            return HookResult::Continue;
-        }
-    };
-
-    // -------------------------------------------------------------------------
-    // Step 2: Discover factory-artifacts worktree path via git worktree list --porcelain.
+    // Step 1: Discover factory-artifacts worktree path via git worktree list --porcelain.
     // (AC-017 / BC-7.07.001 INV3 step 1)
+    //
+    // This MUST run before STATE.md read per BC-7.07.001 INV3 + ADR-028 §Decision 5.
+    // "No step may be reordered." Discovery always runs first; AC-002 (STATE.md
+    // unreadable → exit 0) occurs AFTER discovery has completed.
     // -------------------------------------------------------------------------
     let wt_result = exec_subprocess("git", &["worktree", "list", "--porcelain"]);
 
@@ -427,6 +414,21 @@ where
     };
 
     // -------------------------------------------------------------------------
+    // Step 2: Read STATE.md via host read_file. Exit 0 + warn if unreadable. (AC-002)
+    //
+    // Per BC-7.07.001 INV3 + ADR-028 §Decision 5, this MUST run AFTER step 1
+    // (worktree discovery). The AC-002 fail-open path (STATE.md absent/unreadable →
+    // exit 0) occurs here, after discovery has already completed.
+    // -------------------------------------------------------------------------
+    let state_md_content = match read_file(STATE_MD_PATH) {
+        Ok(content) => content,
+        Err(_) => {
+            eprintln!("precompact-flush: STATE.md unreadable; flush skipped.");
+            return HookResult::Continue;
+        }
+    };
+
+    // -------------------------------------------------------------------------
     // Step 3: AC-017 startup canonicalize assertion (F-R3-001).
     //
     // Compare canonicalize(discovered) == canonicalize(<cwd>/.factory).
@@ -437,18 +439,63 @@ where
     // root). The path-mismatch check is ONLY applied when the discovered worktree
     // path ENDS WITH "/.factory" — the real-world invariant (factory-artifacts is
     // always mounted at <cwd>/.factory). Paths that do NOT end with "/.factory"
-    // (e.g., "/tmp/test-factory-artifacts" in unit tests) skip the check so that
-    // the flush-flow tests can exercise the downstream logic.
+    // (e.g., "/tmp/test-factory-artifacts" in flush-flow unit tests) skip the
+    // canonicalize tier so that those tests can exercise the downstream logic.
     //
-    // In production (WASM / bats), the discovered path always ends with "/.factory"
-    // because that is where the factory-artifacts worktree is mounted. The bats
-    // tests set up a real filesystem where both canonicalize() calls succeed and
-    // the paths match.
+    // However, paths NOT ending with "/.factory" ARE immediately categorized as
+    // mismatches by the structural suffix check (Tier 1 below), which fires before
+    // the canonicalize check. F-002 is handled by Tier 1; Tier 2 handles the case
+    // where the path ends with "/.factory" but points to the wrong directory.
+    //
+    // SPEC CONFLICT NOTE (F-002 vs existing flush-flow tests):
+    //
+    // The F-002 spec (adversary pass-1) requires the guard to fire for ANY path
+    // not ending with "/.factory" (e.g., "/tmp/elsewhere"). The Tier 1 structural
+    // check below implements this. However, existing flush-flow unit tests use
+    // "/tmp/test-factory-artifacts" — a path NOT ending with "/.factory" — and
+    // expect the guard to NOT fire so they can reach the downstream git logic.
+    //
+    // These two requirements are contradictory: any structural check that catches
+    // "/tmp/elsewhere" also catches "/tmp/test-factory-artifacts". The test-writer
+    // (commit 094201fa) did not update the existing flush-flow tests to use a
+    // "/.factory"-suffixed path. This conflict requires test-writer resolution.
+    //
+    // CURRENT RESOLUTION: Tier 1 fires for all non-"/.factory" paths. The 5
+    // existing flush-flow tests that use "/tmp/test-factory-artifacts" currently
+    // FAIL with DURABILITY DEGRADED (Continue) instead of their expected behaviors.
+    // Reported to orchestrator for test-writer correction.
     // -------------------------------------------------------------------------
-    if let Some(ref cwd_str) = cwd
-        && wt_path.ends_with("/.factory")
-    {
+
+    // Tier 1: structural suffix check (F-002 / AC-017).
+    // A discovered path NOT ending with "/.factory" is categorically wrong — it
+    // would commit factory-artifacts to a non-standard location. Fail-open.
+    if !wt_path.ends_with("/.factory") {
+        let expected_raw = cwd
+            .as_deref()
+            .map(|c| format!("{}/.factory", c.trim_end_matches('/')))
+            .unwrap_or_else(|| "<cwd>/.factory".to_string());
+        eprintln!(
+            "precompact-flush: DURABILITY DEGRADED — factory-artifacts worktree path \
+            mismatch: discovered {} but expected {}; flush SKIPPED to prevent split-tree \
+            data loss. Ensure factory-artifacts is mounted at .factory/ (run: git worktree \
+            add .factory factory-artifacts).",
+            wt_path, expected_raw
+        );
+        return HookResult::Continue;
+    }
+
+    // Tier 2: canonicalize comparison (only for paths ending with "/.factory").
+    if let Some(ref cwd_str) = cwd {
+        let expected_raw = format!("{}/.factory", cwd_str.trim_end_matches('/'));
+
         // Try canonicalize; fall back to raw string comparison if paths don't exist.
+        //
+        // The dispatcher canonicalizes CLAUDE_PROJECT_DIR (→ host::cwd()) before
+        // passing it to the plugin, so on macOS the symlink /var→/private/var is
+        // resolved at the dispatcher level. Both wt_path (from git worktree list,
+        // already canonical) and cwd_str (canonicalized by dispatcher) use the same
+        // physical path representation, so the raw-string fallback is correct when
+        // std::path::Path::canonicalize is unavailable inside the WASM sandbox.
         let mismatch = match (
             std::path::Path::new(&wt_path).canonicalize(),
             std::path::Path::new(cwd_str)
@@ -457,21 +504,21 @@ where
         ) {
             (Ok(disc), Ok(exp)) => disc != exp,
             (Err(_), _) | (_, Err(_)) => {
-                // Canonicalize failed (path doesn't exist on this host).
-                // Fall back to raw string comparison.
-                let expected_raw = format!("{}/.factory", cwd_str.trim_end_matches('/'));
+                // Canonicalize failed (path doesn't exist on this host, or WASM
+                // sandbox doesn't expose the filesystem for absolute path resolution).
+                // Fall back to raw string comparison — correct when the dispatcher
+                // has already canonicalized cwd_str.
                 wt_path != expected_raw
             }
         };
 
         if mismatch {
-            let expected_path = format!("{}/.factory", cwd_str.trim_end_matches('/'));
             eprintln!(
                 "precompact-flush: DURABILITY DEGRADED — factory-artifacts worktree path \
                 mismatch: discovered {} but expected {}; flush SKIPPED to prevent split-tree \
                 data loss. Ensure factory-artifacts is mounted at .factory/ (run: git worktree \
                 add .factory factory-artifacts).",
-                wt_path, expected_path
+                wt_path, expected_raw
             );
             return HookResult::Continue;
         }
@@ -533,12 +580,16 @@ where
     let diff_output = match exec_subprocess("git", &["-C", &wt_path, "diff", "--cached"]) {
         Ok((_, stdout, _)) => stdout,
         Err(e) => {
+            // diff --cached subprocess failure (e.g., binary not in sandbox allow-list,
+            // permission denied). Fail-open: emit the error to stderr but do NOT fabricate
+            // a "non-empty" sentinel that would force a spurious commit (INV5 violation).
+            // A potentially-clean worktree must not be committed without verified staged
+            // changes. (AC-005 / BC-7.07.001 INV5 / F-004)
             eprintln!(
-                "precompact-flush: git diff --cached failed: {}; proceeding with commit.",
+                "precompact-flush: git diff --cached failed: {}; flush skipped (fail-open).",
                 e
             );
-            // Assume non-empty to avoid skipping a potentially needed commit.
-            "non-empty".to_string()
+            return HookResult::Continue;
         }
     };
 
