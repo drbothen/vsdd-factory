@@ -190,9 +190,20 @@ pub fn parse_state_context(state_md_content: &str) -> Option<StateContext> {
         }
     }
 
+    // SEC-001: strip embedded CR/LF from cycle and step so they cannot corrupt
+    // the 4-field log line or the commit subject (injection guard).
+    // SEC-003: cap each value to 512 chars to bound commit/log size.
+    fn sanitize(s: String) -> String {
+        s.replace('\n', " ")
+            .replace('\r', "")
+            .chars()
+            .take(512)
+            .collect()
+    }
+
     Some(StateContext {
-        current_cycle: current_cycle?,
-        current_step: current_step?,
+        current_cycle: sanitize(current_cycle?),
+        current_step: sanitize(current_step?),
     })
 }
 
@@ -271,6 +282,8 @@ pub fn is_diff_empty(git_diff_cached_output: &str) -> bool {
 /// Returns `HookResult::Block` on commit/push/append failure (exit 2).
 /// Maximum bytes to read per host::read_file call (1 MiB).
 const MAX_READ_BYTES: u32 = 1024 * 1024;
+/// Maximum bytes to write per host::write_file call (1 MiB, per BC-2.02.011).
+const MAX_WRITE_BYTES: u32 = 1024 * 1024;
 /// Host I/O timeout in milliseconds for read/write calls.
 const IO_TIMEOUT_MS: u32 = 10_000;
 /// Timeout in milliseconds for git subprocess calls.
@@ -293,7 +306,7 @@ pub fn run_plugin(payload: HookPayload) -> HookResult {
                 })
         },
         |path, content| {
-            host::write_file(path, content.as_bytes(), MAX_READ_BYTES, IO_TIMEOUT_MS)
+            host::write_file(path, content.as_bytes(), MAX_WRITE_BYTES, IO_TIMEOUT_MS)
                 .map_err(|e| format!("write_file error: {e:?}"))
         },
         |bin, args| {
@@ -360,6 +373,8 @@ where
 /// `cwd` is the project directory (CLAUDE_PROJECT_DIR) used for the
 /// canonicalize assertion in AC-017. `None` skips the check.
 fn run_plugin_with_mock_and_cwd<RF, WF, ES>(
+    // PreCompact fires unconditionally on every compaction event — no payload dispatch
+    // is needed because there is no tool_name or input_content to route on.
     _payload: HookPayload,
     read_file: RF,
     write_file: WF,
@@ -634,7 +649,26 @@ where
     // BEFORE append. (AC-006 / BC-7.07.001 PC8)
     // -------------------------------------------------------------------------
     let sha_b = match exec_subprocess("git", &["-C", &wt_path, "rev-parse", "HEAD"]) {
-        Ok((_, stdout, _)) => stdout.trim().to_string(),
+        Ok((0, stdout, _)) => {
+            let sha = stdout.trim().to_string();
+            debug_assert!(
+                sha.chars().all(|c| c.is_ascii_hexdigit()),
+                "rev-parse HEAD produced non-hex output: {sha:?}"
+            );
+            sha
+        }
+        Ok((code, _, stderr)) => {
+            eprintln!(
+                "precompact-flush: rev-parse HEAD failed (exit {}): {}; blocking compaction.",
+                code, stderr
+            );
+            return HookResult::Block {
+                reason: format!(
+                    "precompact-flush: rev-parse HEAD failed (exit {}): {}",
+                    code, stderr
+                ),
+            };
+        }
         Err(e) => {
             eprintln!(
                 "precompact-flush: rev-parse HEAD failed: {}; blocking compaction.",

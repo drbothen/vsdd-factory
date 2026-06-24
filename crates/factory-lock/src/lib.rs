@@ -219,7 +219,8 @@ pub fn has_factory_lock_key(state_md_content: &str) -> bool {
             break;
         }
         // Check if this line starts with `factory_lock:` (with optional trailing content).
-        if line == "factory_lock:" || line.starts_with("factory_lock:") {
+        // `starts_with("factory_lock:")` subsumes the `== "factory_lock:"` case.
+        if line.starts_with("factory_lock:") {
             return true;
         }
     }
@@ -240,7 +241,8 @@ fn rewrite_expires_at(content: &str, new_expires_at: &str) -> String {
     for line in content.split_inclusive('\n') {
         let trimmed = line.trim_end_matches('\n').trim_end_matches('\r');
 
-        if trimmed == "factory_lock:" || trimmed.starts_with("factory_lock:") {
+        // `starts_with("factory_lock:")` subsumes the `== "factory_lock:"` case.
+        if trimmed.starts_with("factory_lock:") {
             in_factory_lock = true;
             result.push_str(line);
             continue;
@@ -266,6 +268,15 @@ fn rewrite_expires_at(content: &str, new_expires_at: &str) -> String {
 
         result.push_str(line);
     }
+
+    // CR-005: if expires_at_rewritten is still false after the full scan, the parser
+    // diverged (factory_lock block was detected but expires_at line was not found).
+    // Surface in test builds to catch parser regressions early; no release-path cost.
+    debug_assert!(
+        expires_at_rewritten,
+        "rewrite_expires_at: factory_lock block found but expires_at line was not rewritten \
+        — parser divergence; check that the block uses 2-space indent for expires_at"
+    );
 
     result
 }

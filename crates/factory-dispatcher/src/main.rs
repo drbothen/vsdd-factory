@@ -317,6 +317,14 @@ async fn run(internal_log: Arc<InternalLog>) -> anyhow::Result<i32> {
         // preventing false-positive DURABILITY DEGRADED from Tier 2 path-mismatch
         // checks in precompact-flush and similar plugins. Canonicalize failure is
         // non-fatal: fall back to the raw path (better than no cwd at all).
+        //
+        // SEC-004 TOCTOU ACCEPTED: the canonicalize call here resolves symlinks at
+        // dispatcher startup, but the resolved path is used as a label (host::cwd()
+        // for path-comparison in plugins), not for filesystem access. Any TOCTOU
+        // window between canonicalize and plugin use is therefore inconsequential:
+        // the worst outcome is a false-positive DURABILITY DEGRADED advisory (fail-open).
+        // This is explicitly accepted under the same-user local trust model; the
+        // `unwrap_or(p)` fallback is fail-safe (raw path beats no path at all).
         .map(|p| p.canonicalize().unwrap_or(p))
         .or_else(|| std::env::current_dir().ok())
         .unwrap_or_else(|| PathBuf::from("."));
