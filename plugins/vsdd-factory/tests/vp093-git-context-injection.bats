@@ -21,13 +21,13 @@
 #      The test verifies absence of "git_context" key in the captured payload JSON,
 #      then also verifies the plugin WAS invoked at all (capture file non-empty).
 #
-# RED GATE (S-18.04b-prereq stub phase):
-#   VP-093-A, VP-093-B, VP-093-E FAIL because inject_git_context_if_qualifying is
-#   todo!() in invoke.rs and is not wired into main.rs. The captured payload lacks
-#   git_context, so field-value assertions fail.
-#   VP-093-C, VP-093-D may appear GREEN during stubs (git_context absent = correct
-#   post-implementation behavior), but their positive-coverage sentinel (CAPTURE_FILE
-#   non-empty) ensures the plugin is exercised, not silently skipped.
+# GREEN STATE (S-18.04b-prereq delivered):
+#   VP-093-A, VP-093-B, VP-093-E PASS because inject_git_context_if_qualifying is
+#   fully implemented in invoke.rs and wired into main.rs. The captured payload
+#   contains git_context with the correct field values.
+#   VP-093-C, VP-093-D PASS verifying absence of git_context on non-qualifying events;
+#   the positive-coverage sentinel (CAPTURE_FILE non-empty) confirms the plugin is
+#   exercised and the absence is intentional, not a routing failure.
 #
 # Test cases (VP-093-A through VP-093-E per AC-013):
 #   VP-093-A  Four-field injection on qualifying PostToolUse Bash git-commit event.
@@ -225,12 +225,9 @@ _setup_factory_git_repo() {
 #
 # AC-001, AC-013 (VP-093-A) / BC-1.16.001 PC1; INV1; INV5
 #
-# RED GATE: Fails because inject_git_context_if_qualifying is todo!() in invoke.rs
-# and is not wired in main.rs. The captured payload will be missing the git_context
-# key, so all four field-value assertions fail.
-#
-# POST-IMPLEMENTATION: git_context present in captured payload with all four fields
-# populated matching the synthetic repo's HEAD and HEAD^.
+# GREEN: inject_git_context_if_qualifying is fully implemented in invoke.rs and
+# wired into main.rs. The captured payload contains git_context with all four
+# fields populated, matching the synthetic repo's real HEAD and HEAD^ values.
 #
 # NON-TAUTOLOGY signal: asserts EXACT field VALUES (head_sha, head_subject,
 # head_parent_sha, head_parent_subject) from the real synthetic git repo.
@@ -264,7 +261,7 @@ _setup_factory_git_repo() {
   [ -s "$CAPTURE_FILE" ]
 
   # git_context must be present in the captured payload.
-  # RED GATE: git_context key absent because injection is not implemented.
+  # Verifies injection ran for this qualifying PostToolUse Bash git-commit event.
   local git_ctx_present
   git_ctx_present="$(jq 'has("git_context")' "$CAPTURE_FILE")"
   [ "$git_ctx_present" = "true" ]
@@ -301,11 +298,9 @@ _setup_factory_git_repo() {
 #
 # AC-002, AC-009, AC-013 (VP-093-B) / BC-1.16.001 PC2; INV3
 #
-# RED GATE: Fails because injection is not implemented; no git_context key in
-# captured payload; assertions on empty-string fields fail.
-#
-# POST-IMPLEMENTATION: git_context present with all four fields set to "".
-# Dispatcher exits 0 (fail-open, no block on git error).
+# GREEN: injection is implemented; git_context is present with all four fields
+# set to "" when git commands fail (non-git directory). Dispatcher exits 0
+# (fail-open, no block on git error; BC-1.16.001 INV3).
 #
 # NON-TAUTOLOGY signal: the test asserts each field IS present and IS the empty
 # string. A no-injection implementation leaves git_context absent (has("git_context")
@@ -334,7 +329,7 @@ _setup_factory_git_repo() {
   [ -s "$CAPTURE_FILE" ]
 
   # git_context must be present in the captured payload (all-empty fail-open form).
-  # RED GATE: git_context absent because injection is not implemented.
+  # Verifies the fail-open path populates all four fields as "" rather than omitting git_context.
   local git_ctx_present
   git_ctx_present="$(jq 'has("git_context")' "$CAPTURE_FILE")"
   [ "$git_ctx_present" = "true" ]
@@ -444,14 +439,11 @@ _setup_factory_git_repo() {
 #
 # AC-006, AC-011, AC-013 (VP-093-E) / BC-1.16.001 PC6; INV5; EC-003; EC-009
 #
-# RED GATE: Fails because injection is not implemented; no git_context key in
-# captured payload; field-value assertions fail.
-#
-# POST-IMPLEMENTATION: git_context present with:
-#   head_subject = GIT_HEAD_SUBJECT (non-empty)
-#   head_sha = 40-char hex (non-empty)
-#   head_parent_subject = "" (empty string, NOT null, NOT absent)
-#   head_parent_sha = "" (empty string, NOT null, NOT absent)
+# GREEN: injection is implemented; git_context is present with:
+#   head_subject = GIT_HEAD_SUBJECT (non-empty, from real HEAD commit)
+#   head_sha = 40-char hex (non-empty, real HEAD SHA)
+#   head_parent_subject = "" (empty string, NOT null, NOT absent — HEAD^ does not exist)
+#   head_parent_sha = "" (empty string, NOT null, NOT absent — HEAD^ does not exist)
 #
 # NON-TAUTOLOGY signal: asserts head_sha is non-empty AND a 40-char hex (proving
 # HEAD was populated correctly), while asserting parent fields are "" (proving the
@@ -480,8 +472,8 @@ _setup_factory_git_repo() {
   # Positive-coverage sentinel.
   [ -s "$CAPTURE_FILE" ]
 
-  # git_context must be present (injection ran for qualifying event).
-  # RED GATE: git_context absent because injection is not implemented.
+  # git_context must be present (injection ran for this qualifying event).
+  # Verifies the initial-commit path is handled: HEAD is populated, HEAD^ yields "".
   local git_ctx_present
   git_ctx_present="$(jq 'has("git_context")' "$CAPTURE_FILE")"
   [ "$git_ctx_present" = "true" ]
