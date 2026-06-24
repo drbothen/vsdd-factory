@@ -129,7 +129,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | caf06c68 | rc.21 bot binary bundle commit 2026-06-13; prior: 2a191314 (rc.20) |
 | develop | b0bc4ffd | PR #249 `feat(S-18.04a): precompact-flush native WASM plugin core` squash-merged 2026-06-24 (D-693; S-18.04a + dispatcher-core cwd canonicalize + SEC-004 ACCEPTED); prior: dfc76844 (PR #201 D-692) |
-| factory-artifacts | — | D-695 follow-on DOC-ACCURACY FIX (story v1.2; invoke.rs 3fb689d5; STORY-INDEX v4.66); prior: 4f6d819a (D-695 GOVERNANCE FIX) |
+| factory-artifacts | 7005f4d7 | D-695 follow-on DOC-ACCURACY FIX (story v1.2; invoke.rs 3fb689d5; STORY-INDEX v4.66); prior: 4f6d819a (D-695 GOVERNANCE FIX) |
 | v1.0.0-rc.21 (tag) | 03054524 | SHIPPED 2026-06-13; FULLY IN OPERATOR MARKETPLACE (marketplace PR #13 MERGED); annotated tag object |
 | v1.0.0-rc.20 (tag) | e9e38286 | SHIPPED 2026-06-01; marketplace PR #12 squash-merged 862e660d |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28 |
@@ -355,7 +355,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** see `git -C .factory log -1 --format='%h %s'` (D-695 follow-on DOC-ACCURACY FIX — story v1.2; STORY-INDEX v4.66; 2026-06-24; prior D-695 GOVERNANCE FIX = `4f6d819a`; prior D-694 = `b23fa2b6`; prior D-693 = `b6026a66`)
+- **factory-artifacts HEAD:** `7005f4d7` (D-695 follow-on DOC-ACCURACY FIX — story v1.2; STORY-INDEX v4.66; 2026-06-24; prior D-695 GOVERNANCE FIX = `4f6d819a`; prior D-695 SHA-patch = `cbe407a1`; prior D-694 = `b23fa2b6`)
 - **develop HEAD:** `b0bc4ffd` UNCHANGED (D-694 governance-only; PR #249 S-18.04a squash-merged 2026-06-24 D-693; prior: `dfc76844` PR #201 D-692)
 - **main HEAD:** `caf06c68` (rc.21 bot bundle commit 2026-06-13; UNCHANGED)
 - **v1.0.0-rc.21 tag:** `03054524` (SHIPPED; FULLY IN OPERATOR MARKETPLACE)
