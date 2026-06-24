@@ -5,38 +5,59 @@
 # on qualifying PostToolUse Bash git-commit events targeting the factory-artifacts
 # worktree (ADR-029 §Decision 1–3; BC-1.16.001 PC1–PC6).
 #
+# ANTI-TAUTOLOGY DISCIPLINE (lesson from S-18.04b VP-084):
+#   The sibling story S-18.04b VP-084 passed VACUOUSLY because bats setup never
+#   git-init'd the factory-artifacts repo. This harness avoids that failure mode by:
+#   1. Using legacy-bash-adapter.wasm + a payload-capture shell script so the actual
+#      JSON delivered to the plugin is read and asserted. Tests do NOT rely on log
+#      event types that might not exist in the implementation.
+#   2. VP-093-A: asserts the EXACT values of all four fields from the real synthetic
+#      git repo's HEAD/HEAD^ (not merely "no error" or "exit 0").
+#   3. VP-093-B: asserts each field is the empty-string JSON value "" (not just absent)
+#      — distinguishing fail-open injection from no injection.
+#   4. VP-093-C / VP-093-D: use a POSITIVE-COVERAGE control assertion. The capture
+#      script writes the payload to CAPTURE_FILE. If git_context were injected for
+#      these non-qualifying events, the assertion would FAIL (not vacuously pass).
+#      The test verifies absence of "git_context" key in the captured payload JSON,
+#      then also verifies the plugin WAS invoked at all (capture file non-empty).
+#
 # RED GATE (S-18.04b-prereq stub phase):
-#   All tests FAIL against the stub because `inject_git_context_if_qualifying` is
-#   `todo!()` in invoke.rs and is not wired into the dispatch path in main.rs.
-#   Tests flip GREEN after the implementer fills the `todo!()` bodies and wires
-#   the injection call site in main.rs (S-18.04b-prereq T-1 through T-7).
+#   VP-093-A, VP-093-B, VP-093-E FAIL because inject_git_context_if_qualifying is
+#   todo!() in invoke.rs and is not wired into main.rs. The captured payload lacks
+#   git_context, so field-value assertions fail.
+#   VP-093-C, VP-093-D may appear GREEN during stubs (git_context absent = correct
+#   post-implementation behavior), but their positive-coverage sentinel (CAPTURE_FILE
+#   non-empty) ensures the plugin is exercised, not silently skipped.
 #
 # Test cases (VP-093-A through VP-093-E per AC-013):
-#   VP-093-A  Four-field injection on qualifying PostToolUse Bash git-commit event
-#             (two-commit synthetic repo; verify all four fields in dispatcher JSONL log).
-#   VP-093-B  All-empty injection on git error (non-git dir; verify all four fields
-#             are "" and dispatcher exits 0).
-#   VP-093-C  No injection on non-qualifying Bash event (git push; verify
-#             git_context key is absent from payload.extra).
-#   VP-093-D  No injection on PostToolUse Edit event (verify git_context key absent).
-#   VP-093-E  Initial-commit edge case (head_parent_subject="", head_parent_sha=""
-#             not null; single-commit repo).
+#   VP-093-A  Four-field injection on qualifying PostToolUse Bash git-commit event.
+#             Two-commit synthetic factory-artifacts repo. Captures payload delivered
+#             to plugin. Asserts all four field VALUES match real HEAD/HEAD^.
+#   VP-093-B  All-empty injection on git error (non-git factory dir). Asserts all
+#             four fields are "" (not null, not absent). Dispatcher exits 0.
+#   VP-093-C  No injection on non-qualifying Bash event (git push). Asserts
+#             git_context key is ABSENT from captured payload; plugin IS invoked.
+#   VP-093-D  No injection on PostToolUse Edit event. Asserts git_context key
+#             is ABSENT from captured payload; plugin IS invoked.
+#   VP-093-E  Initial-commit edge case: head_parent_subject="" and head_parent_sha=""
+#             (not null, not absent) on a single-commit factory-artifacts repo.
 #
 # Bats harness pattern: follows precompact-routing.bats (VP-086).
+# Payload capture: legacy-bash-adapter.wasm + capture.sh (writes stdin to CAPTURE_FILE).
 # Dispatcher binary: target/release/factory-dispatcher
-# Log inspection: dispatcher-internal-YYYY-MM-DD.jsonl (JSONL; jq required).
+# WASM plugin: plugins/vsdd-factory/hook-plugins/legacy-bash-adapter.wasm
 #
 # AC traces:
 #   AC-001 / BC-1.16.001 PC1 (four-field injection on qualifying event) → VP-093-A
-#   AC-002 / BC-1.16.001 PC2 (fail-open on git error)                  → VP-093-B
-#   AC-003 / BC-1.16.001 PC3 (no injection on non-qualifying Bash)      → VP-093-C
-#   AC-004 / BC-1.16.001 PC4 (no injection on non-Bash PostToolUse)     → VP-093-D
-#   AC-006 / BC-1.16.001 INV5 (four-field completeness)                 → VP-093-A,VP-093-E
-#   AC-009 / BC-1.16.001 INV3 (fail-open preserves pipeline)            → VP-093-B
-#   AC-011 / BC-1.16.001 INV5 (initial-commit: "" not null)             → VP-093-E
-#   AC-012 / BC-1.16.001 EC-004 (git push is not qualifying)            → VP-093-C
-#   AC-013 / VP-093 (bats harness via dispatcher binary stdin/IPC)      → all
-#   AC-007 / BC-1.16.001 INV1 (exec-free WASM; host-layer injection)    → all
+#   AC-002 / BC-1.16.001 PC2 (fail-open on git error)                   → VP-093-B
+#   AC-003 / BC-1.16.001 PC3 (no injection on non-qualifying Bash)       → VP-093-C
+#   AC-004 / BC-1.16.001 PC4 (no injection on non-Bash PostToolUse)      → VP-093-D
+#   AC-006 / BC-1.16.001 INV5 (four-field completeness)                  → VP-093-A, VP-093-E
+#   AC-007 / BC-1.16.001 INV1 (exec-free WASM; end-to-end via dispatcher) → all
+#   AC-009 / BC-1.16.001 INV3 (fail-open preserves pipeline)             → VP-093-B
+#   AC-011 / BC-1.16.001 INV5 (initial-commit: "" not null)              → VP-093-E
+#   AC-012 / BC-1.16.001 EC-004 (git push is not qualifying)             → VP-093-C
+#   AC-013 / VP-093 (bats harness via dispatcher binary stdin/IPC)        → all
 #
 # Story: S-18.04b-prereq
 # BC:    BC-1.16.001 (all postconditions and invariants)
@@ -49,33 +70,45 @@
 setup() {
   REPO_ROOT="$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)"
   DISPATCHER="$REPO_ROOT/target/release/factory-dispatcher"
+  ADAPTER_WASM="$REPO_ROOT/plugins/vsdd-factory/hook-plugins/legacy-bash-adapter.wasm"
   WORK="$(mktemp -d)"
 
   # CLAUDE_PLUGIN_ROOT is the plugin root (holds hooks-registry.toml + hook-plugins/).
-  # CLAUDE_PROJECT_DIR is the simulated project root (cwd for dispatcher host context).
-  # factory_dir = CLAUDE_PROJECT_DIR/.factory (derived by dispatcher/implementer).
+  # CLAUDE_PROJECT_DIR is the simulated project root.
+  # factory_dir = CLAUDE_PROJECT_DIR/.factory (derived by dispatcher host context via cwd).
   PROJECT_DIR="$WORK/project"
   FACTORY_DIR="$PROJECT_DIR/.factory"
 
-  mkdir -p "$WORK/hook-plugins"
+  mkdir -p "$WORK/hook-plugins" "$WORK/hooks"
   mkdir -p "$FACTORY_DIR/logs"
 
-  # Write a minimal hooks-registry.toml with no plugins.
-  # VP-093-A through VP-093-E need NO plugin invocation — they verify the
-  # dispatcher's own `git_context` injection by inspecting the JSONL log.
-  # (The dispatcher writes `payload.extra` content into its internal log on
-  # qualifying events; a dedicated log event for git_context injection is
-  # emitted by the implementer's wiring in invoke.rs or main.rs.)
-  cat > "$WORK/hooks-registry.toml" <<'EOF'
-schema_version = 2
-EOF
+  # Copy legacy-bash-adapter.wasm into WORK/hook-plugins so the registry resolves it.
+  if [ -f "$ADAPTER_WASM" ]; then
+    cp "$ADAPTER_WASM" "$WORK/hook-plugins/legacy-bash-adapter.wasm"
+  fi
 
-  # LOG_DIR: where the dispatcher writes its internal JSONL log.
-  # The dispatcher resolves log_dir from CLAUDE_PROJECT_DIR/.factory/logs (default).
-  LOG_DIR="$FACTORY_DIR/logs"
+  # CAPTURE_FILE: the shell script writes the plugin's stdin (the enriched payload) here.
+  # Each test clears and re-reads CAPTURE_FILE after dispatcher invocation.
+  CAPTURE_FILE="$WORK/captured-payload.json"
+
+  # capture.sh: dumps the plugin's stdin (the full enriched payload JSON) to CAPTURE_FILE,
+  # then exits 0. The dispatcher passes the entire payload_value to the plugin as stdin.
+  # This is the primary non-tautological signal: if git_context is injected, it appears
+  # in CAPTURE_FILE because the plugin receives the full payload including extra fields.
+  cat > "$WORK/hooks/capture.sh" <<SCRIPT_EOF
+#!/usr/bin/env bash
+# Capture the plugin payload (received on stdin) to CAPTURE_FILE for assertion.
+# Exit 0 so the dispatcher does not block.
+cat > "$CAPTURE_FILE"
+exit 0
+SCRIPT_EOF
+  chmod +x "$WORK/hooks/capture.sh"
 
   export CLAUDE_PLUGIN_ROOT="$WORK"
   export CLAUDE_PROJECT_DIR="$PROJECT_DIR"
+
+  # Export for test functions.
+  export WORK PROJECT_DIR FACTORY_DIR CAPTURE_FILE DISPATCHER
 }
 
 teardown() {
@@ -93,7 +126,14 @@ _require_dispatcher() {
   fi
 }
 
-# Skip if jq is not available (required for JSONL field extraction).
+# Skip if legacy-bash-adapter.wasm is absent (required for payload-capture).
+_require_adapter() {
+  if [ ! -f "$WORK/hook-plugins/legacy-bash-adapter.wasm" ]; then
+    skip "legacy-bash-adapter.wasm not present — build hook-plugins or copy to $REPO_ROOT/plugins/vsdd-factory/hook-plugins/"
+  fi
+}
+
+# Skip if jq is not available (required for JSON field extraction).
 _require_jq() {
   if ! command -v jq &>/dev/null; then
     skip "jq not found — install jq to run VP-093 bats tests"
@@ -107,6 +147,38 @@ _require_git() {
   fi
 }
 
+# ---------------------------------------------------------------------------
+# Registry helpers
+# ---------------------------------------------------------------------------
+
+# Write a PostToolUse Bash capture registry.
+# The capture plugin (legacy-bash-adapter + capture.sh) receives the full payload
+# via stdin and writes it to CAPTURE_FILE for assertion.
+_write_posttooluse_capture_registry() {
+  cat > "$WORK/hooks-registry.toml" <<EOF
+schema_version = 2
+
+[[hooks]]
+name = "payload-capture"
+event = "PostToolUse"
+plugin = "hook-plugins/legacy-bash-adapter.wasm"
+timeout_ms = 10000
+on_error = "continue"
+
+[hooks.capabilities.exec_subprocess]
+binary_allow = ["bash"]
+shell_bypass_acknowledged = "yes"
+cwd_allow = ["."]
+
+[hooks.config]
+script_path = "hooks/capture.sh"
+EOF
+}
+
+# ---------------------------------------------------------------------------
+# Dispatcher invocation helper
+# ---------------------------------------------------------------------------
+
 # Run the dispatcher with a given JSON envelope via stdin.
 # Captures combined stdout+stderr into $output; sets $status.
 _run_dispatcher() {
@@ -114,27 +186,9 @@ _run_dispatcher() {
   run bash -c "printf '%s' '$envelope' | CLAUDE_PLUGIN_ROOT='$WORK' CLAUDE_PROJECT_DIR='$PROJECT_DIR' HOME='$WORK/home' '$DISPATCHER' 2>&1"
 }
 
-# Return the most recently modified dispatcher-internal-*.jsonl file in LOG_DIR.
-_latest_log_file() {
-  ls -t "$LOG_DIR"/dispatcher-internal-*.jsonl 2>/dev/null | head -1
-}
-
-# Extract the git_context object from the most recent dispatcher JSONL log entry
-# that contains a git_context injection event. Outputs the JSON object or empty string.
-_extract_git_context_from_log() {
-  local log
-  log="$(_latest_log_file)"
-  if [ -z "$log" ] || [ ! -f "$log" ]; then
-    echo ""
-    return
-  fi
-  # The implementer's injection wiring emits an internal log event of type
-  # "dispatcher.git_context_injected" (or similar) containing the git_context
-  # fields. This helper extracts the git_context value from that event.
-  # If the event type differs, the implementer updates this helper accordingly.
-  jq -c 'select(.event_type == "dispatcher.git_context_injected") | .git_context' "$log" \
-    2>/dev/null | tail -1
-}
+# ---------------------------------------------------------------------------
+# Git repo setup helper
+# ---------------------------------------------------------------------------
 
 # Create a synthetic factory-artifacts git repo under FACTORY_DIR with N commits.
 # Args: n_commits (1 or 2)
@@ -169,67 +223,104 @@ _setup_factory_git_repo() {
 # ---------------------------------------------------------------------------
 # VP-093-A: Four-field injection on qualifying PostToolUse Bash git-commit event
 #
-# AC-001, AC-013 (VP-093-A) / BC-1.16.001 PC1
+# AC-001, AC-013 (VP-093-A) / BC-1.16.001 PC1; INV1; INV5
+#
 # RED GATE: Fails because inject_git_context_if_qualifying is todo!() in invoke.rs
-# and is not wired in main.rs. The dispatcher does not emit a git_context_injected
-# log event, so _extract_git_context_from_log returns empty.
+# and is not wired in main.rs. The captured payload will be missing the git_context
+# key, so all four field-value assertions fail.
+#
+# POST-IMPLEMENTATION: git_context present in captured payload with all four fields
+# populated matching the synthetic repo's HEAD and HEAD^.
+#
+# NON-TAUTOLOGY signal: asserts EXACT field VALUES (head_sha, head_subject,
+# head_parent_sha, head_parent_subject) from the real synthetic git repo.
+# A fail-open implementation producing all-empty fields would fail this test.
+# A non-injection implementation produces no git_context key, failing this test.
 # ---------------------------------------------------------------------------
 
 @test "VP-093-A: dispatcher injects four-field git_context on qualifying PostToolUse Bash git-commit" {
   _require_dispatcher
+  _require_adapter
   _require_jq
   _require_git
 
   _setup_factory_git_repo 2
+  _write_posttooluse_capture_registry
 
-  # Qualifying envelope: PostToolUse, tool=Bash, command contains "git commit" and ".factory"
+  # Qualifying envelope: PostToolUse, tool=Bash, command contains "git commit" and ".factory".
+  # The factory_dir is derived from CLAUDE_PROJECT_DIR/.factory by the dispatcher.
   local envelope
   envelope='{"event_name":"PostToolUse","tool_name":"Bash","session_id":"vp093-a","tool_input":{"command":"git -C .factory commit -m \"state: burst-02 Commit B\""},"tool_response":{"exit_code":0}}'
 
   _run_dispatcher "$envelope"
 
-  # Dispatcher must exit 0 (no plugins registered, no block).
+  # Dispatcher must exit 0.
   [ "$status" -eq 0 ]
 
-  # The dispatcher must have emitted a git_context_injected event in the log.
-  local git_ctx
-  git_ctx="$(_extract_git_context_from_log)"
+  # CAPTURE_FILE must exist and be non-empty (confirms the plugin was invoked).
+  # A non-empty CAPTURE_FILE is the positive-coverage sentinel: if the plugin is
+  # never invoked (registry mismatch, timeout, skip), CAPTURE_FILE is empty and
+  # the test fails rather than vacuously passing.
+  [ -s "$CAPTURE_FILE" ]
 
-  # RED GATE: git_ctx is empty because injection is not implemented.
-  [ -n "$git_ctx" ]
+  # git_context must be present in the captured payload.
+  # RED GATE: git_context key absent because injection is not implemented.
+  local git_ctx_present
+  git_ctx_present="$(jq 'has("git_context")' "$CAPTURE_FILE")"
+  [ "$git_ctx_present" = "true" ]
 
-  # All four fields must be present and non-null strings.
+  # All four fields must be present as strings.
   local head_subject head_sha parent_subject parent_sha
-  head_subject="$(printf '%s' "$git_ctx" | jq -r '.head_subject')"
-  head_sha="$(printf '%s' "$git_ctx" | jq -r '.head_sha')"
-  parent_subject="$(printf '%s' "$git_ctx" | jq -r '.head_parent_subject')"
-  parent_sha="$(printf '%s' "$git_ctx" | jq -r '.head_parent_sha')"
+  head_subject="$(jq -r '.git_context.head_subject' "$CAPTURE_FILE")"
+  head_sha="$(jq -r '.git_context.head_sha' "$CAPTURE_FILE")"
+  parent_subject="$(jq -r '.git_context.head_parent_subject' "$CAPTURE_FILE")"
+  parent_sha="$(jq -r '.git_context.head_parent_sha' "$CAPTURE_FILE")"
 
-  # Verify HEAD fields match the synthetic repo's HEAD.
+  # NON-TAUTOLOGY: verify EXACT VALUES from the real synthetic repo.
+  # Fail-open (all-empty) would fail these assertions.
   [ "$head_subject" = "$GIT_HEAD_SUBJECT" ]
   [ "$head_sha" = "$GIT_HEAD_SHA" ]
-
-  # Verify HEAD^ fields match the synthetic repo's HEAD^.
   [ "$parent_subject" = "$GIT_PARENT_SUBJECT" ]
   [ "$parent_sha" = "$GIT_PARENT_SHA" ]
 
-  # Verify head_sha is a 40-character hex string.
+  # head_sha must be a 40-char hex string (not empty, not garbage).
   echo "$head_sha" | grep -qE '^[0-9a-f]{40}$'
+
+  # parent_sha must also be a 40-char hex string (two-commit repo, so HEAD^ exists).
+  echo "$parent_sha" | grep -qE '^[0-9a-f]{40}$'
+
+  # Confirm no field is the string "null" (distinguishes JSON null from empty string).
+  [ "$head_subject" != "null" ]
+  [ "$head_sha" != "null" ]
+  [ "$parent_subject" != "null" ]
+  [ "$parent_sha" != "null" ]
 }
 
 # ---------------------------------------------------------------------------
-# VP-093-B: All-empty injection on git error (non-git dir)
+# VP-093-B: All-empty injection on git error (non-git factory dir)
 #
 # AC-002, AC-009, AC-013 (VP-093-B) / BC-1.16.001 PC2; INV3
-# RED GATE: Fails because injection is not implemented; no log event emitted.
+#
+# RED GATE: Fails because injection is not implemented; no git_context key in
+# captured payload; assertions on empty-string fields fail.
+#
+# POST-IMPLEMENTATION: git_context present with all four fields set to "".
+# Dispatcher exits 0 (fail-open, no block on git error).
+#
+# NON-TAUTOLOGY signal: the test asserts each field IS present and IS the empty
+# string. A no-injection implementation leaves git_context absent (has("git_context")
+# = false → failure). A partial-inject implementation with null fields fails the
+# jq-r output check (jq -r returns "null" string for JSON null).
 # ---------------------------------------------------------------------------
 
 @test "VP-093-B: dispatcher injects all-empty git_context and exits 0 on git error (non-git factory dir)" {
   _require_dispatcher
+  _require_adapter
   _require_jq
 
-  # Do NOT initialise a git repo in FACTORY_DIR — git commands will fail.
-  # The dispatcher must still exit 0 (fail-open, AC-009).
+  # Do NOT initialise a git repo in FACTORY_DIR — git commands will fail with non-zero exit.
+  # The dispatcher must still exit 0 (fail-open; AC-009 / BC-1.16.001 INV3).
+  _write_posttooluse_capture_registry
 
   local envelope
   envelope='{"event_name":"PostToolUse","tool_name":"Bash","session_id":"vp093-b","tool_input":{"command":"git -C .factory commit -m \"state: burst-01\""},"tool_response":{"exit_code":0}}'
@@ -239,45 +330,60 @@ _setup_factory_git_repo() {
   # Dispatcher must exit 0 even when git fails (fail-open, BC-1.16.001 INV3).
   [ "$status" -eq 0 ]
 
-  # The dispatcher must have emitted a git_context_injected event with all-empty fields.
-  local git_ctx
-  git_ctx="$(_extract_git_context_from_log)"
+  # Plugin must be invoked (positive-coverage sentinel).
+  [ -s "$CAPTURE_FILE" ]
 
-  # RED GATE: git_ctx is empty because injection is not implemented.
-  [ -n "$git_ctx" ]
+  # git_context must be present in the captured payload (all-empty fail-open form).
+  # RED GATE: git_context absent because injection is not implemented.
+  local git_ctx_present
+  git_ctx_present="$(jq 'has("git_context")' "$CAPTURE_FILE")"
+  [ "$git_ctx_present" = "true" ]
 
-  # All four fields must be present and empty string (not null, not absent).
+  # All four fields must be present and equal to "" (empty string, not null, not absent).
   local head_subject head_sha parent_subject parent_sha
-  head_subject="$(printf '%s' "$git_ctx" | jq -r '.head_subject')"
-  head_sha="$(printf '%s' "$git_ctx" | jq -r '.head_sha')"
-  parent_subject="$(printf '%s' "$git_ctx" | jq -r '.head_parent_subject')"
-  parent_sha="$(printf '%s' "$git_ctx" | jq -r '.head_parent_sha')"
+  head_subject="$(jq -r '.git_context.head_subject' "$CAPTURE_FILE")"
+  head_sha="$(jq -r '.git_context.head_sha' "$CAPTURE_FILE")"
+  parent_subject="$(jq -r '.git_context.head_parent_subject' "$CAPTURE_FILE")"
+  parent_sha="$(jq -r '.git_context.head_parent_sha' "$CAPTURE_FILE")"
 
   [ "$head_subject" = "" ]
   [ "$head_sha" = "" ]
   [ "$parent_subject" = "" ]
   [ "$parent_sha" = "" ]
 
-  # Fields must be strings, not null — jq -r returns "null" for JSON null.
-  head_subject_raw="$(printf '%s' "$git_ctx" | jq '.head_subject')"
-  [ "$head_subject_raw" != "null" ]
+  # Fields must be JSON strings (not null). jq -r emits "null" string for JSON null.
+  head_subject_raw="$(jq '.git_context.head_subject' "$CAPTURE_FILE")"
+  head_sha_raw="$(jq '.git_context.head_sha' "$CAPTURE_FILE")"
+  parent_subject_raw="$(jq '.git_context.head_parent_subject' "$CAPTURE_FILE")"
+  parent_sha_raw="$(jq '.git_context.head_parent_sha' "$CAPTURE_FILE")"
+
+  [ "$head_subject_raw" = '""' ]
+  [ "$head_sha_raw" = '""' ]
+  [ "$parent_subject_raw" = '""' ]
+  [ "$parent_sha_raw" = '""' ]
 }
 
 # ---------------------------------------------------------------------------
 # VP-093-C: No injection on non-qualifying Bash event (git push)
 #
 # AC-003, AC-012, AC-013 (VP-093-C) / BC-1.16.001 PC3; EC-004
-# RED GATE: Fails because if injection were implemented, this test verifies
-# ABSENCE of git_context — but the test itself fails because the log event
-# is not emitted at all (injection infrastructure missing).
+#
+# DESIGN NOTE: This test asserts ABSENCE of git_context. A stub (no injection)
+# also produces absence — so this test may appear GREEN during Red Gate phase.
+# Non-tautology discipline is maintained via the positive-coverage sentinel:
+# CAPTURE_FILE must be non-empty (plugin WAS invoked). If the plugin is never
+# called, the test fails for the right reason (registry/routing failure), not
+# vacuously. After implementation, the absence assertion remains correct.
 # ---------------------------------------------------------------------------
 
 @test "VP-093-C: dispatcher does NOT inject git_context on non-qualifying Bash event (git push)" {
   _require_dispatcher
+  _require_adapter
   _require_jq
   _require_git
 
   _setup_factory_git_repo 2
+  _write_posttooluse_capture_registry
 
   # Non-qualifying envelope: PostToolUse, tool=Bash, but command is git push (not commit).
   local envelope
@@ -288,30 +394,35 @@ _setup_factory_git_repo() {
   # Dispatcher exits 0.
   [ "$status" -eq 0 ]
 
-  # No git_context_injected event should appear in the log.
-  local git_ctx
-  git_ctx="$(_extract_git_context_from_log)"
+  # Positive-coverage sentinel: plugin must be invoked (CAPTURE_FILE non-empty).
+  # Without this, the test could pass vacuously because the plugin was never called.
+  [ -s "$CAPTURE_FILE" ]
 
-  # RED GATE: currently empty because injection infrastructure is missing.
-  # After implementation, this assertion must verify ABSENCE: git_ctx must be "".
-  # The test is written to verify the final state: git_ctx is empty (no injection).
-  [ -z "$git_ctx" ]
+  # git_context key must be ABSENT from the captured payload for git push.
+  local git_ctx_present
+  git_ctx_present="$(jq 'has("git_context")' "$CAPTURE_FILE")"
+  [ "$git_ctx_present" = "false" ]
 }
 
 # ---------------------------------------------------------------------------
 # VP-093-D: No injection on PostToolUse Edit event
 #
 # AC-004, AC-008, AC-013 (VP-093-D) / BC-1.16.001 PC4; INV2
-# RED GATE: Fails because without implementation, this test's assertion
-# ("git_ctx is empty") trivially passes — but this is the correct post-implementation
-# behaviour too. The test validates the Edit-tool path after implementation.
+#
+# DESIGN NOTE: Same non-tautology discipline as VP-093-C. Edit events route to
+# the PostToolUse plugin registered without a tool= filter. The positive-coverage
+# sentinel (CAPTURE_FILE non-empty) confirms the plugin received the Edit payload.
+# After implementation, absence of git_context in Edit events is verified correctly.
 # ---------------------------------------------------------------------------
 
 @test "VP-093-D: dispatcher does NOT inject git_context on PostToolUse Edit event" {
   _require_dispatcher
+  _require_adapter
   _require_jq
 
-  # PostToolUse Edit event: tool_name=Edit, not Bash. Must never trigger injection.
+  _write_posttooluse_capture_registry
+
+  # PostToolUse Edit event: tool_name=Edit. Dispatcher MUST NOT inspect command or inject.
   local envelope
   envelope='{"event_name":"PostToolUse","tool_name":"Edit","session_id":"vp093-d","tool_input":{"file_path":".factory/STATE.md","old_string":"a","new_string":"b"},"tool_response":{"success":true}}'
 
@@ -319,30 +430,46 @@ _setup_factory_git_repo() {
 
   [ "$status" -eq 0 ]
 
-  # git_context_injected event must NOT appear in the log for Edit events.
-  local git_ctx
-  git_ctx="$(_extract_git_context_from_log)"
+  # Positive-coverage sentinel: plugin must be invoked for PostToolUse Edit events.
+  [ -s "$CAPTURE_FILE" ]
 
-  # No git_context should be injected for a non-Bash event (AC-004).
-  [ -z "$git_ctx" ]
+  # git_context key must be ABSENT for non-Bash tool events (AC-004 / INV2).
+  local git_ctx_present
+  git_ctx_present="$(jq 'has("git_context")' "$CAPTURE_FILE")"
+  [ "$git_ctx_present" = "false" ]
 }
 
 # ---------------------------------------------------------------------------
 # VP-093-E: Initial-commit edge case (head_parent_subject="" not null)
 #
-# AC-006, AC-011, AC-013 (VP-093-E) / BC-1.16.001 PC6; INV5; EC-003/EC-009
-# RED GATE: Fails because injection is not implemented; no log event emitted.
+# AC-006, AC-011, AC-013 (VP-093-E) / BC-1.16.001 PC6; INV5; EC-003; EC-009
+#
+# RED GATE: Fails because injection is not implemented; no git_context key in
+# captured payload; field-value assertions fail.
+#
+# POST-IMPLEMENTATION: git_context present with:
+#   head_subject = GIT_HEAD_SUBJECT (non-empty)
+#   head_sha = 40-char hex (non-empty)
+#   head_parent_subject = "" (empty string, NOT null, NOT absent)
+#   head_parent_sha = "" (empty string, NOT null, NOT absent)
+#
+# NON-TAUTOLOGY signal: asserts head_sha is non-empty AND a 40-char hex (proving
+# HEAD was populated correctly), while asserting parent fields are "" (proving the
+# HEAD^-non-existent path ran, not a generic fail-open). An all-empty fail-open
+# (from a git error on HEAD itself) would fail the head_sha hex assertion.
 # ---------------------------------------------------------------------------
 
-@test "VP-093-E: dispatcher injects empty string (not null) for head_parent_subject and head_parent_sha on initial commit" {
+@test "VP-093-E: initial commit — head_parent_subject and head_parent_sha are empty strings (not null)" {
   _require_dispatcher
+  _require_adapter
   _require_jq
   _require_git
 
-  # Single-commit repo (no HEAD^).
+  # Single-commit factory-artifacts repo (no HEAD^).
   _setup_factory_git_repo 1
+  _write_posttooluse_capture_registry
 
-  # Qualifying envelope targeting the initial-commit factory-artifacts repo.
+  # Qualifying envelope targeting the single-commit factory-artifacts repo.
   local envelope
   envelope='{"event_name":"PostToolUse","tool_name":"Bash","session_id":"vp093-e","tool_input":{"command":"git -C .factory commit --allow-empty -m \"state: burst-01 Commit A\""},"tool_response":{"exit_code":0}}'
 
@@ -350,32 +477,42 @@ _setup_factory_git_repo() {
 
   [ "$status" -eq 0 ]
 
-  local git_ctx
-  git_ctx="$(_extract_git_context_from_log)"
+  # Positive-coverage sentinel.
+  [ -s "$CAPTURE_FILE" ]
 
-  # RED GATE: git_ctx is empty because injection is not implemented.
-  [ -n "$git_ctx" ]
+  # git_context must be present (injection ran for qualifying event).
+  # RED GATE: git_context absent because injection is not implemented.
+  local git_ctx_present
+  git_ctx_present="$(jq 'has("git_context")' "$CAPTURE_FILE")"
+  [ "$git_ctx_present" = "true" ]
 
-  # head_subject and head_sha must be populated (HEAD exists).
+  # head_subject and head_sha must be populated (HEAD exists on initial commit).
   local head_subject head_sha
-  head_subject="$(printf '%s' "$git_ctx" | jq -r '.head_subject')"
-  head_sha="$(printf '%s' "$git_ctx" | jq -r '.head_sha')"
+  head_subject="$(jq -r '.git_context.head_subject' "$CAPTURE_FILE")"
+  head_sha="$(jq -r '.git_context.head_sha' "$CAPTURE_FILE")"
 
   [ "$head_subject" = "$GIT_HEAD_SUBJECT" ]
   [ -n "$head_sha" ]
   echo "$head_sha" | grep -qE '^[0-9a-f]{40}$'
 
+  # NON-TAUTOLOGY for HEAD population: head_sha must not be "" or "null".
+  # An all-empty fail-open (git failed on HEAD itself) would produce head_sha="" → test fails.
+  [ "$head_sha" != "" ]
+  [ "$head_sha" != "null" ]
+
   # head_parent_subject and head_parent_sha must be empty string "" (not null, not absent).
+  # This distinguishes the initial-commit path (HEAD^ non-existent → "") from a general
+  # git error (all-empty including HEAD fields) — the NON-TAUTOLOGY for the parent path.
   local parent_subject parent_sha
-  parent_subject="$(printf '%s' "$git_ctx" | jq -r '.head_parent_subject')"
-  parent_sha="$(printf '%s' "$git_ctx" | jq -r '.head_parent_sha')"
+  parent_subject="$(jq -r '.git_context.head_parent_subject' "$CAPTURE_FILE")"
+  parent_sha="$(jq -r '.git_context.head_parent_sha' "$CAPTURE_FILE")"
 
   [ "$parent_subject" = "" ]
   [ "$parent_sha" = "" ]
 
-  # Confirm they are not JSON null (jq -r returns "null" string for null).
-  parent_subject_raw="$(printf '%s' "$git_ctx" | jq '.head_parent_subject')"
-  parent_sha_raw="$(printf '%s' "$git_ctx" | jq '.head_parent_sha')"
-  [ "$parent_subject_raw" != "null" ]
-  [ "$parent_sha_raw" != "null" ]
+  # Confirm parent fields are JSON "" not JSON null (jq raw output of null = "null").
+  parent_subject_raw="$(jq '.git_context.head_parent_subject' "$CAPTURE_FILE")"
+  parent_sha_raw="$(jq '.git_context.head_parent_sha' "$CAPTURE_FILE")"
+  [ "$parent_subject_raw" = '""' ]
+  [ "$parent_sha_raw" = '""' ]
 }
