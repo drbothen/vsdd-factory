@@ -2970,6 +2970,55 @@ S-18.04b (PreCompact exemption + prune; BC-5.41.003; P0; 8pts; depends_on S-18.0
 
 ---
 
+## D-695 — S-18.04b-prereq LOCAL adversary pass-1 GOVERNANCE fix-burst — ADR-029 subsystem anchor + story T-7 scope correction — 2026-06-24
+
+**Decision:** S-18.04b-prereq LOCAL adversary pass-1 produced two findings requiring governance correction before the story proceeds to TDD:
+
+**MEDIUM-1 (story-decomposition scope error):** Story task T-7 ("Update hooks-registry.toml: add Bash PostToolUse entry for factory-artifacts git-commit detection") mis-scoped the registry trigger flip into S-18.04b-prereq. The registry trigger is the _consuming_ plugin side (S-18.04b), not the dispatcher injection side (S-18.04b-prereq). The implementation at d7dd4693 correctly deferred the registry flip to S-18.04b (consistent with ADR-029 §Decision 1 — dispatcher host side + §Decision 5 — consuming WASM plugin rewiring are distinct deliverables decomposed into separate stories). Story spec amended v1.0→v1.1: T-7 rewritten to defer trigger flip to S-18.04b; no behavioral AC changed.
+
+**O-1 (ADR-029 subsystem anchor error):** ADR-029 frontmatter (v1.0) cited subsystems SS-04 in anchors/subsystems_affected, but the prose §ARCH-INDEX section and ARCH-INDEX table row cited SS-03 as "dispatcher host". SS-03 is Event Emission (OTel-Aligned) — the dispatcher itself is SS-01 (Hook Dispatcher Core). ADR-029 amended v1.0→v1.1 by architect: frontmatter corrected to SS-01+SS-04; §ARCH-INDEX subsystem prose corrected. ARCH-INDEX table row updated: `SS-03 (dispatcher host)` → `SS-01 (dispatcher host)`, Subsystems cell `SS-03, SS-04` → `SS-01, SS-04`, version cite `ADR-029 v1.0` → `ADR-029 v1.1`.
+
+**Authorization for deferral:** This D-695 record IS the human-traceable authorization for the MEDIUM-1 deferral the adversary flagged as un-recorded in D-694. Per ADR-029 §Decision 1 (dispatcher host injection) and §Decision 5 (WASM plugin trigger rewiring), the registry flip is explicitly assigned to the consuming-plugin story S-18.04b. The story-writer erroneously placed it in S-18.04b-prereq at D-694; corrected here.
+
+**Actions taken:**
+- S-18.04b-prereq story v1.0→v1.1: T-7 amended — "DEFER registry trigger flip to S-18.04b per ADR-029 §Decision 1+§Decision 5 coupling"; File Structure section + Architecture Compliance section updated to match; no behavioral AC changed
+- ADR-029 v1.0→v1.1: frontmatter SS-04→SS-01+SS-04; §ARCH-INDEX subsystem prose corrected (SS-03→SS-01); last_amended annotation added
+- ARCH-INDEX v2.73→v2.74: ADR-029 row description `SS-03 (dispatcher host)` → `SS-01 (dispatcher host)`; Subsystems cell `SS-03, SS-04` → `SS-01, SS-04`; version cite `ADR-029 v1.0` → `ADR-029 v1.1`; frontmatter + changelog bumped
+- STORY-INDEX v4.64→v4.65: S-18.04b-prereq row annotation v1.0→v1.1; last_amended updated
+- STATE.md: governance fix-burst noted; Session Resume Checkpoint refreshed; 4-index updated
+- develop UNCHANGED: b0bc4ffd (governance-only; implementation at d7dd4693 on feature/S-18.04b-prereq)
+- No story_count change (story_count remains 123); no BC/VP count changes
+- 4-index: BC-INDEX v3.42 UNCHANGED / VP-INDEX v2.41 UNCHANGED / STORY-INDEX v4.64→v4.65 / ARCH-INDEX v2.73→v2.74
+
+**Lesson codified:** [process-gap] Prereq story tasks must not assign work that is tightly coupled to the dependent story's scope. The registry trigger flip (consuming-plugin WASM rewiring) is specified in ADR-029 §Decision 5 as part of S-18.04b; placing it in the prereq story created a scope-boundary violation. Story decomposition for tightly coupled ADR decisions must trace each sub-decision to the correct story at decomposition time. Recorded as L-BB-prereq-story-task-scope-boundary below.
+
+**4-index gate (literal-shell stdout 2026-06-24):**
+```
+grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md
+version: "3.42"
+
+grep "^version:" .factory/specs/verification-properties/VP-INDEX.md
+version: "2.41"
+
+grep "^version:" .factory/stories/STORY-INDEX.md
+version: "4.65"
+
+grep "^version:" .factory/specs/architecture/ARCH-INDEX.md
+version: "2.74"
+```
+
+Parity PASS: BC-INDEX v3.42 / VP-INDEX v2.41 / STORY-INDEX v4.65 / ARCH-INDEX v2.74.
+
+### Parent-commit
+
+See `git -C .factory log -1 --format='%h %s'` (D-694 GOVERNANCE BURST; TD-VSDD-053 single-commit per burst)
+
+### NEXT
+
+Re-run S-18.04b-prereq LOCAL adversary with fresh context after this governance fix (governance artifacts now correct: ADR-029 v1.1, story v1.1, ARCH-INDEX v2.74, STORY-INDEX v4.65). Then proceed to PR per story lifecycle. STOP-BEFORE-PR-MERGE (D-665) holds.
+
+---
+
 ## D-694 — S-18.04b re-architecture GOVERNANCE burst — ADR-029 dispatcher git_context injection — 2026-06-24
 
 **Decision:** LOCAL adversary pass on S-18.04b (validate-burst-log / validate-dispatch-advance PreCompact Exemption + precompact-flush-prune.sh) surfaced finding F-2: BC-5.41.003 required WASM hook to call `exec_subprocess(git log)` to inspect HEAD/HEAD^ commit subjects, violating the WASM sandbox exec-free constraint. Architect adjudicated; human chose Option A: dispatcher (host) injects git_context payload into hook input on PostToolUse Bash git-commit events targeting factory-artifacts worktree. WASM plugins read `payload.extra.git_context` instead of calling exec_subprocess. Option B (allow exec_subprocess in WASM for git-only calls) rejected — would create a precedent eroding the exec-free boundary. Option C (skip the SHA corroboration feature) rejected — production-grade default forbids capability deferral.

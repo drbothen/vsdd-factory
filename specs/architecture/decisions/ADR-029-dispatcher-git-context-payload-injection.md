@@ -1,8 +1,12 @@
 ---
+document_type: architecture-decision-record
+level: L3
 adr_id: ADR-029
+version: "1.1"
 title: "ADR-029: Dispatcher git-context payload injection for WASM chain-detection gates"
 status: proposed
-date: 2026-06-24
+producer: architect
+timestamp: 2026-06-24T00:00:00Z
 deciders:
   - architect
   - human (Option A approval)
@@ -14,7 +18,13 @@ related_adrs:
   - ADR-026 (wave-boundary checkpoint — defines PreCompact flush lifecycle and precompact-flush-log append-log)
   - ADR-002 (WASM plugin ABI — defines host function contract)
   - ADR-006 (host ABI version — governs HOST_ABI_VERSION bump policy)
-subsystem: SS-04
+anchors:
+  - SS-01
+  - SS-04
+subsystems_affected:
+  - SS-01
+  - SS-04
+last_amended: "2026-06-24 (v1.1) — O-1 subsystem anchor correction: frontmatter subsystem field corrected from SS-04 to SS-01+SS-04 (per ARCH-INDEX Subsystem Registry POLICY 6: SS-01=Hook Dispatcher Core owns crates/factory-dispatcher/src/invoke.rs; SS-04=Plugin Ecosystem owns the WASM plugin consumer side); §ARCH-INDEX subsystem prose corrected from erroneous SS-03 (Dispatcher Core) to SS-01 (Hook Dispatcher Core) + SS-04 (Plugin Ecosystem). Per-ARCH-INDEX registry: SS-01 Hook Dispatcher Core governs crates/factory-dispatcher/src/; SS-03 is Event Emission (OTel-Aligned), not the dispatcher. Consistent with BC-1.16.001 (subsystem: SS-01), VP-093 (scope: SS-01), and S-18.04b-prereq story (Subsystem: SS-01)."
 ---
 
 # ADR-029: Dispatcher git-context payload injection for WASM chain-detection gates
@@ -216,6 +226,13 @@ payload) until S-18.04b-prereq delivers the dispatcher injection.
 
 ## ARCH-INDEX subsystem
 
-SS-04 (WASM Hook Plugin Layer) — git_context injection straddles SS-04 (WASM
-plugin consumer) and the dispatcher host. The dispatcher is SS-03 (Dispatcher Core).
+SS-01 (Hook Dispatcher Core) + SS-04 (Plugin Ecosystem) — git_context injection
+straddles both subsystems. The dispatcher host-layer implementation (payload
+enrichment in `crates/factory-dispatcher/src/invoke.rs` and `src/main.rs`) belongs
+to SS-01 (Hook Dispatcher Core). The WASM plugin consumer side
+(`crates/hook-plugins/validate-burst-log/` and `crates/hook-plugins/validate-dispatch-advance/`
+reading `git_context` from `payload.extra`) belongs to SS-04 (Plugin Ecosystem).
 This ADR governs the contract between them; both subsystems are affected.
+
+Note: SS-03 is "Event Emission (OTel-Aligned)" (`crates/sink-core/`, `crates/sink-file/`
+and related sinks) — it is not the dispatcher. The dispatcher core is SS-01.

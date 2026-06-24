@@ -4969,3 +4969,26 @@ Concretely: `gh pr checks <PR>` must show every required leg as `pass` (not `pen
 **S-7.02 note:** This process-gap is anchored to a concrete follow-up (Drift Item + candidate story). It is NOT a tech-debt-register entry — the deferral is justified by requiring a gate story to be specced with proper BC authorship before implementation.
 
 **Cites:** D-691 DURABLE PAUSE REFINEMENT; D-692 post-merge burst; PR #201 (S-18.14); S-18.14 merged dfc76844 2026-06-23.
+
+---
+
+## L-BB-prereq-story-task-scope-boundary
+
+**Date:** 2026-06-24
+**Tags:** [process-gap] [story-decomposition] [adr-coupling]
+**Anchors:** D-695, S-18.04b-prereq v1.1, ADR-029 v1.1, S-18.04b
+
+**Lesson (codified):** Prereq story tasks must not assign work that is tightly coupled to the dependent story's scope. When an ADR decomposes a feature into distinct sub-decisions, each sub-decision must be traced to the correct story at decomposition time — not arbitrarily placed in the earliest-delivering story.
+
+**Failure mode:** At D-694, story-writer placed "Update hooks-registry.toml: add Bash PostToolUse entry for factory-artifacts git-commit detection" (T-7) in S-18.04b-prereq. But ADR-029 §Decision 5 explicitly assigns the consuming-plugin rewiring (registry trigger flip + WASM plugin reads git_context) to S-18.04b. The prereq story (S-18.04b-prereq) owns only the dispatcher host side (ADR-029 §Decision 1). The registry trigger flip requires S-18.04b's WASM plugin context — it cannot be meaningfully tested or merged standalone without the WASM plugin side present.
+
+**Root cause:** Story decomposition did not trace each ADR sub-decision to its authoritative story boundary. The decomposer placed all "registry-adjacent" work in the prereq without checking whether the registry change was semantically coupled to the consuming story's scope.
+
+**Gate (codified):** When decomposing an ADR into multiple stories, for each task/deliverable in the prereq story:
+1. Identify which ADR §Decision clause authorizes the task.
+2. Confirm the clause assigns the work to the prereq scope (not to a later story in the depends_on chain).
+3. If the clause assigns to a later story, defer the task explicitly in the prereq and cite the clause.
+
+**Consequence if violated:** Prereq stories accumulate tasks that belong to the dependent story, bloating prereq scope and creating mismatched ACs (the implementation correctly defers but the spec contradicts it — a spec/implementation drift that adversary catches as MEDIUM-1).
+
+**Cites:** D-695 governance fix-burst; ADR-029 §Decision 1 (dispatcher host injection) + §Decision 5 (consuming-plugin rewiring); S-18.04b-prereq v1.0→v1.1; adversary MEDIUM-1.
