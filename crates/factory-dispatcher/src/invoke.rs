@@ -1329,11 +1329,35 @@ impl GitContext {
 ///   be valid git state (whatever HEAD of factory-artifacts is), and WASM plugins treat
 ///   valid-but-irrelevant context as "pass" (fail-open).
 /// - Detection is heuristic (AC-010); exactness is not required.
-pub fn detect_git_commit_event(_payload: &crate::payload::HookPayload) -> bool {
-    todo!(
-        "S-18.04b-prereq T-1: detect PostToolUse Bash event with 'git commit' \
-         and '.factory' indicator in tool_input.command (ADR-029 §Decision 1+3)"
-    )
+pub fn detect_git_commit_event(payload: &crate::payload::HookPayload) -> bool {
+    // AC-004: non-PostToolUse events never qualify.
+    if payload.event_name != "PostToolUse" {
+        return false;
+    }
+    // AC-004: non-Bash tools never qualify; do NOT inspect command for non-Bash.
+    if payload.tool_name != "Bash" {
+        return false;
+    }
+    // AC-010: heuristic detection — command invokes git with the "commit" subcommand
+    // AND contains a ".factory" factory-artifacts worktree indicator.
+    //
+    // Detection: the command must contain "git" AND " commit" (space-prefixed to anchor
+    // "commit" as a git subcommand token rather than part of a -m "message" argument
+    // that merely mentions "commit"). The ".factory" indicator scopes to factory-artifacts.
+    //
+    // Examples that QUALIFY:
+    //   "git -C .factory commit -m ..."     → "git" + " commit" + ".factory" ✓
+    //   "git commit -C .factory -m ..."     → "git" + " commit" + ".factory" ✓
+    //
+    // Examples that do NOT qualify (EC-007/EC-008):
+    //   "git commit -m ..."                 → no ".factory" indicator ✗
+    //   "echo \"git commit\""               → no ".factory" indicator ✗
+    //   "git -C .factory push ..."          → no " commit" token ✗
+    let command = match payload.tool_input.get("command").and_then(|v| v.as_str()) {
+        Some(c) => c,
+        None => return false,
+    };
+    command.contains("git") && command.contains(" commit") && command.contains(".factory")
 }
 
 /// Execute the four git commands against the factory-artifacts worktree at
