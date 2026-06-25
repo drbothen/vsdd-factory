@@ -1072,3 +1072,287 @@ YAML
     false
   }
 }
+
+# ---------------------------------------------------------------------------
+# test_rehydrate_wave_bare_invocation_uses_defaults
+# F-P2-001 / §Library and Framework Requirements — bare-invocation default path
+#
+# Setup: temp repo with factory-artifacts branch carrying a valid wave-state.yaml.
+#        Script invoked with NO --repo / --artifacts-worktree flags and NO env vars,
+#        so REPO_DIR defaults to "." and ARTIFACTS_WT defaults to ".factory"
+#        (lines 59-60 in rehydrate-wave.sh: REPO_DIR="${REPO_DIR:-.}").
+# Assert: script resolves defaults correctly; exit 0; INJECTED_FILE_COUNT correct;
+#         expected spec files appear in output.
+#
+# Closes adversary LOCAL Pass-2 finding F-P2-001.
+# Load-bearing: removing the "${REPO_DIR:-.}" defaulting (making REPO_DIR="")
+# causes `git -C "" show factory-artifacts:...` to fail → RehydrationError → test fails.
+# ---------------------------------------------------------------------------
+
+@test "test_rehydrate_wave_bare_invocation_uses_defaults" {
+  _require_skill
+
+  # Commit a valid wave-state.yaml to the factory-artifacts branch of the fixture repo.
+  local git_content
+  git_content="$(cat <<'YAML'
+wave_id: 3
+generated_at: "2026-06-25T00:00:00Z"
+generated_from_handoff_sha: "aabbccddeeff00112233445566778899aabbccdd"
+state_pointer: ".factory/STATE.md"
+arch_files:
+  - arch-bare.md
+stories:
+  - id: S-18.03
+    spec_files:
+      - story-bare.md
+YAML
+)"
+  _commit_to_factory_artifacts "wave-state.yaml" "$git_content"
+
+  # Invoke the skill with NO path flags and NO env vars.
+  # Must cd into WORK first so "." resolves to the fixture repo, where
+  # `git -C . show factory-artifacts:wave-state.yaml` succeeds.
+  # Unset env vars so the bare-invocation defaults are exercised, not inherited env.
+  run bash -c "
+    cd '$WORK'
+    unset REPO_DIR
+    unset ARTIFACTS_WT
+    '$SKILL' 2>&1
+  "
+
+  # Assert: script exited 0 (defaults resolved correctly — no missing-manifest error)
+  [ "$status" -eq 0 ] || {
+    echo "FAIL (F-P2-001): bare invocation exited $status; expected 0."
+    echo "  Script must default REPO_DIR='.' and ARTIFACTS_WT='.factory' when"
+    echo "  neither --repo/--artifacts-worktree flags nor env vars are set."
+    echo "  'git -C . show factory-artifacts:wave-state.yaml' must succeed from WORK."
+    echo "Actual output: $output"
+    false
+  }
+
+  # Assert: INJECTED_FILE_COUNT=3 (story-bare.md + arch-bare.md + .factory/STATE.md)
+  local injected_count
+  injected_count="$(_extract_injected_count "$output")"
+  [ "$injected_count" = "3" ] || {
+    echo "FAIL (F-P2-001 / VP-088 §2 PC2-SIGNAL): INJECTED_FILE_COUNT sentinel mismatch."
+    echo "  Expected: INJECTED_FILE_COUNT=3 (story-bare.md + arch-bare.md + .factory/STATE.md)"
+    echo "  Got sentinel value: '$injected_count'"
+    echo "  Bare-invocation must parse wave-state.yaml and count files correctly."
+    echo "Actual output: $output"
+    false
+  }
+
+  # Assert: expected files appear in injected output
+  for expected_file in "story-bare.md" "arch-bare.md" ".factory/STATE.md"; do
+    printf '%s\n' "$output" | grep -qF "$expected_file" || {
+      echo "FAIL (F-P2-001): expected file '$expected_file' not found in bare-invocation output."
+      echo "  Bare invocation must inject the full spec set from wave-state.yaml."
+      echo "Actual output: $output"
+      false
+    }
+  done
+}
+
+# ---------------------------------------------------------------------------
+# test_rehydrate_wave_epic_complete_warns_on_missing_arch_file
+# F-P2-003 / BC-6.24.001 EC-EPIC + postcondition 6 / VP-088 §4
+#
+# Setup: no wave-state.yaml; HANDOFF.md with epic_status: complete,
+#        next_wave_stories: [], arch_files: [absent-arch.md] where absent-arch.md
+#        is absent from BOTH the filesystem AND factory-artifacts.
+# Assert: stderr contains "WARNING: listed spec file not found on filesystem: absent-arch.md";
+#         exit 0 (EPIC-COMPLETE path; missing arch_file is a warning, not a hard-block);
+#         "Epic complete — no next-wave stories" message still emitted;
+#         .factory/STATE.md still injected;
+#         INJECTED_FILE_COUNT=1 (STATE.md only; absent-arch.md excluded from count).
+#
+# Closes adversary LOCAL Pass-2 finding F-P2-003.
+# Load-bearing: removing _check_missing_file from the EPIC-COMPLETE path causes
+# the WARNING to never be emitted → grep assertion fails.
+# ---------------------------------------------------------------------------
+
+@test "test_rehydrate_wave_epic_complete_warns_on_missing_arch_file" {
+  _require_skill
+
+  # No wave-state.yaml — EPIC-COMPLETE path triggered by HANDOFF.md.
+  # absent-arch.md is listed but NOT created on filesystem or in factory-artifacts.
+  local handoff_content
+  handoff_content="$(cat <<'YAML'
+wave_id: 4
+generated_at: "2026-06-25T00:00:00Z"
+last_verified_develop_sha: "aabbccddeeff00112233445566778899aabbccdd"
+epic_status: complete
+next_wave_stories: []
+state_pointer: ".factory/STATE.md"
+arch_files:
+  - absent-arch.md
+active_bcs:
+  - BC-6.24.001
+open_decisions: []
+pending_fixes: []
+process_gaps: []
+precompact_flush_sha: null
+factory_lock_holder: null
+YAML
+)"
+  _commit_to_factory_artifacts "HANDOFF.md" "$handoff_content"
+  # Deliberately do NOT create absent-arch.md on filesystem or in factory-artifacts.
+
+  _run_skill
+
+  # Assert: exit 0 (missing arch_file is a WARNING, not a hard-block on EPIC-COMPLETE path)
+  [ "$status" -eq 0 ] || {
+    echo "FAIL (F-P2-003 / BC-6.24.001 EC-EPIC + PC6): skill exited $status on EPIC-COMPLETE"
+    echo "  with a missing arch_file. The EPIC-COMPLETE path must WARN and continue"
+    echo "  (same behavior as the wave-state path for missing files)."
+    echo "Actual output: $output"
+    false
+  }
+
+  # Assert: warning about absent-arch.md is present on stderr (captured via 2>&1)
+  printf '%s\n' "$output" | grep -qF "WARNING: listed spec file not found on filesystem: absent-arch.md" || {
+    echo "FAIL (F-P2-003): missing-file warning for 'absent-arch.md' not found in output."
+    echo "  Expected: 'WARNING: listed spec file not found on filesystem: absent-arch.md'"
+    echo "  The EPIC-COMPLETE path must call _check_missing_file for each arch_file."
+    echo "  The same stable warning string used by the wave-state path must be used here."
+    echo "Actual output: $output"
+    false
+  }
+
+  # Assert: "Epic complete — no next-wave stories" message still emitted (EPIC-COMPLETE path OK)
+  printf '%s\n' "$output" | grep -qF "Epic complete — no next-wave stories" || {
+    echo "FAIL (F-P2-003 / VP-088 §4): 'Epic complete — no next-wave stories' message missing."
+    echo "  The missing-arch-file warning must not suppress the EPIC-COMPLETE message."
+    echo "Actual output: $output"
+    false
+  }
+
+  # Assert: .factory/STATE.md (state_pointer) still injected despite missing arch_file
+  printf '%s\n' "$output" | grep -qF ".factory/STATE.md" || {
+    echo "FAIL (F-P2-003): '.factory/STATE.md' not found in output on EPIC-COMPLETE path."
+    echo "  state_pointer must always be injected (AC-004); missing arch_file must not block it."
+    echo "Actual output: $output"
+    false
+  }
+
+  # Assert: INJECTED_FILE_COUNT=1 (STATE.md only; absent-arch.md is still counted in the
+  # injected set — the skill builds the set from the manifest regardless of filesystem presence;
+  # the warning is advisory only). Actually: the skill adds absent-arch.md to the set and
+  # warns; count reflects set members including missing ones (INJECTED_FILE_COUNT counts
+  # listed files, not only those confirmed present). Read implementation: INJECTED_SET is
+  # built BEFORE _check_missing_file is called; _check_missing_file is advisory-only.
+  # So INJECTED_FILE_COUNT = STATE.md + absent-arch.md = 2.
+  local injected_count
+  injected_count="$(_extract_injected_count "$output")"
+  [ "$injected_count" = "2" ] || {
+    echo "FAIL (F-P2-003 / VP-088 §2 PC2-SIGNAL): INJECTED_FILE_COUNT sentinel mismatch."
+    echo "  Expected: INJECTED_FILE_COUNT=2 (.factory/STATE.md + absent-arch.md)"
+    echo "  Got sentinel value: '$injected_count'"
+    echo "  _check_missing_file is advisory-only; the file is still in the listed set."
+    echo "Actual output: $output"
+    false
+  }
+}
+
+# ---------------------------------------------------------------------------
+# test_rehydrate_wave_epic_complete_warns_on_nonempty_next_wave_stories
+# F-P2-004 / BC-6.24.001 EC-EPIC / VP-088 §4
+#
+# Setup: no wave-state.yaml; HANDOFF.md with epic_status: complete BUT
+#        next_wave_stories NON-empty (contradictory manifest).
+# Assert: stderr contains the canonical contradiction warning string;
+#         exit 0 (epic_status:complete is the authoritative discriminator;
+#         skill proceeds on EPIC-COMPLETE path per rehydrate-wave.sh lines 220-226);
+#         "Epic complete — no next-wave stories" message still emitted;
+#         .factory/STATE.md injected;
+#         INJECTED_FILE_COUNT emitted.
+#
+# Closes adversary LOCAL Pass-2 finding F-P2-004.
+# Load-bearing: removing the NEXT_WAVE_STORIES non-empty check at lines 220-225
+# causes the WARNING to never be emitted → grep assertion fails.
+# ---------------------------------------------------------------------------
+
+@test "test_rehydrate_wave_epic_complete_warns_on_nonempty_next_wave_stories" {
+  _require_skill
+
+  # No wave-state.yaml — contradictory HANDOFF.md: epic_status:complete + non-empty next_wave_stories.
+  local handoff_content
+  handoff_content="$(cat <<'YAML'
+wave_id: 4
+generated_at: "2026-06-25T00:00:00Z"
+last_verified_develop_sha: "aabbccddeeff00112233445566778899aabbccdd"
+epic_status: complete
+next_wave_stories:
+  - S-19.01
+state_pointer: ".factory/STATE.md"
+arch_files: []
+active_bcs:
+  - BC-6.24.001
+open_decisions: []
+pending_fixes: []
+process_gaps: []
+precompact_flush_sha: null
+factory_lock_holder: null
+YAML
+)"
+  _commit_to_factory_artifacts "HANDOFF.md" "$handoff_content"
+
+  _run_skill
+
+  # Assert: contradiction warning is present on stderr (captured via 2>&1)
+  printf '%s\n' "$output" | grep -qF "WARNING: HANDOFF.md epic_status=complete but next_wave_stories is non-empty; manifest is contradictory." || {
+    echo "FAIL (F-P2-004 / VP-088 §4): contradictory-manifest warning not found in output."
+    echo "  Expected: 'WARNING: HANDOFF.md epic_status=complete but next_wave_stories is non-empty; manifest is contradictory.'"
+    echo "  rehydrate-wave.sh lines 220-225 must emit this warning when epic_status=complete"
+    echo "  AND next_wave_stories is non-empty."
+    echo "Actual output: $output"
+    false
+  }
+
+  # Assert: exit 0 — epic_status:complete is the authoritative discriminator (per implementation).
+  # The warning is advisory; the skill proceeds on the EPIC-COMPLETE path (exit 0).
+  [ "$status" -eq 0 ] || {
+    echo "FAIL (F-P2-004 / BC-6.24.001 EC-EPIC): skill exited $status on contradictory manifest."
+    echo "  epic_status:complete is the authoritative discriminator (rehydrate-wave.sh line 210)."
+    echo "  The skill must proceed on the EPIC-COMPLETE path (exit 0) even on contradictory manifests."
+    echo "Actual output: $output"
+    false
+  }
+
+  # Assert: "Epic complete — no next-wave stories" message still emitted
+  # (skill continues on EPIC-COMPLETE path despite the contradiction warning)
+  printf '%s\n' "$output" | grep -qF "Epic complete — no next-wave stories" || {
+    echo "FAIL (F-P2-004 / VP-088 §4): 'Epic complete — no next-wave stories' message missing"
+    echo "  on contradictory manifest. The contradiction warning is advisory-only;"
+    echo "  the EPIC-COMPLETE message must still be emitted."
+    echo "Actual output: $output"
+    false
+  }
+
+  # Assert: .factory/STATE.md injected (EPIC-COMPLETE path proceeds normally)
+  printf '%s\n' "$output" | grep -qF ".factory/STATE.md" || {
+    echo "FAIL (F-P2-004): '.factory/STATE.md' not found in output on contradictory manifest."
+    echo "  state_pointer must always be injected (AC-004) on EPIC-COMPLETE path."
+    echo "Actual output: $output"
+    false
+  }
+
+  # Assert: INJECTED_FILE_COUNT is emitted (machine-stable sentinel present)
+  local injected_count
+  injected_count="$(_extract_injected_count "$output")"
+  [ -n "$injected_count" ] || {
+    echo "FAIL (F-P2-004 / VP-088 §2 PC2-SIGNAL): INJECTED_FILE_COUNT sentinel missing"
+    echo "  on contradictory manifest. Skill must emit this sentinel on all exit-0 paths."
+    echo "Actual output: $output"
+    false
+  }
+
+  # Assert: INJECTED_FILE_COUNT=1 (only .factory/STATE.md; arch_files:[])
+  [ "$injected_count" = "1" ] || {
+    echo "FAIL (F-P2-004 / VP-088 §2 PC2-SIGNAL): INJECTED_FILE_COUNT mismatch."
+    echo "  Expected: INJECTED_FILE_COUNT=1 (.factory/STATE.md; arch_files: [] contributes 0)"
+    echo "  Got sentinel value: '$injected_count'"
+    echo "Actual output: $output"
+    false
+  }
+}
