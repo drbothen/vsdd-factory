@@ -81,6 +81,7 @@ GATE_HOOKS=(
     update-cargo-audit-cache
     check-harness-version
     precompact-flush-prune
+    postcompact-reanchor
   )
 
   # On-disk: every hooks/*.sh basename without extension, minus the

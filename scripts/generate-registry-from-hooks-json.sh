@@ -73,6 +73,9 @@ POST_HISTORICAL_SCRIPTS=(
   # S-18.00: PreCompact hook — uses PreCompact event type not present in the
   # historical hooks.json snapshot; registered directly in hooks-registry.toml.
   check-harness-version
+  # S-18.05: PostCompact hook — uses PostCompact event type not present in the
+  # historical hooks.json snapshot; registered directly in hooks-registry.toml.
+  postcompact-reanchor
 )
 
 # Utility scripts under hooks/ that are NOT hook plugins and must NEVER be

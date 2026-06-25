@@ -1,18 +1,23 @@
 #!/usr/bin/env bats
-# postcompact-reanchor.bats — Red Gate bats test suite for S-18.05
+# postcompact-reanchor.bats — Realigned bats test suite for S-18.05
+#                             (LOCAL adversary Pass-1 fix burst)
 #
-# All 8 tests MUST FAIL before the hook is implemented (Red Gate discipline).
-# Hook invocation convention (from precompact-routing.bats precedent):
-#   The hook is a bash script that receives a JSON PostCompact event envelope on stdin.
-#   Invocation: printf '%s' '<json-envelope>' | bash <hook-script>
+# Contract changes versus original Red Gate version:
+#   F-P1-001: SHA from git rev-parse refs/remotes/origin/develop — fixture
+#             repos must expose that ref; tests assert the git-rev-parse value.
+#   F-P1-002: STATE.md fixtures carry NO last_verified_develop_sha field —
+#             field was never real; removed from all fixtures to close false-green.
+#   F-P1-003: AC-002 log field rename last_verified_develop_sha → develop_sha.
+#   F-P1-005: AC-010 asserts the FULL ADR-026 §Decision 7 v1.25 capabilities
+#             block, bounded to the single [[hooks]] stanza.
+#   F-P1-006: New test for EC-005 (mkdir-p fails path), explicit AC-003 coverage.
+#
+# Hook invocation convention:
+#   printf '%s' '<json-envelope>' | bash <hook-script>
 #   JSON envelope: {"event_name":"PostCompact","tool_name":"","session_id":"<id>","tool_input":{}}
-#   The hook reads from factory-artifacts via: git show factory-artifacts:.factory/STATE.md
+#   Hook reads from factory-artifacts via: git show factory-artifacts:.factory/STATE.md
+#   Hook sources develop SHA via: git rev-parse refs/remotes/origin/develop
 #   Hook writes JSONL log to: .factory/logs/postcompact-reanchor-YYYY-MM-DD.jsonl
-#   (relative to CWD, which the tests set to WORK via cd inside the run call)
-#
-# Red Gate: stub at plugins/vsdd-factory/hooks/postcompact-reanchor.sh prints
-#   "not implemented" and exits 1. Every assertion below fails against the stub
-#   for an assertion reason, not a bats syntax error.
 #
 # Tests:
 #   1. test_postcompact_reanchor_emits_anchor_block_with_git_sourced_values   (AC-001)
@@ -23,6 +28,8 @@
 #   6. test_postcompact_reanchor_exits_0_on_all_error_paths                   (AC-008)
 #   7. test_postcompact_reanchor_values_are_git_sourced_not_in_context        (AC-009)
 #   8. test_postcompact_reanchor_registry_entry_has_correct_shape             (AC-010)
+#   9. test_postcompact_reanchor_cannot_block_advisory_only                   (AC-003)
+#  10. test_postcompact_reanchor_exits_0_when_log_dir_mkdir_fails             (EC-005)
 #
 # BC: BC-7.07.002 v1.12
 # VP: VP-089 v1.0
@@ -65,20 +72,22 @@ teardown() {
 # ---------------------------------------------------------------------------
 # Git fixture helper: _init_factory_artifacts_fixture
 #
-# Creates a git repository at $WORK/repo with:
+# Creates a git repository at a fresh tmpdir with:
 #   - develop branch (main repo HEAD)
 #   - factory-artifacts branch containing .factory/STATE.md with caller-supplied content
+#   - refs/remotes/origin/develop pointing at a KNOWN sha (FIXTURE_DEVELOP_SHA)
 #
-# The hook reads STATE.md via: git show factory-artifacts:.factory/STATE.md
-# This requires that from the CWD the git repo is accessible (or GIT_DIR is set).
-# We set GIT_DIR=$WORK/repo/.git and run the hook from $WORK so that:
-#   git show factory-artifacts:.factory/STATE.md
-# resolves the branch correctly.
+# The hook reads STATE.md via:  git show factory-artifacts:.factory/STATE.md
+# The hook reads develop SHA via: git rev-parse refs/remotes/origin/develop
+#
+# Both operations require GIT_DIR=$REPO_DIR/.git to be set when running from $WORK.
 #
 # Args:
 #   $1 - state_md_content: full text of .factory/STATE.md to place on factory-artifacts
 #
-# Sets REPO_DIR (path to the git repo).
+# Sets:
+#   REPO_DIR            — path to the git repo
+#   FIXTURE_DEVELOP_SHA — the SHA stored in refs/remotes/origin/develop
 # ---------------------------------------------------------------------------
 _init_factory_artifacts_fixture() {
   local state_md_content="$1"
@@ -94,6 +103,20 @@ _init_factory_artifacts_fixture() {
   HOME="$FAKE_HOME" git init "$REPO_DIR" >/dev/null 2>&1
   git -c user.name="Test Agent" -c user.email="test@factory.local" \
     -C "$REPO_DIR" commit --allow-empty -m "init develop" >/dev/null 2>&1
+
+  # Capture the develop HEAD SHA — this becomes the simulated origin/develop ref.
+  # The hook calls: git rev-parse refs/remotes/origin/develop
+  # We create that ref pointing at the develop HEAD.
+  local develop_head
+  develop_head=$(git -C "$REPO_DIR" rev-parse HEAD)
+
+  # Create refs/remotes/origin/develop pointing at develop HEAD (F-P1-001).
+  # This is the ref the hook reads for the develop SHA.
+  git -C "$REPO_DIR" update-ref refs/remotes/origin/develop "$develop_head" >/dev/null 2>&1
+
+  # Export the expected SHA so individual tests can assert on it.
+  FIXTURE_DEVELOP_SHA="$develop_head"
+  export FIXTURE_DEVELOP_SHA
 
   # Create factory-artifacts branch with .factory/STATE.md content
   git -C "$REPO_DIR" checkout -b factory-artifacts >/dev/null 2>&1
@@ -128,13 +151,15 @@ _run_hook() {
   run bash -c "cd '$WORK' && printf '%s' '{\"event_name\":\"PostCompact\",\"tool_name\":\"\",\"session_id\":\"bats-test\",\"tool_input\":{}}' | $env_prefix bash '$HOOK_SCRIPT' 2>&1"
 }
 
-# Standard STATE.md fixture content with known values (AC-001 canonical test vector)
+# ---------------------------------------------------------------------------
+# STATE.md fixture: happy path (F-P1-002: NO last_verified_develop_sha field).
+# Develop SHA comes from git rev-parse refs/remotes/origin/develop — not STATE.md.
+# ---------------------------------------------------------------------------
 _STATE_MD_HAPPY="---
 document_type: state
 version: \"0.0.1-test\"
 current_cycle: v1.0-feature-context-durability-E18
 current_step: S-18.04
-last_verified_develop_sha: abc123def456
 ---
 
 # STATE (bats test fixture)
@@ -147,12 +172,13 @@ last_verified_develop_sha: abc123def456
 # BC-7.07.002 postcondition 1: re-anchor block to stdout; git-sourced; correct format.
 # VP-089 §1 Stdout Re-Anchor Block.
 #
-# Red Gate: stub exits 1; stdout is "not implemented" — neither the
-# [PostCompact Re-anchor] line nor the Source line appear; test fails.
+# F-P1-001: SHA asserted from FIXTURE_DEVELOP_SHA (git rev-parse), not STATE.md field.
+# F-P1-002: _STATE_MD_HAPPY has no last_verified_develop_sha field.
 # ---------------------------------------------------------------------------
 
 @test "test_postcompact_reanchor_emits_anchor_block_with_git_sourced_values" {
-  # Setup: factory-artifacts STATE.md has known current_cycle, current_step, sha
+  # Setup: factory-artifacts STATE.md with known current_cycle/current_step;
+  # refs/remotes/origin/develop is wired to a known SHA by _init_factory_artifacts_fixture.
   _init_factory_artifacts_fixture "$_STATE_MD_HAPPY"
 
   _run_hook
@@ -160,8 +186,12 @@ last_verified_develop_sha: abc123def456
   # Assert: exit 0 (hook must not fail)
   [ "$status" -eq 0 ]
 
-  # Assert: stdout contains the canonical re-anchor line (BC-7.07.002 PC1 format)
-  [[ "$output" == *"[PostCompact Re-anchor] context=v1.0-feature-context-durability-E18/S-18.04 sha=abc123def456"* ]]
+  # Assert: stdout contains context= from STATE.md (current_cycle/current_step)
+  [[ "$output" == *"[PostCompact Re-anchor] context=v1.0-feature-context-durability-E18/S-18.04"* ]]
+
+  # Assert: stdout contains sha= with the git-rev-parse value (FIXTURE_DEVELOP_SHA),
+  # NOT a hard-coded value from a STATE.md field (F-P1-001 load-bearing).
+  [[ "$output" == *"sha=${FIXTURE_DEVELOP_SHA}"* ]]
 
   # Assert: stdout contains the Source line
   [[ "$output" == *"Source: factory-artifacts STATE.md"* ]]
@@ -177,7 +207,7 @@ last_verified_develop_sha: abc123def456
 # BC-7.07.002 postcondition 2: log appended; exactly 6 fields; no wave_id.
 # VP-089 §2 Log Entry Appended.
 #
-# Red Gate: stub exits 1; no log file written; all jq assertions fail.
+# F-P1-003: log field is .develop_sha (renamed from .last_verified_develop_sha).
 # ---------------------------------------------------------------------------
 
 @test "test_postcompact_reanchor_appends_jsonl_log_with_correct_fields_no_wave_id" {
@@ -207,13 +237,23 @@ last_verified_develop_sha: abc123def456
   # Assert: valid JSON (jq can parse it)
   echo "$log_line" | jq -e '.' >/dev/null 2>&1
 
-  # Assert: all 6 required fields are present
-  echo "$log_line" | jq -e '.event'                     >/dev/null 2>&1
-  echo "$log_line" | jq -e '.current_cycle'             >/dev/null 2>&1
-  echo "$log_line" | jq -e '.current_step'              >/dev/null 2>&1
-  echo "$log_line" | jq -e '.last_verified_develop_sha' >/dev/null 2>&1
-  echo "$log_line" | jq -e '.timestamp'                 >/dev/null 2>&1
-  echo "$log_line" | jq -e '.status'                    >/dev/null 2>&1
+  # Assert: all 6 required fields are present (F-P1-003: develop_sha not last_verified_develop_sha)
+  echo "$log_line" | jq -e '.event'          >/dev/null 2>&1
+  echo "$log_line" | jq -e '.current_cycle'  >/dev/null 2>&1
+  echo "$log_line" | jq -e '.current_step'   >/dev/null 2>&1
+  echo "$log_line" | jq -e '.develop_sha'    >/dev/null 2>&1
+  echo "$log_line" | jq -e '.timestamp'      >/dev/null 2>&1
+  echo "$log_line" | jq -e '.status'         >/dev/null 2>&1
+
+  # Assert: the old field name is NOT present (F-P1-003 load-bearing — would catch revert)
+  local has_old_field
+  has_old_field=$(echo "$log_line" | jq 'has("last_verified_develop_sha")')
+  [ "$has_old_field" = "false" ]
+
+  # Assert: develop_sha equals the git-rev-parse value, not a STATE.md literal (F-P1-001)
+  local sha_val
+  sha_val=$(echo "$log_line" | jq -r '.develop_sha')
+  [ "$sha_val" = "$FIXTURE_DEVELOP_SHA" ]
 
   # Assert: status is "ok" on happy path
   local status_val
@@ -221,17 +261,14 @@ last_verified_develop_sha: abc123def456
   [ "$status_val" = "ok" ]
 
   # Assert: wave_id is ABSENT (BC-7.07.002 PC2 no wave_id)
-  # jq -e '.wave_id' exits non-zero when the key is null or absent.
-  if echo "$log_line" | jq -e '.wave_id' >/dev/null 2>&1; then
-    # If wave_id exists and is not null, that is a specification violation
-    local wave_id_val
-    wave_id_val=$(echo "$log_line" | jq -r '.wave_id')
-    [ "$wave_id_val" = "null" ]
-  fi
-  # Explicit key-absence check: the field must not appear in the JSON object keys
   local has_wave_id
   has_wave_id=$(echo "$log_line" | jq 'has("wave_id")')
   [ "$has_wave_id" = "false" ]
+
+  # Assert: exactly 6 keys in the JSON object (no extra fields)
+  local key_count
+  key_count=$(echo "$log_line" | jq 'keys | length')
+  [ "$key_count" -eq 6 ]
 }
 
 # ---------------------------------------------------------------------------
@@ -240,18 +277,6 @@ last_verified_develop_sha: abc123def456
 #
 # BC-7.07.002 postcondition 4 + invariant 1: read-only on factory-artifacts.
 # VP-089 §3 No factory-artifacts Commits.
-#
-# Red Gate part A — HEAD check: stub exits 1 before any git operations;
-#   HEAD_BEFORE == HEAD_AFTER is satisfied (trivially), so this assertion alone
-#   doesn't fail the test. However:
-# Red Gate part B — source grep: stub says "not implemented"; no `git commit`
-#   in hook source is actually correct for the stub (stub has none). So part B
-#   passes vacuously.
-# BUT part A: stub exits 1 → [ "$status" -eq 0 ] fails. This is the Red Gate
-#   assertion that makes the test fail.
-#
-# After implementation: both A (HEAD unchanged) and B (no git commit in source)
-#   must pass with exit 0.
 # ---------------------------------------------------------------------------
 
 @test "test_postcompact_reanchor_does_not_commit_to_factory_artifacts" {
@@ -274,7 +299,6 @@ last_verified_develop_sha: abc123def456
 
   # Assert: hook source does NOT contain any git write commands targeting factory-artifacts
   # (BC-7.07.002 invariant 1 absolute prohibition; load-bearing source check)
-  # Check for the forbidden patterns in the hook source file
   [ -f "$HOOK_SCRIPT" ]
   ! grep -qE '^[^#]*git (commit|push|add)[^|&;]*factory.artifacts' "$HOOK_SCRIPT"
   ! grep -qE '^[^#]*git -C[^|&;]*(commit|push)[^|&;]+factory.artifacts' "$HOOK_SCRIPT"
@@ -286,8 +310,6 @@ last_verified_develop_sha: abc123def456
 #
 # BC-7.07.002 postcondition 5 + EC-002: fail-open on factory-artifacts unreachable.
 # VP-089 §4 Exit 0 on All Error Paths.
-#
-# Red Gate: stub exits 1 → [ "$status" -eq 0 ] fails.
 # ---------------------------------------------------------------------------
 
 @test "test_postcompact_reanchor_exits_0_and_warns_on_factory_artifacts_unreachable" {
@@ -327,8 +349,6 @@ last_verified_develop_sha: abc123def456
 # BC-7.07.002 EC-003: STATE.md present but current_cycle/current_step absent →
 #   emit context=UNKNOWN; log status=warn; exit 0.
 # VP-089 §4 Exit 0 on All Error Paths.
-#
-# Red Gate: stub exits 1 → [ "$status" -eq 0 ] fails.
 # ---------------------------------------------------------------------------
 
 @test "test_postcompact_reanchor_emits_context_unknown_when_fields_absent" {
@@ -371,7 +391,6 @@ version: \"0.0.1-test\"
 # VP-089 §4 Exit 0 on All Error Paths.
 #
 # Tests three error scenarios in sequence; each must exit 0.
-# Red Gate: stub exits 1 on every path → first scenario fails immediately.
 # ---------------------------------------------------------------------------
 
 @test "test_postcompact_reanchor_exits_0_on_all_error_paths" {
@@ -389,8 +408,9 @@ document_type: state
   _run_hook
   [ "$status" -eq 0 ] # MUST exit 0
 
-  # --- Scenario C: .factory/logs/ directory not writable ---
-  # Setup valid STATE.md but make logs/ directory unwritable
+  # --- Scenario C: .factory/logs/ directory not writable (append-path EC-005 branch) ---
+  # Setup valid STATE.md but make logs/ directory unwritable so the append fails.
+  # This exercises the append-failure path (dir exists but is not writable).
   _init_factory_artifacts_fixture "$_STATE_MD_HAPPY"
   chmod 000 "$WORK/.factory/logs" 2>/dev/null || true
   _run_hook
@@ -407,24 +427,23 @@ document_type: state
 # BC-7.07.002 invariant 2: values must come from git, not env vars or in-context.
 # VP-089 §1 git-sourced, not in-context.
 #
-# Setup: factory-artifacts STATE.md has current_cycle: A
+# Setup: factory-artifacts STATE.md has current_cycle: A (git value; NO sha field)
 #        env var CURRENT_CYCLE=B is set (stale in-memory value)
 # Assert: output contains context=A/... (git value wins)
 #         output does NOT contain context=B/... (env var ignored)
+#         sha= in output equals FIXTURE_DEVELOP_SHA (git rev-parse value, not env)
 #         output does NOT contain "current_wave" (phantom field)
 #
-# Red Gate: stub exits 1 → [ "$status" -eq 0 ] fails.
-# This test is LOAD-BEARING: it verifies the core git-sourced invariant.
+# F-P1-002: state_md_cycle_a has NO last_verified_develop_sha field.
 # ---------------------------------------------------------------------------
 
 @test "test_postcompact_reanchor_values_are_git_sourced_not_in_context" {
-  # Setup: factory-artifacts STATE.md has current_cycle: A (git value)
+  # Setup: factory-artifacts STATE.md has current_cycle: A (git value; no sha field)
   local state_md_cycle_a="---
 document_type: state
 version: \"0.0.1-test\"
 current_cycle: A
 current_step: step-from-git
-last_verified_develop_sha: sha-from-git-000
 ---
 
 # STATE — current_cycle is A (git value; env var says B — hook must use A)
@@ -441,6 +460,10 @@ last_verified_develop_sha: sha-from-git-000
   [[ "$output" == *"context=A/"* ]]
   [[ "$output" != *"context=B/"* ]]
 
+  # Assert: sha= in output equals the git rev-parse value (not env-supplied)
+  # FIXTURE_DEVELOP_SHA is the actual refs/remotes/origin/develop SHA from the fixture.
+  [[ "$output" == *"sha=${FIXTURE_DEVELOP_SHA}"* ]]
+
   # Assert: no "current_wave" in output (phantom field prohibition — BC-7.07.002 Inv2)
   [[ "$output" != *"current_wave"* ]]
   [[ "$output" != *"wave="* ]]
@@ -451,10 +474,16 @@ last_verified_develop_sha: sha-from-git-000
 # test_postcompact_reanchor_registry_entry_has_correct_shape
 #
 # BC-7.07.002 precondition 1: hooks-registry.toml PostCompact entry must exist
-#   with the canonical shape.
+#   with the FULL ADR-026 §Decision 7 v1.25 canonical shape.
 #
-# Red Gate: registry entry does not exist yet → grep fails → test fails.
-# This test exercises the registry shape, not the hook runtime.
+# F-P1-005: asserts the complete capabilities block including:
+#   - env_allow exact 8-element list
+#   - exec_subprocess: binary_allow ["bash","git","jq"] + shell_bypass_acknowledged
+#   - write_file path_allow [".factory/logs/"]
+#   - GIT_DIR is NOT present
+#
+# Block extraction is bounded to the single [[hooks]] stanza so extra-key bleed
+# from an adjacent entry does not mask a missing field in this entry.
 # ---------------------------------------------------------------------------
 
 @test "test_postcompact_reanchor_registry_entry_has_correct_shape" {
@@ -462,25 +491,134 @@ last_verified_develop_sha: sha-from-git-000
   [ -f "$REGISTRY" ]
 
   # Assert: postcompact-reanchor entry exists in registry
-  # (This will fail at Red Gate because T-3 has not added the entry yet)
   grep -q 'name = "postcompact-reanchor"' "$REGISTRY"
 
-  # Extract the [[hooks]] block for postcompact-reanchor (up to 20 lines)
+  # Extract the single [[hooks]] stanza for postcompact-reanchor.
+  # Strategy: awk between the [[hooks]] line containing postcompact-reanchor
+  # and the next [[hooks]] line (or EOF), so adjacent entries cannot bleed in.
   local block
-  block=$(grep -A 20 'name = "postcompact-reanchor"' "$REGISTRY")
+  block=$(awk '
+    /^\[\[hooks\]\]/ { in_block=0 }
+    /name = "postcompact-reanchor"/ { in_block=1 }
+    in_block { print }
+    /name = "postcompact-reanchor"/ { next }
+    in_block && /^\[\[hooks\]\]/ { in_block=0 }
+  ' "$REGISTRY")
 
-  # Assert: event = "PostCompact" (correct event)
+  # The awk above captures from the [[hooks]] line (which resets in_block=0 first,
+  # then is caught again when name matches). Re-extract cleanly: emit from the
+  # [[hooks]] that precedes postcompact-reanchor through the next [[hooks]].
+  block=$(awk '
+    BEGIN { found=0; printing=0 }
+    /^\[\[hooks\]\]/ {
+      if (printing) { exit }
+      found=0
+    }
+    /name = "postcompact-reanchor"/ { found=1; printing=1 }
+    found || printing { print }
+  ' "$REGISTRY")
+
+  # -- Core fields --
+  echo "$block" | grep -q 'name = "postcompact-reanchor"'
   echo "$block" | grep -q 'event = "PostCompact"'
-
-  # Assert: on_error = "continue" (mandatory per BC-7.07.002 PC6)
-  echo "$block" | grep -q 'on_error = "continue"'
-
-  # Assert: plugin = "hook-plugins/legacy-bash-adapter.wasm" (correct adapter)
   echo "$block" | grep -q 'plugin = "hook-plugins/legacy-bash-adapter.wasm"'
+  echo "$block" | grep -q 'priority = 100'
+  echo "$block" | grep -q 'timeout_ms = 10000'
+  echo "$block" | grep -q 'on_error = "continue"'
+  echo "$block" | grep -q 'async = false'
 
-  # Assert: script_path = "hooks/postcompact-reanchor.sh" in [hooks.config]
-  # (may be on a different line than the hook block header, so search after the name line)
-  local config_block
-  config_block=$(grep -A 30 'name = "postcompact-reanchor"' "$REGISTRY")
-  echo "$config_block" | grep -q 'script_path = "hooks/postcompact-reanchor.sh"'
+  # -- [hooks.config] --
+  echo "$block" | grep -q 'script_path = "hooks/postcompact-reanchor.sh"'
+
+  # -- [hooks.capabilities] env_allow: must contain exactly the 8 canonical vars --
+  # Exact element assertions (each must be present in the block):
+  echo "$block" | grep -q '"PATH"'
+  echo "$block" | grep -q '"HOME"'
+  echo "$block" | grep -q '"TMPDIR"'
+  echo "$block" | grep -q '"CLAUDE_PROJECT_DIR"'
+  echo "$block" | grep -q '"CLAUDE_PLUGIN_ROOT"'
+  echo "$block" | grep -q '"VSDD_SESSION_ID"'
+  echo "$block" | grep -q '"GIT_CONFIG_GLOBAL"'
+  echo "$block" | grep -q '"XDG_CONFIG_HOME"'
+
+  # -- GIT_DIR must NOT appear (was a bats test-fixture artifact; not a production requirement) --
+  # Load-bearing negative assertion (F-P1-005).
+  ! echo "$block" | grep -q '"GIT_DIR"'
+
+  # -- [hooks.capabilities.exec_subprocess] --
+  echo "$block" | grep -q '"bash"'
+  echo "$block" | grep -q '"git"'
+  echo "$block" | grep -q '"jq"'
+  echo "$block" | grep -q 'shell_bypass_acknowledged'
+
+  # -- [hooks.capabilities.write_file] --
+  echo "$block" | grep -q 'path_allow'
+  echo "$block" | grep -q '".factory/logs/"'
+}
+
+# ---------------------------------------------------------------------------
+# Test 9 — AC-003
+# test_postcompact_reanchor_cannot_block_advisory_only
+#
+# BC-7.07.002 postcondition 3 / PC3: PostCompact hook CANNOT block; exit 0 always.
+# This is the canonical cannot-block assertion: even on the happy path the exit
+# is 0, and on_error=continue in the registry means the harness will not block
+# compaction regardless. This test provides explicit AC-003 coverage.
+# ---------------------------------------------------------------------------
+
+@test "test_postcompact_reanchor_cannot_block_advisory_only" {
+  # Setup: happy path with valid STATE.md
+  _init_factory_artifacts_fixture "$_STATE_MD_HAPPY"
+
+  _run_hook
+
+  # Assert: exit 0 (hook can NEVER return non-zero to block; PC3 / AC-003)
+  [ "$status" -eq 0 ]
+
+  # Assert: stdout contains the re-anchor line (confirms hook ran, not vacuous)
+  [[ "$output" == *"[PostCompact Re-anchor]"* ]]
+
+  # Assert: registry on_error=continue (harness-level cannot-block gate; AC-003)
+  grep -A 10 'name = "postcompact-reanchor"' "$REGISTRY" | grep -q 'on_error = "continue"'
+}
+
+# ---------------------------------------------------------------------------
+# Test 10 — EC-005
+# test_postcompact_reanchor_exits_0_when_log_dir_mkdir_fails
+#
+# BC-7.07.002 EC-005 TRUE branch: .factory/logs/ directory is ABSENT and its
+#   parent is unwritable (mkdir -p fails) → hook exits 0 with stdout advisory.
+#
+# This is distinct from AC-008 Scenario C (which chmod'd an EXISTING dir,
+# hitting the append path). This test drives the mkdir-creation failure path:
+# the logs dir does not exist at all, and mkdir cannot create it.
+#
+# F-P1-006: production-grade EC-005 coverage (mkdir path, not append path).
+# ---------------------------------------------------------------------------
+
+@test "test_postcompact_reanchor_exits_0_when_log_dir_mkdir_fails" {
+  # Setup: valid STATE.md in factory-artifacts
+  _init_factory_artifacts_fixture "$_STATE_MD_HAPPY"
+
+  # Remove the .factory/logs directory entirely (it was created in setup())
+  rm -rf "$WORK/.factory/logs"
+
+  # Make the parent .factory directory unwritable so mkdir -p .factory/logs fails.
+  chmod 555 "$WORK/.factory"
+
+  # Run the hook: mkdir -p .factory/logs should fail (parent unwritable).
+  _run_hook
+  local exit_status="$status"
+  local hook_output="$output"
+
+  # Restore permissions so teardown's rm -rf works cleanly
+  chmod 755 "$WORK/.factory"
+
+  # Assert: exit 0 even when mkdir fails (EC-005 fail-open; PC5)
+  [ "$exit_status" -eq 0 ]
+
+  # Assert: stdout still contains the re-anchor block (hook proceeded without log)
+  # OR stdout contains an advisory message. Either way, the session is not blocked.
+  # The hook should emit the re-anchor block to stdout regardless of log write failure.
+  [[ "$hook_output" == *"[PostCompact Re-anchor]"* ]]
 }
