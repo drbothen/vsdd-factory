@@ -8,7 +8,7 @@
 #   F-P1-002: STATE.md fixtures carry NO last_verified_develop_sha field —
 #             field was never real; removed from all fixtures to close false-green.
 #   F-P1-003: AC-002 log field rename last_verified_develop_sha → develop_sha.
-#   F-P1-005: AC-010 asserts the FULL ADR-026 §Decision 7 v1.25 capabilities
+#   F-P1-005: AC-010 asserts the FULL ADR-026 §Decision 7 capabilities
 #             block, bounded to the single [[hooks]] stanza.
 #   F-P1-006: New test for EC-005 (mkdir-p fails path), explicit AC-003 coverage.
 #
@@ -493,7 +493,7 @@ current_step: step-from-git
 # test_postcompact_reanchor_registry_entry_has_correct_shape
 #
 # BC-7.07.002 precondition 1: hooks-registry.toml PostCompact entry must exist
-#   with the FULL ADR-026 §Decision 7 v1.25 canonical shape.
+#   with the FULL ADR-026 §Decision 7 canonical shape.
 #
 # F-P1-005: asserts the complete capabilities block including:
 #   - env_allow exact 8-element list

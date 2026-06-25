@@ -1369,7 +1369,7 @@ env_allow = ["HOME", "GIT_CONFIG_GLOBAL", "XDG_CONFIG_HOME", "PATH", "SSH_AUTH_S
 # ---------- postcompact-reanchor advisory hook (S-18.05) ----------
 # Reads current_cycle + current_step from factory-artifacts:.factory/STATE.md
 # via git show; sources develop SHA from git rev-parse origin/develop at hook
-# invocation (ADR-026 §Decision 7 v1.25 / F-P1-001). READ-ONLY on factory-artifacts
+# invocation (ADR-026 §Decision 7 / F-P1-001). READ-ONLY on factory-artifacts
 # (BC-7.07.002 Inv1). on_error=continue: fail-open — PostCompact is advisory-only.
 # GIT_DIR omitted (was a bats test-fixture artifact; not a production requirement).
 # GIT_CONFIG_GLOBAL + XDG_CONFIG_HOME required by git subprocess (matches precompact-flush
