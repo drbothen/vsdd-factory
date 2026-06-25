@@ -131,7 +131,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | caf06c68 | rc.21 bot binary bundle commit 2026-06-13; prior: 2a191314 (rc.20) |
 | develop | a177d76e | PR #262 `feat(S-18.04b-prereq): dispatcher git_context payload injection` squash-merged 2026-06-25 (D-696; S-18.04b-prereq merged; BC-1.16.001 active); prior: b0bc4ffd (PR #249 D-693) |
-| factory-artifacts | TBD-D-697 | D-697 F-P1-001 governance burst (ADR-029 v1.2; BC-5.41.003 v2.1; VP-084 v2.0; BC-INDEX v3.44; VP-INDEX v2.42; ARCH-INDEX v2.75; red-gate-log.md relocated); prior: db98d992 (D-696 post-merge burst) |
+| factory-artifacts | 4c5b6cc4 | D-697 F-P1-001 governance burst (ADR-029 v1.2; BC-5.41.003 v2.1; VP-084 v2.0; BC-INDEX v3.44; VP-INDEX v2.42; ARCH-INDEX v2.75; red-gate-log.md relocated); prior: db98d992 (D-696 post-merge burst) |
 | v1.0.0-rc.21 (tag) | 03054524 | SHIPPED 2026-06-13; FULLY IN OPERATOR MARKETPLACE (marketplace PR #13 MERGED); annotated tag object |
 | v1.0.0-rc.20 (tag) | e9e38286 | SHIPPED 2026-06-01; marketplace PR #12 squash-merged 862e660d |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28 |
@@ -396,7 +396,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** TBD-D-697 (D-697 F-P1-001 governance burst — ADR-029 v1.2; BC-5.41.003 v2.1; VP-084 v2.0; BC-INDEX v3.44; VP-INDEX v2.42; ARCH-INDEX v2.75; 2026-06-25; prior D-696 = `db98d992`)
+- **factory-artifacts HEAD:** 4c5b6cc4 (D-697 F-P1-001 governance burst — ADR-029 v1.2; BC-5.41.003 v2.1; VP-084 v2.0; BC-INDEX v3.44; VP-INDEX v2.42; ARCH-INDEX v2.75; 2026-06-25; prior D-696 = `db98d992`)
 - **develop HEAD:** `a177d76e` (PR #262 S-18.04b-prereq squash-merged 2026-06-25 D-696; prior: `b0bc4ffd` PR #249 D-693; prior: `dfc76844` PR #201 D-692)
 - **main HEAD:** `caf06c68` (rc.21 bot bundle commit 2026-06-13; UNCHANGED)
 - **v1.0.0-rc.21 tag:** `03054524` (SHIPPED; FULLY IN OPERATOR MARKETPLACE)
@@ -432,7 +432,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 5. **F5 PAUSED** — trajectory →9→9→9→11. Do NOT resume without explicit human direction.
 6. **RC.21 100% COMPLETE D-560.** NO remaining release action. Operators: `/plugin update vsdd-factory@claude-mp`.
 7. **D-697 (2026-06-25). POSTURE: ACTIVE.** develop a177d76e. S-18.04b LOCAL cascade ONGOING streak 0/3; pass-2 NEXT. F-P1-001 resolved via ADR-029 §Decision 8. **NEXT:** S-18.04b LOCAL adversary pass-2 → continue cascade → post-cascade S-18.04b re-wire. **Autonomy STOP-BEFORE-PR-MERGE (D-665) holds for all code PRs.**
-8. **4-index at D-697:** BC-INDEX v3.44 (total_bcs 1,973 UNCHANGED; BC-5.41.003 v2.1 D-697; BC-1.16.001 NOW ACTIVE POL-14 D-696), VP-INDEX v2.42 (total_vps 93 UNCHANGED; VP-084 v2.0 D-697; VP-093 v1.0 NEW D-694), STORY-INDEX v4.67 UNCHANGED (story_count 123; merged 86; E-18: 10 remaining draft: S-18.04b re-wire post-cascade NEXT + S-18.03+S-18.05..S-18.12), ARCH-INDEX v2.75 (ADR-029 v1.2 Decision 8 D-697). L2-INDEX v1.0.13 UNCHANGED. ADR-029 v1.2 (ACCEPTED D-694; v1.1 D-695; v1.2 D-697 Decision 8). BC-5.41.003 v2.1 (D-697 PC4 two-layer proof). VP-084 v2.0 (D-697 Feasibility Assessment two-layer). BC-1.16.001 v1.1 (ACTIVE; POL-14 D-696). BC-7.07.001 v1.18 (active; POL-14 D-693). S-18.04b v1.7 (re-wire pending post-cascade). Key SHAs: develop a177d76e; main caf06c68; factory-artifacts TBD-D-697; parked feature/S-18.04b @ 7999a0f9.
+8. **4-index at D-697:** BC-INDEX v3.44 (total_bcs 1,973 UNCHANGED; BC-5.41.003 v2.1 D-697; BC-1.16.001 NOW ACTIVE POL-14 D-696), VP-INDEX v2.42 (total_vps 93 UNCHANGED; VP-084 v2.0 D-697; VP-093 v1.0 NEW D-694), STORY-INDEX v4.67 UNCHANGED (story_count 123; merged 86; E-18: 10 remaining draft: S-18.04b re-wire post-cascade NEXT + S-18.03+S-18.05..S-18.12), ARCH-INDEX v2.75 (ADR-029 v1.2 Decision 8 D-697). L2-INDEX v1.0.13 UNCHANGED. ADR-029 v1.2 (ACCEPTED D-694; v1.1 D-695; v1.2 D-697 Decision 8). BC-5.41.003 v2.1 (D-697 PC4 two-layer proof). VP-084 v2.0 (D-697 Feasibility Assessment two-layer). BC-1.16.001 v1.1 (ACTIVE; POL-14 D-696). BC-7.07.001 v1.18 (active; POL-14 D-693). S-18.04b v1.7 (re-wire pending post-cascade). Key SHAs: develop a177d76e; main caf06c68; factory-artifacts 4c5b6cc4; parked feature/S-18.04b @ 7999a0f9.
 9. **ALL dispatches carry:** TD-VSDD-097-EXT + TD-VSDD-099 + TD-VSDD-100 + POLICY 14 5-leg + verification_step 7 4-index gate + INV-019 (a)/(b)/(c) + adversary grep origin/factory-artifacts + D-449(a) literal-shell Dim-2 + POLICY 8 v1.3 parity + POLICY 5 v1.3.1/v1.3.4/v1.3.5/v1.3.6 + D-537 spec-drift routing + D-539 multi-family adversary + O-P8-002 MANDATORY + L-F2-no-bypass-on-edit-failure (D-610) + L-F2-statemd-banner-wcl-each-burst (D-617) + **L-BB-wasm-bats-gate-before-green (D-693 MANDATORY)** + **L-BB-proof-vehicle-must-be-mutation-tested-not-asserted (D-697 MANDATORY: positive integration test can be tautological; proof vehicles MUST be mutation-verified; load-bearing layer must be identified in PC)** + L-S18-bc-bump-must-sweep-dependent-story-body-cites (D-644) + L-S18-cascade-converged-after-15-passes-deep-adversary (D-645) + D-636..D-697 carries (see §3 for full text).
 10. **Latest decision D-697 (2026-06-25).** F-P1-001 GOVERNANCE BURST: ADR-029 v1.2 Decision 8; BC-5.41.003 v2.1; VP-084 v2.0; BC-INDEX v3.44; VP-INDEX v2.42; ARCH-INDEX v2.75. CASCADE ONGOING streak 0/3; pass-2 NEXT. **POSTURE: ACTIVE.**
 
