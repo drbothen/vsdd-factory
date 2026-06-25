@@ -43,7 +43,11 @@ If `wave-state.yaml` is absent and no EPIC-COMPLETE HANDOFF.md exists, run
 ### Step 2 — Close the current session
 
 Perform a session clear to drop all prior-wave context from the active session window.
-In Claude Code: use `/compact` or start a new session.
+In Claude Code: start a **NEW session** (full clear). Do NOT use `/compact` for a wave
+boundary — `/compact` summarizes rather than drops prior-wave context, so stale
+prior-wave specs leak in (ADR-026 §Decision 1: a wave-boundary reset is a hard reset,
+not a compaction; compaction is the Part B intra-wave safety net the design avoids
+stacking).
 
 **The session clear is the boundary event.** After clearing, the new session starts
 with no prior-wave context loaded — neither specs, nor BCs, nor intermediate decisions

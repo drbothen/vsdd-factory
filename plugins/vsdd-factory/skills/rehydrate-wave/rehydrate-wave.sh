@@ -128,6 +128,28 @@ _deduplicate() {
 }
 
 # ---------------------------------------------------------------------------
+# _check_missing_file — check a single filepath for existence and emit a warning
+# on stderr if absent from BOTH the filesystem AND factory-artifacts.
+# Usage: _check_missing_file "<filepath>"
+# A file is "missing" only when absent from both sources (PC6 / F-P1-008).
+# Does NOT exit; the caller continues. Use the same stable warning string for
+# both the wave-state and EPIC-COMPLETE paths (F-P2-003 sibling-path sweep).
+# ---------------------------------------------------------------------------
+_check_missing_file() {
+  local filepath="$1"
+  # Check filesystem existence relative to REPO_DIR first.
+  if [ -f "${REPO_DIR}/${filepath}" ] || [ -f "$filepath" ]; then
+    return 0  # Present on filesystem — not missing.
+  fi
+  # Corroborate: also check factory-artifacts branch via git cat-file (PC6 / F-P1-008).
+  # Only warn if absent from BOTH filesystem AND factory-artifacts.
+  if git -C "$REPO_DIR" cat-file -e "factory-artifacts:${filepath}" 2>/dev/null; then
+    return 0  # Present in factory-artifacts — not missing.
+  fi
+  echo "WARNING: listed spec file not found on filesystem: ${filepath}" >&2
+}
+
+# ---------------------------------------------------------------------------
 # _parse_wave_state_story_spec_files — extract all spec_files from all stories.
 # wave-state.yaml stories block format:
 #   stories:
@@ -189,6 +211,20 @@ if [ "$WAVE_STATE_FOUND" -eq 0 ]; then
       # EC-EPIC path (AC-009 / BC-6.24.001 EC-EPIC / VP-088 §4):
       # Read STATE.md + arch_files from HANDOFF.md only.
       # Do NOT emit RehydrationError.
+
+      # F-P2-004: Parse next_wave_stories to guard contradictory manifests.
+      # VP-088 §4 + BC EC-EPIC define EPIC as epic_status:complete AND next_wave_stories:[].
+      # HANDOFF.md has a single top-level next_wave_stories list (single-occurrence assumption;
+      # the producer schema is defined as a top-level scalar list — no nesting).
+      NEXT_WAVE_STORIES="$(_parse_yaml_list "next_wave_stories" "$HANDOFF_CONTENT")"
+      if [ -n "$NEXT_WAVE_STORIES" ]; then
+        # Contradictory manifest: epic_status=complete but non-empty next_wave_stories.
+        # Emit a stable warning (greppable by test harness) and continue on the EPIC-COMPLETE
+        # path — epic_status:complete is the authoritative discriminator (BC EC-EPIC); we
+        # inject STATE.md + arch_files and surface the contradiction for operator review.
+        echo "WARNING: HANDOFF.md epic_status=complete but next_wave_stories is non-empty; manifest is contradictory." >&2
+      fi
+
       STATE_POINTER="$(_parse_yaml_scalar "state_pointer" "$HANDOFF_CONTENT")"
       # Fallback if state_pointer absent in HANDOFF.md
       STATE_POINTER="${STATE_POINTER:-.factory/STATE.md}"
@@ -205,6 +241,15 @@ if [ "$WAVE_STATE_FOUND" -eq 0 ]; then
       # Filter empty lines and deduplicate
       INJECTED_SET="$(printf '%s\n' "$ALL_FILES" | grep -v '^[[:space:]]*$' | _deduplicate)"
       INJECTED_COUNT="$(printf '%s\n' "$INJECTED_SET" | grep -c '.' || true)"
+
+      # F-P2-003: Check arch_files listed in HANDOFF.md for missing files (same helper and
+      # stable warning string used by the wave-state path — sibling-path sweep complete).
+      # Skip state_pointer file (same policy as wave-state path Step 5).
+      while IFS= read -r filepath; do
+        [ -z "$filepath" ] && continue
+        [ "$filepath" = "$STATE_POINTER" ] && continue
+        _check_missing_file "$filepath"
+      done <<< "$INJECTED_SET"
 
       echo "Epic complete — no next-wave stories"
       echo ""
@@ -264,26 +309,15 @@ INJECTED_COUNT="$(printf '%s\n' "$INJECTED_SET" | grep -c '.' || true)"
 # A file is "missing" only when ABSENT from BOTH the filesystem AND factory-artifacts
 # (git cat-file -e corroboration per F-P1-008).
 # Missing file = WARN on stderr and continue; do NOT exit non-zero.
-HAS_MISSING=0
+# Uses _check_missing_file helper — same function used for EPIC-COMPLETE arch_files
+# (F-P2-003 sibling-path sweep: both branches use the same stable warning string).
 while IFS= read -r filepath; do
   [ -z "$filepath" ] && continue
   # Skip state_pointer file — STATE.md may not exist locally in test environments
   # but is always a valid rehydration target (it's a pointer, not a local file gate).
   # We only warn about story spec / arch files that are explicitly listed.
-  if [ "$filepath" = "$STATE_POINTER" ]; then
-    continue
-  fi
-  # Check filesystem existence relative to REPO_DIR first.
-  if [ -f "${REPO_DIR}/${filepath}" ] || [ -f "$filepath" ]; then
-    continue  # Present on filesystem — not missing.
-  fi
-  # Corroborate: also check factory-artifacts branch via git cat-file (PC6 / F-P1-008).
-  # Only warn if absent from BOTH filesystem AND factory-artifacts.
-  if git -C "$REPO_DIR" cat-file -e "factory-artifacts:${filepath}" 2>/dev/null; then
-    continue  # Present in factory-artifacts — not missing.
-  fi
-  echo "WARNING: listed spec file not found on filesystem: ${filepath}" >&2
-  HAS_MISSING=1
+  [ "$filepath" = "$STATE_POINTER" ] && continue
+  _check_missing_file "$filepath"
 done <<< "$INJECTED_SET"
 
 # Step 6: Emit transparency output — human-readable injected file list (BC-6.24.001 Inv4 / AC-005).
