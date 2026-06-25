@@ -910,6 +910,10 @@ tool = "Bash"
 plugin = "hook-plugins/validate-burst-log.wasm"
 priority = 152
 timeout_ms = 5000
+# on_error = "continue": WASM logic handles legitimate fail-open by returning HookResult::Continue
+# (absent git_context, empty fields, initial commit). Crash-fail-open is accepted for chain
+# detection — consistent with project-wide PostToolUse fail-open stance (see Edit|Write entries).
+# A WASM crash emits a telemetry log_warn (SEC-004 fix) making silent bypasses observable.
 on_error = "continue"
 
 [hooks.capabilities.read_file]
@@ -1017,6 +1021,10 @@ tool = "Bash"
 plugin = "hook-plugins/validate-dispatch-advance.wasm"
 priority = 154
 timeout_ms = 5000
+# on_error = "continue": WASM logic handles legitimate fail-open by returning HookResult::Continue
+# (absent git_context, empty fields, initial commit). Crash-fail-open is accepted for chain
+# detection — consistent with project-wide PostToolUse fail-open stance (see Edit|Write entries).
+# A WASM crash emits a telemetry log_warn (SEC-004 fix) making silent bypasses observable.
 on_error = "continue"
 
 [hooks.capabilities.read_file]

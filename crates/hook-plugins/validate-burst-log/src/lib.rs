@@ -792,6 +792,16 @@ pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
 fn check_chain_from_git_context(payload: &HookPayload) -> HookResult {
     use vsdd_hook_sdk::host;
 
+    // CR-002: Short-circuit for non-git-commit Bash events per ADR-029 §Decision 1.
+    // The dispatcher only injects git_context on qualifying git-commit events, but adding
+    // an explicit WASM-level filter avoids unnecessary processing of all other Bash events.
+    let command = payload.tool_input.get("command")
+        .and_then(|v| v.as_str())
+        .unwrap_or("");
+    if !command.contains("git") || !command.contains("commit") {
+        return HookResult::Continue;
+    }
+
     // Step 1: Extract git_context from payload.extra.
     // Fail-open (Continue) if absent.
     let git_context = match payload.extra.get("git_context") {

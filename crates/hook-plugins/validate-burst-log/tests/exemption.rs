@@ -163,6 +163,27 @@ fn test_BC_5_41_003_precompact_prefix_log_field4_empty_exempt() {
     );
 }
 
+// AC-003 sub-case: FIELD-4="commit" but FIELD-2 (SHA) is absent → treat as corrupted → exempt.
+#[test]
+fn test_BC_5_41_003_precompact_prefix_log_field4_commit_no_sha_exempt() {
+    // AC-003 sub-case: FIELD-4="commit" but FIELD-2 (SHA) is absent.
+    // A 3-field line: "timestamp cycle/step commit" — FIELD-4 is "commit" but no FIELD-2 SHA.
+    // Should treat as corrupted (case b) → prefix-match-only exempt.
+    let subject = precompact_subject();
+    // 3-field line: field1=timestamp, field2=cycle/step, field3=commit (no FIELD-2 sha, no FIELD-4)
+    // Per the log format: "<ISO-timestamp> <SHA> <cycle>/<step> commit"
+    // A truncated line: "<ISO-timestamp> <cycle>/<step> commit" — only 3 fields, field[3]="commit", field[1] absent
+    let malformed_line = "2026-01-01T00:00:00Z cycle/step commit";
+    // With this 3-field line, split_whitespace gives:
+    //   field1 = "2026-01-01T00:00:00Z" (ISO-timestamp)
+    //   field2 = "cycle/step"           (consumed as SHA — not a real 40-char SHA)
+    //   field3 = "commit"               (consumed as cycle/step)
+    //   field4 = None                   (type token is absent → case (b) → case (c))
+    // Therefore FIELD-4 (type token) is absent → case (b) → exempt on prefix alone.
+    let result = is_precompact_flush_exempt(&subject, EXAMPLE_SHA, Some(malformed_line));
+    assert!(result, "FIELD-4=commit but FIELD-2 absent must be exempt via case (b) → case (c)");
+}
+
 // AC-004 — log valid, FIELD-4=commit, SHA MISMATCH → NOT exempt
 #[test]
 fn test_BC_5_41_003_precompact_prefix_log_valid_sha_mismatch_not_exempt() {

@@ -87,8 +87,12 @@ fi
 # Read the last byte and check it is 0x0a (newline).
 # ---------------------------------------------------------------------------
 
-# Use `tail -c 1 | od` for portability (od is POSIX; xxd may not be present).
-last_byte_hex=$(tail -c 1 "$LOG_FILE" | od -An -tx1 | tr -d ' \n')
+# Use xxd first (faster, consistent output); fall back to od -An -tx1 (POSIX).
+# Both are stripped of whitespace including tabs (\t) for portability.
+last_byte_hex=$(tail -c 1 "$LOG_FILE" | xxd -p 2>/dev/null | tr -d ' \t\n')
+if [ -z "$last_byte_hex" ]; then
+  last_byte_hex=$(tail -c 1 "$LOG_FILE" | od -An -tx1 | tr -d ' \t\n')
+fi
 
 if [ "$last_byte_hex" != "0a" ]; then
   echo "precompact-flush-log structural violation: file must end with newline before pruning" >&2
