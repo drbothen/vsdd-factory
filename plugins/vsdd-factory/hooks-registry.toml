@@ -880,8 +880,6 @@ path_allow = ["plugins/vsdd-factory/config/artifact-path-registry.yaml"]
 # and Dim-1 cardinality parity (D-432(e)+D-448(d)(i)).
 # File-pattern enforcement is in-plugin via path-component-strict Path::file_name guard (matches exactly "burst-log.md").
 # S-15.11 M2 Wave-2.
-# NOTE: Edit|Write→Bash trigger flip (ADR-029 §Decision 1) is deferred to
-# S-18.04b when this WASM plugin consumes git_context from payload.extra.
 
 [[hooks]]
 name = "validate-burst-log"
@@ -895,6 +893,33 @@ on_error = "continue"
 [hooks.capabilities.read_file]
 path_allow = [
   ".factory/cycles",
+  ".factory/hooks",
+]
+
+# ---------- validate-burst-log (PostToolUse, Bash — ADR-029 §Decision 1) ----------
+# Chain-detection gate: reads git_context from payload.extra (injected by dispatcher
+# host layer on PostToolUse Bash git-commit events). WASM is exec-free:
+# no exec_subprocess for commit-context acquisition (BC-5.41.003 PC1; ADR-029 §Decision 3).
+# Fail-open: absent/empty git_context → Continue (BC-5.41.003 Invariant 5; BC-1.16.001 INV3).
+# Same WASM binary as Edit|Write entry above; dispatches on tool_name == "Bash" internally.
+
+[[hooks]]
+name = "validate-burst-log"
+event = "PostToolUse"
+tool = "Bash"
+plugin = "hook-plugins/validate-burst-log.wasm"
+priority = 152
+timeout_ms = 5000
+# on_error = "continue": WASM logic handles legitimate fail-open by returning HookResult::Continue
+# (absent git_context, empty fields, initial commit). Crash-fail-open is accepted for chain
+# detection — consistent with project-wide PostToolUse fail-open stance (see Edit|Write entries).
+# A WASM crash emits a telemetry log_warn (SEC-004 fix) making silent bypasses observable.
+on_error = "continue"
+
+[hooks.capabilities.read_file]
+path_allow = [
+  ".factory/cycles",
+  ".factory/hooks",
 ]
 
 # ---------- validate-index-cite-refresh (PostToolUse, Edit|Write) ----------
@@ -960,13 +985,12 @@ path_allow = [
 # priority = 154
 # priority = 155
 # priority = 160
-# 154 appears exactly once (validate-dispatch-advance); 153 = validate-state-structure;
-# 155 = next monotone slot.
+# 154 appears exactly once per tool trigger (validate-dispatch-advance has two entries
+# after S-18.04b: Edit|Write for structural validation + Bash for chain detection);
+# 153 = validate-state-structure; 155 = next monotone slot.
 # No file_pattern field: registry schema does not support it per architect
 # Q5/Q6 canonical lock. File-pattern enforcement is in-plugin via
 # path-component-strict is_state_md_target + is_index_md_target guards.
-# NOTE: Edit|Write→Bash trigger flip (ADR-029 §Decision 1) is deferred to
-# S-18.04b when this WASM plugin consumes git_context from payload.extra.
 
 [[hooks]]
 name = "validate-dispatch-advance"
@@ -975,6 +999,32 @@ tool = "Edit|Write"
 plugin = "hook-plugins/validate-dispatch-advance.wasm"
 priority = 154
 timeout_ms = 5000
+on_error = "continue"
+
+[hooks.capabilities.read_file]
+path_allow = [
+  ".factory",
+]
+
+# ---------- validate-dispatch-advance (PostToolUse, Bash — ADR-029 §Decision 1) ----------
+# Chain-detection gate: reads git_context from payload.extra (injected by dispatcher
+# host layer on PostToolUse Bash git-commit events). WASM is exec-free:
+# no exec_subprocess for commit-context acquisition (BC-5.41.003 PC1; ADR-029 §Decision 3).
+# Fail-open: absent/empty git_context → Continue (BC-5.41.003 Invariant 5; BC-1.16.001 INV3).
+# Same WASM binary as Edit|Write entry above; dispatches on tool_name == "Bash" internally.
+# .factory path_allow covers .factory/hooks (precompact-flush-log path).
+
+[[hooks]]
+name = "validate-dispatch-advance"
+event = "PostToolUse"
+tool = "Bash"
+plugin = "hook-plugins/validate-dispatch-advance.wasm"
+priority = 154
+timeout_ms = 5000
+# on_error = "continue": WASM logic handles legitimate fail-open by returning HookResult::Continue
+# (absent git_context, empty fields, initial commit). Crash-fail-open is accepted for chain
+# detection — consistent with project-wide PostToolUse fail-open stance (see Edit|Write entries).
+# A WASM crash emits a telemetry log_warn (SEC-004 fix) making silent bypasses observable.
 on_error = "continue"
 
 [hooks.capabilities.read_file]

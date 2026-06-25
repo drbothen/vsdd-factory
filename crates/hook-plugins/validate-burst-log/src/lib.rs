@@ -1,7 +1,10 @@
 //! validate-burst-log — PostToolUse WASM hook plugin.
 //!
-//! Blocks any Edit/Write to a `burst-log.md` file that leaves a structurally
-//! incomplete latest burst entry. Validates three structural properties:
+//! Fires on two triggers (merged into one plugin entry per ADR-029):
+//!
+//! **Trigger A — PostToolUse Edit|Write (existing)**: blocks any write to a
+//! `burst-log.md` file that leaves a structurally incomplete latest burst entry.
+//! Validates three structural properties:
 //!
 //! 1. **h2 heading format** (D-421(e)+D-438(d)+D-439(a)): the latest h2 heading
 //!    must match `## Burst: <description> (YYYY-MM-DD)`.
@@ -12,9 +15,18 @@
 //! 3. **Dim-1 cardinality parity** (D-432(e)+D-448(d)(i)): the integer in the
 //!    Dim-1 headline must equal the count of files in the Dim-1 list.
 //!
+//! **Trigger B — PostToolUse Bash (ADR-029 §Decision 1)**: on Bash git-commit
+//! events, reads `git_context` from `payload.extra` (injected by the dispatcher
+//! host layer) and runs the MULTI_COMMIT_CHAIN_NOT_ALLOWED detector. This is
+//! exec-free (BC-5.41.003 PC1 + ADR-029 §Decision 3): no `host::exec_subprocess`
+//! call is made for commit context acquisition. Fail-open: if `git_context` is
+//! absent or all-empty, the check is skipped.
+//!
 //! # Behavioral Contracts
 //!
 //! - BC-5.39.004: blocks structurally incomplete burst-log entries.
+//! - BC-5.41.003: PreCompact flush exemption + MULTI_COMMIT_CHAIN_NOT_ALLOWED detector.
+//! - BC-1.16.001: git_context 4-field injection contract (dispatcher side).
 //!
 //! # D-NNN closures
 //!
@@ -29,11 +41,13 @@
 //!
 //! # Architecture compliance
 //!
-//! - HOST_ABI_VERSION = 1 (no new host functions introduced).
+//! - HOST_ABI_VERSION = 1 (no new host functions introduced; git_context rides extra map).
 //! - Fail-open on every `host::read_file` error (BC-5.39.004 invariant 5).
+//! - Fail-open on absent/empty git_context (BC-5.41.003 Invariant 5; BC-1.16.001 INV3).
 //! - No `println!` — use `host::log_*` for all diagnostic output.
 //! - No `unwrap()` or `expect()` in production paths.
 //! - No `regex` crate: hand-rolled pattern scanning to stay within WASM fuel budget.
+//! - No `exec_subprocess` for commit-context acquisition (ADR-029 §Decision 3; BC-5.41.003 PC1).
 //! - File-path enforcement via in-plugin guard (Q5/Q6 canonical pattern);
 //!   registry entry does NOT include a `file_pattern` field.
 
@@ -394,6 +408,167 @@ fn is_numbered_list_item(s: &str) -> bool {
 }
 
 // ---------------------------------------------------------------------------
+// PreCompact flush exemption (BC-5.41.003 + S-18.04b)
+// ---------------------------------------------------------------------------
+
+/// The exact commit subject prefix produced by `precompact-flush.sh`.
+///
+/// Matches the value of `COMMIT_PREFIX` in `crates/hook-plugins/precompact-flush/src/lib.rs`.
+/// Case-sensitive; no substring match; no regex. BC-5.41.003 invariant 3.
+pub const PRECOMPACT_FLUSH_PREFIX: &str = "PreCompact flush ";
+
+/// Determine whether a commit is exempt from the MULTI_COMMIT_CHAIN_NOT_ALLOWED
+/// detector under the PreCompact flush exemption (BC-5.41.003 PC1 three-case logic).
+///
+/// Three-case logic (BC-5.41.003 PC1):
+///
+/// - Case (a): log exists, last line FIELD-4 == `commit`, SHA matches FIELD-2 → exempt.
+/// - Case (b): log exists but last line FIELD-4 absent/empty/non-`commit` → treat
+///   as stale/corrupted; fall through to case (c).
+/// - Case (c): log absent or last line empty → prefix-match alone is sufficient.
+///
+/// SHA-mismatch with valid FIELD-4=`commit` is NOT exempt (BC-5.41.003 INV1).
+///
+/// # Parameters
+/// - `commit_subject`: the raw commit subject (first line of `git log --format=%s`).
+/// - `commit_sha`: the SHA of the commit being evaluated.
+/// - `flush_log_content`: `Some(last_line_of_log)` when the log file exists and has
+///   at least one line; `None` when the log is absent or empty.
+///
+/// # Returns
+/// `true` if the commit is exempt from chain detection; `false` otherwise.
+///
+/// # BC trace
+/// BC-5.41.003 PC1 cases (a)/(b)/(c); INV1; AC-001/AC-002/AC-003/AC-004; AC-005; AC-008.
+///
+/// # Self-check (BC-5.38.005 invariant 1)
+/// "If I include this real implementation, will the test for this function pass trivially
+/// without any implementer work?" — YES: the 3-case logic is non-trivial (branching,
+/// field parsing, SHA comparison). Body is `todo!()` per BC-5.38.001.
+pub fn is_precompact_flush_exempt(
+    commit_subject: &str,
+    commit_sha: &str,
+    flush_log_content: Option<&str>,
+) -> bool {
+    // Step 0: prefix match (case-sensitive, exact). BC-5.41.003 INV3.
+    if !commit_subject.starts_with(PRECOMPACT_FLUSH_PREFIX) {
+        return false;
+    }
+
+    // Step 1: examine log content.
+    match flush_log_content {
+        None => {
+            // Case (c): log absent → prefix-match alone is sufficient. AC-002.
+            true
+        }
+        Some(last_line) => {
+            // Parse the 4-field log line: <ISO-timestamp> <SHA> <cycle>/<step> <type>
+            // Fields are space-separated; we need FIELD-2 (SHA) and FIELD-4 (type token).
+            let mut fields = last_line.split_whitespace();
+            let _field1 = fields.next(); // ISO-timestamp
+            let field2_sha = fields.next(); // SHA
+            let _field3 = fields.next(); // cycle/step
+            let field4_type = fields.next(); // type token ("commit" or absent/corrupt)
+
+            match field4_type {
+                Some("commit") => {
+                    // Case (a): log valid, FIELD-4=commit. SHA must match. AC-001/AC-004.
+                    match field2_sha {
+                        Some(log_sha) => log_sha == commit_sha,
+                        None => {
+                            // FIELD-4=commit but FIELD-2 absent — treat as corrupted.
+                            // Case (b) → case (c): prefix-match-only. AC-003.
+                            true
+                        }
+                    }
+                }
+                _ => {
+                    // Case (b): FIELD-4 absent, empty, or non-"commit" → treat as stale.
+                    // Fall through to case (c): prefix-match-only exemption. AC-003.
+                    true
+                }
+            }
+        }
+    }
+}
+
+/// Check whether the HEAD and HEAD^ commit subjects form a `MULTI_COMMIT_CHAIN_NOT_ALLOWED`
+/// pattern (TD-VSDD-053), with the PreCompact flush exemption applied (BC-5.41.003).
+///
+/// A chain violation is triggered when BOTH of the following hold:
+/// 1. `head_subject` contains a sentinel word (`backfill`, `Stage 1`, `Stage 2`).
+/// 2. `head_parent_subject` contains a sentinel word.
+///
+/// The exemption: if either commit is exempt under `is_precompact_flush_exempt`, the
+/// chain comparison is skipped (no violation). The exemption is checked symmetrically for
+/// both HEAD and HEAD^ (BC-5.41.003 INV1 — both hooks must implement identically).
+///
+/// # Parameters
+/// - `head_subject`: commit subject of HEAD.
+/// - `head_sha`: SHA of HEAD.
+/// - `head_parent_subject`: commit subject of HEAD^.
+/// - `head_parent_sha`: SHA of HEAD^.
+/// - `flush_log_content`: last line of `.factory/hooks/precompact-flush-log`, or `None`.
+///
+/// # Returns
+/// `Some(Violation)` with `MULTI_COMMIT_CHAIN_NOT_ALLOWED` message if a violation is
+/// detected; `None` if no violation (or exemption applies).
+///
+/// # BC trace
+/// BC-5.41.003; BC-5.39.004 INV4; TD-VSDD-053.
+///
+/// # Self-check (BC-5.38.005 invariant 1)
+/// "If I include this real implementation, will the test for this function pass trivially
+/// without any implementer work?" — YES: non-trivial branching + sentinel scanning +
+/// exemption delegation. Body is `todo!()` per BC-5.38.001.
+pub fn check_multi_commit_chain(
+    head_subject: &str,
+    head_sha: &str,
+    head_parent_subject: &str,
+    head_parent_sha: &str,
+    flush_log_content: Option<&str>,
+) -> Option<Violation> {
+    // If either commit is exempt under the PreCompact flush exemption,
+    // skip the chain comparison entirely. BC-5.41.003 PC1.
+    if is_precompact_flush_exempt(head_subject, head_sha, flush_log_content) {
+        return None;
+    }
+    if is_precompact_flush_exempt(head_parent_subject, head_parent_sha, flush_log_content) {
+        return None;
+    }
+
+    // TD-VSDD-053 chain detector: MULTI_COMMIT_CHAIN_NOT_ALLOWED fires when both
+    // HEAD and HEAD^ contain a sentinel word.
+    let head_has_sentinel = contains_sentinel(head_subject);
+    let parent_has_sentinel = contains_sentinel(head_parent_subject);
+
+    if head_has_sentinel && parent_has_sentinel {
+        Some(Violation {
+            description: format!(
+                "MULTI_COMMIT_CHAIN_NOT_ALLOWED — HEAD and HEAD^ both contain chain-sentinel words; \
+                 HEAD: {:?}; HEAD^: {:?}; TD-VSDD-053",
+                head_subject, head_parent_subject
+            ),
+            cited_raw: format!("HEAD={head_subject:?}; HEAD^={head_parent_subject:?}"),
+        })
+    } else {
+        None
+    }
+}
+
+/// Returns `true` if `subject` contains any TD-VSDD-053 sentinel word.
+///
+/// Sentinels: "backfill", "Stage 1", "Stage 2" (case-insensitive for "backfill";
+/// case-sensitive for "Stage N" per existing convention).
+///
+/// # BC trace
+/// TD-VSDD-053 (single-commit-per-burst chain detector).
+fn contains_sentinel(subject: &str) -> bool {
+    let lower = subject.to_lowercase();
+    lower.contains("backfill") || subject.contains("Stage 1") || subject.contains("Stage 2")
+}
+
+// ---------------------------------------------------------------------------
 // Block message formatting
 // ---------------------------------------------------------------------------
 
@@ -445,24 +620,37 @@ pub fn is_burst_log_target(file_path: &str) -> bool {
 /// Core hook logic for validate-burst-log.
 ///
 /// Called from the WASI entry point in `main.rs` via the SDK trampoline.
-/// The dispatcher routes PostToolUse `Edit|Write` events to this hook (the
-/// registry entry does not filter by file path — this function applies the
-/// in-plugin `burst-log.md` file-name guard, routes by event+tool, so any
-/// PostToolUse `Edit|Write` reaches this hook).
 ///
-/// 1. Extracts `file_path` from `tool_input`; early-exit Continue for
-///    non-burst-log.md paths (Q5/Q6 in-plugin guard).
-/// 2. Reads the written burst-log.md content from the host filesystem via
-///    `host::read_file`. On failure, emits Continue + log_warn (fail-open per
-///    BC-5.39.004 invariant 5 + postcondition 6).
-/// 3. Validates: h2 heading format, 9-block presence, Dim-1 cardinality.
-/// 4. Emits `HookResult::block_with_fix` if any violation found, or
-///    `HookResult::Continue` if all properties hold.
+/// **Dispatch path A — PostToolUse Edit|Write (burst-log.md validation)**:
+/// The dispatcher routes PostToolUse `Edit|Write` events to this hook. The
+/// in-plugin `burst-log.md` file-name guard filters to the relevant file.
+/// Validates h2 heading format, 9-block presence, Dim-1 cardinality.
+///
+/// **Dispatch path B — PostToolUse Bash (ADR-029 git_context chain detection)**:
+/// When `tool_name == "Bash"` and `tool_input.command` contains "git commit",
+/// the dispatcher has injected `git_context` into `payload.extra` (per ADR-029
+/// §Decision 1+3). This path reads `git_context` from `payload.extra` and runs
+/// `check_multi_commit_chain`. Fail-open: if `git_context` is absent or all
+/// fields are empty, returns Continue without blocking (BC-1.16.001 INV3).
+///
+/// The key invariant: NO `host::exec_subprocess` is called for commit-context
+/// acquisition. ADR-029 §Decision 3; BC-5.41.003 PC1 addendum.
 ///
 /// # BC trace
 /// BC-5.39.004 postconditions 1-6; invariants 1-5.
+/// BC-5.41.003 PC1+PC2+PC3; BC-1.16.001 PC1+INV3; ADR-029 §Decision 1+3+5.
 pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
     use vsdd_hook_sdk::host;
+
+    // ADR-029 §Decision 1: chain detection fires on PostToolUse Bash git-commit events.
+    // Burst-log structural validation fires on PostToolUse Edit|Write events.
+    // These are now distinct dispatch paths.
+    if payload.tool_name == "Bash" {
+        // Dispatch path B: Bash git-commit → chain detection via git_context.
+        return check_chain_from_git_context(&payload);
+    }
+
+    // Dispatch path A: Edit|Write → burst-log structural validation.
 
     // Extract file_path from tool_input.
     let file_path = match payload.tool_input.get("file_path").and_then(|v| v.as_str()) {
@@ -582,6 +770,122 @@ pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
         HookResult::Continue
     } else {
         emit_block(&violations)
+    }
+}
+
+/// Dispatch path B — PostToolUse Bash (ADR-029 §Decision 1).
+///
+/// Reads `git_context` from `payload.extra` (injected by the dispatcher host layer)
+/// and runs the MULTI_COMMIT_CHAIN_NOT_ALLOWED detector via `check_multi_commit_chain`.
+///
+/// Fail-open semantics (BC-1.16.001 INV3; BC-5.41.003 Invariant 5):
+/// - `git_context` absent from `payload.extra` → Continue (skip check).
+/// - `git_context` present but all four fields empty → Continue (skip check).
+/// - `head_parent_subject` is empty → Continue (initial commit; no chain possible).
+///
+/// The precompact-flush-log is read via `host::read_file` for SHA corroboration
+/// (BC-5.41.003 PC1 three-case logic). No `exec_subprocess` is called.
+///
+/// # BC trace
+/// BC-5.41.003 PC1 addendum (ADR-029 wiring); BC-1.16.001 PC1+INV3;
+/// ADR-029 §Decision 1+3+5.
+fn check_chain_from_git_context(payload: &HookPayload) -> HookResult {
+    use vsdd_hook_sdk::host;
+
+    // CR-002: Short-circuit for non-git-commit Bash events per ADR-029 §Decision 1.
+    // The dispatcher only injects git_context on qualifying git-commit events, but adding
+    // an explicit WASM-level filter avoids unnecessary processing of all other Bash events.
+    let command = payload
+        .tool_input
+        .get("command")
+        .and_then(|v| v.as_str())
+        .unwrap_or("");
+    if !command.contains("git") || !command.contains("commit") {
+        return HookResult::Continue;
+    }
+
+    // Step 1: Extract git_context from payload.extra.
+    // Fail-open (Continue) if absent.
+    let git_context = match payload.extra.get("git_context") {
+        Some(v) => v,
+        None => {
+            // git_context absent — dispatcher fail-open path or non-qualifying event.
+            // BC-1.16.001 INV3: skip chain check, return Continue.
+            return HookResult::Continue;
+        }
+    };
+
+    // Step 2: Extract the 4 required fields.
+    let head_subject = git_context
+        .get("head_subject")
+        .and_then(|v| v.as_str())
+        .unwrap_or("")
+        .trim()
+        .to_string();
+    let head_sha = git_context
+        .get("head_sha")
+        .and_then(|v| v.as_str())
+        .unwrap_or("")
+        .trim()
+        .to_string();
+    let head_parent_subject = git_context
+        .get("head_parent_subject")
+        .and_then(|v| v.as_str())
+        .unwrap_or("")
+        .trim()
+        .to_string();
+    let head_parent_sha = git_context
+        .get("head_parent_sha")
+        .and_then(|v| v.as_str())
+        .unwrap_or("")
+        .trim()
+        .to_string();
+
+    // Step 3: Fail-open if all fields empty (dispatcher fail-open path per BC-1.16.001 PC2).
+    // SEC-004: emit telemetry warn so silent bypasses are observable.
+    if head_subject.is_empty() && head_parent_subject.is_empty() {
+        host::log_warn(
+            "[validate-burst-log] git_context all-empty — chain check skipped (fail-open per BC-1.16.001 INV3)",
+        );
+        return HookResult::Continue;
+    }
+
+    // Step 4: Fail-open if head_parent_subject is empty (initial commit; no chain possible).
+    // BC-5.41.003 Invariant 5 (ADR-029 wiring extension).
+    if head_parent_subject.is_empty() {
+        return HookResult::Continue;
+    }
+
+    // Step 5: Read precompact-flush-log for SHA corroboration.
+    // BC-5.41.003 PC1 three-case logic: read via host::read_file (NOT exec_subprocess).
+    let flush_log_last_line: Option<String> = {
+        let cwd = host::cwd();
+        if !cwd.is_empty() {
+            let flush_log_path = format!("{cwd}/.factory/hooks/precompact-flush-log");
+            match host::read_file(&flush_log_path, 4096, 500) {
+                Ok(bytes) => String::from_utf8(bytes).ok().and_then(|s| {
+                    s.lines()
+                        .rev()
+                        .find(|l| !l.trim().is_empty())
+                        .map(|l| l.to_string())
+                }),
+                Err(_) => None,
+            }
+        } else {
+            None
+        }
+    };
+
+    // Step 6: Run check_multi_commit_chain (pure logic; no I/O).
+    match check_multi_commit_chain(
+        &head_subject,
+        &head_sha,
+        &head_parent_subject,
+        &head_parent_sha,
+        flush_log_last_line.as_deref(),
+    ) {
+        Some(violation) => emit_block(&[violation]),
+        None => HookResult::Continue,
     }
 }
 
