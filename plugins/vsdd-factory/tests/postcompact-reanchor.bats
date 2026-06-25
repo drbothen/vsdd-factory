@@ -30,6 +30,7 @@
 #   8. test_postcompact_reanchor_registry_entry_has_correct_shape             (AC-010)
 #   9. test_postcompact_reanchor_cannot_block_advisory_only                   (AC-003)
 #  10. test_postcompact_reanchor_exits_0_when_log_dir_mkdir_fails             (EC-005)
+#  11. test_postcompact_reanchor_warns_when_develop_ref_absent_but_state_readable (F-P5-001)
 #
 # BC: BC-7.07.002
 # VP: VP-089
@@ -599,6 +600,105 @@ current_step: step-from-git
 
   # Assert: registry on_error=continue (harness-level cannot-block gate; AC-003)
   grep -A 10 'name = "postcompact-reanchor"' "$REGISTRY" | grep -q 'on_error = "continue"'
+}
+
+# ---------------------------------------------------------------------------
+# Test 11 — F-P5-001 (adv Pass-5)
+# test_postcompact_reanchor_warns_when_develop_ref_absent_but_state_readable
+#
+# BC-7.07.002 PC1 / Invariant 2 / VP-089 §1: when git rev-parse
+#   refs/remotes/origin/develop fails (ref absent), hook must emit
+#   sha=UNKNOWN AND log status="warn" even though context IS readable.
+#
+# Previously (pre-commit 83d3386f) the hook emitted status="ok" on this path
+# (F-P5-001 bug). This test is the load-bearing guard that catches a regression
+# back to status="ok".
+#
+# Setup: fixture repo whose factory-artifacts branch has a fully readable
+#   STATE.md (current_cycle + current_step both present), BUT refs/remotes/
+#   origin/develop does NOT exist — git rev-parse will fail.
+#
+# Assertions (ALL required — assertion 4 is the load-bearing guard):
+#   1. exit 0
+#   2. stdout re-anchor block contains sha=UNKNOWN
+#   3. stdout contains valid context=<cycle>/<step>  (NOT context=UNKNOWN)
+#   4. JSONL log entry has .status == "warn"          (LOAD-BEARING)
+#   5. JSONL log entry has .develop_sha == "UNKNOWN"
+# ---------------------------------------------------------------------------
+
+@test "test_postcompact_reanchor_warns_when_develop_ref_absent_but_state_readable" {
+  # Setup: a fresh git repo with factory-artifacts STATE.md that is FULLY
+  # readable (current_cycle + current_step present), but WITHOUT
+  # refs/remotes/origin/develop — we intentionally skip the update-ref step
+  # that _init_factory_artifacts_fixture performs.
+  local state_md_readable="---
+document_type: state
+version: \"0.0.1-test\"
+current_cycle: v1.0-feature-context-durability-E18
+current_step: S-18.05
+---
+
+# STATE (bats test fixture — readable context, no origin/develop ref)
+"
+  # Build the repo manually (same pattern as _init_factory_artifacts_fixture
+  # but without the update-ref for refs/remotes/origin/develop).
+  REPO_DIR="$(mktemp -d)"
+
+  HOME="$FAKE_HOME" git init "$REPO_DIR" >/dev/null 2>&1
+  git -c user.name="Test Agent" -c user.email="test@factory.local" \
+    -C "$REPO_DIR" commit --allow-empty -m "init develop" >/dev/null 2>&1
+
+  # Intentionally do NOT create refs/remotes/origin/develop.
+  # Verify the ref is truly absent (guard against accidental creation).
+  if git -C "$REPO_DIR" rev-parse --verify refs/remotes/origin/develop >/dev/null 2>&1; then
+    fail "Fixture setup error: refs/remotes/origin/develop was unexpectedly created"
+  fi
+
+  # Create factory-artifacts branch with readable STATE.md.
+  git -C "$REPO_DIR" checkout -b factory-artifacts >/dev/null 2>&1
+  mkdir -p "$REPO_DIR/.factory"
+  printf '%s' "$state_md_readable" > "$REPO_DIR/.factory/STATE.md"
+  git -c user.name="Test Agent" -c user.email="test@factory.local" \
+    -C "$REPO_DIR" add ".factory/STATE.md" >/dev/null 2>&1
+  git -c user.name="Test Agent" -c user.email="test@factory.local" \
+    -C "$REPO_DIR" commit -m "init factory-artifacts with STATE.md" >/dev/null 2>&1
+
+  # Switch back to develop so the hook's CWD resolves to the develop branch.
+  git -C "$REPO_DIR" checkout develop >/dev/null 2>&1
+
+  # Create the log directory (hook writes here via CWD-relative path).
+  mkdir -p "$REPO_DIR/.factory/logs"
+
+  # Invoke the hook with CWD=$REPO_DIR (production-equivalent; no GIT_DIR).
+  run bash -c "cd '$REPO_DIR' && printf '%s' '{\"event_name\":\"PostCompact\",\"tool_name\":\"\",\"session_id\":\"bats-f-p5-001\",\"tool_input\":{}}' | HOME='$FAKE_HOME' bash '$HOOK_SCRIPT' 2>&1"
+
+  # Assert 1: exit 0 (fail-open — PC5).
+  [ "$status" -eq 0 ]
+
+  # Assert 2: stdout re-anchor block contains sha=UNKNOWN.
+  [[ "$output" == *"sha=UNKNOWN"* ]]
+
+  # Assert 3: stdout contains the valid context (cycle/step ARE readable —
+  # context must NOT be UNKNOWN; this distinguishes the path from EC-003).
+  [[ "$output" == *"context=v1.0-feature-context-durability-E18/S-18.05"* ]]
+
+  # Assert 4 (LOAD-BEARING): JSONL log entry has status="warn", NOT "ok".
+  # A regression to status="ok" (the F-P5-001 bug) would cause this to FAIL.
+  local log_pattern="$REPO_DIR/.factory/logs/postcompact-reanchor-*.jsonl"
+  # shellcheck disable=SC2086
+  local log_files
+  log_files=($(ls $log_pattern 2>/dev/null))
+  [ "${#log_files[@]}" -ge 1 ]
+  local log_line
+  log_line=$(tail -1 "${log_files[0]}")
+  local status_val
+  status_val=$(echo "$log_line" | jq -r '.status')
+  [ "$status_val" = "warn" ]
+
+  # Assert 5: JSONL log entry has develop_sha="UNKNOWN".
+  local sha_val
+  sha_val=$(echo "$log_line" | jq -r '.develop_sha')
+  [ "$sha_val" = "UNKNOWN" ]
 }
 
 # ---------------------------------------------------------------------------
