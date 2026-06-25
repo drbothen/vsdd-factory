@@ -31,8 +31,9 @@
 #   9. test_postcompact_reanchor_cannot_block_advisory_only                   (AC-003)
 #  10. test_postcompact_reanchor_exits_0_when_log_dir_mkdir_fails             (EC-005)
 #
-# BC: BC-7.07.002 v1.12
-# VP: VP-089 v1.0
+# BC: BC-7.07.002
+# VP: VP-089
+# ADR: ADR-026 §Decision 7
 # Story: S-18.05
 # Subsystem: SS-07 (Hook Bash Layer)
 
@@ -58,9 +59,10 @@ setup() {
   defaultBranch = develop
 GITCFG
 
-  # Create .factory/logs directory so the hook can write the daily log.
-  # The hook is invoked with CWD=$WORK so paths relative to CWD land in WORK.
-  mkdir -p "$WORK/.factory/logs"
+  # NOTE: the hook is invoked with CWD=$REPO_DIR (the fixture git repo), so
+  # relative .factory/logs/ writes land in $REPO_DIR/.factory/logs/.
+  # The log dir is created inside _init_factory_artifacts_fixture after REPO_DIR
+  # is set (see that helper for details).
 
   export WORK FAKE_HOME HOOK_SCRIPT REGISTRY
 }
@@ -76,11 +78,14 @@ teardown() {
 #   - develop branch (main repo HEAD)
 #   - factory-artifacts branch containing .factory/STATE.md with caller-supplied content
 #   - refs/remotes/origin/develop pointing at a KNOWN sha (FIXTURE_DEVELOP_SHA)
+#   - .factory/logs/ directory for hook log writes (relative to REPO_DIR)
 #
 # The hook reads STATE.md via:  git show factory-artifacts:.factory/STATE.md
 # The hook reads develop SHA via: git rev-parse refs/remotes/origin/develop
 #
-# Both operations require GIT_DIR=$REPO_DIR/.git to be set when running from $WORK.
+# The hook is invoked with CWD=$REPO_DIR (production-equivalent: no GIT_DIR in
+# hook env; git resolves via normal CWD-based repo discovery — ADR-026 §Decision 7
+# / BC-7.07.002 Precondition 1 / story AC-010).
 #
 # Args:
 #   $1 - state_md_content: full text of .factory/STATE.md to place on factory-artifacts
@@ -134,21 +139,28 @@ _init_factory_artifacts_fixture() {
   # Switch back to develop
   git -C "$REPO_DIR" checkout develop >/dev/null 2>&1
 
+  # Create the log directory the hook will write to.
+  # The hook runs with CWD=$REPO_DIR, so .factory/logs/ resolves to here.
+  mkdir -p "$REPO_DIR/.factory/logs"
+
   export REPO_DIR
 }
 
-# Run the hook with GIT_DIR pointing at the fixture repo, CWD=$WORK.
-# The hook is expected to write logs relative to CWD (.factory/logs/).
+# Run the hook with CWD=$REPO_DIR (production-equivalent: no GIT_DIR in hook env).
+# Git resolves via normal CWD-based repo discovery from the fixture repo root.
+# The hook writes logs relative to CWD (.factory/logs/ inside REPO_DIR).
 # Args: [extra env vars as VAR=VALUE ...]
 _run_hook() {
   local extra_env=("$@")
-  # Build the env prefix
-  local env_prefix="GIT_DIR='$REPO_DIR/.git' HOME='$FAKE_HOME'"
+  # Build the env prefix — HOME only; no GIT_DIR (production env profile per
+  # ADR-026 §Decision 7 / BC-7.07.002 Precondition 1 / story AC-010).
+  local env_prefix="HOME='$FAKE_HOME'"
   for ev in "${extra_env[@]}"; do
     env_prefix="$env_prefix $ev"
   done
-  # Run from $WORK so relative .factory/logs/ writes land in $WORK/.factory/logs/
-  run bash -c "cd '$WORK' && printf '%s' '{\"event_name\":\"PostCompact\",\"tool_name\":\"\",\"session_id\":\"bats-test\",\"tool_input\":{}}' | $env_prefix bash '$HOOK_SCRIPT' 2>&1"
+  # Run from $REPO_DIR so git discovers the repo via CWD (no GIT_DIR needed).
+  # Relative .factory/logs/ writes land in $REPO_DIR/.factory/logs/.
+  run bash -c "cd '$REPO_DIR' && printf '%s' '{\"event_name\":\"PostCompact\",\"tool_name\":\"\",\"session_id\":\"bats-test\",\"tool_input\":{}}' | $env_prefix bash '$HOOK_SCRIPT' 2>&1"
 }
 
 # ---------------------------------------------------------------------------
@@ -215,7 +227,7 @@ current_step: S-18.04
   _init_factory_artifacts_fixture "$_STATE_MD_HAPPY"
 
   # Verify no log file exists before hook runs
-  local log_pattern="$WORK/.factory/logs/postcompact-reanchor-*.jsonl"
+  local log_pattern="$REPO_DIR/.factory/logs/postcompact-reanchor-*.jsonl"
   # shellcheck disable=SC2086
   [ "$(ls $log_pattern 2>/dev/null | wc -l)" -eq 0 ]
 
@@ -285,7 +297,7 @@ current_step: S-18.04
 
   # Capture factory-artifacts HEAD before hook invocation
   local head_before
-  head_before=$(GIT_DIR="$REPO_DIR/.git" git rev-parse factory-artifacts)
+  head_before=$(git -C "$REPO_DIR" rev-parse factory-artifacts)
 
   _run_hook
 
@@ -294,7 +306,7 @@ current_step: S-18.04
 
   # Assert: factory-artifacts HEAD is unchanged after hook ran
   local head_after
-  head_after=$(GIT_DIR="$REPO_DIR/.git" git rev-parse factory-artifacts)
+  head_after=$(git -C "$REPO_DIR" rev-parse factory-artifacts)
   [ "$head_before" = "$head_after" ]
 
   # Assert: hook source does NOT contain any git write commands targeting factory-artifacts
@@ -313,12 +325,14 @@ current_step: S-18.04
 # ---------------------------------------------------------------------------
 
 @test "test_postcompact_reanchor_exits_0_and_warns_on_factory_artifacts_unreachable" {
-  # Setup: use a non-existent GIT_DIR so git show factory-artifacts:... will fail
-  REPO_DIR="$WORK/nonexistent-repo"
-  # Do NOT call _init_factory_artifacts_fixture — repo does not exist
+  # Setup: invoke hook from $WORK which has no .git directory, so git commands
+  # fail with "not a git repository" (CWD-based discovery; no GIT_DIR injection).
+  # Do NOT call _init_factory_artifacts_fixture — no repo should exist.
+  # $WORK was created by setup() and contains only the home dir; it has no .git.
+  mkdir -p "$WORK/.factory/logs"
 
-  # Invoke hook with unreachable git repo
-  run bash -c "cd '$WORK' && printf '%s' '{\"event_name\":\"PostCompact\",\"session_id\":\"bats-unreachable\",\"tool_input\":{}}' | GIT_DIR='$REPO_DIR/.git' HOME='$FAKE_HOME' bash '$HOOK_SCRIPT' 2>&1"
+  # Invoke hook with CWD=$WORK (non-git directory; no GIT_DIR in env).
+  run bash -c "cd '$WORK' && printf '%s' '{\"event_name\":\"PostCompact\",\"session_id\":\"bats-unreachable\",\"tool_input\":{}}' | HOME='$FAKE_HOME' bash '$HOOK_SCRIPT' 2>&1"
 
   # Assert: exit 0 (fail-open — BC-7.07.002 PC5)
   [ "$status" -eq 0 ]
@@ -371,7 +385,7 @@ version: \"0.0.1-test\"
   [[ "$output" == *"context=UNKNOWN"* ]]
 
   # Assert: daily log entry has status="warn"
-  local log_pattern="$WORK/.factory/logs/postcompact-reanchor-*.jsonl"
+  local log_pattern="$REPO_DIR/.factory/logs/postcompact-reanchor-*.jsonl"
   # shellcheck disable=SC2086
   local log_files=($(ls $log_pattern 2>/dev/null))
   if [ "${#log_files[@]}" -ge 1 ]; then
@@ -395,8 +409,10 @@ version: \"0.0.1-test\"
 
 @test "test_postcompact_reanchor_exits_0_on_all_error_paths" {
   # --- Scenario A: factory-artifacts unreachable ---
-  REPO_DIR="$WORK/nonexistent-for-ac008"
-  run bash -c "cd '$WORK' && printf '%s' '{\"event_name\":\"PostCompact\",\"session_id\":\"bats-ac008-a\",\"tool_input\":{}}' | GIT_DIR='$REPO_DIR/.git' HOME='$FAKE_HOME' bash '$HOOK_SCRIPT' 2>&1"
+  # Run from $WORK (no .git dir); git CWD-discovery fails with "not a git
+  # repository" — hook must still exit 0 (fail-open; no GIT_DIR in env).
+  mkdir -p "$WORK/.factory/logs"
+  run bash -c "cd '$WORK' && printf '%s' '{\"event_name\":\"PostCompact\",\"session_id\":\"bats-ac008-a\",\"tool_input\":{}}' | HOME='$FAKE_HOME' bash '$HOOK_SCRIPT' 2>&1"
   [ "$status" -eq 0 ] # MUST exit 0 (fail-open)
 
   # --- Scenario B: STATE.md fields absent ---
@@ -411,12 +427,13 @@ document_type: state
   # --- Scenario C: .factory/logs/ directory not writable (append-path EC-005 branch) ---
   # Setup valid STATE.md but make logs/ directory unwritable so the append fails.
   # This exercises the append-failure path (dir exists but is not writable).
+  # Hook CWD=$REPO_DIR, so .factory/logs/ resolves to $REPO_DIR/.factory/logs/.
   _init_factory_artifacts_fixture "$_STATE_MD_HAPPY"
-  chmod 000 "$WORK/.factory/logs" 2>/dev/null || true
+  chmod 000 "$REPO_DIR/.factory/logs" 2>/dev/null || true
   _run_hook
   local exit_status_c="$status"
   # Restore permissions for teardown
-  chmod 755 "$WORK/.factory/logs" 2>/dev/null || true
+  chmod 755 "$REPO_DIR/.factory/logs" 2>/dev/null || true
   [ "$exit_status_c" -eq 0 ] # MUST exit 0 even if log write fails
 }
 
@@ -450,8 +467,10 @@ current_step: step-from-git
 "
   _init_factory_artifacts_fixture "$state_md_cycle_a"
 
-  # Run hook with stale env var CURRENT_CYCLE=B
-  run bash -c "cd '$WORK' && printf '%s' '{\"event_name\":\"PostCompact\",\"session_id\":\"bats-ac009\",\"tool_input\":{}}' | GIT_DIR='$REPO_DIR/.git' HOME='$FAKE_HOME' CURRENT_CYCLE='B' bash '$HOOK_SCRIPT' 2>&1"
+  # Run hook from $REPO_DIR with stale env var CURRENT_CYCLE=B injected.
+  # No GIT_DIR in env — git resolves from CWD ($REPO_DIR) per production profile.
+  # CURRENT_CYCLE=B is the stale in-context value; the hook must use git value A.
+  run bash -c "cd '$REPO_DIR' && printf '%s' '{\"event_name\":\"PostCompact\",\"session_id\":\"bats-ac009\",\"tool_input\":{}}' | HOME='$FAKE_HOME' CURRENT_CYCLE='B' bash '$HOOK_SCRIPT' 2>&1"
 
   # Assert: exit 0
   [ "$status" -eq 0 ]
@@ -597,14 +616,17 @@ current_step: step-from-git
 # ---------------------------------------------------------------------------
 
 @test "test_postcompact_reanchor_exits_0_when_log_dir_mkdir_fails" {
-  # Setup: valid STATE.md in factory-artifacts
+  # Setup: valid STATE.md in factory-artifacts.
+  # _init_factory_artifacts_fixture creates $REPO_DIR/.factory/logs/ — remove it
+  # so the hook must attempt mkdir, then lock the parent to force that mkdir to fail.
   _init_factory_artifacts_fixture "$_STATE_MD_HAPPY"
 
-  # Remove the .factory/logs directory entirely (it was created in setup())
-  rm -rf "$WORK/.factory/logs"
+  # Remove the .factory/logs directory that _init_factory_artifacts_fixture created.
+  rm -rf "$REPO_DIR/.factory/logs"
 
   # Make the parent .factory directory unwritable so mkdir -p .factory/logs fails.
-  chmod 555 "$WORK/.factory"
+  # The hook runs with CWD=$REPO_DIR, so .factory resolves to $REPO_DIR/.factory.
+  chmod 555 "$REPO_DIR/.factory"
 
   # Run the hook: mkdir -p .factory/logs should fail (parent unwritable).
   _run_hook
@@ -612,7 +634,7 @@ current_step: step-from-git
   local hook_output="$output"
 
   # Restore permissions so teardown's rm -rf works cleanly
-  chmod 755 "$WORK/.factory"
+  chmod 755 "$REPO_DIR/.factory"
 
   # Assert: exit 0 even when mkdir fails (EC-005 fail-open; PC5)
   [ "$exit_status" -eq 0 ]
