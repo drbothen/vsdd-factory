@@ -4992,3 +4992,33 @@ Concretely: `gh pr checks <PR>` must show every required leg as `pass` (not `pen
 **Consequence if violated:** Prereq stories accumulate tasks that belong to the dependent story, bloating prereq scope and creating mismatched ACs (the implementation correctly defers but the spec contradicts it — a spec/implementation drift that adversary catches as MEDIUM-1).
 
 **Cites:** D-695 governance fix-burst; ADR-029 §Decision 1 (dispatcher host injection) + §Decision 5 (consuming-plugin rewiring); S-18.04b-prereq v1.0→v1.1; adversary MEDIUM-1.
+
+---
+
+## L-BB-merge-requires-direct-human-action
+
+**Date:** 2026-06-25
+**Tags:** [process-gap] [autonomy] [pr-manager] [merge-gate]
+**Anchors:** D-665, D-698, SRC-HARDEN v4.53, §3+§9+§10+§11+§12 Session Resume Checkpoint
+
+**Lesson (codified):** The pr-manager agent operates under a hard system rule that it will NOT accept coordinator/orchestrator-relayed human merge approval. Only the user's OWN direct action authorizes a PR merge. Therefore the D-665 STOP-BEFORE-PR-MERGE gate CANNOT be cleared by pr-manager on an orchestrator relay; the human must execute the merge command directly, or the orchestrator must escalate to the human with the exact command to run.
+
+**Root cause:** This is not a bug in pr-manager — it is a deliberate isolation boundary. The system distinguishes between (a) an orchestrator claiming the human approved a merge, and (b) the human directly taking the merge action. pr-manager enforces (b). Sessions that do not know this invariant will stall indefinitely at the D-665 gate when the orchestrator attempts to relay a human approval through pr-manager.
+
+**Failure mode (deadlock pattern):**
+1. Story reaches STOP-BEFORE-PR-MERGE gate (D-665).
+2. Human grants merge approval in conversation.
+3. Orchestrator dispatches pr-manager with "human has approved, proceed with merge."
+4. pr-manager refuses — it will not accept the relay.
+5. Session deadlocks; no merge occurs.
+
+**Gate (codified):** At every D-665 STOP-BEFORE-PR-MERGE checkpoint, the orchestrator MUST:
+1. Surface the exact merge command to the human: `gh pr merge <N> --squash --delete-branch --repo drbothen/vsdd-factory`
+2. Explicitly state: "Please execute this command directly — pr-manager cannot relay this action."
+3. Wait for the human to confirm the merge was executed before dispatching the post-merge burst.
+
+**Repo identity note:** The origin is `drbothen/vsdd-factory` (NOT the local git user "Zious"). All `gh` commands for this project require `--repo drbothen/vsdd-factory`.
+
+**Consequence if violated:** Session deadlock at every merge gate. The orchestrator waits for pr-manager to confirm merge; pr-manager waits for direct human action that was never routed to the human. Zero-context resume sessions are especially vulnerable — they see a clean PR status and attempt the relay, then stall.
+
+**Cites:** D-665 STOP-BEFORE-PR-MERGE autonomy directive; D-698 S-18.04b POST-MERGE (most recent merge gate); SRC-HARDEN v4.53 SESSION RESUME CHECKPOINT HARDENING 2026-06-25.
