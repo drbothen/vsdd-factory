@@ -1,11 +1,11 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
-status: draft
+version: "1.1"
+status: active
 producer: product-owner
 timestamp: 2026-06-24T00:00:00Z
-last_amended: "2026-06-24 (v1.0) — S-18.04b-prereq BC authoring burst (product-owner): Initial creation. Dispatcher git_context payload injection on PostToolUse Bash git-commit events for WASM chain-detection gates (ADR-029). Establishes host-side git execution contract, git_context schema, fail-open posture, and exec-free WASM boundary invariant. BC-1.16.001 v1.0."
+last_amended: "2026-06-24 (v1.1) — D-696 post-merge burst (state-manager): POL-14 auto-promotion draft→active. S-18.04b-prereq PR #262 squash-merged a177d76e to develop 2026-06-25T00:29:56Z. lifecycle_status draft→active; status draft→active. No behavioral change. BC-1.16.001 v1.1. [Prior: 2026-06-24 (v1.0) — S-18.04b-prereq BC authoring burst (product-owner): Initial creation. Dispatcher git_context payload injection on PostToolUse Bash git-commit events for WASM chain-detection gates (ADR-029). Establishes host-side git execution contract, git_context schema, fail-open posture, and exec-free WASM boundary invariant. BC-1.16.001 v1.0.]"
 phase: F2
 inputs:
   - .factory/specs/architecture/decisions/ADR-029-dispatcher-git-context-payload-injection.md
@@ -16,9 +16,10 @@ origin: greenfield
 extracted_from: null
 subsystem: "SS-01"
 capability: "CAP-032"
-lifecycle_status: draft
+lifecycle_status: active
 introduced: v1.0-feature-context-durability-E18
-modified: []
+modified:
+  - "v1.1 (2026-06-24): D-696 POL-14 auto-promotion draft→active (S-18.04b-prereq PR #262 merged a177d76e)"
 deprecated: null
 deprecated_by: null
 replacement: null

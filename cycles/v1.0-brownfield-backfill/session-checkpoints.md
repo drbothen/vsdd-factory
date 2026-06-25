@@ -837,3 +837,12 @@ Summary of D-674 checkpoint (archived from STATE.md 2026-06-21):
 - 4-index: BC v3.29/VP v2.40/STORY v4.47/ARCH v2.64. L2-INDEX v1.0.13.
 - develop HEAD: `997c8c1e` (external merge post-S-18.13; D-673 reconcile) / main HEAD: `caf06c68` / factory-artifacts HEAD: `0fce9e3f` (D-674 SHA-patch HEAD)
 - D-range: D-001..D-674
+
+---
+
+Summary of D-695-follow-on checkpoint (archived from STATE.md 2026-06-24 by D-696 post-merge burst):
+- D-695 follow-on S-18.04b-prereq LOCAL adversary pass-2 doc-accuracy fixes: F-1 (stale todo!() stub banner in invoke.rs; implementer refresh 3fb689d5 on feature/S-18.04b-prereq) + F-2 (Red Gate Test Table file-path mis-anchor abi_version.rs→git_context_injection.rs; story v1.1→v1.2). STORY-INDEX v4.65→v4.66. story_count UNCHANGED 123. BC/VP/ARCH UNCHANGED. 4-index BC v3.42/VP v2.41/STORY v4.66/ARCH v2.74. develop UNCHANGED b0bc4ffd. POSTURE: ACTIVE. NEXT: re-run LOCAL adversary fresh (governance + doc-accuracy corrected). STOP-BEFORE-PR-MERGE (D-665) holds.
+- Prior (D-695 PASS-1): GOVERNANCE FIX: ADR-029 v1.1 (SS-01+SS-04 corrected); story v1.0→v1.1 (T-7 registry trigger flip deferred to S-18.04b per ADR-029 §Decision 1+§Decision 5 coupling). ARCH-INDEX v2.74; STORY-INDEX v4.65. L-BB-prereq-story-task-scope-boundary codified.
+- 4-index: BC v3.42/VP v2.41/STORY v4.66/ARCH v2.74. L2-INDEX v1.0.13.
+- develop HEAD: `b0bc4ffd` (PR #249 S-18.04a squash-merged 2026-06-24 D-693) / main HEAD: `caf06c68` / factory-artifacts HEAD: `a728097f` (D-695 follow-on)
+- D-range: D-001..D-695 follow-on

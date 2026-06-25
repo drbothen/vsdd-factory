@@ -2970,6 +2970,51 @@ S-18.04b (PreCompact exemption + prune; BC-5.41.003; P0; 8pts; depends_on S-18.0
 
 ---
 
+## D-696 — PR #262 (S-18.04b-prereq) post-merge STATE burst — 2026-06-24
+
+**Decision:** PR #262 (feature/S-18.04b-prereq → develop) squash-merged to develop at commit `a177d76e37ee1c86454ffd3680a13c9bcbf41122` on 2026-06-25T00:29:56Z. Remote branch deleted. Post-merge burst executed.
+
+**Context:** S-18.04b-prereq delivered dispatcher git_context payload injection (ADR-029 §Decision 1): detect PostToolUse Bash git-commit events targeting factory-artifacts worktree, execute git host-side to obtain HEAD/HEAD^ subject+SHA, inject `git_context` JSON object into `payload.extra` before routing to registered WASM plugins. Fail-open on git error. The shared hook-sdk `HookPayload` gained a `#[serde(flatten)] extra: serde_json::Value` field (sibling-swept across all plugins; regression-free). HOST_ABI unchanged. The registry trigger flip from Edit/Write → Bash for validate-burst-log and validate-dispatch-advance is scoped to S-18.04b (the consuming-plugin story that reads git_context).
+
+**LOCAL adversary cascade:** 3-CLEAN converged (passes 1–2 with governance and doc-accuracy fixes under D-695; final LOCAL adversary pass CLEAN). Security review: SEC-001 (info-leak via git exec output in logs — mitigated by fail-open; accepted), SEC-002 (git injection via command string — dispatcher uses tokenized exec, not shell; accepted). Code review and PR-level review APPROVE. CI green.
+
+**Actions taken:**
+- S-18.04b-prereq story status draft→merged; PR #262 a177d76e 2026-06-25 added to merged-stories-ledger.md
+- merged_count 85→86; story_count UNCHANGED 123
+- POL-14 auto-promotion: BC-1.16.001 draft→active (BC-INDEX v3.42→v3.43; BC file lifecycle_status draft→active)
+- develop HEAD updated: b0bc4ffd→a177d76e
+- feature/S-18.04b-prereq branch deleted (remote)
+- Active worktrees: .factory (factory-artifacts), .worktrees/S-18.04b (parked @ 7999a0f9; re-wire pending; NEXT)
+- POSTURE: ACTIVE; STOP-BEFORE-PR-MERGE (D-665) still holds for next PR
+- 4-index: BC-INDEX v3.43 / VP-INDEX v2.41 / STORY-INDEX v4.67 / ARCH-INDEX v2.74
+
+**4-index gate (literal-shell stdout 2026-06-24):**
+```
+grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md
+version: "3.43"
+
+grep "^version:" .factory/specs/verification-properties/VP-INDEX.md
+version: "2.41"
+
+grep "^version:" .factory/stories/STORY-INDEX.md
+version: "4.67"
+
+grep "^version:" .factory/specs/architecture/ARCH-INDEX.md
+version: "2.74"
+```
+
+Zero FAIL. Parity PASS: BC-INDEX v3.43 / VP-INDEX v2.41 / STORY-INDEX v4.67 / ARCH-INDEX v2.74.
+
+### Parent-commit
+
+See `git -C .factory log -1 --format='%h %s'` (D-695 follow-on DOC-ACCURACY FIX burst factory-artifacts HEAD; TD-VSDD-053 single-commit per burst)
+
+### NEXT
+
+S-18.04b RE-WIRE: rebase feature/S-18.04b onto a177d76e (develop); implement exec-free git_context reader in validate-burst-log and validate-dispatch-advance; flip registry triggers Edit/Write→Bash; update VP-084 proof (genuine, not fail-open tautology). STOP-BEFORE-PR-MERGE (D-665) holds.
+
+---
+
 ## D-695 — S-18.04b-prereq LOCAL adversary pass-1 GOVERNANCE fix-burst — ADR-029 subsystem anchor + story T-7 scope correction — 2026-06-24
 
 **Decision:** S-18.04b-prereq LOCAL adversary pass-1 produced two findings requiring governance correction before the story proceeds to TDD:
