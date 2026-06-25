@@ -81,8 +81,12 @@ POST_HISTORICAL_SCRIPTS=(
 # S-15.15: update-cargo-audit-cache is a bash data provisioner (ADR-021
 # Option b) — it provisions .factory/hooks/cargo-audit-cache.json for the
 # validate-policies-schema WASM hook to read. It is not a dispatcher hook.
+# S-18.04b: precompact-flush-prune is a log-pruning utility invoked by
+# precompact-flush.wasm (WASM reads flush-log; prune.sh called externally).
+# It is NOT a dispatcher hook (explicitly tested in precompact-flush-prune.bats).
 NON_HOOK_SCRIPTS=(
   update-cargo-audit-cache
+  precompact-flush-prune
 )
 
 # Allow-list of hook basenames that MUST block on plugin error rather

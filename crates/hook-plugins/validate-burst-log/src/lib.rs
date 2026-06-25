@@ -1,7 +1,10 @@
 //! validate-burst-log — PostToolUse WASM hook plugin.
 //!
-//! Blocks any Edit/Write to a `burst-log.md` file that leaves a structurally
-//! incomplete latest burst entry. Validates three structural properties:
+//! Fires on two triggers (merged into one plugin entry per ADR-029):
+//!
+//! **Trigger A — PostToolUse Edit|Write (existing)**: blocks any write to a
+//! `burst-log.md` file that leaves a structurally incomplete latest burst entry.
+//! Validates three structural properties:
 //!
 //! 1. **h2 heading format** (D-421(e)+D-438(d)+D-439(a)): the latest h2 heading
 //!    must match `## Burst: <description> (YYYY-MM-DD)`.
@@ -12,9 +15,18 @@
 //! 3. **Dim-1 cardinality parity** (D-432(e)+D-448(d)(i)): the integer in the
 //!    Dim-1 headline must equal the count of files in the Dim-1 list.
 //!
+//! **Trigger B — PostToolUse Bash (ADR-029 §Decision 1)**: on Bash git-commit
+//! events, reads `git_context` from `payload.extra` (injected by the dispatcher
+//! host layer) and runs the MULTI_COMMIT_CHAIN_NOT_ALLOWED detector. This is
+//! exec-free (BC-5.41.003 PC1 + ADR-029 §Decision 3): no `host::exec_subprocess`
+//! call is made for commit context acquisition. Fail-open: if `git_context` is
+//! absent or all-empty, the check is skipped.
+//!
 //! # Behavioral Contracts
 //!
 //! - BC-5.39.004: blocks structurally incomplete burst-log entries.
+//! - BC-5.41.003: PreCompact flush exemption + MULTI_COMMIT_CHAIN_NOT_ALLOWED detector.
+//! - BC-1.16.001: git_context 4-field injection contract (dispatcher side).
 //!
 //! # D-NNN closures
 //!
@@ -29,11 +41,13 @@
 //!
 //! # Architecture compliance
 //!
-//! - HOST_ABI_VERSION = 1 (no new host functions introduced).
+//! - HOST_ABI_VERSION = 1 (no new host functions introduced; git_context rides extra map).
 //! - Fail-open on every `host::read_file` error (BC-5.39.004 invariant 5).
+//! - Fail-open on absent/empty git_context (BC-5.41.003 Invariant 5; BC-1.16.001 INV3).
 //! - No `println!` — use `host::log_*` for all diagnostic output.
 //! - No `unwrap()` or `expect()` in production paths.
 //! - No `regex` crate: hand-rolled pattern scanning to stay within WASM fuel budget.
+//! - No `exec_subprocess` for commit-context acquisition (ADR-029 §Decision 3; BC-5.41.003 PC1).
 //! - File-path enforcement via in-plugin guard (Q5/Q6 canonical pattern);
 //!   registry entry does NOT include a `file_pattern` field.
 
@@ -606,24 +620,37 @@ pub fn is_burst_log_target(file_path: &str) -> bool {
 /// Core hook logic for validate-burst-log.
 ///
 /// Called from the WASI entry point in `main.rs` via the SDK trampoline.
-/// The dispatcher routes PostToolUse `Edit|Write` events to this hook (the
-/// registry entry does not filter by file path — this function applies the
-/// in-plugin `burst-log.md` file-name guard, routes by event+tool, so any
-/// PostToolUse `Edit|Write` reaches this hook).
 ///
-/// 1. Extracts `file_path` from `tool_input`; early-exit Continue for
-///    non-burst-log.md paths (Q5/Q6 in-plugin guard).
-/// 2. Reads the written burst-log.md content from the host filesystem via
-///    `host::read_file`. On failure, emits Continue + log_warn (fail-open per
-///    BC-5.39.004 invariant 5 + postcondition 6).
-/// 3. Validates: h2 heading format, 9-block presence, Dim-1 cardinality.
-/// 4. Emits `HookResult::block_with_fix` if any violation found, or
-///    `HookResult::Continue` if all properties hold.
+/// **Dispatch path A — PostToolUse Edit|Write (burst-log.md validation)**:
+/// The dispatcher routes PostToolUse `Edit|Write` events to this hook. The
+/// in-plugin `burst-log.md` file-name guard filters to the relevant file.
+/// Validates h2 heading format, 9-block presence, Dim-1 cardinality.
+///
+/// **Dispatch path B — PostToolUse Bash (ADR-029 git_context chain detection)**:
+/// When `tool_name == "Bash"` and `tool_input.command` contains "git commit",
+/// the dispatcher has injected `git_context` into `payload.extra` (per ADR-029
+/// §Decision 1+3). This path reads `git_context` from `payload.extra` and runs
+/// `check_multi_commit_chain`. Fail-open: if `git_context` is absent or all
+/// fields are empty, returns Continue without blocking (BC-1.16.001 INV3).
+///
+/// The key invariant: NO `host::exec_subprocess` is called for commit-context
+/// acquisition. ADR-029 §Decision 3; BC-5.41.003 PC1 addendum.
 ///
 /// # BC trace
 /// BC-5.39.004 postconditions 1-6; invariants 1-5.
+/// BC-5.41.003 PC1+PC2+PC3; BC-1.16.001 PC1+INV3; ADR-029 §Decision 1+3+5.
 pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
     use vsdd_hook_sdk::host;
+
+    // ADR-029 §Decision 1: chain detection fires on PostToolUse Bash git-commit events.
+    // Burst-log structural validation fires on PostToolUse Edit|Write events.
+    // These are now distinct dispatch paths.
+    if payload.tool_name == "Bash" {
+        // Dispatch path B: Bash git-commit → chain detection via git_context.
+        return check_chain_from_git_context(&payload);
+    }
+
+    // Dispatch path A: Edit|Write → burst-log structural validation.
 
     // Extract file_path from tool_input.
     let file_path = match payload.tool_input.get("file_path").and_then(|v| v.as_str()) {
@@ -739,22 +766,6 @@ pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
         }
     }
 
-    // PreCompact flush chain exemption check (BC-5.41.003 + S-18.04b).
-    //
-    // Wiring: read the precompact-flush-log from the filesystem to get the
-    // last-line SHA corroboration context, then read HEAD and HEAD^ commit
-    // subjects from the factory-artifacts worktree via exec_subprocess.
-    // Fail-open on all errors: if the log or git reads fail, skip the chain
-    // check and emit Continue. This prevents false-positive blocks when the
-    // hook runs outside a full factory-artifacts git environment.
-    //
-    // BC-5.41.003 F-8: the WASM gate reads the precompact-flush-log FIELD-2/FIELD-4
-    // via host::read_file; it does NOT exec `git cat-file -t` for corroboration.
-    // exec_subprocess is used ONLY to obtain HEAD/HEAD^ commit subjects.
-    if let Some(chain_violation) = check_factory_artifacts_chain() {
-        violations.push(chain_violation);
-    }
-
     if violations.is_empty() {
         HookResult::Continue
     } else {
@@ -762,122 +773,104 @@ pub fn on_post_tool_use(payload: HookPayload) -> HookResult {
     }
 }
 
-/// Read the precompact-flush-log and check for a MULTI_COMMIT_CHAIN violation
-/// in the factory-artifacts git repo (BC-5.41.003 wiring).
+/// Dispatch path B — PostToolUse Bash (ADR-029 §Decision 1).
 ///
-/// Returns `Some(Violation)` if a chain is detected and neither commit is exempt.
-/// Returns `None` on any error (fail-open per BC-5.39.004 invariant 5).
+/// Reads `git_context` from `payload.extra` (injected by the dispatcher host layer)
+/// and runs the MULTI_COMMIT_CHAIN_NOT_ALLOWED detector via `check_multi_commit_chain`.
+///
+/// Fail-open semantics (BC-1.16.001 INV3; BC-5.41.003 Invariant 5):
+/// - `git_context` absent from `payload.extra` → Continue (skip check).
+/// - `git_context` present but all four fields empty → Continue (skip check).
+/// - `head_parent_subject` is empty → Continue (initial commit; no chain possible).
+///
+/// The precompact-flush-log is read via `host::read_file` for SHA corroboration
+/// (BC-5.41.003 PC1 three-case logic). No `exec_subprocess` is called.
 ///
 /// # BC trace
-/// BC-5.41.003 PC1 + PC2 + PC3; TD-VSDD-053.
-fn check_factory_artifacts_chain() -> Option<Violation> {
+/// BC-5.41.003 PC1 addendum (ADR-029 wiring); BC-1.16.001 PC1+INV3;
+/// ADR-029 §Decision 1+3+5.
+fn check_chain_from_git_context(payload: &HookPayload) -> HookResult {
     use vsdd_hook_sdk::host;
 
-    // Step 1: Determine factory-artifacts worktree path as <cwd>/.factory.
-    let cwd = host::cwd();
-    if cwd.is_empty() {
-        host::log_warn("[validate-burst-log] host::cwd() returned empty — skipping chain check");
-        return None;
-    }
-    let factory_dir = format!("{cwd}/.factory");
+    // Step 1: Extract git_context from payload.extra.
+    // Fail-open (Continue) if absent.
+    let git_context = match payload.extra.get("git_context") {
+        Some(v) => v,
+        None => {
+            // git_context absent — dispatcher fail-open path or non-qualifying event.
+            // BC-1.16.001 INV3: skip chain check, return Continue.
+            return HookResult::Continue;
+        }
+    };
 
-    // Step 2: Read precompact-flush-log (BC-5.41.003 F-8 — read_file, not git cat-file).
-    let flush_log_path = format!("{factory_dir}/hooks/precompact-flush-log");
-    let flush_log_last_line: Option<String> = match host::read_file(&flush_log_path, 4096, 500) {
-        Ok(bytes) => String::from_utf8(bytes).ok().and_then(|s| {
-            // Get the last non-empty line of the log.
-            s.lines()
-                .rev()
-                .find(|l| !l.trim().is_empty())
-                .map(|l| l.to_string())
-        }),
-        Err(_) => {
-            // Log absent or unreadable — case (c): prefix-match-only exemption applies.
+    // Step 2: Extract the 4 required fields.
+    let head_subject = git_context
+        .get("head_subject")
+        .and_then(|v| v.as_str())
+        .unwrap_or("")
+        .trim()
+        .to_string();
+    let head_sha = git_context
+        .get("head_sha")
+        .and_then(|v| v.as_str())
+        .unwrap_or("")
+        .trim()
+        .to_string();
+    let head_parent_subject = git_context
+        .get("head_parent_subject")
+        .and_then(|v| v.as_str())
+        .unwrap_or("")
+        .trim()
+        .to_string();
+    let head_parent_sha = git_context
+        .get("head_parent_sha")
+        .and_then(|v| v.as_str())
+        .unwrap_or("")
+        .trim()
+        .to_string();
+
+    // Step 3: Fail-open if all fields empty (dispatcher fail-open path per BC-1.16.001 PC2).
+    if head_subject.is_empty() && head_parent_subject.is_empty() {
+        return HookResult::Continue;
+    }
+
+    // Step 4: Fail-open if head_parent_subject is empty (initial commit; no chain possible).
+    // BC-5.41.003 Invariant 5 (ADR-029 wiring extension).
+    if head_parent_subject.is_empty() {
+        return HookResult::Continue;
+    }
+
+    // Step 5: Read precompact-flush-log for SHA corroboration.
+    // BC-5.41.003 PC1 three-case logic: read via host::read_file (NOT exec_subprocess).
+    let flush_log_last_line: Option<String> = {
+        let cwd = host::cwd();
+        if !cwd.is_empty() {
+            let flush_log_path = format!("{cwd}/.factory/hooks/precompact-flush-log");
+            match host::read_file(&flush_log_path, 4096, 500) {
+                Ok(bytes) => String::from_utf8(bytes).ok().and_then(|s| {
+                    s.lines()
+                        .rev()
+                        .find(|l| !l.trim().is_empty())
+                        .map(|l| l.to_string())
+                }),
+                Err(_) => None,
+            }
+        } else {
             None
         }
     };
 
-    // Step 3: Get HEAD commit subject from factory-artifacts via exec_subprocess.
-    let head_result = host::exec_subprocess(
-        "git",
-        &["-C", &factory_dir, "log", "--format=%s", "-1", "HEAD"],
-        &[],
-        2000,
-        4096,
-    );
-    let head_subject = match head_result {
-        Ok(r) if r.exit_code == 0 => String::from_utf8(r.stdout)
-            .unwrap_or_default()
-            .trim()
-            .to_string(),
-        _ => {
-            // Git not available or factory-artifacts not a git repo — skip chain check (fail-open).
-            return None;
-        }
-    };
-
-    // Step 4: Get HEAD^ commit subject.
-    let parent_result = host::exec_subprocess(
-        "git",
-        &["-C", &factory_dir, "log", "--format=%s", "-1", "HEAD^"],
-        &[],
-        2000,
-        4096,
-    );
-    let head_parent_subject = match parent_result {
-        Ok(r) if r.exit_code == 0 => String::from_utf8(r.stdout)
-            .unwrap_or_default()
-            .trim()
-            .to_string(),
-        _ => {
-            // Could be initial commit (no HEAD^) — skip chain check (fail-open).
-            return None;
-        }
-    };
-
-    if head_subject.is_empty() || head_parent_subject.is_empty() {
-        return None;
-    }
-
-    // Step 5: Get HEAD SHA for corroboration.
-    let head_sha_result = host::exec_subprocess(
-        "git",
-        &["-C", &factory_dir, "rev-parse", "HEAD"],
-        &[],
-        2000,
-        256,
-    );
-    let head_sha = match head_sha_result {
-        Ok(r) if r.exit_code == 0 => String::from_utf8(r.stdout)
-            .unwrap_or_default()
-            .trim()
-            .to_string(),
-        _ => String::new(),
-    };
-
-    let head_parent_sha_result = host::exec_subprocess(
-        "git",
-        &["-C", &factory_dir, "rev-parse", "HEAD^"],
-        &[],
-        2000,
-        256,
-    );
-    let head_parent_sha = match head_parent_sha_result {
-        Ok(r) if r.exit_code == 0 => String::from_utf8(r.stdout)
-            .unwrap_or_default()
-            .trim()
-            .to_string(),
-        _ => String::new(),
-    };
-
-    // Step 6: Apply exemption check + chain detection (BC-5.41.003 PC1+PC2+PC3).
-    check_multi_commit_chain(
+    // Step 6: Run check_multi_commit_chain (pure logic; no I/O).
+    match check_multi_commit_chain(
         &head_subject,
         &head_sha,
         &head_parent_subject,
         &head_parent_sha,
         flush_log_last_line.as_deref(),
-    )
+    ) {
+        Some(violation) => emit_block(&[violation]),
+        None => HookResult::Continue,
+    }
 }
 
 // ---------------------------------------------------------------------------

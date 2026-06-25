@@ -80,6 +80,7 @@ GATE_HOOKS=(
     validate-count-propagation validate-red-ratio
     update-cargo-audit-cache
     check-harness-version
+    precompact-flush-prune
   )
 
   # On-disk: every hooks/*.sh basename without extension, minus the
