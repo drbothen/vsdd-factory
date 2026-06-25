@@ -830,7 +830,9 @@ fn check_chain_from_git_context(payload: &HookPayload) -> HookResult {
         .to_string();
 
     // Step 3: Fail-open if all fields empty (dispatcher fail-open path per BC-1.16.001 PC2).
+    // SEC-004: emit telemetry warn so silent bypasses are observable.
     if head_subject.is_empty() && head_parent_subject.is_empty() {
+        host::log_warn("[validate-burst-log] git_context all-empty — chain check skipped (fail-open per BC-1.16.001 INV3)");
         return HookResult::Continue;
     }
 

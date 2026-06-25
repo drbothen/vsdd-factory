@@ -61,6 +61,17 @@ fi
 
 LOG_FILE="$1"
 
+# SEC-002: Restrict log file path to .factory/ subdirectory (defense-in-depth; CWE-22).
+# AC-012 restricts callers to check-state-health, but we enforce this structurally too.
+case "$LOG_FILE" in
+  */.factory/*) ;;
+  .factory/*) ;;
+  *)
+    echo "precompact-flush-prune: log-file path must be under .factory/" >&2
+    exit 1
+    ;;
+esac
+
 # ---------------------------------------------------------------------------
 # AC-013 boundary: empty file is a no-op exit 0.
 # An empty file has no entries to prune; not a structural violation.
