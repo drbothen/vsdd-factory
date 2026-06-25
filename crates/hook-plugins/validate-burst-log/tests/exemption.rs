@@ -69,10 +69,28 @@ use validate_burst_log::{
 use vsdd_hook_sdk::{HookPayload, HookResult};
 
 // ---------------------------------------------------------------------------
-// Section 1: Pure-logic tests (PRESERVED — already pass; Red Gate is section 2)
+// Section 1: Pure-logic tests — LOAD-BEARING PROOF VEHICLE for the exemption
+// DECISION (ADR-029 §Decision 8).
 //
-// These tests verify the 3-case exemption logic in isolation.
-// They must continue to pass after the wiring change.
+// These tests are the authoritative proof that is_precompact_flush_exempt()
+// correctly implements the 3-case exemption logic per BC-5.41.003 PC1:
+//   case (a): log present, FIELD-4="commit", SHA matches → exempt
+//   case (b): log present, FIELD-4 corrupted/missing → treat as absent → exempt
+//   case (c): log absent → prefix-match-only → exempt
+// Breaking is_precompact_flush_exempt kills 4 of these tests (mutation-verified).
+//
+// WHY THESE ARE THE LOAD-BEARING LAYER (ADR-029 §Decision 8):
+//   The two positive bats tests in vp084-proof.bats prove the dispatcher→WASM
+//   git_context injection WIRING end-to-end (Layer 2). They do NOT prove
+//   exemption-decision correctness: a broken exemption that always returned
+//   "exempt" would also pass those positive bats tests (the real PreCompact
+//   flush subject in their git repo makes the exemption outcome irrelevant to
+//   the WASM's Continue result). Layer 2's non-tautology is closed by the
+//   negative control bats test (sentinel chain → Block), not by the positive
+//   bats tests. The exemption-DECISION correctness proof lives HERE in
+//   Section 1, and only here. These tests must never be removed or weakened.
+//
+// They must continue to pass after the Section 2 wiring change.
 // ---------------------------------------------------------------------------
 
 const EXAMPLE_SHA: &str = "abc1234def5678abc1234def5678abc1234def56";

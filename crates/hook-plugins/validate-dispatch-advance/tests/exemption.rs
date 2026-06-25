@@ -81,6 +81,37 @@ const BACKFILL_SUBJECT_2: &str = "stage 2 backfill";
 const BURST_SUBJECT: &str = "state: burst-24 Commit E — D-477 codification";
 
 // ---------------------------------------------------------------------------
+// Section 1: Pure-logic tests — LOAD-BEARING PROOF VEHICLE for the exemption
+// DECISION (ADR-029 §Decision 8).
+//
+// These tests are the authoritative proof that is_precompact_flush_exempt()
+// (in validate-dispatch-advance) correctly implements the 3-case exemption
+// logic per BC-5.41.003 PC1:
+//   case (a): log present, FIELD-4="commit", SHA matches → exempt
+//   case (b): log present, FIELD-4 corrupted/missing → treat as absent → exempt
+//   case (c): log absent → prefix-match-only → exempt
+// Breaking is_precompact_flush_exempt kills 4 of these tests (mutation-verified).
+//
+// WHY THESE ARE THE LOAD-BEARING LAYER (ADR-029 §Decision 8):
+//   The two positive bats tests in vp084-proof.bats prove the dispatcher→WASM
+//   git_context injection WIRING end-to-end (Layer 2). They do NOT prove
+//   exemption-decision correctness: a broken exemption that always returned
+//   "exempt" would also pass those positive bats tests (the real PreCompact
+//   flush subject in their git repo makes the exemption outcome irrelevant to
+//   the WASM's Continue result). Layer 2's non-tautology is closed by the
+//   negative control bats test (sentinel chain → Block), not by the positive
+//   bats tests. The exemption-DECISION correctness proof lives HERE in
+//   Section 1 (both crates), and only here. These tests must never be removed
+//   or weakened. The test_BC_5_41_003_dispatch_advance_exemption_symmetric
+//   test further enforces that this crate's exemption logic is byte-for-byte
+//   identical to validate-burst-log's (INV2 / AC-006 symmetry).
+//
+// Symmetric with crates/hook-plugins/validate-burst-log/tests/exemption.rs
+// Section 1. Both Section 1 sets must continue to pass after the Section 2
+// wiring change.
+// ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
 // AC-001 — log present, FIELD-4=commit, SHA matches → exempt
 // BC-5.41.003 PC1 case (a) — symmetric with validate-burst-log
 // ---------------------------------------------------------------------------
