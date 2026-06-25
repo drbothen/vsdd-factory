@@ -83,8 +83,12 @@ teardown() {
 _init_factory_artifacts_fixture() {
   local state_md_content="$1"
 
-  REPO_DIR="$WORK/repo"
-  mkdir -p "$REPO_DIR"
+  # Always create a FRESH isolated temp repo so this helper is safe to call
+  # multiple times within the same @test (e.g. AC-008 calls it twice for two
+  # independent error scenarios).  Using a fixed path like $WORK/repo caused
+  # status 128 on the second call because `git checkout -b factory-artifacts`
+  # fails when the branch already exists.
+  REPO_DIR="$(mktemp -d)"
 
   # Init repo on develop branch
   HOME="$FAKE_HOME" git init "$REPO_DIR" >/dev/null 2>&1
