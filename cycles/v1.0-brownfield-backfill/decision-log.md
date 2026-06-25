@@ -2970,6 +2970,53 @@ S-18.04b (PreCompact exemption + prune; BC-5.41.003; P0; 8pts; depends_on S-18.0
 
 ---
 
+## D-699 — PR #270 (S-18.03) post-merge STATE burst — 2026-06-25
+
+**Decision:** PR #270 (`feat(S-18.03): rehydrate-wave skill — git-sourced scoped rehydration + wave-reset SKILL.md`, feature/S-18.03 → develop) squash-merged to develop at commit `bc9fc693` on 2026-06-25T20:03:01Z. Remote feature branch deleted. Post-merge burst executed.
+
+**Context:** S-18.03 LOCAL 3-CLEAN cascade CONVERGED (BC-5.39.001 3-CLEAN protocol SATISFIED: P1 2 MAJOR → P2 2 MED → P3/P4/P5 CLEAN); demo-recorder per-AC evidence captured; PR #270 created; CI GREEN; STOP-BEFORE-PR-MERGE (D-665) gate cleared by human direct merge. S-18.03 delivers the rehydrate-wave skill (git-sourced scoped rehydration + wave-reset SKILL.md; BC-6.24.001; VP-088; DI-023; SS-06; P1; 8pts; depends_on [S-18.04a MET, S-18.04b MET]).
+
+**Process-gap codified:** F-P1-010 [process-gap] — story-writer Red Gate Test Plan did not enforce 1:1 edge-case→test coverage at authoring time (EC-004/EC-006 enumerated in BC-6.24.001 but shipped without corresponding bats tests until adversary pass-1 caught the gap). See lessons.md L-BB-red-gate-test-plan-ec-coverage-parity.
+
+**Actions taken:**
+- S-18.03 story status draft→merged; PR #270 bc9fc693 2026-06-25 added to merged-stories-ledger.md
+- merged_count 87→88; story_count UNCHANGED 123
+- POL-14 auto-promotion: BC-6.24.001 lifecycle_status draft→active (BC-INDEX v3.45→v3.46; BC file lifecycle_status active); H1 title UNCHANGED (POLICY 7)
+- develop_head 95eeb9fa→bc9fc693
+- feature/S-18.03 branch deleted
+- S-18.06/S-18.07/S-18.08 now have depends_on S-18.03 MET (S-18.06 unblocked; S-18.07 still needs S-18.05+S-18.06; S-18.08 still needs S-18.05..S-18.07)
+- F-P1-010 [process-gap] codified in lessons.md as L-BB-red-gate-test-plan-ec-coverage-parity; deferral-cleanup anchored to S-18.09
+- STORY-INDEX v4.71→v4.72; BC-INDEX v3.45→v3.46; VP-INDEX UNCHANGED v2.43; ARCH-INDEX UNCHANGED v2.76
+- POSTURE: ACTIVE. NEXT: S-18.05 (postcompact-reanchor.sh advisory hook; BC-7.07.002; P1; 5pts; depends_on [S-18.00 MET]) — first fully unblocked undelivered E-18 story by priority after S-18.03.
+- STOP-BEFORE-PR-MERGE (D-665) holds for all code PRs.
+
+**4-index gate (literal-shell stdout 2026-06-25):**
+```
+grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md
+version: "3.46"
+
+grep "^version:" .factory/specs/verification-properties/VP-INDEX.md
+version: "2.43"
+
+grep "^version:" .factory/stories/STORY-INDEX.md
+version: "4.72"
+
+grep "^version:" .factory/specs/architecture/ARCH-INDEX.md
+version: "2.76"
+```
+
+Parity PASS: BC-INDEX v3.46 / VP-INDEX v2.43 / STORY-INDEX v4.72 / ARCH-INDEX v2.76.
+
+### Parent-commit
+
+See `git -C .factory log -1 --format='%h %s'` (D-698 S-18.04b post-merge burst; TD-VSDD-053 single-commit)
+
+### NEXT
+
+S-18.05 (postcompact-reanchor.sh advisory hook; BC-7.07.002; P1; 5pts; depends_on [S-18.00 MET]); S-18.06 now also unblocked (depends_on [S-18.03 MET]). STOP-BEFORE-PR-MERGE (D-665) holds for each code PR.
+
+---
+
 ## D-698 — PR #264 (S-18.04b) post-merge STATE burst — 2026-06-25
 
 **Decision:** PR #264 (`feat(S-18.04b): exec-free PreCompact exemption + prune.sh (E-18 context-durability; ADR-029)`, feature/S-18.04b → develop) squash-merged to develop at commit `95eeb9fa` on 2026-06-25T15:27:20Z. Remote feature branch deleted. Post-merge burst executed.

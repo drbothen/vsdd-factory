@@ -5022,3 +5022,28 @@ Concretely: `gh pr checks <PR>` must show every required leg as `pass` (not `pen
 **Consequence if violated:** Session deadlock at every merge gate. The orchestrator waits for pr-manager to confirm merge; pr-manager waits for direct human action that was never routed to the human. Zero-context resume sessions are especially vulnerable — they see a clean PR status and attempt the relay, then stall.
 
 **Cites:** D-665 STOP-BEFORE-PR-MERGE autonomy directive; D-698 S-18.04b POST-MERGE (most recent merge gate); SRC-HARDEN v4.53 SESSION RESUME CHECKPOINT HARDENING 2026-06-25.
+
+---
+
+## L-BB-red-gate-test-plan-ec-coverage-parity
+
+**Date:** 2026-06-25
+**Tags:** [process-gap] [story-writer] [red-gate] [codified]
+**Anchors:** D-699, F-P1-010, S-18.03, S-18.09 (follow-up gate scope)
+
+**Lesson (codified):** The story-writer Red Gate Test Plan MUST enforce 1:1 edge-case→test coverage at authoring time. Every edge case (EC-NNN) enumerated in the BC that is testable in bats MUST have a corresponding bats Red Gate test row in the story's §Red Gate Test Plan table. EC-004 and EC-006 were enumerated in BC-6.24.001 but shipped without corresponding bats tests until adversary pass-1 (F-P1-010) caught the gap.
+
+**Root cause:** The story-writer discipline for Red Gate Test Plan rows enumerates ACs (AC-001 through AC-N) but does not explicitly walk through every EC-NNN in the source BC to confirm test coverage. Edge cases that are implied by the ACs can be missed if the AC→EC mapping is not explicit.
+
+**Failure mode:** Story ships with a Red Gate Test Plan that covers all ACs but leaves some edge cases (enumerated in the BC) untested. The 3-CLEAN LOCAL cascade seals the story as converged without detecting the coverage gap — the adversary catches it at pass-1, resetting the streak and requiring a fix burst to add the missing tests.
+
+**Gate (codified):** At Red Gate Test Plan authoring time, the story-writer MUST:
+1. Enumerate ALL EC-NNN entries from the source BC(s).
+2. For each testable EC, confirm a bats test row exists in §Red Gate Test Plan.
+3. For non-testable ECs (e.g., manual verification required), annotate as such with justification.
+
+**Candidate gate story:** S-18.09 (process-gap lesson gate checks; wave 8; P1; 5pts) is the appropriate anchor for an automated machine-checkable assertion of this discipline. Do NOT create a new story — anchor to S-18.09.
+
+**Consequence if violated:** Adversary pass-1 resets the 3-CLEAN streak; story requires a fix burst to add missing tests; total cascade passes increase from the nominal minimum. Recurrence risk is high because the gap is invisible to the implementer (bats suite passes for covered ACs; edge cases simply have no test rows).
+
+**Cites:** D-699 S-18.03 POST-MERGE; F-P1-010 S-18.03 LOCAL adversary pass-1; BC-6.24.001 EC-004/EC-006; BC-5.39.001 3-CLEAN protocol; S-18.09 candidate gate scope.
