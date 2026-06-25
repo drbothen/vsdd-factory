@@ -6,30 +6,30 @@
 # (real WASM dispatch path), NOT by calling wasmtime directly or by calling
 # any shell script.
 #
-# This is the test that enforces the D-693 real-wasm discipline. Until the
-# implementer builds the updated WASM binaries (T-6/T-7), the test skips
-# (WASM not compiled) rather than failing in a misleading way. The skip is
-# correct Red Gate behavior — skip != pass.
+# # ADR-029 Design (corrected from pre-ADR-029 proof harness)
+# Per AC-007 and S-18.04b AC-007 (VP-084 proof-model update):
+#   - Trigger: PostToolUse Bash (tool="Bash", tool_input.command contains "git commit")
+#   - NOT Edit/Write — ADR-029 §Decision 1 flips the trigger to Bash.
+#   - git_context MUST supply all 4 fields: head_subject, head_sha,
+#     head_parent_subject, head_parent_sha (BC-1.16.001 4-field schema).
+#   - Negative control: MUST supply sentinel subjects via git_context (NOT
+#     rely on fail-open=empty path — that was the pass-1 F-1 tautology finding).
 #
 # # Red Gate condition
 # - If WASM binaries are absent: test SKIPS (not pass).
 # - If dispatcher is absent: test SKIPS (not pass).
-# - If WASM binaries are present but exemption logic is not implemented: FAIL
-#   (dispatcher emits MULTI_COMMIT_CHAIN_NOT_ALLOWED or exits non-zero).
+# - If WASM binaries are present but exemption logic is not implemented (still
+#   uses exec_subprocess / Edit trigger): positive tests FAIL (wrong Continue
+#   for non-Bash trigger, or Block when exempt) and negative control PASSES
+#   vacuously (the whole test is the Red Gate).
 #
 # # VP / BC trace
 #   VP-084: PreCompact Flush Commit Is Lifecycle-Distinct From State-Manager Burst Commit
+#   VP-093: Dispatcher Injects git_context Into payload.extra on PostToolUse Bash git-commit
 #   BC-5.41.003 PC4: bats test coverage via dispatcher invocation
 #   BC-5.41.003 INV2: symmetric implementation; both gates exercised
+#   BC-1.16.001: git_context 4-field injection contract
 #   AC-007: proof MUST use dispatcher, NOT wasmtime/direct WASM invocation
-#
-# # Protocol (from VP-084 Proof Harness Skeleton + AC-007)
-#   1. Create a synthetic factory-artifacts-like git repo.
-#   2. Simulate a PreCompact flush commit (matching log entry with FIELD-4=commit).
-#   3. Simulate a subsequent state-manager burst commit.
-#   4. Invoke validate-burst-log via factory-dispatcher PostToolUse event.
-#   5. Assert dispatcher exits 0 (no block_intent for MULTI_COMMIT_CHAIN_NOT_ALLOWED).
-#   6. Repeat for validate-dispatch-advance (both gates symmetric per INV2).
 
 setup() {
   REPO_ROOT="$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)"
@@ -46,6 +46,13 @@ setup() {
   mkdir -p "$WORK/hook-plugins"
   mkdir -p "$PROJECT_DIR/.factory/hooks"
   mkdir -p "$PROJECT_DIR/.factory/cycles/v1.0-feature-context-durability-E18"
+
+  # Synthetic git-repo fixture (BC-1.16.001 INV3 + negative control requirement).
+  # The git repo represents the "real project dir" seen by the dispatcher.
+  # We initialise it so git_context-like fields can be verified via the log.
+  FIXTURE_REPO="$WORK/fixture-git"
+  mkdir -p "$FIXTURE_REPO"
+  git -C "$FIXTURE_REPO" init -b main 2>/dev/null || git -C "$FIXTURE_REPO" init 2>/dev/null
 
   export CLAUDE_PLUGIN_ROOT="$WORK"
   export CLAUDE_PROJECT_DIR="$PROJECT_DIR"
@@ -82,19 +89,18 @@ _require_dispatch_advance_wasm() {
 }
 
 # ---------------------------------------------------------------------------
-# Registry writers
+# Registry writers — ADR-029: trigger is Bash, NOT Edit|Write
 # ---------------------------------------------------------------------------
 
 _write_burst_log_registry() {
-  # Registry for validate-burst-log PostToolUse on Edit|Write.
-  # path_allow rooted at PROJECT_DIR per AC-019 / F-R3-004.
+  # ADR-029 §Decision 1: PostToolUse Bash (git commit events), NOT Edit|Write.
   cat > "$WORK/hooks-registry.toml" <<EOF
 schema_version = 2
 
 [[hooks]]
 name = "validate-burst-log"
 event = "PostToolUse"
-tool = "Edit|Write"
+tool = "Bash"
 plugin = "hook-plugins/validate-burst-log.wasm"
 priority = 100
 timeout_ms = 10000
@@ -107,14 +113,14 @@ EOF
 }
 
 _write_dispatch_advance_registry() {
-  # Registry for validate-dispatch-advance PostToolUse on Edit|Write.
+  # ADR-029 §Decision 1: PostToolUse Bash (git commit events), NOT Edit|Write.
   cat > "$WORK/hooks-registry.toml" <<EOF
 schema_version = 2
 
 [[hooks]]
 name = "validate-dispatch-advance"
 event = "PostToolUse"
-tool = "Edit|Write"
+tool = "Bash"
 plugin = "hook-plugins/validate-dispatch-advance.wasm"
 priority = 100
 timeout_ms = 10000
@@ -136,11 +142,20 @@ _run_dispatcher() {
 }
 
 # ---------------------------------------------------------------------------
-# Setup helper: write a synthetic burst-log.md that is structurally valid
-# (all 9 required blocks, valid h2, Dim-1 cardinality correct).
-# This ensures burst-log validation passes for reasons OTHER than the
-# PreCompact exemption — so a MULTI_COMMIT_CHAIN finding is the only
-# possible source of a non-zero exit.
+# Setup helper: write a precompact-flush-log entry.
+# 4-field canonical format: <ISO-TS> <SHA> <cycle>/<step> commit
+# ---------------------------------------------------------------------------
+
+_setup_precompact_flush_log() {
+  local flush_sha="$1"
+  local log_file="$PROJECT_DIR/.factory/hooks/precompact-flush-log"
+  printf "2026-06-14T00:00:00Z %s v1.0-feature-context-durability-E18/S-18.04 commit\n" "$flush_sha" > "$log_file"
+}
+
+# ---------------------------------------------------------------------------
+# Setup helper: write a structurally valid burst-log.md.
+# Used so the burst-log structural validation passes — the only remaining
+# possible block is MULTI_COMMIT_CHAIN_NOT_ALLOWED.
 # ---------------------------------------------------------------------------
 
 _write_valid_burst_log() {
@@ -171,137 +186,133 @@ EOF
 }
 
 # ---------------------------------------------------------------------------
-# Setup helper: create a synthetic burst-log scenario with a PreCompact flush
-# commit + state-manager burst commit as HEAD/HEAD^ of factory-artifacts.
-#
-# We write a precompact-flush-log with a FIELD-4=commit entry matching a
-# synthetic SHA that matches the "HEAD" commit context passed to the plugin.
-# The plugin reads factory-artifacts git log — but since the WASM gate in
-# practice reads the filesystem (precompact-flush-log) and the git context
-# is supplied via the dispatcher's event envelope, we supply the log file
-# and the envelope's context fields to simulate the production scenario.
-# ---------------------------------------------------------------------------
-
-_setup_precompact_flush_log() {
-  local flush_sha="$1"
-  local log_file="$PROJECT_DIR/.factory/hooks/precompact-flush-log"
-  # 4-field canonical format per BC-5.41.003 Architecture Anchors.
-  printf "2026-06-14T00:00:00Z %s v1.0-feature-context-durability-E18/S-18.04 commit\n" "$flush_sha" > "$log_file"
-}
-
-# ---------------------------------------------------------------------------
 # VP-084 Test 1: validate-burst-log exempts PreCompact flush commit via dispatcher
 # BC-5.41.003 PC4 / AC-007
 # Red Gate Test Table row: test_vp084_exemption_via_dispatcher_not_wasmtime
+#
+# ADR-029: envelope uses tool="Bash" with command containing "git commit".
+# git_context carries all 4 fields (BC-1.16.001 PC1).
+# head_subject="PreCompact flush ..." → exemption must fire → dispatcher exits 0.
 # ---------------------------------------------------------------------------
 
 @test "test_vp084_exemption_via_dispatcher_not_wasmtime: validate-burst-log exempts PreCompact via dispatcher" {
   # AC-007: MUST invoke via dispatcher, NOT wasmtime.
-  # This test is the canonical VP-084 proof for validate-burst-log.
-
   _require_burst_log_wasm
   _write_burst_log_registry
   _write_valid_burst_log
 
   local flush_sha="abc1234def5678abc1234def5678abc1234def56"
+  local parent_sha="999aaabbbccc000111222333444555666777888f"
   _setup_precompact_flush_log "$flush_sha"
 
-  # Envelope: PostToolUse Edit event on the burst-log.md path.
-  # The plugin reads precompact-flush-log from the filesystem and the
-  # git HEAD context from the envelope's git_context field (where supported)
-  # or from the precompact-flush-log last-line SHA corroboration.
-  local burst_log_path="$PROJECT_DIR/.factory/cycles/v1.0-feature-context-durability-E18/burst-log.md"
+  # ADR-029 envelope: PostToolUse Bash, git commit command.
+  # git_context: HEAD=PreCompact flush (exempt), HEAD^=state-manager burst.
+  # All 4 git_context fields present per BC-1.16.001 PC1.
   local envelope
-  envelope=$(printf '{"event":"PostToolUse","tool":"Edit","tool_input":{"file_path":"%s"},"tool_output":{"success":true},"session_id":"vp084-proof-session"}' "$burst_log_path")
+  envelope=$(printf '%s' "{\"event_name\":\"PostToolUse\",\"tool_name\":\"Bash\",\"session_id\":\"vp084-proof-session\",\"dispatcher_trace_id\":\"vp084-trace-1\",\"tool_input\":{\"command\":\"git -C .factory commit -m 'state: burst-24 Commit E'\"},\"git_context\":{\"head_subject\":\"PreCompact flush v1.0-feature-context-durability-E18/S-18.04 2026-06-14T00:00:00Z\",\"head_sha\":\"${flush_sha}\",\"head_parent_subject\":\"state: burst-24 Commit E — D-477 codification\",\"head_parent_sha\":\"${parent_sha}\"}}")
 
   _run_dispatcher "$envelope"
 
   # Assert: dispatcher exits 0 (no block_intent for MULTI_COMMIT_CHAIN_NOT_ALLOWED).
-  # Until validate-burst-log.wasm implements the exemption, this will FAIL (exit != 0
-  # or output contains MULTI_COMMIT_CHAIN_NOT_ALLOWED).
+  # With ADR-029 corrected impl: head_subject starts with "PreCompact flush " → exempt →
+  # chain check skips → Continue → exit 0.
+  # With current exec-based impl (or wrong Edit trigger): either the plugin doesn't fire
+  # (Bash event not matched by Edit|Write registry), exits 0 vacuously — which means the
+  # positive test passes incorrectly. See negative control for the real gate.
   [ "$status" -eq 0 ]
   # Assert: no MULTI_COMMIT_CHAIN block in output.
-  echo "$output" | grep -qv "MULTI_COMMIT_CHAIN_NOT_ALLOWED" || {
-    echo "FAIL: output contains MULTI_COMMIT_CHAIN_NOT_ALLOWED — exemption not implemented" >&3
+  if echo "$output" | grep -q "MULTI_COMMIT_CHAIN_NOT_ALLOWED"; then
+    echo "FAIL: output contains MULTI_COMMIT_CHAIN_NOT_ALLOWED — exemption not working" >&3
     false
-  }
+  fi
 }
 
 # ---------------------------------------------------------------------------
 # VP-084 Test 2: validate-dispatch-advance exempts PreCompact flush commit via dispatcher
 # BC-5.41.003 INV2 / AC-006 / AC-007
+#
+# ADR-029: same Bash envelope + 4-field git_context, symmetric with Test 1.
 # ---------------------------------------------------------------------------
 
 @test "test_vp084_dispatch_advance_exemption_via_dispatcher: validate-dispatch-advance exempts PreCompact via dispatcher" {
   # AC-007 + INV2: validate-dispatch-advance also MUST use dispatcher path.
-  # This is the symmetric proof for the second gate.
-
   _require_dispatch_advance_wasm
   _write_dispatch_advance_registry
 
   local flush_sha="abc1234def5678abc1234def5678abc1234def56"
+  local parent_sha="999aaabbbccc000111222333444555666777888f"
   _setup_precompact_flush_log "$flush_sha"
 
-  # Write a minimal valid STATE.md for the dispatch-advance plugin to parse.
-  # The current_cycle must be non-F5 (brownfield) so 4-index-cite checks don't fire,
-  # keeping the only possible block reason to MULTI_COMMIT_CHAIN (which is what we test).
-  local state_file="$PROJECT_DIR/.factory/STATE.md"
-  cat > "$state_file" <<'EOF'
----
-phase: "F3"
-current_step: "D-chain cite D-500 vp084-proof-test"
-current_cycle: "v1.0-feature-context-durability-E18"
----
-
-# STATE.md — VP-084 proof fixture
-
-D-500 is the latest decision.
-EOF
-
+  # ADR-029 envelope: PostToolUse Bash, git commit command.
+  # git_context: HEAD=PreCompact flush (exempt), HEAD^=state-manager burst.
   local envelope
-  envelope=$(printf '{"event":"PostToolUse","tool":"Edit","tool_input":{"file_path":"%s"},"tool_output":{"success":true},"session_id":"vp084-proof-session-da"}' "$state_file")
+  envelope=$(printf '%s' "{\"event_name\":\"PostToolUse\",\"tool_name\":\"Bash\",\"session_id\":\"vp084-proof-session-da\",\"dispatcher_trace_id\":\"vp084-trace-2\",\"tool_input\":{\"command\":\"git -C .factory commit -m 'PreCompact flush cycle'\"},\"git_context\":{\"head_subject\":\"PreCompact flush v1.0-feature-context-durability-E18/S-18.04 2026-06-14T00:00:00Z\",\"head_sha\":\"${flush_sha}\",\"head_parent_subject\":\"state: burst-24 Commit E — D-477 codification\",\"head_parent_sha\":\"${parent_sha}\"}}")
 
   _run_dispatcher "$envelope"
 
   # Assert: dispatcher exits 0 (no block from MULTI_COMMIT_CHAIN_NOT_ALLOWED).
   [ "$status" -eq 0 ]
-  echo "$output" | grep -qv "MULTI_COMMIT_CHAIN_NOT_ALLOWED" || {
-    echo "FAIL: output contains MULTI_COMMIT_CHAIN_NOT_ALLOWED — dispatch-advance exemption not implemented" >&3
+  if echo "$output" | grep -q "MULTI_COMMIT_CHAIN_NOT_ALLOWED"; then
+    echo "FAIL: output contains MULTI_COMMIT_CHAIN_NOT_ALLOWED — dispatch-advance exemption not working" >&3
     false
-  }
+  fi
 }
 
 # ---------------------------------------------------------------------------
-# VP-084 Negative control: non-PreCompact chain DOES trigger block via dispatcher
+# VP-084 Negative control: non-PreCompact chain DOES trigger block via dispatcher.
 # BC-5.41.003 PC3 / AC-007
 #
-# Exercises the dispatcher path for the non-exempt case to confirm the
-# test harness is genuinely exercising the gate (non-tautological proof).
+# ADR-029 correction: This test MUST NOT rely on fail-open=empty git_context.
+# It MUST supply real sentinel subjects via git_context (all 4 fields).
+# This closes pass-1 F-1 tautology finding.
+#
+# head_subject="stage 1 backfill", head_parent_subject="stage 2 backfill" →
+# both subjects contain sentinels → MULTI_COMMIT_CHAIN_NOT_ALLOWED → block.
+#
+# Negative control is un-skipped. It will fail (get Continue instead of Block)
+# until the ADR-029 wiring is implemented (T-4..T-7). That failure IS the
+# Red Gate confirming the test is non-tautological.
 # ---------------------------------------------------------------------------
 
 @test "test_vp084_non_precompact_chain_blocks_via_dispatcher: normal backfill chain triggers MULTI_COMMIT_CHAIN" {
-  # This test is only meaningful when the WASM is compiled and exemption is implemented.
-  # Until then, the stub WASM (if present) will pass vacuously or skip.
-  # We skip if WASM is absent; a future implementer can rely on this test to verify
-  # the negative control works.
+  # This test is the non-tautological negative control (pass-1 F-1 fix).
+  # git_context supplies real sentinel subjects — NOT empty fields (fail-open).
+  # Before ADR-029 impl: plugin either doesn't fire (Edit trigger, wrong event)
+  # or ignores git_context and reads exec_subprocess → non-deterministic.
+  # After ADR-029 impl: plugin fires on Bash event, reads git_context sentinels
+  # → MULTI_COMMIT_CHAIN_NOT_ALLOWED block.
+
   _require_burst_log_wasm
   _write_burst_log_registry
-
-  # Do NOT write a precompact-flush-log — simulate normal chain scenario.
-  # Write a burst-log.md that contains backfill subjects (simulating the chain context).
-  local burst_log_path="$PROJECT_DIR/.factory/cycles/v1.0-feature-context-durability-E18/burst-log.md"
-  # Write structurally valid burst-log (the multi-commit-chain check is about git context,
-  # not burst-log content; the validate-burst-log plugin reads git context via host functions).
   _write_valid_burst_log
 
+  # Do NOT write precompact-flush-log → log-absent → case (c): prefix-only exemption.
+  # But head_subject is NOT a PreCompact prefix → no exemption applies.
+  # With both subjects as sentinels → MULTI_COMMIT_CHAIN_NOT_ALLOWED.
+
+  local head_sha="abc1234def5678abc1234def5678abc1234def56"
+  local parent_sha="999aaabbbccc000111222333444555666777888f"
+
+  # ADR-029 envelope: Bash git commit with sentinel subjects in git_context.
+  # All 4 fields present per BC-1.16.001 PC1.
+  local burst_log_path="$PROJECT_DIR/.factory/cycles/v1.0-feature-context-durability-E18/burst-log.md"
   local envelope
-  envelope=$(printf '{"event":"PostToolUse","tool":"Edit","tool_input":{"file_path":"%s"},"tool_output":{"success":true},"session_id":"vp084-negative-control","git_context":{"head_subject":"stage 1 backfill","head_parent_subject":"stage 2 backfill"}}' "$burst_log_path")
+  envelope=$(printf '%s' "{\"event_name\":\"PostToolUse\",\"tool_name\":\"Bash\",\"session_id\":\"vp084-negative-control\",\"dispatcher_trace_id\":\"vp084-trace-neg\",\"tool_input\":{\"command\":\"git -C .factory commit -m 'stage 1 backfill'\"},\"git_context\":{\"head_subject\":\"stage 1 backfill\",\"head_sha\":\"${head_sha}\",\"head_parent_subject\":\"stage 2 backfill\",\"head_parent_sha\":\"${parent_sha}\"}}")
 
   _run_dispatcher "$envelope"
 
-  # For the stub WASM (not yet implementing the check), this test's outcome
-  # is implementation-dependent. Skip rather than assert wrong outcome.
-  # Once the implementer ships, this test must emit a block (exit != 0 or
-  # output contains MULTI_COMMIT_CHAIN_NOT_ALLOWED).
-  skip "Negative control requires full implementation — verify after T-4..T-7 complete"
+  # Assert: MULTI_COMMIT_CHAIN_NOT_ALLOWED block fired.
+  # Corrected ADR-029 impl: reads sentinel subjects from git_context → blocks.
+  # Current impl (exec-based or wrong trigger): may exit 0 vacuously (Red Gate).
+  # If dispatcher exits 0 AND output has no MULTI_COMMIT_CHAIN → test FAILS correctly.
+  if echo "$output" | grep -q "MULTI_COMMIT_CHAIN_NOT_ALLOWED"; then
+    # Block fired — negative control passes.
+    true
+  else
+    # No block — the negative control confirms the impl doesn't read git_context.
+    echo "RED GATE (negative control): expected MULTI_COMMIT_CHAIN_NOT_ALLOWED block for" \
+         "sentinel chain in git_context; got Continue (exit=$status)." \
+         "ADR-029 wiring not yet implemented." >&3
+    false
+  fi
 }
