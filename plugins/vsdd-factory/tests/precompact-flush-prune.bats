@@ -37,8 +37,11 @@
 setup() {
   REPO_ROOT="$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)"
   PRUNE_SCRIPT="$REPO_ROOT/plugins/vsdd-factory/hooks/precompact-flush-prune.sh"
+  # SEC-002: The prune script restricts log-file paths to .factory/ subdirectories.
+  # Test work directory must reflect a production-realistic .factory/hooks/ path.
   WORK="$(mktemp -d)"
-  TEST_LOG_FILE="$WORK/precompact-flush-log"
+  mkdir -p "$WORK/.factory/hooks"
+  TEST_LOG_FILE="$WORK/.factory/hooks/precompact-flush-log"
 }
 
 teardown() {
