@@ -130,7 +130,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | caf06c68 | rc.21 bot binary bundle commit 2026-06-13; prior: 2a191314 (rc.20) |
 | develop | a177d76e | PR #262 `feat(S-18.04b-prereq): dispatcher git_context payload injection` squash-merged 2026-06-25 (D-696; S-18.04b-prereq merged; BC-1.16.001 active); prior: b0bc4ffd (PR #249 D-693) |
-| factory-artifacts | SHA-PATCH | D-696 post-merge burst (S-18.04b-prereq merged; BC-1.16.001 active; STORY-INDEX v4.67; BC-INDEX v3.43); prior: a728097f (D-695 follow-on) |
+| factory-artifacts | db98d992 | D-696 post-merge burst (S-18.04b-prereq merged; BC-1.16.001 active; STORY-INDEX v4.67; BC-INDEX v3.43); prior: a728097f (D-695 follow-on) |
 | v1.0.0-rc.21 (tag) | 03054524 | SHIPPED 2026-06-13; FULLY IN OPERATOR MARKETPLACE (marketplace PR #13 MERGED); annotated tag object |
 | v1.0.0-rc.20 (tag) | e9e38286 | SHIPPED 2026-06-01; marketplace PR #12 squash-merged 862e660d |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28 |
@@ -386,7 +386,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** `SHA-PATCH` (D-696 post-merge burst — S-18.04b-prereq merged; BC-1.16.001 active; STORY-INDEX v4.67; BC-INDEX v3.43; 2026-06-24; prior D-695 follow-on = `a728097f`)
+- **factory-artifacts HEAD:** `db98d992` (D-696 post-merge burst — S-18.04b-prereq merged; BC-1.16.001 active; STORY-INDEX v4.67; BC-INDEX v3.43; 2026-06-24; prior D-695 follow-on = `a728097f`)
 - **develop HEAD:** `a177d76e` (PR #262 S-18.04b-prereq squash-merged 2026-06-25 D-696; prior: `b0bc4ffd` PR #249 D-693; prior: `dfc76844` PR #201 D-692)
 - **main HEAD:** `caf06c68` (rc.21 bot bundle commit 2026-06-13; UNCHANGED)
 - **v1.0.0-rc.21 tag:** `03054524` (SHIPPED; FULLY IN OPERATOR MARKETPLACE)
