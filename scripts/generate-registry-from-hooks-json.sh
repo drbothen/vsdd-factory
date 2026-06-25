@@ -82,8 +82,9 @@ POST_HISTORICAL_SCRIPTS=(
 # Option b) — it provisions .factory/hooks/cargo-audit-cache.json for the
 # validate-policies-schema WASM hook to read. It is not a dispatcher hook.
 # S-18.04b: precompact-flush-prune is a log-pruning utility invoked by
-# precompact-flush.wasm (WASM reads flush-log; prune.sh called externally).
-# It is NOT a dispatcher hook (explicitly tested in precompact-flush-prune.bats).
+# check-state-health (NOT by precompact-flush.wasm — per AC-012 / VP-090 §3,
+# the flush hook MUST NOT call prune). It is NOT a dispatcher hook
+# (explicitly tested in precompact-flush-prune.bats).
 NON_HOOK_SCRIPTS=(
   update-cargo-audit-cache
   precompact-flush-prune
