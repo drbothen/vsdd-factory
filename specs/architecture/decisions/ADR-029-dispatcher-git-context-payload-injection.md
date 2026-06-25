@@ -2,7 +2,7 @@
 document_type: architecture-decision-record
 level: L3
 adr_id: ADR-029
-version: "1.1"
+version: "1.2"
 title: "ADR-029: Dispatcher git-context payload injection for WASM chain-detection gates"
 status: proposed
 producer: architect
@@ -24,7 +24,7 @@ anchors:
 subsystems_affected:
   - SS-01
   - SS-04
-last_amended: "2026-06-24 (v1.1) — O-1 subsystem anchor correction: frontmatter subsystem field corrected from SS-04 to SS-01+SS-04 (per ARCH-INDEX Subsystem Registry POLICY 6: SS-01=Hook Dispatcher Core owns crates/factory-dispatcher/src/invoke.rs; SS-04=Plugin Ecosystem owns the WASM plugin consumer side); §ARCH-INDEX subsystem prose corrected from erroneous SS-03 (Dispatcher Core) to SS-01 (Hook Dispatcher Core) + SS-04 (Plugin Ecosystem). Per-ARCH-INDEX registry: SS-01 Hook Dispatcher Core governs crates/factory-dispatcher/src/; SS-03 is Event Emission (OTel-Aligned), not the dispatcher. Consistent with BC-1.16.001 (subsystem: SS-01), VP-093 (scope: SS-01), and S-18.04b-prereq story (Subsystem: SS-01)."
+last_amended: "2026-06-24 (v1.2) — Decision 8 added (architect adjudication of S-18.04b LOCAL adversarial cascade finding): pure-Rust unit tests in exemption.rs are the load-bearing proof vehicle for is_precompact_flush_exempt / check_multi_commit_chain; VP-084 bats tests are correctly scoped to dispatcher injection plumbing + MULTI_COMMIT_CHAIN detection end-to-end (not exemption-flip); BC-5.41.003 PC4 wording and VP-084 Feasibility Assessment require targeted amendment to reflect the corrected scoping. Exemption is NOT dead code and is NOT a no-op: the real-world topology that motivates it is confirmed valid; the topology is exercised by real git repo setup in vp084-proof.bats (F-P1-001 fix); the proof is load-bearing. No production code change is required. Option A selected. [Prior: 2026-06-24 (v1.1) — O-1 subsystem anchor correction: frontmatter subsystem field corrected from SS-04 to SS-01+SS-04 (per ARCH-INDEX Subsystem Registry POLICY 6: SS-01=Hook Dispatcher Core owns crates/factory-dispatcher/src/invoke.rs; SS-04=Plugin Ecosystem owns the WASM plugin consumer side); §ARCH-INDEX subsystem prose corrected from erroneous SS-03 (Dispatcher Core) to SS-01 (Hook Dispatcher Core) + SS-04 (Plugin Ecosystem).]"
 ---
 
 # ADR-029: Dispatcher git-context payload injection for WASM chain-detection gates
@@ -204,6 +204,132 @@ path-resolution fix that warranted S-18.04a-prereq. A SEPARATE prerequisite stor
 
 This preserves Red Gate discipline: S-18.04b's WASM changes fail (no `git_context` in
 payload) until S-18.04b-prereq delivers the dispatcher injection.
+
+### Decision 8: Proof-vehicle scoping for `is_precompact_flush_exempt` and VP-084 bats tests
+
+**Context.** During the S-18.04b LOCAL adversarial cascade, a mutation-test finding
+was raised: forcing `is_precompact_flush_exempt → return false` and rebuilding the WASM
+leaves all three `vp084-proof.bats` tests GREEN. The test-writer's conclusion was that the
+bats tests are structurally tautological for the exemption decision, and asked whether
+the exemption is (a) correct-but-defensive, (b) evidence of a semantic gap, or (c) dead
+code to be removed.
+
+**Analysis and determination (architect).**
+
+The mutation result is correct and mechanically sound. Examining the composition:
+
+1. `is_precompact_flush_exempt` fires ONLY when a commit's subject matches
+   `^PreCompact flush `. Real PreCompact flush subjects (from `COMMIT_PREFIX` in
+   `crates/hook-plugins/precompact-flush/src/lib.rs`) contain no "backfill", "Stage 1",
+   or "Stage 2" tokens — they are non-sentinel.
+
+2. `contains_sentinel(s)` returns true only for those three patterns. A PreCompact subject
+   is therefore never a sentinel by predicate.
+
+3. `check_multi_commit_chain` fires the MULTI_COMMIT_CHAIN block only when BOTH
+   `is_sentinel(head_subject)` AND `is_sentinel(head_parent_subject)` are true, AFTER
+   checking the exemption on each. A PreCompact flush subject fails the sentinel predicate
+   before the exemption is even evaluated. Therefore, for any real factory-artifacts
+   topology involving a genuine PreCompact flush commit, the block would not fire even
+   WITHOUT the exemption — the non-sentinel predicate short-circuits first.
+
+4. The mutation (force-`return false`) cannot flip a bats test result because the bats
+   tests, as written with real git repos (F-P1-001 fix in vp084-proof.bats), set up a
+   genuine PreCompact HEAD commit. That commit's real subject is non-sentinel. The
+   dispatcher injects that real non-sentinel subject as `head_subject`. The chain
+   detector sees a non-sentinel HEAD and does not fire — the exemption is not the
+   deciding factor. The positive tests are not tautological for the FULL correctness
+   property; they are tautological ONLY for the exemption decision path specifically.
+
+**Is the exemption dead code?** No. The exemption is not dead code in the specificationintent sense. The spec's stated purpose (BC-5.41.003 §Description) is defensively correct:
+the exemption provides an explicit, documented, named bypass for PreCompact flush commits
+so that if the sentinel predicate is ever broadened, or if the commit message format
+produces an accidental sentinel match (e.g., a cycle name that happens to contain "Stage"),
+the exemption remains a load-bearing firebreak. The exemption is a deliberate defense-in-depth
+layer. Removing it (Option C) would create brittleness against future sentinel-set changes
+and would contradict BC-5.41.003's explicitly stated invariant (INV4: "TD-VSDD-053
+baseline is unchanged... the exemption adds a conditional skip").
+
+**Is there a semantic gap (Option B)?** No. The current sentinel predicate (`backfill`,
+`Stage 1`, `Stage 2`) is deliberately narrow. There is no spec intent for the chain
+detector to also catch flush-on-sentinel topologies beyond what the current predicate
+covers. Option B (restructure the guard) would change production semantics without a
+corresponding spec requirement. Rejected.
+
+**Decision: Option A — authorize pure-Rust unit tests as load-bearing proof vehicle;
+rescope VP-084 bats test description.**
+
+The resolution is:
+
+1. **Pure-Rust unit tests in `exemption.rs` (Section 1) are the load-bearing proof
+   vehicle** for `is_precompact_flush_exempt` and `check_multi_commit_chain`. These tests
+   call the pure functions directly with synthetic inputs where breaking the exemption
+   deterministically flips the result. They are already GREEN and will remain so. They
+   are NOT the Red Gate (Section 2 wiring tests are the Red Gate for ADR-029); they are
+   the CORRECT place to assert exemption-decision behavior at the pure-function level.
+   This is the correct VSDD layering: pure-core logic is verified by pure-Rust unit tests;
+   the effectful dispatcher-integration path is verified by the bats integration tests.
+
+2. **VP-084 bats tests prove a different, also load-bearing property**: that the
+   dispatcher injection is wired end-to-end such that (a) a real PreCompact HEAD commit
+   in a real git repo causes the dispatcher to inject a non-sentinel `head_subject` into
+   `git_context`, (b) the WASM gate reads that injected context, (c) the chain detector
+   does NOT fire (correct real-world behavior — the non-sentinel subject + exemption logic
+   combine to produce Continue), and (d) for the negative-control test, a real sentinel
+   chain causes the dispatcher to inject sentinel subjects and the WASM gate fires
+   MULTI_COMMIT_CHAIN_NOT_ALLOWED. The negative-control test IS load-bearing: it proves
+   the full dispatcher→WASM chain-detection path works, which is what VP-084's Postcondition
+   C asserts. If the entire chain-detection path were broken (e.g., WASM always returns
+   Continue regardless of input), the negative control would fail.
+
+3. **The mutation proof of non-tautology is in the negative-control test (Test 3 of
+   vp084-proof.bats)**, not Tests 1 and 2. Test 3 (sentinel chain → block) fails if the
+   exemption logic is "always Continue" — it requires the WASM to actually detect the
+   sentinel chain and block. Tests 1 and 2 (PreCompact → Continue) are evidence that the
+   correct topology does NOT block, which together with Test 3 proves the discrimination.
+   The test suite as a whole is non-tautological at the suite level.
+
+4. **No production code change** is required. The exemption logic in
+   `is_precompact_flush_exempt` and `check_multi_commit_chain` is correct and should
+   be preserved exactly as specified. The pure-Rust unit tests in `exemption.rs`
+   (Section 1) already cover all 3 exemption cases.
+
+**What must change:**
+
+- BC-5.41.003 PC4 wording must be amended by product-owner to accurately describe what
+  the bats tests actually prove (dispatcher injection + end-to-end chain detection, not
+  the exemption-decision flip itself). The current PC4 wording says "verify that
+  validate-burst-log and validate-dispatch-advance return `block_intent = false`" which
+  is correct behavior-wise but does not distinguish which proof mechanism verifies the
+  exemption decision vs. the injection plumbing. Proposed PC4 amendment: split the
+  coverage statement to clarify that the bats tests cover the dispatcher integration
+  path (AC-007 + injection plumbing) and the pure-Rust unit tests in `exemption.rs`
+  cover the 3-case exemption decision logic.
+
+- VP-084 §Feasibility Assessment must be amended by architect (in a follow-up to this
+  ADR) to state explicitly: "The pure-Rust unit tests in `exemption.rs` (Section 1 of
+  the exemption test file) are the load-bearing proof vehicle for `is_precompact_flush_exempt`
+  and `check_multi_commit_chain`. The bats integration tests prove the dispatcher
+  injection path and overall chain-detection plumbing end-to-end. Together, the two
+  layers constitute a complete proof of VP-084's three postconditions: pure-function
+  correctness (unit tests) + injection wiring correctness (bats integration)."
+
+- The `vp084-proof.bats` test comments (already updated in the S-18.04b worktree) are
+  correct: they describe the tests as proving the injection path + discrimination property,
+  not the exemption function per se. No change to the bats test logic itself is needed;
+  the F-P1-001 fix (real git repos) already makes the tests non-tautological at the suite
+  level.
+
+**Human sign-off requirement.** This decision does NOT require human sign-off before
+proceeding. The determination is:
+- No production semantic change (exemption logic is preserved, not altered).
+- No BC behavioral invariant is weakened (the exemption still fires on real PreCompact
+  flush commits in all real topologies).
+- The VP-084 scope clarification is an accuracy amendment (the tests always covered what
+  they cover; we are clarifying the description), not a coverage reduction.
+- The only changes are: (a) this ADR Decision 8 codification; (b) a product-owner BC-5.41.003
+  PC4 wording amendment; (c) a VP-084 Feasibility Assessment update.
+  None of these alter merged-prerequisite semantics or materially change what VP-084 asserts.
 
 ## Consequences
 

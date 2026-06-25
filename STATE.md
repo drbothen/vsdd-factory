@@ -1,19 +1,19 @@
 ---
 document_type: pipeline-state
 level: ops
-version: "4.48"
+version: "4.49"
 status: draft
 producer: state-manager
-timestamp: 2026-06-24T23:00:00Z
-phase: D-696-S18.04b-prereq-POST-MERGE-2026-06-24
-last_amended: "2026-06-24 (v4.48) — D-696: S-18.04b-prereq PR #262 squash-merged a177d76e 2026-06-25; merged_count 85→86; BC-1.16.001 draft→active (POL-14); BC-INDEX v3.42→v3.43; STORY-INDEX v4.66→v4.67; develop a177d76e; NEXT: S-18.04b re-wire (rebase feature/S-18.04b onto a177d76e). STOP-BEFORE-PR-MERGE (D-665). [Prior: v4.47 D-695 follow-on DOC-FIX-BURST; STORY-INDEX v4.66; develop b0bc4ffd.]"
+timestamp: 2026-06-25T00:00:00Z
+phase: D-697-F-P1-001-GOVERNANCE-2026-06-25
+last_amended: "2026-06-25 (v4.49) — D-697: F-P1-001 governance burst (state-manager): ADR-029 v1.2 (Decision 8 — mutation-test adjudication; pure-Rust unit tests load-bearing; bats prove injection plumbing; exemption NOT dead code); BC-5.41.003 v2.0→v2.1 (PC4 two-layer proof); VP-084 v1.9→v2.0 (Feasibility Assessment two-layer); BC-INDEX v3.43→v3.44; VP-INDEX v2.41→v2.42; ARCH-INDEX v2.74→v2.75. S-18.04b LOCAL cascade ONGOING — streak 0/3; pass-2 next. 4-index BC v3.44/VP v2.42/STORY v4.67/ARCH v2.75. STOP-BEFORE-PR-MERGE (D-665). [Prior: v4.48 D-696 post-merge burst; BC-INDEX v3.43; develop a177d76e.]"
 inputs: []
 input-hash: "[live-state]"
 traces_to: prd.md
 project: vsdd-factory
 mode: brownfield
-"D-696 2026-06-24. S-18.04b-prereq PR #262 squash-merged a177d76e to develop 2026-06-25T00:29:56Z. merged_count 85→86. POL-14: BC-1.16.001 draft→active (BC-INDEX v3.43). STORY-INDEX v4.67. develop HEAD a177d76e. POSTURE ACTIVE. NEXT: S-18.04b re-wire (rebase feature/S-18.04b onto a177d76e; exec-free git_context reader; flip registry triggers; VP-084 proof genuine). STOP-BEFORE-PR-MERGE (D-665) holds."
-current_step: "D-696-S18.04b-prereq-POST-MERGE-2026-06-24"
+"D-697 2026-06-25. F-P1-001 governance burst. ADR-029 v1.2 (Decision 8). BC-5.41.003 v2.1. VP-084 v2.0. BC-INDEX v3.44. VP-INDEX v2.42. ARCH-INDEX v2.75. S-18.04b LOCAL cascade ONGOING — streak 0/3; pass-2 NEXT. STOP-BEFORE-PR-MERGE (D-665) holds."
+current_step: "D-697-F-P1-001-GOVERNANCE-2026-06-25"
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -45,6 +45,7 @@ dtu_services: []
   D-609..D-624 COLLAPSED 2026-06-17 D-631 compaction (range 410..429 lines; git show cd0fa4ed:.factory/STATE.md for last pre-compaction state).
   D-625..D-674 SIZE BUDGET entries COLLAPSED 2026-06-22 per D-430(a) D-691 compaction (26 entries; range 413..424 lines; git show cd0fa4ed:.factory/STATE.md for D-624 state; git show d5fbdc65:.factory/STATE.md for D-674 state). Full per-burst notes in factory-artifacts git log.
   D-675..D-686 SIZE BUDGET lines COLLAPSED 2026-06-22 per D-430(a) D-687 compaction (12 entries; range 410..459 lines; git show 0fce9e3f:.factory/STATE.md for D-675 state; git show d5fbdc65:.factory/STATE.md for D-686 state). Full per-burst notes in factory-artifacts git log.
+  464 lines (wc-l; D-697 F-P1-001 GOVERNANCE BURST — ADR-029 v1.2 Decision 8; BC-5.41.003 v2.1; VP-084 v2.0; BC-INDEX v3.44; VP-INDEX v2.42; ARCH-INDEX v2.75; STORY-INDEX v4.67 UNCHANGED; D-697 Decisions Log row added (multi-artifact governance row); decision-log.md D-697 block added; Session Resume Checkpoint replaced (D-696→D-697; cascade ONGOING streak 0/3; pass-2 NEXT); session-checkpoints.md +D-696 checkpoint; 4-index BC v3.44/VP v2.42/STORY v4.67/ARCH v2.75; CASCADE ONGOING streak 0/3; 48 lines over soft-target 415; 37 lines under hard-cap 500).
   453 lines (wc-l; D-696 POST-MERGE BURST — S-18.04b-prereq PR #262 squash-merged a177d76e; merged_count 85→86; BC-1.16.001 draft→active (POL-14); BC-INDEX v3.43; STORY-INDEX v4.67; develop_head b0bc4ffd→a177d76e; D-696 Decisions Log row added; decision-log.md D-696 block added; Session Resume Checkpoint replaced (D-695-follow-on→D-696; comprehensive S-18.04b re-wire plan); session-checkpoints.md +D-695-follow-on checkpoint; 4-index BC v3.43/VP v2.41/STORY v4.67/ARCH v2.74; POSTURE ACTIVE S-18.04b RE-WIRE NEXT; 38 lines over soft-target 415; 47 lines under hard-cap 500).
   448 lines (wc-l; D-687 S-18.14 pass-18 FIX BURST + D-430(a) COMPACTION — F-1 MAJOR POLICY 5 phantom-signature INV-8 `pub fn load_registry(&self, path: &Path, ...)` corrected to exact one-param; O-1 LOW ARCH-INDEX:511 toml_path→path cross-cell; ADR-024 v1.9→v1.10+ARCH-INDEX v2.71→v2.72+BC-1.13.001 v1.11→v1.12+BC-INDEX v3.38→v3.39+S-18.14 v2.8→v2.9+STORY-INDEX v4.57→v4.58; D-430(a) SIZE BUDGET D-675..D-686 collapsed; §4 D-675..D-678 entries collapsed; 4-index BC v3.39/VP v2.40/STORY v4.58/ARCH v2.72; streak RESET 0/3; pass-19 NEXT; S-18.14 REMAINS draft; 33 lines over soft-target 415; 52 lines under hard-cap 500).
   D-688..D-690 SIZE BUDGET entries COLLAPSED 2026-06-22 per D-430(a) D-691 compaction (3 entries; range 453..472 lines; git show 4d24257e:.factory/STATE.md for D-688 state; git show 209e702c:.factory/STATE.md for D-690 state). Full per-burst notes in factory-artifacts git log.
@@ -67,8 +68,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-06-24 — D-696 post-merge burst: S-18.04b-prereq PR #262 squash-merged a177d76e 2026-06-25; merged_count 85→86; BC-1.16.001 draft→active (POL-14); BC-INDEX v3.43; STORY-INDEX v4.67; develop a177d76e. 4-index BC v3.43/VP v2.41/STORY v4.67/ARCH v2.74. |
-| **Current Phase** | **D-696 POST-MERGE BURST (2026-06-24). S-18.04b-prereq PR #262 squash-merged a177d76e 2026-06-25. merged_count 86. BC-1.16.001 active (POL-14). POSTURE: ACTIVE. NEXT: S-18.04b RE-WIRE — rebase feature/S-18.04b onto a177d76e (develop); implement exec-free git_context reader in validate-burst-log + validate-dispatch-advance; flip registry triggers Edit/Write→Bash; genuine VP-084 proof. STOP-BEFORE-PR-MERGE (D-665) holds for all code PRs. 4-index BC v3.43/VP v2.41/STORY v4.67/ARCH v2.74.** |
+| **Last Updated** | 2026-06-25 — D-697 F-P1-001 governance burst: ADR-029 v1.2 (Decision 8); BC-5.41.003 v2.1 (PC4 two-layer proof); VP-084 v2.0 (Feasibility Assessment two-layer). BC-INDEX v3.44; VP-INDEX v2.42; ARCH-INDEX v2.75. 4-index BC v3.44/VP v2.42/STORY v4.67/ARCH v2.75. S-18.04b LOCAL cascade ONGOING — streak 0/3; pass-2 next. |
+| **Current Phase** | **D-697 F-P1-001 GOVERNANCE BURST (2026-06-25). S-18.04b LOCAL adversarial cascade pass-1 finding F-P1-001 RESOLVED via ADR-029 §Decision 8: mutation-test finding adjudicated — pure-Rust unit tests in `exemption.rs` are load-bearing proof vehicle; bats tests prove dispatcher injection plumbing + discrimination; exemption NOT dead code; no production change; BC-5.41.003 v2.1 + VP-084 v2.0 + ADR-029 v1.2 amended. CASCADE ONGOING — streak 0/3; pass-2 NEXT. 4-index BC v3.44/VP v2.42/STORY v4.67/ARCH v2.75.** |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Phase Progress
@@ -106,8 +107,8 @@ dtu_services: []
 | Type | Format | Authoritative Source | Count |
 |------|--------|----------------------|-------|
 | Subsystem | SS-NN | `specs/architecture/ARCH-INDEX.md` | 10 |
-| Behavioral Contract | BC-S.SS.NNN | `specs/behavioral-contracts/ss-NN/` | 1,973 (BC-INDEX v3.43; BC-1.16.001 active D-696; +BC-1.16.001 D-694) |
-| Verification Property | VP-NNN | `specs/verification-properties/VP-INDEX.md` | 93 (VP-INDEX v2.41; +VP-093 D-694) |
+| Behavioral Contract | BC-S.SS.NNN | `specs/behavioral-contracts/ss-NN/` | 1,973 (BC-INDEX v3.44; BC-5.41.003 v2.1 D-697; BC-1.16.001 active D-696; +BC-1.16.001 D-694) |
+| Verification Property | VP-NNN | `specs/verification-properties/VP-INDEX.md` | 93 (VP-INDEX v2.42; VP-084 v2.0 D-697; +VP-093 D-694) |
 | Story | S-N.MM | `stories/S-N.MM-<short>.md` | 123 file-resident + 15 stub IDs (STORY-INDEX v4.67; S-18.04b-prereq MERGED PR #262 a177d76e D-696; S-18.04a MERGED PR #249 b0bc4ffd D-693; S-18.14 MERGED PR #201 dfc76844 D-692; S-4.11 registered draft D-692; S-18.04a-prereq MERGED PR #198 40cd18ae D-676; S-18.13 MERGED PR #196 70664e02 D-663; S-18.00 merged D-638; S-18.01 merged D-648; S-18.02 merged D-651) |
 | Epic | E-N | `stories/epics/E-N-<short>.md` | 19 |
 | ADR | ADR-NNN | `specs/architecture/decisions/ADR-NNN.md` | 29 (ADR-029 D-694) |
@@ -130,7 +131,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | caf06c68 | rc.21 bot binary bundle commit 2026-06-13; prior: 2a191314 (rc.20) |
 | develop | a177d76e | PR #262 `feat(S-18.04b-prereq): dispatcher git_context payload injection` squash-merged 2026-06-25 (D-696; S-18.04b-prereq merged; BC-1.16.001 active); prior: b0bc4ffd (PR #249 D-693) |
-| factory-artifacts | db98d992 | D-696 post-merge burst (S-18.04b-prereq merged; BC-1.16.001 active; STORY-INDEX v4.67; BC-INDEX v3.43); prior: a728097f (D-695 follow-on) |
+| factory-artifacts | TBD-D-697 | D-697 F-P1-001 governance burst (ADR-029 v1.2; BC-5.41.003 v2.1; VP-084 v2.0; BC-INDEX v3.44; VP-INDEX v2.42; ARCH-INDEX v2.75; red-gate-log.md relocated); prior: db98d992 (D-696 post-merge burst) |
 | v1.0.0-rc.21 (tag) | 03054524 | SHIPPED 2026-06-13; FULLY IN OPERATOR MARKETPLACE (marketplace PR #13 MERGED); annotated tag object |
 | v1.0.0-rc.20 (tag) | e9e38286 | SHIPPED 2026-06-01; marketplace PR #12 squash-merged 862e660d |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28 |
@@ -140,7 +141,7 @@ dtu_services: []
 | Cycle | Type | Status | Notes |
 |-------|------|--------|-------|
 | F-block-ai-attribution-message-file-arm | feature | F3 COMPLETE — F4 READY | F1+F2+F3 done 2026-05-12; 2 stories ready; E-16 under SS-07/SS-04; milestone v1.0.0-rc.17 |
-| v1.0-brownfield-backfill | brownfield | **D-696 2026-06-24; POSTURE ACTIVE — S-18.04b-prereq MERGED PR #262 a177d76e; merged_count 86; BC-1.16.001 active; STORY-INDEX v4.67; develop a177d76e; NEXT: S-18.04b re-wire** | rc.21 100% COMPLETE D-560; D-619..D-696; develop a177d76e; main caf06c68. **Autonomy STOP-BEFORE-PR-MERGE (D-665) holds for all code PRs.** |
+| v1.0-brownfield-backfill | brownfield | **D-697 2026-06-25; POSTURE ACTIVE — S-18.04b LOCAL cascade ONGOING streak 0/3; pass-2 NEXT; BC-INDEX v3.44; VP-INDEX v2.42; ARCH-INDEX v2.75; develop a177d76e** | rc.21 100% COMPLETE D-560; D-619..D-697; develop a177d76e; main caf06c68. **Autonomy STOP-BEFORE-PR-MERGE (D-665) holds for all code PRs.** |
 | v1.0-feature-engine-discipline-pass-1 | feature | **PAUSED** | F5 pass-75 adversary complete D-510 2026-05-27; META-LEVEL-30 CANDIDATE-CONFIRMED; trajectory →9→9→9→11. Full-cycle trajectory (75 values ending): →9→9→9→9→11. |
 | v1.0-feature-plugin-async-semantics-pass-1 | feature | CLOSED | All PRs merged; rc.14 shipped |
 
@@ -150,6 +151,7 @@ dtu_services: []
 
 | ID | Decision | Phase | Date |
 |----|----------|-------|------|
+| D-697 | F-P1-001 GOVERNANCE BURST 2026-06-25 — S-18.04b LOCAL adversarial cascade pass-1 finding F-P1-001 adjudicated via ADR-029 §Decision 8 (mutation-test result: forcing `is_precompact_flush_exempt → return false` leaves all three `vp084-proof.bats` tests GREEN — bats positive tests are tautological for exemption decision because real PreCompact subjects use non-sentinel subjects). Architect determination: two-layer proof architecture — Layer 1 = pure-Rust unit tests in `exemption.rs` Section 1 (load-bearing for 3-case exemption decision); Layer 2 = bats integration tests (load-bearing for dispatcher injection plumbing + chain-detection discrimination; negative-control Test 3 = mutation anchor); exemption is NOT dead code (defense-in-depth against future sentinel-set broadening); no production code change required. ADR-029 v1.1→v1.2 (Decision 8 added; architect). BC-5.41.003 v2.0→v2.1 (PC4 rewritten: two-layer proof architecture; PC enumeration UNCHANGED; product-owner). VP-084 v1.9→v2.0 (Feasibility Assessment updated: two-layer proof architecture + non-tautology argument; VP title + proof-method UNCHANGED; POLICY 9: verification-architecture.md + verification-coverage-matrix.md do NOT need row edits). BC-INDEX v3.43→v3.44 (BC-5.41.003 row v2.0→v2.1 annotation). VP-INDEX v2.41→v2.42 (VP-084 row updated). ARCH-INDEX v2.74→v2.75 (ADR-029 row v1.1→v1.2). STORY-INDEX v4.67 UNCHANGED (no PC enumeration change per PO). Lesson codified: L-BB-proof-vehicle-must-be-mutation-tested-not-asserted ([process-gap]: a positive integration test can be tautological even when green; proof vehicles MUST be mutation-verified; load-bearing layer must be identified explicitly in PC). red-gate-log.md RELOCATED from cycles/v1.0-feature-engine-discipline-pass-1/implementation/S-18.04b/ to correct cycles/v1.0-brownfield-backfill/S-18.04b/implementation/red-gate-log.md. CASCADE ONGOING — streak 0/3; pass-2 NEXT. 4-index: BC v3.44/VP v2.42/STORY v4.67/ARCH v2.75. STOP-BEFORE-PR-MERGE D-665. | D-697-F-P1-001-GOVERNANCE | 2026-06-25 |
 | D-696 | POST-MERGE BURST 2026-06-24 — PR #262 (S-18.04b-prereq dispatcher git_context payload injection) squash-merged a177d76e to develop 2026-06-25T00:29:56Z. S-18.04b-prereq draft→merged (merged_count 85→86). POL-14: BC-1.16.001 draft→active (BC-INDEX v3.42→v3.43). develop_head b0bc4ffd→a177d76e. feature/S-18.04b-prereq branch deleted. Payload: dispatcher detects PostToolUse Bash git-commit events targeting factory-artifacts, executes git host-side for HEAD/HEAD^ subject+SHA, injects git_context into payload.extra; fail-open; hook-sdk HookPayload #[serde(flatten)] extra field added (sibling-swept; regression-free); HOST_ABI unchanged; registry trigger flip deferred to S-18.04b. 4-index: BC v3.43/VP v2.41/STORY v4.67/ARCH v2.74. POSTURE ACTIVE. NEXT: S-18.04b re-wire (rebase onto a177d76e). STOP-BEFORE-PR-MERGE D-665. | D-696-POST-MERGE-S-18.04b-prereq | 2026-06-24 |
 | D-695 + follow-on | S-18.04b-prereq LOCAL ADV PASS-1 GOVERNANCE FIX + PASS-2 DOC-ACCURACY FIX 2026-06-24 — PASS-1: MEDIUM-1 T-7 trigger-flip deferred; O-1 ADR-029 v1.1 SS-01+SS-04. ARCH-INDEX v2.74; STORY-INDEX v4.65. — PASS-2 follow-on: F-1 invoke.rs stub banner refreshed (3fb689d5); F-2 Red Gate file-path mis-anchor→git_context_injection.rs; story v1.1→v1.2; STORY-INDEX v4.65→v4.66. BC/VP/ARCH UNCHANGED. develop UNCHANGED b0bc4ffd. 4-index BC v3.42/VP v2.41/STORY v4.66/ARCH v2.74. NEXT: re-run LOCAL adversary fresh. STOP-BEFORE-PR-MERGE D-665. | D-695-S18.04b-prereq-PASS1-GOVERNANCE+PASS2-DOC-FIX | 2026-06-24 |
 | D-694 | S-18.04b RE-ARCHITECTURE GOVERNANCE BURST 2026-06-24 — LOCAL adversary F-2: BC-5.41.003 required WASM exec_subprocess for git HEAD/HEAD^ inspection (exec-free violation). Architect adjudicated; human chose Option A (dispatcher git_context injection per ADR-029). BC-1.16.001 v1.0 NEW (SS-01; CAP-032; S-18.04b-prereq). BC-5.41.003 v1.9→v2.0 (exec-free WASM via git_context). VP-093 v1.0 NEW. ADR-029 ACCEPTED. S-18.04b-prereq v1.0 NEW story (P0 5pts depends_on S-18.00 blocks S-18.04b). S-18.04b v1.7 (depends_on +S-18.04b-prereq; re-arch pending). story_count 122→123; VP 92→93; BC 1972→1973; ADR 28→29. develop UNCHANGED b0bc4ffd (governance-only). 4-index BC v3.42/VP v2.41/STORY v4.64/ARCH v2.73. POSTURE ACTIVE. | D-694-S18.04b-REARCH-GOVERNANCE | 2026-06-24 |
@@ -244,14 +246,14 @@ dtu_services: []
 - `cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` | `session-checkpoints.md` | `lessons.md`
 - `cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md` (adversary reviews at `S-12.03/`, `S-12.04/`, `S-12.05/` subdirs)
 
-## Session Resume Checkpoint (2026-06-24 — D-696 S-18.04b-prereq POST-MERGE; POSTURE: ACTIVE; develop HEAD a177d76e; merged_count 86; BC-1.16.001 active; NEXT = S-18.04b re-wire; 4-index BC v3.43/VP v2.41/STORY v4.67/ARCH v2.74; STOP-BEFORE-PR-MERGE D-665 holds)
+## Session Resume Checkpoint (2026-06-25 — D-697 F-P1-001 governance burst; POSTURE: ACTIVE; S-18.04b LOCAL cascade ONGOING streak 0/3; pass-2 NEXT; develop HEAD a177d76e; merged_count 86; 4-index BC v3.44/VP v2.42/STORY v4.67/ARCH v2.75; STOP-BEFORE-PR-MERGE D-665 holds)
 
 > **SELF-SUFFICIENT RESUME CONTEXT FOR ZERO-CONTEXT NEW SESSION OR NEW MACHINE**
 > Read this section alone to resume. Assumes ZERO prior context. All decisions, directives, and anchors stated explicitly.
 
 ### §1. Where We Are
 
-**POSTURE: ACTIVE (D-696 S-18.04b-prereq POST-MERGE 2026-06-24).**
+**POSTURE: ACTIVE (D-697 F-P1-001 governance burst 2026-06-25; S-18.04b LOCAL cascade ONGOING streak 0/3; pass-2 NEXT).**
 
 **Cycle/mode:** v1.0-brownfield-backfill; brownfield; E-18 "full build" authorized by human — deliver all remaining E-18 stories with full per-story rigor (LOCAL 3-CLEAN → demo → PR → CI green → STOP-BEFORE-PR-MERGE → human merge approval → post-merge burst).
 
@@ -261,17 +263,23 @@ dtu_services: []
 - **Merged (86 total):** All stories above + prior E-17, S-15.03 PRIORITY-A, S-8.xx, S-4.xx, S-3.xx, S-7.xx wave stories. Full ledger: `cycles/v1.0-brownfield-backfill/merged-stories-ledger.md`.
 
 **Governance landed this session (durable refs):**
-- ADR-029 v1.1 (dispatcher git_context payload injection; SS-01+SS-04; ACCEPTED D-694; corrected D-695)
+- ADR-029 v1.2 (D-697 Decision 8 — mutation-test adjudication; two-layer proof architecture; exemption NOT dead code; prior: v1.1 D-695 SS-01+SS-04 corrected; ACCEPTED D-694)
+- BC-5.41.003 v2.1 (D-697 PC4 two-layer proof wording per ADR-029 §Decision 8; PC enumeration UNCHANGED; prior: v2.0 D-694 exec-free WASM via git_context)
+- VP-084 v2.0 (D-697 Feasibility Assessment: two-layer proof architecture + non-tautology argument; title + proof-method UNCHANGED)
+- BC-INDEX v3.44 / VP-INDEX v2.42 / ARCH-INDEX v2.75 (D-697 bumped)
+- D-697 (F-P1-001 governance burst; ADR-029 v1.2 Decision 8; cascade ONGOING streak 0/3)
 - BC-1.16.001 v1.1 (NOW ACTIVE; SS-01; CAP-032; dispatcher git_context; D-694 authoring; D-696 POL-14 promotion)
-- BC-5.41.003 v2.0 (exec-free WASM via git_context; D-694)
 - VP-093 v1.0 (SS-01; dispatcher git_context; D-694)
-- D-694 (S-18.04b re-arch governance; ADR-029 + new BC/VP)
-- D-695 (S-18.04b-prereq LOCAL adversary pass-1+follow-on governance+doc fixes)
-- D-696 (this post-merge burst; S-18.04b-prereq merged; BC-1.16.001 active)
+- D-696 (S-18.04b-prereq POST-MERGE; S-18.04b-prereq merged; BC-1.16.001 active)
+- L-BB-proof-vehicle-must-be-mutation-tested-not-asserted (D-697 [process-gap]: positive integration test can be tautological; proof vehicles MUST be mutation-verified; load-bearing layer must be identified in PC)
 - L-BB-wasm-bats-gate-before-green (D-693 process-gap; mandatory for all WASM hook stories)
 - L-BB-prereq-story-task-scope-boundary (D-695)
 
-**NEXT ACTION = Phase 3: S-18.04b RE-WIRE (executive summary):**
+**NEXT ACTION = S-18.04b LOCAL adversarial cascade pass-2 (streak 0/3 ONGOING; fresh-context adversary reads ONLY adv-cycle-pass-1.md Part A; no prior context):**
+
+After pass-2 completes and is filed, if findings exist: fix burst → pass-3. Repeat until 3-CLEAN. Then proceed to S-18.04b re-wire per §1 below.
+
+**S-18.04b RE-WIRE (post-cascade; executive summary):**
 S-18.04b (PreCompact exemption+prune WASM; BC-5.41.003 v2.0; P0; 8pts) depends on S-18.04b-prereq (NOW MET). The parked worktree `.worktrees/S-18.04b` on branch `feature/S-18.04b` at `7999a0f9` holds the WRONG (rejected) wiring — it wired `check_factory_artifacts_chain` as a git-exec call on PostToolUse Edit/Write file-write events, which was the design ADR-029 superseded.
 
 **S-18.04b re-wire 5-step plan (execute in order):**
@@ -286,9 +294,10 @@ S-18.04b (PreCompact exemption+prune WASM; BC-5.41.003 v2.0; P0; 8pts) depends o
 **Note on S-18.04b pass-1 adversary findings:** F-1 (tautology), F-2 (exec-free violation resolved by ADR-029 + prereq), F-3 (registry trigger wrong), F-4 (VP-084 proof inadequate) — all resolved by ADR-029 + the prereq. The re-wire implements the corrected design.
 
 **ORDERED RESUME ACTIONS (cold start):**
-1. **Verify worktrees:** `git rev-parse --short origin/develop` → expect `a177d76e`; `git rev-parse --short origin/main` → expect `caf06c68`; `git -C .factory log -1 --format='%h %s'` → expect D-696 burst SHA. `.worktrees/S-18.04b` at `7999a0f9` (parked; re-wire NEXT).
-2. **S-18.04b re-wire:** Execute 5-step plan above. MANDATORY per L-BB-wasm-bats-gate-before-green: build real .wasm + run bats BEFORE declaring TDD green. STOP-BEFORE-PR-MERGE (D-665) holds.
-3. **After S-18.04b merges:** S-18.03 (rehydrate-wave SKILL; BC-6.24.001/VP-088; 8pts; deps S-18.04a+S-18.04b — both now MET), then S-18.05..S-18.10, then S-18.11/S-18.12 (PO BC authorship required).
+1. **Verify worktrees:** `git rev-parse --short origin/develop` → expect `a177d76e`; `git rev-parse --short origin/main` → expect `caf06c68`; `git -C .factory log -1 --format='%h %s'` → expect D-697 burst SHA. `.worktrees/S-18.04b` at `7999a0f9` (parked; re-wire post-cascade).
+2. **S-18.04b LOCAL adversarial cascade pass-2:** Dispatch adversary (fresh-context; reads ONLY adv-cycle-pass-1.md Part A). Record findings. If NOT-CLEAN: fix burst → pass-3. Continue until 3-CLEAN streak.
+3. **S-18.04b re-wire:** After 3-CLEAN converges, execute 5-step plan above. MANDATORY per L-BB-wasm-bats-gate-before-green: build real .wasm + run bats BEFORE declaring TDD green. STOP-BEFORE-PR-MERGE (D-665) holds.
+4. **After S-18.04b merges:** S-18.03 (rehydrate-wave SKILL; BC-6.24.001/VP-088; 8pts; deps S-18.04a+S-18.04b — both now MET), then S-18.05..S-18.10, then S-18.11/S-18.12 (PO BC authorship required).
 
 **Note (release gate):** S-18.14 fix (resolver WASM path fix) is release-gated — only effective after an rc release is cut. Recommend cutting an rc after S-18.04b merges.
 
@@ -349,6 +358,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 ### §4. Tier-A Completed Log (most recent first)
 
+- **D-697 (2026-06-25):** F-P1-001 GOVERNANCE BURST — ADR-029 v1.2 (Decision 8: mutation-test adjudication; pure-Rust unit tests in exemption.rs load-bearing; bats tests prove dispatcher injection plumbing + discrimination; exemption NOT dead code; no production change); BC-5.41.003 v2.0→v2.1 (PC4 two-layer proof; PC enumeration UNCHANGED); VP-084 v1.9→v2.0 (Feasibility Assessment updated); BC-INDEX v3.43→v3.44; VP-INDEX v2.41→v2.42; ARCH-INDEX v2.74→v2.75; STORY-INDEX v4.67 UNCHANGED; red-gate-log.md relocated to correct brownfield cycle path; D-697 decision-log block added; lesson L-BB-proof-vehicle-must-be-mutation-tested-not-asserted codified. CASCADE ONGOING streak 0/3; pass-2 NEXT. 4-index BC v3.44/VP v2.42/STORY v4.67/ARCH v2.75.
 - **D-696 (2026-06-24):** POST-MERGE BURST — PR #262 (S-18.04b-prereq dispatcher git_context payload injection) squash-merged a177d76e to develop 2026-06-25T00:29:56Z; S-18.04b-prereq draft→merged; merged 85→86; POL-14 BC-1.16.001 draft→active (BC-INDEX v3.42→v3.43); develop_head b0bc4ffd→a177d76e; feature/S-18.04b-prereq deleted; merged-stories-ledger +S-18.04b-prereq #262 a177d76e; 4-index BC v3.43/VP v2.41/STORY v4.67/ARCH v2.74. POSTURE: ACTIVE. NEXT: S-18.04b re-wire.
 - **D-695 + follow-on (2026-06-24):** PASS-1 GOVERNANCE FIX: T-7 deferred (ADR-029 §Decision 5); story v1.0→v1.1; ADR-029 v1.1 SS-01+SS-04; ARCH-INDEX v2.74; STORY-INDEX v4.65. L-BB-prereq-story-task-scope-boundary codified. PASS-2 DOC-ACCURACY FIX: F-1 invoke.rs stub banner refreshed (3fb689d5); F-2 mis-anchor corrected (abi_version.rs→git_context_injection.rs); story v1.1→v1.2; STORY-INDEX v4.66. develop UNCHANGED b0bc4ffd. 4-index BC v3.42/VP v2.41/STORY v4.66/ARCH v2.74.
 - **D-694 (2026-06-24):** GOVERNANCE BURST — S-18.04b re-architecture. LOCAL adversary F-2 finding (BC-5.41.003 WASM exec_subprocess; exec-free violation). ADR-029 ACCEPTED. BC-1.16.001 v1.0 NEW; BC-5.41.003 v2.0; VP-093 v1.0 NEW; S-18.04b-prereq v1.0 NEW (P0 5pts); S-18.04b v1.7. story_count 123; VP 93; BC 1973; ADR 29. develop UNCHANGED b0bc4ffd. 4-index BC v3.42/VP v2.41/STORY v4.64/ARCH v2.73.
@@ -361,7 +371,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 ### §5. Cumulative Codifications
 
 - F5: D-379..D-454 (76 decisions) — `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md`.
-- Brownfield: D-001..D-696 — `cycles/v1.0-brownfield-backfill/decision-log.md`. Latest: **D-696 (2026-06-24) — PR #262 (S-18.04b-prereq) squash-merged a177d76e 2026-06-25; merged_count 85→86; BC-1.16.001 draft→active; BC-INDEX v3.43; STORY-INDEX v4.67; develop a177d76e; NEXT: S-18.04b re-wire.**
+- Brownfield: D-001..D-697 — `cycles/v1.0-brownfield-backfill/decision-log.md`. Latest: **D-697 (2026-06-25) — F-P1-001 governance burst; ADR-029 v1.2 Decision 8; BC-5.41.003 v2.1; VP-084 v2.0; BC-INDEX v3.44; VP-INDEX v2.42; ARCH-INDEX v2.75; S-18.04b LOCAL cascade ONGOING streak 0/3; pass-2 NEXT.**
 
 ### §6. Cumulative Lessons
 
@@ -376,17 +386,17 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 | Index | Version | Notes |
 |-------|---------|-------|
-| BC-INDEX | v3.43 | Bumped D-696 (BC-1.16.001 draft→active POL-14; total_bcs UNCHANGED 1,973). [D-694: v3.42 BC-1.16.001 NEW; D-693: v3.41 BC-7.07.001 POL-14; D-692: v3.40; D-687: v3.39.] |
-| VP-INDEX | v2.41 | Bumped D-694 (VP-093 NEW SS-01 dispatcher git_context injection; total_vps 92→93). UNCHANGED at D-696. |
-| STORY-INDEX | v4.67 | Bumped D-696 (S-18.04b-prereq draft→merged; merged_count 85→86). [D-695 follow-on: v4.66; D-695: v4.65; D-694: v4.64; D-693: v4.63.] |
-| ARCH-INDEX | v2.74 | Bumped D-695 (ADR-029 row: SS-03,SS-04→SS-01,SS-04). UNCHANGED at D-696. |
-| L2-INDEX | v1.0.13 | Bumped D-616. Document Map invariants.md v1.22→v1.25. UNCHANGED at D-696. |
+| BC-INDEX | v3.44 | Bumped D-697 (BC-5.41.003 v2.0→v2.1 row annotation; total_bcs UNCHANGED 1,973). [D-696: v3.43 BC-1.16.001 POL-14; D-694: v3.42 BC-1.16.001 NEW; D-693: v3.41; D-692: v3.40.] |
+| VP-INDEX | v2.42 | Bumped D-697 (VP-084 v1.9→v2.0 row updated; POLICY 9 propagation: verification-architecture.md + verification-coverage-matrix.md NOT updated — VP-084 title + proof-method UNCHANGED in v2.0). [D-694: v2.41 VP-093 NEW; D-693: v2.40 UNCHANGED.] |
+| STORY-INDEX | v4.67 | UNCHANGED D-697 (no PC enumeration change per PO). [Bumped D-696: S-18.04b-prereq draft→merged; merged_count 85→86.] |
+| ARCH-INDEX | v2.75 | Bumped D-697 (ADR-029 row v1.1→v1.2: Decision 8 added). [D-695: v2.74 ADR-029 SS-01,SS-04; D-694: v2.73 ADR-029 NEW.] |
+| L2-INDEX | v1.0.13 | Bumped D-616. Document Map invariants.md v1.22→v1.25. UNCHANGED at D-697. |
 
-4-index at D-696 (literal-shell POLICY 14 gate — stdout captured 2026-06-24): `grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md` → `version: "3.43"` (bumped PASS); `grep "^version:" .factory/specs/verification-properties/VP-INDEX.md` → `version: "2.41"` (UNCHANGED PASS); `grep "^version:" .factory/stories/STORY-INDEX.md` → `version: "4.67"` (bumped PASS); `grep "^version:" .factory/specs/architecture/ARCH-INDEX.md` → `version: "2.74"` (UNCHANGED PASS). Zero FAIL. Parity confirmed PASS: BC-INDEX v3.43 / VP-INDEX v2.41 / STORY-INDEX v4.67 / ARCH-INDEX v2.74.
+4-index at D-697 (literal-shell POLICY 14 gate — stdout captured 2026-06-25 — see verification evidence in commit body): `grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md` → `version: "3.44"` (bumped PASS); `grep "^version:" .factory/specs/verification-properties/VP-INDEX.md` → `version: "2.42"` (bumped PASS); `grep "^version:" .factory/stories/STORY-INDEX.md` → `version: "4.67"` (UNCHANGED PASS); `grep "^version:" .factory/specs/architecture/ARCH-INDEX.md` → `version: "2.75"` (bumped PASS). Zero FAIL. Parity confirmed PASS: BC-INDEX v3.44 / VP-INDEX v2.42 / STORY-INDEX v4.67 / ARCH-INDEX v2.75.
 
 ### §9. Critical Anchors
 
-- **factory-artifacts HEAD:** `db98d992` (D-696 post-merge burst — S-18.04b-prereq merged; BC-1.16.001 active; STORY-INDEX v4.67; BC-INDEX v3.43; 2026-06-24; prior D-695 follow-on = `a728097f`)
+- **factory-artifacts HEAD:** TBD-D-697 (D-697 F-P1-001 governance burst — ADR-029 v1.2; BC-5.41.003 v2.1; VP-084 v2.0; BC-INDEX v3.44; VP-INDEX v2.42; ARCH-INDEX v2.75; 2026-06-25; prior D-696 = `db98d992`)
 - **develop HEAD:** `a177d76e` (PR #262 S-18.04b-prereq squash-merged 2026-06-25 D-696; prior: `b0bc4ffd` PR #249 D-693; prior: `dfc76844` PR #201 D-692)
 - **main HEAD:** `caf06c68` (rc.21 bot bundle commit 2026-06-13; UNCHANGED)
 - **v1.0.0-rc.21 tag:** `03054524` (SHIPPED; FULLY IN OPERATOR MARKETPLACE)
@@ -398,7 +408,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 - **S-18.04a v1.11 (merged):** `stories/S-18.04a-precompact-flush-sh-core.md` (D-672 ROUND-3 FINAL CONVERGED; PR #249 squash-merged b0bc4ffd D-693)
 - **ADR-028 v1.3:** `specs/architecture/decisions/ADR-028-e18-precompact-flush-native-wasm-migration.md` (D-672 ROUND-3 FINAL; SPEC CONVERGENCE ACCEPTED)
 - **Older anchors (BC-1.15.001 v1.5..VP-090 v1.2, VP-081..VP-085, L2-INDEX v1.0.13, ADR-025 v1.6, S-17.04 v1.7, ADR-027 v1.0):** see `cycles/v1.0-brownfield-backfill/decision-log.md` D-580..D-615/D-639 blocks.
-- **Verify on resume:** `git rev-parse --short origin/develop` → expect `a177d76e` (PR #262 S-18.04b-prereq merged D-696 2026-06-25); `git rev-parse --short origin/main` → expect `caf06c68`; `git -C .factory log -1 --format='%h %s'` → expect D-696 post-merge burst SHA
+- **Verify on resume:** `git rev-parse --short origin/develop` → expect `a177d76e` (PR #262 S-18.04b-prereq merged D-696 2026-06-25); `git rev-parse --short origin/main` → expect `caf06c68`; `git -C .factory log -1 --format='%h %s'` → expect D-697 governance burst SHA
 
 ### §10. PR Status
 
@@ -415,16 +425,16 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 ### §11. Post-CLEAR/Post-RESET Resume Checklist (zero-context; D-639 refresh)
 
-1. **Verify worktree state:** `git rev-parse --short origin/develop` → expect `a177d76e` (PR #262 S-18.04b-prereq merged D-696 2026-06-25). `git rev-parse --short origin/main` → expect `caf06c68`. `git -C .factory log -1 --format='%h %s'` → expect D-696 post-merge burst SHA. `.worktrees/S-18.04b` at `7999a0f9` (parked; re-wire NEXT). feature/S-18.04b-prereq MERGED PR #262 a177d76e (deleted). feature/S-18.04a MERGED PR #249 b0bc4ffd (deleted). feature/S-18.14 MERGED PR #201 dfc76844 (deleted). feature/S-18.01 MERGED. feature/S-18.02 MERGED PR #195 bd6e50ce (deleted). feature/S-18.13 MERGED PR #196 70664e02 (deleted).
-2. **Read §1-§12 this checkpoint** (all of it; D-696 self-sufficient).
-3. **Verify 4-index:** `grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md` → "3.43"; ARCH-INDEX → "2.74"; VP-INDEX → "2.41"; STORY-INDEX → "4.67"; L2-INDEX → "1.0.13".
+1. **Verify worktree state:** `git rev-parse --short origin/develop` → expect `a177d76e` (PR #262 S-18.04b-prereq merged D-696 2026-06-25). `git rev-parse --short origin/main` → expect `caf06c68`. `git -C .factory log -1 --format='%h %s'` → expect D-697 governance burst SHA. `.worktrees/S-18.04b` at `7999a0f9` (parked; re-wire post-cascade). feature/S-18.04b-prereq MERGED PR #262 a177d76e (deleted). feature/S-18.04a MERGED PR #249 b0bc4ffd (deleted). feature/S-18.14 MERGED PR #201 dfc76844 (deleted). feature/S-18.01 MERGED. feature/S-18.02 MERGED PR #195 bd6e50ce (deleted). feature/S-18.13 MERGED PR #196 70664e02 (deleted).
+2. **Read §1-§12 this checkpoint** (all of it; D-697 self-sufficient).
+3. **Verify 4-index:** `grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md` → "3.44"; ARCH-INDEX → "2.75"; VP-INDEX → "2.42"; STORY-INDEX → "4.67"; L2-INDEX → "1.0.13".
 4. **E-10 CASCADE SEALED D-531.** Do NOT resume without engine-surface material change.
 5. **F5 PAUSED** — trajectory →9→9→9→11. Do NOT resume without explicit human direction.
 6. **RC.21 100% COMPLETE D-560.** NO remaining release action. Operators: `/plugin update vsdd-factory@claude-mp`.
-7. **D-696 (2026-06-24). POSTURE: ACTIVE.** develop a177d76e. S-18.04b-prereq MERGED PR #262 a177d76e; merged_count 86; BC-1.16.001 active. **NEXT:** S-18.04b RE-WIRE — rebase `.worktrees/S-18.04b` (feature/S-18.04b @ 7999a0f9) onto a177d76e; remove git-exec wiring; read git_context from payload.extra; flip registry triggers Edit/Write→Bash; genuine VP-084 proof. MANDATORY per L-BB-wasm-bats-gate-before-green: real .wasm build + bats before TDD green. **Autonomy STOP-BEFORE-PR-MERGE (D-665) holds for all code PRs.**
-8. **4-index at D-696:** BC-INDEX v3.43 (total_bcs 1,973; BC-1.16.001 NOW ACTIVE POL-14 D-696; SS-01 118; BC-7.07.001 active D-693), VP-INDEX v2.41 (total_vps 93; +VP-093 D-694; UNCHANGED D-696), STORY-INDEX v4.67 (story_count 123 UNCHANGED; S-18.04b-prereq MERGED PR #262 a177d76e; merged 86; E-18: 20 stories total (18 original + 2 prereqs); 10 remaining draft: S-18.04b re-wire NEXT + S-18.03+S-18.05..S-18.12), ARCH-INDEX v2.74 (ADR-029 row SS-01,SS-04 D-695; SS-01 118; UNCHANGED D-696). L2-INDEX v1.0.13 UNCHANGED. BC-1.16.001 v1.1 (ACTIVE; POL-14 D-696). BC-7.07.001 v1.18 (active; POL-14 D-693). BC-5.41.003 v2.0 (D-694; exec-free WASM via git_context). VP-093 v1.0 (NEW D-694; SS-01). ADR-029 v1.1 (ACCEPTED D-694; CORRECTED D-695: SS-01+SS-04). BC-1.13.001 v1.12 (active; POL-14 D-692). BC-2.02.011 v1.3 (active). ADR-028 v1.3 (ACCEPTED; ROUND-3 FINAL). BC-4.14.001 v1.17 (active). BC-5.41.001 v1.26 (active). BC-5.41.002 v1.19 (active). S-18.04b v1.7 (re-wire pending; depends_on [S-18.04a MET, S-18.04b-prereq MET]). S-18.14 v2.12 (merged). S-18.04a v1.11 (merged). ADR-026 v1.24. ADR-027 v1.1. Key SHAs: develop a177d76e; main caf06c68; factory-artifacts (this burst SHA); parked feature/S-18.04b @ 7999a0f9.
-9. **ALL dispatches carry:** TD-VSDD-097-EXT + TD-VSDD-099 + TD-VSDD-100 + POLICY 14 5-leg + verification_step 7 4-index gate + INV-019 (a)/(b)/(c) + adversary grep origin/factory-artifacts + D-449(a) literal-shell Dim-2 + POLICY 8 v1.3 parity + POLICY 5 v1.3.1/v1.3.4/v1.3.5/v1.3.6 + D-537 spec-drift routing + D-539 multi-family adversary + O-P8-002 MANDATORY + L-F2-no-bypass-on-edit-failure (D-610: MANDATORY ALL F4 dispatches) + L-F2-statemd-banner-wcl-each-burst (D-617: every burst MUST append wc-l entry to SIZE BUDGET block before commit) + **L-BB-wasm-bats-gate-before-green (D-693 MANDATORY: every WASM hook story MUST build real .wasm AND run bats integration suite before declaring TDD green)** + L-S18-bc-bump-must-sweep-dependent-story-body-cites (D-644) + L-S18-cascade-converged-after-15-passes-deep-adversary (D-645) + L-S18-sibling-sweep-must-cross-file-and-tool (D-643) + L-S18-bsd-gnu-portability-needs-ci-leg (D-643) + L-S18-adr-worked-example-must-match-decision (D-643) + L-S18-untested-branch/skill-doc-contract/field-name (D-642) + L-S18-validate-before-write/absent-ground-truth/implicit-invariant (D-641) + L-S18-harness-env/test-comment/spec-prose (D-640) + L-S18-fixture-fidelity/gamed-guard/weak-assertion (D-639) + D-636..D-696 carries (see §3 for full text).
-10. **Latest decision D-696 (2026-06-24).** POST-MERGE BURST: PR #262 (S-18.04b-prereq dispatcher git_context) squash-merged a177d76e; S-18.04b-prereq draft→merged; merged_count 85→86; BC-1.16.001 draft→active (POL-14); BC-INDEX v3.43; STORY-INDEX v4.67. 4-index BC v3.43/VP v2.41/STORY v4.67/ARCH v2.74. **POSTURE: ACTIVE. NEXT: S-18.04b re-wire (5-step plan in §1 above).**
+7. **D-697 (2026-06-25). POSTURE: ACTIVE.** develop a177d76e. S-18.04b LOCAL cascade ONGOING streak 0/3; pass-2 NEXT. F-P1-001 resolved via ADR-029 §Decision 8. **NEXT:** S-18.04b LOCAL adversary pass-2 → continue cascade → post-cascade S-18.04b re-wire. **Autonomy STOP-BEFORE-PR-MERGE (D-665) holds for all code PRs.**
+8. **4-index at D-697:** BC-INDEX v3.44 (total_bcs 1,973 UNCHANGED; BC-5.41.003 v2.1 D-697; BC-1.16.001 NOW ACTIVE POL-14 D-696), VP-INDEX v2.42 (total_vps 93 UNCHANGED; VP-084 v2.0 D-697; VP-093 v1.0 NEW D-694), STORY-INDEX v4.67 UNCHANGED (story_count 123; merged 86; E-18: 10 remaining draft: S-18.04b re-wire post-cascade NEXT + S-18.03+S-18.05..S-18.12), ARCH-INDEX v2.75 (ADR-029 v1.2 Decision 8 D-697). L2-INDEX v1.0.13 UNCHANGED. ADR-029 v1.2 (ACCEPTED D-694; v1.1 D-695; v1.2 D-697 Decision 8). BC-5.41.003 v2.1 (D-697 PC4 two-layer proof). VP-084 v2.0 (D-697 Feasibility Assessment two-layer). BC-1.16.001 v1.1 (ACTIVE; POL-14 D-696). BC-7.07.001 v1.18 (active; POL-14 D-693). S-18.04b v1.7 (re-wire pending post-cascade). Key SHAs: develop a177d76e; main caf06c68; factory-artifacts TBD-D-697; parked feature/S-18.04b @ 7999a0f9.
+9. **ALL dispatches carry:** TD-VSDD-097-EXT + TD-VSDD-099 + TD-VSDD-100 + POLICY 14 5-leg + verification_step 7 4-index gate + INV-019 (a)/(b)/(c) + adversary grep origin/factory-artifacts + D-449(a) literal-shell Dim-2 + POLICY 8 v1.3 parity + POLICY 5 v1.3.1/v1.3.4/v1.3.5/v1.3.6 + D-537 spec-drift routing + D-539 multi-family adversary + O-P8-002 MANDATORY + L-F2-no-bypass-on-edit-failure (D-610) + L-F2-statemd-banner-wcl-each-burst (D-617) + **L-BB-wasm-bats-gate-before-green (D-693 MANDATORY)** + **L-BB-proof-vehicle-must-be-mutation-tested-not-asserted (D-697 MANDATORY: positive integration test can be tautological; proof vehicles MUST be mutation-verified; load-bearing layer must be identified in PC)** + L-S18-bc-bump-must-sweep-dependent-story-body-cites (D-644) + L-S18-cascade-converged-after-15-passes-deep-adversary (D-645) + D-636..D-697 carries (see §3 for full text).
+10. **Latest decision D-697 (2026-06-25).** F-P1-001 GOVERNANCE BURST: ADR-029 v1.2 Decision 8; BC-5.41.003 v2.1; VP-084 v2.0; BC-INDEX v3.44; VP-INDEX v2.42; ARCH-INDEX v2.75. CASCADE ONGOING streak 0/3; pass-2 NEXT. **POSTURE: ACTIVE.**
 
 ### §12. Pending Work Items — Strict Resume Ordering (refreshed 2026-06-22 D-689)
 
@@ -442,7 +452,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 | **2b-gate** | **BC-4.15.001 spec addition (S-7.01 Spec-First Gate)** | **feature** | D-613 | **DONE 2026-06-16 D-613.** BC-4.15.001 v1.1 + parity fixes complete. Adversary CLEAN + consistency CLEAN. Gate satisfied. **F3 story authoring NOW UNBLOCKED — START HERE.** |
 | **2b** | **#173/E-18 F3 story registration + fix wave** | **feature** | **COMPLETE D-614/D-615/D-616** | Plan APPROVED D-611. 11 stories S-18.00..S-18.09 registered STORY-INDEX v4.02 (D-614). D-615 fix wave: S-18.10 added; STORY-INDEX v4.03. D-616 fix wave: input-hashes recomputed (awk bug fixed); SS-08 sweep; VP anchor_story; S-18.10 W6→W7; STORY-INDEX v4.04; 4-index BC v3.05/VP v2.35/STORY v4.04/ARCH v2.51. Tool-fix PR→develop PENDING. **NEXT: story adversarial 3-CLEAN + consistency → story-approval human gate — START HERE.** |
 | **2c** | **#173/E-18 story adversarial 3-CLEAN cascade + consistency + human-approval gate + D-636 deferral-cleanup + D-637 confirming pass** | **feature** | **BC-5.39.001 3-CLEAN CONVERGED D-635; D-636 cleanup CONFIRMED CLEAN D-637; F4 TDD AUTHORIZED** | D-635 pass-16 CLEAN/CONSISTENT (streak 2/3→3/3 CONVERGED; S-7.02 SATISFIED). D-636 deferral-cleanup COMPLETE (O-P12-1 CLOSED; ARCH-INDEX stale cite CLOSED). D-637 confirming pass CLEAN/CONSISTENT (11/11 PASS; 0 findings; O-P12-1/C-P12-001/O-P16-2 CONFIRMED CLOSED). **E-18 F3 FULLY COMPLETE. F4 TDD AUTHORIZED. COMPLETE.** |
-| **3a** | **#173/E-18 F4 TDD W1-W4 + prereqs + S-18.14 + S-18.04a + S-18.04b-prereq MERGED + D-694/D-695/D-696** | **implementation** | **D-663/D-672..D-696 COMPLETE** | S-18.00 MERGED D-638. S-18.01 MERGED PR #193 8b26a0fe (D-648). S-18.02 MERGED PR #195 bd6e50ce (D-651). S-18.13 MERGED PR #196 70664e02 (D-663). S-18.14 MERGED PR #201 dfc76844 (D-692). S-18.04a MERGED PR #249 b0bc4ffd (D-693); BC-7.07.001 active. S-18.04b-prereq MERGED PR #262 a177d76e (D-696); merged_count 86; BC-1.16.001 active. D-694: ADR-029 ACCEPTED; BC-1.16.001+VP-093 NEW; BC-5.41.003 v2.0. D-695: ADR-029 v1.1; ARCH-INDEX v2.74. **NEXT: S-18.04b RE-WIRE — parked feature/S-18.04b @ 7999a0f9; rebase onto a177d76e; exec-free git_context reader; Bash registry trigger; genuine VP-084 proof. STOP-BEFORE-PR-MERGE (D-665) holds.** |
+| **3a** | **#173/E-18 F4 TDD W1-W4 + prereqs + S-18.14 + S-18.04a + S-18.04b-prereq MERGED + D-694/D-695/D-696/D-697** | **implementation** | **D-663/D-672..D-697 ONGOING** | S-18.00 MERGED D-638. S-18.01 MERGED PR #193 8b26a0fe (D-648). S-18.02 MERGED PR #195 bd6e50ce (D-651). S-18.13 MERGED PR #196 70664e02 (D-663). S-18.14 MERGED PR #201 dfc76844 (D-692). S-18.04a MERGED PR #249 b0bc4ffd (D-693); BC-7.07.001 active. S-18.04b-prereq MERGED PR #262 a177d76e (D-696); merged_count 86; BC-1.16.001 active. D-694: ADR-029 ACCEPTED; BC-1.16.001+VP-093 NEW; BC-5.41.003 v2.0. D-695: ADR-029 v1.1. D-697: ADR-029 v1.2 Decision 8; BC-5.41.003 v2.1; VP-084 v2.0; BC-INDEX v3.44; VP-INDEX v2.42; ARCH-INDEX v2.75. **S-18.04b LOCAL CASCADE ONGOING — streak 0/3; pass-2 NEXT. After 3-CLEAN: S-18.04b RE-WIRE. STOP-BEFORE-PR-MERGE (D-665) holds.** |
 | **4** | **#173 wave-checkpoint** | **implementation** | E-18 F3 + story-approval done | State-durability chain stories S-18.02..S-18.10. Wave 3 NEXT (S-18.02, S-18.08). |
 | **5** | **#171 deferred-revalidate** | **implementation** | #173 stories done | Deferred-revalidation story. |
 | **6** | **#129 canonical-principle** | **implementation** | human-authorize | Ship canonical-principle in plugin. |
@@ -451,4 +461,4 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 | **8/9** | **UNI-PLUG-001 / SK-MCP-001** | **forward** | human-authorize | PROPOSAL REVIEW-READY |
 
 **[D-414(c) acknowledgment: Section 12 is a non-standard addition for forward-backlog durability.]**
-> Previous checkpoint (D-695 follow-on S-18.04b-prereq-LOCAL-ADV-PASS2-DOC-FIX-2026-06-24) archived to: `cycles/v1.0-brownfield-backfill/session-checkpoints.md`
+> Previous checkpoint (D-696 S-18.04b-prereq-POST-MERGE-2026-06-24) archived to: `cycles/v1.0-brownfield-backfill/session-checkpoints.md`

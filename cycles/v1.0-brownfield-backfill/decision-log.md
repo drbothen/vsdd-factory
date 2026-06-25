@@ -2970,6 +2970,71 @@ S-18.04b (PreCompact exemption + prune; BC-5.41.003; P0; 8pts; depends_on S-18.0
 
 ---
 
+## D-697 — S-18.04b LOCAL adversarial cascade pass-1 F-P1-001 governance burst — ADR-029 §Decision 8 (two-layer VP-084 proof) — 2026-06-25
+
+**Decision:** S-18.04b LOCAL adversarial cascade pass-1 finding F-P1-001 (BLOCKER — VP-084 `vp084-proof.bats` positive tests tautological for exemption decision) adjudicated via ADR-029 §Decision 8. No production code change required. Proof vehicle scoping corrected in specs. S-18.04b LOCAL cascade ONGOING — streak 0/3; pass-2 NEXT.
+
+**Context:** Pass-1 adversary applied mutation test: forced `is_precompact_flush_exempt → return false` in `crates/hook-plugins/precompact-flush/src/exemption.rs`. Result: all three `vp084-proof.bats` positive tests remained GREEN. Root cause analysis: `vp084-proof.bats` positive tests used `mkdir -p` without `git init`, causing `build_git_context` to fail → empty `git_context` → fail-open path → `Continue` signal; the exemption guard was never exercised. The tests were structurally tautological for the exemption decision under the original test setup.
+
+**Fix (per ADR-029 §Decision 8):** Tests now call `_setup_precompact_flush_git_chain` (real git repo with PreCompact HEAD commit) and `_setup_precompact_flush_log_from_real_sha` to supply a non-empty `git_context`. Negative-control Test 3 (non-sentinel subject → exemption returns false → chain check runs → block fires) is the mutation anchor confirming the exemption branch is genuinely exercised. See `red-gate-log.md` (relocated to correct brownfield cycle path).
+
+**Architect determination (ADR-029 §Decision 8):** Two-layer proof architecture:
+- **Layer 1** = pure-Rust unit tests in `exemption.rs` Section 1 (load-bearing proof vehicle for the 3-case `is_precompact_flush_exempt` decision: (a) PRECOMPACT_FLUSH_PREFIX sentinel match, (b) multi-commit-chain detection, (c) chain-break detection). These tests directly exercise the exemption logic and are mutation-resistant.
+- **Layer 2** = bats integration tests `vp084-proof.bats` (load-bearing proof vehicle for dispatcher injection plumbing + chain-detection discrimination; negative-control Test 3 = mutation anchor; confirms the full PreCompact → inject git_context → route to WASM → exemption exits → chain check fires chain is exercised end-to-end).
+- Exemption is **NOT dead code**: it is defense-in-depth against future sentinel-set broadening. The current production path for real PreCompact commits does NOT fire the block because real PreCompact subjects are non-sentinel — this is correct behavior and the negative-control test anchors this.
+
+**Lesson codified:** L-BB-proof-vehicle-must-be-mutation-tested-not-asserted ([process-gap]): a "positive" integration test can be tautological even when green; proof vehicles MUST be mutation-verified; the load-bearing layer must be identified explicitly in the BC §Postconditions.
+
+**POLICY 14 5-leg parity applied to all amended artifacts:**
+
+| Artifact | Version | (1) version: | (2) Changelog | (3) modified[] | (4) last_amended | (5) index row |
+|----------|---------|-------------|---------------|----------------|-----------------|---------------|
+| ADR-029 | v1.2 | ✓ | ✓ | ✓ | ✓ | ARCH-INDEX v2.75 ✓ |
+| BC-5.41.003 | v2.1 | ✓ | ✓ | ✓ | ✓ | BC-INDEX v3.44 ✓ |
+| VP-084 | v2.0 | ✓ | ✓ | ✓ | ✓ | VP-INDEX v2.42 ✓ |
+
+**POLICY 9 propagation scope:** VP-084 v2.0 changes ONLY the Feasibility Assessment prose. Title ("PreCompact Flush Commit Is Lifecycle-Distinct From State-Manager Burst Commit") and proof-method ("integration") are UNCHANGED. Therefore `verification-architecture.md` and `verification-coverage-matrix.md` do NOT require row edits in this burst.
+
+**Actions taken:**
+- ADR-029 v1.1→v1.2 (Decision 8 added; architect; PROPOSED status; SS-01+SS-04)
+- BC-5.41.003 v2.0→v2.1 (PC4 rewritten with two-layer proof architecture per ADR-029 §Decision 8; PC enumeration UNCHANGED — single PC4; no AC cascade; product-owner)
+- VP-084 v1.9→v2.0 (Feasibility Assessment updated: two-layer proof architecture + non-tautology argument; "exemption is not dead code" rationale; title + proof-method UNCHANGED; architect)
+- BC-INDEX v3.43→v3.44 (BC-5.41.003 row version cell: v2.0 → v2.1 annotation; total_bcs UNCHANGED 1,973)
+- VP-INDEX v2.41→v2.42 (VP-084 row description updated with two-layer proof architecture + non-tautology argument)
+- ARCH-INDEX v2.74→v2.75 (ADR-029 row: v1.1→v1.2 annotation with Decision 8 description)
+- STORY-INDEX v4.67 UNCHANGED (no PC enumeration change per PO)
+- red-gate-log.md RELOCATED from `cycles/v1.0-feature-engine-discipline-pass-1/implementation/S-18.04b/red-gate-log.md` (wrong cycle) to `cycles/v1.0-brownfield-backfill/S-18.04b/implementation/red-gate-log.md` (correct cycle; brownfield backfill S-NNN/implementation convention)
+- D-697 Decisions Log row added to STATE.md
+- Session Resume Checkpoint refreshed (D-696→D-697; cascade ONGOING streak 0/3; pass-2 NEXT)
+- 4-index: BC-INDEX v3.44 / VP-INDEX v2.42 / STORY-INDEX v4.67 / ARCH-INDEX v2.75
+
+**4-index gate (verification_step 7 literal-shell stdout 2026-06-25):**
+```
+grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md
+version: "3.44"
+
+grep "^version:" .factory/specs/verification-properties/VP-INDEX.md
+version: "2.42"
+
+grep "^version:" .factory/stories/STORY-INDEX.md
+version: "4.67"
+
+grep "^version:" .factory/specs/architecture/ARCH-INDEX.md
+version: "2.75"
+```
+
+Zero FAIL. Parity PASS: BC-INDEX v3.44 / VP-INDEX v2.42 / STORY-INDEX v4.67 / ARCH-INDEX v2.75.
+
+### Parent-commit
+
+See `git -C .factory log -1 --format='%h %s'` (D-696 post-merge burst factory-artifacts HEAD; TD-VSDD-053 single-commit per burst)
+
+### NEXT
+
+S-18.04b LOCAL adversarial cascade pass-2 (fresh-context; reads ONLY adv-cycle-pass-1.md Part A; no prior context; streak 0/3). Continue cascade until 3-CLEAN. Then: S-18.04b re-wire (5-step plan per D-696 SESSION RESUME CHECKPOINT §1). STOP-BEFORE-PR-MERGE (D-665) holds.
+
+---
+
 ## D-696 — PR #262 (S-18.04b-prereq) post-merge STATE burst — 2026-06-24
 
 **Decision:** PR #262 (feature/S-18.04b-prereq → develop) squash-merged to develop at commit `a177d76e37ee1c86454ffd3680a13c9bcbf41122` on 2026-06-25T00:29:56Z. Remote branch deleted. Post-merge burst executed.

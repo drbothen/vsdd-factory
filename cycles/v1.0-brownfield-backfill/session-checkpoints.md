@@ -846,3 +846,11 @@ Summary of D-695-follow-on checkpoint (archived from STATE.md 2026-06-24 by D-69
 - 4-index: BC v3.42/VP v2.41/STORY v4.66/ARCH v2.74. L2-INDEX v1.0.13.
 - develop HEAD: `b0bc4ffd` (PR #249 S-18.04a squash-merged 2026-06-24 D-693) / main HEAD: `caf06c68` / factory-artifacts HEAD: `a728097f` (D-695 follow-on)
 - D-range: D-001..D-695 follow-on
+
+---
+
+Summary of D-696 checkpoint (archived from STATE.md 2026-06-25 by D-697 F-P1-001 governance burst):
+- D-696 POST-MERGE BURST 2026-06-24: PR #262 (feature/S-18.04b-prereq → develop) squash-merged a177d76e to develop at 2026-06-25T00:29:56Z. S-18.04b-prereq draft→merged; merged_count 85→86. POL-14: BC-1.16.001 draft→active (BC-INDEX v3.42→v3.43). feature/S-18.04b-prereq deleted. develop_head b0bc4ffd→a177d76e. Dispatcher git_context injection (ADR-029; fail-open; HookPayload extra field; HOST_ABI unchanged; trigger flip deferred to S-18.04b). POSTURE: ACTIVE. NEXT: S-18.04b re-wire (rebase onto a177d76e; exec-free git_context reader; Bash registry trigger; genuine VP-084 proof).
+- 4-index: BC v3.43/VP v2.41/STORY v4.67/ARCH v2.74. L2-INDEX v1.0.13.
+- develop HEAD: `a177d76e` (PR #262 S-18.04b-prereq squash-merged 2026-06-25 D-696) / main HEAD: `caf06c68` / factory-artifacts HEAD: `db98d992` (D-696 post-merge burst)
+- D-range: D-001..D-696
