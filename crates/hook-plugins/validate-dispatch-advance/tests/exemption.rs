@@ -205,7 +205,10 @@ fn test_BC_5_41_003_precompact_prefix_log_field4_commit_no_sha_exempt() {
     //   field4 = None                   (type token is absent → case (b) → case (c))
     // Therefore FIELD-4 (type token) is absent → case (b) → exempt on prefix alone.
     let result = is_precompact_flush_exempt(&subject, EXAMPLE_SHA, Some(malformed_line));
-    assert!(result, "FIELD-4=commit but FIELD-2 absent must be exempt via case (b) → case (c)");
+    assert!(
+        result,
+        "FIELD-4=commit but FIELD-2 absent must be exempt via case (b) → case (c)"
+    );
 }
 
 // ---------------------------------------------------------------------------

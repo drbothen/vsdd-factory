@@ -1206,7 +1206,9 @@ fn check_chain_from_git_context(payload: &HookPayload, hook_name: &str) -> HookR
     // CR-002: Short-circuit for non-git-commit Bash events per ADR-029 §Decision 1.
     // The dispatcher only injects git_context on qualifying git-commit events, but adding
     // an explicit WASM-level filter avoids unnecessary processing of all other Bash events.
-    let command = payload.tool_input.get("command")
+    let command = payload
+        .tool_input
+        .get("command")
         .and_then(|v| v.as_str())
         .unwrap_or("");
     if !command.contains("git") || !command.contains("commit") {
@@ -1248,7 +1250,9 @@ fn check_chain_from_git_context(payload: &HookPayload, hook_name: &str) -> HookR
     // Step 3: Fail-open if all fields empty (dispatcher fail-open path).
     // SEC-004: emit telemetry warn so silent bypasses are observable.
     if head_subject.is_empty() && head_parent_subject.is_empty() {
-        host::log_warn("[validate-dispatch-advance] git_context all-empty — chain check skipped (fail-open per BC-1.16.001 INV3)");
+        host::log_warn(
+            "[validate-dispatch-advance] git_context all-empty — chain check skipped (fail-open per BC-1.16.001 INV3)",
+        );
         return HookResult::Continue;
     }
 
