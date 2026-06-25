@@ -24,21 +24,15 @@ set -euo pipefail
 
 # ---------------------------------------------------------------------------
 # Trap ALL errors (set -e exits) and ensure we always exit 0 (PC5/DI-024).
-# This trap fires on any unhandled error after the initial guards below.
+# Inline string form avoids SC2329 (named function not directly invoked).
 # ---------------------------------------------------------------------------
-_exit_0_trap() {
-  exit 0
-}
-trap '_exit_0_trap' ERR
+trap 'exit 0' ERR
 
 # ---------------------------------------------------------------------------
 # Consume stdin (JSON PostCompact envelope) — we don't need its content but
 # some shells / pipe partners require it to be consumed to avoid SIGPIPE.
 # ---------------------------------------------------------------------------
-_envelope=""
-if [ -t 0 ]; then
-  : # no stdin in interactive / test-bypass context
-else
+if [ ! -t 0 ]; then
   read -r -d '' _envelope 2>/dev/null || true
 fi
 
@@ -92,8 +86,7 @@ _append_log() {
   fi
 
   # Build the JSONL line with exactly 6 fields (no wave_id — BC-7.07.002 PC2).
-  # Use printf for portability (no jq dependency required by spec, but printf
-  # handles the quoting correctly for simple strings).
+  # Use printf for portability (no jq dependency required by spec).
   local json_line
   json_line=$(printf '{"event":"PostCompact","current_cycle":"%s","current_step":"%s","last_verified_develop_sha":"%s","timestamp":"%s","status":"%s"}' \
     "$cycle" "$step" "$sha" "$ts" "$status_val")
