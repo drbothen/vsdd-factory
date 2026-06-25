@@ -1365,3 +1365,30 @@ path_allow = [".factory/"]
 [hooks.capabilities.exec_subprocess]
 binary_allow = ["git"]
 env_allow = ["HOME", "GIT_CONFIG_GLOBAL", "XDG_CONFIG_HOME", "PATH", "SSH_AUTH_SOCK"]
+
+# ---------- postcompact-reanchor advisory hook (S-18.05) ----------
+# Reads current_cycle, current_step, last_verified_develop_sha from
+# factory-artifacts:.factory/STATE.md via git show and emits a re-anchor block
+# to stdout after compaction. READ-ONLY on factory-artifacts (BC-7.07.002 Inv1).
+# on_error=continue: fail-open — PostCompact is advisory-only; hook must not block.
+# (traces to AC-010 / BC-7.07.002 PC6 / DI-024)
+
+[[hooks]]
+name = "postcompact-reanchor"
+event = "PostCompact"
+plugin = "hook-plugins/legacy-bash-adapter.wasm"
+priority = 100
+timeout_ms = 10000
+on_error = "continue"
+async = false
+
+[hooks.config]
+script_path = "hooks/postcompact-reanchor.sh"
+
+[hooks.capabilities]
+env_allow = ["PATH", "HOME", "TMPDIR", "GIT_DIR"]
+
+[hooks.capabilities.exec_subprocess]
+binary_allow = ["bash", "git"]
+shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
+env_allow = ["PATH", "HOME", "TMPDIR", "GIT_DIR"]
