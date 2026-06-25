@@ -153,6 +153,40 @@ _setup_precompact_flush_log() {
 }
 
 # ---------------------------------------------------------------------------
+# Setup helper: initialise $PROJECT_DIR/.factory as a real git repo with
+# sentinel multi-commit chain subjects.
+#
+# Creates two commits so that:
+#   HEAD subject       = "stage 1 backfill"
+#   HEAD^ subject      = "stage 2 backfill"
+#
+# This satisfies the ADR-029 requirement that the negative control test
+# supply REAL sentinel subjects via a git repo the dispatcher can query —
+# not synthetic JSON fields that the dispatcher will overwrite with real
+# git output (or empty on failure).
+# ---------------------------------------------------------------------------
+_setup_sentinel_git_chain() {
+  local factory_dir="$PROJECT_DIR/.factory"
+  # Configure git identity for the temp repo (no global config in temp HOME).
+  export GIT_AUTHOR_NAME="vp084-test"
+  export GIT_AUTHOR_EMAIL="test@vp084"
+  export GIT_COMMITTER_NAME="vp084-test"
+  export GIT_COMMITTER_EMAIL="test@vp084"
+
+  git -C "$factory_dir" init -b main 2>/dev/null || git -C "$factory_dir" init 2>/dev/null
+
+  # First commit — becomes HEAD^ after the second commit.
+  printf 'fixture\n' > "$factory_dir/.gitkeep"
+  git -C "$factory_dir" add .gitkeep
+  git -C "$factory_dir" commit --no-gpg-sign -m "stage 2 backfill" 2>/dev/null
+
+  # Second commit — becomes HEAD.
+  printf 'fixture2\n' >> "$factory_dir/.gitkeep"
+  git -C "$factory_dir" add .gitkeep
+  git -C "$factory_dir" commit --no-gpg-sign -m "stage 1 backfill" 2>/dev/null
+}
+
+# ---------------------------------------------------------------------------
 # Setup helper: write a structurally valid burst-log.md.
 # Used so the burst-log structural validation passes — the only remaining
 # possible block is MULTI_COMMIT_CHAIN_NOT_ALLOWED.
@@ -286,18 +320,22 @@ EOF
   _write_burst_log_registry
   _write_valid_burst_log
 
+  # Set up a REAL git repo at $PROJECT_DIR/.factory with the sentinel chain.
+  # ADR-029: the dispatcher overwrites caller-supplied git_context with real git
+  # output from factory_dir ($CLAUDE_PROJECT_DIR/.factory). The WASM plugin reads
+  # the dispatcher-injected git_context — NOT the JSON envelope field. So the
+  # sentinel subjects must exist as REAL git commits, not JSON-only fields.
+  _setup_sentinel_git_chain
+
   # Do NOT write precompact-flush-log → log-absent → case (c): prefix-only exemption.
   # But head_subject is NOT a PreCompact prefix → no exemption applies.
   # With both subjects as sentinels → MULTI_COMMIT_CHAIN_NOT_ALLOWED.
 
-  local head_sha="abc1234def5678abc1234def5678abc1234def56"
-  local parent_sha="999aaabbbccc000111222333444555666777888f"
-
-  # ADR-029 envelope: Bash git commit with sentinel subjects in git_context.
-  # All 4 fields present per BC-1.16.001 PC1.
-  local burst_log_path="$PROJECT_DIR/.factory/cycles/v1.0-feature-context-durability-E18/burst-log.md"
+  # ADR-029 envelope: Bash git commit command (qualifying event). The dispatcher
+  # reads real sentinel subjects from the git repo, overwriting any git_context
+  # fields in this envelope (which serve only as documentation here).
   local envelope
-  envelope=$(printf '%s' "{\"event_name\":\"PostToolUse\",\"tool_name\":\"Bash\",\"session_id\":\"vp084-negative-control\",\"dispatcher_trace_id\":\"vp084-trace-neg\",\"tool_input\":{\"command\":\"git -C .factory commit -m 'stage 1 backfill'\"},\"git_context\":{\"head_subject\":\"stage 1 backfill\",\"head_sha\":\"${head_sha}\",\"head_parent_subject\":\"stage 2 backfill\",\"head_parent_sha\":\"${parent_sha}\"}}")
+  envelope=$(printf '%s' "{\"event_name\":\"PostToolUse\",\"tool_name\":\"Bash\",\"session_id\":\"vp084-negative-control\",\"dispatcher_trace_id\":\"vp084-trace-neg\",\"tool_input\":{\"command\":\"git -C .factory commit -m 'stage 1 backfill'\"}}")
 
   _run_dispatcher "$envelope"
 
