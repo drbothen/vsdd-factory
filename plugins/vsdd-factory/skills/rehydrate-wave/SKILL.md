@@ -25,19 +25,27 @@ may contaminate the context with a stale prior session.
 ## Invocation Contract
 
 ```
-/rehydrate-wave \
-  --repo <main-repo-dir> \
-  --artifacts-worktree <factory-artifacts-worktree-path>
+/rehydrate-wave [--repo <main-repo-dir>] [--artifacts-worktree <factory-artifacts-worktree-path>]
+```
+
+Both arguments are **optional**. When omitted, the script applies production defaults:
+- `--repo` defaults to `.` (current working directory as repo root)
+- `--artifacts-worktree` defaults to `.factory` (the standard factory-artifacts worktree mount)
+
+So a bare invocation from the repository root works directly:
+
+```
+/rehydrate-wave
 ```
 
 ### Arguments
 
-| Argument | Purpose |
-|----------|---------|
-| `--repo <path>` | Root of the main code repository. Used for `git show factory-artifacts:wave-state.yaml`. |
-| `--artifacts-worktree <path>` | Path to the checked-out `factory-artifacts` worktree (e.g., `.factory`). |
+| Argument | Default | Purpose |
+|----------|---------|---------|
+| `--repo <path>` | `.` | Root of the main code repository. Used for `git show factory-artifacts:wave-state.yaml`. Overrides `REPO_DIR` env var. |
+| `--artifacts-worktree <path>` | `.factory` | Path to the checked-out `factory-artifacts` worktree. Overrides `ARTIFACTS_WT` env var. |
 
-Production invocation example:
+Production invocation example (explicit — equivalent to bare invocation from repo root):
 
 ```
 /rehydrate-wave \
@@ -49,11 +57,22 @@ Production invocation example:
 
 ### S1 — Invoke `rehydrate-wave.sh`
 
+From the repository root (bare invocation — production default):
+
+```bash
+bash plugins/vsdd-factory/skills/rehydrate-wave/rehydrate-wave.sh
+```
+
+Or with explicit paths (equivalent; useful in tests or non-standard layouts):
+
 ```bash
 bash plugins/vsdd-factory/skills/rehydrate-wave/rehydrate-wave.sh \
   --repo <REPO_DIR> \
   --artifacts-worktree <ARTIFACTS_WT>
 ```
+
+The bare invocation defaults `--repo` to `.` and `--artifacts-worktree` to `.factory`.
+Both the `REPO_DIR` and `ARTIFACTS_WT` environment variables also serve as overrides.
 
 The script:
 1. Reads `wave-state.yaml` from `factory-artifacts` via `git show factory-artifacts:wave-state.yaml`
@@ -91,6 +110,43 @@ Example confirmation prompt:
 > [list each file]
 >
 > This is wave N context. Please confirm to proceed with pipeline work.
+
+## Warning Paths (non-blocking)
+
+### EC-004 — stories: [] or all spec_files empty
+
+If `wave-state.yaml` is present but `stories: []` (or all stories have empty `spec_files`),
+the script emits to **stderr** before the transparency block:
+
+```
+WARNING: wave-state.yaml lists no stories (stories: [] or no spec_files); injecting arch_files + state_pointer only.
+```
+
+The skill continues, injecting `arch_files` + `state_pointer`. Exit is 0.
+
+### EC-006 — arch_files: [] (empty)
+
+If `wave-state.yaml` lists no `arch_files`, the script emits to **stderr**:
+
+```
+WARNING: wave-state.yaml lists no arch_files; no architectural context will be injected.
+```
+
+The skill continues, injecting `stories[*].spec_files` + `state_pointer`. Exit is 0.
+
+Both EC-004 and EC-006 warnings can co-occur (empty stories AND empty arch_files).
+In that case both lines appear on stderr and only `state_pointer` is injected.
+
+### PC6 — listed spec file missing on filesystem and in factory-artifacts
+
+If a path in the manifest is absent from both the filesystem and the `factory-artifacts`
+branch (checked via `git cat-file -e`), the script emits to **stderr**:
+
+```
+WARNING: listed spec file not found on filesystem: <path>
+```
+
+The remaining files are still injected. Exit is 0.
 
 ## Error Paths
 

@@ -9,17 +9,25 @@
 #
 # Emits INJECTED_FILE_COUNT=<n> sentinel (VP-088 §2 PC2-SIGNAL / AC-002).
 # Always injects state_pointer even if not in spec_files (AC-004).
-# Missing listed spec file: WARN, continue, exit 0 (AC-006).
+# EC-004: stories:[]/empty spec_files → WARN on stderr, inject arch_files+state_pointer, exit 0.
+# EC-006: arch_files:[] → WARN on stderr, inject stories spec_files+state_pointer only, exit 0.
+# Missing listed spec file: WARN (stderr), continue, exit 0 (AC-006 / PC6).
 # wave-state.yaml absent AND no EPIC-COMPLETE HANDOFF.md: RehydrationError, exit 1 (AC-007/AC-008).
 # EPIC-COMPLETE: read HANDOFF.md, inject STATE.md + arch_files, emit message, exit 0 (AC-009).
 # No RAG / vector search / fuzzy matching (AC-008 / BC-6.24.001 Inv3).
 #
-# Usage:
+# Usage (with explicit args — overrides env vars):
 #   rehydrate-wave.sh --repo <main-repo-dir> --artifacts-worktree <path>
+#
+# Bare invocation (production defaults):
+#   rehydrate-wave.sh
+#   Uses REPO_DIR=. and ARTIFACTS_WT=.factory when neither flag nor env var is set.
 #
 # Arguments:
 #   --repo <path>                Main repo dir; `git show factory-artifacts:` runs here.
+#                                Defaults to REPO_DIR env var, then "." if unset.
 #   --artifacts-worktree <path>  Factory-artifacts worktree path (for fallback detection only).
+#                                Defaults to ARTIFACTS_WT env var, then ".factory" if unset.
 #
 # S-18.03 | BC-6.24.001 v1.10 | VP-088 v1.1
 
@@ -27,6 +35,8 @@ set -euo pipefail
 
 # ---------------------------------------------------------------------------
 # Argument parsing
+# Production defaults: REPO_DIR="." and ARTIFACTS_WT=".factory" when neither
+# flag nor env var is provided (F-P1-005 bare-invocation resolution).
 # ---------------------------------------------------------------------------
 
 REPO_DIR="${REPO_DIR:-}"
@@ -44,8 +54,10 @@ while [ $# -gt 0 ]; do
   esac
 done
 
-: "${REPO_DIR:?ERROR: --repo <main-repo-dir> is required}"
-: "${ARTIFACTS_WT:?ERROR: --artifacts-worktree <path> is required}"
+# Apply production defaults for bare invocation (F-P1-005).
+# --repo / REPO_DIR env var override the default. Same for --artifacts-worktree / ARTIFACTS_WT.
+REPO_DIR="${REPO_DIR:-.}"
+ARTIFACTS_WT="${ARTIFACTS_WT:-.factory}"
 
 # Unset GIT_DIR — tests may inject GIT_DIR pointing at the fixture repo root, but
 # our git -C calls explicitly target the repo dir. An ambient GIT_DIR overrides -C.
@@ -225,6 +237,18 @@ ARCH_FILES_LIST="$(_parse_yaml_list "arch_files" "$WAVE_STATE_CONTENT")"
 # Extract all spec_files from all stories
 STORY_SPEC_FILES="$(_parse_all_story_spec_files "$WAVE_STATE_CONTENT")"
 
+# Step 3a: EC-004 warning — stories empty or all spec_files empty (F-P1-001).
+# Emit to stderr BEFORE the transparency block; continue injecting arch_files + state_pointer.
+if [ -z "$STORY_SPEC_FILES" ]; then
+  echo "WARNING: wave-state.yaml lists no stories (stories: [] or no spec_files); injecting arch_files + state_pointer only." >&2
+fi
+
+# Step 3b: EC-006 warning — arch_files empty (F-P1-002).
+# Emit to stderr; continue injecting stories spec_files + state_pointer only.
+if [ -z "$ARCH_FILES_LIST" ]; then
+  echo "WARNING: wave-state.yaml lists no arch_files; no architectural context will be injected." >&2
+fi
+
 # Step 4: Build injected set = Set(stories[*].spec_files) ∪ Set(arch_files) ∪ {state_pointer}
 # with deduplication (BC-6.24.001 Inv2 / AC-002 / AC-010).
 ALL_FILES="$(
@@ -236,9 +260,10 @@ ALL_FILES="$(
 INJECTED_SET="$(printf '%s\n' "$ALL_FILES" | grep -v '^[[:space:]]*$' | _deduplicate)"
 INJECTED_COUNT="$(printf '%s\n' "$INJECTED_SET" | grep -c '.' || true)"
 
-# Step 5: Check for missing spec files and emit warnings (AC-006).
-# We check if each listed file is accessible (on repo dir or artifacts worktree).
-# Missing file = WARN and continue; do NOT exit non-zero.
+# Step 5: Check for missing spec files and emit warnings (AC-006 / PC6).
+# A file is "missing" only when ABSENT from BOTH the filesystem AND factory-artifacts
+# (git cat-file -e corroboration per F-P1-008).
+# Missing file = WARN on stderr and continue; do NOT exit non-zero.
 HAS_MISSING=0
 while IFS= read -r filepath; do
   [ -z "$filepath" ] && continue
@@ -248,11 +273,17 @@ while IFS= read -r filepath; do
   if [ "$filepath" = "$STATE_POINTER" ]; then
     continue
   fi
-  # Check filesystem existence relative to REPO_DIR
-  if [ ! -f "${REPO_DIR}/${filepath}" ] && [ ! -f "$filepath" ]; then
-    echo "WARNING: listed spec file not found on filesystem: ${filepath}" >&2
-    HAS_MISSING=1
+  # Check filesystem existence relative to REPO_DIR first.
+  if [ -f "${REPO_DIR}/${filepath}" ] || [ -f "$filepath" ]; then
+    continue  # Present on filesystem — not missing.
   fi
+  # Corroborate: also check factory-artifacts branch via git cat-file (PC6 / F-P1-008).
+  # Only warn if absent from BOTH filesystem AND factory-artifacts.
+  if git -C "$REPO_DIR" cat-file -e "factory-artifacts:${filepath}" 2>/dev/null; then
+    continue  # Present in factory-artifacts — not missing.
+  fi
+  echo "WARNING: listed spec file not found on filesystem: ${filepath}" >&2
+  HAS_MISSING=1
 done <<< "$INJECTED_SET"
 
 # Step 6: Emit transparency output — human-readable injected file list (BC-6.24.001 Inv4 / AC-005).
