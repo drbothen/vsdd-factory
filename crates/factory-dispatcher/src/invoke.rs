@@ -1209,3 +1209,261 @@ mod tests {
         }
     }
 }
+
+// S-18.04b-prereq: git_context payload injection (ADR-029)
+
+/// The four-field git_context schema injected into `payload.extra` on qualifying
+/// PostToolUse Bash git-commit events (ADR-029 §Decision 2).
+///
+/// All fields are `String`. Empty string means the field could not be populated
+/// (e.g. `head_parent_sha` when factory-artifacts has only one commit).
+/// The dispatcher MUST NOT use `null` — empty string is the sentinel per AC-006.
+///
+/// This struct is `pub` so integration tests can construct expected values and
+/// compare against the injected `serde_json::Value::Object`.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct GitContext {
+    /// Subject line of HEAD commit in the factory-artifacts worktree.
+    pub head_subject: String,
+    /// Full 40-character SHA of HEAD commit.
+    pub head_sha: String,
+    /// Subject line of HEAD^ commit. Empty string if HEAD^ does not exist
+    /// (initial commit case — AC-006, AC-011).
+    pub head_parent_subject: String,
+    /// Full 40-character SHA of HEAD^ commit. Empty string if HEAD^ does not
+    /// exist (initial commit case).
+    pub head_parent_sha: String,
+}
+
+impl GitContext {
+    /// Return the all-empty `GitContext` used as the fail-open sentinel
+    /// (BC-1.16.001 PC2 / AC-002 / AC-009).
+    ///
+    /// # GREEN-BY-DESIGN
+    ///
+    /// Pure field initialisation; zero branching, no I/O, no helpers, 7 lines.
+    /// Body is trivial struct construction only — BC-5.38.002 criteria all satisfied.
+    pub fn empty() -> Self {
+        Self {
+            head_subject: String::new(),
+            head_sha: String::new(),
+            head_parent_subject: String::new(),
+            head_parent_sha: String::new(),
+        }
+    }
+
+    /// Serialize this context to a `serde_json::Value::Object` suitable for
+    /// insertion into `payload.extra["git_context"]` (ADR-029 §Decision 2).
+    ///
+    /// # GREEN-BY-DESIGN
+    ///
+    /// Builds a JSON object from the four string fields; zero branching,
+    /// no I/O, no non-trivial helpers, body ≤ 8 lines. BC-5.38.002 satisfied.
+    pub fn to_json(&self) -> serde_json::Value {
+        serde_json::json!({
+            "head_subject": self.head_subject,
+            "head_sha": self.head_sha,
+            "head_parent_subject": self.head_parent_subject,
+            "head_parent_sha": self.head_parent_sha,
+        })
+    }
+}
+
+/// Detect whether a hook payload qualifies for `git_context` injection
+/// (ADR-029 §Decision 1 + §Decision 3; BC-1.16.001 PC3/PC4; AC-003/AC-004/AC-010).
+///
+/// Returns `true` iff ALL of:
+/// 1. `payload.event_name == "PostToolUse"` (AC-004: non-PostToolUse events never qualify).
+/// 2. `payload.tool_name == "Bash"` (AC-004: Edit/Write/Agent never qualify).
+/// 3. `payload.tool_input.command` contains `"git commit"` as a substring (AC-010).
+/// 4. `payload.tool_input.command` contains `".factory"` as an indicator of the
+///    factory-artifacts worktree (AC-010 heuristic; minimises spurious injection).
+///
+/// # Implementer notes
+///
+/// - Check `tool_name` BEFORE inspecting `tool_input.command` (AC-004: non-Bash events
+///   MUST NOT have their command inspected at all).
+/// - False positives (e.g. `echo "git commit"` with `.factory` path in args) are
+///   acceptable per ADR-029 §Decision 3 Negative consequence note: `git_context` will
+///   be valid git state (whatever HEAD of factory-artifacts is), and WASM plugins treat
+///   valid-but-irrelevant context as "pass" (fail-open).
+/// - Detection is heuristic (AC-010); exactness is not required.
+pub fn detect_git_commit_event(payload: &crate::payload::HookPayload) -> bool {
+    // AC-004: non-PostToolUse events never qualify.
+    if payload.event_name != "PostToolUse" {
+        return false;
+    }
+    // AC-004: non-Bash tools never qualify; do NOT inspect command for non-Bash.
+    if payload.tool_name != "Bash" {
+        return false;
+    }
+    // AC-010: heuristic detection — command invokes git with the "commit" subcommand
+    // AND contains a ".factory" factory-artifacts worktree indicator.
+    //
+    // Detection: the command must contain "git" AND " commit" (space-prefixed to anchor
+    // "commit" as a git subcommand token rather than part of a -m "message" argument
+    // that merely mentions "commit"). The ".factory" indicator scopes to factory-artifacts.
+    //
+    // Examples that QUALIFY:
+    //   "git -C .factory commit -m ..."     → "git" + " commit" + ".factory" ✓
+    //   "git commit -C .factory -m ..."     → "git" + " commit" + ".factory" ✓
+    //
+    // Examples that do NOT qualify (EC-007/EC-008):
+    //   "git commit -m ..."                 → no ".factory" indicator ✗
+    //   "echo \"git commit\""               → no ".factory" indicator ✗
+    //   "git -C .factory push ..."          → no " commit" token ✗
+    let command = match payload.tool_input.get("command").and_then(|v| v.as_str()) {
+        Some(c) => c,
+        None => return false,
+    };
+    // CR-001: A command such as `git -C .factory commit -m "force commit"` contains
+    // " commit" twice; this is acceptable — it is still a qualifying git-commit event.
+    // False positives are spec-sanctioned per ADR-029 §Decision 3.
+    command.contains("git") && command.contains(" commit") && command.contains(".factory")
+}
+
+/// Execute the four git commands against the factory-artifacts worktree at
+/// `factory_dir` and return a populated `GitContext` (ADR-029 §Decision 3).
+///
+/// Commands executed (in order) via `Command::new("git").current_dir(factory_dir)`:
+/// 1. `git log --format=%s -1 HEAD` → `head_subject`
+/// 2. `git rev-parse HEAD` → `head_sha`
+/// 3. `git log --format=%s -1 HEAD^` → `head_parent_subject`
+///    (empty string if HEAD^ does not exist — exit non-zero)
+/// 4. `git rev-parse HEAD^` → `head_parent_sha`
+///    (empty string if HEAD^ does not exist — exit non-zero)
+///
+/// # Fail-open contract (BC-1.16.001 PC2 / AC-002 / AC-009)
+///
+/// On ANY git command failure (non-zero exit, git binary not found, I/O error,
+/// permission denied), the function MUST:
+/// 1. Emit `tracing::warn!` describing the failure.
+/// 2. Return `GitContext::empty()` (all four fields `""`).
+///
+/// The dispatcher MUST NOT block, abort, or fail-closed on a git error.
+///
+/// # Initial commit handling (AC-006, AC-011, EC-009)
+///
+/// Commands 3 and 4 (HEAD^) exit non-zero when factory-artifacts has only one
+/// commit. This is NOT a general git error — commands 1 and 2 (HEAD) must still
+/// be populated normally. Only `head_parent_subject` and `head_parent_sha` are
+/// set to `""` (not null, not absent).
+pub fn build_git_context(factory_dir: &std::path::Path) -> GitContext {
+    // SEC-001 (CWE-117): Strip ASCII control characters from any git-derived string
+    // before it is used in a tracing field. JSON payload values (via serde) are already
+    // safe; only the tracing log emission path requires sanitization.
+    let sanitize_for_log = |s: &str| -> String { s.chars().filter(|c| !c.is_control()).collect() };
+
+    // Helper: run a git command and return trimmed stdout, or Err on failure.
+    let run_git = |args: &[&str]| -> Result<String, String> {
+        let output = std::process::Command::new("git")
+            .args(args)
+            .current_dir(factory_dir)
+            .output()
+            .map_err(|e| format!("git exec failed: {e}"))?;
+        if output.status.success() {
+            Ok(String::from_utf8_lossy(&output.stdout).trim().to_string())
+        } else {
+            Err(format!(
+                "git {} exited {}: {}",
+                args.join(" "),
+                output.status,
+                // Sanitize stderr for log safety (SEC-001/CWE-117): only tracing path.
+                sanitize_for_log(String::from_utf8_lossy(&output.stderr).trim())
+            ))
+        }
+    };
+
+    // Step 1: HEAD subject (log --format=%s -1 HEAD).
+    let head_subject = match run_git(&["log", "--format=%s", "-1", "HEAD"]) {
+        Ok(s) => s,
+        Err(e) => {
+            // e is already sanitized (control chars stripped in run_git error path).
+            tracing::warn!(
+                factory_dir = %factory_dir.display(),
+                error = %e,
+                "build_git_context: git log HEAD failed; fail-open with empty git_context"
+            );
+            return GitContext::empty();
+        }
+    };
+
+    // Step 2: HEAD SHA (rev-parse HEAD).
+    let head_sha = match run_git(&["rev-parse", "HEAD"]) {
+        Ok(s) => s,
+        Err(e) => {
+            tracing::warn!(
+                factory_dir = %factory_dir.display(),
+                error = %e,
+                "build_git_context: git rev-parse HEAD failed; fail-open with empty git_context"
+            );
+            return GitContext::empty();
+        }
+    };
+
+    // Steps 3+4: HEAD^ subject and SHA. Non-zero exit on initial commit is expected;
+    // it is NOT a general git error — only the parent fields are empty (AC-006, AC-011, EC-009).
+    let head_parent_subject = run_git(&["log", "--format=%s", "-1", "HEAD^"]).unwrap_or_default();
+    let head_parent_sha = run_git(&["rev-parse", "HEAD^"]).unwrap_or_default();
+
+    GitContext {
+        head_subject,
+        head_sha,
+        head_parent_subject,
+        head_parent_sha,
+    }
+}
+
+/// Orchestrate git_context detection, construction, and injection into
+/// `payload_value` before it is routed to registered plugins.
+///
+/// # Contract (ADR-029 §Decision 1–3; BC-1.16.001 PC1–PC6)
+///
+/// 1. Call `detect_git_commit_event(&original_payload)` to determine if this
+///    PostToolUse Bash event is a qualifying git-commit event.
+/// 2. If non-qualifying: return immediately without mutating `payload_value`
+///    (AC-003, AC-004 — no injection on non-qualifying events).
+/// 3. If qualifying: call `build_git_context(factory_dir)` to obtain the four-field context,
+///    inject `git_context` as a `serde_json::Value::Object` into `payload_value` at key
+///    `"git_context"` (rides in the `extra` flatten map — ADR-029 §Decision 2 / AC-005),
+///    with all four fields present as strings; null fields are forbidden (AC-006, AC-011).
+///
+/// # Arguments
+///
+/// - `original_payload`: the parsed `HookPayload` (used for detection only).
+/// - `payload_value`: the mutable `serde_json::Value` that will be passed to
+///   `ExecutorInputs` — injection mutates this value in place.
+/// - `factory_dir`: path to the factory-artifacts worktree (typically
+///   `<CLAUDE_PROJECT_DIR>/.factory`; derived from `CLAUDE_PROJECT_DIR` env var
+///   at the call site in `main.rs`).
+///
+/// # Wiring site
+///
+/// This function is called in `main.rs` immediately after `dispatcher_trace_id`
+/// is injected into `payload_value` and before `ExecutorInputs` is constructed.
+/// See the `// S-18.04b-prereq: git_context injection site` comment in main.rs.
+pub fn inject_git_context_if_qualifying(
+    original_payload: &crate::payload::HookPayload,
+    payload_value: &mut serde_json::Value,
+    factory_dir: &std::path::Path,
+) {
+    // Step 1: detection — if non-qualifying, evict any caller-supplied "git_context"
+    // key and return. git_context is dispatcher-authoritative (BC-1.16.001 INV1 /
+    // SEC-002 / CWE-345): a caller-supplied key must not pass through to plugins.
+    if !detect_git_commit_event(original_payload) {
+        if let Some(map) = payload_value.as_object_mut() {
+            map.remove("git_context");
+        }
+        return;
+    }
+
+    // Step 2: build git_context (fail-open: git errors produce GitContext::empty()).
+    let git_ctx = build_git_context(factory_dir);
+
+    // Step 3: inject into payload_value["git_context"] (rides in the extra flatten map).
+    // No new named HookPayload field — git_context is a top-level key in the JSON value
+    // (deserialized into HookPayload.extra via #[serde(flatten)]). AC-005.
+    if let Some(map) = payload_value.as_object_mut() {
+        map.insert("git_context".to_string(), git_ctx.to_json());
+    }
+}

@@ -24,6 +24,7 @@ fn make_payload(tool_name: &str, command: &str) -> HookPayload {
         subagent_name: None,
         last_assistant_message: None,
         result: None,
+        extra: std::collections::HashMap::new(),
     }
 }
 
@@ -173,6 +174,7 @@ fn test_TV_001_canonical_git_commit_payload_routes_to_emit() {
         subagent_name: None,
         last_assistant_message: None,
         result: None,
+        extra: std::collections::HashMap::new(),
     };
 
     let emit_called = std::cell::Cell::new(false);

@@ -29,6 +29,7 @@ HOOKS_DIR="$(cd "$SCRIPT_DIR/../hooks" && pwd)"
 TEST_FIXTURE_NAMES=(
   stub-exit0
   stub-exit2
+  capture  # VP-093 git_context capture fixture — created at runtime by vp093-git-context-injection.bats
 )
 
 is_test_fixture() {
