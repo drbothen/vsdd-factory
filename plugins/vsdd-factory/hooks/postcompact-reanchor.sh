@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # postcompact-reanchor.sh — PostCompact re-anchor advisory hook (S-18.05)
 #
-# BC-7.07.002 v1.12 / VP-089 v1.1 / SS-07 / DI-024
+# BC-7.07.002 / VP-089 / SS-07 / DI-024
 #
 # Fires on PostCompact. Reads current_cycle and current_step from
 # factory-artifacts:.factory/STATE.md via `git show`. Sources the develop
 # SHA from `git rev-parse origin/develop` executed at hook invocation time
 # (read-only; advisory; no STATE.md schema change required — ADR-026 §Decision 7
-# v1.25 / F-P1-001). Emits a structured re-anchor block to stdout so the LLM
+# / F-P1-001). Emits a structured re-anchor block to stdout so the LLM
 # session can re-ground itself after compaction.
 #
 # KEY invariants:
@@ -137,7 +137,7 @@ current_step=$(printf '%s\n' "$state_md" \
   || true)
 
 # Source develop SHA from git rev-parse at hook invocation time (F-P1-001 /
-# ADR-026 §Decision 7 v1.25). This is the live authoritative develop HEAD;
+# ADR-026 §Decision 7). This is the live authoritative develop HEAD;
 # requires no STATE.md schema change. Falls back to "UNKNOWN" on any error.
 # Use refs/remotes/origin/develop (canonical full refspec) to avoid git printing
 # the partial ref name to stdout when the ref doesn't resolve.
