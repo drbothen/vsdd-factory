@@ -141,11 +141,16 @@ current_step=$(printf '%s\n' "$state_md" \
 # requires no STATE.md schema change. Falls back to "UNKNOWN" on any error.
 # Use refs/remotes/origin/develop (canonical full refspec) to avoid git printing
 # the partial ref name to stdout when the ref doesn't resolve.
+#
+# BC-7.07.002 PC1 / Invariant 2: when git rev-parse fails, develop_sha=UNKNOWN
+# and sha_status=warn. status=ok ONLY when rev-parse succeeds with a real SHA.
 develop_sha=""
+sha_status="ok"
 if develop_sha=$(git rev-parse refs/remotes/origin/develop 2>/dev/null) && [ -n "$develop_sha" ]; then
-  : # develop_sha set above
+  : # develop_sha set above; sha_status remains "ok"
 else
   develop_sha="UNKNOWN"
+  sha_status="warn"
 fi
 
 # Determine context label and status (EC-003 / AC-006).
@@ -167,9 +172,12 @@ if [ -z "$current_cycle" ] || [ -z "$current_step" ]; then
   exit 0
 fi
 
-# Happy path (EC-001): all fields present.
+# Happy path (EC-001): cycle and step present.
+# Status is "ok" only when develop_sha is a real SHA (rev-parse succeeded).
+# Status is "warn" when develop_sha=UNKNOWN (rev-parse failed) even though
+# context fields are valid — BC-7.07.002 PC1 / Invariant 2 / VP-089 §1.
 echo "[PostCompact Re-anchor] context=${current_cycle}/${current_step} sha=${develop_sha}"
 echo "Source: factory-artifacts STATE.md (verified at ${ts})"
-_append_log "$current_cycle" "$current_step" "${develop_sha}" "ok"
+_append_log "$current_cycle" "$current_step" "${develop_sha}" "${sha_status}"
 
 exit 0
