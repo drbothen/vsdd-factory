@@ -17,7 +17,7 @@ origin: greenfield
 extracted_from: null
 subsystem: "SS-05"
 capability: "CAP-032"
-lifecycle_status: draft
+lifecycle_status: active
 introduced: v1.0-feature-context-durability-E18
 modified:
   - "2026-06-24 (v2.1) — S-18.04b LOCAL adversarial cascade fix (product-owner): (F-P1-001) §Postconditions PC4 reworded to describe two-layer proof per ADR-029 §Decision 8: Layer 1 = pure-Rust unit tests in exemption.rs (load-bearing proof of 3-case is_precompact_flush_exempt); Layer 2 = bats integration tests (dispatcher injection plumbing + chain-detection discrimination, negative-control mutation anchor). PC enumeration unchanged; no AC cascade."

@@ -2970,6 +2970,49 @@ S-18.04b (PreCompact exemption + prune; BC-5.41.003; P0; 8pts; depends_on S-18.0
 
 ---
 
+## D-698 — PR #264 (S-18.04b) post-merge STATE burst — 2026-06-25
+
+**Decision:** PR #264 (`feat(S-18.04b): exec-free PreCompact exemption + prune.sh (E-18 context-durability; ADR-029)`, feature/S-18.04b → develop) squash-merged to develop at commit `95eeb9fa` on 2026-06-25T15:27:20Z. Remote feature branch deleted. Post-merge burst executed.
+
+**Context:** S-18.04b delivered the exec-free PreCompact exemption gate: `validate-burst-log` and `validate-dispatch-advance` WASM plugins now read `git_context` injected by the dispatcher (via BC-1.16.001/ADR-029, shipped in S-18.04b-prereq PR #262 a177d76e) to check HEAD and HEAD^ commit subjects for the `MULTI_COMMIT_CHAIN_NOT_ALLOWED` guard, exempting commits with `PreCompact flush ` prefix from the chain detector. Includes `precompact-flush-prune.sh` helper for post-commit cleanup. Registry triggers for `validate-burst-log` and `validate-dispatch-advance` flipped from Edit/Write → Bash (exec-free; reads payload.extra.git_context). S-18.04b-prereq (depends_on MET: S-18.04a + S-18.04b-prereq both merged). The S-18.03 (rehydrate-wave), S-18.07, S-18.08 stories are now fully unblocked (both depends_on S-18.04a MET + S-18.04b MET). Lesson L-BB-proof-vehicle-must-be-mutation-tested-not-asserted (D-697) confirmed: VP-084 proof vehicle tested with genuine git fixtures + negative-control mutation anchor.
+
+**Actions taken:**
+- S-18.04b story status draft→merged; PR #264 95eeb9fa 2026-06-25 added to merged-stories-ledger.md
+- merged_count 86→87; story_count UNCHANGED 123
+- POL-14 auto-promotion: BC-5.41.003 draft→active (BC-INDEX v3.44→v3.45; BC file lifecycle_status draft→active)
+- develop HEAD updated: a177d76e→95eeb9fa
+- feature/S-18.04b branch deleted (remote; `.worktrees/S-18.04b` worktree may still exist locally — verify and prune if desired)
+- POSTURE: ACTIVE; STOP-BEFORE-PR-MERGE (D-665) still holds for next PR (S-18.03 NEXT)
+- S-18.03 (rehydrate-wave skill; BC-6.24.001; VP-088; 8pts; P1) is now NEXT — depends_on [S-18.04a MET, S-18.04b MET]
+- 4-index: BC-INDEX v3.45 / VP-INDEX v2.43 / STORY-INDEX v4.69 / ARCH-INDEX v2.76
+
+**4-index gate (literal-shell stdout 2026-06-25):**
+```
+grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md
+version: "3.45"
+
+grep "^version:" .factory/specs/verification-properties/VP-INDEX.md
+version: "2.43"
+
+grep "^version:" .factory/stories/STORY-INDEX.md
+version: "4.69"
+
+grep "^version:" .factory/specs/architecture/ARCH-INDEX.md
+version: "2.76"
+```
+
+Zero FAIL. Parity PASS: BC-INDEX v3.45 / VP-INDEX v2.43 / STORY-INDEX v4.69 / ARCH-INDEX v2.76.
+
+### Parent-commit
+
+See `git -C .factory log -1 --format='%h %s'` (O-P4-001 phantom-cite-fix burst factory-artifacts HEAD at time of dispatch; TD-VSDD-053 single-commit per burst)
+
+### NEXT
+
+S-18.03 rehydrate-wave skill (BC-6.24.001; VP-088; 8pts; P1): depends_on [S-18.04a MET, S-18.04b MET] — now fully unblocked. Full LOCAL 3-CLEAN cascade → demo-recorder per-AC → PR create → CI green → STOP-BEFORE-PR-MERGE (D-665) → human merge approval. S-18.05..S-18.12 remain draft.
+
+---
+
 ## D-697 — S-18.04b LOCAL adversarial cascade pass-1 F-P1-001 governance burst — ADR-029 §Decision 8 (two-layer VP-084 proof) — 2026-06-25
 
 **Decision:** S-18.04b LOCAL adversarial cascade pass-1 finding F-P1-001 (BLOCKER — VP-084 `vp084-proof.bats` positive tests tautological for exemption decision) adjudicated via ADR-029 §Decision 8. No production code change required. Proof vehicle scoping corrected in specs. S-18.04b LOCAL cascade ONGOING — streak 0/3; pass-2 NEXT.
