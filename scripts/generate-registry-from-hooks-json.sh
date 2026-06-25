@@ -173,7 +173,6 @@ band_for() {
       esac
       ;;
     SubagentStop|Stop) echo 900 ;;
-    PostCompact) echo 100 ;;
     *)
       echo "error: unknown event for priority assignment: $event ($name)" >&2
       exit 1

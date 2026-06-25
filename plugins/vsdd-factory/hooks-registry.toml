@@ -1367,11 +1367,14 @@ binary_allow = ["git"]
 env_allow = ["HOME", "GIT_CONFIG_GLOBAL", "XDG_CONFIG_HOME", "PATH", "SSH_AUTH_SOCK"]
 
 # ---------- postcompact-reanchor advisory hook (S-18.05) ----------
-# Reads current_cycle, current_step, last_verified_develop_sha from
-# factory-artifacts:.factory/STATE.md via git show and emits a re-anchor block
-# to stdout after compaction. READ-ONLY on factory-artifacts (BC-7.07.002 Inv1).
-# on_error=continue: fail-open — PostCompact is advisory-only; hook must not block.
-# (traces to AC-010 / BC-7.07.002 PC6 / DI-024)
+# Reads current_cycle + current_step from factory-artifacts:.factory/STATE.md
+# via git show; sources develop SHA from git rev-parse origin/develop at hook
+# invocation (ADR-026 §Decision 7 v1.25 / F-P1-001). READ-ONLY on factory-artifacts
+# (BC-7.07.002 Inv1). on_error=continue: fail-open — PostCompact is advisory-only.
+# GIT_DIR omitted (was a bats test-fixture artifact; not a production requirement).
+# GIT_CONFIG_GLOBAL + XDG_CONFIG_HOME required by git subprocess (matches precompact-flush
+# pattern). write_file covers JSONL log append; git show reads via exec_subprocess.
+# (traces to AC-010 / BC-7.07.002 PC6 / DI-024 / ADR-026 §Decision 7)
 
 [[hooks]]
 name = "postcompact-reanchor"
@@ -1386,9 +1389,12 @@ async = false
 script_path = "hooks/postcompact-reanchor.sh"
 
 [hooks.capabilities]
-env_allow = ["PATH", "HOME", "TMPDIR", "GIT_DIR"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID", "GIT_CONFIG_GLOBAL", "XDG_CONFIG_HOME"]
 
 [hooks.capabilities.exec_subprocess]
-binary_allow = ["bash", "git"]
+binary_allow = ["bash", "git", "jq"]
 shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
-env_allow = ["PATH", "HOME", "TMPDIR", "GIT_DIR"]
+env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID", "GIT_CONFIG_GLOBAL", "XDG_CONFIG_HOME"]
+
+[hooks.capabilities.write_file]
+path_allow = [".factory/logs/"]

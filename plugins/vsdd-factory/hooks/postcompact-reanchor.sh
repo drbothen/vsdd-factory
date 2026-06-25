@@ -1,24 +1,28 @@
 #!/usr/bin/env bash
 # postcompact-reanchor.sh — PostCompact re-anchor advisory hook (S-18.05)
 #
-# BC-7.07.002 v1.12 / VP-089 v1.0 / SS-07 / DI-024
+# BC-7.07.002 v1.12 / VP-089 v1.1 / SS-07 / DI-024
 #
-# Fires on PostCompact. Reads current_cycle, current_step, and
-# last_verified_develop_sha from factory-artifacts:.factory/STATE.md via
-# `git show` and emits a structured re-anchor block to stdout so the LLM
+# Fires on PostCompact. Reads current_cycle and current_step from
+# factory-artifacts:.factory/STATE.md via `git show`. Sources the develop
+# SHA from `git rev-parse origin/develop` executed at hook invocation time
+# (read-only; advisory; no STATE.md schema change required — ADR-026 §Decision 7
+# v1.25 / F-P1-001). Emits a structured re-anchor block to stdout so the LLM
 # session can re-ground itself after compaction.
 #
 # KEY invariants:
 #   Inv1: NEVER commits, pushes, or adds to factory-artifacts (read-only).
-#   Inv2: Values sourced ONLY from git show — never from env vars or in-context.
+#   Inv2: current_cycle/current_step sourced ONLY from git show (factory-artifacts).
+#         develop SHA sourced from git rev-parse origin/develop at hook invocation.
+#         Never from env vars or in-context reasoning.
 #   PC3:  Cannot block compaction (PostCompact is advisory-only).
 #   PC5:  Exits 0 on ALL code paths (fail-open; set -e errors are trapped).
 #   PC6:  on_error=continue in hooks-registry.toml (harness-level fail-open).
 #   No current_wave field — STATE.md has no such field; MUST NOT emit one.
 #
 # JSONL log schema (exactly 6 fields — BC-7.07.002 PC2):
-#   event, current_cycle, current_step, last_verified_develop_sha, timestamp, status
-#   NO wave_id field.
+#   event, current_cycle, current_step, develop_sha, timestamp, status
+#   NO wave_id field. Field renamed last_verified_develop_sha → develop_sha (F-P1-001).
 
 set -euo pipefail
 
@@ -61,7 +65,7 @@ _today() {
 # Args:
 #   $1 — current_cycle  (string; "UNKNOWN" if absent)
 #   $2 — current_step   (string; "UNKNOWN" if absent)
-#   $3 — last_verified_develop_sha (string; "UNKNOWN" if absent)
+#   $3 — develop_sha    (string; "UNKNOWN" if absent) — F-P1-001 renamed field
 #   $4 — status         ("ok" or "warn")
 # ---------------------------------------------------------------------------
 _append_log() {
@@ -86,9 +90,10 @@ _append_log() {
   fi
 
   # Build the JSONL line with exactly 6 fields (no wave_id — BC-7.07.002 PC2).
+  # Field name: develop_sha (renamed from last_verified_develop_sha per F-P1-001).
   # Use printf for portability (no jq dependency required by spec).
   local json_line
-  json_line=$(printf '{"event":"PostCompact","current_cycle":"%s","current_step":"%s","last_verified_develop_sha":"%s","timestamp":"%s","status":"%s"}' \
+  json_line=$(printf '{"event":"PostCompact","current_cycle":"%s","current_step":"%s","develop_sha":"%s","timestamp":"%s","status":"%s"}' \
     "$cycle" "$step" "$sha" "$ts" "$status_val")
 
   # Append to log file (fail-open: ignore write errors).
@@ -111,11 +116,11 @@ if ! state_md=$(git show factory-artifacts:.factory/STATE.md 2>/dev/null); then
   exit 0
 fi
 
-# Parse fields from the YAML frontmatter using grep (no jq/yq needed for simple key: value).
+# Parse current_cycle and current_step from the YAML frontmatter using grep
+# (no jq/yq needed for simple key: value).
 # Pattern: "^fieldname: value" — strips surrounding whitespace.
 current_cycle=""
 current_step=""
-last_verified_develop_sha=""
 
 current_cycle=$(printf '%s\n' "$state_md" \
   | grep -E '^current_cycle:' \
@@ -131,35 +136,40 @@ current_step=$(printf '%s\n' "$state_md" \
   | head -1 \
   || true)
 
-last_verified_develop_sha=$(printf '%s\n' "$state_md" \
-  | grep -E '^last_verified_develop_sha:' \
-  | sed 's/^last_verified_develop_sha:[[:space:]]*//' \
-  | tr -d '\r' \
-  | head -1 \
-  || true)
+# Source develop SHA from git rev-parse at hook invocation time (F-P1-001 /
+# ADR-026 §Decision 7 v1.25). This is the live authoritative develop HEAD;
+# requires no STATE.md schema change. Falls back to "UNKNOWN" on any error.
+# Use refs/remotes/origin/develop (canonical full refspec) to avoid git printing
+# the partial ref name to stdout when the ref doesn't resolve.
+develop_sha=""
+if develop_sha=$(git rev-parse refs/remotes/origin/develop 2>/dev/null) && [ -n "$develop_sha" ]; then
+  : # develop_sha set above
+else
+  develop_sha="UNKNOWN"
+fi
 
 # Determine context label and status (EC-003 / AC-006).
 ts=$(_timestamp)
 
 if [ -z "$current_cycle" ] && [ -z "$current_step" ]; then
   # Both absent — context=UNKNOWN, status=warn (EC-003)
-  echo "[PostCompact Re-anchor] context=UNKNOWN sha=${last_verified_develop_sha:-UNKNOWN}"
+  echo "[PostCompact Re-anchor] context=UNKNOWN sha=${develop_sha}"
   echo "Source: factory-artifacts STATE.md (verified at ${ts})"
-  _append_log "UNKNOWN" "UNKNOWN" "${last_verified_develop_sha:-UNKNOWN}" "warn"
+  _append_log "UNKNOWN" "UNKNOWN" "${develop_sha}" "warn"
   exit 0
 fi
 
 if [ -z "$current_cycle" ] || [ -z "$current_step" ]; then
   # One absent — context=UNKNOWN for the missing part, status=warn (EC-003)
-  echo "[PostCompact Re-anchor] context=UNKNOWN sha=${last_verified_develop_sha:-UNKNOWN}"
+  echo "[PostCompact Re-anchor] context=UNKNOWN sha=${develop_sha}"
   echo "Source: factory-artifacts STATE.md (verified at ${ts})"
-  _append_log "${current_cycle:-UNKNOWN}" "${current_step:-UNKNOWN}" "${last_verified_develop_sha:-UNKNOWN}" "warn"
+  _append_log "${current_cycle:-UNKNOWN}" "${current_step:-UNKNOWN}" "${develop_sha}" "warn"
   exit 0
 fi
 
 # Happy path (EC-001): all fields present.
-echo "[PostCompact Re-anchor] context=${current_cycle}/${current_step} sha=${last_verified_develop_sha:-UNKNOWN}"
+echo "[PostCompact Re-anchor] context=${current_cycle}/${current_step} sha=${develop_sha}"
 echo "Source: factory-artifacts STATE.md (verified at ${ts})"
-_append_log "$current_cycle" "$current_step" "${last_verified_develop_sha:-UNKNOWN}" "ok"
+_append_log "$current_cycle" "$current_step" "${develop_sha}" "ok"
 
 exit 0
