@@ -266,10 +266,14 @@ YAML
     }
   done
 
-  # Assert operator confirmation prompt is shown (BC-6.24.001 postcondition 5 / Inv4)
-  printf '%s\n' "$output" | grep -qiE "(confirm|proceed|rehydrat)" || {
+  # Assert operator confirmation prompt is shown (BC-6.24.001 postcondition 5 / Inv4).
+  # F-P1-007 tightened: assert the ACTUAL Step 8 sentence — grep -qiE "(confirm|proceed|rehydrat)"
+  # was near-tautological because the word "Rehydration" appears in the static header line.
+  # Using grep -qF with the exact sentence ensures this fails if the prompt is removed.
+  printf '%s\n' "$output" | grep -qF "Confirm rehydration:" || {
     echo "FAIL (AC-002 / BC-6.24.001 postcondition 5 + Inv4): operator confirmation prompt missing."
     echo "  Skill must pause and present a confirmation prompt after listing injected files."
+    echo "  Expected to find 'Confirm rehydration:' sentence (Step 8 of rehydrate-wave.sh)."
     echo "Actual output: $output"
     false
   }
@@ -457,11 +461,14 @@ YAML
     false
   }
 
-  # Assert: confirmation prompt is still shown (skill continues past warning)
-  printf '%s\n' "$output" | grep -qiE "(confirm|proceed|rehydrat)" || {
+  # Assert: confirmation prompt is still shown (skill continues past warning).
+  # F-P1-007 tightened: assert the ACTUAL Step 8 sentence so this fails if the
+  # confirmation prompt is removed or changed to a no-op comment.
+  printf '%s\n' "$output" | grep -qF "Confirm rehydration:" || {
     echo "FAIL (AC-006 / BC-6.24.001 postcondition 5): operator confirmation prompt missing"
     echo "  after missing-file warning. Skill must still show the confirmation prompt"
     echo "  when it continues past a missing-file warning."
+    echo "  Expected to find 'Confirm rehydration:' sentence (Step 8 of rehydrate-wave.sh)."
     echo "Actual output: $output"
     false
   }
@@ -701,6 +708,366 @@ YAML
   # Verify A.md appears in the injected set (at least once; dedup doesn't mean absent)
   printf '%s\n' "$output" | grep -qF "A.md" || {
     echo "FAIL (AC-010): 'A.md' not found in injected output — must be present (once)."
+    echo "Actual output: $output"
+    false
+  }
+}
+
+# ---------------------------------------------------------------------------
+# test_rehydrate_wave_warns_on_empty_stories_list
+# F-P1-001 / EC-004 / BC-6.24.001 postcondition 2
+#
+# Setup: wave-state.yaml with stories: [] (no EPIC-COMPLETE), arch_files: [C.md],
+#        state_pointer: ".factory/STATE.md"
+# Assert: stderr contains EC-004 warning string; exit 0;
+#         INJECTED_FILE_COUNT=2 (arch_files + state_pointer only);
+#         C.md and .factory/STATE.md appear in injected output.
+#
+# Closes adversary LOCAL Pass-1 finding F-P1-001.
+# Red Gate: a stub that does NOT emit the warning → grep fails.
+# ---------------------------------------------------------------------------
+
+@test "test_rehydrate_wave_warns_on_empty_stories_list" {
+  _require_skill
+
+  # Create C.md in WORK so the skill finds it on filesystem (avoids PC6 missing-file warning)
+  echo "# C arch file" > "$WORK/C.md"
+
+  local git_content
+  git_content="$(cat <<'YAML'
+wave_id: 2
+generated_at: "2026-06-16T00:00:00Z"
+generated_from_handoff_sha: "aabbccddeeff00112233445566778899aabbccdd"
+state_pointer: ".factory/STATE.md"
+arch_files:
+  - C.md
+stories: []
+YAML
+)"
+  _commit_to_factory_artifacts "wave-state.yaml" "$git_content"
+
+  # Capture combined stdout+stderr — _run_skill already merges 2>&1.
+  _run_skill
+
+  # Assert: skill exits 0 (EC-004 is a warning path, not a hard block)
+  [ "$status" -eq 0 ] || {
+    echo "FAIL (F-P1-001 / EC-004): skill exited $status; expected 0 on empty stories list."
+    echo "  EC-004 is a WARNING, not a hard-block. Skill must exit 0."
+    echo "Actual output: $output"
+    false
+  }
+
+  # Assert: EC-004 warning string present (emitted on stderr, captured via 2>&1)
+  printf '%s\n' "$output" | grep -qF "WARNING: wave-state.yaml lists no stories (stories: [] or no spec_files); injecting arch_files + state_pointer only." || {
+    echo "FAIL (F-P1-001 / EC-004): EC-004 warning string not found in output."
+    echo "  Expected: 'WARNING: wave-state.yaml lists no stories (stories: [] or no spec_files); injecting arch_files + state_pointer only.'"
+    echo "  Skill must emit this exact warning on stderr when stories: [] or all spec_files are empty."
+    echo "Actual output: $output"
+    false
+  }
+
+  # Assert: INJECTED_FILE_COUNT=2 (C.md + .factory/STATE.md; no story spec files)
+  local injected_count
+  injected_count="$(_extract_injected_count "$output")"
+  [ "$injected_count" = "2" ] || {
+    echo "FAIL (F-P1-001 / EC-004 / VP-088 §2 PC2-SIGNAL): INJECTED_FILE_COUNT sentinel mismatch."
+    echo "  Expected: INJECTED_FILE_COUNT=2 (C.md + .factory/STATE.md; stories: [] contributes nothing)"
+    echo "  Got sentinel value: '$injected_count'"
+    echo "Actual output: $output"
+    false
+  }
+
+  # Assert: C.md (arch file) appears in injected output
+  printf '%s\n' "$output" | grep -qF "C.md" || {
+    echo "FAIL (F-P1-001 / EC-004): 'C.md' not found in injected output on empty-stories path."
+    echo "  Skill must inject arch_files even when stories: [] (EC-004 warning path)."
+    echo "Actual output: $output"
+    false
+  }
+
+  # Assert: .factory/STATE.md (state_pointer) appears in injected output
+  printf '%s\n' "$output" | grep -qF ".factory/STATE.md" || {
+    echo "FAIL (F-P1-001 / EC-004): '.factory/STATE.md' not found in injected output on empty-stories path."
+    echo "  Skill must inject state_pointer even when stories: [] (EC-004 warning path)."
+    echo "Actual output: $output"
+    false
+  }
+}
+
+# ---------------------------------------------------------------------------
+# test_rehydrate_wave_warns_on_empty_arch_files
+# F-P1-002 / EC-006 / BC-6.24.001 postcondition 2
+#
+# Setup: wave-state.yaml with one story spec_files: [A.md], arch_files: [],
+#        state_pointer: ".factory/STATE.md"
+# Assert: stderr contains EC-006 warning string; exit 0;
+#         INJECTED_FILE_COUNT=2 (A.md + STATE.md);
+#         A.md and .factory/STATE.md injected.
+#
+# Closes adversary LOCAL Pass-1 finding F-P1-002.
+# Red Gate: a stub that does NOT emit the EC-006 warning → grep fails.
+# ---------------------------------------------------------------------------
+
+@test "test_rehydrate_wave_warns_on_empty_arch_files" {
+  _require_skill
+
+  # Create A.md in WORK so the skill finds it (avoids PC6 missing-file warning)
+  echo "# A spec file" > "$WORK/A.md"
+
+  local git_content
+  git_content="$(cat <<'YAML'
+wave_id: 2
+generated_at: "2026-06-16T00:00:00Z"
+generated_from_handoff_sha: "aabbccddeeff00112233445566778899aabbccdd"
+state_pointer: ".factory/STATE.md"
+arch_files: []
+stories:
+  - id: S-18.02
+    spec_files:
+      - A.md
+YAML
+)"
+  _commit_to_factory_artifacts "wave-state.yaml" "$git_content"
+
+  # Capture combined stdout+stderr
+  _run_skill
+
+  # Assert: skill exits 0 (EC-006 is a warning path, not a hard block)
+  [ "$status" -eq 0 ] || {
+    echo "FAIL (F-P1-002 / EC-006): skill exited $status; expected 0 on empty arch_files."
+    echo "  EC-006 is a WARNING, not a hard-block. Skill must exit 0."
+    echo "Actual output: $output"
+    false
+  }
+
+  # Assert: EC-006 warning string present (emitted on stderr, captured via 2>&1)
+  printf '%s\n' "$output" | grep -qF "WARNING: wave-state.yaml lists no arch_files; no architectural context will be injected." || {
+    echo "FAIL (F-P1-002 / EC-006): EC-006 warning string not found in output."
+    echo "  Expected: 'WARNING: wave-state.yaml lists no arch_files; no architectural context will be injected.'"
+    echo "  Skill must emit this exact warning on stderr when arch_files is empty."
+    echo "Actual output: $output"
+    false
+  }
+
+  # Assert: INJECTED_FILE_COUNT=2 (A.md + .factory/STATE.md; no arch files)
+  local injected_count
+  injected_count="$(_extract_injected_count "$output")"
+  [ "$injected_count" = "2" ] || {
+    echo "FAIL (F-P1-002 / EC-006 / VP-088 §2 PC2-SIGNAL): INJECTED_FILE_COUNT sentinel mismatch."
+    echo "  Expected: INJECTED_FILE_COUNT=2 (A.md + .factory/STATE.md; arch_files: [] contributes nothing)"
+    echo "  Got sentinel value: '$injected_count'"
+    echo "Actual output: $output"
+    false
+  }
+
+  # Assert: A.md (story spec file) appears in injected output
+  printf '%s\n' "$output" | grep -qF "A.md" || {
+    echo "FAIL (F-P1-002 / EC-006): 'A.md' not found in injected output on empty-arch_files path."
+    echo "  Skill must inject stories spec_files even when arch_files: [] (EC-006 warning path)."
+    echo "Actual output: $output"
+    false
+  }
+
+  # Assert: .factory/STATE.md (state_pointer) appears in injected output
+  printf '%s\n' "$output" | grep -qF ".factory/STATE.md" || {
+    echo "FAIL (F-P1-002 / EC-006): '.factory/STATE.md' not found in injected output on empty-arch_files path."
+    echo "  Skill must always inject state_pointer (AC-004) even when arch_files: []."
+    echo "Actual output: $output"
+    false
+  }
+}
+
+# ---------------------------------------------------------------------------
+# test_rehydrate_wave_parses_real_producer_manifest_shape
+# F-P1-003 / BC-6.24.001 postcondition 2
+#
+# Integration test: the fixture is hand-written as a byte-faithful copy of the
+# exact YAML that wave-handoff/lib/write-wave-state.sh emits (see producer source
+# at plugins/vsdd-factory/skills/wave-handoff/lib/write-wave-state.sh lines 353-356):
+#
+#   stories_yaml="${stories_yaml}
+#   - id: ${sid}
+#     status: ${sstatus}
+# ${spec_files_yaml}"
+#
+# Where spec_files_yaml is "    spec_files:\n      - <path>" (4-space indent, 6-space items).
+# Critical: the `status:` line appears BETWEEN `id:` and `spec_files:`.
+# The consumer's _parse_all_story_spec_files awk must skip `status:` without
+# exiting the spec_files parsing block (the status: key was the defect).
+#
+# Also verifies state_pointer: without surrounding quotes (producer emits unquoted).
+#
+# Closes adversary LOCAL Pass-1 finding F-P1-003.
+# Red Gate: a parser that exits spec_files block on status: → INJECTED_FILE_COUNT wrong.
+# ---------------------------------------------------------------------------
+
+@test "test_rehydrate_wave_parses_real_producer_manifest_shape" {
+  _require_skill
+
+  # Create the spec files on filesystem so PC6 missing-file warnings don't fire
+  mkdir -p "$WORK/specs/behavioral-contracts/ss-06"
+  echo "# BC-6.24.001" > "$WORK/specs/behavioral-contracts/ss-06/BC-6.24.001.md"
+  echo "# BC-5.41.002" > "$WORK/specs/behavioral-contracts/ss-06/BC-5.41.002.md"
+  mkdir -p "$WORK/specs/architecture"
+  echo "# ARCH-INDEX" > "$WORK/specs/architecture/ARCH-INDEX.md"
+
+  # Byte-faithful copy of write-wave-state.sh output format.
+  # Note: stories_yaml is built with leading newline before "  - id:", so the block is:
+  #   stories:
+  #   - id: S-18.02
+  #     status: pending
+  #     spec_files:
+  #       - specs/behavioral-contracts/ss-06/BC-6.24.001.md
+  #   - id: S-18.03
+  #     status: pending
+  #     spec_files:
+  #       - specs/behavioral-contracts/ss-06/BC-5.41.002.md
+  # arch_files similarly starts with leading newline before "  - ".
+  # state_pointer is unquoted (no surrounding double-quotes).
+  local git_content
+  git_content="$(cat <<'YAML'
+wave_id: 4
+generated_at: 2026-06-17T12:00:00Z
+generated_from_handoff_sha: aabbccddeeff00112233445566778899aabbccdd
+stories:
+  - id: S-18.02
+    status: pending
+    spec_files:
+      - specs/behavioral-contracts/ss-06/BC-6.24.001.md
+  - id: S-18.03
+    status: pending
+    spec_files:
+      - specs/behavioral-contracts/ss-06/BC-5.41.002.md
+arch_files:
+  - specs/architecture/ARCH-INDEX.md
+state_pointer: .factory/STATE.md
+YAML
+)"
+  _commit_to_factory_artifacts "wave-state.yaml" "$git_content"
+
+  _run_skill
+
+  # Assert: exit 0 (valid manifest)
+  [ "$status" -eq 0 ] || {
+    echo "FAIL (F-P1-003): skill exited $status on real-producer-shape manifest."
+    echo "  Skill must parse the intervening 'status:' line between 'id:' and 'spec_files:'."
+    echo "Actual output: $output"
+    false
+  }
+
+  # Assert: INJECTED_FILE_COUNT=4
+  # (BC-6.24.001.md + BC-5.41.002.md + ARCH-INDEX.md + .factory/STATE.md = 4)
+  local injected_count
+  injected_count="$(_extract_injected_count "$output")"
+  [ "$injected_count" = "4" ] || {
+    echo "FAIL (F-P1-003 / VP-088 §2 PC2-SIGNAL): INJECTED_FILE_COUNT mismatch on real-producer shape."
+    echo "  Expected: INJECTED_FILE_COUNT=4"
+    echo "  Got: '$injected_count'"
+    echo "  Parser must not be defeated by the 'status: pending' line between 'id:' and 'spec_files:'."
+    echo "  (Producer write-wave-state.sh always emits status: between id: and spec_files:.)"
+    echo "Actual output: $output"
+    false
+  }
+
+  # Assert: each real spec path appears in injected output
+  for expected_file in \
+    "specs/behavioral-contracts/ss-06/BC-6.24.001.md" \
+    "specs/behavioral-contracts/ss-06/BC-5.41.002.md" \
+    "specs/architecture/ARCH-INDEX.md" \
+    ".factory/STATE.md"
+  do
+    printf '%s\n' "$output" | grep -qF "$expected_file" || {
+      echo "FAIL (F-P1-003): expected file '$expected_file' not found in injected output."
+      echo "  The consumer must correctly parse spec_files from real producer-shape YAML."
+      echo "Actual output: $output"
+      false
+    }
+  done
+}
+
+# ---------------------------------------------------------------------------
+# test_rehydrate_wave_handles_inline_empty_spec_files
+# F-P1-004 / BC-6.24.001 postcondition 2 / invariant 2
+#
+# Setup: wave-state.yaml with two stories:
+#          - S-18.01 with spec_files: [A.md]
+#          - S-18.02 with spec_files: []   (inline-empty list form)
+#        arch_files: [B.md], state_pointer: ".factory/STATE.md"
+# Assert: INJECTED_FILE_COUNT=3 (A.md + B.md + STATE.md);
+#         the empty-spec_files story contributes nothing; no crash; exit 0.
+#
+# Closes adversary LOCAL Pass-1 finding F-P1-004.
+# Red Gate: a parser that crashes on "spec_files: []" → non-zero exit or wrong count.
+# ---------------------------------------------------------------------------
+
+@test "test_rehydrate_wave_handles_inline_empty_spec_files" {
+  _require_skill
+
+  # Create A.md and B.md on filesystem
+  echo "# A spec file" > "$WORK/A.md"
+  echo "# B arch file" > "$WORK/B.md"
+
+  local git_content
+  git_content="$(cat <<'YAML'
+wave_id: 2
+generated_at: "2026-06-16T00:00:00Z"
+generated_from_handoff_sha: "aabbccddeeff00112233445566778899aabbccdd"
+state_pointer: ".factory/STATE.md"
+arch_files:
+  - B.md
+stories:
+  - id: S-18.01
+    spec_files:
+      - A.md
+  - id: S-18.02
+    spec_files: []
+YAML
+)"
+  _commit_to_factory_artifacts "wave-state.yaml" "$git_content"
+
+  _run_skill
+
+  # Assert: exit 0 (inline-empty spec_files is not an error)
+  [ "$status" -eq 0 ] || {
+    echo "FAIL (F-P1-004): skill exited $status on inline spec_files: [] form."
+    echo "  Empty spec_files list for one story must not cause a crash or hard-block."
+    echo "Actual output: $output"
+    false
+  }
+
+  # Assert: INJECTED_FILE_COUNT=3 (A.md + B.md + .factory/STATE.md;
+  #         S-18.02's spec_files: [] contributes nothing)
+  local injected_count
+  injected_count="$(_extract_injected_count "$output")"
+  [ "$injected_count" = "3" ] || {
+    echo "FAIL (F-P1-004 / VP-088 §2 PC2-SIGNAL): INJECTED_FILE_COUNT mismatch on inline-empty spec_files."
+    echo "  Expected: INJECTED_FILE_COUNT=3 (A.md + B.md + .factory/STATE.md)"
+    echo "  Got: '$injected_count'"
+    echo "  The story with spec_files: [] must contribute 0 files to the injected set."
+    echo "Actual output: $output"
+    false
+  }
+
+  # Assert: A.md from the non-empty story is still injected
+  printf '%s\n' "$output" | grep -qF "A.md" || {
+    echo "FAIL (F-P1-004): 'A.md' not found in injected output."
+    echo "  The story with spec_files: [A.md] must still inject A.md."
+    echo "Actual output: $output"
+    false
+  }
+
+  # Assert: B.md (arch file) is still injected
+  printf '%s\n' "$output" | grep -qF "B.md" || {
+    echo "FAIL (F-P1-004): 'B.md' not found in injected output."
+    echo "  arch_files must still be injected when one story has spec_files: []."
+    echo "Actual output: $output"
+    false
+  }
+
+  # Assert: .factory/STATE.md (state_pointer) is still injected
+  printf '%s\n' "$output" | grep -qF ".factory/STATE.md" || {
+    echo "FAIL (F-P1-004): '.factory/STATE.md' not found in injected output."
+    echo "  state_pointer must always be injected (AC-004)."
     echo "Actual output: $output"
     false
   }

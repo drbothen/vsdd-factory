@@ -48,6 +48,20 @@ In a fresh Claude Code session (after `/clear` or at session start), type:
 /rehydrate-wave
 ```
 
+**Bare invocation behavior (F-P1-005):** When invoked with no arguments, the skill resolves
+`REPO_DIR=.` (current working directory) and `ARTIFACTS_WT=.factory` by default. This means
+the skill will run `git show factory-artifacts:wave-state.yaml` using the current working
+directory as the main repo root and will look for the factory-artifacts worktree at `.factory`.
+This is the standard production invocation pattern when Claude Code is opened at the repository
+root. If the current directory is NOT the repo root, pass explicit arguments:
+
+```
+REPO_DIR=/path/to/repo ARTIFACTS_WT=/path/to/repo/.factory /path/to/rehydrate-wave.sh
+```
+
+Or use the skill with the worktree/repo flags if the Claude Code session was started from
+a different working directory.
+
 ### Step 3: Observe skill output
 
 The skill must:
