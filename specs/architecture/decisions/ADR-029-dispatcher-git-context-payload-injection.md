@@ -2,7 +2,7 @@
 document_type: architecture-decision-record
 level: L3
 adr_id: ADR-029
-version: "1.2"
+version: "1.3"
 title: "ADR-029: Dispatcher git-context payload injection for WASM chain-detection gates"
 status: proposed
 producer: architect
@@ -24,7 +24,7 @@ anchors:
 subsystems_affected:
   - SS-01
   - SS-04
-last_amended: "2026-06-24 (v1.2) — Decision 8 added (architect adjudication of S-18.04b LOCAL adversarial cascade finding): pure-Rust unit tests in exemption.rs are the load-bearing proof vehicle for is_precompact_flush_exempt / check_multi_commit_chain; VP-084 bats tests are correctly scoped to dispatcher injection plumbing + MULTI_COMMIT_CHAIN detection end-to-end (not exemption-flip); BC-5.41.003 PC4 wording and VP-084 Feasibility Assessment require targeted amendment to reflect the corrected scoping. Exemption is NOT dead code and is NOT a no-op: the real-world topology that motivates it is confirmed valid; the topology is exercised by real git repo setup in vp084-proof.bats (F-P1-001 fix); the proof is load-bearing. No production code change is required. Option A selected. [Prior: 2026-06-24 (v1.1) — O-1 subsystem anchor correction: frontmatter subsystem field corrected from SS-04 to SS-01+SS-04 (per ARCH-INDEX Subsystem Registry POLICY 6: SS-01=Hook Dispatcher Core owns crates/factory-dispatcher/src/invoke.rs; SS-04=Plugin Ecosystem owns the WASM plugin consumer side); §ARCH-INDEX subsystem prose corrected from erroneous SS-03 (Dispatcher Core) to SS-01 (Hook Dispatcher Core) + SS-04 (Plugin Ecosystem).]"
+last_amended: "2026-06-25 (v1.3) — Decision 5 annotation: `check_factory_artifacts_chain()` is the pre-rewire name; the S-18.04b implementation renamed this function to `check_chain_from_git_context()` (O-P4-001 / TD-VSDD-091). [Prior: 2026-06-24 (v1.2) — Decision 8 added (architect adjudication of S-18.04b LOCAL adversarial cascade finding): pure-Rust unit tests in exemption.rs are the load-bearing proof vehicle for is_precompact_flush_exempt / check_multi_commit_chain; VP-084 bats tests are correctly scoped to dispatcher injection plumbing + MULTI_COMMIT_CHAIN detection end-to-end (not exemption-flip); BC-5.41.003 PC4 wording and VP-084 Feasibility Assessment require targeted amendment to reflect the corrected scoping. Exemption is NOT dead code and is NOT a no-op: the real-world topology that motivates it is confirmed valid; the topology is exercised by real git repo setup in vp084-proof.bats (F-P1-001 fix); the proof is load-bearing. No production code change is required. Option A selected. [Prior: 2026-06-24 (v1.1) — O-1 subsystem anchor correction: frontmatter subsystem field corrected from SS-04 to SS-01+SS-04 (per ARCH-INDEX Subsystem Registry POLICY 6: SS-01=Hook Dispatcher Core owns crates/factory-dispatcher/src/invoke.rs; SS-04=Plugin Ecosystem owns the WASM plugin consumer side); §ARCH-INDEX subsystem prose corrected from erroneous SS-03 (Dispatcher Core) to SS-01 (Hook Dispatcher Core) + SS-04 (Plugin Ecosystem).].]"
 ---
 
 # ADR-029: Dispatcher git-context payload injection for WASM chain-detection gates
@@ -149,7 +149,7 @@ module. Therefore HOST_ABI_VERSION does not change. Existing plugins that do not
 
 ### Decision 5: WASM gate reads `git_context` from payload.extra, not from exec_subprocess
 
-The WASM plugin's `check_factory_artifacts_chain()` function is redesigned to:
+The WASM plugin's `check_factory_artifacts_chain()` function (pre-rewire name; S-18.04b implementation renamed this to `check_chain_from_git_context()`) is redesigned to:
 
 1. Read `git_context` from `payload.extra.get("git_context")`.
 2. Extract `head_subject`, `head_sha`, `head_parent_subject`, `head_parent_sha` as strings.
