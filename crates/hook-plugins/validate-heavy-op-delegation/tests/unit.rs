@@ -804,7 +804,9 @@ fn test_heavy_op_gate_redacts_authorization_header() {
             // Form A canonical output: `Authorization:***REDACTED***` (NO space after colon).
             // BC-4.15.001 v1.5 test vector redaction-pass3-form-a-quoted confirms this format.
             assert!(
-                advisory.command_preview.contains("Authorization:***REDACTED***"),
+                advisory
+                    .command_preview
+                    .contains("Authorization:***REDACTED***"),
                 "AC-012/INV5 Pass 3 Form A: command_preview must contain 'Authorization:***REDACTED***'.\n\
                 Got: {:?}\n\
                 Form A (inline value in same token): mask after ':' within token; no space preserved.\n\
@@ -1300,7 +1302,9 @@ fn test_heavy_op_gate_auth_header_preserves_trailing_url() {
             // BC-4.15.001 v1.5 test vector (redaction-pass3-form-b-bearer-url-preserved):
             //   `command_preview` contains `Authorization: ***REDACTED*** https://api.example.com`
             assert!(
-                advisory.command_preview.contains("Authorization: ***REDACTED*** https://api.example.com"),
+                advisory
+                    .command_preview
+                    .contains("Authorization: ***REDACTED*** https://api.example.com"),
                 "EC-022 / INV5 Pass 3 Form B (F-RD3-001): canonical Form B substring must be present.\n\
                 Expected substring: \"Authorization: ***REDACTED*** https://api.example.com\"\n\
                 Got: {:?}\n\
@@ -1363,7 +1367,9 @@ fn test_heavy_op_gate_auth_header_preserves_trailing_flag() {
             //   `command_preview` contains `Authorization: ***REDACTED*** --verbose`
             // Using --include=*.rs as the flag (equivalent to --verbose in the pattern).
             assert!(
-                advisory.command_preview.contains("Authorization: ***REDACTED*** --include=*.rs"),
+                advisory
+                    .command_preview
+                    .contains("Authorization: ***REDACTED*** --include=*.rs"),
                 "EC-023 / INV5 Pass 3 Form B (F-RD3-001): canonical Form B substring must be present.\n\
                 Expected substring: \"Authorization: ***REDACTED*** --include=*.rs\"\n\
                 Got: {:?}\n\

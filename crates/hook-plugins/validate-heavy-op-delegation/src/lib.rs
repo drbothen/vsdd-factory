@@ -430,23 +430,50 @@ fn redact_pass3_auth_headers(command: &str) -> String {
     }
 
     // Collect replacements: (start_byte, end_byte, replacement_str).
-    // For multi-token header values we extend the last replacement's end_byte
-    // to cover each additional consumed token.
+    //
+    // Two output forms (BC-4.15.001 v1.5 INV5 Pass 3 / ADR-026 §Decision 12):
+    //
+    // Form A — inline value (after_colon non-empty) OR quoted header (started_with_quote):
+    //   The header and all value tokens are collapsed into ONE replacement →
+    //   `HeaderName:***REDACTED***` (no space; ADR Form A canonical format).
+    //   Quoted-header rationale: `"Authorization:` is the first whitespace-token of a
+    //   shell-quoted arg; the whole shell arg is treated as a unit for masking.
+    //
+    // Form B — unquoted header token ending with `:`, value in subsequent token(s):
+    //   Header token preserved as-is (original bytes, colon-space intact).
+    //   Separate replacement covers only the value-token span → `***REDACTED***`.
+    //   Result: `Authorization: ***REDACTED*** <preserved-trailing>`
+    //
+    // State:
+    //   `consuming_unquoted` — Form B unquoted: consume value tokens until b1/b2/EOT.
+    //   `consuming_quoted`   — Form A quoted: extend header replacement over value tokens
+    //                          until b1/b2/b3/EOT.
+    //   `opening_quote`      — b3 matching-quote (F-RD3-002): the exact opening quote char;
+    //                          stray `'` inside a `"`-opened header is NOT b3-stop.
+    //   `form_b_pending`     — Form B value-replacement not yet initialised; push a NEW entry
+    //                          on the first value token (using its `start` byte) rather than
+    //                          extending an unrelated prior replacement.
     let mut replacements: Vec<(usize, usize, String)> = Vec::new();
-    let mut consuming_unquoted = false; // consuming unquoted header value tokens
-    let mut consuming_quoted = false; // consuming quoted header value tokens
+    let mut consuming_unquoted = false;
+    let mut consuming_quoted = false;
+    let mut opening_quote: Option<char> = None;
+    let mut form_b_pending = false;
 
     for &(start, end) in &positions {
         if consuming_unquoted {
             let tok = &command[start..end];
-            // b1-stop: token starts with `-` (CLI option).
-            // b2-stop: token contains `://` (URL/positional) — BC-4.15.001 v1.5 Pass 3.
+            // b1-stop: starts with `-` (CLI option).
+            // b2-stop: contains `://` (URL/positional).
             if tok.starts_with('-') || tok.contains("://") {
                 consuming_unquoted = false;
-                // This token is NOT part of the header value; leave it in the output.
+                form_b_pending = false;
+                // Token NOT consumed; left in output.
             } else {
-                // Extend the last replacement to cover this value token.
-                if let Some(last) = replacements.last_mut() {
+                if form_b_pending {
+                    // First Form B value token: push a NEW replacement starting here.
+                    replacements.push((start, end, "***REDACTED***".to_string()));
+                    form_b_pending = false;
+                } else if let Some(last) = replacements.last_mut() {
                     last.1 = end;
                 }
                 continue;
@@ -455,20 +482,21 @@ fn redact_pass3_auth_headers(command: &str) -> String {
 
         if consuming_quoted {
             let tok = &command[start..end];
-            // Fail-safe b1/b2 escape conditions for unbalanced/malformed quoted values
-            // (BC-4.15.001 v1.5 INV5 Pass 3): stop BEFORE consuming a token that starts
-            // with `-` (b1) or contains `://` (b2). The tail is NOT swallowed.
+            // b1/b2 fail-safe: stop BEFORE consuming (preserves tail; BC-4.15.001 v1.5 Pass 3).
             if tok.starts_with('-') || tok.contains("://") {
                 consuming_quoted = false;
-                // This token is NOT consumed; leave it in the output.
+                opening_quote = None;
+                // Token NOT consumed; left in output.
             } else {
-                // Extend the last replacement to cover this quoted value token.
+                // Extend the Form A replacement to cover this quoted value token.
                 if let Some(last) = replacements.last_mut() {
                     last.1 = end;
                 }
-                // b3-stop: closing quote terminates the quoted value.
-                if tok.ends_with('"') || tok.ends_with('\'') {
+                // b3-stop: MATCHING closing quote only (F-RD3-002).
+                // A stray apostrophe inside a `"`-opened header is NOT a b3-stop.
+                if opening_quote.is_some_and(|q| tok.ends_with(q)) {
                     consuming_quoted = false;
+                    opening_quote = None;
                 }
                 continue;
             }
@@ -476,7 +504,7 @@ fn redact_pass3_auth_headers(command: &str) -> String {
 
         let tok = &command[start..end];
 
-        // Strip leading quote character for case-insensitive comparison.
+        // Strip leading quote for case-insensitive prefix detection.
         let stripped = tok.trim_start_matches(['"', '\'']);
         let lower = stripped.to_lowercase();
         let started_with_quote = stripped.len() < tok.len();
@@ -492,25 +520,27 @@ fn redact_pass3_auth_headers(command: &str) -> String {
             let after_colon = &stripped[pfx.len()..];
             let after_colon_trimmed = after_colon.trim_end_matches(['"', '\'']);
 
-            // Replacement: `HeaderName:***REDACTED***`.
-            // Initially covers just this header name token; extended below.
-            let replacement = format!("{}:***REDACTED***", header_name);
-            replacements.push((start, end, replacement));
-
-            if after_colon_trimmed.is_empty() {
-                // Value is in subsequent token(s).
-                if started_with_quote {
-                    // Quoted form: consume until the token ending with the matching quote.
+            if !after_colon_trimmed.is_empty() || started_with_quote {
+                // Form A: inline value OR quoted header.
+                // Replace the entire header token → `HeaderName:***REDACTED***`.
+                let replacement = format!("{}:***REDACTED***", header_name);
+                replacements.push((start, end, replacement));
+                if after_colon_trimmed.is_empty() {
+                    // Quoted header with no inline value: value in subsequent tokens.
+                    // Capture the opening quote for b3 matching (F-RD3-002).
+                    opening_quote = tok.chars().next();
                     consuming_quoted = true;
-                } else {
-                    // Unquoted form: consume tokens until a CLI option (`-`) or end.
-                    consuming_unquoted = true;
                 }
+                // Non-empty after_colon: full value is inline — no further tokens to consume.
+            } else {
+                // Form B: unquoted header token ending with `:`.
+                // Preserve the header token as-is (colon-space preserved by apply_replacements).
+                // The value-token replacement will be pushed on the first consumed value token.
+                consuming_unquoted = true;
+                form_b_pending = true;
             }
-            // If after_colon is non-empty, the value was inline (e.g., `Authorization:Bearer`).
-            // No further tokens to consume.
         }
-        // Non-header token: no replacement (whitespace preserved by apply_replacements).
+        // Non-header token: no replacement.
     }
 
     apply_replacements(command, &replacements)
