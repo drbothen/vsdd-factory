@@ -665,16 +665,21 @@ fn test_heavy_op_gate_pure_parse_no_filesystem_access() {
 
 /// AC-012 / INV5 Pass 1 / EC-014:
 /// A flag-argument secret (`--token <value>`) is redacted before the preview
-/// is returned. The raw secret value must not appear in `command_preview`.
+/// is returned. The raw secret value — including ANY substring of it — must
+/// not appear in `command_preview`.
 ///
 /// Setup: command `grep -r . --token abc123secret` — pattern `grep -r` matches
 /// (so `evaluate_patterns` returns `Advisory`). Pass 1 applies:
 ///   `--token abc123secret` → `--token ***REDACTED***`
 ///
-/// Assert: `command_preview` contains `--token ***REDACTED***`; does NOT contain
-/// `abc123secret`.
+/// Assert:
+///   1. `command_preview` contains `--token ***REDACTED***` (full mask applied).
+///   2. `command_preview` does NOT contain `abc123secret` (full secret absent).
+///   3. `command_preview` does NOT contain `123secret` (no recognizable remnant;
+///      blocks crippled "replace-only-first-char" partial implementations that
+///      would pass assertion 2 but leave `bc123secret` or `23secret` intact).
 ///
-/// RED against current implementation (no redaction). BC-4.15.001 INV5 / AC-012.
+/// BC-4.15.001 INV5 / AC-012. Hardened per SEC-002.
 #[test]
 fn test_heavy_op_gate_redacts_flag_arg_secret() {
     let command = "grep -r . --token abc123secret";
@@ -686,14 +691,24 @@ fn test_heavy_op_gate_redacts_flag_arg_secret() {
                 advisory.command_preview.contains("--token ***REDACTED***"),
                 "AC-012/INV5 Pass 1: command_preview must contain '--token ***REDACTED***'.\n\
                 Got: {:?}\n\
-                BC-4.15.001 INV5: flag-arg secret MUST be redacted before preview.",
+                BC-4.15.001 INV5: flag-arg secret MUST be fully masked with ***REDACTED***.",
                 advisory.command_preview
             );
             assert!(
                 !advisory.command_preview.contains("abc123secret"),
                 "AC-012/INV5 Pass 1: raw secret 'abc123secret' must NOT appear in command_preview.\n\
                 Got: {:?}\n\
-                BC-4.15.001 INV5: redaction MUST replace flag-arg secret value with ***REDACTED***.",
+                BC-4.15.001 INV5: FULL-value redaction — the entire secret token must be replaced.",
+                advisory.command_preview
+            );
+            // SEC-002 hardening: assert no recognizable remnant of the secret
+            // survives. A crippled "replace only the first character" implementation
+            // would leave "bc123secret" or "123secret" in the output — reject that.
+            assert!(
+                !advisory.command_preview.contains("123secret"),
+                "AC-012/INV5 Pass 1 SEC-002: remnant '123secret' must NOT appear in command_preview.\n\
+                Got: {:?}\n\
+                BC-4.15.001 INV5: FULL-value masking required; partial replacement is a security defect.",
                 advisory.command_preview
             );
         }
@@ -963,67 +978,84 @@ fn test_heavy_op_gate_bare_key_flag_not_redacted() {
 /// shows the redacted string, not the raw secret.
 ///
 /// Fixture construction (BC-4.15.001 EC-021):
-///   Raw command = `"grep -r . --token a"` (19 chars) + `"x"` × 96 = 115 chars.
-///   After Pass 1: `"a"` → `"***REDACTED***"` (+13 chars) = 128-char post-redaction
-///   string.  Truncation yields first 120 chars of the 128-char redacted string
-///   followed by `ELLIPSIS` (U+2026).
+///   Prefix = `"grep -r . --token shh "` — 22 chars.
+///   The secret `shh` is a whitespace-delimited value token (space after it).
+///   Padding = `"x"` × 97 chars — a separate clean positional arg after the space.
+///   Raw command = 22 + 97 = 119 chars (≤ 120 → NO truncation on the raw string).
+///
+///   After Pass 1 FULL-value redaction:
+///     `--token shh` → `--token ***REDACTED***`
+///     (`"shh"` = 3 chars → `"***REDACTED***"` = 14 chars; net +11)
+///   Post-redaction string = `"grep -r . --token ***REDACTED*** "` (35 chars)
+///     + 97 `x` chars = 132 chars (> 120 → truncation kicks in).
+///   Truncation yields first 120 chars of 132-char string + ELLIPSIS (U+2026) =
+///   121 code points.
+///
+///   The 120-char window = `"grep -r . --token ***REDACTED*** "` (35) + 85 `x`s.
+///   The raw secret `"shh"` does NOT appear in this window.
 ///
 /// Assert:
 ///   1. `command_preview` ends with `ELLIPSIS` (was truncated).
-///   2. `command_preview` does NOT contain `" a"` at the end of the raw
-///      `--token a` fragment (raw secret absent from the 120-char slice).
-///   3. `command_preview` contains `--token ***REDACTED***` (redaction applied
-///      before truncation window).
+///   2. `command_preview.chars().count() == 121` (COMMAND_PREVIEW_MAX_CHARS + 1).
+///   3. `command_preview` contains `"--token ***REDACTED***"` (redaction before
+///      the truncation window).
+///   4. `command_preview` does NOT contain `"shh"` (raw secret absent).
 ///
-/// RED against current implementation (no redaction). BC-4.15.001 INV5 / AC-012.
+/// BC-4.15.001 INV5 / AC-012.
 #[test]
 fn test_heavy_op_gate_redact_then_truncate_ordering() {
-    // 19 chars: "grep -r . --token a"
-    // + 96 'x' chars = 115 chars total (< 120 → no truncation on raw string)
-    let raw_command = format!("grep -r . --token a{}", "x".repeat(96));
+    // "grep -r . --token shh " = 22 chars (trailing space separates x-block)
+    // + 97 'x' chars = 119 chars total (< 120 → no truncation on raw string)
+    //
+    // After FULL-value Pass 1 redaction:
+    //   "shh" (3 chars) → "***REDACTED***" (14 chars): net +11
+    //   "grep -r . --token ***REDACTED*** " (35 chars) + "x"×97 = 132 chars
+    //   132 > 120 → truncation: first 120 chars + U+2026 = 121 code points
+    let raw_command = format!("grep -r . --token shh {}", "x".repeat(97));
     assert_eq!(
         raw_command.chars().count(),
-        115,
-        "fixture: raw command must be exactly 115 chars"
+        119,
+        "fixture: raw command must be exactly 119 chars (22 prefix + 97 x-padding)"
     );
 
     let result = evaluate_patterns(&raw_command, DEFAULT_PATTERNS);
 
     match result {
         GateResult::Advisory(ref advisory) => {
-            // After Pass 1 redaction: "a" → "***REDACTED***" → 128 chars
-            // First 120 chars of 128-char redacted string + ELLIPSIS
+            // Assert 1: post-redaction string (132 chars) exceeds 120 → ELLIPSIS
             assert!(
                 advisory.command_preview.ends_with(ELLIPSIS),
-                "AC-012/INV5 EC-021: preview must end with ELLIPSIS (post-redaction string exceeds 120 chars).\n\
+                "AC-012/INV5 EC-021: preview must end with ELLIPSIS.\n\
+                Raw = 119 chars (no truncation). Post-redaction = 132 chars → truncation required.\n\
                 Got: {:?}\n\
-                BC-4.15.001 INV5: redact-then-truncate; raw 115-char command → 128-char post-redaction string.",
+                BC-4.15.001 INV5: redact-then-truncate ordering; truncation window applied to post-redaction string.",
                 advisory.command_preview
             );
+            // Assert 2: exactly 121 code points (120 + ELLIPSIS)
             assert_eq!(
                 advisory.command_preview.chars().count(),
                 COMMAND_PREVIEW_MAX_CHARS + 1,
                 "AC-012/INV5 EC-021: preview must be exactly 121 code points (120 + ELLIPSIS).\n\
                 Got {} code points: {:?}\n\
-                BC-4.15.001 INV5: redact-then-truncate ordering.",
+                BC-4.15.001 INV5: COMMAND_PREVIEW_MAX_CHARS = {}.",
                 advisory.command_preview.chars().count(),
-                advisory.command_preview
+                advisory.command_preview,
+                COMMAND_PREVIEW_MAX_CHARS
             );
+            // Assert 3: redaction token visible in the 120-char window
             assert!(
                 advisory.command_preview.contains("--token ***REDACTED***"),
-                "AC-012/INV5 EC-021: preview must contain '--token ***REDACTED***' (redaction before truncation).\n\
+                "AC-012/INV5 EC-021: preview must contain '--token ***REDACTED***'.\n\
                 Got: {:?}\n\
-                BC-4.15.001 INV5: Pass 1 redaction applied BEFORE INV4 truncation.",
+                BC-4.15.001 INV5: Pass 1 redaction applied BEFORE INV4 truncation window.",
                 advisory.command_preview
             );
-            // The raw secret 'a' is a single char; the 120-char window of the
-            // 128-char redacted string does not contain the literal ' a' sequence
-            // that the original --token argument produced.
+            // Assert 4: raw secret absent from the 120-char window
             assert!(
-                !advisory.command_preview.contains("--token a"),
-                "AC-012/INV5 EC-021: raw '--token a' must NOT appear in command_preview.\n\
+                !advisory.command_preview.contains("shh"),
+                "AC-012/INV5 EC-021: raw secret 'shh' must NOT appear in command_preview.\n\
                 Got: {:?}\n\
-                BC-4.15.001 INV5: raw secret must be replaced by ***REDACTED*** before preview window.",
+                BC-4.15.001 INV5: raw secret replaced by ***REDACTED*** before preview window.",
                 advisory.command_preview
             );
         }
