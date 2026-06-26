@@ -3,8 +3,7 @@
 //! Every test in this file maps to an acceptance criterion in S-18.06 and a
 //! postcondition or invariant in BC-4.15.001. Tests exercise `evaluate_patterns`
 //! and `truncate_command_preview` directly (pure-core functions; no WASM runtime
-//! required). 27 tests GREEN / 2 tests RED (F-RD5-001 inline-scheme leak — Red
-//! Gate, awaiting implementer fix).
+//! required). 29 unit tests — all GREEN. Implementation complete (S-18.06 T-3).
 //!
 //! Dispatcher-integration tests for `on_pre_tool_use` (including config-reading
 //! via `plugin_config["patterns"]` per F-P1-001 fix) live in the bats suite:
@@ -742,7 +741,7 @@ fn test_heavy_op_gate_redacts_flag_arg_secret() {
 /// Assert: `command_preview` contains `API_KEY=***REDACTED***`; does NOT contain
 /// `sk-abc123`.
 ///
-/// RED against current implementation (no redaction). BC-4.15.001 INV5 / AC-012.
+/// Verifies BC-4.15.001 INV5 Pass 2 / AC-012: env-var assignment secret redaction (closes F-EC-015).
 #[test]
 fn test_heavy_op_gate_redacts_env_assignment_secret() {
     let command = "API_KEY=sk-abc123 grep -r .";
@@ -846,7 +845,7 @@ fn test_heavy_op_gate_redacts_authorization_header() {
 /// Assert: `command_preview` contains `https://***REDACTED***@example.com/db`;
 /// does NOT contain `user:pass`.
 ///
-/// RED against current implementation (no redaction). BC-4.15.001 INV5 / AC-012.
+/// Verifies BC-4.15.001 INV5 Pass 4 / AC-012: URL credential redaction (closes EC-017).
 #[test]
 fn test_heavy_op_gate_redacts_url_credentials() {
     let command = "https://user:pass@example.com/db ./run-all.sh";
@@ -1098,11 +1097,8 @@ fn test_heavy_op_gate_redact_then_truncate_ordering() {
 //
 // BC-4.15.001 PC6b / VP-091 §6 PC6b: "the command_preview of a command that
 // triggers no redaction MUST equal truncate_command_preview(original_command)".
-// The current implementation pipes EVERY command through all 4 redaction passes,
-// each of which does split_whitespace().join(" ") unconditionally, collapsing
-// tabs and multiple spaces even when no secret is present.
-//
-// RED against current implementation (whitespace normalised to single spaces).
+// Verifies F-RD1-001 closure: redaction passes must not collapse irregular
+// whitespace (double space, tab) on commands that trigger no secret redaction.
 // ---------------------------------------------------------------------------
 
 /// F-RD1-001 / BC-4.15.001 PC6b:
@@ -1118,12 +1114,8 @@ fn test_heavy_op_gate_redact_then_truncate_ordering() {
 /// Assert: `advisory.command_preview == truncate_command_preview(raw)`.
 /// Equivalently (command is short — no truncation): `advisory.command_preview == raw`.
 ///
-/// Current implementation FAILS: all 4 redaction passes call
-/// `split_whitespace().collect::<Vec<_>>().join(" ")` unconditionally, collapsing
-/// `"  "` → `" "` and `"\t"` → `" "`, producing `"grep -r TODO . --include=*.rs"`
-/// instead of the original.
-///
-/// RED against current implementation. BC-4.15.001 PC6b / VP-091 §6.
+/// Verifies F-RD1-001 closure: BC-4.15.001 PC6b / VP-091 §6 — irregular whitespace
+/// (double space, tab) preserved in command_preview when no redaction triggers fire.
 #[test]
 fn test_heavy_op_gate_no_redaction_preserves_whitespace() {
     // Fixture: double space between "-r" and "TODO", tab between "TODO" and ".".
@@ -1148,10 +1140,10 @@ fn test_heavy_op_gate_no_redaction_preserves_whitespace() {
                 advisory.command_preview, expected,
                 "F-RD1-001 / BC-4.15.001 PC6b: command_preview MUST equal truncate_command_preview(original).\n\
                 A clean command (no redaction triggers) must not have its whitespace normalized.\n\
+                BC-4.15.001 PC6b: redaction passes must preserve the original whitespace structure\n\
+                when no secret is present (no split_whitespace normalization side-effect).\n\
                 Expected: {:?}\n\
-                Got:      {:?}\n\
-                Bug: all 4 redaction passes call split_whitespace().join(\" \") unconditionally,\n\
-                collapsing double-space and tab to single space.",
+                Got:      {:?}",
                 expected, advisory.command_preview
             );
         }
@@ -1169,12 +1161,8 @@ fn test_heavy_op_gate_no_redaction_preserves_whitespace() {
 // F-RD1-002 — Pass 3 over-consumption on unquoted Authorization header
 //
 // BC-4.15.001 INV5 Pass 3 two-token form: only the NEXT (value) token after
-// the header name is consumed. The current skip_until_end_of_value loop
-// continues consuming ALL subsequent tokens until it finds one ending with
-// `"` or `'`, which never happens for unquoted args — dropping all trailing
-// content.
-//
-// RED against current implementation (trailing args consumed/dropped).
+// the header name is consumed. Verifies F-RD1-002 closure: bounded-consumption
+// stops at b1-flag so trailing clean args are preserved in command_preview.
 // ---------------------------------------------------------------------------
 
 /// F-RD1-002 / BC-4.15.001 INV5 Pass 3:
@@ -1194,13 +1182,8 @@ fn test_heavy_op_gate_no_redaction_preserves_whitespace() {
 ///   3. `command_preview` contains `--include=*.rs` (trailing arg preserved).
 ///   4. `command_preview` contains `grep -r .` (prefix preserved).
 ///
-/// Current implementation FAILS assertion 3: the `skip_until_end_of_value`
-/// loop in `redact_pass3_auth_headers` has no termination condition for
-/// unquoted values — it consumes every token after `Authorization:` until it
-/// finds one ending with `"` or `'`, which never happens here, so
-/// `--include=*.rs` is silently dropped.
-///
-/// RED against current implementation. BC-4.15.001 INV5 Pass 3 / F-RD1-002.
+/// Verifies F-RD1-002 closure: BC-4.15.001 INV5 Pass 3 bounded-consumption b1-stop
+/// halts at the trailing `--include=*.rs` flag; trailing arg preserved in command_preview.
 #[test]
 fn test_heavy_op_gate_unquoted_auth_header_preserves_trailing_args() {
     // Unquoted Authorization header with a trailing clean arg after the token.
@@ -1230,9 +1213,8 @@ fn test_heavy_op_gate_unquoted_auth_header_preserves_trailing_args() {
                 advisory.command_preview.contains("--include=*.rs"),
                 "F-RD1-002 / INV5 Pass 3: trailing arg '--include=*.rs' MUST appear in command_preview.\n\
                 Got: {:?}\n\
-                Bug: skip_until_end_of_value loop consumes all tokens after Authorization: until\n\
-                a quote-terminated token is found — for unquoted headers this drops all trailing args.\n\
-                BC-4.15.001 INV5 Pass 3 two-token form: only the NEXT value token is consumed.",
+                BC-4.15.001 INV5 Pass 3 bounded-consumption b1-stop: consumption halts at the first\n\
+                token starting with '-'; trailing clean args must NOT be consumed or dropped.",
                 advisory.command_preview
             );
             // Assert 4: command prefix preserved.
@@ -1291,10 +1273,8 @@ fn test_heavy_op_gate_unquoted_auth_header_preserves_trailing_args() {
 ///      (canonical Form B output format — colon-space, space-before-mask, URL preserved).
 ///   2. `command_preview` does NOT contain `toksecret123` (secret absent).
 ///
-/// RED against current implementation: impl collapses to `Authorization:***REDACTED***`
-/// (no space after colon, header token replaced instead of value tokens replaced separately).
-/// Also RED because URL is consumed/dropped (b2-stop not implemented).
-/// BC-4.15.001 v1.5 INV5 Pass 3 Form B / EC-022 / F-RD2-001 / F-RD3-001.
+/// Verifies EC-022 / F-RD3-001 closure: BC-4.15.001 v1.5 INV5 Pass 3 Form B canonical output
+/// format (colon-space preserved, URL preserved via b2-stop). Closes F-RD2-001 / F-RD3-001.
 #[test]
 fn test_heavy_op_gate_auth_header_preserves_trailing_url() {
     let command = "grep -r . -H Authorization: Bearer toksecret123 https://api.example.com";
@@ -1312,10 +1292,9 @@ fn test_heavy_op_gate_auth_header_preserves_trailing_url() {
                 "EC-022 / INV5 Pass 3 Form B (F-RD3-001): canonical Form B substring must be present.\n\
                 Expected substring: \"Authorization: ***REDACTED*** https://api.example.com\"\n\
                 Got: {:?}\n\
-                Current impl produces: \"Authorization:***REDACTED***\" (no space; URL dropped).\n\
-                Form B MUST preserve the original header token (colon-space) and mask ONLY value tokens.\n\
-                b2-stop (contains '://') MUST stop consumption; URL token is NOT masked.\n\
-                BC-4.15.001 v1.5 INV5 Pass 3 Form B canonical output format.",
+                BC-4.15.001 v1.5 INV5 Pass 3 Form B: original header token (colon-space) preserved;\n\
+                ONLY value tokens replaced by ***REDACTED***. b2-stop (contains '://') halts\n\
+                consumption; the URL token is NOT masked.",
                 advisory.command_preview
             );
             // Assert 2: raw bearer secret absent.
@@ -1356,9 +1335,8 @@ fn test_heavy_op_gate_auth_header_preserves_trailing_url() {
 ///      (canonical Form B output — colon-space preserved, flag preserved).
 ///   2. `command_preview` does NOT contain `toksecret123` (secret absent).
 ///
-/// RED against current implementation: impl produces `Authorization:***REDACTED*** --include=*.rs`
-/// (b1-stop works, flag is preserved, but format has no space after colon — F-RD3-001).
-/// BC-4.15.001 v1.5 INV5 Pass 3 Form B / EC-023 / F-RD3-001.
+/// Verifies EC-023 / F-RD3-001 closure: BC-4.15.001 v1.5 INV5 Pass 3 Form B canonical output
+/// format (colon-space preserved, b1-stop flag preserved). Closes F-RD3-001.
 #[test]
 fn test_heavy_op_gate_auth_header_preserves_trailing_flag() {
     let command = "grep -r . -H Authorization: Bearer toksecret123 --include=*.rs";
@@ -1377,9 +1355,8 @@ fn test_heavy_op_gate_auth_header_preserves_trailing_flag() {
                 "EC-023 / INV5 Pass 3 Form B (F-RD3-001): canonical Form B substring must be present.\n\
                 Expected substring: \"Authorization: ***REDACTED*** --include=*.rs\"\n\
                 Got: {:?}\n\
-                Current impl produces: \"Authorization:***REDACTED*** --include=*.rs\" (no space after colon).\n\
-                Form B MUST preserve the original header token (colon-space) and mask ONLY value tokens.\n\
-                BC-4.15.001 v1.5 INV5 Pass 3 Form B canonical output format.",
+                BC-4.15.001 v1.5 INV5 Pass 3 Form B: original header token (colon-space) preserved;\n\
+                ONLY value tokens replaced. b1-stop (starts with '-') halts; flag token NOT masked.",
                 advisory.command_preview
             );
             // Assert 2: raw secret absent.
@@ -1418,9 +1395,8 @@ fn test_heavy_op_gate_auth_header_preserves_trailing_flag() {
 ///   2. `command_preview` does NOT contain `toksecret123` (credential absent).
 ///   3. `command_preview` contains `--verbose` (tail NOT swallowed — fail-safe stopped at b1).
 ///
-/// RED against current implementation (`consuming_quoted` iterates to end-of-tokens with
-/// no b1/b2 escape, swallowing `--verbose` entirely).
-/// BC-4.15.001 v1.5 INV5 Pass 3 malformed/unbalanced-quote fail-safe / EC-024 / F-RD2-002.
+/// Verifies EC-024 / F-RD2-002 closure: BC-4.15.001 v1.5 INV5 Pass 3 unbalanced-quote
+/// fail-safe — b1-stop halts consumption at `--verbose`; command tail preserved.
 #[test]
 fn test_heavy_op_gate_unbalanced_quote_auth_header_fail_safe() {
     // Opening `"` on the header token; no closing `"` in the command.
@@ -1451,11 +1427,9 @@ fn test_heavy_op_gate_unbalanced_quote_auth_header_fail_safe() {
                 advisory.command_preview.contains("--verbose"),
                 "EC-024 / INV5 Pass 3 unbalanced-quote fail-safe: '--verbose' MUST appear in command_preview.\n\
                 Got: {:?}\n\
-                Bug: consuming_quoted loop iterates to end-of-tokens with no b1/b2 escape condition;\n\
-                '--verbose' is consumed and dropped because it does not end with '\"' or '\\''.\n\
                 BC-4.15.001 v1.5 INV5 Pass 3 malformed/unbalanced-quote fail-safe:\n\
                 consumption MUST stop at first b1-flag (starts with '-') or b2-URL (contains '://');\n\
-                command tail MUST NOT be swallowed.",
+                command tail MUST NOT be swallowed even when no closing quote is present.",
                 advisory.command_preview
             );
         }
@@ -1474,11 +1448,8 @@ fn test_heavy_op_gate_unbalanced_quote_auth_header_fail_safe() {
 //
 // BC-4.15.001 v1.5 INV5 Pass 3 b3: "The token contains the closing quote
 // character (`"` or `'`) THAT MATCHES THE OPENING QUOTE of the header value."
-// The current impl stops on EITHER `"` or `'`, regardless of which quote opened
-// the header value. A stray `'` (apostrophe) inside a double-quoted value stops
-// consumption early, leaking the real secret that follows.
-//
-// RED against current implementation (stops at apostrophe, leaks secret).
+// Verifies F-RD3-002 closure: b3-stop requires the SAME quote type as the
+// opening quote; a stray `'` inside a `"`-opened value is NOT a stop.
 // ---------------------------------------------------------------------------
 
 /// BC-4.15.001 v1.5 INV5 Pass 3 b3 / F-RD3-002 — matching-quote b3 stop:
@@ -1500,11 +1471,8 @@ fn test_heavy_op_gate_unbalanced_quote_auth_header_fail_safe() {
 ///   1. `command_preview` contains `***REDACTED***` (Pass 3 fired).
 ///   2. `command_preview` does NOT contain `realsecret` (secret masked, NOT leaked).
 ///
-/// Current implementation FAILS assertion 2: `consuming_quoted` stops at `aaa'`
-/// (apostrophe matches any-quote check), so `realsecret"` appears in the output
-/// as an unmasked trailing token.
-///
-/// RED against current implementation. BC-4.15.001 v1.5 INV5 Pass 3 b3 / F-RD3-002.
+/// Verifies F-RD3-002 closure: BC-4.15.001 v1.5 INV5 Pass 3 b3 — stray apostrophe
+/// inside a double-quoted header does NOT trigger b3-stop; `realsecret` fully masked.
 #[test]
 fn test_heavy_op_gate_matching_quote_no_early_stop_leak() {
     // Double-quoted header: stray apostrophe in `aaa'` should NOT stop b3.
@@ -1524,13 +1492,10 @@ fn test_heavy_op_gate_matching_quote_no_early_stop_leak() {
                 advisory.command_preview
             );
             // Assert 2: real secret after stray apostrophe MUST NOT leak.
-            // Current impl stops at `aaa'` (any-quote match) → `realsecret"` leaks.
             assert!(
                 !advisory.command_preview.contains("realsecret"),
                 "F-RD3-002 / INV5 Pass 3 b3 SECRET LEAK: 'realsecret' must NOT appear in command_preview.\n\
                 Got: {:?}\n\
-                Bug: consuming_quoted stops on ANY quote char (both '\"' and '\\''); stray apostrophe\n\
-                inside a double-quoted header stops consumption early, leaking the trailing secret.\n\
                 BC-4.15.001 v1.5 INV5 Pass 3 b3: b3-stop requires the MATCHING closing quote\n\
                 (same quote type as the opening quote — here '\"'). A '\\'' inside a '\"'-opened\n\
                 header is NOT a b3-stop; it is part of the value and must be consumed/masked.",
@@ -1551,11 +1516,8 @@ fn test_heavy_op_gate_matching_quote_no_early_stop_leak() {
 // BC-4.15.001 v1.5 INV5 Pass 3 F-RD5-001 — quoted header with scheme abutting
 // the colon (no space): "Authorization:Bearer token" whitespace-splits into
 // token `"Authorization:Bearer` (has content after `:` → Form A) and `token"`.
-// Form A masks the within-token content but does NOT consume subsequent tokens,
-// so `token"` leaks. Fix requires Form A → detect unclosed opening quote →
-// fall through to Form B token-consumption semantics.
-//
-// RED against current implementation (Form A stops immediately; next token leaks).
+// Verifies F-RD5-001 closure: Form A with unclosed opening quote falls through
+// to Form B token-consumption, consuming `token"` (b3-stop on matching `"`).
 // ---------------------------------------------------------------------------
 
 /// BC-4.15.001 v1.5 INV5 Pass 3 / F-RD5-001 — quoted inline scheme (primary):
@@ -1574,8 +1536,8 @@ fn test_heavy_op_gate_matching_quote_no_early_stop_leak() {
 ///   1. `command_preview` contains `***REDACTED***` (Pass 3 fired).
 ///   2. `command_preview` does NOT contain `realsecret` (secret masked, not leaked).
 ///
-/// Current implementation FAILS assertion 2.
-/// RED against current implementation. BC-4.15.001 v1.5 INV5 Pass 3 / F-RD5-001.
+/// Verifies F-RD5-001 closure: Form A with unclosed opening quote falls through
+/// to Form B; `realsecret"` consumed and masked. BC-4.15.001 v1.5 INV5 Pass 3.
 #[test]
 fn test_heavy_op_gate_quoted_inline_scheme_no_space_no_leak() {
     // Double-quoted header where scheme abuts the colon — no space between
@@ -1601,12 +1563,10 @@ fn test_heavy_op_gate_quoted_inline_scheme_no_space_no_leak() {
                 !advisory.command_preview.contains("realsecret"),
                 "F-RD5-001 / INV5 Pass 3 SECRET LEAK: 'realsecret' must NOT appear in command_preview.\n\
                 Got: {:?}\n\
-                Bug: Form A fires on '\"Authorization:Bearer' (after_colon = 'Bearer', non-empty),\n\
-                masks within-token, then stops without consuming `realsecret\"` (the next token).\n\
-                Fix: if the Form A token has an unclosed opening quote, fall through to Form B\n\
-                token-consumption semantics until matching closing quote (b3-stop) is reached.\n\
-                BC-4.15.001 v1.5 INV5 Pass 3: no credential token from a quoted header may appear\n\
-                unmasked in command_preview.",
+                BC-4.15.001 v1.5 INV5 Pass 3 / F-RD5-001: when a Form A token has an unclosed\n\
+                opening quote, Pass 3 MUST continue consuming subsequent tokens (Form B semantics)\n\
+                until the matching closing quote (b3-stop) is reached. No credential token from\n\
+                a quoted header may appear unmasked in command_preview.",
                 advisory.command_preview
             );
         }
@@ -1697,8 +1657,8 @@ fn test_heavy_op_gate_quoted_single_quote_multitoken_no_leak() {
 ///   2. `command_preview` does NOT contain `sk` as a standalone token (credential masked).
 ///   3. `command_preview` contains `--verbose` (trailing non-credential arg preserved).
 ///
-/// Current implementation FAILS assertion 2 (`sk"` leaks).
-/// RED against current implementation. BC-4.15.001 v1.5 INV5 Pass 3 / F-RD5-001.
+/// Verifies F-RD5-001 closure (boundary): `sk"` consumed and masked by Form B fallthrough;
+/// `--verbose` preserved (post-close-quote passthrough). BC-4.15.001 v1.5 INV5 Pass 3.
 #[test]
 fn test_heavy_op_gate_quoted_inline_scheme_with_trailing_outside_quote() {
     // Double-quoted header with inline scheme; `--verbose` is outside the closing
@@ -1726,11 +1686,9 @@ fn test_heavy_op_gate_quoted_inline_scheme_with_trailing_outside_quote() {
                 !preview.contains(" sk"),
                 "F-RD5-001 / INV5 Pass 3 SECRET LEAK: credential 'sk' must NOT appear in command_preview.\n\
                 Got: {:?}\n\
-                Bug: Form A fires on '\"Authorization:Bearer' (after_colon = 'Bearer'), masks\n\
-                within-token, then stops — `sk\"` (next token) is emitted verbatim.\n\
-                Fix: Form A with unclosed opening quote must fall through to Form B consumption,\n\
-                consuming `sk\"` (b3-stop on matching `\"`) before resuming normal output.\n\
-                BC-4.15.001 v1.5 INV5 Pass 3 / F-RD5-001.",
+                BC-4.15.001 v1.5 INV5 Pass 3 / F-RD5-001: Form A token with unclosed opening quote\n\
+                MUST fall through to Form B consumption; `sk\"` (b3-stop on matching `\"`) consumed\n\
+                and masked before resuming passthrough for `--verbose`.",
                 preview
             );
             // Assert 3: trailing non-credential arg outside closing quote must be preserved.
