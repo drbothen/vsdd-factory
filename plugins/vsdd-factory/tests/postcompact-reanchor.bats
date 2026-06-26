@@ -497,10 +497,10 @@ current_step: step-from-git
 #   with the FULL ADR-026 §Decision 7 canonical shape.
 #
 # F-P1-005: asserts the complete capabilities block including:
-#   - env_allow exact 8-element list
-#   - exec_subprocess: binary_allow ["bash","git","jq"] + shell_bypass_acknowledged
+#   - env_allow: PATH, HOME, TMPDIR, GIT_CONFIG_GLOBAL, XDG_CONFIG_HOME (no unused session vars — SEC-002)
+#   - exec_subprocess: binary_allow ["bash","git"] (no jq — SEC-003) + shell_bypass_acknowledged
 #   - write_file path_allow [".factory/logs/"]
-#   - GIT_DIR is NOT present
+#   - GIT_DIR, CLAUDE_PROJECT_DIR, CLAUDE_PLUGIN_ROOT, VSDD_SESSION_ID, jq NOT present
 #
 # Block extraction is bounded to the single [[hooks]] stanza so extra-key bleed
 # from an adjacent entry does not mask a missing field in this entry.
