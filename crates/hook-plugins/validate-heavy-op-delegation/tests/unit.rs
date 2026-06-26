@@ -552,9 +552,9 @@ fn test_heavy_op_gate_channel_identity_command_preview_not_debug_quoted() {
 /// The pure-parse invariant (INV1) is a source-level architectural constraint.
 /// A linker check would only catch linked symbols; a feature-flag approach only
 /// catches conditional compilation paths. Source-fence catches ANY `use std::fs`
-/// or `std::fs::` reference regardless of whether it's dead code — if it appears
-/// There is no clippy disallowed-types configuration for this crate; this
-/// source-fence test is the SOLE INV1 enforcement mechanism and runs on every
+/// or `std::fs::` reference regardless of whether it's dead code — if it appears,
+/// the test fails. There is no clippy disallowed-types configuration for this crate;
+/// this source-fence test is the SOLE INV1 enforcement mechanism and runs on every
 /// `cargo test`.
 ///
 /// **False-positive prevention:**
@@ -887,8 +887,8 @@ fn test_heavy_op_gate_redacts_url_credentials() {
 ///
 /// Assert: `command_preview` does NOT contain `***REDACTED***`.
 ///
-/// GREEN against current implementation (no redaction). Regression guard.
-/// BC-4.15.001 INV5 / AC-012.
+/// Regression guard: verifies BC-4.15.001 INV5 / AC-012 non-redaction path —
+/// clean commands must not acquire spurious `***REDACTED***` markers.
 #[test]
 fn test_heavy_op_gate_no_redaction_on_clean_command() {
     let command = r#"grep -r TODO . --include="*.rs""#;
@@ -923,8 +923,8 @@ fn test_heavy_op_gate_no_redaction_on_clean_command() {
 /// Assert: `command_preview` contains `/tmp/agent.1` (the value is preserved);
 /// does NOT contain `***REDACTED***`.
 ///
-/// GREEN against current implementation (no redaction). Regression guard.
-/// BC-4.15.001 INV5 / AC-012.
+/// Regression guard: verifies BC-4.15.001 INV5 / AC-012 allowlist path —
+/// `SSH_AUTH_SOCK` must not be masked; allowlist must not regress.
 #[test]
 fn test_heavy_op_gate_allowlist_env_var_not_redacted() {
     let command = "SSH_AUTH_SOCK=/tmp/agent.1 grep -r .";
@@ -967,8 +967,8 @@ fn test_heavy_op_gate_allowlist_env_var_not_redacted() {
 ///
 /// Assert: `command_preview` does NOT contain `***REDACTED***`.
 ///
-/// GREEN against current implementation (no redaction). Regression guard.
-/// BC-4.15.001 INV5 / AC-012 / EC-020.
+/// Regression guard: verifies BC-4.15.001 INV5 / AC-012 / EC-020 non-redaction path —
+/// bare key flag with no following value must not produce spurious redaction.
 #[test]
 fn test_heavy_op_gate_bare_key_flag_not_redacted() {
     let command = r#"find . -name "*.key" -type f"#;
@@ -1384,9 +1384,10 @@ fn test_heavy_op_gate_auth_header_preserves_trailing_flag() {
 ///   Opening `"` on `"Authorization:` — `started_with_quote = true` → `consuming_quoted = true`.
 ///   `Bearer` → `consuming_quoted`, extended.
 ///   `toksecret123` → extended (no closing `"` or `'`).
-///   `--verbose` → extended (no closing quote) — under the correct fail-safe this STOPS at `--verbose`
-///     (b1-stop: starts with `-`) and does NOT consume it; under the current buggy implementation
-///     `consuming_quoted` has no b1/b2 stop condition and consumes ALL remaining tokens.
+///   `--verbose` → b1-stop fires (starts with `-`); consumption halts; `--verbose` is NOT consumed
+///     and is preserved in the output. (Red Gate pre-implementation: a stub without b1/b2 stop
+///     conditions would consume ALL remaining tokens, dropping `--verbose` — making this test
+///     load-bearing.)
 ///
 /// Assert:
 ///   1. `command_preview` contains `***REDACTED***` (redaction fired on the header).
@@ -1586,15 +1587,14 @@ fn test_heavy_op_gate_quoted_inline_scheme_no_space_no_leak() {
 /// `extra'` contains the closing `'` (matching the opening `'`) → b3-stop; `extra`
 /// is consumed/masked; no tokens after the closing quote are consumed.
 ///
-/// This is a GREEN test (current implementation handles this correctly). It
-/// documents the correct single-quote Form B behavior so a future refactor
-/// cannot accidentally break it.
+/// Regression guard: documents the correct single-quote Form B behavior so
+/// a future refactor cannot accidentally break it.
 ///
 /// Assert:
 ///   1. `command_preview` contains `***REDACTED***` (Pass 3 fired).
 ///   2. `command_preview` does NOT contain `dXNlcjpwYXNz` (Base64 credential masked).
 ///
-/// GREEN against current implementation.
+/// Verifies BC-4.15.001 v1.5 INV5 Pass 3 b3: single-quote Form B correctly masked.
 #[test]
 fn test_heavy_op_gate_quoted_single_quote_multitoken_no_leak() {
     // Single-quoted header with space before scheme. Form B: `'Authorization:`

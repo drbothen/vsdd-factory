@@ -867,9 +867,9 @@ TOML
 #        "cargo test --release --workspace" (would match DEFAULT_PATTERNS).
 # Assert: DELEGATION_COUNT == 0 (machine-stable); dispatcher exit 0.
 #
-# Red Gate condition: current implementation (todo!()) hardcodes DEFAULT_PATTERNS
-# and ignores plugin_config → DELEGATION_COUNT == 1 instead of 0;
-# assertion DELEGATION_COUNT -eq 0 fails, proving the bug.
+# Red Gate (pre-implementation): a stub hardcoding DEFAULT_PATTERNS and ignoring
+# plugin_config would produce DELEGATION_COUNT=1 instead of 0, failing this assertion
+# — making it load-bearing for the plugin_config read path.
 # ---------------------------------------------------------------------------
 
 @test "test_heavy_op_gate_empty_pattern_list_no_emission_via_dispatcher" {
@@ -897,16 +897,15 @@ TOML
 
   # Machine-stable assertion (VP-091 §2): DELEGATION_COUNT must be 0.
   # With an empty patterns list, no pattern can ever match (BC-4.15.001 EC-012).
-  # A correct implementation reads plugin_config.patterns at runtime; an
-  # implementation that hardcodes DEFAULT_PATTERNS would produce COUNT=1 here.
+  # Verifies that on_pre_tool_use reads plugin_config.patterns at runtime; this
+  # assertion is load-bearing — a hardcoded DEFAULT_PATTERNS stub would produce COUNT=1.
   local DELEGATION_COUNT
   DELEGATION_COUNT="$(_count_delegation_records)"
   [ "$DELEGATION_COUNT" -eq 0 ] || {
     echo "FAIL: EC-012/AC-011 dispatcher: DELEGATION_COUNT must be 0 with empty patterns list."
     echo "Expected DELEGATION_COUNT=0; got DELEGATION_COUNT=$DELEGATION_COUNT."
-    echo "F-P1-001 BUG: implementation ignores [hooks.config] patterns and uses DEFAULT_PATTERNS."
-    echo "on_pre_tool_use must read plugin_config['patterns'] at runtime, not call"
-    echo "evaluate_patterns(cmd, DEFAULT_PATTERNS) unconditionally."
+    echo "F-P1-001: on_pre_tool_use must read plugin_config['patterns'] at runtime."
+    echo "BC-4.15.001 AC-011: empty patterns list must produce DELEGATION_COUNT=0."
     echo "BC-4.15.001 EC-012: 'patterns = [] → no pattern can ever match; all Bash commands pass silently.'"
     echo "Internal log: $(cat "$INTERNAL_LOG_FILE" 2>/dev/null || echo '(not created)')"
     return 1
@@ -928,9 +927,10 @@ TOML
 # Assert: DELEGATION_COUNT == 1 (machine-stable); matched_pattern == "./ci.sh";
 #         dispatcher exit 0 (INV2).
 #
-# Red Gate condition: current implementation hardcodes DEFAULT_PATTERNS and
-# ignores plugin_config → DELEGATION_COUNT == 0 instead of 1;
-# assertion DELEGATION_COUNT -eq 1 fails, proving the bug.
+# Red Gate (pre-implementation): a stub hardcoding DEFAULT_PATTERNS and ignoring
+# plugin_config would produce DELEGATION_COUNT=0 instead of 1 (./ci.sh absent from
+# DEFAULT_PATTERNS), failing this assertion — making it load-bearing for the
+# plugin_config read path.
 # ---------------------------------------------------------------------------
 
 @test "test_heavy_op_gate_custom_pattern_triggers_via_dispatcher" {
@@ -1007,9 +1007,9 @@ TOML
 #   3. The DelegationRecommended plugin.log line DOES contain "***REDACTED***"
 #      (mask token present — confirms redaction was applied, not elision).
 #
-# Red Gate condition: current implementation (no INV5 redaction) emits the raw
-# command string in command_preview → "supersecrettoken123" present in the
-# plugin.log line → assertion (2) fails, proving redaction is missing.
+# Red Gate (pre-implementation): a stub with no INV5 redaction would emit the raw
+# command string in command_preview → "supersecrettoken123" present in the plugin.log
+# → assertion (2) would fail, making this test load-bearing for the redaction path.
 # ---------------------------------------------------------------------------
 
 @test "test_heavy_op_gate_redacts_secret_in_plugin_log_via_dispatcher" {
@@ -1050,11 +1050,11 @@ TOML
   delegation_line="$(grep '"code":"DelegationRecommended"' "$INTERNAL_LOG_FILE" | head -1)"
 
   # Assert: raw secret MUST NOT appear in the DelegationRecommended record.
-  # Current implementation (no INV5 redaction) fails here — proving Red Gate.
+  # BC-4.15.001 INV5: command_preview MUST have Pass 1 flag-arg secret redacted before emission.
   if echo "$delegation_line" | grep -q "supersecrettoken123"; then
     echo "FAIL: SEC-002/AC-012 INV5 dispatcher: raw secret 'supersecrettoken123' found in plugin.log."
-    echo "BC-4.15.001 INV5: command_preview MUST have Pass 1 flag-arg secret redacted before emission."
-    echo "The current implementation emits the raw command string with no redaction applied."
+    echo "BC-4.15.001 INV5: command_preview MUST have the flag-arg secret replaced with ***REDACTED***."
+    echo "Verify INV5 4-pass redaction is applied before command_preview is written to plugin.log."
     echo "DelegationRecommended line: $delegation_line"
     return 1
   fi
