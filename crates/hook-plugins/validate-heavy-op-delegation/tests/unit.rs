@@ -9,7 +9,7 @@
 //! via `plugin_config["patterns"]` per F-P1-001 fix) live in the bats suite:
 //! `plugins/vsdd-factory/tests/validate-heavy-op-delegation.bats`.
 //!
-//! # Test Table (S-18.06 v1.5 — unit.rs subset)
+//! # Test Table (S-18.06 v1.10 — unit.rs subset)
 //!
 //! | Test name | AC | BC clause | State |
 //! |-----------|----|-----------|-|
@@ -23,6 +23,14 @@
 //! | `test_heavy_op_gate_ec005_find_name_matches` | EC-005 | INV3 | GREEN |
 //! | `test_heavy_op_gate_ec006_run_all_sh_matches` | EC-006 | INV3 | GREEN |
 //! | `test_heavy_op_gate_ec013_custom_pattern_triggers_advisory` | EC-013 | INV3 | GREEN |
+//! | `test_heavy_op_gate_redacts_flag_arg_secret` | AC-012 | INV5/EC-014 | RED |
+//! | `test_heavy_op_gate_redacts_env_assignment_secret` | AC-012 | INV5/EC-015 | RED |
+//! | `test_heavy_op_gate_redacts_authorization_header` | AC-012 | INV5/EC-016 | RED |
+//! | `test_heavy_op_gate_redacts_url_credentials` | AC-012 | INV5/EC-017 | RED |
+//! | `test_heavy_op_gate_no_redaction_on_clean_command` | AC-012 | INV5/EC-018 | GREEN |
+//! | `test_heavy_op_gate_allowlist_env_var_not_redacted` | AC-012 | INV5/EC-019 | GREEN |
+//! | `test_heavy_op_gate_bare_key_flag_not_redacted` | AC-012 | INV5/EC-020 | GREEN |
+//! | `test_heavy_op_gate_redact_then_truncate_ordering` | AC-012 | INV5/EC-021 | RED |
 
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
@@ -639,5 +647,388 @@ fn test_heavy_op_gate_pure_parse_no_filesystem_access() {
             pattern,
             description
         );
+    }
+}
+
+// ---------------------------------------------------------------------------
+// AC-012 / INV5 — 4-pass secret redaction (SEC-002)
+//
+// BC-4.15.001 INV5: "command_preview MUST apply 4-pass redaction before
+// truncation (redact-then-truncate ordering)".
+//
+// All 8 tests call `evaluate_patterns(command, patterns)` via the existing
+// public API.  No new function signatures are introduced.  Tests 1-4 and 8
+// are RED against the current (no-redaction) implementation and will turn
+// GREEN once INV5 is implemented.  Tests 5-7 are GREEN now and serve as
+// regression guards (they verify the gate does NOT over-redact).
+// ---------------------------------------------------------------------------
+
+/// AC-012 / INV5 Pass 1 / EC-014:
+/// A flag-argument secret (`--token <value>`) is redacted before the preview
+/// is returned. The raw secret value must not appear in `command_preview`.
+///
+/// Setup: command `grep -r . --token abc123secret` — pattern `grep -r` matches
+/// (so `evaluate_patterns` returns `Advisory`). Pass 1 applies:
+///   `--token abc123secret` → `--token ***REDACTED***`
+///
+/// Assert: `command_preview` contains `--token ***REDACTED***`; does NOT contain
+/// `abc123secret`.
+///
+/// RED against current implementation (no redaction). BC-4.15.001 INV5 / AC-012.
+#[test]
+fn test_heavy_op_gate_redacts_flag_arg_secret() {
+    let command = "grep -r . --token abc123secret";
+    let result = evaluate_patterns(command, DEFAULT_PATTERNS);
+
+    match result {
+        GateResult::Advisory(ref advisory) => {
+            assert!(
+                advisory.command_preview.contains("--token ***REDACTED***"),
+                "AC-012/INV5 Pass 1: command_preview must contain '--token ***REDACTED***'.\n\
+                Got: {:?}\n\
+                BC-4.15.001 INV5: flag-arg secret MUST be redacted before preview.",
+                advisory.command_preview
+            );
+            assert!(
+                !advisory.command_preview.contains("abc123secret"),
+                "AC-012/INV5 Pass 1: raw secret 'abc123secret' must NOT appear in command_preview.\n\
+                Got: {:?}\n\
+                BC-4.15.001 INV5: redaction MUST replace flag-arg secret value with ***REDACTED***.",
+                advisory.command_preview
+            );
+        }
+        GateResult::Continue => {
+            panic!(
+                "AC-012/INV5 Pass 1: expected Advisory for command containing 'grep -r'; got Continue.\n\
+                Command: {:?}",
+                command
+            );
+        }
+    }
+}
+
+/// AC-012 / INV5 Pass 2 / EC-015:
+/// An environment-variable assignment (`KEY=value`) is redacted before the
+/// preview is returned. The raw secret value must not appear in `command_preview`.
+///
+/// Setup: command `API_KEY=sk-abc123 grep -r .` — pattern `grep -r` matches.
+/// Pass 2 applies: `API_KEY=sk-abc123` → `API_KEY=***REDACTED***`
+///
+/// Assert: `command_preview` contains `API_KEY=***REDACTED***`; does NOT contain
+/// `sk-abc123`.
+///
+/// RED against current implementation (no redaction). BC-4.15.001 INV5 / AC-012.
+#[test]
+fn test_heavy_op_gate_redacts_env_assignment_secret() {
+    let command = "API_KEY=sk-abc123 grep -r .";
+    let result = evaluate_patterns(command, DEFAULT_PATTERNS);
+
+    match result {
+        GateResult::Advisory(ref advisory) => {
+            assert!(
+                advisory.command_preview.contains("API_KEY=***REDACTED***"),
+                "AC-012/INV5 Pass 2: command_preview must contain 'API_KEY=***REDACTED***'.\n\
+                Got: {:?}\n\
+                BC-4.15.001 INV5: env-var assignment secret MUST be redacted.",
+                advisory.command_preview
+            );
+            assert!(
+                !advisory.command_preview.contains("sk-abc123"),
+                "AC-012/INV5 Pass 2: raw secret 'sk-abc123' must NOT appear in command_preview.\n\
+                Got: {:?}\n\
+                BC-4.15.001 INV5: redaction MUST replace env-var value with ***REDACTED***.",
+                advisory.command_preview
+            );
+        }
+        GateResult::Continue => {
+            panic!(
+                "AC-012/INV5 Pass 2: expected Advisory for command containing 'grep -r'; got Continue.\n\
+                Command: {:?}",
+                command
+            );
+        }
+    }
+}
+
+/// AC-012 / INV5 Pass 3 / EC-016:
+/// An Authorization/Cookie header value is redacted before the preview is
+/// returned.
+///
+/// Setup: command `grep -r . -H "Authorization: Bearer eyJtoken123"` — pattern
+/// `grep -r` matches.  Pass 3 applies:
+///   `Authorization: Bearer eyJtoken123` → `Authorization:***REDACTED***`
+///
+/// Assert: `command_preview` contains `Authorization:***REDACTED***`; does NOT
+/// contain `eyJtoken123`.
+///
+/// RED against current implementation (no redaction). BC-4.15.001 INV5 / AC-012.
+#[test]
+fn test_heavy_op_gate_redacts_authorization_header() {
+    let command = r#"grep -r . -H "Authorization: Bearer eyJtoken123""#;
+    let result = evaluate_patterns(command, DEFAULT_PATTERNS);
+
+    match result {
+        GateResult::Advisory(ref advisory) => {
+            assert!(
+                advisory.command_preview.contains("Authorization:***REDACTED***"),
+                "AC-012/INV5 Pass 3: command_preview must contain 'Authorization:***REDACTED***'.\n\
+                Got: {:?}\n\
+                BC-4.15.001 INV5: Authorization header value MUST be redacted.",
+                advisory.command_preview
+            );
+            assert!(
+                !advisory.command_preview.contains("eyJtoken123"),
+                "AC-012/INV5 Pass 3: raw token 'eyJtoken123' must NOT appear in command_preview.\n\
+                Got: {:?}\n\
+                BC-4.15.001 INV5: redaction MUST replace header secret with ***REDACTED***.",
+                advisory.command_preview
+            );
+        }
+        GateResult::Continue => {
+            panic!(
+                "AC-012/INV5 Pass 3: expected Advisory for command containing 'grep -r'; got Continue.\n\
+                Command: {:?}",
+                command
+            );
+        }
+    }
+}
+
+/// AC-012 / INV5 Pass 4 / EC-017:
+/// Inline URL credentials (`user:pass@host`) are redacted before the preview
+/// is returned.
+///
+/// Setup: command `./run-all.sh https://user:pass@example.com/db` — pattern
+/// `./run-all.sh` matches.  Pass 4 applies:
+///   `https://user:pass@example.com/db` → `https://***REDACTED***@example.com/db`
+///
+/// Assert: `command_preview` contains `https://***REDACTED***@example.com/db`;
+/// does NOT contain `user:pass`.
+///
+/// RED against current implementation (no redaction). BC-4.15.001 INV5 / AC-012.
+#[test]
+fn test_heavy_op_gate_redacts_url_credentials() {
+    let command = "https://user:pass@example.com/db ./run-all.sh";
+    let result = evaluate_patterns(command, DEFAULT_PATTERNS);
+
+    match result {
+        GateResult::Advisory(ref advisory) => {
+            assert!(
+                advisory.command_preview.contains("https://***REDACTED***@example.com/db"),
+                "AC-012/INV5 Pass 4: command_preview must contain 'https://***REDACTED***@example.com/db'.\n\
+                Got: {:?}\n\
+                BC-4.15.001 INV5: URL credentials MUST be replaced with ***REDACTED***.",
+                advisory.command_preview
+            );
+            assert!(
+                !advisory.command_preview.contains("user:pass"),
+                "AC-012/INV5 Pass 4: raw credentials 'user:pass' must NOT appear in command_preview.\n\
+                Got: {:?}\n\
+                BC-4.15.001 INV5: redaction MUST replace URL user:pass with ***REDACTED***.",
+                advisory.command_preview
+            );
+        }
+        GateResult::Continue => {
+            panic!(
+                "AC-012/INV5 Pass 4: expected Advisory for command containing './run-all.sh'; got Continue.\n\
+                Command: {:?}",
+                command
+            );
+        }
+    }
+}
+
+/// AC-012 / INV5 negative / EC-018:
+/// A clean command with no secret patterns produces NO `***REDACTED***` in
+/// the preview.  This guards against over-redaction.
+///
+/// Setup: command `grep -r TODO . --include="*.rs"` — no flag-args, no env
+/// assignments, no auth headers, no URL credentials.  Pattern `grep -r` matches.
+///
+/// Assert: `command_preview` does NOT contain `***REDACTED***`.
+///
+/// GREEN against current implementation (no redaction). Regression guard.
+/// BC-4.15.001 INV5 / AC-012.
+#[test]
+fn test_heavy_op_gate_no_redaction_on_clean_command() {
+    let command = r#"grep -r TODO . --include="*.rs""#;
+    let result = evaluate_patterns(command, DEFAULT_PATTERNS);
+
+    match result {
+        GateResult::Advisory(ref advisory) => {
+            assert!(
+                !advisory.command_preview.contains("***REDACTED***"),
+                "AC-012/INV5 EC-018: clean command must NOT produce '***REDACTED***' in preview.\n\
+                Got: {:?}\n\
+                BC-4.15.001 INV5: redaction MUST NOT over-apply to commands with no secrets.",
+                advisory.command_preview
+            );
+        }
+        GateResult::Continue => {
+            panic!(
+                "AC-012/INV5 EC-018: expected Advisory for command containing 'grep -r'; got Continue.\n\
+                Command: {:?}",
+                command
+            );
+        }
+    }
+}
+
+/// AC-012 / INV5 allowlist / EC-019:
+/// An allowlisted env-var (`SSH_AUTH_SOCK`) must NOT be redacted.
+///
+/// Setup: command `SSH_AUTH_SOCK=/tmp/agent.1 grep -r .` — `SSH_AUTH_SOCK` is
+/// explicitly on the Pass 2 allowlist.  Pattern `grep -r` matches.
+///
+/// Assert: `command_preview` contains `/tmp/agent.1` (the value is preserved);
+/// does NOT contain `***REDACTED***`.
+///
+/// GREEN against current implementation (no redaction). Regression guard.
+/// BC-4.15.001 INV5 / AC-012.
+#[test]
+fn test_heavy_op_gate_allowlist_env_var_not_redacted() {
+    let command = "SSH_AUTH_SOCK=/tmp/agent.1 grep -r .";
+    let result = evaluate_patterns(command, DEFAULT_PATTERNS);
+
+    match result {
+        GateResult::Advisory(ref advisory) => {
+            assert!(
+                advisory.command_preview.contains("/tmp/agent.1"),
+                "AC-012/INV5 EC-019: allowlisted SSH_AUTH_SOCK value must be preserved in preview.\n\
+                Got: {:?}\n\
+                BC-4.15.001 INV5 allowlist: SSH_AUTH_SOCK MUST NOT be redacted.",
+                advisory.command_preview
+            );
+            assert!(
+                !advisory.command_preview.contains("***REDACTED***"),
+                "AC-012/INV5 EC-019: allowlisted SSH_AUTH_SOCK must NOT produce ***REDACTED***.\n\
+                Got: {:?}\n\
+                BC-4.15.001 INV5 allowlist: SSH_AUTH_SOCK is exempt from Pass 2 redaction.",
+                advisory.command_preview
+            );
+        }
+        GateResult::Continue => {
+            panic!(
+                "AC-012/INV5 EC-019: expected Advisory for command containing 'grep -r'; got Continue.\n\
+                Command: {:?}",
+                command
+            );
+        }
+    }
+}
+
+/// AC-012 / INV5 bare-flag negative / EC-020:
+/// A bare `--key` flag (no `<space>value` following it) must NOT be redacted.
+/// Pass 1 only redacts `--<flag> <value>` pairs where a whitespace-separated
+/// value follows the flag.
+///
+/// Setup: command `find . -name "*.key" -type f` — pattern `find . -name` matches.
+/// No flag-arg pair where a secret value follows.
+///
+/// Assert: `command_preview` does NOT contain `***REDACTED***`.
+///
+/// GREEN against current implementation (no redaction). Regression guard.
+/// BC-4.15.001 INV5 / AC-012 / EC-020.
+#[test]
+fn test_heavy_op_gate_bare_key_flag_not_redacted() {
+    let command = r#"find . -name "*.key" -type f"#;
+    let result = evaluate_patterns(command, DEFAULT_PATTERNS);
+
+    match result {
+        GateResult::Advisory(ref advisory) => {
+            assert!(
+                !advisory.command_preview.contains("***REDACTED***"),
+                "AC-012/INV5 EC-020: bare flag with no following value must NOT produce ***REDACTED***.\n\
+                Got: {:?}\n\
+                BC-4.15.001 INV5: Pass 1 only redacts '--flag value' pairs, not bare flags.",
+                advisory.command_preview
+            );
+        }
+        GateResult::Continue => {
+            panic!(
+                "AC-012/INV5 EC-020: expected Advisory for command containing 'find . -name'; got Continue.\n\
+                Command: {:?}",
+                command
+            );
+        }
+    }
+}
+
+/// AC-012 / INV5 redact-then-truncate ordering / EC-021:
+/// Redaction MUST be applied BEFORE truncation so that the 120-char window
+/// shows the redacted string, not the raw secret.
+///
+/// Fixture construction (BC-4.15.001 EC-021):
+///   Raw command = `"grep -r . --token a"` (19 chars) + `"x"` × 96 = 115 chars.
+///   After Pass 1: `"a"` → `"***REDACTED***"` (+13 chars) = 128-char post-redaction
+///   string.  Truncation yields first 120 chars of the 128-char redacted string
+///   followed by `ELLIPSIS` (U+2026).
+///
+/// Assert:
+///   1. `command_preview` ends with `ELLIPSIS` (was truncated).
+///   2. `command_preview` does NOT contain `" a"` at the end of the raw
+///      `--token a` fragment (raw secret absent from the 120-char slice).
+///   3. `command_preview` contains `--token ***REDACTED***` (redaction applied
+///      before truncation window).
+///
+/// RED against current implementation (no redaction). BC-4.15.001 INV5 / AC-012.
+#[test]
+fn test_heavy_op_gate_redact_then_truncate_ordering() {
+    // 19 chars: "grep -r . --token a"
+    // + 96 'x' chars = 115 chars total (< 120 → no truncation on raw string)
+    let raw_command = format!("grep -r . --token a{}", "x".repeat(96));
+    assert_eq!(
+        raw_command.chars().count(),
+        115,
+        "fixture: raw command must be exactly 115 chars"
+    );
+
+    let result = evaluate_patterns(&raw_command, DEFAULT_PATTERNS);
+
+    match result {
+        GateResult::Advisory(ref advisory) => {
+            // After Pass 1 redaction: "a" → "***REDACTED***" → 128 chars
+            // First 120 chars of 128-char redacted string + ELLIPSIS
+            assert!(
+                advisory.command_preview.ends_with(ELLIPSIS),
+                "AC-012/INV5 EC-021: preview must end with ELLIPSIS (post-redaction string exceeds 120 chars).\n\
+                Got: {:?}\n\
+                BC-4.15.001 INV5: redact-then-truncate; raw 115-char command → 128-char post-redaction string.",
+                advisory.command_preview
+            );
+            assert_eq!(
+                advisory.command_preview.chars().count(),
+                COMMAND_PREVIEW_MAX_CHARS + 1,
+                "AC-012/INV5 EC-021: preview must be exactly 121 code points (120 + ELLIPSIS).\n\
+                Got {} code points: {:?}\n\
+                BC-4.15.001 INV5: redact-then-truncate ordering.",
+                advisory.command_preview.chars().count(),
+                advisory.command_preview
+            );
+            assert!(
+                advisory.command_preview.contains("--token ***REDACTED***"),
+                "AC-012/INV5 EC-021: preview must contain '--token ***REDACTED***' (redaction before truncation).\n\
+                Got: {:?}\n\
+                BC-4.15.001 INV5: Pass 1 redaction applied BEFORE INV4 truncation.",
+                advisory.command_preview
+            );
+            // The raw secret 'a' is a single char; the 120-char window of the
+            // 128-char redacted string does not contain the literal ' a' sequence
+            // that the original --token argument produced.
+            assert!(
+                !advisory.command_preview.contains("--token a"),
+                "AC-012/INV5 EC-021: raw '--token a' must NOT appear in command_preview.\n\
+                Got: {:?}\n\
+                BC-4.15.001 INV5: raw secret must be replaced by ***REDACTED*** before preview window.",
+                advisory.command_preview
+            );
+        }
+        GateResult::Continue => {
+            panic!(
+                "AC-012/INV5 EC-021: expected Advisory for command containing 'grep -r'; got Continue.\n\
+                Command: {:?}",
+                raw_command
+            );
+        }
     }
 }

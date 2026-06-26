@@ -986,3 +986,85 @@ TOML
     return 1
   }
 }
+
+# ---------------------------------------------------------------------------
+# SEC-002 / AC-012 / INV5 / EC-014 — dispatcher end-to-end:
+# 4-pass secret redaction applied before command_preview written to plugin.log
+#
+# BC-4.15.001 INV5: "command_preview MUST apply 4-pass redaction before
+# truncation (redact-then-truncate ordering). The redacted string MUST NOT
+# appear in any emitted channel (plugin.log DelegationRecommended record)."
+#
+# Setup: registry with default patterns; Bash command
+#        "grep -r . --token supersecrettoken123"
+#        Pass 1 triggers: --token <value> → --token ***REDACTED***
+#
+# Assert:
+#   1. DELEGATION_COUNT == 1 (pattern "grep -r" matched — machine-stable).
+#   2. The DelegationRecommended plugin.log line does NOT contain
+#      "supersecrettoken123" (raw secret absent from emitted channel).
+#   3. The DelegationRecommended plugin.log line DOES contain "***REDACTED***"
+#      (mask token present — confirms redaction was applied, not elision).
+#
+# Red Gate condition: current implementation (no INV5 redaction) emits the raw
+# command string in command_preview → "supersecrettoken123" present in the
+# plugin.log line → assertion (2) fails, proving redaction is missing.
+# ---------------------------------------------------------------------------
+
+@test "test_heavy_op_gate_redacts_secret_in_plugin_log_via_dispatcher" {
+  _require_artifacts
+
+  # Write canonical registry with default patterns.
+  _write_full_registry
+
+  # Copy the real WASM gate into the synthetic plugin root.
+  cp "$GATE_WASM" "$WORK/hook-plugins/validate-heavy-op-delegation.wasm"
+
+  # Command that matches "grep -r" and contains a Pass 1 flag-arg secret.
+  local cmd="grep -r . --token supersecrettoken123"
+  local envelope
+  envelope="$(_bash_event "$cmd" "sec002-redaction")"
+
+  _run_dispatcher_with_internal_log "$envelope"
+
+  # Assert: dispatcher returns Continue (exit 0) — INV2 never blocks.
+  [ "$status" -eq 0 ] || {
+    echo "FAIL: SEC-002/AC-012 dispatcher: expected exit 0 (Continue) but got status=$status."
+    echo "Output: $output"
+    return 1
+  }
+
+  # Assert: exactly 1 DelegationRecommended record (machine-stable per VP-091 §2).
+  local DELEGATION_COUNT
+  DELEGATION_COUNT="$(_count_delegation_records)"
+  [ "$DELEGATION_COUNT" -eq 1 ] || {
+    echo "FAIL: SEC-002/AC-012 dispatcher: expected DELEGATION_COUNT=1; got $DELEGATION_COUNT."
+    echo "Pattern 'grep -r' is in DEFAULT_PATTERNS — it must match."
+    echo "Internal log: $(cat "$INTERNAL_LOG_FILE" 2>/dev/null || echo '(not created)')"
+    return 1
+  }
+
+  # Extract the DelegationRecommended plugin.log line for targeted assertions.
+  local delegation_line
+  delegation_line="$(grep '"code":"DelegationRecommended"' "$INTERNAL_LOG_FILE" | head -1)"
+
+  # Assert: raw secret MUST NOT appear in the DelegationRecommended record.
+  # Current implementation (no INV5 redaction) fails here — proving Red Gate.
+  if echo "$delegation_line" | grep -q "supersecrettoken123"; then
+    echo "FAIL: SEC-002/AC-012 INV5 dispatcher: raw secret 'supersecrettoken123' found in plugin.log."
+    echo "BC-4.15.001 INV5: command_preview MUST have Pass 1 flag-arg secret redacted before emission."
+    echo "The current implementation emits the raw command string with no redaction applied."
+    echo "DelegationRecommended line: $delegation_line"
+    return 1
+  fi
+
+  # Assert: mask token MUST appear in the DelegationRecommended record (confirms
+  # redaction was applied, not that the preview was silently elided).
+  echo "$delegation_line" | grep -q '"\*\*\*REDACTED\*\*\*"' || \
+  echo "$delegation_line" | grep -q '\*\*\*REDACTED\*\*\*' || {
+    echo "FAIL: SEC-002/AC-012 INV5 dispatcher: '***REDACTED***' NOT found in plugin.log."
+    echo "BC-4.15.001 INV5: the mask token MUST appear in command_preview after Pass 1 redaction."
+    echo "DelegationRecommended line: $delegation_line"
+    return 1
+  }
+}
