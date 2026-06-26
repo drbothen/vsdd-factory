@@ -1398,3 +1398,32 @@ env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT
 
 [hooks.capabilities.write_file]
 path_allow = [".factory/logs/"]
+
+# ---------- validate-heavy-op-delegation advisory gate (S-18.06) ----------
+# Pure-parse PreToolUse gate: emits DelegationRecommended advisory to stderr
+# and plugin.log when a Bash command matches a configured heavy-operation pattern.
+# NEVER blocks (BC-4.15.001 INV2). on_error=continue: fail-open — this gate is
+# advisory-only and must never prevent Bash commands from running.
+# tool="Bash": registry filter — non-Bash tool calls never dispatched (PC-D).
+# [hooks.config] patterns: v1 default heavy-operation pattern list (BC-4.15.001 PC1).
+# (traces to BC-4.15.001 / VP-091 / ADR-026 §Decision 12 / S-18.06 AC-008)
+
+[[hooks]]
+name = "validate-heavy-op-delegation"
+event = "PreToolUse"
+plugin = "hook-plugins/validate-heavy-op-delegation.wasm"
+tool = "Bash"
+on_error = "continue"
+async = false
+timeout_ms = 5000
+
+[hooks.config]
+patterns = [
+  "cargo test --release",
+  "grep -r",
+  "grep -R",
+  "find . -name",
+  "find . -type",
+  "./run-all.sh",
+  "./run-bats.sh"
+]
