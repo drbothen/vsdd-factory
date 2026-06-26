@@ -37,9 +37,9 @@
 //! | `test_heavy_op_gate_auth_header_preserves_trailing_flag` | AC-012 | INV5/Pass3/EC-023/F-RD3-001 | GREEN |
 //! | `test_heavy_op_gate_unbalanced_quote_auth_header_fail_safe` | AC-012 | INV5/Pass3/EC-024 | GREEN |
 //! | `test_heavy_op_gate_matching_quote_no_early_stop_leak` | AC-012 | INV5/Pass3/b3/F-RD3-002 | GREEN |
-//! | `test_heavy_op_gate_quoted_inline_scheme_no_space_no_leak` | AC-012 | INV5/Pass3/F-RD5-001 | RED |
+//! | `test_heavy_op_gate_quoted_inline_scheme_no_space_no_leak` | AC-012 | INV5/Pass3/F-RD5-001 | GREEN |
 //! | `test_heavy_op_gate_quoted_single_quote_multitoken_no_leak` | AC-012 | INV5/Pass3/b3 | GREEN |
-//! | `test_heavy_op_gate_quoted_inline_scheme_with_trailing_outside_quote` | AC-012 | INV5/Pass3/F-RD5-001 | RED |
+//! | `test_heavy_op_gate_quoted_inline_scheme_with_trailing_outside_quote` | AC-012 | INV5/Pass3/F-RD5-001 | GREEN |
 
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
@@ -665,11 +665,9 @@ fn test_heavy_op_gate_pure_parse_no_filesystem_access() {
 // BC-4.15.001 INV5: "command_preview MUST apply 4-pass redaction before
 // truncation (redact-then-truncate ordering)".
 //
-// All 8 tests call `evaluate_patterns(command, patterns)` via the existing
-// public API.  No new function signatures are introduced.  Tests 1-4 and 8
-// are RED against the current (no-redaction) implementation and will turn
-// GREEN once INV5 is implemented.  Tests 5-7 are GREEN now and serve as
-// regression guards (they verify the gate does NOT over-redact).
+// All tests call `evaluate_patterns(command, patterns)` via the public API.
+// No new function signatures are introduced.  INV5 is fully implemented;
+// all redaction and non-redaction tests are GREEN.
 // ---------------------------------------------------------------------------
 
 /// AC-012 / INV5 Pass 1 / EC-014:
