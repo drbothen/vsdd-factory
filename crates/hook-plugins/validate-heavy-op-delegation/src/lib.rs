@@ -439,8 +439,9 @@ fn redact_pass3_auth_headers(command: &str) -> String {
     for &(start, end) in &positions {
         if consuming_unquoted {
             let tok = &command[start..end];
-            // Stop consuming when we reach a CLI option token.
-            if tok.starts_with('-') {
+            // b1-stop: token starts with `-` (CLI option).
+            // b2-stop: token contains `://` (URL/positional) — BC-4.15.001 v1.5 Pass 3.
+            if tok.starts_with('-') || tok.contains("://") {
                 consuming_unquoted = false;
                 // This token is NOT part of the header value; leave it in the output.
             } else {
@@ -453,15 +454,24 @@ fn redact_pass3_auth_headers(command: &str) -> String {
         }
 
         if consuming_quoted {
-            // Quoted form: extend last replacement to cover this token.
-            if let Some(last) = replacements.last_mut() {
-                last.1 = end;
-            }
             let tok = &command[start..end];
-            if tok.ends_with('"') || tok.ends_with('\'') {
+            // Fail-safe b1/b2 escape conditions for unbalanced/malformed quoted values
+            // (BC-4.15.001 v1.5 INV5 Pass 3): stop BEFORE consuming a token that starts
+            // with `-` (b1) or contains `://` (b2). The tail is NOT swallowed.
+            if tok.starts_with('-') || tok.contains("://") {
                 consuming_quoted = false;
+                // This token is NOT consumed; leave it in the output.
+            } else {
+                // Extend the last replacement to cover this quoted value token.
+                if let Some(last) = replacements.last_mut() {
+                    last.1 = end;
+                }
+                // b3-stop: closing quote terminates the quoted value.
+                if tok.ends_with('"') || tok.ends_with('\'') {
+                    consuming_quoted = false;
+                }
+                continue;
             }
-            continue;
         }
 
         let tok = &command[start..end];
