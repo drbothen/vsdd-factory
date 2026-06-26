@@ -3017,6 +3017,56 @@ S-18.05 (postcompact-reanchor.sh advisory hook; BC-7.07.002; P1; 5pts; depends_o
 
 ---
 
+## D-700 — PR #271 (S-18.05) post-merge STATE burst — 2026-06-26
+
+**Decision:** PR #271 (`feat(S-18.05): postcompact-reanchor advisory hook`, feature/S-18.05 → develop) squash-merged to develop at commit `ef4dfcc7` on 2026-06-26T12:31:07Z. Remote feature branch deleted. Post-merge burst executed.
+
+**Context:** S-18.05 LOCAL adversary cascade 9 passes / 6 fix bursts CONVERGED 3-CLEAN (P7/P8/P9 CLEAN). Root spec defect found at P1: phantom STATE.md field `last_verified_develop_sha` — spec referenced a HANDOFF.md-only field absent from STATE.md, causing the hook to silently emit `sha=UNKNOWN` on every real PostCompact firing. Corrected to `git rev-parse origin/develop` at hook invocation time (ADR-026 §Decision 2 schema; BC-7.07.002 v1.13; VP-089 v1.4; AC-001/AC-002/AC-009 all updated). SEC-001 JSON-escape kept (accepted); SEC-002/SEC-003 capability trim reverted to ADR canonical per human directive (cross-hook consistency). F-P5-001 status=warn behavioral fix merged. S-18.05 delivers postcompact-reanchor.sh (PostCompact advisory re-anchor hook; BC-7.07.002; P1; 5pts; depends_on S-18.00 MET; blocks S-18.07/S-18.08).
+
+**Process-gap codified (F-P7-001):** VP version cites in stories and STORY-INDEX are volatile pins — same class as ADR pins under POLICY 19 (TD-VSDD-091). The VP-089 version token in S-18.05 §Traceability decayed across multiple adversary passes, requiring repeated fix bursts to reconcile it. Root cause: `VP-089 v1.3` is a volatile cite that breaks on every VP doc-bump. Cure: migrate to stable anchor with no version token (`VP-089` only), recurrence-proof. Applied in S-18.05 v1.9 + STORY-INDEX v4.76. Lesson codified as POLICY-19-analog (see brownfield lessons.md).
+
+**Actions taken:**
+- S-18.05 story status draft→merged; PR #271 ef4dfcc7 2026-06-26 added to merged-stories-ledger.md; story v1.9 committed
+- merged_count 88→89; story_count UNCHANGED 123
+- POL-14 auto-promotion: BC-7.07.002 lifecycle_status draft→active (BC-INDEX v3.47→v3.48; BC file lifecycle_status active); H1 title UNCHANGED (POLICY 7)
+- STORY-INDEX v4.75→v4.76: S-18.05 row draft→**merged**; version cite v1.8→v1.9; VP-089 cite stable anchor (dropped volatile version token, F-P7-001 recurrence-proof)
+- develop_head bc9fc693→ef4dfcc7
+- feature/S-18.05 branch deleted
+- S-18.07/S-18.08 now have depends_on S-18.05 MET (S-18.07 still needs S-18.06; S-18.08 still needs S-18.06+S-18.07)
+- S-18.06 was already unblocked (depends_on S-18.03 MET per D-699); remains unblocked; NEXT story
+- Misfiled process-gap lesson relocated: 4-index-parity-from-live-headers lesson moved from F5 cycle lessons.md to brownfield lessons.md
+- POLICY-19-analog VP-cite lesson codified in brownfield lessons.md
+- Phantom-substrate-field lesson codified in brownfield lessons.md
+- Drift Items: (a) registry↔ADR env_allow lint + generator tombstone (from S-18.05 adv P1) — existing Drift row confirmed; (b) 4-index-parity-from-live-headers discipline codified via lesson (process-gap); (c) POLICY-19-analog VP-cite stable anchor discipline codified via lesson
+- STOP-BEFORE-PR-MERGE (D-665) holds for all code PRs.
+
+**4-index gate (literal-shell stdout 2026-06-26):**
+```
+grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md
+version: "3.48"
+
+grep "^version:" .factory/specs/verification-properties/VP-INDEX.md
+version: "2.48"
+
+grep "^version:" .factory/stories/STORY-INDEX.md
+version: "4.76"
+
+grep "^version:" .factory/specs/architecture/ARCH-INDEX.md
+version: "2.78"
+```
+
+Parity PASS: BC-INDEX v3.48 / VP-INDEX v2.48 / STORY-INDEX v4.76 / ARCH-INDEX v2.78.
+
+### Parent-commit
+
+See `git -C .factory log -1 --format='%h %s'` (D-699 S-18.03 post-merge burst + subsequent S-18.05 cascade bursts; TD-VSDD-053 single-commit)
+
+### NEXT
+
+S-18.06 (validate-heavy-op-delegation WASM gate; BC-4.15.001; P1; 8pts; depends_on [S-18.03 MET]; ALREADY UNBLOCKED since D-699). STOP-BEFORE-PR-MERGE (D-665) holds.
+
+---
+
 ## D-698 — PR #264 (S-18.04b) post-merge STATE burst — 2026-06-25
 
 **Decision:** PR #264 (`feat(S-18.04b): exec-free PreCompact exemption + prune.sh (E-18 context-durability; ADR-029)`, feature/S-18.04b → develop) squash-merged to develop at commit `95eeb9fa` on 2026-06-25T15:27:20Z. Remote feature branch deleted. Post-merge burst executed.

@@ -960,25 +960,3 @@ Net: **5 CONFIRMED-VIOLATED** (0 CONFIRMED-SATISFIED in prediction outcomes; the
 **Closes:** ADV-EDP1-P75-CRIT-001 (ACCEPTED-AT-FLOOR) + ADV-EDP1-P75-HIGH-001 (CLOSED) + ADV-EDP1-P75-HIGH-002 (ACCEPTED-AT-FLOOR anchored S-15.17) + ADV-EDP1-P75-HIGH-003 (CLOSED) + ADV-EDP1-P75-HIGH-004 (CLOSED) + ADV-EDP1-P75-HIGH-005 (CLOSED) + ADV-EDP1-P75-MED-001 (CLOSED) + ADV-EDP1-P75-MED-002 (CLOSED) + ADV-EDP1-P75-MED-003 (CLOSED) + ADV-EDP1-P75-LOW-001 (ACCEPTED-AT-FLOOR) + ADV-EDP1-P75-LOW-002 (CLOSED) (D-510; 11 findings)
 
 ---
-
-## [process-gap] S-18.05 adv P5 — 4-index parity cites MUST be re-derived from live index headers at Commit-D, not carried from prior burst plan (2026-06-25; E-18 self-improvement family)
-
-**Trigger:** S-18.05 LOCAL adversary Pass-5 (F-P5-002) found that the VP-INDEX v2.46 changelog entry cited `STORY-INDEX v4.73` as the 4-index parity snapshot at Commit-D. The actual STORY-INDEX version at that time was v4.74 — the Pass-3 fix burst (adv P3 F-P3-002) had already advanced STORY-INDEX v4.73→v4.74 before Pass-4 ran. The v2.46 author carried forward the parity cites from the prior burst's plan rather than re-deriving them from live index headers at the moment of authoring Commit-D.
-
-**Root cause:** Per-burst 4-index parity cites (the `4-index: BC-INDEX vX / VP-INDEX vY / STORY-INDEX vZ / ARCH-INDEX vW` line in every changelog entry) MUST be re-derived by running `grep "^version:" <each-index-file>` at the time of writing Commit-D, not copied forward from the preceding burst's plan or the preceding pass's recorded parity. Index versions can advance between the plan phase and the Commit-D authoring phase (e.g., if a sibling fix burst for the same story touches a different index in the same session).
-
-**Discipline (re-derivation rule):** Before writing the 4-index parity cite in any changelog entry or burst-log Dim-3, the state-manager MUST execute:
-
-```bash
-grep "^version:" \
-  .factory/specs/behavioral-contracts/BC-INDEX.md \
-  .factory/specs/verification-properties/VP-INDEX.md \
-  .factory/stories/STORY-INDEX.md \
-  .factory/specs/architecture/ARCH-INDEX.md
-```
-
-and use the live values. "Carrying forward" the prior burst's parity cite is forbidden regardless of whether the author believes no index has changed since the prior burst.
-
-**E-18 self-improvement family anchor:** This is the same structural class as the registry↔ADR lint follow-up process-gap from S-18.04b (where spec content was not propagated between sibling documents in the same burst). Both are instances of carry-forward instead of re-derive: the cure in both cases is a mandatory live grep at the moment of write rather than trusting plan-phase snapshots.
-
-**Impact of this instance:** VP-INDEX v2.46 changelog mis-cited STORY-INDEX v4.73 (off-by-one from the actual v4.74 at that time). Corrected in VP-INDEX v2.47 (this burst). No behavioral or content error — changelog text accuracy only.

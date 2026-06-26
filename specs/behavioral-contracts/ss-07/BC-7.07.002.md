@@ -16,9 +16,10 @@ origin: greenfield
 extracted_from: null
 subsystem: "SS-07"
 capability: "CAP-032"
-lifecycle_status: draft
+lifecycle_status: active
 introduced: v1.0-feature-context-durability-E18
 modified:
+  - "2026-06-26 (v1.13) — POL-14 auto-promotion: lifecycle_status draft→active (S-18.05 PR #271 squash-merged ef4dfcc7 to develop 2026-06-26; D-700)."
   - "2026-06-25 (v1.13) — fix burst (product-owner): (adv P1 F-P1-001/F-P1-003) SHA source corrected to git rev-parse origin/develop (last_verified_develop_sha is not a STATE.md field); log field renamed last_verified_develop_sha→develop_sha; Precondition 1 capabilities block aligned to ADR-026 §Decision 7 v1.25. Per architect adjudication 539b9a9f."
   - "2026-06-16 (v1.12) — fix burst (product-owner): DEFERRED-VP (F3, S-18.05) resolved — §VP Anchors updated to active VP-089 reference; §Verification Properties row updated to VP-089 with verbatim title."
   - "2026-06-15 (v1.11) — fix burst (product-owner): (F-P35-002) §Changelog v1.5 skip-marker: de-enumerated explanatory clause (removed false BC-ID enumeration per F-P35-002 false-premise finding)."

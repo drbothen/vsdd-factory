@@ -5047,3 +5047,82 @@ Concretely: `gh pr checks <PR>` must show every required leg as `pass` (not `pen
 **Consequence if violated:** Adversary pass-1 resets the 3-CLEAN streak; story requires a fix burst to add missing tests; total cascade passes increase from the nominal minimum. Recurrence risk is high because the gap is invisible to the implementer (bats suite passes for covered ACs; edge cases simply have no test rows).
 
 **Cites:** D-699 S-18.03 POST-MERGE; F-P1-010 S-18.03 LOCAL adversary pass-1; BC-6.24.001 EC-004/EC-006; BC-5.39.001 3-CLEAN protocol; S-18.09 candidate gate scope.
+
+---
+
+## L-BB-4index-parity-rederive-from-live-headers
+
+**Date:** 2026-06-25 (relocated to brownfield cycle 2026-06-26; D-700)
+**Tags:** [process-gap] [state-manager] [codified]
+**Anchors:** D-700, F-P5-002, S-18.05, VP-INDEX v2.46→v2.47 correction
+
+**Lesson (relocated from F5 cycle — this is a brownfield-cycle operational discipline):** 4-index parity cites in changelog entries and burst-log Dim-3 MUST be re-derived from live index headers at the moment of authoring Commit-D. Carrying forward the prior burst's parity cite is forbidden even when the author believes no index has changed since the prior burst.
+
+**Root cause:** S-18.05 LOCAL adversary Pass-5 (F-P5-002) found that VP-INDEX v2.46's changelog entry cited `STORY-INDEX v4.73` as the 4-index parity snapshot. The actual STORY-INDEX version at that time was v4.74 — the Pass-3 fix burst (adv P3 F-P3-002) had already advanced STORY-INDEX v4.73→v4.74 before Pass-4 ran. The v2.46 author carried forward the parity cite from the prior burst's plan rather than re-deriving from live headers at authoring time.
+
+**Discipline (re-derivation rule):** Before writing the 4-index parity cite in any changelog entry or burst-log Dim-3, the state-manager MUST execute:
+
+```bash
+grep "^version:" \
+  .factory/specs/behavioral-contracts/BC-INDEX.md \
+  .factory/specs/verification-properties/VP-INDEX.md \
+  .factory/stories/STORY-INDEX.md \
+  .factory/specs/architecture/ARCH-INDEX.md
+```
+
+and use the live values. "Carrying forward" the prior burst's parity cite is forbidden regardless of whether the author believes no index has changed since the prior burst. Index versions can advance between the plan phase and the Commit-D authoring phase if a sibling fix burst for the same story touches a different index in the same session.
+
+**E-18 self-improvement family anchor:** Same structural class as the registry↔ADR lint follow-up process-gap from S-18.04b (carry-forward instead of re-derive). The cure in both cases is a mandatory live grep at the moment of write rather than trusting plan-phase snapshots.
+
+**Impact of this instance:** VP-INDEX v2.46 changelog mis-cited STORY-INDEX v4.73 (off-by-one from the actual v4.74 at that time). Corrected in VP-INDEX v2.47 (S-18.05 P5 fix burst). No behavioral or content error — changelog text accuracy only.
+
+**Cites:** D-700 S-18.05 POST-MERGE; F-P5-002 S-18.05 LOCAL adversary pass-5; VP-INDEX v2.46→v2.47 correction.
+
+---
+
+## L-BB-vp-cite-stable-anchor-recurrence-proof
+
+**Date:** 2026-06-26 (D-700)
+**Tags:** [process-gap] [story-writer] [state-manager] [codified]
+**Anchors:** D-700, F-P7-001, S-18.05 v1.9, POLICY-19-analog, TD-VSDD-091
+
+**Lesson (codified):** VP (and ADR) version pins in normative bodies — story files and STORY-INDEX catalog rows — are volatile anchors. A version cite like `VP-089 v1.3` in a story spec or index row becomes stale the moment any subsequent fix burst advances the VP version. The correct anchor is the bare identifier `VP-089` with no version token: stable, recurrence-proof, and always points to the current canonical truth.
+
+**Root cause:** S-18.05 LOCAL adversary Pass-7 (F-P7-001) found that the S-18.05 story file (v1.8) and its STORY-INDEX row cited `VP-089 v1.3`. VP-089 had been advanced to v1.4 by the Pass-5 fix burst, making the v1.3 cite stale. The story-writer discipline at authoring time did not enforce this and the STORY-INDEX update at the same burst did not drop the version token.
+
+**Scope of rule:** Volatile version pins are disallowed in:
+- Story file `verification_properties:` body citations (e.g., `VP-089 v1.3` → `VP-089`)
+- STORY-INDEX catalog row VP-cite columns (e.g., `VP-089 v1.3` → `VP-089`)
+- Any normative body prose that references a VP or ADR by version (exceptions: changelog rows where version is part of the historical record)
+
+Justified exceptions (per TD-VSDD-091): Red Gate test tables and AC source-of-truth tables that cite specific version snapshots for audit purposes may retain version pins if the justification is documented inline.
+
+**Recurrence-proofing action at Commit-D:** When any VP (or ADR) version is advanced in a fix burst, the state-manager MUST grep the story file(s) and STORY-INDEX for the old version cite and drop the version token to the bare identifier before committing. This is the Commit-D sibling-sweep obligation for VP version tokens.
+
+**Analogy:** TD-VSDD-091 / POLICY-19-analog: ADR/VP version pins in normative bodies are volatile. Stable anchors (no version token) are recurrence-proof.
+
+**Cites:** D-700 S-18.05 POST-MERGE; F-P7-001 S-18.05 LOCAL adversary pass-7; S-18.05 v1.8→v1.9 (dropped VP-089 v1.3 → VP-089); STORY-INDEX v4.75→v4.76; TD-VSDD-091; POLICY-19-analog.
+
+---
+
+## L-BB-phantom-substrate-field-cascade
+
+**Date:** 2026-06-26 (D-700)
+**Tags:** [process-gap] [adversary] [state-manager] [codified]
+**Anchors:** D-700, F-P5-001, S-18.05 LOCAL cascade passes 5+, STATE.md `last_verified_develop_sha`
+
+**Lesson (codified):** A phantom field in a normative artifact (a field cited in spec as if it exists, but which does not exist in the implementation or the actual artifact) causes a cascade of stale-reference findings in subsequent adversary passes. Each pass that encounters the phantom cite re-raises or finds residual references to the closed finding, requiring additional sibling-sweeps until all locations carrying the phantom cite are purged.
+
+**Root cause:** S-18.05's AC-003 referenced a STATE.md field `last_verified_develop_sha` as the postcondition verification target. That field does not exist in STATE.md — it was never defined in the BC or the STATE.md spec. As a result:
+- Pass-5 (F-P5-001) raised the phantom-field finding as status=warn (AC-003 postcondition references non-existent field).
+- The fix burst removed the field reference from AC-003, closing the finding.
+- But the STORY-INDEX v4.75 row still carried the stale status=warn token, which itself required a follow-up sweep at Pass-7.
+
+**Structural pattern:** Phantom field → adversary finds it → fix burst removes it from the story → adjacent artifacts (STORY-INDEX rows, 4-index parity cites) still carry stale references → subsequent passes raise stale-reference findings → requires a second sweep. The full closure requires a sibling-sweep to all locations that carried the phantom cite.
+
+**Gate (codified):** When a story's adversary finds a phantom field reference in an AC postcondition or verification step:
+1. The fix burst MUST remove the reference from the story file AND grep for the field name in STORY-INDEX, BC files, and VP files.
+2. The state-manager MUST confirm the field either (a) exists in the actual artifact with the expected semantics, or (b) is removed from ALL normative cites in the same burst.
+3. If the field is a legitimate gap in the substrate artifact (e.g., STATE.md is missing a field the spec assumed), the fix burst MUST either add the field to the substrate or remove the AC that depends on it — no half-closed state.
+
+**Cites:** D-700 S-18.05 POST-MERGE; F-P5-001 S-18.05 LOCAL adversary pass-5; STATE.md phantom field `last_verified_develop_sha`; S-18.05 v1.8 AC-003 → v1.9 (removed phantom cite); STORY-INDEX v4.75→v4.76 stale status=warn token cleanup.
