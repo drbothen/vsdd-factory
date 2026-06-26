@@ -31,8 +31,11 @@
 //! | `test_heavy_op_gate_allowlist_env_var_not_redacted` | AC-012 | INV5/EC-019 | GREEN |
 //! | `test_heavy_op_gate_bare_key_flag_not_redacted` | AC-012 | INV5/EC-020 | GREEN |
 //! | `test_heavy_op_gate_redact_then_truncate_ordering` | AC-012 | INV5/EC-021 | GREEN |
-//! | `test_heavy_op_gate_no_redaction_preserves_whitespace` | AC-012 | INV5/PC6b/F-RD1-001 | RED |
-//! | `test_heavy_op_gate_unquoted_auth_header_preserves_trailing_args` | AC-012 | INV5/Pass3/F-RD1-002 | RED |
+//! | `test_heavy_op_gate_no_redaction_preserves_whitespace` | AC-012 | INV5/PC6b/F-RD1-001 | GREEN |
+//! | `test_heavy_op_gate_unquoted_auth_header_preserves_trailing_args` | AC-012 | INV5/Pass3/F-RD1-002 | GREEN |
+//! | `test_heavy_op_gate_auth_header_preserves_trailing_url` | AC-012 | INV5/Pass3/EC-022 | RED |
+//! | `test_heavy_op_gate_auth_header_preserves_trailing_flag` | AC-012 | INV5/Pass3/EC-023 | GREEN |
+//! | `test_heavy_op_gate_unbalanced_quote_auth_header_fail_safe` | AC-012 | INV5/Pass3/EC-024 | RED |
 
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
@@ -1224,6 +1227,216 @@ fn test_heavy_op_gate_unquoted_auth_header_preserves_trailing_args() {
         GateResult::Continue => {
             panic!(
                 "F-RD1-002: expected Advisory for command containing 'grep -r'; got Continue.\n\
+                Command: {:?}",
+                command
+            );
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// BC-4.15.001 v1.5 INV5 Pass 3 — bounded-consumption rule (EC-022..EC-024)
+//
+// BC v1.5 replaces the unbounded skip_until_end_of_value loop with a
+// bounded-consumption rule:
+//   Form A (inline value in same token): mask after `:` within token; stop.
+//   Form B (following-token value): mask immediate next token(s); stop at:
+//     b1 — token starts with `-` (CLI flag)
+//     b2 — token contains `://` (URL)
+//     b3 — token closes a quoted value
+//   Malformed/unbalanced-quote: stops at b1/b2 or end-of-tokens; tail not swallowed.
+//
+// EC-022 (FAIL): b2-stop — unquoted Form B + trailing URL → URL preserved.
+// EC-023 (PASS regression guard): b1-stop — unquoted Form B + trailing flag → flag preserved.
+// EC-024 (FAIL): unbalanced-quote fail-safe — tail not swallowed.
+// ---------------------------------------------------------------------------
+
+/// BC-4.15.001 v1.5 INV5 Pass 3 Form B / EC-022:
+/// An unquoted `Authorization: Bearer <token>` header followed by a URL MUST
+/// preserve the URL in `command_preview`. The URL is a b2-stop token (contains
+/// `://`) — it MUST NOT be consumed/masked.
+///
+/// Setup: `"grep -r . -H Authorization: Bearer toksecret123 https://api.example.com"`
+///   - `Authorization:` → Form B (empty after-colon).
+///   - `Bearer` → consumed and masked (immediate next token, not b1 or b2).
+///   - `toksecret123` → consumed and masked (not b1 or b2).
+///   - `https://api.example.com` → b2-stop (contains `://`); NOT consumed; preserved.
+///
+/// Assert:
+///   1. `command_preview` contains `***REDACTED***` (redaction fired).
+///   2. `command_preview` does NOT contain `toksecret123` (secret absent).
+///   3. `command_preview` contains `https://api.example.com` (URL preserved — b2-stop).
+///
+/// RED against current implementation (`consuming_unquoted` stops only at `-`,
+/// not at `://` — URL is consumed and dropped).
+/// BC-4.15.001 v1.5 INV5 Pass 3 Form B / EC-022 / F-RD2-001.
+#[test]
+fn test_heavy_op_gate_auth_header_preserves_trailing_url() {
+    let command = "grep -r . -H Authorization: Bearer toksecret123 https://api.example.com";
+    let result = evaluate_patterns(command, DEFAULT_PATTERNS);
+
+    match result {
+        GateResult::Advisory(ref advisory) => {
+            // Assert 1: redaction mask present (Pass 3 fired on Authorization:).
+            assert!(
+                advisory.command_preview.contains("***REDACTED***"),
+                "EC-022 / INV5 Pass 3 Form B: command_preview must contain '***REDACTED***'.\n\
+                Got: {:?}\n\
+                BC-4.15.001 v1.5 INV5 Pass 3: Authorization header value MUST be masked.",
+                advisory.command_preview
+            );
+            // Assert 2: raw bearer secret absent.
+            assert!(
+                !advisory.command_preview.contains("toksecret123"),
+                "EC-022 / INV5 Pass 3 Form B: raw secret 'toksecret123' must NOT appear in command_preview.\n\
+                Got: {:?}\n\
+                BC-4.15.001 v1.5 INV5 Pass 3: bearer token MUST be replaced by ***REDACTED***.",
+                advisory.command_preview
+            );
+            // Assert 3: trailing URL preserved — the b2-stop (contains `://`) must NOT be consumed.
+            assert!(
+                advisory.command_preview.contains("https://api.example.com"),
+                "EC-022 / INV5 Pass 3 Form B b2-stop: trailing URL 'https://api.example.com' MUST appear \
+                in command_preview.\n\
+                Got: {:?}\n\
+                Bug: consuming_unquoted only stops at `-` (b1), not at `://` (b2).\n\
+                BC-4.15.001 v1.5 INV5 Pass 3 Form B: stop at token containing '://' (b2-stop).\n\
+                EC-022: URL is a b2-stop token — it MUST NOT be consumed.",
+                advisory.command_preview
+            );
+        }
+        GateResult::Continue => {
+            panic!(
+                "EC-022: expected Advisory for command containing 'grep -r'; got Continue.\n\
+                Command: {:?}",
+                command
+            );
+        }
+    }
+}
+
+/// BC-4.15.001 v1.5 INV5 Pass 3 Form B / EC-023 (regression guard):
+/// An unquoted `Authorization: Bearer <token>` header followed by a CLI flag
+/// MUST preserve the flag in `command_preview`. The CLI flag is a b1-stop token
+/// (starts with `-`) — it MUST NOT be consumed.
+///
+/// Setup: `"grep -r . -H Authorization: Bearer toksecret123 --include=*.rs"`
+///   - `Authorization:` → Form B.
+///   - `Bearer` → consumed and masked (not b1).
+///   - `toksecret123` → consumed and masked (not b1).
+///   - `--include=*.rs` → b1-stop (starts with `-`); NOT consumed; preserved.
+///
+/// Assert:
+///   1. `command_preview` contains `***REDACTED***` (redaction fired).
+///   2. `command_preview` does NOT contain `toksecret123` (secret absent).
+///   3. `command_preview` contains `--include=*.rs` (flag preserved — b1-stop).
+///
+/// GREEN against current implementation (b1-stop already implemented).
+/// Included as a regression guard — must not regress when b2-stop is added.
+/// BC-4.15.001 v1.5 INV5 Pass 3 Form B / EC-023.
+#[test]
+fn test_heavy_op_gate_auth_header_preserves_trailing_flag() {
+    let command = "grep -r . -H Authorization: Bearer toksecret123 --include=*.rs";
+    let result = evaluate_patterns(command, DEFAULT_PATTERNS);
+
+    match result {
+        GateResult::Advisory(ref advisory) => {
+            // Assert 1: redaction mask present.
+            assert!(
+                advisory.command_preview.contains("***REDACTED***"),
+                "EC-023 / INV5 Pass 3 Form B: command_preview must contain '***REDACTED***'.\n\
+                Got: {:?}",
+                advisory.command_preview
+            );
+            // Assert 2: raw secret absent.
+            assert!(
+                !advisory.command_preview.contains("toksecret123"),
+                "EC-023 / INV5 Pass 3 Form B: raw secret 'toksecret123' must NOT appear in command_preview.\n\
+                Got: {:?}",
+                advisory.command_preview
+            );
+            // Assert 3: trailing flag preserved (b1-stop regression guard).
+            assert!(
+                advisory.command_preview.contains("--include=*.rs"),
+                "EC-023 / INV5 Pass 3 Form B b1-stop regression: trailing flag '--include=*.rs' MUST appear \
+                in command_preview.\n\
+                Got: {:?}\n\
+                BC-4.15.001 v1.5 INV5 Pass 3: b1-stop at token starting with '-' must be preserved.",
+                advisory.command_preview
+            );
+        }
+        GateResult::Continue => {
+            panic!(
+                "EC-023: expected Advisory for command containing 'grep -r'; got Continue.\n\
+                Command: {:?}",
+                command
+            );
+        }
+    }
+}
+
+/// BC-4.15.001 v1.5 INV5 Pass 3 unbalanced-quote fail-safe / EC-024:
+/// A command with an OPENING quote on the Authorization header token but NO
+/// closing quote MUST NOT swallow the command tail. Consumption MUST stop at
+/// the first b1-flag or b2-URL token (or end-of-tokens); the tail is preserved.
+///
+/// Setup: `"grep -r . -H \"Authorization: Bearer toksecret123 --verbose"`
+///   Opening `"` on `"Authorization:` — `started_with_quote = true` → `consuming_quoted = true`.
+///   `Bearer` → `consuming_quoted`, extended.
+///   `toksecret123` → extended (no closing `"` or `'`).
+///   `--verbose` → extended (no closing quote) — under the correct fail-safe this STOPS at `--verbose`
+///     (b1-stop: starts with `-`) and does NOT consume it; under the current buggy implementation
+///     `consuming_quoted` has no b1/b2 stop condition and consumes ALL remaining tokens.
+///
+/// Assert:
+///   1. `command_preview` contains `***REDACTED***` (redaction fired on the header).
+///   2. `command_preview` does NOT contain `toksecret123` (credential absent).
+///   3. `command_preview` contains `--verbose` (tail NOT swallowed — fail-safe stopped at b1).
+///
+/// RED against current implementation (`consuming_quoted` iterates to end-of-tokens with
+/// no b1/b2 escape, swallowing `--verbose` entirely).
+/// BC-4.15.001 v1.5 INV5 Pass 3 malformed/unbalanced-quote fail-safe / EC-024 / F-RD2-002.
+#[test]
+fn test_heavy_op_gate_unbalanced_quote_auth_header_fail_safe() {
+    // Opening `"` on the header token; no closing `"` in the command.
+    // `--verbose` appears after the credential and must survive in the preview.
+    let command = r#"grep -r . -H "Authorization: Bearer toksecret123 --verbose"#;
+    let result = evaluate_patterns(command, DEFAULT_PATTERNS);
+
+    match result {
+        GateResult::Advisory(ref advisory) => {
+            // Assert 1: redaction mask present (Pass 3 fired).
+            assert!(
+                advisory.command_preview.contains("***REDACTED***"),
+                "EC-024 / INV5 Pass 3 unbalanced-quote: command_preview must contain '***REDACTED***'.\n\
+                Got: {:?}\n\
+                BC-4.15.001 v1.5 INV5 Pass 3: Authorization header value MUST be masked.",
+                advisory.command_preview
+            );
+            // Assert 2: raw credential absent.
+            assert!(
+                !advisory.command_preview.contains("toksecret123"),
+                "EC-024 / INV5 Pass 3 unbalanced-quote: raw credential 'toksecret123' must NOT appear.\n\
+                Got: {:?}\n\
+                BC-4.15.001 v1.5 INV5 Pass 3: credential MUST be replaced by ***REDACTED***.",
+                advisory.command_preview
+            );
+            // Assert 3: tail NOT swallowed — fail-safe must stop at `--verbose` (b1-stop).
+            assert!(
+                advisory.command_preview.contains("--verbose"),
+                "EC-024 / INV5 Pass 3 unbalanced-quote fail-safe: '--verbose' MUST appear in command_preview.\n\
+                Got: {:?}\n\
+                Bug: consuming_quoted loop iterates to end-of-tokens with no b1/b2 escape condition;\n\
+                '--verbose' is consumed and dropped because it does not end with '\"' or '\\''.\n\
+                BC-4.15.001 v1.5 INV5 Pass 3 malformed/unbalanced-quote fail-safe:\n\
+                consumption MUST stop at first b1-flag (starts with '-') or b2-URL (contains '://');\n\
+                command tail MUST NOT be swallowed.",
+                advisory.command_preview
+            );
+        }
+        GateResult::Continue => {
+            panic!(
+                "EC-024: expected Advisory for command containing 'grep -r'; got Continue.\n\
                 Command: {:?}",
                 command
             );
