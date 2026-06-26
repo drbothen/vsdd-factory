@@ -15,10 +15,15 @@
 //! # Compliance notes (BC-4.15.001)
 //! - `on_error = "continue"` in the registry: WASM crash → fail-open Continue.
 //! - HOST_ABI_VERSION = 1 (no new host functions introduced).
-//! - Uses only host::log_warn, host::plugin_log (ABI v1; no host::read_file
-//!   — pure-parse INV1 requires no filesystem reads).
+//! - Host-call surface (INV1 audit): on an advisory match exactly two calls are
+//!   made — `eprintln!` writes the stderr nudge to WASM stdio (flows through to
+//!   the dispatcher process stderr; PC-B-B1), and
+//!   `host::emit_event("plugin.log", ...)` writes the structured
+//!   DelegationRecommended record to the dispatcher internal JSONL log
+//!   (PC-B-B2; `emit_event` is defined in `crates/hook-sdk/src/host.rs`).
+//!   On no-match both calls are skipped entirely. There is NO `host::read_file`,
+//!   NO subprocess invocation, NO network call — pure-parse (INV1).
 //! - No dependency on factory-dispatcher or other workspace crates (forbidden).
-//! - Pure-parse: no filesystem access, no process spawning (INV1).
 //! - Never blocks: block_intent is ALWAYS false (INV2).
 
 use validate_heavy_op_delegation::on_pre_tool_use;

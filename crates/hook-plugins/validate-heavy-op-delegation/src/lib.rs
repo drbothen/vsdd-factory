@@ -154,9 +154,22 @@ pub fn truncate_command_preview(command: &str) -> String {
 /// - The matched pattern string.
 /// - The command_preview (already truncated by `truncate_command_preview`).
 /// - The recommendation to delegate to a sub-agent or worktree.
+///
+/// ## Channel-identity invariant (AC-006)
+///
+/// `command_preview` is rendered with `{}` (Display; raw bytes) so that both
+/// the stderr nudge (PC-B-B1) and the plugin.log `message` field (PC-B-B2)
+/// carry the byte-identical preview string. Using `{:?}` (Debug) would
+/// add surrounding quotes and escape backslashes/special chars, producing a
+/// stderr preview that diverges from the plugin.log `command_preview` field,
+/// which is a spec violation (AC-006 requires identical previews across channels).
+/// `matched_pattern` continues to use `{:?}` so it is clearly delimited from
+/// surrounding prose.
 pub fn build_recommendation_message(matched_pattern: &str, command_preview: &str) -> String {
+    // command_preview: `{}` (Display) — byte-identical in both emission channels (AC-006).
+    // matched_pattern: `{:?}` (Debug) — quoted for readability in the nudge message.
     format!(
-        "[DelegationRecommended] Heavy operation detected (matched: {:?}): {:?}\n\
+        "[DelegationRecommended] Heavy operation detected (matched: {:?}): {}\n\
          Consider delegating this operation to a sub-agent or background worktree to reduce \
          context-window pressure and prevent uncoordinated auto-compaction events (ADR-026 §Decision 12).",
         matched_pattern, command_preview

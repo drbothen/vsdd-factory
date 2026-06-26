@@ -47,7 +47,7 @@ use validate_heavy_op_delegation::{
 /// Assert: `evaluate_patterns` returns `GateResult::Advisory` (not Continue);
 /// `matched_pattern` is `"grep -r"` (the first match in list order, not `"grep -R"`).
 ///
-/// Red Gate: panics at todo!() in evaluate_patterns.
+/// Asserts first-match single-advisory semantics (AC-005 / INV3).
 #[test]
 fn test_heavy_op_gate_first_match_semantics_single_advisory() {
     let command = "grep -r TODO . | grep -R FIXME";
@@ -88,7 +88,7 @@ fn test_heavy_op_gate_first_match_semantics_single_advisory() {
 /// points; the final code point is U+2026; the first 120 code points match the
 /// first 120 code points of the input.
 ///
-/// Red Gate: panics at todo!() in truncate_command_preview.
+/// Asserts 120-char truncation with U+2026 ellipsis (AC-006 / INV4).
 #[test]
 fn test_heavy_op_gate_truncates_command_preview_at_120_chars() {
     // Build a 200-char command string containing "grep -r".
@@ -144,7 +144,7 @@ fn test_heavy_op_gate_truncates_command_preview_at_120_chars() {
 /// Assert: `truncate_command_preview` returns the full command string unchanged;
 /// the return value does NOT end with U+2026.
 ///
-/// Red Gate: panics at todo!() in truncate_command_preview.
+/// Asserts no-truncation for commands within the 120-char limit (AC-006 / INV4).
 #[test]
 fn test_heavy_op_gate_no_truncation_on_short_command() {
     let command = "grep -r .";
@@ -188,7 +188,7 @@ fn test_heavy_op_gate_no_truncation_on_short_command() {
 ///
 /// Assert: `evaluate_patterns` returns `GateResult::Continue` (not Advisory).
 ///
-/// Red Gate: panics at todo!() in evaluate_patterns.
+/// Asserts empty-patterns-list produces Continue for any command (AC-011 / EC-012).
 #[test]
 fn test_heavy_op_gate_empty_pattern_list_no_emission() {
     let command = "cargo test --release --workspace";
@@ -220,7 +220,7 @@ fn test_heavy_op_gate_empty_pattern_list_no_emission() {
 /// (a) a match is found (Advisory is returned, not Continue), and
 /// (b) the advisory carries the expected matched_pattern (not block_intent).
 ///
-/// Red Gate: panics at todo!() in evaluate_patterns.
+/// Asserts Advisory (never Block) returned on match; GateResult::Block absent (AC-004 / INV2).
 #[test]
 fn test_heavy_op_gate_always_returns_continue_on_match() {
     // Test vector from BC-4.15.001 §Canonical Test Vectors:
@@ -286,7 +286,7 @@ fn test_heavy_op_gate_always_returns_continue_on_match() {
 ///
 /// Assert: `evaluate_patterns` returns `GateResult::Continue` (no match; PC-A).
 ///
-/// Red Gate: panics at todo!() in evaluate_patterns.
+/// Asserts substring non-match: `--workspace` ≠ `--release` (EC-002 / INV3).
 #[test]
 fn test_heavy_op_gate_ec002_cargo_test_workspace_no_match() {
     // BC-4.15.001 EC-002: "Bash command is 'cargo test --workspace'; pattern list
@@ -319,7 +319,7 @@ fn test_heavy_op_gate_ec002_cargo_test_workspace_no_match() {
 /// Assert: `evaluate_patterns` returns `GateResult::Advisory` with
 /// `matched_pattern = "grep -R"` (NOT "grep -r").
 ///
-/// Red Gate: panics at todo!() in evaluate_patterns.
+/// Asserts case-sensitive match: `grep -R` (uppercase) is distinct from `grep -r` (EC-004 / INV3).
 #[test]
 fn test_heavy_op_gate_ec004_grep_uppercase_r_matches() {
     // BC-4.15.001 EC-004: "Bash command is 'grep -R \"pattern\" .'; pattern 'grep -R' is in the list"
@@ -358,7 +358,7 @@ fn test_heavy_op_gate_ec004_grep_uppercase_r_matches() {
 /// Assert: `evaluate_patterns` returns `GateResult::Advisory` with
 /// `matched_pattern = "find . -name"`.
 ///
-/// Red Gate: panics at todo!() in evaluate_patterns.
+/// Asserts `find . -name "*.rs"` matches substring pattern `find . -name` (EC-005 / INV3).
 #[test]
 fn test_heavy_op_gate_ec005_find_name_matches() {
     // BC-4.15.001 EC-005: "Bash command is 'find . -name \"*.rs\"'; pattern 'find . -name' is in the list"
@@ -390,7 +390,7 @@ fn test_heavy_op_gate_ec005_find_name_matches() {
 /// Assert: `evaluate_patterns` returns `GateResult::Advisory` with
 /// `matched_pattern = "./run-all.sh"`.
 ///
-/// Red Gate: panics at todo!() in evaluate_patterns.
+/// Asserts exact substring match for `./run-all.sh` in the default pattern list (EC-006 / INV3).
 #[test]
 fn test_heavy_op_gate_ec006_run_all_sh_matches() {
     // BC-4.15.001 EC-006: "Bash command is './run-all.sh'; pattern './run-all.sh' is in the list"
@@ -428,7 +428,7 @@ fn test_heavy_op_gate_ec006_run_all_sh_matches() {
 /// Assert: `evaluate_patterns` returns `GateResult::Advisory` with
 /// `matched_pattern = "./ci.sh"`.
 ///
-/// Red Gate: panics at todo!() in evaluate_patterns.
+/// Asserts operator-injected custom pattern `./ci.sh` triggers advisory (EC-013 / INV3).
 #[test]
 fn test_heavy_op_gate_ec013_custom_pattern_triggers_advisory() {
     // BC-4.15.001 EC-013: "Operator adds custom pattern './ci.sh' to the patterns list"
@@ -449,6 +449,72 @@ fn test_heavy_op_gate_ec013_custom_pattern_triggers_advisory() {
             advisory.matched_pattern, "./ci.sh",
             "EC-013: matched_pattern must be './ci.sh' (first-match in custom list). Got: {:?}",
             advisory.matched_pattern
+        );
+    }
+}
+
+// ---------------------------------------------------------------------------
+// F-P2-003 — channel-identity: stderr message and plugin.log command_preview
+//            must carry byte-identical preview strings (AC-006)
+// ---------------------------------------------------------------------------
+
+/// F-P2-003 / AC-006: `build_recommendation_message` must embed the raw
+/// `command_preview` bytes in the message (not a Debug-quoted variant).
+///
+/// The message is used verbatim as BOTH the stderr nudge body (PC-B-B1) and
+/// the plugin.log `message` field (PC-B-B2). AC-006 requires the `command_preview`
+/// to be identical across both channels. Using `{:?}` would add surrounding
+/// quotes and escape special characters (backslashes, embedded quotes), causing
+/// the preview string as emitted to stderr to differ from `advisory.command_preview`.
+///
+/// This test uses a command containing a double-quote so that the `{}` vs `{:?}`
+/// distinction is observable: the message must contain the raw `"` byte, not `\"`.
+///
+/// Asserts AC-006 channel-identity: message contains raw command_preview bytes (F-P2-003).
+#[test]
+fn test_heavy_op_gate_channel_identity_command_preview_not_debug_quoted() {
+    // Command containing a double-quote — the classic `{:?}` vs `{}` discriminator.
+    let command = r#"grep -r "TODO" ."#; // contains literal " characters
+    let result = evaluate_patterns(command, DEFAULT_PATTERNS);
+
+    if let GateResult::Advisory(ref advisory) = result {
+        // Verify the command_preview itself is the raw string (no Debug quoting).
+        // truncate_command_preview should return the unchanged short string.
+        assert_eq!(
+            advisory.command_preview, command,
+            "command_preview must be the raw command string (no Debug escaping). \
+            Got: {:?}",
+            advisory.command_preview
+        );
+
+        // The message must contain the raw command_preview bytes, NOT a Debug-quoted
+        // variant. If `{:?}` were used in build_recommendation_message, the message
+        // would contain `\"TODO\"` (backslash-escaped quotes) rather than `"TODO"`.
+        assert!(
+            advisory.message.contains(command),
+            "AC-006/F-P2-003: message must contain the raw command_preview (byte-identical). \
+            Expected message to contain {:?}. \
+            Got message: {:?}",
+            command,
+            advisory.message
+        );
+
+        // Confirm the message does NOT contain the Debug-escaped form.
+        let debug_escaped = format!("{:?}", command); // would be `"grep -r \"TODO\" ."` with {:?}
+        // The message should not contain the inner escaped-quote form `\"TODO\"`
+        assert!(
+            !advisory.message.contains("\\\""),
+            "AC-006/F-P2-003: message must NOT contain Debug-escaped quotes (backslash-quote). \
+            Found '\\\"' in message — this indicates {:?} was used instead of {{}}. \
+            debug_escaped form would be: {:?}. Message: {:?}",
+            "{:?}",
+            debug_escaped,
+            advisory.message
+        );
+    } else {
+        panic!(
+            "F-P2-003 fixture: expected Advisory for command {:?} with DEFAULT_PATTERNS; got Continue",
+            command
         );
     }
 }
