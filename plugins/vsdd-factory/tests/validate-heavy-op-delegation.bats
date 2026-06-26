@@ -6,15 +6,16 @@
 #          all 4 invariants INV1/INV2/INV3/INV4 in scope)
 # VP:      VP-091 (machine-stable assertion discipline)
 #
-# RED GATE minimum: 7 bats tests (this file) + 5 Rust unit tests = 12 total.
-# All MUST FAIL before any Rust crate source or compiled WASM binary is authored.
+# These tests were authored Red-Gate-first (all failed before the crate/WASM existed);
+# the implementation is now complete and all 11 tests pass.
+# Test counts: 11 bats tests (this file) + 29 Rust unit tests = 40 total.
 #
-# RED GATE strategy for dispatcher-dependent tests:
-#   Tests require two artifacts that the implementer produces in T-3/T-4/T-5 (S-18.06):
+# Skip-guard strategy for dispatcher-dependent tests:
+#   Tests require two artifacts produced in T-3/T-4/T-5 (S-18.06):
 #     1. plugins/vsdd-factory/hook-plugins/validate-heavy-op-delegation.wasm
 #     2. Registry entry in plugins/vsdd-factory/hooks-registry.toml
-#   Until those artifacts exist, tests involving the dispatcher skip with an
-#   actionable message (skip != pass; correctly RED at Red Gate time).
+#   If those artifacts are absent (e.g. fresh checkout before build), tests skip with an
+#   actionable message. Set CI_REQUIRE_ARTIFACTS=1 to convert skips to hard failures.
 #   The registry shape test (AC-008) fails IMMEDIATELY because the registry
 #   entry is absent — it does NOT require the WASM artifact.
 #
@@ -102,8 +103,8 @@ teardown() {
 # ---------------------------------------------------------------------------
 
 # Skip if dispatcher binary or gate WASM is not present.
-# This is the RED GATE skip — both artifacts are produced by the implementer
-# (T-3/T-4 in S-18.06). In CI with CI_REQUIRE_ARTIFACTS=1, absence is a HARD FAIL.
+# Both artifacts are produced by the S-18.06 build (T-3/T-4).
+# In CI with CI_REQUIRE_ARTIFACTS=1, absence is a HARD FAIL.
 _require_artifacts() {
   if [ ! -x "$DISPATCHER" ]; then
     [ -z "${CI_REQUIRE_ARTIFACTS:-}" ] || {
@@ -277,7 +278,7 @@ _count_delegation_records() {
     echo "FAIL: AC-001/PC-B-B1: stderr nudge message must contain matched pattern 'cargo test --release'."
     echo "Expected: stderr contains 'cargo test --release'"
     echo "Actual stderr: $(cat "$STDERR_FILE")"
-    echo "RED GATE: WASM not built → no advisory emitted → this assertion correctly fails."
+    echo "Diagnostic: no advisory emitted — verify WASM is built and registry entry is present."
     return 1
   }
 
@@ -337,7 +338,7 @@ _count_delegation_records() {
   [ -n "$INTERNAL_LOG_FILE" ] && [ -f "$INTERNAL_LOG_FILE" ] || {
     echo "FAIL: AC-002/PC-B-B2: dispatcher internal log not found."
     echo "Log dir: $WORK/.factory/logs (contents: $(ls "$WORK/.factory/logs/" 2>/dev/null || echo 'empty'))"
-    echo "RED GATE: WASM not built → no plugin.log record → log may not exist."
+    echo "Diagnostic: internal log not found — verify dispatcher ran and WASM is built."
     return 1
   }
 
@@ -349,7 +350,7 @@ _count_delegation_records() {
     echo "FAIL: AC-002/PC-B-B2: expected exactly 1 DelegationRecommended record in plugin.log; got $DELEGATION_COUNT."
     echo "Internal log contents:"
     cat "$INTERNAL_LOG_FILE" 2>/dev/null || echo "(log file not readable)"
-    echo "RED GATE: WASM not built → 0 records → this assertion correctly fails."
+    echo "Diagnostic: 0 DelegationRecommended records — verify WASM is built and gate matched."
     return 1
   }
 
@@ -498,7 +499,7 @@ _count_delegation_records() {
     echo "FAIL: AC-004/INV2: gate must emit DelegationRecommended advisory on match (confirms gate executed)."
     echo "Expected DELEGATION_COUNT>=1; got DELEGATION_COUNT=$DELEGATION_COUNT."
     echo "Without this check, a gate that silently passes without loading would also exit 0 (false-green)."
-    echo "RED GATE: WASM not built → 0 records → this load-bearing assertion correctly fails."
+    echo "Diagnostic: 0 DelegationRecommended records — verify WASM is built and gate matched."
     return 1
   }
 }
@@ -580,7 +581,7 @@ _count_delegation_records() {
 
   [ -n "$on_error_value" ] || {
     echo "FAIL: AC-004/AC-010/PC-C: on_error field not found for validate-heavy-op-delegation."
-    echo "RED GATE: registry entry absent → implementer must add [[hooks]] entry per AC-008 (T-5 S-18.06)."
+    echo "Diagnostic: registry entry absent — add [[hooks]] entry per AC-008 canonical shape (S-18.06 T-5)."
     echo "Registry: $PRODUCTION_REGISTRY"
     return 1
   }
@@ -752,7 +753,7 @@ TOML
   # Assert: entry name present.
   grep -q 'name = "validate-heavy-op-delegation"' "$PRODUCTION_REGISTRY" || {
     echo "FAIL: AC-008/PC1: validate-heavy-op-delegation entry not found in $PRODUCTION_REGISTRY."
-    echo "RED GATE: implementer must add [[hooks]] entry per AC-008 canonical shape (S-18.06 T-5)."
+    echo "Diagnostic: registry entry absent — add [[hooks]] entry per AC-008 canonical shape (S-18.06 T-5)."
     return 1
   }
 
