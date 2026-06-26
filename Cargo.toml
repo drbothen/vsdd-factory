@@ -38,6 +38,7 @@ members = [
     "crates/hook-plugins/validate-policies-schema",
     "crates/hook-plugins/validate-trajectory-tail-cell-completeness",
     "crates/hook-plugins/validate-wave-handoff-completeness",
+    "crates/hook-plugins/validate-heavy-op-delegation",
     "crates/sink-core",
     "crates/sink-file",
     "crates/sink-otel-grpc",

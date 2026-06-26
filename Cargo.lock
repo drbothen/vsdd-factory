@@ -3766,6 +3766,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "validate-heavy-op-delegation"
+version = "0.0.1"
+dependencies = [
+ "vsdd-hook-sdk",
+]
+
+[[package]]
 name = "validate-index-cite-refresh"
 version = "0.0.1"
 dependencies = [
