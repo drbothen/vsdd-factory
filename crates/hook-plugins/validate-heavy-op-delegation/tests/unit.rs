@@ -1123,16 +1123,14 @@ fn test_heavy_op_gate_no_redaction_preserves_whitespace() {
             // equivalent to asserting advisory.command_preview == raw.
             let expected = truncate_command_preview(raw);
             assert_eq!(
-                advisory.command_preview,
-                expected,
+                advisory.command_preview, expected,
                 "F-RD1-001 / BC-4.15.001 PC6b: command_preview MUST equal truncate_command_preview(original).\n\
                 A clean command (no redaction triggers) must not have its whitespace normalized.\n\
                 Expected: {:?}\n\
                 Got:      {:?}\n\
                 Bug: all 4 redaction passes call split_whitespace().join(\" \") unconditionally,\n\
                 collapsing double-space and tab to single space.",
-                expected,
-                advisory.command_preview
+                expected, advisory.command_preview
             );
         }
         GateResult::Continue => {
