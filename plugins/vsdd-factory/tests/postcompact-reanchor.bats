@@ -550,16 +550,19 @@ current_step: step-from-git
   # -- [hooks.config] --
   echo "$block" | grep -q 'script_path = "hooks/postcompact-reanchor.sh"'
 
-  # -- [hooks.capabilities] env_allow: must contain exactly the 8 canonical vars --
+  # -- [hooks.capabilities] env_allow: must contain exactly the 5 canonical vars --
+  # SEC-002: CLAUDE_PROJECT_DIR, CLAUDE_PLUGIN_ROOT, VSDD_SESSION_ID removed (least-privilege).
   # Exact element assertions (each must be present in the block):
   echo "$block" | grep -q '"PATH"'
   echo "$block" | grep -q '"HOME"'
   echo "$block" | grep -q '"TMPDIR"'
-  echo "$block" | grep -q '"CLAUDE_PROJECT_DIR"'
-  echo "$block" | grep -q '"CLAUDE_PLUGIN_ROOT"'
-  echo "$block" | grep -q '"VSDD_SESSION_ID"'
   echo "$block" | grep -q '"GIT_CONFIG_GLOBAL"'
   echo "$block" | grep -q '"XDG_CONFIG_HOME"'
+
+  # -- Removed over-permissive vars must NOT appear (SEC-002 least-privilege enforcement) --
+  ! echo "$block" | grep -q '"CLAUDE_PROJECT_DIR"'
+  ! echo "$block" | grep -q '"CLAUDE_PLUGIN_ROOT"'
+  ! echo "$block" | grep -q '"VSDD_SESSION_ID"'
 
   # -- GIT_DIR must NOT appear (was a bats test-fixture artifact; not a production requirement) --
   # Load-bearing negative assertion (F-P1-005).
@@ -568,7 +571,8 @@ current_step: step-from-git
   # -- [hooks.capabilities.exec_subprocess] --
   echo "$block" | grep -q '"bash"'
   echo "$block" | grep -q '"git"'
-  echo "$block" | grep -q '"jq"'
+  # SEC-003: jq removed from binary_allow (hook uses printf, not jq; least-privilege).
+  ! echo "$block" | grep -q '"jq"'
   echo "$block" | grep -q 'shell_bypass_acknowledged'
 
   # -- [hooks.capabilities.write_file] --

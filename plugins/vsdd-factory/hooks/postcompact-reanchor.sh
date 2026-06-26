@@ -60,6 +60,14 @@ _today() {
 }
 
 # ---------------------------------------------------------------------------
+# Helper: escape a string for use as a JSON string value.
+# Handles backslash and double-quote escaping; strips carriage returns.
+# ---------------------------------------------------------------------------
+_json_escape() {
+  printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g; s/\r//g'
+}
+
+# ---------------------------------------------------------------------------
 # Helper: append a JSONL entry to .factory/logs/postcompact-reanchor-DATE.jsonl
 #
 # Args:
@@ -92,9 +100,13 @@ _append_log() {
   # Build the JSONL line with exactly 6 fields (no wave_id — BC-7.07.002 PC2).
   # Field name: develop_sha (renamed from last_verified_develop_sha per F-P1-001).
   # Use printf for portability (no jq dependency required by spec).
+  # SEC-001: escape cycle and step before embedding in JSON (backslash, quote, CR).
+  local cycle_escaped step_escaped
+  cycle_escaped=$(_json_escape "$cycle")
+  step_escaped=$(_json_escape "$step")
   local json_line
   json_line=$(printf '{"event":"PostCompact","current_cycle":"%s","current_step":"%s","develop_sha":"%s","timestamp":"%s","status":"%s"}' \
-    "$cycle" "$step" "$sha" "$ts" "$status_val")
+    "$cycle_escaped" "$step_escaped" "$sha" "$ts" "$status_val")
 
   # Append to log file (fail-open: ignore write errors).
   printf '%s\n' "$json_line" >> "$log_file" 2>/dev/null || true

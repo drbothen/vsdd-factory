@@ -1389,12 +1389,12 @@ async = false
 script_path = "hooks/postcompact-reanchor.sh"
 
 [hooks.capabilities]
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID", "GIT_CONFIG_GLOBAL", "XDG_CONFIG_HOME"]
+env_allow = ["PATH", "HOME", "TMPDIR", "GIT_CONFIG_GLOBAL", "XDG_CONFIG_HOME"]
 
 [hooks.capabilities.exec_subprocess]
-binary_allow = ["bash", "git", "jq"]
+binary_allow = ["bash", "git"]
 shell_bypass_acknowledged = "legacy-bash-adapter runs unported hooks"
-env_allow = ["PATH", "HOME", "TMPDIR", "CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "VSDD_SESSION_ID", "GIT_CONFIG_GLOBAL", "XDG_CONFIG_HOME"]
+env_allow = ["PATH", "HOME", "TMPDIR", "GIT_CONFIG_GLOBAL", "XDG_CONFIG_HOME"]
 
 [hooks.capabilities.write_file]
 path_allow = [".factory/logs/"]
