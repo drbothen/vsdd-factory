@@ -109,8 +109,10 @@ pub fn evaluate_patterns(command: &str, patterns: &[&str]) -> GateResult {
     // INV3: iterate patterns in declaration order; stop at first match.
     for pattern in patterns {
         if command.contains(*pattern) {
-            // First match found. Compute preview ONCE (INV4: shared utility).
-            let command_preview = truncate_command_preview(command);
+            // First match found. Apply INV5 4-pass redaction then INV4 truncation.
+            // redact-then-truncate ordering: BC-4.15.001 INV5 / SEC-002.
+            let redacted = redact_command_preview(command);
+            let command_preview = truncate_command_preview(&redacted);
             let message = build_recommendation_message(pattern, &command_preview);
             return GateResult::Advisory(DelegationAdvisory {
                 matched_pattern: pattern.to_string(),
@@ -121,6 +123,324 @@ pub fn evaluate_patterns(command: &str, patterns: &[&str]) -> GateResult {
     }
     // No match: PC-A — Continue with no emission.
     GateResult::Continue
+}
+
+/// Apply 4-pass secret redaction to a Bash command string (BC-4.15.001 INV5 / SEC-002).
+///
+/// MUST be called BEFORE `truncate_command_preview` so that the 120-char
+/// truncation window shows redacted content, not raw secrets (redact-then-truncate
+/// ordering; BC-4.15.001 EC-021).
+///
+/// All four passes are applied in sequence. Each pass may produce a longer or
+/// shorter string than its input; the output of each pass is the input of the
+/// next. Pure std string operations only — no regex, no new dependencies (INV1).
+///
+/// ## Pass 1 — Flag-argument secrets
+///
+/// Tokenizes on ASCII whitespace. For each `--flag` token whose flag name
+/// (lowercased, stripped of leading dashes, pre-`=` if `=`-separated) appears
+/// in the sensitive-flag keyword list, the following value token is replaced
+/// with `***REDACTED***` (two-token `--flag value` form) or the post-`=`
+/// portion is replaced with `***REDACTED***` (single-token `--flag=value` form).
+/// Short single-dash options (e.g., `-p`) are not matched. Bare flags with no
+/// following value token are not redacted.
+///
+/// ## Pass 2 — Environment-variable assignment prefixes
+///
+/// Scans whitespace-separated tokens that appear before the first non-`KEY=value`
+/// token. For each `IDENT=value` token where `IDENT` (uppercased) is NOT on the
+/// allowlist and contains one of the sensitive env-var keywords, the value portion
+/// is replaced with `***REDACTED***`.
+///
+/// Allowlist (never redacted): `SSH_AUTH_SOCK`, `SSH_ASKPASS`, tokens whose
+/// uppercase IDENT ends with `_SERVICE_HOST`.
+///
+/// ## Pass 3 — Authorization / Cookie header values
+///
+/// Scans the raw string (character-level) for case-insensitive occurrences of
+/// `authorization:`, `cookie:`, or `set-cookie:`. Replaces the portion from
+/// the `:` (exclusive of the header name itself) onward to the next whitespace,
+/// `"`, `'`, or end-of-string with `***REDACTED***`. Any leading `"` or `'`
+/// before the header keyword is stripped from the output token.
+///
+/// ## Pass 4 — URL inline credentials
+///
+/// Scans whitespace-separated tokens for tokens containing `://`. For each such
+/// token, if a `@` character appears after the `://` prefix and before the next
+/// `/` (or end-of-token), the user-info substring (`://…@`) is replaced with
+/// `://***REDACTED***@`.
+pub fn redact_command_preview(command: &str) -> String {
+    let s = redact_pass1_flag_args(command);
+    let s = redact_pass2_env_assignments(&s);
+    let s = redact_pass3_auth_headers(&s);
+    redact_pass4_url_credentials(&s)
+}
+
+/// Pass 1: flag-argument secret redaction (BC-4.15.001 INV5 Pass 1).
+///
+/// For `--flag value` form: the ENTIRE value token is replaced with
+/// `***REDACTED***` (full-value masking; BC-4.15.001 INV5).
+///
+/// For `--flag=value` form: the entire value portion (after `=`) is replaced
+/// with `***REDACTED***`.
+fn redact_pass1_flag_args(command: &str) -> String {
+    /// Sensitive flag keywords (lowercase, dashes normalised to hyphens).
+    const SENSITIVE_FLAGS: &[&str] = &[
+        "password",
+        "passwd",
+        "token",
+        "secret",
+        "api-key",
+        "apikey",
+        "api_key",
+        "client-secret",
+        "auth-token",
+        "access-token",
+        "access-key",
+        "secret-key",
+        "credential",
+        "passphrase",
+        "private-key",
+    ];
+
+    // Collect whitespace-separated tokens.
+    let tokens: Vec<&str> = command.split_whitespace().collect();
+    if tokens.is_empty() {
+        return command.to_string();
+    }
+
+    let mut result_tokens: Vec<String> = Vec::with_capacity(tokens.len());
+    let mut redact_next = false;
+
+    for (i, &tok) in tokens.iter().enumerate() {
+        if redact_next {
+            // This token is the entire value after a `--sensitive-flag`. Replace the
+            // whole token with `***REDACTED***` (full-value masking; BC-4.15.001 INV5).
+            result_tokens.push("***REDACTED***".to_string());
+            redact_next = false;
+            continue;
+        }
+
+        // Must start with `--` (long option). Single-dash short options are excluded.
+        if !tok.starts_with("--") {
+            result_tokens.push(tok.to_string());
+            continue;
+        }
+
+        // Strip the leading `--`.
+        let flag_body = &tok[2..];
+
+        if let Some(eq_pos) = flag_body.find('=') {
+            // `--flag=value` form: extract flag name (pre-`=`) and value (post-`=`).
+            let flag_name = &flag_body[..eq_pos];
+            let normalised = flag_name.to_lowercase().replace('_', "-");
+            if SENSITIVE_FLAGS.contains(&normalised.as_str()) {
+                // Replace the entire post-`=` value with `***REDACTED***`.
+                result_tokens.push(format!("--{}=***REDACTED***", flag_name));
+            } else {
+                result_tokens.push(tok.to_string());
+            }
+        } else {
+            // `--flag` form (no `=`). Check if flag name is sensitive.
+            let normalised = flag_body.to_lowercase().replace('_', "-");
+            if SENSITIVE_FLAGS.contains(&normalised.as_str()) && i + 1 < tokens.len() {
+                // Keep `--flag` as-is; mark the next token for full replacement.
+                result_tokens.push(tok.to_string());
+                redact_next = true;
+            } else {
+                result_tokens.push(tok.to_string());
+            }
+        }
+    }
+
+    result_tokens.join(" ")
+}
+
+/// Pass 2: environment-variable assignment prefix redaction (BC-4.15.001 INV5 Pass 2).
+fn redact_pass2_env_assignments(command: &str) -> String {
+    /// Sensitive env-var IDENT substrings (uppercase).
+    /// Note: bare `KEY` is intentionally excluded (EC-020 guard: `--key` bare flag).
+    const SENSITIVE_ENV: &[&str] = &[
+        "PASSWORD",
+        "PASSWD",
+        "SECRET",
+        "TOKEN",
+        "APIKEY",
+        "API_KEY",
+        "ACCESS_KEY",
+        "PRIVATE_KEY",
+        "AUTH_TOKEN",
+        "CLIENT_SECRET",
+        "CREDENTIAL",
+        "PASSPHRASE",
+    ];
+
+    /// Allowlisted IDENT prefixes/exact matches that are NEVER redacted.
+    const ENV_ALLOWLIST: &[&str] = &["SSH_AUTH_SOCK", "SSH_ASKPASS"];
+
+    let tokens: Vec<&str> = command.split_whitespace().collect();
+    if tokens.is_empty() {
+        return command.to_string();
+    }
+
+    let mut result_tokens: Vec<String> = Vec::with_capacity(tokens.len());
+    let mut in_env_prefix = true; // ENV=value tokens only at the start of the command.
+
+    for &tok in &tokens {
+        if !in_env_prefix {
+            result_tokens.push(tok.to_string());
+            continue;
+        }
+
+        // `IDENT=value` form: IDENT must be all-uppercase or mixed, contains `=`.
+        if let Some(eq_pos) = tok.find('=') {
+            let ident = &tok[..eq_pos];
+            let value = &tok[eq_pos + 1..]; // Everything after the `=`.
+
+            // IDENT must look like an env var: only uppercase ASCII + digits + underscore.
+            let looks_like_env = ident
+                .chars()
+                .all(|c| c.is_ascii_uppercase() || c.is_ascii_digit() || c == '_');
+
+            if !looks_like_env || ident.is_empty() {
+                // Not an env-var prefix token; stop scanning for env-var prefixes.
+                in_env_prefix = false;
+                result_tokens.push(tok.to_string());
+                continue;
+            }
+
+            let upper_ident = ident.to_uppercase();
+
+            // Allowlist check.
+            let is_allowlisted = ENV_ALLOWLIST.contains(&upper_ident.as_str())
+                || upper_ident.ends_with("_SERVICE_HOST");
+
+            if is_allowlisted {
+                result_tokens.push(tok.to_string());
+                continue;
+            }
+
+            // Check if IDENT contains a sensitive keyword.
+            let is_sensitive = SENSITIVE_ENV.iter().any(|kw| upper_ident.contains(kw));
+
+            if is_sensitive && !value.is_empty() {
+                result_tokens.push(format!("{}=***REDACTED***", ident));
+            } else {
+                result_tokens.push(tok.to_string());
+            }
+        } else {
+            // Not a `KEY=value` token; stop the env-prefix scan.
+            in_env_prefix = false;
+            result_tokens.push(tok.to_string());
+        }
+    }
+
+    result_tokens.join(" ")
+}
+
+/// Pass 3: authorization/cookie header value redaction (BC-4.15.001 INV5 Pass 3).
+///
+/// Operates on the raw string (character-level) to handle cases where the
+/// header and value may appear inside quoted strings in the Bash command.
+///
+/// Header prefixes matched (case-insensitive): `authorization:`, `cookie:`,
+/// `set-cookie:`.
+///
+/// The redacted output replaces everything from the `:` after the header name
+/// onward to the next unescaped `"`, `'`, or end-of-string with `***REDACTED***`.
+/// Any leading `"` or `'` quote character immediately before the header keyword
+/// is stripped.
+fn redact_pass3_auth_headers(command: &str) -> String {
+    const HEADER_PREFIXES: &[&str] = &["authorization:", "cookie:", "set-cookie:"];
+
+    // Work token-by-token on whitespace, preserving join.
+    let tokens: Vec<&str> = command.split_whitespace().collect();
+    if tokens.is_empty() {
+        return command.to_string();
+    }
+
+    let mut result_tokens: Vec<String> = Vec::with_capacity(tokens.len());
+    let mut skip_until_end_of_value = false;
+
+    for &tok in &tokens {
+        if skip_until_end_of_value {
+            // This token is a continuation of the header value (e.g., `Bearer token`).
+            // If it ends with `"` or `'`, stop consuming after this one.
+            if tok.ends_with('"') || tok.ends_with('\'') {
+                skip_until_end_of_value = false;
+            }
+            // Do not push this token — it is part of the redacted header value.
+            continue;
+        }
+
+        // Strip leading quote character for comparison.
+        let stripped = tok.trim_start_matches(['"', '\'']);
+        let lower = stripped.to_lowercase();
+
+        let matched_prefix = HEADER_PREFIXES.iter().find(|&&pfx| lower.starts_with(pfx));
+
+        if let Some(&pfx) = matched_prefix {
+            // Determine the header name portion (before the `:`, without leading quote).
+            let colon_pos = pfx.len() - 1; // position of `:` in `pfx`
+            // The header name in original case from `stripped`.
+            let header_name = &stripped[..colon_pos];
+
+            // The value portion within this same token (after the `:`).
+            let after_colon = &stripped[pfx.len()..];
+
+            if after_colon.trim_end_matches(['"', '\'']).is_empty() || after_colon.is_empty() {
+                // Value is in the following token(s).
+                result_tokens.push(format!("{}:***REDACTED***", header_name));
+                skip_until_end_of_value = true;
+            } else {
+                // Inline value: `Authorization: Bearer token` all in one token would be
+                // unusual but possible. Replace entire value.
+                result_tokens.push(format!("{}:***REDACTED***", header_name));
+                // If a closing quote is embedded in the inline value, no need to skip next.
+            }
+        } else {
+            result_tokens.push(tok.to_string());
+        }
+    }
+
+    result_tokens.join(" ")
+}
+
+/// Pass 4: URL inline credential redaction (BC-4.15.001 INV5 Pass 4).
+///
+/// Scans whitespace-separated tokens for tokens containing `://`. For each
+/// such token, replaces the user-info portion (`user:pass@`) with
+/// `***REDACTED***@`, yielding `scheme://***REDACTED***@host/path`.
+fn redact_pass4_url_credentials(command: &str) -> String {
+    let tokens: Vec<&str> = command.split_whitespace().collect();
+    if tokens.is_empty() {
+        return command.to_string();
+    }
+
+    let result_tokens: Vec<String> = tokens
+        .iter()
+        .map(|&tok| {
+            if let Some(scheme_end) = tok.find("://") {
+                let after_scheme = &tok[scheme_end + 3..]; // skip `://`
+                // Find `@` in the remaining part (before the next `/`).
+                let path_start = after_scheme.find('/').unwrap_or(after_scheme.len());
+                let host_part = &after_scheme[..path_start];
+
+                if let Some(at_pos) = host_part.rfind('@') {
+                    // userinfo is host_part[..at_pos], e.g., `user:pass`.
+                    let scheme_and_sep = &tok[..scheme_end + 3]; // e.g., `https://`
+                    let after_at = &after_scheme[at_pos + 1..]; // e.g., `example.com/db`
+                    format!("{}***REDACTED***@{}", scheme_and_sep, after_at)
+                } else {
+                    tok.to_string()
+                }
+            } else {
+                tok.to_string()
+            }
+        })
+        .collect();
+
+    result_tokens.join(" ")
 }
 
 /// Compute the command_preview field (BC-4.15.001 INV4).

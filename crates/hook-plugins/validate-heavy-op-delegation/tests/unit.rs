@@ -770,7 +770,9 @@ fn test_heavy_op_gate_redacts_authorization_header() {
     match result {
         GateResult::Advisory(ref advisory) => {
             assert!(
-                advisory.command_preview.contains("Authorization:***REDACTED***"),
+                advisory
+                    .command_preview
+                    .contains("Authorization:***REDACTED***"),
                 "AC-012/INV5 Pass 3: command_preview must contain 'Authorization:***REDACTED***'.\n\
                 Got: {:?}\n\
                 BC-4.15.001 INV5: Authorization header value MUST be redacted.",
@@ -814,7 +816,9 @@ fn test_heavy_op_gate_redacts_url_credentials() {
     match result {
         GateResult::Advisory(ref advisory) => {
             assert!(
-                advisory.command_preview.contains("https://***REDACTED***@example.com/db"),
+                advisory
+                    .command_preview
+                    .contains("https://***REDACTED***@example.com/db"),
                 "AC-012/INV5 Pass 4: command_preview must contain 'https://***REDACTED***@example.com/db'.\n\
                 Got: {:?}\n\
                 BC-4.15.001 INV5: URL credentials MUST be replaced with ***REDACTED***.",
