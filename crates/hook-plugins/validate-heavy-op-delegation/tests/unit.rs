@@ -9,7 +9,7 @@
 //! via `plugin_config["patterns"]` per F-P1-001 fix) live in the bats suite:
 //! `plugins/vsdd-factory/tests/validate-heavy-op-delegation.bats`.
 //!
-//! # Test Table (S-18.06 v1.10 — unit.rs subset)
+//! # Test Table (S-18.06 — unit.rs subset)
 //!
 //! | Test name | AC | BC clause | State |
 //! |-----------|----|-----------|-|
@@ -958,35 +958,52 @@ fn test_heavy_op_gate_allowlist_env_var_not_redacted() {
 }
 
 /// AC-012 / INV5 bare-flag negative / EC-020:
-/// A bare `--key` flag (no `<space>value` following it) must NOT be redacted.
-/// Pass 1 only redacts `--<flag> <value>` pairs where a whitespace-separated
-/// value follows the flag.
+/// A bare `--key` flag whose value is NOT a secret (e.g. `3,3` — a grep context
+/// option) must NOT be redacted. Pass 1 only redacts flag-arg pairs where the flag
+/// name appears in `SENSITIVE_FLAGS`; `--key` is not in that set.
 ///
-/// Setup: command `find . -name "*.key" -type f` — pattern `find . -name` matches.
-/// No flag-arg pair where a secret value follows.
+/// Setup: `"grep -r . --key 3,3"` — pattern `grep -r` matches the gate.
+///   - `--key` is a grep flag (key-lines context option); NOT in SENSITIVE_FLAGS.
+///   - `3,3` is its value and must NOT be masked.
 ///
-/// Assert: `command_preview` does NOT contain `***REDACTED***`.
+/// Assert:
+///   1. `command_preview` does NOT contain `***REDACTED***` (no spurious redaction).
+///   2. `command_preview` DOES contain `3,3` (value positively preserved).
 ///
-/// Regression guard: verifies BC-4.15.001 INV5 / AC-012 / EC-020 non-redaction path —
-/// bare key flag with no following value must not produce spurious redaction.
+/// Load-bearing: an implementation that wrongly added `key` to SENSITIVE_FLAGS
+/// would redact `3,3` → assertion 1 would fail on `***REDACTED***` presence AND
+/// assertion 2 would fail on absence of `3,3`.
+///
+/// Verifies BC-4.15.001 INV5 / AC-012 / EC-020: Pass 1 must not over-redact
+/// flags that are absent from the sensitive-flag set.
 #[test]
 fn test_heavy_op_gate_bare_key_flag_not_redacted() {
-    let command = r#"find . -name "*.key" -type f"#;
+    // `grep -r` triggers the gate; `--key 3,3` is the false-positive guard subject.
+    let command = "grep -r . --key 3,3";
     let result = evaluate_patterns(command, DEFAULT_PATTERNS);
 
     match result {
         GateResult::Advisory(ref advisory) => {
+            // Assert 1: no spurious redaction mask present.
             assert!(
                 !advisory.command_preview.contains("***REDACTED***"),
-                "AC-012/INV5 EC-020: bare flag with no following value must NOT produce ***REDACTED***.\n\
+                "AC-012/INV5 EC-020: '--key' is not in SENSITIVE_FLAGS; value '3,3' must NOT be masked.\n\
                 Got: {:?}\n\
-                BC-4.15.001 INV5: Pass 1 only redacts '--flag value' pairs, not bare flags.",
+                BC-4.15.001 INV5: Pass 1 only redacts '--flag value' pairs for flags in SENSITIVE_FLAGS.",
+                advisory.command_preview
+            );
+            // Assert 2: value positively survives in the preview (not just absence-of-mask).
+            assert!(
+                advisory.command_preview.contains("3,3"),
+                "AC-012/INV5 EC-020: value '3,3' of non-sensitive flag '--key' MUST appear in command_preview.\n\
+                Got: {:?}\n\
+                BC-4.15.001 INV5 PC6g: non-sensitive flag values must be preserved verbatim.",
                 advisory.command_preview
             );
         }
         GateResult::Continue => {
             panic!(
-                "AC-012/INV5 EC-020: expected Advisory for command containing 'find . -name'; got Continue.\n\
+                "AC-012/INV5 EC-020: expected Advisory for command containing 'grep -r'; got Continue.\n\
                 Command: {:?}",
                 command
             );
@@ -1461,9 +1478,9 @@ fn test_heavy_op_gate_unbalanced_quote_auth_header_fail_safe() {
 ///   - Opening `"` is on the `"Authorization:` token → `consuming_quoted = true`,
 ///     opening quote is `"`.
 ///   - `Bearer` → consumed/masked (no closing `"`).
-///   - `aaa'` → contains `'` (apostrophe). Current impl: this token ENDS with `'`
-///     → `consuming_quoted = false` (WRONG — `'` ≠ opening `"` quote).
-///     Correct impl: `'` does not match opening `"` → keep consuming.
+///   - `aaa'` → contains `'` (apostrophe). A naive b3 check (`tok.ends_with(any_quote)`)
+///     would set `consuming_quoted = false` here (WRONG — `'` ≠ opening `"`).
+///     The shipped b3 requires the MATCHING opening quote, so consumption correctly continues.
 ///   - `realsecret"` → closing `"` matches opening `"` → stop (b3, correct).
 ///
 /// Assert:

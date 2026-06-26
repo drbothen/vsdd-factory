@@ -1,8 +1,8 @@
 #!/usr/bin/env bats
-# validate-heavy-op-delegation.bats — Red Gate integration tests for S-18.06.
+# validate-heavy-op-delegation.bats — integration tests for S-18.06.
 #
-# Story:   S-18.06 v1.5 — validate-heavy-op-delegation WASM gate
-# BC gate: BC-4.15.001 v1.2 (all postconditions PC-A/PC-B-B1/PC-B-B2/PC-C/PC-D;
+# Story:   S-18.06 — validate-heavy-op-delegation WASM gate
+# BC gate: BC-4.15.001 (all postconditions PC-A/PC-B-B1/PC-B-B2/PC-C/PC-D;
 #          all 4 invariants INV1/INV2/INV3/INV4 in scope)
 # VP:      VP-091 (machine-stable assertion discipline)
 #
@@ -45,7 +45,7 @@
 #   when FACTORY_DISPATCHER_INTERNAL_LOG=1 is set. This is the machine-stable
 #   channel for asserting DelegationRecommended record presence/absence/count.
 #
-# Red Gate Test Plan table (S-18.06 v1.5 — bats subset):
+# Test Plan table (S-18.06 — bats subset):
 #
 #   | Test name                                                          | AC    |
 #   |--------------------------------------------------------------------|-------|
