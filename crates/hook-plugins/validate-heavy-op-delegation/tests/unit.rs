@@ -3,7 +3,8 @@
 //! Every test in this file maps to an acceptance criterion in S-18.06 and a
 //! postcondition or invariant in BC-4.15.001. Tests exercise `evaluate_patterns`
 //! and `truncate_command_preview` directly (pure-core functions; no WASM runtime
-//! required). All tests are GREEN — implementation is complete (S-18.06 T-3).
+//! required). 27 tests GREEN / 2 tests RED (F-RD5-001 inline-scheme leak — Red
+//! Gate, awaiting implementer fix).
 //!
 //! Dispatcher-integration tests for `on_pre_tool_use` (including config-reading
 //! via `plugin_config["patterns"]` per F-P1-001 fix) live in the bats suite:
@@ -33,10 +34,13 @@
 //! | `test_heavy_op_gate_redact_then_truncate_ordering` | AC-012 | INV5/EC-021 | GREEN |
 //! | `test_heavy_op_gate_no_redaction_preserves_whitespace` | AC-012 | INV5/PC6b/F-RD1-001 | GREEN |
 //! | `test_heavy_op_gate_unquoted_auth_header_preserves_trailing_args` | AC-012 | INV5/Pass3/F-RD1-002 | GREEN |
-//! | `test_heavy_op_gate_auth_header_preserves_trailing_url` | AC-012 | INV5/Pass3/EC-022/F-RD3-001 | RED |
-//! | `test_heavy_op_gate_auth_header_preserves_trailing_flag` | AC-012 | INV5/Pass3/EC-023/F-RD3-001 | RED |
-//! | `test_heavy_op_gate_unbalanced_quote_auth_header_fail_safe` | AC-012 | INV5/Pass3/EC-024 | RED |
-//! | `test_heavy_op_gate_matching_quote_no_early_stop_leak` | AC-012 | INV5/Pass3/b3/F-RD3-002 | RED |
+//! | `test_heavy_op_gate_auth_header_preserves_trailing_url` | AC-012 | INV5/Pass3/EC-022/F-RD3-001 | GREEN |
+//! | `test_heavy_op_gate_auth_header_preserves_trailing_flag` | AC-012 | INV5/Pass3/EC-023/F-RD3-001 | GREEN |
+//! | `test_heavy_op_gate_unbalanced_quote_auth_header_fail_safe` | AC-012 | INV5/Pass3/EC-024 | GREEN |
+//! | `test_heavy_op_gate_matching_quote_no_early_stop_leak` | AC-012 | INV5/Pass3/b3/F-RD3-002 | GREEN |
+//! | `test_heavy_op_gate_quoted_inline_scheme_no_space_no_leak` | AC-012 | INV5/Pass3/F-RD5-001 | RED |
+//! | `test_heavy_op_gate_quoted_single_quote_multitoken_no_leak` | AC-012 | INV5/Pass3/b3 | GREEN |
+//! | `test_heavy_op_gate_quoted_inline_scheme_with_trailing_outside_quote` | AC-012 | INV5/Pass3/F-RD5-001 | RED |
 
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
@@ -1536,6 +1540,213 @@ fn test_heavy_op_gate_matching_quote_no_early_stop_leak() {
         GateResult::Continue => {
             panic!(
                 "F-RD3-002: expected Advisory for command containing 'grep -r'; got Continue.\n\
+                Command: {:?}",
+                command
+            );
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// BC-4.15.001 v1.5 INV5 Pass 3 F-RD5-001 — quoted header with scheme abutting
+// the colon (no space): "Authorization:Bearer token" whitespace-splits into
+// token `"Authorization:Bearer` (has content after `:` → Form A) and `token"`.
+// Form A masks the within-token content but does NOT consume subsequent tokens,
+// so `token"` leaks. Fix requires Form A → detect unclosed opening quote →
+// fall through to Form B token-consumption semantics.
+//
+// RED against current implementation (Form A stops immediately; next token leaks).
+// ---------------------------------------------------------------------------
+
+/// BC-4.15.001 v1.5 INV5 Pass 3 / F-RD5-001 — quoted inline scheme (primary):
+/// When an Authorization header value is double-quoted AND the scheme abuts the
+/// colon without a space (`"Authorization:Bearer realsecret"`), whitespace
+/// tokenization produces `"Authorization:Bearer` as the header token (non-empty
+/// after-colon content → Form A fires) and `realsecret"` as the next token.
+/// Form A masks the within-token value but does NOT consume any further tokens,
+/// so `realsecret"` is emitted verbatim — a secret LEAK.
+///
+/// The correct behavior: when the Form A token has an unclosed opening quote,
+/// Pass 3 MUST continue consuming subsequent tokens (Form B semantics) until
+/// the matching closing quote (b3-stop) or a b1/b2 boundary is reached.
+///
+/// Assert:
+///   1. `command_preview` contains `***REDACTED***` (Pass 3 fired).
+///   2. `command_preview` does NOT contain `realsecret` (secret masked, not leaked).
+///
+/// Current implementation FAILS assertion 2.
+/// RED against current implementation. BC-4.15.001 v1.5 INV5 Pass 3 / F-RD5-001.
+#[test]
+fn test_heavy_op_gate_quoted_inline_scheme_no_space_no_leak() {
+    // Double-quoted header where scheme abuts the colon — no space between
+    // `Authorization:` and `Bearer`. Shell tokenization keeps these joined,
+    // so whitespace-split produces `"Authorization:Bearer` as a single token
+    // (Form A: after_colon = "Bearer", non-empty) and `realsecret"` as the
+    // next token. Form A must NOT leave `realsecret"` unmasked.
+    let command = r#"grep -r . -H "Authorization:Bearer realsecret""#;
+    let result = evaluate_patterns(command, DEFAULT_PATTERNS);
+
+    match result {
+        GateResult::Advisory(ref advisory) => {
+            // Assert 1: Pass 3 must have fired.
+            assert!(
+                advisory.command_preview.contains("***REDACTED***"),
+                "F-RD5-001 / INV5 Pass 3: command_preview must contain '***REDACTED***'.\n\
+                Got: {:?}\n\
+                BC-4.15.001 v1.5 INV5 Pass 3: Authorization header value MUST be masked.",
+                advisory.command_preview
+            );
+            // Assert 2: credential must NOT leak.
+            assert!(
+                !advisory.command_preview.contains("realsecret"),
+                "F-RD5-001 / INV5 Pass 3 SECRET LEAK: 'realsecret' must NOT appear in command_preview.\n\
+                Got: {:?}\n\
+                Bug: Form A fires on '\"Authorization:Bearer' (after_colon = 'Bearer', non-empty),\n\
+                masks within-token, then stops without consuming `realsecret\"` (the next token).\n\
+                Fix: if the Form A token has an unclosed opening quote, fall through to Form B\n\
+                token-consumption semantics until matching closing quote (b3-stop) is reached.\n\
+                BC-4.15.001 v1.5 INV5 Pass 3: no credential token from a quoted header may appear\n\
+                unmasked in command_preview.",
+                advisory.command_preview
+            );
+        }
+        GateResult::Continue => {
+            panic!(
+                "F-RD5-001: expected Advisory for command containing 'grep -r'; got Continue.\n\
+                Command: {:?}",
+                command
+            );
+        }
+    }
+}
+
+/// BC-4.15.001 v1.5 INV5 Pass 3 b3 — single-quoted multitoken Authorization header:
+/// When the Authorization header is wrapped in single-quotes with a space between
+/// the colon and the scheme (`'Authorization: Basic dXNlcjpwYXNz extra'`),
+/// whitespace tokenization produces `'Authorization:` as a standalone token
+/// (after_colon empty → Form B) followed by `Basic`, `dXNlcjpwYXNz`, `extra'`.
+/// `extra'` contains the closing `'` (matching the opening `'`) → b3-stop; `extra`
+/// is consumed/masked; no tokens after the closing quote are consumed.
+///
+/// This is a GREEN test (current implementation handles this correctly). It
+/// documents the correct single-quote Form B behavior so a future refactor
+/// cannot accidentally break it.
+///
+/// Assert:
+///   1. `command_preview` contains `***REDACTED***` (Pass 3 fired).
+///   2. `command_preview` does NOT contain `dXNlcjpwYXNz` (Base64 credential masked).
+///
+/// GREEN against current implementation.
+#[test]
+fn test_heavy_op_gate_quoted_single_quote_multitoken_no_leak() {
+    // Single-quoted header with space before scheme. Form B: `'Authorization:`
+    // token has empty after_colon → consuming_quoted = true, opening_quote = `'`.
+    // Subsequent tokens (`Basic`, `dXNlcjpwYXNz`, `extra'`) are consumed until
+    // `extra'` ends with the matching `'` (b3-stop).
+    let command = r#"grep -r . -H 'Authorization: Basic dXNlcjpwYXNz extra'"#;
+    let result = evaluate_patterns(command, DEFAULT_PATTERNS);
+
+    match result {
+        GateResult::Advisory(ref advisory) => {
+            // Assert 1: Pass 3 must have fired.
+            assert!(
+                advisory.command_preview.contains("***REDACTED***"),
+                "INV5 Pass 3 b3 (single-quote Form B): command_preview must contain '***REDACTED***'.\n\
+                Got: {:?}",
+                advisory.command_preview
+            );
+            // Assert 2: Base64 credential must be masked.
+            assert!(
+                !advisory.command_preview.contains("dXNlcjpwYXNz"),
+                "INV5 Pass 3 b3 (single-quote Form B) SECRET LEAK: 'dXNlcjpwYXNz' must NOT appear in command_preview.\n\
+                Got: {:?}\n\
+                BC-4.15.001 v1.5 INV5 Pass 3 b3: all tokens between the opening single-quote\n\
+                and the closing matching single-quote must be consumed and masked.",
+                advisory.command_preview
+            );
+        }
+        GateResult::Continue => {
+            panic!(
+                "INV5 Pass 3 b3 (single-quote): expected Advisory for command containing 'grep -r'; got Continue.\n\
+                Command: {:?}",
+                command
+            );
+        }
+    }
+}
+
+/// BC-4.15.001 v1.5 INV5 Pass 3 / F-RD5-001 — quoted inline scheme with trailing
+/// non-credential arg outside the closing quote:
+/// `grep -r . -H "Authorization:Bearer sk" --verbose`
+///
+/// Whitespace tokens: `grep`, `-r`, `.`, `-H`, `"Authorization:Bearer`, `sk"`, `--verbose`.
+///
+/// `"Authorization:Bearer` → Form A fires (after_colon = `Bearer`, non-empty),
+/// masks within-token to `Authorization:***REDACTED***`. Form A stops immediately.
+/// `sk"` is the next token — it contains the closing `"` — but since Form A
+/// already stopped, `sk"` is emitted verbatim → `sk` leaks.
+/// `--verbose` is a post-quote non-credential arg and MUST be preserved.
+///
+/// The correct behavior: Form A with unclosed opening quote must fall through to
+/// Form B token-consumption (stops at `sk"` due to b3-closing `"`) — `sk` masked;
+/// then `--verbose` is output as-is (not consumed, since we've exited the quoted
+/// region).
+///
+/// Assert:
+///   1. `command_preview` contains `***REDACTED***` (Pass 3 fired).
+///   2. `command_preview` does NOT contain `sk` as a standalone token (credential masked).
+///   3. `command_preview` contains `--verbose` (trailing non-credential arg preserved).
+///
+/// Current implementation FAILS assertion 2 (`sk"` leaks).
+/// RED against current implementation. BC-4.15.001 v1.5 INV5 Pass 3 / F-RD5-001.
+#[test]
+fn test_heavy_op_gate_quoted_inline_scheme_with_trailing_outside_quote() {
+    // Double-quoted header with inline scheme; `--verbose` is outside the closing
+    // `"` and must be preserved in the output.
+    let command = r#"grep -r . -H "Authorization:Bearer sk" --verbose"#;
+    let result = evaluate_patterns(command, DEFAULT_PATTERNS);
+
+    match result {
+        GateResult::Advisory(ref advisory) => {
+            let preview = &advisory.command_preview;
+            // Assert 1: Pass 3 must have fired.
+            assert!(
+                preview.contains("***REDACTED***"),
+                "F-RD5-001 / INV5 Pass 3: command_preview must contain '***REDACTED***'.\n\
+                Got: {:?}",
+                preview
+            );
+            // Assert 2: short-token credential must NOT leak.
+            // Checking for `sk` as a word boundary approximation — the leaked token
+            // is `sk"` and `sk` would appear as part of it. We check the raw
+            // preview does not contain `sk` (which would be the unmasked credential).
+            // Note: `--verbose` contains no `sk`, and `***REDACTED***` contains no
+            // `sk`, so this assertion is precise.
+            assert!(
+                !preview.contains(" sk"),
+                "F-RD5-001 / INV5 Pass 3 SECRET LEAK: credential 'sk' must NOT appear in command_preview.\n\
+                Got: {:?}\n\
+                Bug: Form A fires on '\"Authorization:Bearer' (after_colon = 'Bearer'), masks\n\
+                within-token, then stops — `sk\"` (next token) is emitted verbatim.\n\
+                Fix: Form A with unclosed opening quote must fall through to Form B consumption,\n\
+                consuming `sk\"` (b3-stop on matching `\"`) before resuming normal output.\n\
+                BC-4.15.001 v1.5 INV5 Pass 3 / F-RD5-001.",
+                preview
+            );
+            // Assert 3: trailing non-credential arg outside closing quote must be preserved.
+            assert!(
+                preview.contains("--verbose"),
+                "F-RD5-001 / INV5 Pass 3: '--verbose' (post-close-quote non-credential arg) must\n\
+                be preserved in command_preview.\n\
+                Got: {:?}\n\
+                BC-4.15.001 v1.5 INV5 Pass 3 b3: after the closing matching quote, token consumption\n\
+                stops and normal passthrough resumes.",
+                preview
+            );
+        }
+        GateResult::Continue => {
+            panic!(
+                "F-RD5-001: expected Advisory for command containing 'grep -r'; got Continue.\n\
                 Command: {:?}",
                 command
             );
