@@ -525,13 +525,32 @@ fn redact_pass3_auth_headers(command: &str) -> String {
                 // Replace the entire header token → `HeaderName:***REDACTED***`.
                 let replacement = format!("{}:***REDACTED***", header_name);
                 replacements.push((start, end, replacement));
-                if after_colon_trimmed.is_empty() {
-                    // Quoted header with no inline value: value in subsequent tokens.
-                    // Capture the opening quote for b3 matching (F-RD3-002).
-                    opening_quote = tok.chars().next();
+
+                // F-RD5-001: when the header token has a leading quote, check whether
+                // the MATCHING closing quote is present in THIS token (after the colon).
+                // If NOT, the quoted value continues into following tokens — enter
+                // consuming_quoted so the continuation tokens are masked too.
+                //
+                // Decision table:
+                //   started_with_quote=false → unquoted Form A; inline value fully masked; done.
+                //   started_with_quote=true, closing quote present in after_colon → single-token
+                //     quoted Form A (e.g. `"Authorization:Bearer"`); fully masked; done.
+                //   started_with_quote=true, closing quote NOT in after_colon (e.g.
+                //     `"Authorization:Bearer` or `"Authorization:`) → value continues in
+                //     subsequent tokens; enter consuming_quoted (b3/b1/b2 will terminate it).
+                let oq: Option<char> = if started_with_quote {
+                    tok.chars().next()
+                } else {
+                    None
+                };
+                let closing_quote_in_token = oq.is_some_and(|q| after_colon.ends_with(q));
+
+                if started_with_quote && !closing_quote_in_token {
+                    // Opening quote not yet closed — consume following tokens until b3/b1/b2.
+                    opening_quote = oq;
                     consuming_quoted = true;
                 }
-                // Non-empty after_colon: full value is inline — no further tokens to consume.
+                // Otherwise (unquoted inline OR single-token quoted): fully masked; done.
             } else {
                 // Form B: unquoted header token ending with `:`.
                 // Preserve the header token as-is (colon-space preserved by apply_replacements).
