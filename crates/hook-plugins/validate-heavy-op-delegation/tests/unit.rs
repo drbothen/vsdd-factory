@@ -518,3 +518,105 @@ fn test_heavy_op_gate_channel_identity_command_preview_not_debug_quoted() {
         );
     }
 }
+
+// ---------------------------------------------------------------------------
+// AC-009 — Pure-parse; no filesystem, subprocess, or context access (INV1)
+// ---------------------------------------------------------------------------
+
+/// AC-009 / INV1 / BC-4.15.001 Architecture Compliance Rule 1:
+/// The WASM gate source MUST NOT import `std::fs`, `std::process`, or `std::net`
+/// (or any qualified `fs::` / `process::` / `net::` usage that would bypass the
+/// `std::` prefix).
+///
+/// This is a source-fence test: it embeds the crate source at compile time via
+/// `include_str!` and scans for actual import/use tokens at test runtime.
+///
+/// **Why source-fence rather than feature-flag or linker trick:**
+/// The pure-parse invariant (INV1) is a source-level architectural constraint.
+/// A linker check would only catch linked symbols; a feature-flag approach only
+/// catches conditional compilation paths. Source-fence catches ANY `use std::fs`
+/// or `std::fs::` reference regardless of whether it's dead code — if it appears
+/// in the source, the CI lint gate (`cargo clippy`) should already flag it, but
+/// this test provides a second independent gate that runs on every `cargo test`.
+///
+/// **False-positive prevention:**
+/// The doc comments in lib.rs say "NO `std::fs::`" (a negation sentence). Scanning
+/// for the bare substring `std::fs` would match those doc comments. Instead this
+/// test scans the non-comment source lines (filtering out lines whose trimmed form
+/// starts with `//`) for actual use/import tokens:
+///   - `use std::fs`      — direct import
+///   - `use std::process` — direct import
+///   - `use std::net`     — direct import
+///   - `std::fs::`        — qualified path usage (e.g. `std::fs::read_to_string(...)`)
+///   - `std::process::`   — qualified path usage
+///   - `std::net::`       — qualified path usage
+///
+/// These patterns cannot appear in a negation sentence without the `::`  suffix or
+/// the `use ` prefix, so they are safe against the doc-comment false-positive.
+///
+/// **Mutation evidence (from development):**
+/// Adding `use std::fs;` to lib.rs causes this test to fail immediately.
+/// The test is non-tautological: a clean implementation passes; a dirty one fails.
+///
+/// Asserts BC-4.15.001 INV1 / AC-009 / ADR-026 §Decision 8 at the source level.
+#[test]
+fn test_heavy_op_gate_pure_parse_no_filesystem_access() {
+    // Embed both source files at compile time.
+    // The paths are relative to this test file's location:
+    //   tests/unit.rs  →  ../src/lib.rs  and  ../src/main.rs
+    const LIB_SRC: &str = include_str!("../src/lib.rs");
+    const MAIN_SRC: &str = include_str!("../src/main.rs");
+
+    // Filter out comment lines (lines whose trimmed form starts with `//`).
+    // This prevents false-positives from doc-comment negation sentences like
+    // "NO `std::fs::`" in the lib.rs module-level doc comment.
+    let lib_non_comment: String = LIB_SRC
+        .lines()
+        .filter(|line| !line.trim_start().starts_with("//"))
+        .collect::<Vec<_>>()
+        .join("\n");
+
+    let main_non_comment: String = MAIN_SRC
+        .lines()
+        .filter(|line| !line.trim_start().starts_with("//"))
+        .collect::<Vec<_>>()
+        .join("\n");
+
+    // Forbidden import patterns (actual use/import tokens, not prose mentions).
+    // Each pattern is chosen to be unambiguous in non-comment Rust source:
+    //   - `use std::fs`      triggers on `use std::fs;` / `use std::fs::{...}`
+    //   - `std::fs::`        triggers on qualified path calls
+    //   - `use std::process` triggers on `use std::process;` / `use std::process::Command`
+    //   - `std::process::`   triggers on qualified `std::process::exit(...)` etc.
+    //   - `use std::net`     triggers on `use std::net;` / `use std::net::TcpStream` etc.
+    //   - `std::net::`       triggers on qualified path calls
+    let forbidden: &[(&str, &str)] = &[
+        ("use std::fs", "std::fs import (BC-4.15.001 INV1: NO filesystem reads)"),
+        ("std::fs::", "std::fs:: qualified usage (BC-4.15.001 INV1: NO filesystem reads)"),
+        ("use std::process", "std::process import (BC-4.15.001 INV1: NO subprocess execution)"),
+        ("std::process::", "std::process:: qualified usage (BC-4.15.001 INV1: NO subprocess execution)"),
+        ("use std::net", "std::net import (BC-4.15.001 INV1: NO network calls)"),
+        ("std::net::", "std::net:: qualified usage (BC-4.15.001 INV1: NO network calls)"),
+    ];
+
+    for (pattern, description) in forbidden {
+        assert!(
+            !lib_non_comment.contains(pattern),
+            "AC-009/INV1: forbidden pattern {:?} found in src/lib.rs non-comment source.\n\
+            Description: {}\n\
+            BC-4.15.001 INV1: 'Pure-parse; no filesystem, subprocess, or context access.'\n\
+            ADR-026 §Decision 8: 'WASM for pure-function command-string matching; no side effects.'\n\
+            Architecture Compliance Rule 1: 'MUST NOT import std::fs, std::process, std::net.'",
+            pattern, description
+        );
+
+        assert!(
+            !main_non_comment.contains(pattern),
+            "AC-009/INV1: forbidden pattern {:?} found in src/main.rs non-comment source.\n\
+            Description: {}\n\
+            BC-4.15.001 INV1: 'Pure-parse; no filesystem, subprocess, or context access.'\n\
+            ADR-026 §Decision 8: 'WASM for pure-function command-string matching; no side effects.'",
+            pattern, description
+        );
+    }
+}
