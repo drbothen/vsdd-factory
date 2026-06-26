@@ -6,14 +6,26 @@
   "convergence_reached": true,
   "convergence_date": "2026-06-26",
   "passes_clean": 3,
-  "passes_total": 13,
+  "passes_total": 25,
   "fix_bursts": 6,
-  "last_classification": "NITPICK_ONLY",
+  "last_classification": "CLEAN",
   "last_finding_count": 0,
   "last_pass_at": "2026-06-26T00:00:00Z",
-  "deferred_findings": [],
+  "feature_head_sha": "2c195ac2",
+  "story_version": "v1.13",
+  "bc_version": "BC-4.15.001 v1.6",
+  "vp_version": "VP-091 v1.5",
+  "adr_version": "ADR-026 v1.29",
+  "deferred_findings": [
+    {
+      "id": "O-COSMETIC-001",
+      "description": "Non-normative cosmetic observation: ADR-026 illustrative test-vector uses quote-retention semantics whereas the implementation applies quote-strip. Non-blocking; does not affect runtime behavior or BC compliance.",
+      "classification": "COSMETIC",
+      "deferred_to": "opportunistic follow-up sweep"
+    }
+  ],
   "cascade_summary": {
-    "trajectory": "F-P1-001 BLOCKER → F-P2-001/002/003 → F-P5-001 → O-1 (LOW obs) → F-P6-001 → F-P7-001 → F-P8-001 → F-P10-001 → CONVERGED",
+    "trajectory": "F-P1-001 BLOCKER → F-P2-001/002/003 → F-P5-001 → O-1 (LOW obs) → F-P6-001 → F-P7-001 → F-P8-001 → F-P10-001 → CONVERGED (base 13 passes)",
     "clean_passes": [11, 12, 13],
     "findings_resolved": [
       "F-P1-001",
@@ -29,9 +41,46 @@
     ],
     "observations_dispositioned": ["O-1"]
   },
+  "redaction_delta": {
+    "trigger": "SEC-002 secret-redaction addition (BC-4.15.001 INV5 4-pass redaction)",
+    "passes_total": 12,
+    "passes_clean": 3,
+    "converged": true,
+    "clean_pass_numbers": [10, 11, 12],
+    "convergence_pass": 12,
+    "last_classification": "CLEAN",
+    "trajectory": "F-RD1-001/002 → F-RD2-001/002 → F-RD3-001/002 → F-RD5-001 → F-RD6-001 → F-RD8-001 → F-P7-001/F-P9-001/002 + O-P9-001/002 → CONVERGED (RD-Pass 10/11/12)",
+    "findings_resolved": [
+      "F-RD1-001",
+      "F-RD1-002",
+      "F-RD2-001",
+      "F-RD2-002",
+      "F-RD3-001",
+      "F-RD3-002",
+      "F-RD5-001",
+      "F-RD6-001",
+      "F-RD8-001",
+      "F-P7-001",
+      "F-P9-001",
+      "F-P9-002",
+      "O-P9-001",
+      "O-P9-002"
+    ],
+    "fixes_summary": [
+      "Whitespace preservation across redaction boundaries",
+      "Bounded Pass-3 consumption gate",
+      "Form-B output format compliance",
+      "Matching-quote leak closure",
+      "Inline-scheme leak closure",
+      "Red Gate inventory reconcile",
+      "Stale-narrative sweeps",
+      "Tautological-test fix"
+    ]
+  },
   "passes": [
     {
       "pass": 1,
+      "episode": "base",
       "classification": "BLOCKER",
       "within_story_findings": 2,
       "severity_floor": "BLOCKER",
@@ -39,6 +88,7 @@
     },
     {
       "pass": 2,
+      "episode": "base",
       "classification": "HIGH",
       "within_story_findings": 3,
       "severity_floor": "HIGH",
@@ -46,6 +96,7 @@
     },
     {
       "pass": 3,
+      "episode": "base",
       "classification": "NITPICK_ONLY",
       "within_story_findings": 0,
       "severity_floor": "NITPICK",
@@ -53,6 +104,7 @@
     },
     {
       "pass": 4,
+      "episode": "base",
       "classification": "NITPICK_ONLY",
       "within_story_findings": 0,
       "severity_floor": "NITPICK",
@@ -60,6 +112,7 @@
     },
     {
       "pass": 5,
+      "episode": "base",
       "classification": "HIGH",
       "within_story_findings": 1,
       "severity_floor": "HIGH",
@@ -67,6 +120,7 @@
     },
     {
       "pass": 6,
+      "episode": "base",
       "classification": "HIGH",
       "within_story_findings": 1,
       "severity_floor": "HIGH",
@@ -74,6 +128,7 @@
     },
     {
       "pass": 7,
+      "episode": "base",
       "classification": "HIGH",
       "within_story_findings": 1,
       "severity_floor": "HIGH",
@@ -81,6 +136,7 @@
     },
     {
       "pass": 8,
+      "episode": "base",
       "classification": "HIGH",
       "within_story_findings": 1,
       "severity_floor": "HIGH",
@@ -88,6 +144,7 @@
     },
     {
       "pass": 9,
+      "episode": "base",
       "classification": "NITPICK_ONLY",
       "within_story_findings": 0,
       "severity_floor": "NITPICK",
@@ -95,6 +152,7 @@
     },
     {
       "pass": 10,
+      "episode": "base",
       "classification": "HIGH",
       "within_story_findings": 1,
       "severity_floor": "HIGH",
@@ -102,6 +160,7 @@
     },
     {
       "pass": 11,
+      "episode": "base",
       "classification": "NITPICK_ONLY",
       "within_story_findings": 0,
       "severity_floor": "NITPICK",
@@ -109,6 +168,7 @@
     },
     {
       "pass": 12,
+      "episode": "base",
       "classification": "NITPICK_ONLY",
       "within_story_findings": 0,
       "severity_floor": "NITPICK",
@@ -116,9 +176,125 @@
     },
     {
       "pass": 13,
+      "episode": "base",
       "classification": "NITPICK_ONLY",
       "within_story_findings": 0,
       "severity_floor": "NITPICK",
+      "recommendation": "CONVERGED_NO_FIX_NEEDED"
+    },
+    {
+      "pass": 14,
+      "episode": "redaction_delta",
+      "rd_pass": 1,
+      "classification": "HIGH",
+      "within_story_findings": 2,
+      "severity_floor": "HIGH",
+      "recommendation": "PROCEED_TO_FIX",
+      "findings": ["F-RD1-001", "F-RD1-002"]
+    },
+    {
+      "pass": 15,
+      "episode": "redaction_delta",
+      "rd_pass": 2,
+      "classification": "HIGH",
+      "within_story_findings": 2,
+      "severity_floor": "HIGH",
+      "recommendation": "PROCEED_TO_FIX",
+      "findings": ["F-RD2-001", "F-RD2-002"]
+    },
+    {
+      "pass": 16,
+      "episode": "redaction_delta",
+      "rd_pass": 3,
+      "classification": "HIGH",
+      "within_story_findings": 2,
+      "severity_floor": "HIGH",
+      "recommendation": "PROCEED_TO_FIX",
+      "findings": ["F-RD3-001", "F-RD3-002"]
+    },
+    {
+      "pass": 17,
+      "episode": "redaction_delta",
+      "rd_pass": 4,
+      "classification": "NITPICK_ONLY",
+      "within_story_findings": 0,
+      "severity_floor": "NITPICK",
+      "recommendation": "ADVANCE"
+    },
+    {
+      "pass": 18,
+      "episode": "redaction_delta",
+      "rd_pass": 5,
+      "classification": "HIGH",
+      "within_story_findings": 1,
+      "severity_floor": "HIGH",
+      "recommendation": "PROCEED_TO_FIX",
+      "findings": ["F-RD5-001"]
+    },
+    {
+      "pass": 19,
+      "episode": "redaction_delta",
+      "rd_pass": 6,
+      "classification": "HIGH",
+      "within_story_findings": 1,
+      "severity_floor": "HIGH",
+      "recommendation": "PROCEED_TO_FIX",
+      "findings": ["F-RD6-001"]
+    },
+    {
+      "pass": 20,
+      "episode": "redaction_delta",
+      "rd_pass": 7,
+      "classification": "NITPICK_ONLY",
+      "within_story_findings": 0,
+      "severity_floor": "NITPICK",
+      "recommendation": "ADVANCE"
+    },
+    {
+      "pass": 21,
+      "episode": "redaction_delta",
+      "rd_pass": 8,
+      "classification": "HIGH",
+      "within_story_findings": 1,
+      "severity_floor": "HIGH",
+      "recommendation": "PROCEED_TO_FIX",
+      "findings": ["F-RD8-001"]
+    },
+    {
+      "pass": 22,
+      "episode": "redaction_delta",
+      "rd_pass": 9,
+      "classification": "HIGH",
+      "within_story_findings": 4,
+      "severity_floor": "HIGH",
+      "recommendation": "PROCEED_TO_FIX",
+      "findings": ["F-P7-001", "F-P9-001", "F-P9-002", "O-P9-001", "O-P9-002"]
+    },
+    {
+      "pass": 23,
+      "episode": "redaction_delta",
+      "rd_pass": 10,
+      "classification": "CLEAN",
+      "within_story_findings": 0,
+      "severity_floor": "NONE",
+      "recommendation": "ADVANCE"
+    },
+    {
+      "pass": 24,
+      "episode": "redaction_delta",
+      "rd_pass": 11,
+      "classification": "CLEAN",
+      "within_story_findings": 0,
+      "severity_floor": "NONE",
+      "recommendation": "ADVANCE"
+    },
+    {
+      "pass": 25,
+      "episode": "redaction_delta",
+      "rd_pass": 12,
+      "classification": "CLEAN",
+      "within_story_findings": 0,
+      "severity_floor": "NONE",
       "recommendation": "CONVERGED_NO_FIX_NEEDED"
     }
   ]
