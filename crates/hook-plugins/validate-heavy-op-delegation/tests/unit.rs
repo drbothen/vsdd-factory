@@ -592,12 +592,30 @@ fn test_heavy_op_gate_pure_parse_no_filesystem_access() {
     //   - `use std::net`     triggers on `use std::net;` / `use std::net::TcpStream` etc.
     //   - `std::net::`       triggers on qualified path calls
     let forbidden: &[(&str, &str)] = &[
-        ("use std::fs", "std::fs import (BC-4.15.001 INV1: NO filesystem reads)"),
-        ("std::fs::", "std::fs:: qualified usage (BC-4.15.001 INV1: NO filesystem reads)"),
-        ("use std::process", "std::process import (BC-4.15.001 INV1: NO subprocess execution)"),
-        ("std::process::", "std::process:: qualified usage (BC-4.15.001 INV1: NO subprocess execution)"),
-        ("use std::net", "std::net import (BC-4.15.001 INV1: NO network calls)"),
-        ("std::net::", "std::net:: qualified usage (BC-4.15.001 INV1: NO network calls)"),
+        (
+            "use std::fs",
+            "std::fs import (BC-4.15.001 INV1: NO filesystem reads)",
+        ),
+        (
+            "std::fs::",
+            "std::fs:: qualified usage (BC-4.15.001 INV1: NO filesystem reads)",
+        ),
+        (
+            "use std::process",
+            "std::process import (BC-4.15.001 INV1: NO subprocess execution)",
+        ),
+        (
+            "std::process::",
+            "std::process:: qualified usage (BC-4.15.001 INV1: NO subprocess execution)",
+        ),
+        (
+            "use std::net",
+            "std::net import (BC-4.15.001 INV1: NO network calls)",
+        ),
+        (
+            "std::net::",
+            "std::net:: qualified usage (BC-4.15.001 INV1: NO network calls)",
+        ),
     ];
 
     for (pattern, description) in forbidden {
@@ -608,7 +626,8 @@ fn test_heavy_op_gate_pure_parse_no_filesystem_access() {
             BC-4.15.001 INV1: 'Pure-parse; no filesystem, subprocess, or context access.'\n\
             ADR-026 §Decision 8: 'WASM for pure-function command-string matching; no side effects.'\n\
             Architecture Compliance Rule 1: 'MUST NOT import std::fs, std::process, std::net.'",
-            pattern, description
+            pattern,
+            description
         );
 
         assert!(
@@ -617,7 +636,8 @@ fn test_heavy_op_gate_pure_parse_no_filesystem_access() {
             Description: {}\n\
             BC-4.15.001 INV1: 'Pure-parse; no filesystem, subprocess, or context access.'\n\
             ADR-026 §Decision 8: 'WASM for pure-function command-string matching; no side effects.'",
-            pattern, description
+            pattern,
+            description
         );
     }
 }
