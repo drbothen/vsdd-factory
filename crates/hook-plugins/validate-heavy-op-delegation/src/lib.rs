@@ -190,9 +190,12 @@ pub fn redact_command_preview(command: &str) -> String {
 ///
 /// # Panics
 ///
-/// Panics in debug mode if any replacement range extends beyond the source string
-/// or if ranges are overlapping/unsorted.  In release mode these are silent
-/// undefined behaviour, so callers must guarantee the invariants hold.
+/// Panics — in both debug AND release builds — if any replacement range extends
+/// beyond the source string or if ranges are overlapping/unsorted.  Rust slice
+/// indexing (`source[cursor..*start]`) is always bounds-checked at runtime; there
+/// is no silent undefined behaviour in release mode.  All callers uphold the
+/// sorted/non-overlapping/in-bounds invariant by construction (single forward scan,
+/// ascending `push` calls), so this panic path is unreachable in practice.
 fn apply_replacements(source: &str, replacements: &[(usize, usize, String)]) -> String {
     if replacements.is_empty() {
         return source.to_string();
