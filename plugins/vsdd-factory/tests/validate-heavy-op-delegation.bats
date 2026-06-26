@@ -4,7 +4,7 @@
 # Story:   S-18.06 v1.5 — validate-heavy-op-delegation WASM gate
 # BC gate: BC-4.15.001 v1.2 (all postconditions PC-A/PC-B-B1/PC-B-B2/PC-C/PC-D;
 #          all 4 invariants INV1/INV2/INV3/INV4 in scope)
-# VP:      VP-091 v1.1 (machine-stable assertion discipline)
+# VP:      VP-091 (machine-stable assertion discipline)
 #
 # RED GATE minimum: 7 bats tests (this file) + 5 Rust unit tests = 12 total.
 # All MUST FAIL before any Rust crate source or compiled WASM binary is authored.
