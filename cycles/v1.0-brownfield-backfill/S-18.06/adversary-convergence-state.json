@@ -1,0 +1,125 @@
+{
+  "schema_version": 1,
+  "story_id": "S-18.06",
+  "cycle": "v1.0-brownfield-backfill",
+  "bc": "BC-5.39.001",
+  "convergence_reached": true,
+  "convergence_date": "2026-06-26",
+  "passes_clean": 3,
+  "passes_total": 13,
+  "fix_bursts": 6,
+  "last_classification": "NITPICK_ONLY",
+  "last_finding_count": 0,
+  "last_pass_at": "2026-06-26T00:00:00Z",
+  "deferred_findings": [],
+  "cascade_summary": {
+    "trajectory": "F-P1-001 BLOCKER → F-P2-001/002/003 → F-P5-001 → O-1 (LOW obs) → F-P6-001 → F-P7-001 → F-P8-001 → F-P10-001 → CONVERGED",
+    "clean_passes": [11, 12, 13],
+    "findings_resolved": [
+      "F-P1-001",
+      "F-P1-002",
+      "F-P2-001",
+      "F-P2-002",
+      "F-P2-003",
+      "F-P5-001",
+      "F-P6-001",
+      "F-P7-001",
+      "F-P8-001",
+      "F-P10-001"
+    ],
+    "observations_dispositioned": ["O-1"]
+  },
+  "passes": [
+    {
+      "pass": 1,
+      "classification": "BLOCKER",
+      "within_story_findings": 2,
+      "severity_floor": "BLOCKER",
+      "recommendation": "PROCEED_TO_FIX"
+    },
+    {
+      "pass": 2,
+      "classification": "HIGH",
+      "within_story_findings": 3,
+      "severity_floor": "HIGH",
+      "recommendation": "PROCEED_TO_FIX"
+    },
+    {
+      "pass": 3,
+      "classification": "NITPICK_ONLY",
+      "within_story_findings": 0,
+      "severity_floor": "NITPICK",
+      "recommendation": "ADVANCE"
+    },
+    {
+      "pass": 4,
+      "classification": "NITPICK_ONLY",
+      "within_story_findings": 0,
+      "severity_floor": "NITPICK",
+      "recommendation": "ADVANCE"
+    },
+    {
+      "pass": 5,
+      "classification": "HIGH",
+      "within_story_findings": 1,
+      "severity_floor": "HIGH",
+      "recommendation": "PROCEED_TO_FIX"
+    },
+    {
+      "pass": 6,
+      "classification": "HIGH",
+      "within_story_findings": 1,
+      "severity_floor": "HIGH",
+      "recommendation": "PROCEED_TO_FIX"
+    },
+    {
+      "pass": 7,
+      "classification": "HIGH",
+      "within_story_findings": 1,
+      "severity_floor": "HIGH",
+      "recommendation": "PROCEED_TO_FIX"
+    },
+    {
+      "pass": 8,
+      "classification": "HIGH",
+      "within_story_findings": 1,
+      "severity_floor": "HIGH",
+      "recommendation": "PROCEED_TO_FIX"
+    },
+    {
+      "pass": 9,
+      "classification": "NITPICK_ONLY",
+      "within_story_findings": 0,
+      "severity_floor": "NITPICK",
+      "recommendation": "ADVANCE"
+    },
+    {
+      "pass": 10,
+      "classification": "HIGH",
+      "within_story_findings": 1,
+      "severity_floor": "HIGH",
+      "recommendation": "PROCEED_TO_FIX"
+    },
+    {
+      "pass": 11,
+      "classification": "NITPICK_ONLY",
+      "within_story_findings": 0,
+      "severity_floor": "NITPICK",
+      "recommendation": "ADVANCE"
+    },
+    {
+      "pass": 12,
+      "classification": "NITPICK_ONLY",
+      "within_story_findings": 0,
+      "severity_floor": "NITPICK",
+      "recommendation": "ADVANCE"
+    },
+    {
+      "pass": 13,
+      "classification": "NITPICK_ONLY",
+      "within_story_findings": 0,
+      "severity_floor": "NITPICK",
+      "recommendation": "CONVERGED_NO_FIX_NEEDED"
+    }
+  ]
+}
