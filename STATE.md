@@ -137,7 +137,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | caf06c68 | rc.21 bot binary bundle commit 2026-06-13; prior: 2a191314 (rc.20) |
 | develop | ef4dfcc7 | PR #271 `feat(S-18.05): postcompact-reanchor advisory hook` squash-merged 2026-06-26 (D-700; S-18.05 merged; BC-7.07.002 active); prior: bc9fc693 (PR #270 D-699) |
-| factory-artifacts | 9559a808 | D-700 S-18.05 post-merge burst; prior: 053e6edf (D-699 S-18.03 post-merge burst) |
+| factory-artifacts | fdd069fa | D-700 S-18.05 post-merge burst; prior: 053e6edf (D-699 S-18.03 post-merge burst) |
 | v1.0.0-rc.21 (tag) | 03054524 | SHIPPED 2026-06-13; FULLY IN OPERATOR MARKETPLACE (marketplace PR #13 MERGED); annotated tag object |
 | v1.0.0-rc.20 (tag) | e9e38286 | SHIPPED 2026-06-01; marketplace PR #12 squash-merged 862e660d |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28 |
