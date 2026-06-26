@@ -536,8 +536,9 @@ fn test_heavy_op_gate_channel_identity_command_preview_not_debug_quoted() {
 /// A linker check would only catch linked symbols; a feature-flag approach only
 /// catches conditional compilation paths. Source-fence catches ANY `use std::fs`
 /// or `std::fs::` reference regardless of whether it's dead code — if it appears
-/// in the source, the CI lint gate (`cargo clippy`) should already flag it, but
-/// this test provides a second independent gate that runs on every `cargo test`.
+/// There is no clippy disallowed-types configuration for this crate; this
+/// source-fence test is the SOLE INV1 enforcement mechanism and runs on every
+/// `cargo test`.
 ///
 /// **False-positive prevention:**
 /// The doc comments in lib.rs say "NO `std::fs::`" (a negation sentence). Scanning
