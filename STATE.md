@@ -138,7 +138,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | caf06c68 | rc.21 bot binary bundle commit 2026-06-13; prior: 2a191314 (rc.20) |
 | develop | ef4dfcc7 | PR #271 `feat(S-18.05): postcompact-reanchor advisory hook` squash-merged 2026-06-26 (D-700; S-18.05 merged; BC-7.07.002 active); prior: bc9fc693 (PR #270 D-699) |
-| factory-artifacts | 9390c88f | SRC-HARDEN v4.56 (checkpoint-hardening burst); prior: fdd069fa (D-700 S-18.05 post-merge burst sha-patch); prior: 053e6edf (D-699 S-18.03 post-merge burst) |
+| factory-artifacts | c8954732 | SRC-HARDEN v4.56 (checkpoint-hardening burst); prior: 9390c88f (D-700 sha-patch); prior: fdd069fa (D-700 S-18.05 post-merge burst) |
 | v1.0.0-rc.21 (tag) | 03054524 | SHIPPED 2026-06-13; FULLY IN OPERATOR MARKETPLACE (marketplace PR #13 MERGED); annotated tag object |
 | v1.0.0-rc.20 (tag) | e9e38286 | SHIPPED 2026-06-01; marketplace PR #12 squash-merged 862e660d |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28 |
@@ -408,7 +408,7 @@ SRC-HARDEN v4.56 verification_step 7 re-check (literal-shell stdout captured 202
 ### §9. Critical Anchors
 
 - **GitHub origin repo:** `drbothen/vsdd-factory` (NOT the local git user "Zious"). All E-18 PRs live at `https://github.com/drbothen/vsdd-factory`. Use `--repo drbothen/vsdd-factory` flag with all `gh` commands.
-- **factory-artifacts HEAD:** `9390c88f` (SRC-HARDEN v4.56 checkpoint; prior = `fdd069fa` D-700 S-18.05 post-merge burst sha-patch; prior = `053e6edf` D-699 S-18.03 post-merge burst). Verify: `git -C .factory log -1 --format='%h %s'`
+- **factory-artifacts HEAD:** `c8954732` (SRC-HARDEN v4.56 checkpoint-hardening burst; prior = `9390c88f` D-700 sha-patch; prior = `fdd069fa` D-700 S-18.05 post-merge burst). Verify: `git -C .factory log -1 --format='%h %s'`
 - **develop HEAD:** `ef4dfcc7` (PR #271 S-18.05 postcompact-reanchor squash-merged 2026-06-26 D-700; prior: `bc9fc693` PR #270 D-699; prior: `95eeb9fa` PR #264 D-698)
 - **main HEAD:** `caf06c68` (rc.21 bot bundle commit 2026-06-13; UNCHANGED)
 - **v1.0.0-rc.21 tag:** `03054524` (SHIPPED; FULLY IN OPERATOR MARKETPLACE)
@@ -422,7 +422,7 @@ SRC-HARDEN v4.56 verification_step 7 re-check (literal-shell stdout captured 202
 - **ADR-028 v1.3:** `specs/architecture/decisions/ADR-028-e18-precompact-flush-native-wasm-migration.md` (D-672 ROUND-3 FINAL; SPEC CONVERGENCE ACCEPTED)
 - **Older anchors (BC-1.15.001 v1.5..VP-090 v1.2, VP-081..VP-085, L2-INDEX v1.0.13, ADR-025 v1.6, S-17.04 v1.7, ADR-027 v1.0):** see `cycles/v1.0-brownfield-backfill/decision-log.md` D-580..D-615/D-639 blocks.
 - **S-18.05 v1.9 (merged):** `stories/S-18.05-postcompact-reanchor-hook.md` (PR #271 ef4dfcc7 squash-merged 2026-06-26 D-700; BC-7.07.002 active)
-- **Verify on resume:** `git rev-parse --short origin/develop` → expect `ef4dfcc7` (PR #271 S-18.05 postcompact-reanchor merged D-700 2026-06-26); `git rev-parse --short origin/main` → expect `caf06c68`; `git -C .factory log -1 --format='%h %s'` → expect `9390c88f state(SRC-HARDEN v4.56)...` (or later); `gh repo view --json nameWithOwner -q .nameWithOwner` → expect `drbothen/vsdd-factory`
+- **Verify on resume:** `git rev-parse --short origin/develop` → expect `ef4dfcc7` (PR #271 S-18.05 postcompact-reanchor merged D-700 2026-06-26); `git rev-parse --short origin/main` → expect `caf06c68`; `git -C .factory log -1 --format='%h %s'` → expect `c8954732 state(SRC-HARDEN v4.56)...` (or later); `gh repo view --json nameWithOwner -q .nameWithOwner` → expect `drbothen/vsdd-factory`
 
 ### §10. PR Status
 
@@ -443,7 +443,7 @@ SRC-HARDEN v4.56 verification_step 7 re-check (literal-shell stdout captured 202
 
 ### §11. Post-CLEAR/Post-RESET Resume Checklist (zero-context; D-639 refresh)
 
-1. **Verify worktree state:** `git rev-parse --short origin/develop` → expect `ef4dfcc7` (PR #271 S-18.05 merged D-700 2026-06-26). `git rev-parse --short origin/main` → expect `caf06c68`. `git -C .factory log -1 --format='%h %s'` → expect `9390c88f` SRC-HARDEN v4.56 (or later). `gh repo view --json nameWithOwner -q .nameWithOwner` → expect `drbothen/vsdd-factory`. feature/S-18.05 MERGED PR #271 ef4dfcc7 (deleted). feature/S-18.03 MERGED PR #270 bc9fc693 (deleted). feature/S-18.04b MERGED PR #264 95eeb9fa (deleted). feature/S-18.04b-prereq MERGED PR #262 a177d76e (deleted). feature/S-18.04a MERGED PR #249 b0bc4ffd (deleted). feature/S-18.14 MERGED PR #201 dfc76844 (deleted). feature/S-18.01 MERGED. feature/S-18.02 MERGED PR #195 bd6e50ce (deleted). feature/S-18.13 MERGED PR #196 70664e02 (deleted).
+1. **Verify worktree state:** `git rev-parse --short origin/develop` → expect `ef4dfcc7` (PR #271 S-18.05 merged D-700 2026-06-26). `git rev-parse --short origin/main` → expect `caf06c68`. `git -C .factory log -1 --format='%h %s'` → expect `c8954732` SRC-HARDEN v4.56 (or later). `gh repo view --json nameWithOwner -q .nameWithOwner` → expect `drbothen/vsdd-factory`. feature/S-18.05 MERGED PR #271 ef4dfcc7 (deleted). feature/S-18.03 MERGED PR #270 bc9fc693 (deleted). feature/S-18.04b MERGED PR #264 95eeb9fa (deleted). feature/S-18.04b-prereq MERGED PR #262 a177d76e (deleted). feature/S-18.04a MERGED PR #249 b0bc4ffd (deleted). feature/S-18.14 MERGED PR #201 dfc76844 (deleted). feature/S-18.01 MERGED. feature/S-18.02 MERGED PR #195 bd6e50ce (deleted). feature/S-18.13 MERGED PR #196 70664e02 (deleted).
 2. **Read §1-§12 this checkpoint** (all of it; SRC-HARDEN self-sufficient 2026-06-25).
 3. **Verify 4-index:** `grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md` → "3.48"; ARCH-INDEX → "2.78"; VP-INDEX → "2.48"; STORY-INDEX → "4.76"; L2-INDEX → "1.0.13".
 4. **E-10 CASCADE SEALED D-531.** Do NOT resume without engine-surface material change.
