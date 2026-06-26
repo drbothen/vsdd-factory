@@ -23,14 +23,16 @@
 //! | `test_heavy_op_gate_ec005_find_name_matches` | EC-005 | INV3 | GREEN |
 //! | `test_heavy_op_gate_ec006_run_all_sh_matches` | EC-006 | INV3 | GREEN |
 //! | `test_heavy_op_gate_ec013_custom_pattern_triggers_advisory` | EC-013 | INV3 | GREEN |
-//! | `test_heavy_op_gate_redacts_flag_arg_secret` | AC-012 | INV5/EC-014 | RED |
-//! | `test_heavy_op_gate_redacts_env_assignment_secret` | AC-012 | INV5/EC-015 | RED |
-//! | `test_heavy_op_gate_redacts_authorization_header` | AC-012 | INV5/EC-016 | RED |
-//! | `test_heavy_op_gate_redacts_url_credentials` | AC-012 | INV5/EC-017 | RED |
+//! | `test_heavy_op_gate_redacts_flag_arg_secret` | AC-012 | INV5/EC-014 | GREEN |
+//! | `test_heavy_op_gate_redacts_env_assignment_secret` | AC-012 | INV5/EC-015 | GREEN |
+//! | `test_heavy_op_gate_redacts_authorization_header` | AC-012 | INV5/EC-016 | GREEN |
+//! | `test_heavy_op_gate_redacts_url_credentials` | AC-012 | INV5/EC-017 | GREEN |
 //! | `test_heavy_op_gate_no_redaction_on_clean_command` | AC-012 | INV5/EC-018 | GREEN |
 //! | `test_heavy_op_gate_allowlist_env_var_not_redacted` | AC-012 | INV5/EC-019 | GREEN |
 //! | `test_heavy_op_gate_bare_key_flag_not_redacted` | AC-012 | INV5/EC-020 | GREEN |
-//! | `test_heavy_op_gate_redact_then_truncate_ordering` | AC-012 | INV5/EC-021 | RED |
+//! | `test_heavy_op_gate_redact_then_truncate_ordering` | AC-012 | INV5/EC-021 | GREEN |
+//! | `test_heavy_op_gate_no_redaction_preserves_whitespace` | AC-012 | INV5/PC6b/F-RD1-001 | RED |
+//! | `test_heavy_op_gate_unquoted_auth_header_preserves_trailing_args` | AC-012 | INV5/Pass3/F-RD1-002 | RED |
 
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
@@ -1064,6 +1066,168 @@ fn test_heavy_op_gate_redact_then_truncate_ordering() {
                 "AC-012/INV5 EC-021: expected Advisory for command containing 'grep -r'; got Continue.\n\
                 Command: {:?}",
                 raw_command
+            );
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// F-RD1-001 — whitespace-normalization bug on clean commands
+//
+// BC-4.15.001 PC6b / VP-091 §6 PC6b: "the command_preview of a command that
+// triggers no redaction MUST equal truncate_command_preview(original_command)".
+// The current implementation pipes EVERY command through all 4 redaction passes,
+// each of which does split_whitespace().join(" ") unconditionally, collapsing
+// tabs and multiple spaces even when no secret is present.
+//
+// RED against current implementation (whitespace normalised to single spaces).
+// ---------------------------------------------------------------------------
+
+/// F-RD1-001 / BC-4.15.001 PC6b:
+/// A clean command (no sensitive flags, env vars, auth headers, or URL creds)
+/// MUST have a `command_preview` that is byte-for-byte equal to the truncated
+/// original command string.  Irregular whitespace (double space, tab) MUST be
+/// preserved exactly.
+///
+/// Setup: `"grep -r  TODO\t. --include=*.rs"` — contains a double space between
+/// `grep -r` and `TODO`, and a tab between `TODO` and `.`.  No sensitive tokens
+/// are present.  Pattern `grep -r` matches (Advisory returned).
+///
+/// Assert: `advisory.command_preview == truncate_command_preview(raw)`.
+/// Equivalently (command is short — no truncation): `advisory.command_preview == raw`.
+///
+/// Current implementation FAILS: all 4 redaction passes call
+/// `split_whitespace().collect::<Vec<_>>().join(" ")` unconditionally, collapsing
+/// `"  "` → `" "` and `"\t"` → `" "`, producing `"grep -r TODO . --include=*.rs"`
+/// instead of the original.
+///
+/// RED against current implementation. BC-4.15.001 PC6b / VP-091 §6.
+#[test]
+fn test_heavy_op_gate_no_redaction_preserves_whitespace() {
+    // Fixture: double space between "-r" and "TODO", tab between "TODO" and ".".
+    // No sensitive flags, assignments, auth headers, or URL creds.
+    let raw = "grep -r  TODO\t. --include=*.rs";
+
+    // This command is 30 chars — well under 120; truncate_command_preview is a no-op.
+    assert!(
+        raw.chars().count() < COMMAND_PREVIEW_MAX_CHARS,
+        "fixture: raw command must be < {} chars for truncation to be a no-op",
+        COMMAND_PREVIEW_MAX_CHARS
+    );
+
+    let result = evaluate_patterns(raw, DEFAULT_PATTERNS);
+
+    match result {
+        GateResult::Advisory(ref advisory) => {
+            // truncate_command_preview is a no-op for short inputs, so this is
+            // equivalent to asserting advisory.command_preview == raw.
+            let expected = truncate_command_preview(raw);
+            assert_eq!(
+                advisory.command_preview,
+                expected,
+                "F-RD1-001 / BC-4.15.001 PC6b: command_preview MUST equal truncate_command_preview(original).\n\
+                A clean command (no redaction triggers) must not have its whitespace normalized.\n\
+                Expected: {:?}\n\
+                Got:      {:?}\n\
+                Bug: all 4 redaction passes call split_whitespace().join(\" \") unconditionally,\n\
+                collapsing double-space and tab to single space.",
+                expected,
+                advisory.command_preview
+            );
+        }
+        GateResult::Continue => {
+            panic!(
+                "F-RD1-001: expected Advisory for command containing 'grep -r'; got Continue.\n\
+                Command: {:?}",
+                raw
+            );
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// F-RD1-002 — Pass 3 over-consumption on unquoted Authorization header
+//
+// BC-4.15.001 INV5 Pass 3 two-token form: only the NEXT (value) token after
+// the header name is consumed. The current skip_until_end_of_value loop
+// continues consuming ALL subsequent tokens until it finds one ending with
+// `"` or `'`, which never happens for unquoted args — dropping all trailing
+// content.
+//
+// RED against current implementation (trailing args consumed/dropped).
+// ---------------------------------------------------------------------------
+
+/// F-RD1-002 / BC-4.15.001 INV5 Pass 3:
+/// An unquoted `Authorization: Bearer <token>` header in a Bash command MUST
+/// have only the bearer token value redacted.  Trailing arguments that follow
+/// the bearer token MUST appear in `command_preview`.
+///
+/// Setup: `"grep -r . -H Authorization: Bearer tok123 --include=*.rs"`
+///   - `Authorization:` header prefix — Pass 3 fires.
+///   - `Bearer` — the scheme/type token; consumed by skip_until_end_of_value.
+///   - `tok123` — the secret; MUST be redacted.
+///   - `--include=*.rs` — a trailing clean arg; MUST survive in the preview.
+///
+/// Assert:
+///   1. `command_preview` contains `***REDACTED***` (redaction applied).
+///   2. `command_preview` does NOT contain `tok123` (secret absent).
+///   3. `command_preview` contains `--include=*.rs` (trailing arg preserved).
+///   4. `command_preview` contains `grep -r .` (prefix preserved).
+///
+/// Current implementation FAILS assertion 3: the `skip_until_end_of_value`
+/// loop in `redact_pass3_auth_headers` has no termination condition for
+/// unquoted values — it consumes every token after `Authorization:` until it
+/// finds one ending with `"` or `'`, which never happens here, so
+/// `--include=*.rs` is silently dropped.
+///
+/// RED against current implementation. BC-4.15.001 INV5 Pass 3 / F-RD1-002.
+#[test]
+fn test_heavy_op_gate_unquoted_auth_header_preserves_trailing_args() {
+    // Unquoted Authorization header with a trailing clean arg after the token.
+    let command = "grep -r . -H Authorization: Bearer tok123 --include=*.rs";
+    let result = evaluate_patterns(command, DEFAULT_PATTERNS);
+
+    match result {
+        GateResult::Advisory(ref advisory) => {
+            // Assert 1: redaction mask present (Pass 3 fired).
+            assert!(
+                advisory.command_preview.contains("***REDACTED***"),
+                "F-RD1-002 / INV5 Pass 3: command_preview must contain '***REDACTED***'.\n\
+                Got: {:?}\n\
+                BC-4.15.001 INV5 Pass 3: Authorization header value MUST be masked.",
+                advisory.command_preview
+            );
+            // Assert 2: raw bearer token absent.
+            assert!(
+                !advisory.command_preview.contains("tok123"),
+                "F-RD1-002 / INV5 Pass 3: raw bearer token 'tok123' must NOT appear in command_preview.\n\
+                Got: {:?}\n\
+                BC-4.15.001 INV5 Pass 3: secret MUST be replaced by ***REDACTED***.",
+                advisory.command_preview
+            );
+            // Assert 3: trailing clean arg preserved — the core of F-RD1-002.
+            assert!(
+                advisory.command_preview.contains("--include=*.rs"),
+                "F-RD1-002 / INV5 Pass 3: trailing arg '--include=*.rs' MUST appear in command_preview.\n\
+                Got: {:?}\n\
+                Bug: skip_until_end_of_value loop consumes all tokens after Authorization: until\n\
+                a quote-terminated token is found — for unquoted headers this drops all trailing args.\n\
+                BC-4.15.001 INV5 Pass 3 two-token form: only the NEXT value token is consumed.",
+                advisory.command_preview
+            );
+            // Assert 4: command prefix preserved.
+            assert!(
+                advisory.command_preview.contains("grep -r ."),
+                "F-RD1-002 / INV5 Pass 3: prefix 'grep -r .' MUST appear in command_preview.\n\
+                Got: {:?}",
+                advisory.command_preview
+            );
+        }
+        GateResult::Continue => {
+            panic!(
+                "F-RD1-002: expected Advisory for command containing 'grep -r'; got Continue.\n\
+                Command: {:?}",
+                command
             );
         }
     }
