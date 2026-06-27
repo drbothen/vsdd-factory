@@ -11,7 +11,7 @@
 #             The dispatcher continues (on_error=continue); compaction proceeds.
 #
 # Registered as PreCompact, on_error=continue (hooks-registry.toml S-18.00).
-# Never exits 2 — block-intent is reserved for precompact-flush.sh (S-18.04a).
+# Never exits 2 — block-intent is reserved for the `precompact-flush` PreCompact WASM plugin (S-18.04a).
 #
 # Version detection:
 #   CLAUDE_CODE_VERSION env var (primary) or CLAUDE_VERSION env var (alias).

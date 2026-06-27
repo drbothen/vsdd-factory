@@ -411,7 +411,7 @@ fn is_numbered_list_item(s: &str) -> bool {
 // PreCompact flush exemption (BC-5.41.003 + S-18.04b)
 // ---------------------------------------------------------------------------
 
-/// The exact commit subject prefix produced by `precompact-flush.sh`.
+/// The exact commit subject prefix produced by the `precompact-flush` PreCompact WASM plugin (`precompact-flush.wasm`, S-18.04a).
 ///
 /// Matches the value of `COMMIT_PREFIX` in `crates/hook-plugins/precompact-flush/src/lib.rs`.
 /// Case-sensitive; no substring match; no regex. BC-5.41.003 invariant 3.

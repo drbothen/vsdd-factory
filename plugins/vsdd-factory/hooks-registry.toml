@@ -1313,7 +1313,7 @@ path_allow = [".factory/STATE.md"]
 # check-harness-version: verify Claude Code harness >= v2.1.105 before compaction.
 # Advisory-only (on_error=continue): dispatcher continues even if the check fails.
 # Registered as PreCompact per BC-1.15.001 INV3 and AC-008.
-# Never sets block_intent — that is reserved for precompact-flush.sh (S-18.04a).
+# Never sets block_intent — that is reserved for the `precompact-flush` PreCompact WASM plugin (S-18.04a).
 # check-harness-version: real implementation in hooks/check-harness-version.sh (S-18.00; PreCompact advisory, on_error=continue).
 
 [[hooks]]
