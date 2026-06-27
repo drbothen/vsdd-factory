@@ -127,7 +127,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | caf06c68 | rc.21 bot binary bundle commit 2026-06-13; prior: 2a191314 (rc.20) |
 | develop | 04ab7236 | PR #303 `feat(S-18.08): pure-parse invariant consistency gate` squash-merged 2026-06-27 (D-708; S-18.08 merged; no POL-14 BC promotion); prior: 1ef46620 (PR #301 D-703) |
-| factory-artifacts | 9ee8cbf4 | D-703 S-18.07 POST-MERGE state burst 2026-06-27; prior: a910c5d7 (D-701 S-18.06 POST-MERGE) |
+| factory-artifacts | ecebb957 | D-708 S-18.08 POST-MERGE state burst 2026-06-27; prior: 9ee8cbf4 (D-703 S-18.07 POST-MERGE) |
 | v1.0.0-rc.21 (tag) | 03054524 | SHIPPED 2026-06-13; FULLY IN OPERATOR MARKETPLACE (marketplace PR #13 MERGED); annotated tag object |
 | v1.0.0-rc.20 (tag) | e9e38286 | SHIPPED 2026-06-01; marketplace PR #12 squash-merged 862e660d |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28 |
@@ -363,7 +363,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 ### §9. Critical Anchors
 
 - **GitHub origin repo:** `drbothen/vsdd-factory` (NOT the local git user "Zious"). All E-18 PRs live at `https://github.com/drbothen/vsdd-factory`. Use `--repo drbothen/vsdd-factory` flag with all `gh` commands.
-- **factory-artifacts HEAD:** see `git -C .factory log -1 --format='%h %s'` (D-708 S-18.08 POST-MERGE state burst 2026-06-27; prior = `9ee8cbf4` D-703 S-18.07 POST-MERGE). Verify: `git -C .factory log -1 --format='%h %s'`
+- **factory-artifacts HEAD:** `ecebb957` (D-708 S-18.08 POST-MERGE state burst 2026-06-27; prior = `9ee8cbf4` D-703 S-18.07 POST-MERGE). Verify: `git -C .factory log -1 --format='%h %s'`
 - **develop HEAD:** `04ab7236` (PR #303 S-18.08 pure-parse invariant consistency gate squash-merged 2026-06-27 D-708; prior: `1ef46620` PR #301 D-703; prior: `a85e6e05` PR #284 D-701)
 - **main HEAD:** `caf06c68` (rc.21 bot bundle commit 2026-06-13; UNCHANGED)
 - **v1.0.0-rc.21 tag:** `03054524` (SHIPPED; FULLY IN OPERATOR MARKETPLACE)
