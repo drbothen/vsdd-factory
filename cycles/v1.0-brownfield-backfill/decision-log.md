@@ -3220,6 +3220,68 @@ S-18.08 TDD implementation (story v1.6 with 3-layer detection ACs; AC-001..005 p
 
 ---
 
+## D-706 — S-18.08 verb-set-reconciliation GOVERNANCE BURST — 2026-06-27
+
+**Decision:** S-18.08 (pure-parse invariant consistency gate) §Decision 14 read-verb pattern reconciled to canonical 8-verb form. LOCAL adversary pass-2 identified one BLOCKER finding (F-P2-001) against the v1.7 design. Architect-reconciled fixes applied. S-18.08 v1.7→v1.8; ADR-026 §Decision 14 v1.31→v1.32.
+
+**Context:** D-705 refined ADR-026 §Decision 14 at v1.31 with the Invariants-anchored discovery algorithm and whitelist terminator. LOCAL adversary pass-2 against v1.7 found:
+
+- **F-P2-001 BLOCKER (recall gap — verb-set mismatch):** The v1.7 §Decision 14 prose (§Relationship to §Decision 8, "honest residual risk" statement) describes the canonical verb set as `(reads?|loads?|fetches|derives?|access(es)?|retrieves?|opens?|parses?)` — 8 verbs. However, all three command-block occurrences (BC-loop inner grep, VP-scan grep, positive-control snippet grep) still used the 6-verb form `(reads?|loads?|fetches|derives?|access(es)?|retrieves?)`, omitting `opens?` and `parses?`. This creates a precision gap: violations phrased as "opens sprint-state.yaml" or "parses git-log" would be undetected by the gate despite being in scope per §Decision 14's normative verb list. ADR-026 itself describes `opens?` and `parses?` as part of the domain verb set covering BC prose observed across the SS-04 BC corpus.
+
+**Fix:** All three command-block grep patterns updated to 8-verb form. ADR-026 §Decision 14 prose "honest residual risk" statement updated to cite 8-verb set. Opens/parses positive-control verification rows added (both yield HITS=1). Empirical validation banner updated to v1.32. S-18.08 AC-001, AC-002, AC-003 inner loop, AC-004, AC-005 all updated to 8-verb form. Recall completeness note added after AC-005.
+
+**Validation on current corpus (discovery=2, all scans=0, positive-control=3):**
+- Discovery (Invariants-anchored): BC-4.14.001.md, BC-4.15.001.md — UNCHANGED from v1.7.
+- All discovered BCs + VP files: 0 genuine violations — UNCHANGED from v1.7.
+- Positive control — reads (existing): HITS=1 (PASS).
+- Positive control — opens (new v1.32): HITS=1 (PASS).
+- Positive control — parses (new v1.32): HITS=1 (PASS).
+- BC scans (0 violations), VP scans (0 violations): PASS — gate does not over-flag.
+
+**Actions taken:**
+- S-18.08 story version v1.7→v1.8; all 5 AC verb patterns updated to 8-verb form; recall completeness note added. 4-leg v1.8 parity applied. input-hash UNCHANGED fe61c2c.
+- ADR-026 §Decision 14 body: three command-block grep patterns updated; prose updated; opens/parses positive-control rows added; empirical validation banner updated. Version bumped v1.31→v1.32; `modified:` top entry added; `last_amended:` updated; `## Changelog` v1.32 row added.
+- STORY-INDEX v4.90→v4.91: S-18.08 row updated (version cite v1.7→v1.8; D-706 verb-set reconciliation note; input-hash UNCHANGED fe61c2c).
+- ARCH-INDEX v2.82→v2.83: ADR-026 row v1.32 provenance leg appended; `last_amended:` + `version:` bumped.
+- STATE.md Decisions Log: D-706 one-line summary row added (NO phase/story-status advance — S-18.08 TDD still in flight).
+- BC-INDEX v3.52 UNCHANGED (no BC changes).
+- VP-INDEX v2.51 UNCHANGED (no VP changes).
+
+**4-index gate (literal-shell stdout 2026-06-27):**
+```
+grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md
+version: "3.52"
+
+grep "^version:" .factory/specs/verification-properties/VP-INDEX.md
+version: "2.51"
+
+grep "^version:" .factory/stories/STORY-INDEX.md
+version: "4.91"
+
+grep "^version:" .factory/specs/architecture/ARCH-INDEX.md
+version: "2.83"
+```
+
+Parity PASS: BC-INDEX v3.52 / VP-INDEX v2.51 / STORY-INDEX v4.91 / ARCH-INDEX v2.83.
+
+### input-hash confirmation
+
+S-18.08 `input-hash: fe61c2c` — UNCHANGED from D-705. No new inputs added; the reconciliation changes only the verb patterns within the same input set. POLICY 18 does NOT require recomputation when only algorithm logic changes with no input file additions.
+
+### Parent-commit
+
+See `git -C .factory log -1 --format='%h %s'`
+
+### Closes
+
+- F-P2-001 (LOCAL adv P2 — recall gap; `opens?` and `parses?` absent from v1.7 command-block verb patterns despite being in ADR-026 §Decision 14 normative verb-set prose)
+
+### NEXT
+
+S-18.08 TDD implementation (story v1.8 with 8-verb ACs; AC-001..005 per ADR-026 §Decision 14 v1.32). STOP-BEFORE-PR-MERGE (D-665) holds.
+
+---
+
 ## D-705 — S-18.08 gate REFINEMENT GOVERNANCE BURST — 2026-06-27
 
 **Decision:** S-18.08 (pure-parse invariant consistency gate) §Decision 14 detection algorithm refined. LOCAL adversary pass-1 identified two MEDIUM findings (F-P1-001/F-P1-002) against the v1.6 design. Architect-refined fixes applied. S-18.08 v1.6→v1.7; ADR-026 §Decision 14 v1.30→v1.31.
