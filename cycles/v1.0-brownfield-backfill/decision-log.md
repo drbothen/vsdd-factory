@@ -3279,6 +3279,55 @@ S-18.08 TDD implementation (story v1.9 with portability-normalized ACs; AC-001..
 
 ---
 
+## D-708 — PR #303 (S-18.08) post-merge STATE burst — 2026-06-27
+
+**Decision:** PR #303 (`feat(S-18.08): pure-parse invariant consistency gate`), feature/S-18.08 → develop, squash-merged to develop at commit `04ab7236` on 2026-06-27T21:29:22Z. Remote feature branch deleted. Post-merge burst executed.
+
+**Context:** S-18.08 (E-18 wave-7; `tdd_mode: strict`; gate-enforcement; 5 pts; no new BCs) delivered the pure-parse invariant consistency gate — a consistency-validator scan of BCs declaring pure-parse against substrate-read patterns in bodies. Gate enforces BC-4.14.001 Invariant 1 + BC-4.15.001 Invariant 1. LOCAL adversary cascade: 7 total passes, 3-CLEAN CONVERGED (passes 5/6/7 clean). Architect-led gate redesign during cascade per ADR-026 §Decision 14 (v1.30→v1.33) — already committed to factory-artifacts via D-705/D-706/D-707 governance bursts. Story at v1.9 at merge. POL-14: S-18.08 has `behavioral_contracts: []` — no BC auto-promotion (story ENFORCES existing BC-4.14.001/4.15.001 Invariant 1; no new BC authored). S-18.09 depends_on S-18.08 MET — NOW unblocked.
+
+**Actions taken:**
+- S-18.08 story status draft→merged; PR #303 04ab7236 2026-06-27 recorded; story v1.9
+- merged_count 91→92; story_count UNCHANGED 123
+- POL-14: behavioral_contracts: [] — NO BC auto-promotion
+- STORY-INDEX v4.92→v4.93: S-18.08 row draft→**merged** (PR #303 04ab7236 2026-06-27); version cite v1.9; D-708
+- develop_head 1ef46620→04ab7236
+- feature/S-18.08 branch deleted
+- S-18.09 now has depends_on S-18.08 MET (unblocked)
+- Downstream unblocked: S-18.09 (depends_on S-18.08 MET — MET this burst). S-18.08 was the last direct blocker for S-18.09.
+- STOP-BEFORE-PR-MERGE (D-665) holds for all code PRs.
+
+**4-index gate (literal-shell stdout 2026-06-27):**
+```
+grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md
+version: "3.52"
+
+grep "^version:" .factory/specs/verification-properties/VP-INDEX.md
+version: "2.51"
+
+grep "^version:" .factory/stories/STORY-INDEX.md
+version: "4.93"
+
+grep "^version:" .factory/specs/architecture/ARCH-INDEX.md
+version: "2.84"
+```
+
+Parity PASS: BC-INDEX v3.52 / VP-INDEX v2.51 / STORY-INDEX v4.93 / ARCH-INDEX v2.84.
+
+### Parent-commit
+
+See `git -C .factory log -1 --format='%h %s'` (D-707 S-18.08 spec-hygiene governance burst; TD-VSDD-053 single-commit)
+
+### Closes
+
+- S-18.08 draft→merged (PR #303 04ab7236 2026-06-27)
+- S-18.09 depends_on S-18.08 MET (unblocked)
+
+### NEXT
+
+S-18.09 (F2 process-gap lesson gate checks; depends_on S-18.08 MET — MET D-708). STOP-BEFORE-PR-MERGE (D-665) holds.
+
+---
+
 ## D-706 — S-18.08 verb-set-reconciliation GOVERNANCE BURST — 2026-06-27
 
 **Decision:** S-18.08 (pure-parse invariant consistency gate) §Decision 14 read-verb pattern reconciled to canonical 8-verb form. LOCAL adversary pass-2 identified one BLOCKER finding (F-P2-001) against the v1.7 design. Architect-reconciled fixes applied. S-18.08 v1.7→v1.8; ADR-026 §Decision 14 v1.31→v1.32.
