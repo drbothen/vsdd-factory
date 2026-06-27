@@ -128,7 +128,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | caf06c68 | rc.21 bot binary bundle commit 2026-06-13; prior: 2a191314 (rc.20) |
 | develop | e10dedc0 | PR #304 `docs: correct stale precompact-flush.sh refs to precompact-flush WASM plugin` squash-merged 2026-06-27T23:00:31Z (D-709; maintenance cleanup; no story; no POL-14); prior: 04ab7236 (PR #303 S-18.08 D-708) |
-| factory-artifacts | 619366f2 | D-709 follow-up-clearing burst 2026-06-27; prior: ecebb957 (D-708 SHA-patch) |
+| factory-artifacts | 2aa4c535 | D-710 S-18.09 pre-TDD spec-fix 2026-06-27; prior: 619366f2 (D-709 follow-up-clearing burst) |
 | v1.0.0-rc.21 (tag) | 03054524 | SHIPPED 2026-06-13; FULLY IN OPERATOR MARKETPLACE (marketplace PR #13 MERGED); annotated tag object |
 | v1.0.0-rc.20 (tag) | e9e38286 | SHIPPED 2026-06-01; marketplace PR #12 squash-merged 862e660d |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28 |
