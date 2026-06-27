@@ -3158,6 +3158,68 @@ S-18.08 (pure-parse invariant consistency gate; depends_on S-18.07 MET — MET D
 
 ---
 
+## D-704 — S-18.08 gate redesign GOVERNANCE BURST — 2026-06-27
+
+**Decision:** S-18.08 (pure-parse invariant consistency gate) mid-story gate detection algorithm redesigned. Human-adjudicated. ADR-026 §Decision 14 authored by architect.
+
+**Context:** The S-18.08 gate as originally designed (prior to v1.6) used a noun-only `grep -Ev "^## <section>"` exclusion pattern. Three structural flaws identified: (1) did not extract normative sections exclusively — section body content was included; (2) flagged the gate's own trigger object (`HANDOFF.md` as BC-4.14.001 PostToolUse target) identically to a genuine substrate-read violation; (3) could not distinguish prohibition sentences ("no external filesystem or sprint-state.yaml access is performed") from genuine violation sentences ("the gate reads wave_id from sprint-state.yaml"). Estimated false-positive count: 42–59 per BC file under the prior design. Human adjudication approved the architect's 3-layer redesign.
+
+**3-layer detection algorithm (ADR-026 §Decision 14):**
+1. **Layer 1 — Normative-section extraction (BC scan only):** `awk` extracts text from `## Preconditions` through (but not including) `## Related BCs`. VP files scanned whole-file.
+2. **Layer 2 — Verb+substrate collocation:** `grep -Ei` pattern — read-action verb within ~80 chars of substrate noun (`sprint-state.yaml`, `git-log`, `git-cat-file`). `HANDOFF.md` and `factory-artifacts` excluded from BC substrate-noun set (legitimate as gate trigger objects/payload).
+3. **Layer 3 — Negation/comment exclusion:** `grep -Eiv` removes negation-cue lines; `grep -Ev` removes Rust/bash `//` comment lines (for VP scans).
+
+**Empirical validation on current corpus (as of ADR-026 v1.30):** BC-4.14.001: 0 genuine violations. BC-4.15.001: 0 genuine violations. VP-083: 0 genuine violations. VP-081: 0 genuine violations. VP-091: 0 genuine violations. Positive control (injected violation "The gate reads wave context directly from sprint-state.yaml before parsing the payload"): HITS=1 (correctly detected).
+
+**Actions taken:**
+- ADR-026 §Decision 14 authored by architect (in staged worktree file; committed in this burst)
+- ADR-026 version bumped v1.29→v1.30; `last_amended:` + `modified:` array updated; `## Changelog` v1.30 row added
+- S-18.08 story AC-001..005 already rewritten to 3-layer detection by story-writer at v1.6 (staged)
+- S-18.08 `inputs:` ADR-026 path corrected: `.factory/specs/architecture/ADR-026.md` (nonexistent) → `.factory/specs/architecture/decisions/ADR-026-wave-boundary-checkpoint-reset-and-lossless-intra-wave-compaction.md` (canonical)
+- S-18.08 `input-hash:` recomputed: 747b3eb → fe61c2c (POLICY 18; compute-input-hash stdout: `fe61c2c`)
+- Stale `# input-hash: recompute warranted` comment removed from S-18.08 story
+- STORY-INDEX v4.88→v4.89: S-18.08 row updated (version cite v1.5→v1.6; input-hash 747b3eb→fe61c2c; D-704 gate redesign note)
+- ARCH-INDEX v2.80→v2.81: ADR-026 row provenance leg v1.29→v1.30 appended; `last_amended:` + `changelog:` updated
+- STATE.md Decisions Log: D-704 one-line summary row added (NO phase/story-status advance — S-18.08 TDD ongoing)
+- BC-INDEX v3.52 UNCHANGED (no BC changes)
+- VP-INDEX v2.51 UNCHANGED (no VP changes)
+
+**4-index gate (literal-shell stdout 2026-06-27):**
+```
+grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md
+version: "3.52"
+
+grep "^version:" .factory/specs/verification-properties/VP-INDEX.md
+version: "2.51"
+
+grep "^version:" .factory/stories/STORY-INDEX.md
+version: "4.89"
+
+grep "^version:" .factory/specs/architecture/ARCH-INDEX.md
+version: "2.81"
+```
+
+Parity PASS: BC-INDEX v3.52 / VP-INDEX v2.51 / STORY-INDEX v4.89 / ARCH-INDEX v2.81.
+
+### compute-input-hash evidence (POLICY 18)
+
+```
+$ plugins/vsdd-factory/bin/compute-input-hash .factory/stories/S-18.08-pure-parse-invariant-gate.md
+fe61c2c
+```
+
+(Run after correcting ADR-026 input path to canonical decisions/ slug. Old hash: 747b3eb. New hash: fe61c2c.)
+
+### Parent-commit
+
+See `git -C .factory log -1 --format='%h %s'`
+
+### NEXT
+
+S-18.08 TDD implementation (story v1.6 with 3-layer detection ACs; AC-001..005 per ADR-026 §Decision 14). STOP-BEFORE-PR-MERGE (D-665) holds.
+
+---
+
 ## D-698 — PR #264 (S-18.04b) post-merge STATE burst — 2026-06-25
 
 **Decision:** PR #264 (`feat(S-18.04b): exec-free PreCompact exemption + prune.sh (E-18 context-durability; ADR-029)`, feature/S-18.04b → develop) squash-merged to develop at commit `95eeb9fa` on 2026-06-25T15:27:20Z. Remote feature branch deleted. Post-merge burst executed.
