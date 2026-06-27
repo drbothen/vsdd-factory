@@ -1,13 +1,13 @@
 #!/usr/bin/env bats
-# pure-parse-invariant-gate.bats — S-18.08 v1.7 pure-parse invariant consistency gate.
+# pure-parse-invariant-gate.bats — S-18.08 pure-parse invariant consistency gate.
 #
-# Story:   S-18.08 v1.7 — O-P8-002 Pure-Parse Invariant Consistency Gate (ADR-026 §Decision 14)
+# Story:   S-18.08 — O-P8-002 Pure-Parse Invariant Consistency Gate (ADR-026 §Decision 14)
 # BCs enforced: BC-4.14.001 Invariant 1 (pure-parse; no git or filesystem side effects)
 #               BC-4.15.001 Invariant 1 (pure-parse; no filesystem, subprocess, or context access)
 # VPs scanned:  VP-083, VP-081, VP-091 (D-572 VP-body extension)
 # O-P8-002:     Adversarial finding — BC/VP prose must not contradict pure-parse invariant claims.
 #
-# F-P1-001/F-P1-002 remediation (architect-refined §Decision 14 v1.31):
+# F-P1-001/F-P1-002 remediation (architect-refined §Decision 14):
 #   - Discovery anchored to ## Invariants section (replaces grep -rl "pure.parse" which
 #     over-matched BC-INDEX.md and ~190 SS-07 prose mentions).
 #   - Layer-1 awk uses whitelist terminator — stops at the first NON-normative heading,
@@ -15,14 +15,14 @@
 #   - Fail-loud scannability guard: a discovered BC lacking ## Preconditions FAILS loudly,
 #     not vacuously passes.
 #
-# Detection algorithm (ADR-026 §Decision 14 v1.31) — three-layer pipeline:
+# Detection algorithm (ADR-026 §Decision 14) — three-layer pipeline:
 #   Layer 1 (BC files only): normative-section extraction via awk
 #     awk '/^## Preconditions$/{ found=1 }
 #          found && /^## / && !/^## (Preconditions|Postconditions|Invariants|Edge Cases|Error Paths|Canonical Test Vectors)$/{ exit }
 #          found{ print }'
 #     (whitelist terminator stops at first NON-normative heading)
 #   Layer 2: verb+substrate collocation grep
-#     grep -Ei "(reads?|loads?|fetches|derives?|access(es)?|retrieves?|opens?|parses?)\s+.{0,80}
+#     grep -Ei "(reads?|loads?|fetches|derives?|access(es)?|retrieves?|opens?|parses?)[[:space:]]+.{0,80}
 #             (sprint-state\.yaml|git-log|git-cat-file)"
 #     (VP scans ADD factory-artifacts to substrate set)
 #   Layer 3: negation-cue exclusion grep
