@@ -1,21 +1,24 @@
 #!/usr/bin/env bats
-# pure-parse-invariant-gate.bats — S-18.08 pure-parse invariant consistency gate.
+# pure-parse-invariant-gate.bats — S-18.08 v1.6 pure-parse invariant consistency gate.
 #
-# Story:   S-18.08 — O-P8-002 Pure-Parse Invariant Consistency Gate
+# Story:   S-18.08 v1.6 — O-P8-002 Pure-Parse Invariant Consistency Gate (ADR-026 §Decision 14)
 # BCs enforced: BC-4.14.001 Invariant 1 (pure-parse; no git or filesystem side effects)
 #               BC-4.15.001 Invariant 1 (pure-parse; no filesystem, subprocess, or context access)
 # VPs scanned:  VP-083, VP-081, VP-091 (D-572 VP-body extension)
 # O-P8-002:     Adversarial finding — BC/VP prose must not contradict pure-parse invariant claims.
 #
-# Red Gate condition:
-#   All 5 tests MUST FAIL before implementation (S-18.01..S-18.07 artifacts) because:
-#   - The BC files (.factory/specs/behavioral-contracts/ss-04/BC-4.14.001.md,
-#     BC-4.15.001.md) do not yet exist in the worktree (pre-S-18.01..07 state).
-#   - The VP files (.factory/specs/verification-properties/VP-083.md, VP-081.md,
-#     VP-091.md) do not yet exist.
-#   - grep on non-existent files → non-zero exit → assertion failures.
+# Detection algorithm (ADR-026 §Decision 14) — three-layer pipeline:
+#   Layer 1 (BC files only): normative-section extraction via awk
+#     awk '/^## Preconditions$/{found=1} found && /^## Related BCs$/{exit} found{print}'
+#   Layer 2: verb+substrate collocation grep
+#     grep -Ei "(reads?|loads?|fetches|derives?|access(es)?|retrieves?)\s+.{0,80}
+#             (sprint-state\.yaml|git-log|git-cat-file)"
+#     (VP scans ADD factory-artifacts to substrate set)
+#   Layer 3: negation-cue exclusion grep
+#     grep -Eiv "no |not |NOT |without|never|does not|MUST NOT|is NOT|cannot|do NOT|only from|exclusively"
+#     (VP scans ADD grep -Ev "^\s*//" to strip Rust/bash comment lines)
 #
-# @test fatal-path contract (O-P7-001 / story v1.5):
+# @test fatal-path contract (O-P7-001 / story v1.5+):
 #   Every @test MUST use:
 #     run bash -c '<snippet>'
 #     assert_success
@@ -25,26 +28,24 @@
 #   (bats-assert is not installed system-wide; helpers are inlined here per
 #   project convention of no external bats library dependencies).
 #
-# EC coverage (L-BB-red-gate-test-plan-ec-coverage-parity, D-699):
-#   EC-001: AC-001 test — BC-4.14.001 normative sections contain 0 hits → gate passes
-#   EC-002: AC-002 test — BC-4.15.001 normative sections contain 0 hits → gate passes
-#   EC-003: AC-005 discovery — BCs not declaring pure-parse are not scanned (no false positive)
-#   EC-004: AC-005 discovery — future pure-parse BCs discovered automatically via grep -rl
-#   EC-005: AC-004 test — VP loop scans all 3 VPs; changelog-row hits would show non-zero HITS
-#           and cause test failure (implementer must add section filter per AC-001 pattern)
-#   EC-006: AC-001 exclusion filter handles "caller's responsibility" §Description prose —
-#           lines containing "caller", "shell wave-handoff", "shell layer", or
-#           "derives from real substrate" are excluded from the load-bearing hit count.
+# .factory/ resolution (worktree topology):
+#   .factory/ is an orphan-branch (factory-artifacts) worktree mounted ONLY at
+#   the main checkout root. It is NOT present in feature worktrees.
+#   Resolution: BATS_TEST_DIRNAME/../../.. gives the feature worktree root.
+#   If $ROOT/.factory/specs does NOT exist, fall back to the primary worktree root
+#   derived from `git -C $ROOT rev-parse --git-common-dir` (parent of .git).
+#   This makes the suite pass both locally and in CI.
 #
-# Paths: all repo-root-relative paths are resolved via REPO_ROOT derived from
-# BATS_TEST_DIRNAME (tests/ → plugins/vsdd-factory/ → .. → .. = repo root).
+# Pipefail note: grep exits 1 when no lines match (correct 0-hit outcome). Using
+# `|| true` on HITS=... assignments prevents set -e from aborting when the scan
+# correctly finds 0 hits. Explicit `[ "$HITS" -eq 0 ] || echo "FAIL: ..."` provides
+# the load-bearing assertion.
 
 # ---------------------------------------------------------------------------
 # Inline assert_success / refute_output helpers
 # (bats-assert API surface; implemented without the bats-assert package)
 # ---------------------------------------------------------------------------
 
-# assert_success: asserts that the most recent `run` command exited with status 0.
 assert_success() {
   if [ "$status" -ne 0 ]; then
     echo "assert_success: expected exit status 0, got $status" >&2
@@ -53,8 +54,6 @@ assert_success() {
   fi
 }
 
-# refute_output --partial <substring>: asserts that $output does NOT contain <substring>.
-# Only the --partial form is used in this file.
 refute_output() {
   local mode=""
   local substring=""
@@ -74,161 +73,195 @@ refute_output() {
 }
 
 # ---------------------------------------------------------------------------
-# setup
+# setup — resolve FACTORY_ROOT with worktree-topology fallback
 # ---------------------------------------------------------------------------
 
 setup() {
-  # Derive repo root from BATS_TEST_DIRNAME:
-  #   plugins/vsdd-factory/tests/ → plugins/vsdd-factory/ → plugins/ → repo root
-  REPO_ROOT="$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)"
+  # Candidate root: BATS_TEST_DIRNAME is .../plugins/vsdd-factory/tests — 3 levels up
+  local candidate_root
+  candidate_root="$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)"
+
+  if [ -d "${candidate_root}/.factory/specs" ]; then
+    FACTORY_ROOT="${candidate_root}"
+  else
+    # Feature-worktree case: .factory/ is not mounted here.
+    # git --git-common-dir gives the common .git dir (in the main worktree).
+    # Its parent is the main worktree root where .factory/ is mounted.
+    local git_common_dir
+    git_common_dir="$(git -C "${candidate_root}" rev-parse --git-common-dir 2>/dev/null || true)"
+    FACTORY_ROOT="$(dirname "${git_common_dir}")"
+  fi
+
+  export FACTORY_ROOT
 }
 
 # ---------------------------------------------------------------------------
-# AC-001 / BC-4.14.001 Invariant 1 pure-parse body scan
+# AC-001 / test_bc_4_14_001_pure_parse_invariant_zero_verb_substrate_hits_normative
 #
-# Scans BC-4.14.001.md normative behavioral sections for substrate-read patterns.
-# Excludes: §Related BCs, §Architecture Anchors, §Story Anchor, §VP Anchors,
-# §Traceability, §Changelog sections, and lines about caller/shell layer
-# responsibility (EC-006 — these describe the calling shell layer, not the WASM gate).
+# Three-layer pipeline on BC-4.14.001.md:
+#   Layer 1: awk normative-section extraction (## Preconditions .. ## Related BCs)
+#   Layer 2: verb+substrate collocation grep
+#   Layer 3: negation-cue exclusion grep
+# Expected: 0 hits.
 #
-# Red Gate: BC-4.14.001.md absent → grep exits non-zero → bash -c exits non-zero
-# → assert_success fails.
+# Red Gate: BC-4.14.001.md absent → file check fails → echo FAIL + exit 1
+#           → assert_success fails.
 # ---------------------------------------------------------------------------
 
-@test "test_bc_4_14_001_pure_parse_invariant_zero_substrate_reads_in_normative_sections" {
+@test "test_bc_4_14_001_pure_parse_invariant_zero_verb_substrate_hits_normative" {
+  local factory_root="$FACTORY_ROOT"
   run bash -c '
-    set -euo pipefail
-    BC_FILE="'"$REPO_ROOT"'/.factory/specs/behavioral-contracts/ss-04/BC-4.14.001.md"
-    # File must exist — gate cannot scan a missing artifact.
-    [ -f "$BC_FILE" ] || { echo "FAIL: $BC_FILE does not exist"; exit 1; }
-    HITS=$(grep -Ei "sprint-state\.yaml|HANDOFF\.md[^-]|git-log|git-cat-file" \
-      "$BC_FILE" \
-      | grep -Ev "^(##? (Related BCs|Architecture Anchors|Story Anchor|VP Anchors|Traceability|Changelog)|.*caller|.*shell wave-handoff|.*shell layer|.*derives from real substrate)" \
-      | wc -l)
-    [ "$HITS" -eq 0 ]
+    BC_FILE="'"${factory_root}"'/.factory/specs/behavioral-contracts/ss-04/BC-4.14.001.md"
+    if [ ! -f "$BC_FILE" ]; then echo "FAIL: $BC_FILE does not exist"; exit 1; fi
+    HITS=$(awk '"'"'/^## Preconditions$/{found=1} found && /^## Related BCs$/{exit} found{print}'"'"' "$BC_FILE" \
+      | grep -Ei "(reads?|loads?|fetches|derives?|access(es)?|retrieves?)[[:space:]]+.{0,80}(sprint-state\.yaml|git-log|git-cat-file)" \
+      | grep -Eiv "no |not |NOT |without|never|does not|MUST NOT|is NOT|cannot|do NOT|only from|exclusively" \
+      | wc -l) || true
+    if [ "$HITS" -ne 0 ]; then
+      echo "FAIL: BC-4.14.001.md has $HITS verb+substrate collocation hits in normative sections"
+      exit 1
+    fi
   '
   assert_success
   refute_output --partial "FAIL"
 }
 
 # ---------------------------------------------------------------------------
-# AC-002 / BC-4.15.001 Invariant 1 pure-parse body scan
+# AC-002 / test_bc_4_15_001_pure_parse_invariant_zero_verb_substrate_hits_normative
 #
-# Scans BC-4.15.001.md normative behavioral sections for substrate-read patterns.
-# Note: `factory-artifacts` exclusion not needed in the grep pattern — it is a
-# load-bearing hit only if it appears as a read substrate in normative sections;
-# in §Traceability/§Changelog it is excluded by the section-header filter.
+# Three-layer pipeline on BC-4.15.001.md (same pattern as AC-001).
+# Expected: 0 hits.
 #
-# Red Gate: BC-4.15.001.md absent → grep exits non-zero → assert_success fails.
+# Red Gate: BC-4.15.001.md absent → file check fails → echo FAIL + exit 1
+#           → assert_success fails.
 # ---------------------------------------------------------------------------
 
-@test "test_bc_4_15_001_pure_parse_invariant_zero_substrate_reads_in_normative_sections" {
+@test "test_bc_4_15_001_pure_parse_invariant_zero_verb_substrate_hits_normative" {
+  local factory_root="$FACTORY_ROOT"
   run bash -c '
-    set -euo pipefail
-    BC_FILE="'"$REPO_ROOT"'/.factory/specs/behavioral-contracts/ss-04/BC-4.15.001.md"
-    [ -f "$BC_FILE" ] || { echo "FAIL: $BC_FILE does not exist"; exit 1; }
-    HITS=$(grep -Ei "sprint-state\.yaml|HANDOFF\.md[^-]|git-log|git-cat-file|git show" \
-      "$BC_FILE" \
-      | grep -Ev "^(##? (Related BCs|Architecture Anchors|Story Anchor|VP Anchors|Traceability|Changelog))" \
-      | wc -l)
-    [ "$HITS" -eq 0 ]
+    BC_FILE="'"${factory_root}"'/.factory/specs/behavioral-contracts/ss-04/BC-4.15.001.md"
+    if [ ! -f "$BC_FILE" ]; then echo "FAIL: $BC_FILE does not exist"; exit 1; fi
+    HITS=$(awk '"'"'/^## Preconditions$/{found=1} found && /^## Related BCs$/{exit} found{print}'"'"' "$BC_FILE" \
+      | grep -Ei "(reads?|loads?|fetches|derives?|access(es)?|retrieves?)[[:space:]]+.{0,80}(sprint-state\.yaml|git-log|git-cat-file)" \
+      | grep -Eiv "no |not |NOT |without|never|does not|MUST NOT|is NOT|cannot|do NOT|only from|exclusively" \
+      | wc -l) || true
+    if [ "$HITS" -ne 0 ]; then
+      echo "FAIL: BC-4.15.001.md has $HITS verb+substrate collocation hits in normative sections"
+      exit 1
+    fi
   '
   assert_success
   refute_output --partial "FAIL"
 }
 
 # ---------------------------------------------------------------------------
-# AC-003 / VP-091 body scan: 0 substrate-read hits contradicting pure-parse
+# AC-003 / test_all_pure_parse_bcs_dynamic_discovery_zero_verb_substrate_hits
 #
-# VP-091 verifies BC-4.15.001. Scans all sections for substrate-read patterns
-# that would contradict the pure-parse invariant. VP-091 §0 "Structural
-# Precondition" may reference factory-artifacts in a prohibition context only.
+# Dynamic discovery: grep -rl "pure.parse" over the full behavioral-contracts tree.
+# Discovery guard: MUST FAIL if zero files discovered (broken glob protection).
+# Three-layer scan per discovered file; asserts 0 hits each.
 #
-# Red Gate: VP-091.md absent → grep exits non-zero → assert_success fails.
+# Red Gate: zero files discovered (pre-S-18.01..07 state) → discovery guard fires →
+# echo FAIL + exit 1 → assert_success fails.
 # ---------------------------------------------------------------------------
 
-@test "test_vp_091_body_zero_substrate_reads_contradicting_pure_parse" {
+@test "test_all_pure_parse_bcs_dynamic_discovery_zero_verb_substrate_hits" {
+  local factory_root="$FACTORY_ROOT"
   run bash -c '
-    set -euo pipefail
-    VP_FILE="'"$REPO_ROOT"'/.factory/specs/verification-properties/VP-091.md"
-    [ -f "$VP_FILE" ] || { echo "FAIL: $VP_FILE does not exist"; exit 1; }
-    HITS=$(grep -Ei "sprint-state\.yaml|git-log|git-cat-file" "$VP_FILE" | wc -l)
-    [ "$HITS" -eq 0 ]
+    BC_DIR="'"${factory_root}"'/.factory/specs/behavioral-contracts/"
+    if [ ! -d "$BC_DIR" ]; then
+      echo "FAIL: BC directory does not exist: $BC_DIR"
+      exit 1
+    fi
+    BC_FILES=$(grep -rl "pure.parse" "$BC_DIR" | sort)
+    # Discovery guard: at least one file must be found
+    if [ -z "$BC_FILES" ]; then
+      echo "FAIL: no pure-parse BCs discovered — discovery guard triggered"
+      exit 1
+    fi
+    # Three-layer scan for each discovered BC
+    any_fail=0
+    for BC_FILE in $BC_FILES; do
+      HITS=$(awk '"'"'/^## Preconditions$/{found=1} found && /^## Related BCs$/{exit} found{print}'"'"' "$BC_FILE" \
+        | grep -Ei "(reads?|loads?|fetches|derives?|access(es)?|retrieves?)[[:space:]]+.{0,80}(sprint-state\.yaml|git-log|git-cat-file)" \
+        | grep -Eiv "no |not |NOT |without|never|does not|MUST NOT|is NOT|cannot|do NOT|only from|exclusively" \
+        | wc -l) || true
+      if [ "$HITS" -ne 0 ]; then
+        echo "FAIL: $BC_FILE has $HITS verb+substrate collocation hits in normative sections"
+        any_fail=1
+      fi
+    done
+    if [ "$any_fail" -ne 0 ]; then exit 1; fi
   '
   assert_success
   refute_output --partial "FAIL"
 }
 
 # ---------------------------------------------------------------------------
-# AC-004 / D-572 VP-body extension: scan all VP files associated with pure-parse BCs
+# AC-004 / test_vp_083_081_091_zero_verb_substrate_hits_whole_file
 #
-# BC-4.14.001 VP Anchors: VP-083, VP-081
-# BC-4.15.001 VP Anchors: VP-091 (covered by AC-003 above)
-# Gate scans all three. 0 load-bearing hits required across all.
+# VP scans: layers 2+3 only (no awk section extraction — VPs are fully normative).
+# Substrate set adds factory-artifacts (VPs describe broader execution context).
+# Rust/bash comment lines (^\s*//) are stripped by an additional grep -Ev step.
 #
-# EC-005 coverage: if any VP file body contains a sprint-state.yaml / git-log /
-# git-cat-file reference (including in historical §Changelog rows), HITS > 0
-# and the loop emits "FAIL: <file> has N load-bearing substrate-read hits".
-# The refute_output --partial "FAIL" assertion then fails the test correctly.
+# VP files: VP-083.md, VP-081.md, VP-091.md
+# Expected: 0 hits per file.
 #
-# Red Gate: VP-083.md or VP-081.md absent → grep exits non-zero inside the loop
-# (non-zero from missing file) → bash -c exits non-zero → assert_success fails.
+# Red Gate: any VP file absent → echo FAIL + any_fail=1 → final exit 1
+#           → assert_success fails.
 # ---------------------------------------------------------------------------
 
-@test "test_vp_083_081_091_zero_substrate_reads_in_pure_parse_vp_set" {
+@test "test_vp_083_081_091_zero_verb_substrate_hits_whole_file" {
+  local factory_root="$FACTORY_ROOT"
   run bash -c '
-    set -euo pipefail
     any_fail=0
     for VP_FILE in \
-      "'"$REPO_ROOT"'/.factory/specs/verification-properties/VP-083.md" \
-      "'"$REPO_ROOT"'/.factory/specs/verification-properties/VP-081.md" \
-      "'"$REPO_ROOT"'/.factory/specs/verification-properties/VP-091.md"; do
+      "'"${factory_root}"'/.factory/specs/verification-properties/VP-083.md" \
+      "'"${factory_root}"'/.factory/specs/verification-properties/VP-081.md" \
+      "'"${factory_root}"'/.factory/specs/verification-properties/VP-091.md"; do
       if [ ! -f "$VP_FILE" ]; then
         echo "FAIL: $VP_FILE does not exist"
         any_fail=1
         continue
       fi
-      HITS=$(grep -Ei "sprint-state\.yaml|git-log|git-cat-file" "$VP_FILE" | wc -l)
-      [ "$HITS" -eq 0 ] || echo "FAIL: $VP_FILE has $HITS load-bearing substrate-read hits"
+      HITS=$(grep -Ei "(reads?|loads?|fetches|derives?|access(es)?|retrieves?)[[:space:]]+.{0,80}(sprint-state\.yaml|git-log|git-cat-file|factory-artifacts)" "$VP_FILE" \
+        | grep -Eiv "no |not |NOT |without|never|does not|MUST NOT|is NOT|cannot|do NOT|only from|exclusively" \
+        | grep -Ev "^[[:space:]]*//" \
+        | wc -l) || true
+      if [ "$HITS" -ne 0 ]; then
+        echo "FAIL: $VP_FILE has $HITS verb+substrate collocation hits"
+        any_fail=1
+      fi
     done
-    [ "$any_fail" -eq 0 ]
+    if [ "$any_fail" -ne 0 ]; then exit 1; fi
   '
   assert_success
   refute_output --partial "FAIL"
 }
 
 # ---------------------------------------------------------------------------
-# AC-005 / complete BC discovery: find all pure-parse BCs in ss-04 dynamically
+# AC-005 / test_positive_control_genuine_substrate_read_yields_exactly_one_hit
 #
-# Discovery-first pattern (Architecture Compliance Rule 2): uses grep -rl rather
-# than a hardcoded list so future pure-parse BCs are scanned automatically.
-# Verifies that BC-4.14.001 and BC-4.15.001 are in the discovered set.
-# Then scans each discovered BC for substrate-read violations.
+# Positive control: the injected sentence
+#   "The gate reads wave context directly from sprint-state.yaml before parsing the payload."
+# piped through layers 2+3 MUST yield exactly 1 hit.
+# If it yields 0 the verb pattern is over-restrictive (silent false-negative regression).
+# If it yields >1 there is a pattern duplication bug.
 #
-# EC-003 coverage: BCs that do not contain "pure-parse" or "pure function"
-# are not discovered and not scanned — no false positive.
-# EC-004 coverage: future pure-parse BCs added to ss-04 are discovered
-# automatically by grep -rl.
-#
-# Red Gate: ss-04 directory absent → grep -rl returns nothing → BC-4.14.001
-# not discovered → "FAIL: BC-4.14.001 not discovered" emitted → refute_output
-# --partial "FAIL" catches it. Also: bash -c exits non-zero if `grep -q` on
-# empty PURE_PARSE_BCS fails.
+# This test MUST remain GREEN at all times. Any refactor of the verb pattern that
+# causes this test to fail means ALL other AC results are untrusted until this is GREEN.
 # ---------------------------------------------------------------------------
 
-@test "test_pure_parse_bc_discovery_and_scan_finds_all_ss04_pure_parse_bcs" {
+@test "test_positive_control_genuine_substrate_read_yields_exactly_one_hit" {
   run bash -c '
-    # Discovery: find all pure-parse BCs in ss-04
-    PURE_PARSE_BCS=$(grep -rl "pure-parse\|pure function" \
-      "'"$REPO_ROOT"'/.factory/specs/behavioral-contracts/ss-04/" 2>/dev/null)
-    # Verify at least BC-4.14.001 and BC-4.15.001 are discovered
-    echo "$PURE_PARSE_BCS" | grep -q "BC-4.14.001" || echo "FAIL: BC-4.14.001 not discovered"
-    echo "$PURE_PARSE_BCS" | grep -q "BC-4.15.001" || echo "FAIL: BC-4.15.001 not discovered"
-    # Scan each discovered BC for substrate-read violations
-    for BC_FILE in $PURE_PARSE_BCS; do
-      HITS=$(grep -Ei "sprint-state\.yaml|git-log|git-cat-file" "$BC_FILE" | wc -l)
-      [ "$HITS" -eq 0 ] || echo "FAIL: $BC_FILE has $HITS load-bearing substrate-read hits"
-    done
+    HITS=$(echo "The gate reads wave context directly from sprint-state.yaml before parsing the payload." \
+      | grep -Ei "(reads?|loads?|fetches|derives?|access(es)?|retrieves?)[[:space:]]+.{0,80}(sprint-state\.yaml|git-log|git-cat-file)" \
+      | grep -Eiv "no |not |NOT |without|never|does not|MUST NOT|is NOT|cannot|do NOT|only from|exclusively" \
+      | wc -l) || true
+    if [ "$HITS" -ne 1 ]; then
+      echo "FAIL: positive control expected exactly 1 hit, got $HITS — verb pattern may be over-restrictive or duplicated"
+      exit 1
+    fi
   '
   assert_success
   refute_output --partial "FAIL"
