@@ -145,7 +145,7 @@ STATE.md compaction complete:
 
 | Concept | What it is | When it fires |
 |---------|-----------|---------------|
-| `/compact-state` (this skill) | A manually invoked skill. Calls the Claude Code `/compact` command and extracts historical content from STATE.md into cycle files to slim it to <200 lines. | Only when an operator or agent explicitly invokes `/compact-state`. |
+| `/compact-state` (this skill) | A manually invoked skill that extracts historical content from STATE.md into cycle files (burst logs, adversary passes, session checkpoints, lessons) and slims STATE.md to <200 lines. It does NOT invoke the Claude Code `/compact` command — it reorganizes the STATE.md file, not the conversation context. | Only when an operator or agent explicitly invokes `/compact-state`. |
 | `PreCompact` hook event | A Claude Code harness event fired automatically before the harness performs context compaction. Triggers the `precompact-flush` PreCompact WASM plugin (`precompact-flush.wasm`) (S-18.04a deliverable, native WASM per ADR-028 §Decision 2), which persists wave-boundary state to `factory-artifacts` before context is lost. | Only when the Claude Code harness triggers automatic compaction (e.g., when context usage reaches the configured autocompact threshold). |
 | `PostCompact` hook event | A Claude Code harness event fired automatically after compaction completes. Triggers `postcompact-reanchor.sh` (S-18.05 deliverable), which emits a `[PostCompact Re-anchor]` block to stdout so the LLM session can re-ground itself after compaction. | Only when the Claude Code harness triggers automatic compaction (same trigger condition as `PreCompact`). |
 
