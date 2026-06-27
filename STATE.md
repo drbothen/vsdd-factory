@@ -1,12 +1,12 @@
 ---
 document_type: pipeline-state
 level: ops
-version: "4.57"
+version: "4.58"
 status: draft
 producer: state-manager
-timestamp: 2026-06-27T04:00:00Z
+timestamp: 2026-06-27T05:00:00Z
 phase: S-18.06-POST-MERGE-D-701-2026-06-27
-last_amended: "2026-06-27 (v4.57) — D-701 S-18.06 post-merge burst (state-manager): S-18.06 draft→merged PR #284 a85e6e05; merged_count 89→90; POL-14 BC-4.15.001 draft→active (BC-INDEX v3.51→v3.52); STORY-INDEX v4.84→v4.85; develop ef4dfcc7→a85e6e05; feature/S-18.06 deleted; S-18.07/S-18.08 fully unblocked; SEC-002 redaction (BC-4.15.001 v1.6 INV5 4-pass) delivered; LOCAL cascade 25 total passes 3-CLEAN CONVERGED; Session Resume Checkpoint replaced; 4 follow-up items anchored (8a-8d). 4-index: BC-INDEX v3.52 / VP-INDEX v2.51 / STORY-INDEX v4.85 / ARCH-INDEX v2.80. [Prior: v4.56 SRC-HARDEN v4.56 D-700 S-18.05 post-merge checkpoint-hardening burst.]"
+last_amended: "2026-06-27 (v4.58) — SRC-HARDEN burst: Session Resume Checkpoint hardened for zero-context clear/resume (post D-701 S-18.06 post-merge; NEXT S-18.07); §9 factory-artifacts HEAD updated a910c5d7 (was stale c8954732); §1 S-18.07 execution plan corrected SS-04→SS-06 + tdd_mode:facade detail added (doc-only, no WASM, no bats gate, 4 review gates, CLAUDE.md conditional check); §3 SEC-002 redaction reusable pattern named + L-BB-redaction-test-doc-comment-drift carry added; §11 item 1 factory-artifacts expected SHA a910c5d7 added; 4-index UNCHANGED BC v3.52/VP v2.51/STORY v4.85/ARCH v2.80. [Prior: v4.57 D-701 S-18.06 post-merge burst.]"
 inputs: []
 input-hash: "[live-state]"
 traces_to: prd.md
@@ -61,6 +61,7 @@ dtu_services: []
   ~430 lines (wc-l estimate; D-692 POST-MERGE BURST — PR #201 S-18.14 squash-merged dfc76844; S-18.14 ready→merged; merged 83→84; S-4.11 registered; POL-14 BC-1.13.001 draft→active (BC-INDEX v3.39→v3.40); develop_head dfc76844; D-692 Decisions Log row + D-692 full decision-log.md entry; L-BB-premature-ci-green-attestation codified; Drift Item added; Session Resume Checkpoint replaced; 4-index BC v3.40/VP v2.40/STORY v4.62/ARCH v2.72; POSTURE ACTIVE RA-3 next; ~15 lines over soft-target 415; ~70 lines under hard-cap 500).
   411 lines (wc-l; D-693 POST-MERGE BURST — PR #249 S-18.04a squash-merged b0bc4ffd; S-18.04a draft→merged; merged 84→85; POL-14 BC-7.07.001 draft→active (BC-INDEX v3.40→v3.41); develop_head b0bc4ffd; S-18.03/04b/07/08 unblocked; D-693 Decisions Log row added; D-693 full decision-log.md entry; process-gap L-BB-wasm-bats-gate-before-green codified; Drift Item added; Session Resume Checkpoint replaced (D-692→D-693); STORY-INDEX v4.62→v4.63; 4-index BC v3.41/VP v2.40/STORY v4.63/ARCH v2.72; POSTURE ACTIVE S-18.04b next; 4 lines under soft-target 415; 89 lines under hard-cap 500).
   417 lines (wc-l; D-694 GOVERNANCE BURST — S-18.04b re-architecture; ADR-029 ACCEPTED (dispatcher git_context injection Option A); BC-1.16.001 NEW; BC-5.41.003 v2.0; VP-093 NEW; S-18.04b-prereq NEW story (story_count 122→123); S-18.04b v1.7; BC-INDEX v3.42 (1973 BCs; SS-01 118); VP-INDEX v2.41 (93 VPs); STORY-INDEX v4.64; ARCH-INDEX v2.73 (SS-01 118; ADR-029); decision-log.md D-694 block added; D-694 Decisions Log row added; Session Resume Checkpoint replaced (D-693→D-694); develop UNCHANGED b0bc4ffd; 4-index BC v3.42/VP v2.41/STORY v4.64/ARCH v2.73; POSTURE ACTIVE S-18.04b-prereq NEXT; 2 lines over soft-target 415; 83 lines under hard-cap 500).
+  500 lines (wc-l; SRC-HARDEN v4.58 — Session Resume Checkpoint hardened for zero-context clear/resume (post D-701 S-18.06 post-merge; NEXT S-18.07); §9 factory-artifacts HEAD a910c5d7 (was stale c8954732 SRC-HARDEN v4.56); §1 S-18.07 execution plan corrected SS-04→SS-06 + tdd_mode:facade detail (doc-only, no WASM, no bats gate, 4 review gates, CLAUDE.md conditional check); §3 L-BB-redaction-test-doc-comment-drift + SEC-002 reusable pattern added; §11 item-1 factory-artifacts expected SHA a910c5d7 added; 4-index UNCHANGED BC v3.52/VP v2.51/STORY v4.85/ARCH v2.80; Hard cap (500 lines) margin from soft-target = 500 - 415 = 85; margin from actual = 500 - 500 = 0 (AT CAP; archive older banner entries before next burst adds lines)).
 -->
 
 # Pipeline State: vsdd-factory
@@ -139,7 +140,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | caf06c68 | rc.21 bot binary bundle commit 2026-06-13; prior: 2a191314 (rc.20) |
 | develop | a85e6e05 | PR #284 `feat(S-18.06): validate-heavy-op-delegation WASM gate + SEC-002 redaction` squash-merged 2026-06-27 (D-701; S-18.06 merged; BC-4.15.001 active); prior: ef4dfcc7 (PR #271 D-700) |
-| factory-artifacts | c8954732 | SRC-HARDEN v4.56 (checkpoint-hardening burst); prior: 9390c88f (D-700 sha-patch); prior: fdd069fa (D-700 S-18.05 post-merge burst) |
+| factory-artifacts | a910c5d7 | D-701 S-18.06 POST-MERGE state burst 2026-06-27; prior: c8954732 (SRC-HARDEN v4.56); prior: 9390c88f (D-700 sha-patch) |
 | v1.0.0-rc.21 (tag) | 03054524 | SHIPPED 2026-06-13; FULLY IN OPERATOR MARKETPLACE (marketplace PR #13 MERGED); annotated tag object |
 | v1.0.0-rc.20 (tag) | e9e38286 | SHIPPED 2026-06-01; marketplace PR #12 squash-merged 862e660d |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28 |
@@ -284,7 +285,8 @@ dtu_services: []
 - S-18.03 MERGED PR #270 bc9fc693 2026-06-25 (D-699); BC-6.24.001 lifecycle_status ACTIVE (POL-14); BC-INDEX v3.46; STORY-INDEX v4.72
 - ADR-026 v1.29 (S-18.06 LOCAL cascade); VP-091 v1.5 (S-18.06 LOCAL cascade); VP-INDEX v2.51; ARCH-INDEX v2.80
 - ADR-029 v1.3; BC-1.16.001 v1.1 (ACTIVE; POL-14 D-696); VP-093 v1.0 (D-694)
-- L-redaction-test-doc-comment-drift [process-gap D-701]: reconcile test doc-comments to green state at implementer green-commit time (lessons.md)
+- **L-BB-redaction-test-doc-comment-drift** [process-gap D-701]: reconcile test doc-comments to green state at implementer green-commit time; applies to every WASM story green-commit step (lessons.md)
+- **SEC-002 redaction reusable pattern (D-701; BC-4.15.001 v1.6 INV5):** 4-pass = (1) flag-pattern `--flag` tokens, (2) env-var `VAR=value` tokens, (3) header `Key: Value` tokens, (4) url-auth `://user:pass@host` tokens; plus allowlist + redact-then-truncate + no-regex pure-parse. Reusable for any future CLI arg redaction story. LOW advisories accepted-as-designed: positional non-flag JWT (out-of-scope by design); mid-command env-assignment (out-of-scope by design); apply_replacements debug_assert (anchored S-18.08).
 - L-BB-vp-cite-stable-anchor-recurrence-proof (D-700); L-BB-red-gate-test-plan-ec-coverage-parity (D-699)
 - L-BB-proof-vehicle-must-be-mutation-tested-not-asserted (D-697); L-BB-wasm-bats-gate-before-green (D-693)
 
@@ -301,9 +303,19 @@ dtu_services: []
 **S-18.06 MERGED (D-701):** validate-heavy-op-delegation WASM gate + SEC-002 redaction (BC-4.15.001 v1.6 INV5 4-pass). PR #284 a85e6e05 2026-06-27. BC-4.15.001 ACTIVE (POL-14). LOCAL cascade 25 total passes (13 base + 12 redaction-delta) 3-CLEAN CONVERGED.
 
 **NEXT: S-18.07 EXECUTION PLAN (zero-context ready):**
-- **Story:** `.factory/stories/S-18.07-*.md` (terminology disambiguation docs; SS-04; depends_on S-18.05+S-18.06 both MET — now MET)
-- **Flow:** LOCAL 3-CLEAN (BC-5.39.001) → demo-recorder → PR create (`--repo drbothen/vsdd-factory`) → CI green → STOP-BEFORE-PR-MERGE (D-665) → **HUMAN executes** `gh pr merge <N> --squash --delete-branch --repo drbothen/vsdd-factory` (L-BB-merge-requires-direct-human-action) → post-merge burst
-- **VP cite:** use bare VP identifier — NO version token (L-BB-vp-cite-stable-anchor-recurrence-proof; POLICY-19-analog)
+- **Story:** `.factory/stories/S-18.07-terminology-disambiguation-docs.md` (E-18 terminology disambiguation docs — compact-state vs PreCompact flush; cross-references in SKILL.md files)
+- **Subsystem:** SS-06 (Skill Catalog — `plugins/vsdd-factory/skills/`). NOT SS-04.
+- **depends_on:** S-18.03 MET (bc9fc693) + S-18.04a MET + S-18.04b MET + S-18.05 MET (ef4dfcc7) + S-18.06 MET (a85e6e05). ALL DEPENDENCIES MET. Wave 6.
+- **tdd_mode:** `facade` (doc-only; `behavioral_contracts: []`; no Rust unit tests, no bats integration tests). **L-BB-wasm-bats-gate-before-green does NOT apply** — this is a doc-only story with no WASM build.
+- **Deliverables (4 ACs):**
+  - AC-001: `plugins/vsdd-factory/skills/compact-state/SKILL.md` — add "Terminology Note" section distinguishing `/compact-state` (manual) from `PreCompact` hook event (automatic harness), plus `/rehydrate-wave` cross-ref.
+  - AC-002: `plugins/vsdd-factory/skills/check-state-health/SKILL.md` — add PostCompact re-anchor cross-reference + `[PostCompact Re-anchor]` block verification step + `/rehydrate-wave` recovery instruction.
+  - AC-003: `CLAUDE.md` §Conventions — add 3-way compact-state / PreCompact / PostCompact terminology disambiguation callout IF equivalent content not already present (POLICY 1 append-only; read before writing).
+  - AC-004: PR diff MUST show ONLY `.md` file changes. No `.sh`, `.wasm`, `.rs`, `.toml` modifications. Scope violation = PR rejected.
+- **Red Gate "test" plan (facade mode):** 4 documentation review gates — `review_compact_state_skill_terminology_note`; `review_check_state_health_skill_postcompact_xref`; `review_claude_md_compact_disambiguation`; `review_pr_diff_doc_only`. No mutation testing; wave-gate verifier confirms substantive content (not stub TODO placeholders).
+- **Flow:** LOCAL 3-CLEAN (BC-5.39.001) → demo-recorder per-AC → PR create (`--repo drbothen/vsdd-factory`) → CI green → STOP-BEFORE-PR-MERGE (D-665) → **HUMAN executes** `gh pr merge <N> --squash --delete-branch --repo drbothen/vsdd-factory` (L-BB-merge-requires-direct-human-action) → post-merge burst
+- **VP cite (if any):** use bare VP identifier — NO version token (L-BB-vp-cite-stable-anchor-recurrence-proof; POLICY-19-analog). This story has no VPs.
+- **SEC-002 redaction pattern note:** S-18.07 is doc-only and does NOT deliver SEC-002 content. SEC-002 was delivered by S-18.06 (BC-4.15.001 INV5 4-pass: flag/env/header/url, allowlist, redact-then-truncate, no-regex pure-parse). The SEC-002 pattern is reusable for future redaction stories.
 
 **Open maintenance (low priority):** dependabot PRs #194/#192/#187 (visual-companion deps) untouched.
 
@@ -342,6 +354,8 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 - **D-539 multi-family adversary obligation:** prompt-contract + shell-logic issues require cross-family AND same-family Claude adversary passes before convergence.
 - **L-BB-merge-requires-direct-human-action [process-gap] (2026-06-25; SRC-HARDEN burst):** pr-manager operates under a hard system rule that it will NOT accept coordinator/orchestrator-RELAYED human merge approval — only the user's OWN direct action authorizes merge. Therefore the D-665 merge step CANNOT be executed by pr-manager on an orchestrator relay; the human must merge directly (`gh pr merge <N> --squash --delete-branch --repo drbothen/vsdd-factory`) or the orchestrator must escalate to the human with the exact command. Codified in lessons.md. Zero-context sessions MUST be aware of this or they will deadlock at the merge gate.
 - **D-701 2026-06-27: POST-MERGE BURST — PR #284 (S-18.06 validate-heavy-op-delegation WASM gate + SEC-002 redaction) squash-merged a85e6e05 2026-06-27T04:12:52Z; merged_count 89→90; POL-14 BC-4.15.001 draft→active (BC-INDEX v3.51→v3.52); STORY-INDEX v4.84→v4.85; develop_head ef4dfcc7→a85e6e05; S-18.07/S-18.08 fully unblocked (depends_on S-18.06 MET); SEC-002 redaction delivered; LOCAL cascade 25 passes (13 base + 12 redaction-delta) 3-CLEAN CONVERGED; 4 follow-up items anchored (8a: LOW sec advisories accepted-as-designed/anchored; 8b: O-COSMETIC-001 ADR-026 illustrative test-vector drift in convergence-state deferred_findings; 8c: STORY-INDEX compaction needed; 8d: redaction test-doc-comment drift lesson codified); 4-index BC v3.52/VP v2.51/STORY v4.85/ARCH v2.80. POSTURE ACTIVE. NEXT: S-18.07. STOP-BEFORE-PR-MERGE (D-665) holds.**
+- **L-BB-redaction-test-doc-comment-drift [process-gap D-701 codified; carry across CLEAR]:** Red-gate/pre-implementation doc-comment narratives in test files MUST be reconciled to the green state at implementer green-commit time. If a test doc-comment describes expected-failure behavior and the implementation is now green, update the doc-comment in the SAME green-commit. Applies to every WASM story. Codified: brownfield lessons.md.
+- **SEC-002 redaction reusable design precedent [D-701; BC-4.15.001 v1.6 INV5; carry across CLEAR]:** Reusable 4-pass CLI redaction pipeline: (1) flag-pattern `--flag` tokens, (2) env-var `VAR=value` tokens, (3) header `Key: Value` tokens, (4) url-auth `://user:pass@host` tokens; plus allowlist + redact-then-truncate + no-regex pure-parse. Normative anchor: BC-4.15.001 INV5. LOW advisories accepted-as-designed: positional non-flag JWT tokens (out-of-scope by design); mid-command env-assignment (out-of-scope by design); apply_replacements debug_assert (anchored S-18.08).
 - **D-700 2026-06-26: POST-MERGE BURST — PR #271 (S-18.05 postcompact-reanchor advisory hook) squash-merged ef4dfcc7 2026-06-26T12:31:07Z; merged_count 88→89; POL-14 BC-7.07.002 draft→active (BC-INDEX v3.47→v3.48); STORY-INDEX v4.75→v4.76 (VP-089 v1.3→stable VP-089; F-P7-001 recurrence-proof); develop_head bc9fc693→ef4dfcc7; S-18.07/S-18.08 further unblocked; F-P7-001 [process-gap] VP-cite-stable-anchor codified; 4-index BC v3.48/VP v2.48/STORY v4.76/ARCH v2.78. POSTURE ACTIVE. NEXT: S-18.06 (NOW MERGED D-701). STOP-BEFORE-PR-MERGE (D-665) holds.**
 - **L-BB-phantom-substrate-field-cascade (D-700 [process-gap] [codified]; SRC-HARDEN carry):** A phantom field cite in an AC postcondition (field cited as if it exists but doesn't) causes a cascade of stale-reference findings in subsequent passes. AC-003 cited STATE.md field `last_verified_develop_sha` which does not exist. Fix requires removing the phantom cite from the story body AND a sibling-sweep of STORY-INDEX for residual `status=warn` tokens. Full closure requires same-burst sweep of ALL locations carrying the phantom cite — no half-closed state. Codified: `cycles/v1.0-brownfield-backfill/lessons.md`.
 - **L-BB-vp-cite-stable-anchor-recurrence-proof (D-700 [process-gap] [codified]; SRC-HARDEN carry):** VP and ADR version pins in normative story bodies and STORY-INDEX rows are volatile anchors — they become stale when the VP is re-versioned by a subsequent fix burst. Correct anchor = bare identifier with NO version token (e.g., `VP-089` NOT `VP-089 v1.3`). Recurrence-proofed in S-18.05 v1.9 + STORY-INDEX v4.76 by dropping `VP-089 v1.3→VP-089`. TD-VSDD-091 / POLICY-19-analog. Commit-D sibling-sweep obligation when any VP advances. Codified: `cycles/v1.0-brownfield-backfill/lessons.md`.
@@ -404,7 +418,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 ### §9. Critical Anchors
 
 - **GitHub origin repo:** `drbothen/vsdd-factory` (NOT the local git user "Zious"). All E-18 PRs live at `https://github.com/drbothen/vsdd-factory`. Use `--repo drbothen/vsdd-factory` flag with all `gh` commands.
-- **factory-artifacts HEAD:** `c8954732` (SRC-HARDEN v4.56 checkpoint-hardening burst; prior = `9390c88f` D-700 sha-patch; prior = `fdd069fa` D-700 S-18.05 post-merge burst). Verify: `git -C .factory log -1 --format='%h %s'`
+- **factory-artifacts HEAD:** `a910c5d7` (D-701 S-18.06 POST-MERGE state burst; prior = `c8954732` SRC-HARDEN v4.56 checkpoint-hardening burst; prior = `9390c88f` D-700 sha-patch). Verify: `git -C .factory log -1 --format='%h %s'`
 - **develop HEAD:** `a85e6e05` (PR #284 S-18.06 validate-heavy-op-delegation WASM gate + SEC-002 redaction squash-merged 2026-06-27 D-701; prior: `ef4dfcc7` PR #271 D-700; prior: `bc9fc693` PR #270 D-699)
 - **main HEAD:** `caf06c68` (rc.21 bot bundle commit 2026-06-13; UNCHANGED)
 - **v1.0.0-rc.21 tag:** `03054524` (SHIPPED; FULLY IN OPERATOR MARKETPLACE)
@@ -419,7 +433,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 - **ADR-028 v1.3:** `specs/architecture/decisions/ADR-028-e18-precompact-flush-native-wasm-migration.md` (D-672 ROUND-3 FINAL; SPEC CONVERGENCE ACCEPTED)
 - **Older anchors (BC-1.15.001 v1.5..VP-090 v1.2, VP-081..VP-085, L2-INDEX v1.0.13, ADR-025 v1.6, S-17.04 v1.7, ADR-027 v1.0):** see `cycles/v1.0-brownfield-backfill/decision-log.md` D-580..D-615/D-639 blocks.
 - **S-18.05 v1.9 (merged):** `stories/S-18.05-postcompact-reanchor-hook.md` (PR #271 ef4dfcc7 squash-merged 2026-06-26 D-700; BC-7.07.002 active)
-- **Verify on resume:** `git rev-parse --short origin/develop` → expect `a85e6e05` (PR #284 S-18.06 WASM gate + SEC-002 redaction merged D-701 2026-06-27); `git rev-parse --short origin/main` → expect `caf06c68`; `git -C .factory log -1 --format='%h %s'` → expect D-701 S-18.06 post-merge burst SHA (or later); `gh repo view --json nameWithOwner -q .nameWithOwner` → expect `drbothen/vsdd-factory`
+- **Verify on resume:** `git rev-parse --short origin/develop` → expect `a85e6e05` (PR #284 S-18.06 WASM gate + SEC-002 redaction merged D-701 2026-06-27); `git rev-parse --short origin/main` → expect `caf06c68`; `git -C .factory log -1 --format='%h %s'` → expect `a910c5d7` D-701 S-18.06 POST-MERGE state burst (or later SRC-HARDEN); `gh repo view --json nameWithOwner -q .nameWithOwner` → expect `drbothen/vsdd-factory`
 
 ### §10. PR Status
 
@@ -441,7 +455,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 ### §11. Post-CLEAR/Post-RESET Resume Checklist (zero-context; D-639 refresh)
 
-1. **Verify worktree state:** `git rev-parse --short origin/develop` → expect `a85e6e05` (PR #284 S-18.06 merged D-701 2026-06-27). `git rev-parse --short origin/main` → expect `caf06c68`. `git -C .factory log -1 --format='%h %s'` → expect D-701 S-18.06 post-merge burst SHA (or later). `gh repo view --json nameWithOwner -q .nameWithOwner` → expect `drbothen/vsdd-factory`. feature/S-18.06 MERGED PR #284 a85e6e05 (deleted). feature/S-18.05 MERGED PR #271 ef4dfcc7 (deleted). feature/S-18.03 MERGED PR #270 bc9fc693 (deleted). feature/S-18.04b MERGED PR #264 95eeb9fa (deleted). feature/S-18.04b-prereq MERGED PR #262 a177d76e (deleted). feature/S-18.04a MERGED PR #249 b0bc4ffd (deleted). feature/S-18.14 MERGED PR #201 dfc76844 (deleted). feature/S-18.01 MERGED. feature/S-18.02 MERGED PR #195 bd6e50ce (deleted). feature/S-18.13 MERGED PR #196 70664e02 (deleted).
+1. **Verify worktree state:** `git rev-parse --short origin/develop` → expect `a85e6e05` (PR #284 S-18.06 merged D-701 2026-06-27). `git rev-parse --short origin/main` → expect `caf06c68`. `git -C .factory log -1 --format='%h %s'` → expect `a910c5d7` (D-701 S-18.06 POST-MERGE state burst) OR a later SRC-HARDEN/subsequent burst. `gh repo view --json nameWithOwner -q .nameWithOwner` → expect `drbothen/vsdd-factory`. feature/S-18.06 MERGED PR #284 a85e6e05 (deleted). feature/S-18.05 MERGED PR #271 ef4dfcc7 (deleted). feature/S-18.03 MERGED PR #270 bc9fc693 (deleted). feature/S-18.04b MERGED PR #264 95eeb9fa (deleted). feature/S-18.04b-prereq MERGED PR #262 a177d76e (deleted). feature/S-18.04a MERGED PR #249 b0bc4ffd (deleted). feature/S-18.14 MERGED PR #201 dfc76844 (deleted). feature/S-18.01 MERGED. feature/S-18.02 MERGED PR #195 bd6e50ce (deleted). feature/S-18.13 MERGED PR #196 70664e02 (deleted).
 2. **Read §1-§12 this checkpoint** (all of it; D-701 self-sufficient 2026-06-27).
 3. **Verify 4-index:** `grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md` → "3.52"; ARCH-INDEX → "2.80"; VP-INDEX → "2.51"; STORY-INDEX → "4.85"; L2-INDEX → "1.0.13".
 4. **E-10 CASCADE SEALED D-531.** Do NOT resume without engine-surface material change.
