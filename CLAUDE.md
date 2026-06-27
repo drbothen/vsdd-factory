@@ -263,7 +263,7 @@ vsdd-factory-specific coding patterns enforced by CI and/or adversarial review. 
   | Mechanism | What it is | Trigger |
   |-----------|-----------|---------|
   | `/compact-state` skill | Human/agent-initiated skill (`plugins/vsdd-factory/skills/compact-state/SKILL.md`). Calls the Claude Code `/compact` command manually and extracts historical content from STATE.md into cycle files. | Explicit operator or agent invocation only. |
-  | `PreCompact` hook event | Automatic Claude Code harness event fired before context compaction. Triggers `precompact-flush.sh`, which persists wave-boundary state to `factory-artifacts` before context is lost. | Fired by the harness on automatic compaction (not by `/compact-state`). |
+  | `PreCompact` hook event | Automatic Claude Code harness event fired before context compaction. Triggers the `precompact-flush` PreCompact WASM plugin (`precompact-flush.wasm`), native WASM per ADR-028 §Decision 2 / S-18.04a, which persists wave-boundary state to `factory-artifacts` before context is lost. | Fired by the harness on automatic compaction (not by `/compact-state`). |
   | `PostCompact` hook event | Automatic Claude Code harness event fired after compaction completes. Triggers `postcompact-reanchor.sh`, which emits a `[PostCompact Re-anchor]` block to stdout so the LLM session can re-ground itself. | Fired by the harness on automatic compaction (not by `/compact-state`). |
 
   **Invoking `/compact-state` does NOT fire the `PreCompact` or `PostCompact` hook chains.** These are independent mechanisms. After any session clear or context reset (whether from automatic compaction or a manual clear), run `/rehydrate-wave` as the first step before any pipeline work.
