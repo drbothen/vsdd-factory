@@ -3,7 +3,7 @@
 #
 # Story:   S-18.09 — F2 process-gap lesson gate checks — machine-stable lesson assertions,
 #          stale-term detector, BC-precondition registry-block-shape validator, AC↔PC parity gate
-# Version: S-18.09 v1.13
+# Version: S-18.09 v1.14
 # Enforces:
 #   AC-001 — L-F2-machine-stable-count-assertion (bats tests use plugin.log structured code: signals)
 #   AC-002 — L-F2-fix-at-correct-layer (VP source_bc files exist and are reachable)
@@ -236,18 +236,39 @@ SCRIPT
 @test "test_e18_story_behavioral_contracts_bc_ids_resolve_to_existing_bc_files" {
   local factory_root="$FACTORY_ROOT"
   run bash -c '
-    # For each E-18 story, extract behavioral_contracts IDs and verify BC files exist
+    # For each E-18 story, extract behavioral_contracts IDs and verify BC files exist.
+    #
+    # Extraction is frontmatter-array-scoped — handles BOTH forms:
+    #   Multi-line:  behavioral_contracts:\n  - BC-X.XX.XXX
+    #   Inline list: behavioral_contracts: [BC-1.13.001]
+    # The awk prints the key line itself (for inline [...] content) then sets f=1 for
+    # continuation lines, stopping at the next top-level YAML key (^[a-z_]+:).
+    # The [] empty-array guard prevents comment lines immediately following
+    # `behavioral_contracts: []` from being scanned as continuation content.
+    # Body prose BC mentions (e.g. BC-1.01.004 appearing in body text of S-18.14)
+    # are NEVER extracted.
+    #
+    # H1 check accepts BOTH corpus forms:
+    #   '"'"'# BC-NNN: Title'"'"'                     (103 files)
+    #   '"'"'# Behavioral Contract BC-NNN: Title'"'"' (1870 files)
+    # Both are valid per POLICY 7; the check verifies the H1 cites the right BC ID.
     for STORY_FILE in "'"${factory_root}"'/.factory/stories/S-18."*.md; do
-      BC_IDS=$(grep -A 20 "^behavioral_contracts:" "$STORY_FILE" \
-        | grep -oE "BC-[0-9]+\.[0-9]+\.[0-9]+" || true)
+      BC_IDS=$(awk '"'"'
+        /^behavioral_contracts:/{
+          if (/\[\]/) { next }
+          print; f=1; next
+        }
+        /^[a-z_]+:/{if(f) exit}
+        f{print}
+      '"'"' "$STORY_FILE" | grep -oE '"'"'BC-[0-9]+\.[0-9]+\.[0-9]+'"'"' || true)
       for BC_ID in $BC_IDS; do
         BC_SS=$(echo "$BC_ID" | grep -oE "^BC-([0-9]+)" | grep -oE "[0-9]+")
         BC_SS_DIR=$(printf "ss-%02d" "$BC_SS")
         BC_FILE="'"${factory_root}"'/.factory/specs/behavioral-contracts/${BC_SS_DIR}/${BC_ID}.md"
-        [ -f "$BC_FILE" ] || echo "FAIL: $STORY_FILE references $BC_ID but $BC_FILE not found"
-        # Verify H1 heading is present in BC file
-        grep -q "^# ${BC_ID}:" "$BC_FILE" \
-          || { echo "FAIL: $BC_ID file exists but H1 does not start with '"'"'# BC-NNN:'"'"'"; exit 1; }
+        [ -f "$BC_FILE" ] || { echo "FAIL: $STORY_FILE references $BC_ID but $BC_FILE not found"; continue; }
+        # Verify H1 heading is present in BC file — accept either corpus H1 form
+        grep -qE "^# (Behavioral Contract )?${BC_ID}:" "$BC_FILE" \
+          || { echo "FAIL: $BC_ID file exists but H1 does not contain '"'"'# BC-NNN:'"'"' or '"'"'# Behavioral Contract BC-NNN:'"'"' (either form is valid per POLICY 7)"; exit 1; }
       done
     done
   '
