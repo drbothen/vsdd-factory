@@ -3279,6 +3279,61 @@ S-18.08 TDD implementation (story v1.9 with portability-normalized ACs; AC-001..
 
 ---
 
+## D-709 — Follow-up-clearing burst — 2026-06-27
+
+**Decision:** PR #304 (`docs: correct stale precompact-flush.sh refs to precompact-flush WASM plugin`) squash-merged to develop at commit `e10dedc0` on 2026-06-27T23:00:31Z. Maintenance commit — NOT a story (no story ID; no merged_count change; no POL-14). develop_head 04ab7236→e10dedc0. 3 drift items closed.
+
+**Context:** Three drift items accumulated after the D-703/D-708 merge bursts:
+
+1. **D-703 drift-1** (OPEN): `docs/demo-evidence/S-18.00/README.md:84` stale `precompact-flush.sh` reference superseded by `.wasm` per ADR-028. Discovered during S-18.07 sibling-sweep; reverted from scope to honor AC-004 file-list gate. Anchor was "maintenance-sweep OR standalone doc-fix story."
+2. **D-703 drift-2 / D-701 follow-up 8b-adjacent** (OPEN LOW/optional): ADR-028 §Decision 2 vs §Decision 6 citation precision — adversary accepted §Decision 2 as substantively accurate in S-18.07 LOCAL pass-7.
+3. **O-P3-005 [process-gap]** (OPEN): Orchestrator per-story adversary dispatches did not embed a formal worktree-identity tuple. Captured as a candidate orchestrator prompt improvement.
+
+PR #304 addressed drift-1 via a tree-wide TD-VSDD-060 sibling-sweep. The fix was expanded from the single README reference to all 8 stale `precompact-flush.sh` references across 7 files.
+
+**Actions taken:**
+- develop_head 04ab7236→e10dedc0 (PR #304 squash-merged 2026-06-27T23:00:31Z)
+- **D-703 drift-1 RESOLVED:** PR #304 e10dedc0 fixed 8 refs across 7 files: 2 Rust doc-comments (`crates/`), `plugins/vsdd-factory/hooks-registry.toml`, `plugins/vsdd-factory/hooks/precompact-flush-prune.sh` ×2, `plugins/vsdd-factory/hooks/check-harness-version.sh`, `plugins/vsdd-factory/tests/check-harness-version.bats`, `docs/demo-evidence/S-18.00/README.md`. All comment/prose only; zero behavioral change; cargo/clippy/fmt/bash-n clean.
+- **D-703 drift-2 CLOSED-ACCEPTED:** Adversary-verified (S-18.07 LOCAL pass-7) that ADR-028 §Decision 2 prose substantively asserts the native-WASM property; citation is accurate; no doc change warranted. Citation precision to §Decision 6 is optional enhancement — CLOSED as accepted-as-is.
+- **O-P3-005 CLOSED-ADOPTED:** Orchestrator adopted the worktree-identity tuple practice in-session during S-18.08 LOCAL adversary passes 4-7 (embedded tuple: worktree-abs-path, feature-HEAD-SHA, story-id, canonical-repo-root). Optional future codification into the orchestrator agent prompt remains a candidate improvement story; not blocking. CLOSED as practice adopted.
+- merged_count UNCHANGED (92); story_count UNCHANGED (123); no POL-14 BC promotion
+- 4-index BC v3.52/VP v2.51/STORY v4.93/ARCH v2.84 UNCHANGED
+- STATE.md Decisions Log: D-709 one-line summary row added (before D-708 row)
+- Drift Items table: D-703 drift-1 → RESOLVED; D-703 drift-2 → CLOSED-ACCEPTED; O-P3-005 → CLOSED-ADOPTED
+
+**4-index gate (literal-shell stdout 2026-06-27):**
+```
+grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md
+version: "3.52"
+
+grep "^version:" .factory/specs/verification-properties/VP-INDEX.md
+version: "2.51"
+
+grep "^version:" .factory/stories/STORY-INDEX.md
+version: "4.93"
+
+grep "^version:" .factory/specs/architecture/ARCH-INDEX.md
+version: "2.84"
+```
+
+Parity PASS: BC-INDEX v3.52 / VP-INDEX v2.51 / STORY-INDEX v4.93 / ARCH-INDEX v2.84. All UNCHANGED from D-708 (maintenance commit; no spec changes).
+
+### Parent-commit
+
+See `git -C .factory log -1 --format='%h %s'` (D-708 SHA-patch; TD-VSDD-053 single-commit)
+
+### Closes
+
+- D-703 drift-1 RESOLVED (PR #304 e10dedc0 tree-wide 8-ref sweep)
+- D-703 drift-2 CLOSED-ACCEPTED (adversary-verified; citation accurate)
+- O-P3-005 CLOSED-ADOPTED (orchestrator practice adopted in-session S-18.08 passes 4-7)
+
+### NEXT
+
+S-18.09 (F2 process-gap lesson gate checks; depends_on S-18.08 MET — MET D-708). STOP-BEFORE-PR-MERGE (D-665) holds.
+
+---
+
 ## D-708 — PR #303 (S-18.08) post-merge STATE burst — 2026-06-27
 
 **Decision:** PR #303 (`feat(S-18.08): pure-parse invariant consistency gate`), feature/S-18.08 → develop, squash-merged to develop at commit `04ab7236` on 2026-06-27T21:29:22Z. Remote feature branch deleted. Post-merge burst executed.
