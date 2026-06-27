@@ -1,15 +1,26 @@
 #!/usr/bin/env bats
-# pure-parse-invariant-gate.bats — S-18.08 v1.6 pure-parse invariant consistency gate.
+# pure-parse-invariant-gate.bats — S-18.08 v1.7 pure-parse invariant consistency gate.
 #
-# Story:   S-18.08 v1.6 — O-P8-002 Pure-Parse Invariant Consistency Gate (ADR-026 §Decision 14)
+# Story:   S-18.08 v1.7 — O-P8-002 Pure-Parse Invariant Consistency Gate (ADR-026 §Decision 14)
 # BCs enforced: BC-4.14.001 Invariant 1 (pure-parse; no git or filesystem side effects)
 #               BC-4.15.001 Invariant 1 (pure-parse; no filesystem, subprocess, or context access)
 # VPs scanned:  VP-083, VP-081, VP-091 (D-572 VP-body extension)
 # O-P8-002:     Adversarial finding — BC/VP prose must not contradict pure-parse invariant claims.
 #
-# Detection algorithm (ADR-026 §Decision 14) — three-layer pipeline:
+# F-P1-001/F-P1-002 remediation (architect-refined §Decision 14 v1.31):
+#   - Discovery anchored to ## Invariants section (replaces grep -rl "pure.parse" which
+#     over-matched BC-INDEX.md and ~190 SS-07 prose mentions).
+#   - Layer-1 awk uses whitelist terminator — stops at the first NON-normative heading,
+#     robust to ## Related BCs (Recommended) variants.
+#   - Fail-loud scannability guard: a discovered BC lacking ## Preconditions FAILS loudly,
+#     not vacuously passes.
+#
+# Detection algorithm (ADR-026 §Decision 14 v1.31) — three-layer pipeline:
 #   Layer 1 (BC files only): normative-section extraction via awk
-#     awk '/^## Preconditions$/{found=1} found && /^## Related BCs$/{exit} found{print}'
+#     awk '/^## Preconditions$/{ found=1 }
+#          found && /^## / && !/^## (Preconditions|Postconditions|Invariants|Edge Cases|Error Paths|Canonical Test Vectors)$/{ exit }
+#          found{ print }'
+#     (whitelist terminator stops at first NON-normative heading)
 #   Layer 2: verb+substrate collocation grep
 #     grep -Ei "(reads?|loads?|fetches|derives?|access(es)?|retrieves?)\s+.{0,80}
 #             (sprint-state\.yaml|git-log|git-cat-file)"
@@ -99,7 +110,8 @@ setup() {
 # AC-001 / test_bc_4_14_001_pure_parse_invariant_zero_verb_substrate_hits_normative
 #
 # Three-layer pipeline on BC-4.14.001.md:
-#   Layer 1: awk normative-section extraction (## Preconditions .. ## Related BCs)
+#   Layer 1: awk normative-section extraction (whitelist terminator — stops at first
+#            NON-normative heading; robust to ## Related BCs (Recommended) variants)
 #   Layer 2: verb+substrate collocation grep
 #   Layer 3: negation-cue exclusion grep
 # Expected: 0 hits.
@@ -113,7 +125,9 @@ setup() {
   run bash -c '
     BC_FILE="'"${factory_root}"'/.factory/specs/behavioral-contracts/ss-04/BC-4.14.001.md"
     if [ ! -f "$BC_FILE" ]; then echo "FAIL: $BC_FILE does not exist"; exit 1; fi
-    HITS=$(awk '"'"'/^## Preconditions$/{found=1} found && /^## Related BCs$/{exit} found{print}'"'"' "$BC_FILE" \
+    HITS=$(awk '"'"'/^## Preconditions$/{ found=1 }
+     found && /^## / && !/^## (Preconditions|Postconditions|Invariants|Edge Cases|Error Paths|Canonical Test Vectors)$/{ exit }
+     found{ print }'"'"' "$BC_FILE" \
       | grep -Ei "(reads?|loads?|fetches|derives?|access(es)?|retrieves?)[[:space:]]+.{0,80}(sprint-state\.yaml|git-log|git-cat-file)" \
       | grep -Eiv "no |not |NOT |without|never|does not|MUST NOT|is NOT|cannot|do NOT|only from|exclusively" \
       | wc -l) || true
@@ -129,7 +143,11 @@ setup() {
 # ---------------------------------------------------------------------------
 # AC-002 / test_bc_4_15_001_pure_parse_invariant_zero_verb_substrate_hits_normative
 #
-# Three-layer pipeline on BC-4.15.001.md (same pattern as AC-001).
+# Three-layer pipeline on BC-4.15.001.md:
+#   Layer 1: awk normative-section extraction (whitelist terminator — stops at first
+#            NON-normative heading; robust to ## Related BCs (Recommended) variants)
+#   Layer 2: verb+substrate collocation grep
+#   Layer 3: negation-cue exclusion grep
 # Expected: 0 hits.
 #
 # Red Gate: BC-4.15.001.md absent → file check fails → echo FAIL + exit 1
@@ -141,7 +159,9 @@ setup() {
   run bash -c '
     BC_FILE="'"${factory_root}"'/.factory/specs/behavioral-contracts/ss-04/BC-4.15.001.md"
     if [ ! -f "$BC_FILE" ]; then echo "FAIL: $BC_FILE does not exist"; exit 1; fi
-    HITS=$(awk '"'"'/^## Preconditions$/{found=1} found && /^## Related BCs$/{exit} found{print}'"'"' "$BC_FILE" \
+    HITS=$(awk '"'"'/^## Preconditions$/{ found=1 }
+     found && /^## / && !/^## (Preconditions|Postconditions|Invariants|Edge Cases|Error Paths|Canonical Test Vectors)$/{ exit }
+     found{ print }'"'"' "$BC_FILE" \
       | grep -Ei "(reads?|loads?|fetches|derives?|access(es)?|retrieves?)[[:space:]]+.{0,80}(sprint-state\.yaml|git-log|git-cat-file)" \
       | grep -Eiv "no |not |NOT |without|never|does not|MUST NOT|is NOT|cannot|do NOT|only from|exclusively" \
       | wc -l) || true
@@ -157,8 +177,14 @@ setup() {
 # ---------------------------------------------------------------------------
 # AC-003 / test_all_pure_parse_bcs_dynamic_discovery_zero_verb_substrate_hits
 #
-# Dynamic discovery: grep -rl "pure.parse" over the full behavioral-contracts tree.
+# Dynamic discovery: find BC-*.md files whose ## Invariants section contains
+# "pure-parse" (case-insensitive). Anchored to ## Invariants to avoid over-matching
+# BC-INDEX.md and prose-only mentions (F-P1-001 remediation).
+#
 # Discovery guard: MUST FAIL if zero files discovered (broken glob protection).
+# Scannability guard: MUST FAIL if a discovered BC lacks ## Preconditions (F-P1-002
+# remediation — ensures the Layer-1 awk has a normative section to scan rather than
+# vacuously passing on 0 output).
 # Three-layer scan per discovered file; asserts 0 hits each.
 #
 # Red Gate: zero files discovered (pre-S-18.01..07 state) → discovery guard fires →
@@ -168,21 +194,29 @@ setup() {
 @test "test_all_pure_parse_bcs_dynamic_discovery_zero_verb_substrate_hits" {
   local factory_root="$FACTORY_ROOT"
   run bash -c '
-    BC_DIR="'"${factory_root}"'/.factory/specs/behavioral-contracts/"
+    BC_DIR="'"${factory_root}"'/.factory/specs/behavioral-contracts"
     if [ ! -d "$BC_DIR" ]; then
       echo "FAIL: BC directory does not exist: $BC_DIR"
       exit 1
     fi
-    BC_FILES=$(grep -rl "pure.parse" "$BC_DIR" | sort)
-    # Discovery guard: at least one file must be found
-    if [ -z "$BC_FILES" ]; then
-      echo "FAIL: no pure-parse BCs discovered — discovery guard triggered"
-      exit 1
-    fi
-    # Three-layer scan for each discovered BC
+    # Discovery: files whose ## Invariants section contains "pure-parse" (case-insensitive)
     any_fail=0
-    for BC_FILE in $BC_FILES; do
-      HITS=$(awk '"'"'/^## Preconditions$/{found=1} found && /^## Related BCs$/{exit} found{print}'"'"' "$BC_FILE" \
+    discovered_count=0
+    while IFS= read -r -d '"'"''"'"' BC_FILE; do
+      MATCH=$(awk '"'"'/^## Invariants$/{ found=1; next } found && /^## /{ exit } found{ print }'"'"' "$BC_FILE" \
+        | grep -i "pure-parse") || true
+      if [ -z "$MATCH" ]; then continue; fi
+      discovered_count=$((discovered_count + 1))
+      # Scannability guard: discovered BC must have a ## Preconditions section
+      if ! grep -q "^## Preconditions$" "$BC_FILE"; then
+        echo "FAIL: discovered BC $BC_FILE has no ## Preconditions section — scannability guard triggered"
+        any_fail=1
+        continue
+      fi
+      # Three-layer scan on normative sections
+      HITS=$(awk '"'"'/^## Preconditions$/{ found=1 }
+     found && /^## / && !/^## (Preconditions|Postconditions|Invariants|Edge Cases|Error Paths|Canonical Test Vectors)$/{ exit }
+     found{ print }'"'"' "$BC_FILE" \
         | grep -Ei "(reads?|loads?|fetches|derives?|access(es)?|retrieves?)[[:space:]]+.{0,80}(sprint-state\.yaml|git-log|git-cat-file)" \
         | grep -Eiv "no |not |NOT |without|never|does not|MUST NOT|is NOT|cannot|do NOT|only from|exclusively" \
         | wc -l) || true
@@ -190,7 +224,12 @@ setup() {
         echo "FAIL: $BC_FILE has $HITS verb+substrate collocation hits in normative sections"
         any_fail=1
       fi
-    done
+    done < <(find "$BC_DIR" -name "BC-*.md" -print0)
+    # Discovery guard: at least one file must have been discovered
+    if [ "$discovered_count" -eq 0 ]; then
+      echo "FAIL: no pure-parse BCs discovered — discovery guard triggered"
+      exit 1
+    fi
     if [ "$any_fail" -ne 0 ]; then exit 1; fi
   '
   assert_success
