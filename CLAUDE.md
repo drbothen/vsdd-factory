@@ -258,6 +258,16 @@ vsdd-factory-specific coding patterns enforced by CI and/or adversarial review. 
 
 - **Bash hook scripts.** Bash hooks (e.g., `convergence-tracker.sh`) use `set -euo pipefail`. A crashed bash hook with `on_error=block` produces `exit_code=2` PostToolUse signals. Hook scripts in `plugins/vsdd-factory/hooks/*.sh` must be robust to empty / pre-existing-defect input — silent crashes propagate as false-positive blocks that, while non-destructive to file writes (PostToolUse is post-write), pollute session telemetry.
 
+- **Context compaction — three distinct mechanisms (S-18.07 / ADR-026 §Decision 7):**
+
+  | Mechanism | What it is | Trigger |
+  |-----------|-----------|---------|
+  | `/compact-state` skill | Human/agent-initiated skill (`plugins/vsdd-factory/skills/compact-state/SKILL.md`). Calls the Claude Code `/compact` command manually and extracts historical content from STATE.md into cycle files. | Explicit operator or agent invocation only. |
+  | `PreCompact` hook event | Automatic Claude Code harness event fired before context compaction. Triggers `precompact-flush.sh`, which persists wave-boundary state to `factory-artifacts` before context is lost. | Fired by the harness on automatic compaction (not by `/compact-state`). |
+  | `PostCompact` hook event | Automatic Claude Code harness event fired after compaction completes. Triggers `postcompact-reanchor.sh`, which emits a `[PostCompact Re-anchor]` block to stdout so the LLM session can re-ground itself. | Fired by the harness on automatic compaction (not by `/compact-state`). |
+
+  **Invoking `/compact-state` does NOT fire the `PreCompact` or `PostCompact` hook chains.** These are independent mechanisms. After any session clear or context reset (whether from automatic compaction or a manual clear), run `/rehydrate-wave` as the first step before any pipeline work.
+
 ### Forbidden patterns
 
 | Pattern | Reason |
