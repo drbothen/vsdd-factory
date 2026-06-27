@@ -77,6 +77,12 @@
       "Tautological-test fix"
     ]
   },
+  "merge_status": {
+    "merged": true,
+    "pr": "#284",
+    "sha": "a85e6e05",
+    "date": "2026-06-27"
+  },
   "passes": [
     {
       "pass": 1,

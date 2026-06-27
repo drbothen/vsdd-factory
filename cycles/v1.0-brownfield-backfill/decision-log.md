@@ -3067,6 +3067,51 @@ S-18.06 (validate-heavy-op-delegation WASM gate; BC-4.15.001; P1; 8pts; depends_
 
 ---
 
+## D-701 — PR #284 (S-18.06) post-merge STATE burst — 2026-06-27
+
+**Decision:** PR #284 (`feat(S-18.06): validate-heavy-op-delegation WASM gate + SEC-002 redaction`, feature/S-18.06 → develop) squash-merged to develop at commit `a85e6e05` on 2026-06-27T04:12:52Z. Remote feature branch deleted. Post-merge burst executed.
+
+**Context:** S-18.06 delivered the validate-heavy-op-delegation WASM gate (BC-4.15.001 INV5 4-pass secret-redaction). LOCAL adversary cascade: 25 total passes (13 base + 12 redaction-delta), 3-CLEAN CONVERGED. SEC-002 secret-redaction (BC-4.15.001 v1.6 INV5 4-pass) delivered. BC-4.15.001 lifecycle_status promoted draft→active (POL-14). S-18.07 (depends_on S-18.06 MET) and S-18.08 (depends_on S-18.06 MET) are now fully unblocked.
+
+**Actions taken:**
+- S-18.06 story status draft→merged; PR #284 a85e6e05 2026-06-27 added to merged-stories-ledger.md; story v1.13
+- merged_count 89→90; story_count UNCHANGED 123
+- POL-14 auto-promotion: BC-4.15.001 lifecycle_status draft→active (BC file frontmatter + BC-INDEX catalog row draft→**active**); BC-INDEX v3.51→v3.52
+- STORY-INDEX v4.84→v4.85: S-18.06 row draft→**merged** (PR #284 a85e6e05 2026-06-27); version cite v1.13; SEC-002 redaction note; S-18.07/S-18.08 unblocked
+- develop_head ef4dfcc7→a85e6e05
+- feature/S-18.06 branch deleted
+- S-18.07/S-18.08 now have depends_on S-18.06 MET (both fully unblocked)
+- adversary-convergence-state.json merge_status field added: merged PR #284 a85e6e05 2026-06-27
+- Follow-up items anchored (S-7.02 lessons-codification): (a) 3 LOW security advisories from PR #284 re-review accepted-as-designed or anchored (positional JWT non-coverage: by-design per BC-4.15.001 INV5 4-pass boundary; Pass-2 mid-command env-assignment coverage gap: by-design; apply_replacements debug_assert hardening: candidate S-18.08 scope); (b) O-COSMETIC-001 ADR-026 §Decision 12 illustrative test-vector quote-retention vs impl quote-strip: anchored to opportunistic follow-up sweep (already in adversary-convergence-state.json deferred_findings); (c) STORY-INDEX exceeds Read 25K-token cap — state-manager forced into surgical bash-grep edit fallback (POL-3 deviation by file-size); anchor STORY-INDEX compaction to S-15.03 PRIORITY-A family or new compaction story; (d) redaction test-doc-comment drift: red-gate/pre-implementation narratives survived into green commits across LOCAL passes 6-9; lesson codified (brownfield lessons.md) "reconcile test doc-comments to green state at implementer green-commit time"
+- STOP-BEFORE-PR-MERGE (D-665) holds for all code PRs.
+
+**4-index gate (literal-shell stdout 2026-06-27):**
+```
+grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md
+version: "3.52"
+
+grep "^version:" .factory/specs/verification-properties/VP-INDEX.md
+version: "2.51"
+
+grep "^version:" .factory/stories/STORY-INDEX.md
+version: "4.85"
+
+grep "^version:" .factory/specs/architecture/ARCH-INDEX.md
+version: "2.80"
+```
+
+Parity PASS: BC-INDEX v3.52 / VP-INDEX v2.51 / STORY-INDEX v4.85 / ARCH-INDEX v2.80.
+
+### Parent-commit
+
+See `git -C .factory log -1 --format='%h %s'` (D-700 SRC-HARDEN v4.56 + S-18.05 cascade bursts; TD-VSDD-053 single-commit)
+
+### NEXT
+
+S-18.07 (terminology disambiguation docs; depends_on [S-18.05 MET + S-18.06 MET — both now MET]). S-18.08 also fully unblocked (depends_on S-18.06 MET). STOP-BEFORE-PR-MERGE (D-665) holds.
+
+---
+
 ## D-698 — PR #264 (S-18.04b) post-merge STATE burst — 2026-06-25
 
 **Decision:** PR #264 (`feat(S-18.04b): exec-free PreCompact exemption + prune.sh (E-18 context-durability; ADR-029)`, feature/S-18.04b → develop) squash-merged to develop at commit `95eeb9fa` on 2026-06-25T15:27:20Z. Remote feature branch deleted. Post-merge burst executed.

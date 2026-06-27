@@ -16,7 +16,7 @@ origin: greenfield
 extracted_from: null
 subsystem: "SS-04"
 capability: "CAP-032"
-lifecycle_status: draft
+lifecycle_status: active
 introduced: v1.0-feature-context-durability-E18
 modified: ["1.1", "1.2", "1.3", "1.4", "1.5", "1.6"]
 deprecated: null
