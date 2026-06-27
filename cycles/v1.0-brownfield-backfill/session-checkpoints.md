@@ -860,3 +860,18 @@ Summary of D-696 checkpoint (archived from STATE.md 2026-06-25 by D-697 F-P1-001
 - 4-index: BC v3.43/VP v2.41/STORY v4.67/ARCH v2.74. L2-INDEX v1.0.13.
 - develop HEAD: `a177d76e` (PR #262 S-18.04b-prereq squash-merged 2026-06-25 D-696) / main HEAD: `caf06c68` / factory-artifacts HEAD: `db98d992` (D-696 post-merge burst)
 - D-range: D-001..D-696
+
+---
+
+D-430(a) COMPACTION 2026-06-27 — §4 Tier-A D-689..D-699 entries archived from STATE.md (SRC-HARDEN v4.58 HEAD 6242d000; compaction burst D-702):
+- D-699 (2026-06-25): POST-MERGE BURST — PR #270 (S-18.03 rehydrate-wave skill) squash-merged bc9fc693; S-18.03 draft→merged; merged 87→88; POL-14 BC-6.24.001 draft→active (BC-INDEX v3.45→v3.46); develop_head 95eeb9fa→bc9fc693; F-P1-010 [process-gap] codified (L-BB-red-gate-test-plan-ec-coverage-parity); 4-index BC v3.46/VP v2.43/STORY v4.72/ARCH v2.76.
+- D-698 (2026-06-25): POST-MERGE BURST — PR #264 (S-18.04b exec-free PreCompact exemption + prune.sh) squash-merged 95eeb9fa; S-18.04b draft→merged; merged 86→87; POL-14 BC-5.41.003 draft→active (BC-INDEX v3.44→v3.45); develop_head a177d76e→95eeb9fa; 4-index BC v3.45/VP v2.43/STORY v4.69/ARCH v2.76.
+- D-697 (2026-06-25): F-P1-001 GOVERNANCE BURST — ADR-029 v1.2 (Decision 8; two-layer proof); BC-5.41.003 v2.0→v2.1 (PC4); VP-084 v1.9→v2.0; BC-INDEX v3.43→v3.44; VP-INDEX v2.41→v2.42; ARCH-INDEX v2.74→v2.75; lesson L-BB-proof-vehicle-must-be-mutation-tested-not-asserted codified; 4-index BC v3.44/VP v2.42/STORY v4.67/ARCH v2.75.
+- D-696 (2026-06-24): POST-MERGE BURST — PR #262 (S-18.04b-prereq) squash-merged a177d76e; merged 85→86; POL-14 BC-1.16.001 draft→active (BC-INDEX v3.42→v3.43); develop_head b0bc4ffd→a177d76e; 4-index BC v3.43/VP v2.41/STORY v4.67/ARCH v2.74.
+- D-695 + follow-on (2026-06-24): PASS-1 GOVERNANCE FIX (T-7 deferred; ADR-029 v1.1; story v1.0→v1.1; ARCH-INDEX v2.74; STORY-INDEX v4.65). PASS-2 DOC-ACCURACY FIX (invoke.rs stub banner; mis-anchor abi_version.rs→git_context_injection.rs; story v1.1→v1.2; STORY-INDEX v4.66). 4-index BC v3.42/VP v2.41/STORY v4.66/ARCH v2.74.
+- D-694 (2026-06-24): GOVERNANCE BURST — S-18.04b re-architecture; ADR-029 ACCEPTED; BC-1.16.001 v1.0 NEW; BC-5.41.003 v2.0; VP-093 v1.0 NEW; S-18.04b-prereq v1.0 NEW; S-18.04b v1.7; story_count 123; VP 93; BC 1973; ADR 29; 4-index BC v3.42/VP v2.41/STORY v4.64/ARCH v2.73.
+- D-693 (2026-06-24): POST-MERGE BURST — PR #249 (S-18.04a) squash-merged b0bc4ffd; S-18.04a draft→merged; merged 84→85; POL-14 BC-7.07.001 draft→active (BC-INDEX v3.40→v3.41); L-BB-wasm-bats-gate-before-green codified; 4-index BC v3.41/VP v2.40/STORY v4.63/ARCH v2.72.
+- D-692 (2026-06-23): POST-MERGE BURST — PR #201 (S-18.14) squash-merged dfc76844; S-18.14 ready→merged; merged 83→84; POL-14 BC-1.13.001 draft→active; S-4.11 registered draft; L-BB-premature-ci-green-attestation codified; 4-index BC v3.40/VP v2.40/STORY v4.62/ARCH v2.72.
+- D-691 (2026-06-22): DURABLE PAUSE REFINEMENT — PR #201 review cascade COMPLETED: security PASS; code-review APPROVE; pr-reviewer APPROVE; CI 12/12 GREEN. PR #201 MERGE-PENDING. D-430(a) compaction. 4-index BC v3.39/VP v2.40/STORY v4.61/ARCH v2.72.
+- D-689 (2026-06-22): S-18.14 BC-5.39.001 STRICT 3-CLEAN CONVERGED (passes 22/23/24; 24 passes/9 fix bursts); input_hash de1abd6; S-18.14 v2.12 PROMOTED draft→ready; STORY-INDEX v4.61; 4-index BC v3.39/VP v2.40/STORY v4.61/ARCH v2.72.
+Full rows: decision-log.md SoT (D-689..D-699). factory-artifacts SRC-HARDEN v4.58: git show 6242d000:.factory/STATE.md §4 for pre-compaction state.
