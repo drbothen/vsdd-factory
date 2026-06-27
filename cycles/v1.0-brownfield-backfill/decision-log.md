@@ -3220,6 +3220,71 @@ S-18.08 TDD implementation (story v1.6 with 3-layer detection ACs; AC-001..005 p
 
 ---
 
+## D-705 — S-18.08 gate REFINEMENT GOVERNANCE BURST — 2026-06-27
+
+**Decision:** S-18.08 (pure-parse invariant consistency gate) §Decision 14 detection algorithm refined. LOCAL adversary pass-1 identified two MEDIUM findings (F-P1-001/F-P1-002) against the v1.6 design. Architect-refined fixes applied. S-18.08 v1.6→v1.7; ADR-026 §Decision 14 v1.30→v1.31.
+
+**Context:** D-704 authored ADR-026 §Decision 14 at v1.30 with the 3-layer detection algorithm. LOCAL adversary pass-1 against v1.6 found:
+
+- **F-P1-001 MEDIUM (over-broad discovery):** The v1.6 AC-003 dynamic discovery used `grep -rl "pure.parse"` over the BC tree. This matched BC-INDEX.md (not a BC file) and ~190 SS-07 prose-mentions, bloating the scan scope and producing false positives. Architect-refined fix: discovery anchored to `## Invariants` section — `awk` scans only the `## Invariants` section of each `BC-*.md` file for "pure-parse" hits. This structurally excludes BC-INDEX.md (not matched by `BC-*.md`) and any BC where "pure-parse" appears only outside the Invariants section. The loose `grep -rl "pure.parse"` is FORBIDDEN.
+- **F-P1-002 MEDIUM (fragile section boundary):** The v1.6 Layer-1 awk extraction used a hardcoded `## Related BCs` string match as the stop condition. This breaks on `## Related BCs (Recommended)` heading variants used in some BCs, causing the normative-section extraction to run past its intended boundary. Architect-refined fix: Layer-1 awk uses a **whitelist terminator** — stops at any `## ` heading that is NOT in `{Preconditions, Postconditions, Invariants, Edge Cases, Error Paths, Canonical Test Vectors}`. This is structurally robust to all heading variants without enumeration.
+
+**Additional fix (scannability guard, AC-003 loop):** A discovered BC that lacks `## Preconditions` (structurally un-scannable) would silently pass under the v1.6 design. Fix: the AC-003 loop now includes a fail-loud scannability guard — if a discovered BC lacks `## Preconditions`, the gate emits `FAIL: $BC_FILE lacks ## Preconditions — structurally un-scannable` and sets `OVERALL_STATUS=1`. Vacuous pass on un-scannable BCs is a gate failure mode.
+
+**Validation on current corpus (discovery=2, all scans=0, positive-control=1):**
+- Invariants-anchored discovery finds exactly: BC-4.14.001.md (pure-parse in ## Invariants ✓) and BC-4.15.001.md (pure-parse in ## Invariants ✓).
+- BC-INDEX.md: NOT matched (file is not named BC-*.md; structurally excluded).
+- SS-07 prose-mentions: NOT matched (only BC-*.md files searched, only ## Invariants section scanned).
+- All discovered BCs pass scannability guard (both have `## Preconditions`).
+- Layer-1 + Layer-2 + Layer-3 on both discovered BCs: 0 hits (no genuine substrate-read violations).
+- Positive control (AC-005): 1 hit (verb pattern intact).
+
+**Actions taken:**
+- S-18.08 story AC-001/002/003 awk updated: Layer-1 uses whitelist terminator (not hardcoded `## Related BCs`). AC-003 fully rewritten: Invariants-anchored `find` loop + scannability guard. EC-003/004 updated; EC-010 added (scannability guard). Architecture Compliance Rules 2+4 updated. Previous Story Intelligence v1.7 paragraph added. 4-leg v1.7 parity applied.
+- ADR-026 §Decision 14 body updated by architect: Layer-1 terminator rule rewritten to whitelist form; discovery algorithm rewritten to Invariants-anchored `awk` form; scannability guard documented.
+- ADR-026 version bumped v1.30→v1.31; `modified:` top entry added; `last_amended:` prepended; `## Changelog` v1.31 row added.
+- STORY-INDEX v4.89→v4.90: S-18.08 row updated (version cite v1.6→v1.7; input-hash UNCHANGED fe61c2c; D-705 gate refinement note).
+- ARCH-INDEX v2.81→v2.82: ADR-026 row v1.31 provenance leg appended; `last_amended:` + `version:` bumped.
+- STATE.md Decisions Log: D-705 one-line summary row added (NO phase/story-status advance — S-18.08 TDD still in flight).
+- BC-INDEX v3.52 UNCHANGED (no BC changes).
+- VP-INDEX v2.51 UNCHANGED (no VP changes).
+
+**4-index gate (literal-shell stdout 2026-06-27):**
+```
+grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md
+version: "3.52"
+
+grep "^version:" .factory/specs/verification-properties/VP-INDEX.md
+version: "2.51"
+
+grep "^version:" .factory/stories/STORY-INDEX.md
+version: "4.90"
+
+grep "^version:" .factory/specs/architecture/ARCH-INDEX.md
+version: "2.82"
+```
+
+Parity PASS: BC-INDEX v3.52 / VP-INDEX v2.51 / STORY-INDEX v4.90 / ARCH-INDEX v2.82.
+
+### input-hash confirmation
+
+S-18.08 `input-hash: fe61c2c` — UNCHANGED from D-704. No new inputs added; the refinement changes only the algorithm implementation (awk patterns) within the same input set. POLICY 18 does NOT require recomputation when only algorithm logic changes with no input file additions.
+
+### Parent-commit
+
+See `git -C .factory log -1 --format='%h %s'`
+
+### Closes
+
+- F-P1-001 (LOCAL adv P1 — over-broad discovery; `grep -rl "pure.parse"` matched BC-INDEX + ~190 SS-07 prose)
+- F-P1-002 (LOCAL adv P1 — fragile section boundary; hardcoded `## Related BCs` breaks on `(Recommended)` variants)
+
+### NEXT
+
+S-18.08 TDD implementation (story v1.7 with refined ACs; AC-001..005 per ADR-026 §Decision 14 v1.31). STOP-BEFORE-PR-MERGE (D-665) holds.
+
+---
+
 ## D-698 — PR #264 (S-18.04b) post-merge STATE burst — 2026-06-25
 
 **Decision:** PR #264 (`feat(S-18.04b): exec-free PreCompact exemption + prune.sh (E-18 context-durability; ADR-029)`, feature/S-18.04b → develop) squash-merged to develop at commit `95eeb9fa` on 2026-06-25T15:27:20Z. Remote feature branch deleted. Post-merge burst executed.
