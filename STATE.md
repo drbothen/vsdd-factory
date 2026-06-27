@@ -126,7 +126,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | caf06c68 | rc.21 bot binary bundle commit 2026-06-13; prior: 2a191314 (rc.20) |
 | develop | 1ef46620 | PR #301 `feat(S-18.07): terminology disambiguation docs` squash-merged 2026-06-27 (D-703; S-18.07 merged; no POL-14 BC promotion); prior: a85e6e05 (PR #284 D-701) |
-| factory-artifacts | [D-703 SHA — see `git -C .factory log -1 --format='%h %s'`] | D-703 S-18.07 POST-MERGE state burst 2026-06-27; prior: a910c5d7 (D-701 S-18.06 POST-MERGE) |
+| factory-artifacts | 9ee8cbf4 | D-703 S-18.07 POST-MERGE state burst 2026-06-27; prior: a910c5d7 (D-701 S-18.06 POST-MERGE) |
 | v1.0.0-rc.21 (tag) | 03054524 | SHIPPED 2026-06-13; FULLY IN OPERATOR MARKETPLACE (marketplace PR #13 MERGED); annotated tag object |
 | v1.0.0-rc.20 (tag) | e9e38286 | SHIPPED 2026-06-01; marketplace PR #12 squash-merged 862e660d |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28 |
@@ -248,7 +248,7 @@ dtu_services: []
 **NEXT ACTION = S-18.08 (depends_on S-18.07 MET — MET D-703). S-18.10 also now fully unblocked (depends_on S-18.07 MET — MET D-703).**
 
 **ORDERED RESUME ACTIONS (cold start):**
-1. **Verify worktrees:** `git rev-parse --short origin/develop` → expect `1ef46620`; `git rev-parse --short origin/main` → expect `caf06c68`; `git -C .factory log -1 --format='%h %s'` → expect D-703 S-18.07 post-merge burst SHA. feature/S-18.07 DELETED (merged). feature/S-18.06 DELETED.
+1. **Verify worktrees:** `git rev-parse --short origin/develop` → expect `1ef46620`; `git rev-parse --short origin/main` → expect `caf06c68`; `git -C .factory log -1 --format='%h %s'` → expect `9ee8cbf4` D-703 S-18.07 post-merge burst. feature/S-18.07 DELETED (merged). feature/S-18.06 DELETED.
 2. **S-18.08 TDD:** Full LOCAL 3-CLEAN cascade for S-18.08 (pure-parse invariant consistency gate; depends_on S-18.07 MET — MET D-703). Mandatory: L-BB-wasm-bats-gate-before-green; L-BB-red-gate-test-plan-ec-coverage-parity; L-BB-vp-cite-stable-anchor-recurrence-proof.
 3. **S-18.08 PR create:** After LOCAL 3-CLEAN + demo-recorder. STOP-BEFORE-PR-MERGE (D-665) holds — await explicit human merge approval.
 4. **Release note:** S-18.14 fix (resolver WASM path fix) is release-gated — effective only after next rc release. Recommend cutting rc after several more E-18 stories merge.
@@ -355,7 +355,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 ### §9. Critical Anchors
 
 - **GitHub origin repo:** `drbothen/vsdd-factory` (NOT the local git user "Zious"). All E-18 PRs live at `https://github.com/drbothen/vsdd-factory`. Use `--repo drbothen/vsdd-factory` flag with all `gh` commands.
-- **factory-artifacts HEAD:** see `git -C .factory log -1 --format='%h %s'` → D-703 S-18.07 POST-MERGE state burst (prior = `a910c5d7` D-701 S-18.06 POST-MERGE; prior = `c8954732` SRC-HARDEN v4.56). Verify: `git -C .factory log -1 --format='%h %s'`
+- **factory-artifacts HEAD:** `9ee8cbf4` (D-703 S-18.07 POST-MERGE state burst 2026-06-27; prior = `a910c5d7` D-701 S-18.06 POST-MERGE; prior = `c8954732` SRC-HARDEN v4.56). Verify: `git -C .factory log -1 --format='%h %s'`
 - **develop HEAD:** `1ef46620` (PR #301 S-18.07 terminology disambiguation docs squash-merged 2026-06-27 D-703; prior: `a85e6e05` PR #284 D-701; prior: `ef4dfcc7` PR #271 D-700)
 - **main HEAD:** `caf06c68` (rc.21 bot bundle commit 2026-06-13; UNCHANGED)
 - **v1.0.0-rc.21 tag:** `03054524` (SHIPPED; FULLY IN OPERATOR MARKETPLACE)
@@ -364,7 +364,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 - **BC-7.07.002 v1.13 (active):** `ss-07/BC-7.07.002.md` (D-700 POL-14 draft→active; S-18.05 PR #271 ef4dfcc7 2026-06-26)
 - **BC-7.07.001 v1.18 (active):** `ss-07/BC-7.07.001.md` (D-672 SPEC CONVERGENCE ACCEPTED; D-693 POL-14 draft→active)
 - **Older anchors (BC-4.14.001 v1.17 D-651; BC-5.41.001 v1.26 D-660; BC-5.41.002 v1.19 D-658; ADR-028 v1.3 D-672; S-18.04a v1.11 D-693; S-18.05 v1.9 D-700; BC-1.15.001 v1.5..VP-090 v1.2, VP-081..VP-085, L2-INDEX v1.0.13, ADR-025 v1.6, S-17.04 v1.7, ADR-027 v1.0):** see `cycles/v1.0-brownfield-backfill/decision-log.md` D-580..D-700 blocks.
-- **Verify on resume:** `git rev-parse --short origin/develop` → expect `1ef46620` (PR #301 S-18.07 terminology disambiguation docs merged D-703 2026-06-27); `git rev-parse --short origin/main` → expect `caf06c68`; `git -C .factory log -1 --format='%h %s'` → expect D-703 S-18.07 POST-MERGE state burst SHA; `gh repo view --json nameWithOwner -q .nameWithOwner` → expect `drbothen/vsdd-factory`
+- **Verify on resume:** `git rev-parse --short origin/develop` → expect `1ef46620` (PR #301 S-18.07 terminology disambiguation docs merged D-703 2026-06-27); `git rev-parse --short origin/main` → expect `caf06c68`; `git -C .factory log -1 --format='%h %s'` → expect `9ee8cbf4` D-703 S-18.07 POST-MERGE state burst; `gh repo view --json nameWithOwner -q .nameWithOwner` → expect `drbothen/vsdd-factory`
 
 ### §10. PR Status
 
@@ -379,7 +379,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 ### §11. Post-CLEAR/Post-RESET Resume Checklist (zero-context; D-639 refresh)
 
-1. **Verify worktree state:** `git rev-parse --short origin/develop` → expect `1ef46620` (PR #301 S-18.07 merged D-703 2026-06-27). `git rev-parse --short origin/main` → expect `caf06c68`. `git -C .factory log -1 --format='%h %s'` → expect D-703 S-18.07 POST-MERGE state burst SHA. `gh repo view --json nameWithOwner -q .nameWithOwner` → expect `drbothen/vsdd-factory`. feature/S-18.07 MERGED PR #301 1ef46620 (deleted). feature/S-18.06 MERGED PR #284 a85e6e05 (deleted). feature/S-18.05 MERGED PR #271 ef4dfcc7 (deleted). feature/S-18.03 MERGED PR #270 bc9fc693 (deleted). feature/S-18.04b MERGED PR #264 95eeb9fa (deleted). feature/S-18.04b-prereq MERGED PR #262 a177d76e (deleted). feature/S-18.04a MERGED PR #249 b0bc4ffd (deleted). feature/S-18.14 MERGED PR #201 dfc76844 (deleted). feature/S-18.01 MERGED. feature/S-18.02 MERGED PR #195 bd6e50ce (deleted). feature/S-18.13 MERGED PR #196 70664e02 (deleted).
+1. **Verify worktree state:** `git rev-parse --short origin/develop` → expect `1ef46620` (PR #301 S-18.07 merged D-703 2026-06-27). `git rev-parse --short origin/main` → expect `caf06c68`. `git -C .factory log -1 --format='%h %s'` → expect `9ee8cbf4` D-703 S-18.07 POST-MERGE state burst. `gh repo view --json nameWithOwner -q .nameWithOwner` → expect `drbothen/vsdd-factory`. feature/S-18.07 MERGED PR #301 1ef46620 (deleted). feature/S-18.06 MERGED PR #284 a85e6e05 (deleted). feature/S-18.05 MERGED PR #271 ef4dfcc7 (deleted). feature/S-18.03 MERGED PR #270 bc9fc693 (deleted). feature/S-18.04b MERGED PR #264 95eeb9fa (deleted). feature/S-18.04b-prereq MERGED PR #262 a177d76e (deleted). feature/S-18.04a MERGED PR #249 b0bc4ffd (deleted). feature/S-18.14 MERGED PR #201 dfc76844 (deleted). feature/S-18.01 MERGED. feature/S-18.02 MERGED PR #195 bd6e50ce (deleted). feature/S-18.13 MERGED PR #196 70664e02 (deleted).
 2. **Read §1-§12 this checkpoint** (all of it; D-701 self-sufficient 2026-06-27).
 3. **Verify 4-index:** `grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md` → "3.52"; ARCH-INDEX → "2.80"; VP-INDEX → "2.51"; STORY-INDEX → "4.88"; L2-INDEX → "1.0.13".
 4. **E-10 CASCADE SEALED D-531.** Do NOT resume without engine-surface material change.
