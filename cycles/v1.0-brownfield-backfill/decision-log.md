@@ -3220,6 +3220,65 @@ S-18.08 TDD implementation (story v1.6 with 3-layer detection ACs; AC-001..005 p
 
 ---
 
+## D-707 — S-18.08 spec-hygiene GOVERNANCE BURST — 2026-06-27
+
+**Decision:** S-18.08 (pure-parse invariant consistency gate) §Decision 14 grep snippets normalized for BSD/macOS + GNU grep cross-platform portability. LOCAL adversary pass-3 identified two LOW observations (O-P3-002/O-P3-003). S-18.08 v1.8→v1.9; ADR-026 §Decision 14 v1.32→v1.33.
+
+**Context:** D-706 reconciled ADR-026 §Decision 14 to the canonical 8-verb form at v1.32. LOCAL adversary pass-3 against v1.8 found:
+
+- **O-P3-002 LOW (bats header volatile version-pin — TD-VSDD-091):** The bats test header in the feature branch cited a version-pinned bats version number. Fix: volatile pin removed per TD-VSDD-091 anti-volatile-pin convention. Already committed on feature/S-18.08 branch — not part of this governance burst (factory-artifacts only).
+- **O-P3-003 LOW (POSIX grep portability — `\s+`→`[[:space:]]+`):** ADR-026 §Decision 14 grep snippets used `\s+` (GNU-only) and `\s*` (GNU-only) in 6 locations (Layer 2 read-verb pattern prose note, BC-loop inner grep, VP-scan grep, VP-scan comment-exclusion grep, positive-control snippet grep). BSD grep (macOS) does not honor `\s+` in `-E` mode; the shipped bats suite uses `[[:space:]]+` consistently. Fix: all 6 occurrences normalized to POSIX `[[:space:]]+` / `[[:space:]]*`; portability note added to Layer 2 prose. S-18.08 story AC snippets normalized in parallel. No logic change — pattern semantics identical on GNU grep; behavior corrected on BSD grep.
+
+**Validation on current corpus (discovery=2, all scans=0, positive-control=3):**
+- Discovery (Invariants-anchored): BC-4.14.001.md, BC-4.15.001.md — UNCHANGED from v1.8.
+- All discovered BCs + VP files: 0 genuine violations — UNCHANGED from v1.8.
+- Positive control — reads: HITS=1 (PASS). Positive control — opens: HITS=1 (PASS). Positive control — parses: HITS=1 (PASS).
+- Pattern normalization: `[[:space:]]+` matches identically to `\s+` on GNU; now also matches on BSD/macOS (was silently broken before).
+
+**Actions taken:**
+- ADR-026 §Decision 14 body: 6 grep snippet lines normalized (`\s+`→`[[:space:]]+`, `\s*`→`[[:space:]]*`); portability note added to Layer 2 read-verb prose. Version bumped v1.32→v1.33; `modified:` top entry added; `last_amended:` updated; `## Changelog` v1.33 row added.
+- S-18.08 story version v1.8→v1.9; AC snippets (AC-001..005) normalized to `[[:space:]]+`; story prose reference to `^\s*//` updated to `^[[:space:]]*\/\/`. 4-leg v1.9 parity applied. input-hash UNCHANGED fe61c2c.
+- STORY-INDEX v4.91→v4.92: S-18.08 row updated (version cite v1.8→v1.9; D-707 spec-hygiene note; input-hash UNCHANGED fe61c2c).
+- ARCH-INDEX v2.83→v2.84: ADR-026 row v1.33 provenance leg appended; `last_amended:` + `version:` bumped.
+- STATE.md Decisions Log: D-707 one-line summary row added. Drift Item O-P3-005 [process-gap] added. NO phase/story-status advance (S-18.08 TDD ongoing).
+- BC-INDEX v3.52 UNCHANGED (no BC changes).
+- VP-INDEX v2.51 UNCHANGED (no VP changes).
+
+**4-index gate (literal-shell stdout 2026-06-27):**
+```
+grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md
+version: "3.52"
+
+grep "^version:" .factory/specs/verification-properties/VP-INDEX.md
+version: "2.51"
+
+grep "^version:" .factory/stories/STORY-INDEX.md
+version: "4.92"
+
+grep "^version:" .factory/specs/architecture/ARCH-INDEX.md
+version: "2.84"
+```
+
+Parity PASS: BC-INDEX v3.52 / VP-INDEX v2.51 / STORY-INDEX v4.92 / ARCH-INDEX v2.84.
+
+### input-hash confirmation
+
+S-18.08 `input-hash: fe61c2c` — UNCHANGED. Normalization is a portability fix within the same input set; no new input files added. POLICY 18 does NOT require recomputation when only syntax normalization occurs with no input file additions.
+
+### Parent-commit
+
+See `git -C .factory log -1 --format='%h %s'`
+
+### Closes
+
+- O-P3-003 (LOCAL adv P3 — BSD/macOS grep portability: `\s+`→`[[:space:]]+` normalization in ADR-026 §Decision 14 grep snippets and S-18.08 AC snippets)
+
+### NEXT
+
+S-18.08 TDD implementation (story v1.9 with portability-normalized ACs; AC-001..005 per ADR-026 §Decision 14 v1.33). O-P3-002 bats header de-pin already committed on feature/S-18.08. O-P3-005 [process-gap] logged (worktree-identity tuple in orchestrator dispatches). STOP-BEFORE-PR-MERGE (D-665) holds.
+
+---
+
 ## D-706 — S-18.08 verb-set-reconciliation GOVERNANCE BURST — 2026-06-27
 
 **Decision:** S-18.08 (pure-parse invariant consistency gate) §Decision 14 read-verb pattern reconciled to canonical 8-verb form. LOCAL adversary pass-2 identified one BLOCKER finding (F-P2-001) against the v1.7 design. Architect-reconciled fixes applied. S-18.08 v1.7→v1.8; ADR-026 §Decision 14 v1.31→v1.32.
