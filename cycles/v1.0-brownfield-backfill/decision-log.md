@@ -3112,6 +3112,52 @@ S-18.07 (terminology disambiguation docs; depends_on [S-18.05 MET + S-18.06 MET 
 
 ---
 
+## D-703 — PR #301 (S-18.07) post-merge STATE burst — 2026-06-27
+
+**Decision:** PR #301 (`feat(S-18.07): terminology disambiguation docs`), feature/S-18.07 → develop, squash-merged to develop at commit `1ef46620` on 2026-06-27T17:30:54Z. Remote feature branch deleted. Post-merge burst executed.
+
+**Context:** S-18.07 (E-18 wave-6; `tdd_mode: facade`; doc-only; 3 pts; no new BCs) delivered terminology disambiguation documentation — clarifying compact-state vs PreCompact flush semantics and cross-references in SKILL.md files. LOCAL adversary cascade: 7 total passes, 3-CLEAN CONVERGED (passes 5/6/7 clean). Two fix bursts during cascade: story v1.6 (`.sh`→`.wasm` reference correction per ADR-028 §Decision 2) and story v1.7 (`/compact` factual correction: `/compact-state` does NOT invoke `/compact`; human-adjudicated). Story at v1.7 at merge. POL-14: S-18.07 has `behavioral_contracts: []` — no BC auto-promotion. S-18.08 (depends_on S-18.06 MET — already unblocked D-701) and S-18.10 (depends_on S-18.07 MET — NOW unblocked) are both downstream-clear.
+
+**Actions taken:**
+- S-18.07 story status draft→merged; PR #301 1ef46620 2026-06-27 added to merged-stories-ledger.md; story v1.7
+- merged_count 90→91; story_count UNCHANGED 123
+- POL-14: behavioral_contracts: [] — NO BC auto-promotion
+- STORY-INDEX v4.87→v4.88: S-18.07 row draft→**merged** (PR #301 1ef46620 2026-06-27); version cite v1.7; D-703
+- develop_head a85e6e05→1ef46620
+- feature/S-18.07 branch deleted
+- S-18.10 now has depends_on S-18.07 MET (fully unblocked alongside S-18.08)
+- Follow-up Drift Items logged (S-7.02 Cycle-Closing Checklist):
+  - [process-gap-adjacent / out-of-scope sibling] `docs/demo-evidence/S-18.00/README.md:84` carries stale `precompact-flush.sh` reference (superseded by `.wasm` per ADR-028); discovered during S-18.07 sibling-sweep; reverted from S-18.07 scope to honor AC-004 file-list gate; anchor: maintenance-sweep OR standalone doc-fix story
+  - [LOW / optional] S-18.07 docs anchor precompact-flush native-WASM claim to ADR-028 §Decision 2; §Decision 6 ("all new hooks are native WASM") is the broader anchor; adversary pass-7 deemed §Decision 2 substantively accurate; optional citation-precision tightening; anchor: opportunistic ADR-026/skill-doc next-touch
+- STOP-BEFORE-PR-MERGE (D-665) holds for all code PRs.
+
+**4-index gate (literal-shell stdout 2026-06-27):**
+```
+grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md
+version: "3.52"
+
+grep "^version:" .factory/specs/verification-properties/VP-INDEX.md
+version: "2.51"
+
+grep "^version:" .factory/stories/STORY-INDEX.md
+version: "4.88"
+
+grep "^version:" .factory/specs/architecture/ARCH-INDEX.md
+version: "2.80"
+```
+
+Parity PASS: BC-INDEX v3.52 / VP-INDEX v2.51 / STORY-INDEX v4.88 / ARCH-INDEX v2.80.
+
+### Parent-commit
+
+See `git -C .factory log -1 --format='%h %s'` (D-701 S-18.06 POST-MERGE + D-702 compaction burst; TD-VSDD-053 single-commit)
+
+### NEXT
+
+S-18.08 (pure-parse invariant consistency gate; depends_on S-18.07 MET — MET D-703). S-18.10 also now fully unblocked (depends_on S-18.07 MET — MET D-703). STOP-BEFORE-PR-MERGE (D-665) holds.
+
+---
+
 ## D-698 — PR #264 (S-18.04b) post-merge STATE burst — 2026-06-25
 
 **Decision:** PR #264 (`feat(S-18.04b): exec-free PreCompact exemption + prune.sh (E-18 context-durability; ADR-029)`, feature/S-18.04b → develop) squash-merged to develop at commit `95eeb9fa` on 2026-06-25T15:27:20Z. Remote feature branch deleted. Post-merge burst executed.
