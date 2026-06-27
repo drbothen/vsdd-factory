@@ -22,7 +22,7 @@
 #          found{ print }'
 #     (whitelist terminator stops at first NON-normative heading)
 #   Layer 2: verb+substrate collocation grep
-#     grep -Ei "(reads?|loads?|fetches|derives?|access(es)?|retrieves?)\s+.{0,80}
+#     grep -Ei "(reads?|loads?|fetches|derives?|access(es)?|retrieves?|opens?|parses?)\s+.{0,80}
 #             (sprint-state\.yaml|git-log|git-cat-file)"
 #     (VP scans ADD factory-artifacts to substrate set)
 #   Layer 3: negation-cue exclusion grep
@@ -128,7 +128,7 @@ setup() {
     HITS=$(awk '"'"'/^## Preconditions$/{ found=1 }
      found && /^## / && !/^## (Preconditions|Postconditions|Invariants|Edge Cases|Error Paths|Canonical Test Vectors)$/{ exit }
      found{ print }'"'"' "$BC_FILE" \
-      | grep -Ei "(reads?|loads?|fetches|derives?|access(es)?|retrieves?)[[:space:]]+.{0,80}(sprint-state\.yaml|git-log|git-cat-file)" \
+      | grep -Ei "(reads?|loads?|fetches|derives?|access(es)?|retrieves?|opens?|parses?)[[:space:]]+.{0,80}(sprint-state\.yaml|git-log|git-cat-file)" \
       | grep -Eiv "no |not |NOT |without|never|does not|MUST NOT|is NOT|cannot|do NOT|only from|exclusively" \
       | wc -l) || true
     if [ "$HITS" -ne 0 ]; then
@@ -162,7 +162,7 @@ setup() {
     HITS=$(awk '"'"'/^## Preconditions$/{ found=1 }
      found && /^## / && !/^## (Preconditions|Postconditions|Invariants|Edge Cases|Error Paths|Canonical Test Vectors)$/{ exit }
      found{ print }'"'"' "$BC_FILE" \
-      | grep -Ei "(reads?|loads?|fetches|derives?|access(es)?|retrieves?)[[:space:]]+.{0,80}(sprint-state\.yaml|git-log|git-cat-file)" \
+      | grep -Ei "(reads?|loads?|fetches|derives?|access(es)?|retrieves?|opens?|parses?)[[:space:]]+.{0,80}(sprint-state\.yaml|git-log|git-cat-file)" \
       | grep -Eiv "no |not |NOT |without|never|does not|MUST NOT|is NOT|cannot|do NOT|only from|exclusively" \
       | wc -l) || true
     if [ "$HITS" -ne 0 ]; then
@@ -217,7 +217,7 @@ setup() {
       HITS=$(awk '"'"'/^## Preconditions$/{ found=1 }
      found && /^## / && !/^## (Preconditions|Postconditions|Invariants|Edge Cases|Error Paths|Canonical Test Vectors)$/{ exit }
      found{ print }'"'"' "$BC_FILE" \
-        | grep -Ei "(reads?|loads?|fetches|derives?|access(es)?|retrieves?)[[:space:]]+.{0,80}(sprint-state\.yaml|git-log|git-cat-file)" \
+        | grep -Ei "(reads?|loads?|fetches|derives?|access(es)?|retrieves?|opens?|parses?)[[:space:]]+.{0,80}(sprint-state\.yaml|git-log|git-cat-file)" \
         | grep -Eiv "no |not |NOT |without|never|does not|MUST NOT|is NOT|cannot|do NOT|only from|exclusively" \
         | wc -l) || true
       if [ "$HITS" -ne 0 ]; then
@@ -263,7 +263,7 @@ setup() {
         any_fail=1
         continue
       fi
-      HITS=$(grep -Ei "(reads?|loads?|fetches|derives?|access(es)?|retrieves?)[[:space:]]+.{0,80}(sprint-state\.yaml|git-log|git-cat-file|factory-artifacts)" "$VP_FILE" \
+      HITS=$(grep -Ei "(reads?|loads?|fetches|derives?|access(es)?|retrieves?|opens?|parses?)[[:space:]]+.{0,80}(sprint-state\.yaml|git-log|git-cat-file|factory-artifacts)" "$VP_FILE" \
         | grep -Eiv "no |not |NOT |without|never|does not|MUST NOT|is NOT|cannot|do NOT|only from|exclusively" \
         | grep -Ev "^[[:space:]]*//" \
         | wc -l) || true
@@ -294,11 +294,40 @@ setup() {
 @test "test_positive_control_genuine_substrate_read_yields_exactly_one_hit" {
   run bash -c '
     HITS=$(echo "The gate reads wave context directly from sprint-state.yaml before parsing the payload." \
-      | grep -Ei "(reads?|loads?|fetches|derives?|access(es)?|retrieves?)[[:space:]]+.{0,80}(sprint-state\.yaml|git-log|git-cat-file)" \
+      | grep -Ei "(reads?|loads?|fetches|derives?|access(es)?|retrieves?|opens?|parses?)[[:space:]]+.{0,80}(sprint-state\.yaml|git-log|git-cat-file)" \
       | grep -Eiv "no |not |NOT |without|never|does not|MUST NOT|is NOT|cannot|do NOT|only from|exclusively" \
       | wc -l) || true
     if [ "$HITS" -ne 1 ]; then
       echo "FAIL: positive control expected exactly 1 hit, got $HITS — verb pattern may be over-restrictive or duplicated"
+      exit 1
+    fi
+  '
+  assert_success
+  refute_output --partial "FAIL"
+}
+
+# ---------------------------------------------------------------------------
+# AC-006 / test_positive_control_opens_parses_verbs_detected
+#
+# Recall-guard positive control: locks the F-P2-001 fix (8-verb expansion).
+# The injected sentence
+#   "The gate opens sprint-state.yaml and parses git-log output to derive wave context."
+# piped through the SAME Layer-2 (8-verb) + Layer-3 logic MUST yield >= 1 hit.
+# If it yields 0 the pattern has regressed to the 6-verb set and `opens`/`parses`
+# are silently excluded — all AC-001..AC-004 scans would miss these verbs.
+#
+# This test MUST remain GREEN at all times. A regression to the 6-verb form will
+# cause this test to fail with HITS=0, making the regression immediately visible.
+# ---------------------------------------------------------------------------
+
+@test "test_positive_control_opens_parses_verbs_detected" {
+  run bash -c '
+    HITS=$(echo "The gate opens sprint-state.yaml and parses git-log output to derive wave context." \
+      | grep -Ei "(reads?|loads?|fetches|derives?|access(es)?|retrieves?|opens?|parses?)[[:space:]]+.{0,80}(sprint-state\.yaml|git-log|git-cat-file)" \
+      | grep -Eiv "no |not |NOT |without|never|does not|MUST NOT|is NOT|cannot|do NOT|only from|exclusively" \
+      | wc -l) || true
+    if [ "$HITS" -lt 1 ]; then
+      echo "FAIL: opens/parses recall-guard expected >= 1 hit, got $HITS — verb pattern may have regressed to 6-verb set"
       exit 1
     fi
   '
