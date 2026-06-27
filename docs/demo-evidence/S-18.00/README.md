@@ -81,4 +81,4 @@ correctly suppresses block intent for PostCompact events.
 - `CLAUDE_CODE_VERSION` unset: `harness version undeterminable … set CLAUDE_CODE_VERSION in the harness environment` → exit 1 (advisory)
 - `CLAUDE_CODE_VERSION=2.1.100`: `harness v2.1.100 < v2.1.105 — PreCompact block-intent will not be honoured` → exit 1 (advisory)
 
-The script never exits 2 (block-intent is reserved for the `precompact-flush` WASM plugin per S-18.04a).
+The script never exits 2 (block-intent is reserved for precompact-flush.sh per S-18.04a).
