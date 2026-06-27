@@ -110,9 +110,35 @@ Report as a table:
 **Overall: HEALTHY / WARNINGS / NEEDS-COMPACT**
 ```
 
+## PostCompact Re-anchor Verification
+
+After automatic context compaction by the Claude Code harness, the PostCompact advisory hook (`plugins/vsdd-factory/hooks/postcompact-reanchor.sh`, S-18.05 deliverable) fires and emits a structured re-anchor block to stdout. This block grounds the LLM session in the current pipeline state immediately after compaction.
+
+**The re-anchor block looks like:**
+
+```
+[PostCompact Re-anchor] context=<current_cycle>/<current_step> sha=<develop_sha>
+Source: factory-artifacts STATE.md (verified at <timestamp>)
+```
+
+The hook reads `current_cycle` and `current_step` from `factory-artifacts:STATE.md` via `git show` (never from the working tree or in-context reasoning). The `develop_sha` is sourced from `git rev-parse refs/remotes/origin/develop` at hook invocation time.
+
+**This hook is advisory-only — it cannot block or prevent compaction** (PostCompact fires after compaction is complete; `on_error=continue` in `hooks-registry.toml`).
+
+### Operator Step: Verify Re-anchor Block After Automatic Compaction
+
+When resuming work after an automatic compaction event, verify the `[PostCompact Re-anchor]` block appeared in the session output before proceeding with pipeline work:
+
+1. **Scan the session output** for a line matching `[PostCompact Re-anchor] context=...`.
+2. **If the re-anchor block is present:** Confirm the `context=` value matches the expected `current_cycle/current_step`. If it does, the session is re-grounded and pipeline work may continue.
+3. **If the re-anchor block is absent** (the hook did not fire, or the session output was truncated): run `/rehydrate-wave` before starting any pipeline work. `/rehydrate-wave` reads `wave-state.yaml` from `factory-artifacts` and injects the correct spec files into context — see `plugins/vsdd-factory/skills/rehydrate-wave/SKILL.md` for the full invocation contract (BC-6.24.001 / ADR-026 §Decision 4).
+
+> **Note:** `check-state-health` is a diagnostic skill — it reads and reports, but does not block compaction or prevent it from occurring. The PostCompact hook fires independently of this skill.
+
 ## When to Run
 
 - At the start of every session (alongside `/vsdd-factory:factory-health`)
 - After any phase transition
 - Before declaring convergence
 - When the state-size hook fires a warning
+- After automatic compaction, to confirm STATE.md structure is still intact and the re-anchor block was emitted
