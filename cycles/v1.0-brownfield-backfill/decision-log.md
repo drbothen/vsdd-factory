@@ -3279,6 +3279,52 @@ S-18.08 TDD implementation (story v1.9 with portability-normalized ACs; AC-001..
 
 ---
 
+## D-710 — S-18.09 pre-TDD spec-fix — 2026-06-27
+
+**Decision:** Pre-TDD diagnostic for S-18.09 (F2 process-gap lesson gate checks). Consistency-validator scan found AC-006's 6 residual `current_wave:` grep hits are all normative-section PROHIBITIONS ("there is no `current_wave:` field"), not stale uses — identical false-positive class to S-18.08 pure-parse affirmations. AC-008 clean (0 FAILs across 12 BC-bearing E-18 stories). AC-006 exclusion filter extended with negation/prohibition cues (`grep -Ev`→`grep -Eiv` + 7 negation patterns: `there is no`, `does not exist`, `does NOT`, `MUST NOT`, `non-existent`, `no .current_wave`, `it does not`). Verified STALE_HITS 6→0 against real corpus. EC-003 updated. BCs unchanged (correct). Story v1.12→v1.13. Input-hash UNCHANGED `0f747df`. S-18.09 now TDD-ready; delivery PAUSED per human directive.
+
+**Context:** Read-only diagnostic run by consistency-validator during story readiness check. No behavioral spec content changed; no BC authorship involved. This is a story-writer-class gate maintenance fix — story files only. The 6 hits were all in machine-readable sections that contain PROHIBITIONS of the `current_wave:` field (e.g., BC-5.39.003 Invariant text: "there is no `current_wave:` field in scope"). The grep pattern `current_wave:` was matching the prohibited term itself in the warning text. The fix mirrors the same class of negation-cue exclusion applied in S-18.08 AC-004 (pure-parse affirmations). AC-008 confirmed clean: `grep -rE 'current_wave:' $(grep -rEl 'behavioral_contracts:' .factory/stories/S-18.0{0,1,2,3,4a,4b,5,6,7,8,9,10,13,14}.md 2>/dev/null)` → 0 FAILs.
+
+**Actions taken:**
+- S-18.09 v1.12→v1.13: AC-006 exclusion filter extended (`grep -Eiv` + 7 negation patterns); gate-scope statement + EC-003 updated; 4-leg parity (AC-006/AC-007/AC-008/gate-scope) verified
+- Input-hash UNCHANGED `0f747df` (no inputs array change; no BC content change)
+- STORY-INDEX v4.93→v4.94: S-18.09 row version cite v1.12→v1.13; D-710 added to row annotation
+- Phase/story-status UNCHANGED (S-18.09 remains draft; TDD not started; delivery PAUSED per human directive)
+- develop_head UNCHANGED (e10dedc0; no develop change)
+- merged_count UNCHANGED (92); story_count UNCHANGED (123); no POL-14 (no BC changes)
+- 4-index: BC-INDEX v3.52 / VP-INDEX v2.51 / STORY-INDEX v4.93→v4.94 / ARCH-INDEX v2.84
+
+**4-index gate (literal-shell stdout 2026-06-27):**
+```
+grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md
+version: "3.52"
+
+grep "^version:" .factory/specs/verification-properties/VP-INDEX.md
+version: "2.51"
+
+grep "^version:" .factory/stories/STORY-INDEX.md
+version: "4.94"
+
+grep "^version:" .factory/specs/architecture/ARCH-INDEX.md
+version: "2.84"
+```
+
+Parity: BC-INDEX v3.52 UNCHANGED / VP-INDEX v2.51 UNCHANGED / STORY-INDEX v4.93→v4.94 / ARCH-INDEX v2.84 UNCHANGED.
+
+### Parent-commit
+
+See `git -C .factory log -1 --format='%h %s'` (D-709 SHA-patch; TD-VSDD-053 single-commit)
+
+### Closes
+
+- S-18.09 AC-006 false-positive class (6 residual `current_wave:` STALE_HITS → 0; normative-section PROHIBITION pattern)
+
+### NEXT
+
+S-18.09 TDD delivery (PAUSED per human directive; story v1.13 TDD-ready).
+
+---
+
 ## D-709 — Follow-up-clearing burst — 2026-06-27
 
 **Decision:** PR #304 (`docs: correct stale precompact-flush.sh refs to precompact-flush WASM plugin`) squash-merged to develop at commit `e10dedc0` on 2026-06-27T23:00:31Z. Maintenance commit — NOT a story (no story ID; no merged_count change; no POL-14). develop_head 04ab7236→e10dedc0. 3 drift items closed.
