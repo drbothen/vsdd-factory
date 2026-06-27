@@ -27,7 +27,7 @@
 #     (VP scans ADD factory-artifacts to substrate set)
 #   Layer 3: negation-cue exclusion grep
 #     grep -Eiv "no |not |NOT |without|never|does not|MUST NOT|is NOT|cannot|do NOT|only from|exclusively"
-#     (VP scans ADD grep -Ev "^\s*//" to strip Rust/bash comment lines)
+#     (VP scans ADD grep -Ev "^[[:space:]]*//" to strip Rust/bash comment lines)
 #
 # @test fatal-path contract (O-P7-001 / story v1.5+):
 #   Every @test MUST use:
@@ -241,7 +241,7 @@ setup() {
 #
 # VP scans: layers 2+3 only (no awk section extraction — VPs are fully normative).
 # Substrate set adds factory-artifacts (VPs describe broader execution context).
-# Rust/bash comment lines (^\s*//) are stripped by an additional grep -Ev step.
+# Rust/bash comment lines (^[[:space:]]*//) are stripped by an additional grep -Ev step.
 #
 # VP files: VP-083.md, VP-081.md, VP-091.md
 # Expected: 0 hits per file.
