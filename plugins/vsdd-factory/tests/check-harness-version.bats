@@ -169,7 +169,7 @@ _require_script() {
     echo "AC-008: exits 1 (advisory) if harness version cannot be determined or is below threshold"
     echo "EC-005: harness version undeterminable → exits 1 advisory"
     echo "NOTE: exit code 2 would be incorrect — check-harness-version.sh never exits 2"
-    echo "(block-intent is reserved for precompact-flush.sh per S-18.04a)"
+    echo "(block-intent is reserved for the precompact-flush PreCompact WASM plugin per S-18.04a)"
     echo "Output: $output"
     return 1
   }

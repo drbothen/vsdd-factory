@@ -33,7 +33,7 @@
 #
 #   Invocation context (AC-012 / VP-090 §3):
 #     This script is invoked ONLY by check-state-health (or equivalent maintenance
-#     entrypoint). It MUST NOT be called from precompact-flush.sh.
+#     entrypoint). It MUST NOT be called from the `precompact-flush` WASM plugin.
 #     It MUST NOT be registered as a hook plugin (no hooks-registry.toml entry).
 #
 #   Dependencies:
@@ -46,7 +46,7 @@
 #   NOT required / FORBIDDEN:
 #     - python, jq, node, or any non-standard tools
 #     - Registration in hooks-registry.toml
-#     - Invocation from precompact-flush.sh
+#     - Invocation from the `precompact-flush` WASM plugin
 #
 set -euo pipefail
 
