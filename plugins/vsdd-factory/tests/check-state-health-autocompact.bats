@@ -765,14 +765,6 @@ JSON
     return 1
   }
 
-  # EC-011: advisory must reference ADR-026 (parse-error advisory includes ADR citation).
-  [[ "$output" == *"ADR-026"* ]] || {
-    echo "FAIL (EC-011-unreadable): advisory output does not reference 'ADR-026'."
-    echo "EC-011: parse-error advisory must cite ADR-026 §Decision 5."
-    echo "Output: $output"
-    return 1
-  }
-
   # EC-011: PASS must NOT appear when settings.json is unreadable.
   [[ "$output" != *"PASS"* ]] || {
     echo "FAIL (EC-011-unreadable): output contains 'PASS' for unreadable settings.json — incorrect."
@@ -960,7 +952,9 @@ JSON
 #   (c) Emit ADVISORY with details containing:
 #         "settings.json parse error:" (canonical EC-011 prefix from BC)
 #         "cannot verify" (canonical EC-011 wording)
-#       Note: The helper appends "(ADR-026 §Decision 5)" which contains "ADR-026".
+#       Canonical TV (BC-6.25.001 §Canonical Test Vectors, parse-error row):
+#         "settings.json parse error: <error>; cannot verify CLAUDE_AUTOCOMPACT_PCT_OVERRIDE"
+#       No ADR-026 suffix in the canonical TV — the ADR-026 assertion was removed (F-P4-001).
 #
 # Edge case exercised: EC-011 (readable malformed JSON — F-P2-002 explicit coverage).
 # ---------------------------------------------------------------------------
@@ -1011,14 +1005,6 @@ JSON
   [[ "$output" == *"cannot verify"* ]] || {
     echo "FAIL (F-P2-002 / EC-011 malformed): advisory does not contain 'cannot verify'."
     echo "BC-6.25.001 EC-011 canonical wording: 'settings.json parse error: <error>; cannot verify CLAUDE_AUTOCOMPACT_PCT_OVERRIDE'."
-    echo "Output: $output"
-    return 1
-  }
-
-  # F-P2-002 / EC-011: advisory must reference ADR-026.
-  [[ "$output" == *"ADR-026"* ]] || {
-    echo "FAIL (F-P2-002 / EC-011 malformed): advisory does not reference 'ADR-026'."
-    echo "EC-011: parse-error advisory must cite ADR-026 §Decision 5."
     echo "Output: $output"
     return 1
   }
