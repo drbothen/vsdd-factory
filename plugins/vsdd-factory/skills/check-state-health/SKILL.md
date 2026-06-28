@@ -102,16 +102,18 @@ The helper resolves settings.json with this precedence (BC-6.25.001 INV2):
 2. Global `~/.claude/settings.json` (fallback when project-local is absent)
 3. Neither present: advisory row fires noting `no settings.json found at either path`
 
-Emit semantics (BC-6.25.001 PC1–PC5, INV1–INV5):
+Emit semantics (BC-6.25.001 PC1–PC5, INV1–INV5; EC-012):
 
 | Condition | Row emitted |
 |-----------|-------------|
-| Key present, numeric value ≤ 80 | `PASS` — value N ≤ 80 (70 is canonical per ADR-026 §Decision 5) |
+| Key present, numeric value in [1, 80] | `PASS` — value N ≤ 80 (70 is canonical per ADR-026 §Decision 5) |
 | Key present, numeric value > 80 | `ADVISORY` — value N exceeds ceiling of 80 (ADR-026 §Decision 5) |
+| Key present, numeric value ≤ 0 (EC-012) | `ADVISORY` — "Value N is not a valid compaction percentage (must be in range 1–100); treating as misconfigured — recommend 70 per ADR-026 §Decision 5" |
 | Key absent or env block missing | `ADVISORY` — remediation hint to add the key at value "70" |
 | Non-numeric value (e.g., `"auto"`, `""`) | `ADVISORY` — treated as absent; note: "Value '...' is not a valid integer; treating as absent" |
 | settings.json malformed JSON | `ADVISORY` — parse error noted; cannot verify key |
 | No settings.json at either path | `ADVISORY` — key absent + notes no settings.json found |
+| `jq` not installed | `ADVISORY` — "settings.json cannot be verified — jq is required but not found; install with: brew install jq" |
 
 **Advisory-only, never blocking (BC-6.25.001 INV1):** This check does NOT cause
 `NEEDS-COMPACT`, does NOT emit exit 2, and does NOT block any downstream operation.

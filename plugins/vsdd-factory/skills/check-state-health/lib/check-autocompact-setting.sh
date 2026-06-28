@@ -3,20 +3,21 @@
 #
 # Reads .claude/settings.json (project-local, preferred) then
 # ~/.claude/settings.json (global fallback) and verifies that
-# env.CLAUDE_AUTOCOMPACT_PCT_OVERRIDE is present and numeric and ≤ 80.
+# env.CLAUDE_AUTOCOMPACT_PCT_OVERRIDE is present, numeric, in the
+# valid range 1–100, and not exceeding the ADR-026 §Decision 5 ceiling (80).
 #
 # Emits one check table row to stdout:
-#   PASS     — key present and numeric value ≤ 80
-#   ADVISORY — key absent, value > 80, non-numeric (treated as absent),
+#   PASS     — key present and numeric value in [1, 80]
+#   ADVISORY — key absent, value ≤ 0, value > 80, non-numeric (treated as absent),
 #              missing settings.json, or malformed JSON
 #
 # Advisory-only: exits 0 in all cases; never blocks (BC-6.25.001 INV1).
 # No side effects: reads settings.json only (BC-6.25.001 INV4).
 # Row always emitted (BC-6.25.001 INV5).
 #
-# Uses pure-bash/grep/sed JSON extraction — no python3/jq dependency.
-# This eliminates the undeclared-runtime-dependency silent-failure class
-# (F-P1-001) and removes the need for any 2>/dev/null suppression (F-P1-002).
+# Uses jq (required tool per setup-env/SKILL.md; many repo hooks already use
+# command -v jq guards).  When jq is absent the helper degrades gracefully to
+# a single ADVISORY row and exits 0 — never fatal (INV1/INV5).
 #
 # Usage:
 #   env PROJECT_ROOT=<repo-root> bash check-autocompact-setting.sh
@@ -66,117 +67,12 @@ emit_advisory() {
 }
 
 # ---------------------------------------------------------------------------
-# Helper: pure-bash extraction of env.CLAUDE_AUTOCOMPACT_PCT_OVERRIDE
-#
-# Parses a simple flat settings.json that contains an "env" object with
-# string-valued keys.  Value space: quoted string or bare number.
-# Returns one of:
-#   OK:<numeric-string>     — key found, value is a decimal integer
-#   NON_NUMERIC:<raw>       — key found, value is not a decimal integer
-#   ABSENT:                 — key or env block missing
-#   PARSE_ERROR:<message>   — file unreadable or grossly malformed
-#
-# Approach:
-#   1. Read the entire file into a variable (fail loudly if unreadable).
-#   2. Find the "env" object with a grep-based state machine.
-#   3. Within it, locate the key and extract its value.
-#
-# Limitations (intentional — sufficient for the value space in use):
-#   - Does not handle nested objects inside "env".
-#   - Does not handle values containing embedded newlines (not valid here).
-#   - Does not handle escaped quotes inside the value (not expected here).
+# Step 0: Guard — jq required.  Degrade gracefully if absent (INV1/INV5).
 # ---------------------------------------------------------------------------
-extract_autocompact_value() {
-  local settings_file="$1"
-  local file_content
-
-  # Read the file; fail to PARSE_ERROR if unreadable.
-  if ! file_content="$(cat "$settings_file" 2>&1)"; then
-    echo "PARSE_ERROR:cannot read file: $file_content"
-    return 0
-  fi
-
-  # Quick sanity check: file must contain at least one '{'.
-  if ! printf '%s' "$file_content" | grep -qF '{'; then
-    echo "PARSE_ERROR:not a JSON object (no '{' found)"
-    return 0
-  fi
-
-  # ---------------------------------------------------------------------------
-  # Locate the "env" block.
-  # Strategy: find the line containing '"env"' and a '{', then collect lines
-  # until a line matching the closing brace at the same nesting depth.
-  #
-  # We use awk for multi-line extraction — awk is a POSIX tool with no
-  # undeclared dependency risk.  No 2>/dev/null needed: awk always exits 0
-  # on valid input, and we already validated the file content.
-  # ---------------------------------------------------------------------------
-  local env_block
-  env_block="$(printf '%s\n' "$file_content" | awk '
-    /\"env\"[[:space:]]*:/ { in_env=1; depth=0 }
-    in_env {
-      for (i=1; i<=length($0); i++) {
-        c = substr($0, i, 1)
-        if (c == "{") depth++
-        if (c == "}") {
-          depth--
-          if (depth == 0) { print; in_env=0; next }
-        }
-      }
-      print
-    }
-  ')"
-
-  # No "env" block found at all.
-  if [ -z "$env_block" ]; then
-    echo "ABSENT:"
-    return 0
-  fi
-
-  # ---------------------------------------------------------------------------
-  # Within the env block, find the key CLAUDE_AUTOCOMPACT_PCT_OVERRIDE and
-  # extract its value.
-  #
-  # Match pattern (handles quoted string or bare number):
-  #   "CLAUDE_AUTOCOMPACT_PCT_OVERRIDE"   :   "VALUE"
-  #   "CLAUDE_AUTOCOMPACT_PCT_OVERRIDE"   :   NUMBER
-  #
-  # We use grep + sed to extract the raw value string (without quotes).
-  # ---------------------------------------------------------------------------
-  local raw_value
-
-  # grep for the key line; sed strips surrounding quotes and trailing
-  # comma/whitespace.  If the key is absent, grep exits non-zero — we
-  # treat that as ABSENT (not an error).
-  local key_line
-  if ! key_line="$(printf '%s\n' "$env_block" | grep "\"${CHECK_NAME}\"")"; then
-    echo "ABSENT:"
-    return 0
-  fi
-
-  # Extract value: take everything after the first ':', strip leading/trailing
-  # whitespace, strip enclosing double-quotes (if present), strip trailing comma.
-  raw_value="$(printf '%s\n' "$key_line" \
-    | sed 's/^[^:]*://' \
-    | sed 's/^[[:space:]]*//' \
-    | sed 's/[[:space:]]*,*[[:space:]]*$//' \
-    | sed 's/^"//' \
-    | sed 's/"$//')"
-
-  # Guard: empty value after extraction
-  if [ -z "$raw_value" ]; then
-    echo "NON_NUMERIC:"
-    return 0
-  fi
-
-  # Check if value is a decimal integer (optional leading minus + digits only).
-  if printf '%s' "$raw_value" | grep -qE '^-?[0-9]+$'; then
-    echo "OK:${raw_value}"
-  else
-    echo "NON_NUMERIC:${raw_value}"
-  fi
-  return 0
-}
+if ! command -v jq > /dev/null 2>&1; then
+  emit_advisory "settings.json cannot be verified — jq is required but not found; install with: brew install jq"
+  exit 0
+fi
 
 # ---------------------------------------------------------------------------
 # Step 1: Determine which settings.json to use (INV2: project-local first)
@@ -201,57 +97,59 @@ if [ "$SETTINGS_FOUND" = false ]; then
 fi
 
 # ---------------------------------------------------------------------------
-# Step 3: Parse value from resolved settings.json using pure-bash extraction.
-# Output format: STATUS:raw_value (see extract_autocompact_value docstring).
+# Step 3: Parse value from resolved settings.json using jq.
+# Capture jq stderr to temp file for EC-011 parse-error advisory message.
+# jq is format-agnostic — handles both single-line and multi-line JSON.
 # ---------------------------------------------------------------------------
-PARSE_OUT="$(extract_autocompact_value "$SETTINGS_PATH")"
+JQ_STDERR_FILE="$(mktemp)"
 
-# Parse the structured output: STATUS:value
-PARSE_STATUS="${PARSE_OUT%%:*}"
-PARSE_RAW="${PARSE_OUT#*:}"
+# Extract .env.CLAUDE_AUTOCOMPACT_PCT_OVERRIDE; output empty string if key absent.
+# jq exit codes: 0 = success (even if value is null/empty), non-zero = parse error.
+RAW_VALUE="$(jq -r '.env.CLAUDE_AUTOCOMPACT_PCT_OVERRIDE // empty' "$SETTINGS_PATH" 2>"$JQ_STDERR_FILE")" || {
+  # jq parse failure → EC-011 ADVISORY with jq's actual error message.
+  JQ_ERR="$(cat "$JQ_STDERR_FILE")"  # STDERR-EXEMPT: captured for EC-011 parse-error advisory
+  rm -f "$JQ_STDERR_FILE"
+  emit_advisory "settings.json parse error: ${JQ_ERR}; cannot verify $CHECK_NAME (ADR-026 §Decision 5)"
+  exit 0
+}
+rm -f "$JQ_STDERR_FILE"
 
 # ---------------------------------------------------------------------------
-# Step 4: Emit appropriate row based on parse result
+# Step 4: Emit appropriate row based on extracted value
 # ---------------------------------------------------------------------------
 
-case "$PARSE_STATUS" in
-  OK)
-    # Key present and numeric — compare against ceiling 80 (inclusive: ≤ 80 → PASS)
-    VAL="$PARSE_RAW"
-    if [ "$VAL" -le 80 ]; then
-      # AC-003 / BC-6.25.001 PC3: value ≤ 80 → PASS
-      emit_pass "$VAL"
-    else
-      # AC-002 / BC-6.25.001 PC2: value > 80 → ADVISORY
-      emit_advisory "Value $VAL exceeds ADR-026 §Decision 5 ceiling of 80 (MEDIUM-confidence 83% harness cap); recommend 70 for safe PreCompact flush headroom"
-    fi
-    ;;
+# Case A: key absent or env block absent — jq returned empty string via `// empty`.
+if [ -z "$RAW_VALUE" ]; then
+  emit_advisory "$REMEDIATION_HINT"
+  exit 0
+fi
 
-  NON_NUMERIC)
-    # AC-006 / BC-6.25.001 INV3: non-numeric treated as absent → ADVISORY with note
-    RAW="$PARSE_RAW"
-    if [ -z "$RAW" ]; then
-      emit_advisory "${REMEDIATION_HINT}; Value '' is not a valid integer; treating as absent"
-    else
-      emit_advisory "${REMEDIATION_HINT}; Value '$RAW' is not a valid integer; treating as absent"
-    fi
-    ;;
+# Case B: non-numeric value — check if raw value is a decimal integer.
+# Use grep pattern: optional leading minus + one or more digits.
+if ! printf '%s' "$RAW_VALUE" | grep -qE '^-?[0-9]+$'; then
+  # AC-006 / BC-6.25.001 INV3: non-numeric treated as absent → ADVISORY with note.
+  emit_advisory "${REMEDIATION_HINT}; Value '$RAW_VALUE' is not a valid integer; treating as absent"
+  exit 0
+fi
 
-  ABSENT)
-    # AC-001 / BC-6.25.001 PC1: key absent → ADVISORY with remediation hint
-    emit_advisory "$REMEDIATION_HINT"
-    ;;
+# Case C: numeric — classify the value.
+# Use POSIX [ ] arithmetic comparison, not $(( )) — avoids octal pitfalls.
+VAL="$RAW_VALUE"
 
-  PARSE_ERROR)
-    # EC-011: malformed JSON → ADVISORY
-    emit_advisory "settings.json parse error: $PARSE_RAW; cannot verify $CHECK_NAME (ADR-026 §Decision 5)"
-    ;;
+# EC-012 lower-bound: value ≤ 0 is not a valid compaction percentage.
+# Compare with test/[ ] arithmetic: use -le / -gt for base-10 semantics.
+if [ "$VAL" -le 0 ]; then
+  emit_advisory "Value $VAL is not a valid compaction percentage (must be in range 1–100); treating as misconfigured — recommend 70 per ADR-026 §Decision 5"
+  exit 0
+fi
 
-  *)
-    # Fallback: treat unknown parse state as absent (INV1: never block)
-    emit_advisory "$REMEDIATION_HINT"
-    ;;
-esac
+if [ "$VAL" -le 80 ]; then
+  # AC-003 / BC-6.25.001 PC3: value in [1, 80] → PASS
+  emit_pass "$VAL"
+else
+  # AC-002 / BC-6.25.001 PC2: value > 80 → ADVISORY
+  emit_advisory "Value $VAL exceeds ADR-026 §Decision 5 ceiling of 80 (MEDIUM-confidence 83% harness cap); recommend 70 for safe PreCompact flush headroom"
+fi
 
 # Always exit 0 — advisory-only, never blocking (BC-6.25.001 INV1 / AC-005 / PC5)
 exit 0
