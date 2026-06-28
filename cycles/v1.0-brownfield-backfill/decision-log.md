@@ -3279,6 +3279,61 @@ S-18.08 TDD implementation (story v1.9 with portability-normalized ACs; AC-001..
 
 ---
 
+## D-714 — S-18.09 LOCAL adv pass-5 closure — AC-004 vacuity fix — 2026-06-27
+
+**Decision:** S-18.09 v1.16→v1.17 (4-leg parity applied; input-hash UNCHANGED `0f747df`). LOCAL adversary pass-5 surfaced one MEDIUM gating finding and two observations against v1.16:
+
+- **F-P5-001 MEDIUM POLICY-11 (AC-004 vacuity — de-vacuified):** AC-004 as written in v1.16 verified literal presence of `wc -l` and `-gt 0` strings inside `pure-parse-invariant-gate.bats` via grep — a string-presence test that was vacuous: (a) `wc -l` and `-gt 0` are incidental shell patterns that appear in other contexts; (b) `PURE_PARSE_BC_COUNT` (the variable the spec originally referenced) did not exist in the real bats file; (c) the guard wiring (whether the gate actually uses an enumerate-and-count + empty-discovery guard as intended) was not tested by the string-presence check. A fresh adversary correctly escalated this to MEDIUM-gating under POLICY-11 (the gate must verify what it claims to verify; most advisories become blockers under the production-grade lens). Fix: AC-004 rewritten to assert against the real implementation: (1) verifies `discovered_count` variable assignment (actual enumerate-and-count pattern used in pure-parse-invariant-gate.bats), (2) asserts the `-eq 0` empty-discovery guard expression at the gate entry point. Validated: passes against real file, FAILs if guard is stripped. Note: O-P2-002 from D-713 was correctly logged as a non-blocking observation at the time; the fresh adversary in pass-5 independently and correctly escalated the same class to MEDIUM-gating — consistent with the CLAUDE.md principle that "most advisories become blockers" under fresh-context independent verification. This is the intended behavior of the escalation: the implementer self-disclosure of risk severity is NOT authoritative (TD-VSDD-059; Standing Rule 3 §1).
+- **O-P5-001 (AC-001 anti-pattern regex — spec↔bats sync):** AC-001's anti-pattern regex in the spec differed from the one used in the bats file. Synced spec↔bats to eliminate a future parity gap.
+- **O-P5-002 (dead non-asserting branch — removed):** AC-004 previously contained a dead second `else` branch that never executed an assertion (always-false path). Removed to eliminate confusion and false code-coverage.
+
+Bats 8/8 green after all fixes. No BC amendment needed. S-18.09 remains draft (mid-TDD). develop_head, merged_count, story_count, phase all UNCHANGED.
+
+**Context:** In-delivery LOCAL adversarial pass-5 for S-18.09 (F2 process-gap lesson gate checks). This D-714 record also closes O-P2-002 (the OPEN-OBSERVATION logged in STATE.md Drift Items at D-713). The lesson: a non-blocking observation that describes an AC not verifying its claimed invariant is correctly escalated by a fresh adversary to MEDIUM-gating — the implementer's characterization of it as "spec-design" and "non-blocking" was not authoritative for purposes of adversarial severity classification.
+
+**Actions taken:**
+- S-18.09 v1.16→v1.17: AC-004 rewritten (asserts real `discovered_count` enumerate-and-count + `-eq 0` empty-discovery guard); dead non-asserting branch removed (O-P5-002); AC-001 anti-pattern regex synced spec↔bats (O-P5-001); 4-leg parity applied; input-hash UNCHANGED `0f747df`
+- STORY-INDEX v4.97→v4.98: S-18.09 row version cite v1.16→v1.17; D-714 annotation added
+- O-P2-002 in STATE.md Drift Items updated: OPEN-OBSERVATION → RESOLVED 2026-06-27 — D-714 (AC-004 de-vacuified; escalation lesson noted)
+- Phase/story-status UNCHANGED (S-18.09 remains draft; TDD in-delivery; mid-TDD)
+- develop_head UNCHANGED (e10dedc0; no develop change)
+- merged_count UNCHANGED (92); story_count UNCHANGED (123); no POL-14 (no BC changes)
+- 4-index: BC-INDEX v3.52 UNCHANGED / VP-INDEX v2.51 UNCHANGED / STORY-INDEX v4.97→v4.98 / ARCH-INDEX v2.84 UNCHANGED
+
+**4-index gate (literal-shell stdout 2026-06-27):**
+```
+grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md
+version: "3.52"
+
+grep "^version:" .factory/specs/verification-properties/VP-INDEX.md
+version: "2.51"
+
+grep "^version:" .factory/stories/STORY-INDEX.md
+version: "4.98"
+
+grep "^version:" .factory/specs/architecture/ARCH-INDEX.md
+version: "2.84"
+```
+
+Parity: BC-INDEX v3.52 UNCHANGED / VP-INDEX v2.51 UNCHANGED / STORY-INDEX v4.97→v4.98 / ARCH-INDEX v2.84 UNCHANGED.
+
+### Parent-commit
+
+See `git -C .factory log -1 --format='%h %s'` (D-713 SHA; TD-VSDD-053 single-commit)
+
+### Closes
+
+- F-P5-001 MEDIUM POLICY-11: AC-004 de-vacuified (asserts real `discovered_count` enumerate-and-count + `-eq 0` empty-discovery guard in pure-parse-invariant-gate.bats; passes real file, FAILs if guard stripped)
+- O-P5-001: AC-001 anti-pattern regex synced spec↔bats
+- O-P5-002: dead non-asserting branch removed from AC-004
+- O-P2-002: RESOLVED (was OPEN-OBSERVATION D-713; closed by F-P5-001 fix; escalation lesson noted)
+
+### NEXT
+
+S-18.09 TDD delivery continues (story v1.17 bats 8/8 green; LOCAL adv pass-5 CLOSED; mid-TDD).
+
+---
+
 ## D-713 — S-18.09 LOCAL adv pass-2 closure — 2026-06-27
 
 **Decision:** S-18.09 v1.15→v1.16 (4-leg parity applied; input-hash UNCHANGED `0f747df`). LOCAL adversary pass-2 surfaced three observations against v1.15:
