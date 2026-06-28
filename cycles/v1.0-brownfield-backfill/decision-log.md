@@ -3279,6 +3279,58 @@ S-18.08 TDD implementation (story v1.9 with portability-normalized ACs; AC-001..
 
 ---
 
+## D-712 — S-18.09 LOCAL adv pass-1 closure — 2026-06-27
+
+**Decision:** S-18.09 v1.14→v1.15 (4-leg parity applied; input-hash UNCHANGED `0f747df`). LOCAL adversary pass-1 surfaced two findings against v1.14:
+
+- **F-P1-001 MEDIUM (AC-008 keyword-less cite recognizer + non-vacuity guard + unquoted-frontmatter tolerance):** AC-008's TRACES_CHECKED recognizer only matched the `keyword (traces to BC-X PCN/INVN)` pattern but missed the bare `(traces to BC-X PCN/INVN)` keyword-less form used by S-18.13 (168 cites in corpus). This caused S-18.13's cites to be silently skipped, creating a POLICY-11 vacuity hole where the most BC-dense story in E-18 passed the gate by omission. Fix: recognizer extended to also match `(traces to BC-X` without a preceding keyword; TRACES_CHECKED non-vacuity guard added (gate emits FAIL if TRACES_CHECKED=0 for any story that has BC-bearing frontmatter); unquoted-frontmatter BC_ARRAY tolerance added for stories using `behavioral_contracts: [BC-NNN]` without quotes. Validated: 168 cites resolve, 0 genuine FAILs.
+- **F-P1-002 LOW (AC-003 scope clarification + EC-005 update):** AC-003 previously implied the postcompact-reanchor.sh advisory-log append path was in gate scope. Clarification: this path is intentionally fail-open per BC-7.07.002/EC-005 (advisory-log write failure is non-fatal by design); it is out of AC-003's gate scope. EC-005 updated to reflect the fail-open contract. No behavioral change to the gate; taxonomy/scope reconcile only.
+
+Bats 8/8 green after both fixes. No BC amendment needed. S-18.09 remains draft (mid-TDD; PAUSED per human directive). develop_head, merged_count, story_count, phase all UNCHANGED.
+
+**Context:** In-delivery LOCAL adversarial pass-1 for S-18.09 (F2 process-gap lesson gate checks). F-P1-001 closes the specific vacuity gap where the AC-008 parity gate silently passed S-18.13 (wave 4 merged, 168 keyword-less BC-traces in its body) because the recognizer only matched keyword-prefixed forms. This is the dominant cite style in S-18.13. F-P1-002 is a scope clarification — no functional fix required; EC-005 update documents the existing fail-open design. No BC or VP changes; story-writer-class spec maintenance only.
+
+**Actions taken:**
+- S-18.09 v1.14→v1.15: AC-008 recognizer extended (keyword-less `(traces to BC-X PCN/INVN)` form); TRACES_CHECKED non-vacuity guard added; unquoted-frontmatter BC_ARRAY tolerance added; AC-003 scope clarified (advisory-log fail-open); EC-005 updated; taxonomy/scope reconcile; 4-leg parity applied
+- Input-hash UNCHANGED `0f747df` (no inputs array change; no BC content change)
+- STORY-INDEX v4.95→v4.96: S-18.09 row version cite v1.14→v1.15; D-712 added to row annotation
+- Phase/story-status UNCHANGED (S-18.09 remains draft; TDD in-delivery; PAUSED per human directive)
+- develop_head UNCHANGED (e10dedc0; no develop change)
+- merged_count UNCHANGED (92); story_count UNCHANGED (123); no POL-14 (no BC changes)
+- 4-index: BC-INDEX v3.52 UNCHANGED / VP-INDEX v2.51 UNCHANGED / STORY-INDEX v4.95→v4.96 / ARCH-INDEX v2.84 UNCHANGED
+
+**4-index gate (literal-shell stdout 2026-06-27):**
+```
+grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md
+version: "3.52"
+
+grep "^version:" .factory/specs/verification-properties/VP-INDEX.md
+version: "2.51"
+
+grep "^version:" .factory/stories/STORY-INDEX.md
+version: "4.96"
+
+grep "^version:" .factory/specs/architecture/ARCH-INDEX.md
+version: "2.84"
+```
+
+Parity: BC-INDEX v3.52 UNCHANGED / VP-INDEX v2.51 UNCHANGED / STORY-INDEX v4.95→v4.96 / ARCH-INDEX v2.84 UNCHANGED.
+
+### Parent-commit
+
+See `git -C .factory log -1 --format='%h %s'` (D-711 SHA; TD-VSDD-053 single-commit)
+
+### Closes
+
+- F-P1-001: AC-008 keyword-less `(traces to BC-X PCN/INVN)` recognizer (closes POLICY-11 vacuity gap; 168 S-18.13 cites now validated; 0 genuine FAILs)
+- F-P1-002: AC-003 scope clarification — postcompact-reanchor.sh advisory-log fail-open per BC-7.07.002/EC-005 is out of gate scope
+
+### NEXT
+
+S-18.09 TDD delivery (PAUSED per human directive; story v1.15 bats 8/8 green; LOCAL adv pass-1 CLOSED).
+
+---
+
 ## D-711 — S-18.09 AC-005 gate-bug-fix — 2026-06-27
 
 **Decision:** S-18.09 TDD mid-delivery spec correction. AC-005 had two gate bugs surfaced during TDD: (a) the BC-ID extraction step used `grep -A 20` which overflowed from the frontmatter YAML array into body prose, falsely pulling `BC-1.01.004` via S-18.14's inline frontmatter reference — fixed by scoping extraction to the frontmatter array via awk (inline single-line `[BC-NNN, ...]` pattern + multi-line block pattern with empty-array guard); (b) the H1 title check accepted only `# BC-NNN: <Title>` but the dominant corpus form is `# Behavioral Contract BC-NNN: <Title>` (1870 files vs 103 files) — fixed to accept BOTH forms via alternation regex. Verified STALE false-positive count = 0 FAILs. Bats suite 8/8 green. No BC amendment — both H1 forms are legitimate (POLICY-7 canonicalization is a future architectural question; logged as OPEN-OBSERVATION). Story v1.13→v1.14. Input-hash UNCHANGED `0f747df`. STORY-INDEX v4.94→v4.95. Phase/story-status/develop_head/merged_count UNCHANGED (S-18.09 remains draft; TDD in-delivery paused per human directive).
