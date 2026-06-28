@@ -76,11 +76,11 @@ from `stories[*].status: draft` entries; `pending` is a reserved no-op token.
 Exactly 8 valid values: `draft`, `ready`, `in-progress`, `partial`, `blocked`,
 `merged`, `withdrawn`, `cancelled`. Hard-abort on any other token (EC-007).
 
-**Completeness (BC-5.41.004 INV-4):**
+**Completeness (BC-5.41.004 PC4):**
 Every non-retired story from STORY-INDEX.md MUST appear. Retired stories are
 omitted. No phantom entries for stories not in STORY-INDEX.md.
 
-**No `wave:` field (BC-5.41.004 PC6 + INV-5):**
+**No `wave:` field (BC-5.41.004 INV-3):**
 Each entry contains ONLY `id:` and `status:`. Do NOT add a `wave:` field or
 any other key. Wave ordering is expressed by list position, not by an inline
 field.
