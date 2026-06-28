@@ -1,50 +1,80 @@
 #!/usr/bin/env bats
-# check-state-health-autocompact.bats — GREEN suite for S-18.10 (10 tests).
+# check-state-health-autocompact.bats — GREEN suite for S-18.10 (16 tests).
 #
-# Tests the helper (implemented at commit 89da02eb):
+# Tests the helper (jq-based rewrite at commit 65284066):
 #   plugins/vsdd-factory/skills/check-state-health/lib/check-autocompact-setting.sh
 #
 # The helper reads .claude/settings.json (project-local) then
-# ~/.claude/settings.json (global fallback), parses env.CLAUDE_AUTOCOMPACT_PCT_OVERRIDE,
-# and emits:
-#   PASS     — key present and numeric value ≤ 80
-#   ADVISORY — key absent, value > 80, or non-numeric (treated as absent),
-#              missing settings.json, or malformed/unreadable settings.json
+# ~/.claude/settings.json (global fallback), parses env.CLAUDE_AUTOCOMPACT_PCT_OVERRIDE
+# via jq, and emits:
+#   PASS     — key present, numeric value in [1, 80]
+#   ADVISORY — key absent, value > 80, value ≤ 0, non-numeric (treated as absent),
+#              missing settings.json, malformed/unreadable settings.json, or jq absent
 # Advisory-only; never blocks; no side effects; set -euo pipefail.
 #
-# 10 tests map to AC-001..AC-007 + EC-005/EC-008/EC-011 explicit coverage
-# (BC-6.25.001 PC1–PC5, INV1–INV5; VP-092):
+# 16 tests map to AC-001..AC-007 + EC-001..EC-012 + jq-absent explicit coverage
+# (BC-6.25.001 v1.1 PC1–PC5, INV1–INV5; VP-092):
 #
-#   test_autocompact_check_absent_key_emits_advisory         — AC-001 / BC-6.25.001 PC1
-#   test_autocompact_check_value_70_is_pass                  — AC-003 / BC-6.25.001 PC3
-#   test_autocompact_check_value_85_is_advisory              — AC-002 / BC-6.25.001 PC2
-#   test_autocompact_check_value_80_is_pass_boundary         — AC-003 / BC-6.25.001 PC3 (boundary)
-#   test_autocompact_check_no_settings_json_emits_advisory   — AC-001 + AC-004 / PC1 + PC4(c)
-#   test_autocompact_check_project_local_takes_precedence_over_global — AC-004 / PC4 + INV2
-#   test_autocompact_check_non_numeric_value_treated_as_absent        — AC-006 / INV3
-#   test_autocompact_check_global_fallback_pass_when_local_absent     — EC-005 / PC4(b)
-#   test_autocompact_check_empty_string_value_emits_advisory          — EC-008 / INV3
-#   test_autocompact_check_malformed_json_emits_advisory_not_crash    — EC-011 / INV1 + INV5
+#   test_autocompact_check_absent_key_emits_advisory                   — AC-001 / BC-6.25.001 PC1
+#   test_autocompact_check_value_70_is_pass                            — AC-003 / BC-6.25.001 PC3
+#   test_autocompact_check_value_85_is_advisory                        — AC-002 / BC-6.25.001 PC2
+#   test_autocompact_check_value_80_is_pass_boundary                   — AC-003 / BC-6.25.001 PC3 (boundary)
+#   test_autocompact_check_no_settings_json_emits_advisory             — AC-001 + AC-004 / PC1 + PC4(c)
+#   test_autocompact_check_project_local_takes_precedence_over_global  — AC-004 / PC4 + INV2
+#   test_autocompact_check_non_numeric_value_treated_as_absent         — AC-006 / INV3
+#   test_autocompact_check_global_fallback_pass_when_local_absent      — EC-005 / PC4(b)
+#   test_autocompact_check_empty_string_value_emits_advisory           — EC-008 / INV3
+#   test_autocompact_check_unreadable_settings_json_emits_advisory     — EC-011 / INV1 + INV5 (unreadable)
+#   test_autocompact_check_single_line_json_value_70_is_pass           — F-P2-001 / BC-6.25.001 PC3 (canonical TV)
+#   test_autocompact_check_single_line_json_value_85_is_advisory       — F-P2-001 / BC-6.25.001 PC2 (canonical TV)
+#   test_autocompact_check_single_line_json_value_80_is_pass_boundary  — F-P2-001 / BC-6.25.001 PC3 boundary (canonical TV)
+#   test_autocompact_check_real_malformed_json_emits_ec011_advisory    — F-P2-002 / EC-011 (syntactically malformed JSON)
+#   test_autocompact_check_ec012_value_zero_is_advisory                — EC-012 / BC-6.25.001 INV3 lower-bound
+#   test_autocompact_check_ec012_value_negative_is_advisory            — EC-012 / BC-6.25.001 INV3 lower-bound
+#   test_autocompact_check_jq_absent_degrades_gracefully               — F-P1-001 class / BC-6.25.001 INV1+INV5
 #
-# All 10 tests must pass (GREEN) now that the helper exists.
+# All 16 tests must pass (GREEN).
 #
-# Edge Cases exercised per AC/test mapping:
-#   EC-001 (value 70, PASS)           → test_autocompact_check_value_70_is_pass
-#   EC-002 (env block present, no key)→ test_autocompact_check_absent_key_emits_advisory
-#   EC-003 (value 85, ADVISORY)       → test_autocompact_check_value_85_is_advisory
-#   EC-004 (value 80, PASS boundary)  → test_autocompact_check_value_80_is_pass_boundary
-#   EC-005 (global fallback value 70, project-local absent)
+# Edge Cases exercised per BC-6.25.001 v1.1 EC→test mapping (NO "implicitly exercised" claims):
+#   EC-001 (value "70", PASS; multi-line fixture)
+#                                     → test_autocompact_check_value_70_is_pass
+#   EC-001 (value "70", PASS; SINGLE-LINE canonical TV form — F-P2-001 regression guard)
+#                                     → test_autocompact_check_single_line_json_value_70_is_pass
+#   EC-002 (env block present, key absent)
+#                                     → test_autocompact_check_absent_key_emits_advisory
+#   EC-003 (value "85", ADVISORY; multi-line fixture)
+#                                     → test_autocompact_check_value_85_is_advisory
+#   EC-003 (value "85", ADVISORY; SINGLE-LINE canonical TV form — F-P2-001 regression guard)
+#                                     → test_autocompact_check_single_line_json_value_85_is_advisory
+#   EC-004 (value "80", PASS boundary; multi-line fixture)
+#                                     → test_autocompact_check_value_80_is_pass_boundary
+#   EC-004 (value "80", PASS boundary; SINGLE-LINE canonical TV form — F-P2-001 regression guard)
+#                                     → test_autocompact_check_single_line_json_value_80_is_pass_boundary
+#   EC-005 (global fallback value "70", project-local absent)
 #                                     → test_autocompact_check_global_fallback_pass_when_local_absent
-#   EC-006 (both absent)              → test_autocompact_check_no_settings_json_emits_advisory
-#   EC-007 (env block absent)         → test_autocompact_check_absent_key_emits_advisory
-#   EC-008 (empty string value "")    → test_autocompact_check_empty_string_value_emits_advisory
-#   EC-009 (value "auto", non-integer)→ test_autocompact_check_non_numeric_value_treated_as_absent
+#   EC-006 (both settings.json absent)
+#                                     → test_autocompact_check_no_settings_json_emits_advisory
+#   EC-007 (env block absent entirely)
+#                                     → test_autocompact_check_absent_key_emits_advisory
+#   EC-008 (empty string value "")
+#                                     → test_autocompact_check_empty_string_value_emits_advisory
+#   EC-009 (value "auto", non-integer)
+#                                     → test_autocompact_check_non_numeric_value_treated_as_absent
 #   EC-010 (project-local 85, global 70; project-local wins)
 #                                     → test_autocompact_check_project_local_takes_precedence_over_global
-#   EC-011 (unreadable/malformed JSON)→ test_autocompact_check_malformed_json_emits_advisory_not_crash
+#   EC-011 (UNREADABLE settings.json — chmod 000; parse-error ADVISORY path)
+#                                     → test_autocompact_check_unreadable_settings_json_emits_advisory
+#   EC-011 (READABLE but SYNTACTICALLY MALFORMED JSON — truncated JSON; parse-error ADVISORY path)
+#                                     → test_autocompact_check_real_malformed_json_emits_ec011_advisory
+#   EC-012 (value "0", zero — out-of-range lower-bound ADVISORY)
+#                                     → test_autocompact_check_ec012_value_zero_is_advisory
+#   EC-012 (value "-5", negative — out-of-range lower-bound ADVISORY)
+#                                     → test_autocompact_check_ec012_value_negative_is_advisory
+#   jq absent (F-P1-001-class invariant — INV1/INV5 under missing-parser)
+#                                     → test_autocompact_check_jq_absent_degrades_gracefully
 #
 # Story:   S-18.10
-# BC:      BC-6.25.001 v1.0 — all 5 PCs and INV1–INV5
+# BC:      BC-6.25.001 v1.1 — all 5 PCs, INV1–INV5, EC-001..EC-012
 # VP:      VP-092
 # ADR:     ADR-026 §Decision 5 (value ceiling 80; canonical value 70)
 #          ADR-026 §F-11 (check-state-health must verify this key)
@@ -674,27 +704,34 @@ JSON
 }
 
 # ---------------------------------------------------------------------------
-# T-10 / EC-011 / BC-6.25.001 INV1 + INV5 — malformed/unreadable settings.json → ADVISORY, exit 0
+# T-10 / EC-011 (UNREADABLE) / BC-6.25.001 INV1 + INV5
+#   — unreadable settings.json (chmod 000) → ADVISORY, exit 0
 #
-# The most important robustness test: the pure-bash parser MUST degrade gracefully
-# when settings.json cannot be read (e.g., permission denied). It must:
+# When settings.json EXISTS but is UNREADABLE (permission denied), jq cannot
+# parse it. The helper MUST degrade gracefully:
 #   (a) NEVER exit non-zero — advisory-only, no crash (INV1 / PC5)
 #   (b) ALWAYS emit exactly one row containing CLAUDE_AUTOCOMPACT_PCT_OVERRIDE (INV5)
 #   (c) Emit ADVISORY (not PASS) with a parse-error description referencing ADR-026
 #
-# This test also serves as the explicit INV1+INV5 robustness assertion requested by
-# F-P1-003: degenerate input (unreadable file) must not produce a non-zero exit or
-# suppress the row entirely.
+# NOTE: This test covers the UNREADABLE-file variant of EC-011.
+# The SYNTACTICALLY-MALFORMED JSON variant of EC-011 is covered separately by
+# test_autocompact_check_real_malformed_json_emits_ec011_advisory (F-P2-002).
+# Both variants exercise the same ADVISORY path but with different failure triggers.
 #
-# Edge case exercised: EC-011 (unreadable settings.json → PARSE_ERROR advisory path).
+# F-P2-003 rename: this test was previously named
+# "test_autocompact_check_malformed_json_emits_advisory_not_crash" — that name
+# was misleading because the fixture uses chmod 000 (unreadable), not malformed JSON.
+# Renamed to accurately describe the fixture. The genuine malformed-JSON case has
+# its own test (T-14).
+#
+# Edge case exercised: EC-011 (unreadable settings.json → parse-error ADVISORY).
 # ---------------------------------------------------------------------------
 
-@test "test_autocompact_check_malformed_json_emits_advisory_not_crash" {
+@test "test_autocompact_check_unreadable_settings_json_emits_advisory" {
   _require_helper
 
-  # Fixture: project-local settings.json exists but is unreadable (chmod 000).
-  # This triggers the PARSE_ERROR branch in extract_autocompact_value().
-  # chmod 000 is the most reliable way to trigger the cat-failure path on all platforms.
+  # Fixture: project-local settings.json exists but is UNREADABLE (chmod 000).
+  # chmod 000 triggers the jq read-failure path (permission denied).
   printf '{"env": {"CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "70"}}' > "$WORK/.claude/settings.json"
   chmod 000 "$WORK/.claude/settings.json"
 
@@ -704,47 +741,536 @@ JSON
   chmod 644 "$WORK/.claude/settings.json"
 
   # INV1 / PC5 — MUST NOT exit non-zero (no crash on degenerate input).
-  # This is the load-bearing assertion for F-P1-003: proves the pure-bash parser
-  # never exits non-zero even on worst-case input.
   [ "$status" -eq 0 ] || {
-    echo "FAIL (EC-011 / INV1): helper exited with status=$status on unreadable settings.json."
+    echo "FAIL (EC-011-unreadable / INV1): helper exited with status=$status on unreadable settings.json."
     echo "BC-6.25.001 INV1: advisory check MUST NEVER exit non-zero; degenerate input is not an exception."
     echo "BC-6.25.001 PC5: advisory-only; no blocking, no non-zero exit under any input."
-    echo "F-P1-003 robustness: pure-bash parser must not crash on unreadable file."
     echo "Output: $output"
     return 1
   }
 
-  # INV5 — row MUST always be emitted (even on PARSE_ERROR).
+  # INV5 — row MUST always be emitted (even on parse error).
   [[ "$output" == *"CLAUDE_AUTOCOMPACT_PCT_OVERRIDE"* ]] || {
-    echo "FAIL (EC-011 / INV5): no row emitted for unreadable settings.json."
+    echo "FAIL (EC-011-unreadable / INV5): no row emitted for unreadable settings.json."
     echo "BC-6.25.001 INV5: the check row MUST ALWAYS be emitted, including on parse errors."
-    echo "AC-007: the CLAUDE_AUTOCOMPACT_PCT_OVERRIDE check name must appear in every output."
     echo "Output: $output"
     return 1
   }
 
   # EC-011: ADVISORY must appear (parse error → cannot verify → ADVISORY).
   [[ "$output" == *"ADVISORY"* ]] || {
-    echo "FAIL (EC-011): output does not contain 'ADVISORY' for unreadable settings.json."
-    echo "BC-6.25.001 PARSE_ERROR path: unreadable file must produce an ADVISORY row."
-    echo "EC-011: malformed or unreadable settings.json must never produce PASS."
+    echo "FAIL (EC-011-unreadable): output does not contain 'ADVISORY' for unreadable settings.json."
+    echo "BC-6.25.001 EC-011: unreadable file must produce an ADVISORY row."
     echo "Output: $output"
     return 1
   }
 
   # EC-011: advisory must reference ADR-026 (parse-error advisory includes ADR citation).
   [[ "$output" == *"ADR-026"* ]] || {
-    echo "FAIL (EC-011): advisory output does not reference 'ADR-026'."
-    echo "EC-011: parse-error advisory must cite ADR-026 §Decision 5 (same as other advisories)."
+    echo "FAIL (EC-011-unreadable): advisory output does not reference 'ADR-026'."
+    echo "EC-011: parse-error advisory must cite ADR-026 §Decision 5."
     echo "Output: $output"
     return 1
   }
 
   # EC-011: PASS must NOT appear when settings.json is unreadable.
   [[ "$output" != *"PASS"* ]] || {
-    echo "FAIL (EC-011): output contains 'PASS' for unreadable settings.json — incorrect."
-    echo "BC-6.25.001: unreadable file → ADVISORY (PARSE_ERROR path), never PASS."
+    echo "FAIL (EC-011-unreadable): output contains 'PASS' for unreadable settings.json — incorrect."
+    echo "BC-6.25.001 EC-011: unreadable file → ADVISORY (parse-error path), never PASS."
+    echo "Output: $output"
+    return 1
+  }
+}
+
+# ---------------------------------------------------------------------------
+# T-11 / F-P2-001 / BC-6.25.001 PC3 — single-line JSON value 70 (canonical TV form)
+#
+# F-P2-001 finding: the OLD pure-bash parser failed single-line JSON; the jq
+# rewrite MUST parse it correctly. This test uses the EXACT canonical test vector
+# from BC-6.25.001 §Canonical Test Vectors:
+#   `{"env": {"CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "70"}}` → PASS row.
+#
+# The existing T-2 uses a multi-line (pretty-printed) fixture.
+# This test uses the COMPACT single-line form to permanently guard the regression
+# that F-P2-001 caught.
+#
+# Edge case exercised: EC-001 (single-line canonical TV — F-P2-001 regression guard).
+# ---------------------------------------------------------------------------
+
+@test "test_autocompact_check_single_line_json_value_70_is_pass" {
+  _require_helper
+
+  # Fixture: single-line JSON exactly matching the BC canonical test vector.
+  # printf avoids trailing newline — this is the compact form the old parser failed on.
+  printf '{"env": {"CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "70"}}' > "$WORK/.claude/settings.json"
+
+  run env HOME="$FAKE_HOME" PROJECT_ROOT="$WORK" bash "$HELPER" 2>&1
+
+  # PC3 / F-P2-001: helper exits 0 (PASS).
+  [ "$status" -eq 0 ] || {
+    echo "FAIL (F-P2-001 / EC-001 single-line): expected exit 0 but got status=$status"
+    echo "BC-6.25.001 PC3: value 70 ≤ 80 → PASS. jq must handle single-line JSON."
+    echo "F-P2-001: old pure-bash parser failed this form; jq rewrite must pass it."
+    echo "Output: $output"
+    return 1
+  }
+
+  # F-P2-001 / PC3: check name present.
+  [[ "$output" == *"CLAUDE_AUTOCOMPACT_PCT_OVERRIDE"* ]] || {
+    echo "FAIL (F-P2-001 / EC-001 single-line): check name missing. INV5: row always emitted."
+    echo "Output: $output"
+    return 1
+  }
+
+  # F-P2-001 / PC3: PASS must be emitted for single-line JSON value 70.
+  [[ "$output" == *"PASS"* ]] || {
+    echo "FAIL (F-P2-001 / EC-001 single-line): output does not contain 'PASS' for single-line value 70."
+    echo "BC-6.25.001 PC3: value 70 ≤ 80 → PASS (canonical value)."
+    echo "F-P2-001 regression: jq must parse single-line JSON correctly."
+    echo "Canonical TV: {\"env\": {\"CLAUDE_AUTOCOMPACT_PCT_OVERRIDE\": \"70\"}} → PASS."
+    echo "Output: $output"
+    return 1
+  }
+
+  # F-P2-001: ADVISORY must NOT appear for single-line value 70.
+  [[ "$output" != *"ADVISORY"* ]] || {
+    echo "FAIL (F-P2-001 / EC-001 single-line): output contains 'ADVISORY' for single-line value 70."
+    echo "BC-6.25.001 PC3: value ≤ 80 → PASS, not ADVISORY."
+    echo "Output: $output"
+    return 1
+  }
+}
+
+# ---------------------------------------------------------------------------
+# T-12 / F-P2-001 / BC-6.25.001 PC2 — single-line JSON value 85 (canonical TV form)
+#
+# Companion to T-11. Uses the exact single-line compact form from the BC canonical
+# test vector table: `{"env": {"CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "85"}}` → ADVISORY.
+#
+# The existing T-3 uses a multi-line fixture. This guards the single-line regression.
+#
+# Edge case exercised: EC-003 (single-line canonical TV — F-P2-001 regression guard).
+# ---------------------------------------------------------------------------
+
+@test "test_autocompact_check_single_line_json_value_85_is_advisory" {
+  _require_helper
+
+  # Fixture: single-line JSON with value 85, compact form (canonical TV for EC-003).
+  printf '{"env": {"CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "85"}}' > "$WORK/.claude/settings.json"
+
+  run env HOME="$FAKE_HOME" PROJECT_ROOT="$WORK" bash "$HELPER" 2>&1
+
+  # PC2 / F-P2-001: exit 0 (advisory; non-blocking; INV1).
+  [ "$status" -eq 0 ] || {
+    echo "FAIL (F-P2-001 / EC-003 single-line): expected exit 0 but got status=$status"
+    echo "BC-6.25.001 INV1: advisory check never blocks; exit 0 for single-line JSON too."
+    echo "Output: $output"
+    return 1
+  }
+
+  # F-P2-001 / PC2: check name present.
+  [[ "$output" == *"CLAUDE_AUTOCOMPACT_PCT_OVERRIDE"* ]] || {
+    echo "FAIL (F-P2-001 / EC-003 single-line): check name missing. INV5: row always emitted."
+    echo "Output: $output"
+    return 1
+  }
+
+  # F-P2-001 / PC2: ADVISORY must appear for single-line value 85.
+  [[ "$output" == *"ADVISORY"* ]] || {
+    echo "FAIL (F-P2-001 / EC-003 single-line): output does not contain 'ADVISORY' for single-line value 85."
+    echo "BC-6.25.001 PC2: value > 80 → ADVISORY."
+    echo "F-P2-001: jq must parse single-line JSON and produce the correct classification."
+    echo "Output: $output"
+    return 1
+  }
+
+  # F-P2-001 / PC2: actual value (85) must appear in the advisory.
+  [[ "$output" == *"85"* ]] || {
+    echo "FAIL (F-P2-001 / EC-003 single-line): advisory does not include the actual value '85'."
+    echo "BC-6.25.001 PC2: advisory details must contain the actual configured value."
+    echo "Output: $output"
+    return 1
+  }
+
+  # F-P2-001: PASS must NOT appear for single-line value 85.
+  [[ "$output" != *"PASS"* ]] || {
+    echo "FAIL (F-P2-001 / EC-003 single-line): output contains 'PASS' for value 85 — incorrect."
+    echo "BC-6.25.001 PC2: value > 80 → ADVISORY, not PASS."
+    echo "Output: $output"
+    return 1
+  }
+}
+
+# ---------------------------------------------------------------------------
+# T-13 / F-P2-001 / BC-6.25.001 PC3 (boundary) — single-line JSON value 80
+#
+# Companion to T-11/T-12. Single-line compact form boundary test.
+# BC canonical TV: `{"env": {"CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "80"}}` → PASS (boundary).
+#
+# Edge case exercised: EC-004 (single-line canonical TV boundary — F-P2-001 regression guard).
+# ---------------------------------------------------------------------------
+
+@test "test_autocompact_check_single_line_json_value_80_is_pass_boundary" {
+  _require_helper
+
+  # Fixture: single-line JSON with boundary value 80.
+  printf '{"env": {"CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "80"}}' > "$WORK/.claude/settings.json"
+
+  run env HOME="$FAKE_HOME" PROJECT_ROOT="$WORK" bash "$HELPER" 2>&1
+
+  # PC3 / boundary: exit 0.
+  [ "$status" -eq 0 ] || {
+    echo "FAIL (F-P2-001 / EC-004 single-line boundary): expected exit 0 but got status=$status"
+    echo "BC-6.25.001 PC3: value 80 ≤ 80 → PASS (boundary inclusive)."
+    echo "Output: $output"
+    return 1
+  }
+
+  # F-P2-001 / PC3 / boundary: PASS must be emitted.
+  [[ "$output" == *"PASS"* ]] || {
+    echo "FAIL (F-P2-001 / EC-004 single-line boundary): output does not contain 'PASS' for single-line value 80."
+    echo "BC-6.25.001 PC3: ceiling comparison is ≤ 80; value 80 is PASS (boundary inclusive)."
+    echo "F-P2-001: jq must parse single-line JSON and apply correct boundary comparison."
+    echo "Output: $output"
+    return 1
+  }
+
+  # F-P2-001 / boundary: ADVISORY must NOT appear.
+  [[ "$output" != *"ADVISORY"* ]] || {
+    echo "FAIL (F-P2-001 / EC-004 single-line boundary): output contains 'ADVISORY' for value 80 — incorrect."
+    echo "BC-6.25.001 PC3: value 80 ≤ 80 is PASS, not ADVISORY."
+    echo "Output: $output"
+    return 1
+  }
+}
+
+# ---------------------------------------------------------------------------
+# T-14 / F-P2-002 / BC-6.25.001 EC-011 — READABLE but SYNTACTICALLY MALFORMED JSON
+#
+# This test distinguishes from T-10 (unreadable file):
+#   T-10 fixtures chmod 000 (UNREADABLE) — jq fails due to permission denied.
+#   T-14 fixtures a READABLE file containing syntactically malformed JSON (truncated).
+#
+# F-P2-002 finding: EC-011 was only tested with an unreadable file (T-10). The
+# syntactically-malformed-but-readable variant must be explicitly guarded.
+#
+# Requirements per BC-6.25.001 EC-011:
+#   (a) Exit 0 (INV1 — never blocks)
+#   (b) Emit a row containing CLAUDE_AUTOCOMPACT_PCT_OVERRIDE (INV5)
+#   (c) Emit ADVISORY with details containing:
+#         "settings.json parse error:" (canonical EC-011 prefix from BC)
+#         "cannot verify" (canonical EC-011 wording)
+#       Note: The helper appends "(ADR-026 §Decision 5)" which contains "ADR-026".
+#
+# Edge case exercised: EC-011 (readable malformed JSON — F-P2-002 explicit coverage).
+# ---------------------------------------------------------------------------
+
+@test "test_autocompact_check_real_malformed_json_emits_ec011_advisory" {
+  _require_helper
+
+  # Fixture: READABLE file with syntactically malformed JSON (truncated — missing closing braces).
+  # This is readable (chmod default 644) but jq cannot parse it.
+  printf '{"env": {"CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "70"' > "$WORK/.claude/settings.json"
+
+  run env HOME="$FAKE_HOME" PROJECT_ROOT="$WORK" bash "$HELPER" 2>&1
+
+  # F-P2-002 / INV1: exit 0 (advisory; never blocks).
+  [ "$status" -eq 0 ] || {
+    echo "FAIL (F-P2-002 / EC-011 malformed): expected exit 0 but got status=$status"
+    echo "BC-6.25.001 INV1: advisory check MUST NEVER exit non-zero; malformed JSON is not an exception."
+    echo "BC-6.25.001 PC5: advisory-only; no blocking, no non-zero exit."
+    echo "Output: $output"
+    return 1
+  }
+
+  # F-P2-002 / INV5: row MUST always be emitted.
+  [[ "$output" == *"CLAUDE_AUTOCOMPACT_PCT_OVERRIDE"* ]] || {
+    echo "FAIL (F-P2-002 / EC-011 malformed): no row emitted for malformed settings.json."
+    echo "BC-6.25.001 INV5: the check row MUST ALWAYS be emitted, including on parse errors."
+    echo "Output: $output"
+    return 1
+  }
+
+  # F-P2-002 / EC-011: ADVISORY must appear.
+  [[ "$output" == *"ADVISORY"* ]] || {
+    echo "FAIL (F-P2-002 / EC-011 malformed): output does not contain 'ADVISORY' for malformed JSON."
+    echo "BC-6.25.001 EC-011: readable but syntactically malformed JSON must produce ADVISORY."
+    echo "Output: $output"
+    return 1
+  }
+
+  # F-P2-002 / EC-011: advisory must contain the canonical EC-011 prefix "settings.json parse error:".
+  [[ "$output" == *"settings.json parse error:"* ]] || {
+    echo "FAIL (F-P2-002 / EC-011 malformed): advisory does not contain 'settings.json parse error:'."
+    echo "BC-6.25.001 EC-011: details must note 'settings.json parse error: <error>'."
+    echo "Output: $output"
+    return 1
+  }
+
+  # F-P2-002 / EC-011: advisory must contain "cannot verify".
+  [[ "$output" == *"cannot verify"* ]] || {
+    echo "FAIL (F-P2-002 / EC-011 malformed): advisory does not contain 'cannot verify'."
+    echo "BC-6.25.001 EC-011 canonical wording: 'settings.json parse error: <error>; cannot verify CLAUDE_AUTOCOMPACT_PCT_OVERRIDE'."
+    echo "Output: $output"
+    return 1
+  }
+
+  # F-P2-002 / EC-011: advisory must reference ADR-026.
+  [[ "$output" == *"ADR-026"* ]] || {
+    echo "FAIL (F-P2-002 / EC-011 malformed): advisory does not reference 'ADR-026'."
+    echo "EC-011: parse-error advisory must cite ADR-026 §Decision 5."
+    echo "Output: $output"
+    return 1
+  }
+
+  # F-P2-002 / EC-011: PASS must NOT appear.
+  [[ "$output" != *"PASS"* ]] || {
+    echo "FAIL (F-P2-002 / EC-011 malformed): output contains 'PASS' for malformed JSON — incorrect."
+    echo "BC-6.25.001 EC-011: malformed JSON → ADVISORY (parse-error path), never PASS."
+    echo "Output: $output"
+    return 1
+  }
+}
+
+# ---------------------------------------------------------------------------
+# T-15 / EC-012 / BC-6.25.001 INV3 — value "0" (zero) is out-of-range, emits ADVISORY
+#
+# EC-012 (added in BC-6.25.001 v1.1): values ≤ 0 are not valid compaction percentages.
+# They are neither absent nor non-numeric, but they are out-of-range. The helper must
+# emit a DISTINCT advisory that differs from both:
+#   - PC1 "treating as absent" advisory (non-numeric/empty)
+#   - PC2 ceiling advisory (value > 80)
+#
+# BC-6.25.001 INV3 verbatim EC-012 advisory details:
+#   "Value <N> is not a valid compaction percentage (must be in range 1–100);
+#    treating as misconfigured — recommend 70 per ADR-026 §Decision 5"
+# where <N> = 0 for this test.
+#
+# Edge case exercised: EC-012 (value "0" — zero, out-of-range lower-bound).
+# ---------------------------------------------------------------------------
+
+@test "test_autocompact_check_ec012_value_zero_is_advisory" {
+  _require_helper
+
+  # Fixture: value "0" — zero, which is ≤ 0 (out-of-range lower-bound per EC-012).
+  printf '{"env": {"CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "0"}}' > "$WORK/.claude/settings.json"
+
+  run env HOME="$FAKE_HOME" PROJECT_ROOT="$WORK" bash "$HELPER" 2>&1
+
+  # EC-012 / INV1: exit 0 (advisory; never blocks).
+  [ "$status" -eq 0 ] || {
+    echo "FAIL (EC-012 / value 0): expected exit 0 but got status=$status"
+    echo "BC-6.25.001 INV1: advisory check MUST NEVER exit non-zero; out-of-range value is not an exception."
+    echo "Output: $output"
+    return 1
+  }
+
+  # EC-012 / INV5: row MUST be emitted.
+  [[ "$output" == *"CLAUDE_AUTOCOMPACT_PCT_OVERRIDE"* ]] || {
+    echo "FAIL (EC-012 / value 0): check name missing. INV5: row always emitted."
+    echo "Output: $output"
+    return 1
+  }
+
+  # EC-012: ADVISORY must appear.
+  [[ "$output" == *"ADVISORY"* ]] || {
+    echo "FAIL (EC-012 / value 0): output does not contain 'ADVISORY' for value 0."
+    echo "BC-6.25.001 EC-012: value ≤ 0 → ADVISORY (out-of-range lower-bound)."
+    echo "Output: $output"
+    return 1
+  }
+
+  # EC-012: advisory must contain the canonical BC-6.25.001 v1.1 INV3 wording.
+  # Verbatim: "Value 0 is not a valid compaction percentage (must be in range 1–100);
+  #            treating as misconfigured — recommend 70 per ADR-026 §Decision 5"
+  [[ "$output" == *"is not a valid compaction percentage"* ]] || {
+    echo "FAIL (EC-012 / value 0): advisory does not contain 'is not a valid compaction percentage'."
+    echo "BC-6.25.001 INV3 EC-012 verbatim: 'Value 0 is not a valid compaction percentage"
+    echo "  (must be in range 1–100); treating as misconfigured — recommend 70 per ADR-026 §Decision 5'."
+    echo "Output: $output"
+    return 1
+  }
+
+  [[ "$output" == *"must be in range 1"* ]] || {
+    echo "FAIL (EC-012 / value 0): advisory does not contain 'must be in range 1'."
+    echo "BC-6.25.001 INV3 EC-012: advisory must state the valid range 1–100."
+    echo "Output: $output"
+    return 1
+  }
+
+  [[ "$output" == *"treating as misconfigured"* ]] || {
+    echo "FAIL (EC-012 / value 0): advisory does not contain 'treating as misconfigured'."
+    echo "BC-6.25.001 INV3 EC-012 verbatim: '...treating as misconfigured — recommend 70 per ADR-026 §Decision 5'."
+    echo "Output: $output"
+    return 1
+  }
+
+  # EC-012: the actual value (0) must appear in the advisory.
+  [[ "$output" == *"Value 0"* ]] || {
+    echo "FAIL (EC-012 / value 0): advisory does not contain 'Value 0'."
+    echo "BC-6.25.001 INV3 EC-012: details must include the actual parsed value."
+    echo "Output: $output"
+    return 1
+  }
+
+  # EC-012: PASS must NOT appear.
+  [[ "$output" != *"PASS"* ]] || {
+    echo "FAIL (EC-012 / value 0): output contains 'PASS' for out-of-range value 0 — incorrect."
+    echo "BC-6.25.001 EC-012: value ≤ 0 → ADVISORY (out-of-range), never PASS."
+    echo "Output: $output"
+    return 1
+  }
+}
+
+# ---------------------------------------------------------------------------
+# T-16 / EC-012 / BC-6.25.001 INV3 — value "-5" (negative) is out-of-range, emits ADVISORY
+#
+# Companion to T-15. Exercises the negative value arm of EC-012.
+# BC-6.25.001 INV3 verbatim EC-012 advisory details (with <N> = -5):
+#   "Value -5 is not a valid compaction percentage (must be in range 1–100);
+#    treating as misconfigured — recommend 70 per ADR-026 §Decision 5"
+#
+# Edge case exercised: EC-012 (value "-5" — negative, out-of-range lower-bound).
+# ---------------------------------------------------------------------------
+
+@test "test_autocompact_check_ec012_value_negative_is_advisory" {
+  _require_helper
+
+  # Fixture: value "-5" — negative, ≤ 0 (out-of-range lower-bound per EC-012).
+  printf '{"env": {"CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "-5"}}' > "$WORK/.claude/settings.json"
+
+  run env HOME="$FAKE_HOME" PROJECT_ROOT="$WORK" bash "$HELPER" 2>&1
+
+  # EC-012 / INV1: exit 0 (advisory; never blocks).
+  [ "$status" -eq 0 ] || {
+    echo "FAIL (EC-012 / value -5): expected exit 0 but got status=$status"
+    echo "BC-6.25.001 INV1: advisory check MUST NEVER exit non-zero; negative value is not an exception."
+    echo "Output: $output"
+    return 1
+  }
+
+  # EC-012 / INV5: row MUST be emitted.
+  [[ "$output" == *"CLAUDE_AUTOCOMPACT_PCT_OVERRIDE"* ]] || {
+    echo "FAIL (EC-012 / value -5): check name missing. INV5: row always emitted."
+    echo "Output: $output"
+    return 1
+  }
+
+  # EC-012: ADVISORY must appear.
+  [[ "$output" == *"ADVISORY"* ]] || {
+    echo "FAIL (EC-012 / value -5): output does not contain 'ADVISORY' for value -5."
+    echo "BC-6.25.001 EC-012: value ≤ 0 → ADVISORY (out-of-range lower-bound)."
+    echo "Output: $output"
+    return 1
+  }
+
+  # EC-012: advisory must contain the canonical BC-6.25.001 v1.1 INV3 wording.
+  [[ "$output" == *"is not a valid compaction percentage"* ]] || {
+    echo "FAIL (EC-012 / value -5): advisory does not contain 'is not a valid compaction percentage'."
+    echo "BC-6.25.001 INV3 EC-012 verbatim: 'Value -5 is not a valid compaction percentage"
+    echo "  (must be in range 1–100); treating as misconfigured — recommend 70 per ADR-026 §Decision 5'."
+    echo "Output: $output"
+    return 1
+  }
+
+  # EC-012: the actual value (-5) must appear in the advisory.
+  [[ "$output" == *"Value -5"* ]] || {
+    echo "FAIL (EC-012 / value -5): advisory does not contain 'Value -5'."
+    echo "BC-6.25.001 INV3 EC-012: details must include the actual parsed value."
+    echo "Output: $output"
+    return 1
+  }
+
+  # EC-012: PASS must NOT appear.
+  [[ "$output" != *"PASS"* ]] || {
+    echo "FAIL (EC-012 / value -5): output contains 'PASS' for out-of-range value -5 — incorrect."
+    echo "BC-6.25.001 EC-012: value ≤ 0 → ADVISORY (out-of-range), never PASS."
+    echo "Output: $output"
+    return 1
+  }
+}
+
+# ---------------------------------------------------------------------------
+# T-17 / jq-absent / BC-6.25.001 INV1 + INV5 — jq not found degrades gracefully
+#
+# When jq is not available in PATH, the helper MUST:
+#   (a) Exit 0 (INV1 — never blocks)
+#   (b) Emit exactly one row containing CLAUDE_AUTOCOMPACT_PCT_OVERRIDE (INV5)
+#   (c) Emit ADVISORY naming jq as missing
+#
+# This guards the F-P1-001-class invariant: INV1/INV5 hold even when the parser
+# dependency is absent. The helper's Step 0 guard: `command -v jq > /dev/null 2>&1`.
+#
+# Implementation: BASH_ENV is used to inject a function override that makes
+# `command -v jq` return non-zero, simulating jq absence on a system where
+# /usr/bin/jq or a brew-installed jq would otherwise be found.
+#
+# Edge case exercised: jq-absent path (F-P1-001-class INV1/INV5 robustness).
+# ---------------------------------------------------------------------------
+
+@test "test_autocompact_check_jq_absent_degrades_gracefully" {
+  _require_helper
+
+  # BASH_ENV file: inject a function override so `command -v jq` fails.
+  # This simulates jq absence without manipulating filesystem state.
+  # BASH_ENV is sourced by non-interactive bash on startup.
+  local BASH_ENV_OVERRIDE
+  BASH_ENV_OVERRIDE="$(mktemp)"
+  cat > "$BASH_ENV_OVERRIDE" <<'BASH_ENV_EOF'
+# Simulate jq absent: override command builtin so "command -v jq" returns failure.
+command() {
+  if [ "$1" = "-v" ] && [ "$2" = "jq" ]; then
+    return 1
+  fi
+  builtin command "$@"
+}
+BASH_ENV_EOF
+
+  # Fixture: a valid settings.json (we never reach parsing; jq guard fires first).
+  printf '{"env": {"CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "70"}}' > "$WORK/.claude/settings.json"
+
+  run env HOME="$FAKE_HOME" PROJECT_ROOT="$WORK" BASH_ENV="$BASH_ENV_OVERRIDE" bash "$HELPER" 2>&1
+
+  rm -f "$BASH_ENV_OVERRIDE"
+
+  # INV1: exit 0 (advisory; never blocks; jq absence is not fatal).
+  [ "$status" -eq 0 ] || {
+    echo "FAIL (jq-absent / INV1): helper exited with status=$status when jq is absent."
+    echo "BC-6.25.001 INV1: advisory check MUST NEVER exit non-zero; missing jq is not an exception."
+    echo "Architecture Anchor (BC-6.25.001): jq absent → degrade to ADVISORY row (never fatal)."
+    echo "Output: $output"
+    return 1
+  }
+
+  # INV5: row MUST be emitted (even when jq is absent).
+  [[ "$output" == *"CLAUDE_AUTOCOMPACT_PCT_OVERRIDE"* ]] || {
+    echo "FAIL (jq-absent / INV5): no row emitted when jq is absent."
+    echo "BC-6.25.001 INV5: the check row MUST ALWAYS be emitted, including when jq is missing."
+    echo "Output: $output"
+    return 1
+  }
+
+  # jq-absent: ADVISORY must appear.
+  [[ "$output" == *"ADVISORY"* ]] || {
+    echo "FAIL (jq-absent): output does not contain 'ADVISORY' when jq is absent."
+    echo "BC-6.25.001 INV1 + Architecture Anchor: jq absent → ADVISORY row."
+    echo "Output: $output"
+    return 1
+  }
+
+  # jq-absent: advisory must name jq as the missing dependency.
+  [[ "$output" == *"jq"* ]] || {
+    echo "FAIL (jq-absent): advisory does not name 'jq'."
+    echo "Helper Step 0 guard: advisory must identify jq as the required but absent tool."
+    echo "Expected: '...jq is required but not found...'."
+    echo "Output: $output"
+    return 1
+  }
+
+  # jq-absent: PASS must NOT appear (cannot verify without jq).
+  [[ "$output" != *"PASS"* ]] || {
+    echo "FAIL (jq-absent): output contains 'PASS' when jq is absent — incorrect."
+    echo "BC-6.25.001 INV1: cannot verify settings.json without jq → ADVISORY, never PASS."
     echo "Output: $output"
     return 1
   }
