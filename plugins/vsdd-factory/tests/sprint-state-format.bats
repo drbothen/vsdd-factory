@@ -45,7 +45,9 @@
 #     test_sprint_state_stories_wave_order                  (T-2, AC-002) — fixture-migrated.yaml
 #     test_sprint_state_status_matches_story_index          (T-3, AC-003) — fixture-migrated.yaml + fixture-STORY-INDEX.md
 #     test_wave_handoff_parses_migrated_sprint_state        (T-4, AC-004) — fixture-migrated.yaml
-#     test_wave_id_leading_run_algorithm                    (T-5, AC-006) — fixture-leading-run.yaml
+#     test_wave_id_wave_group_ordinal                       (T-5, AC-006) — fixture-leading-run.yaml
+#       → obs-1b fix: tests PRODUCTION derive_wave_id (wave_id=2); NOT the test-local
+#         _leading_terminal_run helper (which returned 11 via wrong raw-count semantics).
 #     test_epics_coexistence_nested_stories_ignored         (T-6, PC5/EC-004) — fixture-migrated.yaml
 #   PRODUCTION-FILE + .factory-GUARDED SKIP (F-P1-004 real-file round-trip):
 #     test_real_production_file_round_trip                  (T-7, F-P1-004) — .factory/stories/sprint-state.yaml
@@ -56,6 +58,11 @@
 #     test_consumer_rejects_interleaved_ordering            (T-9)  — fixture-interleaved-order.yaml
 #     test_consumer_partial_only_raises_broken_sprint_state (T-10) — fixture-partial-only.yaml
 #     test_consumer_rejects_complete_status                 (T-11) — fixture-complete-status.yaml
+#   PRODUCTION-FILE + .factory-GUARDED SKIP (obs-2 real-file completeness + status-fidelity):
+#     test_real_production_file_completeness_and_status_fidelity (T-12, PC4+PC2/INV-2) — .factory/stories/sprint-state.yaml
+#       → SKIP when .factory/stories/sprint-state.yaml or .factory/stories/STORY-INDEX.md absent (CI);
+#         GREEN when all sprint-state IDs match non-retired STORY-INDEX IDs (PC4 completeness)
+#         AND each story's status matches its STORY-INDEX catalog row (PC2/INV-2 status-fidelity).
 #
 # AWK ANCHOR FIX (PC5 coexistence) + F-P1-007 HARMONIZATION:
 # All awk patterns that enter `in_stories=1` use /^stories:/ (column-0 anchor),
@@ -87,7 +94,7 @@
 #   awk, grep -E, sort, git
 #   No jq used in this suite (POSIX awk/grep sufficient for YAML key extraction)
 #
-# @test count: 11 (grep -c '^@test' sprint-state-format.bats == 11)
+# @test count: 12 (grep -c '^@test' sprint-state-format.bats == 12)
 
 # ---------------------------------------------------------------------------
 # Fixture paths
@@ -640,34 +647,49 @@ STATEMD
 }
 
 # ---------------------------------------------------------------------------
-# test_wave_id_leading_run_algorithm
+# test_wave_id_wave_group_ordinal
 # AC-006 / BC-5.41.001 PC2; BC-5.41.004 PC3 + INV-3
-# The leading-contiguous-terminal-run algorithm: scan stories: entries in file order;
-# count the leading contiguous run of terminal entries (merged/withdrawn/cancelled);
-# wave_id = run_length + 1.
+# The production derive_wave_id (from parse-sprint-state.sh) implements wave-GROUP
+# ordinal semantics: wave_id = completed terminal wave GROUPS + 1.
+# A "wave group" is one contiguous block of terminal entries before a pending/draft
+# block. Each terminal→draft/pending transition = one completed wave.
 #
-# GREEN TRANSITION (post-T-4): uses fixture-leading-run.yaml directly — the
-# conformant fixture with 10 terminals + 2 drafts → wave_id=11.
-# awk anchor: /^stories:/ (column-0 only) per PC5 coexistence fix.
+# obs-1b fix: T-5 now invokes the PRODUCTION derive_wave_id (not the test-local
+# _leading_terminal_run helper, which counted raw entries and yielded 11 — wrong).
 #
-# fixture-leading-run.yaml has 10 terminal entries (merged/withdrawn/cancelled mix)
-# followed by 2 draft entries. Expected: leading-run=10 → wave_id=11.
-# Assert 4 verifies wave-ascending order: no terminal entry after a non-terminal entry.
+# fixture-leading-run.yaml has 10 terminal entries in ONE contiguous block followed
+# by 2 draft entries:
+#   - S-0.01..S-0.10 are all terminal (merged/withdrawn/cancelled) — one wave group
+#   - S-0.11..S-0.12 are draft — the next wave (triggers the terminal→draft transition)
+#   - completed_terminal_waves = 1 (one terminal→draft transition)
+#   - wave_id = 1 + 1 = 2 (NOT 11; 11 was the raw-count semantics of _leading_terminal_run)
+#
+# This is the canonical AC-006 test vector: 10 entries in 1 block → wave_id = 2.
+# Corrected per architect Option A (obs-1b): story v1.3 AC-006 says wave_id = 2.
+#
+# Assert 4 verifies P-SPRINT-STATE-WAVE-ORDER: no terminal after non-terminal in fixture.
 #
 # PORTABILITY: fixture-based — CI-portable; no .factory/ dependency.
 # ---------------------------------------------------------------------------
 
-@test "test_wave_id_leading_run_algorithm" {
+@test "test_wave_id_wave_group_ordinal" {
   local run_fixture="${_FIXTURE_DIR}/fixture-leading-run.yaml"
 
   [ -f "${run_fixture}" ] || {
     echo "FAIL (fixture missing): ${run_fixture}" >&2; false
   }
 
+  # Locate parse-sprint-state.sh (production consumer)
+  local parse_lib="${BATS_TEST_DIRNAME}/../skills/wave-handoff/lib/parse-sprint-state.sh"
+  [ -f "${parse_lib}" ] || {
+    echo "FAIL (S-18.01 prerequisite): parse-sprint-state.sh does not exist at ${parse_lib}." >&2
+    false
+  }
+
   # Assert 1: fixture-leading-run.yaml must be a YAML sequence (conformant format).
   _stories_is_sequence "${run_fixture}" || {
     echo "FAIL (BC-5.41.001 PC2): fixture-leading-run.yaml stories: is not a YAML sequence." >&2
-    echo "  The leading-contiguous-terminal-run algorithm requires a per-story {id, status} list." >&2
+    echo "  The wave-group-ordinal algorithm requires a per-story {id, status} list." >&2
     false
   }
 
@@ -679,21 +701,44 @@ STATEMD
     false
   }
 
-  # Assert 3 (algorithm self-check):
-  # fixture-leading-run.yaml has 10 terminals + 2 drafts → run=10 → wave_id=11.
-  # This verifies the algorithm implementation is correct.
-  local run_length
-  run_length="$(_leading_terminal_run "${run_fixture}")"
-  [ "${run_length}" -eq 10 ] || {
-    echo "FAIL (BC-5.41.001 PC2 algorithm): leading-contiguous-terminal-run on fixture = ${run_length}, expected 10." >&2
-    echo "  fixture-leading-run.yaml has 10 terminal entries (merged/withdrawn/cancelled) then 2 drafts." >&2
+  # Assert 3 (PRODUCTION algorithm — obs-1b): invoke derive_wave_id from parse-sprint-state.sh.
+  # fixture-leading-run.yaml: 10 terminals in ONE group + 2 drafts → completed_waves=1 → wave_id=2.
+  # NOTE: wave_id=2 is CORRECT per the production group-ordinal semantics.
+  # The old test-local helper _leading_terminal_run returned run=10 → wave_id=11, which was WRONG
+  # because it used raw count (not group-transition count) semantics.
+  local wave_id=""
+  local exit_code=0
+  wave_id="$(
+    bash -c '
+      set -euo pipefail
+      source "$1"
+      derive_wave_id "$2" /dev/null
+    ' _ "${parse_lib}" "${run_fixture}" 2>&1
+  )" || exit_code=$?
+
+  [ "${exit_code}" -eq 0 ] || {
+    echo "FAIL (BC-5.41.001 PC2): derive_wave_id exited ${exit_code} on fixture-leading-run.yaml." >&2
+    echo "  Expected exit 0 — fixture is well-formed (10 terminals + 2 drafts, wave-ascending)." >&2
+    echo "  Output: ${wave_id}" >&2
     false
   }
 
-  local wave_id=$(( run_length + 1 ))
-  [ "${wave_id}" -eq 11 ] || {
-    echo "FAIL (BC-5.41.001 PC2): wave_id = ${wave_id}, expected 11." >&2
-    echo "  wave_id = leading-run + 1 = 10 + 1 = 11." >&2
+  # Extract integer wave_id (strip any stderr noise captured via 2>&1 in subshell)
+  local wave_int
+  wave_int="$(printf '%s\n' "${wave_id}" | grep -oE '^[0-9]+' | head -1 || true)"
+  [ -n "${wave_int}" ] || {
+    echo "FAIL (BC-5.41.001 PC2): derive_wave_id did not return a positive integer." >&2
+    echo "  Got: '${wave_id}'" >&2
+    false
+  }
+
+  [ "${wave_int}" -eq 2 ] || {
+    echo "FAIL (AC-006 / BC-5.41.001 PC2 wave-group-ordinal): wave_id = ${wave_int}, expected 2." >&2
+    echo "  fixture-leading-run.yaml: 10 terminal entries in ONE contiguous block + 2 draft entries." >&2
+    echo "  Production derive_wave_id counts GROUP transitions (terminal→draft), not raw entries." >&2
+    echo "  completed_terminal_waves=1 (one terminal→draft transition) → wave_id = 1+1 = 2." >&2
+    echo "  If wave_id=11: the test is using _leading_terminal_run (raw count) instead of" >&2
+    echo "    derive_wave_id (group-ordinal) — obs-1b regression reintroduced." >&2
     false
   }
 
@@ -1171,6 +1216,184 @@ EOF
     echo "FAIL (BC-5.41.004 INV-1): exit non-zero but output does not identify 'complete' as the unknown status." >&2
     echo "  Expected error: parse-sprint-state: unknown story status 'complete' — not in allowlist" >&2
     echo "  Output: ${classify_out}" >&2
+    false
+  }
+}
+
+# ---------------------------------------------------------------------------
+# test_real_production_file_completeness_and_status_fidelity
+# T-12 / obs-2 — real-file PC4 completeness + PC2/INV-2 status-fidelity coverage
+# BC-5.41.004 PC4: every non-retired STORY-INDEX story ID must appear in sprint-state.yaml
+#                  stories: list (no missing IDs, no phantom IDs).
+# BC-5.41.004 PC2 + INV-2: each stories: entry's status MUST match the authoritative
+#                  STORY-INDEX catalog-row status for that story (no fabricated statuses).
+#
+# obs-2 rationale: the suite previously verified derive_wave_id exit/integer (T-7) and
+# 3-story fixtures (T-3) but never checked the REAL migrated file for completeness or
+# status-fidelity. This test closes that drift-blindness class (L-BB-red-gate-fixture-
+# must-mirror-bc-canonical-test-vectors; S-18.10 lesson).
+#
+# Retired-story detection: a story row is "retired" when its row contains the text
+# "**retired**". Rows with "merged [deprecated...]" are NOT retired — they are merged
+# stories with deprecation notes and ARE included in the non-retired set.
+#
+# Status extraction from STORY-INDEX: the Status column is identified dynamically
+# from the "| Story ID |" header row (portable across 7-col and 8-col table variants).
+# Only the FIRST space-delimited token of the Status cell is compared (e.g., "merged"
+# from "merged [deprecated by ADR-015...]"). Bold markdown (**merged**) is stripped.
+#
+# PORTABILITY: guarded to SKIP when .factory/stories/sprint-state.yaml or
+# .factory/stories/STORY-INDEX.md absent (CI without factory-artifacts worktree).
+# This mirrors the CI-portability pattern used by T-1 and T-7.
+# ---------------------------------------------------------------------------
+
+@test "test_real_production_file_completeness_and_status_fidelity" {
+  # Guard: skip when production files are absent (CI without factory-artifacts worktree)
+  if [ ! -f "${_PRODUCTION_SPRINT_STATE}" ]; then
+    skip ".factory/stories/sprint-state.yaml absent — factory-artifacts worktree not mounted (CI); SKIP is expected in CI"
+  fi
+
+  local repo_root
+  repo_root="$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)"
+  local story_index="${repo_root}/.factory/stories/STORY-INDEX.md"
+
+  if [ ! -f "${story_index}" ]; then
+    skip ".factory/stories/STORY-INDEX.md absent — factory-artifacts worktree not mounted (CI); SKIP is expected in CI"
+  fi
+
+  # ---------------------------------------------------------------------------
+  # ASSERT 1 — PC4 completeness: derive non-retired IDs from STORY-INDEX.
+  # Non-retired rows: start with "| S-" and do NOT contain "**retired**".
+  # ---------------------------------------------------------------------------
+  local idx_ids
+  idx_ids="$(awk -F'|' '
+    /^\| S-/ && !/\*\*retired\*\*/ {
+      sid=$2; gsub(/^[[:space:]]+|[[:space:]]+$/, "", sid); print sid
+    }
+  ' "${story_index}" | sort)"
+
+  # Extract story IDs from sprint-state: top-level stories: list only
+  # (awk anchor /^stories:/ per PC5 coexistence fix; ignore nested epics[*].stories:)
+  local ss_ids
+  ss_ids="$(awk '
+    BEGIN { in_stories=0 }
+    /^stories:/ { in_stories=1; next }
+    in_stories && /^[^[:space:]#]/ { in_stories=0 }
+    in_stories && /^[[:space:]]*-[[:space:]]+id:[[:space:]]+/ {
+      id_val=$0; sub(/^[[:space:]]*-[[:space:]]+id:[[:space:]]+/, "", id_val)
+      gsub(/[[:space:]]*$/, "", id_val); print id_val
+    }
+  ' "${_PRODUCTION_SPRINT_STATE}" | sort)"
+
+  # Check for IDs in sprint-state but NOT in STORY-INDEX non-retired (phantom IDs)
+  local phantom_ids
+  phantom_ids="$(comm -13 <(printf '%s\n' "${idx_ids}") <(printf '%s\n' "${ss_ids}") | grep '[^[:space:]]' || true)"
+
+  # Check for IDs in STORY-INDEX non-retired but NOT in sprint-state (missing IDs)
+  local missing_ids
+  missing_ids="$(comm -23 <(printf '%s\n' "${idx_ids}") <(printf '%s\n' "${ss_ids}") | grep '[^[:space:]]' || true)"
+
+  local completeness_ok=1
+
+  if [ -n "${phantom_ids}" ]; then
+    echo "FAIL (BC-5.41.004 PC4 — phantom IDs): sprint-state.yaml contains story IDs absent from STORY-INDEX non-retired set." >&2
+    echo "  Phantom IDs (in sprint-state but not in STORY-INDEX non-retired):" >&2
+    printf '%s\n' "${phantom_ids}" | while IFS= read -r id; do
+      echo "    ${id}" >&2
+    done
+    completeness_ok=0
+  fi
+
+  if [ -n "${missing_ids}" ]; then
+    echo "FAIL (BC-5.41.004 PC4 — missing IDs): STORY-INDEX non-retired stories absent from sprint-state.yaml." >&2
+    echo "  Missing IDs (in STORY-INDEX non-retired but not in sprint-state):" >&2
+    printf '%s\n' "${missing_ids}" | while IFS= read -r id; do
+      echo "    ${id}" >&2
+    done
+    completeness_ok=0
+  fi
+
+  [ "${completeness_ok}" -eq 1 ] || {
+    echo "  PC4 requires every non-retired STORY-INDEX story to appear in sprint-state.yaml" >&2
+    echo "  and no sprint-state entry to reference a non-existent or retired story." >&2
+    false
+  }
+
+  # ---------------------------------------------------------------------------
+  # ASSERT 2 — PC2 / INV-2 status-fidelity: each sprint-state entry's status must
+  # match the STORY-INDEX catalog-row status for that story ID.
+  # Status column: identified dynamically from "| Story ID |" header row.
+  # Only first token of status cell compared; ** bold markers stripped.
+  # ---------------------------------------------------------------------------
+  local mismatch=0
+  local sid
+
+  while IFS= read -r sid; do
+    [ -z "${sid}" ] && continue
+
+    # Get status from sprint-state (top-level stories: section, awk anchored to /^stories:/)
+    local ss_status
+    ss_status="$(awk -v target_id="${sid}" '
+      BEGIN { in_stories=0; found_id=0 }
+      /^stories:/ { in_stories=1; next }
+      in_stories && /^[^[:space:]#]/ { in_stories=0 }
+      in_stories && /^[[:space:]]*-[[:space:]]+id:[[:space:]]+/ {
+        id_val=$0; sub(/^[[:space:]]*-[[:space:]]+id:[[:space:]]+/, "", id_val)
+        gsub(/[[:space:]]*$/, "", id_val)
+        if (id_val == target_id) { found_id=1 } else { found_id=0 }
+      }
+      in_stories && found_id && /^[[:space:]]+status:[[:space:]]+/ {
+        val=$0; sub(/^[[:space:]]+status:[[:space:]]*/, "", val); gsub(/[[:space:]]*$/, "", val)
+        print val; found_id=0
+      }
+    ' "${_PRODUCTION_SPRINT_STATE}")"
+
+    # Get status from STORY-INDEX: find Status column from header, then look up row
+    local idx_status
+    idx_status="$(awk -F'|' -v story="${sid}" '
+      /\| Story ID / {
+        for (i=1; i<=NF; i++) {
+          col=$i; gsub(/^[[:space:]]+|[[:space:]]+$/, "", col)
+          if (col == "Status") { status_col=i }
+        }
+        next
+      }
+      status_col > 0 && /^\| S-/ && !/\*\*retired\*\*/ {
+        sid_val=$2; gsub(/^[[:space:]]+|[[:space:]]+$/, "", sid_val)
+        if (sid_val == story) {
+          val=$status_col; gsub(/^[[:space:]]+|[[:space:]]+$/, "", val)
+          # Extract first token (ignore bracketed deprecation notes)
+          n = split(val, parts, /[[:space:]]/)
+          token=parts[1]
+          # Strip ** bold markdown markers
+          gsub(/\*\*/, "", token)
+          print token; exit
+        }
+      }
+    ' "${story_index}")"
+
+    [ -n "${ss_status}" ] || {
+      echo "FAIL (BC-5.41.004 PC2): '${sid}' has no status: in sprint-state." >&2
+      mismatch=1; continue
+    }
+    [ -n "${idx_status}" ] || {
+      echo "FAIL (BC-5.41.004 PC2): '${sid}' not found in STORY-INDEX (non-retired)." >&2
+      mismatch=1; continue
+    }
+
+    [ "${ss_status}" = "${idx_status}" ] || {
+      echo "FAIL (BC-5.41.004 INV-2 status-fidelity): '${sid}' mismatch:" >&2
+      echo "  sprint-state: '${ss_status}'" >&2
+      echo "  STORY-INDEX:  '${idx_status}'" >&2
+      mismatch=1
+    }
+  done <<EOF
+${ss_ids}
+EOF
+
+  [ "${mismatch}" -eq 0 ] || {
+    echo "BC-5.41.004 PC2 + INV-2: each stories: entry status MUST be a direct read from STORY-INDEX." >&2
+    echo "  Any mismatch means sprint-state.yaml was migrated with fabricated or stale status values." >&2
     false
   }
 }

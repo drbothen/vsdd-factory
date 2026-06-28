@@ -1,17 +1,24 @@
-# sprint-state-format fixture: leading-contiguous-terminal-run algorithm (AC-006)
-# Used by: test_wave_id_leading_run_algorithm (AC-006 / BC-5.41.001 PC2)
-# BC-5.41.001 PC2 algorithm: wave_id = count of leading contiguous terminal entries + 1
+# sprint-state-format fixture: wave-group-ordinal algorithm (AC-006)
+# Used by: test_wave_id_wave_group_ordinal (AC-006 / BC-5.41.001 PC2)
+# BC-5.41.001 PC2 algorithm: wave_id = completed terminal wave GROUPS + 1
 # Terminal set: {merged, withdrawn, cancelled}
 #
-# This fixture has 10 terminal entries followed by 2 draft entries.
-# Expected: leading-contiguous-terminal-run = 10 → wave_id = 11
+# This fixture has 10 terminal entries in ONE contiguous block followed by 2 draft entries.
+# The production derive_wave_id counts completed wave transitions (terminal→draft/pending):
+#   - The block S-0.01..S-0.10 is one completed wave group (1 terminal→draft transition).
+#   - wave_id = completed_terminal_waves + 1 = 1 + 1 = 2.
+# Expected: wave_id = 2 (not 11; 11 was the count-based helper semantics which are WRONG).
+#
+# Note: the _leading_terminal_run awk helper in sprint-state-format.bats still returns 10
+# for this fixture (raw count), but that helper is NOT the production algorithm.
+# The production derive_wave_id in parse-sprint-state.sh counts GROUP transitions, not entries.
 #
 # Entries in wave-ascending order per BC-5.41.004 PC3.
-# S-0.01..S-0.10: all terminal (merged/withdrawn/cancelled mix)
-# S-0.11..S-0.12: draft (non-terminal; break the terminal run)
+# S-0.01..S-0.10: all terminal (merged/withdrawn/cancelled mix) — one completed wave group
+# S-0.11..S-0.12: draft (non-terminal; represent the next wave to be started)
 #
 # BC-5.41.001 P-SPRINT-STATE-WAVE-ORDER precondition: entries are wave-ascending,
-# so the leading run of terminal entries correctly identifies wave boundary.
+# so the terminal prefix correctly identifies completed waves.
 
 stories:
   - id: S-0.01
