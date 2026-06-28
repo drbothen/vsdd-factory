@@ -4209,3 +4209,54 @@ See `git -C .factory log -1 --format='%h %s'` (D-715 S-18.09 AC-003/AC-006 gate-
 ### NEXT
 
 S-18.10 (check-state-health CLAUDE_AUTOCOMPACT_PCT_OVERRIDE settings.json Verification; depends_on S-18.07 MET — MET D-703; fully unblocked). STOP-BEFORE-PR-MERGE (D-665) holds.
+
+---
+
+## D-717 — SESSION-CHECKPOINT burst — 2026-06-28
+
+**Decision:** Refresh the Session Resume Checkpoint in STATE.md to be fully self-sufficient for zero-context `/clear` + resume directly into S-18.10. Add S-18.10 EXECUTION PLAN subsection to §1 and §12. No story status change, no story index bump, no merge.
+
+**Context:** Post D-716 S-18.09 POST-MERGE burst, the SRC was accurate for the current state (develop 5af40c4e, merged_count 93, E-18 wave-8 COMPLETE) but §1's NEXT: S-18.10 EXECUTION PLAN was minimal. A resumed session would need to re-discover: (a) the SKILL.md-only structure of check-state-health (no scripted .sh driver), (b) that story T-4 mis-assumes a scripted driver, (c) the 3 deliverables and 7 bats test split, and (d) the CRITICAL resolution that check-autocompact-setting.sh is the testable unit. D-717 pre-flights all of this into the SRC so a cold-start session can begin S-18.10 TDD immediately.
+
+**Actions taken:**
+- Session Resume Checkpoint heading updated: D-717 SESSION-CHECKPOINT 2026-06-28
+- §1 Where We Are: POSTURE updated with D-717 reference; S-18.10 EXECUTION PLAN expanded to include 3 deliverables, 7 bats detail, SKILL.md-only pre-flight nuance
+- §1 ORDERED RESUME ACTIONS: expanded to 6 steps with worktree creation, test-writer, implementer, LOCAL 3-CLEAN, PR flow
+- §8 4-Index State: STORY-INDEX row corrected from v4.95 (stale) to v4.100 (D-716 correct); 4-index gate evidence updated to D-716
+- §9 Critical Anchors: factory-artifacts HEAD and develop HEAD updated to reflect D-717/D-716 actuals
+- §11 Resume Checklist: updated to D-717 refresh; checklist item 7 updated to D-717; item 10 updated
+- §12 Pending Work Items: 3a updated with S-18.10 story file + pre-flight note
+- SIZE BUDGET: 441 lines (wc-l; v4.68) appended
+- Frontmatter: version 4.67→4.68; phase/current_step → D-717-SESSION-CHECKPOINT-2026-06-28; last_amended updated
+- D-717 row added to STATE.md Decisions Log
+- Footer archived note updated: D-716 POST-MERGE v4.67 → session-checkpoints.md
+
+**4-index gate (UNCHANGED — no index changes in this burst):**
+```
+grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md
+version: "3.52"
+
+grep "^version:" .factory/specs/verification-properties/VP-INDEX.md
+version: "2.51"
+
+grep "^version:" .factory/stories/STORY-INDEX.md
+version: "4.100"
+
+grep "^version:" .factory/specs/architecture/ARCH-INDEX.md
+version: "2.84"
+```
+
+Parity: BC-INDEX v3.52 / VP-INDEX v2.51 / STORY-INDEX v4.100 / ARCH-INDEX v2.84. All UNCHANGED.
+
+### Parent-commit
+
+See `git -C .factory log -1 --format='%h %s'` (D-716 S-18.09 POST-MERGE burst + SHA-patch dcdf9b0b; TD-VSDD-053 single-commit)
+
+### Closes
+
+- Session Resume Checkpoint refreshed for zero-context S-18.10 start
+- S-18.10 EXECUTION PLAN (SKILL.md-only driver; 3 deliverables; 7 bats) pre-flighted
+
+### NEXT
+
+S-18.10 TDD (check-state-health CLAUDE_AUTOCOMPACT_PCT_OVERRIDE settings.json Verification; SKILL.md-only; 3 deliverables; BC-6.25.001; story v1.3 UNBLOCKED). STOP-BEFORE-PR-MERGE (D-665) holds.
