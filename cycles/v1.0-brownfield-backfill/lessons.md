@@ -5126,3 +5126,26 @@ Justified exceptions (per TD-VSDD-091): Red Gate test tables and AC source-of-tr
 3. If the field is a legitimate gap in the substrate artifact (e.g., STATE.md is missing a field the spec assumed), the fix burst MUST either add the field to the substrate or remove the AC that depends on it — no half-closed state.
 
 **Cites:** D-700 S-18.05 POST-MERGE; F-P5-001 S-18.05 LOCAL adversary pass-5; STATE.md phantom field `last_verified_develop_sha`; S-18.05 v1.8 AC-003 → v1.9 (removed phantom cite); STORY-INDEX v4.75→v4.76 stale status=warn token cleanup.
+
+---
+
+## L-BB-blocker-fix-must-not-regress-canonical-tv-coverage
+
+**Date:** 2026-06-28 (D-718)
+**Tags:** [process-gap] [implementer] [adversary] [codified]
+**Anchors:** D-718, F-P2-001, F-P2-002, S-18.10, BC-6.25.001 v1.1
+
+**Lesson (codified):** A BLOCKER fix that rewrites an implementation MUST be verified against ALL canonical test vectors in the relevant BC — not just the existing bats fixture set. The regression class: a BLOCKER fix correctly closes the HIGH finding but, if the implementer verifies only against the current bats fixture (which may have been authored before all ECs were specified), the fix may silently regress a second EC that was not yet covered in bats.
+
+**Root cause:** S-18.10 LOCAL adversarial pass-2 found F-P2-001 HIGH (single-line jq parse: `check-autocompact-setting.sh` used `jq -r '.env.CLAUDE_AUTOCOMPACT_PCT_OVERRIDE'` which fails on single-line settings.json with no newlines). The fix rewrote the jq invocation to a multi-field-safe approach. However, the original bats fixture did not yet cover EC-011 (non-numeric/empty-string treated as absent) or EC-012 (negative/zero values treated as out-of-range advisory). The jq-parser rewrite needed to close all three simultaneously, and the BC needed to be amended (v1.1) to canonicalize EC-012 before the fix could be called complete.
+
+**Pattern:** Fix-introduced-regression class. The implementer over-corrected from unguarded-python3 → pure-bash, which correctly closed the WASM portability finding but introduced single-line parsing fragility. The adversary correctly identified both the fix-induced regression (F-P2-001) AND the missing EC coverage (F-P2-002/F-P2-004) as a combined class.
+
+**Gate (codified):** Before declaring any BLOCKER fix done — especially a fix that rewrites a core parsing mechanism:
+1. Grep the BC file for ALL ECs in the relevant AC (e.g., `grep "EC-[0-9]" .factory/specs/behavioral-contracts/ss-06/BC-6.25.001.md`).
+2. Confirm every EC has at least one bats test that exercises the corresponding input class.
+3. If any EC is not yet covered by bats, add the test in the same fix commit. Do NOT declare green until the full EC vector is covered.
+
+**Analogy:** SOUL.md §4 — silent `Vec::new()` return where partial-failure data should propagate. The bats fixture gap is equivalent: a green-returning parser that silently misclassifies an EC is a false-green, not a true-green.
+
+**Cites:** D-718 S-18.10 IN-FLIGHT SPEC-AMENDMENT; F-P2-001 HIGH (jq single-line parse); F-P2-002 MEDIUM (EC-011 coverage); F-P2-004 (EC-012 advisory); BC-6.25.001 v1.0→v1.1; S-18.10 v1.3→v1.4; LOCAL 3-CLEAN streak 0/3.

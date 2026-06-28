@@ -4260,3 +4260,31 @@ See `git -C .factory log -1 --format='%h %s'` (D-716 S-18.09 POST-MERGE burst + 
 ### NEXT
 
 S-18.10 TDD (check-state-health CLAUDE_AUTOCOMPACT_PCT_OVERRIDE settings.json Verification; SKILL.md-only; 3 deliverables; BC-6.25.001; story v1.3 UNBLOCKED). STOP-BEFORE-PR-MERGE (D-665) holds.
+
+---
+
+## D-718 — S-18.10 IN-FLIGHT SPEC-AMENDMENT fix-burst — 2026-06-28
+
+**Context:** S-18.10 LOCAL adversarial pass-2 returned NOT-CLEAN: F-P2-001 HIGH (jq single-line parse fragility in check-autocompact-setting.sh), F-P2-002 MEDIUM (EC-011 non-numeric/empty coverage gap), F-P2-004 (EC-012 negative/zero out-of-range advisory missing from BC). PO amended BC-6.25.001 v1.0→v1.1 (commit 4d3e158c). Story-writer amended S-18.10 v1.3→v1.4 (commit dbe250fb). Implementer rewrote jq-parser on feature/S-18.10. State-manager leg-5 index sync + STATE refresh = this burst.
+
+**Decision:** Proceed with in-flight spec-amendment flow. BC-6.25.001 v1.1 adds EC-012 negative/zero out-of-range advisory classification, Invariant 3 range clarification (valid: 1–100; out-of-range ≤0 treated same as absent), and jq §Architecture Anchors note. Story S-18.10 v1.4 propagates all BC v1.1 changes, adds AC-008 explicit EC-012 verification step, and reconciles jq wording throughout. LOCAL 3-CLEAN streak reset 0/3 by pass-2; pass-3 NEXT.
+
+**Commits A-D (pre-state-manager):**
+- PO commit 4d3e158c: BC-6.25.001 v1.0→v1.1 (EC-012 + Inv3 + jq anchor; in-file amendment)
+- Story-writer commit dbe250fb: S-18.10 v1.3→v1.4 (propagated BC v1.1 cites + AC-008 + EC-012 coverage + jq wording reconciled)
+- Implementer commits on feature/S-18.10 branch: jq-parser rewrite (multi-field-safe) closes F-P2-001/F-P2-002/F-P2-004
+
+**State changes (Commit E — this burst):**
+- BC-INDEX.md: BC-6.25.001 row v1.0→v1.0|v1.1; version v3.52→v3.53; last_amended updated
+- STORY-INDEX.md: S-18.10 row v1.3→v1.4; version v4.100→v4.101; last_amended updated
+- STATE.md: frontmatter v4.68→v4.69; 4-index cites BC v3.53/STORY v4.101; D-718 Decisions Log row; SRC heading/POSTURE/§3 carry updated; SIZE BUDGET 444 lines appended
+- burst-log.md: D-718 burst entry appended
+- lessons.md: L-BB-blocker-fix-must-not-regress-canonical-tv-coverage appended
+
+**[process-gap] lesson:** L-BB-blocker-fix-must-not-regress-canonical-tv-coverage codified: BLOCKER fix must be verified against ALL canonical test vectors in BC EC list (not just existing bats fixtures); grep BC EC list + confirm per-EC bats coverage before declaring green.
+
+**4-index parity at commit:** BC-INDEX v3.53 / VP-INDEX v2.51 / STORY-INDEX v4.101 / ARCH-INDEX v2.84. Literal-shell verified.
+
+### NEXT
+
+S-18.10 LOCAL adv pass-3 (fresh-context; BC-6.25.001 v1.1; story v1.4; jq-parser rewrite on feature/S-18.10; streak 0/3). STOP-BEFORE-PR-MERGE (D-665) holds.

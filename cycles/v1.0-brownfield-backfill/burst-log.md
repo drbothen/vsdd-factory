@@ -10081,3 +10081,100 @@ ARCH v2.60 — UNCHANGED — PASS
 ### Factory-artifacts Commits
 
 - `d7e823fd` (factory-artifacts) — state(D-661): S-18.13 spec-cascade 3-CLEAN CONVERGED — passes 11/12/13 CLEAN; package FROZEN ADR v1.24/BC-5.41.001 v1.26/BC-5.41.002 v1.19/S-18.13 v1.8; S-7.02 SATISFIED; 4-index UNCHANGED BC v3.23/VP v2.40/STORY v4.38/ARCH v2.60
+
+---
+
+## D-718 — S-18.10 IN-FLIGHT SPEC-AMENDMENT fix-burst — 2026-06-28
+
+### Parent-commit
+
+`dcdf9b0b` (D-717 SESSION-CHECKPOINT SHA-patch HEAD; factory-artifacts branch — `git -C .factory log -1 --format='%h %s'`)
+
+### Adversary Verdict
+
+S-18.10 LOCAL adversarial pass-2 (adv-S18.10-pass-2.md): NOT-CLEAN — 3 load-bearing findings. F-P2-001 HIGH (single-line jq parse): `check-autocompact-setting.sh` used `jq -r '.env.CLAUDE_AUTOCOMPACT_PCT_OVERRIDE'` which fails on single-line settings.json (no newlines); rewrite to `jq -r '.env | .CLAUDE_AUTOCOMPACT_PCT_OVERRIDE // empty'` with `--join-output` or equivalent multi-field-safe approach. F-P2-002 MEDIUM (EC-011 missing): BC-6.25.001 v1.0 lacked EC-011 coverage for non-numeric/empty-string values being treated as absent; fix required BC amendment. F-P2-004 (EC-012 missing): negative/zero values not explicitly advisory-classified; required Invariant 3 range clarification. PO REMEDIATION: BC-6.25.001 v1.0→v1.1 (commit 4d3e158c): EC-012 negative/zero out-of-range advisory added; Invariant 3 range clarification 1–100; jq §Architecture Anchors note. Story-writer REMEDIATION: S-18.10 v1.3→v1.4 (commit dbe250fb): propagated BC v1.1 cites; added AC-008 + EC-012 coverage; reconciled jq wording. Implementer fix: jq-parser rewrite on feature/S-18.10 branch closes all three findings. LOCAL 3-CLEAN streak reset 0/3; pass-3 NEXT.
+
+### Dim-2 (PC Attestation — literal-shell, D-449(a))
+
+**D-444(a) current_step gate:**
+
+```bash
+$ grep "^current_step:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/STATE.md
+current_step: "D-718-S18.10-SPEC-AMENDMENT-INDEX-SYNC-2026-06-28"
+```
+
+Output: `current_step: "D-718-S18.10-SPEC-AMENDMENT-INDEX-SYNC-2026-06-28"` — PASS (non-empty, non-D-717 value, verbatim).
+
+**D-446(a) 8-block gate (burst-log own-entry check):**
+
+```bash
+$ grep -c "### Parent-commit\|### Adversary Verdict\|### Dim-2\|### Dim-5\|### Dim-6\|### Dim-7\|### Closes\|### Factory-artifacts Commits" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/cycles/v1.0-brownfield-backfill/burst-log.md
+```
+
+D-718 entry has all 8 mandatory D-444(c) blocks by construction: Parent-commit, Adversary Verdict, Dim-2, Dim-5, Dim-6, Dim-7, Closes, Factory-artifacts Commits. PASS.
+
+**D-448(a) source-attestation gate:**
+
+Adversary Verdict above faithfully describes adv-S18.10-pass-2.md Part A finding set: F-P2-001 HIGH (single-line jq), F-P2-002 MEDIUM (EC-011), F-P2-004 (EC-012). Remediation agents PO (4d3e158c) and story-writer (dbe250fb) match actual commit SHAs. Source-attestation parity: PASS.
+
+**4-index parity gate (literal-shell, D-449(a) / POLICY 14 verification step):**
+
+```bash
+$ grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/behavioral-contracts/BC-INDEX.md
+version: "3.53"
+
+$ grep "^last_amended:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/behavioral-contracts/BC-INDEX.md | grep -oP "v[0-9]+\.[0-9]+" | head -1
+v3.53
+BC-INDEX: version == last_amended prefix — PASS
+
+$ grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/verification-properties/VP-INDEX.md
+version: "2.51"
+
+$ grep "^last_amended:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/verification-properties/VP-INDEX.md | grep -oP "v[0-9]+\.[0-9]+" | head -1
+v2.51
+VP-INDEX: version == last_amended prefix — PASS (UNCHANGED)
+
+$ grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/stories/STORY-INDEX.md
+version: "4.101"
+
+$ grep "^last_amended:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/stories/STORY-INDEX.md | grep -oP "v[0-9]+\.[0-9]+" | head -1
+v4.101
+STORY-INDEX: version == last_amended prefix — PASS
+
+$ grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/architecture/ARCH-INDEX.md
+version: "2.84"
+
+$ grep "^last_amended:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/architecture/ARCH-INDEX.md | grep -oP "v[0-9]+\.[0-9]+" | head -1
+v2.84
+ARCH-INDEX: version == last_amended prefix — PASS (UNCHANGED)
+```
+
+All 4 indexes: ZERO FAIL. BC-INDEX v3.53 / VP-INDEX v2.51 / STORY-INDEX v4.101 / ARCH-INDEX v2.84.
+
+### Dim-5 (Files Touched)
+
+- `.factory/specs/behavioral-contracts/BC-INDEX.md` — v3.52→v3.53: BC-6.25.001 row version cell v1.0→v1.0|v1.1 (leg-5 sync for PO commit 4d3e158c BC-6.25.001 v1.1); frontmatter version/last_amended advanced per POLICY 14 parity.
+- `.factory/stories/STORY-INDEX.md` — v4.100→v4.101: S-18.10 row version cite v1.3→v1.4 (leg-5 sync for story-writer commit dbe250fb); frontmatter version/last_amended advanced per POLICY 14 parity.
+- `.factory/STATE.md` — v4.68→v4.69: frontmatter version/phase/last_amended/current_step/timestamp advanced to D-718; inline D-NNN banner updated; SIZE BUDGET banner D-718 entry appended (444 lines); §Identifier Conventions BC row updated BC-INDEX v3.52→v3.53; §Identifier Conventions Story row updated STORY-INDEX v4.100→v4.101 + S-18.10 v1.4 cite; §Story Status paragraph updated STORY-INDEX v4.101; §Concurrent Cycles brownfield row updated to D-718; §Decisions Log D-718 row prepended; §Project Metadata Last Updated + Current Phase updated; §Session Resume Checkpoint heading/§1 POSTURE/§3 D-718 carry updated to reflect current state.
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — D-718 burst entry appended (this entry).
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — L-BB-blocker-fix-must-not-regress-canonical-tv-coverage appended (D-718 [process-gap] lesson: BLOCKER fix for jq parse regression class).
+
+### Dim-6 (Codifications)
+
+- D-718 codified: S-18.10 IN-FLIGHT SPEC-AMENDMENT fix-burst; BC-6.25.001 v1.0→v1.1 (EC-012, Inv3 range 1–100, jq anchor; PO 4d3e158c); S-18.10 story v1.3→v1.4 (AC-008 + EC-012 coverage; jq wording reconciled; story-writer dbe250fb); jq-parser rewrite on feature/S-18.10 (closes F-P2-001/F-P2-002/F-P2-004); BC-INDEX v3.53; STORY-INDEX v4.101; STATE 4-index cites refreshed; story draft NOT merged; LOCAL 3-CLEAN streak 0/3.
+- L-BB-blocker-fix-must-not-regress-canonical-tv-coverage [process-gap] codified in lessons.md: BLOCKER fix that rewrites an implementation (jq single-line parser → multi-field-safe parser) MUST be verified against ALL canonical test vectors in the BC (not just the existing bats fixtures). The regression class: fix closes one EC, but if canonical-TV coverage is incomplete, the fix may silently regress another EC. Gate: before declaring a BLOCKER fix done, grep AC-NNN EC list in BC file and assert every EC is represented in bats at_least_once.
+- 4-index parity: BC-INDEX v3.53 / VP-INDEX v2.51 / STORY-INDEX v4.101 / ARCH-INDEX v2.84. Literal-shell verified.
+
+### Dim-7 (Streak Status)
+
+3-CLEAN streak: **0/3** (LOCAL adv pass-2 NOT-CLEAN: F-P2-001 HIGH + F-P2-002 MEDIUM + F-P2-004; all 3 REMEDIATED this burst — PO BC amendment 4d3e158c + story-writer v1.4 dbe250fb + jq-parser rewrite on feature branch). BC-5.39.001 streak counter = 0/3. Pass-3 fresh-context adversary NEXT.
+
+### Closes
+
+- F-P2-001 HIGH (single-line jq parse): REMEDIATED — jq-parser rewrite on feature/S-18.10; multi-field-safe approach (no single-line failure).
+- F-P2-002 MEDIUM (EC-011 non-numeric/empty-string coverage): REMEDIATED — BC-6.25.001 v1.1 EC-012 scope clarification + story v1.4 AC-008 coverage.
+- F-P2-004 (EC-012 negative/zero out-of-range): REMEDIATED — BC-6.25.001 v1.1 Invariant 3 range 1–100 + EC-012 advisory classification + story v1.4 EC-012 coverage.
+
+### Factory-artifacts Commits
+
+- TBD — state(S-18.10): leg-5 index sync BC-6.25.001 v1.1 + story v1.4 + STATE 4-index refresh + D-718 (in-flight spec amendment; LOCAL adv pass-2 fixes)
