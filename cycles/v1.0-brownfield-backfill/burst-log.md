@@ -10333,4 +10333,4 @@ No streak in effect. Spec-registration burst: no TDD delivery, no adversary casc
 
 ### Factory-artifacts Commits
 
-- TBD — D-720 S-18.11 SPEC-REGISTRATION burst (single commit per TD-VSDD-053; pushed to origin factory-artifacts 2026-06-28)
+- a2e63b93 — D-720 S-18.11 SPEC-REGISTRATION burst (single commit per TD-VSDD-053; pushed to origin factory-artifacts 2026-06-28)
