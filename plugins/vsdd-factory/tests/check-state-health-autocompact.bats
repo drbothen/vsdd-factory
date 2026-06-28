@@ -1,5 +1,5 @@
 #!/usr/bin/env bats
-# check-state-health-autocompact.bats — GREEN suite for S-18.10 (16 tests).
+# check-state-health-autocompact.bats — GREEN suite for S-18.10 (17 tests).
 #
 # Tests the helper (jq-based rewrite at commit 65284066):
 #   plugins/vsdd-factory/skills/check-state-health/lib/check-autocompact-setting.sh
@@ -12,7 +12,7 @@
 #              missing settings.json, malformed/unreadable settings.json, or jq absent
 # Advisory-only; never blocks; no side effects; set -euo pipefail.
 #
-# 16 tests map to AC-001..AC-007 + EC-001..EC-012 + jq-absent explicit coverage
+# 17 tests map to AC-001..AC-007 + EC-001..EC-012 + jq-absent explicit coverage
 # (BC-6.25.001 v1.1 PC1–PC5, INV1–INV5; VP-092):
 #
 #   test_autocompact_check_absent_key_emits_advisory                   — AC-001 / BC-6.25.001 PC1
@@ -33,7 +33,7 @@
 #   test_autocompact_check_ec012_value_negative_is_advisory            — EC-012 / BC-6.25.001 INV3 lower-bound
 #   test_autocompact_check_jq_absent_degrades_gracefully               — F-P1-001 class / BC-6.25.001 INV1+INV5
 #
-# All 16 tests must pass (GREEN).
+# All 17 tests must pass (GREEN).
 #
 # Edge Cases exercised per BC-6.25.001 v1.1 EC→test mapping (NO "implicitly exercised" claims):
 #   EC-001 (value "70", PASS; multi-line fixture)
@@ -114,7 +114,7 @@ teardown() {
 # ---------------------------------------------------------------------------
 
 # Verify the helper script exists and is executable.
-# Used by all 10 tests; fails with a descriptive message if the helper is absent.
+# Used by all 17 tests; fails with a descriptive message if the helper is absent.
 _require_helper() {
   if [ ! -f "$HELPER" ]; then
     echo "RED GATE — helper not yet implemented."
