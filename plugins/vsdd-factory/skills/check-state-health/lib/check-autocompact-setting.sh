@@ -98,21 +98,19 @@ fi
 
 # ---------------------------------------------------------------------------
 # Step 3: Parse value from resolved settings.json using jq.
-# Capture jq stderr to temp file for EC-011 parse-error advisory message.
+# jq stderr captured into a shell variable (no temp file — INV4 compliance).
 # jq is format-agnostic — handles both single-line and multi-line JSON.
 # ---------------------------------------------------------------------------
-JQ_STDERR_FILE="$(mktemp)"
 
 # Extract .env.CLAUDE_AUTOCOMPACT_PCT_OVERRIDE; output empty string if key absent.
 # jq exit codes: 0 = success (even if value is null/empty), non-zero = parse error.
-RAW_VALUE="$(jq -r '.env.CLAUDE_AUTOCOMPACT_PCT_OVERRIDE // empty' "$SETTINGS_PATH" 2>"$JQ_STDERR_FILE")" || {
+# STDERR-EXEMPT: jq stderr captured for EC-011 parse-error advisory (variable, not file)
+JQ_ERR="$(jq -r '.env.CLAUDE_AUTOCOMPACT_PCT_OVERRIDE // empty' "$SETTINGS_PATH" 2>&1 1>/dev/null)" || true
+RAW_VALUE="$(jq -r '.env.CLAUDE_AUTOCOMPACT_PCT_OVERRIDE // empty' "$SETTINGS_PATH" 2>/dev/null)" || {
   # jq parse failure → EC-011 ADVISORY with jq's actual error message.
-  JQ_ERR="$(cat "$JQ_STDERR_FILE")"  # STDERR-EXEMPT: captured for EC-011 parse-error advisory
-  rm -f "$JQ_STDERR_FILE"
-  emit_advisory "settings.json parse error: ${JQ_ERR}; cannot verify $CHECK_NAME (ADR-026 §Decision 5)"
+  emit_advisory "settings.json parse error: ${JQ_ERR}; cannot verify $CHECK_NAME"
   exit 0
 }
-rm -f "$JQ_STDERR_FILE"
 
 # ---------------------------------------------------------------------------
 # Step 4: Emit appropriate row based on extracted value
