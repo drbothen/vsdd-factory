@@ -10,9 +10,10 @@
 #          BC-5.41.002 v1.20 (consumer: PC3 stories from sprint-state.yaml status:draft/pending;
 #                               reserved-pending no-op annotation; BrokenSprintState handling)
 #
-# RED GATE discipline (BC-5.38.001): ALL non-skipped tests MUST FAIL before the
-# sprint-state.yaml migration (T-4) and wave-scheduling SKILL.md step (T-5) exist.
-# The tests that run against LEGACY fixtures assert the ABSENCE of the required format.
+# GREEN-TRANSITION COMPLETE (post-T-4 + T-5): All fixture-based tests now use
+# conformant fixtures (fixture-migrated.yaml / fixture-leading-run.yaml).
+# The legacy RED gate assertions have been replaced with GREEN assertions.
+# Test 6 (epics-coexistence regression) locks the PC5-coexistence awk-anchor fix.
 #
 # CI-PORTABILITY DESIGN (cross-tree / CI-portability constraint):
 # ---------------------------------------------------------------
@@ -30,19 +31,22 @@
 #
 # Test classification:
 #   PRODUCTION-FILE + .factory-GUARDED SKIP:
-#     test_sprint_state_stories_list_present         (T-1, AC-001)
+#     test_sprint_state_stories_list_present                (T-1, AC-001)
 #       → SKIP when .factory/stories/sprint-state.yaml absent (CI);
-#         FAIL  when .factory/stories/sprint-state.yaml is the legacy format (local).
-#   FIXTURE-BASED against LEGACY format (CI-portable, genuine RED):
-#     test_sprint_state_stories_wave_order           (T-2, AC-002) — uses fixture-legacy.yaml
-#     test_sprint_state_status_matches_story_index   (T-3, AC-003) — uses fixture-legacy.yaml
-#     test_wave_handoff_parses_migrated_sprint_state (T-4, AC-004) — uses fixture-legacy.yaml
-#     test_wave_id_leading_run_algorithm             (T-5, AC-006) — uses fixture-legacy.yaml
+#         GREEN when .factory/stories/sprint-state.yaml has conformant per-story format.
+#   FIXTURE-BASED (CI-portable, GREEN post-T-4):
+#     test_sprint_state_stories_wave_order                  (T-2, AC-002) — fixture-migrated.yaml
+#     test_sprint_state_status_matches_story_index          (T-3, AC-003) — fixture-migrated.yaml + fixture-STORY-INDEX.md
+#     test_wave_handoff_parses_migrated_sprint_state        (T-4, AC-004) — fixture-migrated.yaml
+#     test_wave_id_leading_run_algorithm                    (T-5, AC-006) — fixture-leading-run.yaml
+#     test_epics_coexistence_nested_stories_ignored         (T-6, PC5/EC-004) — fixture-migrated.yaml
 #
-# All four fixture-based tests target the LEGACY format (the current production shape),
-# asserting that the obligations of BC-5.41.004 are NOT met. After T-4 migrates the
-# production file to the conformant format, the implementer replaces fixture-legacy.yaml
-# usage with fixture-migrated.yaml (or the actual production file) to turn the tests GREEN.
+# AWK ANCHOR FIX (PC5 coexistence):
+# All awk patterns that enter `in_stories=1` use /^stories:/ (column-0 anchor),
+# NOT /^[[:space:]]*stories:/. This prevents nested epics[*].stories: sub-keys
+# from re-entering the stories: parsing context and emitting out-of-enum values.
+# fixture-migrated.yaml has epics.E-0.stories=closed + epics.E-1.stories=tier-1-shipped
+# which are out-of-enum scalars that MUST be ignored by all awk parsers.
 #
 # PORTABILITY RULES (Architecture Compliance Rules §3-§7):
 #   §3 set -euo pipefail in all helper scriptlets
@@ -57,7 +61,7 @@
 #   awk, grep -E, sort, git
 #   No jq used in this suite (POSIX awk/grep sufficient for YAML key extraction)
 #
-# @test count: 5 (grep -c '^@test' sprint-state-format.bats == 5)
+# @test count: 6 (grep -c '^@test' sprint-state-format.bats == 6)
 
 # ---------------------------------------------------------------------------
 # Fixture paths
@@ -90,7 +94,7 @@ _count_stories_per_story_entries() {
   local file="$1"
   awk '
     BEGIN { in_stories=0; count=0 }
-    /^[[:space:]]*stories:/ { in_stories=1; next }
+    /^stories:/ { in_stories=1; next }
     in_stories && /^[^[:space:]#-]/ { in_stories=0 }
     in_stories && /^[[:space:]]*-[[:space:]]+id:/ { count++ }
     END { print count }
@@ -117,9 +121,10 @@ _stories_is_sequence() {
   fi
   # awk fallback: look for the first non-blank sub-line under stories: that starts
   # with a sequence indicator ("  - ") vs a mapping indicator ("  total:", "  merged:")
+  # Anchored to /^stories:/ (column-0) so nested epics[*].stories: sub-keys are ignored.
   awk '
     BEGIN { in_stories=0; result=1 }
-    /^[[:space:]]*stories:/ { in_stories=1; next }
+    /^stories:/ { in_stories=1; next }
     in_stories && /^[[:space:]]*#/ { next }
     in_stories && /^[[:space:]]*-[[:space:]]/ { result=0; exit }
     in_stories && /^[[:space:]]+[[:alnum:]]/ { result=1; exit }
@@ -139,7 +144,7 @@ _leading_terminal_run() {
   local file="$1"
   awk '
     BEGIN { in_stories=0; run=0; broken=0; pending_status=0 }
-    /^[[:space:]]*stories:/ { in_stories=1; next }
+    /^stories:/ { in_stories=1; next }
     in_stories && /^[^[:space:]#-]/ && !/^[[:space:]]/ { in_stories=0 }
     in_stories && /^[[:space:]]*-[[:space:]]+id:/ { pending_status=1 }
     in_stories && pending_status && /^[[:space:]]+status:/ {
@@ -215,7 +220,7 @@ _leading_terminal_run() {
   local statuses
   statuses="$(awk '
     BEGIN { in_stories=0 }
-    /^[[:space:]]*stories:/ { in_stories=1; next }
+    /^stories:/ { in_stories=1; next }
     in_stories && /^[^[:space:]#-]/ && !/^[[:space:]]/ { in_stories=0 }
     in_stories && /^[[:space:]]+status:/ {
       val=$0; sub(/^[[:space:]]+status:[[:space:]]*/, "", val); gsub(/[[:space:]]*$/, "", val); print val
@@ -246,36 +251,36 @@ EOF
 # (BC-5.41.004 INV-3: no phantom `wave:` field). Within wave N, lexicographic
 # ascending tie-break (BC-5.41.004 PC3 EC-003).
 #
-# Uses FIXTURE: fixture-legacy.yaml (the legacy count-summary format).
-# RED GATE: the legacy format has NO per-story entries with wave-ordering.
-# The test asserts two conditions that are both violated by the legacy format:
-#   (a) stories: must be a sequence (not a mapping)
-#   (b) stories: entries must have id: sub-keys (per-story list entries)
-# Both assertions FAIL on fixture-legacy.yaml, producing the correct RED gate.
+# GREEN TRANSITION (post-T-4): uses fixture-migrated.yaml — the conformant per-story
+# format produced after T-4 migrates sprint-state.yaml. All assertions must PASS.
 #
-# BC-5.41.004 INV-3 is validated via a static check: the fixture and production
-# file must NOT contain a `wave:` key in story entries.
+# Wave topology in fixture-migrated.yaml:
+#   wave 1: S-1.01 (no deps) — merged (terminal)
+#   wave 2: S-1.02 (depends_on S-1.01) — draft (next-wave)
+#           S-1.03 (depends_on S-1.01) — ready (active-but-not-next-wave)
+# S-1.02 before S-1.03 within wave-2 per lexicographic tie-break (EC-003).
+# File order: S-1.01, S-1.02, S-1.03 — wave-ascending.
+#
+# BC-5.41.004 INV-3: no `wave:` sub-key in stories: entries.
+# awk anchor: /^stories:/ (column-0 only) per PC5 coexistence fix.
 #
 # PORTABILITY: fixture-based — CI-portable; no .factory/ dependency.
 # ---------------------------------------------------------------------------
 
 @test "test_sprint_state_stories_wave_order" {
-  local fixture="${_FIXTURE_DIR}/fixture-legacy.yaml"
+  local fixture="${_FIXTURE_DIR}/fixture-migrated.yaml"
   [ -f "${fixture}" ] || {
     echo "FAIL (fixture missing): ${fixture}" >&2; false
   }
 
   # Assert 1: stories: must be a YAML sequence (list), NOT a count-summary mapping.
-  # RED GATE: fixture-legacy.yaml has stories: as a mapping (total:/merged:/ready:/...).
+  # GREEN: fixture-migrated.yaml has stories: as a proper YAML sequence.
   _stories_is_sequence "${fixture}" || {
-    echo "FAIL (BC-5.41.004 PC1): 'stories:' in legacy format is a count-summary mapping, not a list." >&2
+    echo "FAIL (BC-5.41.004 PC1): 'stories:' is a count-summary mapping, not a list." >&2
     echo "  BC-5.41.004 PC3 wave-ascending order can only be validated on a per-story list." >&2
-    echo "  RED GATE: the current production sprint-state.yaml has no per-story list." >&2
-    echo "  This test REDs until T-4 migrates sprint-state.yaml to per-story {id, status} format." >&2
     false
   }
 
-  # (Remaining assertions only reached after RED GATE is resolved by T-4)
   # Assert 2: per-story entries must have id: sub-keys
   local entry_count
   entry_count="$(_count_stories_per_story_entries "${fixture}")"
@@ -289,7 +294,7 @@ EOF
   local ids_in_order
   ids_in_order="$(awk '
     BEGIN { in_stories=0 }
-    /^[[:space:]]*stories:/ { in_stories=1; next }
+    /^stories:/ { in_stories=1; next }
     in_stories && /^[^[:space:]#-]/ && !/^[[:space:]]/ { in_stories=0 }
     in_stories && /^[[:space:]]*-[[:space:]]+id:[[:space:]]+/ {
       id_val=$0; sub(/^[[:space:]]*-[[:space:]]+id:[[:space:]]+/, "", id_val)
@@ -301,16 +306,17 @@ EOF
   local count
   count="$(printf '%s\n' "${ids_in_order}" | grep -c '[^[:space:]]' || true)"
   [ "${count}" -gt 0 ] || {
-    echo "FAIL (BC-5.41.004 PC3): stories: list has 0 per-story entries after format migration check." >&2
+    echo "FAIL (BC-5.41.004 PC3): stories: list has 0 per-story entries." >&2
     false
   }
 
   # Assert 5: BC-5.41.004 INV-3 — no phantom `wave:` key in stories: entries.
   # The wave ordering MUST come from dependency-graph topo-sort, NOT from a wave: field.
+  # awk anchor: /^stories:/ (column-0) so epics[*].stories: sub-keys are ignored.
   local has_phantom_wave=0
   awk '
     BEGIN { in_stories=0 }
-    /^[[:space:]]*stories:/ { in_stories=1; next }
+    /^stories:/ { in_stories=1; next }
     in_stories && /^[^[:space:]#-]/ && !/^[[:space:]]/ { in_stories=0 }
     in_stories && /^[[:space:]]+wave:/ { exit 1 }
   ' "${fixture}" || has_phantom_wave=1
@@ -319,6 +325,16 @@ EOF
     echo "FAIL (BC-5.41.004 INV-3): per-story entries contain a 'wave:' sub-key in stories: list." >&2
     echo "  BC-5.41.004 INV-3: wave ordering MUST be derived from STORY-INDEX.md depends_on: topo-sort." >&2
     echo "  No phantom 'wave:' field is permitted on individual story entries." >&2
+    false
+  }
+
+  # Assert 6: Wave-ascending order — S-1.01 (wave-1) must precede S-1.02 and S-1.03 (wave-2).
+  # Verify that the first entry is S-1.01 (terminal, wave-1 root).
+  local first_id
+  first_id="$(printf '%s\n' "${ids_in_order}" | head -1)"
+  [ "${first_id}" = "S-1.01" ] || {
+    echo "FAIL (BC-5.41.004 PC3): first entry is '${first_id}', expected 'S-1.01' (wave-1 root)." >&2
+    echo "  Wave-ascending order: wave-1 stories must appear before wave-2 stories." >&2
     false
   }
 }
@@ -330,17 +346,18 @@ EOF
 # from STORY-INDEX.md (no fabricated statuses). Statuses MUST be within the
 # 8-value enum; any outside triggers UnknownStatusToken EC-007.
 #
-# Uses FIXTURE: fixture-legacy.yaml (legacy count-summary format).
-# RED GATE: the legacy format has stories: as a count-summary mapping — it has
-# NO per-story entries to compare against STORY-INDEX.md. The test asserts that
-# per-story entries exist (BC-5.41.004 PC2) and that the round-trip is possible.
-# Both fail on the legacy format.
+# GREEN TRANSITION (post-T-4 + T-5): uses fixture-migrated.yaml + fixture-STORY-INDEX.md.
+# fixture-migrated.yaml has 3 stories (S-1.01 merged, S-1.02 draft, S-1.03 ready).
+# fixture-STORY-INDEX.md has the same 3 IDs with matching statuses.
+# Round-trip: each stories[*].status must match the STORY-INDEX catalog row for that ID.
+# awk anchor: /^stories:/ (column-0 only) per PC5 coexistence fix so nested
+# epics[*].stories: sub-keys (closed, tier-1-shipped) are NOT scanned.
 #
 # PORTABILITY: fixture-based — CI-portable; no .factory/ dependency.
 # ---------------------------------------------------------------------------
 
 @test "test_sprint_state_status_matches_story_index" {
-  local fixture="${_FIXTURE_DIR}/fixture-legacy.yaml"
+  local fixture="${_FIXTURE_DIR}/fixture-migrated.yaml"
   local story_index="${_FIXTURE_DIR}/fixture-STORY-INDEX.md"
 
   [ -f "${fixture}" ] || {
@@ -351,22 +368,20 @@ EOF
   }
 
   # Assert 1: stories: must be a YAML sequence (not a count-summary mapping).
-  # RED GATE: fixture-legacy.yaml has stories: as a mapping — no per-story entries.
+  # GREEN: fixture-migrated.yaml has stories: as a proper sequence.
   _stories_is_sequence "${fixture}" || {
-    echo "FAIL (BC-5.41.004 PC2): stories: in legacy format is a count-summary mapping, not a per-story list." >&2
+    echo "FAIL (BC-5.41.004 PC2): stories: is a count-summary mapping, not a per-story list." >&2
     echo "  Round-trip status verification requires per-story {id, status} entries." >&2
     echo "  BC-5.41.004 INV-2: status MUST be a direct read from STORY-INDEX.md catalog rows." >&2
-    echo "  RED GATE: the current sprint-state.yaml has no per-story entries to round-trip." >&2
-    echo "  This test REDs until T-4 migrates sprint-state.yaml and T-5 adds the SKILL.md step." >&2
     false
   }
 
-  # (Remaining assertions only reached after RED GATE is resolved)
-  # Assert 2: each story id: in the list must have a status: that matches STORY-INDEX
+  # Assert 2: each story id: in the list must have a status: that matches STORY-INDEX.
+  # awk anchor: /^stories:/ (column-0 only) — nested epics[*].stories: sub-keys ignored.
   local story_ids
   story_ids="$(awk '
     BEGIN { in_stories=0 }
-    /^[[:space:]]*stories:/ { in_stories=1; next }
+    /^stories:/ { in_stories=1; next }
     in_stories && /^[^[:space:]#-]/ && !/^[[:space:]]/ { in_stories=0 }
     in_stories && /^[[:space:]]*-[[:space:]]+id:[[:space:]]+/ {
       id_val=$0; sub(/^[[:space:]]*-[[:space:]]+id:[[:space:]]+/, "", id_val)
@@ -379,11 +394,11 @@ EOF
   while IFS= read -r sid; do
     [ -z "${sid}" ] && continue
 
-    # Get status from sprint-state
+    # Get status from sprint-state — awk anchored to /^stories:/ (column-0)
     local ss_status
     ss_status="$(awk -v target_id="${sid}" '
       BEGIN { in_stories=0; found_id=0 }
-      /^[[:space:]]*stories:/ { in_stories=1; next }
+      /^stories:/ { in_stories=1; next }
       in_stories && /^[^[:space:]#-]/ && !/^[[:space:]]/ { in_stories=0 }
       in_stories && found_id && /^[[:space:]]+status:/ {
         val=$0; sub(/^[[:space:]]+status:[[:space:]]*/, "", val); gsub(/[[:space:]]*$/, "", val)
@@ -441,30 +456,25 @@ EOF
 # test_wave_handoff_parses_migrated_sprint_state
 # AC-004 / BC-5.41.002 PC3 v1.20; BC-5.41.001 PC2 + PC3
 # After migration, invoking the wave-handoff skill against the migrated format MUST:
-# - Produce next_wave_stories containing only `status: draft` entries
+# - Exit 0 (no BrokenSprintState on well-formed fixture)
+# - Produce output containing S-1.02 in next_wave_stories (draft entry)
+# - Exclude S-1.01 (terminal: merged) from next_wave_stories
 #   (BC-5.41.002 PC3 v1.20: reserved-pending is a no-op; only draft matches)
-# - Exclude terminal entries (merged/withdrawn/cancelled)
-# - NOT raise BrokenSprintState on a well-formed fixture
 #
-# Uses FIXTURE: fixture-legacy.yaml (legacy format — RED GATE)
-# RED GATE: wave-handoff.sh invoked against the LEGACY format MUST fail or produce
-# incorrect output. The legacy stories: mapping (total/merged/...) has no per-story
-# status entries, so the skill either:
-#   (a) raises BrokenSprintState (no draft entries found), or
-#   (b) exits with an error parsing the non-list format.
-# Either outcome is a correct RED gate for this test.
-#
-# FINDING documented for implementer (T-8): if wave-handoff.sh cannot accept a
-# --sprint-state path pointing to the legacy format and errors out on parse,
-# the test will RED for the right reason (format mismatch / BrokenSprintState).
-# After T-4, the test must be updated to point to fixture-migrated.yaml.
+# GREEN TRANSITION (post-T-4): uses fixture-migrated.yaml — the conformant per-story
+# format. fixture-migrated.yaml has:
+#   S-1.01: merged  — terminal, excluded from next_wave
+#   S-1.02: draft   — next-wave selector, MUST appear in output
+#   S-1.03: ready   — non-terminal, non-draft; classify_stories puts in BROKEN_STORY_IDS
+# Per parse-sprint-state.sh: BrokenSprintState only fires when has_broken=1 AND has_next_wave=0.
+# Since S-1.02 is draft (has_next_wave=1), skill exits 0 with has-next-wave output.
 #
 # PORTABILITY: uses hermetic temp git repo (mirrors wave-handoff.bats pattern);
 # no .factory/ dependency.
 # ---------------------------------------------------------------------------
 
 @test "test_wave_handoff_parses_migrated_sprint_state" {
-  local fixture="${_FIXTURE_DIR}/fixture-legacy.yaml"
+  local fixture="${_FIXTURE_DIR}/fixture-migrated.yaml"
   [ -f "${fixture}" ] || {
     echo "FAIL (fixture missing): ${fixture}" >&2; false
   }
@@ -515,7 +525,8 @@ EOF
   printf '# ADR-025\n' \
     > "${artifacts_wt}/specs/architecture/decisions/ADR-025-single-writer-factory-locklease-prevent-concurrent-session-races-on-factory-artifacts-orphan-branch.md"
 
-  # Minimal STORY-INDEX — these IDs won't be found in the legacy sprint-state
+  # STORY-INDEX with S-1.01 (merged), S-1.02 (draft), S-1.03 (ready) — matches
+  # fixture-migrated.yaml for INV-2 round-trip compliance.
   cat > "${artifacts_wt}/stories/STORY-INDEX.md" << 'SIDX'
 ---
 document_type: story-index
@@ -527,8 +538,9 @@ version: "1.0"
 
 | Story ID | Title | Epic | Points | Priority | Depends-On | Blocks | Status | BCs |
 |----------|-------|------|--------|----------|-----------|--------|--------|-----|
-| S-1.01 | Root story | E-1 | 2 | P0 | [] | [S-1.02] | merged | [] |
+| S-1.01 | Root story | E-1 | 2 | P0 | [] | [S-1.02,S-1.03] | merged | [] |
 | S-1.02 | Second story | E-1 | 3 | P1 | [S-1.01] | [] | draft | [] |
+| S-1.03 | Third story | E-1 | 3 | P1 | [S-1.01] | [] | ready | [] |
 SIDX
 
   cat > "${work}/STATE.md" << 'STATEMD'
@@ -540,14 +552,14 @@ factory_lock: null
 # STATE
 STATEMD
 
-  # Use the LEGACY sprint-state fixture — RED GATE target
+  # Use the MIGRATED sprint-state fixture — GREEN target (post-T-4)
   cp "${fixture}" "${work}/sprint-state.yaml"
 
-  # Attempt --emit-handoff against the LEGACY format.
-  # RED GATE: the legacy stories: mapping (total/merged/...) has no per-story status
-  # entries. The skill should raise BrokenSprintState (no draft entries found in a
-  # stories: sequence) OR fail to parse the non-list format.
-  # Either exit != 0 or next_wave_stories absent/wrong is the correct RED outcome.
+  # Invoke --emit-handoff against the MIGRATED format.
+  # GREEN: fixture-migrated.yaml has {S-1.01 merged, S-1.02 draft, S-1.03 ready}.
+  # classify_stories: merged→terminal, draft→next_wave, ready→broken.
+  # BrokenSprintState only fires when has_broken=1 AND has_next_wave=0.
+  # Since has_next_wave=1 (S-1.02 draft), skill exits 0 with has-next-wave.
   local emit_output
   local emit_exit=0
   emit_output="$(
@@ -563,55 +575,42 @@ STATEMD
   git -C "${work}" worktree remove --force "${artifacts_wt}" 2>/dev/null || true
   rm -rf "${work}"
 
-  # Assert RED GATE: the skill MUST either exit non-zero (BrokenSprintState or parse error)
-  # OR produce next_wave_stories with wrong content from the legacy format.
-  # After T-4 migration, this test is updated to use fixture-migrated.yaml and assert
-  # exit 0 + correct next_wave_stories.
-  if [ "${emit_exit}" -eq 0 ]; then
-    # Skill exited 0 — check next_wave_stories is absent or wrong from legacy format
-    # The legacy format has no per-story draft entries, so next_wave_stories must not
-    # correctly list per-story objects with id: + status: fields.
-    local nws_content
-    nws_content="$(printf '%s\n' "${emit_output}" | awk '
-      /^next_wave_stories:/ { in_nws=1; next }
-      in_nws && /^[^[:space:]]/ { in_nws=0 }
-      in_nws { print }
-    ')"
-    # If there are no draft entries in the legacy format's stories: mapping, the skill
-    # would emit next_wave_stories: [] — which would be BrokenSprintState (non-terminal
-    # in-progress epics in the legacy file). We assert this is NOT a valid outcome.
-    printf '%s\n' "${emit_output}" | grep -q "BrokenSprintState\|next_wave_stories: \[\]" || {
-      # Skill exited 0 and did NOT raise BrokenSprintState and has non-empty next_wave_stories
-      # This means it somehow derived next_wave_stories from the legacy format — wrong.
-      echo "FAIL (BC-5.41.002 PC3): skill exited 0 with non-empty next_wave_stories from LEGACY format." >&2
-      echo "  The legacy count-summary format has no per-story {id, status} entries." >&2
-      echo "  Skill MUST raise BrokenSprintState or error on a non-list stories: mapping." >&2
-      echo "  RED GATE: this test REDs until T-4 migration replaces the legacy format." >&2
-      echo "  Output: ${emit_output}" >&2
-      false
-    }
-    # Skill raised BrokenSprintState on legacy format — this is acceptable RED for now
-    # but we still explicitly fail to enforce the RED gate
-    echo "FAIL (BC-5.41.002 PC3 RED GATE): skill produced BrokenSprintState on legacy format." >&2
-    echo "  This confirms the legacy sprint-state.yaml cannot satisfy BC-5.41.002 PC3." >&2
-    echo "  After T-4, the migrated format must NOT raise BrokenSprintState." >&2
-    echo "  Update this test to use fixture-migrated.yaml and assert exit 0 + S-1.02 in next_wave_stories." >&2
+  # Assert GREEN: skill MUST exit 0 on the migrated format.
+  [ "${emit_exit}" -eq 0 ] || {
+    echo "FAIL (BC-5.41.002 PC3): skill exited ${emit_exit} on migrated sprint-state.yaml." >&2
+    echo "  Expected exit 0 — migrated format with S-1.02 draft satisfies BC-5.41.002 PC3." >&2
+    echo "  Output: ${emit_output}" >&2
     false
-  else
-    # Skill exited non-zero — confirm it's for the RIGHT reason (format mismatch / BrokenSprintState)
-    # not a build error or missing argument
-    printf '%s\n' "${emit_output}" | grep -qiE "(BrokenSprintState|stories|format|list|seq|parse|sprint.state)" || {
-      echo "FAIL (test malformation): skill exited ${emit_exit} for an UNEXPECTED reason." >&2
-      echo "  Expected exit due to legacy format incompatibility (BrokenSprintState / parse error)." >&2
-      echo "  Output: ${emit_output}" >&2
-      false
-    }
-    # Expected RED: skill cannot handle legacy format — correct Red Gate
-    echo "RED (expected): skill exited ${emit_exit} on legacy format — correct Red Gate condition." >&2
-    echo "  The legacy count-summary format cannot satisfy BC-5.41.002 PC3 per-story derivation." >&2
-    echo "  After T-4, update this test to use fixture-migrated.yaml and assert exit 0." >&2
+  }
+
+  # Assert: output must NOT contain BrokenSprintState (well-formed migrated fixture)
+  printf '%s\n' "${emit_output}" | grep -q "BrokenSprintState" && {
+    echo "FAIL (BC-5.41.002 PC3): skill raised BrokenSprintState on valid migrated format." >&2
+    echo "  fixture-migrated.yaml has S-1.02 draft — valid next-wave story present." >&2
+    echo "  Output: ${emit_output}" >&2
     false
-  fi
+  } || true
+
+  # Assert: output must contain S-1.02 (the draft next-wave story)
+  printf '%s\n' "${emit_output}" | grep -q "S-1.02" || {
+    echo "FAIL (BC-5.41.002 PC3): output does not contain 'S-1.02' (expected draft next-wave story)." >&2
+    echo "  BC-5.41.002 PC3 v1.20: skill must select S-1.02 (status: draft) as next-wave story." >&2
+    echo "  Output: ${emit_output}" >&2
+    false
+  }
+
+  # Assert: S-1.01 (terminal: merged) must NOT appear in next_wave_stories section
+  local nws_has_s101=0
+  printf '%s\n' "${emit_output}" | awk '
+    /^next_wave_stories:/ { in_nws=1; next }
+    in_nws && /^[^[:space:]]/ { in_nws=0 }
+    in_nws && /S-1\.01/ { exit 1 }
+  ' || nws_has_s101=1
+  [ "${nws_has_s101}" -eq 0 ] || {
+    echo "FAIL (BC-5.41.002 PC3): S-1.01 (terminal: merged) appeared in next_wave_stories." >&2
+    echo "  Terminal stories MUST be excluded from next_wave_stories." >&2
+    false
+  }
 }
 
 # ---------------------------------------------------------------------------
@@ -621,62 +620,42 @@ STATEMD
 # count the leading contiguous run of terminal entries (merged/withdrawn/cancelled);
 # wave_id = run_length + 1.
 #
-# Uses FIXTURE: fixture-legacy.yaml (legacy count-summary format — RED GATE target).
-# A known-conformant fixture (fixture-leading-run.yaml with 10 terminals → wave_id=11)
-# is also used to verify the algorithm itself works correctly once format is conformant.
+# GREEN TRANSITION (post-T-4): uses fixture-leading-run.yaml directly — the
+# conformant fixture with 10 terminals + 2 drafts → wave_id=11.
+# awk anchor: /^stories:/ (column-0 only) per PC5 coexistence fix.
 #
-# RED GATE: the legacy format has stories: as a count-summary mapping — NOT a per-story
-# sequence. The _leading_terminal_run helper returns 0 (no terminal sequence entries
-# because stories: is not a sequence). wave_id would be 1 (0+1), but the test asserts
-# we CANNOT validly derive wave_id=11 from the legacy format.
-#
-# The test first asserts the legacy fixture fails the sequence check (RED gate),
-# then validates the algorithm on fixture-leading-run.yaml to confirm the algorithm
-# is correct (self-check). The algorithm self-check is NOT a vacuous pass — it asserts
-# a concrete expected value (11) that only holds if the fixture is correctly formed.
+# fixture-leading-run.yaml has 10 terminal entries (merged/withdrawn/cancelled mix)
+# followed by 2 draft entries. Expected: leading-run=10 → wave_id=11.
+# Assert 4 verifies wave-ascending order: no terminal entry after a non-terminal entry.
 #
 # PORTABILITY: fixture-based — CI-portable; no .factory/ dependency.
 # ---------------------------------------------------------------------------
 
 @test "test_wave_id_leading_run_algorithm" {
-  local legacy_fixture="${_FIXTURE_DIR}/fixture-legacy.yaml"
   local run_fixture="${_FIXTURE_DIR}/fixture-leading-run.yaml"
 
-  [ -f "${legacy_fixture}" ] || {
-    echo "FAIL (fixture missing): ${legacy_fixture}" >&2; false
-  }
   [ -f "${run_fixture}" ] || {
     echo "FAIL (fixture missing): ${run_fixture}" >&2; false
   }
 
-  # Assert 1 (RED GATE): legacy format has stories: as a count-summary mapping.
-  # The leading-contiguous-terminal-run algorithm CANNOT operate on this format
-  # because stories: is not a sequence of per-story objects.
-  _stories_is_sequence "${legacy_fixture}" || {
-    echo "FAIL (BC-5.41.001 PC2 RED GATE): legacy sprint-state.yaml stories: is a mapping, not a sequence." >&2
+  # Assert 1: fixture-leading-run.yaml must be a YAML sequence (conformant format).
+  _stories_is_sequence "${run_fixture}" || {
+    echo "FAIL (BC-5.41.001 PC2): fixture-leading-run.yaml stories: is not a YAML sequence." >&2
     echo "  The leading-contiguous-terminal-run algorithm requires a per-story {id, status} list." >&2
-    echo "  P-SPRINT-STATE-WAVE-ORDER precondition: entries must be in wave-ascending order." >&2
-    echo "  BC-5.41.004 PC3: producer MUST emit per-story entries in wave-ascending order." >&2
-    echo "  RED GATE: wave_id cannot be correctly derived from the legacy format." >&2
-    echo "  This test REDs until T-4 migrates sprint-state.yaml to the per-story list format." >&2
     false
   }
 
-  # (Remaining assertions only reached after RED GATE is resolved)
-  # Assert 2: on the legacy fixture, _leading_terminal_run returns 0 (no sequence entries)
-  # so wave_id = 0 + 1 = 1, which is WRONG for a >1-wave project.
-  local legacy_run
-  legacy_run="$(_leading_terminal_run "${legacy_fixture}")"
-  # This is a diagnostic assertion — the legacy run must be 0 (no per-story entries)
-  [ "${legacy_run}" -eq 0 ] || {
-    echo "FAIL (BC-5.41.004 PC3): legacy fixture stories: mapping has terminal entries — unexpected." >&2
-    echo "  Legacy format should have 0 per-story sequence entries." >&2
+  # Assert 2: fixture has per-story entries with id: sub-keys
+  local entry_count
+  entry_count="$(_count_stories_per_story_entries "${run_fixture}")"
+  [ "${entry_count}" -gt 0 ] || {
+    echo "FAIL (BC-5.41.001 PC2): fixture-leading-run.yaml has no per-story entries." >&2
     false
   }
 
-  # Assert 3 (algorithm self-check on conformant fixture):
+  # Assert 3 (algorithm self-check):
   # fixture-leading-run.yaml has 10 terminals + 2 drafts → run=10 → wave_id=11.
-  # This verifies the algorithm implementation is correct for the GREEN path.
+  # This verifies the algorithm implementation is correct.
   local run_length
   run_length="$(_leading_terminal_run "${run_fixture}")"
   [ "${run_length}" -eq 10 ] || {
@@ -693,7 +672,8 @@ STATEMD
   }
 
   # Assert 4: P-SPRINT-STATE-WAVE-ORDER — the conformant fixture must NOT have a
-  # terminal entry appearing after a non-terminal entry (wave-ascending invariant)
+  # terminal entry appearing after a non-terminal entry (wave-ascending invariant).
+  # awk anchor: /^stories:/ (column-0 only) per PC5 coexistence fix.
   local seen_non_terminal=0
   local order_ok=1
   while IFS= read -r status_val; do
@@ -709,7 +689,7 @@ STATEMD
   done <<EOF
 $(awk '
   BEGIN { in_stories=0 }
-  /^[[:space:]]*stories:/ { in_stories=1; next }
+  /^stories:/ { in_stories=1; next }
   in_stories && /^[^[:space:]#-]/ && !/^[[:space:]]/ { in_stories=0 }
   in_stories && /^[[:space:]]+status:/ {
     val=$0; sub(/^[[:space:]]+status:[[:space:]]*/, "", val); gsub(/[[:space:]]*$/, "", val); print val
@@ -719,6 +699,113 @@ EOF
   [ "${order_ok}" -eq 1 ] || {
     echo "FAIL (BC-5.41.001 P-SPRINT-STATE-WAVE-ORDER): fixture-leading-run.yaml has a terminal entry after a non-terminal entry." >&2
     echo "  Wave-ascending order requires all terminal entries to precede non-terminal entries." >&2
+    false
+  }
+}
+
+# ---------------------------------------------------------------------------
+# test_epics_coexistence_nested_stories_ignored
+# PC5 coexistence / awk-anchor regression lock (EC-004)
+# BC-5.41.004 PC5: the producer MUST NOT mutate the legacy `epics:` section.
+# The conformant stories: list coexists with an epics: section whose sub-keys
+# may include `stories:` mappings with out-of-enum scalar values
+# (e.g., `stories: closed`, `stories: tier-1-shipped`).
+#
+# This test locks in the top-level awk anchor (/^stories:/, column-0 only):
+#   (a) status scan of stories: list returns ONLY 8-enum values (merged/draft/ready)
+#       NOT the epics sub-key scalar values (closed, tier-1-shipped)
+#   (b) _stories_is_sequence returns true (fixture is a sequence)
+#   (c) _count_stories_per_story_entries returns 3 (only top-level list entries counted)
+#   (d) _leading_terminal_run correctly processes only the top-level stories: list
+#
+# Fixture: fixture-migrated.yaml — contains:
+#   top-level stories: [{S-1.01 merged}, {S-1.02 draft}, {S-1.03 ready}]
+#   epics: E-0.stories: closed  (out-of-enum — must be IGNORED)
+#          E-1.stories: tier-1-shipped  (out-of-enum — must be IGNORED)
+#
+# REGRESSION TEST: if this test fails after a change to the awk patterns, the
+# awk anchor has regressed from /^stories:/ back to /^[[:space:]]*stories:/
+# and the PC5-violating data workaround (epics subkey rename) will be required again.
+#
+# PORTABILITY: fixture-based — CI-portable; no .factory/ dependency.
+# ---------------------------------------------------------------------------
+
+@test "test_epics_coexistence_nested_stories_ignored" {
+  local fixture="${_FIXTURE_DIR}/fixture-migrated.yaml"
+  [ -f "${fixture}" ] || {
+    echo "FAIL (fixture missing): ${fixture}" >&2; false
+  }
+
+  # Sanity: fixture must have top-level stories: as a sequence
+  _stories_is_sequence "${fixture}" || {
+    echo "FAIL (test-precondition): fixture-migrated.yaml stories: is not a sequence." >&2
+    false
+  }
+
+  # Assert (a): _count_stories_per_story_entries returns exactly 3 (top-level entries only).
+  # If the awk anchor regresses to /^[[:space:]]*stories:/, nested epics[*].stories: keys
+  # would be re-entered as in_stories=1, potentially inflating the count with non-entries.
+  local entry_count
+  entry_count="$(_count_stories_per_story_entries "${fixture}")"
+  [ "${entry_count}" -eq 3 ] || {
+    echo "FAIL (PC5 coexistence / EC-004 regression): _count_stories_per_story_entries = ${entry_count}, expected 3." >&2
+    echo "  fixture-migrated.yaml has exactly 3 top-level stories: entries (S-1.01, S-1.02, S-1.03)." >&2
+    echo "  The epics: section has 2 nested 'stories: <scalar>' sub-keys that must be ignored." >&2
+    echo "  If count != 3, the awk anchor has regressed to /^[[:space:]]*stories:/ (bug reintroduced)." >&2
+    false
+  }
+
+  # Assert (b): status scan of top-level stories: list returns ONLY 8-enum values.
+  # The epics[*].stories: sub-key scalar values (closed, tier-1-shipped) must NOT appear.
+  local invalid_found=0
+  local statuses
+  statuses="$(awk '
+    BEGIN { in_stories=0 }
+    /^stories:/ { in_stories=1; next }
+    in_stories && /^[^[:space:]#-]/ && !/^[[:space:]]/ { in_stories=0 }
+    in_stories && /^[[:space:]]+status:/ {
+      val=$0; sub(/^[[:space:]]+status:[[:space:]]*/, "", val); gsub(/[[:space:]]*$/, "", val); print val
+    }
+  ' "${fixture}")"
+
+  local s
+  while IFS= read -r s; do
+    [ -z "${s}" ] && continue
+    case "${s}" in
+      draft|ready|in-progress|partial|blocked|merged|withdrawn|cancelled) ;;
+      *)
+        echo "FAIL (PC5/EC-004 regression): status '${s}' from epics section leaked into stories: scan." >&2
+        echo "  The awk anchor /^stories:/ must prevent epics[*].stories: sub-keys from activating in_stories." >&2
+        echo "  Expected: only {merged, draft, ready} from top-level stories: list." >&2
+        echo "  Got '${s}' — this is an out-of-enum epics scalar value (closed or tier-1-shipped)." >&2
+        invalid_found=1
+        ;;
+    esac
+  done <<EOF
+${statuses}
+EOF
+  [ "${invalid_found}" -eq 0 ] || false
+
+  # Assert (c): exactly 3 status values emitted (one per story entry — no epics leakage)
+  local status_count
+  status_count="$(printf '%s\n' "${statuses}" | grep -c '[^[:space:]]' || true)"
+  [ "${status_count}" -eq 3 ] || {
+    echo "FAIL (PC5/EC-004 regression): status scan emitted ${status_count} values, expected 3." >&2
+    echo "  Expected: merged, draft, ready (one per top-level stories: entry)." >&2
+    echo "  Extra values indicate epics[*].status: fields leaked through the awk anchor." >&2
+    false
+  }
+
+  # Assert (d): _leading_terminal_run processes top-level stories only.
+  # fixture-migrated.yaml: S-1.01 merged (terminal), S-1.02 draft (breaks run), S-1.03 ready.
+  # Leading terminal run = 1 (S-1.01 merged; S-1.02 draft breaks the run).
+  # If epics leakage occurred, extra status values could corrupt the run count.
+  local run
+  run="$(_leading_terminal_run "${fixture}")"
+  [ "${run}" -eq 1 ] || {
+    echo "FAIL (PC5/EC-004 regression): _leading_terminal_run = ${run}, expected 1." >&2
+    echo "  fixture-migrated.yaml: S-1.01 merged (terminal), then S-1.02 draft (non-terminal breaks run)." >&2
+    echo "  Leading run should be exactly 1. A different value indicates epics leakage or wrong fixture." >&2
     false
   }
 }
