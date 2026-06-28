@@ -10178,3 +10178,80 @@ All 4 indexes: ZERO FAIL. BC-INDEX v3.53 / VP-INDEX v2.51 / STORY-INDEX v4.101 /
 ### Factory-artifacts Commits
 
 - `02ca5b88` (factory-artifacts) — state(S-18.10): leg-5 index sync BC-6.25.001 v1.1 + story v1.4 + STATE 4-index refresh + D-718 (in-flight spec amendment; LOCAL adv pass-2 fixes)
+
+---
+
+## D-719 S-18.10 POST-MERGE burst (2026-06-28)
+
+### Parent-commit
+
+`decdc203` (state(S-18.10): SHA-patch burst-log D-718 factory-artifacts commit 02ca5b88)
+
+### Adversary Verdict
+
+S-18.10 LOCAL adversarial cascade 11 passes CONVERGED at 3-CLEAN (passes 9/10/11) after genuine MEDIUM EC-008 catch at pass-8. Pass-8 finding F-P8-001: EC-008 empty-string gap — bats fixture did not mirror BC-6.25.001 §Canonical Test Vectors for empty-string input form (asserted only status-presence `grep -q ADVISORY`, not verbatim advisory note string). Architect adjudicated jq-strategy for EC-008 empty-string distinction (`.env.CLAUDE_AUTOCOMPACT_PCT_OVERRIDE // empty` vs `// null`). PO amended BC-6.25.001 to v1.1 (EC-012 negative/zero out-of-range advisory; Invariant 3 range 1–100; jq anchor note). Passes 9/10/11 all CLEAN → 3-CLEAN streak met → LOCAL cascade CONVERGED. bats 17/17 green. CI 12/12 green. AI review APPROVE. Security review APPROVE. PR #315 merged.
+
+### Dim-2 (4-index parity gate — literal-shell stdout)
+
+```bash
+$ grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/behavioral-contracts/BC-INDEX.md
+version: "3.54"
+
+$ grep "^last_amended:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/behavioral-contracts/BC-INDEX.md | grep -oE "v[0-9]+\.[0-9]+" | head -1
+v3.54
+BC-INDEX: version == last_amended prefix — PASS
+
+$ grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/verification-properties/VP-INDEX.md
+version: "2.51"
+
+$ grep "^last_amended:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/verification-properties/VP-INDEX.md | grep -oE "v[0-9]+\.[0-9]+" | head -1
+v2.51
+VP-INDEX: version == last_amended prefix — PASS (UNCHANGED)
+
+$ grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/stories/STORY-INDEX.md
+version: "4.102"
+
+$ grep "^last_amended:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/stories/STORY-INDEX.md | grep -oE "v[0-9]+\.[0-9]+" | head -1
+v4.102
+STORY-INDEX: version == last_amended prefix — PASS
+
+$ grep "^version:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/architecture/ARCH-INDEX.md
+version: "2.84"
+
+$ grep "^last_amended:" /Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/architecture/ARCH-INDEX.md | grep -oE "v[0-9]+\.[0-9]+" | head -1
+v2.84
+ARCH-INDEX: version == last_amended prefix — PASS (UNCHANGED)
+```
+
+All 4 indexes: ZERO FAIL. BC-INDEX v3.54 / VP-INDEX v2.51 / STORY-INDEX v4.102 / ARCH-INDEX v2.84.
+
+### Dim-5 (Files Touched)
+
+- `.factory/specs/behavioral-contracts/ss-06/BC-6.25.001.md` — lifecycle_status draft→active (POL-14 auto-promotion; S-18.10 PR #315 squash-merged 699b7e60 2026-06-28; D-719); last_amended prepended; modified[] POL-14 entry prepended. Version UNCHANGED v1.1. No behavioral change.
+- `.factory/specs/behavioral-contracts/BC-INDEX.md` — v3.53→v3.54: BC-6.25.001 catalog row status draft→**active** (POL-14 auto-promotion); frontmatter version/timestamp/last_amended advanced per POLICY 14 parity.
+- `.factory/stories/STORY-INDEX.md` — v4.101→v4.102: S-18.10 row draft→**merged** (PR #315 699b7e60 2026-06-28; merged_commit/merged_pr/merged_date fields added); frontmatter version/last_amended advanced per POLICY 14 parity.
+- `.factory/cycles/v1.0-brownfield-backfill/merged-stories-ledger.md` — S-18.10 #315 699b7e60 2026-06-28 appended.
+- `.factory/cycles/v1.0-brownfield-backfill/lessons.md` — L-BB-red-gate-fixture-must-mirror-bc-canonical-test-vectors appended (D-719 [process-gap] lesson: bats fixtures must mirror BC canonical test vectors verbatim including single-line JSON and exact note strings; no follow-up story needed).
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — D-719 burst entry appended (this entry).
+- `.factory/STATE.md` — v4.69→v4.70: all state advances (story status draft→merged; merged_count 93→94; POL-14 BC-6.25.001 active noted; develop_head 5af40c4e→699b7e60; BC-INDEX v3.53→v3.54; STORY-INDEX v4.101→v4.102; §Story Status, §Active Branches, §Concurrent Cycles, §Decisions Log D-719, §Project Metadata, §Session Resume Checkpoint, frontmatter, SIZE BUDGET banner updated).
+
+### Dim-6 (Codifications)
+
+- D-719 codified: S-18.10 POST-MERGE BURST; PR #315 squash-merged 699b7e60 to develop 2026-06-28T13:34:01Z; S-18.10 draft→merged; merged_count 93→94; POL-14 BC-6.25.001 draft→active (BC-INDEX v3.53→v3.54; BC file lifecycle_status active); STORY-INDEX v4.101→v4.102; develop_head 5af40c4e→699b7e60; E-18 wave-7 COMPLETE; LOCAL cascade 11 passes CONVERGED 3-CLEAN passes 9/10/11; NEXT S-18.11/S-18.12 (PO BC authorship gated per S-7.01).
+- L-BB-red-gate-fixture-must-mirror-bc-canonical-test-vectors [process-gap] codified: Red Gate bats fixtures must mirror BC canonical test vectors verbatim (single-line JSON form + exact advisory note strings); complementary to L-BB-blocker-fix-must-not-regress-canonical-tv-coverage; no follow-up story.
+- 4-index parity: BC-INDEX v3.54 / VP-INDEX v2.51 / STORY-INDEX v4.102 / ARCH-INDEX v2.84. Literal-shell verified PASS (all 4 index edits complete; stdout captured in Dim-2 above).
+
+### Dim-7 (Streak Status)
+
+S-18.10 LOCAL 3-CLEAN streak: **CONVERGED** (3-CLEAN passes 9/10/11 per BC-5.39.001). Post-merge burst: no streak — story delivered to develop at 699b7e60. E-18 wave-7 gate: COMPLETE. NEXT: S-18.11/S-18.12 REQUIRE PO BC authorship first (per S-7.01).
+
+### Closes
+
+- S-18.10 draft → **merged** (PR #315 699b7e60 2026-06-28T13:34:01Z).
+- BC-6.25.001 draft → **active** (POL-14 auto-promotion at merge).
+- E-18 wave-7: COMPLETE (S-18.10 was wave-7 story per DAG).
+- L-BB-red-gate-fixture-must-mirror-bc-canonical-test-vectors: CODIFIED (no follow-up story required).
+
+### Factory-artifacts Commits
+
+- TBD — this burst commit SHA (post-push)

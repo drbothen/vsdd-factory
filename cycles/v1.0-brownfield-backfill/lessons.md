@@ -5149,3 +5149,30 @@ Justified exceptions (per TD-VSDD-091): Red Gate test tables and AC source-of-tr
 **Analogy:** SOUL.md §4 — silent `Vec::new()` return where partial-failure data should propagate. The bats fixture gap is equivalent: a green-returning parser that silently misclassifies an EC is a false-green, not a true-green.
 
 **Cites:** D-718 S-18.10 IN-FLIGHT SPEC-AMENDMENT; F-P2-001 HIGH (jq single-line parse); F-P2-002 MEDIUM (EC-011 coverage); F-P2-004 (EC-012 advisory); BC-6.25.001 v1.0→v1.1; S-18.10 v1.3→v1.4; LOCAL 3-CLEAN streak 0/3.
+
+---
+
+## L-BB-red-gate-fixture-must-mirror-bc-canonical-test-vectors
+
+**Date:** 2026-06-28 (D-719)
+**Tags:** [process-gap] [test-writer] [adversary] [codified]
+**Anchors:** D-719, S-18.10, BC-6.25.001, F-P8-001 (EC-008 empty-string gap pass-8 MEDIUM)
+
+**Lesson (codified):** Red Gate bats fixtures MUST mirror the BC's Canonical Test Vectors verbatim — including single-line JSON forms and exact note/advisory strings — not just the minimal fixture set the test-writer initially derives. Under-specified fixtures create silent EC coverage gaps that a fresh-context adversary will catch in later passes.
+
+**Root cause:** S-18.10 LOCAL adversarial pass-8 caught F-P8-001 MEDIUM (EC-008 empty-string gap): the initial bats fixture set used only multi-line pretty-printed JSON for settings.json and asserted only status-presence (ADVISORY row exists), not the exact advisory note string. BC-6.25.001 §Canonical Test Vectors include a single-line JSON input AND specify exact advisory note content (e.g., `"Value <N> is not a valid compaction percentage..."`). The bats fixture asserted `grep -q "ADVISORY"` but did not assert the exact note — so when the EC-008 empty-string path was exercised with a fixture not in the original set, the gate passed vacuously. Pass-8 caught this as MEDIUM: the test is present but under-specified relative to the BC canonical test vector.
+
+**Pattern:** The "fixture-under-specification" class. Test-writer authors bats tests that assert presence of a keyword (ADVISORY, PASS, FAIL) but not the verbatim expected output required by the BC's Canonical Test Vector section. The BC is authoritative for exact output form; bats is authoritative for repeatability. When they diverge, the adversary finds the gap.
+
+**Additional context:** The jq strategy adjudication at pass-8 (D-719) also required architect involvement because the `jq` absent-vs-empty distinction (`.env.CLAUDE_AUTOCOMPACT_PCT_OVERRIDE // empty` vs `// null`) produces subtly different output for EC-008 (empty-string in settings.json). The BC's EC-012 amendment (PO BC v1.1) added the canonical test vector for ≤0 case; the corresponding bats test was missing until the adversary raised it.
+
+**Gate (codified):** When test-writer authors bats fixtures for a story with BC §Canonical Test Vectors:
+1. For EACH canonical test vector in the BC, there MUST be a corresponding bats test that: (a) uses the exact JSON/input form from the CV (e.g., single-line `{"env":{"KEY":"VALUE"}}`), AND (b) asserts the exact expected output string from the CV (not just status-presence).
+2. If the BC specifies an exact note string (e.g., `Value <N> is not a valid...`), the bats test MUST assert that exact string, not just `grep -q ADVISORY`.
+3. The implementer MUST cross-check: grep all `EC-NNN` labels in the relevant AC section of the BC file, confirm each has a corresponding bats test with CV-verbatim input and CV-verbatim expected output.
+
+**Relationship to L-BB-blocker-fix-must-not-regress-canonical-tv-coverage:** These two lessons are complementary. L-BB-blocker-fix-must-not-regress covers the regression introduced by a BLOCKER fix. L-BB-red-gate-fixture-must-mirror-bc-canonical-test-vectors covers the original under-specification of fixtures that creates the gap for later adversary passes to exploit.
+
+**Follow-up story anchor:** Satisfied by codification — no follow-up story required. The gate is a test-writer discipline rule enforced by the adversary in LOCAL cascade (BC-5.39.001 3-CLEAN protocol). No automation story needed at this time; apply at test-writer dispatch for all future E-18/F4 stories.
+
+**Cites:** D-719 S-18.10 POST-MERGE; F-P8-001 MEDIUM EC-008 empty-string gap; BC-6.25.001 §Canonical Test Vectors; S-18.10 LOCAL 11-pass cascade CONVERGED 3-CLEAN passes 9/10/11; jq strategy adjudication at pass-8; PO BC v1.1 EC-012 amendment.

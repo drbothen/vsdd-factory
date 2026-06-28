@@ -5,7 +5,7 @@ version: "1.1"
 status: draft
 producer: product-owner
 timestamp: 2026-06-16T00:00:00Z
-last_amended: "(v1.1) — EC-012 added: value ≤ 0 (zero or negative) is out-of-range, emits distinct ADVISORY row; Invariant 3 clarified with valid range 1–100 and ≤0 lower-bound case; Architecture Anchors jq traceability note added; new canonical test vector for ≤0 case. [Prior: 2026-06-16 (v1.0) — initial creation (E-18 scope, S-18.10 deliverable). check-state-health settings.json CLAUDE_AUTOCOMPACT_PCT_OVERRIDE=70 verification per ADR-026 §Decision 5 + §F-11. Architect adjudicated this contract is required (F3 story pass-1, F-MAJOR-003): advisory-only, non-blocking, settings.json env-var presence and value-ceiling check.]"
+last_amended: "2026-06-28 (v1.1) — D-719 post-merge burst (state-manager): lifecycle_status draft→active (POL-14 auto-promotion; S-18.10 PR #315 squash-merged 699b7e60 to develop 2026-06-28). No behavioral change. [Prior: (v1.1) — EC-012 added: value ≤ 0 (zero or negative) is out-of-range, emits distinct ADVISORY row; Invariant 3 clarified with valid range 1–100 and ≤0 lower-bound case; Architecture Anchors jq traceability note added; new canonical test vector for ≤0 case. Prior: 2026-06-16 (v1.0) — initial creation (E-18 scope, S-18.10 deliverable). check-state-health settings.json CLAUDE_AUTOCOMPACT_PCT_OVERRIDE=70 verification per ADR-026 §Decision 5 + §F-11. Architect adjudicated this contract is required (F3 story pass-1, F-MAJOR-003): advisory-only, non-blocking, settings.json env-var presence and value-ceiling check.]"
 phase: F3
 inputs:
   - .factory/specs/architecture/decisions/ADR-026-wave-boundary-checkpoint-reset-and-lossless-intra-wave-compaction.md
@@ -16,9 +16,10 @@ origin: greenfield
 extracted_from: null
 subsystem: "SS-06"
 capability: "CAP-032"
-lifecycle_status: draft
+lifecycle_status: active
 introduced: v1.0-feature-context-durability-E18
 modified:
+  - "2026-06-28 (v1.1) — POL-14 auto-promotion: lifecycle_status draft→active (S-18.10 PR #315 squash-merged 699b7e60 to develop 2026-06-28; D-719)."
   - version: "1.1"
     date: 2026-06-28
     author: product-owner
