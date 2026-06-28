@@ -15,6 +15,13 @@
 # The legacy RED gate assertions have been replaced with GREEN assertions.
 # Test 6 (epics-coexistence regression) locks the PC5-coexistence awk-anchor fix.
 #
+# POST-T-6 ADDITIONS (F-P1-004 / F-P1-007):
+# Tests 7-11 close the false-green coverage gap (F-P1-004) by exercising the REAL
+# production sprint-state.yaml against the REAL consumer derive_wave_id (T-7), and
+# add architect-specified regression guards (T-8..T-11) using fixtures so they run in CI.
+# T-12 (awk harmonize) is structural: no new test but all exit-pattern regexes are
+# harmonized to /^[^[:space:]#]/ (F-P1-007).
+#
 # CI-PORTABILITY DESIGN (cross-tree / CI-portability constraint):
 # ---------------------------------------------------------------
 # The production sprint-state.yaml lives at .factory/stories/sprint-state.yaml on
@@ -40,13 +47,32 @@
 #     test_wave_handoff_parses_migrated_sprint_state        (T-4, AC-004) — fixture-migrated.yaml
 #     test_wave_id_leading_run_algorithm                    (T-5, AC-006) — fixture-leading-run.yaml
 #     test_epics_coexistence_nested_stories_ignored         (T-6, PC5/EC-004) — fixture-migrated.yaml
+#   PRODUCTION-FILE + .factory-GUARDED SKIP (F-P1-004 real-file round-trip):
+#     test_real_production_file_round_trip                  (T-7, F-P1-004) — .factory/stories/sprint-state.yaml
+#       → SKIP when .factory/stories/sprint-state.yaml absent (CI);
+#         GREEN when derive_wave_id exits 0 and returns positive integer.
+#   FIXTURE-BASED REGRESSION GUARDS (CI-portable, architect-specified):
+#     test_consumer_accepts_partial_status                  (T-8)  — fixture-partial-accepted.yaml
+#     test_consumer_rejects_interleaved_ordering            (T-9)  — fixture-interleaved-order.yaml
+#     test_consumer_partial_only_raises_broken_sprint_state (T-10) — fixture-partial-only.yaml
+#     test_consumer_rejects_complete_status                 (T-11) — fixture-complete-status.yaml
 #
-# AWK ANCHOR FIX (PC5 coexistence):
+# AWK ANCHOR FIX (PC5 coexistence) + F-P1-007 HARMONIZATION:
 # All awk patterns that enter `in_stories=1` use /^stories:/ (column-0 anchor),
 # NOT /^[[:space:]]*stories:/. This prevents nested epics[*].stories: sub-keys
 # from re-entering the stories: parsing context and emitting out-of-enum values.
 # fixture-migrated.yaml has epics.E-0.stories=closed + epics.E-1.stories=tier-1-shipped
 # which are out-of-enum scalars that MUST be ignored by all awk parsers.
+#
+# F-P1-007 — ALL block-exit patterns harmonized to ONE canonical form:
+#   in_stories && /^[^[:space:]#]/ { in_stories=0 }
+# This replaces the three prior variants:
+#   (a) /^[^[:space:]#-]/                  (was: _count_stories_per_story_entries)
+#   (b) /^[^[:space:]#-]/ && !/^[[:space:]]/ (was: all other inline awk blocks — redundant)
+#   (c) /^[^[:space:]]/ { result=1; exit } (was: _stories_is_sequence)
+# The canonical form /^[^[:space:]#]/ means "column-0 non-space, non-comment" —
+# identical intent to form (b) but without the redundant double-negation, and
+# without the spurious `-` exclusion that was harmless but inconsistent.
 #
 # PORTABILITY RULES (Architecture Compliance Rules §3-§7):
 #   §3 set -euo pipefail in all helper scriptlets
@@ -61,7 +87,7 @@
 #   awk, grep -E, sort, git
 #   No jq used in this suite (POSIX awk/grep sufficient for YAML key extraction)
 #
-# @test count: 6 (grep -c '^@test' sprint-state-format.bats == 6)
+# @test count: 11 (grep -c '^@test' sprint-state-format.bats == 11)
 
 # ---------------------------------------------------------------------------
 # Fixture paths
@@ -95,7 +121,7 @@ _count_stories_per_story_entries() {
   awk '
     BEGIN { in_stories=0; count=0 }
     /^stories:/ { in_stories=1; next }
-    in_stories && /^[^[:space:]#-]/ { in_stories=0 }
+    in_stories && /^[^[:space:]#]/ { in_stories=0 }
     in_stories && /^[[:space:]]*-[[:space:]]+id:/ { count++ }
     END { print count }
   ' "$file"
@@ -128,7 +154,7 @@ _stories_is_sequence() {
     in_stories && /^[[:space:]]*#/ { next }
     in_stories && /^[[:space:]]*-[[:space:]]/ { result=0; exit }
     in_stories && /^[[:space:]]+[[:alnum:]]/ { result=1; exit }
-    in_stories && /^[^[:space:]]/ { result=1; exit }
+    in_stories && /^[^[:space:]#]/ { result=1; exit }
     END { exit result }
   ' "$file"
 }
@@ -145,7 +171,7 @@ _leading_terminal_run() {
   awk '
     BEGIN { in_stories=0; run=0; broken=0; pending_status=0 }
     /^stories:/ { in_stories=1; next }
-    in_stories && /^[^[:space:]#-]/ && !/^[[:space:]]/ { in_stories=0 }
+    in_stories && /^[^[:space:]#]/ { in_stories=0 }
     in_stories && /^[[:space:]]*-[[:space:]]+id:/ { pending_status=1 }
     in_stories && pending_status && /^[[:space:]]+status:/ {
       val=$0
@@ -221,7 +247,7 @@ _leading_terminal_run() {
   statuses="$(awk '
     BEGIN { in_stories=0 }
     /^stories:/ { in_stories=1; next }
-    in_stories && /^[^[:space:]#-]/ && !/^[[:space:]]/ { in_stories=0 }
+    in_stories && /^[^[:space:]#]/ { in_stories=0 }
     in_stories && /^[[:space:]]+status:/ {
       val=$0; sub(/^[[:space:]]+status:[[:space:]]*/, "", val); gsub(/[[:space:]]*$/, "", val); print val
     }
@@ -295,7 +321,7 @@ EOF
   ids_in_order="$(awk '
     BEGIN { in_stories=0 }
     /^stories:/ { in_stories=1; next }
-    in_stories && /^[^[:space:]#-]/ && !/^[[:space:]]/ { in_stories=0 }
+    in_stories && /^[^[:space:]#]/ { in_stories=0 }
     in_stories && /^[[:space:]]*-[[:space:]]+id:[[:space:]]+/ {
       id_val=$0; sub(/^[[:space:]]*-[[:space:]]+id:[[:space:]]+/, "", id_val)
       gsub(/[[:space:]]*$/, "", id_val); print id_val
@@ -317,7 +343,7 @@ EOF
   awk '
     BEGIN { in_stories=0 }
     /^stories:/ { in_stories=1; next }
-    in_stories && /^[^[:space:]#-]/ && !/^[[:space:]]/ { in_stories=0 }
+    in_stories && /^[^[:space:]#]/ { in_stories=0 }
     in_stories && /^[[:space:]]+wave:/ { exit 1 }
   ' "${fixture}" || has_phantom_wave=1
 
@@ -382,7 +408,7 @@ EOF
   story_ids="$(awk '
     BEGIN { in_stories=0 }
     /^stories:/ { in_stories=1; next }
-    in_stories && /^[^[:space:]#-]/ && !/^[[:space:]]/ { in_stories=0 }
+    in_stories && /^[^[:space:]#]/ { in_stories=0 }
     in_stories && /^[[:space:]]*-[[:space:]]+id:[[:space:]]+/ {
       id_val=$0; sub(/^[[:space:]]*-[[:space:]]+id:[[:space:]]+/, "", id_val)
       gsub(/[[:space:]]*$/, "", id_val); print id_val
@@ -399,7 +425,7 @@ EOF
     ss_status="$(awk -v target_id="${sid}" '
       BEGIN { in_stories=0; found_id=0 }
       /^stories:/ { in_stories=1; next }
-      in_stories && /^[^[:space:]#-]/ && !/^[[:space:]]/ { in_stories=0 }
+      in_stories && /^[^[:space:]#]/ { in_stories=0 }
       in_stories && found_id && /^[[:space:]]+status:/ {
         val=$0; sub(/^[[:space:]]+status:[[:space:]]*/, "", val); gsub(/[[:space:]]*$/, "", val)
         print val; found_id=0
@@ -690,7 +716,7 @@ STATEMD
 $(awk '
   BEGIN { in_stories=0 }
   /^stories:/ { in_stories=1; next }
-  in_stories && /^[^[:space:]#-]/ && !/^[[:space:]]/ { in_stories=0 }
+  in_stories && /^[^[:space:]#]/ { in_stories=0 }
   in_stories && /^[[:space:]]+status:/ {
     val=$0; sub(/^[[:space:]]+status:[[:space:]]*/, "", val); gsub(/[[:space:]]*$/, "", val); print val
   }
@@ -762,7 +788,7 @@ EOF
   statuses="$(awk '
     BEGIN { in_stories=0 }
     /^stories:/ { in_stories=1; next }
-    in_stories && /^[^[:space:]#-]/ && !/^[[:space:]]/ { in_stories=0 }
+    in_stories && /^[^[:space:]#]/ { in_stories=0 }
     in_stories && /^[[:space:]]+status:/ {
       val=$0; sub(/^[[:space:]]+status:[[:space:]]*/, "", val); gsub(/[[:space:]]*$/, "", val); print val
     }
@@ -806,6 +832,345 @@ EOF
     echo "FAIL (PC5/EC-004 regression): _leading_terminal_run = ${run}, expected 1." >&2
     echo "  fixture-migrated.yaml: S-1.01 merged (terminal), then S-1.02 draft (non-terminal breaks run)." >&2
     echo "  Leading run should be exactly 1. A different value indicates epics leakage or wrong fixture." >&2
+    false
+  }
+}
+
+# ---------------------------------------------------------------------------
+# test_real_production_file_round_trip
+# T-7 / F-P1-004 — real-production-file round-trip test
+# BC-5.41.001 PC2; BC-5.41.004 PC1-PC4 + INV-1/INV-2/INV-3
+#
+# This is the test that would have caught F-P1-001/002/003 had it existed earlier.
+# It feeds the REAL migrated .factory/stories/sprint-state.yaml to the REAL consumer
+# derive_wave_id (via parse-sprint-state.sh) and verifies:
+#   1. Exit code 0 — no WaveOrderUnverifiable, no unknown-status abort
+#   2. A POSITIVE INTEGER wave_id is returned (not empty, not zero, not error text)
+#
+# The production sprint-state.yaml is on the factory-artifacts orphan branch, mounted
+# at .factory/ locally but NOT present in a fresh CI checkout of the feature branch.
+#
+# PORTABILITY: guarded to SKIP when .factory/stories/sprint-state.yaml is absent.
+# This mirrors the pattern used by test_sprint_state_stories_list_present (T-1) and
+# wave-handoff.bats test_BC_5_41_001_PC10_S18_13_AC002* tests.
+# SKIP in CI (where .factory is not mounted), PASS locally (sprint-state.yaml is migrated).
+# ---------------------------------------------------------------------------
+
+@test "test_real_production_file_round_trip" {
+  # Guard: skip when production file is absent (CI without factory-artifacts worktree)
+  if [ ! -f "${_PRODUCTION_SPRINT_STATE}" ]; then
+    skip ".factory/stories/sprint-state.yaml absent — factory-artifacts worktree not mounted (CI); SKIP is expected in CI"
+  fi
+
+  # Locate parse-sprint-state.sh
+  local parse_lib="${BATS_TEST_DIRNAME}/../skills/wave-handoff/lib/parse-sprint-state.sh"
+  [ -f "${parse_lib}" ] || {
+    echo "FAIL (S-18.01 prerequisite): parse-sprint-state.sh does not exist at ${parse_lib}." >&2
+    false
+  }
+
+  # Locate STATE.md (fallback substrate for derive_wave_id if stories: section is empty)
+  local repo_root
+  repo_root="$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)"
+  local state_md="${repo_root}/.factory/STATE.md"
+
+  # Invoke derive_wave_id against the real production file in a subshell
+  # (derive_wave_id sets globals; we use $(...) to capture stdout only)
+  local wave_id=""
+  local exit_code=0
+  wave_id="$(
+    bash -c '
+      set -euo pipefail
+      source "$1"
+      derive_wave_id "$2" "$3"
+    ' _ "${parse_lib}" "${_PRODUCTION_SPRINT_STATE}" "${state_md}" 2>&1
+  )" || exit_code=$?
+
+  # Assert 1: must exit 0 — no WaveOrderUnverifiable, no unknown-status abort
+  [ "${exit_code}" -eq 0 ] || {
+    echo "FAIL (F-P1-004 / BC-5.41.001 PC2): derive_wave_id exited ${exit_code} on production sprint-state.yaml." >&2
+    echo "  This is the F-P1-004 catch: the consumer aborted on the real production file." >&2
+    echo "  Output: ${wave_id}" >&2
+    echo "  File: ${_PRODUCTION_SPRINT_STATE}" >&2
+    echo "  If exit_code=1 and output contains WaveOrderUnverifiable: the file has a terminal entry" >&2
+    echo "    after a pending/draft entry — the wave-ascending migration (F-P1-001/002/003) is incomplete." >&2
+    echo "  If exit_code=1 and output contains 'unknown story status': the allowlist is missing a status" >&2
+    echo "    present in the production file." >&2
+    false
+  }
+
+  # Assert 2: wave_id must be a positive integer (non-empty, numeric, >= 1)
+  printf '%s\n' "${wave_id}" | grep -qE '^[0-9]+$' || {
+    echo "FAIL (F-P1-004 / BC-5.41.001 PC2): derive_wave_id did not return a positive integer." >&2
+    echo "  Got: '${wave_id}'" >&2
+    echo "  BC-5.41.001 PC2 anti-fabrication: wave_id MUST be a positive integer from a real substrate." >&2
+    false
+  }
+
+  local wave_int
+  wave_int="$(printf '%s\n' "${wave_id}" | grep -oE '^[0-9]+')"
+  [ "${wave_int}" -ge 1 ] || {
+    echo "FAIL (F-P1-004 / BC-5.41.001 PC2): wave_id=${wave_id} is zero or negative." >&2
+    echo "  wave_id must be >= 1 (at minimum, wave 1)." >&2
+    false
+  }
+}
+
+# ---------------------------------------------------------------------------
+# test_consumer_accepts_partial_status
+# T-8 / Architect-specified regression guard — partial accepted in allowlist
+# BC-5.41.004 INV-1: partial IS in the 8-value canonical enum.
+# BC-5.41.002 PC3: partial → classified as BROKEN_STORY_IDS (non-terminal, non-next-wave).
+#   BrokenSprintState fires only when has_broken=1 AND has_next_wave=0.
+#   With S-1.03 draft present (has_next_wave=1), consumer exits 0 (has-next-wave).
+#
+# Fixture: fixture-partial-accepted.yaml
+#   S-1.01: merged  — terminal
+#   S-1.02: partial — broken (classified BROKEN_STORY_IDS)
+#   S-1.03: draft   — next-wave (suppresses BrokenSprintState)
+# Expected: classify_stories exits 0, CLASSIFY_RESULT=has-next-wave (NOT unknown-status abort)
+#
+# This locks the F-P1-002 fix: partial must stay in the consumer allowlist.
+# PORTABILITY: fixture-based — CI-portable; no .factory/ dependency.
+# ---------------------------------------------------------------------------
+
+@test "test_consumer_accepts_partial_status" {
+  local fixture="${_FIXTURE_DIR}/fixture-partial-accepted.yaml"
+  [ -f "${fixture}" ] || {
+    echo "FAIL (fixture missing): ${fixture}" >&2; false
+  }
+
+  # Locate parse-sprint-state.sh
+  local parse_lib="${BATS_TEST_DIRNAME}/../skills/wave-handoff/lib/parse-sprint-state.sh"
+  [ -f "${parse_lib}" ] || {
+    echo "FAIL (S-18.01 prerequisite): parse-sprint-state.sh does not exist at ${parse_lib}." >&2
+    false
+  }
+
+  # Invoke classify_stories in a subshell via bash -c to read CLASSIFY_RESULT
+  local classify_out=""
+  local exit_code=0
+  classify_out="$(
+    bash -c '
+      set -euo pipefail
+      source "$1"
+      NEXT_WAVE_STORY_IDS=()
+      NEXT_WAVE_STORY_STATUSES=()
+      BROKEN_STORY_IDS=()
+      CLASSIFY_RESULT=""
+      classify_stories "$2"
+      printf "CLASSIFY_RESULT=%s\n" "$CLASSIFY_RESULT"
+      printf "BROKEN_STORY_IDS=%s\n" "${BROKEN_STORY_IDS[*]:-}"
+    ' _ "${parse_lib}" "${fixture}" 2>&1
+  )" || exit_code=$?
+
+  # Assert 1: must NOT abort (unknown-status gate must NOT fire on partial)
+  [ "${exit_code}" -eq 0 ] || {
+    echo "FAIL (F-P1-002 regression / BC-5.41.004 INV-1): consumer exited ${exit_code} on fixture with status: partial." >&2
+    echo "  partial IS in the canonical 8-value enum; consumer MUST NOT reject it as unknown-status." >&2
+    echo "  Output: ${classify_out}" >&2
+    echo "  If output contains 'unknown story status': partial was removed from the allowlist — F-P1-002 regression." >&2
+    false
+  }
+
+  # Assert 2: CLASSIFY_RESULT must be has-next-wave (S-1.03 draft suppresses BrokenSprintState)
+  printf '%s\n' "${classify_out}" | grep -q 'CLASSIFY_RESULT=has-next-wave' || {
+    echo "FAIL (BC-5.41.002 PC3): CLASSIFY_RESULT is not has-next-wave." >&2
+    echo "  fixture-partial-accepted.yaml has S-1.03 draft (next-wave selector) present." >&2
+    echo "  BrokenSprintState should be suppressed; expected CLASSIFY_RESULT=has-next-wave." >&2
+    echo "  Output: ${classify_out}" >&2
+    false
+  }
+
+  # Assert 3: partial entry (S-1.02) must appear in BROKEN_STORY_IDS (not next_wave, not terminal)
+  printf '%s\n' "${classify_out}" | grep -q 'BROKEN_STORY_IDS=.*S-1\.02' || {
+    echo "FAIL (BC-5.41.002 PC3): S-1.02 (partial) did not appear in BROKEN_STORY_IDS." >&2
+    echo "  partial is neither terminal nor next-wave; it MUST be classified as broken." >&2
+    echo "  Output: ${classify_out}" >&2
+    false
+  }
+}
+
+# ---------------------------------------------------------------------------
+# test_consumer_rejects_interleaved_ordering
+# T-9 / Architect-specified regression guard — interleaved-ordering rejection
+# BC-5.41.001 PC2 P-SPRINT-STATE-WAVE-ORDER: a terminal entry after a draft entry
+# violates wave-ascending order → consumer MUST hard-abort WaveOrderUnverifiable.
+#
+# Fixture: fixture-interleaved-order.yaml
+#   S-1.01: draft   — non-terminal entry first
+#   S-1.02: merged  — terminal entry AFTER draft → violates P-SPRINT-STATE-WAVE-ORDER
+# Expected: derive_wave_id exits 1, stderr contains WaveOrderUnverifiable
+#
+# This locks the F-P1-001 guard: a reordered file without terminal-prefix must abort.
+# PORTABILITY: fixture-based — CI-portable; no .factory/ dependency.
+# ---------------------------------------------------------------------------
+
+@test "test_consumer_rejects_interleaved_ordering" {
+  local fixture="${_FIXTURE_DIR}/fixture-interleaved-order.yaml"
+  [ -f "${fixture}" ] || {
+    echo "FAIL (fixture missing): ${fixture}" >&2; false
+  }
+
+  # Locate parse-sprint-state.sh
+  local parse_lib="${BATS_TEST_DIRNAME}/../skills/wave-handoff/lib/parse-sprint-state.sh"
+  [ -f "${parse_lib}" ] || {
+    echo "FAIL (S-18.01 prerequisite): parse-sprint-state.sh does not exist at ${parse_lib}." >&2
+    false
+  }
+
+  # Invoke derive_wave_id; expect exit 1
+  local wave_out=""
+  local exit_code=0
+  wave_out="$(
+    bash -c '
+      set -euo pipefail
+      source "$1"
+      derive_wave_id "$2" /dev/null
+    ' _ "${parse_lib}" "${fixture}" 2>&1
+  )" || exit_code=$?
+
+  # Assert 1: must exit non-zero (the WaveOrderUnverifiable guard must fire)
+  [ "${exit_code}" -ne 0 ] || {
+    echo "FAIL (F-P1-001 regression / BC-5.41.001 P-SPRINT-STATE-WAVE-ORDER): consumer exited 0 on interleaved-order fixture." >&2
+    echo "  fixture-interleaved-order.yaml has a terminal entry (merged) AFTER a draft entry." >&2
+    echo "  Consumer MUST abort with WaveOrderUnverifiable — it did not." >&2
+    echo "  Output: ${wave_out}" >&2
+    false
+  }
+
+  # Assert 2: error message must contain WaveOrderUnverifiable
+  printf '%s\n' "${wave_out}" | grep -q 'WaveOrderUnverifiable' || {
+    echo "FAIL (BC-5.41.001 P-SPRINT-STATE-WAVE-ORDER): exit non-zero but output does not contain WaveOrderUnverifiable." >&2
+    echo "  Expected named error WaveOrderUnverifiable for interleaved-order violation." >&2
+    echo "  Output: ${wave_out}" >&2
+    false
+  }
+}
+
+# ---------------------------------------------------------------------------
+# test_consumer_partial_only_raises_broken_sprint_state
+# T-10 / Architect-specified regression guard — partial-only raises BrokenSprintState
+# BC-5.41.002 PC3: when has_broken=1 AND has_next_wave=0, classify_stories returns
+# broken-sprint-state. Confirms partial is neither terminal (does not complete a wave)
+# nor next-wave (does not select stories for upcoming wave).
+#
+# Fixture: fixture-partial-only.yaml
+#   S-1.01: partial — broken (non-terminal, non-next-wave)
+#   S-1.02: partial — broken (non-terminal, non-next-wave)
+# Expected: CLASSIFY_RESULT=broken-sprint-state (has_broken=1, has_next_wave=0)
+#
+# PORTABILITY: fixture-based — CI-portable; no .factory/ dependency.
+# ---------------------------------------------------------------------------
+
+@test "test_consumer_partial_only_raises_broken_sprint_state" {
+  local fixture="${_FIXTURE_DIR}/fixture-partial-only.yaml"
+  [ -f "${fixture}" ] || {
+    echo "FAIL (fixture missing): ${fixture}" >&2; false
+  }
+
+  # Locate parse-sprint-state.sh
+  local parse_lib="${BATS_TEST_DIRNAME}/../skills/wave-handoff/lib/parse-sprint-state.sh"
+  [ -f "${parse_lib}" ] || {
+    echo "FAIL (S-18.01 prerequisite): parse-sprint-state.sh does not exist at ${parse_lib}." >&2
+    false
+  }
+
+  # Invoke classify_stories in a subshell
+  local classify_out=""
+  local exit_code=0
+  classify_out="$(
+    bash -c '
+      set -euo pipefail
+      source "$1"
+      NEXT_WAVE_STORY_IDS=()
+      NEXT_WAVE_STORY_STATUSES=()
+      BROKEN_STORY_IDS=()
+      CLASSIFY_RESULT=""
+      classify_stories "$2"
+      printf "CLASSIFY_RESULT=%s\n" "$CLASSIFY_RESULT"
+    ' _ "${parse_lib}" "${fixture}" 2>&1
+  )" || exit_code=$?
+
+  # Assert 1: must exit 0 (BrokenSprintState is a classify result, not an abort)
+  [ "${exit_code}" -eq 0 ] || {
+    echo "FAIL (BC-5.41.002 PC3): classify_stories exited ${exit_code} on partial-only fixture." >&2
+    echo "  BrokenSprintState is a CLASSIFY_RESULT value, not an abort. Consumer must exit 0." >&2
+    echo "  Output: ${classify_out}" >&2
+    false
+  }
+
+  # Assert 2: CLASSIFY_RESULT must be broken-sprint-state
+  printf '%s\n' "${classify_out}" | grep -q 'CLASSIFY_RESULT=broken-sprint-state' || {
+    echo "FAIL (BC-5.41.002 PC3): CLASSIFY_RESULT is not broken-sprint-state." >&2
+    echo "  fixture-partial-only.yaml has only partial entries (no draft, no terminal)." >&2
+    echo "  has_broken=1 + has_next_wave=0 MUST produce broken-sprint-state." >&2
+    echo "  This confirms partial is neither terminal nor next-wave (it cannot substitute for draft)." >&2
+    echo "  Output: ${classify_out}" >&2
+    false
+  }
+}
+
+# ---------------------------------------------------------------------------
+# test_consumer_rejects_complete_status
+# T-11 / Architect-specified regression guard — 'complete' rejected (not in allowlist)
+# BC-5.41.004 INV-1: 'complete' is NOT in the 8-value canonical enum.
+# The consumer allowlist (parse-sprint-state.sh) must NOT include 'complete'.
+# Any sprint-state.yaml entry with status: complete must trigger:
+#   ERROR: parse-sprint-state: unknown story status 'complete' — not in allowlist
+# and exit non-zero.
+#
+# Fixture: fixture-complete-status.yaml
+#   S-1.01: complete — NOT in the 8-value enum; must trigger unknown-status abort
+# Expected: exit 1, stderr contains "unknown story status 'complete'"
+#
+# NOTE: do NOT test 'review-pending' here. review-pending IS in the allowlist and
+# routes to BrokenSprintState (AC-020 in wave-handoff.bats owns that coverage).
+# PORTABILITY: fixture-based — CI-portable; no .factory/ dependency.
+# ---------------------------------------------------------------------------
+
+@test "test_consumer_rejects_complete_status" {
+  local fixture="${_FIXTURE_DIR}/fixture-complete-status.yaml"
+  [ -f "${fixture}" ] || {
+    echo "FAIL (fixture missing): ${fixture}" >&2; false
+  }
+
+  # Locate parse-sprint-state.sh
+  local parse_lib="${BATS_TEST_DIRNAME}/../skills/wave-handoff/lib/parse-sprint-state.sh"
+  [ -f "${parse_lib}" ] || {
+    echo "FAIL (S-18.01 prerequisite): parse-sprint-state.sh does not exist at ${parse_lib}." >&2
+    false
+  }
+
+  # Invoke classify_stories; expect exit non-zero due to unknown-status gate
+  local classify_out=""
+  local exit_code=0
+  classify_out="$(
+    bash -c '
+      set -euo pipefail
+      source "$1"
+      NEXT_WAVE_STORY_IDS=()
+      NEXT_WAVE_STORY_STATUSES=()
+      BROKEN_STORY_IDS=()
+      CLASSIFY_RESULT=""
+      classify_stories "$2"
+    ' _ "${parse_lib}" "${fixture}" 2>&1
+  )" || exit_code=$?
+
+  # Assert 1: must exit non-zero (unknown-status gate must fire on 'complete')
+  [ "${exit_code}" -ne 0 ] || {
+    echo "FAIL (BC-5.41.004 INV-1 / allowlist regression): consumer exited 0 on fixture with status: complete." >&2
+    echo "  'complete' is NOT in the 8-value canonical enum and MUST be rejected by the allowlist." >&2
+    echo "  If the consumer accepts 'complete' silently, the allowlist regression has been reintroduced." >&2
+    echo "  Output: ${classify_out}" >&2
+    false
+  }
+
+  # Assert 2: error must mention 'complete' as the unknown status
+  printf '%s\n' "${classify_out}" | grep -q "unknown story status 'complete'" || {
+    echo "FAIL (BC-5.41.004 INV-1): exit non-zero but output does not identify 'complete' as the unknown status." >&2
+    echo "  Expected error: parse-sprint-state: unknown story status 'complete' — not in allowlist" >&2
+    echo "  Output: ${classify_out}" >&2
     false
   }
 }

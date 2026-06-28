@@ -1,0 +1,14 @@
+# sprint-state-format fixture: 'complete' status — removed from consumer allowlist
+# Used by: test_consumer_rejects_complete_status (regression guard for allowlist cleanup)
+# BC-5.41.004 INV-1: 'complete' is NOT in the 8-value canonical enum.
+# The consumer allowlist (parse-sprint-state.sh line ~114) must NOT include 'complete'.
+# Any sprint-state.yaml entry with status: complete MUST cause the consumer to
+# hard-abort with: ERROR: unknown story status 'complete' — not in allowlist
+#
+# Wave topology (invalid status):
+#   S-1.01: complete — NOT in the 8-value enum; should trigger unknown-status abort
+# Expected consumer outcome: exit 1, ERROR: unknown story status 'complete'
+
+stories:
+  - id: S-1.01
+    status: complete
