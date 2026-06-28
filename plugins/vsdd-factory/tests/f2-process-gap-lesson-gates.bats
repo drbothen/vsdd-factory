@@ -3,7 +3,7 @@
 #
 # Story:   S-18.09 — F2 process-gap lesson gate checks — machine-stable lesson assertions,
 #          stale-term detector, BC-precondition registry-block-shape validator, AC↔PC parity gate
-# Version: S-18.09 v1.14
+# Governs:  S-18.09 — F2 process-gap lesson gate checks (ADR-026 / D-576 / O-P4-004)
 # Enforces:
 #   AC-001 — L-F2-machine-stable-count-assertion (bats tests use plugin.log structured code: signals)
 #   AC-002 — L-F2-fix-at-correct-layer (VP source_bc files exist and are reachable)
@@ -282,7 +282,7 @@ SCRIPT
 #
 # Gate assertion — stale-term detector:
 #   No normative behavioral claim in the E-18 spec set uses the retired
-#   current_wave: field. Exclusion filter (v1.13 extended, case-insensitive -Eiv)
+#   current_wave: field. Exclusion filter (S-18.09 extended, case-insensitive -Eiv)
 #   covers two false-positive classes:
 #   1. Historical/annotation mentions: Changelog, ADR cite, prior version,
 #      was removed, phantom, retired, removed from
@@ -408,9 +408,11 @@ _resolve_clause() {
   local FOUND
   if [ "$LABEL_FORM" = "letter" ]; then
     FOUND=$(awk "/^${SECTION_HEAD}/{f=1; next} /^## /{f=0} f" "$BC_FILE" \
+      | awk '"'"'/^```/{fence=!fence;next}!fence'"'"' \
       | grep -cE "(^|\*\*)${NORM_LABEL}(\*\*|[: ])")
   else
     FOUND=$(awk "/^${SECTION_HEAD}/{f=1; next} /^## /{f=0} f" "$BC_FILE" \
+      | awk '"'"'/^```/{fence=!fence;next}!fence'"'"' \
       | grep -cE "^${NORM_LABEL}\. ")
   fi
   [ "$FOUND" -gt 0 ] \
