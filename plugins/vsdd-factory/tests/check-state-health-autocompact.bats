@@ -1,44 +1,47 @@
 #!/usr/bin/env bats
-# check-state-health-autocompact.bats — Red Gate tests for S-18.10.
+# check-state-health-autocompact.bats — GREEN suite for S-18.10 (10 tests).
 #
-# Tests the NOT-YET-CREATED helper:
+# Tests the helper (implemented at commit 89da02eb):
 #   plugins/vsdd-factory/skills/check-state-health/lib/check-autocompact-setting.sh
 #
 # The helper reads .claude/settings.json (project-local) then
 # ~/.claude/settings.json (global fallback), parses env.CLAUDE_AUTOCOMPACT_PCT_OVERRIDE,
 # and emits:
 #   PASS     — key present and numeric value ≤ 80
-#   ADVISORY — key absent, value > 80, or non-numeric (treated as absent)
+#   ADVISORY — key absent, value > 80, or non-numeric (treated as absent),
+#              missing settings.json, or malformed/unreadable settings.json
 # Advisory-only; never blocks; no side effects; set -euo pipefail.
 #
-# 7 tests map to AC-001..AC-007 (BC-6.25.001 PC1–PC5, INV1–INV5; VP-092):
+# 10 tests map to AC-001..AC-007 + EC-005/EC-008/EC-011 explicit coverage
+# (BC-6.25.001 PC1–PC5, INV1–INV5; VP-092):
 #
-#   test_autocompact_check_absent_key_emits_advisory       — AC-001 / BC-6.25.001 PC1
-#   test_autocompact_check_value_70_is_pass                — AC-003 / BC-6.25.001 PC3
-#   test_autocompact_check_value_85_is_advisory            — AC-002 / BC-6.25.001 PC2
-#   test_autocompact_check_value_80_is_pass_boundary       — AC-003 / BC-6.25.001 PC3 (boundary)
-#   test_autocompact_check_no_settings_json_emits_advisory — AC-001 + AC-004 / PC1 + PC4(c)
-#   test_autocompact_check_project_local_takes_precedence_over_global  — AC-004 / PC4 + INV2
-#   test_autocompact_check_non_numeric_value_treated_as_absent         — AC-006 / INV3
+#   test_autocompact_check_absent_key_emits_advisory         — AC-001 / BC-6.25.001 PC1
+#   test_autocompact_check_value_70_is_pass                  — AC-003 / BC-6.25.001 PC3
+#   test_autocompact_check_value_85_is_advisory              — AC-002 / BC-6.25.001 PC2
+#   test_autocompact_check_value_80_is_pass_boundary         — AC-003 / BC-6.25.001 PC3 (boundary)
+#   test_autocompact_check_no_settings_json_emits_advisory   — AC-001 + AC-004 / PC1 + PC4(c)
+#   test_autocompact_check_project_local_takes_precedence_over_global — AC-004 / PC4 + INV2
+#   test_autocompact_check_non_numeric_value_treated_as_absent        — AC-006 / INV3
+#   test_autocompact_check_global_fallback_pass_when_local_absent     — EC-005 / PC4(b)
+#   test_autocompact_check_empty_string_value_emits_advisory          — EC-008 / INV3
+#   test_autocompact_check_malformed_json_emits_advisory_not_crash    — EC-011 / INV1 + INV5
 #
-# Red Gate minimum: all 7 MUST fail before check-autocompact-setting.sh exists.
-# Failure must be because the helper is absent / behavior unimplemented, NOT because
-# of a malformed test (BC-5.38.001).
+# All 10 tests must pass (GREEN) now that the helper exists.
 #
 # Edge Cases exercised per AC/test mapping:
 #   EC-001 (value 70, PASS)           → test_autocompact_check_value_70_is_pass
 #   EC-002 (env block present, no key)→ test_autocompact_check_absent_key_emits_advisory
 #   EC-003 (value 85, ADVISORY)       → test_autocompact_check_value_85_is_advisory
 #   EC-004 (value 80, PASS boundary)  → test_autocompact_check_value_80_is_pass_boundary
-#   EC-005 (global fallback value 70) → test_autocompact_check_no_settings_json_emits_advisory
-#                                        (no settings.json path; EC-006 subset)
+#   EC-005 (global fallback value 70, project-local absent)
+#                                     → test_autocompact_check_global_fallback_pass_when_local_absent
 #   EC-006 (both absent)              → test_autocompact_check_no_settings_json_emits_advisory
 #   EC-007 (env block absent)         → test_autocompact_check_absent_key_emits_advisory
-#   EC-008 (empty string value)       → test_autocompact_check_non_numeric_value_treated_as_absent
+#   EC-008 (empty string value "")    → test_autocompact_check_empty_string_value_emits_advisory
 #   EC-009 (value "auto", non-integer)→ test_autocompact_check_non_numeric_value_treated_as_absent
 #   EC-010 (project-local 85, global 70; project-local wins)
 #                                     → test_autocompact_check_project_local_takes_precedence_over_global
-#   EC-011 (malformed JSON)           → covered by absent-key path (ADVISORY emitted, no crash)
+#   EC-011 (unreadable/malformed JSON)→ test_autocompact_check_malformed_json_emits_advisory_not_crash
 #
 # Story:   S-18.10
 # BC:      BC-6.25.001 v1.0 — all 5 PCs and INV1–INV5
@@ -47,7 +50,7 @@
 #          ADR-026 §F-11 (check-state-health must verify this key)
 # File:    plugins/vsdd-factory/tests/check-state-health-autocompact.bats
 #
-# Run (once helper exists and is GREEN):
+# Run:
 #   bats plugins/vsdd-factory/tests/check-state-health-autocompact.bats
 
 # ---------------------------------------------------------------------------
@@ -81,8 +84,7 @@ teardown() {
 # ---------------------------------------------------------------------------
 
 # Verify the helper script exists and is executable.
-# Used by all 7 tests: if the helper is absent, the test fails with a
-# descriptive message that guides the implementer (T-3 in S-18.10).
+# Used by all 10 tests; fails with a descriptive message if the helper is absent.
 _require_helper() {
   if [ ! -f "$HELPER" ]; then
     echo "RED GATE — helper not yet implemented."
@@ -535,6 +537,214 @@ JSON
   [[ "$output" != *"PASS"* ]] || {
     echo "FAIL (AC-006): output contains 'PASS' for non-numeric value 'auto' — incorrect."
     echo "BC-6.25.001 INV3: non-numeric → treated as absent → ADVISORY, never PASS."
+    echo "Output: $output"
+    return 1
+  }
+}
+
+# ---------------------------------------------------------------------------
+# T-8 / EC-005 / BC-6.25.001 PC4(b) — global fallback consulted and returns PASS
+#
+# When project-local .claude/settings.json is ABSENT but global ~/.claude/settings.json
+# IS present with value 70, the helper MUST fall back to the global file, parse it, and
+# emit PASS (value 70 ≤ 80). This test was previously "implicitly covered" by T-5 but
+# never actually exercised a global file that produces a PASS — T-5 tests both-absent (EC-006).
+#
+# Explicit verification that: (a) global file IS read when local is absent, and (b) the
+# content of the global file correctly produces PASS.
+#
+# Edge case exercised: EC-005 (global fallback with value 70 → PASS).
+# ---------------------------------------------------------------------------
+
+@test "test_autocompact_check_global_fallback_pass_when_local_absent" {
+  _require_helper
+
+  # Fixture: project-local .claude/settings.json is ABSENT (dir exists; no file).
+  # WORK/.claude/ was created in setup with mkdir -p but contains no settings.json.
+  [ ! -f "$WORK/.claude/settings.json" ] || {
+    echo "TEST SETUP ERROR: expected no project-local settings.json but one exists."
+    return 1
+  }
+
+  # Fixture: global settings.json in FAKE_HOME (stubbed HOME) with canonical value 70 (EC-005).
+  cat > "$FAKE_HOME/.claude/settings.json" <<'JSON'
+{
+  "env": {
+    "CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "70"
+  }
+}
+JSON
+
+  run env HOME="$FAKE_HOME" PROJECT_ROOT="$WORK" bash "$HELPER" 2>&1
+
+  # INV1: helper exits 0 (advisory-only, never blocking).
+  [ "$status" -eq 0 ] || {
+    echo "FAIL (EC-005): expected exit 0 but got status=$status"
+    echo "BC-6.25.001 INV1: check must never block; exit 0 regardless of which file is used."
+    echo "Output: $output"
+    return 1
+  }
+
+  # INV5: check name must appear (row always emitted).
+  [[ "$output" == *"CLAUDE_AUTOCOMPACT_PCT_OVERRIDE"* ]] || {
+    echo "FAIL (EC-005): check name 'CLAUDE_AUTOCOMPACT_PCT_OVERRIDE' missing from output."
+    echo "AC-007 / INV5: row MUST always be emitted."
+    echo "Output: $output"
+    return 1
+  }
+
+  # EC-005 / PC4(b): PASS must be emitted because the global file was consulted and value 70 ≤ 80.
+  # If ADVISORY appears instead, the helper failed to read the global file or misclassified value 70.
+  [[ "$output" == *"PASS"* ]] || {
+    echo "FAIL (EC-005): output does not contain 'PASS' when global fallback has value 70."
+    echo "BC-6.25.001 PC4(b): when project-local is absent, helper MUST consult global file."
+    echo "EC-005: global file present with value 70 → PASS (70 ≤ 80)."
+    echo "Output: $output"
+    return 1
+  }
+
+  # EC-005: ADVISORY must NOT appear (global file has value 70, which is PASS).
+  [[ "$output" != *"ADVISORY"* ]] || {
+    echo "FAIL (EC-005): output contains 'ADVISORY' — global fallback not correctly read."
+    echo "EC-005: global value 70 satisfies the ≤ 80 ceiling → PASS, not ADVISORY."
+    echo "Output: $output"
+    return 1
+  }
+}
+
+# ---------------------------------------------------------------------------
+# T-9 / EC-008 / BC-6.25.001 INV3 — empty string value emits ADVISORY (distinct from "auto")
+#
+# An empty string ("") is a distinct non-numeric case from "auto" (EC-009).
+# T-7 uses "auto" as its representative; this test uses "" explicitly so EC-008
+# is directly fixtured and exercised rather than inferred.
+#
+# The helper MUST treat "" as non-numeric (INV3), emit ADVISORY, include the raw
+# value (empty string) in the advisory note, and exit 0 (INV1).
+#
+# Edge case exercised: EC-008 (empty string value "").
+# ---------------------------------------------------------------------------
+
+@test "test_autocompact_check_empty_string_value_emits_advisory" {
+  _require_helper
+
+  # Fixture: project-local settings.json with explicitly empty string value (EC-008).
+  cat > "$WORK/.claude/settings.json" <<'JSON'
+{
+  "env": {
+    "CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": ""
+  }
+}
+JSON
+
+  run env HOME="$FAKE_HOME" PROJECT_ROOT="$WORK" bash "$HELPER" 2>&1
+
+  # INV1 / PC5: exit 0 (advisory; non-blocking).
+  [ "$status" -eq 0 ] || {
+    echo "FAIL (EC-008): expected exit 0 but got status=$status"
+    echo "BC-6.25.001 INV1: check must never block; exit 0 for empty-string values."
+    echo "BC-6.25.001 INV3: empty string is not a valid integer; treated as absent → exit 0."
+    echo "Output: $output"
+    return 1
+  }
+
+  # INV5: check name present.
+  [[ "$output" == *"CLAUDE_AUTOCOMPACT_PCT_OVERRIDE"* ]] || {
+    echo "FAIL (EC-008): check name missing. AC-007 / INV5: row always emitted."
+    echo "Output: $output"
+    return 1
+  }
+
+  # EC-008 / INV3: ADVISORY must appear (empty string treated as absent → PC1 fires).
+  [[ "$output" == *"ADVISORY"* ]] || {
+    echo "FAIL (EC-008): output does not contain 'ADVISORY' for empty string value."
+    echo "BC-6.25.001 INV3: empty string is not a valid integer; treated as absent → ADVISORY."
+    echo "EC-008: value '' must trigger ADVISORY (same path as non-numeric per INV3)."
+    echo "Output: $output"
+    return 1
+  }
+
+  # EC-008: PASS must NOT appear for empty string.
+  [[ "$output" != *"PASS"* ]] || {
+    echo "FAIL (EC-008): output contains 'PASS' for empty string value — incorrect."
+    echo "BC-6.25.001 INV3: empty string → treated as absent → ADVISORY, never PASS."
+    echo "Output: $output"
+    return 1
+  }
+}
+
+# ---------------------------------------------------------------------------
+# T-10 / EC-011 / BC-6.25.001 INV1 + INV5 — malformed/unreadable settings.json → ADVISORY, exit 0
+#
+# The most important robustness test: the pure-bash parser MUST degrade gracefully
+# when settings.json cannot be read (e.g., permission denied). It must:
+#   (a) NEVER exit non-zero — advisory-only, no crash (INV1 / PC5)
+#   (b) ALWAYS emit exactly one row containing CLAUDE_AUTOCOMPACT_PCT_OVERRIDE (INV5)
+#   (c) Emit ADVISORY (not PASS) with a parse-error description referencing ADR-026
+#
+# This test also serves as the explicit INV1+INV5 robustness assertion requested by
+# F-P1-003: degenerate input (unreadable file) must not produce a non-zero exit or
+# suppress the row entirely.
+#
+# Edge case exercised: EC-011 (unreadable settings.json → PARSE_ERROR advisory path).
+# ---------------------------------------------------------------------------
+
+@test "test_autocompact_check_malformed_json_emits_advisory_not_crash" {
+  _require_helper
+
+  # Fixture: project-local settings.json exists but is unreadable (chmod 000).
+  # This triggers the PARSE_ERROR branch in extract_autocompact_value().
+  # chmod 000 is the most reliable way to trigger the cat-failure path on all platforms.
+  printf '{"env": {"CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "70"}}' > "$WORK/.claude/settings.json"
+  chmod 000 "$WORK/.claude/settings.json"
+
+  run env HOME="$FAKE_HOME" PROJECT_ROOT="$WORK" bash "$HELPER" 2>&1
+
+  # Restore permissions before any assertion so teardown can clean up regardless.
+  chmod 644 "$WORK/.claude/settings.json"
+
+  # INV1 / PC5 — MUST NOT exit non-zero (no crash on degenerate input).
+  # This is the load-bearing assertion for F-P1-003: proves the pure-bash parser
+  # never exits non-zero even on worst-case input.
+  [ "$status" -eq 0 ] || {
+    echo "FAIL (EC-011 / INV1): helper exited with status=$status on unreadable settings.json."
+    echo "BC-6.25.001 INV1: advisory check MUST NEVER exit non-zero; degenerate input is not an exception."
+    echo "BC-6.25.001 PC5: advisory-only; no blocking, no non-zero exit under any input."
+    echo "F-P1-003 robustness: pure-bash parser must not crash on unreadable file."
+    echo "Output: $output"
+    return 1
+  }
+
+  # INV5 — row MUST always be emitted (even on PARSE_ERROR).
+  [[ "$output" == *"CLAUDE_AUTOCOMPACT_PCT_OVERRIDE"* ]] || {
+    echo "FAIL (EC-011 / INV5): no row emitted for unreadable settings.json."
+    echo "BC-6.25.001 INV5: the check row MUST ALWAYS be emitted, including on parse errors."
+    echo "AC-007: the CLAUDE_AUTOCOMPACT_PCT_OVERRIDE check name must appear in every output."
+    echo "Output: $output"
+    return 1
+  }
+
+  # EC-011: ADVISORY must appear (parse error → cannot verify → ADVISORY).
+  [[ "$output" == *"ADVISORY"* ]] || {
+    echo "FAIL (EC-011): output does not contain 'ADVISORY' for unreadable settings.json."
+    echo "BC-6.25.001 PARSE_ERROR path: unreadable file must produce an ADVISORY row."
+    echo "EC-011: malformed or unreadable settings.json must never produce PASS."
+    echo "Output: $output"
+    return 1
+  }
+
+  # EC-011: advisory must reference ADR-026 (parse-error advisory includes ADR citation).
+  [[ "$output" == *"ADR-026"* ]] || {
+    echo "FAIL (EC-011): advisory output does not reference 'ADR-026'."
+    echo "EC-011: parse-error advisory must cite ADR-026 §Decision 5 (same as other advisories)."
+    echo "Output: $output"
+    return 1
+  }
+
+  # EC-011: PASS must NOT appear when settings.json is unreadable.
+  [[ "$output" != *"PASS"* ]] || {
+    echo "FAIL (EC-011): output contains 'PASS' for unreadable settings.json — incorrect."
+    echo "BC-6.25.001: unreadable file → ADVISORY (PARSE_ERROR path), never PASS."
     echo "Output: $output"
     return 1
   }
