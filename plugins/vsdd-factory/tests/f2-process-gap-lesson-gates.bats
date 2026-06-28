@@ -180,9 +180,16 @@ SCRIPT
 @test "test_e18_hook_scripts_no_bypass_on_load_bearing_writes" {
   local factory_root="$FACTORY_ROOT"
   run bash -c '
+    # Positive-coverage pre-assertion (F-P3-001 / F-P4-002 class — absence-only vacuity guard):
+    # Assert the scan target exists and is non-empty BEFORE the BYPASS_HITS check.
+    # If the file were renamed or deleted, BYPASS_HITS=0 would vacuously pass (zero items scanned).
+    SCAN_TARGET="'"${factory_root}"'/plugins/vsdd-factory/hooks/postcompact-reanchor.sh"
+    [ -s "$SCAN_TARGET" ] \
+      || echo "FAIL: AC-003 scan target $SCAN_TARGET absent or empty — gate cannot verify no-bypass (positive-coverage guard)"
+
     # Scan for || true on git commit / git push / git add / >> .jsonl / tee .jsonl patterns
     BYPASS_HITS=$(grep -En "(git commit|git push|git add|>> .+\.jsonl|tee .+\.jsonl).*\|\| true" \
-      "'"${factory_root}"'/plugins/vsdd-factory/hooks/postcompact-reanchor.sh" \
+      "$SCAN_TARGET" \
       2>/dev/null | wc -l)
     [ "$BYPASS_HITS" -eq 0 ] || echo "FAIL: load-bearing write with || true bypass found in E-18 hook scripts"
   '
@@ -305,7 +312,7 @@ SCRIPT
       "'"${factory_root}"'/.factory/specs/verification-properties/VP-08"[89]".md" \
       "'"${factory_root}"'/.factory/specs/verification-properties/VP-09"[01]".md" \
       2>/dev/null \
-      | grep -Eiv "^.*(Changelog|changelog|ADR cite|prior version|was removed|phantom|retired|removed from|there is no|does not exist|does NOT|MUST NOT|non-existent|no \`current_wave|it does not)" \
+      | grep -Eiv "^.*(Changelog|changelog|ADR cite|prior version|was removed|phantom|retired|removed from|there is no|does not exist|does NOT|MUST NOT|non-existent|no \`current_wave|it does not|not stored as)" \
       | wc -l)
     [ "$STALE_HITS" -eq 0 ] || echo "FAIL: $STALE_HITS stale '"'"'current_wave:'"'"' references found in E-18 spec normative sections"
   '
