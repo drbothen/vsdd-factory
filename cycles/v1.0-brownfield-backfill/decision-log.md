@@ -3279,6 +3279,58 @@ S-18.08 TDD implementation (story v1.9 with portability-normalized ACs; AC-001..
 
 ---
 
+## D-715 — S-18.09 AC-003/AC-006 gate-soundness class-sweep — 2026-06-27
+
+**Decision:** S-18.09 v1.17→v1.18 (4-leg parity applied; input-hash UNCHANGED `0f747df`). Proactive gate-soundness class-sweep of findings escalated or anticipated from prior LOCAL adversary passes (pass-3 F-P3-001, pass-4 F-P4-001/F-P4-002), applied preemptively before a fresh adversary can re-escalate the same class:
+
+- **AC-003 positive-coverage pre-assertion (closes F-P3-001 + F-P4-002 absence-only vacuity):** AC-003 as written through v1.17 scanned the target file for stale-term occurrences. If the target file was absent or empty, the gate would produce STALE_HITS=0 without any error — a vacuous pass identical in appearance to a genuinely clean corpus. Fix: AC-003 now asserts that the scan target must exist and be non-empty before the term-scan runs; if the target is absent or empty the gate FAILs loudly. This closes the absence-only vacuity class for AC-003 (same class that was escalated for AC-004 at pass-5 / D-714). Validated: gate FAILs on absent/empty target; passes on real file with no stale terms.
+- **AC-006 negation cue extended with `not stored as` (closes F-P4-001):** AC-006 excluded `current_wave:` references that appear in normative-section prohibition prose. The existing negation cue list covered `MUST NOT`, `prohibited`, `phantom`, etc. BC-7.07.002 line 88 carries the phrase `not stored as` which was not in the cue list, meaning its exclusion depended on incidental cue matching rather than its own form. Fix: `not stored as` added to the negation cue list so BC-7.07.002:88 is excluded by its own form. Validated: STALE_HITS=0 self-sufficient (exclusion holds after removing the incidental `phantom` match from that line).
+
+Bats 8/8 green after all fixes. No BC amendment needed. S-18.09 remains draft (mid-TDD). develop_head, merged_count, story_count, phase all UNCHANGED.
+
+**Context:** Proactive class-sweep triggered by lesson from pass-5 / D-714: the adversary correctly escalated a non-blocking observation to MEDIUM-gating under the production-grade lens (most advisories become blockers; TD-VSDD-059). Rather than wait for pass-6 or pass-7 to re-escalate AC-003 absence-only vacuity and AC-006 cue-fragility, this sweep closes both classes in-scope. The lesson from AC-004 (O-P2-002 → F-P5-001 escalation) is applied symmetrically.
+
+**Actions taken:**
+- S-18.09 v1.17→v1.18: AC-003 positive-coverage pre-assertion added (scan target exist+non-empty guard); AC-006 negation cue list extended with `not stored as`; 4-leg parity applied; input-hash UNCHANGED `0f747df`
+- STORY-INDEX v4.98→v4.99: S-18.09 row version cite v1.17→v1.18; D-715 annotation added
+- Phase/story-status UNCHANGED (S-18.09 remains draft; TDD in-delivery; mid-TDD)
+- develop_head UNCHANGED (e10dedc0; no develop change)
+- merged_count UNCHANGED (92); story_count UNCHANGED (123); no POL-14 (no BC changes)
+- 4-index: BC-INDEX v3.52 UNCHANGED / VP-INDEX v2.51 UNCHANGED / STORY-INDEX v4.98→v4.99 / ARCH-INDEX v2.84 UNCHANGED
+
+**4-index gate (literal-shell stdout 2026-06-27):**
+```
+grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md
+version: "3.52"
+
+grep "^version:" .factory/specs/verification-properties/VP-INDEX.md
+version: "2.51"
+
+grep "^version:" .factory/stories/STORY-INDEX.md
+version: "4.99"
+
+grep "^version:" .factory/specs/architecture/ARCH-INDEX.md
+version: "2.84"
+```
+
+Parity: BC-INDEX v3.52 UNCHANGED / VP-INDEX v2.51 UNCHANGED / STORY-INDEX v4.98→v4.99 / ARCH-INDEX v2.84 UNCHANGED.
+
+### Parent-commit
+
+See `git -C .factory log -1 --format='%h %s'` (D-714 SHA dacec43f; TD-VSDD-053 single-commit)
+
+### Closes
+
+- F-P3-001: AC-003 absence-only vacuity (scan target exist+non-empty guard added; gate FAILs on absent/empty target)
+- F-P4-002: AC-003 absence-only vacuity (same class; cross-pass closure)
+- F-P4-001: AC-006 cue-fragility (BC-7.07.002:88 `not stored as` added to negation cue list; STALE_HITS=0 self-sufficient)
+
+### NEXT
+
+S-18.09 TDD delivery continues (story v1.18 bats 8/8 green; proactive class-sweep DONE; mid-TDD).
+
+---
+
 ## D-714 — S-18.09 LOCAL adv pass-5 closure — AC-004 vacuity fix — 2026-06-27
 
 **Decision:** S-18.09 v1.16→v1.17 (4-leg parity applied; input-hash UNCHANGED `0f747df`). LOCAL adversary pass-5 surfaced one MEDIUM gating finding and two observations against v1.16:
