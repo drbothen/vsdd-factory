@@ -3279,6 +3279,54 @@ S-18.08 TDD implementation (story v1.9 with portability-normalized ACs; AC-001..
 
 ---
 
+## D-711 — S-18.09 AC-005 gate-bug-fix — 2026-06-27
+
+**Decision:** S-18.09 TDD mid-delivery spec correction. AC-005 had two gate bugs surfaced during TDD: (a) the BC-ID extraction step used `grep -A 20` which overflowed from the frontmatter YAML array into body prose, falsely pulling `BC-1.01.004` via S-18.14's inline frontmatter reference — fixed by scoping extraction to the frontmatter array via awk (inline single-line `[BC-NNN, ...]` pattern + multi-line block pattern with empty-array guard); (b) the H1 title check accepted only `# BC-NNN: <Title>` but the dominant corpus form is `# Behavioral Contract BC-NNN: <Title>` (1870 files vs 103 files) — fixed to accept BOTH forms via alternation regex. Verified STALE false-positive count = 0 FAILs. Bats suite 8/8 green. No BC amendment — both H1 forms are legitimate (POLICY-7 canonicalization is a future architectural question; logged as OPEN-OBSERVATION). Story v1.13→v1.14. Input-hash UNCHANGED `0f747df`. STORY-INDEX v4.94→v4.95. Phase/story-status/develop_head/merged_count UNCHANGED (S-18.09 remains draft; TDD in-delivery paused per human directive).
+
+**Context:** In-delivery spec correction — story-writer updated S-18.09 AC-005 gate definition during TDD pass. The awk frontmatter-scoping fix addresses a grep boundary violation where `grep -A 20` crossed the YAML front-matter boundary into body prose of adjacent story files (same false-positive class as S-18.08 AC-004 overflow). The H1 dual-form fix establishes 4-leg parity across AC-005/AC-006/AC-007/AC-008 gate scope. The corpus distribution (1870 `# Behavioral Contract BC-NNN:` vs 103 `# BC-NNN:`) indicates the shorter form is used primarily in newer E-18 stories and S-18.14; no canonicalization action needed in this scope.
+
+**Actions taken:**
+- S-18.09 v1.13→v1.14: AC-005 extraction scoped via awk (inline + multi-line + empty-array guard); H1 check updated to accept both `# BC-NNN:` and `# Behavioral Contract BC-NNN:` forms; 4-leg parity (AC-005/AC-006/AC-007/AC-008/gate-scope) verified; EC-003 annotation updated
+- Input-hash UNCHANGED `0f747df` (no inputs array change; no BC content change)
+- STORY-INDEX v4.94→v4.95: S-18.09 row version cite v1.13→v1.14; D-711 added to row annotation
+- Phase/story-status UNCHANGED (S-18.09 remains draft; TDD in-delivery; PAUSED per human directive)
+- develop_head UNCHANGED (e10dedc0; no develop change)
+- merged_count UNCHANGED (92); story_count UNCHANGED (123); no POL-14 (no BC changes)
+- 4-index: BC-INDEX v3.52 / VP-INDEX v2.51 / STORY-INDEX v4.94→v4.95 / ARCH-INDEX v2.84
+- BC H1-form inconsistency logged as OPEN-OBSERVATION in STATE.md Drift Items (non-blocking; future POLICY-7 canonicalization candidate)
+
+**4-index gate (literal-shell stdout 2026-06-27):**
+```
+grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md
+version: "3.52"
+
+grep "^version:" .factory/specs/verification-properties/VP-INDEX.md
+version: "2.51"
+
+grep "^version:" .factory/stories/STORY-INDEX.md
+version: "4.95"
+
+grep "^version:" .factory/specs/architecture/ARCH-INDEX.md
+version: "2.84"
+```
+
+Parity: BC-INDEX v3.52 UNCHANGED / VP-INDEX v2.51 UNCHANGED / STORY-INDEX v4.94→v4.95 / ARCH-INDEX v2.84 UNCHANGED.
+
+### Parent-commit
+
+See `git -C .factory log -1 --format='%h %s'` (D-710 SHA; TD-VSDD-053 single-commit)
+
+### Closes
+
+- S-18.09 AC-005 bug (a): awk frontmatter-scoped extraction (was `grep -A 20` overflowing into body prose)
+- S-18.09 AC-005 bug (b): H1 check now accepts both `# BC-NNN:` and `# Behavioral Contract BC-NNN:` forms
+
+### NEXT
+
+S-18.09 TDD delivery (PAUSED per human directive; story v1.14 bats 8/8 green).
+
+---
+
 ## D-710 — S-18.09 pre-TDD spec-fix — 2026-06-27
 
 **Decision:** Pre-TDD diagnostic for S-18.09 (F2 process-gap lesson gate checks). Consistency-validator scan found AC-006's 6 residual `current_wave:` grep hits are all normative-section PROHIBITIONS ("there is no `current_wave:` field"), not stale uses — identical false-positive class to S-18.08 pure-parse affirmations. AC-008 clean (0 FAILs across 12 BC-bearing E-18 stories). AC-006 exclusion filter extended with negation/prohibition cues (`grep -Ev`→`grep -Eiv` + 7 negation patterns: `there is no`, `does not exist`, `does NOT`, `MUST NOT`, `non-existent`, `no .current_wave`, `it does not`). Verified STALE_HITS 6→0 against real corpus. EC-003 updated. BCs unchanged (correct). Story v1.12→v1.13. Input-hash UNCHANGED `0f747df`. S-18.09 now TDD-ready; delivery PAUSED per human directive.

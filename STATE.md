@@ -1,19 +1,19 @@
 ---
 document_type: pipeline-state
 level: ops
-version: "4.62"
+version: "4.63"
 status: draft
 producer: state-manager
-timestamp: 2026-06-27T23:30:00Z
-phase: D-709-FOLLOW-UP-CLEARING-2026-06-27
-last_amended: "2026-06-27 (v4.62) — D-709 follow-up-clearing burst: PR #304 maintenance e10dedc0 merged 2026-06-27T23:00:31Z (docs: correct stale precompact-flush.sh refs; no story; maintenance); develop_head 04ab7236→e10dedc0; 3 drift items closed (D-703 drift-1 RESOLVED e10dedc0, drift-2 CLOSED-ACCEPTED, O-P3-005 CLOSED-ADOPTED). merged_count UNCHANGED 92. 4-index BC v3.52/VP v2.51/STORY v4.93/ARCH v2.84 UNCHANGED. [Prior: v4.61 D-708 S-18.08 post-merge burst 2026-06-27.]"
+timestamp: 2026-06-27T23:59:00Z
+phase: D-711-S-18.09-AC-005-GATE-BUG-FIX-2026-06-27
+last_amended: "2026-06-27 (v4.63) — D-711 S-18.09 AC-005 gate-bug-fix burst: S-18.09 v1.13→v1.14 (awk frontmatter-scoped extraction + H1 both-forms accepted; bats 8/8 green); STORY-INDEX v4.94→v4.95; D-711 added to Decisions Log; BC H1-form inconsistency logged OPEN-OBSERVATION Drift Items. merged_count UNCHANGED 92. 4-index BC v3.52/VP v2.51/STORY v4.95/ARCH v2.84. [Prior: v4.62 D-709 follow-up-clearing burst 2026-06-27.]"
 inputs: []
 input-hash: "[live-state]"
 traces_to: prd.md
 project: vsdd-factory
 mode: brownfield
-"D-709. merged_count 92 UNCHANGED. no POL-14. develop e10dedc0. BC-INDEX v3.52 / VP-INDEX v2.51 / STORY-INDEX v4.93 / ARCH-INDEX v2.84 UNCHANGED. S-18.09 NEXT (depends_on S-18.08 MET — MET D-708). STOP-BEFORE-PR-MERGE (D-665). L-BB-merge-requires-direct-human-action: human must merge directly."
-current_step: "D-709-FOLLOW-UP-CLEARING-2026-06-27"
+"D-711. merged_count 92 UNCHANGED. no POL-14. develop e10dedc0. BC-INDEX v3.52 / VP-INDEX v2.51 / STORY-INDEX v4.95 / ARCH-INDEX v2.84. S-18.09 TDD in-delivery PAUSED per human directive. STOP-BEFORE-PR-MERGE (D-665). L-BB-merge-requires-direct-human-action: human must merge directly."
+current_step: "D-711-S-18.09-AC-005-GATE-BUG-FIX-2026-06-27"
 current_cycle: v1.0-brownfield-backfill
 dtu_required: false
 dtu_assessment: 2026-04-25
@@ -50,6 +50,7 @@ dtu_services: []
   413 lines (wc-l; D-703 S-18.07 post-merge burst 2026-06-27; v4.60; merged_count 90→91; STORY-INDEX v4.88)
   423 lines (wc-l; D-708 S-18.08 post-merge burst 2026-06-27; v4.61; merged_count 91→92; STORY-INDEX v4.93)
   429 lines (wc-l; D-709 follow-up-clearing burst 2026-06-27; v4.62; develop_head 04ab7236→e10dedc0; 3 drift items closed)
+  436 lines (wc-l; D-711 S-18.09 AC-005 gate-bug-fix 2026-06-27; v4.63; STORY-INDEX v4.94→v4.95; D-711 Decisions Log row; BC H1-form OPEN-OBSERVATION Drift Items row)
 -->
 
 # Pipeline State: vsdd-factory
@@ -65,8 +66,8 @@ dtu_services: []
 | **Mode** | brownfield-onboarding |
 | **Language** | Rust + Bash + Markdown |
 | **Started** | 2026-04-25 |
-| **Last Updated** | 2026-06-27 — D-709 follow-up-clearing burst: PR #304 maintenance e10dedc0 merged; develop_head 04ab7236→e10dedc0; 3 drift items closed (D-703 drift-1 RESOLVED, drift-2 ACCEPTED, O-P3-005 ADOPTED). merged_count 92 UNCHANGED. 4-index BC v3.52/VP v2.51/STORY v4.93/ARCH v2.84 UNCHANGED. [Prior: D-708 S-18.08 POST-MERGE PR #303 04ab7236.] |
-| **Current Phase** | **D-709 FOLLOW-UP-CLEARING 2026-06-27. develop e10dedc0 (PR #304 maintenance). merged_count 92 UNCHANGED. no POL-14. 4-index BC v3.52/VP v2.51/STORY v4.93/ARCH v2.84 UNCHANGED. S-18.09 NEXT (depends_on S-18.08 MET — MET D-708). STOP-BEFORE-PR-MERGE (D-665) holds.** |
+| **Last Updated** | 2026-06-27 — D-711 S-18.09 AC-005 gate-bug-fix burst: S-18.09 v1.13→v1.14 (awk frontmatter-scoped extraction + H1 both-forms; bats 8/8 green); STORY-INDEX v4.94→v4.95; BC H1-form OPEN-OBSERVATION logged. merged_count 92 UNCHANGED. 4-index BC v3.52/VP v2.51/STORY v4.95/ARCH v2.84. [Prior: D-709 follow-up-clearing burst 2026-06-27.] |
+| **Current Phase** | **D-711 S-18.09 AC-005 GATE-BUG-FIX 2026-06-27. develop e10dedc0. merged_count 92 UNCHANGED. no POL-14. 4-index BC v3.52/VP v2.51/STORY v4.95/ARCH v2.84. S-18.09 TDD in-delivery PAUSED per human directive. STOP-BEFORE-PR-MERGE (D-665) holds.** |
 | **Current Cycle** | v1.0-brownfield-backfill |
 
 ## Phase Progress
@@ -106,13 +107,13 @@ dtu_services: []
 | Subsystem | SS-NN | `specs/architecture/ARCH-INDEX.md` | 10 |
 | Behavioral Contract | BC-S.SS.NNN | `specs/behavioral-contracts/ss-NN/` | 1,973 (BC-INDEX v3.52; BC-4.15.001 active D-701; BC-7.07.002 active D-700; BC-6.24.001 active D-699; BC-5.41.003 v2.1 active D-697+D-698; BC-1.16.001 active D-696) |
 | Verification Property | VP-NNN | `specs/verification-properties/VP-INDEX.md` | 93 (VP-INDEX v2.51; VP-091 active D-701; VP-089 stable anchor (F-P7-001 recurrence-proof D-700); VP-084 v2.1 O-P2-001 S-18.04b pass-2; +VP-093 D-694) |
-| Story | S-N.MM | `stories/S-N.MM-<short>.md` | 123 file-resident + 15 stub IDs (STORY-INDEX v4.93; S-18.08 MERGED PR #303 04ab7236 D-708; S-18.07 MERGED PR #301 1ef46620 D-703; S-18.06 MERGED PR #284 a85e6e05 D-701; S-18.05 MERGED PR #271 ef4dfcc7 D-700; S-18.03 MERGED PR #270 bc9fc693 D-699; S-18.04b MERGED PR #264 95eeb9fa D-698; S-18.04b-prereq MERGED PR #262 a177d76e D-696; S-18.04a MERGED PR #249 b0bc4ffd D-693; S-18.14 MERGED PR #201 dfc76844 D-692; S-4.11 registered draft D-692; S-18.04a-prereq MERGED PR #198 40cd18ae D-676) |
+| Story | S-N.MM | `stories/S-N.MM-<short>.md` | 123 file-resident + 15 stub IDs (STORY-INDEX v4.95; S-18.08 MERGED PR #303 04ab7236 D-708; S-18.07 MERGED PR #301 1ef46620 D-703; S-18.06 MERGED PR #284 a85e6e05 D-701; S-18.05 MERGED PR #271 ef4dfcc7 D-700; S-18.03 MERGED PR #270 bc9fc693 D-699; S-18.04b MERGED PR #264 95eeb9fa D-698; S-18.04b-prereq MERGED PR #262 a177d76e D-696; S-18.04a MERGED PR #249 b0bc4ffd D-693; S-18.14 MERGED PR #201 dfc76844 D-692; S-4.11 registered draft D-692; S-18.04a-prereq MERGED PR #198 40cd18ae D-676) |
 | Epic | E-N | `stories/epics/E-N-<short>.md` | 19 |
 | ADR | ADR-NNN | `specs/architecture/decisions/ADR-NNN.md` | 29 (ADR-029 D-694) |
 
 ## Story Status
 
-123 file-resident + 15 unauthored stub IDs = 138 stories registered (18 E-18 stories + 2 prereqs; +S-18.08 MERGED PR #303 04ab7236 D-708 2026-06-27; S-18.07 MERGED PR #301 1ef46620 D-703 2026-06-27; S-18.06 MERGED PR #284 a85e6e05 D-701 2026-06-27; S-18.05 MERGED PR #271 ef4dfcc7 D-700 2026-06-26; S-18.03 MERGED PR #270 bc9fc693 D-699 2026-06-25; S-18.04b MERGED PR #264 95eeb9fa D-698 2026-06-25; S-18.04b-prereq MERGED PR #262 a177d76e D-696 2026-06-25; S-18.04a MERGED PR #249 b0bc4ffd D-693 2026-06-24; S-18.14 MERGED PR #201 dfc76844 D-692 2026-06-23; S-4.11 registered draft D-692 (NIT-1 deferred human-approved; test-only); STORY-INDEX v4.93; S-18.00 MERGED PR #191 b025d31d; S-18.01 MERGED PR #193 8b26a0fe; S-18.02 MERGED PR #195 bd6e50ce).
+123 file-resident + 15 unauthored stub IDs = 138 stories registered (18 E-18 stories + 2 prereqs; +S-18.08 MERGED PR #303 04ab7236 D-708 2026-06-27; S-18.07 MERGED PR #301 1ef46620 D-703 2026-06-27; S-18.06 MERGED PR #284 a85e6e05 D-701 2026-06-27; S-18.05 MERGED PR #271 ef4dfcc7 D-700 2026-06-26; S-18.03 MERGED PR #270 bc9fc693 D-699 2026-06-25; S-18.04b MERGED PR #264 95eeb9fa D-698 2026-06-25; S-18.04b-prereq MERGED PR #262 a177d76e D-696 2026-06-25; S-18.04a MERGED PR #249 b0bc4ffd D-693 2026-06-24; S-18.14 MERGED PR #201 dfc76844 D-692 2026-06-23; S-4.11 registered draft D-692 (NIT-1 deferred human-approved; test-only); STORY-INDEX v4.95; S-18.00 MERGED PR #191 b025d31d; S-18.01 MERGED PR #193 8b26a0fe; S-18.02 MERGED PR #195 bd6e50ce).
 
 - **Merged (92):** Includes S-17.01..S-17.04 + S-18.00..S-18.08 (E-18 waves 1-7) + S-18.13 + S-18.14 + prereqs + prior E-17/S-15.03/wave stories. S-18.08 MERGED PR #303 04ab7236 D-708 2026-06-27 (pure-parse invariant consistency gate; tdd_mode strict; 7-pass 3-CLEAN CONVERGED; no POL-14 BC promotion). Full ledger: `cycles/v1.0-brownfield-backfill/merged-stories-ledger.md`
 - **In-Flight (0):** —
@@ -138,7 +139,7 @@ dtu_services: []
 | Cycle | Type | Status | Notes |
 |-------|------|--------|-------|
 | F-block-ai-attribution-message-file-arm | feature | F3 COMPLETE — F4 READY | F1+F2+F3 done 2026-05-12; 2 stories ready; E-16 under SS-07/SS-04; milestone v1.0.0-rc.17 |
-| v1.0-brownfield-backfill | brownfield | **D-709 FOLLOW-UP-CLEARING 2026-06-27; POSTURE ACTIVE — develop e10dedc0 (PR #304 maintenance); merged_count 92 UNCHANGED; NEXT S-18.09; BC-INDEX v3.52; VP-INDEX v2.51; STORY-INDEX v4.93; ARCH-INDEX v2.84; develop e10dedc0** | rc.21 100% COMPLETE D-560; D-619..D-709; develop e10dedc0; main caf06c68. **Autonomy STOP-BEFORE-PR-MERGE (D-665) holds for all code PRs.** |
+| v1.0-brownfield-backfill | brownfield | **D-711 S-18.09 AC-005 GATE-BUG-FIX 2026-06-27; POSTURE ACTIVE — develop e10dedc0; merged_count 92 UNCHANGED; S-18.09 TDD in-delivery PAUSED; BC-INDEX v3.52; VP-INDEX v2.51; STORY-INDEX v4.95; ARCH-INDEX v2.84; develop e10dedc0** | rc.21 100% COMPLETE D-560; D-619..D-711; develop e10dedc0; main caf06c68. **Autonomy STOP-BEFORE-PR-MERGE (D-665) holds for all code PRs.** |
 | v1.0-feature-engine-discipline-pass-1 | feature | **PAUSED** | F5 pass-75 adversary complete D-510 2026-05-27; META-LEVEL-30 CANDIDATE-CONFIRMED; trajectory →9→9→9→11. Full-cycle trajectory (75 values ending): →9→9→9→9→11. |
 | v1.0-feature-plugin-async-semantics-pass-1 | feature | CLOSED | All PRs merged; rc.14 shipped |
 
@@ -148,6 +149,7 @@ dtu_services: []
 
 | ID | Decision | Phase | Date |
 |----|----------|-------|------|
+| D-711 | S-18.09 AC-005 GATE-BUG-FIX (in-TDD spec correction) — (a) AC-005 extraction scoped to frontmatter array via awk (was `grep -A 20` overflowing into body prose, falsely pulling BC-1.01.004 via S-18.14 inline frontmatter); (b) H1 check accepts both `# BC-NNN:` and `# Behavioral Contract BC-NNN:` forms (1870 vs 103 corpus distribution); bats 8/8 green; BCs UNCHANGED; S-18.09 v1.13→v1.14; input-hash UNCHANGED `0f747df`; STORY-INDEX v4.94→v4.95. Phase/status/develop_head/merged_count UNCHANGED. S-18.09 TDD in-delivery PAUSED per human directive. BC H1-form inconsistency logged as OPEN-OBSERVATION (non-blocking). | S-18.09 AC-005 GATE-BUG-FIX | 2026-06-27 |
 | D-710 | S-18.09 PRE-TDD SPEC-FIX — AC-006 exclusion filter extended with negation/prohibition cues (`grep -Eiv` + 7 patterns); 6 residual `current_wave:` STALE_HITS → 0 (all normative-section PROHIBITIONS; same false-positive class as S-18.08 pure-parse affirmations); AC-008 clean (0 FAILs 12 BC-bearing E-18 stories); EC-003 updated; BCs UNCHANGED; S-18.09 v1.12→v1.13; input-hash UNCHANGED `0f747df`; STORY-INDEX v4.93→v4.94. Phase/status/develop_head/merged_count UNCHANGED. S-18.09 TDD-ready; delivery PAUSED per human directive. | S-18.09 PRE-TDD SPEC-FIX | 2026-06-27 |
 | D-709 | FOLLOW-UP-CLEARING BURST — PR #304 (`docs: correct stale precompact-flush.sh refs`) squash-merged e10dedc0 to develop 2026-06-27T23:00:31Z; maintenance commit (NOT a story); develop_head 04ab7236→e10dedc0; 3 drift items closed: D-703 drift-1 RESOLVED (tree-wide TD-VSDD-060 sibling-sweep 8 refs across 7 files; PR #304 e10dedc0), D-703 drift-2 CLOSED-ACCEPTED (ADR-028 §Decision 2 substantively accurate; no doc change), O-P3-005 CLOSED-ADOPTED (orchestrator adopted worktree-identity tuple in-session S-18.08 passes 4-7; optional future prompt codification noted); merged_count UNCHANGED 92; no POL-14; 4-index BC v3.52/VP v2.51/STORY v4.93/ARCH v2.84 UNCHANGED. | FOLLOW-UP-CLEARING | 2026-06-27 |
 | D-708 | POST-MERGE BURST — PR #303 (S-18.08 pure-parse invariant consistency gate) squash-merged 04ab7236 to develop 2026-06-27T21:29:22Z; S-18.08 draft→merged; merged_count 91→92; POL-14: behavioral_contracts: [] — NO BC promotion; STORY-INDEX v4.92→v4.93 (S-18.08 row merged); develop_head 1ef46620→04ab7236; feature/S-18.08 deleted; S-18.09 NEXT (depends_on S-18.08 MET — MET); LOCAL cascade 7 passes 3-CLEAN CONVERGED (passes 5/6/7); architect-led gate redesign D-705/D-706/D-707 already committed; 4-index BC v3.52/VP v2.51/STORY v4.93/ARCH v2.84. POSTURE: ACTIVE. NEXT: S-18.09. | S-18.08 POST-MERGE | 2026-06-27 |
@@ -221,6 +223,7 @@ dtu_services: []
 | **[D-701 follow-up 8c] STORY-INDEX exceeds Read 25K-token cap** | OPEN 2026-06-27 — D-701 process-gap capture | STORY-INDEX.md is 103.6KB (>25K tokens). state-manager is forced into surgical bash-grep + Edit fallback to avoid POL-3 violation; Python/sed bypass is forbidden (TD-FACTORY-HOOK-BYPASS-001 P0). This will worsen as stories accumulate. Anchor: S-15.03 PRIORITY-A family (compaction/archival automation) or new compaction story. Tag: [process-gap]. |
 | **[D-701 follow-up 8d] Redaction test-doc-comment drift** | CODIFIED 2026-06-27 — D-701 process-gap; lesson added to brownfield lessons.md | Red-gate/pre-implementation doc-comment narratives in test files repeatedly survived into green commits across S-18.06 LOCAL passes 6-9 (doc-comments described expected-failure behavior after the implementation was already green). Lesson codified: "reconcile test doc-comments to green state at implementer green-commit time." Anchor: brownfield lessons.md; apply at every WASM story green-commit step. |
 | **[process-gap] O-P3-005 Worktree-identity tuple missing from orchestrator adversary dispatch (D-707)** | **CLOSED-ADOPTED 2026-06-27 (D-709)** | Orchestrator adopted the practice in-session: embedded the worktree-identity tuple (worktree-abs-path, feature-HEAD-SHA, story-id, canonical-repo-root) in all S-18.08 LOCAL adversary dispatch passes 4-7. Optional future codification into the orchestrator agent prompt remains a candidate improvement (not blocking). Root cause resolved in practice. |
+| **[observation] BC H1-form inconsistency** | OPEN-OBSERVATION 2026-06-27 — D-711 S-18.09 AC-005 TDD capture | Corpus has TWO H1 conventions: `# Behavioral Contract BC-NNN: Title` (1870 files, dominant) and `# BC-NNN: Title` (103 files, newer/E-18). Latent POLICY-7 canonical-form question; both are currently accepted. Surfaced during S-18.09 AC-005 TDD. Candidate future canonicalization sweep (NOT in S-18.09 scope). Anchor: maintenance-sweep / future POLICY-7 canonical-form decision (architect). Tag: [observation]. Non-blocking. |
 
 ## Historical Content
 
@@ -228,14 +231,14 @@ dtu_services: []
 - `cycles/v1.0-feature-plugin-async-semantics-pass-1/burst-log.md` | `session-checkpoints.md` | `lessons.md`
 - `cycles/v1.0-feature-engine-discipline-pass-1/burst-log.md` (adversary reviews at `S-12.03/`, `S-12.04/`, `S-12.05/` subdirs)
 
-## Session Resume Checkpoint (2026-06-27 — D-709 FOLLOW-UP-CLEARING; POSTURE: ACTIVE; merged_count 92 UNCHANGED; NEXT S-18.09; develop HEAD e10dedc0; 4-index BC v3.52/VP v2.51/STORY v4.93/ARCH v2.84 UNCHANGED; STOP-BEFORE-PR-MERGE D-665; L-BB-merge-requires-direct-human-action; origin=drbothen/vsdd-factory)
+## Session Resume Checkpoint (2026-06-27 — D-711 S-18.09 AC-005 GATE-BUG-FIX; POSTURE: ACTIVE; merged_count 92 UNCHANGED; S-18.09 TDD in-delivery PAUSED; develop HEAD e10dedc0; 4-index BC v3.52/VP v2.51/STORY v4.95/ARCH v2.84; STOP-BEFORE-PR-MERGE D-665; L-BB-merge-requires-direct-human-action; origin=drbothen/vsdd-factory)
 
 > **SELF-SUFFICIENT RESUME CONTEXT FOR ZERO-CONTEXT NEW SESSION OR NEW MACHINE**
 > Read this section alone to resume. Assumes ZERO prior context. All decisions, directives, and anchors stated explicitly.
 
 ### §1. Where We Are
 
-**POSTURE: ACTIVE (D-709 FOLLOW-UP-CLEARING 2026-06-27; PR #304 maintenance e10dedc0 merged; develop_head 04ab7236→e10dedc0; merged_count 92 UNCHANGED; 3 drift items closed (D-703 drift-1 RESOLVED, drift-2 ACCEPTED, O-P3-005 ADOPTED); S-18.09 NEXT (depends_on S-18.08 MET — MET D-708)).**
+**POSTURE: ACTIVE (D-711 S-18.09 AC-005 GATE-BUG-FIX 2026-06-27; S-18.09 v1.13→v1.14 (awk frontmatter-scoped extraction + H1 both-forms; bats 8/8 green); STORY-INDEX v4.94→v4.95; develop_head UNCHANGED e10dedc0; merged_count 92 UNCHANGED; S-18.09 TDD in-delivery PAUSED per human directive). [Prior: D-709 FOLLOW-UP-CLEARING; PR #304 maintenance e10dedc0 merged; 3 drift items closed.]**
 
 **Cycle/mode:** v1.0-brownfield-backfill; brownfield; E-18 "full build" authorized by human — deliver all remaining E-18 stories with full per-story rigor (LOCAL 3-CLEAN → demo → PR → CI green → STOP-BEFORE-PR-MERGE → human merge approval → post-merge burst).
 
@@ -245,6 +248,7 @@ dtu_services: []
 
 **Governance landed (durable refs):**
 - **D-709 2026-06-27:** PR #304 maintenance (docs: correct stale precompact-flush.sh refs) squash-merged e10dedc0 to develop 2026-06-27T23:00:31Z; develop_head 04ab7236→e10dedc0; 3 drift items closed (D-703 drift-1 RESOLVED PR #304 tree-wide 8-ref sweep, drift-2 CLOSED-ACCEPTED, O-P3-005 CLOSED-ADOPTED); merged_count 92 UNCHANGED; no POL-14; 4-index UNCHANGED.
+- D-711 S-18.09 AC-005 GATE-BUG-FIX 2026-06-27; S-18.09 v1.13→v1.14; STORY-INDEX v4.94→v4.95; bats 8/8 green; BCs UNCHANGED; develop_head UNCHANGED e10dedc0; merged_count 92 UNCHANGED
 - S-18.08 MERGED PR #303 04ab7236 2026-06-27 (D-708); no POL-14 BC promotion (behavioral_contracts: []); STORY-INDEX v4.93; develop 04ab7236; S-18.09 unblocked (depends_on S-18.08 MET — MET D-708); 7-pass 3-CLEAN CONVERGED; architect-led gate redesign D-705/D-706/D-707
 - S-18.07 MERGED PR #301 1ef46620 2026-06-27 (D-703); no POL-14 BC promotion (behavioral_contracts: []); STORY-INDEX v4.88; develop 1ef46620; S-18.10 unblocked (depends_on S-18.07 MET); 2 Drift Items logged
 - S-18.06 MERGED PR #284 a85e6e05 2026-06-27 (D-701); BC-4.15.001 lifecycle_status ACTIVE (POL-14); BC-INDEX v3.52; STORY-INDEX v4.85; develop a85e6e05; S-18.07/S-18.08 fully unblocked
@@ -257,7 +261,7 @@ dtu_services: []
 - L-BB-vp-cite-stable-anchor-recurrence-proof (D-700); L-BB-red-gate-test-plan-ec-coverage-parity (D-699)
 - L-BB-proof-vehicle-must-be-mutation-tested-not-asserted (D-697); L-BB-wasm-bats-gate-before-green (D-693)
 
-**NEXT ACTION = S-18.09 (depends_on S-18.08 MET — MET D-708). S-18.10 also remains unblocked (depends_on S-18.07 MET — MET D-703).**
+**NEXT ACTION = S-18.09 TDD in-delivery (story v1.14 bats 8/8 green; PAUSED per human directive). S-18.10 also remains unblocked (depends_on S-18.07 MET — MET D-703).**
 
 **ORDERED RESUME ACTIONS (cold start):**
 1. **Verify worktrees:** `git rev-parse --short origin/develop` → expect `e10dedc0`; `git rev-parse --short origin/main` → expect `caf06c68`; `git -C .factory log -1 --format='%h %s'` → expect D-709 follow-up-clearing burst. feature/S-18.08 DELETED (merged). feature/S-18.07 DELETED.
@@ -273,7 +277,7 @@ dtu_services: []
 - **Story:** `.factory/stories/S-18.09-f2-process-gap-lesson-gate-checks.md` (E-18 F2 process-gap lesson gate checks — machine-stable lesson assertions, stale-term detector, BC-precondition registry-block-shape validator, AC↔PC parity gate)
 - **Subsystem:** SS-05 (Verification Infrastructure). Wave 8.
 - **depends_on:** S-18.08 — MET D-708. FULLY UNBLOCKED.
-- **tdd_mode:** `strict`; gate-enforcement story; no new BC (enforces L-F2 lessons codified in lessons.md + D-576 registry-block-shape); story v1.12
+- **tdd_mode:** `strict`; gate-enforcement story; no new BC (enforces L-F2 lessons codified in lessons.md + D-576 registry-block-shape); story v1.14 (D-711 AC-005 gate-bug-fix)
 - **Flow:** LOCAL 3-CLEAN (BC-5.39.001) → demo-recorder per-AC → PR create (`--repo drbothen/vsdd-factory`) → CI green → STOP-BEFORE-PR-MERGE (D-665) → **HUMAN executes** `gh pr merge <N> --squash --delete-branch --repo drbothen/vsdd-factory` (L-BB-merge-requires-direct-human-action) → post-merge burst
 
 **Open maintenance (low priority):** dependabot PRs #194/#192/#187 (visual-companion deps) untouched.
@@ -312,6 +316,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 - **D-537 [process-gap] spec-drift routing:** When TDD fix changes ADR-specified behavior, route architect ADR amendment in SAME burst.
 - **D-539 multi-family adversary obligation:** prompt-contract + shell-logic issues require cross-family AND same-family Claude adversary passes before convergence.
 - **L-BB-merge-requires-direct-human-action [process-gap] (2026-06-25; SRC-HARDEN burst):** pr-manager operates under a hard system rule that it will NOT accept coordinator/orchestrator-RELAYED human merge approval — only the user's OWN direct action authorizes merge. Therefore the D-665 merge step CANNOT be executed by pr-manager on an orchestrator relay; the human must merge directly (`gh pr merge <N> --squash --delete-branch --repo drbothen/vsdd-factory`) or the orchestrator must escalate to the human with the exact command. Codified in lessons.md. Zero-context sessions MUST be aware of this or they will deadlock at the merge gate.
+- **D-711 2026-06-27: S-18.09 AC-005 GATE-BUG-FIX — S-18.09 v1.13→v1.14 (awk frontmatter-scoped extraction + H1 both-forms; bats 8/8 green); STORY-INDEX v4.94→v4.95; BCs UNCHANGED; develop_head/merged_count UNCHANGED; BC H1-form OPEN-OBSERVATION logged. POSTURE ACTIVE. S-18.09 TDD in-delivery PAUSED. STOP-BEFORE-PR-MERGE (D-665) holds.**
 - **D-709 2026-06-27: FOLLOW-UP-CLEARING BURST — PR #304 (docs: correct stale precompact-flush.sh refs) squash-merged e10dedc0 2026-06-27T23:00:31Z; develop_head 04ab7236→e10dedc0; 3 drift items closed (D-703 drift-1 RESOLVED tree-wide 8-ref sweep, drift-2 CLOSED-ACCEPTED, O-P3-005 CLOSED-ADOPTED); merged_count 92 UNCHANGED; no POL-14; 4-index UNCHANGED. POSTURE ACTIVE. NEXT: S-18.09. STOP-BEFORE-PR-MERGE (D-665) holds.**
 - **D-703 2026-06-27: POST-MERGE BURST — PR #301 (S-18.07 terminology disambiguation docs) squash-merged 1ef46620 2026-06-27T17:30:54Z; merged_count 90→91; POL-14: behavioral_contracts: [] — NO BC promotion; STORY-INDEX v4.87→v4.88; develop_head a85e6e05→1ef46620; feature/S-18.07 deleted; S-18.10 unblocked (depends_on S-18.07 MET); LOCAL cascade 7 passes 3-CLEAN CONVERGED; 2 Drift Items logged; 4-index BC v3.52/VP v2.51/STORY v4.88/ARCH v2.80. POSTURE ACTIVE. NEXT: S-18.08. STOP-BEFORE-PR-MERGE (D-665) holds.**
 - **D-701 2026-06-27: POST-MERGE BURST — PR #284 (S-18.06 validate-heavy-op-delegation WASM gate + SEC-002 redaction) squash-merged a85e6e05 2026-06-27T04:12:52Z; merged_count 89→90; POL-14 BC-4.15.001 draft→active (BC-INDEX v3.51→v3.52); STORY-INDEX v4.84→v4.85; develop_head ef4dfcc7→a85e6e05; S-18.07/S-18.08 fully unblocked (depends_on S-18.06 MET); SEC-002 redaction delivered; LOCAL cascade 25 passes (13 base + 12 redaction-delta) 3-CLEAN CONVERGED; 4 follow-up items anchored (8a-8d); 4-index BC v3.52/VP v2.51/STORY v4.85/ARCH v2.80. POSTURE ACTIVE. NEXT: S-18.07 (NOW MERGED D-703).**
@@ -334,6 +339,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 ### §4. Tier-A Completed Log (most recent first)
 
+- **D-711 (2026-06-27):** S-18.09 AC-005 GATE-BUG-FIX — S-18.09 v1.13→v1.14: (a) awk frontmatter-scoped extraction (fixes grep -A 20 body-prose overflow falsely pulling BC-1.01.004); (b) H1 check accepts both `# BC-NNN:` and `# Behavioral Contract BC-NNN:` forms (1870 vs 103 corpus); bats 8/8 green; BCs UNCHANGED; STORY-INDEX v4.94→v4.95; develop_head/merged_count UNCHANGED; BC H1-form OPEN-OBSERVATION logged. POSTURE: ACTIVE. S-18.09 TDD in-delivery PAUSED.
 - **D-709 (2026-06-27):** FOLLOW-UP-CLEARING BURST — PR #304 (docs: correct stale precompact-flush.sh refs) squash-merged e10dedc0 to develop 2026-06-27T23:00:31Z; develop_head 04ab7236→e10dedc0; 3 drift items closed (D-703 drift-1 RESOLVED tree-wide 8-ref sweep, drift-2 CLOSED-ACCEPTED, O-P3-005 CLOSED-ADOPTED); merged_count 92 UNCHANGED; no POL-14; 4-index BC v3.52/VP v2.51/STORY v4.93/ARCH v2.84 UNCHANGED. POSTURE: ACTIVE. NEXT: S-18.09.
 - **D-703 (2026-06-27):** POST-MERGE BURST — PR #301 (S-18.07 terminology disambiguation docs) squash-merged 1ef46620 to develop 2026-06-27T17:30:54Z; S-18.07 draft→merged (merged 90→91); no POL-14 (behavioral_contracts: []); develop_head a85e6e05→1ef46620; feature/S-18.07 deleted; STORY-INDEX v4.87→v4.88; 2 Drift Items logged; 4-index BC v3.52/VP v2.51/STORY v4.88/ARCH v2.80. POSTURE: ACTIVE. NEXT: S-18.08.
 - **D-701 (2026-06-27):** POST-MERGE BURST — PR #284 (S-18.06 validate-heavy-op-delegation WASM gate + SEC-002 redaction) squash-merged a85e6e05 to develop 2026-06-27T04:12:52Z; S-18.06 draft→merged (merged 89→90); POL-14 BC-4.15.001 draft→active (BC-INDEX v3.51→v3.52; BC file lifecycle_status active); develop_head ef4dfcc7→a85e6e05; feature/S-18.06 deleted; merged-stories-ledger +S-18.06 #284 a85e6e05; S-18.07/S-18.08 fully unblocked (S-18.06 MET); STORY-INDEX v4.84→v4.85; adversary-convergence-state.json merge_status added; D-701 decision-log block added; 4 follow-up items anchored (8a-8d); 4-index BC v3.52/VP v2.51/STORY v4.85/ARCH v2.80. POSTURE: ACTIVE. NEXT: S-18.07 (NOW MERGED D-703).
@@ -343,7 +349,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 ### §5. Cumulative Codifications
 
 - F5: D-379..D-454 (76 decisions) — `cycles/v1.0-feature-engine-discipline-pass-1/decision-log.md`.
-- Brownfield: D-001..D-709 — `cycles/v1.0-brownfield-backfill/decision-log.md`. Latest: **D-709 (2026-06-27) — FOLLOW-UP-CLEARING BURST; PR #304 maintenance e10dedc0; develop_head 04ab7236→e10dedc0; 3 drift items closed; merged_count 92 UNCHANGED; S-18.09 NEXT. [D-708: S-18.08 POST-MERGE; PR #303 04ab7236; merged_count 92; no POL-14; STORY-INDEX v4.93.]**
+- Brownfield: D-001..D-711 — `cycles/v1.0-brownfield-backfill/decision-log.md`. Latest: **D-711 (2026-06-27) — S-18.09 AC-005 GATE-BUG-FIX; S-18.09 v1.14; STORY-INDEX v4.95; bats 8/8 green; BCs UNCHANGED; develop_head e10dedc0 UNCHANGED. [D-709: FOLLOW-UP-CLEARING; PR #304 maintenance e10dedc0; 3 drift items closed.]**
 
 ### §6. Cumulative Lessons
 
@@ -360,16 +366,16 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 |-------|---------|-------|
 | BC-INDEX | v3.52 | UNCHANGED at D-708 post-merge (gate-enforcement story; no new BC; behavioral_contracts: []). Last bumped D-701 (BC-4.15.001 lifecycle_status draft→active POL-14; total_bcs UNCHANGED 1,973). |
 | VP-INDEX | v2.51 | UNCHANGED at D-708 post-merge (gate-enforcement story; no VP changes). Last bumped S-18.06 LOCAL cascade (VP-091 v1.5 ADR-026 v1.29). |
-| STORY-INDEX | v4.93 | Bumped D-708 (S-18.08 draft→merged; merged_count 91→92; S-18.09 unblocked). [v4.92 D-707 governance burst; v4.88 D-703 S-18.07 merged.] |
+| STORY-INDEX | v4.95 | Bumped D-711 (S-18.09 AC-005 gate-bug-fix; v1.13→v1.14; bats 8/8 green). [v4.94 D-710; v4.93 D-708; v4.92 D-707; v4.88 D-703.] |
 | ARCH-INDEX | v2.84 | UNCHANGED at D-708 post-merge (gate-enforcement story; no ARCH changes). Last bumped D-707 governance burst (ADR-026 v1.33). |
 | L2-INDEX | v1.0.13 | Bumped D-616. Document Map invariants.md v1.22→v1.25. UNCHANGED at D-699. |
 
-4-index at D-708 S-18.08 post-merge burst (literal-shell POLICY 14 verification_step 7 gate — stdout captured 2026-06-27): `grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md` → `version: "3.52"` (UNCHANGED gate-enforcement PASS); `grep "^version:" .factory/specs/verification-properties/VP-INDEX.md` → `version: "2.51"` (UNCHANGED gate-enforcement PASS); `grep "^version:" .factory/stories/STORY-INDEX.md` → `version: "4.93"` (BUMPED D-708 PASS); `grep "^version:" .factory/specs/architecture/ARCH-INDEX.md` → `version: "2.84"` (UNCHANGED gate-enforcement PASS). Zero FAIL. Parity confirmed PASS: BC-INDEX v3.52 / VP-INDEX v2.51 / STORY-INDEX v4.93 / ARCH-INDEX v2.84.
+4-index at D-711 S-18.09 AC-005 gate-bug-fix burst (literal-shell POLICY 14 verification_step 7 gate — stdout captured 2026-06-27): `grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md` → `version: "3.52"` (UNCHANGED PASS); `grep "^version:" .factory/specs/verification-properties/VP-INDEX.md` → `version: "2.51"` (UNCHANGED PASS); `grep "^version:" .factory/stories/STORY-INDEX.md` → `version: "4.95"` (BUMPED D-711 PASS); `grep "^version:" .factory/specs/architecture/ARCH-INDEX.md` → `version: "2.84"` (UNCHANGED PASS). Zero FAIL. Parity confirmed PASS: BC-INDEX v3.52 / VP-INDEX v2.51 / STORY-INDEX v4.95 / ARCH-INDEX v2.84.
 
 ### §9. Critical Anchors
 
 - **GitHub origin repo:** `drbothen/vsdd-factory` (NOT the local git user "Zious"). All E-18 PRs live at `https://github.com/drbothen/vsdd-factory`. Use `--repo drbothen/vsdd-factory` flag with all `gh` commands.
-- **factory-artifacts HEAD:** see `git -C .factory log -1 --format='%h %s'` (D-709 follow-up-clearing burst 2026-06-27; prior = `ecebb957` D-708 SHA-patch). Verify: `git -C .factory log -1 --format='%h %s'`
+- **factory-artifacts HEAD:** see `git -C .factory log -1 --format='%h %s'` (D-711 S-18.09 AC-005 gate-bug-fix 2026-06-27; prior = D-710 SHA-patch). Verify: `git -C .factory log -1 --format='%h %s'`
 - **develop HEAD:** `e10dedc0` (PR #304 docs: correct stale precompact-flush.sh refs squash-merged 2026-06-27T23:00:31Z D-709; prior: `04ab7236` PR #303 S-18.08 D-708; prior: `1ef46620` PR #301 D-703)
 - **main HEAD:** `caf06c68` (rc.21 bot bundle commit 2026-06-13; UNCHANGED)
 - **v1.0.0-rc.21 tag:** `03054524` (SHIPPED; FULLY IN OPERATOR MARKETPLACE)
@@ -378,7 +384,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 - **BC-7.07.002 v1.13 (active):** `ss-07/BC-7.07.002.md` (D-700 POL-14 draft→active; S-18.05 PR #271 ef4dfcc7 2026-06-26)
 - **BC-7.07.001 v1.18 (active):** `ss-07/BC-7.07.001.md` (D-672 SPEC CONVERGENCE ACCEPTED; D-693 POL-14 draft→active)
 - **Older anchors (BC-4.14.001 v1.17 D-651; BC-5.41.001 v1.26 D-660; BC-5.41.002 v1.19 D-658; ADR-028 v1.3 D-672; S-18.04a v1.11 D-693; S-18.05 v1.9 D-700; BC-1.15.001 v1.5..VP-090 v1.2, VP-081..VP-085, L2-INDEX v1.0.13, ADR-025 v1.6, S-17.04 v1.7, ADR-027 v1.0):** see `cycles/v1.0-brownfield-backfill/decision-log.md` D-580..D-700 blocks.
-- **Verify on resume:** `git rev-parse --short origin/develop` → expect `e10dedc0` (PR #304 maintenance docs cleanup merged D-709 2026-06-27); `git rev-parse --short origin/main` → expect `caf06c68`; `git -C .factory log -1 --format='%h %s'` → expect D-709 follow-up-clearing burst; `gh repo view --json nameWithOwner -q .nameWithOwner` → expect `drbothen/vsdd-factory`
+- **Verify on resume:** `git rev-parse --short origin/develop` → expect `e10dedc0` (PR #304 maintenance docs cleanup merged D-709 2026-06-27); `git rev-parse --short origin/main` → expect `caf06c68`; `git -C .factory log -1 --format='%h %s'` → expect D-711 S-18.09 AC-005 gate-bug-fix; `gh repo view --json nameWithOwner -q .nameWithOwner` → expect `drbothen/vsdd-factory`
 
 ### §10. PR Status
 
@@ -395,16 +401,16 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 
 ### §11. Post-CLEAR/Post-RESET Resume Checklist (zero-context; D-639 refresh)
 
-1. **Verify worktree state:** `git rev-parse --short origin/develop` → expect `e10dedc0` (PR #304 maintenance D-709 2026-06-27). `git rev-parse --short origin/main` → expect `caf06c68`. `git -C .factory log -1 --format='%h %s'` → expect D-709 follow-up-clearing burst. `gh repo view --json nameWithOwner -q .nameWithOwner` → expect `drbothen/vsdd-factory`. feature/S-18.08 MERGED PR #303 04ab7236 (deleted). feature/S-18.07 MERGED PR #301 1ef46620 (deleted). feature/S-18.06 MERGED PR #284 a85e6e05 (deleted). feature/S-18.05 MERGED PR #271 ef4dfcc7 (deleted). feature/S-18.03 MERGED PR #270 bc9fc693 (deleted). feature/S-18.04b MERGED PR #264 95eeb9fa (deleted). feature/S-18.04b-prereq MERGED PR #262 a177d76e (deleted). feature/S-18.04a MERGED PR #249 b0bc4ffd (deleted). feature/S-18.14 MERGED PR #201 dfc76844 (deleted). feature/S-18.01 MERGED. feature/S-18.02 MERGED PR #195 bd6e50ce (deleted). feature/S-18.13 MERGED PR #196 70664e02 (deleted).
+1. **Verify worktree state:** `git rev-parse --short origin/develop` → expect `e10dedc0` (PR #304 maintenance D-709 2026-06-27). `git rev-parse --short origin/main` → expect `caf06c68`. `git -C .factory log -1 --format='%h %s'` → expect D-711 S-18.09 AC-005 gate-bug-fix. `gh repo view --json nameWithOwner -q .nameWithOwner` → expect `drbothen/vsdd-factory`. feature/S-18.08 MERGED PR #303 04ab7236 (deleted). feature/S-18.07 MERGED PR #301 1ef46620 (deleted). feature/S-18.06 MERGED PR #284 a85e6e05 (deleted). feature/S-18.05 MERGED PR #271 ef4dfcc7 (deleted). feature/S-18.03 MERGED PR #270 bc9fc693 (deleted). feature/S-18.04b MERGED PR #264 95eeb9fa (deleted). feature/S-18.04b-prereq MERGED PR #262 a177d76e (deleted). feature/S-18.04a MERGED PR #249 b0bc4ffd (deleted). feature/S-18.14 MERGED PR #201 dfc76844 (deleted). feature/S-18.01 MERGED. feature/S-18.02 MERGED PR #195 bd6e50ce (deleted). feature/S-18.13 MERGED PR #196 70664e02 (deleted).
 2. **Read §1-§12 this checkpoint** (all of it; D-708 self-sufficient 2026-06-27).
-3. **Verify 4-index:** `grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md` → "3.52"; ARCH-INDEX → "2.84"; VP-INDEX → "2.51"; STORY-INDEX → "4.93"; L2-INDEX → "1.0.13".
+3. **Verify 4-index:** `grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md` → "3.52"; ARCH-INDEX → "2.84"; VP-INDEX → "2.51"; STORY-INDEX → "4.95"; L2-INDEX → "1.0.13".
 4. **E-10 CASCADE SEALED D-531.** Do NOT resume without engine-surface material change.
 5. **F5 PAUSED** — trajectory →9→9→9→11. Do NOT resume without explicit human direction.
 6. **RC.21 100% COMPLETE D-560.** NO remaining release action. Operators: `/plugin update vsdd-factory@claude-mp`.
-7. **D-709 FOLLOW-UP-CLEARING (2026-06-27). POSTURE: ACTIVE.** develop e10dedc0 (PR #304 maintenance). merged_count 92 UNCHANGED. S-18.09 NEXT (depends_on S-18.08 MET — MET D-708). **NEXT:** S-18.09. **Autonomy STOP-BEFORE-PR-MERGE (D-665) holds for all code PRs.**
-8. **4-index at D-709 follow-up-clearing burst:** BC-INDEX v3.52 (UNCHANGED from D-708; total_bcs 1,973), VP-INDEX v2.51 (UNCHANGED), STORY-INDEX v4.93 (UNCHANGED; S-18.09 NEXT; merged 92), ARCH-INDEX v2.84 (UNCHANGED). Key SHAs: develop e10dedc0; main caf06c68; factory-artifacts (see `git -C .factory log -1`).
+7. **D-711 S-18.09 AC-005 GATE-BUG-FIX (2026-06-27). POSTURE: ACTIVE.** develop e10dedc0 (UNCHANGED). merged_count 92 UNCHANGED. S-18.09 TDD in-delivery PAUSED per human directive. **Autonomy STOP-BEFORE-PR-MERGE (D-665) holds for all code PRs.**
+8. **4-index at D-711 burst:** BC-INDEX v3.52 (UNCHANGED), VP-INDEX v2.51 (UNCHANGED), STORY-INDEX v4.95 (BUMPED D-711; S-18.09 v1.14; bats 8/8 green), ARCH-INDEX v2.84 (UNCHANGED). Key SHAs: develop e10dedc0; main caf06c68; factory-artifacts (see `git -C .factory log -1`).
 9. **ALL dispatches carry:** TD-VSDD-097-EXT + TD-VSDD-099 + TD-VSDD-100 + POLICY 14 5-leg + verification_step 7 4-index gate + INV-019 (a)/(b)/(c) + adversary grep origin/factory-artifacts + D-449(a) literal-shell Dim-2 + POLICY 8 v1.3 parity + POLICY 5 v1.3.1/v1.3.4/v1.3.5/v1.3.6 + D-537 spec-drift routing + D-539 multi-family adversary + O-P8-002 MANDATORY + L-F2-no-bypass-on-edit-failure (D-610) + L-F2-statemd-banner-wcl-each-burst (D-617) + **L-BB-wasm-bats-gate-before-green (D-693 MANDATORY)** + **L-BB-proof-vehicle-must-be-mutation-tested-not-asserted (D-697 MANDATORY)** + **L-BB-merge-requires-direct-human-action (MANDATORY: pr-manager will NOT accept relay; human executes `gh pr merge <N> --squash --delete-branch --repo drbothen/vsdd-factory` directly)** + **L-BB-red-gate-test-plan-ec-coverage-parity (D-699 MANDATORY)** + **L-BB-vp-cite-stable-anchor-recurrence-proof (D-700 MANDATORY: use bare identifier e.g. VP-089 not VP-089 v1.3)** + L-S18-bc-bump-must-sweep-dependent-story-body-cites (D-644) + D-636..D-701 carries (see §3 for full text).
-10. **Latest action D-709 (2026-06-27).** FOLLOW-UP-CLEARING: PR #304 maintenance e10dedc0; develop_head 04ab7236→e10dedc0; 3 drift items closed (D-703 drift-1 RESOLVED, drift-2 ACCEPTED, O-P3-005 ADOPTED); merged_count 92 UNCHANGED; 4-index UNCHANGED. S-18.09 NEXT (MET D-708). **POSTURE: ACTIVE. NEXT: S-18.09.**
+10. **Latest action D-711 (2026-06-27).** S-18.09 AC-005 GATE-BUG-FIX: S-18.09 v1.13→v1.14 (awk frontmatter-scoped extraction + H1 both-forms; bats 8/8 green); STORY-INDEX v4.94→v4.95; BC H1-form OPEN-OBSERVATION logged; develop_head/merged_count UNCHANGED. **POSTURE: ACTIVE. S-18.09 TDD in-delivery PAUSED per human directive.**
 
 ### §12. Pending Work Items — Strict Resume Ordering (refreshed 2026-06-22 D-689)
 
@@ -427,4 +433,4 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 | **8/9** | **UNI-PLUG-001 / SK-MCP-001** | **forward** | human-authorize | PROPOSAL REVIEW-READY |
 
 **[D-414(c) acknowledgment: Section 12 is a non-standard addition for forward-backlog durability.]**
-> Previous checkpoint (D-708 S-18.08 POST-MERGE v4.61 2026-06-27) archived to: `cycles/v1.0-brownfield-backfill/session-checkpoints.md`
+> Previous checkpoint (D-709 FOLLOW-UP-CLEARING v4.62 2026-06-27) archived to: `cycles/v1.0-brownfield-backfill/session-checkpoints.md`
