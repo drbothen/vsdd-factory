@@ -10177,4 +10177,4 @@ All 4 indexes: ZERO FAIL. BC-INDEX v3.53 / VP-INDEX v2.51 / STORY-INDEX v4.101 /
 
 ### Factory-artifacts Commits
 
-- TBD — state(S-18.10): leg-5 index sync BC-6.25.001 v1.1 + story v1.4 + STATE 4-index refresh + D-718 (in-flight spec amendment; LOCAL adv pass-2 fixes)
+- `02ca5b88` (factory-artifacts) — state(S-18.10): leg-5 index sync BC-6.25.001 v1.1 + story v1.4 + STATE 4-index refresh + D-718 (in-flight spec amendment; LOCAL adv pass-2 fixes)
