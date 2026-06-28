@@ -90,6 +90,43 @@ Check for content that should NOT be in STATE.md:
 
 If a convergence counter exists, verify format: `N of 3` where N is 0-3.
 
+### 8. CLAUDE_AUTOCOMPACT_PCT_OVERRIDE Settings Verification
+
+Invoke `plugins/vsdd-factory/skills/check-state-health/lib/check-autocompact-setting.sh`
+(with `PROJECT_ROOT` set to the repository root) to verify that
+`CLAUDE_AUTOCOMPACT_PCT_OVERRIDE` is present in `settings.json` and its value does
+not exceed 80.
+
+The helper resolves settings.json with this precedence (BC-6.25.001 INV2):
+1. Project-local `.claude/settings.json` (preferred)
+2. Global `~/.claude/settings.json` (fallback when project-local is absent)
+3. Neither present: advisory row fires noting `no settings.json found at either path`
+
+Emit semantics (BC-6.25.001 PC1–PC5, INV1–INV5):
+
+| Condition | Row emitted |
+|-----------|-------------|
+| Key present, numeric value ≤ 80 | `PASS` — value N ≤ 80 (70 is canonical per ADR-026 §Decision 5) |
+| Key present, numeric value > 80 | `ADVISORY` — value N exceeds ceiling of 80 (ADR-026 §Decision 5) |
+| Key absent or env block missing | `ADVISORY` — remediation hint to add the key at value "70" |
+| Non-numeric value (e.g., `"auto"`, `""`) | `ADVISORY` — treated as absent; note: "Value '...' is not a valid integer; treating as absent" |
+| settings.json malformed JSON | `ADVISORY` — parse error noted; cannot verify key |
+| No settings.json at either path | `ADVISORY` — key absent + notes no settings.json found |
+
+**Advisory-only, never blocking (BC-6.25.001 INV1):** This check does NOT cause
+`NEEDS-COMPACT`, does NOT emit exit 2, and does NOT block any downstream operation.
+Overall skill result MAY be elevated to `WARNINGS` when this advisory fires — consistent
+with existing check-state-health advisory escalation semantics.
+
+A row for `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE` MUST always appear in the output table
+(BC-6.25.001 INV5); silent omission is a specification violation.
+
+**Rationale:** ADR-026 §Decision 5 mandates a proactive compaction threshold to give
+the `precompact-flush` hook (PreCompact WASM plugin) sufficient headroom before context
+saturation. ADR-026 §F-11 mandates that `check-state-health` verifies this key.
+The canonical value is 70; the ceiling is 80 (based on a 83% harness soft cap with
+MEDIUM confidence, leaving 3% headroom for the hook's own overhead).
+
 ## Output
 
 Report as a table:
@@ -106,6 +143,7 @@ Report as a table:
 | Structure | PASS/WARN | [missing sections] |
 | Content routing | PASS/WARN/FAIL | [N violations] |
 | Convergence counter | PASS/WARN/N/A | |
+| CLAUDE_AUTOCOMPACT_PCT_OVERRIDE | PASS/ADVISORY | [value or remediation hint] |
 
 **Overall: HEALTHY / WARNINGS / NEEDS-COMPACT**
 ```
