@@ -3279,6 +3279,59 @@ S-18.08 TDD implementation (story v1.9 with portability-normalized ACs; AC-001..
 
 ---
 
+## D-713 — S-18.09 LOCAL adv pass-2 closure — 2026-06-27
+
+**Decision:** S-18.09 v1.15→v1.16 (4-leg parity applied; input-hash UNCHANGED `0f747df`). LOCAL adversary pass-2 surfaced three observations against v1.15:
+
+- **O-P2-001 (bats header version-token pinning — TD-VSDD-091):** Bats test file headers contained pinned version tokens (e.g., `# Tests for S-18.09 v1.15`) which become stale on each spec-version bump. Per TD-VSDD-091, bats header comments MUST NOT cite spec version numbers (volatile pins that decay on subsequent diffs). Fix: de-pin the version-token in the bats header; sibling-sweep confirmed no other bats files in the S-18.09 test suite contained version-pinned headers. Committed on feature/S-18.09 as deliverable hardening commit 48173d6e.
+- **O-P2-002 (AC-004 string-presence vs guard-wiring — non-blocking spec-design observation):** AC-004 verifies literal presence of `wc -l` and `-gt 0` strings inside `pure-parse-invariant-gate.bats` via grep, not that the count guard is actually wired as an empty-set guard at the pure-parse gate. The test currently passes for the right reason (S-18.08's bats has the real `-gt 0` guard executing at runtime). AC-004 is faithful to the v1.16 spec's string-presence formulation; this is a spec-design question about whether future AC strengthening should verify guard wiring. Logged OPEN-OBSERVATION (non-blocking; out of S-18.09 deliverable scope). Anchor: future gate-design refinement (product-owner/story-writer).
+- **O-P2-003 (AC-008 `_resolve_clause` BC-section fence-strip — spec↔bats parity):** The AC-008 `_resolve_clause` helper in the gate script did NOT fence-strip the BC §Postconditions/§Invariants section before the clause-heading grep, meaning a clause name that appeared literally as a §Postconditions heading OR §Invariants heading in those sections would produce a false positive (clause resolved when it should not be). Deliverable hardening commit 48173d6e already applied the fence-strip to BOTH branches of `_resolve_clause` (keyword-bearing and keyword-less forms), achieving spec↔bats parity for v1.16. This is a false-positive-only hardening; 168 cites in the corpus still resolve correctly after the fix. Fix: AC-008 spec text updated to describe the BC-section fence-strip gate in both recognizer branches; bats parity confirmed.
+
+Bats 8/8 green after O-P2-001 and O-P2-003 fixes. No BC amendment needed. S-18.09 remains draft (mid-TDD; PAUSED per human directive). develop_head, merged_count, story_count, phase all UNCHANGED.
+
+**Context:** In-delivery LOCAL adversarial pass-2 for S-18.09 (F2 process-gap lesson gate checks). O-P2-001 closes a TD-VSDD-091 volatile-pin violation in the bats header discovered during pass-2 review. O-P2-003 closes a spec↔bats parity gap where the `_resolve_clause` helper lacked the §Postconditions/§Invariants fence-strip that was already applied in the deliverable implementation; the spec now reflects the actual implementation behavior. O-P2-002 is a non-blocking spec-design observation about the nature of AC-004's verification (string-presence vs wiring-verification); logged as OPEN-OBSERVATION for product-owner/story-writer consideration in a future gate-design cycle.
+
+**Actions taken:**
+- S-18.09 v1.15→v1.16: AC-008 `_resolve_clause` BC-section fence-strip described for both recognizer branches (keyword-bearing + keyword-less); bats header de-pinned per TD-VSDD-091; 4-leg parity applied; input-hash UNCHANGED `0f747df`
+- STORY-INDEX v4.96→v4.97: S-18.09 row version cite v1.15→v1.16; D-713 annotation added
+- O-P2-002 logged OPEN-OBSERVATION in STATE.md Drift Items (non-blocking; spec-design; anchor: future gate-design refinement)
+- Phase/story-status UNCHANGED (S-18.09 remains draft; TDD in-delivery; PAUSED per human directive)
+- develop_head UNCHANGED (e10dedc0; no develop change)
+- merged_count UNCHANGED (92); story_count UNCHANGED (123); no POL-14 (no BC changes)
+- 4-index: BC-INDEX v3.52 UNCHANGED / VP-INDEX v2.51 UNCHANGED / STORY-INDEX v4.96→v4.97 / ARCH-INDEX v2.84 UNCHANGED
+
+**4-index gate (literal-shell stdout 2026-06-27):**
+```
+grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md
+version: "3.52"
+
+grep "^version:" .factory/specs/verification-properties/VP-INDEX.md
+version: "2.51"
+
+grep "^version:" .factory/stories/STORY-INDEX.md
+version: "4.97"
+
+grep "^version:" .factory/specs/architecture/ARCH-INDEX.md
+version: "2.84"
+```
+
+Parity: BC-INDEX v3.52 UNCHANGED / VP-INDEX v2.51 UNCHANGED / STORY-INDEX v4.96→v4.97 / ARCH-INDEX v2.84 UNCHANGED.
+
+### Parent-commit
+
+See `git -C .factory log -1 --format='%h %s'` (D-712 SHA; TD-VSDD-053 single-commit)
+
+### Closes
+
+- O-P2-001: bats header version-token de-pinned (TD-VSDD-091 volatile-pin; sibling-swept; feature/S-18.09 commit 48173d6e)
+- O-P2-003: AC-008 `_resolve_clause` BC-section fence-strip applied to both recognizer branches (spec↔bats parity at v1.16; false-positive-only hardening; 168 cites still resolve)
+
+### NEXT
+
+S-18.09 TDD delivery (PAUSED per human directive; story v1.16 bats 8/8 green; LOCAL adv pass-2 CLOSED).
+
+---
+
 ## D-712 — S-18.09 LOCAL adv pass-1 closure — 2026-06-27
 
 **Decision:** S-18.09 v1.14→v1.15 (4-leg parity applied; input-hash UNCHANGED `0f747df`). LOCAL adversary pass-1 surfaced two findings against v1.14:
