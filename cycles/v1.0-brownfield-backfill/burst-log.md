@@ -10254,4 +10254,4 @@ S-18.10 LOCAL 3-CLEAN streak: **CONVERGED** (3-CLEAN passes 9/10/11 per BC-5.39.
 
 ### Factory-artifacts Commits
 
-- TBD — this burst commit SHA (post-push)
+- `9aacb47f` — D-719 S-18.10 POST-MERGE burst (single commit per TD-VSDD-053; pushed to origin factory-artifacts 2026-06-28)

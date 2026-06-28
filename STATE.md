@@ -136,7 +136,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | caf06c68 | rc.21 bot binary bundle commit 2026-06-13; prior: 2a191314 (rc.20) |
 | develop | 699b7e60 | PR #315 `feat(S-18.10): check-state-health CLAUDE_AUTOCOMPACT_PCT_OVERRIDE verification` squash-merged 2026-06-28T13:34:01Z (D-719; S-18.10 MERGED; E-18 wave-7 COMPLETE); prior: 5af40c4e (PR #307 D-716 S-18.09 MERGED) |
-| factory-artifacts | TBD | D-719 S-18.10 POST-MERGE burst 2026-06-28; prior: decdc203 (D-718 SHA-patch) |
+| factory-artifacts | 9aacb47f | D-719 S-18.10 POST-MERGE burst 2026-06-28; prior: decdc203 (D-718 SHA-patch) |
 | v1.0.0-rc.21 (tag) | 03054524 | SHIPPED 2026-06-13; FULLY IN OPERATOR MARKETPLACE (marketplace PR #13 MERGED); annotated tag object |
 | v1.0.0-rc.20 (tag) | e9e38286 | SHIPPED 2026-06-01; marketplace PR #12 squash-merged 862e660d |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28 |
@@ -389,7 +389,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 ### §9. Critical Anchors
 
 - **GitHub origin repo:** `drbothen/vsdd-factory` (NOT the local git user "Zious"). All E-18 PRs live at `https://github.com/drbothen/vsdd-factory`. Use `--repo drbothen/vsdd-factory` flag with all `gh` commands.
-- **factory-artifacts HEAD:** see `git -C .factory log -1 --format='%h %s'` (D-719 S-18.10 POST-MERGE burst; prior: decdc203 D-718 SHA-patch). Verify: `git -C .factory log -1 --format='%h %s'`
+- **factory-artifacts HEAD:** `9aacb47f` (D-719 S-18.10 POST-MERGE burst 2026-06-28; prior: decdc203 D-718 SHA-patch). Verify: `git -C .factory log -1 --format='%h %s'`
 - **develop HEAD:** `699b7e60` (PR #315 S-18.10 squash-merged 2026-06-28T13:34:01Z D-719; prior: `5af40c4e` PR #307 D-716 S-18.09; prior: `e10dedc0` PR #304 D-709 maintenance)
 - **main HEAD:** `caf06c68` (rc.21 bot bundle commit 2026-06-13; UNCHANGED)
 - **v1.0.0-rc.21 tag:** `03054524` (SHIPPED; FULLY IN OPERATOR MARKETPLACE)
