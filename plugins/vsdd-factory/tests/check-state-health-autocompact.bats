@@ -30,7 +30,7 @@
 #   test_autocompact_check_single_line_json_value_80_is_pass_boundary  — F-P2-001 / BC-6.25.001 PC3 boundary (canonical TV)
 #   test_autocompact_check_real_malformed_json_emits_ec011_advisory    — F-P2-002 / EC-011 (syntactically malformed JSON)
 #   test_autocompact_check_ec012_value_zero_is_advisory                — EC-012 / BC-6.25.001 INV3 lower-bound
-#   test_autocompact_check_ec012_value_negative_is_advisory            — EC-012 / BC-6.25.001 INV3 lower-bound
+#   test_autocompact_check_ec012_negative_is_advisory                  — EC-012 / BC-6.25.001 INV3 lower-bound
 #   test_autocompact_check_jq_absent_degrades_gracefully               — F-P1-001 class / BC-6.25.001 INV1+INV5
 #
 # All 17 tests must pass (GREEN).
@@ -69,7 +69,7 @@
 #   EC-012 (value "0", zero — out-of-range lower-bound ADVISORY)
 #                                     → test_autocompact_check_ec012_value_zero_is_advisory
 #   EC-012 (value "-5", negative — out-of-range lower-bound ADVISORY)
-#                                     → test_autocompact_check_ec012_value_negative_is_advisory
+#                                     → test_autocompact_check_ec012_negative_is_advisory
 #   jq absent (F-P1-001-class invariant — INV1/INV5 under missing-parser)
 #                                     → test_autocompact_check_jq_absent_degrades_gracefully
 #
@@ -149,7 +149,9 @@ _require_helper() {
 @test "test_autocompact_check_absent_key_emits_advisory" {
   _require_helper
 
-  # Fixture: project-local settings.json with env block but key absent (EC-007).
+  # Fixture: project-local settings.json with env block present but key absent (EC-002).
+  # Note: jq `.env.CLAUDE_AUTOCOMPACT_PCT_OVERRIDE // empty` collapses EC-002 (env block
+  # present, key absent) and EC-007 (env block absent entirely) to the same code path.
   cat > "$WORK/.claude/settings.json" <<'JSON'
 {
   "env": {}
@@ -1119,7 +1121,7 @@ JSON
 # Edge case exercised: EC-012 (value "-5" — negative, out-of-range lower-bound).
 # ---------------------------------------------------------------------------
 
-@test "test_autocompact_check_ec012_value_negative_is_advisory" {
+@test "test_autocompact_check_ec012_negative_is_advisory" {
   _require_helper
 
   # Fixture: value "-5" — negative, ≤ 0 (out-of-range lower-bound per EC-012).
