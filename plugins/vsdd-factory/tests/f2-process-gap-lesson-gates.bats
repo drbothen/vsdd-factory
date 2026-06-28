@@ -363,11 +363,15 @@ SCRIPT
 # printf path (F-P8-005; O-P8-A): ss-%02d for SS-10+ correctness; printf for non-vacuity.
 # Multi-separator split +;, (O-P12-001): all three delimiters treated as segment separators.
 # RAW_LABEL regex [^ )]+ (F-P11-001): captures hyphenated labels like PC-B-B1.
+# BC_ARRAY extraction unquoted-frontmatter-tolerant (F-P1-001): mirrors AC-005 awk.
+# TRACES_KEYLESS non-vacuity guard (F-P1-001): counts keyword-less PC-N/INV-N cites.
+# Keyword-less CLAUSE_TYPE inference (F-P1-001): PC...→postcondition, INV...→invariant.
 #
-# Three label forms supported:
+# Four label forms supported:
 #   - Numeric:           "postcondition 1", "postcondition 2a", "invariant 3"
 #   - PC-prefix numeric: "postcondition PC1" (strip "PC")
 #   - PC-letter:         "postcondition PC-A", "postcondition PC-B-B1" (BC-4.15.001)
+#   - Keyword-less:      "PC10", "PC6", "PC4", "INV-1" (F-P1-001 — CLAUSE_TYPE inferred)
 #
 # Expected: all clause cites resolve; TRACES_CHECKED > 0 for stories with BCs; no FAIL lines.
 # ---------------------------------------------------------------------------
@@ -415,18 +419,32 @@ _resolve_clause() {
 
 for STORY_FILE in "'"${factory_root}"'/.factory/stories/S-18."*.md; do
   # --- Non-vacuity check (POLICY 11 / TD-VSDD-059 anti-silent-inert) ---
+  # BC_ARRAY extraction is unquoted-frontmatter-tolerant (F-P1-001): mirrors AC-005 awk,
+  # handles quoted, unquoted, inline [...], and multiline YAML forms.
   HAS_BC=$(grep -oE "^behavioral_contracts:" "$STORY_FILE" | head -1 || true)
   if [ -n "$HAS_BC" ]; then
-    BC_ARRAY=$(awk '"'"'/^behavioral_contracts:/,/^[a-z_]+:/'"'"' "$STORY_FILE" \
-      | grep -oE '"'"'"BC-[0-9]+\.[0-9]+\.[0-9]+"'"'"' | tr -d '"'"'"'"'"')
+    BC_ARRAY=$(awk '"'"'
+      /^behavioral_contracts:/{
+        if (/\[\]/) { next }
+        print; f=1; next
+      }
+      /^[a-z_]+:/{if(f) exit}
+      f{print}
+    '"'"' "$STORY_FILE" | grep -oE '"'"'BC-[0-9]+\.[0-9]+\.[0-9]+'"'"' || true)
     if [ -n "$BC_ARRAY" ]; then
       # Scope to AC section only (F-P9-003), then strip fenced code blocks (F-P10-003)
       AC_SECTION=$(awk '"'"'/^## Acceptance Criteria/{f=1; next} /^## /{f=0} f'"'"' "$STORY_FILE" \
         | awk '"'"'/^```/{fence=!fence;next}!fence'"'"')
       RAW_PARENS=$(printf '"'"'%s'"'"' "$AC_SECTION" \
         | grep -oiE '"'"'\(traces to [^)]+\)'"'"' 2>/dev/null || true)
-      TRACES_CHECKED=$(printf '"'"'%s'"'"' "$RAW_PARENS" \
-        | grep -ciE '"'"'(precondition|postcondition|invariant)'"'"')
+      # Count parentheticals with a recognized clause reference — BOTH forms:
+      #   (a) keyword form: contains precondition/postcondition/invariant
+      #   (b) keyword-less form (F-P1-001): contains a PC-N or INV-N token after a BC-ID
+      TRACES_KEYWORD=$(printf '"'"'%s'"'"' "$RAW_PARENS" \
+        | grep -ciE '"'"'(precondition|postcondition|invariant)'"'"' || true)
+      TRACES_KEYLESS=$(printf '"'"'%s'"'"' "$RAW_PARENS" \
+        | grep -ciE '"'"'BC-[0-9]+\.[0-9]+\.[0-9]+[[:space:]]+(PC|INV)-?[0-9]'"'"' || true)
+      TRACES_CHECKED=$(( TRACES_KEYWORD + TRACES_KEYLESS ))
       [ "$TRACES_CHECKED" -gt 0 ] \
         || { echo "FAIL: $STORY_FILE has non-empty behavioral_contracts but TRACES_CHECKED=0 — gate is vacuously passing (notation not recognized)"; exit 1; }
     fi
@@ -453,14 +471,29 @@ for STORY_FILE in "'"${factory_root}"'/.factory/stories/S-18."*.md; do
       NEW_BC=$(echo "$SEG" | grep -oiE "BC-[0-9]+\.[0-9]+\.[0-9]+" | head -1)
       [ -n "$NEW_BC" ] && CARRY_BC="$NEW_BC"
       [ -z "$CARRY_BC" ] && continue
-      # Extract clause type (precondition|postcondition|invariant) from this segment
+      # Extract clause type (precondition|postcondition|invariant) from this segment (keyword form)
       CLAUSE_TYPE=$(echo "$SEG" | grep -oiE "(precondition|postcondition|invariant)" \
         | head -1 | tr '"'"'[:upper:]'"'"' '"'"'[:lower:]'"'"')
-      [ -z "$CLAUSE_TYPE" ] && continue
-      # Extract raw label: token immediately after the clause type keyword
-      RAW_LABEL=$(echo "$SEG" | grep -oiE \
-        "(precondition|postcondition|invariant) [^ )]+" \
-        | grep -oE " [^ )]+$" | tr -d '"'"' '"'"')
+      if [ -z "$CLAUSE_TYPE" ]; then
+        # Keyword-less form (F-P1-001): infer CLAUSE_TYPE from PC-N / INV-N token after BC-ID.
+        # Match a PCN / PC-N / INVN / INV-N token that appears directly in the segment
+        # (possibly after the BC-ID or a space). PC... maps to postconditions; INV... to invariants.
+        KEYLESS_TOKEN=$(echo "$SEG" | grep -oiE '"'"'(PC|INV)-?[0-9][0-9A-Za-z-]*'"'"' | head -1)
+        if [ -n "$KEYLESS_TOKEN" ]; then
+          case "$(echo "$KEYLESS_TOKEN" | tr '"'"'[:lower:]'"'"' '"'"'[:upper:]'"'"' | cut -c1-2)" in
+            PC) CLAUSE_TYPE="postcondition" ;;
+            IN) CLAUSE_TYPE="invariant" ;;
+            *)  CLAUSE_TYPE="" ;;
+          esac
+          RAW_LABEL="$KEYLESS_TOKEN"
+        fi
+        [ -z "$CLAUSE_TYPE" ] && continue
+      else
+        # Keyword form: extract raw label as token immediately after the clause type keyword
+        RAW_LABEL=$(echo "$SEG" | grep -oiE \
+          '"'"'(precondition|postcondition|invariant) [^ )]+'"'"' \
+          | grep -oE '"'"' [^ )]+$'"'"' | tr -d '"'"' '"'"')
+      fi
       [ -z "$RAW_LABEL" ] && continue
       _resolve_clause "$CARRY_BC" "$CLAUSE_TYPE" "$RAW_LABEL" "$STORY_FILE"
     done <<< "$(echo "$CONTENT" | tr '"'"'+;,'"'"' '"'"'\n'"'"')"
