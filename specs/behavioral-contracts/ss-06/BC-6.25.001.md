@@ -1,11 +1,11 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: product-owner
 timestamp: 2026-06-16T00:00:00Z
-last_amended: "2026-06-16 (v1.0) — initial creation (E-18 scope, S-18.10 deliverable). check-state-health settings.json CLAUDE_AUTOCOMPACT_PCT_OVERRIDE=70 verification per ADR-026 §Decision 5 + §F-11. Architect adjudicated this contract is required (F3 story pass-1, F-MAJOR-003): advisory-only, non-blocking, settings.json env-var presence and value-ceiling check."
+last_amended: "(v1.1) — EC-012 added: value ≤ 0 (zero or negative) is out-of-range, emits distinct ADVISORY row; Invariant 3 clarified with valid range 1–100 and ≤0 lower-bound case; Architecture Anchors jq traceability note added; new canonical test vector for ≤0 case. [Prior: 2026-06-16 (v1.0) — initial creation (E-18 scope, S-18.10 deliverable). check-state-health settings.json CLAUDE_AUTOCOMPACT_PCT_OVERRIDE=70 verification per ADR-026 §Decision 5 + §F-11. Architect adjudicated this contract is required (F3 story pass-1, F-MAJOR-003): advisory-only, non-blocking, settings.json env-var presence and value-ceiling check.]"
 phase: F3
 inputs:
   - .factory/specs/architecture/decisions/ADR-026-wave-boundary-checkpoint-reset-and-lossless-intra-wave-compaction.md
@@ -18,7 +18,11 @@ subsystem: "SS-06"
 capability: "CAP-032"
 lifecycle_status: draft
 introduced: v1.0-feature-context-durability-E18
-modified: []
+modified:
+  - version: "1.1"
+    date: 2026-06-28
+    author: product-owner
+    change: "EC-012 added (value ≤ 0 out-of-range ADVISORY); Invariant 3 clarified with valid range 1–100 and ≤0 lower-bound; Architecture Anchors jq note; new canonical test vector for ≤0 case. Closes S-18.10 LOCAL adversarial finding F-P2-004."
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -73,7 +77,7 @@ The `check-state-health` skill reads the active `settings.json` (project-local `
 
 2. **Precedence-stable path resolution.** Project-local `.claude/settings.json` always takes precedence over global `~/.claude/settings.json`. If both exist, the global file is never read for this check. This mirrors Claude Code's own settings resolution order.
 
-3. **Numeric value comparison only.** The `env` block value for `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE` in `settings.json` is a string (JSON strings for env values). The skill parses the string as a decimal integer for comparison. Non-numeric or empty values (e.g., `""`, `"auto"`) are treated as absent (PC1 fires) with a note in the advisory: `"Value '<raw>' is not a valid integer; treating as absent"`.
+3. **Numeric value comparison and valid range 1–100.** The `env` block value for `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE` in `settings.json` is a string (JSON strings for env values). The skill parses the string as a decimal integer for comparison. Non-numeric or empty values (e.g., `""`, `"auto"`) are treated as absent (PC1 fires) with a note in the advisory: `"Value '<raw>' is not a valid integer; treating as absent"`. The valid integer range is **1–100 inclusive**. A parsed integer value ≤ 0 (zero or negative) is out-of-range: it is neither absent nor non-numeric, but it is not a valid compaction percentage. In this case the skill emits a distinct ADVISORY row (EC-012 semantics) with details: `"Value <N> is not a valid compaction percentage (must be in range 1–100); treating as misconfigured — recommend 70 per ADR-026 §Decision 5"` where `<N>` is the actual parsed value. This lower-bound advisory is distinct in message from the PC2 ceiling advisory (value > 80) and from the PC1 non-numeric "treating as absent" advisory.
 
 4. **No side effects.** The check reads `settings.json` only; it does NOT write, modify, or create any file. It does not write to `factory-artifacts`. It does not emit events into the dispatcher log.
 
@@ -94,6 +98,7 @@ The `check-state-health` skill reads the active `settings.json` (project-local `
 | EC-009 | `.claude/settings.json` exists; `env.CLAUDE_AUTOCOMPACT_PCT_OVERRIDE: "auto"` (non-integer) | ADVISORY row PC1 (non-numeric value treated as absent per Invariant 3); note "Value 'auto' is not a valid integer; treating as absent" |
 | EC-010 | Both project-local and global settings.json exist; project-local has value 85 (advisory); global has value 70 (PASS) | Project-local takes precedence; ADVISORY row PC2 fires for value 85 — global file not consulted |
 | EC-011 | `.claude/settings.json` exists but is malformed JSON (parse error) | ADVISORY row; details note "settings.json parse error: <error>; cannot verify CLAUDE_AUTOCOMPACT_PCT_OVERRIDE" |
+| EC-012 | `.claude/settings.json` exists; `env.CLAUDE_AUTOCOMPACT_PCT_OVERRIDE: "0"` (zero), or any value ≤ 0 (e.g. `"-5"`) | ADVISORY row; details: `"Value <N> is not a valid compaction percentage (must be in range 1–100); treating as misconfigured — recommend 70 per ADR-026 §Decision 5"` where `<N>` is the actual parsed value; advisory is distinct from the PC2 ceiling advisory (>80) and the PC1 non-numeric "treating as absent" advisory; never blocks |
 
 ## Canonical Test Vectors
 
@@ -106,6 +111,7 @@ The `check-state-health` skill reads the active `settings.json` (project-local `
 | Neither settings.json present | Row: `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE \| ADVISORY \| Missing — add env: {CLAUDE_AUTOCOMPACT_PCT_OVERRIDE: "70"} to .claude/settings.json (ADR-026 §Decision 5: proactive compaction threshold; 70% gives PreCompact flush headroom) (no settings.json found at .claude/settings.json or ~/.claude/settings.json)` | no-settings-file |
 | `.claude/settings.json` absent; `~/.claude/settings.json`: `{"env": {"CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "70"}}` | Row: `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE \| PASS \| Present, value 70 ≤ 80 (70 is canonical per ADR-026 §Decision 5)` — global fallback used | global-fallback |
 | `.claude/settings.json`: malformed JSON | Row: `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE \| ADVISORY \| settings.json parse error: <error>; cannot verify CLAUDE_AUTOCOMPACT_PCT_OVERRIDE` | parse-error |
+| `.claude/settings.json`: `{"env": {"CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "0"}}` | Row: `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE \| ADVISORY \| Value 0 is not a valid compaction percentage (must be in range 1–100); treating as misconfigured — recommend 70 per ADR-026 §Decision 5` | out-of-range-lower-bound (EC-012) |
 
 ## Related BCs
 
@@ -117,6 +123,7 @@ The `check-state-health` skill reads the active `settings.json` (project-local `
 - `plugins/vsdd-factory/skills/check-state-health/SKILL.md` — the skill being extended by S-18.10; this check is added as Check 8 (settings.json env-var verification)
 - ADR-026 §Decision 5 ("Proactive compaction threshold: 70% via CLAUDE_AUTOCOMPACT_PCT_OVERRIDE (D5 LOCKED)") — normative source of the 70% canonical value and the advisory requirement
 - ADR-026 §F-11 ("Settings.json env-verification (F-11): The `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE=70` setting requires verification in the active `settings.json`. The `check-state-health` skill must verify this env var is present with value `70` in `settings.json` and emit an advisory if absent.") — the explicit mandate that created this story
+- `jq` (required toolchain per `plugins/vsdd-factory/skills/setup-env/SKILL.md`) — the implementation uses `jq` to parse `settings.json`; if `jq` is absent the check degrades to an ADVISORY row (never fatal, consistent with Invariant 1)
 
 ## Story Anchor
 
@@ -130,7 +137,7 @@ S-18.10 (check-state-health settings.json CLAUDE_AUTOCOMPACT_PCT_OVERRIDE verifi
 
 | VP-NNN | Property | Proof Method |
 |--------|----------|-------------|
-| VP-092 | check-state-health reads CLAUDE_AUTOCOMPACT_PCT_OVERRIDE from project-local settings.json (with global fallback), emits ADVISORY when absent or value > 80, emits PASS when value ≤ 80, never blocks, always emits a check table row | integration (bats: unit test each of PC1/PC2/PC3/PC4/EC-006/EC-010/EC-011 with fixture settings.json files) |
+| VP-092 | check-state-health reads CLAUDE_AUTOCOMPACT_PCT_OVERRIDE from project-local settings.json (with global fallback), emits ADVISORY when absent or value > 80 or value ≤ 0, emits PASS when value is in 1–80, never blocks, always emits a check table row | integration (bats: unit test each of PC1/PC2/PC3/PC4/EC-006/EC-010/EC-011/EC-012 with fixture settings.json files) |
 
 ## Traceability
 
@@ -150,3 +157,4 @@ S-18.10 (check-state-health settings.json CLAUDE_AUTOCOMPACT_PCT_OVERRIDE verifi
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
 | v1.0 | 2026-06-16 | product-owner | Initial creation. check-state-health settings.json CLAUDE_AUTOCOMPACT_PCT_OVERRIDE=70 verification per ADR-026 §Decision 5 + §F-11. Architect adjudicated as required BC (F3 story pass-1, F-MAJOR-003). 4 postconditions (PC1–PC4) plus PC5 advisory-only semantics; 5 invariants; 11 edge cases; 7 canonical test vectors. |
+| v1.1 | 2026-06-28 | product-owner | EC-012 added: value ≤ 0 (zero or negative) is out-of-range, emits distinct ADVISORY row with details `"Value <N> is not a valid compaction percentage (must be in range 1–100); treating as misconfigured — recommend 70 per ADR-026 §Decision 5"`. Invariant 3 clarified to state valid integer range is 1–100; ≤0 values produce a lower-bound advisory distinct from the PC2 ceiling advisory (>80) and the PC1 non-numeric "treating as absent" advisory. Architecture Anchors: jq toolchain traceability note added (jq used for JSON parsing; degrades to ADVISORY if absent, never fatal per Invariant 1). New canonical test vector added for EC-012 case (input `"0"` → exact ADVISORY row). Closes S-18.10 LOCAL adversarial finding F-P2-004 per architect adjudication. |
