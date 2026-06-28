@@ -1,11 +1,11 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.0"
+version: "1.1"
 status: draft
 producer: product-owner
 timestamp: 2026-06-28T00:00:00Z
-last_amended: "2026-06-28 (v1.0) — initial creation (product-owner): producer-side sprint-state.yaml per-story format obligation (S-18.11 T-2; closes O-P9-001 producer arm)."
+last_amended: "(v1.1) — Architecture Anchors/Related BCs producer-authority corrected to BC-5.41.004 per AC-007 (F-P5-001); Description INV-cite INV-4→INV-2 (F-P5-002); comprehensive internal-consistency sweep: PC3 wave_id phrasing updated to wave-group-ordinal (2026-06-28). [Prior: v1.0 — initial creation (product-owner): producer-side sprint-state.yaml per-story format obligation (S-18.11 T-2; closes O-P9-001 producer arm).]"
 phase: F3
 inputs:
   - .factory/stories/S-18.11-sprint-state-per-story-format-producer.md
@@ -21,7 +21,8 @@ subsystem: "SS-05"
 capability: "CAP-032"
 lifecycle_status: draft
 introduced: v1.0-feature-context-durability-E18
-modified: []
+modified:
+  - "2026-06-28 (v1.1) — Architecture Anchors/Related BCs producer-authority corrected to BC-5.41.004 per AC-007 (F-P5-001); Description INV-cite INV-4→INV-2 (F-P5-002); comprehensive internal-consistency sweep: PC3 wave_id phrasing updated to wave-group-ordinal."
 deprecated: null
 deprecated_by: null
 replacement: null
@@ -34,7 +35,7 @@ removal_reason: null
 
 ## Description
 
-The wave-scheduling skill (or any equivalent sprint-state.yaml producer) MUST write a top-level `stories:` key in `.factory/stories/sprint-state.yaml`. The value is a list of per-story objects; each object has at minimum `id: <S-N.NN>` and `status: <canonical-sprint-status>`. List order MUST be wave-ascending based on the dependency-graph topo-sort from STORY-INDEX.md `depends_on:` arrays — not from a phantom `wave:` story frontmatter field, which does not exist (INV-3). Every story that appears with a non-retired status in STORY-INDEX.md MUST appear in the list; status values MUST be read mechanically from STORY-INDEX.md catalog rows, never inferred or RAG-approximated (INV-4). This BC is the producer-side complement to the consumer-side obligations in BC-5.41.001 (PC2 P-SPRINT-STATE-WAVE-ORDER precondition) and BC-5.41.002 (PC3 stories derivation).
+The wave-scheduling skill (or any equivalent sprint-state.yaml producer) MUST write a top-level `stories:` key in `.factory/stories/sprint-state.yaml`. The value is a list of per-story objects; each object has at minimum `id: <S-N.NN>` and `status: <canonical-sprint-status>`. List order MUST be wave-ascending based on the dependency-graph topo-sort from STORY-INDEX.md `depends_on:` arrays — not from a phantom `wave:` story frontmatter field, which does not exist (INV-3). Every story that appears with a non-retired status in STORY-INDEX.md MUST appear in the list; status values MUST be read mechanically from STORY-INDEX.md catalog rows, never inferred or RAG-approximated (INV-2; producer-side complement to BC-5.41.002 INV4). This BC is the producer-side complement to the consumer-side obligations in BC-5.41.001 (PC2 P-SPRINT-STATE-WAVE-ORDER precondition) and BC-5.41.002 (PC3 stories derivation).
 
 ## Preconditions
 
@@ -52,7 +53,7 @@ The wave-scheduling skill (or any equivalent sprint-state.yaml producer) MUST wr
    - `id:` — string; the canonical story ID from STORY-INDEX.md (e.g., `S-18.02`). No fabricated or abbreviated IDs.
    - `status:` — string; one of the canonical sprint status values (see Invariant 1 for the exhaustive enum). The value MUST be read directly from the STORY-INDEX.md catalog row for that story. No AI-inferred, RAG-approximated, or context-estimated statuses are permitted.
 
-3. **Wave-ascending order**: The `stories:` list is ordered by wave in ascending order. The wave assignment for each story is derived from the dependency-graph topo-sort of STORY-INDEX.md `depends_on:` arrays. Stories in wave N appear before stories in wave N+1. Within the same wave, stories are ordered by story ID (lexicographic ascending, e.g., S-18.01 before S-18.02) for determinism. This ordering satisfies the **P-SPRINT-STATE-WAVE-ORDER** precondition of BC-5.41.001 PC2 so that the leading-contiguous-terminal-run algorithm can operate unambiguously.
+3. **Wave-ascending order**: The `stories:` list is ordered by wave in ascending order. The wave assignment for each story is derived from the dependency-graph topo-sort of STORY-INDEX.md `depends_on:` arrays. Stories in wave N appear before stories in wave N+1. Within the same wave, stories are ordered by story ID (lexicographic ascending, e.g., S-18.01 before S-18.02) for determinism. This ordering satisfies the **P-SPRINT-STATE-WAVE-ORDER** precondition of BC-5.41.001 PC2 so that the wave-group-ordinal algorithm (derive_wave_id: completed terminal WAVE GROUPS + 1) can operate unambiguously.
 
    **Tie-break rule**: If two stories have the same wave-level ordinal (neither depends on the other) and the topo-sort cannot discriminate, order by story ID string lexicographic ascending. This is the canonical tie-break; the SKILL.md behavioral step MUST document it.
 
@@ -71,7 +72,7 @@ The wave-scheduling skill (or any equivalent sprint-state.yaml producer) MUST wr
    **Terminal vs. non-terminal annotation:**
    - **Terminal statuses** (story is done; wave-close eligible): `merged`, `withdrawn`, `cancelled`.
    - **Non-terminal active statuses** (story is still in flight): `draft`, `ready`, `in-progress`, `partial`, `blocked`.
-   - **Next-wave selector** (consumed by BC-5.41.002 PC3): only `draft`. The statuses `ready`, `in-progress`, `partial`, and `blocked` are non-terminal but are NOT next-wave selectors — if `sprint-state.yaml` contains no `draft` stories (and no stories are `pending` per BC-5.41.002's reserved arm), BC-5.41.002 PC3 raises BrokenSprintState. BC-5.41.001 PC2 classifies terminal vs. non-terminal for the leading-contiguous-terminal-run algorithm; this BC's producer obligation is to reflect STORY-INDEX.md statuses faithfully so those consumer-side algorithms can operate correctly.
+   - **Next-wave selector** (consumed by BC-5.41.002 PC3): only `draft`. The statuses `ready`, `in-progress`, `partial`, and `blocked` are non-terminal but are NOT next-wave selectors — if `sprint-state.yaml` contains no `draft` stories (and no stories are `pending` per BC-5.41.002's reserved arm), BC-5.41.002 PC3 raises BrokenSprintState. BC-5.41.001 PC2 classifies terminal vs. non-terminal for the wave-group-ordinal algorithm (derive_wave_id); this BC's producer obligation is to reflect STORY-INDEX.md statuses faithfully so those consumer-side algorithms can operate correctly.
 
    Any value outside this 8-value set that appears in STORY-INDEX.md constitutes an unknown status token; the producer MUST abort with a hard error identifying the story ID and the unknown status token, not silently pass it through (see EC-007). This BC treats STORY-INDEX.md as the authority; if STORY-INDEX.md ever shows a status not in this enum, that is a STORY-INDEX defect surfaced as a hard abort.
 
@@ -115,12 +116,12 @@ The wave-scheduling skill (or any equivalent sprint-state.yaml producer) MUST wr
 ## Related BCs
 
 - BC-5.41.001 — depends on: BC-5.41.001 PC2 (wave_id derivation from sprint-state.yaml) requires the P-SPRINT-STATE-WAVE-ORDER precondition; this BC is the producer obligation that establishes that precondition
-- BC-5.41.002 — depends on: BC-5.41.002 PC3 (stories list derived from sprint-state.yaml `status: pending` or `status: draft` entries ordered by dependency graph) requires the per-story `{id, status}` format this BC mandates on the producer
+- BC-5.41.002 — consumed by (BC-5.41.002 PC3 is the CONSUMER-side obligation; it reads the `stories:` list this BC mandates and derives `next_wave_stories` + EPIC-COMPLETE signal from `status: draft` / `status: pending` entries ordered by dependency graph). The SKILL.md producer step cites **BC-5.41.004 PC1–PC3** as the producer format authority; BC-5.41.002 PC3 is the consumer expectation that the producer output satisfies — not the authority the producer step must cite (per AC-007)
 - BC-5.41.003 — sibling: both are SS-05 behavioral contracts in the context-durability family
 
 ## Architecture Anchors
 
-- `plugins/vsdd-factory/skills/wave-scheduling/SKILL.md` — the producer skill; behavioral step mandating per-story `stories:` list emission (S-18.11 T-5 deliverable; MUST cite BC-5.41.002 PC3 as format authority)
+- `plugins/vsdd-factory/skills/wave-scheduling/SKILL.md` — the producer skill; behavioral step mandating per-story `stories:` list emission (S-18.11 T-5 deliverable; MUST cite **BC-5.41.004 PC1–PC3** as the producer format authority; BC-5.41.002 PC3 is the consumer-side obligation that this producer satisfies — it is the consumer counterpart, not the producer authority)
 - `.factory/stories/sprint-state.yaml` — the artifact written by this BC's producer obligation (S-18.11 T-4 deliverable)
 - ADR-026 §Decision 3 — wave-state.yaml is derived from sprint-state.yaml; this BC governs the sprint-state.yaml format that makes that derivation possible
 - ADR-026 §Decision 8 — EPIC-COMPLETE detection via `next_wave_stories: []`; the EPIC-COMPLETE case (EC-005) arises when the producer writes `stories: []`
@@ -157,4 +158,5 @@ S-18.11 (sprint-state.yaml producer migration to per-story {id, status} format)
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| v1.1 | 2026-06-28 | product-owner | Architecture Anchors/Related BCs producer-authority corrected to BC-5.41.004 PC1–PC3 per AC-007 (F-P5-001): SKILL.md step now cites BC-5.41.004 as producer format authority; BC-5.41.002 PC3 repositioned as consumer-side counterpart (not authority). Description INV-cite corrected INV-4→INV-2 (F-P5-002): no-fabrication/no-RAG clause is INV-2 (not INV-4 which is the no-git-exec rule); phrased as "INV-2; producer-side complement to BC-5.41.002 INV4". Comprehensive internal-consistency sweep: PC3 "leading-contiguous-terminal-run algorithm" updated to "wave-group-ordinal algorithm (derive_wave_id: completed terminal WAVE GROUPS + 1)" per S-18.11 v1.3/v1.4 wave-group-ordinal semantics. Related BCs BC-5.41.002 direction clarified to "consumed by" (consumer counterpart, not format authority). |
 | v1.0 | 2026-06-28 | product-owner | Initial creation (S-18.11 T-2; closes O-P9-001 producer arm). BC-5.41.004: producer-side sprint-state.yaml per-story {id, status} format obligation. INV-1 canonical status enum corrected to STORY-INDEX-grounded 8-value set (architect-adjudicated, S-18.11): `draft`, `ready`, `in-progress`, `partial`, `blocked`, `merged`, `withdrawn`, `cancelled`. Removed `completed` and `pending` (never used in STORY-INDEX.md); added `ready` (observed STORY-INDEX value). Terminal = {merged, withdrawn, cancelled}; non-terminal active = {draft, ready, in-progress, partial, blocked}; next-wave selector = {draft} only. EC-007 updated to cite the corrected 8-value enum and explicitly name `completed`, `closed`, `pending`, and `tier-*` tokens as hard-abort triggers. Two additional test vectors added (completed-is-unknown-hard-abort, pending-is-unknown-hard-abort). |
