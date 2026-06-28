@@ -10255,3 +10255,82 @@ S-18.10 LOCAL 3-CLEAN streak: **CONVERGED** (3-CLEAN passes 9/10/11 per BC-5.39.
 ### Factory-artifacts Commits
 
 - `9aacb47f` — D-719 S-18.10 POST-MERGE burst (single commit per TD-VSDD-053; pushed to origin factory-artifacts 2026-06-28)
+
+---
+
+## D-720 S-18.11 SPEC-REGISTRATION burst (2026-06-28)
+
+### Parent-commit
+
+`9aacb47f` (state(D-719 S-18.10 POST-MERGE burst 2026-06-28))
+
+### Adversary Verdict
+
+No adversary pass in this burst. Spec-registration burst only: BC-5.41.004 v1.0 authored by product-owner (commit 14e661ce — new file; BC-5.41.002 v1.20; invariants.md v1.26). S-18.11 v1.0→v1.1 registered by story-writer (commit 59f86be2 — 8-value enum reconcile + AC↔PC traces + draft→ready). State-manager performs index sync, input-hash recompute, STATE.md advance. No code changed; no adversary cascade needed for spec-registration bursts.
+
+### Dim-2 (4-index parity gate — literal-shell stdout)
+
+```bash
+$ grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md
+version: "3.55"
+
+$ grep "^last_amended:" .factory/specs/behavioral-contracts/BC-INDEX.md | grep -oE "v[0-9]+\.[0-9]+" | head -1
+v3.55
+BC-INDEX: version == last_amended prefix — PASS
+
+$ grep "^version:" .factory/specs/verification-properties/VP-INDEX.md
+version: "2.51"
+
+$ grep "^last_amended:" .factory/specs/verification-properties/VP-INDEX.md | grep -oE "v[0-9]+\.[0-9]+" | head -1
+v2.51
+VP-INDEX: version == last_amended prefix — PASS
+
+$ grep "^version:" .factory/stories/STORY-INDEX.md
+version: "4.103"
+
+$ grep "^last_amended:" .factory/stories/STORY-INDEX.md | grep -oE "v[0-9]+\.[0-9]+" | head -1
+v4.103
+STORY-INDEX: version == last_amended prefix — PASS
+
+$ grep "^version:" .factory/specs/architecture/ARCH-INDEX.md
+version: "2.84"
+
+$ grep "^last_amended:" .factory/specs/architecture/ARCH-INDEX.md | grep -oE "v[0-9]+\.[0-9]+" | head -1
+v2.84
+ARCH-INDEX: version == last_amended prefix — PASS
+
+Zero FAIL. 4-index parity confirmed: BC-INDEX v3.55 / VP-INDEX v2.51 / STORY-INDEX v4.103 / ARCH-INDEX v2.84.
+
+$ plugins/vsdd-factory/bin/compute-input-hash .factory/stories/S-18.11-sprint-state-per-story-format-producer.md --update
+c45c0fc
+compute-input-hash: updated .factory/stories/S-18.11-sprint-state-per-story-format-producer.md input-hash → c45c0fc
+S-18.11 input-hash recomputed: 73bfdf4→c45c0fc — PASS
+```
+
+### Dim-5 (Files Touched)
+
+- `.factory/specs/behavioral-contracts/BC-INDEX.md` — v3.54→v3.55: BC-5.41.004 v1.0 row inserted; BC-5.41.002 version cell v1.19→v1.19|v1.20; total_bcs 1973→1974; SS-05 count 655→656; Summary Total 1973→1974; frontmatter version/timestamp/last_amended/changelog advanced per POLICY 14 parity.
+- `.factory/stories/STORY-INDEX.md` — v4.102→v4.103: S-18.11 row draft→**ready** (behavioral_contracts [BC-5.41.001, BC-5.41.002, BC-5.41.004]; input-hash c45c0fc; story v1.1; closes O-P9-001); frontmatter version/last_amended advanced per POLICY 14 parity.
+- `.factory/stories/S-18.11-sprint-state-per-story-format-producer.md` — input-hash 73bfdf4→c45c0fc (bin/compute-input-hash --update; BC-5.41.004 added to inputs at story v1.1).
+- `.factory/STATE.md` — v4.70→v4.71: all state advances (4-index cites; §Identifier Conventions BC count 1,973→1,974; §Story Status ready 0→1; §Concurrent Cycles; §Decisions Log D-720; §Project Metadata; §Session Resume Checkpoint; §3 D-720 carry; §4 D-720 Tier-A; §5 D-001..D-720; §8 BC-INDEX/STORY-INDEX rows; §11/§12 updated; frontmatter; SIZE BUDGET 458 lines banner appended).
+- `.factory/cycles/v1.0-brownfield-backfill/decision-log.md` — D-720 block appended.
+- `.factory/cycles/v1.0-brownfield-backfill/burst-log.md` — D-720 burst entry appended (this entry).
+
+### Dim-6 (Codifications)
+
+- D-720 codified: S-18.11 SPEC-REGISTRATION BURST; BC-5.41.004 v1.0 registered (sprint-state.yaml producer per-story {id, status} format; SS-05/CAP-032; P1; closes O-P9-001 producer-arm); total_bcs 1,973→1,974; BC-5.41.002 v1.19→v1.20 (PO commit 14e661ce); S-18.11 v1.0→v1.1 draft→ready (story-writer commit 59f86be2); BC-INDEX v3.54→v3.55; STORY-INDEX v4.102→v4.103; input-hash c45c0fc; develop_head 699b7e60 UNCHANGED; merged_count 94 UNCHANGED. NEXT: S-18.11 TDD Red Gate (T-1).
+- 4-index parity: BC-INDEX v3.55 / VP-INDEX v2.51 / STORY-INDEX v4.103 / ARCH-INDEX v2.84. Literal-shell verified PASS (all 4 index edits complete; stdout captured in Dim-2 above).
+
+### Dim-7 (Streak Status)
+
+No streak in effect. Spec-registration burst: no TDD delivery, no adversary cascade. S-18.11 status: READY (BC-5.41.004 registered; story v1.1; input-hash c45c0fc). NEXT: test-writer dispatch for Red Gate (T-1). BC-5.39.001 3-CLEAN clock starts at T-1 adversary pass after implementation.
+
+### Closes
+
+- BC-5.41.004 v1.0: **registered** in BC-INDEX (D-720; total_bcs 1,974).
+- S-18.11: **draft→ready** (BC-5.41.004 wired; input-hash refreshed; story v1.1 D-720 2026-06-28).
+- O-P9-001: **CLOSED** (producer-arm authorship gate satisfied — BC-5.41.004 v1.0 authored by PO commit 14e661ce).
+
+### Factory-artifacts Commits
+
+- TBD — D-720 S-18.11 SPEC-REGISTRATION burst (single commit per TD-VSDD-053; pushed to origin factory-artifacts 2026-06-28)

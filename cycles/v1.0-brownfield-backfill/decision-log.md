@@ -4288,3 +4288,29 @@ S-18.10 TDD (check-state-health CLAUDE_AUTOCOMPACT_PCT_OVERRIDE settings.json Ve
 ### NEXT
 
 S-18.10 LOCAL adv pass-3 (fresh-context; BC-6.25.001 v1.1; story v1.4; jq-parser rewrite on feature/S-18.10; streak 0/3). STOP-BEFORE-PR-MERGE (D-665) holds.
+
+---
+
+## D-720 — S-18.11 SPEC-REGISTRATION burst — 2026-06-28
+
+**Context:** PO (commit 14e661ce) authored NEW BC-5.41.004 v1.0 (sprint-state.yaml producer per-story format obligation; SS-05/CAP-032) and bumped BC-5.41.002 v1.19→v1.20 (reserved-pending Option B legs 1-4) + invariants.md v1.25→v1.26 (DI-020/DI-023 backward-links). Story-writer (commit 59f86be2) advanced S-18.11 v1.0→v1.1 (8-value STORY-INDEX-grounded status enum; AC↔PC bidirectional traces; behavioral_contracts wired [BC-5.41.001, BC-5.41.002, BC-5.41.004]; draft→ready; input-hash flagged for recompute). State-manager (this burst) registers BC-5.41.004 in BC-INDEX, syncs STORY-INDEX, recomputes input-hash, and updates STATE.md.
+
+**Decision:** BC-5.41.004 v1.0 is production-grade. Architect taxonomy ruling (no ADR amendment needed): STORY-INDEX-grounded 8-value status enum {draft, ready, in-progress, partial, blocked, merged, withdrawn, cancelled} with terminal set {merged, withdrawn, cancelled}. O-P9-001 producer-arm authorship gate CLOSED.
+
+**Commits A-D (pre-state-manager):**
+- PO commit 14e661ce: BC-5.41.004.md v1.0 (new file); BC-5.41.002 v1.19→v1.20 (reserved-pending Option B note; legs 1-4); invariants.md v1.25→v1.26 (DI-020/DI-023 backward-links for BC-5.41.004)
+- Story-writer commit 59f86be2: S-18.11 v1.0→v1.1 (8-value enum reconcile; AC↔PC traces; BC-5.41.004 wired; draft→ready; input-hash flagged stale)
+
+**State changes (Commit E — this burst):**
+- BC-INDEX.md: BC-5.41.004 v1.0 row inserted after BC-5.41.003; BC-5.41.002 version cell v1.19→v1.19|v1.20; total_bcs 1973→1974; SS-05 count 655→656; Summary Total 1973→1974; version v3.54→v3.55; last_amended updated; changelog top row added
+- STORY-INDEX.md: S-18.11 row draft→ready; version v4.102→v4.103; last_amended updated
+- S-18.11 story file: input-hash 73bfdf4→c45c0fc (bin/compute-input-hash --update)
+- STATE.md: frontmatter v4.70→v4.71; 4-index cites BC v3.55/STORY v4.103; D-720 Decisions Log row; SRC heading/POSTURE/§1/§3/§4/§5/§8/§11/§12 updated; SIZE BUDGET 458 lines appended
+- cycles/v1.0-brownfield-backfill/decision-log.md: D-720 block appended (this entry)
+- cycles/v1.0-brownfield-backfill/burst-log.md: D-720 burst entry appended
+
+**4-index parity at commit:** BC-INDEX v3.55 / VP-INDEX v2.51 / STORY-INDEX v4.103 / ARCH-INDEX v2.84. Literal-shell verified (all PASS).
+
+### NEXT
+
+S-18.11 TDD Red Gate (T-1): dispatch test-writer for Red Gate bats tests. BC-5.41.004 registered; story v1.1 ready. STOP-BEFORE-PR-MERGE (D-665) holds.
