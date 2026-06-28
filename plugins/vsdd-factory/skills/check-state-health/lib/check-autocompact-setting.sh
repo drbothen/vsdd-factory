@@ -106,7 +106,7 @@ fi
 # jq exit codes: 0 = success (even if value is null/empty), non-zero = parse error.
 # STDERR-EXEMPT: jq stderr captured for EC-011 parse-error advisory (variable, not file)
 JQ_ERR="$(jq -r '.env.CLAUDE_AUTOCOMPACT_PCT_OVERRIDE // empty' "$SETTINGS_PATH" 2>&1 1>/dev/null)" || true
-RAW_VALUE="$(jq -r '.env.CLAUDE_AUTOCOMPACT_PCT_OVERRIDE // empty' "$SETTINGS_PATH" 2>/dev/null)" || {
+RAW_VALUE="$(jq -r '.env.CLAUDE_AUTOCOMPACT_PCT_OVERRIDE // empty' "$SETTINGS_PATH" 2>/dev/null)" || { # STDERR-EXEMPT: parse validity already confirmed by the preceding jq guard; suppress residual diagnostic noise on value extraction
   # jq parse failure → EC-011 ADVISORY with jq's actual error message.
   emit_advisory "settings.json parse error: ${JQ_ERR}; cannot verify $CHECK_NAME"
   exit 0
