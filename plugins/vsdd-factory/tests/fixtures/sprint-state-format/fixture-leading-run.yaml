@@ -1,0 +1,40 @@
+# sprint-state-format fixture: leading-contiguous-terminal-run algorithm (AC-006)
+# Used by: test_wave_id_leading_run_algorithm (AC-006 / BC-5.41.001 PC2)
+# BC-5.41.001 PC2 algorithm: wave_id = count of leading contiguous terminal entries + 1
+# Terminal set: {merged, withdrawn, cancelled}
+#
+# This fixture has 10 terminal entries followed by 2 draft entries.
+# Expected: leading-contiguous-terminal-run = 10 → wave_id = 11
+#
+# Entries in wave-ascending order per BC-5.41.004 PC3.
+# S-0.01..S-0.10: all terminal (merged/withdrawn/cancelled mix)
+# S-0.11..S-0.12: draft (non-terminal; break the terminal run)
+#
+# BC-5.41.001 P-SPRINT-STATE-WAVE-ORDER precondition: entries are wave-ascending,
+# so the leading run of terminal entries correctly identifies wave boundary.
+
+stories:
+  - id: S-0.01
+    status: merged
+  - id: S-0.02
+    status: merged
+  - id: S-0.03
+    status: merged
+  - id: S-0.04
+    status: withdrawn
+  - id: S-0.05
+    status: merged
+  - id: S-0.06
+    status: cancelled
+  - id: S-0.07
+    status: merged
+  - id: S-0.08
+    status: merged
+  - id: S-0.09
+    status: merged
+  - id: S-0.10
+    status: merged
+  - id: S-0.11
+    status: draft
+  - id: S-0.12
+    status: draft
