@@ -199,22 +199,24 @@ SCRIPT
 #   discovered BC set and counts the members BEFORE running the scan loop.
 #   A discovery returning empty set must be a gate failure, not a vacuous success.
 #
-# Expected: PURE_PARSE_BC_COUNT or wc -l pattern found; empty-set guard present.
+# Expected: discovered_count enumeration variable present; discovered_count -eq 0
+# empty-discovery guard present. Validated: passes against real file (discovered_count
+# at lines 204/209/229); fails if guard removed.
 # ---------------------------------------------------------------------------
 
 @test "test_s18_08_discovery_scan_enumerates_and_counts_before_loop" {
   local tests_dir="${BATS_TEST_DIRNAME}"
   run bash -c '
-    # Verify AC-005 in pure-parse-invariant-gate.bats counts discovered BCs and fails on empty set
-    grep -q "PURE_PARSE_BC_COUNT" "'"${tests_dir}"'/pure-parse-invariant-gate.bats" \
-      || grep -q "wc -l" "'"${tests_dir}"'/pure-parse-invariant-gate.bats" \
-      || echo "FAIL: pure-parse-invariant-gate.bats does not enumerate discovered BC count"
+    # (a) Verify pure-parse-invariant-gate.bats uses the real enumeration variable:
+    #     discovered_count is incremented for each found BC and checked for zero.
+    grep -q "discovered_count" "'"${tests_dir}"'/pure-parse-invariant-gate.bats" \
+      || echo "FAIL: pure-parse-invariant-gate.bats does not contain discovered_count enumeration variable"
 
-    # Also verify the test fails if discovery returns 0 BCs
-    grep -q '"'"'"$PURE_PARSE_BC_COUNT" -gt 0\|\[ .* -gt 0 \]'"'"' \
-      "'"${tests_dir}"'/pure-parse-invariant-gate.bats" 2>/dev/null \
-      || grep -n "BC_COUNT\|bc_count\|wc -l" \
-           "'"${tests_dir}"'/pure-parse-invariant-gate.bats" | head -5
+    # (b) Verify the empty-discovery guard is present — the gate must fail (exit 1)
+    #     when discovered_count is 0, not silently pass over an empty set.
+    grep -qE "discovered_count.*-eq.*0" \
+      "'"${tests_dir}"'/pure-parse-invariant-gate.bats" \
+      || echo "FAIL: pure-parse-invariant-gate.bats does not contain discovered_count -eq 0 empty-discovery guard"
   '
   assert_success
   refute_output --partial "FAIL"
