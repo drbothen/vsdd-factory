@@ -4161,3 +4161,51 @@ Zero FAIL. Parity PASS: BC-INDEX v3.40 / VP-INDEX v2.40 / STORY-INDEX v4.62 / AR
 ### NEXT
 
 RA-3: S-18.04a WASM TDD (S-18.04a v1.11 SPEC CONVERGED D-672; BC-7.07.001 v1.18; ADR-028 v1.3; crates/hook-plugins/precompact-flush + crates/factory-lock). STOP-BEFORE-PR-MERGE (D-665) holds for next PR. Recommend cutting rc release after S-18.14 merge (release-gated fix — note from S-18.14 story body).
+
+---
+
+## D-716 — S-18.09 POST-MERGE burst — 2026-06-28
+
+**Decision:** PR #307 (`feat(S-18.09): F2 process-gap lesson gate checks`), feature/S-18.09 → develop, squash-merged to develop at commit `5af40c4e` on 2026-06-28T02:48:47Z. Remote feature branch deleted. Post-merge burst executed.
+
+**Context:** S-18.09 (E-18 wave-8; `tdd_mode: strict`; gate-enforcement; 5 pts; no new BCs) delivered the F2 process-gap lesson gate checks — machine-stable lesson assertions, stale-term detector, BC-precondition registry-block-shape validator, and AC↔PC parity gate. LOCAL adversary cascade: 3-CLEAN CONVERGED (passes 6/7/8 clean). Fix-burst history during LOCAL cascade: D-711 (AC-005 extraction scope + H1 both-forms), D-712 (AC-008 keyword-less cite recognizer + TRACES_CHECKED guard), D-713 (O-P2-001 bats header de-pinned; O-P2-003 fence-strip parity), D-714 (AC-004 vacuity de-vacuified — F-P5-001 MEDIUM), D-715 (AC-003/AC-006 proactive gate-soundness class-sweep). Story at v1.18 at merge. POL-14: S-18.09 has `behavioral_contracts: []` — no BC auto-promotion. Terminal E-18 wave-8 gate complete. S-18.10 remains unblocked (depends_on S-18.07 MET — MET D-703).
+
+**Actions taken:**
+- S-18.09 story status draft→merged; PR #307 5af40c4e 2026-06-28 recorded; story v1.18
+- merged_count 92→93; story_count UNCHANGED 123
+- POL-14: behavioral_contracts: [] — NO BC auto-promotion
+- STORY-INDEX v4.99→v4.100: S-18.09 row draft→**merged** (PR #307 5af40c4e 2026-06-28); version cite v1.18; D-716
+- develop_head e10dedc0→5af40c4e
+- feature/S-18.09 branch deleted
+- E-18 wave-8 gate COMPLETE; terminal E-18 wave-8 story delivered
+- STOP-BEFORE-PR-MERGE (D-665) holds for all code PRs.
+
+**4-index gate (literal-shell stdout 2026-06-28):**
+```
+grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md
+version: "3.52"
+
+grep "^version:" .factory/specs/verification-properties/VP-INDEX.md
+version: "2.51"
+
+grep "^version:" .factory/stories/STORY-INDEX.md
+version: "4.100"
+
+grep "^version:" .factory/specs/architecture/ARCH-INDEX.md
+version: "2.84"
+```
+
+Parity: BC-INDEX v3.52 UNCHANGED / VP-INDEX v2.51 UNCHANGED / STORY-INDEX v4.99→v4.100 / ARCH-INDEX v2.84 UNCHANGED.
+
+### Parent-commit
+
+See `git -C .factory log -1 --format='%h %s'` (D-715 S-18.09 AC-003/AC-006 gate-soundness class-sweep; TD-VSDD-053 single-commit)
+
+### Closes
+
+- S-18.09 draft→merged (PR #307 5af40c4e 2026-06-28)
+- E-18 wave-8 gate COMPLETE (terminal wave-8 story delivered)
+
+### NEXT
+
+S-18.10 (check-state-health CLAUDE_AUTOCOMPACT_PCT_OVERRIDE settings.json Verification; depends_on S-18.07 MET — MET D-703; fully unblocked). STOP-BEFORE-PR-MERGE (D-665) holds.
