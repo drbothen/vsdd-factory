@@ -102,11 +102,25 @@ fi
 # jq is format-agnostic — handles both single-line and multi-line JSON.
 # ---------------------------------------------------------------------------
 
-# Extract .env.CLAUDE_AUTOCOMPACT_PCT_OVERRIDE; output empty string if key absent.
-# jq exit codes: 0 = success (even if value is null/empty), non-zero = parse error.
+# Capture jq stderr for EC-011 parse-error advisory (variable, not file — INV4).
 # STDERR-EXEMPT: jq stderr captured for EC-011 parse-error advisory (variable, not file)
 JQ_ERR="$(jq -r '.env.CLAUDE_AUTOCOMPACT_PCT_OVERRIDE // empty' "$SETTINGS_PATH" 2>&1 1>/dev/null)" || true
-RAW_VALUE="$(jq -r '.env.CLAUDE_AUTOCOMPACT_PCT_OVERRIDE // empty' "$SETTINGS_PATH" 2>/dev/null)" || { # STDERR-EXEMPT: parse validity already confirmed by the preceding jq guard; suppress residual diagnostic noise on value extraction
+
+# Determine key presence separately from value extraction.
+# jq -e '.env | objects | has("KEY")' exits 0 + prints "true" when .env is an object
+# and the key exists; exits 1 + prints "false" or no output when .env is absent or
+# the key is missing.  Using `|| true` so set -e does not abort on exit 1 (key absent).
+# STDERR-EXEMPT: parse validity already confirmed by the preceding jq guard; suppress residual diagnostic noise
+KEY_PRESENT="$(jq -r '.env | objects | if has("CLAUDE_AUTOCOMPACT_PCT_OVERRIDE") then "true" else "false" end' "$SETTINGS_PATH" 2>/dev/null)" || { # STDERR-EXEMPT: parse validity already confirmed by the preceding jq guard; suppress residual diagnostic noise on key-presence probe
+  # jq parse failure → EC-011 ADVISORY with jq's actual error message.
+  emit_advisory "settings.json parse error: ${JQ_ERR}; cannot verify $CHECK_NAME"
+  exit 0
+}
+
+# Extract the raw value WITHOUT `// empty` so an empty string "" is preserved
+# as a distinct value from a truly absent key (which yields "null" from jq -r).
+# STDERR-EXEMPT: parse validity already confirmed by the preceding jq guard; suppress residual diagnostic noise on value extraction
+RAW_VALUE="$(jq -r '.env.CLAUDE_AUTOCOMPACT_PCT_OVERRIDE' "$SETTINGS_PATH" 2>/dev/null)" || { # STDERR-EXEMPT: parse validity already confirmed by the preceding jq guard; suppress residual diagnostic noise on value extraction
   # jq parse failure → EC-011 ADVISORY with jq's actual error message.
   emit_advisory "settings.json parse error: ${JQ_ERR}; cannot verify $CHECK_NAME"
   exit 0
@@ -116,16 +130,24 @@ RAW_VALUE="$(jq -r '.env.CLAUDE_AUTOCOMPACT_PCT_OVERRIDE // empty' "$SETTINGS_PA
 # Step 4: Emit appropriate row based on extracted value
 # ---------------------------------------------------------------------------
 
-# Case A: key absent or env block absent — jq returned empty string via `// empty`.
-if [ -z "$RAW_VALUE" ]; then
+# Case A: key absent or env block absent.
+# KEY_PRESENT is "false" (env block missing or key not present) or empty (env is not
+# an object — e.g. "env": null).  In all these cases treat as key-absent (PC1).
+if [ "$KEY_PRESENT" != "true" ]; then
   emit_advisory "$REMEDIATION_HINT"
   exit 0
 fi
 
-# Case B: non-numeric value — check if raw value is a decimal integer.
+# Key is present.  RAW_VALUE is now the literal JSON string value; "null" means the
+# JSON key exists but is JSON null (treat as non-numeric per INV3).
+
+# Case B: key present but value is non-numeric (empty string "", "auto", null, etc.)
+# — BC-6.25.001 INV3: emit the note "Value '<raw>' is not a valid integer; treating as absent".
+# For the null case jq -r returns the string "null"; treat that as non-numeric too.
 # Use grep pattern: optional leading minus + one or more digits.
 if ! printf '%s' "$RAW_VALUE" | grep -qE '^-?[0-9]+$'; then
-  # AC-006 / BC-6.25.001 INV3: non-numeric treated as absent → ADVISORY with note.
+  # AC-006 / EC-008 / EC-009 / BC-6.25.001 INV3: non-numeric (incl. empty string) treated
+  # as absent → ADVISORY with note.  <raw> is the actual value (may be empty for "").
   emit_advisory "${REMEDIATION_HINT}; Value '$RAW_VALUE' is not a valid integer; treating as absent"
   exit 0
 fi
