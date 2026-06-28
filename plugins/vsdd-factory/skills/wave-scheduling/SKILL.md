@@ -69,7 +69,7 @@ from `stories[*].status: draft` entries; `pending` is a reserved no-op token.
 **Ordering rule (BC-5.41.004 PC3 + EC-003):**
 - Sort entries wave-ascending via topological sort of `depends_on:` edges from
   STORY-INDEX.md (same topo-sort computed in Steps 1-2 above)
-- Wave level = `max(wave of direct deps) + 1`; stories with no deps = wave 0
+- Wave level = `max(wave of direct deps) + 1`; stories with no deps = **wave 1**
 - Tie-break within the same wave: story ID string ascending (lexicographic)
 
 **Status values (BC-5.41.004 INV-1):**
