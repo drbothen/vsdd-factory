@@ -204,6 +204,18 @@ JSON
     echo "Output: $output"
     return 1
   }
+
+  # EC-002/EC-007 / INV3 (F-P8-002): a genuinely-absent key MUST NOT emit the
+  # "not a valid integer" INV3 note — that note is reserved for EC-008 (empty string)
+  # and EC-009 (non-numeric). An absent key gets only the remediation hint.
+  [[ "$output" != *"is not a valid integer"* ]] || {
+    echo "FAIL (EC-002/EC-007 / F-P8-002): output contains 'is not a valid integer' for a genuinely-absent key."
+    echo "BC-6.25.001 INV3: the non-numeric note ('is not a valid integer; treating as absent') is"
+    echo "  reserved for non-numeric/empty values (EC-008/EC-009), NOT for a genuinely-absent key."
+    echo "A key-absent ADVISORY must contain ONLY the remediation hint (ADR-026 §Decision 5)."
+    echo "Output: $output"
+    return 1
+  }
 }
 
 # ---------------------------------------------------------------------------
@@ -692,6 +704,19 @@ JSON
     echo "FAIL (EC-008): output does not contain 'ADVISORY' for empty string value."
     echo "BC-6.25.001 INV3: empty string is not a valid integer; treated as absent → ADVISORY."
     echo "EC-008: value '' must trigger ADVISORY (same path as non-numeric per INV3)."
+    echo "Output: $output"
+    return 1
+  }
+
+  # EC-008 / INV3 (F-P8-002): advisory MUST contain the non-numeric note for empty string.
+  # BC-6.25.001 INV3: "Value '' is not a valid integer; treating as absent"
+  # This assertion distinguishes EC-008 (empty string present in env block) from
+  # EC-002/EC-007 (key genuinely absent) — a genuinely-absent key gets ONLY the
+  # remediation hint, never the "not a valid integer" INV3 note.
+  [[ "$output" == *"is not a valid integer; treating as absent"* ]] || {
+    echo "FAIL (EC-008 / F-P8-002): advisory does not contain INV3 note 'is not a valid integer; treating as absent'."
+    echo "BC-6.25.001 INV3: empty string value '' must trigger the non-numeric note, not the plain absent-key path."
+    echo "Required substring: 'is not a valid integer; treating as absent'."
     echo "Output: $output"
     return 1
   }
