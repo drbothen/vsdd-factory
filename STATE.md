@@ -133,7 +133,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | caf06c68 | rc.21 bot binary bundle commit 2026-06-13; prior: 2a191314 (rc.20) |
 | develop | 5af40c4e | PR #307 `feat(S-18.09): F2 process-gap lesson gate checks` squash-merged 2026-06-28T02:48:47Z (D-716; S-18.09 MERGED; E-18 wave-8 gate COMPLETE); prior: e10dedc0 (PR #304 D-709 maintenance cleanup) |
-| factory-artifacts | [post-commit-SHA] | D-716 S-18.09 POST-MERGE burst 2026-06-28; prior: 16e0bef7 (D-715 AC-003/AC-006 class-sweep) |
+| factory-artifacts | 47f24034 | D-716 S-18.09 POST-MERGE burst 2026-06-28; prior: 16e0bef7 (D-715 AC-003/AC-006 class-sweep) |
 | v1.0.0-rc.21 (tag) | 03054524 | SHIPPED 2026-06-13; FULLY IN OPERATOR MARKETPLACE (marketplace PR #13 MERGED); annotated tag object |
 | v1.0.0-rc.20 (tag) | e9e38286 | SHIPPED 2026-06-01; marketplace PR #12 squash-merged 862e660d |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28 |
