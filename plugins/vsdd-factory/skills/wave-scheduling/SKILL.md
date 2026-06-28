@@ -54,6 +54,41 @@ Produce `wave-schedule.md` under `.factory/cycles/**/implementation/`:
 | 2 | A | STORY-004, STORY-005 | 2 stories | 2 stories |
 | ... | | | | |
 
+### Step 5: Per-Story sprint-state.yaml Emission (BC-5.41.004)
+
+After computing wave assignments, emit the `stories:` sequence in
+`.factory/stories/sprint-state.yaml` as a producer obligation.
+
+**Authority:** BC-5.41.004 (sprint-state.yaml producer contract) — producer MUST
+write `stories:` as a YAML sequence of `{id, status}` objects, not as a
+count-summary mapping.
+
+**Consumer dependency:** BC-5.41.002 PC3 — consumer derives per-story status
+from `stories[*].status: draft` entries; `pending` is a reserved no-op token.
+
+**Ordering rule (BC-5.41.004 PC3 + EC-003):**
+- Sort entries wave-ascending via topological sort of `depends_on:` edges from
+  STORY-INDEX.md (same topo-sort computed in Steps 1-2 above)
+- Wave level = `max(wave of direct deps) + 1`; stories with no deps = wave 0
+- Tie-break within the same wave: story ID string ascending (lexicographic)
+
+**Status values (BC-5.41.004 INV-1):**
+Exactly 8 valid values: `draft`, `ready`, `in-progress`, `partial`, `blocked`,
+`merged`, `withdrawn`, `cancelled`. Hard-abort on any other token (EC-007).
+
+**Completeness (BC-5.41.004 INV-4):**
+Every non-retired story from STORY-INDEX.md MUST appear. Retired stories are
+omitted. No phantom entries for stories not in STORY-INDEX.md.
+
+**No `wave:` field (BC-5.41.004 PC6 + INV-5):**
+Each entry contains ONLY `id:` and `status:`. Do NOT add a `wave:` field or
+any other key. Wave ordering is expressed by list position, not by an inline
+field.
+
+**Preserve existing sections:** `epics:`, `frontier:`, `next_refinement:`, and
+`story_updates:` are independent keys in sprint-state.yaml and MUST be
+preserved unchanged when updating the `stories:` list.
+
 ## Templates
 
 Use `${CLAUDE_PLUGIN_ROOT}/templates/wave-schedule-template.md` for the wave schedule output format.
