@@ -72,6 +72,14 @@
 #           S-3.04 (partial, superseded_by: ADR-015) is in the NON-TERMINAL partition;
 #           S-3.01/S-3.02/S-3.03/S-4.07/S-4.08 (merged dependents) are in the TERMINAL prefix.
 #         Locks in EC-010 TOLERATE behavior: supersession-edge did NOT trigger TopoViolation abort.
+#   PRODUCTION-FILE + .factory-GUARDED SKIP (def-b full-graph depth intra-partition ordering):
+#     test_partitions_sorted_by_full_graph_depth_def_b (T-14, BC-5.41.004 v1.3 PC3 / ADR-026 §Decision 3a)
+#       → SKIP when .factory/stories/sprint-state.yaml or .factory/stories/STORY-INDEX.md absent (CI);
+#         GREEN when BOTH partitions monotonically satisfy: depth[i] <= depth[i+1]; lex[i] <= lex[i+1]
+#           when depths equal; with NO terminal entry after the first non-terminal entry.
+#         Independently computes full-graph wave-depth from STORY-INDEX.md depends_on edges
+#         (iterative longest-path with epic-expansion for "E-8"/"E-9" text refs);
+#         does NOT trust the producer's output for depth values.
 #
 # EC-010 ABORT-PATH NOTE (no bats test — correct by design):
 #   The EC-010 hard-abort path (terminal story depends_on a non-terminal NON-superseded story)
@@ -114,7 +122,7 @@
 #   awk, grep -E, sort, git
 #   No jq used in this suite (POSIX awk/grep sufficient for YAML key extraction)
 #
-# @test count: 13 (grep -c '^@test' sprint-state-format.bats == 13)
+# @test count: 14 (grep -c '^@test' sprint-state-format.bats == 14)
 
 # ---------------------------------------------------------------------------
 # Fixture paths
@@ -133,7 +141,11 @@ setup() {
 }
 
 teardown() {
-  :
+  # Clean up T-14 tmpdir if set (avoids overriding bats' EXIT trap inside test body).
+  if [ -n "${_T14_TMPDIR:-}" ] && [ -d "${_T14_TMPDIR}" ]; then
+    rm -rf "${_T14_TMPDIR}"
+    _T14_TMPDIR=""
+  fi
 }
 
 # ---------------------------------------------------------------------------
@@ -1613,4 +1625,446 @@ EOF
     echo "  Its merged dependents must precede the non-terminal partition (ordinal < ${first_nonterminal_ord})." >&2
     false
   }
+}
+
+# ---------------------------------------------------------------------------
+# test_partitions_sorted_by_full_graph_depth_def_b
+# T-14 / BC-5.41.004 v1.3 PC3 / ADR-026 §Decision 3a
+#
+# Definition (b) full-graph wave-depth ordering:
+#   depth(S) = 1 if depends_on empty
+#            = 1 + max(depth(P) for P in S.depends_on)  over the FULL depends_on graph
+#              (ALL edges, all statuses including supersession edges)
+#
+# Within each partition, consecutive pairs (i, i+1) must satisfy:
+#   depth[i] <= depth[i+1]
+#   if depth[i] == depth[i+1]: id[i] <= id[i+1]  (lexicographic tie-break)
+#
+# Partition A (terminal prefix): stories with status merged/withdrawn/cancelled,
+#   forming a contiguous leading block.
+# Partition B (non-terminal): the remaining stories.
+# No terminal entry may appear after the first non-terminal entry.
+#
+# INDEPENDENT DEPTH COMPUTATION:
+#   This test reads STORY-INDEX.md depends_on edges (col 7) and computes depth
+#   via iterative longest-path relaxation (up to 30 passes). It does NOT trust
+#   the producer's ordering as a proxy for depth — that would be a tautology.
+#
+#   Epic-level dep references ("E-8", "E-9", "E-9 W-16 closure") are expanded to
+#   the concrete non-retired story IDs from those epics:
+#     E-8 → S-8.00..S-8.09 S-8.10 S-8.30  (non-retired E-8 stories per STORY-INDEX)
+#     E-9 → S-9.00..S-9.07                  (non-retired E-9 stories per STORY-INDEX)
+#   Range patterns (S-N.A..S-N.B) are expanded to individual zero-padded IDs.
+#   Withdrawn stories in sprint-state but without a STORY-INDEX entry (e.g. S-9.30)
+#   are assigned depth=1 (no tracked dependencies).
+#
+# PORTABILITY: guarded to SKIP when .factory/stories/sprint-state.yaml or
+#   .factory/stories/STORY-INDEX.md absent (CI without factory-artifacts worktree).
+#   Runs locally where the factory-artifacts worktree is mounted.
+#
+# Spot anchors (informational, not load-bearing assertions):
+#   S-9.00 (dep=E-8, depth=5) appears after all depth<=4 terminal stories.
+#   S-3.01 (dep=S-2.08+S-3.04, depth=10) appears after S-3.04 (depth=4) and
+#     after S-2.08 (depth=9).
+#   S-4.08 (dep=S-4.07+..., depth=12) appears after S-4.07 (depth=11).
+#
+# This test closes the pass-7 coverage gap: T-12/T-13 verify completeness and
+# partition existence but do not verify the depth-monotone ordering CONTRACT.
+# ---------------------------------------------------------------------------
+
+@test "test_partitions_sorted_by_full_graph_depth_def_b" {
+  # Guard: skip when production files are absent (CI without factory-artifacts worktree)
+  if [ ! -f "${_PRODUCTION_SPRINT_STATE}" ]; then
+    skip ".factory/stories/sprint-state.yaml absent — factory-artifacts worktree not mounted (CI); SKIP is expected in CI"
+  fi
+
+  local repo_root
+  repo_root="$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)"
+  local story_index="${repo_root}/.factory/stories/STORY-INDEX.md"
+
+  if [ ! -f "${story_index}" ]; then
+    skip ".factory/stories/STORY-INDEX.md absent — factory-artifacts worktree not mounted (CI); SKIP is expected in CI"
+  fi
+
+  # ---------------------------------------------------------------------------
+  # STEP 1: Build deps map from STORY-INDEX.md
+  # Col 7 is "Depends On" / "Depends-On" in all table variants.
+  # Skip **retired** and **withdrawn** rows (withdrawn stories get depth=1 below).
+  # Epic-level deps "E-8" and "E-9" are expanded to their concrete non-retired story IDs.
+  # Range patterns S-N.A..S-N.B are expanded to individual IDs.
+  # Output: one line per story: "S-N.M|dep1 dep2 dep3"
+  # ---------------------------------------------------------------------------
+  # Use a global _T14_TMPDIR so teardown() can clean up.
+  # Do NOT use trap ... EXIT inside a bats test body: it overrides bats' own EXIT
+  # trap and prevents TAP output from being emitted, causing "Executed 0" warnings.
+  _T14_TMPDIR="$(mktemp -d)"
+  local tmpd="${_T14_TMPDIR}"
+
+  local deps_file="${tmpd}/deps.txt"
+
+  awk -F'|' '
+    /^\| S-/ && !/\*\*retired\*\*/ && !/\*\*withdrawn\*\*/ {
+      sid=$2; gsub(/^[[:space:]]+|[[:space:]]+$/, "", sid)
+      raw=$7; gsub(/^[[:space:]]+|[[:space:]]+$/, "", raw)
+      print sid "|" raw
+    }
+  ' "${story_index}" | awk -F'|' '
+  {
+    sid=$1; raw=$2; deps=""
+
+    # Epic-level expansion: "E-8" → concrete S-8.xx non-retired story IDs
+    # Expansion table determined by grep of STORY-INDEX at test-development time.
+    # E-8 non-retired: S-8.00 S-8.01 S-8.02 S-8.03 S-8.04 S-8.05 S-8.06
+    #                  S-8.07 S-8.08 S-8.09 S-8.10 S-8.30
+    # E-9 non-retired: S-9.00 S-9.01 S-9.02 S-9.03 S-9.04 S-9.05 S-9.06 S-9.07
+    expanded = raw
+    if (raw ~ /^E-8([[:space:]]|$)/) {
+      sub(/^E-8[[:space:]A-Za-z0-9._-]*/, \
+        "S-8.00 S-8.01 S-8.02 S-8.03 S-8.04 S-8.05 S-8.06 S-8.07 S-8.08 S-8.09 S-8.10 S-8.30", \
+        expanded)
+    }
+    if (expanded ~ /E-9([[:space:]]|$)/) {
+      sub(/E-9[[:space:]A-Za-z0-9._-]*/, \
+        "S-9.00 S-9.01 S-9.02 S-9.03 S-9.04 S-9.05 S-9.06 S-9.07", expanded)
+    }
+    raw = expanded
+
+    # Range expansion: S-N.A..S-N.B → individual zero-padded IDs
+    tmp = raw
+    while (length(tmp) > 0) {
+      pos = index(tmp, "..")
+      if (pos == 0) break
+      before = substr(tmp, 1, pos-1)
+      after  = substr(tmp, pos+2)
+      nb = split(before, btoks, /[^S0-9.-]/)
+      start_id = ""
+      for (k=nb; k>=1; k--) {
+        if (btoks[k] ~ /^S-[0-9]+\.[0-9]+$/) { start_id=btoks[k]; break }
+      }
+      na = split(after, atoks, /[^S0-9.-]/)
+      end_id = ""
+      for (k=1; k<=na; k++) {
+        if (atoks[k] ~ /^S-[0-9]+\.[0-9]+$/) { end_id=atoks[k]; break }
+      }
+      if (start_id != "" && end_id != "") {
+        split(start_id, sp, "."); epic=sp[1]; sub(/^S-/, "", epic)
+        start_n = sp[2]+0
+        split(end_id,  ep, "."); end_n = ep[2]+0
+        for (k=start_n; k<=end_n; k++) {
+          cand = sprintf("S-%s.%02d", epic, k)
+          if (index(deps, cand) == 0) {
+            if (deps == "") deps = cand; else deps = deps " " cand
+          }
+        }
+      }
+      tmp = after
+    }
+
+    # Extract explicit S-N.M tokens (strip range markers first)
+    clean = raw
+    gsub(/S-[0-9]+\.[0-9]+\.\.S-[0-9]+\.[0-9]+/, "", clean)
+    n = split(clean, toks, /[^S0-9.A-Za-z_-]+/)
+    for (i=1; i<=n; i++) {
+      t = toks[i]
+      if (t ~ /^S-[0-9]+\.[0-9]/) {
+        if (index(deps, t) == 0) {
+          if (deps == "") deps = t; else deps = deps " " t
+        }
+      }
+    }
+
+    print sid "|" deps
+  }' > "${deps_file}"
+
+  # Withdrawn stories present in sprint-state but absent from STORY-INDEX
+  # (e.g. S-9.30 marked **withdrawn** → skipped above) get depth=1.
+  # Enumerate from sprint-state: any terminal-status story not already in deps_file.
+  awk '
+    BEGIN { in_stories=0; cur_id="" }
+    /^stories:/ { in_stories=1; next }
+    in_stories && /^[^[:space:]#]/ { in_stories=0 }
+    in_stories && /^[[:space:]]*-[[:space:]]+id:[[:space:]]+/ {
+      cur_id=$0; sub(/^[[:space:]]*-[[:space:]]+id:[[:space:]]+/, "", cur_id)
+      gsub(/[[:space:]]*$/, "", cur_id); cur_status=""
+    }
+    in_stories && cur_id != "" && /^[[:space:]]+status:[[:space:]]+/ {
+      cur_status=$0; sub(/^[[:space:]]+status:[[:space:]]*/, "", cur_status)
+      gsub(/[[:space:]]*$/, "", cur_status)
+      if (cur_status == "withdrawn" || cur_status == "cancelled") {
+        print cur_id
+      }
+    }
+  ' "${_PRODUCTION_SPRINT_STATE}" | while IFS= read -r wid; do
+    if ! grep -q "^${wid}|" "${deps_file}" 2>/dev/null; then
+      printf '%s|\n' "${wid}" >> "${deps_file}"
+    fi
+  done
+
+  [ -s "${deps_file}" ] || {
+    echo "FAIL (test-precondition): deps_file is empty — STORY-INDEX parse produced no rows." >&2
+    false
+  }
+
+  # ---------------------------------------------------------------------------
+  # STEP 2: Compute full-graph wave-depth via iterative longest-path relaxation.
+  # Initialise all depths to 0; repeat until no depth changes.
+  # depth(s) = 1 if no parents; else 1 + max(depth(parent) for parent in parents(s))
+  # Up to 30 passes (sufficient for any DAG depth in current graph).
+  # ---------------------------------------------------------------------------
+  local depth_file="${tmpd}/depth.txt"
+  awk -F'|' '{print $1 " 0"}' "${deps_file}" > "${depth_file}"
+
+  local pass converged
+  converged=0
+  for pass in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30; do
+    awk -F'|' -v df="${depth_file}" '
+      BEGIN { while ((getline l < df) > 0) { split(l, a, " "); depth[a[1]] = a[2]+0 } }
+      {
+        sid=$1; deps=$2
+        if (deps == "") { new_d = 1 } else {
+          max_p = 0; np = split(deps, parr, " ")
+          for (i=1; i<=np; i++) {
+            p = parr[i]
+            if (p in depth && depth[p] > max_p) max_p = depth[p]
+          }
+          new_d = max_p + 1
+        }
+        print sid " " new_d " " (new_d != depth[sid] ? "C" : "S")
+      }
+    ' "${deps_file}" > "${tmpd}/dcheck.txt"
+    if ! grep -q " C$" "${tmpd}/dcheck.txt"; then
+      converged=1
+      break
+    fi
+    awk '{print $1 " " $2}' "${tmpd}/dcheck.txt" > "${depth_file}"
+  done
+
+  [ "${converged}" -eq 1 ] || {
+    echo "FAIL (test-precondition): depth computation did not converge in 30 passes." >&2
+    echo "  This indicates a dependency cycle in STORY-INDEX.md." >&2
+    false
+  }
+
+  # ---------------------------------------------------------------------------
+  # STEP 3: Parse sprint-state.yaml stories: list into (ordinal, id, status) triples.
+  # awk anchor /^stories:/ (column-0) prevents nested epics[*].stories: leakage.
+  # ---------------------------------------------------------------------------
+  local ss_order_file="${tmpd}/ss_order.txt"
+  awk '
+    BEGIN { in_stories=0; ord=0; cur_id=""; cur_status="" }
+    /^stories:/ { in_stories=1; next }
+    in_stories && /^[^[:space:]#]/ { in_stories=0 }
+    in_stories && /^[[:space:]]*-[[:space:]]+id:[[:space:]]+/ {
+      if (cur_id != "") {
+        ord++
+        printf "%d|%s|%s\n", ord, cur_id, (cur_status != "" ? cur_status : "NOSTATUS")
+      }
+      cur_id=$0; sub(/^[[:space:]]*-[[:space:]]+id:[[:space:]]+/, "", cur_id)
+      gsub(/[[:space:]]*$/, "", cur_id); cur_status=""
+    }
+    in_stories && cur_id != "" && /^[[:space:]]+status:[[:space:]]+/ {
+      cur_status=$0; sub(/^[[:space:]]+status:[[:space:]]*/, "", cur_status)
+      gsub(/[[:space:]]*$/, "", cur_status)
+    }
+    END {
+      if (cur_id != "") {
+        ord++
+        printf "%d|%s|%s\n", ord, cur_id, (cur_status != "" ? cur_status : "NOSTATUS")
+      }
+    }
+  ' "${_PRODUCTION_SPRINT_STATE}" > "${ss_order_file}"
+
+  local total_entries
+  total_entries="$(wc -l < "${ss_order_file}" | tr -d ' ')"
+  [ "${total_entries}" -gt 0 ] || {
+    echo "FAIL (test-precondition): ss_order_file is empty — sprint-state parse produced no rows." >&2
+    false
+  }
+
+  # ---------------------------------------------------------------------------
+  # STEP 4: Done-first contiguity — no terminal entry after first non-terminal.
+  # Determines the partition boundary (first_nonterminal_ord).
+  # ---------------------------------------------------------------------------
+  local first_nonterminal_ord=0
+  while IFS='|' read -r ord id status; do
+    case "${status}" in
+      merged|withdrawn|cancelled) ;;
+      *)
+        if [ "${first_nonterminal_ord}" -eq 0 ]; then
+          first_nonterminal_ord="${ord}"
+        fi
+        ;;
+    esac
+  done < "${ss_order_file}"
+
+  [ "${first_nonterminal_ord}" -gt 0 ] || {
+    echo "FAIL (test-precondition): no non-terminal story found in sprint-state.yaml stories: list." >&2
+    false
+  }
+
+  # Contiguity check: no terminal after first non-terminal
+  local contiguity_fail=0
+  local seen_nonterminal=0
+  while IFS='|' read -r ord id status; do
+    case "${status}" in
+      merged|withdrawn|cancelled)
+        if [ "${seen_nonterminal}" -eq 1 ]; then
+          echo "FAIL (BC-5.41.004 PC3 done-first): terminal story '${id}' (status=${status}) at ordinal=${ord} appears AFTER a non-terminal entry." >&2
+          echo "  First non-terminal starts at ordinal=${first_nonterminal_ord}." >&2
+          echo "  All terminal (merged/withdrawn/cancelled) entries MUST precede all non-terminal entries." >&2
+          contiguity_fail=1
+        fi
+        ;;
+      *)
+        seen_nonterminal=1
+        ;;
+    esac
+  done < "${ss_order_file}"
+
+  [ "${contiguity_fail}" -eq 0 ] || false
+
+  # ---------------------------------------------------------------------------
+  # STEP 5: Intra-partition ordering — check each consecutive pair within
+  # Partition A (1..first_nonterminal_ord-1) and Partition B (first_nonterminal_ord..N).
+  # Rule: depth[i] <= depth[i+1]; if equal, id[i] <= id[i+1] (lex).
+  # On failure: print offending pair + their depths.
+  # ---------------------------------------------------------------------------
+  local order_fail=0
+  local part_a_fail=0
+  local part_b_fail=0
+
+  # Check Partition A
+  part_a_fail="$(awk -F'|' -v df="${depth_file}" -v fnt="${first_nonterminal_ord}" '
+    BEGIN { while ((getline l < df) > 0) { split(l, a, " "); depth[a[1]] = a[2]+0 } }
+    {
+      ord=$1+0; id=$2
+      if (ord >= fnt) next
+      d = (id in depth) ? depth[id] : -1
+      ids[ord]=id; depths[ord]=d
+    }
+    END {
+      failures=0
+      for (i=1; i < fnt; i++) {
+        if (!(i in ids) || !((i+1) in ids)) continue
+        d1=depths[i]; d2=depths[i+1]; id1=ids[i]; id2=ids[i+1]
+        fail=0
+        if (d1 > d2) { fail=1 }
+        else if (d1==d2 && id1>id2) { fail=1 }
+        if (fail) {
+          printf "FAIL PartA ord %d %s (depth=%d) -> ord %d %s (depth=%d): ", i, id1, d1, i+1, id2, d2
+          if (d1>d2) printf "depth decreases\n"
+          else printf "same depth but lex order violated\n"
+          failures++
+        }
+      }
+      print failures
+    }
+  ' "${ss_order_file}")"
+
+  # Check Partition B
+  part_b_fail="$(awk -F'|' -v df="${depth_file}" -v fnt="${first_nonterminal_ord}" -v tot="${total_entries}" '
+    BEGIN { while ((getline l < df) > 0) { split(l, a, " "); depth[a[1]] = a[2]+0 } }
+    {
+      ord=$1+0; id=$2
+      if (ord < fnt) next
+      d = (id in depth) ? depth[id] : -1
+      ids[ord]=id; depths[ord]=d
+    }
+    END {
+      failures=0
+      for (i=fnt; i < tot; i++) {
+        if (!(i in ids) || !((i+1) in ids)) continue
+        d1=depths[i]; d2=depths[i+1]; id1=ids[i]; id2=ids[i+1]
+        fail=0
+        if (d1 > d2) { fail=1 }
+        else if (d1==d2 && id1>id2) { fail=1 }
+        if (fail) {
+          printf "FAIL PartB ord %d %s (depth=%d) -> ord %d %s (depth=%d): ", i, id1, d1, i+1, id2, d2
+          if (d1>d2) printf "depth decreases\n"
+          else printf "same depth but lex order violated\n"
+          failures++
+        }
+      }
+      print failures
+    }
+  ' "${ss_order_file}")"
+
+  # Report Partition A failures
+  local a_count
+  a_count="$(printf '%s\n' "${part_a_fail}" | tail -1)"
+  if [ "${a_count}" -gt 0 ]; then
+    echo "FAIL (BC-5.41.004 PC3 / ADR-026 §Decision 3a def-b): Partition A intra-partition ordering violations:" >&2
+    printf '%s\n' "${part_a_fail}" | grep "^FAIL PartA" >&2 || true
+    echo "  Partition A (terminal prefix, ordinals 1..$((first_nonterminal_ord-1))) must be sorted by:" >&2
+    echo "    PRIMARY: full-graph wave-depth ASC (def-b: 1+max(depth(parent)) over all STORY-INDEX deps)" >&2
+    echo "    SECONDARY: story-ID lexicographic ASC within same depth" >&2
+    order_fail=1
+  fi
+
+  # Report Partition B failures
+  local b_count
+  b_count="$(printf '%s\n' "${part_b_fail}" | tail -1)"
+  if [ "${b_count}" -gt 0 ]; then
+    echo "FAIL (BC-5.41.004 PC3 / ADR-026 §Decision 3a def-b): Partition B intra-partition ordering violations:" >&2
+    printf '%s\n' "${part_b_fail}" | grep "^FAIL PartB" >&2 || true
+    echo "  Partition B (non-terminal, ordinals $((first_nonterminal_ord))..${total_entries}) must be sorted by:" >&2
+    echo "    PRIMARY: full-graph wave-depth ASC (def-b)" >&2
+    echo "    SECONDARY: story-ID lexicographic ASC within same depth" >&2
+    order_fail=1
+  fi
+
+  [ "${order_fail}" -eq 0 ] || {
+    echo "  Full-graph wave-depth is computed INDEPENDENTLY from STORY-INDEX.md depends_on edges." >&2
+    echo "  Epic-level deps (E-8, E-9) are expanded to their concrete non-retired story IDs." >&2
+    echo "  To diagnose: route to implementer with offending pairs above." >&2
+    false
+  }
+
+  # ---------------------------------------------------------------------------
+  # STEP 6: Spot-anchor checks — intra-partition dep-ordering assertions.
+  # All anchors compare stories WITHIN the same partition only.
+  # Dep ordering across partitions is NOT asserted (Partition A is terminal/done,
+  # Partition B is non-terminal; they are ordered independently).
+  #
+  # Anchors chosen from same-partition dep pairs:
+  #   Partition A (terminal): S-8.09 (depth=4) before S-9.00 (depth=5, dep=E-8)
+  #   Partition A (terminal): S-4.07 (depth=11) before S-4.08 (depth=12, dep=S-4.07)
+  # ---------------------------------------------------------------------------
+  local spot_fail=0
+
+  local s809_ord=0 s900_ord=0 s407_ord=0 s408_ord=0
+  while IFS='|' read -r ord id status; do
+    case "${id}" in
+      S-8.09) s809_ord="${ord}" ;;
+      S-9.00) s900_ord="${ord}" ;;
+      S-4.07) s407_ord="${ord}" ;;
+      S-4.08) s408_ord="${ord}" ;;
+    esac
+  done < "${ss_order_file}"
+
+  # Spot anchor (Partition A): S-8.09 (depth=4) must precede S-9.00 (depth=5, dep=E-8).
+  # Both are merged (terminal) and in Partition A.
+  if [ "${s809_ord}" -gt 0 ] && [ "${s900_ord}" -gt 0 ] && \
+     [ "${s809_ord}" -lt "${first_nonterminal_ord}" ] && \
+     [ "${s900_ord}" -lt "${first_nonterminal_ord}" ]; then
+    [ "${s809_ord}" -lt "${s900_ord}" ] || {
+      echo "FAIL (spot-anchor PartA): S-8.09 (ord=${s809_ord}) must precede S-9.00 (ord=${s900_ord})." >&2
+      echo "  S-9.00 depends_on E-8 (includes S-8.09); depth(S-8.09)=4 < depth(S-9.00)=5." >&2
+      spot_fail=1
+    }
+  fi
+
+  # Spot anchor (Partition A): S-4.07 (depth=11) must precede S-4.08 (depth=12, dep=S-4.07).
+  # Both are merged (terminal) and in Partition A.
+  if [ "${s407_ord}" -gt 0 ] && [ "${s408_ord}" -gt 0 ] && \
+     [ "${s407_ord}" -lt "${first_nonterminal_ord}" ] && \
+     [ "${s408_ord}" -lt "${first_nonterminal_ord}" ]; then
+    [ "${s407_ord}" -lt "${s408_ord}" ] || {
+      echo "FAIL (spot-anchor PartA): S-4.07 (ord=${s407_ord}) must precede S-4.08 (ord=${s408_ord})." >&2
+      echo "  S-4.08 depends_on S-4.07; depth(S-4.07)=11 < depth(S-4.08)=12." >&2
+      spot_fail=1
+    }
+  fi
+
+  [ "${spot_fail}" -eq 0 ] || false
 }
