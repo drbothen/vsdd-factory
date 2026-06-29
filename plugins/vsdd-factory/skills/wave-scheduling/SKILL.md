@@ -89,13 +89,17 @@ partitions — Partition A (terminal) then Partition B (non-terminal):
    non-terminal entries). No terminal entry may appear after any non-terminal
    entry (BC-5.41.001 P-SPRINT-STATE-WAVE-ORDER precondition).
 
-5. **TopoViolation guard:** Before sorting, check for edges from any terminal
-   story to any non-terminal story in the full STORY-INDEX depends_on graph. If
-   any such cross-partition edge exists, **hard-abort** with error:
-   `TopoViolation: terminal story <id> depends_on non-terminal story <dep-id>`.
-   This indicates a data inconsistency that must be resolved before scheduling
-   can proceed. (Topo-validity is the architect's responsibility to verify
-   upstream per ADR-026 §Decision 3a.)
+5. **TopoViolation guard (narrowed — ADR-026 §Decision 3a v1.36 / BC-5.41.004 v1.3 EC-010):**
+   Before sorting, for each terminal story T in the classified set:
+     for each dep_id in T.depends_on:
+       if dep_id is non-terminal in STORY-INDEX.md:
+         read dep_id's story-file frontmatter for a `superseded_by:` field
+           (plain working-tree read: `grep -m1 '^superseded_by:' .factory/stories/<dep_id>-*.md`
+            — NOT git exec; INV-4 compliant)
+         if superseded_by: PRESENT  → TOLERATE: exclude this edge from the Partition-A
+           intra-partition topo-sort; continue (no abort)
+         if superseded_by: ABSENT   → HARD-ABORT: "TopoViolation: terminal story <T.id>
+           depends_on non-terminal story <dep_id>"; no sprint-state.yaml write
 
 **Wave ordinal definition (INV-3-compatible):**
 - Restricted Kahn: wave 1 = stories with no intra-partition deps; wave N+1 =
