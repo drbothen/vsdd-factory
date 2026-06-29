@@ -1,8 +1,8 @@
 #!/usr/bin/env bats
 # sprint-state-format.bats — Red Gate tests for S-18.11 sprint-state.yaml per-story format
 #
-# Story:   S-18.11 v1.5 — sprint-state.yaml producer migration to per-story {id, status} format
-# BCs:     BC-5.41.004 v1.3 (producer: stories: key, per-entry schema, two-partition ordering,
+# Story:   S-18.11 v1.7 — sprint-state.yaml producer migration to per-story {id, status} format
+# BCs:     BC-5.41.004 v1.4 (producer: stories: key, per-entry schema, two-partition ordering,
 #                              completeness, 8-value enum INV-1, no-fabrication INV-2,
 #                              no-phantom-wave INV-3, EC-007 UnknownStatusToken,
 #                              EC-010 TopoViolation-tolerate-supersession-edge)
@@ -66,14 +66,14 @@
 #         GREEN when all sprint-state IDs match non-retired STORY-INDEX IDs (PC4 completeness)
 #         AND each story's status matches its STORY-INDEX catalog row (PC2/INV-2 status-fidelity).
 #   PRODUCTION-FILE + .factory-GUARDED SKIP (EC-010 supersession-edge tolerate path):
-#     test_supersession_edge_tolerated_partition_placement (T-13, BC-5.41.004 v1.3 EC-010)
+#     test_supersession_edge_tolerated_partition_placement (T-13, BC-5.41.004 v1.4 EC-010)
 #       → SKIP when .factory/stories/sprint-state.yaml absent (CI);
 #         GREEN when: migration was emitted (file exists and is well-formed);
 #           S-3.04 (partial, superseded_by: ADR-015) is in the NON-TERMINAL partition;
 #           S-3.01/S-3.02/S-3.03/S-4.07/S-4.08 (merged dependents) are in the TERMINAL prefix.
 #         Locks in EC-010 TOLERATE behavior: supersession-edge did NOT trigger TopoViolation abort.
 #   PRODUCTION-FILE + .factory-GUARDED SKIP (def-b full-graph depth intra-partition ordering):
-#     test_partitions_sorted_by_full_graph_depth_def_b (T-14, BC-5.41.004 v1.3 PC3 / ADR-026 §Decision 3a)
+#     test_partitions_sorted_by_full_graph_depth_def_b (T-14, BC-5.41.004 v1.4 PC3 / ADR-026 §Decision 3a)
 #       → SKIP when .factory/stories/sprint-state.yaml or .factory/stories/STORY-INDEX.md absent (CI);
 #         GREEN when BOTH partitions monotonically satisfy: depth[i] <= depth[i+1]; lex[i] <= lex[i+1]
 #           when depths equal; with NO terminal entry after the first non-terminal entry.
@@ -86,9 +86,9 @@
 #   is enforced by the wave-scheduling SKILL.md Step 5 TopoViolation guard, which is an LLM-
 #   executed producer-side check. There is no executable producer script to invoke in bats.
 #   Furthermore, the real graph contains NO genuine-anomaly instance — every terminal→non-terminal
-#   dependency edge is the S-3.04 supersession edge (tolerated by EC-010 v1.3). A bats test that
+#   dependency edge is the S-3.04 supersession edge (tolerated by EC-010 v1.4). A bats test that
 #   re-implements the guard logic would be a tautology (testing our test, not the production guard).
-#   The abort path is verified by: (a) BC-5.41.004 v1.3 §Canonical Test Vectors rows
+#   The abort path is verified by: (a) BC-5.41.004 v1.4 §Canonical Test Vectors rows
 #   topo-violation-genuine-anomaly + topo-violation-supersession-tolerated; (b) SKILL.md Step 5
 #   TopoViolation guard prose. The TOLERATE path is verified on real data by T-13 below.
 #
@@ -1432,9 +1432,9 @@ EOF
 
 # ---------------------------------------------------------------------------
 # test_supersession_edge_tolerated_partition_placement
-# T-13 / BC-5.41.004 v1.3 EC-010 (tolerate supersession-edge)
+# T-13 / BC-5.41.004 v1.4 EC-010 (tolerate supersession-edge)
 #
-# BC-5.41.004 v1.3 EC-010 NARROW SCOPE (TopoViolation-tolerate-supersession-edge):
+# BC-5.41.004 v1.4 EC-010 NARROW SCOPE (TopoViolation-tolerate-supersession-edge):
 # When a terminal/merged story depends_on a story that carries `superseded_by:` (i.e.,
 # the depended-on story is superseded), the producer MUST tolerate the edge and emit
 # the migration. The superseded story (S-3.04, status: partial, superseded_by: ADR-015)
@@ -1629,7 +1629,7 @@ EOF
 
 # ---------------------------------------------------------------------------
 # test_partitions_sorted_by_full_graph_depth_def_b
-# T-14 / BC-5.41.004 v1.3 PC3 / ADR-026 §Decision 3a
+# T-14 / BC-5.41.004 v1.4 PC3 / ADR-026 §Decision 3a
 #
 # Definition (b) full-graph wave-depth ordering:
 #   depth(S) = 1 if depends_on empty
