@@ -62,8 +62,27 @@ classify_stories() {
 
   local current_id=""
   local current_status=""
+  local _in_stories=0
 
   while IFS= read -r line; do
+    # Section boundary guard (PC5 coexistence): track when we enter/exit the
+    # top-level `stories:` section so that epics[*].status: sub-keys are not
+    # mistaken for story status values.
+    # Enter: line is exactly "stories:" at column 0.
+    if echo "$line" | grep -qE '^stories:[[:space:]]*$'; then
+      _in_stories=1
+      continue
+    fi
+    # Exit: any other top-level key (column-0 non-blank, non-comment, not stories:).
+    if [ "$_in_stories" -eq 1 ] && echo "$line" | grep -qE '^[[:alnum:]_#-]'; then
+      # A column-0 non-space line that is not a comment and not a list item
+      # signals a new top-level section — stop parsing stories.
+      if ! echo "$line" | grep -qE '^#|^[[:space:]]|-[[:space:]]'; then
+        break
+      fi
+    fi
+    # Only parse stories: entries while inside the stories: section.
+    [ "$_in_stories" -eq 1 ] || continue
     # Match "  - id: <value>" (story block start)
     if echo "$line" | grep -qE '^[[:space:]]+-[[:space:]]+id:[[:space:]]+[^[:space:]]+'; then
       # Save previous story if we have a complete pair
@@ -92,7 +111,7 @@ classify_stories() {
       current_status="$(echo "$line" | awk '{print $NF}')"
       # Validate status is from the known allowlist (CWE-116 explicit guard)
       case "$current_status" in
-        merged|withdrawn|cancelled|pending|draft|in-progress|review-pending|ready|complete|blocked) : ;;
+        merged|withdrawn|cancelled|pending|draft|in-progress|review-pending|ready|partial|blocked) : ;;
         *)
           echo "ERROR: parse-sprint-state: unknown story status '$current_status' — not in allowlist" >&2
           exit 1
@@ -170,8 +189,22 @@ derive_wave_id() {
     local _has_entries=0
 
     local _post_boundary_terminal=0
+    local _in_stories_section=0
 
     while IFS= read -r _line; do
+      # Section boundary guard (PC5 coexistence): only parse within the top-level
+      # `stories:` section; stop when a new top-level key is encountered so that
+      # epics[*].status: sub-keys are not misread as story status values.
+      if echo "$_line" | grep -qE '^stories:[[:space:]]*$'; then
+        _in_stories_section=1
+        continue
+      fi
+      if [ "$_in_stories_section" -eq 1 ] && echo "$_line" | grep -qE '^[[:alnum:]_#-]'; then
+        if ! echo "$_line" | grep -qE '^#|^[[:space:]]|-[[:space:]]'; then
+          break
+        fi
+      fi
+      [ "$_in_stories_section" -eq 1 ] || continue
       if echo "$_line" | grep -qE '^[[:space:]]+-[[:space:]]+id:[[:space:]]+[^[:space:]]+'; then
         # Process previous entry before starting new one
         if [ -n "$_current_id" ] && [ -n "$_current_status" ]; then
@@ -205,7 +238,7 @@ derive_wave_id() {
         _current_status="$(echo "$_line" | awk '{print $NF}')"
         # Validate status is from the known allowlist (CWE-116 explicit guard)
         case "$_current_status" in
-          merged|withdrawn|cancelled|pending|draft|in-progress|review-pending|ready|complete|blocked) : ;;
+          merged|withdrawn|cancelled|pending|draft|in-progress|review-pending|ready|partial|blocked) : ;;
           *)
             echo "ERROR: parse-sprint-state: unknown story status '$_current_status' — not in allowlist" >&2
             exit 1
