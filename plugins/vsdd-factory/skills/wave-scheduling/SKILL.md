@@ -59,12 +59,13 @@ Produce `wave-schedule.md` under `.factory/cycles/**/implementation/`:
 After computing wave assignments, emit the `stories:` sequence in
 `.factory/stories/sprint-state.yaml` as a producer obligation.
 
-**Authority:** BC-5.41.004 v1.3 PC3 (sprint-state.yaml producer contract) —
+**Authority:** BC-5.41.004 v1.4 PC3 (sprint-state.yaml producer contract) —
 producer MUST write `stories:` as a YAML sequence of `{id, status}` objects,
-not as a count-summary mapping. Ordering governed by ADR-026 §Decision 3a
-two-partition algorithm (PC3: terminal partition precedes non-terminal). EC-010
-narrows the TopoViolation guard: tolerate supersession edges (terminal→superseded
-non-terminal); abort genuine anomalies (terminal→active non-terminal).
+not as a count-summary mapping. Ordering governed by ADR-026 §Decision 3a v1.37
+two-partition algorithm with full-graph wave-depth (PC3: terminal partition precedes
+non-terminal; within each partition depth ASC, lex ASC). EC-010 narrows the
+TopoViolation guard: tolerate supersession edges (terminal→superseded non-terminal);
+abort genuine anomalies (terminal→active non-terminal).
 
 **Consumer dependency:** BC-5.41.002 PC3 — consumer derives per-story status
 from `stories[*].status: draft` entries; `pending` is a reserved no-op token.
@@ -77,21 +78,20 @@ partitions — Partition A (terminal) then Partition B (non-terminal):
 1. **Classify** each STORY-INDEX story as terminal
    (`merged` / `withdrawn` / `cancelled`) or non-terminal (all other statuses).
 
-2. **Partition A — terminal stories:**
-   Apply Kahn/DFS topological sort over `depends_on:` edges **restricted to
-   edges between terminal stories only** (cross-partition edges from terminal to
-   non-terminal are excluded from the sort). Tie-break within the same wave
-   ordinal: story ID string ascending (lexicographic, EC-003).
+2. **Compute full-graph wave-depth for every story (single global pass, memoized):**
+   Root (empty `depends_on`) → depth 1; else `depth(S) = 1 + max(depth(P) for P in S.depends_on)`.
+   ALL edges included (all statuses, including cross-partition supersession edges detected by
+   `superseded_by:`). Depth is memoized; compute via longest-path DFS over the full dependency graph.
 
-3. **Partition B — non-terminal stories:**
-   Apply Kahn/DFS topological sort over `depends_on:` edges **restricted to
-   edges between non-terminal stories only**. Same lex tie-break (EC-003).
+3. **Sort each partition by `(full-graph-depth ASC, story-ID lex ASC)`:**
+   Partition A = terminal stories sorted by (depth, id); Partition B = non-terminal sorted by (depth, id).
+   (No restricted-edge topo-sort; sort key derived from precomputed full-graph depths.)
 
 4. **Emit** Partition A (all terminal entries) then Partition B (all
    non-terminal entries). No terminal entry may appear after any non-terminal
    entry (BC-5.41.001 P-SPRINT-STATE-WAVE-ORDER precondition).
 
-5. **TopoViolation guard (narrowed — ADR-026 §Decision 3a v1.36 / BC-5.41.004 v1.3 EC-010):**
+5. **TopoViolation guard (narrowed — ADR-026 §Decision 3a v1.37 / BC-5.41.004 v1.4 EC-010):**
    Before sorting, for each terminal story T in the classified set:
      for each dep_id in T.depends_on:
        if dep_id is non-terminal in STORY-INDEX.md:
@@ -103,9 +103,10 @@ partitions — Partition A (terminal) then Partition B (non-terminal):
          if superseded_by: ABSENT   → HARD-ABORT: "TopoViolation: terminal story <T.id>
            depends_on non-terminal story <dep_id>"; no sprint-state.yaml write
 
-**Wave ordinal definition (INV-3-compatible):**
-- Restricted Kahn: wave 1 = stories with no intra-partition deps; wave N+1 =
-  stories whose all intra-partition dependencies are in waves 1..N.
+**Wave ordinal definition (INV-3-compatible) — ADR-026 §Decision 3a v1.37 / BC-5.41.004 v1.4 PC3:**
+- Full-graph depth: `depth(S) = 1` if `depends_on` is empty; else `1 + max(depth(P) for P in depends_on)`
+  over ALL dependency edges (all statuses, including cross-partition supersession edges).
+- Within each partition, stories are sorted by `(depth ASC, story-ID lex ASC)`.
 - No `wave:` field is written to `stories:` entries. Wave ordering is expressed
   by list position only (BC-5.41.004 INV-3).
 
