@@ -59,10 +59,12 @@ Produce `wave-schedule.md` under `.factory/cycles/**/implementation/`:
 After computing wave assignments, emit the `stories:` sequence in
 `.factory/stories/sprint-state.yaml` as a producer obligation.
 
-**Authority:** BC-5.41.004 v1.2 PC3 (sprint-state.yaml producer contract) —
+**Authority:** BC-5.41.004 v1.3 PC3 (sprint-state.yaml producer contract) —
 producer MUST write `stories:` as a YAML sequence of `{id, status}` objects,
 not as a count-summary mapping. Ordering governed by ADR-026 §Decision 3a
-two-partition algorithm.
+two-partition algorithm (PC3: terminal partition precedes non-terminal). EC-010
+narrows the TopoViolation guard: tolerate supersession edges (terminal→superseded
+non-terminal); abort genuine anomalies (terminal→active non-terminal).
 
 **Consumer dependency:** BC-5.41.002 PC3 — consumer derives per-story status
 from `stories[*].status: draft` entries; `pending` is a reserved no-op token.
