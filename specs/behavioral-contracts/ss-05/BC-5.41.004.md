@@ -1,11 +1,11 @@
 ---
 document_type: behavioral-contract
 level: L3
-version: "1.1"
+version: "1.2"
 status: draft
 producer: product-owner
 timestamp: 2026-06-28T00:00:00Z
-last_amended: "(v1.1) — Architecture Anchors/Related BCs producer-authority corrected to BC-5.41.004 per AC-007 (F-P5-001); Description INV-cite INV-4→INV-2 (F-P5-002); comprehensive internal-consistency sweep: PC3 wave_id phrasing updated to wave-group-ordinal (2026-06-28). [Prior: v1.0 — initial creation (product-owner): producer-side sprint-state.yaml per-story format obligation (S-18.11 T-2; closes O-P9-001 producer arm).]"
+last_amended: "(v1.2) — PC3 amended to two-partition ordering rule per ADR-026 §Decision 3a (S-18.11 PC3-vs-guard reconciliation, human-approved); TopoViolation guard obligation added as new EC-010. [Prior: (v1.1) — Architecture Anchors/Related BCs producer-authority corrected to BC-5.41.004 per AC-007 (F-P5-001); Description INV-cite INV-4→INV-2 (F-P5-002); comprehensive internal-consistency sweep: PC3 wave_id phrasing updated to wave-group-ordinal (2026-06-28). [Prior: v1.0 — initial creation (product-owner): producer-side sprint-state.yaml per-story format obligation (S-18.11 T-2; closes O-P9-001 producer arm).]]"
 phase: F3
 inputs:
   - .factory/stories/S-18.11-sprint-state-per-story-format-producer.md
@@ -22,6 +22,7 @@ capability: "CAP-032"
 lifecycle_status: draft
 introduced: v1.0-feature-context-durability-E18
 modified:
+  - "2026-06-28 (v1.2) — PC3 amended to two-partition ordering rule per ADR-026 §Decision 3a (S-18.11 PC3-vs-guard reconciliation, human-approved); EC-010 TopoViolation guard added."
   - "2026-06-28 (v1.1) — Architecture Anchors/Related BCs producer-authority corrected to BC-5.41.004 per AC-007 (F-P5-001); Description INV-cite INV-4→INV-2 (F-P5-002); comprehensive internal-consistency sweep: PC3 wave_id phrasing updated to wave-group-ordinal."
 deprecated: null
 deprecated_by: null
@@ -53,9 +54,9 @@ The wave-scheduling skill (or any equivalent sprint-state.yaml producer) MUST wr
    - `id:` — string; the canonical story ID from STORY-INDEX.md (e.g., `S-18.02`). No fabricated or abbreviated IDs.
    - `status:` — string; one of the canonical sprint status values (see Invariant 1 for the exhaustive enum). The value MUST be read directly from the STORY-INDEX.md catalog row for that story. No AI-inferred, RAG-approximated, or context-estimated statuses are permitted.
 
-3. **Wave-ascending order**: The `stories:` list is ordered by wave in ascending order. The wave assignment for each story is derived from the dependency-graph topo-sort of STORY-INDEX.md `depends_on:` arrays. Stories in wave N appear before stories in wave N+1. Within the same wave, stories are ordered by story ID (lexicographic ascending, e.g., S-18.01 before S-18.02) for determinism. This ordering satisfies the **P-SPRINT-STATE-WAVE-ORDER** precondition of BC-5.41.001 PC2 so that the wave-group-ordinal algorithm (derive_wave_id: completed terminal WAVE GROUPS + 1) can operate unambiguously.
+3. **Two-partition wave-order**: Partition A (terminal prefix) — all terminal stories (merged/withdrawn/cancelled) form a contiguous leading block, ordered wave-ascending topo-sort of STORY-INDEX.md `depends_on:` + story-ID lex tie-break within the block. Partition B (non-terminal suffix) — all non-terminal stories follow, ordered wave-ascending topo-sort + lex tie-break within the block. This satisfies BC-5.41.001 PC2 P-SPRINT-STATE-WAVE-ORDER (the WaveOrderUnverifiable guard requires only that no terminal entry appears after the first non-terminal entry; two-partition guarantees this structurally). Per ADR-026 §Decision 3a.
 
-   **Tie-break rule**: If two stories have the same wave-level ordinal (neither depends on the other) and the topo-sort cannot discriminate, order by story ID string lexicographic ascending. This is the canonical tie-break; the SKILL.md behavioral step MUST document it.
+   **Tie-break rule**: If two stories within the same partition have the same wave-level ordinal (neither depends on the other) and the topo-sort cannot discriminate, order by story ID string lexicographic ascending. This is the canonical tie-break; the SKILL.md behavioral step MUST document it.
 
 4. **Completeness — no non-retired story omitted**: Every story that appears in STORY-INDEX.md with a non-retired status MUST appear in the `stories:` list. A story with `status: retired` in STORY-INDEX.md MUST be omitted from the list (retired stories are not part of the active sprint corpus). If a story appears in STORY-INDEX.md but its status cannot be determined (parse failure on the catalog row), the producer MUST abort with a hard error listing the unresolvable story IDs rather than silently omit or invent a status.
 
@@ -97,6 +98,7 @@ The wave-scheduling skill (or any equivalent sprint-state.yaml producer) MUST wr
 | EC-007 | STORY-INDEX.md catalog row for a story has an unknown status value (outside the canonical 8-value enum: `draft`, `ready`, `in-progress`, `partial`, `blocked`, `merged`, `withdrawn`, `cancelled`) | Hard failure: producer aborts with `UnknownStatusToken: story <ID> has status '<value>' not in canonical enum`; producer does NOT pass through unknown tokens or substitute a default. Specifically: `completed`, `closed`, `pending`, and malformed `tier-*` tokens all trigger EC-007 hard-abort — these are not in the STORY-INDEX.md taxonomy. If STORY-INDEX.md ever emits one of these values, that is a STORY-INDEX defect surfaced as a producer hard abort, not a silently passed-through value. |
 | EC-008 | `depends_on:` array for a story references a story ID not present in STORY-INDEX.md | Hard failure: producer aborts with `UnresolvableDependency: story <ID> depends_on <missing-ID> which is not in STORY-INDEX.md`; ordering cannot be computed safely without resolving all edges |
 | EC-009 | Producer is invoked with no STORY-INDEX.md accessible from the working tree | Hard failure: producer aborts immediately with `StoryIndexNotFound: STORY-INDEX.md not found at expected path`; no partial sprint-state.yaml write occurs |
+| EC-010 | A terminal story (merged/withdrawn/cancelled) has a `depends_on:` edge pointing to a non-terminal story (STORY-INDEX.md data inconsistency — a story should not reach terminal status before its dependency) | Hard failure: producer aborts with `TopoViolation: terminal story <ID> depends_on non-terminal story <dep-ID>`; no partial sprint-state.yaml write occurs. This guard is required because the two-partition ordering (PC3) assumes no terminal→non-terminal dependency edges exist; their presence indicates a STORY-INDEX inconsistency, not an ordering algorithm failure. Per ADR-026 §Decision 3a caveat. |
 
 ## Canonical Test Vectors
 
@@ -158,5 +160,6 @@ S-18.11 (sprint-state.yaml producer migration to per-story {id, status} format)
 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
+| v1.2 | 2026-06-28 | product-owner | PC3 amended to two-partition ordering rule per ADR-026 §Decision 3a (S-18.11 PC3-vs-guard reconciliation, human-approved): Partition A — all terminal stories (merged/withdrawn/cancelled) form a contiguous leading block, wave-ascending topo-sort + lex tie-break within partition; Partition B — all non-terminal stories follow, wave-ascending topo-sort + lex tie-break within partition. Satisfies BC-5.41.001 PC2 P-SPRINT-STATE-WAVE-ORDER and the WaveOrderUnverifiable guard structurally. derive_wave_id and wave_id = 2 unaffected. EC-010 TopoViolation guard added: if a terminal story depends_on a non-terminal story (STORY-INDEX inconsistency), producer MUST hard-abort with `TopoViolation: terminal story <ID> depends_on non-terminal story <dep-ID>` (ADR-026 §Decision 3a caveat). EC-003 tie-break rule clarified to apply within each partition. |
 | v1.1 | 2026-06-28 | product-owner | Architecture Anchors/Related BCs producer-authority corrected to BC-5.41.004 PC1–PC3 per AC-007 (F-P5-001): SKILL.md step now cites BC-5.41.004 as producer format authority; BC-5.41.002 PC3 repositioned as consumer-side counterpart (not authority). Description INV-cite corrected INV-4→INV-2 (F-P5-002): no-fabrication/no-RAG clause is INV-2 (not INV-4 which is the no-git-exec rule); phrased as "INV-2; producer-side complement to BC-5.41.002 INV4". Comprehensive internal-consistency sweep: PC3 "leading-contiguous-terminal-run algorithm" updated to "wave-group-ordinal algorithm (derive_wave_id: completed terminal WAVE GROUPS + 1)" per S-18.11 v1.3/v1.4 wave-group-ordinal semantics. Related BCs BC-5.41.002 direction clarified to "consumed by" (consumer counterpart, not format authority). |
 | v1.0 | 2026-06-28 | product-owner | Initial creation (S-18.11 T-2; closes O-P9-001 producer arm). BC-5.41.004: producer-side sprint-state.yaml per-story {id, status} format obligation. INV-1 canonical status enum corrected to STORY-INDEX-grounded 8-value set (architect-adjudicated, S-18.11): `draft`, `ready`, `in-progress`, `partial`, `blocked`, `merged`, `withdrawn`, `cancelled`. Removed `completed` and `pending` (never used in STORY-INDEX.md); added `ready` (observed STORY-INDEX value). Terminal = {merged, withdrawn, cancelled}; non-terminal active = {draft, ready, in-progress, partial, blocked}; next-wave selector = {draft} only. EC-007 updated to cite the corrected 8-value enum and explicitly name `completed`, `closed`, `pending`, and `tier-*` tokens as hard-abort triggers. Two additional test vectors added (completed-is-unknown-hard-abort, pending-is-unknown-hard-abort). |
