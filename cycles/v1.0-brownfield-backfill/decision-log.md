@@ -4314,3 +4314,51 @@ S-18.10 LOCAL adv pass-3 (fresh-context; BC-6.25.001 v1.1; story v1.4; jq-parser
 ### NEXT
 
 S-18.11 TDD Red Gate (T-1): dispatch test-writer for Red Gate bats tests. BC-5.41.004 registered; story v1.1 ready. STOP-BEFORE-PR-MERGE (D-665) holds.
+
+
+---
+
+## D-721 — S-18.11 LOCAL-CONVERGENCE governance burst — 2026-06-29
+
+**Context:** S-18.11 LOCAL adversarial cascade reached 3-CLEAN convergence (BC-5.39.001 satisfied) after 14 passes and 5 architect reconciliations. The cascade surfaced three architectural design challenges requiring ADR-026 amendments: (1) wave_id must derive from sprint-state.yaml `wave_group_ordinal` field (v1.34); (2) stories within a wave require two-partition ordering — terminal-first, non-terminal-second (v1.35); (3) EC-010 edge-filtering must tolerate supersession edges from S-3.04 partial status (5 terminal→non-terminal edges via ADR-015 supersession path) (v1.36); (4) human directive: full-graph wave-depth definition (b) — wave-depth computed over all same-partition predecessors, excluding cross-partition edges (v1.37). BC-5.41.004 advanced v1.0→v1.4 tracking these amendments. BC-5.41.001 advanced v1.26→v1.28 (v1.27 wave_id wave-group-ordinal F-P3-001; v1.28 two-partition sprint-state ordering F-P6-002). Sprint-state.yaml with partial statuses excluded from this burst (ordering safety: consumer allowlist fix `+partial` is in the S-18.11 PR not yet merged; will be committed in post-merge burst).
+
+**Decision:** S-18.11 LOCAL-CONVERGENCE accepted. ADR-026 v1.37 is authoritative for wave_id derivation and two-partition sprint-state ordering. sprint-state.yaml deferred to post-merge burst per D-419(b) ordering-safety. NEXT: demo-recorder per-AC → PR → CI → STOP-BEFORE-PR-MERGE → human merge → post-merge burst.
+
+**Cascade history:**
+- Passes 1-11: NOT-CLEAN (various findings per pass)
+- Pass 12: CLEAN (1/3 streak)
+- Pass 13: CLEAN (2/3 streak)
+- Pass 14: CLEAN (3/3 streak — 3-CLEAN CONVERGED)
+
+**Architect reconciliations:**
+- v1.34 (D-720 area): wave_id = wave_group_ordinal (NOT integer position)
+- v1.35 (pass-3 area): two-partition ordering rule: terminal stories first, non-terminal second
+- v1.36 (pass-5 area): EC-010 narrowed to tolerate supersession edges (S-3.04 ADR-015 supersession path)
+- v1.37 (human directive): full-graph wave-depth definition (b): wave-depth of story = max over all same-partition predecessors (ignores cross-partition edges); sort within partition by wave-depth ascending then S-N.MM ID ascending
+
+**BC cascade commits (on feature/S-18.11 branch):**
+- 4f67031a: BC-5.41.004 v1.0→v1.1 (producer-authority + INV-cite fixes; F-P5-001/002)
+- a326d7a2: BC-5.41.001 v1.26→v1.27 (wave_id = wave-group-ordinal; PC2 F-P3-001 algorithm update)
+- ce8f9834: BC-5.41.004 v1.1→v1.2 + BC-5.41.001 v1.27→v1.28 (two-partition ordering ADR-026 §Decision 3a; F-P6-002)
+- 1ec17dae: BC-5.41.004 v1.2→v1.3 (EC-010 narrowed tolerate supersession edges; ADR-026 §Decision 3a v1.36)
+- 068c1d70: BC-5.41.004 v1.3→v1.4 (PC3 intra-partition full-graph wave-depth def (b); ADR-026 §Decision 3a v1.37 human directive)
+
+**State changes (this burst — single commit per TD-VSDD-053):**
+- specs/architecture/decisions/ADR-026-*.md: v1.33→v1.37 (amendments v1.34/v1.35/v1.36/v1.37 appended; uncommitted file committed)
+- BC-INDEX.md: BC-5.41.004 row version cell v1.0→v1.0|v1.1|v1.2|v1.3|v1.4; BC-5.41.001 row version cell v1.26→v1.26|v1.27|v1.28; BC-5.41.002 UNCHANGED v1.20; version v3.55→v3.56; last_amended prepended; changelog top row added
+- STORY-INDEX.md: S-18.11 row annotation story v1.1→v1.10; LOCAL-CONVERGENCE annotation added; version v4.103→v4.104; last_amended prepended
+- ARCH-INDEX.md: ADR-026 row updated v1.33→v1.37 (v1.34/v1.35/v1.36/v1.37 amendments appended); version v2.84→v2.85; last_amended prepended; changelog top row added
+- STATE.md: frontmatter v4.71→v4.72; phase D-721-S18.11-LOCAL-CONVERGENCE-2026-06-29; 4-index BC v3.56/VP v2.51/STORY v4.104/ARCH v2.85; D-721 Decisions Log row; Session Resume Checkpoint refreshed; SIZE BUDGET 463 lines appended
+- decision-log.md: D-721 block appended (this entry)
+- burst-log.md: D-721 burst entry appended
+- lessons.md: 3 new lessons appended (stale-cite, architect-claim verification, wave-design monotonic assumption)
+- S-18.11/adversary-convergence-state.json: cascade state recorded (14 passes, 3-CLEAN passes 12/13/14)
+- sprint-state.yaml: NOT committed (ordering safety; deferred to post-merge burst)
+
+**sprint-state.yaml deferral rationale:** The migrated sprint-state.yaml uses `partial` status for S-3.04. The wave-handoff consumer allows `partial` status via the S-18.11 `+partial` allowlist fix which is on the feature/S-18.11 PR, not yet merged. Committing sprint-state.yaml before the PR merges would leave a production artifact in a state the current consumer rejects. Post-merge burst will commit sprint-state.yaml once the `+partial` fix is live.
+
+**4-index parity at commit:** BC-INDEX v3.56 / VP-INDEX v2.51 / STORY-INDEX v4.104 / ARCH-INDEX v2.85. Literal-shell verified (all PASS).
+
+### NEXT
+
+demo-recorder per-AC for S-18.11 (BC-5.41.001/BC-5.41.002/BC-5.41.004 ACs). Then PR create → CI green → STOP-BEFORE-PR-MERGE → HUMAN executes `gh pr merge <N> --squash --delete-branch --repo drbothen/vsdd-factory` → post-merge burst (sprint-state.yaml commit + POL-14 BC promotions + merged_count 94→95 + develop_head advance). S-18.12 still requires PO BC authorship. STOP-BEFORE-PR-MERGE (D-665) holds.

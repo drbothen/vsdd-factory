@@ -10334,3 +10334,93 @@ No streak in effect. Spec-registration burst: no TDD delivery, no adversary casc
 ### Factory-artifacts Commits
 
 - a2e63b93 — D-720 S-18.11 SPEC-REGISTRATION burst (single commit per TD-VSDD-053; pushed to origin factory-artifacts 2026-06-28)
+
+---
+
+## D-721 — S-18.11 LOCAL-CONVERGENCE governance burst — 2026-06-29
+
+### Parent-commit
+
+`a2e63b93` — D-720 S-18.11 SPEC-REGISTRATION burst (factory-artifacts HEAD prior to this burst)
+
+### Adversary Verdict
+
+S-18.11 LOCAL adversarial cascade: 14 total passes. 3-CLEAN CONVERGENCE achieved at passes 12/13/14 (BC-5.39.001 satisfied). Passes 1-11 were NOT-CLEAN with varied finding classes: wave_id derivation (F-P3-001), two-partition ordering (F-P6-002), EC-010 supersession edge handling (passes 4-6), full-graph wave-depth computation (passes 7-11 architect reconciliation cycles). Pass 12 CLEAN (1/3). Pass 13 CLEAN (2/3). Pass 14 CLEAN (3/3 — CONVERGED). Full pass reports stored in `.factory/cycles/v1.0-brownfield-backfill/S-18.11/adversary-convergence-state.json`. 5 architect reconciliations required: v1.34 (wave_id=wave-group-ordinal), v1.35 (two-partition ordering), v1.36 (EC-010 supersession tolerate), v1.37 (full-graph wave-depth def b human directive).
+
+### Files Touched
+
+**factory-artifacts worktree (`.factory/`) — this burst:**
+- `specs/architecture/decisions/ADR-026-wave-boundary-checkpoint-reset-and-lossless-intra-wave-compaction.md` — committed (was uncommitted at v1.37); v1.34/v1.35/v1.36/v1.37 amendments appended
+- `specs/behavioral-contracts/BC-INDEX.md` — version v3.55→v3.56; BC-5.41.004 row v1.0→v1.0|v1.1|v1.2|v1.3|v1.4; BC-5.41.001 row v1.26→v1.26|v1.27|v1.28; last_amended prepended; changelog row added
+- `stories/STORY-INDEX.md` — version v4.103→v4.104; S-18.11 row annotation story v1.1→v1.10; LOCAL-CONVERGENCE annotation; last_amended prepended
+- `specs/architecture/ARCH-INDEX.md` — version v2.84→v2.85; ADR-026 row v1.33→v1.37 appended; last_amended prepended; changelog row added
+- `STATE.md` — version v4.71→v4.72; phase D-721-S18.11-LOCAL-CONVERGENCE-2026-06-29; 4-index refreshed; D-721 Decisions Log row; Session Resume Checkpoint heading and §1/§3/§4/§5/§8/§9/§11/§12 updated; SIZE BUDGET 463 lines appended
+- `cycles/v1.0-brownfield-backfill/decision-log.md` — D-721 block appended
+- `cycles/v1.0-brownfield-backfill/burst-log.md` — D-721 entry appended (this file)
+- `cycles/v1.0-brownfield-backfill/lessons.md` — 3 lessons appended (L-S18.11-stale-cite-bats-headers-skill-prose; L-S18.11-architect-graph-claim-must-be-mechanically-verified; L-S18.11-wave-design-monotonic-completion-assumption)
+- `cycles/v1.0-brownfield-backfill/S-18.11/adversary-convergence-state.json` — cascade state recorded (14 passes, 3-CLEAN passes 12/13/14)
+
+**feature/S-18.11 branch (NOT this burst — BC cascade commits pre-committed on feature branch):**
+- BC-5.41.004.md: v1.0→v1.1 (4f67031a); v1.1→v1.2 (ce8f9834); v1.2→v1.3 (1ec17dae); v1.3→v1.4 (068c1d70)
+- BC-5.41.001.md: v1.26→v1.27 (a326d7a2); v1.27→v1.28 (ce8f9834)
+
+**NOT committed in this burst:**
+- `.factory/stories/sprint-state.yaml` — excluded (ordering safety; deferred to post-merge burst)
+
+### Codifications (Dim-6)
+
+- D-721 codified: S-18.11 LOCAL-CONVERGENCE GOVERNANCE BURST; S-18.11 LOCAL 14-pass cascade 3-CLEAN CONVERGED (passes 12/13/14; BC-5.39.001 satisfied); ADR-026 v1.33→v1.37 committed (v1.34 wave_id=wave-group-ordinal; v1.35 two-partition ordering; v1.36 EC-010 supersession tolerate; v1.37 full-graph wave-depth def b human directive); BC-5.41.004 v1.0→v1.4 cascade (4f67031a/ce8f9834/1ec17dae/068c1d70); BC-5.41.001 v1.26→v1.28 (a326d7a2/ce8f9834); BC-INDEX v3.55→v3.56; STORY-INDEX v4.103→v4.104; ARCH-INDEX v2.84→v2.85; sprint-state.yaml deferred (post-merge burst); develop_head 699b7e60 UNCHANGED; merged_count 94 UNCHANGED; total_bcs 1,974 UNCHANGED. NEXT: demo-recorder per-AC → PR → CI → STOP-BEFORE-PR-MERGE → human merge → post-merge burst.
+
+### Dim-2 (4-Index Parity Gate — D-449(a) literal-shell execution evidence)
+
+Gate command executed:
+```
+grep "^version:" \
+  .factory/specs/behavioral-contracts/BC-INDEX.md \
+  .factory/specs/verification-properties/VP-INDEX.md \
+  .factory/stories/STORY-INDEX.md \
+  .factory/specs/architecture/ARCH-INDEX.md
+```
+
+Captured stdout:
+```
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.51"
+.factory/stories/STORY-INDEX.md:version: "4.104"
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.56"
+.factory/specs/architecture/ARCH-INDEX.md:version: "2.85"
+```
+
+Gate result: PASS. BC-INDEX v3.56 (BUMPED), VP-INDEX v2.51 (UNCHANGED), STORY-INDEX v4.104 (BUMPED), ARCH-INDEX v2.85 (BUMPED). Zero FAIL. Parity confirmed: BC-INDEX v3.56 / VP-INDEX v2.51 / STORY-INDEX v4.104 / ARCH-INDEX v2.85.
+
+### Dim-5 (8-Block Presence Gate — D-446(a))
+
+This burst-log entry contains all 8 D-444(c) mandatory blocks:
+1. Parent-commit: `a2e63b93` (D-720 factory-artifacts HEAD prior to this burst)
+2. Adversary verdict: 14-pass cascade, 3-CLEAN passes 12/13/14, 5 architect reconciliations
+3. Files touched: ADR-026 + 4 indexes + STATE.md + decision-log + burst-log + lessons + convergence-state
+4. Codifications (Dim-6): D-721 codification block above
+5. Dim-2: 4-index parity gate with literal-shell stdout above
+6. Dim-5: This block (8-block self-verification)
+7. Closes: sprint-state.yaml excluded, S-18.11 LOCAL CONVERGED, 3 lessons codified
+8. Factory-artifacts commits: PENDING-D-721-SHA (SHA filled in SHA-patch follow-up per D-447(c))
+
+All 8 blocks present. Gate: PASS.
+
+### Dim-7 (Streak Status)
+
+S-18.11 LOCAL adversarial cascade: 3-CLEAN CONVERGED (passes 12/13/14). BC-5.39.001 satisfied. CONVERGED. NEXT: demo-recorder per-AC for S-18.11 ACs. No active TDD in-progress streak.
+
+### Closes
+
+- S-18.11 LOCAL-CONVERGENCE: **3-CLEAN CONVERGED** (14-pass cascade; passes 12/13/14; D-721 2026-06-29).
+- ADR-026: **v1.37 committed** (was uncommitted at v1.37; now on factory-artifacts branch).
+- BC-5.41.004: **catalog row updated** v1.0→v1.0|v1.1|v1.2|v1.3|v1.4 in BC-INDEX.
+- BC-5.41.001: **catalog row updated** v1.26→v1.26|v1.27|v1.28 in BC-INDEX.
+- L-S18.11-stale-cite-bats-headers-skill-prose: **codified** (D-721; TD-VSDD-091 cite de-pinning + SKILL.md sweep discipline).
+- L-S18.11-architect-graph-claim-must-be-mechanically-verified: **codified** (D-721; EC-010 supersession arc; mechanical verification mandate).
+- L-S18.11-wave-design-monotonic-completion-assumption: **codified** (D-721; observation; POST-E-18 ADR-015/Router/S-3.04 revisit anchor).
+- sprint-state.yaml: **DEFERRED** to post-merge burst (ordering safety; `+partial` allowlist fix in S-18.11 PR).
+
+### Factory-artifacts Commits
+
+- PENDING-D-721-SHA — D-721 S-18.11 LOCAL-CONVERGENCE burst (single commit per TD-VSDD-053; SHA updated via SHA-patch follow-up per D-447(c))

@@ -5176,3 +5176,59 @@ Justified exceptions (per TD-VSDD-091): Red Gate test tables and AC source-of-tr
 **Follow-up story anchor:** Satisfied by codification — no follow-up story required. The gate is a test-writer discipline rule enforced by the adversary in LOCAL cascade (BC-5.39.001 3-CLEAN protocol). No automation story needed at this time; apply at test-writer dispatch for all future E-18/F4 stories.
 
 **Cites:** D-719 S-18.10 POST-MERGE; F-P8-001 MEDIUM EC-008 empty-string gap; BC-6.25.001 §Canonical Test Vectors; S-18.10 LOCAL 11-pass cascade CONVERGED 3-CLEAN passes 9/10/11; jq strategy adjudication at pass-8; PO BC v1.1 EC-012 amendment.
+
+---
+
+## L-S18.11-stale-cite-bats-headers-skill-prose
+
+**Date:** 2026-06-29 (D-721)
+**Tags:** [process-gap] [story-writer] [test-writer] [codified]
+**Anchors:** D-721, S-18.11, ADR-026, BC-5.41.004, TD-VSDD-091
+
+**Lesson (codified):** Version tokens in bats test header comments and SKILL.md algorithm prose drift silently when the underlying BC/ADR is amended. S-18.11's 14-pass LOCAL cascade saw multiple recurrences of finding class: bats header comments cited `BC-5.41.004 v1.N` (stale version token) when the BC had already advanced; SKILL.md algorithm prose described wave-boundary logic anchored to ADR-026 §Decision 3a at a prior version (def-a) while the normative ADR had advanced to def-b (human directive v1.37). The stale cites are non-blocking per TD-VSDD-091 (bats doc-comments are not normative prose), but they confused adversary analysis by presenting stale algorithm descriptions as current.
+
+**Root cause:** When BC-5.41.004 advanced from v1.0 to v1.4 across 4 cascade commits, bats header comments citing `v1.N` were not swept. When ADR-026 advanced from def-a to def-b, SKILL.md algorithm description was not updated in the same burst.
+
+**Prevention:** Two-part rule:
+1. **De-pin volatile version tokens in bats headers:** Bats test header comments that cite `BC-X.XX.XXX vN.N` MUST drop the version token, citing only `BC-X.XX.XXX` (per TD-VSDD-091). A version token in a bats header is always going to become stale. Apply at initial authoring, not retroactively.
+2. **SKILL.md algorithm prose sweep on BC/ADR def-class change:** When an ADR §Decision N changes its algorithmic definition (e.g., def-a → def-b), all SKILL.md files that have algorithm prose anchored to that decision MUST be swept in the same burst. The ADR is the SoT; SKILL.md prose is a consumer. Consumer prose must stay synchronized with the SoT.
+
+**Follow-up anchor:** TD-VSDD-091 sweep discipline — apply at every BC/ADR amendment. No dedicated story needed; apply at every relevant dispatch.
+
+**Cites:** D-721, S-18.11 14-pass cascade, ADR-026 def-a→def-b, BC-5.41.004 v1.0→v1.4, TD-VSDD-091.
+
+---
+
+## L-S18.11-architect-graph-claim-must-be-mechanically-verified
+
+**Date:** 2026-06-29 (D-721)
+**Tags:** [process-gap] [architect] [adversary] [codified]
+**Anchors:** D-721, S-18.11, ADR-026 §EC-010, S-3.04 partial, ADR-015 supersession
+
+**Lesson (codified):** Architect claims about graph topology must be mechanically verified against the actual STORY-INDEX graph before they are codified into ADR decisions. During S-18.11's cascade, the architect initially claimed there were zero terminal→non-terminal depends_on edges in the production graph. The adversary discovered 5 such edges via S-3.04's `partial` status path (S-3.04 depends_on BC-5.41.001 consumer stories via the ADR-015 supersession chain, creating terminal→non-terminal edges). This caused a mid-cascade ADR amendment (EC-010 narrowed to tolerate supersession edges v1.36) that reset the 3-CLEAN streak.
+
+**Root cause:** The architect reasoned about the expected graph structure from memory ("no terminal depends on non-terminal in E-18 epic") without running the graph traversal against the actual STORY-INDEX.md. The S-3.04 partial status is a brownfield historical artifact from ADR-015 supersession — not part of E-18, but it appears in the STORY-INDEX depends_on graph.
+
+**Prevention:** Before codifying any architectural claim about graph topology (e.g., "topological sort is valid", "no cross-category edges exist"), the architect MUST execute a literal graph traversal against the actual STORY-INDEX.md (or equivalent data source) and capture the result as evidence. Claims of the form "there are no X edges" require a grep/awk scan to verify, not just reasoning.
+
+**Follow-up anchor:** Candidate for post-E-18 graph verification gate story (E-18 F3 family): a mechanical gate that traverses the STORY-INDEX depends_on graph and validates stated topology invariants. Not blocking S-18.11 delivery; anchored as post-E-18 improvement.
+
+**Cites:** D-721, S-18.11 cascade passes 5-6, ADR-026 §EC-010 v1.36, S-3.04 partial, ADR-015 supersession, architect claim correction mid-cascade.
+
+---
+
+## L-S18.11-wave-design-monotonic-completion-assumption
+
+**Date:** 2026-06-29 (D-721)
+**Tags:** [observation] [architect] [process-gap]
+**Anchors:** D-721, S-18.11, ADR-026 §Wave-Identity, S-3.04 partial, ADR-015 supersession
+
+**Lesson (observation):** The wave-boundary and sprint-state design implicitly assumes monotonic wave completion — i.e., all stories from wave N complete before wave N+1 begins, and story status monotonically advances from draft → ready → in-progress → merged (no backward transitions, no abandoned stories). vsdd-factory's own self-referential history violates this assumption: S-3.04 remains `partial` (superseded but not merged/withdrawn), and early epics were abandoned mid-execution. This creates edge cases in the sprint-state.yaml producer (what status to emit for S-3.04: `partial` is a valid status per the STORY-INDEX-grounded 8-value enum) and in the wave-gate consumer (should `partial` be in the next-wave allowlist?).
+
+**Resolution in S-18.11:** The `partial` status was accepted as a valid terminal-equivalent status for sprint-state.yaml purposes (the story is done enough to be treated as non-blocking for downstream waves). The wave-gate consumer allowlist was updated to include `+partial` in the S-18.11 PR.
+
+**Broader observation:** Future wave-design decisions should explicitly document monotonic-completion assumptions and their exceptions. Self-referential projects (where the engine is also the product under development) are particularly prone to non-monotonic history because the development methodology itself evolves. Any automation that traverses the story graph should have explicit handling for: (a) superseded stories, (b) partial statuses, (c) abandoned/withdrawn stories at various dependency depths.
+
+**Follow-up anchor:** POST-E-18 revisit: ADR-015 supersession chain implications for S-3.04 and Router/WASM multi-sink revival (human-directed deferral per D-721). When Router/WASM multi-sink is revived, the S-3.04 status decision should be revisited. Anchor: post-E-18 Router story or ADR-015 revisit cycle.
+
+**Cites:** D-721, S-18.11, ADR-026 §Wave-Identity, S-3.04 partial, ADR-015 supersession, wave-design monotonic-completion assumption.

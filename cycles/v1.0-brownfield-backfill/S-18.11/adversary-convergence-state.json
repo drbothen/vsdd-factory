@@ -1,0 +1,57 @@
+{
+  "story_id": "S-18.11",
+  "story_title": "sprint-state.yaml per-story producer",
+  "cascade_type": "LOCAL",
+  "convergence_status": "CONVERGED",
+  "total_passes": 14,
+  "clean_streak_required": 3,
+  "clean_streak_achieved": 3,
+  "clean_passes": [12, 13, 14],
+  "converged_date": "2026-06-29",
+  "decision_ref": "D-721",
+  "bc_5_39_001_satisfied": true,
+  "architect_reconciliations": [
+    {
+      "count": 5,
+      "versions": ["v1.34", "v1.35", "v1.36", "v1.37"],
+      "adr": "ADR-026",
+      "summaries": [
+        "v1.34 (2026-06-28): wave_id=wave-group-ordinal semantics; wave_id MUST derive from sprint-state.yaml wave_group_ordinal field, NOT legacy wave_id integer",
+        "v1.35 (2026-06-28): two-partition ordering rule — terminal-first partition; non-terminal follows",
+        "v1.36 (2026-06-28): EC-010 narrowed — tolerate supersession edges in topo-sort; only hard dep edges are ordering constraints",
+        "v1.37 (2026-06-29): full-graph wave-depth definition (b) — human directive; intra-partition ordering by full-graph wave-depth BFS traversal from all roots"
+      ]
+    }
+  ],
+  "pass_summary": [
+    {"pass": 1,  "result": "NOT-CLEAN", "class": "wave_id derivation semantics (F-P3-001: wave_id was integer, spec requires wave_group_ordinal string)"},
+    {"pass": 2,  "result": "NOT-CLEAN", "class": "two-partition ordering missing; terminal/non-terminal not separated"},
+    {"pass": 3,  "result": "NOT-CLEAN", "class": "two-partition semantics partially wrong; edge case with zero-terminal stories"},
+    {"pass": 4,  "result": "NOT-CLEAN", "class": "EC-010 supersession edges causing topo-sort cycle; architect claim that topology was acyclic was incorrect (5 terminal→non-terminal edges via S-3.04 supersession)"},
+    {"pass": 5,  "result": "NOT-CLEAN", "class": "EC-010 fix incomplete; supersession arc handling still rigid"},
+    {"pass": 6,  "result": "NOT-CLEAN", "class": "EC-010 architect reconciliation v1.36 applied; residual wave-depth ordering ambiguity"},
+    {"pass": 7,  "result": "NOT-CLEAN", "class": "intra-partition ordering under-specified; BFS depth definition ambiguous"},
+    {"pass": 8,  "result": "NOT-CLEAN", "class": "BFS depth anchor: full-graph vs partition-subgraph disagreement"},
+    {"pass": 9,  "result": "NOT-CLEAN", "class": "architect human directive received; full-graph wave-depth definition (b) not yet codified in ADR-026"},
+    {"pass": 10, "result": "NOT-CLEAN", "class": "ADR-026 v1.37 content drafted but not yet committed; pass sees uncommitted state"},
+    {"pass": 11, "result": "NOT-CLEAN", "class": "ADR-026 v1.37 codification incomplete; PC3 prose still ambiguous on partial predecessor sets"},
+    {"pass": 12, "result": "CLEAN",     "class": "CLEAN (1/3) — all findings resolved; ADR-026 v1.37 PC3 unambiguous; EC-010 tolerate-supersession confirmed"},
+    {"pass": 13, "result": "CLEAN",     "class": "CLEAN (2/3) — no new findings; streak maintained"},
+    {"pass": 14, "result": "CLEAN",     "class": "CLEAN (3/3) — CONVERGED; BC-5.39.001 3-CLEAN satisfied"}
+  ],
+  "bc_cascade_commits": {
+    "BC-5.41.004": [
+      {"sha": "4f67031a", "from": "v1.0", "to": "v1.1", "description": "initial sprint-state.yaml producer contract"},
+      {"sha": "ce8f9834", "from": "v1.1", "to": "v1.2", "description": "wave_id derivation from wave_group_ordinal"},
+      {"sha": "1ec17dae", "from": "v1.2", "to": "v1.3", "description": "two-partition ordering + EC-010 tolerate"},
+      {"sha": "068c1d70", "from": "v1.3", "to": "v1.4", "description": "full-graph wave-depth definition (b) PC3"}
+    ],
+    "BC-5.41.001": [
+      {"sha": "a326d7a2", "from": "v1.26", "to": "v1.27", "description": "wave_id field semantics alignment"},
+      {"sha": "ce8f9834", "from": "v1.27", "to": "v1.28", "description": "parity with BC-5.41.004 wave_id update"}
+    ]
+  },
+  "sprint_state_yaml_status": "DEFERRED",
+  "sprint_state_yaml_deferral_reason": "ordering safety — sprint-state.yaml generated with partial statuses requires +partial allowlist fix which is in S-18.11 PR (not yet merged); committed post-merge burst",
+  "next_action": "demo-recorder per-AC for S-18.11 acceptance criteria"
+}
