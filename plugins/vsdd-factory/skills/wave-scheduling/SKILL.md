@@ -98,8 +98,10 @@ partitions — Partition A (terminal) then Partition B (non-terminal):
          read dep_id's story-file frontmatter for a `superseded_by:` field
            (plain working-tree read: `grep -m1 '^superseded_by:' .factory/stories/<dep_id>-*.md`
             — NOT git exec; INV-4 compliant)
-         if superseded_by: PRESENT  → TOLERATE: exclude this edge from the Partition-A
-           intra-partition topo-sort; continue (no abort)
+         if superseded_by: PRESENT  → TOLERATE: this is a legitimate abandoned-by-supersession edge.
+           The edge IS included in the full-graph wave-depth computation (Step 2) like any other edge;
+           the dependent terminal story still lands in Partition A (placement is by status, not dependency direction).
+           Do NOT abort; continue.
          if superseded_by: ABSENT   → HARD-ABORT: "TopoViolation: terminal story <T.id>
            depends_on non-terminal story <dep_id>"; no sprint-state.yaml write
 
