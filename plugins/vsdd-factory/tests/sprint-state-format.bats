@@ -1,11 +1,13 @@
 #!/usr/bin/env bats
 # sprint-state-format.bats — Red Gate tests for S-18.11 sprint-state.yaml per-story format
 #
-# Story:   S-18.11 v1.1 — sprint-state.yaml producer migration to per-story {id, status} format
-# BCs:     BC-5.41.004 v1.0 (producer: stories: key, per-entry schema, wave-ascending order,
+# Story:   S-18.11 v1.5 — sprint-state.yaml producer migration to per-story {id, status} format
+# BCs:     BC-5.41.004 v1.3 (producer: stories: key, per-entry schema, two-partition ordering,
 #                              completeness, 8-value enum INV-1, no-fabrication INV-2,
-#                              no-phantom-wave INV-3, EC-007 UnknownStatusToken)
-#          BC-5.41.001 v1.26 (consumer: PC2 wave_id leading-contiguous-terminal-run algorithm;
+#                              no-phantom-wave INV-3, EC-007 UnknownStatusToken,
+#                              EC-010 TopoViolation-tolerate-supersession-edge)
+#          BC-5.41.001 v1.28 (consumer: PC2 wave_id wave-group-ordinal algorithm
+#                               (derive_wave_id: completed terminal wave groups + 1);
 #                               P-SPRINT-STATE-WAVE-ORDER precondition)
 #          BC-5.41.002 v1.20 (consumer: PC3 stories from sprint-state.yaml status:draft/pending;
 #                               reserved-pending no-op annotation; BrokenSprintState handling)
@@ -63,6 +65,24 @@
 #       → SKIP when .factory/stories/sprint-state.yaml or .factory/stories/STORY-INDEX.md absent (CI);
 #         GREEN when all sprint-state IDs match non-retired STORY-INDEX IDs (PC4 completeness)
 #         AND each story's status matches its STORY-INDEX catalog row (PC2/INV-2 status-fidelity).
+#   PRODUCTION-FILE + .factory-GUARDED SKIP (EC-010 supersession-edge tolerate path):
+#     test_supersession_edge_tolerated_partition_placement (T-13, BC-5.41.004 v1.3 EC-010)
+#       → SKIP when .factory/stories/sprint-state.yaml absent (CI);
+#         GREEN when: migration was emitted (file exists and is well-formed);
+#           S-3.04 (partial, superseded_by: ADR-015) is in the NON-TERMINAL partition;
+#           S-3.01/S-3.02/S-3.03/S-4.07/S-4.08 (merged dependents) are in the TERMINAL prefix.
+#         Locks in EC-010 TOLERATE behavior: supersession-edge did NOT trigger TopoViolation abort.
+#
+# EC-010 ABORT-PATH NOTE (no bats test — correct by design):
+#   The EC-010 hard-abort path (terminal story depends_on a non-terminal NON-superseded story)
+#   is enforced by the wave-scheduling SKILL.md Step 5 TopoViolation guard, which is an LLM-
+#   executed producer-side check. There is no executable producer script to invoke in bats.
+#   Furthermore, the real graph contains NO genuine-anomaly instance — every terminal→non-terminal
+#   dependency edge is the S-3.04 supersession edge (tolerated by EC-010 v1.3). A bats test that
+#   re-implements the guard logic would be a tautology (testing our test, not the production guard).
+#   The abort path is verified by: (a) BC-5.41.004 v1.3 §Canonical Test Vectors rows
+#   topo-violation-genuine-anomaly + topo-violation-supersession-tolerated; (b) SKILL.md Step 5
+#   TopoViolation guard prose. The TOLERATE path is verified on real data by T-13 below.
 #
 # AWK ANCHOR FIX (PC5 coexistence) + F-P1-007 HARMONIZATION:
 # All awk patterns that enter `in_stories=1` use /^stories:/ (column-0 anchor),
@@ -94,7 +114,7 @@
 #   awk, grep -E, sort, git
 #   No jq used in this suite (POSIX awk/grep sufficient for YAML key extraction)
 #
-# @test count: 12 (grep -c '^@test' sprint-state-format.bats == 12)
+# @test count: 13 (grep -c '^@test' sprint-state-format.bats == 13)
 
 # ---------------------------------------------------------------------------
 # Fixture paths
@@ -1394,6 +1414,203 @@ EOF
   [ "${mismatch}" -eq 0 ] || {
     echo "BC-5.41.004 PC2 + INV-2: each stories: entry status MUST be a direct read from STORY-INDEX." >&2
     echo "  Any mismatch means sprint-state.yaml was migrated with fabricated or stale status values." >&2
+    false
+  }
+}
+
+# ---------------------------------------------------------------------------
+# test_supersession_edge_tolerated_partition_placement
+# T-13 / BC-5.41.004 v1.3 EC-010 (tolerate supersession-edge)
+#
+# BC-5.41.004 v1.3 EC-010 NARROW SCOPE (TopoViolation-tolerate-supersession-edge):
+# When a terminal/merged story depends_on a story that carries `superseded_by:` (i.e.,
+# the depended-on story is superseded), the producer MUST tolerate the edge and emit
+# the migration. The superseded story (S-3.04, status: partial, superseded_by: ADR-015)
+# must appear in the NON-TERMINAL partition. Its merged dependents (S-3.01, S-3.02,
+# S-3.03, S-4.07, S-4.08) must appear in the TERMINAL prefix (they are merged).
+#
+# Three-assertion structure:
+# Assert 1 (file well-formed): sprint-state.yaml exists and has top-level stories: list.
+#   Proves migration was EMITTED (the supersession edge did NOT trigger TopoViolation abort).
+# Assert 2 (S-3.04 in non-terminal partition): S-3.04 status is partial AND it appears
+#   after the first non-terminal entry (line ordinal > first-non-terminal-line).
+# Assert 3 (merged dependents in terminal prefix): S-3.01, S-3.02, S-3.03, S-4.07, S-4.08
+#   are each status: merged AND appear before the first non-terminal entry.
+#
+# awk anchor: /^stories:/ (column-0 only) per PC5 coexistence fix.
+#
+# PORTABILITY: guarded to SKIP when .factory/stories/sprint-state.yaml absent (CI).
+# ---------------------------------------------------------------------------
+
+@test "test_supersession_edge_tolerated_partition_placement" {
+  # Guard: skip when production file is absent (CI without factory-artifacts worktree)
+  if [ ! -f "${_PRODUCTION_SPRINT_STATE}" ]; then
+    skip ".factory/stories/sprint-state.yaml absent — factory-artifacts worktree not mounted (CI); SKIP is expected in CI"
+  fi
+
+  # ---------------------------------------------------------------------------
+  # Assert 1: file is well-formed with top-level stories: as a YAML sequence.
+  # This proves migration was emitted (supersession edge did NOT trigger abort).
+  # ---------------------------------------------------------------------------
+  _stories_is_sequence "${_PRODUCTION_SPRINT_STATE}" || {
+    echo "FAIL (BC-5.41.004 EC-010 tolerate): sprint-state.yaml stories: is not a YAML sequence." >&2
+    echo "  If the migration was aborted by a TopoViolation on the S-3.04 supersession edge," >&2
+    echo "  the file would be absent or contain the legacy count-summary mapping." >&2
+    echo "  A well-formed sequence proves EC-010 tolerate path was taken (not abort)." >&2
+    false
+  }
+
+  # ---------------------------------------------------------------------------
+  # Collect per-entry (id, status, ordinal) from the top-level stories: list.
+  # Ordinal = position in the list (1-based). Used for partition comparison.
+  # awk anchor: /^stories:/ (column-0 only) per PC5 coexistence fix.
+  # ---------------------------------------------------------------------------
+  local story_data
+  story_data="$(awk '
+    BEGIN { in_stories=0; entry=0; cur_id=""; cur_status="" }
+    /^stories:/ { in_stories=1; next }
+    in_stories && /^[^[:space:]#]/ { in_stories=0 }
+    in_stories && /^[[:space:]]*-[[:space:]]+id:[[:space:]]+/ {
+      if (cur_id != "" && cur_status != "") {
+        entry++
+        printf "%d %s %s\n", entry, cur_id, cur_status
+      } else if (cur_id != "") {
+        entry++
+        printf "%d %s NOSTATUS\n", entry, cur_id
+      }
+      cur_id=$0; sub(/^[[:space:]]*-[[:space:]]+id:[[:space:]]+/, "", cur_id)
+      gsub(/[[:space:]]*$/, "", cur_id)
+      cur_status=""
+    }
+    in_stories && cur_id != "" && /^[[:space:]]+status:[[:space:]]+/ {
+      cur_status=$0; sub(/^[[:space:]]+status:[[:space:]]*/, "", cur_status)
+      gsub(/[[:space:]]*$/, "", cur_status)
+    }
+    END {
+      if (cur_id != "" && cur_status != "") {
+        entry++
+        printf "%d %s %s\n", entry, cur_id, cur_status
+      } else if (cur_id != "") {
+        entry++
+        printf "%d %s NOSTATUS\n", entry, cur_id
+      }
+    }
+  ' "${_PRODUCTION_SPRINT_STATE}")"
+
+  # ---------------------------------------------------------------------------
+  # Identify the ordinal of the first non-terminal entry.
+  # Terminal statuses: merged, withdrawn, cancelled.
+  # Non-terminal: anything else (draft, ready, partial, in-progress, blocked).
+  # The partition boundary is: all terminal entries precede all non-terminal entries.
+  # ---------------------------------------------------------------------------
+  local first_nonterminal_ord=0
+  local ord id status_val
+  while IFS=' ' read -r ord id status_val; do
+    [ -z "${ord}" ] && continue
+    case "${status_val}" in
+      merged|withdrawn|cancelled) ;;
+      *)
+        if [ "${first_nonterminal_ord}" -eq 0 ]; then
+          first_nonterminal_ord="${ord}"
+        fi
+        ;;
+    esac
+  done <<EOF
+${story_data}
+EOF
+
+  [ "${first_nonterminal_ord}" -gt 0 ] || {
+    echo "FAIL (test-precondition): no non-terminal entry found in sprint-state.yaml stories: list." >&2
+    echo "  Cannot determine partition boundary without at least one non-terminal entry." >&2
+    false
+  }
+
+  # ---------------------------------------------------------------------------
+  # Assert 2: S-3.04 must be in the NON-TERMINAL partition.
+  # Conditions: (a) S-3.04 status is partial; (b) S-3.04 ordinal > first_nonterminal_ord.
+  # S-3.04 carries superseded_by: ADR-015 in STORY-INDEX; it is NOT merged (it is partial).
+  # It MUST sit after the terminal prefix because it is non-terminal.
+  # ---------------------------------------------------------------------------
+  local s304_ord=0
+  local s304_status=""
+  while IFS=' ' read -r ord id status_val; do
+    [ -z "${ord}" ] && continue
+    if [ "${id}" = "S-3.04" ]; then
+      s304_ord="${ord}"
+      s304_status="${status_val}"
+      break
+    fi
+  done <<EOF
+${story_data}
+EOF
+
+  [ "${s304_ord}" -gt 0 ] || {
+    echo "FAIL (BC-5.41.004 EC-010 tolerate): S-3.04 not found in sprint-state.yaml stories: list." >&2
+    echo "  S-3.04 (status: partial, superseded_by: ADR-015) must appear in the migrated file." >&2
+    false
+  }
+
+  [ "${s304_status}" = "partial" ] || {
+    echo "FAIL (BC-5.41.004 EC-010 tolerate): S-3.04 has status '${s304_status}', expected 'partial'." >&2
+    echo "  S-3.04 is superseded by ADR-015 and has status: partial in STORY-INDEX." >&2
+    false
+  }
+
+  [ "${s304_ord}" -ge "${first_nonterminal_ord}" ] || {
+    echo "FAIL (BC-5.41.004 EC-010 tolerate / PC3 two-partition): S-3.04 (ordinal=${s304_ord}) appears in the TERMINAL prefix." >&2
+    echo "  S-3.04 has status: partial (non-terminal); it MUST sit after the terminal prefix." >&2
+    echo "  First non-terminal entry is at ordinal=${first_nonterminal_ord}." >&2
+    echo "  A partial entry in the terminal prefix would violate the two-partition invariant." >&2
+    false
+  }
+
+  # ---------------------------------------------------------------------------
+  # Assert 3: S-3.01, S-3.02, S-3.03, S-4.07, S-4.08 (merged dependents of S-3.04)
+  # must each appear in the TERMINAL prefix (ordinal < first_nonterminal_ord)
+  # AND have status: merged.
+  # ---------------------------------------------------------------------------
+  local dependent_ids="S-3.01 S-3.02 S-3.03 S-4.07 S-4.08"
+  local partition_fail=0
+  local dep_id
+  for dep_id in ${dependent_ids}; do
+    local dep_ord=0
+    local dep_status=""
+    while IFS=' ' read -r ord id status_val; do
+      [ -z "${ord}" ] && continue
+      if [ "${id}" = "${dep_id}" ]; then
+        dep_ord="${ord}"
+        dep_status="${status_val}"
+        break
+      fi
+    done <<EOF
+${story_data}
+EOF
+
+    [ "${dep_ord}" -gt 0 ] || {
+      echo "FAIL (BC-5.41.004 EC-010 tolerate): ${dep_id} not found in sprint-state.yaml stories: list." >&2
+      echo "  ${dep_id} is a merged dependent of S-3.04 and must appear in the migrated file." >&2
+      partition_fail=1
+      continue
+    }
+
+    [ "${dep_status}" = "merged" ] || {
+      echo "FAIL (BC-5.41.004 EC-010 tolerate): ${dep_id} has status '${dep_status}', expected 'merged'." >&2
+      echo "  S-3.01/S-3.02/S-3.03/S-4.07/S-4.08 are merged stories that depend on superseded S-3.04." >&2
+      partition_fail=1
+    }
+
+    [ "${dep_ord}" -lt "${first_nonterminal_ord}" ] || {
+      echo "FAIL (BC-5.41.004 EC-010 tolerate / PC3 two-partition): ${dep_id} (ordinal=${dep_ord}) is NOT in the terminal prefix." >&2
+      echo "  ${dep_id} has status: merged (terminal); it MUST appear before the first non-terminal entry." >&2
+      echo "  First non-terminal entry is at ordinal=${first_nonterminal_ord}." >&2
+      partition_fail=1
+    }
+  done
+
+  [ "${partition_fail}" -eq 0 ] || {
+    echo "EC-010 supersession-edge tolerate: all merged dependents of S-3.04 MUST be in the terminal prefix." >&2
+    echo "  S-3.04 (partial, superseded_by: ADR-015) is in the non-terminal partition (ordinal=${s304_ord})." >&2
+    echo "  Its merged dependents must precede the non-terminal partition (ordinal < ${first_nonterminal_ord})." >&2
     false
   }
 }
