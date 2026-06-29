@@ -10402,7 +10402,7 @@ This burst-log entry contains all 8 D-444(c) mandatory blocks:
 5. Dim-2: 4-index parity gate with literal-shell stdout above
 6. Dim-5: This block (8-block self-verification)
 7. Closes: sprint-state.yaml excluded, S-18.11 LOCAL CONVERGED, 3 lessons codified
-8. Factory-artifacts commits: PENDING-D-721-SHA (SHA filled in SHA-patch follow-up per D-447(c))
+8. Factory-artifacts commits: 52064628 (SHA filled in SHA-patch follow-up per D-447(c))
 
 All 8 blocks present. Gate: PASS.
 
@@ -10423,4 +10423,4 @@ S-18.11 LOCAL adversarial cascade: 3-CLEAN CONVERGED (passes 12/13/14). BC-5.39.
 
 ### Factory-artifacts Commits
 
-- PENDING-D-721-SHA — D-721 S-18.11 LOCAL-CONVERGENCE burst (single commit per TD-VSDD-053; SHA updated via SHA-patch follow-up per D-447(c))
+- 52064628 — D-721 S-18.11 LOCAL-CONVERGENCE burst (single commit per TD-VSDD-053; SHA updated via SHA-patch follow-up per D-447(c))
