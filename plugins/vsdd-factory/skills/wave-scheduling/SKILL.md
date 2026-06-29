@@ -59,35 +59,62 @@ Produce `wave-schedule.md` under `.factory/cycles/**/implementation/`:
 After computing wave assignments, emit the `stories:` sequence in
 `.factory/stories/sprint-state.yaml` as a producer obligation.
 
-**Authority:** BC-5.41.004 (sprint-state.yaml producer contract) — producer MUST
-write `stories:` as a YAML sequence of `{id, status}` objects, not as a
-count-summary mapping.
+**Authority:** BC-5.41.004 v1.2 PC3 (sprint-state.yaml producer contract) —
+producer MUST write `stories:` as a YAML sequence of `{id, status}` objects,
+not as a count-summary mapping. Ordering governed by ADR-026 §Decision 3a
+two-partition algorithm.
 
 **Consumer dependency:** BC-5.41.002 PC3 — consumer derives per-story status
 from `stories[*].status: draft` entries; `pending` is a reserved no-op token.
 
-**Ordering rule (BC-5.41.004 PC3 + EC-003):**
-- Sort entries wave-ascending via topological sort of `depends_on:` edges from
-  STORY-INDEX.md (same topo-sort computed in Steps 1-2 above)
-- Wave level = `max(wave of direct deps) + 1`; stories with no deps = **wave 1**
-- Tie-break within the same wave: story ID string ascending (lexicographic)
+**Two-partition ordering algorithm (BC-5.41.004 PC3 + ADR-026 §Decision 3a):**
+
+The `stories:` sequence MUST be emitted as two contiguous, non-interleaved
+partitions — Partition A (terminal) then Partition B (non-terminal):
+
+1. **Classify** each STORY-INDEX story as terminal
+   (`merged` / `withdrawn` / `cancelled`) or non-terminal (all other statuses).
+
+2. **Partition A — terminal stories:**
+   Apply Kahn/DFS topological sort over `depends_on:` edges **restricted to
+   edges between terminal stories only** (cross-partition edges from terminal to
+   non-terminal are excluded from the sort). Tie-break within the same wave
+   ordinal: story ID string ascending (lexicographic, EC-003).
+
+3. **Partition B — non-terminal stories:**
+   Apply Kahn/DFS topological sort over `depends_on:` edges **restricted to
+   edges between non-terminal stories only**. Same lex tie-break (EC-003).
+
+4. **Emit** Partition A (all terminal entries) then Partition B (all
+   non-terminal entries). No terminal entry may appear after any non-terminal
+   entry (BC-5.41.001 P-SPRINT-STATE-WAVE-ORDER precondition).
+
+5. **TopoViolation guard:** Before sorting, check for edges from any terminal
+   story to any non-terminal story in the full STORY-INDEX depends_on graph. If
+   any such cross-partition edge exists, **hard-abort** with error:
+   `TopoViolation: terminal story <id> depends_on non-terminal story <dep-id>`.
+   This indicates a data inconsistency that must be resolved before scheduling
+   can proceed. (Topo-validity is the architect's responsibility to verify
+   upstream per ADR-026 §Decision 3a.)
+
+**Wave ordinal definition (INV-3-compatible):**
+- Restricted Kahn: wave 1 = stories with no intra-partition deps; wave N+1 =
+  stories whose all intra-partition dependencies are in waves 1..N.
+- No `wave:` field is written to `stories:` entries. Wave ordering is expressed
+  by list position only (BC-5.41.004 INV-3).
 
 **Status values (BC-5.41.004 INV-1):**
 Exactly 8 valid values: `draft`, `ready`, `in-progress`, `partial`, `blocked`,
 `merged`, `withdrawn`, `cancelled`. Hard-abort on any other token (EC-007).
 
 **Completeness (BC-5.41.004 PC4):**
-Every non-retired story from STORY-INDEX.md MUST appear. Retired stories are
-omitted. No phantom entries for stories not in STORY-INDEX.md.
+Every non-retired story from STORY-INDEX.md MUST appear in exactly one
+partition. Retired stories are omitted. No phantom entries for stories not in
+STORY-INDEX.md.
 
-**No `wave:` field (BC-5.41.004 INV-3):**
-Each entry contains ONLY `id:` and `status:`. Do NOT add a `wave:` field or
-any other key. Wave ordering is expressed by list position, not by an inline
-field.
-
-**Preserve existing sections:** `epics:`, `frontier:`, `next_refinement:`, and
-`story_updates:` are independent keys in sprint-state.yaml and MUST be
-preserved unchanged when updating the `stories:` list.
+**Preserve existing sections (PC5):** `epics:`, `frontier:`, `next_refinement:`,
+and `story_updates:` are independent keys in sprint-state.yaml and MUST be
+preserved byte-identical when updating the `stories:` list.
 
 ## Templates
 
