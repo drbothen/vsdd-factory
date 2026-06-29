@@ -7,15 +7,310 @@ current_milestone: 1.0.0-rc.11
 last_updated: 2026-05-05
 next_milestone: v1.1 (E-8 W-15 complete; E-9 W-16 pending)
 
-# Story counts by status (70 total active stories)
+# Per-story status list (BC-5.41.004 PC1-PC4; wave-ascending topo-sort per EC-003)
+# 149 non-retired stories; retired stories omitted per PC4
+# Status enum (INV-1): draft|ready|in-progress|partial|blocked|merged|withdrawn|cancelled
 stories:
-  total: 70
-  merged: 57
-  ready: 0
-  draft: 11
-  partial: 2
-  withdrawn: 1
-  retired: 19  # S-8.11..S-8.29 placeholder slots
+  # --- terminal prefix (depth-ascending, lex tie-break within depth; def-b full-graph wave-depth ADR-026 §Decision 3a v1.37 / BC-5.41.004 v1.4 PC3) ---
+  - id: S-0.01
+    status: merged
+  - id: S-0.03
+    status: merged
+  - id: S-0.04
+    status: merged
+  - id: S-0.05
+    status: merged
+  - id: S-1.01
+    status: merged
+  - id: S-12.06
+    status: merged
+  - id: S-13.01
+    status: merged
+  - id: S-15.01
+    status: merged
+  - id: S-15.06
+    status: merged
+  - id: S-15.07
+    status: merged
+  - id: S-15.08
+    status: merged
+  - id: S-15.09
+    status: merged
+  - id: S-15.11
+    status: merged
+  - id: S-15.12
+    status: merged
+  - id: S-15.15
+    status: merged
+  - id: S-15.16
+    status: merged
+  - id: S-15.16-Part-B
+    status: merged
+  - id: S-17.01
+    status: merged
+  - id: S-17.04
+    status: merged
+  - id: S-18.00
+    status: merged
+  - id: S-18.14
+    status: merged
+  - id: S-5.05
+    status: merged
+  - id: S-6.01
+    status: merged
+  - id: S-7.01
+    status: merged
+  - id: S-7.02
+    status: merged
+  - id: S-7.03
+    status: merged
+  - id: S-8.00
+    status: merged
+  - id: S-9.30
+    status: withdrawn
+  - id: S-0.02
+    status: merged
+  - id: S-1.02
+    status: merged
+  - id: S-1.03
+    status: merged
+  - id: S-12.01
+    status: merged
+  - id: S-12.03
+    status: merged
+  - id: S-12.05
+    status: merged
+  - id: S-15.04
+    status: merged
+  - id: S-15.05
+    status: merged
+  - id: S-15.10
+    status: merged
+  - id: S-15.13
+    status: merged
+  - id: S-15.14
+    status: merged
+  - id: S-15.17
+    status: merged
+  - id: S-17.02
+    status: merged
+  - id: S-18.01
+    status: merged
+  - id: S-18.04a-prereq
+    status: merged
+  - id: S-18.04b-prereq
+    status: merged
+  - id: S-18.05
+    status: merged
+  - id: S-8.06
+    status: merged
+  - id: S-8.07
+    status: merged
+  - id: S-8.08
+    status: merged
+  - id: S-8.10
+    status: merged
+  - id: S-8.30
+    status: merged
+  - id: S-1.04
+    status: merged
+  - id: S-1.07
+    status: merged
+  - id: S-12.02
+    status: merged
+  - id: S-12.04
+    status: merged
+  - id: S-17.03
+    status: merged
+  - id: S-18.02
+    status: merged
+  - id: S-18.04a
+    status: merged
+  - id: S-2.03
+    status: merged
+  - id: S-8.01
+    status: merged
+  - id: S-8.02
+    status: merged
+  - id: S-8.03
+    status: merged
+  - id: S-8.04
+    status: merged
+  - id: S-8.05
+    status: merged
+  - id: S-1.05
+    status: merged
+  - id: S-1.08
+    status: merged
+  - id: S-12.07
+    status: merged
+  - id: S-18.04b
+    status: merged
+  - id: S-18.13
+    status: merged
+  - id: S-2.04
+    status: merged
+  - id: S-8.09
+    status: merged
+  - id: S-1.06
+    status: merged
+  - id: S-1.09
+    status: merged
+  - id: S-12.08
+    status: merged
+  - id: S-18.03
+    status: merged
+  - id: S-2.06
+    status: merged
+  - id: S-4.01
+    status: merged
+  - id: S-4.06
+    status: merged
+  - id: S-9.00
+    status: merged
+  - id: S-18.06
+    status: merged
+  - id: S-2.01
+    status: merged
+  - id: S-4.02
+    status: merged
+  - id: S-4.03
+    status: merged
+  - id: S-4.04
+    status: merged
+  - id: S-4.09
+    status: merged
+  - id: S-4.10
+    status: merged
+  - id: S-18.07
+    status: merged
+  - id: S-2.02
+    status: merged
+  - id: S-4.05
+    status: merged
+  - id: S-18.08
+    status: merged
+  - id: S-18.10
+    status: merged
+  - id: S-2.07
+    status: merged
+  - id: S-18.09
+    status: merged
+  - id: S-2.08
+    status: merged
+  - id: S-3.01
+    status: merged
+  - id: S-3.02
+    status: merged
+  - id: S-3.03
+    status: merged
+  - id: S-4.07
+    status: merged
+  - id: S-4.08
+    status: merged
+  - id: S-5.01
+    status: merged
+  - id: S-5.02
+    status: merged
+  - id: S-5.03
+    status: merged
+  - id: S-5.04
+    status: merged
+  - id: S-5.06
+    status: merged
+  # --- non-terminal (depth-ascending, lex tie-break within depth; def-b full-graph wave-depth) ---
+  - id: S-10.01
+    status: draft
+  - id: S-14.01
+    status: draft
+  - id: S-14.03
+    status: draft
+  - id: S-14.05
+    status: draft
+  - id: S-14.06
+    status: draft
+  - id: S-14.07
+    status: draft
+  - id: S-14.08
+    status: draft
+  - id: S-14.09
+    status: draft
+  - id: S-15.03
+    status: draft
+  - id: S-18.12
+    status: draft
+  - id: S-4.11
+    status: draft
+  - id: S-7.04
+    status: draft
+  - id: S-7.05
+    status: draft
+  - id: S-10.02
+    status: draft
+  - id: S-10.03
+    status: draft
+  - id: S-10.04
+    status: draft
+  - id: S-14.02
+    status: draft
+  - id: S-15.02
+    status: draft
+  - id: S-10.05
+    status: draft
+  - id: S-14.04
+    status: draft
+  - id: S-2.05
+    status: partial
+  - id: S-10.06
+    status: draft
+  - id: S-18.11
+    status: ready
+  - id: S-3.04
+    status: partial
+  - id: S-10.07
+    status: draft
+  - id: S-10.08
+    status: draft
+  - id: S-9.01
+    status: draft
+  - id: S-9.02
+    status: draft
+  - id: S-9.03
+    status: draft
+  - id: S-9.04
+    status: draft
+  - id: S-9.05
+    status: draft
+  - id: S-9.06
+    status: draft
+  - id: S-9.07
+    status: draft
+  - id: S-10.09
+    status: draft
+  - id: S-11.00
+    status: draft
+  - id: S-11.01
+    status: draft
+  - id: S-11.02
+    status: draft
+  - id: S-11.03
+    status: draft
+  - id: S-11.04
+    status: draft
+  - id: S-11.05
+    status: draft
+  - id: S-11.06
+    status: draft
+  - id: S-11.07
+    status: draft
+  - id: S-11.08
+    status: draft
+  - id: S-16.01
+    status: draft
+  - id: S-16.02
+    status: draft
+  - id: S-5.07
+    status: draft
 
 # Current work frontier
 frontier: []  # S-9.00 merged 2026-05-04 (PR #91 at 5706f27); no ready stories remain

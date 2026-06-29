@@ -10424,3 +10424,135 @@ S-18.11 LOCAL adversarial cascade: 3-CLEAN CONVERGED (passes 12/13/14). BC-5.39.
 ### Factory-artifacts Commits
 
 - 52064628 — D-721 S-18.11 LOCAL-CONVERGENCE burst (single commit per TD-VSDD-053; SHA updated via SHA-patch follow-up per D-447(c))
+
+---
+
+## D-722 S-18.11 POST-MERGE burst (2026-06-29)
+
+### Parent-commit
+
+- **factory-artifacts parent:** 52064628 (D-721 S-18.11 LOCAL-CONVERGENCE burst 2026-06-29)
+- **develop HEAD at burst:** 531dacfb (PR #340 `feat(S-18.11): sprint-state per-story producer migration + def-b ordering` squash-merged 2026-06-29T20:09:35Z)
+
+### Adversary Verdict
+
+No adversary pass for a post-merge burst. D-722 is a bookkeeping-only burst: record PR merge, advance story status, promote BC lifecycle (POL-14), update develop_head, commit sprint-state.yaml def-b migration (previously deferred pending ordering-safety; now safe: consumer allowlist `+partial` on develop 531dacfb).
+
+### Files Touched
+
+**STATE.md (v4.72→v4.73):**
+- Frontmatter: version 4.72→4.73, phase D-722-S18.11-POST-MERGE-2026-06-29, last_amended updated, banner current_step updated, current_step D-722-S18.11-POST-MERGE-2026-06-29
+- §Project Metadata: Last Updated + Current Phase updated to D-722
+- §Identifier Conventions: BC-INDEX v3.56→v3.57, STORY-INDEX v4.104→v4.105, merged_count 94→95
+- §Story Status: merged_count 94→95, S-18.11 moved to merged, Ready(1)→Ready(0)
+- §Active Branches: develop 699b7e60→531dacfb; factory-artifacts [SHA-PATCH]
+- §Concurrent Cycles: v1.0-brownfield-backfill row updated (D-722, develop 531dacfb, merged_count 95, E-18 wave-9 COMPLETE)
+- §Decisions Log: D-722 row prepended
+- §8 4-Index State: BC-INDEX v3.56→v3.57, STORY-INDEX v4.104→v4.105; ARCH-INDEX v2.85 UNCHANGED; VP-INDEX v2.51 UNCHANGED
+- §9 Critical Anchors: factory-artifacts HEAD [SHA-PATCH], develop HEAD 531dacfb, added BC-5.41.004 v1.5 active anchor
+- §10 PR Status: PR #340 MERGED entry prepended
+- §11 Post-CLEAR Checklist: refreshed to D-722; develop 531dacfb; checklist items updated
+- §12 Pending Work Items: 3e-S18.11 struck DONE; 3e-S18.12 updated
+- Session Resume Checkpoint heading + §1 + §3 + §4 + §5 + §8 + §11 + ORDERED RESUME ACTIONS: full refresh to D-722
+- SIZE BUDGET banner: appended `463 lines (wc-l; D-722 ...)`
+
+**BC-5.41.004.md (v1.4→v1.5):**
+- `lifecycle_status: draft` → `lifecycle_status: active` (POL-14 auto-promotion)
+- `version: "1.4"` → `version: "1.5"`
+- `timestamp:` → `2026-06-29T00:00:00Z`
+- Added to `modified:` array (top): v1.5 POL-14 promotion entry
+- Updated `last_amended:` with v1.5 wrapping [Prior: v1.4...]
+- Prepended Changelog table row: v1.5 2026-06-29 state-manager POL-14 lifecycle promotion
+
+**BC-INDEX.md (v3.56→v3.57):**
+- BC-5.41.004 body row: status `draft` → `**active**`; version cell `v1.4` → `v1.4 \| v1.5`
+- `version: "3.56"` → `version: "3.57"`
+- `last_amended:` updated to v3.57
+- Prepended changelog-array entry for v3.57 D-722 S-18.11 POST-MERGE
+
+**STORY-INDEX.md (v4.104→v4.105):**
+- S-18.11 row status `ready` → `**merged**`; annotation updated with MERGED PR #340 531dacfb D-722
+- `version: "4.104"` → `version: "4.105"`
+- `last_amended:` updated to v4.105
+
+**stories/S-18.11-sprint-state-per-story-format-producer.md:**
+- `status: ready` → `status: merged`
+
+**stories/sprint-state.yaml:**
+- def-b migration committed: two-partition format (epics/frontier + next_refinement/story_updates); terminal-prefix ordering; 149 per-story entries; `epics:` and `frontier:` byte-identical to prior version; `next_refinement:` and `story_updates:` blocks migrated to per-story `{id, status}` format under `stories:` root key
+
+**cycles/v1.0-brownfield-backfill/merged-stories-ledger.md:**
+- Appended: `| S-18.11 | #340 | 531dacfb | 2026-06-29 |`
+
+### Codifications
+
+- **D-722** added to STATE.md Decisions Log and §1 Governance landed (post-merge burst record)
+- **POL-14 BC-5.41.004** lifecycle auto-promotion draft→active documented in BC file, BC-INDEX catalog row, and STATE.md
+- **sprint-state.yaml def-b migration** committed on factory-artifacts branch (was deferred per ordering-safety in D-721)
+- **E-18 wave-9 COMPLETE** recorded in STATE.md §Concurrent Cycles + §1 + §11 + §12
+
+### Dim-2 (Mechanical Gate Attestations — literal shell per D-449(a))
+
+**4-index parity gate (POLICY 14 verification_step 7):**
+```
+$ grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md .factory/specs/verification-properties/VP-INDEX.md .factory/stories/STORY-INDEX.md .factory/specs/architecture/ARCH-INDEX.md
+/Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/verification-properties/VP-INDEX.md:version: "2.51"
+/Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/architecture/ARCH-INDEX.md:version: "2.85"
+/Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.57"
+/Users/zious/Documents/GITHUB/vsdd-factory/.factory/stories/STORY-INDEX.md:version: "4.105"
+```
+Result: BC-INDEX v3.57 (BUMPED D-722 PASS) / VP-INDEX v2.51 (UNCHANGED PASS) / STORY-INDEX v4.105 (BUMPED D-722 PASS) / ARCH-INDEX v2.85 (UNCHANGED PASS). Zero FAIL.
+
+**wc-l gate (D-617):**
+```
+$ wc -l .factory/STATE.md
+463 .factory/STATE.md
+```
+Banner entry: `463 lines (wc-l; D-722 S-18.11 POST-MERGE burst 2026-06-29; v4.73; ...)` — PASS (banner line count matches wc -l).
+
+**S-18.11 story status gate:**
+```
+$ grep "^status:" .factory/stories/S-18.11-sprint-state-per-story-format-producer.md
+status: merged
+```
+PASS (story status = merged).
+
+**sprint-state.yaml def-b migration gate:**
+```
+$ git -C .factory diff --stat stories/sprint-state.yaml
+stories/sprint-state.yaml | 311 ++++++++++++++++++++++++++++++++++++++++++++--
+1 file changed, 303 insertions(+), 8 deletions(-)
+```
+PASS (diff present — two-partition format migration staged for commit).
+
+### Dim-5 (Adversary Compliance)
+
+No adversary pass for post-merge burst. POL-14 promotion and bookkeeping only. Prior convergence: D-721 S-18.11 LOCAL 14-pass 3-CLEAN CONVERGED (passes 12/13/14; BC-5.39.001 satisfied).
+
+### Dim-6 (Spec Parity)
+
+- BC-5.41.004 `lifecycle_status` advanced from `draft` to `active` in BC file AND BC-INDEX catalog row — parity maintained.
+- STORY-INDEX S-18.11 row matches story file `status: merged` — parity maintained.
+- 4-index quad (BC v3.57/VP v2.51/STORY v4.105/ARCH v2.85) confirmed via literal grep — parity confirmed.
+- merged-stories-ledger updated with S-18.11 #340 531dacfb 2026-06-29 — ledger current.
+
+### Dim-7 (Process Compliance)
+
+- TD-VSDD-053 single-commit-per-burst: all files staged for single `git -C .factory add -A && git commit` — COMPLIANT.
+- POL-3 Edit/Write tools only — no python/sed/echo bypass used — COMPLIANT.
+- D-617 wc-l SIZE BUDGET banner appended (463 lines) — COMPLIANT.
+- D-449(a) literal-shell gates executed with captured stdout — COMPLIANT.
+- L-BB-merge-requires-direct-human-action: human executed `gh pr merge 340 --squash --delete-branch --repo drbothen/vsdd-factory` directly — COMPLIANT.
+- D-665 STOP-BEFORE-PR-MERGE: human merged; state-manager running post-merge burst — COMPLIANT.
+- POLICY 14 5-leg parity on BC-5.41.004: (1) version frontmatter v1.5 ✓; (2) body Changelog row v1.5 ✓; (3) modified[] array v1.5 ✓; (4) last_amended: text-prefix v1.5 ✓; (5) BC-INDEX body-table version cell v1.4|v1.5 + status **active** ✓ — COMPLIANT.
+
+### Closes
+
+- S-18.11: **MERGED** PR #340 531dacfb to develop 2026-06-29T20:09:35Z (D-722).
+- O-P9-001 sprint-state.yaml def-b deferred migration: **COMMITTED** (sprint-state.yaml def-b ordering-safe migration included in D-722 burst; consumer allowlist `+partial` on develop 531dacfb).
+- E-18 wave-9: **COMPLETE** (S-18.11 was terminal E-18 wave-9 story; S-18.12 also wave-9 but PO BC authorship gated).
+- POL-14 BC-5.41.004: **ACTIVE** (draft→active; S-18.11 PR #340 merged).
+
+### Factory-artifacts Commits
+
+- [SHA-PATCH] — D-722 S-18.11 POST-MERGE burst (single commit per TD-VSDD-053; SHA updated via SHA-patch follow-up per D-447(c))
