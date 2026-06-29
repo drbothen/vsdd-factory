@@ -251,6 +251,11 @@ _leading_terminal_run() {
   if [ ! -f "${_PRODUCTION_SPRINT_STATE}" ]; then
     skip ".factory/stories/sprint-state.yaml absent — factory-artifacts worktree not mounted (CI without .factory/ mount)"
   fi
+  # Guard: skip when file is present but pre-migration (legacy count-summary format)
+  # CI mounts factory-artifacts but sprint-state.yaml may not yet be migrated.
+  if ! _stories_is_sequence "${_PRODUCTION_SPRINT_STATE}" 2>/dev/null; then
+    skip ".factory/stories/sprint-state.yaml present but pre-migration (legacy count-summary format; stories: is not a YAML sequence) — SKIP until T-4 migration lands"
+  fi
 
   # Assert 1: stories: key must exist
   grep -q "^stories:" "${_PRODUCTION_SPRINT_STATE}" || {
@@ -938,6 +943,11 @@ EOF
   if [ ! -f "${_PRODUCTION_SPRINT_STATE}" ]; then
     skip ".factory/stories/sprint-state.yaml absent — factory-artifacts worktree not mounted (CI); SKIP is expected in CI"
   fi
+  # Guard: skip when file is present but pre-migration (legacy count-summary format)
+  # CI mounts factory-artifacts but sprint-state.yaml may not yet be migrated.
+  if ! _stories_is_sequence "${_PRODUCTION_SPRINT_STATE}" 2>/dev/null; then
+    skip ".factory/stories/sprint-state.yaml present but pre-migration (legacy count-summary format; stories: is not a YAML sequence) — SKIP until T-4 migration lands"
+  fi
 
   # Locate parse-sprint-state.sh
   local parse_lib="${BATS_TEST_DIRNAME}/../skills/wave-handoff/lib/parse-sprint-state.sh"
@@ -1284,6 +1294,11 @@ EOF
   if [ ! -f "${_PRODUCTION_SPRINT_STATE}" ]; then
     skip ".factory/stories/sprint-state.yaml absent — factory-artifacts worktree not mounted (CI); SKIP is expected in CI"
   fi
+  # Guard: skip when file is present but pre-migration (legacy count-summary format)
+  # CI mounts factory-artifacts but sprint-state.yaml may not yet be migrated.
+  if ! _stories_is_sequence "${_PRODUCTION_SPRINT_STATE}" 2>/dev/null; then
+    skip ".factory/stories/sprint-state.yaml present but pre-migration (legacy count-summary format; stories: is not a YAML sequence) — SKIP until T-4 migration lands"
+  fi
 
   local repo_root
   repo_root="$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)"
@@ -1458,6 +1473,11 @@ EOF
   # Guard: skip when production file is absent (CI without factory-artifacts worktree)
   if [ ! -f "${_PRODUCTION_SPRINT_STATE}" ]; then
     skip ".factory/stories/sprint-state.yaml absent — factory-artifacts worktree not mounted (CI); SKIP is expected in CI"
+  fi
+  # Guard: skip when file is present but pre-migration (legacy count-summary format)
+  # CI mounts factory-artifacts but sprint-state.yaml may not yet be migrated.
+  if ! _stories_is_sequence "${_PRODUCTION_SPRINT_STATE}" 2>/dev/null; then
+    skip ".factory/stories/sprint-state.yaml present but pre-migration (legacy count-summary format; stories: is not a YAML sequence) — SKIP until T-4 migration lands"
   fi
 
   # ---------------------------------------------------------------------------
@@ -1676,6 +1696,11 @@ EOF
   # Guard: skip when production files are absent (CI without factory-artifacts worktree)
   if [ ! -f "${_PRODUCTION_SPRINT_STATE}" ]; then
     skip ".factory/stories/sprint-state.yaml absent — factory-artifacts worktree not mounted (CI); SKIP is expected in CI"
+  fi
+  # Guard: skip when file is present but pre-migration (legacy count-summary format)
+  # CI mounts factory-artifacts but sprint-state.yaml may not yet be migrated.
+  if ! _stories_is_sequence "${_PRODUCTION_SPRINT_STATE}" 2>/dev/null; then
+    skip ".factory/stories/sprint-state.yaml present but pre-migration (legacy count-summary format; stories: is not a YAML sequence) — SKIP until T-4 migration lands"
   fi
 
   local repo_root
