@@ -10555,4 +10555,4 @@ No adversary pass for post-merge burst. POL-14 promotion and bookkeeping only. P
 
 ### Factory-artifacts Commits
 
-- [SHA-PATCH] — D-722 S-18.11 POST-MERGE burst (single commit per TD-VSDD-053; SHA updated via SHA-patch follow-up per D-447(c))
+- 6a838ea5 — D-722 S-18.11 POST-MERGE burst (single commit per TD-VSDD-053; SHA updated via SHA-patch follow-up per D-447(c))

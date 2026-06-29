@@ -139,7 +139,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | caf06c68 | rc.21 bot binary bundle commit 2026-06-13; prior: 2a191314 (rc.20) |
 | develop | 531dacfb | PR #340 `feat(S-18.11): sprint-state per-story producer migration + def-b ordering` squash-merged 2026-06-29T20:09:35Z (D-722; S-18.11 MERGED; E-18 wave-9 COMPLETE); prior: 699b7e60 (PR #315 D-719 S-18.10 MERGED) |
-| factory-artifacts | [SHA-PATCH] | D-722 S-18.11 POST-MERGE burst 2026-06-29; prior: 52064628 (D-721 S-18.11 LOCAL-CONVERGENCE) |
+| factory-artifacts | 6a838ea5 | D-722 S-18.11 POST-MERGE burst 2026-06-29; prior: 52064628 (D-721 S-18.11 LOCAL-CONVERGENCE) |
 | v1.0.0-rc.21 (tag) | 03054524 | SHIPPED 2026-06-13; FULLY IN OPERATOR MARKETPLACE (marketplace PR #13 MERGED); annotated tag object |
 | v1.0.0-rc.20 (tag) | e9e38286 | SHIPPED 2026-06-01; marketplace PR #12 squash-merged 862e660d |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28 |
@@ -397,7 +397,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 ### §9. Critical Anchors
 
 - **GitHub origin repo:** `drbothen/vsdd-factory` (NOT the local git user "Zious"). All E-18 PRs live at `https://github.com/drbothen/vsdd-factory`. Use `--repo drbothen/vsdd-factory` flag with all `gh` commands.
-- **factory-artifacts HEAD:** [SHA-PATCH] (D-722 S-18.11 POST-MERGE burst 2026-06-29; prior: 52064628 D-721 S-18.11 LOCAL-CONVERGENCE). Verify: `git -C .factory log -1 --format='%h %s'`
+- **factory-artifacts HEAD:** 6a838ea5 (D-722 S-18.11 POST-MERGE burst 2026-06-29; prior: 52064628 D-721 S-18.11 LOCAL-CONVERGENCE). Verify: `git -C .factory log -1 --format='%h %s'`
 - **develop HEAD:** `531dacfb` (PR #340 S-18.11 squash-merged 2026-06-29T20:09:35Z D-722; prior: `699b7e60` PR #315 D-719 S-18.10; prior: `5af40c4e` PR #307 D-716 S-18.09)
 - **main HEAD:** `caf06c68` (rc.21 bot bundle commit 2026-06-13; UNCHANGED)
 - **v1.0.0-rc.21 tag:** `03054524` (SHIPPED; FULLY IN OPERATOR MARKETPLACE)
@@ -434,7 +434,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 5. **F5 PAUSED** — trajectory →9→9→9→11. Do NOT resume without explicit human direction.
 6. **RC.21 100% COMPLETE D-560.** NO remaining release action. Operators: `/plugin update vsdd-factory@claude-mp`.
 7. **D-722 POST-MERGE BURST (2026-06-29). POSTURE: ACTIVE.** develop 531dacfb. merged_count 95. S-18.11 MERGED PR #340 531dacfb; BC-5.41.004 v1.5 active (POL-14); E-18 wave-9 COMPLETE; sprint-state.yaml def-b committed. total_bcs 1,974 UNCHANGED. NEXT: S-18.12 PO BC authorship gated. **Autonomy STOP-BEFORE-PR-MERGE (D-665) holds for all code PRs.**
-8. **4-index at D-722 burst:** BC-INDEX v3.57 (BUMPED D-722; BC-5.41.004 row draft→active + v1.5; total_bcs 1,974 UNCHANGED), VP-INDEX v2.51 (UNCHANGED), STORY-INDEX v4.105 (BUMPED D-722; S-18.11 row ready→merged PR #340 531dacfb), ARCH-INDEX v2.85 (UNCHANGED). Key SHAs: develop 531dacfb; main caf06c68; factory-artifacts [SHA-PATCH] (D-722).
+8. **4-index at D-722 burst:** BC-INDEX v3.57 (BUMPED D-722; BC-5.41.004 row draft→active + v1.5; total_bcs 1,974 UNCHANGED), VP-INDEX v2.51 (UNCHANGED), STORY-INDEX v4.105 (BUMPED D-722; S-18.11 row ready→merged PR #340 531dacfb), ARCH-INDEX v2.85 (UNCHANGED). Key SHAs: develop 531dacfb; main caf06c68; factory-artifacts 6a838ea5 (D-722).
 9. **ALL dispatches carry:** TD-VSDD-097-EXT + TD-VSDD-099 + TD-VSDD-100 + POLICY 14 5-leg + verification_step 7 4-index gate + INV-019 (a)/(b)/(c) + adversary grep origin/factory-artifacts + D-449(a) literal-shell Dim-2 + POLICY 8 v1.3 parity + POLICY 5 v1.3.1/v1.3.4/v1.3.5/v1.3.6 + D-537 spec-drift routing + D-539 multi-family adversary + O-P8-002 MANDATORY + L-F2-no-bypass-on-edit-failure (D-610) + L-F2-statemd-banner-wcl-each-burst (D-617) + **L-BB-wasm-bats-gate-before-green (D-693 MANDATORY)** + **L-BB-proof-vehicle-must-be-mutation-tested-not-asserted (D-697 MANDATORY)** + **L-BB-merge-requires-direct-human-action (MANDATORY: pr-manager will NOT accept relay; human executes `gh pr merge <N> --squash --delete-branch --repo drbothen/vsdd-factory` directly)** + **L-BB-red-gate-test-plan-ec-coverage-parity (D-699 MANDATORY)** + **L-BB-vp-cite-stable-anchor-recurrence-proof (D-700 MANDATORY: use bare identifier e.g. VP-089 not VP-089 v1.3)** + **L-BB-red-gate-fixture-must-mirror-bc-canonical-test-vectors (D-719 MANDATORY: bats fixtures mirror BC Canonical Test Vectors verbatim)** + L-S18-bc-bump-must-sweep-dependent-story-body-cites (D-644) + D-636..D-722 carries (see §3 for full text).
 10. **Latest action D-722 (2026-06-29).** S-18.11 POST-MERGE BURST: PR #340 531dacfb squash-merged to develop 2026-06-29T20:09:35Z; S-18.11 ready→merged; merged_count 94→95; POL-14 BC-5.41.004 draft→active (v1.5); BC-INDEX v3.56→v3.57; STORY-INDEX v4.104→v4.105; develop_head 699b7e60→531dacfb; sprint-state.yaml def-b committed; E-18 wave-9 COMPLETE. **POSTURE: ACTIVE. STOP-BEFORE-PR-MERGE (D-665) holds. NEXT: S-18.12 (PO BC authorship gated).**
 
