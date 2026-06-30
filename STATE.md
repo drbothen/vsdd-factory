@@ -143,7 +143,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | caf06c68 | rc.21 bot binary bundle commit 2026-06-13; prior: 2a191314 (rc.20) |
 | develop | 531dacfb | PR #340 `feat(S-18.11): sprint-state per-story producer migration + def-b ordering` squash-merged 2026-06-29T20:09:35Z (D-722; S-18.11 MERGED; E-18 wave-9 COMPLETE); prior: 699b7e60 (PR #315 D-719 S-18.10 MERGED) |
-| factory-artifacts | (SHA-patch-pending) | D-726 S-18.12-LOCAL-PASS-2-CLOSURE burst 2026-06-29; prior: a622ed06 (D-725 S-18.12-LOCAL-PASS-1-CLOSURE) |
+| factory-artifacts | 38d23094 | D-726 S-18.12-LOCAL-PASS-2-CLOSURE burst 2026-06-29; prior: a622ed06 (D-725 S-18.12-LOCAL-PASS-1-CLOSURE) |
 | v1.0.0-rc.21 (tag) | 03054524 | SHIPPED 2026-06-13; FULLY IN OPERATOR MARKETPLACE (marketplace PR #13 MERGED); annotated tag object |
 | v1.0.0-rc.20 (tag) | e9e38286 | SHIPPED 2026-06-01; marketplace PR #12 squash-merged 862e660d |
 | v1.0.0-rc.19 (tag) | d15152af | SHIPPED 2026-05-28 |
@@ -415,7 +415,7 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 ### §9. Critical Anchors
 
 - **GitHub origin repo:** `drbothen/vsdd-factory` (NOT the local git user "Zious"). All E-18 PRs live at `https://github.com/drbothen/vsdd-factory`. Use `--repo drbothen/vsdd-factory` flag with all `gh` commands.
-- **factory-artifacts HEAD:** (D-726 burst — SHA-patch pending; prior: a622ed06 D-725 S-18.12-LOCAL-PASS-1-CLOSURE 2026-06-29). Verify: `git -C .factory log -1 --format='%h %s'`
+- **factory-artifacts HEAD:** `38d23094` (D-726 S-18.12-LOCAL-PASS-2-CLOSURE 2026-06-29; prior: a622ed06 D-725 S-18.12-LOCAL-PASS-1-CLOSURE 2026-06-29). Verify: `git -C .factory log -1 --format='%h %s'`
 - **develop HEAD:** `531dacfb` (PR #340 S-18.11 squash-merged 2026-06-29T20:09:35Z D-722; prior: `699b7e60` PR #315 D-719 S-18.10; prior: `5af40c4e` PR #307 D-716 S-18.09)
 - **main HEAD:** `caf06c68` (rc.21 bot bundle commit 2026-06-13; UNCHANGED)
 - **v1.0.0-rc.21 tag:** `03054524` (SHIPPED; FULLY IN OPERATOR MARKETPLACE)
@@ -446,13 +446,13 @@ ALL ACTIVE AND MANDATORY on every dispatch:
 ### §11. Post-CLEAR/Post-RESET Resume Checklist (zero-context; D-726 refresh 2026-06-29)
 
 1. **Verify worktree state:** `git rev-parse --short origin/develop` → expect `531dacfb` (PR #340 S-18.11 D-722 2026-06-29). `git rev-parse --short origin/main` → expect `caf06c68`. `git -C .factory log -1 --format='%h %s'` → expect D-726 or later. `gh repo view --json nameWithOwner -q .nameWithOwner` → expect `drbothen/vsdd-factory`. All feature branches S-18.00..S-18.11 + S-18.13 + S-18.14 + prereqs DELETED (merged). S-18.12 READY v1.3 (LOCAL adv pass-2 NOT-CLEAN 4 findings remediated D-726; suite 68/68 green; streak 0/3; NEXT LOCAL adv pass-3).
-2. **Read §1-§12 this checkpoint** (all of it; D-725 self-sufficient 2026-06-29; NEXT S-18.12 LOCAL adv pass-2 in §1).
-3. **Verify 4-index:** `grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md` → "3.57"; ARCH-INDEX → "2.85"; VP-INDEX → "2.51"; STORY-INDEX → "4.107"; L2-INDEX → "1.0.13".
+2. **Read §1-§12 this checkpoint** (all of it; D-726 self-sufficient 2026-06-29; NEXT S-18.12 LOCAL adv pass-3 in §1).
+3. **Verify 4-index:** `grep "^version:" .factory/specs/behavioral-contracts/BC-INDEX.md` → "3.57"; ARCH-INDEX → "2.85"; VP-INDEX → "2.51"; STORY-INDEX → "4.108"; L2-INDEX → "1.0.13".
 4. **E-10 CASCADE SEALED D-531.** Do NOT resume without engine-surface material change.
 5. **F5 PAUSED** — trajectory →9→9→9→11. Do NOT resume without explicit human direction.
 6. **RC.21 100% COMPLETE D-560.** NO remaining release action. Operators: `/plugin update vsdd-factory@claude-mp`.
 7. **D-726 S-18.12-LOCAL-PASS-2-CLOSURE (2026-06-29). POSTURE: ACTIVE.** develop 531dacfb. merged_count 95. E-18 wave-9 COMPLETE. S-18.12 READY v1.3 (LOCAL adv pass-2 NOT-CLEAN 4 findings remediated D-726; suite 68/68 green; streak 0/3). NEXT: S-18.12 LOCAL adv pass-3 (fresh context). **Autonomy STOP-BEFORE-PR-MERGE (D-665) holds for all code PRs. L-BB-merge-requires-direct-human-action holds. POST-E-18 revisit: ADR-015/Router/WASM/OTel+S-3.04-stays-partial (D-721 anchor) — do NOT reclassify S-3.04 or reverse ADR-015 before human authorization.**
-8. **4-index at D-726 burst:** BC-INDEX v3.57 (UNCHANGED D-726; last bumped D-722), VP-INDEX v2.51 (UNCHANGED), STORY-INDEX v4.108 (BUMPED D-726), ARCH-INDEX v2.85 (UNCHANGED; last bumped D-721). Key SHAs: develop 531dacfb; main caf06c68; factory-artifacts (D-726 burst — SHA-patch pending; prior: a622ed06 D-725). total_bcs 1,974.
+8. **4-index at D-726 burst:** BC-INDEX v3.57 (UNCHANGED D-726; last bumped D-722), VP-INDEX v2.51 (UNCHANGED), STORY-INDEX v4.108 (BUMPED D-726), ARCH-INDEX v2.85 (UNCHANGED; last bumped D-721). Key SHAs: develop 531dacfb; main caf06c68; factory-artifacts `38d23094` (D-726 burst; prior: a622ed06 D-725 S-18.12-LOCAL-PASS-1-CLOSURE 2026-06-29). total_bcs 1,974.
 9. **ALL dispatches carry:** TD-VSDD-097-EXT + TD-VSDD-099 + TD-VSDD-100 + POLICY 14 5-leg + verification_step 7 4-index gate + INV-019 (a)/(b)/(c) + adversary grep origin/factory-artifacts + D-449(a) literal-shell Dim-2 + POLICY 8 v1.3 parity + POLICY 5 v1.3.1/v1.3.4/v1.3.5/v1.3.6 + D-537 spec-drift routing + D-539 multi-family adversary + O-P8-002 MANDATORY + L-F2-no-bypass-on-edit-failure (D-610) + L-F2-statemd-banner-wcl-each-burst (D-617) + **L-BB-wasm-bats-gate-before-green (D-693 MANDATORY)** + **L-BB-proof-vehicle-must-be-mutation-tested-not-asserted (D-697 MANDATORY)** + **L-BB-merge-requires-direct-human-action (MANDATORY: pr-manager will NOT accept relay; human executes `gh pr merge <N> --squash --delete-branch --repo drbothen/vsdd-factory` directly)** + **L-BB-red-gate-test-plan-ec-coverage-parity (D-699 MANDATORY)** + **L-BB-vp-cite-stable-anchor-recurrence-proof (D-700 MANDATORY: use bare identifier e.g. VP-089 not VP-089 v1.3)** + **L-BB-red-gate-fixture-must-mirror-bc-canonical-test-vectors (D-719 MANDATORY: bats fixtures mirror BC Canonical Test Vectors verbatim)** + **POST-E-18 revisit ADR-015/Router/WASM/OTel+S-3.04-stays-partial (D-723 MANDATORY: do NOT reclassify before human authorization)** + L-S18-bc-bump-must-sweep-dependent-story-body-cites (D-644) + D-636..D-723 carries (see §3 for full text).
 10. **Latest action D-726 (2026-06-29).** S-18.12 LOCAL ADVERSARIAL PASS-2 CLOSURE BURST: pass-2 NOT-CLEAN 4 findings (F-P2-001 HIGH pyyaml-case / F-P2-002 / F-P2-003 / F-P2-004) remediated same-burst; S-18.12 v1.2→v1.3; suite 68/68 green; STORY-INDEX v4.107→v4.108. NEXT S-18.12 LOCAL adv pass-3. merged_count 95 UNCHANGED. BC/VP/ARCH-index UNCHANGED. **POSTURE: ACTIVE. STOP-BEFORE-PR-MERGE (D-665) holds.**
 
