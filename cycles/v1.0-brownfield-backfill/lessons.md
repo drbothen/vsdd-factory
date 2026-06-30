@@ -5232,3 +5232,31 @@ Justified exceptions (per TD-VSDD-091): Red Gate test tables and AC source-of-tr
 **Follow-up anchor:** POST-E-18 revisit: ADR-015 supersession chain implications for S-3.04 and Router/WASM multi-sink revival (human-directed deferral per D-721). When Router/WASM multi-sink is revived, the S-3.04 status decision should be revisited. Anchor: post-E-18 Router story or ADR-015 revisit cycle.
 
 **Cites:** D-721, S-18.11, ADR-026 §Wave-Identity, S-3.04 partial, ADR-015 supersession, wave-design monotonic-completion assumption.
+
+---
+
+## L-BB-regression-detector-tests-must-emit-positive-coverage-line
+
+**Date:** 2026-06-30 (D-730)
+**Tags:** [process-gap] [test-writer] [adversary] [codified]
+**Anchors:** D-730, S-18.12, O-4 LOCAL adv pass-6, Cycle-Closing Checklist S-7.02 step-3
+
+**Lesson (codified):** Regression-detector tests (static lint gate tests that scan a file set) MUST emit a machine-greppable positive-coverage line on the success path indicating at minimum the number of files scanned. A silent green exit code cannot distinguish between "scanned 5 files, all PASS" and "scanned 0 files, nothing flagged" — the latter is a silent scope-narrowing failure that is structurally undetectable without explicit output.
+
+**Root cause:** S-18.12's 5 portability regression-detector tests reported only a pass/fail exit code on the PASS path. The bats test harness shows a green dot for each passing test, but there is no way to determine from the test output whether the test scanned 5 files or 0 files. If the scan glob were tightened (e.g., a path change that yields no matches), all 5 tests would continue to pass without any indication that the scope had silently contracted.
+
+**Prevention gate (codified):** Every regression-detector test (i.e., any test that operates by: (1) collecting a set of files via glob/find, then (2) scanning each file for a pattern, then (3) asserting zero matches) MUST include an explicit output statement on the success path of the form:
+
+```
+echo "AC-00N: scanned=${#sh_files[@]} files" >&3
+```
+
+or equivalent. The output MUST include the count of files scanned (so a scope-narrowing silent failure would produce `scanned=0 files` as an observable signal). The count must reference the actual variable used to build the scan set, NOT a hardcoded literal.
+
+**Minimum required output:** `AC-00N: scanned=N files` where N is the actual count from the scan-set variable.
+
+**Anti-pattern blocked:** Tests that assert "no prohibited patterns found" without confirming "scanned N>0 files". A test that passes vacuously on an empty scan set is not a test — it is a no-op.
+
+**Follow-up anchor:** Apply at test-writer dispatch for all future E-18/F4 gate-story tests that use a collect-then-scan-then-assert-zero pattern. No dedicated story needed; enforce at test-writer review time.
+
+**Cites:** D-730, S-18.12 LOCAL adv pass-6 O-4, Cycle-Closing Checklist step-3 (process-gap codification obligation), 5/5 portability tests updated 77147d3e.

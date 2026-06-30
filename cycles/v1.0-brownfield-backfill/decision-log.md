@@ -4362,3 +4362,55 @@ S-18.11 TDD Red Gate (T-1): dispatch test-writer for Red Gate bats tests. BC-5.4
 ### NEXT
 
 demo-recorder per-AC for S-18.11 (BC-5.41.001/BC-5.41.002/BC-5.41.004 ACs). Then PR create → CI green → STOP-BEFORE-PR-MERGE → HUMAN executes `gh pr merge <N> --squash --delete-branch --repo drbothen/vsdd-factory` → post-merge burst (sprint-state.yaml commit + POL-14 BC promotions + merged_count 94→95 + develop_head advance). S-18.12 still requires PO BC authorship. STOP-BEFORE-PR-MERGE (D-665) holds.
+
+## D-730 — S-18.12 LOCAL adv pass-6 NOT-CLEAN closure — 2026-06-30
+
+### Verdict
+
+S-18.12 LOCAL adversarial pass-6: **NOT-CLEAN** (0 CRITICAL / 0 HIGH / 1 MEDIUM blocking / 4 LOW observations). Streak reset **1/3 → 0/3**. All 5 findings remediated same-burst. Pass-7 NEXT (streak 0/3).
+
+### Findings Summary
+
+| ID | Severity | Description | Fix | Commit |
+|----|----------|-------------|-----|--------|
+| F-P6-001 | MEDIUM (blocking) | AC-001 guard-detector did not enforce the entrypoint-positional soundness boundary (guard_line < first_source_line for non-lib entrypoints sourcing local -A libs); synthetic EC-006 positive/negative controls absent | test-writer: structural guard_line<source_line check + EC-006 positive control (unguarded entrypoint → FAIL) + guarded negative control | 77147d3e |
+| O-1 | LOW | `${#^^}` form missing from AC-002 prose enumeration and bats positive controls; regex [@*#] already covered # | test-writer: `${#^^}` positive control; story-writer: AC-002 enumeration v1.6→v1.7 | 77147d3e, 5bc0b709 |
+| O-2 | LOW | bash-portability.md §3 opening prose omitted the single-`&` background form | technical-writer: prose-only fix | 80b61cbd |
+| O-3 | LOW | AC-004/005 prospective coverage only against current scan set | ACCEPTED-BOUNDARY — no fix | — |
+| O-4 | LOW [process-gap] | 5 regression-detector tests emitted no positive-coverage line on PASS path (silent scope-narrowing undetectable) | test-writer: each test echoes `AC-00N: scanned=${#sh_files[@]} files` on success; confirmed scanned=5 | 77147d3e |
+
+### Severity Decay
+
+| Pass | 1 | 2 | 3 | 4 | 5 | 6 |
+|------|---|---|---|---|---|---|
+| Verdict | NOT-CLEAN | NOT-CLEAN | NOT-CLEAN | NOT-CLEAN | CLEAN | NOT-CLEAN |
+| Highest | HIGH | HIGH | MED | MED | — | MED |
+| Streak | 0/3 | 0/3 | 0/3 | 0/3 | 1/3 | 0/3 (reset) |
+
+Note: The MED finding at pass-6 is a structural soundness gap (guard-boundary enforceability) not a regression of any closed finding from passes 1-5. The severity at pass-6 (MED) is lower than passes 1-2 (HIGH), consistent with overall decay.
+
+### Codifications
+
+- **D-730** decision-log block (this entry): S-18.12 LOCAL adv pass-6 NOT-CLEAN closure.
+- **L-BB-regression-detector-tests-must-emit-positive-coverage-line** codified in brownfield lessons.md (O-4 [process-gap]; Cycle-Closing Checklist step-3).
+- **STORY-INDEX v4.111→v4.112**: S-18.12 body row updated to v1.7 with LOCAL adv pass-6 NOT-CLEAN annotation (POLICY 14 leg-5; state-manager this burst).
+- **s-18.12-local-adversary-pass-6.md**: pass-6 adversary report persisted in cycles/v1.0-brownfield-backfill/.
+- **STATE.md**: frontmatter v4.80→v4.81, D-730 banner, Phase Progress / Decisions Log / §1 / §3 / §4 / §8 / §11 / §12 / Session Resume Checkpoint updated for zero-context resume into S-18.12 LOCAL adv pass-7.
+
+### Feature Branch
+
+- **feature/S-18.12** — WIP at 31095a8a (local checkpoint pre-burst). Tests hardened post-burst with structural guard-boundary assertion + EC-006 positive/negative controls + `${#^^}` positive control + O-4 coverage echoes. Suite: 5/5 portability GREEN + 68/68 wave-handoff.bats GREEN (2 pre-existing unrelated failures: resolver-integration timing flap; pass-real-state-md-snapshot fixture).
+
+### Develop / 4-Index State
+
+- develop_head: 531dacfb UNCHANGED
+- merged_count: 95 UNCHANGED
+- total_bcs: 1,974 UNCHANGED
+- BC-INDEX: v3.57 UNCHANGED
+- VP-INDEX: v2.51 UNCHANGED
+- ARCH-INDEX: v2.85 UNCHANGED
+- STORY-INDEX: v4.111→v4.112 (BUMPED this burst, POLICY 14 leg-5)
+
+### NEXT
+
+S-18.12 LOCAL adversarial pass-7. Fresh context. Streak 0/3. Need passes 7+8 both CLEAN for 3-CLEAN convergence per BC-5.39.001. STOP-BEFORE-PR-MERGE (D-665) holds.

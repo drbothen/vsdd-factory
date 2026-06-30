@@ -10556,3 +10556,104 @@ No adversary pass for post-merge burst. POL-14 promotion and bookkeeping only. P
 ### Factory-artifacts Commits
 
 - 6a838ea5 — D-722 S-18.11 POST-MERGE burst (single commit per TD-VSDD-053; SHA updated via SHA-patch follow-up per D-447(c))
+
+---
+
+## D-730 S-18.12 LOCAL adv pass-6 NOT-CLEAN closure burst (2026-06-30)
+
+### Parent-commit
+
+- **factory-artifacts parent:** 5bc0b709 (story-writer fix(S-18.12): LOCAL adv pass-6 O-1 — AC-002 enumeration adds ${#^^}, v1.6→v1.7, 2026-06-30)
+- **develop HEAD at burst:** 531dacfb (PR #340 S-18.11 squash-merged 2026-06-29T20:09:35Z D-722; UNCHANGED)
+
+### Adversary Verdict
+
+Pass-6: **NOT-CLEAN** (0 CRITICAL / 0 HIGH / 1 MEDIUM blocking / 4 LOW observations). Streak reset 1/3 → 0/3.
+
+F-P6-001 (MEDIUM, blocking): AC-001 guard-detector did not enforce the entrypoint-positional soundness boundary documented in bash-portability.md §1 and EC-006 — no assertion that guard_line < first_source_line for non-lib entrypoints sourcing local -A libs; no synthetic positive/negative control for the EC-006 unguarded-entrypoint case. FIXED by test-writer (commit 77147d3e): structural guard_line < first_source_line check added for every non-lib entrypoint sourcing a local -A lib; EC-006 positive control (unguarded entrypoint → detector MUST FAIL) added; guarded negative control confirming POLICY 11 non-tautology added; no regex altered.
+
+O-1 (LOW): `${#^^}` form absent from AC-002 prose enumeration and bats positive controls despite regex [@*#] already covering `#`. FIXED by test-writer 77147d3e (`${#^^}` positive control added) and story-writer 5bc0b709 (AC-002 enumeration adds `${#^^}`, v1.6→v1.7).
+
+O-2 (LOW): bash-portability.md §3 opening prose enumerated only `&&` and `||` operator contexts for IFS mutation detection — single-`&` background form absent from prose despite being covered by regex and story AC-003. FIXED by technical-writer 80b61cbd (prose-only fix, regex unchanged).
+
+O-3 (LOW): AC-004/005 prospective coverage only against current scan set. ACCEPTED-BOUNDARY — no fix.
+
+O-4 (LOW, [process-gap]): 5 regression-detector tests emitted no positive-coverage line on the PASS path (silent green; silent scope-narrowing undetectable). FIXED by test-writer 77147d3e: each of the 5 tests now echoes `AC-00N: scanned=${#sh_files[@]} files` on success; confirmed scanned=5 on current 5-file scan set. Lesson L-BB-regression-detector-tests-must-emit-positive-coverage-line codified per Cycle-Closing Checklist S-7.02 step-3.
+
+Suite status post-burst: 5/5 portability GREEN + 68/68 wave-handoff.bats GREEN. 2 pre-existing unrelated failures (resolver-integration timing flap; pass-real-state-md-snapshot fixture) noted-as-unrelated.
+
+Source attestation (D-448(a)): above Adversary verdict paragraph faithfully describes s-18.12-local-adversary-pass-6.md Part A finding set — F-P6-001 (guard-boundary MEDIUM blocking), O-1 (${#^^} LOW), O-2 (single-& background prose LOW), O-3 (accepted-boundary LOW), O-4 (process-gap LOW). No divergence from Part A.
+
+### Files Touched
+
+**factory-artifacts branch (this burst — single commit per TD-VSDD-053):**
+- `cycles/v1.0-brownfield-backfill/s-18.12-local-adversary-pass-6.md` — NEW; pass-6 adversary report persisted (verdict NOT-CLEAN; F-P6-001 + O-1..O-4; cascade trajectory passes 1-6; remediation summary)
+- `stories/STORY-INDEX.md` — v4.111→v4.112 (S-18.12 body row v1.6→v1.7 with LOCAL adv pass-6 NOT-CLEAN annotation; POLICY 14 leg-5; `last_amended:` prepended; `version:` frontmatter bumped)
+- `cycles/v1.0-brownfield-backfill/decision-log.md` — D-730 block appended
+- `cycles/v1.0-brownfield-backfill/lessons.md` — L-BB-regression-detector-tests-must-emit-positive-coverage-line appended
+- `cycles/v1.0-brownfield-backfill/burst-log.md` — D-730 entry appended (this file)
+- `.factory/STATE.md` — v4.80→v4.81 (D-730 banner + frontmatter advance + §1 POSTURE + §3 D-730 carry + §4 D-730 Tier-A entry + §5 D-001..D-730 + §8 STORY-INDEX v4.112 + §9 factory-artifacts HEAD [SHA-patch] + §11 D-730 refresh + §12 3e-S18.12 streak 0/3 pass-7 NEXT + Session Resume Checkpoint refreshed)
+
+**feature/S-18.12 branch (pre-committed by fix specialists — NOT factory-artifacts):**
+- `plugins/vsdd-factory/tests/wave-handoff.bats` — AC-001 structural guard_line<source_line check + EC-006 positive/negative controls + `${#^^}` positive control + O-4 coverage echoes (test-writer commit 77147d3e)
+- `plugins/vsdd-factory/docs/bash-portability.md` — §3 prose adds single-`&` background form (technical-writer commit 80b61cbd)
+- `plugins/vsdd-factory/skills/wave-handoff/wave-handoff.sh` — guard@9 (line 9) < source@20 (line 20) confirmed by structural check (no change required — already correct; structural check added to enforce this invariant on future changes)
+
+**NOT committed in this burst (develop/main unchanged):**
+- No code changes to develop (feature branch local, not pushed per STOP-BEFORE-PR-MERGE D-665)
+- develop_head 531dacfb UNCHANGED; merged_count 95 UNCHANGED; total_bcs 1,974 UNCHANGED
+
+### Codifications (Dim-6)
+
+- **D-730** decision-log block codified: S-18.12 LOCAL adv pass-6 NOT-CLEAN; F-P6-001 guard-boundary MEDIUM; O-1..O-4 LOW; all remediated D-730; streak 1/3→0/3; NEXT pass-7 0/3.
+- **L-BB-regression-detector-tests-must-emit-positive-coverage-line** codified: O-4 [process-gap] — regression-detector tests MUST emit positive-coverage line on PASS path (scanned count); silent scope-narrowing otherwise undetectable. Cycle-Closing Checklist step-3 obligation satisfied.
+- **STORY-INDEX v4.111→v4.112**: S-18.12 row v1.6→v1.7 (POLICY 14 leg-5).
+
+### Dim-2 (4-Index Parity Gate — D-449(a) literal-shell execution evidence)
+
+Gate command:
+```
+grep "^version:" \
+  .factory/specs/behavioral-contracts/BC-INDEX.md \
+  .factory/specs/verification-properties/VP-INDEX.md \
+  .factory/stories/STORY-INDEX.md \
+  .factory/specs/architecture/ARCH-INDEX.md
+```
+
+Captured stdout:
+```
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.57"
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.51"
+.factory/stories/STORY-INDEX.md:version: "4.112"
+.factory/specs/architecture/ARCH-INDEX.md:version: "2.85"
+```
+
+Gate result: PASS. BC-INDEX v3.57 (UNCHANGED), VP-INDEX v2.51 (UNCHANGED), STORY-INDEX v4.112 (BUMPED D-730), ARCH-INDEX v2.85 (UNCHANGED). Zero FAIL.
+
+### Dim-5 (8-Block Presence Gate — D-446(a))
+
+This burst-log entry contains all 8 D-444(c) mandatory blocks:
+1. Parent-commit: 5bc0b709 (story-writer fix S-18.12 v1.6→v1.7 2026-06-30)
+2. Adversary verdict: NOT-CLEAN; F-P6-001 MEDIUM + O-1..O-4 LOW; streak 1/3→0/3; all remediated D-730
+3. Files touched: pass-6 report + STORY-INDEX + decision-log + lessons + burst-log + STATE.md
+4. Codifications (Dim-6): D-730 + L-BB-regression-detector lesson + STORY-INDEX v4.112
+5. Dim-2: 4-index parity gate with literal-shell stdout above
+6. Dim-5: This block (8-block self-verification)
+7. Closes: pass-6 NOT-CLEAN closure; streak 1/3→0/3; O-4 lesson codified
+8. Factory-artifacts commits: [SHA-patch follow-up per D-447(c)]
+
+All 8 blocks present. Gate: PASS.
+
+### Dim-7 (Streak Status)
+
+S-18.12 LOCAL adversarial cascade streak: 1/3 → **0/3** (reset by F-P6-001 MEDIUM). NEXT: pass-7 (fresh context; streak 0/3). Need passes 7 and 8 both CLEAN for 3-CLEAN convergence per BC-5.39.001.
+
+### Closes
+
+- S-18.12 LOCAL adv pass-6 NOT-CLEAN: **REMEDIATED** (F-P6-001 + O-1..O-4 all fixed D-730 2026-06-30). Streak reset 1/3→0/3. Pass-7 NEXT.
+- O-4 [process-gap] L-BB-regression-detector-tests-must-emit-positive-coverage-line: **CODIFIED** (lessons.md; Cycle-Closing Checklist step-3).
+- STORY-INDEX v4.112 (S-18.12 leg-5 POLICY 14): **DONE** (state-manager this burst).
+
+### Factory-artifacts Commits
+
+- [SHA-patch follow-up per D-447(c)+D-449(e)]
