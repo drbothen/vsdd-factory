@@ -10849,4 +10849,4 @@ S-18.12 LOCAL adversarial cascade streak: 1/3 → **0/3** (reset by F-P8-001 MED
 
 ### Factory-artifacts Commits
 
-- [SHA-TBD] — D-732 S-18.12 LOCAL adv pass-8 NOT-CLEAN closure (single commit per TD-VSDD-053; SHA to be updated via SHA-patch follow-up per D-447(c)+D-449(e))
+- 8fb8f16a — D-732 S-18.12 LOCAL adv pass-8 NOT-CLEAN closure (single commit per TD-VSDD-053; SHA-patch follow-up per D-447(c)+D-449(e))
