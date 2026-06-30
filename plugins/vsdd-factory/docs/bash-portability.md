@@ -116,7 +116,8 @@ required when the feature is absent).
 
 **Pattern detected:** A bare `IFS=...` assignment that is not scoped to a function
 local variable, a command prefix for `read`, or a subshell — detected at line-start,
-after `;`, after `&&` or `||`, and after the keywords `then`, `do`, `else`, and `elif`.
+after `;`, after `&&` or `||`, after a single `&` (background command), and after the
+keywords `then`, `do`, `else`, and `elif`.
 
 **Why it breaks:** Assigning to `IFS` at script scope or as a standalone statement
 inside a function mutates the shell's global field separator for the remainder of that
