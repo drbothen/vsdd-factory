@@ -10945,4 +10945,4 @@ S-18.12 LOCAL adversarial cascade streak: 0/3 → **1/3** (CLEAN pass). NEXT: pa
 
 ### Factory-artifacts Commits
 
-- [SHA-to-be-patched] — D-733 S-18.12 LOCAL adv pass-9 CLEAN closure (single commit per TD-VSDD-053; SHA-patch follow-up per D-447(c)+D-449(e))
+- 9ddac3b7 — D-733 S-18.12 LOCAL adv pass-9 CLEAN closure (single commit per TD-VSDD-053; SHA-patch follow-up per D-447(c)+D-449(e))
