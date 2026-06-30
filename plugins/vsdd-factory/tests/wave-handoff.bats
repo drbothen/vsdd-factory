@@ -4913,6 +4913,11 @@ EOF
   local pc_bad_py3 pc_bad_py2 pc_bad_pip3 pc_bad_pipx pc_bad_py311 pc_bad_stdlib
   local pc_bad_py3_cmdsubst pc_bad_sudo_py3
   local pc_good_py_var pc_good_comment pc_good_echo_py
+  local pc_bad_py3_pipe pc_bad_py3_and pc_bad_py3_backtick
+  local pc_bad_py3_if pc_bad_py3_then pc_bad_py3_do pc_bad_py3_else pc_bad_py3_elif
+  local pc_bad_py3_time pc_bad_py3_env pc_bad_py3_command pc_bad_py3_xargs
+  local pc_bad_py3_xargs_opts pc_bad_py3_brace pc_bad_py3_case_paren pc_bad_py3_subshell
+  local pc_bad_pip3_and pc_good_other_cmdsubst_py
 
   pc_bad_py3="${BATS_TEST_TMPDIR}/pc_ac004_bad_py3.sh"
   pc_bad_py2="${BATS_TEST_TMPDIR}/pc_ac004_bad_py2.sh"
@@ -4925,6 +4930,24 @@ EOF
   pc_good_py_var="${BATS_TEST_TMPDIR}/pc_ac004_good_py_var.sh"
   pc_good_comment="${BATS_TEST_TMPDIR}/pc_ac004_good_comment.sh"
   pc_good_echo_py="${BATS_TEST_TMPDIR}/pc_ac004_good_echo_py.sh"
+  pc_bad_py3_pipe="${BATS_TEST_TMPDIR}/pc_ac004_bad_py3_pipe.sh"
+  pc_bad_py3_and="${BATS_TEST_TMPDIR}/pc_ac004_bad_py3_and.sh"
+  pc_bad_py3_backtick="${BATS_TEST_TMPDIR}/pc_ac004_bad_py3_backtick.sh"
+  pc_bad_py3_if="${BATS_TEST_TMPDIR}/pc_ac004_bad_py3_if.sh"
+  pc_bad_py3_then="${BATS_TEST_TMPDIR}/pc_ac004_bad_py3_then.sh"
+  pc_bad_py3_do="${BATS_TEST_TMPDIR}/pc_ac004_bad_py3_do.sh"
+  pc_bad_py3_else="${BATS_TEST_TMPDIR}/pc_ac004_bad_py3_else.sh"
+  pc_bad_py3_elif="${BATS_TEST_TMPDIR}/pc_ac004_bad_py3_elif.sh"
+  pc_bad_py3_time="${BATS_TEST_TMPDIR}/pc_ac004_bad_py3_time.sh"
+  pc_bad_py3_env="${BATS_TEST_TMPDIR}/pc_ac004_bad_py3_env.sh"
+  pc_bad_py3_command="${BATS_TEST_TMPDIR}/pc_ac004_bad_py3_command.sh"
+  pc_bad_py3_xargs="${BATS_TEST_TMPDIR}/pc_ac004_bad_py3_xargs.sh"
+  pc_bad_py3_xargs_opts="${BATS_TEST_TMPDIR}/pc_ac004_bad_py3_xargs_opts.sh"
+  pc_bad_py3_brace="${BATS_TEST_TMPDIR}/pc_ac004_bad_py3_brace.sh"
+  pc_bad_py3_case_paren="${BATS_TEST_TMPDIR}/pc_ac004_bad_py3_case_paren.sh"
+  pc_bad_py3_subshell="${BATS_TEST_TMPDIR}/pc_ac004_bad_py3_subshell.sh"
+  pc_bad_pip3_and="${BATS_TEST_TMPDIR}/pc_ac004_bad_pip3_and.sh"
+  pc_good_other_cmdsubst_py="${BATS_TEST_TMPDIR}/pc_ac004_good_other_cmdsubst.sh"
 
   printf 'python3 script.py\n' > "$pc_bad_py3"
   printf 'python2 -c "import os; os.system(\"id\")"\n' > "$pc_bad_py2"
@@ -4944,6 +4967,25 @@ EOF
   printf '# python3 is not used in this script\n' > "$pc_good_comment"
   # GOOD: python3 as argument to echo — NOT a command invocation.
   printf 'echo "install python3 first"\n' > "$pc_good_echo_py"
+  # F-P12-001 arm fixtures: arms 2, 4, 5-remaining, 6, 7, 8, 9 + pip variant + negative cmdsubst.
+  printf 'cmd | python3 script.py\n' > "$pc_bad_py3_pipe"
+  printf 'cmd && python3 script.py\n' > "$pc_bad_py3_and"
+  printf '`python3 script.py`\n' > "$pc_bad_py3_backtick"
+  printf 'if python3 check.py\n' > "$pc_bad_py3_if"
+  printf 'then python3 run.py\n' > "$pc_bad_py3_then"
+  printf 'do python3 process.py\n' > "$pc_bad_py3_do"
+  printf 'else python3 fallback.py\n' > "$pc_bad_py3_else"
+  printf 'elif python3 check.py\n' > "$pc_bad_py3_elif"
+  printf 'time python3 bench.py\n' > "$pc_bad_py3_time"
+  printf 'env python3 script.py\n' > "$pc_bad_py3_env"
+  printf 'command python3 script.py\n' > "$pc_bad_py3_command"
+  printf 'xargs python3 process.py\n' > "$pc_bad_py3_xargs"
+  printf 'find . -name "*.py" | xargs -n1 python3\n' > "$pc_bad_py3_xargs_opts"
+  printf '{ python3 script.py; }\n' > "$pc_bad_py3_brace"
+  printf 'case $x in *) python3 script.py ;; esac\n' > "$pc_bad_py3_case_paren"
+  printf '( python3 script.py )\n' > "$pc_bad_py3_subshell"
+  printf 'cmd && pip3 install requests\n' > "$pc_bad_pip3_and"
+  printf 'result=$(other_cmd script.py)\n' > "$pc_good_other_cmdsubst_py"
 
   # BAD: bare line-start 'python3 script.py' MUST be detected.
   grep -qE "$python_re" "$pc_bad_py3" || {
@@ -5005,6 +5047,116 @@ EOF
   ! grep -qE "$python_re" "$pc_good_echo_py" || {
     echo "FAIL (AC-004 negative-control): python-detector falsely matched 'echo \"install python3 first\"'." >&2
     echo "  python3 as an argument to echo is not a python shell-out." >&2
+    false
+  }
+  # F-P12-001 positive controls: per-arm coverage for arms 2, 4, 5-remaining, 6, 7, 8, 9.
+  # BAD (F-P12-001 arm 2): 'cmd | python3 ...' pipe MUST be detected ([|;&] arm).
+  grep -qE "$python_re" "$pc_bad_py3_pipe" || {
+    echo "FAIL (AC-004 positive-control / F-P12-001): python-detector did not match 'cmd | python3 ...' (pipe)." >&2
+    echo "  The [|;&][[:space:]]*(python[0-9.]*|pip[0-9x]*)([[:space:]]|\$) arm must match pipe." >&2
+    false
+  }
+  # BAD (F-P12-001 arm 2): 'cmd && python3 ...' and-chain MUST be detected ([|;&] arm).
+  grep -qE "$python_re" "$pc_bad_py3_and" || {
+    echo "FAIL (AC-004 positive-control / F-P12-001): python-detector did not match 'cmd && python3 ...' (and-chain)." >&2
+    echo "  & in [|;&] catches both && and || forms." >&2
+    false
+  }
+  # BAD (F-P12-001 arm 4): backtick '\`python3 ...\`' MUST be detected.
+  grep -qE "$python_re" "$pc_bad_py3_backtick" || {
+    echo "FAIL (AC-004 positive-control / F-P12-001): python-detector did not match backtick '\`python3 ...\`' form." >&2
+    echo "  The \`(python[0-9.]*|pip[0-9x]*)([[:space:]]|\$) arm must match backtick substitution." >&2
+    false
+  }
+  # BAD (F-P12-001 arm 5): 'if python3 ...' MUST be detected (keyword wrapper arm).
+  grep -qE "$python_re" "$pc_bad_py3_if" || {
+    echo "FAIL (AC-004 positive-control / F-P12-001): python-detector did not match 'if python3 ...' form." >&2
+    echo "  'if' must be in the keyword wrapper group (xargs|if|then|do|else|elif|time|env|command|sudo)." >&2
+    false
+  }
+  # BAD (F-P12-001 arm 5): 'then python3 ...' MUST be detected (keyword wrapper arm).
+  grep -qE "$python_re" "$pc_bad_py3_then" || {
+    echo "FAIL (AC-004 positive-control / F-P12-001): python-detector did not match 'then python3 ...' form." >&2
+    echo "  'then' must be in the keyword wrapper group." >&2
+    false
+  }
+  # BAD (F-P12-001 arm 5): 'do python3 ...' MUST be detected (keyword wrapper arm).
+  grep -qE "$python_re" "$pc_bad_py3_do" || {
+    echo "FAIL (AC-004 positive-control / F-P12-001): python-detector did not match 'do python3 ...' form." >&2
+    echo "  'do' must be in the keyword wrapper group." >&2
+    false
+  }
+  # BAD (F-P12-001 arm 5): 'else python3 ...' MUST be detected (keyword wrapper arm).
+  grep -qE "$python_re" "$pc_bad_py3_else" || {
+    echo "FAIL (AC-004 positive-control / F-P12-001): python-detector did not match 'else python3 ...' form." >&2
+    echo "  'else' must be in the keyword wrapper group (genuine command position, same as jq)." >&2
+    false
+  }
+  # BAD (F-P12-001 arm 5): 'elif python3 ...' MUST be detected (keyword wrapper arm).
+  grep -qE "$python_re" "$pc_bad_py3_elif" || {
+    echo "FAIL (AC-004 positive-control / F-P12-001): python-detector did not match 'elif python3 ...' form." >&2
+    echo "  'elif' must be in the keyword wrapper group." >&2
+    false
+  }
+  # BAD (F-P12-001 arm 5): 'time python3 ...' MUST be detected (keyword wrapper arm — O-3 addition).
+  grep -qE "$python_re" "$pc_bad_py3_time" || {
+    echo "FAIL (AC-004 positive-control / F-P12-001): python-detector did not match 'time python3 ...' form." >&2
+    echo "  'time' must be in the keyword wrapper group (added at O-3)." >&2
+    false
+  }
+  # BAD (F-P12-001 arm 5): 'env python3 ...' MUST be detected (keyword wrapper arm — O-3 addition).
+  grep -qE "$python_re" "$pc_bad_py3_env" || {
+    echo "FAIL (AC-004 positive-control / F-P12-001): python-detector did not match 'env python3 ...' form." >&2
+    echo "  'env' must be in the keyword wrapper group (added at O-3)." >&2
+    false
+  }
+  # BAD (F-P12-001 arm 5): 'command python3 ...' MUST be detected (keyword wrapper arm — O-3 addition).
+  grep -qE "$python_re" "$pc_bad_py3_command" || {
+    echo "FAIL (AC-004 positive-control / F-P12-001): python-detector did not match 'command python3 ...' form." >&2
+    echo "  'command' must be in the keyword wrapper group (added at O-3)." >&2
+    false
+  }
+  # BAD (F-P12-001 arm 5): 'xargs python3 ...' MUST be detected (keyword wrapper arm, direct xargs).
+  grep -qE "$python_re" "$pc_bad_py3_xargs" || {
+    echo "FAIL (AC-004 positive-control / F-P12-001): python-detector did not match 'xargs python3 ...' form." >&2
+    echo "  'xargs' must be in the keyword wrapper group for the direct (no-option) form." >&2
+    false
+  }
+  # BAD (F-P12-001 arm 6): 'xargs -n1 python3' MUST be detected (xargs-with-options arm).
+  grep -qE "$python_re" "$pc_bad_py3_xargs_opts" || {
+    echo "FAIL (AC-004 positive-control / F-P12-001): python-detector did not match 'xargs -n1 python3' form." >&2
+    echo "  The xargs-with-options arm 'xargs([[:space:]]+-[^[:space:]]+)+[[:space:]]+(python...)([[:space:]]|\$)' is required." >&2
+    false
+  }
+  # BAD (F-P12-001 arm 7): '{ python3 ...; }' brace-group MUST be detected.
+  grep -qE "$python_re" "$pc_bad_py3_brace" || {
+    echo "FAIL (AC-004 positive-control / F-P12-001): python-detector did not match '{ python3 ...; }' brace-group form." >&2
+    echo "  Brace groups run in the current shell; arm: \\{[[:space:]]*(python[0-9.]*|pip[0-9x]*)([[:space:]]|\$)" >&2
+    false
+  }
+  # BAD (F-P12-001 arm 8): 'case $x in *) python3 ...' case-pattern-body MUST be detected.
+  grep -qE "$python_re" "$pc_bad_py3_case_paren" || {
+    echo "FAIL (AC-004 positive-control / F-P12-001): python-detector did not match 'case ... ) python3' case-body form." >&2
+    echo "  Case pattern-action bodies run in the current shell; arm: \\)[[:space:]]*(python[0-9.]*|pip[0-9x]*)([[:space:]]|\$)" >&2
+    false
+  }
+  # BAD (F-P12-001 arm 9): '( python3 ... )' subshell MUST be detected.
+  grep -qE "$python_re" "$pc_bad_py3_subshell" || {
+    echo "FAIL (AC-004 positive-control / F-P12-001): python-detector did not match '( python3 ... )' subshell form." >&2
+    echo "  python3 in a subshell still executes; arm: \\([[:space:]]*(python[0-9.]*|pip[0-9x]*)([[:space:]]|\$)" >&2
+    false
+  }
+  # BAD (F-P12-001 pip variant, arm 2): 'cmd && pip3 install ...' MUST be detected.
+  grep -qE "$python_re" "$pc_bad_pip3_and" || {
+    echo "FAIL (AC-004 positive-control / F-P12-001): python-detector did not match 'cmd && pip3 install ...' (pip3 and-chain)." >&2
+    echo "  pip[0-9x]* must be detected in the [|;&] arm, same as python[0-9.]*." >&2
+    false
+  }
+  # GOOD (F-P12-001 negative control): '\$(other_cmd ...)' MUST NOT be detected.
+  # The \$( arm only fires when python[0-9.]* or pip[0-9x]* immediately follows '$(', not other commands.
+  ! grep -qE "$python_re" "$pc_good_other_cmdsubst_py" || {
+    echo "FAIL (AC-004 negative-control / F-P12-001): python-detector falsely matched '\$(other_cmd script.py)'." >&2
+    echo "  The \\\$( arm must require python[0-9.]*/pip[0-9x]* as the immediate next token after '\$(', not any command." >&2
     false
   }
   # -------------------------------------------
