@@ -4137,7 +4137,10 @@ EOF
   done
 
   # If no associative arrays are used anywhere, the scan set is compliant.
-  [ "$has_arrays" -eq 1 ] || return 0
+  if [ "$has_arrays" -eq 0 ]; then
+    echo "AC-001: scanned=${#sh_files[@]} files"
+    return 0
+  fi
 
   # Associative arrays are used; verify the bash version guard exists in the scan set.
   # Acceptable guard forms: BASH_VERSINFO inside an executable conditional.
@@ -4165,6 +4168,88 @@ EOF
     echo "    fi" >&2
     false
   }
+
+  # --- F-P6-001: ENTRYPOINT-GUARD SOUNDNESS ASSERTION ---
+  # EC-006 requirement: any NEW, separate entrypoint that sources a sibling lib which uses
+  # local -A / declare -A WITHOUT its own bash-4 guard is a FAIL, even if another entrypoint
+  # in the scan set already has a guard.
+  #
+  # Structural check (real scripts): for each entrypoint .sh that sources a sibling lib,
+  # assert the BASH_VERSINFO guard appears at a line number LOWER than its first source/. line.
+  # An entrypoint is any .sh file whose name matches the skill top-level (not under lib/).
+  #
+  # Step 1: Synthetic positive-control — unguarded entrypoint sourcing a lib with local -A
+  # MUST trigger a FAIL from the positional detector.
+  local pc_unguarded_ep pc_guarded_ep pc_lib_with_arr
+  pc_unguarded_ep="${BATS_TEST_TMPDIR}/pc_ac001_unguarded_ep.sh"
+  pc_guarded_ep="${BATS_TEST_TMPDIR}/pc_ac001_guarded_ep.sh"
+  pc_lib_with_arr="${BATS_TEST_TMPDIR}/pc_ac001_lib_with_arr.sh"
+  # The lib uses local -A (bash 4+ only)
+  printf 'local -A my_map\n' > "$pc_lib_with_arr"
+  # Unguarded entrypoint: sources the lib but has no BASH_VERSINFO guard
+  printf 'source "%s"\n' "$pc_lib_with_arr" > "$pc_unguarded_ep"
+  # Guarded entrypoint: guard (line 1) appears BEFORE the source (line 2) — must PASS
+  printf 'if [ "${BASH_VERSINFO[0]:-0}" -lt 4 ]; then exit 1; fi\nsource "%s"\n' "$pc_lib_with_arr" > "$pc_guarded_ep"
+
+  # Detector: does the entrypoint have a guard BEFORE its first source line?
+  # Returns 0 (PASS) when guard_line < first_source_line.
+  _ep_guard_precedes_source() {
+    local ep_file="$1"
+    local guard_line first_src_line
+    guard_line="$(grep -nE '([[].*BASH_VERSINFO|[(][(].*BASH_VERSINFO)' "$ep_file" 2>/dev/null \
+      | head -1 | cut -d: -f1)"
+    first_src_line="$(grep -nE '^[[:space:]]*(source|\.)[[:space:]]+' "$ep_file" 2>/dev/null \
+      | head -1 | cut -d: -f1)"
+    # No source line at all — entrypoint does not source libs; skip (not an entrypoint)
+    [ -n "$first_src_line" ] || return 0
+    # Has source but no guard — FAIL
+    [ -n "$guard_line" ] || return 1
+    # Guard must precede first source
+    [ "$guard_line" -lt "$first_src_line" ]
+  }
+
+  # Unguarded entrypoint MUST FAIL the positional check (positive-control for soundness).
+  _ep_guard_precedes_source "$pc_unguarded_ep" && {
+    echo "FAIL (AC-001 F-P6-001 positive-control): positional guard detector PASSED on an" >&2
+    echo "  unguarded entrypoint that sources a lib containing local -A. Detector is unsound." >&2
+    echo "  An entrypoint that sources a bash-4 lib WITHOUT a preceding BASH_VERSINFO guard" >&2
+    echo "  MUST be rejected (EC-006)." >&2
+    false
+  }
+
+  # Guarded entrypoint MUST PASS the positional check (negative-control for non-vacuity,
+  # POLICY 11: test must be non-tautological).
+  _ep_guard_precedes_source "$pc_guarded_ep" || {
+    echo "FAIL (AC-001 F-P6-001 positive-control): positional guard detector FAILED on a" >&2
+    echo "  correctly guarded entrypoint (guard precedes first source line). Detector is broken." >&2
+    false
+  }
+
+  # Step 2: Apply the structural check to all real entrypoint scripts under wave-handoff/.
+  # Entrypoints are .sh files NOT under lib/ (direct children of the skill root).
+  local ep_violations=()
+  for f in "${sh_files[@]}"; do
+    # Only inspect files directly under the skill root (not in lib/ subdirectory)
+    local rel="${f#${wave_handoff_skill_dir}/}"
+    [[ "$rel" != lib/* ]] || continue
+    # Only process files that actually source sibling libs (skip pure helpers)
+    grep -qE '^[[:space:]]*(source|\.)[[:space:]]+' "$f" 2>/dev/null || continue
+
+    _ep_guard_precedes_source "$f" || {
+      ep_violations+=("$rel")
+    }
+  done
+
+  [ "${#ep_violations[@]}" -eq 0 ] || {
+    echo "FAIL (AC-001 F-P6-001): entrypoint script(s) source sibling libs that use bash 4+" >&2
+    echo "  syntax but the BASH_VERSINFO guard does NOT appear before the first source line." >&2
+    echo "  EC-006: every entrypoint that sources bash-4 libs must guard BEFORE sourcing." >&2
+    local viol
+    for viol in "${ep_violations[@]}"; do echo "  ${viol}" >&2; done
+    false
+  }
+
+  echo "AC-001: scanned=${#sh_files[@]} files"
 }
 
 # ---------------------------------------------------------------------------
@@ -4239,6 +4324,17 @@ EOF
     echo "  The var-name class must cover [0-9]+ (positional) and [@*#] (special) as alternatives." >&2
     false
   }
+  # O-1: ${#^^} positive control — the # special parameter with a case modifier.
+  # bash-portability.md §2 claims ${#^^} is covered by the [@*#] class; verify explicitly.
+  local pc_bad_hash_modifier
+  pc_bad_hash_modifier="${BATS_TEST_TMPDIR}/pc_ac002_bad_hash_modifier.sh"
+  printf 'echo "${#^^}"\n' > "$pc_bad_hash_modifier"
+  grep -qE '\$\{([a-zA-Z_][a-zA-Z0-9_]*|[0-9]+|[@*#])(\[[^]]*\])?(\^\^?|,,?)' "$pc_bad_hash_modifier" || {
+    echo "FAIL (AC-002 positive-control / O-1): case-modifier-detector did not match '\${#^^}'." >&2
+    echo "  bash-portability.md §2 states \${#^^} is covered by the [@*#] class." >&2
+    echo "  The # special parameter with a case modifier is bash 4+ only." >&2
+    false
+  }
   # Plain expansion (\${VAR}) MUST NOT match.
   ! grep -qE '\$\{([a-zA-Z_][a-zA-Z0-9_]*|[0-9]+|[@*#])(\[[^]]*\])?(\^\^?|,,?)' "$pc_good_plain" || {
     echo "FAIL (AC-002 positive-control): case-modifier-detector falsely matched plain '\${VAR}'." >&2
@@ -4268,7 +4364,10 @@ EOF
   done
 
   # No case modifiers found — compliant.
-  [ "${#modifier_files[@]}" -gt 0 ] || return 0
+  if [ "${#modifier_files[@]}" -eq 0 ]; then
+    echo "AC-002: scanned=${#sh_files[@]} files"
+    return 0
+  fi
 
   # Case modifiers are used; verify an executable bash version guard exists in the scan set.
   # Acceptable forms: BASH_VERSINFO inside an if-conditional ([ or (( precedes it on the line).
@@ -4292,6 +4391,7 @@ EOF
     for v in "${violations[@]}"; do echo "  ${v}" >&2; done
     false
   }
+  echo "AC-002: scanned=${#sh_files[@]} files"
 }
 
 # ---------------------------------------------------------------------------
@@ -4566,6 +4666,7 @@ EOF
     for v in "${violations[@]}"; do echo "  ${v}" >&2; done
     false
   fi
+  echo "AC-003: scanned=${#sh_files[@]} files"
 }
 
 # ---------------------------------------------------------------------------
@@ -4696,7 +4797,10 @@ EOF
   done
 
   # No python/pyyaml invocations — compliant (EC-002: stdlib-only python3 is fine).
-  [ "${#dep_files[@]}" -gt 0 ] || return 0
+  if [ "${#dep_files[@]}" -eq 0 ]; then
+    echo "AC-004: scanned=${#sh_files[@]} files"
+    return 0
+  fi
 
   # Phase 2: for each file with a pyyaml/python-yaml invocation, audit for acceptability.
   # Unacceptable form: --break-system-packages (PEP 668 workaround; not a long-term fix).
@@ -4742,6 +4846,7 @@ EOF
     for v in "${violations[@]}"; do echo "  ${v}" >&2; done
     false
   fi
+  echo "AC-004: scanned=${#sh_files[@]} files"
 }
 
 # ---------------------------------------------------------------------------
@@ -4865,7 +4970,10 @@ EOF
   done
 
   # No jq invocations — compliant.
-  [ "${#jq_files[@]}" -gt 0 ] || return 0
+  if [ "${#jq_files[@]}" -eq 0 ]; then
+    echo "AC-005: scanned=${#sh_files[@]} files"
+    return 0
+  fi
 
   # Phase 2: for each file with jq invocations, verify a preflight guard exists.
   # Acceptable preflight forms:
@@ -4893,6 +5001,7 @@ EOF
     for v in "${violations[@]}"; do echo "  ${v}" >&2; done
     false
   fi
+  echo "AC-005: scanned=${#sh_files[@]} files"
 }
 
 # ---------------------------------------------------------------------------
