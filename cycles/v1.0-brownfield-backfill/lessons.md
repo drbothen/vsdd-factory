@@ -5260,3 +5260,33 @@ or equivalent. The output MUST include the count of files scanned (so a scope-na
 **Follow-up anchor:** Apply at test-writer dispatch for all future E-18/F4 gate-story tests that use a collect-then-scan-then-assert-zero pattern. No dedicated story needed; enforce at test-writer review time.
 
 **Cites:** D-730, S-18.12 LOCAL adv pass-6 O-4, Cycle-Closing Checklist step-3 (process-gap codification obligation), 5/5 portability tests updated 77147d3e.
+
+---
+
+## L-S18.12-asymptotic-clean-accept-prospective-lows-for-streak
+
+**Date:** 2026-06-30 (D-733)
+**Tags:** [codified] [convergence] [adversary] [story-writer]
+**Anchors:** D-733, S-18.12 LOCAL adv pass-9 CLEAN, BC-5.39.001 3-CLEAN protocol, L-F2-3clean-streak-requires-frozen-package
+
+**Lesson (codified):** For asymptotic regex-predicate stories (stories whose acceptance criteria are bounded regular-expression detectors scoped to a specific syntactic form-set), non-blocking LOW observations about prospective syntactic forms NOT exhibited by any current scan-target should be accepted as documented prospective scope boundaries and NOT hardened mid-streak. Hardening them changes the artifact, gives the next fresh-context adversary new surface to probe, and resets the 3-CLEAN streak counter to 0/3 — defeating the purpose of the convergence protocol.
+
+**Root cause pattern observed in S-18.12 passes 5-9:** After a CLEAN pass, the next-pass adversary can find new LOW observations about forms not present in the current corpus. If these observations are hardened (even though they are LOW and non-blocking), the artifact changes. The following fresh-context pass then has an updated artifact that may exhibit new gaps (or the same gap in a slightly different form), producing a NOT-CLEAN finding, resetting the streak. This pattern was observed across passes 5→6 (O-1 hardened at pass-5 created a new variant explored at pass-6) and pass-7→8 (O-1 hardened again at pass-7 created a new variant explored at pass-8). The oscillation cycle (CLEAN→NOT-CLEAN×hardening→CLEAN→NOT-CLEAN×hardening) terminates only when we stop hardening prospective-only LOWs.
+
+**Prevention gate (codified):** When a CLEAN pass returns only LOW observations that are all of the form "syntactic form X is not detected, but no current script uses X":
+
+1. Evaluate each observation: does any current file in the scan corpus exhibit the identified syntactic form? If YES → it is a real gap → fix it. If NO → it is prospective-only → ACCEPT as documented scope boundary per the decision below.
+2. For each accepted observation, record the explicit rationale: "form-set is intentionally bounded to [enumerated forms]; no current scan-target script uses [undetected form]; this is a forward-looking observation about potential future scripts."
+3. Do NOT harden the artifact. The artifact stays byte-stable. The next fresh-context adversary reviews the IDENTICAL artifact.
+4. Record the acceptance in the decision-log (D-NNN) and the STORY-INDEX annotation.
+5. If the next pass also returns only the same prospective LOWs → accept again (they are the same observation about the same prospective gap; the acceptance was correct). Streak advances.
+
+**Companion rule:** This lesson extends L-F2-3clean-streak-requires-frozen-package (D-631): "3-CLEAN convergence requires a FROZEN package — CLEAN passes record verdict + advance streak ONLY; non-blocking observations are deferred-with-anchor, never fixed mid-streak." The present lesson adds precision: for prospective-syntactic-form LOW observations on bounded regex-predicate detectors, the correct deferral anchor is "if a future script introduces this form into the corpus, the guard MUST be extended at that time" — not a story ID (since no story is warranted now) but an explicit future trigger condition.
+
+**Anti-pattern blocked:** Reflexively hardening every LOW observation from a CLEAN pass. This is the "let's clean up while we have a CLEAN pass" impulse — it seems like a low-cost improvement but structurally perturbs the artifact, destroys the streak, and requires 3 more consecutive passes to recover. For a regex-predicate story at pass-9, the cost of reflexive hardening is 2-3 additional passes (each pass takes adversary dispatch + orchestrator + state-manager time). The correct behavior is: ACCEPT the prospective LOW, FREEZE the artifact, dispatch pass-10 on the same artifact.
+
+**Scope boundary:** This lesson applies specifically to LOW observations about prospective syntactic forms not exhibited by any current scan-target. It does NOT apply to: (a) LOW observations about current scripts that exhibit the identified gap; (b) MEDIUM or HIGH findings; (c) [process-gap] observations (those must be routed to follow-up regardless of severity).
+
+**Follow-up anchor:** Applied at D-733 S-18.12 LOCAL adv pass-9 CLEAN closure. Carry forward to all future E-18/F4 gate-story LOCAL cascades.
+
+**Cites:** D-733, S-18.12 passes 5-9 oscillation pattern, BC-5.39.001, L-F2-3clean-streak-requires-frozen-package (D-631), O-1..O-4 accepted-as-documented-prospective-scope-boundaries.
