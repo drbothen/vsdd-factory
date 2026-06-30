@@ -4286,40 +4286,56 @@ EOF
 
   # --- POSITIVE-CONTROL ASSERTIONS (O-1) ---
   # Verify the case-modifier detector matches all bash-4+ forms — including array-element
-  # forms (${arr[0]^^}, ${map[k],,}, ${arr[i]^}) and positional/special parameter forms
-  # (${1^^}, ${@^^}, ${*^^}) — and does not falsely match a plain variable expansion.
+  # forms (${arr[0]^^}, ${map[k],,}, ${arr[i]^}), positional/special parameter forms
+  # (${1^^}, ${@^^}, ${*^^}), and bash-4.4 @-operator case transforms (${var@U}, ${var@L},
+  # ${var@u}) — and does NOT falsely match ${arr[@]}, ${BASH_SOURCE[0]}, or plain expansion.
   # Uses BATS_TEST_TMPDIR synthetic files.
   # Broadened (O-3 / POLICY 13 prospective): optional [...] index between var name and
   # modifier; positional/special parameter names ([0-9]+, @, *, #) in var-name class.
+  # Broadened (O-1 / F-P8): terminal alternation now includes @[ULu] case-transform operators.
   local pc_bad_dbl pc_bad_single pc_bad_arr_elem pc_bad_positional pc_good_plain
+  local pc_bad_at_upper pc_bad_at_lower pc_bad_at_title
+  local pc_good_arr_expand pc_good_bash_source pc_good_pct_expansion
   pc_bad_dbl="${BATS_TEST_TMPDIR}/pc_ac002_bad_dbl.sh"
   pc_bad_single="${BATS_TEST_TMPDIR}/pc_ac002_bad_single.sh"
   pc_bad_arr_elem="${BATS_TEST_TMPDIR}/pc_ac002_bad_arr_elem.sh"
   pc_bad_positional="${BATS_TEST_TMPDIR}/pc_ac002_bad_positional.sh"
   pc_good_plain="${BATS_TEST_TMPDIR}/pc_ac002_good_plain.sh"
+  pc_bad_at_upper="${BATS_TEST_TMPDIR}/pc_ac002_bad_at_upper.sh"
+  pc_bad_at_lower="${BATS_TEST_TMPDIR}/pc_ac002_bad_at_lower.sh"
+  pc_bad_at_title="${BATS_TEST_TMPDIR}/pc_ac002_bad_at_title.sh"
+  pc_good_arr_expand="${BATS_TEST_TMPDIR}/pc_ac002_good_arr_expand.sh"
+  pc_good_bash_source="${BATS_TEST_TMPDIR}/pc_ac002_good_bash_source.sh"
+  pc_good_pct_expansion="${BATS_TEST_TMPDIR}/pc_ac002_good_pct_expansion.sh"
   printf 'echo "${VAR^^}"\n' > "$pc_bad_dbl"
   printf 'echo "${lower,}"\n' > "$pc_bad_single"
   printf 'echo "${arr[0]^^}"\necho "${map[k],,}"\necho "${arr[i]^}"\n' > "$pc_bad_arr_elem"
   printf 'echo "${1^^}"\necho "${@^^}"\n' > "$pc_bad_positional"
   printf 'echo "${VAR}"\n' > "$pc_good_plain"
+  printf 'echo "${v@U}"\n' > "$pc_bad_at_upper"
+  printf 'echo "${v@L}"\n' > "$pc_bad_at_lower"
+  printf 'echo "${v@u}"\n' > "$pc_bad_at_title"
+  printf 'for x in "${arr[@]}"; do echo "$x"; done\n' > "$pc_good_arr_expand"
+  printf 'dir=$(dirname "${BASH_SOURCE[0]}")\n' > "$pc_good_bash_source"
+  printf 'echo "${var%%:*}"\n' > "$pc_good_pct_expansion"
   # Doubled modifier (${VAR^^}) MUST match.
-  grep -qE '\$\{([a-zA-Z_][a-zA-Z0-9_]*|[0-9]+|[@*#])(\[[^]]*\])?(\^\^?|,,?)' "$pc_bad_dbl" || {
+  grep -qE '\$\{([a-zA-Z_][a-zA-Z0-9_]*|[0-9]+|[@*#])(\[[^]]*\])?(\^\^?|,,?|@[ULu])' "$pc_bad_dbl" || {
     echo "FAIL (AC-002 positive-control): case-modifier-detector did not match '\${VAR^^}'." >&2
     false
   }
   # Single-char modifier (${lower,}) MUST match — bash 4+ only, same as doubled form.
-  grep -qE '\$\{([a-zA-Z_][a-zA-Z0-9_]*|[0-9]+|[@*#])(\[[^]]*\])?(\^\^?|,,?)' "$pc_bad_single" || {
+  grep -qE '\$\{([a-zA-Z_][a-zA-Z0-9_]*|[0-9]+|[@*#])(\[[^]]*\])?(\^\^?|,,?|@[ULu])' "$pc_bad_single" || {
     echo "FAIL (AC-002 positive-control): case-modifier-detector did not match '\${lower,}'." >&2
     false
   }
   # Array-element modifiers (${arr[0]^^}, ${map[k],,}, ${arr[i]^}) MUST match.
-  grep -qE '\$\{([a-zA-Z_][a-zA-Z0-9_]*|[0-9]+|[@*#])(\[[^]]*\])?(\^\^?|,,?)' "$pc_bad_arr_elem" || {
+  grep -qE '\$\{([a-zA-Z_][a-zA-Z0-9_]*|[0-9]+|[@*#])(\[[^]]*\])?(\^\^?|,,?|@[ULu])' "$pc_bad_arr_elem" || {
     echo "FAIL (AC-002 positive-control): case-modifier-detector did not match array-element forms (\${arr[0]^^}, \${map[k],,}, \${arr[i]^})." >&2
     false
   }
   # Positional/special param modifiers (${1^^}, ${@^^}) MUST match (O-3 broadening).
   # These are bash 4+ only and cause syntax errors on bash 3.2.
-  grep -qE '\$\{([a-zA-Z_][a-zA-Z0-9_]*|[0-9]+|[@*#])(\[[^]]*\])?(\^\^?|,,?)' "$pc_bad_positional" || {
+  grep -qE '\$\{([a-zA-Z_][a-zA-Z0-9_]*|[0-9]+|[@*#])(\[[^]]*\])?(\^\^?|,,?|@[ULu])' "$pc_bad_positional" || {
     echo "FAIL (AC-002 positive-control): case-modifier-detector did not match positional/special forms (\${1^^}, \${@^^})." >&2
     echo "  The var-name class must cover [0-9]+ (positional) and [@*#] (special) as alternatives." >&2
     false
@@ -4329,14 +4345,46 @@ EOF
   local pc_bad_hash_modifier
   pc_bad_hash_modifier="${BATS_TEST_TMPDIR}/pc_ac002_bad_hash_modifier.sh"
   printf 'echo "${#^^}"\n' > "$pc_bad_hash_modifier"
-  grep -qE '\$\{([a-zA-Z_][a-zA-Z0-9_]*|[0-9]+|[@*#])(\[[^]]*\])?(\^\^?|,,?)' "$pc_bad_hash_modifier" || {
+  grep -qE '\$\{([a-zA-Z_][a-zA-Z0-9_]*|[0-9]+|[@*#])(\[[^]]*\])?(\^\^?|,,?|@[ULu])' "$pc_bad_hash_modifier" || {
     echo "FAIL (AC-002 positive-control / O-1): case-modifier-detector did not match '\${#^^}'." >&2
     echo "  bash-portability.md §2 states \${#^^} is covered by the [@*#] class." >&2
     echo "  The # special parameter with a case modifier is bash 4+ only." >&2
     false
   }
+  # O-1 (F-P8): bash-4.4 @-operator case transforms MUST match.
+  # ${var@U} (uppercase), ${var@L} (lowercase), ${var@u} (titlecase) cause "bad substitution"
+  # on bash 3.2 — they are squarely in this story's bash-4+ feature detection scope.
+  grep -qE '\$\{([a-zA-Z_][a-zA-Z0-9_]*|[0-9]+|[@*#])(\[[^]]*\])?(\^\^?|,,?|@[ULu])' "$pc_bad_at_upper" || {
+    echo "FAIL (AC-002 positive-control / O-1): case-modifier-detector did not match '\${v@U}' (bash-4.4 uppercase operator)." >&2
+    echo "  Terminal alternation must include @[ULu] to cover bash-4.4 parameter-transformation operators." >&2
+    false
+  }
+  grep -qE '\$\{([a-zA-Z_][a-zA-Z0-9_]*|[0-9]+|[@*#])(\[[^]]*\])?(\^\^?|,,?|@[ULu])' "$pc_bad_at_lower" || {
+    echo "FAIL (AC-002 positive-control / O-1): case-modifier-detector did not match '\${v@L}' (bash-4.4 lowercase operator)." >&2
+    false
+  }
+  grep -qE '\$\{([a-zA-Z_][a-zA-Z0-9_]*|[0-9]+|[@*#])(\[[^]]*\])?(\^\^?|,,?|@[ULu])' "$pc_bad_at_title" || {
+    echo "FAIL (AC-002 positive-control / O-1): case-modifier-detector did not match '\${v@u}' (bash-4.4 titlecase operator)." >&2
+    false
+  }
+  # Over-match guards: ${arr[@]} (array expand-all), ${BASH_SOURCE[0]}, ${var%%:*} MUST NOT match.
+  # ${arr[@]}: the [@] is an array subscript consumed by the (\[[^]]*\])? group; no modifier follows.
+  ! grep -qE '\$\{([a-zA-Z_][a-zA-Z0-9_]*|[0-9]+|[@*#])(\[[^]]*\])?(\^\^?|,,?|@[ULu])' "$pc_good_arr_expand" || {
+    echo "FAIL (AC-002 negative-control / O-1): case-modifier-detector falsely matched '\${arr[@]}' (array expand-all)." >&2
+    echo "  The [@] subscript must be consumed by the optional index group; no modifier follows." >&2
+    false
+  }
+  ! grep -qE '\$\{([a-zA-Z_][a-zA-Z0-9_]*|[0-9]+|[@*#])(\[[^]]*\])?(\^\^?|,,?|@[ULu])' "$pc_good_bash_source" || {
+    echo "FAIL (AC-002 negative-control / O-1): case-modifier-detector falsely matched '\${BASH_SOURCE[0]}'." >&2
+    echo "  The [0] subscript must be consumed by the optional index group; no modifier follows." >&2
+    false
+  }
+  ! grep -qE '\$\{([a-zA-Z_][a-zA-Z0-9_]*|[0-9]+|[@*#])(\[[^]]*\])?(\^\^?|,,?|@[ULu])' "$pc_good_pct_expansion" || {
+    echo "FAIL (AC-002 negative-control / O-1): case-modifier-detector falsely matched '\${var%%:*}' (suffix-removal operator)." >&2
+    false
+  }
   # Plain expansion (\${VAR}) MUST NOT match.
-  ! grep -qE '\$\{([a-zA-Z_][a-zA-Z0-9_]*|[0-9]+|[@*#])(\[[^]]*\])?(\^\^?|,,?)' "$pc_good_plain" || {
+  ! grep -qE '\$\{([a-zA-Z_][a-zA-Z0-9_]*|[0-9]+|[@*#])(\[[^]]*\])?(\^\^?|,,?|@[ULu])' "$pc_good_plain" || {
     echo "FAIL (AC-002 positive-control): case-modifier-detector falsely matched plain '\${VAR}'." >&2
     false
   }
@@ -4347,13 +4395,14 @@ EOF
   # Doubled form:     ${var^^} (all-upper),       ${var,,} (all-lower).
   # Array-element forms: ${arr[0]^^}, ${map[k],,}, ${arr[i]^} — optional [...] index allowed.
   # Positional/special forms: ${1^^}, ${@^^}, ${*^^}, ${#^^} — [0-9]+, @, *, # in var-name.
+  # bash-4.4 @-operator case transforms: ${var@U}, ${var@L}, ${var@u} — O-1 extension.
   # Pattern: ${ + (var name | positional | special) + optional [index] + case modifier
   local modifier_files=()
   local violations=()
   local f
   for f in "${sh_files[@]}"; do
     local hits
-    hits="$(grep -nE '\$\{([a-zA-Z_][a-zA-Z0-9_]*|[0-9]+|[@*#])(\[[^]]*\])?(\^\^?|,,?)' "$f" 2>/dev/null || true)"
+    hits="$(grep -nE '\$\{([a-zA-Z_][a-zA-Z0-9_]*|[0-9]+|[@*#])(\[[^]]*\])?(\^\^?|,,?|@[ULu])' "$f" 2>/dev/null || true)"
     if [ -n "$hits" ]; then
       local rel="${f#${wave_handoff_skill_dir}/}"
       modifier_files+=("$f")
@@ -4381,7 +4430,7 @@ EOF
   done
 
   [ "$has_guard" -eq 1 ] || {
-    echo "FAIL (AC-002): bash 4+ case modifiers (\${var^}, \${var^^}, \${var,}, \${var,,}) found in" >&2
+    echo "FAIL (AC-002): bash 4+ case modifiers (\${var^}, \${var^^}, \${var,}, \${var,,}, \${var@U}, \${var@L}, \${var@u}) found in" >&2
     echo "  wave-handoff scripts without an executable bash version guard (BASH_VERSINFO in if/[/(()" >&2
     echo "  found in the scan set." >&2
     echo "  Fix: either remove case modifiers (use 'tr a-z A-Z' or awk for case conversion)" >&2
@@ -4851,10 +4900,23 @@ EOF
   pc_good_py311_preflight="${BATS_TEST_TMPDIR}/pc_ac004_good_py311_preflight.sh"
   printf 'python3.11 -c "import yaml" 2>/dev/null || { echo "pyyaml required" >&2; exit 1; }\n' > "$pc_good_py311_preflight"
   printf 'python3.11 -c "import yaml; print(yaml.safe_load(open(f)))"\n' >> "$pc_good_py311_preflight"
-  # Phase-2 acceptance regex (broadened): python[0-9.]* -c "import yaml" OR command -v python[0-9.]*
-  grep -qE '(python[0-9.]*[[:space:]]+-c[[:space:]]+"import yaml"|command[[:space:]]+-v[[:space:]]+python[0-9.]*)' "$pc_good_py311_preflight" || {
+  # Phase-2 acceptance regex (broadened, O-2): python[0-9.]* -c ["']import yaml["'] OR command -v python[0-9.]*
+  # Accepts both double-quoted and single-quoted forms of the preflight guard.
+  grep -qE "(python[0-9.]*[[:space:]]+-c[[:space:]]+[\"']import yaml[\"']|command[[:space:]]+-v[[:space:]]+python[0-9.]*)" "$pc_good_py311_preflight" || {
     echo "FAIL (AC-004 positive-control / O-P4-001): broadened phase-2 acceptance regex did NOT match 'python3.11 -c \"import yaml\"' preflight." >&2
     echo "  The phase-2 acceptance arm must use python[0-9.]* (not python3) to accept versioned binaries." >&2
+    false
+  }
+  # GOOD (O-2): a script with single-quoted preflight 'python3 -c '\''import yaml'\''' MUST be ACCEPTED.
+  # The phase-2 regex previously hardcoded double-quotes; single-quoted guards are equally valid.
+  local pc_good_singlequote_preflight
+  pc_good_singlequote_preflight="${BATS_TEST_TMPDIR}/pc_ac004_good_singlequote_preflight.sh"
+  printf "python3 -c 'import yaml' 2>/dev/null || { echo 'pyyaml required' >&2; exit 1; }\n" > "$pc_good_singlequote_preflight"
+  printf "python3 -c 'import yaml; print(yaml.safe_load(open(f)))'\n" >> "$pc_good_singlequote_preflight"
+  grep -qE "(python[0-9.]*[[:space:]]+-c[[:space:]]+[\"']import yaml[\"']|command[[:space:]]+-v[[:space:]]+python[0-9.]*)" "$pc_good_singlequote_preflight" || {
+    echo "FAIL (AC-004 positive-control / O-2): phase-2 acceptance regex did NOT match single-quoted preflight 'python3 -c '\"'\"'import yaml'\"'\"''." >&2
+    echo "  O-2: the phase-2 acceptance arm must accept both single and double quotes around 'import yaml'." >&2
+    echo "  Use [\"']import yaml[\"'] (or equivalent) to match both quote forms." >&2
     false
   }
   # -------------------------------------------
@@ -4881,9 +4943,11 @@ EOF
 
   # Phase 2: for each file with a pyyaml/python-yaml invocation, audit for acceptability.
   # Unacceptable form: --break-system-packages (PEP 668 workaround; not a long-term fix).
-  # Acceptable alternatives: python[0-9.]* -c "import yaml" preflight OR awk-based YAML parsing.
+  # Acceptable alternatives: python[0-9.]* -c ["']import yaml["'] preflight OR awk-based YAML parsing.
   # O-P4-001: broadened from python3 to python[0-9.]* so versioned preflights like
   # 'python3.11 -c "import yaml"' and 'command -v python3.11' are recognized as valid guards.
+  # O-2: broadened from double-quote-only to ["']import yaml["'] so single-quoted preflights
+  # like python3 -c 'import yaml' are also recognized (previously caused false FAIL).
   local violations=()
   for f in "${dep_files[@]}"; do
     local rel="${f#${wave_handoff_skill_dir}/}"
@@ -4899,8 +4963,9 @@ EOF
     fi
 
     # Check for proper preflight guard before pyyaml invocation.
-    # Accepts versioned binaries: python3.11 -c "import yaml", command -v python3.11, etc.
-    if ! grep -qE '(python[0-9.]*[[:space:]]+-c[[:space:]]+"import yaml"|command[[:space:]]+-v[[:space:]]+python[0-9.]*)' \
+    # Accepts versioned binaries: python3.11 -c "import yaml", python3 -c 'import yaml', command -v python3.11, etc.
+    # O-2: ["']import yaml["'] accepts both single and double quotes around the import guard.
+    if ! grep -qE "(python[0-9.]*[[:space:]]+-c[[:space:]]+[\"']import yaml[\"']|command[[:space:]]+-v[[:space:]]+python[0-9.]*)" \
         "$f" 2>/dev/null; then
       local hits
       hits="$(grep -nE '(python[0-9.]*[[:space:]].*[Yy][Aa][Mm][Ll]|pip[0-9x]*[[:space:]].*[Pp][Yy][Yy][Aa][Mm][Ll]|import[[:space:]]+yaml)' \
@@ -4943,6 +5008,14 @@ EOF
 #   - Added a separate xargs-with-options arm:
 #     xargs([[:space:]]+-[^[:space:]]+)+[[:space:]]+jq — catches 'xargs -n1 jq', etc.
 #
+# F-P8-001 broadening (LOCAL adversarial pass-8):
+#   Missing execution positions added — jq runs in all three:
+#   - Brace group (current-shell): \{[[:space:]]*jq — '{ jq . f; }'
+#   - Case pattern-action body: \)[[:space:]]*jq — 'case $x in json) jq ...'
+#   - Subshell open: \([[:space:]]*jq — '( jq . f )'
+#   NOTE: unlike IFS (where subshell is EXEMPT because IFS doesn't leak), for jq a
+#   subshell is a HAZARD — jq still executes. So jq covers (, {, AND ).
+#
 # Red Gate expectation: PASS (no jq invocations found; absent = compliant).
 # ---------------------------------------------------------------------------
 
@@ -4964,10 +5037,14 @@ EOF
 
   # --- POSITIVE-CONTROL ASSERTIONS (O-1) ---
   # Verify the jq-detector matches command-substitution, &&/|| chains, xargs (direct and
-  # with options), keyword-prefixed forms (including else/elif — F-P2-002), and common
-  # command wrappers (time, env, command, sudo — O-3), and does NOT match jq in a comment.
+  # with options), keyword-prefixed forms (including else/elif — F-P2-002), common
+  # command wrappers (time, env, command, sudo — O-3), brace-group/case-body/subshell
+  # execution positions (F-P8-001), and does NOT match jq in a comment, $(other_cmd),
+  # foo() { echo; }, or ${jq_var} parameter expansion.
   # Uses BATS_TEST_TMPDIR synthetic files; no real wave-handoff scripts are executed.
   local pc_bad_cmdsubst pc_bad_and pc_bad_xargs pc_bad_else pc_bad_time pc_bad_xargs_opts pc_good_comment
+  local pc_bad_brace pc_bad_case_paren pc_bad_subshell
+  local pc_good_other_cmdsubst pc_good_func_brace pc_good_jq_var
   pc_bad_cmdsubst="${BATS_TEST_TMPDIR}/pc_ac005_bad_cmdsubst.sh"
   pc_bad_and="${BATS_TEST_TMPDIR}/pc_ac005_bad_and.sh"
   pc_bad_xargs="${BATS_TEST_TMPDIR}/pc_ac005_bad_xargs.sh"
@@ -4975,6 +5052,12 @@ EOF
   pc_bad_time="${BATS_TEST_TMPDIR}/pc_ac005_bad_time.sh"
   pc_bad_xargs_opts="${BATS_TEST_TMPDIR}/pc_ac005_bad_xargs_opts.sh"
   pc_good_comment="${BATS_TEST_TMPDIR}/pc_ac005_good_comment.sh"
+  pc_bad_brace="${BATS_TEST_TMPDIR}/pc_ac005_bad_brace.sh"
+  pc_bad_case_paren="${BATS_TEST_TMPDIR}/pc_ac005_bad_case_paren.sh"
+  pc_bad_subshell="${BATS_TEST_TMPDIR}/pc_ac005_bad_subshell.sh"
+  pc_good_other_cmdsubst="${BATS_TEST_TMPDIR}/pc_ac005_good_other_cmdsubst.sh"
+  pc_good_func_brace="${BATS_TEST_TMPDIR}/pc_ac005_good_func_brace.sh"
+  pc_good_jq_var="${BATS_TEST_TMPDIR}/pc_ac005_good_jq_var.sh"
   printf 'result=$(jq -r .name input.json)\n' > "$pc_bad_cmdsubst"
   printf 'cmd && jq ".key" file.json\n' > "$pc_bad_and"
   printf 'find . -name "*.json" | xargs jq ".id"\n' > "$pc_bad_xargs"
@@ -4982,10 +5065,16 @@ EOF
   printf "time jq '.' input.json\n" > "$pc_bad_time"
   printf 'find . -name "*.json" | xargs -n1 jq ".id"\n' > "$pc_bad_xargs_opts"
   printf '# no jq dependency; using awk instead\n' > "$pc_good_comment"
-  # O-3 broadened jq_re: adds time|env|command|sudo to the keyword wrapper group; adds a
-  # separate arm for xargs with intervening options (e.g. xargs -n1 jq).
+  printf '{ jq . f; }\n' > "$pc_bad_brace"
+  printf 'case $x in json) jq -r .x f ;; esac\n' > "$pc_bad_case_paren"
+  printf '( jq . f )\n' > "$pc_bad_subshell"
+  printf 'result=$(other_cmd . f)\n' > "$pc_good_other_cmdsubst"
+  printf 'foo() { echo "hello"; }\n' > "$pc_good_func_brace"
+  printf 'echo "${jq_var}"\n' > "$pc_good_jq_var"
+  # F-P8-001 + O-3 broadened jq_re: adds time|env|command|sudo to the keyword wrapper group;
+  # adds xargs-with-options arm; adds brace-group, case-pattern-body, and subshell arms.
   # Positive-control regex MUST BE BYTE-IDENTICAL to the real-scan-loop regex below.
-  local jq_re='(^[[:space:]]*jq([[:space:]]|$)|[|;&][[:space:]]*jq([[:space:]]|$)|\$[(]jq([[:space:]]|$)|`jq([[:space:]]|$)|(xargs|if|then|do|else|elif|time|env|command|sudo)[[:space:]]+jq([[:space:]]|$)|xargs([[:space:]]+-[^[:space:]]+)+[[:space:]]+jq([[:space:]]|$))'
+  local jq_re='(^[[:space:]]*jq([[:space:]]|$)|[|;&][[:space:]]*jq([[:space:]]|$)|\$[(]jq([[:space:]]|$)|`jq([[:space:]]|$)|(xargs|if|then|do|else|elif|time|env|command|sudo)[[:space:]]+jq([[:space:]]|$)|xargs([[:space:]]+-[^[:space:]]+)+[[:space:]]+jq([[:space:]]|$)|\{[[:space:]]*jq([[:space:]]|$)|\)[[:space:]]*jq([[:space:]]|$)|\([[:space:]]*jq([[:space:]]|$))'
   # BAD: command-substitution $(jq ...) MUST be detected.
   grep -qE "$jq_re" "$pc_bad_cmdsubst" || {
     echo "FAIL (AC-005 positive-control): jq-detector did not match '\$(jq ...)' command-substitution form." >&2
@@ -5018,9 +5107,52 @@ EOF
     echo "  The xargs-with-options arm 'xargs([[:space:]]+-[^[:space:]]+)+[[:space:]]+jq' is required." >&2
     false
   }
+  # BAD (F-P8-001): '{ jq . f; }' brace-group MUST be detected.
+  # Brace groups run in the current shell — jq executes and is a genuine dependency hazard.
+  grep -qE "$jq_re" "$pc_bad_brace" || {
+    echo "FAIL (AC-005 positive-control / F-P8-001): jq-detector did not match '{ jq . f; }' brace-group form." >&2
+    echo "  Brace groups run in the current shell; add arm: \\{[[:space:]]*jq([[:space:]]|\$)" >&2
+    false
+  }
+  # BAD (F-P8-001): 'case $x in json) jq ...' case-pattern-body MUST be detected.
+  # The ) closes the case pattern label; jq is the first command in the case action body.
+  grep -qE "$jq_re" "$pc_bad_case_paren" || {
+    echo "FAIL (AC-005 positive-control / F-P8-001): jq-detector did not match 'case ... ) jq' case-body form." >&2
+    echo "  Case pattern-action bodies run in the current shell; add arm: \\)[[:space:]]*jq([[:space:]]|\$)" >&2
+    false
+  }
+  # BAD (F-P8-001): '( jq . f )' subshell MUST be detected.
+  # Unlike IFS (where subshell is EXEMPT because IFS doesn't leak), jq in a subshell
+  # still EXECUTES — it is a runtime dependency regardless of the subshell boundary.
+  grep -qE "$jq_re" "$pc_bad_subshell" || {
+    echo "FAIL (AC-005 positive-control / F-P8-001): jq-detector did not match '( jq . f )' subshell form." >&2
+    echo "  jq in a subshell still executes (unlike IFS which doesn't leak); add arm: \\([[:space:]]*jq([[:space:]]|\$)" >&2
+    false
+  }
   # GOOD: jq in a comment MUST NOT be detected.
   ! grep -qE "$jq_re" "$pc_good_comment" || {
     echo "FAIL (AC-005 positive-control): jq-detector falsely matched jq inside a comment." >&2
+    false
+  }
+  # GOOD (F-P8-001 negative control): '\$(other_cmd)' MUST NOT be detected.
+  # The \$( arm only fires when 'jq' immediately follows '$(', not other command names.
+  ! grep -qE "$jq_re" "$pc_good_other_cmdsubst" || {
+    echo "FAIL (AC-005 negative-control / F-P8-001): jq-detector falsely matched '\$(other_cmd)'." >&2
+    echo "  The \\\$( arm must require 'jq' as the immediate next token after '\$(', not any command." >&2
+    false
+  }
+  # GOOD (F-P8-001 negative control): 'foo() { echo; }' function definition MUST NOT be detected.
+  # The { arm requires jq as the first token after '{[[:space:]]*'; a function def has 'echo', not 'jq'.
+  ! grep -qE "$jq_re" "$pc_good_func_brace" || {
+    echo "FAIL (AC-005 negative-control / F-P8-001): jq-detector falsely matched 'foo() { echo; }' function definition." >&2
+    echo "  The { arm must only fire when jq is the first command token after '{', not any other command." >&2
+    false
+  }
+  # GOOD (F-P8-001 negative control): '\${jq_var}' parameter expansion MUST NOT be detected.
+  # '\${jq_var}' contains '{' then 'jq_var}'; but jq_var is followed by '}', not space/EOL.
+  ! grep -qE "$jq_re" "$pc_good_jq_var" || {
+    echo "FAIL (AC-005 negative-control / F-P8-001): jq-detector falsely matched '\${jq_var}' parameter expansion." >&2
+    echo "  The { arm requires jq followed by ([[:space:]]|\$); '\${jq_var}' has '_var}' after 'jq', not space/EOL." >&2
     false
   }
   # -------------------------------------------
@@ -5034,13 +5166,18 @@ EOF
   #   (xargs|if|then|do|else|elif|time|env|command|sudo)[[:space:]]+jq(...)
   #                                                        — keyword/wrapper-prefixed invocations
   #   xargs([[:space:]]+-[^[:space:]]+)+[[:space:]]+jq(...)— xargs with intervening options
+  #   \{[[:space:]]*jq([[:space:]]|$)                     — brace-group current-shell execution
+  #   \)[[:space:]]*jq([[:space:]]|$)                     — case-pattern-action body (after ')' label close)
+  #   \([[:space:]]*jq([[:space:]]|$)                     — subshell open (jq still executes)
   #   F-P2-002: else and elif added (genuine command positions for jq invocation).
   #   O-3: time, env, command, sudo added as common command wrappers.
   #        xargs-with-options arm handles 'xargs -n1 jq', 'xargs -n1 -P4 jq', etc.
+  #   F-P8-001: brace-group, case-body, subshell arms added. NOTE: for jq, subshell IS a
+  #             hazard (unlike IFS where subshell is exempt) — jq runs in the subshell.
   local jq_files=()
   local f
   for f in "${sh_files[@]}"; do
-    if grep -qE '(^[[:space:]]*jq([[:space:]]|$)|[|;&][[:space:]]*jq([[:space:]]|$)|\$[(]jq([[:space:]]|$)|`jq([[:space:]]|$)|(xargs|if|then|do|else|elif|time|env|command|sudo)[[:space:]]+jq([[:space:]]|$)|xargs([[:space:]]+-[^[:space:]]+)+[[:space:]]+jq([[:space:]]|$))' \
+    if grep -qE '(^[[:space:]]*jq([[:space:]]|$)|[|;&][[:space:]]*jq([[:space:]]|$)|\$[(]jq([[:space:]]|$)|`jq([[:space:]]|$)|(xargs|if|then|do|else|elif|time|env|command|sudo)[[:space:]]+jq([[:space:]]|$)|xargs([[:space:]]+-[^[:space:]]+)+[[:space:]]+jq([[:space:]]|$)|\{[[:space:]]*jq([[:space:]]|$)|\)[[:space:]]*jq([[:space:]]|$)|\([[:space:]]*jq([[:space:]]|$))' \
         "$f" 2>/dev/null; then
       jq_files+=("$f")
     fi
@@ -5061,7 +5198,7 @@ EOF
     local rel="${f#${wave_handoff_skill_dir}/}"
     if ! grep -qE 'command[[:space:]]+-v[[:space:]]+jq|which[[:space:]]+jq' "$f" 2>/dev/null; then
       local hits
-      hits="$(grep -nE '(^[[:space:]]*jq([[:space:]]|$)|[|;&][[:space:]]*jq([[:space:]]|$)|\$[(]jq([[:space:]]|$)|`jq([[:space:]]|$)|(xargs|if|then|do|else|elif|time|env|command|sudo)[[:space:]]+jq([[:space:]]|$)|xargs([[:space:]]+-[^[:space:]]+)+[[:space:]]+jq([[:space:]]|$))' \
+      hits="$(grep -nE '(^[[:space:]]*jq([[:space:]]|$)|[|;&][[:space:]]*jq([[:space:]]|$)|\$[(]jq([[:space:]]|$)|`jq([[:space:]]|$)|(xargs|if|then|do|else|elif|time|env|command|sudo)[[:space:]]+jq([[:space:]]|$)|xargs([[:space:]]+-[^[:space:]]+)+[[:space:]]+jq([[:space:]]|$)|\{[[:space:]]*jq([[:space:]]|$)|\)[[:space:]]*jq([[:space:]]|$)|\([[:space:]]*jq([[:space:]]|$))' \
               "$f" 2>/dev/null || true)"
       while IFS= read -r hit; do
         violations+=("${rel}: jq invocation without preflight: ${hit}")
