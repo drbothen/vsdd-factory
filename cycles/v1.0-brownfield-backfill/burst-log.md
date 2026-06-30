@@ -11146,7 +11146,7 @@ S-18.12 LOCAL adversarial cascade streak: 2/3 → **0/3** (NOT-CLEAN; F-P13-001 
 
 ### Factory-artifacts Commits
 
-(SHA recorded via SHA-patch follow-up per D-447(c)+D-449(e) — actual commit SHA to be patched after push)
+- `4353988e` — state(D-735): S-18.12 LOCAL adv pass-11 NOT-CLEAN closure burst (single commit per TD-VSDD-053; SHA-patch follow-up 7cf7a52b per D-447(c)+D-449(e))
 
 ## D-736 — S-18.12 LOCAL adv pass-12 NOT-CLEAN closure + SESSION-CHECKPOINT REFRESH — 2026-06-30
 
@@ -11220,7 +11220,7 @@ This burst-log entry contains all 8 D-444(c) mandatory blocks:
 5. Dim-2: 4-index parity gate with literal-shell stdout above
 6. Dim-5: This block (8-block self-verification)
 7. Closes: pass-12 NOT-CLEAN closure; streak 0/3; F-P12-001 remediated (f725426e); O-1/O-2 accepted; ARTIFACTS FROZEN f725426e/v1.11; SESSION CHECKPOINT refreshed for zero-context pass-13 resume
-8. Factory-artifacts commits: (SHA recorded via SHA-patch follow-up per D-447(c)+D-449(e) — to be patched after push)
+8. Factory-artifacts commits: `11f41673` state(D-736): S-18.12 LOCAL adv pass-12 NOT-CLEAN closure + session-checkpoint refresh (single commit per TD-VSDD-053; SHA-patch follow-up per D-447(c)+D-449(e))
 
 All 8 blocks present. Gate: PASS.
 
@@ -11240,4 +11240,4 @@ S-18.12 LOCAL adversarial cascade streak: stays **0/3** (NOT-CLEAN; F-P12-001 HI
 
 ### Factory-artifacts Commits
 
-(SHA recorded via SHA-patch follow-up per D-447(c)+D-449(e) — actual commit SHA to be patched after push)
+- `11f41673` — state(D-736): S-18.12 LOCAL adv pass-12 NOT-CLEAN closure + session-checkpoint refresh (single commit per TD-VSDD-053; SHA-patch follow-up per D-447(c)+D-449(e))
