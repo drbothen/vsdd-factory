@@ -10733,7 +10733,7 @@ This burst-log entry contains all 8 D-444(c) mandatory blocks:
 5. Dim-2: 4-index parity gate with literal-shell stdout above
 6. Dim-5: This block (8-block self-verification)
 7. Closes: pass-7 CLEAN closure; streak 0/3→1/3; O-1 hardened; O-2 accepted
-8. Factory-artifacts commits: [SHA-pending — filled via SHA-patch follow-up per D-447(c)+D-449(e)]
+8. Factory-artifacts commits: c4e33952
 
 All 8 blocks present. Gate: PASS.
 
@@ -10750,4 +10750,4 @@ S-18.12 LOCAL adversarial cascade streak: 0/3 → **1/3** (pass-7 CLEAN). NEXT: 
 
 ### Factory-artifacts Commits
 
-- [SHA-pending] — D-731 S-18.12 LOCAL adv pass-7 CLEAN closure (single commit per TD-VSDD-053; SHA updated via SHA-patch follow-up per D-447(c)+D-449(e))
+- c4e33952 — D-731 S-18.12 LOCAL adv pass-7 CLEAN closure (single commit per TD-VSDD-053)
