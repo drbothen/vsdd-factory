@@ -10946,3 +10946,97 @@ S-18.12 LOCAL adversarial cascade streak: 0/3 → **1/3** (CLEAN pass). NEXT: pa
 ### Factory-artifacts Commits
 
 - 9ddac3b7 — D-733 S-18.12 LOCAL adv pass-9 CLEAN closure (single commit per TD-VSDD-053; SHA-patch follow-up per D-447(c)+D-449(e))
+
+---
+
+## D-734 — S-18.12 LOCAL adv pass-10 CLEAN closure — 2026-06-30
+
+### Parent-commit
+
+813efa61 (SHA-patch follow-up for D-733 2026-06-30; factory-artifacts HEAD at burst start)
+
+### Adversary Verdict (Source Attestation — D-448(a))
+
+S-18.12 LOCAL adversarial pass-10: **CLEAN** — 0 CRITICAL / 0 HIGH / 0 MEDIUM blocking / 0 LOW blocking. Streak advances **1/3 → 2/3** per BC-5.39.001. Five non-blocking LOW observations (O-1..O-5), all accepted as documented prospective or cosmetic scope boundaries. No artifact changes. GOVERNANCE-ONLY closure.
+
+- **O-1 (LOW, prospective):** AC-003 step-2 exclusion `^[0-9]+:[[:space:]]*(local[[:space:]]|[(])` broader than `local IFS=` specifically. No current script exhibits `local x; IFS='|'`. ACCEPTED-AS-DOCUMENTED-PROSPECTIVE-SCOPE-BOUNDARY.
+- **O-2 (LOW, prospective):** AC-003/AC-005 do not strip comments; `# e.g.; IFS='|'` could trip anchor. No current script has comment-embedded semicolon-IFS. ACCEPTED-AS-DOCUMENTED-PROSPECTIVE-SCOPE-BOUNDARY.
+- **O-3 (LOW, prospective):** AC-002 `@`-operators bounded to `@[ULu]`; bash-5+ `@Q/@E/@P/@A/@a/@K` not detected. No current script uses any `@`-operator. ACCEPTED-AS-DOCUMENTED-PROSPECTIVE-SCOPE-BOUNDARY.
+- **O-4 (LOW):** Story §"Previous Story Intelligence" cites `~4002`/`~3828-4064` line numbers (TD-VSDD-091 supplementary volatile pin; stable function-name anchor present; non-load-bearing). ACCEPTED-AS-DOCUMENTED.
+- **O-5 (LOW):** AC-002/003/005 embed regex blocks; AC-001/AC-004-phase-1 in prose only. Not a correctness gap (prose ↔ doc/test regexes agree). ACCEPTED-AS-DOCUMENTED-PROSPECTIVE-SCOPE-BOUNDARY.
+
+Source attestation (D-448(a)): above faithfully describes s-18.12-local-adversary-pass-10.md Part A finding set — CLEAN verdict; 0 blocking findings; 5 non-blocking LOW observations; streak 1/3 → 2/3. No divergence from Part A.
+
+### Files Touched (Dim-1)
+
+**factory-artifacts branch (this D-734 burst — single commit per TD-VSDD-053):**
+- `cycles/v1.0-brownfield-backfill/s-18.12-local-adversary-pass-10.md` — NEW; pass-10 adversary report persisted (verdict CLEAN; 0 blocking; O-1..O-5 LOW non-blocking all accepted; streak 1/3→2/3; cascade trajectory passes 1-10; severity decay H→H→M→M→CLEAN→MED→CLEAN→MED→CLEAN→CLEAN)
+- `stories/STORY-INDEX.md` — v4.115→v4.116 (S-18.12 body row annotation: pass-10 CLEAN streak 2/3 prepended; GOVERNANCE-ONLY — story normative version stays v1.9, no AC change; `last_amended:` updated; `version:` frontmatter bumped; POLICY 14 leg-5)
+- `cycles/v1.0-brownfield-backfill/decision-log.md` — D-734 block appended
+- `cycles/v1.0-brownfield-backfill/burst-log.md` — D-734 entry appended (this file)
+- `.factory/STATE.md` — v4.84→v4.85 (D-734 banner + frontmatter advance + §1 POSTURE + §3 D-734 carry + §4 D-734 Tier-A entry + §8 STORY-INDEX v4.116 + §9 factory-artifacts HEAD + §11 D-734 refresh + §12 3e-S18.12 streak 2/3 pass-11 NEXT + Session Resume Checkpoint refreshed for zero-context resume into pass-11)
+
+**feature/S-18.12 branch (FROZEN — not touched in this burst):**
+- No changes. Artifacts byte-stable at 57b09645. Story v1.9 UNCHANGED. Per artifact-freeze directive D-733 carry-forward D-734.
+
+**NOT committed in this burst (develop/main unchanged):**
+- No code changes to develop (feature branch local, not pushed per STOP-BEFORE-PR-MERGE D-665)
+- develop_head 531dacfb UNCHANGED; merged_count 95 UNCHANGED; total_bcs 1,974 UNCHANGED
+
+### Codifications (Dim-6)
+
+- **D-734** decision-log block codified: S-18.12 LOCAL adv pass-10 CLEAN; O-1..O-5 accepted-as-documented-prospective-scope-boundaries; streak 1/3→2/3; artifact-freeze directive carry-forward.
+- **STORY-INDEX v4.115→v4.116**: S-18.12 row annotation updated (GOVERNANCE-ONLY; story stays v1.9; POLICY 14 leg-5).
+
+### Dim-2 (4-Index Parity Gate — D-449(a) literal-shell execution evidence)
+
+Gate command:
+```bash
+grep "^version:" \
+  .factory/specs/behavioral-contracts/BC-INDEX.md \
+  .factory/specs/verification-properties/VP-INDEX.md \
+  .factory/stories/STORY-INDEX.md \
+  .factory/specs/architecture/ARCH-INDEX.md
+```
+
+Captured stdout (post-STORY-INDEX v4.116 update, pre-commit):
+```
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.57"
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.51"
+.factory/stories/STORY-INDEX.md:version: "4.116"
+.factory/specs/architecture/ARCH-INDEX.md:version: "2.85"
+```
+
+Gate result: PASS. BC-INDEX v3.57 (UNCHANGED), VP-INDEX v2.51 (UNCHANGED), STORY-INDEX v4.116 (BUMPED D-734), ARCH-INDEX v2.85 (UNCHANGED). Zero FAIL.
+
+### Dim-5 (8-Block Presence Gate — D-446(a))
+
+This burst-log entry contains all 8 D-444(c) mandatory blocks:
+1. Parent-commit: 813efa61 (SHA-patch follow-up D-733 2026-06-30; factory-artifacts HEAD at burst start)
+2. Adversary verdict: CLEAN; 0 blocking; O-1..O-5 accepted-as-documented-prospective-scope-boundaries; streak 1/3→2/3
+3. Files touched: pass-10 report + STORY-INDEX + decision-log + burst-log + STATE.md
+4. Codifications (Dim-6): D-734 + STORY-INDEX v4.116
+5. Dim-2: 4-index parity gate with literal-shell stdout above
+6. Dim-5: This block (8-block self-verification)
+7. Closes: pass-10 CLEAN closure; streak 1/3→2/3; O-1..O-5 accepted; artifact freeze directive carry-forward
+8. Factory-artifacts commits: [SHA to be captured post-commit per D-447(c)+D-449(e)]
+
+All 8 blocks present. Gate: PASS.
+
+### Dim-7 (Streak Status)
+
+S-18.12 LOCAL adversarial cascade streak: 1/3 → **2/3** (CLEAN pass). NEXT: pass-11 (fresh context; streak 2/3; artifacts frozen at 57b09645/v1.9). ONE more CLEAN pass achieves 3-CLEAN convergence per BC-5.39.001.
+
+### Closes
+
+- S-18.12 LOCAL adv pass-10: **CLEAN** (0 blocking). Streak advances 1/3→2/3. Pass-11 NEXT.
+- O-1 (AC-003 step-2 exclusion broader than `local IFS=`): **ACCEPTED-AS-DOCUMENTED-PROSPECTIVE-SCOPE-BOUNDARY** (D-734).
+- O-2 (AC-003/AC-005 comment-stripping): **ACCEPTED-AS-DOCUMENTED-PROSPECTIVE-SCOPE-BOUNDARY** (D-734).
+- O-3 (AC-002 bash-5+ `@`-operators): **ACCEPTED-AS-DOCUMENTED-PROSPECTIVE-SCOPE-BOUNDARY** (D-734).
+- O-4 (TD-VSDD-091 supplementary line-number pin): **ACCEPTED-AS-DOCUMENTED** (D-734; stable anchor present).
+- O-5 (regex-in-story asymmetry): **ACCEPTED-AS-DOCUMENTED-PROSPECTIVE-SCOPE-BOUNDARY** (D-734).
+- STORY-INDEX v4.116 (S-18.12 annotation pass-10 CLEAN streak 2/3; POLICY 14 leg-5): **DONE** (state-manager this burst).
+
+### Factory-artifacts Commits
+
+- [SHA to be captured post-commit per D-447(c)+D-449(e)]

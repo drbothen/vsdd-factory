@@ -4537,3 +4537,59 @@ Severity decay H→H→M→M→CLEAN→MED→CLEAN→MED→**CLEAN**. HIGH findi
 ### NEXT
 
 S-18.12 LOCAL adversarial pass-10. Fresh context. Streak **1/3**. Need passes 10 and 11 both CLEAN for 3-CLEAN convergence per BC-5.39.001. **ARTIFACTS FROZEN at 57b09645/v1.9 — do NOT harden prospective LOWs.** STOP-BEFORE-PR-MERGE (D-665) holds.
+
+## D-734 — S-18.12 LOCAL adv pass-10 CLEAN closure — 2026-06-30
+
+### Verdict
+
+S-18.12 LOCAL adversarial pass-10: **CLEAN** (0 CRITICAL / 0 HIGH / 0 MEDIUM blocking / 0 blocking-LOW). Streak advances **1/3 → 2/3**. Five non-blocking LOW observations (O-1..O-5): all accepted as documented prospective or cosmetic scope boundaries. No artifact changes. GOVERNANCE-ONLY closure. Pass-11 NEXT (streak 2/3).
+
+**ARTIFACT-FREEZE DIRECTIVE (carry-forward from D-733):** Feature artifacts MUST stay byte-stable at feature/S-18.12 HEAD **57b09645** and story at **v1.9** through pass-11. ONE more CLEAN pass achieves 3-CLEAN CONVERGED per BC-5.39.001. Do NOT harden O-1..O-5 mid-streak.
+
+### Findings Summary
+
+| ID | Severity | Description | Disposition |
+|----|----------|-------------|-------------|
+| O-1 | LOW (non-blocking, prospective) | AC-003 step-2 exclusion `^[0-9]+:[[:space:]]*(local[[:space:]]\|[(])` is broader than `local IFS=` specifically; a future `local x; IFS='|'` on the same line would be incorrectly excluded | ACCEPTED-AS-DOCUMENTED-PROSPECTIVE-SCOPE-BOUNDARY — no current script exhibits this form; form-set intentionally bounded |
+| O-2 | LOW (non-blocking, prospective) | AC-003/AC-005 detectors do not strip shell comments; a comment `# e.g.; IFS='|'` could trip the AC-003 anchor | ACCEPTED-AS-DOCUMENTED-PROSPECTIVE-SCOPE-BOUNDARY — no current script has comment-embedded semicolon-IFS; comment-stripping out of scope for line-level detector |
+| O-3 | LOW (non-blocking, prospective) | AC-002 `@`-operators bounded to `@[ULu]`; bash-5+ operators `@Q/@E/@P/@A/@a/@K` not detected; no current script uses any `@`-operator | ACCEPTED-AS-DOCUMENTED-PROSPECTIVE-SCOPE-BOUNDARY — form-set intentionally bounded to known bash-4.4+ operators; consistent with D-733 O-1 acceptance |
+| O-4 | LOW (non-blocking, documentation gap) | Story §"Previous Story Intelligence" cites `~4002`/`~3828-4064` line numbers alongside load-bearing function-name anchor (TD-VSDD-091 supplementary volatile pin; stable anchor present) | ACCEPTED-AS-DOCUMENTED — supplementary nit is non-load-bearing; stable anchor present; §"Previous Story Intelligence" is historical prose; consistent with D-733 O-4 acceptance |
+| O-5 | LOW (non-blocking, documentation asymmetry) | AC-002/003/005 embed verbatim regex blocks; AC-001/AC-004-phase-1 describe forms in prose only (cosmetically asymmetric) | ACCEPTED-AS-DOCUMENTED-PROSPECTIVE-SCOPE-BOUNDARY — prose ↔ doc/test regexes agree; no functional correctness risk; authoring convention gap only |
+
+### Acceptance Rationale for O-1..O-5
+
+All five accepted observations share a structural pattern: each identifies a syntactic form that is (a) NOT exhibited by any current scan-target script in `plugins/vsdd-factory/skills/wave-handoff/*.sh` or the E-18 corpus, or (b) a cosmetic documentation asymmetry with no functional correctness impact. The AC form-sets are intentionally bounded after ten adversarial passes. This is an explicit, reasoned engineering decision per the Canonical Principle: the benefit of protection against hypothetical future scripts that do not exist is outweighed by the cost of a streak reset and two additional passes. If a future script introduces one of these forms, the portability-lint guard MUST be extended at that time.
+
+### Severity Decay
+
+| Pass | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 |
+|------|---|---|---|---|---|---|---|---|---|---|
+| Verdict | NOT-CLEAN | NOT-CLEAN | NOT-CLEAN | NOT-CLEAN | CLEAN | NOT-CLEAN | CLEAN | NOT-CLEAN | CLEAN | CLEAN |
+| Highest | HIGH | HIGH | MED | MED | — | MED | — | MED | — | — |
+| Streak | 0/3 | 0/3 | 0/3 | 0/3 | 1/3 | 0/3 | 1/3 | 0/3 | 1/3 | **2/3** |
+
+Severity decay H→H→M→M→CLEAN→MED→CLEAN→MED→CLEAN→**CLEAN**. Two consecutive CLEAN passes (9+10). Pass-11 NEXT for 3-CLEAN convergence.
+
+### Codifications
+
+- **D-734** decision-log block (this entry): S-18.12 LOCAL adv pass-10 CLEAN closure; O-1..O-5 accepted-as-documented-prospective-scope-boundaries; streak 1/3→2/3; artifact-freeze directive carry-forward.
+- **STORY-INDEX v4.115→v4.116**: S-18.12 body row annotation updated with pass-10 CLEAN streak 2/3 (GOVERNANCE-ONLY; story stays v1.9 — no AC change; POLICY 14 leg-5; state-manager this burst).
+- **s-18.12-local-adversary-pass-10.md**: pass-10 adversary report persisted in cycles/v1.0-brownfield-backfill/.
+
+### Feature Branch
+
+- **feature/S-18.12** — WIP at 57b09645 (FROZEN; artifact-freeze directive per D-733 carry-forward D-734 — do NOT harden prospective LOWs mid-streak). No changes in this burst. 68/68 bats GREEN.
+
+### Develop / 4-Index State
+
+- develop_head: 531dacfb UNCHANGED
+- merged_count: 95 UNCHANGED
+- total_bcs: 1,974 UNCHANGED
+- BC-INDEX: v3.57 UNCHANGED
+- VP-INDEX: v2.51 UNCHANGED
+- STORY-INDEX: v4.115→v4.116 (BUMPED this burst, POLICY 14 leg-5, annotation-only no story AC change)
+- ARCH-INDEX: v2.85 UNCHANGED
+
+### NEXT
+
+S-18.12 LOCAL adversarial pass-11. Fresh context. Streak **2/3**. ONE more CLEAN pass achieves 3-CLEAN CONVERGED per BC-5.39.001. **ARTIFACTS FROZEN at 57b09645/v1.9 — do NOT harden prospective LOWs.** After 3-CLEAN: demo-recorder per-AC → push feature/S-18.12 → pr-manager 9-step PR → CI green → STOP-BEFORE-PR-MERGE (D-665) → human merge directly. STOP-BEFORE-PR-MERGE (D-665) holds.
