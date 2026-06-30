@@ -116,8 +116,9 @@ required when the feature is absent).
 
 **Pattern detected:** A bare `IFS=...` assignment that is not scoped to a function
 local variable, a command prefix for `read`, or a subshell — detected at line-start,
-after `;`, after `&&` or `||`, after a single `&` (background command), and after the
-keywords `then`, `do`, `else`, and `elif`.
+after `;`, after `&&` or `||`, after a single `&` (background command), after `{ `
+(brace group — runs in current shell), after `) ` (case pattern-action body — runs in
+current shell), and after the keywords `then`, `do`, `else`, and `elif`.
 
 **Why it breaks:** Assigning to `IFS` at script scope or as a standalone statement
 inside a function mutates the shell's global field separator for the remainder of that
@@ -149,6 +150,8 @@ if ...; then IFS=':'    # then-keyword prefix — global mutation in if-body
 for ...; do IFS='|'     # do-keyword prefix — global mutation in loop-body
 else IFS=':'            # else-keyword prefix — global mutation in else-branch
 elif ...; then IFS=':'  # elif-keyword prefix — global mutation in elif-body
+{ IFS=$'\n'; read x; }  # brace-group — runs in current shell, global mutation
+case $x in p) IFS='|' ;; esac  # case pattern-action body — runs in current shell, global mutation
 ```
 
 **Portable fix:** Replace the global assignment with one of the scoped forms above.
@@ -157,10 +160,12 @@ The S-18.01 fix replaced `IFS='|'` field splitting in `parse-sprint-state.sh` wi
 the shell's IFS.
 
 **What the guard checks:** The test applies the step-1 anchor
-`(^|;|&&|&|[|][|]|(then|do|else|elif)[[:space:]])[[:space:]]*(export[[:space:]]+|readonly[[:space:]]+|declare[[:space:]]+-g[[:space:]]+)?IFS=`,
+`(^|;|&&|&|[|][|]|(then|do|else|elif)[[:space:]]|\{[[:space:]]+|[)][[:space:]]+)[[:space:]]*(export[[:space:]]+|readonly[[:space:]]+|declare[[:space:]]+-g[[:space:]]+)?IFS=`,
 which matches: bare line-start `IFS=`; second-statement uses such as `cmd; IFS=`;
 operator-prefixed mutations such as `cmd && IFS=`, `cmd & IFS=` (background-then-global),
-and `cmd || IFS=`; and
+and `cmd || IFS=`; brace-group mutations such as `{ IFS=...` (brace group — runs in
+current shell); case pattern-action body mutations such as `) IFS=...` (case pattern —
+runs in current shell); and
 keyword-prefixed mutations where `IFS=` follows `then`, `do`, `else`, or `elif` with
 whitespace (e.g., `then IFS=...` in an `if` body or `do IFS=...` in a loop body); as
 well as the qualified forms `export IFS=`, `readonly IFS=`, and `declare -g IFS=` in
@@ -271,6 +276,17 @@ test verifies that `command -v jq` or `which jq` appears somewhere in the same f
 Absence is a violation. No `jq` invocations currently exist in the wave-handoff scripts;
 this guard was added prospectively to prevent the dependency from being introduced
 silently.
+
+**Soundness boundary:** The jq preflight check is whole-file (greps for `command -v jq`
+or `which jq` anywhere in the file), NOT positional (unlike AC-001's entrypoint guard,
+which requires the `BASH_VERSINFO` check to precede first use). This is accepted as
+designed. `jq` is forbidden by the wave-handoff SKILL.md contract — scripts MUST NOT
+shell out to `jq` — so this detector is defense-in-depth against prohibited dependency
+introduction, not a runtime-ordering guard. For a dependency that must never appear at
+all, whole-file presence detection is adequate: if `jq` appears anywhere, it is a
+violation regardless of where a guard would be placed. A positional precedence refinement
+(requiring the guard to appear before the first `jq` invocation) is intentionally out of
+scope because the correct fix for any `jq` detection is removal, not guard placement.
 
 **Enforcing test:** `test_portability_no_undeclared_jq_dep`
 
