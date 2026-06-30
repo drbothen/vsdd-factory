@@ -5040,16 +5040,18 @@ EOF
 }
 
 # ---------------------------------------------------------------------------
-# test_portability_no_undeclared_jq_dep
-# AC-005: undeclared jq runtime dependency.
-# jq is not installed by default on all macOS and Linux CI images. Any wave-handoff
-# script that invokes jq as a command MUST have a preflight check confirming jq is
-# available before first use:
-#   command -v jq >/dev/null 2>&1 || { echo "ERROR: jq is required" >&2; exit 1; }
+# test_portability_no_jq_shellout
+# AC-005: forbidden jq shellout (Option A — forbidden-removal, single-phase).
+# SKILL.md §149: "This skill MUST NOT shell out to Python, jq, or any language
+# runtime beyond bash." jq is treated identically to python — ANY jq invocation
+# is a violation regardless of preflight guard placement. The fix is to REMOVE
+# the jq invocation, not add a 'command -v jq' preflight. jq is also a
+# non-guaranteed third-party binary on CI/macOS runners — even a guarded jq
+# callsite violates SKILL.md §149.
 #
-# Detection: lines where 'jq' appears as a standalone command token (preceded by
-# start-of-line, pipe, semicolon, or whitespace, and followed by whitespace or
-# end-of-line). Uses POSIX ERE; no \b word-boundary shorthand.
+# Detection: command-position anchoring (single-phase). Any file with a matching
+# jq invocation fails unconditionally. No Phase 2 preflight-acceptance check.
+# Uses POSIX ERE; no \b word-boundary shorthand.
 #
 # O-3 broadening (POLICY 13 prospective):
 #   - Added time|env|command|sudo to the keyword-wrapper group.
@@ -5065,9 +5067,10 @@ EOF
 #   subshell is a HAZARD — jq still executes. So jq covers (, {, AND ).
 #
 # Red Gate expectation: PASS (no jq invocations found; absent = compliant).
+# Single-phase: any detected jq invocation is unconditionally a violation.
 # ---------------------------------------------------------------------------
 
-@test "test_portability_no_undeclared_jq_dep" {
+@test "test_portability_no_jq_shellout" {
   local wave_handoff_skill_dir
   wave_handoff_skill_dir="$(cd "${BATS_TEST_DIRNAME}/../skills/wave-handoff" && pwd)"
 
@@ -5095,6 +5098,7 @@ EOF
   local pc_good_other_cmdsubst pc_good_func_brace pc_good_jq_var
   local pc_bad_jq_line_start pc_bad_jq_backtick pc_bad_jq_if pc_bad_jq_then pc_bad_jq_do
   local pc_bad_jq_elif pc_bad_jq_env pc_bad_jq_command pc_bad_jq_sudo
+  local pc_bad_jq_with_preflight
   pc_bad_cmdsubst="${BATS_TEST_TMPDIR}/pc_ac005_bad_cmdsubst.sh"
   pc_bad_and="${BATS_TEST_TMPDIR}/pc_ac005_bad_and.sh"
   pc_bad_xargs="${BATS_TEST_TMPDIR}/pc_ac005_bad_xargs.sh"
@@ -5117,6 +5121,7 @@ EOF
   pc_bad_jq_env="${BATS_TEST_TMPDIR}/pc_ac005_bad_jq_env.sh"
   pc_bad_jq_command="${BATS_TEST_TMPDIR}/pc_ac005_bad_jq_command.sh"
   pc_bad_jq_sudo="${BATS_TEST_TMPDIR}/pc_ac005_bad_jq_sudo.sh"
+  pc_bad_jq_with_preflight="${BATS_TEST_TMPDIR}/pc_ac005_bad_jq_with_preflight.sh"
   printf 'result=$(jq -r .name input.json)\n' > "$pc_bad_cmdsubst"
   printf 'cmd && jq ".key" file.json\n' > "$pc_bad_and"
   printf 'find . -name "*.json" | xargs jq ".id"\n' > "$pc_bad_xargs"
@@ -5140,6 +5145,8 @@ EOF
   printf "env jq '.key' file.json\n" > "$pc_bad_jq_env"
   printf "command jq '.key' file.json\n" > "$pc_bad_jq_command"
   printf "sudo jq '.key' file.json\n" > "$pc_bad_jq_sudo"
+  # Option A flip: jq WITH 'command -v jq' preflight is STILL a violation.
+  printf 'command -v jq >/dev/null 2>&1 || { echo "ERROR: jq is required" >&2; exit 1; }\njq -r .name input.json\n' > "$pc_bad_jq_with_preflight"
   # F-P8-001 + O-3 broadened jq_re: adds time|env|command|sudo to the keyword wrapper group;
   # adds xargs-with-options arm; adds brace-group, case-pattern-body, and subshell arms.
   # Positive-control regex MUST BE BYTE-IDENTICAL to the real-scan-loop regex below.
@@ -5280,9 +5287,19 @@ EOF
     echo "  'sudo' must be in the keyword wrapper group (added at O-3)." >&2
     false
   }
+  # BAD (Option A flip): jq WITH 'command -v jq' preflight MUST STILL be detected.
+  # Under Option A, jq is forbidden per SKILL.md §149 regardless of preflight guard placement.
+  # The phase-1 jq_re matches the jq invocation line even when a preflight guard is present.
+  grep -qE "$jq_re" "$pc_bad_jq_with_preflight" || {
+    echo "FAIL (AC-005 positive-control / Option A): jq-detector did not match jq invocation in file with 'command -v jq' preflight." >&2
+    echo "  Option A: jq is forbidden even with a preflight guard — any jq invocation is a violation." >&2
+    false
+  }
   # -------------------------------------------
 
-  # Phase 1: detect jq invocations (jq as a command word, not as part of a variable name).
+  # Scan: detect any jq invocation in a command position.
+  # Any match is a violation — SKILL.md §149 forbids all jq shell-outs; no preflight exemption.
+  # Option A: single-phase detection; phase-2 preflight-acceptance removed.
   # Patterns that indicate jq is used as a command (POSIX ERE, no PCRE shorthand):
   #   ^[[:space:]]*jq([[:space:]]|$)                      — start of line
   #   [|;&][[:space:]]*jq([[:space:]]|$)                   — after |, ;, &  (covers |, ||, &&)
@@ -5299,48 +5316,31 @@ EOF
   #        xargs-with-options arm handles 'xargs -n1 jq', 'xargs -n1 -P4 jq', etc.
   #   F-P8-001: brace-group, case-body, subshell arms added. NOTE: for jq, subshell IS a
   #             hazard (unlike IFS where subshell is exempt) — jq runs in the subshell.
-  local jq_files=()
+  local violations=()
   local f
   for f in "${sh_files[@]}"; do
-    if grep -qE '(^[[:space:]]*jq([[:space:]]|$)|[|;&][[:space:]]*jq([[:space:]]|$)|\$[(]jq([[:space:]]|$)|`jq([[:space:]]|$)|(xargs|if|then|do|else|elif|time|env|command|sudo)[[:space:]]+jq([[:space:]]|$)|xargs([[:space:]]+-[^[:space:]]+)+[[:space:]]+jq([[:space:]]|$)|\{[[:space:]]*jq([[:space:]]|$)|\)[[:space:]]*jq([[:space:]]|$)|\([[:space:]]*jq([[:space:]]|$))' \
-        "$f" 2>/dev/null; then
-      jq_files+=("$f")
-    fi
-  done
-
-  # No jq invocations — compliant.
-  if [ "${#jq_files[@]}" -eq 0 ]; then
-    echo "AC-005: scanned=${#sh_files[@]} files"
-    return 0
-  fi
-
-  # Phase 2: for each file with jq invocations, verify a preflight guard exists.
-  # Acceptable preflight forms:
-  #   command -v jq    — POSIX-portable availability check
-  #   which jq         — non-POSIX but common fallback
-  local violations=()
-  for f in "${jq_files[@]}"; do
     local rel="${f#${wave_handoff_skill_dir}/}"
-    if ! grep -qE 'command[[:space:]]+-v[[:space:]]+jq|which[[:space:]]+jq' "$f" 2>/dev/null; then
-      local hits
-      hits="$(grep -nE '(^[[:space:]]*jq([[:space:]]|$)|[|;&][[:space:]]*jq([[:space:]]|$)|\$[(]jq([[:space:]]|$)|`jq([[:space:]]|$)|(xargs|if|then|do|else|elif|time|env|command|sudo)[[:space:]]+jq([[:space:]]|$)|xargs([[:space:]]+-[^[:space:]]+)+[[:space:]]+jq([[:space:]]|$)|\{[[:space:]]*jq([[:space:]]|$)|\)[[:space:]]*jq([[:space:]]|$)|\([[:space:]]*jq([[:space:]]|$))' \
-              "$f" 2>/dev/null || true)"
+    local hits
+    hits="$(grep -nE '(^[[:space:]]*jq([[:space:]]|$)|[|;&][[:space:]]*jq([[:space:]]|$)|\$[(]jq([[:space:]]|$)|`jq([[:space:]]|$)|(xargs|if|then|do|else|elif|time|env|command|sudo)[[:space:]]+jq([[:space:]]|$)|xargs([[:space:]]+-[^[:space:]]+)+[[:space:]]+jq([[:space:]]|$)|\{[[:space:]]*jq([[:space:]]|$)|\)[[:space:]]*jq([[:space:]]|$)|\([[:space:]]*jq([[:space:]]|$))' \
+        "$f" 2>/dev/null || true)"
+    if [ -n "$hits" ]; then
       while IFS= read -r hit; do
-        violations+=("${rel}: jq invocation without preflight: ${hit}")
+        violations+=("${rel}: jq shell-out: ${hit}")
       done <<< "$hits"
     fi
   done
 
   if [ "${#violations[@]}" -gt 0 ]; then
-    echo "FAIL (AC-005): bare jq invocation without preflight guard found in wave-handoff scripts." >&2
-    echo "  Fix: add preflight before first jq use:" >&2
-    echo "    command -v jq >/dev/null 2>&1 || { echo 'ERROR: jq is required; install with brew install jq' >&2; exit 1; }" >&2
+    echo "FAIL (AC-005): forbidden jq shellout found in wave-handoff scripts." >&2
+    echo "  SKILL.md §149: 'This skill MUST NOT shell out to Python, jq, or any language runtime beyond bash.'" >&2
+    echo "  Fix: remove jq invocations entirely — replace with awk/grep/bash builtins." >&2
+    echo "  A 'command -v jq' preflight guard does NOT make jq usage compliant." >&2
     echo "  Violations:" >&2
     local v
     for v in "${violations[@]}"; do echo "  ${v}" >&2; done
     false
   fi
-  echo "AC-005: scanned=${#sh_files[@]} files"
+  echo "AC-005: scanned=${#sh_files[@]} files, jq_violations=0"
 }
 
 # ---------------------------------------------------------------------------
