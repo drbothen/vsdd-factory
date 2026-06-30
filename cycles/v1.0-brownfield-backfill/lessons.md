@@ -5290,3 +5290,70 @@ or equivalent. The output MUST include the count of files scanned (so a scope-na
 **Follow-up anchor:** Applied at D-733 S-18.12 LOCAL adv pass-9 CLEAN closure. Carry forward to all future E-18/F4 gate-story LOCAL cascades.
 
 **Cites:** D-733, S-18.12 passes 5-9 oscillation pattern, BC-5.39.001, L-F2-3clean-streak-requires-frozen-package (D-631), O-1..O-4 accepted-as-documented-prospective-scope-boundaries.
+
+---
+
+## L-BB-regex-arm-must-have-positive-control
+
+**Date:** 2026-06-30 (D-735)
+**Tags:** [codified] [process-gap] [test-writer] [adversary]
+**Anchors:** D-735, S-18.12 LOCAL adv pass-11 F-P13-001, POLICY 11, POLICY 13, BC-5.39.001 3-CLEAN protocol
+
+**Lesson (codified):** Every enumerated regex alternation arm in a portability-lint or regression-detector story MUST have a dedicated, byte-identical positive control in the bats test suite. When an alternation arm has no positive control, the arm can be silently dropped or narrowed — the test suite will continue to pass vacuously with no observable failure signal.
+
+**Root cause:** S-18.12 LOCAL adversary pass-11 identified that several arms of the jq, IFS, and AC-002 detectors (jq bare line-start `^jq`, jq backtick form, jq keyword wrappers if/then/do/elif/env/command/sudo; IFS `||` and do/else/elif keyword prefixes; AC-002 `${*^^}`) had no dedicated positive control row in the test file. POLICY 11 requires non-tautological positive controls byte-identical to the regex arm; POLICY 13 requires that an adversary can verify coverage by inspection. Without per-arm controls, there is no automated signal when an arm is lost.
+
+**Prevention gate (codified):** For every regex alternation arm in a portability-lint story:
+
+1. The test file MUST contain at least one `run bash -c "<command matching that arm>"` assertion in a positive-control section.
+2. The positive control string MUST be byte-identical to (or a canonical instance of) the arm being tested — not a general "something containing the keyword" string.
+3. When adding a new arm to a regex, the test-writer MUST add the positive control in the SAME commit as the regex change.
+4. Adversary review MUST enumerate detector arms and verify each has a corresponding positive-control test row (POLICY 13 coverage verification).
+
+**Minimum required test structure per detector:**
+```
+# Positive controls — MUST flag
+run bash -c "scan_target_with_arm_1_form"
+assert_failure
+run bash -c "scan_target_with_arm_2_form"
+assert_failure
+# ... one row per enumerated arm ...
+```
+
+**Anti-pattern blocked:** Detector with 8 alternation arms but only 3 positive controls (covers the "common" forms but leaves edge arms untested). A fresh-context adversary that enumerates the regex structure against the test suite will find the gap immediately — this is exactly F-P13-001 in S-18.12 pass-11.
+
+**Follow-up anchor:** Apply at test-writer dispatch for all future E-18/F4 gate-story tests that use alternation-regex detectors. This is an additive obligation complementary to L-BB-regression-detector-tests-must-emit-positive-coverage-line (D-730): that lesson covers "scanned N files" output; this lesson covers "per-arm positive control" coverage.
+
+**Cites:** D-735, S-18.12 LOCAL adv pass-11 F-P13-001, POLICY 11, POLICY 13, test-writer 1d49cb85 (additive positive controls for all identified arms; no regex change).
+
+---
+
+## L-BB-sibling-sweep-same-contract-clause
+
+**Date:** 2026-06-30 (D-735)
+**Tags:** [codified] [process-gap] [story-writer] [adversary] [TD-VSDD-060]
+**Anchors:** D-735, S-18.12 LOCAL adv pass-11 F-P11-001 + TD-VSDD-060 sibling-sweep, SKILL.md §149, BC-5.39.001 3-CLEAN protocol
+
+**Lesson (codified):** When reconciling one detector's acceptance criterion to a source-of-truth contract clause, a TD-VSDD-060 sibling-sweep MUST be performed across ALL detectors governed by the SAME contract clause. Fixing one detector and leaving a sibling detector inconsistent with the same clause creates a mirror-asymmetry that the next fresh-context adversary will find — effectively guaranteeing a NOT-CLEAN pass and streak reset.
+
+**Root cause pattern observed in S-18.12 pass-11:** F-P11-001 required reconciling AC-004 (Python detector) to SKILL.md §149 ("MUST NOT shell out to Python, jq, or any language runtime beyond bash"). After AC-004 was reframed to Option A (forbid all Python, no preflight), the mandatory TD-VSDD-060 sibling-sweep revealed that AC-005 (jq detector) was still using a preflight-acceptance model — inconsistent with the same SKILL.md §149 sentence that was just used to justify the AC-004 change. The python/jq asymmetry was a mirror-blocker: the next adversary reviewing the patched artifact at v1.10 would have found it immediately (the contract clause explicitly names both "Python" and "jq" in the same breath).
+
+**Prevention gate (codified):** When reconciling any acceptance criterion to a contract clause (SKILL.md sentence, ADR decision, BC invariant):
+
+1. Identify ALL acceptance criteria in the same story that are governed by the SAME contract clause.
+2. Perform the sibling-sweep BEFORE declaring the reconciliation complete.
+3. If any sibling AC is inconsistent with the same clause — even if the sibling was previously accepted — remediate it in the SAME burst. Leaving the sibling inconsistent is not a deferral; it is a guaranteed streak reset.
+4. Document the sibling-sweep explicitly in the burst-log Dim-1 (Files Touched) and burst-log Codifications (Dim-6).
+
+**The critical distinction — sibling vs separate finding:**
+- If the sibling inconsistency was present BEFORE the reconciliation, it is a latent defect surfaced by the sweep (fix in-scope per Canonical Principle Rule 4).
+- If the sibling inconsistency was CREATED by the reconciliation (new asymmetry), it must also be fixed in-scope.
+- Either way, the correct action is fix-in-scope during the same burst — not "await next adversary pass."
+
+**How SKILL.md §149 makes this structural:** The sentence "MUST NOT shell out to Python, jq, or any language runtime beyond bash" governs BOTH AC-004 (Python) and AC-005 (jq). Any policy decision applied to one is mandated by the same clause for the other. The option model chosen (A/B/C) MUST be symmetric across both. Any asymmetry is a contract violation detectable in a single read.
+
+**Anti-pattern blocked:** "We fixed AC-004 (Python) → Option A. AC-005 (jq) still uses Option C (preflight). They're different ACs so we can reconcile them separately." This reasoning is wrong: they are governed by the SAME clause. The asymmetry creates a guaranteed fresh-context finding. The correct behavior is: fix AC-004 AND perform the sibling-sweep for AC-005 in the SAME burst.
+
+**Follow-up anchor:** Apply at story-writer and test-writer dispatch for all future E-18/F4 gate stories that have multiple detectors. Before declaring any detector reconciliation complete, enumerate all other detectors in the same story and check whether they are governed by the same source-of-truth clause. If yes, reconcile them simultaneously.
+
+**Cites:** D-735, S-18.12 LOCAL adv pass-11 F-P11-001 + AC-005 sibling-sweep, SKILL.md §149, TD-VSDD-060, test-writer e5d71b85 + story-writer 963d5241 + technical-writer e122cdb0 (AC-005 Option A sibling remediation).

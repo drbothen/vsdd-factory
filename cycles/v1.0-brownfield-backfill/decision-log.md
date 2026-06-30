@@ -4593,3 +4593,68 @@ Severity decay H→H→M→M→CLEAN→MED→CLEAN→MED→CLEAN→**CLEAN**. Tw
 ### NEXT
 
 S-18.12 LOCAL adversarial pass-11. Fresh context. Streak **2/3**. ONE more CLEAN pass achieves 3-CLEAN CONVERGED per BC-5.39.001. **ARTIFACTS FROZEN at 57b09645/v1.9 — do NOT harden prospective LOWs.** After 3-CLEAN: demo-recorder per-AC → push feature/S-18.12 → pr-manager 9-step PR → CI green → STOP-BEFORE-PR-MERGE (D-665) → human merge directly. STOP-BEFORE-PR-MERGE (D-665) holds.
+
+## D-735 — S-18.12 LOCAL adv pass-11 NOT-CLEAN closure — 2026-06-30
+
+### Verdict
+
+S-18.12 LOCAL adversarial pass-11: **NOT-CLEAN** (1 HIGH / 1 MEDIUM / 3 LOW). Streak resets **2/3 → 0/3** per BC-5.39.001.
+
+### Findings Summary
+
+| ID | Severity | Description | Disposition |
+|----|----------|-------------|-------------|
+| F-P13-001 | HIGH | POLICY 11/13 positive-control coverage gap — jq bare-line-start `^jq`, jq backtick, jq keyword wrappers (if/then/do/elif/env/command/sudo); IFS `\|\| ` + do/else/elif; AC-002 `${*^^}` — NO dedicated positive control | REMEDIATED — test-writer 1d49cb85 additive byte-identical positive controls for ALL arms; no regex change |
+| F-P11-001 | MEDIUM | AC-004 vs SKILL.md §149 spec conflict: AC-004 permitted Python with preflight; SKILL.md §149 forbids "any language runtime beyond bash"; Option C (preflight) is weakest under PEP 668 + macOS `python3` non-availability | REMEDIATED via research (`.factory/planning/research/s-18.12-python-dep-policy.md`; Option A RECOMMENDATION HIGH confidence): AC-004 redesigned to forbid ANY python/pip shell-out, single-phase, no preflight, no stdlib exemption; new `python_re`; test renamed `test_portability_no_python_shellout`; EC-002 stdlib→FAIL. test-writer 1d49cb85 + story-writer c69a149c (v1.9→v1.10) + technical-writer 176e5d63 |
+| O-1 | LOW | TD-VSDD-091 supplementary `~NNNN` line cites in §"Previous Story Intelligence" alongside stable function-name anchors | ACCEPTED — non-load-bearing; stable anchor present; §"Previous Story Intelligence" is historical prose |
+| O-2 | LOW | AC-001 entrypoint check conservative/over-broad; no current script mis-classified | ACCEPTED-AS-DESIGNED — prospective-only; no current over-match |
+| O-3 | LOW | AC-002 `${*^^}` arm missing dedicated positive control (subsumed by F-P13-001) | FIXED — positive control added by 1d49cb85 as part of F-P13-001 remediation |
+
+### TD-VSDD-060 Sibling-Sweep (AC-005 jq mirror asymmetry)
+
+Closing F-P11-001 (AC-004 → Option A: forbid all python) surfaced that AC-005 (jq detector) still used preflight-acceptance — contradicting its own forbidden-removal rationale AND creating a python/jq asymmetry under the same SKILL.md §149 sentence. REMEDIATED: AC-005 reframed to Option A too (single-phase forbidden-removal, no preflight; test renamed `test_portability_no_jq_shellout`; `jq_re` UNCHANGED). test-writer e5d71b85 + story-writer 963d5241 (v1.10→v1.11) + technical-writer e122cdb0. AC-004 ≡ AC-005: both Option A, both consistent with SKILL.md §149.
+
+### Research Backing
+
+`.factory/planning/research/s-18.12-python-dep-policy.md` — vsdd-factory:research-agent (Perplexity deep-research + PEP 668 primary source + macOS python3 non-availability verification; 2026-06-30). RECOMMENDATION: Option A (forbid all Python shell-outs; preflight is weakest under PEP 668; macOS doesn't guarantee python3; spec-wins → align AC-004 to SKILL.md). HIGH confidence.
+
+### O-1/O-2 Acceptance Rationale
+
+O-1 (TD-VSDD-091 supplementary volatile pin): stable load-bearing function-name anchor is present; `~NNNN` lines are supplementary non-load-bearing prose in §"Previous Story Intelligence" (historical context section, not normative ACs). O-2 (AC-001 over-broad): prospective-only; no current script is over-matched; conservative entrypoint detection is intentional design.
+
+### Severity Decay
+
+| Pass | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 |
+|------|---|---|---|---|---|---|---|---|---|---|---|
+| Verdict | NC | NC | NC | NC | CLEAN | NC | CLEAN | NC | CLEAN | CLEAN | NC |
+| Highest | H | H | M | M | — | M | — | M | — | — | H |
+| Streak | 0/3 | 0/3 | 0/3 | 0/3 | 1/3 | 0/3 | 1/3 | 0/3 | 1/3 | 2/3 | **0/3** |
+
+Severity decay H→H→M→M→CLEAN→MED→CLEAN→MED→CLEAN→CLEAN→NC(H+M). HIGH finding F-P13-001 (POLICY 11/13 arm-coverage gap) — a structural gap, not a regression of hardened content. MEDIUM finding F-P11-001 (spec conflict: AC-004 vs SKILL.md §149) — research-backed Option A reconciliation closes the gap permanently. Post-remediation, the artifact at e122cdb0/v1.11 has: (a) all regex arms with dedicated byte-identical positive controls; (b) AC-004 ≡ AC-005 both Option A forbidden-removal consistent with SKILL.md §149. Fresh-context pass-12 dispatched on this frozen artifact.
+
+### Codifications
+
+- **D-735** decision-log block (this entry): S-18.12 LOCAL adv pass-11 NOT-CLEAN closure; F-P13-001 HIGH (POLICY 11/13 arm-coverage gap, additive controls); F-P11-001 MEDIUM (AC-004 Option A reframe, research-backed); AC-005 sibling-sweep (TD-VSDD-060; python/jq symmetric); O-1/O-2 accepted; O-3 fixed; streak 2/3→0/3.
+- **L-BB-regex-arm-must-have-positive-control** and **L-BB-sibling-sweep-same-contract-clause**: two lessons codified in `cycles/v1.0-brownfield-backfill/lessons.md`.
+- **STORY-INDEX v4.116→v4.117**: S-18.12 body row v1.9→v1.11 (pass-11 NOT-CLEAN annotation + remediations; POLICY 14 leg-5; state-manager this burst).
+- **s-18.12-local-adversary-pass-11.md**: pass-11 adversary report persisted in cycles/v1.0-brownfield-backfill/.
+- **STATE.md**: frontmatter v4.85→v4.86, D-735 banner, Decisions Log / §1 / §3 / §4 / §8 / §11 / §12 / Active Branches / Session Resume Checkpoint updated for zero-context resume into S-18.12 LOCAL adv pass-12 (fresh context; streak 0/3; ARTIFACTS FROZEN at e122cdb0/v1.11).
+- **planning/research/s-18.12-python-dep-policy.md**: research file committed to factory-artifacts (was untracked prior to this burst).
+
+### Feature Branch
+
+- **feature/S-18.12** — WIP at **e122cdb0** (post-remediation; FROZEN for pass-12). Story v1.11 FROZEN. 68/68 bats GREEN at e5d71b85 (doc/story commits e122cdb0 + 963d5241 do not touch bats). NOT pushed (STOP-BEFORE-PR-MERGE D-665).
+
+### Develop / 4-Index State
+
+- develop_head: 531dacfb UNCHANGED
+- merged_count: 95 UNCHANGED
+- total_bcs: 1,974 UNCHANGED
+- BC-INDEX: v3.57 UNCHANGED
+- VP-INDEX: v2.51 UNCHANGED
+- STORY-INDEX: v4.116→v4.117 (BUMPED this burst, POLICY 14 leg-5, S-18.12 row v1.9→v1.11)
+- ARCH-INDEX: v2.85 UNCHANGED
+
+### NEXT
+
+S-18.12 LOCAL adversarial pass-12. Fresh context. Streak **0/3**. ARTIFACTS FROZEN at e122cdb0/v1.11 — fix ONLY genuine blockers from pass-12; accept prospective LOWs as documented boundaries per L-S18.12-asymptotic-clean-accept-prospective-lows-for-streak. STOP-BEFORE-PR-MERGE (D-665) holds.

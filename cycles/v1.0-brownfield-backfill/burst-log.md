@@ -11040,3 +11040,110 @@ S-18.12 LOCAL adversarial cascade streak: 1/3 → **2/3** (CLEAN pass). NEXT: pa
 ### Factory-artifacts Commits
 
 - `2c1b3006` factory(D-734): S-18.12 LOCAL adv pass-10 CLEAN closure (streak 1/3->2/3; ARTIFACTS FROZEN 57b09645/v1.9) — 2026-06-30. Pushed to origin/factory-artifacts (813efa61→2c1b3006).
+
+## D-735 — S-18.12 LOCAL adv pass-11 NOT-CLEAN closure — 2026-06-30
+
+### Parent-commit (Dim-3)
+
+`963d5241` — factory-artifacts HEAD at burst start (story(S-18.12): v1.11 — AC-005 jq reframed to Option A, committed by story-writer prior to state-manager closure burst).
+
+### Adversary Verdict (Dim-7)
+
+S-18.12 LOCAL adversary pass-11: **NOT-CLEAN** — 1 HIGH / 1 MEDIUM / 3 LOW. Streak resets **2/3 → 0/3** per BC-5.39.001.
+
+**F-P13-001 (HIGH) — POLICY 11/13 positive-control coverage gap:** Several enumerated detector arms in AC-002/AC-003/AC-005 had NO dedicated positive control: jq bare-line-start `^jq`, jq backtick, jq keyword wrappers (if/then/do/elif/env/command/sudo); IFS `||` and do/else/elif prefixes; AC-002 `${*^^}`. REMEDIATED: test-writer commit 1d49cb85 — additive byte-identical positive controls for ALL arms; no regex change.
+
+**F-P11-001 (MEDIUM) — AC-004 vs SKILL.md §149 spec conflict:** AC-004 permitted Python with a preflight check; SKILL.md §149 forbids "any language runtime beyond bash." Option C (preflight) is the weakest model: PEP 668 prevents pip install under externally-managed interpreters; macOS does not guarantee `python3` presence; the preflight-acceptance model contradicts the SKILL.md identity contract. RESOLVED via research (`.factory/planning/research/s-18.12-python-dep-policy.md`; Option A RECOMMENDATION, HIGH confidence — Perplexity deep-research + PEP 668 primary source + macOS python3 non-availability verification). AC-004 redesigned to Option A: forbid ANY python/pip shell-out, single-phase, no preflight, no stdlib exemption; new `python_re`; EC-002 stdlib→FAIL. test-writer 1d49cb85 + story-writer c69a149c (v1.9→v1.10) + technical-writer 176e5d63.
+
+**TD-VSDD-060 SIBLING-SWEEP (AC-005 jq mirror asymmetry):** Closing F-P11-001 surfaced that AC-005 (jq) still used preflight-acceptance — same SKILL.md §149 sentence governs both python and jq. Mirror asymmetry pre-emptively remediated: AC-005 reframed to Option A (single-phase forbidden-removal, no preflight; `jq_re` UNCHANGED; test renamed `test_portability_no_jq_shellout`). test-writer e5d71b85 + story-writer 963d5241 (v1.10→v1.11) + technical-writer e122cdb0. AC-004 ≡ AC-005: both Option A consistent with SKILL.md §149.
+
+**O-1 (LOW):** TD-VSDD-091 supplementary `~NNNN` line cites alongside stable function-name anchors in §"Previous Story Intelligence". ACCEPTED — non-load-bearing; stable anchor present.
+**O-2 (LOW):** AC-001 entrypoint check conservative/over-broad; no current script mis-classified. ACCEPTED-AS-DESIGNED.
+**O-3 (LOW):** AC-002 `${*^^}` arm missing dedicated positive control (subsumed by F-P13-001). FIXED — 1d49cb85.
+
+Source attestation (D-448(a)): above faithfully describes `s-18.12-local-adversary-pass-11.md` Part A finding set — NOT-CLEAN; 1 HIGH (F-P13-001) + 1 MEDIUM (F-P11-001) + 3 LOW (O-1 accepted / O-2 accepted-as-designed / O-3 fixed); streak 2/3 → 0/3. TD-VSDD-060 sibling-sweep (AC-005) documented. No divergence from Part A.
+
+### Files Touched (Dim-1)
+
+**factory-artifacts branch (this D-735 burst — single commit per TD-VSDD-053):**
+- `cycles/v1.0-brownfield-backfill/s-18.12-local-adversary-pass-11.md` — NEW; pass-11 adversary report persisted (verdict NOT-CLEAN; 1 HIGH F-P13-001; 1 MEDIUM F-P11-001; 3 LOW O-1/O-2/O-3; TD-VSDD-060 sibling-sweep AC-005; all remediations documented; streak 2/3→0/3; severity decay H→H→M→M→CLEAN→MED→CLEAN→MED→CLEAN→CLEAN→NC(H+M))
+- `stories/STORY-INDEX.md` — v4.116→v4.117 (S-18.12 body row v1.9→v1.11; pass-11 NOT-CLEAN annotation + remediation commits + TD-VSDD-060 sibling-sweep + O-1/O-2/O-3 dispositions + new feature HEAD e122cdb0; `last_amended:` updated; `version:` bumped; POLICY 14 leg-5)
+- `cycles/v1.0-brownfield-backfill/decision-log.md` — D-735 block appended
+- `cycles/v1.0-brownfield-backfill/lessons.md` — TWO lessons appended: L-BB-regex-arm-must-have-positive-control + L-BB-sibling-sweep-same-contract-clause
+- `cycles/v1.0-brownfield-backfill/burst-log.md` — D-735 entry appended (this file)
+- `planning/research/s-18.12-python-dep-policy.md` — previously untracked; committed to factory-artifacts this burst (research backing for F-P11-001 Option A RECOMMENDATION)
+- `.factory/STATE.md` — v4.85→v4.86 (D-735 banner + frontmatter advance + §1 POSTURE + §3 D-735 carry + §4 D-735 Tier-A + §8 STORY-INDEX v4.117 + §9 factory-artifacts HEAD + Active Branches feature/S-18.12 e122cdb0 + Concurrent Cycles row + Story Status row + Decisions Log D-735 + §11 D-735 refresh + §12 3e-S18.12 update + Session Resume Checkpoint refreshed for zero-context resume into pass-12)
+
+**feature/S-18.12 branch (remediation commits — legitimately distinct scope, not backfill chain per TD-VSDD-053):**
+- `1d49cb85` — test(S-18.12): remediate F-P13-001 + F-P11-001 portability-lint findings (test-writer)
+- `176e5d63` — docs(S-18.12): AC-004 Option A reframe — add flagged-forms block and PEP 668 + macOS rationale (technical-writer)
+- `e5d71b85` — test(S-18.12): AC-005 jq Option A — forbidden-removal, single-phase (TD-VSDD-060 sibling-sweep; test-writer)
+- `c69a149c` — story(S-18.12): v1.10 — F-P11-001 Option A AC-004/EC-002 reframe (story-writer)
+- `963d5241` — story(S-18.12): v1.11 — AC-005 jq reframed to Option A (forbidden-removal, no preflight-acceptance; story-writer)
+- `e122cdb0` — docs(S-18.12): reframe AC-005 jq to forbidden-removal, matching AC-004 python model (technical-writer)
+
+**NOT committed in this burst (develop/main unchanged):**
+- No code changes to develop (feature branch local, not pushed per STOP-BEFORE-PR-MERGE D-665)
+- develop_head 531dacfb UNCHANGED; merged_count 95 UNCHANGED; total_bcs 1,974 UNCHANGED
+
+### Codifications (Dim-6)
+
+- **D-735** decision-log block codified: S-18.12 LOCAL adv pass-11 NOT-CLEAN; F-P13-001 HIGH (POLICY 11/13 arm-coverage gap, additive controls); F-P11-001 MEDIUM (AC-004 Option A reframe, research-backed); AC-005 sibling-sweep (TD-VSDD-060; python/jq symmetric); O-1/O-2 accepted; O-3 FIXED; streak 2/3→0/3.
+- **STORY-INDEX v4.116→v4.117**: S-18.12 row v1.9→v1.11 (pass-11 NOT-CLEAN annotation; POLICY 14 leg-5).
+- **L-BB-regex-arm-must-have-positive-control**: codified in lessons.md (every regex alternation arm MUST have a dedicated positive control; D-735 [process-gap] [codified]).
+- **L-BB-sibling-sweep-same-contract-clause**: codified in lessons.md (when reconciling one detector to a contract clause, sibling-sweep ALL detectors governed by the SAME clause; D-735 [process-gap] [codified] TD-VSDD-060).
+
+### Dim-2 (4-Index Parity Gate — D-449(a) literal-shell execution evidence)
+
+Gate command:
+```bash
+grep "^version:" \
+  .factory/specs/behavioral-contracts/BC-INDEX.md \
+  .factory/specs/verification-properties/VP-INDEX.md \
+  .factory/stories/STORY-INDEX.md \
+  .factory/specs/architecture/ARCH-INDEX.md
+```
+
+Captured stdout (post-STORY-INDEX v4.117 update, pre-commit):
+```
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.57"
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.51"
+.factory/stories/STORY-INDEX.md:version: "4.117"
+.factory/specs/architecture/ARCH-INDEX.md:version: "2.85"
+```
+
+Gate result: PASS. BC-INDEX v3.57 (UNCHANGED), VP-INDEX v2.51 (UNCHANGED), STORY-INDEX v4.117 (BUMPED D-735), ARCH-INDEX v2.85 (UNCHANGED). Zero FAIL.
+
+### Dim-5 (8-Block Presence Gate — D-446(a))
+
+This burst-log entry contains all 8 D-444(c) mandatory blocks:
+1. Parent-commit: `963d5241` (story-writer v1.11 AC-005 jq Option A; factory-artifacts HEAD at burst start)
+2. Adversary verdict: NOT-CLEAN; 1 HIGH F-P13-001 + 1 MEDIUM F-P11-001 + 3 LOW (O-1 accepted / O-2 accepted-as-designed / O-3 FIXED); TD-VSDD-060 sibling-sweep AC-005; streak 2/3→0/3
+3. Files touched: pass-11 report + STORY-INDEX + decision-log + lessons (×2) + burst-log + research file + STATE.md
+4. Codifications (Dim-6): D-735 + STORY-INDEX v4.117 + L-BB-regex-arm-must-have-positive-control + L-BB-sibling-sweep-same-contract-clause
+5. Dim-2: 4-index parity gate with literal-shell stdout above
+6. Dim-5: This block (8-block self-verification)
+7. Closes: pass-11 NOT-CLEAN closure; streak 2/3→0/3; F-P13-001/F-P11-001/O-3 remediated; O-1/O-2 accepted; TD-VSDD-060 sibling-sweep complete; ARTIFACTS FROZEN e122cdb0/v1.11
+8. Factory-artifacts commits: (SHA recorded via SHA-patch follow-up per D-447(c)+D-449(e))
+
+All 8 blocks present. Gate: PASS.
+
+### Dim-7 (Streak Status)
+
+S-18.12 LOCAL adversarial cascade streak: 2/3 → **0/3** (NOT-CLEAN; F-P13-001 HIGH + F-P11-001 MEDIUM). NEXT: pass-12 (fresh context; streak 0/3; ARTIFACTS FROZEN at e122cdb0/v1.11 — fix ONLY genuine blockers; accept prospective LOWs as documented boundaries).
+
+### Closes
+
+- S-18.12 LOCAL adv pass-11: **NOT-CLEAN** (1 HIGH + 1 MEDIUM + 3 LOW). Streak resets 2/3→0/3. Pass-12 NEXT.
+- F-P13-001 (POLICY 11/13 positive-control coverage gap): **REMEDIATED** — test-writer 1d49cb85 (additive positive controls for all arms; no regex change; 68/68 GREEN).
+- F-P11-001 (AC-004 vs SKILL.md §149 spec conflict): **REMEDIATED** — Option A (forbid all python/pip, no preflight, no stdlib exemption); research-backed `.factory/planning/research/s-18.12-python-dep-policy.md`; test-writer 1d49cb85 + story-writer c69a149c (v1.9→v1.10) + technical-writer 176e5d63.
+- TD-VSDD-060 sibling-sweep AC-005 (jq mirror asymmetry under SKILL.md §149): **REMEDIATED** — AC-005 Option A (forbidden-removal, no preflight; `jq_re` UNCHANGED; test renamed); test-writer e5d71b85 + story-writer 963d5241 (v1.10→v1.11) + technical-writer e122cdb0.
+- O-1 (TD-VSDD-091 supplementary volatile pin): **ACCEPTED** (stable anchor present; historical prose section).
+- O-2 (AC-001 over-broad/conservative): **ACCEPTED-AS-DESIGNED** (prospective; no current over-match).
+- O-3 (`${*^^}` arm positive control): **FIXED** (1d49cb85 as part of F-P13-001 remediation).
+- STORY-INDEX v4.117 (S-18.12 row v1.9→v1.11; POLICY 14 leg-5): **DONE** (state-manager this burst).
+- Research file `.factory/planning/research/s-18.12-python-dep-policy.md`: **COMMITTED** (was untracked; now on factory-artifacts).
+
+### Factory-artifacts Commits
+
+(SHA recorded via SHA-patch follow-up per D-447(c)+D-449(e) — actual commit SHA to be patched after push)
