@@ -10657,3 +10657,97 @@ S-18.12 LOCAL adversarial cascade streak: 1/3 → **0/3** (reset by F-P6-001 MED
 ### Factory-artifacts Commits
 
 - 070ee104 — D-730 S-18.12 LOCAL adv pass-6 NOT-CLEAN closure (single commit per TD-VSDD-053; SHA updated via SHA-patch follow-up per D-447(c)+D-449(e))
+
+## D-731 S-18.12 LOCAL adv pass-7 CLEAN closure burst (2026-06-30)
+
+### Parent-commit
+
+- **factory-artifacts parent:** 642bbb8b (story-writer story(S-18.12): v1.7→v1.8 AC-003 hardened step-1 anchor (LOCAL adv pass-7 O-1), 2026-06-30) per D-419(b).
+- **develop HEAD at burst:** 531dacfb (PR #340 S-18.11 squash-merged 2026-06-29T20:09:35Z D-722; UNCHANGED)
+
+### Adversary Verdict
+
+Pass-7: **CLEAN** (0 CRITICAL / 0 HIGH / 0 MEDIUM / 0 LOW blocking). Streak advances **0/3 → 1/3**.
+
+O-1 (LOW, non-blocking): AC-003 IFS step-1 anchor omitted brace-group `{ IFS=…; }` (`\{[[:space:]]+`) and case-pattern `) IFS=…` (`[)][[:space:]]+`) alternations. Prospective-only gap — no real script currently triggers either form. HARDENED same-burst: test-writer (commit 7a2b3ccf) extended the step-1 anchor to include both alternations; added positive controls (brace-group + case-pattern MUST flag) and negative controls (`foo() {` function-definition brace + `$(cmd)` subshell close-paren MUST NOT flag); real-script scan net violations = 0. Technical-writer (commit 5d5c3ad6) propagated the updated regex byte-identical to bash-portability.md §3. Story-writer (commit 642bbb8b) propagated the updated regex byte-identical to story AC-003 enumeration and bumped v1.7→v1.8. Byte-parity across test/doc/story verified by orchestrator. Final step-1 regex: `(^|;|&&|&|[|][|]|(then|do|else|elif)[[:space:]]|\{[[:space:]]+|[)][[:space:]]+)[[:space:]]*(export[[:space:]]+|readonly[[:space:]]+|declare[[:space:]]+-g[[:space:]]+)?IFS=`.
+
+O-2 (LOW, non-blocking): AC-005 jq preflight is whole-file, not positional (asymmetric with AC-001 positional associative-array detection). ACCEPTED-AS-DESIGNED — jq is categorically forbidden by wave-handoff SKILL.md; any `jq` presence in a wave-handoff skill script is a code-review concern regardless of position; whole-file detection is adequate defense-in-depth for a wholesale-prohibited dependency. Positional refinement intentionally out of scope. Soundness-boundary note added to bash-portability.md §3 AC-005 section (technical-writer 5d5c3ad6). D-731 decision-log codifies O-2 acceptance.
+
+Suite: AC-003 portability test GREEN; wave-handoff.bats GREEN. 2 pre-existing unrelated failures (resolver-integration timing flap; pass-real-state-md-snapshot fixture) noted as unrelated.
+
+Severity decay across the cascade: H→H→M→M→CLEAN(pass-5)→MED(pass-6)→CLEAN(pass-7). Consistent with D-729 precedent (pass-5 hardened prospective LOWs same-burst; CLEAN counted; streak 1/3).
+
+Source attestation (D-448(a)): above Adversary Verdict paragraph faithfully describes s-18.12-local-adversary-pass-7.md Part A finding set — 0 blocking (no BLOCKER/HIGH/MEDIUM); O-1 (LOW step-1 brace-group+case-pattern anchors; hardened); O-2 (LOW jq whole-file asymmetry; accepted-as-designed). CLEAN verdict. No divergence from Part A.
+
+### Files Touched (Dim-1)
+
+**factory-artifacts branch (this D-731 burst — single commit per TD-VSDD-053):**
+- `cycles/v1.0-brownfield-backfill/s-18.12-local-adversary-pass-7.md` — NEW; pass-7 adversary report persisted (verdict CLEAN; O-1 hardened + O-2 accepted; cascade trajectory passes 1-7; severity decay)
+- `stories/STORY-INDEX.md` — v4.112→v4.113 (S-18.12 body row v1.7→v1.8 with LOCAL adv pass-7 CLEAN annotation + feature/S-18.12 HEAD 5d5c3ad6; POLICY 14 leg-5; `last_amended:` prepended; `version:` frontmatter bumped)
+- `cycles/v1.0-brownfield-backfill/decision-log.md` — D-731 block prepended
+- `cycles/v1.0-brownfield-backfill/burst-log.md` — D-731 entry appended (this file)
+- `.factory/STATE.md` — v4.81→v4.82 (D-731 banner + frontmatter advance + §1 POSTURE + §3 D-731 carry + §4 D-731 Tier-A entry + §5 D-001..D-731 + §8 STORY-INDEX v4.113 + §9 factory-artifacts HEAD + §11 D-731 refresh + §12 3e-S18.12 streak 1/3 pass-8 NEXT + Session Resume Checkpoint refreshed)
+
+**feature/S-18.12 branch (pre-committed by fix specialists — NOT factory-artifacts):**
+- `plugins/vsdd-factory/tests/wave-handoff.bats` — AC-003 step-1 brace-group + case-pattern anchors; positive/negative controls (test-writer commit 7a2b3ccf)
+- `plugins/vsdd-factory/docs/bash-portability.md` — §3 step-1 regex byte-identical update + AC-005 soundness-boundary note (technical-writer commit 5d5c3ad6)
+- `plugins/vsdd-factory/skills/wave-handoff/wave-handoff.sh` — no change required (guard@9 < source@20 already correct; structural check enforces invariant going forward)
+
+**NOT committed in this burst (develop/main unchanged):**
+- No code changes to develop (feature branch local, not pushed per STOP-BEFORE-PR-MERGE D-665)
+- develop_head 531dacfb UNCHANGED; merged_count 95 UNCHANGED; total_bcs 1,974 UNCHANGED
+
+### Codifications (Dim-6)
+
+- **D-731** decision-log block codified: S-18.12 LOCAL adv pass-7 CLEAN; O-1 hardened (brace-group+case-pattern anchors; zero over-match); O-2 accepted-as-designed (jq forbidden whole-file detection adequate); streak 0/3→1/3; NEXT pass-8 1/3.
+- **STORY-INDEX v4.112→v4.113**: S-18.12 row v1.7→v1.8 (POLICY 14 leg-5).
+
+### Dim-2 (4-Index Parity Gate — D-449(a) literal-shell execution evidence)
+
+Gate command:
+```
+grep "^version:" \
+  .factory/specs/behavioral-contracts/BC-INDEX.md \
+  .factory/specs/verification-properties/VP-INDEX.md \
+  .factory/stories/STORY-INDEX.md \
+  .factory/specs/architecture/ARCH-INDEX.md
+```
+
+Captured stdout:
+```
+.factory/specs/architecture/ARCH-INDEX.md:version: "2.85"
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.51"
+.factory/stories/STORY-INDEX.md:version: "4.113"
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.57"
+```
+
+Gate result: PASS. BC-INDEX v3.57 (UNCHANGED), VP-INDEX v2.51 (UNCHANGED), STORY-INDEX v4.113 (BUMPED D-731), ARCH-INDEX v2.85 (UNCHANGED). Zero FAIL.
+
+### Dim-5 (8-Block Presence Gate — D-446(a))
+
+This burst-log entry contains all 8 D-444(c) mandatory blocks:
+1. Parent-commit: 642bbb8b (story-writer S-18.12 v1.7→v1.8 2026-06-30)
+2. Adversary verdict: CLEAN; O-1 hardened + O-2 accepted-as-designed; streak 0/3→1/3; severity decay H→H→M→M→CLEAN→MED→CLEAN
+3. Files touched: pass-7 report + STORY-INDEX + decision-log + burst-log + STATE.md
+4. Codifications (Dim-6): D-731 + STORY-INDEX v4.113
+5. Dim-2: 4-index parity gate with literal-shell stdout above
+6. Dim-5: This block (8-block self-verification)
+7. Closes: pass-7 CLEAN closure; streak 0/3→1/3; O-1 hardened; O-2 accepted
+8. Factory-artifacts commits: [SHA-pending — filled via SHA-patch follow-up per D-447(c)+D-449(e)]
+
+All 8 blocks present. Gate: PASS.
+
+### Dim-7 (Streak Status)
+
+S-18.12 LOCAL adversarial cascade streak: 0/3 → **1/3** (pass-7 CLEAN). NEXT: pass-8 (fresh context; streak 1/3 → need passes 8 and 9 both CLEAN for 3-CLEAN convergence per BC-5.39.001).
+
+### Closes
+
+- S-18.12 LOCAL adv pass-7 CLEAN: **CONVERGED 1/3** (streak 0/3→1/3; O-1 hardened same-burst; O-2 accepted-as-designed). Pass-8 NEXT.
+- O-1 brace-group+case-pattern step-1 gap: **HARDENED** (test-writer 7a2b3ccf + technical-writer 5d5c3ad6 + story-writer 642bbb8b; byte-parity verified; zero over-match).
+- O-2 jq whole-file asymmetry: **ACCEPTED-AS-DESIGNED** (soundness-boundary note bash-portability.md §3 AC-005; D-731 decision-log codified).
+- STORY-INDEX v4.113 (S-18.12 leg-5 POLICY 14): **DONE** (state-manager this burst).
+
+### Factory-artifacts Commits
+
+- [SHA-pending] — D-731 S-18.12 LOCAL adv pass-7 CLEAN closure (single commit per TD-VSDD-053; SHA updated via SHA-patch follow-up per D-447(c)+D-449(e))
