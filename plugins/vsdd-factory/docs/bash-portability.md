@@ -203,11 +203,30 @@ or `pipx` in a command position in any wave-handoff script.
 Any python or pip invocation in a command position is a violation, period. The fix is
 removal of the invocation, not the addition of a guard.
 
+**Flagged forms (violations):**
+
+```bash
+python3 parse.py                             # command-position python3 invocation
+python3 -c 'import json; print(x)'          # stdlib python3 — still flagged
+python3 -c 'import yaml; ...'               # third-party python3 — still flagged
+python2 parse.py                             # python2 variant
+pip3 install pyyaml                          # pip3 invocation
+pipx run black .                             # pipx invocation
+$(python3 -c 'import json; ...')             # command substitution — flagged
+| python3 -c '...'                           # pipe position — flagged
+```
+
 **Why it is forbidden:** SKILL.md §149 states: "This skill MUST NOT shell out to
 Python, jq, or any language runtime beyond bash." Python is treated identically to jq —
-the constraint is a hard prohibition, not a "declare a dependency" requirement. The
-S-18.01 history (commit aaa8da8a: pip failure; commit 3fe11ea1: `--break-system-packages`
-workaround) demonstrates that python shell-outs are fragile across CI environments.
+the constraint is a hard prohibition, not a "declare a dependency" requirement. macOS
+does not guarantee `python3` on PATH — it is absent on a clean macOS install and on CI
+images that do not provision Python separately. PEP 668 (externally-managed Python
+environments, adopted in Python 3.11+ and backported by major Linux distributions)
+prevents `pip` from installing third-party packages without `--break-system-packages`,
+making any preflight guard that attempts to install dependencies non-functional on modern
+Linux and macOS systems. The S-18.01 history (commit aaa8da8a: pip failure; commit
+3fe11ea1: `--break-system-packages` workaround) is the concrete manifestation of this
+fragility. (Background: `.factory/planning/research/s-18.12-python-dep-policy.md`.)
 
 **Required fix:** Remove the python/pip invocation entirely. Replace with a POSIX
 portable alternative using `awk`, `grep`, or `sed`.
