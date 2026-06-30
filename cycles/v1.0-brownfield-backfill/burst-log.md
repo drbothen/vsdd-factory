@@ -11019,7 +11019,7 @@ This burst-log entry contains all 8 D-444(c) mandatory blocks:
 5. Dim-2: 4-index parity gate with literal-shell stdout above
 6. Dim-5: This block (8-block self-verification)
 7. Closes: pass-10 CLEAN closure; streak 1/3→2/3; O-1..O-5 accepted; artifact freeze directive carry-forward
-8. Factory-artifacts commits: [SHA to be captured post-commit per D-447(c)+D-449(e)]
+8. Factory-artifacts commits: `2c1b3006` factory(D-734) 2026-06-30
 
 All 8 blocks present. Gate: PASS.
 
@@ -11039,4 +11039,4 @@ S-18.12 LOCAL adversarial cascade streak: 1/3 → **2/3** (CLEAN pass). NEXT: pa
 
 ### Factory-artifacts Commits
 
-- [SHA to be captured post-commit per D-447(c)+D-449(e)]
+- `2c1b3006` factory(D-734): S-18.12 LOCAL adv pass-10 CLEAN closure (streak 1/3->2/3; ARTIFACTS FROZEN 57b09645/v1.9) — 2026-06-30. Pushed to origin/factory-artifacts (813efa61→2c1b3006).
