@@ -11147,3 +11147,97 @@ S-18.12 LOCAL adversarial cascade streak: 2/3 → **0/3** (NOT-CLEAN; F-P13-001 
 ### Factory-artifacts Commits
 
 (SHA recorded via SHA-patch follow-up per D-447(c)+D-449(e) — actual commit SHA to be patched after push)
+
+## D-736 — S-18.12 LOCAL adv pass-12 NOT-CLEAN closure + SESSION-CHECKPOINT REFRESH — 2026-06-30
+
+### Parent-commit (Dim-3)
+
+`7cf7a52b` — factory-artifacts HEAD at burst start (state(D-735-sha-patch): record factory-artifacts HEAD 4353988e in STATE.md + burst-log per D-447(c)+D-449(e)).
+
+### Adversary Verdict (Dim-7)
+
+S-18.12 LOCAL adversary pass-12: **NOT-CLEAN** — 1 HIGH / 2 LOW. Streak stays **0/3** per BC-5.39.001.
+
+**F-P12-001 (HIGH) — POLICY 11/13 python_re 9-arm positive-control gap (TD-VSDD-060 sibling-sweep miss):** Pass-12 fresh-context adversary reviewed e122cdb0/v1.11 (frozen artifact). Enumerated all regex alternation arms per POLICY 13; found that `python_re` (created in D-735 burst as part of AC-004 Option A redesign) had positive controls for only 3 of its 9 arms (line-start `^python`, `$(`, sudo). Arms 2 (pipe/&&), 4 (backtick), 5 (if/then/do/else/elif/time/env/command/xargs keyword wrappers), 6 (xargs-opts), 7 (brace-group), 8 (case-pattern), 9 (subshell) — asserted-but-never-positively-exercised. Root cause: D-735 applied per-arm controls to jq_re (F-P13-001 fix) but did NOT apply the same treatment to the newly-created python_re sibling, which has identical 9-arm topology. TD-VSDD-060 sibling-sweep miss + S-7.01 Partial-Fix Regression Discipline. REMEDIATED: test-writer f725426e — 18 fixtures giving python_re FULL 9-arm positive-control parity with jq (arms 2/4/5/6/7/8/9) + `$(other_cmd)` negative control. python_re + all regexes UNCHANGED (additive controls only). 68/68 bats GREEN. Zero real-script over-match confirmed.
+
+**O-1 (LOW):** AC-001 oracle `[[].*BASH_VERSINFO` matches `[` anywhere on line (incl. comments); current scripts unaffected. ACCEPTED — prospective boundary; FREEZE DISCIPLINE.
+**O-2 (LOW):** AC-001 regex pinned in doc+test but prose-only in story body (cosmetic asymmetry with AC-002/003/005). ACCEPTED — cosmetic; consistent with D-734 O-5 acceptance class.
+
+Source attestation (D-448(a)): above faithfully describes `s-18.12-local-adversary-pass-12.md` Part A finding set — NOT-CLEAN; 1 HIGH (F-P12-001) + 2 LOW (O-1 accepted / O-2 accepted); streak 0/3. No divergence from Part A.
+
+### Files Touched (Dim-1)
+
+**factory-artifacts branch (this D-736 burst — single commit per TD-VSDD-053):**
+- `cycles/v1.0-brownfield-backfill/s-18.12-local-adversary-pass-12.md` — NEW; pass-12 adversary report (verdict NOT-CLEAN; 1 HIGH F-P12-001; 2 LOW O-1/O-2 accepted; remediation f725426e; streak 0/3; severity decay H→H→M→M→CLEAN→MED→CLEAN→MED→CLEAN→CLEAN→NC(H+M)→NC(H))
+- `stories/STORY-INDEX.md` — v4.117→v4.118 (S-18.12 body row pass-12 NOT-CLEAN annotation + feature HEAD e122cdb0→f725426e; `last_amended:` updated; `version:` bumped; POLICY 14 leg-5; GOVERNANCE-ONLY; story stays v1.11)
+- `cycles/v1.0-brownfield-backfill/decision-log.md` — D-736 block appended (prose section after D-735)
+- `cycles/v1.0-brownfield-backfill/lessons.md` — L-BB-per-arm-control-sibling-detector-sweep appended
+- `cycles/v1.0-brownfield-backfill/burst-log.md` — D-736 entry appended (this file)
+- `.factory/STATE.md` — v4.86→v4.87 (D-736 banner + frontmatter advance + Active Branches feature/S-18.12 e122cdb0→f725426e + Concurrent Cycles row + Decisions Log D-736 + Last Updated + Current Phase + SIZE BUDGET +1 line + Session Resume Checkpoint FULL REFRESH for zero-context resume into pass-13 — PAUSE: session clear per human directive)
+
+**feature/S-18.12 branch (remediation commit):**
+- `f725426e` — test(S-18.12): remediate F-P12-001 python_re 9-arm positive-control gap (TD-VSDD-060 sibling-sweep; test-writer; 18 additive fixtures; no regex change; 68/68 GREEN)
+
+**NOT committed in this burst (develop/main unchanged):**
+- No code changes to develop (feature branch local, not pushed per STOP-BEFORE-PR-MERGE D-665)
+- develop_head 531dacfb UNCHANGED; merged_count 95 UNCHANGED; total_bcs 1,974 UNCHANGED
+
+### Codifications (Dim-6)
+
+- **D-736** decision-log block codified: S-18.12 LOCAL adv pass-12 NOT-CLEAN; F-P12-001 HIGH (python_re 9-arm positive-control gap; TD-VSDD-060 sibling-sweep miss from D-735); O-1/O-2 accepted; streak 0/3; feature HEAD f725426e.
+- **STORY-INDEX v4.117→v4.118**: S-18.12 row annotation pass-12 NOT-CLEAN + feature HEAD f725426e (POLICY 14 leg-5; GOVERNANCE-ONLY).
+- **L-BB-per-arm-control-sibling-detector-sweep**: codified in lessons.md — when adding per-arm positive controls to one detector, sibling-sweep ALL structurally-identical siblings (including newly-created siblings in same burst) for the same arm-coverage depth (TD-VSDD-060 + S-7.01 Partial-Fix Regression Discipline).
+- **STATE.md v4.86→v4.87**: D-736 closure + FULL Session Resume Checkpoint refresh for zero-context pass-13 resume (PAUSE per human directive).
+
+### Dim-2 (4-Index Parity Gate — D-449(a) literal-shell execution evidence)
+
+Gate command:
+```bash
+grep "^version:" \
+  .factory/specs/behavioral-contracts/BC-INDEX.md \
+  .factory/specs/verification-properties/VP-INDEX.md \
+  .factory/stories/STORY-INDEX.md \
+  .factory/specs/architecture/ARCH-INDEX.md
+```
+
+Captured stdout (post-STORY-INDEX v4.118 update, pre-commit):
+```
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.51"
+.factory/specs/architecture/ARCH-INDEX.md:version: "2.85"
+.factory/stories/STORY-INDEX.md:version: "4.118"
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.57"
+```
+
+Gate result: PASS. BC-INDEX v3.57 (UNCHANGED), VP-INDEX v2.51 (UNCHANGED), STORY-INDEX v4.118 (BUMPED D-736), ARCH-INDEX v2.85 (UNCHANGED). Zero FAIL.
+
+### Dim-5 (8-Block Presence Gate — D-446(a))
+
+This burst-log entry contains all 8 D-444(c) mandatory blocks:
+1. Parent-commit: `7cf7a52b` (state(D-735-sha-patch) SHA-patch follow-up; factory-artifacts HEAD at burst start)
+2. Adversary verdict: NOT-CLEAN; 1 HIGH F-P12-001 + 2 LOW (O-1 accepted / O-2 accepted); streak 0/3
+3. Files touched: pass-12 report + STORY-INDEX + decision-log + lessons + burst-log + STATE.md; feature f725426e
+4. Codifications (Dim-6): D-736 + STORY-INDEX v4.118 + L-BB-per-arm-control-sibling-detector-sweep + STATE.md v4.87
+5. Dim-2: 4-index parity gate with literal-shell stdout above
+6. Dim-5: This block (8-block self-verification)
+7. Closes: pass-12 NOT-CLEAN closure; streak 0/3; F-P12-001 remediated (f725426e); O-1/O-2 accepted; ARTIFACTS FROZEN f725426e/v1.11; SESSION CHECKPOINT refreshed for zero-context pass-13 resume
+8. Factory-artifacts commits: (SHA recorded via SHA-patch follow-up per D-447(c)+D-449(e) — to be patched after push)
+
+All 8 blocks present. Gate: PASS.
+
+### Dim-7 (Streak Status)
+
+S-18.12 LOCAL adversarial cascade streak: stays **0/3** (NOT-CLEAN; F-P12-001 HIGH). NEXT: pass-13 (fresh context; streak 0/3; ARTIFACTS FROZEN at f725426e/v1.11 — fix ONLY genuine blockers; accept prospective LOWs O-1/O-2 as documented scope boundaries).
+
+### Closes
+
+- S-18.12 LOCAL adv pass-12: **NOT-CLEAN** (1 HIGH + 2 LOW). Streak stays 0/3. Pass-13 NEXT.
+- F-P12-001 (POLICY 11/13 python_re 9-arm positive-control gap; TD-VSDD-060 sibling-sweep miss): **REMEDIATED** — test-writer f725426e (18 additive fixtures; python_re 9-arm parity with jq; no regex change; 68/68 GREEN).
+- O-1 (AC-001 `[[].*BASH_VERSINFO` over-broad match): **ACCEPTED** (prospective; FREEZE DISCIPLINE).
+- O-2 (AC-001 regex prose-only in story body): **ACCEPTED** (cosmetic asymmetry; no functional contradiction).
+- STORY-INDEX v4.118 (S-18.12 row pass-12 annotation + f725426e feature HEAD; POLICY 14 leg-5): **DONE** (state-manager this burst).
+- Session Resume Checkpoint refreshed for zero-context resume into S-18.12 LOCAL adv pass-13: **DONE** (PAUSE per human directive — session clear imminent).
+- **feature/S-18.12 DURABILITY NOTE:** Branch is LOCAL (not pushed per STOP-BEFORE-PR-MERGE D-665). HEAD f725426e. Worktree at `.worktrees/S-18.12`. If session restarts and worktree is missing, recreate with: `git worktree add .worktrees/S-18.12 feature/S-18.12`. Branch is local-only; do NOT push until 3-CLEAN CONVERGED + demo-recorder complete. If branch loss is a concern, the human may push to a draft remote backup, but STOP-BEFORE-PR-MERGE discipline means no PR creation until convergence.
+
+### Factory-artifacts Commits
+
+(SHA recorded via SHA-patch follow-up per D-447(c)+D-449(e) — actual commit SHA to be patched after push)

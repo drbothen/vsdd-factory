@@ -5357,3 +5357,40 @@ assert_failure
 **Follow-up anchor:** Apply at story-writer and test-writer dispatch for all future E-18/F4 gate stories that have multiple detectors. Before declaring any detector reconciliation complete, enumerate all other detectors in the same story and check whether they are governed by the same source-of-truth clause. If yes, reconcile them simultaneously.
 
 **Cites:** D-735, S-18.12 LOCAL adv pass-11 F-P11-001 + AC-005 sibling-sweep, SKILL.md §149, TD-VSDD-060, test-writer e5d71b85 + story-writer 963d5241 + technical-writer e122cdb0 (AC-005 Option A sibling remediation).
+
+---
+
+## L-BB-per-arm-control-sibling-detector-sweep
+
+**Date:** 2026-06-30 (D-736)
+**Tags:** [codified] [process-gap] [test-writer] [adversary] [TD-VSDD-060] [S-7.01]
+**Anchors:** D-736, S-18.12 LOCAL adv pass-12 F-P12-001, POLICY 11, POLICY 13, TD-VSDD-060, S-7.01 Partial-Fix Regression Discipline
+
+**Lesson (codified):** When adding per-arm positive controls to one detector to satisfy POLICY 11/13 coverage requirements, a TD-VSDD-060 sibling-sweep MUST be applied with the SAME per-arm treatment to EVERY structurally-identical sibling detector — including newly-created detectors added in the same burst. A newly-created sibling with identical regex topology (same number of alternation arms, same structural pattern) needs identical arm-coverage depth as the repaired sibling. Partial application — treating the established detector fully but leaving the new sibling at shallow coverage — is a false-green gap under S-7.01 Partial-Fix Regression Discipline.
+
+**Root cause pattern observed in S-18.12 pass-12:** D-735 burst fixed F-P13-001 (POLICY 11/13 arm-coverage gap in jq detector) by adding per-arm positive controls for all 9 jq_re arms via test-writer 1d49cb85. In the same D-735 burst, a new `python_re` detector was created as part of the AC-004 Option A redesign (F-P11-001). python_re has the same 9-arm alternation topology as jq_re (both guard against multi-context shell-outs using the same structural pattern: `^arm | $( | operator | backtick | keyword-wrappers | xargs-opts | brace | case | subshell`). However, python_re only received positive controls for 3 of its 9 arms in the D-735 burst, leaving 6 arms unexercised. The fresh-context adversary at pass-12 enumerated the regex structure and immediately identified the gap — this is exactly what POLICY 13 requires adversaries to do.
+
+**The structural identity check (prevention gate):** When ANY detector receives per-arm positive controls for POLICY 11/13 compliance:
+
+1. Enumerate ALL detectors in the same test file with the same structural topology (same number of alternation arms, same alternation pattern).
+2. For each structurally identical sibling, verify that it has the SAME arm-coverage depth as the just-repaired detector.
+3. If a sibling has shallower coverage — whether it is pre-existing or newly created in the same burst — apply the per-arm treatment to the sibling IN THE SAME COMMIT or the SAME BURST.
+4. Newly-created detectors are NOT exempt: a detector created in the same burst that introduced arm-coverage repairs MUST receive the same treatment before the burst closes.
+
+**The critical distinction — structural topology vs. semantic domain:**
+- Two detectors can have different behavioral semantics (one guards Python, one guards jq) but identical structural topology (both have a 9-arm alternation covering the same execution-context categories).
+- Structural topology governs the arm-coverage obligation; semantic domain does not.
+- If jq_re and python_re both have 9 arms covering the same execution contexts (line-start, subshell, operators, backtick, keywords, xargs-opts, brace-group, case-pattern, subshell-close), then the per-arm-control obligation is SYMMETRIC across both, regardless of which language runtime they guard against.
+
+**How TD-VSDD-060 applies here:** TD-VSDD-060 mandates a sibling-sweep "when changing a function signature, constant, or canonical identifier." By extension (production-grade default), it also applies when satisfying a property obligation (POLICY 11/13 arm-coverage) on one member of a sibling group: the SAME property obligation must be verified and satisfied for all structurally identical siblings. Failing to sweep means the property is only partially enforced across the group — a guaranteed adversary finding.
+
+**Anti-pattern blocked:** "We fixed jq_re's arm-coverage (F-P13-001) by adding per-arm controls. We created python_re in the same burst. python_re has only 3 of 9 arms covered. We'll fix python_re later if an adversary finds it." This reasoning is wrong: the structural topology is identical, the property obligation is symmetric, and the adversary WILL find it at pass-12. The correct behavior: when closing F-P13-001, enumerate all detectors with the same topology and apply per-arm controls to all of them in the same burst — including newly-created siblings.
+
+**Follow-up anchor:** Apply at test-writer dispatch for all future E-18/F4 gate-story tests that use alternation-regex detectors. Before declaring any per-arm coverage repair complete, enumerate all other detectors in the same test file/story, check for structural topology parity, and apply the per-arm treatment symmetrically.
+
+**Complementary lessons:**
+- L-BB-regex-arm-must-have-positive-control (D-735): every regex alternation arm MUST have a dedicated positive control.
+- L-BB-sibling-sweep-same-contract-clause (D-735): when reconciling one detector to a contract clause, sibling-sweep all detectors governed by the same clause.
+- This lesson adds: when ADDING arm-coverage to one detector (regardless of cause), sibling-sweep all structurally-identical detectors for the same arm-coverage depth obligation.
+
+**Cites:** D-736, S-18.12 LOCAL adv pass-12 F-P12-001, POLICY 11, POLICY 13, TD-VSDD-060, S-7.01, test-writer f725426e (18 additive fixtures; python_re 9-arm positive-control parity; no regex change; 68/68 GREEN).

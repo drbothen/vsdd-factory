@@ -4658,3 +4658,59 @@ Severity decay H→H→M→M→CLEAN→MED→CLEAN→MED→CLEAN→CLEAN→NC(H+
 ### NEXT
 
 S-18.12 LOCAL adversarial pass-12. Fresh context. Streak **0/3**. ARTIFACTS FROZEN at e122cdb0/v1.11 — fix ONLY genuine blockers from pass-12; accept prospective LOWs as documented boundaries per L-S18.12-asymptotic-clean-accept-prospective-lows-for-streak. STOP-BEFORE-PR-MERGE (D-665) holds.
+
+## D-736 — S-18.12 LOCAL adv pass-12 NOT-CLEAN closure — 2026-06-30
+
+### Verdict
+
+S-18.12 LOCAL adversarial pass-12: **NOT-CLEAN** (1 HIGH / 2 LOW). Streak stays **0/3** per BC-5.39.001.
+
+### Root Cause — F-P12-001 (POLICY 11/13 sibling-sweep miss; TD-VSDD-060)
+
+When D-735 burst fixed the POLICY 11/13 arm-coverage gap for the jq detector (F-P13-001, commit 1d49cb85), the sibling-sweep obligation (TD-VSDD-060) was applied to jq's POLICY 11/13 defect. However, `python_re` was newly created in the same D-735 burst as part of the AC-004 Option A redesign — it was a NEW detector with an identical 9-arm alternation topology to `jq_re`. When pass-12 reviewed the artifact at e122cdb0/v1.11, the fresh-context adversary enumerated all regex arms and found that `python_re` had positive controls for only 3 of its 9 arms (line-start `^python`, `$(`, sudo), leaving 6 arms asserted-but-never-exercised: pipe/`&&` operators, backtick, keyword wrappers (if/then/do/else/elif/time/env/command/xargs), xargs-with-opts, brace-group, and case-pattern/subshell forms.
+
+This is a **partial-fix** under S-7.01 Partial-Fix Regression Discipline: the jq sibling got full 9-arm coverage via F-P13-001, but the newly-created python sibling did not receive the same treatment. The structural topology of `python_re` (9-arm alternation) is identical to `jq_re` — any detector with this topology MUST have 9-arm positive-control parity.
+
+### Findings Summary
+
+| ID | Severity | Description | Disposition |
+|----|----------|-------------|-------------|
+| F-P12-001 | HIGH (blocking) | **POLICY 11/13 python_re 9-arm positive-control gap (TD-VSDD-060 sibling-sweep miss).** `python_re` had positive controls for only 3 of 9 arms; jq_re (sibling detector, same topology) had full 9-arm coverage after D-735. Root cause: per-arm treatment applied to jq for F-P13-001 in D-735 burst; newly-created python_re not given the same treatment in the same burst. TD-VSDD-060 + S-7.01 Partial-Fix Regression Discipline. | **REMEDIATED** — test-writer f725426e: 18 fixtures added giving python_re FULL 9-arm positive-control parity with jq (arms 2 pipe/&&, 4 backtick, 5 if/then/do/else/elif/time/env/command/xargs keyword wrappers, 6 xargs-opts, 7 brace, 8 case, 9 subshell) + `$(other_cmd)` negative control. python_re + all regexes UNCHANGED (additive controls only). 68/68 bats GREEN. Zero real-script over-match confirmed. |
+| O-1 | LOW (non-blocking, prospective) | AC-001 guard-detector oracle `[[].*BASH_VERSINFO` matches `[` anywhere on a line (including shell comments); current scripts unaffected; tightening requires a regex change to frozen artifact. | **ACCEPTED** — documented prospective boundary; FREEZE DISCIPLINE: do not harden prospective LOWs to let streak accumulate. Consistent with pass-9/10 O-class acceptance policy. |
+| O-2 | LOW (non-blocking, cosmetic) | AC-001 regex pinned in doc+test but described in prose-only in the story body; cosmetically asymmetric with AC-002/003/005 verbatim-regex style. | **ACCEPTED** — cosmetic asymmetry only; no functional contradiction; consistent with D-734 O-5 acceptance class. |
+
+### Severity Decay
+
+| Pass | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 |
+|------|---|---|---|---|---|---|---|---|---|---|---|---|
+| Verdict | NC | NC | NC | NC | CLEAN | NC | CLEAN | NC | CLEAN | CLEAN | NC | NC |
+| Highest | HIGH | HIGH | MED | MED | — | MED | — | MED | — | — | HIGH | HIGH |
+| Streak | 0/3 | 0/3 | 0/3 | 0/3 | 1/3 | 0/3 | 1/3 | 0/3 | 1/3 | 2/3 | 0/3 | **0/3** |
+
+Severity decay H→H→M→M→CLEAN→MED→CLEAN→MED→CLEAN→CLEAN→NC(H+M)→NC(H). F-P12-001 now remediated; streak 0/3; pass-13 dispatched on f725426e/v1.11 FROZEN (do NOT harden prospective LOWs O-1/O-2).
+
+### Codifications
+
+- **D-736** decision-log block (this entry): S-18.12 LOCAL adv pass-12 NOT-CLEAN; F-P12-001 HIGH (python_re 9-arm arm-coverage gap; TD-VSDD-060 sibling-sweep miss from D-735); O-1/O-2 accepted; streak 0/3; feature HEAD f725426e.
+- **STORY-INDEX v4.117→v4.118**: S-18.12 body row annotation updated with pass-12 NOT-CLEAN + feature HEAD f725426e (GOVERNANCE-ONLY; story stays v1.11 — no AC change; POLICY 14 leg-5; state-manager this burst).
+- **s-18.12-local-adversary-pass-12.md**: pass-12 adversary report persisted in cycles/v1.0-brownfield-backfill/.
+- **lessons.md**: L-BB-per-arm-control-sibling-detector-sweep codified.
+- **STATE.md**: v4.86→v4.87 — D-736 banner + frontmatter + Decisions Log + feature/S-18.12 Active Branches f725426e + Session Resume Checkpoint refreshed for zero-context resume into pass-13 (PAUSE — session clear imminent).
+
+### Feature Branch
+
+- **feature/S-18.12** — WIP advances from e122cdb0 → **f725426e** (test-writer additive 18 fixtures; python_re 9-arm parity; no story/AC change; 68/68 bats GREEN; FROZEN for pass-13). Not pushed (STOP-BEFORE-PR-MERGE D-665).
+
+### Develop / 4-Index State
+
+- develop_head: 531dacfb UNCHANGED
+- merged_count: 95 UNCHANGED
+- total_bcs: 1,974 UNCHANGED
+- BC-INDEX: v3.57 UNCHANGED
+- VP-INDEX: v2.51 UNCHANGED
+- STORY-INDEX: v4.117→v4.118 (BUMPED this burst, POLICY 14 leg-5, annotation-only no story AC change)
+- ARCH-INDEX: v2.85 UNCHANGED
+
+### NEXT
+
+S-18.12 LOCAL adversarial pass-13. Fresh context. Streak **0/3**. ARTIFACTS FROZEN at f725426e/v1.11 — fix ONLY genuine blockers; accept prospective LOWs O-1/O-2 as documented scope boundaries. STOP-BEFORE-PR-MERGE (D-665) holds. PAUSE: session clear per human directive; resume from STATE.md Session Resume Checkpoint.
