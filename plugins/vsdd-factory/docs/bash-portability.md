@@ -1,0 +1,287 @@
+# Bash Portability — Wave-Handoff Static Lint Guard
+
+This document describes the four bash portability anti-patterns that the S-18.12
+portability-lint bats guard detects. The guard performs static analysis only — it
+greps script sources and never executes them. It scans every `.sh` file under
+`plugins/vsdd-factory/skills/wave-handoff/` (main entry point and `lib/` helpers).
+Test fixtures, hook scripts, and scripts outside that directory are out of scope.
+
+These guards are anchored to lesson `L-S18-macos-ci-leg-caught-runtime-portability`,
+which records the four macOS CI failures in S-18.01 that the earlier PCRE-only lint
+missed. Each anti-pattern below has a matching bats test in
+`plugins/vsdd-factory/tests/wave-handoff.bats`.
+
+---
+
+## 1. Unguarded bash 4+ associative arrays (AC-001)
+
+**Pattern detected:** `local -A varname`, `declare -A varname`, or any flag string
+containing `A` at any position, such as `local -Ax` or `declare -gA`, in any
+wave-handoff script. Lowercase `-a` (indexed arrays, bash-3-safe) is NOT flagged.
+
+**Why it breaks:** macOS ships bash 3.2 at `/bin/bash`. Homebrew bash is not on PATH
+by default. `local -A` and `declare -A` are bash 4+ features. On bash 3.2 they do not
+produce a parse-time error — the function body parses without complaint. Instead they
+produce a **runtime** builtin error (`declare: -A: invalid option`) at the moment the
+builtin executes, which only happens if the array-using function is actually invoked.
+GitHub Actions macOS runners also use the system bash unless the workflow explicitly
+installs a newer version. This was the root cause of the S-18.01 CI failure recorded at
+commit ea7328ac.
+
+The entrypoint guard works because `wave-handoff.sh` runs the `${BASH_VERSINFO[0]} -lt 4`
+check at the top of the script, before it `source`s any `lib/*.sh` script, and exits. The lib functions
+that use `local -A` or `declare -A` are therefore never reached on bash 3.2, and the
+runtime builtin error never fires. Per-function guards inside individual lib functions
+are not impossible — they are simply unnecessary given the entrypoint early-exit.
+
+**Portable fix:** Add a version guard at the top of `wave-handoff.sh` (the main entry
+point, before any lib script is sourced) so the check fires before any bash 4+ syntax
+is evaluated:
+
+```bash
+if [ "${BASH_VERSINFO[0]:-0}" -lt 4 ]; then
+  echo "ERROR: wave-handoff requires bash >= 4.0 (associative arrays)" >&2
+  echo "  On macOS: brew install bash" >&2
+  exit 1
+fi
+```
+
+**Soundness boundary:** The entrypoint-guard model is sound only because `wave-handoff.sh`
+is the sole guarded entrypoint and the `lib/*.sh` scripts are sourced exclusively by it
+(after the guard). Adding a new lib script that is sourced only by the guarded entrypoint
+is safe — the guard fires before any lib is sourced, so the new lib is never reached on
+bash 3.2. The hazard is a new entrypoint that sources these libs without its own bash-4
+guard: in that case the scan-set-wide `BASH_VERSINFO` check could pass while that new
+code path crashes on bash 3.2 at runtime. Any new entrypoint that sources these libs
+must carry its own bash-4 guard.
+
+**What the guard checks:** If any file in the scan set matches
+`(local|declare)[[:space:]]+-[a-zA-Z]*A[a-zA-Z]*([[:space:]]|$)` — covering bare `-A`, compound flags
+with `A` at any position such as `-Ax` or `-gA`, and `-A` at end-of-line, but NOT
+lowercase `-a` (indexed arrays, which are bash-3-safe) — the test then verifies that
+the token `BASH_VERSINFO` also appears somewhere in the scan set. Both
+`[ "${BASH_VERSINFO[0]:-0}" -lt 4 ]` and `(( BASH_VERSINFO[0] < 4 ))` satisfy this
+check. A scan set with associative arrays but no `BASH_VERSINFO` token fails the test.
+A scan set with neither associative arrays nor a guard passes (the feature is simply
+absent, so no guard is required).
+
+**Enforcing test:** `test_portability_no_unguarded_local_A_associative_array`
+
+---
+
+## 2. Unguarded bash 4+ case modifiers (AC-002)
+
+**Pattern detected:** `${varname^^}` (to-uppercase), `${varname,,}` (to-lowercase),
+`${varname^}` (first-character uppercase), or `${varname,}` (first-character lowercase)
+in any wave-handoff script, including array-element forms such as `${arr[0]^^}`,
+`${map[k],,}`, and `${arr[i]^}`, and positional and special parameters such as
+`${1^^}`, `${@^^}`, `${*^^}`, and `${#^^}`.
+
+**Why it breaks:** These parameter expansion operators were introduced in bash 4.0. On
+bash 3.2 (macOS system bash) they produce a **runtime** `bad substitution` error at the
+moment that specific parameter expansion executes — not a parse-time error. The script
+body and function declarations parse without complaint on bash 3.2; the error fires only
+when execution reaches the offending expansion. The same entrypoint guard that covers
+AC-001 prevents this: `wave-handoff.sh` exits before sourcing the lib scripts, so
+expansions using these operators are never evaluated on bash 3.2.
+
+**Portable fix (option A):** Use POSIX-portable alternatives instead of the bash 4+
+operators:
+
+```bash
+# to-uppercase
+upper="$(printf '%s' "$var" | tr 'a-z' 'A-Z')"
+# or with awk
+upper="$(printf '%s' "$var" | awk '{print toupper($0)}')"
+```
+
+**Portable fix (option B):** Add the same `BASH_VERSINFO` guard as AC-001 to
+`wave-handoff.sh` before any lib script is sourced.
+
+**What the guard checks:** If any file matches the pattern
+`\$\{([a-zA-Z_][a-zA-Z0-9_]*|[0-9]+|[@*#])(\[[^]]*\])?(\^\^?|,,?)` — covering the
+two-char forms `^^` and `,,`, the single-char forms `^` and `,`, named variable forms
+(`${varname^^}`), array-element forms such as `${arr[0]^^}`, `${map[k],,}`, and
+`${arr[i]^}`, and positional and special-parameter forms such as `${1^^}`, `${@^^}`,
+`${*^^}`, and `${#^^}` — the test verifies that `BASH_VERSINFO` appears somewhere in
+the scan set. Case modifiers without a version guard fail the test. The current scan
+set contains no case modifiers, so this test passes on a clean codebase (no guard is
+required when the feature is absent).
+
+**Enforcing test:** `test_portability_no_unguarded_bash4_case_modifiers`
+
+---
+
+## 3. Global IFS mutation (AC-003)
+
+**Pattern detected:** A bare `IFS=...` assignment that is not scoped to a function
+local variable, a command prefix for `read`, or a subshell — detected at line-start,
+after `;`, after `&&` or `||`, and after the keywords `then`, `do`, `else`, and `elif`.
+
+**Why it breaks:** Assigning to `IFS` at script scope or as a standalone statement
+inside a function mutates the shell's global field separator for the remainder of that
+shell process. All subsequent `read` calls, word splits, and `for` expansions in the
+same process inherit the mutated IFS, causing silent misclassification of delimited
+fields. This is a SOUL.md §4 silent-failure category defect: the script continues
+running, produces wrong output, and emits no error. This was the root cause of the
+S-18.01 failure recorded at commit 2b40dfd5 (`IFS='|'` in `parse-sprint-state.sh`
+caused every subsequent `read` to split on `|` instead of newline).
+
+**Allowed forms (not flagged):**
+
+```bash
+local IFS=':'           # scoped to the enclosing function body
+while IFS= read -r line # command prefix, scoped to that single read
+IFS=',' read -ra arr    # command prefix, scoped to that single read
+(IFS='|'; command)      # subshell-scoped (subshell opens on the same line)
+```
+
+**Flagged forms (violations):**
+
+```bash
+IFS='|'                 # standalone assignment — global mutation
+IFS=$'\n'               # standalone assignment — global mutation
+cmd && IFS=':'          # &&-operator prefix — global mutation
+cmd & IFS='|'           # single-& background then global mutation
+cmd || IFS=$'\n'        # ||-operator prefix — global mutation
+if ...; then IFS=':'    # then-keyword prefix — global mutation in if-body
+for ...; do IFS='|'     # do-keyword prefix — global mutation in loop-body
+else IFS=':'            # else-keyword prefix — global mutation in else-branch
+elif ...; then IFS=':'  # elif-keyword prefix — global mutation in elif-body
+```
+
+**Portable fix:** Replace the global assignment with one of the scoped forms above.
+The S-18.01 fix replaced `IFS='|'` field splitting in `parse-sprint-state.sh` with
+`awk -F'|'`, which keeps field-separator semantics entirely inside awk without touching
+the shell's IFS.
+
+**What the guard checks:** The test applies the step-1 anchor
+`(^|;|&&|&|[|][|]|(then|do|else|elif)[[:space:]])[[:space:]]*(export[[:space:]]+|readonly[[:space:]]+|declare[[:space:]]+-g[[:space:]]+)?IFS=`,
+which matches: bare line-start `IFS=`; second-statement uses such as `cmd; IFS=`;
+operator-prefixed mutations such as `cmd && IFS=`, `cmd & IFS=` (background-then-global),
+and `cmd || IFS=`; and
+keyword-prefixed mutations where `IFS=` follows `then`, `do`, `else`, or `elif` with
+whitespace (e.g., `then IFS=...` in an `if` body or `do IFS=...` in a loop body); as
+well as the qualified forms `export IFS=`, `readonly IFS=`, and `declare -g IFS=` in
+any of those positions. The following forms are exempted and not flagged: `local IFS=`
+(function-scoped), `while IFS= read` and `IFS=... read` (command-prefix scoped to the
+single `read` call), and `(IFS=...; ...)` (subshell-scoped). The command-prefix
+exemption applies only to the no-separator form `IFS=val read` — the exemption does not
+cross `;`, `&`, or `|` statement separators, so `IFS=val; read` (global assignment
+followed by a separate `read` statement) IS flagged. Any match not covered by an
+exemption is reported as a violation.
+
+**Enforcing test:** `test_portability_no_global_ifs_mutation`
+
+---
+
+## 4. Undeclared runtime dependencies (AC-004 and AC-005)
+
+Wave-handoff scripts must not invoke external tools without a preflight availability
+check. Two specific tools are guarded: `python3`/PyYAML (AC-004) and `jq` (AC-005).
+
+### AC-004 — python3 / PyYAML
+
+**Pattern detected:** Any invocation of `python`, `python2`, `python3`, or a
+version-suffixed variant such as `python3.11` or `python3.12`, followed on the same
+line by a yaml token; any invocation of `pip`, `pip2`, `pip3`, or `pipx` followed by
+a pyyaml token (case-insensitive, so both `pyyaml` and `PyYAML` are matched); or a
+bare `import yaml` statement in any wave-handoff script.
+
+**Exception (not flagged):** `python3` invocations that use only stdlib modules (`json`,
+`os`, `sys`, `re`, etc.) are fine and are not flagged. The guard targets only external
+pip packages.
+
+**Why it breaks:** macOS GitHub Actions runners enforce PEP 668 "externally managed
+environment" isolation, which blocks `pip install` commands from modifying the system
+Python. The S-18.01 history has two entries for this failure: commit aaa8da8a (original
+pip failure) and commit 3fe11ea1 (attempted workaround with `--break-system-packages`).
+The `--break-system-packages` flag is explicitly not accepted as a long-term resolution
+in wave-handoff scripts — it works around the runner policy rather than eliminating the
+dependency.
+
+**Required fix:** Either add a preflight check before the first PyYAML invocation:
+
+```bash
+python3 -c "import yaml" 2>/dev/null || {
+  echo "ERROR: PyYAML is required (pip install pyyaml)" >&2
+  exit 1
+}
+```
+
+or replace yaml parsing with a POSIX-portable alternative (`awk` or `sed` key
+extraction). The current wave-handoff implementation uses `awk`-based YAML parsing and
+contains no `import yaml` invocations, so this test passes on a clean codebase.
+
+**What the guard checks (phase 1):** Detects files containing any of: a `python`,
+`python2`, `python3`, or version-suffixed binary (`python3.11`, `python3.12`, etc.)
+invocation followed anywhere on the same line by a case-insensitive yaml token (e.g.,
+`yaml`, `Yaml`, `YAML`) — the python arm uses the pattern `python[0-9.]*` to cover all
+such variants; a `pip`, `pip2`, `pip3`, or `pipx` invocation followed by a
+case-insensitive `pyyaml` token — the pyyaml token match is case-insensitive so the
+canonical PyPI name `PyYAML` (as in `pip3 install PyYAML`) is detected alongside
+lowercase `pyyaml`; or a bare `import yaml` statement. If none found, the test passes
+immediately. **Phase 2 (if
+matches found):** The test first flags any occurrence of `--break-system-packages` as
+an explicit violation. For remaining matches without that flag, it checks whether the
+file contains an acceptable preflight guard matching
+`(python[0-9.]*[[:space:]]+-c[[:space:]]+"import yaml"|command[[:space:]]+-v[[:space:]]+python[0-9.]*)`.
+This covers both bare `python3 -c "import yaml"` and versioned-binary forms such as
+`python3.11 -c "import yaml"`, and both `command -v python3` and versioned forms such as
+`command -v python3.11`; absence of any such guard is a violation.
+
+**Enforcing test:** `test_portability_no_undeclared_pyyaml_dep`
+
+### AC-005 — jq
+
+**Pattern detected:** `jq` appearing as a standalone command token: at the start of a
+line, after a pipe (`|`), after a semicolon (`;`), after an ampersand (`&`), inside a
+command substitution (`$(jq ...)` or backtick form), as an argument to `xargs`
+(including `xargs` with intervening options such as `xargs -n1 jq`), or following
+wrapper keywords `if`, `then`, `do`, `else`, `elif`, `time`, `env`, `command`, or
+`sudo`.
+
+**Why it breaks:** `jq` is not installed by default on all macOS and Linux CI images.
+Scripts that invoke `jq` without checking for its presence fail with `command not found`
+at runtime on any system that does not have it, often with a misleading error that
+obscures the real cause.
+
+**Required fix:** Add a preflight guard before the first `jq` invocation:
+
+```bash
+command -v jq >/dev/null 2>&1 || {
+  echo "ERROR: jq is required; install with brew install jq" >&2
+  exit 1
+}
+```
+
+Both `command -v jq` and `which jq` satisfy the guard. The `command -v` form is
+preferred because it is POSIX-portable (the `which` form is not POSIX but is accepted
+as a common fallback).
+
+**What the guard checks (phase 1):** Detects files where `jq` appears as a command
+word using POSIX ERE (no `\b` shorthand). The detection covers `jq` at the start of a
+line, after a pipe (`|`), after a semicolon (`;`), after a bare ampersand (`&`), inside
+a command substitution (`$(jq ...)` or backtick form), as an `xargs` argument
+(including `xargs` with intervening options such as `xargs -n1 jq`), and after the
+wrapper keywords `if`, `then`, `do`, `else`, `elif`, `time`, `env`, `command`, and
+`sudo`. If no such files are found, the test passes. **Phase 2:** For each file containing a `jq` invocation, the
+test verifies that `command -v jq` or `which jq` appears somewhere in the same file.
+Absence is a violation. No `jq` invocations currently exist in the wave-handoff scripts;
+this guard was added prospectively to prevent the dependency from being introduced
+silently.
+
+**Enforcing test:** `test_portability_no_undeclared_jq_dep`
+
+---
+
+## Guard scope and non-vacuity
+
+Every test in this suite enforces a non-vacuity invariant (EC-005): each test asserts
+that at least one `.sh` file was found under `plugins/vsdd-factory/skills/wave-handoff/`
+before drawing any conclusions. If the scan set is empty — because the scripts were
+renamed or moved — the test fails with a scope-drift message rather than silently
+passing. This prevents the guard from becoming a no-op after a refactor.
+
+The guard does not scan test fixture files, hook scripts under
+`plugins/vsdd-factory/hooks/`, or any script outside the wave-handoff skill directory.
