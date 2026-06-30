@@ -4420,10 +4420,12 @@ EOF
 #   do IFS='|'               — keyword-prefixed global mutation (O-P4-003)
 #   else IFS='|'             — keyword-prefixed global mutation (O-P4-003)
 #   elif IFS='|'             — keyword-prefixed global mutation (O-P4-003)
+#   { IFS=$'\n'; read x; }  — brace-group current-shell mutation (O-1)
+#   case $x in p) IFS='|'   — case-pattern body current-shell mutation (O-1)
 #
-# Detection: three-step filter — step-1 anchors on line-start/separator/operator/keyword
-# before IFS=; step-2 excludes local-scoped and subshell-open forms; step-3 excludes
-# command-prefix-to-read forms.
+# Detection: three-step filter — step-1 anchors on line-start/separator/operator/keyword/
+# brace-group-open/case-pattern-close before IFS=; step-2 excludes local-scoped and
+# subshell-open forms; step-3 excludes command-prefix-to-read forms.
 #
 # Red Gate expectation: PASS (global IFS mutation removed in S-18.01 merge 2b40dfd5).
 # ---------------------------------------------------------------------------
@@ -4455,7 +4457,7 @@ EOF
   #   [^[:space:]]* crosses ; so 'IFS='|'; read x' was wrongly excluded.
   # NEW (safe — stops at ;, &, |): 'IFS=[^[:space:];&|]*[[:space:]]+read([[:space:]]|$)'
   #
-  # Step-1 pattern (extended): (^|;|&&|&|[|][|]|(then|do|else|elif)[[:space:]])[[:space:]]*(export[[:space:]]+|readonly[[:space:]]+|declare[[:space:]]+-g[[:space:]]+)?IFS=
+  # Step-1 pattern (extended): (^|;|&&|&|[|][|]|(then|do|else|elif)[[:space:]]|\{[[:space:]]+|[)][[:space:]]+)[[:space:]]*(export[[:space:]]+|readonly[[:space:]]+|declare[[:space:]]+-g[[:space:]]+)?IFS=
   #   ^                   — bare global assignment at start of line
   #   ;                   — second statement on same line (cmd; IFS=)
   #   &&                  — operator-prefixed: cmd && IFS='|' (O-P4-003)
@@ -4463,12 +4465,19 @@ EOF
   #                          is consumed as a unit first; plain 'cmd &' without IFS= cannot match
   #   ||                  — operator-prefixed: cmd || IFS='|' (O-P4-003)
   #   then|do|else|elif   — keyword-prefixed: then IFS='|', else IFS='|', etc. (O-P4-003)
+  #   \{[[:space:]]+      — brace-group current-shell: { IFS=$'\n'; ... } (O-1)
+  #                          requires at least one space after { (bash syntax requires it);
+  #                          distinguishes from ${IFS...} param expansion (no space after {)
+  #   [)][[:space:]]+     — case-pattern body: case $x in p) IFS='|' ;; (O-1)
+  #                          requires at least one space after ); benign forms like foo() {
+  #                          are not followed by IFS= and do not match
   #   export/readonly/declare -g prefixes — keyword-prefixed global mutations
   # Step-2 (exclude): '^[0-9]+:[[:space:]]*(local[[:space:]]|[(])' — local scoped / subshell-open
   # Step-3 (exclude): 'IFS=[^[:space:];&|]*[[:space:]]+read([[:space:]]|$)' — command-prefix for read
   #   [^[:space:];&|]* — matches only non-separator chars; stops at ; & | before crossing them
   local pc_bad_ifs pc_bad_export_ifs pc_bad_semi_ifs pc_bad_semi_read pc_good_local_ifs pc_good_prefix_ifs
   local pc_bad_readonly_ifs pc_bad_declare_g_ifs pc_bad_and_ifs pc_bad_then_ifs pc_bad_bg_ifs
+  local pc_bad_brace_ifs pc_bad_case_ifs pc_good_func_def_brace pc_good_close_paren_no_ifs
   pc_bad_ifs="${BATS_TEST_TMPDIR}/pc_ac003_bad_ifs.sh"
   pc_bad_export_ifs="${BATS_TEST_TMPDIR}/pc_ac003_bad_export.sh"
   pc_bad_semi_ifs="${BATS_TEST_TMPDIR}/pc_ac003_bad_semi.sh"
@@ -4480,6 +4489,10 @@ EOF
   pc_bad_and_ifs="${BATS_TEST_TMPDIR}/pc_ac003_bad_and.sh"
   pc_bad_then_ifs="${BATS_TEST_TMPDIR}/pc_ac003_bad_then.sh"
   pc_bad_bg_ifs="${BATS_TEST_TMPDIR}/pc_ac003_bad_bg.sh"
+  pc_bad_brace_ifs="${BATS_TEST_TMPDIR}/pc_ac003_bad_brace.sh"
+  pc_bad_case_ifs="${BATS_TEST_TMPDIR}/pc_ac003_bad_case.sh"
+  pc_good_func_def_brace="${BATS_TEST_TMPDIR}/pc_ac003_good_func_def.sh"
+  pc_good_close_paren_no_ifs="${BATS_TEST_TMPDIR}/pc_ac003_good_close_paren.sh"
   printf "IFS='|'\n" > "$pc_bad_ifs"
   printf "export IFS='|'\n" > "$pc_bad_export_ifs"
   printf "cmd; IFS='|'\n" > "$pc_bad_semi_ifs"
@@ -4491,9 +4504,17 @@ EOF
   printf "cmd && IFS='|'\n" > "$pc_bad_and_ifs"
   printf "then IFS='|'\n" > "$pc_bad_then_ifs"
   printf "cmd & IFS='|'\n" > "$pc_bad_bg_ifs"
+  # Brace-group: current-shell mutation (bash requires space after { so { IFS=... is unambiguous)
+  printf '{ IFS=$'"'"'\\n'"'"'; read x; }\n' > "$pc_bad_brace_ifs"
+  # Case-pattern body: ') IFS=|' in a case action body (current-shell)
+  printf "case \$x in foo) IFS='|' ;; esac\n" > "$pc_bad_case_ifs"
+  # GOOD: function definition brace: 'foo() {' — the { is not followed by IFS= (must NOT match)
+  printf "foo() { echo hello; }\n" > "$pc_good_func_def_brace"
+  # GOOD: closing paren without IFS=: 'result=$(cmd); echo $result' — ) not followed by IFS=
+  printf 'result=$(cmd); echo "$result"\n' > "$pc_good_close_paren_no_ifs"
   # BAD: bare global IFS= MUST pass through the three-step filter (produces a violation).
   local pc_bad_ifs_hits
-  pc_bad_ifs_hits="$(grep -nE '(^|;|&&|&|[|][|]|(then|do|else|elif)[[:space:]])[[:space:]]*(export[[:space:]]+|readonly[[:space:]]+|declare[[:space:]]+-g[[:space:]]+)?IFS=' "$pc_bad_ifs" 2>/dev/null \
+  pc_bad_ifs_hits="$(grep -nE '(^|;|&&|&|[|][|]|(then|do|else|elif)[[:space:]]|\{[[:space:]]+|[)][[:space:]]+)[[:space:]]*(export[[:space:]]+|readonly[[:space:]]+|declare[[:space:]]+-g[[:space:]]+)?IFS=' "$pc_bad_ifs" 2>/dev/null \
     | grep -vE '^[0-9]+:[[:space:]]*(local[[:space:]]|[(])' \
     | grep -vE 'IFS=[^[:space:];&|]*[[:space:]]+read([[:space:]]|$)' \
     || true)"
@@ -4503,7 +4524,7 @@ EOF
   }
   # BAD: 'export IFS=' MUST be flagged (keyword-prefixed global mutation).
   local pc_bad_export_hits
-  pc_bad_export_hits="$(grep -nE '(^|;|&&|&|[|][|]|(then|do|else|elif)[[:space:]])[[:space:]]*(export[[:space:]]+|readonly[[:space:]]+|declare[[:space:]]+-g[[:space:]]+)?IFS=' "$pc_bad_export_ifs" 2>/dev/null \
+  pc_bad_export_hits="$(grep -nE '(^|;|&&|&|[|][|]|(then|do|else|elif)[[:space:]]|\{[[:space:]]+|[)][[:space:]]+)[[:space:]]*(export[[:space:]]+|readonly[[:space:]]+|declare[[:space:]]+-g[[:space:]]+)?IFS=' "$pc_bad_export_ifs" 2>/dev/null \
     | grep -vE '^[0-9]+:[[:space:]]*(local[[:space:]]|[(])' \
     | grep -vE 'IFS=[^[:space:];&|]*[[:space:]]+read([[:space:]]|$)' \
     || true)"
@@ -4513,7 +4534,7 @@ EOF
   }
   # BAD: 'cmd; IFS=' MUST be flagged (second-statement global mutation).
   local pc_bad_semi_hits
-  pc_bad_semi_hits="$(grep -nE '(^|;|&&|&|[|][|]|(then|do|else|elif)[[:space:]])[[:space:]]*(export[[:space:]]+|readonly[[:space:]]+|declare[[:space:]]+-g[[:space:]]+)?IFS=' "$pc_bad_semi_ifs" 2>/dev/null \
+  pc_bad_semi_hits="$(grep -nE '(^|;|&&|&|[|][|]|(then|do|else|elif)[[:space:]]|\{[[:space:]]+|[)][[:space:]]+)[[:space:]]*(export[[:space:]]+|readonly[[:space:]]+|declare[[:space:]]+-g[[:space:]]+)?IFS=' "$pc_bad_semi_ifs" 2>/dev/null \
     | grep -vE '^[0-9]+:[[:space:]]*(local[[:space:]]|[(])' \
     | grep -vE 'IFS=[^[:space:];&|]*[[:space:]]+read([[:space:]]|$)' \
     || true)"
@@ -4526,7 +4547,7 @@ EOF
   # class to not cross statement separators).  The old [^[:space:]]* would cross the ';' and
   # wrongly exclude this as if it were 'IFS=... read'.
   local pc_bad_semi_read_hits
-  pc_bad_semi_read_hits="$(grep -nE '(^|;|&&|&|[|][|]|(then|do|else|elif)[[:space:]])[[:space:]]*(export[[:space:]]+|readonly[[:space:]]+|declare[[:space:]]+-g[[:space:]]+)?IFS=' "$pc_bad_semi_read" 2>/dev/null \
+  pc_bad_semi_read_hits="$(grep -nE '(^|;|&&|&|[|][|]|(then|do|else|elif)[[:space:]]|\{[[:space:]]+|[)][[:space:]]+)[[:space:]]*(export[[:space:]]+|readonly[[:space:]]+|declare[[:space:]]+-g[[:space:]]+)?IFS=' "$pc_bad_semi_read" 2>/dev/null \
     | grep -vE '^[0-9]+:[[:space:]]*(local[[:space:]]|[(])' \
     | grep -vE 'IFS=[^[:space:];&|]*[[:space:]]+read([[:space:]]|$)' \
     || true)"
@@ -4538,7 +4559,7 @@ EOF
   }
   # GOOD: 'local IFS=' MUST be excluded by the filter (no violation).
   local pc_good_local_hits
-  pc_good_local_hits="$(grep -nE '(^|;|&&|&|[|][|]|(then|do|else|elif)[[:space:]])[[:space:]]*(export[[:space:]]+|readonly[[:space:]]+|declare[[:space:]]+-g[[:space:]]+)?IFS=' "$pc_good_local_ifs" 2>/dev/null \
+  pc_good_local_hits="$(grep -nE '(^|;|&&|&|[|][|]|(then|do|else|elif)[[:space:]]|\{[[:space:]]+|[)][[:space:]]+)[[:space:]]*(export[[:space:]]+|readonly[[:space:]]+|declare[[:space:]]+-g[[:space:]]+)?IFS=' "$pc_good_local_ifs" 2>/dev/null \
     | grep -vE '^[0-9]+:[[:space:]]*(local[[:space:]]|[(])' \
     | grep -vE 'IFS=[^[:space:];&|]*[[:space:]]+read([[:space:]]|$)' \
     || true)"
@@ -4549,7 +4570,7 @@ EOF
   # GOOD: 'IFS=... read' command-prefix MUST be excluded by the filter (no violation).
   # This is the legitimate command-prefix form (e.g., IFS=',' read -ra arr).
   local pc_good_prefix_hits
-  pc_good_prefix_hits="$(grep -nE '(^|;|&&|&|[|][|]|(then|do|else|elif)[[:space:]])[[:space:]]*(export[[:space:]]+|readonly[[:space:]]+|declare[[:space:]]+-g[[:space:]]+)?IFS=' "$pc_good_prefix_ifs" 2>/dev/null \
+  pc_good_prefix_hits="$(grep -nE '(^|;|&&|&|[|][|]|(then|do|else|elif)[[:space:]]|\{[[:space:]]+|[)][[:space:]]+)[[:space:]]*(export[[:space:]]+|readonly[[:space:]]+|declare[[:space:]]+-g[[:space:]]+)?IFS=' "$pc_good_prefix_ifs" 2>/dev/null \
     | grep -vE '^[0-9]+:[[:space:]]*(local[[:space:]]|[(])' \
     | grep -vE 'IFS=[^[:space:];&|]*[[:space:]]+read([[:space:]]|$)' \
     || true)"
@@ -4560,7 +4581,7 @@ EOF
   # BAD (O-P4-002): 'readonly IFS=' MUST be flagged (keyword-prefixed global mutation).
   # This exercises the readonly[[:space:]]+ arm of the optional-keyword group in step-1.
   local pc_bad_readonly_hits
-  pc_bad_readonly_hits="$(grep -nE '(^|;|&&|&|[|][|]|(then|do|else|elif)[[:space:]])[[:space:]]*(export[[:space:]]+|readonly[[:space:]]+|declare[[:space:]]+-g[[:space:]]+)?IFS=' "$pc_bad_readonly_ifs" 2>/dev/null \
+  pc_bad_readonly_hits="$(grep -nE '(^|;|&&|&|[|][|]|(then|do|else|elif)[[:space:]]|\{[[:space:]]+|[)][[:space:]]+)[[:space:]]*(export[[:space:]]+|readonly[[:space:]]+|declare[[:space:]]+-g[[:space:]]+)?IFS=' "$pc_bad_readonly_ifs" 2>/dev/null \
     | grep -vE '^[0-9]+:[[:space:]]*(local[[:space:]]|[(])' \
     | grep -vE 'IFS=[^[:space:];&|]*[[:space:]]+read([[:space:]]|$)' \
     || true)"
@@ -4572,7 +4593,7 @@ EOF
   # BAD (O-P4-002): 'declare -g IFS=' MUST be flagged (declare -g global mutation).
   # This exercises the declare[[:space:]]+-g[[:space:]]+ arm in step-1.
   local pc_bad_declare_g_hits
-  pc_bad_declare_g_hits="$(grep -nE '(^|;|&&|&|[|][|]|(then|do|else|elif)[[:space:]])[[:space:]]*(export[[:space:]]+|readonly[[:space:]]+|declare[[:space:]]+-g[[:space:]]+)?IFS=' "$pc_bad_declare_g_ifs" 2>/dev/null \
+  pc_bad_declare_g_hits="$(grep -nE '(^|;|&&|&|[|][|]|(then|do|else|elif)[[:space:]]|\{[[:space:]]+|[)][[:space:]]+)[[:space:]]*(export[[:space:]]+|readonly[[:space:]]+|declare[[:space:]]+-g[[:space:]]+)?IFS=' "$pc_bad_declare_g_ifs" 2>/dev/null \
     | grep -vE '^[0-9]+:[[:space:]]*(local[[:space:]]|[(])' \
     | grep -vE 'IFS=[^[:space:];&|]*[[:space:]]+read([[:space:]]|$)' \
     || true)"
@@ -4584,7 +4605,7 @@ EOF
   # BAD (O-P4-003): 'cmd && IFS=' MUST be flagged (operator-prefixed global mutation).
   # This exercises the new && arm added to step-1 to catch operator-chained mutations.
   local pc_bad_and_hits
-  pc_bad_and_hits="$(grep -nE '(^|;|&&|&|[|][|]|(then|do|else|elif)[[:space:]])[[:space:]]*(export[[:space:]]+|readonly[[:space:]]+|declare[[:space:]]+-g[[:space:]]+)?IFS=' "$pc_bad_and_ifs" 2>/dev/null \
+  pc_bad_and_hits="$(grep -nE '(^|;|&&|&|[|][|]|(then|do|else|elif)[[:space:]]|\{[[:space:]]+|[)][[:space:]]+)[[:space:]]*(export[[:space:]]+|readonly[[:space:]]+|declare[[:space:]]+-g[[:space:]]+)?IFS=' "$pc_bad_and_ifs" 2>/dev/null \
     | grep -vE '^[0-9]+:[[:space:]]*(local[[:space:]]|[(])' \
     | grep -vE 'IFS=[^[:space:];&|]*[[:space:]]+read([[:space:]]|$)' \
     || true)"
@@ -4596,7 +4617,7 @@ EOF
   # BAD (O-P4-003): 'then IFS=' MUST be flagged (keyword-prefixed global mutation).
   # This exercises the (then|do|else|elif)[[:space:]] arm added to step-1.
   local pc_bad_then_hits
-  pc_bad_then_hits="$(grep -nE '(^|;|&&|&|[|][|]|(then|do|else|elif)[[:space:]])[[:space:]]*(export[[:space:]]+|readonly[[:space:]]+|declare[[:space:]]+-g[[:space:]]+)?IFS=' "$pc_bad_then_ifs" 2>/dev/null \
+  pc_bad_then_hits="$(grep -nE '(^|;|&&|&|[|][|]|(then|do|else|elif)[[:space:]]|\{[[:space:]]+|[)][[:space:]]+)[[:space:]]*(export[[:space:]]+|readonly[[:space:]]+|declare[[:space:]]+-g[[:space:]]+)?IFS=' "$pc_bad_then_ifs" 2>/dev/null \
     | grep -vE '^[0-9]+:[[:space:]]*(local[[:space:]]|[(])' \
     | grep -vE 'IFS=[^[:space:];&|]*[[:space:]]+read([[:space:]]|$)' \
     || true)"
@@ -4611,7 +4632,7 @@ EOF
   # step-1 so that '&&' is consumed as a unit first; plain 'cmd &' without a following
   # IFS= cannot satisfy the remainder of the regex and is NOT a false positive.
   local pc_bad_bg_hits
-  pc_bad_bg_hits="$(grep -nE '(^|;|&&|&|[|][|]|(then|do|else|elif)[[:space:]])[[:space:]]*(export[[:space:]]+|readonly[[:space:]]+|declare[[:space:]]+-g[[:space:]]+)?IFS=' "$pc_bad_bg_ifs" 2>/dev/null \
+  pc_bad_bg_hits="$(grep -nE '(^|;|&&|&|[|][|]|(then|do|else|elif)[[:space:]]|\{[[:space:]]+|[)][[:space:]]+)[[:space:]]*(export[[:space:]]+|readonly[[:space:]]+|declare[[:space:]]+-g[[:space:]]+)?IFS=' "$pc_bad_bg_ifs" 2>/dev/null \
     | grep -vE '^[0-9]+:[[:space:]]*(local[[:space:]]|[(])' \
     | grep -vE 'IFS=[^[:space:];&|]*[[:space:]]+read([[:space:]]|$)' \
     || true)"
@@ -4621,15 +4642,71 @@ EOF
     echo "  consumed as a unit first; AC-005's jq detector already includes & per [|;&])." >&2
     false
   }
+  # BAD (O-1): '{ IFS=$'\n'; read x; }' MUST be flagged (brace-group current-shell mutation).
+  # A brace group runs in the current shell (unlike a subshell), so IFS mutation inside it
+  # persists globally.  bash syntax requires at least one space after '{', which distinguishes
+  # it from '${IFS...}' parameter expansion (no space after '{').
+  local pc_bad_brace_hits
+  pc_bad_brace_hits="$(grep -nE '(^|;|&&|&|[|][|]|(then|do|else|elif)[[:space:]]|\{[[:space:]]+|[)][[:space:]]+)[[:space:]]*(export[[:space:]]+|readonly[[:space:]]+|declare[[:space:]]+-g[[:space:]]+)?IFS=' "$pc_bad_brace_ifs" 2>/dev/null \
+    | grep -vE '^[0-9]+:[[:space:]]*(local[[:space:]]|[(])' \
+    | grep -vE 'IFS=[^[:space:];&|]*[[:space:]]+read([[:space:]]|$)' \
+    || true)"
+  [ -n "$pc_bad_brace_hits" ] || {
+    echo "FAIL (AC-003 positive-control / O-1): IFS-detector did not flag '{ IFS=\$'\\n'; read x; }' (brace-group current-shell mutation)." >&2
+    echo "  The \\{[[:space:]]+ arm of step-1 must fire for brace-group-leading IFS= assignments." >&2
+    false
+  }
+  # BAD (O-1): 'case $x in foo) IFS='|' ;; esac' MUST be flagged (case-pattern body mutation).
+  # Case-pattern action bodies run in the current shell, so 'p) IFS=...' is a global mutation.
+  # The [)][[:space:]]+ arm requires at least one space after ')' to distinguish from
+  # function-definition patterns like 'foo() {' where ')' is not followed by IFS=.
+  local pc_bad_case_hits
+  pc_bad_case_hits="$(grep -nE '(^|;|&&|&|[|][|]|(then|do|else|elif)[[:space:]]|\{[[:space:]]+|[)][[:space:]]+)[[:space:]]*(export[[:space:]]+|readonly[[:space:]]+|declare[[:space:]]+-g[[:space:]]+)?IFS=' "$pc_bad_case_ifs" 2>/dev/null \
+    | grep -vE '^[0-9]+:[[:space:]]*(local[[:space:]]|[(])' \
+    | grep -vE 'IFS=[^[:space:];&|]*[[:space:]]+read([[:space:]]|$)' \
+    || true)"
+  [ -n "$pc_bad_case_hits" ] || {
+    echo "FAIL (AC-003 positive-control / O-1): IFS-detector did not flag 'case \$x in foo) IFS=|' (case-pattern body mutation)." >&2
+    echo "  The [)][[:space:]]+ arm of step-1 must fire for case-action-body IFS= assignments." >&2
+    false
+  }
+  # GOOD (O-1 negative control): 'foo() { echo hello; }' MUST NOT be flagged.
+  # The '{' in a function definition is followed by a space and then a NON-IFS= command,
+  # so the \{[[:space:]]+ arm does not produce a false positive.
+  local pc_good_func_def_hits
+  pc_good_func_def_hits="$(grep -nE '(^|;|&&|&|[|][|]|(then|do|else|elif)[[:space:]]|\{[[:space:]]+|[)][[:space:]]+)[[:space:]]*(export[[:space:]]+|readonly[[:space:]]+|declare[[:space:]]+-g[[:space:]]+)?IFS=' "$pc_good_func_def_brace" 2>/dev/null \
+    | grep -vE '^[0-9]+:[[:space:]]*(local[[:space:]]|[(])' \
+    | grep -vE 'IFS=[^[:space:];&|]*[[:space:]]+read([[:space:]]|$)' \
+    || true)"
+  [ -z "$pc_good_func_def_hits" ] || {
+    echo "FAIL (AC-003 negative-control / O-1): IFS-detector falsely flagged 'foo() { echo hello; }' (function definition brace must be exempt)." >&2
+    echo "  The \\{[[:space:]]+ arm fires only when { is immediately followed (with optional space) by IFS=." >&2
+    false
+  }
+  # GOOD (O-1 negative control): 'result=$(cmd); echo $result' MUST NOT be flagged.
+  # The closing ')' of a command substitution is not followed by IFS= on this line,
+  # so the [)][[:space:]]+ arm does not produce a false positive.
+  local pc_good_close_paren_hits
+  pc_good_close_paren_hits="$(grep -nE '(^|;|&&|&|[|][|]|(then|do|else|elif)[[:space:]]|\{[[:space:]]+|[)][[:space:]]+)[[:space:]]*(export[[:space:]]+|readonly[[:space:]]+|declare[[:space:]]+-g[[:space:]]+)?IFS=' "$pc_good_close_paren_no_ifs" 2>/dev/null \
+    | grep -vE '^[0-9]+:[[:space:]]*(local[[:space:]]|[(])' \
+    | grep -vE 'IFS=[^[:space:];&|]*[[:space:]]+read([[:space:]]|$)' \
+    || true)"
+  [ -z "$pc_good_close_paren_hits" ] || {
+    echo "FAIL (AC-003 negative-control / O-1): IFS-detector falsely flagged 'result=\$(cmd); echo \$result' (close-paren not preceding IFS= must be exempt)." >&2
+    echo "  The [)][[:space:]]+ arm fires only when ) is followed (with optional space) by IFS=." >&2
+    false
+  }
   # -------------------------------------------
 
   # Detect global IFS= mutations at script or function scope.
   # Step 1 (extended): lines where IFS= appears at line-start, after a semicolon,
-  #         after an operator (&&, &, ||), or after a shell keyword (then/do/else/elif),
+  #         after an operator (&&, &, ||), after a shell keyword (then/do/else/elif),
+  #         after a brace-group open ({ ), or after a case-pattern close () ),
   #         optionally preceded by export/readonly/declare -g keywords.
-  #         — (^|;|&&|&|[|][|]|(then|do|else|elif)[[:space:]])[[:space:]]*(export[[:space:]]+|readonly[[:space:]]+|declare[[:space:]]+-g[[:space:]]+)?IFS=
+  #         — (^|;|&&|&|[|][|]|(then|do|else|elif)[[:space:]]|\{[[:space:]]+|[)][[:space:]]+)[[:space:]]*(export[[:space:]]+|readonly[[:space:]]+|declare[[:space:]]+-g[[:space:]]+)?IFS=
   #         Catches: bare IFS=, export/readonly/declare -g IFS=, cmd; IFS=,
-  #         cmd && IFS=, cmd & IFS=, cmd || IFS=, then/do/else/elif IFS= (O-P4-003/O-2)
+  #         cmd && IFS=, cmd & IFS=, cmd || IFS=, then/do/else/elif IFS= (O-P4-003/O-2),
+  #         { IFS=... (brace-group current-shell), p) IFS=... (case-pattern body) (O-1)
   # Step 2: exclude "local IFS=" — locally scoped within a function body.
   # Step 3: exclude "(IFS=" — subshell-scoped (subshell open on same line as IFS=).
   # Step 4: exclude "IFS=<value> read" — command-prefix for the read builtin.
@@ -4642,7 +4719,7 @@ EOF
   for f in "${sh_files[@]}"; do
     local rel="${f#${wave_handoff_skill_dir}/}"
     local hits
-    hits="$(grep -nE '(^|;|&&|&|[|][|]|(then|do|else|elif)[[:space:]])[[:space:]]*(export[[:space:]]+|readonly[[:space:]]+|declare[[:space:]]+-g[[:space:]]+)?IFS=' "$f" 2>/dev/null \
+    hits="$(grep -nE '(^|;|&&|&|[|][|]|(then|do|else|elif)[[:space:]]|\{[[:space:]]+|[)][[:space:]]+)[[:space:]]*(export[[:space:]]+|readonly[[:space:]]+|declare[[:space:]]+-g[[:space:]]+)?IFS=' "$f" 2>/dev/null \
       | grep -vE '^[0-9]+:[[:space:]]*(local[[:space:]]|[(])' \
       | grep -vE 'IFS=[^[:space:];&|]*[[:space:]]+read([[:space:]]|$)' \
       || true)"
