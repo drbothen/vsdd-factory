@@ -72,10 +72,12 @@ absent, so no guard is required).
 ## 2. Unguarded bash 4+ case modifiers (AC-002)
 
 **Pattern detected:** `${varname^^}` (to-uppercase), `${varname,,}` (to-lowercase),
-`${varname^}` (first-character uppercase), or `${varname,}` (first-character lowercase)
-in any wave-handoff script, including array-element forms such as `${arr[0]^^}`,
-`${map[k],,}`, and `${arr[i]^}`, and positional and special parameters such as
-`${1^^}`, `${@^^}`, `${*^^}`, and `${#^^}`.
+`${varname^}` (first-character uppercase), `${varname,}` (first-character lowercase),
+`${varname@U}` (bash-4.4 to-uppercase transform), `${varname@L}` (bash-4.4
+to-lowercase transform), or `${varname@u}` (bash-4.4 first-character uppercase
+transform) in any wave-handoff script, including array-element forms such as
+`${arr[0]^^}`, `${map[k],,}`, and `${arr[i]^}`, and positional and special parameters
+such as `${1^^}`, `${@^^}`, `${*^^}`, and `${#^^}`.
 
 **Why it breaks:** These parameter expansion operators were introduced in bash 4.0. On
 bash 3.2 (macOS system bash) they produce a **runtime** `bad substitution` error at the
@@ -99,8 +101,9 @@ upper="$(printf '%s' "$var" | awk '{print toupper($0)}')"
 `wave-handoff.sh` before any lib script is sourced.
 
 **What the guard checks:** If any file matches the pattern
-`\$\{([a-zA-Z_][a-zA-Z0-9_]*|[0-9]+|[@*#])(\[[^]]*\])?(\^\^?|,,?)` — covering the
-two-char forms `^^` and `,,`, the single-char forms `^` and `,`, named variable forms
+`\$\{([a-zA-Z_][a-zA-Z0-9_]*|[0-9]+|[@*#])(\[[^]]*\])?(\^\^?|,,?|@[ULu])` — covering the
+two-char forms `^^` and `,,`, the single-char forms `^` and `,`, the bash-4.4
+`@`-operator transforms `@U` / `@L` / `@u`, named variable forms
 (`${varname^^}`), array-element forms such as `${arr[0]^^}`, `${map[k],,}`, and
 `${arr[i]^}`, and positional and special-parameter forms such as `${1^^}`, `${@^^}`,
 `${*^^}`, and `${#^^}` — the test verifies that `BASH_VERSINFO` appears somewhere in
@@ -161,21 +164,24 @@ the shell's IFS.
 
 **What the guard checks:** The test applies the step-1 anchor
 `(^|;|&&|&|[|][|]|(then|do|else|elif)[[:space:]]|\{[[:space:]]+|[)][[:space:]]+)[[:space:]]*(export[[:space:]]+|readonly[[:space:]]+|declare[[:space:]]+-g[[:space:]]+)?IFS=`,
-which matches: bare line-start `IFS=`; second-statement uses such as `cmd; IFS=`;
-operator-prefixed mutations such as `cmd && IFS=`, `cmd & IFS=` (background-then-global),
-and `cmd || IFS=`; brace-group mutations such as `{ IFS=...` (brace group — runs in
-current shell); case pattern-action body mutations such as `) IFS=...` (case pattern —
-runs in current shell); and
+which anchors the positions where `IFS=` mutates the current (parent) shell: bare
+line-start `IFS=`; second-statement uses such as `cmd; IFS=`; operator-prefixed
+mutations such as `cmd && IFS=`, `cmd & IFS=` (background-then-global), and
+`cmd || IFS=`; brace-group mutations such as `{ IFS=...` (brace group — runs in the
+current shell, not a subshell); case pattern-action body mutations such as `) IFS=...`
+(case pattern-action body — runs in the current shell, not a subshell); and
 keyword-prefixed mutations where `IFS=` follows `then`, `do`, `else`, or `elif` with
-whitespace (e.g., `then IFS=...` in an `if` body or `do IFS=...` in a loop body); as
-well as the qualified forms `export IFS=`, `readonly IFS=`, and `declare -g IFS=` in
-any of those positions. The following forms are exempted and not flagged: `local IFS=`
-(function-scoped), `while IFS= read` and `IFS=... read` (command-prefix scoped to the
-single `read` call), and `(IFS=...; ...)` (subshell-scoped). The command-prefix
-exemption applies only to the no-separator form `IFS=val read` — the exemption does not
-cross `;`, `&`, or `|` statement separators, so `IFS=val; read` (global assignment
-followed by a separate `read` statement) IS flagged. Any match not covered by an
-exemption is reported as a violation.
+whitespace (e.g., `then IFS=...` in an `if` body or `do IFS=...` in a loop body). The
+subshell form `( IFS=...; ... )` is intentionally excluded from the anchor: `IFS` set
+inside a subshell is scoped to that subshell and does not leak back to the parent
+shell. The anchor covers the qualified forms `export IFS=`, `readonly IFS=`, and
+`declare -g IFS=` in any of those positions. The following forms are exempted and not
+flagged: `local IFS=` (function-scoped), `while IFS= read` and `IFS=... read`
+(command-prefix scoped to the single `read` call), and `(IFS=...; ...)` (subshell-scoped,
+as above). The command-prefix exemption applies only to the no-separator form `IFS=val read`
+— the exemption does not cross `;`, `&`, or `|` statement separators, so `IFS=val; read`
+(global assignment followed by a separate `read` statement) IS flagged. Any match not
+covered by an exemption is reported as a violation.
 
 **Enforcing test:** `test_portability_no_global_ifs_mutation`
 
@@ -231,8 +237,9 @@ immediately. **Phase 2 (if
 matches found):** The test first flags any occurrence of `--break-system-packages` as
 an explicit violation. For remaining matches without that flag, it checks whether the
 file contains an acceptable preflight guard matching
-`(python[0-9.]*[[:space:]]+-c[[:space:]]+"import yaml"|command[[:space:]]+-v[[:space:]]+python[0-9.]*)`.
-This covers both bare `python3 -c "import yaml"` and versioned-binary forms such as
+`(python[0-9.]*[[:space:]]+-c[[:space:]]+["']import yaml["']|command[[:space:]]+-v[[:space:]]+python[0-9.]*)`.
+This covers both bare `python3 -c "import yaml"` and `python3 -c 'import yaml'`
+(single or double quotes accepted), versioned-binary forms such as
 `python3.11 -c "import yaml"`, and both `command -v python3` and versioned forms such as
 `command -v python3.11`; absence of any such guard is a violation.
 
@@ -240,42 +247,36 @@ This covers both bare `python3 -c "import yaml"` and versioned-binary forms such
 
 ### AC-005 — jq
 
-**Pattern detected:** `jq` appearing as a standalone command token: at the start of a
-line, after a pipe (`|`), after a semicolon (`;`), after an ampersand (`&`), inside a
-command substitution (`$(jq ...)` or backtick form), as an argument to `xargs`
-(including `xargs` with intervening options such as `xargs -n1 jq`), or following
-wrapper keywords `if`, `then`, `do`, `else`, `elif`, `time`, `env`, `command`, or
-`sudo`.
+**Pattern detected:** `jq` appearing as a standalone command token in ANY execution
+position: at the start of a line, after a pipe (`|`), after a semicolon (`;`), after an
+ampersand (`&`), inside a command substitution (`$(jq ...)` or backtick form), as an
+argument to `xargs` (including `xargs` with intervening options such as `xargs -n1 jq`),
+following wrapper keywords `if`, `then`, `do`, `else`, `elif`, `time`, `env`, `command`,
+or `sudo`, inside a brace group (`{ jq . f; }`), as a case-pattern-action (`case $x in
+p) jq … ;;`), or inside a subshell (`( jq … )`).
 
-**Why it breaks:** `jq` is not installed by default on all macOS and Linux CI images.
-Scripts that invoke `jq` without checking for its presence fail with `command not found`
-at runtime on any system that does not have it, often with a misleading error that
-obscures the real cause.
-
-**Required fix:** Add a preflight guard before the first `jq` invocation:
-
-```bash
-command -v jq >/dev/null 2>&1 || {
-  echo "ERROR: jq is required; install with brew install jq" >&2
-  exit 1
-}
-```
-
-Both `command -v jq` and `which jq` satisfy the guard. The `command -v` form is
-preferred because it is POSIX-portable (the `which` form is not POSIX but is accepted
-as a common fallback).
+**Why it is forbidden:** `jq` is prohibited by the wave-handoff SKILL.md contract —
+scripts MUST NOT shell out to `jq`. This is not a "check for presence before using"
+situation: the contract forbids `jq` in any execution position, including subshells. Any
+detection of `jq` as a command word is a violation regardless of position. The correct
+fix is removal, not the addition of a preflight guard.
 
 **What the guard checks (phase 1):** Detects files where `jq` appears as a command
-word using POSIX ERE (no `\b` shorthand). The detection covers `jq` at the start of a
-line, after a pipe (`|`), after a semicolon (`;`), after a bare ampersand (`&`), inside
-a command substitution (`$(jq ...)` or backtick form), as an `xargs` argument
-(including `xargs` with intervening options such as `xargs -n1 jq`), and after the
-wrapper keywords `if`, `then`, `do`, `else`, `elif`, `time`, `env`, `command`, and
-`sudo`. If no such files are found, the test passes. **Phase 2:** For each file containing a `jq` invocation, the
-test verifies that `command -v jq` or `which jq` appears somewhere in the same file.
-Absence is a violation. No `jq` invocations currently exist in the wave-handoff scripts;
-this guard was added prospectively to prevent the dependency from being introduced
-silently.
+word in any execution position using POSIX ERE (no `\b` shorthand). The detector regex is:
+
+```
+(^[[:space:]]*jq([[:space:]]|$)|[|;&][[:space:]]*jq([[:space:]]|$)|\$[(]jq([[:space:]]|$)|`jq([[:space:]]|$)|(xargs|if|then|do|else|elif|time|env|command|sudo)[[:space:]]+jq([[:space:]]|$)|xargs([[:space:]]+-[^[:space:]]+)+[[:space:]]+jq([[:space:]]|$)|\{[[:space:]]*jq([[:space:]]|$)|\)[[:space:]]*jq([[:space:]]|$)|\([[:space:]]*jq([[:space:]]|$))
+```
+
+This covers `jq` at line-start, after pipe/semicolon/ampersand, inside `$(...)` or
+backtick command substitution, after `xargs` (with or without intervening options), after
+the wrapper keywords `if`, `then`, `do`, `else`, `elif`, `time`, `env`, `command`, and
+`sudo`, inside a brace group (`{ jq`), as a case-pattern-action body (`) jq`), and
+inside a subshell (`( jq`). If no such files are found, the test passes. **Phase 2:** For
+each file containing a `jq` invocation, the test verifies that `command -v jq` or
+`which jq` appears somewhere in the same file; absence is a violation. No `jq`
+invocations currently exist in the wave-handoff scripts; this guard was added
+prospectively to prevent the dependency from being introduced silently.
 
 **Soundness boundary:** The jq preflight check is whole-file (greps for `command -v jq`
 or `which jq` anywhere in the file), NOT positional (unlike AC-001's entrypoint guard,
