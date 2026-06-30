@@ -11124,7 +11124,7 @@ This burst-log entry contains all 8 D-444(c) mandatory blocks:
 5. Dim-2: 4-index parity gate with literal-shell stdout above
 6. Dim-5: This block (8-block self-verification)
 7. Closes: pass-11 NOT-CLEAN closure; streak 2/3→0/3; F-P13-001/F-P11-001/O-3 remediated; O-1/O-2 accepted; TD-VSDD-060 sibling-sweep complete; ARTIFACTS FROZEN e122cdb0/v1.11
-8. Factory-artifacts commits: (SHA recorded via SHA-patch follow-up per D-447(c)+D-449(e))
+8. Factory-artifacts commits: `4353988e` state(D-735): S-18.12 LOCAL adv pass-11 NOT-CLEAN closure burst (state-manager) [factory-artifacts HEAD after push]
 
 All 8 blocks present. Gate: PASS.
 
