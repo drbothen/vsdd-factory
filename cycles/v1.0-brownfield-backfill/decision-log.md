@@ -4415,3 +4415,59 @@ Note: The MED finding at pass-6 is a structural soundness gap (guard-boundary en
 ### NEXT
 
 S-18.12 LOCAL adversarial pass-7. Fresh context. Streak 0/3. Need passes 7+8 both CLEAN for 3-CLEAN convergence per BC-5.39.001. STOP-BEFORE-PR-MERGE (D-665) holds.
+
+## D-732 — S-18.12 LOCAL adv pass-8 NOT-CLEAN closure — 2026-06-30
+
+### Verdict
+
+S-18.12 LOCAL adversarial pass-8: **NOT-CLEAN** (0 CRITICAL / 0 HIGH / 1 MEDIUM blocking / 3 LOW observations). Streak reset **1/3 → 0/3**. All 4 findings remediated same-burst. Pass-9 NEXT (streak 0/3).
+
+### Findings Summary
+
+| ID | Severity | Description | Fix | Commit |
+|----|----------|-------------|-----|--------|
+| F-P8-001 | MEDIUM (blocking) | AC-005 jq detector missed `{ jq`/`) jq`/`( jq` execution positions; AC-003 rationale carried "parity with AC-005" cross-cite creating one-directional brittle dependency | test-writer: broadened jq_re positive-control set to cover brace-group/case-pattern/subshell positions (jq forbidden everywhere — any execution position is a hazard; note jq covers subshell `(` whereas IFS does not, since subshell IFS doesn't leak); story-writer: AC-003 + AC-005 rationales reframed to SELF-CONTAINED semantics (no mutual cross-citation); story v1.8→v1.9 | 70c9fdd1, 646bf898 |
+| O-1 | LOW | AC-002 missing bash-4.4 `${var@U}`, `${var@L}`, `${var@u}` transform operators; terminal alternation incomplete | test-writer: extend terminal alternation to `@[ULu]`; positive controls for each form; guard `${arr[@]}` and `${BASH_SOURCE[0]}` stay clean | 70c9fdd1, 57b09645 |
+| O-2 | LOW | AC-004 phase-2 positive control hardcoded double-quoted `"import yaml"` form only; single-quoted form not exercised | test-writer: accept single OR double quotes (`["']import yaml["']`); confirm GREEN | 70c9fdd1 |
+| O-3 | LOW | Dangling "optionally scan hooks/*.sh" clause in AC-001/AC-006 scope description; hooks are SS-07 artifacts, not SS-06 skill scripts | story-writer: AC-001 + AC-006 explicitly mark hooks OUT OF SCOPE (SS-07 artifacts, not SS-06 skill scripts) | 646bf898 |
+
+### Severity Decay
+
+| Pass | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+|------|---|---|---|---|---|---|---|---|
+| Verdict | NOT-CLEAN | NOT-CLEAN | NOT-CLEAN | NOT-CLEAN | CLEAN | NOT-CLEAN | CLEAN | NOT-CLEAN |
+| Highest | HIGH | HIGH | MED | MED | — | MED | — | MED |
+| Streak | 0/3 | 0/3 | 0/3 | 0/3 | 1/3 | 0/3 | 1/3 | 0/3 (reset) |
+
+Severity decay H→H→M→M→CLEAN→MED→CLEAN→MED. HIGH findings eliminated after pass-2. Non-monotonic at passes 6/8 (both MED) but consistently below the HIGH floor of passes 1-2. The MED finding at pass-8 is a structural execution-position gap (detector test-vector incompleteness for execution contexts) compounded by a brittle cross-cite in the rationale — a different finding class from pass-6 (guard-boundary enforceability).
+
+### Codifications
+
+- **D-732** decision-log block (this entry): S-18.12 LOCAL adv pass-8 NOT-CLEAN closure.
+- **STORY-INDEX v4.113→v4.114**: S-18.12 body row updated to v1.9 with LOCAL adv pass-8 NOT-CLEAN annotation (POLICY 14 leg-5; state-manager this burst).
+- **s-18.12-local-adversary-pass-8.md**: pass-8 adversary report persisted in cycles/v1.0-brownfield-backfill/.
+- **STATE.md**: frontmatter v4.82→v4.83, D-732 banner, Decisions Log / §1 / §3 / §4 / §8 / §11 / §12 / Session Resume Checkpoint updated for zero-context resume into S-18.12 LOCAL adv pass-9.
+
+### Feature Branch
+
+- **feature/S-18.12** — WIP at 57b09645 (technical-writer doc sync; post-D-732 hardening: jq execution-position controls broadened; AC-002 @[ULu] extended; AC-004 quote flex; AC-001/AC-006 hooks out-of-scope). 68/68 bats GREEN.
+
+### Develop / 4-Index State
+
+- develop_head: 531dacfb UNCHANGED
+- merged_count: 95 UNCHANGED
+- total_bcs: 1,974 UNCHANGED
+- BC-INDEX: v3.57 UNCHANGED
+- VP-INDEX: v2.51 UNCHANGED
+- ARCH-INDEX: v2.85 UNCHANGED
+- STORY-INDEX: v4.113→v4.114 (BUMPED this burst, POLICY 14 leg-5)
+
+### Process-Gap Lesson (D-732)
+
+The AC-003/AC-005 "parity" cross-cite pattern is a recurring brittleness class: when AC-N justifies its correctness by citing "parity with AC-M", a future change to AC-M's semantics invalidates AC-N's rationale silently — no test fails, no index update is triggered. The correct pattern is: each AC must be self-contained, justified by its own detection logic and soundness boundary. Cross-citing a sibling AC for rationale is a documentation anti-pattern that should be caught at story-writer time, not adversary time.
+
+This is not codified as a new L-BB lesson (the principle is covered by existing self-contained-rationale guidance in the production-grade principle), but is noted here for the burst-log cross-reference as a meta-pattern observation.
+
+### NEXT
+
+S-18.12 LOCAL adversarial pass-9. Fresh context. Streak 0/3. Need passes 9, 10, 11 all CLEAN for 3-CLEAN convergence per BC-5.39.001. STOP-BEFORE-PR-MERGE (D-665) holds.

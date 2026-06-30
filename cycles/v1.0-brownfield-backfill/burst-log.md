@@ -10751,3 +10751,102 @@ S-18.12 LOCAL adversarial cascade streak: 0/3 → **1/3** (pass-7 CLEAN). NEXT: 
 ### Factory-artifacts Commits
 
 - c4e33952 — D-731 S-18.12 LOCAL adv pass-7 CLEAN closure (single commit per TD-VSDD-053)
+
+## D-732 S-18.12 LOCAL adv pass-8 NOT-CLEAN closure burst (2026-06-30)
+
+### Parent-commit
+
+- **factory-artifacts parent:** 646bf898 (story-writer story(S-18.12): v1.9 — F-P8-001 AC-005 jq position broadening, AC-003/AC-005 self-contained rationale, O-1 AC-002 @-operators, O-2 AC-004 quote flex, O-3 hooks out-of-scope, 2026-06-30) per D-419(b).
+- **develop HEAD at burst:** 531dacfb (PR #340 S-18.11 squash-merged 2026-06-29T20:09:35Z D-722; UNCHANGED)
+
+### Adversary Verdict
+
+Pass-8: **NOT-CLEAN** (0 CRITICAL / 0 HIGH / 1 MEDIUM blocking / 3 LOW observations). Streak resets **1/3 → 0/3**.
+
+F-P8-001 (MEDIUM, blocking): AC-005 jq execution-position gap — brace-group (`{ jq`), case-pattern (`) jq`), and subshell (`( jq`) execution positions not covered by positive controls; AC-003 rationale carried "parity with AC-005" cross-cite creating one-directional brittle dependency where AC-003's correctness was stated in terms of AC-005's semantics. FIXED: test-writer (70c9fdd1) broadened jq_re positive-control set to cover all three execution positions (jq is forbidden everywhere, so any execution position is a hazard; note: jq correctly covers subshell `(` whereas IFS does not, since subshell IFS assignment doesn't leak to parent shell); story-writer (646bf898) reframed AC-003 + AC-005 rationales as SELF-CONTAINED semantics — each AC justified by its own detection logic, removing the mutual cross-cite entirely. 68/68 bats GREEN; zero real-script over-match.
+
+O-1 (LOW): AC-002 terminal alternation missing `@U`, `@L`, `@u` bash-4.4 transform operators. FIXED: test-writer (70c9fdd1) extended terminal alternation to `@[ULu]`; technical-writer (57b09645) propagated to docs. Guard confirmed: `${arr[@]}` and `${BASH_SOURCE[0]}` stay clean.
+
+O-2 (LOW): AC-004 phase-2 positive control used only double-quoted `"import yaml"` form; single-quoted form not exercised. FIXED: test-writer (70c9fdd1) accepts both quote forms via `["']import yaml["']`.
+
+O-3 (LOW): Dangling "optionally scan hooks/*.sh" ambiguity in AC-001/AC-006 scope description. FIXED: story-writer (646bf898) explicitly marks hooks OUT OF SCOPE (SS-07 artifacts, not SS-06 skill scripts).
+
+Severity decay: H→H→M→M→CLEAN→MED→CLEAN→MED. HIGH findings eliminated after pass-2. MED at pass-8 is a different class from pass-6 (execution-position test-vector incompleteness + brittle cross-cite vs. guard-boundary enforceability).
+
+Source attestation (D-448(a)): above Adversary Verdict paragraph faithfully describes s-18.12-local-adversary-pass-8.md Part A finding set — 1 MEDIUM blocking (F-P8-001: jq execution-position broadening + AC-003/AC-005 self-contained rationale reframe); 3 LOW (O-1 AC-002 @[ULu]; O-2 AC-004 quote flex; O-3 hooks out-of-scope disambiguation). NOT-CLEAN verdict. No divergence from Part A.
+
+### Files Touched (Dim-1)
+
+**factory-artifacts branch (this D-732 burst — single commit per TD-VSDD-053):**
+- `cycles/v1.0-brownfield-backfill/s-18.12-local-adversary-pass-8.md` — NEW; pass-8 adversary report persisted (verdict NOT-CLEAN; F-P8-001 MEDIUM + O-1/O-2/O-3 LOW; cascade trajectory passes 1-8; severity decay H→H→M→M→CLEAN→MED→CLEAN→MED)
+- `stories/STORY-INDEX.md` — v4.113→v4.114 (S-18.12 body row v1.8→v1.9 with LOCAL adv pass-8 NOT-CLEAN annotation + feature/S-18.12 HEAD 57b09645; POLICY 14 leg-5; `last_amended:` prepended; `version:` frontmatter bumped)
+- `cycles/v1.0-brownfield-backfill/decision-log.md` — D-732 block appended
+- `cycles/v1.0-brownfield-backfill/burst-log.md` — D-732 entry appended (this file)
+- `.factory/STATE.md` — v4.82→v4.83 (D-732 banner + frontmatter advance + §1 POSTURE + §3 D-732 carry + §4 D-732 Tier-A entry + §8 STORY-INDEX v4.114 + §9 factory-artifacts HEAD + §11 D-732 refresh + §12 3e-S18.12 streak 0/3 pass-9 NEXT + Session Resume Checkpoint refreshed)
+
+**feature/S-18.12 branch (pre-committed by fix specialists — NOT factory-artifacts):**
+- `plugins/vsdd-factory/tests/wave-handoff.bats` — jq execution-position broadening (brace-group/case-pattern/subshell positive controls) + AC-002 @[ULu] extension + AC-004 quote-class flex (test-writer commit 70c9fdd1)
+- `plugins/vsdd-factory/docs/bash-portability.md` — AC-002 @[ULu] doc sync + other pass-8 doc updates (technical-writer commit 57b09645)
+- `plugins/vsdd-factory/skills/wave-handoff/` — story-writer updated AC-003/AC-005 self-contained rationales + AC-001/AC-006 hooks out-of-scope markers (story-writer commit 646bf898 on factory-artifacts STORY-INDEX + prior commits on feature branch)
+
+**NOT committed in this burst (develop/main unchanged):**
+- No code changes to develop (feature branch local, not pushed per STOP-BEFORE-PR-MERGE D-665)
+- develop_head 531dacfb UNCHANGED; merged_count 95 UNCHANGED; total_bcs 1,974 UNCHANGED
+
+### Codifications (Dim-6)
+
+- **D-732** decision-log block codified: S-18.12 LOCAL adv pass-8 NOT-CLEAN; F-P8-001 (jq execution-position broadening + self-contained rationale reframe of AC-003/AC-005); O-1 (AC-002 @[ULu]); O-2 (AC-004 quote flex); O-3 (hooks out-of-scope); streak reset 1/3→0/3; severity decay H→H→M→M→CLEAN→MED→CLEAN→MED.
+- **STORY-INDEX v4.113→v4.114**: S-18.12 row v1.8→v1.9 (POLICY 14 leg-5).
+- **Meta-pattern observation (not a new L-BB lesson — principle already covered):** AC cross-cite rationale ("parity with AC-N") is brittle; each AC must be self-contained. Noted in D-732 decision-log.
+
+### Dim-2 (4-Index Parity Gate — D-449(a) literal-shell execution evidence)
+
+Gate command:
+```
+grep "^version:" \
+  .factory/specs/behavioral-contracts/BC-INDEX.md \
+  .factory/specs/verification-properties/VP-INDEX.md \
+  .factory/stories/STORY-INDEX.md \
+  .factory/specs/architecture/ARCH-INDEX.md
+```
+
+Captured stdout (post-STORY-INDEX v4.114 update, pre-commit):
+```
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.57"
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.51"
+.factory/stories/STORY-INDEX.md:version: "4.114"
+.factory/specs/architecture/ARCH-INDEX.md:version: "2.85"
+```
+
+Gate result: PASS. BC-INDEX v3.57 (UNCHANGED), VP-INDEX v2.51 (UNCHANGED), STORY-INDEX v4.114 (BUMPED D-732), ARCH-INDEX v2.85 (UNCHANGED). Zero FAIL.
+
+### Dim-5 (8-Block Presence Gate — D-446(a))
+
+This burst-log entry contains all 8 D-444(c) mandatory blocks:
+1. Parent-commit: 646bf898 (story-writer S-18.12 v1.9 2026-06-30)
+2. Adversary verdict: NOT-CLEAN; F-P8-001 MEDIUM + O-1/O-2/O-3 LOW; streak 1/3→0/3; all remediated D-732
+3. Files touched: pass-8 report + STORY-INDEX + decision-log + burst-log + STATE.md
+4. Codifications (Dim-6): D-732 + STORY-INDEX v4.114
+5. Dim-2: 4-index parity gate with literal-shell stdout above
+6. Dim-5: This block (8-block self-verification)
+7. Closes: pass-8 NOT-CLEAN closure; streak 1/3→0/3; F-P8-001 + O-1/O-2/O-3 remediated
+8. Factory-artifacts commits: [SHA to be captured post-commit per D-447(c)+D-449(e)]
+
+All 8 blocks present. Gate: PASS.
+
+### Dim-7 (Streak Status)
+
+S-18.12 LOCAL adversarial cascade streak: 1/3 → **0/3** (reset by F-P8-001 MEDIUM). NEXT: pass-9 (fresh context; streak 0/3). Need passes 9, 10, 11 all CLEAN for 3-CLEAN convergence per BC-5.39.001.
+
+### Closes
+
+- S-18.12 LOCAL adv pass-8 NOT-CLEAN: **REMEDIATED** (F-P8-001 + O-1 + O-2 + O-3 all fixed D-732 2026-06-30). Streak reset 1/3→0/3. Pass-9 NEXT.
+- F-P8-001 jq execution-position + AC-003/AC-005 cross-cite: **FIXED** (test-writer 70c9fdd1 + story-writer 646bf898; self-contained rationale; 68/68 GREEN; zero over-match).
+- O-1 AC-002 @[ULu]: **FIXED** (test-writer 70c9fdd1 + technical-writer 57b09645).
+- O-2 AC-004 quote-class: **FIXED** (test-writer 70c9fdd1).
+- O-3 hooks out-of-scope disambiguation: **FIXED** (story-writer 646bf898).
+- STORY-INDEX v4.114 (S-18.12 leg-5 POLICY 14): **DONE** (state-manager this burst).
+
+### Factory-artifacts Commits
+
+- [SHA-TBD] — D-732 S-18.12 LOCAL adv pass-8 NOT-CLEAN closure (single commit per TD-VSDD-053; SHA to be updated via SHA-patch follow-up per D-447(c)+D-449(e))
