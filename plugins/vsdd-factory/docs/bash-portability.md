@@ -255,14 +255,34 @@ following wrapper keywords `if`, `then`, `do`, `else`, `elif`, `time`, `env`, `c
 or `sudo`, inside a brace group (`{ jq . f; }`), as a case-pattern-action (`case $x in
 p) jq … ;;`), or inside a subshell (`( jq … )`).
 
-**Why it is forbidden:** `jq` is prohibited by the wave-handoff SKILL.md contract —
-scripts MUST NOT shell out to `jq`. This is not a "check for presence before using"
-situation: the contract forbids `jq` in any execution position, including subshells. Any
-detection of `jq` as a command word is a violation regardless of position. The correct
-fix is removal, not the addition of a preflight guard.
+**No exceptions:** There is no preflight-acceptance path. A `command -v jq` preflight
+guard does not make a subsequent `jq` invocation acceptable — `jq` is forbidden in any
+execution position regardless of whether a guard precedes it. The fix is removal of the
+invocation, not the addition of a guard.
 
-**What the guard checks (phase 1):** Detects files where `jq` appears as a command
-word in any execution position using POSIX ERE (no `\b` shorthand). The detector regex is:
+**Flagged forms (violations):**
+
+```bash
+jq '.key' data.json                          # command-position jq invocation
+| jq .                                       # pipe position — flagged
+$(jq '.key' data.json)                       # command substitution — flagged
+command -v jq && jq '.key' data.json         # preflight guard present — jq still flagged
+if command -v jq; then jq '.key' f; fi       # preflight guard present — jq still flagged
+xargs -n1 jq '.key'                          # xargs position — flagged
+```
+
+**Why it is forbidden:** SKILL.md §149 states: "This skill MUST NOT shell out to
+Python, jq, or any language runtime beyond bash." `jq` is a non-guaranteed third-party
+binary — it is absent from minimal macOS installs and from CI images that do not
+provision it separately. The constraint is a hard prohibition, not a "declare a
+dependency" requirement. `jq` is treated identically to Python — the correct fix for any
+detection is removal, not the addition of a preflight guard.
+
+**Required fix:** Remove the `jq` invocation entirely. Replace with a POSIX-portable
+alternative using `awk`, `grep`, or `sed`.
+
+**What the guard checks:** Detects files where `jq` appears as a command word in any
+execution position using POSIX ERE (no `\b` shorthand). The detector regex is:
 
 ```
 (^[[:space:]]*jq([[:space:]]|$)|[|;&][[:space:]]*jq([[:space:]]|$)|\$[(]jq([[:space:]]|$)|`jq([[:space:]]|$)|(xargs|if|then|do|else|elif|time|env|command|sudo)[[:space:]]+jq([[:space:]]|$)|xargs([[:space:]]+-[^[:space:]]+)+[[:space:]]+jq([[:space:]]|$)|\{[[:space:]]*jq([[:space:]]|$)|\)[[:space:]]*jq([[:space:]]|$)|\([[:space:]]*jq([[:space:]]|$))
@@ -272,24 +292,12 @@ This covers `jq` at line-start, after pipe/semicolon/ampersand, inside `$(...)` 
 backtick command substitution, after `xargs` (with or without intervening options), after
 the wrapper keywords `if`, `then`, `do`, `else`, `elif`, `time`, `env`, `command`, and
 `sudo`, inside a brace group (`{ jq`), as a case-pattern-action body (`) jq`), and
-inside a subshell (`( jq`). If no such files are found, the test passes. **Phase 2:** For
-each file containing a `jq` invocation, the test verifies that `command -v jq` or
-`which jq` appears somewhere in the same file; absence is a violation. No `jq`
-invocations currently exist in the wave-handoff scripts; this guard was added
-prospectively to prevent the dependency from being introduced silently.
+inside a subshell (`( jq`). Any match is a violation. The test is single-phase (no
+preflight-acceptance phase). No `jq` invocations currently exist in the wave-handoff
+scripts; this guard was added prospectively to prevent the dependency from being
+introduced silently.
 
-**Soundness boundary:** The jq preflight check is whole-file (greps for `command -v jq`
-or `which jq` anywhere in the file), NOT positional (unlike AC-001's entrypoint guard,
-which requires the `BASH_VERSINFO` check to precede first use). This is accepted as
-designed. `jq` is forbidden by the wave-handoff SKILL.md contract — scripts MUST NOT
-shell out to `jq` — so this detector is defense-in-depth against prohibited dependency
-introduction, not a runtime-ordering guard. For a dependency that must never appear at
-all, whole-file presence detection is adequate: if `jq` appears anywhere, it is a
-violation regardless of where a guard would be placed. A positional precedence refinement
-(requiring the guard to appear before the first `jq` invocation) is intentionally out of
-scope because the correct fix for any `jq` detection is removal, not guard placement.
-
-**Enforcing test:** `test_portability_no_undeclared_jq_dep`
+**Enforcing test:** `test_portability_no_jq_shellout`
 
 ---
 
