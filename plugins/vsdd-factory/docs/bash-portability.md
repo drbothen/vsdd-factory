@@ -189,61 +189,42 @@ covered by an exemption is reported as a violation.
 
 ## 4. Undeclared runtime dependencies (AC-004 and AC-005)
 
-Wave-handoff scripts must not invoke external tools without a preflight availability
-check. Two specific tools are guarded: `python3`/PyYAML (AC-004) and `jq` (AC-005).
+Wave-handoff scripts must not invoke external tools. Two tools are guarded: python/pip
+(AC-004, any invocation is a violation) and `jq` (AC-005, any invocation is a violation).
 
-### AC-004 — python3 / PyYAML
+### AC-004 — python / pip shell-out prohibition (F-P11-001 Option A)
 
-**Pattern detected:** Any invocation of `python`, `python2`, `python3`, or a
-version-suffixed variant such as `python3.11` or `python3.12`, followed on the same
-line by a yaml token; any invocation of `pip`, `pip2`, `pip3`, or `pipx` followed by
-a pyyaml token (case-insensitive, so both `pyyaml` and `PyYAML` are matched); or a
-bare `import yaml` statement in any wave-handoff script.
+**Pattern detected:** Any invocation of `python`, `python2`, `python3`, a
+version-suffixed variant such as `python3.11` or `python3.12`, `pip`, `pip2`, `pip3`,
+or `pipx` in a command position in any wave-handoff script.
 
-**Exception (not flagged):** `python3` invocations that use only stdlib modules (`json`,
-`os`, `sys`, `re`, etc.) are fine and are not flagged. The guard targets only external
-pip packages.
+**No exceptions:** There is no stdlib exemption and no preflight-acceptance path.
+`python3 -c 'import json'` is a violation. `python3 -c 'import yaml'` is a violation.
+Any python or pip invocation in a command position is a violation, period. The fix is
+removal of the invocation, not the addition of a guard.
 
-**Why it breaks:** macOS GitHub Actions runners enforce PEP 668 "externally managed
-environment" isolation, which blocks `pip install` commands from modifying the system
-Python. The S-18.01 history has two entries for this failure: commit aaa8da8a (original
-pip failure) and commit 3fe11ea1 (attempted workaround with `--break-system-packages`).
-The `--break-system-packages` flag is explicitly not accepted as a long-term resolution
-in wave-handoff scripts — it works around the runner policy rather than eliminating the
-dependency.
+**Why it is forbidden:** SKILL.md §149 states: "This skill MUST NOT shell out to
+Python, jq, or any language runtime beyond bash." Python is treated identically to jq —
+the constraint is a hard prohibition, not a "declare a dependency" requirement. The
+S-18.01 history (commit aaa8da8a: pip failure; commit 3fe11ea1: `--break-system-packages`
+workaround) demonstrates that python shell-outs are fragile across CI environments.
 
-**Required fix:** Either add a preflight check before the first PyYAML invocation:
+**Required fix:** Remove the python/pip invocation entirely. Replace with a POSIX
+portable alternative using `awk`, `grep`, or `sed`.
 
-```bash
-python3 -c "import yaml" 2>/dev/null || {
-  echo "ERROR: PyYAML is required (pip install pyyaml)" >&2
-  exit 1
-}
+**What the guard checks:** Detects `python[0-9.]*` and `pip[0-9x]*` as command tokens
+in all execution positions using command-position anchoring analogous to the jq detector
+(AC-005). The detector regex is:
+
+```
+(^[[:space:]]*(python[0-9.]*|pip[0-9x]*)([[:space:]]|$)|[|;&][[:space:]]*(python[0-9.]*|pip[0-9x]*)([[:space:]]|$)|\$[(](python[0-9.]*|pip[0-9x]*)([[:space:]]|$)|`(python[0-9.]*|pip[0-9x]*)([[:space:]]|$)|(xargs|if|then|do|else|elif|time|env|command|sudo)[[:space:]]+(python[0-9.]*|pip[0-9x]*)([[:space:]]|$)|xargs([[:space:]]+-[^[:space:]]+)+[[:space:]]+(python[0-9.]*|pip[0-9x]*)([[:space:]]|$)|\{[[:space:]]*(python[0-9.]*|pip[0-9x]*)([[:space:]]|$)|\)[[:space:]]*(python[0-9.]*|pip[0-9x]*)([[:space:]]|$)|\([[:space:]]*(python[0-9.]*|pip[0-9x]*)([[:space:]]|$))
 ```
 
-or replace yaml parsing with a POSIX-portable alternative (`awk` or `sed` key
-extraction). The current wave-handoff implementation uses `awk`-based YAML parsing and
-contains no `import yaml` invocations, so this test passes on a clean codebase.
+Any match is a violation. The test is single-phase (no preflight-acceptance phase).
+Variable names that start with `python` (e.g., `python_bin=python3.11`) do not match
+because `_bin` immediately follows `python`, not a space or end-of-line.
 
-**What the guard checks (phase 1):** Detects files containing any of: a `python`,
-`python2`, `python3`, or version-suffixed binary (`python3.11`, `python3.12`, etc.)
-invocation followed anywhere on the same line by a case-insensitive yaml token (e.g.,
-`yaml`, `Yaml`, `YAML`) — the python arm uses the pattern `python[0-9.]*` to cover all
-such variants; a `pip`, `pip2`, `pip3`, or `pipx` invocation followed by a
-case-insensitive `pyyaml` token — the pyyaml token match is case-insensitive so the
-canonical PyPI name `PyYAML` (as in `pip3 install PyYAML`) is detected alongside
-lowercase `pyyaml`; or a bare `import yaml` statement. If none found, the test passes
-immediately. **Phase 2 (if
-matches found):** The test first flags any occurrence of `--break-system-packages` as
-an explicit violation. For remaining matches without that flag, it checks whether the
-file contains an acceptable preflight guard matching
-`(python[0-9.]*[[:space:]]+-c[[:space:]]+["']import yaml["']|command[[:space:]]+-v[[:space:]]+python[0-9.]*)`.
-This covers both bare `python3 -c "import yaml"` and `python3 -c 'import yaml'`
-(single or double quotes accepted), versioned-binary forms such as
-`python3.11 -c "import yaml"`, and both `command -v python3` and versioned forms such as
-`command -v python3.11`; absence of any such guard is a violation.
-
-**Enforcing test:** `test_portability_no_undeclared_pyyaml_dep`
+**Enforcing test:** `test_portability_no_python_shellout`
 
 ### AC-005 — jq
 

@@ -4367,6 +4367,17 @@ EOF
     echo "FAIL (AC-002 positive-control / O-1): case-modifier-detector did not match '\${v@u}' (bash-4.4 titlecase operator)." >&2
     false
   }
+  # O-3 addition: ${*^^} MUST match — isolates the * branch of the [@*#] class independently.
+  # bash-portability.md §2 states the [@*#] class covers *; this control verifies it explicitly.
+  # (${@^^} is already in pc_bad_positional; ${#^^} is in pc_bad_hash_modifier; ${*^^} was uncovered.)
+  local pc_bad_star_modifier
+  pc_bad_star_modifier="${BATS_TEST_TMPDIR}/pc_ac002_bad_star_modifier.sh"
+  printf 'echo "${*^^}"\n' > "$pc_bad_star_modifier"
+  grep -qE '\$\{([a-zA-Z_][a-zA-Z0-9_]*|[0-9]+|[@*#])(\[[^]]*\])?(\^\^?|,,?|@[ULu])' "$pc_bad_star_modifier" || {
+    echo "FAIL (AC-002 positive-control / O-3): case-modifier-detector did not match '\${*^^}' (star special param)." >&2
+    echo "  The [@*#] class must cover * as an independent branch; \${*^^} is bash 4+ only." >&2
+    false
+  }
   # Over-match guards: ${arr[@]} (array expand-all), ${BASH_SOURCE[0]}, ${var%%:*} MUST NOT match.
   # ${arr[@]}: the [@] is an array subscript consumed by the (\[[^]]*\])? group; no modifier follows.
   ! grep -qE '\$\{([a-zA-Z_][a-zA-Z0-9_]*|[0-9]+|[@*#])(\[[^]]*\])?(\^\^?|,,?|@[ULu])' "$pc_good_arr_expand" || {
@@ -4526,6 +4537,7 @@ EOF
   #   [^[:space:];&|]* — matches only non-separator chars; stops at ; & | before crossing them
   local pc_bad_ifs pc_bad_export_ifs pc_bad_semi_ifs pc_bad_semi_read pc_good_local_ifs pc_good_prefix_ifs
   local pc_bad_readonly_ifs pc_bad_declare_g_ifs pc_bad_and_ifs pc_bad_then_ifs pc_bad_bg_ifs
+  local pc_bad_or_ifs pc_bad_do_ifs pc_bad_else_ifs pc_bad_elif_ifs
   local pc_bad_brace_ifs pc_bad_case_ifs pc_good_func_def_brace pc_good_close_paren_no_ifs
   pc_bad_ifs="${BATS_TEST_TMPDIR}/pc_ac003_bad_ifs.sh"
   pc_bad_export_ifs="${BATS_TEST_TMPDIR}/pc_ac003_bad_export.sh"
@@ -4537,6 +4549,10 @@ EOF
   pc_bad_declare_g_ifs="${BATS_TEST_TMPDIR}/pc_ac003_bad_declare_g.sh"
   pc_bad_and_ifs="${BATS_TEST_TMPDIR}/pc_ac003_bad_and.sh"
   pc_bad_then_ifs="${BATS_TEST_TMPDIR}/pc_ac003_bad_then.sh"
+  pc_bad_or_ifs="${BATS_TEST_TMPDIR}/pc_ac003_bad_or.sh"
+  pc_bad_do_ifs="${BATS_TEST_TMPDIR}/pc_ac003_bad_do.sh"
+  pc_bad_else_ifs="${BATS_TEST_TMPDIR}/pc_ac003_bad_else.sh"
+  pc_bad_elif_ifs="${BATS_TEST_TMPDIR}/pc_ac003_bad_elif.sh"
   pc_bad_bg_ifs="${BATS_TEST_TMPDIR}/pc_ac003_bad_bg.sh"
   pc_bad_brace_ifs="${BATS_TEST_TMPDIR}/pc_ac003_bad_brace.sh"
   pc_bad_case_ifs="${BATS_TEST_TMPDIR}/pc_ac003_bad_case.sh"
@@ -4552,6 +4568,10 @@ EOF
   printf "declare -g IFS='|'\n" > "$pc_bad_declare_g_ifs"
   printf "cmd && IFS='|'\n" > "$pc_bad_and_ifs"
   printf "then IFS='|'\n" > "$pc_bad_then_ifs"
+  printf "cmd || IFS='|'\n" > "$pc_bad_or_ifs"
+  printf "do IFS='|'\n" > "$pc_bad_do_ifs"
+  printf "else IFS='|'\n" > "$pc_bad_else_ifs"
+  printf "elif IFS='|'\n" > "$pc_bad_elif_ifs"
   printf "cmd & IFS='|'\n" > "$pc_bad_bg_ifs"
   # Brace-group: current-shell mutation (bash requires space after { so { IFS=... is unambiguous)
   printf '{ IFS=$'"'"'\\n'"'"'; read x; }\n' > "$pc_bad_brace_ifs"
@@ -4675,6 +4695,54 @@ EOF
     echo "  The (then|do|else|elif)[[:space:]] arm must be in step-1's outer alternation group." >&2
     false
   }
+  # BAD (F-P13-001): 'cmd || IFS=' MUST be flagged (operator-prefixed global mutation via ||).
+  # The [|][|] arm catches the OR-operator form which was previously UNcovered by a positive control.
+  local pc_bad_or_hits
+  pc_bad_or_hits="$(grep -nE '(^|;|&&|&|[|][|]|(then|do|else|elif)[[:space:]]|\{[[:space:]]+|[)][[:space:]]+)[[:space:]]*(export[[:space:]]+|readonly[[:space:]]+|declare[[:space:]]+-g[[:space:]]+)?IFS=' "$pc_bad_or_ifs" 2>/dev/null \
+    | grep -vE '^[0-9]+:[[:space:]]*(local[[:space:]]|[(])' \
+    | grep -vE 'IFS=[^[:space:];&|]*[[:space:]]+read([[:space:]]|$)' \
+    || true)"
+  [ -n "$pc_bad_or_hits" ] || {
+    echo "FAIL (AC-003 positive-control / F-P13-001): IFS-detector did not flag 'cmd || IFS=|' (OR-operator global mutation)." >&2
+    echo "  The [|][|] arm must be in step-1's outer alternation group." >&2
+    false
+  }
+  # BAD (F-P13-001): 'do IFS=' MUST be flagged (keyword-prefixed global mutation).
+  # This exercises the 'do' arm of (then|do|else|elif)[[:space:]] — previously UNcovered.
+  local pc_bad_do_hits
+  pc_bad_do_hits="$(grep -nE '(^|;|&&|&|[|][|]|(then|do|else|elif)[[:space:]]|\{[[:space:]]+|[)][[:space:]]+)[[:space:]]*(export[[:space:]]+|readonly[[:space:]]+|declare[[:space:]]+-g[[:space:]]+)?IFS=' "$pc_bad_do_ifs" 2>/dev/null \
+    | grep -vE '^[0-9]+:[[:space:]]*(local[[:space:]]|[(])' \
+    | grep -vE 'IFS=[^[:space:];&|]*[[:space:]]+read([[:space:]]|$)' \
+    || true)"
+  [ -n "$pc_bad_do_hits" ] || {
+    echo "FAIL (AC-003 positive-control / F-P13-001): IFS-detector did not flag 'do IFS=|' (keyword-prefixed global mutation)." >&2
+    echo "  The 'do' branch of (then|do|else|elif)[[:space:]] must fire." >&2
+    false
+  }
+  # BAD (F-P13-001): 'else IFS=' MUST be flagged (keyword-prefixed global mutation).
+  # This exercises the 'else' arm — previously UNcovered.
+  local pc_bad_else_hits
+  pc_bad_else_hits="$(grep -nE '(^|;|&&|&|[|][|]|(then|do|else|elif)[[:space:]]|\{[[:space:]]+|[)][[:space:]]+)[[:space:]]*(export[[:space:]]+|readonly[[:space:]]+|declare[[:space:]]+-g[[:space:]]+)?IFS=' "$pc_bad_else_ifs" 2>/dev/null \
+    | grep -vE '^[0-9]+:[[:space:]]*(local[[:space:]]|[(])' \
+    | grep -vE 'IFS=[^[:space:];&|]*[[:space:]]+read([[:space:]]|$)' \
+    || true)"
+  [ -n "$pc_bad_else_hits" ] || {
+    echo "FAIL (AC-003 positive-control / F-P13-001): IFS-detector did not flag 'else IFS=|' (keyword-prefixed global mutation)." >&2
+    echo "  The 'else' branch of (then|do|else|elif)[[:space:]] must fire." >&2
+    false
+  }
+  # BAD (F-P13-001): 'elif IFS=' MUST be flagged (keyword-prefixed global mutation).
+  # This exercises the 'elif' arm — previously UNcovered.
+  local pc_bad_elif_hits
+  pc_bad_elif_hits="$(grep -nE '(^|;|&&|&|[|][|]|(then|do|else|elif)[[:space:]]|\{[[:space:]]+|[)][[:space:]]+)[[:space:]]*(export[[:space:]]+|readonly[[:space:]]+|declare[[:space:]]+-g[[:space:]]+)?IFS=' "$pc_bad_elif_ifs" 2>/dev/null \
+    | grep -vE '^[0-9]+:[[:space:]]*(local[[:space:]]|[(])' \
+    | grep -vE 'IFS=[^[:space:];&|]*[[:space:]]+read([[:space:]]|$)' \
+    || true)"
+  [ -n "$pc_bad_elif_hits" ] || {
+    echo "FAIL (AC-003 positive-control / F-P13-001): IFS-detector did not flag 'elif IFS=|' (keyword-prefixed global mutation)." >&2
+    echo "  The 'elif' branch of (then|do|else|elif)[[:space:]] must fire." >&2
+    false
+  }
   # BAD (O-2): 'cmd & IFS=' MUST be flagged (background+global mutation).
   # Backgrounding a command and then assigning IFS globally on the same line mutates the
   # shell's IFS just as a standalone assignment does.  The & arm is listed after && in
@@ -4796,26 +4864,28 @@ EOF
 }
 
 # ---------------------------------------------------------------------------
-# test_portability_no_undeclared_pyyaml_dep
-# AC-004: undeclared Python/PyYAML runtime dependency.
-# S-18.01 hit "externally managed environment" PEP 668 error on macOS GitHub Actions
-# when pip tried to install pyyaml (aaa8da8a). The --break-system-packages workaround
-# (3fe11ea1) is NOT accepted as a long-term resolution in wave-handoff scripts.
+# test_portability_no_python_shellout
+# AC-004: Python or pip shell-out prohibition (F-P11-001 Option A redesign).
+# SKILL.md §149: "This skill MUST NOT shell out to Python, jq, or any language
+# runtime beyond bash." Python is treated identically to jq — ANY python/pip
+# invocation in a command position is a violation.
 #
-# O-3 broadening (POLICY 13 prospective): python arm uses python[0-9.]* (was python[23]?)
-# to catch versioned binaries like python3.11 and python3.12 which are common on modern
-# macOS and Linux CI images and were missed by the [23]? class.
+# F-P11-001 Option A: no preflight-acceptance and no stdlib exemption.
+#   - The former phase-2 preflight-acceptance (python3 -c "import yaml" guard) is REMOVED.
+#   - The former EC-002 stdlib exemption (python3 -c "import json" was PASS) is REMOVED.
+#   - python3 -c 'import json' is now a VIOLATION, same as python3 -c 'import yaml'.
+#   - The fix is REMOVAL of the python/pip invocation, not the addition of a guard.
 #
-# EC-002: python3 -c "import json; ..." is fine — json is a stdlib module, no pip
-# install is needed. Only external packages (pyyaml, yaml) are flagged.
+# Detection: command-position anchoring analogous to jq_re (AC-005). Detects
+# python[0-9.]* and pip[0-9x]* as command tokens in all execution positions:
+# line-start, after ;/&&/&/||, $(...), backtick, brace-group, case-pattern body,
+# subshell, and keyword/wrapper positions (xargs/if/then/do/else/elif/time/env/
+# command/sudo).
 #
-# Scan: if any wave-handoff script invokes python (any version) with yaml/pyyaml or
-# pip-installs pyyaml, it MUST have a preflight check. Absence = compliant.
-#
-# Red Gate expectation: PASS (pyyaml dep removed / never added post-S-18.01 merge).
+# Red Gate expectation: PASS (no python/pip invocations present; absent = compliant).
 # ---------------------------------------------------------------------------
 
-@test "test_portability_no_undeclared_pyyaml_dep" {
+@test "test_portability_no_python_shellout" {
   local wave_handoff_skill_dir
   wave_handoff_skill_dir="$(cd "${BATS_TEST_DIRNAME}/../skills/wave-handoff" && pwd)"
 
@@ -4831,158 +4901,136 @@ EOF
     false
   }
 
-  # --- POSITIVE-CONTROL ASSERTIONS (O-1) ---
-  # Verify the pyyaml/pip detector matches pip2/pip3/pipx and python/python2/python3+yaml
-  # forms, and does NOT match python3 stdlib-only usage (EC-002 exemption).
+  # --- POSITIVE-CONTROL ASSERTIONS ---
+  # Verify the python-shellout detector matches python/pip in all command positions,
+  # including stdlib python3 -c 'import json' (formerly exempt under EC-002, now a
+  # violation under F-P11-001 Option A), and does NOT match benign substrings like
+  # variable names starting with "python", comments, or "python" as an echo argument.
+  # python_re MUST BE BYTE-IDENTICAL to the real-scan-loop regex below.
   # Uses BATS_TEST_TMPDIR synthetic files; no real wave-handoff scripts are executed.
-  # F-P2-001 fix: pyyaml token is case-insensitive ([Pp][Yy][Yy][Aa][Mm][Ll]) to catch
-  # canonical PyPI capitalization "PyYAML" which evaded the lowercase-only detector.
-  # O-3 fix: python arm broadened from python[23]? to python[0-9.]* to catch versioned
-  # binaries like python3.11 and python3.12 (POLICY 13 prospective).
-  local pc_bad_pip3 pc_bad_pipx pc_bad_py2yaml pc_bad_pyyaml_canonical pc_bad_py311 pc_good_stdlib pc_bad_bsp
+  local python_re='(^[[:space:]]*(python[0-9.]*|pip[0-9x]*)([[:space:]]|$)|[|;&][[:space:]]*(python[0-9.]*|pip[0-9x]*)([[:space:]]|$)|\$[(](python[0-9.]*|pip[0-9x]*)([[:space:]]|$)|`(python[0-9.]*|pip[0-9x]*)([[:space:]]|$)|(xargs|if|then|do|else|elif|time|env|command|sudo)[[:space:]]+(python[0-9.]*|pip[0-9x]*)([[:space:]]|$)|xargs([[:space:]]+-[^[:space:]]+)+[[:space:]]+(python[0-9.]*|pip[0-9x]*)([[:space:]]|$)|\{[[:space:]]*(python[0-9.]*|pip[0-9x]*)([[:space:]]|$)|\)[[:space:]]*(python[0-9.]*|pip[0-9x]*)([[:space:]]|$)|\([[:space:]]*(python[0-9.]*|pip[0-9x]*)([[:space:]]|$))'
+
+  local pc_bad_py3 pc_bad_py2 pc_bad_pip3 pc_bad_pipx pc_bad_py311 pc_bad_stdlib
+  local pc_bad_py3_cmdsubst pc_bad_sudo_py3
+  local pc_good_py_var pc_good_comment pc_good_echo_py
+
+  pc_bad_py3="${BATS_TEST_TMPDIR}/pc_ac004_bad_py3.sh"
+  pc_bad_py2="${BATS_TEST_TMPDIR}/pc_ac004_bad_py2.sh"
   pc_bad_pip3="${BATS_TEST_TMPDIR}/pc_ac004_bad_pip3.sh"
   pc_bad_pipx="${BATS_TEST_TMPDIR}/pc_ac004_bad_pipx.sh"
-  pc_bad_py2yaml="${BATS_TEST_TMPDIR}/pc_ac004_bad_py2yaml.sh"
-  pc_bad_pyyaml_canonical="${BATS_TEST_TMPDIR}/pc_ac004_bad_pyyaml_canonical.sh"
   pc_bad_py311="${BATS_TEST_TMPDIR}/pc_ac004_bad_py311.sh"
-  pc_good_stdlib="${BATS_TEST_TMPDIR}/pc_ac004_good_stdlib.sh"
-  pc_bad_bsp="${BATS_TEST_TMPDIR}/pc_ac004_bad_bsp.sh"
-  printf 'pip3 install pyyaml\n' > "$pc_bad_pip3"
-  printf 'pipx install pyyaml\n' > "$pc_bad_pipx"
-  printf 'python2 -c "import yaml; yaml.safe_load(f)"\n' > "$pc_bad_py2yaml"
-  printf 'pip install PyYAML\n' > "$pc_bad_pyyaml_canonical"
+  pc_bad_stdlib="${BATS_TEST_TMPDIR}/pc_ac004_bad_stdlib.sh"
+  pc_bad_py3_cmdsubst="${BATS_TEST_TMPDIR}/pc_ac004_bad_py3_cmdsubst.sh"
+  pc_bad_sudo_py3="${BATS_TEST_TMPDIR}/pc_ac004_bad_sudo_py3.sh"
+  pc_good_py_var="${BATS_TEST_TMPDIR}/pc_ac004_good_py_var.sh"
+  pc_good_comment="${BATS_TEST_TMPDIR}/pc_ac004_good_comment.sh"
+  pc_good_echo_py="${BATS_TEST_TMPDIR}/pc_ac004_good_echo_py.sh"
+
+  printf 'python3 script.py\n' > "$pc_bad_py3"
+  printf 'python2 -c "import os; os.system(\"id\")"\n' > "$pc_bad_py2"
+  printf 'pip3 install requests\n' > "$pc_bad_pip3"
+  printf 'pipx run cowsay hello\n' > "$pc_bad_pipx"
   printf 'python3.11 -c "import yaml; print(yaml.safe_load(open(f)))"\n' > "$pc_bad_py311"
-  printf 'python3 -c "import json; print(json.load(open(f)))"\n' > "$pc_good_stdlib"
-  printf 'pip install pyyaml --break-system-packages\n' > "$pc_bad_bsp"
-  local dep_re='(python[0-9.]*[[:space:]].*[Yy][Aa][Mm][Ll]|pip[0-9x]*[[:space:]].*[Pp][Yy][Yy][Aa][Mm][Ll]|import[[:space:]]+yaml)'
-  # BAD: pip3 MUST be detected.
-  grep -qE "$dep_re" "$pc_bad_pip3" || {
-    echo "FAIL (AC-004 positive-control): pyyaml-detector did not match 'pip3 install pyyaml'." >&2
+  # F-P11-001 Option A: stdlib python invocation is NOW a violation (EC-002 exemption removed).
+  # This fixture was formerly a GOOD/negative control; it is now a BAD/positive control.
+  printf "python3 -c 'import json; print(json.load(open(f)))'\n" > "$pc_bad_stdlib"
+  printf 'result=$(python3 compute.py)\n' > "$pc_bad_py3_cmdsubst"
+  printf 'sudo python3 /usr/local/bin/setup.py\n' > "$pc_bad_sudo_py3"
+  # GOOD: variable name starting with 'python' — NOT a command invocation.
+  # python_bin=python3.11 has 'python_bin' at line-start; 'python[0-9.]*([[:space:]]|$)'
+  # does not match because '_bin' immediately follows 'python', not space/EOL.
+  printf 'python_bin=python3.11\n' > "$pc_good_py_var"
+  # GOOD: comment mentioning python3 — NOT a command invocation.
+  printf '# python3 is not used in this script\n' > "$pc_good_comment"
+  # GOOD: python3 as argument to echo — NOT a command invocation.
+  printf 'echo "install python3 first"\n' > "$pc_good_echo_py"
+
+  # BAD: bare line-start 'python3 script.py' MUST be detected.
+  grep -qE "$python_re" "$pc_bad_py3" || {
+    echo "FAIL (AC-004 positive-control): python-detector did not match bare 'python3 script.py' (line-start)." >&2
     false
   }
-  # BAD: pipx MUST be detected.
-  grep -qE "$dep_re" "$pc_bad_pipx" || {
-    echo "FAIL (AC-004 positive-control): pyyaml-detector did not match 'pipx install pyyaml'." >&2
+  # BAD: 'python2 ...' MUST be detected.
+  grep -qE "$python_re" "$pc_bad_py2" || {
+    echo "FAIL (AC-004 positive-control): python-detector did not match 'python2 ...' (line-start)." >&2
     false
   }
-  # BAD: python2+yaml MUST be detected.
-  grep -qE "$dep_re" "$pc_bad_py2yaml" || {
-    echo "FAIL (AC-004 positive-control): pyyaml-detector did not match 'python2 ... yaml'." >&2
+  # BAD: 'pip3 install ...' MUST be detected.
+  grep -qE "$python_re" "$pc_bad_pip3" || {
+    echo "FAIL (AC-004 positive-control): python-detector did not match 'pip3 install ...' (line-start)." >&2
     false
   }
-  # BAD: 'pip install PyYAML' (canonical PyPI capitalization) MUST be detected (F-P2-001).
-  grep -qE "$dep_re" "$pc_bad_pyyaml_canonical" || {
-    echo "FAIL (AC-004 positive-control): pyyaml-detector did not match 'pip install PyYAML' (canonical capitalization)." >&2
-    echo "  F-P2-001: the pip arm must use [Pp][Yy][Yy][Aa][Mm][Ll] to catch mixed-case PyPI name." >&2
+  # BAD: 'pipx run ...' MUST be detected.
+  grep -qE "$python_re" "$pc_bad_pipx" || {
+    echo "FAIL (AC-004 positive-control): python-detector did not match 'pipx run ...' (line-start)." >&2
     false
   }
-  # BAD (O-3): 'python3.11 ... yaml' MUST be detected — versioned python binaries were missed
-  # by python[23]? which does not match the decimal point in '3.11'.
-  grep -qE "$dep_re" "$pc_bad_py311" || {
-    echo "FAIL (AC-004 positive-control / O-3): pyyaml-detector did not match 'python3.11 -c \"import yaml\"'." >&2
-    echo "  The python arm must use python[0-9.]* (not python[23]?) to cover versioned binaries." >&2
+  # BAD: 'python3.11 -c ...' (versioned binary) MUST be detected.
+  grep -qE "$python_re" "$pc_bad_py311" || {
+    echo "FAIL (AC-004 positive-control): python-detector did not match 'python3.11 -c ...' (versioned binary)." >&2
+    echo "  python[0-9.]* must match version-suffixed binaries." >&2
     false
   }
-  # GOOD (EC-002): python3 stdlib-only usage MUST NOT be detected.
-  ! grep -qE "$dep_re" "$pc_good_stdlib" || {
-    echo "FAIL (AC-004 positive-control): pyyaml-detector falsely matched python3 stdlib-only usage." >&2
+  # BAD (F-P11-001 Option A stdlib flip): python3 -c 'import json' MUST now be detected.
+  # Previously this was a PASS (EC-002 stdlib exemption); under F-P11-001 Option A any
+  # python shell-out is a violation — stdlib usage is no longer exempt.
+  grep -qE "$python_re" "$pc_bad_stdlib" || {
+    echo "FAIL (AC-004 positive-control / F-P11-001): python-detector did not match 'python3 -c ...import json...' (stdlib)." >&2
+    echo "  F-P11-001 Option A removes EC-002: any python shell-out is a violation, stdlib included." >&2
     false
   }
-  # BAD (--break-system-packages): bsp-detector MUST match.
-  grep -qE '\-\-break-system-packages' "$pc_bad_bsp" || {
-    echo "FAIL (AC-004 positive-control): bsp-detector did not match '--break-system-packages'." >&2
+  # BAD: '\$(python3 ...)' command-substitution MUST be detected.
+  grep -qE "$python_re" "$pc_bad_py3_cmdsubst" || {
+    echo "FAIL (AC-004 positive-control): python-detector did not match '\$(python3 ...)' command-substitution." >&2
     false
   }
-  # GOOD (O-P4-001): a script with 'python3.11 -c "import yaml"' as its preflight MUST be ACCEPTED.
-  # Phase-1 would catch this file (has python3.11 ... yaml); phase-2 must recognize the versioned
-  # preflight as acceptable — this tests the broadened python[0-9.]* acceptance arm.
-  local pc_good_py311_preflight
-  pc_good_py311_preflight="${BATS_TEST_TMPDIR}/pc_ac004_good_py311_preflight.sh"
-  printf 'python3.11 -c "import yaml" 2>/dev/null || { echo "pyyaml required" >&2; exit 1; }\n' > "$pc_good_py311_preflight"
-  printf 'python3.11 -c "import yaml; print(yaml.safe_load(open(f)))"\n' >> "$pc_good_py311_preflight"
-  # Phase-2 acceptance regex (broadened, O-2): python[0-9.]* -c ["']import yaml["'] OR command -v python[0-9.]*
-  # Accepts both double-quoted and single-quoted forms of the preflight guard.
-  grep -qE "(python[0-9.]*[[:space:]]+-c[[:space:]]+[\"']import yaml[\"']|command[[:space:]]+-v[[:space:]]+python[0-9.]*)" "$pc_good_py311_preflight" || {
-    echo "FAIL (AC-004 positive-control / O-P4-001): broadened phase-2 acceptance regex did NOT match 'python3.11 -c \"import yaml\"' preflight." >&2
-    echo "  The phase-2 acceptance arm must use python[0-9.]* (not python3) to accept versioned binaries." >&2
+  # BAD: 'sudo python3 ...' MUST be detected (keyword wrapper arm).
+  grep -qE "$python_re" "$pc_bad_sudo_py3" || {
+    echo "FAIL (AC-004 positive-control): python-detector did not match 'sudo python3 ...' (keyword wrapper)." >&2
+    echo "  sudo must be in the wrapper keyword group for the python detector." >&2
     false
   }
-  # GOOD (O-2): a script with single-quoted preflight 'python3 -c '\''import yaml'\''' MUST be ACCEPTED.
-  # The phase-2 regex previously hardcoded double-quotes; single-quoted guards are equally valid.
-  local pc_good_singlequote_preflight
-  pc_good_singlequote_preflight="${BATS_TEST_TMPDIR}/pc_ac004_good_singlequote_preflight.sh"
-  printf "python3 -c 'import yaml' 2>/dev/null || { echo 'pyyaml required' >&2; exit 1; }\n" > "$pc_good_singlequote_preflight"
-  printf "python3 -c 'import yaml; print(yaml.safe_load(open(f)))'\n" >> "$pc_good_singlequote_preflight"
-  grep -qE "(python[0-9.]*[[:space:]]+-c[[:space:]]+[\"']import yaml[\"']|command[[:space:]]+-v[[:space:]]+python[0-9.]*)" "$pc_good_singlequote_preflight" || {
-    echo "FAIL (AC-004 positive-control / O-2): phase-2 acceptance regex did NOT match single-quoted preflight 'python3 -c '\"'\"'import yaml'\"'\"''." >&2
-    echo "  O-2: the phase-2 acceptance arm must accept both single and double quotes around 'import yaml'." >&2
-    echo "  Use [\"']import yaml[\"'] (or equivalent) to match both quote forms." >&2
+  # GOOD: 'python_bin=python3.11' variable assignment MUST NOT be detected.
+  ! grep -qE "$python_re" "$pc_good_py_var" || {
+    echo "FAIL (AC-004 negative-control): python-detector falsely matched 'python_bin=python3.11' (variable assignment)." >&2
+    echo "  The detector anchors on command position; 'python_bin' starts with 'python' but has '_bin' next, not space/EOL." >&2
+    false
+  }
+  # GOOD: '# python3 is not used' comment MUST NOT be detected.
+  ! grep -qE "$python_re" "$pc_good_comment" || {
+    echo "FAIL (AC-004 negative-control): python-detector falsely matched python3 inside a comment." >&2
+    false
+  }
+  # GOOD: 'echo "install python3 first"' MUST NOT be detected (python3 is an argument, not a command).
+  ! grep -qE "$python_re" "$pc_good_echo_py" || {
+    echo "FAIL (AC-004 negative-control): python-detector falsely matched 'echo \"install python3 first\"'." >&2
+    echo "  python3 as an argument to echo is not a python shell-out." >&2
     false
   }
   # -------------------------------------------
 
-  # Phase 1: detect any python/python2/python3/python3.11+yaml or pip/pip2/pip3/pipx+pyyaml invocations.
-  # EC-002 exception: python3 using only stdlib modules (json, os, sys, re, etc.) is fine.
-  # We flag: import yaml / pyyaml (case-insensitive) / pip[0-9x]* install PyYAML / python[0-9.]* ... yaml.
-  # O-3: python arm uses python[0-9.]* to catch versioned binaries like python3.11/python3.12.
-  # F-P2-001: pyyaml token uses [Pp][Yy][Yy][Aa][Mm][Ll] to catch canonical "PyYAML" capitalization.
-  local dep_files=()
+  # Scan: detect any python/pip invocation in a command position.
+  # Any match is a violation — SKILL.md §149 forbids all python shell-outs; no exemptions.
+  # F-P11-001 Option A: single-phase detection; phase-2 preflight-acceptance removed.
+  local violations=()
   local f
   for f in "${sh_files[@]}"; do
-    if grep -qE '(python[0-9.]*[[:space:]].*[Yy][Aa][Mm][Ll]|pip[0-9x]*[[:space:]].*[Pp][Yy][Yy][Aa][Mm][Ll]|import[[:space:]]+yaml)' \
-        "$f" 2>/dev/null; then
-      dep_files+=("$f")
-    fi
-  done
-
-  # No python/pyyaml invocations — compliant (EC-002: stdlib-only python3 is fine).
-  if [ "${#dep_files[@]}" -eq 0 ]; then
-    echo "AC-004: scanned=${#sh_files[@]} files"
-    return 0
-  fi
-
-  # Phase 2: for each file with a pyyaml/python-yaml invocation, audit for acceptability.
-  # Unacceptable form: --break-system-packages (PEP 668 workaround; not a long-term fix).
-  # Acceptable alternatives: python[0-9.]* -c ["']import yaml["'] preflight OR awk-based YAML parsing.
-  # O-P4-001: broadened from python3 to python[0-9.]* so versioned preflights like
-  # 'python3.11 -c "import yaml"' and 'command -v python3.11' are recognized as valid guards.
-  # O-2: broadened from double-quote-only to ["']import yaml["'] so single-quoted preflights
-  # like python3 -c 'import yaml' are also recognized (previously caused false FAIL).
-  local violations=()
-  for f in "${dep_files[@]}"; do
     local rel="${f#${wave_handoff_skill_dir}/}"
-
-    # Flag --break-system-packages explicitly (canonical unacceptable workaround per AC-004)
-    local bsp_hits
-    bsp_hits="$(grep -nE '\-\-break-system-packages' "$f" 2>/dev/null || true)"
-    if [ -n "$bsp_hits" ]; then
+    local hits
+    hits="$(grep -nE '(^[[:space:]]*(python[0-9.]*|pip[0-9x]*)([[:space:]]|$)|[|;&][[:space:]]*(python[0-9.]*|pip[0-9x]*)([[:space:]]|$)|\$[(](python[0-9.]*|pip[0-9x]*)([[:space:]]|$)|`(python[0-9.]*|pip[0-9x]*)([[:space:]]|$)|(xargs|if|then|do|else|elif|time|env|command|sudo)[[:space:]]+(python[0-9.]*|pip[0-9x]*)([[:space:]]|$)|xargs([[:space:]]+-[^[:space:]]+)+[[:space:]]+(python[0-9.]*|pip[0-9x]*)([[:space:]]|$)|\{[[:space:]]*(python[0-9.]*|pip[0-9x]*)([[:space:]]|$)|\)[[:space:]]*(python[0-9.]*|pip[0-9x]*)([[:space:]]|$)|\([[:space:]]*(python[0-9.]*|pip[0-9x]*)([[:space:]]|$))' \
+        "$f" 2>/dev/null || true)"
+    if [ -n "$hits" ]; then
       while IFS= read -r hit; do
-        violations+=("${rel}: --break-system-packages (PEP 668 workaround; not a long-term fix): ${hit}")
-      done <<< "$bsp_hits"
-      continue
-    fi
-
-    # Check for proper preflight guard before pyyaml invocation.
-    # Accepts versioned binaries: python3.11 -c "import yaml", python3 -c 'import yaml', command -v python3.11, etc.
-    # O-2: ["']import yaml["'] accepts both single and double quotes around the import guard.
-    if ! grep -qE "(python[0-9.]*[[:space:]]+-c[[:space:]]+[\"']import yaml[\"']|command[[:space:]]+-v[[:space:]]+python[0-9.]*)" \
-        "$f" 2>/dev/null; then
-      local hits
-      hits="$(grep -nE '(python[0-9.]*[[:space:]].*[Yy][Aa][Mm][Ll]|pip[0-9x]*[[:space:]].*[Pp][Yy][Yy][Aa][Mm][Ll]|import[[:space:]]+yaml)' \
-              "$f" 2>/dev/null || true)"
-      while IFS= read -r hit; do
-        violations+=("${rel}: pyyaml/yaml usage without preflight: ${hit}")
+        violations+=("${rel}: python/pip shell-out: ${hit}")
       done <<< "$hits"
     fi
   done
 
   if [ "${#violations[@]}" -gt 0 ]; then
-    echo "FAIL (AC-004): python3/pyyaml invocation without preflight guard found." >&2
-    echo "  Fix options (choose one):" >&2
-    echo "    (a) Add preflight: python3 -c \"import yaml\" 2>/dev/null || { echo 'yaml required' >&2; exit 1; }" >&2
-    echo "    (b) Replace with POSIX portable alternative: awk or sed-based YAML key extraction." >&2
-    echo "  NOTE: --break-system-packages is explicitly NOT accepted (PEP 668 is a macOS-runner" >&2
-    echo "  policy; the correct fix is to not depend on externally managed pip packages in CI)." >&2
+    echo "FAIL (AC-004): python or pip invocation found in wave-handoff scripts." >&2
+    echo "  SKILL.md §149: 'This skill MUST NOT shell out to Python, jq, or any language runtime beyond bash.'" >&2
+    echo "  Fix: remove python/pip invocations; replace with POSIX portable alternatives (awk, grep, sed)." >&2
+    echo "  NOTE: stdlib python (python3 -c 'import json') is also a violation (F-P11-001 Option A)." >&2
     echo "  Violations:" >&2
     local v
     for v in "${violations[@]}"; do echo "  ${v}" >&2; done
@@ -5045,6 +5093,8 @@ EOF
   local pc_bad_cmdsubst pc_bad_and pc_bad_xargs pc_bad_else pc_bad_time pc_bad_xargs_opts pc_good_comment
   local pc_bad_brace pc_bad_case_paren pc_bad_subshell
   local pc_good_other_cmdsubst pc_good_func_brace pc_good_jq_var
+  local pc_bad_jq_line_start pc_bad_jq_backtick pc_bad_jq_if pc_bad_jq_then pc_bad_jq_do
+  local pc_bad_jq_elif pc_bad_jq_env pc_bad_jq_command pc_bad_jq_sudo
   pc_bad_cmdsubst="${BATS_TEST_TMPDIR}/pc_ac005_bad_cmdsubst.sh"
   pc_bad_and="${BATS_TEST_TMPDIR}/pc_ac005_bad_and.sh"
   pc_bad_xargs="${BATS_TEST_TMPDIR}/pc_ac005_bad_xargs.sh"
@@ -5058,6 +5108,15 @@ EOF
   pc_good_other_cmdsubst="${BATS_TEST_TMPDIR}/pc_ac005_good_other_cmdsubst.sh"
   pc_good_func_brace="${BATS_TEST_TMPDIR}/pc_ac005_good_func_brace.sh"
   pc_good_jq_var="${BATS_TEST_TMPDIR}/pc_ac005_good_jq_var.sh"
+  pc_bad_jq_line_start="${BATS_TEST_TMPDIR}/pc_ac005_bad_jq_line_start.sh"
+  pc_bad_jq_backtick="${BATS_TEST_TMPDIR}/pc_ac005_bad_jq_backtick.sh"
+  pc_bad_jq_if="${BATS_TEST_TMPDIR}/pc_ac005_bad_jq_if.sh"
+  pc_bad_jq_then="${BATS_TEST_TMPDIR}/pc_ac005_bad_jq_then.sh"
+  pc_bad_jq_do="${BATS_TEST_TMPDIR}/pc_ac005_bad_jq_do.sh"
+  pc_bad_jq_elif="${BATS_TEST_TMPDIR}/pc_ac005_bad_jq_elif.sh"
+  pc_bad_jq_env="${BATS_TEST_TMPDIR}/pc_ac005_bad_jq_env.sh"
+  pc_bad_jq_command="${BATS_TEST_TMPDIR}/pc_ac005_bad_jq_command.sh"
+  pc_bad_jq_sudo="${BATS_TEST_TMPDIR}/pc_ac005_bad_jq_sudo.sh"
   printf 'result=$(jq -r .name input.json)\n' > "$pc_bad_cmdsubst"
   printf 'cmd && jq ".key" file.json\n' > "$pc_bad_and"
   printf 'find . -name "*.json" | xargs jq ".id"\n' > "$pc_bad_xargs"
@@ -5071,6 +5130,16 @@ EOF
   printf 'result=$(other_cmd . f)\n' > "$pc_good_other_cmdsubst"
   printf 'foo() { echo "hello"; }\n' > "$pc_good_func_brace"
   printf 'echo "${jq_var}"\n' > "$pc_good_jq_var"
+  # F-P13-001 additions: fixtures for arms that lacked positive controls.
+  printf 'jq -r .x f.json\n' > "$pc_bad_jq_line_start"
+  printf '`jq . f`\n' > "$pc_bad_jq_backtick"
+  printf "if jq '.key' file.json\n" > "$pc_bad_jq_if"
+  printf "then jq '.key' file.json\n" > "$pc_bad_jq_then"
+  printf "do jq '.key' file.json\n" > "$pc_bad_jq_do"
+  printf "elif jq '.key' file.json\n" > "$pc_bad_jq_elif"
+  printf "env jq '.key' file.json\n" > "$pc_bad_jq_env"
+  printf "command jq '.key' file.json\n" > "$pc_bad_jq_command"
+  printf "sudo jq '.key' file.json\n" > "$pc_bad_jq_sudo"
   # F-P8-001 + O-3 broadened jq_re: adds time|env|command|sudo to the keyword wrapper group;
   # adds xargs-with-options arm; adds brace-group, case-pattern-body, and subshell arms.
   # Positive-control regex MUST BE BYTE-IDENTICAL to the real-scan-loop regex below.
@@ -5153,6 +5222,62 @@ EOF
   ! grep -qE "$jq_re" "$pc_good_jq_var" || {
     echo "FAIL (AC-005 negative-control / F-P8-001): jq-detector falsely matched '\${jq_var}' parameter expansion." >&2
     echo "  The { arm requires jq followed by ([[:space:]]|\$); '\${jq_var}' has '_var}' after 'jq', not space/EOL." >&2
+    false
+  }
+  # F-P13-001 positive controls: arms that lacked coverage.
+  # BAD (F-P13-001): bare line-start 'jq -r .x f.json' MUST be detected (^[[:space:]]*jq arm).
+  # This is the most common jq invocation form and was the only arm without a positive control.
+  grep -qE "$jq_re" "$pc_bad_jq_line_start" || {
+    echo "FAIL (AC-005 positive-control / F-P13-001): jq-detector did not match bare line-start 'jq -r .x f.json'." >&2
+    echo "  The ^[[:space:]]*jq([[:space:]]|\$) arm must match jq at the start of a line." >&2
+    false
+  }
+  # BAD (F-P13-001): backtick form '\`jq . f\`' MUST be detected.
+  grep -qE "$jq_re" "$pc_bad_jq_backtick" || {
+    echo "FAIL (AC-005 positive-control / F-P13-001): jq-detector did not match backtick '\`jq . f\`' form." >&2
+    echo "  The \`jq([[:space:]]|\$) arm must match jq inside backtick command substitution." >&2
+    false
+  }
+  # BAD (F-P13-001): 'if jq ...' MUST be detected (if arm in keyword group).
+  grep -qE "$jq_re" "$pc_bad_jq_if" || {
+    echo "FAIL (AC-005 positive-control / F-P13-001): jq-detector did not match 'if jq' form." >&2
+    echo "  'if' must be in the keyword wrapper group (xargs|if|then|do|else|elif|time|env|command|sudo)." >&2
+    false
+  }
+  # BAD (F-P13-001): 'then jq ...' MUST be detected (then arm in keyword group).
+  grep -qE "$jq_re" "$pc_bad_jq_then" || {
+    echo "FAIL (AC-005 positive-control / F-P13-001): jq-detector did not match 'then jq' form." >&2
+    echo "  'then' must be in the keyword wrapper group." >&2
+    false
+  }
+  # BAD (F-P13-001): 'do jq ...' MUST be detected (do arm in keyword group).
+  grep -qE "$jq_re" "$pc_bad_jq_do" || {
+    echo "FAIL (AC-005 positive-control / F-P13-001): jq-detector did not match 'do jq' form." >&2
+    echo "  'do' must be in the keyword wrapper group." >&2
+    false
+  }
+  # BAD (F-P13-001): 'elif jq ...' MUST be detected (elif arm in keyword group).
+  grep -qE "$jq_re" "$pc_bad_jq_elif" || {
+    echo "FAIL (AC-005 positive-control / F-P13-001): jq-detector did not match 'elif jq' form." >&2
+    echo "  'elif' must be in the keyword wrapper group." >&2
+    false
+  }
+  # BAD (F-P13-001): 'env jq ...' MUST be detected (env arm in keyword group — O-3 addition).
+  grep -qE "$jq_re" "$pc_bad_jq_env" || {
+    echo "FAIL (AC-005 positive-control / F-P13-001): jq-detector did not match 'env jq' form." >&2
+    echo "  'env' must be in the keyword wrapper group (added at O-3)." >&2
+    false
+  }
+  # BAD (F-P13-001): 'command jq ...' MUST be detected (command arm in keyword group — O-3 addition).
+  grep -qE "$jq_re" "$pc_bad_jq_command" || {
+    echo "FAIL (AC-005 positive-control / F-P13-001): jq-detector did not match 'command jq' form." >&2
+    echo "  'command' must be in the keyword wrapper group (added at O-3)." >&2
+    false
+  }
+  # BAD (F-P13-001): 'sudo jq ...' MUST be detected (sudo arm in keyword group — O-3 addition).
+  grep -qE "$jq_re" "$pc_bad_jq_sudo" || {
+    echo "FAIL (AC-005 positive-control / F-P13-001): jq-detector did not match 'sudo jq' form." >&2
+    echo "  'sudo' must be in the keyword wrapper group (added at O-3)." >&2
     false
   }
   # -------------------------------------------
