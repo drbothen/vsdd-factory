@@ -11647,3 +11647,98 @@ S-18.12 LOCAL adversarial cascade streak: advances to **2/3** (CLEAN pass-16). N
 ### Factory-artifacts Commits
 
 - `78d0417e` — state(D-740): S-18.12-LOCAL-PASS-16-CLEAN-CLOSURE (6 files changed, 917 insertions, 44 deletions; pushed origin factory-artifacts 2026-06-30; single burst per TD-VSDD-053)
+
+## D-741 — S-18.12 LOCAL adv pass-17 CLEAN closure + CONVERGENCE-SEAL — 2026-06-30
+
+### Parent-commit (Dim-3)
+
+`99694b24` — factory-artifacts HEAD at burst start (state(D-740-sha-patch): Active Branches SHA-patch updated to 78d0417e D-740 commit (pushed origin factory-artifacts 2026-06-30)).
+
+### Adversary Verdict (Dim-7)
+
+S-18.12 LOCAL adversary pass-17: **CLEAN** — 0 CRITICAL / 0 HIGH / 0 MEDIUM / 0 blocking-LOW. Streak advances **2/3 → 3/3 = CONVERGED** per BC-5.39.001. **BC-5.39.001 3-CLEAN protocol SATISFIED** (passes 15, 16, 17 consecutive CLEAN). S-18.12 LOCAL adversarial cascade CONVERGED.
+
+CLEAN corroboration: array_re matches 3 real local -A uses in write-wave-state.sh; guard oracle finds executable guard at wave-handoff.sh entrypoint top after comment-stripping (F-P14-001 controls prove commented-out guard rejected). `_ep_guard_precedes_source` holds (guard-line < first-source-line). case_mod_re zero matches (non-vacuous PASS). ifs_step1_re single candidate `IFS=',' read -ra` correctly step-3 exempted. No python/pip/jq token in any .sh. Byte-parity confirmed story ACs ↔ bats ↔ docs for all 6 regexes (POLICY 15). POLICY 14 version legs synced at v1.11; SS-06 anchor + behavioral_contracts:[] correct.
+
+**O-1 (LOW, POLICY 13):** ifs_step2_re `(`-prefix exemption is line-granular — a one-line `(cmd); IFS='|'` form matches step-1 via `;` but is dropped by step-2 because the line starts with `(`. Exotic form; not present in any scanned script. ACCEPTED — prospective soundness boundary; FREEZE DISCIPLINE.
+**O-2 (LOW, POLICY 13):** ifs_step3_re command-prefix exemption is line-granular — `IFS='|'; foo; IFS=x read y` is dropped wholesale because `IFS=x read` matches step-3, masking the leading global `IFS='|'`. Exotic multi-statement style; not present in any current script. ACCEPTED — prospective soundness boundary; FREEZE DISCIPLINE.
+**O-3 (LOW, POLICY 11) — DRIFT ITEM:** python_re detector lacks the `${python3_x}` param-expansion and `foo() { echo; }` brace-arm NEGATIVE controls that the jq twin has. Analytically verified python_re does NOT false-match either form. Control-symmetry gap, not soundness defect. ACCEPTED — control-completeness; DRIFT ITEM: may fold into pre-PR polish burst for symmetry with jq twin; FREEZE DISCIPLINE.
+
+Source attestation (D-448(a)): above faithfully describes `s-18.12-local-adversary-pass-17.md` Part A finding set — CLEAN; 0 blocking; 3 non-blocking LOW observations (O-1..O-3 all ACCEPTED; O-3 recorded as Drift Item); streak 2/3→3/3 CONVERGED. No divergence from Part A.
+
+### Files Touched (Dim-1)
+
+**factory-artifacts branch (this D-741 burst — single commit per TD-VSDD-053):**
+- `cycles/v1.0-brownfield-backfill/s-18.12-local-adversary-pass-17.md` — NEW; pass-17 adversary report (verdict CLEAN; 0 blocking; 3 LOW O-1..O-3 accepted; streak 3/3 CONVERGED; severity decay H→H→M→M→CLEAN→MED→CLEAN→MED→CLEAN→CLEAN→NC(H+M)→NC(H)→NC(M)→NC(H)→CLEAN→CLEAN→CLEAN (3-CLEAN CONVERGED))
+- `stories/STORY-INDEX.md` — v4.122→v4.123 (S-18.12 body row pass-17 CLEAN annotation + LOCAL cascade CONVERGED 3/3 + POSTURE: LOCAL CONVERGED STOP; `last_amended:` updated; `version:` bumped; POLICY 14 leg-5; GOVERNANCE-ONLY; story stays v1.11)
+- `cycles/v1.0-brownfield-backfill/decision-log.md` — D-741 block appended (after D-739 entry)
+- `cycles/v1.0-brownfield-backfill/burst-log.md` — D-741 entry appended (this file)
+- `.factory/STATE.md` — v4.91→v4.92 (D-741 banner + frontmatter advance + D-703/D-704 decision rows archived to collapsed range D-430(a) compaction + D-741 Decisions Log row + D-741 O-3 Drift Item row + Concurrent Cycles row + Identifier Conventions STORY v4.123 + Story Status streak 2/3→3/3 CONVERGED + Active Branches factory-artifacts + Last Updated + Current Phase + SIZE BUDGET + Session Resume Checkpoint FULL REFRESH POSTURE: LOCAL CONVERGED STOP)
+
+**feature/S-18.12 branch:**
+- UNCHANGED — 00272990/v1.11 (CLEAN pass; no fix; artifacts FROZEN)
+
+**NOT committed in this burst (develop/main unchanged):**
+- No code changes to develop (feature branch local, not pushed per STOP-BEFORE-PR-MERGE D-665)
+- develop_head 531dacfb UNCHANGED; merged_count 95 UNCHANGED; total_bcs 1,974 UNCHANGED
+
+### Codifications (Dim-6)
+
+- **D-741** decision-log block codified: S-18.12 LOCAL adv pass-17 CLEAN + CONVERGENCE SEAL; BC-5.39.001 satisfied (passes 15/16/17); O-1..O-3 all ACCEPTED; POSTURE LOCAL CONVERGED STOP; Drift Items 3 total forward-carried; NEXT HUMAN-GATED.
+- **STORY-INDEX v4.122→v4.123**: S-18.12 row annotation pass-17 CLEAN + LOCAL cascade CONVERGED 3/3 + POSTURE: LOCAL CONVERGED STOP (POLICY 14 leg-5; GOVERNANCE-ONLY; story stays v1.11 — CLEAN pass, no artifact modification).
+- **No new lesson**: L-BB-S18.12-asymptotic-clean-accept-prospective-lows-for-streak (D-733) already covers CLEAN-pass accept pattern for 3-CLEAN convergence streak.
+- **STATE.md v4.91→v4.92**: D-741 closure + D-741 O-3 Drift Item + D-430(a) compaction + FULL Session Resume Checkpoint refresh POSTURE: LOCAL CONVERGED STOP.
+
+### Dim-2 (4-Index Parity Gate — D-449(a) literal-shell execution evidence)
+
+Gate command:
+```bash
+grep "^version:" \
+  .factory/specs/behavioral-contracts/BC-INDEX.md \
+  .factory/specs/verification-properties/VP-INDEX.md \
+  .factory/stories/STORY-INDEX.md \
+  .factory/specs/architecture/ARCH-INDEX.md
+```
+
+Captured stdout (post-STORY-INDEX v4.123 update, pre-commit):
+```
+/Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/verification-properties/VP-INDEX.md:version: "2.51"
+/Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/architecture/ARCH-INDEX.md:version: "2.85"
+/Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.57"
+/Users/zious/Documents/GITHUB/vsdd-factory/.factory/stories/STORY-INDEX.md:version: "4.123"
+```
+
+Gate result: PASS. BC-INDEX v3.57 (UNCHANGED), VP-INDEX v2.51 (UNCHANGED), STORY-INDEX v4.123 (BUMPED D-741, was v4.122), ARCH-INDEX v2.85 (UNCHANGED). Zero FAIL.
+
+### Dim-5 (8-Block Presence Gate — D-446(a))
+
+This burst-log entry contains all 8 D-444(c) mandatory blocks:
+1. Parent-commit: `99694b24` (state(D-740-sha-patch) SHA-patch follow-up; factory-artifacts HEAD at burst start)
+2. Adversary verdict: CLEAN; 0 blocking; 3 non-blocking LOW O-1..O-3 (O-3 Drift Item); streak 2/3→3/3 CONVERGED; BC-5.39.001 SATISFIED
+3. Files touched: pass-17 report + STORY-INDEX + decision-log + burst-log + STATE.md; feature 00272990 UNCHANGED
+4. Codifications (Dim-6): D-741 + STORY-INDEX v4.123 + no new lesson + STATE.md v4.92
+5. Dim-2: 4-index parity gate with literal-shell stdout above
+6. Dim-5: This block (8-block self-verification)
+7. Closes: pass-17 CLEAN + CONVERGENCE SEAL; streak 2/3→3/3 CONVERGED; O-1..O-3 ACCEPTED; POSTURE LOCAL CONVERGED STOP; SESSION CHECKPOINT FULL REFRESH
+8. Factory-artifacts commits: SHA pending — sha-patch follow-up per D-447(c)+D-449(e) after commit
+
+All 8 blocks present. Gate: PASS.
+
+### Dim-7 (Streak Status)
+
+S-18.12 LOCAL adversarial cascade streak: advances to **3/3 = CONVERGED** (CLEAN pass-17). **BC-5.39.001 3-CLEAN protocol SATISFIED** (passes 15, 16, 17 consecutive CLEAN). S-18.12 LOCAL adversarial cascade **CONVERGED**. POSTURE advances from ACTIVE → **LOCAL CONVERGED STOP** per human directive. Pipeline stopped. NEXT (HUMAN-GATED): pre-PR polish burst (clears 3 Drift Items) → demo-recorder per-AC → push feature/S-18.12 → pr-manager 9-step PR cycle → CI green → STOP-BEFORE-PR-MERGE (D-665) → human merges → post-merge burst (merged_count 95→96; E-18 epic COMPLETE).
+
+### Closes
+
+- S-18.12 LOCAL adv pass-17: **CLEAN** (0 blocking; 3 non-blocking LOW observations O-1..O-3). Streak advances 2/3 → **3/3 CONVERGED**. BC-5.39.001 SATISFIED.
+- O-1 (ifs_step2_re `(`-prefix exemption line-granular; exotic one-line form; not present): **ACCEPTED** (prospective; FREEZE DISCIPLINE).
+- O-2 (ifs_step3_re command-prefix exemption line-granular; exotic multi-statement; not present): **ACCEPTED** (prospective; FREEZE DISCIPLINE).
+- O-3 (python_re lacks pc_good_py_var/pc_good_func_brace neg-controls symmetric to jq twin; analytically verified no FP): **ACCEPTED** (control-completeness) — **DRIFT ITEM** targeting pre-PR polish burst.
+- STORY-INDEX v4.123 (S-18.12 row pass-17 CLEAN annotation + LOCAL cascade CONVERGED 3/3; POLICY 14 leg-5): **DONE** (state-manager this burst).
+- Session Resume Checkpoint FULL REFRESH (POSTURE: LOCAL CONVERGED STOP): **DONE**.
+- **feature/S-18.12 DURABILITY NOTE:** Branch is LOCAL (not pushed per STOP-BEFORE-PR-MERGE D-665). HEAD 00272990/v1.11. FROZEN. LOCAL CASCADE CONVERGED 3/3. Worktree at `.worktrees/S-18.12`. If session restarts and worktree is missing, recreate with: `git worktree add .worktrees/S-18.12 feature/S-18.12`. Branch is local-only; do NOT push until pre-PR polish burst complete + demo done + human authorizes PR.
+- Drift Items forward-carried (3 total): D-740 O-3 (comment-strip parity), D-740 O-6 (§149 citation cleanup), D-741 O-3 (python neg-control symmetry). All targeting pre-PR polish burst.
+
+### Factory-artifacts Commits
+
+- SHA pending — sha-patch follow-up per D-447(c)+D-449(e) after commit push

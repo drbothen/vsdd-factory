@@ -4916,3 +4916,37 @@ LOCAL-CASCADE
 ### Date
 
 2026-06-30
+
+---
+
+## D-741 — S-18.12 LOCAL Adversarial Pass-17 CLEAN Closure + Convergence Seal
+
+### Decision
+
+**CONVERGENCE SEAL.** S-18.12 LOCAL adversarial cascade CONVERGED per BC-5.39.001 3-CLEAN protocol. Pass-17 returns CLEAN (0 CRITICAL / 0 HIGH / 0 MEDIUM blocking / 0 LOW blocking). Streak advances **2/3 → 3/3 = CONVERGED**. BC-5.39.001 SATISFIED (passes 15, 16, 17 consecutive CLEAN).
+
+**Pass-17 findings:** Three non-blocking LOW observations, all ACCEPTED under FREEZE DISCIPLINE:
+
+- O-1 (LOW, POLICY 13): ifs_step2_re `(`-prefix exemption is line-granular. A one-line `(cmd); IFS='|'` form matches step-1 via `;` but is dropped by step-2 because the line starts with `(`. The trailing global IFS mutation would persist after subshell return. Exotic form; not present in any scanned script. ACCEPTED (prospective soundness boundary; no hardening during 3-CLEAN streak).
+- O-2 (LOW, POLICY 13): ifs_step3_re command-prefix exemption is line-granular. `IFS='|'; foo; IFS=x read y` is dropped wholesale because `IFS=x read` matches step-3, masking the leading global `IFS='|'`. Exotic multi-statement style; not present in any current script. ACCEPTED (prospective soundness boundary; FREEZE DISCIPLINE).
+- O-3 (LOW, POLICY 11): python_re detector lacks the `${python3_x}` param-expansion and `foo() { echo; }` brace-arm NEGATIVE controls that the jq twin has (pc_good_jq_var, pc_good_func_brace). Adversary verified analytically that python_re does NOT false-match either form (python_re requires `python3` followed by `[[:space:]]|`). Control-symmetry gap, not soundness defect. ACCEPTED (control-completeness; may fold into pre-PR polish burst). This item is carried as D-741 O-3 in the Drift Items register.
+
+**STORY-INDEX:** v4.122 → v4.123 (S-18.12 row annotation: pass-17 CLEAN + LOCAL cascade CONVERGED 3/3; annotation-only; story normative version stays v1.11; POLICY 14 leg parity — GOVERNANCE-ONLY burst, no artifact modification).
+
+**POSTURE change:** ACTIVE → LOCAL CONVERGED. Pipeline STOPPED per human directive. NEXT (HUMAN-GATED): when the human authorizes: (1) pre-PR polish burst clears Drift Items (O-3 comment-strip parity D-740, O-6 §149 citation cleanup D-740, O-3 python neg-control symmetry D-741) → (2) demo-recorder per-AC → (3) push feature/S-18.12 → (4) pr-manager 9-step PR cycle → (5) CI green → (6) STOP-BEFORE-PR-MERGE (D-665) → human merges directly (`gh pr merge <N> --squash --delete-branch --repo drbothen/vsdd-factory`) → (7) post-merge state burst (merged_count 95→96; E-18 epic COMPLETE after S-18.12 merges).
+
+**Drift Items forward-carried (3 total):** D-740 O-3 (comment-strip parity; targeting pre-PR polish burst); D-740 O-6 (§149 citation cleanup; targeting pre-PR polish burst); D-741 O-3 (python neg-control symmetry gap; may fold into pre-PR polish burst).
+
+Unchanged: develop_head 531dacfb / merged_count 95 / total_bcs 1,974 / BC-INDEX v3.57 / VP-INDEX v2.51 / ARCH-INDEX v2.85. No new lesson (L-BB-S18.12-asymptotic-clean-accept-prospective-lows-for-streak pattern codified D-733 covers this). Feature HEAD 00272990/v1.11 FROZEN.
+
+Parent-commit: 99694b24 (D-740-sha-patch factory-artifacts HEAD).
+
+### Phase
+
+LOCAL-CASCADE
+
+### Date
+
+2026-06-30
+
+---
