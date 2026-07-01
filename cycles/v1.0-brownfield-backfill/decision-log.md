@@ -4986,3 +4986,34 @@ PRE-PR-POLISH
 2026-07-01
 
 ---
+
+## D-743 — S-18.12 Sprint-State Reconcile (CI-Caught Production-Data Defect)
+
+### Decision
+
+**PR #384 CI leg `bats-full-suite (linux)` FAILED** on `test_real_production_file_completeness_and_status_fidelity` (`sprint-state-format.bats:1444`, BC-5.41.004 INV-2). CI mounts `.factory` from `origin/factory-artifacts` at runtime, so it read the live `sprint-state.yaml` pushed at D-742. The test enumerated all `stories:` entries and flagged exactly two status-fidelity mismatches against STORY-INDEX:
+
+- **S-18.11:** `sprint-state.yaml` status `ready` vs STORY-INDEX `merged` (stale since PR #340 squash-merge, D-722).
+- **S-18.12:** `sprint-state.yaml` status `draft` vs STORY-INDEX `ready` (stale since D-724 promotion).
+
+**No idempotent producer script exists in-repo** to regenerate `sprint-state.yaml` from STORY-INDEX — checked `scripts/`, `crates/`, and `.factory/code-delivery/S-18.11/`; the S-18.11 migration was a one-time transform, not a reusable regenerator. Reconciled via precise hand-edit of ONLY these two entries (per explicit instruction to trust the test's enumeration over a bulk rewrite; the mechanical STORY-INDEX status-column parse used to double-check was flagged as unreliable, so the test output — not a fresh column scrape — was the source of truth for WHICH entries to touch).
+
+**Complication discovered mid-fix:** flipping S-18.11's status to `merged` (a terminal status) is not a pure value edit — BC-5.41.004 PC3 requires a strict two-partition ordering (all terminal entries contiguous first, sorted by full-graph wave-depth ASC / story-ID lex ASC per def-b, ADR-026 §Decision 3a). An in-place status-only edit would have satisfied INV-2 while newly violating PC3 (a terminal entry stranded inside the non-terminal partition). This was caught locally, not guessed at: the bats test's own full-graph-depth iterative-relaxation algorithm (lines ~1729–1864 of `sprint-state-format.bats`) was extracted and re-run standalone against the live `STORY-INDEX.md`, computing S-18.11's authoritative depth as 4. The entry was physically relocated from its old non-terminal position to the correct depth-4 slot in Partition A, between `S-18.04b` and `S-18.13` (both depth 4, lex-ordered), rather than guessed.
+
+**VERIFICATION:** `sprint-state-format.bats` 14/14 GREEN. Confirmed by temporarily copying the up-to-date S-18.12-worktree copies of the test file, its fixtures, and the `parse-sprint-state.sh` consumer script into the primary local checkout for the run — the primary local `develop` checkout is stale (several commits behind `origin/develop`, predating S-18.11's addition of the `partial` status to the consumer allowlist), which produced 4 unrelated local-environment-only failures on the first attempt (consumer rejecting `partial` as unknown) that cleared once the up-to-date consumer was swapped in. All temporary copies were removed after verification, restoring the local tree to its original state. No `stories:` entries other than S-18.11 and S-18.12 were touched.
+
+**DRIFT ITEM added** for the root cause: `sprint-state.yaml` status values are not auto-synced when a story's STORY-INDEX row transitions (merge → `merged`, PO promotion → `ready`, etc.), and a terminal transition additionally requires re-sorting the entry into the correct partition slot. Anchored to the S-18.11 producer as a POST-E-18 follow-up — the producer (or a new lightweight sync step) should re-derive both status AND partition placement on every such transition, not only at initial migration.
+
+Unchanged: develop_head 531dacfb / merged_count 95 / total_bcs 1,974 / BC-INDEX v3.57 / VP-INDEX v2.51 / ARCH-INDEX v2.85 / STORY-INDEX v4.124 (this burst touches only `.factory/stories/sprint-state.yaml`, which is not one of the 4 tracked indexes). PR #384 remains OPEN, awaiting CI re-run. STOP-BEFORE-PR-MERGE (D-665) unaffected.
+
+Parent-commit: e1bc2839 (D-742 factory-artifacts HEAD).
+
+### Phase
+
+PRE-PR-POLISH
+
+### Date
+
+2026-07-01
+
+---
