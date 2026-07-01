@@ -11645,3 +11645,5 @@ S-18.12 LOCAL adversarial cascade streak: advances to **2/3** (CLEAN pass-16). N
 - **feature/S-18.12 DURABILITY NOTE:** Branch is LOCAL (not pushed per STOP-BEFORE-PR-MERGE D-665). HEAD 00272990. FROZEN at v1.11. Worktree at `.worktrees/S-18.12`. If session restarts and worktree is missing, recreate with: `git worktree add .worktrees/S-18.12 feature/S-18.12`. Branch is local-only; do NOT push until 3-CLEAN CONVERGED + demo-recorder complete.
 
 ### Factory-artifacts Commits
+
+- `78d0417e` — state(D-740): S-18.12-LOCAL-PASS-16-CLEAN-CLOSURE (6 files changed, 917 insertions, 44 deletions; pushed origin factory-artifacts 2026-06-30; single burst per TD-VSDD-053)
