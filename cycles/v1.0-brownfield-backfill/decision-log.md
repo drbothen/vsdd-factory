@@ -4950,3 +4950,39 @@ LOCAL-CASCADE
 2026-06-30
 
 ---
+
+## D-742 — S-18.12 Pre-PR Polish Burst Closure
+
+### Decision
+
+**STORY-ARTIFACT POLISH BURST (post-LOCAL-CONVERGED, pre-PR) — NOT a cycle-level adversary burst.** All 3 Drift Items carried forward from the LOCAL adversarial cascade are CLOSED.
+
+**[D-740 O-3] comment-strip parity — RESOLVED 3d7d1c4d (test-writer).** The AC-001..005 violation-detector scan loops now apply the same `grep -vE '^[[:space:]]*#'` pre-filter the guard oracle already applied, closing the asymmetry: a comment like `# pipe: cat x | python3 y` can no longer false-match a violation detector. `grep -n` line-numbers and `${rel}:${hit}` output shapes preserved. Additive, no regex value changed.
+
+**[D-740 O-6] SKILL.md §149 volatile line-pin — RESOLVED f974e637 (story-writer) + 9cbd9439 (technical-writer).** Replaced the line-locator citation "SKILL.md §149" with the stable "SKILL.md 'Forbidden Dependencies' section" citation (TD-VSDD-091 anti-volatile-pin) in the story's AC-004 rationale, AC-005 rationale, and the EC-002 edge-case row (f974e637; story v1.11→v1.12), and in both §149 sites of `bash-portability.md` (9cbd9439). Verbatim rule-text quotes are untouched at every site. Historical/changelog §149 references are exempt per TD-VSDD-091 and were left as-is.
+
+**[D-741 O-3] python_re negative-control symmetry gap — RESOLVED d039dd50 (test-writer).** Added the `${python3_x}` param-expansion negative control and the `foo() { echo; }` brace-arm negative control to python_re (`pc_good_py_var` / `pc_good_func_brace`), achieving symmetry with the jq twin's existing `pc_good_jq_var` / `pc_good_func_brace` controls. The underlying soundness claim (python_re never false-matched either form) was already analytically verified at D-741 pass-17; this burst adds the missing executable proof.
+
+**PROCESS NOTE (recorded faithfully):** test-writer authored both the D-741 O-3 fix (landed as d039dd50) and the D-740 O-3 comment-strip work, but went idle after leaving the D-740 O-3 work uncommitted. The orchestrator ran verification on the uncommitted work and landed it as commit 3d7d1c4d. Authorship of the D-740 O-3 fix remains test-writer; the commit itself was landed by the orchestrator.
+
+**VERIFICATION:** `wave-handoff.bats` = 68/68 GREEN (all portability tests + the 3 new/extended controls pass; zero regressions in the changed files). The full suite run also surfaced two UNRELATED pre-existing failures: `resolver-integration` (F-P3-008 timing-flake class — "dispatch took only Nms vs threshold"; documented flaky, clears on re-run) and `pass-real-state-md-snapshot` (validates the live production STATE.md; CI skips it via `VSDD_SKIP_PRODUCTION_STATE_MD_TEST=1` per TD-VSDD-101). Neither is caused by the polish edits — both are isolated to files outside `wave-handoff.bats` / `bash-portability.md` / the story file.
+
+**feature/S-18.12 HEAD:** 00272990 → 9cbd9439 (3 commits: d039dd50, 3d7d1c4d, 9cbd9439).
+
+**STORY-INDEX:** v4.123 → v4.124 (S-18.12 row: story v1.11→v1.12; pre-PR polish annotation added; POLICY 14 leg-5 parity).
+
+**POSTURE change:** the LOCAL cascade remains CONVERGED (BC-5.39.001 SATISFIED at pass-17, streak 3/3) — these 3 items were pre-accepted LOW observations, analytically non-behavioral, and closing them does NOT constitute a new adversarial pass or a new 3-CLEAN streak claim. Governance label advances: LOCAL CONVERGED → **S-18.12 pre-PR polish burst COMPLETE**. NEXT (still HUMAN-GATED): (1) demo-recorder per-AC → (2) push feature/S-18.12 → (3) pr-manager 9-step PR cycle (target develop) → (4) CI green → (5) STOP-BEFORE-PR-MERGE (D-665) → human merges directly (`gh pr merge <N> --squash --delete-branch --repo drbothen/vsdd-factory`) → (6) post-merge state burst (merged_count 95→96; E-18 epic COMPLETE). The confirmatory gate going forward is the PR-LEVEL adversarial cascade (pr-manager-dispatched); this burst does NOT assert a new LOCAL 3-CLEAN and does NOT claim CI-green.
+
+Unchanged: develop_head 531dacfb / merged_count 95 / total_bcs 1,974 / BC-INDEX v3.57 / VP-INDEX v2.51 / ARCH-INDEX v2.85. No new lesson (all 3 items were pre-accepted analytical non-defects; the process note above is recorded but does not warrant a new codified lesson).
+
+Parent-commit: dd44a274 (D-741 factory-artifacts HEAD).
+
+### Phase
+
+PRE-PR-POLISH
+
+### Date
+
+2026-07-01
+
+---
