@@ -4839,6 +4839,48 @@ S-18.12 LOCAL adversarial pass-15. Fresh context. Streak **0/3**. ARTIFACTS FROZ
 
 ---
 
+## D-740 — S-18.12 LOCAL Adversarial Pass-16 CLEAN Closure
+
+### Decision
+
+S-18.12 LOCAL ADVERSARIAL PASS-16 CLEAN CLOSURE: pass-16 CLEAN (0 blocking; streak 1/3→2/3; severity decay H→H→M→M→CLEAN→MED→CLEAN→MED→CLEAN→CLEAN→NC(H+M)→NC(H)→NC(M)→NC(H)→CLEAN→CLEAN). Seven LOW non-blocking observations (O-1..O-7). All accepted as documented prospective scope boundaries per FREEZE DISCIPLINE. O-3 and O-6 recorded as Drift Items targeting pre-PR polish burst.
+
+O-1 (LOW, POLICY 13 / sibling-sweep, authorial-intent): AC-002 case-modifier test uses only scan-set-global `has_guard`; does NOT replicate AC-001's `_ep_guard_precedes_source` positional check. A future case-modifier entrypoint with a post-source BASH_VERSINFO guard would pass AC-002 but crash bash 3.2. No such script today. ACCEPTED (prospective; FREEZE DISCIPLINE).
+
+O-2 (LOW, POLICY 13): python_re/jq_re `[|;&]` char-class arm — `;` sub-branch and bare `|` sub-branch lack individually-labelled dedicated positive controls; arm is exercised via `|`-pipe-arm and `&`-background-arm sibling fixtures; single POSIX bracket expression; below tautology threshold. ACCEPTED (control-completeness note; FREEZE DISCIPLINE).
+
+O-3 (LOW, POLICY 13) — RECORD AS DRIFT ITEM: violation detectors (AC-001..005 scan loops) do NOT strip comment lines before matching; only the guard oracle applies `grep -vE '^[[:space:]]*#'`. A comment like `# pipe: cat x | python3 y` would false-MATCH the violation detector. No current false positive (write-wave-state.sh:195 comment escapes because `the ` token precedes IFS=; fragile to comment edits). ACCEPTED now (prospective; no current FP). Drift Item: "extend comment-strip to violation detectors for parity with guard oracle"; target: S-18.12 pre-PR polish burst (before demo-recorder). FREEZE DISCIPLINE.
+
+O-4 (LOW, POLICY 13): ifs_step2_re subshell exemption anchored to line-start (`^\s*\(`); non-line-start nested subshell `result=$( (cmd; IFS='|'; foo) )` unexempted. Not present in any current script. ACCEPTED (prospective; FREEZE DISCIPLINE).
+
+O-5 (LOW, POLICY 4/13): guard_re — any `[` character ANYWHERE before a bare BASH_VERSINFO reference satisfies the oracle (e.g., `arr[0]=$BASH_VERSINFO` non-conditional). Not present currently (only real conditional guard references BASH_VERSINFO). ACCEPTED (prospective; FREEZE DISCIPLINE).
+
+O-6 (LOW, TD-VSDD-091) — RECORD AS DRIFT ITEM (VERIFIED, accepted-anchored): "SKILL.md §149" is a line-locator (line 149 = `## Forbidden Dependencies` heading; §N numbering absent in SKILL.md; volatile per TD-VSDD-091). ACCEPTED because every citation pairs "§149" with the VERBATIM rule text ("This skill MUST NOT shell out to Python, jq, or any language runtime beyond bash") — the verbatim quote is the load-bearing behavioral anchor. Drift Item: "replace `SKILL.md §149` → `SKILL.md 'Forbidden Dependencies' section` in story AC-004/AC-005/EC-002 + bash-portability.md §4 (keep verbatim quote)"; target: S-18.12 pre-PR polish burst — story-writer + technical-writer edit (v1.11→v1.12) once 3-CLEAN reached. DO NOT harden mid-streak. FREEZE DISCIPLINE.
+
+O-7 (LOW, POLICY 13): case_mod_re terminal alt `@[ULu]` covers @U/@L/@u only; bash-4.4+ @Q/@E/@P/@A/@a and bash-5.1 @K/@k undetected. AC-002 scope enumerates only the bash-4.4 case-transform trio; none appear in any scanned script. ACCEPTED (prospective; FREEZE DISCIPLINE).
+
+No new lesson required (L-S18.12-asymptotic-clean-accept-prospective-lows-for-streak from D-733 covers CLEAN-pass accept pattern; no new class-defining observation).
+
+GOVERNANCE-ONLY closure — feature artifacts FROZEN at 00272990/v1.11 (no AC change; no artifact modification).
+
+STORY-INDEX v4.121→v4.122 (annotation-only, POLICY 14 leg-5).
+
+develop_head/merged_count/total_bcs/BC-VP-ARCH UNCHANGED 531dacfb/95/1,974/v3.57/v2.51/v2.85.
+
+NEXT: S-18.12 LOCAL adv pass-17 (fresh context; streak 2/3; ARTIFACTS FROZEN 00272990/v1.11 — fix ONLY genuine blockers; accept prospective LOWs O-1..O-7 as documented scope boundaries; ONE more CLEAN → 3/3 CONVERGED). STOP-BEFORE-PR-MERGE (D-665) holds.
+
+Parent-commit: 01f76c4f (D-739-sha-patch factory-artifacts HEAD).
+
+### Phase
+
+LOCAL-CASCADE
+
+### Date
+
+2026-06-30
+
+---
+
 ## D-739 — S-18.12 LOCAL Adversarial Pass-15 CLEAN Closure
 
 ### Decision

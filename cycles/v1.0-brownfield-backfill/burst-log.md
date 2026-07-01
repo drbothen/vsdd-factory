@@ -11545,3 +11545,103 @@ S-18.12 LOCAL adversarial cascade streak: advances to **1/3** (CLEAN pass-15). N
 ### Factory-artifacts Commits
 
 - `9e3635c3` — state(D-739): S-18.12-LOCAL-PASS-15-CLEAN-CLOSURE (5 files changed, 285 insertions, 39 deletions; pushed origin factory-artifacts 2026-06-30)
+
+## D-740 — S-18.12 LOCAL adv pass-16 CLEAN closure — 2026-06-30
+
+### Parent-commit (Dim-3)
+
+`01f76c4f` — factory-artifacts HEAD at burst start (state(D-739-sha-patch): record factory-artifacts HEAD 9e3635c3 in STATE.md + burst-log per D-447(c)+D-449(e)).
+
+### Adversary Verdict (Dim-7)
+
+S-18.12 LOCAL adversary pass-16: **CLEAN** — 0 CRITICAL / 0 HIGH / 0 MEDIUM / 0 blocking-LOW. Streak advances **1/3 → 2/3** per BC-5.39.001.
+
+CLEAN corroboration: byte-parity confirmed across story ACs ↔ wave-handoff.bats ↔ bash-portability.md for array_re/guard_re/case_mod_re/ifs_step1-3_re/python_re/jq_re (POLICY 15). No POLICY 11 tautology (each detector reuses ONE regex variable in controls + scan loop). Every detector arm positively+negatively controlled (POLICY 13 complete). Non-vacuity (EC-005) confirmed in all 5 tests. Real scripts sound (write-wave-state.sh has local -A guard guarded by wave-handoff.sh entrypoint guard at L9 preceding first source L20; `IFS=',' read -ra` exempted by ifs_step2_re anchor). Semantic anchoring correct (ARCH-INDEX SS-06 owns skills/; SS-07 owns hooks/; SKILL.md 'Forbidden Dependencies' citation faithful per POLICY 4/6). AC-004 ≡ AC-005 Option A internally consistent. Pipefail context not invoked during python_re/jq_re scan.
+
+**O-1 (LOW, POLICY 13 / sibling-sweep, authorial-intent):** AC-002 case-modifier test uses only scan-set-global `has_guard`; lacks AC-001's `_ep_guard_precedes_source` positional check. No current case-modifier script has post-source BASH_VERSINFO guard. ACCEPTED — prospective; FREEZE DISCIPLINE.
+**O-2 (LOW, POLICY 13):** python_re/jq_re `[|;&]` char-class arm — `;` sub-branch and bare `|` sub-branch lack individually-labelled dedicated positive controls; exercised via sibling `|`-pipe-arm and `&`-background-arm controls. ACCEPTED — control-completeness note; FREEZE DISCIPLINE.
+**O-3 (LOW, POLICY 13) — DRIFT ITEM:** violation detectors do NOT strip comment lines before matching; guard oracle does. Comment like `# pipe: cat x | python3 y` would false-MATCH violation detector. No current FP (write-wave-state.sh:195 comment escapes because `the ` token precedes IFS=). ACCEPTED (prospective; no current FP) — DRIFT ITEM: extend comment-strip to violation detectors for parity with guard oracle; target: S-18.12 pre-PR polish burst; FREEZE DISCIPLINE.
+**O-4 (LOW, POLICY 13):** ifs_step2_re subshell exemption anchored to line-start (`^\s*\(`); non-line-start nested subshell `result=$( (cmd; IFS='|'; foo) )` unexempted. Not present in any current script. ACCEPTED — prospective; FREEZE DISCIPLINE.
+**O-5 (LOW, POLICY 4/13):** guard_re — any `[` anywhere before a bare BASH_VERSINFO reference satisfies oracle (e.g., `arr[0]=$BASH_VERSINFO` non-conditional). Not present currently. ACCEPTED — prospective; FREEZE DISCIPLINE.
+**O-6 (LOW, TD-VSDD-091) — DRIFT ITEM:** "SKILL.md §149" is a line-locator volatile per TD-VSDD-091 (line 149 = `## Forbidden Dependencies` heading; §N numbering absent in SKILL.md). ACCEPTED because every citation pairs verbatim rule text — the verbatim quote is the load-bearing behavioral anchor. DRIFT ITEM: replace `SKILL.md §149` → `SKILL.md 'Forbidden Dependencies' section` in story AC-004/AC-005/EC-002 + bash-portability.md §4; target: S-18.12 pre-PR polish burst (v1.11→v1.12, story-writer/technical-writer edit); DO NOT harden mid-streak; FREEZE DISCIPLINE.
+**O-7 (LOW, POLICY 13):** case_mod_re terminal alt `@[ULu]` covers bash-4.4 transforms only; bash-4.4+ @Q/@E/@P/@A/@a/@K/@k undetected. AC-002 scope enumerates only the bash-4.4 case-transform trio; none appear in any scanned script. ACCEPTED — prospective; FREEZE DISCIPLINE.
+
+Source attestation (D-448(a)): above faithfully describes `s-18.12-local-adversary-pass-16.md` Part A finding set — CLEAN; 0 blocking; 7 non-blocking LOW observations (O-1..O-7 all ACCEPTED; O-3/O-6 recorded as Drift Items); streak 1/3→2/3. No divergence from Part A.
+
+### Files Touched (Dim-1)
+
+**factory-artifacts branch (this D-740 burst — single commit per TD-VSDD-053):**
+- `cycles/v1.0-brownfield-backfill/s-18.12-local-adversary-pass-16.md` — NEW; pass-16 adversary report (verdict CLEAN; 0 blocking; 7 LOW O-1..O-7 accepted; streak 2/3; severity decay H→H→M→M→CLEAN→MED→CLEAN→MED→CLEAN→CLEAN→NC(H+M)→NC(H)→NC(M)→NC(H)→CLEAN→CLEAN)
+- `stories/STORY-INDEX.md` — v4.121→v4.122 (S-18.12 body row pass-16 CLEAN annotation + Drift Items note + streak 2/3; `last_amended:` updated; `version:` bumped; POLICY 14 leg-5; GOVERNANCE-ONLY; story stays v1.11)
+- `cycles/v1.0-brownfield-backfill/decision-log.md` — D-740 block appended (after D-739 entry)
+- `cycles/v1.0-brownfield-backfill/burst-log.md` — D-740 entry appended (this file)
+- `.factory/STATE.md` — v4.90→v4.91 (D-740 banner + frontmatter advance + D-700/D-701/D-703/D-709 decision rows archived to collapsed range (−3 lines, D-430(a) compaction) + D-740 Decisions Log row + 2 Drift Item rows O-3/O-6 + Concurrent Cycles row + Identifier Conventions STORY v4.122 + Story Status streak 1/3→2/3 + Active Branches factory-artifacts + Last Updated + Current Phase + SIZE BUDGET + Session Resume Checkpoint FULL REFRESH for zero-context pass-17 resume)
+
+**feature/S-18.12 branch:**
+- UNCHANGED — 00272990 (CLEAN pass; no fix; artifacts FROZEN at 00272990/v1.11)
+
+**NOT committed in this burst (develop/main unchanged):**
+- No code changes to develop (feature branch local, not pushed per STOP-BEFORE-PR-MERGE D-665)
+- develop_head 531dacfb UNCHANGED; merged_count 95 UNCHANGED; total_bcs 1,974 UNCHANGED
+
+### Codifications (Dim-6)
+
+- **D-740** decision-log block codified: S-18.12 LOCAL adv pass-16 CLEAN; O-1..O-7 all accepted as prospective scope boundaries; O-3/O-6 as Drift Items; streak 1/3→2/3; GOVERNANCE-ONLY closure; ARTIFACTS FROZEN 00272990/v1.11.
+- **STORY-INDEX v4.121→v4.122**: S-18.12 row annotation pass-16 CLEAN + Drift Items + streak 2/3 (POLICY 14 leg-5; GOVERNANCE-ONLY; story stays v1.11 — CLEAN pass, no artifact modification).
+- **No new lesson**: L-S18.12-asymptotic-clean-accept-prospective-lows-for-streak (D-733) already covers CLEAN-pass accept pattern; O-3/O-6 Drift Item class covered by existing lesson.
+- **STATE.md v4.90→v4.91**: D-740 closure + 2 Drift Items (O-3/O-6) + D-430(a) §4 compaction + FULL Session Resume Checkpoint refresh for zero-context pass-17 resume.
+
+### Dim-2 (4-Index Parity Gate — D-449(a) literal-shell execution evidence)
+
+Gate command:
+```bash
+grep "^version:" \
+  .factory/specs/behavioral-contracts/BC-INDEX.md \
+  .factory/specs/verification-properties/VP-INDEX.md \
+  .factory/stories/STORY-INDEX.md \
+  .factory/specs/architecture/ARCH-INDEX.md
+```
+
+Captured stdout (post-STORY-INDEX v4.122 update, pre-commit):
+```
+.factory/stories/STORY-INDEX.md:version: "4.122"
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.51"
+.factory/specs/architecture/ARCH-INDEX.md:version: "2.85"
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.57"
+```
+
+Gate result: PASS. BC-INDEX v3.57 (UNCHANGED), VP-INDEX v2.51 (UNCHANGED), STORY-INDEX v4.122 (BUMPED D-740), ARCH-INDEX v2.85 (UNCHANGED). Zero FAIL.
+
+### Dim-5 (8-Block Presence Gate — D-446(a))
+
+This burst-log entry contains all 8 D-444(c) mandatory blocks:
+1. Parent-commit: `01f76c4f` (state(D-739-sha-patch) SHA-patch follow-up; factory-artifacts HEAD at burst start)
+2. Adversary verdict: CLEAN; 0 blocking; 7 non-blocking LOW O-1..O-7 (all accepted; O-3/O-6 Drift Items); streak 1/3→2/3
+3. Files touched: pass-16 report + STORY-INDEX + decision-log + burst-log + STATE.md; feature 00272990 UNCHANGED
+4. Codifications (Dim-6): D-740 + STORY-INDEX v4.122 + no new lesson + STATE.md v4.91
+5. Dim-2: 4-index parity gate with literal-shell stdout above
+6. Dim-5: This block (8-block self-verification)
+7. Closes: pass-16 CLEAN closure; streak 1/3→2/3; O-1..O-7 accepted (O-3/O-6 Drift Items); ARTIFACTS FROZEN 00272990/v1.11; SESSION CHECKPOINT refreshed for zero-context pass-17 resume
+8. Factory-artifacts commits: SHA pending — sha-patch follow-up per D-447(c)+D-449(e) after commit
+
+All 8 blocks present. Gate: PASS.
+
+### Dim-7 (Streak Status)
+
+S-18.12 LOCAL adversarial cascade streak: advances to **2/3** (CLEAN pass-16). NEXT: pass-17 (fresh context; streak 2/3; ARTIFACTS FROZEN at 00272990/v1.11 — fix ONLY genuine blockers; accept prospective LOWs O-1..O-7 as documented scope boundaries; ONE more CLEAN → 3/3 CONVERGED).
+
+### Closes
+
+- S-18.12 LOCAL adv pass-16: **CLEAN** (0 blocking; 7 non-blocking LOW observations). Streak advances 1/3 → 2/3. Pass-17 NEXT.
+- O-1 (AC-002 missing guard-precedence positional check; authorial intent): **ACCEPTED** (prospective; FREEZE DISCIPLINE).
+- O-2 (python_re/jq_re `[|;&]` arm `;`/bare-`|` sub-branch control-labeling): **ACCEPTED** (control-completeness note; FREEZE DISCIPLINE).
+- O-3 (violation detectors do NOT strip comment lines; Drift Item): **ACCEPTED** (prospective; no current FP) — **DRIFT ITEM** targeting pre-PR polish burst.
+- O-4 (ifs_step2_re non-line-start nested subshell unexempted): **ACCEPTED** (prospective; FREEZE DISCIPLINE).
+- O-5 (guard_re any `[` before bare BASH_VERSINFO satisfies oracle): **ACCEPTED** (prospective; FREEZE DISCIPLINE).
+- O-6 (`SKILL.md §149` line-locator volatile per TD-VSDD-091; Drift Item): **ACCEPTED** (verbatim quote is load-bearing anchor) — **DRIFT ITEM** targeting pre-PR polish burst (v1.11→v1.12, outside freeze).
+- O-7 (case_mod_re @[ULu] bounded to bash-4.4 trio; bash-4.4+ forms undetected): **ACCEPTED** (prospective; FREEZE DISCIPLINE).
+- STORY-INDEX v4.122 (S-18.12 row pass-16 CLEAN annotation + Drift Items; POLICY 14 leg-5): **DONE** (state-manager this burst).
+- Session Resume Checkpoint refreshed for zero-context resume into S-18.12 LOCAL adv pass-17: **DONE**.
+- **feature/S-18.12 DURABILITY NOTE:** Branch is LOCAL (not pushed per STOP-BEFORE-PR-MERGE D-665). HEAD 00272990. FROZEN at v1.11. Worktree at `.worktrees/S-18.12`. If session restarts and worktree is missing, recreate with: `git worktree add .worktrees/S-18.12 feature/S-18.12`. Branch is local-only; do NOT push until 3-CLEAN CONVERGED + demo-recorder complete.
+
+### Factory-artifacts Commits
