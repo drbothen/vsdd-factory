@@ -5051,3 +5051,48 @@ POST-MERGE
 2026-07-01
 
 ---
+
+## D-745 — S-18.12 Post-Merge Adversary Follow-Up
+
+### Decision
+
+**A fresh-context adversary reviewed the ALREADY-MERGED PR #384** (S-18.12 portability-lint guard extension, on `develop@ec05606a` since D-744) and returned **VERDICT: no blockers**, with 1 MAJOR + 5 MINOR findings + observations.
+
+**MAJOR-1:** the AC-001 `has_arrays` TRIGGER loop — the loop that decides whether the bash-4 associative-array scan even runs — lacked the `grep -vE '^[[:space:]]*#'` comment-strip pre-filter that the AC-002..005 scan loops already carry. A commented-out `declare -A`/`local -A` line could still fire the trigger. This is a conservative-direction (fail-safe false-positive) defect, not a false-negative, and was non-blocking for the original merge decision — but it is a genuine detector-parity gap.
+
+**MINOR-2:** `while`/`until` wrapper-keyword positions incompletely enumerated for the jq/python detectors. **MINOR-4:** `array_re` did not cover `typeset -A` (bash accepts `typeset` as a builtin alias for `declare`; ksh-heritage form). **MINOR-5:** `python_re` did not cover dotted version-suffixed `pip3.11`-style invocations (only bare `pip`/`pip3`/`pipx` were covered).
+
+**Fix delivery (separate branch, NOT part of this commit):** MAJOR-1 + MINOR-2/4/5 are fixed on `fix/S-18.12-detector-parity-gaps`, branched off `develop@ec05606a`:
+- `ae109bca` — MAJOR-1: `has_arrays` trigger loop gains the comment-strip pre-filter.
+- `36396c4e` — MINOR-2/4/5: `array_re` typeset -A, `python_re` dotted pip, while/until wrapper positions.
+- `717686f8` — docs: mirrors the broadenings in `bash-portability.md`.
+- Story spec bumped v1.12→v1.13 via `0b7a7087` (story-writer) to enumerate the broadened ACs.
+
+This branch is **NOT merged**. pr-manager will push it, open a PR, and STOP-BEFORE-PR-MERGE per D-665; a further post-merge state burst will follow once the human merges it. This D-745 burst does not touch that branch — it is factory-artifacts bookkeeping only, recording the review and the (separately-landed) fix commits by SHA.
+
+**CORRECTION to the D-740 O-3 Drift Item record.** The D-742 decision-log entry closed D-740 O-3 as RESOLVED via `3d7d1c4d`, claiming: "all 6 violation-detector scan loops gained the comment-strip pre-filter." This claim was INCOMPLETE — `3d7d1c4d` swept the AC-002..005 scan loops but MISSED the AC-001 `has_arrays` TRIGGER loop (a loop distinct from the AC-001 scan loop, which `3d7d1c4d` did cover). The gap was invisible to every LOCAL adversarial pass (1-17) and the pre-PR polish burst — it took a fresh-context adversary looking at the merged code with no prior-pass context to catch it. Per the D-600 append-only-history adjudication, the original D-742 decision-log entry is NOT retroactively rewritten — it remains the faithful record of what was claimed at that time. This D-745 entry, and the corrected Drift Items table row in STATE.md, are the record of the correction. The item is now genuinely closed by `ae109bca`.
+
+**Lesson codified** (`L-BB-attested-full-sweep-must-be-per-loop-verified`, §6 of STATE.md): an attested "swept ALL `<category>` loops/sites" closure claim must be mechanically verified per-loop/per-site (e.g., a `grep -c` enumeration of loops matching the category, diffed against the loops actually touched) — not accepted as a single narrative assertion. This is the FIX-claim analog of the D-628/D-448(a) VERDICT-claim source-attestation-fidelity class.
+
+**3 new Drift Items added** (adversary-sourced, deferral ACCEPTED by the human):
+- **MINOR-3:** `jq_re`/`python_re` do not detect full-path/relative-path invocations (`/usr/bin/jq`, `/usr/bin/python3 -c ...`); the `/usr/bin/env python3` form IS caught via the existing env-wrapper arm. No current script uses the direct-path form.
+- **MINOR-6:** the wrapper-keyword group misses `exec`, `timeout N`, `nohup`/`nice`/`stdbuf` for jq/python (e.g. `exec jq`, `timeout 5 python3 x.py`). Low likelihood in SS-06 skill scripts.
+- **O-7:** AC-002's case-modifier detection excludes bash's indirect parameter expansion `${!name^^}` (the var-name character class excludes a leading `!`). Rare idiom.
+
+**1 observation-only item logged (NOT an S-18.12 regression):** story-FILE frontmatter `status:` fields are not synced when STORY-INDEX flips a row to `merged` — confirmed systemic and pre-existing on multiple already-merged stories (S-18.09, S-18.10 files still say `status: draft`; S-18.12's file still says `ready`). STORY-INDEX remains the authoritative source; no gate enforces file↔index status parity. Explicitly NOT fixed here — flipping only S-18.12's file status in isolation would be inconsistent with its unfixed siblings. Candidate future work: a bulk reconciliation sweep across ALL merged stories, not S-18.12-scoped.
+
+**STORY-INDEX:** v4.125→v4.126 (S-18.12 row v1.12→v1.13 annotation; status cell stays `merged`, unaffected by this burst).
+
+Unchanged: develop_head/merged_count/total_bcs/BC-INDEX/VP-INDEX/ARCH-INDEX ec05606a/96/1,974/v3.57/v2.51/v2.85.
+
+Parent-commit: 5f251b51 (D-744 factory-artifacts HEAD).
+
+### Phase
+
+POST-MERGE
+
+### Date
+
+2026-07-01
+
+---
