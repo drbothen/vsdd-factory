@@ -11544,4 +11544,4 @@ S-18.12 LOCAL adversarial cascade streak: advances to **1/3** (CLEAN pass-15). N
 
 ### Factory-artifacts Commits
 
-- SHA pending — sha-patch follow-up per D-447(c)+D-449(e) after commit
+- `9e3635c3` — state(D-739): S-18.12-LOCAL-PASS-15-CLEAN-CLOSURE (5 files changed, 285 insertions, 39 deletions; pushed origin factory-artifacts 2026-06-30)
