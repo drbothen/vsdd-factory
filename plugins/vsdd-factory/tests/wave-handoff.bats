@@ -4959,6 +4959,7 @@ EOF
   local pc_bad_py3_time pc_bad_py3_env pc_bad_py3_command pc_bad_py3_xargs
   local pc_bad_py3_xargs_opts pc_bad_py3_brace pc_bad_py3_case_paren pc_bad_py3_subshell
   local pc_bad_pip3_and pc_good_other_cmdsubst_py pc_bad_py_with_preflight
+  local pc_good_py_func_brace pc_good_py_var_expansion
 
   pc_bad_py3="${BATS_TEST_TMPDIR}/pc_ac004_bad_py3.sh"
   pc_bad_py2="${BATS_TEST_TMPDIR}/pc_ac004_bad_py2.sh"
@@ -4990,6 +4991,8 @@ EOF
   pc_bad_pip3_and="${BATS_TEST_TMPDIR}/pc_ac004_bad_pip3_and.sh"
   pc_good_other_cmdsubst_py="${BATS_TEST_TMPDIR}/pc_ac004_good_other_cmdsubst.sh"
   pc_bad_py_with_preflight="${BATS_TEST_TMPDIR}/pc_ac004_bad_py_with_preflight.sh"
+  pc_good_py_func_brace="${BATS_TEST_TMPDIR}/pc_ac004_good_py_func_brace.sh"
+  pc_good_py_var_expansion="${BATS_TEST_TMPDIR}/pc_ac004_good_py_var_expansion.sh"
 
   printf 'python3 script.py\n' > "$pc_bad_py3"
   printf 'python2 -c "import os; os.system(\"id\")"\n' > "$pc_bad_py2"
@@ -5030,6 +5033,12 @@ EOF
   printf 'result=$(other_cmd script.py)\n' > "$pc_good_other_cmdsubst_py"
   # Option A symmetric: python3 WITH 'command -v python3' preflight is STILL a violation (F-P13-002).
   printf 'command -v python3 >/dev/null 2>&1 || { echo "python3 required" >&2; exit 1; }\npython3 script.py\n' > "$pc_bad_py_with_preflight"
+  # GOOD (D-741 O-3 symmetry with jq's pc_good_func_brace): function-brace-arm form —
+  # NOT a python invocation ('echo' is the first token after '{', not python/pip).
+  printf 'foo() { echo; }\n' > "$pc_good_py_func_brace"
+  # GOOD (D-741 O-3 symmetry with jq's pc_good_jq_var): '${python3_x}' parameter expansion —
+  # NOT a command invocation; python3 is followed by '_x}', not space/EOL.
+  printf 'echo "${python3_x}"\n' > "$pc_good_py_var_expansion"
 
   # BAD: bare line-start 'python3 script.py' MUST be detected.
   grep -qE "$python_re" "$pc_bad_py3" || {
@@ -5091,6 +5100,20 @@ EOF
   ! grep -qE "$python_re" "$pc_good_echo_py" || {
     echo "FAIL (AC-004 negative-control): python-detector falsely matched 'echo \"install python3 first\"'." >&2
     echo "  python3 as an argument to echo is not a python shell-out." >&2
+    false
+  }
+  # GOOD (D-741 O-3 symmetry with jq's pc_good_func_brace): 'foo() { echo; }' function definition MUST NOT be detected.
+  # The { arm requires python[0-9.]*/pip[0-9x]* as the first token after '{[[:space:]]*'; here it's 'echo'.
+  ! grep -qE "$python_re" "$pc_good_py_func_brace" || {
+    echo "FAIL (AC-004 negative-control / D-741 O-3): python-detector falsely matched 'foo() { echo; }' function definition." >&2
+    echo "  The { arm must only fire when python/pip is the first command token after '{', not any other command." >&2
+    false
+  }
+  # GOOD (D-741 O-3 symmetry with jq's pc_good_jq_var): '${python3_x}' parameter expansion MUST NOT be detected.
+  # '${python3_x}' contains '{' then 'python3_x}'; python3 is followed by '_x}', not space/EOL — a var-expansion, not invocation.
+  ! grep -qE "$python_re" "$pc_good_py_var_expansion" || {
+    echo "FAIL (AC-004 negative-control / D-741 O-3): python-detector falsely matched '\${python3_x}' parameter expansion." >&2
+    echo "  The { arm requires python[0-9.]* followed by ([[:space:]]|\$); '\${python3_x}' has '_x}' after 'python3', not space/EOL." >&2
     false
   }
   # F-P12-001 positive controls: per-arm coverage for arms 2, 4, 5-remaining, 6, 7, 8, 9.
