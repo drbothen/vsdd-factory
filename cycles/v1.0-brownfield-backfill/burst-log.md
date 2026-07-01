@@ -11447,3 +11447,101 @@ S-18.12 LOCAL adversarial cascade streak: stays **0/3** (NOT-CLEAN; 1 HIGH F-P14
 ### Factory-artifacts Commits
 
 - `0790ea97` — state(D-738): S-18.12 LOCAL adv pass-14 NOT-CLEAN closure (single commit per TD-VSDD-053)
+
+## D-739 — S-18.12 LOCAL adv pass-15 CLEAN closure — 2026-06-30
+
+### Parent-commit (Dim-3)
+
+`e0b97ff9` — factory-artifacts HEAD at burst start (state(D-738-sha-patch): record factory-artifacts HEAD 0790ea97 in STATE.md + burst-log per D-447(c)+D-449(e)).
+
+### Adversary Verdict (Dim-7)
+
+S-18.12 LOCAL adversary pass-15: **CLEAN** — 0 CRITICAL / 0 HIGH / 0 MEDIUM / 0 blocking-LOW. Streak advances **0/3 → 1/3** per BC-5.39.001.
+
+CLEAN corroboration: byte-parity confirmed across story ACs ↔ wave-handoff.bats ↔ bash-portability.md for array_re/guard_re/case_mod_re/ifs_step1-3_re/python_re/jq_re (POLICY 15). No POLICY 11 tautology (each detector reuses ONE regex variable in controls + scan loop). Every detector arm positively+negatively controlled (POLICY 13 complete). Non-vacuity (EC-005) in all 5 tests. Real scripts sound (write-wave-state.sh local -A guarded by wave-handoff.sh entrypoint L9 before first source L20; IFS=',' read -ra exempted). Semantic anchoring correct (ARCH-INDEX SS-06 owns skills/; SS-07 owns hooks/; SKILL.md §149 citation faithful — POLICY 4/6). AC-004 ≡ AC-005 Option A internally consistent.
+
+**O-1 (LOW):** AC-002 case-modifier test checks global `has_guard` but does not replicate AC-001 positional guard-precedence assertion; no current script has post-source guard. ACCEPTED — prospective; FREEZE DISCIPLINE.
+**O-2 (LOW):** Guard-presence scan-set-global; standalone script with no source + no own guard could false-GREEN; no such script today. ACCEPTED — prospective; FREEZE DISCIPLINE.
+**O-3 (LOW):** python_re/jq_re wrapper group missing exec/nohup/nice/timeout/stdbuf; direct forms ARE caught; no current violation. ACCEPTED — prospective; below Drift Item threshold; FREEZE DISCIPLINE.
+**O-4 (LOW):** case_mod_re bounded to @[ULu] bash-4.4 trio; bash-5.0+ @Q/@E/@P/@A/@a/@k/@K undetected; no current script uses them. ACCEPTED — prospective; FREEZE DISCIPLINE.
+**O-5 (LOW):** python_re/jq_re [|;&] char-class arm control-labeling; exercised via sibling controls; below tautology threshold. ACCEPTED — control-completeness note; FREEZE DISCIPLINE.
+
+Source attestation (D-448(a)): above faithfully describes `s-18.12-local-adversary-pass-15.md` Part A finding set — CLEAN; 0 blocking; 5 non-blocking LOW observations (O-1..O-5 all ACCEPTED as prospective scope boundaries); streak 0/3→1/3. No divergence from Part A.
+
+### Files Touched (Dim-1)
+
+**factory-artifacts branch (this D-739 burst — single commit per TD-VSDD-053):**
+- `cycles/v1.0-brownfield-backfill/s-18.12-local-adversary-pass-15.md` — NEW; pass-15 adversary report (verdict CLEAN; 0 blocking; 5 LOW O-1..O-5 accepted; streak 1/3; severity decay H→H→M→M→CLEAN→MED→CLEAN→MED→CLEAN→CLEAN→NC(H+M)→NC(H)→NC(M)→NC(H)→CLEAN)
+- `stories/STORY-INDEX.md` — v4.120→v4.121 (S-18.12 body row pass-15 CLEAN annotation; `last_amended:` updated; `version:` bumped; POLICY 14 leg-5; GOVERNANCE-ONLY; story stays v1.11)
+- `cycles/v1.0-brownfield-backfill/decision-log.md` — D-739 block appended (after D-738 entry)
+- `cycles/v1.0-brownfield-backfill/burst-log.md` — D-739 entry appended (this file)
+- `.factory/STATE.md` — v4.89→v4.90 (D-739 banner + frontmatter advance + D-700/D-701 decision rows archived to D-663..D-701 range + D-739 Decisions Log row + Concurrent Cycles row + Identifier Conventions STORY v4.121 + Story Status streak 0/3→1/3 + Active Branches factory-artifacts + Last Updated + Current Phase + SIZE BUDGET + Session Resume Checkpoint FULL REFRESH for zero-context pass-16 resume)
+
+**feature/S-18.12 branch:**
+- UNCHANGED — 00272990 (CLEAN pass; no fix; artifacts FROZEN at 00272990/v1.11)
+
+**NOT committed in this burst (develop/main unchanged):**
+- No code changes to develop (feature branch local, not pushed per STOP-BEFORE-PR-MERGE D-665)
+- develop_head 531dacfb UNCHANGED; merged_count 95 UNCHANGED; total_bcs 1,974 UNCHANGED
+
+### Codifications (Dim-6)
+
+- **D-739** decision-log block codified: S-18.12 LOCAL adv pass-15 CLEAN; O-1..O-5 all accepted as prospective scope boundaries; streak 1/3; GOVERNANCE-ONLY closure; ARTIFACTS FROZEN 00272990/v1.11.
+- **STORY-INDEX v4.120→v4.121**: S-18.12 row annotation pass-15 CLEAN (POLICY 14 leg-5; GOVERNANCE-ONLY; story stays v1.11 — CLEAN pass, no artifact modification).
+- **No new lesson**: L-S18.12-asymptotic-clean-accept-prospective-lows-for-streak (D-733) already covers CLEAN-pass accept pattern.
+- **STATE.md v4.89→v4.90**: D-739 closure + FULL Session Resume Checkpoint refresh for zero-context pass-16 resume.
+
+### Dim-2 (4-Index Parity Gate — D-449(a) literal-shell execution evidence)
+
+Gate command:
+```bash
+grep "^version:" \
+  .factory/specs/behavioral-contracts/BC-INDEX.md \
+  .factory/specs/verification-properties/VP-INDEX.md \
+  .factory/stories/STORY-INDEX.md \
+  .factory/specs/architecture/ARCH-INDEX.md
+```
+
+Captured stdout (post-STORY-INDEX v4.121 update, pre-commit):
+```
+/Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/verification-properties/VP-INDEX.md:version: "2.51"
+/Users/zious/Documents/GITHUB/vsdd-factory/.factory/stories/STORY-INDEX.md:version: "4.121"
+/Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.57"
+/Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/architecture/ARCH-INDEX.md:version: "2.85"
+```
+
+Gate result: PASS. BC-INDEX v3.57 (UNCHANGED), VP-INDEX v2.51 (UNCHANGED), STORY-INDEX v4.121 (BUMPED D-739), ARCH-INDEX v2.85 (UNCHANGED). Zero FAIL.
+
+### Dim-5 (8-Block Presence Gate — D-446(a))
+
+This burst-log entry contains all 8 D-444(c) mandatory blocks:
+1. Parent-commit: `e0b97ff9` (state(D-738-sha-patch) SHA-patch follow-up; factory-artifacts HEAD at burst start)
+2. Adversary verdict: CLEAN; 0 blocking; 5 non-blocking LOW O-1..O-5 (all accepted as prospective); streak 0/3→1/3
+3. Files touched: pass-15 report + STORY-INDEX + decision-log + burst-log + STATE.md; feature 00272990 UNCHANGED
+4. Codifications (Dim-6): D-739 + STORY-INDEX v4.121 + no new lesson + STATE.md v4.90
+5. Dim-2: 4-index parity gate with literal-shell stdout above
+6. Dim-5: This block (8-block self-verification)
+7. Closes: pass-15 CLEAN closure; streak 0/3→1/3; O-1..O-5 accepted; ARTIFACTS FROZEN 00272990/v1.11; SESSION CHECKPOINT refreshed for zero-context pass-16 resume
+8. Factory-artifacts commits: SHA pending — sha-patch follow-up per D-447(c)+D-449(e) after commit
+
+All 8 blocks present. Gate: PASS.
+
+### Dim-7 (Streak Status)
+
+S-18.12 LOCAL adversarial cascade streak: advances to **1/3** (CLEAN pass-15). NEXT: pass-16 (fresh context; streak 1/3; ARTIFACTS FROZEN at 00272990/v1.11 — fix ONLY genuine blockers; accept prospective LOWs O-1..O-5 as documented scope boundaries; two more CLEAN passes → 3/3 CONVERGED).
+
+### Closes
+
+- S-18.12 LOCAL adv pass-15: **CLEAN** (0 blocking; 5 non-blocking LOW observations). Streak advances 0/3 → 1/3. Pass-16 NEXT.
+- O-1 (AC-002 missing guard-precedence positional check; authorial intent): **ACCEPTED** (prospective; FREEZE DISCIPLINE).
+- O-2 (guard-presence scan-set-global; standalone-script soundness boundary): **ACCEPTED** (prospective; FREEZE DISCIPLINE).
+- O-3 (python_re/jq_re wrapper-group under-matches exec/nohup/nice/timeout/stdbuf): **ACCEPTED** (prospective; direct forms covered; below Drift Item threshold; FREEZE DISCIPLINE).
+- O-4 (case_mod_re bounded to @[ULu] bash-4.4 trio; bash-5.0+ forms undetected): **ACCEPTED** (prospective; FREEZE DISCIPLINE).
+- O-5 (python_re/jq_re [|;&] char-class arm exercised via sibling controls): **ACCEPTED** (control-completeness note; below tautology threshold; FREEZE DISCIPLINE).
+- STORY-INDEX v4.121 (S-18.12 row pass-15 CLEAN annotation; POLICY 14 leg-5): **DONE** (state-manager this burst).
+- Session Resume Checkpoint refreshed for zero-context resume into S-18.12 LOCAL adv pass-16: **DONE**.
+- **feature/S-18.12 DURABILITY NOTE:** Branch is LOCAL (not pushed per STOP-BEFORE-PR-MERGE D-665). HEAD 00272990. FROZEN at v1.11. Worktree at `.worktrees/S-18.12`. If session restarts and worktree is missing, recreate with: `git worktree add .worktrees/S-18.12 feature/S-18.12`. Branch is local-only; do NOT push until 3-CLEAN CONVERGED + demo-recorder complete.
+
+### Factory-artifacts Commits
+
+- SHA pending — sha-patch follow-up per D-447(c)+D-449(e) after commit

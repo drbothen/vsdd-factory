@@ -4836,3 +4836,41 @@ Severity decay H→H→M→M→CLEAN→MED→CLEAN→MED→CLEAN→CLEAN→NC(H+
 ### NEXT
 
 S-18.12 LOCAL adversarial pass-15. Fresh context. Streak **0/3**. ARTIFACTS FROZEN at 00272990/v1.11 — fix ONLY genuine blockers; accept prospective LOWs O-1/O-2 as documented scope boundaries. STOP-BEFORE-PR-MERGE (D-665) holds. Parent-commit: 26a74ad8 (D-737 factory-artifacts HEAD).
+
+---
+
+## D-739 — S-18.12 LOCAL Adversarial Pass-15 CLEAN Closure
+
+### Decision
+
+S-18.12 LOCAL ADVERSARIAL PASS-15 CLEAN CLOSURE: pass-15 CLEAN (0 blocking; streak 0/3→1/3; severity decay H→H→M→M→CLEAN→MED→CLEAN→MED→CLEAN→CLEAN→NC(H+M)→NC(H)→NC(M)→NC(H)→CLEAN). Five LOW non-blocking observations (O-1..O-5). All accepted as documented prospective scope boundaries per FREEZE DISCIPLINE.
+
+O-1 (LOW, POLICY 11 sibling-sweep, authorial-intent): AC-002 case-modifier test only checks global guard `has_guard`; it does NOT replicate AC-001's positional guard-precedence assertion (`_ep_guard_precedes_source`). A future case-modifier in a new entrypoint with a post-source guard would be caught by AC-001 but not AC-002. No such script exists today. ACCEPTED (prospective; FREEZE DISCIPLINE).
+
+O-2 (LOW, POLICY 11): Guard-presence is evaluated scan-set-GLOBALLY — a guard in one file satisfies the gate for a different file. A hypothetical future STANDALONE script (no source, no own guard) using `declare -A`/`${var^^}` directly would false-GREEN. EC-006 soundness-boundary reasoned about lib-sourcing entrypoints, not standalone feature-users. No such script today. ACCEPTED (prospective; FREEZE DISCIPLINE).
+
+O-3 (LOW, POLICY 13): python_re/jq_re wrapper group `(xargs|if|then|do|else|elif|time|env|command|sudo)` under-matches other command wrappers `exec`/`nohup`/`nice`/`timeout`/`stdbuf` (e.g., `exec python3 x.py`, `timeout 5 jq …`). Scripts are mandated python/jq-free per SKILL.md §149; direct forms ARE caught by base arms. ACCEPTED (prospective; below Drift Item threshold; direct forms covered; FREEZE DISCIPLINE).
+
+O-4 (LOW, POLICY 13): case_mod_re terminal alt `@[ULu]` covers only bash-4.4 case-transform trio; bash-5.0+ `@Q`/`@E`/`@P`/`@A`/`@a`/`@k`/`@K` undetected. AC-002 scope enumerates only the case-transform trio; none appear in any scanned script. ACCEPTED (prospective; FREEZE DISCIPLINE).
+
+O-5 (LOW, POLICY 11): python_re/jq_re `[|;&]` char-class arm lacks a dedicated `cmd; python3` / `cmd | jq` positive control, but is demonstrably exercised via sibling members (`|`, `&`) — below the tautology threshold. ACCEPTED (control-completeness note only; FREEZE DISCIPLINE).
+
+No new lesson required (L-S18.12-asymptotic-clean-accept-prospective-lows-for-streak from D-733 covers CLEAN-pass accept pattern).
+
+GOVERNANCE-ONLY closure — feature artifacts FROZEN at 00272990/v1.11 (no AC change; no artifact modification).
+
+STORY-INDEX v4.120→v4.121 (annotation-only, POLICY 14 leg-5).
+
+develop_head/merged_count/total_bcs/BC-VP-ARCH UNCHANGED 531dacfb/95/1,974/v3.57/v2.51/v2.85.
+
+NEXT: S-18.12 LOCAL adv pass-16 (fresh context; streak 1/3; ARTIFACTS FROZEN 00272990/v1.11 — fix ONLY genuine blockers; accept prospective LOWs O-1..O-5 as documented scope boundaries; two more CLEAN passes → 3/3 CONVERGED). STOP-BEFORE-PR-MERGE (D-665) holds.
+
+Parent-commit: e0b97ff9 (D-738-sha-patch factory-artifacts HEAD).
+
+### Phase
+
+LOCAL-CASCADE
+
+### Date
+
+2026-06-30
