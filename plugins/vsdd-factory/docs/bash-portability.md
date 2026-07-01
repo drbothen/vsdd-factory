@@ -224,7 +224,7 @@ $(python3 -c 'import json; ...')             # command substitution — flagged
 | python3 -c '...'                           # pipe position — flagged
 ```
 
-**Why it is forbidden:** SKILL.md §149 states: "This skill MUST NOT shell out to
+**Why it is forbidden:** SKILL.md 'Forbidden Dependencies' section states: "This skill MUST NOT shell out to
 Python, jq, or any language runtime beyond bash." Python is treated identically to jq —
 the constraint is a hard prohibition, not a "declare a dependency" requirement. macOS
 does not guarantee `python3` on PATH — it is absent on a clean macOS install and on CI
@@ -279,7 +279,7 @@ if command -v jq; then jq '.key' f; fi       # preflight guard present — jq st
 xargs -n1 jq '.key'                          # xargs position — flagged
 ```
 
-**Why it is forbidden:** SKILL.md §149 states: "This skill MUST NOT shell out to
+**Why it is forbidden:** SKILL.md 'Forbidden Dependencies' section states: "This skill MUST NOT shell out to
 Python, jq, or any language runtime beyond bash." `jq` is a non-guaranteed third-party
 binary — it is absent from minimal macOS installs and from CI images that do not
 provision it separately. The constraint is a hard prohibition, not a "declare a
