@@ -5132,3 +5132,62 @@ POST-MERGE
 2026-07-01
 
 ---
+
+## D-747 — RC22 Pre-Release Smoke-Test Checkpoint
+
+### Decision
+
+**Human directed a full smoke test of all changes v1.0.0-rc.21..develop@2879f473** (25 commits, 371 files, +42,312/−284 — E-18 epic + S-18.12 detector-parity fix) to validate cutting rc.22. This is a **bookkeeping-only burst** — no code changes were made, no release actions were taken.
+
+**VERDICT: SMOKE-GREEN.** All evidence:
+
+**(a) CI run 28551664329 at develop@2879f473: SUCCESS** — all 11 jobs passed: fmt, clippy, cargo-test, bats-full-suite (linux), bats-wave-handoff, validate, platforms-drift, 5-platform dispatcher builds (darwin-arm64/darwin-x64/linux-x64/linux-arm64/windows-x64), and semgrep. No regressions.
+
+**(b) Clean-worktree local matrix at 2879f473 (devops-engineer, /tmp/smoke-rc22, torn down):**
+- `cargo fmt --check --all` → PASS
+- `cargo clippy --workspace --all-targets -- -D warnings` → PASS
+- `cargo test --workspace --all-targets` → 1,944 pass / 0 fail
+- Release dispatcher build (darwin-arm64) → PASS
+- Registry↔WASM parity → 33/33 registry plugins have corresponding `.wasm` files; 15 additional WASMs on disk: 11 legacy underscore-named (historical artifacts) + 4 intentional non-registry plugins
+- Bats full suite → 1,982 pass / 4 non-regression fail: (1) `resolver-integration` timing-flake lower-bound 1,210ms < 1,300ms floor (known flaky class F-P3-008; clears on re-run); (3 tests) `pass-real-state-md-snapshot` structural failure needing mounted `.factory` worktree — pass in CI via `VSDD_SKIP_PRODUCTION_STATE_MD_TEST=1` per TD-VSDD-101. Neither category is a regression from v1.0.0-rc.21.
+- 39/39 bash hook scripts syntax-OK (`bash -n`)
+- `plugin.json` valid; version = "1.0.0-rc.21" (correct — release bot bumps at tag time by design)
+- `compute-input-hash` smoke → PASS
+
+**(c) Per-hook runtime firing verification (human-directed extension) — 8/8 PASS** against release-built dispatcher (operator-cache rc.21 binary):
+- `precompact-flush` (PreCompact, priority 50) + `check-harness-version` (PreCompact, priority 100): both fired in correct priority order
+- `postcompact-reanchor` (PostCompact): fired
+- `validate-wave-handoff-completeness` (PreToolUse Write AND Edit): both triggers confirmed — validates S-18.13 fix working as designed
+- `validate-heavy-op-delegation` (PreToolUse Bash): fired in advisory mode
+- `validate-burst-log` and `validate-dispatch-advance` Bash variants: fired, fail-open without git_context (expected in smoke context)
+- Positive + negative controls each exercised; zero crash / timeout / fuel-exhaustion events
+
+**(d) From-source WASM system verification (human-directed):** All 33 registry-listed plugins rebuilt via canonical `release.yml` commands (3 cargo invocations including `legacy-bash-adapter --bin` and `update-wave-state-on-merge --no-default-features`), zero errors, ~19s warm on darwin-arm64 rustc 1.95.0. Fresh builds are functionally identical to committed binaries (8/8 firing matrix + bats 1,990-line parity). Size deltas explained by committed linux-x64 CI builds vs local darwin-arm64 + non-deterministic same-toolchain rebuilds; `legacy-bash-adapter` is byte-identical.
+
+**(e) Release-readiness dry-run (read-only):** RELEASING.md procedure confirmed sound; 5-platform matrix verified against `ci/platforms.yaml`; branch topology clean (develop 25 ahead of main, main fully ancestor); operator cache consuming rc.21.
+
+**DIRTY FILE — do NOT commit:** `plugins/vsdd-factory/hook-plugins/validate-state-structure.wasm` (206,070 B) is an unverified intermediate-source build artifact. Matches neither any committed version nor a fresh current-source build (220,640 B on darwin-arm64 rustc 1.95.0 from HEAD). Provenance unknown — built at some earlier point from an unknown intermediate source state. Since `release.yml` overwrites all WASM files at tag time, committing this artifact is non-destructive to the release, but it represents an unknown-provenance binary in the tracked working tree. **Disposition: DISCARD** via `git restore plugins/vsdd-factory/hook-plugins/validate-state-structure.wasm`. Requires explicit human approval — NOT yet executed at time of this burst.
+
+**rc.22 PENDING GATE (human, not yet answered):**
+- **(a)** `CHANGELOG.md` requires a `## 1.0.0-rc.22` heading + notes for the 25-commit window (release.yml hard-gates on this)
+- **(b)** README badge stale at rc.11 (cosmetic; not a hard release gate)
+- **(c)** Human approves `git restore plugins/vsdd-factory/hook-plugins/validate-state-structure.wasm` (WASM discard)
+- **(d)** Optional: 11 orphan underscore-named WASM cleanup + resolver-integration 1,300ms timing-floor flake fix (F-P3-008 class)
+
+**Process-gap lesson codified** (L-BB-unknown-provenance-wasm-build-artifact, `cycles/v1.0-brownfield-backfill/lessons.md`): Intermediate WASM build artifacts from ad-hoc `cargo build` invocations can accumulate in the working tree and may not match any committed version or fresh current-source build. The size discrepancy (dirty 206,070 B vs fresh 220,640 B on same HEAD) is diagnostic. Prevention: a pre-commit gate checking `.wasm` sizes/hashes against expected-from-source values, or a standard `git restore plugins/vsdd-factory/hook-plugins/*.wasm` step at the start of any release-prep pass. Anchor: POST-E-18 gate-story candidate; justified deferral per Canonical Principle Rule 3 (concrete future dependency: POST-E-18 revisit authorization).
+
+**No new drift items.** POST-E-18 revisit (D-721/D-723 anchors) remains separately pending after rc.22 is cut.
+
+**4-index ALL UNCHANGED at D-747:** BC-INDEX v3.57 / VP-INDEX v2.51 / STORY-INDEX v4.127 / ARCH-INDEX v2.85. develop_head 2879f473 UNCHANGED. merged_count 96 UNCHANGED. total_bcs 1,974 UNCHANGED.
+
+Parent-commit: ebeca59b (D-746 factory-artifacts HEAD).
+
+### Phase
+
+RELEASE-PREP
+
+### Date
+
+2026-07-01
+
+---
