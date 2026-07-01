@@ -5017,3 +5017,37 @@ PRE-PR-POLISH
 2026-07-01
 
 ---
+
+## D-744 — S-18.12 Post-Merge Burst + E-18 Epic COMPLETE
+
+### Decision
+
+**PR #384 was squash-merged to develop by the human directly**, at `ec05606a` (`feat(S-18.12): portability-lint guard extension (E-18 wave-9) (#384)`, 2026-07-01T18:21:42Z), per `gh pr merge 384 --squash --delete-branch --repo drbothen/vsdd-factory` (L-BB-merge-requires-direct-human-action). `develop_head` advances 531dacfb→ec05606a; `merged_count` advances 95→96.
+
+**STORY-INDEX:** S-18.12 row status `ready`→`merged`; STORY-INDEX v4.124→v4.125 (post-merge annotation appended, PR #384/ec05606a cited).
+
+**POL-14 BC auto-promotion:** `behavioral_contracts: []` — there is nothing to promote. S-18.12 is an intentional gate-enforcement story (Option 3, S-18.09 precedent; PO gate RESOLVED D-724); it does not carry a BC. No BC was invented to satisfy POL-14; the promotion step is correctly a no-op.
+
+**sprint-state.yaml:** S-18.12 flipped `ready`→`merged`. Because `merged` is a terminal status, the flip could not be a value-only edit (per the D-743 precedent) — the entry was physically relocated out of the non-terminal partition into the correct Partition A slot. S-18.12 has no `depends_on` entries, so its full-graph wave-depth is 1 (root depth); re-running the bats test's own depth-computation algorithm standalone against the live STORY-INDEX.md confirmed depth=1 and placed the entry between `S-18.00` and `S-18.14` (both depth 1, lex-ordered) — not guessed. `sprint-state-format.bats` 14/14 GREEN, verified with the up-to-date S-18.12-worktree copies of the test/fixtures/consumer (temp copies removed after verification; local tree restored).
+
+**Branch cleanup:** `feature/S-18.12` confirmed DELETED (`git ls-remote --heads origin` — no match).
+
+**E-18 EPIC COMPLETE.** S-18.12 was the final of 18 E-18 stories + 2 prereqs (S-18.13/S-18.14 already merged). All E-18 work is now merged to develop. Marked COMPLETE in Phase Progress, Story Status, and all Session Resume Checkpoint sections.
+
+**NEXT (HUMAN-GATED, no autonomous advancement):** POST-E-18 revisit — ADR-015/Router-multi-sink revival/WASM/OTel + S-3.04 status + wave-design monotonic-assumption (D-721/D-723 anchors); human-authorized only. **SEPARATE and explicitly OUT OF SCOPE for this burst:** a follow-up fix PR is being prepared concurrently for adversary MAJOR-1 (AC-001 comment-strip gap) + MINOR-2/4/5 detector broadenings on S-18.12's delivered code — different branch, later state burst.
+
+**Carried forward, still OPEN:** the D-743 Drift Item (sprint-state.yaml status/partition placement is not auto-synced when a story's STORY-INDEX row transitions) is NOT closed by this burst's manual reconciliation — the root-cause producer gap remains.
+
+Unchanged: total_bcs 1,974 / BC-INDEX v3.57 / VP-INDEX v2.51 / ARCH-INDEX v2.85.
+
+Parent-commit: e99d921e (D-743 factory-artifacts HEAD).
+
+### Phase
+
+POST-MERGE
+
+### Date
+
+2026-07-01
+
+---
