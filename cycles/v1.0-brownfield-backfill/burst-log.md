@@ -11446,4 +11446,4 @@ S-18.12 LOCAL adversarial cascade streak: stays **0/3** (NOT-CLEAN; 1 HIGH F-P14
 
 ### Factory-artifacts Commits
 
-- `TBD` — state(D-738): S-18.12 LOCAL adv pass-14 NOT-CLEAN closure (single commit per TD-VSDD-053; SHA-patch follow-up per D-447(c)+D-449(e))
+- `0790ea97` — state(D-738): S-18.12 LOCAL adv pass-14 NOT-CLEAN closure (single commit per TD-VSDD-053)

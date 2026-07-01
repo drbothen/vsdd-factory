@@ -127,7 +127,7 @@ dtu_services: []
 |--------------|-----|-------|
 | main | caf06c68 | rc.21 bot binary bundle commit 2026-06-13; prior: 2a191314 (rc.20) |
 | develop | 531dacfb | PR #340 `feat(S-18.11): sprint-state per-story producer migration + def-b ordering` squash-merged 2026-06-29T20:09:35Z (D-722; S-18.11 MERGED; E-18 wave-9 COMPLETE); prior: 699b7e60 (PR #315 D-719 S-18.10 MERGED) |
-| factory-artifacts | 26a74ad8 | D-737 S-18.12-LOCAL-PASS-13-NOT-CLEAN-CLOSURE burst 2026-06-30; prior: 11f41673 D-736 2026-06-30 |
+| factory-artifacts | 0790ea97 | D-738 S-18.12-LOCAL-PASS-14-NOT-CLEAN-CLOSURE burst 2026-06-30; prior: 26a74ad8 D-737 2026-06-30 |
 | feature/S-18.12 | 00272990 | LOCAL WIP post-pass-14 remediation 2026-06-30; S-18.12 pass-14 NOT-CLEAN remediated (F-P14-001 guard_re comment-strip + F-P14-002 bash-portability.md doc error both fixed; test+doc fix; no regex change); v1.11 FROZEN; 68/68 bats GREEN; NOT pushed (STOP-BEFORE-PR-MERGE D-665) |
 | v1.0.0-rc.21 (tag) | 03054524 | SHIPPED 2026-06-13; FULLY IN OPERATOR MARKETPLACE (marketplace PR #13 MERGED); annotated tag object |
 | v1.0.0-rc.20 (tag) | e9e38286 | SHIPPED 2026-06-01; marketplace PR #12 squash-merged 862e660d |
