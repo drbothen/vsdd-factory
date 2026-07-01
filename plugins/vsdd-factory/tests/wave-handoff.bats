@@ -4060,13 +4060,14 @@ EOF
   # Uses synthetic temp files in BATS_TEST_TMPDIR; no real wave-handoff scripts are executed.
   # Broadened detector: covers -A, -Ax (combined flags), -gA (prefix flags), and -A at EOL.
   # Distinguishes -A (associative, bash 4+) from -a (indexed, bash 3 safe).
-  local pc_bad_arr pc_bad_Ax pc_bad_gA pc_good_arr pc_bad_guard pc_good_guard
+  local pc_bad_arr pc_bad_Ax pc_bad_gA pc_good_arr pc_bad_guard pc_good_guard pc_commented_guard
   pc_bad_arr="${BATS_TEST_TMPDIR}/pc_ac001_bad_arr.sh"
   pc_bad_Ax="${BATS_TEST_TMPDIR}/pc_ac001_bad_Ax.sh"
   pc_bad_gA="${BATS_TEST_TMPDIR}/pc_ac001_bad_gA.sh"
   pc_good_arr="${BATS_TEST_TMPDIR}/pc_ac001_good_arr.sh"
   pc_bad_guard="${BATS_TEST_TMPDIR}/pc_ac001_bad_guard.sh"
   pc_good_guard="${BATS_TEST_TMPDIR}/pc_ac001_good_guard.sh"
+  pc_commented_guard="${BATS_TEST_TMPDIR}/pc_ac001_commented_guard.sh"
   local array_re='(local|declare)[[:space:]]+-[a-zA-Z]*A[a-zA-Z]*([[:space:]]|$)'
   local guard_re='([[].*BASH_VERSINFO|[(][(].*BASH_VERSINFO)'
   printf 'declare -A my_map\n' > "$pc_bad_arr"
@@ -4075,6 +4076,9 @@ EOF
   printf 'declare -a my_arr\n' > "$pc_good_arr"
   printf '# removed the BASH_VERSINFO guard\n' > "$pc_bad_guard"
   printf 'if [ "${BASH_VERSINFO[0]:-0}" -lt 4 ]; then\n  exit 1\nfi\n' > "$pc_good_guard"
+  # Commented-out executable guard: the entire guard line is commented out.
+  # This is the F-P14-001 regression trigger — guard_re alone matches it; comment-stripping must not.
+  printf '# if [[ ${BASH_VERSINFO[0]} -lt 4 ]]; then\nlocal -A map\n' > "$pc_commented_guard"
   # Array-detector: BAD sample (declare -A) MUST match.
   grep -qE "$array_re" "$pc_bad_arr" || {
     echo "FAIL (AC-001 positive-control): array-detector did not match 'declare -A my_map'." >&2
@@ -4114,14 +4118,22 @@ EOF
     echo "FAIL (AC-001 positive-control): array-detector falsely matched 'declare -a' (POSIX indexed array; bash-3-safe)." >&2
     false
   }
-  # Guard-detector: executable conditional MUST match ([ precedes BASH_VERSINFO on the line).
-  grep -qE "$guard_re" "$pc_good_guard" || {
+  # Guard-detector: executable conditional MUST match (non-comment [ or (( precedes BASH_VERSINFO).
+  grep -vE '^[[:space:]]*#' "$pc_good_guard" | grep -qE "$guard_re" || {
     echo "FAIL (AC-001 positive-control): guard-detector did not match 'if [ ... BASH_VERSINFO' form." >&2
     false
   }
-  # Guard-detector: BASH_VERSINFO in a comment MUST NOT match (prevents paper-fix false-pass).
-  ! grep -qE "$guard_re" "$pc_bad_guard" || {
-    echo "FAIL (AC-001 positive-control): guard-detector falsely matched BASH_VERSINFO in a comment." >&2
+  # Guard-detector: BASH_VERSINFO in a prose comment MUST NOT match (prevents paper-fix false-pass).
+  ! grep -vE '^[[:space:]]*#' "$pc_bad_guard" | grep -qE "$guard_re" || {
+    echo "FAIL (AC-001 positive-control): guard-detector falsely matched BASH_VERSINFO in a prose comment." >&2
+    false
+  }
+  # Guard-detector: a commented-out executable guard MUST NOT match (F-P14-001).
+  # The regression: commenting out 'if [[ ${BASH_VERSINFO[0]} -lt 4 ]]; then' leaves a line
+  # that still contains '[' before BASH_VERSINFO — guard_re alone would match it falsely.
+  ! grep -vE '^[[:space:]]*#' "$pc_commented_guard" | grep -qE "$guard_re" || {
+    echo "FAIL (AC-001 positive-control / F-P14-001): guard-detector falsely matched BASH_VERSINFO in a commented-out guard." >&2
+    echo "  Commenting out 'if [[ ... BASH_VERSINFO' must not satisfy the guard oracle." >&2
     false
   }
   # -------------------------------------------
@@ -4145,13 +4157,14 @@ EOF
   fi
 
   # Associative arrays are used; verify the bash version guard exists in the scan set.
-  # Acceptable guard forms: BASH_VERSINFO inside an executable conditional.
-  # "[ ${BASH_VERSINFO[0]:-0} -lt 4 ]" — [ precedes BASH_VERSINFO on the same line.
-  # "(( BASH_VERSINFO[0] < 4 ))" — (( precedes BASH_VERSINFO on the same line.
-  # A bare comment like "# removed the BASH_VERSINFO guard" does NOT satisfy the oracle.
+  # Acceptable guard forms: BASH_VERSINFO inside an executable (non-comment) conditional.
+  # "[ ${BASH_VERSINFO[0]:-0} -lt 4 ]" — [ precedes BASH_VERSINFO on the same non-comment line.
+  # "(( BASH_VERSINFO[0] < 4 ))" — (( precedes BASH_VERSINFO on the same non-comment line.
+  # A commented-out guard like "# if [[ ${BASH_VERSINFO[0]} -lt 4 ]]; then" does NOT satisfy
+  # the oracle — comment lines are stripped before guard_re is applied (F-P14-001).
   local has_guard=0
   for f in "${sh_files[@]}"; do
-    if grep -qE "$guard_re" "$f" 2>/dev/null; then
+    if grep -vE '^[[:space:]]*#' "$f" 2>/dev/null | grep -qE "$guard_re"; then
       has_guard=1
       break
     fi
@@ -4160,7 +4173,7 @@ EOF
   [ "$has_guard" -eq 1 ] || {
     echo "FAIL (AC-001): associative arrays (local -A / declare -A) found in wave-handoff" >&2
     echo "  scripts but no executable bash version guard (BASH_VERSINFO inside if/[/(()" >&2
-    echo "  found in the scan set. A bare comment mentioning BASH_VERSINFO is insufficient." >&2
+    echo "  found in the scan set. A commented-out guard is insufficient." >&2
     echo "  The S-18.01 fix (ea7328ac) added the guard to wave-handoff.sh. It has been lost." >&2
     echo "  Fix: restore in wave-handoff.sh (before sourcing lib scripts):" >&2
     echo "    if [ \"\${BASH_VERSINFO[0]:-0}\" -lt 4 ]; then" >&2
@@ -4195,11 +4208,13 @@ EOF
 
   # Detector: does the entrypoint have a guard BEFORE its first source line?
   # Returns 0 (PASS) when guard_line < first_source_line.
+  # Comment lines are stripped before guard_re is applied so a commented-out guard
+  # (e.g. "# if [[ ${BASH_VERSINFO[0]} -lt 4 ]]; then") does NOT satisfy the oracle (F-P14-001).
   _ep_guard_precedes_source() {
     local ep_file="$1"
     local guard_line first_src_line
-    guard_line="$(grep -nE "$guard_re" "$ep_file" 2>/dev/null \
-      | head -1 | cut -d: -f1)"
+    guard_line="$(grep -nvE '^[[:space:]]*#' "$ep_file" 2>/dev/null \
+      | grep -E "$guard_re" | head -1 | cut -d: -f1)"
     first_src_line="$(grep -nE '^[[:space:]]*(source|\.)[[:space:]]+' "$ep_file" 2>/dev/null \
       | head -1 | cut -d: -f1)"
     # No source line at all — entrypoint does not source libs; skip (not an entrypoint)
@@ -4403,6 +4418,24 @@ EOF
     echo "FAIL (AC-002 positive-control): case-modifier-detector falsely matched plain '\${VAR}'." >&2
     false
   }
+  # Guard-detector controls (F-P14-001 fix): comment lines must be stripped before applying
+  # guard_re so a commented-out guard does not falsely satisfy the oracle.
+  local pc_good_guard_ac002 pc_commented_guard_ac002
+  pc_good_guard_ac002="${BATS_TEST_TMPDIR}/pc_ac002_good_guard.sh"
+  pc_commented_guard_ac002="${BATS_TEST_TMPDIR}/pc_ac002_commented_guard.sh"
+  printf 'if [ "${BASH_VERSINFO[0]:-0}" -lt 4 ]; then\n  exit 1\nfi\n' > "$pc_good_guard_ac002"
+  printf '# if [[ ${BASH_VERSINFO[0]} -lt 4 ]]; then\n' > "$pc_commented_guard_ac002"
+  # Executable guard MUST be detected after comment-stripping.
+  grep -vE '^[[:space:]]*#' "$pc_good_guard_ac002" | grep -qE "$guard_re" || {
+    echo "FAIL (AC-002 guard positive-control): guard-detector did not match executable conditional." >&2
+    false
+  }
+  # Commented-out guard MUST NOT be detected (F-P14-001).
+  ! grep -vE '^[[:space:]]*#' "$pc_commented_guard_ac002" | grep -qE "$guard_re" || {
+    echo "FAIL (AC-002 guard positive-control / F-P14-001): guard-detector falsely matched BASH_VERSINFO in a commented-out guard." >&2
+    echo "  Commenting out 'if [[ ... BASH_VERSINFO' must not satisfy the guard oracle." >&2
+    false
+  }
   # -------------------------------------------
 
   # Collect all uses of bash 4+ case modifiers — bash 4+ only, syntax error on bash 3.2.
@@ -4434,11 +4467,12 @@ EOF
   fi
 
   # Case modifiers are used; verify an executable bash version guard exists in the scan set.
-  # Acceptable forms: BASH_VERSINFO inside an if-conditional ([ or (( precedes it on the line).
-  # A bare comment mentioning BASH_VERSINFO is insufficient.
+  # Acceptable forms: BASH_VERSINFO inside an executable (non-comment) conditional.
+  # A commented-out guard like "# if [[ ${BASH_VERSINFO[0]} -lt 4 ]]; then" does NOT satisfy
+  # the oracle — comment lines are stripped before guard_re is applied (F-P14-001).
   local has_guard=0
   for f in "${sh_files[@]}"; do
-    if grep -qE "$guard_re" "$f" 2>/dev/null; then
+    if grep -vE '^[[:space:]]*#' "$f" 2>/dev/null | grep -qE "$guard_re"; then
       has_guard=1
       break
     fi
@@ -4447,7 +4481,7 @@ EOF
   [ "$has_guard" -eq 1 ] || {
     echo "FAIL (AC-002): bash 4+ case modifiers (\${var^}, \${var^^}, \${var,}, \${var,,}, \${var@U}, \${var@L}, \${var@u}) found in" >&2
     echo "  wave-handoff scripts without an executable bash version guard (BASH_VERSINFO in if/[/(()" >&2
-    echo "  found in the scan set." >&2
+    echo "  found in the scan set. A commented-out guard is insufficient." >&2
     echo "  Fix: either remove case modifiers (use 'tr a-z A-Z' or awk for case conversion)" >&2
     echo "  or add a bash 4+ version check to wave-handoff.sh before sourcing lib scripts." >&2
     echo "  Violations:" >&2

@@ -58,12 +58,17 @@ must carry its own bash-4 guard.
 **What the guard checks:** If any file in the scan set matches
 `(local|declare)[[:space:]]+-[a-zA-Z]*A[a-zA-Z]*([[:space:]]|$)` — covering bare `-A`, compound flags
 with `A` at any position such as `-Ax` or `-gA`, and `-A` at end-of-line, but NOT
-lowercase `-a` (indexed arrays, which are bash-3-safe) — the test then verifies that
-the token `BASH_VERSINFO` also appears somewhere in the scan set. Both
-`[ "${BASH_VERSINFO[0]:-0}" -lt 4 ]` and `(( BASH_VERSINFO[0] < 4 ))` satisfy this
-check. A scan set with associative arrays but no `BASH_VERSINFO` token fails the test.
-A scan set with neither associative arrays nor a guard passes (the feature is simply
-absent, so no guard is required).
+lowercase `-a` (indexed arrays, which are bash-3-safe) — the test then verifies that an
+**executable** (non-comment) bash-version conditional exists in the scan set. Specifically,
+the detector strips comment lines (`^[[:space:]]*#`) from each file before applying the
+guard pattern `([[].*BASH_VERSINFO|[(][(].*BASH_VERSINFO)`, which requires either `[` or `((`
+to appear on the same non-comment line as `BASH_VERSINFO`. This covers both
+`[ "${BASH_VERSINFO[0]:-0}" -lt 4 ]` and `(( BASH_VERSINFO[0] < 4 ))`. A scan set with
+associative arrays but no executable guard fails the test. A commented-out guard line
+such as `# if [[ ${BASH_VERSINFO[0]} -lt 4 ]]; then` does NOT satisfy the check —
+the comment is stripped before the pattern is applied. A scan set with neither
+associative arrays nor a guard passes (the feature is simply absent, so no guard is
+required).
 
 **Enforcing test:** `test_portability_no_unguarded_local_A_associative_array`
 
@@ -106,10 +111,13 @@ two-char forms `^^` and `,,`, the single-char forms `^` and `,`, the bash-4.4
 `@`-operator transforms `@U` / `@L` / `@u`, named variable forms
 (`${varname^^}`), array-element forms such as `${arr[0]^^}`, `${map[k],,}`, and
 `${arr[i]^}`, and positional and special-parameter forms such as `${1^^}`, `${@^^}`,
-`${*^^}`, and `${#^^}` — the test verifies that `BASH_VERSINFO` appears somewhere in
-the scan set. Case modifiers without a version guard fail the test. The current scan
-set contains no case modifiers, so this test passes on a clean codebase (no guard is
-required when the feature is absent).
+`${*^^}`, and `${#^^}` — the test verifies that an **executable** (non-comment)
+bash-version conditional exists in the scan set using the same comment-stripping
+mechanism as AC-001: comment lines (`^[[:space:]]*#`) are stripped before the guard
+pattern `([[].*BASH_VERSINFO|[(][(].*BASH_VERSINFO)` is applied. A commented-out guard
+line does NOT satisfy the check. Case modifiers without an executable version guard fail
+the test. The current scan set contains no case modifiers, so this test passes on a
+clean codebase (no guard is required when the feature is absent).
 
 **Enforcing test:** `test_portability_no_unguarded_bash4_case_modifiers`
 
