@@ -5423,3 +5423,39 @@ assert_failure
 - This lesson adds: once control assertions use a regex variable, the scan loop MUST also use that variable — no inline literal duplication allowed.
 
 **Cites:** D-737, S-18.12 LOCAL adv pass-13 F-P13-001, POLICY 11, test-writer b252c8fe (variable extraction: one regex variable per detector, referenced in both controls and scan loop; all regex STRING values byte-identical; 68/68 GREEN).
+
+## L-BB-presence-oracle-must-strip-comment-lines
+
+**Date:** 2026-06-30 (D-738)
+**Tags:** [codified] [process-gap] [test-writer] [adversary] [POLICY 11] [TD-VSDD-059]
+**Anchors:** D-738, S-18.12 LOCAL adv pass-14 F-P14-001, POLICY 11, POLICY 13, TD-VSDD-059
+
+**Lesson (codified):** A guard-present or anti-paper-fix presence check that greps WITHOUT first stripping comment lines is defeated by commenting the guard out. A Bash script containing only `# [[ ${BASH_VERSINFO[0]} -ge 4 ]]` will pass a naive `grep -E "$guard_re"` oracle as if the guard were present — the comment line matches the pattern, producing a false-PASS. The presence oracle MUST operate on executable (non-comment) lines only.
+
+**Required mechanism:** Apply `grep -vE '^[[:space:]]*#'` to strip comment lines from the content BEFORE applying the guard regex match:
+
+```bash
+executable_content=$(grep -vE '^[[:space:]]*#' "$script_file")
+run bash -c "echo \"$executable_content\" | grep -qE \"$guard_re\""
+```
+
+**Mandatory negative controls:** Every guard-presence oracle MUST include at least one negative control verifying that a commented-out guard is REJECTED:
+
+- `pc_commented_guard` — content with ONLY a commented-out guard → assert oracle FAILS (non-zero exit)
+- `pc_commented_guard_ac002` (if AC-002 also has a guard oracle) — same for sibling AC
+
+**Root cause pattern observed in S-18.12 pass-14:** After 13 passes of hardening, the `guard_re` oracle in AC-001 and AC-002 remained a naive `grep -E "$guard_re"` applied to the full file content including comment lines. The D-734 O-4 "paper-guard" observation (passes 10/11/12/13) noted the soundness boundary in prose but did not add the negative control that would have mechanically enforced the stripping requirement. At pass-14, the fresh-context adversary identified this as a testable defect (not just a prospective boundary), escalated O-4 to HIGH F-P14-001, and the fix — adding `grep -vE '^[[:space:]]*#'` pre-filter plus two negative controls — closed the gap definitively.
+
+**Relationship to TD-VSDD-059 (paper-fix detection):** Commenting out a guard IS a paper-fix pattern. An oracle that accepts commented guards cannot detect paper-fixes of the guard-present class. This lesson extends TD-VSDD-059 to the comment-line dimension: paper-fix detection requires the oracle to operate on executable lines only.
+
+**Prevention gate (codified):**
+1. Every guard-presence test MUST use `grep -vE '^[[:space:]]*#'` to strip comments before the guard_re match.
+2. Sibling AC guard oracles MUST receive the same treatment in the same burst (sibling-sweep obligation).
+3. At test-writer dispatch: verify `pc_commented_guard` and `pc_commented_guard_ac002` negative controls exist and assert non-zero exit on commented-only content.
+
+**Complementary lessons:**
+- L-BB-scan-loop-and-controls-must-share-regex-variable (D-737): controls and scan loop MUST share the same regex variable.
+- TD-VSDD-059: paper-fix detection — fixes that only appear structural but leave the defect present.
+- D-734 O-4: the commented-guard soundness boundary was documented as LOW/prospective for 4 passes; this lesson shows that "soundness boundary documented in prose" is insufficient — a negative control is required to mechanically enforce the boundary.
+
+**Cites:** D-738, S-18.12 LOCAL adv pass-14 F-P14-001, POLICY 11/13, TD-VSDD-059, test-writer 00272990 (comment-strip applied to guard_re oracle in AC-001 and AC-002; `pc_commented_guard` and `pc_commented_guard_ac002` negative controls added; 68/68 bats GREEN).

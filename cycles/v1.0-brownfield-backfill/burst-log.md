@@ -11343,3 +11343,107 @@ S-18.12 LOCAL adversarial cascade streak: stays **0/3** (NOT-CLEAN; F-P12-001 HI
 ### Factory-artifacts Commits
 
 - `11f41673` — state(D-736): S-18.12 LOCAL adv pass-12 NOT-CLEAN closure + session-checkpoint refresh (single commit per TD-VSDD-053; SHA-patch follow-up per D-447(c)+D-449(e))
+
+## D-738 — S-18.12 LOCAL adv pass-14 NOT-CLEAN closure — 2026-06-30
+
+### Parent-commit (Dim-3)
+
+`26a74ad8` — factory-artifacts HEAD at burst start (state(D-737): S-18.12 LOCAL adv pass-13 NOT-CLEAN closure).
+
+### Adversary Verdict (Dim-7)
+
+S-18.12 LOCAL adversary pass-14: **NOT-CLEAN** — 1 HIGH / 1 MEDIUM / 2 LOW. Streak stays **0/3** per BC-5.39.001.
+
+**F-P14-001 (HIGH) — POLICY 11/13: guard_re presence-oracle applied WITHOUT stripping comment lines:** Pass-14 fresh-context adversary reviewed b252c8fe/v1.11 (frozen artifact). The `guard_re` oracle in `test_portability_guard_present` (AC-001) and its sibling in AC-002 grep the full file content including comment lines. A Bash script containing only `# [[ ${BASH_VERSINFO[0]} -ge 4 ]]` (commented-out guard) passes the oracle: `grep -E "$guard_re"` matches the comment line, reporting the guard as present when no executable guard exists. The `grep -vE '^[[:space:]]*#'` comment-stripping pre-filter was absent from both oracles. No negative controls (`pc_commented_guard`, `pc_commented_guard_ac002`) existed. This is the testable escalation of D-734 O-4 "paper-guard" boundary: once a negative control is added, the defect is definitive, not prospective. Blast radius: AC-001 guard oracle + AC-002 guard oracle. REMEDIATED: test-writer 00272990 — `grep -vE '^[[:space:]]*#'` comment-strip pre-filter applied before guard_re match in BOTH AC-001 and AC-002 oracles; `pc_commented_guard` (asserting AC-001 rejects commented guard) and `pc_commented_guard_ac002` (asserting AC-002 rejects commented guard) negative controls added; 68/68 bats GREEN confirmed at 00272990.
+
+**F-P14-002 (MEDIUM) — bash-portability.md §1/§2 mis-described guard-check mechanism as "token-presence":** The documentation at §1 stated the guard check "checks that a `BASH_VERSINFO`-based guard exists (token-presence)." The actual mechanism after pass-14 remediation is "executable-position with comment-stripping via `grep -vE '^[[:space:]]*#'`." §2 carried the same inaccurate description. This doc error would mislead users reading the documentation into believing the detection is a simple token search without understanding the comment-stripping semantics. REMEDIATED: test-writer 00272990 — §1 and §2 prose updated to describe "executable-position + comment-stripped" mechanism explicitly.
+
+**O-1 (LOW):** AC-002 `case_mod_re` covers `@[ULu]` bash-4.4 transforms; bash-5.0 `@Q`/`@E`/`@P`/`@A` forms undetected; none present in scan set. ACCEPTED — prospective boundary; FREEZE DISCIPLINE.
+**O-2 (LOW):** AC-003 `ifs_step1_re` misses `declare IFS='|'` direct-declare form; none present in scan set. ACCEPTED — prospective boundary; FREEZE DISCIPLINE.
+
+Source attestation (D-448(a)): above faithfully describes `s-18.12-local-adversary-pass-14.md` Part A finding set — NOT-CLEAN; 1 HIGH F-P14-001 (FIXED 00272990) + 1 MEDIUM F-P14-002 (FIXED 00272990) + 2 LOW O-1/O-2 (both ACCEPTED); streak 0/3. No divergence from Part A.
+
+### Files Touched (Dim-1)
+
+**factory-artifacts branch (this D-738 burst — single commit per TD-VSDD-053):**
+- `cycles/v1.0-brownfield-backfill/s-18.12-local-adversary-pass-14.md` — NEW; pass-14 adversary report (verdict NOT-CLEAN; 1 HIGH F-P14-001; 1 MEDIUM F-P14-002; 2 LOW O-1/O-2 accepted; remediation 00272990; streak 0/3; severity decay H→H→M→M→CLEAN→MED→CLEAN→MED→CLEAN→CLEAN→NC(H+M)→NC(H)→NC(M)→NC(H))
+- `stories/STORY-INDEX.md` — v4.119→v4.120 (S-18.12 body row pass-14 NOT-CLEAN annotation + feature HEAD b252c8fe→00272990; `last_amended:` updated; `version:` bumped; POLICY 14 leg-5; GOVERNANCE-ONLY; story stays v1.11)
+- `cycles/v1.0-brownfield-backfill/decision-log.md` — D-738 block appended (after D-737 entry)
+- `cycles/v1.0-brownfield-backfill/lessons.md` — L-BB-presence-oracle-must-strip-comment-lines appended
+- `cycles/v1.0-brownfield-backfill/burst-log.md` — D-738 entry appended (this file)
+- `.factory/STATE.md` — v4.88→v4.89 (D-738 banner + frontmatter advance + SIZE BUDGET D-729..D-737 collapsed + D-738 new entry + §3 D-730/D-731/D-732/D-733 carries removed + D-738 carry added + Active Branches feature/S-18.12 b252c8fe→00272990 + Concurrent Cycles row + Decisions Log D-738 + §4 D-738 + §5 Latest D-738 + §6 L-BB-presence-oracle-must-strip-comment-lines + §8 STORY-INDEX v4.120 + §9 factory-artifacts HEAD + verify line + §11 items 1/2/3/7/8/9/10 + §12 3e-S18.12 + Last Updated + Current Phase + Drift Item [process-gap] D-738 + Session Resume Checkpoint FULL REFRESH for zero-context resume into pass-15)
+
+**feature/S-18.12 branch (remediation commit):**
+- `00272990` — test(S-18.12): remediate F-P14-001/F-P14-002 (test-writer: comment-strip guard_re oracle + 2 negative controls + bash-portability.md §1/§2 doc reconciliation; no story/AC change; 68/68 GREEN)
+
+**NOT committed in this burst (develop/main unchanged):**
+- No code changes to develop (feature branch local, not pushed per STOP-BEFORE-PR-MERGE D-665)
+- develop_head 531dacfb UNCHANGED; merged_count 95 UNCHANGED; total_bcs 1,974 UNCHANGED
+
+### Codifications (Dim-6)
+
+- **D-738** decision-log block codified: S-18.12 LOCAL adv pass-14 NOT-CLEAN; F-P14-001 HIGH (guard_re no comment-strip; POLICY 11/13); F-P14-002 MEDIUM (bash-portability.md §1/§2 doc error); O-1/O-2 accepted; streak 0/3; feature HEAD 00272990.
+- **STORY-INDEX v4.119→v4.120**: S-18.12 row annotation pass-14 NOT-CLEAN + feature HEAD 00272990 (POLICY 14 leg-5; GOVERNANCE-ONLY; story stays v1.11 — test+doc fix; no AC change).
+- **L-BB-presence-oracle-must-strip-comment-lines**: codified in lessons.md — guard-present oracle MUST strip comment lines via `grep -vE '^[[:space:]]*#'` before guard_re match; negative controls `pc_commented_guard`/`pc_commented_guard_ac002` MUST verify commented guards are rejected; relates to TD-VSDD-059 paper-fix detection.
+- **STATE.md v4.88→v4.89**: D-738 closure + FULL Session Resume Checkpoint refresh for zero-context pass-15 resume.
+
+### Dim-2 (4-Index Parity Gate — D-449(a) literal-shell execution evidence)
+
+Gate command:
+```bash
+grep "^version:" \
+  .factory/specs/behavioral-contracts/BC-INDEX.md \
+  .factory/specs/verification-properties/VP-INDEX.md \
+  .factory/stories/STORY-INDEX.md \
+  .factory/specs/architecture/ARCH-INDEX.md
+```
+
+Captured stdout (post-STORY-INDEX v4.120 update, pre-commit):
+```
+/Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/architecture/ARCH-INDEX.md:version: "2.85"
+/Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/verification-properties/VP-INDEX.md:version: "2.51"
+/Users/zious/Documents/GITHUB/vsdd-factory/.factory/stories/STORY-INDEX.md:version: "4.120"
+/Users/zious/Documents/GITHUB/vsdd-factory/.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.57"
+```
+
+Gate result: PASS. BC-INDEX v3.57 (UNCHANGED), VP-INDEX v2.51 (UNCHANGED), STORY-INDEX v4.120 (BUMPED D-738), ARCH-INDEX v2.85 (UNCHANGED). Zero FAIL.
+
+current_step gate (D-449(a)):
+```bash
+grep "^current_step:" .factory/STATE.md
+```
+Captured stdout: `current_step: "D-738-S-18.12-LOCAL-PASS-14-NOT-CLEAN-CLOSURE"`. Gate: PASS.
+
+### Dim-5 (8-Block Presence Gate — D-446(a))
+
+This burst-log entry contains all 8 D-444(c) mandatory blocks:
+1. Parent-commit: `26a74ad8` (state(D-737): S-18.12 LOCAL adv pass-13 NOT-CLEAN closure; factory-artifacts HEAD at burst start)
+2. Adversary verdict: NOT-CLEAN; 1 HIGH F-P14-001 (FIXED 00272990) + 1 MEDIUM F-P14-002 (FIXED 00272990) + 2 LOW O-1/O-2 (accepted); streak 0/3
+3. Files touched: pass-14 report + STORY-INDEX + decision-log + lessons + burst-log + STATE.md; feature 00272990
+4. Codifications (Dim-6): D-738 + STORY-INDEX v4.120 + L-BB-presence-oracle-must-strip-comment-lines + STATE.md v4.89
+5. Dim-2: 4-index parity gate with literal-shell stdout above; current_step gate stdout above
+6. Dim-5: This block (8-block self-verification)
+7. Closes: pass-14 NOT-CLEAN closure; streak 0/3; F-P14-001/F-P14-002 remediated (00272990); O-1/O-2 accepted; ARTIFACTS FROZEN 00272990/v1.11; SESSION CHECKPOINT refreshed for zero-context pass-15 resume
+8. Factory-artifacts commits: SHA-patch follow-up pending after commit (per D-447(c)+D-449(e))
+
+All 8 blocks present. Gate: PASS.
+
+### Dim-7 (Streak Status)
+
+S-18.12 LOCAL adversarial cascade streak: stays **0/3** (NOT-CLEAN; 1 HIGH F-P14-001). NEXT: pass-15 (fresh context; streak 0/3; ARTIFACTS FROZEN at 00272990/v1.11 — fix ONLY genuine blockers; accept prospective LOWs O-1/O-2 as documented scope boundaries).
+
+### Closes
+
+- S-18.12 LOCAL adv pass-14: **NOT-CLEAN** (1 HIGH + 1 MEDIUM + 2 LOW). Streak stays 0/3. Pass-15 NEXT.
+- F-P14-001 (POLICY 11/13 guard_re no comment-strip): **REMEDIATED** — test-writer 00272990 (comment-strip applied; 2 negative controls added; 68/68 GREEN).
+- F-P14-002 (bash-portability.md §1/§2 doc error): **REMEDIATED** — test-writer 00272990 (§1+§2 reconciled to executable-position + comment-stripped).
+- O-1 (AC-002 `${var@Q}`/`@E`/`@P`/`@A` bash-5.0 ops): **ACCEPTED** (prospective; FREEZE DISCIPLINE).
+- O-2 (AC-003 `declare IFS='|'` direct-declare form): **ACCEPTED** (prospective; FREEZE DISCIPLINE).
+- STORY-INDEX v4.120 (S-18.12 row pass-14 annotation + 00272990 feature HEAD; POLICY 14 leg-5): **DONE** (state-manager this burst).
+- Session Resume Checkpoint refreshed for zero-context resume into S-18.12 LOCAL adv pass-15: **DONE**.
+- **[process-gap] presence-oracle comment-strip discipline**: Drift Item added to STATE.md (D-738; guard-present oracles MUST strip comment lines; L-BB-presence-oracle-must-strip-comment-lines codified; relates to TD-VSDD-059 paper-fix detection).
+- **feature/S-18.12 DURABILITY NOTE:** Branch is LOCAL (not pushed per STOP-BEFORE-PR-MERGE D-665). HEAD 00272990. Worktree at `.worktrees/S-18.12`. If session restarts and worktree is missing, recreate with: `git worktree add .worktrees/S-18.12 feature/S-18.12`. Branch is local-only; do NOT push until 3-CLEAN CONVERGED + demo-recorder complete.
+
+### Factory-artifacts Commits
+
+- `TBD` — state(D-738): S-18.12 LOCAL adv pass-14 NOT-CLEAN closure (single commit per TD-VSDD-053; SHA-patch follow-up per D-447(c)+D-449(e))

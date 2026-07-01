@@ -4777,3 +4777,62 @@ Severity decay H→H→M→M→CLEAN→MED→CLEAN→MED→CLEAN→CLEAN→NC(H+
 ### NEXT
 
 S-18.12 LOCAL adversarial pass-13. Fresh context. Streak **0/3**. ARTIFACTS FROZEN at f725426e/v1.11 — fix ONLY genuine blockers; accept prospective LOWs O-1/O-2 as documented scope boundaries. STOP-BEFORE-PR-MERGE (D-665) holds. PAUSE: session clear per human directive; resume from STATE.md Session Resume Checkpoint.
+
+## D-738 — S-18.12 LOCAL adv pass-14 NOT-CLEAN closure — 2026-06-30
+
+### Verdict
+
+S-18.12 LOCAL adversarial pass-14: **NOT-CLEAN** (1 HIGH / 1 MEDIUM / 2 LOW). Streak stays **0/3** per BC-5.39.001.
+
+### Root Cause — F-P14-001 (POLICY 11/13 guard_re presence-oracle no comment-line stripping)
+
+The `guard_re` presence oracle in `test_portability_guard_present` greps input content for the guard pattern without first stripping comment lines. A Bash script containing only a commented-out guard (e.g., `# [[ ${BASH_VERSINFO[0]} -ge 4 ]]`) would pass the detector: `grep -E "$guard_re"` matches the comment line, causing the oracle to report the guard as present when no executable guard exists. The `grep -vE '^[[:space:]]*#'` comment-stripping pre-filter was absent from both the AC-001 guard oracle and the AC-002 guard oracle. No negative controls (`pc_commented_guard`, `pc_commented_guard_ac002`) existed to verify the detector rejects commented-out guards. This is the comment-variant of the D-734 O-4 "paper-guard" observation, now escalated to HIGH after the oracle gap became definitively testable.
+
+### Root Cause — F-P14-002 (bash-portability.md §1/§2 doc error)
+
+`bash-portability.md` §1 described the guard check as "checks that a `BASH_VERSINFO`-based guard exists (token-presence)." The actual mechanism is executable-position with comment-stripping — the oracle uses `grep -vE '^[[:space:]]*#'` to exclude comment lines before the guard_re match. §2 contained the same mis-description. This is a doc error introduced before pass-14: the description was never updated to match the (now corrected) implementation.
+
+### Findings Summary
+
+| ID | Severity | Description | Disposition |
+|----|----------|-------------|-------------|
+| F-P14-001 | HIGH (blocking) | **POLICY 11/13: guard_re presence-oracle applied WITHOUT stripping comment lines.** `grep -vE '^[[:space:]]*#'` pre-filter absent; commented-out guard passes detector vacuously; blast radius AC-001 + AC-002; negative controls `pc_commented_guard`/`pc_commented_guard_ac002` absent. | **REMEDIATED** — test-writer 00272990: comment-strip via `grep -vE '^[[:space:]]*#'` applied before guard_re match in BOTH AC-001 and AC-002 oracles; `pc_commented_guard` (AC-001) and `pc_commented_guard_ac002` (AC-002) negative controls added; 68/68 bats GREEN at 00272990. |
+| F-P14-002 | MEDIUM (blocking) | **bash-portability.md §1 and §2 mis-described guard-check mechanism as "token-presence."** Actual mechanism is "executable-position + comment-stripped." Doc error creates false documentation: users reading §1/§2 would believe the guard detection is a simple token search, not understanding the comment-stripping semantics. | **REMEDIATED** — test-writer 00272990: §1 and §2 description reconciled to "executable-position + comment-stripped"; uses `grep -vE '^[[:space:]]*#'` to exclude comment lines before matching. |
+| O-1 | LOW (non-blocking, prospective) | AC-002 `case_mod_re` pattern covers `@[ULu]` bash-4.4 operators but misses bash-5.0 `@Q`/`@E`/`@P`/`@A` forms; none present in scan set. | **ACCEPTED** — documented prospective scope boundary; FREEZE DISCIPLINE. |
+| O-2 | LOW (non-blocking, prospective) | AC-003 `ifs_step1_re` pattern misses `declare IFS='|'` direct-declare form (not prefixed by keyword/operator); none present in scan set. | **ACCEPTED** — documented prospective scope boundary; FREEZE DISCIPLINE. |
+
+### Severity Decay
+
+| Pass | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 |
+|------|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Verdict | NC | NC | NC | NC | CLEAN | NC | CLEAN | NC | CLEAN | CLEAN | NC | NC | NC | NC |
+| Highest | HIGH | HIGH | MED | MED | — | MED | — | MED | — | — | HIGH | HIGH | MED | HIGH |
+| Streak | 0/3 | 0/3 | 0/3 | 0/3 | 1/3 | 0/3 | 1/3 | 0/3 | 1/3 | 2/3 | 0/3 | 0/3 | 0/3 | **0/3** |
+
+Severity decay H→H→M→M→CLEAN→MED→CLEAN→MED→CLEAN→CLEAN→NC(H+M)→NC(H)→NC(M)→NC(H). F-P14-001 and F-P14-002 remediated at 00272990; O-1/O-2 accepted; streak 0/3; pass-15 dispatched on 00272990/v1.11 FROZEN (do NOT harden prospective LOWs O-1/O-2).
+
+### Codifications
+
+- **D-738** decision-log block (this entry): S-18.12 LOCAL adv pass-14 NOT-CLEAN; F-P14-001 HIGH (guard_re no comment-strip; POLICY 11/13); F-P14-002 MEDIUM (bash-portability.md §1/§2 doc error); O-1/O-2 accepted; streak 0/3; feature HEAD 00272990.
+- **STORY-INDEX v4.119→v4.120**: S-18.12 body row annotation updated with pass-14 NOT-CLEAN + feature HEAD 00272990 (GOVERNANCE-ONLY; story stays v1.11 — test+doc fix; no AC change; POLICY 14 leg-5; state-manager this burst).
+- **s-18.12-local-adversary-pass-14.md**: pass-14 adversary report persisted in cycles/v1.0-brownfield-backfill/.
+- **lessons.md**: L-BB-presence-oracle-must-strip-comment-lines codified.
+- **STATE.md**: v4.88→v4.89 — D-738 banner + frontmatter + Decisions Log + feature/S-18.12 Active Branches 00272990 + Session Resume Checkpoint FULL REFRESH for zero-context resume into pass-15. Drift Item [process-gap] D-738 presence-oracle comment-strip discipline added.
+
+### Feature Branch
+
+- **feature/S-18.12** — WIP advances from b252c8fe → **00272990** (test-writer comment-strip fix + 2 negative controls + bash-portability.md §1/§2 doc reconciliation; no story/AC change; 68/68 bats GREEN; FROZEN for pass-15). Not pushed (STOP-BEFORE-PR-MERGE D-665).
+
+### Develop / 4-Index State
+
+- develop_head: 531dacfb UNCHANGED
+- merged_count: 95 UNCHANGED
+- total_bcs: 1,974 UNCHANGED
+- BC-INDEX: v3.57 UNCHANGED
+- VP-INDEX: v2.51 UNCHANGED
+- STORY-INDEX: v4.119→v4.120 (BUMPED this burst, POLICY 14 leg-5, annotation-only no story AC change)
+- ARCH-INDEX: v2.85 UNCHANGED
+
+### NEXT
+
+S-18.12 LOCAL adversarial pass-15. Fresh context. Streak **0/3**. ARTIFACTS FROZEN at 00272990/v1.11 — fix ONLY genuine blockers; accept prospective LOWs O-1/O-2 as documented scope boundaries. STOP-BEFORE-PR-MERGE (D-665) holds. Parent-commit: 26a74ad8 (D-737 factory-artifacts HEAD).
