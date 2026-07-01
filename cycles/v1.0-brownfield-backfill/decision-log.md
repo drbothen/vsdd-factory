@@ -5096,3 +5096,39 @@ POST-MERGE
 2026-07-01
 
 ---
+
+## D-746 — S-18.12 Fix PR #385 Post-Merge Burst
+
+### Decision
+
+**PR #385** (`fix/S-18.12-detector-parity-gaps`, commits ae109bca/36396c4e/717686f8) squash-merged to develop at `2879f473` 2026-07-01T22:22:56Z, human-merged directly per L-BB-merge-requires-direct-human-action (`gh pr merge 385 --squash --delete-branch --repo drbothen/vsdd-factory`). Diff: 2 files (`plugins/vsdd-factory/docs/bash-portability.md` + `plugins/vsdd-factory/tests/wave-handoff.bats`), +115/-36. develop HEAD ec05606a→2879f473. This is a FIX PR, not a story; merged_count stays 96 (no increment for fix PRs per established convention).
+
+**PR-level fresh-eyes review** (pr-reviewer via pr-manager, fix-pr-delivery flow): verdict **CLEAN** — 0 blockers, 0 majors, 2 advisories:
+- **ADVISORY-1** PR-body traceability gap (missing BC-5.41.001 citation) — FIXED IN-SCOPE (PR body updated on GitHub before merge).
+- **ADVISORY-2** `pip[0-9x.]*` regex admits degenerate tokens (`pip.` / `pip3.foo.bar`) — ACCEPTED AS-IS (over-detection is fail-safe for the lint guard use-case; no real script affected; out of MINOR-5 scope and analytically harmless).
+
+**Audit note on review timing:** formal GitHub approval and review-comment posting were permission-blocked (GitHub self-approval prevention); the human merged directly before the formal approval could be posted on GitHub. The verdict (CLEAN) applies to the exact merged diff (PR head 717686f8) and is recorded here in factory-artifacts as the authoritative factory-governance record. Per L-BB-merge-requires-direct-human-action, the human's direct merge is the authoritative merge signal; the off-GitHub verdict recording is consistent with existing factory governance.
+
+**D-745 MAJOR-1+MINOR-2/4/5 now on develop:** commits ae109bca (AC-001 `has_arrays` trigger loop comment-strip — MAJOR-1), 36396c4e (while/until wrapper positions + `typeset -A` + dotted `pip3.11` — MINOR-2/4/5), and 717686f8 (bash-portability.md doc mirror) are now on develop@2879f473. The D-740 O-3 Drift Item (comment-strip parity — violation detectors vs guard oracle) was already marked RESOLVED by ae109bca at D-745; this D-746 entry records that the fix is now deployed to develop. D-745 MINOR-3/MINOR-6/O-7 Drift Items remain OPEN (deferred; unchanged).
+
+**Worktree cleanup COMPLETE** (devops-engineer): `.worktrees/S-18.12` and `.worktrees/S-18.12-fix` removed; local branches `feature/S-18.12` + `fix/S-18.12-detector-parity-gaps` deleted (`-d`, tracking-ref confirmed); remote `fix/S-18.12-detector-parity-gaps` branch already deleted by human at merge; 4 stale remote tracking refs pruned (`origin/feature/S-18.10`, `origin/feature/S-18.11`, `origin/feature/S-18.12`, `origin/fix/S-18.12-detector-parity-gaps`). Local develop fast-forwarded to `2879f473`.
+
+**No BC promotions (POL-14):** fix PR carries no new BCs; S-18.12 BCs were promoted at PR #384 merge (D-744, `behavioral_contracts: []` — nothing to promote). total_bcs 1,974 UNCHANGED; BC-INDEX v3.57 / VP-INDEX v2.51 / ARCH-INDEX v2.85 UNCHANGED.
+
+**STORY-INDEX v4.126→v4.127** (S-18.12 row: fix PR #385 merged 2879f473 annotation added; POLICY 14 leg-5). story_count 123 UNCHANGED.
+
+**Merged-stories-ledger:** S-18.12 story row added (PR #384 ec05606a 2026-07-01) — entry was inadvertently omitted from the D-744 post-merge burst; fixed in-scope here. Fix PRs are not stories and do not go in the ledger per convention (no fix PR rows exist in the ledger historically).
+
+**POSTURE: E-18 EPIC COMPLETE; S-18.12 portability-lint guard extension (story) + detector-parity fix (PR #385) fully landed on develop@2879f473.** NEXT (HUMAN-GATED): POST-E-18 revisit — ADR-015/Router-multi-sink/WASM/OTel + S-3.04 status + wave-design monotonic-assumption (D-721/D-723 anchors). D-743 Drift Item (sprint-state.yaml producer auto-sync) remains OPEN.
+
+Parent-commit: 2de2bf96 (D-745 factory-artifacts HEAD).
+
+### Phase
+
+POST-MERGE
+
+### Date
+
+2026-07-01
+
+---
