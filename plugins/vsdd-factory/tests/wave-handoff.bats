@@ -4072,7 +4072,9 @@ EOF
   pc_bad_guard="${BATS_TEST_TMPDIR}/pc_ac001_bad_guard.sh"
   pc_good_guard="${BATS_TEST_TMPDIR}/pc_ac001_good_guard.sh"
   pc_commented_guard="${BATS_TEST_TMPDIR}/pc_ac001_commented_guard.sh"
-  local array_re='(local|declare)[[:space:]]+-[a-zA-Z]*A[a-zA-Z]*([[:space:]]|$)'
+  # Broadened (MINOR-4): 'typeset' is a bash synonym for 'declare' and also creates
+  # bash-4+ associative arrays with -A. Detector must treat it identically.
+  local array_re='(local|declare|typeset)[[:space:]]+-[a-zA-Z]*A[a-zA-Z]*([[:space:]]|$)'
   local guard_re='([[].*BASH_VERSINFO|[(][(].*BASH_VERSINFO)'
   printf 'declare -A my_map\n' > "$pc_bad_arr"
   printf 'declare -Ax my_map\n' > "$pc_bad_Ax"
@@ -4096,6 +4098,15 @@ EOF
   # Array-detector: BAD sample (declare -gA, flag prefix) MUST match.
   grep -qE "$array_re" "$pc_bad_gA" || {
     echo "FAIL (AC-001 positive-control): array-detector did not match 'declare -gA my_map' (flag-prefix form)." >&2
+    false
+  }
+  # Array-detector: BAD sample (typeset -A, bash synonym for declare -A) MUST match (MINOR-4).
+  local pc_bad_typeset
+  pc_bad_typeset="${BATS_TEST_TMPDIR}/pc_ac001_bad_typeset.sh"
+  printf 'typeset -A my_map\n' > "$pc_bad_typeset"
+  grep -qE "$array_re" "$pc_bad_typeset" || {
+    echo "FAIL (AC-001 positive-control / MINOR-4): array-detector did not match 'typeset -A my_map'." >&2
+    echo "  typeset is a bash synonym for declare and must be in the array_re alternation." >&2
     false
   }
   # Array-detector: BAD sample (declare -A at end-of-line, no var name — EOL -A form).
@@ -4122,6 +4133,21 @@ EOF
     echo "FAIL (AC-001 positive-control): array-detector falsely matched 'declare -a' (POSIX indexed array; bash-3-safe)." >&2
     false
   }
+  # Array-detector (with comment-strip pre-filter): a declare -A/local -A token appearing
+  # ONLY inside a comment MUST NOT match (adversary MAJOR-1). Parity with the guard oracle's
+  # F-P14-001 comment-strip below. Without this fix, the has_arrays trigger loop ran
+  # grep -qE "$array_re" with no comment-strip, so a comment mentioning a removed 'declare -A'
+  # (e.g. real code refactored to indexed -a) set has_arrays=1 even though no live
+  # associative array remains in the file — a false-positive AC-001 FAIL on benign code.
+  local pc_commented_arr
+  pc_commented_arr="${BATS_TEST_TMPDIR}/pc_ac001_commented_arr.sh"
+  printf '# declare -A my_map (refactored to indexed array below; guard no longer needed)\ndeclare -a my_arr\n' > "$pc_commented_arr"
+  ! grep -vE '^[[:space:]]*#' "$pc_commented_arr" | grep -qE "$array_re" || {
+    echo "FAIL (AC-001 positive-control / MAJOR-1): array-detector (with comment-strip) falsely matched" >&2
+    echo "  'declare -A' appearing only in a comment line. The has_arrays trigger loop must strip" >&2
+    echo "  comment lines before applying array_re, matching the has_guard loop's pre-filter." >&2
+    false
+  }
   # Guard-detector: executable conditional MUST match (non-comment [ or (( precedes BASH_VERSINFO).
   grep -vE '^[[:space:]]*#' "$pc_good_guard" | grep -qE "$guard_re" || {
     echo "FAIL (AC-001 positive-control): guard-detector did not match 'if [ ... BASH_VERSINFO' form." >&2
@@ -4142,13 +4168,16 @@ EOF
   }
   # -------------------------------------------
 
-  # Check whether any file uses local -A or declare -A (bash 4+ associative arrays).
+  # Check whether any file uses local -A, declare -A, or typeset -A (bash 4+ associative arrays).
   # Broadened: also catches combined flags (-Ax), prefix flags (-gA), and -A at end-of-line.
   # Does NOT catch -a (indexed arrays, bash-3-safe): [a-zA-Z]*A[a-zA-Z]* requires capital A.
+  # Comment-strip pre-filter (adversary MAJOR-1): parity with the has_guard loop below and
+  # the AC-002..005 scan loops — a declare -A/local -A appearing only in a comment must not
+  # false-trigger has_arrays.
   local has_arrays=0
   local f
   for f in "${sh_files[@]}"; do
-    if grep -qE "$array_re" "$f" 2>/dev/null; then
+    if grep -vE '^[[:space:]]*#' "$f" 2>/dev/null | grep -qE "$array_re"; then
       has_arrays=1
       break
     fi
@@ -4927,7 +4956,7 @@ EOF
 #   - The fix is REMOVAL of the python/pip invocation, not the addition of a guard.
 #
 # Detection: command-position anchoring analogous to jq_re (AC-005). Detects
-# python[0-9.]* and pip[0-9x]* as command tokens in all execution positions:
+# python[0-9.]* and pip[0-9x.]* as command tokens in all execution positions:
 # line-start, after ;/&&/&/||, $(...), backtick, brace-group, case-pattern body,
 # subshell, and keyword/wrapper positions (xargs/if/then/do/else/elif/time/env/
 # command/sudo).
@@ -4958,7 +4987,7 @@ EOF
   # variable names starting with "python", comments, or "python" as an echo argument.
   # python_re MUST BE BYTE-IDENTICAL to the real-scan-loop regex below.
   # Uses BATS_TEST_TMPDIR synthetic files; no real wave-handoff scripts are executed.
-  local python_re='(^[[:space:]]*(python[0-9.]*|pip[0-9x]*)([[:space:]]|$)|[|;&][[:space:]]*(python[0-9.]*|pip[0-9x]*)([[:space:]]|$)|\$[(](python[0-9.]*|pip[0-9x]*)([[:space:]]|$)|`(python[0-9.]*|pip[0-9x]*)([[:space:]]|$)|(xargs|if|then|do|else|elif|time|env|command|sudo)[[:space:]]+(python[0-9.]*|pip[0-9x]*)([[:space:]]|$)|xargs([[:space:]]+-[^[:space:]]+)+[[:space:]]+(python[0-9.]*|pip[0-9x]*)([[:space:]]|$)|\{[[:space:]]*(python[0-9.]*|pip[0-9x]*)([[:space:]]|$)|\)[[:space:]]*(python[0-9.]*|pip[0-9x]*)([[:space:]]|$)|\([[:space:]]*(python[0-9.]*|pip[0-9x]*)([[:space:]]|$))'
+  local python_re='(^[[:space:]]*(python[0-9.]*|pip[0-9x.]*)([[:space:]]|$)|[|;&][[:space:]]*(python[0-9.]*|pip[0-9x.]*)([[:space:]]|$)|\$[(](python[0-9.]*|pip[0-9x.]*)([[:space:]]|$)|`(python[0-9.]*|pip[0-9x.]*)([[:space:]]|$)|(xargs|if|then|do|else|elif|while|until|time|env|command|sudo)[[:space:]]+(python[0-9.]*|pip[0-9x.]*)([[:space:]]|$)|xargs([[:space:]]+-[^[:space:]]+)+[[:space:]]+(python[0-9.]*|pip[0-9x.]*)([[:space:]]|$)|\{[[:space:]]*(python[0-9.]*|pip[0-9x.]*)([[:space:]]|$)|\)[[:space:]]*(python[0-9.]*|pip[0-9x.]*)([[:space:]]|$)|\([[:space:]]*(python[0-9.]*|pip[0-9x.]*)([[:space:]]|$))'
 
   local pc_bad_py3 pc_bad_py2 pc_bad_pip3 pc_bad_pipx pc_bad_py311 pc_bad_stdlib
   local pc_bad_py3_cmdsubst pc_bad_sudo_py3
@@ -4969,6 +4998,7 @@ EOF
   local pc_bad_py3_xargs_opts pc_bad_py3_brace pc_bad_py3_case_paren pc_bad_py3_subshell
   local pc_bad_pip3_and pc_good_other_cmdsubst_py pc_bad_py_with_preflight
   local pc_good_py_func_brace pc_good_py_var_expansion
+  local pc_bad_py3_while pc_bad_py3_until pc_bad_pip311
 
   pc_bad_py3="${BATS_TEST_TMPDIR}/pc_ac004_bad_py3.sh"
   pc_bad_py2="${BATS_TEST_TMPDIR}/pc_ac004_bad_py2.sh"
@@ -5002,11 +5032,16 @@ EOF
   pc_bad_py_with_preflight="${BATS_TEST_TMPDIR}/pc_ac004_bad_py_with_preflight.sh"
   pc_good_py_func_brace="${BATS_TEST_TMPDIR}/pc_ac004_good_py_func_brace.sh"
   pc_good_py_var_expansion="${BATS_TEST_TMPDIR}/pc_ac004_good_py_var_expansion.sh"
+  pc_bad_py3_while="${BATS_TEST_TMPDIR}/pc_ac004_bad_py3_while.sh"
+  pc_bad_py3_until="${BATS_TEST_TMPDIR}/pc_ac004_bad_py3_until.sh"
+  pc_bad_pip311="${BATS_TEST_TMPDIR}/pc_ac004_bad_pip311.sh"
 
   printf 'python3 script.py\n' > "$pc_bad_py3"
   printf 'python2 -c "import os; os.system(\"id\")"\n' > "$pc_bad_py2"
   printf 'pip3 install requests\n' > "$pc_bad_pip3"
   printf 'pipx run cowsay hello\n' > "$pc_bad_pipx"
+  # MINOR-5: dotted pip binary ('pip3.11') MUST be detected symmetrically with 'python3.11'.
+  printf 'pip3.11 install pyyaml\n' > "$pc_bad_pip311"
   printf 'python3.11 -c "import yaml; print(yaml.safe_load(open(f)))"\n' > "$pc_bad_py311"
   # F-P11-001 Option A: stdlib python invocation is NOW a violation (EC-002 exemption removed).
   # This fixture was formerly a GOOD/negative control; it is now a BAD/positive control.
@@ -5030,6 +5065,9 @@ EOF
   printf 'do python3 process.py\n' > "$pc_bad_py3_do"
   printf 'else python3 fallback.py\n' > "$pc_bad_py3_else"
   printf 'elif python3 check.py\n' > "$pc_bad_py3_elif"
+  # MINOR-2: while/until condition positions MUST be detected (keyword wrapper group).
+  printf 'while python3 poll.py; do sleep 1; done\n' > "$pc_bad_py3_while"
+  printf 'until python3 check.py; do sleep 1; done\n' > "$pc_bad_py3_until"
   printf 'time python3 bench.py\n' > "$pc_bad_py3_time"
   printf 'env python3 script.py\n' > "$pc_bad_py3_env"
   printf 'command python3 script.py\n' > "$pc_bad_py3_command"
@@ -5062,6 +5100,12 @@ EOF
   # BAD: 'pip3 install ...' MUST be detected.
   grep -qE "$python_re" "$pc_bad_pip3" || {
     echo "FAIL (AC-004 positive-control): python-detector did not match 'pip3 install ...' (line-start)." >&2
+    false
+  }
+  # BAD (MINOR-5): 'pip3.11 install ...' (dotted pip binary) MUST be detected.
+  grep -qE "$python_re" "$pc_bad_pip311" || {
+    echo "FAIL (AC-004 positive-control / MINOR-5): python-detector did not match 'pip3.11 install ...' (dotted pip binary)." >&2
+    echo "  pip[0-9x.]* must match version-dotted pip binaries, symmetric with python[0-9.]*." >&2
     false
   }
   # BAD: 'pipx run ...' MUST be detected.
@@ -5112,7 +5156,7 @@ EOF
     false
   }
   # GOOD (D-741 O-3 symmetry with jq's pc_good_func_brace): 'foo() { echo; }' function definition MUST NOT be detected.
-  # The { arm requires python[0-9.]*/pip[0-9x]* as the first token after '{[[:space:]]*'; here it's 'echo'.
+  # The { arm requires python[0-9.]*/pip[0-9x.]* as the first token after '{[[:space:]]*'; here it's 'echo'.
   ! grep -qE "$python_re" "$pc_good_py_func_brace" || {
     echo "FAIL (AC-004 negative-control / D-741 O-3): python-detector falsely matched 'foo() { echo; }' function definition." >&2
     echo "  The { arm must only fire when python/pip is the first command token after '{', not any other command." >&2
@@ -5129,7 +5173,7 @@ EOF
   # BAD (F-P12-001 arm 2): 'cmd | python3 ...' pipe MUST be detected ([|;&] arm).
   grep -qE "$python_re" "$pc_bad_py3_pipe" || {
     echo "FAIL (AC-004 positive-control / F-P12-001): python-detector did not match 'cmd | python3 ...' (pipe)." >&2
-    echo "  The [|;&][[:space:]]*(python[0-9.]*|pip[0-9x]*)([[:space:]]|\$) arm must match pipe." >&2
+    echo "  The [|;&][[:space:]]*(python[0-9.]*|pip[0-9x.]*)([[:space:]]|\$) arm must match pipe." >&2
     false
   }
   # BAD (F-P12-001 arm 2): 'cmd && python3 ...' and-chain MUST be detected ([|;&] arm).
@@ -5141,13 +5185,13 @@ EOF
   # BAD (F-P12-001 arm 4): backtick '\`python3 ...\`' MUST be detected.
   grep -qE "$python_re" "$pc_bad_py3_backtick" || {
     echo "FAIL (AC-004 positive-control / F-P12-001): python-detector did not match backtick '\`python3 ...\`' form." >&2
-    echo "  The \`(python[0-9.]*|pip[0-9x]*)([[:space:]]|\$) arm must match backtick substitution." >&2
+    echo "  The \`(python[0-9.]*|pip[0-9x.]*)([[:space:]]|\$) arm must match backtick substitution." >&2
     false
   }
   # BAD (F-P12-001 arm 5): 'if python3 ...' MUST be detected (keyword wrapper arm).
   grep -qE "$python_re" "$pc_bad_py3_if" || {
     echo "FAIL (AC-004 positive-control / F-P12-001): python-detector did not match 'if python3 ...' form." >&2
-    echo "  'if' must be in the keyword wrapper group (xargs|if|then|do|else|elif|time|env|command|sudo)." >&2
+    echo "  'if' must be in the keyword wrapper group (xargs|if|then|do|else|elif|while|until|time|env|command|sudo)." >&2
     false
   }
   # BAD (F-P12-001 arm 5): 'then python3 ...' MUST be detected (keyword wrapper arm).
@@ -5172,6 +5216,18 @@ EOF
   grep -qE "$python_re" "$pc_bad_py3_elif" || {
     echo "FAIL (AC-004 positive-control / F-P12-001): python-detector did not match 'elif python3 ...' form." >&2
     echo "  'elif' must be in the keyword wrapper group." >&2
+    false
+  }
+  # BAD (MINOR-2): 'while python3 ...' MUST be detected (keyword wrapper arm — while/until addition).
+  grep -qE "$python_re" "$pc_bad_py3_while" || {
+    echo "FAIL (AC-004 positive-control / MINOR-2): python-detector did not match 'while python3 ...' form." >&2
+    echo "  'while' must be in the keyword wrapper group (loop-condition command position)." >&2
+    false
+  }
+  # BAD (MINOR-2): 'until python3 ...' MUST be detected (keyword wrapper arm — while/until addition).
+  grep -qE "$python_re" "$pc_bad_py3_until" || {
+    echo "FAIL (AC-004 positive-control / MINOR-2): python-detector did not match 'until python3 ...' form." >&2
+    echo "  'until' must be in the keyword wrapper group (loop-condition command position)." >&2
     false
   }
   # BAD (F-P12-001 arm 5): 'time python3 ...' MUST be detected (keyword wrapper arm — O-3 addition).
@@ -5207,32 +5263,32 @@ EOF
   # BAD (F-P12-001 arm 7): '{ python3 ...; }' brace-group MUST be detected.
   grep -qE "$python_re" "$pc_bad_py3_brace" || {
     echo "FAIL (AC-004 positive-control / F-P12-001): python-detector did not match '{ python3 ...; }' brace-group form." >&2
-    echo "  Brace groups run in the current shell; arm: \\{[[:space:]]*(python[0-9.]*|pip[0-9x]*)([[:space:]]|\$)" >&2
+    echo "  Brace groups run in the current shell; arm: \\{[[:space:]]*(python[0-9.]*|pip[0-9x.]*)([[:space:]]|\$)" >&2
     false
   }
   # BAD (F-P12-001 arm 8): 'case $x in *) python3 ...' case-pattern-body MUST be detected.
   grep -qE "$python_re" "$pc_bad_py3_case_paren" || {
     echo "FAIL (AC-004 positive-control / F-P12-001): python-detector did not match 'case ... ) python3' case-body form." >&2
-    echo "  Case pattern-action bodies run in the current shell; arm: \\)[[:space:]]*(python[0-9.]*|pip[0-9x]*)([[:space:]]|\$)" >&2
+    echo "  Case pattern-action bodies run in the current shell; arm: \\)[[:space:]]*(python[0-9.]*|pip[0-9x.]*)([[:space:]]|\$)" >&2
     false
   }
   # BAD (F-P12-001 arm 9): '( python3 ... )' subshell MUST be detected.
   grep -qE "$python_re" "$pc_bad_py3_subshell" || {
     echo "FAIL (AC-004 positive-control / F-P12-001): python-detector did not match '( python3 ... )' subshell form." >&2
-    echo "  python3 in a subshell still executes; arm: \\([[:space:]]*(python[0-9.]*|pip[0-9x]*)([[:space:]]|\$)" >&2
+    echo "  python3 in a subshell still executes; arm: \\([[:space:]]*(python[0-9.]*|pip[0-9x.]*)([[:space:]]|\$)" >&2
     false
   }
   # BAD (F-P12-001 pip variant, arm 2): 'cmd && pip3 install ...' MUST be detected.
   grep -qE "$python_re" "$pc_bad_pip3_and" || {
     echo "FAIL (AC-004 positive-control / F-P12-001): python-detector did not match 'cmd && pip3 install ...' (pip3 and-chain)." >&2
-    echo "  pip[0-9x]* must be detected in the [|;&] arm, same as python[0-9.]*." >&2
+    echo "  pip[0-9x.]* must be detected in the [|;&] arm, same as python[0-9.]*." >&2
     false
   }
   # GOOD (F-P12-001 negative control): '\$(other_cmd ...)' MUST NOT be detected.
-  # The \$( arm only fires when python[0-9.]* or pip[0-9x]* immediately follows '$(', not other commands.
+  # The \$( arm only fires when python[0-9.]* or pip[0-9x.]* immediately follows '$(', not other commands.
   ! grep -qE "$python_re" "$pc_good_other_cmdsubst_py" || {
     echo "FAIL (AC-004 negative-control / F-P12-001): python-detector falsely matched '\$(other_cmd script.py)'." >&2
-    echo "  The \\\$( arm must require python[0-9.]*/pip[0-9x]* as the immediate next token after '\$(', not any command." >&2
+    echo "  The \\\$( arm must require python[0-9.]*/pip[0-9x.]* as the immediate next token after '\$(', not any command." >&2
     false
   }
   # BAD (F-P13-002 / Option A symmetric python preflight): python3 WITH 'command -v python3'
@@ -5338,6 +5394,7 @@ EOF
   local pc_bad_jq_line_start pc_bad_jq_backtick pc_bad_jq_if pc_bad_jq_then pc_bad_jq_do
   local pc_bad_jq_elif pc_bad_jq_env pc_bad_jq_command pc_bad_jq_sudo
   local pc_bad_jq_with_preflight
+  local pc_bad_jq_while pc_bad_jq_until
   pc_bad_cmdsubst="${BATS_TEST_TMPDIR}/pc_ac005_bad_cmdsubst.sh"
   pc_bad_and="${BATS_TEST_TMPDIR}/pc_ac005_bad_and.sh"
   pc_bad_xargs="${BATS_TEST_TMPDIR}/pc_ac005_bad_xargs.sh"
@@ -5361,6 +5418,8 @@ EOF
   pc_bad_jq_command="${BATS_TEST_TMPDIR}/pc_ac005_bad_jq_command.sh"
   pc_bad_jq_sudo="${BATS_TEST_TMPDIR}/pc_ac005_bad_jq_sudo.sh"
   pc_bad_jq_with_preflight="${BATS_TEST_TMPDIR}/pc_ac005_bad_jq_with_preflight.sh"
+  pc_bad_jq_while="${BATS_TEST_TMPDIR}/pc_ac005_bad_jq_while.sh"
+  pc_bad_jq_until="${BATS_TEST_TMPDIR}/pc_ac005_bad_jq_until.sh"
   printf 'result=$(jq -r .name input.json)\n' > "$pc_bad_cmdsubst"
   printf 'cmd && jq ".key" file.json\n' > "$pc_bad_and"
   printf 'find . -name "*.json" | xargs jq ".id"\n' > "$pc_bad_xargs"
@@ -5384,12 +5443,15 @@ EOF
   printf "env jq '.key' file.json\n" > "$pc_bad_jq_env"
   printf "command jq '.key' file.json\n" > "$pc_bad_jq_command"
   printf "sudo jq '.key' file.json\n" > "$pc_bad_jq_sudo"
+  # MINOR-2: while/until condition positions MUST be detected (keyword wrapper group).
+  printf "while jq -e . state.json; do sleep 1; done\n" > "$pc_bad_jq_while"
+  printf "until jq -e . state.json; do sleep 1; done\n" > "$pc_bad_jq_until"
   # Option A flip: jq WITH 'command -v jq' preflight is STILL a violation.
   printf 'command -v jq >/dev/null 2>&1 || { echo "ERROR: jq is required" >&2; exit 1; }\njq -r .name input.json\n' > "$pc_bad_jq_with_preflight"
   # F-P8-001 + O-3 broadened jq_re: adds time|env|command|sudo to the keyword wrapper group;
   # adds xargs-with-options arm; adds brace-group, case-pattern-body, and subshell arms.
   # Positive-control regex MUST BE BYTE-IDENTICAL to the real-scan-loop regex below.
-  local jq_re='(^[[:space:]]*jq([[:space:]]|$)|[|;&][[:space:]]*jq([[:space:]]|$)|\$[(]jq([[:space:]]|$)|`jq([[:space:]]|$)|(xargs|if|then|do|else|elif|time|env|command|sudo)[[:space:]]+jq([[:space:]]|$)|xargs([[:space:]]+-[^[:space:]]+)+[[:space:]]+jq([[:space:]]|$)|\{[[:space:]]*jq([[:space:]]|$)|\)[[:space:]]*jq([[:space:]]|$)|\([[:space:]]*jq([[:space:]]|$))'
+  local jq_re='(^[[:space:]]*jq([[:space:]]|$)|[|;&][[:space:]]*jq([[:space:]]|$)|\$[(]jq([[:space:]]|$)|`jq([[:space:]]|$)|(xargs|if|then|do|else|elif|while|until|time|env|command|sudo)[[:space:]]+jq([[:space:]]|$)|xargs([[:space:]]+-[^[:space:]]+)+[[:space:]]+jq([[:space:]]|$)|\{[[:space:]]*jq([[:space:]]|$)|\)[[:space:]]*jq([[:space:]]|$)|\([[:space:]]*jq([[:space:]]|$))'
   # BAD: command-substitution $(jq ...) MUST be detected.
   grep -qE "$jq_re" "$pc_bad_cmdsubst" || {
     echo "FAIL (AC-005 positive-control): jq-detector did not match '\$(jq ...)' command-substitution form." >&2
@@ -5487,7 +5549,7 @@ EOF
   # BAD (F-P13-001): 'if jq ...' MUST be detected (if arm in keyword group).
   grep -qE "$jq_re" "$pc_bad_jq_if" || {
     echo "FAIL (AC-005 positive-control / F-P13-001): jq-detector did not match 'if jq' form." >&2
-    echo "  'if' must be in the keyword wrapper group (xargs|if|then|do|else|elif|time|env|command|sudo)." >&2
+    echo "  'if' must be in the keyword wrapper group (xargs|if|then|do|else|elif|while|until|time|env|command|sudo)." >&2
     false
   }
   # BAD (F-P13-001): 'then jq ...' MUST be detected (then arm in keyword group).
@@ -5506,6 +5568,18 @@ EOF
   grep -qE "$jq_re" "$pc_bad_jq_elif" || {
     echo "FAIL (AC-005 positive-control / F-P13-001): jq-detector did not match 'elif jq' form." >&2
     echo "  'elif' must be in the keyword wrapper group." >&2
+    false
+  }
+  # BAD (MINOR-2): 'while jq ...' MUST be detected (keyword wrapper arm — while/until addition).
+  grep -qE "$jq_re" "$pc_bad_jq_while" || {
+    echo "FAIL (AC-005 positive-control / MINOR-2): jq-detector did not match 'while jq' form." >&2
+    echo "  'while' must be in the keyword wrapper group (loop-condition command position)." >&2
+    false
+  }
+  # BAD (MINOR-2): 'until jq ...' MUST be detected (keyword wrapper arm — while/until addition).
+  grep -qE "$jq_re" "$pc_bad_jq_until" || {
+    echo "FAIL (AC-005 positive-control / MINOR-2): jq-detector did not match 'until jq' form." >&2
+    echo "  'until' must be in the keyword wrapper group (loop-condition command position)." >&2
     false
   }
   # BAD (F-P13-001): 'env jq ...' MUST be detected (env arm in keyword group — O-3 addition).
@@ -5544,7 +5618,7 @@ EOF
   #   [|;&][[:space:]]*jq([[:space:]]|$)                   — after |, ;, &  (covers |, ||, &&)
   #   \$[(]jq([[:space:]]|$)                               — command substitution $(jq ...)
   #   `jq([[:space:]]|$)                                   — backtick command substitution
-  #   (xargs|if|then|do|else|elif|time|env|command|sudo)[[:space:]]+jq(...)
+  #   (xargs|if|then|do|else|elif|while|until|time|env|command|sudo)[[:space:]]+jq(...)
   #                                                        — keyword/wrapper-prefixed invocations
   #   xargs([[:space:]]+-[^[:space:]]+)+[[:space:]]+jq(...)— xargs with intervening options
   #   \{[[:space:]]*jq([[:space:]]|$)                     — brace-group current-shell execution

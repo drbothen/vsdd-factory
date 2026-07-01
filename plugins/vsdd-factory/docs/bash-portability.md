@@ -15,12 +15,13 @@ missed. Each anti-pattern below has a matching bats test in
 
 ## 1. Unguarded bash 4+ associative arrays (AC-001)
 
-**Pattern detected:** `local -A varname`, `declare -A varname`, or any flag string
-containing `A` at any position, such as `local -Ax` or `declare -gA`, in any
-wave-handoff script. Lowercase `-a` (indexed arrays, bash-3-safe) is NOT flagged.
+**Pattern detected:** `local -A varname`, `declare -A varname`, `typeset -A varname`
+(`typeset` is a bash synonym for `declare`), or any flag string containing `A` at any
+position, such as `local -Ax` or `declare -gA`, in any wave-handoff script. Lowercase
+`-a` (indexed arrays, bash-3-safe) is NOT flagged.
 
 **Why it breaks:** macOS ships bash 3.2 at `/bin/bash`. Homebrew bash is not on PATH
-by default. `local -A` and `declare -A` are bash 4+ features. On bash 3.2 they do not
+by default. `local -A`, `declare -A`, and `typeset -A` are bash 4+ features. On bash 3.2 they do not
 produce a parse-time error — the function body parses without complaint. Instead they
 produce a **runtime** builtin error (`declare: -A: invalid option`) at the moment the
 builtin executes, which only happens if the array-using function is actually invoked.
@@ -30,7 +31,7 @@ commit ea7328ac.
 
 The entrypoint guard works because `wave-handoff.sh` runs the `${BASH_VERSINFO[0]} -lt 4`
 check at the top of the script, before it `source`s any `lib/*.sh` script, and exits. The lib functions
-that use `local -A` or `declare -A` are therefore never reached on bash 3.2, and the
+that use `local -A`, `declare -A`, or `typeset -A` are therefore never reached on bash 3.2, and the
 runtime builtin error never fires. Per-function guards inside individual lib functions
 are not impossible — they are simply unnecessary given the entrypoint early-exit.
 
@@ -56,9 +57,10 @@ code path crashes on bash 3.2 at runtime. Any new entrypoint that sources these 
 must carry its own bash-4 guard.
 
 **What the guard checks:** If any file in the scan set matches
-`(local|declare)[[:space:]]+-[a-zA-Z]*A[a-zA-Z]*([[:space:]]|$)` — covering bare `-A`, compound flags
-with `A` at any position such as `-Ax` or `-gA`, and `-A` at end-of-line, but NOT
-lowercase `-a` (indexed arrays, which are bash-3-safe) — the test then verifies that an
+`(local|declare|typeset)[[:space:]]+-[a-zA-Z]*A[a-zA-Z]*([[:space:]]|$)` — covering bare `-A`, compound flags
+with `A` at any position such as `-Ax` or `-gA`, and `-A` at end-of-line, on any of `local`,
+`declare`, or `typeset` (a bash synonym for `declare`), but NOT lowercase `-a` (indexed
+arrays, which are bash-3-safe) — the test then verifies that an
 **executable** (non-comment) bash-version conditional exists in the scan set. Specifically,
 the detector strips comment lines (`^[[:space:]]*#`) from each file before applying the
 guard pattern `([[].*BASH_VERSINFO|[(][(].*BASH_VERSINFO)`, which requires either `[` or `((`
@@ -204,7 +206,8 @@ Wave-handoff scripts must not invoke external tools. Two tools are guarded: pyth
 
 **Pattern detected:** Any invocation of `python`, `python2`, `python3`, a
 version-suffixed variant such as `python3.11` or `python3.12`, `pip`, `pip2`, `pip3`,
-or `pipx` in a command position in any wave-handoff script.
+a dotted version-suffixed pip variant such as `pip3.11` (symmetric with the
+`python3.11` form), or `pipx` in a command position in any wave-handoff script.
 
 **No exceptions:** There is no stdlib exemption and no preflight-acceptance path.
 `python3 -c 'import json'` is a violation. `python3 -c 'import yaml'` is a violation.
@@ -219,6 +222,7 @@ python3 -c 'import json; print(x)'          # stdlib python3 — still flagged
 python3 -c 'import yaml; ...'               # third-party python3 — still flagged
 python2 parse.py                             # python2 variant
 pip3 install pyyaml                          # pip3 invocation
+pip3.11 install pyyaml                       # dotted version-suffixed pip3.11 invocation
 pipx run black .                             # pipx invocation
 $(python3 -c 'import json; ...')             # command substitution — flagged
 | python3 -c '...'                           # pipe position — flagged
@@ -239,12 +243,13 @@ fragility. (Background: `.factory/planning/research/s-18.12-python-dep-policy.md
 **Required fix:** Remove the python/pip invocation entirely. Replace with a POSIX
 portable alternative using `awk`, `grep`, or `sed`.
 
-**What the guard checks:** Detects `python[0-9.]*` and `pip[0-9x]*` as command tokens
-in all execution positions using command-position anchoring analogous to the jq detector
-(AC-005). The detector regex is:
+**What the guard checks:** Detects `python[0-9.]*` and `pip[0-9x.]*` (dotted, matching
+`pip3.11` symmetrically with the `python3.11` form) as command tokens in all execution
+positions using command-position anchoring analogous to the jq detector (AC-005),
+including the same `while` and `until` wrapper keywords as AC-005. The detector regex is:
 
 ```
-(^[[:space:]]*(python[0-9.]*|pip[0-9x]*)([[:space:]]|$)|[|;&][[:space:]]*(python[0-9.]*|pip[0-9x]*)([[:space:]]|$)|\$[(](python[0-9.]*|pip[0-9x]*)([[:space:]]|$)|`(python[0-9.]*|pip[0-9x]*)([[:space:]]|$)|(xargs|if|then|do|else|elif|time|env|command|sudo)[[:space:]]+(python[0-9.]*|pip[0-9x]*)([[:space:]]|$)|xargs([[:space:]]+-[^[:space:]]+)+[[:space:]]+(python[0-9.]*|pip[0-9x]*)([[:space:]]|$)|\{[[:space:]]*(python[0-9.]*|pip[0-9x]*)([[:space:]]|$)|\)[[:space:]]*(python[0-9.]*|pip[0-9x]*)([[:space:]]|$)|\([[:space:]]*(python[0-9.]*|pip[0-9x]*)([[:space:]]|$))
+(^[[:space:]]*(python[0-9.]*|pip[0-9x.]*)([[:space:]]|$)|[|;&][[:space:]]*(python[0-9.]*|pip[0-9x.]*)([[:space:]]|$)|\$[(](python[0-9.]*|pip[0-9x.]*)([[:space:]]|$)|`(python[0-9.]*|pip[0-9x.]*)([[:space:]]|$)|(xargs|if|then|do|else|elif|while|until|time|env|command|sudo)[[:space:]]+(python[0-9.]*|pip[0-9x.]*)([[:space:]]|$)|xargs([[:space:]]+-[^[:space:]]+)+[[:space:]]+(python[0-9.]*|pip[0-9x.]*)([[:space:]]|$)|\{[[:space:]]*(python[0-9.]*|pip[0-9x.]*)([[:space:]]|$)|\)[[:space:]]*(python[0-9.]*|pip[0-9x.]*)([[:space:]]|$)|\([[:space:]]*(python[0-9.]*|pip[0-9x.]*)([[:space:]]|$))
 ```
 
 Any match is a violation. The test is single-phase (no preflight-acceptance phase).
@@ -259,8 +264,8 @@ because `_bin` immediately follows `python`, not a space or end-of-line.
 position: at the start of a line, after a pipe (`|`), after a semicolon (`;`), after an
 ampersand (`&`), inside a command substitution (`$(jq ...)` or backtick form), as an
 argument to `xargs` (including `xargs` with intervening options such as `xargs -n1 jq`),
-following wrapper keywords `if`, `then`, `do`, `else`, `elif`, `time`, `env`, `command`,
-or `sudo`, inside a brace group (`{ jq . f; }`), as a case-pattern-action (`case $x in
+following wrapper keywords `if`, `then`, `do`, `else`, `elif`, `while`, `until`, `time`,
+`env`, `command`, or `sudo`, inside a brace group (`{ jq . f; }`), as a case-pattern-action (`case $x in
 p) jq … ;;`), or inside a subshell (`( jq … )`).
 
 **No exceptions:** There is no preflight-acceptance path. A `command -v jq` preflight
@@ -293,13 +298,13 @@ alternative using `awk`, `grep`, or `sed`.
 execution position using POSIX ERE (no `\b` shorthand). The detector regex is:
 
 ```
-(^[[:space:]]*jq([[:space:]]|$)|[|;&][[:space:]]*jq([[:space:]]|$)|\$[(]jq([[:space:]]|$)|`jq([[:space:]]|$)|(xargs|if|then|do|else|elif|time|env|command|sudo)[[:space:]]+jq([[:space:]]|$)|xargs([[:space:]]+-[^[:space:]]+)+[[:space:]]+jq([[:space:]]|$)|\{[[:space:]]*jq([[:space:]]|$)|\)[[:space:]]*jq([[:space:]]|$)|\([[:space:]]*jq([[:space:]]|$))
+(^[[:space:]]*jq([[:space:]]|$)|[|;&][[:space:]]*jq([[:space:]]|$)|\$[(]jq([[:space:]]|$)|`jq([[:space:]]|$)|(xargs|if|then|do|else|elif|while|until|time|env|command|sudo)[[:space:]]+jq([[:space:]]|$)|xargs([[:space:]]+-[^[:space:]]+)+[[:space:]]+jq([[:space:]]|$)|\{[[:space:]]*jq([[:space:]]|$)|\)[[:space:]]*jq([[:space:]]|$)|\([[:space:]]*jq([[:space:]]|$))
 ```
 
 This covers `jq` at line-start, after pipe/semicolon/ampersand, inside `$(...)` or
 backtick command substitution, after `xargs` (with or without intervening options), after
-the wrapper keywords `if`, `then`, `do`, `else`, `elif`, `time`, `env`, `command`, and
-`sudo`, inside a brace group (`{ jq`), as a case-pattern-action body (`) jq`), and
+the wrapper keywords `if`, `then`, `do`, `else`, `elif`, `while`, `until`, `time`, `env`,
+`command`, and `sudo`, inside a brace group (`{ jq`), as a case-pattern-action body (`) jq`), and
 inside a subshell (`( jq`). Any match is a violation. The test is single-phase (no
 preflight-acceptance phase). No `jq` invocations currently exist in the wave-handoff
 scripts; this guard was added prospectively to prevent the dependency from being
