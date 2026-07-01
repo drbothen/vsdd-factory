@@ -5394,3 +5394,32 @@ assert_failure
 - This lesson adds: when ADDING arm-coverage to one detector (regardless of cause), sibling-sweep all structurally-identical detectors for the same arm-coverage depth obligation.
 
 **Cites:** D-736, S-18.12 LOCAL adv pass-12 F-P12-001, POLICY 11, POLICY 13, TD-VSDD-060, S-7.01, test-writer f725426e (18 additive fixtures; python_re 9-arm positive-control parity; no regex change; 68/68 GREEN).
+
+---
+
+## L-BB-scan-loop-and-controls-must-share-regex-variable
+
+**Date:** 2026-06-30 (D-737)
+**Tags:** [codified] [process-gap] [test-writer] [adversary] [POLICY 11]
+**Anchors:** D-737, S-18.12 LOCAL adv pass-13 F-P13-001, POLICY 11, TD-VSDD-060
+
+**Lesson (codified):** When a bats test carries BOTH positive/negative control assertions AND a scan loop over real files, BOTH code paths MUST reference the SAME single regex variable. An inline literal copy of the regex inside the scan loop — even if byte-identical to the variable's current value — is a latent false-green: the controls certify correctness of one expression while the scan loop runs a separately-maintained literal. A future patch that updates the variable but misses the literal (or vice versa) will produce silent divergence: controls pass vacuously while the scanner runs wrong patterns against real files.
+
+**Root cause pattern observed in S-18.12 pass-13:** After passes 1-12 added per-arm positive controls (POLICY 11 arm-coverage), the control assertions all referenced extracted regex variables. However, the scan loop over real wave-handoff files in each detector continued to use an inline hard-coded literal copy of the regex. Both the variable and the literal happened to be byte-identical — but the structural duplication created a divergence risk that any future edit to one could miss the other. The fresh-context adversary at pass-13 identified this as a latent false-green class independent of the current byte-identical state.
+
+**Prevention gate (codified):** For every detector test that contains both control assertions and a scan loop:
+
+1. Extract exactly ONE regex variable per detector (e.g., `array_re`, `guard_re`, `case_mod_re`, `python_re`, `jq_re`).
+2. BOTH the control assertions (`run bash -c "...$var..."` / `grep -E "$var"`) AND the scan loop (`grep -E "$var" "$file"`) MUST reference this SAME variable.
+3. Inline literal copies of the regex are FORBIDDEN in the scan loop once a variable extraction has been performed.
+4. At test-writer dispatch: after extracting regex variables for controls, grep the test file to confirm no inline literal of the same regex remains in the scan loop section.
+
+**The single-source-of-truth principle:** One variable definition governs the detector behavior for BOTH controls and the scan. "Controls certify the scan" is only true when controls and scan reference the same expression. Structural duplication breaks this guarantee even when the values are momentarily equal.
+
+**Complementary lessons:**
+- L-BB-regex-arm-must-have-positive-control (D-735): every regex alternation arm MUST have a dedicated positive control.
+- L-BB-sibling-sweep-same-contract-clause (D-735): when reconciling one detector to a contract clause, sibling-sweep all detectors governed by the same clause.
+- L-BB-per-arm-control-sibling-detector-sweep (D-736): when adding per-arm controls to one detector, sibling-sweep all structurally-identical detectors.
+- This lesson adds: once control assertions use a regex variable, the scan loop MUST also use that variable — no inline literal duplication allowed.
+
+**Cites:** D-737, S-18.12 LOCAL adv pass-13 F-P13-001, POLICY 11, test-writer b252c8fe (variable extraction: one regex variable per detector, referenced in both controls and scan loop; all regex STRING values byte-identical; 68/68 GREEN).

@@ -11148,6 +11148,108 @@ S-18.12 LOCAL adversarial cascade streak: 2/3 → **0/3** (NOT-CLEAN; F-P13-001 
 
 - `4353988e` — state(D-735): S-18.12 LOCAL adv pass-11 NOT-CLEAN closure burst (single commit per TD-VSDD-053; SHA-patch follow-up 7cf7a52b per D-447(c)+D-449(e))
 
+## D-737 — S-18.12 LOCAL adv pass-13 NOT-CLEAN closure — 2026-06-30
+
+### Parent-commit (Dim-3)
+
+`976cbc89` — factory-artifacts HEAD at burst start (state(D-736-sha-patch): record factory-artifacts HEAD 11f41673 in STATE.md + burst-log per D-447(c)+D-449(e)).
+
+### Adversary Verdict (Dim-7)
+
+S-18.12 LOCAL adversary pass-13: **NOT-CLEAN** — 0 HIGH / 2 MEDIUM / 4 LOW. Streak stays **0/3** per BC-5.39.001.
+
+**F-P13-001 (MEDIUM) — POLICY 11: scan-loop regex literal duplication (controls certify a regex the scan does not run):** Pass-13 fresh-context adversary reviewed f725426e/v1.11 (frozen artifact). In each of the five `test_portability_*` detectors, the scan loop over real wave-handoff files re-inlined a byte-identical literal copy of the detector regex, while the positive/negative control assertions referenced an extracted variable (`$array_re`, `$guard_re`, etc.). Even though the variable and literal were byte-identical at f725426e, this structural duplication creates a latent false-green: a future patch updating the variable without finding and patching the literal would silently diverge the two code paths. Controls would continue to pass while the scanner ran different patterns against real files. REMEDIATED: test-writer b252c8fe — extracted exactly one regex variable per detector (`array_re`/`guard_re`/`case_mod_re`/`ifs_step1_re`+step2+step3/`python_re`/`jq_re`) and referenced it via `"$var"` in BOTH controls AND scan-loop grep. All regex STRING values byte-identical (variable extraction only; no regex text changed). 68/68 bats GREEN confirmed at b252c8fe.
+
+**F-P13-002 (MEDIUM) — POLICY 11 / TD-VSDD-060 sibling-sweep: missing `pc_bad_py_with_preflight` symmetric twin control:** `test_portability_no_jq_shellout` had `pc_bad_jq_with_preflight` asserting preflight-guarded jq is STILL flagged (proving Option A: preflight does not exempt). Its declared twin `test_portability_no_python_shellout` (AC-004, same Option A policy) had no symmetric control. The AC-004 claim that preflight does not exempt python was therefore untested at the preflight-guarded invocation path. This is the same class as D-736 F-P12-001 (missing symmetric coverage across declared twins; TD-VSDD-060). REMEDIATED: test-writer b252c8fe — added `pc_bad_py_with_preflight` (`command -v python3 || exit 1; python3 script.py`) asserting `$python_re` flags it; byte-parity with `pc_bad_jq_with_preflight`. 68/68 bats GREEN confirmed at b252c8fe.
+
+**O-1 (LOW):** AC-002 `@[ULu]` covers only 3 case-transform operators; other bash-4.4 parameter transforms undetected; none present. ACCEPTED — prospective boundary; FREEZE DISCIPLINE.
+**O-2 (LOW):** `python_re`/`jq_re` keyword-wrapper arm has no left word boundary; substring over-match possible; no current occurrence. ACCEPTED — prospective boundary; inherent to grep static lint; FREEZE DISCIPLINE.
+**O-3 (LOW):** AC-001 array detector misses split-flag `declare -r -A`; not present currently. ACCEPTED — prospective boundary; FREEZE DISCIPLINE.
+**O-4 (LOW):** AC-001 guard detector confirms conditional present but not that it exits; real guard exits 1. ACCEPTED — prospective boundary; FREEZE DISCIPLINE.
+
+Source attestation (D-448(a)): above faithfully describes `s-18.12-local-adversary-pass-13.md` Part A finding set — NOT-CLEAN; 2 MEDIUM (F-P13-001/F-P13-002 both FIXED b252c8fe) + 4 LOW (O-1..O-4 all ACCEPTED); streak 0/3. No divergence from Part A.
+
+### Files Touched (Dim-1)
+
+**factory-artifacts branch (this D-737 burst — single commit per TD-VSDD-053):**
+- `cycles/v1.0-brownfield-backfill/s-18.12-local-adversary-pass-13.md` — NEW; pass-13 adversary report (verdict NOT-CLEAN; 2 MEDIUM F-P13-001/F-P13-002; 4 LOW O-1..O-4 accepted; remediation b252c8fe; streak 0/3; severity decay H→H→M→M→CLEAN→MED→CLEAN→MED→CLEAN→CLEAN→NC(H+M)→NC(H)→NC(M))
+- `stories/STORY-INDEX.md` — v4.118→v4.119 (S-18.12 body row pass-13 NOT-CLEAN annotation + feature HEAD f725426e→b252c8fe; `last_amended:` updated; `version:` bumped; POLICY 14 leg-5; GOVERNANCE-ONLY; story stays v1.11)
+- `cycles/v1.0-brownfield-backfill/decision-log.md` — D-737 block appended (prose section before D-736)
+- `cycles/v1.0-brownfield-backfill/lessons.md` — L-BB-scan-loop-and-controls-must-share-regex-variable appended
+- `cycles/v1.0-brownfield-backfill/burst-log.md` — D-737 entry appended (this file)
+- `.factory/STATE.md` — v4.87→v4.88 (D-737 banner + frontmatter advance + SIZE BUDGET D-732..D-736 collapsed + Active Branches feature/S-18.12 f725426e→b252c8fe + Concurrent Cycles row + Decisions Log D-737 + §3 D-737 carry + §4 D-737 + §8 STORY-INDEX v4.119 + §9 factory-artifacts HEAD + §11 items 1/3/7/8/10 + §12 3e-S18.12 + Last Updated + Current Phase + Drift Item [process-gap] D-737 + Session Resume Checkpoint FULL REFRESH for zero-context resume into pass-14)
+
+**feature/S-18.12 branch (remediation commit):**
+- `b252c8fe` — test(S-18.12): remediate F-P13-001/F-P13-002 (test-writer: variable extraction one-regex-var-per-detector + pc_bad_py_with_preflight symmetric twin; no regex change; 68/68 GREEN)
+
+**NOT committed in this burst (develop/main unchanged):**
+- No code changes to develop (feature branch local, not pushed per STOP-BEFORE-PR-MERGE D-665)
+- develop_head 531dacfb UNCHANGED; merged_count 95 UNCHANGED; total_bcs 1,974 UNCHANGED
+
+### Codifications (Dim-6)
+
+- **D-737** decision-log block codified: S-18.12 LOCAL adv pass-13 NOT-CLEAN; F-P13-001 MEDIUM (scan-loop regex literal duplication; POLICY 11); F-P13-002 MEDIUM (missing pc_bad_py_with_preflight symmetric twin; POLICY 11/TD-VSDD-060); O-1..O-4 accepted; streak 0/3; feature HEAD b252c8fe.
+- **STORY-INDEX v4.118→v4.119**: S-18.12 row annotation pass-13 NOT-CLEAN + feature HEAD b252c8fe (POLICY 14 leg-5; GOVERNANCE-ONLY; story stays v1.11 — no AC change).
+- **L-BB-scan-loop-and-controls-must-share-regex-variable**: codified in lessons.md — when a test carries controls AND a scan loop, BOTH must reference the SAME single regex variable; inline literal in scan loop = latent false-green; controls certify one expression while scan runs another on version drift.
+- **STATE.md v4.87→v4.88**: D-737 closure + FULL Session Resume Checkpoint refresh for zero-context pass-14 resume.
+
+### Dim-2 (4-Index Parity Gate — D-449(a) literal-shell execution evidence)
+
+Gate command:
+```bash
+grep "^version:" \
+  .factory/specs/behavioral-contracts/BC-INDEX.md \
+  .factory/specs/verification-properties/VP-INDEX.md \
+  .factory/stories/STORY-INDEX.md \
+  .factory/specs/architecture/ARCH-INDEX.md
+```
+
+Captured stdout (post-STORY-INDEX v4.119 update, pre-commit):
+```
+.factory/specs/behavioral-contracts/BC-INDEX.md:version: "3.57"
+.factory/specs/verification-properties/VP-INDEX.md:version: "2.51"
+.factory/stories/STORY-INDEX.md:version: "4.119"
+.factory/specs/architecture/ARCH-INDEX.md:version: "2.85"
+```
+
+Gate result: PASS. BC-INDEX v3.57 (UNCHANGED), VP-INDEX v2.51 (UNCHANGED), STORY-INDEX v4.119 (BUMPED D-737), ARCH-INDEX v2.85 (UNCHANGED). Zero FAIL.
+
+### Dim-5 (8-Block Presence Gate — D-446(a))
+
+This burst-log entry contains all 8 D-444(c) mandatory blocks:
+1. Parent-commit: `976cbc89` (state(D-736-sha-patch) SHA-patch follow-up; factory-artifacts HEAD at burst start)
+2. Adversary verdict: NOT-CLEAN; 2 MEDIUM F-P13-001/F-P13-002 (both FIXED b252c8fe) + 4 LOW (O-1..O-4 accepted); streak 0/3
+3. Files touched: pass-13 report + STORY-INDEX + decision-log + lessons + burst-log + STATE.md; feature b252c8fe
+4. Codifications (Dim-6): D-737 + STORY-INDEX v4.119 + L-BB-scan-loop-and-controls-must-share-regex-variable + STATE.md v4.88
+5. Dim-2: 4-index parity gate with literal-shell stdout above
+6. Dim-5: This block (8-block self-verification)
+7. Closes: pass-13 NOT-CLEAN closure; streak 0/3; F-P13-001/F-P13-002 remediated (b252c8fe); O-1..O-4 accepted; ARTIFACTS FROZEN b252c8fe/v1.11; SESSION CHECKPOINT refreshed for zero-context pass-14 resume
+8. Factory-artifacts commits: `[SHA-TO-BE-FILLED-BY-SHA-PATCH]` state(D-737): S-18.12 LOCAL adv pass-13 NOT-CLEAN closure (single commit per TD-VSDD-053; SHA-patch follow-up per D-447(c)+D-449(e))
+
+All 8 blocks present. Gate: PASS.
+
+### Dim-7 (Streak Status)
+
+S-18.12 LOCAL adversarial cascade streak: stays **0/3** (NOT-CLEAN; 2 MEDIUM). NEXT: pass-14 (fresh context; streak 0/3; ARTIFACTS FROZEN at b252c8fe/v1.11 — fix ONLY genuine blockers; accept prospective LOWs O-1..O-4 as documented scope boundaries).
+
+### Closes
+
+- S-18.12 LOCAL adv pass-13: **NOT-CLEAN** (2 MEDIUM + 4 LOW). Streak stays 0/3. Pass-14 NEXT.
+- F-P13-001 (POLICY 11 scan-loop regex literal duplication): **REMEDIATED** — test-writer b252c8fe (variable extraction one-regex-var-per-detector; all regex values UNCHANGED; 68/68 GREEN).
+- F-P13-002 (POLICY 11 / TD-VSDD-060 sibling-sweep missing pc_bad_py_with_preflight): **REMEDIATED** — test-writer b252c8fe (added symmetric python preflight positive control; byte-parity with jq twin; 68/68 GREEN).
+- O-1 (AC-002 `@`-operators beyond `@[ULu]`): **ACCEPTED** (prospective; FREEZE DISCIPLINE).
+- O-2 (`python_re`/`jq_re` keyword-wrapper no left word boundary): **ACCEPTED** (prospective; FREEZE DISCIPLINE).
+- O-3 (AC-001 split-flag `declare -r -A` miss): **ACCEPTED** (prospective; FREEZE DISCIPLINE).
+- O-4 (AC-001 guard detector paper-guard): **ACCEPTED** (prospective; FREEZE DISCIPLINE).
+- STORY-INDEX v4.119 (S-18.12 row pass-13 annotation + b252c8fe feature HEAD; POLICY 14 leg-5): **DONE** (state-manager this burst).
+- Session Resume Checkpoint refreshed for zero-context resume into S-18.12 LOCAL adv pass-14: **DONE**.
+- **[process-gap] recurring POLICY 11 twin-control parity missing**: Drift Item added to STATE.md (D-737-twin-control-parity-mechanical-gate anchor; target: E-18 F3 follow-up gate story or next cycle mechanical gate). Same class as D-736 F-P12-001 (sibling-sweep miss); 2nd occurrence in consecutive passes; warrants mechanical gate.
+- **feature/S-18.12 DURABILITY NOTE:** Branch is LOCAL (not pushed per STOP-BEFORE-PR-MERGE D-665). HEAD b252c8fe. Worktree at `.worktrees/S-18.12`. If session restarts and worktree is missing, recreate with: `git worktree add .worktrees/S-18.12 feature/S-18.12`. Branch is local-only.
+
+### Factory-artifacts Commits
+
+- `[SHA-TO-BE-FILLED-BY-SHA-PATCH]` — state(D-737): S-18.12 LOCAL adv pass-13 NOT-CLEAN closure (single commit per TD-VSDD-053; SHA-patch follow-up per D-447(c)+D-449(e))
+
 ## D-736 — S-18.12 LOCAL adv pass-12 NOT-CLEAN closure + SESSION-CHECKPOINT REFRESH — 2026-06-30
 
 ### Parent-commit (Dim-3)

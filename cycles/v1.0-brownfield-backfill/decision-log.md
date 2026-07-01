@@ -4659,6 +4659,69 @@ Severity decay H→H→M→M→CLEAN→MED→CLEAN→MED→CLEAN→CLEAN→NC(H+
 
 S-18.12 LOCAL adversarial pass-12. Fresh context. Streak **0/3**. ARTIFACTS FROZEN at e122cdb0/v1.11 — fix ONLY genuine blockers from pass-12; accept prospective LOWs as documented boundaries per L-S18.12-asymptotic-clean-accept-prospective-lows-for-streak. STOP-BEFORE-PR-MERGE (D-665) holds.
 
+## D-737 — S-18.12 LOCAL adv pass-13 NOT-CLEAN closure — 2026-06-30
+
+### Verdict
+
+S-18.12 LOCAL adversarial pass-13: **NOT-CLEAN** (0 HIGH / 2 MEDIUM / 4 LOW). Streak stays **0/3** per BC-5.39.001.
+
+### Root Cause — F-P13-001 (POLICY 11 scan-loop regex literal duplication)
+
+Each of the five `test_portability_*` detectors in `wave-handoff.bats` re-inlined a byte-identical literal copy of the detector regex inside the scan loop over real files, instead of reusing the same regex variable that the positive/negative control assertions reference. This creates a latent false-green: controls certify one expression, while the scan loop runs a separately-maintained literal. A future patch to the controls' regex variable that misses the scan-loop literal would silently diverge the two code paths — the control would still pass while the scan runs different patterns against real files.
+
+### Root Cause — F-P13-002 (POLICY 11 / TD-VSDD-060 sibling-sweep: missing `pc_bad_py_with_preflight`)
+
+`test_portability_no_jq_shellout` included `pc_bad_jq_with_preflight` asserting preflight-guarded jq is STILL flagged (proving Option A: preflight does not exempt). Its declared twin `test_portability_no_python_shellout` (AC-004, same Option A policy) had no symmetric `pc_bad_py_with_preflight` control. TD-VSDD-060 sibling-sweep miss: when the jq preflight positive control was added, the python twin did not receive parity treatment, leaving the AC-004 Option A "preflight does not exempt" claim untested.
+
+This is a RECURRENCE of the D-736 sibling-sweep class (F-P12-001 missing symmetric coverage across declared twins). Assessment: this recurring POLICY 11 / TD-VSDD-060 pattern warrants a mechanical gate story — see Drift Item below (D-737 process-gap anchor).
+
+### Findings Summary
+
+| ID | Severity | Description | Disposition |
+|----|----------|-------------|-------------|
+| F-P13-001 | MEDIUM (blocking) | **POLICY 11: scan-loop over real files re-inlines regex literal instead of reusing control variable.** Five detectors each maintain a hard-coded literal copy of the regex in the scan loop while controls reference a variable — latent false-green if regex variable and literal diverge. | **REMEDIATED** — test-writer b252c8fe: extracted one regex variable per detector (`array_re`/`guard_re`/`case_mod_re`/`ifs_step1_re`+step2+step3/`python_re`/`jq_re`); BOTH controls AND scan-loop grep reference `"$var"`; all regex STRING values byte-identical (variable extraction only; no regex change). 68/68 bats GREEN at b252c8fe. |
+| F-P13-002 | MEDIUM (blocking) | **POLICY 11 / TD-VSDD-060 sibling-sweep: `test_portability_no_python_shellout` missing `pc_bad_py_with_preflight` symmetric twin control.** jq twin has it; python twin does not → AC-004 Option A "preflight does not exempt" claim untested for python. | **REMEDIATED** — test-writer b252c8fe: added `pc_bad_py_with_preflight` asserting `$python_re` flags `command -v python3 || exit 1; python3 script.py`; byte-parity with `pc_bad_jq_with_preflight`. 68/68 bats GREEN at b252c8fe. |
+| O-1 | LOW (non-blocking, prospective) | AC-002 `@[ULu]` covers only 3 bash-4.4 case transforms; other `@`-operators (`@Q`/`@E`/`@P`/`@A`/`@K`/`@k`/`@a`) undetected; none present in scan set. | **ACCEPTED** — documented prospective scope boundary; FREEZE DISCIPLINE. |
+| O-2 | LOW (non-blocking, prospective / over-match) | `python_re`/`jq_re` keyword-wrapper arm has no left word boundary; substring over-match possible (`subcommand python3`, comment); no current occurrence. | **ACCEPTED** — documented prospective scope boundary; inherent to grep static lint; FREEZE DISCIPLINE. |
+| O-3 | LOW (non-blocking, prospective) | AC-001 array detector misses split-flag `declare -r -A map` (capital A in later token); combined forms `-rA`/`-gA`/`-Ax` covered; not present currently. | **ACCEPTED** — documented prospective scope boundary; FREEZE DISCIPLINE. |
+| O-4 | LOW (prospective / paper-guard) | AC-001 guard detector confirms `BASH_VERSINFO` conditional present but not that it exits; real guard exits 1; no current gap. | **ACCEPTED** — documented prospective scope boundary; FREEZE DISCIPLINE. |
+
+### Severity Decay
+
+| Pass | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 |
+|------|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Verdict | NC | NC | NC | NC | CLEAN | NC | CLEAN | NC | CLEAN | CLEAN | NC | NC | NC |
+| Highest | HIGH | HIGH | MED | MED | — | MED | — | MED | — | — | HIGH | HIGH | MED |
+| Streak | 0/3 | 0/3 | 0/3 | 0/3 | 1/3 | 0/3 | 1/3 | 0/3 | 1/3 | 2/3 | 0/3 | 0/3 | **0/3** |
+
+Severity decay H→H→M→M→CLEAN→MED→CLEAN→MED→CLEAN→CLEAN→NC(H+M)→NC(H)→NC(M). Both F-P13-001 and F-P13-002 remediated at b252c8fe; O-1..O-4 accepted; streak 0/3; pass-14 dispatched on b252c8fe/v1.11 FROZEN (do NOT harden prospective LOWs O-1..O-4).
+
+### Codifications
+
+- **D-737** decision-log block (this entry): S-18.12 LOCAL adv pass-13 NOT-CLEAN; F-P13-001 MEDIUM (scan-loop regex literal duplication); F-P13-002 MEDIUM (missing pc_bad_py_with_preflight symmetric twin; TD-VSDD-060); O-1..O-4 accepted; streak 0/3; feature HEAD b252c8fe.
+- **STORY-INDEX v4.118→v4.119**: S-18.12 body row annotation updated with pass-13 NOT-CLEAN + feature HEAD b252c8fe (GOVERNANCE-ONLY; story stays v1.11 — no AC change; POLICY 14 leg-5; state-manager this burst).
+- **s-18.12-local-adversary-pass-13.md**: pass-13 adversary report persisted in cycles/v1.0-brownfield-backfill/.
+- **lessons.md**: L-BB-scan-loop-and-controls-must-share-regex-variable codified.
+- **STATE.md**: v4.87→v4.88 — D-737 banner + frontmatter + Decisions Log + feature/S-18.12 Active Branches b252c8fe + Session Resume Checkpoint refreshed for zero-context resume into pass-14. Drift Item [process-gap] D-737-twin-control-parity-mechanical-gate added.
+
+### Feature Branch
+
+- **feature/S-18.12** — WIP advances from f725426e → **b252c8fe** (test-writer variable extraction + pc_bad_py_with_preflight addition; no story/AC change; 68/68 bats GREEN; FROZEN for pass-14). Not pushed (STOP-BEFORE-PR-MERGE D-665).
+
+### Develop / 4-Index State
+
+- develop_head: 531dacfb UNCHANGED
+- merged_count: 95 UNCHANGED
+- total_bcs: 1,974 UNCHANGED
+- BC-INDEX: v3.57 UNCHANGED
+- VP-INDEX: v2.51 UNCHANGED
+- STORY-INDEX: v4.118→v4.119 (BUMPED this burst, POLICY 14 leg-5, annotation-only no story AC change)
+- ARCH-INDEX: v2.85 UNCHANGED
+
+### NEXT
+
+S-18.12 LOCAL adversarial pass-14. Fresh context. Streak **0/3**. ARTIFACTS FROZEN at b252c8fe/v1.11 — fix ONLY genuine blockers; accept prospective LOWs O-1..O-4 as documented scope boundaries. STOP-BEFORE-PR-MERGE (D-665) holds.
+
 ## D-736 — S-18.12 LOCAL adv pass-12 NOT-CLEAN closure — 2026-06-30
 
 ### Verdict
