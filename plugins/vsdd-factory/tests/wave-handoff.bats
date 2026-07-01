@@ -4122,6 +4122,21 @@ EOF
     echo "FAIL (AC-001 positive-control): array-detector falsely matched 'declare -a' (POSIX indexed array; bash-3-safe)." >&2
     false
   }
+  # Array-detector (with comment-strip pre-filter): a declare -A/local -A token appearing
+  # ONLY inside a comment MUST NOT match (adversary MAJOR-1). Parity with the guard oracle's
+  # F-P14-001 comment-strip below. Without this fix, the has_arrays trigger loop ran
+  # grep -qE "$array_re" with no comment-strip, so a comment mentioning a removed 'declare -A'
+  # (e.g. real code refactored to indexed -a) set has_arrays=1 even though no live
+  # associative array remains in the file — a false-positive AC-001 FAIL on benign code.
+  local pc_commented_arr
+  pc_commented_arr="${BATS_TEST_TMPDIR}/pc_ac001_commented_arr.sh"
+  printf '# declare -A my_map (refactored to indexed array below; guard no longer needed)\ndeclare -a my_arr\n' > "$pc_commented_arr"
+  ! grep -vE '^[[:space:]]*#' "$pc_commented_arr" | grep -qE "$array_re" || {
+    echo "FAIL (AC-001 positive-control / MAJOR-1): array-detector (with comment-strip) falsely matched" >&2
+    echo "  'declare -A' appearing only in a comment line. The has_arrays trigger loop must strip" >&2
+    echo "  comment lines before applying array_re, matching the has_guard loop's pre-filter." >&2
+    false
+  }
   # Guard-detector: executable conditional MUST match (non-comment [ or (( precedes BASH_VERSINFO).
   grep -vE '^[[:space:]]*#' "$pc_good_guard" | grep -qE "$guard_re" || {
     echo "FAIL (AC-001 positive-control): guard-detector did not match 'if [ ... BASH_VERSINFO' form." >&2
@@ -4145,10 +4160,13 @@ EOF
   # Check whether any file uses local -A or declare -A (bash 4+ associative arrays).
   # Broadened: also catches combined flags (-Ax), prefix flags (-gA), and -A at end-of-line.
   # Does NOT catch -a (indexed arrays, bash-3-safe): [a-zA-Z]*A[a-zA-Z]* requires capital A.
+  # Comment-strip pre-filter (adversary MAJOR-1): parity with the has_guard loop below and
+  # the AC-002..005 scan loops — a declare -A/local -A appearing only in a comment must not
+  # false-trigger has_arrays.
   local has_arrays=0
   local f
   for f in "${sh_files[@]}"; do
-    if grep -qE "$array_re" "$f" 2>/dev/null; then
+    if grep -vE '^[[:space:]]*#' "$f" 2>/dev/null | grep -qE "$array_re"; then
       has_arrays=1
       break
     fi
