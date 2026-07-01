@@ -3973,8 +3973,11 @@ EOF
     # Patterns: the backslash appears literally in the grep/sed argument.
     #
     # Use grep -n to get line numbers for diagnostic output.
+    # D-740 O-3: comment-strip pre-filter for parity with the guard oracle (which strips
+    # comment lines before matching) — a comment mentioning \s/\d/etc. must not false-match.
     local hits
-    hits="$(grep -nE "(grep|sed).*(['\"])[^'\"]*\\\\[sSdDwWb][^'\"]*\2" "$f" 2>/dev/null || true)"
+    hits="$(grep -nvE '^[[:space:]]*#' "$f" 2>/dev/null \
+        | grep -E "(grep|sed).*(['\"])[^'\"]*\\\\[sSdDwWb][^'\"]*\2" || true)"
     if [ -n "$hits" ]; then
       while IFS= read -r hit; do
         violations+=("${rel}: ${hit}")
@@ -3983,7 +3986,8 @@ EOF
 
     # Also detect grep -P or grep --perl-regexp (GNU-only)
     local phits
-    phits="$(grep -nE "grep[[:space:]]+(-[a-zA-Z]*P|--perl-regexp)" "$f" 2>/dev/null || true)"
+    phits="$(grep -nvE '^[[:space:]]*#' "$f" 2>/dev/null \
+        | grep -E "grep[[:space:]]+(-[a-zA-Z]*P|--perl-regexp)" || true)"
     if [ -n "$phits" ]; then
       while IFS= read -r hit; do
         violations+=("${rel}: ${hit}")
@@ -4450,7 +4454,9 @@ EOF
   local f
   for f in "${sh_files[@]}"; do
     local hits
-    hits="$(grep -nE "$case_mod_re" "$f" 2>/dev/null || true)"
+    # D-740 O-3: comment-strip pre-filter for parity with the guard oracle (which strips
+    # comment lines before matching) — a comment mentioning ${var^^} must not false-match.
+    hits="$(grep -nvE '^[[:space:]]*#' "$f" 2>/dev/null | grep -E "$case_mod_re" || true)"
     if [ -n "$hits" ]; then
       local rel="${f#${wave_handoff_skill_dir}/}"
       modifier_files+=("$f")
@@ -4877,7 +4883,10 @@ EOF
   for f in "${sh_files[@]}"; do
     local rel="${f#${wave_handoff_skill_dir}/}"
     local hits
-    hits="$(grep -nE "$ifs_step1_re" "$f" 2>/dev/null \
+    # D-740 O-3: comment-strip pre-filter for parity with the guard oracle (which strips
+    # comment lines before matching) — a comment mentioning 'cmd; IFS=...' must not false-match.
+    hits="$(grep -nvE '^[[:space:]]*#' "$f" 2>/dev/null \
+      | grep -E "$ifs_step1_re" \
       | grep -vE "$ifs_step2_re" \
       | grep -vE "$ifs_step3_re" \
       || true)"
@@ -5245,8 +5254,10 @@ EOF
   for f in "${sh_files[@]}"; do
     local rel="${f#${wave_handoff_skill_dir}/}"
     local hits
-    hits="$(grep -nE "$python_re" \
-        "$f" 2>/dev/null || true)"
+    # D-740 O-3: comment-strip pre-filter for parity with the guard oracle (which strips
+    # comment lines before matching) — a comment mentioning 'cmd | python3 ...' must not false-match.
+    hits="$(grep -nvE '^[[:space:]]*#' "$f" 2>/dev/null \
+        | grep -E "$python_re" || true)"
     if [ -n "$hits" ]; then
       while IFS= read -r hit; do
         violations+=("${rel}: python/pip shell-out: ${hit}")
@@ -5549,8 +5560,10 @@ EOF
   for f in "${sh_files[@]}"; do
     local rel="${f#${wave_handoff_skill_dir}/}"
     local hits
-    hits="$(grep -nE "$jq_re" \
-        "$f" 2>/dev/null || true)"
+    # D-740 O-3: comment-strip pre-filter for parity with the guard oracle (which strips
+    # comment lines before matching) — a comment mentioning 'cmd | jq ...' must not false-match.
+    hits="$(grep -nvE '^[[:space:]]*#' "$f" 2>/dev/null \
+        | grep -E "$jq_re" || true)"
     if [ -n "$hits" ]; then
       while IFS= read -r hit; do
         violations+=("${rel}: jq shell-out: ${hit}")
