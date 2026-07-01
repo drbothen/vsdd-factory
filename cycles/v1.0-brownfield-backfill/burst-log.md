@@ -11741,4 +11741,4 @@ S-18.12 LOCAL adversarial cascade streak: advances to **3/3 = CONVERGED** (CLEAN
 
 ### Factory-artifacts Commits
 
-- SHA pending — sha-patch follow-up per D-447(c)+D-449(e) after commit push
+- `dd44a274` — state(D-741): S-18.12-LOCAL-PASS-17-CLEAN-CLOSURE-CONVERGED (2026-06-30; 5 files; +265/-45; pushed 99694b24..dd44a274 factory-artifacts)
