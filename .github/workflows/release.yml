@@ -161,9 +161,23 @@ jobs:
           fi
           # Bundle all wasm artifacts. They are identical across platforms so
           # every leg ships them redundantly; commit-binaries uses linux-x64 as
-          # canonical source. The glob catches all 16 native plugins.
+          # canonical source. Skip underscore-named lib-target stubs (75-103 byte
+          # wasm32-wasip1 lib outputs produced alongside each plugin's hyphen-named
+          # binary target); pass through the two legitimate underscore binaries:
+          #   vsdd_context_resolvers.wasm — cdylib of the vsdd-context-resolvers crate
+          #   wasm_resolver_export.wasm   — SDK example verifying the #[resolver] export
           if compgen -G "target/wasm32-wasip1/release/*.wasm" > /dev/null; then
-            cp target/wasm32-wasip1/release/*.wasm artifact/
+            for wasm in target/wasm32-wasip1/release/*.wasm; do
+              name=$(basename "$wasm")
+              case "$name" in
+                *_*.wasm)
+                  case "$name" in
+                    vsdd_context_resolvers.wasm|wasm_resolver_export.wasm) ;;
+                    *) echo "skip lib-target stub: $name"; continue ;;
+                  esac ;;
+              esac
+              cp "$wasm" artifact/
+            done
           fi
           # hello-hook example lives under examples/
           cp target/wasm32-wasip1/release/examples/hello-hook.wasm artifact/ 2>/dev/null || true
@@ -250,8 +264,21 @@ jobs:
           src="/tmp/artifacts/factory-dispatcher-linux-x64"
           for wasm in "$src"/*.wasm; do
             [ -f "$wasm" ] || continue
+            name=$(basename "$wasm")
+            # Skip underscore-named lib-target stubs (75-103 byte wasm32-wasip1 lib
+            # outputs produced alongside each plugin's hyphen-named binary target).
+            # Two legitimate underscore binaries are passed through:
+            #   vsdd_context_resolvers.wasm — cdylib of vsdd-context-resolvers crate
+            #   wasm_resolver_export.wasm   — SDK example for the #[resolver] macro
+            case "$name" in
+              *_*.wasm)
+                case "$name" in
+                  vsdd_context_resolvers.wasm|wasm_resolver_export.wasm) ;;
+                  *) echo "skip lib-target stub: $name"; continue ;;
+                esac ;;
+            esac
             cp "$wasm" plugins/vsdd-factory/hook-plugins/
-            echo "staged $(basename "$wasm")"
+            echo "staged $name"
           done
 
       - name: Verify all 16 native WASM plugins are staged
