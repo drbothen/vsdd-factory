@@ -5235,3 +5235,48 @@ RELEASE-PREP
 2026-07-01
 
 ---
+
+## D-749 — RC22 Prep Arc Complete: WASM Dirty-File Closed, PRs #431+#438 Merged, Merge-Race Process-Gap Codified
+
+### Decision
+
+**rc.22 prep arc is COMPLETE.** This burst records all events between D-748 (firing matrix) and the GO/NO-GO gate for cutting rc.22.
+
+**(1) validate-state-structure.wasm dirty-file CLOSED.** The uncommitted `validate-state-structure.wasm` (206,070 B unknown-provenance rebuild artifact) was formally discarded via `git restore` (human-approved). The file was subsequently deleted from the repository by PR #431's merge. The dirty-file saga that opened at D-747 is fully CLOSED.
+
+**(2) PR #431 (maintenance/rc22-pre-release-cleanup) MERGED squash 35b345f4 to develop.** Three orthogonal fixes shipped together:
+- **WASM stub deletion:** 11 orphan underscore-named WASM files (`_validate_*.wasm`) — 75–103 B cargo build artifacts from rc.3/18/19/20 unfiltered-glob era — permanently deleted.
+- **release.yml hardening:** Both WASM copy steps in the release pipeline now apply an underscore filter (skip `_*.wasm` stubs) and an explicit allowlist guard.
+- **F-P3-008 timing-flake fix:** The resolver-integration bats test timing flare (1,300 ms wall-clock lower-bound assertion) replaced with an InternalLog JSONL behavioral assertion against `executor.rs emit_resolver_error` output — eliminates machine-speed sensitivity entirely.
+
+Verification at merge: CI 13/13 green; fresh-context pr-reviewer APPROVE; adversary 0 BLOCKER/0 HIGH/0 MEDIUM + 3 LOW + 1 INFO; mechanical 50-file filter simulation FILTER-CORRECT.
+
+**(3) MERGE-RACE PROCESS-GAP.** Human merged PR #431 at ~17:57Z before the LOW-1 registry-vs-staged assertion amendment (commit fc9d4b25) was pushed (~18:20Z). The pr-manager READY verdict was stale-head — it covered the state before fc9d4b25 but the merge included none of that commit's content. Post-merge smoke (SMOKE-RED) detected the missing assertion. Lesson codified: **L-BB-merge-race-ready-report-stale-head** — PR-cycle READY verdicts MUST pin the exact covered HEAD SHA and explicitly declare all later pushes uncovered; orchestrator MUST content-verify merge commits against the reviewed content rather than trust READY reports across merge races. A Drift Item was added to STATE.md anchoring a pr-manager skill-hardening story (S-7.02 target; story creation deferred as out-of-lane for state-manager).
+
+**(4) RECOVERY via PR #438.** fc9d4b25 cherry-picked clean onto branch `fix/rc22-registry-staged-assertion` (HEAD f805308a); 4-scenario assertion simulation re-validated at new base. PR #438 created. Diff vs. reviewed fc9d4b25 byte-identical — prior pr-reviewer APPROVE carries. CI 13/13 (one ubuntu disk-exhaustion infra flake retried clean). MERGED squash a6cf13e8 (human direct, no intermediary relay). Post-merge orchestrator content-verified: develop `release.yml` contains exactly 2 `Verify registry-declared WASM plugins are staged` steps, 0 count-floor patterns, byte-identical to reviewed content.
+
+**(5) LOW-1 CLOSED on develop.** Registry-vs-staged assertion is now live: hooks-registry 33 plugins verified in build job; resolvers-registry 1 plugin verified in commit job; `<30` parse guard prevents silent miscounting; loud missing-list failure on any discrepancy. Slack: 3 intentional non-registry files (4 orphans minus 1 resolvers entry).
+
+**(6) CARRIED OBSERVATIONS (non-blocking, future scope):** ADVISORY-1 — `resolvers-registry` count uses `2>/dev/null` which could swallow a future field-rename silently (minor, low-risk). ADVISORY-2 — `<30` guard has 3-file slack; acceptable but noted. LOW-2 — `error_kind` field `timeout` is polysemous (fuel exhaustion vs. real timeout); doc-nit for future architect. LOW-3 — midnight log-date race in `log_path` construction; negligible real-world risk. INFO-1 — `vsdd-context-resolvers` uses hyphens in directory naming vs. underscores in WASM artifact naming (S-12.07 provenance; flagged in PR #431 body; future architect decision, not a defect).
+
+**(7) POST-MERGE SMOKE at 34aa9e8f PASS.** Core gates: 1,944 tests PASS. One transient `cargo` parallel-build race on vp078 (3/3 isolated re-runs pass — true race, not a flake). Registry parity: 33/33 plugins, orphans exactly 4 (all intentional non-registry files), stubs GONE. Bats: 1,684 pass / 0 fail; F-P3-008 fix live; snapshot suite SKIPPED (expected). Firing matrix: 33/33. Visual-companion: vite 8.1.0 PASS (Dependabot #202 merged at 34aa9e8f).
+
+**(8) Dependabot.** PR #202 (vite 8.1.0) merged at 34aa9e8f. PRs #194 and #187 closed/resolved. Only PR #192 (dompurify) remains open.
+
+**(9) State at burst completion.** develop HEAD a6cf13e8; merged_count 98 (96→98 via PRs #431+#438); 4-index ALL UNCHANGED: BC-INDEX v3.57 / VP-INDEX v2.51 / STORY-INDEX v4.127 / ARCH-INDEX v2.85; total_bcs 1,974 UNCHANGED.
+
+**(10) POSTURE: rc.22 prep COMPLETE.** Remaining gates are HUMAN-GATED: (a) CI green at a6cf13e8 (semgrep job was in progress at burst time); (b) `CHANGELOG.md` `## 1.0.0-rc.22` heading + release notes + README badge update rc.11→rc.22; (c) human GO/NO-GO → RELEASING.md procedure. POST-E-18 revisit (D-721/D-723) separately pending.
+
+**STATE.md D-749 compaction note:** Decisions Log D-705..D-728 (24 rows) archived to 1 ARCHIVED reference row per D-430(a). File: 482 lines (well under 500 cap).
+
+Parent-commit: fe88375e (D-748 factory-artifacts HEAD).
+
+### Phase
+
+RELEASE-PREP
+
+### Date
+
+2026-07-02
+
+---
