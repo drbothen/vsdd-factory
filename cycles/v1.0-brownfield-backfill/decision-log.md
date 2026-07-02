@@ -5191,3 +5191,47 @@ RELEASE-PREP
 2026-07-01
 
 ---
+
+## D-748 — RC22 Full 73-Registration Hook Firing Matrix Complete
+
+### Decision
+
+**Human directed a complete per-registration hook firing verification** extending D-747 smoke evidence. All 73 registrations in `hooks-registry.toml` (33 plugins × 11 event types — SessionStart, SessionEnd, WorktreeCreate, WorktreeRemove, PostToolUseFailure, PreToolUse, PostToolUse, PreCompact, PostCompact, Stop, SubagentStop; 18 unique event/tool dispatch groups) were individually tested with positive trigger + negative control + JSONL `plugin.invoked` evidence. Tests were run **twice**: against the committed WASM set and against fresh source builds. This is a **bookkeeping-only burst** — no code changes were made, no release actions were taken.
+
+**RESULT: 73/73 PASS, 0 FAIL, 0 UNTESTABLE.**
+
+**Firing matrix details:**
+
+**(a) Positive triggers:** Every registration's designated event type and (where applicable) tool-name filter produced a `plugin.invoked` JSONL record in `.factory/logs/dispatcher-internal-YYYY-MM-DD.jsonl` with `plugin_name` matching the registration. All 18 dispatch groups confirmed.
+
+**(b) Negative controls:** 73/73 held. Registrations with tool-name or event-type filters did NOT fire on non-matching triggers (e.g., a `PreToolUse` filter on `Edit` did not fire on `Write`; a `PostCompact` registration did not fire on `PreCompact`). Filter discrimination confirmed.
+
+**(c) on_error=block behaviour:** 15 registrations carry `on_error=block`. All 15 were silent (no block signal, no crash) when exercised with benign payloads — correct behaviour for plugins that only block on semantic violations.
+
+**(d) SubagentStop exit=2:** `handoff-validator` (SubagentStop) emitted exit_code=2 advisory-block-mode during testing. This is **expected** per `HOST_ABI.md` handoff-validator advisory-block-mode design — not a crash, not a regression.
+
+**(e) Zero platform incidents:** zero `plugin.crashed` records, zero `plugin.timeout` records across all 73 registrations in both committed-WASM and fresh-build runs.
+
+**(f) Committed-vs-fresh parity:** Firing behaviour was **SAME on all 73** registrations. Fresh source builds (canonical `release.yml` 3 cargo invocations, darwin-arm64 rustc 1.95.0) produced functionally identical results to committed binaries — confirming no behavioural divergence between committed WASMs and HEAD source.
+
+**Hook chain declared FIRING-COMPLETE for rc.22.** All smoke evidence pillars are now complete: CI green (D-747a), local matrix (D-747b), 8-group runtime sample (D-747c), from-source WASM rebuild (D-747d), full 73-registration firing matrix (D-748). rc.22 smoke evidence is **COMPLETE**.
+
+**Pending gate items a–d UNCHANGED** (carried from D-747):
+- **(a)** `CHANGELOG.md` requires a `## 1.0.0-rc.22` heading + notes (release.yml hard-gates)
+- **(b)** README badge stale at rc.11 (cosmetic)
+- **(c)** Human approves `git restore plugins/vsdd-factory/hook-plugins/validate-state-structure.wasm` (WASM discard)
+- **(d)** Optional: 11 orphan underscore-named WASM cleanup + resolver-integration 1,300ms timing-floor flake fix
+
+**4-index ALL UNCHANGED at D-748:** BC-INDEX v3.57 / VP-INDEX v2.51 / STORY-INDEX v4.127 / ARCH-INDEX v2.85. develop_head 2879f473 UNCHANGED. merged_count 96 UNCHANGED. total_bcs 1,974 UNCHANGED.
+
+Parent-commit: 8d0ece18 (D-747 factory-artifacts HEAD).
+
+### Phase
+
+RELEASE-PREP
+
+### Date
+
+2026-07-01
+
+---
