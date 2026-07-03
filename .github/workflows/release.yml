@@ -186,7 +186,10 @@ jobs:
         shell: bash
         run: |
           # Parse all hook plugin WASMs declared in hooks-registry.toml.
-          mapfile -t declared < <(
+          # bash-3.2 portable (no mapfile): process substitution works in 3.2;
+          # mapfile requires bash 4.0+ and fails on macOS default /bin/bash.
+          declared=()
+          while IFS= read -r __line; do [ -n "$__line" ] && declared+=("$__line"); done < <(
             grep -E '^\s*plugin\s*=\s*"hook-plugins/' \
               plugins/vsdd-factory/hooks-registry.toml \
               | grep -oE 'hook-plugins/[^"]+' \
@@ -308,7 +311,10 @@ jobs:
         shell: bash
         run: |
           # Parse hook plugins from hooks-registry.toml.
-          mapfile -t hooks_plugins < <(
+          # bash-3.2 portable (no mapfile): process substitution works in 3.2;
+          # mapfile requires bash 4.0+ and fails on macOS default /bin/bash.
+          hooks_plugins=()
+          while IFS= read -r __line; do [ -n "$__line" ] && hooks_plugins+=("$__line"); done < <(
             grep -E '^\s*plugin\s*=\s*"hook-plugins/' \
               plugins/vsdd-factory/hooks-registry.toml \
               | grep -oE 'hook-plugins/[^"]+' \
@@ -316,7 +322,8 @@ jobs:
               | sort -u
           )
           # Parse resolver WASMs from resolvers-registry.toml.
-          mapfile -t resolver_plugins < <(
+          resolver_plugins=()
+          while IFS= read -r __line; do [ -n "$__line" ] && resolver_plugins+=("$__line"); done < <(
             grep -E '^\s*plugin\s*=\s*"hook-plugins/' \
               plugins/vsdd-factory/resolvers-registry.toml 2>/dev/null \
               | grep -oE 'hook-plugins/[^"]+' \
