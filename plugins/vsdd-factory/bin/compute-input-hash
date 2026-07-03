@@ -14,16 +14,6 @@
 # artifact's directory, concatenates their contents, and outputs a 7-char
 # short MD5 hash (git-SHA-ish style).
 #
-# Path resolution order (deterministic, first-match wins):
-#   1. Artifact directory and its parent (sibling-artifact resolution)
-#   2. .factory/specs, .factory/stories, .factory/phase-0-ingestion,
-#      .factory/holdout-scenarios, .factory/ root  (factory-relative paths)
-#   3. Repository root (for repo-root-relative engine paths such as
-#      plugins/vsdd-factory/skills/.../SKILL.md)
-#
-# A path that does not resolve under any of the above is surfaced as MISSING —
-# it is never silently skipped (bugfix invariant preserved).
-#
 # Exit codes:
 #   0 — success (or match for --check, or clean scan, or --scan --update all ok)
 #   1 — usage error, missing inputs, or --scan --update had failures
@@ -177,15 +167,12 @@ INPUTS=$(awk '
     in_arr=1
     next
   }
-  fm==1 && in_arr {
-    # Detect end of inputs: block BEFORE sub() modifies $0.
-    # A line that is not a list item (does not start with optional spaces then -)
-    # signals the next top-level YAML key and ends the block.
-    if (!/^  *- /) { exit }
+  fm==1 && in_arr && /^  *- / {
     sub(/^  *- */, "")
     gsub(/["'"'"' \t]/, "")
     print
   }
+  fm==1 && in_arr && /^[^ -]/ { exit }
 ' "$FILE" | grep -v '^$' || true)
 
 if [[ -z "$INPUTS" ]]; then
@@ -203,16 +190,9 @@ ARTIFACT_DIR=$(dirname "$FILE")
 # e.g., if FILE is .factory/specs/prd.md with inputs: [domain-spec/L2-INDEX.md]
 #        resolve to .factory/specs/domain-spec/L2-INDEX.md
 # Also try .factory/ root for absolute-ish paths like architecture/ARCH-INDEX.md
-# REPO_ROOT is the repository root (parent of .factory/); used as the final
-# search base so repo-root-relative engine paths (e.g., plugins/vsdd-factory/…)
-# resolve correctly.  It is only set when the artifact lives under .factory/.
 FACTORY_ROOT=""
-REPO_ROOT=""
 case "$FILE" in
-  *.factory/*)
-    FACTORY_ROOT="${FILE%%/.factory/*}/.factory"
-    REPO_ROOT="${FILE%%/.factory/*}"
-    ;;
+  *.factory/*) FACTORY_ROOT="${FILE%%/.factory/*}/.factory" ;;
 esac
 
 CONCAT=""
@@ -220,12 +200,6 @@ MISSING=0
 MISSING_FILES=""
 
 # --- Helper: resolve a single input file against search paths ---
-# Resolution order (deterministic, first-match wins):
-#   1. Artifact directory and its parent
-#   2. .factory/ sub-directories and root (when artifact is under .factory/)
-#   3. Repository root (for repo-root-relative engine paths such as
-#      plugins/vsdd-factory/skills/.../SKILL.md)
-# A path that resolves under none of the above returns exit-code 1 (MISSING).
 _resolve_one() {
   local input_file="$1"
   local stripped_input="$input_file"
@@ -249,31 +223,10 @@ _resolve_one() {
       return 0
     fi
   done
-
-  # Final fallback: try the input path as-is relative to the repository root.
-  # This covers repo-root-relative engine paths (e.g., plugins/vsdd-factory/skills/…)
-  # that cannot be found inside .factory/.
-  # Assumption: no directory component above the vsdd-factory repo root is named
-  # ".factory"; the ${FILE%%/.factory/*} pattern would anchor at the wrong level
-  # if, e.g., the user's home directory were ~/.factory/… (extremely unlikely in
-  # practice; the sentinel file CLAUDE.md at the repo root disambiguates in edge
-  # cases during development).  Path-traversal inputs ('..' sequences) are
-  # rejected before this point, so REPO_ROOT/$input_file is bounded to
-  # legitimate repo-relative paths.
-  if [[ -n "$REPO_ROOT" ]] && [[ -f "$REPO_ROOT/$input_file" ]]; then
-    echo "$REPO_ROOT/$input_file"
-    return 0
-  fi
-
   return 1
 }
 
 # --- Helper: expand glob/directory input to sorted file list ---
-# Note: _expand_glob searches .factory/-relative bases only (artifact dir,
-# parent, factory sub-dirs).  Repo-root-relative engine paths that use glob
-# syntax (e.g., plugins/vsdd-factory/skills/*/SKILL.md) are NOT supported —
-# use an explicit list of single-file inputs instead.  Single-file engine
-# paths resolve correctly via _resolve_one's REPO_ROOT fallback.
 _expand_glob() {
   local pattern="$1"
   local stripped="${pattern#.factory/}"
@@ -308,18 +261,6 @@ _expand_glob() {
 
 while IFS= read -r input_file; do
   [[ -z "$input_file" ]] && continue
-
-  # Reject path-traversal sequences (CWE-22).  Legitimate factory inputs never
-  # use '..' path components — they rely on the search-base hierarchy instead.
-  # The regex matches '..' as a standalone path component (anchored at start,
-  # between slashes, or at end) to avoid false-positives on filenames that
-  # contain double-dots in non-component positions (e.g., 'v1..2-spec.md').
-  if [[ "$input_file" =~ (^|/)\.\.(/|$) ]]; then
-    echo "compute-input-hash: rejected path traversal in input: $input_file" >&2
-    MISSING=$((MISSING + 1))
-    MISSING_FILES="${MISSING_FILES:+$MISSING_FILES, }$input_file"
-    continue
-  fi
 
   # Detect glob or directory inputs and expand them
   if [[ "$input_file" == *"*"* ]] || [[ "$input_file" == */ ]]; then

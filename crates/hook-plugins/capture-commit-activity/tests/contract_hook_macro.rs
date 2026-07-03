@@ -28,7 +28,6 @@ fn git_commit_payload() -> HookPayload {
         subagent_name: None,
         last_assistant_message: None,
         result: None,
-        extra: std::collections::HashMap::new(),
     }
 }
 
